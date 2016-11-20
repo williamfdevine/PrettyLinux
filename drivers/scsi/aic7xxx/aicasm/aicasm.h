@@ -43,26 +43,28 @@
  */
 
 #ifdef __linux__
-#include "../queue.h"
+	#include "../queue.h"
 #else
-#include <sys/queue.h>
+	#include <sys/queue.h>
 #endif
 
 #ifndef TRUE
-#define TRUE 1
+	#define TRUE 1
 #endif
 
 #ifndef FALSE
-#define FALSE 0
+	#define FALSE 0
 #endif
 
-typedef struct path_entry {
+typedef struct path_entry
+{
 	char	*directory;
 	int	quoted_includes_only;
 	SLIST_ENTRY(path_entry) links;
 } *path_entry_t;
 
-typedef enum {  
+typedef enum
+{
 	QUOTED_INCLUDE,
 	BRACKETED_INCLUDE,
 	SOURCE_FILE

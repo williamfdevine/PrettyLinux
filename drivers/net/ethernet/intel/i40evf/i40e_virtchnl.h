@@ -58,11 +58,12 @@
 /* Opcodes for VF-PF communication. These are placed in the v_opcode field
  * of the virtchnl_msg structure.
  */
-enum i40e_virtchnl_ops {
-/* The PF sends status change events to VFs using
- * the I40E_VIRTCHNL_OP_EVENT opcode.
- * VFs send requests to the PF using the other ops.
- */
+enum i40e_virtchnl_ops
+{
+	/* The PF sends status change events to VFs using
+	 * the I40E_VIRTCHNL_OP_EVENT opcode.
+	 * VFs send requests to the PF using the other ops.
+	 */
 	I40E_VIRTCHNL_OP_UNKNOWN = 0,
 	I40E_VIRTCHNL_OP_VERSION = 1, /* must ALWAYS be 1 */
 	I40E_VIRTCHNL_OP_RESET_VF = 2,
@@ -92,7 +93,8 @@ enum i40e_virtchnl_ops {
  * descriptor. All other data is passed in external buffers.
  */
 
-struct i40e_virtchnl_msg {
+struct i40e_virtchnl_msg
+{
 	u8 pad[8];			 /* AQ flags/opcode/len/retval fields */
 	enum i40e_virtchnl_ops v_opcode; /* avoid confusion with desc->opcode */
 	i40e_status v_retval;  /* ditto for desc->retval */
@@ -117,7 +119,8 @@ struct i40e_virtchnl_msg {
 #define I40E_VIRTCHNL_VERSION_MINOR		1
 #define I40E_VIRTCHNL_VERSION_MINOR_NO_VF_CAPS	0
 
-struct i40e_virtchnl_version_info {
+struct i40e_virtchnl_version_info
+{
 	u32 major;
 	u32 minor;
 };
@@ -142,7 +145,8 @@ struct i40e_virtchnl_version_info {
  * i40e_virtchnl_vsi_resource structures.
  */
 
-struct i40e_virtchnl_vsi_resource {
+struct i40e_virtchnl_vsi_resource
+{
 	u16 vsi_id;
 	u16 num_queue_pairs;
 	enum i40e_vsi_type vsi_type;
@@ -162,7 +166,8 @@ struct i40e_virtchnl_vsi_resource {
 #define I40E_VIRTCHNL_VF_OFFLOAD_RSS_PF		0X00080000
 #define I40E_VIRTCHNL_VF_OFFLOAD_ENCAP_CSUM	0X00100000
 
-struct i40e_virtchnl_vf_resource {
+struct i40e_virtchnl_vf_resource
+{
 	u16 num_vsis;
 	u16 num_queue_pairs;
 	u16 max_vectors;
@@ -182,7 +187,8 @@ struct i40e_virtchnl_vf_resource {
  */
 
 /* Tx queue config info */
-struct i40e_virtchnl_txq_info {
+struct i40e_virtchnl_txq_info
+{
 	u16 vsi_id;
 	u16 queue_id;
 	u16 ring_len;		/* number of descriptors, multiple of 8 */
@@ -198,7 +204,8 @@ struct i40e_virtchnl_txq_info {
  */
 
 /* Rx queue config info */
-struct i40e_virtchnl_rxq_info {
+struct i40e_virtchnl_rxq_info
+{
 	u16 vsi_id;
 	u16 queue_id;
 	u32 ring_len;		/* number of descriptors, multiple of 32 */
@@ -217,13 +224,15 @@ struct i40e_virtchnl_rxq_info {
  * If the number of queues specified is greater than the number of queues
  * associated with the VSI, an error is returned and no queues are configured.
  */
-struct i40e_virtchnl_queue_pair_info {
+struct i40e_virtchnl_queue_pair_info
+{
 	/* NOTE: vsi_id and queue_id should be identical for both queues. */
 	struct i40e_virtchnl_txq_info txq;
 	struct i40e_virtchnl_rxq_info rxq;
 };
 
-struct i40e_virtchnl_vsi_queue_config_info {
+struct i40e_virtchnl_vsi_queue_config_info
+{
 	u16 vsi_id;
 	u16 num_queue_pairs;
 	struct i40e_virtchnl_queue_pair_info qpair[1];
@@ -236,7 +245,8 @@ struct i40e_virtchnl_vsi_queue_config_info {
  * The "other" causes are always mapped to vector 0.
  * PF configures interrupt mapping and returns status.
  */
-struct i40e_virtchnl_vector_map {
+struct i40e_virtchnl_vector_map
+{
 	u16 vsi_id;
 	u16 vector_id;
 	u16 rxq_map;
@@ -245,7 +255,8 @@ struct i40e_virtchnl_vector_map {
 	u16 txitr_idx;
 };
 
-struct i40e_virtchnl_irq_map_info {
+struct i40e_virtchnl_irq_map_info
+{
 	u16 num_vectors;
 	struct i40e_virtchnl_vector_map vecmap[1];
 };
@@ -258,7 +269,8 @@ struct i40e_virtchnl_irq_map_info {
  * u32 to allow for expansion.)
  * PF performs requested action and returns status.
  */
-struct i40e_virtchnl_queue_select {
+struct i40e_virtchnl_queue_select
+{
 	u16 vsi_id;
 	u16 pad;
 	u32 rx_queues;
@@ -277,12 +289,14 @@ struct i40e_virtchnl_queue_select {
  * PF removes the filters and returns status.
  */
 
-struct i40e_virtchnl_ether_addr {
+struct i40e_virtchnl_ether_addr
+{
 	u8 addr[ETH_ALEN];
 	u8 pad[2];
 };
 
-struct i40e_virtchnl_ether_addr_list {
+struct i40e_virtchnl_ether_addr_list
+{
 	u16 vsi_id;
 	u16 num_elements;
 	struct i40e_virtchnl_ether_addr list[1];
@@ -302,7 +316,8 @@ struct i40e_virtchnl_ether_addr_list {
  * error to the VF.
  */
 
-struct i40e_virtchnl_vlan_filter_list {
+struct i40e_virtchnl_vlan_filter_list
+{
 	u16 vsi_id;
 	u16 num_elements;
 	u16 vlan_id[1];
@@ -313,7 +328,8 @@ struct i40e_virtchnl_vlan_filter_list {
  * PF returns status code in retval.
  * Note: we assume that broadcast accept mode is always enabled.
  */
-struct i40e_virtchnl_promisc_info {
+struct i40e_virtchnl_promisc_info
+{
 	u16 vsi_id;
 	u16 flags;
 };
@@ -338,13 +354,15 @@ struct i40e_virtchnl_promisc_info {
  * Both the key and LUT are initialized to 0 by the PF, meaning that
  * RSS is effectively disabled until set up by the VF.
  */
-struct i40e_virtchnl_rss_key {
+struct i40e_virtchnl_rss_key
+{
 	u16 vsi_id;
 	u16 key_len;
 	u8 key[1];         /* RSS hash key, packed bytes */
 };
 
-struct i40e_virtchnl_rss_lut {
+struct i40e_virtchnl_rss_lut
+{
 	u16 vsi_id;
 	u16 lut_entries;
 	u8 lut[1];        /* RSS lookup table*/
@@ -358,7 +376,8 @@ struct i40e_virtchnl_rss_lut {
  * traffic types that are hashed by the hardware.
  * Traffic types are defined in the i40e_filter_pctype enum in i40e_type.h
  */
-struct i40e_virtchnl_rss_hena {
+struct i40e_virtchnl_rss_hena
+{
 	u64 hena;
 };
 
@@ -367,7 +386,8 @@ struct i40e_virtchnl_rss_hena {
  * No direct response is expected from the VF, though it may generate other
  * messages in response to this one.
  */
-enum i40e_virtchnl_event_codes {
+enum i40e_virtchnl_event_codes
+{
 	I40E_VIRTCHNL_EVENT_UNKNOWN = 0,
 	I40E_VIRTCHNL_EVENT_LINK_CHANGE,
 	I40E_VIRTCHNL_EVENT_RESET_IMPENDING,
@@ -376,10 +396,13 @@ enum i40e_virtchnl_event_codes {
 #define I40E_PF_EVENT_SEVERITY_INFO		0
 #define I40E_PF_EVENT_SEVERITY_CERTAIN_DOOM	255
 
-struct i40e_virtchnl_pf_event {
+struct i40e_virtchnl_pf_event
+{
 	enum i40e_virtchnl_event_codes event;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			enum i40e_aq_link_speed link_speed;
 			bool link_status;
 		} link_event;
@@ -400,7 +423,8 @@ struct i40e_virtchnl_pf_event {
  * is in a reset state, it will return DEADBEEF, which, when masked
  * will result in 3.
  */
-enum i40e_vfr_states {
+enum i40e_vfr_states
+{
 	I40E_VFR_INPROGRESS = 0,
 	I40E_VFR_COMPLETED,
 	I40E_VFR_VFACTIVE,

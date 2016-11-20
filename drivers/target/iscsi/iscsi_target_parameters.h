@@ -3,13 +3,15 @@
 
 #include <scsi/iscsi_proto.h>
 
-struct iscsi_extra_response {
+struct iscsi_extra_response
+{
 	char key[KEY_MAXLEN];
 	char value[32];
 	struct list_head er_list;
 } ____cacheline_aligned;
 
-struct iscsi_param {
+struct iscsi_param
+{
 	char *name;
 	char *value;
 	u8 set_param;
@@ -32,7 +34,7 @@ extern int iscsi_create_default_params(struct iscsi_param_list **);
 extern int iscsi_set_keys_to_negotiate(struct iscsi_param_list *, bool);
 extern int iscsi_set_keys_irrelevant_for_discovery(struct iscsi_param_list *);
 extern int iscsi_copy_param_list(struct iscsi_param_list **,
-			struct iscsi_param_list *, int);
+								 struct iscsi_param_list *, int);
 extern int iscsi_change_param_value(char *, struct iscsi_param_list *, int);
 extern void iscsi_release_param_list(struct iscsi_param_list *);
 extern struct iscsi_param *iscsi_find_param_from_key(char *, struct iscsi_param_list *);
@@ -40,12 +42,12 @@ extern int iscsi_extract_key_value(char *, char **, char **);
 extern int iscsi_update_param_value(struct iscsi_param *, char *);
 extern int iscsi_decode_text_input(u8, u8, char *, u32, struct iscsi_conn *);
 extern int iscsi_encode_text_output(u8, u8, char *, u32 *,
-			struct iscsi_param_list *);
+									struct iscsi_param_list *);
 extern int iscsi_check_negotiated_keys(struct iscsi_param_list *);
 extern void iscsi_set_connection_parameters(struct iscsi_conn_ops *,
-			struct iscsi_param_list *);
+		struct iscsi_param_list *);
 extern void iscsi_set_session_parameters(struct iscsi_sess_ops *,
-			struct iscsi_param_list *, int);
+		struct iscsi_param_list *, int);
 
 #define YES				"Yes"
 #define NO				"No"
@@ -250,11 +252,11 @@ extern void iscsi_set_session_parameters(struct iscsi_sess_ops *,
 #define IS_TYPERANGE_1_TO_65535(p)	((p)->type_range & TYPERANGE_1_TO_65535)
 #define IS_TYPERANGE_2_TO_3600(p)	((p)->type_range & TYPERANGE_2_TO_3600)
 #define IS_TYPERANGE_512_TO_16777215(p)	((p)->type_range & \
-						TYPERANGE_512_TO_16777215)
+		TYPERANGE_512_TO_16777215)
 #define IS_TYPERANGE_AUTH_PARAM(p)	((p)->type_range & TYPERANGE_AUTH)
 #define IS_TYPERANGE_DIGEST_PARAM(p)	((p)->type_range & TYPERANGE_DIGEST)
 #define IS_TYPERANGE_SESSIONTYPE(p)	((p)->type_range & \
-						TYPERANGE_SESSIONTYPE)
+									 TYPERANGE_SESSIONTYPE)
 
 /*
  * struct iscsi_param->state

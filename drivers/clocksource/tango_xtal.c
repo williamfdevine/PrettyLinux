@@ -25,13 +25,17 @@ static int __init tango_clocksource_init(struct device_node *np)
 	int xtal_freq, ret;
 
 	xtal_in_cnt = of_iomap(np, 0);
-	if (xtal_in_cnt == NULL) {
+
+	if (xtal_in_cnt == NULL)
+	{
 		pr_err("%s: invalid address\n", np->full_name);
 		return -ENXIO;
 	}
 
 	clk = of_clk_get(np, 0);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		pr_err("%s: invalid clock\n", np->full_name);
 		return PTR_ERR(clk);
 	}
@@ -41,8 +45,10 @@ static int __init tango_clocksource_init(struct device_node *np)
 	delay_timer.read_current_timer = read_xtal_counter;
 
 	ret = clocksource_mmio_init(xtal_in_cnt, "tango-xtal", xtal_freq, 350,
-				    32, clocksource_mmio_readl_up);
-	if (ret) {
+								32, clocksource_mmio_readl_up);
+
+	if (ret)
+	{
 		pr_err("%s: registration failed\n", np->full_name);
 		return ret;
 	}

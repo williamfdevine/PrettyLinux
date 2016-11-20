@@ -78,7 +78,8 @@ static inline unsigned int smtc_seqr(int reg)
 /* The next structure holds all information relevant for a specific video mode.
  */
 
-struct modeinit {
+struct modeinit
+{
 	int mmsizex;
 	int mmsizey;
 	int bpp;
@@ -98,9 +99,9 @@ struct modeinit {
 
 #ifdef __BIG_ENDIAN
 #define pal_rgb(r, g, b, val)	(((r & 0xf800) >> 8) | \
-				((g & 0xe000) >> 13) | \
-				((g & 0x1c00) << 3) | \
-				((b & 0xf800) >> 3))
+								 ((g & 0xe000) >> 13) | \
+								 ((g & 0x1c00) << 3) | \
+								 ((b & 0xf800) >> 3))
 #define big_addr		0x800000
 #define mmio_addr		0x00800000
 #define seqw17()		smtc_seqw(0x17, 0x30)

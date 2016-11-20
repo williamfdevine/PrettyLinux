@@ -4,25 +4,26 @@
 #include <linux/ioport.h>
 
 #ifdef CONFIG_SUPERH
-#define INTC_NR_IRQS	512
+	#define INTC_NR_IRQS	512
 #else
-#define INTC_NR_IRQS	1024
+	#define INTC_NR_IRQS	1024
 #endif
 
 /*
  * Convert back and forth between INTEVT and IRQ values.
  */
 #ifdef CONFIG_CPU_HAS_INTEVT
-#define evt2irq(evt)		(((evt) >> 5) - 16)
-#define irq2evt(irq)		(((irq) + 16) << 5)
+	#define evt2irq(evt)		(((evt) >> 5) - 16)
+	#define irq2evt(irq)		(((irq) + 16) << 5)
 #else
-#define evt2irq(evt)		(evt)
-#define irq2evt(irq)		(irq)
+	#define evt2irq(evt)		(evt)
+	#define irq2evt(irq)		(irq)
 #endif
 
 typedef unsigned char intc_enum;
 
-struct intc_vect {
+struct intc_vect
+{
 	intc_enum enum_id;
 	unsigned short vect;
 };
@@ -30,20 +31,23 @@ struct intc_vect {
 #define INTC_VECT(enum_id, vect) { enum_id, vect }
 #define INTC_IRQ(enum_id, irq) INTC_VECT(enum_id, irq2evt(irq))
 
-struct intc_group {
+struct intc_group
+{
 	intc_enum enum_id;
 	intc_enum enum_ids[32];
 };
 
 #define INTC_GROUP(enum_id, ids...) { enum_id, { ids } }
 
-struct intc_subgroup {
+struct intc_subgroup
+{
 	unsigned long reg, reg_width;
 	intc_enum parent_id;
 	intc_enum enum_ids[32];
 };
 
-struct intc_mask_reg {
+struct intc_mask_reg
+{
 	unsigned long set_reg, clr_reg, reg_width;
 	intc_enum enum_ids[32];
 #ifdef CONFIG_INTC_BALANCING
@@ -54,7 +58,8 @@ struct intc_mask_reg {
 #endif
 };
 
-struct intc_prio_reg {
+struct intc_prio_reg
+{
 	unsigned long set_reg, clr_reg, reg_width, field_width;
 	intc_enum enum_ids[16];
 #ifdef CONFIG_SMP
@@ -62,24 +67,26 @@ struct intc_prio_reg {
 #endif
 };
 
-struct intc_sense_reg {
+struct intc_sense_reg
+{
 	unsigned long reg, reg_width, field_width;
 	intc_enum enum_ids[16];
 };
 
 #ifdef CONFIG_INTC_BALANCING
-#define INTC_SMP_BALANCING(reg)	.dist_reg = (reg)
+	#define INTC_SMP_BALANCING(reg)	.dist_reg = (reg)
 #else
-#define INTC_SMP_BALANCING(reg)
+	#define INTC_SMP_BALANCING(reg)
 #endif
 
 #ifdef CONFIG_SMP
-#define INTC_SMP(stride, nr)	.smp = (stride) | ((nr) << 8)
+	#define INTC_SMP(stride, nr)	.smp = (stride) | ((nr) << 8)
 #else
-#define INTC_SMP(stride, nr)
+	#define INTC_SMP(stride, nr)
 #endif
 
-struct intc_hw_desc {
+struct intc_hw_desc
+{
 	struct intc_vect *vectors;
 	unsigned int nr_vectors;
 	struct intc_group *groups;
@@ -99,14 +106,15 @@ struct intc_hw_desc {
 #define _INTC_ARRAY(a) a, __same_type(a, NULL) ? 0 : sizeof(a)/sizeof(*a)
 
 #define INTC_HW_DESC(vectors, groups, mask_regs,	\
-		     prio_regs,	sense_regs, ack_regs)	\
+					 prio_regs,	sense_regs, ack_regs)	\
 {							\
 	_INTC_ARRAY(vectors), _INTC_ARRAY(groups),	\
 	_INTC_ARRAY(mask_regs), _INTC_ARRAY(prio_regs),	\
 	_INTC_ARRAY(sense_regs), _INTC_ARRAY(ack_regs),	\
 }
 
-struct intc_desc {
+struct intc_desc
+{
 	char *name;
 	struct resource *resource;
 	unsigned int num_resources;
@@ -117,19 +125,19 @@ struct intc_desc {
 };
 
 #define DECLARE_INTC_DESC(symbol, chipname, vectors, groups,		\
-	mask_regs, prio_regs, sense_regs)				\
+						  mask_regs, prio_regs, sense_regs)				\
 struct intc_desc symbol __initdata = {					\
 	.name = chipname,						\
-	.hw = INTC_HW_DESC(vectors, groups, mask_regs,			\
-			   prio_regs, sense_regs, NULL),		\
+			.hw = INTC_HW_DESC(vectors, groups, mask_regs,			\
+							   prio_regs, sense_regs, NULL),		\
 }
 
 #define DECLARE_INTC_DESC_ACK(symbol, chipname, vectors, groups,	\
-	mask_regs, prio_regs, sense_regs, ack_regs)			\
+							  mask_regs, prio_regs, sense_regs, ack_regs)			\
 struct intc_desc symbol __initdata = {					\
 	.name = chipname,						\
-	.hw = INTC_HW_DESC(vectors, groups, mask_regs,			\
-			   prio_regs, sense_regs, ack_regs),		\
+			.hw = INTC_HW_DESC(vectors, groups, mask_regs,			\
+							   prio_regs, sense_regs, ack_regs),		\
 }
 
 int register_intc_controller(struct intc_desc *desc);

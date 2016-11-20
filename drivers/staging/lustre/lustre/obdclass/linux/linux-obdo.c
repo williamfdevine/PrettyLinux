@@ -50,24 +50,40 @@ void obdo_refresh_inode(struct inode *dst, const struct obdo *src, u32 valid)
 
 	if (valid & (OBD_MD_FLCTIME | OBD_MD_FLMTIME))
 		CDEBUG(D_INODE,
-		       "valid %#llx, cur time %lu/%lu, new %llu/%llu\n",
-		       src->o_valid, LTIME_S(dst->i_mtime),
-		       LTIME_S(dst->i_ctime), src->o_mtime, src->o_ctime);
+			   "valid %#llx, cur time %lu/%lu, new %llu/%llu\n",
+			   src->o_valid, LTIME_S(dst->i_mtime),
+			   LTIME_S(dst->i_ctime), src->o_mtime, src->o_ctime);
 
 	if (valid & OBD_MD_FLATIME && src->o_atime > LTIME_S(dst->i_atime))
+	{
 		LTIME_S(dst->i_atime) = src->o_atime;
+	}
+
 	if (valid & OBD_MD_FLMTIME && src->o_mtime > LTIME_S(dst->i_mtime))
+	{
 		LTIME_S(dst->i_mtime) = src->o_mtime;
+	}
+
 	if (valid & OBD_MD_FLCTIME && src->o_ctime > LTIME_S(dst->i_ctime))
+	{
 		LTIME_S(dst->i_ctime) = src->o_ctime;
+	}
+
 	if (valid & OBD_MD_FLSIZE)
+	{
 		i_size_write(dst, src->o_size);
+	}
+
 	/* optimum IO size */
 	if (valid & OBD_MD_FLBLKSZ && src->o_blksize > (1 << dst->i_blkbits))
+	{
 		dst->i_blkbits = ffs(src->o_blksize) - 1;
+	}
 
 	if (dst->i_blkbits < PAGE_SHIFT)
+	{
 		dst->i_blkbits = PAGE_SHIFT;
+	}
 
 	/* allocation of space */
 	if (valid & OBD_MD_FLBLOCKS && src->o_blocks > dst->i_blocks)
@@ -75,6 +91,8 @@ void obdo_refresh_inode(struct inode *dst, const struct obdo *src, u32 valid)
 		 * XXX shouldn't overflow be checked here like in
 		 * obdo_to_inode().
 		 */
+	{
 		dst->i_blocks = src->o_blocks;
+	}
 }
 EXPORT_SYMBOL(obdo_refresh_inode);

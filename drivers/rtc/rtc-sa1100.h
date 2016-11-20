@@ -6,7 +6,8 @@
 struct clk;
 struct platform_device;
 
-struct sa1100_rtc {
+struct sa1100_rtc
+{
 	spinlock_t		lock;
 	void __iomem		*rcnr;
 	void __iomem		*rtar;

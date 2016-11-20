@@ -13,10 +13,12 @@
 #include <linux/filter.h>
 #include <net/act_api.h>
 
-struct tcf_bpf {
+struct tcf_bpf
+{
 	struct tc_action	common;
 	struct bpf_prog __rcu	*filter;
-	union {
+	union
+	{
 		u32		bpf_fd;
 		u16		bpf_num_ops;
 	};

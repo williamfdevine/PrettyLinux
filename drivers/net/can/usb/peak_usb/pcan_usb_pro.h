@@ -40,7 +40,8 @@
 #define PCAN_USBPRO_FCT_DRVLD_REQ_LEN	16
 
 /* PCAN_USBPRO_INFO_BL vendor request record type */
-struct __packed pcan_usb_pro_blinfo {
+struct __packed pcan_usb_pro_blinfo
+{
 	__le32 ctrl_type;
 	u8  version[4];
 	u8  day;
@@ -54,7 +55,8 @@ struct __packed pcan_usb_pro_blinfo {
 };
 
 /* PCAN_USBPRO_INFO_FW vendor request record type */
-struct __packed pcan_usb_pro_fwinfo {
+struct __packed pcan_usb_pro_fwinfo
+{
 	__le32 ctrl_type;
 	u8  version[4];
 	u8  day;
@@ -85,52 +87,60 @@ struct __packed pcan_usb_pro_fwinfo {
 #define PCAN_USBPRO_TXMSG0	0x43
 
 /* record structures */
-struct __packed pcan_usb_pro_btr {
+struct __packed pcan_usb_pro_btr
+{
 	u8  data_type;
 	u8  channel;
 	__le16 dummy;
 	__le32 CCBT;
 };
 
-struct __packed pcan_usb_pro_busact {
+struct __packed pcan_usb_pro_busact
+{
 	u8  data_type;
 	u8  channel;
 	__le16 onoff;
 };
 
-struct __packed pcan_usb_pro_silent {
+struct __packed pcan_usb_pro_silent
+{
 	u8  data_type;
 	u8  channel;
 	__le16 onoff;
 };
 
-struct __packed pcan_usb_pro_filter {
+struct __packed pcan_usb_pro_filter
+{
 	u8  data_type;
 	u8  dummy;
 	__le16 filter_mode;
 };
 
-struct __packed pcan_usb_pro_setts {
+struct __packed pcan_usb_pro_setts
+{
 	u8  data_type;
 	u8  dummy;
 	__le16 mode;
 };
 
-struct __packed pcan_usb_pro_devid {
+struct __packed pcan_usb_pro_devid
+{
 	u8  data_type;
 	u8  channel;
 	__le16 dummy;
 	__le32 serial_num;
 };
 
-struct __packed pcan_usb_pro_setled {
+struct __packed pcan_usb_pro_setled
+{
 	u8  data_type;
 	u8  channel;
 	__le16 mode;
 	__le32 timeout;
 };
 
-struct __packed pcan_usb_pro_rxmsg {
+struct __packed pcan_usb_pro_rxmsg
+{
 	u8  data_type;
 	u8  client;
 	u8  flags;
@@ -146,7 +156,8 @@ struct __packed pcan_usb_pro_rxmsg {
 #define PCAN_USBPRO_STATUS_OVERRUN	0x0004
 #define PCAN_USBPRO_STATUS_QOVERRUN	0x0008
 
-struct __packed pcan_usb_pro_rxstatus {
+struct __packed pcan_usb_pro_rxstatus
+{
 	u8  data_type;
 	u8  channel;
 	__le16 status;
@@ -154,13 +165,15 @@ struct __packed pcan_usb_pro_rxstatus {
 	__le32 err_frm;
 };
 
-struct __packed pcan_usb_pro_rxts {
+struct __packed pcan_usb_pro_rxts
+{
 	u8  data_type;
 	u8  dummy[3];
 	__le32 ts64[2];
 };
 
-struct __packed pcan_usb_pro_txmsg {
+struct __packed pcan_usb_pro_txmsg
+{
 	u8  data_type;
 	u8  client;
 	u8  flags;
@@ -169,7 +182,8 @@ struct __packed pcan_usb_pro_txmsg {
 	u8  data[8];
 };
 
-union pcan_usb_pro_rec {
+union pcan_usb_pro_rec
+{
 	u8				data_type;
 	struct pcan_usb_pro_btr		btr;
 	struct pcan_usb_pro_busact	bus_act;
@@ -186,7 +200,7 @@ union pcan_usb_pro_rec {
 
 int pcan_usb_pro_probe(struct usb_interface *intf);
 int pcan_usb_pro_send_req(struct peak_usb_device *dev, int req_id,
-			  int req_value, void *req_addr, int req_size);
+						  int req_value, void *req_addr, int req_size);
 void pcan_usb_pro_restart_complete(struct urb *urb);
 
 #endif

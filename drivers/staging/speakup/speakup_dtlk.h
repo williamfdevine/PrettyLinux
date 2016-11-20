@@ -2,7 +2,7 @@
 
 #define SYNTH_IO_EXTENT	0x02
 #define SYNTH_CLEAR	0x18		/* stops speech */
-	/* TTS Port Status Flags */
+/* TTS Port Status Flags */
 #define TTS_READABLE	0x80	/* mask for bit which is nonzero if a
 				 * byte can be read from the TTS port
 				 */
@@ -36,8 +36,9 @@
 				 * in the TGN and CVSD modes.
 				 */
 
-				/* data returned by Interrogate command */
-struct synth_settings {
+/* data returned by Interrogate command */
+struct synth_settings
+{
 	u_short serial_number;	/* 0-7Fh:0-7Fh */
 	u_char rom_version[24]; /* null terminated string */
 	u_char mode;		/* 0=Character; 1=Phoneme; 2=Text */

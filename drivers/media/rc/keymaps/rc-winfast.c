@@ -15,7 +15,8 @@
 
 /* Table for Leadtek Winfast Remote Controls - used by both bttv and cx88 */
 
-static struct rc_map_table winfast[] = {
+static struct rc_map_table winfast[] =
+{
 	/* Keys 0 to 9 */
 	{ 0x12, KEY_0 },
 	{ 0x05, KEY_1 },
@@ -77,7 +78,8 @@ static struct rc_map_table winfast[] = {
 	{ 0x3f, KEY_CHANNELDOWN }	/* MCE -CH,  on Y04G0033 */
 };
 
-static struct rc_map_list winfast_map = {
+static struct rc_map_list winfast_map =
+{
 	.map = {
 		.scan    = winfast,
 		.size    = ARRAY_SIZE(winfast),

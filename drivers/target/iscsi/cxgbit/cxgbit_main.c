@@ -13,8 +13,8 @@
 #include "cxgbit.h"
 
 #ifdef CONFIG_CHELSIO_T4_DCB
-#include <net/dcbevent.h>
-#include "cxgb4_dcb.h"
+	#include <net/dcbevent.h>
+	#include "cxgb4_dcb.h"
 #endif
 
 LIST_HEAD(cdev_list_head);
@@ -39,7 +39,7 @@ static void cxgbit_set_mdsl(struct cxgbit_device *cdev)
 #define ULP2_MAX_PKT_LEN 16224
 #define ISCSI_PDU_NONPAYLOAD_LEN 312
 	mdsl = min_t(u32, lldi->iscsi_iolen - ISCSI_PDU_NONPAYLOAD_LEN,
-		     ULP2_MAX_PKT_LEN - ISCSI_PDU_NONPAYLOAD_LEN);
+				 ULP2_MAX_PKT_LEN - ISCSI_PDU_NONPAYLOAD_LEN);
 	mdsl = min_t(u32, mdsl, 8192);
 	mdsl = min_t(u32, mdsl, (MAX_SKB_FRAGS - 1) * PAGE_SIZE);
 
@@ -51,11 +51,16 @@ static void *cxgbit_uld_add(const struct cxgb4_lld_info *lldi)
 	struct cxgbit_device *cdev;
 
 	if (is_t4(lldi->adapter_type))
+	{
 		return ERR_PTR(-ENODEV);
+	}
 
 	cdev = kzalloc(sizeof(*cdev), GFP_KERNEL);
+
 	if (!cdev)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	kref_init(&cdev->kref);
 
@@ -63,17 +68,20 @@ static void *cxgbit_uld_add(const struct cxgb4_lld_info *lldi)
 
 	cxgbit_set_mdsl(cdev);
 
-	if (cxgbit_ddp_init(cdev) < 0) {
+	if (cxgbit_ddp_init(cdev) < 0)
+	{
 		kfree(cdev);
 		return ERR_PTR(-EINVAL);
 	}
 
 	if (!test_bit(CDEV_DDP_ENABLE, &cdev->flags))
 		pr_info("cdev %s ddp init failed\n",
-			pci_name(lldi->pdev));
+				pci_name(lldi->pdev));
 
 	if (lldi->fw_vers >= 0x10d2b00)
+	{
 		set_bit(CDEV_ISO_ENABLE, &cdev->flags);
+	}
 
 	spin_lock_init(&cdev->cskq.lock);
 	INIT_LIST_HEAD(&cdev->cskq.list);
@@ -83,7 +91,7 @@ static void *cxgbit_uld_add(const struct cxgb4_lld_info *lldi)
 	mutex_unlock(&cdev_list_lock);
 
 	pr_info("cdev %s added for iSCSI target transport\n",
-		pci_name(lldi->pdev));
+			pci_name(lldi->pdev));
 
 	return cdev;
 }
@@ -95,18 +103,27 @@ static void cxgbit_close_conn(struct cxgbit_device *cdev)
 	bool wakeup_thread = false;
 
 	spin_lock_bh(&cdev->cskq.lock);
-	list_for_each_entry(csk, &cdev->cskq.list, list) {
+	list_for_each_entry(csk, &cdev->cskq.list, list)
+	{
 		skb = alloc_skb(0, GFP_ATOMIC);
+
 		if (!skb)
+		{
 			continue;
+		}
 
 		spin_lock_bh(&csk->rxq.lock);
 		__skb_queue_tail(&csk->rxq, skb);
+
 		if (skb_queue_len(&csk->rxq) == 1)
+		{
 			wakeup_thread = true;
+		}
+
 		spin_unlock_bh(&csk->rxq.lock);
 
-		if (wakeup_thread) {
+		if (wakeup_thread)
+		{
 			wake_up(&csk->waitq);
 			wakeup_thread = false;
 		}
@@ -119,17 +136,24 @@ static void cxgbit_detach_cdev(struct cxgbit_device *cdev)
 	bool free_cdev = false;
 
 	spin_lock_bh(&cdev->cskq.lock);
+
 	if (list_empty(&cdev->cskq.list))
+	{
 		free_cdev = true;
+	}
+
 	spin_unlock_bh(&cdev->cskq.lock);
 
-	if (free_cdev) {
+	if (free_cdev)
+	{
 		mutex_lock(&cdev_list_lock);
 		list_del(&cdev->list);
 		mutex_unlock(&cdev_list_lock);
 
 		cxgbit_put_cdev(cdev);
-	} else {
+	}
+	else
+	{
 		cxgbit_close_conn(cdev);
 	}
 }
@@ -138,35 +162,41 @@ static int cxgbit_uld_state_change(void *handle, enum cxgb4_state state)
 {
 	struct cxgbit_device *cdev = handle;
 
-	switch (state) {
-	case CXGB4_STATE_UP:
-		set_bit(CDEV_STATE_UP, &cdev->flags);
-		pr_info("cdev %s state UP.\n", pci_name(cdev->lldi.pdev));
-		break;
-	case CXGB4_STATE_START_RECOVERY:
-		clear_bit(CDEV_STATE_UP, &cdev->flags);
-		cxgbit_close_conn(cdev);
-		pr_info("cdev %s state RECOVERY.\n", pci_name(cdev->lldi.pdev));
-		break;
-	case CXGB4_STATE_DOWN:
-		pr_info("cdev %s state DOWN.\n", pci_name(cdev->lldi.pdev));
-		break;
-	case CXGB4_STATE_DETACH:
-		clear_bit(CDEV_STATE_UP, &cdev->flags);
-		pr_info("cdev %s state DETACH.\n", pci_name(cdev->lldi.pdev));
-		cxgbit_detach_cdev(cdev);
-		break;
-	default:
-		pr_info("cdev %s unknown state %d.\n",
-			pci_name(cdev->lldi.pdev), state);
-		break;
+	switch (state)
+	{
+		case CXGB4_STATE_UP:
+			set_bit(CDEV_STATE_UP, &cdev->flags);
+			pr_info("cdev %s state UP.\n", pci_name(cdev->lldi.pdev));
+			break;
+
+		case CXGB4_STATE_START_RECOVERY:
+			clear_bit(CDEV_STATE_UP, &cdev->flags);
+			cxgbit_close_conn(cdev);
+			pr_info("cdev %s state RECOVERY.\n", pci_name(cdev->lldi.pdev));
+			break;
+
+		case CXGB4_STATE_DOWN:
+			pr_info("cdev %s state DOWN.\n", pci_name(cdev->lldi.pdev));
+			break;
+
+		case CXGB4_STATE_DETACH:
+			clear_bit(CDEV_STATE_UP, &cdev->flags);
+			pr_info("cdev %s state DETACH.\n", pci_name(cdev->lldi.pdev));
+			cxgbit_detach_cdev(cdev);
+			break;
+
+		default:
+			pr_info("cdev %s unknown state %d.\n",
+					pci_name(cdev->lldi.pdev), state);
+			break;
 	}
+
 	return 0;
 }
 
 static void
 cxgbit_proc_ddp_status(unsigned int tid, struct cpl_rx_data_ddp *cpl,
-		       struct cxgbit_lro_pdu_cb *pdu_cb)
+					   struct cxgbit_lro_pdu_cb *pdu_cb)
 {
 	unsigned int status = ntohl(cpl->ddpvld);
 
@@ -174,21 +204,26 @@ cxgbit_proc_ddp_status(unsigned int tid, struct cpl_rx_data_ddp *cpl,
 	pdu_cb->ddigest = ntohl(cpl->ulp_crc);
 	pdu_cb->pdulen = ntohs(cpl->len);
 
-	if (status & (1 << CPL_RX_ISCSI_DDP_STATUS_HCRC_SHIFT)) {
+	if (status & (1 << CPL_RX_ISCSI_DDP_STATUS_HCRC_SHIFT))
+	{
 		pr_info("tid 0x%x, status 0x%x, hcrc bad.\n", tid, status);
 		pdu_cb->flags |= PDUCBF_RX_HCRC_ERR;
 	}
 
-	if (status & (1 << CPL_RX_ISCSI_DDP_STATUS_DCRC_SHIFT)) {
+	if (status & (1 << CPL_RX_ISCSI_DDP_STATUS_DCRC_SHIFT))
+	{
 		pr_info("tid 0x%x, status 0x%x, dcrc bad.\n", tid, status);
 		pdu_cb->flags |= PDUCBF_RX_DCRC_ERR;
 	}
 
 	if (status & (1 << CPL_RX_ISCSI_DDP_STATUS_PAD_SHIFT))
+	{
 		pr_info("tid 0x%x, status 0x%x, pad bad.\n", tid, status);
+	}
 
 	if ((status & (1 << CPL_RX_ISCSI_DDP_STATUS_DDP_SHIFT)) &&
-	    (!(pdu_cb->flags & PDUCBF_RX_DATA))) {
+		(!(pdu_cb->flags & PDUCBF_RX_DATA)))
+	{
 		pdu_cb->flags |= PDUCBF_RX_DATA_DDPD;
 	}
 }
@@ -198,13 +233,15 @@ cxgbit_lro_add_packet_rsp(struct sk_buff *skb, u8 op, const __be64 *rsp)
 {
 	struct cxgbit_lro_cb *lro_cb = cxgbit_skb_lro_cb(skb);
 	struct cxgbit_lro_pdu_cb *pdu_cb = cxgbit_skb_lro_pdu_cb(skb,
-						lro_cb->pdu_idx);
+									   lro_cb->pdu_idx);
 	struct cpl_rx_iscsi_ddp *cpl = (struct cpl_rx_iscsi_ddp *)(rsp + 1);
 
 	cxgbit_proc_ddp_status(lro_cb->csk->tid, cpl, pdu_cb);
 
 	if (pdu_cb->flags & PDUCBF_RX_HDR)
+	{
 		pdu_cb->complete = true;
+	}
 
 	lro_cb->complete = true;
 	lro_cb->pdu_totallen += pdu_cb->pdulen;
@@ -213,20 +250,21 @@ cxgbit_lro_add_packet_rsp(struct sk_buff *skb, u8 op, const __be64 *rsp)
 
 static void
 cxgbit_copy_frags(struct sk_buff *skb, const struct pkt_gl *gl,
-		  unsigned int offset)
+				  unsigned int offset)
 {
 	u8 skb_frag_idx = skb_shinfo(skb)->nr_frags;
 	u8 i;
 
 	/* usually there's just one frag */
 	__skb_fill_page_desc(skb, skb_frag_idx, gl->frags[0].page,
-			     gl->frags[0].offset + offset,
-			     gl->frags[0].size - offset);
+						 gl->frags[0].offset + offset,
+						 gl->frags[0].size - offset);
+
 	for (i = 1; i < gl->nfrags; i++)
 		__skb_fill_page_desc(skb, skb_frag_idx + i,
-				     gl->frags[i].page,
-				     gl->frags[i].offset,
-				     gl->frags[i].size);
+							 gl->frags[i].page,
+							 gl->frags[i].offset,
+							 gl->frags[i].size);
 
 	skb_shinfo(skb)->nr_frags += gl->nfrags;
 
@@ -239,10 +277,11 @@ cxgbit_lro_add_packet_gl(struct sk_buff *skb, u8 op, const struct pkt_gl *gl)
 {
 	struct cxgbit_lro_cb *lro_cb = cxgbit_skb_lro_cb(skb);
 	struct cxgbit_lro_pdu_cb *pdu_cb = cxgbit_skb_lro_pdu_cb(skb,
-						lro_cb->pdu_idx);
+									   lro_cb->pdu_idx);
 	u32 len, offset;
 
-	if (op == CPL_ISCSI_HDR) {
+	if (op == CPL_ISCSI_HDR)
+	{
 		struct cpl_iscsi_hdr *cpl = (struct cpl_iscsi_hdr *)gl->va;
 
 		offset = sizeof(struct cpl_iscsi_hdr);
@@ -254,10 +293,14 @@ cxgbit_lro_add_packet_gl(struct sk_buff *skb, u8 op, const struct pkt_gl *gl)
 		pdu_cb->hfrag_idx = skb_shinfo(skb)->nr_frags;
 
 		if (unlikely(gl->nfrags > 1))
+		{
 			cxgbit_skcb_flags(skb) = 0;
+		}
 
 		lro_cb->complete = false;
-	} else {
+	}
+	else
+	{
 		struct cpl_iscsi_data *cpl = (struct cpl_iscsi_data *)gl->va;
 
 		offset = sizeof(struct cpl_iscsi_data);
@@ -280,7 +323,7 @@ cxgbit_lro_add_packet_gl(struct sk_buff *skb, u8 op, const struct pkt_gl *gl)
 
 static struct sk_buff *
 cxgbit_lro_init_skb(struct cxgbit_sock *csk, u8 op, const struct pkt_gl *gl,
-		    const __be64 *rsp, struct napi_struct *napi)
+					const __be64 *rsp, struct napi_struct *napi)
 {
 	struct sk_buff *skb;
 	struct cxgbit_lro_cb *lro_cb;
@@ -288,7 +331,9 @@ cxgbit_lro_init_skb(struct cxgbit_sock *csk, u8 op, const struct pkt_gl *gl,
 	skb = napi_alloc_skb(napi, LRO_SKB_MAX_HEADROOM);
 
 	if (unlikely(!skb))
+	{
 		return NULL;
+	}
 
 	memset(skb->data, 0, LRO_SKB_MAX_HEADROOM);
 
@@ -309,12 +354,18 @@ static void cxgbit_queue_lro_skb(struct cxgbit_sock *csk, struct sk_buff *skb)
 
 	spin_lock(&csk->rxq.lock);
 	__skb_queue_tail(&csk->rxq, skb);
+
 	if (skb_queue_len(&csk->rxq) == 1)
+	{
 		wakeup_thread = true;
+	}
+
 	spin_unlock(&csk->rxq.lock);
 
 	if (wakeup_thread)
+	{
 		wake_up(&csk->waitq);
+	}
 }
 
 static void cxgbit_lro_flush(struct t4_lro_mgr *lro_mgr, struct sk_buff *skb)
@@ -338,34 +389,44 @@ static void cxgbit_uld_lro_flush(struct t4_lro_mgr *lro_mgr)
 	struct sk_buff *skb;
 
 	while ((skb = skb_peek(&lro_mgr->lroq)))
+	{
 		cxgbit_lro_flush(lro_mgr, skb);
+	}
 }
 
 static int
 cxgbit_lro_receive(struct cxgbit_sock *csk, u8 op, const __be64 *rsp,
-		   const struct pkt_gl *gl, struct t4_lro_mgr *lro_mgr,
-		   struct napi_struct *napi)
+				   const struct pkt_gl *gl, struct t4_lro_mgr *lro_mgr,
+				   struct napi_struct *napi)
 {
 	struct sk_buff *skb;
 	struct cxgbit_lro_cb *lro_cb;
 
-	if (!csk) {
+	if (!csk)
+	{
 		pr_err("%s: csk NULL, op 0x%x.\n", __func__, op);
 		goto out;
 	}
 
 	if (csk->lro_skb)
+	{
 		goto add_packet;
+	}
 
 start_lro:
-	if (lro_mgr->lro_session_cnt >= MAX_LRO_SESSIONS) {
+
+	if (lro_mgr->lro_session_cnt >= MAX_LRO_SESSIONS)
+	{
 		cxgbit_uld_lro_flush(lro_mgr);
 		goto start_lro;
 	}
 
 	skb = cxgbit_lro_init_skb(csk, op, gl, rsp, napi);
+
 	if (unlikely(!skb))
+	{
 		goto out;
+	}
 
 	csk->lro_skb = skb;
 
@@ -377,16 +438,21 @@ add_packet:
 	lro_cb = cxgbit_skb_lro_cb(skb);
 
 	if ((gl && (((skb_shinfo(skb)->nr_frags + gl->nfrags) >
-	    MAX_SKB_FRAGS) || (lro_cb->pdu_totallen >= LRO_FLUSH_LEN_MAX))) ||
-	    (lro_cb->pdu_idx >= MAX_SKB_FRAGS)) {
+				 MAX_SKB_FRAGS) || (lro_cb->pdu_totallen >= LRO_FLUSH_LEN_MAX))) ||
+		(lro_cb->pdu_idx >= MAX_SKB_FRAGS))
+	{
 		cxgbit_lro_flush(lro_mgr, skb);
 		goto start_lro;
 	}
 
 	if (gl)
+	{
 		cxgbit_lro_add_packet_gl(skb, op, gl);
+	}
 	else
+	{
 		cxgbit_lro_add_packet_rsp(skb, op, rsp);
+	}
 
 	lro_mgr->lro_merged++;
 
@@ -398,8 +464,8 @@ out:
 
 static int
 cxgbit_uld_lro_rx_handler(void *hndl, const __be64 *rsp,
-			  const struct pkt_gl *gl, struct t4_lro_mgr *lro_mgr,
-			  struct napi_struct *napi)
+						  const struct pkt_gl *gl, struct t4_lro_mgr *lro_mgr,
+						  struct napi_struct *napi)
 {
 	struct cxgbit_device *cdev = hndl;
 	struct cxgb4_lld_info *lldi = &cdev->lldi;
@@ -410,65 +476,87 @@ cxgbit_uld_lro_rx_handler(void *hndl, const __be64 *rsp,
 	unsigned int op = *(u8 *)rsp;
 	bool lro_flush = true;
 
-	switch (op) {
-	case CPL_ISCSI_HDR:
-	case CPL_ISCSI_DATA:
-	case CPL_RX_ISCSI_DDP:
-	case CPL_FW4_ACK:
-		lro_flush = false;
-	case CPL_ABORT_RPL_RSS:
-	case CPL_PASS_ESTABLISH:
-	case CPL_PEER_CLOSE:
-	case CPL_CLOSE_CON_RPL:
-	case CPL_ABORT_REQ_RSS:
-	case CPL_SET_TCB_RPL:
-	case CPL_RX_DATA:
-		rpl = gl ? (struct cpl_tx_data *)gl->va :
-			   (struct cpl_tx_data *)(rsp + 1);
-		tid = GET_TID(rpl);
-		csk = lookup_tid(lldi->tids, tid);
-		break;
-	default:
-		break;
+	switch (op)
+	{
+		case CPL_ISCSI_HDR:
+		case CPL_ISCSI_DATA:
+		case CPL_RX_ISCSI_DDP:
+		case CPL_FW4_ACK:
+			lro_flush = false;
+
+		case CPL_ABORT_RPL_RSS:
+		case CPL_PASS_ESTABLISH:
+		case CPL_PEER_CLOSE:
+		case CPL_CLOSE_CON_RPL:
+		case CPL_ABORT_REQ_RSS:
+		case CPL_SET_TCB_RPL:
+		case CPL_RX_DATA:
+			rpl = gl ? (struct cpl_tx_data *)gl->va :
+				  (struct cpl_tx_data *)(rsp + 1);
+			tid = GET_TID(rpl);
+			csk = lookup_tid(lldi->tids, tid);
+			break;
+
+		default:
+			break;
 	}
 
 	if (csk && csk->lro_skb && lro_flush)
+	{
 		cxgbit_lro_flush(lro_mgr, csk->lro_skb);
+	}
 
-	if (!gl) {
+	if (!gl)
+	{
 		unsigned int len;
 
-		if (op == CPL_RX_ISCSI_DDP) {
+		if (op == CPL_RX_ISCSI_DDP)
+		{
 			if (!cxgbit_lro_receive(csk, op, rsp, NULL, lro_mgr,
-						napi))
+									napi))
+			{
 				return 0;
+			}
 		}
 
 		len = 64 - sizeof(struct rsp_ctrl) - 8;
 		skb = napi_alloc_skb(napi, len);
+
 		if (!skb)
+		{
 			goto nomem;
+		}
+
 		__skb_put(skb, len);
 		skb_copy_to_linear_data(skb, &rsp[1], len);
-	} else {
-		if (unlikely(op != *(u8 *)gl->va)) {
+	}
+	else
+	{
+		if (unlikely(op != *(u8 *)gl->va))
+		{
 			pr_info("? FL 0x%p,RSS%#llx,FL %#llx,len %u.\n",
-				gl->va, be64_to_cpu(*rsp),
-				be64_to_cpu(*(u64 *)gl->va),
-				gl->tot_len);
+					gl->va, be64_to_cpu(*rsp),
+					be64_to_cpu(*(u64 *)gl->va),
+					gl->tot_len);
 			return 0;
 		}
 
-		if (op == CPL_ISCSI_HDR || op == CPL_ISCSI_DATA) {
+		if (op == CPL_ISCSI_HDR || op == CPL_ISCSI_DATA)
+		{
 			if (!cxgbit_lro_receive(csk, op, rsp, gl, lro_mgr,
-						napi))
+									napi))
+			{
 				return 0;
+			}
 		}
 
 #define RX_PULL_LEN 128
 		skb = cxgb4_pktgl_to_skb(gl, RX_PULL_LEN, RX_PULL_LEN);
+
 		if (unlikely(!skb))
+		{
 			goto nomem;
+		}
 	}
 
 	rpl = (struct cpl_tx_data *)skb->data;
@@ -476,15 +564,19 @@ cxgbit_uld_lro_rx_handler(void *hndl, const __be64 *rsp,
 	cxgbit_skcb_rx_opcode(skb) = op;
 
 	pr_debug("cdev %p, opcode 0x%x(0x%x,0x%x), skb %p.\n",
-		 cdev, op, rpl->ot.opcode_tid,
-		 ntohl(rpl->ot.opcode_tid), skb);
+			 cdev, op, rpl->ot.opcode_tid,
+			 ntohl(rpl->ot.opcode_tid), skb);
 
-	if (op < NUM_CPL_CMDS && cxgbit_cplhandlers[op]) {
+	if (op < NUM_CPL_CMDS && cxgbit_cplhandlers[op])
+	{
 		cxgbit_cplhandlers[op](cdev, skb);
-	} else {
+	}
+	else
+	{
 		pr_err("No handler for opcode 0x%x.\n", op);
 		__kfree_skb(skb);
 	}
+
 	return 0;
 nomem:
 	pr_err("%s OOM bailing out.\n", __func__);
@@ -492,14 +584,15 @@ nomem:
 }
 
 #ifdef CONFIG_CHELSIO_T4_DCB
-struct cxgbit_dcb_work {
+struct cxgbit_dcb_work
+{
 	struct dcb_app_type dcb_app;
 	struct work_struct work;
 };
 
 static void
 cxgbit_update_dcb_priority(struct cxgbit_device *cdev, u8 port_id,
-			   u8 dcb_priority, u16 port_num)
+						   u8 dcb_priority, u16 port_num)
 {
 	struct cxgbit_sock *csk;
 	struct sk_buff *skb;
@@ -507,16 +600,22 @@ cxgbit_update_dcb_priority(struct cxgbit_device *cdev, u8 port_id,
 	bool wakeup_thread = false;
 
 	spin_lock_bh(&cdev->cskq.lock);
-	list_for_each_entry(csk, &cdev->cskq.list, list) {
+	list_for_each_entry(csk, &cdev->cskq.list, list)
+	{
 		if (csk->port_id != port_id)
+		{
 			continue;
+		}
 
-		if (csk->com.local_addr.ss_family == AF_INET6) {
+		if (csk->com.local_addr.ss_family == AF_INET6)
+		{
 			struct sockaddr_in6 *sock_in6;
 
 			sock_in6 = (struct sockaddr_in6 *)&csk->com.local_addr;
 			local_port = ntohs(sock_in6->sin6_port);
-		} else {
+		}
+		else
+		{
 			struct sockaddr_in *sock_in;
 
 			sock_in = (struct sockaddr_in *)&csk->com.local_addr;
@@ -524,22 +623,34 @@ cxgbit_update_dcb_priority(struct cxgbit_device *cdev, u8 port_id,
 		}
 
 		if (local_port != port_num)
+		{
 			continue;
+		}
 
 		if (csk->dcb_priority == dcb_priority)
+		{
 			continue;
+		}
 
 		skb = alloc_skb(0, GFP_ATOMIC);
+
 		if (!skb)
+		{
 			continue;
+		}
 
 		spin_lock(&csk->rxq.lock);
 		__skb_queue_tail(&csk->rxq, skb);
+
 		if (skb_queue_len(&csk->rxq) == 1)
+		{
 			wakeup_thread = true;
+		}
+
 		spin_unlock(&csk->rxq.lock);
 
-		if (wakeup_thread) {
+		if (wakeup_thread)
+		{
 			wake_up(&csk->waitq);
 			wakeup_thread = false;
 		}
@@ -558,44 +669,58 @@ static void cxgbit_dcb_workfn(struct work_struct *work)
 	dcb_work = container_of(work, struct cxgbit_dcb_work, work);
 	iscsi_app = &dcb_work->dcb_app;
 
-	if (iscsi_app->dcbx & DCB_CAP_DCBX_VER_IEEE) {
+	if (iscsi_app->dcbx & DCB_CAP_DCBX_VER_IEEE)
+	{
 		if (iscsi_app->app.selector != IEEE_8021QAZ_APP_SEL_ANY)
+		{
 			goto out;
+		}
 
 		priority = iscsi_app->app.priority;
 
-	} else if (iscsi_app->dcbx & DCB_CAP_DCBX_VER_CEE) {
+	}
+	else if (iscsi_app->dcbx & DCB_CAP_DCBX_VER_CEE)
+	{
 		if (iscsi_app->app.selector != DCB_APP_IDTYPE_PORTNUM)
+		{
 			goto out;
+		}
 
 		if (!iscsi_app->app.priority)
+		{
 			goto out;
+		}
 
 		priority = ffs(iscsi_app->app.priority) - 1;
-	} else {
+	}
+	else
+	{
 		goto out;
 	}
 
 	pr_debug("priority for ifid %d is %u\n",
-		 iscsi_app->ifindex, priority);
+			 iscsi_app->ifindex, priority);
 
 	ndev = dev_get_by_index(&init_net, iscsi_app->ifindex);
 
 	if (!ndev)
+	{
 		goto out;
+	}
 
 	mutex_lock(&cdev_list_lock);
 	cdev = cxgbit_find_device(ndev, &port_id);
 
 	dev_put(ndev);
 
-	if (!cdev) {
+	if (!cdev)
+	{
 		mutex_unlock(&cdev_list_lock);
 		goto out;
 	}
 
 	cxgbit_update_dcb_priority(cdev, port_id, priority,
-				   iscsi_app->app.protocol);
+							   iscsi_app->app.protocol);
 	mutex_unlock(&cdev_list_lock);
 out:
 	kfree(dcb_work);
@@ -603,14 +728,17 @@ out:
 
 static int
 cxgbit_dcbevent_notify(struct notifier_block *nb, unsigned long action,
-		       void *data)
+					   void *data)
 {
 	struct cxgbit_dcb_work *dcb_work;
 	struct dcb_app_type *dcb_app = data;
 
 	dcb_work = kzalloc(sizeof(*dcb_work), GFP_ATOMIC);
+
 	if (!dcb_work)
+	{
 		return NOTIFY_DONE;
+	}
 
 	dcb_work->dcb_app = *dcb_app;
 	INIT_WORK(&dcb_work->work, cxgbit_dcb_workfn);
@@ -624,7 +752,8 @@ static enum target_prot_op cxgbit_get_sup_prot_ops(struct iscsi_conn *conn)
 	return TARGET_PROT_NORMAL;
 }
 
-static struct iscsit_transport cxgbit_transport = {
+static struct iscsit_transport cxgbit_transport =
+{
 	.name			= DRV_NAME,
 	.transport_type		= ISCSI_CXGBIT,
 	.rdma_shutdown		= false,
@@ -650,7 +779,8 @@ static struct iscsit_transport cxgbit_transport = {
 	.iscsit_get_sup_prot_ops = cxgbit_get_sup_prot_ops,
 };
 
-static struct cxgb4_uld_info cxgbit_uld_info = {
+static struct cxgb4_uld_info cxgbit_uld_info =
+{
 	.name		= DRV_NAME,
 	.nrxq		= MAX_ULD_QSETS,
 	.rxq_size	= 1024,
@@ -662,7 +792,8 @@ static struct cxgb4_uld_info cxgbit_uld_info = {
 };
 
 #ifdef CONFIG_CHELSIO_T4_DCB
-static struct notifier_block cxgbit_dcbevent_nb = {
+static struct notifier_block cxgbit_dcbevent_nb =
+{
 	.notifier_call = cxgbit_dcbevent_notify,
 };
 #endif
@@ -677,7 +808,7 @@ static int __init cxgbit_init(void)
 	register_dcbevent_notifier(&cxgbit_dcbevent_nb);
 #endif
 	BUILD_BUG_ON(FIELD_SIZEOF(struct sk_buff, cb) <
-		     sizeof(union cxgbit_skb_cb));
+				 sizeof(union cxgbit_skb_cb));
 	return 0;
 }
 
@@ -689,7 +820,8 @@ static void __exit cxgbit_exit(void)
 	unregister_dcbevent_notifier(&cxgbit_dcbevent_nb);
 #endif
 	mutex_lock(&cdev_list_lock);
-	list_for_each_entry_safe(cdev, tmp, &cdev_list_head, list) {
+	list_for_each_entry_safe(cdev, tmp, &cdev_list_head, list)
+	{
 		list_del(&cdev->list);
 		cxgbit_put_cdev(cdev);
 	}

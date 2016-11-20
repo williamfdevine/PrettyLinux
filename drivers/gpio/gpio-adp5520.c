@@ -15,7 +15,8 @@
 
 #include <linux/gpio.h>
 
-struct adp5520_gpio {
+struct adp5520_gpio
+{
 	struct device *master;
 	struct gpio_chip gpio_chip;
 	unsigned char lut[ADP5520_MAXGPIOS];
@@ -35,23 +36,31 @@ static int adp5520_gpio_get_value(struct gpio_chip *chip, unsigned off)
 	 */
 
 	if (test_bit(off, &dev->output))
+	{
 		adp5520_read(dev->master, ADP5520_GPIO_OUT, &reg_val);
+	}
 	else
+	{
 		adp5520_read(dev->master, ADP5520_GPIO_IN, &reg_val);
+	}
 
 	return !!(reg_val & dev->lut[off]);
 }
 
 static void adp5520_gpio_set_value(struct gpio_chip *chip,
-		unsigned off, int val)
+								   unsigned off, int val)
 {
 	struct adp5520_gpio *dev;
 	dev = gpiochip_get_data(chip);
 
 	if (val)
+	{
 		adp5520_set_bits(dev->master, ADP5520_GPIO_OUT, dev->lut[off]);
+	}
 	else
+	{
 		adp5520_clr_bits(dev->master, ADP5520_GPIO_OUT, dev->lut[off]);
+	}
 }
 
 static int adp5520_gpio_direction_input(struct gpio_chip *chip, unsigned off)
@@ -62,7 +71,7 @@ static int adp5520_gpio_direction_input(struct gpio_chip *chip, unsigned off)
 	clear_bit(off, &dev->output);
 
 	return adp5520_clr_bits(dev->master, ADP5520_GPIO_CFG_2,
-				dev->lut[off]);
+							dev->lut[off]);
 }
 
 static int adp5520_gpio_direction_output(struct gpio_chip *chip,
@@ -76,13 +85,13 @@ static int adp5520_gpio_direction_output(struct gpio_chip *chip,
 
 	if (val)
 		ret |= adp5520_set_bits(dev->master, ADP5520_GPIO_OUT,
-					dev->lut[off]);
+								dev->lut[off]);
 	else
 		ret |= adp5520_clr_bits(dev->master, ADP5520_GPIO_OUT,
-					dev->lut[off]);
+								dev->lut[off]);
 
 	ret |= adp5520_set_bits(dev->master, ADP5520_GPIO_CFG_2,
-					dev->lut[off]);
+							dev->lut[off]);
 
 	return ret;
 }
@@ -95,27 +104,35 @@ static int adp5520_gpio_probe(struct platform_device *pdev)
 	int ret, i, gpios;
 	unsigned char ctl_mask = 0;
 
-	if (pdata == NULL) {
+	if (pdata == NULL)
+	{
 		dev_err(&pdev->dev, "missing platform data\n");
 		return -ENODEV;
 	}
 
-	if (pdev->id != ID_ADP5520) {
+	if (pdev->id != ID_ADP5520)
+	{
 		dev_err(&pdev->dev, "only ADP5520 supports GPIO\n");
 		return -ENODEV;
 	}
 
 	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
+
 	if (dev == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	dev->master = pdev->dev.parent;
 
 	for (gpios = 0, i = 0; i < ADP5520_MAXGPIOS; i++)
 		if (pdata->gpio_en_mask & (1 << i))
+		{
 			dev->lut[gpios++] = 1 << i;
+		}
 
-	if (gpios < 1) {
+	if (gpios < 1)
+	{
 		ret = -EINVAL;
 		goto err;
 	}
@@ -133,29 +150,37 @@ static int adp5520_gpio_probe(struct platform_device *pdev)
 	gc->owner = THIS_MODULE;
 
 	ret = adp5520_clr_bits(dev->master, ADP5520_GPIO_CFG_1,
-		pdata->gpio_en_mask);
+						   pdata->gpio_en_mask);
 
 	if (pdata->gpio_en_mask & ADP5520_GPIO_C3)
+	{
 		ctl_mask |= ADP5520_C3_MODE;
+	}
 
 	if (pdata->gpio_en_mask & ADP5520_GPIO_R3)
+	{
 		ctl_mask |= ADP5520_R3_MODE;
+	}
 
 	if (ctl_mask)
 		ret = adp5520_set_bits(dev->master, ADP5520_LED_CONTROL,
-			ctl_mask);
+							   ctl_mask);
 
 	ret |= adp5520_set_bits(dev->master, ADP5520_GPIO_PULLUP,
-		pdata->gpio_pullup_mask);
+							pdata->gpio_pullup_mask);
 
-	if (ret) {
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to write\n");
 		goto err;
 	}
 
 	ret = devm_gpiochip_add_data(&pdev->dev, &dev->gpio_chip, dev);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	platform_set_drvdata(pdev, dev);
 	return 0;
@@ -164,7 +189,8 @@ err:
 	return ret;
 }
 
-static struct platform_driver adp5520_gpio_driver = {
+static struct platform_driver adp5520_gpio_driver =
+{
 	.driver	= {
 		.name	= "adp5520-gpio",
 	},

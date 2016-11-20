@@ -49,8 +49,12 @@ static int w5100_spi_read16(struct net_device *ndev, u32 addr)
 	int ret;
 
 	ret = w5100_spi_read(ndev, addr);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	data = ret << 8;
 	ret = w5100_spi_read(ndev, addr + 1);
 
@@ -62,22 +66,29 @@ static int w5100_spi_write16(struct net_device *ndev, u32 addr, u16 data)
 	int ret;
 
 	ret = w5100_spi_write(ndev, addr, data >> 8);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return w5100_spi_write(ndev, addr + 1, data & 0xff);
 }
 
 static int w5100_spi_readbulk(struct net_device *ndev, u32 addr, u8 *buf,
-			      int len)
+							  int len)
 {
 	int i;
 
-	for (i = 0; i < len; i++) {
+	for (i = 0; i < len; i++)
+	{
 		int ret = w5100_spi_read(ndev, addr + i);
 
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		buf[i] = ret;
 	}
 
@@ -85,21 +96,25 @@ static int w5100_spi_readbulk(struct net_device *ndev, u32 addr, u8 *buf,
 }
 
 static int w5100_spi_writebulk(struct net_device *ndev, u32 addr, const u8 *buf,
-			       int len)
+							   int len)
 {
 	int i;
 
-	for (i = 0; i < len; i++) {
+	for (i = 0; i < len; i++)
+	{
 		int ret = w5100_spi_write(ndev, addr + i, buf[i]);
 
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
 }
 
-static const struct w5100_ops w5100_spi_ops = {
+static const struct w5100_ops w5100_spi_ops =
+{
 	.may_sleep = true,
 	.chip_id = W5100,
 	.read = w5100_spi_read,
@@ -112,7 +127,8 @@ static const struct w5100_ops w5100_spi_ops = {
 
 #define W5200_SPI_WRITE_OPCODE 0x80
 
-struct w5200_spi_priv {
+struct w5200_spi_priv
+{
 	/* Serialize access to cmd_buf */
 	struct mutex cmd_lock;
 
@@ -171,7 +187,8 @@ static int w5200_spi_read16(struct net_device *ndev, u32 addr)
 static int w5200_spi_write16(struct net_device *ndev, u32 addr, u16 data)
 {
 	struct spi_device *spi = to_spi_device(ndev->dev.parent);
-	u8 cmd[6] = {
+	u8 cmd[6] =
+	{
 		addr >> 8, addr & 0xff,
 		W5200_SPI_WRITE_OPCODE, 2,
 		data >> 8, data & 0xff
@@ -181,11 +198,12 @@ static int w5200_spi_write16(struct net_device *ndev, u32 addr, u16 data)
 }
 
 static int w5200_spi_readbulk(struct net_device *ndev, u32 addr, u8 *buf,
-			      int len)
+							  int len)
 {
 	struct spi_device *spi = to_spi_device(ndev->dev.parent);
 	struct w5200_spi_priv *spi_priv = w5200_spi_priv(ndev);
-	struct spi_transfer xfer[] = {
+	struct spi_transfer xfer[] =
+	{
 		{
 			.tx_buf = spi_priv->cmd_buf,
 			.len = sizeof(spi_priv->cmd_buf),
@@ -211,11 +229,12 @@ static int w5200_spi_readbulk(struct net_device *ndev, u32 addr, u8 *buf,
 }
 
 static int w5200_spi_writebulk(struct net_device *ndev, u32 addr, const u8 *buf,
-			       int len)
+							   int len)
 {
 	struct spi_device *spi = to_spi_device(ndev->dev.parent);
 	struct w5200_spi_priv *spi_priv = w5200_spi_priv(ndev);
-	struct spi_transfer xfer[] = {
+	struct spi_transfer xfer[] =
+	{
 		{
 			.tx_buf = spi_priv->cmd_buf,
 			.len = sizeof(spi_priv->cmd_buf),
@@ -240,7 +259,8 @@ static int w5200_spi_writebulk(struct net_device *ndev, u32 addr, const u8 *buf,
 	return ret;
 }
 
-static const struct w5100_ops w5200_ops = {
+static const struct w5100_ops w5200_ops =
+{
 	.may_sleep = true,
 	.chip_id = W5200,
 	.read = w5200_spi_read,
@@ -257,7 +277,8 @@ static const struct w5100_ops w5200_ops = {
 #define W5500_SPI_WRITE_CONTROL(addr)	\
 	((W5500_SPI_BLOCK_SELECT(addr) << 3) | BIT(2))
 
-struct w5500_spi_priv {
+struct w5500_spi_priv
+{
 	/* Serialize access to cmd_buf */
 	struct mutex cmd_lock;
 
@@ -284,7 +305,8 @@ static int w5500_spi_init(struct net_device *ndev)
 static int w5500_spi_read(struct net_device *ndev, u32 addr)
 {
 	struct spi_device *spi = to_spi_device(ndev->dev.parent);
-	u8 cmd[3] = {
+	u8 cmd[3] =
+	{
 		addr >> 8,
 		addr,
 		W5500_SPI_READ_CONTROL(addr)
@@ -300,7 +322,8 @@ static int w5500_spi_read(struct net_device *ndev, u32 addr)
 static int w5500_spi_write(struct net_device *ndev, u32 addr, u8 data)
 {
 	struct spi_device *spi = to_spi_device(ndev->dev.parent);
-	u8 cmd[4] = {
+	u8 cmd[4] =
+	{
 		addr >> 8,
 		addr,
 		W5500_SPI_WRITE_CONTROL(addr),
@@ -313,7 +336,8 @@ static int w5500_spi_write(struct net_device *ndev, u32 addr, u8 data)
 static int w5500_spi_read16(struct net_device *ndev, u32 addr)
 {
 	struct spi_device *spi = to_spi_device(ndev->dev.parent);
-	u8 cmd[3] = {
+	u8 cmd[3] =
+	{
 		addr >> 8,
 		addr,
 		W5500_SPI_READ_CONTROL(addr)
@@ -329,7 +353,8 @@ static int w5500_spi_read16(struct net_device *ndev, u32 addr)
 static int w5500_spi_write16(struct net_device *ndev, u32 addr, u16 data)
 {
 	struct spi_device *spi = to_spi_device(ndev->dev.parent);
-	u8 cmd[5] = {
+	u8 cmd[5] =
+	{
 		addr >> 8,
 		addr,
 		W5500_SPI_WRITE_CONTROL(addr),
@@ -341,11 +366,12 @@ static int w5500_spi_write16(struct net_device *ndev, u32 addr, u16 data)
 }
 
 static int w5500_spi_readbulk(struct net_device *ndev, u32 addr, u8 *buf,
-			      int len)
+							  int len)
 {
 	struct spi_device *spi = to_spi_device(ndev->dev.parent);
 	struct w5500_spi_priv *spi_priv = w5500_spi_priv(ndev);
-	struct spi_transfer xfer[] = {
+	struct spi_transfer xfer[] =
+	{
 		{
 			.tx_buf = spi_priv->cmd_buf,
 			.len = sizeof(spi_priv->cmd_buf),
@@ -370,11 +396,12 @@ static int w5500_spi_readbulk(struct net_device *ndev, u32 addr, u8 *buf,
 }
 
 static int w5500_spi_writebulk(struct net_device *ndev, u32 addr, const u8 *buf,
-			       int len)
+							   int len)
 {
 	struct spi_device *spi = to_spi_device(ndev->dev.parent);
 	struct w5500_spi_priv *spi_priv = w5500_spi_priv(ndev);
-	struct spi_transfer xfer[] = {
+	struct spi_transfer xfer[] =
+	{
 		{
 			.tx_buf = spi_priv->cmd_buf,
 			.len = sizeof(spi_priv->cmd_buf),
@@ -398,7 +425,8 @@ static int w5500_spi_writebulk(struct net_device *ndev, u32 addr, const u8 *buf,
 	return ret;
 }
 
-static const struct w5100_ops w5500_ops = {
+static const struct w5100_ops w5500_ops =
+{
 	.may_sleep = true,
 	.chip_id = W5500,
 	.read = w5500_spi_read,
@@ -417,21 +445,25 @@ static int w5100_spi_probe(struct spi_device *spi)
 	int priv_size;
 	const void *mac = of_get_mac_address(spi->dev.of_node);
 
-	switch (id->driver_data) {
-	case W5100:
-		ops = &w5100_spi_ops;
-		priv_size = 0;
-		break;
-	case W5200:
-		ops = &w5200_ops;
-		priv_size = sizeof(struct w5200_spi_priv);
-		break;
-	case W5500:
-		ops = &w5500_ops;
-		priv_size = sizeof(struct w5500_spi_priv);
-		break;
-	default:
-		return -EINVAL;
+	switch (id->driver_data)
+	{
+		case W5100:
+			ops = &w5100_spi_ops;
+			priv_size = 0;
+			break;
+
+		case W5200:
+			ops = &w5200_ops;
+			priv_size = sizeof(struct w5200_spi_priv);
+			break;
+
+		case W5500:
+			ops = &w5500_ops;
+			priv_size = sizeof(struct w5500_spi_priv);
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return w5100_probe(&spi->dev, ops, priv_size, mac, spi->irq, -EINVAL);
@@ -442,7 +474,8 @@ static int w5100_spi_remove(struct spi_device *spi)
 	return w5100_remove(&spi->dev);
 }
 
-static const struct spi_device_id w5100_spi_ids[] = {
+static const struct spi_device_id w5100_spi_ids[] =
+{
 	{ "w5100", W5100 },
 	{ "w5200", W5200 },
 	{ "w5500", W5500 },
@@ -450,7 +483,8 @@ static const struct spi_device_id w5100_spi_ids[] = {
 };
 MODULE_DEVICE_TABLE(spi, w5100_spi_ids);
 
-static struct spi_driver w5100_spi_driver = {
+static struct spi_driver w5100_spi_driver =
+{
 	.driver		= {
 		.name	= "w5100",
 		.pm	= &w5100_pm_ops,

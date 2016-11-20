@@ -55,7 +55,8 @@ extern "C" {
  * restarting interrupted ioctls).  The following struct is logically the
  * same as 'struct timespec' but 32/64b ABI safe.
  */
-struct drm_msm_timespec {
+struct drm_msm_timespec
+{
 	__s64 tv_sec;          /* seconds */
 	__s64 tv_nsec;         /* nanoseconds */
 };
@@ -66,7 +67,8 @@ struct drm_msm_timespec {
 #define MSM_PARAM_MAX_FREQ   0x04
 #define MSM_PARAM_TIMESTAMP  0x05
 
-struct drm_msm_param {
+struct drm_msm_param
+{
 	__u32 pipe;           /* in, MSM_PIPE_x */
 	__u32 param;          /* in, MSM_PARAM_x */
 	__u64 value;          /* out (get_param) or in (set_param) */
@@ -85,18 +87,20 @@ struct drm_msm_param {
 #define MSM_BO_UNCACHED      0x00040000
 
 #define MSM_BO_FLAGS         (MSM_BO_SCANOUT | \
-                              MSM_BO_GPU_READONLY | \
-                              MSM_BO_CACHED | \
-                              MSM_BO_WC | \
-                              MSM_BO_UNCACHED)
+							  MSM_BO_GPU_READONLY | \
+							  MSM_BO_CACHED | \
+							  MSM_BO_WC | \
+							  MSM_BO_UNCACHED)
 
-struct drm_msm_gem_new {
+struct drm_msm_gem_new
+{
 	__u64 size;           /* in */
 	__u32 flags;          /* in, mask of MSM_BO_x */
 	__u32 handle;         /* out */
 };
 
-struct drm_msm_gem_info {
+struct drm_msm_gem_info
+{
 	__u32 handle;         /* in */
 	__u32 pad;
 	__u64 offset;         /* out, offset to pass to mmap() */
@@ -108,13 +112,15 @@ struct drm_msm_gem_info {
 
 #define MSM_PREP_FLAGS       (MSM_PREP_READ | MSM_PREP_WRITE | MSM_PREP_NOSYNC)
 
-struct drm_msm_gem_cpu_prep {
+struct drm_msm_gem_cpu_prep
+{
 	__u32 handle;         /* in */
 	__u32 op;             /* in, mask of MSM_PREP_x */
 	struct drm_msm_timespec timeout;   /* in */
 };
 
-struct drm_msm_gem_cpu_fini {
+struct drm_msm_gem_cpu_fini
+{
 	__u32 handle;         /* in */
 };
 
@@ -133,7 +139,8 @@ struct drm_msm_gem_cpu_fini {
  * NOTE that reloc's must be sorted by order of increasing submit_offset,
  * otherwise EINVAL.
  */
-struct drm_msm_gem_submit_reloc {
+struct drm_msm_gem_submit_reloc
+{
 	__u32 submit_offset;  /* in, offset from submit_bo */
 	__u32 or;             /* in, value OR'd with result */
 	__s32 shift;          /* in, amount of left shift (can be negative) */
@@ -152,7 +159,8 @@ struct drm_msm_gem_submit_reloc {
 #define MSM_SUBMIT_CMD_BUF             0x0001
 #define MSM_SUBMIT_CMD_IB_TARGET_BUF   0x0002
 #define MSM_SUBMIT_CMD_CTX_RESTORE_BUF 0x0003
-struct drm_msm_gem_submit_cmd {
+struct drm_msm_gem_submit_cmd
+{
 	__u32 type;           /* in, one of MSM_SUBMIT_CMD_x */
 	__u32 submit_idx;     /* in, index of submit_bo cmdstream buffer */
 	__u32 submit_offset;  /* in, offset into submit_bo */
@@ -178,7 +186,8 @@ struct drm_msm_gem_submit_cmd {
 
 #define MSM_SUBMIT_BO_FLAGS            (MSM_SUBMIT_BO_READ | MSM_SUBMIT_BO_WRITE)
 
-struct drm_msm_gem_submit_bo {
+struct drm_msm_gem_submit_bo
+{
 	__u32 flags;          /* in, mask of MSM_SUBMIT_BO_x */
 	__u32 handle;         /* in, GEM handle */
 	__u64 presumed;       /* in/out, presumed buffer address */
@@ -198,7 +207,8 @@ struct drm_msm_gem_submit_bo {
  * one or more cmdstream buffers.  This allows for conditional execution
  * (context-restore), and IB buffers needed for per tile/bin draw cmds.
  */
-struct drm_msm_gem_submit {
+struct drm_msm_gem_submit
+{
 	__u32 flags;          /* MSM_PIPE_x | MSM_SUBMIT_x */
 	__u32 fence;          /* out */
 	__u32 nr_bos;         /* in, number of submit_bo's */
@@ -215,7 +225,8 @@ struct drm_msm_gem_submit {
  * mainly just exists as a way to implement the gallium pipe_fence
  * APIs without requiring a dummy bo to synchronize on.
  */
-struct drm_msm_wait_fence {
+struct drm_msm_wait_fence
+{
 	__u32 fence;          /* in */
 	__u32 pad;
 	struct drm_msm_timespec timeout;   /* in */
@@ -236,7 +247,8 @@ struct drm_msm_wait_fence {
 #define MSM_MADV_DONTNEED 1       /* backing pages not needed */
 #define __MSM_MADV_PURGED 2       /* internal state */
 
-struct drm_msm_gem_madvise {
+struct drm_msm_gem_madvise
+{
 	__u32 handle;         /* in, GEM handle */
 	__u32 madv;           /* in, MSM_MADV_x */
 	__u32 retained;       /* out, whether backing store still exists */

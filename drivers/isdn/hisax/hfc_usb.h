@@ -84,7 +84,8 @@
 #define HFC_CTRL_BUFSIZE 32
 
 /* entry and size of output/input control buffer */
-typedef struct {
+typedef struct
+{
 	__u8 hfc_reg;		/* register number */
 	__u8 reg_val;		/* value to be written (or read) */
 	int action;		/* data for action handler */
@@ -101,27 +102,29 @@ typedef struct {
  * URB error codes:
  * Used to represent a list of values and their respective symbolic names
  */
-struct hfcusb_symbolic_list {
+struct hfcusb_symbolic_list
+{
 	const int num;
 	const char *name;
 };
 
-static struct hfcusb_symbolic_list urb_errlist[] = {
-	{-ENOMEM, "No memory for allocation of internal structures"},
-	{-ENOSPC, "The host controller's bandwidth is already consumed"},
-	{-ENOENT, "URB was canceled by unlink_urb"},
-	{-EXDEV, "ISO transfer only partially completed"},
-	{-EAGAIN, "Too match scheduled for the future"},
-	{-ENXIO, "URB already queued"},
-	{-EFBIG, "Too much ISO frames requested"},
-	{-ENOSR, "Buffer error (overrun)"},
-	{-EPIPE, "Specified endpoint is stalled (device not responding)"},
-	{-EOVERFLOW, "Babble (bad cable?)"},
-	{-EPROTO, "Bit-stuff error (bad cable?)"},
-	{-EILSEQ, "CRC/Timeout"},
-	{-ETIMEDOUT, "NAK (device does not respond)"},
-	{-ESHUTDOWN, "Device unplugged"},
-	{-1, NULL}
+static struct hfcusb_symbolic_list urb_errlist[] =
+{
+	{ -ENOMEM, "No memory for allocation of internal structures"},
+	{ -ENOSPC, "The host controller's bandwidth is already consumed"},
+	{ -ENOENT, "URB was canceled by unlink_urb"},
+	{ -EXDEV, "ISO transfer only partially completed"},
+	{ -EAGAIN, "Too match scheduled for the future"},
+	{ -ENXIO, "URB already queued"},
+	{ -EFBIG, "Too much ISO frames requested"},
+	{ -ENOSR, "Buffer error (overrun)"},
+	{ -EPIPE, "Specified endpoint is stalled (device not responding)"},
+	{ -EOVERFLOW, "Babble (bad cable?)"},
+	{ -EPROTO, "Bit-stuff error (bad cable?)"},
+	{ -EILSEQ, "CRC/Timeout"},
+	{ -ETIMEDOUT, "NAK (device does not respond)"},
+	{ -ESHUTDOWN, "Device unplugged"},
+	{ -1, NULL}
 };
 
 
@@ -149,27 +152,37 @@ static struct hfcusb_symbolic_list urb_errlist[] = {
  * INT-in and ISO-out, or ISO-in and ISO-out)
  * with 4 RX endpoints even E-Channel logging is possible
  */
-static int validconf[][19] = {
+static int validconf[][19] =
+{
 	// INT in, ISO out config
-	{EP_NUL, EP_INT, EP_NUL, EP_INT, EP_NUL, EP_INT, EP_NOP, EP_INT,
-	 EP_ISO, EP_NUL, EP_ISO, EP_NUL, EP_ISO, EP_NUL, EP_NUL, EP_NUL,
-	 CNF_4INT3ISO, 2, 1},
-	{EP_NUL, EP_INT, EP_NUL, EP_INT, EP_NUL, EP_INT, EP_NUL, EP_NUL,
-	 EP_ISO, EP_NUL, EP_ISO, EP_NUL, EP_ISO, EP_NUL, EP_NUL, EP_NUL,
-	 CNF_3INT3ISO, 2, 0},
+	{
+		EP_NUL, EP_INT, EP_NUL, EP_INT, EP_NUL, EP_INT, EP_NOP, EP_INT,
+		EP_ISO, EP_NUL, EP_ISO, EP_NUL, EP_ISO, EP_NUL, EP_NUL, EP_NUL,
+		CNF_4INT3ISO, 2, 1
+	},
+	{
+		EP_NUL, EP_INT, EP_NUL, EP_INT, EP_NUL, EP_INT, EP_NUL, EP_NUL,
+		EP_ISO, EP_NUL, EP_ISO, EP_NUL, EP_ISO, EP_NUL, EP_NUL, EP_NUL,
+		CNF_3INT3ISO, 2, 0
+	},
 	// ISO in, ISO out config
-	{EP_NUL, EP_NUL, EP_NUL, EP_NUL, EP_NUL, EP_NUL, EP_NUL, EP_NUL,
-	 EP_ISO, EP_ISO, EP_ISO, EP_ISO, EP_ISO, EP_ISO, EP_NOP, EP_ISO,
-	 CNF_4ISO3ISO, 2, 1},
-	{EP_NUL, EP_NUL, EP_NUL, EP_NUL, EP_NUL, EP_NUL, EP_NUL, EP_NUL,
-	 EP_ISO, EP_ISO, EP_ISO, EP_ISO, EP_ISO, EP_ISO, EP_NUL, EP_NUL,
-	 CNF_3ISO3ISO, 2, 0},
+	{
+		EP_NUL, EP_NUL, EP_NUL, EP_NUL, EP_NUL, EP_NUL, EP_NUL, EP_NUL,
+		EP_ISO, EP_ISO, EP_ISO, EP_ISO, EP_ISO, EP_ISO, EP_NOP, EP_ISO,
+		CNF_4ISO3ISO, 2, 1
+	},
+	{
+		EP_NUL, EP_NUL, EP_NUL, EP_NUL, EP_NUL, EP_NUL, EP_NUL, EP_NUL,
+		EP_ISO, EP_ISO, EP_ISO, EP_ISO, EP_ISO, EP_ISO, EP_NUL, EP_NUL,
+		CNF_3ISO3ISO, 2, 0
+	},
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}	// EOL element
 };
 
 #ifdef CONFIG_HISAX_DEBUG
 // string description of chosen config
-static char *conf_str[] = {
+static char *conf_str[] =
+{
 	"4 Interrupt IN + 3 Isochron OUT",
 	"3 Interrupt IN + 3 Isochron OUT",
 	"4 Isochron IN + 3 Isochron OUT",
@@ -177,7 +190,8 @@ static char *conf_str[] = {
 };
 #endif
 
-typedef struct {
+typedef struct
+{
 	int vendor;		// vendor id
 	int prod_id;		// product id
 	char *vend_name;	// vendor string

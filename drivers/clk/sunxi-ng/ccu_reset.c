@@ -14,7 +14,7 @@
 #include "ccu_reset.h"
 
 static int ccu_reset_assert(struct reset_controller_dev *rcdev,
-			    unsigned long id)
+							unsigned long id)
 {
 	struct ccu_reset *ccu = rcdev_to_ccu_reset(rcdev);
 	const struct ccu_reset_map *map = &ccu->reset_map[id];
@@ -32,7 +32,7 @@ static int ccu_reset_assert(struct reset_controller_dev *rcdev,
 }
 
 static int ccu_reset_deassert(struct reset_controller_dev *rcdev,
-			      unsigned long id)
+							  unsigned long id)
 {
 	struct ccu_reset *ccu = rcdev_to_ccu_reset(rcdev);
 	const struct ccu_reset_map *map = &ccu->reset_map[id];
@@ -49,7 +49,8 @@ static int ccu_reset_deassert(struct reset_controller_dev *rcdev,
 	return 0;
 }
 
-const struct reset_control_ops ccu_reset_ops = {
+const struct reset_control_ops ccu_reset_ops =
+{
 	.assert		= ccu_reset_assert,
 	.deassert	= ccu_reset_deassert,
 };

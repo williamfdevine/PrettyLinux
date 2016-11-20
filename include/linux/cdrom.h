@@ -1,6 +1,6 @@
 /*
  * -- <linux/cdrom.h>
- * General header file for linux CD-ROM drivers 
+ * General header file for linux CD-ROM drivers
  * Copyright (C) 1992         David Giller, rafetmad@oxy.edu
  *               1994, 1995   Eberhard Mönkeberg, emoenke@gwdg.de
  *               1996         David van Leeuwen, david@tm.tno.nl
@@ -35,26 +35,27 @@ struct packet_command
 #define CDDA_BPC_FULL		2	/* multi frame block pc */
 
 /* Uniform cdrom data structures for cdrom.c */
-struct cdrom_device_info {
+struct cdrom_device_info
+{
 	struct cdrom_device_ops  *ops;  /* link to device_ops */
 	struct list_head list;		/* linked list of all device_info */
 	struct gendisk *disk;		/* matching block layer disk */
 	void *handle;		        /* driver-dependent data */
-/* specifications */
+	/* specifications */
 	int mask;                       /* mask of capability: disables them */
 	int speed;			/* maximum speed for reading data */
 	int capacity;			/* number of discs in jukebox */
-/* device-related storage */
+	/* device-related storage */
 	unsigned int options	: 30;	/* options flags */
 	unsigned mc_flags	: 2;	/* media change buffer flags */
 	unsigned int vfs_events;	/* cached events for vfs path */
 	unsigned int ioctl_events;	/* cached events for ioctl path */
-    	int use_count;                  /* number of times device opened */
-    	char name[20];                  /* name of the device type */
-/* per-device flags */
-        __u8 sanyo_slot		: 2;	/* Sanyo 3 CD changer support */
-        __u8 keeplocked		: 1;	/* CDROM_LOCKDOOR status */
-        __u8 reserved		: 5;	/* not used yet */
+	int use_count;                  /* number of times device opened */
+	char name[20];                  /* name of the device type */
+	/* per-device flags */
+	__u8 sanyo_slot		: 2;	/* Sanyo 3 CD changer support */
+	__u8 keeplocked		: 1;	/* CDROM_LOCKDOOR status */
+	__u8 reserved		: 5;	/* not used yet */
 	int cdda_method;		/* see flags */
 	__u8 last_sense;
 	__u8 media_written;		/* dirty flag, DVD+RW bookkeeping */
@@ -64,70 +65,73 @@ struct cdrom_device_info {
 	int mrw_mode_page;
 };
 
-struct cdrom_device_ops {
-/* routines */
+struct cdrom_device_ops
+{
+	/* routines */
 	int (*open) (struct cdrom_device_info *, int);
 	void (*release) (struct cdrom_device_info *);
 	int (*drive_status) (struct cdrom_device_info *, int);
 	unsigned int (*check_events) (struct cdrom_device_info *cdi,
-				      unsigned int clearing, int slot);
+								  unsigned int clearing, int slot);
 	int (*media_changed) (struct cdrom_device_info *, int);
 	int (*tray_move) (struct cdrom_device_info *, int);
 	int (*lock_door) (struct cdrom_device_info *, int);
 	int (*select_speed) (struct cdrom_device_info *, int);
 	int (*select_disc) (struct cdrom_device_info *, int);
 	int (*get_last_session) (struct cdrom_device_info *,
-				 struct cdrom_multisession *);
+							 struct cdrom_multisession *);
 	int (*get_mcn) (struct cdrom_device_info *,
-			struct cdrom_mcn *);
+					struct cdrom_mcn *);
 	/* hard reset device */
 	int (*reset) (struct cdrom_device_info *);
 	/* play stuff */
-	int (*audio_ioctl) (struct cdrom_device_info *,unsigned int, void *);
+	int (*audio_ioctl) (struct cdrom_device_info *, unsigned int, void *);
 
-/* driver specifications */
+	/* driver specifications */
 	const int capability;   /* capability flags */
 	int n_minors;           /* number of active minor devices */
 	/* handle uniform packets for scsi type devices (scsi,atapi) */
 	int (*generic_packet) (struct cdrom_device_info *,
-			       struct packet_command *);
+						   struct packet_command *);
 };
 
 /* the general block_device operations structure: */
 extern int cdrom_open(struct cdrom_device_info *cdi, struct block_device *bdev,
-			fmode_t mode);
+					  fmode_t mode);
 extern void cdrom_release(struct cdrom_device_info *cdi, fmode_t mode);
 extern int cdrom_ioctl(struct cdrom_device_info *cdi, struct block_device *bdev,
-		       fmode_t mode, unsigned int cmd, unsigned long arg);
+					   fmode_t mode, unsigned int cmd, unsigned long arg);
 extern unsigned int cdrom_check_events(struct cdrom_device_info *cdi,
-				       unsigned int clearing);
+									   unsigned int clearing);
 extern int cdrom_media_changed(struct cdrom_device_info *);
 
 extern int register_cdrom(struct cdrom_device_info *cdi);
 extern void unregister_cdrom(struct cdrom_device_info *cdi);
 
-typedef struct {
-    int data;
-    int audio;
-    int cdi;
-    int xa;
-    long error;
+typedef struct
+{
+	int data;
+	int audio;
+	int cdi;
+	int xa;
+	long error;
 } tracktype;
 
 extern int cdrom_get_last_written(struct cdrom_device_info *cdi, long *last_written);
 extern int cdrom_number_of_slots(struct cdrom_device_info *cdi);
 extern int cdrom_mode_select(struct cdrom_device_info *cdi,
-			     struct packet_command *cgc);
+							 struct packet_command *cgc);
 extern int cdrom_mode_sense(struct cdrom_device_info *cdi,
-			    struct packet_command *cgc,
-			    int page_code, int page_control);
+							struct packet_command *cgc,
+							int page_code, int page_control);
 extern void init_cdrom_command(struct packet_command *cgc,
-			       void *buffer, int len, int type);
+							   void *buffer, int len, int type);
 
 /* The SCSI spec says there could be 256 slots. */
 #define CDROM_MAX_SLOTS	256
 
-struct cdrom_mechstat_header {
+struct cdrom_mechstat_header
+{
 #if defined(__BIG_ENDIAN_BITFIELD)
 	__u8 fault         : 1;
 	__u8 changer_state : 2;
@@ -148,7 +152,8 @@ struct cdrom_mechstat_header {
 	__u16 slot_tablelen;
 };
 
-struct cdrom_slot {
+struct cdrom_slot
+{
 #if defined(__BIG_ENDIAN_BITFIELD)
 	__u8 disc_present : 1;
 	__u8 reserved1    : 6;
@@ -161,12 +166,14 @@ struct cdrom_slot {
 	__u8 reserved2[3];
 };
 
-struct cdrom_changer_info {
+struct cdrom_changer_info
+{
 	struct cdrom_mechstat_header hdr;
 	struct cdrom_slot slots[CDROM_MAX_SLOTS];
 };
 
-typedef enum {
+typedef enum
+{
 	mechtype_caddy = 0,
 	mechtype_tray  = 1,
 	mechtype_popup = 2,
@@ -174,17 +181,18 @@ typedef enum {
 	mechtype_cartridge_changer  = 5
 } mechtype_t;
 
-typedef struct {
+typedef struct
+{
 #if defined(__BIG_ENDIAN_BITFIELD)
 	__u8 ps			: 1;
 	__u8 reserved1		: 1;
 	__u8 page_code		: 6;
-        __u8 page_length;
+	__u8 page_length;
 	__u8 reserved2		: 1;
 	__u8 bufe		: 1;
 	__u8 ls_v		: 1;
 	__u8 test_write		: 1;
-        __u8 write_type		: 4;
+	__u8 write_type		: 4;
 	__u8 multi_session	: 2; /* or border, DVD */
 	__u8 fp			: 1;
 	__u8 copy		: 1;
@@ -195,8 +203,8 @@ typedef struct {
 	__u8 page_code		: 6;
 	__u8 reserved1		: 1;
 	__u8 ps			: 1;
-        __u8 page_length;
-        __u8 write_type		: 4;
+	__u8 page_length;
+	__u8 write_type		: 4;
 	__u8 test_write		: 1;
 	__u8 ls_v		: 1;
 	__u8 bufe		: 1;
@@ -245,7 +253,8 @@ struct modesel_head
 	__u8	block_length_lo;
 };
 
-typedef struct {
+typedef struct
+{
 	__u16 report_key_length;
 	__u8 reserved1;
 	__u8 reserved2;
@@ -263,7 +272,8 @@ typedef struct {
 	__u8 reserved3;
 } rpc_state_t;
 
-struct event_header {
+struct event_header
+{
 	__be16 data_len;
 #if defined(__BIG_ENDIAN_BITFIELD)
 	__u8 nea		: 1;
@@ -277,7 +287,8 @@ struct event_header {
 	__u8 supp_event_class;
 };
 
-struct media_event_desc {
+struct media_event_desc
+{
 #if defined(__BIG_ENDIAN_BITFIELD)
 	__u8 reserved1		: 4;
 	__u8 media_event_code	: 4;

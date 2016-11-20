@@ -39,7 +39,8 @@
  *
  * @num_intr: The number of irqs available
  */
-struct mic_intr_info {
+struct mic_intr_info
+{
 	u32 num_intr;
 };
 
@@ -49,7 +50,8 @@ struct mic_intr_info {
  * @irq_usage_count: usage count array tracking the number of sources
  * assigned for each irq.
  */
-struct mic_irq_info {
+struct mic_irq_info
+{
 	int *irq_usage_count;
 };
 
@@ -58,7 +60,8 @@ struct mic_irq_info {
  *
  * @mmio: MMIO bar information.
  */
-struct mic_device {
+struct mic_device
+{
 	struct mic_mw mmio;
 };
 
@@ -79,7 +82,8 @@ struct mic_device {
  * @scdev: SCIF device on the SCIF virtual bus.
  * @vpdev: Virtio over PCIe device on the VOP virtual bus.
  */
-struct mic_driver {
+struct mic_driver
+{
 	char name[20];
 	struct dentry *dbg_dir;
 	struct device *dev;
@@ -131,7 +135,7 @@ void mic_driver_uninit(struct mic_driver *mdrv);
 int mic_next_card_db(void);
 struct mic_irq *
 mic_request_card_irq(irq_handler_t handler, irq_handler_t thread_fn,
-		     const char *name, void *data, int db);
+					 const char *name, void *data, int db);
 void mic_free_card_irq(struct mic_irq *cookie, void *data);
 u32 mic_read_spad(struct mic_device *mdev, unsigned int idx);
 void mic_send_intr(struct mic_device *mdev, int doorbell);

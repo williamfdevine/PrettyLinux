@@ -96,9 +96,9 @@
 
 u16 b43_ofdmtab_read16(struct b43_wldev *dev, u16 table, u16 offset);
 void b43_ofdmtab_write16(struct b43_wldev *dev, u16 table,
-			 u16 offset, u16 value);
+						 u16 offset, u16 value);
 u32 b43_ofdmtab_read32(struct b43_wldev *dev, u16 table, u16 offset);
 void b43_ofdmtab_write32(struct b43_wldev *dev, u16 table,
-			 u16 offset, u32 value);
+						 u16 offset, u32 value);
 
 #endif /* LINUX_B43_PHY_A_H_ */

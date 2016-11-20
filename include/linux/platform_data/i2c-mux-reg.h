@@ -27,7 +27,8 @@
  * @reg: Virtual address of the register to switch channel
  * @reg_size: register size in bytes
  */
-struct i2c_mux_reg_platform_data {
+struct i2c_mux_reg_platform_data
+{
 	int parent;
 	int base_nr;
 	const unsigned int *values;

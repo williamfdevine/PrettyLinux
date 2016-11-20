@@ -119,39 +119,39 @@ static inline void lu_ref_fini(struct lu_ref *ref)
 }
 
 static inline struct lu_ref_link *lu_ref_add(struct lu_ref *ref,
-					     const char *scope,
-					     const void *source)
+		const char *scope,
+		const void *source)
 {
 	return NULL;
 }
 
 static inline struct lu_ref_link *lu_ref_add_atomic(struct lu_ref *ref,
-						    const char *scope,
-						    const void *source)
+		const char *scope,
+		const void *source)
 {
 	return NULL;
 }
 
 static inline void lu_ref_add_at(struct lu_ref *ref,
-				 struct lu_ref_link *link,
-				 const char *scope,
-				 const void *source)
+								 struct lu_ref_link *link,
+								 const char *scope,
+								 const void *source)
 {
 }
 
 static inline void lu_ref_del(struct lu_ref *ref, const char *scope,
-			      const void *source)
+							  const void *source)
 {
 }
 
 static inline void lu_ref_set_at(struct lu_ref *ref, struct lu_ref_link *link,
-				 const char *scope, const void *source0,
-				 const void *source1)
+								 const char *scope, const void *source0,
+								 const void *source1)
 {
 }
 
 static inline void lu_ref_del_at(struct lu_ref *ref, struct lu_ref_link *link,
-				 const char *scope, const void *source)
+								 const char *scope, const void *source)
 {
 }
 

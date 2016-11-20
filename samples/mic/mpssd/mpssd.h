@@ -58,20 +58,23 @@
 #define LOGFILE_NAME "/var/log/mpssd"
 #define PAGE_SIZE 4096
 
-struct mic_console_info {
+struct mic_console_info
+{
 	pthread_t       console_thread;
 	int		virtio_console_fd;
 	void		*console_dp;
 };
 
-struct mic_net_info {
+struct mic_net_info
+{
 	pthread_t       net_thread;
 	int		virtio_net_fd;
 	int		tap_fd;
 	void		*net_dp;
 };
 
-struct mic_virtblk_info {
+struct mic_virtblk_info
+{
 	pthread_t       block_thread;
 	int		virtio_block_fd;
 	void		*block_dp;
@@ -82,7 +85,8 @@ struct mic_virtblk_info {
 	long		backend_size;
 };
 
-struct mic_info {
+struct mic_info
+{
 	int		id;
 	char		*name;
 	pthread_t       config_thread;

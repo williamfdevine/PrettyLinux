@@ -18,7 +18,8 @@
  *     [MPLS_IPTUNNEL_DST]
  * }
  */
-enum {
+enum
+{
 	MPLS_IPTUNNEL_UNSPEC,
 	MPLS_IPTUNNEL_DST,
 	__MPLS_IPTUNNEL_MAX,

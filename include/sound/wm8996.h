@@ -11,7 +11,8 @@
 #ifndef __LINUX_SND_WM8996_H
 #define __LINUX_SND_WM8996_H
 
-enum wm8996_inmode {
+enum wm8996_inmode
+{
 	WM8996_DIFFERRENTIAL_1 = 0,   /* IN1xP - IN1xN */
 	WM8996_INVERTING = 1,         /* IN1xN */
 	WM8996_NON_INVERTING = 2,     /* IN1xP */
@@ -25,7 +26,8 @@ enum wm8996_inmode {
  * Configurations are expected to be generated using the ReTune Mobile
  * control panel in WISCE - see http://www.wolfsonmicro.com/wisce/
  */
-struct wm8996_retune_mobile_config {
+struct wm8996_retune_mobile_config
+{
 	const char *name;
 	int rate;
 	u16 regs[20];
@@ -33,7 +35,8 @@ struct wm8996_retune_mobile_config {
 
 #define WM8996_SET_DEFAULT 0x10000
 
-struct wm8996_pdata {
+struct wm8996_pdata
+{
 	int irq_flags;  /** Set IRQ trigger flags; default active low */
 
 	int ldo_ena;  /** GPIO for LDO1; -1 for none */

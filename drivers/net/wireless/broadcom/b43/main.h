@@ -43,7 +43,8 @@ extern int b43_modparam_verbose;
 
 /* Logmessage verbosity levels. Update the b43_modparam_verbose helptext, if
  * you add or remove levels. */
-enum b43_verbosity {
+enum b43_verbosity
+{
 	B43_VERBOSITY_ERROR,
 	B43_VERBOSITY_WARN,
 	B43_VERBOSITY_INFO,
@@ -61,8 +62,8 @@ enum b43_verbosity {
 static inline int b43_is_cck_rate(int rate)
 {
 	return (rate == B43_CCK_RATE_1MB ||
-		rate == B43_CCK_RATE_2MB ||
-		rate == B43_CCK_RATE_5MB || rate == B43_CCK_RATE_11MB);
+			rate == B43_CCK_RATE_2MB ||
+			rate == B43_CCK_RATE_5MB || rate == B43_CCK_RATE_11MB);
 }
 
 static inline int b43_is_ofdm_rate(int rate)
@@ -71,9 +72,9 @@ static inline int b43_is_ofdm_rate(int rate)
 }
 
 u8 b43_ieee80211_antenna_sanitize(struct b43_wldev *dev,
-				  u8 antenna_nr);
+								  u8 antenna_nr);
 
-void b43_tsf_read(struct b43_wldev *dev, u64 * tsf);
+void b43_tsf_read(struct b43_wldev *dev, u64 *tsf);
 void b43_tsf_write(struct b43_wldev *dev, u64 tsf);
 
 u32 b43_shm_read32(struct b43_wldev *dev, u16 routing, u16 offset);
@@ -106,7 +107,7 @@ void b43_mac_switch_freq(struct b43_wldev *dev, u8 spurmode);
 
 struct b43_request_fw_context;
 int b43_do_request_fw(struct b43_request_fw_context *ctx, const char *name,
-		      struct b43_firmware_file *fw, bool async);
+					  struct b43_firmware_file *fw, bool async);
 void b43_do_release_fw(struct b43_firmware_file *fw);
 
 #endif /* B43_MAIN_H_ */

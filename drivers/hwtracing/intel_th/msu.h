@@ -16,7 +16,8 @@
 #ifndef __INTEL_TH_MSU_H__
 #define __INTEL_TH_MSU_H__
 
-enum {
+enum
+{
 	REG_MSU_MSUPARAMS	= 0x0000,
 	REG_MSU_MSUSTS		= 0x0008,
 	REG_MSU_MSC0CTL		= 0x0100, /* MSC0 control */
@@ -45,7 +46,8 @@ enum {
 #define MSC_LEN		(BIT(8) | BIT(9) | BIT(10))
 
 /* MSC operating modes (MSC_MODE) */
-enum {
+enum
+{
 	MSC_MODE_SINGLE	= 0,
 	MSC_MODE_MULTI,
 	MSC_MODE_EXI,
@@ -59,7 +61,8 @@ enum {
 /*
  * Multiblock/multiwindow block descriptor
  */
-struct msc_block_desc {
+struct msc_block_desc
+{
 	u32	sw_tag;
 	u32	block_sz;
 	u32	next_blk;
@@ -88,7 +91,9 @@ struct msc_block_desc {
 static inline unsigned long msc_data_sz(struct msc_block_desc *bdesc)
 {
 	if (!bdesc->valid_dw)
+	{
 		return 0;
+	}
 
 	return bdesc->valid_dw * 4 - MSC_BDESC;
 }
@@ -96,7 +101,9 @@ static inline unsigned long msc_data_sz(struct msc_block_desc *bdesc)
 static inline bool msc_block_wrapped(struct msc_block_desc *bdesc)
 {
 	if (bdesc->hw_tag & MSC_HW_TAG_BLOCKWRAP)
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -104,8 +111,10 @@ static inline bool msc_block_wrapped(struct msc_block_desc *bdesc)
 static inline bool msc_block_last_written(struct msc_block_desc *bdesc)
 {
 	if ((bdesc->hw_tag & MSC_HW_TAG_ENDBIT) ||
-	    (msc_data_sz(bdesc) != DATA_IN_PAGE))
+		(msc_data_sz(bdesc) != DATA_IN_PAGE))
+	{
 		return true;
+	}
 
 	return false;
 }

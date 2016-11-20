@@ -20,16 +20,17 @@
 #define EBT_MATCH 0
 #define EBT_NOMATCH 1
 
-struct ebt_match {
+struct ebt_match
+{
 	struct list_head list;
 	const char name[EBT_FUNCTION_MAXNAMELEN];
 	bool (*match)(const struct sk_buff *skb, const struct net_device *in,
-		const struct net_device *out, const struct xt_match *match,
-		const void *matchinfo, int offset, unsigned int protoff,
-		bool *hotdrop);
+				  const struct net_device *out, const struct xt_match *match,
+				  const void *matchinfo, int offset, unsigned int protoff,
+				  bool *hotdrop);
 	bool (*checkentry)(const char *table, const void *entry,
-		const struct xt_match *match, void *matchinfo,
-		unsigned int hook_mask);
+					   const struct xt_match *match, void *matchinfo,
+					   unsigned int hook_mask);
 	void (*destroy)(const struct xt_match *match, void *matchinfo);
 	unsigned int matchsize;
 	u_int8_t revision;
@@ -37,16 +38,17 @@ struct ebt_match {
 	struct module *me;
 };
 
-struct ebt_watcher {
+struct ebt_watcher
+{
 	struct list_head list;
 	const char name[EBT_FUNCTION_MAXNAMELEN];
 	unsigned int (*target)(struct sk_buff *skb,
-		const struct net_device *in, const struct net_device *out,
-		unsigned int hook_num, const struct xt_target *target,
-		const void *targinfo);
+						   const struct net_device *in, const struct net_device *out,
+						   unsigned int hook_num, const struct xt_target *target,
+						   const void *targinfo);
 	bool (*checkentry)(const char *table, const void *entry,
-		const struct xt_target *target, void *targinfo,
-		unsigned int hook_mask);
+					   const struct xt_target *target, void *targinfo,
+					   unsigned int hook_mask);
 	void (*destroy)(const struct xt_target *target, void *targinfo);
 	unsigned int targetsize;
 	u_int8_t revision;
@@ -54,17 +56,18 @@ struct ebt_watcher {
 	struct module *me;
 };
 
-struct ebt_target {
+struct ebt_target
+{
 	struct list_head list;
 	const char name[EBT_FUNCTION_MAXNAMELEN];
 	/* returns one of the standard EBT_* verdicts */
 	unsigned int (*target)(struct sk_buff *skb,
-		const struct net_device *in, const struct net_device *out,
-		unsigned int hook_num, const struct xt_target *target,
-		const void *targinfo);
+						   const struct net_device *in, const struct net_device *out,
+						   unsigned int hook_num, const struct xt_target *target,
+						   const void *targinfo);
 	bool (*checkentry)(const char *table, const void *entry,
-		const struct xt_target *target, void *targinfo,
-		unsigned int hook_mask);
+					   const struct xt_target *target, void *targinfo,
+					   unsigned int hook_mask);
 	void (*destroy)(const struct xt_target *target, void *targinfo);
 	unsigned int targetsize;
 	u_int8_t revision;
@@ -73,13 +76,15 @@ struct ebt_target {
 };
 
 /* used for jumping from and into user defined chains (udc) */
-struct ebt_chainstack {
+struct ebt_chainstack
+{
 	struct ebt_entries *chaininfo; /* pointer to chain data */
 	struct ebt_entry *e; /* pointer to entry data */
 	unsigned int n; /* n'th entry */
 };
 
-struct ebt_table_info {
+struct ebt_table_info
+{
 	/* total size of the entries */
 	unsigned int entries_size;
 	unsigned int nentries;
@@ -91,29 +96,30 @@ struct ebt_table_info {
 	struct ebt_counter counters[0] ____cacheline_aligned;
 };
 
-struct ebt_table {
-	struct list_head list;
-	char name[EBT_TABLE_MAXNAMELEN];
-	struct ebt_replace_kernel *table;
-	unsigned int valid_hooks;
-	rwlock_t lock;
-	/* e.g. could be the table explicitly only allows certain
-	 * matches, targets, ... 0 == let it in */
-	int (*check)(const struct ebt_table_info *info,
-	   unsigned int valid_hooks);
-	/* the data used by the kernel */
-	struct ebt_table_info *private;
-	struct module *me;
+struct ebt_table
+{
+		struct list_head list;
+		char name[EBT_TABLE_MAXNAMELEN];
+		struct ebt_replace_kernel *table;
+		unsigned int valid_hooks;
+		rwlock_t lock;
+		/* e.g. could be the table explicitly only allows certain
+		 * matches, targets, ... 0 == let it in */
+		int (*check)(const struct ebt_table_info *info,
+					 unsigned int valid_hooks);
+		/* the data used by the kernel */
+		struct ebt_table_info *private;
+		struct module *me;
 };
 
 #define EBT_ALIGN(s) (((s) + (__alignof__(struct _xt_align)-1)) & \
-		     ~(__alignof__(struct _xt_align)-1))
+					  ~(__alignof__(struct _xt_align)-1))
 extern struct ebt_table *ebt_register_table(struct net *net,
-					    const struct ebt_table *table);
+		const struct ebt_table *table);
 extern void ebt_unregister_table(struct net *net, struct ebt_table *table);
 extern unsigned int ebt_do_table(struct sk_buff *skb,
-				 const struct nf_hook_state *state,
-				 struct ebt_table *table);
+								 const struct nf_hook_state *state,
+								 struct ebt_table *table);
 
 /* True if the hook mask denotes that the rule is in a base chain,
  * used in the check() functions */

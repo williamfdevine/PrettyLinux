@@ -23,7 +23,8 @@
 #define CHP_VARY_ON 2
 #define CHP_VARY_OFF 3
 
-struct chp_link {
+struct chp_link
+{
 	struct chp_id chpid;
 	u32 fla_mask;
 	u16 fla;
@@ -38,7 +39,8 @@ static inline int chp_test_bit(u8 *bitmap, int num)
 }
 
 
-struct channel_path {
+struct channel_path
+{
 	struct device dev;
 	struct chp_id chpid;
 	struct mutex lock; /* Serialize access to below members. */

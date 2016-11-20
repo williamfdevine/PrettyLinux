@@ -28,7 +28,8 @@
 #define OMAP_I2C_FLAG_BUS_SHIFT_2		BIT(8)
 #define OMAP_I2C_FLAG_BUS_SHIFT__SHIFT 7
 
-struct omap_i2c_bus_platform_data {
+struct omap_i2c_bus_platform_data
+{
 	u32		clkrate;
 	u32		rev;
 	u32		flags;

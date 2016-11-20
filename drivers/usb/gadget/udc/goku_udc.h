@@ -14,7 +14,8 @@
 /*
  * PCI BAR 0 points to these registers.
  */
-struct goku_udc_regs {
+struct goku_udc_regs
+{
 	/* irq management */
 	u32	int_status;		/* 0x000 */
 	u32	int_enable;
@@ -59,13 +60,13 @@ struct goku_udc_regs {
 #define MST_CONNECTION		0x0001		/* 0 for ep1out/ep2in */
 
 #define MST_R_BITS		(MST_EOPB_DIS|MST_EOPB_ENA \
-					|MST_RD_ENA|MST_RD_RESET)
+						 |MST_RD_ENA|MST_RD_RESET)
 #define MST_W_BITS		(MST_TIMEOUT_DIS|MST_TIMEOUT_ENA \
-					|MST_WR_ENA|MST_WR_RESET)
+						 |MST_WR_ENA|MST_WR_RESET)
 #define MST_RW_BITS		(MST_R_BITS|MST_W_BITS \
-					|MST_CONNECTION)
+						 |MST_CONNECTION)
 
-/* these values assume (dma_master & MST_CONNECTION) == 0 */
+	/* these values assume (dma_master & MST_CONNECTION) == 0 */
 #define UDC_MSTWR_ENDPOINT        1
 #define UDC_MSTRD_ENDPOINT        2
 
@@ -204,15 +205,16 @@ struct goku_udc_regs {
 
 /* DRIVER DATA STRUCTURES and UTILITIES */
 
-struct goku_ep {
+struct goku_ep
+{
 	struct usb_ep				ep;
 	struct goku_udc				*dev;
 	unsigned long				irqs;
 
-	unsigned				num:8,
-						dma:1,
-						is_in:1,
-						stopped:1;
+	unsigned				num: 8,
+							dma: 1,
+							is_in: 1,
+							stopped: 1;
 
 	/* analogous to a host-side qh */
 	struct list_head			queue;
@@ -222,14 +224,16 @@ struct goku_ep {
 	u32 __iomem				*reg_status;
 };
 
-struct goku_request {
+struct goku_request
+{
 	struct usb_request		req;
 	struct list_head		queue;
 
-	unsigned			mapped:1;
+	unsigned			mapped: 1;
 };
 
-enum ep0state {
+enum ep0state
+{
 	EP0_DISCONNECT,		/* no host */
 	EP0_IDLE,		/* between STATUS ack and SETUP report */
 	EP0_IN, EP0_OUT,	/* data stage */
@@ -238,7 +242,8 @@ enum ep0state {
 	EP0_SUSPEND,		/* usb suspend */
 };
 
-struct goku_udc {
+struct goku_udc
+{
 	/* each pci device provides one gadget, several endpoints */
 	struct usb_gadget		gadget;
 	spinlock_t			lock;
@@ -246,11 +251,11 @@ struct goku_udc {
 	struct usb_gadget_driver	*driver;
 
 	enum ep0state			ep0state;
-	unsigned			got_irq:1,
-					got_region:1,
-					req_config:1,
-					configured:1,
-					enabled:1;
+	unsigned			got_irq: 1,
+						got_region: 1,
+						req_config: 1,
+						configured: 1,
+						enabled: 1;
 
 	/* pci state used to access those endpoints */
 	struct pci_dev			*pdev;
@@ -266,7 +271,7 @@ struct goku_udc {
 
 #define xprintk(dev,level,fmt,args...) \
 	printk(level "%s %s: " fmt , driver_name , \
-			pci_name(dev->pdev) , ## args)
+		   pci_name(dev->pdev) , ## args)
 
 #ifdef DEBUG
 #define DBG(dev,fmt,args...) \

@@ -27,7 +27,8 @@
 #define MAX_MIDI_EVENT_BUF	256
 
 /* midi status */
-struct snd_midi_event {
+struct snd_midi_event
+{
 	int qlen;		/* queue length */
 	int read;		/* chars read */
 	int type;		/* current event type */
@@ -45,10 +46,10 @@ void snd_midi_event_reset_decode(struct snd_midi_event *dev);
 void snd_midi_event_no_status(struct snd_midi_event *dev, int on);
 /* encode from byte stream - return number of written bytes if success */
 long snd_midi_event_encode(struct snd_midi_event *dev, unsigned char *buf, long count,
-			   struct snd_seq_event *ev);
+						   struct snd_seq_event *ev);
 int snd_midi_event_encode_byte(struct snd_midi_event *dev, int c, struct snd_seq_event *ev);
 /* decode from event to bytes - return number of written bytes if success */
 long snd_midi_event_decode(struct snd_midi_event *dev, unsigned char *buf, long count,
-			   struct snd_seq_event *ev);
+						   struct snd_seq_event *ev);
 
 #endif /* __SOUND_SEQ_MIDI_EVENT_H */

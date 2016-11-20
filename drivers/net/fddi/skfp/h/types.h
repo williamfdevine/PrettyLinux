@@ -23,10 +23,10 @@
 
 #define _packed
 #ifndef far
-#define far
+	#define far
 #endif
 #ifndef _far
-#define _far
+	#define _far
 #endif
 
 #define inp(p)  ioread8(p)

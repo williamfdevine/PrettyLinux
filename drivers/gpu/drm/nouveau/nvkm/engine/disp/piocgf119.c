@@ -35,13 +35,15 @@ gf119_disp_pioc_fini(struct nv50_disp_chan *chan)
 	int chid = chan->chid;
 
 	nvkm_mask(device, 0x610490 + (chid * 0x10), 0x00000001, 0x00000000);
+
 	if (nvkm_msec(device, 2000,
-		if (!(nvkm_rd32(device, 0x610490 + (chid * 0x10)) & 0x00030000))
-			break;
-	) < 0) {
-		nvkm_error(subdev, "ch %d fini: %08x\n", chid,
-			   nvkm_rd32(device, 0x610490 + (chid * 0x10)));
-	}
+				  if (!(nvkm_rd32(device, 0x610490 + (chid * 0x10)) & 0x00030000))
+					  break;
+					 ) < 0)
+		{
+			nvkm_error(subdev, "ch %d fini: %08x\n", chid,
+					   nvkm_rd32(device, 0x610490 + (chid * 0x10)));
+		}
 
 	/* disable error reporting and completion notification */
 	nvkm_mask(device, 0x610090, 0x00000001 << chid, 0x00000000);
@@ -61,21 +63,24 @@ gf119_disp_pioc_init(struct nv50_disp_chan *chan)
 
 	/* activate channel */
 	nvkm_wr32(device, 0x610490 + (chid * 0x10), 0x00000001);
+
 	if (nvkm_msec(device, 2000,
-		u32 tmp = nvkm_rd32(device, 0x610490 + (chid * 0x10));
-		if ((tmp & 0x00030000) == 0x00010000)
-			break;
-	) < 0) {
-		nvkm_error(subdev, "ch %d init: %08x\n", chid,
-			   nvkm_rd32(device, 0x610490 + (chid * 0x10)));
-		return -EBUSY;
-	}
+				  u32 tmp = nvkm_rd32(device, 0x610490 + (chid * 0x10));
+				  if ((tmp & 0x00030000) == 0x00010000)
+					  break;
+					 ) < 0)
+		{
+			nvkm_error(subdev, "ch %d init: %08x\n", chid,
+					   nvkm_rd32(device, 0x610490 + (chid * 0x10)));
+			return -EBUSY;
+		}
 
 	return 0;
 }
 
 const struct nv50_disp_chan_func
-gf119_disp_pioc_func = {
+	gf119_disp_pioc_func =
+{
 	.init = gf119_disp_pioc_init,
 	.fini = gf119_disp_pioc_fini,
 };

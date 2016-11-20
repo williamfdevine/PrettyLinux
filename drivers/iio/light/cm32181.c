@@ -47,15 +47,18 @@
 #define CM32181_CALIBSCALE_RESOLUTION	1000
 #define MLUX_PER_LUX			1000
 
-static const u8 cm32181_reg[CM32181_CONF_REG_NUM] = {
+static const u8 cm32181_reg[CM32181_CONF_REG_NUM] =
+{
 	CM32181_REG_ADDR_CMD,
 };
 
 static const int als_it_bits[] = {12, 8, 0, 1, 2, 3};
 static const int als_it_value[] = {25000, 50000, 100000, 200000, 400000,
-	800000};
+								   800000
+								  };
 
-struct cm32181_chip {
+struct cm32181_chip
+{
 	struct i2c_client *client;
 	struct mutex lock;
 	u16 conf_regs[CM32181_CONF_REG_NUM];
@@ -77,12 +80,17 @@ static int cm32181_reg_init(struct cm32181_chip *cm32181)
 	s32 ret;
 
 	ret = i2c_smbus_read_word_data(client, CM32181_REG_ADDR_ID);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* check device ID */
 	if ((ret & 0xFF) != 0x81)
+	{
 		return -ENODEV;
+	}
 
 	/* Default Values */
 	cm32181->conf_regs[CM32181_REG_ADDR_CMD] = CM32181_CMD_ALS_ENABLE |
@@ -90,11 +98,15 @@ static int cm32181_reg_init(struct cm32181_chip *cm32181)
 	cm32181->calibscale = CM32181_CALIBSCALE_DEFAULT;
 
 	/* Initialize registers*/
-	for (i = 0; i < CM32181_CONF_REG_NUM; i++) {
+	for (i = 0; i < CM32181_CONF_REG_NUM; i++)
+	{
 		ret = i2c_smbus_write_word_data(client, cm32181_reg[i],
-			cm32181->conf_regs[i]);
+										cm32181->conf_regs[i]);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
@@ -117,8 +129,11 @@ static int cm32181_read_als_it(struct cm32181_chip *cm32181, int *val2)
 	als_it = cm32181->conf_regs[CM32181_REG_ADDR_CMD];
 	als_it &= CM32181_CMD_ALS_IT_MASK;
 	als_it >>= CM32181_CMD_ALS_IT_SHIFT;
-	for (i = 0; i < ARRAY_SIZE(als_it_bits); i++) {
-		if (als_it == als_it_bits[i]) {
+
+	for (i = 0; i < ARRAY_SIZE(als_it_bits); i++)
+	{
+		if (als_it == als_it_bits[i])
+		{
 			*val2 = als_it_value[i];
 			return IIO_VAL_INT_PLUS_MICRO;
 		}
@@ -143,11 +158,17 @@ static int cm32181_write_als_it(struct cm32181_chip *cm32181, int val)
 	int ret, i, n;
 
 	n = ARRAY_SIZE(als_it_value);
+
 	for (i = 0; i < n; i++)
 		if (val <= als_it_value[i])
+		{
 			break;
+		}
+
 	if (i >= n)
+	{
 		i = n - 1;
+	}
 
 	als_it = als_it_bits[i];
 	als_it <<= CM32181_CMD_ALS_IT_SHIFT;
@@ -158,7 +179,7 @@ static int cm32181_write_als_it(struct cm32181_chip *cm32181, int val)
 	cm32181->conf_regs[CM32181_REG_ADDR_CMD] |=
 		als_it;
 	ret = i2c_smbus_write_word_data(client, CM32181_REG_ADDR_CMD,
-			cm32181->conf_regs[CM32181_REG_ADDR_CMD]);
+									cm32181->conf_regs[CM32181_REG_ADDR_CMD]);
 	mutex_unlock(&cm32181->lock);
 
 	return ret;
@@ -181,16 +202,22 @@ static int cm32181_get_lux(struct cm32181_chip *cm32181)
 	unsigned long lux;
 
 	ret = cm32181_read_als_it(cm32181, &als_it);
+
 	if (ret < 0)
+	{
 		return -EINVAL;
+	}
 
 	lux = CM32181_MLUX_PER_BIT;
 	lux *= CM32181_MLUX_PER_BIT_BASE_IT;
 	lux /= als_it;
 
 	ret = i2c_smbus_read_word_data(client, CM32181_REG_ADDR_ALS);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	lux *= ret;
 	lux *= cm32181->calibscale;
@@ -198,51 +225,62 @@ static int cm32181_get_lux(struct cm32181_chip *cm32181)
 	lux /= MLUX_PER_LUX;
 
 	if (lux > 0xFFFF)
+	{
 		lux = 0xFFFF;
+	}
 
 	return lux;
 }
 
 static int cm32181_read_raw(struct iio_dev *indio_dev,
-			    struct iio_chan_spec const *chan,
-			    int *val, int *val2, long mask)
+							struct iio_chan_spec const *chan,
+							int *val, int *val2, long mask)
 {
 	struct cm32181_chip *cm32181 = iio_priv(indio_dev);
 	int ret;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_PROCESSED:
-		ret = cm32181_get_lux(cm32181);
-		if (ret < 0)
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_PROCESSED:
+			ret = cm32181_get_lux(cm32181);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			*val = ret;
+			return IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_CALIBSCALE:
+			*val = cm32181->calibscale;
+			return IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_INT_TIME:
+			*val = 0;
+			ret = cm32181_read_als_it(cm32181, val2);
 			return ret;
-		*val = ret;
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_CALIBSCALE:
-		*val = cm32181->calibscale;
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_INT_TIME:
-		*val = 0;
-		ret = cm32181_read_als_it(cm32181, val2);
-		return ret;
 	}
 
 	return -EINVAL;
 }
 
 static int cm32181_write_raw(struct iio_dev *indio_dev,
-			     struct iio_chan_spec const *chan,
-			     int val, int val2, long mask)
+							 struct iio_chan_spec const *chan,
+							 int val, int val2, long mask)
 {
 	struct cm32181_chip *cm32181 = iio_priv(indio_dev);
 	int ret;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_CALIBSCALE:
-		cm32181->calibscale = val;
-		return val;
-	case IIO_CHAN_INFO_INT_TIME:
-		ret = cm32181_write_als_it(cm32181, val2);
-		return ret;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_CALIBSCALE:
+			cm32181->calibscale = val;
+			return val;
+
+		case IIO_CHAN_INFO_INT_TIME:
+			ret = cm32181_write_als_it(cm32181, val2);
+			return ret;
 	}
 
 	return -EINVAL;
@@ -259,39 +297,47 @@ static int cm32181_write_raw(struct iio_dev *indio_dev,
  * Return: string length.
  */
 static ssize_t cm32181_get_it_available(struct device *dev,
-			struct device_attribute *attr, char *buf)
+										struct device_attribute *attr, char *buf)
 {
 	int i, n, len;
 
 	n = ARRAY_SIZE(als_it_value);
+
 	for (i = 0, len = 0; i < n; i++)
+	{
 		len += sprintf(buf + len, "0.%06u ", als_it_value[i]);
+	}
+
 	return len + sprintf(buf + len, "\n");
 }
 
-static const struct iio_chan_spec cm32181_channels[] = {
+static const struct iio_chan_spec cm32181_channels[] =
+{
 	{
 		.type = IIO_LIGHT,
 		.info_mask_separate =
-			BIT(IIO_CHAN_INFO_PROCESSED) |
-			BIT(IIO_CHAN_INFO_CALIBSCALE) |
-			BIT(IIO_CHAN_INFO_INT_TIME),
+		BIT(IIO_CHAN_INFO_PROCESSED) |
+		BIT(IIO_CHAN_INFO_CALIBSCALE) |
+		BIT(IIO_CHAN_INFO_INT_TIME),
 	}
 };
 
 static IIO_DEVICE_ATTR(in_illuminance_integration_time_available,
-			S_IRUGO, cm32181_get_it_available, NULL, 0);
+					   S_IRUGO, cm32181_get_it_available, NULL, 0);
 
-static struct attribute *cm32181_attributes[] = {
+static struct attribute *cm32181_attributes[] =
+{
 	&iio_dev_attr_in_illuminance_integration_time_available.dev_attr.attr,
 	NULL,
 };
 
-static const struct attribute_group cm32181_attribute_group = {
+static const struct attribute_group cm32181_attribute_group =
+{
 	.attrs = cm32181_attributes
 };
 
-static const struct iio_info cm32181_info = {
+static const struct iio_info cm32181_info =
+{
 	.driver_module		= THIS_MODULE,
 	.read_raw		= &cm32181_read_raw,
 	.write_raw		= &cm32181_write_raw,
@@ -299,14 +345,16 @@ static const struct iio_info cm32181_info = {
 };
 
 static int cm32181_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct cm32181_chip *cm32181;
 	struct iio_dev *indio_dev;
 	int ret;
 
 	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*cm32181));
-	if (!indio_dev) {
+
+	if (!indio_dev)
+	{
 		dev_err(&client->dev, "devm_iio_device_alloc failed\n");
 		return -ENOMEM;
 	}
@@ -324,38 +372,45 @@ static int cm32181_probe(struct i2c_client *client,
 	indio_dev->modes = INDIO_DIRECT_MODE;
 
 	ret = cm32181_reg_init(cm32181);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&client->dev,
-			"%s: register init failed\n",
-			__func__);
+				"%s: register init failed\n",
+				__func__);
 		return ret;
 	}
 
 	ret = devm_iio_device_register(&client->dev, indio_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&client->dev,
-			"%s: regist device failed\n",
-			__func__);
+				"%s: regist device failed\n",
+				__func__);
 		return ret;
 	}
 
 	return 0;
 }
 
-static const struct i2c_device_id cm32181_id[] = {
+static const struct i2c_device_id cm32181_id[] =
+{
 	{ "cm32181", 0 },
 	{ }
 };
 
 MODULE_DEVICE_TABLE(i2c, cm32181_id);
 
-static const struct of_device_id cm32181_of_match[] = {
+static const struct of_device_id cm32181_of_match[] =
+{
 	{ .compatible = "capella,cm32181" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, cm32181_of_match);
 
-static struct i2c_driver cm32181_driver = {
+static struct i2c_driver cm32181_driver =
+{
 	.driver = {
 		.name	= "cm32181",
 		.of_match_table = of_match_ptr(cm32181_of_match),

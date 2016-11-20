@@ -17,7 +17,8 @@
 #include <linux/posix_acl.h>
 #include <linux/mutex.h>
 
-struct jffs2_inode_info {
+struct jffs2_inode_info
+{
 	/* We need an internal mutex similar to inode->i_mutex.
 	   Unfortunately, we can't used the existing one, because
 	   either the GC would deadlock, or we'd have to release it

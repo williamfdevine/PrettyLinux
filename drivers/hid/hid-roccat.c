@@ -35,11 +35,13 @@
 /* should be a power of 2 for performance reason */
 #define ROCCAT_CBUF_SIZE 16
 
-struct roccat_report {
+struct roccat_report
+{
 	uint8_t *value;
 };
 
-struct roccat_device {
+struct roccat_device
+{
 	unsigned int minor;
 	int report_size;
 	int open;
@@ -60,7 +62,8 @@ struct roccat_device {
 	struct mutex cbuf_lock;
 };
 
-struct roccat_reader {
+struct roccat_reader
+{
 	struct list_head node;
 	struct roccat_device *device;
 	int cbuf_start;
@@ -74,7 +77,7 @@ static struct roccat_device *devices[ROCCAT_MAX_DEVICES];
 static DEFINE_MUTEX(devices_lock);
 
 static ssize_t roccat_read(struct file *file, char __user *buffer,
-		size_t count, loff_t *ppos)
+						   size_t count, loff_t *ppos)
 {
 	struct roccat_reader *reader = file->private_data;
 	struct roccat_device *device = reader->device;
@@ -85,21 +88,28 @@ static ssize_t roccat_read(struct file *file, char __user *buffer,
 	mutex_lock(&device->cbuf_lock);
 
 	/* no data? */
-	if (reader->cbuf_start == device->cbuf_end) {
+	if (reader->cbuf_start == device->cbuf_end)
+	{
 		add_wait_queue(&device->wait, &wait);
 		set_current_state(TASK_INTERRUPTIBLE);
 
 		/* wait for data */
-		while (reader->cbuf_start == device->cbuf_end) {
-			if (file->f_flags & O_NONBLOCK) {
+		while (reader->cbuf_start == device->cbuf_end)
+		{
+			if (file->f_flags & O_NONBLOCK)
+			{
 				retval = -EAGAIN;
 				break;
 			}
-			if (signal_pending(current)) {
+
+			if (signal_pending(current))
+			{
 				retval = -ERESTARTSYS;
 				break;
 			}
-			if (!device->exist) {
+
+			if (!device->exist)
+			{
 				retval = -EIO;
 				break;
 			}
@@ -116,7 +126,9 @@ static ssize_t roccat_read(struct file *file, char __user *buffer,
 
 	/* here we either have data or a reason to return if retval is set */
 	if (retval)
+	{
 		goto exit_unlock;
+	}
 
 	report = &device->cbuf[reader->cbuf_start];
 	/*
@@ -125,10 +137,12 @@ static ssize_t roccat_read(struct file *file, char __user *buffer,
 	 */
 	len = device->report_size > count ? count : device->report_size;
 
-	if (copy_to_user(buffer, report->value, len)) {
+	if (copy_to_user(buffer, report->value, len))
+	{
 		retval = -EFAULT;
 		goto exit_unlock;
 	}
+
 	retval += len;
 	reader->cbuf_start = (reader->cbuf_start + 1) % ROCCAT_CBUF_SIZE;
 
@@ -141,10 +155,17 @@ static unsigned int roccat_poll(struct file *file, poll_table *wait)
 {
 	struct roccat_reader *reader = file->private_data;
 	poll_wait(file, &reader->device->wait, wait);
+
 	if (reader->cbuf_start != reader->device->cbuf_end)
+	{
 		return POLLIN | POLLRDNORM;
+	}
+
 	if (!reader->device->exist)
+	{
 		return POLLERR | POLLHUP;
+	}
+
 	return 0;
 }
 
@@ -156,14 +177,18 @@ static int roccat_open(struct inode *inode, struct file *file)
 	int error = 0;
 
 	reader = kzalloc(sizeof(struct roccat_reader), GFP_KERNEL);
+
 	if (!reader)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_lock(&devices_lock);
 
 	device = devices[minor];
 
-	if (!device) {
+	if (!device)
+	{
 		pr_emerg("roccat device with minor %d doesn't exist\n", minor);
 		error = -ENODEV;
 		goto exit_err_devices;
@@ -171,16 +196,21 @@ static int roccat_open(struct inode *inode, struct file *file)
 
 	mutex_lock(&device->readers_lock);
 
-	if (!device->open++) {
+	if (!device->open++)
+	{
 		/* power on device on adding first reader */
 		error = hid_hw_power(device->hid, PM_HINT_FULLON);
-		if (error < 0) {
+
+		if (error < 0)
+		{
 			--device->open;
 			goto exit_err_readers;
 		}
 
 		error = hid_hw_open(device->hid);
-		if (error < 0) {
+
+		if (error < 0)
+		{
 			hid_hw_power(device->hid, PM_HINT_NORMAL);
 			--device->open;
 			goto exit_err_readers;
@@ -198,8 +228,12 @@ exit_err_readers:
 	mutex_unlock(&device->readers_lock);
 exit_err_devices:
 	mutex_unlock(&devices_lock);
+
 	if (error)
+	{
 		kfree(reader);
+	}
+
 	return error;
 }
 
@@ -212,7 +246,9 @@ static int roccat_release(struct inode *inode, struct file *file)
 	mutex_lock(&devices_lock);
 
 	device = devices[minor];
-	if (!device) {
+
+	if (!device)
+	{
 		mutex_unlock(&devices_lock);
 		pr_emerg("roccat device with minor %d doesn't exist\n", minor);
 		return -ENODEV;
@@ -223,12 +259,16 @@ static int roccat_release(struct inode *inode, struct file *file)
 	mutex_unlock(&device->readers_lock);
 	kfree(reader);
 
-	if (!--device->open) {
+	if (!--device->open)
+	{
 		/* removing last reader */
-		if (device->exist) {
+		if (device->exist)
+		{
 			hid_hw_power(device->hid, PM_HINT_NORMAL);
 			hid_hw_close(device->hid);
-		} else {
+		}
+		else
+		{
 			kfree(device);
 		}
 	}
@@ -257,8 +297,11 @@ int roccat_report_event(int minor, u8 const *data)
 	device = devices[minor];
 
 	new_value = kmemdup(data, device->report_size, GFP_ATOMIC);
+
 	if (!new_value)
+	{
 		return -ENOMEM;
+	}
 
 	report = &device->cbuf[device->cbuf_end];
 
@@ -268,7 +311,8 @@ int roccat_report_event(int minor, u8 const *data)
 	report->value = new_value;
 	device->cbuf_end = (device->cbuf_end + 1) % ROCCAT_CBUF_SIZE;
 
-	list_for_each_entry(reader, &device->readers, node) {
+	list_for_each_entry(reader, &device->readers, node)
+	{
 		/*
 		 * As we already inserted one element, the buffer can't be
 		 * empty. If start and end are equal, buffer is full and we
@@ -276,7 +320,9 @@ int roccat_report_event(int minor, u8 const *data)
 		 * gets the newer ones in the right order.
 		 */
 		if (reader->cbuf_start == device->cbuf_end)
+		{
 			reader->cbuf_start = (reader->cbuf_start + 1) % ROCCAT_CBUF_SIZE;
+		}
 	}
 
 	wake_up_interruptible(&device->wait);
@@ -301,30 +347,41 @@ int roccat_connect(struct class *klass, struct hid_device *hid, int report_size)
 	int temp;
 
 	device = kzalloc(sizeof(struct roccat_device), GFP_KERNEL);
+
 	if (!device)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_lock(&devices_lock);
 
-	for (minor = 0; minor < ROCCAT_MAX_DEVICES; ++minor) {
+	for (minor = 0; minor < ROCCAT_MAX_DEVICES; ++minor)
+	{
 		if (devices[minor])
+		{
 			continue;
+		}
+
 		break;
 	}
 
-	if (minor < ROCCAT_MAX_DEVICES) {
+	if (minor < ROCCAT_MAX_DEVICES)
+	{
 		devices[minor] = device;
-	} else {
+	}
+	else
+	{
 		mutex_unlock(&devices_lock);
 		kfree(device);
 		return -EINVAL;
 	}
 
 	device->dev = device_create(klass, &hid->dev,
-			MKDEV(roccat_major, minor), NULL,
-			"%s%s%d", "roccat", hid->driver->name, minor);
+								MKDEV(roccat_major, minor), NULL,
+								"%s%s%d", "roccat", hid->driver->name, minor);
 
-	if (IS_ERR(device->dev)) {
+	if (IS_ERR(device->dev))
+	{
 		devices[minor] = NULL;
 		mutex_unlock(&devices_lock);
 		temp = PTR_ERR(device->dev);
@@ -367,10 +424,13 @@ void roccat_disconnect(int minor)
 	devices[minor] = NULL;
 	mutex_unlock(&devices_lock);
 
-	if (device->open) {
+	if (device->open)
+	{
 		hid_hw_close(device->hid);
 		wake_up_interruptible(&device->wait);
-	} else {
+	}
+	else
+	{
 		kfree(device);
 	}
 }
@@ -386,25 +446,34 @@ static long roccat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	mutex_lock(&devices_lock);
 
 	device = devices[minor];
-	if (!device) {
+
+	if (!device)
+	{
 		retval = -ENODEV;
 		goto out;
 	}
 
-	switch (cmd) {
-	case ROCCATIOCGREPSIZE:
-		if (put_user(device->report_size, (int __user *)arg))
-			retval = -EFAULT;
-		break;
-	default:
-		retval = -ENOTTY;
+	switch (cmd)
+	{
+		case ROCCATIOCGREPSIZE:
+			if (put_user(device->report_size, (int __user *)arg))
+			{
+				retval = -EFAULT;
+			}
+
+			break;
+
+		default:
+			retval = -ENOTTY;
 	}
+
 out:
 	mutex_unlock(&devices_lock);
 	return retval;
 }
 
-static const struct file_operations roccat_ops = {
+static const struct file_operations roccat_ops =
+{
 	.owner = THIS_MODULE,
 	.read = roccat_read,
 	.poll = roccat_poll,
@@ -420,8 +489,10 @@ static int __init roccat_init(void)
 	dev_t dev_id;
 
 	retval = alloc_chrdev_region(&dev_id, ROCCAT_FIRST_MINOR,
-			ROCCAT_MAX_DEVICES, "roccat");
-	if (retval < 0) {
+								 ROCCAT_MAX_DEVICES, "roccat");
+
+	if (retval < 0)
+	{
 		pr_warn("can't get major number\n");
 		goto error;
 	}
@@ -431,16 +502,18 @@ static int __init roccat_init(void)
 	cdev_init(&roccat_cdev, &roccat_ops);
 	retval = cdev_add(&roccat_cdev, dev_id, ROCCAT_MAX_DEVICES);
 
-	if (retval < 0) {
+	if (retval < 0)
+	{
 		pr_warn("cannot add cdev\n");
 		goto cleanup_alloc_chrdev_region;
 	}
+
 	return 0;
 
 
- cleanup_alloc_chrdev_region:
+cleanup_alloc_chrdev_region:
 	unregister_chrdev_region(dev_id, ROCCAT_MAX_DEVICES);
- error:
+error:
 	return retval;
 }
 

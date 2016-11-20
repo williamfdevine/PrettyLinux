@@ -17,10 +17,10 @@
 	(IRO[151].base + ((assertListEntry) * IRO[151].m1))
 #define CSTORM_EVENT_RING_DATA_OFFSET(pfId) \
 	(IRO[157].base + (((pfId)>>1) * IRO[157].m1) + (((pfId)&1) * \
-	IRO[157].m2))
+			IRO[157].m2))
 #define CSTORM_EVENT_RING_PROD_OFFSET(pfId) \
 	(IRO[158].base + (((pfId)>>1) * IRO[158].m1) + (((pfId)&1) * \
-	IRO[158].m2))
+			IRO[158].m2))
 #define CSTORM_FINAL_CLEANUP_COMPLETE_OFFSET(funcId) \
 	(IRO[163].base + ((funcId) * IRO[163].m1))
 #define CSTORM_FUNC_EN_OFFSET(funcId) \
@@ -29,7 +29,7 @@
 	(IRO[143].base + ((hcIndex) * IRO[143].m1) + ((sbId) * IRO[143].m2))
 #define CSTORM_HC_SYNC_LINE_INDEX_E2_OFFSET(hcIndex, sbId) \
 	(IRO[142].base + (((hcIndex)>>2) * IRO[142].m1) + (((hcIndex)&3) \
-	* IRO[142].m2) + ((sbId) * IRO[142].m3))
+			* IRO[142].m2) + ((sbId) * IRO[142].m3))
 #define CSTORM_IGU_MODE_OFFSET (IRO[161].base)
 #define CSTORM_ISCSI_CQ_SIZE_OFFSET(pfId) \
 	(IRO[323].base + ((pfId) * IRO[323].m1))
@@ -169,7 +169,7 @@
 	(IRO[184].base + ((funcId) * IRO[184].m1))
 #define USTORM_RX_PRODS_E1X_OFFSET(portId, clientId) \
 	(IRO[215].base + ((portId) * IRO[215].m1) + ((clientId) * \
-	IRO[215].m2))
+			IRO[215].m2))
 #define USTORM_RX_PRODS_E2_OFFSET(qzoneId) \
 	(IRO[216].base + ((qzoneId) * IRO[216].m1))
 #define USTORM_TPA_BTR_OFFSET (IRO[213].base)
@@ -238,7 +238,7 @@
 	(IRO[218].base + ((portId) * IRO[218].m1))
 #define XSTORM_TCP_TX_SWS_TIMER_VAL_OFFSET(pfId) \
 	(IRO[220].base + (((pfId)>>1) * IRO[220].m1) + (((pfId)&1) * \
-	IRO[220].m2))
+			IRO[220].m2))
 #define XSTORM_VF_TO_PF_OFFSET(funcId) \
 	(IRO[48].base + ((funcId) * IRO[48].m1))
 #define COMMON_ASM_INVALID_ASSERT_OPCODE 0x0
@@ -258,8 +258,8 @@
 #define U_ETH_LOCAL_BD_RING_SIZE 8
 #define U_ETH_LOCAL_SGE_RING_SIZE 10
 #define U_ETH_SGL_SIZE 8
-	/* The fw will padd the buffer with this value, so the IP header \
-	will be align to 4 Byte */
+/* The fw will padd the buffer with this value, so the IP header \
+will be align to 4 Byte */
 #define IP_HEADER_ALIGNMENT_PADDING 2
 
 #define U_ETH_SGES_PER_PAGE_INVERSE_MASK \
@@ -375,8 +375,8 @@
 #define MAX_TRAFFIC_TYPES 8
 #define MAX_PFC_PRIORITIES 8
 #define MAX_VLAN_PRIORITIES 8
-	/* used by array traffic_type_to_priority[] to mark traffic type \
-	that is not mapped to priority*/
+/* used by array traffic_type_to_priority[] to mark traffic type \
+that is not mapped to priority*/
 #define LLFC_TRAFFIC_TYPE_TO_PRIORITY_UNMAPPED 0xFF
 
 #define C_ERES_PER_PAGE \

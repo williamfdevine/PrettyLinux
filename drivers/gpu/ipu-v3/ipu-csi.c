@@ -28,7 +28,8 @@
 
 #include "ipu-prv.h"
 
-struct ipu_csi {
+struct ipu_csi
+{
 	void __iomem *base;
 	int id;
 	u32 module;
@@ -141,18 +142,19 @@ struct ipu_csi {
 /*
  * Bitfield of CSI bus signal polarities and modes.
  */
-struct ipu_csi_bus_config {
-	unsigned data_width:4;
-	unsigned clk_mode:3;
-	unsigned ext_vsync:1;
-	unsigned vsync_pol:1;
-	unsigned hsync_pol:1;
-	unsigned pixclk_pol:1;
-	unsigned data_pol:1;
-	unsigned sens_clksrc:1;
-	unsigned pack_tight:1;
-	unsigned force_eof:1;
-	unsigned data_en_pol:1;
+struct ipu_csi_bus_config
+{
+	unsigned data_width: 4;
+	unsigned clk_mode: 3;
+	unsigned ext_vsync: 1;
+	unsigned vsync_pol: 1;
+	unsigned hsync_pol: 1;
+	unsigned pixclk_pol: 1;
+	unsigned data_pol: 1;
+	unsigned sens_clksrc: 1;
+	unsigned pack_tight: 1;
+	unsigned force_eof: 1;
+	unsigned data_en_pol: 1;
 
 	unsigned data_fmt;
 	unsigned mipi_dt;
@@ -161,7 +163,8 @@ struct ipu_csi_bus_config {
 /*
  * Enumeration of CSI data bus widths.
  */
-enum ipu_csi_data_width {
+enum ipu_csi_data_width
+{
 	IPU_CSI_DATA_WIDTH_4   = 0,
 	IPU_CSI_DATA_WIDTH_8   = 1,
 	IPU_CSI_DATA_WIDTH_10  = 3,
@@ -172,7 +175,8 @@ enum ipu_csi_data_width {
 /*
  * Enumeration of CSI clock modes.
  */
-enum ipu_csi_clk_mode {
+enum ipu_csi_clk_mode
+{
 	IPU_CSI_CLK_MODE_GATED_CLK,
 	IPU_CSI_CLK_MODE_NONGATED_CLK,
 	IPU_CSI_CLK_MODE_CCIR656_PROGRESSIVE,
@@ -189,7 +193,7 @@ static inline u32 ipu_csi_read(struct ipu_csi *csi, unsigned offset)
 }
 
 static inline void ipu_csi_write(struct ipu_csi *csi, u32 value,
-				 unsigned offset)
+								 unsigned offset)
 {
 	writel(value, csi->base + offset);
 }
@@ -199,23 +203,24 @@ static inline void ipu_csi_write(struct ipu_csi *csi, u32 value,
  * for test generator.
  */
 static int ipu_csi_set_testgen_mclk(struct ipu_csi *csi, u32 pixel_clk,
-					u32 ipu_clk)
+									u32 ipu_clk)
 {
 	u32 temp;
 	int div_ratio;
 
 	div_ratio = (ipu_clk / pixel_clk) - 1;
 
-	if (div_ratio > 0xFF || div_ratio < 0) {
+	if (div_ratio > 0xFF || div_ratio < 0)
+	{
 		dev_err(csi->ipu->dev,
-			"value of pixel_clk extends normal range\n");
+				"value of pixel_clk extends normal range\n");
 		return -EINVAL;
 	}
 
 	temp = ipu_csi_read(csi, CSI_SENS_CONF);
 	temp &= ~CSI_SENS_CONF_DIVRATIO_MASK;
 	ipu_csi_write(csi, temp | (div_ratio << CSI_SENS_CONF_DIVRATIO_SHIFT),
-			  CSI_SENS_CONF);
+				  CSI_SENS_CONF);
 
 	return 0;
 }
@@ -226,88 +231,100 @@ static int ipu_csi_set_testgen_mclk(struct ipu_csi *csi, u32 pixel_clk,
  */
 static int mbus_code_to_bus_cfg(struct ipu_csi_bus_config *cfg, u32 mbus_code)
 {
-	switch (mbus_code) {
-	case MEDIA_BUS_FMT_BGR565_2X8_BE:
-	case MEDIA_BUS_FMT_BGR565_2X8_LE:
-	case MEDIA_BUS_FMT_RGB565_2X8_BE:
-	case MEDIA_BUS_FMT_RGB565_2X8_LE:
-		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_RGB565;
-		cfg->mipi_dt = MIPI_DT_RGB565;
-		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
-		break;
-	case MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE:
-	case MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE:
-		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_RGB444;
-		cfg->mipi_dt = MIPI_DT_RGB444;
-		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
-		break;
-	case MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE:
-	case MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE:
-		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_RGB555;
-		cfg->mipi_dt = MIPI_DT_RGB555;
-		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
-		break;
-	case MEDIA_BUS_FMT_UYVY8_2X8:
-		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_UYVY;
-		cfg->mipi_dt = MIPI_DT_YUV422;
-		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
-		break;
-	case MEDIA_BUS_FMT_YUYV8_2X8:
-		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_YUYV;
-		cfg->mipi_dt = MIPI_DT_YUV422;
-		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
-		break;
-	case MEDIA_BUS_FMT_UYVY8_1X16:
-	case MEDIA_BUS_FMT_YUYV8_1X16:
-		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
-		cfg->mipi_dt = MIPI_DT_YUV422;
-		cfg->data_width = IPU_CSI_DATA_WIDTH_16;
-		break;
-	case MEDIA_BUS_FMT_SBGGR8_1X8:
-	case MEDIA_BUS_FMT_SGBRG8_1X8:
-	case MEDIA_BUS_FMT_SGRBG8_1X8:
-	case MEDIA_BUS_FMT_SRGGB8_1X8:
-	case MEDIA_BUS_FMT_Y8_1X8:
-		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
-		cfg->mipi_dt = MIPI_DT_RAW8;
-		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
-		break;
-	case MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8:
-	case MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8:
-	case MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8:
-	case MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8:
-	case MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE:
-	case MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE:
-	case MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_BE:
-	case MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_LE:
-		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
-		cfg->mipi_dt = MIPI_DT_RAW10;
-		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
-		break;
-	case MEDIA_BUS_FMT_SBGGR10_1X10:
-	case MEDIA_BUS_FMT_SGBRG10_1X10:
-	case MEDIA_BUS_FMT_SGRBG10_1X10:
-	case MEDIA_BUS_FMT_SRGGB10_1X10:
-		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
-		cfg->mipi_dt = MIPI_DT_RAW10;
-		cfg->data_width = IPU_CSI_DATA_WIDTH_10;
-		break;
-	case MEDIA_BUS_FMT_SBGGR12_1X12:
-	case MEDIA_BUS_FMT_SGBRG12_1X12:
-	case MEDIA_BUS_FMT_SGRBG12_1X12:
-	case MEDIA_BUS_FMT_SRGGB12_1X12:
-		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
-		cfg->mipi_dt = MIPI_DT_RAW12;
-		cfg->data_width = IPU_CSI_DATA_WIDTH_12;
-		break;
-	case MEDIA_BUS_FMT_JPEG_1X8:
-		/* TODO */
-		cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_JPEG;
-		cfg->mipi_dt = MIPI_DT_RAW8;
-		cfg->data_width = IPU_CSI_DATA_WIDTH_8;
-		break;
-	default:
-		return -EINVAL;
+	switch (mbus_code)
+	{
+		case MEDIA_BUS_FMT_BGR565_2X8_BE:
+		case MEDIA_BUS_FMT_BGR565_2X8_LE:
+		case MEDIA_BUS_FMT_RGB565_2X8_BE:
+		case MEDIA_BUS_FMT_RGB565_2X8_LE:
+			cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_RGB565;
+			cfg->mipi_dt = MIPI_DT_RGB565;
+			cfg->data_width = IPU_CSI_DATA_WIDTH_8;
+			break;
+
+		case MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE:
+		case MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE:
+			cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_RGB444;
+			cfg->mipi_dt = MIPI_DT_RGB444;
+			cfg->data_width = IPU_CSI_DATA_WIDTH_8;
+			break;
+
+		case MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE:
+		case MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE:
+			cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_RGB555;
+			cfg->mipi_dt = MIPI_DT_RGB555;
+			cfg->data_width = IPU_CSI_DATA_WIDTH_8;
+			break;
+
+		case MEDIA_BUS_FMT_UYVY8_2X8:
+			cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_UYVY;
+			cfg->mipi_dt = MIPI_DT_YUV422;
+			cfg->data_width = IPU_CSI_DATA_WIDTH_8;
+			break;
+
+		case MEDIA_BUS_FMT_YUYV8_2X8:
+			cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_YUV422_YUYV;
+			cfg->mipi_dt = MIPI_DT_YUV422;
+			cfg->data_width = IPU_CSI_DATA_WIDTH_8;
+			break;
+
+		case MEDIA_BUS_FMT_UYVY8_1X16:
+		case MEDIA_BUS_FMT_YUYV8_1X16:
+			cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
+			cfg->mipi_dt = MIPI_DT_YUV422;
+			cfg->data_width = IPU_CSI_DATA_WIDTH_16;
+			break;
+
+		case MEDIA_BUS_FMT_SBGGR8_1X8:
+		case MEDIA_BUS_FMT_SGBRG8_1X8:
+		case MEDIA_BUS_FMT_SGRBG8_1X8:
+		case MEDIA_BUS_FMT_SRGGB8_1X8:
+		case MEDIA_BUS_FMT_Y8_1X8:
+			cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
+			cfg->mipi_dt = MIPI_DT_RAW8;
+			cfg->data_width = IPU_CSI_DATA_WIDTH_8;
+			break;
+
+		case MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8:
+		case MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8:
+		case MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8:
+		case MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8:
+		case MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE:
+		case MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE:
+		case MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_BE:
+		case MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_LE:
+			cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
+			cfg->mipi_dt = MIPI_DT_RAW10;
+			cfg->data_width = IPU_CSI_DATA_WIDTH_8;
+			break;
+
+		case MEDIA_BUS_FMT_SBGGR10_1X10:
+		case MEDIA_BUS_FMT_SGBRG10_1X10:
+		case MEDIA_BUS_FMT_SGRBG10_1X10:
+		case MEDIA_BUS_FMT_SRGGB10_1X10:
+			cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
+			cfg->mipi_dt = MIPI_DT_RAW10;
+			cfg->data_width = IPU_CSI_DATA_WIDTH_10;
+			break;
+
+		case MEDIA_BUS_FMT_SBGGR12_1X12:
+		case MEDIA_BUS_FMT_SGBRG12_1X12:
+		case MEDIA_BUS_FMT_SGRBG12_1X12:
+		case MEDIA_BUS_FMT_SRGGB12_1X12:
+			cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_BAYER;
+			cfg->mipi_dt = MIPI_DT_RAW12;
+			cfg->data_width = IPU_CSI_DATA_WIDTH_12;
+			break;
+
+		case MEDIA_BUS_FMT_JPEG_1X8:
+			/* TODO */
+			cfg->data_fmt = CSI_SENS_CONF_DATA_FMT_JPEG;
+			cfg->mipi_dt = MIPI_DT_RAW8;
+			cfg->data_width = IPU_CSI_DATA_WIDTH_8;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
@@ -317,47 +334,57 @@ static int mbus_code_to_bus_cfg(struct ipu_csi_bus_config *cfg, u32 mbus_code)
  * Fill a CSI bus config struct from mbus_config and mbus_framefmt.
  */
 static void fill_csi_bus_cfg(struct ipu_csi_bus_config *csicfg,
-				 struct v4l2_mbus_config *mbus_cfg,
-				 struct v4l2_mbus_framefmt *mbus_fmt)
+							 struct v4l2_mbus_config *mbus_cfg,
+							 struct v4l2_mbus_framefmt *mbus_fmt)
 {
 	memset(csicfg, 0, sizeof(*csicfg));
 
 	mbus_code_to_bus_cfg(csicfg, mbus_fmt->code);
 
-	switch (mbus_cfg->type) {
-	case V4L2_MBUS_PARALLEL:
-		csicfg->ext_vsync = 1;
-		csicfg->vsync_pol = (mbus_cfg->flags &
-				     V4L2_MBUS_VSYNC_ACTIVE_LOW) ? 1 : 0;
-		csicfg->hsync_pol = (mbus_cfg->flags &
-				     V4L2_MBUS_HSYNC_ACTIVE_LOW) ? 1 : 0;
-		csicfg->pixclk_pol = (mbus_cfg->flags &
-				      V4L2_MBUS_PCLK_SAMPLE_FALLING) ? 1 : 0;
-		csicfg->clk_mode = IPU_CSI_CLK_MODE_GATED_CLK;
-		break;
-	case V4L2_MBUS_BT656:
-		csicfg->ext_vsync = 0;
-		if (V4L2_FIELD_HAS_BOTH(mbus_fmt->field))
-			csicfg->clk_mode = IPU_CSI_CLK_MODE_CCIR656_INTERLACED;
-		else
-			csicfg->clk_mode = IPU_CSI_CLK_MODE_CCIR656_PROGRESSIVE;
-		break;
-	case V4L2_MBUS_CSI2:
-		/*
-		 * MIPI CSI-2 requires non gated clock mode, all other
-		 * parameters are not applicable for MIPI CSI-2 bus.
-		 */
-		csicfg->clk_mode = IPU_CSI_CLK_MODE_NONGATED_CLK;
-		break;
-	default:
-		/* will never get here, keep compiler quiet */
-		break;
+	switch (mbus_cfg->type)
+	{
+		case V4L2_MBUS_PARALLEL:
+			csicfg->ext_vsync = 1;
+			csicfg->vsync_pol = (mbus_cfg->flags &
+								 V4L2_MBUS_VSYNC_ACTIVE_LOW) ? 1 : 0;
+			csicfg->hsync_pol = (mbus_cfg->flags &
+								 V4L2_MBUS_HSYNC_ACTIVE_LOW) ? 1 : 0;
+			csicfg->pixclk_pol = (mbus_cfg->flags &
+								  V4L2_MBUS_PCLK_SAMPLE_FALLING) ? 1 : 0;
+			csicfg->clk_mode = IPU_CSI_CLK_MODE_GATED_CLK;
+			break;
+
+		case V4L2_MBUS_BT656:
+			csicfg->ext_vsync = 0;
+
+			if (V4L2_FIELD_HAS_BOTH(mbus_fmt->field))
+			{
+				csicfg->clk_mode = IPU_CSI_CLK_MODE_CCIR656_INTERLACED;
+			}
+			else
+			{
+				csicfg->clk_mode = IPU_CSI_CLK_MODE_CCIR656_PROGRESSIVE;
+			}
+
+			break;
+
+		case V4L2_MBUS_CSI2:
+			/*
+			 * MIPI CSI-2 requires non gated clock mode, all other
+			 * parameters are not applicable for MIPI CSI-2 bus.
+			 */
+			csicfg->clk_mode = IPU_CSI_CLK_MODE_NONGATED_CLK;
+			break;
+
+		default:
+			/* will never get here, keep compiler quiet */
+			break;
 	}
 }
 
 int ipu_csi_init_interface(struct ipu_csi *csi,
-			   struct v4l2_mbus_config *mbus_cfg,
-			   struct v4l2_mbus_framefmt *mbus_fmt)
+						   struct v4l2_mbus_config *mbus_cfg,
+						   struct v4l2_mbus_framefmt *mbus_fmt)
 {
 	struct ipu_csi_bus_config cfg;
 	unsigned long flags;
@@ -371,16 +398,16 @@ int ipu_csi_init_interface(struct ipu_csi *csi,
 
 	/* Set the CSI_SENS_CONF register remaining fields */
 	data |= cfg.data_width << CSI_SENS_CONF_DATA_WIDTH_SHIFT |
-		cfg.data_fmt << CSI_SENS_CONF_DATA_FMT_SHIFT |
-		cfg.data_pol << CSI_SENS_CONF_DATA_POL_SHIFT |
-		cfg.vsync_pol << CSI_SENS_CONF_VSYNC_POL_SHIFT |
-		cfg.hsync_pol << CSI_SENS_CONF_HSYNC_POL_SHIFT |
-		cfg.pixclk_pol << CSI_SENS_CONF_PIX_CLK_POL_SHIFT |
-		cfg.ext_vsync << CSI_SENS_CONF_EXT_VSYNC_SHIFT |
-		cfg.clk_mode << CSI_SENS_CONF_SENS_PRTCL_SHIFT |
-		cfg.pack_tight << CSI_SENS_CONF_PACK_TIGHT_SHIFT |
-		cfg.force_eof << CSI_SENS_CONF_FORCE_EOF_SHIFT |
-		cfg.data_en_pol << CSI_SENS_CONF_DATA_EN_POL_SHIFT;
+			cfg.data_fmt << CSI_SENS_CONF_DATA_FMT_SHIFT |
+			cfg.data_pol << CSI_SENS_CONF_DATA_POL_SHIFT |
+			cfg.vsync_pol << CSI_SENS_CONF_VSYNC_POL_SHIFT |
+			cfg.hsync_pol << CSI_SENS_CONF_HSYNC_POL_SHIFT |
+			cfg.pixclk_pol << CSI_SENS_CONF_PIX_CLK_POL_SHIFT |
+			cfg.ext_vsync << CSI_SENS_CONF_EXT_VSYNC_SHIFT |
+			cfg.clk_mode << CSI_SENS_CONF_SENS_PRTCL_SHIFT |
+			cfg.pack_tight << CSI_SENS_CONF_PACK_TIGHT_SHIFT |
+			cfg.force_eof << CSI_SENS_CONF_FORCE_EOF_SHIFT |
+			cfg.data_en_pol << CSI_SENS_CONF_DATA_EN_POL_SHIFT;
 
 	spin_lock_irqsave(&csi->lock, flags);
 
@@ -388,71 +415,81 @@ int ipu_csi_init_interface(struct ipu_csi *csi,
 
 	/* Set CCIR registers */
 
-	switch (cfg.clk_mode) {
-	case IPU_CSI_CLK_MODE_CCIR656_PROGRESSIVE:
-		ipu_csi_write(csi, 0x40030, CSI_CCIR_CODE_1);
-		ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
-		break;
-	case IPU_CSI_CLK_MODE_CCIR656_INTERLACED:
-		if (mbus_fmt->width == 720 && mbus_fmt->height == 576) {
-			/*
-			 * PAL case
-			 *
-			 * Field0BlankEnd = 0x6, Field0BlankStart = 0x2,
-			 * Field0ActiveEnd = 0x4, Field0ActiveStart = 0
-			 * Field1BlankEnd = 0x7, Field1BlankStart = 0x3,
-			 * Field1ActiveEnd = 0x5, Field1ActiveStart = 0x1
-			 */
-			height = 625; /* framelines for PAL */
-
-			ipu_csi_write(csi, 0x40596 | CSI_CCIR_ERR_DET_EN,
-					  CSI_CCIR_CODE_1);
-			ipu_csi_write(csi, 0xD07DF, CSI_CCIR_CODE_2);
+	switch (cfg.clk_mode)
+	{
+		case IPU_CSI_CLK_MODE_CCIR656_PROGRESSIVE:
+			ipu_csi_write(csi, 0x40030, CSI_CCIR_CODE_1);
 			ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
-		} else if (mbus_fmt->width == 720 && mbus_fmt->height == 480) {
-			/*
-			 * NTSC case
-			 *
-			 * Field0BlankEnd = 0x7, Field0BlankStart = 0x3,
-			 * Field0ActiveEnd = 0x5, Field0ActiveStart = 0x1
-			 * Field1BlankEnd = 0x6, Field1BlankStart = 0x2,
-			 * Field1ActiveEnd = 0x4, Field1ActiveStart = 0
-			 */
-			height = 525; /* framelines for NTSC */
+			break;
 
-			ipu_csi_write(csi, 0xD07DF | CSI_CCIR_ERR_DET_EN,
-					  CSI_CCIR_CODE_1);
-			ipu_csi_write(csi, 0x40596, CSI_CCIR_CODE_2);
+		case IPU_CSI_CLK_MODE_CCIR656_INTERLACED:
+			if (mbus_fmt->width == 720 && mbus_fmt->height == 576)
+			{
+				/*
+				 * PAL case
+				 *
+				 * Field0BlankEnd = 0x6, Field0BlankStart = 0x2,
+				 * Field0ActiveEnd = 0x4, Field0ActiveStart = 0
+				 * Field1BlankEnd = 0x7, Field1BlankStart = 0x3,
+				 * Field1ActiveEnd = 0x5, Field1ActiveStart = 0x1
+				 */
+				height = 625; /* framelines for PAL */
+
+				ipu_csi_write(csi, 0x40596 | CSI_CCIR_ERR_DET_EN,
+							  CSI_CCIR_CODE_1);
+				ipu_csi_write(csi, 0xD07DF, CSI_CCIR_CODE_2);
+				ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
+			}
+			else if (mbus_fmt->width == 720 && mbus_fmt->height == 480)
+			{
+				/*
+				 * NTSC case
+				 *
+				 * Field0BlankEnd = 0x7, Field0BlankStart = 0x3,
+				 * Field0ActiveEnd = 0x5, Field0ActiveStart = 0x1
+				 * Field1BlankEnd = 0x6, Field1BlankStart = 0x2,
+				 * Field1ActiveEnd = 0x4, Field1ActiveStart = 0
+				 */
+				height = 525; /* framelines for NTSC */
+
+				ipu_csi_write(csi, 0xD07DF | CSI_CCIR_ERR_DET_EN,
+							  CSI_CCIR_CODE_1);
+				ipu_csi_write(csi, 0x40596, CSI_CCIR_CODE_2);
+				ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
+			}
+			else
+			{
+				dev_err(csi->ipu->dev,
+						"Unsupported CCIR656 interlaced video mode\n");
+				spin_unlock_irqrestore(&csi->lock, flags);
+				return -EINVAL;
+			}
+
+			break;
+
+		case IPU_CSI_CLK_MODE_CCIR1120_PROGRESSIVE_DDR:
+		case IPU_CSI_CLK_MODE_CCIR1120_PROGRESSIVE_SDR:
+		case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_DDR:
+		case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_SDR:
+			ipu_csi_write(csi, 0x40030 | CSI_CCIR_ERR_DET_EN,
+						  CSI_CCIR_CODE_1);
 			ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
-		} else {
-			dev_err(csi->ipu->dev,
-				"Unsupported CCIR656 interlaced video mode\n");
-			spin_unlock_irqrestore(&csi->lock, flags);
-			return -EINVAL;
-		}
-		break;
-	case IPU_CSI_CLK_MODE_CCIR1120_PROGRESSIVE_DDR:
-	case IPU_CSI_CLK_MODE_CCIR1120_PROGRESSIVE_SDR:
-	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_DDR:
-	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_SDR:
-		ipu_csi_write(csi, 0x40030 | CSI_CCIR_ERR_DET_EN,
-				   CSI_CCIR_CODE_1);
-		ipu_csi_write(csi, 0xFF0000, CSI_CCIR_CODE_3);
-		break;
-	case IPU_CSI_CLK_MODE_GATED_CLK:
-	case IPU_CSI_CLK_MODE_NONGATED_CLK:
-		ipu_csi_write(csi, 0, CSI_CCIR_CODE_1);
-		break;
+			break;
+
+		case IPU_CSI_CLK_MODE_GATED_CLK:
+		case IPU_CSI_CLK_MODE_NONGATED_CLK:
+			ipu_csi_write(csi, 0, CSI_CCIR_CODE_1);
+			break;
 	}
 
 	/* Setup sensor frame size */
 	ipu_csi_write(csi, (width - 1) | ((height - 1) << 16),
-		      CSI_SENS_FRM_SIZE);
+				  CSI_SENS_FRM_SIZE);
 
 	dev_dbg(csi->ipu->dev, "CSI_SENS_CONF = 0x%08X\n",
-		ipu_csi_read(csi, CSI_SENS_CONF));
+			ipu_csi_read(csi, CSI_SENS_CONF));
 	dev_dbg(csi->ipu->dev, "CSI_ACT_FRM_SIZE = 0x%08X\n",
-		ipu_csi_read(csi, CSI_ACT_FRM_SIZE));
+			ipu_csi_read(csi, CSI_ACT_FRM_SIZE));
 
 	spin_unlock_irqrestore(&csi->lock, flags);
 
@@ -472,21 +509,24 @@ bool ipu_csi_is_interlaced(struct ipu_csi *csi)
 		CSI_SENS_CONF_SENS_PRTCL_SHIFT;
 	spin_unlock_irqrestore(&csi->lock, flags);
 
-	switch (sensor_protocol) {
-	case IPU_CSI_CLK_MODE_GATED_CLK:
-	case IPU_CSI_CLK_MODE_NONGATED_CLK:
-	case IPU_CSI_CLK_MODE_CCIR656_PROGRESSIVE:
-	case IPU_CSI_CLK_MODE_CCIR1120_PROGRESSIVE_DDR:
-	case IPU_CSI_CLK_MODE_CCIR1120_PROGRESSIVE_SDR:
-		return false;
-	case IPU_CSI_CLK_MODE_CCIR656_INTERLACED:
-	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_DDR:
-	case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_SDR:
-		return true;
-	default:
-		dev_err(csi->ipu->dev,
-			"CSI %d sensor protocol unsupported\n", csi->id);
-		return false;
+	switch (sensor_protocol)
+	{
+		case IPU_CSI_CLK_MODE_GATED_CLK:
+		case IPU_CSI_CLK_MODE_NONGATED_CLK:
+		case IPU_CSI_CLK_MODE_CCIR656_PROGRESSIVE:
+		case IPU_CSI_CLK_MODE_CCIR1120_PROGRESSIVE_DDR:
+		case IPU_CSI_CLK_MODE_CCIR1120_PROGRESSIVE_SDR:
+			return false;
+
+		case IPU_CSI_CLK_MODE_CCIR656_INTERLACED:
+		case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_DDR:
+		case IPU_CSI_CLK_MODE_CCIR1120_INTERLACED_SDR:
+			return true;
+
+		default:
+			dev_err(csi->ipu->dev,
+					"CSI %d sensor protocol unsupported\n", csi->id);
+			return false;
 	}
 }
 EXPORT_SYMBOL_GPL(ipu_csi_is_interlaced);
@@ -518,7 +558,7 @@ void ipu_csi_set_window(struct ipu_csi *csi, struct v4l2_rect *w)
 	spin_lock_irqsave(&csi->lock, flags);
 
 	ipu_csi_write(csi, (w->width - 1) | ((w->height - 1) << 16),
-			  CSI_ACT_FRM_SIZE);
+				  CSI_ACT_FRM_SIZE);
 
 	reg = ipu_csi_read(csi, CSI_OUT_FRM_CTRL);
 	reg &= ~(CSI_HSC_MASK | CSI_VSC_MASK);
@@ -530,8 +570,8 @@ void ipu_csi_set_window(struct ipu_csi *csi, struct v4l2_rect *w)
 EXPORT_SYMBOL_GPL(ipu_csi_set_window);
 
 void ipu_csi_set_test_generator(struct ipu_csi *csi, bool active,
-				u32 r_value, u32 g_value, u32 b_value,
-				u32 pix_clk)
+								u32 r_value, u32 g_value, u32 b_value,
+								u32 pix_clk)
 {
 	unsigned long flags;
 	u32 ipu_clk = clk_get_rate(csi->clk_ipu);
@@ -541,19 +581,22 @@ void ipu_csi_set_test_generator(struct ipu_csi *csi, bool active,
 
 	temp = ipu_csi_read(csi, CSI_TST_CTRL);
 
-	if (!active) {
+	if (!active)
+	{
 		temp &= ~CSI_TEST_GEN_MODE_EN;
 		ipu_csi_write(csi, temp, CSI_TST_CTRL);
-	} else {
+	}
+	else
+	{
 		/* Set sensb_mclk div_ratio */
 		ipu_csi_set_testgen_mclk(csi, pix_clk, ipu_clk);
 
 		temp &= ~(CSI_TEST_GEN_R_MASK | CSI_TEST_GEN_G_MASK |
-			  CSI_TEST_GEN_B_MASK);
+				  CSI_TEST_GEN_B_MASK);
 		temp |= CSI_TEST_GEN_MODE_EN;
 		temp |= (r_value << CSI_TEST_GEN_R_SHIFT) |
-			(g_value << CSI_TEST_GEN_G_SHIFT) |
-			(b_value << CSI_TEST_GEN_B_SHIFT);
+				(g_value << CSI_TEST_GEN_G_SHIFT) |
+				(b_value << CSI_TEST_GEN_B_SHIFT);
 		ipu_csi_write(csi, temp, CSI_TST_CTRL);
 	}
 
@@ -562,14 +605,16 @@ void ipu_csi_set_test_generator(struct ipu_csi *csi, bool active,
 EXPORT_SYMBOL_GPL(ipu_csi_set_test_generator);
 
 int ipu_csi_set_mipi_datatype(struct ipu_csi *csi, u32 vc,
-			      struct v4l2_mbus_framefmt *mbus_fmt)
+							  struct v4l2_mbus_framefmt *mbus_fmt)
 {
 	struct ipu_csi_bus_config cfg;
 	unsigned long flags;
 	u32 temp;
 
 	if (vc > 3)
+	{
 		return -EINVAL;
+	}
 
 	mbus_code_to_bus_cfg(&cfg, mbus_fmt->code);
 
@@ -587,22 +632,24 @@ int ipu_csi_set_mipi_datatype(struct ipu_csi *csi, u32 vc,
 EXPORT_SYMBOL_GPL(ipu_csi_set_mipi_datatype);
 
 int ipu_csi_set_skip_smfc(struct ipu_csi *csi, u32 skip,
-			  u32 max_ratio, u32 id)
+						  u32 max_ratio, u32 id)
 {
 	unsigned long flags;
 	u32 temp;
 
 	if (max_ratio > 5 || id > 3)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_irqsave(&csi->lock, flags);
 
 	temp = ipu_csi_read(csi, CSI_SKIP);
 	temp &= ~(CSI_MAX_RATIO_SKIP_SMFC_MASK | CSI_ID_2_SKIP_MASK |
-		  CSI_SKIP_SMFC_MASK);
+			  CSI_SKIP_SMFC_MASK);
 	temp |= (max_ratio << CSI_MAX_RATIO_SKIP_SMFC_SHIFT) |
-		(id << CSI_ID_2_SKIP_SHIFT) |
-		(skip << CSI_SKIP_SMFC_SHIFT);
+			(id << CSI_ID_2_SKIP_SHIFT) |
+			(skip << CSI_SKIP_SMFC_SHIFT);
 	ipu_csi_write(csi, temp, CSI_SKIP);
 
 	spin_unlock_irqrestore(&csi->lock, flags);
@@ -617,9 +664,13 @@ int ipu_csi_set_dest(struct ipu_csi *csi, enum ipu_csi_dest csi_dest)
 	u32 csi_sens_conf, dest;
 
 	if (csi_dest == IPU_CSI_DEST_IDMAC)
+	{
 		dest = CSI_DATA_DEST_IDMAC;
+	}
 	else
-		dest = CSI_DATA_DEST_IC; /* IC or VDIC */
+	{
+		dest = CSI_DATA_DEST_IC;    /* IC or VDIC */
+	}
 
 	spin_lock_irqsave(&csi->lock, flags);
 
@@ -656,14 +707,17 @@ struct ipu_csi *ipu_csi_get(struct ipu_soc *ipu, int id)
 	struct ipu_csi *csi, *ret;
 
 	if (id > 1)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	csi = ipu->csi_priv[id];
 	ret = csi;
 
 	spin_lock_irqsave(&csi->lock, flags);
 
-	if (csi->inuse) {
+	if (csi->inuse)
+	{
 		ret = ERR_PTR(-EBUSY);
 		goto unlock;
 	}
@@ -686,16 +740,21 @@ void ipu_csi_put(struct ipu_csi *csi)
 EXPORT_SYMBOL_GPL(ipu_csi_put);
 
 int ipu_csi_init(struct ipu_soc *ipu, struct device *dev, int id,
-		 unsigned long base, u32 module, struct clk *clk_ipu)
+				 unsigned long base, u32 module, struct clk *clk_ipu)
 {
 	struct ipu_csi *csi;
 
 	if (id > 1)
+	{
 		return -ENODEV;
+	}
 
 	csi = devm_kzalloc(dev, sizeof(*csi), GFP_KERNEL);
+
 	if (!csi)
+	{
 		return -ENOMEM;
+	}
 
 	ipu->csi_priv[id] = csi;
 
@@ -704,11 +763,14 @@ int ipu_csi_init(struct ipu_soc *ipu, struct device *dev, int id,
 	csi->id = id;
 	csi->clk_ipu = clk_ipu;
 	csi->base = devm_ioremap(dev, base, PAGE_SIZE);
+
 	if (!csi->base)
+	{
 		return -ENOMEM;
+	}
 
 	dev_dbg(dev, "CSI%d base: 0x%08lx remapped to %p\n",
-		id, base, csi->base);
+			id, base, csi->base);
 	csi->ipu = ipu;
 
 	return 0;
@@ -721,24 +783,24 @@ void ipu_csi_exit(struct ipu_soc *ipu, int id)
 void ipu_csi_dump(struct ipu_csi *csi)
 {
 	dev_dbg(csi->ipu->dev, "CSI_SENS_CONF:     %08x\n",
-		ipu_csi_read(csi, CSI_SENS_CONF));
+			ipu_csi_read(csi, CSI_SENS_CONF));
 	dev_dbg(csi->ipu->dev, "CSI_SENS_FRM_SIZE: %08x\n",
-		ipu_csi_read(csi, CSI_SENS_FRM_SIZE));
+			ipu_csi_read(csi, CSI_SENS_FRM_SIZE));
 	dev_dbg(csi->ipu->dev, "CSI_ACT_FRM_SIZE:  %08x\n",
-		ipu_csi_read(csi, CSI_ACT_FRM_SIZE));
+			ipu_csi_read(csi, CSI_ACT_FRM_SIZE));
 	dev_dbg(csi->ipu->dev, "CSI_OUT_FRM_CTRL:  %08x\n",
-		ipu_csi_read(csi, CSI_OUT_FRM_CTRL));
+			ipu_csi_read(csi, CSI_OUT_FRM_CTRL));
 	dev_dbg(csi->ipu->dev, "CSI_TST_CTRL:      %08x\n",
-		ipu_csi_read(csi, CSI_TST_CTRL));
+			ipu_csi_read(csi, CSI_TST_CTRL));
 	dev_dbg(csi->ipu->dev, "CSI_CCIR_CODE_1:   %08x\n",
-		ipu_csi_read(csi, CSI_CCIR_CODE_1));
+			ipu_csi_read(csi, CSI_CCIR_CODE_1));
 	dev_dbg(csi->ipu->dev, "CSI_CCIR_CODE_2:   %08x\n",
-		ipu_csi_read(csi, CSI_CCIR_CODE_2));
+			ipu_csi_read(csi, CSI_CCIR_CODE_2));
 	dev_dbg(csi->ipu->dev, "CSI_CCIR_CODE_3:   %08x\n",
-		ipu_csi_read(csi, CSI_CCIR_CODE_3));
+			ipu_csi_read(csi, CSI_CCIR_CODE_3));
 	dev_dbg(csi->ipu->dev, "CSI_MIPI_DI:       %08x\n",
-		ipu_csi_read(csi, CSI_MIPI_DI));
+			ipu_csi_read(csi, CSI_MIPI_DI));
 	dev_dbg(csi->ipu->dev, "CSI_SKIP:          %08x\n",
-		ipu_csi_read(csi, CSI_SKIP));
+			ipu_csi_read(csi, CSI_SKIP));
 }
 EXPORT_SYMBOL_GPL(ipu_csi_dump);

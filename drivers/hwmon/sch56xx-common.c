@@ -37,7 +37,7 @@
 static int nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, int, 0);
 MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default="
-	__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 #define SIO_SCH56XX_LD_EM	0x0C	/* Embedded uController Logical Dev */
 #define SIO_UNLOCK_KEY		0x55	/* Key to enable Super-I/O */
@@ -63,7 +63,8 @@ MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default="
 #define SCH56XX_REG_WDOG_OUTPUT_ENABLE	0x58E
 #define SCH56XX_WDOG_OUTPUT_ENABLE	0x02
 
-struct sch56xx_watchdog_data {
+struct sch56xx_watchdog_data
+{
 	u16 addr;
 	struct mutex *io_lock;
 	struct watchdog_info wdinfo;
@@ -85,7 +86,8 @@ static inline int superio_inb(int base, int reg)
 static inline int superio_enter(int base)
 {
 	/* Don't step on other drivers' I/O space by accident */
-	if (!request_muxed_region(base, 2, "sch56xx")) {
+	if (!request_muxed_region(base, 2, "sch56xx"))
+	{
 		pr_err("I/O address 0x%04x already in use\n", base);
 		return -EBUSY;
 	}
@@ -136,7 +138,9 @@ static int sch56xx_send_cmd(u16 addr, u8 cmd, u16 reg, u8 v)
 
 	/* Write Value field */
 	if (cmd == SCH56XX_CMD_WRITE)
+	{
 		outb(v, addr + 4);
+	}
 
 	/* Write Address field */
 	outb(reg & 0xff, addr + 6);
@@ -146,21 +150,33 @@ static int sch56xx_send_cmd(u16 addr, u8 cmd, u16 reg, u8 v)
 	outb(0x01, addr); /* Write 01h to the Host-to-EC register */
 
 	/* EM Interface Polling "Algorithm" */
-	for (i = 0; i < max_busy_polls + max_lazy_polls; i++) {
+	for (i = 0; i < max_busy_polls + max_lazy_polls; i++)
+	{
 		if (i >= max_busy_polls)
+		{
 			msleep(1);
+		}
+
 		/* Read Interrupt source Register */
 		val = inb(addr + 8);
+
 		/* Write Clear the interrupt source bits */
 		if (val)
+		{
 			outb(val, addr + 8);
+		}
+
 		/* Command Completed ? */
 		if (val & 0x01)
+		{
 			break;
+		}
 	}
-	if (i == max_busy_polls + max_lazy_polls) {
+
+	if (i == max_busy_polls + max_lazy_polls)
+	{
 		pr_err("Max retries exceeded reading virtual register 0x%04hx (%d)\n",
-		       reg, 1);
+			   reg, 1);
 		return -EIO;
 	}
 
@@ -168,20 +184,26 @@ static int sch56xx_send_cmd(u16 addr, u8 cmd, u16 reg, u8 v)
 	 * According to SMSC we may need to retry this, but sofar I've always
 	 * seen this succeed in 1 try.
 	 */
-	for (i = 0; i < max_busy_polls; i++) {
+	for (i = 0; i < max_busy_polls; i++)
+	{
 		/* Read EC-to-Host Register */
 		val = inb(addr + 1);
+
 		/* Command Completed ? */
 		if (val == 0x01)
+		{
 			break;
+		}
 
 		if (i == 0)
 			pr_warn("EC reports: 0x%02x reading virtual register 0x%04hx\n",
-				(unsigned int)val, reg);
+					(unsigned int)val, reg);
 	}
-	if (i == max_busy_polls) {
+
+	if (i == max_busy_polls)
+	{
 		pr_err("Max retries exceeded reading virtual register 0x%04hx (%d)\n",
-		       reg, 2);
+			   reg, 2);
 		return -EIO;
 	}
 
@@ -197,7 +219,9 @@ static int sch56xx_send_cmd(u16 addr, u8 cmd, u16 reg, u8 v)
 
 	/* Read Value field */
 	if (cmd == SCH56XX_CMD_READ)
+	{
 		return inb(addr + 4);
+	}
 
 	return 0;
 }
@@ -220,35 +244,51 @@ int sch56xx_read_virtual_reg16(u16 addr, u16 reg)
 
 	/* Read LSB first, this will cause the matching MSB to be latched */
 	lsb = sch56xx_read_virtual_reg(addr, reg);
+
 	if (lsb < 0)
+	{
 		return lsb;
+	}
 
 	msb = sch56xx_read_virtual_reg(addr, reg + 1);
+
 	if (msb < 0)
+	{
 		return msb;
+	}
 
 	return lsb | (msb << 8);
 }
 EXPORT_SYMBOL(sch56xx_read_virtual_reg16);
 
 int sch56xx_read_virtual_reg12(u16 addr, u16 msb_reg, u16 lsn_reg,
-			       int high_nibble)
+							   int high_nibble)
 {
 	int msb, lsn;
 
 	/* Read MSB first, this will cause the matching LSN to be latched */
 	msb = sch56xx_read_virtual_reg(addr, msb_reg);
+
 	if (msb < 0)
+	{
 		return msb;
+	}
 
 	lsn = sch56xx_read_virtual_reg(addr, lsn_reg);
+
 	if (lsn < 0)
+	{
 		return lsn;
+	}
 
 	if (high_nibble)
+	{
 		return (msb << 4) | (lsn >> 4);
+	}
 	else
+	{
 		return (msb << 4) | (lsn & 0x0f);
+	}
 }
 EXPORT_SYMBOL(sch56xx_read_virtual_reg12);
 
@@ -257,7 +297,7 @@ EXPORT_SYMBOL(sch56xx_read_virtual_reg12);
  */
 
 static int watchdog_set_timeout(struct watchdog_device *wddev,
-				unsigned int timeout)
+								unsigned int timeout)
 {
 	struct sch56xx_watchdog_data *data = watchdog_get_drvdata(wddev);
 	unsigned int resolution;
@@ -266,26 +306,40 @@ static int watchdog_set_timeout(struct watchdog_device *wddev,
 
 	/* 1 second or 60 second resolution? */
 	if (timeout <= 255)
+	{
 		resolution = 1;
+	}
 	else
+	{
 		resolution = 60;
+	}
 
 	if (timeout < resolution || timeout > (resolution * 255))
+	{
 		return -EINVAL;
+	}
 
 	if (resolution == 1)
+	{
 		control = data->watchdog_control | SCH56XX_WDOG_TIME_BASE_SEC;
+	}
 	else
+	{
 		control = data->watchdog_control & ~SCH56XX_WDOG_TIME_BASE_SEC;
+	}
 
-	if (data->watchdog_control != control) {
+	if (data->watchdog_control != control)
+	{
 		mutex_lock(data->io_lock);
 		ret = sch56xx_write_virtual_reg(data->addr,
-						SCH56XX_REG_WDOG_CONTROL,
-						control);
+										SCH56XX_REG_WDOG_CONTROL,
+										control);
 		mutex_unlock(data->io_lock);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		data->watchdog_control = control;
 	}
@@ -329,23 +383,32 @@ static int watchdog_start(struct watchdog_device *wddev)
 
 	/* 1. Reset the watchdog countdown counter */
 	ret = sch56xx_write_virtual_reg(data->addr, SCH56XX_REG_WDOG_PRESET,
-					data->watchdog_preset);
+									data->watchdog_preset);
+
 	if (ret)
+	{
 		goto leave;
+	}
 
 	/* 2. Enable output */
 	val = data->watchdog_output_enable | SCH56XX_WDOG_OUTPUT_ENABLE;
 	ret = sch56xx_write_virtual_reg(data->addr,
-					SCH56XX_REG_WDOG_OUTPUT_ENABLE, val);
+									SCH56XX_REG_WDOG_OUTPUT_ENABLE, val);
+
 	if (ret)
+	{
 		goto leave;
+	}
 
 	data->watchdog_output_enable = val;
 
 	/* 3. Clear the watchdog event bit if set */
 	val = inb(data->addr + 9);
+
 	if (val & 0x01)
+	{
 		outb(0x01, data->addr + 9);
+	}
 
 leave:
 	mutex_unlock(data->io_lock);
@@ -360,7 +423,7 @@ static int watchdog_trigger(struct watchdog_device *wddev)
 	/* Reset the watchdog countdown counter */
 	mutex_lock(data->io_lock);
 	ret = sch56xx_write_virtual_reg(data->addr, SCH56XX_REG_WDOG_PRESET,
-					data->watchdog_preset);
+									data->watchdog_preset);
 	mutex_unlock(data->io_lock);
 
 	return ret;
@@ -375,16 +438,20 @@ static int watchdog_stop(struct watchdog_device *wddev)
 	val = data->watchdog_output_enable & ~SCH56XX_WDOG_OUTPUT_ENABLE;
 	mutex_lock(data->io_lock);
 	ret = sch56xx_write_virtual_reg(data->addr,
-					SCH56XX_REG_WDOG_OUTPUT_ENABLE, val);
+									SCH56XX_REG_WDOG_OUTPUT_ENABLE, val);
 	mutex_unlock(data->io_lock);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	data->watchdog_output_enable = val;
 	return 0;
 }
 
-static const struct watchdog_ops watchdog_ops = {
+static const struct watchdog_ops watchdog_ops =
+{
 	.owner		= THIS_MODULE,
 	.start		= watchdog_start,
 	.stop		= watchdog_stop,
@@ -393,7 +460,7 @@ static const struct watchdog_ops watchdog_ops = {
 };
 
 struct sch56xx_watchdog_data *sch56xx_watchdog_register(struct device *parent,
-	u16 addr, u32 revision, struct mutex *io_lock, int check_enabled)
+		u16 addr, u32 revision, struct mutex *io_lock, int check_enabled)
 {
 	struct sch56xx_watchdog_data *data;
 	int err, control, output_enable;
@@ -407,27 +474,40 @@ struct sch56xx_watchdog_data *sch56xx_watchdog_register(struct device *parent,
 	mutex_unlock(io_lock);
 
 	if (control < 0)
+	{
 		return NULL;
+	}
+
 	if (output_enable < 0)
+	{
 		return NULL;
-	if (check_enabled && !(output_enable & SCH56XX_WDOG_OUTPUT_ENABLE)) {
+	}
+
+	if (check_enabled && !(output_enable & SCH56XX_WDOG_OUTPUT_ENABLE))
+	{
 		pr_warn("Watchdog not enabled by BIOS, not registering\n");
 		return NULL;
 	}
 
 	data = kzalloc(sizeof(struct sch56xx_watchdog_data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return NULL;
+	}
 
 	data->addr = addr;
 	data->io_lock = io_lock;
 
 	strlcpy(data->wdinfo.identity, "sch56xx watchdog",
-		sizeof(data->wdinfo.identity));
+			sizeof(data->wdinfo.identity));
 	data->wdinfo.firmware_version = revision;
 	data->wdinfo.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT;
+
 	if (!nowayout)
+	{
 		data->wdinfo.options |= WDIOF_MAGICCLOSE;
+	}
 
 	data->wddev.info = &data->wdinfo;
 	data->wddev.ops = &watchdog_ops;
@@ -435,25 +515,37 @@ struct sch56xx_watchdog_data *sch56xx_watchdog_register(struct device *parent,
 	data->wddev.timeout = 60;
 	data->wddev.min_timeout = 1;
 	data->wddev.max_timeout = 255 * 60;
+
 	if (nowayout)
+	{
 		set_bit(WDOG_NO_WAY_OUT, &data->wddev.status);
+	}
+
 	if (output_enable & SCH56XX_WDOG_OUTPUT_ENABLE)
+	{
 		set_bit(WDOG_ACTIVE, &data->wddev.status);
+	}
 
 	/* Since the watchdog uses a downcounter there is no register to read
 	   the BIOS set timeout from (if any was set at all) ->
 	   Choose a preset which will give us a 1 minute timeout */
 	if (control & SCH56XX_WDOG_TIME_BASE_SEC)
-		data->watchdog_preset = 60; /* seconds */
+	{
+		data->watchdog_preset = 60;    /* seconds */
+	}
 	else
-		data->watchdog_preset = 1; /* minute */
+	{
+		data->watchdog_preset = 1;    /* minute */
+	}
 
 	data->watchdog_control = control;
 	data->watchdog_output_enable = output_enable;
 
 	watchdog_set_drvdata(&data->wddev, data);
 	err = watchdog_register_device(&data->wddev);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Registering watchdog chardev: %d\n", err);
 		kfree(data);
 		return NULL;
@@ -481,27 +573,35 @@ static int __init sch56xx_find(int sioaddr, const char **name)
 	int err;
 
 	err = superio_enter(sioaddr);
+
 	if (err)
+	{
 		return err;
+	}
 
 	devid = superio_inb(sioaddr, SIO_REG_DEVID);
-	switch (devid) {
-	case SIO_SCH5627_ID:
-		*name = "sch5627";
-		break;
-	case SIO_SCH5636_ID:
-		*name = "sch5636";
-		break;
-	default:
-		pr_debug("Unsupported device id: 0x%02x\n",
-			 (unsigned int)devid);
-		err = -ENODEV;
-		goto exit;
+
+	switch (devid)
+	{
+		case SIO_SCH5627_ID:
+			*name = "sch5627";
+			break;
+
+		case SIO_SCH5636_ID:
+			*name = "sch5636";
+			break;
+
+		default:
+			pr_debug("Unsupported device id: 0x%02x\n",
+					 (unsigned int)devid);
+			err = -ENODEV;
+			goto exit;
 	}
 
 	superio_select(sioaddr, SIO_SCH56XX_LD_EM);
 
-	if (!(superio_inb(sioaddr, SIO_REG_ENABLE) & 0x01)) {
+	if (!(superio_inb(sioaddr, SIO_REG_ENABLE) & 0x01))
+	{
 		pr_warn("Device not activated\n");
 		err = -ENODEV;
 		goto exit;
@@ -512,12 +612,15 @@ static int __init sch56xx_find(int sioaddr, const char **name)
 	 * as on most other superio devices!!
 	 */
 	address = superio_inb(sioaddr, SIO_REG_ADDR) |
-		   superio_inb(sioaddr, SIO_REG_ADDR + 1) << 8;
-	if (address == 0) {
+			  superio_inb(sioaddr, SIO_REG_ADDR + 1) << 8;
+
+	if (address == 0)
+	{
 		pr_warn("Base address not set\n");
 		err = -ENODEV;
 		goto exit;
 	}
+
 	err = address;
 
 exit:
@@ -527,7 +630,8 @@ exit:
 
 static int __init sch56xx_device_add(int address, const char *name)
 {
-	struct resource res = {
+	struct resource res =
+	{
 		.start	= address,
 		.end	= address + REGION_LENGTH - 1,
 		.flags	= IORESOURCE_IO,
@@ -535,22 +639,32 @@ static int __init sch56xx_device_add(int address, const char *name)
 	int err;
 
 	sch56xx_pdev = platform_device_alloc(name, address);
+
 	if (!sch56xx_pdev)
+	{
 		return -ENOMEM;
+	}
 
 	res.name = sch56xx_pdev->name;
 	err = acpi_check_resource_conflict(&res);
+
 	if (err)
+	{
 		goto exit_device_put;
+	}
 
 	err = platform_device_add_resources(sch56xx_pdev, &res, 1);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Device resource addition failed\n");
 		goto exit_device_put;
 	}
 
 	err = platform_device_add(sch56xx_pdev);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Device addition failed\n");
 		goto exit_device_put;
 	}
@@ -569,10 +683,16 @@ static int __init sch56xx_init(void)
 	const char *name = NULL;
 
 	address = sch56xx_find(0x4e, &name);
+
 	if (address < 0)
+	{
 		address = sch56xx_find(0x2e, &name);
+	}
+
 	if (address < 0)
+	{
 		return address;
+	}
 
 	return sch56xx_device_add(address, name);
 }

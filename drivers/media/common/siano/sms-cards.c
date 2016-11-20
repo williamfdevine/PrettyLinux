@@ -21,7 +21,8 @@
 #include "smsir.h"
 #include <linux/module.h>
 
-static struct sms_board sms_boards[] = {
+static struct sms_board sms_boards[] =
+{
 	[SMS_BOARD_UNKNOWN] = {
 		.name	= "Unknown board",
 		.type = SMS_UNKNOWN_TYPE,
@@ -169,7 +170,8 @@ struct sms_board *sms_get_board(unsigned id)
 }
 EXPORT_SYMBOL_GPL(sms_get_board);
 static inline void sms_gpio_assign_11xx_default_led_config(
-		struct smscore_config_gpio *p_gpio_config) {
+	struct smscore_config_gpio *p_gpio_config)
+{
 	p_gpio_config->direction = SMS_GPIO_DIRECTION_OUTPUT;
 	p_gpio_config->inputcharacteristics =
 		SMS_GPIO_INPUTCHARACTERISTICS_NORMAL;
@@ -179,58 +181,73 @@ static inline void sms_gpio_assign_11xx_default_led_config(
 }
 
 int sms_board_event(struct smscore_device_t *coredev,
-		    enum SMS_BOARD_EVENTS gevent)
+					enum SMS_BOARD_EVENTS gevent)
 {
 	struct smscore_config_gpio my_gpio_config;
 
 	sms_gpio_assign_11xx_default_led_config(&my_gpio_config);
 
-	switch (gevent) {
-	case BOARD_EVENT_POWER_INIT: /* including hotplug */
-		break; /* BOARD_EVENT_BIND */
+	switch (gevent)
+	{
+		case BOARD_EVENT_POWER_INIT: /* including hotplug */
+			break; /* BOARD_EVENT_BIND */
 
-	case BOARD_EVENT_POWER_SUSPEND:
-		break; /* BOARD_EVENT_POWER_SUSPEND */
+		case BOARD_EVENT_POWER_SUSPEND:
+			break; /* BOARD_EVENT_POWER_SUSPEND */
 
-	case BOARD_EVENT_POWER_RESUME:
-		break; /* BOARD_EVENT_POWER_RESUME */
+		case BOARD_EVENT_POWER_RESUME:
+			break; /* BOARD_EVENT_POWER_RESUME */
 
-	case BOARD_EVENT_BIND:
-		break; /* BOARD_EVENT_BIND */
+		case BOARD_EVENT_BIND:
+			break; /* BOARD_EVENT_BIND */
 
-	case BOARD_EVENT_SCAN_PROG:
-		break; /* BOARD_EVENT_SCAN_PROG */
-	case BOARD_EVENT_SCAN_COMP:
-		break; /* BOARD_EVENT_SCAN_COMP */
-	case BOARD_EVENT_EMERGENCY_WARNING_SIGNAL:
-		break; /* BOARD_EVENT_EMERGENCY_WARNING_SIGNAL */
-	case BOARD_EVENT_FE_LOCK:
-		break; /* BOARD_EVENT_FE_LOCK */
-	case BOARD_EVENT_FE_UNLOCK:
-		break; /* BOARD_EVENT_FE_UNLOCK */
-	case BOARD_EVENT_DEMOD_LOCK:
-		break; /* BOARD_EVENT_DEMOD_LOCK */
-	case BOARD_EVENT_DEMOD_UNLOCK:
-		break; /* BOARD_EVENT_DEMOD_UNLOCK */
-	case BOARD_EVENT_RECEPTION_MAX_4:
-		break; /* BOARD_EVENT_RECEPTION_MAX_4 */
-	case BOARD_EVENT_RECEPTION_3:
-		break; /* BOARD_EVENT_RECEPTION_3 */
-	case BOARD_EVENT_RECEPTION_2:
-		break; /* BOARD_EVENT_RECEPTION_2 */
-	case BOARD_EVENT_RECEPTION_1:
-		break; /* BOARD_EVENT_RECEPTION_1 */
-	case BOARD_EVENT_RECEPTION_LOST_0:
-		break; /* BOARD_EVENT_RECEPTION_LOST_0 */
-	case BOARD_EVENT_MULTIPLEX_OK:
-		break; /* BOARD_EVENT_MULTIPLEX_OK */
-	case BOARD_EVENT_MULTIPLEX_ERRORS:
-		break; /* BOARD_EVENT_MULTIPLEX_ERRORS */
+		case BOARD_EVENT_SCAN_PROG:
+			break; /* BOARD_EVENT_SCAN_PROG */
 
-	default:
-		pr_err("Unknown SMS board event\n");
-		break;
+		case BOARD_EVENT_SCAN_COMP:
+			break; /* BOARD_EVENT_SCAN_COMP */
+
+		case BOARD_EVENT_EMERGENCY_WARNING_SIGNAL:
+			break; /* BOARD_EVENT_EMERGENCY_WARNING_SIGNAL */
+
+		case BOARD_EVENT_FE_LOCK:
+			break; /* BOARD_EVENT_FE_LOCK */
+
+		case BOARD_EVENT_FE_UNLOCK:
+			break; /* BOARD_EVENT_FE_UNLOCK */
+
+		case BOARD_EVENT_DEMOD_LOCK:
+			break; /* BOARD_EVENT_DEMOD_LOCK */
+
+		case BOARD_EVENT_DEMOD_UNLOCK:
+			break; /* BOARD_EVENT_DEMOD_UNLOCK */
+
+		case BOARD_EVENT_RECEPTION_MAX_4:
+			break; /* BOARD_EVENT_RECEPTION_MAX_4 */
+
+		case BOARD_EVENT_RECEPTION_3:
+			break; /* BOARD_EVENT_RECEPTION_3 */
+
+		case BOARD_EVENT_RECEPTION_2:
+			break; /* BOARD_EVENT_RECEPTION_2 */
+
+		case BOARD_EVENT_RECEPTION_1:
+			break; /* BOARD_EVENT_RECEPTION_1 */
+
+		case BOARD_EVENT_RECEPTION_LOST_0:
+			break; /* BOARD_EVENT_RECEPTION_LOST_0 */
+
+		case BOARD_EVENT_MULTIPLEX_OK:
+			break; /* BOARD_EVENT_MULTIPLEX_OK */
+
+		case BOARD_EVENT_MULTIPLEX_ERRORS:
+			break; /* BOARD_EVENT_MULTIPLEX_ERRORS */
+
+		default:
+			pr_err("Unknown SMS board event\n");
+			break;
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(sms_board_event);
@@ -239,7 +256,8 @@ static int sms_set_gpio(struct smscore_device_t *coredev, int pin, int enable)
 {
 	int lvl, ret;
 	u32 gpio;
-	struct smscore_config_gpio gpioconfig = {
+	struct smscore_config_gpio gpioconfig =
+	{
 		.direction            = SMS_GPIO_DIRECTION_OUTPUT,
 		.pullupdown           = SMS_GPIO_PULLUPDOWN_NONE,
 		.inputcharacteristics = SMS_GPIO_INPUTCHARACTERISTICS_NORMAL,
@@ -248,20 +266,28 @@ static int sms_set_gpio(struct smscore_device_t *coredev, int pin, int enable)
 	};
 
 	if (pin == 0)
+	{
 		return -EINVAL;
+	}
 
-	if (pin < 0) {
+	if (pin < 0)
+	{
 		/* inverted gpio */
 		gpio = pin * -1;
 		lvl = enable ? 0 : 1;
-	} else {
+	}
+	else
+	{
 		gpio = pin;
 		lvl = enable ? 1 : 0;
 	}
 
 	ret = smscore_configure_gpio(coredev, gpio, &gpioconfig);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return smscore_set_gpio(coredev, gpio, lvl);
 }
@@ -271,19 +297,22 @@ int sms_board_setup(struct smscore_device_t *coredev)
 	int board_id = smscore_get_board_id(coredev);
 	struct sms_board *board = sms_get_board(board_id);
 
-	switch (board_id) {
-	case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
-		/* turn off all LEDs */
-		sms_set_gpio(coredev, board->led_power, 0);
-		sms_set_gpio(coredev, board->led_hi, 0);
-		sms_set_gpio(coredev, board->led_lo, 0);
-		break;
-	case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
-	case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
-		/* turn off LNA */
-		sms_set_gpio(coredev, board->lna_ctrl, 0);
-		break;
+	switch (board_id)
+	{
+		case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
+			/* turn off all LEDs */
+			sms_set_gpio(coredev, board->led_power, 0);
+			sms_set_gpio(coredev, board->led_hi, 0);
+			sms_set_gpio(coredev, board->led_lo, 0);
+			break;
+
+		case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
+		case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
+			/* turn off LNA */
+			sms_set_gpio(coredev, board->lna_ctrl, 0);
+			break;
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(sms_board_setup);
@@ -293,19 +322,26 @@ int sms_board_power(struct smscore_device_t *coredev, int onoff)
 	int board_id = smscore_get_board_id(coredev);
 	struct sms_board *board = sms_get_board(board_id);
 
-	switch (board_id) {
-	case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
-		/* power LED */
-		sms_set_gpio(coredev,
-			     board->led_power, onoff ? 1 : 0);
-		break;
-	case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
-	case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
-		/* LNA */
-		if (!onoff)
-			sms_set_gpio(coredev, board->lna_ctrl, 0);
-		break;
+	switch (board_id)
+	{
+		case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
+			/* power LED */
+			sms_set_gpio(coredev,
+						 board->led_power, onoff ? 1 : 0);
+			break;
+
+		case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
+		case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
+
+			/* LNA */
+			if (!onoff)
+			{
+				sms_set_gpio(coredev, board->lna_ctrl, 0);
+			}
+
+			break;
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(sms_board_power);
@@ -317,18 +353,22 @@ int sms_board_led_feedback(struct smscore_device_t *coredev, int led)
 
 	/* dont touch GPIO if LEDs are already set */
 	if (smscore_led_state(coredev, -1) == led)
+	{
 		return 0;
-
-	switch (board_id) {
-	case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
-		sms_set_gpio(coredev,
-			     board->led_lo, (led & SMS_LED_LO) ? 1 : 0);
-		sms_set_gpio(coredev,
-			     board->led_hi, (led & SMS_LED_HI) ? 1 : 0);
-
-		smscore_led_state(coredev, led);
-		break;
 	}
+
+	switch (board_id)
+	{
+		case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
+			sms_set_gpio(coredev,
+						 board->led_lo, (led & SMS_LED_LO) ? 1 : 0);
+			sms_set_gpio(coredev,
+						 board->led_hi, (led & SMS_LED_HI) ? 1 : 0);
+
+			smscore_led_state(coredev, led);
+			break;
+	}
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(sms_board_led_feedback);
@@ -340,14 +380,16 @@ int sms_board_lna_control(struct smscore_device_t *coredev, int onoff)
 
 	pr_debug("%s: LNA %s\n", __func__, onoff ? "enabled" : "disabled");
 
-	switch (board_id) {
-	case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
-	case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
-		sms_set_gpio(coredev,
-			     board->rf_switch, onoff ? 1 : 0);
-		return sms_set_gpio(coredev,
-				    board->lna_ctrl, onoff ? 1 : 0);
+	switch (board_id)
+	{
+		case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
+		case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
+			sms_set_gpio(coredev,
+						 board->rf_switch, onoff ? 1 : 0);
+			return sms_set_gpio(coredev,
+								board->lna_ctrl, onoff ? 1 : 0);
 	}
+
 	return -EINVAL;
 }
 EXPORT_SYMBOL_GPL(sms_board_lna_control);

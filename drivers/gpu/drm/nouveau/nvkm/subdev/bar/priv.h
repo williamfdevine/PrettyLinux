@@ -4,9 +4,10 @@
 #include <subdev/bar.h>
 
 void nvkm_bar_ctor(const struct nvkm_bar_func *, struct nvkm_device *,
-		   int, struct nvkm_bar *);
+				   int, struct nvkm_bar *);
 
-struct nvkm_bar_func {
+struct nvkm_bar_func
+{
 	void *(*dtor)(struct nvkm_bar *);
 	int (*oneinit)(struct nvkm_bar *);
 	int (*init)(struct nvkm_bar *);

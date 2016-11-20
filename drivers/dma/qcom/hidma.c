@@ -123,7 +123,8 @@ static void hidma_process_completed(struct hidma_chan *mchan)
 	spin_unlock_irqrestore(&mchan->lock, irqflags);
 
 	/* Execute callbacks and run dependencies */
-	list_for_each_entry_safe(mdesc, next, &list, node) {
+	list_for_each_entry_safe(mdesc, next, &list, node)
+	{
 		enum dma_status llstat;
 		struct dmaengine_desc_callback cb;
 		struct dmaengine_result result;
@@ -143,11 +144,15 @@ static void hidma_process_completed(struct hidma_chan *mchan)
 		spin_lock_irqsave(&mchan->lock, irqflags);
 		list_move(&mdesc->node, &mchan->free);
 
-		if (llstat == DMA_COMPLETE) {
+		if (llstat == DMA_COMPLETE)
+		{
 			mchan->last_success = last_cookie;
 			result.result = DMA_TRANS_NOERROR;
-		} else
+		}
+		else
+		{
 			result.result = DMA_TRANS_ABORTED;
+		}
 
 		spin_unlock_irqrestore(&mchan->lock, irqflags);
 
@@ -170,20 +175,24 @@ static void hidma_callback(void *data)
 	bool queued = false;
 
 	spin_lock_irqsave(&mchan->lock, irqflags);
-	if (mdesc->node.next) {
+
+	if (mdesc->node.next)
+	{
 		/* Delete from the active list, add to completed list */
 		list_move_tail(&mdesc->node, &mchan->completed);
 		queued = true;
 
 		/* calculate the next running descriptor */
 		mchan->running = list_first_entry(&mchan->active,
-						  struct hidma_desc, node);
+										  struct hidma_desc, node);
 	}
+
 	spin_unlock_irqrestore(&mchan->lock, irqflags);
 
 	hidma_process_completed(mchan);
 
-	if (queued) {
+	if (queued)
+	{
 		pm_runtime_mark_last_busy(dmadev->ddev.dev);
 		pm_runtime_put_autosuspend(dmadev->ddev.dev);
 	}
@@ -195,8 +204,11 @@ static int hidma_chan_init(struct hidma_dev *dmadev, u32 dma_sig)
 	struct dma_device *ddev;
 
 	mchan = devm_kzalloc(dmadev->ddev.dev, sizeof(*mchan), GFP_KERNEL);
+
 	if (!mchan)
+	{
 		return -ENOMEM;
+	}
 
 	ddev = &dmadev->ddev;
 	mchan->dma_sig = dma_sig;
@@ -231,63 +243,89 @@ static void hidma_issue_pending(struct dma_chan *dmach)
 	int status;
 
 	spin_lock_irqsave(&mchan->lock, flags);
-	if (!mchan->running) {
+
+	if (!mchan->running)
+	{
 		struct hidma_desc *desc = list_first_entry(&mchan->active,
-							   struct hidma_desc,
-							   node);
+								  struct hidma_desc,
+								  node);
 		mchan->running = desc;
 	}
+
 	spin_unlock_irqrestore(&mchan->lock, flags);
 
 	/* PM will be released in hidma_callback function. */
 	status = pm_runtime_get(dmadev->ddev.dev);
+
 	if (status < 0)
+	{
 		tasklet_schedule(&dmadev->task);
+	}
 	else
+	{
 		hidma_ll_start(dmadev->lldev);
+	}
 }
 
 static inline bool hidma_txn_is_success(dma_cookie_t cookie,
-		dma_cookie_t last_success, dma_cookie_t last_used)
+										dma_cookie_t last_success, dma_cookie_t last_used)
 {
-	if (last_success <= last_used) {
+	if (last_success <= last_used)
+	{
 		if ((cookie <= last_success) || (cookie > last_used))
+		{
 			return true;
-	} else {
-		if ((cookie <= last_success) && (cookie > last_used))
-			return true;
+		}
 	}
+	else
+	{
+		if ((cookie <= last_success) && (cookie > last_used))
+		{
+			return true;
+		}
+	}
+
 	return false;
 }
 
 static enum dma_status hidma_tx_status(struct dma_chan *dmach,
-				       dma_cookie_t cookie,
-				       struct dma_tx_state *txstate)
+									   dma_cookie_t cookie,
+									   struct dma_tx_state *txstate)
 {
 	struct hidma_chan *mchan = to_hidma_chan(dmach);
 	enum dma_status ret;
 
 	ret = dma_cookie_status(dmach, cookie, txstate);
-	if (ret == DMA_COMPLETE) {
+
+	if (ret == DMA_COMPLETE)
+	{
 		bool is_success;
 
 		is_success = hidma_txn_is_success(cookie, mchan->last_success,
-						  dmach->cookie);
+										  dmach->cookie);
 		return is_success ? ret : DMA_ERROR;
 	}
 
-	if (mchan->paused && (ret == DMA_IN_PROGRESS)) {
+	if (mchan->paused && (ret == DMA_IN_PROGRESS))
+	{
 		unsigned long flags;
 		dma_cookie_t runcookie;
 
 		spin_lock_irqsave(&mchan->lock, flags);
+
 		if (mchan->running)
+		{
 			runcookie = mchan->running->desc.cookie;
+		}
 		else
+		{
 			runcookie = -EINVAL;
+		}
 
 		if (runcookie == cookie)
+		{
 			ret = DMA_PAUSED;
+		}
 
 		spin_unlock_irqrestore(&mchan->lock, flags);
 	}
@@ -308,7 +346,9 @@ static dma_cookie_t hidma_tx_submit(struct dma_async_tx_descriptor *txd)
 	dma_cookie_t cookie;
 
 	pm_runtime_get_sync(dmadev->ddev.dev);
-	if (!hidma_ll_isenabled(dmadev->lldev)) {
+
+	if (!hidma_ll_isenabled(dmadev->lldev))
+	{
 		pm_runtime_mark_last_busy(dmadev->ddev.dev);
 		pm_runtime_put_autosuspend(dmadev->ddev.dev);
 		return -ENODEV;
@@ -340,33 +380,44 @@ static int hidma_alloc_chan_resources(struct dma_chan *dmach)
 	int rc = 0;
 
 	if (mchan->allocated)
+	{
 		return 0;
+	}
 
 	/* Alloc descriptors for this channel */
-	for (i = 0; i < dmadev->nr_descriptors; i++) {
+	for (i = 0; i < dmadev->nr_descriptors; i++)
+	{
 		mdesc = kzalloc(sizeof(struct hidma_desc), GFP_NOWAIT);
-		if (!mdesc) {
+
+		if (!mdesc)
+		{
 			rc = -ENOMEM;
 			break;
 		}
+
 		dma_async_tx_descriptor_init(&mdesc->desc, dmach);
 		mdesc->desc.tx_submit = hidma_tx_submit;
 
 		rc = hidma_ll_request(dmadev->lldev, mchan->dma_sig,
-				      "DMA engine", hidma_callback, mdesc,
-				      &mdesc->tre_ch);
-		if (rc) {
+							  "DMA engine", hidma_callback, mdesc,
+							  &mdesc->tre_ch);
+
+		if (rc)
+		{
 			dev_err(dmach->device->dev,
-				"channel alloc failed at %u\n", i);
+					"channel alloc failed at %u\n", i);
 			kfree(mdesc);
 			break;
 		}
+
 		list_add_tail(&mdesc->node, &descs);
 	}
 
-	if (rc) {
+	if (rc)
+	{
 		/* return the allocated descriptors */
-		list_for_each_entry_safe(mdesc, tmp, &descs, node) {
+		list_for_each_entry_safe(mdesc, tmp, &descs, node)
+		{
 			hidma_ll_free(dmadev->lldev, mdesc->tre_ch);
 			kfree(mdesc);
 		}
@@ -382,7 +433,7 @@ static int hidma_alloc_chan_resources(struct dma_chan *dmach)
 
 static struct dma_async_tx_descriptor *
 hidma_prep_dma_memcpy(struct dma_chan *dmach, dma_addr_t dest, dma_addr_t src,
-		size_t len, unsigned long flags)
+					  size_t len, unsigned long flags)
 {
 	struct hidma_chan *mchan = to_hidma_chan(dmach);
 	struct hidma_desc *mdesc = NULL;
@@ -391,17 +442,22 @@ hidma_prep_dma_memcpy(struct dma_chan *dmach, dma_addr_t dest, dma_addr_t src,
 
 	/* Get free descriptor */
 	spin_lock_irqsave(&mchan->lock, irqflags);
-	if (!list_empty(&mchan->free)) {
+
+	if (!list_empty(&mchan->free))
+	{
 		mdesc = list_first_entry(&mchan->free, struct hidma_desc, node);
 		list_del(&mdesc->node);
 	}
+
 	spin_unlock_irqrestore(&mchan->lock, irqflags);
 
 	if (!mdesc)
+	{
 		return NULL;
+	}
 
 	hidma_ll_set_transfer_params(mdma->lldev, mdesc->tre_ch,
-				     src, dest, len, flags);
+								 src, dest, len, flags);
 
 	/* Place descriptor in prepared list */
 	spin_lock_irqsave(&mchan->lock, irqflags);
@@ -433,13 +489,16 @@ static int hidma_terminate_channel(struct dma_chan *chan)
 
 	/* this suspends the existing transfer */
 	rc = hidma_ll_disable(dmadev->lldev);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(dmadev->ddev.dev, "channel did not pause\n");
 		goto out;
 	}
 
 	/* return all user requests */
-	list_for_each_entry_safe(mdesc, tmp, &list, node) {
+	list_for_each_entry_safe(mdesc, tmp, &list, node)
+	{
 		struct dma_async_tx_descriptor *txd = &mdesc->desc;
 
 		dma_descriptor_unmap(txd);
@@ -464,8 +523,11 @@ static int hidma_terminate_all(struct dma_chan *chan)
 	int rc;
 
 	rc = hidma_terminate_channel(chan);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* reinitialize the hardware */
 	pm_runtime_get_sync(dmadev->ddev.dev);
@@ -492,7 +554,8 @@ static void hidma_free_chan_resources(struct dma_chan *dmach)
 	list_splice_tail_init(&mchan->free, &descs);
 
 	/* Free descriptors */
-	list_for_each_entry_safe(mdesc, tmp, &descs, node) {
+	list_for_each_entry_safe(mdesc, tmp, &descs, node)
+	{
 		hidma_ll_free(mdma->lldev, mdesc->tre_ch);
 		list_del(&mdesc->node);
 		kfree(mdesc);
@@ -509,14 +572,21 @@ static int hidma_pause(struct dma_chan *chan)
 
 	mchan = to_hidma_chan(chan);
 	dmadev = to_hidma_dev(mchan->chan.device);
-	if (!mchan->paused) {
+
+	if (!mchan->paused)
+	{
 		pm_runtime_get_sync(dmadev->ddev.dev);
+
 		if (hidma_ll_disable(dmadev->lldev))
+		{
 			dev_warn(dmadev->ddev.dev, "channel did not stop\n");
+		}
+
 		mchan->paused = true;
 		pm_runtime_mark_last_busy(dmadev->ddev.dev);
 		pm_runtime_put_autosuspend(dmadev->ddev.dev);
 	}
+
 	return 0;
 }
 
@@ -528,17 +598,24 @@ static int hidma_resume(struct dma_chan *chan)
 
 	mchan = to_hidma_chan(chan);
 	dmadev = to_hidma_dev(mchan->chan.device);
-	if (mchan->paused) {
+
+	if (mchan->paused)
+	{
 		pm_runtime_get_sync(dmadev->ddev.dev);
 		rc = hidma_ll_enable(dmadev->lldev);
+
 		if (!rc)
+		{
 			mchan->paused = false;
+		}
 		else
 			dev_err(dmadev->ddev.dev,
-				"failed to resume the channel");
+					"failed to resume the channel");
+
 		pm_runtime_mark_last_busy(dmadev->ddev.dev);
 		pm_runtime_put_autosuspend(dmadev->ddev.dev);
 	}
+
 	return rc;
 }
 
@@ -554,7 +631,7 @@ static irqreturn_t hidma_chirq_handler(int chirq, void *arg)
 }
 
 static ssize_t hidma_show_values(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+								 struct device_attribute *attr, char *buf)
 {
 	struct platform_device *pdev = to_platform_device(dev);
 	struct hidma_dev *mdev = platform_get_drvdata(pdev);
@@ -562,25 +639,33 @@ static ssize_t hidma_show_values(struct device *dev,
 	buf[0] = 0;
 
 	if (strcmp(attr->attr.name, "chid") == 0)
+	{
 		sprintf(buf, "%d\n", mdev->chidx);
+	}
 
 	return strlen(buf);
 }
 
 static int hidma_create_sysfs_entry(struct hidma_dev *dev, char *name,
-				    int mode)
+									int mode)
 {
 	struct device_attribute *attrs;
 	char *name_copy;
 
 	attrs = devm_kmalloc(dev->ddev.dev, sizeof(struct device_attribute),
-			     GFP_KERNEL);
+						 GFP_KERNEL);
+
 	if (!attrs)
+	{
 		return -ENOMEM;
+	}
 
 	name_copy = devm_kstrdup(dev->ddev.dev, name, GFP_KERNEL);
+
 	if (!name_copy)
+	{
 		return -ENOMEM;
+	}
 
 	attrs->attr.name = name_copy;
 	attrs->attr.mode = mode;
@@ -607,14 +692,18 @@ static int hidma_probe(struct platform_device *pdev)
 
 	trca_resource = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	trca = devm_ioremap_resource(&pdev->dev, trca_resource);
-	if (IS_ERR(trca)) {
+
+	if (IS_ERR(trca))
+	{
 		rc = -ENOMEM;
 		goto bailout;
 	}
 
 	evca_resource = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 	evca = devm_ioremap_resource(&pdev->dev, evca_resource);
-	if (IS_ERR(evca)) {
+
+	if (IS_ERR(evca))
+	{
 		rc = -ENOMEM;
 		goto bailout;
 	}
@@ -624,13 +713,17 @@ static int hidma_probe(struct platform_device *pdev)
 	 * Common IRQ is handled by the management driver.
 	 */
 	chirq = platform_get_irq(pdev, 0);
-	if (chirq < 0) {
+
+	if (chirq < 0)
+	{
 		rc = -ENODEV;
 		goto bailout;
 	}
 
 	dmadev = devm_kzalloc(&pdev->dev, sizeof(*dmadev), GFP_KERNEL);
-	if (!dmadev) {
+
+	if (!dmadev)
+	{
 		rc = -ENOMEM;
 		goto bailout;
 	}
@@ -641,7 +734,9 @@ static int hidma_probe(struct platform_device *pdev)
 	pm_runtime_get_sync(dmadev->ddev.dev);
 
 	dma_cap_set(DMA_MEMCPY, dmadev->ddev.cap_mask);
-	if (WARN_ON(!pdev->dev.dma_mask)) {
+
+	if (WARN_ON(!pdev->dev.dma_mask))
+	{
 		rc = -ENXIO;
 		goto dmafree;
 	}
@@ -661,46 +756,66 @@ static int hidma_probe(struct platform_device *pdev)
 	dmadev->ddev.copy_align = 8;
 
 	device_property_read_u32(&pdev->dev, "desc-count",
-				 &dmadev->nr_descriptors);
+							 &dmadev->nr_descriptors);
 
 	if (!dmadev->nr_descriptors && nr_desc_prm)
+	{
 		dmadev->nr_descriptors = nr_desc_prm;
+	}
 
 	if (!dmadev->nr_descriptors)
+	{
 		dmadev->nr_descriptors = HIDMA_NR_DEFAULT_DESC;
+	}
 
 	dmadev->chidx = readl(dmadev->dev_trca + 0x28);
 
 	/* Set DMA mask to 64 bits. */
 	rc = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(64));
-	if (rc) {
+
+	if (rc)
+	{
 		dev_warn(&pdev->dev, "unable to set coherent mask to 64");
 		rc = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
+
 		if (rc)
+		{
 			goto dmafree;
+		}
 	}
 
 	dmadev->lldev = hidma_ll_init(dmadev->ddev.dev,
-				      dmadev->nr_descriptors, dmadev->dev_trca,
-				      dmadev->dev_evca, dmadev->chidx);
-	if (!dmadev->lldev) {
+								  dmadev->nr_descriptors, dmadev->dev_trca,
+								  dmadev->dev_evca, dmadev->chidx);
+
+	if (!dmadev->lldev)
+	{
 		rc = -EPROBE_DEFER;
 		goto dmafree;
 	}
 
 	rc = devm_request_irq(&pdev->dev, chirq, hidma_chirq_handler, 0,
-			      "qcom-hidma", dmadev->lldev);
+						  "qcom-hidma", dmadev->lldev);
+
 	if (rc)
+	{
 		goto uninit;
+	}
 
 	INIT_LIST_HEAD(&dmadev->ddev.channels);
 	rc = hidma_chan_init(dmadev, 0);
+
 	if (rc)
+	{
 		goto uninit;
+	}
 
 	rc = dma_async_device_register(&dmadev->ddev);
+
 	if (rc)
+	{
 		goto uninit;
+	}
 
 	dmadev->irq = chirq;
 	tasklet_init(&dmadev->task, hidma_issue_task, (unsigned long)dmadev);
@@ -716,8 +831,12 @@ uninit:
 	hidma_debug_uninit(dmadev);
 	hidma_ll_uninit(dmadev->lldev);
 dmafree:
+
 	if (dmadev)
+	{
 		hidma_free(dmadev);
+	}
+
 bailout:
 	pm_runtime_put_sync(&pdev->dev);
 	pm_runtime_disable(&pdev->dev);
@@ -744,25 +863,28 @@ static int hidma_remove(struct platform_device *pdev)
 }
 
 #if IS_ENABLED(CONFIG_ACPI)
-static const struct acpi_device_id hidma_acpi_ids[] = {
+static const struct acpi_device_id hidma_acpi_ids[] =
+{
 	{"QCOM8061"},
 	{},
 };
 #endif
 
-static const struct of_device_id hidma_match[] = {
+static const struct of_device_id hidma_match[] =
+{
 	{.compatible = "qcom,hidma-1.0",},
 	{},
 };
 MODULE_DEVICE_TABLE(of, hidma_match);
 
-static struct platform_driver hidma_driver = {
+static struct platform_driver hidma_driver =
+{
 	.probe = hidma_probe,
 	.remove = hidma_remove,
 	.driver = {
-		   .name = "hidma",
-		   .of_match_table = hidma_match,
-		   .acpi_match_table = ACPI_PTR(hidma_acpi_ids),
+		.name = "hidma",
+		.of_match_table = hidma_match,
+		.acpi_match_table = ACPI_PTR(hidma_acpi_ids),
 	},
 };
 

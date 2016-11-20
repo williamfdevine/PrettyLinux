@@ -29,8 +29,11 @@ static int lis3_spi_read(struct lis3lv02d *lis3, int reg, u8 *v)
 {
 	struct spi_device *spi = lis3->bus_priv;
 	int ret = spi_w8r8(spi, reg | LIS3_SPI_READ);
+
 	if (ret < 0)
+	{
 		return -EINVAL;
+	}
 
 	*v = (u8) ret;
 	return 0;
@@ -50,18 +53,22 @@ static int lis3_spi_init(struct lis3lv02d *lis3)
 
 	/* power up the device */
 	ret = lis3->read(lis3, CTRL_REG1, &reg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	reg |= CTRL1_PD0 | CTRL1_Xen | CTRL1_Yen | CTRL1_Zen;
 	return lis3->write(lis3, CTRL_REG1, reg);
 }
 
 static union axis_conversion lis3lv02d_axis_normal =
-	{ .as_array = { 1, 2, 3 } };
+{ .as_array = { 1, 2, 3 } };
 
 #ifdef CONFIG_OF
-static const struct of_device_id lis302dl_spi_dt_ids[] = {
+static const struct of_device_id lis302dl_spi_dt_ids[] =
+{
 	{ .compatible = "st,lis302dl-spi" },
 	{}
 };
@@ -75,8 +82,11 @@ static int lis302dl_spi_probe(struct spi_device *spi)
 	spi->bits_per_word = 8;
 	spi->mode = SPI_MODE_0;
 	ret = spi_setup(spi);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	lis3_dev.bus_priv	= spi;
 	lis3_dev.init		= lis3_spi_init;
@@ -87,12 +97,18 @@ static int lis302dl_spi_probe(struct spi_device *spi)
 	lis3_dev.pdata		= spi->dev.platform_data;
 
 #ifdef CONFIG_OF
-	if (of_match_device(lis302dl_spi_dt_ids, &spi->dev)) {
+
+	if (of_match_device(lis302dl_spi_dt_ids, &spi->dev))
+	{
 		lis3_dev.of_node = spi->dev.of_node;
 		ret = lis3lv02d_init_dt(&lis3_dev);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
+
 #endif
 	spi_set_drvdata(spi, &lis3_dev);
 
@@ -115,7 +131,9 @@ static int lis3lv02d_spi_suspend(struct device *dev)
 	struct lis3lv02d *lis3 = spi_get_drvdata(spi);
 
 	if (!lis3->pdata || !lis3->pdata->wakeup_flags)
+	{
 		lis3lv02d_poweroff(&lis3_dev);
+	}
 
 	return 0;
 }
@@ -126,16 +144,19 @@ static int lis3lv02d_spi_resume(struct device *dev)
 	struct lis3lv02d *lis3 = spi_get_drvdata(spi);
 
 	if (!lis3->pdata || !lis3->pdata->wakeup_flags)
+	{
 		lis3lv02d_poweron(lis3);
+	}
 
 	return 0;
 }
 #endif
 
 static SIMPLE_DEV_PM_OPS(lis3lv02d_spi_pm, lis3lv02d_spi_suspend,
-			 lis3lv02d_spi_resume);
+						 lis3lv02d_spi_resume);
 
-static struct spi_driver lis302dl_spi_driver = {
+static struct spi_driver lis302dl_spi_driver =
+{
 	.driver	 = {
 		.name   = DRV_NAME,
 		.pm	= &lis3lv02d_spi_pm,

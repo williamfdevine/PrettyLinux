@@ -65,7 +65,8 @@
 
 #define RNG_DATA 0x00
 
-struct meson_rng_data {
+struct meson_rng_data
+{
 	void __iomem *base;
 	struct platform_device *pdev;
 	struct hwrng rng;
@@ -74,7 +75,7 @@ struct meson_rng_data {
 static int meson_rng_read(struct hwrng *rng, void *buf, size_t max, bool wait)
 {
 	struct meson_rng_data *data =
-			container_of(rng, struct meson_rng_data, rng);
+		container_of(rng, struct meson_rng_data, rng);
 
 	*(u32 *)buf = readl_relaxed(data->base + RNG_DATA);
 
@@ -88,15 +89,21 @@ static int meson_rng_probe(struct platform_device *pdev)
 	struct resource *res;
 
 	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	data->pdev = pdev;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	data->base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(data->base))
+	{
 		return PTR_ERR(data->base);
+	}
 
 	data->rng.name = pdev->name;
 	data->rng.read = meson_rng_read;
@@ -106,12 +113,14 @@ static int meson_rng_probe(struct platform_device *pdev)
 	return devm_hwrng_register(dev, &data->rng);
 }
 
-static const struct of_device_id meson_rng_of_match[] = {
+static const struct of_device_id meson_rng_of_match[] =
+{
 	{ .compatible = "amlogic,meson-rng", },
 	{},
 };
 
-static struct platform_driver meson_rng_driver = {
+static struct platform_driver meson_rng_driver =
+{
 	.probe	= meson_rng_probe,
 	.driver	= {
 		.name = "meson-rng",

@@ -10,7 +10,7 @@
  * Authors:	Ross Biro
  *		Fred N. van Kempen, <waltje@uWalt.NL.Mugnet.ORG>
  *
- *		Relocated to include/linux where it belongs by Alan Cox 
+ *		Relocated to include/linux where it belongs by Alan Cox
  *							<gw4pts@gw4pts.ampr.org>
  *
  *		This program is free software; you can redistribute it and/or
@@ -37,12 +37,12 @@ __be16 eth_type_trans(struct sk_buff *skb, struct net_device *dev);
 extern const struct header_ops eth_header_ops;
 
 int eth_header(struct sk_buff *skb, struct net_device *dev, unsigned short type,
-	       const void *daddr, const void *saddr, unsigned len);
+			   const void *daddr, const void *saddr, unsigned len);
 int eth_header_parse(const struct sk_buff *skb, unsigned char *haddr);
 int eth_header_cache(const struct neighbour *neigh, struct hh_cache *hh,
-		     __be16 type);
+					 __be16 type);
 void eth_header_cache_update(struct hh_cache *hh, const struct net_device *dev,
-			     const unsigned char *haddr);
+							 const unsigned char *haddr);
 int eth_prepare_mac_addr_change(struct net_device *dev, void *p);
 void eth_commit_mac_addr_change(struct net_device *dev, void *p);
 int eth_mac_addr(struct net_device *dev, void *p);
@@ -50,12 +50,12 @@ int eth_change_mtu(struct net_device *dev, int new_mtu);
 int eth_validate_addr(struct net_device *dev);
 
 struct net_device *alloc_etherdev_mqs(int sizeof_priv, unsigned int txqs,
-					    unsigned int rxqs);
+									  unsigned int rxqs);
 #define alloc_etherdev(sizeof_priv) alloc_etherdev_mq(sizeof_priv, 1)
 #define alloc_etherdev_mq(sizeof_priv, count) alloc_etherdev_mqs(sizeof_priv, count, count)
 
 struct sk_buff **eth_gro_receive(struct sk_buff **head,
-				 struct sk_buff *skb);
+								 struct sk_buff *skb);
 int eth_gro_complete(struct sk_buff *skb, int nhoff);
 
 /* Reserved Ethernet Addresses per IEEE 802.1Q */
@@ -79,7 +79,7 @@ static inline bool is_link_local_ether_addr(const u8 *addr)
 
 #if defined(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS)
 	return (((*(const u32 *)addr) ^ (*(const u32 *)b)) |
-		(__force int)((a[2] ^ b[2]) & m)) == 0;
+			(__force int)((a[2] ^ b[2]) & m)) == 0;
 #else
 	return ((a[0] ^ b[0]) | (a[1] ^ b[1]) | ((a[2] ^ b[2]) & m)) == 0;
 #endif
@@ -99,8 +99,8 @@ static inline bool is_zero_ether_addr(const u8 *addr)
 	return ((*(const u32 *)addr) | (*(const u16 *)(addr + 4))) == 0;
 #else
 	return (*(const u16 *)(addr + 0) |
-		*(const u16 *)(addr + 2) |
-		*(const u16 *)(addr + 4)) == 0;
+			*(const u16 *)(addr + 2) |
+			*(const u16 *)(addr + 4)) == 0;
 #endif
 }
 
@@ -125,7 +125,7 @@ static inline bool is_multicast_ether_addr(const u8 *addr)
 #endif
 }
 
-static inline bool is_multicast_ether_addr_64bits(const u8 addr[6+2])
+static inline bool is_multicast_ether_addr_64bits(const u8 addr[6 + 2])
 {
 #if defined(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS) && BITS_PER_LONG == 64
 #ifdef __BIG_ENDIAN
@@ -160,8 +160,8 @@ static inline bool is_local_ether_addr(const u8 *addr)
 static inline bool is_broadcast_ether_addr(const u8 *addr)
 {
 	return (*(const u16 *)(addr + 0) &
-		*(const u16 *)(addr + 2) &
-		*(const u16 *)(addr + 4)) == 0xffff;
+			*(const u16 *)(addr + 2) &
+			*(const u16 *)(addr + 4)) == 0xffff;
 }
 
 /**
@@ -295,7 +295,7 @@ static inline void ether_addr_copy(u8 *dst, const u8 *src)
  * the address attributes (addr_assign_type).
  */
 static inline void eth_hw_addr_inherit(struct net_device *dst,
-				       struct net_device *src)
+									   struct net_device *src)
 {
 	dst->addr_assign_type = src->addr_assign_type;
 	ether_addr_copy(dst->dev_addr, src->dev_addr);
@@ -314,7 +314,7 @@ static inline bool ether_addr_equal(const u8 *addr1, const u8 *addr2)
 {
 #if defined(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS)
 	u32 fold = ((*(const u32 *)addr1) ^ (*(const u32 *)addr2)) |
-		   ((*(const u16 *)(addr1 + 4)) ^ (*(const u16 *)(addr2 + 4)));
+			   ((*(const u16 *)(addr1 + 4)) ^ (*(const u16 *)(addr2 + 4)));
 
 	return fold == 0;
 #else
@@ -339,8 +339,8 @@ static inline bool ether_addr_equal(const u8 *addr1, const u8 *addr2)
  * Please note that alignment of addr1 & addr2 are only guaranteed to be 16 bits.
  */
 
-static inline bool ether_addr_equal_64bits(const u8 addr1[6+2],
-					   const u8 addr2[6+2])
+static inline bool ether_addr_equal_64bits(const u8 addr1[6 + 2],
+		const u8 addr2[6 + 2])
 {
 #if defined(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS) && BITS_PER_LONG == 64
 	u64 fold = (*(const u64 *)addr1) ^ (*(const u64 *)addr2);
@@ -384,13 +384,16 @@ static inline bool ether_addr_equal_unaligned(const u8 *addr1, const u8 *addr2)
  * Using a mask with all bits set is a slower ether_addr_equal.
  */
 static inline bool ether_addr_equal_masked(const u8 *addr1, const u8 *addr2,
-					   const u8 *mask)
+		const u8 *mask)
 {
 	int i;
 
-	for (i = 0; i < ETH_ALEN; i++) {
+	for (i = 0; i < ETH_ALEN; i++)
+	{
 		if ((addr1[i] ^ addr2[i]) & mask[i])
+		{
 			return false;
+		}
 	}
 
 	return true;
@@ -408,16 +411,20 @@ static inline bool ether_addr_equal_masked(const u8 *addr1, const u8 *addr2,
  * the right padding.
  */
 static inline bool is_etherdev_addr(const struct net_device *dev,
-				    const u8 addr[6 + 2])
+									const u8 addr[6 + 2])
 {
 	struct netdev_hw_addr *ha;
 	bool res = false;
 
 	rcu_read_lock();
-	for_each_dev_addr(dev, ha) {
+	for_each_dev_addr(dev, ha)
+	{
 		res = ether_addr_equal_64bits(addr, ha->addr);
+
 		if (res)
+		{
 			break;
+		}
 	}
 	rcu_read_unlock();
 	return res;
@@ -456,8 +463,8 @@ static inline unsigned long compare_ether_header(const void *a, const void *b)
 	u32 *a32 = (u32 *)((u8 *)a + 2);
 	u32 *b32 = (u32 *)((u8 *)b + 2);
 
-	return (*(u16 *)a ^ *(u16 *)b) | (a32[0] ^ b32[0]) |
-	       (a32[1] ^ b32[1]) | (a32[2] ^ b32[2]);
+	return (*(u16 *)a ^ * (u16 *)b) | (a32[0] ^ b32[0]) |
+		   (a32[1] ^ b32[1]) | (a32[2] ^ b32[2]);
 #endif
 }
 

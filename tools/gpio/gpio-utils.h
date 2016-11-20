@@ -21,7 +21,7 @@
 static inline int check_prefix(const char *str, const char *prefix)
 {
 	return strlen(str) > strlen(prefix) &&
-		strncmp(str, prefix, strlen(prefix)) == 0;
+		   strncmp(str, prefix, strlen(prefix)) == 0;
 }
 
 #endif /* _GPIO_UTILS_H_ */

@@ -52,7 +52,8 @@ DEFINE_STATIC_SRCU(kfd_processes_srcu);
 
 static struct workqueue_struct *kfd_process_wq;
 
-struct kfd_process_release_work {
+struct kfd_process_release_work
+{
 	struct work_struct kfd_work;
 	struct kfd_process *p;
 };
@@ -63,12 +64,15 @@ static struct kfd_process *create_process(const struct task_struct *thread);
 void kfd_process_create_wq(void)
 {
 	if (!kfd_process_wq)
+	{
 		kfd_process_wq = alloc_workqueue("kfd_process_wq", 0, 0);
+	}
 }
 
 void kfd_process_destroy_wq(void)
 {
-	if (kfd_process_wq) {
+	if (kfd_process_wq)
+	{
 		destroy_workqueue(kfd_process_wq);
 		kfd_process_wq = NULL;
 	}
@@ -81,11 +85,15 @@ struct kfd_process *kfd_create_process(const struct task_struct *thread)
 	BUG_ON(!kfd_process_wq);
 
 	if (thread->mm == NULL)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	/* Only the pthreads threading model is supported. */
 	if (thread->group_leader->mm != thread->mm)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	/* Take mmap_sem because we call __mmu_notifier_register inside */
 	down_write(&thread->mm->mmap_sem);
@@ -99,11 +107,16 @@ struct kfd_process *kfd_create_process(const struct task_struct *thread)
 
 	/* A prior open of /dev/kfd could have already created the process. */
 	process = find_process(thread);
+
 	if (process)
+	{
 		pr_debug("kfd: process already found\n");
+	}
 
 	if (!process)
+	{
 		process = create_process(thread);
+	}
 
 	mutex_unlock(&kfd_processes_mutex);
 
@@ -117,11 +130,15 @@ struct kfd_process *kfd_get_process(const struct task_struct *thread)
 	struct kfd_process *process;
 
 	if (thread->mm == NULL)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	/* Only the pthreads threading model is supported. */
 	if (thread->group_leader->mm != thread->mm)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	process = find_process(thread);
 
@@ -133,9 +150,12 @@ static struct kfd_process *find_process_by_mm(const struct mm_struct *mm)
 	struct kfd_process *process;
 
 	hash_for_each_possible_rcu(kfd_processes_table, process,
-					kfd_processes, (uintptr_t)mm)
-		if (process->mm == mm)
-			return process;
+							   kfd_processes, (uintptr_t)mm)
+
+	if (process->mm == mm)
+	{
+		return process;
+	}
 
 	return NULL;
 }
@@ -163,17 +183,20 @@ static void kfd_process_wq_release(struct work_struct *work)
 	p = my_work->p;
 
 	pr_debug("Releasing process (pasid %d) in workqueue\n",
-			p->pasid);
+			 p->pasid);
 
 	mutex_lock(&p->mutex);
 
 	list_for_each_entry_safe(pdd, temp, &p->per_device_data,
-							per_device_list) {
+							 per_device_list)
+	{
 		pr_debug("Releasing pdd (topology id %d) for process (pasid %d) in workqueue\n",
-				pdd->dev->id, p->pasid);
+				 pdd->dev->id, p->pasid);
 
 		if (pdd->reset_wavefronts)
+		{
 			dbgdev_wave_reset_wavefronts(pdd->dev, p);
+		}
 
 		amd_iommu_unbind_pasid(pdd->dev->pdev, p->pasid);
 		list_del(&pdd->per_device_list);
@@ -210,7 +233,8 @@ static void kfd_process_destroy_delayed(struct rcu_head *rcu)
 
 	work = kmalloc(sizeof(struct kfd_process_release_work), GFP_ATOMIC);
 
-	if (work) {
+	if (work)
+	{
 		INIT_WORK((struct work_struct *) work, kfd_process_wq_release);
 		work->p = p;
 		queue_work(kfd_process_wq, (struct work_struct *) work);
@@ -218,7 +242,7 @@ static void kfd_process_destroy_delayed(struct rcu_head *rcu)
 }
 
 static void kfd_process_notifier_release(struct mmu_notifier *mn,
-					struct mm_struct *mm)
+		struct mm_struct *mm)
 {
 	struct kfd_process *p;
 	struct kfd_process_device *pdd = NULL;
@@ -243,12 +267,16 @@ static void kfd_process_notifier_release(struct mmu_notifier *mn,
 	/* Iterate over all process device data structure and check
 	 * if we should delete debug managers and reset all wavefronts
 	 */
-	list_for_each_entry(pdd, &p->per_device_data, per_device_list) {
+	list_for_each_entry(pdd, &p->per_device_data, per_device_list)
+	{
 		if ((pdd->dev->dbgmgr) &&
-				(pdd->dev->dbgmgr->pasid == p->pasid))
+			(pdd->dev->dbgmgr->pasid == p->pasid))
+		{
 			kfd_dbgmgr_destroy(pdd->dev->dbgmgr);
+		}
 
-		if (pdd->reset_wavefronts) {
+		if (pdd->reset_wavefronts)
+		{
 			pr_warn("amdkfd: Resetting all wave fronts\n");
 			dbgdev_wave_reset_wavefronts(pdd->dev, p);
 			pdd->reset_wavefronts = false;
@@ -267,7 +295,8 @@ static void kfd_process_notifier_release(struct mmu_notifier *mn,
 	mmu_notifier_call_srcu(&p->rcu, &kfd_process_destroy_delayed);
 }
 
-static const struct mmu_notifier_ops kfd_process_mmu_notifier_ops = {
+static const struct mmu_notifier_ops kfd_process_mmu_notifier_ops =
+{
 	.release = kfd_process_notifier_release,
 };
 
@@ -279,16 +308,24 @@ static struct kfd_process *create_process(const struct task_struct *thread)
 	process = kzalloc(sizeof(*process), GFP_KERNEL);
 
 	if (!process)
+	{
 		goto err_alloc_process;
+	}
 
 	process->queues = kmalloc_array(INITIAL_QUEUE_ARRAY_SIZE,
-					sizeof(process->queues[0]), GFP_KERNEL);
+									sizeof(process->queues[0]), GFP_KERNEL);
+
 	if (!process->queues)
+	{
 		goto err_alloc_queues;
+	}
 
 	process->pasid = kfd_pasid_alloc();
+
 	if (process->pasid == 0)
+	{
 		goto err_alloc_pasid;
+	}
 
 	mutex_init(&process->mutex);
 
@@ -297,11 +334,14 @@ static struct kfd_process *create_process(const struct task_struct *thread)
 	/* register notifier */
 	process->mmu_notifier.ops = &kfd_process_mmu_notifier_ops;
 	err = __mmu_notifier_register(&process->mmu_notifier, process->mm);
+
 	if (err)
+	{
 		goto err_mmu_notifier;
+	}
 
 	hash_add_rcu(kfd_processes_table, &process->kfd_processes,
-			(uintptr_t)process->mm);
+				 (uintptr_t)process->mm);
 
 	process->lead_thread = thread->group_leader;
 
@@ -312,13 +352,19 @@ static struct kfd_process *create_process(const struct task_struct *thread)
 	kfd_event_init_process(process);
 
 	err = pqm_init(&process->pqm, process);
+
 	if (err != 0)
+	{
 		goto err_process_pqm_init;
+	}
 
 	/* init process apertures*/
 	process->is_32bit_user_mode = in_compat_syscall();
+
 	if (kfd_init_apertures(process) != 0)
+	{
 		goto err_init_apretures;
+	}
 
 	return process;
 
@@ -340,24 +386,29 @@ err_alloc_process:
 }
 
 struct kfd_process_device *kfd_get_process_device_data(struct kfd_dev *dev,
-							struct kfd_process *p)
+		struct kfd_process *p)
 {
 	struct kfd_process_device *pdd = NULL;
 
 	list_for_each_entry(pdd, &p->per_device_data, per_device_list)
-		if (pdd->dev == dev)
-			break;
+
+	if (pdd->dev == dev)
+	{
+		break;
+	}
 
 	return pdd;
 }
 
 struct kfd_process_device *kfd_create_process_device_data(struct kfd_dev *dev,
-							struct kfd_process *p)
+		struct kfd_process *p)
 {
 	struct kfd_process_device *pdd = NULL;
 
 	pdd = kzalloc(sizeof(*pdd), GFP_KERNEL);
-	if (pdd != NULL) {
+
+	if (pdd != NULL)
+	{
 		pdd->dev = dev;
 		INIT_LIST_HEAD(&pdd->qpd.queues_list);
 		INIT_LIST_HEAD(&pdd->qpd.priv_queue_list);
@@ -377,23 +428,30 @@ struct kfd_process_device *kfd_create_process_device_data(struct kfd_dev *dev,
  * Assumes that the process lock is held.
  */
 struct kfd_process_device *kfd_bind_process_to_device(struct kfd_dev *dev,
-							struct kfd_process *p)
+		struct kfd_process *p)
 {
 	struct kfd_process_device *pdd;
 	int err;
 
 	pdd = kfd_get_process_device_data(dev, p);
-	if (!pdd) {
+
+	if (!pdd)
+	{
 		pr_err("Process device data doesn't exist\n");
 		return ERR_PTR(-ENOMEM);
 	}
 
 	if (pdd->bound)
+	{
 		return pdd;
+	}
 
 	err = amd_iommu_bind_pasid(dev->pdev, p->pasid, p->lead_thread);
+
 	if (err < 0)
+	{
 		return ERR_PTR(err);
+	}
 
 	pdd->bound = true;
 
@@ -413,24 +471,31 @@ void kfd_unbind_process_from_device(struct kfd_dev *dev, unsigned int pasid)
 	 * is a bug. Unfortunately, there is no way to tell...
 	 */
 	p = kfd_lookup_process_by_pasid(pasid);
+
 	if (!p)
+	{
 		return;
+	}
 
 	pr_debug("Unbinding process %d from IOMMU\n", pasid);
 
 	if ((dev->dbgmgr) && (dev->dbgmgr->pasid == p->pasid))
+	{
 		kfd_dbgmgr_destroy(dev->dbgmgr);
+	}
 
 	pqm_uninit(&p->pqm);
 
 	pdd = kfd_get_process_device_data(dev, p);
 
-	if (!pdd) {
+	if (!pdd)
+	{
 		mutex_unlock(&p->mutex);
 		return;
 	}
 
-	if (pdd->reset_wavefronts) {
+	if (pdd->reset_wavefronts)
+	{
 		dbgdev_wave_reset_wavefronts(pdd->dev, p);
 		pdd->reset_wavefronts = false;
 	}
@@ -450,15 +515,18 @@ void kfd_unbind_process_from_device(struct kfd_dev *dev, unsigned int pasid)
 struct kfd_process_device *kfd_get_first_process_device_data(struct kfd_process *p)
 {
 	return list_first_entry(&p->per_device_data,
-				struct kfd_process_device,
-				per_device_list);
+							struct kfd_process_device,
+							per_device_list);
 }
 
 struct kfd_process_device *kfd_get_next_process_device_data(struct kfd_process *p,
-						struct kfd_process_device *pdd)
+		struct kfd_process_device *pdd)
 {
 	if (list_is_last(&pdd->per_device_list, &p->per_device_data))
+	{
 		return NULL;
+	}
+
 	return list_next_entry(pdd, per_device_list);
 }
 
@@ -475,8 +543,10 @@ struct kfd_process *kfd_lookup_process_by_pasid(unsigned int pasid)
 
 	int idx = srcu_read_lock(&kfd_processes_srcu);
 
-	hash_for_each_rcu(kfd_processes_table, temp, p, kfd_processes) {
-		if (p->pasid == pasid) {
+	hash_for_each_rcu(kfd_processes_table, temp, p, kfd_processes)
+	{
+		if (p->pasid == pasid)
+		{
 			mutex_lock(&p->mutex);
 			break;
 		}

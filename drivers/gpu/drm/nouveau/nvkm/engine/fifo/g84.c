@@ -39,7 +39,8 @@ g84_fifo_uevent_init(struct nvkm_fifo *fifo)
 }
 
 static const struct nvkm_fifo_func
-g84_fifo = {
+	g84_fifo =
+{
 	.dtor = nv50_fifo_dtor,
 	.oneinit = nv50_fifo_oneinit,
 	.init = nv50_fifo_init,

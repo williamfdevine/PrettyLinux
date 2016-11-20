@@ -19,7 +19,8 @@
 
 struct device;
 
-enum wil_platform_event {
+enum wil_platform_event
+{
 	WIL_PLATFORM_EVT_FW_CRASH = 0,
 	WIL_PLATFORM_EVT_PRE_RESET = 1,
 	WIL_PLATFORM_EVT_FW_RDY = 2,
@@ -31,7 +32,8 @@ enum wil_platform_event {
  * struct wil_platform_ops - wil platform module calls from this
  * driver to platform driver
  */
-struct wil_platform_ops {
+struct wil_platform_ops
+{
 	int (*bus_request)(void *handle, uint32_t kbps /* KBytes/Sec */);
 	int (*suspend)(void *handle);
 	int (*resume)(void *handle);
@@ -49,7 +51,8 @@ struct wil_platform_ops {
  *      part of a crash recovery process which may include other
  *      related platform subsystems.
  */
-struct wil_platform_rops {
+struct wil_platform_rops
+{
 	int (*ramdump)(void *wil_handle, void *buf, uint32_t size);
 	int (*fw_recovery)(void *wil_handle);
 };
@@ -69,7 +72,7 @@ struct wil_platform_rops {
  *      rops. May be NULL if rops is NULL.
  */
 void *wil_platform_init(struct device *dev, struct wil_platform_ops *ops,
-			const struct wil_platform_rops *rops, void *wil_handle);
+						const struct wil_platform_rops *rops, void *wil_handle);
 
 int __init wil_platform_modinit(void);
 void wil_platform_modexit(void);

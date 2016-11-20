@@ -21,7 +21,8 @@
  *			consumer side.
  * @consumer_data:	Data about the channel for use by the consumer driver.
  */
-struct iio_map {
+struct iio_map
+{
 	const char *adc_channel_label;
 	const char *consumer_dev_name;
 	const char *consumer_channel;

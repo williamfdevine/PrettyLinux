@@ -6,7 +6,7 @@
  * If you have an MMU, you need to write your own functions.
  */
 #ifdef CONFIG_MMU
-#error need to implement an architecture specific asm/tlbflush.h
+	#error need to implement an architecture specific asm/tlbflush.h
 #endif
 
 #include <linux/bug.h>

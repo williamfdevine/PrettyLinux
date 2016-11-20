@@ -15,7 +15,8 @@
 #include <string.h>
 #include <linux/virtio_ring.h>
 
-struct data {
+struct data
+{
 	void *data;
 } *data;
 
@@ -32,13 +33,14 @@ struct vring ring;
 /* #ifdef INORDER */
 
 #if defined(RING_POLL) && defined(INORDER)
-#error "RING_POLL and INORDER are mutually exclusive"
+	#error "RING_POLL and INORDER are mutually exclusive"
 #endif
 
 /* how much padding is needed to avoid false cache sharing */
 #define HOST_GUEST_PADDING 0x80
 
-struct guest {
+struct guest
+{
 	unsigned short avail_idx;
 	unsigned short last_used_idx;
 	unsigned short num_free;
@@ -51,7 +53,8 @@ struct guest {
 	unsigned char reserved[HOST_GUEST_PADDING - 10];
 } guest;
 
-struct host {
+struct host
+{
 	/* we do not need to track last avail index
 	 * unless we have more than one in flight.
 	 */
@@ -68,10 +71,13 @@ void alloc_ring(void)
 	void *p;
 
 	ret = posix_memalign(&p, 0x1000, vring_size(ring_size, 0x1000));
-	if (ret) {
+
+	if (ret)
+	{
 		perror("Unable to allocate ring buffer.\n");
 		exit(3);
 	}
+
 	memset(p, 0, vring_size(ring_size, 0x1000));
 	vring_init(&ring, ring_size, p, 0x1000);
 
@@ -82,17 +88,24 @@ void alloc_ring(void)
 	/* Put everything in free lists. */
 	guest.free_head = 0;
 #endif
+
 	for (i = 0; i < ring_size - 1; i++)
+	{
 		ring.desc[i].next = i + 1;
+	}
+
 	host.used_idx = 0;
 	host.called_used_idx = -1;
 	guest.num_free = ring_size;
-	data = malloc(ring_size * sizeof *data);
-	if (!data) {
+	data = malloc(ring_size * sizeof * data);
+
+	if (!data)
+	{
 		perror("Unable to allocate data buffer.\n");
 		exit(3);
 	}
-	memset(data, 0, ring_size * sizeof *data);
+
+	memset(data, 0, ring_size * sizeof * data);
 }
 
 /* guest side */
@@ -105,7 +118,9 @@ int add_inbuf(unsigned len, void *buf, void *datap)
 	struct vring_desc *desc;
 
 	if (!guest.num_free)
+	{
 		return -1;
+	}
 
 #ifdef INORDER
 	head = (ring_size - 1) & (guest.avail_idx++);
@@ -158,14 +173,22 @@ void *get_buf(unsigned *lenp, void **bufp)
 #ifdef RING_POLL
 	head = (ring_size - 1) & guest.last_used_idx;
 	index = ring.used->ring[head].id;
+
 	if ((index ^ guest.last_used_idx ^ 0x8000) & ~(ring_size - 1))
+	{
 		return NULL;
+	}
+
 	/* Barrier B (for pairing) */
 	smp_acquire();
 	index &= ring_size - 1;
 #else
+
 	if (ring.used->idx == guest.last_used_idx)
+	{
 		return NULL;
+	}
+
 	/* Barrier B (for pairing) */
 	smp_acquire();
 #ifdef INORDER
@@ -183,7 +206,7 @@ void *get_buf(unsigned *lenp, void **bufp)
 	*lenp = ring.used->ring[head].len;
 #endif
 	datap = data[index].data;
-	*bufp = (void*)(unsigned long)ring.desc[index].addr;
+	*bufp = (void *)(unsigned long)ring.desc[index].addr;
 	data[index].data = NULL;
 #ifndef INORDER
 	ring.desc[index].next = guest.free_head;
@@ -228,10 +251,13 @@ void kick_available(void)
 	/* Flush in previous flags write */
 	/* Barrier C (for pairing) */
 	smp_mb();
+
 	if (!vring_need_event(vring_avail_event(&ring),
-			      guest.avail_idx,
-			      guest.kicked_avail_idx))
+						  guest.avail_idx,
+						  guest.kicked_avail_idx))
+	{
 		return;
+	}
 
 	guest.kicked_avail_idx = guest.avail_idx;
 	kick();
@@ -273,16 +299,23 @@ bool use_buf(unsigned *lenp, void **bufp)
 
 #ifdef RING_POLL
 	head = ring.avail->ring[used_idx & (ring_size - 1)];
+
 	if ((used_idx ^ head ^ 0x8000) & ~(ring_size - 1))
+	{
 		return false;
+	}
+
 	/* Barrier A (for pairing) */
 	smp_acquire();
 
 	used_idx &= ring_size - 1;
 	desc = &ring.desc[head & (ring_size - 1)];
 #else
+
 	if (used_idx == ring.avail->idx)
+	{
 		return false;
+	}
 
 	/* Barrier A (for pairing) */
 	smp_acquire();
@@ -310,7 +343,7 @@ bool use_buf(unsigned *lenp, void **bufp)
 	smp_release();
 	host.used_idx++;
 	ring.used->idx = host.used_idx;
-	
+
 	return true;
 }
 
@@ -319,10 +352,13 @@ void call_used(void)
 	/* Flush in previous flags write */
 	/* Barrier D (for pairing) */
 	smp_mb();
+
 	if (!vring_need_event(vring_used_event(&ring),
-			      host.used_idx,
-			      host.called_used_idx))
+						  host.used_idx,
+						  host.called_used_idx))
+	{
 		return;
+	}
 
 	host.called_used_idx = host.used_idx;
 	call();

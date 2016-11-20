@@ -33,12 +33,14 @@
 	stub driver for Xen memory hotplug
 --------------------------------------------*/
 
-static const struct acpi_device_id memory_device_ids[] = {
+static const struct acpi_device_id memory_device_ids[] =
+{
 	{ACPI_MEMORY_DEVICE_HID, 0},
 	{"", 0},
 };
 
-static struct acpi_driver xen_stub_memory_device_driver = {
+static struct acpi_driver xen_stub_memory_device_driver =
+{
 	/* same name as native memory driver to block native loaded */
 	.name = "acpi_memhotplug",
 	.class = ACPI_MEMORY_DEVICE_CLASS,
@@ -48,7 +50,9 @@ static struct acpi_driver xen_stub_memory_device_driver = {
 int xen_stub_memory_device_init(void)
 {
 	if (!xen_initial_domain())
+	{
 		return -ENODEV;
+	}
 
 	/* just reserve space for Xen, block native driver loaded */
 	return acpi_bus_register_driver(&xen_stub_memory_device_driver);
@@ -67,13 +71,15 @@ EXPORT_SYMBOL_GPL(xen_stub_memory_device_exit);
 	stub driver for Xen cpu hotplug
 --------------------------------------------*/
 
-static const struct acpi_device_id processor_device_ids[] = {
+static const struct acpi_device_id processor_device_ids[] =
+{
 	{ACPI_PROCESSOR_OBJECT_HID, 0},
 	{ACPI_PROCESSOR_DEVICE_HID, 0},
 	{"", 0},
 };
 
-static struct acpi_driver xen_stub_processor_driver = {
+static struct acpi_driver xen_stub_processor_driver =
+{
 	/* same name as native processor driver to block native loaded */
 	.name = "processor",
 	.class = ACPI_PROCESSOR_CLASS,
@@ -83,7 +89,9 @@ static struct acpi_driver xen_stub_processor_driver = {
 int xen_stub_processor_init(void)
 {
 	if (!xen_initial_domain())
+	{
 		return -ENODEV;
+	}
 
 	/* just reserve space for Xen, block native driver loaded */
 	return acpi_bus_register_driver(&xen_stub_processor_driver);

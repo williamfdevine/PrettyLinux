@@ -54,7 +54,8 @@ struct Scsi_Host;
  * Data Structures
  */
 /* an RPA command/response transport queue */
-struct crq_queue {
+struct crq_queue
+{
 	struct viosrp_crq *msgs;
 	int size, cur;
 	dma_addr_t msg_token;
@@ -62,7 +63,8 @@ struct crq_queue {
 };
 
 /* a unit of work for the hosting partition */
-struct srp_event_struct {
+struct srp_event_struct
+{
 	union viosrp_iu *xfer_iu;
 	struct scsi_cmnd *cmnd;
 	struct list_head list;
@@ -80,7 +82,8 @@ struct srp_event_struct {
 };
 
 /* a pool of event structs for use */
-struct event_pool {
+struct event_pool
+{
 	struct srp_event_struct *events;
 	u32 size;
 	int next;
@@ -89,7 +92,8 @@ struct event_pool {
 };
 
 /* all driver data associated with a host adapter */
-struct ibmvscsi_host_data {
+struct ibmvscsi_host_data
+{
 	atomic_t request_limit;
 	int client_migrated;
 	int reset_crq;

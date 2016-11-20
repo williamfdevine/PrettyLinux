@@ -28,7 +28,8 @@
 /*
  * Manufacturing card type
  */
-enum {
+enum
+{
 	BFA_MFG_TYPE_CB_MAX  = 825,      /*  Crossbow card type max     */
 	BFA_MFG_TYPE_FC8P2   = 825,      /*  8G 2port FC card           */
 	BFA_MFG_TYPE_FC8P1   = 815,      /*  8G 1port FC card           */
@@ -56,36 +57,36 @@ enum {
  * Check if Mezz card
  */
 #define bfa_mfg_is_mezz(type) (( \
-	(type) == BFA_MFG_TYPE_JAYHAWK || \
-	(type) == BFA_MFG_TYPE_WANCHESE || \
-	(type) == BFA_MFG_TYPE_ASTRA || \
-	(type) == BFA_MFG_TYPE_LIGHTNING_P0 || \
-	(type) == BFA_MFG_TYPE_LIGHTNING || \
-	(type) == BFA_MFG_TYPE_CHINOOK || \
-	(type) == BFA_MFG_TYPE_CHINOOK2))
+								 (type) == BFA_MFG_TYPE_JAYHAWK || \
+								 (type) == BFA_MFG_TYPE_WANCHESE || \
+								 (type) == BFA_MFG_TYPE_ASTRA || \
+								 (type) == BFA_MFG_TYPE_LIGHTNING_P0 || \
+								 (type) == BFA_MFG_TYPE_LIGHTNING || \
+								 (type) == BFA_MFG_TYPE_CHINOOK || \
+								 (type) == BFA_MFG_TYPE_CHINOOK2))
 
 /*
  * Check if the card having old wwn/mac handling
  */
 #define bfa_mfg_is_old_wwn_mac_model(type) (( \
-	(type) == BFA_MFG_TYPE_FC8P2 || \
-	(type) == BFA_MFG_TYPE_FC8P1 || \
-	(type) == BFA_MFG_TYPE_FC4P2 || \
-	(type) == BFA_MFG_TYPE_FC4P1 || \
-	(type) == BFA_MFG_TYPE_CNA10P2 || \
-	(type) == BFA_MFG_TYPE_CNA10P1 || \
-	(type) == BFA_MFG_TYPE_JAYHAWK || \
-	(type) == BFA_MFG_TYPE_WANCHESE))
+		(type) == BFA_MFG_TYPE_FC8P2 || \
+		(type) == BFA_MFG_TYPE_FC8P1 || \
+		(type) == BFA_MFG_TYPE_FC4P2 || \
+		(type) == BFA_MFG_TYPE_FC4P1 || \
+		(type) == BFA_MFG_TYPE_CNA10P2 || \
+		(type) == BFA_MFG_TYPE_CNA10P1 || \
+		(type) == BFA_MFG_TYPE_JAYHAWK || \
+		(type) == BFA_MFG_TYPE_WANCHESE))
 
 #define bfa_mfg_increment_wwn_mac(m, i)                         \
-do {                                                            \
-	u32 t = ((u32)(m)[0] << 16) | ((u32)(m)[1] << 8) | \
-		(u32)(m)[2];  \
-	t += (i);      \
-	(m)[0] = (t >> 16) & 0xFF;                              \
-	(m)[1] = (t >> 8) & 0xFF;                               \
-	(m)[2] = t & 0xFF;                                      \
-} while (0)
+	do {                                                            \
+		u32 t = ((u32)(m)[0] << 16) | ((u32)(m)[1] << 8) | \
+				(u32)(m)[2];  \
+		t += (i);      \
+		(m)[0] = (t >> 16) & 0xFF;                              \
+		(m)[1] = (t >> 8) & 0xFF;                               \
+		(m)[2] = t & 0xFF;                                      \
+	} while (0)
 
 /*
  * VPD data length
@@ -95,7 +96,8 @@ do {                                                            \
 /*
  * VPD vendor tag
  */
-enum {
+enum
+{
 	BFA_MFG_VPD_UNKNOWN     = 0,     /*  vendor unknown             */
 	BFA_MFG_VPD_IBM         = 1,     /*  vendor IBM                 */
 	BFA_MFG_VPD_HP          = 2,     /*  vendor HP                  */
@@ -109,7 +111,8 @@ enum {
 /*
  * All numerical fields are in big-endian format.
  */
-struct bfa_mfg_vpd_s {
+struct bfa_mfg_vpd_s
+{
 	u8              version;        /*  vpd data version */
 	u8              vpd_sig[3];     /*  characters 'V', 'P', 'D' */
 	u8              chksum;         /*  u8 checksum */
@@ -124,7 +127,8 @@ struct bfa_mfg_vpd_s {
 /*
  * Status return values
  */
-enum bfa_status {
+enum bfa_status
+{
 	BFA_STATUS_OK		= 0,	/*  Success */
 	BFA_STATUS_FAILED	= 1,	/*  Operation failed */
 	BFA_STATUS_EINVAL	= 2,	/*  Invalid params Check input
@@ -235,13 +239,15 @@ enum bfa_status {
 };
 #define bfa_status_t enum bfa_status
 
-enum bfa_eproto_status {
+enum bfa_eproto_status
+{
 	BFA_EPROTO_BAD_ACCEPT = 0,
 	BFA_EPROTO_UNKNOWN_RSP = 1
 };
 #define bfa_eproto_status_t enum bfa_eproto_status
 
-enum bfa_boolean {
+enum bfa_boolean
+{
 	BFA_FALSE = 0,
 	BFA_TRUE  = 1
 };
@@ -257,11 +263,12 @@ enum bfa_boolean {
 /*
  * BFA adapter level attributes.
  */
-enum {
+enum
+{
 	BFA_ADAPTER_SERIAL_NUM_LEN = STRSZ(BFA_MFG_SERIALNUM_SIZE),
-					/*
-					 *!< adapter serial num length
-					 */
+	/*
+	 *!< adapter serial num length
+	 */
 	BFA_ADAPTER_MODEL_NAME_LEN  = 16,  /*  model name length */
 	BFA_ADAPTER_MODEL_DESCR_LEN = 128, /*  model description length */
 	BFA_ADAPTER_MFG_NAME_LEN    = 8,   /*  manufacturer name length */
@@ -270,7 +277,8 @@ enum {
 	BFA_ADAPTER_UUID_LEN	    = 16,  /* adapter uuid length */
 };
 
-struct bfa_adapter_attr_s {
+struct bfa_adapter_attr_s
+{
 	char		manufacturer[BFA_ADAPTER_MFG_NAME_LEN];
 	char		serial_num[BFA_ADAPTER_SERIAL_NUM_LEN];
 	u32	card_type;
@@ -308,7 +316,8 @@ struct bfa_adapter_attr_s {
  * ---------------------- IOC definitions ------------
  */
 
-enum {
+enum
+{
 	BFA_IOC_DRIVER_LEN	= 16,
 	BFA_IOC_CHIP_REV_LEN	= 8,
 };
@@ -316,7 +325,8 @@ enum {
 /*
  * Driver and firmware versions.
  */
-struct bfa_ioc_driver_attr_s {
+struct bfa_ioc_driver_attr_s
+{
 	char		driver[BFA_IOC_DRIVER_LEN];	/*  driver name */
 	char		driver_ver[BFA_VERSION_LEN];	/*  driver version */
 	char		fw_ver[BFA_VERSION_LEN];	/*  firmware version */
@@ -328,7 +338,8 @@ struct bfa_ioc_driver_attr_s {
 /*
  * IOC PCI device attributes
  */
-struct bfa_ioc_pci_attr_s {
+struct bfa_ioc_pci_attr_s
+{
 	u16	vendor_id;	/*  PCI vendor ID */
 	u16	device_id;	/*  PCI device ID */
 	u16	ssid;		/*  subsystem ID */
@@ -341,7 +352,8 @@ struct bfa_ioc_pci_attr_s {
 /*
  * IOC states
  */
-enum bfa_ioc_state {
+enum bfa_ioc_state
+{
 	BFA_IOC_UNINIT		= 1,	/*  IOC is in uninit state */
 	BFA_IOC_RESET		= 2,	/*  IOC is in reset state */
 	BFA_IOC_SEMWAIT		= 3,	/*  Waiting for IOC h/w semaphore */
@@ -361,7 +373,8 @@ enum bfa_ioc_state {
 /*
  * IOC firmware stats
  */
-struct bfa_fw_ioc_stats_s {
+struct bfa_fw_ioc_stats_s
+{
 	u32	enable_reqs;
 	u32	disable_reqs;
 	u32	get_attr_reqs;
@@ -373,7 +386,8 @@ struct bfa_fw_ioc_stats_s {
 /*
  * IOC driver stats
  */
-struct bfa_ioc_drv_stats_s {
+struct bfa_ioc_drv_stats_s
+{
 	u32	ioc_isrs;
 	u32	ioc_enables;
 	u32	ioc_disables;
@@ -391,12 +405,14 @@ struct bfa_ioc_drv_stats_s {
 /*
  * IOC statistics
  */
-struct bfa_ioc_stats_s {
+struct bfa_ioc_stats_s
+{
 	struct bfa_ioc_drv_stats_s	drv_stats; /*  driver IOC stats */
 	struct bfa_fw_ioc_stats_s	fw_stats;  /*  firmware IOC stats */
 };
 
-enum bfa_ioc_type_e {
+enum bfa_ioc_type_e
+{
 	BFA_IOC_TYPE_FC		= 1,
 	BFA_IOC_TYPE_FCoE	= 2,
 	BFA_IOC_TYPE_LL		= 3,
@@ -405,7 +421,8 @@ enum bfa_ioc_type_e {
 /*
  * IOC attributes returned in queries
  */
-struct bfa_ioc_attr_s {
+struct bfa_ioc_attr_s
+{
 	enum bfa_ioc_type_e		ioc_type;
 	enum bfa_ioc_state		state;		/*  IOC state      */
 	struct bfa_adapter_attr_s	adapter_attr;	/*  HBA attributes */
@@ -422,7 +439,8 @@ struct bfa_ioc_attr_s {
 /*
  *			AEN related definitions
  */
-enum bfa_aen_category {
+enum bfa_aen_category
+{
 	BFA_AEN_CAT_ADAPTER	= 1,
 	BFA_AEN_CAT_PORT	= 2,
 	BFA_AEN_CAT_LPORT	= 3,
@@ -433,19 +451,22 @@ enum bfa_aen_category {
 };
 
 /* BFA adapter level events */
-enum bfa_adapter_aen_event {
+enum bfa_adapter_aen_event
+{
 	BFA_ADAPTER_AEN_ADD	= 1,	/* New Adapter found event */
 	BFA_ADAPTER_AEN_REMOVE	= 2,	/* Adapter removed event */
 };
 
-struct bfa_adapter_aen_data_s {
+struct bfa_adapter_aen_data_s
+{
 	char	serial_num[BFA_ADAPTER_SERIAL_NUM_LEN];
 	u32	nports; /* Number of NPorts */
 	wwn_t	pwwn;   /* WWN of one of its physical port */
 };
 
 /* BFA physical port Level events */
-enum bfa_port_aen_event {
+enum bfa_port_aen_event
+{
 	BFA_PORT_AEN_ONLINE	= 1,    /* Physical Port online event */
 	BFA_PORT_AEN_OFFLINE	= 2,    /* Physical Port offline event */
 	BFA_PORT_AEN_RLIR	= 3,    /* RLIR event, not supported */
@@ -463,14 +484,16 @@ enum bfa_port_aen_event {
 	BFA_PORT_AEN_SFP_UNSUPPORT	= 15, /* Unsupported SFP event */
 };
 
-enum bfa_port_aen_sfp_pom {
+enum bfa_port_aen_sfp_pom
+{
 	BFA_PORT_AEN_SFP_POM_GREEN = 1, /* Normal */
 	BFA_PORT_AEN_SFP_POM_AMBER = 2, /* Warning */
 	BFA_PORT_AEN_SFP_POM_RED   = 3, /* Critical */
 	BFA_PORT_AEN_SFP_POM_MAX   = BFA_PORT_AEN_SFP_POM_RED
 };
 
-struct bfa_port_aen_data_s {
+struct bfa_port_aen_data_s
+{
 	wwn_t		pwwn;		/* WWN of the physical port */
 	wwn_t		fwwn;		/* WWN of the fabric port */
 	u32		phy_port_num;	/* For SFP related events */
@@ -481,7 +504,8 @@ struct bfa_port_aen_data_s {
 };
 
 /* BFA AEN logical port events */
-enum bfa_lport_aen_event {
+enum bfa_lport_aen_event
+{
 	BFA_LPORT_AEN_NEW	= 1,		/* LPort created event */
 	BFA_LPORT_AEN_DELETE	= 2,		/* LPort deleted event */
 	BFA_LPORT_AEN_ONLINE	= 3,		/* LPort online event */
@@ -496,7 +520,8 @@ enum bfa_lport_aen_event {
 	BFA_LPORT_AEN_NPIV_UNKNOWN = 12,	/* Unknown NPIV Error code */
 };
 
-struct bfa_lport_aen_data_s {
+struct bfa_lport_aen_data_s
+{
 	u16	vf_id;	/* vf_id of this logical port */
 	u16	roles;	/* Logical port mode,IM/TM/IP etc */
 	u32	rsvd;
@@ -505,13 +530,15 @@ struct bfa_lport_aen_data_s {
 };
 
 /* BFA ITNIM events */
-enum bfa_itnim_aen_event {
+enum bfa_itnim_aen_event
+{
 	BFA_ITNIM_AEN_ONLINE	 = 1,	/* Target online */
 	BFA_ITNIM_AEN_OFFLINE	 = 2,	/* Target offline */
 	BFA_ITNIM_AEN_DISCONNECT = 3,	/* Target disconnected */
 };
 
-struct bfa_itnim_aen_data_s {
+struct bfa_itnim_aen_data_s
+{
 	u16		vf_id;		/* vf_id of the IT nexus */
 	u16		rsvd[3];
 	wwn_t		ppwwn;		/* WWN of its physical port */
@@ -520,21 +547,24 @@ struct bfa_itnim_aen_data_s {
 };
 
 /* BFA audit events */
-enum bfa_audit_aen_event {
+enum bfa_audit_aen_event
+{
 	BFA_AUDIT_AEN_AUTH_ENABLE	= 1,
 	BFA_AUDIT_AEN_AUTH_DISABLE	= 2,
 	BFA_AUDIT_AEN_FLASH_ERASE	= 3,
 	BFA_AUDIT_AEN_FLASH_UPDATE	= 4,
 };
 
-struct bfa_audit_aen_data_s {
+struct bfa_audit_aen_data_s
+{
 	wwn_t	pwwn;
 	int	partition_inst;
 	int	partition_type;
 };
 
 /* BFA IOC level events */
-enum bfa_ioc_aen_event {
+enum bfa_ioc_aen_event
+{
 	BFA_IOC_AEN_HBGOOD  = 1,	/* Heart Beat restore event	*/
 	BFA_IOC_AEN_HBFAIL  = 2,	/* Heart Beat failure event	*/
 	BFA_IOC_AEN_ENABLE  = 3,	/* IOC enabled event		*/
@@ -546,7 +576,8 @@ enum bfa_ioc_aen_event {
 	BFA_IOC_AEN_INVALID_PWWN = 9	/* Zero PWWN			*/
 };
 
-struct bfa_ioc_aen_data_s {
+struct bfa_ioc_aen_data_s
+{
 	wwn_t	pwwn;
 	u16	ioc_type;
 	mac_t	mac;
@@ -587,7 +618,8 @@ struct bfa_ioc_aen_data_s {
 /*
  * All numerical fields are in big-endian format.
  */
-struct bfa_mfg_block_s {
+struct bfa_mfg_block_s
+{
 	u8	version;    /*!< manufacturing block version */
 	u8     mfg_sig[3]; /*!< characters 'M', 'F', 'G' */
 	u16    mfgsize;    /*!< mfg block size */
@@ -632,7 +664,8 @@ struct bfa_mfg_block_s {
 /*
  * PCI device and vendor ID information
  */
-enum {
+enum
+{
 	BFA_PCI_VENDOR_ID_BROCADE	= 0x1657,
 	BFA_PCI_DEVICE_ID_FC_8G2P	= 0x13,
 	BFA_PCI_DEVICE_ID_FC_8G1P	= 0x17,
@@ -650,14 +683,15 @@ enum {
 	 (__d) == BFA_PCI_DEVICE_ID_CT_FC)
 #define bfa_asic_id_ct2(__d)			\
 	((__d) == BFA_PCI_DEVICE_ID_CT2 ||	\
-	(__d) == BFA_PCI_DEVICE_ID_CT2_QUAD)
+	 (__d) == BFA_PCI_DEVICE_ID_CT2_QUAD)
 #define bfa_asic_id_ctc(__d)	\
 	(bfa_asic_id_ct(__d) || bfa_asic_id_ct2(__d))
 
 /*
  * PCI sub-system device and vendor ID information
  */
-enum {
+enum
+{
 	BFA_PCI_FCOE_SSDEVICE_ID	= 0x14,
 	BFA_PCI_CT2_SSID_FCoE		= 0x22,
 	BFA_PCI_CT2_SSID_ETH		= 0x23,
@@ -673,7 +707,8 @@ enum {
  *	Port speed settings. Each specific speed is a bit field. Use multiple
  *	bits to specify speeds to be selected for auto-negotiation.
  */
-enum bfa_port_speed {
+enum bfa_port_speed
+{
 	BFA_PORT_SPEED_UNKNOWN = 0,
 	BFA_PORT_SPEED_1GBPS	= 1,
 	BFA_PORT_SPEED_2GBPS	= 2,
@@ -685,7 +720,8 @@ enum bfa_port_speed {
 };
 #define bfa_port_speed_t enum bfa_port_speed
 
-enum {
+enum
+{
 	BFA_BOOT_BOOTLUN_MAX = 4,       /*  maximum boot lun per IOC */
 	BFA_PREBOOT_BOOTLUN_MAX = 8,    /*  maximum preboot lun per IOC */
 };
@@ -697,7 +733,8 @@ enum {
  *      Boot options setting. Boot options setting determines from where
  *      to get the boot lun information
  */
-enum bfa_boot_bootopt {
+enum bfa_boot_bootopt
+{
 	BFA_BOOT_AUTO_DISCOVER  = 0, /*  Boot from blun provided by fabric */
 	BFA_BOOT_STORED_BLUN = 1, /*  Boot from bluns stored in flash */
 	BFA_BOOT_FIRST_LUN      = 2, /*  Boot from first discovered blun */
@@ -708,7 +745,8 @@ enum bfa_boot_bootopt {
 /*
  * Boot lun information.
  */
-struct bfa_boot_bootlun_s {
+struct bfa_boot_bootlun_s
+{
 	wwn_t   pwwn;		/*  port wwn of target */
 	struct scsi_lun   lun;  /*  64-bit lun */
 };
@@ -717,7 +755,8 @@ struct bfa_boot_bootlun_s {
 /*
  * BOOT boot configuraton
  */
-struct bfa_boot_cfg_s {
+struct bfa_boot_cfg_s
+{
 	u8		version;
 	u8		rsvd1;
 	u16		chksum;
@@ -731,7 +770,8 @@ struct bfa_boot_cfg_s {
 	struct bfa_boot_bootlun_s blun_disc[BFA_BOOT_BOOTLUN_MAX];
 };
 
-struct bfa_boot_pbc_s {
+struct bfa_boot_pbc_s
+{
 	u8              enable;         /*  enable/disable SAN boot */
 	u8              speed;          /*  boot speed settings */
 	u8              topology;       /*  boot topology setting */
@@ -740,7 +780,8 @@ struct bfa_boot_pbc_s {
 	struct bfa_boot_bootlun_s pblun[BFA_PREBOOT_BOOTLUN_MAX];
 };
 
-struct bfa_ethboot_cfg_s {
+struct bfa_ethboot_cfg_s
+{
 	u8		version;
 	u8		rsvd1;
 	u16		chksum;
@@ -757,19 +798,22 @@ struct bfa_ethboot_cfg_s {
 #define BFA_ABLK_MAX		2
 
 #pragma pack(1)
-enum bfa_mode_s {
+enum bfa_mode_s
+{
 	BFA_MODE_HBA	= 1,
 	BFA_MODE_CNA	= 2,
 	BFA_MODE_NIC	= 3
 };
 
-struct bfa_adapter_cfg_mode_s {
+struct bfa_adapter_cfg_mode_s
+{
 	u16	max_pf;
 	u16	max_vf;
 	enum bfa_mode_s	mode;
 };
 
-struct bfa_ablk_cfg_pf_s {
+struct bfa_ablk_cfg_pf_s
+{
 	u16	pers;
 	u8	port_id;
 	u8	optrom;
@@ -783,14 +827,16 @@ struct bfa_ablk_cfg_pf_s {
 	u16	bw_max;
 };
 
-struct bfa_ablk_cfg_port_s {
+struct bfa_ablk_cfg_port_s
+{
 	u8	mode;
 	u8	type;
 	u8	max_pfs;
 	u8	rsvd[5];
 };
 
-struct bfa_ablk_cfg_inst_s {
+struct bfa_ablk_cfg_inst_s
+{
 	u8	nports;
 	u8	max_pfs;
 	u8	rsvd[6];
@@ -798,7 +844,8 @@ struct bfa_ablk_cfg_inst_s {
 	struct bfa_ablk_cfg_port_s	port_cfg[BFA_ABLK_MAX_PORTS];
 };
 
-struct bfa_ablk_cfg_s {
+struct bfa_ablk_cfg_s
+{
 	struct bfa_ablk_cfg_inst_s	inst[BFA_ABLK_MAX];
 };
 
@@ -816,7 +863,8 @@ struct bfa_ablk_cfg_s {
 #define BFA_SFP_SCN_UNSUPPORT	4
 #define BFA_SFP_SCN_VALID	5
 
-enum bfa_defs_sfp_media_e {
+enum bfa_defs_sfp_media_e
+{
 	BFA_SFP_MEDIA_UNKNOWN	= 0x00,
 	BFA_SFP_MEDIA_CU	= 0x01,
 	BFA_SFP_MEDIA_LW	= 0x02,
@@ -828,7 +876,8 @@ enum bfa_defs_sfp_media_e {
 /*
  * values for xmtr_tech above
  */
-enum {
+enum
+{
 	SFP_XMTR_TECH_CU = (1 << 0),	/* copper FC-BaseT */
 	SFP_XMTR_TECH_CP = (1 << 1),	/* copper passive */
 	SFP_XMTR_TECH_CA = (1 << 2),	/* copper active */
@@ -845,7 +894,8 @@ enum {
  * Serial ID: Data Fields -- Address A0h
  * Basic ID field total 64 bytes
  */
-struct sfp_srlid_base_s {
+struct sfp_srlid_base_s
+{
 	u8	id;		/* 00: Identifier */
 	u8	extid;		/* 01: Extended Identifier */
 	u8	connector;	/* 02: Connector */
@@ -873,7 +923,8 @@ struct sfp_srlid_base_s {
  * Serial ID: Data Fields -- Address A0h
  * Extended id field total 32 bytes
  */
-struct sfp_srlid_ext_s {
+struct sfp_srlid_ext_s
+{
 	u8	options[2];
 	u8	br_max;
 	u8	br_min;
@@ -889,7 +940,8 @@ struct sfp_srlid_ext_s {
  * Diagnostic: Data Fields -- Address A2h
  * Diagnostic and control/status base field total 96 bytes
  */
-struct sfp_diag_base_s {
+struct sfp_diag_base_s
+{
 	/*
 	 * Alarm and warning Thresholds 40 bytes
 	 */
@@ -936,7 +988,8 @@ struct sfp_diag_base_s {
  * Diagnostic: Data Fields -- Address A2h
  * Diagnostic and control/status extended field total 24 bytes
  */
-struct sfp_diag_ext_s {
+struct sfp_diag_ext_s
+{
 	u8	diag[SFP_DIAGMON_SIZE];
 	u8	unalloc1[4];
 	u8	status_ctl;
@@ -952,7 +1005,8 @@ struct sfp_diag_ext_s {
  * General Use Fields: User Writable Table - Features's Control Registers
  * Total 32 bytes
  */
-struct sfp_usr_eeprom_s {
+struct sfp_usr_eeprom_s
+{
 	u8	rsvd1[2];       /* 128-129 */
 	u8	ewrap;          /* 130 */
 	u8	rsvd2[2];       /*  */
@@ -975,7 +1029,8 @@ struct sfp_usr_eeprom_s {
 	u8	rsvd9[2];       /*  */
 };
 
-struct sfp_mem_s {
+struct sfp_mem_s
+{
 	struct sfp_srlid_base_s	srlid_base;
 	struct sfp_srlid_ext_s	srlid_ext;
 	struct sfp_diag_base_s	diag_base;
@@ -986,112 +1041,126 @@ struct sfp_mem_s {
 /*
  * transceiver codes (SFF-8472 Rev 10.2 Table 3.5)
  */
-union sfp_xcvr_e10g_code_u {
+union sfp_xcvr_e10g_code_u
+{
 	u8		b;
-	struct {
+	struct
+	{
 #ifdef __BIG_ENDIAN
-		u8	e10g_unall:1;   /* 10G Ethernet compliance */
-		u8	e10g_lrm:1;
-		u8	e10g_lr:1;
-		u8	e10g_sr:1;
-		u8	ib_sx:1;    /* Infiniband compliance */
-		u8	ib_lx:1;
-		u8	ib_cu_a:1;
-		u8	ib_cu_p:1;
+		u8	e10g_unall: 1;  /* 10G Ethernet compliance */
+		u8	e10g_lrm: 1;
+		u8	e10g_lr: 1;
+		u8	e10g_sr: 1;
+		u8	ib_sx: 1;   /* Infiniband compliance */
+		u8	ib_lx: 1;
+		u8	ib_cu_a: 1;
+		u8	ib_cu_p: 1;
 #else
-		u8	ib_cu_p:1;
-		u8	ib_cu_a:1;
-		u8	ib_lx:1;
-		u8	ib_sx:1;    /* Infiniband compliance */
-		u8	e10g_sr:1;
-		u8	e10g_lr:1;
-		u8	e10g_lrm:1;
-		u8	e10g_unall:1;   /* 10G Ethernet compliance */
+		u8	ib_cu_p: 1;
+		u8	ib_cu_a: 1;
+		u8	ib_lx: 1;
+		u8	ib_sx: 1;   /* Infiniband compliance */
+		u8	e10g_sr: 1;
+		u8	e10g_lr: 1;
+		u8	e10g_lrm: 1;
+		u8	e10g_unall: 1;  /* 10G Ethernet compliance */
 #endif
 	} r;
 };
 
-union sfp_xcvr_so1_code_u {
+union sfp_xcvr_so1_code_u
+{
 	u8		b;
-	struct {
-		u8	escon:2;    /* ESCON compliance code */
-		u8	oc192_reach:1;  /* SONET compliance code */
-		u8	so_reach:2;
-		u8	oc48_reach:3;
+	struct
+	{
+		u8	escon: 2;   /* ESCON compliance code */
+		u8	oc192_reach: 1; /* SONET compliance code */
+		u8	so_reach: 2;
+		u8	oc48_reach: 3;
 	} r;
 };
 
-union sfp_xcvr_so2_code_u {
+union sfp_xcvr_so2_code_u
+{
 	u8		b;
-	struct {
-		u8	reserved:1;
-		u8	oc12_reach:3;   /* OC12 reach */
-		u8	reserved1:1;
-		u8	oc3_reach:3;    /* OC3 reach */
+	struct
+	{
+		u8	reserved: 1;
+		u8	oc12_reach: 3;  /* OC12 reach */
+		u8	reserved1: 1;
+		u8	oc3_reach: 3;   /* OC3 reach */
 	} r;
 };
 
-union sfp_xcvr_eth_code_u {
+union sfp_xcvr_eth_code_u
+{
 	u8		b;
-	struct {
-		u8	base_px:1;
-		u8	base_bx10:1;
-		u8	e100base_fx:1;
-		u8	e100base_lx:1;
-		u8	e1000base_t:1;
-		u8	e1000base_cx:1;
-		u8	e1000base_lx:1;
-		u8	e1000base_sx:1;
+	struct
+	{
+		u8	base_px: 1;
+		u8	base_bx10: 1;
+		u8	e100base_fx: 1;
+		u8	e100base_lx: 1;
+		u8	e1000base_t: 1;
+		u8	e1000base_cx: 1;
+		u8	e1000base_lx: 1;
+		u8	e1000base_sx: 1;
 	} r;
 };
 
-struct sfp_xcvr_fc1_code_s {
-	u8	link_len:5; /* FC link length */
-	u8	xmtr_tech2:3;
-	u8	xmtr_tech1:7;   /* FC transmitter technology */
-	u8	reserved1:1;
+struct sfp_xcvr_fc1_code_s
+{
+	u8	link_len: 5; /* FC link length */
+	u8	xmtr_tech2: 3;
+	u8	xmtr_tech1: 7;  /* FC transmitter technology */
+	u8	reserved1: 1;
 };
 
-union sfp_xcvr_fc2_code_u {
+union sfp_xcvr_fc2_code_u
+{
 	u8		b;
-	struct {
-		u8	tw_media:1; /* twin axial pair (tw) */
-		u8	tp_media:1; /* shielded twisted pair (sp) */
-		u8	mi_media:1; /* miniature coax (mi) */
-		u8	tv_media:1; /* video coax (tv) */
-		u8	m6_media:1; /* multimode, 62.5m (m6) */
-		u8	m5_media:1; /* multimode, 50m (m5) */
-		u8	reserved:1;
-		u8	sm_media:1; /* single mode (sm) */
+	struct
+	{
+		u8	tw_media: 1; /* twin axial pair (tw) */
+		u8	tp_media: 1; /* shielded twisted pair (sp) */
+		u8	mi_media: 1; /* miniature coax (mi) */
+		u8	tv_media: 1; /* video coax (tv) */
+		u8	m6_media: 1; /* multimode, 62.5m (m6) */
+		u8	m5_media: 1; /* multimode, 50m (m5) */
+		u8	reserved: 1;
+		u8	sm_media: 1; /* single mode (sm) */
 	} r;
 };
 
-union sfp_xcvr_fc3_code_u {
+union sfp_xcvr_fc3_code_u
+{
 	u8		b;
-	struct {
+	struct
+	{
 #ifdef __BIG_ENDIAN
-		u8	rsv4:1;
-		u8	mb800:1;    /* 800 Mbytes/sec */
-		u8	mb1600:1;   /* 1600 Mbytes/sec */
-		u8	mb400:1;    /* 400 Mbytes/sec */
-		u8	rsv2:1;
-		u8	mb200:1;    /* 200 Mbytes/sec */
-		u8	rsv1:1;
-		u8	mb100:1;    /* 100 Mbytes/sec */
+		u8	rsv4: 1;
+		u8	mb800: 1;   /* 800 Mbytes/sec */
+		u8	mb1600: 1;  /* 1600 Mbytes/sec */
+		u8	mb400: 1;   /* 400 Mbytes/sec */
+		u8	rsv2: 1;
+		u8	mb200: 1;   /* 200 Mbytes/sec */
+		u8	rsv1: 1;
+		u8	mb100: 1;   /* 100 Mbytes/sec */
 #else
-		u8	mb100:1;    /* 100 Mbytes/sec */
-		u8	rsv1:1;
-		u8	mb200:1;    /* 200 Mbytes/sec */
-		u8	rsv2:1;
-		u8	mb400:1;    /* 400 Mbytes/sec */
-		u8	mb1600:1;   /* 1600 Mbytes/sec */
-		u8	mb800:1;    /* 800 Mbytes/sec */
-		u8	rsv4:1;
+		u8	mb100: 1;   /* 100 Mbytes/sec */
+		u8	rsv1: 1;
+		u8	mb200: 1;   /* 200 Mbytes/sec */
+		u8	rsv2: 1;
+		u8	mb400: 1;   /* 400 Mbytes/sec */
+		u8	mb1600: 1;  /* 1600 Mbytes/sec */
+		u8	mb800: 1;   /* 800 Mbytes/sec */
+		u8	rsv4: 1;
 #endif
 	} r;
 };
 
-struct sfp_xcvr_s {
+struct sfp_xcvr_s
+{
 	union sfp_xcvr_e10g_code_u	e10g;
 	union sfp_xcvr_so1_code_u	so1;
 	union sfp_xcvr_so2_code_u	so2;
@@ -1107,7 +1176,8 @@ struct sfp_xcvr_s {
 #define BFA_FLASH_PART_ENTRY_SIZE	32	/* partition entry size */
 #define BFA_FLASH_PART_MAX		32	/* maximal # of partitions */
 
-enum bfa_flash_part_type {
+enum bfa_flash_part_type
+{
 	BFA_FLASH_PART_OPTROM   = 1,    /* option rom partition */
 	BFA_FLASH_PART_FWIMG    = 2,    /* firmware image partition */
 	BFA_FLASH_PART_FWCFG    = 3,    /* firmware tuneable config */
@@ -1129,7 +1199,8 @@ enum bfa_flash_part_type {
 /*
  * flash partition attributes
  */
-struct bfa_flash_part_attr_s {
+struct bfa_flash_part_attr_s
+{
 	u32	part_type;      /* partition type */
 	u32	part_instance;  /* partition instance */
 	u32	part_off;       /* partition offset */
@@ -1142,7 +1213,8 @@ struct bfa_flash_part_attr_s {
 /*
  * flash attributes
  */
-struct bfa_flash_attr_s {
+struct bfa_flash_attr_s
+{
 	u32	status; /* flash overall status */
 	u32	npart;  /* num of partitions */
 	struct bfa_flash_part_attr_s part[BFA_FLASH_PART_MAX];
@@ -1156,12 +1228,14 @@ struct bfa_flash_attr_s {
 #define QTEST_PAT_DEFAULT	LB_PATTERN_DEFAULT
 #define DPORT_ENABLE_LOOPCNT_DEFAULT (1024 * 1024)
 
-struct bfa_diag_memtest_s {
+struct bfa_diag_memtest_s
+{
 	u8	algo;
 	u8	rsvd[7];
 };
 
-struct bfa_diag_memtest_result {
+struct bfa_diag_memtest_result
+{
 	u32	status;
 	u32	addr;
 	u32	exp; /* expect value read from reg */
@@ -1173,7 +1247,8 @@ struct bfa_diag_memtest_result {
 	u8	rsv[3];
 };
 
-struct bfa_diag_loopback_result_s {
+struct bfa_diag_loopback_result_s
+{
 	u32	numtxmfrm;      /* no. of transmit frame */
 	u32	numosffrm;      /* no. of outstanding frame */
 	u32	numrcvfrm;      /* no. of received good frame */
@@ -1183,7 +1258,8 @@ struct bfa_diag_loopback_result_s {
 	u8	rsvd[3];
 };
 
-enum bfa_diag_dport_test_status {
+enum bfa_diag_dport_test_status
+{
 	DPORT_TEST_ST_IDLE	= 0,    /* the test has not started yet. */
 	DPORT_TEST_ST_FINAL	= 1,    /* the test done successfully */
 	DPORT_TEST_ST_SKIP	= 2,    /* the test skipped */
@@ -1194,7 +1270,8 @@ enum bfa_diag_dport_test_status {
 	DPORT_TEST_ST_MAX
 };
 
-enum bfa_diag_dport_test_type {
+enum bfa_diag_dport_test_type
+{
 	DPORT_TEST_ELOOP	= 0,
 	DPORT_TEST_OLOOP	= 1,
 	DPORT_TEST_ROLOOP	= 2,
@@ -1202,18 +1279,21 @@ enum bfa_diag_dport_test_type {
 	DPORT_TEST_MAX
 };
 
-enum bfa_diag_dport_test_opmode {
+enum bfa_diag_dport_test_opmode
+{
 	BFA_DPORT_OPMODE_AUTO	= 0,
 	BFA_DPORT_OPMODE_MANU	= 1,
 };
 
-struct bfa_diag_dport_subtest_result_s {
+struct bfa_diag_dport_subtest_result_s
+{
 	u8	status;		/* bfa_diag_dport_test_status */
 	u8	rsvd[7];	/* 64bit align */
 	u64	start_time;	/* timestamp  */
 };
 
-struct bfa_diag_dport_result_s {
+struct bfa_diag_dport_result_s
+{
 	wwn_t	rp_pwwn;	/* switch port wwn  */
 	wwn_t	rp_nwwn;	/* switch node wwn  */
 	u64	start_time;	/* user/sw start time */
@@ -1231,7 +1311,8 @@ struct bfa_diag_dport_result_s {
 	struct bfa_diag_dport_subtest_result_s subtest[DPORT_TEST_MAX];
 };
 
-struct bfa_diag_ledtest_s {
+struct bfa_diag_ledtest_s
+{
 	u32	cmd;    /* bfa_led_op_t */
 	u32	color;  /* bfa_led_color_t */
 	u16	freq;   /* no. of blinks every 10 secs */
@@ -1239,7 +1320,8 @@ struct bfa_diag_ledtest_s {
 	u8	rsvd[5];
 };
 
-struct bfa_diag_loopback_s {
+struct bfa_diag_loopback_s
+{
 	u32	loopcnt;
 	u32	pattern;
 	u8	lb_mode;    /* bfa_port_opmode_t */
@@ -1250,7 +1332,8 @@ struct bfa_diag_loopback_s {
 /*
  *	PHY module specific
  */
-enum bfa_phy_status_e {
+enum bfa_phy_status_e
+{
 	BFA_PHY_STATUS_GOOD	= 0, /* phy is good */
 	BFA_PHY_STATUS_NOT_PRESENT	= 1, /* phy does not exist */
 	BFA_PHY_STATUS_BAD	= 2, /* phy is bad */
@@ -1259,7 +1342,8 @@ enum bfa_phy_status_e {
 /*
  * phy attributes for phy query
  */
-struct bfa_phy_attr_s {
+struct bfa_phy_attr_s
+{
 	u32	status;         /* phy present/absent status */
 	u32	length;         /* firmware length */
 	u32	fw_ver;         /* firmware version */
@@ -1272,7 +1356,8 @@ struct bfa_phy_attr_s {
 /*
  * phy stats
  */
-struct bfa_phy_stats_s {
+struct bfa_phy_stats_s
+{
 	u32	status;         /* phy stats status */
 	u32	link_breaks;    /* Num of link breaks after linkup */
 	u32	pma_pmd_fault;  /* NPMA/PMD fault */

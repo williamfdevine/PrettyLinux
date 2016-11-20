@@ -31,7 +31,8 @@
 #include <sound/initval.h>
 #include <sound/soc.h>
 
-static const struct reg_default ad1980_reg_defaults[] = {
+static const struct reg_default ad1980_reg_defaults[] =
+{
 	{ 0x02, 0x8000 },
 	{ 0x04, 0x8000 },
 	{ 0x06, 0x8000 },
@@ -61,37 +62,42 @@ static const struct reg_default ad1980_reg_defaults[] = {
 
 static bool ad1980_readable_reg(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case AC97_RESET ... AC97_MASTER_MONO:
-	case AC97_PHONE ... AC97_CD:
-	case AC97_AUX ... AC97_GENERAL_PURPOSE:
-	case AC97_POWERDOWN ... AC97_PCM_LR_ADC_RATE:
-	case AC97_SPDIF:
-	case AC97_CODEC_CLASS_REV:
-	case AC97_PCI_SVID:
-	case AC97_AD_CODEC_CFG:
-	case AC97_AD_JACK_SPDIF:
-	case AC97_AD_SERIAL_CFG:
-	case AC97_VENDOR_ID1:
-	case AC97_VENDOR_ID2:
-		return true;
-	default:
-		return false;
+	switch (reg)
+	{
+		case AC97_RESET ... AC97_MASTER_MONO:
+		case AC97_PHONE ... AC97_CD:
+		case AC97_AUX ... AC97_GENERAL_PURPOSE:
+		case AC97_POWERDOWN ... AC97_PCM_LR_ADC_RATE:
+		case AC97_SPDIF:
+		case AC97_CODEC_CLASS_REV:
+		case AC97_PCI_SVID:
+		case AC97_AD_CODEC_CFG:
+		case AC97_AD_JACK_SPDIF:
+		case AC97_AD_SERIAL_CFG:
+		case AC97_VENDOR_ID1:
+		case AC97_VENDOR_ID2:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
 static bool ad1980_writeable_reg(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case AC97_VENDOR_ID1:
-	case AC97_VENDOR_ID2:
-		return false;
-	default:
-		return ad1980_readable_reg(dev, reg);
+	switch (reg)
+	{
+		case AC97_VENDOR_ID1:
+		case AC97_VENDOR_ID2:
+			return false;
+
+		default:
+			return ad1980_readable_reg(dev, reg);
 	}
 }
 
-static const struct regmap_config ad1980_regmap_config = {
+static const struct regmap_config ad1980_regmap_config =
+{
 	.reg_bits = 16,
 	.reg_stride = 2,
 	.val_bits = 16,
@@ -107,67 +113,71 @@ static const struct regmap_config ad1980_regmap_config = {
 };
 
 static const char *ad1980_rec_sel[] = {"Mic", "CD", "NC", "AUX", "Line",
-		"Stereo Mix", "Mono Mix", "Phone"};
+									   "Stereo Mix", "Mono Mix", "Phone"
+									  };
 
 static SOC_ENUM_DOUBLE_DECL(ad1980_cap_src,
-			    AC97_REC_SEL, 8, 0, ad1980_rec_sel);
+							AC97_REC_SEL, 8, 0, ad1980_rec_sel);
 
-static const struct snd_kcontrol_new ad1980_snd_ac97_controls[] = {
-SOC_DOUBLE("Master Playback Volume", AC97_MASTER, 8, 0, 31, 1),
-SOC_SINGLE("Master Playback Switch", AC97_MASTER, 15, 1, 1),
+static const struct snd_kcontrol_new ad1980_snd_ac97_controls[] =
+{
+	SOC_DOUBLE("Master Playback Volume", AC97_MASTER, 8, 0, 31, 1),
+	SOC_SINGLE("Master Playback Switch", AC97_MASTER, 15, 1, 1),
 
-SOC_DOUBLE("Headphone Playback Volume", AC97_HEADPHONE, 8, 0, 31, 1),
-SOC_SINGLE("Headphone Playback Switch", AC97_HEADPHONE, 15, 1, 1),
+	SOC_DOUBLE("Headphone Playback Volume", AC97_HEADPHONE, 8, 0, 31, 1),
+	SOC_SINGLE("Headphone Playback Switch", AC97_HEADPHONE, 15, 1, 1),
 
-SOC_DOUBLE("PCM Playback Volume", AC97_PCM, 8, 0, 31, 1),
-SOC_SINGLE("PCM Playback Switch", AC97_PCM, 15, 1, 1),
+	SOC_DOUBLE("PCM Playback Volume", AC97_PCM, 8, 0, 31, 1),
+	SOC_SINGLE("PCM Playback Switch", AC97_PCM, 15, 1, 1),
 
-SOC_DOUBLE("PCM Capture Volume", AC97_REC_GAIN, 8, 0, 31, 0),
-SOC_SINGLE("PCM Capture Switch", AC97_REC_GAIN, 15, 1, 1),
+	SOC_DOUBLE("PCM Capture Volume", AC97_REC_GAIN, 8, 0, 31, 0),
+	SOC_SINGLE("PCM Capture Switch", AC97_REC_GAIN, 15, 1, 1),
 
-SOC_SINGLE("Mono Playback Volume", AC97_MASTER_MONO, 0, 31, 1),
-SOC_SINGLE("Mono Playback Switch", AC97_MASTER_MONO, 15, 1, 1),
+	SOC_SINGLE("Mono Playback Volume", AC97_MASTER_MONO, 0, 31, 1),
+	SOC_SINGLE("Mono Playback Switch", AC97_MASTER_MONO, 15, 1, 1),
 
-SOC_SINGLE("Phone Capture Volume", AC97_PHONE, 0, 31, 1),
-SOC_SINGLE("Phone Capture Switch", AC97_PHONE, 15, 1, 1),
+	SOC_SINGLE("Phone Capture Volume", AC97_PHONE, 0, 31, 1),
+	SOC_SINGLE("Phone Capture Switch", AC97_PHONE, 15, 1, 1),
 
-SOC_SINGLE("Mic Volume", AC97_MIC, 0, 31, 1),
-SOC_SINGLE("Mic Switch", AC97_MIC, 15, 1, 1),
+	SOC_SINGLE("Mic Volume", AC97_MIC, 0, 31, 1),
+	SOC_SINGLE("Mic Switch", AC97_MIC, 15, 1, 1),
 
-SOC_SINGLE("Stereo Mic Switch", AC97_AD_MISC, 6, 1, 0),
-SOC_DOUBLE("Line HP Swap Switch", AC97_AD_MISC, 10, 5, 1, 0),
+	SOC_SINGLE("Stereo Mic Switch", AC97_AD_MISC, 6, 1, 0),
+	SOC_DOUBLE("Line HP Swap Switch", AC97_AD_MISC, 10, 5, 1, 0),
 
-SOC_DOUBLE("Surround Playback Volume", AC97_SURROUND_MASTER, 8, 0, 31, 1),
-SOC_DOUBLE("Surround Playback Switch", AC97_SURROUND_MASTER, 15, 7, 1, 1),
+	SOC_DOUBLE("Surround Playback Volume", AC97_SURROUND_MASTER, 8, 0, 31, 1),
+	SOC_DOUBLE("Surround Playback Switch", AC97_SURROUND_MASTER, 15, 7, 1, 1),
 
-SOC_DOUBLE("Center/LFE Playback Volume", AC97_CENTER_LFE_MASTER, 8, 0, 31, 1),
-SOC_DOUBLE("Center/LFE Playback Switch", AC97_CENTER_LFE_MASTER, 15, 7, 1, 1),
+	SOC_DOUBLE("Center/LFE Playback Volume", AC97_CENTER_LFE_MASTER, 8, 0, 31, 1),
+	SOC_DOUBLE("Center/LFE Playback Switch", AC97_CENTER_LFE_MASTER, 15, 7, 1, 1),
 
-SOC_ENUM("Capture Source", ad1980_cap_src),
+	SOC_ENUM("Capture Source", ad1980_cap_src),
 
-SOC_SINGLE("Mic Boost Switch", AC97_MIC, 6, 1, 0),
+	SOC_SINGLE("Mic Boost Switch", AC97_MIC, 6, 1, 0),
 };
 
-static const struct snd_soc_dapm_widget ad1980_dapm_widgets[] = {
-SND_SOC_DAPM_INPUT("MIC1"),
-SND_SOC_DAPM_INPUT("MIC2"),
-SND_SOC_DAPM_INPUT("CD_L"),
-SND_SOC_DAPM_INPUT("CD_R"),
-SND_SOC_DAPM_INPUT("AUX_L"),
-SND_SOC_DAPM_INPUT("AUX_R"),
-SND_SOC_DAPM_INPUT("LINE_IN_L"),
-SND_SOC_DAPM_INPUT("LINE_IN_R"),
+static const struct snd_soc_dapm_widget ad1980_dapm_widgets[] =
+{
+	SND_SOC_DAPM_INPUT("MIC1"),
+	SND_SOC_DAPM_INPUT("MIC2"),
+	SND_SOC_DAPM_INPUT("CD_L"),
+	SND_SOC_DAPM_INPUT("CD_R"),
+	SND_SOC_DAPM_INPUT("AUX_L"),
+	SND_SOC_DAPM_INPUT("AUX_R"),
+	SND_SOC_DAPM_INPUT("LINE_IN_L"),
+	SND_SOC_DAPM_INPUT("LINE_IN_R"),
 
-SND_SOC_DAPM_OUTPUT("LFE_OUT"),
-SND_SOC_DAPM_OUTPUT("CENTER_OUT"),
-SND_SOC_DAPM_OUTPUT("LINE_OUT_L"),
-SND_SOC_DAPM_OUTPUT("LINE_OUT_R"),
-SND_SOC_DAPM_OUTPUT("MONO_OUT"),
-SND_SOC_DAPM_OUTPUT("HP_OUT_L"),
-SND_SOC_DAPM_OUTPUT("HP_OUT_R"),
+	SND_SOC_DAPM_OUTPUT("LFE_OUT"),
+	SND_SOC_DAPM_OUTPUT("CENTER_OUT"),
+	SND_SOC_DAPM_OUTPUT("LINE_OUT_L"),
+	SND_SOC_DAPM_OUTPUT("LINE_OUT_R"),
+	SND_SOC_DAPM_OUTPUT("MONO_OUT"),
+	SND_SOC_DAPM_OUTPUT("HP_OUT_L"),
+	SND_SOC_DAPM_OUTPUT("HP_OUT_R"),
 };
 
-static const struct snd_soc_dapm_route ad1980_dapm_routes[] = {
+static const struct snd_soc_dapm_route ad1980_dapm_routes[] =
+{
 	{ "Capture", NULL, "MIC1" },
 	{ "Capture", NULL, "MIC2" },
 	{ "Capture", NULL, "CD_L" },
@@ -186,20 +196,23 @@ static const struct snd_soc_dapm_route ad1980_dapm_routes[] = {
 	{ "HP_OUT_R", NULL, "Playback" },
 };
 
-static struct snd_soc_dai_driver ad1980_dai = {
+static struct snd_soc_dai_driver ad1980_dai =
+{
 	.name = "ad1980-hifi",
 	.playback = {
 		.stream_name = "Playback",
 		.channels_min = 2,
 		.channels_max = 6,
 		.rates = SNDRV_PCM_RATE_48000,
-		.formats = SND_SOC_STD_AC97_FMTS, },
+		.formats = SND_SOC_STD_AC97_FMTS,
+	},
 	.capture = {
 		.stream_name = "Capture",
 		.channels_min = 2,
 		.channels_max = 2,
 		.rates = SNDRV_PCM_RATE_48000,
-		.formats = SND_SOC_STD_AC97_FMTS, },
+		.formats = SND_SOC_STD_AC97_FMTS,
+	},
 };
 
 #define AD1980_VENDOR_ID 0x41445300
@@ -211,11 +224,15 @@ static int ad1980_reset(struct snd_soc_codec *codec, int try_warm)
 	unsigned int retry_cnt = 0;
 	int ret;
 
-	do {
+	do
+	{
 		ret = snd_ac97_reset(ac97, true, AD1980_VENDOR_ID,
-			AD1980_VENDOR_MASK);
+							 AD1980_VENDOR_MASK);
+
 		if (ret >= 0)
+		{
 			return 0;
+		}
 
 		/*
 		 * Set bit 16slot in register 74h, then every slot will has only
@@ -225,7 +242,8 @@ static int ad1980_reset(struct snd_soc_codec *codec, int try_warm)
 		 */
 		snd_soc_write(codec, AC97_AD_SERIAL_CFG, 0x9900);
 
-	} while (retry_cnt++ < 10);
+	}
+	while (retry_cnt++ < 10);
 
 	dev_err(codec->dev, "Failed to reset: AC97 link error\n");
 
@@ -241,14 +259,18 @@ static int ad1980_soc_probe(struct snd_soc_codec *codec)
 	u16 ext_status;
 
 	ac97 = snd_soc_new_ac97_codec(codec, 0, 0);
-	if (IS_ERR(ac97)) {
+
+	if (IS_ERR(ac97))
+	{
 		ret = PTR_ERR(ac97);
 		dev_err(codec->dev, "Failed to register AC97 codec: %d\n", ret);
 		return ret;
 	}
 
 	regmap = regmap_init_ac97(ac97, &ad1980_regmap_config);
-	if (IS_ERR(regmap)) {
+
+	if (IS_ERR(regmap))
+	{
 		ret = PTR_ERR(regmap);
 		goto err_free_ac97;
 	}
@@ -257,13 +279,18 @@ static int ad1980_soc_probe(struct snd_soc_codec *codec)
 	snd_soc_codec_set_drvdata(codec, ac97);
 
 	ret = ad1980_reset(codec, 0);
+
 	if (ret < 0)
+	{
 		goto reset_err;
+	}
 
 	vendor_id2 = snd_soc_read(codec, AC97_VENDOR_ID2);
-	if (vendor_id2 == 0x5374) {
+
+	if (vendor_id2 == 0x5374)
+	{
 		dev_warn(codec->dev,
-			"Found AD1981 - only 2/2 IN/OUT Channels supported\n");
+				 "Found AD1981 - only 2/2 IN/OUT Channels supported\n");
 	}
 
 	/* unmute captures and playbacks volume */
@@ -275,7 +302,7 @@ static int ad1980_soc_probe(struct snd_soc_codec *codec)
 
 	/*power on LFE/CENTER/Surround DACs*/
 	ext_status = snd_soc_read(codec, AC97_EXTENDED_STATUS);
-	snd_soc_write(codec, AC97_EXTENDED_STATUS, ext_status&~0x3800);
+	snd_soc_write(codec, AC97_EXTENDED_STATUS, ext_status & ~0x3800);
 
 	return 0;
 
@@ -295,7 +322,8 @@ static int ad1980_soc_remove(struct snd_soc_codec *codec)
 	return 0;
 }
 
-static struct snd_soc_codec_driver soc_codec_dev_ad1980 = {
+static struct snd_soc_codec_driver soc_codec_dev_ad1980 =
+{
 	.probe = 	ad1980_soc_probe,
 	.remove = 	ad1980_soc_remove,
 
@@ -312,7 +340,7 @@ static struct snd_soc_codec_driver soc_codec_dev_ad1980 = {
 static int ad1980_probe(struct platform_device *pdev)
 {
 	return snd_soc_register_codec(&pdev->dev,
-			&soc_codec_dev_ad1980, &ad1980_dai, 1);
+								  &soc_codec_dev_ad1980, &ad1980_dai, 1);
 }
 
 static int ad1980_remove(struct platform_device *pdev)
@@ -321,9 +349,10 @@ static int ad1980_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver ad1980_codec_driver = {
+static struct platform_driver ad1980_codec_driver =
+{
 	.driver = {
-			.name = "ad1980",
+		.name = "ad1980",
 	},
 
 	.probe = ad1980_probe,

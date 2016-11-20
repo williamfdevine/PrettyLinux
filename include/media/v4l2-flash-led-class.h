@@ -28,7 +28,8 @@ enum led_brightness;
  * @cid:	contains v4l2 flash control id if the config
  *		field was initialized, 0 otherwise
  */
-struct v4l2_flash_ctrl_data {
+struct v4l2_flash_ctrl_data
+{
 	struct v4l2_ctrl_config config;
 	u32 cid;
 };
@@ -43,13 +44,14 @@ struct v4l2_flash_ctrl_data {
  * @led_brightness_to_intensity: convert brightness to intensity in a device
  *	specific manner.
  */
-struct v4l2_flash_ops {
+struct v4l2_flash_ops
+{
 	int (*external_strobe_set)(struct v4l2_flash *v4l2_flash,
-					bool enable);
+							   bool enable);
 	enum led_brightness (*intensity_to_led_brightness)
-		(struct v4l2_flash *v4l2_flash, s32 intensity);
+	(struct v4l2_flash *v4l2_flash, s32 intensity);
 	s32 (*led_brightness_to_intensity)
-		(struct v4l2_flash *v4l2_flash, enum led_brightness);
+	(struct v4l2_flash *v4l2_flash, enum led_brightness);
 };
 
 /**
@@ -64,12 +66,13 @@ struct v4l2_flash_ops {
  *				<linux/led-class-flash.h>
  * @has_external_strobe:	external strobe capability
  */
-struct v4l2_flash_config {
+struct v4l2_flash_config
+{
 	char dev_name[32];
 	struct led_flash_setting torch_intensity;
 	struct led_flash_setting indicator_intensity;
 	u32 flash_faults;
-	unsigned int has_external_strobe:1;
+	unsigned int has_external_strobe: 1;
 };
 
 /**
@@ -83,7 +86,8 @@ struct v4l2_flash_config {
  * @ctrls:		array of pointers to controls, whose values define
  *			the sub-device state
  */
-struct v4l2_flash {
+struct v4l2_flash
+{
 	struct led_classdev_flash *fled_cdev;
 	struct led_classdev_flash *iled_cdev;
 	const struct v4l2_flash_ops *ops;
@@ -94,7 +98,7 @@ struct v4l2_flash {
 };
 
 static inline struct v4l2_flash *v4l2_subdev_to_v4l2_flash(
-							struct v4l2_subdev *sd)
+	struct v4l2_subdev *sd)
 {
 	return container_of(sd, struct v4l2_flash, sd);
 }

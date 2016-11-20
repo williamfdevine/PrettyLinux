@@ -33,29 +33,33 @@
 #ifdef CONFIG_COMPAT
 #include <linux/compat.h>
 
-struct usbdevfs_ctrltransfer32 {
-        u8 bRequestType;
-        u8 bRequest;
-        u16 wValue;
-        u16 wIndex;
-        u16 wLength;
-        u32 timeout;  /* in milliseconds */
-        compat_caddr_t data;
+struct usbdevfs_ctrltransfer32
+{
+	u8 bRequestType;
+	u8 bRequest;
+	u16 wValue;
+	u16 wIndex;
+	u16 wLength;
+	u32 timeout;  /* in milliseconds */
+	compat_caddr_t data;
 };
 
-struct usbdevfs_bulktransfer32 {
-        compat_uint_t ep;
-        compat_uint_t len;
-        compat_uint_t timeout; /* in milliseconds */
-        compat_caddr_t data;
+struct usbdevfs_bulktransfer32
+{
+	compat_uint_t ep;
+	compat_uint_t len;
+	compat_uint_t timeout; /* in milliseconds */
+	compat_caddr_t data;
 };
 
-struct usbdevfs_disconnectsignal32 {
-        compat_int_t signr;
-        compat_caddr_t context;
+struct usbdevfs_disconnectsignal32
+{
+	compat_int_t signr;
+	compat_caddr_t context;
 };
 
-struct usbdevfs_urb32 {
+struct usbdevfs_urb32
+{
 	unsigned char type;
 	unsigned char endpoint;
 	compat_int_t status;
@@ -71,7 +75,8 @@ struct usbdevfs_urb32 {
 	struct usbdevfs_iso_packet_desc iso_frame_desc[0];
 };
 
-struct usbdevfs_ioctl32 {
+struct usbdevfs_ioctl32
+{
 	s32 ifno;
 	s32 ioctl_code;
 	compat_caddr_t data;

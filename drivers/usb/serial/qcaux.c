@@ -53,7 +53,8 @@
 #define SAMSUNG_VENDOR_ID			0x04e8
 #define SAMSUNG_PRODUCT_U520			0x6640 /* SCH-U520 */
 
-static const struct usb_device_id id_table[] = {
+static const struct usb_device_id id_table[] =
+{
 	{ USB_DEVICE_AND_INTERFACE_INFO(UTSTARCOM_VENDOR_ID, UTSTARCOM_PRODUCT_PC5740, 0xff, 0x00, 0x00) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(UTSTARCOM_VENDOR_ID, UTSTARCOM_PRODUCT_PC5750, 0xff, 0x00, 0x00) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(UTSTARCOM_VENDOR_ID, UTSTARCOM_PRODUCT_UM150, 0xff, 0x00, 0x00) },
@@ -73,7 +74,8 @@ static const struct usb_device_id id_table[] = {
 };
 MODULE_DEVICE_TABLE(usb, id_table);
 
-static struct usb_serial_driver qcaux_device = {
+static struct usb_serial_driver qcaux_device =
+{
 	.driver = {
 		.owner =	THIS_MODULE,
 		.name =		"qcaux",
@@ -82,7 +84,8 @@ static struct usb_serial_driver qcaux_device = {
 	.num_ports =		1,
 };
 
-static struct usb_serial_driver * const serial_drivers[] = {
+static struct usb_serial_driver *const serial_drivers[] =
+{
 	&qcaux_device, NULL
 };
 

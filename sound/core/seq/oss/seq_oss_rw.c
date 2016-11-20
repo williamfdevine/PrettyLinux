@@ -50,40 +50,60 @@ snd_seq_oss_read(struct seq_oss_devinfo *dp, char __user *buf, int count)
 	unsigned long flags;
 
 	if (readq == NULL || ! is_read_mode(dp->file_mode))
+	{
 		return -ENXIO;
+	}
 
-	while (count >= SHORT_EVENT_SIZE) {
+	while (count >= SHORT_EVENT_SIZE)
+	{
 		snd_seq_oss_readq_lock(readq, flags);
 		err = snd_seq_oss_readq_pick(readq, &rec);
+
 		if (err == -EAGAIN &&
-		    !is_nonblock_mode(dp->file_mode) && result == 0) {
+			!is_nonblock_mode(dp->file_mode) && result == 0)
+		{
 			snd_seq_oss_readq_unlock(readq, flags);
 			snd_seq_oss_readq_wait(readq);
 			snd_seq_oss_readq_lock(readq, flags);
+
 			if (signal_pending(current))
+			{
 				err = -ERESTARTSYS;
+			}
 			else
+			{
 				err = snd_seq_oss_readq_pick(readq, &rec);
+			}
 		}
-		if (err < 0) {
+
+		if (err < 0)
+		{
 			snd_seq_oss_readq_unlock(readq, flags);
 			break;
 		}
+
 		ev_len = ev_length(&rec);
-		if (ev_len < count) {
+
+		if (ev_len < count)
+		{
 			snd_seq_oss_readq_unlock(readq, flags);
 			break;
 		}
+
 		snd_seq_oss_readq_free(readq);
 		snd_seq_oss_readq_unlock(readq, flags);
-		if (copy_to_user(buf, &rec, ev_len)) {
+
+		if (copy_to_user(buf, &rec, ev_len))
+		{
 			err = -EFAULT;
 			break;
 		}
+
 		result += ev_len;
 		buf += ev_len;
 		count -= ev_len;
 	}
+
 	return result > 0 ? result : err;
 }
 
@@ -100,58 +120,82 @@ snd_seq_oss_write(struct seq_oss_devinfo *dp, const char __user *buf, int count,
 	union evrec rec;
 
 	if (! is_write_mode(dp->file_mode) || dp->writeq == NULL)
+	{
 		return -ENXIO;
+	}
 
-	while (count >= SHORT_EVENT_SIZE) {
-		if (copy_from_user(&rec, buf, SHORT_EVENT_SIZE)) {
+	while (count >= SHORT_EVENT_SIZE)
+	{
+		if (copy_from_user(&rec, buf, SHORT_EVENT_SIZE))
+		{
 			err = -EFAULT;
 			break;
 		}
-		if (rec.s.code == SEQ_FULLSIZE) {
+
+		if (rec.s.code == SEQ_FULLSIZE)
+		{
 			/* load patch */
-			if (result > 0) {
+			if (result > 0)
+			{
 				err = -EINVAL;
 				break;
 			}
+
 			fmt = (*(unsigned short *)rec.c) & 0xffff;
 			/* FIXME the return value isn't correct */
 			return snd_seq_oss_synth_load_patch(dp, rec.s.dev,
-							    fmt, buf, 0, count);
+												fmt, buf, 0, count);
 		}
-		if (ev_is_long(&rec)) {
+
+		if (ev_is_long(&rec))
+		{
 			/* extended code */
 			if (rec.s.code == SEQ_EXTENDED &&
-			    dp->seq_mode == SNDRV_SEQ_OSS_MODE_MUSIC) {
+				dp->seq_mode == SNDRV_SEQ_OSS_MODE_MUSIC)
+			{
 				err = -EINVAL;
 				break;
 			}
+
 			ev_size = LONG_EVENT_SIZE;
+
 			if (count < ev_size)
+			{
 				break;
+			}
+
 			/* copy the reset 4 bytes */
 			if (copy_from_user(rec.c + SHORT_EVENT_SIZE,
-					   buf + SHORT_EVENT_SIZE,
-					   LONG_EVENT_SIZE - SHORT_EVENT_SIZE)) {
+							   buf + SHORT_EVENT_SIZE,
+							   LONG_EVENT_SIZE - SHORT_EVENT_SIZE))
+			{
 				err = -EFAULT;
 				break;
 			}
-		} else {
+		}
+		else
+		{
 			/* old-type code */
-			if (dp->seq_mode == SNDRV_SEQ_OSS_MODE_MUSIC) {
+			if (dp->seq_mode == SNDRV_SEQ_OSS_MODE_MUSIC)
+			{
 				err = -EINVAL;
 				break;
 			}
+
 			ev_size = SHORT_EVENT_SIZE;
 		}
 
 		/* insert queue */
 		if ((err = insert_queue(dp, &rec, opt)) < 0)
+		{
 			break;
+		}
 
 		result += ev_size;
 		buf += ev_size;
 		count -= ev_size;
 	}
+
 	return result > 0 ? result : err;
 }
 
@@ -168,7 +212,9 @@ insert_queue(struct seq_oss_devinfo *dp, union evrec *rec, struct file *opt)
 
 	/* if this is a timing event, process the current time */
 	if (snd_seq_oss_process_timer_event(dp->timer, rec))
-		return 0; /* no need to insert queue */
+	{
+		return 0;    /* no need to insert queue */
+	}
 
 	/* parse this event */
 	memset(&event, 0, sizeof(event));
@@ -177,40 +223,58 @@ insert_queue(struct seq_oss_devinfo *dp, union evrec *rec, struct file *opt)
 	snd_seq_oss_fill_addr(dp, &event, dp->addr.port, dp->addr.client);
 
 	if (snd_seq_oss_process_event(dp, rec, &event))
-		return 0; /* invalid event - no need to insert queue */
+	{
+		return 0;    /* invalid event - no need to insert queue */
+	}
 
 	event.time.tick = snd_seq_oss_timer_cur_tick(dp->timer);
-	if (dp->timer->realtime || !dp->timer->running) {
+
+	if (dp->timer->realtime || !dp->timer->running)
+	{
 		snd_seq_oss_dispatch(dp, &event, 0, 0);
-	} else {
-		if (is_nonblock_mode(dp->file_mode))
-			rc = snd_seq_kernel_client_enqueue(dp->cseq, &event, 0, 0);
-		else
-			rc = snd_seq_kernel_client_enqueue_blocking(dp->cseq, &event, opt, 0, 0);
 	}
+	else
+	{
+		if (is_nonblock_mode(dp->file_mode))
+		{
+			rc = snd_seq_kernel_client_enqueue(dp->cseq, &event, 0, 0);
+		}
+		else
+		{
+			rc = snd_seq_kernel_client_enqueue_blocking(dp->cseq, &event, opt, 0, 0);
+		}
+	}
+
 	return rc;
 }
-		
+
 
 /*
  * select / poll
  */
-  
+
 unsigned int
-snd_seq_oss_poll(struct seq_oss_devinfo *dp, struct file *file, poll_table * wait)
+snd_seq_oss_poll(struct seq_oss_devinfo *dp, struct file *file, poll_table *wait)
 {
 	unsigned int mask = 0;
 
 	/* input */
-	if (dp->readq && is_read_mode(dp->file_mode)) {
+	if (dp->readq && is_read_mode(dp->file_mode))
+	{
 		if (snd_seq_oss_readq_poll(dp->readq, file, wait))
+		{
 			mask |= POLLIN | POLLRDNORM;
+		}
 	}
 
 	/* output */
-	if (dp->writeq && is_write_mode(dp->file_mode)) {
+	if (dp->writeq && is_write_mode(dp->file_mode))
+	{
 		if (snd_seq_kernel_client_write_poll(dp->cseq, file, wait))
+		{
 			mask |= POLLOUT | POLLWRNORM;
+		}
 	}
+
 	return mask;
 }

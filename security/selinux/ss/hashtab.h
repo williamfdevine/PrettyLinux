@@ -12,23 +12,26 @@
 
 #define HASHTAB_MAX_NODES	0xffffffff
 
-struct hashtab_node {
+struct hashtab_node
+{
 	void *key;
 	void *datum;
 	struct hashtab_node *next;
 };
 
-struct hashtab {
+struct hashtab
+{
 	struct hashtab_node **htable;	/* hash table */
 	u32 size;			/* number of slots in hash table */
 	u32 nel;			/* number of elements in hash table */
 	u32 (*hash_value)(struct hashtab *h, const void *key);
-					/* hash function */
+	/* hash function */
 	int (*keycmp)(struct hashtab *h, const void *key1, const void *key2);
-					/* key comparison function */
+	/* key comparison function */
 };
 
-struct hashtab_info {
+struct hashtab_info
+{
 	u32 slots_used;
 	u32 max_chain_len;
 };
@@ -40,8 +43,8 @@ struct hashtab_info {
  * the new hash table otherwise.
  */
 struct hashtab *hashtab_create(u32 (*hash_value)(struct hashtab *h, const void *key),
-			       int (*keycmp)(struct hashtab *h, const void *key1, const void *key2),
-			       u32 size);
+							   int (*keycmp)(struct hashtab *h, const void *key1, const void *key2),
+							   u32 size);
 
 /*
  * Inserts the specified (key, datum) pair into the specified hash table.
@@ -78,8 +81,8 @@ void hashtab_destroy(struct hashtab *h);
  * return to its caller.
  */
 int hashtab_map(struct hashtab *h,
-		int (*apply)(void *k, void *d, void *args),
-		void *args);
+				int (*apply)(void *k, void *d, void *args),
+				void *args);
 
 /* Fill info with some hash table statistics */
 void hashtab_stat(struct hashtab *h, struct hashtab_info *info);

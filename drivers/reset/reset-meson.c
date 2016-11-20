@@ -64,13 +64,14 @@
 #define REG_COUNT	8
 #define BITS_PER_REG	32
 
-struct meson_reset {
+struct meson_reset
+{
 	void __iomem *reg_base;
 	struct reset_controller_dev rcdev;
 };
 
 static int meson_reset_reset(struct reset_controller_dev *rcdev,
-			      unsigned long id)
+							 unsigned long id)
 {
 	struct meson_reset *data =
 		container_of(rcdev, struct meson_reset, rcdev);
@@ -79,21 +80,25 @@ static int meson_reset_reset(struct reset_controller_dev *rcdev,
 	void __iomem *reg_addr = data->reg_base + (bank << 2);
 
 	if (bank >= REG_COUNT)
+	{
 		return -EINVAL;
+	}
 
 	writel(BIT(offset), reg_addr);
 
 	return 0;
 }
 
-static const struct reset_control_ops meson_reset_ops = {
+static const struct reset_control_ops meson_reset_ops =
+{
 	.reset		= meson_reset_reset,
 };
 
-static const struct of_device_id meson_reset_dt_ids[] = {
-	 { .compatible = "amlogic,meson8b-reset", },
-	 { .compatible = "amlogic,meson-gxbb-reset", },
-	 { /* sentinel */ },
+static const struct of_device_id meson_reset_dt_ids[] =
+{
+	{ .compatible = "amlogic,meson8b-reset", },
+	{ .compatible = "amlogic,meson-gxbb-reset", },
+	{ /* sentinel */ },
 };
 MODULE_DEVICE_TABLE(of, meson_reset_dt_ids);
 
@@ -103,13 +108,19 @@ static int meson_reset_probe(struct platform_device *pdev)
 	struct resource *res;
 
 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	data->reg_base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(data->reg_base))
+	{
 		return PTR_ERR(data->reg_base);
+	}
 
 	platform_set_drvdata(pdev, data);
 
@@ -121,7 +132,8 @@ static int meson_reset_probe(struct platform_device *pdev)
 	return devm_reset_controller_register(&pdev->dev, &data->rcdev);
 }
 
-static struct platform_driver meson_reset_driver = {
+static struct platform_driver meson_reset_driver =
+{
 	.probe	= meson_reset_probe,
 	.driver = {
 		.name		= "meson_reset",

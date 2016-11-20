@@ -23,7 +23,9 @@ static int load_script(struct linux_binprm *bprm)
 	int retval;
 
 	if ((bprm->buf[0] != '#') || (bprm->buf[1] != '!'))
+	{
 		return -ENOEXEC;
+	}
 
 	/*
 	 * If the script filename will be inaccessible after exec, typically
@@ -32,7 +34,9 @@ static int load_script(struct linux_binprm *bprm)
 	 * this file).
 	 */
 	if (bprm->interp_flags & BINPRM_FLAGS_PATH_INACCESSIBLE)
+	{
 		return -ENOENT;
+	}
 
 	/*
 	 * This section does the #! interpretation.
@@ -44,27 +48,51 @@ static int load_script(struct linux_binprm *bprm)
 	bprm->file = NULL;
 
 	bprm->buf[BINPRM_BUF_SIZE - 1] = '\0';
+
 	if ((cp = strchr(bprm->buf, '\n')) == NULL)
-		cp = bprm->buf+BINPRM_BUF_SIZE-1;
-	*cp = '\0';
-	while (cp > bprm->buf) {
-		cp--;
-		if ((*cp == ' ') || (*cp == '\t'))
-			*cp = '\0';
-		else
-			break;
+	{
+		cp = bprm->buf + BINPRM_BUF_SIZE - 1;
 	}
-	for (cp = bprm->buf+2; (*cp == ' ') || (*cp == '\t'); cp++);
-	if (*cp == '\0') 
-		return -ENOEXEC; /* No interpreter name found */
+
+	*cp = '\0';
+
+	while (cp > bprm->buf)
+	{
+		cp--;
+
+		if ((*cp == ' ') || (*cp == '\t'))
+		{
+			*cp = '\0';
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	for (cp = bprm->buf + 2; (*cp == ' ') || (*cp == '\t'); cp++);
+
+	if (*cp == '\0')
+	{
+		return -ENOEXEC;    /* No interpreter name found */
+	}
+
 	i_name = cp;
 	i_arg = NULL;
+
 	for ( ; *cp && (*cp != ' ') && (*cp != '\t'); cp++)
 		/* nothing */ ;
+
 	while ((*cp == ' ') || (*cp == '\t'))
+	{
 		*cp++ = '\0';
+	}
+
 	if (*cp)
+	{
 		i_arg = cp;
+	}
+
 	strcpy (interp, i_name);
 	/*
 	 * OK, we've parsed out the interpreter name and
@@ -77,38 +105,62 @@ static int load_script(struct linux_binprm *bprm)
 	 * user environment and arguments are stored.
 	 */
 	retval = remove_arg_zero(bprm);
+
 	if (retval)
+	{
 		return retval;
+	}
+
 	retval = copy_strings_kernel(1, &bprm->interp, bprm);
-	if (retval < 0) return retval; 
+
+	if (retval < 0) { return retval; }
+
 	bprm->argc++;
-	if (i_arg) {
+
+	if (i_arg)
+	{
 		retval = copy_strings_kernel(1, &i_arg, bprm);
-		if (retval < 0) return retval; 
+
+		if (retval < 0) { return retval; }
+
 		bprm->argc++;
 	}
+
 	retval = copy_strings_kernel(1, &i_name, bprm);
-	if (retval) return retval; 
+
+	if (retval) { return retval; }
+
 	bprm->argc++;
 	retval = bprm_change_interp(interp, bprm);
+
 	if (retval < 0)
+	{
 		return retval;
+	}
 
 	/*
 	 * OK, now restart the process with the interpreter's dentry.
 	 */
 	file = open_exec(interp);
+
 	if (IS_ERR(file))
+	{
 		return PTR_ERR(file);
+	}
 
 	bprm->file = file;
 	retval = prepare_binprm(bprm);
+
 	if (retval < 0)
+	{
 		return retval;
+	}
+
 	return search_binary_handler(bprm);
 }
 
-static struct linux_binfmt script_format = {
+static struct linux_binfmt script_format =
+{
 	.module		= THIS_MODULE,
 	.load_binary	= load_script,
 };

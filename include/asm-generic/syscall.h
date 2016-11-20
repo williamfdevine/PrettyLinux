@@ -99,7 +99,7 @@ long syscall_get_return_value(struct task_struct *task, struct pt_regs *regs);
  * from a system call, due to %TIF_SYSCALL_TRACE or %TIF_SYSCALL_AUDIT.
  */
 void syscall_set_return_value(struct task_struct *task, struct pt_regs *regs,
-			      int error, long val);
+							  int error, long val);
 
 /**
  * syscall_get_arguments - extract system call parameter values
@@ -119,7 +119,7 @@ void syscall_set_return_value(struct task_struct *task, struct pt_regs *regs,
  * taking up to 6 arguments.
  */
 void syscall_get_arguments(struct task_struct *task, struct pt_regs *regs,
-			   unsigned int i, unsigned int n, unsigned long *args);
+						   unsigned int i, unsigned int n, unsigned long *args);
 
 /**
  * syscall_set_arguments - change system call parameter value
@@ -139,8 +139,8 @@ void syscall_get_arguments(struct task_struct *task, struct pt_regs *regs,
  * taking up to 6 arguments.
  */
 void syscall_set_arguments(struct task_struct *task, struct pt_regs *regs,
-			   unsigned int i, unsigned int n,
-			   const unsigned long *args);
+						   unsigned int i, unsigned int n,
+						   const unsigned long *args);
 
 /**
  * syscall_get_arch - return the AUDIT_ARCH for the current system call

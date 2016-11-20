@@ -30,7 +30,7 @@ static struct fwnode_handle *acpi_gsi_domain_id;
 int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
 {
 	struct irq_domain *d = irq_find_matching_fwnode(acpi_gsi_domain_id,
-							DOMAIN_BUS_ANY);
+						   DOMAIN_BUS_ANY);
 
 	*irq = irq_find_mapping(d, gsi);
 	/*
@@ -52,11 +52,12 @@ EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
  *          -EINVAL on failure
  */
 int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
-		      int polarity)
+					  int polarity)
 {
 	struct irq_fwspec fwspec;
 
-	if (WARN_ON(!acpi_gsi_domain_id)) {
+	if (WARN_ON(!acpi_gsi_domain_id))
+	{
 		pr_warn("GSI: No registered irqchip, giving up\n");
 		return -EINVAL;
 	}
@@ -77,7 +78,7 @@ EXPORT_SYMBOL_GPL(acpi_register_gsi);
 void acpi_unregister_gsi(u32 gsi)
 {
 	struct irq_domain *d = irq_find_matching_fwnode(acpi_gsi_domain_id,
-							DOMAIN_BUS_ANY);
+						   DOMAIN_BUS_ANY);
 	int irq = irq_find_mapping(d, gsi);
 
 	irq_dispose_mapping(irq);
@@ -91,7 +92,7 @@ EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
  *          GSI interrupts
  */
 void __init acpi_set_irq_model(enum acpi_irq_model_id model,
-			       struct fwnode_handle *fwnode)
+							   struct fwnode_handle *fwnode)
 {
 	acpi_irq_model = model;
 	acpi_gsi_domain_id = fwnode;

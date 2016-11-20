@@ -41,7 +41,8 @@
  * size is the number of bytes to transfer which includes the skb->len
  * (useful bytes of the senders skb) plus the leadin and tailout
  */
-struct xpnet_message {
+struct xpnet_message
+{
 	u16 version;		/* Version for this message */
 	u16 embedded_bytes;	/* #of bytes embedded in XPC message */
 	u32 magic;		/* Special number indicating this is xpnet */
@@ -60,7 +61,7 @@ struct xpnet_message {
  */
 #define XPNET_MSG_SIZE		XPC_MSG_PAYLOAD_MAX_SIZE
 #define XPNET_MSG_DATA_MAX	\
-		(XPNET_MSG_SIZE - offsetof(struct xpnet_message, data))
+	(XPNET_MSG_SIZE - offsetof(struct xpnet_message, data))
 #define XPNET_MSG_NENTRIES	(PAGE_SIZE / XPC_MSG_MAX_SIZE)
 
 #define XPNET_MAX_KTHREADS	(XPNET_MSG_NENTRIES + 1)
@@ -79,8 +80,8 @@ struct xpnet_message {
 #define XPNET_MAGIC	0x88786984	/* "XNET" */
 
 #define XPNET_VALID_MSG(_m)						     \
-   ((XPNET_VERSION_MAJOR(_m->version) == XPNET_VERSION_MAJOR(XPNET_VERSION)) \
-    && (msg->magic == XPNET_MAGIC))
+	((XPNET_VERSION_MAJOR(_m->version) == XPNET_VERSION_MAJOR(XPNET_VERSION)) \
+	 && (msg->magic == XPNET_MAGIC))
 
 #define XPNET_DEVICE_NAME		"xp0"
 
@@ -91,7 +92,8 @@ struct xpnet_message {
  * whether all outstanding message sends have completed.  The skb can
  * then be released.
  */
-struct xpnet_pending_msg {
+struct xpnet_pending_msg
+{
 	struct sk_buff *skb;
 	atomic_t use_count;
 };
@@ -129,11 +131,13 @@ static DEFINE_SPINLOCK(xpnet_broadcast_lock);
 
 /* Define the XPNET debug device structures to be used with dev_dbg() et al */
 
-struct device_driver xpnet_dbg_name = {
+struct device_driver xpnet_dbg_name =
+{
 	.name = "xpnet"
 };
 
-struct device xpnet_dbg_subname = {
+struct device xpnet_dbg_subname =
+{
 	.init_name = "",	/* set to "" */
 	.driver = &xpnet_dbg_name
 };
@@ -150,7 +154,8 @@ xpnet_receive(short partid, int channel, struct xpnet_message *msg)
 	void *dst;
 	enum xp_retval ret;
 
-	if (!XPNET_VALID_MSG(msg)) {
+	if (!XPNET_VALID_MSG(msg))
+	{
 		/*
 		 * Packet with a different XPC version.  Ignore.
 		 */
@@ -160,14 +165,17 @@ xpnet_receive(short partid, int channel, struct xpnet_message *msg)
 
 		return;
 	}
+
 	dev_dbg(xpnet, "received 0x%lx, %d, %d, %d\n", msg->buf_pa, msg->size,
-		msg->leadin_ignore, msg->tailout_ignore);
+			msg->leadin_ignore, msg->tailout_ignore);
 
 	/* reserve an extra cache line */
 	skb = dev_alloc_skb(msg->size + L1_CACHE_BYTES);
-	if (!skb) {
+
+	if (!skb)
+	{
 		dev_err(xpnet, "failed on dev_alloc_skb(%d)\n",
-			msg->size + L1_CACHE_BYTES);
+				msg->size + L1_CACHE_BYTES);
 
 		xpc_received(partid, channel, (void *)msg);
 
@@ -182,8 +190,8 @@ xpnet_receive(short partid, int channel, struct xpnet_message *msg)
 	 * skb->data pointer moved forward.
 	 */
 	skb_reserve(skb, (L1_CACHE_BYTES - ((u64)skb->data &
-					    (L1_CACHE_BYTES - 1)) +
-			  msg->leadin_ignore));
+										(L1_CACHE_BYTES - 1)) +
+					  msg->leadin_ignore));
 
 	/*
 	 * Update the tail pointer to indicate data actually
@@ -195,29 +203,34 @@ xpnet_receive(short partid, int channel, struct xpnet_message *msg)
 	 * Move the data over from the other side.
 	 */
 	if ((XPNET_VERSION_MINOR(msg->version) == 1) &&
-	    (msg->embedded_bytes != 0)) {
+		(msg->embedded_bytes != 0))
+	{
 		dev_dbg(xpnet, "copying embedded message. memcpy(0x%p, 0x%p, "
-			"%lu)\n", skb->data, &msg->data,
-			(size_t)msg->embedded_bytes);
+				"%lu)\n", skb->data, &msg->data,
+				(size_t)msg->embedded_bytes);
 
 		skb_copy_to_linear_data(skb, &msg->data,
-					(size_t)msg->embedded_bytes);
-	} else {
+								(size_t)msg->embedded_bytes);
+	}
+	else
+	{
 		dst = (void *)((u64)skb->data & ~(L1_CACHE_BYTES - 1));
 		dev_dbg(xpnet, "transferring buffer to the skb->data area;\n\t"
-			"xp_remote_memcpy(0x%p, 0x%p, %hu)\n", dst,
-					  (void *)msg->buf_pa, msg->size);
+				"xp_remote_memcpy(0x%p, 0x%p, %hu)\n", dst,
+				(void *)msg->buf_pa, msg->size);
 
 		ret = xp_remote_memcpy(xp_pa(dst), msg->buf_pa, msg->size);
-		if (ret != xpSuccess) {
+
+		if (ret != xpSuccess)
+		{
 			/*
 			 * !!! Need better way of cleaning skb.  Currently skb
 			 * !!! appears in_use and we can't just call
 			 * !!! dev_kfree_skb.
 			 */
 			dev_err(xpnet, "xp_remote_memcpy(0x%p, 0x%p, 0x%hx) "
-				"returned error=0x%x\n", dst,
-				(void *)msg->buf_pa, msg->size, ret);
+					"returned error=0x%x\n", dst,
+					(void *)msg->buf_pa, msg->size, ret);
 
 			xpc_received(partid, channel, (void *)msg);
 
@@ -228,18 +241,18 @@ xpnet_receive(short partid, int channel, struct xpnet_message *msg)
 	}
 
 	dev_dbg(xpnet, "<skb->head=0x%p skb->data=0x%p skb->tail=0x%p "
-		"skb->end=0x%p skb->len=%d\n", (void *)skb->head,
-		(void *)skb->data, skb_tail_pointer(skb), skb_end_pointer(skb),
-		skb->len);
+			"skb->end=0x%p skb->len=%d\n", (void *)skb->head,
+			(void *)skb->data, skb_tail_pointer(skb), skb_end_pointer(skb),
+			skb->len);
 
 	skb->protocol = eth_type_trans(skb, xpnet_device);
 	skb->ip_summed = CHECKSUM_UNNECESSARY;
 
 	dev_dbg(xpnet, "passing skb to network layer\n"
-		"\tskb->head=0x%p skb->data=0x%p skb->tail=0x%p "
-		"skb->end=0x%p skb->len=%d\n",
-		(void *)skb->head, (void *)skb->data, skb_tail_pointer(skb),
-		skb_end_pointer(skb), skb->len);
+			"\tskb->head=0x%p skb->data=0x%p skb->tail=0x%p "
+			"skb->end=0x%p skb->len=%d\n",
+			(void *)skb->head, (void *)skb->data, skb_tail_pointer(skb),
+			skb_end_pointer(skb), skb->len);
 
 	xpnet_device->stats.rx_packets++;
 	xpnet_device->stats.rx_bytes += skb->len + ETH_HLEN;
@@ -254,42 +267,44 @@ xpnet_receive(short partid, int channel, struct xpnet_message *msg)
  */
 static void
 xpnet_connection_activity(enum xp_retval reason, short partid, int channel,
-			  void *data, void *key)
+						  void *data, void *key)
 {
 	DBUG_ON(partid < 0 || partid >= xp_max_npartitions);
 	DBUG_ON(channel != XPC_NET_CHANNEL);
 
-	switch (reason) {
-	case xpMsgReceived:	/* message received */
-		DBUG_ON(data == NULL);
+	switch (reason)
+	{
+		case xpMsgReceived:	/* message received */
+			DBUG_ON(data == NULL);
 
-		xpnet_receive(partid, channel, (struct xpnet_message *)data);
-		break;
+			xpnet_receive(partid, channel, (struct xpnet_message *)data);
+			break;
 
-	case xpConnected:	/* connection completed to a partition */
-		spin_lock_bh(&xpnet_broadcast_lock);
-		__set_bit(partid, xpnet_broadcast_partitions);
-		spin_unlock_bh(&xpnet_broadcast_lock);
+		case xpConnected:	/* connection completed to a partition */
+			spin_lock_bh(&xpnet_broadcast_lock);
+			__set_bit(partid, xpnet_broadcast_partitions);
+			spin_unlock_bh(&xpnet_broadcast_lock);
 
-		netif_carrier_on(xpnet_device);
+			netif_carrier_on(xpnet_device);
 
-		dev_dbg(xpnet, "%s connected to partition %d\n",
-			xpnet_device->name, partid);
-		break;
+			dev_dbg(xpnet, "%s connected to partition %d\n",
+					xpnet_device->name, partid);
+			break;
 
-	default:
-		spin_lock_bh(&xpnet_broadcast_lock);
-		__clear_bit(partid, xpnet_broadcast_partitions);
-		spin_unlock_bh(&xpnet_broadcast_lock);
+		default:
+			spin_lock_bh(&xpnet_broadcast_lock);
+			__clear_bit(partid, xpnet_broadcast_partitions);
+			spin_unlock_bh(&xpnet_broadcast_lock);
 
-		if (bitmap_empty((unsigned long *)xpnet_broadcast_partitions,
-				 xp_max_npartitions)) {
-			netif_carrier_off(xpnet_device);
-		}
+			if (bitmap_empty((unsigned long *)xpnet_broadcast_partitions,
+							 xp_max_npartitions))
+			{
+				netif_carrier_off(xpnet_device);
+			}
 
-		dev_dbg(xpnet, "%s disconnected from partition %d\n",
-			xpnet_device->name, partid);
-		break;
+			dev_dbg(xpnet, "%s disconnected from partition %d\n",
+					xpnet_device->name, partid);
+			break;
 	}
 }
 
@@ -299,18 +314,20 @@ xpnet_dev_open(struct net_device *dev)
 	enum xp_retval ret;
 
 	dev_dbg(xpnet, "calling xpc_connect(%d, 0x%p, NULL, %ld, %ld, %ld, "
-		"%ld)\n", XPC_NET_CHANNEL, xpnet_connection_activity,
-		(unsigned long)XPNET_MSG_SIZE,
-		(unsigned long)XPNET_MSG_NENTRIES,
-		(unsigned long)XPNET_MAX_KTHREADS,
-		(unsigned long)XPNET_MAX_IDLE_KTHREADS);
+			"%ld)\n", XPC_NET_CHANNEL, xpnet_connection_activity,
+			(unsigned long)XPNET_MSG_SIZE,
+			(unsigned long)XPNET_MSG_NENTRIES,
+			(unsigned long)XPNET_MAX_KTHREADS,
+			(unsigned long)XPNET_MAX_IDLE_KTHREADS);
 
 	ret = xpc_connect(XPC_NET_CHANNEL, xpnet_connection_activity, NULL,
-			  XPNET_MSG_SIZE, XPNET_MSG_NENTRIES,
-			  XPNET_MAX_KTHREADS, XPNET_MAX_IDLE_KTHREADS);
-	if (ret != xpSuccess) {
+					  XPNET_MSG_SIZE, XPNET_MSG_NENTRIES,
+					  XPNET_MAX_KTHREADS, XPNET_MAX_IDLE_KTHREADS);
+
+	if (ret != xpSuccess)
+	{
 		dev_err(xpnet, "ifconfig up of %s failed on XPC connect, "
-			"ret=%d\n", dev->name, ret);
+				"ret=%d\n", dev->name, ret);
 
 		return -ENOMEM;
 	}
@@ -334,10 +351,11 @@ static int
 xpnet_dev_change_mtu(struct net_device *dev, int new_mtu)
 {
 	/* 68 comes from min TCP+IP+MAC header */
-	if ((new_mtu < 68) || (new_mtu > XPNET_MAX_MTU)) {
+	if ((new_mtu < 68) || (new_mtu > XPNET_MAX_MTU))
+	{
 		dev_err(xpnet, "ifconfig %s mtu %d failed; value must be "
-			"between 68 and %ld\n", dev->name, new_mtu,
-			XPNET_MAX_MTU);
+				"between 68 and %ld\n", dev->name, new_mtu,
+				XPNET_MAX_MTU);
 		return -EINVAL;
 	}
 
@@ -354,18 +372,19 @@ xpnet_dev_change_mtu(struct net_device *dev, int new_mtu)
  */
 static void
 xpnet_send_completed(enum xp_retval reason, short partid, int channel,
-		     void *__qm)
+					 void *__qm)
 {
 	struct xpnet_pending_msg *queued_msg = (struct xpnet_pending_msg *)__qm;
 
 	DBUG_ON(queued_msg == NULL);
 
 	dev_dbg(xpnet, "message to %d notified with reason %d\n",
-		partid, reason);
+			partid, reason);
 
-	if (atomic_dec_return(&queued_msg->use_count) == 0) {
+	if (atomic_dec_return(&queued_msg->use_count) == 0)
+	{
 		dev_dbg(xpnet, "all acks for skb->head=-x%p\n",
-			(void *)queued_msg->skb->head);
+				(void *)queued_msg->skb->head);
 
 		dev_kfree_skb_any(queued_msg->skb);
 		kfree(queued_msg);
@@ -374,7 +393,7 @@ xpnet_send_completed(enum xp_retval reason, short partid, int channel,
 
 static void
 xpnet_send(struct sk_buff *skb, struct xpnet_pending_msg *queued_msg,
-	   u64 start_addr, u64 end_addr, u16 embedded_bytes, int dest_partid)
+		   u64 start_addr, u64 end_addr, u16 embedded_bytes, int dest_partid)
 {
 	u8 msg_buffer[XPNET_MSG_SIZE];
 	struct xpnet_message *msg = (struct xpnet_message *)&msg_buffer;
@@ -382,16 +401,21 @@ xpnet_send(struct sk_buff *skb, struct xpnet_pending_msg *queued_msg,
 	enum xp_retval ret;
 
 	msg->embedded_bytes = embedded_bytes;
-	if (unlikely(embedded_bytes != 0)) {
+
+	if (unlikely(embedded_bytes != 0))
+	{
 		msg->version = XPNET_VERSION_EMBED;
 		dev_dbg(xpnet, "calling memcpy(0x%p, 0x%p, 0x%lx)\n",
-			&msg->data, skb->data, (size_t)embedded_bytes);
+				&msg->data, skb->data, (size_t)embedded_bytes);
 		skb_copy_from_linear_data(skb, &msg->data,
-					  (size_t)embedded_bytes);
+								  (size_t)embedded_bytes);
 		msg_size += embedded_bytes - 1;
-	} else {
+	}
+	else
+	{
 		msg->version = XPNET_VERSION;
 	}
+
 	msg->magic = XPNET_MAGIC;
 	msg->size = end_addr - start_addr;
 	msg->leadin_ignore = (u64)skb->data - start_addr;
@@ -399,17 +423,20 @@ xpnet_send(struct sk_buff *skb, struct xpnet_pending_msg *queued_msg,
 	msg->buf_pa = xp_pa((void *)start_addr);
 
 	dev_dbg(xpnet, "sending XPC message to %d:%d\n"
-		"msg->buf_pa=0x%lx, msg->size=%u, "
-		"msg->leadin_ignore=%u, msg->tailout_ignore=%u\n",
-		dest_partid, XPC_NET_CHANNEL, msg->buf_pa, msg->size,
-		msg->leadin_ignore, msg->tailout_ignore);
+			"msg->buf_pa=0x%lx, msg->size=%u, "
+			"msg->leadin_ignore=%u, msg->tailout_ignore=%u\n",
+			dest_partid, XPC_NET_CHANNEL, msg->buf_pa, msg->size,
+			msg->leadin_ignore, msg->tailout_ignore);
 
 	atomic_inc(&queued_msg->use_count);
 
 	ret = xpc_send_notify(dest_partid, XPC_NET_CHANNEL, XPC_NOWAIT, msg,
-			      msg_size, xpnet_send_completed, queued_msg);
+						  msg_size, xpnet_send_completed, queued_msg);
+
 	if (unlikely(ret != xpSuccess))
+	{
 		atomic_dec(&queued_msg->use_count);
+	}
 }
 
 /*
@@ -430,11 +457,12 @@ xpnet_dev_hard_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	u16 embedded_bytes = 0;
 
 	dev_dbg(xpnet, ">skb->head=0x%p skb->data=0x%p skb->tail=0x%p "
-		"skb->end=0x%p skb->len=%d\n", (void *)skb->head,
-		(void *)skb->data, skb_tail_pointer(skb), skb_end_pointer(skb),
-		skb->len);
+			"skb->end=0x%p skb->len=%d\n", (void *)skb->head,
+			(void *)skb->data, skb_tail_pointer(skb), skb_end_pointer(skb),
+			skb->len);
 
-	if (skb->data[0] == 0x33) {
+	if (skb->data[0] == 0x33)
+	{
 		dev_kfree_skb(skb);
 		return NETDEV_TX_OK;	/* nothing needed to be done */
 	}
@@ -445,9 +473,11 @@ xpnet_dev_hard_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	 * remain, release the skb.
 	 */
 	queued_msg = kmalloc(sizeof(struct xpnet_pending_msg), GFP_ATOMIC);
-	if (queued_msg == NULL) {
+
+	if (queued_msg == NULL)
+	{
 		dev_warn(xpnet, "failed to kmalloc %ld bytes; dropping "
-			 "packet\n", sizeof(struct xpnet_pending_msg));
+				 "packet\n", sizeof(struct xpnet_pending_msg));
 
 		dev->stats.tx_errors++;
 		dev_kfree_skb(skb);
@@ -459,7 +489,8 @@ xpnet_dev_hard_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	end_addr = L1_CACHE_ALIGN((u64)skb_tail_pointer(skb));
 
 	/* calculate how many bytes to embed in the XPC message */
-	if (unlikely(skb->len <= XPNET_MSG_DATA_MAX)) {
+	if (unlikely(skb->len <= XPNET_MSG_DATA_MAX))
+	{
 		/* skb->data does fit so embed */
 		embedded_bytes = skb->len;
 	}
@@ -474,31 +505,37 @@ xpnet_dev_hard_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	atomic_set(&queued_msg->use_count, 1);
 	queued_msg->skb = skb;
 
-	if (skb->data[0] == 0xff) {
+	if (skb->data[0] == 0xff)
+	{
 		/* we are being asked to broadcast to all partitions */
 		for_each_set_bit(dest_partid, xpnet_broadcast_partitions,
-			     xp_max_npartitions) {
+						 xp_max_npartitions)
+		{
 
 			xpnet_send(skb, queued_msg, start_addr, end_addr,
-				   embedded_bytes, dest_partid);
+					   embedded_bytes, dest_partid);
 		}
-	} else {
+	}
+	else
+	{
 		dest_partid = (short)skb->data[XPNET_PARTID_OCTET + 1];
 		dest_partid |= (short)skb->data[XPNET_PARTID_OCTET + 0] << 8;
 
 		if (dest_partid >= 0 &&
-		    dest_partid < xp_max_npartitions &&
-		    test_bit(dest_partid, xpnet_broadcast_partitions) != 0) {
+			dest_partid < xp_max_npartitions &&
+			test_bit(dest_partid, xpnet_broadcast_partitions) != 0)
+		{
 
 			xpnet_send(skb, queued_msg, start_addr, end_addr,
-				   embedded_bytes, dest_partid);
+					   embedded_bytes, dest_partid);
 		}
 	}
 
 	dev->stats.tx_packets++;
 	dev->stats.tx_bytes += skb->len;
 
-	if (atomic_dec_return(&queued_msg->use_count) == 0) {
+	if (atomic_dec_return(&queued_msg->use_count) == 0)
+	{
 		dev_kfree_skb(skb);
 		kfree(queued_msg);
 	}
@@ -515,7 +552,8 @@ xpnet_dev_tx_timeout(struct net_device *dev)
 	dev->stats.tx_errors++;
 }
 
-static const struct net_device_ops xpnet_netdev_ops = {
+static const struct net_device_ops xpnet_netdev_ops =
+{
 	.ndo_open		= xpnet_dev_open,
 	.ndo_stop		= xpnet_dev_stop,
 	.ndo_start_xmit		= xpnet_dev_hard_start_xmit,
@@ -531,22 +569,29 @@ xpnet_init(void)
 	int result;
 
 	if (!is_shub() && !is_uv())
+	{
 		return -ENODEV;
+	}
 
 	dev_info(xpnet, "registering network device %s\n", XPNET_DEVICE_NAME);
 
 	xpnet_broadcast_partitions = kzalloc(BITS_TO_LONGS(xp_max_npartitions) *
-					     sizeof(long), GFP_KERNEL);
+										 sizeof(long), GFP_KERNEL);
+
 	if (xpnet_broadcast_partitions == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	/*
 	 * use ether_setup() to init the majority of our device
 	 * structure and then override the necessary pieces.
 	 */
 	xpnet_device = alloc_netdev(0, XPNET_DEVICE_NAME, NET_NAME_UNKNOWN,
-				    ether_setup);
-	if (xpnet_device == NULL) {
+								ether_setup);
+
+	if (xpnet_device == NULL)
+	{
 		kfree(xpnet_broadcast_partitions);
 		return -ENOMEM;
 	}
@@ -580,7 +625,9 @@ xpnet_init(void)
 	xpnet_device->features = NETIF_F_HW_CSUM;
 
 	result = register_netdev(xpnet_device);
-	if (result != 0) {
+
+	if (result != 0)
+	{
 		free_netdev(xpnet_device);
 		kfree(xpnet_broadcast_partitions);
 	}
@@ -594,7 +641,7 @@ static void __exit
 xpnet_exit(void)
 {
 	dev_info(xpnet, "unregistering network device %s\n",
-		 xpnet_device[0].name);
+			 xpnet_device[0].name);
 
 	unregister_netdev(xpnet_device);
 	free_netdev(xpnet_device);

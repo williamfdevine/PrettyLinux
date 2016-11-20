@@ -35,7 +35,8 @@ struct tty_struct;
  * @con_scrolldelta: the contents of the console should be scrolled by @lines.
  *		     Invoked by user. (optional)
  */
-struct consw {
+struct consw
+{
 	struct module *owner;
 	const char *(*con_startup)(void);
 	void	(*con_init)(struct vc_data *, int);
@@ -52,9 +53,9 @@ struct consw {
 	int	(*con_font_default)(struct vc_data *, struct console_font *, char *);
 	int	(*con_font_copy)(struct vc_data *, int);
 	int     (*con_resize)(struct vc_data *, unsigned int, unsigned int,
-			       unsigned int);
+						  unsigned int);
 	void	(*con_set_palette)(struct vc_data *,
-			const unsigned char *table);
+							   const unsigned char *table);
 	void	(*con_scrolldelta)(struct vc_data *, int lines);
 	int	(*con_set_origin)(struct vc_data *);
 	void	(*con_save_screen)(struct vc_data *);
@@ -124,7 +125,8 @@ static inline int con_debug_leave(void)
 #define CON_BRL		(32) /* Used for a braille device */
 #define CON_EXTENDED	(64) /* Use the extended output format a la /dev/kmsg */
 
-struct console {
+struct console
+{
 	char	name[16];
 	void	(*write)(struct console *, const char *, unsigned);
 	int	(*read)(struct console *, char *, unsigned);
@@ -163,7 +165,7 @@ extern void console_stop(struct console *);
 extern void console_start(struct console *);
 extern int is_console_locked(void);
 extern int braille_register_console(struct console *, int index,
-		char *console_options, char *braille_options);
+									char *console_options, char *braille_options);
 extern int braille_unregister_console(struct console *);
 #ifdef CONFIG_TTY
 extern void console_sysfs_notify(void);
@@ -185,9 +187,9 @@ void vcs_remove_sysfs(int index);
 
 /* Some debug stub to catch some of the obvious races in the VT code */
 #if 1
-#define WARN_CONSOLE_UNLOCKED()	WARN_ON(!is_console_locked() && !oops_in_progress)
+	#define WARN_CONSOLE_UNLOCKED()	WARN_ON(!is_console_locked() && !oops_in_progress)
 #else
-#define WARN_CONSOLE_UNLOCKED()
+	#define WARN_CONSOLE_UNLOCKED()
 #endif
 
 /* VESA Blanking Levels */

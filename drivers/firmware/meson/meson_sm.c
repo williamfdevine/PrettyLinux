@@ -25,20 +25,23 @@
 
 #include <linux/firmware/meson/meson_sm.h>
 
-struct meson_sm_cmd {
+struct meson_sm_cmd
+{
 	unsigned int index;
 	u32 smc_id;
 };
 #define CMD(d, s) { .index = (d), .smc_id = (s), }
 
-struct meson_sm_chip {
+struct meson_sm_chip
+{
 	unsigned int shmem_size;
 	u32 cmd_shmem_in_base;
 	u32 cmd_shmem_out_base;
 	struct meson_sm_cmd cmd[];
 };
 
-struct meson_sm_chip gxbb_chip = {
+struct meson_sm_chip gxbb_chip =
+{
 	.shmem_size		= SZ_4K,
 	.cmd_shmem_in_base	= 0x82000020,
 	.cmd_shmem_out_base	= 0x82000021,
@@ -50,7 +53,8 @@ struct meson_sm_chip gxbb_chip = {
 	},
 };
 
-struct meson_sm_firmware {
+struct meson_sm_firmware
+{
 	const struct meson_sm_chip *chip;
 	void __iomem *sm_shmem_in_base;
 	void __iomem *sm_shmem_out_base;
@@ -59,18 +63,20 @@ struct meson_sm_firmware {
 static struct meson_sm_firmware fw;
 
 static u32 meson_sm_get_cmd(const struct meson_sm_chip *chip,
-			    unsigned int cmd_index)
+							unsigned int cmd_index)
 {
 	const struct meson_sm_cmd *cmd = chip->cmd;
 
 	while (cmd->smc_id && cmd->index != cmd_index)
+	{
 		cmd++;
+	}
 
 	return cmd->smc_id;
 }
 
 static u32 __meson_sm_call(u32 cmd, u32 arg0, u32 arg1, u32 arg2,
-			   u32 arg3, u32 arg4)
+						   u32 arg3, u32 arg4)
 {
 	struct arm_smccc_res res;
 
@@ -83,8 +89,11 @@ static void __iomem *meson_sm_map_shmem(u32 cmd_shmem, unsigned int size)
 	u32 sm_phy_base;
 
 	sm_phy_base = __meson_sm_call(cmd_shmem, 0, 0, 0, 0, 0);
+
 	if (!sm_phy_base)
+	{
 		return 0;
+	}
 
 	return ioremap_cache(sm_phy_base, size);
 }
@@ -103,21 +112,28 @@ static void __iomem *meson_sm_map_shmem(u32 cmd_shmem, unsigned int size)
  * Return:	0 on success, a negative value on error
  */
 int meson_sm_call(unsigned int cmd_index, u32 *ret, u32 arg0,
-		  u32 arg1, u32 arg2, u32 arg3, u32 arg4)
+				  u32 arg1, u32 arg2, u32 arg3, u32 arg4)
 {
 	u32 cmd, lret;
 
 	if (!fw.chip)
+	{
 		return -ENOENT;
+	}
 
 	cmd = meson_sm_get_cmd(fw.chip, cmd_index);
+
 	if (!cmd)
+	{
 		return -EINVAL;
+	}
 
 	lret = __meson_sm_call(cmd, arg0, arg1, arg2, arg3, arg4);
 
 	if (ret)
+	{
 		*ret = lret;
+	}
 
 	return 0;
 }
@@ -137,24 +153,34 @@ EXPORT_SYMBOL(meson_sm_call);
  * Return:	size of read data on success, a negative value on error
  */
 int meson_sm_call_read(void *buffer, unsigned int cmd_index, u32 arg0,
-		       u32 arg1, u32 arg2, u32 arg3, u32 arg4)
+					   u32 arg1, u32 arg2, u32 arg3, u32 arg4)
 {
 	u32 size;
 
 	if (!fw.chip)
+	{
 		return -ENOENT;
+	}
 
 	if (!fw.chip->cmd_shmem_out_base)
+	{
 		return -EINVAL;
+	}
 
 	if (meson_sm_call(cmd_index, &size, arg0, arg1, arg2, arg3, arg4) < 0)
+	{
 		return -EINVAL;
+	}
 
 	if (!size || size > fw.chip->shmem_size)
+	{
 		return -EINVAL;
+	}
 
 	if (buffer)
+	{
 		memcpy(buffer, fw.sm_shmem_out_base, size);
+	}
 
 	return size;
 }
@@ -175,32 +201,43 @@ EXPORT_SYMBOL(meson_sm_call_read);
  * Return:	size of sent data on success, a negative value on error
  */
 int meson_sm_call_write(void *buffer, unsigned int size, unsigned int cmd_index,
-			u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4)
+						u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4)
 {
 	u32 written;
 
 	if (!fw.chip)
+	{
 		return -ENOENT;
+	}
 
 	if (size > fw.chip->shmem_size)
+	{
 		return -EINVAL;
+	}
 
 	if (!fw.chip->cmd_shmem_in_base)
+	{
 		return -EINVAL;
+	}
 
 	memcpy(fw.sm_shmem_in_base, buffer, size);
 
 	if (meson_sm_call(cmd_index, &written, arg0, arg1, arg2, arg3, arg4) < 0)
+	{
 		return -EINVAL;
+	}
 
 	if (!written)
+	{
 		return -EINVAL;
+	}
 
 	return written;
 }
 EXPORT_SYMBOL(meson_sm_call_write);
 
-static const struct of_device_id meson_sm_ids[] = {
+static const struct of_device_id meson_sm_ids[] =
+{
 	{ .compatible = "amlogic,meson-gxbb-sm", .data = &gxbb_chip },
 	{ /* sentinel */ },
 };
@@ -212,27 +249,40 @@ int __init meson_sm_init(void)
 	struct device_node *np;
 
 	np = of_find_matching_node_and_match(NULL, meson_sm_ids, &matched_np);
+
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	chip = matched_np->data;
-	if (!chip) {
+
+	if (!chip)
+	{
 		pr_err("unable to setup secure-monitor data\n");
 		goto out;
 	}
 
-	if (chip->cmd_shmem_in_base) {
+	if (chip->cmd_shmem_in_base)
+	{
 		fw.sm_shmem_in_base = meson_sm_map_shmem(chip->cmd_shmem_in_base,
-							 chip->shmem_size);
+							  chip->shmem_size);
+
 		if (WARN_ON(!fw.sm_shmem_in_base))
+		{
 			goto out;
+		}
 	}
 
-	if (chip->cmd_shmem_out_base) {
+	if (chip->cmd_shmem_out_base)
+	{
 		fw.sm_shmem_out_base = meson_sm_map_shmem(chip->cmd_shmem_out_base,
-							  chip->shmem_size);
+							   chip->shmem_size);
+
 		if (WARN_ON(!fw.sm_shmem_out_base))
+		{
 			goto out_in_base;
+		}
 	}
 
 	fw.chip = chip;

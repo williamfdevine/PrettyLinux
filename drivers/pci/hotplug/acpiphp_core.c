@@ -71,7 +71,8 @@ static int get_attention_status(struct hotplug_slot *slot, u8 *value);
 static int get_latch_status(struct hotplug_slot *slot, u8 *value);
 static int get_adapter_status(struct hotplug_slot *slot, u8 *value);
 
-static struct hotplug_slot_ops acpi_hotplug_slot_ops = {
+static struct hotplug_slot_ops acpi_hotplug_slot_ops =
+{
 	.enable_slot		= enable_slot,
 	.disable_slot		= disable_slot,
 	.set_attention_status	= set_attention_status,
@@ -94,10 +95,12 @@ int acpiphp_register_attention(struct acpiphp_attention_info *info)
 	int retval = -EINVAL;
 
 	if (info && info->owner && info->set_attn &&
-			info->get_attn && !attention_info) {
+		info->get_attn && !attention_info)
+	{
 		retval = 0;
 		attention_info = info;
 	}
+
 	return retval;
 }
 EXPORT_SYMBOL_GPL(acpiphp_register_attention);
@@ -115,10 +118,12 @@ int acpiphp_unregister_attention(struct acpiphp_attention_info *info)
 {
 	int retval = -EINVAL;
 
-	if (info && attention_info == info) {
+	if (info && attention_info == info)
+	{
 		attention_info = NULL;
 		retval = 0;
 	}
+
 	return retval;
 }
 EXPORT_SYMBOL_GPL(acpiphp_unregister_attention);
@@ -172,13 +177,18 @@ static int set_attention_status(struct hotplug_slot *hotplug_slot, u8 status)
 	int retval = -ENODEV;
 
 	pr_debug("%s - physical_slot = %s\n", __func__,
-		hotplug_slot_name(hotplug_slot));
+			 hotplug_slot_name(hotplug_slot));
 
-	if (attention_info && try_module_get(attention_info->owner)) {
+	if (attention_info && try_module_get(attention_info->owner))
+	{
 		retval = attention_info->set_attn(hotplug_slot, status);
 		module_put(attention_info->owner);
-	} else
+	}
+	else
+	{
 		attention_info = NULL;
+	}
+
 	return retval;
 }
 
@@ -218,13 +228,18 @@ static int get_attention_status(struct hotplug_slot *hotplug_slot, u8 *value)
 	int retval = -EINVAL;
 
 	pr_debug("%s - physical_slot = %s\n", __func__,
-		hotplug_slot_name(hotplug_slot));
+			 hotplug_slot_name(hotplug_slot));
 
-	if (attention_info && try_module_get(attention_info->owner)) {
+	if (attention_info && try_module_get(attention_info->owner))
+	{
 		retval = attention_info->get_attn(hotplug_slot, value);
 		module_put(attention_info->owner);
-	} else
+	}
+	else
+	{
 		attention_info = NULL;
+	}
+
 	return retval;
 }
 
@@ -284,19 +299,25 @@ static void release_slot(struct hotplug_slot *hotplug_slot)
 
 /* callback routine to initialize 'struct slot' for each slot */
 int acpiphp_register_hotplug_slot(struct acpiphp_slot *acpiphp_slot,
-				  unsigned int sun)
+								  unsigned int sun)
 {
 	struct slot *slot;
 	int retval = -ENOMEM;
 	char name[SLOT_NAME_SIZE];
 
 	slot = kzalloc(sizeof(*slot), GFP_KERNEL);
+
 	if (!slot)
+	{
 		goto error;
+	}
 
 	slot->hotplug_slot = kzalloc(sizeof(*slot->hotplug_slot), GFP_KERNEL);
+
 	if (!slot->hotplug_slot)
+	{
 		goto error_slot;
+	}
 
 	slot->hotplug_slot->info = &slot->info;
 
@@ -315,10 +336,15 @@ int acpiphp_register_hotplug_slot(struct acpiphp_slot *acpiphp_slot,
 	snprintf(name, SLOT_NAME_SIZE, "%u", sun);
 
 	retval = pci_hp_register(slot->hotplug_slot, acpiphp_slot->bus,
-				 acpiphp_slot->device, name);
+							 acpiphp_slot->device, name);
+
 	if (retval == -EBUSY)
+	{
 		goto error_hpslot;
-	if (retval) {
+	}
+
+	if (retval)
+	{
 		pr_err("pci_hp_register failed with error %d\n", retval);
 		goto error_hpslot;
 	}
@@ -343,14 +369,17 @@ void acpiphp_unregister_hotplug_slot(struct acpiphp_slot *acpiphp_slot)
 	pr_info("Slot [%s] unregistered\n", slot_name(slot));
 
 	retval = pci_hp_deregister(slot->hotplug_slot);
+
 	if (retval)
+	{
 		pr_err("pci_hp_deregister failed with error %d\n", retval);
+	}
 }
 
 
 void __init acpiphp_init(void)
 {
 	pr_info(DRIVER_DESC " version: " DRIVER_VERSION "%s\n",
-		acpiphp_disabled ? ", disabled by user; please report a bug"
-				 : "");
+			acpiphp_disabled ? ", disabled by user; please report a bug"
+			: "");
 }

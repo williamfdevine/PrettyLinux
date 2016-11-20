@@ -10,9 +10,9 @@
 #include <linux/pm_runtime.h>
 
 #ifdef CONFIG_SPARSE_IRQ
-# define IRQ_BITMAP_BITS	(NR_IRQS + 8196)
+	#define IRQ_BITMAP_BITS	(NR_IRQS + 8196)
 #else
-# define IRQ_BITMAP_BITS	NR_IRQS
+	#define IRQ_BITMAP_BITS	NR_IRQS
 #endif
 
 #define istate core_internal_state__do_not_mess_with_it
@@ -28,7 +28,8 @@ extern struct irqaction chained_action;
  * IRQTF_AFFINITY  - irq thread is requested to adjust affinity
  * IRQTF_FORCED_THREAD  - irq action is force threaded
  */
-enum {
+enum
+{
 	IRQTF_RUNTHREAD,
 	IRQTF_WARNED,
 	IRQTF_AFFINITY,
@@ -48,7 +49,8 @@ enum {
  * IRQS_PENDING			- irq is pending and replayed later
  * IRQS_SUSPENDED		- irq is suspended
  */
-enum {
+enum
+{
 	IRQS_AUTODETECT		= 0x00000001,
 	IRQS_SPURIOUS_DISABLED	= 0x00000002,
 	IRQS_POLL_INPROGRESS	= 0x00000008,
@@ -102,9 +104,9 @@ extern void unregister_handler_proc(unsigned int irq, struct irqaction *action);
 static inline void register_irq_proc(unsigned int irq, struct irq_desc *desc) { }
 static inline void unregister_irq_proc(unsigned int irq, struct irq_desc *desc) { }
 static inline void register_handler_proc(unsigned int irq,
-					 struct irqaction *action) { }
+		struct irqaction *action) { }
 static inline void unregister_handler_proc(unsigned int irq,
-					   struct irqaction *action) { }
+		struct irqaction *action) { }
 #endif
 
 extern bool irq_can_set_affinity_usr(unsigned int irq);
@@ -114,19 +116,23 @@ extern int irq_select_affinity_usr(unsigned int irq, struct cpumask *mask);
 extern void irq_set_thread_affinity(struct irq_desc *desc);
 
 extern int irq_do_set_affinity(struct irq_data *data,
-			       const struct cpumask *dest, bool force);
+							   const struct cpumask *dest, bool force);
 
 /* Inline functions for support of irq chips on slow busses */
 static inline void chip_bus_lock(struct irq_desc *desc)
 {
 	if (unlikely(desc->irq_data.chip->irq_bus_lock))
+	{
 		desc->irq_data.chip->irq_bus_lock(&desc->irq_data);
+	}
 }
 
 static inline void chip_bus_sync_unlock(struct irq_desc *desc)
 {
 	if (unlikely(desc->irq_data.chip->irq_bus_sync_unlock))
+	{
 		desc->irq_data.chip->irq_bus_sync_unlock(&desc->irq_data);
+	}
 }
 
 #define _IRQ_DESC_CHECK		(1 << 0)
@@ -140,7 +146,7 @@ static inline void chip_bus_sync_unlock(struct irq_desc *desc)
 
 struct irq_desc *
 __irq_get_desc_lock(unsigned int irq, unsigned long *flags, bool bus,
-		    unsigned int check);
+					unsigned int check);
 void __irq_put_desc_unlock(struct irq_desc *desc, unsigned long flags, bool bus);
 
 static inline struct irq_desc *

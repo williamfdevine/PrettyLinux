@@ -23,7 +23,8 @@ static void sigint_handler(int signal)
 	child_should_exit = true;
 }
 
-struct sigaction sigint_action = {
+struct sigaction sigint_action =
+{
 	.sa_handler = sigint_handler,
 };
 
@@ -31,7 +32,8 @@ static int cycles_child(void)
 {
 	struct event event;
 
-	if (sigaction(SIGINT, &sigint_action, NULL)) {
+	if (sigaction(SIGINT, &sigint_action, NULL))
+	{
 		perror("sigaction");
 		return 1;
 	}
@@ -53,7 +55,8 @@ static int cycles_child(void)
 
 	mtspr(SPRN_PMC1, pmc_sample_period(sample_period));
 
-	while (!child_should_exit) {
+	while (!child_should_exit)
+	{
 		FAIL_IF(core_busy_loop());
 		FAIL_IF(ebb_check_mmcr0());
 	}
@@ -85,17 +88,23 @@ int multi_ebb_procs(void)
 	FAIL_IF(cpu < 0);
 	FAIL_IF(bind_to_cpu(cpu));
 
-	for (i = 0; i < NR_CHILDREN; i++) {
+	for (i = 0; i < NR_CHILDREN; i++)
+	{
 		pids[i] = fork();
+
 		if (pids[i] == 0)
+		{
 			exit(cycles_child());
+		}
 	}
 
 	/* Have them all run for "a while" */
 	sleep(10);
 
 	rc = 0;
-	for (i = 0; i < NR_CHILDREN; i++) {
+
+	for (i = 0; i < NR_CHILDREN; i++)
+	{
 		/* Tell them to stop */
 		kill(pids[i], SIGINT);
 		/* And wait */

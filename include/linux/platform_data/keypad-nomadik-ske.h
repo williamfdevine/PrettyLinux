@@ -37,7 +37,8 @@
  * @no_autorepeat: flag for auto repetition
  * @wakeup_enable: allow waking up the system
  */
-struct ske_keypad_platform_data {
+struct ske_keypad_platform_data
+{
 	int (*init)(void);
 	int (*exit)(void);
 	const struct matrix_keymap_data *keymap_data;

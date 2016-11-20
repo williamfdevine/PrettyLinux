@@ -13,7 +13,7 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
- 
+
 #ifndef __SOUND_AU88X0_H
 #define __SOUND_AU88X0_H
 
@@ -28,11 +28,11 @@
 #include <sound/tlv.h>
 
 #ifndef CHIP_AU8820
-#include "au88x0_eq.h"
-#include "au88x0_a3d.h"
+	#include "au88x0_eq.h"
+	#include "au88x0_a3d.h"
 #endif
 #ifndef CHIP_AU8810
-#include "au88x0_wt.h"
+	#include "au88x0_wt.h"
 #endif
 
 #define	hwread(x,y) readl((x)+(y))
@@ -86,8 +86,8 @@
 #define VORTEX_IS_QUAD(x) ((x)->isquad)
 /* Check if chip has bug. */
 #define IS_BAD_CHIP(x) (\
-	(x->rev == 0xfe && x->device == PCI_DEVICE_ID_AUREAL_VORTEX_2) || \
-	(x->rev == 0xfe && x->device == PCI_DEVICE_ID_AUREAL_ADVANTAGE))
+						(x->rev == 0xfe && x->device == PCI_DEVICE_ID_AUREAL_VORTEX_2) || \
+						(x->rev == 0xfe && x->device == PCI_DEVICE_ID_AUREAL_ADVANTAGE))
 
 
 /* PCM devices */
@@ -105,7 +105,8 @@
 #define NR_WTPB 0x20		/* WT channels per each bank. */
 #define NR_PCM	0x10
 
-struct pcm_vol {
+struct pcm_vol
+{
 	struct snd_kcontrol *kctl;
 	int active;
 	int dma;
@@ -114,7 +115,8 @@ struct pcm_vol {
 };
 
 /* Structs */
-typedef struct {
+typedef struct
+{
 	//int this_08;          /* Still unknown */
 	int fifo_enabled;	/* this_24 */
 	int fifo_status;	/* this_1c */
@@ -139,7 +141,8 @@ typedef struct {
 } stream_t;
 
 typedef struct snd_vortex vortex_t;
-struct snd_vortex {
+struct snd_vortex
+{
 	/* ALSA structs. */
 	struct snd_card *card;
 	struct snd_pcm *pcm[VORTEX_PCM_LAST];
@@ -197,97 +200,97 @@ struct snd_vortex {
 /* Functions. */
 
 /* SRC */
-static void vortex_adb_setsrc(vortex_t * vortex, int adbdma,
-			      unsigned int cvrt, int dir);
+static void vortex_adb_setsrc(vortex_t *vortex, int adbdma,
+							  unsigned int cvrt, int dir);
 
 /* DMA Engines. */
-static void vortex_adbdma_setbuffers(vortex_t * vortex, int adbdma,
-				     int size, int count);
-static void vortex_adbdma_setmode(vortex_t * vortex, int adbdma, int ie,
-				  int dir, int fmt, int d,
-				  u32 offset);
-static void vortex_adbdma_setstartbuffer(vortex_t * vortex, int adbdma, int sb);
+static void vortex_adbdma_setbuffers(vortex_t *vortex, int adbdma,
+									 int size, int count);
+static void vortex_adbdma_setmode(vortex_t *vortex, int adbdma, int ie,
+								  int dir, int fmt, int d,
+								  u32 offset);
+static void vortex_adbdma_setstartbuffer(vortex_t *vortex, int adbdma, int sb);
 #ifndef CHIP_AU8810
-static void vortex_wtdma_setbuffers(vortex_t * vortex, int wtdma,
-				    int size, int count);
-static void vortex_wtdma_setmode(vortex_t * vortex, int wtdma, int ie, int fmt, int d,	/*int e, */
-				 u32 offset);
-static void vortex_wtdma_setstartbuffer(vortex_t * vortex, int wtdma, int sb);
+static void vortex_wtdma_setbuffers(vortex_t *vortex, int wtdma,
+									int size, int count);
+static void vortex_wtdma_setmode(vortex_t *vortex, int wtdma, int ie, int fmt, int d,	/*int e, */
+								 u32 offset);
+static void vortex_wtdma_setstartbuffer(vortex_t *vortex, int wtdma, int sb);
 #endif
 
-static void vortex_adbdma_startfifo(vortex_t * vortex, int adbdma);
+static void vortex_adbdma_startfifo(vortex_t *vortex, int adbdma);
 //static void vortex_adbdma_stopfifo(vortex_t *vortex, int adbdma);
-static void vortex_adbdma_pausefifo(vortex_t * vortex, int adbdma);
-static void vortex_adbdma_resumefifo(vortex_t * vortex, int adbdma);
-static inline int vortex_adbdma_getlinearpos(vortex_t * vortex, int adbdma);
+static void vortex_adbdma_pausefifo(vortex_t *vortex, int adbdma);
+static void vortex_adbdma_resumefifo(vortex_t *vortex, int adbdma);
+static inline int vortex_adbdma_getlinearpos(vortex_t *vortex, int adbdma);
 static void vortex_adbdma_resetup(vortex_t *vortex, int adbdma);
 
 #ifndef CHIP_AU8810
-static void vortex_wtdma_startfifo(vortex_t * vortex, int wtdma);
-static void vortex_wtdma_stopfifo(vortex_t * vortex, int wtdma);
-static void vortex_wtdma_pausefifo(vortex_t * vortex, int wtdma);
-static void vortex_wtdma_resumefifo(vortex_t * vortex, int wtdma);
-static inline int vortex_wtdma_getlinearpos(vortex_t * vortex, int wtdma);
+	static void vortex_wtdma_startfifo(vortex_t *vortex, int wtdma);
+	static void vortex_wtdma_stopfifo(vortex_t *vortex, int wtdma);
+	static void vortex_wtdma_pausefifo(vortex_t *vortex, int wtdma);
+	static void vortex_wtdma_resumefifo(vortex_t *vortex, int wtdma);
+	static inline int vortex_wtdma_getlinearpos(vortex_t *vortex, int wtdma);
 #endif
 
 /* global stuff. */
-static void vortex_codec_init(vortex_t * vortex);
-static void vortex_codec_write(struct snd_ac97 * codec, unsigned short addr,
-			       unsigned short data);
-static unsigned short vortex_codec_read(struct snd_ac97 * codec, unsigned short addr);
-static void vortex_spdif_init(vortex_t * vortex, int spdif_sr, int spdif_mode);
+static void vortex_codec_init(vortex_t *vortex);
+static void vortex_codec_write(struct snd_ac97 *codec, unsigned short addr,
+							   unsigned short data);
+static unsigned short vortex_codec_read(struct snd_ac97 *codec, unsigned short addr);
+static void vortex_spdif_init(vortex_t *vortex, int spdif_sr, int spdif_mode);
 
-static int vortex_core_init(vortex_t * card);
-static int vortex_core_shutdown(vortex_t * card);
-static void vortex_enable_int(vortex_t * card);
+static int vortex_core_init(vortex_t *card);
+static int vortex_core_shutdown(vortex_t *card);
+static void vortex_enable_int(vortex_t *card);
 static irqreturn_t vortex_interrupt(int irq, void *dev_id);
 static int vortex_alsafmt_aspfmt(int alsafmt, vortex_t *v);
 
 /* Connection  stuff. */
-static void vortex_connect_default(vortex_t * vortex, int en);
-static int vortex_adb_allocroute(vortex_t * vortex, int dma, int nr_ch,
-				 int dir, int type, int subdev);
-static char vortex_adb_checkinout(vortex_t * vortex, int resmap[], int out,
-				  int restype);
+static void vortex_connect_default(vortex_t *vortex, int en);
+static int vortex_adb_allocroute(vortex_t *vortex, int dma, int nr_ch,
+								 int dir, int type, int subdev);
+static char vortex_adb_checkinout(vortex_t *vortex, int resmap[], int out,
+								  int restype);
 #ifndef CHIP_AU8810
-static int vortex_wt_allocroute(vortex_t * vortex, int dma, int nr_ch);
-static void vortex_wt_connect(vortex_t * vortex, int en);
-static void vortex_wt_init(vortex_t * vortex);
+	static int vortex_wt_allocroute(vortex_t *vortex, int dma, int nr_ch);
+	static void vortex_wt_connect(vortex_t *vortex, int en);
+	static void vortex_wt_init(vortex_t *vortex);
 #endif
 
-static void vortex_route(vortex_t * vortex, int en, unsigned char channel,
-			 unsigned char source, unsigned char dest);
+static void vortex_route(vortex_t *vortex, int en, unsigned char channel,
+						 unsigned char source, unsigned char dest);
 #if 0
-static void vortex_routes(vortex_t * vortex, int en, unsigned char channel,
-			  unsigned char source, unsigned char dest0,
-			  unsigned char dest1);
+static void vortex_routes(vortex_t *vortex, int en, unsigned char channel,
+						  unsigned char source, unsigned char dest0,
+						  unsigned char dest1);
 #endif
-static void vortex_connection_mixin_mix(vortex_t * vortex, int en,
-					unsigned char mixin,
-					unsigned char mix, int a);
-static void vortex_mix_setinputvolumebyte(vortex_t * vortex,
-					  unsigned char mix, int mixin,
-					  unsigned char vol);
-static void vortex_mix_setvolumebyte(vortex_t * vortex, unsigned char mix,
-				     unsigned char vol);
+static void vortex_connection_mixin_mix(vortex_t *vortex, int en,
+										unsigned char mixin,
+										unsigned char mix, int a);
+static void vortex_mix_setinputvolumebyte(vortex_t *vortex,
+		unsigned char mix, int mixin,
+		unsigned char vol);
+static void vortex_mix_setvolumebyte(vortex_t *vortex, unsigned char mix,
+									 unsigned char vol);
 
 /* A3D functions. */
 #ifndef CHIP_AU8820
-static void vortex_Vort3D_enable(vortex_t * v);
-static void vortex_Vort3D_disable(vortex_t * v);
-static void vortex_Vort3D_connect(vortex_t * vortex, int en);
-static void vortex_Vort3D_InitializeSource(a3dsrc_t *a, int en, vortex_t *v);
+	static void vortex_Vort3D_enable(vortex_t *v);
+	static void vortex_Vort3D_disable(vortex_t *v);
+	static void vortex_Vort3D_connect(vortex_t *vortex, int en);
+	static void vortex_Vort3D_InitializeSource(a3dsrc_t *a, int en, vortex_t *v);
 #endif
 
 /* Driver stuff. */
-static int vortex_gameport_register(vortex_t * card);
-static void vortex_gameport_unregister(vortex_t * card);
+static int vortex_gameport_register(vortex_t *card);
+static void vortex_gameport_unregister(vortex_t *card);
 #ifndef CHIP_AU8820
-static int vortex_eq_init(vortex_t * vortex);
-static int vortex_eq_free(vortex_t * vortex);
+	static int vortex_eq_init(vortex_t *vortex);
+	static int vortex_eq_free(vortex_t *vortex);
 #endif
 /* ALSA stuff. */
-static int snd_vortex_new_pcm(vortex_t * vortex, int idx, int nr);
-static int snd_vortex_mixer(vortex_t * vortex);
-static int snd_vortex_midi(vortex_t * vortex);
+static int snd_vortex_new_pcm(vortex_t *vortex, int idx, int nr);
+static int snd_vortex_mixer(vortex_t *vortex);
+static int snd_vortex_midi(vortex_t *vortex);
 #endif

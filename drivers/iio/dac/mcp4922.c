@@ -28,13 +28,15 @@
 
 #define MCP4922_NUM_CHANNELS	2
 
-enum mcp4922_supported_device_ids {
+enum mcp4922_supported_device_ids
+{
 	ID_MCP4902,
 	ID_MCP4912,
 	ID_MCP4922,
 };
 
-struct mcp4922_state {
+struct mcp4922_state
+{
 	struct spi_device *spi;
 	unsigned int value[MCP4922_NUM_CHANNELS];
 	unsigned int vref_mv;
@@ -43,19 +45,19 @@ struct mcp4922_state {
 };
 
 #define MCP4922_CHAN(chan, bits) {			\
-	.type = IIO_VOLTAGE,				\
-	.output = 1,					\
-	.indexed = 1,					\
-	.channel = chan,				\
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),	\
-	.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
-	.scan_type = {					\
-		.sign = 'u',				\
-		.realbits = (bits),			\
-		.storagebits = 16,			\
-		.shift = 12 - (bits),			\
-	},						\
-}
+		.type = IIO_VOLTAGE,				\
+				.output = 1,					\
+						  .indexed = 1,					\
+									 .channel = chan,				\
+												.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),	\
+														.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
+																.scan_type = {					\
+																								.sign = 'u',				\
+																								.realbits = (bits),			\
+																								.storagebits = 16,			\
+																								.shift = 12 - (bits),			\
+																			 },						\
+	}
 
 static int mcp4922_spi_write(struct mcp4922_state *state, u8 addr, u32 val)
 {
@@ -67,56 +69,68 @@ static int mcp4922_spi_write(struct mcp4922_state *state, u8 addr, u32 val)
 }
 
 static int mcp4922_read_raw(struct iio_dev *indio_dev,
-		struct iio_chan_spec const *chan,
-		int *val,
-		int *val2,
-		long mask)
+							struct iio_chan_spec const *chan,
+							int *val,
+							int *val2,
+							long mask)
 {
 	struct mcp4922_state *state = iio_priv(indio_dev);
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		*val = state->value[chan->channel];
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_SCALE:
-		*val = state->vref_mv;
-		*val2 = chan->scan_type.realbits;
-		return IIO_VAL_FRACTIONAL_LOG2;
-	default:
-		return -EINVAL;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			*val = state->value[chan->channel];
+			return IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_SCALE:
+			*val = state->vref_mv;
+			*val2 = chan->scan_type.realbits;
+			return IIO_VAL_FRACTIONAL_LOG2;
+
+		default:
+			return -EINVAL;
 	}
 }
 
 static int mcp4922_write_raw(struct iio_dev *indio_dev,
-		struct iio_chan_spec const *chan,
-		int val,
-		int val2,
-		long mask)
+							 struct iio_chan_spec const *chan,
+							 int val,
+							 int val2,
+							 long mask)
 {
 	struct mcp4922_state *state = iio_priv(indio_dev);
 
 	if (val2 != 0)
+	{
 		return -EINVAL;
+	}
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		if (val > GENMASK(chan->scan_type.realbits-1, 0))
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			if (val > GENMASK(chan->scan_type.realbits - 1, 0))
+			{
+				return -EINVAL;
+			}
+
+			val <<= chan->scan_type.shift;
+			state->value[chan->channel] = val;
+			return mcp4922_spi_write(state, chan->channel, val);
+
+		default:
 			return -EINVAL;
-		val <<= chan->scan_type.shift;
-		state->value[chan->channel] = val;
-		return mcp4922_spi_write(state, chan->channel, val);
-	default:
-		return -EINVAL;
 	}
 }
 
-static const struct iio_chan_spec mcp4922_channels[3][MCP4922_NUM_CHANNELS] = {
+static const struct iio_chan_spec mcp4922_channels[3][MCP4922_NUM_CHANNELS] =
+{
 	[ID_MCP4902] = { MCP4922_CHAN(0, 8),	MCP4922_CHAN(1, 8) },
 	[ID_MCP4912] = { MCP4922_CHAN(0, 10),	MCP4922_CHAN(1, 10) },
 	[ID_MCP4922] = { MCP4922_CHAN(0, 12),	MCP4922_CHAN(1, 12) },
 };
 
-static const struct iio_info mcp4922_info = {
+static const struct iio_info mcp4922_info =
+{
 	.read_raw = &mcp4922_read_raw,
 	.write_raw = &mcp4922_write_raw,
 	.driver_module = THIS_MODULE,
@@ -130,30 +144,40 @@ static int mcp4922_probe(struct spi_device *spi)
 	int ret;
 
 	indio_dev = devm_iio_device_alloc(&spi->dev, sizeof(*state));
+
 	if (indio_dev == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	state = iio_priv(indio_dev);
 	state->spi = spi;
 	state->vref_reg = devm_regulator_get(&spi->dev, "vref");
-	if (IS_ERR(state->vref_reg)) {
+
+	if (IS_ERR(state->vref_reg))
+	{
 		dev_err(&spi->dev, "Vref regulator not specified\n");
 		return PTR_ERR(state->vref_reg);
 	}
 
 	ret = regulator_enable(state->vref_reg);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&spi->dev, "Failed to enable vref regulator: %d\n",
 				ret);
 		return ret;
 	}
 
 	ret = regulator_get_voltage(state->vref_reg);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&spi->dev, "Failed to read vref regulator: %d\n",
 				ret);
 		goto error_disable_reg;
 	}
+
 	state->vref_mv = ret / 1000;
 
 	spi_set_drvdata(spi, indio_dev);
@@ -166,7 +190,9 @@ static int mcp4922_probe(struct spi_device *spi)
 	indio_dev->name = id->name;
 
 	ret = iio_device_register(indio_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&spi->dev, "Failed to register iio device: %d\n",
 				ret);
 		goto error_disable_reg;
@@ -192,7 +218,8 @@ static int mcp4922_remove(struct spi_device *spi)
 	return 0;
 }
 
-static const struct spi_device_id mcp4922_id[] = {
+static const struct spi_device_id mcp4922_id[] =
+{
 	{"mcp4902", ID_MCP4902},
 	{"mcp4912", ID_MCP4912},
 	{"mcp4922", ID_MCP4922},
@@ -200,10 +227,11 @@ static const struct spi_device_id mcp4922_id[] = {
 };
 MODULE_DEVICE_TABLE(spi, mcp4922_id);
 
-static struct spi_driver mcp4922_driver = {
+static struct spi_driver mcp4922_driver =
+{
 	.driver = {
-		   .name = "mcp4922",
-		   },
+		.name = "mcp4922",
+	},
 	.probe = mcp4922_probe,
 	.remove = mcp4922_remove,
 	.id_table = mcp4922_id,

@@ -49,7 +49,8 @@ static int ucb1400_gpio_probe(struct platform_device *dev)
 	struct ucb1400_gpio *ucb = dev_get_platdata(&dev->dev);
 	int err = 0;
 
-	if (!(ucb && ucb->gpio_offset)) {
+	if (!(ucb && ucb->gpio_offset))
+	{
 		err = -EINVAL;
 		goto err;
 	}
@@ -68,11 +69,16 @@ static int ucb1400_gpio_probe(struct platform_device *dev)
 	ucb->gc.can_sleep = true;
 
 	err = devm_gpiochip_add_data(&dev->dev, &ucb->gc, ucb);
+
 	if (err)
+	{
 		goto err;
+	}
 
 	if (ucb->gpio_setup)
+	{
 		err = ucb->gpio_setup(&dev->dev, ucb->gc.ngpio);
+	}
 
 err:
 	return err;
@@ -84,16 +90,21 @@ static int ucb1400_gpio_remove(struct platform_device *dev)
 	int err = 0;
 	struct ucb1400_gpio *ucb = platform_get_drvdata(dev);
 
-	if (ucb && ucb->gpio_teardown) {
+	if (ucb && ucb->gpio_teardown)
+	{
 		err = ucb->gpio_teardown(&dev->dev, ucb->gc.ngpio);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	return err;
 }
 
-static struct platform_driver ucb1400_gpio_driver = {
+static struct platform_driver ucb1400_gpio_driver =
+{
 	.probe	= ucb1400_gpio_probe,
 	.remove	= ucb1400_gpio_remove,
 	.driver	= {

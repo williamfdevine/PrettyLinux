@@ -19,7 +19,8 @@
 /*
  * Enumeration of data inputs to the camera subsystem.
  */
-enum fimc_input {
+enum fimc_input
+{
 	FIMC_INPUT_PARALLEL_0	= 1,
 	FIMC_INPUT_PARALLEL_1,
 	FIMC_INPUT_MIPI_CSI2_0	= 3,
@@ -32,7 +33,8 @@ enum fimc_input {
 /*
  * Enumeration of the FIMC data bus types.
  */
-enum fimc_bus_type {
+enum fimc_bus_type
+{
 	/* Camera parallel bus */
 	FIMC_BUS_TYPE_ITU_601 = 1,
 	/* Camera parallel bus with embedded synchronization */
@@ -70,7 +72,8 @@ enum fimc_bus_type {
  * @flags: the parallel sensor bus flags defining signals polarity (V4L2_MBUS_*)
  * @mux_id: FIMC camera interface multiplexer index (separate for MIPI and ITU)
  */
-struct fimc_source_info {
+struct fimc_source_info
+{
 	enum fimc_bus_type fimc_bus_type;
 	enum fimc_bus_type sensor_bus_type;
 	u16 flags;
@@ -100,7 +103,8 @@ struct fimc_source_info {
  * @mdataplanes: bitmask indicating meta data plane(s), (1 << plane_no)
  * @flags: flags indicating which operation mode format applies to
  */
-struct fimc_fmt {
+struct fimc_fmt
+{
 	u32 mbus_code;
 	char	*name;
 	u32	fourcc;
@@ -128,34 +132,37 @@ struct exynos_media_pipeline;
  * Media pipeline operations to be called from within a video node,  i.e. the
  * last entity within the pipeline. Implemented by related media device driver.
  */
-struct exynos_media_pipeline_ops {
+struct exynos_media_pipeline_ops
+{
 	int (*prepare)(struct exynos_media_pipeline *p,
-						struct media_entity *me);
+				   struct media_entity *me);
 	int (*unprepare)(struct exynos_media_pipeline *p);
 	int (*open)(struct exynos_media_pipeline *p, struct media_entity *me,
-							bool resume);
+				bool resume);
 	int (*close)(struct exynos_media_pipeline *p);
 	int (*set_stream)(struct exynos_media_pipeline *p, bool state);
 };
 
-struct exynos_video_entity {
+struct exynos_video_entity
+{
 	struct video_device vdev;
 	struct exynos_media_pipeline *pipe;
 };
 
-struct exynos_media_pipeline {
+struct exynos_media_pipeline
+{
 	struct media_pipeline mp;
 	const struct exynos_media_pipeline_ops *ops;
 };
 
 static inline struct exynos_video_entity *vdev_to_exynos_video_entity(
-					struct video_device *vdev)
+	struct video_device *vdev)
 {
 	return container_of(vdev, struct exynos_video_entity, vdev);
 }
 
 #define fimc_pipeline_call(ent, op, args...)				  \
 	(!(ent) ? -ENOENT : (((ent)->pipe->ops && (ent)->pipe->ops->op) ? \
-	(ent)->pipe->ops->op(((ent)->pipe), ##args) : -ENOIOCTLCMD))	  \
+						 (ent)->pipe->ops->op(((ent)->pipe), ##args) : -ENOIOCTLCMD))	  \
 
 #endif /* S5P_FIMC_H_ */

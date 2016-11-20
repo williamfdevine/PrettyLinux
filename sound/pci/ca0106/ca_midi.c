@@ -1,4 +1,4 @@
-/* 
+/*
  *  Copyright 10/16/2005 Tilman Kranz <tilde@tk-sls.de>
  *  Creative Audio MIDI, for the CA0106 Driver
  *  Version: 0.0.1
@@ -42,12 +42,18 @@
 static void ca_midi_clear_rx(struct snd_ca_midi *midi)
 {
 	int timeout = 100000;
+
 	for (; timeout > 0 && ca_midi_input_avail(midi); timeout--)
+	{
 		ca_midi_read_data(midi);
+	}
+
 #ifdef CONFIG_SND_DEBUG
+
 	if (timeout <= 0)
 		pr_err("ca_midi_clear_rx: timeout (status = 0x%x)\n",
 			   ca_midi_read_stat(midi));
+
 #endif
 }
 
@@ -55,34 +61,50 @@ static void ca_midi_interrupt(struct snd_ca_midi *midi, unsigned int status)
 {
 	unsigned char byte;
 
-	if (midi->rmidi == NULL) {
-		midi->interrupt_disable(midi,midi->tx_enable | midi->rx_enable);
+	if (midi->rmidi == NULL)
+	{
+		midi->interrupt_disable(midi, midi->tx_enable | midi->rx_enable);
 		return;
 	}
 
 	spin_lock(&midi->input_lock);
-	if ((status & midi->ipr_rx) && ca_midi_input_avail(midi)) {
-		if (!(midi->midi_mode & CA_MIDI_MODE_INPUT)) {
+
+	if ((status & midi->ipr_rx) && ca_midi_input_avail(midi))
+	{
+		if (!(midi->midi_mode & CA_MIDI_MODE_INPUT))
+		{
 			ca_midi_clear_rx(midi);
-		} else {
+		}
+		else
+		{
 			byte = ca_midi_read_data(midi);
-			if(midi->substream_input)
+
+			if (midi->substream_input)
+			{
 				snd_rawmidi_receive(midi->substream_input, &byte, 1);
+			}
 
 
 		}
 	}
+
 	spin_unlock(&midi->input_lock);
 
 	spin_lock(&midi->output_lock);
-	if ((status & midi->ipr_tx) && ca_midi_output_ready(midi)) {
+
+	if ((status & midi->ipr_tx) && ca_midi_output_ready(midi))
+	{
 		if (midi->substream_output &&
-		    snd_rawmidi_transmit(midi->substream_output, &byte, 1) == 1) {
+			snd_rawmidi_transmit(midi->substream_output, &byte, 1) == 1)
+		{
 			ca_midi_write_data(midi, byte);
-		} else {
-			midi->interrupt_disable(midi,midi->tx_enable);
+		}
+		else
+		{
+			midi->interrupt_disable(midi, midi->tx_enable);
 		}
 	}
+
 	spin_unlock(&midi->output_lock);
 
 }
@@ -97,21 +119,35 @@ static void ca_midi_cmd(struct snd_ca_midi *midi, unsigned char cmd, int ack)
 	/* ca_midi_clear_rx(midi); */
 
 	ca_midi_write_cmd(midi, cmd);
-	if (ack) {
+
+	if (ack)
+	{
 		ok = 0;
 		timeout = 10000;
-		while (!ok && timeout-- > 0) {
-			if (ca_midi_input_avail(midi)) {
+
+		while (!ok && timeout-- > 0)
+		{
+			if (ca_midi_input_avail(midi))
+			{
 				if (ca_midi_read_data(midi) == midi->ack)
+				{
 					ok = 1;
+				}
 			}
 		}
+
 		if (!ok && ca_midi_read_data(midi) == midi->ack)
+		{
 			ok = 1;
-	} else {
+		}
+	}
+	else
+	{
 		ok = 1;
 	}
+
 	spin_unlock_irqrestore(&midi->input_lock, flags);
+
 	if (!ok)
 		pr_err("ca_midi_cmd: 0x%x failed at 0x%x (status = 0x%x, data = 0x%x)!!!\n",
 			   cmd,
@@ -124,19 +160,27 @@ static int ca_midi_input_open(struct snd_rawmidi_substream *substream)
 {
 	struct snd_ca_midi *midi = substream->rmidi->private_data;
 	unsigned long flags;
-	
+
 	if (snd_BUG_ON(!midi->dev_id))
+	{
 		return -ENXIO;
+	}
+
 	spin_lock_irqsave(&midi->open_lock, flags);
 	midi->midi_mode |= CA_MIDI_MODE_INPUT;
 	midi->substream_input = substream;
-	if (!(midi->midi_mode & CA_MIDI_MODE_OUTPUT)) {
+
+	if (!(midi->midi_mode & CA_MIDI_MODE_OUTPUT))
+	{
 		spin_unlock_irqrestore(&midi->open_lock, flags);
 		ca_midi_cmd(midi, midi->reset, 1);
 		ca_midi_cmd(midi, midi->enter_uart, 1);
-	} else {
+	}
+	else
+	{
 		spin_unlock_irqrestore(&midi->open_lock, flags);
 	}
+
 	return 0;
 }
 
@@ -146,17 +190,25 @@ static int ca_midi_output_open(struct snd_rawmidi_substream *substream)
 	unsigned long flags;
 
 	if (snd_BUG_ON(!midi->dev_id))
+	{
 		return -ENXIO;
+	}
+
 	spin_lock_irqsave(&midi->open_lock, flags);
 	midi->midi_mode |= CA_MIDI_MODE_OUTPUT;
 	midi->substream_output = substream;
-	if (!(midi->midi_mode & CA_MIDI_MODE_INPUT)) {
+
+	if (!(midi->midi_mode & CA_MIDI_MODE_INPUT))
+	{
 		spin_unlock_irqrestore(&midi->open_lock, flags);
 		ca_midi_cmd(midi, midi->reset, 1);
 		ca_midi_cmd(midi, midi->enter_uart, 1);
-	} else {
+	}
+	else
+	{
 		spin_unlock_irqrestore(&midi->open_lock, flags);
 	}
+
 	return 0;
 }
 
@@ -166,17 +218,25 @@ static int ca_midi_input_close(struct snd_rawmidi_substream *substream)
 	unsigned long flags;
 
 	if (snd_BUG_ON(!midi->dev_id))
+	{
 		return -ENXIO;
+	}
+
 	spin_lock_irqsave(&midi->open_lock, flags);
-	midi->interrupt_disable(midi,midi->rx_enable);
+	midi->interrupt_disable(midi, midi->rx_enable);
 	midi->midi_mode &= ~CA_MIDI_MODE_INPUT;
 	midi->substream_input = NULL;
-	if (!(midi->midi_mode & CA_MIDI_MODE_OUTPUT)) {
+
+	if (!(midi->midi_mode & CA_MIDI_MODE_OUTPUT))
+	{
 		spin_unlock_irqrestore(&midi->open_lock, flags);
 		ca_midi_cmd(midi, midi->reset, 0);
-	} else {
+	}
+	else
+	{
 		spin_unlock_irqrestore(&midi->open_lock, flags);
 	}
+
 	return 0;
 }
 
@@ -186,20 +246,26 @@ static int ca_midi_output_close(struct snd_rawmidi_substream *substream)
 	unsigned long flags;
 
 	if (snd_BUG_ON(!midi->dev_id))
+	{
 		return -ENXIO;
-	
+	}
+
 	spin_lock_irqsave(&midi->open_lock, flags);
 
-	midi->interrupt_disable(midi,midi->tx_enable);
+	midi->interrupt_disable(midi, midi->tx_enable);
 	midi->midi_mode &= ~CA_MIDI_MODE_OUTPUT;
 	midi->substream_output = NULL;
-	
-	if (!(midi->midi_mode & CA_MIDI_MODE_INPUT)) {
+
+	if (!(midi->midi_mode & CA_MIDI_MODE_INPUT))
+	{
 		spin_unlock_irqrestore(&midi->open_lock, flags);
 		ca_midi_cmd(midi, midi->reset, 0);
-	} else {
+	}
+	else
+	{
 		spin_unlock_irqrestore(&midi->open_lock, flags);
 	}
+
 	return 0;
 }
 
@@ -208,11 +274,16 @@ static void ca_midi_input_trigger(struct snd_rawmidi_substream *substream, int u
 	struct snd_ca_midi *midi = substream->rmidi->private_data;
 
 	if (snd_BUG_ON(!midi->dev_id))
+	{
 		return;
+	}
 
-	if (up) {
-		midi->interrupt_enable(midi,midi->rx_enable);
-	} else {
+	if (up)
+	{
+		midi->interrupt_enable(midi, midi->rx_enable);
+	}
+	else
+	{
 		midi->interrupt_disable(midi, midi->rx_enable);
 	}
 }
@@ -223,35 +294,46 @@ static void ca_midi_output_trigger(struct snd_rawmidi_substream *substream, int 
 	unsigned long flags;
 
 	if (snd_BUG_ON(!midi->dev_id))
+	{
 		return;
+	}
 
-	if (up) {
+	if (up)
+	{
 		int max = 4;
 		unsigned char byte;
 
 		spin_lock_irqsave(&midi->output_lock, flags);
-	
+
 		/* try to send some amount of bytes here before interrupts */
-		while (max > 0) {
-			if (ca_midi_output_ready(midi)) {
+		while (max > 0)
+		{
+			if (ca_midi_output_ready(midi))
+			{
 				if (!(midi->midi_mode & CA_MIDI_MODE_OUTPUT) ||
-				    snd_rawmidi_transmit(substream, &byte, 1) != 1) {
+					snd_rawmidi_transmit(substream, &byte, 1) != 1)
+				{
 					/* no more data */
 					spin_unlock_irqrestore(&midi->output_lock, flags);
 					return;
 				}
+
 				ca_midi_write_data(midi, byte);
 				max--;
-			} else {
+			}
+			else
+			{
 				break;
 			}
 		}
 
 		spin_unlock_irqrestore(&midi->output_lock, flags);
-		midi->interrupt_enable(midi,midi->tx_enable);
+		midi->interrupt_enable(midi, midi->tx_enable);
 
-	} else {
-		midi->interrupt_disable(midi,midi->tx_enable);
+	}
+	else
+	{
+		midi->interrupt_disable(midi, midi->tx_enable);
 	}
 }
 
@@ -292,7 +374,9 @@ int ca_midi_init(void *dev_id, struct snd_ca_midi *midi, int device, char *name)
 	int err;
 
 	if ((err = snd_rawmidi_new(midi->get_dev_id_card(midi->dev_id), name, device, 1, 1, &rmidi)) < 0)
+	{
 		return err;
+	}
 
 	midi->dev_id = dev_id;
 	midi->interrupt = ca_midi_interrupt;
@@ -305,11 +389,11 @@ int ca_midi_init(void *dev_id, struct snd_ca_midi *midi, int device, char *name)
 	snd_rawmidi_set_ops(rmidi, SNDRV_RAWMIDI_STREAM_OUTPUT, &ca_midi_output);
 	snd_rawmidi_set_ops(rmidi, SNDRV_RAWMIDI_STREAM_INPUT, &ca_midi_input);
 	rmidi->info_flags |= SNDRV_RAWMIDI_INFO_OUTPUT |
-	                     SNDRV_RAWMIDI_INFO_INPUT |
-	                     SNDRV_RAWMIDI_INFO_DUPLEX;
+						 SNDRV_RAWMIDI_INFO_INPUT |
+						 SNDRV_RAWMIDI_INFO_DUPLEX;
 	rmidi->private_data = midi;
 	rmidi->private_free = ca_rmidi_free;
-	
+
 	midi->rmidi = rmidi;
 	return 0;
 }

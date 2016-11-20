@@ -27,12 +27,14 @@
  *	Returns 1 if caller should call inet_twsk_put() after lock release.
  */
 void inet_twsk_bind_unhash(struct inet_timewait_sock *tw,
-			  struct inet_hashinfo *hashinfo)
+						   struct inet_hashinfo *hashinfo)
 {
 	struct inet_bind_bucket *tb = tw->tw_tb;
 
 	if (!tb)
+	{
 		return;
+	}
 
 	__hlist_del(&tw->tw_bind_node);
 	tw->tw_tb = NULL;
@@ -53,7 +55,7 @@ static void inet_twsk_kill(struct inet_timewait_sock *tw)
 
 	/* Disassociate with bind bucket. */
 	bhead = &hashinfo->bhash[inet_bhashfn(twsk_net(tw), tw->tw_num,
-			hashinfo->bhash_size)];
+										  hashinfo->bhash_size)];
 
 	spin_lock(&bhead->lock);
 	inet_twsk_bind_unhash(tw, hashinfo);
@@ -77,18 +79,20 @@ void inet_twsk_free(struct inet_timewait_sock *tw)
 void inet_twsk_put(struct inet_timewait_sock *tw)
 {
 	if (atomic_dec_and_test(&tw->tw_refcnt))
+	{
 		inet_twsk_free(tw);
+	}
 }
 EXPORT_SYMBOL_GPL(inet_twsk_put);
 
 static void inet_twsk_add_node_rcu(struct inet_timewait_sock *tw,
-				   struct hlist_nulls_head *list)
+								   struct hlist_nulls_head *list)
 {
 	hlist_nulls_add_head_rcu(&tw->tw_node, list);
 }
 
 static void inet_twsk_add_bind_node(struct inet_timewait_sock *tw,
-				    struct hlist_head *list)
+									struct hlist_head *list)
 {
 	hlist_add_head(&tw->tw_bind_node, list);
 }
@@ -99,7 +103,7 @@ static void inet_twsk_add_bind_node(struct inet_timewait_sock *tw,
  * from the SK, and mess with hash chains and list linkage.
  */
 void __inet_twsk_hashdance(struct inet_timewait_sock *tw, struct sock *sk,
-			   struct inet_hashinfo *hashinfo)
+						   struct inet_hashinfo *hashinfo)
 {
 	const struct inet_sock *inet = inet_sk(sk);
 	const struct inet_connection_sock *icsk = inet_csk(sk);
@@ -111,7 +115,7 @@ void __inet_twsk_hashdance(struct inet_timewait_sock *tw, struct sock *sk,
 	   binding cache, even if it is closed.
 	 */
 	bhead = &hashinfo->bhash[inet_bhashfn(twsk_net(tw), inet->inet_num,
-			hashinfo->bhash_size)];
+										  hashinfo->bhash_size)];
 	spin_lock_bh(&bhead->lock);
 	tw->tw_tb = icsk->icsk_bind_hash;
 	WARN_ON(!icsk->icsk_bind_hash);
@@ -136,7 +140,9 @@ void __inet_twsk_hashdance(struct inet_timewait_sock *tw, struct sock *sk,
 
 	/* Step 3: Remove SK from hash chain */
 	if (__sk_nulls_del_node_init_rcu(sk))
+	{
 		sock_prot_inuse_add(sock_net(sk), sk->sk_prot, -1);
+	}
 
 	spin_unlock_bh(lock);
 }
@@ -147,24 +153,33 @@ static void tw_timer_handler(unsigned long data)
 	struct inet_timewait_sock *tw = (struct inet_timewait_sock *)data;
 
 	if (tw->tw_kill)
+	{
 		__NET_INC_STATS(twsk_net(tw), LINUX_MIB_TIMEWAITKILLED);
+	}
 	else
+	{
 		__NET_INC_STATS(twsk_net(tw), LINUX_MIB_TIMEWAITED);
+	}
+
 	inet_twsk_kill(tw);
 }
 
 struct inet_timewait_sock *inet_twsk_alloc(const struct sock *sk,
-					   struct inet_timewait_death_row *dr,
-					   const int state)
+		struct inet_timewait_death_row *dr,
+		const int state)
 {
 	struct inet_timewait_sock *tw;
 
 	if (atomic_read(&dr->tw_count) >= dr->sysctl_max_tw_buckets)
+	{
 		return NULL;
+	}
 
 	tw = kmem_cache_alloc(sk->sk_prot_creator->twsk_prot->twsk_slab,
-			      GFP_ATOMIC);
-	if (tw) {
+						  GFP_ATOMIC);
+
+	if (tw)
+	{
 		const struct inet_sock *inet = inet_sk(sk);
 
 		kmemcheck_annotate_bitfield(tw, flags);
@@ -189,7 +204,7 @@ struct inet_timewait_sock *inet_twsk_alloc(const struct sock *sk,
 		atomic64_set(&tw->tw_cookie, atomic64_read(&sk->sk_cookie));
 		twsk_net_set(tw, sock_net(sk));
 		setup_pinned_timer(&tw->tw_timer, tw_timer_handler,
-				   (unsigned long)tw);
+						   (unsigned long)tw);
 		/*
 		 * Because we use RCU lookups, we should not set tw_refcnt
 		 * to a non null value before everything is setup for this
@@ -215,7 +230,10 @@ EXPORT_SYMBOL_GPL(inet_twsk_alloc);
 void inet_twsk_deschedule_put(struct inet_timewait_sock *tw)
 {
 	if (del_timer_sync(&tw->tw_timer))
+	{
 		inet_twsk_kill(tw);
+	}
+
 	inet_twsk_put(tw);
 }
 EXPORT_SYMBOL(inet_twsk_deschedule_put);
@@ -247,43 +265,58 @@ void __inet_twsk_schedule(struct inet_timewait_sock *tw, int timeo, bool rearm)
 	 * of PAWS.
 	 */
 
-	tw->tw_kill = timeo <= 4*HZ;
-	if (!rearm) {
+	tw->tw_kill = timeo <= 4 * HZ;
+
+	if (!rearm)
+	{
 		BUG_ON(mod_timer(&tw->tw_timer, jiffies + timeo));
 		atomic_inc(&tw->tw_dr->tw_count);
-	} else {
+	}
+	else
+	{
 		mod_timer_pending(&tw->tw_timer, jiffies + timeo);
 	}
 }
 EXPORT_SYMBOL_GPL(__inet_twsk_schedule);
 
 void inet_twsk_purge(struct inet_hashinfo *hashinfo,
-		     struct inet_timewait_death_row *twdr, int family)
+					 struct inet_timewait_death_row *twdr, int family)
 {
 	struct inet_timewait_sock *tw;
 	struct sock *sk;
 	struct hlist_nulls_node *node;
 	unsigned int slot;
 
-	for (slot = 0; slot <= hashinfo->ehash_mask; slot++) {
+	for (slot = 0; slot <= hashinfo->ehash_mask; slot++)
+	{
 		struct inet_ehash_bucket *head = &hashinfo->ehash[slot];
 restart_rcu:
 		cond_resched();
 		rcu_read_lock();
 restart:
-		sk_nulls_for_each_rcu(sk, node, &head->chain) {
+		sk_nulls_for_each_rcu(sk, node, &head->chain)
+		{
 			if (sk->sk_state != TCP_TIME_WAIT)
+			{
 				continue;
+			}
+
 			tw = inet_twsk(sk);
+
 			if ((tw->tw_family != family) ||
 				atomic_read(&twsk_net(tw)->count))
+			{
 				continue;
+			}
 
 			if (unlikely(!atomic_inc_not_zero(&tw->tw_refcnt)))
+			{
 				continue;
+			}
 
 			if (unlikely((tw->tw_family != family) ||
-				     atomic_read(&twsk_net(tw)->count))) {
+						 atomic_read(&twsk_net(tw)->count)))
+			{
 				inet_twsk_put(tw);
 				goto restart;
 			}
@@ -294,12 +327,16 @@ restart:
 			local_bh_enable();
 			goto restart_rcu;
 		}
+
 		/* If the nulls value we got at the end of this lookup is
 		 * not the expected one, we must restart lookup.
 		 * We probably met an item that was moved to another chain.
 		 */
 		if (get_nulls_value(node) != slot)
+		{
 			goto restart;
+		}
+
 		rcu_read_unlock();
 	}
 }

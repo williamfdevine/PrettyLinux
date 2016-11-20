@@ -20,9 +20,12 @@
 void pci_set_of_node(struct pci_dev *dev)
 {
 	if (!dev->bus->dev.of_node)
+	{
 		return;
+	}
+
 	dev->dev.of_node = of_pci_find_child_device(dev->bus->dev.of_node,
-						    dev->devfn);
+					   dev->devfn);
 }
 
 void pci_release_of_node(struct pci_dev *dev)
@@ -34,9 +37,13 @@ void pci_release_of_node(struct pci_dev *dev)
 void pci_set_bus_of_node(struct pci_bus *bus)
 {
 	if (bus->self == NULL)
+	{
 		bus->dev.of_node = pcibios_get_phb_of_node(bus);
+	}
 	else
+	{
 		bus->dev.of_node = of_node_get(bus->self->dev.of_node);
+	}
 }
 
 void pci_release_bus_of_node(struct pci_bus *bus)
@@ -45,20 +52,28 @@ void pci_release_bus_of_node(struct pci_bus *bus)
 	bus->dev.of_node = NULL;
 }
 
-struct device_node * __weak pcibios_get_phb_of_node(struct pci_bus *bus)
+struct device_node *__weak pcibios_get_phb_of_node(struct pci_bus *bus)
 {
 	/* This should only be called for PHBs */
 	if (WARN_ON(bus->self || bus->parent))
+	{
 		return NULL;
+	}
 
 	/* Look for a node pointer in either the intermediary device we
 	 * create above the root bus or it's own parent. Normally only
 	 * the later is populated.
 	 */
 	if (bus->bridge->of_node)
+	{
 		return of_node_get(bus->bridge->of_node);
+	}
+
 	if (bus->bridge->parent && bus->bridge->parent->of_node)
+	{
 		return of_node_get(bus->bridge->parent->of_node);
+	}
+
 	return NULL;
 }
 
@@ -68,20 +83,28 @@ struct irq_domain *pci_host_bridge_of_msi_domain(struct pci_bus *bus)
 	struct irq_domain *d;
 
 	if (!bus->dev.of_node)
+	{
 		return NULL;
+	}
 
 	/* Start looking for a phandle to an MSI controller. */
 	d = of_msi_get_domain(&bus->dev, bus->dev.of_node, DOMAIN_BUS_PCI_MSI);
+
 	if (d)
+	{
 		return d;
+	}
 
 	/*
 	 * If we don't have an msi-parent property, look for a domain
 	 * directly attached to the host bridge.
 	 */
 	d = irq_find_matching_host(bus->dev.of_node, DOMAIN_BUS_PCI_MSI);
+
 	if (d)
+	{
 		return d;
+	}
 
 	return irq_find_host(bus->dev.of_node);
 #else

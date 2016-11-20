@@ -81,7 +81,9 @@ acpi_status ACPI_INIT_FUNCTION acpi_initialize_subsystem(void)
 	/* Initialize the OS-Dependent layer */
 
 	status = acpi_os_initialize();
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		ACPI_EXCEPTION((AE_INFO, status, "During OSL initialization"));
 		return_ACPI_STATUS(status);
 	}
@@ -89,18 +91,22 @@ acpi_status ACPI_INIT_FUNCTION acpi_initialize_subsystem(void)
 	/* Initialize all globals used by the subsystem */
 
 	status = acpi_ut_init_globals();
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		ACPI_EXCEPTION((AE_INFO, status,
-				"During initialization of globals"));
+						"During initialization of globals"));
 		return_ACPI_STATUS(status);
 	}
 
 	/* Create the default mutex objects */
 
 	status = acpi_ut_mutex_initialize();
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		ACPI_EXCEPTION((AE_INFO, status,
-				"During Global Mutex creation"));
+						"During Global Mutex creation"));
 		return_ACPI_STATUS(status);
 	}
 
@@ -109,18 +115,22 @@ acpi_status ACPI_INIT_FUNCTION acpi_initialize_subsystem(void)
 	 * the root of the namespace tree
 	 */
 	status = acpi_ns_root_initialize();
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		ACPI_EXCEPTION((AE_INFO, status,
-				"During Namespace initialization"));
+						"During Namespace initialization"));
 		return_ACPI_STATUS(status);
 	}
 
 	/* Initialize the global OSI interfaces list with the static names */
 
 	status = acpi_ut_initialize_interfaces();
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		ACPI_EXCEPTION((AE_INFO, status,
-				"During OSI interfaces initialization"));
+						"During OSI interfaces initialization"));
 		return_ACPI_STATUS(status);
 	}
 
@@ -158,14 +168,17 @@ acpi_status ACPI_INIT_FUNCTION acpi_enable_subsystem(u32 flags)
 
 	/* Enable ACPI mode */
 
-	if (!(flags & ACPI_NO_ACPI_ENABLE)) {
+	if (!(flags & ACPI_NO_ACPI_ENABLE))
+	{
 		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
-				  "[Init] Going into ACPI mode\n"));
+						  "[Init] Going into ACPI mode\n"));
 
 		acpi_gbl_original_mode = acpi_hw_get_mode();
 
 		status = acpi_enable();
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			ACPI_WARNING((AE_INFO, "AcpiEnable failed"));
 			return_ACPI_STATUS(status);
 		}
@@ -175,9 +188,12 @@ acpi_status ACPI_INIT_FUNCTION acpi_enable_subsystem(u32 flags)
 	 * Obtain a permanent mapping for the FACS. This is required for the
 	 * Global Lock and the Firmware Waking Vector
 	 */
-	if (!(flags & ACPI_NO_FACS_INIT)) {
+	if (!(flags & ACPI_NO_FACS_INIT))
+	{
 		status = acpi_tb_initialize_facs();
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			ACPI_WARNING((AE_INFO, "Could not map the FACS table"));
 			return_ACPI_STATUS(status);
 		}
@@ -197,12 +213,15 @@ acpi_status ACPI_INIT_FUNCTION acpi_enable_subsystem(u32 flags)
 	 * initialization control methods are run (_REG, _STA, _INI) on the
 	 * entire namespace.
 	 */
-	if (!(flags & ACPI_NO_EVENT_INIT)) {
+	if (!(flags & ACPI_NO_EVENT_INIT))
+	{
 		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
-				  "[Init] Initializing ACPI events\n"));
+						  "[Init] Initializing ACPI events\n"));
 
 		status = acpi_ev_initialize_events();
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			return_ACPI_STATUS(status);
 		}
 	}
@@ -211,15 +230,19 @@ acpi_status ACPI_INIT_FUNCTION acpi_enable_subsystem(u32 flags)
 	 * Install the SCI handler and Global Lock handler. This completes the
 	 * hardware initialization.
 	 */
-	if (!(flags & ACPI_NO_HANDLER_INIT)) {
+	if (!(flags & ACPI_NO_HANDLER_INIT))
+	{
 		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
-				  "[Init] Installing SCI/GL handlers\n"));
+						  "[Init] Installing SCI/GL handlers\n"));
 
 		status = acpi_ev_install_xrupt_handlers();
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			return_ACPI_STATUS(status);
 		}
 	}
+
 #endif				/* !ACPI_REDUCED_HARDWARE */
 
 	return_ACPI_STATUS(status);
@@ -266,7 +289,8 @@ acpi_status ACPI_INIT_FUNCTION acpi_initialize_objects(u32 flags)
 	 * not compatible with other ACPI implementations. See acpi_ns_load_table.
 	 */
 	if (!acpi_gbl_parse_table_as_term_list
-	    && acpi_gbl_group_module_level_code) {
+		&& acpi_gbl_group_module_level_code)
+	{
 		acpi_ns_exec_module_code_list();
 
 		/*
@@ -275,9 +299,12 @@ acpi_status ACPI_INIT_FUNCTION acpi_initialize_objects(u32 flags)
 		 * declaration of these objects:
 		 * operation_regions, buffer_fields, Buffers, and Packages.
 		 */
-		if (!(flags & ACPI_NO_OBJECT_INIT)) {
+		if (!(flags & ACPI_NO_OBJECT_INIT))
+		{
 			status = acpi_ns_initialize_objects();
-			if (ACPI_FAILURE(status)) {
+
+			if (ACPI_FAILURE(status))
+			{
 				return_ACPI_STATUS(status);
 			}
 		}
@@ -287,9 +314,12 @@ acpi_status ACPI_INIT_FUNCTION acpi_initialize_objects(u32 flags)
 	 * Initialize all device/region objects in the namespace. This runs
 	 * the device _STA and _INI methods and region _REG methods.
 	 */
-	if (!(flags & (ACPI_NO_DEVICE_INIT | ACPI_NO_ADDRESS_SPACE_INIT))) {
+	if (!(flags & (ACPI_NO_DEVICE_INIT | ACPI_NO_ADDRESS_SPACE_INIT)))
+	{
 		status = acpi_ns_initialize_devices(flags);
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			return_ACPI_STATUS(status);
 		}
 	}

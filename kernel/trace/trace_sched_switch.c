@@ -17,10 +17,12 @@ static DEFINE_MUTEX(sched_register_mutex);
 
 static void
 probe_sched_switch(void *ignore, bool preempt,
-		   struct task_struct *prev, struct task_struct *next)
+				   struct task_struct *prev, struct task_struct *next)
 {
 	if (unlikely(!sched_ref))
+	{
 		return;
+	}
 
 	tracing_record_cmdline(prev);
 	tracing_record_cmdline(next);
@@ -30,7 +32,9 @@ static void
 probe_sched_wakeup(void *ignore, struct task_struct *wakee)
 {
 	if (unlikely(!sched_ref))
+	{
 		return;
+	}
 
 	tracing_record_cmdline(current);
 }
@@ -40,23 +44,29 @@ static int tracing_sched_register(void)
 	int ret;
 
 	ret = register_trace_sched_wakeup(probe_sched_wakeup, NULL);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_info("wakeup trace: Couldn't activate tracepoint"
-			" probe to kernel_sched_wakeup\n");
+				" probe to kernel_sched_wakeup\n");
 		return ret;
 	}
 
 	ret = register_trace_sched_wakeup_new(probe_sched_wakeup, NULL);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_info("wakeup trace: Couldn't activate tracepoint"
-			" probe to kernel_sched_wakeup_new\n");
+				" probe to kernel_sched_wakeup_new\n");
 		goto fail_deprobe;
 	}
 
 	ret = register_trace_sched_switch(probe_sched_switch, NULL);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_info("sched trace: Couldn't activate tracepoint"
-			" probe to kernel_sched_switch\n");
+				" probe to kernel_sched_switch\n");
 		goto fail_deprobe_wake_new;
 	}
 
@@ -78,16 +88,24 @@ static void tracing_sched_unregister(void)
 static void tracing_start_sched_switch(void)
 {
 	mutex_lock(&sched_register_mutex);
+
 	if (!(sched_ref++))
+	{
 		tracing_sched_register();
+	}
+
 	mutex_unlock(&sched_register_mutex);
 }
 
 static void tracing_stop_sched_switch(void)
 {
 	mutex_lock(&sched_register_mutex);
+
 	if (!(--sched_ref))
+	{
 		tracing_sched_unregister();
+	}
+
 	mutex_unlock(&sched_register_mutex);
 }
 

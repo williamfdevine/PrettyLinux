@@ -70,7 +70,8 @@
 #define PCI1724_BOARD_ID_REG		0x10
 #define PCI1724_BOARD_ID_MASK		(0xf << 0)
 
-static const struct comedi_lrange adv_pci1724_ao_ranges = {
+static const struct comedi_lrange adv_pci1724_ao_ranges =
+{
 	4, {
 		BIP_RANGE(10),
 		RANGE_mA(0, 20),
@@ -80,22 +81,26 @@ static const struct comedi_lrange adv_pci1724_ao_ranges = {
 };
 
 static int adv_pci1724_dac_idle(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_insn *insn,
-				unsigned long context)
+								struct comedi_subdevice *s,
+								struct comedi_insn *insn,
+								unsigned long context)
 {
 	unsigned int status;
 
 	status = inl(dev->iobase + PCI1724_SYNC_CTRL_REG);
+
 	if ((status & PCI1724_SYNC_CTRL_DACSTAT) == 0)
+	{
 		return 0;
+	}
+
 	return -EBUSY;
 }
 
 static int adv_pci1724_insn_write(struct comedi_device *dev,
-				  struct comedi_subdevice *s,
-				  struct comedi_insn *insn,
-				  unsigned int *data)
+								  struct comedi_subdevice *s,
+								  struct comedi_insn *insn,
+								  unsigned int *data)
 {
 	unsigned long mode = (unsigned long)s->private;
 	unsigned int chan = CR_CHAN(insn->chanspec);
@@ -108,15 +113,19 @@ static int adv_pci1724_insn_write(struct comedi_device *dev,
 	/* turn off synchronous mode */
 	outl(0, dev->iobase + PCI1724_SYNC_CTRL_REG);
 
-	for (i = 0; i < insn->n; ++i) {
+	for (i = 0; i < insn->n; ++i)
+	{
 		unsigned int val = data[i];
 
 		ret = comedi_timeout(dev, s, insn, adv_pci1724_dac_idle, 0);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		outl(ctrl | PCI1724_DAC_CTRL_DATA(val),
-		     dev->iobase + PCI1724_DAC_CTRL_REG);
+			 dev->iobase + PCI1724_DAC_CTRL_REG);
 
 		s->readback[chan] = val;
 	}
@@ -125,7 +134,7 @@ static int adv_pci1724_insn_write(struct comedi_device *dev,
 }
 
 static int adv_pci1724_auto_attach(struct comedi_device *dev,
-				   unsigned long context_unused)
+								   unsigned long context_unused)
 {
 	struct pci_dev *pcidev = comedi_to_pci_dev(dev);
 	struct comedi_subdevice *s;
@@ -133,17 +142,23 @@ static int adv_pci1724_auto_attach(struct comedi_device *dev,
 	int ret;
 
 	ret = comedi_pci_enable(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	dev->iobase = pci_resource_start(pcidev, 2);
 	board_id = inl(dev->iobase + PCI1724_BOARD_ID_REG);
 	dev_info(dev->class_dev, "board id: %d\n",
-		 board_id & PCI1724_BOARD_ID_MASK);
+			 board_id & PCI1724_BOARD_ID_MASK);
 
 	ret = comedi_alloc_subdevices(dev, 3);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Analog Output subdevice */
 	s = &dev->subdevices[0];
@@ -156,8 +171,11 @@ static int adv_pci1724_auto_attach(struct comedi_device *dev,
 	s->private	= (void *)PCI1724_DAC_CTRL_MODE_NORMAL;
 
 	ret = comedi_alloc_subdev_readback(s);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Offset Calibration subdevice */
 	s = &dev->subdevices[1];
@@ -169,8 +187,11 @@ static int adv_pci1724_auto_attach(struct comedi_device *dev,
 	s->private	= (void *)PCI1724_DAC_CTRL_MODE_OFFSET;
 
 	ret = comedi_alloc_subdev_readback(s);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Gain Calibration subdevice */
 	s = &dev->subdevices[2];
@@ -184,7 +205,8 @@ static int adv_pci1724_auto_attach(struct comedi_device *dev,
 	return comedi_alloc_subdev_readback(s);
 }
 
-static struct comedi_driver adv_pci1724_driver = {
+static struct comedi_driver adv_pci1724_driver =
+{
 	.driver_name	= "adv_pci1724",
 	.module		= THIS_MODULE,
 	.auto_attach	= adv_pci1724_auto_attach,
@@ -192,19 +214,21 @@ static struct comedi_driver adv_pci1724_driver = {
 };
 
 static int adv_pci1724_pci_probe(struct pci_dev *dev,
-				 const struct pci_device_id *id)
+								 const struct pci_device_id *id)
 {
 	return comedi_pci_auto_config(dev, &adv_pci1724_driver,
-				      id->driver_data);
+								  id->driver_data);
 }
 
-static const struct pci_device_id adv_pci1724_pci_table[] = {
+static const struct pci_device_id adv_pci1724_pci_table[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_ADVANTECH, 0x1724) },
 	{ 0 }
 };
 MODULE_DEVICE_TABLE(pci, adv_pci1724_pci_table);
 
-static struct pci_driver adv_pci1724_pci_driver = {
+static struct pci_driver adv_pci1724_pci_driver =
+{
 	.name		= "adv_pci1724",
 	.id_table	= adv_pci1724_pci_table,
 	.probe		= adv_pci1724_pci_probe,

@@ -21,7 +21,7 @@ static void dest_nhid_setup(struct lowpan_nhc *nhc)
 }
 
 LOWPAN_NHC(nhc_dest, "RFC6282 Destination Options", NEXTHDR_DEST, 0,
-	   dest_nhid_setup, LOWPAN_NHC_DEST_IDLEN, NULL, NULL);
+		   dest_nhid_setup, LOWPAN_NHC_DEST_IDLEN, NULL, NULL);
 
 module_lowpan_nhc(nhc_dest);
 MODULE_DESCRIPTION("6LoWPAN next header RFC6282 Destination Options compression");

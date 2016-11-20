@@ -40,13 +40,15 @@
  * Queue node uses: vcpu_running & vcpu_halted.
  * Queue head uses: vcpu_running & vcpu_hashed.
  */
-enum vcpu_state {
+enum vcpu_state
+{
 	vcpu_running = 0,
 	vcpu_halted,		/* Used only in pv_wait_node */
 	vcpu_hashed,		/* = pv_hash'ed + vcpu_halted */
 };
 
-struct pv_node {
+struct pv_node
+{
 	struct mcs_spinlock	mcs;
 	struct mcs_spinlock	__res[3];
 
@@ -72,7 +74,8 @@ static inline bool pv_queued_spin_steal_lock(struct qspinlock *lock)
 	struct __qspinlock *l = (void *)lock;
 
 	if (!(atomic_read(&lock->val) & _Q_LOCKED_PENDING_MASK) &&
-	    (cmpxchg(&l->locked, 0, _Q_LOCKED_VAL) == 0)) {
+		(cmpxchg(&l->locked, 0, _Q_LOCKED_VAL) == 0))
+	{
 		qstat_inc(qstat_pv_lock_stealing, true);
 		return true;
 	}
@@ -109,7 +112,7 @@ static __always_inline int trylock_clear_pending(struct qspinlock *lock)
 	struct __qspinlock *l = (void *)lock;
 
 	return !READ_ONCE(l->locked) &&
-	       (cmpxchg(&l->locked_pending, _Q_PENDING_VAL, _Q_LOCKED_VAL)
+		   (cmpxchg(&l->locked_pending, _Q_PENDING_VAL, _Q_LOCKED_VAL)
 			== _Q_PENDING_VAL);
 }
 #else /* _Q_PENDING_BITS == 8 */
@@ -127,11 +130,14 @@ static __always_inline int trylock_clear_pending(struct qspinlock *lock)
 {
 	int val = atomic_read(&lock->val);
 
-	for (;;) {
+	for (;;)
+	{
 		int old, new;
 
 		if (val  & _Q_LOCKED_MASK)
+		{
 			break;
+		}
 
 		/*
 		 * Try to clear pending bit & set locked bit
@@ -141,8 +147,11 @@ static __always_inline int trylock_clear_pending(struct qspinlock *lock)
 		val = atomic_cmpxchg(&lock->val, old, new);
 
 		if (val == old)
+		{
 			return 1;
+		}
 	}
+
 	return 0;
 }
 #endif /* _Q_PENDING_BITS == 8 */
@@ -163,7 +172,8 @@ static __always_inline int trylock_clear_pending(struct qspinlock *lock)
  * breaks down.
  *
  */
-struct pv_hash_entry {
+struct pv_hash_entry
+{
 	struct qspinlock *lock;
 	struct pv_node   *node;
 };
@@ -185,23 +195,25 @@ void __init __pv_init_lock_hash(void)
 	int pv_hash_size = ALIGN(4 * num_possible_cpus(), PV_HE_PER_LINE);
 
 	if (pv_hash_size < PV_HE_MIN)
+	{
 		pv_hash_size = PV_HE_MIN;
+	}
 
 	/*
 	 * Allocate space from bootmem which should be page-size aligned
 	 * and hence cacheline aligned.
 	 */
 	pv_lock_hash = alloc_large_system_hash("PV qspinlock",
-					       sizeof(struct pv_hash_entry),
-					       pv_hash_size, 0, HASH_EARLY,
-					       &pv_lock_hash_bits, NULL,
-					       pv_hash_size, pv_hash_size);
+										   sizeof(struct pv_hash_entry),
+										   pv_hash_size, 0, HASH_EARLY,
+										   &pv_lock_hash_bits, NULL,
+										   pv_hash_size, pv_hash_size);
 }
 
 #define for_each_hash_entry(he, offset, hash)						\
 	for (hash &= ~(PV_HE_PER_LINE - 1), he = &pv_lock_hash[hash], offset = 0;	\
-	     offset < (1 << pv_lock_hash_bits);						\
-	     offset++, he = &pv_lock_hash[(hash + offset) & ((1 << pv_lock_hash_bits) - 1)])
+		 offset < (1 << pv_lock_hash_bits);						\
+		 offset++, he = &pv_lock_hash[(hash + offset) & ((1 << pv_lock_hash_bits) - 1)])
 
 static struct qspinlock **pv_hash(struct qspinlock *lock, struct pv_node *node)
 {
@@ -209,9 +221,12 @@ static struct qspinlock **pv_hash(struct qspinlock *lock, struct pv_node *node)
 	struct pv_hash_entry *he;
 	int hopcnt = 0;
 
-	for_each_hash_entry(he, offset, hash) {
+	for_each_hash_entry(he, offset, hash)
+	{
 		hopcnt++;
-		if (!cmpxchg(&he->lock, NULL, lock)) {
+
+		if (!cmpxchg(&he->lock, NULL, lock))
+		{
 			WRITE_ONCE(he->node, node);
 			qstat_hop(hopcnt);
 			return &he->lock;
@@ -236,8 +251,10 @@ static struct pv_node *pv_unhash(struct qspinlock *lock)
 	struct pv_hash_entry *he;
 	struct pv_node *node;
 
-	for_each_hash_entry(he, offset, hash) {
-		if (READ_ONCE(he->lock) == lock) {
+	for_each_hash_entry(he, offset, hash)
+	{
+		if (READ_ONCE(he->lock) == lock)
+		{
 			node = READ_ONCE(he->node);
 			WRITE_ONCE(he->lock, NULL);
 			return node;
@@ -261,7 +278,9 @@ static inline bool
 pv_wait_early(struct pv_node *prev, int loop)
 {
 	if ((loop & PV_PREV_CHECK_MASK) != 0)
+	{
 		return false;
+	}
 
 	return READ_ONCE(prev->state) != vcpu_running;
 }
@@ -273,7 +292,7 @@ static void pv_init_node(struct mcs_spinlock *node)
 {
 	struct pv_node *pn = (struct pv_node *)node;
 
-	BUILD_BUG_ON(sizeof(struct pv_node) > 5*sizeof(struct mcs_spinlock));
+	BUILD_BUG_ON(sizeof(struct pv_node) > 5 * sizeof(struct mcs_spinlock));
 
 	pn->cpu = smp_processor_id();
 	pn->state = vcpu_running;
@@ -291,14 +310,21 @@ static void pv_wait_node(struct mcs_spinlock *node, struct mcs_spinlock *prev)
 	int loop;
 	bool wait_early;
 
-	for (;;) {
-		for (wait_early = false, loop = SPIN_THRESHOLD; loop; loop--) {
+	for (;;)
+	{
+		for (wait_early = false, loop = SPIN_THRESHOLD; loop; loop--)
+		{
 			if (READ_ONCE(node->locked))
+			{
 				return;
-			if (pv_wait_early(pp, loop)) {
+			}
+
+			if (pv_wait_early(pp, loop))
+			{
 				wait_early = true;
 				break;
 			}
+
 			cpu_relax();
 		}
 
@@ -313,7 +339,8 @@ static void pv_wait_node(struct mcs_spinlock *node, struct mcs_spinlock *prev)
 		 */
 		smp_store_mb(pn->state, vcpu_halted);
 
-		if (!READ_ONCE(node->locked)) {
+		if (!READ_ONCE(node->locked))
+		{
 			qstat_inc(qstat_pv_wait_node, true);
 			qstat_inc(qstat_pv_wait_early, wait_early);
 			pv_wait(&pn->state, vcpu_halted);
@@ -363,7 +390,9 @@ static void pv_kick_node(struct qspinlock *lock, struct mcs_spinlock *node)
 	 * Matches with smp_store_mb() and cmpxchg() in pv_wait_node()
 	 */
 	if (cmpxchg(&pn->state, vcpu_halted, vcpu_hashed) != vcpu_halted)
+	{
 		return;
+	}
 
 	/*
 	 * Put the lock into the hash table and set the _Q_SLOW_VAL.
@@ -397,14 +426,17 @@ pv_wait_head_or_lock(struct qspinlock *lock, struct mcs_spinlock *node)
 	 * insert ourselves into the hash table anymore.
 	 */
 	if (READ_ONCE(pn->state) == vcpu_hashed)
+	{
 		lp = (struct qspinlock **)1;
+	}
 
 	/*
 	 * Tracking # of slowpath locking operations
 	 */
 	qstat_inc(qstat_pv_lock_slowpath, true);
 
-	for (;; waitcnt++) {
+	for (;; waitcnt++)
+	{
 		/*
 		 * Set correct vCPU state to be used by queue node wait-early
 		 * mechanism.
@@ -416,15 +448,22 @@ pv_wait_head_or_lock(struct qspinlock *lock, struct mcs_spinlock *node)
 		 * disable lock stealing before attempting to acquire the lock.
 		 */
 		set_pending(lock);
-		for (loop = SPIN_THRESHOLD; loop; loop--) {
+
+		for (loop = SPIN_THRESHOLD; loop; loop--)
+		{
 			if (trylock_clear_pending(lock))
+			{
 				goto gotlock;
+			}
+
 			cpu_relax();
 		}
+
 		clear_pending(lock);
 
 
-		if (!lp) { /* ONCE */
+		if (!lp)   /* ONCE */
+		{
 			lp = pv_hash(lock, pn);
 
 			/*
@@ -438,7 +477,8 @@ pv_wait_head_or_lock(struct qspinlock *lock, struct mcs_spinlock *node)
 			 *
 			 * Matches the smp_rmb() in __pv_queued_spin_unlock().
 			 */
-			if (xchg(&l->locked, _Q_SLOW_VAL) == 0) {
+			if (xchg(&l->locked, _Q_SLOW_VAL) == 0)
+			{
 				/*
 				 * The lock was free and now we own the lock.
 				 * Change the lock value back to _Q_LOCKED_VAL
@@ -449,6 +489,7 @@ pv_wait_head_or_lock(struct qspinlock *lock, struct mcs_spinlock *node)
 				goto gotlock;
 			}
 		}
+
 		WRITE_ONCE(pn->state, vcpu_hashed);
 		qstat_inc(qstat_pv_wait_head, true);
 		qstat_inc(qstat_pv_wait_again, waitcnt);
@@ -480,10 +521,11 @@ __pv_queued_spin_unlock_slowpath(struct qspinlock *lock, u8 locked)
 	struct __qspinlock *l = (void *)lock;
 	struct pv_node *node;
 
-	if (unlikely(locked != _Q_SLOW_VAL)) {
+	if (unlikely(locked != _Q_SLOW_VAL))
+	{
 		WARN(!debug_locks_silent,
-		     "pvqspinlock: lock 0x%lx has corrupted value 0x%x!\n",
-		     (unsigned long)lock, atomic_read(&lock->val));
+			 "pvqspinlock: lock 0x%lx has corrupted value 0x%x!\n",
+			 (unsigned long)lock, atomic_read(&lock->val));
 		return;
 	}
 
@@ -541,8 +583,11 @@ __visible void __pv_queued_spin_unlock(struct qspinlock *lock)
 	 * entries, which would be BAD.
 	 */
 	locked = cmpxchg_release(&l->locked, _Q_LOCKED_VAL, 0);
+
 	if (likely(locked == _Q_LOCKED_VAL))
+	{
 		return;
+	}
 
 	__pv_queued_spin_unlock_slowpath(lock, locked);
 }

@@ -19,7 +19,7 @@
 #include <linux/types.h>
 
 #if defined(CONFIG_IPV6)
-#include <linux/icmpv6.h>
+	#include <linux/icmpv6.h>
 #endif
 
 #include <net/ip.h>
@@ -52,7 +52,8 @@ MODULE_LICENSE("GPL");
 MODULE_VERSION(DRV_MODULE_VERSION);
 
 /* Ordered from largest major to lowest */
-static struct vio_version vsw_versions[] = {
+static struct vio_version vsw_versions[] =
+{
 	{ .major = 1, .minor = 8 },
 	{ .major = 1, .minor = 7 },
 	{ .major = 1, .minor = 6 },
@@ -60,7 +61,7 @@ static struct vio_version vsw_versions[] = {
 };
 
 static void vsw_get_drvinfo(struct net_device *dev,
-			    struct ethtool_drvinfo *info)
+							struct ethtool_drvinfo *info)
 {
 	strlcpy(info->driver, DRV_MODULE_NAME, sizeof(info->driver));
 	strlcpy(info->version, DRV_MODULE_VERSION, sizeof(info->version));
@@ -80,7 +81,8 @@ static void vsw_set_msglevel(struct net_device *dev, u32 value)
 	port->vp->msg_enable = value;
 }
 
-static const struct ethtool_ops vsw_ethtool_ops = {
+static const struct ethtool_ops vsw_ethtool_ops =
+{
 	.get_drvinfo		= vsw_get_drvinfo,
 	.get_msglevel		= vsw_get_msglevel,
 	.set_msglevel		= vsw_set_msglevel,
@@ -92,7 +94,7 @@ static DEFINE_MUTEX(vnet_list_mutex);
 
 /* func arg to vnet_start_xmit_common() to get the proper tx port */
 static struct vnet_port *vsw_tx_port_find(struct sk_buff *skb,
-					  struct net_device *dev)
+		struct net_device *dev)
 {
 	struct vnet_port *port = netdev_priv(dev);
 
@@ -100,12 +102,14 @@ static struct vnet_port *vsw_tx_port_find(struct sk_buff *skb,
 }
 
 static u16 vsw_select_queue(struct net_device *dev, struct sk_buff *skb,
-			    void *accel_priv, select_queue_fallback_t fallback)
+							void *accel_priv, select_queue_fallback_t fallback)
 {
 	struct vnet_port *port = netdev_priv(dev);
 
 	if (!port)
+	{
 		return 0;
+	}
 
 	return port->q_index;
 }
@@ -132,7 +136,8 @@ static void vsw_poll_controller(struct net_device *dev)
 }
 #endif
 
-static const struct net_device_ops vsw_ops = {
+static const struct net_device_ops vsw_ops =
+{
 	.ndo_open		= sunvnet_open_common,
 	.ndo_stop		= sunvnet_close_common,
 	.ndo_set_rx_mode	= vsw_set_rx_mode,
@@ -151,8 +156,8 @@ static const char *local_mac_prop = "local-mac-address";
 static const char *cfg_handle_prop = "cfg-handle";
 
 static struct vnet *vsw_get_vnet(struct mdesc_handle *hp,
-				 u64 port_node,
-				 u64 *handle)
+								 u64 port_node,
+								 u64 *handle)
 {
 	struct vnet *vp;
 	struct vnet *iter;
@@ -161,36 +166,48 @@ static struct vnet *vsw_get_vnet(struct mdesc_handle *hp,
 	u64 a;
 
 	/* Get the parent virtual-network-switch macaddr and cfghandle */
-	mdesc_for_each_arc(a, hp, port_node, MDESC_ARC_TYPE_BACK) {
+	mdesc_for_each_arc(a, hp, port_node, MDESC_ARC_TYPE_BACK)
+	{
 		u64 target = mdesc_arc_target(hp, a);
 		const char *name;
 
 		name = mdesc_get_property(hp, target, "name", NULL);
+
 		if (!name || strcmp(name, "virtual-network-switch"))
+		{
 			continue;
+		}
 
 		local_mac = mdesc_get_property(hp, target,
-					       local_mac_prop, NULL);
+									   local_mac_prop, NULL);
 		cfghandle = mdesc_get_property(hp, target,
-					       cfg_handle_prop, NULL);
+									   cfg_handle_prop, NULL);
 		break;
 	}
+
 	if (!local_mac || !cfghandle)
+	{
 		return ERR_PTR(-ENODEV);
+	}
 
 	/* find or create associated vnet */
 	vp = NULL;
 	mutex_lock(&vnet_list_mutex);
-	list_for_each_entry(iter, &vnet_list, list) {
-		if (iter->local_mac == *local_mac) {
+	list_for_each_entry(iter, &vnet_list, list)
+	{
+		if (iter->local_mac == *local_mac)
+		{
 			vp = iter;
 			break;
 		}
 	}
 
-	if (!vp) {
+	if (!vp)
+	{
 		vp = kzalloc(sizeof(*vp), GFP_KERNEL);
-		if (unlikely(!vp)) {
+
+		if (unlikely(!vp))
+		{
 			mutex_unlock(&vnet_list_mutex);
 			return ERR_PTR(-ENOMEM);
 		}
@@ -204,27 +221,32 @@ static struct vnet *vsw_get_vnet(struct mdesc_handle *hp,
 
 	mutex_unlock(&vnet_list_mutex);
 
-	*handle = (u64)*cfghandle;
+	*handle = (u64) * cfghandle;
 
 	return vp;
 }
 
 static struct net_device *vsw_alloc_netdev(u8 hwaddr[],
-					   struct vio_dev *vdev,
-					   u64 handle,
-					   u64 port_id)
+		struct vio_dev *vdev,
+		u64 handle,
+		u64 port_id)
 {
 	struct net_device *dev;
 	struct vnet_port *port;
 	int i;
 
 	dev = alloc_etherdev_mqs(sizeof(*port), VNET_MAX_TXQS, 1);
+
 	if (!dev)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
+
 	dev->needed_headroom = VNET_PACKET_SKIP + 8;
 	dev->needed_tailroom = 8;
 
-	for (i = 0; i < ETH_ALEN; i++) {
+	for (i = 0; i < ETH_ALEN; i++)
+	{
 		dev->dev_addr[i] = hwaddr[i];
 		dev->perm_addr[i] = dev->dev_addr[i];
 	}
@@ -236,7 +258,7 @@ static struct net_device *vsw_alloc_netdev(u8 hwaddr[],
 	dev->watchdog_timeo = VSW_TX_TIMEOUT;
 
 	dev->hw_features = NETIF_F_TSO | NETIF_F_GSO | NETIF_F_GSO_SOFTWARE |
-			   NETIF_F_HW_CSUM | NETIF_F_SG;
+					   NETIF_F_HW_CSUM | NETIF_F_SG;
 	dev->features = dev->hw_features;
 
 	SET_NETDEV_DEV(dev, &vdev->dev);
@@ -244,13 +266,15 @@ static struct net_device *vsw_alloc_netdev(u8 hwaddr[],
 	return dev;
 }
 
-static struct ldc_channel_config vsw_ldc_cfg = {
+static struct ldc_channel_config vsw_ldc_cfg =
+{
 	.event		= sunvnet_event_common,
 	.mtu		= 64,
 	.mode		= LDC_MODE_UNRELIABLE,
 };
 
-static struct vio_driver_ops vsw_vio_ops = {
+static struct vio_driver_ops vsw_vio_ops =
+{
 	.send_attr		= sunvnet_send_attr_common,
 	.handle_attr		= sunvnet_handle_attr_common,
 	.handshake_complete	= sunvnet_handshake_complete_common,
@@ -282,7 +306,9 @@ static int vsw_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
 
 	rmac = mdesc_get_property(hp, vdev->mp, remote_macaddr_prop, &len);
 	err = -ENODEV;
-	if (!rmac) {
+
+	if (!rmac)
+	{
 		pr_err("Port lacks %s property\n", remote_macaddr_prop);
 		mdesc_release(hp);
 		return err;
@@ -290,7 +316,9 @@ static int vsw_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
 
 	port_id = mdesc_get_property(hp, vdev->mp, id_prop, NULL);
 	err = -ENODEV;
-	if (!port_id) {
+
+	if (!port_id)
+	{
 		pr_err("Port lacks %s property\n", id_prop);
 		mdesc_release(hp);
 		return err;
@@ -298,7 +326,9 @@ static int vsw_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
 
 	/* Get (or create) the vnet associated with this port */
 	vp = vsw_get_vnet(hp, vdev->mp, &handle);
-	if (unlikely(IS_ERR(vp))) {
+
+	if (unlikely(IS_ERR(vp)))
+	{
 		err = PTR_ERR(vp);
 		pr_err("Failed to get vnet for vsw-port\n");
 		mdesc_release(hp);
@@ -308,7 +338,9 @@ static int vsw_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
 	mdesc_release(hp);
 
 	dev = vsw_alloc_netdev(vsw_port_hwaddr, vdev, handle, *port_id);
-	if (IS_ERR(dev)) {
+
+	if (IS_ERR(dev))
+	{
 		err = PTR_ERR(dev);
 		pr_err("Failed to alloc netdev for vsw-port\n");
 		return err;
@@ -319,7 +351,9 @@ static int vsw_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
 	INIT_LIST_HEAD(&port->list);
 
 	for (i = 0; i < ETH_ALEN; i++)
+	{
 		port->raddr[i] = (*rmac >> (5 - i) * 8) & 0xff;
+	}
 
 	port->vp = vp;
 	port->dev = dev;
@@ -336,29 +370,37 @@ static int vsw_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
 	port->vsw = 1;
 
 	err = vio_driver_init(&port->vio, vdev, VDEV_NETWORK,
-			      vsw_versions, ARRAY_SIZE(vsw_versions),
-			      &vsw_vio_ops, dev->name);
+						  vsw_versions, ARRAY_SIZE(vsw_versions),
+						  &vsw_vio_ops, dev->name);
+
 	if (err)
+	{
 		goto err_out_free_dev;
+	}
 
 	err = vio_ldc_alloc(&port->vio, &vsw_ldc_cfg, port);
+
 	if (err)
+	{
 		goto err_out_free_dev;
+	}
 
 	dev_set_drvdata(&vdev->dev, port);
 
 	netif_napi_add(dev, &port->napi, sunvnet_poll_common,
-		       NAPI_POLL_WEIGHT);
+				   NAPI_POLL_WEIGHT);
 
 	spin_lock_irqsave(&vp->lock, flags);
 	list_add_rcu(&port->list, &vp->port_list);
 	spin_unlock_irqrestore(&vp->lock, flags);
 
 	setup_timer(&port->clean_timer, sunvnet_clean_timer_expire_common,
-		    (unsigned long)port);
+				(unsigned long)port);
 
 	err = register_netdev(dev);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Cannot register net device, aborting\n");
 		goto err_out_del_timer;
 	}
@@ -373,7 +415,7 @@ static int vsw_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
 	netdev_info(dev, "LDOM vsw-port %pM\n", dev->dev_addr);
 
 	pr_info("%s: PORT ( remote-mac %pM%s )\n", dev->name,
-		port->raddr, " switch-port");
+			port->raddr, " switch-port");
 
 	return 0;
 
@@ -395,7 +437,8 @@ static int vsw_port_remove(struct vio_dev *vdev)
 	struct vnet_port *port = dev_get_drvdata(&vdev->dev);
 	unsigned long flags;
 
-	if (port) {
+	if (port)
+	{
 		del_timer_sync(&port->vio.timer);
 
 		napi_disable(&port->napi);
@@ -426,18 +469,26 @@ static void vsw_cleanup(void)
 
 	/* just need to free up the vnet list */
 	mutex_lock(&vnet_list_mutex);
-	while (!list_empty(&vnet_list)) {
+
+	while (!list_empty(&vnet_list))
+	{
 		vp = list_first_entry(&vnet_list, struct vnet, list);
 		list_del(&vp->list);
+
 		/* vio_unregister_driver() should have cleaned up port_list */
 		if (!list_empty(&vp->port_list))
+		{
 			pr_err("Ports not removed by VIO subsystem!\n");
+		}
+
 		kfree(vp);
 	}
+
 	mutex_unlock(&vnet_list_mutex);
 }
 
-static const struct vio_device_id vsw_port_match[] = {
+static const struct vio_device_id vsw_port_match[] =
+{
 	{
 		.type = "vsw-port",
 	},
@@ -445,7 +496,8 @@ static const struct vio_device_id vsw_port_match[] = {
 };
 MODULE_DEVICE_TABLE(vio, vsw_port_match);
 
-static struct vio_driver vsw_port_driver = {
+static struct vio_driver vsw_port_driver =
+{
 	.id_table	= vsw_port_match,
 	.probe		= vsw_port_probe,
 	.remove		= vsw_port_remove,

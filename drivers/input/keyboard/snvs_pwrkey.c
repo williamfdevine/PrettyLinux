@@ -35,7 +35,8 @@
 #define DEBOUNCE_TIME 30
 #define REPEAT_INTERVAL 60
 
-struct pwrkey_drv_data {
+struct pwrkey_drv_data
+{
 	struct regmap *snvs;
 	int irq;
 	int keycode;
@@ -55,7 +56,8 @@ static void imx_imx_snvs_check_for_events(unsigned long data)
 	state = state & SNVS_HPSR_BTN ? 1 : 0;
 
 	/* only report new event if status changed */
-	if (state ^ pdata->keystate) {
+	if (state ^ pdata->keystate)
+	{
 		pdata->keystate = state;
 		input_event(input, EV_KEY, pdata->keycode, state);
 		input_sync(input);
@@ -63,9 +65,10 @@ static void imx_imx_snvs_check_for_events(unsigned long data)
 	}
 
 	/* repeat check if pressed long */
-	if (state) {
+	if (state)
+	{
 		mod_timer(&pdata->check_timer,
-			  jiffies + msecs_to_jiffies(REPEAT_INTERVAL));
+				  jiffies + msecs_to_jiffies(REPEAT_INTERVAL));
 	}
 }
 
@@ -78,8 +81,11 @@ static irqreturn_t imx_snvs_pwrkey_interrupt(int irq, void *dev_id)
 	pm_wakeup_event(pdata->input->dev.parent, 0);
 
 	regmap_read(pdata->snvs, SNVS_LPSR_REG, &lp_status);
+
 	if (lp_status & SNVS_LPSR_SPO)
+	{
 		mod_timer(&pdata->check_timer, jiffies + msecs_to_jiffies(DEBOUNCE_TIME));
+	}
 
 	/* clear SPO status */
 	regmap_write(pdata->snvs, SNVS_LPSR_REG, SNVS_LPSR_SPO);
@@ -103,20 +109,29 @@ static int imx_snvs_pwrkey_probe(struct platform_device *pdev)
 
 	/* Get SNVS register Page */
 	np = pdev->dev.of_node;
+
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+
 	if (!pdata)
+	{
 		return -ENOMEM;
+	}
 
 	pdata->snvs = syscon_regmap_lookup_by_phandle(np, "regmap");
-	if (IS_ERR(pdata->snvs)) {
+
+	if (IS_ERR(pdata->snvs))
+	{
 		dev_err(&pdev->dev, "Can't get snvs syscon\n");
 		return PTR_ERR(pdata->snvs);
 	}
 
-	if (of_property_read_u32(np, "linux,keycode", &pdata->keycode)) {
+	if (of_property_read_u32(np, "linux,keycode", &pdata->keycode))
+	{
 		pdata->keycode = KEY_POWER;
 		dev_warn(&pdev->dev, "KEY_POWER without setting in dts\n");
 	}
@@ -124,7 +139,9 @@ static int imx_snvs_pwrkey_probe(struct platform_device *pdev)
 	pdata->wakeup = of_property_read_bool(np, "wakeup-source");
 
 	pdata->irq = platform_get_irq(pdev, 0);
-	if (pdata->irq < 0) {
+
+	if (pdata->irq < 0)
+	{
 		dev_err(&pdev->dev, "no irq defined in platform data\n");
 		return -EINVAL;
 	}
@@ -135,10 +152,12 @@ static int imx_snvs_pwrkey_probe(struct platform_device *pdev)
 	regmap_write(pdata->snvs, SNVS_LPSR_REG, SNVS_LPSR_SPO);
 
 	setup_timer(&pdata->check_timer,
-		    imx_imx_snvs_check_for_events, (unsigned long) pdata);
+				imx_imx_snvs_check_for_events, (unsigned long) pdata);
 
 	input = devm_input_allocate_device(&pdev->dev);
-	if (!input) {
+
+	if (!input)
+	{
 		dev_err(&pdev->dev, "failed to allocate the input device\n");
 		return -ENOMEM;
 	}
@@ -151,22 +170,27 @@ static int imx_snvs_pwrkey_probe(struct platform_device *pdev)
 
 	/* input customer action to cancel release timer */
 	error = devm_add_action(&pdev->dev, imx_snvs_pwrkey_act, pdata);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "failed to register remove action\n");
 		return error;
 	}
 
 	error = devm_request_irq(&pdev->dev, pdata->irq,
-			       imx_snvs_pwrkey_interrupt,
-			       0, pdev->name, pdev);
+							 imx_snvs_pwrkey_interrupt,
+							 0, pdev->name, pdev);
 
-	if (error) {
+	if (error)
+	{
 		dev_err(&pdev->dev, "interrupt not available.\n");
 		return error;
 	}
 
 	error = input_register_device(input);
-	if (error < 0) {
+
+	if (error < 0)
+	{
 		dev_err(&pdev->dev, "failed to register input device\n");
 		return error;
 	}
@@ -185,7 +209,9 @@ static int __maybe_unused imx_snvs_pwrkey_suspend(struct device *dev)
 	struct pwrkey_drv_data *pdata = platform_get_drvdata(pdev);
 
 	if (device_may_wakeup(&pdev->dev))
+	{
 		enable_irq_wake(pdata->irq);
+	}
 
 	return 0;
 }
@@ -196,21 +222,25 @@ static int __maybe_unused imx_snvs_pwrkey_resume(struct device *dev)
 	struct pwrkey_drv_data *pdata = platform_get_drvdata(pdev);
 
 	if (device_may_wakeup(&pdev->dev))
+	{
 		disable_irq_wake(pdata->irq);
+	}
 
 	return 0;
 }
 
-static const struct of_device_id imx_snvs_pwrkey_ids[] = {
+static const struct of_device_id imx_snvs_pwrkey_ids[] =
+{
 	{ .compatible = "fsl,sec-v4.0-pwrkey" },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, imx_snvs_pwrkey_ids);
 
 static SIMPLE_DEV_PM_OPS(imx_snvs_pwrkey_pm_ops, imx_snvs_pwrkey_suspend,
-				imx_snvs_pwrkey_resume);
+						 imx_snvs_pwrkey_resume);
 
-static struct platform_driver imx_snvs_pwrkey_driver = {
+static struct platform_driver imx_snvs_pwrkey_driver =
+{
 	.driver = {
 		.name = "snvs_pwrkey",
 		.pm     = &imx_snvs_pwrkey_pm_ops,

@@ -48,7 +48,8 @@
 
 /* af_can rx dispatcher structures */
 
-struct receiver {
+struct receiver
+{
 	struct hlist_node list;
 	struct rcu_head rcu;
 	canid_t can_id;
@@ -66,7 +67,8 @@ struct receiver {
 enum { RX_ERR, RX_ALL, RX_FIL, RX_INV, RX_MAX };
 
 /* per device receive filters linked at dev->ml_priv */
-struct dev_rcv_lists {
+struct dev_rcv_lists
+{
 	struct hlist_head rx[RX_MAX];
 	struct hlist_head rx_sff[CAN_SFF_RCV_ARRAY_SZ];
 	struct hlist_head rx_eff[CAN_EFF_RCV_ARRAY_SZ];
@@ -77,7 +79,8 @@ struct dev_rcv_lists {
 /* statistic structures */
 
 /* can be reset e.g. by can_init_stats() */
-struct s_stats {
+struct s_stats
+{
 	unsigned long jiffies_init;
 
 	unsigned long rx_frames;
@@ -102,7 +105,8 @@ struct s_stats {
 };
 
 /* persistent statistics */
-struct s_pstats {
+struct s_pstats
+{
 	unsigned long stats_reset;
 	unsigned long user_reset;
 	unsigned long rcv_entries;

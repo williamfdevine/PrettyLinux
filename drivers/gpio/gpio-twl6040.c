@@ -40,14 +40,17 @@ static int twl6040gpo_get(struct gpio_chip *chip, unsigned offset)
 	int ret = 0;
 
 	ret = twl6040_reg_read(twl6040, TWL6040_REG_GPOCTL);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return (ret >> offset) & 1;
 }
 
 static int twl6040gpo_direction_out(struct gpio_chip *chip, unsigned offset,
-				    int value)
+									int value)
 {
 	/* This only drives GPOs, and can't change direction */
 	return 0;
@@ -60,18 +63,26 @@ static void twl6040gpo_set(struct gpio_chip *chip, unsigned offset, int value)
 	u8 gpoctl;
 
 	ret = twl6040_reg_read(twl6040, TWL6040_REG_GPOCTL);
+
 	if (ret < 0)
+	{
 		return;
+	}
 
 	if (value)
+	{
 		gpoctl = ret | (1 << offset);
+	}
 	else
+	{
 		gpoctl = ret & ~(1 << offset);
+	}
 
 	twl6040_reg_write(twl6040, TWL6040_REG_GPOCTL, gpoctl);
 }
 
-static struct gpio_chip twl6040gpo_chip = {
+static struct gpio_chip twl6040gpo_chip =
+{
 	.label			= "twl6040",
 	.owner			= THIS_MODULE,
 	.get			= twl6040gpo_get,
@@ -91,9 +102,13 @@ static int gpo_twl6040_probe(struct platform_device *pdev)
 	twl6040gpo_chip.base = -1;
 
 	if (twl6040_get_revid(twl6040) < TWL6041_REV_ES2_0)
-		twl6040gpo_chip.ngpio = 3; /* twl6040 have 3 GPO */
+	{
+		twl6040gpo_chip.ngpio = 3;    /* twl6040 have 3 GPO */
+	}
 	else
-		twl6040gpo_chip.ngpio = 1; /* twl6041 have 1 GPO */
+	{
+		twl6040gpo_chip.ngpio = 1;    /* twl6041 have 1 GPO */
+	}
 
 	twl6040gpo_chip.parent = &pdev->dev;
 #ifdef CONFIG_OF_GPIO
@@ -101,7 +116,9 @@ static int gpo_twl6040_probe(struct platform_device *pdev)
 #endif
 
 	ret = devm_gpiochip_add_data(&pdev->dev, &twl6040gpo_chip, NULL);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "could not register gpiochip, %d\n", ret);
 		twl6040gpo_chip.ngpio = 0;
 	}
@@ -112,7 +129,8 @@ static int gpo_twl6040_probe(struct platform_device *pdev)
 /* Note:  this hardware lives inside an I2C-based multi-function device. */
 MODULE_ALIAS("platform:twl6040-gpo");
 
-static struct platform_driver gpo_twl6040_driver = {
+static struct platform_driver gpo_twl6040_driver =
+{
 	.driver = {
 		.name	= "twl6040-gpo",
 	},

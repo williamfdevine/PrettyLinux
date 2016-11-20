@@ -42,7 +42,7 @@ void psb_gem_free_object(struct drm_gem_object *obj)
 }
 
 int psb_gem_get_aperture(struct drm_device *dev, void *data,
-				struct drm_file *file)
+						 struct drm_file *file)
 {
 	return -EINVAL;
 }
@@ -57,20 +57,27 @@ int psb_gem_get_aperture(struct drm_device *dev, void *data,
  *	into user memory. We don't have to do much here at the moment.
  */
 int psb_gem_dumb_map_gtt(struct drm_file *file, struct drm_device *dev,
-			 uint32_t handle, uint64_t *offset)
+						 uint32_t handle, uint64_t *offset)
 {
 	int ret = 0;
 	struct drm_gem_object *obj;
 
 	/* GEM does all our handle to object mapping */
 	obj = drm_gem_object_lookup(file, handle);
+
 	if (obj == NULL)
+	{
 		return -ENOENT;
+	}
 
 	/* Make it mmapable */
 	ret = drm_gem_create_mmap_offset(obj);
+
 	if (ret)
+	{
 		goto out;
+	}
+
 	*offset = drm_vma_node_offset_addr(&obj->vma_node);
 out:
 	drm_gem_object_unreference_unlocked(obj);
@@ -89,7 +96,7 @@ out:
  *	for the various methods that do/will create GEM objects for things
  */
 int psb_gem_create(struct drm_file *file, struct drm_device *dev, u64 size,
-		   u32 *handlep, int stolen, u32 align)
+				   u32 *handlep, int stolen, u32 align)
 {
 	struct gtt_range *r;
 	int ret;
@@ -100,28 +107,36 @@ int psb_gem_create(struct drm_file *file, struct drm_device *dev, u64 size,
 	/* Allocate our object - for now a direct gtt range which is not
 	   stolen memory backed */
 	r = psb_gtt_alloc_range(dev, size, "gem", 0, PAGE_SIZE);
-	if (r == NULL) {
+
+	if (r == NULL)
+	{
 		dev_err(dev->dev, "no memory for %lld byte GEM object\n", size);
 		return -ENOSPC;
 	}
+
 	/* Initialize the extra goodies GEM needs to do all the hard work */
-	if (drm_gem_object_init(dev, &r->gem, size) != 0) {
+	if (drm_gem_object_init(dev, &r->gem, size) != 0)
+	{
 		psb_gtt_free_range(dev, r);
 		/* GEM doesn't give an error code so use -ENOMEM */
 		dev_err(dev->dev, "GEM init failed for %lld\n", size);
 		return -ENOMEM;
 	}
+
 	/* Limit the object to 32bit mappings */
 	mapping_set_gfp_mask(r->gem.filp->f_mapping, GFP_KERNEL | __GFP_DMA32);
 	/* Give the object a handle so we can carry it more easily */
 	ret = drm_gem_handle_create(file, &r->gem, &handle);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev->dev, "GEM handle failed for %p, %lld\n",
-							&r->gem, size);
+				&r->gem, size);
 		drm_gem_object_release(&r->gem);
 		psb_gtt_free_range(dev, r);
 		return ret;
 	}
+
 	/* We have the initial and handle reference but need only one now */
 	drm_gem_object_unreference_unlocked(&r->gem);
 	*handlep = handle;
@@ -139,12 +154,12 @@ int psb_gem_create(struct drm_file *file, struct drm_device *dev, u64 size,
  *	to reference it.
  */
 int psb_gem_dumb_create(struct drm_file *file, struct drm_device *dev,
-			struct drm_mode_create_dumb *args)
+						struct drm_mode_create_dumb *args)
 {
 	args->pitch = ALIGN(args->width * ((args->bpp + 7) / 8), 64);
 	args->size = args->pitch * args->height;
 	return psb_gem_create(file, dev, args->size, &args->handle, 0,
-			      PAGE_SIZE);
+						  PAGE_SIZE);
 }
 
 /**
@@ -186,37 +201,50 @@ int psb_gem_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 
 	/* For now the mmap pins the object and it stays pinned. As things
 	   stand that will do us no harm */
-	if (r->mmapping == 0) {
+	if (r->mmapping == 0)
+	{
 		ret = psb_gtt_pin(r);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(dev->dev, "gma500: pin failed: %d\n", ret);
 			goto fail;
 		}
+
 		r->mmapping = 1;
 	}
 
 	/* Page relative to the VMA start - we must calculate this ourselves
 	   because vmf->pgoff is the fake GEM offset */
 	page_offset = ((unsigned long) vmf->virtual_address - vma->vm_start)
-				>> PAGE_SHIFT;
+				  >> PAGE_SHIFT;
 
 	/* CPU view of the page, don't go via the GART for CPU writes */
 	if (r->stolen)
+	{
 		pfn = (dev_priv->stolen_base + r->offset) >> PAGE_SHIFT;
+	}
 	else
+	{
 		pfn = page_to_pfn(r->pages[page_offset]);
+	}
+
 	ret = vm_insert_pfn(vma, (unsigned long)vmf->virtual_address, pfn);
 
 fail:
 	mutex_unlock(&dev_priv->mmap_mutex);
-	switch (ret) {
-	case 0:
-	case -ERESTARTSYS:
-	case -EINTR:
-		return VM_FAULT_NOPAGE;
-	case -ENOMEM:
-		return VM_FAULT_OOM;
-	default:
-		return VM_FAULT_SIGBUS;
+
+	switch (ret)
+	{
+		case 0:
+		case -ERESTARTSYS:
+		case -EINTR:
+			return VM_FAULT_NOPAGE;
+
+		case -ENOMEM:
+			return VM_FAULT_OOM;
+
+		default:
+			return VM_FAULT_SIGBUS;
 	}
 }

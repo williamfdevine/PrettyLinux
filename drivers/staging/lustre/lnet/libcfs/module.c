@@ -69,10 +69,16 @@ int libcfs_register_ioctl(struct libcfs_ioctl_handler *hand)
 	int rc = 0;
 
 	down_write(&ioctl_list_sem);
+
 	if (!list_empty(&hand->item))
+	{
 		rc = -EBUSY;
+	}
 	else
+	{
 		list_add_tail(&hand->item, &ioctl_list);
+	}
+
 	up_write(&ioctl_list_sem);
 
 	return rc;
@@ -84,10 +90,16 @@ int libcfs_deregister_ioctl(struct libcfs_ioctl_handler *hand)
 	int rc = 0;
 
 	down_write(&ioctl_list_sem);
+
 	if (list_empty(&hand->item))
+	{
 		rc = -ENOENT;
+	}
 	else
+	{
 		list_del_init(&hand->item);
+	}
+
 	up_write(&ioctl_list_sem);
 
 	return rc;
@@ -102,13 +114,16 @@ int libcfs_ioctl(unsigned long cmd, void __user *uparam)
 
 	/* 'cmd' and permissions get checked in our arch-specific caller */
 	err = libcfs_ioctl_getdata(&hdr, uparam);
-	if (err) {
+
+	if (err)
+	{
 		CDEBUG_LIMIT(D_ERROR,
-			     "libcfs ioctl: data header error %d\n", err);
+					 "libcfs ioctl: data header error %d\n", err);
 		return err;
 	}
 
-	if (hdr->ioc_version == LIBCFS_IOCTL_VERSION) {
+	if (hdr->ioc_version == LIBCFS_IOCTL_VERSION)
+	{
 		/*
 		 * The libcfs_ioctl_data_adjust() function performs adjustment
 		 * operations on the libcfs_ioctl_data structure to make
@@ -117,71 +132,95 @@ int libcfs_ioctl(unsigned long cmd, void __user *uparam)
 		 */
 		data = container_of(hdr, struct libcfs_ioctl_data, ioc_hdr);
 		err = libcfs_ioctl_data_adjust(data);
+
 		if (err)
+		{
 			goto out;
+		}
 	}
 
 	CDEBUG(D_IOCTL, "libcfs ioctl cmd %lu\n", cmd);
-	switch (cmd) {
-	case IOC_LIBCFS_CLEAR_DEBUG:
-		libcfs_debug_clear_buffer();
-		break;
 
-	case IOC_LIBCFS_MARK_DEBUG:
-		if (!data || !data->ioc_inlbuf1 ||
-		    data->ioc_inlbuf1[data->ioc_inllen1 - 1] != '\0') {
-			err = -EINVAL;
-			goto out;
-		}
-		libcfs_debug_mark_buffer(data->ioc_inlbuf1);
-		break;
-
-	default: {
-		struct libcfs_ioctl_handler *hand;
-
-		err = -EINVAL;
-		down_read(&ioctl_list_sem);
-		list_for_each_entry(hand, &ioctl_list, item) {
-			err = hand->handle_ioctl(cmd, hdr);
-			if (err == -EINVAL)
-				continue;
-
-			if (!err) {
-				if (copy_to_user(uparam, hdr, hdr->ioc_len))
-					err = -EFAULT;
-			}
+	switch (cmd)
+	{
+		case IOC_LIBCFS_CLEAR_DEBUG:
+			libcfs_debug_clear_buffer();
 			break;
-		}
-		up_read(&ioctl_list_sem);
-		break; }
+
+		case IOC_LIBCFS_MARK_DEBUG:
+			if (!data || !data->ioc_inlbuf1 ||
+				data->ioc_inlbuf1[data->ioc_inllen1 - 1] != '\0')
+			{
+				err = -EINVAL;
+				goto out;
+			}
+
+			libcfs_debug_mark_buffer(data->ioc_inlbuf1);
+			break;
+
+		default:
+			{
+				struct libcfs_ioctl_handler *hand;
+
+				err = -EINVAL;
+				down_read(&ioctl_list_sem);
+				list_for_each_entry(hand, &ioctl_list, item)
+				{
+					err = hand->handle_ioctl(cmd, hdr);
+
+					if (err == -EINVAL)
+					{
+						continue;
+					}
+
+					if (!err)
+					{
+						if (copy_to_user(uparam, hdr, hdr->ioc_len))
+						{
+							err = -EFAULT;
+						}
+					}
+
+					break;
+				}
+				up_read(&ioctl_list_sem);
+				break;
+			}
 	}
+
 out:
 	LIBCFS_FREE(hdr, hdr->ioc_len);
 	return err;
 }
 
 int lprocfs_call_handler(void *data, int write, loff_t *ppos,
-			 void __user *buffer, size_t *lenp,
-			 int (*handler)(void *data, int write, loff_t pos,
-					void __user *buffer, int len))
+						 void __user *buffer, size_t *lenp,
+						 int (*handler)(void *data, int write, loff_t pos,
+										void __user *buffer, int len))
 {
 	int rc = handler(data, write, *ppos, buffer, *lenp);
 
 	if (rc < 0)
+	{
 		return rc;
+	}
 
-	if (write) {
+	if (write)
+	{
 		*ppos += *lenp;
-	} else {
+	}
+	else
+	{
 		*lenp = rc;
 		*ppos += rc;
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL(lprocfs_call_handler);
 
 static int __proc_dobitmasks(void *data, int write,
-			     loff_t pos, void __user *buffer, int nob)
+							 loff_t pos, void __user *buffer, int nob)
 {
 	const int     tmpstrlen = 512;
 	char	 *tmpstr;
@@ -191,30 +230,44 @@ static int __proc_dobitmasks(void *data, int write,
 	int	   is_printk = (mask == &libcfs_printk) ? 1 : 0;
 
 	rc = cfs_trace_allocate_string_buffer(&tmpstr, tmpstrlen);
-	if (rc < 0)
-		return rc;
 
-	if (!write) {
+	if (rc < 0)
+	{
+		return rc;
+	}
+
+	if (!write)
+	{
 		libcfs_debug_mask2str(tmpstr, tmpstrlen, *mask, is_subsys);
 		rc = strlen(tmpstr);
 
-		if (pos >= rc) {
+		if (pos >= rc)
+		{
 			rc = 0;
-		} else {
-			rc = cfs_trace_copyout_string(buffer, nob,
-						      tmpstr + pos, "\n");
 		}
-	} else {
+		else
+		{
+			rc = cfs_trace_copyout_string(buffer, nob,
+										  tmpstr + pos, "\n");
+		}
+	}
+	else
+	{
 		rc = cfs_trace_copyin_string(tmpstr, tmpstrlen, buffer, nob);
-		if (rc < 0) {
+
+		if (rc < 0)
+		{
 			kfree(tmpstr);
 			return rc;
 		}
 
 		rc = libcfs_debug_str2mask(mask, tmpstr, is_subsys);
+
 		/* Always print LBUG/LASSERT to console, so keep this mask */
 		if (is_printk)
+		{
 			*mask |= D_EMERG;
+		}
 	}
 
 	kfree(tmpstr);
@@ -222,122 +275,151 @@ static int __proc_dobitmasks(void *data, int write,
 }
 
 static int proc_dobitmasks(struct ctl_table *table, int write,
-			   void __user *buffer, size_t *lenp, loff_t *ppos)
+						   void __user *buffer, size_t *lenp, loff_t *ppos)
 {
 	return lprocfs_call_handler(table->data, write, ppos, buffer, lenp,
-				    __proc_dobitmasks);
+								__proc_dobitmasks);
 }
 
 static int __proc_dump_kernel(void *data, int write,
-			      loff_t pos, void __user *buffer, int nob)
+							  loff_t pos, void __user *buffer, int nob)
 {
 	if (!write)
+	{
 		return 0;
+	}
 
 	return cfs_trace_dump_debug_buffer_usrstr(buffer, nob);
 }
 
 static int proc_dump_kernel(struct ctl_table *table, int write,
-			    void __user *buffer, size_t *lenp, loff_t *ppos)
+							void __user *buffer, size_t *lenp, loff_t *ppos)
 {
 	return lprocfs_call_handler(table->data, write, ppos, buffer, lenp,
-				    __proc_dump_kernel);
+								__proc_dump_kernel);
 }
 
 static int __proc_daemon_file(void *data, int write,
-			      loff_t pos, void __user *buffer, int nob)
+							  loff_t pos, void __user *buffer, int nob)
 {
-	if (!write) {
+	if (!write)
+	{
 		int len = strlen(cfs_tracefile);
 
 		if (pos >= len)
+		{
 			return 0;
+		}
 
 		return cfs_trace_copyout_string(buffer, nob,
-						cfs_tracefile + pos, "\n");
+										cfs_tracefile + pos, "\n");
 	}
 
 	return cfs_trace_daemon_command_usrstr(buffer, nob);
 }
 
 static int proc_daemon_file(struct ctl_table *table, int write,
-			    void __user *buffer, size_t *lenp, loff_t *ppos)
+							void __user *buffer, size_t *lenp, loff_t *ppos)
 {
 	return lprocfs_call_handler(table->data, write, ppos, buffer, lenp,
-				    __proc_daemon_file);
+								__proc_daemon_file);
 }
 
 static int libcfs_force_lbug(struct ctl_table *table, int write,
-			     void __user *buffer,
-			     size_t *lenp, loff_t *ppos)
+							 void __user *buffer,
+							 size_t *lenp, loff_t *ppos)
 {
 	if (write)
+	{
 		LBUG();
+	}
+
 	return 0;
 }
 
 static int proc_fail_loc(struct ctl_table *table, int write,
-			 void __user *buffer,
-			 size_t *lenp, loff_t *ppos)
+						 void __user *buffer,
+						 size_t *lenp, loff_t *ppos)
 {
 	int rc;
 	long old_fail_loc = cfs_fail_loc;
 
 	rc = proc_doulongvec_minmax(table, write, buffer, lenp, ppos);
+
 	if (old_fail_loc != cfs_fail_loc)
+	{
 		wake_up(&cfs_race_waitq);
+	}
+
 	return rc;
 }
 
 static int __proc_cpt_table(void *data, int write,
-			    loff_t pos, void __user *buffer, int nob)
+							loff_t pos, void __user *buffer, int nob)
 {
 	char *buf = NULL;
 	int   len = 4096;
 	int   rc  = 0;
 
 	if (write)
+	{
 		return -EPERM;
+	}
 
 	LASSERT(cfs_cpt_table);
 
-	while (1) {
+	while (1)
+	{
 		LIBCFS_ALLOC(buf, len);
+
 		if (!buf)
+		{
 			return -ENOMEM;
+		}
 
 		rc = cfs_cpt_table_print(cfs_cpt_table, buf, len);
-		if (rc >= 0)
-			break;
 
-		if (rc == -EFBIG) {
+		if (rc >= 0)
+		{
+			break;
+		}
+
+		if (rc == -EFBIG)
+		{
 			LIBCFS_FREE(buf, len);
 			len <<= 1;
 			continue;
 		}
+
 		goto out;
 	}
 
-	if (pos >= rc) {
+	if (pos >= rc)
+	{
 		rc = 0;
 		goto out;
 	}
 
 	rc = cfs_trace_copyout_string(buffer, nob, buf + pos, NULL);
- out:
+out:
+
 	if (buf)
+	{
 		LIBCFS_FREE(buf, len);
+	}
+
 	return rc;
 }
 
 static int proc_cpt_table(struct ctl_table *table, int write,
-			  void __user *buffer, size_t *lenp, loff_t *ppos)
+						  void __user *buffer, size_t *lenp, loff_t *ppos)
 {
 	return lprocfs_call_handler(table->data, write, ppos, buffer, lenp,
-				    __proc_cpt_table);
+								__proc_cpt_table);
 }
 
-static struct ctl_table lnet_table[] = {
+static struct ctl_table lnet_table[] =
+{
 	{
 		.procname = "debug",
 		.data     = &libcfs_debug,
@@ -431,64 +513,88 @@ static struct ctl_table lnet_table[] = {
 	}
 };
 
-static const struct lnet_debugfs_symlink_def lnet_debugfs_symlinks[] = {
-	{ "console_ratelimit",
-	  "/sys/module/libcfs/parameters/libcfs_console_ratelimit"},
-	{ "debug_path",
-	  "/sys/module/libcfs/parameters/libcfs_debug_file_path"},
-	{ "panic_on_lbug",
-	  "/sys/module/libcfs/parameters/libcfs_panic_on_lbug"},
-	{ "libcfs_console_backoff",
-	  "/sys/module/libcfs/parameters/libcfs_console_backoff"},
-	{ "debug_mb",
-	  "/sys/module/libcfs/parameters/libcfs_debug_mb"},
-	{ "console_min_delay_centisecs",
-	  "/sys/module/libcfs/parameters/libcfs_console_min_delay"},
-	{ "console_max_delay_centisecs",
-	  "/sys/module/libcfs/parameters/libcfs_console_max_delay"},
+static const struct lnet_debugfs_symlink_def lnet_debugfs_symlinks[] =
+{
+	{
+		"console_ratelimit",
+		"/sys/module/libcfs/parameters/libcfs_console_ratelimit"
+	},
+	{
+		"debug_path",
+		"/sys/module/libcfs/parameters/libcfs_debug_file_path"
+	},
+	{
+		"panic_on_lbug",
+		"/sys/module/libcfs/parameters/libcfs_panic_on_lbug"
+	},
+	{
+		"libcfs_console_backoff",
+		"/sys/module/libcfs/parameters/libcfs_console_backoff"
+	},
+	{
+		"debug_mb",
+		"/sys/module/libcfs/parameters/libcfs_debug_mb"
+	},
+	{
+		"console_min_delay_centisecs",
+		"/sys/module/libcfs/parameters/libcfs_console_min_delay"
+	},
+	{
+		"console_max_delay_centisecs",
+		"/sys/module/libcfs/parameters/libcfs_console_max_delay"
+	},
 	{},
 };
 
 static ssize_t lnet_debugfs_read(struct file *filp, char __user *buf,
-				 size_t count, loff_t *ppos)
+								 size_t count, loff_t *ppos)
 {
 	struct ctl_table *table = filp->private_data;
 	int error;
 
 	error = table->proc_handler(table, 0, (void __user *)buf, &count, ppos);
+
 	if (!error)
+	{
 		error = count;
+	}
 
 	return error;
 }
 
 static ssize_t lnet_debugfs_write(struct file *filp, const char __user *buf,
-				  size_t count, loff_t *ppos)
+								  size_t count, loff_t *ppos)
 {
 	struct ctl_table *table = filp->private_data;
 	int error;
 
 	error = table->proc_handler(table, 1, (void __user *)buf, &count, ppos);
+
 	if (!error)
+	{
 		error = count;
+	}
 
 	return error;
 }
 
-static const struct file_operations lnet_debugfs_file_operations_rw = {
+static const struct file_operations lnet_debugfs_file_operations_rw =
+{
 	.open		= simple_open,
 	.read		= lnet_debugfs_read,
 	.write		= lnet_debugfs_write,
 	.llseek		= default_llseek,
 };
 
-static const struct file_operations lnet_debugfs_file_operations_ro = {
+static const struct file_operations lnet_debugfs_file_operations_ro =
+{
 	.open		= simple_open,
 	.read		= lnet_debugfs_read,
 	.llseek		= default_llseek,
 };
 
-static const struct file_operations lnet_debugfs_file_operations_wo = {
+static const struct file_operations lnet_debugfs_file_operations_wo =
+{
 	.open		= simple_open,
 	.write		= lnet_debugfs_write,
 	.llseek		= default_llseek,
@@ -497,35 +603,43 @@ static const struct file_operations lnet_debugfs_file_operations_wo = {
 static const struct file_operations *lnet_debugfs_fops_select(umode_t mode)
 {
 	if (!(mode & S_IWUGO))
+	{
 		return &lnet_debugfs_file_operations_ro;
+	}
 
 	if (!(mode & S_IRUGO))
+	{
 		return &lnet_debugfs_file_operations_wo;
+	}
 
 	return &lnet_debugfs_file_operations_rw;
 }
 
 void lustre_insert_debugfs(struct ctl_table *table,
-			   const struct lnet_debugfs_symlink_def *symlinks)
+						   const struct lnet_debugfs_symlink_def *symlinks)
 {
 	if (!lnet_debugfs_root)
+	{
 		lnet_debugfs_root = debugfs_create_dir("lnet", NULL);
+	}
 
 	/* Even if we cannot create, just ignore it altogether) */
 	if (IS_ERR_OR_NULL(lnet_debugfs_root))
+	{
 		return;
+	}
 
 	/* We don't save the dentry returned in next two calls, because
 	 * we don't call debugfs_remove() but rather remove_recursive()
 	 */
 	for (; table->procname; table++)
 		debugfs_create_file(table->procname, table->mode,
-				    lnet_debugfs_root, table,
-				    lnet_debugfs_fops_select(table->mode));
+							lnet_debugfs_root, table,
+							lnet_debugfs_fops_select(table->mode));
 
 	for (; symlinks && symlinks->name; symlinks++)
 		debugfs_create_symlink(symlinks->name, lnet_debugfs_root,
-				       symlinks->target);
+							   symlinks->target);
 }
 EXPORT_SYMBOL_GPL(lustre_insert_debugfs);
 
@@ -541,23 +655,32 @@ static int libcfs_init(void)
 	int rc;
 
 	rc = libcfs_debug_init(5 * 1024 * 1024);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		pr_err("LustreError: libcfs_debug_init: %d\n", rc);
 		return rc;
 	}
 
 	rc = cfs_cpu_init();
+
 	if (rc != 0)
+	{
 		goto cleanup_debug;
+	}
 
 	rc = misc_register(&libcfs_dev);
-	if (rc) {
+
+	if (rc)
+	{
 		CERROR("misc_register: error %d\n", rc);
 		goto cleanup_cpu;
 	}
 
 	rc = cfs_wi_startup();
-	if (rc) {
+
+	if (rc)
+	{
 		CERROR("initialize workitem: error %d\n", rc);
 		goto cleanup_deregister;
 	}
@@ -565,14 +688,18 @@ static int libcfs_init(void)
 	/* max to 4 threads, should be enough for rehash */
 	rc = min(cfs_cpt_weight(cfs_cpt_table, CFS_CPT_ANY), 4);
 	rc = cfs_wi_sched_create("cfs_rh", cfs_cpt_table, CFS_CPT_ANY,
-				 rc, &cfs_sched_rehash);
-	if (rc != 0) {
+							 rc, &cfs_sched_rehash);
+
+	if (rc != 0)
+	{
 		CERROR("Startup workitem scheduler: error: %d\n", rc);
 		goto cleanup_deregister;
 	}
 
 	rc = cfs_crypto_register();
-	if (rc) {
+
+	if (rc)
+	{
 		CERROR("cfs_crypto_register: error %d\n", rc);
 		goto cleanup_wi;
 	}
@@ -581,13 +708,13 @@ static int libcfs_init(void)
 
 	CDEBUG(D_OTHER, "portals setup OK\n");
 	return 0;
- cleanup_wi:
+cleanup_wi:
 	cfs_wi_shutdown();
- cleanup_deregister:
+cleanup_deregister:
 	misc_deregister(&libcfs_dev);
 cleanup_cpu:
 	cfs_cpu_fini();
- cleanup_debug:
+cleanup_debug:
 	libcfs_debug_cleanup();
 	return rc;
 }
@@ -598,7 +725,8 @@ static void libcfs_exit(void)
 
 	lustre_remove_debugfs();
 
-	if (cfs_sched_rehash) {
+	if (cfs_sched_rehash)
+	{
 		cfs_wi_sched_destroy(cfs_sched_rehash);
 		cfs_sched_rehash = NULL;
 	}
@@ -611,8 +739,11 @@ static void libcfs_exit(void)
 	cfs_cpu_fini();
 
 	rc = libcfs_debug_cleanup();
+
 	if (rc)
+	{
 		pr_err("LustreError: libcfs_debug_cleanup: %d\n", rc);
+	}
 }
 
 MODULE_AUTHOR("OpenSFS, Inc. <http://www.lustre.org/>");

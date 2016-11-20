@@ -5,7 +5,7 @@
  * Copyright 1994,95,96 by Fritz Elfert (fritz@isdn4linux.de)
  * Copyright 1995,96    by Thinking Objects Software GmbH Wuerzburg
  * Copyright 1995,96    by Michael Hipp (Michael.Hipp@student.uni-tuebingen.de)
- * 
+ *
  * This software may be used and distributed according to the terms
  * of the GNU General Public License, incorporated herein by reference.
  *
@@ -94,43 +94,46 @@
 
 #define INF_DV 0x01  /* Data version for /dev/isdninfo        */
 
-typedef struct {
-  char drvid[25];
-  unsigned long arg;
+typedef struct
+{
+	char drvid[25];
+	unsigned long arg;
 } isdn_ioctl_struct;
 
-typedef struct {
-  char name[10];
-  char phone[ISDN_MSNLEN];
-  int  outgoing;
+typedef struct
+{
+	char name[10];
+	char phone[ISDN_MSNLEN];
+	int  outgoing;
 } isdn_net_ioctl_phone;
 
-typedef struct {
-  char name[10];     /* Name of interface                     */
-  char master[10];   /* Name of Master for Bundling           */
-  char slave[10];    /* Name of Slave for Bundling            */
-  char eaz[256];     /* EAZ/MSN                               */
-  char drvid[25];    /* DriverId for Bindings                 */
-  int  onhtime;      /* Hangup-Timeout                        */
-  int  charge;       /* Charge-Units                          */
-  int  l2_proto;     /* Layer-2 protocol                      */
-  int  l3_proto;     /* Layer-3 protocol                      */
-  int  p_encap;      /* Encapsulation                         */
-  int  exclusive;    /* Channel, if bound exclusive           */
-  int  dialmax;      /* Dial Retry-Counter                    */
-  int  slavedelay;   /* Delay until slave starts up           */
-  int  cbdelay;      /* Delay before Callback                 */
-  int  chargehup;    /* Flag: Charge-Hangup                   */
-  int  ihup;         /* Flag: Hangup-Timeout on incoming line */
-  int  secure;       /* Flag: Secure                          */
-  int  callback;     /* Flag: Callback                        */
-  int  cbhup;        /* Flag: Reject Call before Callback     */
-  int  pppbind;      /* ippp device for bindings              */
-  int  chargeint;    /* Use fixed charge interval length      */
-  int  triggercps;   /* BogoCPS needed for triggering slave   */
-  int  dialtimeout;  /* Dial-Timeout                          */
-  int  dialwait;     /* Time to wait after failed dial        */
-  int  dialmode;     /* Flag: off / on / auto                 */
+typedef struct
+{
+	char name[10];     /* Name of interface                     */
+	char master[10];   /* Name of Master for Bundling           */
+	char slave[10];    /* Name of Slave for Bundling            */
+	char eaz[256];     /* EAZ/MSN                               */
+	char drvid[25];    /* DriverId for Bindings                 */
+	int  onhtime;      /* Hangup-Timeout                        */
+	int  charge;       /* Charge-Units                          */
+	int  l2_proto;     /* Layer-2 protocol                      */
+	int  l3_proto;     /* Layer-3 protocol                      */
+	int  p_encap;      /* Encapsulation                         */
+	int  exclusive;    /* Channel, if bound exclusive           */
+	int  dialmax;      /* Dial Retry-Counter                    */
+	int  slavedelay;   /* Delay until slave starts up           */
+	int  cbdelay;      /* Delay before Callback                 */
+	int  chargehup;    /* Flag: Charge-Hangup                   */
+	int  ihup;         /* Flag: Hangup-Timeout on incoming line */
+	int  secure;       /* Flag: Secure                          */
+	int  callback;     /* Flag: Callback                        */
+	int  cbhup;        /* Flag: Reject Call before Callback     */
+	int  pppbind;      /* ippp device for bindings              */
+	int  chargeint;    /* Use fixed charge interval length      */
+	int  triggercps;   /* BogoCPS needed for triggering slave   */
+	int  dialtimeout;  /* Dial-Timeout                          */
+	int  dialwait;     /* Time to wait after failed dial        */
+	int  dialmode;     /* Flag: off / on / auto                 */
 } isdn_net_ioctl_cfg;
 
 #define ISDN_NET_DIALMODE_MASK  0xC0    /* bits for status                */

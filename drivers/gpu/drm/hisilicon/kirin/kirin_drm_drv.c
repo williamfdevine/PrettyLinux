@@ -34,10 +34,13 @@ static int kirin_drm_kms_cleanup(struct drm_device *dev)
 	struct kirin_drm_private *priv = dev->dev_private;
 
 #ifdef CONFIG_DRM_FBDEV_EMULATION
-	if (priv->fbdev) {
+
+	if (priv->fbdev)
+	{
 		drm_fbdev_cma_fini(priv->fbdev);
 		priv->fbdev = NULL;
 	}
+
 #endif
 	drm_kms_helper_poll_fini(dev);
 	drm_vblank_cleanup(dev);
@@ -54,19 +57,26 @@ static void kirin_fbdev_output_poll_changed(struct drm_device *dev)
 {
 	struct kirin_drm_private *priv = dev->dev_private;
 
-	if (priv->fbdev) {
+	if (priv->fbdev)
+	{
 		drm_fbdev_cma_hotplug_event(priv->fbdev);
-	} else {
+	}
+	else
+	{
 		priv->fbdev = drm_fbdev_cma_init(dev, 32,
-				dev->mode_config.num_crtc,
-				dev->mode_config.num_connector);
+										 dev->mode_config.num_crtc,
+										 dev->mode_config.num_connector);
+
 		if (IS_ERR(priv->fbdev))
+		{
 			priv->fbdev = NULL;
+		}
 	}
 }
 #endif
 
-static const struct drm_mode_config_funcs kirin_drm_mode_config_funcs = {
+static const struct drm_mode_config_funcs kirin_drm_mode_config_funcs =
+{
 	.fb_create = drm_fb_cma_create,
 #ifdef CONFIG_DRM_FBDEV_EMULATION
 	.output_poll_changed = kirin_fbdev_output_poll_changed,
@@ -92,8 +102,11 @@ static int kirin_drm_kms_init(struct drm_device *dev)
 	int ret;
 
 	priv = devm_kzalloc(dev->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	dev->dev_private = priv;
 	dev_set_drvdata(dev->dev, dev);
@@ -104,22 +117,30 @@ static int kirin_drm_kms_init(struct drm_device *dev)
 
 	/* display controller init */
 	ret = dc_ops->init(dev);
+
 	if (ret)
+	{
 		goto err_mode_config_cleanup;
+	}
 
 	/* bind and init sub drivers */
 	ret = component_bind_all(dev->dev, dev);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("failed to bind all component.\n");
 		goto err_dc_cleanup;
 	}
 
 	/* vblank init */
 	ret = drm_vblank_init(dev, dev->mode_config.num_crtc);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("failed to initialize vblank.\n");
 		goto err_unbind_all;
 	}
+
 	/* with irq_enabled = true, we can use the vblank feature. */
 	dev->irq_enabled = true;
 
@@ -146,7 +167,8 @@ err_mode_config_cleanup:
 	return ret;
 }
 
-static const struct file_operations kirin_drm_fops = {
+static const struct file_operations kirin_drm_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= drm_open,
 	.release	= drm_release,
@@ -161,15 +183,16 @@ static const struct file_operations kirin_drm_fops = {
 };
 
 static int kirin_gem_cma_dumb_create(struct drm_file *file,
-				     struct drm_device *dev,
-				     struct drm_mode_create_dumb *args)
+									 struct drm_device *dev,
+									 struct drm_mode_create_dumb *args)
 {
 	return drm_gem_cma_dumb_create_internal(file, dev, args);
 }
 
-static struct drm_driver kirin_drm_driver = {
+static struct drm_driver kirin_drm_driver =
+{
 	.driver_features	= DRIVER_GEM | DRIVER_MODESET | DRIVER_PRIME |
-				  DRIVER_ATOMIC,
+	DRIVER_ATOMIC,
 	.fops			= &kirin_drm_fops,
 
 	.gem_free_object_unlocked = drm_gem_cma_free_object,
@@ -207,22 +230,31 @@ static int kirin_drm_bind(struct device *dev)
 	int ret;
 
 	drm_dev = drm_dev_alloc(driver, dev);
+
 	if (IS_ERR(drm_dev))
+	{
 		return PTR_ERR(drm_dev);
+	}
 
 	drm_dev->platformdev = to_platform_device(dev);
 
 	ret = kirin_drm_kms_init(drm_dev);
+
 	if (ret)
+	{
 		goto err_drm_dev_unref;
+	}
 
 	ret = drm_dev_register(drm_dev, 0);
+
 	if (ret)
+	{
 		goto err_kms_cleanup;
+	}
 
 	DRM_INFO("Initialized %s %d.%d.%d %s on minor %d\n",
-		 driver->name, driver->major, driver->minor, driver->patchlevel,
-		 driver->date, drm_dev->primary->index);
+			 driver->name, driver->major, driver->minor, driver->patchlevel,
+			 driver->date, drm_dev->primary->index);
 
 	return 0;
 
@@ -243,7 +275,8 @@ static void kirin_drm_unbind(struct device *dev)
 	drm_dev_unref(drm_dev);
 }
 
-static const struct component_master_ops kirin_drm_ops = {
+static const struct component_master_ops kirin_drm_ops =
+{
 	.bind = kirin_drm_bind,
 	.unbind = kirin_drm_unbind,
 };
@@ -256,20 +289,27 @@ static struct device_node *kirin_get_remote_node(struct device_node *np)
 	 * is connected to display controller.
 	 */
 	endpoint = of_graph_get_next_endpoint(np, NULL);
-	if (!endpoint) {
+
+	if (!endpoint)
+	{
 		DRM_ERROR("no valid endpoint node\n");
 		return ERR_PTR(-ENODEV);
 	}
+
 	of_node_put(endpoint);
 
 	remote = of_graph_get_remote_port_parent(endpoint);
-	if (!remote) {
+
+	if (!remote)
+	{
 		DRM_ERROR("no valid remote node\n");
 		return ERR_PTR(-ENODEV);
 	}
+
 	of_node_put(remote);
 
-	if (!of_device_is_available(remote)) {
+	if (!of_device_is_available(remote))
+	{
 		DRM_ERROR("not available for remote node\n");
 		return ERR_PTR(-ENODEV);
 	}
@@ -285,14 +325,19 @@ static int kirin_drm_platform_probe(struct platform_device *pdev)
 	struct device_node *remote;
 
 	dc_ops = (struct kirin_dc_ops *)of_device_get_match_data(dev);
-	if (!dc_ops) {
+
+	if (!dc_ops)
+	{
 		DRM_ERROR("failed to get dt id data\n");
 		return -EINVAL;
 	}
 
 	remote = kirin_get_remote_node(np);
+
 	if (IS_ERR(remote))
+	{
 		return PTR_ERR(remote);
+	}
 
 	component_match_add(dev, &match, compare_of, remote);
 
@@ -308,15 +353,18 @@ static int kirin_drm_platform_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id kirin_drm_dt_ids[] = {
-	{ .compatible = "hisilicon,hi6220-ade",
-	  .data = &ade_dc_ops,
+static const struct of_device_id kirin_drm_dt_ids[] =
+{
+	{
+		.compatible = "hisilicon,hi6220-ade",
+		.data = &ade_dc_ops,
 	},
 	{ /* end node */ },
 };
 MODULE_DEVICE_TABLE(of, kirin_drm_dt_ids);
 
-static struct platform_driver kirin_drm_platform_driver = {
+static struct platform_driver kirin_drm_platform_driver =
+{
 	.probe = kirin_drm_platform_probe,
 	.remove = kirin_drm_platform_remove,
 	.driver = {

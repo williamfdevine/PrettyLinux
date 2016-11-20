@@ -67,7 +67,7 @@ ACPI_MODULE_NAME("utids")
  ******************************************************************************/
 acpi_status
 acpi_ut_execute_HID(struct acpi_namespace_node *device_node,
-		    struct acpi_pnp_device_id **return_id)
+					struct acpi_pnp_device_id **return_id)
 {
 	union acpi_operand_object *obj_desc;
 	struct acpi_pnp_device_id *hid;
@@ -77,26 +77,33 @@ acpi_ut_execute_HID(struct acpi_namespace_node *device_node,
 	ACPI_FUNCTION_TRACE(ut_execute_HID);
 
 	status = acpi_ut_evaluate_object(device_node, METHOD_NAME__HID,
-					 ACPI_BTYPE_INTEGER | ACPI_BTYPE_STRING,
-					 &obj_desc);
-	if (ACPI_FAILURE(status)) {
+									 ACPI_BTYPE_INTEGER | ACPI_BTYPE_STRING,
+									 &obj_desc);
+
+	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
 	}
 
 	/* Get the size of the String to be returned, includes null terminator */
 
-	if (obj_desc->common.type == ACPI_TYPE_INTEGER) {
+	if (obj_desc->common.type == ACPI_TYPE_INTEGER)
+	{
 		length = ACPI_EISAID_STRING_SIZE;
-	} else {
+	}
+	else
+	{
 		length = obj_desc->string.length + 1;
 	}
 
 	/* Allocate a buffer for the HID */
 
 	hid =
-	    ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_pnp_device_id) +
-				 (acpi_size)length);
-	if (!hid) {
+		ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_pnp_device_id) +
+							 (acpi_size)length);
+
+	if (!hid)
+	{
 		status = AE_NO_MEMORY;
 		goto cleanup;
 	}
@@ -104,13 +111,16 @@ acpi_ut_execute_HID(struct acpi_namespace_node *device_node,
 	/* Area for the string starts after PNP_DEVICE_ID struct */
 
 	hid->string =
-	    ACPI_ADD_PTR(char, hid, sizeof(struct acpi_pnp_device_id));
+		ACPI_ADD_PTR(char, hid, sizeof(struct acpi_pnp_device_id));
 
 	/* Convert EISAID to a string or simply copy existing string */
 
-	if (obj_desc->common.type == ACPI_TYPE_INTEGER) {
+	if (obj_desc->common.type == ACPI_TYPE_INTEGER)
+	{
 		acpi_ex_eisa_id_to_string(hid->string, obj_desc->integer.value);
-	} else {
+	}
+	else
+	{
 		strcpy(hid->string, obj_desc->string.pointer);
 	}
 
@@ -145,7 +155,7 @@ cleanup:
 
 acpi_status
 acpi_ut_execute_UID(struct acpi_namespace_node *device_node,
-		    struct acpi_pnp_device_id **return_id)
+					struct acpi_pnp_device_id **return_id)
 {
 	union acpi_operand_object *obj_desc;
 	struct acpi_pnp_device_id *uid;
@@ -155,26 +165,33 @@ acpi_ut_execute_UID(struct acpi_namespace_node *device_node,
 	ACPI_FUNCTION_TRACE(ut_execute_UID);
 
 	status = acpi_ut_evaluate_object(device_node, METHOD_NAME__UID,
-					 ACPI_BTYPE_INTEGER | ACPI_BTYPE_STRING,
-					 &obj_desc);
-	if (ACPI_FAILURE(status)) {
+									 ACPI_BTYPE_INTEGER | ACPI_BTYPE_STRING,
+									 &obj_desc);
+
+	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
 	}
 
 	/* Get the size of the String to be returned, includes null terminator */
 
-	if (obj_desc->common.type == ACPI_TYPE_INTEGER) {
+	if (obj_desc->common.type == ACPI_TYPE_INTEGER)
+	{
 		length = ACPI_MAX64_DECIMAL_DIGITS + 1;
-	} else {
+	}
+	else
+	{
 		length = obj_desc->string.length + 1;
 	}
 
 	/* Allocate a buffer for the UID */
 
 	uid =
-	    ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_pnp_device_id) +
-				 (acpi_size)length);
-	if (!uid) {
+		ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_pnp_device_id) +
+							 (acpi_size)length);
+
+	if (!uid)
+	{
 		status = AE_NO_MEMORY;
 		goto cleanup;
 	}
@@ -182,13 +199,16 @@ acpi_ut_execute_UID(struct acpi_namespace_node *device_node,
 	/* Area for the string starts after PNP_DEVICE_ID struct */
 
 	uid->string =
-	    ACPI_ADD_PTR(char, uid, sizeof(struct acpi_pnp_device_id));
+		ACPI_ADD_PTR(char, uid, sizeof(struct acpi_pnp_device_id));
 
 	/* Convert an Integer to string, or just copy an existing string */
 
-	if (obj_desc->common.type == ACPI_TYPE_INTEGER) {
+	if (obj_desc->common.type == ACPI_TYPE_INTEGER)
+	{
 		acpi_ex_integer_to_string(uid->string, obj_desc->integer.value);
-	} else {
+	}
+	else
+	{
 		strcpy(uid->string, obj_desc->string.pointer);
 	}
 
@@ -228,7 +248,7 @@ cleanup:
 
 acpi_status
 acpi_ut_execute_CID(struct acpi_namespace_node *device_node,
-		    struct acpi_pnp_device_id_list **return_cid_list)
+					struct acpi_pnp_device_id_list **return_cid_list)
 {
 	union acpi_operand_object **cid_objects;
 	union acpi_operand_object *obj_desc;
@@ -246,9 +266,11 @@ acpi_ut_execute_CID(struct acpi_namespace_node *device_node,
 	/* Evaluate the _CID method for this device */
 
 	status = acpi_ut_evaluate_object(device_node, METHOD_NAME__CID,
-					 ACPI_BTYPE_INTEGER | ACPI_BTYPE_STRING
-					 | ACPI_BTYPE_PACKAGE, &obj_desc);
-	if (ACPI_FAILURE(status)) {
+									 ACPI_BTYPE_INTEGER | ACPI_BTYPE_STRING
+									 | ACPI_BTYPE_PACKAGE, &obj_desc);
+
+	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
 	}
 
@@ -258,35 +280,41 @@ acpi_ut_execute_CID(struct acpi_namespace_node *device_node,
 	 * Note: This section also validates that all CID elements are of the
 	 * correct type (Integer or String).
 	 */
-	if (obj_desc->common.type == ACPI_TYPE_PACKAGE) {
+	if (obj_desc->common.type == ACPI_TYPE_PACKAGE)
+	{
 		count = obj_desc->package.count;
 		cid_objects = obj_desc->package.elements;
-	} else {		/* Single Integer or String CID */
+	}
+	else  		/* Single Integer or String CID */
+	{
 
 		count = 1;
 		cid_objects = &obj_desc;
 	}
 
 	string_area_size = 0;
-	for (i = 0; i < count; i++) {
+
+	for (i = 0; i < count; i++)
+	{
 
 		/* String lengths include null terminator */
 
-		switch (cid_objects[i]->common.type) {
-		case ACPI_TYPE_INTEGER:
+		switch (cid_objects[i]->common.type)
+		{
+			case ACPI_TYPE_INTEGER:
 
-			string_area_size += ACPI_EISAID_STRING_SIZE;
-			break;
+				string_area_size += ACPI_EISAID_STRING_SIZE;
+				break;
 
-		case ACPI_TYPE_STRING:
+			case ACPI_TYPE_STRING:
 
-			string_area_size += cid_objects[i]->string.length + 1;
-			break;
+				string_area_size += cid_objects[i]->string.length + 1;
+				break;
 
-		default:
+			default:
 
-			status = AE_TYPE;
-			goto cleanup;
+				status = AE_TYPE;
+				goto cleanup;
 		}
 	}
 
@@ -297,11 +325,13 @@ acpi_ut_execute_CID(struct acpi_namespace_node *device_node,
 	 * 3) Size of the actual CID strings
 	 */
 	cid_list_size = sizeof(struct acpi_pnp_device_id_list) +
-	    ((count - 1) * sizeof(struct acpi_pnp_device_id)) +
-	    string_area_size;
+					((count - 1) * sizeof(struct acpi_pnp_device_id)) +
+					string_area_size;
 
 	cid_list = ACPI_ALLOCATE_ZEROED(cid_list_size);
-	if (!cid_list) {
+
+	if (!cid_list)
+	{
 		status = AE_NO_MEMORY;
 		goto cleanup;
 	}
@@ -309,20 +339,24 @@ acpi_ut_execute_CID(struct acpi_namespace_node *device_node,
 	/* Area for CID strings starts after the CID PNP_DEVICE_ID array */
 
 	next_id_string = ACPI_CAST_PTR(char, cid_list->ids) +
-	    ((acpi_size)count * sizeof(struct acpi_pnp_device_id));
+					 ((acpi_size)count * sizeof(struct acpi_pnp_device_id));
 
 	/* Copy/convert the CIDs to the return buffer */
 
-	for (i = 0; i < count; i++) {
-		if (cid_objects[i]->common.type == ACPI_TYPE_INTEGER) {
+	for (i = 0; i < count; i++)
+	{
+		if (cid_objects[i]->common.type == ACPI_TYPE_INTEGER)
+		{
 
 			/* Convert the Integer (EISAID) CID to a string */
 
 			acpi_ex_eisa_id_to_string(next_id_string,
-						  cid_objects[i]->integer.
-						  value);
+									  cid_objects[i]->integer.
+									  value);
 			length = ACPI_EISAID_STRING_SIZE;
-		} else {	/* ACPI_TYPE_STRING */
+		}
+		else  	/* ACPI_TYPE_STRING */
+		{
 
 			/* Copy the String CID from the returned object */
 
@@ -370,7 +404,7 @@ cleanup:
 
 acpi_status
 acpi_ut_execute_CLS(struct acpi_namespace_node *device_node,
-		    struct acpi_pnp_device_id **return_id)
+					struct acpi_pnp_device_id **return_id)
 {
 	union acpi_operand_object *obj_desc;
 	union acpi_operand_object **cls_objects;
@@ -383,8 +417,10 @@ acpi_ut_execute_CLS(struct acpi_namespace_node *device_node,
 	ACPI_FUNCTION_TRACE(ut_execute_CLS);
 
 	status = acpi_ut_evaluate_object(device_node, METHOD_NAME__CLS,
-					 ACPI_BTYPE_PACKAGE, &obj_desc);
-	if (ACPI_FAILURE(status)) {
+									 ACPI_BTYPE_PACKAGE, &obj_desc);
+
+	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
 	}
 
@@ -394,17 +430,23 @@ acpi_ut_execute_CLS(struct acpi_namespace_node *device_node,
 	cls_objects = obj_desc->package.elements;
 	count = obj_desc->package.count;
 
-	if (obj_desc->common.type == ACPI_TYPE_PACKAGE) {
+	if (obj_desc->common.type == ACPI_TYPE_PACKAGE)
+	{
 		if (count > 0
-		    && cls_objects[0]->common.type == ACPI_TYPE_INTEGER) {
+			&& cls_objects[0]->common.type == ACPI_TYPE_INTEGER)
+		{
 			class_code[0] = (u8)cls_objects[0]->integer.value;
 		}
+
 		if (count > 1
-		    && cls_objects[1]->common.type == ACPI_TYPE_INTEGER) {
+			&& cls_objects[1]->common.type == ACPI_TYPE_INTEGER)
+		{
 			class_code[1] = (u8)cls_objects[1]->integer.value;
 		}
+
 		if (count > 2
-		    && cls_objects[2]->common.type == ACPI_TYPE_INTEGER) {
+			&& cls_objects[2]->common.type == ACPI_TYPE_INTEGER)
+		{
 			class_code[2] = (u8)cls_objects[2]->integer.value;
 		}
 	}
@@ -412,9 +454,11 @@ acpi_ut_execute_CLS(struct acpi_namespace_node *device_node,
 	/* Allocate a buffer for the CLS */
 
 	cls =
-	    ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_pnp_device_id) +
-				 (acpi_size)length);
-	if (!cls) {
+		ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_pnp_device_id) +
+							 (acpi_size)length);
+
+	if (!cls)
+	{
 		status = AE_NO_MEMORY;
 		goto cleanup;
 	}
@@ -422,7 +466,7 @@ acpi_ut_execute_CLS(struct acpi_namespace_node *device_node,
 	/* Area for the string starts after PNP_DEVICE_ID struct */
 
 	cls->string =
-	    ACPI_ADD_PTR(char, cls, sizeof(struct acpi_pnp_device_id));
+		ACPI_ADD_PTR(char, cls, sizeof(struct acpi_pnp_device_id));
 
 	/* Simply copy existing string */
 

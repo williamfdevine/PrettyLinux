@@ -8,26 +8,26 @@
  *
  *
  * From the MFC3 documentation:
- * 
+ *
  * Miscellaneous PIA Details
  * -------------------------
- * 
+ *
  * 	The two open-drain interrupt outputs /IRQA and /IRQB are routed to
  * /INT2 of the Z2 bus.
- * 
+ *
  * 	The CPU data bus of the PIA (D0-D7) is connected to D8-D15 on the Z2
  * bus. This means that any PIA registers are accessed at even addresses.
- * 
+ *
  * Centronics Pin Connections for the PIA
  * --------------------------------------
- * 
+ *
  * 	The following table shows the connections between the PIA and the
  * Centronics interface connector. These connections implement a single, but
  * very complete, Centronics type interface. The Pin column gives the pin
  * numbers of the PIA. The Centronics pin numbers can be found in the section
  * "Parallel Connectors".
- * 
- * 
+ *
+ *
  *    Pin | PIA | Dir | Centronics Names
  * -------+-----+-----+---------------------------------------------------------
  *     19 | CB2 | --> | /STROBE (aka /DRDY)
@@ -44,7 +44,7 @@
  *      5 | PA3 | <-- | /ACK (same as CB1!)
  *      2 | PA0 | <-- | BUSY (same as CA1!)
  * -------+-----+-----+---------------------------------------------------------
- * 
+ *
  * Should be enough to understand some of the driver.
  *
  * Per convention for normal use the port registers are visible.
@@ -83,7 +83,7 @@ static struct parport_operations pp_mfc3_ops;
 
 static void mfc3_write_data(struct parport *p, unsigned char data)
 {
-DPRINTK(KERN_DEBUG "write_data %c\n",data);
+	DPRINTK(KERN_DEBUG "write_data %c\n", data);
 
 	dummy = pia(p)->pprb; /* clears irq bit */
 	/* Triggers also /STROBE.*/
@@ -98,42 +98,61 @@ static unsigned char mfc3_read_data(struct parport *p)
 
 static unsigned char control_pc_to_mfc3(unsigned char control)
 {
-	unsigned char ret = 32|64;
+	unsigned char ret = 32 | 64;
 
 	if (control & PARPORT_CONTROL_SELECT) /* XXX: What is SELECP? */
-		ret &= ~32; /* /SELECT_IN */
+	{
+		ret &= ~32;    /* /SELECT_IN */
+	}
+
 	if (control & PARPORT_CONTROL_INIT) /* INITP */
+	{
 		ret |= 128;
+	}
+
 	if (control & PARPORT_CONTROL_AUTOFD) /* AUTOLF */
+	{
 		ret &= ~64;
+	}
+
 	if (control & PARPORT_CONTROL_STROBE) /* Strobe */
 		/* Handled directly by hardware */;
+
 	return ret;
 }
 
 static unsigned char control_mfc3_to_pc(unsigned char control)
 {
-	unsigned char ret = PARPORT_CONTROL_STROBE 
-			  | PARPORT_CONTROL_AUTOFD | PARPORT_CONTROL_SELECT;
+	unsigned char ret = PARPORT_CONTROL_STROBE
+						| PARPORT_CONTROL_AUTOFD | PARPORT_CONTROL_SELECT;
 
 	if (control & 128) /* /INITP */
+	{
 		ret |= PARPORT_CONTROL_INIT;
+	}
+
 	if (control & 64) /* /AUTOLF */
+	{
 		ret &= ~PARPORT_CONTROL_AUTOFD;
+	}
+
 	if (control & 32) /* /SELECT_IN */
+	{
 		ret &= ~PARPORT_CONTROL_SELECT;
+	}
+
 	return ret;
 }
 
 static void mfc3_write_control(struct parport *p, unsigned char control)
 {
-DPRINTK(KERN_DEBUG "write_control %02x\n",control);
+	DPRINTK(KERN_DEBUG "write_control %02x\n", control);
 	pia(p)->ppra = (pia(p)->ppra & 0x1f) | control_pc_to_mfc3(control);
 }
-	
+
 static unsigned char mfc3_read_control( struct parport *p)
 {
-DPRINTK(KERN_DEBUG "read_control \n");
+	DPRINTK(KERN_DEBUG "read_control \n");
 	return control_mfc3_to_pc(pia(p)->ppra & 0xe0);
 }
 
@@ -141,7 +160,7 @@ static unsigned char mfc3_frob_control( struct parport *p, unsigned char mask, u
 {
 	unsigned char old;
 
-DPRINTK(KERN_DEBUG "frob_control mask %02x, value %02x\n",mask,val);
+	DPRINTK(KERN_DEBUG "frob_control mask %02x, value %02x\n", mask, val);
 	old = mfc3_read_control(p);
 	mfc3_write_control(p, (old & ~mask) ^ val);
 	return old;
@@ -152,15 +171,29 @@ static unsigned char status_mfc3_to_pc(unsigned char status)
 	unsigned char ret = PARPORT_STATUS_BUSY;
 
 	if (status & 1) /* Busy */
+	{
 		ret &= ~PARPORT_STATUS_BUSY;
+	}
+
 	if (status & 2) /* PaperOut */
+	{
 		ret |= PARPORT_STATUS_PAPEROUT;
+	}
+
 	if (status & 4) /* Selected */
+	{
 		ret |= PARPORT_STATUS_SELECT;
+	}
+
 	if (status & 8) /* Ack */
+	{
 		ret |= PARPORT_STATUS_ACK;
+	}
+
 	if (status & 16) /* /ERROR */
+	{
 		ret |= PARPORT_STATUS_ERROR;
+	}
 
 	return ret;
 }
@@ -170,7 +203,7 @@ static unsigned char mfc3_read_status(struct parport *p)
 	unsigned char status;
 
 	status = status_mfc3_to_pc(pia(p)->ppra & 0x1f);
-DPRINTK(KERN_DEBUG "read_status %02x\n", status);
+	DPRINTK(KERN_DEBUG "read_status %02x\n", status);
 	return status;
 }
 
@@ -180,12 +213,14 @@ static irqreturn_t mfc3_interrupt(int irq, void *dev_id)
 {
 	int i;
 
-	for( i = 0; i < MAX_MFC; i++)
+	for ( i = 0; i < MAX_MFC; i++)
 		if (this_port[i] != NULL)
-			if (pia(this_port[i])->crb & 128) { /* Board caused interrupt */
+			if (pia(this_port[i])->crb & 128)   /* Board caused interrupt */
+			{
 				dummy = pia(this_port[i])->pprb; /* clear irq bit */
 				parport_generic_irq(this_port[i]);
 			}
+
 	return IRQ_HANDLED;
 }
 
@@ -247,7 +282,8 @@ static void mfc3_restore_state(struct parport *p, struct parport_state *s)
 	pia(p)->cra |= PIA_DDR;
 }
 
-static struct parport_operations pp_mfc3_ops = {
+static struct parport_operations pp_mfc3_ops =
+{
 	.write_data	= mfc3_write_data,
 	.read_data	= mfc3_read_data,
 
@@ -260,8 +296,8 @@ static struct parport_operations pp_mfc3_ops = {
 	.enable_irq	= mfc3_enable_irq,
 	.disable_irq	= mfc3_disable_irq,
 
-	.data_forward	= mfc3_data_forward, 
-	.data_reverse	= mfc3_data_reverse, 
+	.data_forward	= mfc3_data_forward,
+	.data_reverse	= mfc3_data_reverse,
 
 	.init_state	= mfc3_init_state,
 	.save_state	= mfc3_save_state,
@@ -293,17 +329,23 @@ static int __init parport_mfc3_init(void)
 	struct zorro_dev *z = NULL;
 
 	if (!MACH_IS_AMIGA)
+	{
 		return -ENODEV;
+	}
 
-	while ((z = zorro_find_device(ZORRO_PROD_BSC_MULTIFACE_III, z))) {
-		unsigned long piabase = z->resource.start+PIABASE;
+	while ((z = zorro_find_device(ZORRO_PROD_BSC_MULTIFACE_III, z)))
+	{
+		unsigned long piabase = z->resource.start + PIABASE;
+
 		if (!request_mem_region(piabase, sizeof(struct pia), "PIA"))
+		{
 			continue;
+		}
 
 		pp = ZTWO_VADDR(piabase);
 		pp->crb = 0;
 		pp->pddrb = 255; /* all data pins output */
-		pp->crb = PIA_DDR|32|8;
+		pp->crb = PIA_DDR | 32 | 8;
 		dummy = pp->pddrb; /* reading clears interrupt */
 		pp->cra = 0;
 		pp->pddra = 0xe0; /* /RESET,  /DIR ,/AUTO-FEED output */
@@ -312,15 +354,22 @@ static int __init parport_mfc3_init(void)
 		udelay(10);
 		pp->ppra = 128;
 		p = parport_register_port((unsigned long)pp, IRQ_AMIGA_PORTS,
-					  PARPORT_DMA_NONE, &pp_mfc3_ops);
-		if (!p)
-			goto out_port;
+								  PARPORT_DMA_NONE, &pp_mfc3_ops);
 
-		if (p->irq != PARPORT_IRQ_NONE) {
+		if (!p)
+		{
+			goto out_port;
+		}
+
+		if (p->irq != PARPORT_IRQ_NONE)
+		{
 			if (use_cnt++ == 0)
 				if (request_irq(IRQ_AMIGA_PORTS, mfc3_interrupt, IRQF_SHARED, p->name, &pp_mfc3_ops))
+				{
 					goto out_irq;
+				}
 		}
+
 		p->dev = &z->dev;
 
 		this_port[pias++] = p;
@@ -331,12 +380,15 @@ static int __init parport_mfc3_init(void)
 		parport_announce_port (p);
 
 		if (pias >= MAX_MFC)
+		{
 			break;
+		}
+
 		continue;
 
-	out_irq:
+out_irq:
 		parport_put_port(p);
-	out_port:
+out_port:
 		release_mem_region(piabase, sizeof(struct pia));
 	}
 
@@ -347,14 +399,23 @@ static void __exit parport_mfc3_exit(void)
 {
 	int i;
 
-	for (i = 0; i < MAX_MFC; i++) {
+	for (i = 0; i < MAX_MFC; i++)
+	{
 		if (!this_port[i])
+		{
 			continue;
-		parport_remove_port(this_port[i]);
-		if (this_port[i]->irq != PARPORT_IRQ_NONE) {
-			if (--use_cnt == 0) 
-				free_irq(IRQ_AMIGA_PORTS, &pp_mfc3_ops);
 		}
+
+		parport_remove_port(this_port[i]);
+
+		if (this_port[i]->irq != PARPORT_IRQ_NONE)
+		{
+			if (--use_cnt == 0)
+			{
+				free_irq(IRQ_AMIGA_PORTS, &pp_mfc3_ops);
+			}
+		}
+
 		release_mem_region(ZTWO_PADDR(this_port[i]->private_data), sizeof(struct pia));
 		parport_put_port(this_port[i]);
 	}

@@ -66,9 +66,9 @@
  * NetEffect PCI vendor id and NE010 PCI device id.
  */
 #ifndef PCI_VENDOR_ID_NETEFFECT	/* not in pci.ids yet */
-#define PCI_VENDOR_ID_NETEFFECT          0x1678
-#define PCI_DEVICE_ID_NETEFFECT_NE020    0x0100
-#define PCI_DEVICE_ID_NETEFFECT_NE020_KR 0x0110
+	#define PCI_VENDOR_ID_NETEFFECT          0x1678
+	#define PCI_DEVICE_ID_NETEFFECT_NE020    0x0100
+	#define PCI_DEVICE_ID_NETEFFECT_NE020_KR 0x0110
 #endif
 
 #define NE020_REV   4
@@ -141,18 +141,18 @@
 
 #ifdef CONFIG_INFINIBAND_NES_DEBUG
 #define nes_debug(level, fmt, args...) \
-do { \
-	if (level & nes_debug_level) \
-		printk(KERN_ERR PFX "%s[%u]: " fmt, __func__, __LINE__, ##args); \
-} while (0)
+	do { \
+		if (level & nes_debug_level) \
+			printk(KERN_ERR PFX "%s[%u]: " fmt, __func__, __LINE__, ##args); \
+	} while (0)
 
 #define assert(expr) \
-do { \
-	if (!(expr)) { \
-		printk(KERN_ERR PFX "Assertion failed! %s, %s, %s, line %d\n", \
-			   #expr, __FILE__, __func__, __LINE__); \
-	} \
-} while (0)
+	do { \
+		if (!(expr)) { \
+			printk(KERN_ERR PFX "Assertion failed! %s, %s, %s, line %d\n", \
+				   #expr, __FILE__, __func__, __LINE__); \
+		} \
+	} while (0)
 
 #define NES_EVENT_TIMEOUT   1200000
 #else
@@ -219,7 +219,8 @@ extern u32 int_mod_cq_depth_16;
 extern u32 int_mod_cq_depth_4;
 extern u32 int_mod_cq_depth_1;
 
-struct nes_device {
+struct nes_device
+{
 	struct nes_adapter	   *nesadapter;
 	void __iomem           *regs;
 	void __iomem           *index_reg;
@@ -281,7 +282,8 @@ struct nes_device {
 };
 
 /* Receive skb private area - must fit in skb->cb area */
-struct nes_rskb_cb {
+struct nes_rskb_cb
+{
 	u64                    busaddr;
 	u32                    maplen;
 	u32                    seqnum;
@@ -337,7 +339,7 @@ nes_fill_init_qp_wqe(struct nes_hw_qp_wqe *wqe, struct nes_qp *nesqp, u32 head)
 	u32 value;
 	value = ((u32)((unsigned long) nesqp)) | head;
 	set_wqe_32bit_value(wqe->wqe_words, NES_IWARP_SQ_WQE_COMP_CTX_HIGH_IDX,
-			(u32)(upper_32_bits((unsigned long)(nesqp))));
+						(u32)(upper_32_bits((unsigned long)(nesqp))));
 	set_wqe_32bit_value(wqe->wqe_words, NES_IWARP_SQ_WQE_COMP_CTX_LOW_IDX, value);
 }
 
@@ -401,7 +403,8 @@ static inline void nes_write8(void __iomem *addr, u8 val)
 	writeb(val, addr);
 }
 
-enum nes_resource {
+enum nes_resource
+{
 	NES_RESOURCE_MW = 1,
 	NES_RESOURCE_FAST_MR,
 	NES_RESOURCE_PHYS_MR,
@@ -413,8 +416,8 @@ enum nes_resource {
 };
 
 static inline int nes_alloc_resource(struct nes_adapter *nesadapter,
-		unsigned long *resource_array, u32 max_resources,
-		u32 *req_resource_num, u32 *next, enum nes_resource resource_type)
+									 unsigned long *resource_array, u32 max_resources,
+									 u32 *req_resource_num, u32 *next, enum nes_resource resource_type)
 {
 	unsigned long flags;
 	u32 resource_num;
@@ -422,19 +425,27 @@ static inline int nes_alloc_resource(struct nes_adapter *nesadapter,
 	spin_lock_irqsave(&nesadapter->resource_lock, flags);
 
 	resource_num = find_next_zero_bit(resource_array, max_resources, *next);
-	if (resource_num >= max_resources) {
+
+	if (resource_num >= max_resources)
+	{
 		resource_num = find_first_zero_bit(resource_array, max_resources);
-		if (resource_num >= max_resources) {
+
+		if (resource_num >= max_resources)
+		{
 			printk(KERN_ERR PFX "%s: No available resources [type=%u].\n", __func__, resource_type);
 			spin_unlock_irqrestore(&nesadapter->resource_lock, flags);
 			return -EMFILE;
 		}
 	}
+
 	set_bit(resource_num, resource_array);
-	*next = resource_num+1;
-	if (*next == max_resources) {
+	*next = resource_num + 1;
+
+	if (*next == max_resources)
+	{
 		*next = 0;
 	}
+
 	spin_unlock_irqrestore(&nesadapter->resource_lock, flags);
 	*req_resource_num = resource_num;
 
@@ -451,14 +462,14 @@ static inline int nes_is_resource_allocated(struct nes_adapter *nesadapter,
 
 	bit_is_set = test_bit(resource_num, resource_array);
 	nes_debug(NES_DBG_HW, "resource_num %u is%s allocated.\n",
-			resource_num, (bit_is_set ? "": " not"));
+			  resource_num, (bit_is_set ? "" : " not"));
 	spin_unlock_irqrestore(&nesadapter->resource_lock, flags);
 
 	return bit_is_set;
 }
 
 static inline void nes_free_resource(struct nes_adapter *nesadapter,
-		unsigned long *resource_array, u32 resource_num)
+									 unsigned long *resource_array, u32 resource_num)
 {
 	unsigned long flags;
 
@@ -569,9 +580,9 @@ void nes_write_10G_phy_reg(struct nes_device *, u16, u8, u16, u16);
 void nes_read_10G_phy_reg(struct nes_device *, u8, u8, u16);
 struct nes_cqp_request *nes_get_cqp_request(struct nes_device *);
 void nes_free_cqp_request(struct nes_device *nesdev,
-			  struct nes_cqp_request *cqp_request);
+						  struct nes_cqp_request *cqp_request);
 void nes_put_cqp_request(struct nes_device *nesdev,
-			 struct nes_cqp_request *cqp_request);
+						 struct nes_cqp_request *cqp_request);
 void nes_post_cqp_request(struct nes_device *, struct nes_cqp_request *);
 int nes_arp_table(struct nes_device *, u32, u8 *, u32);
 void nes_mh_fix(unsigned long);

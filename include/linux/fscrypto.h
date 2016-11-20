@@ -46,7 +46,8 @@
  *  8 bytes: Master Key descriptor
  *  16 bytes: Encryption Key derivation nonce
  */
-struct fscrypt_context {
+struct fscrypt_context
+{
 	u8 format;
 	u8 contents_encryption_mode;
 	u8 filenames_encryption_mode;
@@ -68,13 +69,15 @@ struct fscrypt_context {
 #define FS_KEY_DESC_PREFIX_SIZE		8
 
 /* This is passed in from userspace into the kernel keyring */
-struct fscrypt_key {
+struct fscrypt_key
+{
 	u32 mode;
 	u8 raw[FS_MAX_KEY_SIZE];
 	u32 size;
 } __packed;
 
-struct fscrypt_info {
+struct fscrypt_info
+{
 	u8 ci_data_mode;
 	u8 ci_filename_mode;
 	u8 ci_flags;
@@ -86,13 +89,17 @@ struct fscrypt_info {
 #define FS_CTX_REQUIRES_FREE_ENCRYPT_FL		0x00000001
 #define FS_WRITE_PATH_FL			0x00000002
 
-struct fscrypt_ctx {
-	union {
-		struct {
+struct fscrypt_ctx
+{
+	union
+	{
+		struct
+		{
 			struct page *bounce_page;	/* Ciphertext page */
 			struct page *control_page;	/* Original page  */
 		} w;
-		struct {
+		struct
+		{
 			struct bio *bio;
 			struct work_struct work;
 		} r;
@@ -102,7 +109,8 @@ struct fscrypt_ctx {
 	u8 mode;				/* Encryption mode for tfm */
 };
 
-struct fscrypt_completion_result {
+struct fscrypt_completion_result
+{
 	struct completion completion;
 	int res;
 };
@@ -119,7 +127,8 @@ struct fscrypt_completion_result {
  * For encrypted symlinks, the ciphertext length is stored at the beginning
  * of the string in little-endian format.
  */
-struct fscrypt_symlink_data {
+struct fscrypt_symlink_data
+{
 	__le16 len;
 	char encrypted_path[1];
 } __packed;
@@ -131,16 +140,21 @@ struct fscrypt_symlink_data {
 static inline u32 fscrypt_symlink_data_len(u32 l)
 {
 	if (l < FS_CRYPTO_BLOCK_SIZE)
+	{
 		l = FS_CRYPTO_BLOCK_SIZE;
+	}
+
 	return (l + sizeof(struct fscrypt_symlink_data) - 1);
 }
 
-struct fscrypt_str {
+struct fscrypt_str
+{
 	unsigned char *name;
 	u32 len;
 };
 
-struct fscrypt_name {
+struct fscrypt_name
+{
 	const struct qstr *usr_fname;
 	struct fscrypt_str disk_name;
 	u32 hash;
@@ -156,7 +170,8 @@ struct fscrypt_name {
 /*
  * crypto opertions for filesystems
  */
-struct fscrypt_operations {
+struct fscrypt_operations
+{
 	int (*get_context)(struct inode *, void *, size_t);
 	int (*key_prefix)(struct inode *, u8 **);
 	int (*prepare_context)(struct inode *);
@@ -170,8 +185,11 @@ struct fscrypt_operations {
 static inline bool fscrypt_dummy_context_enabled(struct inode *inode)
 {
 	if (inode->i_sb->s_cop->dummy_context &&
-				inode->i_sb->s_cop->dummy_context(inode))
+		inode->i_sb->s_cop->dummy_context(inode))
+	{
 		return true;
+	}
+
 	return false;
 }
 
@@ -188,10 +206,14 @@ static inline bool fscrypt_valid_filenames_enc_mode(u32 mode)
 static inline bool fscrypt_is_dot_dotdot(const struct qstr *str)
 {
 	if (str->len == 1 && str->name[0] == '.')
+	{
 		return true;
+	}
 
 	if (str->len == 2 && str->name[0] == '.' && str->name[1] == '.')
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -225,7 +247,7 @@ static inline void fscrypt_set_encrypted_dentry(struct dentry *dentry)
 }
 
 #if IS_ENABLED(CONFIG_FS_ENCRYPTION)
-extern const struct dentry_operations fscrypt_d_ops;
+	extern const struct dentry_operations fscrypt_d_ops;
 #endif
 
 static inline void fscrypt_set_d_op(struct dentry *dentry)
@@ -248,13 +270,13 @@ extern void fscrypt_decrypt_bio_pages(struct fscrypt_ctx *, struct bio *);
 extern void fscrypt_pullback_bio_page(struct page **, bool);
 extern void fscrypt_restore_control_page(struct page *);
 extern int fscrypt_zeroout_range(struct inode *, pgoff_t, sector_t,
-						unsigned int);
+								 unsigned int);
 /* policy.c */
 extern int fscrypt_process_policy(struct file *, const struct fscrypt_policy *);
 extern int fscrypt_get_policy(struct inode *, struct fscrypt_policy *);
 extern int fscrypt_has_permitted_context(struct inode *, struct inode *);
 extern int fscrypt_inherit_context(struct inode *, struct inode *,
-					void *, bool);
+								   void *, bool);
 /* keyinfo.c */
 extern int get_crypt_info(struct inode *);
 extern int fscrypt_get_encryption_info(struct inode *);
@@ -262,21 +284,21 @@ extern void fscrypt_put_encryption_info(struct inode *, struct fscrypt_info *);
 
 /* fname.c */
 extern int fscrypt_setup_filename(struct inode *, const struct qstr *,
-				int lookup, struct fscrypt_name *);
+								  int lookup, struct fscrypt_name *);
 extern void fscrypt_free_filename(struct fscrypt_name *);
 extern u32 fscrypt_fname_encrypted_size(struct inode *, u32);
 extern int fscrypt_fname_alloc_buffer(struct inode *, u32,
-				struct fscrypt_str *);
+									  struct fscrypt_str *);
 extern void fscrypt_fname_free_buffer(struct fscrypt_str *);
 extern int fscrypt_fname_disk_to_usr(struct inode *, u32, u32,
-			const struct fscrypt_str *, struct fscrypt_str *);
+									 const struct fscrypt_str *, struct fscrypt_str *);
 extern int fscrypt_fname_usr_to_disk(struct inode *, const struct qstr *,
-			struct fscrypt_str *);
+									 struct fscrypt_str *);
 #endif
 
 /* crypto.c */
 static inline struct fscrypt_ctx *fscrypt_notsupp_get_ctx(struct inode *i,
-							gfp_t f)
+		gfp_t f)
 {
 	return ERR_PTR(-EOPNOTSUPP);
 }
@@ -287,7 +309,7 @@ static inline void fscrypt_notsupp_release_ctx(struct fscrypt_ctx *c)
 }
 
 static inline struct page *fscrypt_notsupp_encrypt_page(struct inode *i,
-						struct page *p, gfp_t f)
+		struct page *p, gfp_t f)
 {
 	return ERR_PTR(-EOPNOTSUPP);
 }
@@ -298,7 +320,7 @@ static inline int fscrypt_notsupp_decrypt_page(struct page *p)
 }
 
 static inline void fscrypt_notsupp_decrypt_bio_pages(struct fscrypt_ctx *c,
-						struct bio *b)
+		struct bio *b)
 {
 	return;
 }
@@ -314,32 +336,32 @@ static inline void fscrypt_notsupp_restore_control_page(struct page *p)
 }
 
 static inline int fscrypt_notsupp_zeroout_range(struct inode *i, pgoff_t p,
-					sector_t s, unsigned int f)
+		sector_t s, unsigned int f)
 {
 	return -EOPNOTSUPP;
 }
 
 /* policy.c */
 static inline int fscrypt_notsupp_process_policy(struct file *f,
-				const struct fscrypt_policy *p)
+		const struct fscrypt_policy *p)
 {
 	return -EOPNOTSUPP;
 }
 
 static inline int fscrypt_notsupp_get_policy(struct inode *i,
-				struct fscrypt_policy *p)
+		struct fscrypt_policy *p)
 {
 	return -EOPNOTSUPP;
 }
 
 static inline int fscrypt_notsupp_has_permitted_context(struct inode *p,
-				struct inode *i)
+		struct inode *i)
 {
 	return 0;
 }
 
 static inline int fscrypt_notsupp_inherit_context(struct inode *p,
-				struct inode *i, void *v, bool b)
+		struct inode *i, void *v, bool b)
 {
 	return -EOPNOTSUPP;
 }
@@ -351,18 +373,20 @@ static inline int fscrypt_notsupp_get_encryption_info(struct inode *i)
 }
 
 static inline void fscrypt_notsupp_put_encryption_info(struct inode *i,
-					struct fscrypt_info *f)
+		struct fscrypt_info *f)
 {
 	return;
 }
 
- /* fname.c */
+/* fname.c */
 static inline int fscrypt_notsupp_setup_filename(struct inode *dir,
-			const struct qstr *iname,
-			int lookup, struct fscrypt_name *fname)
+		const struct qstr *iname,
+		int lookup, struct fscrypt_name *fname)
 {
 	if (dir->i_sb->s_cop->is_encrypted(dir))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	memset(fname, 0, sizeof(struct fscrypt_name));
 	fname->usr_fname = iname;
@@ -384,7 +408,7 @@ static inline u32 fscrypt_notsupp_fname_encrypted_size(struct inode *i, u32 s)
 }
 
 static inline int fscrypt_notsupp_fname_alloc_buffer(struct inode *inode,
-				u32 ilen, struct fscrypt_str *crypto_str)
+		u32 ilen, struct fscrypt_str *crypto_str)
 {
 	return -EOPNOTSUPP;
 }
@@ -395,16 +419,16 @@ static inline void fscrypt_notsupp_fname_free_buffer(struct fscrypt_str *c)
 }
 
 static inline int fscrypt_notsupp_fname_disk_to_usr(struct inode *inode,
-			u32 hash, u32 minor_hash,
-			const struct fscrypt_str *iname,
-			struct fscrypt_str *oname)
+		u32 hash, u32 minor_hash,
+		const struct fscrypt_str *iname,
+		struct fscrypt_str *oname)
 {
 	return -EOPNOTSUPP;
 }
 
 static inline int fscrypt_notsupp_fname_usr_to_disk(struct inode *inode,
-			const struct qstr *iname,
-			struct fscrypt_str *oname)
+		const struct qstr *iname,
+		struct fscrypt_str *oname)
 {
 	return -EOPNOTSUPP;
 }

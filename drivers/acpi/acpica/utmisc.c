@@ -67,8 +67,9 @@ u8 acpi_ut_is_pci_root_bridge(char *id)
 	 * ACPI 3.0+: check for a PCI Express root also.
 	 */
 	if (!(strcmp(id,
-		     PCI_ROOT_HID_STRING)) ||
-	    !(strcmp(id, PCI_EXPRESS_ROOT_HID_STRING))) {
+				 PCI_ROOT_HID_STRING)) ||
+		!(strcmp(id, PCI_EXPRESS_ROOT_HID_STRING)))
+	{
 		return (TRUE);
 	}
 
@@ -96,9 +97,10 @@ u8 acpi_ut_is_aml_table(struct acpi_table_header *table)
 	/* These are the only tables that contain executable AML */
 
 	if (ACPI_COMPARE_NAME(table->signature, ACPI_SIG_DSDT) ||
-	    ACPI_COMPARE_NAME(table->signature, ACPI_SIG_PSDT) ||
-	    ACPI_COMPARE_NAME(table->signature, ACPI_SIG_SSDT) ||
-	    ACPI_COMPARE_NAME(table->signature, ACPI_SIG_OSDT)) {
+		ACPI_COMPARE_NAME(table->signature, ACPI_SIG_PSDT) ||
+		ACPI_COMPARE_NAME(table->signature, ACPI_SIG_SSDT) ||
+		ACPI_COMPARE_NAME(table->signature, ACPI_SIG_OSDT))
+	{
 		return (TRUE);
 	}
 
@@ -120,11 +122,13 @@ u8 acpi_ut_is_aml_table(struct acpi_table_header *table)
 
 u32 acpi_ut_dword_byte_swap(u32 value)
 {
-	union {
+	union
+	{
 		u32 value;
 		u8 bytes[4];
 	} out;
-	union {
+	union
+	{
 		u32 value;
 		u8 bytes[4];
 	} in;
@@ -159,14 +163,17 @@ u32 acpi_ut_dword_byte_swap(u32 value)
 void acpi_ut_set_integer_width(u8 revision)
 {
 
-	if (revision < 2) {
+	if (revision < 2)
+	{
 
 		/* 32-bit case */
 
 		acpi_gbl_integer_bit_width = 32;
 		acpi_gbl_integer_nybble_width = 8;
 		acpi_gbl_integer_byte_width = 4;
-	} else {
+	}
+	else
+	{
 		/* 64-bit case (ACPI 2.0+) */
 
 		acpi_gbl_integer_bit_width = 64;
@@ -191,8 +198,8 @@ void acpi_ut_set_integer_width(u8 revision)
 
 acpi_status
 acpi_ut_create_update_state_and_push(union acpi_operand_object *object,
-				     u16 action,
-				     union acpi_generic_state **state_list)
+									 u16 action,
+									 union acpi_generic_state **state_list)
 {
 	union acpi_generic_state *state;
 
@@ -200,12 +207,15 @@ acpi_ut_create_update_state_and_push(union acpi_operand_object *object,
 
 	/* Ignore null objects; these are expected */
 
-	if (!object) {
+	if (!object)
+	{
 		return (AE_OK);
 	}
 
 	state = acpi_ut_create_update_state(object, action);
-	if (!state) {
+
+	if (!state)
+	{
 		return (AE_NO_MEMORY);
 	}
 
@@ -230,8 +240,8 @@ acpi_ut_create_update_state_and_push(union acpi_operand_object *object,
 
 acpi_status
 acpi_ut_walk_package_tree(union acpi_operand_object *source_object,
-			  void *target_object,
-			  acpi_pkg_callback walk_callback, void *context)
+						  void *target_object,
+						  acpi_pkg_callback walk_callback, void *context)
 {
 	acpi_status status = AE_OK;
 	union acpi_generic_state *state_list = NULL;
@@ -242,17 +252,20 @@ acpi_ut_walk_package_tree(union acpi_operand_object *source_object,
 	ACPI_FUNCTION_TRACE(ut_walk_package_tree);
 
 	state = acpi_ut_create_pkg_state(source_object, target_object, 0);
-	if (!state) {
+
+	if (!state)
+	{
 		return_ACPI_STATUS(AE_NO_MEMORY);
 	}
 
-	while (state) {
+	while (state)
+	{
 
 		/* Get one element of the package */
 
 		this_index = state->pkg.index;
 		this_source_obj = (union acpi_operand_object *)
-		    state->pkg.source_object->package.elements[this_index];
+						  state->pkg.source_object->package.elements[this_index];
 
 		/*
 		 * Check for:
@@ -263,19 +276,24 @@ acpi_ut_walk_package_tree(union acpi_operand_object *source_object,
 		 *    case below.
 		 */
 		if ((!this_source_obj) ||
-		    (ACPI_GET_DESCRIPTOR_TYPE(this_source_obj) !=
-		     ACPI_DESC_TYPE_OPERAND) ||
-		    (this_source_obj->common.type != ACPI_TYPE_PACKAGE)) {
+			(ACPI_GET_DESCRIPTOR_TYPE(this_source_obj) !=
+			 ACPI_DESC_TYPE_OPERAND) ||
+			(this_source_obj->common.type != ACPI_TYPE_PACKAGE))
+		{
 			status =
-			    walk_callback(ACPI_COPY_TYPE_SIMPLE,
-					  this_source_obj, state, context);
-			if (ACPI_FAILURE(status)) {
+				walk_callback(ACPI_COPY_TYPE_SIMPLE,
+							  this_source_obj, state, context);
+
+			if (ACPI_FAILURE(status))
+			{
 				return_ACPI_STATUS(status);
 			}
 
 			state->pkg.index++;
+
 			while (state->pkg.index >=
-			       state->pkg.source_object->package.count) {
+				   state->pkg.source_object->package.count)
+			{
 				/*
 				 * We've handled all of the objects at this level,  This means
 				 * that we have just completed a package. That package may
@@ -288,7 +306,8 @@ acpi_ut_walk_package_tree(union acpi_operand_object *source_object,
 
 				/* Finished when there are no more states */
 
-				if (!state) {
+				if (!state)
+				{
 					/*
 					 * We have handled all of the objects in the top level
 					 * package just add the length of the package objects
@@ -303,13 +322,17 @@ acpi_ut_walk_package_tree(union acpi_operand_object *source_object,
 				 */
 				state->pkg.index++;
 			}
-		} else {
+		}
+		else
+		{
 			/* This is a subobject of type package */
 
 			status =
-			    walk_callback(ACPI_COPY_TYPE_PACKAGE,
-					  this_source_obj, state, context);
-			if (ACPI_FAILURE(status)) {
+				walk_callback(ACPI_COPY_TYPE_PACKAGE,
+							  this_source_obj, state, context);
+
+			if (ACPI_FAILURE(status))
+			{
 				return_ACPI_STATUS(status);
 			}
 
@@ -319,19 +342,23 @@ acpi_ut_walk_package_tree(union acpi_operand_object *source_object,
 			 */
 			acpi_ut_push_generic_state(&state_list, state);
 			state =
-			    acpi_ut_create_pkg_state(this_source_obj,
-						     state->pkg.this_target_obj,
-						     0);
-			if (!state) {
+				acpi_ut_create_pkg_state(this_source_obj,
+										 state->pkg.this_target_obj,
+										 0);
+
+			if (!state)
+			{
 
 				/* Free any stacked Update State objects */
 
-				while (state_list) {
+				while (state_list)
+				{
 					state =
-					    acpi_ut_pop_generic_state
-					    (&state_list);
+						acpi_ut_pop_generic_state
+						(&state_list);
 					acpi_ut_delete_generic_state(state);
 				}
+
 				return_ACPI_STATUS(AE_NO_MEMORY);
 			}
 		}
@@ -360,8 +387,8 @@ acpi_ut_walk_package_tree(union acpi_operand_object *source_object,
 
 void
 acpi_ut_display_init_pathname(u8 type,
-			      struct acpi_namespace_node *obj_handle,
-			      const char *path)
+							  struct acpi_namespace_node *obj_handle,
+							  const char *path)
 {
 	acpi_status status;
 	struct acpi_buffer buffer;
@@ -370,7 +397,8 @@ acpi_ut_display_init_pathname(u8 type,
 
 	/* Only print the path if the appropriate debug level is enabled */
 
-	if (!(acpi_dbg_level & ACPI_LV_INIT_NAMES)) {
+	if (!(acpi_dbg_level & ACPI_LV_INIT_NAMES))
+	{
 		return;
 	}
 
@@ -378,34 +406,39 @@ acpi_ut_display_init_pathname(u8 type,
 
 	buffer.length = ACPI_ALLOCATE_LOCAL_BUFFER;
 	status = acpi_ns_handle_to_pathname(obj_handle, &buffer, TRUE);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return;
 	}
 
 	/* Print what we're doing */
 
-	switch (type) {
-	case ACPI_TYPE_METHOD:
+	switch (type)
+	{
+		case ACPI_TYPE_METHOD:
 
-		acpi_os_printf("Executing  ");
-		break;
+			acpi_os_printf("Executing  ");
+			break;
 
-	default:
+		default:
 
-		acpi_os_printf("Initializing ");
-		break;
+			acpi_os_printf("Initializing ");
+			break;
 	}
 
 	/* Print the object type and pathname */
 
 	acpi_os_printf("%-12s %s",
-		       acpi_ut_get_type_name(type), (char *)buffer.pointer);
+				   acpi_ut_get_type_name(type), (char *)buffer.pointer);
 
 	/* Extra path is used to append names like _STA, _INI, etc. */
 
-	if (path) {
+	if (path)
+	{
 		acpi_os_printf(".%s", path);
 	}
+
 	acpi_os_printf("\n");
 
 	ACPI_FREE(buffer.pointer);

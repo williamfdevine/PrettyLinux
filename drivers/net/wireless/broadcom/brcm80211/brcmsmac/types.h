@@ -245,10 +245,10 @@
  */
 
 #define BCMMSG(dev, fmt, args...)		\
-do {						\
-	if (brcm_msg_level & BRCM_DL_INFO)	\
-		wiphy_err(dev, "%s: " fmt, __func__, ##args);	\
-} while (0)
+	do {						\
+		if (brcm_msg_level & BRCM_DL_INFO)	\
+			wiphy_err(dev, "%s: " fmt, __func__, ##args);	\
+	} while (0)
 
 #ifdef CONFIG_BCM47XX
 /*
@@ -289,7 +289,8 @@ struct d11rxhdr;
 struct txpwr_limits;
 
 /* iovar structure */
-struct brcmu_iovar {
+struct brcmu_iovar
+{
 	const char *name;	/* name for lookup and display */
 	u16 varid;	/* id for switch */
 	u16 flags;	/* driver-specific flag bits */

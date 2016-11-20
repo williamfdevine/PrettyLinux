@@ -19,14 +19,14 @@
 #define NO_REG	0xFFFF
 
 #define WMT_PINCTRL_BANK(__en, __dir, __dout, __din, __pen, __pcfg)	\
-{									\
-	.reg_en		= __en,						\
-	.reg_dir	= __dir,					\
-	.reg_data_out	= __dout,					\
-	.reg_data_in	= __din,					\
-	.reg_pull_en	= __pen,					\
-	.reg_pull_cfg	= __pcfg,					\
-}
+	{									\
+		.reg_en		= __en,						\
+					  .reg_dir	= __dir,					\
+									.reg_data_out	= __dout,					\
+											.reg_data_in	= __din,					\
+													.reg_pull_en	= __pen,					\
+															.reg_pull_cfg	= __pcfg,					\
+	}
 
 /* Encode/decode the bank/bit pairs into a pin value */
 #define WMT_PIN(__bank, __offset)	((__bank << 5) | __offset)
@@ -34,13 +34,14 @@
 #define WMT_BIT_FROM_PIN(__pin)		(__pin & 0x1f)
 
 #define WMT_GROUP(__name, __data)		\
-{						\
-	.name = __name,				\
-	.pins = __data,				\
-	.npins = ARRAY_SIZE(__data),		\
-}
+	{						\
+		.name = __name,				\
+				.pins = __data,				\
+						.npins = ARRAY_SIZE(__data),		\
+	}
 
-struct wmt_pinctrl_bank_registers {
+struct wmt_pinctrl_bank_registers
+{
 	u32	reg_en;
 	u32	reg_dir;
 	u32	reg_data_out;
@@ -50,13 +51,15 @@ struct wmt_pinctrl_bank_registers {
 	u32	reg_pull_cfg;
 };
 
-struct wmt_pinctrl_group {
+struct wmt_pinctrl_group
+{
 	const char *name;
 	const unsigned int *pins;
 	const unsigned npins;
 };
 
-struct wmt_pinctrl_data {
+struct wmt_pinctrl_data
+{
 	struct device *dev;
 	struct pinctrl_dev *pctl_dev;
 
@@ -64,7 +67,7 @@ struct wmt_pinctrl_data {
 	void __iomem *base;
 	const struct wmt_pinctrl_bank_registers *banks;
 	const struct pinctrl_pin_desc *pins;
-	const char * const *groups;
+	const char *const *groups;
 
 	u32 nbanks;
 	u32 npins;
@@ -75,5 +78,5 @@ struct wmt_pinctrl_data {
 };
 
 int wmt_pinctrl_probe(struct platform_device *pdev,
-		      struct wmt_pinctrl_data *data);
+					  struct wmt_pinctrl_data *data);
 int wmt_pinctrl_remove(struct platform_device *pdev);

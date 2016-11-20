@@ -50,20 +50,21 @@ int pwc_decompress(struct pwc_device *pdev, struct pwc_frame_buf *fbuf)
 		struct pwc_raw_frame *raw_frame = image;
 		raw_frame->type = cpu_to_le16(pdev->type);
 		raw_frame->vbandlength = cpu_to_le16(pdev->vbandlength);
-			/* cmd_buf is always 4 bytes, but sometimes, only the
-			 * first 3 bytes is filled (Nala case). We can
-			 * determine this using the type of the webcam */
+		/* cmd_buf is always 4 bytes, but sometimes, only the
+		 * first 3 bytes is filled (Nala case). We can
+		 * determine this using the type of the webcam */
 		memcpy(raw_frame->cmd, pdev->cmd_buf, 4);
-		memcpy(raw_frame+1, yuv, pdev->frame_size);
+		memcpy(raw_frame + 1, yuv, pdev->frame_size);
 		vb2_set_plane_payload(&fbuf->vb.vb2_buf, 0,
-			pdev->frame_size + sizeof(struct pwc_raw_frame));
+							  pdev->frame_size + sizeof(struct pwc_raw_frame));
 		return 0;
 	}
 
 	vb2_set_plane_payload(&fbuf->vb.vb2_buf, 0,
-			      pdev->width * pdev->height * 3 / 2);
+						  pdev->width * pdev->height * 3 / 2);
 
-	if (pdev->vbandlength == 0) {
+	if (pdev->vbandlength == 0)
+	{
 		/* Uncompressed mode.
 		 *
 		 * We do some byte shuffling here to go from the
@@ -75,14 +76,21 @@ int pwc_decompress(struct pwc_device *pdev, struct pwc_frame_buf *fbuf)
 		dstu = (u16 *)(image + n);
 		dstv = (u16 *)(image + n + n / 4);
 
-		for (line = 0; line < pdev->height; line++) {
-			for (col = 0; col < pdev->width; col += 4) {
+		for (line = 0; line < pdev->height; line++)
+		{
+			for (col = 0; col < pdev->width; col += 4)
+			{
 				*dsty++ = *src++;
 				*dsty++ = *src++;
+
 				if (line & 1)
+				{
 					*dstv++ = *src++;
+				}
 				else
+				{
 					*dstu++ = *src++;
+				}
 			}
 		}
 
@@ -94,14 +102,18 @@ int pwc_decompress(struct pwc_device *pdev, struct pwc_frame_buf *fbuf)
 	 * the decompressor routines will write the data in planar format
 	 * immediately.
 	 */
-	if (DEVICE_USE_CODEC1(pdev->type)) {
+	if (DEVICE_USE_CODEC1(pdev->type))
+	{
 
 		/* TODO & FIXME */
 		PWC_ERROR("This chipset is not supported for now\n");
 		return -ENXIO; /* No such device or address: missing decompressor */
 
-	} else {
+	}
+	else
+	{
 		pwc_dec23_decompress(pdev, yuv, image);
 	}
+
 	return 0;
 }

@@ -51,7 +51,8 @@ gk20a_ibus_intr(struct nvkm_subdev *ibus)
 	struct nvkm_device *device = ibus->device;
 	u32 status0 = nvkm_rd32(device, 0x120058);
 
-	if (status0 & 0x7) {
+	if (status0 & 0x7)
+	{
 		nvkm_debug(ibus, "resetting ibus ring\n");
 		gk20a_ibus_init_ibus_ring(ibus);
 	}
@@ -59,9 +60,10 @@ gk20a_ibus_intr(struct nvkm_subdev *ibus)
 	/* Acknowledge interrupt */
 	nvkm_mask(device, 0x12004c, 0x2, 0x2);
 	nvkm_msec(device, 2000,
-		if (!(nvkm_rd32(device, 0x12004c) & 0x0000003f))
-			break;
-	);
+
+			  if (!(nvkm_rd32(device, 0x12004c) & 0x0000003f))
+			  break;
+			 );
 }
 
 static int
@@ -72,18 +74,23 @@ gk20a_ibus_init(struct nvkm_subdev *ibus)
 }
 
 static const struct nvkm_subdev_func
-gk20a_ibus = {
+	gk20a_ibus =
+{
 	.init = gk20a_ibus_init,
 	.intr = gk20a_ibus_intr,
 };
 
 int
 gk20a_ibus_new(struct nvkm_device *device, int index,
-	       struct nvkm_subdev **pibus)
+			   struct nvkm_subdev **pibus)
 {
 	struct nvkm_subdev *ibus;
+
 	if (!(ibus = *pibus = kzalloc(sizeof(*ibus), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	nvkm_subdev_ctor(&gk20a_ibus, device, index, ibus);
 	return 0;
 }

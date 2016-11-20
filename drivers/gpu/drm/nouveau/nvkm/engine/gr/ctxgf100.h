@@ -2,7 +2,8 @@
 #define __NVKM_GRCTX_NVC0_H__
 #include "gf100.h"
 
-struct gf100_grctx {
+struct gf100_grctx
+{
 	struct gf100_gr *gr;
 	struct gf100_gr_data *data;
 	struct gf100_gr_mmio *mmio;
@@ -19,7 +20,8 @@ void gf100_grctx_mmio_item(struct gf100_grctx *, u32 addr, u32 data, int s, int)
 #define mmio_skip(a,b,c) mmio_refn((a), (b), (c), -1, -1)
 #define mmio_wr32(a,b,c) mmio_refn((a), (b), (c),  0, -1)
 
-struct gf100_grctx_func {
+struct gf100_grctx_func
+{
 	/* main context generation function */
 	void  (*main)(struct gf100_gr *, struct gf100_grctx *);
 	/* context-specific modify-on-first-load list generation function */

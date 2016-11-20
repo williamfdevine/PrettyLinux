@@ -56,7 +56,8 @@
  * WHITEHEAT_GET_DTR_RTS
  * WHITEHEAT_REPORT_TX_DONE
 */
-struct whiteheat_simple {
+struct whiteheat_simple
+{
 	__u8	port;	/* port number (1 to N) */
 };
 
@@ -89,7 +90,8 @@ struct whiteheat_simple {
 #define WHITEHEAT_HFLOW_RTS		0x80	/* RTS is off/on when RX
 						   fills/empties */
 
-struct whiteheat_port_settings {
+struct whiteheat_port_settings
+{
 	__u8	port;		/* port number (1 to N) */
 	__u32	baud;		/* any value 7 - 460800, firmware calculates
 				   best fit; arrives little endian */
@@ -116,7 +118,8 @@ struct whiteheat_port_settings {
 #define WHITEHEAT_BREAK_OFF	0x00
 #define WHITEHEAT_BREAK_ON	0x01
 
-struct whiteheat_set_rdb {
+struct whiteheat_set_rdb
+{
 	__u8	port;		/* port number (1 to N) */
 	__u8	state;		/* 0/1 turns signal off/on */
 };
@@ -145,7 +148,8 @@ struct whiteheat_set_rdb {
  *       of the 8051, and some have on-read side-effects.
  */
 
-struct whiteheat_dump {
+struct whiteheat_dump
+{
 	__u8	mem_type;	/* see WHITEHEAT_DUMP_* above */
 	__u16	addr;		/* address, see restrictions above */
 	__u16	length;		/* number of bytes to dump, max 63 bytes */
@@ -158,7 +162,8 @@ struct whiteheat_dump {
 #define WHITEHEAT_PURGE_RX	0x01	/* purge rx fifos */
 #define WHITEHEAT_PURGE_TX	0x02	/* purge tx fifos */
 
-struct whiteheat_purge {
+struct whiteheat_purge
+{
 	__u8	port;		/* port number (1 to N) */
 	__u8	what;		/* bit pattern of what to purge */
 };
@@ -167,7 +172,8 @@ struct whiteheat_purge {
 /*
  * WHITEHEAT_ECHO
  */
-struct whiteheat_echo {
+struct whiteheat_echo
+{
 	__u8	port;		/* port number (1 to N) */
 	__u8	length;		/* length of message to echo, max 61 bytes */
 	__u8	echo_data[61];	/* data to echo */
@@ -191,7 +197,8 @@ struct whiteheat_echo {
 #define WHITEHEAT_TEST_READ_EEPROM	0x0a  /* read eeprom */
 #define WHITEHEAT_TEST_PROGRAM_EEPROM	0x0b  /* program eeprom */
 
-struct whiteheat_test {
+struct whiteheat_test
+{
 	__u8	port;		/* port number (1 to n) */
 	__u8	test;		/* see WHITEHEAT_TEST_* above*/
 	__u8	info[32];	/* additional info */
@@ -222,7 +229,8 @@ struct whiteheat_test {
 						  transmitted */
 #define WHITEHEAT_FLOW_TX_DONE		0x80	/* TX has completed */
 
-struct whiteheat_status_info {
+struct whiteheat_status_info
+{
 	__u8	port;		/* port number (1 to N) */
 	__u8	event;		/* indicates what the current event is,
 					see WHITEHEAT_EVENT_* above */
@@ -239,7 +247,8 @@ struct whiteheat_status_info {
 /*
  * WHITEHEAT_GET_DTR_RTS
  */
-struct whiteheat_dr_info {
+struct whiteheat_dr_info
+{
 	__u8	mcr;		/* copy of uart's MCR register */
 };
 
@@ -247,11 +256,13 @@ struct whiteheat_dr_info {
 /*
  * WHITEHEAT_GET_HW_INFO
  */
-struct whiteheat_hw_info {
+struct whiteheat_hw_info
+{
 	__u8	hw_id;		/* hardware id number, WhiteHEAT = 0 */
 	__u8	sw_major_rev;	/* major version number */
 	__u8	sw_minor_rev;	/* minor version number */
-	struct whiteheat_hw_eeprom_info {
+	struct whiteheat_hw_eeprom_info
+	{
 		__u8	b0;			/* B0 */
 		__u8	vendor_id_low;		/* vendor id (low byte) */
 		__u8	vendor_id_high;		/* vendor id (high byte) */
@@ -275,7 +286,8 @@ struct whiteheat_hw_info {
 /*
  * WHITEHEAT_EVENT
  */
-struct whiteheat_event_info {
+struct whiteheat_event_info
+{
 	__u8	port;		/* port number (1 to N) */
 	__u8	event;		/* see whiteheat_status_info.event */
 	__u8	info;		/* see whiteheat_status_info.modem, .error,
@@ -290,7 +302,8 @@ struct whiteheat_event_info {
 #define WHITEHEAT_TEST_UNKNOWN	0x01  /* unknown test requested */
 #define WHITEHEAT_TEST_PASS	0xff  /* test passed */
 
-struct whiteheat_test_info {
+struct whiteheat_test_info
+{
 	__u8	port;		/* port number (1 to N) */
 	__u8	test;		/* indicates which test this is a response for,
 				   see WHITEHEAT_DO_TEST above */

@@ -51,7 +51,8 @@
 #include <linux/usb.h>
 #include <linux/usb/ch9.h>
 
-struct	__queue	{
+struct	__queue
+{
 	struct	list_head	queue;
 	spinlock_t lock;
 };
@@ -64,9 +65,9 @@ static inline struct list_head *get_list_head(struct __queue *queue)
 static inline int rtw_netif_queue_stopped(struct net_device *pnetdev)
 {
 	return  netif_tx_queue_stopped(netdev_get_tx_queue(pnetdev, 0)) &&
-		netif_tx_queue_stopped(netdev_get_tx_queue(pnetdev, 1)) &&
-		netif_tx_queue_stopped(netdev_get_tx_queue(pnetdev, 2)) &&
-		netif_tx_queue_stopped(netdev_get_tx_queue(pnetdev, 3));
+			netif_tx_queue_stopped(netdev_get_tx_queue(pnetdev, 1)) &&
+			netif_tx_queue_stopped(netdev_get_tx_queue(pnetdev, 2)) &&
+			netif_tx_queue_stopped(netdev_get_tx_queue(pnetdev, 3));
 }
 
 int RTW_STATUS_CODE(int error_code);
@@ -79,7 +80,8 @@ void *rtw_malloc2d(int h, int w, int size);
 
 void _rtw_init_queue(struct __queue *pqueue);
 
-struct rtw_netdev_priv_indicator {
+struct rtw_netdev_priv_indicator
+{
 	void *priv;
 };
 struct net_device *rtw_alloc_etherdev_with_old_priv(void *old_priv);
@@ -102,7 +104,7 @@ u64 rtw_modular64(u64 x, u64 y);
 /* Macros for handling unaligned memory accesses */
 
 #define RTW_GET_BE24(a) ((((u32)(a)[0]) << 16) | (((u32) (a)[1]) << 8) | \
-			 ((u32)(a)[2]))
+						 ((u32)(a)[2]))
 
 void rtw_buf_free(u8 **buf, u32 *buf_len);
 void rtw_buf_update(u8 **buf, u32 *buf_len, u8 *src, u32 src_len);

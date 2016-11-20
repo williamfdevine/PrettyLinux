@@ -12,18 +12,24 @@
 #include <linux/bcma/bcma.h>
 
 static bool bcma_wait_reg(struct bcma_bus *bus, void __iomem *addr, u32 mask,
-			  u32 value, int timeout)
+						  u32 value, int timeout)
 {
 	unsigned long deadline = jiffies + timeout;
 	u32 val;
 
-	do {
+	do
+	{
 		val = readl(addr);
+
 		if ((val & mask) == value)
+		{
 			return true;
+		}
+
 		cpu_relax();
 		udelay(10);
-	} while (!time_after_eq(jiffies, deadline));
+	}
+	while (!time_after_eq(jiffies, deadline));
 
 	bcma_err(bus, "Timeout waiting for register %p\n", addr);
 
@@ -45,12 +51,17 @@ EXPORT_SYMBOL_GPL(bcma_chipco_b_mii_write);
 int bcma_core_chipcommon_b_init(struct bcma_drv_cc_b *ccb)
 {
 	if (ccb->setup_done)
+	{
 		return 0;
+	}
 
 	ccb->setup_done = 1;
 	ccb->mii = ioremap_nocache(ccb->core->addr_s[1], BCMA_CORE_SIZE);
+
 	if (!ccb->mii)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -58,5 +69,7 @@ int bcma_core_chipcommon_b_init(struct bcma_drv_cc_b *ccb)
 void bcma_core_chipcommon_b_free(struct bcma_drv_cc_b *ccb)
 {
 	if (ccb->mii)
+	{
 		iounmap(ccb->mii);
+	}
 }

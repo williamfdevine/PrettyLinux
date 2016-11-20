@@ -107,14 +107,16 @@
 #define     VT3271_LVDS_I2C_ADDR    0x80
 #define     VT1636_LVDS_I2C_ADDR    0x80
 
-struct tmds_chip_information {
+struct tmds_chip_information
+{
 	int tmds_chip_name;
 	int tmds_chip_slave_addr;
 	int output_interface;
 	int i2c_port;
 };
 
-struct lvds_chip_information {
+struct lvds_chip_information
+{
 	int lvds_chip_name;
 	int lvds_chip_slave_addr;
 	int output_interface;
@@ -122,13 +124,15 @@ struct lvds_chip_information {
 };
 
 /* The type of 2D engine */
-enum via_2d_engine {
+enum via_2d_engine
+{
 	VIA_2D_ENG_H2,
 	VIA_2D_ENG_H5,
 	VIA_2D_ENG_M1,
 };
 
-struct chip_information {
+struct chip_information
+{
 	int gfx_chip_name;
 	int gfx_chip_revision;
 	enum via_2d_engine twod_engine;
@@ -137,14 +141,16 @@ struct chip_information {
 	struct lvds_chip_information lvds_chip_info2;
 };
 
-struct tmds_setting_information {
+struct tmds_setting_information
+{
 	int iga_path;
 	int h_active;
 	int v_active;
 	int max_pixel_clock;
 };
 
-struct lvds_setting_information {
+struct lvds_setting_information
+{
 	int iga_path;
 	int lcd_panel_hres;
 	int lcd_panel_vres;
@@ -155,7 +161,8 @@ struct lvds_setting_information {
 	u32 vclk;		/*panel mode clock value */
 };
 
-struct GFX_DPA_SETTING {
+struct GFX_DPA_SETTING
+{
 	int ClkRangeIndex;
 	u8 DVP0;		/* CR96[3:0] */
 	u8 DVP0DataDri_S1;	/* SR2A[5]   */
@@ -169,7 +176,8 @@ struct GFX_DPA_SETTING {
 
 };
 
-struct VT1636_DPA_SETTING {
+struct VT1636_DPA_SETTING
+{
 	u8 CLK_SEL_ST1;
 	u8 CLK_SEL_ST2;
 };

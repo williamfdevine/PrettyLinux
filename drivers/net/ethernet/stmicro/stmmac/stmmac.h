@@ -34,7 +34,8 @@
 #include <linux/ptp_clock_kernel.h>
 #include <linux/reset.h>
 
-struct stmmac_resources {
+struct stmmac_resources
+{
 	void __iomem *addr;
 	const char *mac;
 	int wol_irq;
@@ -42,7 +43,8 @@ struct stmmac_resources {
 	int irq;
 };
 
-struct stmmac_tx_info {
+struct stmmac_tx_info
+{
 	dma_addr_t buf;
 	bool map_as_page;
 	unsigned len;
@@ -50,7 +52,8 @@ struct stmmac_tx_info {
 	bool is_jumbo;
 };
 
-struct stmmac_priv {
+struct stmmac_priv
+{
 	/* Frequently used values are kept adjacent for cache effect */
 	struct dma_extended_desc *dma_etx ____cacheline_aligned_in_smp;
 	struct dma_desc *dma_tx;
@@ -151,8 +154,8 @@ int stmmac_resume(struct device *dev);
 int stmmac_suspend(struct device *dev);
 int stmmac_dvr_remove(struct device *dev);
 int stmmac_dvr_probe(struct device *device,
-		     struct plat_stmmacenet_data *plat_dat,
-		     struct stmmac_resources *res);
+					 struct plat_stmmacenet_data *plat_dat,
+					 struct stmmac_resources *res);
 void stmmac_disable_eee_mode(struct stmmac_priv *priv);
 bool stmmac_eee_init(struct stmmac_priv *priv);
 

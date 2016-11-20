@@ -3,7 +3,8 @@
 #define nvkm_gpio(p) container_of((p), struct nvkm_gpio, subdev)
 #include <subdev/gpio.h>
 
-struct nvkm_gpio_func {
+struct nvkm_gpio_func
+{
 	int lines;
 
 	/* read and ack pending interrupts, returning only data
@@ -28,7 +29,7 @@ struct nvkm_gpio_func {
 };
 
 int nvkm_gpio_new_(const struct nvkm_gpio_func *, struct nvkm_device *,
-		   int index, struct nvkm_gpio **);
+				   int index, struct nvkm_gpio **);
 
 void nv50_gpio_reset(struct nvkm_gpio *, u8);
 int  nv50_gpio_drive(struct nvkm_gpio *, int, int, int);

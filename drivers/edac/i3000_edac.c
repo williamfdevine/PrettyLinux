@@ -164,15 +164,18 @@ static inline unsigned char even_rank_attrib(unsigned char dra)
 				 * 30:0  reserved
 				 */
 
-enum i3000p_chips {
+enum i3000p_chips
+{
 	I3000 = 0,
 };
 
-struct i3000_dev_info {
+struct i3000_dev_info
+{
 	const char *ctl_name;
 };
 
-struct i3000_error_info {
+struct i3000_error_info
+{
 	u16 errsts;
 	u8 derrsyn;
 	u8 edeap;
@@ -180,9 +183,11 @@ struct i3000_error_info {
 	u16 errsts2;
 };
 
-static const struct i3000_dev_info i3000_devs[] = {
+static const struct i3000_dev_info i3000_devs[] =
+{
 	[I3000] = {
-		.ctl_name = "i3000"},
+		.ctl_name = "i3000"
+	},
 };
 
 static struct pci_dev *mci_pdev;
@@ -190,7 +195,7 @@ static int i3000_registered = 1;
 static struct edac_pci_ctl_info *i3000_pci;
 
 static void i3000_get_error_info(struct mem_ctl_info *mci,
-				 struct i3000_error_info *info)
+								 struct i3000_error_info *info)
 {
 	struct pci_dev *pdev;
 
@@ -202,8 +207,12 @@ static void i3000_get_error_info(struct mem_ctl_info *mci,
 	 * overwritten by UE.
 	 */
 	pci_read_config_word(pdev, I3000_ERRSTS, &info->errsts);
+
 	if (!(info->errsts & I3000_ERRSTS_BITS))
+	{
 		return;
+	}
+
 	pci_read_config_byte(pdev, I3000_EDEAP, &info->edeap);
 	pci_read_config_dword(pdev, I3000_DEAP, &info->deap);
 	pci_read_config_byte(pdev, I3000_DERRSYN, &info->derrsyn);
@@ -215,7 +224,8 @@ static void i3000_get_error_info(struct mem_ctl_info *mci,
 	 * with no info and the second set of reads is valid and
 	 * should be UE info.
 	 */
-	if ((info->errsts ^ info->errsts2) & I3000_ERRSTS_BITS) {
+	if ((info->errsts ^ info->errsts2) & I3000_ERRSTS_BITS)
+	{
 		pci_read_config_byte(pdev, I3000_EDEAP, &info->edeap);
 		pci_read_config_dword(pdev, I3000_DEAP, &info->deap);
 		pci_read_config_byte(pdev, I3000_DERRSYN, &info->derrsyn);
@@ -226,12 +236,12 @@ static void i3000_get_error_info(struct mem_ctl_info *mci,
 	 * (Yes, we really clear bits by writing 1 to them.)
 	 */
 	pci_write_bits16(pdev, I3000_ERRSTS, I3000_ERRSTS_BITS,
-			 I3000_ERRSTS_BITS);
+					 I3000_ERRSTS_BITS);
 }
 
 static int i3000_process_error_info(struct mem_ctl_info *mci,
-				struct i3000_error_info *info,
-				int handle_errors)
+									struct i3000_error_info *info,
+									int handle_errors)
 {
 	int row, multi_chan, channel;
 	unsigned long pfn, offset;
@@ -239,15 +249,20 @@ static int i3000_process_error_info(struct mem_ctl_info *mci,
 	multi_chan = mci->csrows[0]->nr_channels - 1;
 
 	if (!(info->errsts & I3000_ERRSTS_BITS))
+	{
 		return 0;
+	}
 
 	if (!handle_errors)
+	{
 		return 1;
+	}
 
-	if ((info->errsts ^ info->errsts2) & I3000_ERRSTS_BITS) {
+	if ((info->errsts ^ info->errsts2) & I3000_ERRSTS_BITS)
+	{
 		edac_mc_handle_error(HW_EVENT_ERR_UNCORRECTED, mci, 1, 0, 0, 0,
-				     -1, -1, -1,
-				     "UE overwrote CE", "");
+							 -1, -1, -1,
+							 "UE overwrote CE", "");
 		info->errsts = info->errsts2;
 	}
 
@@ -259,14 +274,14 @@ static int i3000_process_error_info(struct mem_ctl_info *mci,
 
 	if (info->errsts & I3000_ERRSTS_UE)
 		edac_mc_handle_error(HW_EVENT_ERR_UNCORRECTED, mci, 1,
-				     pfn, offset, 0,
-				     row, -1, -1,
-				     "i3000 UE", "");
+							 pfn, offset, 0,
+							 row, -1, -1,
+							 "i3000 UE", "");
 	else
 		edac_mc_handle_error(HW_EVENT_ERR_CORRECTED, mci, 1,
-				     pfn, offset, info->derrsyn,
-				     row, multi_chan ? channel : 0, -1,
-				     "i3000 CE", "");
+							 pfn, offset, info->derrsyn,
+							 row, multi_chan ? channel : 0, -1,
+							 "i3000 CE", "");
 
 	return 1;
 }
@@ -281,9 +296,9 @@ static void i3000_check(struct mem_ctl_info *mci)
 }
 
 static int i3000_is_interleaved(const unsigned char *c0dra,
-				const unsigned char *c1dra,
-				const unsigned char *c0drb,
-				const unsigned char *c1drb)
+								const unsigned char *c1dra,
+								const unsigned char *c0drb,
+								const unsigned char *c1drb)
 {
 	int i;
 
@@ -294,8 +309,10 @@ static int i3000_is_interleaved(const unsigned char *c0dra,
 	for (i = 0; i < I3000_RANKS_PER_CHANNEL / 2; i++)
 		if (odd_rank_attrib(c0dra[i]) != odd_rank_attrib(c1dra[i]) ||
 			even_rank_attrib(c0dra[i]) !=
-						even_rank_attrib(c1dra[i]))
+			even_rank_attrib(c1dra[i]))
+		{
 			return 0;
+		}
 
 	/*
 	 * If the rank boundaries for the two channels are different
@@ -303,7 +320,9 @@ static int i3000_is_interleaved(const unsigned char *c0dra,
 	 */
 	for (i = 0; i < I3000_RANKS_PER_CHANNEL; i++)
 		if (c0drb[i] != c1drb[i])
+		{
 			return 0;
+		}
 
 	return 1;
 }
@@ -327,9 +346,11 @@ static int i3000_probe1(struct pci_dev *pdev, int dev_idx)
 	pci_read_config_dword(pdev, I3000_MCHBAR, (u32 *) & mchbar);
 	mchbar &= I3000_MCHBAR_MASK;
 	window = ioremap_nocache(mchbar, I3000_MMR_WINDOW_SIZE);
-	if (!window) {
+
+	if (!window)
+	{
 		printk(KERN_ERR "i3000: cannot map mmio space at 0x%lx\n",
-			mchbar);
+			   mchbar);
 		return -ENODEV;
 	}
 
@@ -338,7 +359,8 @@ static int i3000_probe1(struct pci_dev *pdev, int dev_idx)
 	c1dra[0] = readb(window + I3000_C1DRA + 0);	/* ranks 0,1 */
 	c1dra[1] = readb(window + I3000_C1DRA + 1);	/* ranks 2,3 */
 
-	for (i = 0; i < I3000_RANKS_PER_CHANNEL; i++) {
+	for (i = 0; i < I3000_RANKS_PER_CHANNEL; i++)
+	{
 		c0drb[i] = readb(window + I3000_C0DRB + i);
 		c1drb[i] = readb(window + I3000_C1DRB + i);
 	}
@@ -363,8 +385,11 @@ static int i3000_probe1(struct pci_dev *pdev, int dev_idx)
 	layers[1].size = nr_channels;
 	layers[1].is_virt_csrow = false;
 	mci = edac_mc_alloc(0, ARRAY_SIZE(layers), layers, 0);
+
 	if (!mci)
+	{
 		return -ENOMEM;
+	}
 
 	edac_dbg(3, "MC: init mci\n");
 
@@ -390,25 +415,34 @@ static int i3000_probe1(struct pci_dev *pdev, int dev_idx)
 	 * If we're in interleaved mode then we're only walking through
 	 * the ranks of controller 0, so we double all the values we see.
 	 */
-	for (last_cumul_size = i = 0; i < mci->nr_csrows; i++) {
+	for (last_cumul_size = i = 0; i < mci->nr_csrows; i++)
+	{
 		u8 value;
 		u32 cumul_size;
 		struct csrow_info *csrow = mci->csrows[i];
 
 		value = drb[i];
 		cumul_size = value << (I3000_DRB_SHIFT - PAGE_SHIFT);
+
 		if (interleaved)
+		{
 			cumul_size <<= 1;
+		}
+
 		edac_dbg(3, "MC: (%d) cumul_size 0x%x\n", i, cumul_size);
+
 		if (cumul_size == last_cumul_size)
+		{
 			continue;
+		}
 
 		csrow->first_page = last_cumul_size;
 		csrow->last_page = cumul_size - 1;
 		nr_pages = cumul_size - last_cumul_size;
 		last_cumul_size = cumul_size;
 
-		for (j = 0; j < nr_channels; j++) {
+		for (j = 0; j < nr_channels; j++)
+		{
 			struct dimm_info *dimm = csrow->channels[j]->dimm;
 
 			dimm->nr_pages = nr_pages / nr_channels;
@@ -424,23 +458,27 @@ static int i3000_probe1(struct pci_dev *pdev, int dev_idx)
 	 * (Yes, we really clear bits by writing 1 to them.)
 	 */
 	pci_write_bits16(pdev, I3000_ERRSTS, I3000_ERRSTS_BITS,
-			 I3000_ERRSTS_BITS);
+					 I3000_ERRSTS_BITS);
 
 	rc = -ENODEV;
-	if (edac_mc_add_mc(mci)) {
+
+	if (edac_mc_add_mc(mci))
+	{
 		edac_dbg(3, "MC: failed edac_mc_add_mc()\n");
 		goto fail;
 	}
 
 	/* allocating generic PCI control info */
 	i3000_pci = edac_pci_create_generic_ctl(&pdev->dev, EDAC_MOD_STR);
-	if (!i3000_pci) {
+
+	if (!i3000_pci)
+	{
 		printk(KERN_WARNING
-			"%s(): Unable to create PCI control\n",
-			__func__);
+			   "%s(): Unable to create PCI control\n",
+			   __func__);
 		printk(KERN_WARNING
-			"%s(): PCI error report via EDAC not setup\n",
-			__func__);
+			   "%s(): PCI error report via EDAC not setup\n",
+			   __func__);
 	}
 
 	/* get this far and it's successful */
@@ -448,8 +486,11 @@ static int i3000_probe1(struct pci_dev *pdev, int dev_idx)
 	return 0;
 
 fail:
+
 	if (mci)
+	{
 		edac_mc_free(mci);
+	}
 
 	return rc;
 }
@@ -462,11 +503,16 @@ static int i3000_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	edac_dbg(0, "MC:\n");
 
 	if (pci_enable_device(pdev) < 0)
+	{
 		return -EIO;
+	}
 
 	rc = i3000_probe1(pdev, ent->driver_data);
+
 	if (!mci_pdev)
+	{
 		mci_pdev = pci_dev_get(pdev);
+	}
 
 	return rc;
 }
@@ -478,27 +524,35 @@ static void i3000_remove_one(struct pci_dev *pdev)
 	edac_dbg(0, "\n");
 
 	if (i3000_pci)
+	{
 		edac_pci_release_generic_ctl(i3000_pci);
+	}
 
 	mci = edac_mc_del_mc(&pdev->dev);
+
 	if (!mci)
+	{
 		return;
+	}
 
 	edac_mc_free(mci);
 }
 
-static const struct pci_device_id i3000_pci_tbl[] = {
+static const struct pci_device_id i3000_pci_tbl[] =
+{
 	{
-	 PCI_VEND_DEV(INTEL, 3000_HB), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-	 I3000},
+		PCI_VEND_DEV(INTEL, 3000_HB), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+		I3000
+	},
 	{
-	 0,
-	 }			/* 0 terminated list. */
+		0,
+	}			/* 0 terminated list. */
 };
 
 MODULE_DEVICE_TABLE(pci, i3000_pci_tbl);
 
-static struct pci_driver i3000_driver = {
+static struct pci_driver i3000_driver =
+{
 	.name = EDAC_MOD_STR,
 	.probe = i3000_init_one,
 	.remove = i3000_remove_one,
@@ -511,25 +565,33 @@ static int __init i3000_init(void)
 
 	edac_dbg(3, "MC:\n");
 
-       /* Ensure that the OPSTATE is set correctly for POLL or NMI */
-       opstate_init();
+	/* Ensure that the OPSTATE is set correctly for POLL or NMI */
+	opstate_init();
 
 	pci_rc = pci_register_driver(&i3000_driver);
-	if (pci_rc < 0)
-		goto fail0;
 
-	if (!mci_pdev) {
+	if (pci_rc < 0)
+	{
+		goto fail0;
+	}
+
+	if (!mci_pdev)
+	{
 		i3000_registered = 0;
 		mci_pdev = pci_get_device(PCI_VENDOR_ID_INTEL,
-					PCI_DEVICE_ID_INTEL_3000_HB, NULL);
-		if (!mci_pdev) {
+								  PCI_DEVICE_ID_INTEL_3000_HB, NULL);
+
+		if (!mci_pdev)
+		{
 			edac_dbg(0, "i3000 pci_get_device fail\n");
 			pci_rc = -ENODEV;
 			goto fail1;
 		}
 
 		pci_rc = i3000_init_one(mci_pdev, i3000_pci_tbl);
-		if (pci_rc < 0) {
+
+		if (pci_rc < 0)
+		{
 			edac_dbg(0, "i3000 init fail\n");
 			pci_rc = -ENODEV;
 			goto fail1;
@@ -552,7 +614,9 @@ static void __exit i3000_exit(void)
 	edac_dbg(3, "MC:\n");
 
 	pci_unregister_driver(&i3000_driver);
-	if (!i3000_registered) {
+
+	if (!i3000_registered)
+	{
 		i3000_remove_one(mci_pdev);
 		pci_dev_put(mci_pdev);
 	}

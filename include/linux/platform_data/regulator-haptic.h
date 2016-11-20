@@ -21,7 +21,8 @@
  * @min_volt: minimum voltage value supplied to the haptic motor.
  *		<The unit of the voltage is a micro>
  */
-struct regulator_haptic_data {
+struct regulator_haptic_data
+{
 	unsigned int max_volt;
 	unsigned int min_volt;
 };

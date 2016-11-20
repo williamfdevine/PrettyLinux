@@ -23,7 +23,8 @@
 
 struct iio_channel;
 
-enum ntc_thermistor_type {
+enum ntc_thermistor_type
+{
 	TYPE_NCPXXWB473,
 	TYPE_NCPXXWL333,
 	TYPE_B57330V2103,
@@ -31,7 +32,8 @@ enum ntc_thermistor_type {
 	TYPE_NCPXXXH103,
 };
 
-struct ntc_thermistor_platform_data {
+struct ntc_thermistor_platform_data
+{
 	/*
 	 * One (not both) of read_uV and read_ohm should be provided and only
 	 * one of the two should be provided.

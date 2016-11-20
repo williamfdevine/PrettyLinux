@@ -219,30 +219,33 @@ enum si_cac_config_reg_type
 	SISLANDS_CACCONFIG_MAX
 };
 
-enum si_power_level {
+enum si_power_level
+{
 	SI_POWER_LEVEL_LOW = 0,
 	SI_POWER_LEVEL_MEDIUM = 1,
 	SI_POWER_LEVEL_HIGH = 2,
 	SI_POWER_LEVEL_CTXSW = 3,
 };
 
-enum si_td {
+enum si_td
+{
 	SI_TD_AUTO,
 	SI_TD_UP,
 	SI_TD_DOWN,
 };
 
-enum si_display_watermark {
+enum si_display_watermark
+{
 	SI_DISPLAY_WATERMARK_LOW = 0,
 	SI_DISPLAY_WATERMARK_HIGH = 1,
 };
 
 enum si_display_gap
 {
-    SI_PM_DISPLAY_GAP_VBLANK_OR_WM = 0,
-    SI_PM_DISPLAY_GAP_VBLANK       = 1,
-    SI_PM_DISPLAY_GAP_WATERMARK    = 2,
-    SI_PM_DISPLAY_GAP_IGNORE       = 3,
+	SI_PM_DISPLAY_GAP_VBLANK_OR_WM = 0,
+	SI_PM_DISPLAY_GAP_VBLANK       = 1,
+	SI_PM_DISPLAY_GAP_WATERMARK    = 2,
+	SI_PM_DISPLAY_GAP_IGNORE       = 3,
 };
 
 extern const struct amd_ip_funcs si_dpm_ip_funcs;
@@ -260,18 +263,20 @@ struct ni_leakage_coeffients
 
 struct SMC_Evergreen_MCRegisterAddress
 {
-    uint16_t s0;
-    uint16_t s1;
+	uint16_t s0;
+	uint16_t s1;
 };
 
 typedef struct SMC_Evergreen_MCRegisterAddress SMC_Evergreen_MCRegisterAddress;
 
-struct evergreen_mc_reg_entry {
+struct evergreen_mc_reg_entry
+{
 	u32 mclk_max;
 	u32 mc_data[SMC_EVERGREEN_MC_REGISTER_ARRAY_SIZE];
 };
 
-struct evergreen_mc_reg_table {
+struct evergreen_mc_reg_table
+{
 	u8 last;
 	u8 num_entries;
 	u16 valid_flag;
@@ -281,71 +286,76 @@ struct evergreen_mc_reg_table {
 
 struct SMC_Evergreen_MCRegisterSet
 {
-    uint32_t value[SMC_EVERGREEN_MC_REGISTER_ARRAY_SIZE];
+	uint32_t value[SMC_EVERGREEN_MC_REGISTER_ARRAY_SIZE];
 };
 
 typedef struct SMC_Evergreen_MCRegisterSet SMC_Evergreen_MCRegisterSet;
 
 struct SMC_Evergreen_MCRegisters
 {
-    uint8_t                             last;
-    uint8_t                             reserved[3];
-    SMC_Evergreen_MCRegisterAddress     address[SMC_EVERGREEN_MC_REGISTER_ARRAY_SIZE];
-    SMC_Evergreen_MCRegisterSet         data[5];
+	uint8_t                             last;
+	uint8_t                             reserved[3];
+	SMC_Evergreen_MCRegisterAddress     address[SMC_EVERGREEN_MC_REGISTER_ARRAY_SIZE];
+	SMC_Evergreen_MCRegisterSet         data[5];
 };
 
 typedef struct SMC_Evergreen_MCRegisters SMC_Evergreen_MCRegisters;
 
 struct SMC_NIslands_MCRegisterSet
 {
-    uint32_t value[SMC_NISLANDS_MC_REGISTER_ARRAY_SIZE];
+	uint32_t value[SMC_NISLANDS_MC_REGISTER_ARRAY_SIZE];
 };
 
 typedef struct SMC_NIslands_MCRegisterSet SMC_NIslands_MCRegisterSet;
 
-struct ni_mc_reg_entry {
+struct ni_mc_reg_entry
+{
 	u32 mclk_max;
 	u32 mc_data[SMC_NISLANDS_MC_REGISTER_ARRAY_SIZE];
 };
 
 struct SMC_NIslands_MCRegisterAddress
 {
-    uint16_t s0;
-    uint16_t s1;
+	uint16_t s0;
+	uint16_t s1;
 };
 
 typedef struct SMC_NIslands_MCRegisterAddress SMC_NIslands_MCRegisterAddress;
 
 struct SMC_NIslands_MCRegisters
 {
-    uint8_t                             last;
-    uint8_t                             reserved[3];
-    SMC_NIslands_MCRegisterAddress      address[SMC_NISLANDS_MC_REGISTER_ARRAY_SIZE];
-    SMC_NIslands_MCRegisterSet          data[SMC_NISLANDS_MC_REGISTER_ARRAY_SET_COUNT];
+	uint8_t                             last;
+	uint8_t                             reserved[3];
+	SMC_NIslands_MCRegisterAddress      address[SMC_NISLANDS_MC_REGISTER_ARRAY_SIZE];
+	SMC_NIslands_MCRegisterSet          data[SMC_NISLANDS_MC_REGISTER_ARRAY_SET_COUNT];
 };
 
 typedef struct SMC_NIslands_MCRegisters SMC_NIslands_MCRegisters;
 
-struct evergreen_ulv_param {
+struct evergreen_ulv_param
+{
 	bool supported;
 	struct rv7xx_pl *pl;
 };
 
-struct evergreen_arb_registers {
+struct evergreen_arb_registers
+{
 	u32 mc_arb_dram_timing;
 	u32 mc_arb_dram_timing2;
 	u32 mc_arb_rfsh_rate;
 	u32 mc_arb_burst_time;
 };
 
-struct at {
+struct at
+{
 	u32 rlp;
 	u32 rmp;
 	u32 lhp;
 	u32 lmp;
 };
 
-struct ni_clock_registers {
+struct ni_clock_registers
+{
 	u32 cg_spll_func_cntl;
 	u32 cg_spll_func_cntl_2;
 	u32 cg_spll_func_cntl_3;
@@ -364,27 +374,27 @@ struct ni_clock_registers {
 
 struct RV770_SMC_SCLK_VALUE
 {
-    uint32_t        vCG_SPLL_FUNC_CNTL;
-    uint32_t        vCG_SPLL_FUNC_CNTL_2;
-    uint32_t        vCG_SPLL_FUNC_CNTL_3;
-    uint32_t        vCG_SPLL_SPREAD_SPECTRUM;
-    uint32_t        vCG_SPLL_SPREAD_SPECTRUM_2;
-    uint32_t        sclk_value;
+	uint32_t        vCG_SPLL_FUNC_CNTL;
+	uint32_t        vCG_SPLL_FUNC_CNTL_2;
+	uint32_t        vCG_SPLL_FUNC_CNTL_3;
+	uint32_t        vCG_SPLL_SPREAD_SPECTRUM;
+	uint32_t        vCG_SPLL_SPREAD_SPECTRUM_2;
+	uint32_t        sclk_value;
 };
 
 typedef struct RV770_SMC_SCLK_VALUE RV770_SMC_SCLK_VALUE;
 
 struct RV770_SMC_MCLK_VALUE
 {
-    uint32_t        vMPLL_AD_FUNC_CNTL;
-    uint32_t        vMPLL_AD_FUNC_CNTL_2;
-    uint32_t        vMPLL_DQ_FUNC_CNTL;
-    uint32_t        vMPLL_DQ_FUNC_CNTL_2;
-    uint32_t        vMCLK_PWRMGT_CNTL;
-    uint32_t        vDLL_CNTL;
-    uint32_t        vMPLL_SS;
-    uint32_t        vMPLL_SS2;
-    uint32_t        mclk_value;
+	uint32_t        vMPLL_AD_FUNC_CNTL;
+	uint32_t        vMPLL_AD_FUNC_CNTL_2;
+	uint32_t        vMPLL_DQ_FUNC_CNTL;
+	uint32_t        vMPLL_DQ_FUNC_CNTL_2;
+	uint32_t        vMCLK_PWRMGT_CNTL;
+	uint32_t        vDLL_CNTL;
+	uint32_t        vMPLL_SS;
+	uint32_t        vMPLL_SS2;
+	uint32_t        mclk_value;
 };
 
 typedef struct RV770_SMC_MCLK_VALUE RV770_SMC_MCLK_VALUE;
@@ -392,107 +402,110 @@ typedef struct RV770_SMC_MCLK_VALUE RV770_SMC_MCLK_VALUE;
 
 struct RV730_SMC_MCLK_VALUE
 {
-    uint32_t        vMCLK_PWRMGT_CNTL;
-    uint32_t        vDLL_CNTL;
-    uint32_t        vMPLL_FUNC_CNTL;
-    uint32_t        vMPLL_FUNC_CNTL2;
-    uint32_t        vMPLL_FUNC_CNTL3;
-    uint32_t        vMPLL_SS;
-    uint32_t        vMPLL_SS2;
-    uint32_t        mclk_value;
+	uint32_t        vMCLK_PWRMGT_CNTL;
+	uint32_t        vDLL_CNTL;
+	uint32_t        vMPLL_FUNC_CNTL;
+	uint32_t        vMPLL_FUNC_CNTL2;
+	uint32_t        vMPLL_FUNC_CNTL3;
+	uint32_t        vMPLL_SS;
+	uint32_t        vMPLL_SS2;
+	uint32_t        mclk_value;
 };
 
 typedef struct RV730_SMC_MCLK_VALUE RV730_SMC_MCLK_VALUE;
 
 struct RV770_SMC_VOLTAGE_VALUE
 {
-    uint16_t             value;
-    uint8_t              index;
-    uint8_t              padding;
+	uint16_t             value;
+	uint8_t              index;
+	uint8_t              padding;
 };
 
 typedef struct RV770_SMC_VOLTAGE_VALUE RV770_SMC_VOLTAGE_VALUE;
 
 union RV7XX_SMC_MCLK_VALUE
 {
-    RV770_SMC_MCLK_VALUE    mclk770;
-    RV730_SMC_MCLK_VALUE    mclk730;
+	RV770_SMC_MCLK_VALUE    mclk770;
+	RV730_SMC_MCLK_VALUE    mclk730;
 };
 
 typedef union RV7XX_SMC_MCLK_VALUE RV7XX_SMC_MCLK_VALUE, *LPRV7XX_SMC_MCLK_VALUE;
 
 struct RV770_SMC_HW_PERFORMANCE_LEVEL
 {
-    uint8_t                 arbValue;
-    union{
-        uint8_t             seqValue;
-        uint8_t             ACIndex;
-    };
-    uint8_t                 displayWatermark;
-    uint8_t                 gen2PCIE;
-    uint8_t                 gen2XSP;
-    uint8_t                 backbias;
-    uint8_t                 strobeMode;
-    uint8_t                 mcFlags;
-    uint32_t                aT;
-    uint32_t                bSP;
-    RV770_SMC_SCLK_VALUE    sclk;
-    RV7XX_SMC_MCLK_VALUE    mclk;
-    RV770_SMC_VOLTAGE_VALUE vddc;
-    RV770_SMC_VOLTAGE_VALUE mvdd;
-    RV770_SMC_VOLTAGE_VALUE vddci;
-    uint8_t                 reserved1;
-    uint8_t                 reserved2;
-    uint8_t                 stateFlags;
-    uint8_t                 padding;
+	uint8_t                 arbValue;
+	union
+	{
+		uint8_t             seqValue;
+		uint8_t             ACIndex;
+	};
+	uint8_t                 displayWatermark;
+	uint8_t                 gen2PCIE;
+	uint8_t                 gen2XSP;
+	uint8_t                 backbias;
+	uint8_t                 strobeMode;
+	uint8_t                 mcFlags;
+	uint32_t                aT;
+	uint32_t                bSP;
+	RV770_SMC_SCLK_VALUE    sclk;
+	RV7XX_SMC_MCLK_VALUE    mclk;
+	RV770_SMC_VOLTAGE_VALUE vddc;
+	RV770_SMC_VOLTAGE_VALUE mvdd;
+	RV770_SMC_VOLTAGE_VALUE vddci;
+	uint8_t                 reserved1;
+	uint8_t                 reserved2;
+	uint8_t                 stateFlags;
+	uint8_t                 padding;
 };
 
 typedef struct RV770_SMC_HW_PERFORMANCE_LEVEL RV770_SMC_HW_PERFORMANCE_LEVEL;
 
 struct RV770_SMC_SWSTATE
 {
-    uint8_t           flags;
-    uint8_t           padding1;
-    uint8_t           padding2;
-    uint8_t           padding3;
-    RV770_SMC_HW_PERFORMANCE_LEVEL levels[RV770_SMC_PERFORMANCE_LEVELS_PER_SWSTATE];
+	uint8_t           flags;
+	uint8_t           padding1;
+	uint8_t           padding2;
+	uint8_t           padding3;
+	RV770_SMC_HW_PERFORMANCE_LEVEL levels[RV770_SMC_PERFORMANCE_LEVELS_PER_SWSTATE];
 };
 
 typedef struct RV770_SMC_SWSTATE RV770_SMC_SWSTATE;
 
 struct RV770_SMC_VOLTAGEMASKTABLE
 {
-    uint8_t  highMask[RV770_SMC_VOLTAGEMASK_MAX];
-    uint32_t lowMask[RV770_SMC_VOLTAGEMASK_MAX];
+	uint8_t  highMask[RV770_SMC_VOLTAGEMASK_MAX];
+	uint32_t lowMask[RV770_SMC_VOLTAGEMASK_MAX];
 };
 
 typedef struct RV770_SMC_VOLTAGEMASKTABLE RV770_SMC_VOLTAGEMASKTABLE;
 
 struct RV770_SMC_STATETABLE
 {
-    uint8_t             thermalProtectType;
-    uint8_t             systemFlags;
-    uint8_t             maxVDDCIndexInPPTable;
-    uint8_t             extraFlags;
-    uint8_t             highSMIO[MAX_NO_VREG_STEPS];
-    uint32_t            lowSMIO[MAX_NO_VREG_STEPS];
-    RV770_SMC_VOLTAGEMASKTABLE voltageMaskTable;
-    RV770_SMC_SWSTATE   initialState;
-    RV770_SMC_SWSTATE   ACPIState;
-    RV770_SMC_SWSTATE   driverState;
-    RV770_SMC_SWSTATE   ULVState;
+	uint8_t             thermalProtectType;
+	uint8_t             systemFlags;
+	uint8_t             maxVDDCIndexInPPTable;
+	uint8_t             extraFlags;
+	uint8_t             highSMIO[MAX_NO_VREG_STEPS];
+	uint32_t            lowSMIO[MAX_NO_VREG_STEPS];
+	RV770_SMC_VOLTAGEMASKTABLE voltageMaskTable;
+	RV770_SMC_SWSTATE   initialState;
+	RV770_SMC_SWSTATE   ACPIState;
+	RV770_SMC_SWSTATE   driverState;
+	RV770_SMC_SWSTATE   ULVState;
 };
 
 typedef struct RV770_SMC_STATETABLE RV770_SMC_STATETABLE;
 
-struct vddc_table_entry {
+struct vddc_table_entry
+{
 	u16 vddc;
 	u8 vddc_index;
 	u8 high_smio;
 	u32 low_smio;
 };
 
-struct rv770_clock_registers {
+struct rv770_clock_registers
+{
 	u32 cg_spll_func_cntl;
 	u32 cg_spll_func_cntl_2;
 	u32 cg_spll_func_cntl_3;
@@ -508,7 +521,8 @@ struct rv770_clock_registers {
 	u32 mpll_ss2;
 };
 
-struct rv730_clock_registers {
+struct rv730_clock_registers
+{
 	u32 cg_spll_func_cntl;
 	u32 cg_spll_func_cntl_2;
 	u32 cg_spll_func_cntl_3;
@@ -523,12 +537,14 @@ struct rv730_clock_registers {
 	u32 mpll_ss2;
 };
 
-union r7xx_clock_registers {
+union r7xx_clock_registers
+{
 	struct rv770_clock_registers rv770;
 	struct rv730_clock_registers rv730;
 };
 
-struct rv7xx_power_info {
+struct rv7xx_power_info
+{
 	/* flags */
 	bool mem_gddr5;
 	bool pcie_gen2;
@@ -595,7 +611,8 @@ struct rv7xx_power_info {
 	RV770_SMC_STATETABLE smc_statetable;
 };
 
-struct rv7xx_pl {
+struct rv7xx_pl
+{
 	u32 sclk;
 	u32 mclk;
 	u16 vddc;
@@ -604,20 +621,23 @@ struct rv7xx_pl {
 	enum amdgpu_pcie_gen pcie_gen; /* si+ only */
 };
 
-struct rv7xx_ps {
+struct rv7xx_ps
+{
 	struct rv7xx_pl high;
 	struct rv7xx_pl medium;
 	struct rv7xx_pl low;
 	bool dc_compatible;
 };
 
-struct si_ps {
+struct si_ps
+{
 	u16 performance_level_count;
 	bool dc_compatible;
 	struct rv7xx_pl performance_levels[NISLANDS_MAX_SMC_PERFORMANCE_LEVELS_PER_SWSTATE];
 };
 
-struct ni_mc_reg_table {
+struct ni_mc_reg_table
+{
 	u8 last;
 	u8 num_entries;
 	u16 valid_flag;
@@ -642,7 +662,8 @@ struct ni_cac_data
 	u8 lts_truncate_n;
 };
 
-struct evergreen_power_info {
+struct evergreen_power_info
+{
 	/* must be first! */
 	struct rv7xx_power_info rv7xx;
 	/* flags */
@@ -680,116 +701,116 @@ struct evergreen_power_info {
 
 struct PP_NIslands_Dpm2PerfLevel
 {
-    uint8_t     MaxPS;
-    uint8_t     TgtAct;
-    uint8_t     MaxPS_StepInc;
-    uint8_t     MaxPS_StepDec;
-    uint8_t     PSST;
-    uint8_t     NearTDPDec;
-    uint8_t     AboveSafeInc;
-    uint8_t     BelowSafeInc;
-    uint8_t     PSDeltaLimit;
-    uint8_t     PSDeltaWin;
-    uint8_t     Reserved[6];
+	uint8_t     MaxPS;
+	uint8_t     TgtAct;
+	uint8_t     MaxPS_StepInc;
+	uint8_t     MaxPS_StepDec;
+	uint8_t     PSST;
+	uint8_t     NearTDPDec;
+	uint8_t     AboveSafeInc;
+	uint8_t     BelowSafeInc;
+	uint8_t     PSDeltaLimit;
+	uint8_t     PSDeltaWin;
+	uint8_t     Reserved[6];
 };
 
 typedef struct PP_NIslands_Dpm2PerfLevel PP_NIslands_Dpm2PerfLevel;
 
 struct PP_NIslands_DPM2Parameters
 {
-    uint32_t    TDPLimit;
-    uint32_t    NearTDPLimit;
-    uint32_t    SafePowerLimit;
-    uint32_t    PowerBoostLimit;
+	uint32_t    TDPLimit;
+	uint32_t    NearTDPLimit;
+	uint32_t    SafePowerLimit;
+	uint32_t    PowerBoostLimit;
 };
 typedef struct PP_NIslands_DPM2Parameters PP_NIslands_DPM2Parameters;
 
 struct NISLANDS_SMC_SCLK_VALUE
 {
-    uint32_t        vCG_SPLL_FUNC_CNTL;
-    uint32_t        vCG_SPLL_FUNC_CNTL_2;
-    uint32_t        vCG_SPLL_FUNC_CNTL_3;
-    uint32_t        vCG_SPLL_FUNC_CNTL_4;
-    uint32_t        vCG_SPLL_SPREAD_SPECTRUM;
-    uint32_t        vCG_SPLL_SPREAD_SPECTRUM_2;
-    uint32_t        sclk_value;
+	uint32_t        vCG_SPLL_FUNC_CNTL;
+	uint32_t        vCG_SPLL_FUNC_CNTL_2;
+	uint32_t        vCG_SPLL_FUNC_CNTL_3;
+	uint32_t        vCG_SPLL_FUNC_CNTL_4;
+	uint32_t        vCG_SPLL_SPREAD_SPECTRUM;
+	uint32_t        vCG_SPLL_SPREAD_SPECTRUM_2;
+	uint32_t        sclk_value;
 };
 
 typedef struct NISLANDS_SMC_SCLK_VALUE NISLANDS_SMC_SCLK_VALUE;
 
 struct NISLANDS_SMC_MCLK_VALUE
 {
-    uint32_t        vMPLL_FUNC_CNTL;
-    uint32_t        vMPLL_FUNC_CNTL_1;
-    uint32_t        vMPLL_FUNC_CNTL_2;
-    uint32_t        vMPLL_AD_FUNC_CNTL;
-    uint32_t        vMPLL_AD_FUNC_CNTL_2;
-    uint32_t        vMPLL_DQ_FUNC_CNTL;
-    uint32_t        vMPLL_DQ_FUNC_CNTL_2;
-    uint32_t        vMCLK_PWRMGT_CNTL;
-    uint32_t        vDLL_CNTL;
-    uint32_t        vMPLL_SS;
-    uint32_t        vMPLL_SS2;
-    uint32_t        mclk_value;
+	uint32_t        vMPLL_FUNC_CNTL;
+	uint32_t        vMPLL_FUNC_CNTL_1;
+	uint32_t        vMPLL_FUNC_CNTL_2;
+	uint32_t        vMPLL_AD_FUNC_CNTL;
+	uint32_t        vMPLL_AD_FUNC_CNTL_2;
+	uint32_t        vMPLL_DQ_FUNC_CNTL;
+	uint32_t        vMPLL_DQ_FUNC_CNTL_2;
+	uint32_t        vMCLK_PWRMGT_CNTL;
+	uint32_t        vDLL_CNTL;
+	uint32_t        vMPLL_SS;
+	uint32_t        vMPLL_SS2;
+	uint32_t        mclk_value;
 };
 
 typedef struct NISLANDS_SMC_MCLK_VALUE NISLANDS_SMC_MCLK_VALUE;
 
 struct NISLANDS_SMC_VOLTAGE_VALUE
 {
-    uint16_t             value;
-    uint8_t              index;
-    uint8_t              padding;
+	uint16_t             value;
+	uint8_t              index;
+	uint8_t              padding;
 };
 
 typedef struct NISLANDS_SMC_VOLTAGE_VALUE NISLANDS_SMC_VOLTAGE_VALUE;
 
 struct NISLANDS_SMC_HW_PERFORMANCE_LEVEL
 {
-    uint8_t                     arbValue;
-    uint8_t                     ACIndex;
-    uint8_t                     displayWatermark;
-    uint8_t                     gen2PCIE;
-    uint8_t                     reserved1;
-    uint8_t                     reserved2;
-    uint8_t                     strobeMode;
-    uint8_t                     mcFlags;
-    uint32_t                    aT;
-    uint32_t                    bSP;
-    NISLANDS_SMC_SCLK_VALUE     sclk;
-    NISLANDS_SMC_MCLK_VALUE     mclk;
-    NISLANDS_SMC_VOLTAGE_VALUE  vddc;
-    NISLANDS_SMC_VOLTAGE_VALUE  mvdd;
-    NISLANDS_SMC_VOLTAGE_VALUE  vddci;
-    NISLANDS_SMC_VOLTAGE_VALUE  std_vddc;
-    uint32_t                    powergate_en;
-    uint8_t                     hUp;
-    uint8_t                     hDown;
-    uint8_t                     stateFlags;
-    uint8_t                     arbRefreshState;
-    uint32_t                    SQPowerThrottle;
-    uint32_t                    SQPowerThrottle_2;
-    uint32_t                    reserved[2];
-    PP_NIslands_Dpm2PerfLevel   dpm2;
+	uint8_t                     arbValue;
+	uint8_t                     ACIndex;
+	uint8_t                     displayWatermark;
+	uint8_t                     gen2PCIE;
+	uint8_t                     reserved1;
+	uint8_t                     reserved2;
+	uint8_t                     strobeMode;
+	uint8_t                     mcFlags;
+	uint32_t                    aT;
+	uint32_t                    bSP;
+	NISLANDS_SMC_SCLK_VALUE     sclk;
+	NISLANDS_SMC_MCLK_VALUE     mclk;
+	NISLANDS_SMC_VOLTAGE_VALUE  vddc;
+	NISLANDS_SMC_VOLTAGE_VALUE  mvdd;
+	NISLANDS_SMC_VOLTAGE_VALUE  vddci;
+	NISLANDS_SMC_VOLTAGE_VALUE  std_vddc;
+	uint32_t                    powergate_en;
+	uint8_t                     hUp;
+	uint8_t                     hDown;
+	uint8_t                     stateFlags;
+	uint8_t                     arbRefreshState;
+	uint32_t                    SQPowerThrottle;
+	uint32_t                    SQPowerThrottle_2;
+	uint32_t                    reserved[2];
+	PP_NIslands_Dpm2PerfLevel   dpm2;
 };
 
 typedef struct NISLANDS_SMC_HW_PERFORMANCE_LEVEL NISLANDS_SMC_HW_PERFORMANCE_LEVEL;
 
 struct NISLANDS_SMC_SWSTATE
 {
-    uint8_t                             flags;
-    uint8_t                             levelCount;
-    uint8_t                             padding2;
-    uint8_t                             padding3;
-    NISLANDS_SMC_HW_PERFORMANCE_LEVEL   levels[1];
+	uint8_t                             flags;
+	uint8_t                             levelCount;
+	uint8_t                             padding2;
+	uint8_t                             padding3;
+	NISLANDS_SMC_HW_PERFORMANCE_LEVEL   levels[1];
 };
 
 typedef struct NISLANDS_SMC_SWSTATE NISLANDS_SMC_SWSTATE;
 
 struct NISLANDS_SMC_VOLTAGEMASKTABLE
 {
-    uint8_t  highMask[NISLANDS_SMC_VOLTAGEMASK_MAX];
-    uint32_t lowMask[NISLANDS_SMC_VOLTAGEMASK_MAX];
+	uint8_t  highMask[NISLANDS_SMC_VOLTAGEMASK_MAX];
+	uint32_t lowMask[NISLANDS_SMC_VOLTAGEMASK_MAX];
 };
 
 typedef struct NISLANDS_SMC_VOLTAGEMASKTABLE NISLANDS_SMC_VOLTAGEMASKTABLE;
@@ -798,24 +819,25 @@ typedef struct NISLANDS_SMC_VOLTAGEMASKTABLE NISLANDS_SMC_VOLTAGEMASKTABLE;
 
 struct NISLANDS_SMC_STATETABLE
 {
-    uint8_t                             thermalProtectType;
-    uint8_t                             systemFlags;
-    uint8_t                             maxVDDCIndexInPPTable;
-    uint8_t                             extraFlags;
-    uint8_t                             highSMIO[NISLANDS_MAX_NO_VREG_STEPS];
-    uint32_t                            lowSMIO[NISLANDS_MAX_NO_VREG_STEPS];
-    NISLANDS_SMC_VOLTAGEMASKTABLE       voltageMaskTable;
-    PP_NIslands_DPM2Parameters          dpm2Params;
-    NISLANDS_SMC_SWSTATE                initialState;
-    NISLANDS_SMC_SWSTATE                ACPIState;
-    NISLANDS_SMC_SWSTATE                ULVState;
-    NISLANDS_SMC_SWSTATE                driverState;
-    NISLANDS_SMC_HW_PERFORMANCE_LEVEL   dpmLevels[NISLANDS_MAX_SMC_PERFORMANCE_LEVELS_PER_SWSTATE - 1];
+	uint8_t                             thermalProtectType;
+	uint8_t                             systemFlags;
+	uint8_t                             maxVDDCIndexInPPTable;
+	uint8_t                             extraFlags;
+	uint8_t                             highSMIO[NISLANDS_MAX_NO_VREG_STEPS];
+	uint32_t                            lowSMIO[NISLANDS_MAX_NO_VREG_STEPS];
+	NISLANDS_SMC_VOLTAGEMASKTABLE       voltageMaskTable;
+	PP_NIslands_DPM2Parameters          dpm2Params;
+	NISLANDS_SMC_SWSTATE                initialState;
+	NISLANDS_SMC_SWSTATE                ACPIState;
+	NISLANDS_SMC_SWSTATE                ULVState;
+	NISLANDS_SMC_SWSTATE                driverState;
+	NISLANDS_SMC_HW_PERFORMANCE_LEVEL   dpmLevels[NISLANDS_MAX_SMC_PERFORMANCE_LEVELS_PER_SWSTATE - 1];
 };
 
 typedef struct NISLANDS_SMC_STATETABLE NISLANDS_SMC_STATETABLE;
 
-struct ni_power_info {
+struct ni_power_info
+{
 	/* must be first! */
 	struct evergreen_power_info eg;
 	struct ni_clock_registers clock_registers;
@@ -902,7 +924,8 @@ struct si_dte_data
 	bool enable_dte_by_default;
 };
 
-struct si_clock_registers {
+struct si_clock_registers
+{
 	u32 cg_spll_func_cntl;
 	u32 cg_spll_func_cntl_2;
 	u32 cg_spll_func_cntl_3;
@@ -920,12 +943,14 @@ struct si_clock_registers {
 	u32 mpll_ss2;
 };
 
-struct si_mc_reg_entry {
+struct si_mc_reg_entry
+{
 	u32 mclk_max;
 	u32 mc_data[SMC_SISLANDS_MC_REGISTER_ARRAY_SIZE];
 };
 
-struct si_mc_reg_table {
+struct si_mc_reg_table
+{
 	u8 last;
 	u8 num_entries;
 	u16 valid_flag;
@@ -946,7 +971,8 @@ struct si_leakage_voltage
 };
 
 
-struct si_ulv_param {
+struct si_ulv_param
+{
 	bool supported;
 	u32 cg_ulv_control;
 	u32 cg_ulv_parameter;
@@ -955,7 +981,8 @@ struct si_ulv_param {
 	bool one_pcie_lane_in_ulv;
 };
 
-struct si_power_info {
+struct si_power_info
+{
 	/* must be first! */
 	struct ni_power_info ni;
 	struct si_clock_registers clock_registers;

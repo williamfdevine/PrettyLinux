@@ -28,7 +28,7 @@
 #define PN544_DRIVER_NAME "pn544"
 
 static int pn544_mei_probe(struct mei_cl_device *cldev,
-			       const struct mei_cl_device_id *id)
+						   const struct mei_cl_device_id *id)
 {
 	struct nfc_mei_phy *phy;
 	int r;
@@ -36,15 +36,19 @@ static int pn544_mei_probe(struct mei_cl_device *cldev,
 	pr_info("Probing NFC pn544\n");
 
 	phy = nfc_mei_phy_alloc(cldev);
-	if (!phy) {
+
+	if (!phy)
+	{
 		pr_err("Cannot allocate memory for pn544 mei phy.\n");
 		return -ENOMEM;
 	}
 
 	r = pn544_hci_probe(phy, &mei_phy_ops, LLC_NOP_NAME,
-			    MEI_NFC_HEADER_SIZE, 0, MEI_NFC_MAX_HCI_PAYLOAD,
-			    NULL, &phy->hdev);
-	if (r < 0) {
+						MEI_NFC_HEADER_SIZE, 0, MEI_NFC_MAX_HCI_PAYLOAD,
+						NULL, &phy->hdev);
+
+	if (r < 0)
+	{
 		nfc_mei_phy_free(phy);
 
 		return r;
@@ -66,7 +70,8 @@ static int pn544_mei_remove(struct mei_cl_device *cldev)
 	return 0;
 }
 
-static struct mei_cl_device_id pn544_mei_tbl[] = {
+static struct mei_cl_device_id pn544_mei_tbl[] =
+{
 	{ PN544_DRIVER_NAME, MEI_NFC_UUID, MEI_CL_VERSION_ANY},
 
 	/* required last entry */
@@ -74,7 +79,8 @@ static struct mei_cl_device_id pn544_mei_tbl[] = {
 };
 MODULE_DEVICE_TABLE(mei, pn544_mei_tbl);
 
-static struct mei_cl_driver pn544_driver = {
+static struct mei_cl_driver pn544_driver =
+{
 	.id_table = pn544_mei_tbl,
 	.name = PN544_DRIVER_NAME,
 
@@ -89,7 +95,9 @@ static int pn544_mei_init(void)
 	pr_debug(DRIVER_DESC ": %s\n", __func__);
 
 	r = mei_cldev_driver_register(&pn544_driver);
-	if (r) {
+
+	if (r)
+	{
 		pr_err(PN544_DRIVER_NAME ": driver registration failed\n");
 		return r;
 	}

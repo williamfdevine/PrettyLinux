@@ -50,7 +50,8 @@
  * opencalled is used to hold if this ldisc has been opened.
  * kref_tty holds the tty reference the ldisc sits on top of.
  */
-struct tracerouter_data {
+struct tracerouter_data
+{
 	u8 opencalled;
 	struct tty_struct *kref_tty;
 };
@@ -73,12 +74,18 @@ static int n_tracerouter_open(struct tty_struct *tty)
 	int retval = -EEXIST;
 
 	mutex_lock(&routelock);
-	if (tr_data->opencalled == 0) {
+
+	if (tr_data->opencalled == 0)
+	{
 
 		tr_data->kref_tty = tty_kref_get(tty);
-		if (tr_data->kref_tty == NULL) {
+
+		if (tr_data->kref_tty == NULL)
+		{
 			retval = -EFAULT;
-		} else {
+		}
+		else
+		{
 			tr_data->opencalled = 1;
 			tty->disc_data      = tr_data;
 			tty->receive_room   = RECEIVE_ROOM;
@@ -86,6 +93,7 @@ static int n_tracerouter_open(struct tty_struct *tty)
 			retval = 0;
 		}
 	}
+
 	mutex_unlock(&routelock);
 	return retval;
 }
@@ -128,7 +136,8 @@ static void n_tracerouter_close(struct tty_struct *tty)
  *	 -EINVAL
  */
 static ssize_t n_tracerouter_read(struct tty_struct *tty, struct file *file,
-				  unsigned char __user *buf, size_t nr) {
+								  unsigned char __user *buf, size_t nr)
+{
 	return -EINVAL;
 }
 
@@ -152,7 +161,8 @@ static ssize_t n_tracerouter_read(struct tty_struct *tty, struct file *file,
  *	-EINVAL
  */
 static ssize_t n_tracerouter_write(struct tty_struct *tty, struct file *file,
-				   const unsigned char *buf, size_t nr) {
+								   const unsigned char *buf, size_t nr)
+{
 	return -EINVAL;
 }
 
@@ -169,8 +179,8 @@ static ssize_t n_tracerouter_write(struct tty_struct *tty, struct file *file,
  * an external API function for processing.
  */
 static void n_tracerouter_receivebuf(struct tty_struct *tty,
-					const unsigned char *cp,
-					char *fp, int count)
+									 const unsigned char *cp,
+									 char *fp, int count)
 {
 	mutex_lock(&routelock);
 	n_tracesink_datadrain((u8 *) cp, count);
@@ -182,7 +192,8 @@ static void n_tracerouter_receivebuf(struct tty_struct *tty,
  * so the tty_driver_flush_buffer() is sufficient for this driver's needs.
  */
 
-static struct tty_ldisc_ops tty_ptirouter_ldisc = {
+static struct tty_ldisc_ops tty_ptirouter_ldisc =
+{
 	.owner		= THIS_MODULE,
 	.magic		= TTY_LDISC_MAGIC,
 	.name		= DRIVERNAME,
@@ -206,16 +217,22 @@ static int __init n_tracerouter_init(void)
 	int retval;
 
 	tr_data = kzalloc(sizeof(struct tracerouter_data), GFP_KERNEL);
+
 	if (tr_data == NULL)
+	{
 		return -ENOMEM;
+	}
 
 
 	/* Note N_TRACEROUTER is defined in linux/tty.h */
 	retval = tty_register_ldisc(N_TRACEROUTER, &tty_ptirouter_ldisc);
-	if (retval < 0) {
+
+	if (retval < 0)
+	{
 		pr_err("%s: Registration failed: %d\n", __func__, retval);
 		kfree(tr_data);
 	}
+
 	return retval;
 }
 
@@ -229,9 +246,13 @@ static void __exit n_tracerouter_exit(void)
 	int retval = tty_unregister_ldisc(N_TRACEROUTER);
 
 	if (retval < 0)
+	{
 		pr_err("%s: Unregistration failed: %d\n", __func__,  retval);
+	}
 	else
+	{
 		kfree(tr_data);
+	}
 }
 
 module_init(n_tracerouter_init);

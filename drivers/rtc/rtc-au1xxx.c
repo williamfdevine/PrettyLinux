@@ -51,12 +51,15 @@ static int au1xtoy_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	 * take up to 6 seconds...
 	 */
 	while (alchemy_rdsys(AU1000_SYS_CNTRCTRL) & SYS_CNTRL_C0S)
+	{
 		msleep(1);
+	}
 
 	return 0;
 }
 
-static struct rtc_class_ops au1xtoy_rtc_ops = {
+static struct rtc_class_ops au1xtoy_rtc_ops =
+{
 	.read_time	= au1xtoy_rtc_read_time,
 	.set_time	= au1xtoy_rtc_set_time,
 };
@@ -68,7 +71,9 @@ static int au1xtoy_rtc_probe(struct platform_device *pdev)
 	int ret;
 
 	t = alchemy_rdsys(AU1000_SYS_CNTRCTRL);
-	if (!(t & CNTR_OK)) {
+
+	if (!(t & CNTR_OK))
+	{
 		dev_err(&pdev->dev, "counters not working; aborting.\n");
 		ret = -ENODEV;
 		goto out_err;
@@ -77,13 +82,18 @@ static int au1xtoy_rtc_probe(struct platform_device *pdev)
 	ret = -ETIMEDOUT;
 
 	/* set counter0 tickrate to 1Hz if necessary */
-	if (alchemy_rdsys(AU1000_SYS_TOYTRIM) != 32767) {
+	if (alchemy_rdsys(AU1000_SYS_TOYTRIM) != 32767)
+	{
 		/* wait until hardware gives access to TRIM register */
 		t = 0x00100000;
-		while ((alchemy_rdsys(AU1000_SYS_CNTRCTRL) & SYS_CNTRL_T0S) && --t)
-			msleep(1);
 
-		if (!t) {
+		while ((alchemy_rdsys(AU1000_SYS_CNTRCTRL) & SYS_CNTRL_T0S) && --t)
+		{
+			msleep(1);
+		}
+
+		if (!t)
+		{
 			/* timed out waiting for register access; assume
 			 * counters are unusable.
 			 */
@@ -97,11 +107,15 @@ static int au1xtoy_rtc_probe(struct platform_device *pdev)
 
 	/* wait until the hardware allows writes to the counter reg */
 	while (alchemy_rdsys(AU1000_SYS_CNTRCTRL) & SYS_CNTRL_C0S)
+	{
 		msleep(1);
+	}
 
 	rtcdev = devm_rtc_device_register(&pdev->dev, "rtc-au1xxx",
-				     &au1xtoy_rtc_ops, THIS_MODULE);
-	if (IS_ERR(rtcdev)) {
+									  &au1xtoy_rtc_ops, THIS_MODULE);
+
+	if (IS_ERR(rtcdev))
+	{
 		ret = PTR_ERR(rtcdev);
 		goto out_err;
 	}
@@ -114,7 +128,8 @@ out_err:
 	return ret;
 }
 
-static struct platform_driver au1xrtc_driver = {
+static struct platform_driver au1xrtc_driver =
+{
 	.driver		= {
 		.name	= "rtc-au1xxx",
 	},

@@ -61,101 +61,102 @@ int __fimc_is_hw_update_param(struct fimc_is *is, u32 offset)
 	struct is_param_region *par = &is->is_p_region->parameter;
 	struct chain_config *cfg = &is->config[is->config_index];
 
-	switch (offset) {
-	case PARAM_ISP_CONTROL:
-		__hw_param_copy(&par->isp.control, &cfg->isp.control);
-		break;
+	switch (offset)
+	{
+		case PARAM_ISP_CONTROL:
+			__hw_param_copy(&par->isp.control, &cfg->isp.control);
+			break;
 
-	case PARAM_ISP_OTF_INPUT:
-		__hw_param_copy(&par->isp.otf_input, &cfg->isp.otf_input);
-		break;
+		case PARAM_ISP_OTF_INPUT:
+			__hw_param_copy(&par->isp.otf_input, &cfg->isp.otf_input);
+			break;
 
-	case PARAM_ISP_DMA1_INPUT:
-		__hw_param_copy(&par->isp.dma1_input, &cfg->isp.dma1_input);
-		break;
+		case PARAM_ISP_DMA1_INPUT:
+			__hw_param_copy(&par->isp.dma1_input, &cfg->isp.dma1_input);
+			break;
 
-	case PARAM_ISP_DMA2_INPUT:
-		__hw_param_copy(&par->isp.dma2_input, &cfg->isp.dma2_input);
-		break;
+		case PARAM_ISP_DMA2_INPUT:
+			__hw_param_copy(&par->isp.dma2_input, &cfg->isp.dma2_input);
+			break;
 
-	case PARAM_ISP_AA:
-		__hw_param_copy(&par->isp.aa, &cfg->isp.aa);
-		break;
+		case PARAM_ISP_AA:
+			__hw_param_copy(&par->isp.aa, &cfg->isp.aa);
+			break;
 
-	case PARAM_ISP_FLASH:
-		__hw_param_copy(&par->isp.flash, &cfg->isp.flash);
-		break;
+		case PARAM_ISP_FLASH:
+			__hw_param_copy(&par->isp.flash, &cfg->isp.flash);
+			break;
 
-	case PARAM_ISP_AWB:
-		__hw_param_copy(&par->isp.awb, &cfg->isp.awb);
-		break;
+		case PARAM_ISP_AWB:
+			__hw_param_copy(&par->isp.awb, &cfg->isp.awb);
+			break;
 
-	case PARAM_ISP_IMAGE_EFFECT:
-		__hw_param_copy(&par->isp.effect, &cfg->isp.effect);
-		break;
+		case PARAM_ISP_IMAGE_EFFECT:
+			__hw_param_copy(&par->isp.effect, &cfg->isp.effect);
+			break;
 
-	case PARAM_ISP_ISO:
-		__hw_param_copy(&par->isp.iso, &cfg->isp.iso);
-		break;
+		case PARAM_ISP_ISO:
+			__hw_param_copy(&par->isp.iso, &cfg->isp.iso);
+			break;
 
-	case PARAM_ISP_ADJUST:
-		__hw_param_copy(&par->isp.adjust, &cfg->isp.adjust);
-		break;
+		case PARAM_ISP_ADJUST:
+			__hw_param_copy(&par->isp.adjust, &cfg->isp.adjust);
+			break;
 
-	case PARAM_ISP_METERING:
-		__hw_param_copy(&par->isp.metering, &cfg->isp.metering);
-		break;
+		case PARAM_ISP_METERING:
+			__hw_param_copy(&par->isp.metering, &cfg->isp.metering);
+			break;
 
-	case PARAM_ISP_AFC:
-		__hw_param_copy(&par->isp.afc, &cfg->isp.afc);
-		break;
+		case PARAM_ISP_AFC:
+			__hw_param_copy(&par->isp.afc, &cfg->isp.afc);
+			break;
 
-	case PARAM_ISP_OTF_OUTPUT:
-		__hw_param_copy(&par->isp.otf_output, &cfg->isp.otf_output);
-		break;
+		case PARAM_ISP_OTF_OUTPUT:
+			__hw_param_copy(&par->isp.otf_output, &cfg->isp.otf_output);
+			break;
 
-	case PARAM_ISP_DMA1_OUTPUT:
-		__hw_param_copy(&par->isp.dma1_output, &cfg->isp.dma1_output);
-		break;
+		case PARAM_ISP_DMA1_OUTPUT:
+			__hw_param_copy(&par->isp.dma1_output, &cfg->isp.dma1_output);
+			break;
 
-	case PARAM_ISP_DMA2_OUTPUT:
-		__hw_param_copy(&par->isp.dma2_output, &cfg->isp.dma2_output);
-		break;
+		case PARAM_ISP_DMA2_OUTPUT:
+			__hw_param_copy(&par->isp.dma2_output, &cfg->isp.dma2_output);
+			break;
 
-	case PARAM_DRC_CONTROL:
-		__hw_param_copy(&par->drc.control, &cfg->drc.control);
-		break;
+		case PARAM_DRC_CONTROL:
+			__hw_param_copy(&par->drc.control, &cfg->drc.control);
+			break;
 
-	case PARAM_DRC_OTF_INPUT:
-		__hw_param_copy(&par->drc.otf_input, &cfg->drc.otf_input);
-		break;
+		case PARAM_DRC_OTF_INPUT:
+			__hw_param_copy(&par->drc.otf_input, &cfg->drc.otf_input);
+			break;
 
-	case PARAM_DRC_DMA_INPUT:
-		__hw_param_copy(&par->drc.dma_input, &cfg->drc.dma_input);
-		break;
+		case PARAM_DRC_DMA_INPUT:
+			__hw_param_copy(&par->drc.dma_input, &cfg->drc.dma_input);
+			break;
 
-	case PARAM_DRC_OTF_OUTPUT:
-		__hw_param_copy(&par->drc.otf_output, &cfg->drc.otf_output);
-		break;
+		case PARAM_DRC_OTF_OUTPUT:
+			__hw_param_copy(&par->drc.otf_output, &cfg->drc.otf_output);
+			break;
 
-	case PARAM_FD_CONTROL:
-		__hw_param_copy(&par->fd.control, &cfg->fd.control);
-		break;
+		case PARAM_FD_CONTROL:
+			__hw_param_copy(&par->fd.control, &cfg->fd.control);
+			break;
 
-	case PARAM_FD_OTF_INPUT:
-		__hw_param_copy(&par->fd.otf_input, &cfg->fd.otf_input);
-		break;
+		case PARAM_FD_OTF_INPUT:
+			__hw_param_copy(&par->fd.otf_input, &cfg->fd.otf_input);
+			break;
 
-	case PARAM_FD_DMA_INPUT:
-		__hw_param_copy(&par->fd.dma_input, &cfg->fd.dma_input);
-		break;
+		case PARAM_FD_DMA_INPUT:
+			__hw_param_copy(&par->fd.dma_input, &cfg->fd.dma_input);
+			break;
 
-	case PARAM_FD_CONFIG:
-		__hw_param_copy(&par->fd.config, &cfg->fd.config);
-		break;
+		case PARAM_FD_CONFIG:
+			__hw_param_copy(&par->fd.config, &cfg->fd.config);
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
@@ -184,24 +185,37 @@ int __is_hw_update_params(struct fimc_is *is)
 	p_index = &is->config[id].p_region_index[0];
 
 	if (test_bit(PARAM_GLOBAL_SHOTMODE, p_index))
+	{
 		__fimc_is_hw_update_param_global_shotmode(is);
+	}
 
 	if (test_bit(PARAM_SENSOR_FRAME_RATE, p_index))
+	{
 		__fimc_is_hw_update_param_sensor_framerate(is);
-
-	for (i = PARAM_ISP_CONTROL; i < PARAM_DRC_CONTROL; i++) {
-		if (test_bit(i, p_index))
-			ret = __fimc_is_hw_update_param(is, i);
 	}
 
-	for (i = PARAM_DRC_CONTROL; i < PARAM_SCALERC_CONTROL; i++) {
+	for (i = PARAM_ISP_CONTROL; i < PARAM_DRC_CONTROL; i++)
+	{
 		if (test_bit(i, p_index))
+		{
 			ret = __fimc_is_hw_update_param(is, i);
+		}
 	}
 
-	for (i = PARAM_FD_CONTROL; i <= PARAM_FD_CONFIG; i++) {
+	for (i = PARAM_DRC_CONTROL; i < PARAM_SCALERC_CONTROL; i++)
+	{
 		if (test_bit(i, p_index))
+		{
 			ret = __fimc_is_hw_update_param(is, i);
+		}
+	}
+
+	for (i = PARAM_FD_CONTROL; i <= PARAM_FD_CONFIG; i++)
+	{
+		if (test_bit(i, p_index))
+		{
+			ret = __fimc_is_hw_update_param(is, i);
+		}
 	}
 
 	return ret;
@@ -242,8 +256,10 @@ void __is_set_frame_size(struct fimc_is *is, struct v4l2_mbus_framefmt *mf)
 	fd->otf_input.height = mf->height;
 
 	if (test_bit(PARAM_ISP_OTF_INPUT,
-		      &is->config[index].p_region_index[0]))
+				 &is->config[index].p_region_index[0]))
+	{
 		return;
+	}
 
 	/* Update field */
 	fimc_is_set_param_bit(is, PARAM_ISP_OTF_INPUT);
@@ -255,11 +271,13 @@ void __is_set_frame_size(struct fimc_is *is, struct v4l2_mbus_framefmt *mf)
 
 int fimc_is_hw_get_sensor_max_framerate(struct fimc_is *is)
 {
-	switch (is->sensor->drvdata->id) {
-	case FIMC_IS_SENSOR_ID_S5K6A3:
-		return 30;
-	default:
-		return 15;
+	switch (is->sensor->drvdata->id)
+	{
+		case FIMC_IS_SENSOR_ID_S5K6A3:
+			return 30;
+
+		default:
+			return 15;
 	}
 }
 
@@ -272,12 +290,15 @@ void __is_set_sensor(struct fimc_is *is, int fps)
 	sensor = &is->config[index].sensor;
 	isp = &is->config[index].isp;
 
-	if (fps == 0) {
+	if (fps == 0)
+	{
 		sensor->frame_rate.frame_rate =
-				fimc_is_hw_get_sensor_max_framerate(is);
+			fimc_is_hw_get_sensor_max_framerate(is);
 		isp->otf_input.frametime_min = 0;
 		isp->otf_input.frametime_max = 66666;
-	} else {
+	}
+	else
+	{
 		sensor->frame_rate.frame_rate = fps;
 		isp->otf_input.frametime_min = 0;
 		isp->otf_input.frametime_max = (u32)1000000 / fps;
@@ -295,7 +316,7 @@ static void __maybe_unused __is_set_init_isp_aa(struct fimc_is *is)
 
 	isp->aa.cmd = ISP_AA_COMMAND_START;
 	isp->aa.target = ISP_AA_TARGET_AF | ISP_AA_TARGET_AE |
-			 ISP_AA_TARGET_AWB;
+					 ISP_AA_TARGET_AWB;
 	isp->aa.mode = 0;
 	isp->aa.scene = 0;
 	isp->aa.sleep = 0;
@@ -370,40 +391,50 @@ void __is_set_isp_adjust(struct fimc_is *is, u32 cmd, u32 val)
 	p_index = &is->config[index].p_region_index[0];
 	isp = &is->config[index].isp;
 
-	switch (cmd) {
-	case ISP_ADJUST_COMMAND_MANUAL_CONTRAST:
-		isp->adjust.contrast = val;
-		break;
-	case ISP_ADJUST_COMMAND_MANUAL_SATURATION:
-		isp->adjust.saturation = val;
-		break;
-	case ISP_ADJUST_COMMAND_MANUAL_SHARPNESS:
-		isp->adjust.sharpness = val;
-		break;
-	case ISP_ADJUST_COMMAND_MANUAL_EXPOSURE:
-		isp->adjust.exposure = val;
-		break;
-	case ISP_ADJUST_COMMAND_MANUAL_BRIGHTNESS:
-		isp->adjust.brightness = val;
-		break;
-	case ISP_ADJUST_COMMAND_MANUAL_HUE:
-		isp->adjust.hue = val;
-		break;
-	case ISP_ADJUST_COMMAND_AUTO:
-		isp->adjust.contrast = 0;
-		isp->adjust.saturation = 0;
-		isp->adjust.sharpness = 0;
-		isp->adjust.exposure = 0;
-		isp->adjust.brightness = 0;
-		isp->adjust.hue = 0;
-		break;
+	switch (cmd)
+	{
+		case ISP_ADJUST_COMMAND_MANUAL_CONTRAST:
+			isp->adjust.contrast = val;
+			break;
+
+		case ISP_ADJUST_COMMAND_MANUAL_SATURATION:
+			isp->adjust.saturation = val;
+			break;
+
+		case ISP_ADJUST_COMMAND_MANUAL_SHARPNESS:
+			isp->adjust.sharpness = val;
+			break;
+
+		case ISP_ADJUST_COMMAND_MANUAL_EXPOSURE:
+			isp->adjust.exposure = val;
+			break;
+
+		case ISP_ADJUST_COMMAND_MANUAL_BRIGHTNESS:
+			isp->adjust.brightness = val;
+			break;
+
+		case ISP_ADJUST_COMMAND_MANUAL_HUE:
+			isp->adjust.hue = val;
+			break;
+
+		case ISP_ADJUST_COMMAND_AUTO:
+			isp->adjust.contrast = 0;
+			isp->adjust.saturation = 0;
+			isp->adjust.sharpness = 0;
+			isp->adjust.exposure = 0;
+			isp->adjust.brightness = 0;
+			isp->adjust.hue = 0;
+			break;
 	}
 
-	if (!test_bit(PARAM_ISP_ADJUST, p_index)) {
+	if (!test_bit(PARAM_ISP_ADJUST, p_index))
+	{
 		isp->adjust.cmd = cmd;
 		isp->adjust.err = ISP_ADJUST_ERROR_NONE;
 		fimc_is_set_param_bit(is, PARAM_ISP_ADJUST);
-	} else {
+	}
+	else
+	{
 		isp->adjust.cmd |= cmd;
 	}
 }
@@ -417,27 +448,34 @@ void __is_set_isp_metering(struct fimc_is *is, u32 id, u32 val)
 	p_index = &is->config[index].p_region_index[0];
 	isp = &is->config[index].isp;
 
-	switch (id) {
-	case IS_METERING_CONFIG_CMD:
-		isp->metering.cmd = val;
-		break;
-	case IS_METERING_CONFIG_WIN_POS_X:
-		isp->metering.win_pos_x = val;
-		break;
-	case IS_METERING_CONFIG_WIN_POS_Y:
-		isp->metering.win_pos_y = val;
-		break;
-	case IS_METERING_CONFIG_WIN_WIDTH:
-		isp->metering.win_width = val;
-		break;
-	case IS_METERING_CONFIG_WIN_HEIGHT:
-		isp->metering.win_height = val;
-		break;
-	default:
-		return;
+	switch (id)
+	{
+		case IS_METERING_CONFIG_CMD:
+			isp->metering.cmd = val;
+			break;
+
+		case IS_METERING_CONFIG_WIN_POS_X:
+			isp->metering.win_pos_x = val;
+			break;
+
+		case IS_METERING_CONFIG_WIN_POS_Y:
+			isp->metering.win_pos_y = val;
+			break;
+
+		case IS_METERING_CONFIG_WIN_WIDTH:
+			isp->metering.win_width = val;
+			break;
+
+		case IS_METERING_CONFIG_WIN_HEIGHT:
+			isp->metering.win_height = val;
+			break;
+
+		default:
+			return;
 	}
 
-	if (!test_bit(PARAM_ISP_METERING, p_index)) {
+	if (!test_bit(PARAM_ISP_METERING, p_index))
+	{
 		isp->metering.err = ISP_METERING_ERROR_NONE;
 		fimc_is_set_param_bit(is, PARAM_ISP_METERING);
 	}
@@ -481,7 +519,9 @@ void __is_set_fd_control(struct fimc_is *is, u32 val)
 	fd->control.cmd = val;
 
 	if (!test_bit((PARAM_FD_CONFIG - 32), p_index))
+	{
 		fimc_is_set_param_bit(is, PARAM_FD_CONTROL);
+	}
 }
 
 void __is_set_fd_config_maxface(struct fimc_is *is, u32 val)
@@ -495,11 +535,14 @@ void __is_set_fd_config_maxface(struct fimc_is *is, u32 val)
 
 	fd->config.max_number = val;
 
-	if (!test_bit((PARAM_FD_CONFIG - 32), p_index)) {
+	if (!test_bit((PARAM_FD_CONFIG - 32), p_index))
+	{
 		fd->config.cmd = FD_CONFIG_COMMAND_MAXIMUM_NUMBER;
 		fd->config.err = ERROR_FD_NONE;
 		fimc_is_set_param_bit(is, PARAM_FD_CONFIG);
-	} else {
+	}
+	else
+	{
 		fd->config.cmd |= FD_CONFIG_COMMAND_MAXIMUM_NUMBER;
 	}
 }
@@ -515,11 +558,14 @@ void __is_set_fd_config_rollangle(struct fimc_is *is, u32 val)
 
 	fd->config.roll_angle = val;
 
-	if (!test_bit((PARAM_FD_CONFIG - 32), p_index)) {
+	if (!test_bit((PARAM_FD_CONFIG - 32), p_index))
+	{
 		fd->config.cmd = FD_CONFIG_COMMAND_ROLL_ANGLE;
 		fd->config.err = ERROR_FD_NONE;
 		fimc_is_set_param_bit(is, PARAM_FD_CONFIG);
-	} else {
+	}
+	else
+	{
 		fd->config.cmd |= FD_CONFIG_COMMAND_ROLL_ANGLE;
 	}
 }
@@ -535,11 +581,14 @@ void __is_set_fd_config_yawangle(struct fimc_is *is, u32 val)
 
 	fd->config.yaw_angle = val;
 
-	if (!test_bit((PARAM_FD_CONFIG - 32), p_index)) {
+	if (!test_bit((PARAM_FD_CONFIG - 32), p_index))
+	{
 		fd->config.cmd = FD_CONFIG_COMMAND_YAW_ANGLE;
 		fd->config.err = ERROR_FD_NONE;
 		fimc_is_set_param_bit(is, PARAM_FD_CONFIG);
-	} else {
+	}
+	else
+	{
 		fd->config.cmd |= FD_CONFIG_COMMAND_YAW_ANGLE;
 	}
 }
@@ -555,11 +604,14 @@ void __is_set_fd_config_smilemode(struct fimc_is *is, u32 val)
 
 	fd->config.smile_mode = val;
 
-	if (!test_bit((PARAM_FD_CONFIG - 32), p_index)) {
+	if (!test_bit((PARAM_FD_CONFIG - 32), p_index))
+	{
 		fd->config.cmd = FD_CONFIG_COMMAND_SMILE_MODE;
 		fd->config.err = ERROR_FD_NONE;
 		fimc_is_set_param_bit(is, PARAM_FD_CONFIG);
-	} else {
+	}
+	else
+	{
 		fd->config.cmd |= FD_CONFIG_COMMAND_SMILE_MODE;
 	}
 }
@@ -575,11 +627,14 @@ void __is_set_fd_config_blinkmode(struct fimc_is *is, u32 val)
 
 	fd->config.blink_mode = val;
 
-	if (!test_bit((PARAM_FD_CONFIG - 32), p_index)) {
+	if (!test_bit((PARAM_FD_CONFIG - 32), p_index))
+	{
 		fd->config.cmd = FD_CONFIG_COMMAND_BLINK_MODE;
 		fd->config.err = ERROR_FD_NONE;
 		fimc_is_set_param_bit(is, PARAM_FD_CONFIG);
-	} else {
+	}
+	else
+	{
 		fd->config.cmd |= FD_CONFIG_COMMAND_BLINK_MODE;
 	}
 }
@@ -595,11 +650,14 @@ void __is_set_fd_config_eyedetect(struct fimc_is *is, u32 val)
 
 	fd->config.eye_detect = val;
 
-	if (!test_bit((PARAM_FD_CONFIG - 32), p_index)) {
+	if (!test_bit((PARAM_FD_CONFIG - 32), p_index))
+	{
 		fd->config.cmd = FD_CONFIG_COMMAND_EYES_DETECT;
 		fd->config.err = ERROR_FD_NONE;
 		fimc_is_set_param_bit(is, PARAM_FD_CONFIG);
-	} else {
+	}
+	else
+	{
 		fd->config.cmd |= FD_CONFIG_COMMAND_EYES_DETECT;
 	}
 }
@@ -615,11 +673,14 @@ void __is_set_fd_config_mouthdetect(struct fimc_is *is, u32 val)
 
 	fd->config.mouth_detect = val;
 
-	if (!test_bit((PARAM_FD_CONFIG - 32), p_index)) {
+	if (!test_bit((PARAM_FD_CONFIG - 32), p_index))
+	{
 		fd->config.cmd = FD_CONFIG_COMMAND_MOUTH_DETECT;
 		fd->config.err = ERROR_FD_NONE;
 		fimc_is_set_param_bit(is, PARAM_FD_CONFIG);
-	} else {
+	}
+	else
+	{
 		fd->config.cmd |= FD_CONFIG_COMMAND_MOUTH_DETECT;
 	}
 }
@@ -635,11 +696,14 @@ void __is_set_fd_config_orientation(struct fimc_is *is, u32 val)
 
 	fd->config.orientation = val;
 
-	if (!test_bit((PARAM_FD_CONFIG - 32), p_index)) {
+	if (!test_bit((PARAM_FD_CONFIG - 32), p_index))
+	{
 		fd->config.cmd = FD_CONFIG_COMMAND_ORIENTATION;
 		fd->config.err = ERROR_FD_NONE;
 		fimc_is_set_param_bit(is, PARAM_FD_CONFIG);
-	} else {
+	}
+	else
+	{
 		fd->config.cmd |= FD_CONFIG_COMMAND_ORIENTATION;
 	}
 }
@@ -655,11 +719,14 @@ void __is_set_fd_config_orientation_val(struct fimc_is *is, u32 val)
 
 	fd->config.orientation_value = val;
 
-	if (!test_bit((PARAM_FD_CONFIG - 32), p_index)) {
+	if (!test_bit((PARAM_FD_CONFIG - 32), p_index))
+	{
 		fd->config.cmd = FD_CONFIG_COMMAND_ORIENTATION_VALUE;
 		fd->config.err = ERROR_FD_NONE;
 		fimc_is_set_param_bit(is, PARAM_FD_CONFIG);
-	} else {
+	}
+	else
+	{
 		fd->config.cmd |= FD_CONFIG_COMMAND_ORIENTATION_VALUE;
 	}
 }
@@ -691,15 +758,23 @@ void fimc_is_set_initial_params(struct fimc_is *is)
 	fimc_is_set_param_bit(is, PARAM_ISP_CONTROL);
 
 	isp->otf_input.cmd = OTF_INPUT_COMMAND_ENABLE;
-	if (!test_bit(PARAM_ISP_OTF_INPUT, p_index)) {
+
+	if (!test_bit(PARAM_ISP_OTF_INPUT, p_index))
+	{
 		isp->otf_input.width = DEFAULT_PREVIEW_STILL_WIDTH;
 		isp->otf_input.height = DEFAULT_PREVIEW_STILL_HEIGHT;
 		fimc_is_set_param_bit(is, PARAM_ISP_OTF_INPUT);
 	}
+
 	if (is->sensor->test_pattern)
+	{
 		isp->otf_input.format = OTF_INPUT_FORMAT_STRGEN_COLORBAR_BAYER;
+	}
 	else
+	{
 		isp->otf_input.format = OTF_INPUT_FORMAT_BAYER;
+	}
+
 	isp->otf_input.bitwidth = 10;
 	isp->otf_input.order = OTF_INPUT_ORDER_BAYER_GR_BG;
 	isp->otf_input.crop_offset_x = 0;
@@ -736,29 +811,37 @@ void fimc_is_set_initial_params(struct fimc_is *is)
 
 	if (!test_bit(PARAM_ISP_FLASH, p_index))
 		__is_set_isp_flash(is, ISP_FLASH_COMMAND_DISABLE,
-						ISP_FLASH_REDEYE_DISABLE);
+						   ISP_FLASH_REDEYE_DISABLE);
 
 	if (!test_bit(PARAM_ISP_AWB, p_index))
+	{
 		__is_set_isp_awb(is, ISP_AWB_COMMAND_AUTO, 0);
+	}
 
 	if (!test_bit(PARAM_ISP_IMAGE_EFFECT, p_index))
+	{
 		__is_set_isp_effect(is, ISP_IMAGE_EFFECT_DISABLE);
+	}
 
 	if (!test_bit(PARAM_ISP_ISO, p_index))
+	{
 		__is_set_isp_iso(is, ISP_ISO_COMMAND_AUTO, 0);
+	}
 
-	if (!test_bit(PARAM_ISP_ADJUST, p_index)) {
+	if (!test_bit(PARAM_ISP_ADJUST, p_index))
+	{
 		__is_set_isp_adjust(is, ISP_ADJUST_COMMAND_MANUAL_CONTRAST, 0);
 		__is_set_isp_adjust(is,
-				ISP_ADJUST_COMMAND_MANUAL_SATURATION, 0);
+							ISP_ADJUST_COMMAND_MANUAL_SATURATION, 0);
 		__is_set_isp_adjust(is, ISP_ADJUST_COMMAND_MANUAL_SHARPNESS, 0);
 		__is_set_isp_adjust(is, ISP_ADJUST_COMMAND_MANUAL_EXPOSURE, 0);
 		__is_set_isp_adjust(is,
-				ISP_ADJUST_COMMAND_MANUAL_BRIGHTNESS, 0);
+							ISP_ADJUST_COMMAND_MANUAL_BRIGHTNESS, 0);
 		__is_set_isp_adjust(is, ISP_ADJUST_COMMAND_MANUAL_HUE, 0);
 	}
 
-	if (!test_bit(PARAM_ISP_METERING, p_index)) {
+	if (!test_bit(PARAM_ISP_METERING, p_index))
+	{
 		__is_set_isp_metering(is, 0, ISP_METERING_COMMAND_CENTER);
 		__is_set_isp_metering(is, 1, 0);
 		__is_set_isp_metering(is, 2, 0);
@@ -767,20 +850,26 @@ void fimc_is_set_initial_params(struct fimc_is *is)
 	}
 
 	if (!test_bit(PARAM_ISP_AFC, p_index))
+	{
 		__is_set_isp_afc(is, ISP_AFC_COMMAND_AUTO, 0);
+	}
 
 	isp->otf_output.cmd = OTF_OUTPUT_COMMAND_ENABLE;
-	if (!test_bit(PARAM_ISP_OTF_OUTPUT, p_index)) {
+
+	if (!test_bit(PARAM_ISP_OTF_OUTPUT, p_index))
+	{
 		isp->otf_output.width = DEFAULT_PREVIEW_STILL_WIDTH;
 		isp->otf_output.height = DEFAULT_PREVIEW_STILL_HEIGHT;
 		fimc_is_set_param_bit(is, PARAM_ISP_OTF_OUTPUT);
 	}
+
 	isp->otf_output.format = OTF_OUTPUT_FORMAT_YUV444;
 	isp->otf_output.bitwidth = 12;
 	isp->otf_output.order = 0;
 	isp->otf_output.err = OTF_OUTPUT_ERROR_NONE;
 
-	if (!test_bit(PARAM_ISP_DMA1_OUTPUT, p_index)) {
+	if (!test_bit(PARAM_ISP_DMA1_OUTPUT, p_index))
+	{
 		isp->dma1_output.cmd = DMA_OUTPUT_COMMAND_DISABLE;
 		isp->dma1_output.width = 0;
 		isp->dma1_output.height = 0;
@@ -796,7 +885,8 @@ void fimc_is_set_initial_params(struct fimc_is *is)
 		fimc_is_set_param_bit(is, PARAM_ISP_DMA1_OUTPUT);
 	}
 
-	if (!test_bit(PARAM_ISP_DMA2_OUTPUT, p_index)) {
+	if (!test_bit(PARAM_ISP_DMA2_OUTPUT, p_index))
+	{
 		isp->dma2_output.cmd = DMA_OUTPUT_COMMAND_DISABLE;
 		isp->dma2_output.width = 0;
 		isp->dma2_output.height = 0;
@@ -813,9 +903,12 @@ void fimc_is_set_initial_params(struct fimc_is *is)
 	}
 
 	/* Sensor */
-	if (!test_bit(PARAM_SENSOR_FRAME_RATE, p_index)) {
+	if (!test_bit(PARAM_SENSOR_FRAME_RATE, p_index))
+	{
 		if (is->config_index == 0)
+		{
 			__is_set_sensor(is, 0);
+		}
 	}
 
 	/* DRC */
@@ -823,11 +916,14 @@ void fimc_is_set_initial_params(struct fimc_is *is)
 	__is_set_drc_control(is, CONTROL_BYPASS_ENABLE);
 
 	drc->otf_input.cmd = OTF_INPUT_COMMAND_ENABLE;
-	if (!test_bit(PARAM_DRC_OTF_INPUT, p_index)) {
+
+	if (!test_bit(PARAM_DRC_OTF_INPUT, p_index))
+	{
 		drc->otf_input.width = DEFAULT_PREVIEW_STILL_WIDTH;
 		drc->otf_input.height = DEFAULT_PREVIEW_STILL_HEIGHT;
 		fimc_is_set_param_bit(is, PARAM_DRC_OTF_INPUT);
 	}
+
 	drc->otf_input.format = OTF_INPUT_FORMAT_YUV444;
 	drc->otf_input.bitwidth = 12;
 	drc->otf_input.order = 0;
@@ -846,11 +942,14 @@ void fimc_is_set_initial_params(struct fimc_is *is)
 	fimc_is_set_param_bit(is, PARAM_DRC_DMA_INPUT);
 
 	drc->otf_output.cmd = OTF_OUTPUT_COMMAND_ENABLE;
-	if (!test_bit(PARAM_DRC_OTF_OUTPUT, p_index)) {
+
+	if (!test_bit(PARAM_DRC_OTF_OUTPUT, p_index))
+	{
 		drc->otf_output.width = DEFAULT_PREVIEW_STILL_WIDTH;
 		drc->otf_output.height = DEFAULT_PREVIEW_STILL_HEIGHT;
 		fimc_is_set_param_bit(is, PARAM_DRC_OTF_OUTPUT);
 	}
+
 	drc->otf_output.format = OTF_OUTPUT_FORMAT_YUV444;
 	drc->otf_output.bitwidth = 8;
 	drc->otf_output.order = 0;
@@ -861,7 +960,9 @@ void fimc_is_set_initial_params(struct fimc_is *is)
 	fd->control.bypass = CONTROL_BYPASS_DISABLE;
 
 	fd->otf_input.cmd = OTF_INPUT_COMMAND_ENABLE;
-	if (!test_bit(PARAM_FD_OTF_INPUT, p_index)) {
+
+	if (!test_bit(PARAM_FD_OTF_INPUT, p_index))
+	{
 		fd->otf_input.width = DEFAULT_PREVIEW_STILL_WIDTH;
 		fd->otf_input.height = DEFAULT_PREVIEW_STILL_HEIGHT;
 		fimc_is_set_param_bit(is, PARAM_FD_OTF_INPUT);

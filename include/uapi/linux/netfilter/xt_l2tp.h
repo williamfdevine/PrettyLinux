@@ -3,13 +3,15 @@
 
 #include <linux/types.h>
 
-enum xt_l2tp_type {
+enum xt_l2tp_type
+{
 	XT_L2TP_TYPE_CONTROL,
 	XT_L2TP_TYPE_DATA,
 };
 
 /* L2TP matching stuff */
-struct xt_l2tp_info {
+struct xt_l2tp_info
+{
 	__u32 tid;			/* tunnel id */
 	__u32 sid;			/* session id */
 	__u8 version;			/* L2TP protocol version */
@@ -17,7 +19,8 @@ struct xt_l2tp_info {
 	__u8 flags;			/* which fields to match */
 };
 
-enum {
+enum
+{
 	XT_L2TP_TID	= (1 << 0),	/* match L2TP tunnel id */
 	XT_L2TP_SID	= (1 << 1),	/* match L2TP session id */
 	XT_L2TP_VERSION	= (1 << 2),	/* match L2TP protocol version */

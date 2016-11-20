@@ -70,7 +70,8 @@
 
 #define DEVICE_NAME	"ads7871"
 
-struct ads7871_data {
+struct ads7871_data
+{
 	struct spi_device *spi;
 };
 
@@ -97,7 +98,7 @@ static int ads7871_write_reg8(struct spi_device *spi, int reg, u8 val)
 }
 
 static ssize_t show_voltage(struct device *dev,
-		struct device_attribute *da, char *buf)
+							struct device_attribute *da, char *buf)
 {
 	struct ads7871_data *pdata = dev_get_drvdata(dev);
 	struct spi_device *spi = pdata->spi;
@@ -113,27 +114,32 @@ static ssize_t show_voltage(struct device *dev,
 	/*MUX_M3_BM forces single ended*/
 	/*This is also where the gain of the PGA would be set*/
 	ads7871_write_reg8(spi, REG_GAIN_MUX,
-		(MUX_CNV_BM | MUX_M3_BM | channel));
+					   (MUX_CNV_BM | MUX_M3_BM | channel));
 
 	ret = ads7871_read_reg8(spi, REG_GAIN_MUX);
 	mux_cnv = ((ret & MUX_CNV_BM) >> MUX_CNV_BV);
+
 	/*
 	 * on 400MHz arm9 platform the conversion
 	 * is already done when we do this test
 	 */
-	while ((i < 2) && mux_cnv) {
+	while ((i < 2) && mux_cnv)
+	{
 		i++;
 		ret = ads7871_read_reg8(spi, REG_GAIN_MUX);
 		mux_cnv = ((ret & MUX_CNV_BM) >> MUX_CNV_BV);
 		msleep_interruptible(1);
 	}
 
-	if (mux_cnv == 0) {
+	if (mux_cnv == 0)
+	{
 		val = ads7871_read_reg16(spi, REG_LS_BYTE);
 		/*result in volts*10000 = (val/8192)*2.5*10000*/
 		val = ((val >> 2) * 25000) / 8192;
 		return sprintf(buf, "%d\n", val);
-	} else {
+	}
+	else
+	{
 		return -1;
 	}
 }
@@ -147,7 +153,8 @@ static SENSOR_DEVICE_ATTR(in5_input, S_IRUGO, show_voltage, NULL, 5);
 static SENSOR_DEVICE_ATTR(in6_input, S_IRUGO, show_voltage, NULL, 6);
 static SENSOR_DEVICE_ATTR(in7_input, S_IRUGO, show_voltage, NULL, 7);
 
-static struct attribute *ads7871_attrs[] = {
+static struct attribute *ads7871_attrs[] =
+{
 	&sensor_dev_attr_in0_input.dev_attr.attr,
 	&sensor_dev_attr_in1_input.dev_attr.attr,
 	&sensor_dev_attr_in2_input.dev_attr.attr,
@@ -182,26 +189,33 @@ static int ads7871_probe(struct spi_device *spi)
 	ret = ads7871_read_reg8(spi, REG_OSC_CONTROL);
 
 	dev_dbg(dev, "REG_OSC_CONTROL write:%x, read:%x\n", val, ret);
+
 	/*
 	 * because there is no other error checking on an SPI bus
 	 * we need to make sure we really have a chip
 	 */
 	if (val != ret)
+	{
 		return -ENODEV;
+	}
 
 	pdata = devm_kzalloc(dev, sizeof(struct ads7871_data), GFP_KERNEL);
+
 	if (!pdata)
+	{
 		return -ENOMEM;
+	}
 
 	pdata->spi = spi;
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, spi->modalias,
-							   pdata,
-							   ads7871_groups);
+				pdata,
+				ads7871_groups);
 	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
-static struct spi_driver ads7871_driver = {
+static struct spi_driver ads7871_driver =
+{
 	.driver = {
 		.name = DEVICE_NAME,
 	},

@@ -35,7 +35,7 @@
 
 /* configurable options */
 static int num_ttys = 4;	    /* # of std ttys to create per fw_card    */
-				    /* - doubles as loopback port index       */
+/* - doubles as loopback port index       */
 static bool auto_connect = true;    /* try to VIRT_CABLE to every peer        */
 static bool create_loop_dev = true; /* create a loopback device for each card */
 
@@ -86,14 +86,16 @@ static struct dentry *fwserial_debugfs;
 
 struct fwtty_transaction;
 typedef void (*fwtty_transaction_cb)(struct fw_card *card, int rcode,
-				     void *data, size_t length,
-				     struct fwtty_transaction *txn);
+									 void *data, size_t length,
+									 struct fwtty_transaction *txn);
 
-struct fwtty_transaction {
+struct fwtty_transaction
+{
 	struct fw_transaction      fw_txn;
 	fwtty_transaction_cb       callback;
 	struct fwtty_port	   *port;
-	union {
+	union
+	{
 		struct dma_pending dma_pended;
 	};
 };
@@ -115,12 +117,13 @@ static inline void debug_short_write(struct fwtty_port *port, int c, int n)
 {
 	int avail;
 
-	if (n < c) {
+	if (n < c)
+	{
 		spin_lock_bh(&port->lock);
 		avail = dma_fifo_avail(&port->tx_fifo);
 		spin_unlock_bh(&port->lock);
 		fwtty_dbg(port, "short write: avail:%d req:%d wrote:%d\n",
-			  avail, c, n);
+				  avail, c, n);
 	}
 }
 #else
@@ -128,7 +131,7 @@ static inline void debug_short_write(struct fwtty_port *port, int c, int n)
 #endif
 
 static struct fwtty_peer *__fwserial_peer_by_node_id(struct fw_card *card,
-						     int generation, int id);
+		int generation, int id);
 
 #ifdef FWTTY_PROFILING
 
@@ -149,33 +152,61 @@ static void fwtty_dump_profile(struct seq_file *m, struct stats *stats)
 
 	snprintf(t, 10, "< %d", 1 << k);
 	seq_printf(m, "\n%14s  %6s", " ", t);
+
 	for (j = k + 1; j < DISTRIBUTION_MAX_INDEX; ++j)
+	{
 		seq_printf(m, "%6d", 1 << j);
+	}
 
 	++k;
+
 	for (j = 0, sum = 0; j <= k; ++j)
+	{
 		sum += stats->reads[j];
+	}
+
 	seq_printf(m, "\n%14s: %6d", "reads", sum);
+
 	for (j = k + 1; j <= DISTRIBUTION_MAX_INDEX; ++j)
+	{
 		seq_printf(m, "%6d", stats->reads[j]);
+	}
 
 	for (j = 0, sum = 0; j <= k; ++j)
+	{
 		sum += stats->writes[j];
+	}
+
 	seq_printf(m, "\n%14s: %6d", "writes", sum);
+
 	for (j = k + 1; j <= DISTRIBUTION_MAX_INDEX; ++j)
+	{
 		seq_printf(m, "%6d", stats->writes[j]);
+	}
 
 	for (j = 0, sum = 0; j <= k; ++j)
+	{
 		sum += stats->txns[j];
+	}
+
 	seq_printf(m, "\n%14s: %6d", "txns", sum);
+
 	for (j = k + 1; j <= DISTRIBUTION_MAX_INDEX; ++j)
+	{
 		seq_printf(m, "%6d", stats->txns[j]);
+	}
 
 	for (j = 0, sum = 0; j <= k; ++j)
+	{
 		sum += stats->unthrottle[j];
+	}
+
 	seq_printf(m, "\n%14s: %6d", "avail @ unthr", sum);
+
 	for (j = k + 1; j <= DISTRIBUTION_MAX_INDEX; ++j)
+	{
 		seq_printf(m, "%6d", stats->unthrottle[j]);
+	}
 }
 
 #else
@@ -196,24 +227,30 @@ static inline int device_max_receive(struct fw_device *fw_device)
 
 static void fwtty_log_tx_error(struct fwtty_port *port, int rcode)
 {
-	switch (rcode) {
-	case RCODE_SEND_ERROR:
-		fwtty_err_ratelimited(port, "card busy\n");
-		break;
-	case RCODE_ADDRESS_ERROR:
-		fwtty_err_ratelimited(port, "bad unit addr or write length\n");
-		break;
-	case RCODE_DATA_ERROR:
-		fwtty_err_ratelimited(port, "failed rx\n");
-		break;
-	case RCODE_NO_ACK:
-		fwtty_err_ratelimited(port, "missing ack\n");
-		break;
-	case RCODE_BUSY:
-		fwtty_err_ratelimited(port, "remote busy\n");
-		break;
-	default:
-		fwtty_err_ratelimited(port, "failed tx: %d\n", rcode);
+	switch (rcode)
+	{
+		case RCODE_SEND_ERROR:
+			fwtty_err_ratelimited(port, "card busy\n");
+			break;
+
+		case RCODE_ADDRESS_ERROR:
+			fwtty_err_ratelimited(port, "bad unit addr or write length\n");
+			break;
+
+		case RCODE_DATA_ERROR:
+			fwtty_err_ratelimited(port, "failed rx\n");
+			break;
+
+		case RCODE_NO_ACK:
+			fwtty_err_ratelimited(port, "missing ack\n");
+			break;
+
+		case RCODE_BUSY:
+			fwtty_err_ratelimited(port, "remote busy\n");
+			break;
+
+		default:
+			fwtty_err_ratelimited(port, "failed tx: %d\n", rcode);
 	}
 }
 
@@ -225,29 +262,38 @@ static void fwtty_txn_constructor(void *this)
 }
 
 static void fwtty_common_callback(struct fw_card *card, int rcode,
-				  void *payload, size_t len, void *cb_data)
+								  void *payload, size_t len, void *cb_data)
 {
 	struct fwtty_transaction *txn = cb_data;
 	struct fwtty_port *port = txn->port;
 
 	if (port && rcode != RCODE_COMPLETE)
+	{
 		fwtty_log_tx_error(port, rcode);
+	}
+
 	if (txn->callback)
+	{
 		txn->callback(card, rcode, payload, len, txn);
+	}
+
 	kmem_cache_free(fwtty_txn_cache, txn);
 }
 
 static int fwtty_send_data_async(struct fwtty_peer *peer, int tcode,
-				 unsigned long long addr, void *payload,
-				 size_t len, fwtty_transaction_cb callback,
-				 struct fwtty_port *port)
+								 unsigned long long addr, void *payload,
+								 size_t len, fwtty_transaction_cb callback,
+								 struct fwtty_port *port)
 {
 	struct fwtty_transaction *txn;
 	int generation;
 
 	txn = kmem_cache_alloc(fwtty_txn_cache, GFP_ATOMIC);
+
 	if (!txn)
+	{
 		return -ENOMEM;
+	}
 
 	txn->callback = callback;
 	txn->port = port;
@@ -255,16 +301,16 @@ static int fwtty_send_data_async(struct fwtty_peer *peer, int tcode,
 	generation = peer->generation;
 	smp_rmb();
 	fw_send_request(peer->serial->card, &txn->fw_txn, tcode,
-			peer->node_id, generation, peer->speed, addr, payload,
-			len, fwtty_common_callback, txn);
+					peer->node_id, generation, peer->speed, addr, payload,
+					len, fwtty_common_callback, txn);
 	return 0;
 }
 
 static void fwtty_send_txn_async(struct fwtty_peer *peer,
-				 struct fwtty_transaction *txn, int tcode,
-				 unsigned long long addr, void *payload,
-				 size_t len, fwtty_transaction_cb callback,
-				 struct fwtty_port *port)
+								 struct fwtty_transaction *txn, int tcode,
+								 unsigned long long addr, void *payload,
+								 size_t len, fwtty_transaction_cb callback,
+								 struct fwtty_port *port)
 {
 	int generation;
 
@@ -274,8 +320,8 @@ static void fwtty_send_txn_async(struct fwtty_peer *peer,
 	generation = peer->generation;
 	smp_rmb();
 	fw_send_request(peer->serial->card, &txn->fw_txn, tcode,
-			peer->node_id, generation, peer->speed, addr, payload,
-			len, fwtty_common_callback, txn);
+					peer->node_id, generation, peer->speed, addr, payload,
+					len, fwtty_common_callback, txn);
 }
 
 static void __fwtty_restart_tx(struct fwtty_port *port)
@@ -283,8 +329,12 @@ static void __fwtty_restart_tx(struct fwtty_port *port)
 	int len, avail;
 
 	len = dma_fifo_out_level(&port->tx_fifo);
+
 	if (len)
+	{
 		schedule_delayed_work(&port->drain, 0);
+	}
+
 	avail = dma_fifo_avail(&port->tx_fifo);
 
 	fwtty_dbg(port, "fifo len: %d avail: %d\n", len, avail);
@@ -304,7 +354,7 @@ static void fwtty_restart_tx(struct fwtty_port *port)
  * don't attempt to reclaim the port->lock.
  */
 static void fwtty_update_port_status(struct fwtty_port *port,
-				     unsigned int status)
+									 unsigned int status)
 {
 	unsigned int delta;
 	struct tty_struct *tty;
@@ -316,76 +366,132 @@ static void fwtty_update_port_status(struct fwtty_port *port,
 	port->mstatus = status;
 
 	if (delta & TIOCM_RNG)
+	{
 		++port->icount.rng;
+	}
+
 	if (delta & TIOCM_DSR)
+	{
 		++port->icount.dsr;
+	}
+
 	if (delta & TIOCM_CAR)
+	{
 		++port->icount.dcd;
+	}
+
 	if (delta & TIOCM_CTS)
+	{
 		++port->icount.cts;
+	}
 
 	fwtty_dbg(port, "status: %x delta: %x\n", status, delta);
 
-	if (delta & TIOCM_CAR) {
+	if (delta & TIOCM_CAR)
+	{
 		tty = tty_port_tty_get(&port->port);
-		if (tty && !C_CLOCAL(tty)) {
+
+		if (tty && !C_CLOCAL(tty))
+		{
 			if (status & TIOCM_CAR)
+			{
 				wake_up_interruptible(&port->port.open_wait);
+			}
 			else
+			{
 				schedule_work(&port->hangup);
+			}
 		}
+
 		tty_kref_put(tty);
 	}
 
-	if (delta & TIOCM_CTS) {
+	if (delta & TIOCM_CTS)
+	{
 		tty = tty_port_tty_get(&port->port);
-		if (tty && C_CRTSCTS(tty)) {
-			if (tty->hw_stopped) {
-				if (status & TIOCM_CTS) {
+
+		if (tty && C_CRTSCTS(tty))
+		{
+			if (tty->hw_stopped)
+			{
+				if (status & TIOCM_CTS)
+				{
 					tty->hw_stopped = 0;
+
 					if (port->loopback)
+					{
 						__fwtty_restart_tx(port);
+					}
 					else
+					{
 						fwtty_restart_tx(port);
+					}
 				}
-			} else {
+			}
+			else
+			{
 				if (~status & TIOCM_CTS)
+				{
 					tty->hw_stopped = 1;
+				}
 			}
 		}
+
 		tty_kref_put(tty);
 
-	} else if (delta & OOB_TX_THROTTLE) {
+	}
+	else if (delta & OOB_TX_THROTTLE)
+	{
 		tty = tty_port_tty_get(&port->port);
-		if (tty) {
-			if (tty->hw_stopped) {
-				if (~status & OOB_TX_THROTTLE) {
+
+		if (tty)
+		{
+			if (tty->hw_stopped)
+			{
+				if (~status & OOB_TX_THROTTLE)
+				{
 					tty->hw_stopped = 0;
+
 					if (port->loopback)
+					{
 						__fwtty_restart_tx(port);
+					}
 					else
+					{
 						fwtty_restart_tx(port);
+					}
 				}
-			} else {
+			}
+			else
+			{
 				if (status & OOB_TX_THROTTLE)
+				{
 					tty->hw_stopped = 1;
+				}
 			}
 		}
+
 		tty_kref_put(tty);
 	}
 
-	if (delta & (UART_LSR_BI << 24)) {
-		if (status & (UART_LSR_BI << 24)) {
+	if (delta & (UART_LSR_BI << 24))
+	{
+		if (status & (UART_LSR_BI << 24))
+		{
 			port->break_last = jiffies;
 			schedule_delayed_work(&port->emit_breaks, 0);
-		} else {
+		}
+		else
+		{
 			/* run emit_breaks one last time (if pending) */
 			mod_delayed_work(system_wq, &port->emit_breaks, 0);
 		}
 	}
 
 	if (delta & (TIOCM_DSR | TIOCM_CAR | TIOCM_CTS | TIOCM_RNG))
+	{
 		wake_up_interruptible(&port->port.delta_msr_wait);
+	}
 }
 
 /**
@@ -404,14 +510,25 @@ static unsigned int __fwtty_port_line_status(struct fwtty_port *port)
 	/* TODO: add module param to tie RNG to DTR as well */
 
 	if (port->mctrl & TIOCM_DTR)
+	{
 		status |= TIOCM_DSR | TIOCM_CAR;
+	}
+
 	if (port->mctrl & TIOCM_RTS)
+	{
 		status |= TIOCM_CTS;
+	}
+
 	if (port->mctrl & OOB_RX_THROTTLE)
+	{
 		status |= OOB_TX_THROTTLE;
+	}
+
 	/* emulate BRK as add'l line status */
 	if (port->break_ctl)
+	{
 		status |= UART_LSR_BI << 24;
+	}
 
 	return status;
 }
@@ -429,11 +546,14 @@ static int __fwtty_write_port_status(struct fwtty_port *port)
 
 	rcu_read_lock();
 	peer = rcu_dereference(port->peer);
-	if (peer) {
+
+	if (peer)
+	{
 		err = fwtty_send_data_async(peer, TCODE_WRITE_QUADLET_REQUEST,
-					    peer->status_addr, &status,
-					    sizeof(status), NULL, port);
+									peer->status_addr, &status,
+									sizeof(status), NULL, port);
 	}
+
 	rcu_read_unlock();
 
 	return err;
@@ -458,17 +578,26 @@ static void fwtty_throttle_port(struct fwtty_port *port)
 	unsigned int old;
 
 	tty = tty_port_tty_get(&port->port);
+
 	if (!tty)
+	{
 		return;
+	}
 
 	spin_lock_bh(&port->lock);
 
 	old = port->mctrl;
 	port->mctrl |= OOB_RX_THROTTLE;
+
 	if (C_CRTSCTS(tty))
+	{
 		port->mctrl &= ~TIOCM_RTS;
+	}
+
 	if (~old & OOB_RX_THROTTLE)
+	{
 		__fwtty_write_port_status(port);
+	}
 
 	spin_unlock_bh(&port->lock);
 
@@ -503,8 +632,12 @@ static void fwtty_do_hangup(struct work_struct *work)
 	schedule_timeout_uninterruptible(msecs_to_jiffies(50));
 
 	tty = tty_port_tty_get(&port->port);
+
 	if (tty)
+	{
 		tty_vhangup(tty);
+	}
+
 	tty_kref_put(tty);
 }
 
@@ -522,19 +655,27 @@ static void fwtty_emit_breaks(struct work_struct *work)
 
 	fwtty_dbg(port, "sending %d brks\n", n);
 
-	while (n) {
+	while (n)
+	{
 		t = min(n, 16);
 		c = tty_insert_flip_string_fixed_flag(&port->port, buf,
-						      TTY_BREAK, t);
+											  TTY_BREAK, t);
 		n -= c;
 		brk += c;
+
 		if (c < t)
+		{
 			break;
+		}
 	}
+
 	tty_flip_buffer_push(&port->port);
 
 	if (port->mstatus & (UART_LSR_BI << 24))
+	{
 		schedule_delayed_work(&port->emit_breaks, FREQ_BREAKS);
+	}
+
 	port->icount.brk += brk;
 }
 
@@ -547,7 +688,8 @@ static int fwtty_rx(struct fwtty_port *port, unsigned char *data, size_t len)
 	fwtty_dbg(port, "%d\n", n);
 	fwtty_profile_data(port->stats.reads, n);
 
-	if (port->write_only) {
+	if (port->write_only)
+	{
 		n = 0;
 		goto out;
 	}
@@ -556,44 +698,62 @@ static int fwtty_rx(struct fwtty_port *port, unsigned char *data, size_t len)
 	lsr = (port->mstatus >> 24) & ~UART_LSR_BI;
 
 	if (port->overrun)
+	{
 		lsr |= UART_LSR_OE;
+	}
 
 	if (lsr & UART_LSR_OE)
+	{
 		++port->icount.overrun;
+	}
 
 	lsr &= port->status_mask;
-	if (lsr & ~port->ignore_mask & UART_LSR_OE) {
-		if (!tty_insert_flip_char(&port->port, 0, TTY_OVERRUN)) {
+
+	if (lsr & ~port->ignore_mask & UART_LSR_OE)
+	{
+		if (!tty_insert_flip_char(&port->port, 0, TTY_OVERRUN))
+		{
 			err = -EIO;
 			goto out;
 		}
 	}
+
 	port->overrun = false;
 
-	if (lsr & port->ignore_mask & ~UART_LSR_OE) {
+	if (lsr & port->ignore_mask & ~UART_LSR_OE)
+	{
 		/* TODO: don't drop SAK and Magic SysRq here */
 		n = 0;
 		goto out;
 	}
 
 	c = tty_insert_flip_string_fixed_flag(&port->port, data, TTY_NORMAL, n);
+
 	if (c > 0)
+	{
 		tty_flip_buffer_push(&port->port);
+	}
+
 	n -= c;
 
-	if (n) {
+	if (n)
+	{
 		port->overrun = true;
 		err = -EIO;
 		fwtty_err_ratelimited(port, "flip buffer overrun\n");
 
-	} else {
+	}
+	else
+	{
 		/* throttle the sender if remaining flip buffer space has
 		 * reached high watermark to avoid losing data which may be
 		 * in-flight. Since the AR request context is 32k, that much
 		 * data may have _already_ been acked.
 		 */
 		if (tty_buffer_space_avail(&port->port) < HIGH_WATERMARK)
+		{
 			fwtty_throttle_port(port);
+		}
 	}
 
 out:
@@ -609,12 +769,12 @@ out:
  * This handler is responsible for handling inbound read/write dma from remotes.
  */
 static void fwtty_port_handler(struct fw_card *card,
-			       struct fw_request *request,
-			       int tcode, int destination, int source,
-			       int generation,
-			       unsigned long long addr,
-			       void *data, size_t len,
-			       void *callback_data)
+							   struct fw_request *request,
+							   int tcode, int destination, int source,
+							   int generation,
+							   unsigned long long addr,
+							   void *data, size_t len,
+							   void *callback_data)
 {
 	struct fwtty_port *port = callback_data;
 	struct fwtty_peer *peer;
@@ -625,44 +785,59 @@ static void fwtty_port_handler(struct fw_card *card,
 	rcu_read_lock();
 	peer = __fwserial_peer_by_node_id(card, generation, source);
 	rcu_read_unlock();
-	if (!peer || peer != rcu_access_pointer(port->peer)) {
+
+	if (!peer || peer != rcu_access_pointer(port->peer))
+	{
 		rcode = RCODE_ADDRESS_ERROR;
 		fwtty_err_ratelimited(port, "ignoring unauthenticated data\n");
 		goto respond;
 	}
 
-	switch (tcode) {
-	case TCODE_WRITE_QUADLET_REQUEST:
-		if (addr != port->rx_handler.offset || len != 4) {
-			rcode = RCODE_ADDRESS_ERROR;
-		} else {
-			fwtty_update_port_status(port, *(unsigned int *)data);
-			rcode = RCODE_COMPLETE;
-		}
-		break;
-
-	case TCODE_WRITE_BLOCK_REQUEST:
-		if (addr != port->rx_handler.offset + 4 ||
-		    len > port->rx_handler.length - 4) {
-			rcode = RCODE_ADDRESS_ERROR;
-		} else {
-			err = fwtty_rx(port, data, len);
-			switch (err) {
-			case 0:
-				rcode = RCODE_COMPLETE;
-				break;
-			case -EIO:
-				rcode = RCODE_DATA_ERROR;
-				break;
-			default:
-				rcode = RCODE_CONFLICT_ERROR;
-				break;
+	switch (tcode)
+	{
+		case TCODE_WRITE_QUADLET_REQUEST:
+			if (addr != port->rx_handler.offset || len != 4)
+			{
+				rcode = RCODE_ADDRESS_ERROR;
 			}
-		}
-		break;
+			else
+			{
+				fwtty_update_port_status(port, *(unsigned int *)data);
+				rcode = RCODE_COMPLETE;
+			}
 
-	default:
-		rcode = RCODE_TYPE_ERROR;
+			break;
+
+		case TCODE_WRITE_BLOCK_REQUEST:
+			if (addr != port->rx_handler.offset + 4 ||
+				len > port->rx_handler.length - 4)
+			{
+				rcode = RCODE_ADDRESS_ERROR;
+			}
+			else
+			{
+				err = fwtty_rx(port, data, len);
+
+				switch (err)
+				{
+					case 0:
+						rcode = RCODE_COMPLETE;
+						break;
+
+					case -EIO:
+						rcode = RCODE_DATA_ERROR;
+						break;
+
+					default:
+						rcode = RCODE_CONFLICT_ERROR;
+						break;
+				}
+			}
+
+			break;
+
+		default:
+			rcode = RCODE_TYPE_ERROR;
 	}
 
 respond:
@@ -678,36 +853,39 @@ respond:
  * may have slept if chars_in_buffer was != 0
  */
 static void fwtty_tx_complete(struct fw_card *card, int rcode,
-			      void *data, size_t length,
-			      struct fwtty_transaction *txn)
+							  void *data, size_t length,
+							  struct fwtty_transaction *txn)
 {
 	struct fwtty_port *port = txn->port;
 	int len;
 
 	fwtty_dbg(port, "rcode: %d\n", rcode);
 
-	switch (rcode) {
-	case RCODE_COMPLETE:
-		spin_lock_bh(&port->lock);
-		dma_fifo_out_complete(&port->tx_fifo, &txn->dma_pended);
-		len = dma_fifo_level(&port->tx_fifo);
-		spin_unlock_bh(&port->lock);
+	switch (rcode)
+	{
+		case RCODE_COMPLETE:
+			spin_lock_bh(&port->lock);
+			dma_fifo_out_complete(&port->tx_fifo, &txn->dma_pended);
+			len = dma_fifo_level(&port->tx_fifo);
+			spin_unlock_bh(&port->lock);
 
-		port->icount.tx += txn->dma_pended.len;
-		break;
+			port->icount.tx += txn->dma_pended.len;
+			break;
 
-	default:
-		/* TODO: implement retries */
-		spin_lock_bh(&port->lock);
-		dma_fifo_out_complete(&port->tx_fifo, &txn->dma_pended);
-		len = dma_fifo_level(&port->tx_fifo);
-		spin_unlock_bh(&port->lock);
+		default:
+			/* TODO: implement retries */
+			spin_lock_bh(&port->lock);
+			dma_fifo_out_complete(&port->tx_fifo, &txn->dma_pended);
+			len = dma_fifo_level(&port->tx_fifo);
+			spin_unlock_bh(&port->lock);
 
-		port->stats.dropped += txn->dma_pended.len;
+			port->stats.dropped += txn->dma_pended.len;
 	}
 
 	if (len < WAKEUP_CHARS)
+	{
 		tty_port_tty_wakeup(&port->port);
+	}
 }
 
 static int fwtty_tx(struct fwtty_port *port, bool drain)
@@ -718,27 +896,37 @@ static int fwtty_tx(struct fwtty_port *port, bool drain)
 	int n, len;
 
 	tty = tty_port_tty_get(&port->port);
+
 	if (!tty)
+	{
 		return -ENOENT;
+	}
 
 	rcu_read_lock();
 	peer = rcu_dereference(port->peer);
-	if (!peer) {
+
+	if (!peer)
+	{
 		n = -EIO;
 		goto out;
 	}
 
-	if (test_and_set_bit(IN_TX, &port->flags)) {
+	if (test_and_set_bit(IN_TX, &port->flags))
+	{
 		n = -EALREADY;
 		goto out;
 	}
 
 	/* try to write as many dma transactions out as possible */
 	n = -EAGAIN;
+
 	while (!tty->stopped && !tty->hw_stopped &&
-	       !test_bit(STOP_TX, &port->flags)) {
+		   !test_bit(STOP_TX, &port->flags))
+	{
 		txn = kmem_cache_alloc(fwtty_txn_cache, GFP_ATOMIC);
-		if (!txn) {
+
+		if (!txn)
+		{
 			n = -ENOMEM;
 			break;
 		}
@@ -749,26 +937,34 @@ static int fwtty_tx(struct fwtty_port *port, bool drain)
 
 		fwtty_dbg(port, "out: %u rem: %d\n", txn->dma_pended.len, n);
 
-		if (n < 0) {
+		if (n < 0)
+		{
 			kmem_cache_free(fwtty_txn_cache, txn);
-			if (n == -EAGAIN) {
+
+			if (n == -EAGAIN)
+			{
 				++port->stats.tx_stall;
-			} else if (n == -ENODATA) {
+			}
+			else if (n == -ENODATA)
+			{
 				fwtty_profile_data(port->stats.txns, 0);
-			} else {
+			}
+			else
+			{
 				++port->stats.fifo_errs;
 				fwtty_err_ratelimited(port, "fifo err: %d\n",
-						      n);
+									  n);
 			}
+
 			break;
 		}
 
 		fwtty_profile_data(port->stats.txns, txn->dma_pended.len);
 
 		fwtty_send_txn_async(peer, txn, TCODE_WRITE_BLOCK_REQUEST,
-				     peer->fifo_addr, txn->dma_pended.data,
-				     txn->dma_pended.len, fwtty_tx_complete,
-				     port);
+							 peer->fifo_addr, txn->dma_pended.data,
+							 txn->dma_pended.len, fwtty_tx_complete,
+							 port);
 		++port->stats.sent;
 
 		/*
@@ -776,23 +972,31 @@ static int fwtty_tx(struct fwtty_port *port, bool drain)
 		 * this is the writer and there's not enough data to bother
 		 */
 		if (n == 0 || (!drain && n < WRITER_MINIMUM))
+		{
 			break;
+		}
 	}
 
-	if (n >= 0 || n == -EAGAIN || n == -ENOMEM || n == -ENODATA) {
+	if (n >= 0 || n == -EAGAIN || n == -ENOMEM || n == -ENODATA)
+	{
 		spin_lock_bh(&port->lock);
 		len = dma_fifo_out_level(&port->tx_fifo);
-		if (len) {
+
+		if (len)
+		{
 			unsigned long delay = (n == -ENOMEM) ? HZ : 1;
 
 			schedule_delayed_work(&port->drain, delay);
 		}
+
 		len = dma_fifo_level(&port->tx_fifo);
 		spin_unlock_bh(&port->lock);
 
 		/* wakeup the writer */
 		if (drain && len < WAKEUP_CHARS)
+		{
 			tty_wakeup(tty);
+		}
 	}
 
 	clear_bit(IN_TX, &port->flags);
@@ -821,11 +1025,14 @@ static void fwtty_write_xchar(struct fwtty_port *port, char ch)
 
 	rcu_read_lock();
 	peer = rcu_dereference(port->peer);
-	if (peer) {
+
+	if (peer)
+	{
 		fwtty_send_data_async(peer, TCODE_WRITE_BLOCK_REQUEST,
-				      peer->fifo_addr, &ch, sizeof(ch),
-				      NULL, port);
+							  peer->fifo_addr, &ch, sizeof(ch),
+							  NULL, port);
 	}
+
 	rcu_read_unlock();
 }
 
@@ -834,12 +1041,18 @@ static struct fwtty_port *fwtty_port_get(unsigned int index)
 	struct fwtty_port *port;
 
 	if (index >= MAX_TOTAL_PORTS)
+	{
 		return NULL;
+	}
 
 	mutex_lock(&port_table_lock);
 	port = port_table[index];
+
 	if (port)
+	{
 		kref_get(&port->serial->kref);
+	}
+
 	mutex_unlock(&port_table_lock);
 	return port;
 }
@@ -850,19 +1063,27 @@ static int fwtty_ports_add(struct fw_serial *serial)
 	int i, j;
 
 	if (port_table_corrupt)
+	{
 		return err;
+	}
 
 	mutex_lock(&port_table_lock);
-	for (i = 0; i + num_ports <= MAX_TOTAL_PORTS; i += num_ports) {
-		if (!port_table[i]) {
-			for (j = 0; j < num_ports; ++i, ++j) {
+
+	for (i = 0; i + num_ports <= MAX_TOTAL_PORTS; i += num_ports)
+	{
+		if (!port_table[i])
+		{
+			for (j = 0; j < num_ports; ++i, ++j)
+			{
 				serial->ports[j]->index = i;
 				port_table[i] = serial->ports[j];
 			}
+
 			err = 0;
 			break;
 		}
 	}
+
 	mutex_unlock(&port_table_lock);
 	return err;
 }
@@ -876,20 +1097,25 @@ static void fwserial_destroy(struct kref *kref)
 	synchronize_rcu();
 
 	mutex_lock(&port_table_lock);
-	for (j = 0; j < num_ports; ++i, ++j) {
+
+	for (j = 0; j < num_ports; ++i, ++j)
+	{
 		port_table_corrupt |= port_table[i] != ports[j];
 		WARN_ONCE(port_table_corrupt, "port_table[%d]: %p != ports[%d]: %p",
-			  i, port_table[i], j, ports[j]);
+				  i, port_table[i], j, ports[j]);
 
 		port_table[i] = NULL;
 	}
+
 	mutex_unlock(&port_table_lock);
 
-	for (j = 0; j < num_ports; ++j) {
+	for (j = 0; j < num_ports; ++j)
+	{
 		fw_core_remove_address_handler(&ports[j]->rx_handler);
 		tty_port_destroy(&ports[j]->port);
 		kfree(ports[j]);
 	}
+
 	kfree(serial);
 }
 
@@ -905,12 +1131,18 @@ static void fwtty_port_dtr_rts(struct tty_port *tty_port, int on)
 	fwtty_dbg(port, "on/off: %d\n", on);
 
 	spin_lock_bh(&port->lock);
+
 	/* Don't change carrier state if this is a console */
-	if (!port->port.console) {
+	if (!port->port.console)
+	{
 		if (on)
+		{
 			port->mctrl |= TIOCM_DTR | TIOCM_RTS;
+		}
 		else
+		{
 			port->mctrl &= ~(TIOCM_DTR | TIOCM_RTS);
+		}
 	}
 
 	__fwtty_write_port_status(port);
@@ -945,40 +1177,53 @@ static unsigned int set_termios(struct fwtty_port *port, struct tty_struct *tty)
 	/* compute bit count of 2 frames */
 	frame = 12 + ((C_CSTOPB(tty)) ? 4 : 2) + ((C_PARENB(tty)) ? 2 : 0);
 
-	switch (C_CSIZE(tty)) {
-	case CS5:
-		frame -= (C_CSTOPB(tty)) ? 1 : 0;
-		break;
-	case CS6:
-		frame += 2;
-		break;
-	case CS7:
-		frame += 4;
-		break;
-	case CS8:
-		frame += 6;
-		break;
+	switch (C_CSIZE(tty))
+	{
+		case CS5:
+			frame -= (C_CSTOPB(tty)) ? 1 : 0;
+			break;
+
+		case CS6:
+			frame += 2;
+			break;
+
+		case CS7:
+			frame += 4;
+			break;
+
+		case CS8:
+			frame += 6;
+			break;
 	}
 
 	port->cps = (baud << 1) / frame;
 
 	port->status_mask = UART_LSR_OE;
+
 	if (_I_FLAG(tty, BRKINT | PARMRK))
+	{
 		port->status_mask |= UART_LSR_BI;
+	}
 
 	port->ignore_mask = 0;
-	if (I_IGNBRK(tty)) {
+
+	if (I_IGNBRK(tty))
+	{
 		port->ignore_mask |= UART_LSR_BI;
+
 		if (I_IGNPAR(tty))
+		{
 			port->ignore_mask |= UART_LSR_OE;
+		}
 	}
 
 	port->write_only = !C_CREAD(tty);
 
 	/* turn off echo and newline xlat if loopback */
-	if (port->loopback) {
+	if (port->loopback)
+	{
 		tty->termios.c_lflag &= ~(ECHO | ECHOE | ECHOK | ECHOKE |
-					  ECHONL | ECHOPRT | ECHOCTL);
+								  ECHONL | ECHOPRT | ECHOCTL);
 		tty->termios.c_oflag &= ~ONLCR;
 	}
 
@@ -986,7 +1231,7 @@ static unsigned int set_termios(struct fwtty_port *port, struct tty_struct *tty)
 }
 
 static int fwtty_port_activate(struct tty_port *tty_port,
-			       struct tty_struct *tty)
+							   struct tty_struct *tty)
 {
 	struct fwtty_port *port = to_port(tty_port, port);
 	unsigned int baud;
@@ -995,26 +1240,35 @@ static int fwtty_port_activate(struct tty_port *tty_port,
 	set_bit(TTY_IO_ERROR, &tty->flags);
 
 	err = dma_fifo_alloc(&port->tx_fifo, FWTTY_PORT_TXFIFO_LEN,
-			     cache_line_size(),
-			     port->max_payload,
-			     FWTTY_PORT_MAX_PEND_DMA,
-			     GFP_KERNEL);
+						 cache_line_size(),
+						 port->max_payload,
+						 FWTTY_PORT_MAX_PEND_DMA,
+						 GFP_KERNEL);
+
 	if (err)
+	{
 		return err;
+	}
 
 	spin_lock_bh(&port->lock);
 
 	baud = set_termios(port, tty);
 
 	/* if console, don't change carrier state */
-	if (!port->port.console) {
+	if (!port->port.console)
+	{
 		port->mctrl = 0;
+
 		if (baud != 0)
+		{
 			port->mctrl = TIOCM_DTR | TIOCM_RTS;
+		}
 	}
 
 	if (C_CRTSCTS(tty) && ~port->mstatus & TIOCM_CTS)
+	{
 		tty->hw_stopped = 1;
+	}
 
 	__fwtty_write_port_status(port);
 	spin_unlock_bh(&port->lock);
@@ -1083,10 +1337,16 @@ static int fwtty_install(struct tty_driver *driver, struct tty_struct *tty)
 	int err;
 
 	err = tty_standard_install(driver, tty);
+
 	if (!err)
+	{
 		tty->driver_data = port;
+	}
 	else
+	{
 		fwtty_port_put(port);
+	}
+
 	return err;
 }
 
@@ -1096,10 +1356,16 @@ static int fwloop_install(struct tty_driver *driver, struct tty_struct *tty)
 	int err;
 
 	err = tty_standard_install(driver, tty);
+
 	if (!err)
+	{
 		tty->driver_data = port;
+	}
 	else
+	{
 		fwtty_port_put(port);
+	}
+
 	return err;
 }
 
@@ -1114,12 +1380,18 @@ static int fwtty_write(struct tty_struct *tty, const unsigned char *buf, int c)
 	spin_lock_bh(&port->lock);
 	n = dma_fifo_in(&port->tx_fifo, buf, c);
 	len = dma_fifo_out_level(&port->tx_fifo);
+
 	if (len < DRAIN_THRESHOLD)
+	{
 		schedule_delayed_work(&port->drain, 1);
+	}
+
 	spin_unlock_bh(&port->lock);
 
 	if (len >= DRAIN_THRESHOLD)
+	{
 		fwtty_tx(port, false);
+	}
 
 	debug_short_write(port, c, n);
 
@@ -1191,14 +1463,18 @@ static void fwtty_unthrottle(struct tty_struct *tty)
 
 	spin_lock_bh(&port->lock);
 	port->mctrl &= ~OOB_RX_THROTTLE;
+
 	if (C_CRTSCTS(tty))
+	{
 		port->mctrl |= TIOCM_RTS;
+	}
+
 	__fwtty_write_port_status(port);
 	spin_unlock_bh(&port->lock);
 }
 
 static int check_msr_delta(struct fwtty_port *port, unsigned long mask,
-			   struct async_icount *prev)
+						   struct async_icount *prev)
 {
 	struct async_icount now;
 	int delta;
@@ -1206,9 +1482,9 @@ static int check_msr_delta(struct fwtty_port *port, unsigned long mask,
 	now = port->icount;
 
 	delta = ((mask & TIOCM_RNG && prev->rng != now.rng) ||
-		 (mask & TIOCM_DSR && prev->dsr != now.dsr) ||
-		 (mask & TIOCM_CAR && prev->dcd != now.dcd) ||
-		 (mask & TIOCM_CTS && prev->cts != now.cts));
+			 (mask & TIOCM_DSR && prev->dsr != now.dsr) ||
+			 (mask & TIOCM_CAR && prev->dcd != now.dcd) ||
+			 (mask & TIOCM_CTS && prev->cts != now.cts));
 
 	*prev = now;
 
@@ -1222,11 +1498,11 @@ static int wait_msr_change(struct fwtty_port *port, unsigned long mask)
 	prev = port->icount;
 
 	return wait_event_interruptible(port->port.delta_msr_wait,
-					check_msr_delta(port, mask, &prev));
+									check_msr_delta(port, mask, &prev));
 }
 
 static int get_serial_info(struct fwtty_port *port,
-			   struct serial_struct __user *info)
+						   struct serial_struct __user *info)
 {
 	struct serial_struct tmp;
 
@@ -1243,22 +1519,31 @@ static int get_serial_info(struct fwtty_port *port,
 }
 
 static int set_serial_info(struct fwtty_port *port,
-			   struct serial_struct __user *info)
+						   struct serial_struct __user *info)
 {
 	struct serial_struct tmp;
 
 	if (copy_from_user(&tmp, info, sizeof(tmp)))
+	{
 		return -EFAULT;
+	}
 
 	if (tmp.irq != 0 || tmp.port != 0 || tmp.custom_divisor != 0 ||
-	    tmp.baud_base != 400000000)
+		tmp.baud_base != 400000000)
+	{
 		return -EPERM;
+	}
 
-	if (!capable(CAP_SYS_ADMIN)) {
+	if (!capable(CAP_SYS_ADMIN))
+	{
 		if (((tmp.flags & ~ASYNC_USR_MASK) !=
-		     (port->port.flags & ~ASYNC_USR_MASK)))
+			 (port->port.flags & ~ASYNC_USR_MASK)))
+		{
 			return -EPERM;
-	} else {
+		}
+	}
+	else
+	{
 		port->port.close_delay = tmp.close_delay * HZ / 100;
 	}
 
@@ -1266,30 +1551,31 @@ static int set_serial_info(struct fwtty_port *port,
 }
 
 static int fwtty_ioctl(struct tty_struct *tty, unsigned int cmd,
-		       unsigned long arg)
+					   unsigned long arg)
 {
 	struct fwtty_port *port = tty->driver_data;
 	int err;
 
-	switch (cmd) {
-	case TIOCGSERIAL:
-		mutex_lock(&port->port.mutex);
-		err = get_serial_info(port, (void __user *)arg);
-		mutex_unlock(&port->port.mutex);
-		break;
+	switch (cmd)
+	{
+		case TIOCGSERIAL:
+			mutex_lock(&port->port.mutex);
+			err = get_serial_info(port, (void __user *)arg);
+			mutex_unlock(&port->port.mutex);
+			break;
 
-	case TIOCSSERIAL:
-		mutex_lock(&port->port.mutex);
-		err = set_serial_info(port, (void __user *)arg);
-		mutex_unlock(&port->port.mutex);
-		break;
+		case TIOCSSERIAL:
+			mutex_lock(&port->port.mutex);
+			err = set_serial_info(port, (void __user *)arg);
+			mutex_unlock(&port->port.mutex);
+			break;
 
-	case TIOCMIWAIT:
-		err = wait_msr_change(port, arg);
-		break;
+		case TIOCMIWAIT:
+			err = wait_msr_change(port, arg);
+			break;
 
-	default:
-		err = -ENOIOCTLCMD;
+		default:
+			err = -ENOIOCTLCMD;
 	}
 
 	return err;
@@ -1303,23 +1589,35 @@ static void fwtty_set_termios(struct tty_struct *tty, struct ktermios *old)
 	spin_lock_bh(&port->lock);
 	baud = set_termios(port, tty);
 
-	if ((baud == 0) && (old->c_cflag & CBAUD)) {
+	if ((baud == 0) && (old->c_cflag & CBAUD))
+	{
 		port->mctrl &= ~(TIOCM_DTR | TIOCM_RTS);
-	} else if ((baud != 0) && !(old->c_cflag & CBAUD)) {
-		if (C_CRTSCTS(tty) || !tty_throttled(tty))
-			port->mctrl |= TIOCM_DTR | TIOCM_RTS;
-		else
-			port->mctrl |= TIOCM_DTR;
 	}
+	else if ((baud != 0) && !(old->c_cflag & CBAUD))
+	{
+		if (C_CRTSCTS(tty) || !tty_throttled(tty))
+		{
+			port->mctrl |= TIOCM_DTR | TIOCM_RTS;
+		}
+		else
+		{
+			port->mctrl |= TIOCM_DTR;
+		}
+	}
+
 	__fwtty_write_port_status(port);
 	spin_unlock_bh(&port->lock);
 
-	if (old->c_cflag & CRTSCTS) {
-		if (!C_CRTSCTS(tty)) {
+	if (old->c_cflag & CRTSCTS)
+	{
+		if (!C_CRTSCTS(tty))
+		{
 			tty->hw_stopped = 0;
 			fwtty_restart_tx(port);
 		}
-	} else if (C_CRTSCTS(tty) && ~port->mstatus & TIOCM_CTS) {
+	}
+	else if (C_CRTSCTS(tty) && ~port->mstatus & TIOCM_CTS)
+	{
 		tty->hw_stopped = 1;
 	}
 }
@@ -1341,12 +1639,15 @@ static int fwtty_break_ctl(struct tty_struct *tty, int state)
 
 	fwtty_dbg(port, "%d\n", state);
 
-	if (state == -1) {
+	if (state == -1)
+	{
 		set_bit(STOP_TX, &port->flags);
 		ret = wait_event_interruptible_timeout(port->wait_tx,
-					       !test_bit(IN_TX, &port->flags),
-					       10);
-		if (ret == 0 || ret == -ERESTARTSYS) {
+											   !test_bit(IN_TX, &port->flags),
+											   10);
+
+		if (ret == 0 || ret == -ERESTARTSYS)
+		{
 			clear_bit(STOP_TX, &port->flags);
 			fwtty_restart_tx(port);
 			return -EINTR;
@@ -1358,12 +1659,14 @@ static int fwtty_break_ctl(struct tty_struct *tty, int state)
 	__fwtty_write_port_status(port);
 	spin_unlock_bh(&port->lock);
 
-	if (state == 0) {
+	if (state == 0)
+	{
 		spin_lock_bh(&port->lock);
 		dma_fifo_reset(&port->tx_fifo);
 		clear_bit(STOP_TX, &port->flags);
 		spin_unlock_bh(&port->lock);
 	}
+
 	return 0;
 }
 
@@ -1382,7 +1685,7 @@ static int fwtty_tiocmget(struct tty_struct *tty)
 }
 
 static int fwtty_tiocmset(struct tty_struct *tty,
-			  unsigned int set, unsigned int clear)
+						  unsigned int set, unsigned int clear)
 {
 	struct fwtty_port *port = tty->driver_data;
 
@@ -1399,14 +1702,17 @@ static int fwtty_tiocmset(struct tty_struct *tty,
 }
 
 static int fwtty_get_icount(struct tty_struct *tty,
-			    struct serial_icounter_struct *icount)
+							struct serial_icounter_struct *icount)
 {
 	struct fwtty_port *port = tty->driver_data;
 	struct stats stats;
 
 	memcpy(&stats, &port->stats, sizeof(stats));
+
 	if (port->port.console)
+	{
 		(*port->fwcon_ops->stats)(&stats, port->con_data);
+	}
 
 	icount->cts = port->icount.cts;
 	icount->dsr = port->icount.dsr;
@@ -1427,15 +1733,18 @@ static void fwtty_proc_show_port(struct seq_file *m, struct fwtty_port *port)
 	struct stats stats;
 
 	memcpy(&stats, &port->stats, sizeof(stats));
+
 	if (port->port.console)
+	{
 		(*port->fwcon_ops->stats)(&stats, port->con_data);
+	}
 
 	seq_printf(m, " addr:%012llx tx:%d rx:%d", port->rx_handler.offset,
-		   port->icount.tx + stats.xchars, port->icount.rx);
+			   port->icount.tx + stats.xchars, port->icount.rx);
 	seq_printf(m, " cts:%d dsr:%d rng:%d dcd:%d", port->icount.cts,
-		   port->icount.dsr, port->icount.rng, port->icount.dcd);
+			   port->icount.dsr, port->icount.rng, port->icount.dcd);
 	seq_printf(m, " fe:%d oe:%d pe:%d brk:%d", port->icount.frame,
-		   port->icount.overrun, port->icount.parity, port->icount.brk);
+			   port->icount.overrun, port->icount.parity, port->icount.brk);
 }
 
 static void fwtty_debugfs_show_port(struct seq_file *m, struct fwtty_port *port)
@@ -1443,14 +1752,18 @@ static void fwtty_debugfs_show_port(struct seq_file *m, struct fwtty_port *port)
 	struct stats stats;
 
 	memcpy(&stats, &port->stats, sizeof(stats));
+
 	if (port->port.console)
+	{
 		(*port->fwcon_ops->stats)(&stats, port->con_data);
+	}
 
 	seq_printf(m, " dr:%d st:%d err:%d lost:%d", stats.dropped,
-		   stats.tx_stall, stats.fifo_errs, stats.lost);
+			   stats.tx_stall, stats.fifo_errs, stats.lost);
 	seq_printf(m, " pkts:%d thr:%d", stats.sent, stats.throttled);
 
-	if (port->port.console) {
+	if (port->port.console)
+	{
 		seq_puts(m, "\n    ");
 		(*port->fwcon_ops->proc_show)(m, port->con_data);
 	}
@@ -1466,7 +1779,7 @@ static void fwtty_debugfs_show_peer(struct seq_file *m, struct fwtty_peer *peer)
 	seq_printf(m, " %s:", dev_name(&peer->unit->device));
 	seq_printf(m, " node:%04x gen:%d", peer->node_id, generation);
 	seq_printf(m, " sp:%d max:%d guid:%016llx", peer->speed,
-		   peer->max_payload, (unsigned long long)peer->guid);
+			   peer->max_payload, (unsigned long long)peer->guid);
 	seq_printf(m, " mgmt:%012llx", (unsigned long long)peer->mgmt_addr);
 	seq_printf(m, " addr:%012llx", (unsigned long long)peer->status_addr);
 	seq_putc(m, '\n');
@@ -1478,13 +1791,20 @@ static int fwtty_proc_show(struct seq_file *m, void *v)
 	int i;
 
 	seq_puts(m, "fwserinfo: 1.0 driver: 1.0\n");
-	for (i = 0; i < MAX_TOTAL_PORTS && (port = fwtty_port_get(i)); ++i) {
+
+	for (i = 0; i < MAX_TOTAL_PORTS && (port = fwtty_port_get(i)); ++i)
+	{
 		seq_printf(m, "%2d:", i);
+
 		if (capable(CAP_SYS_ADMIN))
+		{
 			fwtty_proc_show_port(m, port);
+		}
+
 		fwtty_port_put(port);
 		seq_puts(m, "\n");
 	}
+
 	return 0;
 }
 
@@ -1494,9 +1814,12 @@ static int fwtty_debugfs_stats_show(struct seq_file *m, void *v)
 	struct fwtty_port *port;
 	int i;
 
-	for (i = 0; i < num_ports; ++i) {
+	for (i = 0; i < num_ports; ++i)
+	{
 		port = fwtty_port_get(serial->ports[i]->index);
-		if (port) {
+
+		if (port)
+		{
 			seq_printf(m, "%2d:", port->index);
 			fwtty_proc_show_port(m, port);
 			fwtty_debugfs_show_port(m, port);
@@ -1504,6 +1827,7 @@ static int fwtty_debugfs_stats_show(struct seq_file *m, void *v)
 			seq_puts(m, "\n");
 		}
 	}
+
 	return 0;
 }
 
@@ -1514,10 +1838,10 @@ static int fwtty_debugfs_peers_show(struct seq_file *m, void *v)
 
 	rcu_read_lock();
 	seq_printf(m, "card: %s  guid: %016llx\n",
-		   dev_name(serial->card->device),
-		   (unsigned long long)serial->card->guid);
+			   dev_name(serial->card->device),
+			   (unsigned long long)serial->card->guid);
 	list_for_each_entry_rcu(peer, &serial->peer_list, list)
-		fwtty_debugfs_show_peer(m, peer);
+	fwtty_debugfs_show_peer(m, peer);
 	rcu_read_unlock();
 	return 0;
 }
@@ -1537,7 +1861,8 @@ static int fwtty_peers_open(struct inode *inode, struct file *fp)
 	return single_open(fp, fwtty_debugfs_peers_show, inode->i_private);
 }
 
-static const struct file_operations fwtty_stats_fops = {
+static const struct file_operations fwtty_stats_fops =
+{
 	.owner =	THIS_MODULE,
 	.open =		fwtty_stats_open,
 	.read =		seq_read,
@@ -1545,7 +1870,8 @@ static const struct file_operations fwtty_stats_fops = {
 	.release =	single_release,
 };
 
-static const struct file_operations fwtty_peers_fops = {
+static const struct file_operations fwtty_peers_fops =
+{
 	.owner =	THIS_MODULE,
 	.open =		fwtty_peers_open,
 	.read =		seq_read,
@@ -1553,7 +1879,8 @@ static const struct file_operations fwtty_peers_fops = {
 	.release =	single_release,
 };
 
-static const struct file_operations fwtty_proc_fops = {
+static const struct file_operations fwtty_proc_fops =
+{
 	.owner =        THIS_MODULE,
 	.open =         fwtty_proc_open,
 	.read =         seq_read,
@@ -1561,14 +1888,16 @@ static const struct file_operations fwtty_proc_fops = {
 	.release =      single_release,
 };
 
-static const struct tty_port_operations fwtty_port_ops = {
+static const struct tty_port_operations fwtty_port_ops =
+{
 	.dtr_rts =		fwtty_port_dtr_rts,
 	.carrier_raised =	fwtty_port_carrier_raised,
 	.shutdown =		fwtty_port_shutdown,
 	.activate =		fwtty_port_activate,
 };
 
-static const struct tty_operations fwtty_ops = {
+static const struct tty_operations fwtty_ops =
+{
 	.open =			fwtty_open,
 	.close =		fwtty_close,
 	.hangup =		fwtty_hangup,
@@ -1589,7 +1918,8 @@ static const struct tty_operations fwtty_ops = {
 	.proc_fops =		&fwtty_proc_fops,
 };
 
-static const struct tty_operations fwloop_ops = {
+static const struct tty_operations fwloop_ops =
+{
 	.open =			fwtty_open,
 	.close =		fwtty_close,
 	.hangup =		fwtty_hangup,
@@ -1613,26 +1943,27 @@ static inline int mgmt_pkt_expected_len(__be16 code)
 {
 	static const struct fwserial_mgmt_pkt pkt;
 
-	switch (be16_to_cpu(code)) {
-	case FWSC_VIRT_CABLE_PLUG:
-		return sizeof(pkt.hdr) + sizeof(pkt.plug_req);
+	switch (be16_to_cpu(code))
+	{
+		case FWSC_VIRT_CABLE_PLUG:
+			return sizeof(pkt.hdr) + sizeof(pkt.plug_req);
 
-	case FWSC_VIRT_CABLE_PLUG_RSP:  /* | FWSC_RSP_OK */
-		return sizeof(pkt.hdr) + sizeof(pkt.plug_rsp);
+		case FWSC_VIRT_CABLE_PLUG_RSP:  /* | FWSC_RSP_OK */
+			return sizeof(pkt.hdr) + sizeof(pkt.plug_rsp);
 
-	case FWSC_VIRT_CABLE_UNPLUG:
-	case FWSC_VIRT_CABLE_UNPLUG_RSP:
-	case FWSC_VIRT_CABLE_PLUG_RSP | FWSC_RSP_NACK:
-	case FWSC_VIRT_CABLE_UNPLUG_RSP | FWSC_RSP_NACK:
-		return sizeof(pkt.hdr);
+		case FWSC_VIRT_CABLE_UNPLUG:
+		case FWSC_VIRT_CABLE_UNPLUG_RSP:
+		case FWSC_VIRT_CABLE_PLUG_RSP | FWSC_RSP_NACK:
+		case FWSC_VIRT_CABLE_UNPLUG_RSP | FWSC_RSP_NACK:
+			return sizeof(pkt.hdr);
 
-	default:
-		return -1;
+		default:
+			return -1;
 	}
 }
 
 static inline void fill_plug_params(struct virt_plug_params *params,
-				    struct fwtty_port *port)
+									struct fwtty_port *port)
 {
 	u64 status_addr = port->rx_handler.offset;
 	u64 fifo_addr = port->rx_handler.offset + 4;
@@ -1646,7 +1977,7 @@ static inline void fill_plug_params(struct virt_plug_params *params,
 }
 
 static inline void fill_plug_req(struct fwserial_mgmt_pkt *pkt,
-				 struct fwtty_port *port)
+								 struct fwtty_port *port)
 {
 	pkt->hdr.code = cpu_to_be16(FWSC_VIRT_CABLE_PLUG);
 	pkt->hdr.len = cpu_to_be16(mgmt_pkt_expected_len(pkt->hdr.code));
@@ -1654,7 +1985,7 @@ static inline void fill_plug_req(struct fwserial_mgmt_pkt *pkt,
 }
 
 static inline void fill_plug_rsp_ok(struct fwserial_mgmt_pkt *pkt,
-				    struct fwtty_port *port)
+									struct fwtty_port *port)
 {
 	pkt->hdr.code = cpu_to_be16(FWSC_VIRT_CABLE_PLUG_RSP);
 	pkt->hdr.len = cpu_to_be16(mgmt_pkt_expected_len(pkt->hdr.code));
@@ -1686,7 +2017,7 @@ static inline void fill_unplug_rsp_ok(struct fwserial_mgmt_pkt *pkt)
 }
 
 static void fwserial_virt_plug_complete(struct fwtty_peer *peer,
-					struct virt_plug_params *params)
+										struct virt_plug_params *params)
 {
 	struct fwtty_port *port = peer->port;
 
@@ -1702,36 +2033,45 @@ static void fwserial_virt_plug_complete(struct fwtty_peer *peer,
 	spin_unlock_bh(&peer->port->lock);
 
 	if (port->port.console && port->fwcon_ops->notify)
+	{
 		(*port->fwcon_ops->notify)(FWCON_NOTIFY_ATTACH, port->con_data);
+	}
 
 	fwtty_info(&peer->unit, "peer (guid:%016llx) connected on %s\n",
-		   (unsigned long long)peer->guid, dev_name(port->device));
+			   (unsigned long long)peer->guid, dev_name(port->device));
 }
 
 static inline int fwserial_send_mgmt_sync(struct fwtty_peer *peer,
-					  struct fwserial_mgmt_pkt *pkt)
+		struct fwserial_mgmt_pkt *pkt)
 {
 	int generation;
 	int rcode, tries = 5;
 
-	do {
+	do
+	{
 		generation = peer->generation;
 		smp_rmb();
 
 		rcode = fw_run_transaction(peer->serial->card,
-					   TCODE_WRITE_BLOCK_REQUEST,
-					   peer->node_id,
-					   generation, peer->speed,
-					   peer->mgmt_addr,
-					   pkt, be16_to_cpu(pkt->hdr.len));
+								   TCODE_WRITE_BLOCK_REQUEST,
+								   peer->node_id,
+								   generation, peer->speed,
+								   peer->mgmt_addr,
+								   pkt, be16_to_cpu(pkt->hdr.len));
+
 		if (rcode == RCODE_BUSY || rcode == RCODE_SEND_ERROR ||
-		    rcode == RCODE_GENERATION) {
+			rcode == RCODE_GENERATION)
+		{
 			fwtty_dbg(&peer->unit, "mgmt write error: %d\n", rcode);
 			continue;
-		} else {
+		}
+		else
+		{
 			break;
 		}
-	} while (--tries > 0);
+	}
+	while (--tries > 0);
+
 	return rcode;
 }
 
@@ -1742,22 +2082,30 @@ static inline int fwserial_send_mgmt_sync(struct fwtty_peer *peer,
  * Can sleep - must be called from process context
  */
 static struct fwtty_port *fwserial_claim_port(struct fwtty_peer *peer,
-					      int index)
+		int index)
 {
 	struct fwtty_port *port;
 
 	if (index < 0 || index >= num_ports)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	/* must guarantee that previous port releases have completed */
 	synchronize_rcu();
 
 	port = peer->serial->ports[index];
 	spin_lock_bh(&port->lock);
+
 	if (!rcu_access_pointer(port->peer))
+	{
 		rcu_assign_pointer(port->peer, peer);
+	}
 	else
+	{
 		port = ERR_PTR(-EBUSY);
+	}
+
 	spin_unlock_bh(&port->lock);
 
 	return port;
@@ -1780,16 +2128,21 @@ static struct fwtty_port *fwserial_find_port(struct fwtty_peer *peer)
 	/* TODO: implement optional GUID-to-specific port # matching */
 
 	/* find an unattached port (but not the loopback port, if present) */
-	for (i = 0; i < num_ttys; ++i) {
+	for (i = 0; i < num_ttys; ++i)
+	{
 		spin_lock_bh(&ports[i]->lock);
-		if (!ports[i]->peer) {
+
+		if (!ports[i]->peer)
+		{
 			/* claim port */
 			rcu_assign_pointer(ports[i]->peer, peer);
 			spin_unlock_bh(&ports[i]->lock);
 			return ports[i];
 		}
+
 		spin_unlock_bh(&ports[i]->lock);
 	}
+
 	return NULL;
 }
 
@@ -1797,7 +2150,9 @@ static void fwserial_release_port(struct fwtty_port *port, bool reset)
 {
 	/* drop carrier (and all other line status) */
 	if (reset)
+	{
 		fwtty_update_port_status(port, 0);
+	}
 
 	spin_lock_bh(&port->lock);
 
@@ -1809,7 +2164,9 @@ static void fwserial_release_port(struct fwtty_port *port, bool reset)
 	spin_unlock_bh(&port->lock);
 
 	if (port->port.console && port->fwcon_ops->notify)
+	{
 		(*port->fwcon_ops->notify)(FWCON_NOTIFY_DETACH, port->con_data);
+	}
 }
 
 static void fwserial_plug_timeout(unsigned long data)
@@ -1818,7 +2175,9 @@ static void fwserial_plug_timeout(unsigned long data)
 	struct fwtty_port *port;
 
 	spin_lock_bh(&peer->lock);
-	if (peer->state != FWPS_PLUG_PENDING) {
+
+	if (peer->state != FWPS_PLUG_PENDING)
+	{
 		spin_unlock_bh(&peer->lock);
 		return;
 	}
@@ -1827,7 +2186,9 @@ static void fwserial_plug_timeout(unsigned long data)
 	spin_unlock_bh(&peer->lock);
 
 	if (port)
+	{
 		fwserial_release_port(port, false);
+	}
 }
 
 /**
@@ -1843,11 +2204,16 @@ static int fwserial_connect_peer(struct fwtty_peer *peer)
 	int err, rcode;
 
 	pkt = kmalloc(sizeof(*pkt), GFP_KERNEL);
+
 	if (!pkt)
+	{
 		return -ENOMEM;
+	}
 
 	port = fwserial_find_port(peer);
-	if (!port) {
+
+	if (!port)
+	{
 		fwtty_err(&peer->unit, "avail ports in use\n");
 		err = -EBUSY;
 		goto free_pkt;
@@ -1856,7 +2222,8 @@ static int fwserial_connect_peer(struct fwtty_peer *peer)
 	spin_lock_bh(&peer->lock);
 
 	/* only initiate VIRT_CABLE_PLUG if peer is currently not attached */
-	if (peer->state != FWPS_NOT_ATTACHED) {
+	if (peer->state != FWPS_NOT_ATTACHED)
+	{
 		err = -EBUSY;
 		goto release_port;
 	}
@@ -1873,13 +2240,21 @@ static int fwserial_connect_peer(struct fwtty_peer *peer)
 	rcode = fwserial_send_mgmt_sync(peer, pkt);
 
 	spin_lock_bh(&peer->lock);
-	if (peer->state == FWPS_PLUG_PENDING && rcode != RCODE_COMPLETE) {
+
+	if (peer->state == FWPS_PLUG_PENDING && rcode != RCODE_COMPLETE)
+	{
 		if (rcode == RCODE_CONFLICT_ERROR)
+		{
 			err = -EAGAIN;
+		}
 		else
+		{
 			err = -EIO;
+		}
+
 		goto cancel_timer;
 	}
+
 	spin_unlock_bh(&peer->lock);
 
 	kfree(pkt);
@@ -1906,22 +2281,29 @@ free_pkt:
  * ever taken).
  */
 static void fwserial_close_port(struct tty_driver *driver,
-				struct fwtty_port *port)
+								struct fwtty_port *port)
 {
 	struct tty_struct *tty;
 
 	mutex_lock(&port->port.mutex);
 	tty = tty_port_tty_get(&port->port);
-	if (tty) {
+
+	if (tty)
+	{
 		tty_vhangup(tty);
 		tty_kref_put(tty);
 	}
+
 	mutex_unlock(&port->port.mutex);
 
 	if (driver == fwloop_driver)
+	{
 		tty_unregister_device(driver, loop_idx(port));
+	}
 	else
+	{
 		tty_unregister_device(driver, port->index);
+	}
 }
 
 /**
@@ -1934,9 +2316,12 @@ static struct fw_serial *fwserial_lookup(struct fw_card *card)
 {
 	struct fw_serial *serial;
 
-	list_for_each_entry(serial, &fwserial_list, list) {
+	list_for_each_entry(serial, &fwserial_list, list)
+	{
 		if (card == serial->card)
+		{
 			return serial;
+		}
 	}
 
 	return NULL;
@@ -1952,9 +2337,12 @@ static struct fw_serial *__fwserial_lookup_rcu(struct fw_card *card)
 {
 	struct fw_serial *serial;
 
-	list_for_each_entry_rcu(serial, &fwserial_list, list) {
+	list_for_each_entry_rcu(serial, &fwserial_list, list)
+	{
 		if (card == serial->card)
+		{
 			return serial;
+		}
 	}
 
 	return NULL;
@@ -1973,13 +2361,15 @@ static struct fw_serial *__fwserial_lookup_rcu(struct fw_card *card)
  * Note: caller must be in rcu_read_lock() section
  */
 static struct fwtty_peer *__fwserial_peer_by_node_id(struct fw_card *card,
-						     int generation, int id)
+		int generation, int id)
 {
 	struct fw_serial *serial;
 	struct fwtty_peer *peer;
 
 	serial = __fwserial_lookup_rcu(card);
-	if (!serial) {
+
+	if (!serial)
+	{
 		/*
 		 * Something is very wrong - there should be a matching
 		 * fw_serial structure for every fw_card. Maybe the remote node
@@ -1987,16 +2377,20 @@ static struct fwtty_peer *__fwserial_peer_by_node_id(struct fw_card *card,
 		 * been probed for any unit devices...
 		 */
 		fwtty_err(card, "unknown card (guid %016llx)\n",
-			  (unsigned long long)card->guid);
+				  (unsigned long long)card->guid);
 		return NULL;
 	}
 
-	list_for_each_entry_rcu(peer, &serial->peer_list, list) {
+	list_for_each_entry_rcu(peer, &serial->peer_list, list)
+	{
 		int g = peer->generation;
 
 		smp_rmb();
+
 		if (generation == g && id == peer->node_id)
+		{
 			return peer;
+		}
 	}
 
 	return NULL;
@@ -2009,15 +2403,19 @@ static void __dump_peer_list(struct fw_card *card)
 	struct fwtty_peer *peer;
 
 	serial = __fwserial_lookup_rcu(card);
-	if (!serial)
-		return;
 
-	list_for_each_entry_rcu(peer, &serial->peer_list, list) {
+	if (!serial)
+	{
+		return;
+	}
+
+	list_for_each_entry_rcu(peer, &serial->peer_list, list)
+	{
 		int g = peer->generation;
 
 		smp_rmb();
 		fwtty_dbg(card, "peer(%d:%x) guid: %016llx\n",
-			  g, peer->node_id, (unsigned long long)peer->guid);
+				  g, peer->node_id, (unsigned long long)peer->guid);
 	}
 }
 #else
@@ -2030,8 +2428,11 @@ static void fwserial_auto_connect(struct work_struct *work)
 	int err;
 
 	err = fwserial_connect_peer(peer);
+
 	if (err == -EAGAIN && ++peer->connect_retries < MAX_CONNECT_RETRIES)
+	{
 		schedule_delayed_work(&peer->connect, CONNECT_RETRY_DELAY);
+	}
 }
 
 static void fwserial_peer_workfn(struct work_struct *work)
@@ -2067,8 +2468,11 @@ static int fwserial_add_peer(struct fw_serial *serial, struct fw_unit *unit)
 	int generation;
 
 	peer = kzalloc(sizeof(*peer), GFP_KERNEL);
+
 	if (!peer)
+	{
 		return -ENOMEM;
+	}
 
 	peer_set_state(peer, FWPS_NOT_ATTACHED);
 
@@ -2077,7 +2481,7 @@ static int fwserial_add_peer(struct fw_serial *serial, struct fw_unit *unit)
 	peer->guid = (u64)parent->config_rom[3] << 32 | parent->config_rom[4];
 	peer->speed = parent->max_speed;
 	peer->max_payload = min(device_max_receive(parent),
-				link_speed_to_max_payload(peer->speed));
+							link_speed_to_max_payload(peer->speed));
 
 	generation = parent->generation;
 	smp_rmb();
@@ -2087,13 +2491,18 @@ static int fwserial_add_peer(struct fw_serial *serial, struct fw_unit *unit)
 
 	/* retrieve the mgmt bus addr from the unit directory */
 	fw_csr_iterator_init(&ci, unit->directory);
-	while (fw_csr_iterator_next(&ci, &key, &val)) {
-		if (key == (CSR_OFFSET | CSR_DEPENDENT_INFO)) {
+
+	while (fw_csr_iterator_next(&ci, &key, &val))
+	{
+		if (key == (CSR_OFFSET | CSR_DEPENDENT_INFO))
+		{
 			peer->mgmt_addr = CSR_REGISTER_BASE + 4 * val;
 			break;
 		}
 	}
-	if (peer->mgmt_addr == 0ULL) {
+
+	if (peer->mgmt_addr == 0ULL)
+	{
 		/*
 		 * No mgmt address effectively disables VIRT_CABLE_PLUG -
 		 * this peer will not be able to attach to a remote
@@ -2113,16 +2522,21 @@ static int fwserial_add_peer(struct fw_serial *serial, struct fw_unit *unit)
 	list_add_rcu(&peer->list, &serial->peer_list);
 
 	fwtty_info(&peer->unit, "peer added (guid:%016llx)\n",
-		   (unsigned long long)peer->guid);
+			   (unsigned long long)peer->guid);
 
 	/* identify the local unit & virt cable to loopback port */
-	if (parent->is_local) {
+	if (parent->is_local)
+	{
 		serial->self = peer;
-		if (create_loop_dev) {
+
+		if (create_loop_dev)
+		{
 			struct fwtty_port *port;
 
 			port = fwserial_claim_port(peer, num_ttys);
-			if (!IS_ERR(port)) {
+
+			if (!IS_ERR(port))
+			{
 				struct virt_plug_params params;
 
 				spin_lock_bh(&peer->lock);
@@ -2135,7 +2549,9 @@ static int fwserial_add_peer(struct fw_serial *serial, struct fw_unit *unit)
 			}
 		}
 
-	} else if (auto_connect) {
+	}
+	else if (auto_connect)
+	{
 		/* auto-attach to remote units only (if policy allows) */
 		schedule_delayed_work(&peer->connect, 1);
 	}
@@ -2164,9 +2580,12 @@ static void fwserial_remove_peer(struct fwtty_peer *peer)
 	cancel_work_sync(&peer->work);
 
 	spin_lock_bh(&peer->lock);
+
 	/* if this unit is the local unit, clear link */
 	if (peer == peer->serial->self)
+	{
 		peer->serial->self = NULL;
+	}
 
 	/* cancel the request timeout timer (if running) */
 	del_timer(&peer->timer);
@@ -2177,12 +2596,14 @@ static void fwserial_remove_peer(struct fwtty_peer *peer)
 	list_del_rcu(&peer->list);
 
 	fwtty_info(&peer->unit, "peer removed (guid:%016llx)\n",
-		   (unsigned long long)peer->guid);
+			   (unsigned long long)peer->guid);
 
 	spin_unlock_bh(&peer->lock);
 
 	if (port)
+	{
 		fwserial_release_port(port, true);
+	}
 
 	synchronize_rcu();
 	kfree(peer);
@@ -2214,19 +2635,26 @@ static int fwserial_create(struct fw_unit *unit)
 	int err;
 
 	serial = kzalloc(sizeof(*serial), GFP_KERNEL);
+
 	if (!serial)
+	{
 		return -ENOMEM;
+	}
 
 	kref_init(&serial->kref);
 	serial->card = card;
 	INIT_LIST_HEAD(&serial->peer_list);
 
-	for (i = 0; i < num_ports; ++i) {
+	for (i = 0; i < num_ports; ++i)
+	{
 		port = kzalloc(sizeof(*port), GFP_KERNEL);
-		if (!port) {
+
+		if (!port)
+		{
 			err = -ENOMEM;
 			goto free_ports;
 		}
+
 		tty_port_init(&port->port);
 		port->index = FWTTY_INVALID_INDEX;
 		port->port.ops = &fwtty_port_ops;
@@ -2253,72 +2681,91 @@ static int fwserial_create(struct fw_unit *unit)
 		 * this will ease porting to 64-bit firewire adapters
 		 */
 		err = fw_core_add_address_handler(&port->rx_handler,
-						  &fw_high_memory_region);
-		if (err) {
+										  &fw_high_memory_region);
+
+		if (err)
+		{
 			kfree(port);
 			goto free_ports;
 		}
 	}
+
 	/* preserve i for error cleanup */
 
 	err = fwtty_ports_add(serial);
-	if (err) {
+
+	if (err)
+	{
 		fwtty_err(&unit, "no space in port table\n");
 		goto free_ports;
 	}
 
-	for (j = 0; j < num_ttys; ++j) {
+	for (j = 0; j < num_ttys; ++j)
+	{
 		tty_dev = tty_port_register_device(&serial->ports[j]->port,
-						   fwtty_driver,
-						   serial->ports[j]->index,
-						   card->device);
-		if (IS_ERR(tty_dev)) {
+										   fwtty_driver,
+										   serial->ports[j]->index,
+										   card->device);
+
+		if (IS_ERR(tty_dev))
+		{
 			err = PTR_ERR(tty_dev);
 			fwtty_err(&unit, "register tty device error (%d)\n",
-				  err);
+					  err);
 			goto unregister_ttys;
 		}
 
 		serial->ports[j]->device = tty_dev;
 	}
+
 	/* preserve j for error cleanup */
 
-	if (create_loop_dev) {
+	if (create_loop_dev)
+	{
 		struct device *loop_dev;
 
 		loop_dev = tty_port_register_device(&serial->ports[j]->port,
-						    fwloop_driver,
-						    loop_idx(serial->ports[j]),
-						    card->device);
-		if (IS_ERR(loop_dev)) {
+											fwloop_driver,
+											loop_idx(serial->ports[j]),
+											card->device);
+
+		if (IS_ERR(loop_dev))
+		{
 			err = PTR_ERR(loop_dev);
 			fwtty_err(&unit, "create loop device failed (%d)\n",
-				  err);
+					  err);
 			goto unregister_ttys;
 		}
+
 		serial->ports[j]->device = loop_dev;
 		serial->ports[j]->loopback = true;
 	}
 
-	if (!IS_ERR_OR_NULL(fwserial_debugfs)) {
+	if (!IS_ERR_OR_NULL(fwserial_debugfs))
+	{
 		serial->debugfs = debugfs_create_dir(dev_name(&unit->device),
-						     fwserial_debugfs);
-		if (!IS_ERR_OR_NULL(serial->debugfs)) {
+											 fwserial_debugfs);
+
+		if (!IS_ERR_OR_NULL(serial->debugfs))
+		{
 			debugfs_create_file("peers", 0444, serial->debugfs,
-					    serial, &fwtty_peers_fops);
+								serial, &fwtty_peers_fops);
 			debugfs_create_file("stats", 0444, serial->debugfs,
-					    serial, &fwtty_stats_fops);
+								serial, &fwtty_stats_fops);
 		}
 	}
 
 	list_add_rcu(&serial->list, &fwserial_list);
 
 	fwtty_notice(&unit, "TTY over FireWire on device %s (guid %016llx)\n",
-		     dev_name(card->device), (unsigned long long)card->guid);
+				 dev_name(card->device), (unsigned long long)card->guid);
 
 	err = fwserial_add_peer(serial, unit);
+
 	if (!err)
+	{
 		return 0;
+	}
 
 	fwtty_err(&unit, "unable to add peer unit device (%d)\n", err);
 
@@ -2326,20 +2773,29 @@ static int fwserial_create(struct fw_unit *unit)
 	debugfs_remove_recursive(serial->debugfs);
 
 	list_del_rcu(&serial->list);
+
 	if (create_loop_dev)
 		tty_unregister_device(fwloop_driver,
-				      loop_idx(serial->ports[j]));
+							  loop_idx(serial->ports[j]));
+
 unregister_ttys:
+
 	for (--j; j >= 0; --j)
+	{
 		tty_unregister_device(fwtty_driver, serial->ports[j]->index);
+	}
+
 	kref_put(&serial->kref, fwserial_destroy);
 	return err;
 
 free_ports:
-	for (--i; i >= 0; --i) {
+
+	for (--i; i >= 0; --i)
+	{
 		tty_port_destroy(&serial->ports[i]->port);
 		kfree(serial->ports[i]);
 	}
+
 	kfree(serial);
 	return err;
 }
@@ -2381,17 +2837,23 @@ free_ports:
  * fw_serial for the same fw_card.
  */
 static int fwserial_probe(struct fw_unit *unit,
-			  const struct ieee1394_device_id *id)
+						  const struct ieee1394_device_id *id)
 {
 	struct fw_serial *serial;
 	int err;
 
 	mutex_lock(&fwserial_list_mutex);
 	serial = fwserial_lookup(fw_parent_device(unit)->card);
+
 	if (!serial)
+	{
 		err = fwserial_create(unit);
+	}
 	else
+	{
 		err = fwserial_add_peer(serial, unit);
+	}
+
 	mutex_unlock(&fwserial_list_mutex);
 	return err;
 }
@@ -2413,18 +2875,26 @@ static void fwserial_remove(struct fw_unit *unit)
 	mutex_lock(&fwserial_list_mutex);
 	fwserial_remove_peer(peer);
 
-	if (list_empty(&serial->peer_list)) {
+	if (list_empty(&serial->peer_list))
+	{
 		/* unlink from the fwserial_list here */
 		list_del_rcu(&serial->list);
 
 		debugfs_remove_recursive(serial->debugfs);
 
 		for (i = 0; i < num_ttys; ++i)
+		{
 			fwserial_close_port(fwtty_driver, serial->ports[i]);
+		}
+
 		if (create_loop_dev)
+		{
 			fwserial_close_port(fwloop_driver, serial->ports[i]);
+		}
+
 		kref_put(&serial->kref, fwserial_destroy);
 	}
+
 	mutex_unlock(&fwserial_list_mutex);
 }
 
@@ -2455,17 +2925,19 @@ static void fwserial_update(struct fw_unit *unit)
 	peer->generation = generation;
 }
 
-static const struct ieee1394_device_id fwserial_id_table[] = {
+static const struct ieee1394_device_id fwserial_id_table[] =
+{
 	{
 		.match_flags  = IEEE1394_MATCH_SPECIFIER_ID |
-				IEEE1394_MATCH_VERSION,
+		IEEE1394_MATCH_VERSION,
 		.specifier_id = LINUX_VENDOR_ID,
 		.version      = FWSERIAL_VERSION,
 	},
 	{ }
 };
 
-static struct fw_driver fwserial_driver = {
+static struct fw_driver fwserial_driver =
+{
 	.driver = {
 		.owner  = THIS_MODULE,
 		.name   = KBUILD_MODNAME,
@@ -2480,14 +2952,15 @@ static struct fw_driver fwserial_driver = {
 #define FW_UNIT_SPECIFIER(id)	((CSR_SPECIFIER_ID << 24) | (id))
 #define FW_UNIT_VERSION(ver)	((CSR_VERSION << 24) | (ver))
 #define FW_UNIT_ADDRESS(ofs)	(((CSR_OFFSET | CSR_DEPENDENT_INFO) << 24)  \
-				 | (((ofs) - CSR_REGISTER_BASE) >> 2))
+								 | (((ofs) - CSR_REGISTER_BASE) >> 2))
 /* XXX: config ROM definitons could be improved with semi-automated offset
  * and length calculation
  */
 #define FW_ROM_LEN(quads)	((quads) << 16)
 #define FW_ROM_DESCRIPTOR(ofs)	(((CSR_LEAF | CSR_DESCRIPTOR) << 24) | (ofs))
 
-struct fwserial_unit_directory_data {
+struct fwserial_unit_directory_data
+{
 	u32	len_crc;
 	u32	unit_specifier;
 	u32	unit_sw_version;
@@ -2497,7 +2970,8 @@ struct fwserial_unit_directory_data {
 	u32	desc1_data[5];
 } __packed;
 
-static struct fwserial_unit_directory_data fwserial_unit_directory_data = {
+static struct fwserial_unit_directory_data fwserial_unit_directory_data =
+{
 	.len_crc = FW_ROM_LEN(4),
 	.unit_specifier = FW_UNIT_SPECIFIER(LINUX_VENDOR_ID),
 	.unit_sw_version = FW_UNIT_VERSION(FWSERIAL_VERSION),
@@ -2512,17 +2986,19 @@ static struct fwserial_unit_directory_data fwserial_unit_directory_data = {
 	},
 };
 
-static struct fw_descriptor fwserial_unit_directory = {
+static struct fw_descriptor fwserial_unit_directory =
+{
 	.length = sizeof(fwserial_unit_directory_data) / sizeof(u32),
 	.key    = (CSR_DIRECTORY | CSR_UNIT) << 24,
-	.data   = (u32 *)&fwserial_unit_directory_data,
+	.data   = (u32 *) &fwserial_unit_directory_data,
 };
 
 /*
  * The management address is in the unit space region but above other known
  * address users (to keep wild writes from causing havoc)
  */
-static const struct fw_address_region fwserial_mgmt_addr_region = {
+static const struct fw_address_region fwserial_mgmt_addr_region =
+{
 	.start = CSR_REGISTER_BASE + 0x1e0000ULL,
 	.end = 0x1000000000000ULL,
 };
@@ -2551,50 +3027,66 @@ static void fwserial_handle_plug_req(struct work_struct *work)
 	int rcode;
 
 	pkt = kmalloc(sizeof(*pkt), GFP_KERNEL);
+
 	if (!pkt)
+	{
 		return;
+	}
 
 	port = fwserial_find_port(peer);
 
 	spin_lock_bh(&peer->lock);
 
-	switch (peer->state) {
-	case FWPS_NOT_ATTACHED:
-		if (!port) {
-			fwtty_err(&peer->unit, "no more ports avail\n");
-			fill_plug_rsp_nack(pkt);
-		} else {
-			peer->port = port;
+	switch (peer->state)
+	{
+		case FWPS_NOT_ATTACHED:
+			if (!port)
+			{
+				fwtty_err(&peer->unit, "no more ports avail\n");
+				fill_plug_rsp_nack(pkt);
+			}
+			else
+			{
+				peer->port = port;
+				fill_plug_rsp_ok(pkt, peer->port);
+				peer_set_state(peer, FWPS_PLUG_RESPONDING);
+				/* don't release claimed port */
+				port = NULL;
+			}
+
+			break;
+
+		case FWPS_PLUG_PENDING:
+			if (peer->serial->card->guid > peer->guid)
+			{
+				goto cleanup;
+			}
+
+			/* We lost - hijack the already-claimed port and send ok */
+			del_timer(&peer->timer);
 			fill_plug_rsp_ok(pkt, peer->port);
 			peer_set_state(peer, FWPS_PLUG_RESPONDING);
-			/* don't release claimed port */
-			port = NULL;
-		}
-		break;
+			break;
 
-	case FWPS_PLUG_PENDING:
-		if (peer->serial->card->guid > peer->guid)
-			goto cleanup;
-
-		/* We lost - hijack the already-claimed port and send ok */
-		del_timer(&peer->timer);
-		fill_plug_rsp_ok(pkt, peer->port);
-		peer_set_state(peer, FWPS_PLUG_RESPONDING);
-		break;
-
-	default:
-		fill_plug_rsp_nack(pkt);
+		default:
+			fill_plug_rsp_nack(pkt);
 	}
 
 	spin_unlock_bh(&peer->lock);
+
 	if (port)
+	{
 		fwserial_release_port(port, false);
+	}
 
 	rcode = fwserial_send_mgmt_sync(peer, pkt);
 
 	spin_lock_bh(&peer->lock);
-	if (peer->state == FWPS_PLUG_RESPONDING) {
-		if (rcode == RCODE_COMPLETE) {
+
+	if (peer->state == FWPS_PLUG_RESPONDING)
+	{
+		if (rcode == RCODE_COMPLETE)
+		{
 			struct fwtty_port *tmp = peer->port;
 
 			fwserial_virt_plug_complete(peer, plug_req);
@@ -2602,15 +3094,22 @@ static void fwserial_handle_plug_req(struct work_struct *work)
 
 			fwtty_write_port_status(tmp);
 			spin_lock_bh(&peer->lock);
-		} else {
+		}
+		else
+		{
 			fwtty_err(&peer->unit, "PLUG_RSP error (%d)\n", rcode);
 			port = peer_revert_state(peer);
 		}
 	}
+
 cleanup:
 	spin_unlock_bh(&peer->lock);
+
 	if (port)
+	{
 		fwserial_release_port(port, false);
+	}
+
 	kfree(pkt);
 }
 
@@ -2622,29 +3121,35 @@ static void fwserial_handle_unplug_req(struct work_struct *work)
 	int rcode;
 
 	pkt = kmalloc(sizeof(*pkt), GFP_KERNEL);
+
 	if (!pkt)
+	{
 		return;
+	}
 
 	spin_lock_bh(&peer->lock);
 
-	switch (peer->state) {
-	case FWPS_ATTACHED:
-		fill_unplug_rsp_ok(pkt);
-		peer_set_state(peer, FWPS_UNPLUG_RESPONDING);
-		break;
+	switch (peer->state)
+	{
+		case FWPS_ATTACHED:
+			fill_unplug_rsp_ok(pkt);
+			peer_set_state(peer, FWPS_UNPLUG_RESPONDING);
+			break;
 
-	case FWPS_UNPLUG_PENDING:
-		if (peer->serial->card->guid > peer->guid)
-			goto cleanup;
+		case FWPS_UNPLUG_PENDING:
+			if (peer->serial->card->guid > peer->guid)
+			{
+				goto cleanup;
+			}
 
-		/* We lost - send unplug rsp */
-		del_timer(&peer->timer);
-		fill_unplug_rsp_ok(pkt);
-		peer_set_state(peer, FWPS_UNPLUG_RESPONDING);
-		break;
+			/* We lost - send unplug rsp */
+			del_timer(&peer->timer);
+			fill_unplug_rsp_ok(pkt);
+			peer_set_state(peer, FWPS_UNPLUG_RESPONDING);
+			break;
 
-	default:
-		fill_unplug_rsp_nack(pkt);
+		default:
+			fill_unplug_rsp_nack(pkt);
 	}
 
 	spin_unlock_bh(&peer->lock);
@@ -2652,37 +3157,51 @@ static void fwserial_handle_unplug_req(struct work_struct *work)
 	rcode = fwserial_send_mgmt_sync(peer, pkt);
 
 	spin_lock_bh(&peer->lock);
-	if (peer->state == FWPS_UNPLUG_RESPONDING) {
+
+	if (peer->state == FWPS_UNPLUG_RESPONDING)
+	{
 		if (rcode != RCODE_COMPLETE)
 			fwtty_err(&peer->unit, "UNPLUG_RSP error (%d)\n",
-				  rcode);
+					  rcode);
+
 		port = peer_revert_state(peer);
 	}
+
 cleanup:
 	spin_unlock_bh(&peer->lock);
+
 	if (port)
+	{
 		fwserial_release_port(port, true);
+	}
+
 	kfree(pkt);
 }
 
 static int fwserial_parse_mgmt_write(struct fwtty_peer *peer,
-				     struct fwserial_mgmt_pkt *pkt,
-				     unsigned long long addr,
-				     size_t len)
+									 struct fwserial_mgmt_pkt *pkt,
+									 unsigned long long addr,
+									 size_t len)
 {
 	struct fwtty_port *port = NULL;
 	bool reset = false;
 	int rcode;
 
 	if (addr != fwserial_mgmt_addr_handler.offset || len < sizeof(pkt->hdr))
+	{
 		return RCODE_ADDRESS_ERROR;
+	}
 
 	if (len != be16_to_cpu(pkt->hdr.len) ||
-	    len != mgmt_pkt_expected_len(pkt->hdr.code))
+		len != mgmt_pkt_expected_len(pkt->hdr.code))
+	{
 		return RCODE_DATA_ERROR;
+	}
 
 	spin_lock_bh(&peer->lock);
-	if (peer->state == FWPS_GONE) {
+
+	if (peer->state == FWPS_GONE)
+	{
 		/*
 		 * This should never happen - it would mean that the
 		 * remote unit that just wrote this transaction was
@@ -2698,68 +3217,93 @@ static int fwserial_parse_mgmt_write(struct fwtty_peer *peer,
 
 	fwtty_dbg(&peer->unit, "mgmt: hdr.code: %04hx\n", pkt->hdr.code);
 
-	switch (be16_to_cpu(pkt->hdr.code) & FWSC_CODE_MASK) {
-	case FWSC_VIRT_CABLE_PLUG:
-		if (work_pending(&peer->work)) {
-			fwtty_err(&peer->unit, "plug req: busy\n");
-			rcode = RCODE_CONFLICT_ERROR;
+	switch (be16_to_cpu(pkt->hdr.code) & FWSC_CODE_MASK)
+	{
+		case FWSC_VIRT_CABLE_PLUG:
+			if (work_pending(&peer->work))
+			{
+				fwtty_err(&peer->unit, "plug req: busy\n");
+				rcode = RCODE_CONFLICT_ERROR;
 
-		} else {
-			peer->work_params.plug_req = pkt->plug_req;
-			peer->workfn = fwserial_handle_plug_req;
-			queue_work(system_unbound_wq, &peer->work);
-		}
-		break;
+			}
+			else
+			{
+				peer->work_params.plug_req = pkt->plug_req;
+				peer->workfn = fwserial_handle_plug_req;
+				queue_work(system_unbound_wq, &peer->work);
+			}
 
-	case FWSC_VIRT_CABLE_PLUG_RSP:
-		if (peer->state != FWPS_PLUG_PENDING) {
-			rcode = RCODE_CONFLICT_ERROR;
+			break;
 
-		} else if (be16_to_cpu(pkt->hdr.code) & FWSC_RSP_NACK) {
-			fwtty_notice(&peer->unit, "NACK plug rsp\n");
-			port = peer_revert_state(peer);
+		case FWSC_VIRT_CABLE_PLUG_RSP:
+			if (peer->state != FWPS_PLUG_PENDING)
+			{
+				rcode = RCODE_CONFLICT_ERROR;
 
-		} else {
-			struct fwtty_port *tmp = peer->port;
+			}
+			else if (be16_to_cpu(pkt->hdr.code) & FWSC_RSP_NACK)
+			{
+				fwtty_notice(&peer->unit, "NACK plug rsp\n");
+				port = peer_revert_state(peer);
 
-			fwserial_virt_plug_complete(peer, &pkt->plug_rsp);
-			spin_unlock_bh(&peer->lock);
+			}
+			else
+			{
+				struct fwtty_port *tmp = peer->port;
 
-			fwtty_write_port_status(tmp);
-			spin_lock_bh(&peer->lock);
-		}
-		break;
+				fwserial_virt_plug_complete(peer, &pkt->plug_rsp);
+				spin_unlock_bh(&peer->lock);
 
-	case FWSC_VIRT_CABLE_UNPLUG:
-		if (work_pending(&peer->work)) {
-			fwtty_err(&peer->unit, "unplug req: busy\n");
-			rcode = RCODE_CONFLICT_ERROR;
-		} else {
-			peer->workfn = fwserial_handle_unplug_req;
-			queue_work(system_unbound_wq, &peer->work);
-		}
-		break;
+				fwtty_write_port_status(tmp);
+				spin_lock_bh(&peer->lock);
+			}
 
-	case FWSC_VIRT_CABLE_UNPLUG_RSP:
-		if (peer->state != FWPS_UNPLUG_PENDING) {
-			rcode = RCODE_CONFLICT_ERROR;
-		} else {
-			if (be16_to_cpu(pkt->hdr.code) & FWSC_RSP_NACK)
-				fwtty_notice(&peer->unit, "NACK unplug?\n");
-			port = peer_revert_state(peer);
-			reset = true;
-		}
-		break;
+			break;
 
-	default:
-		fwtty_err(&peer->unit, "unknown mgmt code %d\n",
-			  be16_to_cpu(pkt->hdr.code));
-		rcode = RCODE_DATA_ERROR;
+		case FWSC_VIRT_CABLE_UNPLUG:
+			if (work_pending(&peer->work))
+			{
+				fwtty_err(&peer->unit, "unplug req: busy\n");
+				rcode = RCODE_CONFLICT_ERROR;
+			}
+			else
+			{
+				peer->workfn = fwserial_handle_unplug_req;
+				queue_work(system_unbound_wq, &peer->work);
+			}
+
+			break;
+
+		case FWSC_VIRT_CABLE_UNPLUG_RSP:
+			if (peer->state != FWPS_UNPLUG_PENDING)
+			{
+				rcode = RCODE_CONFLICT_ERROR;
+			}
+			else
+			{
+				if (be16_to_cpu(pkt->hdr.code) & FWSC_RSP_NACK)
+				{
+					fwtty_notice(&peer->unit, "NACK unplug?\n");
+				}
+
+				port = peer_revert_state(peer);
+				reset = true;
+			}
+
+			break;
+
+		default:
+			fwtty_err(&peer->unit, "unknown mgmt code %d\n",
+					  be16_to_cpu(pkt->hdr.code));
+			rcode = RCODE_DATA_ERROR;
 	}
+
 	spin_unlock_bh(&peer->lock);
 
 	if (port)
+	{
 		fwserial_release_port(port, reset);
+	}
 
 	return rcode;
 }
@@ -2772,12 +3316,12 @@ static int fwserial_parse_mgmt_write(struct fwtty_peer *peer,
  * for all cards.
  */
 static void fwserial_mgmt_handler(struct fw_card *card,
-				  struct fw_request *request,
-				  int tcode, int destination, int source,
-				  int generation,
-				  unsigned long long addr,
-				  void *data, size_t len,
-				  void *callback_data)
+								  struct fw_request *request,
+								  int tcode, int destination, int source,
+								  int generation,
+								  unsigned long long addr,
+								  void *data, size_t len,
+								  void *callback_data)
 {
 	struct fwserial_mgmt_pkt *pkt = data;
 	struct fwtty_peer *peer;
@@ -2785,19 +3329,24 @@ static void fwserial_mgmt_handler(struct fw_card *card,
 
 	rcu_read_lock();
 	peer = __fwserial_peer_by_node_id(card, generation, source);
-	if (!peer) {
+
+	if (!peer)
+	{
 		fwtty_dbg(card, "peer(%d:%x) not found\n", generation, source);
 		__dump_peer_list(card);
 		rcode = RCODE_CONFLICT_ERROR;
 
-	} else {
-		switch (tcode) {
-		case TCODE_WRITE_BLOCK_REQUEST:
-			rcode = fwserial_parse_mgmt_write(peer, pkt, addr, len);
-			break;
+	}
+	else
+	{
+		switch (tcode)
+		{
+			case TCODE_WRITE_BLOCK_REQUEST:
+				rcode = fwserial_parse_mgmt_write(peer, pkt, addr, len);
+				break;
 
-		default:
-			rcode = RCODE_TYPE_ERROR;
+			default:
+				rcode = RCODE_TYPE_ERROR;
 		}
 	}
 
@@ -2814,13 +3363,17 @@ static int __init fwserial_init(void)
 
 	/* num_ttys/num_ports must not be set above the static alloc avail */
 	if (num_ttys + num_loops > MAX_CARD_PORTS)
+	{
 		num_ttys = MAX_CARD_PORTS - num_loops;
+	}
 
 	num_ports = num_ttys + num_loops;
 
 	fwtty_driver = tty_alloc_driver(MAX_TOTAL_PORTS, TTY_DRIVER_REAL_RAW
-					| TTY_DRIVER_DYNAMIC_DEV);
-	if (IS_ERR(fwtty_driver)) {
+									| TTY_DRIVER_DYNAMIC_DEV);
+
+	if (IS_ERR(fwtty_driver))
+	{
 		err = PTR_ERR(fwtty_driver);
 		goto remove_debugfs;
 	}
@@ -2836,16 +3389,21 @@ static int __init fwserial_init(void)
 	tty_set_operations(fwtty_driver, &fwtty_ops);
 
 	err = tty_register_driver(fwtty_driver);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("register tty driver failed (%d)\n", err);
 		goto put_tty;
 	}
 
-	if (create_loop_dev) {
+	if (create_loop_dev)
+	{
 		fwloop_driver = tty_alloc_driver(MAX_TOTAL_PORTS / num_ports,
-						 TTY_DRIVER_REAL_RAW
-						 | TTY_DRIVER_DYNAMIC_DEV);
-		if (IS_ERR(fwloop_driver)) {
+										 TTY_DRIVER_REAL_RAW
+										 | TTY_DRIVER_DYNAMIC_DEV);
+
+		if (IS_ERR(fwloop_driver))
+		{
 			err = PTR_ERR(fwloop_driver);
 			goto unregister_driver;
 		}
@@ -2861,16 +3419,20 @@ static int __init fwserial_init(void)
 		tty_set_operations(fwloop_driver, &fwloop_ops);
 
 		err = tty_register_driver(fwloop_driver);
-		if (err) {
+
+		if (err)
+		{
 			pr_err("register loop driver failed (%d)\n", err);
 			goto put_loop;
 		}
 	}
 
 	fwtty_txn_cache = kmem_cache_create("fwtty_txn_cache",
-					    sizeof(struct fwtty_transaction),
-					    0, 0, fwtty_txn_constructor);
-	if (!fwtty_txn_cache) {
+										sizeof(struct fwtty_transaction),
+										0, 0, fwtty_txn_constructor);
+
+	if (!fwtty_txn_cache)
+	{
 		err = -ENOMEM;
 		goto unregister_loop;
 	}
@@ -2886,8 +3448,10 @@ static int __init fwserial_init(void)
 	fwserial_mgmt_addr_handler.address_callback = fwserial_mgmt_handler;
 
 	err = fw_core_add_address_handler(&fwserial_mgmt_addr_handler,
-					  &fwserial_mgmt_addr_region);
-	if (err) {
+									  &fwserial_mgmt_addr_region);
+
+	if (err)
+	{
 		pr_err("add management handler failed (%d)\n", err);
 		goto destroy_cache;
 	}
@@ -2895,13 +3459,17 @@ static int __init fwserial_init(void)
 	fwserial_unit_directory_data.unit_addr_offset =
 		FW_UNIT_ADDRESS(fwserial_mgmt_addr_handler.offset);
 	err = fw_core_add_descriptor(&fwserial_unit_directory);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("add unit descriptor failed (%d)\n", err);
 		goto remove_handler;
 	}
 
 	err = driver_register(&fwserial_driver.driver);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("register fwserial driver failed (%d)\n", err);
 		goto remove_descriptor;
 	}
@@ -2915,11 +3483,19 @@ remove_handler:
 destroy_cache:
 	kmem_cache_destroy(fwtty_txn_cache);
 unregister_loop:
+
 	if (create_loop_dev)
+	{
 		tty_unregister_driver(fwloop_driver);
+	}
+
 put_loop:
+
 	if (create_loop_dev)
+	{
 		put_tty_driver(fwloop_driver);
+	}
+
 unregister_driver:
 	tty_unregister_driver(fwtty_driver);
 put_tty:
@@ -2936,10 +3512,13 @@ static void __exit fwserial_exit(void)
 	fw_core_remove_descriptor(&fwserial_unit_directory);
 	fw_core_remove_address_handler(&fwserial_mgmt_addr_handler);
 	kmem_cache_destroy(fwtty_txn_cache);
-	if (create_loop_dev) {
+
+	if (create_loop_dev)
+	{
 		tty_unregister_driver(fwloop_driver);
 		put_tty_driver(fwloop_driver);
 	}
+
 	tty_unregister_driver(fwtty_driver);
 	put_tty_driver(fwtty_driver);
 	debugfs_remove_recursive(fwserial_debugfs);

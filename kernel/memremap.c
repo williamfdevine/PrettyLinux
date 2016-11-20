@@ -40,7 +40,10 @@ static void *try_ram_remap(resource_size_t offset, size_t size)
 
 	/* In the simple case just return the existing linear address */
 	if (pfn_valid(pfn) && !PageHighMem(pfn_to_page(pfn)))
+	{
 		return __va(offset);
+	}
+
 	return NULL; /* fallback to arch_memremap_wb */
 }
 
@@ -74,20 +77,24 @@ static void *try_ram_remap(resource_size_t offset, size_t size)
 void *memremap(resource_size_t offset, size_t size, unsigned long flags)
 {
 	int is_ram = region_intersects(offset, size,
-				       IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE);
+								   IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE);
 	void *addr = NULL;
 
 	if (!flags)
+	{
 		return NULL;
+	}
 
-	if (is_ram == REGION_MIXED) {
+	if (is_ram == REGION_MIXED)
+	{
 		WARN_ONCE(1, "memremap attempted on mixed range %pa size: %#lx\n",
-				&offset, (unsigned long) size);
+				  &offset, (unsigned long) size);
 		return NULL;
 	}
 
 	/* Try all mapping types requested until one returns non-NULL */
-	if (flags & MEMREMAP_WB) {
+	if (flags & MEMREMAP_WB)
+	{
 		/*
 		 * MEMREMAP_WB is special in that it can be satisifed
 		 * from the direct map.  Some archs depend on the
@@ -95,9 +102,14 @@ void *memremap(resource_size_t offset, size_t size, unsigned long flags)
 		 * the requested range is potentially in System RAM.
 		 */
 		if (is_ram == REGION_INTERSECTS)
+		{
 			addr = try_ram_remap(offset, size);
+		}
+
 		if (!addr)
+		{
 			addr = arch_memremap_wb(offset, size);
+		}
 	}
 
 	/*
@@ -106,17 +118,22 @@ void *memremap(resource_size_t offset, size_t size, unsigned long flags)
 	 * address mapping.  Enforce that this mapping is not aliasing
 	 * System RAM.
 	 */
-	if (!addr && is_ram == REGION_INTERSECTS && flags != MEMREMAP_WB) {
+	if (!addr && is_ram == REGION_INTERSECTS && flags != MEMREMAP_WB)
+	{
 		WARN_ONCE(1, "memremap attempted on ram %pa size: %#lx\n",
-				&offset, (unsigned long) size);
+				  &offset, (unsigned long) size);
 		return NULL;
 	}
 
 	if (!addr && (flags & MEMREMAP_WT))
+	{
 		addr = ioremap_wt(offset, size);
+	}
 
 	if (!addr && (flags & MEMREMAP_WC))
+	{
 		addr = ioremap_wc(offset, size);
+	}
 
 	return addr;
 }
@@ -125,7 +142,9 @@ EXPORT_SYMBOL(memremap);
 void memunmap(void *addr)
 {
 	if (is_vmalloc_addr(addr))
+	{
 		iounmap((void __iomem *) addr);
+	}
 }
 EXPORT_SYMBOL(memunmap);
 
@@ -140,20 +159,27 @@ static int devm_memremap_match(struct device *dev, void *res, void *match_data)
 }
 
 void *devm_memremap(struct device *dev, resource_size_t offset,
-		size_t size, unsigned long flags)
+					size_t size, unsigned long flags)
 {
 	void **ptr, *addr;
 
 	ptr = devres_alloc_node(devm_memremap_release, sizeof(*ptr), GFP_KERNEL,
-			dev_to_node(dev));
+							dev_to_node(dev));
+
 	if (!ptr)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	addr = memremap(offset, size, flags);
-	if (addr) {
+
+	if (addr)
+	{
 		*ptr = addr;
 		devres_add(dev, ptr);
-	} else {
+	}
+	else
+	{
 		devres_free(ptr);
 		return ERR_PTR(-ENXIO);
 	}
@@ -165,7 +191,7 @@ EXPORT_SYMBOL(devm_memremap);
 void devm_memunmap(struct device *dev, void *addr)
 {
 	WARN_ON(devres_release(dev, devm_memremap_release,
-				devm_memremap_match, addr));
+						   devm_memremap_match, addr));
 }
 EXPORT_SYMBOL(devm_memunmap);
 
@@ -175,7 +201,8 @@ static RADIX_TREE(pgmap_radix, GFP_KERNEL);
 #define SECTION_MASK ~((1UL << PA_SECTION_SHIFT) - 1)
 #define SECTION_SIZE (1UL << PA_SECTION_SHIFT)
 
-struct page_map {
+struct page_map
+{
 	struct resource res;
 	struct percpu_ref *ref;
 	struct dev_pagemap pgmap;
@@ -203,8 +230,12 @@ static void pgmap_radix_release(struct resource *res)
 	align_end = align_start + align_size - 1;
 
 	mutex_lock(&pgmap_lock);
+
 	for (key = res->start; key <= res->end; key += SECTION_SIZE)
+	{
 		radix_tree_delete(&pgmap_radix, key >> PA_SECTION_SHIFT);
+	}
+
 	mutex_unlock(&pgmap_lock);
 }
 
@@ -216,8 +247,12 @@ static unsigned long pfn_first(struct page_map *page_map)
 	unsigned long pfn;
 
 	pfn = res->start >> PAGE_SHIFT;
+
 	if (altmap)
+	{
 		pfn += vmem_altmap_offset(altmap);
+	}
+
 	return pfn;
 }
 
@@ -238,7 +273,8 @@ static void devm_memremap_pages_release(struct device *dev, void *data)
 	resource_size_t align_start, align_size;
 	struct dev_pagemap *pgmap = &page_map->pgmap;
 
-	if (percpu_ref_tryget_live(pgmap->ref)) {
+	if (percpu_ref_tryget_live(pgmap->ref))
+	{
 		dev_WARN(dev, "%s: page mapping is still live!\n", __func__);
 		percpu_ref_put(pgmap->ref);
 	}
@@ -250,7 +286,7 @@ static void devm_memremap_pages_release(struct device *dev, void *data)
 	untrack_pfn(NULL, PHYS_PFN(align_start), align_size);
 	pgmap_radix_release(res);
 	dev_WARN_ONCE(dev, pgmap->altmap && pgmap->altmap->alloc,
-			"%s: failed to free all reserved pages\n", __func__);
+				  "%s: failed to free all reserved pages\n", __func__);
 }
 
 /* assumes rcu_read_lock() held at entry */
@@ -280,7 +316,7 @@ struct dev_pagemap *find_dev_pagemap(resource_size_t phys)
  *    this is not enforced.
  */
 void *devm_memremap_pages(struct device *dev, struct resource *res,
-		struct percpu_ref *ref, struct vmem_altmap *altmap)
+						  struct percpu_ref *ref, struct vmem_altmap *altmap)
 {
 	resource_size_t key, align_start, align_size, align_end;
 	pgprot_t pgprot = PAGE_KERNEL;
@@ -291,78 +327,111 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
 
 	align_start = res->start & ~(SECTION_SIZE - 1);
 	align_size = ALIGN(res->start + resource_size(res), SECTION_SIZE)
-		- align_start;
+				 - align_start;
 	is_ram = region_intersects(align_start, align_size,
-		IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE);
+							   IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE);
 
-	if (is_ram == REGION_MIXED) {
+	if (is_ram == REGION_MIXED)
+	{
 		WARN_ONCE(1, "%s attempted on mixed region %pr\n",
-				__func__, res);
+				  __func__, res);
 		return ERR_PTR(-ENXIO);
 	}
 
 	if (is_ram == REGION_INTERSECTS)
+	{
 		return __va(res->start);
+	}
 
 	if (!ref)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	page_map = devres_alloc_node(devm_memremap_pages_release,
-			sizeof(*page_map), GFP_KERNEL, dev_to_node(dev));
+								 sizeof(*page_map), GFP_KERNEL, dev_to_node(dev));
+
 	if (!page_map)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
+
 	pgmap = &page_map->pgmap;
 
 	memcpy(&page_map->res, res, sizeof(*res));
 
 	pgmap->dev = dev;
-	if (altmap) {
+
+	if (altmap)
+	{
 		memcpy(&page_map->altmap, altmap, sizeof(*altmap));
 		pgmap->altmap = &page_map->altmap;
 	}
+
 	pgmap->ref = ref;
 	pgmap->res = &page_map->res;
 
 	mutex_lock(&pgmap_lock);
 	error = 0;
 	align_end = align_start + align_size - 1;
-	for (key = align_start; key <= align_end; key += SECTION_SIZE) {
+
+	for (key = align_start; key <= align_end; key += SECTION_SIZE)
+	{
 		struct dev_pagemap *dup;
 
 		rcu_read_lock();
 		dup = find_dev_pagemap(key);
 		rcu_read_unlock();
-		if (dup) {
+
+		if (dup)
+		{
 			dev_err(dev, "%s: %pr collides with mapping for %s\n",
 					__func__, res, dev_name(dup->dev));
 			error = -EBUSY;
 			break;
 		}
+
 		error = radix_tree_insert(&pgmap_radix, key >> PA_SECTION_SHIFT,
-				page_map);
-		if (error) {
+								  page_map);
+
+		if (error)
+		{
 			dev_err(dev, "%s: failed: %d\n", __func__, error);
 			break;
 		}
 	}
+
 	mutex_unlock(&pgmap_lock);
+
 	if (error)
+	{
 		goto err_radix;
+	}
 
 	nid = dev_to_node(dev);
+
 	if (nid < 0)
+	{
 		nid = numa_mem_id();
+	}
 
 	error = track_pfn_remap(NULL, &pgprot, PHYS_PFN(align_start), 0,
-			align_size);
+							align_size);
+
 	if (error)
+	{
 		goto err_pfn_remap;
+	}
 
 	error = arch_add_memory(nid, align_start, align_size, true);
-	if (error)
-		goto err_add_memory;
 
-	for_each_device_pfn(pfn, page_map) {
+	if (error)
+	{
+		goto err_add_memory;
+	}
+
+	for_each_device_pfn(pfn, page_map)
+	{
 		struct page *page = pfn_to_page(pfn);
 
 		/*
@@ -377,10 +446,10 @@ void *devm_memremap_pages(struct device *dev, struct resource *res,
 	devres_add(dev, page_map);
 	return __va(res->start);
 
- err_add_memory:
+err_add_memory:
 	untrack_pfn(NULL, PHYS_PFN(align_start), align_size);
- err_pfn_remap:
- err_radix:
+err_pfn_remap:
+err_radix:
 	pgmap_radix_release(res);
 	devres_free(page_map);
 	return ERR_PTR(error);

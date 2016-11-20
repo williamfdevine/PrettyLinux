@@ -30,7 +30,8 @@ extern void onenand_release(struct mtd_info *mtd);
  * struct onenand_bufferram - OneNAND BufferRAM Data
  * @blockpage:		block & page address in BufferRAM
  */
-struct onenand_bufferram {
+struct onenand_bufferram
+{
 	int	blockpage;
 };
 
@@ -83,7 +84,8 @@ struct onenand_bufferram {
  * @bbm:		[REPLACEABLE] pointer to Bad Block Management
  * @priv:		[OPTIONAL] pointer to private chip date
  */
-struct onenand_chip {
+struct onenand_chip
+{
 	void __iomem		*base;
 	unsigned		dies;
 	unsigned		boundary[MAX_DIES];
@@ -108,9 +110,9 @@ struct onenand_chip {
 	int (*bbt_wait)(struct mtd_info *mtd, int state);
 	void (*unlock_all)(struct mtd_info *mtd);
 	int (*read_bufferram)(struct mtd_info *mtd, int area,
-			unsigned char *buffer, int offset, size_t count);
+						  unsigned char *buffer, int offset, size_t count);
 	int (*write_bufferram)(struct mtd_info *mtd, int area,
-			const unsigned char *buffer, int offset, size_t count);
+						   const unsigned char *buffer, int offset, size_t count);
 	unsigned short (*read_word)(void __iomem *addr);
 	void (*write_word)(unsigned short value, void __iomem *addr);
 	void (*mmcontrol)(struct mtd_info *mtd, int sync_read);
@@ -216,23 +218,25 @@ struct onenand_chip {
  * @name:	Manufacturer name
  * @id:		manufacturer ID code of device.
 */
-struct onenand_manufacturers {
-        int id;
-        char *name;
+struct onenand_manufacturers
+{
+	int id;
+	char *name;
 };
 
 int onenand_bbt_read_oob(struct mtd_info *mtd, loff_t from,
-			 struct mtd_oob_ops *ops);
+						 struct mtd_oob_ops *ops);
 unsigned onenand_block(struct onenand_chip *this, loff_t addr);
 loff_t onenand_addr(struct onenand_chip *this, int block);
 int flexonenand_region(struct mtd_info *mtd, loff_t addr);
 
 struct mtd_partition;
 
-struct onenand_platform_data {
+struct onenand_platform_data
+{
 	void		(*mmcontrol)(struct mtd_info *mtd, int sync_read);
 	int		(*read_bufferram)(struct mtd_info *mtd, int area,
-			unsigned char *buffer, int offset, size_t count);
+							  unsigned char *buffer, int offset, size_t count);
 	struct mtd_partition *parts;
 	unsigned int	nr_parts;
 };

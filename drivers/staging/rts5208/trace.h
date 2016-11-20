@@ -28,7 +28,7 @@ struct rtsx_chip;
 
 #ifdef _MSG_TRACE
 void _rtsx_trace(struct rtsx_chip *chip, const char *file, const char *func,
-		 int line);
+				 int line);
 #define rtsx_trace(chip)						\
 	_rtsx_trace(chip, __FILE__, __func__, __LINE__)
 #else

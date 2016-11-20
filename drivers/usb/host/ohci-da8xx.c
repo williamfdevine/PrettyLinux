@@ -20,7 +20,7 @@
 #include <linux/platform_data/usb-davinci.h>
 
 #ifndef CONFIG_ARCH_DAVINCI_DA8XX
-#error "This file is DA8xx bus glue.  Define CONFIG_ARCH_DAVINCI_DA8XX."
+	#error "This file is DA8xx bus glue.  Define CONFIG_ARCH_DAVINCI_DA8XX."
 #endif
 
 #define CFGCHIP2	DA8XX_SYSCFG0_VIRT(DA8XX_CFGCHIP2_REG)
@@ -36,7 +36,9 @@ static void ohci_da8xx_clock(int on)
 	u32 cfgchip2;
 
 	cfgchip2 = __raw_readl(CFGCHIP2);
-	if (on) {
+
+	if (on)
+	{
 		clk_enable(usb11_clk);
 
 		/*
@@ -44,7 +46,8 @@ static void ohci_da8xx_clock(int on)
 		 * need to enable the USB 2.0 module clocking, start its PHY,
 		 * and not allow it to stop the clock during USB 2.0 suspend.
 		 */
-		if (!(cfgchip2 & CFGCHIP2_USB1PHYCLKMUX)) {
+		if (!(cfgchip2 & CFGCHIP2_USB1PHYCLKMUX))
+		{
 			clk_enable(usb20_clk);
 
 			cfgchip2 &= ~(CFGCHIP2_RESET | CFGCHIP2_PHYPWRDN);
@@ -52,20 +55,29 @@ static void ohci_da8xx_clock(int on)
 			__raw_writel(cfgchip2, CFGCHIP2);
 
 			pr_info("Waiting for USB PHY clock good...\n");
+
 			while (!(__raw_readl(CFGCHIP2) & CFGCHIP2_PHYCLKGD))
+			{
 				cpu_relax();
+			}
 		}
 
 		/* Enable USB 1.1 PHY */
 		cfgchip2 |= CFGCHIP2_USB1SUSPENDM;
-	} else {
+	}
+	else
+	{
 		clk_disable(usb11_clk);
+
 		if (!(cfgchip2 & CFGCHIP2_USB1PHYCLKMUX))
+		{
 			clk_disable(usb20_clk);
+		}
 
 		/* Disable USB 1.1 PHY */
 		cfgchip2 &= ~CFGCHIP2_USB1SUSPENDM;
 	}
+
 	__raw_writel(cfgchip2, CFGCHIP2);
 }
 
@@ -73,13 +85,15 @@ static void ohci_da8xx_clock(int on)
  * Handle the port over-current indicator change.
  */
 static void ohci_da8xx_ocic_handler(struct da8xx_ohci_root_hub *hub,
-				    unsigned port)
+									unsigned port)
 {
 	ocic_mask |= 1 << port;
 
 	/* Once over-current is detected, the port needs to be powered down */
 	if (hub->get_oci(port) > 0)
+	{
 		hub->set_power(port, 0);
+	}
 }
 
 static int ohci_da8xx_init(struct usb_hcd *hcd)
@@ -101,8 +115,11 @@ static int ohci_da8xx_init(struct usb_hcd *hcd)
 	ohci->num_ports = 1;
 
 	result = ohci_init(ohci);
+
 	if (result < 0)
+	{
 		return result;
+	}
 
 	/*
 	 * Since we're providing a board-specific root hub port power control
@@ -111,14 +128,19 @@ static int ohci_da8xx_init(struct usb_hcd *hcd)
 	 * the correct hub descriptor...
 	 */
 	rh_a = ohci_readl(ohci, &ohci->regs->roothub.a);
-	if (hub->set_power) {
+
+	if (hub->set_power)
+	{
 		rh_a &= ~RH_A_NPS;
 		rh_a |=  RH_A_PSM;
 	}
-	if (hub->get_oci) {
+
+	if (hub->get_oci)
+	{
 		rh_a &= ~RH_A_NOCP;
 		rh_a |=  RH_A_OCPM;
 	}
+
 	rh_a &= ~RH_A_POTPGT;
 	rh_a |= hub->potpgt << 24;
 	ohci_writel(ohci, rh_a, &ohci->regs->roothub.a);
@@ -138,8 +160,11 @@ static int ohci_da8xx_start(struct usb_hcd *hcd)
 	int result;
 
 	result = ohci_run(ohci);
+
 	if (result < 0)
+	{
 		ohci_da8xx_stop(hcd);
+	}
 
 	return result;
 }
@@ -152,15 +177,19 @@ static int ohci_da8xx_hub_status_data(struct usb_hcd *hcd, char *buf)
 	int length		= ohci_hub_status_data(hcd, buf);
 
 	/* See if we have OCIC bit set on port 1 */
-	if (ocic_mask & (1 << 1)) {
+	if (ocic_mask & (1 << 1))
+	{
 		dev_dbg(hcd->self.controller, "over-current indicator change "
-			"on port 1\n");
+				"on port 1\n");
 
 		if (!length)
+		{
 			length = 1;
+		}
 
 		buf[0] |= 1 << 1;
 	}
+
 	return length;
 }
 
@@ -168,73 +197,98 @@ static int ohci_da8xx_hub_status_data(struct usb_hcd *hcd, char *buf)
  * Look at the control requests to the root hub and see if we need to override.
  */
 static int ohci_da8xx_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
-				  u16 wIndex, char *buf, u16 wLength)
+								  u16 wIndex, char *buf, u16 wLength)
 {
 	struct device *dev		= hcd->self.controller;
 	struct da8xx_ohci_root_hub *hub	= dev_get_platdata(dev);
 	int temp;
 
-	switch (typeReq) {
-	case GetPortStatus:
-		/* Check the port number */
-		if (wIndex != 1)
-			break;
+	switch (typeReq)
+	{
+		case GetPortStatus:
 
-		dev_dbg(dev, "GetPortStatus(%u)\n", wIndex);
+			/* Check the port number */
+			if (wIndex != 1)
+			{
+				break;
+			}
 
-		temp = roothub_portstatus(hcd_to_ohci(hcd), wIndex - 1);
+			dev_dbg(dev, "GetPortStatus(%u)\n", wIndex);
 
-		/* The port power status (PPS) bit defaults to 1 */
-		if (hub->get_power && hub->get_power(wIndex) == 0)
-			temp &= ~RH_PS_PPS;
+			temp = roothub_portstatus(hcd_to_ohci(hcd), wIndex - 1);
 
-		/* The port over-current indicator (POCI) bit is always 0 */
-		if (hub->get_oci && hub->get_oci(wIndex) > 0)
-			temp |=  RH_PS_POCI;
+			/* The port power status (PPS) bit defaults to 1 */
+			if (hub->get_power && hub->get_power(wIndex) == 0)
+			{
+				temp &= ~RH_PS_PPS;
+			}
 
-		/* The over-current indicator change (OCIC) bit is 0 too */
-		if (ocic_mask & (1 << wIndex))
-			temp |=  RH_PS_OCIC;
+			/* The port over-current indicator (POCI) bit is always 0 */
+			if (hub->get_oci && hub->get_oci(wIndex) > 0)
+			{
+				temp |=  RH_PS_POCI;
+			}
 
-		put_unaligned(cpu_to_le32(temp), (__le32 *)buf);
-		return 0;
-	case SetPortFeature:
-		temp = 1;
-		goto check_port;
-	case ClearPortFeature:
-		temp = 0;
+			/* The over-current indicator change (OCIC) bit is 0 too */
+			if (ocic_mask & (1 << wIndex))
+			{
+				temp |=  RH_PS_OCIC;
+			}
+
+			put_unaligned(cpu_to_le32(temp), (__le32 *)buf);
+			return 0;
+
+		case SetPortFeature:
+			temp = 1;
+			goto check_port;
+
+		case ClearPortFeature:
+			temp = 0;
 
 check_port:
-		/* Check the port number */
-		if (wIndex != 1)
-			break;
 
-		switch (wValue) {
-		case USB_PORT_FEAT_POWER:
-			dev_dbg(dev, "%sPortFeature(%u): %s\n",
-				temp ? "Set" : "Clear", wIndex, "POWER");
+			/* Check the port number */
+			if (wIndex != 1)
+			{
+				break;
+			}
 
-			if (!hub->set_power)
-				return -EPIPE;
+			switch (wValue)
+			{
+				case USB_PORT_FEAT_POWER:
+					dev_dbg(dev, "%sPortFeature(%u): %s\n",
+							temp ? "Set" : "Clear", wIndex, "POWER");
 
-			return hub->set_power(wIndex, temp) ? -EPIPE : 0;
-		case USB_PORT_FEAT_C_OVER_CURRENT:
-			dev_dbg(dev, "%sPortFeature(%u): %s\n",
-				temp ? "Set" : "Clear", wIndex,
-				"C_OVER_CURRENT");
+					if (!hub->set_power)
+					{
+						return -EPIPE;
+					}
 
-			if (temp)
-				ocic_mask |= 1 << wIndex;
-			else
-				ocic_mask &= ~(1 << wIndex);
-			return 0;
-		}
+					return hub->set_power(wIndex, temp) ? -EPIPE : 0;
+
+				case USB_PORT_FEAT_C_OVER_CURRENT:
+					dev_dbg(dev, "%sPortFeature(%u): %s\n",
+							temp ? "Set" : "Clear", wIndex,
+							"C_OVER_CURRENT");
+
+					if (temp)
+					{
+						ocic_mask |= 1 << wIndex;
+					}
+					else
+					{
+						ocic_mask &= ~(1 << wIndex);
+					}
+
+					return 0;
+			}
 	}
 
 	return ohci_hub_control(hcd, typeReq, wValue, wIndex, buf, wLength);
 }
 
-static const struct hc_driver ohci_da8xx_hc_driver = {
+static const struct hc_driver ohci_da8xx_hc_driver =
+{
 	.description		= hcd_name,
 	.product_desc		= "DA8xx OHCI",
 	.hcd_priv_size		= sizeof(struct ohci_hcd),
@@ -290,7 +344,7 @@ static const struct hc_driver ohci_da8xx_hc_driver = {
  * through the hotplug entry's driver_data.
  */
 static int usb_hcd_da8xx_probe(const struct hc_driver *driver,
-			       struct platform_device *pdev)
+							   struct platform_device *pdev)
 {
 	struct da8xx_ohci_root_hub *hub	= dev_get_platdata(&pdev->dev);
 	struct usb_hcd	*hcd;
@@ -298,46 +352,70 @@ static int usb_hcd_da8xx_probe(const struct hc_driver *driver,
 	int error, irq;
 
 	if (hub == NULL)
+	{
 		return -ENODEV;
+	}
 
 	usb11_clk = devm_clk_get(&pdev->dev, "usb11");
+
 	if (IS_ERR(usb11_clk))
+	{
 		return PTR_ERR(usb11_clk);
+	}
 
 	usb20_clk = devm_clk_get(&pdev->dev, "usb20");
+
 	if (IS_ERR(usb20_clk))
+	{
 		return PTR_ERR(usb20_clk);
+	}
 
 	hcd = usb_create_hcd(driver, &pdev->dev, dev_name(&pdev->dev));
+
 	if (!hcd)
+	{
 		return -ENOMEM;
+	}
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	hcd->regs = devm_ioremap_resource(&pdev->dev, mem);
-	if (IS_ERR(hcd->regs)) {
+
+	if (IS_ERR(hcd->regs))
+	{
 		error = PTR_ERR(hcd->regs);
 		goto err;
 	}
+
 	hcd->rsrc_start = mem->start;
 	hcd->rsrc_len = resource_size(mem);
 
 	ohci_hcd_init(hcd_to_ohci(hcd));
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		error = -ENODEV;
 		goto err;
 	}
+
 	error = usb_add_hcd(hcd, irq, 0);
+
 	if (error)
+	{
 		goto err;
+	}
 
 	device_wakeup_enable(hcd->self.controller);
 
-	if (hub->ocic_notify) {
+	if (hub->ocic_notify)
+	{
 		error = hub->ocic_notify(ohci_da8xx_ocic_handler);
+
 		if (!error)
+		{
 			return 0;
+		}
 	}
 
 	usb_remove_hcd(hcd);
@@ -381,7 +459,7 @@ static int ohci_hcd_da8xx_drv_remove(struct platform_device *dev)
 
 #ifdef CONFIG_PM
 static int ohci_da8xx_suspend(struct platform_device *pdev,
-				pm_message_t message)
+							  pm_message_t message)
 {
 	struct usb_hcd	*hcd	= platform_get_drvdata(pdev);
 	struct ohci_hcd	*ohci	= hcd_to_ohci(hcd);
@@ -390,12 +468,18 @@ static int ohci_da8xx_suspend(struct platform_device *pdev,
 
 
 	if (time_before(jiffies, ohci->next_statechange))
+	{
 		msleep(5);
+	}
+
 	ohci->next_statechange = jiffies;
 
 	ret = ohci_suspend(hcd, do_wakeup);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ohci_da8xx_clock(0);
 	hcd->state = HC_STATE_SUSPENDED;
@@ -409,7 +493,10 @@ static int ohci_da8xx_resume(struct platform_device *dev)
 	struct ohci_hcd	*ohci	= hcd_to_ohci(hcd);
 
 	if (time_before(jiffies, ohci->next_statechange))
+	{
 		msleep(5);
+	}
+
 	ohci->next_statechange = jiffies;
 
 	ohci_da8xx_clock(1);
@@ -422,7 +509,8 @@ static int ohci_da8xx_resume(struct platform_device *dev)
 /*
  * Driver definition to register with platform structure.
  */
-static struct platform_driver ohci_hcd_da8xx_driver = {
+static struct platform_driver ohci_hcd_da8xx_driver =
+{
 	.probe		= ohci_hcd_da8xx_drv_probe,
 	.remove		= ohci_hcd_da8xx_drv_remove,
 	.shutdown 	= usb_hcd_platform_shutdown,

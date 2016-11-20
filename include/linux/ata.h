@@ -38,7 +38,8 @@
 #define ATA_DMA_BOUNDARY	0xffffUL
 #define ATA_DMA_MASK		0xffffffffULL
 
-enum {
+enum
+{
 	/* various global constants */
 	ATA_MAX_DEVICES		= 2,	/* per bus/port */
 	ATA_MAX_PRD		= 256,	/* we could make these 256/256 */
@@ -524,7 +525,8 @@ enum {
 	SERR_DEV_XCHG		= (1 << 26), /* device exchanged */
 };
 
-enum ata_prot_flags {
+enum ata_prot_flags
+{
 	/* protocol flags */
 	ATA_PROT_FLAG_PIO	= (1 << 0), /* is PIO */
 	ATA_PROT_FLAG_DMA	= (1 << 1), /* is DMA */
@@ -532,7 +534,7 @@ enum ata_prot_flags {
 	ATA_PROT_FLAG_ATAPI	= (1 << 3), /* is ATAPI */
 
 	/* taskfile protocols */
-	ATA_PROT_UNKNOWN	= (u8)-1,
+	ATA_PROT_UNKNOWN	= (u8) - 1,
 	ATA_PROT_NODATA		= 0,
 	ATA_PROT_PIO		= ATA_PROT_FLAG_PIO,
 	ATA_PROT_DMA		= ATA_PROT_FLAG_DMA,
@@ -543,14 +545,16 @@ enum ata_prot_flags {
 	ATAPI_PROT_DMA		= ATA_PROT_FLAG_ATAPI | ATA_PROT_FLAG_DMA,
 };
 
-enum ata_ioctls {
+enum ata_ioctls
+{
 	ATA_IOC_GET_IO32	= 0x309, /* HDIO_GET_32BIT */
 	ATA_IOC_SET_IO32	= 0x324, /* HDIO_SET_32BIT */
 };
 
 /* core structures */
 
-struct ata_bmdma_prd {
+struct ata_bmdma_prd
+{
 	__le32			addr;
 	__le32			flags_len;
 };
@@ -586,14 +590,16 @@ struct ata_bmdma_prd {
 #define ata_id_has_da(id)	((id)[ATA_ID_SATA_CAPABILITY_2] & (1 << 4))
 #define ata_id_has_devslp(id)	((id)[ATA_ID_FEATURE_SUPP] & (1 << 8))
 #define ata_id_has_ncq_autosense(id) \
-				((id)[ATA_ID_FEATURE_SUPP] & (1 << 7))
+	((id)[ATA_ID_FEATURE_SUPP] & (1 << 7))
 
 static inline bool ata_id_has_hipm(const u16 *id)
 {
 	u16 val = id[ATA_ID_SATA_CAPABILITY];
 
 	if (val == 0 || val == 0xffff)
+	{
 		return false;
+	}
 
 	return val & (1 << 9);
 }
@@ -603,7 +609,9 @@ static inline bool ata_id_has_dipm(const u16 *id)
 	u16 val = id[ATA_ID_FEATURE_SUPP];
 
 	if (val == 0 || val == 0xffff)
+	{
 		return false;
+	}
 
 	return val & (1 << 3);
 }
@@ -612,39 +620,60 @@ static inline bool ata_id_has_dipm(const u16 *id)
 static inline bool ata_id_has_fua(const u16 *id)
 {
 	if ((id[ATA_ID_CFSSE] & 0xC000) != 0x4000)
+	{
 		return false;
+	}
+
 	return id[ATA_ID_CFSSE] & (1 << 6);
 }
 
 static inline bool ata_id_has_flush(const u16 *id)
 {
 	if ((id[ATA_ID_COMMAND_SET_2] & 0xC000) != 0x4000)
+	{
 		return false;
+	}
+
 	return id[ATA_ID_COMMAND_SET_2] & (1 << 12);
 }
 
 static inline bool ata_id_flush_enabled(const u16 *id)
 {
 	if (ata_id_has_flush(id) == 0)
+	{
 		return false;
+	}
+
 	if ((id[ATA_ID_CSF_DEFAULT] & 0xC000) != 0x4000)
+	{
 		return false;
+	}
+
 	return id[ATA_ID_CFS_ENABLE_2] & (1 << 12);
 }
 
 static inline bool ata_id_has_flush_ext(const u16 *id)
 {
 	if ((id[ATA_ID_COMMAND_SET_2] & 0xC000) != 0x4000)
+	{
 		return false;
+	}
+
 	return id[ATA_ID_COMMAND_SET_2] & (1 << 13);
 }
 
 static inline bool ata_id_flush_ext_enabled(const u16 *id)
 {
 	if (ata_id_has_flush_ext(id) == 0)
+	{
 		return false;
+	}
+
 	if ((id[ATA_ID_CSF_DEFAULT] & 0xC000) != 0x4000)
+	{
 		return false;
+	}
+
 	/*
 	 * some Maxtor disks have bit 13 defined incorrectly
 	 * so check bit 10 too
@@ -659,8 +688,9 @@ static inline u32 ata_id_logical_sector_size(const u16 *id)
 	 * 0xd000 ignores bit 13 (logical:physical > 1)
 	 */
 	if ((id[ATA_ID_SECTOR_SIZE] & 0xd000) == 0x5000)
-		return (((id[ATA_ID_LOGICAL_SECTOR_SIZE+1] << 16)
-			 + id[ATA_ID_LOGICAL_SECTOR_SIZE]) * sizeof(u16)) ;
+		return (((id[ATA_ID_LOGICAL_SECTOR_SIZE + 1] << 16)
+				 + id[ATA_ID_LOGICAL_SECTOR_SIZE]) * sizeof(u16)) ;
+
 	return ATA_SECT_SIZE;
 }
 
@@ -671,7 +701,10 @@ static inline u8 ata_id_log2_per_physical_sector(const u16 *id)
 	 * 0xe000 ignores bit 12 (logical sector > 512 bytes)
 	 */
 	if ((id[ATA_ID_SECTOR_SIZE] & 0xe000) == 0x6000)
+	{
 		return (id[ATA_ID_SECTOR_SIZE] & 0xf);
+	}
+
 	return 0;
 }
 
@@ -685,33 +718,50 @@ static inline u8 ata_id_log2_per_physical_sector(const u16 *id)
  * transaction.
  */
 static inline u16 ata_id_logical_sector_offset(const u16 *id,
-	 u8 log2_per_phys)
+		u8 log2_per_phys)
 {
 	u16 word_209 = id[209];
 
-	if ((log2_per_phys > 1) && (word_209 & 0xc000) == 0x4000) {
+	if ((log2_per_phys > 1) && (word_209 & 0xc000) == 0x4000)
+	{
 		u16 first = word_209 & 0x3fff;
+
 		if (first > 0)
+		{
 			return (1 << log2_per_phys) - first;
+		}
 	}
+
 	return 0;
 }
 
 static inline bool ata_id_has_lba48(const u16 *id)
 {
 	if ((id[ATA_ID_COMMAND_SET_2] & 0xC000) != 0x4000)
+	{
 		return false;
+	}
+
 	if (!ata_id_u64(id, ATA_ID_LBA_CAPACITY_2))
+	{
 		return false;
+	}
+
 	return id[ATA_ID_COMMAND_SET_2] & (1 << 10);
 }
 
 static inline bool ata_id_lba48_enabled(const u16 *id)
 {
 	if (ata_id_has_lba48(id) == 0)
+	{
 		return false;
+	}
+
 	if ((id[ATA_ID_CSF_DEFAULT] & 0xC000) != 0x4000)
+	{
 		return false;
+	}
+
 	return id[ATA_ID_CFS_ENABLE_2] & (1 << 10);
 }
 
@@ -719,13 +769,22 @@ static inline bool ata_id_hpa_enabled(const u16 *id)
 {
 	/* Yes children, word 83 valid bits cover word 82 data */
 	if ((id[ATA_ID_COMMAND_SET_2] & 0xC000) != 0x4000)
+	{
 		return false;
+	}
+
 	/* And 87 covers 85-87 */
 	if ((id[ATA_ID_CSF_DEFAULT] & 0xC000) != 0x4000)
+	{
 		return false;
+	}
+
 	/* Check command sets enabled as well as supported */
 	if ((id[ATA_ID_CFS_ENABLE_1] & (1 << 10)) == 0)
+	{
 		return false;
+	}
+
 	return id[ATA_ID_COMMAND_SET_1] & (1 << 10);
 }
 
@@ -733,28 +792,40 @@ static inline bool ata_id_has_wcache(const u16 *id)
 {
 	/* Yes children, word 83 valid bits cover word 82 data */
 	if ((id[ATA_ID_COMMAND_SET_2] & 0xC000) != 0x4000)
+	{
 		return false;
+	}
+
 	return id[ATA_ID_COMMAND_SET_1] & (1 << 5);
 }
 
 static inline bool ata_id_has_pm(const u16 *id)
 {
 	if ((id[ATA_ID_COMMAND_SET_2] & 0xC000) != 0x4000)
+	{
 		return false;
+	}
+
 	return id[ATA_ID_COMMAND_SET_1] & (1 << 3);
 }
 
 static inline bool ata_id_rahead_enabled(const u16 *id)
 {
 	if ((id[ATA_ID_CSF_DEFAULT] & 0xC000) != 0x4000)
+	{
 		return false;
+	}
+
 	return id[ATA_ID_CFS_ENABLE_1] & (1 << 6);
 }
 
 static inline bool ata_id_wcache_enabled(const u16 *id)
 {
 	if ((id[ATA_ID_CSF_DEFAULT] & 0xC000) != 0x4000)
+	{
 		return false;
+	}
+
 	return id[ATA_ID_CFS_ENABLE_1] & (1 << 5);
 }
 
@@ -762,15 +833,19 @@ static inline bool ata_id_has_read_log_dma_ext(const u16 *id)
 {
 	/* Word 86 must have bit 15 set */
 	if (!(id[ATA_ID_CFS_ENABLE_2] & (1 << 15)))
+	{
 		return false;
+	}
 
 	/* READ LOG DMA EXT support can be signaled either from word 119
 	 * or from word 120. The format is the same for both words: Bit
 	 * 15 must be cleared, bit 14 set and bit 3 set.
 	 */
 	if ((id[ATA_ID_COMMAND_SET_3] & 0xC008) == 0x4008 ||
-	    (id[ATA_ID_COMMAND_SET_4] & 0xC008) == 0x4008)
+		(id[ATA_ID_COMMAND_SET_4] & 0xC008) == 0x4008)
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -778,14 +853,20 @@ static inline bool ata_id_has_read_log_dma_ext(const u16 *id)
 static inline bool ata_id_has_sense_reporting(const u16 *id)
 {
 	if (!(id[ATA_ID_CFS_ENABLE_2] & (1 << 15)))
+	{
 		return false;
+	}
+
 	return id[ATA_ID_COMMAND_SET_3] & (1 << 6);
 }
 
 static inline bool ata_id_sense_reporting_enabled(const u16 *id)
 {
 	if (!(id[ATA_ID_CFS_ENABLE_2] & (1 << 15)))
+	{
 		return false;
+	}
+
 	return id[ATA_ID_COMMAND_SET_4] & (1 << 6);
 }
 
@@ -849,11 +930,16 @@ static inline unsigned int ata_id_major_version(const u16 *id)
 	unsigned int mver;
 
 	if (id[ATA_ID_MAJOR_VER] == 0xFFFF)
+	{
 		return 0;
+	}
 
 	for (mver = 14; mver >= 1; mver--)
 		if (id[ATA_ID_MAJOR_VER] & (1 << mver))
+		{
 			break;
+		}
+
 	return mver;
 }
 
@@ -866,7 +952,10 @@ static inline bool ata_id_is_sata(const u16 *id)
 	 * 0x0000 and 0xffff along with the earlier ATA revisions...
 	 */
 	if (id[ATA_ID_HW_CONFIG] == 0 && (short)id[ATA_ID_MAJOR_VER] >= 0x0020)
+	{
 		return true;
+	}
+
 	return false;
 }
 
@@ -874,9 +963,15 @@ static inline bool ata_id_has_tpm(const u16 *id)
 {
 	/* The TPM bits are only valid on ATA8 */
 	if (ata_id_major_version(id) < 8)
+	{
 		return false;
+	}
+
 	if ((id[48] & 0xC000) != 0x4000)
+	{
 		return false;
+	}
+
 	return id[48] & (1 << 0);
 }
 
@@ -884,16 +979,22 @@ static inline bool ata_id_has_dword_io(const u16 *id)
 {
 	/* ATA 8 reuses this flag for "trusted" computing */
 	if (ata_id_major_version(id) > 7)
+	{
 		return false;
+	}
+
 	return id[ATA_ID_DWORD_IO] & (1 << 0);
 }
 
 static inline bool ata_id_has_unload(const u16 *id)
 {
 	if (ata_id_major_version(id) >= 7 &&
-	    (id[ATA_ID_CFSSE] & 0xC000) == 0x4000 &&
-	    id[ATA_ID_CFSSE] & (1 << 13))
+		(id[ATA_ID_CFSSE] & 0xC000) == 0x4000 &&
+		id[ATA_ID_CFSSE] & (1 << 13))
+	{
 		return true;
+	}
+
 	return false;
 }
 
@@ -907,12 +1008,16 @@ static inline int ata_id_form_factor(const u16 *id)
 	u16 val = id[168];
 
 	if (ata_id_major_version(id) < 7 || val == 0 || val == 0xffff)
+	{
 		return 0;
+	}
 
 	val &= 0xf;
 
 	if (val > 5)
+	{
 		return 0;
+	}
 
 	return val;
 }
@@ -922,10 +1027,14 @@ static inline int ata_id_rotation_rate(const u16 *id)
 	u16 val = id[217];
 
 	if (ata_id_major_version(id) < 7 || val == 0 || val == 0xffff)
+	{
 		return 0;
+	}
 
 	if (val > 1 && val < 0x401)
+	{
 		return 0;
+	}
 
 	return val;
 }
@@ -943,8 +1052,11 @@ static inline bool ata_id_has_ncq_non_data(const u16 *id)
 static inline bool ata_id_has_trim(const u16 *id)
 {
 	if (ata_id_major_version(id) >= 7 &&
-	    (id[ATA_ID_DATA_SET_MGMT] & 1))
+		(id[ATA_ID_DATA_SET_MGMT] & 1))
+	{
 		return true;
+	}
+
 	return false;
 }
 
@@ -952,8 +1064,10 @@ static inline bool ata_id_has_zero_after_trim(const u16 *id)
 {
 	/* DSM supported, deterministic read, and read zero after trim set */
 	if (ata_id_has_trim(id) &&
-	    (id[ATA_ID_ADDITIONAL_SUPP] & 0x4020) == 0x4020)
+		(id[ATA_ID_ADDITIONAL_SUPP] & 0x4020) == 0x4020)
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -964,17 +1078,20 @@ static inline bool ata_id_current_chs_valid(const u16 *id)
 	   has not been issued to the device then the values of
 	   id[ATA_ID_CUR_CYLS] to id[ATA_ID_CUR_SECTORS] are vendor specific. */
 	return (id[ATA_ID_FIELD_VALID] & 1) && /* Current translation valid */
-		id[ATA_ID_CUR_CYLS] &&  /* cylinders in current translation */
-		id[ATA_ID_CUR_HEADS] &&  /* heads in current translation */
-		id[ATA_ID_CUR_HEADS] <= 16 &&
-		id[ATA_ID_CUR_SECTORS];    /* sectors in current translation */
+		   id[ATA_ID_CUR_CYLS] &&  /* cylinders in current translation */
+		   id[ATA_ID_CUR_HEADS] &&  /* heads in current translation */
+		   id[ATA_ID_CUR_HEADS] <= 16 &&
+		   id[ATA_ID_CUR_SECTORS];    /* sectors in current translation */
 }
 
 static inline bool ata_id_is_cfa(const u16 *id)
 {
 	if ((id[ATA_ID_CONFIG] == 0x848A) ||	/* Traditional CF */
-	    (id[ATA_ID_CONFIG] == 0x844A))	/* Delkin Devices CF */
+		(id[ATA_ID_CONFIG] == 0x844A))	/* Delkin Devices CF */
+	{
 		return true;
+	}
+
 	/*
 	 * CF specs don't require specific value in the word 0 anymore and yet
 	 * they forbid to report the ATA version in the word 80 and require the
@@ -1000,10 +1117,16 @@ static inline bool ata_id_pio_need_iordy(const u16 *id, const u8 pio)
 {
 	/* CF spec. r4.1 Table 22 says no IORDY on PIO5 and PIO6. */
 	if (pio > 4 && ata_id_is_cfa(id))
+	{
 		return false;
+	}
+
 	/* For PIO3 and higher it is mandatory. */
 	if (pio > 2)
+	{
 		return true;
+	}
+
 	/* Turn it on when possible. */
 	return ata_id_has_iordy(id);
 }
@@ -1011,26 +1134,39 @@ static inline bool ata_id_pio_need_iordy(const u16 *id, const u8 pio)
 static inline bool ata_drive_40wire(const u16 *dev_id)
 {
 	if (ata_id_is_sata(dev_id))
-		return false;	/* SATA */
+	{
+		return false;    /* SATA */
+	}
+
 	if ((dev_id[ATA_ID_HW_CONFIG] & 0xE000) == 0x6000)
-		return false;	/* 80 wire */
+	{
+		return false;    /* 80 wire */
+	}
+
 	return true;
 }
 
 static inline bool ata_drive_40wire_relaxed(const u16 *dev_id)
 {
 	if ((dev_id[ATA_ID_HW_CONFIG] & 0x2000) == 0x2000)
-		return false;	/* 80 wire */
+	{
+		return false;    /* 80 wire */
+	}
+
 	return true;
 }
 
 static inline int atapi_cdb_len(const u16 *dev_id)
 {
 	u16 tmp = dev_id[ATA_ID_CONFIG] & 0x3;
-	switch (tmp) {
-	case 0:		return 12;
-	case 1:		return 16;
-	default:	return -1;
+
+	switch (tmp)
+	{
+		case 0:		return 12;
+
+		case 1:		return 16;
+
+		default:	return -1;
 	}
 }
 
@@ -1058,7 +1194,9 @@ static inline bool ata_id_is_lba_capacity_ok(u16 *id)
 
 	/* No non-LBA info .. so valid! */
 	if (id[ATA_ID_CYLS] == 0)
+	{
 		return true;
+	}
 
 	lba_sects = ata_id_u32(id, ATA_ID_LBA_CAPACITY);
 
@@ -1069,24 +1207,29 @@ static inline bool ata_id_is_lba_capacity_ok(u16 *id)
 	 * Some drives can be jumpered to use 4092 cyls instead of 16383.
 	 */
 	if ((id[ATA_ID_CYLS] == 16383 ||
-	     (id[ATA_ID_CYLS] == 4092 && id[ATA_ID_CUR_CYLS] == 16383)) &&
-	    id[ATA_ID_SECTORS] == 63 &&
-	    (id[ATA_ID_HEADS] == 15 || id[ATA_ID_HEADS] == 16) &&
-	    (lba_sects >= 16383 * 63 * id[ATA_ID_HEADS]))
+		 (id[ATA_ID_CYLS] == 4092 && id[ATA_ID_CUR_CYLS] == 16383)) &&
+		id[ATA_ID_SECTORS] == 63 &&
+		(id[ATA_ID_HEADS] == 15 || id[ATA_ID_HEADS] == 16) &&
+		(lba_sects >= 16383 * 63 * id[ATA_ID_HEADS]))
+	{
 		return true;
+	}
 
 	chs_sects = id[ATA_ID_CYLS] * id[ATA_ID_HEADS] * id[ATA_ID_SECTORS];
 
 	/* perform a rough sanity check on lba_sects: within 10% is OK */
-	if (lba_sects - chs_sects < chs_sects/10)
+	if (lba_sects - chs_sects < chs_sects / 10)
+	{
 		return true;
+	}
 
 	/* some drives have the word order reversed */
 	head = (lba_sects >> 16) & 0xffff;
 	tail = lba_sects & 0xffff;
 	lba_sects = head | (tail << 16);
 
-	if (lba_sects - chs_sects < chs_sects/10) {
+	if (lba_sects - chs_sects < chs_sects / 10)
+	{
 		*(__le32 *)&id[ATA_ID_LBA_CAPACITY] = __cpu_to_le32(lba_sects);
 		return true;	/* LBA capacity is (now) good */
 	}

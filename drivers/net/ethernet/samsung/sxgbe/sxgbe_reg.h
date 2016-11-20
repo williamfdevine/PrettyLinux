@@ -386,7 +386,8 @@
  * Below fields same for  Inner VLAN Tag Inclusion
  * Register(0x0064) register
  */
-enum vlan_tag_ctl_tx {
+enum vlan_tag_ctl_tx
+{
 	VLAN_TAG_TX_NOP,
 	VLAN_TAG_TX_DEL,
 	VLAN_TAG_TX_INSERT,

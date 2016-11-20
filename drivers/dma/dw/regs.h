@@ -16,7 +16,8 @@
 #define DW_DMA_MAX_NR_REQUESTS	16
 
 /* flow controller */
-enum dw_dma_fc {
+enum dw_dma_fc
+{
 	DW_DMA_FC_D_M2M,
 	DW_DMA_FC_D_M2P,
 	DW_DMA_FC_D_P2M,
@@ -34,7 +35,8 @@ enum dw_dma_fc {
 #define DW_REG(name)		u32 name; u32 __pad_##name
 
 /* Hardware register definitions. */
-struct dw_dma_chan_regs {
+struct dw_dma_chan_regs
+{
 	DW_REG(SAR);		/* Source Address Register */
 	DW_REG(DAR);		/* Destination Address Register */
 	DW_REG(LLP);		/* Linked List Pointer */
@@ -50,7 +52,8 @@ struct dw_dma_chan_regs {
 	DW_REG(DSR);
 };
 
-struct dw_dma_irq_regs {
+struct dw_dma_irq_regs
+{
 	DW_REG(XFER);
 	DW_REG(BLOCK);
 	DW_REG(SRC_TRAN);
@@ -58,7 +61,8 @@ struct dw_dma_irq_regs {
 	DW_REG(ERROR);
 };
 
-struct dw_dma_regs {
+struct dw_dma_regs
+{
 	/* per-channel registers */
 	struct dw_dma_chan_regs	CHAN[DW_DMA_MAX_NR_CHANNELS];
 
@@ -107,11 +111,11 @@ struct dw_dma_regs {
  */
 
 #ifdef CONFIG_DW_DMAC_BIG_ENDIAN_IO
-#define dma_readl_native ioread32be
-#define dma_writel_native iowrite32be
+	#define dma_readl_native ioread32be
+	#define dma_writel_native iowrite32be
 #else
-#define dma_readl_native readl
-#define dma_writel_native writel
+	#define dma_readl_native readl
+	#define dma_writel_native writel
 #endif
 
 /* Bitfields in DW_PARAMS */
@@ -128,7 +132,8 @@ struct dw_dma_regs {
 #define DWC_PARAMS_MBLK_EN	11		/* multi block transfer */
 
 /* bursts size */
-enum dw_dma_msize {
+enum dw_dma_msize
+{
 	DW_DMA_MSIZE_1,
 	DW_DMA_MSIZE_4,
 	DW_DMA_MSIZE_8,
@@ -213,14 +218,16 @@ enum dw_dma_msize {
 /* Bitfields in CFG */
 #define DW_CFG_DMA_EN		(1 << 0)
 
-enum dw_dmac_flags {
+enum dw_dmac_flags
+{
 	DW_DMA_IS_CYCLIC = 0,
 	DW_DMA_IS_SOFT_LLP = 1,
 	DW_DMA_IS_PAUSED = 2,
 	DW_DMA_IS_INITIALIZED = 3,
 };
 
-struct dw_dma_chan {
+struct dw_dma_chan
+{
 	struct dma_chan			chan;
 	void __iomem			*ch_regs;
 	u8				mask;
@@ -267,7 +274,8 @@ static inline struct dw_dma_chan *to_dw_dma_chan(struct dma_chan *chan)
 	return container_of(chan, struct dw_dma_chan, chan);
 }
 
-struct dw_dma {
+struct dw_dma
+{
 	struct dma_device	dma;
 	void __iomem		*regs;
 	struct dma_pool		*desc_pool;
@@ -303,13 +311,14 @@ static inline struct dw_dma *to_dw_dma(struct dma_device *ddev)
 }
 
 #ifdef CONFIG_DW_DMAC_BIG_ENDIAN_IO
-typedef __be32 __dw32;
+	typedef __be32 __dw32;
 #else
-typedef __le32 __dw32;
+	typedef __le32 __dw32;
 #endif
 
 /* LLI == Linked List Item; a.k.a. DMA block descriptor */
-struct dw_lli {
+struct dw_lli
+{
 	/* values that are not changed by hardware */
 	__dw32		sar;
 	__dw32		dar;
@@ -324,7 +333,8 @@ struct dw_lli {
 	__dw32		dstat;
 };
 
-struct dw_desc {
+struct dw_desc
+{
 	/* FIRST values the hardware uses */
 	struct dw_lli			lli;
 

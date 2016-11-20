@@ -19,7 +19,8 @@
 #include <linux/module.h>
 #include <linux/netdevice.h>
 
-enum ANDROID_WIFI_CMD {
+enum ANDROID_WIFI_CMD
+{
 	ANDROID_WIFI_CMD_START,
 	ANDROID_WIFI_CMD_STOP,
 	ANDROID_WIFI_CMD_SCAN_ACTIVE,

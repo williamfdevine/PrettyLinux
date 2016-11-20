@@ -26,7 +26,8 @@
 #include <linux/console.h> /* Why should fb driver call console functions? because console_lock() */
 #include <video/vga.h>
 
-struct arkfb_info {
+struct arkfb_info
+{
 	int mclk_freq;
 	int wc_cookie;
 
@@ -41,23 +42,40 @@ struct arkfb_info {
 /* ------------------------------------------------------------------------- */
 
 
-static const struct svga_fb_format arkfb_formats[] = {
-	{ 0,  {0, 6, 0},  {0, 6, 0},  {0, 6, 0}, {0, 0, 0}, 0,
-		FB_TYPE_TEXT, FB_AUX_TEXT_SVGA_STEP4,	FB_VISUAL_PSEUDOCOLOR, 8, 8},
-	{ 4,  {0, 6, 0},  {0, 6, 0},  {0, 6, 0}, {0, 0, 0}, 0,
-		FB_TYPE_PACKED_PIXELS, 0,		FB_VISUAL_PSEUDOCOLOR, 8, 16},
-	{ 4,  {0, 6, 0},  {0, 6, 0},  {0, 6, 0}, {0, 0, 0}, 1,
-		FB_TYPE_INTERLEAVED_PLANES, 1,		FB_VISUAL_PSEUDOCOLOR, 8, 16},
-	{ 8,  {0, 6, 0},  {0, 6, 0},  {0, 6, 0}, {0, 0, 0}, 0,
-		FB_TYPE_PACKED_PIXELS, 0,		FB_VISUAL_PSEUDOCOLOR, 8, 8},
-	{16,  {10, 5, 0}, {5, 5, 0},  {0, 5, 0}, {0, 0, 0}, 0,
-		FB_TYPE_PACKED_PIXELS, 0,		FB_VISUAL_TRUECOLOR, 4, 4},
-	{16,  {11, 5, 0}, {5, 6, 0},  {0, 5, 0}, {0, 0, 0}, 0,
-		FB_TYPE_PACKED_PIXELS, 0,		FB_VISUAL_TRUECOLOR, 4, 4},
-	{24,  {16, 8, 0}, {8, 8, 0},  {0, 8, 0}, {0, 0, 0}, 0,
-		FB_TYPE_PACKED_PIXELS, 0,		FB_VISUAL_TRUECOLOR, 8, 8},
-	{32,  {16, 8, 0}, {8, 8, 0},  {0, 8, 0}, {0, 0, 0}, 0,
-		FB_TYPE_PACKED_PIXELS, 0,		FB_VISUAL_TRUECOLOR, 2, 2},
+static const struct svga_fb_format arkfb_formats[] =
+{
+	{
+		0,  {0, 6, 0},  {0, 6, 0},  {0, 6, 0}, {0, 0, 0}, 0,
+		FB_TYPE_TEXT, FB_AUX_TEXT_SVGA_STEP4,	FB_VISUAL_PSEUDOCOLOR, 8, 8
+	},
+	{
+		4,  {0, 6, 0},  {0, 6, 0},  {0, 6, 0}, {0, 0, 0}, 0,
+		FB_TYPE_PACKED_PIXELS, 0,		FB_VISUAL_PSEUDOCOLOR, 8, 16
+	},
+	{
+		4,  {0, 6, 0},  {0, 6, 0},  {0, 6, 0}, {0, 0, 0}, 1,
+		FB_TYPE_INTERLEAVED_PLANES, 1,		FB_VISUAL_PSEUDOCOLOR, 8, 16
+	},
+	{
+		8,  {0, 6, 0},  {0, 6, 0},  {0, 6, 0}, {0, 0, 0}, 0,
+		FB_TYPE_PACKED_PIXELS, 0,		FB_VISUAL_PSEUDOCOLOR, 8, 8
+	},
+	{
+		16,  {10, 5, 0}, {5, 5, 0},  {0, 5, 0}, {0, 0, 0}, 0,
+		FB_TYPE_PACKED_PIXELS, 0,		FB_VISUAL_TRUECOLOR, 4, 4
+	},
+	{
+		16,  {11, 5, 0}, {5, 6, 0},  {0, 5, 0}, {0, 0, 0}, 0,
+		FB_TYPE_PACKED_PIXELS, 0,		FB_VISUAL_TRUECOLOR, 4, 4
+	},
+	{
+		24,  {16, 8, 0}, {8, 8, 0},  {0, 8, 0}, {0, 0, 0}, 0,
+		FB_TYPE_PACKED_PIXELS, 0,		FB_VISUAL_TRUECOLOR, 8, 8
+	},
+	{
+		32,  {16, 8, 0}, {8, 8, 0},  {0, 8, 0}, {0, 0, 0}, 0,
+		FB_TYPE_PACKED_PIXELS, 0,		FB_VISUAL_TRUECOLOR, 2, 2
+	},
 	SVGA_FORMAT_END
 };
 
@@ -83,7 +101,8 @@ static const struct vga_regset ark_line_compare_regs[]   = {{0x18, 0, 7}, {0x07,
 static const struct vga_regset ark_start_address_regs[]  = {{0x0d, 0, 7}, {0x0c, 0, 7}, {0x40, 0, 2}, VGA_REGSET_END};
 static const struct vga_regset ark_offset_regs[]         = {{0x13, 0, 7}, {0x41, 3, 3}, VGA_REGSET_END};
 
-static const struct svga_timing_regs ark_timing_regs     = {
+static const struct svga_timing_regs ark_timing_regs     =
+{
 	ark_h_total_regs, ark_h_display_regs, ark_h_blank_start_regs,
 	ark_h_blank_end_regs, ark_h_sync_start_regs, ark_h_sync_end_regs,
 	ark_v_total_regs, ark_v_display_regs, ark_v_blank_start_regs,
@@ -123,22 +142,29 @@ static void arkfb_settile(struct fb_info *info, struct fb_tilemap *map)
 	int i, c;
 
 	if ((map->width != 8) || (map->height != 16) ||
-	    (map->depth != 1) || (map->length != 256)) {
+		(map->depth != 1) || (map->length != 256))
+	{
 		fb_err(info, "unsupported font parameters: width %d, height %d, depth %d, length %d\n",
-		       map->width, map->height, map->depth, map->length);
+			   map->width, map->height, map->depth, map->length);
 		return;
 	}
 
 	fb += 2;
-	for (c = 0; c < map->length; c++) {
-		for (i = 0; i < map->height; i++) {
+
+	for (c = 0; c < map->length; c++)
+	{
+		for (i = 0; i < map->height; i++)
+		{
 			fb_writeb(font[i], &fb[i * 4]);
 			fb_writeb(font[i], &fb[i * 4 + (128 * 8)]);
 		}
+
 		fb += 128;
 
 		if ((c % 8) == 7)
-			fb += 128*8;
+		{
+			fb += 128 * 8;
+		}
 
 		font += map->height;
 	}
@@ -151,7 +177,8 @@ static void arkfb_tilecursor(struct fb_info *info, struct fb_tilecursor *cursor)
 	svga_tilecursor(par->state.vgabase, info, cursor);
 }
 
-static struct fb_tile_ops arkfb_tile_ops = {
+static struct fb_tile_ops arkfb_tile_ops =
+{
 	.fb_settile	= arkfb_settile,
 	.fb_tilecopy	= svga_tilecopy,
 	.fb_tilefill    = svga_tilefill,
@@ -183,16 +210,20 @@ static void arkfb_iplan_imageblit(struct fb_info *info, const struct fb_image *i
 
 	src1 = image->data;
 	dst1 = info->screen_base + (image->dy * info->fix.line_length)
-		 + ((image->dx / 8) * 4);
+		   + ((image->dx / 8) * 4);
 
-	for (y = 0; y < image->height; y++) {
+	for (y = 0; y < image->height; y++)
+	{
 		src = src1;
 		dst = (u32 __iomem *) dst1;
-		for (x = 0; x < image->width; x += 8) {
+
+		for (x = 0; x < image->width; x += 8)
+		{
 			val = *(src++) * 0x01010101;
 			val = (val & fg) | (~val & bg);
 			fb_writel(val, dst++);
 		}
+
 		src1 += image->width / 8;
 		dst1 += info->fix.line_length;
 	}
@@ -208,13 +239,17 @@ static void arkfb_iplan_fillrect(struct fb_info *info, const struct fb_fillrect 
 	int x, y;
 
 	dst1 = info->screen_base + (rect->dy * info->fix.line_length)
-		 + ((rect->dx / 8) * 4);
+		   + ((rect->dx / 8) * 4);
 
-	for (y = 0; y < rect->height; y++) {
+	for (y = 0; y < rect->height; y++)
+	{
 		dst = (u32 __iomem *) dst1;
-		for (x = 0; x < rect->width; x += 8) {
+
+		for (x = 0; x < rect->width; x += 8)
+		{
 			fb_writel(fg, dst++);
 		}
+
 		dst1 += info->fix.line_length;
 	}
 
@@ -225,7 +260,7 @@ static void arkfb_iplan_fillrect(struct fb_info *info, const struct fb_fillrect 
 static inline u32 expand_pixel(u32 c)
 {
 	return (((c &  1) << 24) | ((c &  2) << 27) | ((c &  4) << 14) | ((c &   8) << 17) |
-		((c & 16) <<  4) | ((c & 32) <<  7) | ((c & 64) >>  6) | ((c & 128) >>  3)) * 0xF;
+			((c & 16) <<  4) | ((c & 32) <<  7) | ((c & 64) >>  6) | ((c & 128) >>  3)) * 0xF;
 }
 
 /* arkfb_cfb4_imageblit silently assumes that almost everything is 8-pixel aligned */
@@ -241,16 +276,20 @@ static void arkfb_cfb4_imageblit(struct fb_info *info, const struct fb_image *im
 
 	src1 = image->data;
 	dst1 = info->screen_base + (image->dy * info->fix.line_length)
-		 + ((image->dx / 8) * 4);
+		   + ((image->dx / 8) * 4);
 
-	for (y = 0; y < image->height; y++) {
+	for (y = 0; y < image->height; y++)
+	{
 		src = src1;
 		dst = (u32 __iomem *) dst1;
-		for (x = 0; x < image->width; x += 8) {
+
+		for (x = 0; x < image->width; x += 8)
+		{
 			val = expand_pixel(*(src++));
 			val = (val & fg) | (~val & bg);
 			fb_writel(val, dst++);
 		}
+
 		src1 += image->width / 8;
 		dst1 += info->fix.line_length;
 	}
@@ -260,23 +299,35 @@ static void arkfb_cfb4_imageblit(struct fb_info *info, const struct fb_image *im
 static void arkfb_imageblit(struct fb_info *info, const struct fb_image *image)
 {
 	if ((info->var.bits_per_pixel == 4) && (image->depth == 1)
-	    && ((image->width % 8) == 0) && ((image->dx % 8) == 0)) {
+		&& ((image->width % 8) == 0) && ((image->dx % 8) == 0))
+	{
 		if (info->fix.type == FB_TYPE_INTERLEAVED_PLANES)
+		{
 			arkfb_iplan_imageblit(info, image);
+		}
 		else
+		{
 			arkfb_cfb4_imageblit(info, image);
-	} else
+		}
+	}
+	else
+	{
 		cfb_imageblit(info, image);
+	}
 }
 
 static void arkfb_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
 {
 	if ((info->var.bits_per_pixel == 4)
-	    && ((rect->width % 8) == 0) && ((rect->dx % 8) == 0)
-	    && (info->fix.type == FB_TYPE_INTERLEAVED_PLANES))
+		&& ((rect->width % 8) == 0) && ((rect->dx % 8) == 0)
+		&& (info->fix.type == FB_TYPE_INTERLEAVED_PLANES))
+	{
 		arkfb_iplan_fillrect(info, rect);
-	 else
+	}
+	else
+	{
 		cfb_fillrect(info, rect);
+	}
 }
 
 
@@ -298,7 +349,8 @@ enum
 	DAC_MAX
 };
 
-struct dac_ops {
+struct dac_ops
+{
 	int (*dac_get_mode)(struct dac_info *info);
 	int (*dac_set_mode)(struct dac_info *info, int mode);
 	int (*dac_get_freq)(struct dac_info *info, int channel);
@@ -371,7 +423,8 @@ struct ics5342_info
 #define DAC_PAR(info) ((struct ics5342_info *) info)
 
 /* LSB is set to distinguish unused slots */
-static const u8 ics5342_mode_table[DAC_MAX] = {
+static const u8 ics5342_mode_table[DAC_MAX] =
+{
 	[DAC_PSEUDO8_8]  = 0x01, [DAC_RGB1555_8]  = 0x21, [DAC_RGB0565_8]  = 0x61,
 	[DAC_RGB0888_8]  = 0x41, [DAC_PSEUDO8_16] = 0x11, [DAC_RGB1555_16] = 0x31,
 	[DAC_RGB0565_16] = 0x51, [DAC_RGB0888_16] = 0x91, [DAC_RGB8888_16] = 0x71
@@ -382,12 +435,16 @@ static int ics5342_set_mode(struct dac_info *info, int mode)
 	u8 code;
 
 	if (mode >= DAC_MAX)
+	{
 		return -EINVAL;
+	}
 
 	code = ics5342_mode_table[mode];
 
 	if (! code)
+	{
 		return -EINVAL;
+	}
 
 	dac_write_reg(info, 6, code & 0xF0);
 	DAC_PAR(info)->mode = mode;
@@ -396,11 +453,13 @@ static int ics5342_set_mode(struct dac_info *info, int mode)
 }
 
 static const struct svga_pll ics5342_pll = {3, 129, 3, 33, 0, 3,
-	60000, 250000, 14318};
+		   60000, 250000, 14318
+};
 
 /* pd4 - allow only posdivider 4 (r=2) */
 static const struct svga_pll ics5342_pll_pd4 = {3, 129, 3, 33, 2, 2,
-	60000, 335000, 14318};
+		   60000, 335000, 14318
+};
 
 /* 270 MHz should be upper bound for VCO clock according to specs,
    but that is too restrictive in pd4 case */
@@ -411,13 +470,16 @@ static int ics5342_set_freq(struct dac_info *info, int channel, u32 freq)
 
 	/* only postdivider 4 (r=2) is valid in mode DAC_PSEUDO8_16 */
 	int rv = svga_compute_pll((DAC_PAR(info)->mode == DAC_PSEUDO8_16)
-				  ? &ics5342_pll_pd4 : &ics5342_pll,
-				  freq, &m, &n, &r, 0);
+							  ? &ics5342_pll_pd4 : &ics5342_pll,
+							  freq, &m, &n, &r, 0);
 
-	if (rv < 0) {
+	if (rv < 0)
+	{
 		return -EINVAL;
-	} else {
-		u8 code[6] = {4, 3, 5, m-2, 5, (n-2) | (r << 5)};
+	}
+	else
+	{
+		u8 code[6] = {4, 3, 5, m - 2, 5, (n - 2) | (r << 5)};
 		dac_write_regs(info, code, 3);
 		return 0;
 	}
@@ -429,19 +491,22 @@ static void ics5342_release(struct dac_info *info)
 	kfree(info);
 }
 
-static struct dac_ops ics5342_ops = {
+static struct dac_ops ics5342_ops =
+{
 	.dac_set_mode	= ics5342_set_mode,
 	.dac_set_freq	= ics5342_set_freq,
 	.dac_release	= ics5342_release
 };
 
 
-static struct dac_info * ics5342_init(dac_read_regs_t drr, dac_write_regs_t dwr, void *data)
+static struct dac_info *ics5342_init(dac_read_regs_t drr, dac_write_regs_t dwr, void *data)
 {
 	struct dac_info *info = kzalloc(sizeof(struct ics5342_info), GFP_KERNEL);
 
 	if (! info)
+	{
 		return NULL;
+	}
 
 	info->dacops = &ics5342_ops;
 	info->dac_read_regs = drr;
@@ -465,6 +530,7 @@ static void ark_dac_read_regs(void *data, u8 *code, int count)
 
 	par = info->par;
 	regval = vga_rseq(par->state.vgabase, 0x1C);
+
 	while (count != 0)
 	{
 		vga_wseq(par->state.vgabase, 0x1C, regval | (code[0] & 4 ? 0x80 : 0));
@@ -484,6 +550,7 @@ static void ark_dac_write_regs(void *data, u8 *code, int count)
 
 	par = info->par;
 	regval = vga_rseq(par->state.vgabase, 0x1C);
+
 	while (count != 0)
 	{
 		vga_wseq(par->state.vgabase, 0x1C, regval | (code[0] & 4 ? 0x80 : 0));
@@ -502,7 +569,9 @@ static void ark_set_pixclock(struct fb_info *info, u32 pixclock)
 	u8 regval;
 
 	int rv = dac_set_freq(par->dac, 0, 1000000000 / pixclock);
-	if (rv < 0) {
+
+	if (rv < 0)
+	{
 		fb_err(info, "cannot set requested pixclock, keeping old value\n");
 		return;
 	}
@@ -520,7 +589,9 @@ static int arkfb_open(struct fb_info *info, int user)
 	struct arkfb_info *par = info->par;
 
 	mutex_lock(&(par->open_lock));
-	if (par->ref_count == 0) {
+
+	if (par->ref_count == 0)
+	{
 		void __iomem *vgabase = par->state.vgabase;
 
 		memset(&(par->state), 0, sizeof(struct vgastate));
@@ -544,12 +615,15 @@ static int arkfb_release(struct fb_info *info, int user)
 	struct arkfb_info *par = info->par;
 
 	mutex_lock(&(par->open_lock));
-	if (par->ref_count == 0) {
+
+	if (par->ref_count == 0)
+	{
 		mutex_unlock(&(par->open_lock));
 		return -EINVAL;
 	}
 
-	if (par->ref_count == 1) {
+	if (par->ref_count == 1)
+	{
 		restore_vga(&(par->state));
 		dac_set_mode(par->dac, DAC_PSEUDO8_8);
 	}
@@ -568,6 +642,7 @@ static int arkfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 
 	/* Find appropriate format */
 	rv = svga_match_format (arkfb_formats, var, NULL);
+
 	if (rv < 0)
 	{
 		fb_err(info, "unsupported mode requested\n");
@@ -576,26 +651,32 @@ static int arkfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 
 	/* Do not allow to have real resoulution larger than virtual */
 	if (var->xres > var->xres_virtual)
+	{
 		var->xres_virtual = var->xres;
+	}
 
 	if (var->yres > var->yres_virtual)
+	{
 		var->yres_virtual = var->yres;
+	}
 
 	/* Round up xres_virtual to have proper alignment of lines */
 	step = arkfb_formats[rv].xresstep - 1;
-	var->xres_virtual = (var->xres_virtual+step) & ~step;
+	var->xres_virtual = (var->xres_virtual + step) & ~step;
 
 
 	/* Check whether have enough memory */
 	mem = ((var->bits_per_pixel * var->xres_virtual) >> 3) * var->yres_virtual;
+
 	if (mem > info->screen_size)
 	{
 		fb_err(info, "not enough framebuffer memory (%d kB requested, %d kB available)\n",
-		       mem >> 10, (unsigned int) (info->screen_size >> 10));
+			   mem >> 10, (unsigned int) (info->screen_size >> 10));
 		return -EINVAL;
 	}
 
 	rv = svga_check_timings (&ark_timing_regs, var, info->node);
+
 	if (rv < 0)
 	{
 		fb_err(info, "invalid timings requested\n");
@@ -604,7 +685,9 @@ static int arkfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 
 	/* Interlaced mode is broken */
 	if (var->vmode & FB_VMODE_INTERLACED)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -618,7 +701,8 @@ static int arkfb_set_par(struct fb_info *info)
 	u32 bpp = info->var.bits_per_pixel;
 	u8 regval;
 
-	if (bpp != 0) {
+	if (bpp != 0)
+	{
 		info->fix.ypanstep = 1;
 		info->fix.line_length = (info->var.xres_virtual * bpp) / 8;
 
@@ -631,7 +715,9 @@ static int arkfb_set_par(struct fb_info *info)
 
 		offset_value = (info->var.xres_virtual * bpp) / 64;
 		screen_size = info->var.yres_virtual * info->fix.line_length;
-	} else {
+	}
+	else
+	{
 		info->fix.ypanstep = 16;
 		info->fix.line_length = 0;
 
@@ -687,102 +773,123 @@ static int arkfb_set_par(struct fb_info *info)
 	svga_wcrt_mask(par->state.vgabase, 0x40, 0x08, 0x08);
 
 	if (info->var.vmode & FB_VMODE_DOUBLE)
+	{
 		svga_wcrt_mask(par->state.vgabase, 0x09, 0x80, 0x80);
+	}
 	else
+	{
 		svga_wcrt_mask(par->state.vgabase, 0x09, 0x00, 0x80);
+	}
 
 	if (info->var.vmode & FB_VMODE_INTERLACED)
+	{
 		svga_wcrt_mask(par->state.vgabase, 0x44, 0x04, 0x04);
+	}
 	else
+	{
 		svga_wcrt_mask(par->state.vgabase, 0x44, 0x00, 0x04);
+	}
 
 	hmul = 1;
 	hdiv = 1;
 	mode = svga_match_format(arkfb_formats, &(info->var), &(info->fix));
 
 	/* Set mode-specific register values */
-	switch (mode) {
-	case 0:
-		fb_dbg(info, "text mode\n");
-		svga_set_textmode_vga_regs(par->state.vgabase);
+	switch (mode)
+	{
+		case 0:
+			fb_dbg(info, "text mode\n");
+			svga_set_textmode_vga_regs(par->state.vgabase);
 
-		vga_wseq(par->state.vgabase, 0x11, 0x10); /* basic VGA mode */
-		svga_wcrt_mask(par->state.vgabase, 0x46, 0x00, 0x04); /* 8bit pixel path */
-		dac_set_mode(par->dac, DAC_PSEUDO8_8);
-
-		break;
-	case 1:
-		fb_dbg(info, "4 bit pseudocolor\n");
-		vga_wgfx(par->state.vgabase, VGA_GFX_MODE, 0x40);
-
-		vga_wseq(par->state.vgabase, 0x11, 0x10); /* basic VGA mode */
-		svga_wcrt_mask(par->state.vgabase, 0x46, 0x00, 0x04); /* 8bit pixel path */
-		dac_set_mode(par->dac, DAC_PSEUDO8_8);
-		break;
-	case 2:
-		fb_dbg(info, "4 bit pseudocolor, planar\n");
-
-		vga_wseq(par->state.vgabase, 0x11, 0x10); /* basic VGA mode */
-		svga_wcrt_mask(par->state.vgabase, 0x46, 0x00, 0x04); /* 8bit pixel path */
-		dac_set_mode(par->dac, DAC_PSEUDO8_8);
-		break;
-	case 3:
-		fb_dbg(info, "8 bit pseudocolor\n");
-
-		vga_wseq(par->state.vgabase, 0x11, 0x16); /* 8bpp accel mode */
-
-		if (info->var.pixclock > 20000) {
-			fb_dbg(info, "not using multiplex\n");
+			vga_wseq(par->state.vgabase, 0x11, 0x10); /* basic VGA mode */
 			svga_wcrt_mask(par->state.vgabase, 0x46, 0x00, 0x04); /* 8bit pixel path */
 			dac_set_mode(par->dac, DAC_PSEUDO8_8);
-		} else {
-			fb_dbg(info, "using multiplex\n");
+
+			break;
+
+		case 1:
+			fb_dbg(info, "4 bit pseudocolor\n");
+			vga_wgfx(par->state.vgabase, VGA_GFX_MODE, 0x40);
+
+			vga_wseq(par->state.vgabase, 0x11, 0x10); /* basic VGA mode */
+			svga_wcrt_mask(par->state.vgabase, 0x46, 0x00, 0x04); /* 8bit pixel path */
+			dac_set_mode(par->dac, DAC_PSEUDO8_8);
+			break;
+
+		case 2:
+			fb_dbg(info, "4 bit pseudocolor, planar\n");
+
+			vga_wseq(par->state.vgabase, 0x11, 0x10); /* basic VGA mode */
+			svga_wcrt_mask(par->state.vgabase, 0x46, 0x00, 0x04); /* 8bit pixel path */
+			dac_set_mode(par->dac, DAC_PSEUDO8_8);
+			break;
+
+		case 3:
+			fb_dbg(info, "8 bit pseudocolor\n");
+
+			vga_wseq(par->state.vgabase, 0x11, 0x16); /* 8bpp accel mode */
+
+			if (info->var.pixclock > 20000)
+			{
+				fb_dbg(info, "not using multiplex\n");
+				svga_wcrt_mask(par->state.vgabase, 0x46, 0x00, 0x04); /* 8bit pixel path */
+				dac_set_mode(par->dac, DAC_PSEUDO8_8);
+			}
+			else
+			{
+				fb_dbg(info, "using multiplex\n");
+				svga_wcrt_mask(par->state.vgabase, 0x46, 0x04, 0x04); /* 16bit pixel path */
+				dac_set_mode(par->dac, DAC_PSEUDO8_16);
+				hdiv = 2;
+			}
+
+			break;
+
+		case 4:
+			fb_dbg(info, "5/5/5 truecolor\n");
+
+			vga_wseq(par->state.vgabase, 0x11, 0x1A); /* 16bpp accel mode */
 			svga_wcrt_mask(par->state.vgabase, 0x46, 0x04, 0x04); /* 16bit pixel path */
-			dac_set_mode(par->dac, DAC_PSEUDO8_16);
+			dac_set_mode(par->dac, DAC_RGB1555_16);
+			break;
+
+		case 5:
+			fb_dbg(info, "5/6/5 truecolor\n");
+
+			vga_wseq(par->state.vgabase, 0x11, 0x1A); /* 16bpp accel mode */
+			svga_wcrt_mask(par->state.vgabase, 0x46, 0x04, 0x04); /* 16bit pixel path */
+			dac_set_mode(par->dac, DAC_RGB0565_16);
+			break;
+
+		case 6:
+			fb_dbg(info, "8/8/8 truecolor\n");
+
+			vga_wseq(par->state.vgabase, 0x11, 0x16); /* 8bpp accel mode ??? */
+			svga_wcrt_mask(par->state.vgabase, 0x46, 0x04, 0x04); /* 16bit pixel path */
+			dac_set_mode(par->dac, DAC_RGB0888_16);
+			hmul = 3;
 			hdiv = 2;
-		}
-		break;
-	case 4:
-		fb_dbg(info, "5/5/5 truecolor\n");
+			break;
 
-		vga_wseq(par->state.vgabase, 0x11, 0x1A); /* 16bpp accel mode */
-		svga_wcrt_mask(par->state.vgabase, 0x46, 0x04, 0x04); /* 16bit pixel path */
-		dac_set_mode(par->dac, DAC_RGB1555_16);
-		break;
-	case 5:
-		fb_dbg(info, "5/6/5 truecolor\n");
+		case 7:
+			fb_dbg(info, "8/8/8/8 truecolor\n");
 
-		vga_wseq(par->state.vgabase, 0x11, 0x1A); /* 16bpp accel mode */
-		svga_wcrt_mask(par->state.vgabase, 0x46, 0x04, 0x04); /* 16bit pixel path */
-		dac_set_mode(par->dac, DAC_RGB0565_16);
-		break;
-	case 6:
-		fb_dbg(info, "8/8/8 truecolor\n");
+			vga_wseq(par->state.vgabase, 0x11, 0x1E); /* 32bpp accel mode */
+			svga_wcrt_mask(par->state.vgabase, 0x46, 0x04, 0x04); /* 16bit pixel path */
+			dac_set_mode(par->dac, DAC_RGB8888_16);
+			hmul = 2;
+			break;
 
-		vga_wseq(par->state.vgabase, 0x11, 0x16); /* 8bpp accel mode ??? */
-		svga_wcrt_mask(par->state.vgabase, 0x46, 0x04, 0x04); /* 16bit pixel path */
-		dac_set_mode(par->dac, DAC_RGB0888_16);
-		hmul = 3;
-		hdiv = 2;
-		break;
-	case 7:
-		fb_dbg(info, "8/8/8/8 truecolor\n");
-
-		vga_wseq(par->state.vgabase, 0x11, 0x1E); /* 32bpp accel mode */
-		svga_wcrt_mask(par->state.vgabase, 0x46, 0x04, 0x04); /* 16bit pixel path */
-		dac_set_mode(par->dac, DAC_RGB8888_16);
-		hmul = 2;
-		break;
-	default:
-		fb_err(info, "unsupported mode - bug\n");
-		return -EINVAL;
+		default:
+			fb_err(info, "unsupported mode - bug\n");
+			return -EINVAL;
 	}
 
 	ark_set_pixclock(info, (hdiv * info->var.pixclock) / hmul);
 	svga_set_timings(par->state.vgabase, &ark_timing_regs, &(info->var), hmul, hdiv,
-			 (info->var.vmode & FB_VMODE_DOUBLE)     ? 2 : 1,
-			 (info->var.vmode & FB_VMODE_INTERLACED) ? 2 : 1,
-			  hmul, info->node);
+					 (info->var.vmode & FB_VMODE_DOUBLE)     ? 2 : 1,
+					 (info->var.vmode & FB_VMODE_INTERLACED) ? 2 : 1,
+					 hmul, info->node);
 
 	/* Set interlaced mode start/end register */
 	value = info->var.xres + info->var.left_margin + info->var.right_margin + info->var.hsync_len;
@@ -800,59 +907,79 @@ static int arkfb_set_par(struct fb_info *info)
 /* Set a colour register */
 
 static int arkfb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
-				u_int transp, struct fb_info *fb)
+						   u_int transp, struct fb_info *fb)
 {
-	switch (fb->var.bits_per_pixel) {
-	case 0:
-	case 4:
-		if (regno >= 16)
-			return -EINVAL;
+	switch (fb->var.bits_per_pixel)
+	{
+		case 0:
+		case 4:
+			if (regno >= 16)
+			{
+				return -EINVAL;
+			}
 
-		if ((fb->var.bits_per_pixel == 4) &&
-		    (fb->var.nonstd == 0)) {
-			outb(0xF0, VGA_PEL_MSK);
-			outb(regno*16, VGA_PEL_IW);
-		} else {
-			outb(0x0F, VGA_PEL_MSK);
+			if ((fb->var.bits_per_pixel == 4) &&
+				(fb->var.nonstd == 0))
+			{
+				outb(0xF0, VGA_PEL_MSK);
+				outb(regno * 16, VGA_PEL_IW);
+			}
+			else
+			{
+				outb(0x0F, VGA_PEL_MSK);
+				outb(regno, VGA_PEL_IW);
+			}
+
+			outb(red >> 10, VGA_PEL_D);
+			outb(green >> 10, VGA_PEL_D);
+			outb(blue >> 10, VGA_PEL_D);
+			break;
+
+		case 8:
+			if (regno >= 256)
+			{
+				return -EINVAL;
+			}
+
+			outb(0xFF, VGA_PEL_MSK);
 			outb(regno, VGA_PEL_IW);
-		}
-		outb(red >> 10, VGA_PEL_D);
-		outb(green >> 10, VGA_PEL_D);
-		outb(blue >> 10, VGA_PEL_D);
-		break;
-	case 8:
-		if (regno >= 256)
+			outb(red >> 10, VGA_PEL_D);
+			outb(green >> 10, VGA_PEL_D);
+			outb(blue >> 10, VGA_PEL_D);
+			break;
+
+		case 16:
+			if (regno >= 16)
+			{
+				return 0;
+			}
+
+			if (fb->var.green.length == 5)
+				((u32 *)fb->pseudo_palette)[regno] = ((red & 0xF800) >> 1) |
+													 ((green & 0xF800) >> 6) | ((blue & 0xF800) >> 11);
+			else if (fb->var.green.length == 6)
+				((u32 *)fb->pseudo_palette)[regno] = (red & 0xF800) |
+													 ((green & 0xFC00) >> 5) | ((blue & 0xF800) >> 11);
+			else
+			{
+				return -EINVAL;
+			}
+
+			break;
+
+		case 24:
+		case 32:
+			if (regno >= 16)
+			{
+				return 0;
+			}
+
+			((u32 *)fb->pseudo_palette)[regno] = ((red & 0xFF00) << 8) |
+												 (green & 0xFF00) | ((blue & 0xFF00) >> 8);
+			break;
+
+		default:
 			return -EINVAL;
-
-		outb(0xFF, VGA_PEL_MSK);
-		outb(regno, VGA_PEL_IW);
-		outb(red >> 10, VGA_PEL_D);
-		outb(green >> 10, VGA_PEL_D);
-		outb(blue >> 10, VGA_PEL_D);
-		break;
-	case 16:
-		if (regno >= 16)
-			return 0;
-
-		if (fb->var.green.length == 5)
-			((u32*)fb->pseudo_palette)[regno] = ((red & 0xF800) >> 1) |
-				((green & 0xF800) >> 6) | ((blue & 0xF800) >> 11);
-		else if (fb->var.green.length == 6)
-			((u32*)fb->pseudo_palette)[regno] = (red & 0xF800) |
-				((green & 0xFC00) >> 5) | ((blue & 0xF800) >> 11);
-		else
-			return -EINVAL;
-		break;
-	case 24:
-	case 32:
-		if (regno >= 16)
-			return 0;
-
-		((u32*)fb->pseudo_palette)[regno] = ((red & 0xFF00) << 8) |
-			(green & 0xFF00) | ((blue & 0xFF00) >> 8);
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	return 0;
@@ -864,25 +991,29 @@ static int arkfb_blank(int blank_mode, struct fb_info *info)
 {
 	struct arkfb_info *par = info->par;
 
-	switch (blank_mode) {
-	case FB_BLANK_UNBLANK:
-		fb_dbg(info, "unblank\n");
-		svga_wseq_mask(par->state.vgabase, 0x01, 0x00, 0x20);
-		svga_wcrt_mask(par->state.vgabase, 0x17, 0x80, 0x80);
-		break;
-	case FB_BLANK_NORMAL:
-		fb_dbg(info, "blank\n");
-		svga_wseq_mask(par->state.vgabase, 0x01, 0x20, 0x20);
-		svga_wcrt_mask(par->state.vgabase, 0x17, 0x80, 0x80);
-		break;
-	case FB_BLANK_POWERDOWN:
-	case FB_BLANK_HSYNC_SUSPEND:
-	case FB_BLANK_VSYNC_SUSPEND:
-		fb_dbg(info, "sync down\n");
-		svga_wseq_mask(par->state.vgabase, 0x01, 0x20, 0x20);
-		svga_wcrt_mask(par->state.vgabase, 0x17, 0x00, 0x80);
-		break;
+	switch (blank_mode)
+	{
+		case FB_BLANK_UNBLANK:
+			fb_dbg(info, "unblank\n");
+			svga_wseq_mask(par->state.vgabase, 0x01, 0x00, 0x20);
+			svga_wcrt_mask(par->state.vgabase, 0x17, 0x80, 0x80);
+			break;
+
+		case FB_BLANK_NORMAL:
+			fb_dbg(info, "blank\n");
+			svga_wseq_mask(par->state.vgabase, 0x01, 0x20, 0x20);
+			svga_wcrt_mask(par->state.vgabase, 0x17, 0x80, 0x80);
+			break;
+
+		case FB_BLANK_POWERDOWN:
+		case FB_BLANK_HSYNC_SUSPEND:
+		case FB_BLANK_VSYNC_SUSPEND:
+			fb_dbg(info, "sync down\n");
+			svga_wseq_mask(par->state.vgabase, 0x01, 0x20, 0x20);
+			svga_wcrt_mask(par->state.vgabase, 0x17, 0x00, 0x80);
+			break;
 	}
+
 	return 0;
 }
 
@@ -895,13 +1026,16 @@ static int arkfb_pan_display(struct fb_var_screeninfo *var, struct fb_info *info
 	unsigned int offset;
 
 	/* Calculate the offset */
-	if (info->var.bits_per_pixel == 0) {
+	if (info->var.bits_per_pixel == 0)
+	{
 		offset = (var->yoffset / 16) * (info->var.xres_virtual / 2)
-		       + (var->xoffset / 2);
+				 + (var->xoffset / 2);
 		offset = offset >> 2;
-	} else {
+	}
+	else
+	{
 		offset = (var->yoffset * info->fix.line_length) +
-			 (var->xoffset * info->var.bits_per_pixel / 8);
+				 (var->xoffset * info->var.bits_per_pixel / 8);
 		offset = offset >> ((info->var.bits_per_pixel == 4) ? 2 : 3);
 	}
 
@@ -917,7 +1051,8 @@ static int arkfb_pan_display(struct fb_var_screeninfo *var, struct fb_info *info
 
 /* Frame buffer operations */
 
-static struct fb_ops arkfb_ops = {
+static struct fb_ops arkfb_ops =
+{
 	.owner		= THIS_MODULE,
 	.fb_open	= arkfb_open,
 	.fb_release	= arkfb_release,
@@ -947,14 +1082,17 @@ static int ark_pci_probe(struct pci_dev *dev, const struct pci_device_id *id)
 	u8 regval;
 
 	/* Ignore secondary VGA device because there is no VGA arbitration */
-	if (! svga_primary_device(dev)) {
+	if (! svga_primary_device(dev))
+	{
 		dev_info(&(dev->dev), "ignoring secondary device\n");
 		return -ENODEV;
 	}
 
 	/* Allocate and fill driver data structure */
 	info = framebuffer_alloc(sizeof(struct arkfb_info), &(dev->dev));
-	if (! info) {
+
+	if (! info)
+	{
 		dev_err(&(dev->dev), "cannot allocate memory\n");
 		return -ENOMEM;
 	}
@@ -967,19 +1105,25 @@ static int ark_pci_probe(struct pci_dev *dev, const struct pci_device_id *id)
 
 	/* Prepare PCI device */
 	rc = pci_enable_device(dev);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		dev_err(info->device, "cannot enable PCI device\n");
 		goto err_enable_device;
 	}
 
 	rc = pci_request_regions(dev, "arkfb");
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		dev_err(info->device, "cannot reserve framebuffer region\n");
 		goto err_request_regions;
 	}
 
 	par->dac = ics5342_init(ark_dac_read_regs, ark_dac_write_regs, info);
-	if (! par->dac) {
+
+	if (! par->dac)
+	{
 		rc = -ENOMEM;
 		dev_err(info->device, "RAMDAC initialization failed\n");
 		goto err_dac;
@@ -990,7 +1134,9 @@ static int ark_pci_probe(struct pci_dev *dev, const struct pci_device_id *id)
 
 	/* Map physical IO memory address into kernel space */
 	info->screen_base = pci_iomap_wc(dev, 0, 0);
-	if (! info->screen_base) {
+
+	if (! info->screen_base)
+	{
 		rc = -ENOMEM;
 		dev_err(info->device, "iomap for framebuffer failed\n");
 		goto err_iomap;
@@ -1017,35 +1163,41 @@ static int ark_pci_probe(struct pci_dev *dev, const struct pci_device_id *id)
 	info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
 	info->fix.ypanstep = 0;
 	info->fix.accel = FB_ACCEL_NONE;
-	info->pseudo_palette = (void*) (par->pseudo_palette);
+	info->pseudo_palette = (void *) (par->pseudo_palette);
 
 	/* Prepare startup mode */
 	rc = fb_find_mode(&(info->var), info, mode_option, NULL, 0, NULL, 8);
-	if (! ((rc == 1) || (rc == 2))) {
+
+	if (! ((rc == 1) || (rc == 2)))
+	{
 		rc = -EINVAL;
 		dev_err(info->device, "mode %s not found\n", mode_option);
 		goto err_find_mode;
 	}
 
 	rc = fb_alloc_cmap(&info->cmap, 256, 0);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		dev_err(info->device, "cannot allocate colormap\n");
 		goto err_alloc_cmap;
 	}
 
 	rc = register_framebuffer(info);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		dev_err(info->device, "cannot register framebuffer\n");
 		goto err_reg_fb;
 	}
 
 	fb_info(info, "%s on %s, %d MB RAM\n",
-		info->fix.id, pci_name(dev), info->fix.smem_len >> 20);
+			info->fix.id, pci_name(dev), info->fix.smem_len >> 20);
 
 	/* Record a reference to the driver data */
 	pci_set_drvdata(dev, info);
 	par->wc_cookie = arch_phys_wc_add(info->fix.smem_start,
-					  info->fix.smem_len);
+									  info->fix.smem_len);
 	return 0;
 
 	/* Error handling */
@@ -1059,7 +1211,7 @@ err_iomap:
 err_dac:
 	pci_release_regions(dev);
 err_request_regions:
-/*	pci_disable_device(dev); */
+	/*	pci_disable_device(dev); */
 err_enable_device:
 	framebuffer_release(info);
 	return rc;
@@ -1071,7 +1223,8 @@ static void ark_pci_remove(struct pci_dev *dev)
 {
 	struct fb_info *info = pci_get_drvdata(dev);
 
-	if (info) {
+	if (info)
+	{
 		struct arkfb_info *par = info->par;
 		arch_phys_wc_del(par->wc_cookie);
 		dac_release(par->dac);
@@ -1080,7 +1233,7 @@ static void ark_pci_remove(struct pci_dev *dev)
 
 		pci_iounmap(dev, info->screen_base);
 		pci_release_regions(dev);
-/*		pci_disable_device(dev); */
+		/*		pci_disable_device(dev); */
 
 		framebuffer_release(info);
 	}
@@ -1090,7 +1243,7 @@ static void ark_pci_remove(struct pci_dev *dev)
 #ifdef CONFIG_PM
 /* PCI suspend */
 
-static int ark_pci_suspend (struct pci_dev* dev, pm_message_t state)
+static int ark_pci_suspend (struct pci_dev *dev, pm_message_t state)
 {
 	struct fb_info *info = pci_get_drvdata(dev);
 	struct arkfb_info *par = info->par;
@@ -1100,7 +1253,8 @@ static int ark_pci_suspend (struct pci_dev* dev, pm_message_t state)
 	console_lock();
 	mutex_lock(&(par->open_lock));
 
-	if ((state.event == PM_EVENT_FREEZE) || (par->ref_count == 0)) {
+	if ((state.event == PM_EVENT_FREEZE) || (par->ref_count == 0))
+	{
 		mutex_unlock(&(par->open_lock));
 		console_unlock();
 		return 0;
@@ -1121,7 +1275,7 @@ static int ark_pci_suspend (struct pci_dev* dev, pm_message_t state)
 
 /* PCI resume */
 
-static int ark_pci_resume (struct pci_dev* dev)
+static int ark_pci_resume (struct pci_dev *dev)
 {
 	struct fb_info *info = pci_get_drvdata(dev);
 	struct arkfb_info *par = info->par;
@@ -1132,13 +1286,17 @@ static int ark_pci_resume (struct pci_dev* dev)
 	mutex_lock(&(par->open_lock));
 
 	if (par->ref_count == 0)
+	{
 		goto fail;
+	}
 
 	pci_set_power_state(dev, PCI_D0);
 	pci_restore_state(dev);
 
 	if (pci_enable_device(dev))
+	{
 		goto fail;
+	}
 
 	pci_set_master(dev);
 
@@ -1157,7 +1315,8 @@ fail:
 
 /* List of boards that we are trying to support */
 
-static struct pci_device_id ark_devices[] = {
+static struct pci_device_id ark_devices[] =
+{
 	{PCI_DEVICE(0xEDD8, 0xA099)},
 	{0, 0, 0, 0, 0, 0, 0}
 };
@@ -1165,7 +1324,8 @@ static struct pci_device_id ark_devices[] = {
 
 MODULE_DEVICE_TABLE(pci, ark_devices);
 
-static struct pci_driver arkfb_pci_driver = {
+static struct pci_driver arkfb_pci_driver =
+{
 	.name		= "arkfb",
 	.id_table	= ark_devices,
 	.probe		= ark_pci_probe,
@@ -1191,10 +1351,15 @@ static int __init arkfb_init(void)
 	char *option = NULL;
 
 	if (fb_get_options("arkfb", &option))
+	{
 		return -ENODEV;
+	}
 
 	if (option && *option)
+	{
 		mode_option = option;
+	}
+
 #endif
 
 	pr_debug("arkfb: initializing\n");

@@ -41,7 +41,8 @@
 #define CP110_NAND_FLASH_CLK_CTRL_REG	0x700
 #define    NF_CLOCK_SEL_400_MASK	BIT(0)
 
-enum {
+enum
+{
 	CP110_CLK_TYPE_CORE,
 	CP110_CLK_TYPE_GATABLE,
 };
@@ -81,7 +82,8 @@ enum {
 #define CP110_GATE_EIP150		25
 #define CP110_GATE_EIP197		26
 
-struct cp110_gate_clk {
+struct cp110_gate_clk
+{
 	struct clk_hw hw;
 	struct regmap *regmap;
 	u8 bit_idx;
@@ -94,7 +96,7 @@ static int cp110_gate_enable(struct clk_hw *hw)
 	struct cp110_gate_clk *gate = to_cp110_gate_clk(hw);
 
 	regmap_update_bits(gate->regmap, CP110_PM_CLOCK_GATING_REG,
-			   BIT(gate->bit_idx), BIT(gate->bit_idx));
+					   BIT(gate->bit_idx), BIT(gate->bit_idx));
 
 	return 0;
 }
@@ -104,7 +106,7 @@ static void cp110_gate_disable(struct clk_hw *hw)
 	struct cp110_gate_clk *gate = to_cp110_gate_clk(hw);
 
 	regmap_update_bits(gate->regmap, CP110_PM_CLOCK_GATING_REG,
-			   BIT(gate->bit_idx), 0);
+					   BIT(gate->bit_idx), 0);
 }
 
 static int cp110_gate_is_enabled(struct clk_hw *hw)
@@ -117,23 +119,27 @@ static int cp110_gate_is_enabled(struct clk_hw *hw)
 	return val & BIT(gate->bit_idx);
 }
 
-static const struct clk_ops cp110_gate_ops = {
+static const struct clk_ops cp110_gate_ops =
+{
 	.enable = cp110_gate_enable,
 	.disable = cp110_gate_disable,
 	.is_enabled = cp110_gate_is_enabled,
 };
 
 static struct clk *cp110_register_gate(const char *name,
-				       const char *parent_name,
-				       struct regmap *regmap, u8 bit_idx)
+									   const char *parent_name,
+									   struct regmap *regmap, u8 bit_idx)
 {
 	struct cp110_gate_clk *gate;
 	struct clk *clk;
 	struct clk_init_data init;
 
 	gate = kzalloc(sizeof(*gate), GFP_KERNEL);
+
 	if (!gate)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	memset(&init, 0, sizeof(init));
 
@@ -147,8 +153,11 @@ static struct clk *cp110_register_gate(const char *name,
 	gate->hw.init = &init;
 
 	clk = clk_register(NULL, &gate->hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(gate);
+	}
 
 	return clk;
 }
@@ -158,8 +167,11 @@ static void cp110_unregister_gate(struct clk *clk)
 	struct clk_hw *hw;
 
 	hw = __clk_get_hw(clk);
+
 	if (!hw)
+	{
 		return;
+	}
 
 	clk_unregister(clk);
 	kfree(to_cp110_gate_clk(hw));
@@ -171,13 +183,22 @@ static struct clk *cp110_of_clk_get(struct of_phandle_args *clkspec, void *data)
 	unsigned int type = clkspec->args[0];
 	unsigned int idx = clkspec->args[1];
 
-	if (type == CP110_CLK_TYPE_CORE) {
+	if (type == CP110_CLK_TYPE_CORE)
+	{
 		if (idx > CP110_MAX_CORE_CLOCKS)
+		{
 			return ERR_PTR(-EINVAL);
+		}
+
 		return clk_data->clks[idx];
-	} else if (type == CP110_CLK_TYPE_GATABLE) {
+	}
+	else if (type == CP110_CLK_TYPE_GATABLE)
+	{
 		if (idx > CP110_MAX_GATABLE_CLOCKS)
+		{
 			return ERR_PTR(-EINVAL);
+		}
+
 		return clk_data->clks[CP110_MAX_CORE_CLOCKS + idx];
 	}
 
@@ -195,34 +216,48 @@ static int cp110_syscon_clk_probe(struct platform_device *pdev)
 	int i, ret;
 
 	regmap = syscon_node_to_regmap(np);
+
 	if (IS_ERR(regmap))
+	{
 		return PTR_ERR(regmap);
+	}
 
 	ret = regmap_read(regmap, CP110_NAND_FLASH_CLK_CTRL_REG,
-			  &nand_clk_ctrl);
+					  &nand_clk_ctrl);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	cp110_clks = devm_kcalloc(&pdev->dev, sizeof(struct clk *),
-				  CP110_CLK_NUM, GFP_KERNEL);
+							  CP110_CLK_NUM, GFP_KERNEL);
+
 	if (!cp110_clks)
+	{
 		return -ENOMEM;
+	}
 
 	cp110_clk_data = devm_kzalloc(&pdev->dev,
-				      sizeof(*cp110_clk_data),
-				      GFP_KERNEL);
+								  sizeof(*cp110_clk_data),
+								  GFP_KERNEL);
+
 	if (!cp110_clk_data)
+	{
 		return -ENOMEM;
+	}
 
 	cp110_clk_data->clks = cp110_clks;
 	cp110_clk_data->clk_num = CP110_CLK_NUM;
 
 	/* Register the APLL which is the root of the clk tree */
 	of_property_read_string_index(np, "core-clock-output-names",
-				      CP110_CORE_APLL, &apll_name);
+								  CP110_CORE_APLL, &apll_name);
 	clk = clk_register_fixed_rate(NULL, apll_name, NULL, 0,
-				      1000 * 1000 * 1000);
-	if (IS_ERR(clk)) {
+								  1000 * 1000 * 1000);
+
+	if (IS_ERR(clk))
+	{
 		ret = PTR_ERR(clk);
 		goto fail0;
 	}
@@ -231,9 +266,11 @@ static int cp110_syscon_clk_probe(struct platform_device *pdev)
 
 	/* PPv2 is APLL/3 */
 	of_property_read_string_index(np, "core-clock-output-names",
-				      CP110_CORE_PPV2, &ppv2_name);
+								  CP110_CORE_PPV2, &ppv2_name);
 	clk = clk_register_fixed_factor(NULL, ppv2_name, apll_name, 0, 1, 3);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		ret = PTR_ERR(clk);
 		goto fail1;
 	}
@@ -242,9 +279,11 @@ static int cp110_syscon_clk_probe(struct platform_device *pdev)
 
 	/* EIP clock is APLL/2 */
 	of_property_read_string_index(np, "core-clock-output-names",
-				      CP110_CORE_EIP, &eip_name);
+								  CP110_CORE_EIP, &eip_name);
 	clk = clk_register_fixed_factor(NULL, eip_name, apll_name, 0, 1, 2);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		ret = PTR_ERR(clk);
 		goto fail2;
 	}
@@ -253,9 +292,11 @@ static int cp110_syscon_clk_probe(struct platform_device *pdev)
 
 	/* Core clock is EIP/2 */
 	of_property_read_string_index(np, "core-clock-output-names",
-				      CP110_CORE_CORE, &core_name);
+								  CP110_CORE_CORE, &core_name);
 	clk = clk_register_fixed_factor(NULL, core_name, eip_name, 0, 1, 2);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		ret = PTR_ERR(clk);
 		goto fail3;
 	}
@@ -264,79 +305,97 @@ static int cp110_syscon_clk_probe(struct platform_device *pdev)
 
 	/* NAND can be either APLL/2.5 or core clock */
 	of_property_read_string_index(np, "core-clock-output-names",
-				      CP110_CORE_NAND, &nand_name);
+								  CP110_CORE_NAND, &nand_name);
+
 	if (nand_clk_ctrl & NF_CLOCK_SEL_400_MASK)
 		clk = clk_register_fixed_factor(NULL, nand_name,
-						apll_name, 0, 2, 5);
+										apll_name, 0, 2, 5);
 	else
 		clk = clk_register_fixed_factor(NULL, nand_name,
-						core_name, 0, 1, 1);
-	if (IS_ERR(clk)) {
+										core_name, 0, 1, 1);
+
+	if (IS_ERR(clk))
+	{
 		ret = PTR_ERR(clk);
 		goto fail4;
 	}
 
 	cp110_clks[CP110_CORE_NAND] = clk;
 
-	for (i = 0; i < CP110_MAX_GATABLE_CLOCKS; i++) {
+	for (i = 0; i < CP110_MAX_GATABLE_CLOCKS; i++)
+	{
 		const char *parent, *name;
 		int ret;
 
 		ret = of_property_read_string_index(np,
-						    "gate-clock-output-names",
-						    i, &name);
+											"gate-clock-output-names",
+											i, &name);
+
 		/* Reached the end of the list? */
 		if (ret < 0)
-			break;
-
-		if (!strcmp(name, "none"))
-			continue;
-
-		switch (i) {
-		case CP110_GATE_AUDIO:
-		case CP110_GATE_COMM_UNIT:
-		case CP110_GATE_EIP150:
-		case CP110_GATE_EIP197:
-		case CP110_GATE_SLOW_IO:
-			of_property_read_string_index(np,
-						      "gate-clock-output-names",
-						      CP110_GATE_MAIN, &parent);
-			break;
-		case CP110_GATE_NAND:
-			parent = nand_name;
-			break;
-		case CP110_GATE_PPV2:
-			parent = ppv2_name;
-			break;
-		case CP110_GATE_SDIO:
-			of_property_read_string_index(np,
-						      "gate-clock-output-names",
-						      CP110_GATE_SDMMC, &parent);
-			break;
-		case CP110_GATE_XOR1:
-		case CP110_GATE_XOR0:
-		case CP110_GATE_PCIE_X1_0:
-		case CP110_GATE_PCIE_X1_1:
-		case CP110_GATE_PCIE_X4:
-			of_property_read_string_index(np,
-						      "gate-clock-output-names",
-						      CP110_GATE_PCIE_XOR, &parent);
-			break;
-		case CP110_GATE_SATA:
-		case CP110_GATE_USB3H0:
-		case CP110_GATE_USB3H1:
-		case CP110_GATE_USB3DEV:
-			of_property_read_string_index(np,
-						      "gate-clock-output-names",
-						      CP110_GATE_SATA_USB, &parent);
-			break;
-		default:
-			parent = core_name;
+		{
 			break;
 		}
 
+		if (!strcmp(name, "none"))
+		{
+			continue;
+		}
+
+		switch (i)
+		{
+			case CP110_GATE_AUDIO:
+			case CP110_GATE_COMM_UNIT:
+			case CP110_GATE_EIP150:
+			case CP110_GATE_EIP197:
+			case CP110_GATE_SLOW_IO:
+				of_property_read_string_index(np,
+											  "gate-clock-output-names",
+											  CP110_GATE_MAIN, &parent);
+				break;
+
+			case CP110_GATE_NAND:
+				parent = nand_name;
+				break;
+
+			case CP110_GATE_PPV2:
+				parent = ppv2_name;
+				break;
+
+			case CP110_GATE_SDIO:
+				of_property_read_string_index(np,
+											  "gate-clock-output-names",
+											  CP110_GATE_SDMMC, &parent);
+				break;
+
+			case CP110_GATE_XOR1:
+			case CP110_GATE_XOR0:
+			case CP110_GATE_PCIE_X1_0:
+			case CP110_GATE_PCIE_X1_1:
+			case CP110_GATE_PCIE_X4:
+				of_property_read_string_index(np,
+											  "gate-clock-output-names",
+											  CP110_GATE_PCIE_XOR, &parent);
+				break;
+
+			case CP110_GATE_SATA:
+			case CP110_GATE_USB3H0:
+			case CP110_GATE_USB3H1:
+			case CP110_GATE_USB3DEV:
+				of_property_read_string_index(np,
+											  "gate-clock-output-names",
+											  CP110_GATE_SATA_USB, &parent);
+				break;
+
+			default:
+				parent = core_name;
+				break;
+		}
+
 		clk = cp110_register_gate(name, parent, regmap, i);
-		if (IS_ERR(clk)) {
+
+		if (IS_ERR(clk))
+		{
 			ret = PTR_ERR(clk);
 			goto fail_gate;
 		}
@@ -345,8 +404,11 @@ static int cp110_syscon_clk_probe(struct platform_device *pdev)
 	}
 
 	ret = of_clk_add_provider(np, cp110_of_clk_get, cp110_clk_data);
+
 	if (ret)
+	{
 		goto fail_clk_add;
+	}
 
 	platform_set_drvdata(pdev, cp110_clks);
 
@@ -354,11 +416,15 @@ static int cp110_syscon_clk_probe(struct platform_device *pdev)
 
 fail_clk_add:
 fail_gate:
-	for (i = 0; i < CP110_MAX_GATABLE_CLOCKS; i++) {
+
+	for (i = 0; i < CP110_MAX_GATABLE_CLOCKS; i++)
+	{
 		clk = cp110_clks[CP110_MAX_CORE_CLOCKS + i];
 
 		if (clk)
+		{
 			cp110_unregister_gate(clk);
+		}
 	}
 
 	clk_unregister_fixed_factor(cp110_clks[CP110_CORE_NAND]);
@@ -381,11 +447,14 @@ static int cp110_syscon_clk_remove(struct platform_device *pdev)
 
 	of_clk_del_provider(pdev->dev.of_node);
 
-	for (i = 0; i < CP110_MAX_GATABLE_CLOCKS; i++) {
+	for (i = 0; i < CP110_MAX_GATABLE_CLOCKS; i++)
+	{
 		struct clk *clk = cp110_clks[CP110_MAX_CORE_CLOCKS + i];
 
 		if (clk)
+		{
 			cp110_unregister_gate(clk);
+		}
 	}
 
 	clk_unregister_fixed_factor(cp110_clks[CP110_CORE_NAND]);
@@ -397,13 +466,15 @@ static int cp110_syscon_clk_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id cp110_syscon_of_match[] = {
+static const struct of_device_id cp110_syscon_of_match[] =
+{
 	{ .compatible = "marvell,cp110-system-controller0", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, armada8k_pcie_of_match);
 
-static struct platform_driver cp110_syscon_driver = {
+static struct platform_driver cp110_syscon_driver =
+{
 	.probe = cp110_syscon_clk_probe,
 	.remove = cp110_syscon_clk_remove,
 	.driver		= {

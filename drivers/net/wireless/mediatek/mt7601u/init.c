@@ -33,25 +33,33 @@ mt7601u_set_wlan_state(struct mt7601u_dev *dev, u32 val, bool enable)
 
 	if (enable)
 		val |= (MT_WLAN_FUN_CTRL_WLAN_EN |
-			MT_WLAN_FUN_CTRL_WLAN_CLK_EN);
+				MT_WLAN_FUN_CTRL_WLAN_CLK_EN);
 	else
+	{
 		val &= ~(MT_WLAN_FUN_CTRL_WLAN_EN);
+	}
 
 	mt7601u_wr(dev, MT_WLAN_FUN_CTRL, val);
 	udelay(20);
 
-	if (enable) {
+	if (enable)
+	{
 		set_bit(MT7601U_STATE_WLAN_RUNNING, &dev->state);
-	} else {
+	}
+	else
+	{
 		clear_bit(MT7601U_STATE_WLAN_RUNNING, &dev->state);
 		return;
 	}
 
-	for (i = 200; i; i--) {
+	for (i = 200; i; i--)
+	{
 		val = mt7601u_rr(dev, MT_CMB_CTRL);
 
 		if (val & MT_CMB_CTRL_XTAL_RDY && val & MT_CMB_CTRL_PLL_LD)
+		{
 			break;
+		}
 
 		udelay(20);
 	}
@@ -61,7 +69,9 @@ mt7601u_set_wlan_state(struct mt7601u_dev *dev, u32 val, bool enable)
 	 *       triggered, so don't bother.
 	 */
 	if (!i)
+	{
 		dev_err(dev->dev, "Error: PLL and XTAL check failed!\n");
+	}
 }
 
 static void mt7601u_chip_onoff(struct mt7601u_dev *dev, bool enable, bool reset)
@@ -72,18 +82,20 @@ static void mt7601u_chip_onoff(struct mt7601u_dev *dev, bool enable, bool reset)
 
 	val = mt7601u_rr(dev, MT_WLAN_FUN_CTRL);
 
-	if (reset) {
+	if (reset)
+	{
 		val |= MT_WLAN_FUN_CTRL_GPIO_OUT_EN;
 		val &= ~MT_WLAN_FUN_CTRL_FRC_WL_ANT_SEL;
 
-		if (val & MT_WLAN_FUN_CTRL_WLAN_EN) {
+		if (val & MT_WLAN_FUN_CTRL_WLAN_EN)
+		{
 			val |= (MT_WLAN_FUN_CTRL_WLAN_RESET |
-				MT_WLAN_FUN_CTRL_WLAN_RESET_RF);
+					MT_WLAN_FUN_CTRL_WLAN_RESET_RF);
 			mt7601u_wr(dev, MT_WLAN_FUN_CTRL, val);
 			udelay(20);
 
 			val &= ~(MT_WLAN_FUN_CTRL_WLAN_RESET |
-				 MT_WLAN_FUN_CTRL_WLAN_RESET_RF);
+					 MT_WLAN_FUN_CTRL_WLAN_RESET_RF);
 		}
 	}
 
@@ -98,7 +110,7 @@ static void mt7601u_chip_onoff(struct mt7601u_dev *dev, bool enable, bool reset)
 static void mt7601u_reset_csr_bbp(struct mt7601u_dev *dev)
 {
 	mt7601u_wr(dev, MT_MAC_SYS_CTRL, (MT_MAC_SYS_CTRL_RESET_CSR |
-					  MT_MAC_SYS_CTRL_RESET_BBP));
+									  MT_MAC_SYS_CTRL_RESET_BBP));
 	mt7601u_wr(dev, MT_USB_DMA_CFG, 0);
 	msleep(1);
 	mt7601u_wr(dev, MT_MAC_SYS_CTRL, 0);
@@ -109,12 +121,16 @@ static void mt7601u_init_usb_dma(struct mt7601u_dev *dev)
 	u32 val;
 
 	val = FIELD_PREP(MT_USB_DMA_CFG_RX_BULK_AGG_TOUT, MT_USB_AGGR_TIMEOUT) |
-	      FIELD_PREP(MT_USB_DMA_CFG_RX_BULK_AGG_LMT,
-			 MT_USB_AGGR_SIZE_LIMIT) |
-	      MT_USB_DMA_CFG_RX_BULK_EN |
-	      MT_USB_DMA_CFG_TX_BULK_EN;
+		  FIELD_PREP(MT_USB_DMA_CFG_RX_BULK_AGG_LMT,
+					 MT_USB_AGGR_SIZE_LIMIT) |
+		  MT_USB_DMA_CFG_RX_BULK_EN |
+		  MT_USB_DMA_CFG_TX_BULK_EN;
+
 	if (dev->in_max_packet == 512)
+	{
 		val |= MT_USB_DMA_CFG_RX_BULK_AGG_EN;
+	}
+
 	mt7601u_wr(dev, MT_USB_DMA_CFG, val);
 
 	val |= MT_USB_DMA_CFG_UDMA_RX_WL_DROP;
@@ -128,16 +144,22 @@ static int mt7601u_init_bbp(struct mt7601u_dev *dev)
 	int ret;
 
 	ret = mt7601u_wait_bbp_ready(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = mt7601u_write_reg_pairs(dev, MT_MCU_MEMMAP_BBP, bbp_common_vals,
-				      ARRAY_SIZE(bbp_common_vals));
+								  ARRAY_SIZE(bbp_common_vals));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return mt7601u_write_reg_pairs(dev, MT_MCU_MEMMAP_BBP, bbp_chip_vals,
-				       ARRAY_SIZE(bbp_chip_vals));
+								   ARRAY_SIZE(bbp_chip_vals));
 }
 
 static void
@@ -147,14 +169,17 @@ mt76_init_beacon_offsets(struct mt7601u_dev *dev)
 	u32 regs[4] = {};
 	int i;
 
-	for (i = 0; i < 16; i++) {
+	for (i = 0; i < 16; i++)
+	{
 		u16 addr = dev->beacon_offsets[i];
 
 		regs[i / 4] |= ((addr - base) / 64) << (8 * (i % 4));
 	}
 
 	for (i = 0; i < 4; i++)
+	{
 		mt7601u_wr(dev, MT_BCN_OFFSET(i), regs[i]);
+	}
 }
 
 static int mt7601u_write_mac_initvals(struct mt7601u_dev *dev)
@@ -162,13 +187,20 @@ static int mt7601u_write_mac_initvals(struct mt7601u_dev *dev)
 	int ret;
 
 	ret = mt7601u_write_reg_pairs(dev, MT_MCU_MEMMAP_WLAN, mac_common_vals,
-				      ARRAY_SIZE(mac_common_vals));
+								  ARRAY_SIZE(mac_common_vals));
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = mt7601u_write_reg_pairs(dev, MT_MCU_MEMMAP_WLAN,
-				      mac_chip_vals, ARRAY_SIZE(mac_chip_vals));
+								  mac_chip_vals, ARRAY_SIZE(mac_chip_vals));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	mt76_init_beacon_offsets(dev);
 
@@ -183,16 +215,20 @@ static int mt7601u_init_wcid_mem(struct mt7601u_dev *dev)
 	int i, ret;
 
 	vals = kmalloc(sizeof(*vals) * N_WCIDS * 2, GFP_KERNEL);
-	if (!vals)
-		return -ENOMEM;
 
-	for (i = 0; i < N_WCIDS; i++)  {
+	if (!vals)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < N_WCIDS; i++)
+	{
 		vals[i * 2] = 0xffffffff;
 		vals[i * 2 + 1] = 0x00ffffff;
 	}
 
 	ret = mt7601u_burst_write_regs(dev, MT_WCID_ADDR_BASE,
-				       vals, N_WCIDS * 2);
+								   vals, N_WCIDS * 2);
 	kfree(vals);
 
 	return ret;
@@ -203,7 +239,7 @@ static int mt7601u_init_key_mem(struct mt7601u_dev *dev)
 	u32 vals[4] = {};
 
 	return mt7601u_burst_write_regs(dev, MT_SKEY_MODE_BASE_0,
-					vals, ARRAY_SIZE(vals));
+									vals, ARRAY_SIZE(vals));
 }
 
 static int mt7601u_init_wcid_attr_mem(struct mt7601u_dev *dev)
@@ -212,14 +248,19 @@ static int mt7601u_init_wcid_attr_mem(struct mt7601u_dev *dev)
 	int i, ret;
 
 	vals = kmalloc(sizeof(*vals) * N_WCIDS * 2, GFP_KERNEL);
+
 	if (!vals)
+	{
 		return -ENOMEM;
+	}
 
 	for (i = 0; i < N_WCIDS * 2; i++)
+	{
 		vals[i] = 1;
+	}
 
 	ret = mt7601u_burst_write_regs(dev, MT_WCID_ATTR_BASE,
-				       vals, N_WCIDS * 2);
+								   vals, N_WCIDS * 2);
 	kfree(vals);
 
 	return ret;
@@ -240,24 +281,28 @@ int mt7601u_mac_start(struct mt7601u_dev *dev)
 	mt7601u_wr(dev, MT_MAC_SYS_CTRL, MT_MAC_SYS_CTRL_ENABLE_TX);
 
 	if (!mt76_poll(dev, MT_WPDMA_GLO_CFG, MT_WPDMA_GLO_CFG_TX_DMA_BUSY |
-		       MT_WPDMA_GLO_CFG_RX_DMA_BUSY, 0, 200000))
+				   MT_WPDMA_GLO_CFG_RX_DMA_BUSY, 0, 200000))
+	{
 		return -ETIMEDOUT;
+	}
 
 	dev->rxfilter = MT_RX_FILTR_CFG_CRC_ERR |
-		MT_RX_FILTR_CFG_PHY_ERR | MT_RX_FILTR_CFG_PROMISC |
-		MT_RX_FILTR_CFG_VER_ERR | MT_RX_FILTR_CFG_DUP |
-		MT_RX_FILTR_CFG_CFACK | MT_RX_FILTR_CFG_CFEND |
-		MT_RX_FILTR_CFG_ACK | MT_RX_FILTR_CFG_CTS |
-		MT_RX_FILTR_CFG_RTS | MT_RX_FILTR_CFG_PSPOLL |
-		MT_RX_FILTR_CFG_BA | MT_RX_FILTR_CFG_CTRL_RSV;
+					MT_RX_FILTR_CFG_PHY_ERR | MT_RX_FILTR_CFG_PROMISC |
+					MT_RX_FILTR_CFG_VER_ERR | MT_RX_FILTR_CFG_DUP |
+					MT_RX_FILTR_CFG_CFACK | MT_RX_FILTR_CFG_CFEND |
+					MT_RX_FILTR_CFG_ACK | MT_RX_FILTR_CFG_CTS |
+					MT_RX_FILTR_CFG_RTS | MT_RX_FILTR_CFG_PSPOLL |
+					MT_RX_FILTR_CFG_BA | MT_RX_FILTR_CFG_CTRL_RSV;
 	mt7601u_wr(dev, MT_RX_FILTR_CFG, dev->rxfilter);
 
 	mt7601u_wr(dev, MT_MAC_SYS_CTRL,
-		   MT_MAC_SYS_CTRL_ENABLE_TX | MT_MAC_SYS_CTRL_ENABLE_RX);
+			   MT_MAC_SYS_CTRL_ENABLE_TX | MT_MAC_SYS_CTRL_ENABLE_RX);
 
 	if (!mt76_poll(dev, MT_WPDMA_GLO_CFG, MT_WPDMA_GLO_CFG_TX_DMA_BUSY |
-		       MT_WPDMA_GLO_CFG_RX_DMA_BUSY, 0, 50))
+				   MT_WPDMA_GLO_CFG_RX_DMA_BUSY, 0, 50))
+	{
 		return -ETIMEDOUT;
+	}
 
 	return 0;
 }
@@ -267,47 +312,67 @@ static void mt7601u_mac_stop_hw(struct mt7601u_dev *dev)
 	int i, ok;
 
 	if (test_bit(MT7601U_STATE_REMOVED, &dev->state))
+	{
 		return;
+	}
 
 	mt76_clear(dev, MT_BEACON_TIME_CFG, MT_BEACON_TIME_CFG_TIMER_EN |
-		   MT_BEACON_TIME_CFG_SYNC_MODE | MT_BEACON_TIME_CFG_TBTT_EN |
-		   MT_BEACON_TIME_CFG_BEACON_TX);
+			   MT_BEACON_TIME_CFG_SYNC_MODE | MT_BEACON_TIME_CFG_TBTT_EN |
+			   MT_BEACON_TIME_CFG_BEACON_TX);
 
 	if (!mt76_poll(dev, MT_USB_DMA_CFG, MT_USB_DMA_CFG_TX_BUSY, 0, 1000))
+	{
 		dev_warn(dev->dev, "Warning: TX DMA did not stop!\n");
+	}
 
 	/* Page count on TxQ */
 	i = 200;
+
 	while (i-- && ((mt76_rr(dev, 0x0438) & 0xffffffff) ||
-		       (mt76_rr(dev, 0x0a30) & 0x000000ff) ||
-		       (mt76_rr(dev, 0x0a34) & 0x00ff00ff)))
+				   (mt76_rr(dev, 0x0a30) & 0x000000ff) ||
+				   (mt76_rr(dev, 0x0a34) & 0x00ff00ff)))
+	{
 		msleep(10);
+	}
 
 	if (!mt76_poll(dev, MT_MAC_STATUS, MT_MAC_STATUS_TX, 0, 1000))
+	{
 		dev_warn(dev->dev, "Warning: MAC TX did not stop!\n");
+	}
 
 	mt76_clear(dev, MT_MAC_SYS_CTRL, MT_MAC_SYS_CTRL_ENABLE_RX |
-					 MT_MAC_SYS_CTRL_ENABLE_TX);
+			   MT_MAC_SYS_CTRL_ENABLE_TX);
 
 	/* Page count on RxQ */
 	ok = 0;
 	i = 200;
-	while (i--) {
+
+	while (i--)
+	{
 		if ((mt76_rr(dev, 0x0430) & 0x00ff0000) ||
-		    (mt76_rr(dev, 0x0a30) & 0xffffffff) ||
-		    (mt76_rr(dev, 0x0a34) & 0xffffffff))
+			(mt76_rr(dev, 0x0a30) & 0xffffffff) ||
+			(mt76_rr(dev, 0x0a34) & 0xffffffff))
+		{
 			ok++;
+		}
+
 		if (ok > 6)
+		{
 			break;
+		}
 
 		msleep(1);
 	}
 
 	if (!mt76_poll(dev, MT_MAC_STATUS, MT_MAC_STATUS_RX, 0, 1000))
+	{
 		dev_warn(dev->dev, "Warning: MAC RX did not stop!\n");
+	}
 
 	if (!mt76_poll(dev, MT_USB_DMA_CFG, MT_USB_DMA_CFG_RX_BUSY, 0, 1000))
+	{
 		dev_warn(dev->dev, "Warning: RX DMA did not stop!\n");
+	}
 }
 
 void mt7601u_mac_stop(struct mt7601u_dev *dev)
@@ -324,7 +389,8 @@ static void mt7601u_stop_hardware(struct mt7601u_dev *dev)
 
 int mt7601u_init_hardware(struct mt7601u_dev *dev)
 {
-	static const u16 beacon_offsets[16] = {
+	static const u16 beacon_offsets[16] =
+	{
 		/* 512 byte per beacon */
 		0xc000,	0xc200,	0xc400,	0xc600,
 		0xc800,	0xca00,	0xcc00,	0xce00,
@@ -338,76 +404,120 @@ int mt7601u_init_hardware(struct mt7601u_dev *dev)
 	mt7601u_chip_onoff(dev, true, false);
 
 	ret = mt7601u_wait_asic_ready(dev);
+
 	if (ret)
+	{
 		goto err;
+	}
+
 	ret = mt7601u_mcu_init(dev);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	if (!mt76_poll_msec(dev, MT_WPDMA_GLO_CFG,
-			    MT_WPDMA_GLO_CFG_TX_DMA_BUSY |
-			    MT_WPDMA_GLO_CFG_RX_DMA_BUSY, 0, 100)) {
+						MT_WPDMA_GLO_CFG_TX_DMA_BUSY |
+						MT_WPDMA_GLO_CFG_RX_DMA_BUSY, 0, 100))
+	{
 		ret = -EIO;
 		goto err;
 	}
 
 	/* Wait for ASIC ready after FW load. */
 	ret = mt7601u_wait_asic_ready(dev);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	mt7601u_reset_csr_bbp(dev);
 	mt7601u_init_usb_dma(dev);
 
 	ret = mt7601u_mcu_cmd_init(dev);
+
 	if (ret)
+	{
 		goto err;
+	}
+
 	ret = mt7601u_dma_init(dev);
+
 	if (ret)
+	{
 		goto err_mcu;
+	}
+
 	ret = mt7601u_write_mac_initvals(dev);
+
 	if (ret)
+	{
 		goto err_rx;
+	}
 
 	if (!mt76_poll_msec(dev, MT_MAC_STATUS,
-			    MT_MAC_STATUS_TX | MT_MAC_STATUS_RX, 0, 100)) {
+						MT_MAC_STATUS_TX | MT_MAC_STATUS_RX, 0, 100))
+	{
 		ret = -EIO;
 		goto err_rx;
 	}
 
 	ret = mt7601u_init_bbp(dev);
+
 	if (ret)
+	{
 		goto err_rx;
+	}
+
 	ret = mt7601u_init_wcid_mem(dev);
+
 	if (ret)
+	{
 		goto err_rx;
+	}
+
 	ret = mt7601u_init_key_mem(dev);
+
 	if (ret)
+	{
 		goto err_rx;
+	}
+
 	ret = mt7601u_init_wcid_attr_mem(dev);
+
 	if (ret)
+	{
 		goto err_rx;
+	}
 
 	mt76_clear(dev, MT_BEACON_TIME_CFG, (MT_BEACON_TIME_CFG_TIMER_EN |
-					     MT_BEACON_TIME_CFG_SYNC_MODE |
-					     MT_BEACON_TIME_CFG_TBTT_EN |
-					     MT_BEACON_TIME_CFG_BEACON_TX));
+										 MT_BEACON_TIME_CFG_SYNC_MODE |
+										 MT_BEACON_TIME_CFG_TBTT_EN |
+										 MT_BEACON_TIME_CFG_BEACON_TX));
 
 	mt7601u_reset_counters(dev);
 
 	mt7601u_rmw(dev, MT_US_CYC_CFG, MT_US_CYC_CNT, 0x1e);
 
 	mt7601u_wr(dev, MT_TXOP_CTRL_CFG,
-		   FIELD_PREP(MT_TXOP_TRUN_EN, 0x3f) |
-		   FIELD_PREP(MT_TXOP_EXT_CCA_DLY, 0x58));
+			   FIELD_PREP(MT_TXOP_TRUN_EN, 0x3f) |
+			   FIELD_PREP(MT_TXOP_EXT_CCA_DLY, 0x58));
 
 	ret = mt7601u_eeprom_init(dev);
+
 	if (ret)
+	{
 		goto err_rx;
+	}
 
 	ret = mt7601u_phy_init(dev);
+
 	if (ret)
+	{
 		goto err_rx;
+	}
 
 	mt7601u_set_rx_path(dev, 0);
 	mt7601u_set_tx_dac(dev, 0);
@@ -430,7 +540,9 @@ err:
 void mt7601u_cleanup(struct mt7601u_dev *dev)
 {
 	if (!test_and_clear_bit(MT7601U_STATE_INITIALIZED, &dev->state))
+	{
 		return;
+	}
 
 	mt7601u_stop_hardware(dev);
 	mt7601u_dma_cleanup(dev);
@@ -443,8 +555,11 @@ struct mt7601u_dev *mt7601u_alloc_device(struct device *pdev)
 	struct mt7601u_dev *dev;
 
 	hw = ieee80211_alloc_hw(sizeof(*dev), &mt7601u_ops);
+
 	if (!hw)
+	{
 		return NULL;
+	}
 
 	dev = hw->priv;
 	dev->dev = pdev;
@@ -462,7 +577,9 @@ struct mt7601u_dev *mt7601u_alloc_device(struct device *pdev)
 	skb_queue_head_init(&dev->tx_skb_done);
 
 	dev->stat_wq = alloc_workqueue("mt7601u", WQ_UNBOUND, 0);
-	if (!dev->stat_wq) {
+
+	if (!dev->stat_wq)
+	{
 		ieee80211_free_hw(hw);
 		return NULL;
 	}
@@ -471,13 +588,14 @@ struct mt7601u_dev *mt7601u_alloc_device(struct device *pdev)
 }
 
 #define CHAN2G(_idx, _freq) {			\
-	.band = NL80211_BAND_2GHZ,		\
-	.center_freq = (_freq),			\
-	.hw_value = (_idx),			\
-	.max_power = 30,			\
-}
+		.band = NL80211_BAND_2GHZ,		\
+				.center_freq = (_freq),			\
+							   .hw_value = (_idx),			\
+										   .max_power = 30,			\
+	}
 
-static const struct ieee80211_channel mt76_channels_2ghz[] = {
+static const struct ieee80211_channel mt76_channels_2ghz[] =
+{
 	CHAN2G(1, 2412),
 	CHAN2G(2, 2417),
 	CHAN2G(3, 2422),
@@ -495,19 +613,20 @@ static const struct ieee80211_channel mt76_channels_2ghz[] = {
 };
 
 #define CCK_RATE(_idx, _rate) {					\
-	.bitrate = _rate,					\
-	.flags = IEEE80211_RATE_SHORT_PREAMBLE,			\
-	.hw_value = (MT_PHY_TYPE_CCK << 8) | _idx,		\
-	.hw_value_short = (MT_PHY_TYPE_CCK << 8) | (8 + _idx),	\
-}
+		.bitrate = _rate,					\
+				   .flags = IEEE80211_RATE_SHORT_PREAMBLE,			\
+							.hw_value = (MT_PHY_TYPE_CCK << 8) | _idx,		\
+										.hw_value_short = (MT_PHY_TYPE_CCK << 8) | (8 + _idx),	\
+	}
 
 #define OFDM_RATE(_idx, _rate) {				\
-	.bitrate = _rate,					\
-	.hw_value = (MT_PHY_TYPE_OFDM << 8) | _idx,		\
-	.hw_value_short = (MT_PHY_TYPE_OFDM << 8) | _idx,	\
-}
+		.bitrate = _rate,					\
+				   .hw_value = (MT_PHY_TYPE_OFDM << 8) | _idx,		\
+							   .hw_value_short = (MT_PHY_TYPE_OFDM << 8) | _idx,	\
+	}
 
-static struct ieee80211_rate mt76_rates[] = {
+static struct ieee80211_rate mt76_rates[] =
+{
 	CCK_RATE(0, 10),
 	CCK_RATE(1, 20),
 	CCK_RATE(2, 55),
@@ -524,8 +643,8 @@ static struct ieee80211_rate mt76_rates[] = {
 
 static int
 mt76_init_sband(struct mt7601u_dev *dev, struct ieee80211_supported_band *sband,
-		const struct ieee80211_channel *chan, int n_chan,
-		struct ieee80211_rate *rates, int n_rates)
+				const struct ieee80211_channel *chan, int n_chan,
+				struct ieee80211_rate *rates, int n_rates)
 {
 	struct ieee80211_sta_ht_cap *ht_cap;
 	void *chanlist;
@@ -533,8 +652,11 @@ mt76_init_sband(struct mt7601u_dev *dev, struct ieee80211_supported_band *sband,
 
 	size = n_chan * sizeof(*chan);
 	chanlist = devm_kmemdup(dev->dev, chan, size, GFP_KERNEL);
+
 	if (!chanlist)
+	{
 		return -ENOMEM;
+	}
 
 	sband->channels = chanlist;
 	sband->n_channels = n_chan;
@@ -544,10 +666,10 @@ mt76_init_sband(struct mt7601u_dev *dev, struct ieee80211_supported_band *sband,
 	ht_cap = &sband->ht_cap;
 	ht_cap->ht_supported = true;
 	ht_cap->cap = IEEE80211_HT_CAP_SUP_WIDTH_20_40 |
-		      IEEE80211_HT_CAP_GRN_FLD |
-		      IEEE80211_HT_CAP_SGI_20 |
-		      IEEE80211_HT_CAP_SGI_40 |
-		      (1 << IEEE80211_HT_CAP_RX_STBC_SHIFT);
+				  IEEE80211_HT_CAP_GRN_FLD |
+				  IEEE80211_HT_CAP_SGI_20 |
+				  IEEE80211_HT_CAP_SGI_40 |
+				  (1 << IEEE80211_HT_CAP_RX_STBC_SHIFT);
 
 	ht_cap->mcs.rx_mask[0] = 0xff;
 	ht_cap->mcs.rx_mask[4] = 0x1;
@@ -564,16 +686,16 @@ static int
 mt76_init_sband_2g(struct mt7601u_dev *dev)
 {
 	dev->sband_2g = devm_kzalloc(dev->dev, sizeof(*dev->sband_2g),
-				     GFP_KERNEL);
+								 GFP_KERNEL);
 	dev->hw->wiphy->bands[NL80211_BAND_2GHZ] = dev->sband_2g;
 
 	WARN_ON(dev->ee->reg.start - 1 + dev->ee->reg.num >
-		ARRAY_SIZE(mt76_channels_2ghz));
+			ARRAY_SIZE(mt76_channels_2ghz));
 
 	return mt76_init_sband(dev, dev->sband_2g,
-			       &mt76_channels_2ghz[dev->ee->reg.start - 1],
-			       dev->ee->reg.num,
-			       mt76_rates, ARRAY_SIZE(mt76_rates));
+						   &mt76_channels_2ghz[dev->ee->reg.start - 1],
+						   dev->ee->reg.num,
+						   mt76_rates, ARRAY_SIZE(mt76_rates));
 }
 
 int mt7601u_register_device(struct mt7601u_dev *dev)
@@ -589,9 +711,13 @@ int mt7601u_register_device(struct mt7601u_dev *dev)
 
 	/* init fake wcid for monitor interfaces */
 	dev->mon_wcid = devm_kmalloc(dev->dev, sizeof(*dev->mon_wcid),
-				     GFP_KERNEL);
+								 GFP_KERNEL);
+
 	if (!dev->mon_wcid)
+	{
 		return -ENOMEM;
+	}
+
 	dev->mon_wcid->idx = 0xff;
 	dev->mon_wcid->hw_key_idx = -1;
 
@@ -616,15 +742,21 @@ int mt7601u_register_device(struct mt7601u_dev *dev)
 	wiphy->interface_modes = BIT(NL80211_IFTYPE_STATION);
 
 	ret = mt76_init_sband_2g(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	INIT_DELAYED_WORK(&dev->mac_work, mt7601u_mac_work);
 	INIT_DELAYED_WORK(&dev->stat_work, mt7601u_tx_stat);
 
 	ret = ieee80211_register_hw(hw);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	mt7601u_init_debugfs(dev);
 

@@ -69,7 +69,7 @@ xfs_trans_log_finish_bmap_update(
 	int				error;
 
 	error = xfs_bmap_finish_one(tp, dop, ip, type, whichfork, startoff,
-			startblock, blockcount, state);
+								startblock, blockcount, state);
 
 	/*
 	 * Mark the transaction dirty, even on error. This ensures the
@@ -129,18 +129,27 @@ xfs_trans_set_bmap_flags(
 	xfs_exntst_t			state)
 {
 	bmap->me_flags = 0;
-	switch (type) {
-	case XFS_BMAP_MAP:
-	case XFS_BMAP_UNMAP:
-		bmap->me_flags = type;
-		break;
-	default:
-		ASSERT(0);
+
+	switch (type)
+	{
+		case XFS_BMAP_MAP:
+		case XFS_BMAP_UNMAP:
+			bmap->me_flags = type;
+			break;
+
+		default:
+			ASSERT(0);
 	}
+
 	if (state == XFS_EXT_UNWRITTEN)
+	{
 		bmap->me_flags |= XFS_BMAP_EXTENT_UNWRITTEN;
+	}
+
 	if (whichfork == XFS_ATTR_FORK)
+	{
 		bmap->me_flags |= XFS_BMAP_EXTENT_ATTR_FORK;
+	}
 }
 
 /* Log bmap updates in the intent item. */
@@ -173,7 +182,7 @@ xfs_bmap_update_log_item(
 	map->me_startoff = bmap->bi_bmap.br_startoff;
 	map->me_len = bmap->bi_bmap.br_blockcount;
 	xfs_trans_set_bmap_flags(map, bmap->bi_type, bmap->bi_whichfork,
-			bmap->bi_bmap.br_state);
+							 bmap->bi_bmap.br_state);
 }
 
 /* Get an BUD so we can process all the deferred rmap updates. */
@@ -229,7 +238,8 @@ xfs_bmap_update_cancel_item(
 	kmem_free(bmap);
 }
 
-static const struct xfs_defer_op_type xfs_bmap_update_defer_type = {
+static const struct xfs_defer_op_type xfs_bmap_update_defer_type =
+{
 	.type		= XFS_DEFER_OPS_TYPE_BMAP,
 	.max_items	= XFS_BUI_MAX_FAST_EXTENTS,
 	.diff_items	= xfs_bmap_update_diff_items,

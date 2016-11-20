@@ -46,25 +46,27 @@ int omap2_clkops_enable_clkdm(struct clk_hw *hw)
 
 	clk = to_clk_hw_omap(hw);
 
-	if (unlikely(!clk->clkdm)) {
+	if (unlikely(!clk->clkdm))
+	{
 		pr_err("%s: %s: no clkdm set ?!\n", __func__,
-		       clk_hw_get_name(hw));
+			   clk_hw_get_name(hw));
 		return -EINVAL;
 	}
 
 	if (unlikely(clk->enable_reg))
 		pr_err("%s: %s: should use dflt_clk_enable ?!\n", __func__,
-		       clk_hw_get_name(hw));
+			   clk_hw_get_name(hw));
 
-	if (ti_clk_get_features()->flags & TI_CLK_DISABLE_CLKDM_CONTROL) {
+	if (ti_clk_get_features()->flags & TI_CLK_DISABLE_CLKDM_CONTROL)
+	{
 		pr_err("%s: %s: clkfw-based clockdomain control disabled ?!\n",
-		       __func__, clk_hw_get_name(hw));
+			   __func__, clk_hw_get_name(hw));
 		return 0;
 	}
 
 	ret = ti_clk_ll_ops->clkdm_clk_enable(clk->clkdm, hw->clk);
 	WARN(ret, "%s: could not enable %s's clockdomain %s: %d\n",
-	     __func__, clk_hw_get_name(hw), clk->clkdm_name, ret);
+		 __func__, clk_hw_get_name(hw), clk->clkdm_name, ret);
 
 	return ret;
 }
@@ -84,19 +86,21 @@ void omap2_clkops_disable_clkdm(struct clk_hw *hw)
 
 	clk = to_clk_hw_omap(hw);
 
-	if (unlikely(!clk->clkdm)) {
+	if (unlikely(!clk->clkdm))
+	{
 		pr_err("%s: %s: no clkdm set ?!\n", __func__,
-		       clk_hw_get_name(hw));
+			   clk_hw_get_name(hw));
 		return;
 	}
 
 	if (unlikely(clk->enable_reg))
 		pr_err("%s: %s: should use dflt_clk_disable ?!\n", __func__,
-		       clk_hw_get_name(hw));
+			   clk_hw_get_name(hw));
 
-	if (ti_clk_get_features()->flags & TI_CLK_DISABLE_CLKDM_CONTROL) {
+	if (ti_clk_get_features()->flags & TI_CLK_DISABLE_CLKDM_CONTROL)
+	{
 		pr_err("%s: %s: clkfw-based clockdomain control disabled ?!\n",
-		       __func__, clk_hw_get_name(hw));
+			   __func__, clk_hw_get_name(hw));
 		return;
 	}
 
@@ -113,25 +117,33 @@ static void __init of_ti_clockdomain_setup(struct device_node *node)
 
 	num_clks = of_clk_get_parent_count(node);
 
-	for (i = 0; i < num_clks; i++) {
+	for (i = 0; i < num_clks; i++)
+	{
 		clk = of_clk_get(node, i);
-		if (IS_ERR(clk)) {
+
+		if (IS_ERR(clk))
+		{
 			pr_err("%s: Failed get %s' clock nr %d (%ld)\n",
-			       __func__, node->full_name, i, PTR_ERR(clk));
+				   __func__, node->full_name, i, PTR_ERR(clk));
 			continue;
 		}
+
 		clk_hw = __clk_get_hw(clk);
-		if (clk_hw_get_flags(clk_hw) & CLK_IS_BASIC) {
+
+		if (clk_hw_get_flags(clk_hw) & CLK_IS_BASIC)
+		{
 			pr_warn("can't setup clkdm for basic clk %s\n",
-				__clk_get_name(clk));
+					__clk_get_name(clk));
 			continue;
 		}
+
 		to_clk_hw_omap(clk_hw)->clkdm_name = clkdm_name;
 		omap2_init_clk_clkdm(clk_hw);
 	}
 }
 
-static const struct of_device_id ti_clkdm_match_table[] __initconst = {
+static const struct of_device_id ti_clkdm_match_table[] __initconst =
+{
 	{ .compatible = "ti,clockdomain" },
 	{ }
 };
@@ -148,7 +160,8 @@ static const struct of_device_id ti_clkdm_match_table[] __initconst = {
 void __init ti_dt_clockdomains_setup(void)
 {
 	struct device_node *np;
-	for_each_matching_node(np, ti_clkdm_match_table) {
+	for_each_matching_node(np, ti_clkdm_match_table)
+	{
 		of_ti_clockdomain_setup(np);
 	}
 }

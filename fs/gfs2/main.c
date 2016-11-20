@@ -85,97 +85,146 @@ static int __init init_gfs2_fs(void)
 	gfs2_quota_hash_init();
 
 	error = gfs2_sys_init();
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = list_lru_init(&gfs2_qd_lru);
+
 	if (error)
+	{
 		goto fail_lru;
+	}
 
 	error = gfs2_glock_init();
+
 	if (error)
+	{
 		goto fail;
+	}
 
 	error = -ENOMEM;
 	gfs2_glock_cachep = kmem_cache_create("gfs2_glock",
-					      sizeof(struct gfs2_glock),
-					      0, 0,
-					      gfs2_init_glock_once);
+										  sizeof(struct gfs2_glock),
+										  0, 0,
+										  gfs2_init_glock_once);
+
 	if (!gfs2_glock_cachep)
+	{
 		goto fail;
+	}
 
 	gfs2_glock_aspace_cachep = kmem_cache_create("gfs2_glock(aspace)",
-					sizeof(struct gfs2_glock) +
-					sizeof(struct address_space),
-					0, 0, gfs2_init_gl_aspace_once);
+							   sizeof(struct gfs2_glock) +
+							   sizeof(struct address_space),
+							   0, 0, gfs2_init_gl_aspace_once);
 
 	if (!gfs2_glock_aspace_cachep)
+	{
 		goto fail;
+	}
 
 	gfs2_inode_cachep = kmem_cache_create("gfs2_inode",
-					      sizeof(struct gfs2_inode),
-					      0,  SLAB_RECLAIM_ACCOUNT|
-						  SLAB_MEM_SPREAD|
-						  SLAB_ACCOUNT,
-					      gfs2_init_inode_once);
+										  sizeof(struct gfs2_inode),
+										  0,  SLAB_RECLAIM_ACCOUNT |
+										  SLAB_MEM_SPREAD |
+										  SLAB_ACCOUNT,
+										  gfs2_init_inode_once);
+
 	if (!gfs2_inode_cachep)
+	{
 		goto fail;
+	}
 
 	gfs2_bufdata_cachep = kmem_cache_create("gfs2_bufdata",
-						sizeof(struct gfs2_bufdata),
-					        0, 0, NULL);
+											sizeof(struct gfs2_bufdata),
+											0, 0, NULL);
+
 	if (!gfs2_bufdata_cachep)
+	{
 		goto fail;
+	}
 
 	gfs2_rgrpd_cachep = kmem_cache_create("gfs2_rgrpd",
-					      sizeof(struct gfs2_rgrpd),
-					      0, 0, NULL);
+										  sizeof(struct gfs2_rgrpd),
+										  0, 0, NULL);
+
 	if (!gfs2_rgrpd_cachep)
+	{
 		goto fail;
+	}
 
 	gfs2_quotad_cachep = kmem_cache_create("gfs2_quotad",
-					       sizeof(struct gfs2_quota_data),
-					       0, 0, NULL);
+										   sizeof(struct gfs2_quota_data),
+										   0, 0, NULL);
+
 	if (!gfs2_quotad_cachep)
+	{
 		goto fail;
+	}
 
 	gfs2_qadata_cachep = kmem_cache_create("gfs2_qadata",
-					       sizeof(struct gfs2_qadata),
-					       0, 0, NULL);
+										   sizeof(struct gfs2_qadata),
+										   0, 0, NULL);
+
 	if (!gfs2_qadata_cachep)
+	{
 		goto fail;
+	}
 
 	error = register_shrinker(&gfs2_qd_shrinker);
+
 	if (error)
+	{
 		goto fail;
+	}
 
 	error = register_filesystem(&gfs2_fs_type);
+
 	if (error)
+	{
 		goto fail;
+	}
 
 	error = register_filesystem(&gfs2meta_fs_type);
+
 	if (error)
+	{
 		goto fail_unregister;
+	}
 
 	error = -ENOMEM;
 	gfs_recovery_wq = alloc_workqueue("gfs_recovery",
-					  WQ_MEM_RECLAIM | WQ_FREEZABLE, 0);
+									  WQ_MEM_RECLAIM | WQ_FREEZABLE, 0);
+
 	if (!gfs_recovery_wq)
+	{
 		goto fail_wq;
+	}
 
 	gfs2_control_wq = alloc_workqueue("gfs2_control",
-					  WQ_UNBOUND | WQ_FREEZABLE, 0);
+									  WQ_UNBOUND | WQ_FREEZABLE, 0);
+
 	if (!gfs2_control_wq)
+	{
 		goto fail_recovery;
+	}
 
 	gfs2_freeze_wq = alloc_workqueue("freeze_workqueue", 0, 0);
 
 	if (!gfs2_freeze_wq)
+	{
 		goto fail_control;
+	}
 
 	gfs2_page_pool = mempool_create_page_pool(64, 0);
+
 	if (!gfs2_page_pool)
+	{
 		goto fail_freeze;
+	}
 
 	gfs2_register_debugfs();
 
@@ -200,25 +249,39 @@ fail_lru:
 	gfs2_glock_exit();
 
 	if (gfs2_qadata_cachep)
+	{
 		kmem_cache_destroy(gfs2_qadata_cachep);
+	}
 
 	if (gfs2_quotad_cachep)
+	{
 		kmem_cache_destroy(gfs2_quotad_cachep);
+	}
 
 	if (gfs2_rgrpd_cachep)
+	{
 		kmem_cache_destroy(gfs2_rgrpd_cachep);
+	}
 
 	if (gfs2_bufdata_cachep)
+	{
 		kmem_cache_destroy(gfs2_bufdata_cachep);
+	}
 
 	if (gfs2_inode_cachep)
+	{
 		kmem_cache_destroy(gfs2_inode_cachep);
+	}
 
 	if (gfs2_glock_aspace_cachep)
+	{
 		kmem_cache_destroy(gfs2_glock_aspace_cachep);
+	}
 
 	if (gfs2_glock_cachep)
+	{
 		kmem_cache_destroy(gfs2_glock_cachep);
+	}
 
 	gfs2_sys_uninit();
 	return error;

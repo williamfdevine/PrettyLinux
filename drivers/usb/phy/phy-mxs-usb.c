@@ -126,39 +126,47 @@
 #define MXS_PHY_TX_D_CAL_MIN			79
 #define MXS_PHY_TX_D_CAL_MAX			119
 
-struct mxs_phy_data {
+struct mxs_phy_data
+{
 	unsigned int flags;
 };
 
-static const struct mxs_phy_data imx23_phy_data = {
+static const struct mxs_phy_data imx23_phy_data =
+{
 	.flags = MXS_PHY_ABNORMAL_IN_SUSPEND | MXS_PHY_SENDING_SOF_TOO_FAST,
 };
 
-static const struct mxs_phy_data imx6q_phy_data = {
+static const struct mxs_phy_data imx6q_phy_data =
+{
 	.flags = MXS_PHY_SENDING_SOF_TOO_FAST |
-		MXS_PHY_DISCONNECT_LINE_WITHOUT_VBUS |
-		MXS_PHY_NEED_IP_FIX,
+	MXS_PHY_DISCONNECT_LINE_WITHOUT_VBUS |
+	MXS_PHY_NEED_IP_FIX,
 };
 
-static const struct mxs_phy_data imx6sl_phy_data = {
+static const struct mxs_phy_data imx6sl_phy_data =
+{
 	.flags = MXS_PHY_DISCONNECT_LINE_WITHOUT_VBUS |
-		MXS_PHY_NEED_IP_FIX,
+	MXS_PHY_NEED_IP_FIX,
 };
 
-static const struct mxs_phy_data vf610_phy_data = {
+static const struct mxs_phy_data vf610_phy_data =
+{
 	.flags = MXS_PHY_DISCONNECT_LINE_WITHOUT_VBUS |
-		MXS_PHY_NEED_IP_FIX,
+	MXS_PHY_NEED_IP_FIX,
 };
 
-static const struct mxs_phy_data imx6sx_phy_data = {
+static const struct mxs_phy_data imx6sx_phy_data =
+{
 	.flags = MXS_PHY_DISCONNECT_LINE_WITHOUT_VBUS,
 };
 
-static const struct mxs_phy_data imx6ul_phy_data = {
+static const struct mxs_phy_data imx6ul_phy_data =
+{
 	.flags = MXS_PHY_DISCONNECT_LINE_WITHOUT_VBUS,
 };
 
-static const struct of_device_id mxs_phy_dt_ids[] = {
+static const struct of_device_id mxs_phy_dt_ids[] =
+{
 	{ .compatible = "fsl,imx6sx-usbphy", .data = &imx6sx_phy_data, },
 	{ .compatible = "fsl,imx6sl-usbphy", .data = &imx6sl_phy_data, },
 	{ .compatible = "fsl,imx6q-usbphy", .data = &imx6q_phy_data, },
@@ -169,7 +177,8 @@ static const struct of_device_id mxs_phy_dt_ids[] = {
 };
 MODULE_DEVICE_TABLE(of, mxs_phy_dt_ids);
 
-struct mxs_phy {
+struct mxs_phy
+{
 	struct usb_phy phy;
 	struct clk *clk;
 	const struct mxs_phy_data *data;
@@ -204,7 +213,8 @@ static void mxs_phy_tx_init(struct mxs_phy *mxs_phy)
 	u32 phytx;
 
 	/* Update TX register if there is anything to write */
-	if (mxs_phy->tx_reg_mask) {
+	if (mxs_phy->tx_reg_mask)
+	{
 		phytx = readl(base + HW_USBPHY_TX);
 		phytx &= ~mxs_phy->tx_reg_mask;
 		phytx |= mxs_phy->tx_reg_set;
@@ -218,8 +228,11 @@ static int mxs_phy_hw_init(struct mxs_phy *mxs_phy)
 	void __iomem *base = mxs_phy->phy.io_priv;
 
 	ret = stmp_reset_block(base + HW_USBPHY_CTRL);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Power up the PHY */
 	writel(0, base + HW_USBPHY_PWD);
@@ -230,16 +243,18 @@ static int mxs_phy_hw_init(struct mxs_phy *mxs_phy)
 	 * - Enable full/low speed support
 	 */
 	writel(BM_USBPHY_CTRL_ENAUTOSET_USBCLKS |
-		BM_USBPHY_CTRL_ENAUTOCLR_USBCLKGATE |
-		BM_USBPHY_CTRL_ENAUTOCLR_PHY_PWD |
-		BM_USBPHY_CTRL_ENAUTOCLR_CLKGATE |
-		BM_USBPHY_CTRL_ENAUTO_PWRON_PLL |
-		BM_USBPHY_CTRL_ENUTMILEVEL2 |
-		BM_USBPHY_CTRL_ENUTMILEVEL3,
-	       base + HW_USBPHY_CTRL_SET);
+		   BM_USBPHY_CTRL_ENAUTOCLR_USBCLKGATE |
+		   BM_USBPHY_CTRL_ENAUTOCLR_PHY_PWD |
+		   BM_USBPHY_CTRL_ENAUTOCLR_CLKGATE |
+		   BM_USBPHY_CTRL_ENAUTO_PWRON_PLL |
+		   BM_USBPHY_CTRL_ENUTMILEVEL2 |
+		   BM_USBPHY_CTRL_ENUTMILEVEL3,
+		   base + HW_USBPHY_CTRL_SET);
 
 	if (mxs_phy->data->flags & MXS_PHY_NEED_IP_FIX)
+	{
 		writel(BM_USBPHY_IP_FIX, base + HW_USBPHY_IP_SET);
+	}
 
 	mxs_phy_tx_init(mxs_phy);
 
@@ -252,21 +267,27 @@ static bool mxs_phy_get_vbus_status(struct mxs_phy *mxs_phy)
 	unsigned int vbus_value = 0;
 
 	if (!mxs_phy->regmap_anatop)
+	{
 		return false;
+	}
 
 	if (mxs_phy->port_id == 0)
 		regmap_read(mxs_phy->regmap_anatop,
-			ANADIG_USB1_VBUS_DET_STAT,
-			&vbus_value);
+					ANADIG_USB1_VBUS_DET_STAT,
+					&vbus_value);
 	else if (mxs_phy->port_id == 1)
 		regmap_read(mxs_phy->regmap_anatop,
-			ANADIG_USB2_VBUS_DET_STAT,
-			&vbus_value);
+					ANADIG_USB2_VBUS_DET_STAT,
+					&vbus_value);
 
 	if (vbus_value & BM_ANADIG_USB1_VBUS_DET_STAT_VBUS_VALID)
+	{
 		return true;
+	}
 	else
+	{
 		return false;
+	}
 }
 
 static void __mxs_phy_disconnect_line(struct mxs_phy *mxs_phy, bool disconnect)
@@ -276,29 +297,34 @@ static void __mxs_phy_disconnect_line(struct mxs_phy *mxs_phy, bool disconnect)
 
 	if (disconnect)
 		writel_relaxed(BM_USBPHY_DEBUG_CLKGATE,
-			base + HW_USBPHY_DEBUG_CLR);
+					   base + HW_USBPHY_DEBUG_CLR);
 
-	if (mxs_phy->port_id == 0) {
+	if (mxs_phy->port_id == 0)
+	{
 		reg = disconnect ? ANADIG_USB1_LOOPBACK_SET
-			: ANADIG_USB1_LOOPBACK_CLR;
+			  : ANADIG_USB1_LOOPBACK_CLR;
 		regmap_write(mxs_phy->regmap_anatop, reg,
-			BM_ANADIG_USB1_LOOPBACK_UTMI_DIG_TST1 |
-			BM_ANADIG_USB1_LOOPBACK_TSTI_TX_EN);
-	} else if (mxs_phy->port_id == 1) {
+					 BM_ANADIG_USB1_LOOPBACK_UTMI_DIG_TST1 |
+					 BM_ANADIG_USB1_LOOPBACK_TSTI_TX_EN);
+	}
+	else if (mxs_phy->port_id == 1)
+	{
 		reg = disconnect ? ANADIG_USB2_LOOPBACK_SET
-			: ANADIG_USB2_LOOPBACK_CLR;
+			  : ANADIG_USB2_LOOPBACK_CLR;
 		regmap_write(mxs_phy->regmap_anatop, reg,
-			BM_ANADIG_USB2_LOOPBACK_UTMI_DIG_TST1 |
-			BM_ANADIG_USB2_LOOPBACK_TSTI_TX_EN);
+					 BM_ANADIG_USB2_LOOPBACK_UTMI_DIG_TST1 |
+					 BM_ANADIG_USB2_LOOPBACK_TSTI_TX_EN);
 	}
 
 	if (!disconnect)
 		writel_relaxed(BM_USBPHY_DEBUG_CLKGATE,
-			base + HW_USBPHY_DEBUG_SET);
+					   base + HW_USBPHY_DEBUG_SET);
 
 	/* Delay some time, and let Linestate be SE0 for controller */
 	if (disconnect)
+	{
 		usleep_range(500, 1000);
+	}
 }
 
 static bool mxs_phy_is_otg_host(struct mxs_phy *mxs_phy)
@@ -307,8 +333,10 @@ static bool mxs_phy_is_otg_host(struct mxs_phy *mxs_phy)
 	u32 phyctrl = readl(base + HW_USBPHY_CTRL);
 
 	if (IS_ENABLED(CONFIG_USB_OTG) &&
-			!(phyctrl & BM_USBPHY_CTRL_OTG_ID_VALUE))
+		!(phyctrl & BM_USBPHY_CTRL_OTG_ID_VALUE))
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -319,18 +347,26 @@ static void mxs_phy_disconnect_line(struct mxs_phy *mxs_phy, bool on)
 
 	/* If the SoCs don't need to disconnect line without vbus, quit */
 	if (!(mxs_phy->data->flags & MXS_PHY_DISCONNECT_LINE_WITHOUT_VBUS))
+	{
 		return;
+	}
 
 	/* If the SoCs don't have anatop, quit */
 	if (!mxs_phy->regmap_anatop)
+	{
 		return;
+	}
 
 	vbus_is_on = mxs_phy_get_vbus_status(mxs_phy);
 
 	if (on && !vbus_is_on && !mxs_phy_is_otg_host(mxs_phy))
+	{
 		__mxs_phy_disconnect_line(mxs_phy, true);
+	}
 	else
+	{
 		__mxs_phy_disconnect_line(mxs_phy, false);
+	}
 
 }
 
@@ -341,8 +377,11 @@ static int mxs_phy_init(struct usb_phy *phy)
 
 	mxs_phy_clock_switch_delay();
 	ret = clk_prepare_enable(mxs_phy->clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return mxs_phy_hw_init(mxs_phy);
 }
@@ -351,19 +390,19 @@ static void mxs_phy_shutdown(struct usb_phy *phy)
 {
 	struct mxs_phy *mxs_phy = to_mxs_phy(phy);
 	u32 value = BM_USBPHY_CTRL_ENVBUSCHG_WKUP |
-			BM_USBPHY_CTRL_ENDPDMCHG_WKUP |
-			BM_USBPHY_CTRL_ENIDCHG_WKUP |
-			BM_USBPHY_CTRL_ENAUTOSET_USBCLKS |
-			BM_USBPHY_CTRL_ENAUTOCLR_USBCLKGATE |
-			BM_USBPHY_CTRL_ENAUTOCLR_PHY_PWD |
-			BM_USBPHY_CTRL_ENAUTOCLR_CLKGATE |
-			BM_USBPHY_CTRL_ENAUTO_PWRON_PLL;
+				BM_USBPHY_CTRL_ENDPDMCHG_WKUP |
+				BM_USBPHY_CTRL_ENIDCHG_WKUP |
+				BM_USBPHY_CTRL_ENAUTOSET_USBCLKS |
+				BM_USBPHY_CTRL_ENAUTOCLR_USBCLKGATE |
+				BM_USBPHY_CTRL_ENAUTOCLR_PHY_PWD |
+				BM_USBPHY_CTRL_ENAUTOCLR_CLKGATE |
+				BM_USBPHY_CTRL_ENAUTO_PWRON_PLL;
 
 	writel(value, phy->io_priv + HW_USBPHY_CTRL_CLR);
 	writel(0xffffffff, phy->io_priv + HW_USBPHY_PWD);
 
 	writel(BM_USBPHY_CTRL_CLKGATE,
-	       phy->io_priv + HW_USBPHY_CTRL_SET);
+		   phy->io_priv + HW_USBPHY_CTRL_SET);
 
 	clk_disable_unprepare(mxs_phy->clk);
 }
@@ -373,24 +412,34 @@ static bool mxs_phy_is_low_speed_connection(struct mxs_phy *mxs_phy)
 	unsigned int line_state;
 	/* bit definition is the same for all controllers */
 	unsigned int dp_bit = BM_ANADIG_USB1_MISC_RX_VPIN_FS,
-		     dm_bit = BM_ANADIG_USB1_MISC_RX_VMIN_FS;
+				 dm_bit = BM_ANADIG_USB1_MISC_RX_VMIN_FS;
 	unsigned int reg = ANADIG_USB1_MISC;
 
 	/* If the SoCs don't have anatop, quit */
 	if (!mxs_phy->regmap_anatop)
+	{
 		return false;
+	}
 
 	if (mxs_phy->port_id == 0)
+	{
 		reg = ANADIG_USB1_MISC;
+	}
 	else if (mxs_phy->port_id == 1)
+	{
 		reg = ANADIG_USB2_MISC;
+	}
 
 	regmap_read(mxs_phy->regmap_anatop, reg, &line_state);
 
 	if ((line_state & (dp_bit | dm_bit)) ==  dm_bit)
+	{
 		return true;
+	}
 	else
+	{
 		return false;
+	}
 }
 
 static int mxs_phy_suspend(struct usb_phy *x, int suspend)
@@ -402,32 +451,43 @@ static int mxs_phy_suspend(struct usb_phy *x, int suspend)
 	low_speed_connection = mxs_phy_is_low_speed_connection(mxs_phy);
 	vbus_is_on = mxs_phy_get_vbus_status(mxs_phy);
 
-	if (suspend) {
+	if (suspend)
+	{
 		/*
 		 * FIXME: Do not power down RXPWD1PT1 bit for low speed
 		 * connect. The low speed connection will have problem at
 		 * very rare cases during usb suspend and resume process.
 		 */
-		if (low_speed_connection & vbus_is_on) {
+		if (low_speed_connection & vbus_is_on)
+		{
 			/*
 			 * If value to be set as pwd value is not 0xffffffff,
 			 * several 32Khz cycles are needed.
 			 */
 			mxs_phy_clock_switch_delay();
 			writel(0xffbfffff, x->io_priv + HW_USBPHY_PWD);
-		} else {
+		}
+		else
+		{
 			writel(0xffffffff, x->io_priv + HW_USBPHY_PWD);
 		}
+
 		writel(BM_USBPHY_CTRL_CLKGATE,
-		       x->io_priv + HW_USBPHY_CTRL_SET);
+			   x->io_priv + HW_USBPHY_CTRL_SET);
 		clk_disable_unprepare(mxs_phy->clk);
-	} else {
+	}
+	else
+	{
 		mxs_phy_clock_switch_delay();
 		ret = clk_prepare_enable(mxs_phy->clk);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		writel(BM_USBPHY_CTRL_CLKGATE,
-		       x->io_priv + HW_USBPHY_CTRL_CLR);
+			   x->io_priv + HW_USBPHY_CTRL_CLR);
 		writel(0, x->io_priv + HW_USBPHY_PWD);
 	}
 
@@ -438,12 +498,16 @@ static int mxs_phy_set_wakeup(struct usb_phy *x, bool enabled)
 {
 	struct mxs_phy *mxs_phy = to_mxs_phy(x);
 	u32 value = BM_USBPHY_CTRL_ENVBUSCHG_WKUP |
-			BM_USBPHY_CTRL_ENDPDMCHG_WKUP |
+				BM_USBPHY_CTRL_ENDPDMCHG_WKUP |
 				BM_USBPHY_CTRL_ENIDCHG_WKUP;
-	if (enabled) {
+
+	if (enabled)
+	{
 		mxs_phy_disconnect_line(mxs_phy, true);
 		writel_relaxed(value, x->io_priv + HW_USBPHY_CTRL_SET);
-	} else {
+	}
+	else
+	{
 		writel_relaxed(value, x->io_priv + HW_USBPHY_CTRL_CLR);
 		mxs_phy_disconnect_line(mxs_phy, false);
 	}
@@ -452,29 +516,29 @@ static int mxs_phy_set_wakeup(struct usb_phy *x, bool enabled)
 }
 
 static int mxs_phy_on_connect(struct usb_phy *phy,
-		enum usb_device_speed speed)
+							  enum usb_device_speed speed)
 {
 	dev_dbg(phy->dev, "%s device has connected\n",
-		(speed == USB_SPEED_HIGH) ? "HS" : "FS/LS");
+			(speed == USB_SPEED_HIGH) ? "HS" : "FS/LS");
 
 	if (speed == USB_SPEED_HIGH)
 		writel(BM_USBPHY_CTRL_ENHOSTDISCONDETECT,
-		       phy->io_priv + HW_USBPHY_CTRL_SET);
+			   phy->io_priv + HW_USBPHY_CTRL_SET);
 
 	return 0;
 }
 
 static int mxs_phy_on_disconnect(struct usb_phy *phy,
-		enum usb_device_speed speed)
+								 enum usb_device_speed speed)
 {
 	dev_dbg(phy->dev, "%s device has disconnected\n",
-		(speed == USB_SPEED_HIGH) ? "HS" : "FS/LS");
+			(speed == USB_SPEED_HIGH) ? "HS" : "FS/LS");
 
 	/* Sometimes, the speed is not high speed when the error occurs */
 	if (readl(phy->io_priv + HW_USBPHY_CTRL) &
-			BM_USBPHY_CTRL_ENHOSTDISCONDETECT)
+		BM_USBPHY_CTRL_ENHOSTDISCONDETECT)
 		writel(BM_USBPHY_CTRL_ENHOSTDISCONDETECT,
-		       phy->io_priv + HW_USBPHY_CTRL_CLR);
+			   phy->io_priv + HW_USBPHY_CTRL_CLR);
 
 	return 0;
 }
@@ -491,70 +555,91 @@ static int mxs_phy_probe(struct platform_device *pdev)
 	u32 val;
 
 	of_id = of_match_device(mxs_phy_dt_ids, &pdev->dev);
+
 	if (!of_id)
+	{
 		return -ENODEV;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(base))
+	{
 		return PTR_ERR(base);
+	}
 
 	clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		dev_err(&pdev->dev,
-			"can't get the clock, err=%ld", PTR_ERR(clk));
+				"can't get the clock, err=%ld", PTR_ERR(clk));
 		return PTR_ERR(clk);
 	}
 
 	mxs_phy = devm_kzalloc(&pdev->dev, sizeof(*mxs_phy), GFP_KERNEL);
+
 	if (!mxs_phy)
+	{
 		return -ENOMEM;
+	}
 
 	/* Some SoCs don't have anatop registers */
-	if (of_get_property(np, "fsl,anatop", NULL)) {
+	if (of_get_property(np, "fsl,anatop", NULL))
+	{
 		mxs_phy->regmap_anatop = syscon_regmap_lookup_by_phandle
-			(np, "fsl,anatop");
-		if (IS_ERR(mxs_phy->regmap_anatop)) {
+								 (np, "fsl,anatop");
+
+		if (IS_ERR(mxs_phy->regmap_anatop))
+		{
 			dev_dbg(&pdev->dev,
-				"failed to find regmap for anatop\n");
+					"failed to find regmap for anatop\n");
 			return PTR_ERR(mxs_phy->regmap_anatop);
 		}
 	}
 
 	/* Precompute which bits of the TX register are to be updated, if any */
 	if (!of_property_read_u32(np, "fsl,tx-cal-45-dn-ohms", &val) &&
-	    val >= MXS_PHY_TX_CAL45_MIN && val <= MXS_PHY_TX_CAL45_MAX) {
+		val >= MXS_PHY_TX_CAL45_MIN && val <= MXS_PHY_TX_CAL45_MAX)
+	{
 		/* Scale to a 4-bit value */
 		val = (MXS_PHY_TX_CAL45_MAX - val) * 0xF
-			/ (MXS_PHY_TX_CAL45_MAX - MXS_PHY_TX_CAL45_MIN);
+			  / (MXS_PHY_TX_CAL45_MAX - MXS_PHY_TX_CAL45_MIN);
 		mxs_phy->tx_reg_mask |= GM_USBPHY_TX_TXCAL45DN(~0);
 		mxs_phy->tx_reg_set  |= GM_USBPHY_TX_TXCAL45DN(val);
 	}
 
 	if (!of_property_read_u32(np, "fsl,tx-cal-45-dp-ohms", &val) &&
-	    val >= MXS_PHY_TX_CAL45_MIN && val <= MXS_PHY_TX_CAL45_MAX) {
+		val >= MXS_PHY_TX_CAL45_MIN && val <= MXS_PHY_TX_CAL45_MAX)
+	{
 		/* Scale to a 4-bit value. */
 		val = (MXS_PHY_TX_CAL45_MAX - val) * 0xF
-			/ (MXS_PHY_TX_CAL45_MAX - MXS_PHY_TX_CAL45_MIN);
+			  / (MXS_PHY_TX_CAL45_MAX - MXS_PHY_TX_CAL45_MIN);
 		mxs_phy->tx_reg_mask |= GM_USBPHY_TX_TXCAL45DP(~0);
 		mxs_phy->tx_reg_set  |= GM_USBPHY_TX_TXCAL45DP(val);
 	}
 
 	if (!of_property_read_u32(np, "fsl,tx-d-cal", &val) &&
-	    val >= MXS_PHY_TX_D_CAL_MIN && val <= MXS_PHY_TX_D_CAL_MAX) {
+		val >= MXS_PHY_TX_D_CAL_MIN && val <= MXS_PHY_TX_D_CAL_MAX)
+	{
 		/* Scale to a 4-bit value.  Round up the values and heavily
 		 * weight the rounding by adding 2/3 of the denominator.
 		 */
 		val = ((MXS_PHY_TX_D_CAL_MAX - val) * 0xF
-			+ (MXS_PHY_TX_D_CAL_MAX - MXS_PHY_TX_D_CAL_MIN) * 2/3)
-			/ (MXS_PHY_TX_D_CAL_MAX - MXS_PHY_TX_D_CAL_MIN);
+			   + (MXS_PHY_TX_D_CAL_MAX - MXS_PHY_TX_D_CAL_MIN) * 2 / 3)
+			  / (MXS_PHY_TX_D_CAL_MAX - MXS_PHY_TX_D_CAL_MIN);
 		mxs_phy->tx_reg_mask |= GM_USBPHY_TX_D_CAL(~0);
 		mxs_phy->tx_reg_set  |= GM_USBPHY_TX_D_CAL(val);
 	}
 
 	ret = of_alias_get_id(np, "usbphy");
+
 	if (ret < 0)
+	{
 		dev_dbg(&pdev->dev, "failed to get alias id, errno %d\n", ret);
+	}
+
 	mxs_phy->port_id = ret;
 
 	mxs_phy->phy.io_priv		= base;
@@ -594,14 +679,16 @@ static void mxs_phy_enable_ldo_in_suspend(struct mxs_phy *mxs_phy, bool on)
 
 	/* If the SoCs don't have anatop, quit */
 	if (!mxs_phy->regmap_anatop)
+	{
 		return;
+	}
 
 	if (is_imx6q_phy(mxs_phy))
 		regmap_write(mxs_phy->regmap_anatop, reg,
-			BM_ANADIG_ANA_MISC0_STOP_MODE_CONFIG);
+					 BM_ANADIG_ANA_MISC0_STOP_MODE_CONFIG);
 	else if (is_imx6sl_phy(mxs_phy))
 		regmap_write(mxs_phy->regmap_anatop,
-			reg, BM_ANADIG_ANA_MISC0_STOP_MODE_CONFIG_SL);
+					 reg, BM_ANADIG_ANA_MISC0_STOP_MODE_CONFIG_SL);
 }
 
 static int mxs_phy_system_suspend(struct device *dev)
@@ -609,7 +696,9 @@ static int mxs_phy_system_suspend(struct device *dev)
 	struct mxs_phy *mxs_phy = dev_get_drvdata(dev);
 
 	if (device_may_wakeup(dev))
+	{
 		mxs_phy_enable_ldo_in_suspend(mxs_phy, true);
+	}
 
 	return 0;
 }
@@ -619,23 +708,26 @@ static int mxs_phy_system_resume(struct device *dev)
 	struct mxs_phy *mxs_phy = dev_get_drvdata(dev);
 
 	if (device_may_wakeup(dev))
+	{
 		mxs_phy_enable_ldo_in_suspend(mxs_phy, false);
+	}
 
 	return 0;
 }
 #endif /* CONFIG_PM_SLEEP */
 
 static SIMPLE_DEV_PM_OPS(mxs_phy_pm, mxs_phy_system_suspend,
-		mxs_phy_system_resume);
+						 mxs_phy_system_resume);
 
-static struct platform_driver mxs_phy_driver = {
+static struct platform_driver mxs_phy_driver =
+{
 	.probe = mxs_phy_probe,
 	.remove = mxs_phy_remove,
 	.driver = {
 		.name = DRIVER_NAME,
 		.of_match_table = mxs_phy_dt_ids,
 		.pm = &mxs_phy_pm,
-	 },
+	},
 };
 
 static int __init mxs_phy_module_init(void)

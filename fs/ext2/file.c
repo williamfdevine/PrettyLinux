@@ -35,7 +35,9 @@ static ssize_t ext2_dax_read_iter(struct kiocb *iocb, struct iov_iter *to)
 	ssize_t ret;
 
 	if (!iov_iter_count(to))
-		return 0; /* skip atime */
+	{
+		return 0;    /* skip atime */
+	}
 
 	inode_lock_shared(inode);
 	ret = iomap_dax_rw(iocb, to, &ext2_iomap_ops);
@@ -53,25 +55,42 @@ static ssize_t ext2_dax_write_iter(struct kiocb *iocb, struct iov_iter *from)
 
 	inode_lock(inode);
 	ret = generic_write_checks(iocb, from);
+
 	if (ret <= 0)
+	{
 		goto out_unlock;
+	}
+
 	ret = file_remove_privs(file);
+
 	if (ret)
+	{
 		goto out_unlock;
+	}
+
 	ret = file_update_time(file);
+
 	if (ret)
+	{
 		goto out_unlock;
+	}
 
 	ret = iomap_dax_rw(iocb, from, &ext2_iomap_ops);
-	if (ret > 0 && iocb->ki_pos > i_size_read(inode)) {
+
+	if (ret > 0 && iocb->ki_pos > i_size_read(inode))
+	{
 		i_size_write(inode, iocb->ki_pos);
 		mark_inode_dirty(inode);
 	}
 
 out_unlock:
 	inode_unlock(inode);
+
 	if (ret > 0)
+	{
 		ret = generic_write_sync(iocb, ret);
+	}
+
 	return ret;
 }
 
@@ -93,43 +112,55 @@ static int ext2_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 	struct ext2_inode_info *ei = EXT2_I(inode);
 	int ret;
 
-	if (vmf->flags & FAULT_FLAG_WRITE) {
+	if (vmf->flags & FAULT_FLAG_WRITE)
+	{
 		sb_start_pagefault(inode->i_sb);
 		file_update_time(vma->vm_file);
 	}
+
 	down_read(&ei->dax_sem);
 
 	ret = iomap_dax_fault(vma, vmf, &ext2_iomap_ops);
 
 	up_read(&ei->dax_sem);
+
 	if (vmf->flags & FAULT_FLAG_WRITE)
+	{
 		sb_end_pagefault(inode->i_sb);
+	}
+
 	return ret;
 }
 
 static int ext2_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
-						pmd_t *pmd, unsigned int flags)
+							  pmd_t *pmd, unsigned int flags)
 {
 	struct inode *inode = file_inode(vma->vm_file);
 	struct ext2_inode_info *ei = EXT2_I(inode);
 	int ret;
 
-	if (flags & FAULT_FLAG_WRITE) {
+	if (flags & FAULT_FLAG_WRITE)
+	{
 		sb_start_pagefault(inode->i_sb);
 		file_update_time(vma->vm_file);
 	}
+
 	down_read(&ei->dax_sem);
 
 	ret = dax_pmd_fault(vma, addr, pmd, flags, ext2_get_block);
 
 	up_read(&ei->dax_sem);
+
 	if (flags & FAULT_FLAG_WRITE)
+	{
 		sb_end_pagefault(inode->i_sb);
+	}
+
 	return ret;
 }
 
 static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
-		struct vm_fault *vmf)
+								struct vm_fault *vmf)
 {
 	struct inode *inode = file_inode(vma->vm_file);
 	struct ext2_inode_info *ei = EXT2_I(inode);
@@ -142,17 +173,23 @@ static int ext2_dax_pfn_mkwrite(struct vm_area_struct *vma,
 
 	/* check that the faulting page hasn't raced with truncate */
 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+
 	if (vmf->pgoff >= size)
+	{
 		ret = VM_FAULT_SIGBUS;
+	}
 	else
+	{
 		ret = dax_pfn_mkwrite(vma, vmf);
+	}
 
 	up_read(&ei->dax_sem);
 	sb_end_pagefault(inode->i_sb);
 	return ret;
 }
 
-static const struct vm_operations_struct ext2_dax_vm_ops = {
+static const struct vm_operations_struct ext2_dax_vm_ops =
+{
 	.fault		= ext2_dax_fault,
 	.pmd_fault	= ext2_dax_pmd_fault,
 	.page_mkwrite	= ext2_dax_fault,
@@ -162,7 +199,9 @@ static const struct vm_operations_struct ext2_dax_vm_ops = {
 static int ext2_file_mmap(struct file *file, struct vm_area_struct *vma)
 {
 	if (!IS_DAX(file_inode(file)))
+	{
 		return generic_file_mmap(file, vma);
+	}
 
 	file_accessed(file);
 	vma->vm_ops = &ext2_dax_vm_ops;
@@ -178,13 +217,15 @@ static int ext2_file_mmap(struct file *file, struct vm_area_struct *vma)
  * for a single struct file are closed. Note that different open() calls
  * for the same file yield different struct file structures.
  */
-static int ext2_release_file (struct inode * inode, struct file * filp)
+static int ext2_release_file (struct inode *inode, struct file *filp)
 {
-	if (filp->f_mode & FMODE_WRITE) {
+	if (filp->f_mode & FMODE_WRITE)
+	{
 		mutex_lock(&EXT2_I(inode)->truncate_mutex);
 		ext2_discard_reservation(inode);
 		mutex_unlock(&EXT2_I(inode)->truncate_mutex);
 	}
+
 	return 0;
 }
 
@@ -195,20 +236,27 @@ int ext2_fsync(struct file *file, loff_t start, loff_t end, int datasync)
 	struct address_space *mapping = sb->s_bdev->bd_inode->i_mapping;
 
 	ret = generic_file_fsync(file, start, end, datasync);
-	if (ret == -EIO || test_and_clear_bit(AS_EIO, &mapping->flags)) {
+
+	if (ret == -EIO || test_and_clear_bit(AS_EIO, &mapping->flags))
+	{
 		/* We don't really know where the IO error happened... */
 		ext2_error(sb, __func__,
-			   "detected IO error when writing metadata buffers");
+				   "detected IO error when writing metadata buffers");
 		ret = -EIO;
 	}
+
 	return ret;
 }
 
 static ssize_t ext2_file_read_iter(struct kiocb *iocb, struct iov_iter *to)
 {
 #ifdef CONFIG_FS_DAX
+
 	if (IS_DAX(iocb->ki_filp->f_mapping->host))
+	{
 		return ext2_dax_read_iter(iocb, to);
+	}
+
 #endif
 	return generic_file_read_iter(iocb, to);
 }
@@ -216,13 +264,18 @@ static ssize_t ext2_file_read_iter(struct kiocb *iocb, struct iov_iter *to)
 static ssize_t ext2_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
 {
 #ifdef CONFIG_FS_DAX
+
 	if (IS_DAX(iocb->ki_filp->f_mapping->host))
+	{
 		return ext2_dax_write_iter(iocb, from);
+	}
+
 #endif
 	return generic_file_write_iter(iocb, from);
 }
 
-const struct file_operations ext2_file_operations = {
+const struct file_operations ext2_file_operations =
+{
 	.llseek		= generic_file_llseek,
 	.read_iter	= ext2_file_read_iter,
 	.write_iter	= ext2_file_write_iter,
@@ -239,7 +292,8 @@ const struct file_operations ext2_file_operations = {
 	.splice_write	= iter_file_splice_write,
 };
 
-const struct inode_operations ext2_file_inode_operations = {
+const struct inode_operations ext2_file_inode_operations =
+{
 #ifdef CONFIG_EXT2_FS_XATTR
 	.listxattr	= ext2_listxattr,
 #endif

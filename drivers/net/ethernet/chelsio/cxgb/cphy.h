@@ -40,23 +40,26 @@
 
 #include "common.h"
 
-struct mdio_ops {
+struct mdio_ops
+{
 	void (*init)(adapter_t *adapter, const struct board_info *bi);
 	int  (*read)(struct net_device *dev, int phy_addr, int mmd_addr,
-		     u16 reg_addr);
+				 u16 reg_addr);
 	int  (*write)(struct net_device *dev, int phy_addr, int mmd_addr,
-		      u16 reg_addr, u16 val);
+				  u16 reg_addr, u16 val);
 	unsigned mode_support;
 };
 
 /* PHY interrupt types */
-enum {
+enum
+{
 	cphy_cause_link_change = 0x1,
 	cphy_cause_error = 0x2,
 	cphy_cause_fifo_error = 0x3
 };
 
-enum {
+enum
+{
 	PHY_LINK_UP = 0x1,
 	PHY_AUTONEG_RDY = 0x2,
 	PHY_AUTONEG_EN = 0x4
@@ -65,7 +68,8 @@ enum {
 struct cphy;
 
 /* PHY operations */
-struct cphy_ops {
+struct cphy_ops
+{
 	void (*destroy)(struct cphy *);
 	int (*reset)(struct cphy *, int wait);
 
@@ -82,13 +86,14 @@ struct cphy_ops {
 	int (*set_loopback)(struct cphy *, int on);
 	int (*set_speed_duplex)(struct cphy *phy, int speed, int duplex);
 	int (*get_link_status)(struct cphy *phy, int *link_ok, int *speed,
-			       int *duplex, int *fc);
+						   int *duplex, int *fc);
 
 	u32 mmds;
 };
 
 /* A PHY instance */
-struct cphy {
+struct cphy
+{
 	int state;	/* Link status state machine */
 	adapter_t *adapter;                  /* associated adapter */
 
@@ -108,56 +113,60 @@ struct cphy {
 
 /* Convenience MDIO read/write wrappers */
 static inline int cphy_mdio_read(struct cphy *cphy, int mmd, int reg,
-				 unsigned int *valp)
+								 unsigned int *valp)
 {
 	int rc = cphy->mdio.mdio_read(cphy->mdio.dev, cphy->mdio.prtad, mmd,
-				      reg);
+								  reg);
 	*valp = (rc >= 0) ? rc : -1;
 	return (rc >= 0) ? 0 : rc;
 }
 
 static inline int cphy_mdio_write(struct cphy *cphy, int mmd, int reg,
-				  unsigned int val)
+								  unsigned int val)
 {
 	return cphy->mdio.mdio_write(cphy->mdio.dev, cphy->mdio.prtad, mmd,
-				     reg, val);
+								 reg, val);
 }
 
 static inline int simple_mdio_read(struct cphy *cphy, int reg,
-				   unsigned int *valp)
+								   unsigned int *valp)
 {
 	return cphy_mdio_read(cphy, MDIO_DEVAD_NONE, reg, valp);
 }
 
 static inline int simple_mdio_write(struct cphy *cphy, int reg,
-				    unsigned int val)
+									unsigned int val)
 {
 	return cphy_mdio_write(cphy, MDIO_DEVAD_NONE, reg, val);
 }
 
 /* Convenience initializer */
 static inline void cphy_init(struct cphy *phy, struct net_device *dev,
-			     int phy_addr, const struct cphy_ops *phy_ops,
-			     const struct mdio_ops *mdio_ops)
+							 int phy_addr, const struct cphy_ops *phy_ops,
+							 const struct mdio_ops *mdio_ops)
 {
 	struct adapter *adapter = netdev_priv(dev);
 	phy->adapter = adapter;
 	phy->ops     = phy_ops;
-	if (mdio_ops) {
+
+	if (mdio_ops)
+	{
 		phy->mdio.prtad = phy_addr;
 		phy->mdio.mmds = phy_ops->mmds;
 		phy->mdio.mode_support = mdio_ops->mode_support;
 		phy->mdio.mdio_read = mdio_ops->read;
 		phy->mdio.mdio_write = mdio_ops->write;
 	}
+
 	phy->mdio.dev = dev;
 }
 
 /* Operations of the PHY-instance factory */
-struct gphy {
+struct gphy
+{
 	/* Construct a PHY instance with the given PHY address */
 	struct cphy *(*create)(struct net_device *dev, int phy_addr,
-			       const struct mdio_ops *mdio_ops);
+						   const struct mdio_ops *mdio_ops);
 
 	/*
 	 * Reset the PHY chip.  This resets the whole PHY chip, not individual

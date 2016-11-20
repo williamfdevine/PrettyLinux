@@ -34,7 +34,8 @@ struct drm_device;
 /**
  * struct drm_framebuffer_funcs - framebuffer hooks
  */
-struct drm_framebuffer_funcs {
+struct drm_framebuffer_funcs
+{
 	/**
 	 * @destroy:
 	 *
@@ -66,8 +67,8 @@ struct drm_framebuffer_funcs {
 	 * 0 on success or a negative error code on failure.
 	 */
 	int (*create_handle)(struct drm_framebuffer *fb,
-			     struct drm_file *file_priv,
-			     unsigned int *handle);
+						 struct drm_file *file_priv,
+						 unsigned int *handle);
 	/**
 	 * @dirty:
 	 *
@@ -87,9 +88,9 @@ struct drm_framebuffer_funcs {
 	 * 0 on success or a negative error code on failure.
 	 */
 	int (*dirty)(struct drm_framebuffer *framebuffer,
-		     struct drm_file *file_priv, unsigned flags,
-		     unsigned color, struct drm_clip_rect *clips,
-		     unsigned num_clips);
+				 struct drm_file *file_priv, unsigned flags,
+				 unsigned color, struct drm_clip_rect *clips,
+				 unsigned num_clips);
 };
 
 /**
@@ -106,7 +107,8 @@ struct drm_framebuffer_funcs {
  *
  * The refcount is stored inside the mode object @base.
  */
-struct drm_framebuffer {
+struct drm_framebuffer
+{
 	/**
 	 * @dev: DRM device this framebuffer belongs to
 	 */
@@ -209,10 +211,10 @@ struct drm_framebuffer {
 #define obj_to_fb(x) container_of(x, struct drm_framebuffer, base)
 
 int drm_framebuffer_init(struct drm_device *dev,
-			 struct drm_framebuffer *fb,
-			 const struct drm_framebuffer_funcs *funcs);
+						 struct drm_framebuffer *fb,
+						 const struct drm_framebuffer_funcs *funcs);
 struct drm_framebuffer *drm_framebuffer_lookup(struct drm_device *dev,
-					       uint32_t id);
+		uint32_t id);
 void drm_framebuffer_remove(struct drm_framebuffer *fb);
 void drm_framebuffer_cleanup(struct drm_framebuffer *fb);
 void drm_framebuffer_unregister_private(struct drm_framebuffer *fb);
@@ -260,8 +262,8 @@ static inline uint32_t drm_framebuffer_read_refcount(struct drm_framebuffer *fb)
  */
 #define drm_for_each_fb(fb, dev) \
 	for (WARN_ON(!mutex_is_locked(&(dev)->mode_config.fb_lock)),		\
-	     fb = list_first_entry(&(dev)->mode_config.fb_list,	\
-					  struct drm_framebuffer, head);	\
-	     &fb->head != (&(dev)->mode_config.fb_list);			\
-	     fb = list_next_entry(fb, head))
+		 fb = list_first_entry(&(dev)->mode_config.fb_list,	\
+							   struct drm_framebuffer, head);	\
+		 &fb->head != (&(dev)->mode_config.fb_list);			\
+		 fb = list_next_entry(fb, head))
 #endif

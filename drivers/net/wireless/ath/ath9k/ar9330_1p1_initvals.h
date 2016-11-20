@@ -22,7 +22,8 @@
 
 #define ar9331_modes_high_power_tx_gain_1p1 ar9331_modes_lowest_ob_db_tx_gain_1p1
 
-static const u32 ar9331_1p1_baseband_postamble[][5] = {
+static const u32 ar9331_1p1_baseband_postamble[][5] =
+{
 	/* Addr      5G_HT20     5G_HT40     2G_HT40     2G_HT20   */
 	{0x00009810, 0xd00a8005, 0xd00a8005, 0xd00a8005, 0xd00a8005},
 	{0x00009820, 0x206a002e, 0x206a002e, 0x206a002e, 0x206a002e},
@@ -67,7 +68,8 @@ static const u32 ar9331_1p1_baseband_postamble[][5] = {
 	{0x0000ae18, 0x00000000, 0x00000000, 0x00000000, 0x00000000},
 };
 
-static const u32 ar9331_modes_lowest_ob_db_tx_gain_1p1[][5] = {
+static const u32 ar9331_modes_lowest_ob_db_tx_gain_1p1[][5] =
+{
 	/* Addr      5G_HT20     5G_HT40     2G_HT40     2G_HT20   */
 	{0x0000a2d8, 0x7999a83a, 0x7999a83a, 0x7999a83a, 0x7999a83a},
 	{0x0000a2dc, 0xffff2a52, 0xffff2a52, 0xffff2a52, 0xffff2a52},
@@ -159,7 +161,8 @@ static const u32 ar9331_modes_lowest_ob_db_tx_gain_1p1[][5] = {
 	{0x00016284, 0x14d3f000, 0x14d3f000, 0x14d3f000, 0x14d3f000},
 };
 
-static const u32 ar9331_modes_high_ob_db_tx_gain_1p1[][5] = {
+static const u32 ar9331_modes_high_ob_db_tx_gain_1p1[][5] =
+{
 	/* Addr      5G_HT20     5G_HT40     2G_HT40     2G_HT20   */
 	{0x0000a2d8, 0x7999a83a, 0x7999a83a, 0x7999a83a, 0x7999a83a},
 	{0x0000a2dc, 0xffaa9a52, 0xffaa9a52, 0xffaa9a52, 0xffaa9a52},
@@ -249,7 +252,8 @@ static const u32 ar9331_modes_high_ob_db_tx_gain_1p1[][5] = {
 	{0x0000a63c, 0x04015005, 0x04015005, 0x04015005, 0x04015005},
 };
 
-static const u32 ar9331_modes_low_ob_db_tx_gain_1p1[][5] = {
+static const u32 ar9331_modes_low_ob_db_tx_gain_1p1[][5] =
+{
 	/* Addr      5G_HT20     5G_HT40     2G_HT40     2G_HT20   */
 	{0x0000a2d8, 0x7999a83a, 0x7999a83a, 0x7999a83a, 0x7999a83a},
 	{0x0000a2dc, 0xffff2a52, 0xffff2a52, 0xffff2a52, 0xffff2a52},
@@ -341,7 +345,8 @@ static const u32 ar9331_modes_low_ob_db_tx_gain_1p1[][5] = {
 	{0x00016284, 0x14d3f000, 0x14d3f000, 0x14d3f000, 0x14d3f000},
 };
 
-static const u32 ar9331_1p1_xtal_25M[][2] = {
+static const u32 ar9331_1p1_xtal_25M[][2] =
+{
 	/* Addr      allmodes  */
 	{0x00007038, 0x000002f8},
 	{0x00008244, 0x0010f3d7},
@@ -349,7 +354,8 @@ static const u32 ar9331_1p1_xtal_25M[][2] = {
 	{0x0001609c, 0x0f508f29},
 };
 
-static const u32 ar9331_1p1_radio_core[][2] = {
+static const u32 ar9331_1p1_radio_core[][2] =
+{
 	/* Addr      allmodes  */
 	{0x00016000, 0x36db6db6},
 	{0x00016004, 0x6db6db40},
@@ -414,12 +420,14 @@ static const u32 ar9331_1p1_radio_core[][2] = {
 	{0x000163d4, 0x00000000},
 };
 
-static const u32 ar9331_1p1_soc_postamble[][5] = {
+static const u32 ar9331_1p1_soc_postamble[][5] =
+{
 	/* Addr      5G_HT20     5G_HT40     2G_HT40     2G_HT20   */
 	{0x00007010, 0x00000022, 0x00000022, 0x00000022, 0x00000022},
 };
 
-static const u32 ar9331_common_wo_xlna_rx_gain_1p1[][2] = {
+static const u32 ar9331_common_wo_xlna_rx_gain_1p1[][2] =
+{
 	/* Addr      allmodes  */
 	{0x0000a000, 0x00060005},
 	{0x0000a004, 0x00810080},
@@ -551,7 +559,8 @@ static const u32 ar9331_common_wo_xlna_rx_gain_1p1[][2] = {
 	{0x0000a1fc, 0x00000296},
 };
 
-static const u32 ar9331_1p1_baseband_core[][2] = {
+static const u32 ar9331_1p1_baseband_core[][2] =
+{
 	/* Addr      allmodes  */
 	{0x00009800, 0xafe68e30},
 	{0x00009804, 0xfd14e000},
@@ -688,7 +697,8 @@ static const u32 ar9331_1p1_baseband_core[][2] = {
 	{0x0000a7dc, 0x00000001},
 };
 
-static const u32 ar9331_1p1_mac_postamble[][5] = {
+static const u32 ar9331_1p1_mac_postamble[][5] =
+{
 	/* Addr      5G_HT20     5G_HT40     2G_HT40     2G_HT20   */
 	{0x00001030, 0x00000230, 0x00000460, 0x000002c0, 0x00000160},
 	{0x00001070, 0x00000168, 0x000002d0, 0x00000318, 0x0000018c},
@@ -700,14 +710,16 @@ static const u32 ar9331_1p1_mac_postamble[][5] = {
 	{0x00008318, 0x00003e80, 0x00007d00, 0x00006880, 0x00003440},
 };
 
-static const u32 ar9331_1p1_soc_preamble[][2] = {
+static const u32 ar9331_1p1_soc_preamble[][2] =
+{
 	/* Addr      allmodes  */
 	{0x00007020, 0x00000000},
 	{0x00007034, 0x00000002},
 	{0x00007038, 0x000002f8},
 };
 
-static const u32 ar9331_1p1_xtal_40M[][2] = {
+static const u32 ar9331_1p1_xtal_40M[][2] =
+{
 	/* Addr      allmodes  */
 	{0x00007038, 0x000004c2},
 	{0x00008244, 0x0010f400},
@@ -715,7 +727,8 @@ static const u32 ar9331_1p1_xtal_40M[][2] = {
 	{0x0001609c, 0x0b283f31},
 };
 
-static const u32 ar9331_1p1_mac_core[][2] = {
+static const u32 ar9331_1p1_mac_core[][2] =
+{
 	/* Addr      allmodes  */
 	{0x00000008, 0x00000000},
 	{0x00000030, 0x00020085},
@@ -877,7 +890,8 @@ static const u32 ar9331_1p1_mac_core[][2] = {
 	{0x000083d0, 0x000301ff},
 };
 
-static const u32 ar9331_common_rx_gain_1p1[][2] = {
+static const u32 ar9331_common_rx_gain_1p1[][2] =
+{
 	/* Addr      allmodes  */
 	{0x00009e18, 0x05000000},
 	{0x0000a000, 0x00060005},
@@ -1010,7 +1024,8 @@ static const u32 ar9331_common_rx_gain_1p1[][2] = {
 	{0x0000a1fc, 0x00000296},
 };
 
-static const u32 ar9331_common_tx_gain_offset1_1[][1] = {
+static const u32 ar9331_common_tx_gain_offset1_1[][1] =
+{
 	{0x00000000},
 	{0x00000003},
 	{0x00000000},

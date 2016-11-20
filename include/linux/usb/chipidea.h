@@ -19,7 +19,8 @@ struct ci_hdrc;
  * @nb: hold event notification callback
  * @conn: used for notification registration
  */
-struct ci_hdrc_cable {
+struct ci_hdrc_cable
+{
 	bool				state;
 	bool				changed;
 	struct extcon_dev		*edev;
@@ -27,7 +28,8 @@ struct ci_hdrc_cable {
 	struct notifier_block		nb;
 };
 
-struct ci_hdrc_platform_data {
+struct ci_hdrc_platform_data
+{
 	const char	*name;
 	/* offset of the capability registers */
 	uintptr_t	 capoffset;
@@ -42,7 +44,7 @@ struct ci_hdrc_platform_data {
 #define CI_HDRC_SUPPORTS_RUNTIME_PM	BIT(2)
 #define CI_HDRC_DISABLE_HOST_STREAMING	BIT(3)
 #define CI_HDRC_DISABLE_STREAMING (CI_HDRC_DISABLE_DEVICE_STREAMING |	\
-		CI_HDRC_DISABLE_HOST_STREAMING)
+								   CI_HDRC_DISABLE_HOST_STREAMING)
 	/*
 	 * Only set it when DCCPARAMS.DC==1 and DCCPARAMS.HC==1,
 	 * but otg is not supported (no register otgsc).
@@ -79,8 +81,8 @@ struct ci_hdrc_platform_data {
 
 /* Add ci hdrc device */
 struct platform_device *ci_hdrc_add_device(struct device *dev,
-			struct resource *res, int nres,
-			struct ci_hdrc_platform_data *platdata);
+		struct resource *res, int nres,
+		struct ci_hdrc_platform_data *platdata);
 /* Remove ci hdrc device */
 void ci_hdrc_remove_device(struct platform_device *pdev);
 

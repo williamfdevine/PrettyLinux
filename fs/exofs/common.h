@@ -67,9 +67,10 @@
  * inode number.  This is the largest object ID that the file system supports.
  * Object IDs 0, 1, and 2 are always in use (see above defines).
  */
-enum {
+enum
+{
 	EXOFS_MAX_INO_ID = (sizeof(ino_t) * 8 == 64) ? ULLONG_MAX :
-					(1ULL << (sizeof(ino_t) * 8ULL - 1ULL)),
+					   (1ULL << (sizeof(ino_t) * 8ULL - 1ULL)),
 	EXOFS_MAX_ID	 = (EXOFS_MAX_INO_ID - 1 - EXOFS_OBJ_OFF),
 };
 
@@ -89,7 +90,8 @@ enum {
  * This is where the in-memory superblock is stored on disk.
  */
 enum {EXOFS_FSCB_VER = 1, EXOFS_DT_VER = 1};
-struct exofs_fscb {
+struct exofs_fscb
+{
 	__le64  s_nextid;	/* Only used after mkfs */
 	__le64  s_numfiles;	/* Only used after mkfs */
 	__le32	s_version;	/* == EXOFS_FSCB_VER */
@@ -106,7 +108,8 @@ struct exofs_fscb {
  * [EXOFS_APAGE_SB_DATA, EXOFS_ATTR_SB_STATS] and is written together
  * with the create command, to atomically persist the sb writeable information.
  */
-struct exofs_sb_stats {
+struct exofs_sb_stats
+{
 	__le64  s_nextid;	/* Highest object ID used */
 	__le64  s_numfiles;	/* Number of files on fs */
 } __packed;
@@ -117,7 +120,8 @@ struct exofs_sb_stats {
  * use one raid policy through-out the filesystem. (NOTE: the funny
  * alignment at beginning. We take care of it at exofs_device_table.
  */
-struct exofs_dt_data_map {
+struct exofs_dt_data_map
+{
 	__le32	cb_num_comps;
 	__le64	cb_stripe_unit;
 	__le32	cb_group_width;
@@ -131,7 +135,8 @@ struct exofs_dt_data_map {
  * the exofs device table. It describes an osd target lun which
  * contains data belonging to this FS. (Same partition_id on all devices)
  */
-struct exofs_dt_device_info {
+struct exofs_dt_device_info
+{
 	__le32	systemid_len;
 	u8	systemid[OSD_SYSTEMID_LEN];
 	__le64	long_name_offset;	/* If !0 then offset-in-file */
@@ -144,7 +149,8 @@ struct exofs_dt_device_info {
  * It contains the raid used for this multy-device FS and an array of
  * participating devices.
  */
-struct exofs_device_table {
+struct exofs_device_table
+{
 	__le32				dt_version;	/* == EXOFS_DT_VER */
 	struct exofs_dt_data_map	dt_data_map;	/* Raid policy to use */
 
@@ -166,7 +172,8 @@ struct exofs_device_table {
  * The file control block - stored in an object's attributes.  This is where
  * the in-memory inode is stored on disk.
  */
-struct exofs_fcb {
+struct exofs_fcb
+{
 	__le64  i_size;			/* Size of the file */
 	__le16  i_mode;         	/* File mode */
 	__le16  i_links_count;  	/* Links count */
@@ -184,9 +191,9 @@ struct exofs_fcb {
 
 /* This is the Attribute the fcb is stored in */
 static const struct __weak osd_attr g_attr_inode_data = ATTR_DEF(
-	EXOFS_APAGE_FS_DATA,
-	EXOFS_ATTR_INODE_DATA,
-	EXOFS_INO_ATTR_SIZE);
+			EXOFS_APAGE_FS_DATA,
+			EXOFS_ATTR_INODE_DATA,
+			EXOFS_INO_ATTR_SIZE);
 
 /****************************************************************************
  * dentry-related things
@@ -196,7 +203,8 @@ static const struct __weak osd_attr g_attr_inode_data = ATTR_DEF(
 /*
  * The on-disk directory entry
  */
-struct exofs_dir_entry {
+struct exofs_dir_entry
+{
 	__le64		inode_no;		/* inode number           */
 	__le16		rec_len;		/* directory entry length */
 	u8		name_len;		/* name length            */
@@ -204,7 +212,8 @@ struct exofs_dir_entry {
 	char		name[EXOFS_NAME_LEN];	/* file name              */
 };
 
-enum {
+enum
+{
 	EXOFS_FT_UNKNOWN,
 	EXOFS_FT_REG_FILE,
 	EXOFS_FT_DIR,
@@ -228,22 +237,27 @@ enum {
  * attribute, attached to any inode, usually to a directory.
  */
 
-enum exofs_inode_layout_gen_functions {
+enum exofs_inode_layout_gen_functions
+{
 	LAYOUT_MOVING_WINDOW = 0,
 	LAYOUT_IMPLICT = 1,
 };
 
-struct exofs_on_disk_inode_layout {
+struct exofs_on_disk_inode_layout
+{
 	__le16 gen_func; /* One of enum exofs_inode_layout_gen_functions */
 	__le16 pad;
-	union {
+	union
+	{
 		/* gen_func == LAYOUT_MOVING_WINDOW (default) */
-		struct exofs_layout_sliding_window {
+		struct exofs_layout_sliding_window
+		{
 			__le32 num_devices; /* first n devices in global-table*/
 		} sliding_window __packed;
 
 		/* gen_func == LAYOUT_IMPLICT */
-		struct exofs_layout_implict_list {
+		struct exofs_layout_implict_list
+		{
 			struct exofs_dt_data_map data_map;
 			/* Variable array of size data_map.cb_num_comps. These
 			 * are device indexes of the devices in the global table
@@ -256,7 +270,7 @@ struct exofs_on_disk_inode_layout {
 static inline size_t exofs_on_disk_inode_layout_size(unsigned max_devs)
 {
 	return sizeof(struct exofs_on_disk_inode_layout) +
-		max_devs * sizeof(__le32);
+		   max_devs * sizeof(__le32);
 }
 
 #endif /*ifndef __EXOFS_COM_H__*/

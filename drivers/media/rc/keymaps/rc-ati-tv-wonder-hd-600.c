@@ -17,7 +17,8 @@
    Devin Heitmueller <devin.heitmueller@gmail.com>
  */
 
-static struct rc_map_table ati_tv_wonder_hd_600[] = {
+static struct rc_map_table ati_tv_wonder_hd_600[] =
+{
 	{ 0x00, KEY_RECORD},		/* Row 1 */
 	{ 0x01, KEY_PLAYPAUSE},
 	{ 0x02, KEY_STOP},
@@ -44,7 +45,8 @@ static struct rc_map_table ati_tv_wonder_hd_600[] = {
 	{ 0x17, KEY_VOLUMEDOWN},
 };
 
-static struct rc_map_list ati_tv_wonder_hd_600_map = {
+static struct rc_map_list ati_tv_wonder_hd_600_map =
+{
 	.map = {
 		.scan    = ati_tv_wonder_hd_600,
 		.size    = ARRAY_SIZE(ati_tv_wonder_hd_600),

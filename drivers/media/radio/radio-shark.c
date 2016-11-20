@@ -36,8 +36,8 @@
 #include <media/drv-intf/tea575x.h>
 
 #if defined(CONFIG_LEDS_CLASS) || \
-    (defined(CONFIG_LEDS_CLASS_MODULE) && defined(CONFIG_RADIO_SHARK_MODULE))
-#define SHARK_USE_LEDS 1
+	(defined(CONFIG_LEDS_CLASS_MODULE) && defined(CONFIG_RADIO_SHARK_MODULE))
+	#define SHARK_USE_LEDS 1
 #endif
 
 /*
@@ -62,7 +62,8 @@ MODULE_LICENSE("GPL");
 /* Note BLUE_IS_PULSE comes after NO_LEDS as it is a status bit, not a LED */
 enum { BLUE_LED, BLUE_PULSE_LED, RED_LED, NO_LEDS, BLUE_IS_PULSE };
 
-struct shark_device {
+struct shark_device
+{
 	struct usb_device *usbdev;
 	struct v4l2_device v4l2_dev;
 	struct snd_tea575x tea;
@@ -88,21 +89,31 @@ static void shark_write_val(struct snd_tea575x *tea, u32 val)
 
 	/* Avoid unnecessary (slow) USB transfers */
 	if (shark->last_val == val)
+	{
 		return;
+	}
 
 	memset(shark->transfer_buffer, 0, TB_LEN);
 	shark->transfer_buffer[0] = 0xc0; /* Write shift register command */
+
 	for (i = 0; i < 4; i++)
+	{
 		shark->transfer_buffer[i] |= (val >> (24 - i * 8)) & 0xff;
+	}
 
 	res = usb_interrupt_msg(shark->usbdev,
-				usb_sndintpipe(shark->usbdev, SHARK_OUT_EP),
-				shark->transfer_buffer, TB_LEN,
-				&actual_len, 1000);
+							usb_sndintpipe(shark->usbdev, SHARK_OUT_EP),
+							shark->transfer_buffer, TB_LEN,
+							&actual_len, 1000);
+
 	if (res >= 0)
+	{
 		shark->last_val = val;
+	}
 	else
+	{
 		v4l2_err(&shark->v4l2_dev, "set-freq error: %d\n", res);
+	}
 }
 
 static u32 shark_read_val(struct snd_tea575x *tea)
@@ -114,25 +125,31 @@ static u32 shark_read_val(struct snd_tea575x *tea)
 	memset(shark->transfer_buffer, 0, TB_LEN);
 	shark->transfer_buffer[0] = 0x80;
 	res = usb_interrupt_msg(shark->usbdev,
-				usb_sndintpipe(shark->usbdev, SHARK_OUT_EP),
-				shark->transfer_buffer, TB_LEN,
-				&actual_len, 1000);
-	if (res < 0) {
+							usb_sndintpipe(shark->usbdev, SHARK_OUT_EP),
+							shark->transfer_buffer, TB_LEN,
+							&actual_len, 1000);
+
+	if (res < 0)
+	{
 		v4l2_err(&shark->v4l2_dev, "request-status error: %d\n", res);
 		return shark->last_val;
 	}
 
 	res = usb_interrupt_msg(shark->usbdev,
-				usb_rcvintpipe(shark->usbdev, SHARK_IN_EP),
-				shark->transfer_buffer, TB_LEN,
-				&actual_len, 1000);
-	if (res < 0) {
+							usb_rcvintpipe(shark->usbdev, SHARK_IN_EP),
+							shark->transfer_buffer, TB_LEN,
+							&actual_len, 1000);
+
+	if (res < 0)
+	{
 		v4l2_err(&shark->v4l2_dev, "get-status error: %d\n", res);
 		return shark->last_val;
 	}
 
 	for (i = 0; i < 4; i++)
+	{
 		val |= shark->transfer_buffer[i] << (24 - i * 8);
+	}
 
 	shark->last_val = val;
 
@@ -142,15 +159,20 @@ static u32 shark_read_val(struct snd_tea575x *tea)
 	 * been requested, that we're receiving stereo.
 	 */
 	if (((val & TEA575X_BIT_BAND_MASK) == TEA575X_BIT_BAND_FM) &&
-	    !(val & TEA575X_BIT_MONO))
+		!(val & TEA575X_BIT_MONO))
+	{
 		shark->tea.stereo = true;
+	}
 	else
+	{
 		shark->tea.stereo = false;
+	}
 
 	return val;
 }
 
-static const struct snd_tea575x_ops shark_tea_ops = {
+static const struct snd_tea575x_ops shark_tea_ops =
+{
 	.write_val = shark_write_val,
 	.read_val  = shark_read_val,
 };
@@ -162,29 +184,39 @@ static void shark_led_work(struct work_struct *work)
 		container_of(work, struct shark_device, led_work);
 	int i, res, brightness, actual_len;
 
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 3; i++)
+	{
 		if (!test_and_clear_bit(i, &shark->brightness_new))
+		{
 			continue;
+		}
 
 		brightness = atomic_read(&shark->brightness[i]);
 		memset(shark->transfer_buffer, 0, TB_LEN);
-		if (i != RED_LED) {
+
+		if (i != RED_LED)
+		{
 			shark->transfer_buffer[0] = 0xA0 + i;
 			shark->transfer_buffer[1] = brightness;
-		} else
+		}
+		else
+		{
 			shark->transfer_buffer[0] = brightness ? 0xA9 : 0xA8;
+		}
+
 		res = usb_interrupt_msg(shark->usbdev,
-					usb_sndintpipe(shark->usbdev, 0x05),
-					shark->transfer_buffer, TB_LEN,
-					&actual_len, 1000);
+								usb_sndintpipe(shark->usbdev, 0x05),
+								shark->transfer_buffer, TB_LEN,
+								&actual_len, 1000);
+
 		if (res < 0)
 			v4l2_err(&shark->v4l2_dev, "set LED %s error: %d\n",
-				 shark->led_names[i], res);
+					 shark->led_names[i], res);
 	}
 }
 
 static void shark_led_set_blue(struct led_classdev *led_cdev,
-			       enum led_brightness value)
+							   enum led_brightness value)
 {
 	struct shark_device *shark =
 		container_of(led_cdev, struct shark_device, leds[BLUE_LED]);
@@ -196,10 +228,10 @@ static void shark_led_set_blue(struct led_classdev *led_cdev,
 }
 
 static void shark_led_set_blue_pulse(struct led_classdev *led_cdev,
-				     enum led_brightness value)
+									 enum led_brightness value)
 {
 	struct shark_device *shark = container_of(led_cdev,
-				struct shark_device, leds[BLUE_PULSE_LED]);
+								 struct shark_device, leds[BLUE_PULSE_LED]);
 
 	atomic_set(&shark->brightness[BLUE_PULSE_LED], 256 - value);
 	set_bit(BLUE_PULSE_LED, &shark->brightness_new);
@@ -208,7 +240,7 @@ static void shark_led_set_blue_pulse(struct led_classdev *led_cdev,
 }
 
 static void shark_led_set_red(struct led_classdev *led_cdev,
-			      enum led_brightness value)
+							  enum led_brightness value)
 {
 	struct shark_device *shark =
 		container_of(led_cdev, struct shark_device, leds[RED_LED]);
@@ -218,7 +250,8 @@ static void shark_led_set_red(struct led_classdev *led_cdev,
 	schedule_work(&shark->led_work);
 }
 
-static const struct led_classdev shark_led_templates[NO_LEDS] = {
+static const struct led_classdev shark_led_templates[NO_LEDS] =
+{
 	[BLUE_LED] = {
 		.name		= "%s:blue:",
 		.brightness	= LED_OFF,
@@ -245,19 +278,24 @@ static int shark_register_leds(struct shark_device *shark, struct device *dev)
 
 	atomic_set(&shark->brightness[BLUE_LED], 127);
 	INIT_WORK(&shark->led_work, shark_led_work);
-	for (i = 0; i < NO_LEDS; i++) {
+
+	for (i = 0; i < NO_LEDS; i++)
+	{
 		shark->leds[i] = shark_led_templates[i];
 		snprintf(shark->led_names[i], sizeof(shark->led_names[0]),
-			 shark->leds[i].name, shark->v4l2_dev.name);
+				 shark->leds[i].name, shark->v4l2_dev.name);
 		shark->leds[i].name = shark->led_names[i];
 		retval = led_classdev_register(dev, &shark->leds[i]);
-		if (retval) {
+
+		if (retval)
+		{
 			v4l2_err(&shark->v4l2_dev,
-				 "couldn't register led: %s\n",
-				 shark->led_names[i]);
+					 "couldn't register led: %s\n",
+					 shark->led_names[i]);
 			return retval;
 		}
 	}
+
 	return 0;
 }
 
@@ -266,7 +304,9 @@ static void shark_unregister_leds(struct shark_device *shark)
 	int i;
 
 	for (i = 0; i < NO_LEDS; i++)
+	{
 		led_classdev_unregister(&shark->leds[i]);
+	}
 
 	cancel_work_sync(&shark->led_work);
 }
@@ -274,9 +314,14 @@ static void shark_unregister_leds(struct shark_device *shark)
 static inline void shark_resume_leds(struct shark_device *shark)
 {
 	if (test_bit(BLUE_IS_PULSE, &shark->brightness_new))
+	{
 		set_bit(BLUE_PULSE_LED, &shark->brightness_new);
+	}
 	else
+	{
 		set_bit(BLUE_LED, &shark->brightness_new);
+	}
+
 	set_bit(RED_LED, &shark->brightness_new);
 	schedule_work(&shark->led_work);
 }
@@ -284,7 +329,7 @@ static inline void shark_resume_leds(struct shark_device *shark)
 static int shark_register_leds(struct shark_device *shark, struct device *dev)
 {
 	v4l2_warn(&shark->v4l2_dev,
-		  "CONFIG_LEDS_CLASS not enabled, LED support disabled\n");
+			  "CONFIG_LEDS_CLASS not enabled, LED support disabled\n");
 	return 0;
 }
 static inline void shark_unregister_leds(struct shark_device *shark) { }
@@ -316,28 +361,39 @@ static void usb_shark_release(struct v4l2_device *v4l2_dev)
 }
 
 static int usb_shark_probe(struct usb_interface *intf,
-			   const struct usb_device_id *id)
+						   const struct usb_device_id *id)
 {
 	struct shark_device *shark;
 	int retval = -ENOMEM;
 
 	shark = kzalloc(sizeof(struct shark_device), GFP_KERNEL);
+
 	if (!shark)
+	{
 		return retval;
+	}
 
 	shark->transfer_buffer = kmalloc(TB_LEN, GFP_KERNEL);
+
 	if (!shark->transfer_buffer)
+	{
 		goto err_alloc_buffer;
+	}
 
 	v4l2_device_set_name(&shark->v4l2_dev, DRV_NAME, &shark_instance);
 
 	retval = shark_register_leds(shark, &intf->dev);
+
 	if (retval)
+	{
 		goto err_reg_leds;
+	}
 
 	shark->v4l2_dev.release = usb_shark_release;
 	retval = v4l2_device_register(&intf->dev, &shark->v4l2_dev);
-	if (retval) {
+
+	if (retval)
+	{
 		v4l2_err(&shark->v4l2_dev, "couldn't register v4l2_device\n");
 		goto err_reg_dev;
 	}
@@ -350,12 +406,14 @@ static int usb_shark_probe(struct usb_interface *intf,
 	shark->tea.cannot_mute = true;
 	shark->tea.has_am = true;
 	strlcpy(shark->tea.card, "Griffin radioSHARK",
-		sizeof(shark->tea.card));
+			sizeof(shark->tea.card));
 	usb_make_path(shark->usbdev, shark->tea.bus_info,
-		sizeof(shark->tea.bus_info));
+				  sizeof(shark->tea.bus_info));
 
 	retval = snd_tea575x_init(&shark->tea, THIS_MODULE);
-	if (retval) {
+
+	if (retval)
+	{
 		v4l2_err(&shark->v4l2_dev, "couldn't init tea5757\n");
 		goto err_init_tea;
 	}
@@ -396,20 +454,23 @@ static int usb_shark_resume(struct usb_interface *intf)
 #endif
 
 /* Specify the bcdDevice value, as the radioSHARK and radioSHARK2 share ids */
-static struct usb_device_id usb_shark_device_table[] = {
-	{ .match_flags = USB_DEVICE_ID_MATCH_DEVICE_AND_VERSION |
-			 USB_DEVICE_ID_MATCH_INT_CLASS,
-	  .idVendor     = 0x077d,
-	  .idProduct    = 0x627a,
-	  .bcdDevice_lo = 0x0001,
-	  .bcdDevice_hi = 0x0001,
-	  .bInterfaceClass = 3,
+static struct usb_device_id usb_shark_device_table[] =
+{
+	{
+		.match_flags = USB_DEVICE_ID_MATCH_DEVICE_AND_VERSION |
+		USB_DEVICE_ID_MATCH_INT_CLASS,
+		.idVendor     = 0x077d,
+		.idProduct    = 0x627a,
+		.bcdDevice_lo = 0x0001,
+		.bcdDevice_hi = 0x0001,
+		.bInterfaceClass = 3,
 	},
 	{ }
 };
 MODULE_DEVICE_TABLE(usb, usb_shark_device_table);
 
-static struct usb_driver usb_shark_driver = {
+static struct usb_driver usb_shark_driver =
+{
 	.name			= DRV_NAME,
 	.probe			= usb_shark_probe,
 	.disconnect		= usb_shark_disconnect,

@@ -74,42 +74,43 @@ static int ssi_debug_gdd_show(struct seq_file *m, void *p __maybe_unused)
 	pm_runtime_get_sync(ssi->device.parent);
 
 	seq_printf(m, "GDD_MPU_STATUS\t: 0x%08x\n",
-		readl(sys + SSI_GDD_MPU_IRQ_STATUS_REG));
+			   readl(sys + SSI_GDD_MPU_IRQ_STATUS_REG));
 	seq_printf(m, "GDD_MPU_ENABLE\t: 0x%08x\n\n",
-		readl(sys + SSI_GDD_MPU_IRQ_ENABLE_REG));
+			   readl(sys + SSI_GDD_MPU_IRQ_ENABLE_REG));
 	seq_printf(m, "HW_ID\t\t: 0x%08x\n",
-				readl(gdd + SSI_GDD_HW_ID_REG));
+			   readl(gdd + SSI_GDD_HW_ID_REG));
 	seq_printf(m, "PPORT_ID\t: 0x%08x\n",
-				readl(gdd + SSI_GDD_PPORT_ID_REG));
+			   readl(gdd + SSI_GDD_PPORT_ID_REG));
 	seq_printf(m, "MPORT_ID\t: 0x%08x\n",
-				readl(gdd + SSI_GDD_MPORT_ID_REG));
+			   readl(gdd + SSI_GDD_MPORT_ID_REG));
 	seq_printf(m, "TEST\t\t: 0x%08x\n",
-				readl(gdd + SSI_GDD_TEST_REG));
+			   readl(gdd + SSI_GDD_TEST_REG));
 	seq_printf(m, "GCR\t\t: 0x%08x\n",
-				readl(gdd + SSI_GDD_GCR_REG));
+			   readl(gdd + SSI_GDD_GCR_REG));
 
-	for (lch = 0; lch < SSI_MAX_GDD_LCH; lch++) {
+	for (lch = 0; lch < SSI_MAX_GDD_LCH; lch++)
+	{
 		seq_printf(m, "\nGDD LCH %d\n=========\n", lch);
 		seq_printf(m, "CSDP\t\t: 0x%04x\n",
-				readw(gdd + SSI_GDD_CSDP_REG(lch)));
+				   readw(gdd + SSI_GDD_CSDP_REG(lch)));
 		seq_printf(m, "CCR\t\t: 0x%04x\n",
-				readw(gdd + SSI_GDD_CCR_REG(lch)));
+				   readw(gdd + SSI_GDD_CCR_REG(lch)));
 		seq_printf(m, "CICR\t\t: 0x%04x\n",
-				readw(gdd + SSI_GDD_CICR_REG(lch)));
+				   readw(gdd + SSI_GDD_CICR_REG(lch)));
 		seq_printf(m, "CSR\t\t: 0x%04x\n",
-				readw(gdd + SSI_GDD_CSR_REG(lch)));
+				   readw(gdd + SSI_GDD_CSR_REG(lch)));
 		seq_printf(m, "CSSA\t\t: 0x%08x\n",
-				readl(gdd + SSI_GDD_CSSA_REG(lch)));
+				   readl(gdd + SSI_GDD_CSSA_REG(lch)));
 		seq_printf(m, "CDSA\t\t: 0x%08x\n",
-				readl(gdd + SSI_GDD_CDSA_REG(lch)));
+				   readl(gdd + SSI_GDD_CDSA_REG(lch)));
 		seq_printf(m, "CEN\t\t: 0x%04x\n",
-				readw(gdd + SSI_GDD_CEN_REG(lch)));
+				   readw(gdd + SSI_GDD_CEN_REG(lch)));
 		seq_printf(m, "CSAC\t\t: 0x%04x\n",
-				readw(gdd + SSI_GDD_CSAC_REG(lch)));
+				   readw(gdd + SSI_GDD_CSAC_REG(lch)));
 		seq_printf(m, "CDAC\t\t: 0x%04x\n",
-				readw(gdd + SSI_GDD_CDAC_REG(lch)));
+				   readw(gdd + SSI_GDD_CDAC_REG(lch)));
 		seq_printf(m, "CLNK_CTRL\t: 0x%04x\n",
-				readw(gdd + SSI_GDD_CLNK_CTRL_REG(lch)));
+				   readw(gdd + SSI_GDD_CLNK_CTRL_REG(lch)));
 	}
 
 	pm_runtime_put(ssi->device.parent);
@@ -127,14 +128,16 @@ static int ssi_gdd_regs_open(struct inode *inode, struct file *file)
 	return single_open(file, ssi_debug_gdd_show, inode->i_private);
 }
 
-static const struct file_operations ssi_regs_fops = {
+static const struct file_operations ssi_regs_fops =
+{
 	.open		= ssi_regs_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
 	.release	= single_release,
 };
 
-static const struct file_operations ssi_gdd_regs_fops = {
+static const struct file_operations ssi_gdd_regs_fops =
+{
 	.open		= ssi_gdd_regs_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -148,15 +151,22 @@ static int ssi_debug_add_ctrl(struct hsi_controller *ssi)
 
 	/* SSI controller */
 	omap_ssi->dir = debugfs_create_dir(dev_name(&ssi->device), NULL);
+
 	if (!omap_ssi->dir)
+	{
 		return -ENOMEM;
+	}
 
 	debugfs_create_file("regs", S_IRUGO, omap_ssi->dir, ssi,
-								&ssi_regs_fops);
+						&ssi_regs_fops);
 	/* SSI GDD (DMA) */
 	dir = debugfs_create_dir("gdd", omap_ssi->dir);
+
 	if (!dir)
+	{
 		goto rback;
+	}
+
 	debugfs_create_file("regs", S_IRUGO, dir, ssi, &ssi_gdd_regs_fops);
 
 	return 0;
@@ -186,13 +196,17 @@ void ssi_waketest(struct hsi_client *cl, unsigned int enable)
 	struct omap_ssi_controller *omap_ssi = hsi_controller_drvdata(ssi);
 
 	omap_port->wktest = !!enable;
-	if (omap_port->wktest) {
+
+	if (omap_port->wktest)
+	{
 		pm_runtime_get_sync(ssi->device.parent);
 		writel_relaxed(SSI_WAKE(0),
-				omap_ssi->sys + SSI_SET_WAKE_REG(port->num));
-	} else {
+					   omap_ssi->sys + SSI_SET_WAKE_REG(port->num));
+	}
+	else
+	{
 		writel_relaxed(SSI_WAKE(0),
-				omap_ssi->sys +	SSI_CLEAR_WAKE_REG(port->num));
+					   omap_ssi->sys +	SSI_CLEAR_WAKE_REG(port->num));
 		pm_runtime_put(ssi->device.parent);
 	}
 }
@@ -214,22 +228,28 @@ static void ssi_gdd_complete(struct hsi_controller *ssi, unsigned int lch)
 	val &= ~SSI_GDD_LCH(lch);
 	writel_relaxed(val, omap_ssi->sys + SSI_GDD_MPU_IRQ_ENABLE_REG);
 
-	if (msg->ttype == HSI_MSG_READ) {
+	if (msg->ttype == HSI_MSG_READ)
+	{
 		dir = DMA_FROM_DEVICE;
 		val = SSI_DATAAVAILABLE(msg->channel);
 		pm_runtime_put(omap_port->pdev);
-	} else {
+	}
+	else
+	{
 		dir = DMA_TO_DEVICE;
 		val = SSI_DATAACCEPT(msg->channel);
 		/* Keep clocks reference for write pio event */
 	}
+
 	dma_unmap_sg(&ssi->device, msg->sgt.sgl, msg->sgt.nents, dir);
 	csr = readw(omap_ssi->gdd + SSI_GDD_CSR_REG(lch));
 	omap_ssi->gdd_trn[lch].msg = NULL; /* release GDD lch */
 	dev_dbg(&port->device, "DMA completed ch %d ttype %d\n",
-				msg->channel, msg->ttype);
+			msg->channel, msg->ttype);
 	spin_unlock(&omap_ssi->lock);
-	if (csr & SSI_CSR_TOUR) { /* Timeout error */
+
+	if (csr & SSI_CSR_TOUR)   /* Timeout error */
+	{
 		msg->status = HSI_STATUS_ERROR;
 		msg->actual_len = 0;
 		spin_lock(&omap_port->lock);
@@ -240,6 +260,7 @@ static void ssi_gdd_complete(struct hsi_controller *ssi, unsigned int lch)
 		schedule_delayed_work(&omap_port->errqueue_work, 0);
 		return;
 	}
+
 	spin_lock(&omap_port->lock);
 	val |= readl(omap_ssi->sys + SSI_MPU_ENABLE_REG(port->num, 0));
 	writel_relaxed(val, omap_ssi->sys + SSI_MPU_ENABLE_REG(port->num, 0));
@@ -259,26 +280,36 @@ static void ssi_gdd_tasklet(unsigned long dev)
 
 	pm_runtime_get(ssi->device.parent);
 
-	if (!pm_runtime_active(ssi->device.parent)) {
+	if (!pm_runtime_active(ssi->device.parent))
+	{
 		dev_warn(ssi->device.parent, "ssi_gdd_tasklet called without runtime PM!\n");
 		pm_runtime_put(ssi->device.parent);
 		return;
 	}
 
 	status_reg = readl(sys + SSI_GDD_MPU_IRQ_STATUS_REG);
-	for (lch = 0; lch < SSI_MAX_GDD_LCH; lch++) {
+
+	for (lch = 0; lch < SSI_MAX_GDD_LCH; lch++)
+	{
 		if (status_reg & SSI_GDD_LCH(lch))
+		{
 			ssi_gdd_complete(ssi, lch);
+		}
 	}
+
 	writel_relaxed(status_reg, sys + SSI_GDD_MPU_IRQ_STATUS_REG);
 	status_reg = readl(sys + SSI_GDD_MPU_IRQ_STATUS_REG);
 
 	pm_runtime_put(ssi->device.parent);
 
 	if (status_reg)
+	{
 		tasklet_hi_schedule(&omap_ssi->gdd_tasklet);
+	}
 	else
+	{
 		enable_irq(omap_ssi->gdd_irq);
+	}
 
 }
 
@@ -300,65 +331,75 @@ static unsigned long ssi_get_clk_rate(struct hsi_controller *ssi)
 }
 
 static int ssi_clk_event(struct notifier_block *nb, unsigned long event,
-								void *data)
+						 void *data)
 {
 	struct omap_ssi_controller *omap_ssi = container_of(nb,
-					struct omap_ssi_controller, fck_nb);
+										   struct omap_ssi_controller, fck_nb);
 	struct hsi_controller *ssi = to_hsi_controller(omap_ssi->dev);
 	struct clk_notifier_data *clk_data = data;
 	struct omap_ssi_port *omap_port;
 	int i;
 
-	switch (event) {
-	case PRE_RATE_CHANGE:
-		dev_dbg(&ssi->device, "pre rate change\n");
+	switch (event)
+	{
+		case PRE_RATE_CHANGE:
+			dev_dbg(&ssi->device, "pre rate change\n");
 
-		for (i = 0; i < ssi->num_ports; i++) {
-			omap_port = omap_ssi->port[i];
+			for (i = 0; i < ssi->num_ports; i++)
+			{
+				omap_port = omap_ssi->port[i];
 
-			if (!omap_port)
-				continue;
+				if (!omap_port)
+				{
+					continue;
+				}
 
-			/* Workaround for SWBREAK + CAwake down race in CMT */
-			disable_irq(omap_port->wake_irq);
+				/* Workaround for SWBREAK + CAwake down race in CMT */
+				disable_irq(omap_port->wake_irq);
 
-			/* stop all ssi communication */
-			pinctrl_pm_select_idle_state(omap_port->pdev);
-			udelay(1); /* wait for racing frames */
-		}
+				/* stop all ssi communication */
+				pinctrl_pm_select_idle_state(omap_port->pdev);
+				udelay(1); /* wait for racing frames */
+			}
 
-		break;
-	case ABORT_RATE_CHANGE:
-		dev_dbg(&ssi->device, "abort rate change\n");
+			break;
+
+		case ABORT_RATE_CHANGE:
+			dev_dbg(&ssi->device, "abort rate change\n");
+
 		/* Fall through */
-	case POST_RATE_CHANGE:
-		dev_dbg(&ssi->device, "post rate change (%lu -> %lu)\n",
-			clk_data->old_rate, clk_data->new_rate);
-		omap_ssi->fck_rate = DIV_ROUND_CLOSEST(clk_data->new_rate, 1000); /* KHz */
+		case POST_RATE_CHANGE:
+			dev_dbg(&ssi->device, "post rate change (%lu -> %lu)\n",
+					clk_data->old_rate, clk_data->new_rate);
+			omap_ssi->fck_rate = DIV_ROUND_CLOSEST(clk_data->new_rate, 1000); /* KHz */
 
-		for (i = 0; i < ssi->num_ports; i++) {
-			omap_port = omap_ssi->port[i];
+			for (i = 0; i < ssi->num_ports; i++)
+			{
+				omap_port = omap_ssi->port[i];
 
-			if (!omap_port)
-				continue;
+				if (!omap_port)
+				{
+					continue;
+				}
 
-			omap_ssi_port_update_fclk(ssi, omap_port);
+				omap_ssi_port_update_fclk(ssi, omap_port);
 
-			/* resume ssi communication */
-			pinctrl_pm_select_default_state(omap_port->pdev);
-			enable_irq(omap_port->wake_irq);
-		}
+				/* resume ssi communication */
+				pinctrl_pm_select_default_state(omap_port->pdev);
+				enable_irq(omap_port->wake_irq);
+			}
 
-		break;
-	default:
-		break;
+			break;
+
+		default:
+			break;
 	}
 
 	return NOTIFY_DONE;
 }
 
 static int ssi_get_iomem(struct platform_device *pd,
-		const char *name, void __iomem **pbase, dma_addr_t *phy)
+						 const char *name, void __iomem **pbase, dma_addr_t *phy)
 {
 	struct resource *mem;
 	void __iomem *base;
@@ -366,32 +407,43 @@ static int ssi_get_iomem(struct platform_device *pd,
 
 	mem = platform_get_resource_byname(pd, IORESOURCE_MEM, name);
 	base = devm_ioremap_resource(&ssi->device, mem);
+
 	if (IS_ERR(base))
+	{
 		return PTR_ERR(base);
+	}
 
 	*pbase = base;
 
 	if (phy)
+	{
 		*phy = mem->start;
+	}
 
 	return 0;
 }
 
 static int ssi_add_controller(struct hsi_controller *ssi,
-						struct platform_device *pd)
+							  struct platform_device *pd)
 {
 	struct omap_ssi_controller *omap_ssi;
 	int err;
 
 	omap_ssi = devm_kzalloc(&ssi->device, sizeof(*omap_ssi), GFP_KERNEL);
-	if (!omap_ssi) {
+
+	if (!omap_ssi)
+	{
 		dev_err(&pd->dev, "not enough memory for omap ssi\n");
 		return -ENOMEM;
 	}
 
 	err = ida_simple_get(&platform_omap_ssi_ida, 0, 0, GFP_KERNEL);
+
 	if (err < 0)
+	{
 		goto out_err;
+	}
+
 	ssi->id = err;
 
 	ssi->owner = THIS_MODULE;
@@ -400,38 +452,55 @@ static int ssi_add_controller(struct hsi_controller *ssi,
 	hsi_controller_set_drvdata(ssi, omap_ssi);
 	omap_ssi->dev = &ssi->device;
 	err = ssi_get_iomem(pd, "sys", &omap_ssi->sys, NULL);
+
 	if (err < 0)
+	{
 		goto out_err;
+	}
+
 	err = ssi_get_iomem(pd, "gdd", &omap_ssi->gdd, NULL);
+
 	if (err < 0)
+	{
 		goto out_err;
+	}
+
 	err = platform_get_irq_byname(pd, "gdd_mpu");
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(&pd->dev, "GDD IRQ resource missing\n");
 		goto out_err;
 	}
+
 	omap_ssi->gdd_irq = err;
 	tasklet_init(&omap_ssi->gdd_tasklet, ssi_gdd_tasklet,
-							(unsigned long)ssi);
+				 (unsigned long)ssi);
 	err = devm_request_irq(&ssi->device, omap_ssi->gdd_irq, ssi_gdd_isr,
-						0, "gdd_mpu", ssi);
-	if (err < 0) {
+						   0, "gdd_mpu", ssi);
+
+	if (err < 0)
+	{
 		dev_err(&ssi->device, "Request GDD IRQ %d failed (%d)",
-							omap_ssi->gdd_irq, err);
+				omap_ssi->gdd_irq, err);
 		goto out_err;
 	}
 
 	omap_ssi->port = devm_kzalloc(&ssi->device,
-		sizeof(struct omap_ssi_port *) * ssi->num_ports, GFP_KERNEL);
-	if (!omap_ssi->port) {
+								  sizeof(struct omap_ssi_port *) * ssi->num_ports, GFP_KERNEL);
+
+	if (!omap_ssi->port)
+	{
 		err = -ENOMEM;
 		goto out_err;
 	}
 
 	omap_ssi->fck = devm_clk_get(&ssi->device, "ssi_ssr_fck");
-	if (IS_ERR(omap_ssi->fck)) {
+
+	if (IS_ERR(omap_ssi->fck))
+	{
 		dev_err(&pd->dev, "Could not acquire clock \"ssi_ssr_fck\": %li\n",
-			PTR_ERR(omap_ssi->fck));
+				PTR_ERR(omap_ssi->fck));
 		err = -ENODEV;
 		goto out_err;
 	}
@@ -448,7 +517,9 @@ static int ssi_add_controller(struct hsi_controller *ssi,
 	err = hsi_register_controller(ssi);
 
 	if (err < 0)
+	{
 		goto out_err;
+	}
 
 	return 0;
 
@@ -463,10 +534,13 @@ static int ssi_hw_init(struct hsi_controller *ssi)
 	int err;
 
 	err = pm_runtime_get_sync(ssi->device.parent);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(&ssi->device, "runtime PM failed %d\n", err);
 		return err;
 	}
+
 	/* Reseting GDD */
 	writel_relaxed(SSI_SWRESET, omap_ssi->gdd + SSI_GDD_GRST_REG);
 	/* Get FCK rate in KHz */
@@ -496,8 +570,11 @@ static inline int ssi_of_get_available_ports_count(const struct device_node *np)
 	int num = 0;
 
 	for_each_available_child_of_node(np, child)
-		if (of_device_is_compatible(child, "ti,omap3-ssi-port"))
-			num++;
+
+	if (of_device_is_compatible(child, "ti,omap3-ssi-port"))
+	{
+		num++;
+	}
 
 	return num;
 }
@@ -507,7 +584,9 @@ static int ssi_remove_ports(struct device *dev, void *c)
 	struct platform_device *pdev = to_platform_device(dev);
 
 	if (!dev->of_node)
+	{
 		return 0;
+	}
 
 	of_node_clear_flag(dev->of_node, OF_POPULATED);
 	of_device_unregister(pdev);
@@ -524,7 +603,8 @@ static int ssi_probe(struct platform_device *pd)
 	int err;
 	int num_ports;
 
-	if (!np) {
+	if (!np)
+	{
 		dev_err(&pd->dev, "missing device tree data\n");
 		return -EINVAL;
 	}
@@ -532,7 +612,9 @@ static int ssi_probe(struct platform_device *pd)
 	num_ports = ssi_of_get_available_ports_count(np);
 
 	ssi = hsi_alloc_controller(num_ports, GFP_KERNEL);
-	if (!ssi) {
+
+	if (!ssi)
+	{
 		dev_err(&pd->dev, "No memory for controller\n");
 		return -ENOMEM;
 	}
@@ -540,26 +622,42 @@ static int ssi_probe(struct platform_device *pd)
 	platform_set_drvdata(pd, ssi);
 
 	err = ssi_add_controller(ssi, pd);
+
 	if (err < 0)
+	{
 		goto out1;
+	}
 
 	pm_runtime_enable(&pd->dev);
 
 	err = ssi_hw_init(ssi);
+
 	if (err < 0)
+	{
 		goto out2;
+	}
+
 #ifdef CONFIG_DEBUG_FS
 	err = ssi_debug_add_ctrl(ssi);
+
 	if (err < 0)
+	{
 		goto out2;
+	}
+
 #endif
 
-	for_each_available_child_of_node(np, child) {
+	for_each_available_child_of_node(np, child)
+	{
 		if (!of_device_is_compatible(child, "ti,omap3-ssi-port"))
+		{
 			continue;
+		}
 
 		childpdev = of_platform_device_create(child, NULL, &pd->dev);
-		if (!childpdev) {
+
+		if (!childpdev)
+		{
 			err = -ENODEV;
 			dev_err(&pd->dev, "failed to create ssi controller port\n");
 			goto out3;
@@ -567,7 +665,7 @@ static int ssi_probe(struct platform_device *pd)
 	}
 
 	dev_info(&pd->dev, "ssi controller %d initialized (%d ports)!\n",
-		ssi->id, num_ports);
+			 ssi->id, num_ports);
 	return err;
 out3:
 	device_for_each_child(&pd->dev, NULL, ssi_remove_ports);
@@ -608,7 +706,7 @@ static int omap_ssi_runtime_suspend(struct device *dev)
 
 	if (omap_ssi->get_loss)
 		omap_ssi->loss_count =
-				omap_ssi->get_loss(ssi->device.parent);
+			omap_ssi->get_loss(ssi->device.parent);
 
 	return 0;
 }
@@ -621,17 +719,20 @@ static int omap_ssi_runtime_resume(struct device *dev)
 	dev_dbg(dev, "runtime resume!\n");
 
 	if ((omap_ssi->get_loss) && (omap_ssi->loss_count ==
-				omap_ssi->get_loss(ssi->device.parent)))
+								 omap_ssi->get_loss(ssi->device.parent)))
+	{
 		return 0;
+	}
 
 	writel_relaxed(omap_ssi->gdd_gcr, omap_ssi->gdd + SSI_GDD_GCR_REG);
 
 	return 0;
 }
 
-static const struct dev_pm_ops omap_ssi_pm_ops = {
+static const struct dev_pm_ops omap_ssi_pm_ops =
+{
 	SET_RUNTIME_PM_OPS(omap_ssi_runtime_suspend, omap_ssi_runtime_resume,
-		NULL)
+	NULL)
 };
 
 #define DEV_PM_OPS     (&omap_ssi_pm_ops)
@@ -640,7 +741,8 @@ static const struct dev_pm_ops omap_ssi_pm_ops = {
 #endif
 
 #ifdef CONFIG_OF
-static const struct of_device_id omap_ssi_of_match[] = {
+static const struct of_device_id omap_ssi_of_match[] =
+{
 	{ .compatible = "ti,omap3-ssi", },
 	{},
 };
@@ -649,7 +751,8 @@ MODULE_DEVICE_TABLE(of, omap_ssi_of_match);
 #define omap_ssi_of_match NULL
 #endif
 
-static struct platform_driver ssi_pdriver = {
+static struct platform_driver ssi_pdriver =
+{
 	.probe = ssi_probe,
 	.remove	= ssi_remove,
 	.driver	= {
@@ -659,18 +762,23 @@ static struct platform_driver ssi_pdriver = {
 	},
 };
 
-static int __init ssi_init(void) {
+static int __init ssi_init(void)
+{
 	int ret;
 
 	ret = platform_driver_register(&ssi_pdriver);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return platform_driver_register(&ssi_port_pdriver);
 }
 module_init(ssi_init);
 
-static void __exit ssi_exit(void) {
+static void __exit ssi_exit(void)
+{
 	platform_driver_unregister(&ssi_port_pdriver);
 	platform_driver_unregister(&ssi_pdriver);
 }

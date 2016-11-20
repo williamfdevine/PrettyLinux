@@ -76,14 +76,16 @@
 /************************************************************************
 			struct
 ************************************************************************/
-struct mt9t112_format {
+struct mt9t112_format
+{
 	u32 code;
 	enum v4l2_colorspace colorspace;
 	u16 fmt;
 	u16 order;
 };
 
-struct mt9t112_priv {
+struct mt9t112_priv
+{
 	struct v4l2_subdev		 subdev;
 	struct mt9t112_camera_info	*info;
 	struct i2c_client		*client;
@@ -92,7 +94,7 @@ struct mt9t112_priv {
 	const struct mt9t112_format	*format;
 	int				 num_formats;
 	u32				 flags;
-/* for flags */
+	/* for flags */
 #define INIT_DONE	(1 << 0)
 #define PCLK_RISING	(1 << 1)
 };
@@ -101,7 +103,8 @@ struct mt9t112_priv {
 			supported format
 ************************************************************************/
 
-static const struct mt9t112_format mt9t112_cfmts[] = {
+static const struct mt9t112_format mt9t112_cfmts[] =
+{
 	{
 		.code		= MEDIA_BUS_FMT_UYVY8_2X8,
 		.colorspace	= V4L2_COLORSPACE_SRGB,
@@ -141,8 +144,8 @@ static const struct mt9t112_format mt9t112_cfmts[] = {
 static struct mt9t112_priv *to_mt9t112(const struct i2c_client *client)
 {
 	return container_of(i2c_get_clientdata(client),
-			    struct mt9t112_priv,
-			    subdev);
+						struct mt9t112_priv,
+						subdev);
 }
 
 static int __mt9t112_reg_read(const struct i2c_client *client, u16 command)
@@ -169,15 +172,18 @@ static int __mt9t112_reg_read(const struct i2c_client *client, u16 command)
 	 * else, under 16bit is valid data.
 	 */
 	ret = i2c_transfer(client->adapter, msg, 2);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	memcpy(&ret, buf, 2);
 	return swab16(ret);
 }
 
 static int __mt9t112_reg_write(const struct i2c_client *client,
-			       u16 command, u16 data)
+							   u16 command, u16 data)
 {
 	struct i2c_msg msg;
 	u8 buf[4];
@@ -199,20 +205,26 @@ static int __mt9t112_reg_write(const struct i2c_client *client,
 	 * but this function should return 0 if correct case
 	 */
 	ret = i2c_transfer(client->adapter, &msg, 1);
+
 	if (ret >= 0)
+	{
 		ret = 0;
+	}
 
 	return ret;
 }
 
 static int __mt9t112_reg_mask_set(const struct i2c_client *client,
-				  u16  command,
-				  u16  mask,
-				  u16  set)
+								  u16  command,
+								  u16  mask,
+								  u16  set)
 {
 	int val = __mt9t112_reg_read(client, command);
+
 	if (val < 0)
+	{
 		return val;
+	}
 
 	val &= ~mask;
 	val |= set & mask;
@@ -226,32 +238,41 @@ static int __mt9t112_mcu_read(const struct i2c_client *client, u16 command)
 	int ret;
 
 	ret = __mt9t112_reg_write(client, 0x098E, command);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return __mt9t112_reg_read(client, 0x0990);
 }
 
 static int __mt9t112_mcu_write(const struct i2c_client *client,
-			       u16 command, u16 data)
+							   u16 command, u16 data)
 {
 	int ret;
 
 	ret = __mt9t112_reg_write(client, 0x098E, command);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return __mt9t112_reg_write(client, 0x0990, data);
 }
 
 static int __mt9t112_mcu_mask_set(const struct i2c_client *client,
-				  u16  command,
-				  u16  mask,
-				  u16  set)
+								  u16  command,
+								  u16  mask,
+								  u16  set)
 {
 	int val = __mt9t112_mcu_read(client, command);
+
 	if (val < 0)
+	{
 		return val;
+	}
 
 	val &= ~mask;
 	val |= set & mask;
@@ -306,34 +327,34 @@ static int mt9t112_clock_info(const struct i2c_client *client, u32 ext)
 	enable = ((6000 > ext) || (54000 < ext)) ? "X" : "";
 	dev_dbg(&client->dev, "EXTCLK          : %10u K %s\n", ext, enable);
 
-	vco = 2 * m * ext / (n+1);
+	vco = 2 * m * ext / (n + 1);
 	enable = ((384000 > vco) || (768000 < vco)) ? "X" : "";
 	dev_dbg(&client->dev, "VCO             : %10u K %s\n", vco, enable);
 
-	clk = vco / (p1+1) / (p2+1);
+	clk = vco / (p1 + 1) / (p2 + 1);
 	enable = (96000 < clk) ? "X" : "";
 	dev_dbg(&client->dev, "PIXCLK          : %10u K %s\n", clk, enable);
 
-	clk = vco / (p3+1);
+	clk = vco / (p3 + 1);
 	enable = (768000 < clk) ? "X" : "";
 	dev_dbg(&client->dev, "MIPICLK         : %10u K %s\n", clk, enable);
 
-	clk = vco / (p6+1);
+	clk = vco / (p6 + 1);
 	enable = (96000 < clk) ? "X" : "";
 	dev_dbg(&client->dev, "MCU CLK         : %10u K %s\n", clk, enable);
 
-	clk = vco / (p5+1);
+	clk = vco / (p5 + 1);
 	enable = (54000 < clk) ? "X" : "";
 	dev_dbg(&client->dev, "SOC CLK         : %10u K %s\n", clk, enable);
 
-	clk = vco / (p4+1);
+	clk = vco / (p4 + 1);
 	enable = (70000 < clk) ? "X" : "";
 	dev_dbg(&client->dev, "Sensor CLK      : %10u K %s\n", clk, enable);
 
-	clk = vco / (p7+1);
+	clk = vco / (p7 + 1);
 	dev_dbg(&client->dev, "External sensor : %10u K\n", clk);
 
-	clk = ext / (n+1);
+	clk = ext / (n + 1);
 	enable = ((2000 > clk) || (24000 < clk)) ? "X" : "";
 	dev_dbg(&client->dev, "PFD             : %10u K %s\n", clk, enable);
 
@@ -348,8 +369,8 @@ static void mt9t112_frame_check(u32 *width, u32 *height, u32 *left, u32 *top)
 }
 
 static int mt9t112_set_a_frame_size(const struct i2c_client *client,
-				   u16 width,
-				   u16 height)
+									u16 width,
+									u16 height)
 {
 	int ret;
 	u16 wstart = (MAX_WIDTH - width) / 2;
@@ -377,35 +398,35 @@ static int mt9t112_set_a_frame_size(const struct i2c_client *client,
 }
 
 static int mt9t112_set_pll_dividers(const struct i2c_client *client,
-				    u8 m, u8 n,
-				    u8 p1, u8 p2, u8 p3,
-				    u8 p4, u8 p5, u8 p6,
-				    u8 p7)
+									u8 m, u8 n,
+									u8 p1, u8 p2, u8 p3,
+									u8 p4, u8 p5, u8 p6,
+									u8 p7)
 {
 	int ret;
 	u16 val;
 
 	/* N/M */
 	val = (n << 8) |
-	      (m << 0);
+		  (m << 0);
 	mt9t112_reg_mask_set(ret, client, 0x0010, 0x3fff, val);
 
 	/* P1/P2/P3 */
 	val = ((p3 & 0x0F) << 8) |
-	      ((p2 & 0x0F) << 4) |
-	      ((p1 & 0x0F) << 0);
+		  ((p2 & 0x0F) << 4) |
+		  ((p1 & 0x0F) << 0);
 	mt9t112_reg_mask_set(ret, client, 0x0012, 0x0fff, val);
 
 	/* P4/P5/P6 */
 	val = (0x7         << 12) |
-	      ((p6 & 0x0F) <<  8) |
-	      ((p5 & 0x0F) <<  4) |
-	      ((p4 & 0x0F) <<  0);
+		  ((p6 & 0x0F) <<  8) |
+		  ((p5 & 0x0F) <<  4) |
+		  ((p4 & 0x0F) <<  0);
 	mt9t112_reg_mask_set(ret, client, 0x002A, 0x7fff, val);
 
 	/* P7 */
 	val = (0x1         << 12) |
-	      ((p7 & 0x0F) <<  0);
+		  ((p7 & 0x0F) <<  0);
 	mt9t112_reg_mask_set(ret, client, 0x002C, 0x100f, val);
 
 	return ret;
@@ -423,15 +444,15 @@ static int mt9t112_init_pll(const struct i2c_client *client)
 
 	/* Replace these registers when new timing parameters are generated */
 	mt9t112_set_pll_dividers(client,
-				 priv->info->divider.m,
-				 priv->info->divider.n,
-				 priv->info->divider.p1,
-				 priv->info->divider.p2,
-				 priv->info->divider.p3,
-				 priv->info->divider.p4,
-				 priv->info->divider.p5,
-				 priv->info->divider.p6,
-				 priv->info->divider.p7);
+							 priv->info->divider.m,
+							 priv->info->divider.n,
+							 priv->info->divider.p1,
+							 priv->info->divider.p2,
+							 priv->info->divider.p3,
+							 priv->info->divider.p4,
+							 priv->info->divider.p5,
+							 priv->info->divider.p6,
+							 priv->info->divider.p7);
 
 	/*
 	 * TEST_BYPASS  on
@@ -488,10 +509,14 @@ static int mt9t112_init_pll(const struct i2c_client *client)
 	mdelay(1);
 
 	/* poll to verify out of standby. Must Poll this bit */
-	for (i = 0; i < 100; i++) {
+	for (i = 0; i < 100; i++)
+	{
 		mt9t112_reg_read(data, client, 0x0018);
+
 		if (!(0x4000 & data))
+		{
 			break;
+		}
 
 		mdelay(10);
 	}
@@ -739,7 +764,7 @@ static int mt9t112_init_camera(const struct i2c_client *client)
 
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 static int mt9t112_g_register(struct v4l2_subdev *sd,
-			      struct v4l2_dbg_register *reg)
+							  struct v4l2_dbg_register *reg)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	int                ret;
@@ -753,7 +778,7 @@ static int mt9t112_g_register(struct v4l2_subdev *sd,
 }
 
 static int mt9t112_s_register(struct v4l2_subdev *sd,
-			      const struct v4l2_dbg_register *reg)
+							  const struct v4l2_dbg_register *reg)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	int ret;
@@ -773,7 +798,8 @@ static int mt9t112_s_power(struct v4l2_subdev *sd, int on)
 	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
 }
 
-static struct v4l2_subdev_core_ops mt9t112_subdev_core_ops = {
+static struct v4l2_subdev_core_ops mt9t112_subdev_core_ops =
+{
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 	.g_register	= mt9t112_g_register,
 	.s_register	= mt9t112_s_register,
@@ -791,7 +817,8 @@ static int mt9t112_s_stream(struct v4l2_subdev *sd, int enable)
 	struct mt9t112_priv *priv = to_mt9t112(client);
 	int ret = 0;
 
-	if (!enable) {
+	if (!enable)
+	{
 		/* FIXME
 		 *
 		 * If user selected large output size,
@@ -805,7 +832,8 @@ static int mt9t112_s_stream(struct v4l2_subdev *sd, int enable)
 		return ret;
 	}
 
-	if (!(priv->flags & INIT_DONE)) {
+	if (!(priv->flags & INIT_DONE))
+	{
 		u16 param = PCLK_RISING & priv->flags ? 0x0001 : 0x0000;
 
 		ECHECKER(ret, mt9t112_init_camera(client));
@@ -823,15 +851,15 @@ static int mt9t112_s_stream(struct v4l2_subdev *sd, int enable)
 	mt9t112_mcu_write(ret, client, VAR8(1, 0), 0x06);
 
 	mt9t112_set_a_frame_size(client,
-				 priv->frame.width,
-				 priv->frame.height);
+							 priv->frame.width,
+							 priv->frame.height);
 
 	ECHECKER(ret, mt9t112_auto_focus_trigger(client));
 
 	dev_dbg(&client->dev, "format : %d\n", priv->format->code);
 	dev_dbg(&client->dev, "size   : %d x %d\n",
-		priv->frame.width,
-		priv->frame.height);
+			priv->frame.width,
+			priv->frame.height);
 
 	CLOCK_INFO(client, EXT_CLOCK);
 
@@ -839,8 +867,8 @@ static int mt9t112_s_stream(struct v4l2_subdev *sd, int enable)
 }
 
 static int mt9t112_set_params(struct mt9t112_priv *priv,
-			      const struct v4l2_rect *rect,
-			      u32 code)
+							  const struct v4l2_rect *rect,
+							  u32 code)
 {
 	int i;
 
@@ -849,10 +877,14 @@ static int mt9t112_set_params(struct mt9t112_priv *priv,
 	 */
 	for (i = 0; i < priv->num_formats; i++)
 		if (mt9t112_cfmts[i].code == code)
+		{
 			break;
+		}
 
 	if (i == priv->num_formats)
+	{
 		return -EINVAL;
+	}
 
 	priv->frame  = *rect;
 
@@ -860,7 +892,7 @@ static int mt9t112_set_params(struct mt9t112_priv *priv,
 	 * frame size check
 	 */
 	mt9t112_frame_check(&priv->frame.width, &priv->frame.height,
-			    &priv->frame.left, &priv->frame.top);
+						&priv->frame.left, &priv->frame.top);
 
 	priv->format = mt9t112_cfmts + i;
 
@@ -868,61 +900,71 @@ static int mt9t112_set_params(struct mt9t112_priv *priv,
 }
 
 static int mt9t112_get_selection(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_selection *sel)
+								 struct v4l2_subdev_pad_config *cfg,
+								 struct v4l2_subdev_selection *sel)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct mt9t112_priv *priv = to_mt9t112(client);
 
 	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+	{
 		return -EINVAL;
+	}
 
-	switch (sel->target) {
-	case V4L2_SEL_TGT_CROP_BOUNDS:
-		sel->r.left = 0;
-		sel->r.top = 0;
-		sel->r.width = MAX_WIDTH;
-		sel->r.height = MAX_HEIGHT;
-		return 0;
-	case V4L2_SEL_TGT_CROP_DEFAULT:
-		sel->r.left = 0;
-		sel->r.top = 0;
-		sel->r.width = VGA_WIDTH;
-		sel->r.height = VGA_HEIGHT;
-		return 0;
-	case V4L2_SEL_TGT_CROP:
-		sel->r = priv->frame;
-		return 0;
-	default:
-		return -EINVAL;
+	switch (sel->target)
+	{
+		case V4L2_SEL_TGT_CROP_BOUNDS:
+			sel->r.left = 0;
+			sel->r.top = 0;
+			sel->r.width = MAX_WIDTH;
+			sel->r.height = MAX_HEIGHT;
+			return 0;
+
+		case V4L2_SEL_TGT_CROP_DEFAULT:
+			sel->r.left = 0;
+			sel->r.top = 0;
+			sel->r.width = VGA_WIDTH;
+			sel->r.height = VGA_HEIGHT;
+			return 0;
+
+		case V4L2_SEL_TGT_CROP:
+			sel->r = priv->frame;
+			return 0;
+
+		default:
+			return -EINVAL;
 	}
 }
 
 static int mt9t112_set_selection(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_selection *sel)
+								 struct v4l2_subdev_pad_config *cfg,
+								 struct v4l2_subdev_selection *sel)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct mt9t112_priv *priv = to_mt9t112(client);
 	const struct v4l2_rect *rect = &sel->r;
 
 	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE ||
-	    sel->target != V4L2_SEL_TGT_CROP)
+		sel->target != V4L2_SEL_TGT_CROP)
+	{
 		return -EINVAL;
+	}
 
 	return mt9t112_set_params(priv, rect, priv->format->code);
 }
 
 static int mt9t112_get_fmt(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_format *format)
+						   struct v4l2_subdev_pad_config *cfg,
+						   struct v4l2_subdev_format *format)
 {
 	struct v4l2_mbus_framefmt *mf = &format->format;
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct mt9t112_priv *priv = to_mt9t112(client);
 
 	if (format->pad)
+	{
 		return -EINVAL;
+	}
 
 	mf->width	= priv->frame.width;
 	mf->height	= priv->frame.height;
@@ -934,11 +976,12 @@ static int mt9t112_get_fmt(struct v4l2_subdev *sd,
 }
 
 static int mt9t112_s_fmt(struct v4l2_subdev *sd,
-			 struct v4l2_mbus_framefmt *mf)
+						 struct v4l2_mbus_framefmt *mf)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct mt9t112_priv *priv = to_mt9t112(client);
-	struct v4l2_rect rect = {
+	struct v4l2_rect rect =
+	{
 		.width = mf->width,
 		.height = mf->height,
 		.left = priv->frame.left,
@@ -949,14 +992,16 @@ static int mt9t112_s_fmt(struct v4l2_subdev *sd,
 	ret = mt9t112_set_params(priv, &rect, mf->code);
 
 	if (!ret)
+	{
 		mf->colorspace = priv->format->colorspace;
+	}
 
 	return ret;
 }
 
 static int mt9t112_set_fmt(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_format *format)
+						   struct v4l2_subdev_pad_config *cfg,
+						   struct v4l2_subdev_format *format)
 {
 	struct v4l2_mbus_framefmt *mf = &format->format;
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
@@ -965,16 +1010,23 @@ static int mt9t112_set_fmt(struct v4l2_subdev *sd,
 	int i;
 
 	if (format->pad)
+	{
 		return -EINVAL;
+	}
 
 	for (i = 0; i < priv->num_formats; i++)
 		if (mt9t112_cfmts[i].code == mf->code)
+		{
 			break;
+		}
 
-	if (i == priv->num_formats) {
+	if (i == priv->num_formats)
+	{
 		mf->code = MEDIA_BUS_FMT_UYVY8_2X8;
 		mf->colorspace = V4L2_COLORSPACE_JPEG;
-	} else {
+	}
+	else
+	{
 		mf->colorspace	= mt9t112_cfmts[i].colorspace;
 	}
 
@@ -983,20 +1035,25 @@ static int mt9t112_set_fmt(struct v4l2_subdev *sd,
 	mf->field = V4L2_FIELD_NONE;
 
 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+	{
 		return mt9t112_s_fmt(sd, mf);
+	}
+
 	cfg->try_fmt = *mf;
 	return 0;
 }
 
 static int mt9t112_enum_mbus_code(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_mbus_code_enum *code)
+								  struct v4l2_subdev_pad_config *cfg,
+								  struct v4l2_subdev_mbus_code_enum *code)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct mt9t112_priv *priv = to_mt9t112(client);
 
 	if (code->pad || code->index >= priv->num_formats)
+	{
 		return -EINVAL;
+	}
 
 	code->code = mt9t112_cfmts[code->index].code;
 
@@ -1004,14 +1061,14 @@ static int mt9t112_enum_mbus_code(struct v4l2_subdev *sd,
 }
 
 static int mt9t112_g_mbus_config(struct v4l2_subdev *sd,
-				 struct v4l2_mbus_config *cfg)
+								 struct v4l2_mbus_config *cfg)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
 
 	cfg->flags = V4L2_MBUS_MASTER | V4L2_MBUS_VSYNC_ACTIVE_HIGH |
-		V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_DATA_ACTIVE_HIGH |
-		V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_PCLK_SAMPLE_FALLING;
+				 V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_DATA_ACTIVE_HIGH |
+				 V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_PCLK_SAMPLE_FALLING;
 	cfg->type = V4L2_MBUS_PARALLEL;
 	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
 
@@ -1019,25 +1076,29 @@ static int mt9t112_g_mbus_config(struct v4l2_subdev *sd,
 }
 
 static int mt9t112_s_mbus_config(struct v4l2_subdev *sd,
-				 const struct v4l2_mbus_config *cfg)
+								 const struct v4l2_mbus_config *cfg)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
 	struct mt9t112_priv *priv = to_mt9t112(client);
 
 	if (soc_camera_apply_board_flags(ssdd, cfg) & V4L2_MBUS_PCLK_SAMPLE_RISING)
+	{
 		priv->flags |= PCLK_RISING;
+	}
 
 	return 0;
 }
 
-static struct v4l2_subdev_video_ops mt9t112_subdev_video_ops = {
+static struct v4l2_subdev_video_ops mt9t112_subdev_video_ops =
+{
 	.s_stream	= mt9t112_s_stream,
 	.g_mbus_config	= mt9t112_g_mbus_config,
 	.s_mbus_config	= mt9t112_s_mbus_config,
 };
 
-static const struct v4l2_subdev_pad_ops mt9t112_subdev_pad_ops = {
+static const struct v4l2_subdev_pad_ops mt9t112_subdev_pad_ops =
+{
 	.enum_mbus_code = mt9t112_enum_mbus_code,
 	.get_selection	= mt9t112_get_selection,
 	.set_selection	= mt9t112_set_selection,
@@ -1048,7 +1109,8 @@ static const struct v4l2_subdev_pad_ops mt9t112_subdev_pad_ops = {
 /************************************************************************
 			i2c driver
 ************************************************************************/
-static struct v4l2_subdev_ops mt9t112_subdev_ops = {
+static struct v4l2_subdev_ops mt9t112_subdev_ops =
+{
 	.core	= &mt9t112_subdev_core_ops,
 	.video	= &mt9t112_subdev_video_ops,
 	.pad	= &mt9t112_subdev_pad_ops,
@@ -1062,27 +1124,33 @@ static int mt9t112_camera_probe(struct i2c_client *client)
 	int		     ret;
 
 	ret = mt9t112_s_power(&priv->subdev, 1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/*
 	 * check and show chip ID
 	 */
 	mt9t112_reg_read(chipid, client, 0x0000);
 
-	switch (chipid) {
-	case 0x2680:
-		devname = "mt9t111";
-		priv->num_formats = 1;
-		break;
-	case 0x2682:
-		devname = "mt9t112";
-		priv->num_formats = ARRAY_SIZE(mt9t112_cfmts);
-		break;
-	default:
-		dev_err(&client->dev, "Product ID error %04x\n", chipid);
-		ret = -ENODEV;
-		goto done;
+	switch (chipid)
+	{
+		case 0x2680:
+			devname = "mt9t111";
+			priv->num_formats = 1;
+			break;
+
+		case 0x2682:
+			devname = "mt9t112";
+			priv->num_formats = ARRAY_SIZE(mt9t112_cfmts);
+			break;
+
+		default:
+			dev_err(&client->dev, "Product ID error %04x\n", chipid);
+			ret = -ENODEV;
+			goto done;
 	}
 
 	dev_info(&client->dev, "%s chip ID %04x\n", devname, chipid);
@@ -1093,11 +1161,12 @@ done:
 }
 
 static int mt9t112_probe(struct i2c_client *client,
-			 const struct i2c_device_id *did)
+						 const struct i2c_device_id *did)
 {
 	struct mt9t112_priv *priv;
 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
-	struct v4l2_rect rect = {
+	struct v4l2_rect rect =
+	{
 		.width = VGA_WIDTH,
 		.height = VGA_HEIGHT,
 		.left = (MAX_WIDTH - VGA_WIDTH) / 2,
@@ -1105,30 +1174,41 @@ static int mt9t112_probe(struct i2c_client *client,
 	};
 	int ret;
 
-	if (!ssdd || !ssdd->drv_priv) {
+	if (!ssdd || !ssdd->drv_priv)
+	{
 		dev_err(&client->dev, "mt9t112: missing platform data!\n");
 		return -EINVAL;
 	}
 
 	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	priv->info = ssdd->drv_priv;
 
 	v4l2_i2c_subdev_init(&priv->subdev, client, &mt9t112_subdev_ops);
 
 	priv->clk = v4l2_clk_get(&client->dev, "mclk");
+
 	if (IS_ERR(priv->clk))
+	{
 		return PTR_ERR(priv->clk);
+	}
 
 	ret = mt9t112_camera_probe(client);
 
 	/* Cannot fail: using the default supported pixel code */
 	if (!ret)
+	{
 		mt9t112_set_params(priv, &rect, MEDIA_BUS_FMT_UYVY8_2X8);
+	}
 	else
+	{
 		v4l2_clk_put(priv->clk);
+	}
 
 	return ret;
 }
@@ -1141,13 +1221,15 @@ static int mt9t112_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id mt9t112_id[] = {
+static const struct i2c_device_id mt9t112_id[] =
+{
 	{ "mt9t112", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, mt9t112_id);
 
-static struct i2c_driver mt9t112_i2c_driver = {
+static struct i2c_driver mt9t112_i2c_driver =
+{
 	.driver = {
 		.name = "mt9t112",
 	},

@@ -28,11 +28,16 @@ static struct gb_audio_manager_module *gb_audio_manager_get_locked(int id)
 	struct gb_audio_manager_module *module;
 
 	if (id < 0)
+	{
 		return NULL;
+	}
 
-	list_for_each_entry(module, &modules_list, list) {
+	list_for_each_entry(module, &modules_list, list)
+	{
 		if (module->id == id)
+		{
 			return module;
+		}
 	}
 
 	return NULL;
@@ -47,8 +52,10 @@ int gb_audio_manager_add(struct gb_audio_manager_module_descriptor *desc)
 
 	id = ida_simple_get(&module_id, 0, 0, GFP_KERNEL);
 	err = gb_audio_manager_module_create(&module, manager_kset,
-					     id, desc);
-	if (err) {
+										 id, desc);
+
+	if (err)
+	{
 		ida_simple_remove(&module_id, id);
 		return err;
 	}
@@ -69,10 +76,13 @@ int gb_audio_manager_remove(int id)
 	down_write(&modules_rwsem);
 
 	module = gb_audio_manager_get_locked(id);
-	if (!module) {
+
+	if (!module)
+	{
 		up_write(&modules_rwsem);
 		return -EINVAL;
 	}
+
 	list_del(&module->list);
 	kobject_put(&module->kobj);
 	up_write(&modules_rwsem);
@@ -88,7 +98,8 @@ void gb_audio_manager_remove_all(void)
 
 	down_write(&modules_rwsem);
 
-	list_for_each_entry_safe(module, next, &modules_list, list) {
+	list_for_each_entry_safe(module, next, &modules_list, list)
+	{
 		list_del(&module->list);
 		kobject_put(&module->kobj);
 		ida_simple_remove(&module_id, module->id);
@@ -99,7 +110,9 @@ void gb_audio_manager_remove_all(void)
 	up_write(&modules_rwsem);
 
 	if (!is_empty)
+	{
 		pr_warn("Not all nodes were deleted\n");
+	}
 }
 EXPORT_SYMBOL_GPL(gb_audio_manager_remove_all);
 
@@ -130,7 +143,9 @@ int gb_audio_manager_dump_module(int id)
 	up_read(&modules_rwsem);
 
 	if (!module)
+	{
 		return -EINVAL;
+	}
 
 	gb_audio_manager_module_dump(module);
 	return 0;
@@ -143,7 +158,8 @@ void gb_audio_manager_dump_all(void)
 	int count = 0;
 
 	down_read(&modules_rwsem);
-	list_for_each_entry(module, &modules_list, list) {
+	list_for_each_entry(module, &modules_list, list)
+	{
 		gb_audio_manager_module_dump(module);
 		count++;
 	}
@@ -159,9 +175,12 @@ EXPORT_SYMBOL_GPL(gb_audio_manager_dump_all);
 static int __init manager_init(void)
 {
 	manager_kset = kset_create_and_add(GB_AUDIO_MANAGER_NAME, NULL,
-					   kernel_kobj);
+									   kernel_kobj);
+
 	if (!manager_kset)
+	{
 		return -ENOMEM;
+	}
 
 #ifdef GB_AUDIO_MANAGER_SYSFS
 	gb_audio_manager_sysfs_init(&manager_kset->kobj);

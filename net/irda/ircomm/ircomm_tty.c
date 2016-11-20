@@ -51,11 +51,11 @@
 #include <net/irda/ircomm_tty.h>
 
 static int ircomm_tty_install(struct tty_driver *driver,
-		struct tty_struct *tty);
+							  struct tty_struct *tty);
 static int  ircomm_tty_open(struct tty_struct *tty, struct file *filp);
-static void ircomm_tty_close(struct tty_struct * tty, struct file *filp);
-static int  ircomm_tty_write(struct tty_struct * tty,
-			     const unsigned char *buf, int count);
+static void ircomm_tty_close(struct tty_struct *tty, struct file *filp);
+static int  ircomm_tty_write(struct tty_struct *tty,
+							 const unsigned char *buf, int count);
 static int  ircomm_tty_write_room(struct tty_struct *tty);
 static void ircomm_tty_throttle(struct tty_struct *tty);
 static void ircomm_tty_unthrottle(struct tty_struct *tty);
@@ -69,19 +69,20 @@ static void ircomm_tty_shutdown(struct ircomm_tty_cb *self);
 static void ircomm_tty_stop(struct tty_struct *tty);
 
 static int ircomm_tty_data_indication(void *instance, void *sap,
-				      struct sk_buff *skb);
+									  struct sk_buff *skb);
 static int ircomm_tty_control_indication(void *instance, void *sap,
-					 struct sk_buff *skb);
+		struct sk_buff *skb);
 static void ircomm_tty_flow_indication(void *instance, void *sap,
-				       LOCAL_FLOW cmd);
+									   LOCAL_FLOW cmd);
 #ifdef CONFIG_PROC_FS
-static const struct file_operations ircomm_tty_proc_fops;
+	static const struct file_operations ircomm_tty_proc_fops;
 #endif /* CONFIG_PROC_FS */
 static struct tty_driver *driver;
 
 static hashbin_t *ircomm_tty = NULL;
 
-static const struct tty_operations ops = {
+static const struct tty_operations ops =
+{
 	.install	 = ircomm_tty_install,
 	.open            = ircomm_tty_open,
 	.close           = ircomm_tty_close,
@@ -108,16 +109,21 @@ static const struct tty_operations ops = {
 static void ircomm_port_raise_dtr_rts(struct tty_port *port, int raise)
 {
 	struct ircomm_tty_cb *self = container_of(port, struct ircomm_tty_cb,
-			port);
+								 port);
+
 	/*
 	 * Here, we use to lock those two guys, but as ircomm_param_request()
 	 * does it itself, I don't see the point (and I see the deadlock).
 	 * Jean II
 	 */
 	if (raise)
+	{
 		self->settings.dte |= IRCOMM_RTS | IRCOMM_DTR;
+	}
 	else
+	{
 		self->settings.dte &= ~(IRCOMM_RTS | IRCOMM_DTR);
+	}
 
 	ircomm_param_request(self, IRCOMM_DTE, TRUE);
 }
@@ -125,11 +131,12 @@ static void ircomm_port_raise_dtr_rts(struct tty_port *port, int raise)
 static int ircomm_port_carrier_raised(struct tty_port *port)
 {
 	struct ircomm_tty_cb *self = container_of(port, struct ircomm_tty_cb,
-			port);
+								 port);
 	return self->settings.dce & IRCOMM_CD;
 }
 
-static const struct tty_port_operations ircomm_port_ops = {
+static const struct tty_port_operations ircomm_port_ops =
+{
 	.dtr_rts = ircomm_port_raise_dtr_rts,
 	.carrier_raised = ircomm_port_carrier_raised,
 };
@@ -143,12 +150,18 @@ static const struct tty_port_operations ircomm_port_ops = {
 static int __init ircomm_tty_init(void)
 {
 	driver = alloc_tty_driver(IRCOMM_TTY_PORTS);
+
 	if (!driver)
+	{
 		return -ENOMEM;
+	}
+
 	ircomm_tty = hashbin_new(HB_LOCK);
-	if (ircomm_tty == NULL) {
+
+	if (ircomm_tty == NULL)
+	{
 		net_err_ratelimited("%s(), can't allocate hashbin!\n",
-				    __func__);
+							__func__);
 		put_tty_driver(driver);
 		return -ENOMEM;
 	}
@@ -163,12 +176,15 @@ static int __init ircomm_tty_init(void)
 	driver->init_termios.c_cflag = B9600 | CS8 | CREAD | HUPCL | CLOCAL;
 	driver->flags           = TTY_DRIVER_REAL_RAW;
 	tty_set_operations(driver, &ops);
-	if (tty_register_driver(driver)) {
+
+	if (tty_register_driver(driver))
+	{
 		net_err_ratelimited("%s(): Couldn't register serial driver\n",
-				    __func__);
+							__func__);
 		put_tty_driver(driver);
 		return -1;
 	}
+
 	return 0;
 }
 
@@ -195,9 +211,11 @@ static void __exit ircomm_tty_cleanup(void)
 	int ret;
 
 	ret = tty_unregister_driver(driver);
-	if (ret) {
+
+	if (ret)
+	{
 		net_err_ratelimited("%s(), failed to unregister driver\n",
-				    __func__);
+							__func__);
 		return;
 	}
 
@@ -220,10 +238,12 @@ static int ircomm_tty_startup(struct ircomm_tty_cb *self)
 	IRDA_ASSERT(self->magic == IRCOMM_TTY_MAGIC, return -1;);
 
 	/* Check if already open */
-	if (tty_port_initialized(&self->port)) {
+	if (tty_port_initialized(&self->port))
+	{
 		pr_debug("%s(), already open so break out!\n", __func__);
 		return 0;
 	}
+
 	tty_port_set_initialized(&self->port, 1);
 
 	/* Register with IrCOMM */
@@ -240,18 +260,24 @@ static int ircomm_tty_startup(struct ircomm_tty_cb *self)
 	strlcpy(notify.name, "ircomm_tty", sizeof(notify.name));
 	notify.instance = self;
 
-	if (!self->ircomm) {
-		self->ircomm = ircomm_open(&notify, self->service_type,
-					   self->line);
-	}
 	if (!self->ircomm)
+	{
+		self->ircomm = ircomm_open(&notify, self->service_type,
+								   self->line);
+	}
+
+	if (!self->ircomm)
+	{
 		goto err;
+	}
 
 	self->slsap_sel = self->ircomm->slsap_sel;
 
 	/* Connect IrCOMM link with remote device */
 	ret = ircomm_tty_attach_cable(self);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		net_err_ratelimited("%s(), error attaching cable!\n", __func__);
 		goto err;
 	}
@@ -269,7 +295,7 @@ err:
  *
  */
 static int ircomm_tty_block_til_ready(struct ircomm_tty_cb *self,
-		struct tty_struct *tty, struct file *filp)
+									  struct tty_struct *tty, struct file *filp)
 {
 	struct tty_port *port = &self->port;
 	DECLARE_WAITQUEUE(wait, current);
@@ -281,21 +307,27 @@ static int ircomm_tty_block_til_ready(struct ircomm_tty_cb *self,
 	 * If non-blocking mode is set, or the port is not enabled,
 	 * then make the check up front and then exit.
 	 */
-	if (tty_io_error(tty)) {
+	if (tty_io_error(tty))
+	{
 		tty_port_set_active(port, 1);
 		return 0;
 	}
 
-	if (filp->f_flags & O_NONBLOCK) {
+	if (filp->f_flags & O_NONBLOCK)
+	{
 		/* nonblock mode is set */
 		if (C_BAUD(tty))
+		{
 			tty_port_raise_dtr_rts(port);
+		}
+
 		tty_port_set_active(port, 1);
 		pr_debug("%s(), O_NONBLOCK requested!\n", __func__);
 		return 0;
 	}
 
-	if (C_CLOCAL(tty)) {
+	if (C_CLOCAL(tty))
+	{
 		pr_debug("%s(), doing CLOCAL!\n", __func__);
 		do_clocal = 1;
 	}
@@ -311,22 +343,26 @@ static int ircomm_tty_block_til_ready(struct ircomm_tty_cb *self,
 	add_wait_queue(&port->open_wait, &wait);
 
 	pr_debug("%s(%d):block_til_ready before block on %s open_count=%d\n",
-		 __FILE__, __LINE__, tty->driver->name, port->count);
+			 __FILE__, __LINE__, tty->driver->name, port->count);
 
 	spin_lock_irqsave(&port->lock, flags);
 	port->count--;
 	port->blocked_open++;
 	spin_unlock_irqrestore(&port->lock, flags);
 
-	while (1) {
+	while (1)
+	{
 		if (C_BAUD(tty) && tty_port_initialized(port))
+		{
 			tty_port_raise_dtr_rts(port);
+		}
 
 		set_current_state(TASK_INTERRUPTIBLE);
 
-		if (tty_hung_up_p(filp) || !tty_port_initialized(port)) {
+		if (tty_hung_up_p(filp) || !tty_port_initialized(port))
+		{
 			retval = (port->flags & ASYNC_HUP_NOTIFY) ?
-					-EAGAIN : -ERESTARTSYS;
+					 -EAGAIN : -ERESTARTSYS;
 			break;
 		}
 
@@ -336,18 +372,19 @@ static int ircomm_tty_block_til_ready(struct ircomm_tty_cb *self,
 		 * ready
 		 */
 		if ((do_clocal || tty_port_carrier_raised(port)) &&
-		    self->state == IRCOMM_TTY_READY)
+			self->state == IRCOMM_TTY_READY)
 		{
 			break;
 		}
 
-		if (signal_pending(current)) {
+		if (signal_pending(current))
+		{
 			retval = -ERESTARTSYS;
 			break;
 		}
 
 		pr_debug("%s(%d):block_til_ready blocking on %s open_count=%d\n",
-			 __FILE__, __LINE__, tty->driver->name, port->count);
+				 __FILE__, __LINE__, tty->driver->name, port->count);
 
 		schedule();
 	}
@@ -356,16 +393,22 @@ static int ircomm_tty_block_til_ready(struct ircomm_tty_cb *self,
 	remove_wait_queue(&port->open_wait, &wait);
 
 	spin_lock_irqsave(&port->lock, flags);
+
 	if (!tty_hung_up_p(filp))
+	{
 		port->count++;
+	}
+
 	port->blocked_open--;
 	spin_unlock_irqrestore(&port->lock, flags);
 
 	pr_debug("%s(%d):block_til_ready after blocking on %s open_count=%d\n",
-		 __FILE__, __LINE__, tty->driver->name, port->count);
+			 __FILE__, __LINE__, tty->driver->name, port->count);
 
 	if (!retval)
+	{
 		tty_port_set_active(port, 1);
+	}
 
 	return retval;
 }
@@ -378,11 +421,16 @@ static int ircomm_tty_install(struct tty_driver *driver, struct tty_struct *tty)
 
 	/* Check if instance already exists */
 	self = hashbin_lock_find(ircomm_tty, line, NULL);
-	if (!self) {
+
+	if (!self)
+	{
 		/* No, so make new instance */
 		self = kzalloc(sizeof(struct ircomm_tty_cb), GFP_KERNEL);
+
 		if (self == NULL)
+		{
 			return -ENOMEM;
+		}
 
 		tty_port_init(&self->port);
 		self->port.ops = &ircomm_port_ops;
@@ -437,35 +485,44 @@ static int ircomm_tty_open(struct tty_struct *tty, struct file *filp)
 	tty_port_tty_set(&self->port, tty);
 
 	pr_debug("%s(), %s%d, count = %d\n", __func__ , tty->driver->name,
-		 self->line, self->port.count);
+			 self->line, self->port.count);
 
 	/* Not really used by us, but lets do it anyway */
 	self->port.low_latency = (self->port.flags & ASYNC_LOW_LATENCY) ? 1 : 0;
 
 	/* Check if this is a "normal" ircomm device, or an irlpt device */
-	if (self->line < 0x10) {
+	if (self->line < 0x10)
+	{
 		self->service_type = IRCOMM_3_WIRE | IRCOMM_9_WIRE;
 		self->settings.service_type = IRCOMM_9_WIRE; /* 9 wire as default */
 		/* Jan Kiszka -> add DSR/RI -> Conform to IrCOMM spec */
 		self->settings.dce = IRCOMM_CTS | IRCOMM_CD | IRCOMM_DSR | IRCOMM_RI; /* Default line settings */
 		pr_debug("%s(), IrCOMM device\n", __func__);
-	} else {
+	}
+	else
+	{
 		pr_debug("%s(), IrLPT device\n", __func__);
 		self->service_type = IRCOMM_3_WIRE_RAW;
 		self->settings.service_type = IRCOMM_3_WIRE_RAW; /* Default */
 	}
 
 	ret = ircomm_tty_startup(self);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = ircomm_tty_block_til_ready(self, tty, filp);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_debug("%s(), returning after block_til_ready with %d\n",
-			 __func__, ret);
+				 __func__, ret);
 
 		return ret;
 	}
+
 	return 0;
 }
 
@@ -484,7 +541,9 @@ static void ircomm_tty_close(struct tty_struct *tty, struct file *filp)
 	IRDA_ASSERT(self->magic == IRCOMM_TTY_MAGIC, return;);
 
 	if (tty_port_close_start(port, tty, filp) == 0)
+	{
 		return;
+	}
 
 	ircomm_tty_shutdown(self);
 
@@ -530,11 +589,16 @@ static void ircomm_tty_do_softint(struct work_struct *work)
 	struct sk_buff *skb, *ctrl_skb;
 
 	if (!self || self->magic != IRCOMM_TTY_MAGIC)
+	{
 		return;
+	}
 
 	tty = tty_port_tty_get(&self->port);
+
 	if (!tty)
+	{
 		return;
+	}
 
 	/* Unlink control buffer */
 	spin_lock_irqsave(&self->spinlock, flags);
@@ -545,15 +609,21 @@ static void ircomm_tty_do_softint(struct work_struct *work)
 	spin_unlock_irqrestore(&self->spinlock, flags);
 
 	/* Flush control buffer if any */
-	if(ctrl_skb) {
-		if(self->flow == FLOW_START)
+	if (ctrl_skb)
+	{
+		if (self->flow == FLOW_START)
+		{
 			ircomm_control_request(self->ircomm, ctrl_skb);
+		}
+
 		/* Drop reference count - see ircomm_ttp_data_request(). */
 		dev_kfree_skb(ctrl_skb);
 	}
 
 	if (tty->hw_stopped)
+	{
 		goto put;
+	}
 
 	/* Unlink transmit buffer */
 	spin_lock_irqsave(&self->spinlock, flags);
@@ -564,7 +634,8 @@ static void ircomm_tty_do_softint(struct work_struct *work)
 	spin_unlock_irqrestore(&self->spinlock, flags);
 
 	/* Flush transmit buffer if any */
-	if (skb) {
+	if (skb)
+	{
 		ircomm_tty_do_event(self, IRCOMM_TTY_DATA_REQUEST, skb, NULL);
 		/* Drop reference count - see ircomm_ttp_data_request(). */
 		dev_kfree_skb(skb);
@@ -585,7 +656,7 @@ put:
  *    accepted for writing. This routine is mandatory.
  */
 static int ircomm_tty_write(struct tty_struct *tty,
-			    const unsigned char *buf, int count)
+							const unsigned char *buf, int count)
 {
 	struct ircomm_tty_cb *self = (struct ircomm_tty_cb *) tty->driver_data;
 	unsigned long flags;
@@ -595,7 +666,7 @@ static int ircomm_tty_write(struct tty_struct *tty,
 	int size;
 
 	pr_debug("%s(), count=%d, hw_stopped=%d\n", __func__ , count,
-		 tty->hw_stopped);
+			 tty->hw_stopped);
 
 	IRDA_ASSERT(self != NULL, return -1;);
 	IRDA_ASSERT(self->magic == IRCOMM_TTY_MAGIC, return -1;);
@@ -616,7 +687,8 @@ static int ircomm_tty_write(struct tty_struct *tty,
 	 * We just need to make sure that when the real values get filled,
 	 * we don't mess up the original "safe skb" (see tx_data_size).
 	 * Jean II */
-	if (self->max_header_size == IRCOMM_TTY_HDR_UNINITIALISED) {
+	if (self->max_header_size == IRCOMM_TTY_HDR_UNINITIALISED)
+	{
 		pr_debug("%s() : not initialised\n", __func__);
 #ifdef IRCOMM_NO_TX_BEFORE_INIT
 		/* We didn't consume anything, TTY will retry */
@@ -625,7 +697,9 @@ static int ircomm_tty_write(struct tty_struct *tty,
 	}
 
 	if (count < 1)
+	{
 		return 0;
+	}
 
 	/* Protect our manipulation of self->tx_skb and related */
 	spin_lock_irqsave(&self->spinlock, flags);
@@ -641,18 +715,22 @@ static int ircomm_tty_write(struct tty_struct *tty,
 	 * defragment the data and send it out as one packet as soon as
 	 * possible, but at a safer point in time
 	 */
-	while (count) {
+	while (count)
+	{
 		size = count;
 
 		/* Adjust data size to the max data size */
 		if (size > self->max_data_size)
+		{
 			size = self->max_data_size;
+		}
 
 		/*
 		 * Do we already have a buffer ready for transmit, or do
 		 * we need to allocate a new frame
 		 */
-		if (skb) {
+		if (skb)
+		{
 			/*
 			 * Any room for more data at the end of the current
 			 * transmit buffer? Cannot use skb_tailroom, since
@@ -662,26 +740,36 @@ static int ircomm_tty_write(struct tty_struct *tty,
 			 * may have changed and we don't want to overwrite
 			 * the skb. - Jean II
 			 */
-			if ((tailroom = (self->tx_data_size - skb->len)) > 0) {
+			if ((tailroom = (self->tx_data_size - skb->len)) > 0)
+			{
 				/* Adjust data to tailroom */
 				if (size > tailroom)
+				{
 					size = tailroom;
-			} else {
+				}
+			}
+			else
+			{
 				/*
 				 * Current transmit frame is full, so break
 				 * out, so we can send it as soon as possible
 				 */
 				break;
 			}
-		} else {
+		}
+		else
+		{
 			/* Prepare a full sized frame */
-			skb = alloc_skb(self->max_data_size+
-					self->max_header_size,
-					GFP_ATOMIC);
-			if (!skb) {
+			skb = alloc_skb(self->max_data_size +
+							self->max_header_size,
+							GFP_ATOMIC);
+
+			if (!skb)
+			{
 				spin_unlock_irqrestore(&self->spinlock, flags);
 				return -ENOBUFS;
 			}
+
 			skb_reserve(skb, self->max_header_size);
 			self->tx_skb = skb;
 			/* Remember skb size because max_data_size may
@@ -690,7 +778,7 @@ static int ircomm_tty_write(struct tty_struct *tty,
 		}
 
 		/* Copy data */
-		memcpy(skb_put(skb,size), buf + len, size);
+		memcpy(skb_put(skb, size), buf + len, size);
 
 		count -= size;
 		len += size;
@@ -727,25 +815,39 @@ static int ircomm_tty_write_room(struct tty_struct *tty)
 	IRDA_ASSERT(self->magic == IRCOMM_TTY_MAGIC, return -1;);
 
 #ifdef IRCOMM_NO_TX_BEFORE_INIT
+
 	/* max_header_size tells us if the channel is initialised or not. */
 	if (self->max_header_size == IRCOMM_TTY_HDR_UNINITIALISED)
 		/* Don't bother us yet */
+	{
 		return 0;
+	}
+
 #endif
 
 	/* Check if we are allowed to transmit any data.
 	 * hw_stopped is the regular flow control.
 	 * Jean II */
 	if (tty->hw_stopped)
+	{
 		ret = 0;
-	else {
+	}
+	else
+	{
 		spin_lock_irqsave(&self->spinlock, flags);
+
 		if (self->tx_skb)
+		{
 			ret = self->tx_data_size - self->tx_skb->len;
+		}
 		else
+		{
 			ret = self->max_data_size;
+		}
+
 		spin_unlock_irqrestore(&self->spinlock, flags);
 	}
+
 	pr_debug("%s(), ret=%d\n", __func__ , ret);
 
 	return ret;
@@ -770,19 +872,31 @@ static void ircomm_tty_wait_until_sent(struct tty_struct *tty, int timeout)
 
 	/* Set poll time to 200 ms */
 	poll_time = msecs_to_jiffies(200);
+
 	if (timeout)
+	{
 		poll_time = min_t(unsigned long, timeout, poll_time);
+	}
 
 	spin_lock_irqsave(&self->spinlock, flags);
-	while (self->tx_skb && self->tx_skb->len) {
+
+	while (self->tx_skb && self->tx_skb->len)
+	{
 		spin_unlock_irqrestore(&self->spinlock, flags);
 		schedule_timeout_interruptible(poll_time);
 		spin_lock_irqsave(&self->spinlock, flags);
+
 		if (signal_pending(current))
+		{
 			break;
+		}
+
 		if (timeout && time_after(jiffies, orig_jiffies + timeout))
+		{
 			break;
+		}
 	}
+
 	spin_unlock_irqrestore(&self->spinlock, flags);
 	__set_current_state(TASK_RUNNING);
 }
@@ -803,10 +917,13 @@ static void ircomm_tty_throttle(struct tty_struct *tty)
 
 	/* Software flow control? */
 	if (I_IXOFF(tty))
+	{
 		ircomm_tty_send_xchar(tty, STOP_CHAR(tty));
+	}
 
 	/* Hardware flow control? */
-	if (C_CRTSCTS(tty)) {
+	if (C_CRTSCTS(tty))
+	{
 		self->settings.dte &= ~IRCOMM_RTS;
 		self->settings.dte |= IRCOMM_DELTA_RTS;
 
@@ -832,15 +949,19 @@ static void ircomm_tty_unthrottle(struct tty_struct *tty)
 
 	/* Using software flow control? */
 	if (I_IXOFF(tty))
+	{
 		ircomm_tty_send_xchar(tty, START_CHAR(tty));
+	}
 
 	/* Using hardware flow control? */
-	if (C_CRTSCTS(tty)) {
-		self->settings.dte |= (IRCOMM_RTS|IRCOMM_DELTA_RTS);
+	if (C_CRTSCTS(tty))
+	{
+		self->settings.dte |= (IRCOMM_RTS | IRCOMM_DELTA_RTS);
 
 		ircomm_param_request(self, IRCOMM_DTE, TRUE);
 		pr_debug("%s(), FLOW_START\n", __func__);
 	}
+
 	ircomm_flow_request(self->ircomm, FLOW_START);
 }
 
@@ -862,7 +983,9 @@ static int ircomm_tty_chars_in_buffer(struct tty_struct *tty)
 	spin_lock_irqsave(&self->spinlock, flags);
 
 	if (self->tx_skb)
+	{
 		len = self->tx_skb->len;
+	}
 
 	spin_unlock_irqrestore(&self->spinlock, flags);
 
@@ -877,7 +1000,10 @@ static void ircomm_tty_shutdown(struct ircomm_tty_cb *self)
 	IRDA_ASSERT(self->magic == IRCOMM_TTY_MAGIC, return;);
 
 	if (!tty_port_initialized(&self->port))
+	{
 		return;
+	}
+
 	tty_port_set_initialized(&self->port, 0);
 
 	ircomm_tty_detach_cable(self);
@@ -887,18 +1013,21 @@ static void ircomm_tty_shutdown(struct ircomm_tty_cb *self)
 	del_timer(&self->watchdog_timer);
 
 	/* Free parameter buffer */
-	if (self->ctrl_skb) {
+	if (self->ctrl_skb)
+	{
 		dev_kfree_skb(self->ctrl_skb);
 		self->ctrl_skb = NULL;
 	}
 
 	/* Free transmit buffer */
-	if (self->tx_skb) {
+	if (self->tx_skb)
+	{
 		dev_kfree_skb(self->tx_skb);
 		self->tx_skb = NULL;
 	}
 
-	if (self->ircomm) {
+	if (self->ircomm)
+	{
 		ircomm_close(self->ircomm);
 		self->ircomm = NULL;
 	}
@@ -926,10 +1055,13 @@ static void ircomm_tty_hangup(struct tty_struct *tty)
 	ircomm_tty_shutdown(self);
 
 	spin_lock_irqsave(&port->lock, flags);
-	if (port->tty) {
+
+	if (port->tty)
+	{
 		set_bit(TTY_IO_ERROR, &port->tty->flags);
 		tty_kref_put(port->tty);
 	}
+
 	port->tty = NULL;
 	port->count = 0;
 	spin_unlock_irqrestore(&port->lock, flags);
@@ -997,27 +1129,40 @@ void ircomm_tty_check_modem_status(struct ircomm_tty_cb *self)
 
 	status = self->settings.dce;
 
-	if (status & IRCOMM_DCE_DELTA_ANY) {
+	if (status & IRCOMM_DCE_DELTA_ANY)
+	{
 		/*wake_up_interruptible(&self->delta_msr_wait);*/
 	}
-	if (tty_port_check_carrier(&self->port) && (status & IRCOMM_DELTA_CD)) {
-		pr_debug("%s(), ircomm%d CD now %s...\n", __func__ , self->line,
-			 (status & IRCOMM_CD) ? "on" : "off");
 
-		if (status & IRCOMM_CD) {
+	if (tty_port_check_carrier(&self->port) && (status & IRCOMM_DELTA_CD))
+	{
+		pr_debug("%s(), ircomm%d CD now %s...\n", __func__ , self->line,
+				 (status & IRCOMM_CD) ? "on" : "off");
+
+		if (status & IRCOMM_CD)
+		{
 			wake_up_interruptible(&self->port.open_wait);
-		} else {
+		}
+		else
+		{
 			pr_debug("%s(), Doing serial hangup..\n", __func__);
+
 			if (tty)
+			{
 				tty_hangup(tty);
+			}
 
 			/* Hangup will remote the tty, so better break out */
 			goto put;
 		}
 	}
-	if (tty && tty_port_cts_enabled(&self->port)) {
-		if (tty->hw_stopped) {
-			if (status & IRCOMM_CTS) {
+
+	if (tty && tty_port_cts_enabled(&self->port))
+	{
+		if (tty->hw_stopped)
+		{
+			if (status & IRCOMM_CTS)
+			{
 				pr_debug("%s(), CTS tx start...\n", __func__);
 				tty->hw_stopped = 0;
 
@@ -1027,13 +1172,17 @@ void ircomm_tty_check_modem_status(struct ircomm_tty_cb *self)
 				schedule_work(&self->tqueue);
 				goto put;
 			}
-		} else {
-			if (!(status & IRCOMM_CTS)) {
+		}
+		else
+		{
+			if (!(status & IRCOMM_CTS))
+			{
 				pr_debug("%s(), CTS tx stop...\n", __func__);
 				tty->hw_stopped = 1;
 			}
 		}
 	}
+
 put:
 	tty_kref_put(tty);
 }
@@ -1045,7 +1194,7 @@ put:
  *
  */
 static int ircomm_tty_data_indication(void *instance, void *sap,
-				      struct sk_buff *skb)
+									  struct sk_buff *skb)
 {
 	struct ircomm_tty_cb *self = (struct ircomm_tty_cb *) instance;
 	struct tty_struct *tty;
@@ -1055,7 +1204,9 @@ static int ircomm_tty_data_indication(void *instance, void *sap,
 	IRDA_ASSERT(skb != NULL, return -1;);
 
 	tty = tty_port_tty_get(&self->port);
-	if (!tty) {
+
+	if (!tty)
+	{
 		pr_debug("%s(), no tty!\n", __func__);
 		return 0;
 	}
@@ -1066,7 +1217,8 @@ static int ircomm_tty_data_indication(void *instance, void *sap,
 	 * Devices like WinCE can do this, and since they don't send any
 	 * params, we can just as well declare the hardware for running.
 	 */
-	if (tty->hw_stopped && (self->flow == FLOW_START)) {
+	if (tty->hw_stopped && (self->flow == FLOW_START))
+	{
 		pr_debug("%s(), polling for line settings!\n", __func__);
 		ircomm_param_request(self, IRCOMM_POLL, TRUE);
 
@@ -1074,6 +1226,7 @@ static int ircomm_tty_data_indication(void *instance, void *sap,
 		ircomm_tty_send_initial_parameters(self);
 		ircomm_tty_link_established(self);
 	}
+
 	tty_kref_put(tty);
 
 	/*
@@ -1095,7 +1248,7 @@ static int ircomm_tty_data_indication(void *instance, void *sap,
  *
  */
 static int ircomm_tty_control_indication(void *instance, void *sap,
-					 struct sk_buff *skb)
+		struct sk_buff *skb)
 {
 	struct ircomm_tty_cb *self = (struct ircomm_tty_cb *) instance;
 	int clen;
@@ -1106,8 +1259,8 @@ static int ircomm_tty_control_indication(void *instance, void *sap,
 
 	clen = skb->data[0];
 
-	irda_param_extract_all(self, skb->data+1, IRDA_MIN(skb->len-1, clen),
-			       &ircomm_param_info);
+	irda_param_extract_all(self, skb->data + 1, IRDA_MIN(skb->len - 1, clen),
+						   &ircomm_param_info);
 
 	/* No need to kfree_skb - see ircomm_control_indication() */
 
@@ -1122,7 +1275,7 @@ static int ircomm_tty_control_indication(void *instance, void *sap,
  *    for IrTTP to notify us that things are OK again.
  */
 static void ircomm_tty_flow_indication(void *instance, void *sap,
-				       LOCAL_FLOW cmd)
+									   LOCAL_FLOW cmd)
 {
 	struct ircomm_tty_cb *self = (struct ircomm_tty_cb *) instance;
 	struct tty_struct *tty;
@@ -1132,21 +1285,30 @@ static void ircomm_tty_flow_indication(void *instance, void *sap,
 
 	tty = tty_port_tty_get(&self->port);
 
-	switch (cmd) {
-	case FLOW_START:
-		pr_debug("%s(), hw start!\n", __func__);
-		if (tty)
-			tty->hw_stopped = 0;
+	switch (cmd)
+	{
+		case FLOW_START:
+			pr_debug("%s(), hw start!\n", __func__);
 
-		/* ircomm_tty_do_softint will take care of the rest */
-		schedule_work(&self->tqueue);
-		break;
-	default:  /* If we get here, something is very wrong, better stop */
-	case FLOW_STOP:
-		pr_debug("%s(), hw stopped!\n", __func__);
-		if (tty)
-			tty->hw_stopped = 1;
-		break;
+			if (tty)
+			{
+				tty->hw_stopped = 0;
+			}
+
+			/* ircomm_tty_do_softint will take care of the rest */
+			schedule_work(&self->tqueue);
+			break;
+
+		default:  /* If we get here, something is very wrong, better stop */
+		case FLOW_STOP:
+			pr_debug("%s(), hw stopped!\n", __func__);
+
+			if (tty)
+			{
+				tty->hw_stopped = 1;
+			}
+
+			break;
 	}
 
 	tty_kref_put(tty);
@@ -1162,116 +1324,173 @@ static void ircomm_tty_line_info(struct ircomm_tty_cb *self, struct seq_file *m)
 	seq_printf(m, "State: %s\n", ircomm_tty_state[self->state]);
 
 	seq_puts(m, "Service type: ");
+
 	if (self->service_type & IRCOMM_9_WIRE)
+	{
 		seq_puts(m, "9_WIRE");
+	}
 	else if (self->service_type & IRCOMM_3_WIRE)
+	{
 		seq_puts(m, "3_WIRE");
+	}
 	else if (self->service_type & IRCOMM_3_WIRE_RAW)
+	{
 		seq_puts(m, "3_WIRE_RAW");
+	}
 	else
+	{
 		seq_puts(m, "No common service type!\n");
+	}
+
 	seq_putc(m, '\n');
 
 	seq_printf(m, "Port name: %s\n", self->settings.port_name);
 
 	seq_printf(m, "DTE status:");
 	sep = ' ';
-	if (self->settings.dte & IRCOMM_RTS) {
+
+	if (self->settings.dte & IRCOMM_RTS)
+	{
 		seq_printf(m, "%cRTS", sep);
 		sep = '|';
 	}
-	if (self->settings.dte & IRCOMM_DTR) {
+
+	if (self->settings.dte & IRCOMM_DTR)
+	{
 		seq_printf(m, "%cDTR", sep);
 		sep = '|';
 	}
+
 	seq_putc(m, '\n');
 
 	seq_puts(m, "DCE status:");
 	sep = ' ';
-	if (self->settings.dce & IRCOMM_CTS) {
+
+	if (self->settings.dce & IRCOMM_CTS)
+	{
 		seq_printf(m, "%cCTS", sep);
 		sep = '|';
 	}
-	if (self->settings.dce & IRCOMM_DSR) {
+
+	if (self->settings.dce & IRCOMM_DSR)
+	{
 		seq_printf(m, "%cDSR", sep);
 		sep = '|';
 	}
-	if (self->settings.dce & IRCOMM_CD) {
+
+	if (self->settings.dce & IRCOMM_CD)
+	{
 		seq_printf(m, "%cCD", sep);
 		sep = '|';
 	}
-	if (self->settings.dce & IRCOMM_RI) {
+
+	if (self->settings.dce & IRCOMM_RI)
+	{
 		seq_printf(m, "%cRI", sep);
 		sep = '|';
 	}
+
 	seq_putc(m, '\n');
 
 	seq_puts(m, "Configuration: ");
+
 	if (!self->settings.null_modem)
+	{
 		seq_puts(m, "DTE <-> DCE\n");
+	}
 	else
+	{
 		seq_puts(m, "DTE <-> DTE (null modem emulation)\n");
+	}
 
 	seq_printf(m, "Data rate: %d\n", self->settings.data_rate);
 
 	seq_puts(m, "Flow control:");
 	sep = ' ';
-	if (self->settings.flow_control & IRCOMM_XON_XOFF_IN) {
+
+	if (self->settings.flow_control & IRCOMM_XON_XOFF_IN)
+	{
 		seq_printf(m, "%cXON_XOFF_IN", sep);
 		sep = '|';
 	}
-	if (self->settings.flow_control & IRCOMM_XON_XOFF_OUT) {
+
+	if (self->settings.flow_control & IRCOMM_XON_XOFF_OUT)
+	{
 		seq_printf(m, "%cXON_XOFF_OUT", sep);
 		sep = '|';
 	}
-	if (self->settings.flow_control & IRCOMM_RTS_CTS_IN) {
+
+	if (self->settings.flow_control & IRCOMM_RTS_CTS_IN)
+	{
 		seq_printf(m, "%cRTS_CTS_IN", sep);
 		sep = '|';
 	}
-	if (self->settings.flow_control & IRCOMM_RTS_CTS_OUT) {
+
+	if (self->settings.flow_control & IRCOMM_RTS_CTS_OUT)
+	{
 		seq_printf(m, "%cRTS_CTS_OUT", sep);
 		sep = '|';
 	}
-	if (self->settings.flow_control & IRCOMM_DSR_DTR_IN) {
+
+	if (self->settings.flow_control & IRCOMM_DSR_DTR_IN)
+	{
 		seq_printf(m, "%cDSR_DTR_IN", sep);
 		sep = '|';
 	}
-	if (self->settings.flow_control & IRCOMM_DSR_DTR_OUT) {
+
+	if (self->settings.flow_control & IRCOMM_DSR_DTR_OUT)
+	{
 		seq_printf(m, "%cDSR_DTR_OUT", sep);
 		sep = '|';
 	}
-	if (self->settings.flow_control & IRCOMM_ENQ_ACK_IN) {
+
+	if (self->settings.flow_control & IRCOMM_ENQ_ACK_IN)
+	{
 		seq_printf(m, "%cENQ_ACK_IN", sep);
 		sep = '|';
 	}
-	if (self->settings.flow_control & IRCOMM_ENQ_ACK_OUT) {
+
+	if (self->settings.flow_control & IRCOMM_ENQ_ACK_OUT)
+	{
 		seq_printf(m, "%cENQ_ACK_OUT", sep);
 		sep = '|';
 	}
+
 	seq_putc(m, '\n');
 
 	seq_puts(m, "Flags:");
 	sep = ' ';
-	if (tty_port_cts_enabled(&self->port)) {
+
+	if (tty_port_cts_enabled(&self->port))
+	{
 		seq_printf(m, "%cASYNC_CTS_FLOW", sep);
 		sep = '|';
 	}
-	if (tty_port_check_carrier(&self->port)) {
+
+	if (tty_port_check_carrier(&self->port))
+	{
 		seq_printf(m, "%cASYNC_CHECK_CD", sep);
 		sep = '|';
 	}
-	if (tty_port_initialized(&self->port)) {
+
+	if (tty_port_initialized(&self->port))
+	{
 		seq_printf(m, "%cASYNC_INITIALIZED", sep);
 		sep = '|';
 	}
-	if (self->port.flags & ASYNC_LOW_LATENCY) {
+
+	if (self->port.flags & ASYNC_LOW_LATENCY)
+	{
 		seq_printf(m, "%cASYNC_LOW_LATENCY", sep);
 		sep = '|';
 	}
-	if (tty_port_active(&self->port)) {
+
+	if (tty_port_active(&self->port))
+	{
 		seq_printf(m, "%cASYNC_NORMAL_ACTIVE", sep);
 		sep = '|';
 	}
+
 	seq_putc(m, '\n');
 
 	seq_printf(m, "Role: %s\n", self->client ? "client" : "server");
@@ -1280,9 +1499,11 @@ static void ircomm_tty_line_info(struct ircomm_tty_cb *self, struct seq_file *m)
 	seq_printf(m, "Max header size: %d\n", self->max_header_size);
 
 	tty = tty_port_tty_get(&self->port);
-	if (tty) {
+
+	if (tty)
+	{
 		seq_printf(m, "Hardware: %s\n",
-			       tty->hw_stopped ? "Stopped" : "Running");
+				   tty->hw_stopped ? "Stopped" : "Running");
 		tty_kref_put(tty);
 	}
 }
@@ -1295,13 +1516,18 @@ static int ircomm_tty_proc_show(struct seq_file *m, void *v)
 	spin_lock_irqsave(&ircomm_tty->hb_spinlock, flags);
 
 	self = (struct ircomm_tty_cb *) hashbin_get_first(ircomm_tty);
-	while (self != NULL) {
+
+	while (self != NULL)
+	{
 		if (self->magic != IRCOMM_TTY_MAGIC)
+		{
 			break;
+		}
 
 		ircomm_tty_line_info(self, m);
 		self = (struct ircomm_tty_cb *) hashbin_get_next(ircomm_tty);
 	}
+
 	spin_unlock_irqrestore(&ircomm_tty->hb_spinlock, flags);
 	return 0;
 }
@@ -1311,7 +1537,8 @@ static int ircomm_tty_proc_open(struct inode *inode, struct file *file)
 	return single_open(file, ircomm_tty_proc_show, NULL);
 }
 
-static const struct file_operations ircomm_tty_proc_fops = {
+static const struct file_operations ircomm_tty_proc_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= ircomm_tty_proc_open,
 	.read		= seq_read,

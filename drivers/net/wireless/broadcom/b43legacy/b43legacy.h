@@ -118,7 +118,7 @@
 #define B43legacy_SHM_AUTOINC_R		0x0200 /* Read Auto-increment */
 #define B43legacy_SHM_AUTOINC_W		0x0100 /* Write Auto-increment */
 #define B43legacy_SHM_AUTOINC_RW	(B43legacy_SHM_AUTOINC_R | \
-					 B43legacy_SHM_AUTOINC_W)
+									 B43legacy_SHM_AUTOINC_W)
 
 /* Misc SHM_SHARED offsets */
 #define B43legacy_SHM_SH_WLCOREREV	0x0016 /* 802.11 core revision */
@@ -253,17 +253,17 @@
 
 #define B43legacy_IRQ_ALL		0xFFFFFFFF
 #define B43legacy_IRQ_MASKTEMPLATE	(B43legacy_IRQ_MAC_SUSPENDED |	\
-					 B43legacy_IRQ_TBTT_INDI |	\
-					 B43legacy_IRQ_ATIM_END |	\
-					 B43legacy_IRQ_PMQ |		\
-					 B43legacy_IRQ_MAC_TXERR |	\
-					 B43legacy_IRQ_PHY_TXERR |	\
-					 B43legacy_IRQ_DMA |		\
-					 B43legacy_IRQ_TXFIFO_FLUSH_OK | \
-					 B43legacy_IRQ_NOISESAMPLE_OK | \
-					 B43legacy_IRQ_UCODE_DEBUG |	\
-					 B43legacy_IRQ_RFKILL |		\
-					 B43legacy_IRQ_TX_OK)
+									 B43legacy_IRQ_TBTT_INDI |	\
+									 B43legacy_IRQ_ATIM_END |	\
+									 B43legacy_IRQ_PMQ |		\
+									 B43legacy_IRQ_MAC_TXERR |	\
+									 B43legacy_IRQ_PHY_TXERR |	\
+									 B43legacy_IRQ_DMA |		\
+									 B43legacy_IRQ_TXFIFO_FLUSH_OK | \
+									 B43legacy_IRQ_NOISESAMPLE_OK | \
+									 B43legacy_IRQ_UCODE_DEBUG |	\
+									 B43legacy_IRQ_RFKILL |		\
+									 B43legacy_IRQ_TX_OK)
 
 /* Device specific rate values.
  * The actual values defined here are (rate_in_mbps * 2).
@@ -292,7 +292,8 @@
 /* Max size of a security key */
 #define B43legacy_SEC_KEYSIZE		16
 /* Security algorithms. */
-enum {
+enum
+{
 	B43legacy_SEC_ALGO_NONE = 0, /* unencrypted, as of TX header. */
 	B43legacy_SEC_ALGO_WEP40,
 	B43legacy_SEC_ALGO_TKIP,
@@ -328,7 +329,7 @@ enum {
 
 #define PFX		KBUILD_MODNAME ": "
 #ifdef assert
-# undef assert
+	#undef assert
 #endif
 #ifdef CONFIG_B43LEGACY_DEBUG
 # define B43legacy_WARN_ON(x)	WARN_ON(x)
@@ -336,7 +337,7 @@ enum {
 	do {								\
 		if (unlikely((expr))) {					\
 			printk(KERN_INFO PFX "Test (%s) failed\n",	\
-					      #expr);			\
+				   #expr);			\
 			BUG_ON(expr);					\
 		}							\
 	} while (0)
@@ -359,7 +360,8 @@ struct b43legacy_pioqueue;
 #define B43legacy_FW_TYPE_UCODE	'u'
 #define B43legacy_FW_TYPE_PCM	'p'
 #define B43legacy_FW_TYPE_IV	'i'
-struct b43legacy_fw_header {
+struct b43legacy_fw_header
+{
 	/* File type */
 	u8 type;
 	/* File format version */
@@ -373,9 +375,11 @@ struct b43legacy_fw_header {
 /* Initial Value file format */
 #define B43legacy_IV_OFFSET_MASK	0x7FFF
 #define B43legacy_IV_32BIT		0x8000
-struct b43legacy_iv {
+struct b43legacy_iv
+{
 	__be16 offset_size;
-	union {
+	union
+	{
 		__be16 d16;
 		__be32 d32;
 	} data __packed;
@@ -383,19 +387,21 @@ struct b43legacy_iv {
 
 #define B43legacy_PHYMODE(phytype)	(1 << (phytype))
 #define B43legacy_PHYMODE_B		B43legacy_PHYMODE	\
-					((B43legacy_PHYTYPE_B))
+	((B43legacy_PHYTYPE_B))
 #define B43legacy_PHYMODE_G		B43legacy_PHYMODE	\
-					((B43legacy_PHYTYPE_G))
+	((B43legacy_PHYTYPE_G))
 
 /* Value pair to measure the LocalOscillator. */
-struct b43legacy_lopair {
+struct b43legacy_lopair
+{
 	s8 low;
 	s8 high;
-	u8 used:1;
+	u8 used: 1;
 };
 #define B43legacy_LO_COUNT	(14*4)
 
-struct b43legacy_phy {
+struct b43legacy_phy
+{
 	/* Possible PHYMODEs on this PHY */
 	u8 possible_phymodes;
 	/* GMODE bit enabled in MACCTL? */
@@ -413,7 +419,7 @@ struct b43legacy_phy {
 	/* Radio versioning */
 	u16 radio_manuf;	/* Radio manufacturer */
 	u16 radio_ver;		/* Radio version */
-	u8 calibrated:1;
+	u8 calibrated: 1;
 	u8 radio_rev;		/* Radio revision */
 
 	bool dyn_tssi_tbl;	/* tssi2dbm is kmalloc()ed. */
@@ -425,7 +431,8 @@ struct b43legacy_phy {
 
 	/* Radio switched on/off */
 	bool radio_on;
-	struct {
+	struct
+	{
 		/* Values saved when turning the radio off.
 		 * They are needed when turning it on again. */
 		bool valid;
@@ -467,7 +474,8 @@ struct b43legacy_phy {
 
 	/* TX Power control values. */
 	/* B/G PHY */
-	struct {
+	struct
+	{
 		/* Current Radio Attenuation for TXpower recalculation. */
 		u16 rfatt;
 		/* Current Baseband Attenuation for TXpower recalculation. */
@@ -477,7 +485,8 @@ struct b43legacy_phy {
 		u16 txctl2;
 	};
 	/* A PHY */
-	struct {
+	struct
+	{
 		u16 txpwr_offset;
 	};
 
@@ -518,7 +527,8 @@ struct b43legacy_phy {
 };
 
 /* Data structures for DMA transmission, per 80211 core. */
-struct b43legacy_dma {
+struct b43legacy_dma
+{
 	struct b43legacy_dmaring *tx_ring0;
 	struct b43legacy_dmaring *tx_ring1;
 	struct b43legacy_dmaring *tx_ring2;
@@ -533,7 +543,8 @@ struct b43legacy_dma {
 };
 
 /* Data structures for PIO transmission, per 80211 core. */
-struct b43legacy_pio {
+struct b43legacy_pio
+{
 	struct b43legacy_pioqueue *queue0;
 	struct b43legacy_pioqueue *queue1;
 	struct b43legacy_pioqueue *queue2;
@@ -541,21 +552,24 @@ struct b43legacy_pio {
 };
 
 /* Context information for a noise calculation (Link Quality). */
-struct b43legacy_noise_calculation {
+struct b43legacy_noise_calculation
+{
 	u8 channel_at_start;
 	bool calculation_running;
 	u8 nr_samples;
 	s8 samples[8][4];
 };
 
-struct b43legacy_stats {
+struct b43legacy_stats
+{
 	u8 link_noise;
 	/* Store the last TX/RX times here for updating the leds. */
 	unsigned long last_tx;
 	unsigned long last_rx;
 };
 
-struct b43legacy_key {
+struct b43legacy_key
+{
 	void *keyconf;
 	bool enabled;
 	u8 algorithm;
@@ -566,13 +580,15 @@ struct b43legacy_key {
 struct b43legacy_wldev;
 
 /* QOS parameters for a queue. */
-struct b43legacy_qos_params {
+struct b43legacy_qos_params
+{
 	/* The QOS parameters */
 	struct ieee80211_tx_queue_params p;
 };
 
 /* Data structure for the WLAN parts (802.11 cores) of the b43legacy chip. */
-struct b43legacy_wl {
+struct b43legacy_wl
+{
 	/* Pointer to the active wireless device on this chip */
 	struct b43legacy_wldev *current_dev;
 	/* Pointer to the ieee80211 hardware data structure */
@@ -638,7 +654,8 @@ struct b43legacy_wl {
 };
 
 /* Pointers to the firmware data and meta information about it. */
-struct b43legacy_firmware {
+struct b43legacy_firmware
+{
 	/* Microcode */
 	const struct firmware *ucode;
 	/* PCM code */
@@ -654,7 +671,8 @@ struct b43legacy_firmware {
 };
 
 /* Device (802.11 core) initialization status. */
-enum {
+enum
+{
 	B43legacy_STAT_UNINIT		= 0, /* Uninitialized. */
 	B43legacy_STAT_INITIALIZED	= 1, /* Initialized, not yet started. */
 	B43legacy_STAT_STARTED	= 2, /* Up and running. */
@@ -663,7 +681,7 @@ enum {
 #define b43legacy_set_status(wldev, stat)	do {		\
 		atomic_set(&(wldev)->__init_status, (stat));	\
 		smp_wmb();					\
-					} while (0)
+	} while (0)
 
 /* *** ---   HOW LOCKING WORKS IN B43legacy   --- ***
  *
@@ -674,7 +692,8 @@ enum {
  */
 
 /* Data structure for one wireless device (802.11 core) */
-struct b43legacy_wldev {
+struct b43legacy_wldev
+{
 	struct ssb_device *dev;
 	struct b43legacy_wl *wl;
 
@@ -692,7 +711,8 @@ struct b43legacy_wldev {
 
 	/* PHY/Radio device. */
 	struct b43legacy_phy phy;
-	union {
+	union
+	{
 		/* DMA engines. */
 		struct b43legacy_dma dma;
 		/* PIO engines. */
@@ -793,7 +813,7 @@ static inline
 int b43legacy_is_mode(struct b43legacy_wl *wl, int type)
 {
 	return (wl->operating &&
-		wl->if_type == type);
+			wl->if_type == type);
 }
 
 static inline
@@ -828,11 +848,11 @@ void b43legacy_write32(struct b43legacy_wldev *dev, u16 offset, u32 value)
 
 static inline
 struct b43legacy_lopair *b43legacy_get_lopair(struct b43legacy_phy *phy,
-					      u16 radio_attenuation,
-					      u16 baseband_attenuation)
+		u16 radio_attenuation,
+		u16 baseband_attenuation)
 {
 	return phy->_lo_pairs + (radio_attenuation
-			+ 14 * (baseband_attenuation / 2));
+							 + 14 * (baseband_attenuation / 2));
 }
 
 
@@ -845,10 +865,10 @@ void b43legacyerr(struct b43legacy_wl *wl, const char *fmt, ...);
 __printf(2, 3)
 void b43legacywarn(struct b43legacy_wl *wl, const char *fmt, ...);
 #if B43legacy_DEBUG
-__printf(2, 3)
-void b43legacydbg(struct b43legacy_wl *wl, const char *fmt, ...);
+	__printf(2, 3)
+	void b43legacydbg(struct b43legacy_wl *wl, const char *fmt, ...);
 #else /* DEBUG */
-# define b43legacydbg(wl, fmt...) do { /* nothing */ } while (0)
+	#define b43legacydbg(wl, fmt...) do { /* nothing */ } while (0)
 #endif /* DEBUG */
 
 /* Macros for printing a value in Q5.2 format */

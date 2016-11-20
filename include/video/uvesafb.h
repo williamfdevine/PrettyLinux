@@ -5,7 +5,8 @@
 
 
 /* VBE CRTC Info Block */
-struct vbe_crtc_ib {
+struct vbe_crtc_ib
+{
 	u16 horiz_total;
 	u16 horiz_start;
 	u16 horiz_end;
@@ -25,10 +26,11 @@ struct vbe_crtc_ib {
 #define VBE_MODE_LFB		0x80
 
 #define VBE_MODE_MASK		(VBE_MODE_COLOR | VBE_MODE_SUPPORTEDHW | \
-				VBE_MODE_GRAPHICS | VBE_MODE_LFB)
+							 VBE_MODE_GRAPHICS | VBE_MODE_LFB)
 
 /* VBE Mode Info Block */
-struct vbe_mode_ib {
+struct vbe_mode_ib
+{
 	/* for all VBE revisions */
 	u16 mode_attr;
 	u8  winA_attr;
@@ -97,11 +99,13 @@ struct vbe_mode_ib {
 #define dac_reg	(0x3c8)
 #define dac_val	(0x3c9)
 
-struct uvesafb_pal_entry {
+struct uvesafb_pal_entry
+{
 	u_char blue, green, red, pad;
 } __attribute__ ((packed));
 
-struct uvesafb_ktask {
+struct uvesafb_ktask
+{
 	struct uvesafb_task t;
 	void *buf;
 	struct completion *done;
@@ -113,7 +117,8 @@ static int uvesafb_exec(struct uvesafb_ktask *tsk);
 #define UVESAFB_EXACT_RES	1
 #define UVESAFB_EXACT_DEPTH	2
 
-struct uvesafb_par {
+struct uvesafb_par
+{
 	struct vbe_ib vbe_ib;		/* VBE Info Block */
 	struct vbe_mode_ib *vbe_modes;	/* list of supported VBE modes */
 	int vbe_modes_cnt;

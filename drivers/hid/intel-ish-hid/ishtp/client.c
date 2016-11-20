@@ -36,10 +36,13 @@ static void ishtp_read_list_flush(struct ishtp_cl *cl)
 
 	spin_lock_irqsave(&cl->dev->read_list_spinlock, flags);
 	list_for_each_entry_safe(rb, next, &cl->dev->read_list.list, list)
-		if (rb->cl && ishtp_cl_cmp_id(cl, rb->cl)) {
-			list_del(&rb->list);
-			ishtp_io_rb_free(rb);
-		}
+
+	if (rb->cl && ishtp_cl_cmp_id(cl, rb->cl))
+	{
+		list_del(&rb->list);
+		ishtp_io_rb_free(rb);
+	}
+
 	spin_unlock_irqrestore(&cl->dev->read_list_spinlock, flags);
 }
 
@@ -55,7 +58,9 @@ static void ishtp_read_list_flush(struct ishtp_cl *cl)
 int ishtp_cl_flush_queues(struct ishtp_cl *cl)
 {
 	if (WARN_ON(!cl || !cl->dev))
+	{
 		return -EINVAL;
+	}
 
 	ishtp_read_list_flush(cl);
 
@@ -111,8 +116,11 @@ struct ishtp_cl *ishtp_cl_allocate(struct ishtp_device *dev)
 	struct ishtp_cl *cl;
 
 	cl = kmalloc(sizeof(struct ishtp_cl), GFP_KERNEL);
+
 	if (!cl)
+	{
 		return NULL;
+	}
 
 	ishtp_cl_init(cl, dev);
 	return cl;
@@ -131,11 +139,16 @@ void	ishtp_cl_free(struct ishtp_cl *cl)
 	unsigned long flags;
 
 	if (!cl)
+	{
 		return;
+	}
 
 	dev = cl->dev;
+
 	if (!dev)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&dev->cl_list_lock, flags);
 	ishtp_cl_free_rx_ring(cl);
@@ -166,13 +179,16 @@ int ishtp_cl_link(struct ishtp_cl *cl, int id)
 	int	ret = 0;
 
 	if (WARN_ON(!cl || !cl->dev))
+	{
 		return -EINVAL;
+	}
 
 	dev = cl->dev;
 
 	spin_lock_irqsave(&dev->device_lock, flags);
 
-	if (dev->open_handle_count >= ISHTP_MAX_OPEN_HANDLE_COUNT) {
+	if (dev->open_handle_count >= ISHTP_MAX_OPEN_HANDLE_COUNT)
+	{
 		ret = -EMFILE;
 		goto unlock_dev;
 	}
@@ -180,9 +196,10 @@ int ishtp_cl_link(struct ishtp_cl *cl, int id)
 	/* If Id is not assigned get one*/
 	if (id == ISHTP_HOST_CLIENT_ID_ANY)
 		id = find_first_zero_bit(dev->host_clients_map,
-			ISHTP_CLIENTS_MAX);
+								 ISHTP_CLIENTS_MAX);
 
-	if (id >= ISHTP_CLIENTS_MAX) {
+	if (id >= ISHTP_CLIENTS_MAX)
+	{
 		spin_unlock_irqrestore(&dev->device_lock, flags);
 		dev_err(&cl->device->dev, "id exceeded %d", ISHTP_CLIENTS_MAX);
 		return -ENOENT;
@@ -191,10 +208,13 @@ int ishtp_cl_link(struct ishtp_cl *cl, int id)
 	dev->open_handle_count++;
 	cl->host_client_id = id;
 	spin_lock_irqsave(&dev->cl_list_lock, flags_cl);
-	if (dev->dev_state != ISHTP_DEV_ENABLED) {
+
+	if (dev->dev_state != ISHTP_DEV_ENABLED)
+	{
 		ret = -ENODEV;
 		goto unlock_cl;
 	}
+
 	list_add_tail(&cl->link, &dev->cl_list);
 	set_bit(id, dev->host_clients_map);
 	cl->state = ISHTP_CL_INITIALIZING;
@@ -221,15 +241,20 @@ void ishtp_cl_unlink(struct ishtp_cl *cl)
 
 	/* don't shout on error exit path */
 	if (!cl || !cl->dev)
+	{
 		return;
+	}
 
 	dev = cl->dev;
 
 	spin_lock_irqsave(&dev->device_lock, flags);
-	if (dev->open_handle_count > 0) {
+
+	if (dev->open_handle_count > 0)
+	{
 		clear_bit(cl->host_client_id, dev->host_clients_map);
 		dev->open_handle_count--;
 	}
+
 	spin_unlock_irqrestore(&dev->device_lock, flags);
 
 	/*
@@ -238,10 +263,13 @@ void ishtp_cl_unlink(struct ishtp_cl *cl)
 	 */
 	spin_lock_irqsave(&dev->cl_list_lock, flags);
 	list_for_each_entry(pos, &dev->cl_list, link)
-		if (cl->host_client_id == pos->host_client_id) {
-			list_del_init(&pos->link);
-			break;
-		}
+
+	if (cl->host_client_id == pos->host_client_id)
+	{
+		list_del_init(&pos->link);
+		break;
+	}
+
 	spin_unlock_irqrestore(&dev->cl_list_lock, flags);
 }
 EXPORT_SYMBOL(ishtp_cl_unlink);
@@ -261,39 +289,45 @@ int ishtp_cl_disconnect(struct ishtp_cl *cl)
 	int err;
 
 	if (WARN_ON(!cl || !cl->dev))
+	{
 		return -ENODEV;
+	}
 
 	dev = cl->dev;
 
 	dev->print_log(dev, "%s() state %d\n", __func__, cl->state);
 
-	if (cl->state != ISHTP_CL_DISCONNECTING) {
+	if (cl->state != ISHTP_CL_DISCONNECTING)
+	{
 		dev->print_log(dev, "%s() Disconnect in progress\n", __func__);
 		return 0;
 	}
 
-	if (ishtp_hbm_cl_disconnect_req(dev, cl)) {
+	if (ishtp_hbm_cl_disconnect_req(dev, cl))
+	{
 		dev->print_log(dev, "%s() Failed to disconnect\n", __func__);
 		dev_err(&cl->device->dev, "failed to disconnect.\n");
 		return -ENODEV;
 	}
 
 	err = wait_event_interruptible_timeout(cl->wait_ctrl_res,
-			(dev->dev_state != ISHTP_DEV_ENABLED ||
-			cl->state == ISHTP_CL_DISCONNECTED),
-			ishtp_secs_to_jiffies(ISHTP_CL_CONNECT_TIMEOUT));
+										   (dev->dev_state != ISHTP_DEV_ENABLED ||
+											cl->state == ISHTP_CL_DISCONNECTED),
+										   ishtp_secs_to_jiffies(ISHTP_CL_CONNECT_TIMEOUT));
 
 	/*
 	 * If FW reset arrived, this will happen. Don't check cl->,
 	 * as 'cl' may be freed already
 	 */
-	if (dev->dev_state != ISHTP_DEV_ENABLED) {
+	if (dev->dev_state != ISHTP_DEV_ENABLED)
+	{
 		dev->print_log(dev, "%s() dev_state != ISHTP_DEV_ENABLED\n",
-			       __func__);
+					   __func__);
 		return -ENODEV;
 	}
 
-	if (cl->state == ISHTP_CL_DISCONNECTED) {
+	if (cl->state == ISHTP_CL_DISCONNECTED)
+	{
 		dev->print_log(dev, "%s() successful\n", __func__);
 		return 0;
 	}
@@ -317,13 +351,17 @@ static bool ishtp_cl_is_other_connecting(struct ishtp_cl *cl)
 	unsigned long	flags;
 
 	if (WARN_ON(!cl || !cl->dev))
+	{
 		return false;
+	}
 
 	dev = cl->dev;
 	spin_lock_irqsave(&dev->cl_list_lock, flags);
-	list_for_each_entry(pos, &dev->cl_list, link) {
+	list_for_each_entry(pos, &dev->cl_list, link)
+	{
 		if ((pos->state == ISHTP_CL_CONNECTING) && (pos != cl) &&
-				cl->fw_client_id == pos->fw_client_id) {
+			cl->fw_client_id == pos->fw_client_id)
+		{
 			spin_unlock_irqrestore(&dev->cl_list_lock, flags);
 			return true;
 		}
@@ -349,59 +387,72 @@ int ishtp_cl_connect(struct ishtp_cl *cl)
 	int rets;
 
 	if (WARN_ON(!cl || !cl->dev))
+	{
 		return -ENODEV;
+	}
 
 	dev = cl->dev;
 
 	dev->print_log(dev, "%s() current_state = %d\n", __func__, cl->state);
 
-	if (ishtp_cl_is_other_connecting(cl)) {
+	if (ishtp_cl_is_other_connecting(cl))
+	{
 		dev->print_log(dev, "%s() Busy\n", __func__);
 		return	-EBUSY;
 	}
 
-	if (ishtp_hbm_cl_connect_req(dev, cl)) {
+	if (ishtp_hbm_cl_connect_req(dev, cl))
+	{
 		dev->print_log(dev, "%s() HBM connect req fail\n", __func__);
 		return -ENODEV;
 	}
 
 	rets = wait_event_interruptible_timeout(cl->wait_ctrl_res,
-				(dev->dev_state == ISHTP_DEV_ENABLED &&
-				(cl->state == ISHTP_CL_CONNECTED ||
-				 cl->state == ISHTP_CL_DISCONNECTED)),
-				ishtp_secs_to_jiffies(
-					ISHTP_CL_CONNECT_TIMEOUT));
+											(dev->dev_state == ISHTP_DEV_ENABLED &&
+													(cl->state == ISHTP_CL_CONNECTED ||
+															cl->state == ISHTP_CL_DISCONNECTED)),
+											ishtp_secs_to_jiffies(
+													ISHTP_CL_CONNECT_TIMEOUT));
+
 	/*
 	 * If FW reset arrived, this will happen. Don't check cl->,
 	 * as 'cl' may be freed already
 	 */
-	if (dev->dev_state != ISHTP_DEV_ENABLED) {
+	if (dev->dev_state != ISHTP_DEV_ENABLED)
+	{
 		dev->print_log(dev, "%s() dev_state != ISHTP_DEV_ENABLED\n",
-			       __func__);
+					   __func__);
 		return -EFAULT;
 	}
 
-	if (cl->state != ISHTP_CL_CONNECTED) {
+	if (cl->state != ISHTP_CL_CONNECTED)
+	{
 		dev->print_log(dev, "%s() state != ISHTP_CL_CONNECTED\n",
-			       __func__);
+					   __func__);
 		return -EFAULT;
 	}
 
 	rets = cl->status;
-	if (rets) {
+
+	if (rets)
+	{
 		dev->print_log(dev, "%s() Invalid status\n", __func__);
 		return rets;
 	}
 
 	rets = ishtp_cl_device_bind(cl);
-	if (rets) {
+
+	if (rets)
+	{
 		dev->print_log(dev, "%s() Bind error\n", __func__);
 		ishtp_cl_disconnect(cl);
 		return rets;
 	}
 
 	rets = ishtp_cl_alloc_rx_ring(cl);
-	if (rets) {
+
+	if (rets)
+	{
 		dev->print_log(dev, "%s() Alloc RX ring failed\n", __func__);
 		/* if failed allocation, disconnect */
 		ishtp_cl_disconnect(cl);
@@ -409,7 +460,9 @@ int ishtp_cl_connect(struct ishtp_cl *cl)
 	}
 
 	rets = ishtp_cl_alloc_tx_ring(cl);
-	if (rets) {
+
+	if (rets)
+	{
 		dev->print_log(dev, "%s() Alloc TX ring failed\n", __func__);
 		/* if failed allocation, disconnect */
 		ishtp_cl_free_rx_ring(cl);
@@ -446,33 +499,44 @@ int ishtp_cl_read_start(struct ishtp_cl *cl)
 	unsigned long	dev_flags;
 
 	if (WARN_ON(!cl || !cl->dev))
+	{
 		return -ENODEV;
+	}
 
 	dev = cl->dev;
 
 	if (cl->state != ISHTP_CL_CONNECTED)
+	{
 		return -ENODEV;
+	}
 
 	if (dev->dev_state != ISHTP_DEV_ENABLED)
+	{
 		return -ENODEV;
+	}
 
 	i = ishtp_fw_cl_by_id(dev, cl->fw_client_id);
-	if (i < 0) {
+
+	if (i < 0)
+	{
 		dev_err(&cl->device->dev, "no such fw client %d\n",
-			cl->fw_client_id);
+				cl->fw_client_id);
 		return -ENODEV;
 	}
 
 	/* The current rb is the head of the free rb list */
 	spin_lock_irqsave(&cl->free_list_spinlock, flags);
-	if (list_empty(&cl->free_rb_list.list)) {
+
+	if (list_empty(&cl->free_rb_list.list))
+	{
 		dev_warn(&cl->device->dev,
-			 "[ishtp-ish] Rx buffers pool is empty\n");
+				 "[ishtp-ish] Rx buffers pool is empty\n");
 		rets = -ENOMEM;
 		rb = NULL;
 		spin_unlock_irqrestore(&cl->free_list_spinlock, flags);
 		goto out;
 	}
+
 	rb = list_entry(cl->free_rb_list.list.next, struct ishtp_cl_rb, list);
 	list_del_init(&rb->list);
 	spin_unlock_irqrestore(&cl->free_list_spinlock, flags);
@@ -490,13 +554,18 @@ int ishtp_cl_read_start(struct ishtp_cl *cl)
 	spin_lock_irqsave(&dev->read_list_spinlock, dev_flags);
 	list_add_tail(&rb->list, &dev->read_list.list);
 	spin_unlock_irqrestore(&dev->read_list_spinlock, dev_flags);
-	if (ishtp_hbm_cl_flow_control_req(dev, cl)) {
+
+	if (ishtp_hbm_cl_flow_control_req(dev, cl))
+	{
 		rets = -ENODEV;
 		goto out;
 	}
+
 out:
+
 	/* if ishtp_hbm_cl_flow_control_req failed, return rb to free list */
-	if (rets && rb) {
+	if (rets && rb)
+	{
 		spin_lock_irqsave(&dev->read_list_spinlock, dev_flags);
 		list_del(&rb->list);
 		spin_unlock_irqrestore(&dev->read_list_spinlock, dev_flags);
@@ -505,6 +574,7 @@ out:
 		list_add_tail(&rb->list, &cl->free_rb_list.list);
 		spin_unlock_irqrestore(&cl->free_list_spinlock, flags);
 	}
+
 	return rets;
 }
 
@@ -529,49 +599,61 @@ int ishtp_cl_send(struct ishtp_cl *cl, uint8_t *buf, size_t length)
 	unsigned long	tx_flags, tx_free_flags;
 
 	if (WARN_ON(!cl || !cl->dev))
+	{
 		return -ENODEV;
+	}
 
 	dev = cl->dev;
 
-	if (cl->state != ISHTP_CL_CONNECTED) {
+	if (cl->state != ISHTP_CL_CONNECTED)
+	{
 		++cl->err_send_msg;
 		return -EPIPE;
 	}
 
-	if (dev->dev_state != ISHTP_DEV_ENABLED) {
+	if (dev->dev_state != ISHTP_DEV_ENABLED)
+	{
 		++cl->err_send_msg;
 		return -ENODEV;
 	}
 
 	/* Check if we have fw client device */
 	id = ishtp_fw_cl_by_id(dev, cl->fw_client_id);
-	if (id < 0) {
+
+	if (id < 0)
+	{
 		++cl->err_send_msg;
 		return -ENOENT;
 	}
 
-	if (length > dev->fw_clients[id].props.max_msg_length) {
+	if (length > dev->fw_clients[id].props.max_msg_length)
+	{
 		++cl->err_send_msg;
 		return -EMSGSIZE;
 	}
 
 	/* No free bufs */
 	spin_lock_irqsave(&cl->tx_free_list_spinlock, tx_free_flags);
-	if (list_empty(&cl->tx_free_list.list)) {
+
+	if (list_empty(&cl->tx_free_list.list))
+	{
 		spin_unlock_irqrestore(&cl->tx_free_list_spinlock,
-			tx_free_flags);
+							   tx_free_flags);
 		++cl->err_send_msg;
 		return	-ENOMEM;
 	}
 
 	cl_msg = list_first_entry(&cl->tx_free_list.list,
-		struct ishtp_cl_tx_ring, list);
-	if (!cl_msg->send_buf.data) {
+							  struct ishtp_cl_tx_ring, list);
+
+	if (!cl_msg->send_buf.data)
+	{
 		spin_unlock_irqrestore(&cl->tx_free_list_spinlock,
-			tx_free_flags);
+							   tx_free_flags);
 		return	-EIO;
 		/* Should not happen, as free list is pre-allocated */
 	}
+
 	/*
 	 * This is safe, as 'length' is already checked for not exceeding
 	 * max ISHTP message size per client
@@ -586,7 +668,9 @@ int ishtp_cl_send(struct ishtp_cl *cl, uint8_t *buf, size_t length)
 	spin_unlock_irqrestore(&cl->tx_list_spinlock, tx_flags);
 
 	if (!have_msg_to_send && cl->ishtp_flow_ctrl_creds > 0)
+	{
 		ishtp_cl_send_msg(dev, cl);
+	}
 
 	return	0;
 }
@@ -615,7 +699,9 @@ static void ishtp_cl_read_complete(struct ishtp_cl_rb *rb)
 	spin_unlock_irqrestore(&cl->in_process_spinlock, flags);
 
 	if (schedule_work_flag)
+	{
 		ishtp_cl_bus_rx_event(cl->device);
+	}
 }
 
 /**
@@ -636,30 +722,40 @@ static void ipc_tx_callback(void *prm)
 	unsigned char	*pmsg;
 
 	if (!dev)
+	{
 		return;
+	}
 
 	/*
 	 * Other conditions if some critical error has
 	 * occurred before this callback is called
 	 */
 	if (dev->dev_state != ISHTP_DEV_ENABLED)
+	{
 		return;
+	}
 
 	if (cl->state != ISHTP_CL_CONNECTED)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&cl->tx_list_spinlock, tx_flags);
-	if (list_empty(&cl->tx_list.list)) {
+
+	if (list_empty(&cl->tx_list.list))
+	{
 		spin_unlock_irqrestore(&cl->tx_list_spinlock, tx_flags);
 		return;
 	}
 
-	if (cl->ishtp_flow_ctrl_creds != 1 && !cl->sending) {
+	if (cl->ishtp_flow_ctrl_creds != 1 && !cl->sending)
+	{
 		spin_unlock_irqrestore(&cl->tx_list_spinlock, tx_flags);
 		return;
 	}
 
-	if (!cl->sending) {
+	if (!cl->sending)
+	{
 		--cl->ishtp_flow_ctrl_creds;
 		cl->last_ipc_acked = 0;
 		cl->last_tx_path = CL_TX_PATH_IPC;
@@ -667,7 +763,7 @@ static void ipc_tx_callback(void *prm)
 	}
 
 	cl_msg = list_entry(cl->tx_list.list.next, struct ishtp_cl_tx_ring,
-			    list);
+						list);
 	rem = cl_msg->send_buf.size - cl->tx_offs;
 
 	ishtp_hdr.host_addr = cl->host_client_id;
@@ -675,7 +771,8 @@ static void ipc_tx_callback(void *prm)
 	ishtp_hdr.reserved = 0;
 	pmsg = cl_msg->send_buf.data + cl->tx_offs;
 
-	if (rem <= dev->mtu) {
+	if (rem <= dev->mtu)
+	{
 		ishtp_hdr.length = rem;
 		ishtp_hdr.msg_complete = 1;
 		cl->sending = 0;
@@ -686,8 +783,10 @@ static void ipc_tx_callback(void *prm)
 		spin_lock_irqsave(&cl->tx_free_list_spinlock, tx_free_flags);
 		list_add_tail(&cl_msg->list, &cl->tx_free_list.list);
 		spin_unlock_irqrestore(&cl->tx_free_list_spinlock,
-			tx_free_flags);
-	} else {
+							   tx_free_flags);
+	}
+	else
+	{
 		/* Send IPC fragment */
 		spin_unlock_irqrestore(&cl->tx_list_spinlock, tx_flags);
 		cl->tx_offs += dev->mtu;
@@ -705,11 +804,13 @@ static void ipc_tx_callback(void *prm)
  * Send message over IPC not using DMA
  */
 static void ishtp_cl_send_msg_ipc(struct ishtp_device *dev,
-				  struct ishtp_cl *cl)
+								  struct ishtp_cl *cl)
 {
 	/* If last DMA message wasn't acked yet, leave this one in Tx queue */
 	if (cl->last_tx_path == CL_TX_PATH_DMA && cl->last_dma_acked == 0)
+	{
 		return;
+	}
 
 	cl->tx_offs = 0;
 	ipc_tx_callback(cl);
@@ -724,7 +825,7 @@ static void ishtp_cl_send_msg_ipc(struct ishtp_device *dev,
  * Send message using DMA
  */
 static void ishtp_cl_send_msg_dma(struct ishtp_device *dev,
-	struct ishtp_cl *cl)
+								  struct ishtp_cl *cl)
 {
 	struct ishtp_msg_hdr	hdr;
 	struct dma_xfer_hbm	dma_xfer;
@@ -735,22 +836,32 @@ static void ishtp_cl_send_msg_dma(struct ishtp_device *dev,
 
 	/* If last IPC message wasn't acked yet, leave this one in Tx queue */
 	if (cl->last_tx_path == CL_TX_PATH_IPC && cl->last_ipc_acked == 0)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&cl->tx_list_spinlock, tx_flags);
-	if (list_empty(&cl->tx_list.list)) {
+
+	if (list_empty(&cl->tx_list.list))
+	{
 		spin_unlock_irqrestore(&cl->tx_list_spinlock, tx_flags);
 		return;
 	}
 
 	cl_msg = list_entry(cl->tx_list.list.next, struct ishtp_cl_tx_ring,
-		list);
+						list);
 
 	msg_addr = ishtp_cl_get_dma_send_buf(dev, cl_msg->send_buf.size);
-	if (!msg_addr) {
+
+	if (!msg_addr)
+	{
 		spin_unlock_irqrestore(&cl->tx_list_spinlock, tx_flags);
+
 		if (dev->transfer_path == CL_TX_PATH_DEFAULT)
+		{
 			ishtp_cl_send_msg_ipc(dev, cl);
+		}
+
 		return;
 	}
 
@@ -792,9 +903,13 @@ static void ishtp_cl_send_msg_dma(struct ishtp_device *dev,
 void ishtp_cl_send_msg(struct ishtp_device *dev, struct ishtp_cl *cl)
 {
 	if (dev->transfer_path == CL_TX_PATH_DMA)
+	{
 		ishtp_cl_send_msg_dma(dev, cl);
+	}
 	else
+	{
 		ishtp_cl_send_msg_ipc(dev, cl);
+	}
 }
 
 /**
@@ -806,7 +921,7 @@ void ishtp_cl_send_msg(struct ishtp_device *dev, struct ishtp_cl *cl)
  * context
  */
 void recv_ishtp_cl_msg(struct ishtp_device *dev,
-		       struct ishtp_msg_hdr *ishtp_hdr)
+					   struct ishtp_msg_hdr *ishtp_hdr)
 {
 	struct ishtp_cl *cl;
 	struct ishtp_cl_rb *rb;
@@ -817,33 +932,40 @@ void recv_ishtp_cl_msg(struct ishtp_device *dev,
 	unsigned long	flags;
 	int	rb_count;
 
-	if (ishtp_hdr->reserved) {
+	if (ishtp_hdr->reserved)
+	{
 		dev_err(dev->devc, "corrupted message header.\n");
 		goto	eoi;
 	}
 
-	if (ishtp_hdr->length > IPC_PAYLOAD_SIZE) {
+	if (ishtp_hdr->length > IPC_PAYLOAD_SIZE)
+	{
 		dev_err(dev->devc,
-			"ISHTP message length in hdr exceeds IPC MTU\n");
+				"ISHTP message length in hdr exceeds IPC MTU\n");
 		goto	eoi;
 	}
 
 	spin_lock_irqsave(&dev->read_list_spinlock, dev_flags);
 	rb_count = -1;
-	list_for_each_entry(rb, &dev->read_list.list, list) {
+	list_for_each_entry(rb, &dev->read_list.list, list)
+	{
 		++rb_count;
 		cl = rb->cl;
-		if (!cl || !(cl->host_client_id == ishtp_hdr->host_addr &&
-				cl->fw_client_id == ishtp_hdr->fw_addr) ||
-				!(cl->state == ISHTP_CL_CONNECTED))
-			continue;
 
-		 /* If no Rx buffer is allocated, disband the rb */
-		if (rb->buffer.size == 0 || rb->buffer.data == NULL) {
+		if (!cl || !(cl->host_client_id == ishtp_hdr->host_addr &&
+					 cl->fw_client_id == ishtp_hdr->fw_addr) ||
+			!(cl->state == ISHTP_CL_CONNECTED))
+		{
+			continue;
+		}
+
+		/* If no Rx buffer is allocated, disband the rb */
+		if (rb->buffer.size == 0 || rb->buffer.data == NULL)
+		{
 			spin_unlock_irqrestore(&dev->read_list_spinlock,
-				dev_flags);
+								   dev_flags);
 			dev_err(&cl->device->dev,
-				"Rx buffer is not allocated.\n");
+					"Rx buffer is not allocated.\n");
 			list_del(&rb->list);
 			ishtp_io_rb_free(rb);
 			cl->status = -ENOMEM;
@@ -856,13 +978,14 @@ void recv_ishtp_cl_msg(struct ishtp_device *dev,
 		 * Do we need to disconnect such a client? (We don't send
 		 * back FC, so communication will be stuck anyway)
 		 */
-		if (rb->buffer.size < ishtp_hdr->length + rb->buf_idx) {
+		if (rb->buffer.size < ishtp_hdr->length + rb->buf_idx)
+		{
 			spin_unlock_irqrestore(&dev->read_list_spinlock,
-				dev_flags);
+								   dev_flags);
 			dev_err(&cl->device->dev,
-				"message overflow. size %d len %d idx %ld\n",
-				rb->buffer.size, ishtp_hdr->length,
-				rb->buf_idx);
+					"message overflow. size %d len %d idx %ld\n",
+					rb->buffer.size, ishtp_hdr->length,
+					rb->buf_idx);
 			list_del(&rb->list);
 			ishtp_cl_io_rb_recycle(rb);
 			cl->status = -EIO;
@@ -873,7 +996,9 @@ void recv_ishtp_cl_msg(struct ishtp_device *dev,
 		dev->ops->ishtp_read(dev, buffer, ishtp_hdr->length);
 
 		rb->buf_idx += ishtp_hdr->length;
-		if (ishtp_hdr->msg_complete) {
+
+		if (ishtp_hdr->msg_complete)
+		{
 			/* Last fragment in message - it's complete */
 			cl->status = 0;
 			list_del(&rb->list);
@@ -886,24 +1011,28 @@ void recv_ishtp_cl_msg(struct ishtp_device *dev,
 			 */
 			spin_lock_irqsave(&cl->free_list_spinlock, flags);
 
-			if (!list_empty(&cl->free_rb_list.list)) {
+			if (!list_empty(&cl->free_rb_list.list))
+			{
 				new_rb = list_entry(cl->free_rb_list.list.next,
-					struct ishtp_cl_rb, list);
+									struct ishtp_cl_rb, list);
 				list_del_init(&new_rb->list);
 				spin_unlock_irqrestore(&cl->free_list_spinlock,
-					flags);
+									   flags);
 				new_rb->cl = cl;
 				new_rb->buf_idx = 0;
 				INIT_LIST_HEAD(&new_rb->list);
 				list_add_tail(&new_rb->list,
-					&dev->read_list.list);
+							  &dev->read_list.list);
 
 				ishtp_hbm_cl_flow_control_req(dev, cl);
-			} else {
+			}
+			else
+			{
 				spin_unlock_irqrestore(&cl->free_list_spinlock,
-					flags);
+									   flags);
 			}
 		}
+
 		/* One more fragment in message (even if this was last) */
 		++cl->recv_msg_num_frags;
 
@@ -915,8 +1044,10 @@ void recv_ishtp_cl_msg(struct ishtp_device *dev,
 	}
 
 	spin_unlock_irqrestore(&dev->read_list_spinlock, dev_flags);
+
 	/* If it's nobody's message, just read and discard it */
-	if (!buffer) {
+	if (!buffer)
+	{
 		uint8_t	rd_msg_buf[ISHTP_RD_MSG_BUF_SIZE];
 
 		dev_err(dev->devc, "Dropped Rx msg - no request\n");
@@ -924,11 +1055,13 @@ void recv_ishtp_cl_msg(struct ishtp_device *dev,
 		goto	eoi;
 	}
 
-	if (complete_rb) {
+	if (complete_rb)
+	{
 		getnstimeofday(&cl->ts_rx);
 		++cl->recv_msg_cnt_ipc;
 		ishtp_cl_read_complete(complete_rb);
 	}
+
 eoi:
 	return;
 }
@@ -943,7 +1076,7 @@ eoi:
  * in ISR context
  */
 void recv_ishtp_cl_msg_dma(struct ishtp_device *dev, void *msg,
-			   struct dma_xfer_hbm *hbm)
+						   struct dma_xfer_hbm *hbm)
 {
 	struct ishtp_cl *cl;
 	struct ishtp_cl_rb *rb;
@@ -954,21 +1087,26 @@ void recv_ishtp_cl_msg_dma(struct ishtp_device *dev, void *msg,
 	unsigned long	flags;
 
 	spin_lock_irqsave(&dev->read_list_spinlock, dev_flags);
-	list_for_each_entry(rb, &dev->read_list.list, list) {
+	list_for_each_entry(rb, &dev->read_list.list, list)
+	{
 		cl = rb->cl;
+
 		if (!cl || !(cl->host_client_id == hbm->host_client_id &&
-				cl->fw_client_id == hbm->fw_client_id) ||
-				!(cl->state == ISHTP_CL_CONNECTED))
+					 cl->fw_client_id == hbm->fw_client_id) ||
+			!(cl->state == ISHTP_CL_CONNECTED))
+		{
 			continue;
+		}
 
 		/*
 		 * If no Rx buffer is allocated, disband the rb
 		 */
-		if (rb->buffer.size == 0 || rb->buffer.data == NULL) {
+		if (rb->buffer.size == 0 || rb->buffer.data == NULL)
+		{
 			spin_unlock_irqrestore(&dev->read_list_spinlock,
-				dev_flags);
+								   dev_flags);
 			dev_err(&cl->device->dev,
-				"response buffer is not allocated.\n");
+					"response buffer is not allocated.\n");
 			list_del(&rb->list);
 			ishtp_io_rb_free(rb);
 			cl->status = -ENOMEM;
@@ -981,12 +1119,13 @@ void recv_ishtp_cl_msg_dma(struct ishtp_device *dev, void *msg,
 		 * Do we need to disconnect such a client? (We don't send
 		 * back FC, so communication will be stuck anyway)
 		 */
-		if (rb->buffer.size < hbm->msg_length) {
+		if (rb->buffer.size < hbm->msg_length)
+		{
 			spin_unlock_irqrestore(&dev->read_list_spinlock,
-				dev_flags);
+								   dev_flags);
 			dev_err(&cl->device->dev,
-				"message overflow. size %d len %d idx %ld\n",
-				rb->buffer.size, hbm->msg_length, rb->buf_idx);
+					"message overflow. size %d len %d idx %ld\n",
+					rb->buffer.size, hbm->msg_length, rb->buf_idx);
 			list_del(&rb->list);
 			ishtp_cl_io_rb_recycle(rb);
 			cl->status = -EIO;
@@ -1009,22 +1148,25 @@ void recv_ishtp_cl_msg_dma(struct ishtp_device *dev, void *msg,
 		 */
 		spin_lock_irqsave(&cl->free_list_spinlock, flags);
 
-		if (!list_empty(&cl->free_rb_list.list)) {
+		if (!list_empty(&cl->free_rb_list.list))
+		{
 			new_rb = list_entry(cl->free_rb_list.list.next,
-				struct ishtp_cl_rb, list);
+								struct ishtp_cl_rb, list);
 			list_del_init(&new_rb->list);
 			spin_unlock_irqrestore(&cl->free_list_spinlock,
-				flags);
+								   flags);
 			new_rb->cl = cl;
 			new_rb->buf_idx = 0;
 			INIT_LIST_HEAD(&new_rb->list);
 			list_add_tail(&new_rb->list,
-				&dev->read_list.list);
+						  &dev->read_list.list);
 
 			ishtp_hbm_cl_flow_control_req(dev, cl);
-		} else {
+		}
+		else
+		{
 			spin_unlock_irqrestore(&cl->free_list_spinlock,
-				flags);
+								   flags);
 		}
 
 		/* One more fragment in message (this is always last) */
@@ -1038,17 +1180,21 @@ void recv_ishtp_cl_msg_dma(struct ishtp_device *dev, void *msg,
 	}
 
 	spin_unlock_irqrestore(&dev->read_list_spinlock, dev_flags);
+
 	/* If it's nobody's message, just read and discard it */
-	if (!buffer) {
+	if (!buffer)
+	{
 		dev_err(dev->devc, "Dropped Rx (DMA) msg - no request\n");
 		goto	eoi;
 	}
 
-	if (complete_rb) {
+	if (complete_rb)
+	{
 		getnstimeofday(&cl->ts_rx);
 		++cl->recv_msg_cnt_dma;
 		ishtp_cl_read_complete(complete_rb);
 	}
+
 eoi:
 	return;
 }

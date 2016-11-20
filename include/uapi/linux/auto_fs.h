@@ -14,7 +14,7 @@
 #include <linux/types.h>
 #include <linux/limits.h>
 #ifndef __KERNEL__
-#include <sys/ioctl.h>
+	#include <sys/ioctl.h>
 #endif /* __KERNEL__ */
 
 
@@ -33,32 +33,35 @@
  * do not break the binary ABI interface by changing the structure size.
  */
 #if defined(__ia64__) || defined(__alpha__) /* pure 64bit architectures */
-typedef unsigned long autofs_wqt_t;
+	typedef unsigned long autofs_wqt_t;
 #else
-typedef unsigned int autofs_wqt_t;
+	typedef unsigned int autofs_wqt_t;
 #endif
 
 /* Packet types */
 #define autofs_ptype_missing	0	/* Missing entry (mount request) */
 #define autofs_ptype_expire	1	/* Expire entry (umount request) */
 
-struct autofs_packet_hdr {
+struct autofs_packet_hdr
+{
 	int proto_version;		/* Protocol version */
 	int type;			/* Type of packet */
 };
 
-struct autofs_packet_missing {
+struct autofs_packet_missing
+{
 	struct autofs_packet_hdr hdr;
 	autofs_wqt_t wait_queue_token;
 	int len;
-	char name[NAME_MAX+1];
-};	
+	char name[NAME_MAX + 1];
+};
 
 /* v3 expire (via ioctl) */
-struct autofs_packet_expire {
+struct autofs_packet_expire
+{
 	struct autofs_packet_hdr hdr;
 	int len;
-	char name[NAME_MAX+1];
+	char name[NAME_MAX + 1];
 };
 
 #define AUTOFS_IOC_READY      _IO(0x93, 0x60)

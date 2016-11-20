@@ -19,7 +19,7 @@
 #define DEBUG_INT	 8
 #define DEBUG_IC	16
 #ifndef NET_DEBUG
-#define NET_DEBUG 	0
+	#define NET_DEBUG 	0
 #endif
 
 #define priv(dev)	((struct dev_priv *)netdev_priv(dev))
@@ -153,22 +153,25 @@
 #define MAX_TXED	16
 #define MAX_TX_BUFFERED	10
 
-struct dev_priv {
-    void __iomem *base;
-    void __iomem *seeq;
-    struct {
-	unsigned int command;
-	unsigned int config1;
-	unsigned int config2;
-    } regs;
-    unsigned char tx_head;		/* buffer nr to insert next packet	 */
-    unsigned char tx_tail;		/* buffer nr of transmitting packet	 */
-    unsigned int rx_head;		/* address to fetch next packet from	 */
-    struct timer_list timer;
-    int broken;				/* 0 = ok, 1 = something went wrong	 */
+struct dev_priv
+{
+	void __iomem *base;
+	void __iomem *seeq;
+	struct
+	{
+		unsigned int command;
+		unsigned int config1;
+		unsigned int config2;
+	} regs;
+	unsigned char tx_head;		/* buffer nr to insert next packet	 */
+	unsigned char tx_tail;		/* buffer nr of transmitting packet	 */
+	unsigned int rx_head;		/* address to fetch next packet from	 */
+	struct timer_list timer;
+	int broken;				/* 0 = ok, 1 = something went wrong	 */
 };
 
-struct ether3_data {
+struct ether3_data
+{
 	const char name[8];
 	unsigned long base_offset;
 };

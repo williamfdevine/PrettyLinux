@@ -87,9 +87,9 @@
 #define ADVERTISE_NPAGE		0x8000	/* Next page bit               */
 
 #define ADVERTISE_FULL		(ADVERTISE_100FULL | ADVERTISE_10FULL | \
-				  ADVERTISE_CSMA)
+							 ADVERTISE_CSMA)
 #define ADVERTISE_ALL		(ADVERTISE_10HALF | ADVERTISE_10FULL | \
-				  ADVERTISE_100HALF | ADVERTISE_100FULL)
+							 ADVERTISE_100HALF | ADVERTISE_100FULL)
 
 /* Link partner ability register. */
 #define LPA_SLCT		0x001f	/* Same as advertise selector  */
@@ -152,7 +152,8 @@
 #define MII_MMD_CTRL_INCR_ON_WT	0xC000	/* post increment on writes only */
 
 /* This structure is used in all SIOCxMIIxxx ioctl calls */
-struct mii_ioctl_data {
+struct mii_ioctl_data
+{
 	__u16		phy_id;
 	__u16		reg_num;
 	__u16		val_in;

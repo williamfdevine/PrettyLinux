@@ -76,7 +76,8 @@
 /*
  * L4 KCQ CQE
  */
-struct l4_kcq {
+struct l4_kcq
+{
 	u32 cid;
 	u32 pg_cid;
 	u32 conn_id;
@@ -120,7 +121,8 @@ struct l4_kcq {
 /*
  * L4 KCQ CQE PG upload
  */
-struct l4_kcq_upload_pg {
+struct l4_kcq_upload_pg
+{
 	u32 pg_cid;
 #if defined(__BIG_ENDIAN)
 	u16 pg_status;
@@ -157,7 +159,8 @@ struct l4_kcq_upload_pg {
 /*
  * Gracefully close the connection request
  */
-struct l4_kwq_close_req {
+struct l4_kwq_close_req
+{
 #if defined(__BIG_ENDIAN)
 	u8 flags;
 #define L4_KWQ_CLOSE_REQ_RESERVED1 (0xF<<0)
@@ -187,7 +190,8 @@ struct l4_kwq_close_req {
 /*
  * The first request to be passed in order to establish connection in option2
  */
-struct l4_kwq_connect_req1 {
+struct l4_kwq_connect_req1
+{
 #if defined(__BIG_ENDIAN)
 	u8 flags;
 #define L4_KWQ_CONNECT_REQ1_RESERVED1 (0xF<<0)
@@ -281,7 +285,8 @@ struct l4_kwq_connect_req1 {
  * The second ( optional )request to be passed in order to establish
  * connection in option2 - for IPv6 only
  */
-struct l4_kwq_connect_req2 {
+struct l4_kwq_connect_req2
+{
 #if defined(__BIG_ENDIAN)
 	u8 flags;
 #define L4_KWQ_CONNECT_REQ2_RESERVED1 (0xF<<0)
@@ -319,7 +324,8 @@ struct l4_kwq_connect_req2 {
  * The third ( and last )request to be passed in order to establish
  * connection in option2
  */
-struct l4_kwq_connect_req3 {
+struct l4_kwq_connect_req3
+{
 #if defined(__BIG_ENDIAN)
 	u8 flags;
 #define L4_KWQ_CONNECT_REQ3_RESERVED1 (0xF<<0)
@@ -370,7 +376,8 @@ struct l4_kwq_connect_req3 {
 /*
  * a KWQE request to offload a PG connection
  */
-struct l4_kwq_offload_pg {
+struct l4_kwq_offload_pg
+{
 #if defined(__BIG_ENDIAN)
 	u8 flags;
 #define L4_KWQ_OFFLOAD_PG_RESERVED1 (0xF<<0)
@@ -467,7 +474,8 @@ struct l4_kwq_offload_pg {
 /*
  * Abortively close the connection request
  */
-struct l4_kwq_reset_req {
+struct l4_kwq_reset_req
+{
 #if defined(__BIG_ENDIAN)
 	u8 flags;
 #define L4_KWQ_RESET_REQ_RESERVED1 (0xF<<0)
@@ -497,7 +505,8 @@ struct l4_kwq_reset_req {
 /*
  * a KWQE request to update a PG connection
  */
-struct l4_kwq_update_pg {
+struct l4_kwq_update_pg
+{
 #if defined(__BIG_ENDIAN)
 	u8 flags;
 #define L4_KWQ_UPDATE_PG_RESERVED1 (0xF<<0)
@@ -570,7 +579,8 @@ struct l4_kwq_update_pg {
 /*
  * a KWQE request to upload a PG or L4 context
  */
-struct l4_kwq_upload {
+struct l4_kwq_upload
+{
 #if defined(__BIG_ENDIAN)
 	u8 flags;
 #define L4_KWQ_UPLOAD_RESERVED1 (0xF<<0)
@@ -603,7 +613,8 @@ struct l4_kwq_upload {
 /*
  * The iscsi aggregative context of Cstorm
  */
-struct cstorm_iscsi_ag_context {
+struct cstorm_iscsi_ag_context
+{
 	u32 agg_vars1;
 #define CSTORM_ISCSI_AG_CONTEXT_STATE (0xFF<<0)
 #define CSTORM_ISCSI_AG_CONTEXT_STATE_SHIFT 0
@@ -697,7 +708,8 @@ struct cstorm_iscsi_ag_context {
 /*
  * The fcoe extra aggregative context section of Tstorm
  */
-struct tstorm_fcoe_extra_ag_context_section {
+struct tstorm_fcoe_extra_ag_context_section
+{
 	u32 __agg_val1;
 #if defined(__BIG_ENDIAN)
 	u8 __tcp_agg_vars2;
@@ -773,7 +785,8 @@ struct tstorm_fcoe_extra_ag_context_section {
 /*
  * The fcoe aggregative context of Tstorm
  */
-struct tstorm_fcoe_ag_context {
+struct tstorm_fcoe_ag_context
+{
 #if defined(__BIG_ENDIAN)
 	u16 ulp_credit;
 	u8 agg_vars1;
@@ -874,7 +887,8 @@ struct tstorm_fcoe_ag_context {
 /*
  * The tcp aggregative context section of Tstorm
  */
-struct tstorm_tcp_tcp_ag_context_section {
+struct tstorm_tcp_tcp_ag_context_section
+{
 	u32 __agg_val1;
 #if defined(__BIG_ENDIAN)
 	u8 __tcp_agg_vars2;
@@ -950,7 +964,8 @@ struct tstorm_tcp_tcp_ag_context_section {
 /*
  * The iscsi aggregative context of Tstorm
  */
-struct tstorm_iscsi_ag_context {
+struct tstorm_iscsi_ag_context
+{
 #if defined(__BIG_ENDIAN)
 	u16 ulp_credit;
 	u8 agg_vars1;
@@ -1051,7 +1066,8 @@ struct tstorm_iscsi_ag_context {
 /*
  * The fcoe aggregative context of Ustorm
  */
-struct ustorm_fcoe_ag_context {
+struct ustorm_fcoe_ag_context
+{
 #if defined(__BIG_ENDIAN)
 	u8 __aux_counter_flags;
 	u8 agg_vars2;
@@ -1194,7 +1210,8 @@ struct ustorm_fcoe_ag_context {
 /*
  * The iscsi aggregative context of Ustorm
  */
-struct ustorm_iscsi_ag_context {
+struct ustorm_iscsi_ag_context
+{
 #if defined(__BIG_ENDIAN)
 	u8 __aux_counter_flags;
 	u8 agg_vars2;
@@ -1337,7 +1354,8 @@ struct ustorm_iscsi_ag_context {
 /*
  * The fcoe aggregative context section of Xstorm
  */
-struct xstorm_fcoe_extra_ag_context_section {
+struct xstorm_fcoe_extra_ag_context_section
+{
 #if defined(__BIG_ENDIAN)
 	u8 tcp_agg_vars1;
 #define __XSTORM_FCOE_EXTRA_AG_CONTEXT_SECTION_RESERVED51 (0x3<<0)
@@ -1478,7 +1496,8 @@ struct xstorm_fcoe_extra_ag_context_section {
 /*
  * The fcoe aggregative context of Xstorm
  */
-struct xstorm_fcoe_ag_context {
+struct xstorm_fcoe_ag_context
+{
 #if defined(__BIG_ENDIAN)
 	u16 agg_val1;
 	u8 agg_vars1;
@@ -1716,7 +1735,8 @@ struct xstorm_fcoe_ag_context {
 /*
  * The tcp aggregative context section of Xstorm
  */
-struct xstorm_tcp_tcp_ag_context_section {
+struct xstorm_tcp_tcp_ag_context_section
+{
 #if defined(__BIG_ENDIAN)
 	u8 tcp_agg_vars1;
 #define __XSTORM_TCP_TCP_AG_CONTEXT_SECTION_SET_DA_TIMER_CF (0x3<<0)
@@ -1901,7 +1921,8 @@ struct xstorm_tcp_tcp_ag_context_section {
 /*
  * The iscsi aggregative context of Xstorm
  */
-struct xstorm_iscsi_ag_context {
+struct xstorm_iscsi_ag_context
+{
 #if defined(__BIG_ENDIAN)
 	u16 agg_val1;
 	u8 agg_vars1;
@@ -2138,7 +2159,8 @@ struct xstorm_iscsi_ag_context {
 /*
  * The L5cm aggregative context of XStorm
  */
-struct xstorm_l5cm_ag_context {
+struct xstorm_l5cm_ag_context
+{
 #if defined(__BIG_ENDIAN)
 	u16 agg_val1;
 	u8 agg_vars1;
@@ -2374,7 +2396,8 @@ struct xstorm_l5cm_ag_context {
 /*
  * ABTS info $$KEEP_ENDIANNESS$$
  */
-struct fcoe_abts_info {
+struct fcoe_abts_info
+{
 	__le16 aborted_task_id;
 	__le16 reserved0;
 	__le32 reserved1;
@@ -2385,7 +2408,8 @@ struct fcoe_abts_info {
  * Fixed size structure in order to plant it in Union structure
  * $$KEEP_ENDIANNESS$$
  */
-struct fcoe_abts_rsp_union {
+struct fcoe_abts_rsp_union
+{
 	u8 r_ctl;
 	u8 rsrv[3];
 	__le32 abts_rsp_payload[7];
@@ -2395,7 +2419,8 @@ struct fcoe_abts_rsp_union {
 /*
  * 4 regs size $$KEEP_ENDIANNESS$$
  */
-struct fcoe_bd_ctx {
+struct fcoe_bd_ctx
+{
 	__le32 buf_addr_hi;
 	__le32 buf_addr_lo;
 	__le16 buf_len;
@@ -2408,7 +2433,8 @@ struct fcoe_bd_ctx {
 /*
  * FCoE cached sges context $$KEEP_ENDIANNESS$$
  */
-struct fcoe_cached_sge_ctx {
+struct fcoe_cached_sge_ctx
+{
 	struct regpair cur_buf_addr;
 	__le16 cur_buf_rem;
 	__le16 second_buf_rem;
@@ -2419,7 +2445,8 @@ struct fcoe_cached_sge_ctx {
 /*
  * Cleanup info $$KEEP_ENDIANNESS$$
  */
-struct fcoe_cleanup_info {
+struct fcoe_cleanup_info
+{
 	__le16 cleaned_task_id;
 	__le16 rolled_tx_seq_cnt;
 	__le32 rolled_tx_data_offset;
@@ -2429,7 +2456,8 @@ struct fcoe_cleanup_info {
 /*
  * Fcp RSP flags $$KEEP_ENDIANNESS$$
  */
-struct fcoe_fcp_rsp_flags {
+struct fcoe_fcp_rsp_flags
+{
 	u8 flags;
 #define FCOE_FCP_RSP_FLAGS_FCP_RSP_LEN_VALID (0x1<<0)
 #define FCOE_FCP_RSP_FLAGS_FCP_RSP_LEN_VALID_SHIFT 0
@@ -2448,7 +2476,8 @@ struct fcoe_fcp_rsp_flags {
 /*
  * Fcp RSP payload $$KEEP_ENDIANNESS$$
  */
-struct fcoe_fcp_rsp_payload {
+struct fcoe_fcp_rsp_payload
+{
 	struct regpair reserved0;
 	__le32 fcp_resid;
 	u8 scsi_status_code;
@@ -2462,7 +2491,8 @@ struct fcoe_fcp_rsp_payload {
  * Fixed size structure in order to plant it in Union structure
  * $$KEEP_ENDIANNESS$$
  */
-struct fcoe_fcp_rsp_union {
+struct fcoe_fcp_rsp_union
+{
 	struct fcoe_fcp_rsp_payload payload;
 	struct regpair reserved0;
 };
@@ -2470,7 +2500,8 @@ struct fcoe_fcp_rsp_union {
 /*
  * FC header $$KEEP_ENDIANNESS$$
  */
-struct fcoe_fc_hdr {
+struct fcoe_fc_hdr
+{
 	u8 s_id[3];
 	u8 cs_ctl;
 	u8 d_id[3];
@@ -2488,7 +2519,8 @@ struct fcoe_fc_hdr {
 /*
  * FC header union $$KEEP_ENDIANNESS$$
  */
-struct fcoe_mp_rsp_union {
+struct fcoe_mp_rsp_union
+{
 	struct fcoe_fc_hdr fc_hdr;
 	__le32 mp_payload_len;
 	__le32 rsrv;
@@ -2497,7 +2529,8 @@ struct fcoe_mp_rsp_union {
 /*
  * Completion information $$KEEP_ENDIANNESS$$
  */
-union fcoe_comp_flow_info {
+union fcoe_comp_flow_info
+{
 	struct fcoe_fcp_rsp_union fcp_rsp;
 	struct fcoe_abts_rsp_union abts_rsp;
 	struct fcoe_mp_rsp_union mp_rsp;
@@ -2508,7 +2541,8 @@ union fcoe_comp_flow_info {
 /*
  * External ABTS info $$KEEP_ENDIANNESS$$
  */
-struct fcoe_ext_abts_info {
+struct fcoe_ext_abts_info
+{
 	__le32 rsrv0[6];
 	struct fcoe_abts_info ctx;
 };
@@ -2517,7 +2551,8 @@ struct fcoe_ext_abts_info {
 /*
  * External cleanup info $$KEEP_ENDIANNESS$$
  */
-struct fcoe_ext_cleanup_info {
+struct fcoe_ext_cleanup_info
+{
 	__le32 rsrv0[6];
 	struct fcoe_cleanup_info ctx;
 };
@@ -2526,7 +2561,8 @@ struct fcoe_ext_cleanup_info {
 /*
  * Fcoe FW Tx sequence context $$KEEP_ENDIANNESS$$
  */
-struct fcoe_fw_tx_seq_ctx {
+struct fcoe_fw_tx_seq_ctx
+{
 	__le32 data_offset;
 	__le16 seq_cnt;
 	__le16 rsrv0;
@@ -2535,7 +2571,8 @@ struct fcoe_fw_tx_seq_ctx {
 /*
  * Fcoe external FW Tx sequence context $$KEEP_ENDIANNESS$$
  */
-struct fcoe_ext_fw_tx_seq_ctx {
+struct fcoe_ext_fw_tx_seq_ctx
+{
 	__le32 rsrv0[6];
 	struct fcoe_fw_tx_seq_ctx ctx;
 };
@@ -2544,7 +2581,8 @@ struct fcoe_ext_fw_tx_seq_ctx {
 /*
  * FCoE multiple sges context $$KEEP_ENDIANNESS$$
  */
-struct fcoe_mul_sges_ctx {
+struct fcoe_mul_sges_ctx
+{
 	struct regpair cur_sge_addr;
 	__le16 cur_sge_off;
 	u8 cur_sge_idx;
@@ -2554,7 +2592,8 @@ struct fcoe_mul_sges_ctx {
 /*
  * FCoE external multiple sges context $$KEEP_ENDIANNESS$$
  */
-struct fcoe_ext_mul_sges_ctx {
+struct fcoe_ext_mul_sges_ctx
+{
 	struct fcoe_mul_sges_ctx mul_sgl;
 	struct regpair rsrv0;
 };
@@ -2563,7 +2602,8 @@ struct fcoe_ext_mul_sges_ctx {
 /*
  * FCP CMD payload $$KEEP_ENDIANNESS$$
  */
-struct fcoe_fcp_cmd_payload {
+struct fcoe_fcp_cmd_payload
+{
 	__le32 opaque[8];
 };
 
@@ -2574,7 +2614,8 @@ struct fcoe_fcp_cmd_payload {
 /*
  * Fcp xfr rdy payload $$KEEP_ENDIANNESS$$
  */
-struct fcoe_fcp_xfr_rdy_payload {
+struct fcoe_fcp_xfr_rdy_payload
+{
 	__le32 burst_len;
 	__le32 data_ro;
 };
@@ -2583,7 +2624,8 @@ struct fcoe_fcp_xfr_rdy_payload {
 /*
  * FC frame $$KEEP_ENDIANNESS$$
  */
-struct fcoe_fc_frame {
+struct fcoe_fc_frame
+{
 	struct fcoe_fc_hdr fc_hdr;
 	__le32 reserved0[2];
 };
@@ -2594,14 +2636,16 @@ struct fcoe_fc_frame {
 /*
  * FCoE KCQ CQE parameters $$KEEP_ENDIANNESS$$
  */
-union fcoe_kcqe_params {
+union fcoe_kcqe_params
+{
 	__le32 reserved0[4];
 };
 
 /*
  * FCoE KCQ CQE $$KEEP_ENDIANNESS$$
  */
-struct fcoe_kcqe {
+struct fcoe_kcqe
+{
 	__le32 fcoe_conn_id;
 	__le32 completion_status;
 	__le32 fcoe_conn_context_id;
@@ -2624,7 +2668,8 @@ struct fcoe_kcqe {
 /*
  * FCoE KWQE header $$KEEP_ENDIANNESS$$
  */
-struct fcoe_kwqe_header {
+struct fcoe_kwqe_header
+{
 	u8 op_code;
 	u8 flags;
 #define FCOE_KWQE_HEADER_RESERVED0 (0xF<<0)
@@ -2638,7 +2683,8 @@ struct fcoe_kwqe_header {
 /*
  * FCoE firmware init request 1 $$KEEP_ENDIANNESS$$
  */
-struct fcoe_kwqe_init1 {
+struct fcoe_kwqe_init1
+{
 	__le16 num_tasks;
 	struct fcoe_kwqe_header hdr;
 	__le32 task_list_pbl_addr_lo;
@@ -2663,7 +2709,8 @@ struct fcoe_kwqe_init1 {
 /*
  * FCoE firmware init request 2 $$KEEP_ENDIANNESS$$
  */
-struct fcoe_kwqe_init2 {
+struct fcoe_kwqe_init2
+{
 	u8 hsi_major_version;
 	u8 hsi_minor_version;
 	struct fcoe_kwqe_header hdr;
@@ -2679,7 +2726,8 @@ struct fcoe_kwqe_init2 {
 /*
  * FCoE firmware init request 3 $$KEEP_ENDIANNESS$$
  */
-struct fcoe_kwqe_init3 {
+struct fcoe_kwqe_init3
+{
 	__le16 reserved0;
 	struct fcoe_kwqe_header hdr;
 	__le32 error_bit_map_lo;
@@ -2692,7 +2740,8 @@ struct fcoe_kwqe_init3 {
 /*
  * FCoE connection offload request 1 $$KEEP_ENDIANNESS$$
  */
-struct fcoe_kwqe_conn_offload1 {
+struct fcoe_kwqe_conn_offload1
+{
 	__le16 fcoe_conn_id;
 	struct fcoe_kwqe_header hdr;
 	__le32 sq_addr_lo;
@@ -2708,7 +2757,8 @@ struct fcoe_kwqe_conn_offload1 {
 /*
  * FCoE connection offload request 2 $$KEEP_ENDIANNESS$$
  */
-struct fcoe_kwqe_conn_offload2 {
+struct fcoe_kwqe_conn_offload2
+{
 	__le16 tx_max_fc_pay_len;
 	struct fcoe_kwqe_header hdr;
 	__le32 cq_addr_lo;
@@ -2723,7 +2773,8 @@ struct fcoe_kwqe_conn_offload2 {
 /*
  * FCoE connection offload request 3 $$KEEP_ENDIANNESS$$
  */
-struct fcoe_kwqe_conn_offload3 {
+struct fcoe_kwqe_conn_offload3
+{
 	__le16 vlan_tag;
 #define FCOE_KWQE_CONN_OFFLOAD3_VLAN_ID (0xFFF<<0)
 #define FCOE_KWQE_CONN_OFFLOAD3_VLAN_ID_SHIFT 0
@@ -2765,7 +2816,8 @@ struct fcoe_kwqe_conn_offload3 {
 /*
  * FCoE connection offload request 4 $$KEEP_ENDIANNESS$$
  */
-struct fcoe_kwqe_conn_offload4 {
+struct fcoe_kwqe_conn_offload4
+{
 	u8 e_d_tov_timer_val;
 	u8 reserved2;
 	struct fcoe_kwqe_header hdr;
@@ -2784,7 +2836,8 @@ struct fcoe_kwqe_conn_offload4 {
 /*
  * FCoE connection enable request $$KEEP_ENDIANNESS$$
  */
-struct fcoe_kwqe_conn_enable_disable {
+struct fcoe_kwqe_conn_enable_disable
+{
 	__le16 reserved0;
 	struct fcoe_kwqe_header hdr;
 	u8 src_mac_addr_lo[2];
@@ -2813,7 +2866,8 @@ struct fcoe_kwqe_conn_enable_disable {
 /*
  * FCoE connection destroy request $$KEEP_ENDIANNESS$$
  */
-struct fcoe_kwqe_conn_destroy {
+struct fcoe_kwqe_conn_destroy
+{
 	__le16 reserved0;
 	struct fcoe_kwqe_header hdr;
 	__le32 context_id;
@@ -2824,7 +2878,8 @@ struct fcoe_kwqe_conn_destroy {
 /*
  * FCoe destroy request $$KEEP_ENDIANNESS$$
  */
-struct fcoe_kwqe_destroy {
+struct fcoe_kwqe_destroy
+{
 	__le16 reserved0;
 	struct fcoe_kwqe_header hdr;
 	__le32 reserved1[7];
@@ -2833,7 +2888,8 @@ struct fcoe_kwqe_destroy {
 /*
  * FCoe statistics request $$KEEP_ENDIANNESS$$
  */
-struct fcoe_kwqe_stat {
+struct fcoe_kwqe_stat
+{
 	__le16 reserved0;
 	struct fcoe_kwqe_header hdr;
 	__le32 stat_params_addr_lo;
@@ -2844,7 +2900,8 @@ struct fcoe_kwqe_stat {
 /*
  * FCoE KWQ WQE $$KEEP_ENDIANNESS$$
  */
-union fcoe_kwqe {
+union fcoe_kwqe
+{
 	struct fcoe_kwqe_init1 init1;
 	struct fcoe_kwqe_init2 init2;
 	struct fcoe_kwqe_init3 init3;
@@ -2876,7 +2933,8 @@ union fcoe_kwqe {
 /*
  * TX SGL context $$KEEP_ENDIANNESS$$
  */
-union fcoe_sgl_union_ctx {
+union fcoe_sgl_union_ctx
+{
 	struct fcoe_cached_sge_ctx cached_sge;
 	struct fcoe_ext_mul_sges_ctx sgl;
 	__le32 opaque[5];
@@ -2885,7 +2943,8 @@ union fcoe_sgl_union_ctx {
 /*
  * Data-In/ELS/BLS information $$KEEP_ENDIANNESS$$
  */
-struct fcoe_read_flow_info {
+struct fcoe_read_flow_info
+{
 	union fcoe_sgl_union_ctx sgl_ctx;
 	__le32 rsrv0[3];
 };
@@ -2894,7 +2953,8 @@ struct fcoe_read_flow_info {
 /*
  * Fcoe stat context $$KEEP_ENDIANNESS$$
  */
-struct fcoe_s_stat_ctx {
+struct fcoe_s_stat_ctx
+{
 	u8 flags;
 #define FCOE_S_STAT_CTX_ACTIVE (0x1<<0)
 #define FCOE_S_STAT_CTX_ACTIVE_SHIFT 0
@@ -2915,7 +2975,8 @@ struct fcoe_s_stat_ctx {
 /*
  * Fcoe rx seq context $$KEEP_ENDIANNESS$$
  */
-struct fcoe_rx_seq_ctx {
+struct fcoe_rx_seq_ctx
+{
 	u8 seq_id;
 	struct fcoe_s_stat_ctx s_stat;
 	__le16 seq_cnt;
@@ -2927,7 +2988,8 @@ struct fcoe_rx_seq_ctx {
 /*
  * Fcoe rx_wr union context $$KEEP_ENDIANNESS$$
  */
-union fcoe_rx_wr_union_ctx {
+union fcoe_rx_wr_union_ctx
+{
 	struct fcoe_read_flow_info read_info;
 	union fcoe_comp_flow_info comp_info;
 	__le32 opaque[8];
@@ -2938,7 +3000,8 @@ union fcoe_rx_wr_union_ctx {
 /*
  * FCoE SQ element $$KEEP_ENDIANNESS$$
  */
-struct fcoe_sqe {
+struct fcoe_sqe
+{
 	__le16 wqe;
 #define FCOE_SQE_TASK_ID (0x7FFF<<0)
 #define FCOE_SQE_TASK_ID_SHIFT 0
@@ -2951,7 +3014,8 @@ struct fcoe_sqe {
 /*
  * 14 regs $$KEEP_ENDIANNESS$$
  */
-struct fcoe_tce_tx_only {
+struct fcoe_tce_tx_only
+{
 	union fcoe_sgl_union_ctx sgl_ctx;
 	__le32 rsrv0;
 };
@@ -2959,7 +3023,8 @@ struct fcoe_tce_tx_only {
 /*
  * 32 bytes (8 regs) used for TX only purposes $$KEEP_ENDIANNESS$$
  */
-union fcoe_tx_wr_rx_rd_union_ctx {
+union fcoe_tx_wr_rx_rd_union_ctx
+{
 	struct fcoe_fc_frame tx_frame;
 	struct fcoe_fcp_cmd_payload fcp_cmd;
 	struct fcoe_ext_cleanup_info cleanup;
@@ -2971,7 +3036,8 @@ union fcoe_tx_wr_rx_rd_union_ctx {
 /*
  * tce_tx_wr_rx_rd_const $$KEEP_ENDIANNESS$$
  */
-struct fcoe_tce_tx_wr_rx_rd_const {
+struct fcoe_tce_tx_wr_rx_rd_const
+{
 	u8 init_flags;
 #define FCOE_TCE_TX_WR_RX_RD_CONST_TASK_TYPE (0x7<<0)
 #define FCOE_TCE_TX_WR_RX_RD_CONST_TASK_TYPE_SHIFT 0
@@ -3001,7 +3067,8 @@ struct fcoe_tce_tx_wr_rx_rd_const {
 /*
  * tce_tx_wr_rx_rd $$KEEP_ENDIANNESS$$
  */
-struct fcoe_tce_tx_wr_rx_rd {
+struct fcoe_tce_tx_wr_rx_rd
+{
 	union fcoe_tx_wr_rx_rd_union_ctx union_ctx;
 	struct fcoe_tce_tx_wr_rx_rd_const const_ctx;
 };
@@ -3009,7 +3076,8 @@ struct fcoe_tce_tx_wr_rx_rd {
 /*
  * tce_rx_wr_tx_rd_const $$KEEP_ENDIANNESS$$
  */
-struct fcoe_tce_rx_wr_tx_rd_const {
+struct fcoe_tce_rx_wr_tx_rd_const
+{
 	__le32 data_2_trns;
 	__le32 init_flags;
 #define FCOE_TCE_RX_WR_TX_RD_CONST_CID (0xFFFFFF<<0)
@@ -3021,7 +3089,8 @@ struct fcoe_tce_rx_wr_tx_rd_const {
 /*
  * tce_rx_wr_tx_rd_var $$KEEP_ENDIANNESS$$
  */
-struct fcoe_tce_rx_wr_tx_rd_var {
+struct fcoe_tce_rx_wr_tx_rd_var
+{
 	__le16 rx_flags;
 #define FCOE_TCE_RX_WR_TX_RD_VAR_RSRV1 (0xF<<0)
 #define FCOE_TCE_RX_WR_TX_RD_VAR_RSRV1_SHIFT 0
@@ -3046,7 +3115,8 @@ struct fcoe_tce_rx_wr_tx_rd_var {
 /*
  * tce_rx_wr_tx_rd $$KEEP_ENDIANNESS$$
  */
-struct fcoe_tce_rx_wr_tx_rd {
+struct fcoe_tce_rx_wr_tx_rd
+{
 	struct fcoe_tce_rx_wr_tx_rd_const const_ctx;
 	struct fcoe_tce_rx_wr_tx_rd_var var_ctx;
 };
@@ -3054,7 +3124,8 @@ struct fcoe_tce_rx_wr_tx_rd {
 /*
  * tce_rx_only $$KEEP_ENDIANNESS$$
  */
-struct fcoe_tce_rx_only {
+struct fcoe_tce_rx_only
+{
 	struct fcoe_rx_seq_ctx rx_seq_ctx;
 	union fcoe_rx_wr_union_ctx union_ctx;
 };
@@ -3062,7 +3133,8 @@ struct fcoe_tce_rx_only {
 /*
  * task_ctx_entry $$KEEP_ENDIANNESS$$
  */
-struct fcoe_task_ctx_entry {
+struct fcoe_task_ctx_entry
+{
 	struct fcoe_tce_tx_only txwr_only;
 	struct fcoe_tce_tx_wr_rx_rd txwr_rxrd;
 	struct fcoe_tce_rx_wr_tx_rd rxwr_txrd;
@@ -3081,7 +3153,8 @@ struct fcoe_task_ctx_entry {
 /*
  * FCoE XFRQ element $$KEEP_ENDIANNESS$$
  */
-struct fcoe_xfrqe {
+struct fcoe_xfrqe
+{
 	__le16 wqe;
 #define FCOE_XFRQE_TASK_ID (0x7FFF<<0)
 #define FCOE_XFRQE_TASK_ID_SHIFT 0
@@ -3093,7 +3166,8 @@ struct fcoe_xfrqe {
 /*
  * Cached SGEs $$KEEP_ENDIANNESS$$
  */
-struct common_fcoe_sgl {
+struct common_fcoe_sgl
+{
 	struct fcoe_bd_ctx sge[3];
 };
 
@@ -3101,7 +3175,8 @@ struct common_fcoe_sgl {
 /*
  * FCoE SQ\XFRQ element
  */
-struct fcoe_cached_wqe {
+struct fcoe_cached_wqe
+{
 	struct fcoe_sqe sqe;
 	struct fcoe_xfrqe xfrqe;
 };
@@ -3111,7 +3186,8 @@ struct fcoe_cached_wqe {
  * FCoE connection enable\disable params passed by driver to FW in FCoE enable
  * ramrod $$KEEP_ENDIANNESS$$
  */
-struct fcoe_conn_enable_disable_ramrod_params {
+struct fcoe_conn_enable_disable_ramrod_params
+{
 	struct fcoe_kwqe_conn_enable_disable enable_disable_kwqe;
 };
 
@@ -3120,7 +3196,8 @@ struct fcoe_conn_enable_disable_ramrod_params {
  * FCoE connection offload params passed by driver to FW in FCoE offload ramrod
  * $$KEEP_ENDIANNESS$$
  */
-struct fcoe_conn_offload_ramrod_params {
+struct fcoe_conn_offload_ramrod_params
+{
 	struct fcoe_kwqe_conn_offload1 offload_kwqe1;
 	struct fcoe_kwqe_conn_offload2 offload_kwqe2;
 	struct fcoe_kwqe_conn_offload3 offload_kwqe3;
@@ -3128,7 +3205,8 @@ struct fcoe_conn_offload_ramrod_params {
 };
 
 
-struct ustorm_fcoe_mng_ctx {
+struct ustorm_fcoe_mng_ctx
+{
 #if defined(__BIG_ENDIAN)
 	u8 mid_seq_proc_flag;
 	u8 tce_in_cam_flag;
@@ -3170,7 +3248,8 @@ struct ustorm_fcoe_mng_ctx {
  * Parameters initialized during offloaded according to FLOGI/PLOGI/PRLI and
  * used in FCoE context section
  */
-struct ustorm_fcoe_params {
+struct ustorm_fcoe_params
+{
 #if defined(__BIG_ENDIAN)
 	u16 fcoe_conn_id;
 	u16 flags;
@@ -3242,7 +3321,8 @@ struct ustorm_fcoe_params {
 /*
  * FCoE 16-bits index structure
  */
-struct fcoe_idx16_fields {
+struct fcoe_idx16_fields
+{
 	u16 fields;
 #define FCOE_IDX16_FIELDS_IDX (0x7FFF<<0)
 #define FCOE_IDX16_FIELDS_IDX_SHIFT 0
@@ -3253,7 +3333,8 @@ struct fcoe_idx16_fields {
 /*
  * FCoE 16-bits index union
  */
-union fcoe_idx16_field_union {
+union fcoe_idx16_field_union
+{
 	struct fcoe_idx16_fields fields;
 	u16 val;
 };
@@ -3261,7 +3342,8 @@ union fcoe_idx16_field_union {
 /*
  * Parameters required for placement according to SGL
  */
-struct ustorm_fcoe_data_place_mng {
+struct ustorm_fcoe_data_place_mng
+{
 #if defined(__BIG_ENDIAN)
 	u16 sge_off;
 	u8 num_sges;
@@ -3276,7 +3358,8 @@ struct ustorm_fcoe_data_place_mng {
 /*
  * Parameters required for placement according to SGL
  */
-struct ustorm_fcoe_data_place {
+struct ustorm_fcoe_data_place
+{
 	struct ustorm_fcoe_data_place_mng cached_mng;
 	struct fcoe_bd_ctx cached_sge[2];
 };
@@ -3284,7 +3367,8 @@ struct ustorm_fcoe_data_place {
 /*
  * TX processing shall write and RX processing shall read from this section
  */
-union fcoe_u_tce_tx_wr_rx_rd_union {
+union fcoe_u_tce_tx_wr_rx_rd_union
+{
 	struct fcoe_abts_info abts;
 	struct fcoe_cleanup_info cleanup;
 	struct fcoe_fw_tx_seq_ctx tx_seq_ctx;
@@ -3294,18 +3378,21 @@ union fcoe_u_tce_tx_wr_rx_rd_union {
 /*
  * TX processing shall write and RX processing shall read from this section
  */
-struct fcoe_u_tce_tx_wr_rx_rd {
+struct fcoe_u_tce_tx_wr_rx_rd
+{
 	union fcoe_u_tce_tx_wr_rx_rd_union union_ctx;
 	struct fcoe_tce_tx_wr_rx_rd_const const_ctx;
 };
 
-struct ustorm_fcoe_tce {
+struct ustorm_fcoe_tce
+{
 	struct fcoe_u_tce_tx_wr_rx_rd txwr_rxrd;
 	struct fcoe_tce_rx_wr_tx_rd rxwr_txrd;
 	struct fcoe_tce_rx_only rxwr;
 };
 
-struct ustorm_fcoe_cache_ctx {
+struct ustorm_fcoe_cache_ctx
+{
 	u32 rsrv0;
 	struct ustorm_fcoe_data_place data_place;
 	struct ustorm_fcoe_tce tce;
@@ -3314,7 +3401,8 @@ struct ustorm_fcoe_cache_ctx {
 /*
  * Ustorm FCoE Storm Context
  */
-struct ustorm_fcoe_st_context {
+struct ustorm_fcoe_st_context
+{
 	struct ustorm_fcoe_mng_ctx mng_ctx;
 	struct ustorm_fcoe_params fcoe_params;
 	struct regpair cq_base_addr;
@@ -3376,7 +3464,8 @@ struct ustorm_fcoe_st_context {
 /*
  * The FCoE non-aggregative context of Tstorm
  */
-struct tstorm_fcoe_st_context {
+struct tstorm_fcoe_st_context
+{
 	struct regpair reserved0;
 	struct regpair reserved1;
 };
@@ -3384,7 +3473,8 @@ struct tstorm_fcoe_st_context {
 /*
  * Ethernet context section
  */
-struct xstorm_fcoe_eth_context_section {
+struct xstorm_fcoe_eth_context_section
+{
 #if defined(__BIG_ENDIAN)
 	u8 remote_addr_4;
 	u8 remote_addr_5;
@@ -3442,7 +3532,8 @@ struct xstorm_fcoe_eth_context_section {
 /*
  * Flags used in FCoE context section - 1 byte
  */
-struct xstorm_fcoe_context_flags {
+struct xstorm_fcoe_context_flags
+{
 	u8 flags;
 #define XSTORM_FCOE_CONTEXT_FLAGS_B_PROC_Q (0x3<<0)
 #define XSTORM_FCOE_CONTEXT_FLAGS_B_PROC_Q_SHIFT 0
@@ -3460,7 +3551,8 @@ struct xstorm_fcoe_context_flags {
 #define XSTORM_FCOE_CONTEXT_FLAGS_B_VNTAG_VLAN_SHIFT 7
 };
 
-struct xstorm_fcoe_tce {
+struct xstorm_fcoe_tce
+{
 	struct fcoe_tce_tx_only txwr;
 	struct fcoe_tce_tx_wr_rx_rd txwr_rxrd;
 };
@@ -3468,7 +3560,8 @@ struct xstorm_fcoe_tce {
 /*
  * FCP_DATA parameters required for transmission
  */
-struct xstorm_fcoe_fcp_data {
+struct xstorm_fcoe_fcp_data
+{
 	u32 io_rem;
 #if defined(__BIG_ENDIAN)
 	u16 cached_sge_off;
@@ -3511,7 +3604,8 @@ struct xstorm_fcoe_fcp_data {
 /*
  * vlan configuration
  */
-struct xstorm_fcoe_vlan_conf {
+struct xstorm_fcoe_vlan_conf
+{
 	u8 vlan_conf;
 #define XSTORM_FCOE_VLAN_CONF_PRIORITY (0x7<<0)
 #define XSTORM_FCOE_VLAN_CONF_PRIORITY_SHIFT 0
@@ -3524,7 +3618,8 @@ struct xstorm_fcoe_vlan_conf {
 /*
  * FCoE 16-bits vlan structure
  */
-struct fcoe_vlan_fields {
+struct fcoe_vlan_fields
+{
 	u16 fields;
 #define FCOE_VLAN_FIELDS_VID (0xFFF<<0)
 #define FCOE_VLAN_FIELDS_VID_SHIFT 0
@@ -3537,7 +3632,8 @@ struct fcoe_vlan_fields {
 /*
  * FCoE 16-bits vlan union
  */
-union fcoe_vlan_field_union {
+union fcoe_vlan_field_union
+{
 	struct fcoe_vlan_fields fields;
 	u16 val;
 };
@@ -3545,7 +3641,8 @@ union fcoe_vlan_field_union {
 /*
  * FCoE 16-bits vlan, vif union
  */
-union fcoe_vlan_vif_field_union {
+union fcoe_vlan_vif_field_union
+{
 	union fcoe_vlan_field_union vlan;
 	u16 vif;
 };
@@ -3553,7 +3650,8 @@ union fcoe_vlan_vif_field_union {
 /*
  * FCoE context section
  */
-struct xstorm_fcoe_context_section {
+struct xstorm_fcoe_context_section
+{
 #if defined(__BIG_ENDIAN)
 	u8 cs_ctl;
 	u8 s_id[3];
@@ -3661,7 +3759,8 @@ struct xstorm_fcoe_context_section {
 /*
  * Xstorm FCoE Storm Context
  */
-struct xstorm_fcoe_st_context {
+struct xstorm_fcoe_st_context
+{
 	struct xstorm_fcoe_eth_context_section eth;
 	struct xstorm_fcoe_context_section fcoe;
 };
@@ -3669,7 +3768,8 @@ struct xstorm_fcoe_st_context {
 /*
  * Fcoe connection context
  */
-struct fcoe_context {
+struct fcoe_context
+{
 	struct ustorm_fcoe_st_context ustorm_st_context;
 	struct tstorm_fcoe_st_context tstorm_st_context;
 	struct xstorm_fcoe_ag_context xstorm_ag_context;
@@ -3683,7 +3783,8 @@ struct fcoe_context {
  * FCoE init params passed by driver to FW in FCoE init ramrod
  * $$KEEP_ENDIANNESS$$
  */
-struct fcoe_init_ramrod_params {
+struct fcoe_init_ramrod_params
+{
 	struct fcoe_kwqe_init1 init_kwqe1;
 	struct fcoe_kwqe_init2 init_kwqe2;
 	struct fcoe_kwqe_init3 init_kwqe3;
@@ -3701,14 +3802,16 @@ struct fcoe_init_ramrod_params {
  * FCoE statistics params buffer passed by driver to FW in FCoE statistics
  * ramrod $$KEEP_ENDIANNESS$$
  */
-struct fcoe_stat_ramrod_params {
+struct fcoe_stat_ramrod_params
+{
 	struct fcoe_kwqe_stat stat_kwqe;
 };
 
 /*
  * CQ DB CQ producer and pending completion counter
  */
-struct iscsi_cq_db_prod_pnd_cmpltn_cnt {
+struct iscsi_cq_db_prod_pnd_cmpltn_cnt
+{
 #if defined(__BIG_ENDIAN)
 	u16 cntr;
 	u16 prod;
@@ -3721,21 +3824,24 @@ struct iscsi_cq_db_prod_pnd_cmpltn_cnt {
 /*
  * CQ DB pending completion ITT array
  */
-struct iscsi_cq_db_prod_pnd_cmpltn_cnt_arr {
+struct iscsi_cq_db_prod_pnd_cmpltn_cnt_arr
+{
 	struct iscsi_cq_db_prod_pnd_cmpltn_cnt prod_pend_comp[8];
 };
 
 /*
  * Cstorm CQ sequence to notify array, updated by driver
  */
-struct iscsi_cq_db_sqn_2_notify_arr {
+struct iscsi_cq_db_sqn_2_notify_arr
+{
 	u16 sqn[8];
 };
 
 /*
  * Cstorm iSCSI Storm Context
  */
-struct cstorm_iscsi_st_context {
+struct cstorm_iscsi_st_context
+{
 	struct iscsi_cq_db_prod_pnd_cmpltn_cnt_arr cq_c_prod_pend_comp_ctr_arr;
 	struct iscsi_cq_db_sqn_2_notify_arr cq_c_prod_sqn_arr;
 	struct iscsi_cq_db_sqn_2_notify_arr cq_c_sqn_2_notify_arr;
@@ -3802,7 +3908,8 @@ struct cstorm_iscsi_st_context {
 /*
  * SCSI read/write SQ WQE
  */
-struct iscsi_cmd_pdu_hdr_little_endian {
+struct iscsi_cmd_pdu_hdr_little_endian
+{
 #if defined(__BIG_ENDIAN)
 	u8 opcode;
 	u8 op_attr;
@@ -3849,7 +3956,8 @@ struct iscsi_cmd_pdu_hdr_little_endian {
 /*
  * Buffer per connection, used in Tstorm
  */
-struct iscsi_conn_buf {
+struct iscsi_conn_buf
+{
 	struct regpair reserved[8];
 };
 
@@ -3857,7 +3965,8 @@ struct iscsi_conn_buf {
 /*
  * iSCSI context region, used only in iSCSI
  */
-struct ustorm_iscsi_rq_db {
+struct ustorm_iscsi_rq_db
+{
 	struct regpair pbl_base;
 	struct regpair curr_pbe;
 };
@@ -3865,7 +3974,8 @@ struct ustorm_iscsi_rq_db {
 /*
  * iSCSI context region, used only in iSCSI
  */
-struct ustorm_iscsi_r2tq_db {
+struct ustorm_iscsi_r2tq_db
+{
 	struct regpair pbl_base;
 	struct regpair curr_pbe;
 };
@@ -3873,7 +3983,8 @@ struct ustorm_iscsi_r2tq_db {
 /*
  * iSCSI context region, used only in iSCSI
  */
-struct ustorm_iscsi_cq_db {
+struct ustorm_iscsi_cq_db
+{
 #if defined(__BIG_ENDIAN)
 	u16 cq_sn;
 	u16 prod;
@@ -3887,7 +3998,8 @@ struct ustorm_iscsi_cq_db {
 /*
  * iSCSI context region, used only in iSCSI
  */
-struct rings_db {
+struct rings_db
+{
 	struct ustorm_iscsi_rq_db rq;
 	struct ustorm_iscsi_r2tq_db r2tq;
 	struct ustorm_iscsi_cq_db cq[8];
@@ -3904,7 +4016,8 @@ struct rings_db {
 /*
  * iSCSI context region, used only in iSCSI
  */
-struct ustorm_iscsi_placement_db {
+struct ustorm_iscsi_placement_db
+{
 	u32 sgl_base_lo;
 	u32 sgl_base_hi;
 	u32 local_sge_0_address_hi;
@@ -3957,7 +4070,8 @@ struct ustorm_iscsi_placement_db {
 /*
  * Ustorm iSCSI Storm Context
  */
-struct ustorm_iscsi_st_context {
+struct ustorm_iscsi_st_context
+{
 	u32 exp_stat_sn;
 	u32 exp_data_sn;
 	struct rings_db ring;
@@ -4047,7 +4161,8 @@ struct ustorm_iscsi_st_context {
 /*
  * TCP context region, shared in TOE, RDMA and ISCSI
  */
-struct tstorm_tcp_st_context_section {
+struct tstorm_tcp_st_context_section
+{
 	u32 flags1;
 #define TSTORM_TCP_ST_CONTEXT_SECTION_RTT_SRTT (0xFFFFFF<<0)
 #define TSTORM_TCP_ST_CONTEXT_SECTION_RTT_SRTT_SHIFT 0
@@ -4168,7 +4283,8 @@ struct tstorm_tcp_st_context_section {
 /*
  * Termination variables
  */
-struct iscsi_term_vars {
+struct iscsi_term_vars
+{
 	u8 BitMap;
 #define ISCSI_TERM_VARS_TCP_STATE (0xF<<0)
 #define ISCSI_TERM_VARS_TCP_STATE_SHIFT 0
@@ -4185,7 +4301,8 @@ struct iscsi_term_vars {
 /*
  * iSCSI context region, used only in iSCSI
  */
-struct tstorm_iscsi_st_context_section {
+struct tstorm_iscsi_st_context_section
+{
 	u32 nalPayload;
 	u32 b2nh;
 #if defined(__BIG_ENDIAN)
@@ -4241,7 +4358,8 @@ struct tstorm_iscsi_st_context_section {
 /*
  * The iSCSI non-aggregative context of Tstorm
  */
-struct tstorm_iscsi_st_context {
+struct tstorm_iscsi_st_context
+{
 	struct tstorm_tcp_st_context_section tcp;
 	struct tstorm_iscsi_st_context_section iscsi;
 };
@@ -4249,7 +4367,8 @@ struct tstorm_iscsi_st_context {
 /*
  * Ethernet context section, shared in TOE, RDMA and ISCSI
  */
-struct xstorm_eth_context_section {
+struct xstorm_eth_context_section
+{
 #if defined(__BIG_ENDIAN)
 	u8 remote_addr_4;
 	u8 remote_addr_5;
@@ -4307,7 +4426,8 @@ struct xstorm_eth_context_section {
 /*
  * IpV4 context section, shared in TOE, RDMA and ISCSI
  */
-struct xstorm_ip_v4_context_section {
+struct xstorm_ip_v4_context_section
+{
 #if defined(__BIG_ENDIAN)
 	u16 __pbf_hdr_cmd_rsvd_id;
 	u16 __pbf_hdr_cmd_rsvd_flags_offset;
@@ -4341,7 +4461,8 @@ struct xstorm_ip_v4_context_section {
 /*
  * context section, shared in TOE, RDMA and ISCSI
  */
-struct xstorm_padded_ip_v4_context_section {
+struct xstorm_padded_ip_v4_context_section
+{
 	struct xstorm_ip_v4_context_section ip_v4;
 	u32 reserved1[4];
 };
@@ -4349,7 +4470,8 @@ struct xstorm_padded_ip_v4_context_section {
 /*
  * IpV6 context section, shared in TOE, RDMA and ISCSI
  */
-struct xstorm_ip_v6_context_section {
+struct xstorm_ip_v6_context_section
+{
 #if defined(__BIG_ENDIAN)
 	u16 pbf_hdr_cmd_rsvd_payload_len;
 	u8 pbf_hdr_cmd_rsvd_nxt_hdr;
@@ -4376,7 +4498,8 @@ struct xstorm_ip_v6_context_section {
 	u32 ip_remote_addr_hi_lo;
 };
 
-union xstorm_ip_context_section_types {
+union xstorm_ip_context_section_types
+{
 	struct xstorm_padded_ip_v4_context_section padded_ip_v4;
 	struct xstorm_ip_v6_context_section ip_v6;
 };
@@ -4384,7 +4507,8 @@ union xstorm_ip_context_section_types {
 /*
  * TCP context section, shared in TOE, RDMA and ISCSI
  */
-struct xstorm_tcp_context_section {
+struct xstorm_tcp_context_section
+{
 	u32 snd_max;
 #if defined(__BIG_ENDIAN)
 	u16 remote_port;
@@ -4469,7 +4593,8 @@ struct xstorm_tcp_context_section {
 /*
  * Common context section, shared in TOE, RDMA and ISCSI
  */
-struct xstorm_common_context_section {
+struct xstorm_common_context_section
+{
 	struct xstorm_eth_context_section ethernet;
 	union xstorm_ip_context_section_types ip_union;
 	struct xstorm_tcp_context_section tcp;
@@ -4505,7 +4630,8 @@ struct xstorm_common_context_section {
 /*
  * Flags used in ISCSI context section
  */
-struct xstorm_iscsi_context_flags {
+struct xstorm_iscsi_context_flags
+{
 	u8 flags;
 #define XSTORM_ISCSI_CONTEXT_FLAGS_B_IMMEDIATE_DATA (0x1<<0)
 #define XSTORM_ISCSI_CONTEXT_FLAGS_B_IMMEDIATE_DATA_SHIFT 0
@@ -4525,17 +4651,20 @@ struct xstorm_iscsi_context_flags {
 #define XSTORM_ISCSI_CONTEXT_FLAGS_RESERVED4_SHIFT 7
 };
 
-struct iscsi_task_context_entry_x {
+struct iscsi_task_context_entry_x
+{
 	u32 data_out_buffer_offset;
 	u32 itt;
 	u32 data_sn;
 };
 
-struct iscsi_task_context_entry_xuc_x_write_only {
+struct iscsi_task_context_entry_xuc_x_write_only
+{
 	u32 tx_r2t_sn;
 };
 
-struct iscsi_task_context_entry_xuc_xu_write_both {
+struct iscsi_task_context_entry_xuc_xu_write_both
+{
 	u32 sgl_base_lo;
 	u32 sgl_base_hi;
 #if defined(__BIG_ENDIAN)
@@ -4552,7 +4681,8 @@ struct iscsi_task_context_entry_xuc_xu_write_both {
 /*
  * iSCSI context section
  */
-struct xstorm_iscsi_context_section {
+struct xstorm_iscsi_context_section
+{
 	u32 first_burst_length;
 	u32 max_send_pdu_length;
 	struct regpair sq_pbl_base;
@@ -4630,7 +4760,8 @@ struct xstorm_iscsi_context_section {
 /*
  * Xstorm iSCSI Storm Context
  */
-struct xstorm_iscsi_st_context {
+struct xstorm_iscsi_st_context
+{
 	struct xstorm_common_context_section common;
 	struct xstorm_iscsi_context_section iscsi;
 };
@@ -4638,7 +4769,8 @@ struct xstorm_iscsi_st_context {
 /*
  * Iscsi connection context
  */
-struct iscsi_context {
+struct iscsi_context
+{
 	struct ustorm_iscsi_st_context ustorm_st_context;
 	struct tstorm_iscsi_st_context tstorm_st_context;
 	struct xstorm_iscsi_ag_context xstorm_ag_context;
@@ -4656,7 +4788,8 @@ struct iscsi_context {
 /*
  * PDU header of an iSCSI DATA-OUT
  */
-struct iscsi_data_pdu_hdr_little_endian {
+struct iscsi_data_pdu_hdr_little_endian
+{
 #if defined(__BIG_ENDIAN)
 	u8 opcode;
 	u8 op_attr;
@@ -4694,7 +4827,8 @@ struct iscsi_data_pdu_hdr_little_endian {
 /*
  * PDU header of an iSCSI login request
  */
-struct iscsi_login_req_hdr_little_endian {
+struct iscsi_login_req_hdr_little_endian
+{
 #if defined(__BIG_ENDIAN)
 	u8 opcode;
 	u8 op_attr;
@@ -4755,7 +4889,8 @@ struct iscsi_login_req_hdr_little_endian {
 /*
  * PDU header of an iSCSI logout request
  */
-struct iscsi_logout_req_hdr_little_endian {
+struct iscsi_logout_req_hdr_little_endian
+{
 #if defined(__BIG_ENDIAN)
 	u8 opcode;
 	u8 op_attr;
@@ -4795,7 +4930,8 @@ struct iscsi_logout_req_hdr_little_endian {
 /*
  * PDU header of an iSCSI TMF request
  */
-struct iscsi_tmf_req_hdr_little_endian {
+struct iscsi_tmf_req_hdr_little_endian
+{
 #if defined(__BIG_ENDIAN)
 	u8 opcode;
 	u8 op_attr;
@@ -4831,7 +4967,8 @@ struct iscsi_tmf_req_hdr_little_endian {
 /*
  * PDU header of an iSCSI Text request
  */
-struct iscsi_text_req_hdr_little_endian {
+struct iscsi_text_req_hdr_little_endian
+{
 #if defined(__BIG_ENDIAN)
 	u8 opcode;
 	u8 op_attr;
@@ -4869,7 +5006,8 @@ struct iscsi_text_req_hdr_little_endian {
 /*
  * PDU header of an iSCSI Nop-Out
  */
-struct iscsi_nop_out_hdr_little_endian {
+struct iscsi_nop_out_hdr_little_endian
+{
 #if defined(__BIG_ENDIAN)
 	u8 opcode;
 	u8 op_attr;
@@ -4903,7 +5041,8 @@ struct iscsi_nop_out_hdr_little_endian {
 /*
  * iscsi pdu headers in little endian form.
  */
-union iscsi_pdu_headers_little_endian {
+union iscsi_pdu_headers_little_endian
+{
 	u32 fullHeaderSize[12];
 	struct iscsi_cmd_pdu_hdr_little_endian command_pdu_hdr;
 	struct iscsi_data_pdu_hdr_little_endian data_out_pdu_hdr;
@@ -4914,7 +5053,8 @@ union iscsi_pdu_headers_little_endian {
 	struct iscsi_nop_out_hdr_little_endian nop_out_pdu_hdr;
 };
 
-struct iscsi_hq_bd {
+struct iscsi_hq_bd
+{
 	union iscsi_pdu_headers_little_endian pdu_header;
 #if defined(__BIG_ENDIAN)
 	u16 reserved1;
@@ -4940,7 +5080,8 @@ struct iscsi_hq_bd {
 /*
  * CQE data for L2 OOO connection $$KEEP_ENDIANNESS$$
  */
-struct iscsi_l2_ooo_data {
+struct iscsi_l2_ooo_data
+{
 	__le32 iscsi_cid;
 	u8 drop_isle;
 	u8 drop_size;
@@ -4954,16 +5095,19 @@ struct iscsi_l2_ooo_data {
 
 
 
-struct iscsi_task_context_entry_xuc_c_write_only {
+struct iscsi_task_context_entry_xuc_c_write_only
+{
 	u32 total_data_acked;
 };
 
-struct iscsi_task_context_r2t_table_entry {
+struct iscsi_task_context_r2t_table_entry
+{
 	u32 ttt;
 	u32 desired_data_len;
 };
 
-struct iscsi_task_context_entry_xuc_u_write_only {
+struct iscsi_task_context_entry_xuc_u_write_only
+{
 	u32 exp_r2t_sn;
 	struct iscsi_task_context_r2t_table_entry r2t_table[4];
 #if defined(__BIG_ENDIAN)
@@ -4977,7 +5121,8 @@ struct iscsi_task_context_entry_xuc_u_write_only {
 #endif
 };
 
-struct iscsi_task_context_entry_xuc {
+struct iscsi_task_context_entry_xuc
+{
 	struct iscsi_task_context_entry_xuc_c_write_only write_c;
 	u32 exp_data_transfer_len;
 	struct iscsi_task_context_entry_xuc_x_write_only write_x;
@@ -4987,13 +5132,15 @@ struct iscsi_task_context_entry_xuc {
 	struct iscsi_task_context_entry_xuc_u_write_only write_u;
 };
 
-struct iscsi_task_context_entry_u {
+struct iscsi_task_context_entry_u
+{
 	u32 exp_r2t_buff_offset;
 	u32 rem_rcv_len;
 	u32 exp_data_sn;
 };
 
-struct iscsi_task_context_entry {
+struct iscsi_task_context_entry
+{
 	struct iscsi_task_context_entry_x tce_x;
 #if defined(__BIG_ENDIAN)
 	u16 data_out_count;
@@ -5014,7 +5161,8 @@ struct iscsi_task_context_entry {
 
 
 
-struct iscsi_task_context_entry_xuc_x_init_only {
+struct iscsi_task_context_entry_xuc_x_init_only
+{
 	struct regpair lun;
 	u32 exp_data_transfer_len;
 };
@@ -5038,7 +5186,8 @@ struct iscsi_task_context_entry_xuc_x_init_only {
 /*
  * ipv6 structure
  */
-struct ip_v6_addr {
+struct ip_v6_addr
+{
 	u32 ip_addr_lo_lo;
 	u32 ip_addr_lo_hi;
 	u32 ip_addr_hi_lo;
@@ -5050,7 +5199,8 @@ struct ip_v6_addr {
 /*
  * l5cm- connection identification params
  */
-struct l5cm_conn_addr_params {
+struct l5cm_conn_addr_params
+{
 	u32 pmtu;
 #if defined(__BIG_ENDIAN)
 	u8 remote_addr_3;
@@ -5096,7 +5246,8 @@ struct l5cm_conn_addr_params {
 /*
  * l5cm-xstorm connection buffer
  */
-struct l5cm_xstorm_conn_buffer {
+struct l5cm_xstorm_conn_buffer
+{
 #if defined(__BIG_ENDIAN)
 	u16 rsrv1;
 	u16 params;
@@ -5127,7 +5278,8 @@ struct l5cm_xstorm_conn_buffer {
 /*
  * l5cm-tstorm connection buffer
  */
-struct l5cm_tstorm_conn_buffer {
+struct l5cm_tstorm_conn_buffer
+{
 	u32 rsrv1[2];
 #if defined(__BIG_ENDIAN)
 	u16 params;
@@ -5154,7 +5306,8 @@ struct l5cm_tstorm_conn_buffer {
 /*
  * l5cm connection buffer for active side
  */
-struct l5cm_active_conn_buffer {
+struct l5cm_active_conn_buffer
+{
 	struct l5cm_conn_addr_params conn_addr_buf;
 	struct l5cm_xstorm_conn_buffer xstorm_conn_buffer;
 	struct l5cm_tstorm_conn_buffer tstorm_conn_buffer;
@@ -5165,7 +5318,8 @@ struct l5cm_active_conn_buffer {
 /*
  * The l5cm opaque buffer passed in add new connection ramrod passive side
  */
-struct l5cm_hash_input_string {
+struct l5cm_hash_input_string
+{
 	u32 __opaque1;
 #if defined(__BIG_ENDIAN)
 	u16 __opaque3;
@@ -5184,14 +5338,16 @@ struct l5cm_hash_input_string {
 /*
  * syn cookie component
  */
-struct l5cm_syn_cookie_comp {
+struct l5cm_syn_cookie_comp
+{
 	u32 __opaque;
 };
 
 /*
  * data related to listeners of a TCP port
  */
-struct l5cm_port_listener_data {
+struct l5cm_port_listener_data
+{
 	u8 params;
 #define L5CM_PORT_LISTENER_DATA_ENABLE (0x1<<0)
 #define L5CM_PORT_LISTENER_DATA_ENABLE_SHIFT 0
@@ -5208,7 +5364,8 @@ struct l5cm_port_listener_data {
 /*
  * Opaque structure passed from U to X when final ack arrives
  */
-struct l5cm_opaque_buf {
+struct l5cm_opaque_buf
+{
 	u32 __opaque1;
 	u32 __opaque2;
 	u32 __opaque3;
@@ -5229,7 +5386,8 @@ struct l5cm_opaque_buf {
 /*
  * l5cm slow path element
  */
-struct l5cm_packet_size {
+struct l5cm_packet_size
+{
 	u32 size;
 	u32 rsrv;
 };
@@ -5238,7 +5396,8 @@ struct l5cm_packet_size {
 /*
  * The final-ack union structure in PCS entry after final ack arrived
  */
-struct l5cm_pcse_ack {
+struct l5cm_pcse_ack
+{
 	struct l5cm_xstorm_conn_buffer tx_socket_params;
 	struct l5cm_opaque_buf opaque_buf;
 	struct l5cm_tstorm_conn_buffer rx_socket_params;
@@ -5248,7 +5407,8 @@ struct l5cm_pcse_ack {
 /*
  * The syn union structure in PCS entry after syn arrived
  */
-struct l5cm_pcse_syn {
+struct l5cm_pcse_syn
+{
 	struct l5cm_opaque_buf opaque_buf;
 	u32 rsrv[12];
 };
@@ -5257,7 +5417,8 @@ struct l5cm_pcse_syn {
 /*
  * pcs entry data for passive connections
  */
-struct l5cm_pcs_attributes {
+struct l5cm_pcs_attributes
+{
 #if defined(__BIG_ENDIAN)
 	u16 pcs_id;
 	u8 status;
@@ -5302,7 +5463,8 @@ struct l5cm_pcs_attributes {
 };
 
 
-union l5cm_seg_params {
+union l5cm_seg_params
+{
 	struct l5cm_pcse_syn syn_seg_params;
 	struct l5cm_pcse_ack ack_seg_params;
 };
@@ -5310,7 +5472,8 @@ union l5cm_seg_params {
 /*
  * pcs entry data for passive connections
  */
-struct l5cm_pcs_hdr {
+struct l5cm_pcs_hdr
+{
 	struct l5cm_hash_input_string hash_input_string;
 	struct l5cm_conn_addr_params conn_addr_buf;
 	u32 cid;
@@ -5329,7 +5492,8 @@ struct l5cm_pcs_hdr {
 /*
  * pcs entry for passive connections
  */
-struct l5cm_pcs_entry {
+struct l5cm_pcs_entry
+{
 	struct l5cm_pcs_hdr hdr;
 	u8 rx_segment[1516];
 };
@@ -5340,7 +5504,8 @@ struct l5cm_pcs_entry {
 /*
  * l5cm connection parameters
  */
-union l5cm_reduce_param_union {
+union l5cm_reduce_param_union
+{
 	u32 opaque1;
 	u32 opaque2;
 };
@@ -5348,7 +5513,8 @@ union l5cm_reduce_param_union {
 /*
  * l5cm connection parameters
  */
-struct l5cm_reduce_conn {
+struct l5cm_reduce_conn
+{
 	union l5cm_reduce_param_union opaque1;
 	u32 opaque2;
 };
@@ -5356,7 +5522,8 @@ struct l5cm_reduce_conn {
 /*
  * l5cm slow path element
  */
-union l5cm_specific_data {
+union l5cm_specific_data
+{
 	u8 protocol_data[8];
 	struct regpair phy_address;
 	struct l5cm_packet_size packet_size;
@@ -5366,7 +5533,8 @@ union l5cm_specific_data {
 /*
  * l5 slow path element
  */
-struct l5cm_spe {
+struct l5cm_spe
+{
 	struct spe_hdr hdr;
 	union l5cm_specific_data data;
 };
@@ -5377,7 +5545,8 @@ struct l5cm_spe {
 /*
  * Termination variables
  */
-struct l5cm_term_vars {
+struct l5cm_term_vars
+{
 	u8 BitMap;
 #define L5CM_TERM_VARS_TCP_STATE (0xF<<0)
 #define L5CM_TERM_VARS_TCP_STATE_SHIFT 0
@@ -5397,7 +5566,8 @@ struct l5cm_term_vars {
 /*
  * Tstorm Tcp flags
  */
-struct tstorm_l5cm_tcp_flags {
+struct tstorm_l5cm_tcp_flags
+{
 	u16 flags;
 #define TSTORM_L5CM_TCP_FLAGS_VLAN_ID (0xFFF<<0)
 #define TSTORM_L5CM_TCP_FLAGS_VLAN_ID_SHIFT 0
@@ -5413,7 +5583,8 @@ struct tstorm_l5cm_tcp_flags {
 /*
  * Xstorm Tcp flags
  */
-struct xstorm_l5cm_tcp_flags {
+struct xstorm_l5cm_tcp_flags
+{
 	u8 flags;
 #define XSTORM_L5CM_TCP_FLAGS_ENC_ENABLED (0x1<<0)
 #define XSTORM_L5CM_TCP_FLAGS_ENC_ENABLED_SHIFT 0
@@ -5430,7 +5601,8 @@ struct xstorm_l5cm_tcp_flags {
 /*
  * Out-of-order states
  */
-enum tcp_ooo_event {
+enum tcp_ooo_event
+{
 	TCP_EVENT_ADD_PEN = 0,
 	TCP_EVENT_ADD_NEW_ISLE = 1,
 	TCP_EVENT_ADD_ISLE_RIGHT = 2,
@@ -5444,7 +5616,8 @@ enum tcp_ooo_event {
 /*
  * OOO support modes
  */
-enum tcp_tstorm_ooo {
+enum tcp_tstorm_ooo
+{
 	TCP_TSTORM_OOO_DROP_AND_PROC_ACK = 0,
 	TCP_TSTORM_OOO_SEND_PURE_ACK = 1,
 	TCP_TSTORM_OOO_SUPPORTED = 2,

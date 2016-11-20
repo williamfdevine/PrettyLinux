@@ -12,21 +12,24 @@
 
 #define MAX_ENTRIES 1000
 
-struct bpf_map_def SEC("maps") hash_map = {
+struct bpf_map_def SEC("maps") hash_map =
+{
 	.type = BPF_MAP_TYPE_HASH,
 	.key_size = sizeof(u32),
 	.value_size = sizeof(long),
 	.max_entries = MAX_ENTRIES,
 };
 
-struct bpf_map_def SEC("maps") percpu_hash_map = {
+struct bpf_map_def SEC("maps") percpu_hash_map =
+{
 	.type = BPF_MAP_TYPE_PERCPU_HASH,
 	.key_size = sizeof(u32),
 	.value_size = sizeof(long),
 	.max_entries = MAX_ENTRIES,
 };
 
-struct bpf_map_def SEC("maps") hash_map_alloc = {
+struct bpf_map_def SEC("maps") hash_map_alloc =
+{
 	.type = BPF_MAP_TYPE_HASH,
 	.key_size = sizeof(u32),
 	.value_size = sizeof(long),
@@ -34,7 +37,8 @@ struct bpf_map_def SEC("maps") hash_map_alloc = {
 	.map_flags = BPF_F_NO_PREALLOC,
 };
 
-struct bpf_map_def SEC("maps") percpu_hash_map_alloc = {
+struct bpf_map_def SEC("maps") percpu_hash_map_alloc =
+{
 	.type = BPF_MAP_TYPE_PERCPU_HASH,
 	.key_size = sizeof(u32),
 	.value_size = sizeof(long),
@@ -51,8 +55,12 @@ int stress_hmap(struct pt_regs *ctx)
 
 	bpf_map_update_elem(&hash_map, &key, &init_val, BPF_ANY);
 	value = bpf_map_lookup_elem(&hash_map, &key);
+
 	if (value)
+	{
 		bpf_map_delete_elem(&hash_map, &key);
+	}
+
 	return 0;
 }
 
@@ -65,8 +73,12 @@ int stress_percpu_hmap(struct pt_regs *ctx)
 
 	bpf_map_update_elem(&percpu_hash_map, &key, &init_val, BPF_ANY);
 	value = bpf_map_lookup_elem(&percpu_hash_map, &key);
+
 	if (value)
+	{
 		bpf_map_delete_elem(&percpu_hash_map, &key);
+	}
+
 	return 0;
 }
 SEC("kprobe/sys_getgid")
@@ -78,8 +90,12 @@ int stress_hmap_alloc(struct pt_regs *ctx)
 
 	bpf_map_update_elem(&hash_map_alloc, &key, &init_val, BPF_ANY);
 	value = bpf_map_lookup_elem(&hash_map_alloc, &key);
+
 	if (value)
+	{
 		bpf_map_delete_elem(&hash_map_alloc, &key);
+	}
+
 	return 0;
 }
 
@@ -92,8 +108,12 @@ int stress_percpu_hmap_alloc(struct pt_regs *ctx)
 
 	bpf_map_update_elem(&percpu_hash_map_alloc, &key, &init_val, BPF_ANY);
 	value = bpf_map_lookup_elem(&percpu_hash_map_alloc, &key);
+
 	if (value)
+	{
 		bpf_map_delete_elem(&percpu_hash_map_alloc, &key);
+	}
+
 	return 0;
 }
 char _license[] SEC("license") = "GPL";

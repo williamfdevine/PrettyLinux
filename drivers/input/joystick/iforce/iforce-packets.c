@@ -27,10 +27,11 @@
 
 #include "iforce.h"
 
-static struct {
+static struct
+{
 	__s32 x;
 	__s32 y;
-} iforce_hat_to_axis[16] = {{ 0,-1}, { 1,-1}, { 1, 0}, { 1, 1}, { 0, 1}, {-1, 1}, {-1, 0}, {-1,-1}};
+} iforce_hat_to_axis[16] = {{ 0, -1}, { 1, -1}, { 1, 0}, { 1, 1}, { 0, 1}, { -1, 1}, { -1, 0}, { -1, -1}};
 
 
 void iforce_dump_packet(char *msg, u16 cmd, unsigned char *data)
@@ -38,15 +39,19 @@ void iforce_dump_packet(char *msg, u16 cmd, unsigned char *data)
 	int i;
 
 	printk(KERN_DEBUG __FILE__ ": %s cmd = %04x, data = ", msg, cmd);
+
 	for (i = 0; i < LO(cmd); i++)
+	{
 		printk("%02x ", data[i]);
+	}
+
 	printk("\n");
 }
 
 /*
  * Send a packet of bytes to the device
  */
-int iforce_send_packet(struct iforce *iforce, u16 cmd, unsigned char* data)
+int iforce_send_packet(struct iforce *iforce, u16 cmd, unsigned char *data)
 {
 	/* Copy data to buffer */
 	int n = LO(cmd);
@@ -55,74 +60,89 @@ int iforce_send_packet(struct iforce *iforce, u16 cmd, unsigned char* data)
 	int head, tail;
 	unsigned long flags;
 
-/*
- * Update head and tail of xmit buffer
- */
+	/*
+	 * Update head and tail of xmit buffer
+	 */
 	spin_lock_irqsave(&iforce->xmit_lock, flags);
 
 	head = iforce->xmit.head;
 	tail = iforce->xmit.tail;
 
 
-	if (CIRC_SPACE(head, tail, XMIT_SIZE) < n+2) {
+	if (CIRC_SPACE(head, tail, XMIT_SIZE) < n + 2)
+	{
 		dev_warn(&iforce->dev->dev,
-			 "not enough space in xmit buffer to send new packet\n");
+				 "not enough space in xmit buffer to send new packet\n");
 		spin_unlock_irqrestore(&iforce->xmit_lock, flags);
 		return -1;
 	}
 
 	empty = head == tail;
-	XMIT_INC(iforce->xmit.head, n+2);
+	XMIT_INC(iforce->xmit.head, n + 2);
 
-/*
- * Store packet in xmit buffer
- */
+	/*
+	 * Store packet in xmit buffer
+	 */
 	iforce->xmit.buf[head] = HI(cmd);
 	XMIT_INC(head, 1);
 	iforce->xmit.buf[head] = LO(cmd);
 	XMIT_INC(head, 1);
 
 	c = CIRC_SPACE_TO_END(head, tail, XMIT_SIZE);
-	if (n < c) c=n;
+
+	if (n < c) { c = n; }
 
 	memcpy(&iforce->xmit.buf[head],
-	       data,
-	       c);
-	if (n != c) {
+		   data,
+		   c);
+
+	if (n != c)
+	{
 		memcpy(&iforce->xmit.buf[0],
-		       data + c,
-		       n - c);
+			   data + c,
+			   n - c);
 	}
+
 	XMIT_INC(head, n);
 
 	spin_unlock_irqrestore(&iforce->xmit_lock, flags);
-/*
- * If necessary, start the transmission
- */
-	switch (iforce->bus) {
+
+	/*
+	 * If necessary, start the transmission
+	 */
+	switch (iforce->bus)
+	{
 
 #ifdef CONFIG_JOYSTICK_IFORCE_232
+
 		case IFORCE_232:
-		if (empty)
-			iforce_serial_xmit(iforce);
-		break;
+			if (empty)
+			{
+				iforce_serial_xmit(iforce);
+			}
+
+			break;
 #endif
 #ifdef CONFIG_JOYSTICK_IFORCE_USB
+
 		case IFORCE_USB:
 
-		if (iforce->usbdev && empty &&
-			!test_and_set_bit(IFORCE_XMIT_RUNNING, iforce->xmit_flags)) {
+			if (iforce->usbdev && empty &&
+				!test_and_set_bit(IFORCE_XMIT_RUNNING, iforce->xmit_flags))
+			{
 
-			iforce_usb_xmit(iforce);
-		}
-		break;
+				iforce_usb_xmit(iforce);
+			}
+
+			break;
 #endif
 	}
+
 	return 0;
 }
 
 /* Start or stop an effect */
-int iforce_control_playback(struct iforce* iforce, u16 id, unsigned int value)
+int iforce_control_playback(struct iforce *iforce, u16 id, unsigned int value)
 {
 	unsigned char data[3];
 
@@ -139,16 +159,21 @@ static int mark_core_as_ready(struct iforce *iforce, unsigned short addr)
 	int i;
 
 	if (!iforce->dev->ff)
+	{
 		return 0;
+	}
 
-	for (i = 0; i < iforce->dev->ff->max_effects; ++i) {
+	for (i = 0; i < iforce->dev->ff->max_effects; ++i)
+	{
 		if (test_bit(FF_CORE_IS_USED, iforce->core_effects[i].flags) &&
-		    (iforce->core_effects[i].mod1_chunk.start == addr ||
-		     iforce->core_effects[i].mod2_chunk.start == addr)) {
+			(iforce->core_effects[i].mod1_chunk.start == addr ||
+			 iforce->core_effects[i].mod2_chunk.start == addr))
+		{
 			clear_bit(FF_CORE_UPDATE, iforce->core_effects[i].flags);
 			return 0;
 		}
 	}
+
 	dev_warn(&iforce->dev->dev, "unused effect %04x updated !!!\n", addr);
 	return -1;
 }
@@ -161,34 +186,46 @@ void iforce_process_packet(struct iforce *iforce, u16 cmd, unsigned char *data)
 
 	if (being_used)
 		dev_warn(&iforce->dev->dev,
-			 "re-entrant call to iforce_process %d\n", being_used);
+				 "re-entrant call to iforce_process %d\n", being_used);
+
 	being_used++;
 
 #ifdef CONFIG_JOYSTICK_IFORCE_232
-	if (HI(iforce->expect_packet) == HI(cmd)) {
+
+	if (HI(iforce->expect_packet) == HI(cmd))
+	{
 		iforce->expect_packet = 0;
 		iforce->ecmd = cmd;
 		memcpy(iforce->edata, data, IFORCE_MAX_LENGTH);
 	}
+
 #endif
 	wake_up(&iforce->wait);
 
-	if (!iforce->type) {
+	if (!iforce->type)
+	{
 		being_used--;
 		return;
 	}
 
-	switch (HI(cmd)) {
+	switch (HI(cmd))
+	{
 
 		case 0x01:	/* joystick position data */
 		case 0x03:	/* wheel position data */
-			if (HI(cmd) == 1) {
+			if (HI(cmd) == 1)
+			{
 				input_report_abs(dev, ABS_X, (__s16) (((__s16)data[1] << 8) | data[0]));
 				input_report_abs(dev, ABS_Y, (__s16) (((__s16)data[3] << 8) | data[2]));
 				input_report_abs(dev, ABS_THROTTLE, 255 - data[4]);
-				if (LO(cmd) >= 8 && test_bit(ABS_RUDDER ,dev->absbit))
+
+				if (LO(cmd) >= 8 && test_bit(ABS_RUDDER , dev->absbit))
+				{
 					input_report_abs(dev, ABS_RUDDER, (__s8)data[7]);
-			} else {
+				}
+			}
+			else
+			{
 				input_report_abs(dev, ABS_WHEEL, (__s16) (((__s16)data[1] << 8) | data[0]));
 				input_report_abs(dev, ABS_GAS,   255 - data[2]);
 				input_report_abs(dev, ABS_BRAKE, 255 - data[3]);
@@ -198,20 +235,27 @@ void iforce_process_packet(struct iforce *iforce, u16 cmd, unsigned char *data)
 			input_report_abs(dev, ABS_HAT0Y, iforce_hat_to_axis[data[6] >> 4].y);
 
 			for (i = 0; iforce->type->btn[i] >= 0; i++)
+			{
 				input_report_key(dev, iforce->type->btn[i], data[(i >> 3) + 5] & (1 << (i & 7)));
+			}
 
 			/* If there are untouched bits left, interpret them as the second hat */
-			if (i <= 8) {
+			if (i <= 8)
+			{
 				int btns = data[6];
-				if (test_bit(ABS_HAT1X, dev->absbit)) {
-					if (btns & 8) input_report_abs(dev, ABS_HAT1X, -1);
-					else if (btns & 2) input_report_abs(dev, ABS_HAT1X, 1);
-					else input_report_abs(dev, ABS_HAT1X, 0);
+
+				if (test_bit(ABS_HAT1X, dev->absbit))
+				{
+					if (btns & 8) { input_report_abs(dev, ABS_HAT1X, -1); }
+					else if (btns & 2) { input_report_abs(dev, ABS_HAT1X, 1); }
+					else { input_report_abs(dev, ABS_HAT1X, 0); }
 				}
-				if (test_bit(ABS_HAT1Y, dev->absbit)) {
-					if (btns & 1) input_report_abs(dev, ABS_HAT1Y, -1);
-					else if (btns & 4) input_report_abs(dev, ABS_HAT1Y, 1);
-					else input_report_abs(dev, ABS_HAT1Y, 0);
+
+				if (test_bit(ABS_HAT1Y, dev->absbit))
+				{
+					if (btns & 1) { input_report_abs(dev, ABS_HAT1Y, -1); }
+					else if (btns & 4) { input_report_abs(dev, ABS_HAT1Y, 1); }
+					else { input_report_abs(dev, ABS_HAT1Y, 0); }
 				}
 			}
 
@@ -225,83 +269,103 @@ void iforce_process_packet(struct iforce *iforce, u16 cmd, unsigned char *data)
 
 			/* Check if an effect was just started or stopped */
 			i = data[1] & 0x7f;
-			if (data[1] & 0x80) {
-				if (!test_and_set_bit(FF_CORE_IS_PLAYED, iforce->core_effects[i].flags)) {
+
+			if (data[1] & 0x80)
+			{
+				if (!test_and_set_bit(FF_CORE_IS_PLAYED, iforce->core_effects[i].flags))
+				{
 					/* Report play event */
 					input_report_ff_status(dev, i, FF_STATUS_PLAYING);
 				}
-			} else if (test_and_clear_bit(FF_CORE_IS_PLAYED, iforce->core_effects[i].flags)) {
+			}
+			else if (test_and_clear_bit(FF_CORE_IS_PLAYED, iforce->core_effects[i].flags))
+			{
 				/* Report stop event */
 				input_report_ff_status(dev, i, FF_STATUS_STOPPED);
 			}
-			if (LO(cmd) > 3) {
+
+			if (LO(cmd) > 3)
+			{
 				int j;
+
 				for (j = 3; j < LO(cmd); j += 2)
-					mark_core_as_ready(iforce, data[j] | (data[j+1]<<8));
+				{
+					mark_core_as_ready(iforce, data[j] | (data[j + 1] << 8));
+				}
 			}
+
 			break;
 	}
+
 	being_used--;
 }
 
 int iforce_get_id_packet(struct iforce *iforce, char *packet)
 {
-	switch (iforce->bus) {
+	switch (iforce->bus)
+	{
 
-	case IFORCE_USB: {
+		case IFORCE_USB:
+			{
 #ifdef CONFIG_JOYSTICK_IFORCE_USB
-		int status;
+				int status;
 
-		iforce->cr.bRequest = packet[0];
-		iforce->ctrl->dev = iforce->usbdev;
+				iforce->cr.bRequest = packet[0];
+				iforce->ctrl->dev = iforce->usbdev;
 
-		status = usb_submit_urb(iforce->ctrl, GFP_ATOMIC);
-		if (status) {
-			dev_err(&iforce->intf->dev,
-				"usb_submit_urb failed %d\n", status);
-			return -1;
-		}
+				status = usb_submit_urb(iforce->ctrl, GFP_ATOMIC);
 
-		wait_event_interruptible_timeout(iforce->wait,
-			iforce->ctrl->status != -EINPROGRESS, HZ);
+				if (status)
+				{
+					dev_err(&iforce->intf->dev,
+							"usb_submit_urb failed %d\n", status);
+					return -1;
+				}
 
-		if (iforce->ctrl->status) {
-			dev_dbg(&iforce->intf->dev,
-				"iforce->ctrl->status = %d\n",
-				iforce->ctrl->status);
-			usb_unlink_urb(iforce->ctrl);
-			return -1;
-		}
+				wait_event_interruptible_timeout(iforce->wait,
+												 iforce->ctrl->status != -EINPROGRESS, HZ);
+
+				if (iforce->ctrl->status)
+				{
+					dev_dbg(&iforce->intf->dev,
+							"iforce->ctrl->status = %d\n",
+							iforce->ctrl->status);
+					usb_unlink_urb(iforce->ctrl);
+					return -1;
+				}
+
 #else
-		printk(KERN_DEBUG "iforce_get_id_packet: iforce->bus = USB!\n");
+				printk(KERN_DEBUG "iforce_get_id_packet: iforce->bus = USB!\n");
 #endif
-		}
-		break;
+			}
+			break;
 
-	case IFORCE_232:
+		case IFORCE_232:
 
 #ifdef CONFIG_JOYSTICK_IFORCE_232
-		iforce->expect_packet = FF_CMD_QUERY;
-		iforce_send_packet(iforce, FF_CMD_QUERY, packet);
+			iforce->expect_packet = FF_CMD_QUERY;
+			iforce_send_packet(iforce, FF_CMD_QUERY, packet);
 
-		wait_event_interruptible_timeout(iforce->wait,
-			!iforce->expect_packet, HZ);
+			wait_event_interruptible_timeout(iforce->wait,
+											 !iforce->expect_packet, HZ);
 
-		if (iforce->expect_packet) {
-			iforce->expect_packet = 0;
-			return -1;
-		}
+			if (iforce->expect_packet)
+			{
+				iforce->expect_packet = 0;
+				return -1;
+			}
+
 #else
-		dev_err(&iforce->dev->dev,
-			"iforce_get_id_packet: iforce->bus = SERIO!\n");
+			dev_err(&iforce->dev->dev,
+					"iforce_get_id_packet: iforce->bus = SERIO!\n");
 #endif
-		break;
+			break;
 
-	default:
-		dev_err(&iforce->dev->dev,
-			"iforce_get_id_packet: iforce->bus = %d\n",
-			iforce->bus);
-		break;
+		default:
+			dev_err(&iforce->dev->dev,
+					"iforce_get_id_packet: iforce->bus = %d\n",
+					iforce->bus);
+			break;
 	}
 
 	return -(iforce->edata[0] != packet[0]);

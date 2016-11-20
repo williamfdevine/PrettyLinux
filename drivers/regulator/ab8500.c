@@ -35,7 +35,8 @@
  * @shared_regulator: pointer to the other sharing regulator
  * @lp_mode_req: low power mode requested by this regulator
  */
-struct ab8500_shared_mode {
+struct ab8500_shared_mode
+{
 	struct ab8500_regulator_info *shared_regulator;
 	bool lp_mode_req;
 };
@@ -62,7 +63,8 @@ struct ab8500_shared_mode {
  * @voltage_reg: register to control regulator voltage
  * @voltage_mask: mask to control regulator voltage
  */
-struct ab8500_regulator_info {
+struct ab8500_regulator_info
+{
 	struct device		*dev;
 	struct regulator_desc	desc;
 	struct regulator_dev	*regulator;
@@ -82,7 +84,8 @@ struct ab8500_regulator_info {
 	u8 voltage_bank;
 	u8 voltage_reg;
 	u8 voltage_mask;
-	struct {
+	struct
+	{
 		u8 voltage_limit;
 		u8 voltage_bank;
 		u8 voltage_reg;
@@ -91,7 +94,8 @@ struct ab8500_regulator_info {
 };
 
 /* voltage tables for the vauxn/vintcore supplies */
-static const unsigned int ldo_vauxn_voltages[] = {
+static const unsigned int ldo_vauxn_voltages[] =
+{
 	1100000,
 	1200000,
 	1300000,
@@ -110,7 +114,8 @@ static const unsigned int ldo_vauxn_voltages[] = {
 	3300000,
 };
 
-static const unsigned int ldo_vaux3_voltages[] = {
+static const unsigned int ldo_vaux3_voltages[] =
+{
 	1200000,
 	1500000,
 	1800000,
@@ -121,7 +126,8 @@ static const unsigned int ldo_vaux3_voltages[] = {
 	2910000,
 };
 
-static const unsigned int ldo_vaux56_voltages[] = {
+static const unsigned int ldo_vaux56_voltages[] =
+{
 	1800000,
 	1050000,
 	1100000,
@@ -132,7 +138,8 @@ static const unsigned int ldo_vaux56_voltages[] = {
 	2790000,
 };
 
-static const unsigned int ldo_vaux3_ab8540_voltages[] = {
+static const unsigned int ldo_vaux3_ab8540_voltages[] =
+{
 	1200000,
 	1500000,
 	1800000,
@@ -144,7 +151,8 @@ static const unsigned int ldo_vaux3_ab8540_voltages[] = {
 	3050000,
 };
 
-static const unsigned int ldo_vaux56_ab8540_voltages[] = {
+static const unsigned int ldo_vaux56_ab8540_voltages[] =
+{
 	750000, 760000, 770000, 780000, 790000, 800000,
 	810000, 820000, 830000, 840000, 850000, 860000,
 	870000, 880000, 890000, 900000, 910000, 920000,
@@ -159,7 +167,8 @@ static const unsigned int ldo_vaux56_ab8540_voltages[] = {
 	1340000, 1350000, 1360000, 1800000, 2790000,
 };
 
-static const unsigned int ldo_vintcore_voltages[] = {
+static const unsigned int ldo_vintcore_voltages[] =
+{
 	1200000,
 	1225000,
 	1250000,
@@ -169,7 +178,8 @@ static const unsigned int ldo_vintcore_voltages[] = {
 	1350000,
 };
 
-static const unsigned int ldo_sdio_voltages[] = {
+static const unsigned int ldo_sdio_voltages[] =
+{
 	1160000,
 	1050000,
 	1100000,
@@ -180,27 +190,33 @@ static const unsigned int ldo_sdio_voltages[] = {
 	3050000,
 };
 
-static const unsigned int fixed_1200000_voltage[] = {
+static const unsigned int fixed_1200000_voltage[] =
+{
 	1200000,
 };
 
-static const unsigned int fixed_1800000_voltage[] = {
+static const unsigned int fixed_1800000_voltage[] =
+{
 	1800000,
 };
 
-static const unsigned int fixed_2000000_voltage[] = {
+static const unsigned int fixed_2000000_voltage[] =
+{
 	2000000,
 };
 
-static const unsigned int fixed_2050000_voltage[] = {
+static const unsigned int fixed_2050000_voltage[] =
+{
 	2050000,
 };
 
-static const unsigned int fixed_3300000_voltage[] = {
+static const unsigned int fixed_3300000_voltage[] =
+{
 	3300000,
 };
 
-static const unsigned int ldo_vana_voltages[] = {
+static const unsigned int ldo_vana_voltages[] =
+{
 	1050000,
 	1075000,
 	1100000,
@@ -211,7 +227,8 @@ static const unsigned int ldo_vana_voltages[] = {
 	1225000,
 };
 
-static const unsigned int ldo_vaudio_voltages[] = {
+static const unsigned int ldo_vaudio_voltages[] =
+{
 	2000000,
 	2100000,
 	2200000,
@@ -222,7 +239,8 @@ static const unsigned int ldo_vaudio_voltages[] = {
 	2600000,	/* Duplicated in Vaudio and IsoUicc Control register. */
 };
 
-static const unsigned int ldo_vdmic_voltages[] = {
+static const unsigned int ldo_vdmic_voltages[] =
+{
 	1800000,
 	1900000,
 	2000000,
@@ -240,24 +258,27 @@ static int ab8500_regulator_enable(struct regulator_dev *rdev)
 	int ret;
 	struct ab8500_regulator_info *info = rdev_get_drvdata(rdev);
 
-	if (info == NULL) {
+	if (info == NULL)
+	{
 		dev_err(rdev_get_dev(rdev), "regulator info null pointer\n");
 		return -EINVAL;
 	}
 
 	ret = abx500_mask_and_set_register_interruptible(info->dev,
-		info->update_bank, info->update_reg,
-		info->update_mask, info->update_val);
-	if (ret < 0) {
+			info->update_bank, info->update_reg,
+			info->update_mask, info->update_val);
+
+	if (ret < 0)
+	{
 		dev_err(rdev_get_dev(rdev),
-			"couldn't set enable bits for regulator\n");
+				"couldn't set enable bits for regulator\n");
 		return ret;
 	}
 
 	dev_vdbg(rdev_get_dev(rdev),
-		"%s-enable (bank, reg, mask, value): 0x%x, 0x%x, 0x%x, 0x%x\n",
-		info->desc.name, info->update_bank, info->update_reg,
-		info->update_mask, info->update_val);
+			 "%s-enable (bank, reg, mask, value): 0x%x, 0x%x, 0x%x, 0x%x\n",
+			 info->desc.name, info->update_bank, info->update_reg,
+			 info->update_mask, info->update_val);
 
 	return ret;
 }
@@ -267,24 +288,27 @@ static int ab8500_regulator_disable(struct regulator_dev *rdev)
 	int ret;
 	struct ab8500_regulator_info *info = rdev_get_drvdata(rdev);
 
-	if (info == NULL) {
+	if (info == NULL)
+	{
 		dev_err(rdev_get_dev(rdev), "regulator info null pointer\n");
 		return -EINVAL;
 	}
 
 	ret = abx500_mask_and_set_register_interruptible(info->dev,
-		info->update_bank, info->update_reg,
-		info->update_mask, 0x0);
-	if (ret < 0) {
+			info->update_bank, info->update_reg,
+			info->update_mask, 0x0);
+
+	if (ret < 0)
+	{
 		dev_err(rdev_get_dev(rdev),
-			"couldn't set disable bits for regulator\n");
+				"couldn't set disable bits for regulator\n");
 		return ret;
 	}
 
 	dev_vdbg(rdev_get_dev(rdev),
-		"%s-disable (bank, reg, mask, value): 0x%x, 0x%x, 0x%x, 0x%x\n",
-		info->desc.name, info->update_bank, info->update_reg,
-		info->update_mask, 0x0);
+			 "%s-disable (bank, reg, mask, value): 0x%x, 0x%x, 0x%x, 0x%x\n",
+			 info->desc.name, info->update_bank, info->update_reg,
+			 info->update_mask, 0x0);
 
 	return ret;
 }
@@ -295,137 +319,183 @@ static int ab8500_regulator_is_enabled(struct regulator_dev *rdev)
 	struct ab8500_regulator_info *info = rdev_get_drvdata(rdev);
 	u8 regval;
 
-	if (info == NULL) {
+	if (info == NULL)
+	{
 		dev_err(rdev_get_dev(rdev), "regulator info null pointer\n");
 		return -EINVAL;
 	}
 
 	ret = abx500_get_register_interruptible(info->dev,
-		info->update_bank, info->update_reg, &regval);
-	if (ret < 0) {
+											info->update_bank, info->update_reg, &regval);
+
+	if (ret < 0)
+	{
 		dev_err(rdev_get_dev(rdev),
-			"couldn't read 0x%x register\n", info->update_reg);
+				"couldn't read 0x%x register\n", info->update_reg);
 		return ret;
 	}
 
 	dev_vdbg(rdev_get_dev(rdev),
-		"%s-is_enabled (bank, reg, mask, value): 0x%x, 0x%x, 0x%x,"
-		" 0x%x\n",
-		info->desc.name, info->update_bank, info->update_reg,
-		info->update_mask, regval);
+			 "%s-is_enabled (bank, reg, mask, value): 0x%x, 0x%x, 0x%x,"
+			 " 0x%x\n",
+			 info->desc.name, info->update_bank, info->update_reg,
+			 info->update_mask, regval);
 
 	if (regval & info->update_mask)
+	{
 		return 1;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 static unsigned int ab8500_regulator_get_optimum_mode(
-		struct regulator_dev *rdev, int input_uV,
-		int output_uV, int load_uA)
+	struct regulator_dev *rdev, int input_uV,
+	int output_uV, int load_uA)
 {
 	unsigned int mode;
 
 	struct ab8500_regulator_info *info = rdev_get_drvdata(rdev);
 
-	if (info == NULL) {
+	if (info == NULL)
+	{
 		dev_err(rdev_get_dev(rdev), "regulator info null pointer\n");
 		return -EINVAL;
 	}
 
 	if (load_uA <= info->load_lp_uA)
+	{
 		mode = REGULATOR_MODE_IDLE;
+	}
 	else
+	{
 		mode = REGULATOR_MODE_NORMAL;
+	}
 
 	return mode;
 }
 
 static int ab8500_regulator_set_mode(struct regulator_dev *rdev,
-				     unsigned int mode)
+									 unsigned int mode)
 {
 	int ret = 0;
 	u8 bank, reg, mask, val;
 	bool lp_mode_req = false;
 	struct ab8500_regulator_info *info = rdev_get_drvdata(rdev);
 
-	if (info == NULL) {
+	if (info == NULL)
+	{
 		dev_err(rdev_get_dev(rdev), "regulator info null pointer\n");
 		return -EINVAL;
 	}
 
-	if (info->mode_mask) {
+	if (info->mode_mask)
+	{
 		bank = info->mode_bank;
 		reg = info->mode_reg;
 		mask = info->mode_mask;
-	} else {
+	}
+	else
+	{
 		bank = info->update_bank;
 		reg = info->update_reg;
 		mask = info->update_mask;
 	}
 
 	if (info->shared_mode)
+	{
 		mutex_lock(&shared_mode_mutex);
-
-	switch (mode) {
-	case REGULATOR_MODE_NORMAL:
-		if (info->shared_mode)
-			lp_mode_req = false;
-
-		if (info->mode_mask)
-			val = info->mode_val_normal;
-		else
-			val = info->update_val_normal;
-		break;
-	case REGULATOR_MODE_IDLE:
-		if (info->shared_mode) {
-			struct ab8500_regulator_info *shared_regulator;
-
-			shared_regulator = info->shared_mode->shared_regulator;
-			if (!shared_regulator->shared_mode->lp_mode_req) {
-				/* Other regulator prevent LP mode */
-				info->shared_mode->lp_mode_req = true;
-				goto out_unlock;
-			}
-
-			lp_mode_req = true;
-		}
-
-		if (info->mode_mask)
-			val = info->mode_val_idle;
-		else
-			val = info->update_val_idle;
-		break;
-	default:
-		ret = -EINVAL;
-		goto out_unlock;
 	}
 
-	if (info->mode_mask || ab8500_regulator_is_enabled(rdev)) {
+	switch (mode)
+	{
+		case REGULATOR_MODE_NORMAL:
+			if (info->shared_mode)
+			{
+				lp_mode_req = false;
+			}
+
+			if (info->mode_mask)
+			{
+				val = info->mode_val_normal;
+			}
+			else
+			{
+				val = info->update_val_normal;
+			}
+
+			break;
+
+		case REGULATOR_MODE_IDLE:
+			if (info->shared_mode)
+			{
+				struct ab8500_regulator_info *shared_regulator;
+
+				shared_regulator = info->shared_mode->shared_regulator;
+
+				if (!shared_regulator->shared_mode->lp_mode_req)
+				{
+					/* Other regulator prevent LP mode */
+					info->shared_mode->lp_mode_req = true;
+					goto out_unlock;
+				}
+
+				lp_mode_req = true;
+			}
+
+			if (info->mode_mask)
+			{
+				val = info->mode_val_idle;
+			}
+			else
+			{
+				val = info->update_val_idle;
+			}
+
+			break;
+
+		default:
+			ret = -EINVAL;
+			goto out_unlock;
+	}
+
+	if (info->mode_mask || ab8500_regulator_is_enabled(rdev))
+	{
 		ret = abx500_mask_and_set_register_interruptible(info->dev,
-			bank, reg, mask, val);
-		if (ret < 0) {
+				bank, reg, mask, val);
+
+		if (ret < 0)
+		{
 			dev_err(rdev_get_dev(rdev),
-				"couldn't set regulator mode\n");
+					"couldn't set regulator mode\n");
 			goto out_unlock;
 		}
 
 		dev_vdbg(rdev_get_dev(rdev),
-			"%s-set_mode (bank, reg, mask, value): "
-			"0x%x, 0x%x, 0x%x, 0x%x\n",
-			info->desc.name, bank, reg,
-			mask, val);
+				 "%s-set_mode (bank, reg, mask, value): "
+				 "0x%x, 0x%x, 0x%x, 0x%x\n",
+				 info->desc.name, bank, reg,
+				 mask, val);
 	}
 
 	if (!info->mode_mask)
+	{
 		info->update_val = val;
+	}
 
 	if (info->shared_mode)
+	{
 		info->shared_mode->lp_mode_req = lp_mode_req;
+	}
 
 out_unlock:
+
 	if (info->shared_mode)
+	{
 		mutex_unlock(&shared_mode_mutex);
+	}
 
 	return ret;
 }
@@ -438,28 +508,37 @@ static unsigned int ab8500_regulator_get_mode(struct regulator_dev *rdev)
 	u8 val_normal;
 	u8 val_idle;
 
-	if (info == NULL) {
+	if (info == NULL)
+	{
 		dev_err(rdev_get_dev(rdev), "regulator info null pointer\n");
 		return -EINVAL;
 	}
 
 	/* Need special handling for shared mode */
-	if (info->shared_mode) {
+	if (info->shared_mode)
+	{
 		if (info->shared_mode->lp_mode_req)
+		{
 			return REGULATOR_MODE_IDLE;
+		}
 		else
+		{
 			return REGULATOR_MODE_NORMAL;
+		}
 	}
 
-	if (info->mode_mask) {
+	if (info->mode_mask)
+	{
 		/* Dedicated register for handling mode */
 		ret = abx500_get_register_interruptible(info->dev,
-		info->mode_bank, info->mode_reg, &val);
+												info->mode_bank, info->mode_reg, &val);
 		val = val & info->mode_mask;
 
 		val_normal = info->mode_val_normal;
 		val_idle = info->mode_val_idle;
-	} else {
+	}
+	else
+	{
 		/* Mode register same as enable register */
 		val = info->update_val;
 		val_normal = info->update_val_normal;
@@ -467,11 +546,17 @@ static unsigned int ab8500_regulator_get_mode(struct regulator_dev *rdev)
 	}
 
 	if (val == val_normal)
+	{
 		ret = REGULATOR_MODE_NORMAL;
+	}
 	else if (val == val_idle)
+	{
 		ret = REGULATOR_MODE_IDLE;
+	}
 	else
+	{
 		ret = -EINVAL;
+	}
 
 	return ret;
 }
@@ -482,7 +567,8 @@ static int ab8500_regulator_get_voltage_sel(struct regulator_dev *rdev)
 	struct ab8500_regulator_info *info = rdev_get_drvdata(rdev);
 	u8 regval;
 
-	if (info == NULL) {
+	if (info == NULL)
+	{
 		dev_err(rdev_get_dev(rdev), "regulator info null pointer\n");
 		return -EINVAL;
 	}
@@ -490,19 +576,21 @@ static int ab8500_regulator_get_voltage_sel(struct regulator_dev *rdev)
 	voltage_shift = ffs(info->voltage_mask) - 1;
 
 	ret = abx500_get_register_interruptible(info->dev,
-			info->voltage_bank, info->voltage_reg, &regval);
-	if (ret < 0) {
+											info->voltage_bank, info->voltage_reg, &regval);
+
+	if (ret < 0)
+	{
 		dev_err(rdev_get_dev(rdev),
-			"couldn't read voltage reg for regulator\n");
+				"couldn't read voltage reg for regulator\n");
 		return ret;
 	}
 
 	dev_vdbg(rdev_get_dev(rdev),
-		"%s-get_voltage (bank, reg, mask, shift, value): "
-		"0x%x, 0x%x, 0x%x, 0x%x, 0x%x\n",
-		info->desc.name, info->voltage_bank,
-		info->voltage_reg, info->voltage_mask,
-		voltage_shift, regval);
+			 "%s-get_voltage (bank, reg, mask, shift, value): "
+			 "0x%x, 0x%x, 0x%x, 0x%x, 0x%x\n",
+			 info->desc.name, info->voltage_bank,
+			 info->voltage_reg, info->voltage_mask,
+			 voltage_shift, regval);
 
 	return (regval & info->voltage_mask) >> voltage_shift;
 }
@@ -513,41 +601,48 @@ static int ab8540_aux3_regulator_get_voltage_sel(struct regulator_dev *rdev)
 	struct ab8500_regulator_info *info = rdev_get_drvdata(rdev);
 	u8 regval, regval_expand;
 
-	if (info == NULL) {
+	if (info == NULL)
+	{
 		dev_err(rdev_get_dev(rdev), "regulator info null pointer\n");
 		return -EINVAL;
 	}
 
 	ret = abx500_get_register_interruptible(info->dev,
-			info->expand_register.voltage_bank,
-			info->expand_register.voltage_reg, &regval_expand);
-	if (ret < 0) {
+											info->expand_register.voltage_bank,
+											info->expand_register.voltage_reg, &regval_expand);
+
+	if (ret < 0)
+	{
 		dev_err(rdev_get_dev(rdev),
-			"couldn't read voltage expand reg for regulator\n");
+				"couldn't read voltage expand reg for regulator\n");
 		return ret;
 	}
 
 	dev_vdbg(rdev_get_dev(rdev),
-		 "%s-get_voltage expand (bank, reg, mask, value): 0x%x, 0x%x, 0x%x, 0x%x\n",
-		 info->desc.name, info->expand_register.voltage_bank,
-		 info->expand_register.voltage_reg,
-		 info->expand_register.voltage_mask, regval_expand);
+			 "%s-get_voltage expand (bank, reg, mask, value): 0x%x, 0x%x, 0x%x, 0x%x\n",
+			 info->desc.name, info->expand_register.voltage_bank,
+			 info->expand_register.voltage_reg,
+			 info->expand_register.voltage_mask, regval_expand);
 
 	if (regval_expand & info->expand_register.voltage_mask)
+	{
 		return info->expand_register.voltage_limit;
+	}
 
 	ret = abx500_get_register_interruptible(info->dev,
-			info->voltage_bank, info->voltage_reg, &regval);
-	if (ret < 0) {
+											info->voltage_bank, info->voltage_reg, &regval);
+
+	if (ret < 0)
+	{
 		dev_err(rdev_get_dev(rdev),
-			"couldn't read voltage reg for regulator\n");
+				"couldn't read voltage reg for regulator\n");
 		return ret;
 	}
 
 	dev_vdbg(rdev_get_dev(rdev),
-		 "%s-get_voltage (bank, reg, mask, value): 0x%x, 0x%x, 0x%x, 0x%x\n",
-		 info->desc.name, info->voltage_bank, info->voltage_reg,
-		 info->voltage_mask, regval);
+			 "%s-get_voltage (bank, reg, mask, value): 0x%x, 0x%x, 0x%x, 0x%x\n",
+			 info->desc.name, info->voltage_bank, info->voltage_reg,
+			 info->voltage_mask, regval);
 
 	voltage_shift = ffs(info->voltage_mask) - 1;
 
@@ -555,13 +650,14 @@ static int ab8540_aux3_regulator_get_voltage_sel(struct regulator_dev *rdev)
 }
 
 static int ab8500_regulator_set_voltage_sel(struct regulator_dev *rdev,
-					    unsigned selector)
+		unsigned selector)
 {
 	int ret, voltage_shift;
 	struct ab8500_regulator_info *info = rdev_get_drvdata(rdev);
 	u8 regval;
 
-	if (info == NULL) {
+	if (info == NULL)
+	{
 		dev_err(rdev_get_dev(rdev), "regulator info null pointer\n");
 		return -EINVAL;
 	}
@@ -573,75 +669,85 @@ static int ab8500_regulator_set_voltage_sel(struct regulator_dev *rdev,
 	ret = abx500_mask_and_set_register_interruptible(info->dev,
 			info->voltage_bank, info->voltage_reg,
 			info->voltage_mask, regval);
+
 	if (ret < 0)
 		dev_err(rdev_get_dev(rdev),
-		"couldn't set voltage reg for regulator\n");
+				"couldn't set voltage reg for regulator\n");
 
 	dev_vdbg(rdev_get_dev(rdev),
-		"%s-set_voltage (bank, reg, mask, value): 0x%x, 0x%x, 0x%x,"
-		" 0x%x\n",
-		info->desc.name, info->voltage_bank, info->voltage_reg,
-		info->voltage_mask, regval);
+			 "%s-set_voltage (bank, reg, mask, value): 0x%x, 0x%x, 0x%x,"
+			 " 0x%x\n",
+			 info->desc.name, info->voltage_bank, info->voltage_reg,
+			 info->voltage_mask, regval);
 
 	return ret;
 }
 
 static int ab8540_aux3_regulator_set_voltage_sel(struct regulator_dev *rdev,
-						unsigned selector)
+		unsigned selector)
 {
 	int ret;
 	struct ab8500_regulator_info *info = rdev_get_drvdata(rdev);
 	u8 regval, regval_expand;
 
-	if (info == NULL) {
+	if (info == NULL)
+	{
 		dev_err(rdev_get_dev(rdev), "regulator info null pointer\n");
 		return -EINVAL;
 	}
 
-	if (selector < info->expand_register.voltage_limit) {
+	if (selector < info->expand_register.voltage_limit)
+	{
 		int voltage_shift = ffs(info->voltage_mask) - 1;
 
 		regval = (u8)selector << voltage_shift;
 		ret = abx500_mask_and_set_register_interruptible(info->dev,
-					info->voltage_bank, info->voltage_reg,
-					info->voltage_mask, regval);
-		if (ret < 0) {
+				info->voltage_bank, info->voltage_reg,
+				info->voltage_mask, regval);
+
+		if (ret < 0)
+		{
 			dev_err(rdev_get_dev(rdev),
-				"couldn't set voltage reg for regulator\n");
+					"couldn't set voltage reg for regulator\n");
 			return ret;
 		}
 
 		dev_vdbg(rdev_get_dev(rdev),
-			 "%s-set_voltage (bank, reg, mask, value): 0x%x, 0x%x, 0x%x, 0x%x\n",
-			 info->desc.name, info->voltage_bank, info->voltage_reg,
-			 info->voltage_mask, regval);
+				 "%s-set_voltage (bank, reg, mask, value): 0x%x, 0x%x, 0x%x, 0x%x\n",
+				 info->desc.name, info->voltage_bank, info->voltage_reg,
+				 info->voltage_mask, regval);
 
 		regval_expand = 0;
-	} else {
+	}
+	else
+	{
 		regval_expand = info->expand_register.voltage_mask;
 	}
 
 	ret = abx500_mask_and_set_register_interruptible(info->dev,
-				info->expand_register.voltage_bank,
-				info->expand_register.voltage_reg,
-				info->expand_register.voltage_mask,
-				regval_expand);
-	if (ret < 0) {
+			info->expand_register.voltage_bank,
+			info->expand_register.voltage_reg,
+			info->expand_register.voltage_mask,
+			regval_expand);
+
+	if (ret < 0)
+	{
 		dev_err(rdev_get_dev(rdev),
-			"couldn't set expand voltage reg for regulator\n");
+				"couldn't set expand voltage reg for regulator\n");
 		return ret;
 	}
 
 	dev_vdbg(rdev_get_dev(rdev),
-		 "%s-set_voltage expand (bank, reg, mask, value): 0x%x, 0x%x, 0x%x, 0x%x\n",
-		 info->desc.name, info->expand_register.voltage_bank,
-		 info->expand_register.voltage_reg,
-		 info->expand_register.voltage_mask, regval_expand);
+			 "%s-set_voltage expand (bank, reg, mask, value): 0x%x, 0x%x, 0x%x, 0x%x\n",
+			 info->desc.name, info->expand_register.voltage_bank,
+			 info->expand_register.voltage_reg,
+			 info->expand_register.voltage_mask, regval_expand);
 
 	return 0;
 }
 
-static struct regulator_ops ab8500_regulator_volt_mode_ops = {
+static struct regulator_ops ab8500_regulator_volt_mode_ops =
+{
 	.enable			= ab8500_regulator_enable,
 	.disable		= ab8500_regulator_disable,
 	.is_enabled		= ab8500_regulator_is_enabled,
@@ -653,7 +759,8 @@ static struct regulator_ops ab8500_regulator_volt_mode_ops = {
 	.list_voltage		= regulator_list_voltage_table,
 };
 
-static struct regulator_ops ab8540_aux3_regulator_volt_mode_ops = {
+static struct regulator_ops ab8540_aux3_regulator_volt_mode_ops =
+{
 	.enable		= ab8500_regulator_enable,
 	.disable	= ab8500_regulator_disable,
 	.get_optimum_mode	= ab8500_regulator_get_optimum_mode,
@@ -665,7 +772,8 @@ static struct regulator_ops ab8540_aux3_regulator_volt_mode_ops = {
 	.list_voltage	= regulator_list_voltage_table,
 };
 
-static struct regulator_ops ab8500_regulator_volt_ops = {
+static struct regulator_ops ab8500_regulator_volt_ops =
+{
 	.enable		= ab8500_regulator_enable,
 	.disable	= ab8500_regulator_disable,
 	.is_enabled	= ab8500_regulator_is_enabled,
@@ -674,7 +782,8 @@ static struct regulator_ops ab8500_regulator_volt_ops = {
 	.list_voltage	= regulator_list_voltage_table,
 };
 
-static struct regulator_ops ab8500_regulator_mode_ops = {
+static struct regulator_ops ab8500_regulator_mode_ops =
+{
 	.enable			= ab8500_regulator_enable,
 	.disable		= ab8500_regulator_disable,
 	.is_enabled		= ab8500_regulator_is_enabled,
@@ -684,14 +793,16 @@ static struct regulator_ops ab8500_regulator_mode_ops = {
 	.list_voltage		= regulator_list_voltage_table,
 };
 
-static struct regulator_ops ab8500_regulator_ops = {
+static struct regulator_ops ab8500_regulator_ops =
+{
 	.enable			= ab8500_regulator_enable,
 	.disable		= ab8500_regulator_disable,
 	.is_enabled		= ab8500_regulator_is_enabled,
 	.list_voltage		= regulator_list_voltage_table,
 };
 
-static struct regulator_ops ab8500_regulator_anamic_mode_ops = {
+static struct regulator_ops ab8500_regulator_anamic_mode_ops =
+{
 	.enable		= ab8500_regulator_enable,
 	.disable	= ab8500_regulator_disable,
 	.is_enabled	= ab8500_regulator_is_enabled,
@@ -702,7 +813,8 @@ static struct regulator_ops ab8500_regulator_anamic_mode_ops = {
 
 /* AB8500 regulator information */
 static struct ab8500_regulator_info
-		ab8500_regulator_info[AB8500_NUM_REGULATORS] = {
+	ab8500_regulator_info[AB8500_NUM_REGULATORS] =
+{
 	/*
 	 * Variable Voltage Regulators
 	 *   name, min mV, max mV,
@@ -916,7 +1028,8 @@ static struct ab8500_regulator_info
 
 /* AB8505 regulator information */
 static struct ab8500_regulator_info
-		ab8505_regulator_info[AB8505_NUM_REGULATORS] = {
+	ab8505_regulator_info[AB8505_NUM_REGULATORS] =
+{
 	/*
 	 * Variable Voltage Regulators
 	 *   name, min mV, max mV,
@@ -1219,7 +1332,8 @@ static struct ab8500_regulator_info
 
 /* AB9540 regulator information */
 static struct ab8500_regulator_info
-		ab9540_regulator_info[AB9540_NUM_REGULATORS] = {
+	ab9540_regulator_info[AB9540_NUM_REGULATORS] =
+{
 	/*
 	 * Variable Voltage Regulators
 	 *   name, min mV, max mV,
@@ -1461,7 +1575,8 @@ static struct ab8500_regulator_info
 
 /* AB8540 regulator information */
 static struct ab8500_regulator_info
-		ab8540_regulator_info[AB8540_NUM_REGULATORS] = {
+	ab8540_regulator_info[AB8540_NUM_REGULATORS] =
+{
 	/*
 	 * Variable Voltage Regulators
 	 *   name, min mV, max mV,
@@ -1773,23 +1888,28 @@ static struct ab8500_regulator_info
 	},
 };
 
-static struct ab8500_shared_mode ldo_anamic1_shared = {
+static struct ab8500_shared_mode ldo_anamic1_shared =
+{
 	.shared_regulator = &ab8505_regulator_info[AB8505_LDO_ANAMIC2],
 };
 
-static struct ab8500_shared_mode ldo_anamic2_shared = {
+static struct ab8500_shared_mode ldo_anamic2_shared =
+{
 	.shared_regulator = &ab8505_regulator_info[AB8505_LDO_ANAMIC1],
 };
 
-static struct ab8500_shared_mode ab8540_ldo_anamic1_shared = {
+static struct ab8500_shared_mode ab8540_ldo_anamic1_shared =
+{
 	.shared_regulator = &ab8540_regulator_info[AB8540_LDO_ANAMIC2],
 };
 
-static struct ab8500_shared_mode ab8540_ldo_anamic2_shared = {
+static struct ab8500_shared_mode ab8540_ldo_anamic2_shared =
+{
 	.shared_regulator = &ab8540_regulator_info[AB8540_LDO_ANAMIC1],
 };
 
-struct ab8500_reg_init {
+struct ab8500_reg_init
+{
 	u8 bank;
 	u8 addr;
 	u8 mask;
@@ -1797,13 +1917,14 @@ struct ab8500_reg_init {
 
 #define REG_INIT(_id, _bank, _addr, _mask)	\
 	[_id] = {				\
-		.bank = _bank,			\
-		.addr = _addr,			\
-		.mask = _mask,			\
-	}
+							.bank = _bank,			\
+							.addr = _addr,			\
+							.mask = _mask,			\
+			}
 
 /* AB8500 register init */
-static struct ab8500_reg_init ab8500_reg_init[] = {
+static struct ab8500_reg_init ab8500_reg_init[] =
+{
 	/*
 	 * 0x30, VanaRequestCtrl
 	 * 0xc0, VextSupply1RequestCtrl
@@ -1974,7 +2095,8 @@ static struct ab8500_reg_init ab8500_reg_init[] = {
 };
 
 /* AB8505 register init */
-static struct ab8500_reg_init ab8505_reg_init[] = {
+static struct ab8500_reg_init ab8505_reg_init[] =
+{
 	/*
 	 * 0x03, VarmRequestCtrl
 	 * 0x0c, VsmpsCRequestCtrl
@@ -2244,7 +2366,8 @@ static struct ab8500_reg_init ab8505_reg_init[] = {
 };
 
 /* AB9540 register init */
-static struct ab8500_reg_init ab9540_reg_init[] = {
+static struct ab8500_reg_init ab9540_reg_init[] =
+{
 	/*
 	 * 0x03, VarmRequestCtrl
 	 * 0x0c, VapeRequestCtrl
@@ -2519,7 +2642,8 @@ static struct ab8500_reg_init ab9540_reg_init[] = {
 };
 
 /* AB8540 register init */
-static struct ab8500_reg_init ab8540_reg_init[] = {
+static struct ab8500_reg_init ab8540_reg_init[] =
+{
 	/*
 	 * 0x01, VSimSycClkReq1Valid
 	 * 0x02, VSimSycClkReq2Valid
@@ -2896,7 +3020,8 @@ static struct ab8500_reg_init ab8540_reg_init[] = {
 	REG_INIT(AB8540_REGUCTRLDISCH4,		0x04, 0x49, 0x07),
 };
 
-static struct of_regulator_match ab8500_regulator_match[] = {
+static struct of_regulator_match ab8500_regulator_match[] =
+{
 	{ .name	= "ab8500_ldo_aux1",    .driver_data = (void *) AB8500_LDO_AUX1, },
 	{ .name	= "ab8500_ldo_aux2",    .driver_data = (void *) AB8500_LDO_AUX2, },
 	{ .name	= "ab8500_ldo_aux3",    .driver_data = (void *) AB8500_LDO_AUX3, },
@@ -2909,7 +3034,8 @@ static struct of_regulator_match ab8500_regulator_match[] = {
 	{ .name	= "ab8500_ldo_ana",     .driver_data = (void *) AB8500_LDO_ANA, },
 };
 
-static struct of_regulator_match ab8505_regulator_match[] = {
+static struct of_regulator_match ab8505_regulator_match[] =
+{
 	{ .name	= "ab8500_ldo_aux1",    .driver_data = (void *) AB8505_LDO_AUX1, },
 	{ .name	= "ab8500_ldo_aux2",    .driver_data = (void *) AB8505_LDO_AUX2, },
 	{ .name	= "ab8500_ldo_aux3",    .driver_data = (void *) AB8505_LDO_AUX3, },
@@ -2925,7 +3051,8 @@ static struct of_regulator_match ab8505_regulator_match[] = {
 	{ .name	= "ab8500_ldo_ana",     .driver_data = (void *) AB8505_LDO_ANA, },
 };
 
-static struct of_regulator_match ab8540_regulator_match[] = {
+static struct of_regulator_match ab8540_regulator_match[] =
+{
 	{ .name	= "ab8500_ldo_aux1",    .driver_data = (void *) AB8540_LDO_AUX1, },
 	{ .name	= "ab8500_ldo_aux2",    .driver_data = (void *) AB8540_LDO_AUX2, },
 	{ .name	= "ab8500_ldo_aux3",    .driver_data = (void *) AB8540_LDO_AUX3, },
@@ -2942,7 +3069,8 @@ static struct of_regulator_match ab8540_regulator_match[] = {
 	{ .name = "ab8500_ldo_sdio",    .driver_data = (void *) AB8540_LDO_SDIO, },
 };
 
-static struct of_regulator_match ab9540_regulator_match[] = {
+static struct of_regulator_match ab9540_regulator_match[] =
+{
 	{ .name	= "ab8500_ldo_aux1",    .driver_data = (void *) AB9540_LDO_AUX1, },
 	{ .name	= "ab8500_ldo_aux2",    .driver_data = (void *) AB9540_LDO_AUX2, },
 	{ .name	= "ab8500_ldo_aux3",    .driver_data = (void *) AB9540_LDO_AUX3, },
@@ -2956,7 +3084,8 @@ static struct of_regulator_match ab9540_regulator_match[] = {
 	{ .name	= "ab8500_ldo_ana",     .driver_data = (void *) AB9540_LDO_ANA, },
 };
 
-static struct {
+static struct
+{
 	struct ab8500_regulator_info *info;
 	int info_size;
 	struct ab8500_reg_init *init;
@@ -2967,28 +3096,35 @@ static struct {
 
 static void abx500_get_regulator_info(struct ab8500 *ab8500)
 {
-	if (is_ab9540(ab8500)) {
+	if (is_ab9540(ab8500))
+	{
 		abx500_regulator.info = ab9540_regulator_info;
 		abx500_regulator.info_size = ARRAY_SIZE(ab9540_regulator_info);
 		abx500_regulator.init = ab9540_reg_init;
 		abx500_regulator.init_size = AB9540_NUM_REGULATOR_REGISTERS;
 		abx500_regulator.match = ab9540_regulator_match;
 		abx500_regulator.match_size = ARRAY_SIZE(ab9540_regulator_match);
-	} else if (is_ab8505(ab8500)) {
+	}
+	else if (is_ab8505(ab8500))
+	{
 		abx500_regulator.info = ab8505_regulator_info;
 		abx500_regulator.info_size = ARRAY_SIZE(ab8505_regulator_info);
 		abx500_regulator.init = ab8505_reg_init;
 		abx500_regulator.init_size = AB8505_NUM_REGULATOR_REGISTERS;
 		abx500_regulator.match = ab8505_regulator_match;
 		abx500_regulator.match_size = ARRAY_SIZE(ab8505_regulator_match);
-	} else if (is_ab8540(ab8500)) {
+	}
+	else if (is_ab8540(ab8500))
+	{
 		abx500_regulator.info = ab8540_regulator_info;
 		abx500_regulator.info_size = ARRAY_SIZE(ab8540_regulator_info);
 		abx500_regulator.init = ab8540_reg_init;
 		abx500_regulator.init_size = AB8540_NUM_REGULATOR_REGISTERS;
 		abx500_regulator.match = ab8540_regulator_match;
 		abx500_regulator.match_size = ARRAY_SIZE(ab8540_regulator_match);
-	} else {
+	}
+	else
+	{
 		abx500_regulator.info = ab8500_regulator_info;
 		abx500_regulator.info_size = ARRAY_SIZE(ab8500_regulator_info);
 		abx500_regulator.init = ab8500_reg_init;
@@ -2999,8 +3135,8 @@ static void abx500_get_regulator_info(struct ab8500 *ab8500)
 }
 
 static int ab8500_regulator_register(struct platform_device *pdev,
-				     struct regulator_init_data *init_data,
-				     int id, struct device_node *np)
+									 struct regulator_init_data *init_data,
+									 int id, struct device_node *np)
 {
 	struct ab8500 *ab8500 = dev_get_drvdata(pdev->dev.parent);
 	struct ab8500_regulator_info *info = NULL;
@@ -3016,8 +3152,10 @@ static int ab8500_regulator_register(struct platform_device *pdev,
 	config.of_node = np;
 
 	/* fix for hardware before ab8500v2.0 */
-	if (is_ab8500_1p1_or_earlier(ab8500)) {
-		if (info->desc.id == AB8500_LDO_AUX3) {
+	if (is_ab8500_1p1_or_earlier(ab8500))
+	{
+		if (info->desc.id == AB8500_LDO_AUX3)
+		{
 			info->desc.n_voltages =
 				ARRAY_SIZE(ldo_vauxn_voltages);
 			info->desc.volt_table = ldo_vauxn_voltages;
@@ -3027,10 +3165,12 @@ static int ab8500_regulator_register(struct platform_device *pdev,
 
 	/* register regulator with framework */
 	info->regulator = devm_regulator_register(&pdev->dev, &info->desc,
-						&config);
-	if (IS_ERR(info->regulator)) {
+					  &config);
+
+	if (IS_ERR(info->regulator))
+	{
 		dev_err(&pdev->dev, "failed to register regulator %s\n",
-			info->desc.name);
+				info->desc.name);
 		return PTR_ERR(info->regulator);
 	}
 
@@ -3044,7 +3184,8 @@ static int ab8500_regulator_probe(struct platform_device *pdev)
 	struct of_regulator_match *match;
 	int err, i;
 
-	if (!ab8500) {
+	if (!ab8500)
+	{
 		dev_err(&pdev->dev, "null mfd parent\n");
 		return -EINVAL;
 	}
@@ -3052,26 +3193,34 @@ static int ab8500_regulator_probe(struct platform_device *pdev)
 	abx500_get_regulator_info(ab8500);
 
 	err = of_regulator_match(&pdev->dev, np,
-				 abx500_regulator.match,
-				 abx500_regulator.match_size);
-	if (err < 0) {
+							 abx500_regulator.match,
+							 abx500_regulator.match_size);
+
+	if (err < 0)
+	{
 		dev_err(&pdev->dev,
-			"Error parsing regulator init data: %d\n", err);
+				"Error parsing regulator init data: %d\n", err);
 		return err;
 	}
 
 	match = abx500_regulator.match;
-	for (i = 0; i < abx500_regulator.info_size; i++) {
+
+	for (i = 0; i < abx500_regulator.info_size; i++)
+	{
 		err = ab8500_regulator_register(pdev, match[i].init_data, i,
-						match[i].of_node);
+										match[i].of_node);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	return 0;
 }
 
-static struct platform_driver ab8500_regulator_driver = {
+static struct platform_driver ab8500_regulator_driver =
+{
 	.probe = ab8500_regulator_probe,
 	.driver         = {
 		.name   = "ab8500-regulator",
@@ -3083,8 +3232,11 @@ static int __init ab8500_regulator_init(void)
 	int ret;
 
 	ret = platform_driver_register(&ab8500_regulator_driver);
+
 	if (ret != 0)
+	{
 		pr_err("Failed to register ab8500 regulator: %d\n", ret);
+	}
 
 	return ret;
 }

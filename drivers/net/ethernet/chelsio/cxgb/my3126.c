@@ -15,7 +15,7 @@ static int my3126_reset(struct cphy *cphy, int wait)
 
 static int my3126_interrupt_enable(struct cphy *cphy)
 {
-	schedule_delayed_work(&cphy->phy_update, HZ/30);
+	schedule_delayed_work(&cphy->phy_update, HZ / 30);
 	t1_tpi_read(cphy->adapter, A_ELMER0_GPO, &cphy->elmer_gpo);
 	return 0;
 }
@@ -42,13 +42,17 @@ static int my3126_interrupt_handler(struct cphy *cphy)
 	adapter_t *adapter;
 	adapter = cphy->adapter;
 
-	if (cphy->count == 50) {
+	if (cphy->count == 50)
+	{
 		cphy_mdio_read(cphy, MDIO_MMD_PMAPMD, MDIO_STAT1, &val);
 		val16 = (u16) val;
 		status = cphy->bmsr ^ val16;
 
 		if (status & MDIO_STAT1_LSTATUS)
+		{
 			t1_link_changed(adapter, 0);
+		}
+
 		cphy->bmsr = val16;
 
 		/* We have only enabled link change interrupts so it
@@ -58,11 +62,11 @@ static int my3126_interrupt_handler(struct cphy *cphy)
 	}
 
 	t1_tpi_write(adapter, OFFSET(SUNI1x10GEXP_REG_MSTAT_CONTROL),
-		SUNI1x10GEXP_BITMSK_MSTAT_SNAP);
+				 SUNI1x10GEXP_BITMSK_MSTAT_SNAP);
 	t1_tpi_read(adapter,
-		OFFSET(SUNI1x10GEXP_REG_MSTAT_COUNTER_1_LOW), &act_count);
+				OFFSET(SUNI1x10GEXP_REG_MSTAT_COUNTER_1_LOW), &act_count);
 	t1_tpi_read(adapter,
-		OFFSET(SUNI1x10GEXP_REG_MSTAT_COUNTER_33_LOW), &val);
+				OFFSET(SUNI1x10GEXP_REG_MSTAT_COUNTER_33_LOW), &val);
 	act_count += val;
 
 	/* Populate elmer_gpo with the register value */
@@ -70,17 +74,30 @@ static int my3126_interrupt_handler(struct cphy *cphy)
 	cphy->elmer_gpo = val;
 
 	if ( (val & (1 << 8)) || (val & (1 << 19)) ||
-	     (cphy->act_count == act_count) || cphy->act_on ) {
+		 (cphy->act_count == act_count) || cphy->act_on )
+	{
 		if (is_T2(adapter))
+		{
 			val |= (1 << 9);
+		}
 		else if (t1_is_T1B(adapter))
+		{
 			val |= (1 << 20);
+		}
+
 		cphy->act_on = 0;
-	} else {
+	}
+	else
+	{
 		if (is_T2(adapter))
+		{
 			val &= ~(1 << 9);
+		}
 		else if (t1_is_T1B(adapter))
+		{
 			val &= ~(1 << 20);
+		}
+
 		cphy->act_on = 1;
 	}
 
@@ -107,7 +124,7 @@ static int my3126_set_loopback(struct cphy *cphy, int on)
 
 /* To check the activity LED */
 static int my3126_get_link_status(struct cphy *cphy,
-			int *link_ok, int *speed, int *duplex, int *fc)
+								  int *link_ok, int *speed, int *duplex, int *fc)
 {
 	u32 val;
 	u16 val16;
@@ -123,18 +140,29 @@ static int my3126_get_link_status(struct cphy *cphy,
 
 	*link_ok = (val16 & MDIO_STAT1_LSTATUS);
 
-	if (*link_ok) {
+	if (*link_ok)
+	{
 		/* Turn on the LED. */
 		if (is_T2(adapter))
-			 val &= ~(1 << 8);
+		{
+			val &= ~(1 << 8);
+		}
 		else if (t1_is_T1B(adapter))
-			 val &= ~(1 << 19);
-	} else {
+		{
+			val &= ~(1 << 19);
+		}
+	}
+	else
+	{
 		/* Turn off the LED. */
 		if (is_T2(adapter))
-			 val |= (1 << 8);
+		{
+			val |= (1 << 8);
+		}
 		else if (t1_is_T1B(adapter))
-			 val |= (1 << 19);
+		{
+			val |= (1 << 19);
+		}
 	}
 
 	t1_tpi_write(adapter, A_ELMER0_GPO, val);
@@ -144,7 +172,9 @@ static int my3126_get_link_status(struct cphy *cphy,
 
 	/* need to add flow control */
 	if (fc)
+	{
 		*fc = PAUSE_RX | PAUSE_TX;
+	}
 
 	return 0;
 }
@@ -154,7 +184,8 @@ static void my3126_destroy(struct cphy *cphy)
 	kfree(cphy);
 }
 
-static const struct cphy_ops my3126_ops = {
+static const struct cphy_ops my3126_ops =
+{
 	.destroy		= my3126_destroy,
 	.reset			= my3126_reset,
 	.interrupt_enable	= my3126_interrupt_enable,
@@ -164,16 +195,18 @@ static const struct cphy_ops my3126_ops = {
 	.get_link_status	= my3126_get_link_status,
 	.set_loopback		= my3126_set_loopback,
 	.mmds			= (MDIO_DEVS_PMAPMD | MDIO_DEVS_PCS |
-				   MDIO_DEVS_PHYXS),
+	MDIO_DEVS_PHYXS),
 };
 
 static struct cphy *my3126_phy_create(struct net_device *dev,
-			int phy_addr, const struct mdio_ops *mdio_ops)
+									  int phy_addr, const struct mdio_ops *mdio_ops)
 {
 	struct cphy *cphy = kzalloc(sizeof (*cphy), GFP_KERNEL);
 
 	if (!cphy)
+	{
 		return NULL;
+	}
 
 	cphy_init(cphy, dev, phy_addr, &my3126_ops, mdio_ops);
 	INIT_DELAYED_WORK(&cphy->phy_update, my3216_poll);
@@ -183,7 +216,7 @@ static struct cphy *my3126_phy_create(struct net_device *dev,
 }
 
 /* Chip Reset */
-static int my3126_phy_reset(adapter_t * adapter)
+static int my3126_phy_reset(adapter_t *adapter)
 {
 	u32 val;
 
@@ -203,7 +236,8 @@ static int my3126_phy_reset(adapter_t * adapter)
 	return 0;
 }
 
-const struct gphy t1_my3126_ops = {
+const struct gphy t1_my3126_ops =
+{
 	.create = my3126_phy_create,
 	.reset = my3126_phy_reset
 };

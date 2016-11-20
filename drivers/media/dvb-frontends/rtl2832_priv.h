@@ -30,7 +30,8 @@
 #include "dvb_math.h"
 #include "rtl2832.h"
 
-struct rtl2832_dev {
+struct rtl2832_dev
+{
 	struct rtl2832_platform_data *pdata;
 	struct i2c_client *client;
 	struct regmap_config regmap_config;
@@ -47,19 +48,22 @@ struct rtl2832_dev {
 	bool slave_ts;
 };
 
-struct rtl2832_reg_entry {
+struct rtl2832_reg_entry
+{
 	u16 start_address;
 	u8 msb;
 	u8 lsb;
 };
 
-struct rtl2832_reg_value {
+struct rtl2832_reg_value
+{
 	int reg;
 	u32 value;
 };
 
 /* Demod register bit names */
-enum DVBT_REG_BIT_NAME {
+enum DVBT_REG_BIT_NAME
+{
 	DVBT_SOFT_RST,
 	DVBT_IIC_REPEAT,
 	DVBT_TR_WAIT_MIN_8K,
@@ -251,7 +255,8 @@ enum DVBT_REG_BIT_NAME {
 	DVBT_REG_BIT_NAME_ITEM_TERMINATOR,
 };
 
-static const struct rtl2832_reg_value rtl2832_tuner_init_fc2580[] = {
+static const struct rtl2832_reg_value rtl2832_tuner_init_fc2580[] =
+{
 	{DVBT_DAGC_TRG_VAL,             0x39},
 	{DVBT_AGC_TARG_VAL_0,            0x0},
 	{DVBT_AGC_TARG_VAL_8_1,         0x5a},
@@ -275,7 +280,8 @@ static const struct rtl2832_reg_value rtl2832_tuner_init_fc2580[] = {
 	{DVBT_AD7_SETTING,            0xe9f4},
 };
 
-static const struct rtl2832_reg_value rtl2832_tuner_init_tua9001[] = {
+static const struct rtl2832_reg_value rtl2832_tuner_init_tua9001[] =
+{
 	{DVBT_DAGC_TRG_VAL,             0x39},
 	{DVBT_AGC_TARG_VAL_0,            0x0},
 	{DVBT_AGC_TARG_VAL_8_1,         0x5a},
@@ -303,7 +309,8 @@ static const struct rtl2832_reg_value rtl2832_tuner_init_tua9001[] = {
 	{DVBT_SPEC_INV,                  0x0},
 };
 
-static const struct rtl2832_reg_value rtl2832_tuner_init_fc0012[] = {
+static const struct rtl2832_reg_value rtl2832_tuner_init_fc0012[] =
+{
 	{DVBT_DAGC_TRG_VAL,             0x5a},
 	{DVBT_AGC_TARG_VAL_0,            0x0},
 	{DVBT_AGC_TARG_VAL_8_1,         0x5a},
@@ -337,7 +344,8 @@ static const struct rtl2832_reg_value rtl2832_tuner_init_fc0012[] = {
 	{DVBT_SPEC_INV,                  0x0},
 };
 
-static const struct rtl2832_reg_value rtl2832_tuner_init_e4000[] = {
+static const struct rtl2832_reg_value rtl2832_tuner_init_e4000[] =
+{
 	{DVBT_DAGC_TRG_VAL,             0x5a},
 	{DVBT_AGC_TARG_VAL_0,            0x0},
 	{DVBT_AGC_TARG_VAL_8_1,         0x5a},
@@ -375,7 +383,8 @@ static const struct rtl2832_reg_value rtl2832_tuner_init_e4000[] = {
 	{DVBT_SPEC_INV,                  0x0},
 };
 
-static const struct rtl2832_reg_value rtl2832_tuner_init_r820t[] = {
+static const struct rtl2832_reg_value rtl2832_tuner_init_r820t[] =
+{
 	{DVBT_DAGC_TRG_VAL,             0x39},
 	{DVBT_AGC_TARG_VAL_0,            0x0},
 	{DVBT_AGC_TARG_VAL_8_1,         0x40},
@@ -400,7 +409,8 @@ static const struct rtl2832_reg_value rtl2832_tuner_init_r820t[] = {
 	{DVBT_SPEC_INV,                  0x1},
 };
 
-static const struct rtl2832_reg_value rtl2832_tuner_init_si2157[] = {
+static const struct rtl2832_reg_value rtl2832_tuner_init_si2157[] =
+{
 	{DVBT_DAGC_TRG_VAL,             0x39},
 	{DVBT_AGC_TARG_VAL_0,            0x0},
 	{DVBT_AGC_TARG_VAL_8_1,         0x40},

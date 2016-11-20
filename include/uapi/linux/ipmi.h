@@ -67,9 +67,10 @@
  * work for sockets.
  */
 #define IPMI_MAX_ADDR_SIZE 32
-struct ipmi_addr {
-	 /* Try to take these from the "Channel Medium Type" table
-	    in section 6.5 of the IPMI 1.5 manual. */
+struct ipmi_addr
+{
+	/* Try to take these from the "Channel Medium Type" table
+	   in section 6.5 of the IPMI 1.5 manual. */
 	int   addr_type;
 	short channel;
 	char  data[IPMI_MAX_ADDR_SIZE];
@@ -81,7 +82,8 @@ struct ipmi_addr {
  * 0), or IPMC_BMC_CHANNEL if communicating directly with the BMC.
  */
 #define IPMI_SYSTEM_INTERFACE_ADDR_TYPE	0x0c
-struct ipmi_system_interface_addr {
+struct ipmi_system_interface_addr
+{
 	int           addr_type;
 	short         channel;
 	unsigned char lun;
@@ -92,7 +94,8 @@ struct ipmi_system_interface_addr {
 /* Used for broadcast get device id as described in section 17.9 of the
    IPMI 1.5 manual. */
 #define IPMI_IPMB_BROADCAST_ADDR_TYPE	0x41
-struct ipmi_ipmb_addr {
+struct ipmi_ipmb_addr
+{
 	int           addr_type;
 	short         channel;
 	unsigned char slave_addr;
@@ -117,7 +120,8 @@ struct ipmi_ipmb_addr {
  * message is a little weird, but this is required.
  */
 #define IPMI_LAN_ADDR_TYPE		0x04
-struct ipmi_lan_addr {
+struct ipmi_lan_addr
+{
 	int           addr_type;
 	short         channel;
 	unsigned char privilege;
@@ -150,14 +154,16 @@ struct ipmi_lan_addr {
  * byte of data in the response (as the spec shows the messages laid
  * out).
  */
-struct ipmi_msg {
+struct ipmi_msg
+{
 	unsigned char  netfn;
 	unsigned char  cmd;
 	unsigned short data_len;
 	unsigned char  __user *data;
 };
 
-struct kernel_ipmi_msg {
+struct kernel_ipmi_msg
+{
 	unsigned char  netfn;
 	unsigned char  cmd;
 	unsigned short data_len;
@@ -249,7 +255,8 @@ struct kernel_ipmi_msg {
 
 
 /* Messages sent to the interface are this format. */
-struct ipmi_req {
+struct ipmi_req
+{
 	unsigned char __user *addr; /* Address to send the message to. */
 	unsigned int  addr_len;
 
@@ -270,11 +277,12 @@ struct ipmi_req {
  *   - ENOMEM - Buffers could not be allocated for the command.
  */
 #define IPMICTL_SEND_COMMAND		_IOR(IPMI_IOC_MAGIC, 13,	\
-					     struct ipmi_req)
+		struct ipmi_req)
 
 /* Messages sent to the interface with timing parameters are this
    format. */
-struct ipmi_req_settime {
+struct ipmi_req_settime
+{
 	struct ipmi_req req;
 
 	/* See ipmi_request_settime() above for details on these
@@ -292,10 +300,11 @@ struct ipmi_req_settime {
  *   - ENOMEM - Buffers could not be allocated for the command.
  */
 #define IPMICTL_SEND_COMMAND_SETTIME	_IOR(IPMI_IOC_MAGIC, 21,	\
-					     struct ipmi_req_settime)
+		struct ipmi_req_settime)
 
 /* Messages received from the interface are this format. */
-struct ipmi_recv {
+struct ipmi_recv
+{
 	int     recv_type; /* Is this a command, response or an
 			      asyncronous event. */
 
@@ -330,7 +339,7 @@ struct ipmi_recv {
  *  - EMSGSIZE - The message to was too large to fit into the message buffer,
  *               the message will be left in the buffer. */
 #define IPMICTL_RECEIVE_MSG		_IOWR(IPMI_IOC_MAGIC, 12,	\
-					      struct ipmi_recv)
+									  struct ipmi_recv)
 
 /*
  * Like RECEIVE_MSG, but if the message won't fit in the buffer, it
@@ -338,10 +347,11 @@ struct ipmi_recv {
  * buffer.
  */
 #define IPMICTL_RECEIVE_MSG_TRUNC	_IOWR(IPMI_IOC_MAGIC, 11,	\
-					      struct ipmi_recv)
+		struct ipmi_recv)
 
 /* Register to get commands from other entities on this interface. */
-struct ipmi_cmdspec {
+struct ipmi_cmdspec
+{
 	unsigned char netfn;
 	unsigned char cmd;
 };
@@ -353,14 +363,14 @@ struct ipmi_cmdspec {
  *   - ENOMEM - could not allocate memory for the entry.
  */
 #define IPMICTL_REGISTER_FOR_CMD	_IOR(IPMI_IOC_MAGIC, 14,	\
-					     struct ipmi_cmdspec)
+		struct ipmi_cmdspec)
 /*
  * Unregister a regsitered command.  error values:
  *  - EFAULT - an address supplied was invalid.
  *  - ENOENT - The netfn/cmd was not found registered for this user.
  */
 #define IPMICTL_UNREGISTER_FOR_CMD	_IOR(IPMI_IOC_MAGIC, 15,	\
-					     struct ipmi_cmdspec)
+		struct ipmi_cmdspec)
 
 /*
  * Register to get commands from other entities on specific channels.
@@ -369,7 +379,8 @@ struct ipmi_cmdspec {
  * else.  The chans field is a bitmask, (1 << channel) for each channel.
  * It may be IPMI_CHAN_ALL for all channels.
  */
-struct ipmi_cmdspec_chans {
+struct ipmi_cmdspec_chans
+{
 	unsigned int netfn;
 	unsigned int cmd;
 	unsigned int chans;
@@ -382,14 +393,14 @@ struct ipmi_cmdspec_chans {
  *   - ENOMEM - could not allocate memory for the entry.
  */
 #define IPMICTL_REGISTER_FOR_CMD_CHANS	_IOR(IPMI_IOC_MAGIC, 28,	\
-					     struct ipmi_cmdspec_chans)
+		struct ipmi_cmdspec_chans)
 /*
  * Unregister some netfn/cmd/chans.  error values:
  *  - EFAULT - an address supplied was invalid.
  *  - ENOENT - None of the netfn/cmd/chans were found registered for this user.
  */
 #define IPMICTL_UNREGISTER_FOR_CMD_CHANS _IOR(IPMI_IOC_MAGIC, 29,	\
-					     struct ipmi_cmdspec_chans)
+		struct ipmi_cmdspec_chans)
 
 /*
  * Set whether this interface receives events.  Note that the first
@@ -407,7 +418,8 @@ struct ipmi_cmdspec_chans {
  * things it takes to determine your address (if not the BMC) and set
  * it for everyone else.  You should probably leave the LUN alone.
  */
-struct ipmi_channel_lun_address_set {
+struct ipmi_channel_lun_address_set
+{
 	unsigned short channel;
 	unsigned char  value;
 };
@@ -429,14 +441,15 @@ struct ipmi_channel_lun_address_set {
  * Get/set the default timing values for an interface.  You shouldn't
  * generally mess with these.
  */
-struct ipmi_timing_parms {
+struct ipmi_timing_parms
+{
 	int          retries;
 	unsigned int retry_time_ms;
 };
 #define IPMICTL_SET_TIMING_PARMS_CMD	_IOR(IPMI_IOC_MAGIC, 22, \
-					     struct ipmi_timing_parms)
+		struct ipmi_timing_parms)
 #define IPMICTL_GET_TIMING_PARMS_CMD	_IOR(IPMI_IOC_MAGIC, 23, \
-					     struct ipmi_timing_parms)
+		struct ipmi_timing_parms)
 
 /*
  * Set the maintenance mode.  See ipmi_set_maintenance_mode() above

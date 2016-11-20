@@ -23,7 +23,7 @@
  * depth.
  */
 struct rxrpc_connection *rxrpc_find_service_conn_rcu(struct rxrpc_peer *peer,
-						     struct sk_buff *skb)
+		struct sk_buff *skb)
 {
 	struct rxrpc_connection *conn = NULL;
 	struct rxrpc_conn_proto k;
@@ -34,7 +34,8 @@ struct rxrpc_connection *rxrpc_find_service_conn_rcu(struct rxrpc_peer *peer,
 	k.epoch	= sp->hdr.epoch;
 	k.cid	= sp->hdr.cid & RXRPC_CIDMASK;
 
-	do {
+	do
+	{
 		/* Unfortunately, rbtree walking doesn't give reliable results
 		 * under just the RCU read lock, so we have to check for
 		 * changes.
@@ -42,18 +43,28 @@ struct rxrpc_connection *rxrpc_find_service_conn_rcu(struct rxrpc_peer *peer,
 		read_seqbegin_or_lock(&peer->service_conn_lock, &seq);
 
 		p = rcu_dereference_raw(peer->service_conns.rb_node);
-		while (p) {
+
+		while (p)
+		{
 			conn = rb_entry(p, struct rxrpc_connection, service_node);
 
 			if (conn->proto.index_key < k.index_key)
+			{
 				p = rcu_dereference_raw(p->rb_left);
+			}
 			else if (conn->proto.index_key > k.index_key)
+			{
 				p = rcu_dereference_raw(p->rb_right);
+			}
 			else
+			{
 				goto done;
+			}
+
 			conn = NULL;
 		}
-	} while (need_seqretry(&peer->service_conn_lock, seq));
+	}
+	while (need_seqretry(&peer->service_conn_lock, seq));
 
 done:
 	done_seqretry(&peer->service_conn_lock, seq);
@@ -66,7 +77,7 @@ done:
  * for incoming packets.
  */
 static void rxrpc_publish_service_conn(struct rxrpc_peer *peer,
-				       struct rxrpc_connection *conn)
+									   struct rxrpc_connection *conn)
 {
 	struct rxrpc_connection *cursor = NULL;
 	struct rxrpc_conn_proto k = conn->proto;
@@ -76,17 +87,25 @@ static void rxrpc_publish_service_conn(struct rxrpc_peer *peer,
 
 	pp = &peer->service_conns.rb_node;
 	parent = NULL;
-	while (*pp) {
+
+	while (*pp)
+	{
 		parent = *pp;
 		cursor = rb_entry(parent,
-				  struct rxrpc_connection, service_node);
+						  struct rxrpc_connection, service_node);
 
 		if (cursor->proto.index_key < k.index_key)
+		{
 			pp = &(*pp)->rb_left;
+		}
 		else if (cursor->proto.index_key > k.index_key)
+		{
 			pp = &(*pp)->rb_right;
+		}
 		else
+		{
 			goto found_extant_conn;
+		}
 	}
 
 	rb_link_node_rcu(&conn->service_node, parent, pp);
@@ -98,8 +117,12 @@ conn_published:
 	return;
 
 found_extant_conn:
+
 	if (atomic_read(&cursor->usage) == 0)
+	{
 		goto replace_old_connection;
+	}
+
 	write_sequnlock_bh(&peer->service_conn_lock);
 	/* We should not be able to get here.  rxrpc_incoming_connection() is
 	 * called in a non-reentrant context, so there can't be a race to
@@ -111,8 +134,8 @@ replace_old_connection:
 	/* The old connection is from an outdated epoch. */
 	_debug("replace conn");
 	rb_replace_node_rcu(&cursor->service_node,
-			    &conn->service_node,
-			    &peer->service_conns);
+						&conn->service_node,
+						&peer->service_conns);
 	clear_bit(RXRPC_CONN_IN_SERVICE_CONNS, &cursor->flags);
 	goto conn_published;
 }
@@ -125,7 +148,8 @@ struct rxrpc_connection *rxrpc_prealloc_service_connection(gfp_t gfp)
 {
 	struct rxrpc_connection *conn = rxrpc_alloc_connection(gfp);
 
-	if (conn) {
+	if (conn)
+	{
 		/* We maintain an extra ref on the connection whilst it is on
 		 * the rxrpc_connections list.
 		 */
@@ -138,8 +162,8 @@ struct rxrpc_connection *rxrpc_prealloc_service_connection(gfp_t gfp)
 		write_unlock(&rxrpc_connection_lock);
 
 		trace_rxrpc_conn(conn, rxrpc_conn_new_service,
-				 atomic_read(&conn->usage),
-				 __builtin_return_address(0));
+						 atomic_read(&conn->usage),
+						 __builtin_return_address(0));
 	}
 
 	return conn;
@@ -150,7 +174,7 @@ struct rxrpc_connection *rxrpc_prealloc_service_connection(gfp_t gfp)
  * read lock held.
  */
 void rxrpc_new_incoming_connection(struct rxrpc_connection *conn,
-				   struct sk_buff *skb)
+								   struct sk_buff *skb)
 {
 	struct rxrpc_skb_priv *sp = rxrpc_skb(skb);
 
@@ -161,10 +185,15 @@ void rxrpc_new_incoming_connection(struct rxrpc_connection *conn,
 	conn->params.service_id	= sp->hdr.serviceId;
 	conn->security_ix	= sp->hdr.securityIndex;
 	conn->out_clientflag	= 0;
+
 	if (conn->security_ix)
+	{
 		conn->state	= RXRPC_CONN_SERVICE_UNSECURED;
+	}
 	else
+	{
 		conn->state	= RXRPC_CONN_SERVICE;
+	}
 
 	/* Make the connection a target for incoming packets. */
 	rxrpc_publish_service_conn(conn->params.peer, conn);
@@ -181,7 +210,11 @@ void rxrpc_unpublish_service_conn(struct rxrpc_connection *conn)
 	struct rxrpc_peer *peer = conn->params.peer;
 
 	write_seqlock_bh(&peer->service_conn_lock);
+
 	if (test_and_clear_bit(RXRPC_CONN_IN_SERVICE_CONNS, &conn->flags))
+	{
 		rb_erase(&conn->service_node, &peer->service_conns);
+	}
+
 	write_sequnlock_bh(&peer->service_conn_lock);
 }

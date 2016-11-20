@@ -17,11 +17,13 @@
 #include <linux/iio/iio.h>
 #include <linux/iio/configfs.h>
 
-static struct config_item_type iio_root_group_type = {
+static struct config_item_type iio_root_group_type =
+{
 	.ct_owner       = THIS_MODULE,
 };
 
-struct configfs_subsystem iio_configfs_subsys = {
+struct configfs_subsystem iio_configfs_subsys =
+{
 	.su_group = {
 		.cg_item = {
 			.ci_namebuf = "iio",

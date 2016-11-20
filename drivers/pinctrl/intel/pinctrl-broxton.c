@@ -25,16 +25,17 @@
 #define BXT_COMMUNITY(s, e)				\
 	{						\
 		.padown_offset = BXT_PAD_OWN,		\
-		.padcfglock_offset = BXT_PADCFGLOCK,	\
-		.hostown_offset = BXT_HOSTSW_OWN,	\
-		.ie_offset = BXT_GPI_IE,		\
-		.gpp_size = 32,                         \
-		.pin_base = (s),			\
-		.npins = ((e) - (s) + 1),		\
+						 .padcfglock_offset = BXT_PADCFGLOCK,	\
+											  .hostown_offset = BXT_HOSTSW_OWN,	\
+													  .ie_offset = BXT_GPI_IE,		\
+															  .gpp_size = 32,                         \
+																	  .pin_base = (s),			\
+																			  .npins = ((e) - (s) + 1),		\
 	}
 
 /* BXT */
-static const struct pinctrl_pin_desc bxt_north_pins[] = {
+static const struct pinctrl_pin_desc bxt_north_pins[] =
+{
 	PINCTRL_PIN(0, "GPIO_0"),
 	PINCTRL_PIN(1, "GPIO_1"),
 	PINCTRL_PIN(2, "GPIO_2"),
@@ -132,7 +133,8 @@ static const unsigned bxt_north_uart1b_pins[] = { 54, 55, 56, 57 };
 static const unsigned bxt_north_uart2b_pins[] = { 58, 59, 60, 61 };
 static const unsigned bxt_north_uart3_pins[] = { 58, 59, 60, 61 };
 
-static const struct intel_pingroup bxt_north_groups[] = {
+static const struct intel_pingroup bxt_north_groups[] =
+{
 	PIN_GROUP("pwm0_grp", bxt_north_pwm0_pins, 1),
 	PIN_GROUP("pwm1_grp", bxt_north_pwm1_pins, 1),
 	PIN_GROUP("pwm2_grp", bxt_north_pwm2_pins, 1),
@@ -146,22 +148,26 @@ static const struct intel_pingroup bxt_north_groups[] = {
 	PIN_GROUP("uart3_grp", bxt_north_uart3_pins, 3),
 };
 
-static const char * const bxt_north_pwm0_groups[] = { "pwm0_grp" };
-static const char * const bxt_north_pwm1_groups[] = { "pwm1_grp" };
-static const char * const bxt_north_pwm2_groups[] = { "pwm2_grp" };
-static const char * const bxt_north_pwm3_groups[] = { "pwm3_grp" };
-static const char * const bxt_north_uart0_groups[] = {
+static const char *const bxt_north_pwm0_groups[] = { "pwm0_grp" };
+static const char *const bxt_north_pwm1_groups[] = { "pwm1_grp" };
+static const char *const bxt_north_pwm2_groups[] = { "pwm2_grp" };
+static const char *const bxt_north_pwm3_groups[] = { "pwm3_grp" };
+static const char *const bxt_north_uart0_groups[] =
+{
 	"uart0_grp", "uart0b_grp",
 };
-static const char * const bxt_north_uart1_groups[] = {
+static const char *const bxt_north_uart1_groups[] =
+{
 	"uart1_grp", "uart1b_grp",
 };
-static const char * const bxt_north_uart2_groups[] = {
+static const char *const bxt_north_uart2_groups[] =
+{
 	"uart2_grp", "uart2b_grp",
 };
-static const char * const bxt_north_uart3_groups[] = { "uart3_grp" };
+static const char *const bxt_north_uart3_groups[] = { "uart3_grp" };
 
-static const struct intel_function bxt_north_functions[] = {
+static const struct intel_function bxt_north_functions[] =
+{
 	FUNCTION("pwm0", bxt_north_pwm0_groups),
 	FUNCTION("pwm1", bxt_north_pwm1_groups),
 	FUNCTION("pwm2", bxt_north_pwm2_groups),
@@ -172,11 +178,13 @@ static const struct intel_function bxt_north_functions[] = {
 	FUNCTION("uart3", bxt_north_uart3_groups),
 };
 
-static const struct intel_community bxt_north_communities[] = {
+static const struct intel_community bxt_north_communities[] =
+{
 	BXT_COMMUNITY(0, 82),
 };
 
-static const struct intel_pinctrl_soc_data bxt_north_soc_data = {
+static const struct intel_pinctrl_soc_data bxt_north_soc_data =
+{
 	.uid = "1",
 	.pins = bxt_north_pins,
 	.npins = ARRAY_SIZE(bxt_north_pins),
@@ -188,7 +196,8 @@ static const struct intel_pinctrl_soc_data bxt_north_soc_data = {
 	.ncommunities = ARRAY_SIZE(bxt_north_communities),
 };
 
-static const struct pinctrl_pin_desc bxt_northwest_pins[] = {
+static const struct pinctrl_pin_desc bxt_northwest_pins[] =
+{
 	PINCTRL_PIN(0, "PMC_SPI_FS0"),
 	PINCTRL_PIN(1, "PMC_SPI_FS1"),
 	PINCTRL_PIN(2, "PMC_SPI_FS2"),
@@ -264,36 +273,41 @@ static const struct pinctrl_pin_desc bxt_northwest_pins[] = {
 };
 
 static const unsigned bxt_northwest_ssp0_pins[] = { 53, 54, 55, 56, 57, 58 };
-static const unsigned bxt_northwest_ssp1_pins[] = {
+static const unsigned bxt_northwest_ssp1_pins[] =
+{
 	59, 60, 61, 62, 63, 64, 65
 };
 static const unsigned bxt_northwest_ssp2_pins[] = { 66, 67, 68, 69, 70, 71 };
 static const unsigned bxt_northwest_uart3_pins[] = { 67, 68, 69, 70 };
 
-static const struct intel_pingroup bxt_northwest_groups[] = {
+static const struct intel_pingroup bxt_northwest_groups[] =
+{
 	PIN_GROUP("ssp0_grp", bxt_northwest_ssp0_pins, 1),
 	PIN_GROUP("ssp1_grp", bxt_northwest_ssp1_pins, 1),
 	PIN_GROUP("ssp2_grp", bxt_northwest_ssp2_pins, 1),
 	PIN_GROUP("uart3_grp", bxt_northwest_uart3_pins, 2),
 };
 
-static const char * const bxt_northwest_ssp0_groups[] = { "ssp0_grp" };
-static const char * const bxt_northwest_ssp1_groups[] = { "ssp1_grp" };
-static const char * const bxt_northwest_ssp2_groups[] = { "ssp2_grp" };
-static const char * const bxt_northwest_uart3_groups[] = { "uart3_grp" };
+static const char *const bxt_northwest_ssp0_groups[] = { "ssp0_grp" };
+static const char *const bxt_northwest_ssp1_groups[] = { "ssp1_grp" };
+static const char *const bxt_northwest_ssp2_groups[] = { "ssp2_grp" };
+static const char *const bxt_northwest_uart3_groups[] = { "uart3_grp" };
 
-static const struct intel_function bxt_northwest_functions[] = {
+static const struct intel_function bxt_northwest_functions[] =
+{
 	FUNCTION("ssp0", bxt_northwest_ssp0_groups),
 	FUNCTION("ssp1", bxt_northwest_ssp1_groups),
 	FUNCTION("ssp2", bxt_northwest_ssp2_groups),
 	FUNCTION("uart3", bxt_northwest_uart3_groups),
 };
 
-static const struct intel_community bxt_northwest_communities[] = {
+static const struct intel_community bxt_northwest_communities[] =
+{
 	BXT_COMMUNITY(0, 71),
 };
 
-static const struct intel_pinctrl_soc_data bxt_northwest_soc_data = {
+static const struct intel_pinctrl_soc_data bxt_northwest_soc_data =
+{
 	.uid = "2",
 	.pins = bxt_northwest_pins,
 	.npins = ARRAY_SIZE(bxt_northwest_pins),
@@ -305,7 +319,8 @@ static const struct intel_pinctrl_soc_data bxt_northwest_soc_data = {
 	.ncommunities = ARRAY_SIZE(bxt_northwest_communities),
 };
 
-static const struct pinctrl_pin_desc bxt_west_pins[] = {
+static const struct pinctrl_pin_desc bxt_west_pins[] =
+{
 	PINCTRL_PIN(0, "LPSS_I2C0_SDA"),
 	PINCTRL_PIN(1, "LPSS_I2C0_SCL"),
 	PINCTRL_PIN(2, "LPSS_I2C1_SDA"),
@@ -362,7 +377,8 @@ static const unsigned bxt_west_i2c5b_pins[] = { 16, 17 };
 static const unsigned bxt_west_i2c6b_pins[] = { 18, 19 };
 static const unsigned bxt_west_i2c7b_pins[] = { 20, 21 };
 
-static const struct intel_pingroup bxt_west_groups[] = {
+static const struct intel_pingroup bxt_west_groups[] =
+{
 	PIN_GROUP("i2c0_grp", bxt_west_i2c0_pins, 1),
 	PIN_GROUP("i2c1_grp", bxt_west_i2c1_pins, 1),
 	PIN_GROUP("i2c2_grp", bxt_west_i2c2_pins, 1),
@@ -376,16 +392,17 @@ static const struct intel_pingroup bxt_west_groups[] = {
 	PIN_GROUP("i2c7b_grp", bxt_west_i2c7b_pins, 2),
 };
 
-static const char * const bxt_west_i2c0_groups[] = { "i2c0_grp" };
-static const char * const bxt_west_i2c1_groups[] = { "i2c1_grp" };
-static const char * const bxt_west_i2c2_groups[] = { "i2c2_grp" };
-static const char * const bxt_west_i2c3_groups[] = { "i2c3_grp" };
-static const char * const bxt_west_i2c4_groups[] = { "i2c4_grp" };
-static const char * const bxt_west_i2c5_groups[] = { "i2c5_grp", "i2c5b_grp" };
-static const char * const bxt_west_i2c6_groups[] = { "i2c6_grp", "i2c6b_grp" };
-static const char * const bxt_west_i2c7_groups[] = { "i2c7_grp", "i2c7b_grp" };
+static const char *const bxt_west_i2c0_groups[] = { "i2c0_grp" };
+static const char *const bxt_west_i2c1_groups[] = { "i2c1_grp" };
+static const char *const bxt_west_i2c2_groups[] = { "i2c2_grp" };
+static const char *const bxt_west_i2c3_groups[] = { "i2c3_grp" };
+static const char *const bxt_west_i2c4_groups[] = { "i2c4_grp" };
+static const char *const bxt_west_i2c5_groups[] = { "i2c5_grp", "i2c5b_grp" };
+static const char *const bxt_west_i2c6_groups[] = { "i2c6_grp", "i2c6b_grp" };
+static const char *const bxt_west_i2c7_groups[] = { "i2c7_grp", "i2c7b_grp" };
 
-static const struct intel_function bxt_west_functions[] = {
+static const struct intel_function bxt_west_functions[] =
+{
 	FUNCTION("i2c0", bxt_west_i2c0_groups),
 	FUNCTION("i2c1", bxt_west_i2c1_groups),
 	FUNCTION("i2c2", bxt_west_i2c2_groups),
@@ -396,11 +413,13 @@ static const struct intel_function bxt_west_functions[] = {
 	FUNCTION("i2c7", bxt_west_i2c7_groups),
 };
 
-static const struct intel_community bxt_west_communities[] = {
+static const struct intel_community bxt_west_communities[] =
+{
 	BXT_COMMUNITY(0, 41),
 };
 
-static const struct intel_pinctrl_soc_data bxt_west_soc_data = {
+static const struct intel_pinctrl_soc_data bxt_west_soc_data =
+{
 	.uid = "3",
 	.pins = bxt_west_pins,
 	.npins = ARRAY_SIZE(bxt_west_pins),
@@ -412,7 +431,8 @@ static const struct intel_pinctrl_soc_data bxt_west_soc_data = {
 	.ncommunities = ARRAY_SIZE(bxt_west_communities),
 };
 
-static const struct pinctrl_pin_desc bxt_southwest_pins[] = {
+static const struct pinctrl_pin_desc bxt_southwest_pins[] =
+{
 	PINCTRL_PIN(0, "EMMC0_CLK"),
 	PINCTRL_PIN(1, "EMMC0_D0"),
 	PINCTRL_PIN(2, "EMMC0_D1"),
@@ -446,37 +466,44 @@ static const struct pinctrl_pin_desc bxt_southwest_pins[] = {
 	PINCTRL_PIN(30, "SDCARD_LVL_WP"),
 };
 
-static const unsigned bxt_southwest_emmc0_pins[] = {
+static const unsigned bxt_southwest_emmc0_pins[] =
+{
 	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 26,
 };
-static const unsigned bxt_southwest_sdio_pins[] = {
+static const unsigned bxt_southwest_sdio_pins[] =
+{
 	10, 11, 12, 13, 14, 15, 27,
 };
-static const unsigned bxt_southwest_sdcard_pins[] = {
+static const unsigned bxt_southwest_sdcard_pins[] =
+{
 	16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30,
 };
 
-static const struct intel_pingroup bxt_southwest_groups[] = {
+static const struct intel_pingroup bxt_southwest_groups[] =
+{
 	PIN_GROUP("emmc0_grp", bxt_southwest_emmc0_pins, 1),
 	PIN_GROUP("sdio_grp", bxt_southwest_sdio_pins, 1),
 	PIN_GROUP("sdcard_grp", bxt_southwest_sdcard_pins, 1),
 };
 
-static const char * const bxt_southwest_emmc0_groups[] = { "emmc0_grp" };
-static const char * const bxt_southwest_sdio_groups[] = { "sdio_grp" };
-static const char * const bxt_southwest_sdcard_groups[] = { "sdcard_grp" };
+static const char *const bxt_southwest_emmc0_groups[] = { "emmc0_grp" };
+static const char *const bxt_southwest_sdio_groups[] = { "sdio_grp" };
+static const char *const bxt_southwest_sdcard_groups[] = { "sdcard_grp" };
 
-static const struct intel_function bxt_southwest_functions[] = {
+static const struct intel_function bxt_southwest_functions[] =
+{
 	FUNCTION("emmc0", bxt_southwest_emmc0_groups),
 	FUNCTION("sdio", bxt_southwest_sdio_groups),
 	FUNCTION("sdcard", bxt_southwest_sdcard_groups),
 };
 
-static const struct intel_community bxt_southwest_communities[] = {
+static const struct intel_community bxt_southwest_communities[] =
+{
 	BXT_COMMUNITY(0, 30),
 };
 
-static const struct intel_pinctrl_soc_data bxt_southwest_soc_data = {
+static const struct intel_pinctrl_soc_data bxt_southwest_soc_data =
+{
 	.uid = "4",
 	.pins = bxt_southwest_pins,
 	.npins = ARRAY_SIZE(bxt_southwest_pins),
@@ -488,7 +515,8 @@ static const struct intel_pinctrl_soc_data bxt_southwest_soc_data = {
 	.ncommunities = ARRAY_SIZE(bxt_southwest_communities),
 };
 
-static const struct pinctrl_pin_desc bxt_south_pins[] = {
+static const struct pinctrl_pin_desc bxt_south_pins[] =
+{
 	PINCTRL_PIN(0, "HV_DDI0_DDC_SDA"),
 	PINCTRL_PIN(1, "HV_DDI0_DDC_SCL"),
 	PINCTRL_PIN(2, "HV_DDI1_DDC_SDA"),
@@ -511,11 +539,13 @@ static const struct pinctrl_pin_desc bxt_south_pins[] = {
 	PINCTRL_PIN(19, "MEX_WAKE1_B"),
 };
 
-static const struct intel_community bxt_south_communities[] = {
+static const struct intel_community bxt_south_communities[] =
+{
 	BXT_COMMUNITY(0, 19),
 };
 
-static const struct intel_pinctrl_soc_data bxt_south_soc_data = {
+static const struct intel_pinctrl_soc_data bxt_south_soc_data =
+{
 	.uid = "5",
 	.pins = bxt_south_pins,
 	.npins = ARRAY_SIZE(bxt_south_pins),
@@ -523,7 +553,8 @@ static const struct intel_pinctrl_soc_data bxt_south_soc_data = {
 	.ncommunities = ARRAY_SIZE(bxt_south_communities),
 };
 
-static const struct intel_pinctrl_soc_data *bxt_pinctrl_soc_data[] = {
+static const struct intel_pinctrl_soc_data *bxt_pinctrl_soc_data[] =
+{
 	&bxt_north_soc_data,
 	&bxt_northwest_soc_data,
 	&bxt_west_soc_data,
@@ -533,7 +564,8 @@ static const struct intel_pinctrl_soc_data *bxt_pinctrl_soc_data[] = {
 };
 
 /* APL */
-static const struct pinctrl_pin_desc apl_north_pins[] = {
+static const struct pinctrl_pin_desc apl_north_pins[] =
+{
 	PINCTRL_PIN(0, "GPIO_0"),
 	PINCTRL_PIN(1, "GPIO_1"),
 	PINCTRL_PIN(2, "GPIO_2"),
@@ -622,7 +654,8 @@ static const unsigned apl_north_uart0_pins[] = { 38, 39, 40, 41 };
 static const unsigned apl_north_uart1_pins[] = { 42, 43, 44, 45 };
 static const unsigned apl_north_uart2_pins[] = { 46, 47, 48, 49 };
 
-static const struct intel_pingroup apl_north_groups[] = {
+static const struct intel_pingroup apl_north_groups[] =
+{
 	PIN_GROUP("pwm0_grp", apl_north_pwm0_pins, 1),
 	PIN_GROUP("pwm1_grp", apl_north_pwm1_pins, 1),
 	PIN_GROUP("pwm2_grp", apl_north_pwm2_pins, 1),
@@ -632,15 +665,16 @@ static const struct intel_pingroup apl_north_groups[] = {
 	PIN_GROUP("uart2_grp", apl_north_uart2_pins, 1),
 };
 
-static const char * const apl_north_pwm0_groups[] = { "pwm0_grp" };
-static const char * const apl_north_pwm1_groups[] = { "pwm1_grp" };
-static const char * const apl_north_pwm2_groups[] = { "pwm2_grp" };
-static const char * const apl_north_pwm3_groups[] = { "pwm3_grp" };
-static const char * const apl_north_uart0_groups[] = { "uart0_grp" };
-static const char * const apl_north_uart1_groups[] = { "uart1_grp" };
-static const char * const apl_north_uart2_groups[] = { "uart2_grp" };
+static const char *const apl_north_pwm0_groups[] = { "pwm0_grp" };
+static const char *const apl_north_pwm1_groups[] = { "pwm1_grp" };
+static const char *const apl_north_pwm2_groups[] = { "pwm2_grp" };
+static const char *const apl_north_pwm3_groups[] = { "pwm3_grp" };
+static const char *const apl_north_uart0_groups[] = { "uart0_grp" };
+static const char *const apl_north_uart1_groups[] = { "uart1_grp" };
+static const char *const apl_north_uart2_groups[] = { "uart2_grp" };
 
-static const struct intel_function apl_north_functions[] = {
+static const struct intel_function apl_north_functions[] =
+{
 	FUNCTION("pwm0", apl_north_pwm0_groups),
 	FUNCTION("pwm1", apl_north_pwm1_groups),
 	FUNCTION("pwm2", apl_north_pwm2_groups),
@@ -650,11 +684,13 @@ static const struct intel_function apl_north_functions[] = {
 	FUNCTION("uart2", apl_north_uart2_groups),
 };
 
-static const struct intel_community apl_north_communities[] = {
+static const struct intel_community apl_north_communities[] =
+{
 	BXT_COMMUNITY(0, 77),
 };
 
-static const struct intel_pinctrl_soc_data apl_north_soc_data = {
+static const struct intel_pinctrl_soc_data apl_north_soc_data =
+{
 	.uid = "1",
 	.pins = apl_north_pins,
 	.npins = ARRAY_SIZE(apl_north_pins),
@@ -666,7 +702,8 @@ static const struct intel_pinctrl_soc_data apl_north_soc_data = {
 	.ncommunities = ARRAY_SIZE(apl_north_communities),
 };
 
-static const struct pinctrl_pin_desc apl_northwest_pins[] = {
+static const struct pinctrl_pin_desc apl_northwest_pins[] =
+{
 	PINCTRL_PIN(0, "HV_DDI0_DDC_SDA"),
 	PINCTRL_PIN(1, "HV_DDI0_DDC_SCL"),
 	PINCTRL_PIN(2, "HV_DDI1_DDC_SDA"),
@@ -751,30 +788,34 @@ static const unsigned apl_northwest_ssp1_pins[] = { 66, 67, 68, 69, 70 };
 static const unsigned apl_northwest_ssp2_pins[] = { 71, 72, 73, 74, 75, 76 };
 static const unsigned apl_northwest_uart3_pins[] = { 67, 68, 69, 70 };
 
-static const struct intel_pingroup apl_northwest_groups[] = {
+static const struct intel_pingroup apl_northwest_groups[] =
+{
 	PIN_GROUP("ssp0_grp", apl_northwest_ssp0_pins, 1),
 	PIN_GROUP("ssp1_grp", apl_northwest_ssp1_pins, 1),
 	PIN_GROUP("ssp2_grp", apl_northwest_ssp2_pins, 1),
 	PIN_GROUP("uart3_grp", apl_northwest_uart3_pins, 2),
 };
 
-static const char * const apl_northwest_ssp0_groups[] = { "ssp0_grp" };
-static const char * const apl_northwest_ssp1_groups[] = { "ssp1_grp" };
-static const char * const apl_northwest_ssp2_groups[] = { "ssp2_grp" };
-static const char * const apl_northwest_uart3_groups[] = { "uart3_grp" };
+static const char *const apl_northwest_ssp0_groups[] = { "ssp0_grp" };
+static const char *const apl_northwest_ssp1_groups[] = { "ssp1_grp" };
+static const char *const apl_northwest_ssp2_groups[] = { "ssp2_grp" };
+static const char *const apl_northwest_uart3_groups[] = { "uart3_grp" };
 
-static const struct intel_function apl_northwest_functions[] = {
+static const struct intel_function apl_northwest_functions[] =
+{
 	FUNCTION("ssp0", apl_northwest_ssp0_groups),
 	FUNCTION("ssp1", apl_northwest_ssp1_groups),
 	FUNCTION("ssp2", apl_northwest_ssp2_groups),
 	FUNCTION("uart3", apl_northwest_uart3_groups),
 };
 
-static const struct intel_community apl_northwest_communities[] = {
+static const struct intel_community apl_northwest_communities[] =
+{
 	BXT_COMMUNITY(0, 76),
 };
 
-static const struct intel_pinctrl_soc_data apl_northwest_soc_data = {
+static const struct intel_pinctrl_soc_data apl_northwest_soc_data =
+{
 	.uid = "2",
 	.pins = apl_northwest_pins,
 	.npins = ARRAY_SIZE(apl_northwest_pins),
@@ -786,7 +827,8 @@ static const struct intel_pinctrl_soc_data apl_northwest_soc_data = {
 	.ncommunities = ARRAY_SIZE(apl_northwest_communities),
 };
 
-static const struct pinctrl_pin_desc apl_west_pins[] = {
+static const struct pinctrl_pin_desc apl_west_pins[] =
+{
 	PINCTRL_PIN(0, "LPSS_I2C0_SDA"),
 	PINCTRL_PIN(1, "LPSS_I2C0_SCL"),
 	PINCTRL_PIN(2, "LPSS_I2C1_SDA"),
@@ -846,7 +888,8 @@ static const unsigned apl_west_i2c6_pins[] = { 12, 13 };
 static const unsigned apl_west_i2c7_pins[] = { 14, 15 };
 static const unsigned apl_west_uart2_pins[] = { 20, 21, 22, 34 };
 
-static const struct intel_pingroup apl_west_groups[] = {
+static const struct intel_pingroup apl_west_groups[] =
+{
 	PIN_GROUP("i2c0_grp", apl_west_i2c0_pins, 1),
 	PIN_GROUP("i2c1_grp", apl_west_i2c1_pins, 1),
 	PIN_GROUP("i2c2_grp", apl_west_i2c2_pins, 1),
@@ -858,17 +901,18 @@ static const struct intel_pingroup apl_west_groups[] = {
 	PIN_GROUP("uart2_grp", apl_west_uart2_pins, 3),
 };
 
-static const char * const apl_west_i2c0_groups[] = { "i2c0_grp" };
-static const char * const apl_west_i2c1_groups[] = { "i2c1_grp" };
-static const char * const apl_west_i2c2_groups[] = { "i2c2_grp" };
-static const char * const apl_west_i2c3_groups[] = { "i2c3_grp" };
-static const char * const apl_west_i2c4_groups[] = { "i2c4_grp" };
-static const char * const apl_west_i2c5_groups[] = { "i2c5_grp" };
-static const char * const apl_west_i2c6_groups[] = { "i2c6_grp" };
-static const char * const apl_west_i2c7_groups[] = { "i2c7_grp" };
-static const char * const apl_west_uart2_groups[] = { "uart2_grp" };
+static const char *const apl_west_i2c0_groups[] = { "i2c0_grp" };
+static const char *const apl_west_i2c1_groups[] = { "i2c1_grp" };
+static const char *const apl_west_i2c2_groups[] = { "i2c2_grp" };
+static const char *const apl_west_i2c3_groups[] = { "i2c3_grp" };
+static const char *const apl_west_i2c4_groups[] = { "i2c4_grp" };
+static const char *const apl_west_i2c5_groups[] = { "i2c5_grp" };
+static const char *const apl_west_i2c6_groups[] = { "i2c6_grp" };
+static const char *const apl_west_i2c7_groups[] = { "i2c7_grp" };
+static const char *const apl_west_uart2_groups[] = { "uart2_grp" };
 
-static const struct intel_function apl_west_functions[] = {
+static const struct intel_function apl_west_functions[] =
+{
 	FUNCTION("i2c0", apl_west_i2c0_groups),
 	FUNCTION("i2c1", apl_west_i2c1_groups),
 	FUNCTION("i2c2", apl_west_i2c2_groups),
@@ -880,11 +924,13 @@ static const struct intel_function apl_west_functions[] = {
 	FUNCTION("uart2", apl_west_uart2_groups),
 };
 
-static const struct intel_community apl_west_communities[] = {
+static const struct intel_community apl_west_communities[] =
+{
 	BXT_COMMUNITY(0, 46),
 };
 
-static const struct intel_pinctrl_soc_data apl_west_soc_data = {
+static const struct intel_pinctrl_soc_data apl_west_soc_data =
+{
 	.uid = "3",
 	.pins = apl_west_pins,
 	.npins = ARRAY_SIZE(apl_west_pins),
@@ -896,7 +942,8 @@ static const struct intel_pinctrl_soc_data apl_west_soc_data = {
 	.ncommunities = ARRAY_SIZE(apl_west_communities),
 };
 
-static const struct pinctrl_pin_desc apl_southwest_pins[] = {
+static const struct pinctrl_pin_desc apl_southwest_pins[] =
+{
 	PINCTRL_PIN(0, "PCIE_WAKE0_B"),
 	PINCTRL_PIN(1, "PCIE_WAKE1_B"),
 	PINCTRL_PIN(2, "PCIE_WAKE2_B"),
@@ -942,41 +989,48 @@ static const struct pinctrl_pin_desc apl_southwest_pins[] = {
 	PINCTRL_PIN(42, "LPC_FRAMEB"),
 };
 
-static const unsigned apl_southwest_emmc0_pins[] = {
+static const unsigned apl_southwest_emmc0_pins[] =
+{
 	4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 29,
 };
-static const unsigned apl_southwest_sdio_pins[] = {
+static const unsigned apl_southwest_sdio_pins[] =
+{
 	14, 15, 16, 17, 18, 19, 30,
 };
-static const unsigned apl_southwest_sdcard_pins[] = {
+static const unsigned apl_southwest_sdcard_pins[] =
+{
 	20, 21, 22, 23, 24, 25, 26, 27, 28,
 };
 static const unsigned apl_southwest_i2c7_pins[] = { 32, 33 };
 
-static const struct intel_pingroup apl_southwest_groups[] = {
+static const struct intel_pingroup apl_southwest_groups[] =
+{
 	PIN_GROUP("emmc0_grp", apl_southwest_emmc0_pins, 1),
 	PIN_GROUP("sdio_grp", apl_southwest_sdio_pins, 1),
 	PIN_GROUP("sdcard_grp", apl_southwest_sdcard_pins, 1),
 	PIN_GROUP("i2c7_grp", apl_southwest_i2c7_pins, 2),
 };
 
-static const char * const apl_southwest_emmc0_groups[] = { "emmc0_grp" };
-static const char * const apl_southwest_sdio_groups[] = { "sdio_grp" };
-static const char * const apl_southwest_sdcard_groups[] = { "sdcard_grp" };
-static const char * const apl_southwest_i2c7_groups[] = { "i2c7_grp" };
+static const char *const apl_southwest_emmc0_groups[] = { "emmc0_grp" };
+static const char *const apl_southwest_sdio_groups[] = { "sdio_grp" };
+static const char *const apl_southwest_sdcard_groups[] = { "sdcard_grp" };
+static const char *const apl_southwest_i2c7_groups[] = { "i2c7_grp" };
 
-static const struct intel_function apl_southwest_functions[] = {
+static const struct intel_function apl_southwest_functions[] =
+{
 	FUNCTION("emmc0", apl_southwest_emmc0_groups),
 	FUNCTION("sdio", apl_southwest_sdio_groups),
 	FUNCTION("sdcard", apl_southwest_sdcard_groups),
 	FUNCTION("i2c7", apl_southwest_i2c7_groups),
 };
 
-static const struct intel_community apl_southwest_communities[] = {
+static const struct intel_community apl_southwest_communities[] =
+{
 	BXT_COMMUNITY(0, 42),
 };
 
-static const struct intel_pinctrl_soc_data apl_southwest_soc_data = {
+static const struct intel_pinctrl_soc_data apl_southwest_soc_data =
+{
 	.uid = "4",
 	.pins = apl_southwest_pins,
 	.npins = ARRAY_SIZE(apl_southwest_pins),
@@ -988,7 +1042,8 @@ static const struct intel_pinctrl_soc_data apl_southwest_soc_data = {
 	.ncommunities = ARRAY_SIZE(apl_southwest_communities),
 };
 
-static const struct intel_pinctrl_soc_data *apl_pinctrl_soc_data[] = {
+static const struct intel_pinctrl_soc_data *apl_pinctrl_soc_data[] =
+{
 	&apl_north_soc_data,
 	&apl_northwest_soc_data,
 	&apl_west_soc_data,
@@ -996,16 +1051,18 @@ static const struct intel_pinctrl_soc_data *apl_pinctrl_soc_data[] = {
 	NULL,
 };
 
-static const struct acpi_device_id bxt_pinctrl_acpi_match[] = {
+static const struct acpi_device_id bxt_pinctrl_acpi_match[] =
+{
 	{ "INT3452", (kernel_ulong_t)apl_pinctrl_soc_data },
 	{ "INT34D1", (kernel_ulong_t)bxt_pinctrl_soc_data },
 	{ }
 };
 MODULE_DEVICE_TABLE(acpi, bxt_pinctrl_acpi_match);
 
-static const struct platform_device_id bxt_pinctrl_platform_ids[] = {
-	{ "apl-pinctrl", (kernel_ulong_t)&apl_pinctrl_soc_data },
-	{ "broxton-pinctrl", (kernel_ulong_t)&bxt_pinctrl_soc_data },
+static const struct platform_device_id bxt_pinctrl_platform_ids[] =
+{
+	{ "apl-pinctrl", (kernel_ulong_t) &apl_pinctrl_soc_data },
+	{ "broxton-pinctrl", (kernel_ulong_t) &bxt_pinctrl_soc_data },
 	{ },
 };
 
@@ -1017,46 +1074,62 @@ static int bxt_pinctrl_probe(struct platform_device *pdev)
 	int i;
 
 	adev = ACPI_COMPANION(&pdev->dev);
-	if (adev) {
+
+	if (adev)
+	{
 		const struct acpi_device_id *id;
 
 		id = acpi_match_device(bxt_pinctrl_acpi_match, &pdev->dev);
+
 		if (!id)
+		{
 			return -ENODEV;
+		}
 
 		soc_table = (const struct intel_pinctrl_soc_data **)
-			id->driver_data;
+					id->driver_data;
 
-		for (i = 0; soc_table[i]; i++) {
-			if (!strcmp(adev->pnp.unique_id, soc_table[i]->uid)) {
+		for (i = 0; soc_table[i]; i++)
+		{
+			if (!strcmp(adev->pnp.unique_id, soc_table[i]->uid))
+			{
 				soc_data = soc_table[i];
 				break;
 			}
 		}
-	} else {
+	}
+	else
+	{
 		const struct platform_device_id *pid;
 
 		pid = platform_get_device_id(pdev);
+
 		if (!pid)
+		{
 			return -ENODEV;
+		}
 
 		soc_table = (const struct intel_pinctrl_soc_data **)
-			pid->driver_data;
+					pid->driver_data;
 		soc_data = soc_table[pdev->id];
 	}
 
 	if (!soc_data)
+	{
 		return -ENODEV;
+	}
 
 	return intel_pinctrl_probe(pdev, soc_data);
 }
 
-static const struct dev_pm_ops bxt_pinctrl_pm_ops = {
+static const struct dev_pm_ops bxt_pinctrl_pm_ops =
+{
 	SET_LATE_SYSTEM_SLEEP_PM_OPS(intel_pinctrl_suspend,
-				     intel_pinctrl_resume)
+	intel_pinctrl_resume)
 };
 
-static struct platform_driver bxt_pinctrl_driver = {
+static struct platform_driver bxt_pinctrl_driver =
+{
 	.probe = bxt_pinctrl_probe,
 	.remove = intel_pinctrl_remove,
 	.driver = {

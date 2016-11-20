@@ -23,7 +23,8 @@
  * Register Block
  * M00389_CVI_MEMMAP_PACKAGE_VHD_REGMAP
  *******************************************************************/
-struct m00389_cvi_regmap {
+struct m00389_cvi_regmap
+{
 	uint32_t control;          /* Reg 0x0000, Default=0x0 */
 	uint32_t frame_width;      /* Reg 0x0004, Default=0x10 */
 	uint32_t frame_height;     /* Reg 0x0008, Default=0xc */

@@ -25,7 +25,8 @@
 #include "dvb_frontend.h"
 #include "tda665x.h"
 
-struct tda665x_state {
+struct tda665x_state
+{
 	struct dvb_frontend		*fe;
 	struct i2c_adapter		*i2c;
 	const struct tda665x_config	*config;
@@ -41,8 +42,11 @@ static int tda665x_read(struct tda665x_state *state, u8 *buf)
 	struct i2c_msg msg = { .addr = config->addr, .flags = I2C_M_RD, .buf = buf, .len = 2 };
 
 	err = i2c_transfer(state->i2c, &msg, 1);
+
 	if (err != 1)
+	{
 		goto exit;
+	}
 
 	return err;
 exit:
@@ -57,8 +61,11 @@ static int tda665x_write(struct tda665x_state *state, u8 *buf, u8 length)
 	struct i2c_msg msg = { .addr = config->addr, .flags = 0, .buf = buf, .len = length };
 
 	err = i2c_transfer(state->i2c, &msg, 1);
+
 	if (err != 1)
+	{
 		goto exit;
+	}
 
 	return err;
 exit:
@@ -84,10 +91,14 @@ static int tda665x_get_status(struct dvb_frontend *fe, u32 *status)
 	*status = 0;
 
 	err = tda665x_read(state, &result);
-	if (err < 0)
-		goto exit;
 
-	if ((result >> 6) & 0x01) {
+	if (err < 0)
+	{
+		goto exit;
+	}
+
+	if ((result >> 6) & 0x01)
+	{
 		printk(KERN_DEBUG "%s: Tuner Phase Locked\n", __func__);
 		*status = 1;
 	}
@@ -99,7 +110,7 @@ exit:
 }
 
 static int tda665x_set_frequency(struct dvb_frontend *fe,
-				 u32 new_frequency)
+								 u32 new_frequency)
 {
 	struct tda665x_state *state = fe->tuner_priv;
 	const struct tda665x_config *config = state->config;
@@ -108,9 +119,10 @@ static int tda665x_set_frequency(struct dvb_frontend *fe,
 	int err = 0;
 
 	if ((new_frequency < config->frequency_max)
-	    || (new_frequency > config->frequency_min)) {
+		|| (new_frequency > config->frequency_min))
+	{
 		printk(KERN_ERR "%s: Frequency beyond limits, frequency=%d\n",
-		       __func__, new_frequency);
+			   __func__, new_frequency);
 		return -EINVAL;
 	}
 
@@ -129,57 +141,98 @@ static int tda665x_set_frequency(struct dvb_frontend *fe,
 	/* restore frequency */
 	frequency = new_frequency;
 
-	if (frequency < 153000000) {
+	if (frequency < 153000000)
+	{
 		/* VHF-L */
 		buf[3] |= 0x01; /* fc, Low Band, 47 - 153 MHz */
+
 		if (frequency < 68000000)
-			buf[3] |= 0x40; /* 83uA */
+		{
+			buf[3] |= 0x40;    /* 83uA */
+		}
+
 		if (frequency < 1040000000)
-			buf[3] |= 0x60; /* 122uA */
+		{
+			buf[3] |= 0x60;    /* 122uA */
+		}
+
 		if (frequency < 1250000000)
-			buf[3] |= 0x80; /* 163uA */
+		{
+			buf[3] |= 0x80;    /* 163uA */
+		}
 		else
-			buf[3] |= 0xa0; /* 254uA */
-	} else if (frequency < 438000000) {
+		{
+			buf[3] |= 0xa0;    /* 254uA */
+		}
+	}
+	else if (frequency < 438000000)
+	{
 		/* VHF-H */
 		buf[3] |= 0x02; /* fc, Mid Band, 153 - 438 MHz */
+
 		if (frequency < 230000000)
+		{
 			buf[3] |= 0x40;
+		}
+
 		if (frequency < 300000000)
+		{
 			buf[3] |= 0x60;
+		}
 		else
+		{
 			buf[3] |= 0x80;
-	} else {
+		}
+	}
+	else
+	{
 		/* UHF */
 		buf[3] |= 0x04; /* fc, High Band, 438 - 862 MHz */
+
 		if (frequency < 470000000)
+		{
 			buf[3] |= 0x60;
+		}
+
 		if (frequency < 526000000)
+		{
 			buf[3] |= 0x80;
+		}
 		else
+		{
 			buf[3] |= 0xa0;
+		}
 	}
 
 	/* Set params */
 	err = tda665x_write(state, buf, 5);
+
 	if (err < 0)
+	{
 		goto exit;
+	}
 
 	/* sleep for some time */
 	printk(KERN_DEBUG "%s: Waiting to Phase LOCK\n", __func__);
 	msleep(20);
 	/* check status */
 	err = tda665x_get_status(fe, &status);
-	if (err < 0)
-		goto exit;
 
-	if (status == 1) {
+	if (err < 0)
+	{
+		goto exit;
+	}
+
+	if (status == 1)
+	{
 		printk(KERN_DEBUG "%s: Tuner Phase locked: status=%d\n",
-		       __func__, status);
+			   __func__, status);
 		state->frequency = frequency; /* cache successful state */
-	} else {
+	}
+	else
+	{
 		printk(KERN_ERR "%s: No Phase lock: status=%d\n",
-		       __func__, status);
+			   __func__, status);
 	}
 
 	return 0;
@@ -206,7 +259,8 @@ static int tda665x_release(struct dvb_frontend *fe)
 	return 0;
 }
 
-static const struct dvb_tuner_ops tda665x_ops = {
+static const struct dvb_tuner_ops tda665x_ops =
+{
 	.get_status	= tda665x_get_status,
 	.set_params	= tda665x_set_params,
 	.get_frequency	= tda665x_get_frequency,
@@ -214,15 +268,18 @@ static const struct dvb_tuner_ops tda665x_ops = {
 };
 
 struct dvb_frontend *tda665x_attach(struct dvb_frontend *fe,
-				    const struct tda665x_config *config,
-				    struct i2c_adapter *i2c)
+									const struct tda665x_config *config,
+									struct i2c_adapter *i2c)
 {
 	struct tda665x_state *state = NULL;
 	struct dvb_tuner_info *info;
 
 	state = kzalloc(sizeof(struct tda665x_state), GFP_KERNEL);
+
 	if (!state)
+	{
 		return NULL;
+	}
 
 	state->config		= config;
 	state->i2c		= i2c;

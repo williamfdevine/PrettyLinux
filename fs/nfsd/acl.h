@@ -45,15 +45,15 @@ struct svc_rqst;
  * high-order allocation.  This allows 204 ACEs on x86_64:
  */
 #define NFS4_ACL_MAX ((PAGE_SIZE - sizeof(struct nfs4_acl)) \
-			/ sizeof(struct nfs4_ace))
+					  / sizeof(struct nfs4_ace))
 
 int nfs4_acl_bytes(int entries);
 int nfs4_acl_get_whotype(char *, u32);
 __be32 nfs4_acl_write_who(struct xdr_stream *xdr, int who);
 
 int nfsd4_get_nfs4_acl(struct svc_rqst *rqstp, struct dentry *dentry,
-		struct nfs4_acl **acl);
+					   struct nfs4_acl **acl);
 __be32 nfsd4_set_nfs4_acl(struct svc_rqst *rqstp, struct svc_fh *fhp,
-		struct nfs4_acl *acl);
+						  struct nfs4_acl *acl);
 
 #endif /* LINUX_NFS4_ACL_H */

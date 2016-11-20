@@ -45,7 +45,8 @@
  * be a single bit each, except for MEMBARRIER_CMD_QUERY which is assigned to
  * the value 0.
  */
-enum membarrier_cmd {
+enum membarrier_cmd
+{
 	MEMBARRIER_CMD_QUERY = 0,
 	MEMBARRIER_CMD_SHARED = (1 << 0),
 };

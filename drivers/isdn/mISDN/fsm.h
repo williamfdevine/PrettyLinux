@@ -28,13 +28,15 @@ struct FsmInst;
 
 typedef void (*FSMFNPTR)(struct FsmInst *, int, void *);
 
-struct Fsm {
+struct Fsm
+{
 	FSMFNPTR *jumpmatrix;
 	int state_count, event_count;
-	char **strEvent, **strState;
+	char **strEvent, * *strState;
 };
 
-struct FsmInst {
+struct FsmInst
+{
 	struct Fsm *fsm;
 	int state;
 	int debug;
@@ -43,12 +45,14 @@ struct FsmInst {
 	void (*printdebug) (struct FsmInst *, char *, ...);
 };
 
-struct FsmNode {
+struct FsmNode
+{
 	int state, event;
 	void (*routine) (struct FsmInst *, int, void *);
 };
 
-struct FsmTimer {
+struct FsmTimer
+{
 	struct FsmInst *fi;
 	struct timer_list tl;
 	int event;

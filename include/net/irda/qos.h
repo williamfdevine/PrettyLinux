@@ -1,5 +1,5 @@
 /*********************************************************************
- *                
+ *
  * Filename:      qos.h
  * Version:       1.0
  * Description:   Quality of Service definitions
@@ -8,22 +8,22 @@
  * Created at:    Fri Sep 19 23:21:09 1997
  * Modified at:   Thu Dec  2 13:51:54 1999
  * Modified by:   Dag Brattli <dagb@cs.uit.no>
- * 
+ *
  *     Copyright (c) 1999 Dag Brattli, All Rights Reserved.
- *     
- *     This program is free software; you can redistribute it and/or 
- *     modify it under the terms of the GNU General Public License as 
- *     published by the Free Software Foundation; either version 2 of 
+ *
+ *     This program is free software; you can redistribute it and/or
+ *     modify it under the terms of the GNU General Public License as
+ *     published by the Free Software Foundation; either version 2 of
  *     the License, or (at your option) any later version.
- * 
+ *
  *     This program is distributed in the hope that it will be useful,
  *     but WITHOUT ANY WARRANTY; without even the implied warranty of
  *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  *     GNU General Public License for more details.
- * 
- *     You should have received a copy of the GNU General Public License 
+ *
+ *     You should have received a copy of the GNU General Public License
  *     along with this program; if not, see <http://www.gnu.org/licenses/>.
- *     
+ *
  ********************************************************************/
 
 #ifndef IRDA_QOS_H
@@ -58,12 +58,14 @@
 #define IR_16000000 0x02
 
 /* Quality of Service information */
-typedef struct {
+typedef struct
+{
 	__u32 value;
 	__u16 bits; /* LSB is first byte, MSB is second byte */
 } qos_value_t;
 
-struct qos_info {
+struct qos_info
+{
 	magic_t magic;
 
 	qos_value_t baud_rate;       /* IR_11520O | ... */
@@ -73,7 +75,7 @@ struct qos_info {
 	qos_value_t additional_bofs;
 	qos_value_t min_turn_time;
 	qos_value_t link_disc_time;
-	
+
 	qos_value_t power;
 };
 
@@ -91,11 +93,11 @@ void irda_qos_bits_to_value(struct qos_info *qos);
  * Note : one byte is 10 bits if you include start and stop bits
  * Jean II */
 #define irlap_min_turn_time_in_bytes(speed, min_turn_time) (	\
-	speed * min_turn_time / 10000000			\
-)
+		speed * min_turn_time / 10000000			\
+														   )
 #define irlap_xbofs_in_usec(speed, xbofs) (			\
-	xbofs * 10000000 / speed				\
-)
+		xbofs * 10000000 / speed				\
+										  )
 
 #endif
 

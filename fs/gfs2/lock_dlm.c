@@ -45,7 +45,7 @@ extern struct workqueue_struct *gfs2_control_wq;
  */
 
 static inline void gfs2_update_stats(struct gfs2_lkstats *s, unsigned index,
-				     s64 sample)
+									 s64 sample)
 {
 	s64 delta = sample - s->stats[index];
 	s->stats[index] += (delta >> 3);
@@ -75,7 +75,7 @@ static inline void gfs2_update_reply_times(struct gfs2_glock *gl)
 	struct gfs2_pcpu_lkstats *lks;
 	const unsigned gltype = gl->gl_name.ln_type;
 	unsigned index = test_bit(GLF_BLOCKING, &gl->gl_flags) ?
-			 GFS2_LKS_SRTTB : GFS2_LKS_SRTT;
+					 GFS2_LKS_SRTTB : GFS2_LKS_SRTT;
 	s64 rtt;
 
 	preempt_disable();
@@ -113,7 +113,7 @@ static inline void gfs2_update_request_times(struct gfs2_glock *gl)
 	gfs2_update_stats(&lks->lkstats[gltype], GFS2_LKS_SIRT, irt);	/* Global */
 	preempt_enable();
 }
- 
+
 static void gdlm_ast(void *arg)
 {
 	struct gfs2_glock *gl = arg;
@@ -123,43 +123,63 @@ static void gdlm_ast(void *arg)
 	BUG_ON(gl->gl_lksb.sb_flags & DLM_SBF_DEMOTED);
 
 	if ((gl->gl_lksb.sb_flags & DLM_SBF_VALNOTVALID) && gl->gl_lksb.sb_lvbptr)
+	{
 		memset(gl->gl_lksb.sb_lvbptr, 0, GDLM_LVB_SIZE);
+	}
 
-	switch (gl->gl_lksb.sb_status) {
-	case -DLM_EUNLOCK: /* Unlocked, so glock can be freed */
-		gfs2_glock_free(gl);
-		return;
-	case -DLM_ECANCEL: /* Cancel while getting lock */
-		ret |= LM_OUT_CANCELED;
-		goto out;
-	case -EAGAIN: /* Try lock fails */
-	case -EDEADLK: /* Deadlock detected */
-		goto out;
-	case -ETIMEDOUT: /* Canceled due to timeout */
-		ret |= LM_OUT_ERROR;
-		goto out;
-	case 0: /* Success */
-		break;
-	default: /* Something unexpected */
-		BUG();
+	switch (gl->gl_lksb.sb_status)
+	{
+		case -DLM_EUNLOCK: /* Unlocked, so glock can be freed */
+			gfs2_glock_free(gl);
+			return;
+
+		case -DLM_ECANCEL: /* Cancel while getting lock */
+			ret |= LM_OUT_CANCELED;
+			goto out;
+
+		case -EAGAIN: /* Try lock fails */
+		case -EDEADLK: /* Deadlock detected */
+			goto out;
+
+		case -ETIMEDOUT: /* Canceled due to timeout */
+			ret |= LM_OUT_ERROR;
+			goto out;
+
+		case 0: /* Success */
+			break;
+
+		default: /* Something unexpected */
+			BUG();
 	}
 
 	ret = gl->gl_req;
-	if (gl->gl_lksb.sb_flags & DLM_SBF_ALTMODE) {
+
+	if (gl->gl_lksb.sb_flags & DLM_SBF_ALTMODE)
+	{
 		if (gl->gl_req == LM_ST_SHARED)
+		{
 			ret = LM_ST_DEFERRED;
+		}
 		else if (gl->gl_req == LM_ST_DEFERRED)
+		{
 			ret = LM_ST_SHARED;
+		}
 		else
+		{
 			BUG();
+		}
 	}
 
 	set_bit(GLF_INITIAL, &gl->gl_flags);
 	gfs2_glock_complete(gl, ret);
 	return;
 out:
+
 	if (!test_bit(GLF_INITIAL, &gl->gl_flags))
+	{
 		gl->gl_lksb.sb_lkid = 0;
+	}
+
 	gfs2_glock_complete(gl, ret);
 }
 
@@ -167,19 +187,23 @@ static void gdlm_bast(void *arg, int mode)
 {
 	struct gfs2_glock *gl = arg;
 
-	switch (mode) {
-	case DLM_LOCK_EX:
-		gfs2_glock_cb(gl, LM_ST_UNLOCKED);
-		break;
-	case DLM_LOCK_CW:
-		gfs2_glock_cb(gl, LM_ST_DEFERRED);
-		break;
-	case DLM_LOCK_PR:
-		gfs2_glock_cb(gl, LM_ST_SHARED);
-		break;
-	default:
-		pr_err("unknown bast mode %d\n", mode);
-		BUG();
+	switch (mode)
+	{
+		case DLM_LOCK_EX:
+			gfs2_glock_cb(gl, LM_ST_UNLOCKED);
+			break;
+
+		case DLM_LOCK_CW:
+			gfs2_glock_cb(gl, LM_ST_DEFERRED);
+			break;
+
+		case DLM_LOCK_PR:
+			gfs2_glock_cb(gl, LM_ST_SHARED);
+			break;
+
+		default:
+			pr_err("unknown bast mode %d\n", mode);
+			BUG();
 	}
 }
 
@@ -187,55 +211,77 @@ static void gdlm_bast(void *arg, int mode)
 
 static int make_mode(const unsigned int lmstate)
 {
-	switch (lmstate) {
-	case LM_ST_UNLOCKED:
-		return DLM_LOCK_NL;
-	case LM_ST_EXCLUSIVE:
-		return DLM_LOCK_EX;
-	case LM_ST_DEFERRED:
-		return DLM_LOCK_CW;
-	case LM_ST_SHARED:
-		return DLM_LOCK_PR;
+	switch (lmstate)
+	{
+		case LM_ST_UNLOCKED:
+			return DLM_LOCK_NL;
+
+		case LM_ST_EXCLUSIVE:
+			return DLM_LOCK_EX;
+
+		case LM_ST_DEFERRED:
+			return DLM_LOCK_CW;
+
+		case LM_ST_SHARED:
+			return DLM_LOCK_PR;
 	}
+
 	pr_err("unknown LM state %d\n", lmstate);
 	BUG();
 	return -1;
 }
 
 static u32 make_flags(struct gfs2_glock *gl, const unsigned int gfs_flags,
-		      const int req)
+					  const int req)
 {
 	u32 lkf = 0;
 
 	if (gl->gl_lksb.sb_lvbptr)
+	{
 		lkf |= DLM_LKF_VALBLK;
+	}
 
 	if (gfs_flags & LM_FLAG_TRY)
+	{
 		lkf |= DLM_LKF_NOQUEUE;
+	}
 
-	if (gfs_flags & LM_FLAG_TRY_1CB) {
+	if (gfs_flags & LM_FLAG_TRY_1CB)
+	{
 		lkf |= DLM_LKF_NOQUEUE;
 		lkf |= DLM_LKF_NOQUEUEBAST;
 	}
 
-	if (gfs_flags & LM_FLAG_PRIORITY) {
+	if (gfs_flags & LM_FLAG_PRIORITY)
+	{
 		lkf |= DLM_LKF_NOORDER;
 		lkf |= DLM_LKF_HEADQUE;
 	}
 
-	if (gfs_flags & LM_FLAG_ANY) {
+	if (gfs_flags & LM_FLAG_ANY)
+	{
 		if (req == DLM_LOCK_PR)
+		{
 			lkf |= DLM_LKF_ALTCW;
+		}
 		else if (req == DLM_LOCK_CW)
+		{
 			lkf |= DLM_LKF_ALTPR;
+		}
 		else
+		{
 			BUG();
+		}
 	}
 
-	if (gl->gl_lksb.sb_lkid != 0) {
+	if (gl->gl_lksb.sb_lkid != 0)
+	{
 		lkf |= DLM_LKF_CONVERT;
+
 		if (test_bit(GLF_BLOCKING, &gl->gl_flags))
+		{
 			lkf |= DLM_LKF_QUECVT;
+		}
 	}
 
 	return lkf;
@@ -244,14 +290,16 @@ static u32 make_flags(struct gfs2_glock *gl, const unsigned int gfs_flags,
 static void gfs2_reverse_hex(char *c, u64 value)
 {
 	*c = '0';
-	while (value) {
+
+	while (value)
+	{
 		*c-- = hex_asc[value & 0x0f];
 		value >>= 4;
 	}
 }
 
 static int gdlm_lock(struct gfs2_glock *gl, unsigned int req_state,
-		     unsigned int flags)
+					 unsigned int flags)
 {
 	struct lm_lockstruct *ls = &gl->gl_name.ln_sbd->sd_lockstruct;
 	int req;
@@ -262,21 +310,26 @@ static int gdlm_lock(struct gfs2_glock *gl, unsigned int req_state,
 	lkf = make_flags(gl, flags, req);
 	gfs2_glstats_inc(gl, GFS2_LKS_DCOUNT);
 	gfs2_sbstats_inc(gl, GFS2_LKS_DCOUNT);
-	if (gl->gl_lksb.sb_lkid) {
+
+	if (gl->gl_lksb.sb_lkid)
+	{
 		gfs2_update_request_times(gl);
-	} else {
+	}
+	else
+	{
 		memset(strname, ' ', GDLM_STRNAME_BYTES - 1);
 		strname[GDLM_STRNAME_BYTES - 1] = '\0';
 		gfs2_reverse_hex(strname + 7, gl->gl_name.ln_type);
 		gfs2_reverse_hex(strname + 23, gl->gl_name.ln_number);
 		gl->gl_dstamp = ktime_get_real();
 	}
+
 	/*
 	 * Submit the actual lock request.
 	 */
 
 	return dlm_lock(ls->ls_dlm, req, &gl->gl_lksb, lkf, strname,
-			GDLM_STRNAME_BYTES - 1, 0, gdlm_ast, gl, gdlm_bast);
+					GDLM_STRNAME_BYTES - 1, 0, gdlm_ast, gl, gdlm_bast);
 }
 
 static void gdlm_put_lock(struct gfs2_glock *gl)
@@ -286,7 +339,8 @@ static void gdlm_put_lock(struct gfs2_glock *gl)
 	int lvb_needs_unlock = 0;
 	int error;
 
-	if (gl->gl_lksb.sb_lkid == 0) {
+	if (gl->gl_lksb.sb_lkid == 0)
+	{
 		gfs2_glock_free(gl);
 		return;
 	}
@@ -299,20 +353,25 @@ static void gdlm_put_lock(struct gfs2_glock *gl)
 	/* don't want to skip dlm_unlock writing the lvb when lock is ex */
 
 	if (gl->gl_lksb.sb_lvbptr && (gl->gl_state == LM_ST_EXCLUSIVE))
+	{
 		lvb_needs_unlock = 1;
+	}
 
 	if (test_bit(SDF_SKIP_DLM_UNLOCK, &sdp->sd_flags) &&
-	    !lvb_needs_unlock) {
+		!lvb_needs_unlock)
+	{
 		gfs2_glock_free(gl);
 		return;
 	}
 
 	error = dlm_unlock(ls->ls_dlm, gl->gl_lksb.sb_lkid, DLM_LKF_VALBLK,
-			   NULL, gl);
-	if (error) {
+					   NULL, gl);
+
+	if (error)
+	{
 		pr_err("gdlm_unlock %x,%llx err=%d\n",
-		       gl->gl_name.ln_type,
-		       (unsigned long long)gl->gl_name.ln_number, error);
+			   gl->gl_name.ln_type,
+			   (unsigned long long)gl->gl_name.ln_number, error);
 		return;
 	}
 }
@@ -466,7 +525,7 @@ static void gdlm_cancel(struct gfs2_glock *gl)
 #define JID_BITMAP_OFFSET 8 /* 4 byte generation number + 4 byte unused */
 
 static void control_lvb_read(struct lm_lockstruct *ls, uint32_t *lvb_gen,
-			     char *lvb_bits)
+							 char *lvb_bits)
 {
 	__le32 gen;
 	memcpy(lvb_bits, ls->ls_control_lvb, GDLM_LVB_SIZE);
@@ -475,7 +534,7 @@ static void control_lvb_read(struct lm_lockstruct *ls, uint32_t *lvb_gen,
 }
 
 static void control_lvb_write(struct lm_lockstruct *ls, uint32_t lvb_gen,
-			      char *lvb_bits)
+							  char *lvb_bits)
 {
 	__le32 gen;
 	memcpy(ls->ls_control_lvb, lvb_bits, GDLM_LVB_SIZE);
@@ -486,7 +545,7 @@ static void control_lvb_write(struct lm_lockstruct *ls, uint32_t lvb_gen,
 static int all_jid_bits_clear(char *lvb)
 {
 	return !memchr_inv(lvb + JID_BITMAP_OFFSET, 0,
-			GDLM_LVB_SIZE - JID_BITMAP_OFFSET);
+					   GDLM_LVB_SIZE - JID_BITMAP_OFFSET);
 }
 
 static void sync_wait_cb(void *arg)
@@ -501,24 +560,28 @@ static int sync_unlock(struct gfs2_sbd *sdp, struct dlm_lksb *lksb, char *name)
 	int error;
 
 	error = dlm_unlock(ls->ls_dlm, lksb->sb_lkid, 0, lksb, ls);
-	if (error) {
+
+	if (error)
+	{
 		fs_err(sdp, "%s lkid %x error %d\n",
-		       name, lksb->sb_lkid, error);
+			   name, lksb->sb_lkid, error);
 		return error;
 	}
 
 	wait_for_completion(&ls->ls_sync_wait);
 
-	if (lksb->sb_status != -DLM_EUNLOCK) {
+	if (lksb->sb_status != -DLM_EUNLOCK)
+	{
 		fs_err(sdp, "%s lkid %x status %d\n",
-		       name, lksb->sb_lkid, lksb->sb_status);
+			   name, lksb->sb_lkid, lksb->sb_status);
 		return -1;
 	}
+
 	return 0;
 }
 
 static int sync_lock(struct gfs2_sbd *sdp, int mode, uint32_t flags,
-		     unsigned int num, struct dlm_lksb *lksb, char *name)
+					 unsigned int num, struct dlm_lksb *lksb, char *name)
 {
 	struct lm_lockstruct *ls = &sdp->sd_lockstruct;
 	char strname[GDLM_STRNAME_BYTES];
@@ -528,11 +591,13 @@ static int sync_lock(struct gfs2_sbd *sdp, int mode, uint32_t flags,
 	snprintf(strname, GDLM_STRNAME_BYTES, "%8x%16x", LM_TYPE_NONDISK, num);
 
 	error = dlm_lock(ls->ls_dlm, mode, lksb, flags,
-			 strname, GDLM_STRNAME_BYTES - 1,
-			 0, sync_wait_cb, ls, NULL);
-	if (error) {
+					 strname, GDLM_STRNAME_BYTES - 1,
+					 0, sync_wait_cb, ls, NULL);
+
+	if (error)
+	{
 		fs_err(sdp, "%s lkid %x flags %x mode %d error %d\n",
-		       name, lksb->sb_lkid, flags, mode, error);
+			   name, lksb->sb_lkid, flags, mode, error);
 		return error;
 	}
 
@@ -540,9 +605,10 @@ static int sync_lock(struct gfs2_sbd *sdp, int mode, uint32_t flags,
 
 	status = lksb->sb_status;
 
-	if (status && status != -EAGAIN) {
+	if (status && status != -EAGAIN)
+	{
 		fs_err(sdp, "%s lkid %x flags %x mode %d status %d\n",
-		       name, lksb->sb_lkid, flags, mode, status);
+			   name, lksb->sb_lkid, flags, mode, status);
 	}
 
 	return status;
@@ -558,7 +624,7 @@ static int mounted_lock(struct gfs2_sbd *sdp, int mode, uint32_t flags)
 {
 	struct lm_lockstruct *ls = &sdp->sd_lockstruct;
 	return sync_lock(sdp, mode, flags, GFS2_MOUNTED_LOCK,
-			 &ls->ls_mounted_lksb, "mounted_lock");
+					 &ls->ls_mounted_lksb, "mounted_lock");
 }
 
 static int control_unlock(struct gfs2_sbd *sdp)
@@ -571,7 +637,7 @@ static int control_lock(struct gfs2_sbd *sdp, int mode, uint32_t flags)
 {
 	struct lm_lockstruct *ls = &sdp->sd_lockstruct;
 	return sync_lock(sdp, mode, flags, GFS2_CONTROL_LOCK,
-			 &ls->ls_control_lksb, "control_lock");
+					 &ls->ls_control_lksb, "control_lock");
 }
 
 static void gfs2_control_func(struct work_struct *work)
@@ -585,6 +651,7 @@ static void gfs2_control_func(struct work_struct *work)
 	int i, error;
 
 	spin_lock(&ls->ls_recover_spin);
+
 	/*
 	 * No MOUNT_DONE means we're still mounting; control_mount()
 	 * will set this flag, after which this thread will take over
@@ -595,10 +662,12 @@ static void gfs2_control_func(struct work_struct *work)
 	 * control_mount()/control_first_done(), not this thread.
 	 */
 	if (!test_bit(DFL_MOUNT_DONE, &ls->ls_recover_flags) ||
-	     test_bit(DFL_FIRST_MOUNT, &ls->ls_recover_flags)) {
+		test_bit(DFL_FIRST_MOUNT, &ls->ls_recover_flags))
+	{
 		spin_unlock(&ls->ls_recover_spin);
 		return;
 	}
+
 	block_gen = ls->ls_recover_block;
 	start_gen = ls->ls_recover_start;
 	spin_unlock(&ls->ls_recover_spin);
@@ -611,7 +680,9 @@ static void gfs2_control_func(struct work_struct *work)
 	 */
 
 	if (block_gen == start_gen)
+	{
 		return;
+	}
 
 	/*
 	 * Propagate recover_submit[] and recover_result[] to lvb:
@@ -625,8 +696,10 @@ static void gfs2_control_func(struct work_struct *work)
 	 * the journal recovery is SUCCESS
 	 */
 
-	error = control_lock(sdp, DLM_LOCK_EX, DLM_LKF_CONVERT|DLM_LKF_VALBLK);
-	if (error) {
+	error = control_lock(sdp, DLM_LOCK_EX, DLM_LKF_CONVERT | DLM_LKF_VALBLK);
+
+	if (error)
+	{
 		fs_err(sdp, "control lock EX error %d\n", error);
 		return;
 	}
@@ -634,10 +707,12 @@ static void gfs2_control_func(struct work_struct *work)
 	control_lvb_read(ls, &lvb_gen, ls->ls_lvb_bits);
 
 	spin_lock(&ls->ls_recover_spin);
+
 	if (block_gen != ls->ls_recover_block ||
-	    start_gen != ls->ls_recover_start) {
+		start_gen != ls->ls_recover_start)
+	{
 		fs_info(sdp, "recover generation %u block1 %u %u\n",
-			start_gen, block_gen, ls->ls_recover_block);
+				start_gen, block_gen, ls->ls_recover_block);
 		spin_unlock(&ls->ls_recover_spin);
 		control_lock(sdp, DLM_LOCK_NL, DLM_LKF_CONVERT);
 		return;
@@ -645,7 +720,8 @@ static void gfs2_control_func(struct work_struct *work)
 
 	recover_size = ls->ls_recover_size;
 
-	if (lvb_gen <= start_gen) {
+	if (lvb_gen <= start_gen)
+	{
 		/*
 		 * Clear lvb bits for jids we've successfully recovered.
 		 * Because all nodes attempt to recover failed journals,
@@ -655,61 +731,89 @@ static void gfs2_control_func(struct work_struct *work)
 		 * recovery.  So, another node may have already recovered
 		 * the jid and cleared the lvb bit for it.
 		 */
-		for (i = 0; i < recover_size; i++) {
+		for (i = 0; i < recover_size; i++)
+		{
 			if (ls->ls_recover_result[i] != LM_RD_SUCCESS)
+			{
 				continue;
+			}
 
 			ls->ls_recover_result[i] = 0;
 
 			if (!test_bit_le(i, ls->ls_lvb_bits + JID_BITMAP_OFFSET))
+			{
 				continue;
+			}
 
 			__clear_bit_le(i, ls->ls_lvb_bits + JID_BITMAP_OFFSET);
 			write_lvb = 1;
 		}
 	}
 
-	if (lvb_gen == start_gen) {
+	if (lvb_gen == start_gen)
+	{
 		/*
 		 * Failed slots before start_gen are already set in lvb.
 		 */
-		for (i = 0; i < recover_size; i++) {
+		for (i = 0; i < recover_size; i++)
+		{
 			if (!ls->ls_recover_submit[i])
+			{
 				continue;
+			}
+
 			if (ls->ls_recover_submit[i] < lvb_gen)
+			{
 				ls->ls_recover_submit[i] = 0;
+			}
 		}
-	} else if (lvb_gen < start_gen) {
+	}
+	else if (lvb_gen < start_gen)
+	{
 		/*
 		 * Failed slots before start_gen are not yet set in lvb.
 		 */
-		for (i = 0; i < recover_size; i++) {
+		for (i = 0; i < recover_size; i++)
+		{
 			if (!ls->ls_recover_submit[i])
+			{
 				continue;
-			if (ls->ls_recover_submit[i] < start_gen) {
+			}
+
+			if (ls->ls_recover_submit[i] < start_gen)
+			{
 				ls->ls_recover_submit[i] = 0;
 				__set_bit_le(i, ls->ls_lvb_bits + JID_BITMAP_OFFSET);
 			}
 		}
+
 		/* even if there are no bits to set, we need to write the
 		   latest generation to the lvb */
 		write_lvb = 1;
-	} else {
+	}
+	else
+	{
 		/*
 		 * we should be getting a recover_done() for lvb_gen soon
 		 */
 	}
+
 	spin_unlock(&ls->ls_recover_spin);
 
-	if (write_lvb) {
+	if (write_lvb)
+	{
 		control_lvb_write(ls, start_gen, ls->ls_lvb_bits);
 		flags = DLM_LKF_CONVERT | DLM_LKF_VALBLK;
-	} else {
+	}
+	else
+	{
 		flags = DLM_LKF_CONVERT;
 	}
 
 	error = control_lock(sdp, DLM_LOCK_NL, flags);
-	if (error) {
+
+	if (error)
+	{
 		fs_err(sdp, "control lock NL error %d\n", error);
 		return;
 	}
@@ -721,16 +825,21 @@ static void gfs2_control_func(struct work_struct *work)
 	 * be cleared in the lvb, and everyone will clear BLOCK_LOCKS.
 	 */
 
-	for (i = 0; i < recover_size; i++) {
-		if (test_bit_le(i, ls->ls_lvb_bits + JID_BITMAP_OFFSET)) {
+	for (i = 0; i < recover_size; i++)
+	{
+		if (test_bit_le(i, ls->ls_lvb_bits + JID_BITMAP_OFFSET))
+		{
 			fs_info(sdp, "recover generation %u jid %d\n",
-				start_gen, i);
+					start_gen, i);
 			gfs2_recover_set(sdp, i);
 			recover_set++;
 		}
 	}
+
 	if (recover_set)
+	{
 		return;
+	}
 
 	/*
 	 * No more jid bits set in lvb, all recovery is done, unblock locks
@@ -739,15 +848,19 @@ static void gfs2_control_func(struct work_struct *work)
 	 */
 
 	spin_lock(&ls->ls_recover_spin);
+
 	if (ls->ls_recover_block == block_gen &&
-	    ls->ls_recover_start == start_gen) {
+		ls->ls_recover_start == start_gen)
+	{
 		clear_bit(DFL_BLOCK_LOCKS, &ls->ls_recover_flags);
 		spin_unlock(&ls->ls_recover_spin);
 		fs_info(sdp, "recover generation %u done\n", start_gen);
 		gfs2_glock_thaw(sdp);
-	} else {
+	}
+	else
+	{
 		fs_info(sdp, "recover generation %u block2 %u %u\n",
-			start_gen, block_gen, ls->ls_recover_block);
+				start_gen, block_gen, ls->ls_recover_block);
 		spin_unlock(&ls->ls_recover_spin);
 	}
 }
@@ -769,21 +882,28 @@ static int control_mount(struct gfs2_sbd *sdp)
 	set_bit(DFL_BLOCK_LOCKS, &ls->ls_recover_flags);
 
 	error = control_lock(sdp, DLM_LOCK_NL, DLM_LKF_VALBLK);
-	if (error) {
+
+	if (error)
+	{
 		fs_err(sdp, "control_mount control_lock NL error %d\n", error);
 		return error;
 	}
 
 	error = mounted_lock(sdp, DLM_LOCK_NL, 0);
-	if (error) {
+
+	if (error)
+	{
 		fs_err(sdp, "control_mount mounted_lock NL error %d\n", error);
 		control_unlock(sdp);
 		return error;
 	}
+
 	mounted_mode = DLM_LOCK_NL;
 
 restart:
-	if (retries++ && signal_pending(current)) {
+
+	if (retries++ && signal_pending(current))
+	{
 		error = -EINTR;
 		goto fail;
 	}
@@ -793,10 +913,15 @@ restart:
 	 * demoted to NL below so we don't need to do it here.
 	 */
 
-	if (mounted_mode != DLM_LOCK_NL) {
+	if (mounted_mode != DLM_LOCK_NL)
+	{
 		error = mounted_lock(sdp, DLM_LOCK_NL, DLM_LKF_CONVERT);
+
 		if (error)
+		{
 			goto fail;
+		}
+
 		mounted_mode = DLM_LOCK_NL;
 	}
 
@@ -814,28 +939,40 @@ restart:
 	 * mounted_lock indicates if any other nodes have the fs mounted.
 	 */
 
-	error = control_lock(sdp, DLM_LOCK_EX, DLM_LKF_CONVERT|DLM_LKF_NOQUEUE|DLM_LKF_VALBLK);
-	if (error == -EAGAIN) {
+	error = control_lock(sdp, DLM_LOCK_EX, DLM_LKF_CONVERT | DLM_LKF_NOQUEUE | DLM_LKF_VALBLK);
+
+	if (error == -EAGAIN)
+	{
 		goto restart;
-	} else if (error) {
+	}
+	else if (error)
+	{
 		fs_err(sdp, "control_mount control_lock EX error %d\n", error);
 		goto fail;
 	}
 
-	error = mounted_lock(sdp, DLM_LOCK_EX, DLM_LKF_CONVERT|DLM_LKF_NOQUEUE);
-	if (!error) {
+	error = mounted_lock(sdp, DLM_LOCK_EX, DLM_LKF_CONVERT | DLM_LKF_NOQUEUE);
+
+	if (!error)
+	{
 		mounted_mode = DLM_LOCK_EX;
 		goto locks_done;
-	} else if (error != -EAGAIN) {
+	}
+	else if (error != -EAGAIN)
+	{
 		fs_err(sdp, "control_mount mounted_lock EX error %d\n", error);
 		goto fail;
 	}
 
-	error = mounted_lock(sdp, DLM_LOCK_PR, DLM_LKF_CONVERT|DLM_LKF_NOQUEUE);
-	if (!error) {
+	error = mounted_lock(sdp, DLM_LOCK_PR, DLM_LKF_CONVERT | DLM_LKF_NOQUEUE);
+
+	if (!error)
+	{
 		mounted_mode = DLM_LOCK_PR;
 		goto locks_done;
-	} else {
+	}
+	else
+	{
 		/* not even -EAGAIN should happen here */
 		fs_err(sdp, "control_mount mounted_lock PR error %d\n", error);
 		goto fail;
@@ -855,14 +992,16 @@ locks_done:
 
 	control_lvb_read(ls, &lvb_gen, ls->ls_lvb_bits);
 
-	if (lvb_gen == 0xFFFFFFFF) {
+	if (lvb_gen == 0xFFFFFFFF)
+	{
 		/* special value to force mount attempts to fail */
 		fs_err(sdp, "control_mount control_lock disabled\n");
 		error = -EINVAL;
 		goto fail;
 	}
 
-	if (mounted_mode == DLM_LOCK_EX) {
+	if (mounted_mode == DLM_LOCK_EX)
+	{
 		/* first mounter, keep both EX while doing first recovery */
 		spin_lock(&ls->ls_recover_spin);
 		clear_bit(DFL_BLOCK_LOCKS, &ls->ls_recover_flags);
@@ -874,8 +1013,11 @@ locks_done:
 	}
 
 	error = control_lock(sdp, DLM_LOCK_NL, DLM_LKF_CONVERT);
+
 	if (error)
+	{
 		goto fail;
+	}
 
 	/*
 	 * We are not first mounter, now we need to wait for the control_lock
@@ -883,7 +1025,8 @@ locks_done:
 	 * and all lvb bits to be clear (no pending journal recoveries.)
 	 */
 
-	if (!all_jid_bits_clear(ls->ls_lvb_bits)) {
+	if (!all_jid_bits_clear(ls->ls_lvb_bits))
+	{
 		/* journals need recovery, wait until all are clear */
 		fs_info(sdp, "control_mount wait for journal recovery\n");
 		goto restart;
@@ -894,39 +1037,42 @@ locks_done:
 	start_gen = ls->ls_recover_start;
 	mount_gen = ls->ls_recover_mount;
 
-	if (lvb_gen < mount_gen) {
+	if (lvb_gen < mount_gen)
+	{
 		/* wait for mounted nodes to update control_lock lvb to our
 		   generation, which might include new recovery bits set */
 		fs_info(sdp, "control_mount wait1 block %u start %u mount %u "
-			"lvb %u flags %lx\n", block_gen, start_gen, mount_gen,
-			lvb_gen, ls->ls_recover_flags);
+				"lvb %u flags %lx\n", block_gen, start_gen, mount_gen,
+				lvb_gen, ls->ls_recover_flags);
 		spin_unlock(&ls->ls_recover_spin);
 		goto restart;
 	}
 
-	if (lvb_gen != start_gen) {
+	if (lvb_gen != start_gen)
+	{
 		/* wait for mounted nodes to update control_lock lvb to the
 		   latest recovery generation */
 		fs_info(sdp, "control_mount wait2 block %u start %u mount %u "
-			"lvb %u flags %lx\n", block_gen, start_gen, mount_gen,
-			lvb_gen, ls->ls_recover_flags);
+				"lvb %u flags %lx\n", block_gen, start_gen, mount_gen,
+				lvb_gen, ls->ls_recover_flags);
 		spin_unlock(&ls->ls_recover_spin);
 		goto restart;
 	}
 
-	if (block_gen == start_gen) {
+	if (block_gen == start_gen)
+	{
 		/* dlm recovery in progress, wait for it to finish */
 		fs_info(sdp, "control_mount wait3 block %u start %u mount %u "
-			"lvb %u flags %lx\n", block_gen, start_gen, mount_gen,
-			lvb_gen, ls->ls_recover_flags);
+				"lvb %u flags %lx\n", block_gen, start_gen, mount_gen,
+				lvb_gen, ls->ls_recover_flags);
 		spin_unlock(&ls->ls_recover_spin);
 		goto restart;
 	}
 
 	clear_bit(DFL_BLOCK_LOCKS, &ls->ls_recover_flags);
 	set_bit(DFL_MOUNT_DONE, &ls->ls_recover_flags);
-	memset(ls->ls_recover_submit, 0, ls->ls_recover_size*sizeof(uint32_t));
-	memset(ls->ls_recover_result, 0, ls->ls_recover_size*sizeof(uint32_t));
+	memset(ls->ls_recover_submit, 0, ls->ls_recover_size * sizeof(uint32_t));
+	memset(ls->ls_recover_result, 0, ls->ls_recover_size * sizeof(uint32_t));
 	spin_unlock(&ls->ls_recover_spin);
 	return 0;
 
@@ -948,17 +1094,19 @@ restart:
 	block_gen = ls->ls_recover_block;
 
 	if (test_bit(DFL_BLOCK_LOCKS, &ls->ls_recover_flags) ||
-	    !test_bit(DFL_MOUNT_DONE, &ls->ls_recover_flags) ||
-	    !test_bit(DFL_FIRST_MOUNT, &ls->ls_recover_flags)) {
+		!test_bit(DFL_MOUNT_DONE, &ls->ls_recover_flags) ||
+		!test_bit(DFL_FIRST_MOUNT, &ls->ls_recover_flags))
+	{
 		/* sanity check, should not happen */
 		fs_err(sdp, "control_first_done start %u block %u flags %lx\n",
-		       start_gen, block_gen, ls->ls_recover_flags);
+			   start_gen, block_gen, ls->ls_recover_flags);
 		spin_unlock(&ls->ls_recover_spin);
 		control_unlock(sdp);
 		return -1;
 	}
 
-	if (start_gen == block_gen) {
+	if (start_gen == block_gen)
+	{
 		/*
 		 * Wait for the end of a dlm recovery cycle to switch from
 		 * first mounter recovery.  We can ignore any recover_slot
@@ -970,26 +1118,32 @@ restart:
 		fs_info(sdp, "control_first_done wait gen %u\n", start_gen);
 
 		wait_on_bit(&ls->ls_recover_flags, DFL_DLM_RECOVERY,
-			    TASK_UNINTERRUPTIBLE);
+					TASK_UNINTERRUPTIBLE);
 		goto restart;
 	}
 
 	clear_bit(DFL_FIRST_MOUNT, &ls->ls_recover_flags);
 	set_bit(DFL_FIRST_MOUNT_DONE, &ls->ls_recover_flags);
-	memset(ls->ls_recover_submit, 0, ls->ls_recover_size*sizeof(uint32_t));
-	memset(ls->ls_recover_result, 0, ls->ls_recover_size*sizeof(uint32_t));
+	memset(ls->ls_recover_submit, 0, ls->ls_recover_size * sizeof(uint32_t));
+	memset(ls->ls_recover_result, 0, ls->ls_recover_size * sizeof(uint32_t));
 	spin_unlock(&ls->ls_recover_spin);
 
 	memset(ls->ls_lvb_bits, 0, GDLM_LVB_SIZE);
 	control_lvb_write(ls, start_gen, ls->ls_lvb_bits);
 
 	error = mounted_lock(sdp, DLM_LOCK_PR, DLM_LKF_CONVERT);
-	if (error)
-		fs_err(sdp, "control_first_done mounted PR error %d\n", error);
 
-	error = control_lock(sdp, DLM_LOCK_NL, DLM_LKF_CONVERT|DLM_LKF_VALBLK);
 	if (error)
+	{
+		fs_err(sdp, "control_first_done mounted PR error %d\n", error);
+	}
+
+	error = control_lock(sdp, DLM_LOCK_NL, DLM_LKF_CONVERT | DLM_LKF_VALBLK);
+
+	if (error)
+	{
 		fs_err(sdp, "control_first_done control NL error %d\n", error);
+	}
 
 	return error;
 }
@@ -1003,7 +1157,7 @@ restart:
 #define RECOVER_SIZE_INC 16
 
 static int set_recover_size(struct gfs2_sbd *sdp, struct dlm_slot *slots,
-			    int num_slots)
+							int num_slots)
 {
 	struct lm_lockstruct *ls = &sdp->sd_lockstruct;
 	uint32_t *submit = NULL;
@@ -1011,28 +1165,40 @@ static int set_recover_size(struct gfs2_sbd *sdp, struct dlm_slot *slots,
 	uint32_t old_size, new_size;
 	int i, max_jid;
 
-	if (!ls->ls_lvb_bits) {
+	if (!ls->ls_lvb_bits)
+	{
 		ls->ls_lvb_bits = kzalloc(GDLM_LVB_SIZE, GFP_NOFS);
+
 		if (!ls->ls_lvb_bits)
+		{
 			return -ENOMEM;
+		}
 	}
 
 	max_jid = 0;
-	for (i = 0; i < num_slots; i++) {
+
+	for (i = 0; i < num_slots; i++)
+	{
 		if (max_jid < slots[i].slot - 1)
+		{
 			max_jid = slots[i].slot - 1;
+		}
 	}
 
 	old_size = ls->ls_recover_size;
 
 	if (old_size >= max_jid + 1)
+	{
 		return 0;
+	}
 
 	new_size = old_size + RECOVER_SIZE_INC;
 
 	submit = kcalloc(new_size, sizeof(uint32_t), GFP_NOFS);
 	result = kcalloc(new_size, sizeof(uint32_t), GFP_NOFS);
-	if (!submit || !result) {
+
+	if (!submit || !result)
+	{
 		kfree(submit);
 		kfree(result);
 		return -ENOMEM;
@@ -1072,10 +1238,12 @@ static void gdlm_recover_prep(void *arg)
 	set_bit(DFL_DLM_RECOVERY, &ls->ls_recover_flags);
 
 	if (!test_bit(DFL_MOUNT_DONE, &ls->ls_recover_flags) ||
-	     test_bit(DFL_FIRST_MOUNT, &ls->ls_recover_flags)) {
+		test_bit(DFL_FIRST_MOUNT, &ls->ls_recover_flags))
+	{
 		spin_unlock(&ls->ls_recover_spin);
 		return;
 	}
+
 	set_bit(DFL_BLOCK_LOCKS, &ls->ls_recover_flags);
 	spin_unlock(&ls->ls_recover_spin);
 }
@@ -1090,17 +1258,21 @@ static void gdlm_recover_slot(void *arg, struct dlm_slot *slot)
 	int jid = slot->slot - 1;
 
 	spin_lock(&ls->ls_recover_spin);
-	if (ls->ls_recover_size < jid + 1) {
+
+	if (ls->ls_recover_size < jid + 1)
+	{
 		fs_err(sdp, "recover_slot jid %d gen %u short size %d",
-		       jid, ls->ls_recover_block, ls->ls_recover_size);
+			   jid, ls->ls_recover_block, ls->ls_recover_size);
 		spin_unlock(&ls->ls_recover_spin);
 		return;
 	}
 
-	if (ls->ls_recover_submit[jid]) {
+	if (ls->ls_recover_submit[jid])
+	{
 		fs_info(sdp, "recover_slot jid %d gen %u prev %u\n",
-			jid, ls->ls_recover_block, ls->ls_recover_submit[jid]);
+				jid, ls->ls_recover_block, ls->ls_recover_submit[jid]);
 	}
+
 	ls->ls_recover_submit[jid] = ls->ls_recover_block;
 	spin_unlock(&ls->ls_recover_spin);
 }
@@ -1108,7 +1280,7 @@ static void gdlm_recover_slot(void *arg, struct dlm_slot *slot)
 /* dlm calls after recover_slot and after it completes lock recovery */
 
 static void gdlm_recover_done(void *arg, struct dlm_slot *slots, int num_slots,
-			      int our_slot, uint32_t generation)
+							  int our_slot, uint32_t generation)
 {
 	struct gfs2_sbd *sdp = arg;
 	struct lm_lockstruct *ls = &sdp->sd_lockstruct;
@@ -1119,13 +1291,16 @@ static void gdlm_recover_done(void *arg, struct dlm_slot *slots, int num_slots,
 	spin_lock(&ls->ls_recover_spin);
 	ls->ls_recover_start = generation;
 
-	if (!ls->ls_recover_mount) {
+	if (!ls->ls_recover_mount)
+	{
 		ls->ls_recover_mount = generation;
 		ls->ls_jid = our_slot - 1;
 	}
 
 	if (!test_bit(DFL_UNMOUNT, &ls->ls_recover_flags))
+	{
 		queue_delayed_work(gfs2_control_wq, &sdp->sd_control_work, 0);
+	}
 
 	clear_bit(DFL_DLM_RECOVERY, &ls->ls_recover_flags);
 	smp_mb__after_atomic();
@@ -1136,31 +1311,39 @@ static void gdlm_recover_done(void *arg, struct dlm_slot *slots, int num_slots,
 /* gfs2_recover thread has a journal recovery result */
 
 static void gdlm_recovery_result(struct gfs2_sbd *sdp, unsigned int jid,
-				 unsigned int result)
+								 unsigned int result)
 {
 	struct lm_lockstruct *ls = &sdp->sd_lockstruct;
 
 	if (test_bit(DFL_NO_DLM_OPS, &ls->ls_recover_flags))
+	{
 		return;
+	}
 
 	/* don't care about the recovery of own journal during mount */
 	if (jid == ls->ls_jid)
+	{
 		return;
+	}
 
 	spin_lock(&ls->ls_recover_spin);
-	if (test_bit(DFL_FIRST_MOUNT, &ls->ls_recover_flags)) {
+
+	if (test_bit(DFL_FIRST_MOUNT, &ls->ls_recover_flags))
+	{
 		spin_unlock(&ls->ls_recover_spin);
 		return;
 	}
-	if (ls->ls_recover_size < jid + 1) {
+
+	if (ls->ls_recover_size < jid + 1)
+	{
 		fs_err(sdp, "recovery_result jid %d short size %d",
-		       jid, ls->ls_recover_size);
+			   jid, ls->ls_recover_size);
 		spin_unlock(&ls->ls_recover_spin);
 		return;
 	}
 
 	fs_info(sdp, "recover jid %d result %s\n", jid,
-		result == LM_RD_GAVEUP ? "busy" : "success");
+			result == LM_RD_GAVEUP ? "busy" : "success");
 
 	ls->ls_recover_result[jid] = result;
 
@@ -1170,11 +1353,13 @@ static void gdlm_recovery_result(struct gfs2_sbd *sdp, unsigned int jid,
 
 	if (!test_bit(DFL_UNMOUNT, &ls->ls_recover_flags))
 		queue_delayed_work(gfs2_control_wq, &sdp->sd_control_work,
-				   result == LM_RD_GAVEUP ? HZ : 0);
+						   result == LM_RD_GAVEUP ? HZ : 0);
+
 	spin_unlock(&ls->ls_recover_spin);
 }
 
-const struct dlm_lockspace_ops gdlm_lockspace_ops = {
+const struct dlm_lockspace_ops gdlm_lockspace_ops =
+{
 	.recover_prep = gdlm_recover_prep,
 	.recover_slot = gdlm_recover_slot,
 	.recover_done = gdlm_recover_done,
@@ -1204,19 +1389,25 @@ static int gdlm_mount(struct gfs2_sbd *sdp, const char *table)
 	ls->ls_lvb_bits = NULL;
 
 	error = set_recover_size(sdp, NULL, 0);
+
 	if (error)
+	{
 		goto fail;
+	}
 
 	/*
 	 * prepare dlm_new_lockspace args
 	 */
 
 	fsname = strchr(table, ':');
-	if (!fsname) {
+
+	if (!fsname)
+	{
 		fs_info(sdp, "no fsname found\n");
 		error = -EINVAL;
 		goto fail_free;
 	}
+
 	memset(cluster, 0, sizeof(cluster));
 	memcpy(cluster, table, strlen(table) - strlen(fsname));
 	fsname++;
@@ -1228,14 +1419,17 @@ static int gdlm_mount(struct gfs2_sbd *sdp, const char *table)
 	 */
 
 	error = dlm_new_lockspace(fsname, cluster, flags, GDLM_LVB_SIZE,
-				  &gdlm_lockspace_ops, sdp, &ops_result,
-				  &ls->ls_dlm);
-	if (error) {
+							  &gdlm_lockspace_ops, sdp, &ops_result,
+							  &ls->ls_dlm);
+
+	if (error)
+	{
 		fs_err(sdp, "dlm_new_lockspace error %d\n", error);
 		goto fail_free;
 	}
 
-	if (ops_result < 0) {
+	if (ops_result < 0)
+	{
 		/*
 		 * dlm does not support ops callbacks,
 		 * old dlm_controld/gfs_controld are used, try without ops.
@@ -1246,7 +1440,8 @@ static int gdlm_mount(struct gfs2_sbd *sdp, const char *table)
 		return 0;
 	}
 
-	if (!test_bit(SDF_NOJOURNALID, &sdp->sd_flags)) {
+	if (!test_bit(SDF_NOJOURNALID, &sdp->sd_flags))
+	{
 		fs_err(sdp, "dlm lockspace ops disallow jid preset\n");
 		error = -EINVAL;
 		goto fail_release;
@@ -1258,7 +1453,9 @@ static int gdlm_mount(struct gfs2_sbd *sdp, const char *table)
 	 */
 
 	error = control_mount(sdp);
-	if (error) {
+
+	if (error)
+	{
 		fs_err(sdp, "mount control error %d\n", error);
 		goto fail_release;
 	}
@@ -1283,11 +1480,16 @@ static void gdlm_first_done(struct gfs2_sbd *sdp)
 	int error;
 
 	if (test_bit(DFL_NO_DLM_OPS, &ls->ls_recover_flags))
+	{
 		return;
+	}
 
 	error = control_first_done(sdp);
+
 	if (error)
+	{
 		fs_err(sdp, "mount first_done error %d\n", error);
+	}
 }
 
 static void gdlm_unmount(struct gfs2_sbd *sdp)
@@ -1295,7 +1497,9 @@ static void gdlm_unmount(struct gfs2_sbd *sdp)
 	struct lm_lockstruct *ls = &sdp->sd_lockstruct;
 
 	if (test_bit(DFL_NO_DLM_OPS, &ls->ls_recover_flags))
+	{
 		goto release;
+	}
 
 	/* wait for gfs2_control_wq to be done with this mount */
 
@@ -1306,7 +1510,9 @@ static void gdlm_unmount(struct gfs2_sbd *sdp)
 
 	/* mounted_lock and control_lock will be purged in dlm recovery */
 release:
-	if (ls->ls_dlm) {
+
+	if (ls->ls_dlm)
+	{
 		dlm_release_lockspace(ls->ls_dlm, 2);
 		ls->ls_dlm = NULL;
 	}
@@ -1314,7 +1520,8 @@ release:
 	free_recover_size(ls);
 }
 
-static const match_table_t dlm_tokens = {
+static const match_table_t dlm_tokens =
+{
 	{ Opt_jid, "jid=%d"},
 	{ Opt_id, "id=%d"},
 	{ Opt_first, "first=%d"},
@@ -1322,7 +1529,8 @@ static const match_table_t dlm_tokens = {
 	{ Opt_err, NULL },
 };
 
-const struct lm_lockops gfs2_dlm_ops = {
+const struct lm_lockops gfs2_dlm_ops =
+{
 	.lm_proto_name = "lock_dlm",
 	.lm_mount = gdlm_mount,
 	.lm_first_done = gdlm_first_done,

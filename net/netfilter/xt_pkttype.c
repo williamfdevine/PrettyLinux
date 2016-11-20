@@ -29,20 +29,29 @@ pkttype_mt(const struct sk_buff *skb, struct xt_action_param *par)
 	u_int8_t type;
 
 	if (skb->pkt_type != PACKET_LOOPBACK)
+	{
 		type = skb->pkt_type;
+	}
 	else if (par->family == NFPROTO_IPV4 &&
-	    ipv4_is_multicast(ip_hdr(skb)->daddr))
+			 ipv4_is_multicast(ip_hdr(skb)->daddr))
+	{
 		type = PACKET_MULTICAST;
+	}
 	else if (par->family == NFPROTO_IPV6 &&
-	    ipv6_hdr(skb)->daddr.s6_addr[0] == 0xFF)
+			 ipv6_hdr(skb)->daddr.s6_addr[0] == 0xFF)
+	{
 		type = PACKET_MULTICAST;
+	}
 	else
+	{
 		type = PACKET_BROADCAST;
+	}
 
 	return (type == info->pkttype) ^ info->invert;
 }
 
-static struct xt_match pkttype_mt_reg __read_mostly = {
+static struct xt_match pkttype_mt_reg __read_mostly =
+{
 	.name      = "pkttype",
 	.revision  = 0,
 	.family    = NFPROTO_UNSPEC,

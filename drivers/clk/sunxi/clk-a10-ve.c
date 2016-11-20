@@ -32,18 +32,19 @@ static DEFINE_SPINLOCK(ve_lock);
  * sunxi_ve_reset... - reset bit in ve clk registers handling
  */
 
-struct ve_reset_data {
+struct ve_reset_data
+{
 	void __iomem			*reg;
 	spinlock_t			*lock;
 	struct reset_controller_dev	rcdev;
 };
 
 static int sunxi_ve_reset_assert(struct reset_controller_dev *rcdev,
-				 unsigned long id)
+								 unsigned long id)
 {
 	struct ve_reset_data *data = container_of(rcdev,
-						  struct ve_reset_data,
-						  rcdev);
+								 struct ve_reset_data,
+								 rcdev);
 	unsigned long flags;
 	u32 reg;
 
@@ -58,11 +59,11 @@ static int sunxi_ve_reset_assert(struct reset_controller_dev *rcdev,
 }
 
 static int sunxi_ve_reset_deassert(struct reset_controller_dev *rcdev,
-				   unsigned long id)
+								   unsigned long id)
 {
 	struct ve_reset_data *data = container_of(rcdev,
-						  struct ve_reset_data,
-						  rcdev);
+								 struct ve_reset_data,
+								 rcdev);
 	unsigned long flags;
 	u32 reg;
 
@@ -77,15 +78,18 @@ static int sunxi_ve_reset_deassert(struct reset_controller_dev *rcdev,
 }
 
 static int sunxi_ve_of_xlate(struct reset_controller_dev *rcdev,
-			     const struct of_phandle_args *reset_spec)
+							 const struct of_phandle_args *reset_spec)
 {
 	if (WARN_ON(reset_spec->args_count != 0))
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
-static const struct reset_control_ops sunxi_ve_reset_ops = {
+static const struct reset_control_ops sunxi_ve_reset_ops =
+{
 	.assert		= sunxi_ve_reset_assert,
 	.deassert	= sunxi_ve_reset_deassert,
 };
@@ -102,16 +106,25 @@ static void __init sun4i_ve_clk_setup(struct device_node *node)
 	int err;
 
 	reg = of_io_request_and_map(node, 0, of_node_full_name(node));
+
 	if (IS_ERR(reg))
+	{
 		return;
+	}
 
 	div = kzalloc(sizeof(*div), GFP_KERNEL);
+
 	if (!div)
+	{
 		goto err_unmap;
+	}
 
 	gate = kzalloc(sizeof(*gate), GFP_KERNEL);
+
 	if (!gate)
+	{
 		goto err_free_div;
+	}
 
 	of_property_read_string(node, "clock-output-names", &clk_name);
 	parent = of_clk_get_parent_name(node, 0);
@@ -126,20 +139,29 @@ static void __init sun4i_ve_clk_setup(struct device_node *node)
 	div->lock = &ve_lock;
 
 	clk = clk_register_composite(NULL, clk_name, &parent, 1,
-				     NULL, NULL,
-				     &div->hw, &clk_divider_ops,
-				     &gate->hw, &clk_gate_ops,
-				     CLK_SET_RATE_PARENT);
+								 NULL, NULL,
+								 &div->hw, &clk_divider_ops,
+								 &gate->hw, &clk_gate_ops,
+								 CLK_SET_RATE_PARENT);
+
 	if (IS_ERR(clk))
+	{
 		goto err_free_gate;
+	}
 
 	err = of_clk_add_provider(node, of_clk_src_simple_get, clk);
+
 	if (err)
+	{
 		goto err_unregister_clk;
+	}
 
 	reset_data = kzalloc(sizeof(*reset_data), GFP_KERNEL);
+
 	if (!reset_data)
+	{
 		goto err_del_provider;
+	}
 
 	reset_data->reg = reg;
 	reset_data->lock = &ve_lock;
@@ -149,8 +171,11 @@ static void __init sun4i_ve_clk_setup(struct device_node *node)
 	reset_data->rcdev.of_xlate = sunxi_ve_of_xlate;
 	reset_data->rcdev.of_reset_n_cells = 0;
 	err = reset_controller_register(&reset_data->rcdev);
+
 	if (err)
+	{
 		goto err_free_reset;
+	}
 
 	return;
 
@@ -168,4 +193,4 @@ err_unmap:
 	iounmap(reg);
 }
 CLK_OF_DECLARE(sun4i_ve, "allwinner,sun4i-a10-ve-clk",
-	       sun4i_ve_clk_setup);
+			   sun4i_ve_clk_setup);

@@ -34,7 +34,8 @@
 #define DA9030_MAX_BRIGHTNESS	7
 #define DA9034_MAX_BRIGHTNESS	0x7f
 
-struct da903x_backlight_data {
+struct da903x_backlight_data
+{
 	struct device *da903x_dev;
 	int id;
 	int current_brightness;
@@ -47,32 +48,40 @@ static int da903x_backlight_set(struct backlight_device *bl, int brightness)
 	uint8_t val;
 	int ret = 0;
 
-	switch (data->id) {
-	case DA9034_ID_WLED:
-		ret = da903x_update(dev, DA9034_WLED_CONTROL1,
-				brightness, 0x7f);
-		if (ret)
-			return ret;
+	switch (data->id)
+	{
+		case DA9034_ID_WLED:
+			ret = da903x_update(dev, DA9034_WLED_CONTROL1,
+								brightness, 0x7f);
 
-		if (data->current_brightness && brightness == 0)
-			ret = da903x_clr_bits(dev,
-					DA9034_WLED_CONTROL2,
-					DA9034_WLED_BOOST_EN);
+			if (ret)
+			{
+				return ret;
+			}
 
-		if (data->current_brightness == 0 && brightness)
-			ret = da903x_set_bits(dev,
-					DA9034_WLED_CONTROL2,
-					DA9034_WLED_BOOST_EN);
-		break;
-	case DA9030_ID_WLED:
-		val = DA9030_WLED_TRIM(brightness);
-		val |= brightness ? DA9030_WLED_CP_EN : 0;
-		ret = da903x_write(dev, DA9030_WLED_CONTROL, val);
-		break;
+			if (data->current_brightness && brightness == 0)
+				ret = da903x_clr_bits(dev,
+									  DA9034_WLED_CONTROL2,
+									  DA9034_WLED_BOOST_EN);
+
+			if (data->current_brightness == 0 && brightness)
+				ret = da903x_set_bits(dev,
+									  DA9034_WLED_CONTROL2,
+									  DA9034_WLED_BOOST_EN);
+
+			break;
+
+		case DA9030_ID_WLED:
+			val = DA9030_WLED_TRIM(brightness);
+			val |= brightness ? DA9030_WLED_CP_EN : 0;
+			ret = da903x_write(dev, DA9030_WLED_CONTROL, val);
+			break;
 	}
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	data->current_brightness = brightness;
 	return 0;
@@ -83,13 +92,19 @@ static int da903x_backlight_update_status(struct backlight_device *bl)
 	int brightness = bl->props.brightness;
 
 	if (bl->props.power != FB_BLANK_UNBLANK)
+	{
 		brightness = 0;
+	}
 
 	if (bl->props.fb_blank != FB_BLANK_UNBLANK)
+	{
 		brightness = 0;
+	}
 
 	if (bl->props.state & BL_CORE_SUSPENDED)
+	{
 		brightness = 0;
+	}
 
 	return da903x_backlight_set(bl, brightness);
 }
@@ -101,7 +116,8 @@ static int da903x_backlight_get_brightness(struct backlight_device *bl)
 	return data->current_brightness;
 }
 
-static const struct backlight_ops da903x_backlight_ops = {
+static const struct backlight_ops da903x_backlight_ops =
+{
 	.options	= BL_CORE_SUSPENDRESUME,
 	.update_status	= da903x_backlight_update_status,
 	.get_brightness	= da903x_backlight_get_brightness,
@@ -116,20 +132,26 @@ static int da903x_backlight_probe(struct platform_device *pdev)
 	int max_brightness;
 
 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
-	if (data == NULL)
-		return -ENOMEM;
 
-	switch (pdev->id) {
-	case DA9030_ID_WLED:
-		max_brightness = DA9030_MAX_BRIGHTNESS;
-		break;
-	case DA9034_ID_WLED:
-		max_brightness = DA9034_MAX_BRIGHTNESS;
-		break;
-	default:
-		dev_err(&pdev->dev, "invalid backlight device ID(%d)\n",
-				pdev->id);
-		return -EINVAL;
+	if (data == NULL)
+	{
+		return -ENOMEM;
+	}
+
+	switch (pdev->id)
+	{
+		case DA9030_ID_WLED:
+			max_brightness = DA9030_MAX_BRIGHTNESS;
+			break;
+
+		case DA9034_ID_WLED:
+			max_brightness = DA9034_MAX_BRIGHTNESS;
+			break;
+
+		default:
+			dev_err(&pdev->dev, "invalid backlight device ID(%d)\n",
+					pdev->id);
+			return -EINVAL;
 	}
 
 	data->id = pdev->id;
@@ -139,15 +161,17 @@ static int da903x_backlight_probe(struct platform_device *pdev)
 	/* adjust the WLED output current */
 	if (pdata)
 		da903x_write(data->da903x_dev, DA9034_WLED_CONTROL2,
-				DA9034_WLED_ISET(pdata->output_current));
+					 DA9034_WLED_ISET(pdata->output_current));
 
 	memset(&props, 0, sizeof(props));
 	props.type = BACKLIGHT_RAW;
 	props.max_brightness = max_brightness;
 	bl = devm_backlight_device_register(&pdev->dev, pdev->name,
-					data->da903x_dev, data,
-					&da903x_backlight_ops, &props);
-	if (IS_ERR(bl)) {
+										data->da903x_dev, data,
+										&da903x_backlight_ops, &props);
+
+	if (IS_ERR(bl))
+	{
 		dev_err(&pdev->dev, "failed to register backlight\n");
 		return PTR_ERR(bl);
 	}
@@ -159,7 +183,8 @@ static int da903x_backlight_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver da903x_backlight_driver = {
+static struct platform_driver da903x_backlight_driver =
+{
 	.driver		= {
 		.name	= "da903x-backlight",
 	},

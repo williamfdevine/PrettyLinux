@@ -70,7 +70,8 @@
 #define V4L2_EVENT_OMAP3ISP_AF		(V4L2_EVENT_OMAP3ISP_CLASS | 0x2)
 #define V4L2_EVENT_OMAP3ISP_HIST	(V4L2_EVENT_OMAP3ISP_CLASS | 0x3)
 
-struct omap3isp_stat_event_status {
+struct omap3isp_stat_event_status
+{
 	__u32 frame_number;
 	__u16 config_counter;
 	__u8 buf_err;
@@ -131,7 +132,8 @@ struct omap3isp_stat_event_status {
  *                     values only.
  * @alaw_enable: AEW ALAW EN flag.
  */
-struct omap3isp_h3a_aewb_config {
+struct omap3isp_h3a_aewb_config
+{
 	/*
 	 * Common fields.
 	 * They should be the first ones and must be in the same order as in
@@ -163,7 +165,8 @@ struct omap3isp_h3a_aewb_config {
  * @cur_frame: Current frame number being processed.
  * @config_counter: Number of the configuration associated with the data.
  */
-struct omap3isp_stat_data {
+struct omap3isp_stat_data
+{
 	struct timeval ts;
 	void __user *buf;
 	__u32 buf_size;
@@ -202,14 +205,16 @@ struct omap3isp_stat_data {
 #define OMAP3ISP_HIST_CFA_BAYER		0
 #define OMAP3ISP_HIST_CFA_FOVEONX3	1
 
-struct omap3isp_hist_region {
+struct omap3isp_hist_region
+{
 	__u16 h_start;
 	__u16 h_end;
 	__u16 v_start;
 	__u16 v_end;
 };
 
-struct omap3isp_hist_config {
+struct omap3isp_hist_config
+{
 	/*
 	 * Common fields.
 	 * They should be the first ones and must be in the same order as in
@@ -231,13 +236,15 @@ struct omap3isp_hist_config {
 
 #define OMAP3ISP_AF_NUM_COEF		11
 
-enum omap3isp_h3a_af_fvmode {
+enum omap3isp_h3a_af_fvmode
+{
 	OMAP3ISP_AF_MODE_SUMMED = 0,
 	OMAP3ISP_AF_MODE_PEAK = 1
 };
 
 /* Red, Green, and blue pixel location in the AF windows */
-enum omap3isp_h3a_af_rgbpos {
+enum omap3isp_h3a_af_rgbpos
+{
 	OMAP3ISP_AF_GR_GB_BAYER = 0,	/* GR and GB as Bayer pattern */
 	OMAP3ISP_AF_RG_GB_BAYER = 1,	/* RG and GB as Bayer pattern */
 	OMAP3ISP_AF_GR_BG_BAYER = 2,	/* GR and BG as Bayer pattern */
@@ -247,20 +254,23 @@ enum omap3isp_h3a_af_rgbpos {
 };
 
 /* Contains the information regarding the Horizontal Median Filter */
-struct omap3isp_h3a_af_hmf {
+struct omap3isp_h3a_af_hmf
+{
 	__u8 enable;	/* Status of Horizontal Median Filter */
 	__u8 threshold;	/* Threshold Value for Horizontal Median Filter */
 };
 
 /* Contains the information regarding the IIR Filters */
-struct omap3isp_h3a_af_iir {
+struct omap3isp_h3a_af_iir
+{
 	__u16 h_start;			/* IIR horizontal start */
 	__u16 coeff_set0[OMAP3ISP_AF_NUM_COEF];	/* Filter coefficient, set 0 */
 	__u16 coeff_set1[OMAP3ISP_AF_NUM_COEF];	/* Filter coefficient, set 1 */
 };
 
 /* Contains the information regarding the Paxels Structure in AF Engine */
-struct omap3isp_h3a_af_paxel {
+struct omap3isp_h3a_af_paxel
+{
 	__u16 h_start;	/* Horizontal Start Position */
 	__u16 v_start;	/* Vertical Start Position */
 	__u8 width;	/* Width of the Paxel */
@@ -271,7 +281,8 @@ struct omap3isp_h3a_af_paxel {
 };
 
 /* Contains the parameters required for hardware set up of AF Engine */
-struct omap3isp_h3a_af_config {
+struct omap3isp_h3a_af_config
+{
 	/*
 	 * Common fields.
 	 * They should be the first ones and must be in the same order as in
@@ -303,7 +314,8 @@ struct omap3isp_h3a_af_config {
 #define OMAP3ISP_RGB_MAX		3
 
 /* Enumeration constants for Alaw input width */
-enum omap3isp_alaw_ipwidth {
+enum omap3isp_alaw_ipwidth
+{
 	OMAP3ISP_ALAW_BIT12_3 = 0x3,
 	OMAP3ISP_ALAW_BIT11_2 = 0x4,
 	OMAP3ISP_ALAW_BIT10_1 = 0x5,
@@ -327,7 +339,8 @@ enum omap3isp_alaw_ipwidth {
  *             to the first active paxel. Must be an even number.
  * @size: Size of LSC gain table. Filled when loaded from userspace.
  */
-struct omap3isp_ccdc_lsc_config {
+struct omap3isp_ccdc_lsc_config
+{
 	__u16 offset;
 	__u8 gain_mode_n;
 	__u8 gain_mode_m;
@@ -349,7 +362,8 @@ struct omap3isp_ccdc_lsc_config {
  * @oblen: Optical Black Sample Length.
  * @dcsubval: Digital Black Clamp subtract value.
  */
-struct omap3isp_ccdc_bclamp {
+struct omap3isp_ccdc_bclamp
+{
 	__u8 obgain;
 	__u8 obstpixel;
 	__u8 oblines;
@@ -362,7 +376,8 @@ struct omap3isp_ccdc_bclamp {
  * @fpnum: Number of faulty pixels to be corrected in the frame.
  * @fpcaddr: Memory address of the FPC Table
  */
-struct omap3isp_ccdc_fpc {
+struct omap3isp_ccdc_fpc
+{
 	__u16 fpnum;
 	__u32 fpcaddr;
 };
@@ -374,7 +389,8 @@ struct omap3isp_ccdc_fpc {
  * @gr_cy: Gr/Cy pixels. 2's complement. -128 to +127.
  * @r_ye: R/Ye pixels. 2's complement. -128 to +127.
  */
-struct omap3isp_ccdc_blcomp {
+struct omap3isp_ccdc_blcomp
+{
 	__u8 b_mg;
 	__u8 gb_g;
 	__u8 gr_cy;
@@ -387,7 +403,8 @@ struct omap3isp_ccdc_blcomp {
  * @h_odd: Horizontal Culling pattern for odd lines.
  * @h_even: Horizontal Culling pattern for even lines.
  */
-struct omap3isp_ccdc_culling {
+struct omap3isp_ccdc_culling
+{
 	__u8 v_pattern;
 	__u16 h_odd;
 	__u16 h_even;
@@ -404,7 +421,8 @@ struct omap3isp_ccdc_culling {
  * @cull: Cull control register.
  * @lsc: Pointer to LSC gain table.
  */
-struct omap3isp_ccdc_update_config {
+struct omap3isp_ccdc_update_config
+{
 	__u16 update;
 	__u16 flag;
 	enum omap3isp_alaw_ipwidth alawip;
@@ -450,7 +468,8 @@ struct omap3isp_ccdc_update_config {
  *            line.
  * @thres: Horizontal median filter threshold.
  */
-struct omap3isp_prev_hmed {
+struct omap3isp_prev_hmed
+{
 	__u8 odddist;
 	__u8 evendist;
 	__u8 thres;
@@ -459,7 +478,8 @@ struct omap3isp_prev_hmed {
 /*
  * Enumeration for CFA Formats supported by preview
  */
-enum omap3isp_cfa_fmt {
+enum omap3isp_cfa_fmt
+{
 	OMAP3ISP_CFAFMT_BAYER,
 	OMAP3ISP_CFAFMT_SONYVGA,
 	OMAP3ISP_CFAFMT_RGBFOVEON,
@@ -475,7 +495,8 @@ enum omap3isp_cfa_fmt {
  * @gradthrs_horz: CFA Gradient Threshold - Horizontal.
  * @table: Pointer to the CFA table.
  */
-struct omap3isp_prev_cfa {
+struct omap3isp_prev_cfa
+{
 	enum omap3isp_cfa_fmt format;
 	__u8 gradthrs_vert;
 	__u8 gradthrs_horz;
@@ -488,7 +509,8 @@ struct omap3isp_prev_cfa {
  * @thres: Threshold.
  * @hypf_en: Flag to enable/disable the High Pass Filter.
  */
-struct omap3isp_prev_csup {
+struct omap3isp_prev_csup
+{
 	__u8 gain;
 	__u8 thres;
 	__u8 hypf_en;
@@ -502,7 +524,8 @@ struct omap3isp_prev_csup {
  * @coef1: White balance gain - COEF 1 (U8Q5).
  * @coef0: White balance gain - COEF 0 (U8Q5).
  */
-struct omap3isp_prev_wbal {
+struct omap3isp_prev_wbal
+{
 	__u16 dgain;
 	__u8 coef3;
 	__u8 coef2;
@@ -516,7 +539,8 @@ struct omap3isp_prev_wbal {
  * @green: Black level offset adjustment for Green in 2's complement format
  * @blue: Black level offset adjustment for Blue in 2's complement format
  */
-struct omap3isp_prev_blkadj {
+struct omap3isp_prev_blkadj
+{
 	/*Black level offset adjustment for Red in 2's complement format */
 	__u8 red;
 	/*Black level offset adjustment for Green in 2's complement format */
@@ -533,7 +557,8 @@ struct omap3isp_prev_blkadj {
  *              [RB] [GB] [BB]
  * @offset: Blending offset value for R,G,B in 2's complement integer format.
  */
-struct omap3isp_prev_rgbtorgb {
+struct omap3isp_prev_rgbtorgb
+{
 	__u16 matrix[OMAP3ISP_RGB_MAX][OMAP3ISP_RGB_MAX];
 	__u16 offset[OMAP3ISP_RGB_MAX];
 };
@@ -546,7 +571,8 @@ struct omap3isp_prev_rgbtorgb {
  *              [CSCRCR] [CSCGCR] [CSCBCR]
  * @offset: CSC offset values for Y offset, CB offset and CR offset respectively
  */
-struct omap3isp_prev_csc {
+struct omap3isp_prev_csc
+{
 	__u16 matrix[OMAP3ISP_RGB_MAX][OMAP3ISP_RGB_MAX];
 	__s16 offset[OMAP3ISP_RGB_MAX];
 };
@@ -558,7 +584,8 @@ struct omap3isp_prev_csc {
  * @minY: Minimum Y value
  * @maxY: Maximum Y value
  */
-struct omap3isp_prev_yclimit {
+struct omap3isp_prev_yclimit
+{
 	__u8 minC;
 	__u8 maxC;
 	__u8 minY;
@@ -570,7 +597,8 @@ struct omap3isp_prev_yclimit {
  * @couplet_mode_en: Flag to enable or disable the couplet dc Correction in NF
  * @detect_correct: Thresholds for correction bit 0:10 detect 16:25 correct
  */
-struct omap3isp_prev_dcor {
+struct omap3isp_prev_dcor
+{
 	__u8 couplet_mode_en;
 	__u32 detect_correct[OMAP3ISP_PREV_DETECT_CORRECT_CHANNELS];
 };
@@ -580,7 +608,8 @@ struct omap3isp_prev_dcor {
  * @spread: Spread value to be used in Noise Filter
  * @table: Pointer to the Noise Filter table
  */
-struct omap3isp_prev_nf {
+struct omap3isp_prev_nf
+{
 	__u8 spread;
 	__u32 table[OMAP3ISP_PREV_NF_TBL_SIZE];
 };
@@ -591,7 +620,8 @@ struct omap3isp_prev_nf {
  * @green: Array for green gamma table.
  * @blue: Array for blue gamma table.
  */
-struct omap3isp_prev_gtables {
+struct omap3isp_prev_gtables
+{
 	__u32 red[OMAP3ISP_PREV_GAMMA_TBL_SIZE];
 	__u32 green[OMAP3ISP_PREV_GAMMA_TBL_SIZE];
 	__u32 blue[OMAP3ISP_PREV_GAMMA_TBL_SIZE];
@@ -601,7 +631,8 @@ struct omap3isp_prev_gtables {
  * struct omap3isp_prev_luma - Luma enhancement
  * @table: Array for luma enhancement table.
  */
-struct omap3isp_prev_luma {
+struct omap3isp_prev_luma
+{
 	__u32 table[OMAP3ISP_PREV_YENH_TBL_SIZE];
 };
 
@@ -625,7 +656,8 @@ struct omap3isp_prev_luma {
  * @nf: Pointer to structure for Noise Filter
  * @gamma: Pointer to gamma structure.
  */
-struct omap3isp_prev_update_config {
+struct omap3isp_prev_update_config
+{
 	__u32 update;
 	__u32 flag;
 	__u32 shading_shift;

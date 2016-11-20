@@ -259,7 +259,8 @@
 #define WM8350_IRQ_RTC_SEC			8
 #define WM8350_IRQ_RTC_ALM			9
 
-struct wm8350_rtc {
+struct wm8350_rtc
+{
 	struct platform_device *pdev;
 	struct rtc_device *rtc;
 	int alarm_enabled;      /* used over suspend/resume */

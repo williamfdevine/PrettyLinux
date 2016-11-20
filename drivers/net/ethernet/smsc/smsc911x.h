@@ -35,7 +35,7 @@
 #if USE_DEBUG >= 1
 #define SMSC_WARN(pdata, nlevel, fmt, args...)			\
 	netif_warn(pdata, nlevel, (pdata)->dev,			\
-		   "%s: " fmt "\n", __func__, ##args)
+			   "%s: " fmt "\n", __func__, ##args)
 #else
 #define SMSC_WARN(pdata, nlevel, fmt, args...)			\
 	no_printk(fmt "\n", ##args)
@@ -51,7 +51,7 @@
 
 #ifdef CONFIG_DEBUG_SPINLOCK
 #define SMSC_ASSERT_MAC_LOCK(pdata) \
-		WARN_ON_SMP(!spin_is_locked(&pdata->mac_lock))
+	WARN_ON_SMP(!spin_is_locked(&pdata->mac_lock))
 #else
 #define SMSC_ASSERT_MAC_LOCK(pdata) do {} while (0)
 #endif				/* CONFIG_DEBUG_SPINLOCK */
@@ -379,15 +379,15 @@
 #define PHY_INTMSK_AN_COMP_		(1 << 6)
 #define PHY_INTMSK_ENERGYON_		(1 << 7)
 #define PHY_INTMSK_DEFAULT_		(PHY_INTMSK_ENERGYON_ | \
-					 PHY_INTMSK_AN_COMP_ | \
-					 PHY_INTMSK_RFAULT_ | \
-					 PHY_INTMSK_LNKDOWN_)
+								 PHY_INTMSK_AN_COMP_ | \
+								 PHY_INTMSK_RFAULT_ | \
+								 PHY_INTMSK_LNKDOWN_)
 
 #define ADVERTISE_PAUSE_ALL		(ADVERTISE_PAUSE_CAP | \
-					 ADVERTISE_PAUSE_ASYM)
+								 ADVERTISE_PAUSE_ASYM)
 
 #define LPA_PAUSE_ALL			(LPA_PAUSE_CAP | \
-					 LPA_PAUSE_ASYM)
+								 LPA_PAUSE_ASYM)
 
 /*
  * Provide hooks to let the arch add to the initialisation procedure
@@ -397,7 +397,7 @@
 #define smsc_get_mac(dev)		smsc911x_read_mac_address((dev))
 
 #ifdef CONFIG_SMSC911X_ARCH_HOOKS
-#include <asm/smsc911x.h>
+	#include <asm/smsc911x.h>
 #endif
 
 #include <linux/smscphy.h>

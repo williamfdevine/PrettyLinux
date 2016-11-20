@@ -32,7 +32,8 @@
 /* NUMDUPACK parameter from RFC 4341, p. 6 */
 #define NUMDUPACK	3
 
-struct ccid2_seq {
+struct ccid2_seq
+{
 	u64			ccid2s_seq;
 	u32			ccid2s_sent;
 	int			ccid2s_acked;
@@ -67,7 +68,8 @@ struct ccid2_seq {
  * @tx_rpdupack:	     dupacks since rpseq
  * @tx_av_chunks:	     list of Ack Vectors received on current skb
  */
-struct ccid2_hc_tx_sock {
+struct ccid2_hc_tx_sock
+{
 	u32			tx_cwnd;
 	u32			tx_ssthresh;
 	u32			tx_pipe;
@@ -83,7 +85,7 @@ struct ccid2_hc_tx_sock {
 				tx_mdev_max,
 				tx_rttvar,
 				tx_rto;
-	u64			tx_rtt_seq:48;
+	u64			tx_rtt_seq: 48;
 	struct timer_list	tx_rtotimer;
 
 	/* Congestion Window validation (optional, RFC 2861) */
@@ -117,7 +119,8 @@ static inline u32 rfc3390_bytes_to_packets(const u32 smss)
  * struct ccid2_hc_rx_sock  -  Receiving end of CCID-2 half-connection
  * @rx_num_data_pkts: number of data packets received since last feedback
  */
-struct ccid2_hc_rx_sock {
+struct ccid2_hc_rx_sock
+{
 	u32	rx_num_data_pkts;
 };
 

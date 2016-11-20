@@ -59,7 +59,8 @@ struct kmem_cache *vvp_req_kmem;
 static struct kmem_cache *vvp_session_kmem;
 static struct kmem_cache *vvp_thread_kmem;
 
-static struct lu_kmem_descr vvp_caches[] = {
+static struct lu_kmem_descr vvp_caches[] =
+{
 	{
 		.ckd_cache = &ll_thread_kmem,
 		.ckd_name  = "ll_thread_kmem",
@@ -96,75 +97,90 @@ static struct lu_kmem_descr vvp_caches[] = {
 };
 
 static void *ll_thread_key_init(const struct lu_context *ctx,
-				struct lu_context_key *key)
+								struct lu_context_key *key)
 {
 	struct vvp_thread_info *info;
 
 	info = kmem_cache_zalloc(ll_thread_kmem, GFP_NOFS);
+
 	if (!info)
+	{
 		info = ERR_PTR(-ENOMEM);
+	}
+
 	return info;
 }
 
 static void ll_thread_key_fini(const struct lu_context *ctx,
-			       struct lu_context_key *key, void *data)
+							   struct lu_context_key *key, void *data)
 {
 	struct vvp_thread_info *info = data;
 
 	kmem_cache_free(ll_thread_kmem, info);
 }
 
-struct lu_context_key ll_thread_key = {
+struct lu_context_key ll_thread_key =
+{
 	.lct_tags = LCT_CL_THREAD,
 	.lct_init = ll_thread_key_init,
 	.lct_fini = ll_thread_key_fini
 };
 
 static void *vvp_session_key_init(const struct lu_context *ctx,
-				  struct lu_context_key *key)
+								  struct lu_context_key *key)
 {
 	struct vvp_session *session;
 
 	session = kmem_cache_zalloc(vvp_session_kmem, GFP_NOFS);
+
 	if (!session)
+	{
 		session = ERR_PTR(-ENOMEM);
+	}
+
 	return session;
 }
 
 static void vvp_session_key_fini(const struct lu_context *ctx,
-				 struct lu_context_key *key, void *data)
+								 struct lu_context_key *key, void *data)
 {
 	struct vvp_session *session = data;
 
 	kmem_cache_free(vvp_session_kmem, session);
 }
 
-struct lu_context_key vvp_session_key = {
+struct lu_context_key vvp_session_key =
+{
 	.lct_tags = LCT_SESSION,
 	.lct_init = vvp_session_key_init,
 	.lct_fini = vvp_session_key_fini
 };
 
 static void *vvp_thread_key_init(const struct lu_context *ctx,
-				 struct lu_context_key *key)
+								 struct lu_context_key *key)
 {
 	struct vvp_thread_info *vti;
 
 	vti = kmem_cache_zalloc(vvp_thread_kmem, GFP_NOFS);
+
 	if (!vti)
+	{
 		vti = ERR_PTR(-ENOMEM);
+	}
+
 	return vti;
 }
 
 static void vvp_thread_key_fini(const struct lu_context *ctx,
-				struct lu_context_key *key, void *data)
+								struct lu_context_key *key, void *data)
 {
 	struct vvp_thread_info *vti = data;
 
 	kmem_cache_free(vvp_thread_kmem, vti);
 }
 
-struct lu_context_key vvp_thread_key = {
+struct lu_context_key vvp_thread_key =
+{
 	.lct_tags = LCT_CL_THREAD,
 	.lct_init = vvp_thread_key_init,
 	.lct_fini = vvp_thread_key_fini
@@ -173,33 +189,37 @@ struct lu_context_key vvp_thread_key = {
 /* type constructor/destructor: vvp_type_{init,fini,start,stop}(). */
 LU_TYPE_INIT_FINI(vvp, &vvp_thread_key, &ll_thread_key, &vvp_session_key);
 
-static const struct lu_device_operations vvp_lu_ops = {
+static const struct lu_device_operations vvp_lu_ops =
+{
 	.ldo_object_alloc      = vvp_object_alloc
 };
 
-static const struct cl_device_operations vvp_cl_ops = {
+static const struct cl_device_operations vvp_cl_ops =
+{
 	.cdo_req_init = vvp_req_init
 };
 
 static struct lu_device *vvp_device_free(const struct lu_env *env,
-					 struct lu_device *d)
+		struct lu_device *d)
 {
 	struct vvp_device *vdv  = lu2vvp_dev(d);
 	struct cl_site    *site = lu2cl_site(d->ld_site);
 	struct lu_device  *next = cl2lu_dev(vdv->vdv_next);
 
-	if (d->ld_site) {
+	if (d->ld_site)
+	{
 		cl_site_fini(site);
 		kfree(site);
 	}
+
 	cl_device_fini(lu2cl_dev(d));
 	kfree(vdv);
 	return next;
 }
 
 static struct lu_device *vvp_device_alloc(const struct lu_env *env,
-					  struct lu_device_type *t,
-					  struct lustre_cfg *cfg)
+		struct lu_device_type *t,
+		struct lustre_cfg *cfg)
 {
 	struct vvp_device *vdv;
 	struct lu_device  *lud;
@@ -207,8 +227,11 @@ static struct lu_device *vvp_device_alloc(const struct lu_env *env,
 	int rc;
 
 	vdv = kzalloc(sizeof(*vdv), GFP_NOFS);
+
 	if (!vdv)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	lud = &vdv->vdv_cl.cd_lu_dev;
 	cl_device_init(&vdv->vdv_cl, t);
@@ -216,27 +239,38 @@ static struct lu_device *vvp_device_alloc(const struct lu_env *env,
 	vdv->vdv_cl.cd_ops = &vvp_cl_ops;
 
 	site = kzalloc(sizeof(*site), GFP_NOFS);
-	if (site) {
+
+	if (site)
+	{
 		rc = cl_site_init(site, &vdv->vdv_cl);
-		if (rc == 0) {
+
+		if (rc == 0)
+		{
 			rc = lu_site_init_finish(&site->cs_lu);
-		} else {
+		}
+		else
+		{
 			LASSERT(!lud->ld_site);
 			CERROR("Cannot init lu_site, rc %d.\n", rc);
 			kfree(site);
 		}
-	} else {
+	}
+	else
+	{
 		rc = -ENOMEM;
 	}
-	if (rc != 0) {
+
+	if (rc != 0)
+	{
 		vvp_device_free(env, lud);
 		lud = ERR_PTR(rc);
 	}
+
 	return lud;
 }
 
 static int vvp_device_init(const struct lu_env *env, struct lu_device *d,
-			   const char *name, struct lu_device *next)
+						   const char *name, struct lu_device *next)
 {
 	struct vvp_device  *vdv;
 	int rc;
@@ -247,22 +281,26 @@ static int vvp_device_init(const struct lu_env *env, struct lu_device *d,
 	LASSERT(d->ld_site && next->ld_type);
 	next->ld_site = d->ld_site;
 	rc = next->ld_type->ldt_ops->ldto_device_init(env, next,
-						      next->ld_type->ldt_name,
-						      NULL);
-	if (rc == 0) {
+			next->ld_type->ldt_name,
+			NULL);
+
+	if (rc == 0)
+	{
 		lu_device_get(next);
 		lu_ref_add(&next->ld_reference, "lu-stack", &lu_site_init);
 	}
+
 	return rc;
 }
 
 static struct lu_device *vvp_device_fini(const struct lu_env *env,
-					 struct lu_device *d)
+		struct lu_device *d)
 {
 	return cl2lu_dev(lu2vvp_dev(d)->vdv_next);
 }
 
-static const struct lu_device_type_operations vvp_device_type_ops = {
+static const struct lu_device_type_operations vvp_device_type_ops =
+{
 	.ldto_init = vvp_type_init,
 	.ldto_fini = vvp_type_fini,
 
@@ -275,7 +313,8 @@ static const struct lu_device_type_operations vvp_device_type_ops = {
 	.ldto_device_fini	= vvp_device_fini,
 };
 
-struct lu_device_type vvp_device_type = {
+struct lu_device_type vvp_device_type =
+{
 	.ldt_tags     = LU_DEVICE_CL,
 	.ldt_name     = LUSTRE_VVP_NAME,
 	.ldt_ops      = &vvp_device_type_ops,
@@ -291,12 +330,18 @@ int vvp_global_init(void)
 	int rc;
 
 	rc = lu_kmem_init(vvp_caches);
+
 	if (rc != 0)
+	{
 		return rc;
+	}
 
 	rc = lu_device_type_init(&vvp_device_type);
+
 	if (rc != 0)
+	{
 		goto out_kmem;
+	}
 
 	return 0;
 
@@ -328,18 +373,26 @@ int cl_sb_init(struct super_block *sb)
 
 	sbi  = ll_s2sbi(sb);
 	env = cl_env_get(&refcheck);
-	if (!IS_ERR(env)) {
+
+	if (!IS_ERR(env))
+	{
 		cl = cl_type_setup(env, NULL, &vvp_device_type,
-				   sbi->ll_dt_exp->exp_obd->obd_lu_dev);
-		if (!IS_ERR(cl)) {
+						   sbi->ll_dt_exp->exp_obd->obd_lu_dev);
+
+		if (!IS_ERR(cl))
+		{
 			cl2vvp_dev(cl)->vdv_sb = sb;
 			sbi->ll_cl = cl;
 			sbi->ll_site = cl2lu_dev(cl)->ld_site;
 		}
+
 		cl_env_put(env, &refcheck);
-	} else {
+	}
+	else
+	{
 		rc = PTR_ERR(env);
 	}
+
 	return rc;
 }
 
@@ -353,20 +406,27 @@ int cl_sb_fini(struct super_block *sb)
 
 	sbi = ll_s2sbi(sb);
 	env = cl_env_get(&refcheck);
-	if (!IS_ERR(env)) {
+
+	if (!IS_ERR(env))
+	{
 		cld = sbi->ll_cl;
 
-		if (cld) {
+		if (cld)
+		{
 			cl_stack_fini(env, cld);
 			sbi->ll_cl = NULL;
 			sbi->ll_site = NULL;
 		}
+
 		cl_env_put(env, &refcheck);
 		result = 0;
-	} else {
+	}
+	else
+	{
 		CERROR("Cannot cleanup cl-stack due to memory shortage.\n");
 		result = PTR_ERR(env);
 	}
+
 	return result;
 }
 
@@ -392,7 +452,8 @@ int cl_sb_fini(struct super_block *sb)
 #define PGC_OBJ_SHIFT (32 + 4)
 #define PGC_DEPTH_SHIFT (32)
 
-struct vvp_pgcache_id {
+struct vvp_pgcache_id
+{
 	unsigned		 vpi_bucket;
 	unsigned		 vpi_depth;
 	uint32_t		 vpi_index;
@@ -419,16 +480,20 @@ static loff_t vvp_pgcache_id_pack(struct vvp_pgcache_id *id)
 }
 
 static int vvp_pgcache_obj_get(struct cfs_hash *hs, struct cfs_hash_bd *bd,
-			       struct hlist_node *hnode, void *data)
+							   struct hlist_node *hnode, void *data)
 {
 	struct vvp_pgcache_id   *id  = data;
 	struct lu_object_header *hdr = cfs_hash_object(hs, hnode);
 
 	if (id->vpi_curdep-- > 0)
-		return 0; /* continue */
+	{
+		return 0;    /* continue */
+	}
 
 	if (lu_object_is_dying(hdr))
+	{
 		return 1;
+	}
 
 	cfs_hash_get(hs, hnode);
 	id->vpi_obj = hdr;
@@ -436,8 +501,8 @@ static int vvp_pgcache_obj_get(struct cfs_hash *hs, struct cfs_hash_bd *bd,
 }
 
 static struct cl_object *vvp_pgcache_obj(const struct lu_env *env,
-					 struct lu_device *dev,
-					 struct vvp_pgcache_id *id)
+		struct lu_device *dev,
+		struct vvp_pgcache_id *id)
 {
 	LASSERT(lu_device_is_cl(dev));
 
@@ -446,25 +511,33 @@ static struct cl_object *vvp_pgcache_obj(const struct lu_env *env,
 	id->vpi_curdep = id->vpi_depth;
 
 	cfs_hash_hlist_for_each(dev->ld_site->ls_obj_hash, id->vpi_bucket,
-				vvp_pgcache_obj_get, id);
-	if (id->vpi_obj) {
+							vvp_pgcache_obj_get, id);
+
+	if (id->vpi_obj)
+	{
 		struct lu_object *lu_obj;
 
 		lu_obj = lu_object_locate(id->vpi_obj, dev->ld_type);
-		if (lu_obj) {
+
+		if (lu_obj)
+		{
 			lu_object_ref_add(lu_obj, "dump", current);
 			return lu2cl(lu_obj);
 		}
+
 		lu_object_put(env, lu_object_top(id->vpi_obj));
 
-	} else if (id->vpi_curdep > 0) {
+	}
+	else if (id->vpi_curdep > 0)
+	{
 		id->vpi_depth = 0xf;
 	}
+
 	return NULL;
 }
 
 static loff_t vvp_pgcache_find(const struct lu_env *env,
-			       struct lu_device *dev, loff_t pos)
+							   struct lu_device *dev, loff_t pos)
 {
 	struct cl_object     *clob;
 	struct lu_site       *site;
@@ -473,18 +546,26 @@ static loff_t vvp_pgcache_find(const struct lu_env *env,
 	site = dev->ld_site;
 	vvp_pgcache_id_unpack(pos, &id);
 
-	while (1) {
+	while (1)
+	{
 		if (id.vpi_bucket >= CFS_HASH_NHLIST(site->ls_obj_hash))
+		{
 			return ~0ULL;
+		}
+
 		clob = vvp_pgcache_obj(env, dev, &id);
-		if (clob) {
+
+		if (clob)
+		{
 			struct inode *inode = vvp_object_inode(clob);
 			struct page *vmpage;
 			int nr;
 
 			nr = find_get_pages_contig(inode->i_mapping,
-						   id.vpi_index, 1, &vmpage);
-			if (nr > 0) {
+									   id.vpi_index, 1, &vmpage);
+
+			if (nr > 0)
+			{
 				id.vpi_index = vmpage->index;
 				/* Cant support over 16T file */
 				nr = !(vmpage->index > 0xffffffff);
@@ -493,27 +574,35 @@ static loff_t vvp_pgcache_find(const struct lu_env *env,
 
 			lu_object_ref_del(&clob->co_lu, "dump", current);
 			cl_object_put(env, clob);
+
 			if (nr > 0)
+			{
 				return vvp_pgcache_id_pack(&id);
+			}
 		}
+
 		/* to the next object. */
 		++id.vpi_depth;
 		id.vpi_depth &= 0xf;
+
 		if (id.vpi_depth == 0 && ++id.vpi_bucket == 0)
+		{
 			return ~0ULL;
+		}
+
 		id.vpi_index = 0;
 	}
 }
 
 #define seq_page_flag(seq, page, flag, has_flags) do {		  \
-	if (test_bit(PG_##flag, &(page)->flags)) {		  \
-		seq_printf(seq, "%s"#flag, has_flags ? "|" : "");       \
-		has_flags = 1;					  \
-	}							       \
-} while (0)
+		if (test_bit(PG_##flag, &(page)->flags)) {		  \
+			seq_printf(seq, "%s"#flag, has_flags ? "|" : "");       \
+			has_flags = 1;					  \
+		}							       \
+	} while (0)
 
 static void vvp_pgcache_page_show(const struct lu_env *env,
-				  struct seq_file *seq, struct cl_page *page)
+								  struct seq_file *seq, struct cl_page *page)
 {
 	struct vvp_page *vpg;
 	struct page      *vmpage;
@@ -522,15 +611,15 @@ static void vvp_pgcache_page_show(const struct lu_env *env,
 	vpg = cl2vvp_page(cl_page_at(page, &vvp_device_type));
 	vmpage = vpg->vpg_page;
 	seq_printf(seq, " %5i | %p %p %s %s %s %s | %p "DFID"(%p) %lu %u [",
-		   0 /* gen */,
-		   vpg, page,
-		   "none",
-		   vpg->vpg_write_queued ? "wq" : "- ",
-		   vpg->vpg_defer_uptodate ? "du" : "- ",
-		   PageWriteback(vmpage) ? "wb" : "-",
-		   vmpage, PFID(ll_inode2fid(vmpage->mapping->host)),
-		   vmpage->mapping->host, vmpage->index,
-		   page_count(vmpage));
+			   0 /* gen */,
+			   vpg, page,
+			   "none",
+			   vpg->vpg_write_queued ? "wq" : "- ",
+			   vpg->vpg_defer_uptodate ? "du" : "- ",
+			   PageWriteback(vmpage) ? "wb" : "-",
+			   vmpage, PFID(ll_inode2fid(vmpage->mapping->host)),
+			   vmpage->mapping->host, vmpage->index,
+			   page_count(vmpage));
 	has_flags = 0;
 	seq_page_flag(seq, vmpage, locked, has_flags);
 	seq_page_flag(seq, vmpage, error, has_flags);
@@ -552,20 +641,26 @@ static int vvp_pgcache_show(struct seq_file *f, void *v)
 	int		      result;
 
 	env = cl_env_get(&refcheck);
-	if (!IS_ERR(env)) {
+
+	if (!IS_ERR(env))
+	{
 		pos = *(loff_t *)v;
 		vvp_pgcache_id_unpack(pos, &id);
 		sbi = f->private;
 		clob = vvp_pgcache_obj(env, &sbi->ll_cl->cd_lu_dev, &id);
-		if (clob) {
+
+		if (clob)
+		{
 			struct inode *inode = vvp_object_inode(clob);
 			struct cl_page *page = NULL;
 			struct page *vmpage;
 
 			result = find_get_pages_contig(inode->i_mapping,
-						       id.vpi_index, 1,
-						       &vmpage);
-			if (result > 0) {
+										   id.vpi_index, 1,
+										   &vmpage);
+
+			if (result > 0)
+			{
 				lock_page(vmpage);
 				page = cl_vmpage_page(vmpage, clob);
 				unlock_page(vmpage);
@@ -573,23 +668,34 @@ static int vvp_pgcache_show(struct seq_file *f, void *v)
 			}
 
 			seq_printf(f, "%8x@" DFID ": ", id.vpi_index,
-				   PFID(lu_object_fid(&clob->co_lu)));
-			if (page) {
+					   PFID(lu_object_fid(&clob->co_lu)));
+
+			if (page)
+			{
 				vvp_pgcache_page_show(env, f, page);
 				cl_page_put(env, page);
-			} else {
+			}
+			else
+			{
 				seq_puts(f, "missing\n");
 			}
+
 			lu_object_ref_del(&clob->co_lu, "dump", current);
 			cl_object_put(env, clob);
-		} else {
+		}
+		else
+		{
 			seq_printf(f, "%llx missing\n", pos);
 		}
+
 		cl_env_put(env, &refcheck);
 		result = 0;
-	} else {
+	}
+	else
+	{
 		result = PTR_ERR(env);
 	}
+
 	return result;
 }
 
@@ -602,18 +708,29 @@ static void *vvp_pgcache_start(struct seq_file *f, loff_t *pos)
 	sbi = f->private;
 
 	env = cl_env_get(&refcheck);
-	if (!IS_ERR(env)) {
+
+	if (!IS_ERR(env))
+	{
 		sbi = f->private;
+
 		if (sbi->ll_site->ls_obj_hash->hs_cur_bits > 64 - PGC_OBJ_SHIFT)
+		{
 			pos = ERR_PTR(-EFBIG);
-		else {
-			*pos = vvp_pgcache_find(env, &sbi->ll_cl->cd_lu_dev,
-						*pos);
-			if (*pos == ~0ULL)
-				pos = NULL;
 		}
+		else
+		{
+			*pos = vvp_pgcache_find(env, &sbi->ll_cl->cd_lu_dev,
+									*pos);
+
+			if (*pos == ~0ULL)
+			{
+				pos = NULL;
+			}
+		}
+
 		cl_env_put(env, &refcheck);
 	}
+
 	return pos;
 }
 
@@ -624,13 +741,20 @@ static void *vvp_pgcache_next(struct seq_file *f, void *v, loff_t *pos)
 	int		refcheck;
 
 	env = cl_env_get(&refcheck);
-	if (!IS_ERR(env)) {
+
+	if (!IS_ERR(env))
+	{
 		sbi = f->private;
 		*pos = vvp_pgcache_find(env, &sbi->ll_cl->cd_lu_dev, *pos + 1);
+
 		if (*pos == ~0ULL)
+		{
 			pos = NULL;
+		}
+
 		cl_env_put(env, &refcheck);
 	}
+
 	return pos;
 }
 
@@ -639,7 +763,8 @@ static void vvp_pgcache_stop(struct seq_file *f, void *v)
 	/* Nothing to do */
 }
 
-static const struct seq_operations vvp_pgcache_ops = {
+static const struct seq_operations vvp_pgcache_ops =
+{
 	.start = vvp_pgcache_start,
 	.next  = vvp_pgcache_next,
 	.stop  = vvp_pgcache_stop,
@@ -652,8 +777,11 @@ static int vvp_dump_pgcache_seq_open(struct inode *inode, struct file *filp)
 	int rc;
 
 	rc = seq_open(filp, &vvp_pgcache_ops);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	seq = filp->private_data;
 	seq->private = inode->i_private;
@@ -661,7 +789,8 @@ static int vvp_dump_pgcache_seq_open(struct inode *inode, struct file *filp)
 	return 0;
 }
 
-const struct file_operations vvp_dump_pgcache_file_ops = {
+const struct file_operations vvp_dump_pgcache_file_ops =
+{
 	.owner   = THIS_MODULE,
 	.open    = vvp_dump_pgcache_seq_open,
 	.read    = seq_read,

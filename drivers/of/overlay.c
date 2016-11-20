@@ -33,7 +33,8 @@
  * Holds a single overlay state, including all the overlay logs &
  * records.
  */
-struct of_overlay_info {
+struct of_overlay_info
+{
 	struct device_node *target;
 	struct device_node *overlay;
 };
@@ -47,7 +48,8 @@ struct of_overlay_info {
  *
  * Holds a complete overlay transaction
  */
-struct of_overlay {
+struct of_overlay
+{
 	int id;
 	struct list_head node;
 	int count;
@@ -56,7 +58,7 @@ struct of_overlay {
 };
 
 static int of_overlay_apply_one(struct of_overlay *ov,
-		struct device_node *target, const struct device_node *overlay);
+								struct device_node *target, const struct device_node *overlay);
 
 static int of_overlay_apply_single_property(struct of_overlay *ov,
 		struct device_node *target, struct property *prop)
@@ -68,17 +70,24 @@ static int of_overlay_apply_single_property(struct of_overlay *ov,
 
 	/* special properties are not meant to be updated (silent NOP) */
 	if (of_prop_cmp(prop->name, "name") == 0 ||
-	    of_prop_cmp(prop->name, "phandle") == 0 ||
-	    of_prop_cmp(prop->name, "linux,phandle") == 0)
+		of_prop_cmp(prop->name, "phandle") == 0 ||
+		of_prop_cmp(prop->name, "linux,phandle") == 0)
+	{
 		return 0;
+	}
 
 	propn = __of_prop_dup(prop, GFP_KERNEL);
+
 	if (propn == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	/* not found? add */
 	if (tprop == NULL)
+	{
 		return of_changeset_add_property(&ov->cset, target, propn);
+	}
 
 	/* found? update */
 	return of_changeset_update_property(&ov->cset, target, propn);
@@ -92,31 +101,47 @@ static int of_overlay_apply_single_device_node(struct of_overlay *ov,
 	int ret = 0;
 
 	cname = kbasename(child->full_name);
+
 	if (cname == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	/* NOTE: Multiple mods of created nodes not supported */
 	tchild = of_get_child_by_name(target, cname);
-	if (tchild != NULL) {
+
+	if (tchild != NULL)
+	{
 		/* apply overlay recursively */
 		ret = of_overlay_apply_one(ov, tchild, child);
 		of_node_put(tchild);
-	} else {
+	}
+	else
+	{
 		/* create empty tree as a target */
 		tchild = __of_node_dup(child, "%s/%s", target->full_name, cname);
+
 		if (!tchild)
+		{
 			return -ENOMEM;
+		}
 
 		/* point to parent */
 		tchild->parent = target;
 
 		ret = of_changeset_attach_node(&ov->cset, tchild);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		ret = of_overlay_apply_one(ov, tchild, child);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return ret;
@@ -130,26 +155,32 @@ static int of_overlay_apply_single_device_node(struct of_overlay *ov,
  * by using the changeset.
  */
 static int of_overlay_apply_one(struct of_overlay *ov,
-		struct device_node *target, const struct device_node *overlay)
+								struct device_node *target, const struct device_node *overlay)
 {
 	struct device_node *child;
 	struct property *prop;
 	int ret;
 
-	for_each_property_of_node(overlay, prop) {
+	for_each_property_of_node(overlay, prop)
+	{
 		ret = of_overlay_apply_single_property(ov, target, prop);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_err("Failed to apply prop @%s/%s\n",
-			       target->full_name, prop->name);
+				   target->full_name, prop->name);
 			return ret;
 		}
 	}
 
-	for_each_child_of_node(overlay, child) {
+	for_each_child_of_node(overlay, child)
+	{
 		ret = of_overlay_apply_single_device_node(ov, target, child);
-		if (ret != 0) {
+
+		if (ret != 0)
+		{
 			pr_err("Failed to apply single node @%s/%s\n",
-			       target->full_name, child->name);
+				   target->full_name, child->name);
 			of_node_put(child);
 			return ret;
 		}
@@ -172,11 +203,14 @@ static int of_overlay_apply(struct of_overlay *ov)
 	int i, err;
 
 	/* first we apply the overlays atomically */
-	for (i = 0; i < ov->count; i++) {
+	for (i = 0; i < ov->count; i++)
+	{
 		struct of_overlay_info *ovinfo = &ov->ovinfo_tab[i];
 
 		err = of_overlay_apply_one(ov, ovinfo->target, ovinfo->overlay);
-		if (err != 0) {
+
+		if (err != 0)
+		{
 			pr_err("apply failed '%s'\n", ovinfo->target->full_name);
 			return err;
 		}
@@ -200,16 +234,22 @@ static struct device_node *find_target_node(struct device_node *info_node)
 
 	/* first try to go by using the target as a phandle */
 	ret = of_property_read_u32(info_node, "target", &val);
+
 	if (ret == 0)
+	{
 		return of_find_node_by_phandle(val);
+	}
 
 	/* now try to locate by path */
 	ret = of_property_read_string(info_node, "target-path", &path);
+
 	if (ret == 0)
+	{
 		return of_find_node_by_path(path);
+	}
 
 	pr_err("Failed to find target for node %p (%s)\n",
-		info_node, info_node->name);
+		   info_node, info_node->name);
 
 	return NULL;
 }
@@ -229,15 +269,21 @@ static struct device_node *find_target_node(struct device_node *info_node)
  * Returns 0 on success, or a negative error value.
  */
 static int of_fill_overlay_info(struct of_overlay *ov,
-		struct device_node *info_node, struct of_overlay_info *ovinfo)
+								struct device_node *info_node, struct of_overlay_info *ovinfo)
 {
 	ovinfo->overlay = of_get_child_by_name(info_node, "__overlay__");
+
 	if (ovinfo->overlay == NULL)
+	{
 		goto err_fail;
+	}
 
 	ovinfo->target = find_target_node(info_node);
+
 	if (ovinfo->target == NULL)
+	{
 		goto err_fail;
+	}
 
 	return 0;
 
@@ -262,7 +308,7 @@ err_fail:
  * while on error a negative error value is returned.
  */
 static int of_build_overlay_info(struct of_overlay *ov,
-		struct device_node *tree)
+								 struct device_node *tree)
 {
 	struct device_node *node;
 	struct of_overlay_info *ovinfo;
@@ -271,22 +317,30 @@ static int of_build_overlay_info(struct of_overlay *ov,
 	/* worst case; every child is a node */
 	cnt = 0;
 	for_each_child_of_node(tree, node)
-		cnt++;
+	cnt++;
 
 	ovinfo = kcalloc(cnt, sizeof(*ovinfo), GFP_KERNEL);
+
 	if (ovinfo == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	cnt = 0;
-	for_each_child_of_node(tree, node) {
+	for_each_child_of_node(tree, node)
+	{
 		memset(&ovinfo[cnt], 0, sizeof(*ovinfo));
 		err = of_fill_overlay_info(ov, node, &ovinfo[cnt]);
+
 		if (err == 0)
+		{
 			cnt++;
+		}
 	}
 
 	/* if nothing filled, return error */
-	if (cnt == 0) {
+	if (cnt == 0)
+	{
 		kfree(ovinfo);
 		return -ENODEV;
 	}
@@ -312,12 +366,14 @@ static int of_free_overlay_info(struct of_overlay *ov)
 	int i;
 
 	/* do it in reverse */
-	for (i = ov->count - 1; i >= 0; i--) {
+	for (i = ov->count - 1; i >= 0; i--)
+	{
 		ovinfo = &ov->ovinfo_tab[i];
 
 		of_node_put(ovinfo->target);
 		of_node_put(ovinfo->overlay);
 	}
+
 	kfree(ov->ovinfo_tab);
 
 	return 0;
@@ -343,8 +399,12 @@ int of_overlay_create(struct device_node *tree)
 
 	/* allocate the overlay structure */
 	ov = kzalloc(sizeof(*ov), GFP_KERNEL);
+
 	if (ov == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	ov->id = -1;
 
 	INIT_LIST_HEAD(&ov->node);
@@ -354,29 +414,40 @@ int of_overlay_create(struct device_node *tree)
 	mutex_lock(&of_mutex);
 
 	id = idr_alloc(&ov_idr, ov, 0, 0, GFP_KERNEL);
-	if (id < 0) {
+
+	if (id < 0)
+	{
 		err = id;
 		goto err_destroy_trans;
 	}
+
 	ov->id = id;
 
 	/* build the overlay info structures */
 	err = of_build_overlay_info(ov, tree);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("of_build_overlay_info() failed for tree@%s\n",
-		       tree->full_name);
+			   tree->full_name);
 		goto err_free_idr;
 	}
 
 	/* apply the overlay */
 	err = of_overlay_apply(ov);
+
 	if (err)
+	{
 		goto err_abort_trans;
+	}
 
 	/* apply the changeset */
 	err = __of_changeset_apply(&ov->cset);
+
 	if (err)
+	{
 		goto err_revert_overlay;
+	}
 
 
 	/* add to the tail of the overlay list */
@@ -402,16 +473,20 @@ EXPORT_SYMBOL_GPL(of_overlay_create);
 
 /* check whether the given node, lies under the given tree */
 static int overlay_subtree_check(struct device_node *tree,
-		struct device_node *dn)
+								 struct device_node *dn)
 {
 	struct device_node *child;
 
 	/* match? */
 	if (tree == dn)
+	{
 		return 1;
+	}
 
-	for_each_child_of_node(tree, child) {
-		if (overlay_subtree_check(child, dn)) {
+	for_each_child_of_node(tree, child)
+	{
+		if (overlay_subtree_check(child, dn))
+		{
 			of_node_put(child);
 			return 1;
 		}
@@ -426,17 +501,22 @@ static int overlay_is_topmost(struct of_overlay *ov, struct device_node *dn)
 	struct of_overlay *ovt;
 	struct of_changeset_entry *ce;
 
-	list_for_each_entry_reverse(ovt, &ov_list, node) {
+	list_for_each_entry_reverse(ovt, &ov_list, node)
+	{
 		/* if we hit ourselves, we're done */
 		if (ovt == ov)
+		{
 			break;
+		}
 
 		/* check against each subtree affected by this overlay */
-		list_for_each_entry(ce, &ovt->cset.entries, node) {
-			if (overlay_subtree_check(ce->np, dn)) {
+		list_for_each_entry(ce, &ovt->cset.entries, node)
+		{
+			if (overlay_subtree_check(ce->np, dn))
+			{
 				pr_err("%s: #%d clashes #%d @%s\n",
-					__func__, ov->id, ovt->id,
-					dn->full_name);
+					   __func__, ov->id, ovt->id,
+					   dn->full_name);
 				return 0;
 			}
 		}
@@ -460,8 +540,10 @@ static int overlay_removal_is_ok(struct of_overlay *ov)
 {
 	struct of_changeset_entry *ce;
 
-	list_for_each_entry(ce, &ov->cset.entries, node) {
-		if (!overlay_is_topmost(ov, ce->np)) {
+	list_for_each_entry(ce, &ov->cset.entries, node)
+	{
+		if (!overlay_is_topmost(ov, ce->np))
+		{
 			pr_err("overlay #%d is not topmost\n", ov->id);
 			return 0;
 		}
@@ -486,14 +568,17 @@ int of_overlay_destroy(int id)
 	mutex_lock(&of_mutex);
 
 	ov = idr_find(&ov_idr, id);
-	if (ov == NULL) {
+
+	if (ov == NULL)
+	{
 		err = -ENODEV;
 		pr_err("destroy: Could not find overlay #%d\n", id);
 		goto out;
 	}
 
 	/* check whether the overlay is safe to remove */
-	if (!overlay_removal_is_ok(ov)) {
+	if (!overlay_removal_is_ok(ov))
+	{
 		err = -EBUSY;
 		goto out;
 	}
@@ -529,7 +614,8 @@ int of_overlay_destroy_all(void)
 	mutex_lock(&of_mutex);
 
 	/* the tail of list is guaranteed to be safe to remove */
-	list_for_each_entry_safe_reverse(ov, ovn, &ov_list, node) {
+	list_for_each_entry_safe_reverse(ov, ovn, &ov_list, node)
+	{
 		list_del(&ov->node);
 		__of_changeset_revert(&ov->cset);
 		of_free_overlay_info(ov);

@@ -52,7 +52,8 @@
 #include "../comedidev.h"
 
 /* AI range is not configurable, it's set by jumpers on the board */
-static const struct comedi_lrange pcmda12_ranges = {
+static const struct comedi_lrange pcmda12_ranges =
+{
 	3, {
 		UNI_RANGE(5),
 		UNI_RANGE(10),
@@ -60,14 +61,15 @@ static const struct comedi_lrange pcmda12_ranges = {
 	}
 };
 
-struct pcmda12_private {
+struct pcmda12_private
+{
 	int simultaneous_xfer_mode;
 };
 
 static int pcmda12_ao_insn_write(struct comedi_device *dev,
-				 struct comedi_subdevice *s,
-				 struct comedi_insn *insn,
-				 unsigned int *data)
+								 struct comedi_subdevice *s,
+								 struct comedi_insn *insn,
+								 unsigned int *data)
 {
 	struct pcmda12_private *devpriv = dev->private;
 	unsigned int chan = CR_CHAN(insn->chanspec);
@@ -75,7 +77,8 @@ static int pcmda12_ao_insn_write(struct comedi_device *dev,
 	unsigned long ioreg = dev->iobase + (chan * 2);
 	int i;
 
-	for (i = 0; i < insn->n; ++i) {
+	for (i = 0; i < insn->n; ++i)
+	{
 		val = data[i];
 		outb(val & 0xff, ioreg);
 		outb((val >> 8) & 0xff, ioreg + 1);
@@ -85,17 +88,20 @@ static int pcmda12_ao_insn_write(struct comedi_device *dev,
 		 * mode by reading one of the AO registers.
 		 */
 		if (!devpriv->simultaneous_xfer_mode)
+		{
 			inb(ioreg);
+		}
 	}
+
 	s->readback[chan] = val;
 
 	return insn->n;
 }
 
 static int pcmda12_ao_insn_read(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_insn *insn,
-				unsigned int *data)
+								struct comedi_subdevice *s,
+								struct comedi_insn *insn,
+								unsigned int *data)
 {
 	struct pcmda12_private *devpriv = dev->private;
 
@@ -104,44 +110,57 @@ static int pcmda12_ao_insn_read(struct comedi_device *dev,
 	 * AO registers. All analog outputs will then be updated.
 	 */
 	if (devpriv->simultaneous_xfer_mode)
+	{
 		inb(dev->iobase);
+	}
 
 	return comedi_readback_insn_read(dev, s, insn, data);
 }
 
 static void pcmda12_ao_reset(struct comedi_device *dev,
-			     struct comedi_subdevice *s)
+							 struct comedi_subdevice *s)
 {
 	int i;
 
-	for (i = 0; i < s->n_chan; ++i) {
+	for (i = 0; i < s->n_chan; ++i)
+	{
 		outb(0, dev->iobase + (i * 2));
 		outb(0, dev->iobase + (i * 2) + 1);
 	}
+
 	/* Initiate transfer by reading one of the AO registers. */
 	inb(dev->iobase);
 }
 
 static int pcmda12_attach(struct comedi_device *dev,
-			  struct comedi_devconfig *it)
+						  struct comedi_devconfig *it)
 {
 	struct pcmda12_private *devpriv;
 	struct comedi_subdevice *s;
 	int ret;
 
 	ret = comedi_request_region(dev, it->options[0], 0x10);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	devpriv = comedi_alloc_devpriv(dev, sizeof(*devpriv));
+
 	if (!devpriv)
+	{
 		return -ENOMEM;
+	}
 
 	devpriv->simultaneous_xfer_mode = it->options[1];
 
 	ret = comedi_alloc_subdevices(dev, 1);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	s = &dev->subdevices[0];
 	s->type		= COMEDI_SUBD_AO;
@@ -153,15 +172,19 @@ static int pcmda12_attach(struct comedi_device *dev,
 	s->insn_read	= pcmda12_ao_insn_read;
 
 	ret = comedi_alloc_subdev_readback(s);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	pcmda12_ao_reset(dev, s);
 
 	return 0;
 }
 
-static struct comedi_driver pcmda12_driver = {
+static struct comedi_driver pcmda12_driver =
+{
 	.driver_name	= "pcmda12",
 	.module		= THIS_MODULE,
 	.attach		= pcmda12_attach,

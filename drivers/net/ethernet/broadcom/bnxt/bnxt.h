@@ -17,148 +17,153 @@
 #define DRV_VER_MIN	5
 #define DRV_VER_UPD	0
 
-struct tx_bd {
+struct tx_bd
+{
 	__le32 tx_bd_len_flags_type;
-	#define TX_BD_TYPE					(0x3f << 0)
-	 #define TX_BD_TYPE_SHORT_TX_BD				 (0x00 << 0)
-	 #define TX_BD_TYPE_LONG_TX_BD				 (0x10 << 0)
-	#define TX_BD_FLAGS_PACKET_END				(1 << 6)
-	#define TX_BD_FLAGS_NO_CMPL				(1 << 7)
-	#define TX_BD_FLAGS_BD_CNT				(0x1f << 8)
-	 #define TX_BD_FLAGS_BD_CNT_SHIFT			 8
-	#define TX_BD_FLAGS_LHINT				(3 << 13)
-	 #define TX_BD_FLAGS_LHINT_SHIFT			 13
-	 #define TX_BD_FLAGS_LHINT_512_AND_SMALLER		 (0 << 13)
-	 #define TX_BD_FLAGS_LHINT_512_TO_1023			 (1 << 13)
-	 #define TX_BD_FLAGS_LHINT_1024_TO_2047			 (2 << 13)
-	 #define TX_BD_FLAGS_LHINT_2048_AND_LARGER		 (3 << 13)
-	#define TX_BD_FLAGS_COAL_NOW				(1 << 15)
-	#define TX_BD_LEN					(0xffff << 16)
-	 #define TX_BD_LEN_SHIFT				 16
+#define TX_BD_TYPE					(0x3f << 0)
+#define TX_BD_TYPE_SHORT_TX_BD				 (0x00 << 0)
+#define TX_BD_TYPE_LONG_TX_BD				 (0x10 << 0)
+#define TX_BD_FLAGS_PACKET_END				(1 << 6)
+#define TX_BD_FLAGS_NO_CMPL				(1 << 7)
+#define TX_BD_FLAGS_BD_CNT				(0x1f << 8)
+#define TX_BD_FLAGS_BD_CNT_SHIFT			 8
+#define TX_BD_FLAGS_LHINT				(3 << 13)
+#define TX_BD_FLAGS_LHINT_SHIFT			 13
+#define TX_BD_FLAGS_LHINT_512_AND_SMALLER		 (0 << 13)
+#define TX_BD_FLAGS_LHINT_512_TO_1023			 (1 << 13)
+#define TX_BD_FLAGS_LHINT_1024_TO_2047			 (2 << 13)
+#define TX_BD_FLAGS_LHINT_2048_AND_LARGER		 (3 << 13)
+#define TX_BD_FLAGS_COAL_NOW				(1 << 15)
+#define TX_BD_LEN					(0xffff << 16)
+#define TX_BD_LEN_SHIFT				 16
 
 	u32 tx_bd_opaque;
 	__le64 tx_bd_haddr;
 } __packed;
 
-struct tx_bd_ext {
+struct tx_bd_ext
+{
 	__le32 tx_bd_hsize_lflags;
-	#define TX_BD_FLAGS_TCP_UDP_CHKSUM			(1 << 0)
-	#define TX_BD_FLAGS_IP_CKSUM				(1 << 1)
-	#define TX_BD_FLAGS_NO_CRC				(1 << 2)
-	#define TX_BD_FLAGS_STAMP				(1 << 3)
-	#define TX_BD_FLAGS_T_IP_CHKSUM				(1 << 4)
-	#define TX_BD_FLAGS_LSO					(1 << 5)
-	#define TX_BD_FLAGS_IPID_FMT				(1 << 6)
-	#define TX_BD_FLAGS_T_IPID				(1 << 7)
-	#define TX_BD_HSIZE					(0xff << 16)
-	 #define TX_BD_HSIZE_SHIFT				 16
+#define TX_BD_FLAGS_TCP_UDP_CHKSUM			(1 << 0)
+#define TX_BD_FLAGS_IP_CKSUM				(1 << 1)
+#define TX_BD_FLAGS_NO_CRC				(1 << 2)
+#define TX_BD_FLAGS_STAMP				(1 << 3)
+#define TX_BD_FLAGS_T_IP_CHKSUM				(1 << 4)
+#define TX_BD_FLAGS_LSO					(1 << 5)
+#define TX_BD_FLAGS_IPID_FMT				(1 << 6)
+#define TX_BD_FLAGS_T_IPID				(1 << 7)
+#define TX_BD_HSIZE					(0xff << 16)
+#define TX_BD_HSIZE_SHIFT				 16
 
 	__le32 tx_bd_mss;
 	__le32 tx_bd_cfa_action;
-	#define TX_BD_CFA_ACTION				(0xffff << 16)
-	 #define TX_BD_CFA_ACTION_SHIFT				 16
+#define TX_BD_CFA_ACTION				(0xffff << 16)
+#define TX_BD_CFA_ACTION_SHIFT				 16
 
 	__le32 tx_bd_cfa_meta;
-	#define TX_BD_CFA_META_MASK                             0xfffffff
-	#define TX_BD_CFA_META_VID_MASK                         0xfff
-	#define TX_BD_CFA_META_PRI_MASK                         (0xf << 12)
-	 #define TX_BD_CFA_META_PRI_SHIFT                        12
-	#define TX_BD_CFA_META_TPID_MASK                        (3 << 16)
-	 #define TX_BD_CFA_META_TPID_SHIFT                       16
-	#define TX_BD_CFA_META_KEY                              (0xf << 28)
-	 #define TX_BD_CFA_META_KEY_SHIFT			 28
-	#define TX_BD_CFA_META_KEY_VLAN                         (1 << 28)
+#define TX_BD_CFA_META_MASK                             0xfffffff
+#define TX_BD_CFA_META_VID_MASK                         0xfff
+#define TX_BD_CFA_META_PRI_MASK                         (0xf << 12)
+#define TX_BD_CFA_META_PRI_SHIFT                        12
+#define TX_BD_CFA_META_TPID_MASK                        (3 << 16)
+#define TX_BD_CFA_META_TPID_SHIFT                       16
+#define TX_BD_CFA_META_KEY                              (0xf << 28)
+#define TX_BD_CFA_META_KEY_SHIFT			 28
+#define TX_BD_CFA_META_KEY_VLAN                         (1 << 28)
 };
 
-struct rx_bd {
+struct rx_bd
+{
 	__le32 rx_bd_len_flags_type;
-	#define RX_BD_TYPE					(0x3f << 0)
-	 #define RX_BD_TYPE_RX_PACKET_BD			 0x4
-	 #define RX_BD_TYPE_RX_BUFFER_BD			 0x5
-	 #define RX_BD_TYPE_RX_AGG_BD				 0x6
-	 #define RX_BD_TYPE_16B_BD_SIZE				 (0 << 4)
-	 #define RX_BD_TYPE_32B_BD_SIZE				 (1 << 4)
-	 #define RX_BD_TYPE_48B_BD_SIZE				 (2 << 4)
-	 #define RX_BD_TYPE_64B_BD_SIZE				 (3 << 4)
-	#define RX_BD_FLAGS_SOP					(1 << 6)
-	#define RX_BD_FLAGS_EOP					(1 << 7)
-	#define RX_BD_FLAGS_BUFFERS				(3 << 8)
-	 #define RX_BD_FLAGS_1_BUFFER_PACKET			 (0 << 8)
-	 #define RX_BD_FLAGS_2_BUFFER_PACKET			 (1 << 8)
-	 #define RX_BD_FLAGS_3_BUFFER_PACKET			 (2 << 8)
-	 #define RX_BD_FLAGS_4_BUFFER_PACKET			 (3 << 8)
-	#define RX_BD_LEN					(0xffff << 16)
-	 #define RX_BD_LEN_SHIFT				 16
+#define RX_BD_TYPE					(0x3f << 0)
+#define RX_BD_TYPE_RX_PACKET_BD			 0x4
+#define RX_BD_TYPE_RX_BUFFER_BD			 0x5
+#define RX_BD_TYPE_RX_AGG_BD				 0x6
+#define RX_BD_TYPE_16B_BD_SIZE				 (0 << 4)
+#define RX_BD_TYPE_32B_BD_SIZE				 (1 << 4)
+#define RX_BD_TYPE_48B_BD_SIZE				 (2 << 4)
+#define RX_BD_TYPE_64B_BD_SIZE				 (3 << 4)
+#define RX_BD_FLAGS_SOP					(1 << 6)
+#define RX_BD_FLAGS_EOP					(1 << 7)
+#define RX_BD_FLAGS_BUFFERS				(3 << 8)
+#define RX_BD_FLAGS_1_BUFFER_PACKET			 (0 << 8)
+#define RX_BD_FLAGS_2_BUFFER_PACKET			 (1 << 8)
+#define RX_BD_FLAGS_3_BUFFER_PACKET			 (2 << 8)
+#define RX_BD_FLAGS_4_BUFFER_PACKET			 (3 << 8)
+#define RX_BD_LEN					(0xffff << 16)
+#define RX_BD_LEN_SHIFT				 16
 
 	u32 rx_bd_opaque;
 	__le64 rx_bd_haddr;
 };
 
-struct tx_cmp {
+struct tx_cmp
+{
 	__le32 tx_cmp_flags_type;
-	#define CMP_TYPE					(0x3f << 0)
-	 #define CMP_TYPE_TX_L2_CMP				 0
-	 #define CMP_TYPE_RX_L2_CMP				 17
-	 #define CMP_TYPE_RX_AGG_CMP				 18
-	 #define CMP_TYPE_RX_L2_TPA_START_CMP			 19
-	 #define CMP_TYPE_RX_L2_TPA_END_CMP			 21
-	 #define CMP_TYPE_STATUS_CMP				 32
-	 #define CMP_TYPE_REMOTE_DRIVER_REQ			 34
-	 #define CMP_TYPE_REMOTE_DRIVER_RESP			 36
-	 #define CMP_TYPE_ERROR_STATUS				 48
-	 #define CMPL_BASE_TYPE_STAT_EJECT			 0x1aUL
-	 #define CMPL_BASE_TYPE_HWRM_DONE			 0x20UL
-	 #define CMPL_BASE_TYPE_HWRM_FWD_REQ			 0x22UL
-	 #define CMPL_BASE_TYPE_HWRM_FWD_RESP			 0x24UL
-	 #define CMPL_BASE_TYPE_HWRM_ASYNC_EVENT		 0x2eUL
+#define CMP_TYPE					(0x3f << 0)
+#define CMP_TYPE_TX_L2_CMP				 0
+#define CMP_TYPE_RX_L2_CMP				 17
+#define CMP_TYPE_RX_AGG_CMP				 18
+#define CMP_TYPE_RX_L2_TPA_START_CMP			 19
+#define CMP_TYPE_RX_L2_TPA_END_CMP			 21
+#define CMP_TYPE_STATUS_CMP				 32
+#define CMP_TYPE_REMOTE_DRIVER_REQ			 34
+#define CMP_TYPE_REMOTE_DRIVER_RESP			 36
+#define CMP_TYPE_ERROR_STATUS				 48
+#define CMPL_BASE_TYPE_STAT_EJECT			 0x1aUL
+#define CMPL_BASE_TYPE_HWRM_DONE			 0x20UL
+#define CMPL_BASE_TYPE_HWRM_FWD_REQ			 0x22UL
+#define CMPL_BASE_TYPE_HWRM_FWD_RESP			 0x24UL
+#define CMPL_BASE_TYPE_HWRM_ASYNC_EVENT		 0x2eUL
 
-	#define TX_CMP_FLAGS_ERROR				(1 << 6)
-	#define TX_CMP_FLAGS_PUSH				(1 << 7)
+#define TX_CMP_FLAGS_ERROR				(1 << 6)
+#define TX_CMP_FLAGS_PUSH				(1 << 7)
 
 	u32 tx_cmp_opaque;
 	__le32 tx_cmp_errors_v;
-	#define TX_CMP_V					(1 << 0)
-	#define TX_CMP_ERRORS_BUFFER_ERROR			(7 << 1)
-	 #define TX_CMP_ERRORS_BUFFER_ERROR_NO_ERROR		 0
-	 #define TX_CMP_ERRORS_BUFFER_ERROR_BAD_FORMAT		 2
-	 #define TX_CMP_ERRORS_BUFFER_ERROR_INVALID_STAG	 4
-	 #define TX_CMP_ERRORS_BUFFER_ERROR_STAG_BOUNDS		 5
-	 #define TX_CMP_ERRORS_ZERO_LENGTH_PKT			 (1 << 4)
-	 #define TX_CMP_ERRORS_EXCESSIVE_BD_LEN			 (1 << 5)
-	 #define TX_CMP_ERRORS_DMA_ERROR			 (1 << 6)
-	 #define TX_CMP_ERRORS_HINT_TOO_SHORT			 (1 << 7)
+#define TX_CMP_V					(1 << 0)
+#define TX_CMP_ERRORS_BUFFER_ERROR			(7 << 1)
+#define TX_CMP_ERRORS_BUFFER_ERROR_NO_ERROR		 0
+#define TX_CMP_ERRORS_BUFFER_ERROR_BAD_FORMAT		 2
+#define TX_CMP_ERRORS_BUFFER_ERROR_INVALID_STAG	 4
+#define TX_CMP_ERRORS_BUFFER_ERROR_STAG_BOUNDS		 5
+#define TX_CMP_ERRORS_ZERO_LENGTH_PKT			 (1 << 4)
+#define TX_CMP_ERRORS_EXCESSIVE_BD_LEN			 (1 << 5)
+#define TX_CMP_ERRORS_DMA_ERROR			 (1 << 6)
+#define TX_CMP_ERRORS_HINT_TOO_SHORT			 (1 << 7)
 
 	__le32 tx_cmp_unsed_3;
 };
 
-struct rx_cmp {
+struct rx_cmp
+{
 	__le32 rx_cmp_len_flags_type;
-	#define RX_CMP_CMP_TYPE					(0x3f << 0)
-	#define RX_CMP_FLAGS_ERROR				(1 << 6)
-	#define RX_CMP_FLAGS_PLACEMENT				(7 << 7)
-	#define RX_CMP_FLAGS_RSS_VALID				(1 << 10)
-	#define RX_CMP_FLAGS_UNUSED				(1 << 11)
-	 #define RX_CMP_FLAGS_ITYPES_SHIFT			 12
-	 #define RX_CMP_FLAGS_ITYPE_UNKNOWN			 (0 << 12)
-	 #define RX_CMP_FLAGS_ITYPE_IP				 (1 << 12)
-	 #define RX_CMP_FLAGS_ITYPE_TCP				 (2 << 12)
-	 #define RX_CMP_FLAGS_ITYPE_UDP				 (3 << 12)
-	 #define RX_CMP_FLAGS_ITYPE_FCOE			 (4 << 12)
-	 #define RX_CMP_FLAGS_ITYPE_ROCE			 (5 << 12)
-	 #define RX_CMP_FLAGS_ITYPE_PTP_WO_TS			 (8 << 12)
-	 #define RX_CMP_FLAGS_ITYPE_PTP_W_TS			 (9 << 12)
-	#define RX_CMP_LEN					(0xffff << 16)
-	 #define RX_CMP_LEN_SHIFT				 16
+#define RX_CMP_CMP_TYPE					(0x3f << 0)
+#define RX_CMP_FLAGS_ERROR				(1 << 6)
+#define RX_CMP_FLAGS_PLACEMENT				(7 << 7)
+#define RX_CMP_FLAGS_RSS_VALID				(1 << 10)
+#define RX_CMP_FLAGS_UNUSED				(1 << 11)
+#define RX_CMP_FLAGS_ITYPES_SHIFT			 12
+#define RX_CMP_FLAGS_ITYPE_UNKNOWN			 (0 << 12)
+#define RX_CMP_FLAGS_ITYPE_IP				 (1 << 12)
+#define RX_CMP_FLAGS_ITYPE_TCP				 (2 << 12)
+#define RX_CMP_FLAGS_ITYPE_UDP				 (3 << 12)
+#define RX_CMP_FLAGS_ITYPE_FCOE			 (4 << 12)
+#define RX_CMP_FLAGS_ITYPE_ROCE			 (5 << 12)
+#define RX_CMP_FLAGS_ITYPE_PTP_WO_TS			 (8 << 12)
+#define RX_CMP_FLAGS_ITYPE_PTP_W_TS			 (9 << 12)
+#define RX_CMP_LEN					(0xffff << 16)
+#define RX_CMP_LEN_SHIFT				 16
 
 	u32 rx_cmp_opaque;
 	__le32 rx_cmp_misc_v1;
-	#define RX_CMP_V1					(1 << 0)
-	#define RX_CMP_AGG_BUFS					(0x1f << 1)
-	 #define RX_CMP_AGG_BUFS_SHIFT				 1
-	#define RX_CMP_RSS_HASH_TYPE				(0x7f << 9)
-	 #define RX_CMP_RSS_HASH_TYPE_SHIFT			 9
-	#define RX_CMP_PAYLOAD_OFFSET				(0xff << 16)
-	 #define RX_CMP_PAYLOAD_OFFSET_SHIFT			 16
+#define RX_CMP_V1					(1 << 0)
+#define RX_CMP_AGG_BUFS					(0x1f << 1)
+#define RX_CMP_AGG_BUFS_SHIFT				 1
+#define RX_CMP_RSS_HASH_TYPE				(0x7f << 9)
+#define RX_CMP_RSS_HASH_TYPE_SHIFT			 9
+#define RX_CMP_PAYLOAD_OFFSET				(0xff << 16)
+#define RX_CMP_PAYLOAD_OFFSET_SHIFT			 16
 
 	__le32 rx_cmp_rss_hash;
 };
@@ -172,52 +177,53 @@ struct rx_cmp {
 	(((le32_to_cpu((rxcmp)->rx_cmp_misc_v1) & RX_CMP_RSS_HASH_TYPE) >>\
 	  RX_CMP_RSS_HASH_TYPE_SHIFT) & RSS_PROFILE_ID_MASK)
 
-struct rx_cmp_ext {
+struct rx_cmp_ext
+{
 	__le32 rx_cmp_flags2;
-	#define RX_CMP_FLAGS2_IP_CS_CALC			0x1
-	#define RX_CMP_FLAGS2_L4_CS_CALC			(0x1 << 1)
-	#define RX_CMP_FLAGS2_T_IP_CS_CALC			(0x1 << 2)
-	#define RX_CMP_FLAGS2_T_L4_CS_CALC			(0x1 << 3)
-	#define RX_CMP_FLAGS2_META_FORMAT_VLAN			(0x1 << 4)
+#define RX_CMP_FLAGS2_IP_CS_CALC			0x1
+#define RX_CMP_FLAGS2_L4_CS_CALC			(0x1 << 1)
+#define RX_CMP_FLAGS2_T_IP_CS_CALC			(0x1 << 2)
+#define RX_CMP_FLAGS2_T_L4_CS_CALC			(0x1 << 3)
+#define RX_CMP_FLAGS2_META_FORMAT_VLAN			(0x1 << 4)
 	__le32 rx_cmp_meta_data;
-	#define RX_CMP_FLAGS2_METADATA_VID_MASK			0xfff
-	#define RX_CMP_FLAGS2_METADATA_TPID_MASK		0xffff0000
-	 #define RX_CMP_FLAGS2_METADATA_TPID_SFT		 16
+#define RX_CMP_FLAGS2_METADATA_VID_MASK			0xfff
+#define RX_CMP_FLAGS2_METADATA_TPID_MASK		0xffff0000
+#define RX_CMP_FLAGS2_METADATA_TPID_SFT		 16
 	__le32 rx_cmp_cfa_code_errors_v2;
-	#define RX_CMP_V					(1 << 0)
-	#define RX_CMPL_ERRORS_MASK				(0x7fff << 1)
-	 #define RX_CMPL_ERRORS_SFT				 1
-	#define RX_CMPL_ERRORS_BUFFER_ERROR_MASK		(0x7 << 1)
-	 #define RX_CMPL_ERRORS_BUFFER_ERROR_NO_BUFFER		 (0x0 << 1)
-	 #define RX_CMPL_ERRORS_BUFFER_ERROR_DID_NOT_FIT	 (0x1 << 1)
-	 #define RX_CMPL_ERRORS_BUFFER_ERROR_NOT_ON_CHIP	 (0x2 << 1)
-	 #define RX_CMPL_ERRORS_BUFFER_ERROR_BAD_FORMAT		 (0x3 << 1)
-	#define RX_CMPL_ERRORS_IP_CS_ERROR			(0x1 << 4)
-	#define RX_CMPL_ERRORS_L4_CS_ERROR			(0x1 << 5)
-	#define RX_CMPL_ERRORS_T_IP_CS_ERROR			(0x1 << 6)
-	#define RX_CMPL_ERRORS_T_L4_CS_ERROR			(0x1 << 7)
-	#define RX_CMPL_ERRORS_CRC_ERROR			(0x1 << 8)
-	#define RX_CMPL_ERRORS_T_PKT_ERROR_MASK			(0x7 << 9)
-	 #define RX_CMPL_ERRORS_T_PKT_ERROR_NO_ERROR		 (0x0 << 9)
-	 #define RX_CMPL_ERRORS_T_PKT_ERROR_T_L3_BAD_VERSION	 (0x1 << 9)
-	 #define RX_CMPL_ERRORS_T_PKT_ERROR_T_L3_BAD_HDR_LEN	 (0x2 << 9)
-	 #define RX_CMPL_ERRORS_T_PKT_ERROR_TUNNEL_TOTAL_ERROR	 (0x3 << 9)
-	 #define RX_CMPL_ERRORS_T_PKT_ERROR_T_IP_TOTAL_ERROR	 (0x4 << 9)
-	 #define RX_CMPL_ERRORS_T_PKT_ERROR_T_UDP_TOTAL_ERROR	 (0x5 << 9)
-	 #define RX_CMPL_ERRORS_T_PKT_ERROR_T_L3_BAD_TTL	 (0x6 << 9)
-	#define RX_CMPL_ERRORS_PKT_ERROR_MASK			(0xf << 12)
-	 #define RX_CMPL_ERRORS_PKT_ERROR_NO_ERROR		 (0x0 << 12)
-	 #define RX_CMPL_ERRORS_PKT_ERROR_L3_BAD_VERSION	 (0x1 << 12)
-	 #define RX_CMPL_ERRORS_PKT_ERROR_L3_BAD_HDR_LEN	 (0x2 << 12)
-	 #define RX_CMPL_ERRORS_PKT_ERROR_L3_BAD_TTL		 (0x3 << 12)
-	 #define RX_CMPL_ERRORS_PKT_ERROR_IP_TOTAL_ERROR	 (0x4 << 12)
-	 #define RX_CMPL_ERRORS_PKT_ERROR_UDP_TOTAL_ERROR	 (0x5 << 12)
-	 #define RX_CMPL_ERRORS_PKT_ERROR_L4_BAD_HDR_LEN	 (0x6 << 12)
-	 #define RX_CMPL_ERRORS_PKT_ERROR_L4_BAD_HDR_LEN_TOO_SMALL (0x7 << 12)
-	 #define RX_CMPL_ERRORS_PKT_ERROR_L4_BAD_OPT_LEN	 (0x8 << 12)
+#define RX_CMP_V					(1 << 0)
+#define RX_CMPL_ERRORS_MASK				(0x7fff << 1)
+#define RX_CMPL_ERRORS_SFT				 1
+#define RX_CMPL_ERRORS_BUFFER_ERROR_MASK		(0x7 << 1)
+#define RX_CMPL_ERRORS_BUFFER_ERROR_NO_BUFFER		 (0x0 << 1)
+#define RX_CMPL_ERRORS_BUFFER_ERROR_DID_NOT_FIT	 (0x1 << 1)
+#define RX_CMPL_ERRORS_BUFFER_ERROR_NOT_ON_CHIP	 (0x2 << 1)
+#define RX_CMPL_ERRORS_BUFFER_ERROR_BAD_FORMAT		 (0x3 << 1)
+#define RX_CMPL_ERRORS_IP_CS_ERROR			(0x1 << 4)
+#define RX_CMPL_ERRORS_L4_CS_ERROR			(0x1 << 5)
+#define RX_CMPL_ERRORS_T_IP_CS_ERROR			(0x1 << 6)
+#define RX_CMPL_ERRORS_T_L4_CS_ERROR			(0x1 << 7)
+#define RX_CMPL_ERRORS_CRC_ERROR			(0x1 << 8)
+#define RX_CMPL_ERRORS_T_PKT_ERROR_MASK			(0x7 << 9)
+#define RX_CMPL_ERRORS_T_PKT_ERROR_NO_ERROR		 (0x0 << 9)
+#define RX_CMPL_ERRORS_T_PKT_ERROR_T_L3_BAD_VERSION	 (0x1 << 9)
+#define RX_CMPL_ERRORS_T_PKT_ERROR_T_L3_BAD_HDR_LEN	 (0x2 << 9)
+#define RX_CMPL_ERRORS_T_PKT_ERROR_TUNNEL_TOTAL_ERROR	 (0x3 << 9)
+#define RX_CMPL_ERRORS_T_PKT_ERROR_T_IP_TOTAL_ERROR	 (0x4 << 9)
+#define RX_CMPL_ERRORS_T_PKT_ERROR_T_UDP_TOTAL_ERROR	 (0x5 << 9)
+#define RX_CMPL_ERRORS_T_PKT_ERROR_T_L3_BAD_TTL	 (0x6 << 9)
+#define RX_CMPL_ERRORS_PKT_ERROR_MASK			(0xf << 12)
+#define RX_CMPL_ERRORS_PKT_ERROR_NO_ERROR		 (0x0 << 12)
+#define RX_CMPL_ERRORS_PKT_ERROR_L3_BAD_VERSION	 (0x1 << 12)
+#define RX_CMPL_ERRORS_PKT_ERROR_L3_BAD_HDR_LEN	 (0x2 << 12)
+#define RX_CMPL_ERRORS_PKT_ERROR_L3_BAD_TTL		 (0x3 << 12)
+#define RX_CMPL_ERRORS_PKT_ERROR_IP_TOTAL_ERROR	 (0x4 << 12)
+#define RX_CMPL_ERRORS_PKT_ERROR_UDP_TOTAL_ERROR	 (0x5 << 12)
+#define RX_CMPL_ERRORS_PKT_ERROR_L4_BAD_HDR_LEN	 (0x6 << 12)
+#define RX_CMPL_ERRORS_PKT_ERROR_L4_BAD_HDR_LEN_TOO_SMALL (0x7 << 12)
+#define RX_CMPL_ERRORS_PKT_ERROR_L4_BAD_OPT_LEN	 (0x8 << 12)
 
-	#define RX_CMPL_CFA_CODE_MASK				(0xffff << 16)
-	 #define RX_CMPL_CFA_CODE_SFT				 16
+#define RX_CMPL_CFA_CODE_MASK				(0xffff << 16)
+#define RX_CMPL_CFA_CODE_SFT				 16
 
 	__le32 rx_cmp_unused3;
 };
@@ -232,49 +238,51 @@ struct rx_cmp_ext {
 	(cpu_to_le32(RX_CMPL_ERRORS_L4_CS_ERROR | RX_CMPL_ERRORS_T_L4_CS_ERROR))
 
 #define RX_CMP_L4_CS_OK(rxcmp1)						\
-	    (((rxcmp1)->rx_cmp_flags2 &	RX_CMP_L4_CS_BITS) &&		\
-	     !((rxcmp1)->rx_cmp_cfa_code_errors_v2 & RX_CMP_L4_CS_ERR_BITS))
+	(((rxcmp1)->rx_cmp_flags2 &	RX_CMP_L4_CS_BITS) &&		\
+	 !((rxcmp1)->rx_cmp_cfa_code_errors_v2 & RX_CMP_L4_CS_ERR_BITS))
 
 #define RX_CMP_ENCAP(rxcmp1)						\
-	    ((le32_to_cpu((rxcmp1)->rx_cmp_flags2) &			\
-	     RX_CMP_FLAGS2_T_L4_CS_CALC) >> 3)
+	((le32_to_cpu((rxcmp1)->rx_cmp_flags2) &			\
+	  RX_CMP_FLAGS2_T_L4_CS_CALC) >> 3)
 
-struct rx_agg_cmp {
+struct rx_agg_cmp
+{
 	__le32 rx_agg_cmp_len_flags_type;
-	#define RX_AGG_CMP_TYPE					(0x3f << 0)
-	#define RX_AGG_CMP_LEN					(0xffff << 16)
-	 #define RX_AGG_CMP_LEN_SHIFT				 16
+#define RX_AGG_CMP_TYPE					(0x3f << 0)
+#define RX_AGG_CMP_LEN					(0xffff << 16)
+#define RX_AGG_CMP_LEN_SHIFT				 16
 	u32 rx_agg_cmp_opaque;
 	__le32 rx_agg_cmp_v;
-	#define RX_AGG_CMP_V					(1 << 0)
+#define RX_AGG_CMP_V					(1 << 0)
 	__le32 rx_agg_cmp_unused;
 };
 
-struct rx_tpa_start_cmp {
+struct rx_tpa_start_cmp
+{
 	__le32 rx_tpa_start_cmp_len_flags_type;
-	#define RX_TPA_START_CMP_TYPE				(0x3f << 0)
-	#define RX_TPA_START_CMP_FLAGS				(0x3ff << 6)
-	 #define RX_TPA_START_CMP_FLAGS_SHIFT			 6
-	#define RX_TPA_START_CMP_FLAGS_PLACEMENT		(0x7 << 7)
-	 #define RX_TPA_START_CMP_FLAGS_PLACEMENT_SHIFT		 7
-	 #define RX_TPA_START_CMP_FLAGS_PLACEMENT_JUMBO		 (0x1 << 7)
-	 #define RX_TPA_START_CMP_FLAGS_PLACEMENT_HDS		 (0x2 << 7)
-	 #define RX_TPA_START_CMP_FLAGS_PLACEMENT_GRO_JUMBO	 (0x5 << 7)
-	 #define RX_TPA_START_CMP_FLAGS_PLACEMENT_GRO_HDS	 (0x6 << 7)
-	#define RX_TPA_START_CMP_FLAGS_RSS_VALID		(0x1 << 10)
-	#define RX_TPA_START_CMP_FLAGS_ITYPES			(0xf << 12)
-	 #define RX_TPA_START_CMP_FLAGS_ITYPES_SHIFT		 12
-	 #define RX_TPA_START_CMP_FLAGS_ITYPE_TCP		 (0x2 << 12)
-	#define RX_TPA_START_CMP_LEN				(0xffff << 16)
-	 #define RX_TPA_START_CMP_LEN_SHIFT			 16
+#define RX_TPA_START_CMP_TYPE				(0x3f << 0)
+#define RX_TPA_START_CMP_FLAGS				(0x3ff << 6)
+#define RX_TPA_START_CMP_FLAGS_SHIFT			 6
+#define RX_TPA_START_CMP_FLAGS_PLACEMENT		(0x7 << 7)
+#define RX_TPA_START_CMP_FLAGS_PLACEMENT_SHIFT		 7
+#define RX_TPA_START_CMP_FLAGS_PLACEMENT_JUMBO		 (0x1 << 7)
+#define RX_TPA_START_CMP_FLAGS_PLACEMENT_HDS		 (0x2 << 7)
+#define RX_TPA_START_CMP_FLAGS_PLACEMENT_GRO_JUMBO	 (0x5 << 7)
+#define RX_TPA_START_CMP_FLAGS_PLACEMENT_GRO_HDS	 (0x6 << 7)
+#define RX_TPA_START_CMP_FLAGS_RSS_VALID		(0x1 << 10)
+#define RX_TPA_START_CMP_FLAGS_ITYPES			(0xf << 12)
+#define RX_TPA_START_CMP_FLAGS_ITYPES_SHIFT		 12
+#define RX_TPA_START_CMP_FLAGS_ITYPE_TCP		 (0x2 << 12)
+#define RX_TPA_START_CMP_LEN				(0xffff << 16)
+#define RX_TPA_START_CMP_LEN_SHIFT			 16
 
 	u32 rx_tpa_start_cmp_opaque;
 	__le32 rx_tpa_start_cmp_misc_v1;
-	#define RX_TPA_START_CMP_V1				(0x1 << 0)
-	#define RX_TPA_START_CMP_RSS_HASH_TYPE			(0x7f << 9)
-	 #define RX_TPA_START_CMP_RSS_HASH_TYPE_SHIFT		 9
-	#define RX_TPA_START_CMP_AGG_ID				(0x7f << 25)
-	 #define RX_TPA_START_CMP_AGG_ID_SHIFT			 25
+#define RX_TPA_START_CMP_V1				(0x1 << 0)
+#define RX_TPA_START_CMP_RSS_HASH_TYPE			(0x7f << 9)
+#define RX_TPA_START_CMP_RSS_HASH_TYPE_SHIFT		 9
+#define RX_TPA_START_CMP_AGG_ID				(0x7f << 25)
+#define RX_TPA_START_CMP_AGG_ID_SHIFT			 25
 
 	__le32 rx_tpa_start_cmp_rss_hash;
 };
@@ -290,69 +298,71 @@ struct rx_tpa_start_cmp {
 
 #define TPA_START_AGG_ID(rx_tpa_start)					\
 	((le32_to_cpu((rx_tpa_start)->rx_tpa_start_cmp_misc_v1) &	\
-	 RX_TPA_START_CMP_AGG_ID) >> RX_TPA_START_CMP_AGG_ID_SHIFT)
+	  RX_TPA_START_CMP_AGG_ID) >> RX_TPA_START_CMP_AGG_ID_SHIFT)
 
-struct rx_tpa_start_cmp_ext {
+struct rx_tpa_start_cmp_ext
+{
 	__le32 rx_tpa_start_cmp_flags2;
-	#define RX_TPA_START_CMP_FLAGS2_IP_CS_CALC		(0x1 << 0)
-	#define RX_TPA_START_CMP_FLAGS2_L4_CS_CALC		(0x1 << 1)
-	#define RX_TPA_START_CMP_FLAGS2_T_IP_CS_CALC		(0x1 << 2)
-	#define RX_TPA_START_CMP_FLAGS2_T_L4_CS_CALC		(0x1 << 3)
-	#define RX_TPA_START_CMP_FLAGS2_IP_TYPE			(0x1 << 8)
+#define RX_TPA_START_CMP_FLAGS2_IP_CS_CALC		(0x1 << 0)
+#define RX_TPA_START_CMP_FLAGS2_L4_CS_CALC		(0x1 << 1)
+#define RX_TPA_START_CMP_FLAGS2_T_IP_CS_CALC		(0x1 << 2)
+#define RX_TPA_START_CMP_FLAGS2_T_L4_CS_CALC		(0x1 << 3)
+#define RX_TPA_START_CMP_FLAGS2_IP_TYPE			(0x1 << 8)
 
 	__le32 rx_tpa_start_cmp_metadata;
 	__le32 rx_tpa_start_cmp_cfa_code_v2;
-	#define RX_TPA_START_CMP_V2				(0x1 << 0)
-	#define RX_TPA_START_CMP_CFA_CODE			(0xffff << 16)
-	 #define RX_TPA_START_CMPL_CFA_CODE_SHIFT		 16
+#define RX_TPA_START_CMP_V2				(0x1 << 0)
+#define RX_TPA_START_CMP_CFA_CODE			(0xffff << 16)
+#define RX_TPA_START_CMPL_CFA_CODE_SHIFT		 16
 	__le32 rx_tpa_start_cmp_hdr_info;
 };
 
-struct rx_tpa_end_cmp {
+struct rx_tpa_end_cmp
+{
 	__le32 rx_tpa_end_cmp_len_flags_type;
-	#define RX_TPA_END_CMP_TYPE				(0x3f << 0)
-	#define RX_TPA_END_CMP_FLAGS				(0x3ff << 6)
-	 #define RX_TPA_END_CMP_FLAGS_SHIFT			 6
-	#define RX_TPA_END_CMP_FLAGS_PLACEMENT			(0x7 << 7)
-	 #define RX_TPA_END_CMP_FLAGS_PLACEMENT_SHIFT		 7
-	 #define RX_TPA_END_CMP_FLAGS_PLACEMENT_JUMBO		 (0x1 << 7)
-	 #define RX_TPA_END_CMP_FLAGS_PLACEMENT_HDS		 (0x2 << 7)
-	 #define RX_TPA_END_CMP_FLAGS_PLACEMENT_GRO_JUMBO	 (0x5 << 7)
-	 #define RX_TPA_END_CMP_FLAGS_PLACEMENT_GRO_HDS		 (0x6 << 7)
-	#define RX_TPA_END_CMP_FLAGS_RSS_VALID			(0x1 << 10)
-	#define RX_TPA_END_CMP_FLAGS_ITYPES			(0xf << 12)
-	 #define RX_TPA_END_CMP_FLAGS_ITYPES_SHIFT		 12
-	 #define RX_TPA_END_CMP_FLAGS_ITYPE_TCP			 (0x2 << 12)
-	#define RX_TPA_END_CMP_LEN				(0xffff << 16)
-	 #define RX_TPA_END_CMP_LEN_SHIFT			 16
+#define RX_TPA_END_CMP_TYPE				(0x3f << 0)
+#define RX_TPA_END_CMP_FLAGS				(0x3ff << 6)
+#define RX_TPA_END_CMP_FLAGS_SHIFT			 6
+#define RX_TPA_END_CMP_FLAGS_PLACEMENT			(0x7 << 7)
+#define RX_TPA_END_CMP_FLAGS_PLACEMENT_SHIFT		 7
+#define RX_TPA_END_CMP_FLAGS_PLACEMENT_JUMBO		 (0x1 << 7)
+#define RX_TPA_END_CMP_FLAGS_PLACEMENT_HDS		 (0x2 << 7)
+#define RX_TPA_END_CMP_FLAGS_PLACEMENT_GRO_JUMBO	 (0x5 << 7)
+#define RX_TPA_END_CMP_FLAGS_PLACEMENT_GRO_HDS		 (0x6 << 7)
+#define RX_TPA_END_CMP_FLAGS_RSS_VALID			(0x1 << 10)
+#define RX_TPA_END_CMP_FLAGS_ITYPES			(0xf << 12)
+#define RX_TPA_END_CMP_FLAGS_ITYPES_SHIFT		 12
+#define RX_TPA_END_CMP_FLAGS_ITYPE_TCP			 (0x2 << 12)
+#define RX_TPA_END_CMP_LEN				(0xffff << 16)
+#define RX_TPA_END_CMP_LEN_SHIFT			 16
 
 	u32 rx_tpa_end_cmp_opaque;
 	__le32 rx_tpa_end_cmp_misc_v1;
-	#define RX_TPA_END_CMP_V1				(0x1 << 0)
-	#define RX_TPA_END_CMP_AGG_BUFS				(0x3f << 1)
-	 #define RX_TPA_END_CMP_AGG_BUFS_SHIFT			 1
-	#define RX_TPA_END_CMP_TPA_SEGS				(0xff << 8)
-	 #define RX_TPA_END_CMP_TPA_SEGS_SHIFT			 8
-	#define RX_TPA_END_CMP_PAYLOAD_OFFSET			(0xff << 16)
-	 #define RX_TPA_END_CMP_PAYLOAD_OFFSET_SHIFT		 16
-	#define RX_TPA_END_CMP_AGG_ID				(0x7f << 25)
-	 #define RX_TPA_END_CMP_AGG_ID_SHIFT			 25
+#define RX_TPA_END_CMP_V1				(0x1 << 0)
+#define RX_TPA_END_CMP_AGG_BUFS				(0x3f << 1)
+#define RX_TPA_END_CMP_AGG_BUFS_SHIFT			 1
+#define RX_TPA_END_CMP_TPA_SEGS				(0xff << 8)
+#define RX_TPA_END_CMP_TPA_SEGS_SHIFT			 8
+#define RX_TPA_END_CMP_PAYLOAD_OFFSET			(0xff << 16)
+#define RX_TPA_END_CMP_PAYLOAD_OFFSET_SHIFT		 16
+#define RX_TPA_END_CMP_AGG_ID				(0x7f << 25)
+#define RX_TPA_END_CMP_AGG_ID_SHIFT			 25
 
 	__le32 rx_tpa_end_cmp_tsdelta;
-	#define RX_TPA_END_GRO_TS				(0x1 << 31)
+#define RX_TPA_END_GRO_TS				(0x1 << 31)
 };
 
 #define TPA_END_AGG_ID(rx_tpa_end)					\
 	((le32_to_cpu((rx_tpa_end)->rx_tpa_end_cmp_misc_v1) &		\
-	 RX_TPA_END_CMP_AGG_ID) >> RX_TPA_END_CMP_AGG_ID_SHIFT)
+	  RX_TPA_END_CMP_AGG_ID) >> RX_TPA_END_CMP_AGG_ID_SHIFT)
 
 #define TPA_END_TPA_SEGS(rx_tpa_end)					\
 	((le32_to_cpu((rx_tpa_end)->rx_tpa_end_cmp_misc_v1) &		\
-	 RX_TPA_END_CMP_TPA_SEGS) >> RX_TPA_END_CMP_TPA_SEGS_SHIFT)
+	  RX_TPA_END_CMP_TPA_SEGS) >> RX_TPA_END_CMP_TPA_SEGS_SHIFT)
 
 #define RX_TPA_END_CMP_FLAGS_PLACEMENT_ANY_GRO				\
 	cpu_to_le32(RX_TPA_END_CMP_FLAGS_PLACEMENT_GRO_JUMBO &		\
-		    RX_TPA_END_CMP_FLAGS_PLACEMENT_GRO_HDS)
+				RX_TPA_END_CMP_FLAGS_PLACEMENT_GRO_HDS)
 
 #define TPA_END_GRO(rx_tpa_end)						\
 	((rx_tpa_end)->rx_tpa_end_cmp_len_flags_type &			\
@@ -360,19 +370,20 @@ struct rx_tpa_end_cmp {
 
 #define TPA_END_GRO_TS(rx_tpa_end)					\
 	(!!((rx_tpa_end)->rx_tpa_end_cmp_tsdelta &			\
-	    cpu_to_le32(RX_TPA_END_GRO_TS)))
+		cpu_to_le32(RX_TPA_END_GRO_TS)))
 
-struct rx_tpa_end_cmp_ext {
+struct rx_tpa_end_cmp_ext
+{
 	__le32 rx_tpa_end_cmp_dup_acks;
-	#define RX_TPA_END_CMP_TPA_DUP_ACKS			(0xf << 0)
+#define RX_TPA_END_CMP_TPA_DUP_ACKS			(0xf << 0)
 
 	__le32 rx_tpa_end_cmp_seg_len;
-	#define RX_TPA_END_CMP_TPA_SEG_LEN			(0xffff << 0)
+#define RX_TPA_END_CMP_TPA_SEG_LEN			(0xffff << 0)
 
 	__le32 rx_tpa_end_cmp_errors_v2;
-	#define RX_TPA_END_CMP_V2				(0x1 << 0)
-	#define RX_TPA_END_CMP_ERRORS				(0x7fff << 1)
-	#define RX_TPA_END_CMPL_ERRORS_SHIFT			 1
+#define RX_TPA_END_CMP_V2				(0x1 << 0)
+#define RX_TPA_END_CMP_ERRORS				(0x7fff << 1)
+#define RX_TPA_END_CMPL_ERRORS_SHIFT			 1
 
 	u32 rx_tpa_end_cmp_start_opaque;
 };
@@ -393,22 +404,22 @@ struct rx_tpa_end_cmp_ext {
  * to allocate the rings.
  */
 #if (PAGE_SHIFT < 12)
-#define BNXT_PAGE_SHIFT	12
+	#define BNXT_PAGE_SHIFT	12
 #elif (PAGE_SHIFT <= 13)
-#define BNXT_PAGE_SHIFT	PAGE_SHIFT
+	#define BNXT_PAGE_SHIFT	PAGE_SHIFT
 #elif (PAGE_SHIFT < 16)
-#define BNXT_PAGE_SHIFT	13
+	#define BNXT_PAGE_SHIFT	13
 #else
-#define BNXT_PAGE_SHIFT	16
+	#define BNXT_PAGE_SHIFT	16
 #endif
 
 #define BNXT_PAGE_SIZE	(1 << BNXT_PAGE_SHIFT)
 
 /* The RXBD length is 16-bit so we can only support page sizes < 64K */
 #if (PAGE_SHIFT > 15)
-#define BNXT_RX_PAGE_SHIFT 15
+	#define BNXT_RX_PAGE_SHIFT 15
 #else
-#define BNXT_RX_PAGE_SHIFT PAGE_SHIFT
+	#define BNXT_RX_PAGE_SHIFT PAGE_SHIFT
 #endif
 
 #define BNXT_RX_PAGE_SIZE (1 << BNXT_RX_PAGE_SHIFT)
@@ -423,15 +434,15 @@ struct rx_tpa_end_cmp_ext {
 #define MAX_TPA		64
 
 #if (BNXT_PAGE_SHIFT == 16)
-#define MAX_RX_PAGES	1
-#define MAX_RX_AGG_PAGES	4
-#define MAX_TX_PAGES	1
-#define MAX_CP_PAGES	8
+	#define MAX_RX_PAGES	1
+	#define MAX_RX_AGG_PAGES	4
+	#define MAX_TX_PAGES	1
+	#define MAX_CP_PAGES	8
 #else
-#define MAX_RX_PAGES	8
-#define MAX_RX_AGG_PAGES	32
-#define MAX_TX_PAGES	8
-#define MAX_CP_PAGES	64
+	#define MAX_RX_PAGES	8
+	#define MAX_RX_AGG_PAGES	32
+	#define MAX_TX_PAGES	8
+	#define MAX_CP_PAGES	64
 #endif
 
 #define RX_DESC_CNT (BNXT_PAGE_SIZE / sizeof(struct rx_bd))
@@ -502,9 +513,10 @@ struct rx_tpa_end_cmp_ext {
 #define HWRM_SEQ_ID_INVALID		-1
 #define BNXT_HWRM_REQ_MAX_SIZE		128
 #define BNXT_HWRM_REQS_PER_PAGE		(BNXT_PAGE_SIZE /	\
-					 BNXT_HWRM_REQ_MAX_SIZE)
+									 BNXT_HWRM_REQ_MAX_SIZE)
 
-struct bnxt_sw_tx_bd {
+struct bnxt_sw_tx_bd
+{
 	struct sk_buff		*skb;
 	DEFINE_DMA_UNMAP_ADDR(mapping);
 	u8			is_gso;
@@ -512,18 +524,21 @@ struct bnxt_sw_tx_bd {
 	unsigned short		nr_frags;
 };
 
-struct bnxt_sw_rx_bd {
+struct bnxt_sw_rx_bd
+{
 	u8			*data;
 	DEFINE_DMA_UNMAP_ADDR(mapping);
 };
 
-struct bnxt_sw_rx_agg_bd {
+struct bnxt_sw_rx_agg_bd
+{
 	struct page		*page;
 	unsigned int		offset;
 	dma_addr_t		mapping;
 };
 
-struct bnxt_ring_struct {
+struct bnxt_ring_struct
+{
 	int			nr_pages;
 	int			page_size;
 	void			**pg_arr;
@@ -539,19 +554,22 @@ struct bnxt_ring_struct {
 	u8			queue_id;
 };
 
-struct tx_push_bd {
+struct tx_push_bd
+{
 	__le32			doorbell;
 	__le32			tx_bd_len_flags_type;
 	u32			tx_bd_opaque;
 	struct tx_bd_ext	txbd2;
 };
 
-struct tx_push_buffer {
+struct tx_push_buffer
+{
 	struct tx_push_bd	push_bd;
 	u32			data[25];
 };
 
-struct bnxt_tx_ring_info {
+struct bnxt_tx_ring_info
+{
 	struct bnxt_napi	*bnapi;
 	u16			tx_prod;
 	u16			tx_cons;
@@ -572,7 +590,8 @@ struct bnxt_tx_ring_info {
 	struct bnxt_ring_struct	tx_ring_struct;
 };
 
-struct bnxt_tpa_info {
+struct bnxt_tpa_info
+{
 	u8			*data;
 	dma_addr_t		mapping;
 	u16			len;
@@ -596,7 +615,8 @@ struct bnxt_tpa_info {
 	((hdr_info) & 0x1ff)
 };
 
-struct bnxt_rx_ring_info {
+struct bnxt_rx_ring_info
+{
 	struct bnxt_napi	*bnapi;
 	u16			rx_prod;
 	u16			rx_agg_prod;
@@ -626,7 +646,8 @@ struct bnxt_rx_ring_info {
 	struct bnxt_ring_struct	rx_agg_ring_struct;
 };
 
-struct bnxt_cp_ring_info {
+struct bnxt_cp_ring_info
+{
 	u32			cp_raw_cons;
 	void __iomem		*cp_doorbell;
 
@@ -642,7 +663,8 @@ struct bnxt_cp_ring_info {
 	struct bnxt_ring_struct	cp_ring_struct;
 };
 
-struct bnxt_napi {
+struct bnxt_napi
+{
 	struct napi_struct	napi;
 	struct bnxt		*bp;
 
@@ -658,7 +680,8 @@ struct bnxt_napi {
 };
 
 #ifdef CONFIG_NET_RX_BUSY_POLL
-enum bnxt_poll_state_t {
+enum bnxt_poll_state_t
+{
 	BNXT_STATE_IDLE = 0,
 	BNXT_STATE_NAPI,
 	BNXT_STATE_POLL,
@@ -666,7 +689,8 @@ enum bnxt_poll_state_t {
 };
 #endif
 
-struct bnxt_irq {
+struct bnxt_irq
+{
 	irq_handler_t	handler;
 	unsigned int	vector;
 	u8		requested;
@@ -680,7 +704,8 @@ struct bnxt_irq {
 
 #define INVALID_STATS_CTX_ID	-1
 
-struct bnxt_ring_grp_info {
+struct bnxt_ring_grp_info
+{
 	u16	fw_stats_ctx;
 	u16	fw_grp_id;
 	u16	rx_fw_ring_id;
@@ -688,14 +713,15 @@ struct bnxt_ring_grp_info {
 	u16	cp_fw_ring_id;
 };
 
-struct bnxt_vnic_info {
+struct bnxt_vnic_info
+{
 	u16		fw_vnic_id; /* returned by Chimp during alloc */
 #define BNXT_MAX_CTX_PER_VNIC	2
 	u16		fw_rss_cos_lb_ctx[BNXT_MAX_CTX_PER_VNIC];
 	u16		fw_l2_ctx_id;
 #define BNXT_MAX_UC_ADDRS	4
 	__le64		fw_l2_filter_id[BNXT_MAX_UC_ADDRS];
-				/* index 0 always dev_addr */
+	/* index 0 always dev_addr */
 	u16		uc_filter_count;
 	u8		*uc_list;
 
@@ -721,7 +747,8 @@ struct bnxt_vnic_info {
 };
 
 #if defined(CONFIG_BNXT_SRIOV)
-struct bnxt_vf_info {
+struct bnxt_vf_info
+{
 	u16	fw_fid;
 	u8	mac_addr[ETH_ALEN];
 	u16	max_rsscos_ctxs;
@@ -747,7 +774,8 @@ struct bnxt_vf_info {
 };
 #endif
 
-struct bnxt_pf_info {
+struct bnxt_pf_info
+{
 #define BNXT_FIRST_PF_FID	1
 #define BNXT_FIRST_VF_FID	128
 	u16	fw_fid;
@@ -778,7 +806,8 @@ struct bnxt_pf_info {
 	struct bnxt_vf_info	*vf;
 };
 
-struct bnxt_ntuple_filter {
+struct bnxt_ntuple_filter
+{
 	struct hlist_node	hash;
 	u8			dst_mac_addr[ETH_ALEN];
 	u8			src_mac_addr[ETH_ALEN];
@@ -793,7 +822,8 @@ struct bnxt_ntuple_filter {
 #define BNXT_FLTR_UPDATE	1
 };
 
-struct bnxt_link_info {
+struct bnxt_link_info
+{
 	u8			phy_type;
 	u8			media_type;
 	u8			transceiver;
@@ -812,14 +842,14 @@ struct bnxt_link_info {
 #define BNXT_LINK_PAUSE_TX	PORT_PHY_QCFG_RESP_PAUSE_TX
 #define BNXT_LINK_PAUSE_RX	PORT_PHY_QCFG_RESP_PAUSE_RX
 #define BNXT_LINK_PAUSE_BOTH	(PORT_PHY_QCFG_RESP_PAUSE_RX | \
-				 PORT_PHY_QCFG_RESP_PAUSE_TX)
+								 PORT_PHY_QCFG_RESP_PAUSE_TX)
 	u8			lp_pause;
 	u8			auto_pause_setting;
 	u8			force_pause_setting;
 	u8			duplex_setting;
 	u8			auto_mode;
 #define BNXT_AUTO_MODE(mode)	((mode) > BNXT_LINK_AUTO_NONE && \
-				 (mode) <= BNXT_LINK_AUTO_MSK)
+								 (mode) <= BNXT_LINK_AUTO_MSK)
 #define BNXT_LINK_AUTO_NONE     PORT_PHY_QCFG_RESP_AUTO_MODE_NONE
 #define BNXT_LINK_AUTO_ALLSPDS	PORT_PHY_QCFG_RESP_AUTO_MODE_ALL_SPEEDS
 #define BNXT_LINK_AUTO_ONESPD	PORT_PHY_QCFG_RESP_AUTO_MODE_ONE_SPEED
@@ -872,7 +902,8 @@ struct bnxt_link_info {
 
 #define BNXT_MAX_QUEUE	8
 
-struct bnxt_queue_info {
+struct bnxt_queue_info
+{
 	u8	queue_id;
 	u8	queue_profile;
 };
@@ -881,7 +912,8 @@ struct bnxt_queue_info {
 #define BNXT_CAG_REG_LEGACY_INT_STATUS	0x4014
 #define BNXT_CAG_REG_BASE		0x300000
 
-struct bnxt {
+struct bnxt
+{
 	void __iomem		*bar0;
 	void __iomem		*bar1;
 	void __iomem		*bar2;
@@ -933,31 +965,31 @@ struct bnxt {
 	atomic_t		intr_sem;
 
 	u32			flags;
-	#define BNXT_FLAG_DCB_ENABLED	0x1
-	#define BNXT_FLAG_VF		0x2
-	#define BNXT_FLAG_LRO		0x4
+#define BNXT_FLAG_DCB_ENABLED	0x1
+#define BNXT_FLAG_VF		0x2
+#define BNXT_FLAG_LRO		0x4
 #ifdef CONFIG_INET
-	#define BNXT_FLAG_GRO		0x8
+#define BNXT_FLAG_GRO		0x8
 #else
 	/* Cannot support hardware GRO if CONFIG_INET is not set */
-	#define BNXT_FLAG_GRO		0x0
+#define BNXT_FLAG_GRO		0x0
 #endif
-	#define BNXT_FLAG_TPA		(BNXT_FLAG_LRO | BNXT_FLAG_GRO)
-	#define BNXT_FLAG_JUMBO		0x10
-	#define BNXT_FLAG_STRIP_VLAN	0x20
-	#define BNXT_FLAG_AGG_RINGS	(BNXT_FLAG_JUMBO | BNXT_FLAG_GRO | \
-					 BNXT_FLAG_LRO)
-	#define BNXT_FLAG_USING_MSIX	0x40
-	#define BNXT_FLAG_MSIX_CAP	0x80
-	#define BNXT_FLAG_RFS		0x100
-	#define BNXT_FLAG_SHARED_RINGS	0x200
-	#define BNXT_FLAG_PORT_STATS	0x400
-	#define BNXT_FLAG_EEE_CAP	0x1000
-	#define BNXT_FLAG_CHIP_NITRO_A0	0x1000000
+#define BNXT_FLAG_TPA		(BNXT_FLAG_LRO | BNXT_FLAG_GRO)
+#define BNXT_FLAG_JUMBO		0x10
+#define BNXT_FLAG_STRIP_VLAN	0x20
+#define BNXT_FLAG_AGG_RINGS	(BNXT_FLAG_JUMBO | BNXT_FLAG_GRO | \
+							 BNXT_FLAG_LRO)
+#define BNXT_FLAG_USING_MSIX	0x40
+#define BNXT_FLAG_MSIX_CAP	0x80
+#define BNXT_FLAG_RFS		0x100
+#define BNXT_FLAG_SHARED_RINGS	0x200
+#define BNXT_FLAG_PORT_STATS	0x400
+#define BNXT_FLAG_EEE_CAP	0x1000
+#define BNXT_FLAG_CHIP_NITRO_A0	0x1000000
 
-	#define BNXT_FLAG_ALL_CONFIG_FEATS (BNXT_FLAG_TPA |		\
-					    BNXT_FLAG_RFS |		\
-					    BNXT_FLAG_STRIP_VLAN)
+#define BNXT_FLAG_ALL_CONFIG_FEATS (BNXT_FLAG_TPA |		\
+									BNXT_FLAG_RFS |		\
+									BNXT_FLAG_STRIP_VLAN)
 
 #define BNXT_PF(bp)		(!((bp)->flags & BNXT_FLAG_VF))
 #define BNXT_VF(bp)		((bp)->flags & BNXT_FLAG_VF)
@@ -970,8 +1002,8 @@ struct bnxt {
 	struct bnxt_rx_ring_info	*rx_ring;
 	struct bnxt_tx_ring_info	*tx_ring;
 
-	struct sk_buff *	(*gro_func)(struct bnxt_tpa_info *, int, int,
-					    struct sk_buff *);
+	struct sk_buff 	*(*gro_func)(struct bnxt_tpa_info *, int, int,
+								 struct sk_buff *);
 
 	u32			rx_buf_size;
 	u32			rx_buf_use_size;	/* useable size */
@@ -1124,7 +1156,7 @@ static inline void bnxt_enable_poll(struct bnxt_napi *bnapi)
 static inline bool bnxt_lock_napi(struct bnxt_napi *bnapi)
 {
 	int rc = atomic_cmpxchg(&bnapi->poll_state, BNXT_STATE_IDLE,
-				BNXT_STATE_NAPI);
+							BNXT_STATE_NAPI);
 
 	return rc == BNXT_STATE_IDLE;
 }
@@ -1138,7 +1170,7 @@ static inline void bnxt_unlock_napi(struct bnxt_napi *bnapi)
 static inline bool bnxt_lock_poll(struct bnxt_napi *bnapi)
 {
 	int rc = atomic_cmpxchg(&bnapi->poll_state, BNXT_STATE_IDLE,
-				BNXT_STATE_POLL);
+							BNXT_STATE_POLL);
 
 	return rc == BNXT_STATE_IDLE;
 }
@@ -1157,11 +1189,16 @@ static inline void bnxt_disable_poll(struct bnxt_napi *bnapi)
 {
 	int old;
 
-	while (1) {
+	while (1)
+	{
 		old = atomic_cmpxchg(&bnapi->poll_state, BNXT_STATE_IDLE,
-				     BNXT_STATE_DISABLE);
+							 BNXT_STATE_DISABLE);
+
 		if (old == BNXT_STATE_IDLE)
+		{
 			break;
+		}
+
 		usleep_range(500, 5000);
 	}
 }

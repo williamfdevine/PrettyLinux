@@ -26,7 +26,8 @@
 #define OCFS2_MAX_RESV_LEVEL	9
 #define OCFS2_MIN_RESV_LEVEL	0
 
-struct ocfs2_alloc_reservation {
+struct ocfs2_alloc_reservation
+{
 	struct rb_node	r_node;
 
 	unsigned int	r_start;	/* Beginning of current window */
@@ -45,7 +46,8 @@ struct ocfs2_alloc_reservation {
 #define	OCFS2_RESV_FLAG_DIR	0x04	/* Reservation is for an unindexed
 					 * directory btree */
 
-struct ocfs2_reservation_map {
+struct ocfs2_reservation_map
+{
 	struct rb_root		m_reservations;
 	char			*m_disk_bitmap;
 
@@ -65,7 +67,7 @@ void ocfs2_resv_init_once(struct ocfs2_alloc_reservation *resv);
 
 #define OCFS2_RESV_TYPES	(OCFS2_RESV_FLAG_TMP|OCFS2_RESV_FLAG_DIR)
 void ocfs2_resv_set_type(struct ocfs2_alloc_reservation *resv,
-			 unsigned int flags);
+						 unsigned int flags);
 
 int ocfs2_dir_resv_allowed(struct ocfs2_super *osb);
 
@@ -78,7 +80,7 @@ int ocfs2_dir_resv_allowed(struct ocfs2_super *osb);
  * unlinked from the rbtree.
  */
 void ocfs2_resv_discard(struct ocfs2_reservation_map *resmap,
-			struct ocfs2_alloc_reservation *resv);
+						struct ocfs2_alloc_reservation *resv);
 
 
 /**
@@ -92,7 +94,7 @@ void ocfs2_resv_discard(struct ocfs2_reservation_map *resmap,
  * allocation mirror bitmap.
  */
 int ocfs2_resmap_init(struct ocfs2_super *osb,
-		      struct ocfs2_reservation_map *resmap);
+					  struct ocfs2_reservation_map *resmap);
 
 /**
  * ocfs2_resmap_restart() - "restart" a reservation bitmap
@@ -108,7 +110,7 @@ int ocfs2_resmap_init(struct ocfs2_super *osb,
  * reservations based on the new bitmap.
  */
 void ocfs2_resmap_restart(struct ocfs2_reservation_map *resmap,
-			  unsigned int clen, char *disk_bitmap);
+						  unsigned int clen, char *disk_bitmap);
 
 /**
  * ocfs2_resmap_uninit() - uninitialize a reservation bitmap structure
@@ -134,8 +136,8 @@ void ocfs2_resmap_uninit(struct ocfs2_reservation_map *resmap);
  * Returns -ENOSPC if reservations are disabled.
  */
 int ocfs2_resmap_resv_bits(struct ocfs2_reservation_map *resmap,
-			   struct ocfs2_alloc_reservation *resv,
-			   int *cstart, int *clen);
+						   struct ocfs2_alloc_reservation *resv,
+						   int *cstart, int *clen);
 
 /**
  * ocfs2_resmap_claimed_bits() - Tell the reservation code that bits were used.
@@ -153,7 +155,7 @@ int ocfs2_resmap_resv_bits(struct ocfs2_reservation_map *resmap,
  * from ocfs2_resmap_resv_bits().
  */
 void ocfs2_resmap_claimed_bits(struct ocfs2_reservation_map *resmap,
-			       struct ocfs2_alloc_reservation *resv,
-			       u32 cstart, u32 clen);
+							   struct ocfs2_alloc_reservation *resv,
+							   u32 cstart, u32 clen);
 
 #endif	/* OCFS2_RESERVATIONS_H */

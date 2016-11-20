@@ -48,25 +48,30 @@ struct mt352_config
 	int no_tuner;
 
 	/* Initialise the demodulator and PLL. Cannot be NULL */
-	int (*demod_init)(struct dvb_frontend* fe);
+	int (*demod_init)(struct dvb_frontend *fe);
 };
 
 #if IS_REACHABLE(CONFIG_DVB_MT352)
-extern struct dvb_frontend* mt352_attach(const struct mt352_config* config,
-					 struct i2c_adapter* i2c);
+extern struct dvb_frontend *mt352_attach(const struct mt352_config *config,
+		struct i2c_adapter *i2c);
 #else
-static inline struct dvb_frontend* mt352_attach(const struct mt352_config* config,
-					 struct i2c_adapter* i2c)
+static inline struct dvb_frontend *mt352_attach(const struct mt352_config *config,
+		struct i2c_adapter *i2c)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;
 }
 #endif // CONFIG_DVB_MT352
 
-static inline int mt352_write(struct dvb_frontend *fe, const u8 buf[], int len) {
+static inline int mt352_write(struct dvb_frontend *fe, const u8 buf[], int len)
+{
 	int r = 0;
+
 	if (fe->ops.write)
+	{
 		r = fe->ops.write(fe, buf, len);
+	}
+
 	return r;
 }
 

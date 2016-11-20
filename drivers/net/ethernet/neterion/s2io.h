@@ -32,7 +32,8 @@
 #define MAX_FLICKER_TIME	60000 /* 60 Secs */
 
 /* Maximum outstanding splits to be configured into xena. */
-enum {
+enum
+{
 	XENA_ONE_SPLIT_TRANSACTION = 0,
 	XENA_TWO_SPLIT_TRANSACTION = 1,
 	XENA_THREE_SPLIT_TRANSACTION = 2,
@@ -65,8 +66,8 @@ static int debug_level = ERR_DBG;
 
 /* DEBUG message print. */
 #define DBG_PRINT(dbg_level, fmt, args...) do {			\
-	if (dbg_level <= debug_level)				\
-		pr_info(fmt, ##args);				\
+		if (dbg_level <= debug_level)				\
+			pr_info(fmt, ##args);				\
 	} while (0)
 
 /* Protocol assist features of the NIC */
@@ -75,7 +76,8 @@ static int debug_level = ERR_DBG;
 #define S2IO_JUMBO_SIZE 9600
 
 /* Driver statistics maintained by driver */
-struct swStat {
+struct swStat
+{
 	unsigned long long single_ecc_errs;
 	unsigned long long double_ecc_errs;
 	unsigned long long parity_err_cnt;
@@ -140,7 +142,8 @@ struct swStat {
 };
 
 /* Xpak releated alarm and warnings */
-struct xpakStat {
+struct xpakStat
+{
 	u64 alarm_transceiver_temp_high;
 	u64 alarm_transceiver_temp_low;
 	u64 alarm_laser_bias_current_high;
@@ -159,8 +162,9 @@ struct xpakStat {
 
 
 /* The statistics block of Xena */
-struct stat_block {
-/* Tx MAC statistics counters. */
+struct stat_block
+{
+	/* Tx MAC statistics counters. */
 	__le32 tmac_data_octets;
 	__le32 tmac_frms;
 	__le64 tmac_drop_frms;
@@ -181,7 +185,7 @@ struct stat_block {
 	__le32 reserved_0;
 	__le32 tmac_udp;
 
-/* Rx MAC Statistics counters. */
+	/* Rx MAC Statistics counters. */
 	__le32 rmac_data_octets;
 	__le32 rmac_vld_frms;
 	__le64 rmac_fcs_err_frms;
@@ -250,13 +254,13 @@ struct stat_block {
 	__le32 rmac_err_tcp;
 	__le32 rmac_accepted_ip;
 
-/* PCI/PCI-X Read transaction statistics. */
+	/* PCI/PCI-X Read transaction statistics. */
 	__le32 new_rd_req_cnt;
 	__le32 rd_req_cnt;
 	__le32 rd_rtry_cnt;
 	__le32 new_rd_req_rtry_cnt;
 
-/* PCI/PCI-X Write/Read transaction statistics. */
+	/* PCI/PCI-X Write/Read transaction statistics. */
 	__le32 wr_req_cnt;
 	__le32 wr_rtry_rd_ack_cnt;
 	__le32 new_wr_req_rtry_cnt;
@@ -264,7 +268,7 @@ struct stat_block {
 	__le32 wr_disc_cnt;
 	__le32 wr_rtry_cnt;
 
-/*	PCI/PCI-X Write / DMA Transaction statistics. */
+	/*	PCI/PCI-X Write / DMA Transaction statistics. */
 	__le32 txp_wr_cnt;
 	__le32 rd_rtry_wr_ack_cnt;
 	__le32 txd_wr_cnt;
@@ -274,7 +278,7 @@ struct stat_block {
 	__le32 rxf_wr_cnt;
 	__le32 txf_rd_cnt;
 
-/* Tx MAC statistics overflow counters. */
+	/* Tx MAC statistics overflow counters. */
 	__le32 tmac_data_octets_oflow;
 	__le32 tmac_frms_oflow;
 	__le32 tmac_bcst_frms_oflow;
@@ -293,7 +297,7 @@ struct stat_block {
 	__le32 reserved_10;
 	__le32 tpa_parse_failure;
 
-/* Rx MAC Statistics overflow counters. */
+	/* Rx MAC Statistics overflow counters. */
 	__le32 rmac_data_octets_oflow;
 	__le32 rmac_vld_frms_oflow;
 	__le32 rmac_vld_bcst_frms_oflow;
@@ -360,7 +364,8 @@ struct stat_block {
 #define MAX_TX_DESC    (MAX_AVAILABLE_TXDS)
 
 /* FIFO mappings for all possible number of fifos configured */
-static const int fifo_map[][MAX_TX_FIFOS] = {
+static const int fifo_map[][MAX_TX_FIFOS] =
+{
 	{0, 0, 0, 0, 0, 0, 0, 0},
 	{0, 0, 0, 0, 1, 1, 1, 1},
 	{0, 0, 0, 1, 1, 1, 2, 2},
@@ -374,10 +379,11 @@ static const int fifo_map[][MAX_TX_FIFOS] = {
 static const u16 fifo_selector[MAX_TX_FIFOS] = {0, 1, 3, 3, 7, 7, 7, 7};
 
 /* Maintains Per FIFO related information. */
-struct tx_fifo_config {
+struct tx_fifo_config
+{
 #define	MAX_AVAILABLE_TXDS	8192
 	u32 fifo_len;		/* specifies len of FIFO up to 8192, ie no of TxDLs */
-/* Priority definition */
+	/* Priority definition */
 #define TX_FIFO_PRI_0               0	/*Highest */
 #define TX_FIFO_PRI_1               1
 #define TX_FIFO_PRI_2               2
@@ -395,7 +401,8 @@ struct tx_fifo_config {
 
 
 /* Maintains per Ring related information */
-struct rx_ring_config {
+struct rx_ring_config
+{
 	u32 num_rxd;		/*No of RxDs per Rx Ring */
 #define RX_RING_PRI_0               0	/* highest */
 #define RX_RING_PRI_1               1
@@ -421,8 +428,9 @@ struct rx_ring_config {
 /* This structure provides contains values of the tunable parameters
  * of the H/W
  */
-struct config_param {
-/* Tx Side */
+struct config_param
+{
+	/* Tx Side */
 	u32 tx_fifo_num;	/*Number of Tx FIFOs */
 
 	/* 0-No steering, 1-Priority steering, 2-Default fifo map */
@@ -442,7 +450,7 @@ struct config_param {
 
 	/* Specifies if Tx Intr is UTILZ or PER_LIST type. */
 
-/* Rx Side */
+	/* Rx Side */
 	u32 rx_ring_num;	/*Number of receive rings */
 #define MAX_RX_BLOCKS_PER_RING  150
 
@@ -468,14 +476,16 @@ struct config_param {
 };
 
 /* Structure representing MAC Addrs */
-struct mac_addr {
+struct mac_addr
+{
 	u8 mac_addr[ETH_ALEN];
 };
 
 /* Structure that represent every FIFO element in the BAR1
  * Address location.
  */
-struct TxFIFO_element {
+struct TxFIFO_element
+{
 	u64 TxDL_Pointer;
 
 	u64 List_Control;
@@ -489,9 +499,10 @@ struct TxFIFO_element {
 };
 
 /* Tx descriptor structure */
-struct TxD {
+struct TxD
+{
 	u64 Control_1;
-/* bit mask */
+	/* bit mask */
 #define TXD_LIST_OWN_XENA       s2BIT(7)
 #define TXD_T_CODE              (s2BIT(12)|s2BIT(13)|s2BIT(14)|s2BIT(15))
 #define TXD_T_CODE_OK(val)      (|(val & TXD_T_CODE))
@@ -523,13 +534,15 @@ struct TxD {
 };
 
 /* Structure to hold the phy and virt addr of every TxDL. */
-struct list_info_hold {
+struct list_info_hold
+{
 	dma_addr_t list_phy_addr;
 	void *list_virt_addr;
 };
 
 /* Rx descriptor structure for 1 buffer mode */
-struct RxD_t {
+struct RxD_t
+{
 	u64 Host_Control;	/* reserved for host */
 	u64 Control_1;
 #define RXD_OWN_XENA            s2BIT(7)
@@ -557,7 +570,8 @@ struct RxD_t {
 
 };
 /* Rx descriptor structure for 1 buffer mode */
-struct RxD1 {
+struct RxD1
+{
 	struct RxD_t h;
 
 #define MASK_BUFFER0_SIZE_1       vBIT(0x3FFF,2,14)
@@ -568,7 +582,8 @@ struct RxD1 {
 };
 /* Rx descriptor structure for 3 or 2 buffer mode */
 
-struct RxD3 {
+struct RxD3
+{
 	struct RxD_t h;
 
 #define MASK_BUFFER0_SIZE_3       vBIT(0xFF,2,14)
@@ -595,7 +610,8 @@ struct RxD3 {
 /* Structure that represents the Rx descriptor block which contains
  * 128 Rx descriptors.
  */
-struct RxD_block {
+struct RxD_block
+{
 #define MAX_RXDS_PER_BLOCK_1            127
 	struct RxD1 rxd[MAX_RXDS_PER_BLOCK_1];
 
@@ -616,7 +632,8 @@ struct RxD_block {
 
 /* Structure to hold virtual addresses of Buf0 and Buf1 in
  * 2buf mode. */
-struct buffAdd {
+struct buffAdd
+{
 	void *ba_0_org;
 	void *ba_1_org;
 	void *ba_0;
@@ -629,13 +646,15 @@ struct buffAdd {
  * from which the Rx Interrupt processor can start picking
  * up the RxDs for processing.
  */
-struct rx_curr_get_info {
+struct rx_curr_get_info
+{
 	u32 block_index;
 	u32 offset;
 	u32 ring_len;
 };
 
-struct rx_curr_put_info {
+struct rx_curr_put_info
+{
 	u32 block_index;
 	u32 offset;
 	u32 ring_len;
@@ -645,30 +664,35 @@ struct rx_curr_put_info {
  * from which the Tx Interrupt processor can start picking
  * up the TxDLs for send complete interrupt processing.
  */
-struct tx_curr_get_info {
+struct tx_curr_get_info
+{
 	u32 offset;
 	u32 fifo_len;
 };
 
-struct tx_curr_put_info {
+struct tx_curr_put_info
+{
 	u32 offset;
 	u32 fifo_len;
 };
 
-struct rxd_info {
+struct rxd_info
+{
 	void *virt_addr;
 	dma_addr_t dma_addr;
 };
 
 /* Structure that holds the Phy and virt addresses of the Blocks */
-struct rx_block_info {
+struct rx_block_info
+{
 	void *block_virt_addr;
 	dma_addr_t block_dma_addr;
 	struct rxd_info *rxds;
 };
 
 /* Data structure to represent a LRO session */
-struct lro {
+struct lro
+{
 	struct sk_buff	*parent;
 	struct sk_buff  *last_frag;
 	u8		*l2h;
@@ -688,7 +712,8 @@ struct lro {
 } ____cacheline_aligned;
 
 /* Ring specific structure */
-struct ring_info {
+struct ring_info
+{
 	/* The ring number */
 	int ring_no;
 
@@ -740,14 +765,15 @@ struct ring_info {
 	struct rx_curr_get_info rx_curr_get_info;
 
 	/* interface MTU value */
-        unsigned mtu;
+	unsigned mtu;
 
 	/* Buffer Address store. */
 	struct buffAdd **ba;
 } ____cacheline_aligned;
 
 /* Fifo specific structure */
-struct fifo_info {
+struct fifo_info
+{
 	/* FIFO number */
 	int fifo_no;
 
@@ -790,8 +816,9 @@ struct fifo_info {
 /* Information related to the Tx and Rx FIFOs and Rings of Xena
  * is maintained in this structure.
  */
-struct mac_info {
-/* tx side stuff */
+struct mac_info
+{
+	/* tx side stuff */
 	/* logical pointer of start of each Tx FIFO */
 	struct TxFIFO_element __iomem *tx_FIFO_start[MAX_TX_FIFOS];
 
@@ -801,7 +828,7 @@ struct mac_info {
 	/* Save virtual address of TxD page with zero DMA addr(if any) */
 	void *zerodma_virt_addr;
 
-/* rx side stuff */
+	/* rx side stuff */
 	/* Ring specific structure */
 	struct ring_info rings[MAX_RX_RINGS];
 
@@ -840,7 +867,8 @@ struct s2io_msix_entry
 #define MSIX_REGISTERED_SUCCESS	0xAA
 };
 
-struct msix_info_st {
+struct msix_info_st
+{
 	u64 addr;
 	u64 data;
 };
@@ -848,12 +876,13 @@ struct msix_info_st {
 /* These flags represent the devices temporary state */
 enum s2io_device_state_t
 {
-	__S2IO_STATE_LINK_TASK=0,
+	__S2IO_STATE_LINK_TASK = 0,
 	__S2IO_STATE_CARD_UP
 };
 
 /* Structure representing one instance of the NIC */
-struct s2io_nic {
+struct s2io_nic
+{
 	int rxd_mode;
 	/*
 	 * Count of packets to be processed in a given iteration, it will be indicated
@@ -1001,12 +1030,15 @@ static inline void writeq(u64 val, void __iomem *addr)
 #define LF	2
 static inline void SPECIAL_REG_WRITE(u64 val, void __iomem *addr, int order)
 {
-	if (order == LF) {
+	if (order == LF)
+	{
 		writel((u32) (val), addr);
 		(void) readl(addr);
 		writel((u32) (val >> 32), (addr + 4));
 		(void) readl(addr + 4);
-	} else {
+	}
+	else
+	{
 		writel((u32) (val >> 32), (addr + 4));
 		(void) readl(addr + 4);
 		writel((u32) (val), addr);
@@ -1032,16 +1064,16 @@ static inline void SPECIAL_REG_WRITE(u64 val, void __iomem *addr, int order)
 #define RX_TRAFFIC_INTR (0x0001<<9)
 #define MC_INTR         (0x0001<<10)
 #define ENA_ALL_INTRS    (   TX_PIC_INTR     | \
-                            TX_DMA_INTR     | \
-                            TX_MAC_INTR     | \
-                            TX_XGXS_INTR    | \
-                            TX_TRAFFIC_INTR | \
-                            RX_PIC_INTR     | \
-                            RX_DMA_INTR     | \
-                            RX_MAC_INTR     | \
-                            RX_XGXS_INTR    | \
-                            RX_TRAFFIC_INTR | \
-                            MC_INTR )
+							 TX_DMA_INTR     | \
+							 TX_MAC_INTR     | \
+							 TX_XGXS_INTR    | \
+							 TX_TRAFFIC_INTR | \
+							 RX_PIC_INTR     | \
+							 RX_DMA_INTR     | \
+							 RX_MAC_INTR     | \
+							 RX_XGXS_INTR    | \
+							 RX_TRAFFIC_INTR | \
+							 MC_INTR )
 
 /*  Interrupt masks for the general interrupt mask register */
 #define DISABLE_ALL_INTRS   0xFFFFFFFFFFFFFFFFULL
@@ -1083,16 +1115,16 @@ static int init_nic(struct s2io_nic *nic);
 static int rx_intr_handler(struct ring_info *ring_data, int budget);
 static void s2io_txpic_intr_handle(struct s2io_nic *sp);
 static void tx_intr_handler(struct fifo_info *fifo_data);
-static void s2io_handle_errors(void * dev_id);
+static void s2io_handle_errors(void *dev_id);
 
 static void s2io_tx_watchdog(struct net_device *dev);
 static void s2io_set_multicast(struct net_device *dev);
-static int rx_osm_handler(struct ring_info *ring_data, struct RxD_t * rxdp);
-static void s2io_link(struct s2io_nic * sp, int link);
-static void s2io_reset(struct s2io_nic * sp);
+static int rx_osm_handler(struct ring_info *ring_data, struct RxD_t *rxdp);
+static void s2io_link(struct s2io_nic *sp, int link);
+static void s2io_reset(struct s2io_nic *sp);
 static int s2io_poll_msix(struct napi_struct *napi, int budget);
 static int s2io_poll_inta(struct napi_struct *napi, int budget);
-static void s2io_init_pci(struct s2io_nic * sp);
+static void s2io_init_pci(struct s2io_nic *sp);
 static int do_s2io_prog_unicast(struct net_device *dev, u8 *addr);
 static void s2io_alarm_handle(unsigned long data);
 static irqreturn_t
@@ -1103,13 +1135,13 @@ static irqreturn_t s2io_isr(int irq, void *dev_id);
 static int verify_xena_quiescence(struct s2io_nic *sp);
 static const struct ethtool_ops netdev_ethtool_ops;
 static void s2io_set_link(struct work_struct *work);
-static int s2io_set_swapper(struct s2io_nic * sp);
+static int s2io_set_swapper(struct s2io_nic *sp);
 static void s2io_card_down(struct s2io_nic *nic);
 static int s2io_card_up(struct s2io_nic *nic);
 static int wait_for_cmd_complete(void __iomem *addr, u64 busy_bit,
-					int bit_state);
-static int s2io_add_isr(struct s2io_nic * sp);
-static void s2io_rem_isr(struct s2io_nic * sp);
+								 int bit_state);
+static int s2io_add_isr(struct s2io_nic *sp);
+static void s2io_rem_isr(struct s2io_nic *sp);
 
 static void restore_xmsi_data(struct s2io_nic *nic);
 static void do_s2io_store_unicast_mc(struct s2io_nic *sp);
@@ -1120,17 +1152,17 @@ static int do_s2io_add_mac(struct s2io_nic *sp, u64 addr, int offset);
 static int do_s2io_delete_unicast_mc(struct s2io_nic *sp, u64 addr);
 
 static int s2io_club_tcp_session(struct ring_info *ring_data, u8 *buffer,
-	u8 **tcp, u32 *tcp_len, struct lro **lro, struct RxD_t *rxdp,
-	struct s2io_nic *sp);
+								 u8 **tcp, u32 *tcp_len, struct lro **lro, struct RxD_t *rxdp,
+								 struct s2io_nic *sp);
 static void clear_lro_session(struct lro *lro);
 static void queue_rx_frame(struct sk_buff *skb, u16 vlan_tag);
 static void update_L3L4_header(struct s2io_nic *sp, struct lro *lro);
 static void lro_append_pkt(struct s2io_nic *sp, struct lro *lro,
-			   struct sk_buff *skb, u32 tcp_len);
+						   struct sk_buff *skb, u32 tcp_len);
 static int rts_ds_steer(struct s2io_nic *nic, u8 ds_codepoint, u8 ring);
 
 static pci_ers_result_t s2io_io_error_detected(struct pci_dev *pdev,
-			                      pci_channel_state_t state);
+		pci_channel_state_t state);
 static pci_ers_result_t s2io_io_slot_reset(struct pci_dev *pdev);
 static void s2io_io_resume(struct pci_dev *pdev);
 
@@ -1140,6 +1172,6 @@ static void s2io_io_resume(struct pci_dev *pdev);
 
 #define S2IO_PARM_INT(X, def_val) \
 	static unsigned int X = def_val;\
-		module_param(X , uint, 0);
+	module_param(X , uint, 0);
 
 #endif				/* _S2IO_H */

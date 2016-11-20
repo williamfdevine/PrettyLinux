@@ -41,7 +41,9 @@ int test_body(void)
 
 	printf("Check DSCR TM context switch: ");
 	fflush(stdout);
-	for (;;) {
+
+	for (;;)
+	{
 		rv = 1;
 		asm __volatile__ (
 			/* set a known value into the DSCR */
@@ -74,15 +76,21 @@ int test_body(void)
 			: "memory", "r3"
 		);
 		assert(rv); /* make sure the transaction aborted */
-		if ((texasr >> 56) != TM_CAUSE_RESCHED) {
+
+		if ((texasr >> 56) != TM_CAUSE_RESCHED)
+		{
 			putchar('.');
 			fflush(stdout);
 			continue;
 		}
-		if (dscr2 != dscr1) {
+
+		if (dscr2 != dscr1)
+		{
 			printf(" FAIL\n");
 			return 1;
-		} else {
+		}
+		else
+		{
 			printf(" OK\n");
 			return 0;
 		}

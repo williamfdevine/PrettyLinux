@@ -42,7 +42,8 @@ static int cosm_dev_remove(struct device *d)
 	return 0;
 }
 
-static struct bus_type cosm_bus = {
+static struct bus_type cosm_bus =
+{
 	.name  = "cosm_bus",
 	.probe = cosm_dev_probe,
 	.remove = cosm_dev_remove,
@@ -75,8 +76,11 @@ cosm_register_device(struct device *pdev, struct cosm_hw_ops *hw_ops)
 	int ret;
 
 	cdev = kzalloc(sizeof(*cdev), GFP_KERNEL);
+
 	if (!cdev)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	cdev->dev.parent = pdev;
 	cdev->dev.release = cosm_release_dev;
@@ -86,16 +90,23 @@ cosm_register_device(struct device *pdev, struct cosm_hw_ops *hw_ops)
 
 	/* Assign a unique device index and hence name */
 	ret = ida_simple_get(&cosm_index_ida, 0, 0, GFP_KERNEL);
+
 	if (ret < 0)
+	{
 		goto free_cdev;
+	}
 
 	cdev->index = ret;
 	cdev->dev.id = ret;
 	dev_set_name(&cdev->dev, "cosm-dev%u", cdev->index);
 
 	ret = device_register(&cdev->dev);
+
 	if (ret)
+	{
 		goto ida_remove;
+	}
+
 	return cdev;
 ida_remove:
 	ida_simple_remove(&cosm_index_ida, cdev->index);

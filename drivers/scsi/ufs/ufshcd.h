@@ -73,7 +73,8 @@
 
 struct ufs_hba;
 
-enum dev_cmd_type {
+enum dev_cmd_type
+{
 	DEV_CMD_TYPE_NOP		= 0x0,
 	DEV_CMD_TYPE_QUERY		= 0x1,
 };
@@ -88,7 +89,8 @@ enum dev_cmd_type {
  * @result: UIC command result
  * @done: UIC command completion
  */
-struct uic_command {
+struct uic_command
+{
 	u32 command;
 	u32 argument1;
 	u32 argument2;
@@ -99,7 +101,8 @@ struct uic_command {
 };
 
 /* Used to differentiate the power management options */
-enum ufs_pm_op {
+enum ufs_pm_op
+{
 	UFS_RUNTIME_PM,
 	UFS_SYSTEM_PM,
 	UFS_SHUTDOWN_PM,
@@ -110,7 +113,8 @@ enum ufs_pm_op {
 #define ufshcd_is_shutdown_pm(op) ((op) == UFS_SHUTDOWN_PM)
 
 /* Host <-> Device UniPro Link state */
-enum uic_link_state {
+enum uic_link_state
+{
 	UIC_LINK_OFF_STATE	= 0, /* Link powered down or disabled */
 	UIC_LINK_ACTIVE_STATE	= 1, /* Link is in Fast/Slow/Sleep state */
 	UIC_LINK_HIBERN8_STATE	= 2, /* Link is in Hibernate state */
@@ -118,20 +122,21 @@ enum uic_link_state {
 
 #define ufshcd_is_link_off(hba) ((hba)->uic_link_state == UIC_LINK_OFF_STATE)
 #define ufshcd_is_link_active(hba) ((hba)->uic_link_state == \
-				    UIC_LINK_ACTIVE_STATE)
+									UIC_LINK_ACTIVE_STATE)
 #define ufshcd_is_link_hibern8(hba) ((hba)->uic_link_state == \
-				    UIC_LINK_HIBERN8_STATE)
+									 UIC_LINK_HIBERN8_STATE)
 #define ufshcd_set_link_off(hba) ((hba)->uic_link_state = UIC_LINK_OFF_STATE)
 #define ufshcd_set_link_active(hba) ((hba)->uic_link_state = \
-				    UIC_LINK_ACTIVE_STATE)
+									 UIC_LINK_ACTIVE_STATE)
 #define ufshcd_set_link_hibern8(hba) ((hba)->uic_link_state = \
-				    UIC_LINK_HIBERN8_STATE)
+									  UIC_LINK_HIBERN8_STATE)
 
 /*
  * UFS Power management levels.
  * Each level is in increasing order of power savings.
  */
-enum ufs_pm_level {
+enum ufs_pm_level
+{
 	UFS_PM_LVL_0, /* UFS_ACTIVE_PWR_MODE, UIC_LINK_ACTIVE_STATE */
 	UFS_PM_LVL_1, /* UFS_ACTIVE_PWR_MODE, UIC_LINK_HIBERN8_STATE */
 	UFS_PM_LVL_2, /* UFS_SLEEP_PWR_MODE, UIC_LINK_ACTIVE_STATE */
@@ -141,7 +146,8 @@ enum ufs_pm_level {
 	UFS_PM_LVL_MAX
 };
 
-struct ufs_pm_lvl_states {
+struct ufs_pm_lvl_states
+{
 	enum ufs_dev_pwr_mode dev_state;
 	enum uic_link_state link_state;
 };
@@ -161,7 +167,8 @@ struct ufs_pm_lvl_states {
  * @lun: LUN of the command
  * @intr_cmd: Interrupt command (doesn't participate in interrupt aggregation)
  */
-struct ufshcd_lrb {
+struct ufshcd_lrb
+{
 	struct utp_transfer_req_desc *utr_descriptor_ptr;
 	struct utp_upiu_req *ucd_req_ptr;
 	struct utp_upiu_rsp *ucd_rsp_ptr;
@@ -184,7 +191,8 @@ struct ufshcd_lrb {
  * @descriptor: buffer for sending/receiving descriptor
  * @response: response upiu and response
  */
-struct ufs_query {
+struct ufs_query
+{
 	struct ufs_query_req request;
 	u8 *descriptor;
 	struct ufs_query_res response;
@@ -197,7 +205,8 @@ struct ufs_query {
  * @complete: internal commands completion
  * @tag_wq: wait queue until free command slot is available
  */
-struct ufs_dev_cmd {
+struct ufs_dev_cmd
+{
 	enum dev_cmd_type type;
 	struct mutex lock;
 	struct completion *complete;
@@ -215,7 +224,8 @@ struct ufs_dev_cmd {
  * @curr_freq: indicates the current frequency that it is set to
  * @enabled: variable to check against multiple enable/disable
  */
-struct ufs_clk_info {
+struct ufs_clk_info
+{
 	struct list_head list;
 	struct clk *clk;
 	const char *name;
@@ -225,12 +235,14 @@ struct ufs_clk_info {
 	bool enabled;
 };
 
-enum ufs_notify_change_status {
+enum ufs_notify_change_status
+{
 	PRE_CHANGE,
 	POST_CHANGE,
 };
 
-struct ufs_pa_layer_attr {
+struct ufs_pa_layer_attr
+{
 	u32 gear_rx;
 	u32 gear_tx;
 	u32 lane_rx;
@@ -240,7 +252,8 @@ struct ufs_pa_layer_attr {
 	u32 hs_rate;
 };
 
-struct ufs_pwr_mode_info {
+struct ufs_pwr_mode_info
+{
 	bool is_valid;
 	struct ufs_pa_layer_attr info;
 };
@@ -266,23 +279,24 @@ struct ufs_pwr_mode_info {
  * @dbg_register_dump: used to dump controller debug information
  * @phy_initialization: used to initialize phys
  */
-struct ufs_hba_variant_ops {
+struct ufs_hba_variant_ops
+{
 	const char *name;
 	int	(*init)(struct ufs_hba *);
 	void    (*exit)(struct ufs_hba *);
 	u32	(*get_ufs_hci_version)(struct ufs_hba *);
 	int	(*clk_scale_notify)(struct ufs_hba *, bool,
-				    enum ufs_notify_change_status);
+							enum ufs_notify_change_status);
 	int	(*setup_clocks)(struct ufs_hba *, bool);
 	int     (*setup_regulators)(struct ufs_hba *, bool);
 	int	(*hce_enable_notify)(struct ufs_hba *,
-				     enum ufs_notify_change_status);
+							 enum ufs_notify_change_status);
 	int	(*link_startup_notify)(struct ufs_hba *,
-				       enum ufs_notify_change_status);
+							   enum ufs_notify_change_status);
 	int	(*pwr_change_notify)(struct ufs_hba *,
-					enum ufs_notify_change_status status,
-					struct ufs_pa_layer_attr *,
-					struct ufs_pa_layer_attr *);
+							 enum ufs_notify_change_status status,
+							 struct ufs_pa_layer_attr *,
+							 struct ufs_pa_layer_attr *);
 	int     (*suspend)(struct ufs_hba *, enum ufs_pm_op);
 	int     (*resume)(struct ufs_hba *, enum ufs_pm_op);
 	void	(*dbg_register_dump)(struct ufs_hba *hba);
@@ -290,7 +304,8 @@ struct ufs_hba_variant_ops {
 };
 
 /* clock gating state  */
-enum clk_gating_state {
+enum clk_gating_state
+{
 	CLKS_OFF,
 	CLKS_ON,
 	REQ_CLKS_OFF,
@@ -311,7 +326,8 @@ enum clk_gating_state {
  * @active_reqs: number of requests that are pending and should be waited for
  * completion before gating clocks.
  */
-struct ufs_clk_gating {
+struct ufs_clk_gating
+{
 	struct delayed_work gate_work;
 	struct work_struct ungate_work;
 	enum clk_gating_state state;
@@ -321,7 +337,8 @@ struct ufs_clk_gating {
 	int active_reqs;
 };
 
-struct ufs_clk_scaling {
+struct ufs_clk_scaling
+{
 	ktime_t  busy_start_t;
 	bool is_busy_started;
 	unsigned long  tot_busy_t;
@@ -333,7 +350,8 @@ struct ufs_clk_scaling {
  * initialization
  * @icc_level: icc level which was read during initialization
  */
-struct ufs_init_prefetch {
+struct ufs_init_prefetch
+{
 	u32 icc_level;
 };
 
@@ -390,7 +408,8 @@ struct ufs_init_prefetch {
  * @is_urgent_bkops_lvl_checked: keeps track if the urgent bkops level for
  *  device is known or not.
  */
-struct ufs_hba {
+struct ufs_hba
+{
 	void __iomem *mmio_base;
 
 	/* Virtual memory reference */
@@ -435,13 +454,13 @@ struct ufs_hba {
 	bool is_irq_enabled;
 
 	/* Interrupt aggregation support is broken */
-	#define UFSHCD_QUIRK_BROKEN_INTR_AGGR			UFS_BIT(0)
+#define UFSHCD_QUIRK_BROKEN_INTR_AGGR			UFS_BIT(0)
 
 	/*
 	 * delay before each dme command is required as the unipro
 	 * layer has shown instabilities
 	 */
-	#define UFSHCD_QUIRK_DELAY_BEFORE_DME_CMDS		UFS_BIT(1)
+#define UFSHCD_QUIRK_DELAY_BEFORE_DME_CMDS		UFS_BIT(1)
 
 	/*
 	 * If UFS host controller is having issue in processing LCC (Line
@@ -450,21 +469,21 @@ struct ufs_hba {
 	 * the LCC transmission on UFS device (by clearing TX_LCC_ENABLE
 	 * attribute of device to 0).
 	 */
-	#define UFSHCD_QUIRK_BROKEN_LCC				UFS_BIT(2)
+#define UFSHCD_QUIRK_BROKEN_LCC				UFS_BIT(2)
 
 	/*
 	 * The attribute PA_RXHSUNTERMCAP specifies whether or not the
 	 * inbound Link supports unterminated line in HS mode. Setting this
 	 * attribute to 1 fixes moving to HS gear.
 	 */
-	#define UFSHCD_QUIRK_BROKEN_PA_RXHSUNTERMCAP		UFS_BIT(3)
+#define UFSHCD_QUIRK_BROKEN_PA_RXHSUNTERMCAP		UFS_BIT(3)
 
 	/*
 	 * This quirk needs to be enabled if the host contoller only allows
 	 * accessing the peer dme attributes in AUTO mode (FAST AUTO or
 	 * SLOW AUTO).
 	 */
-	#define UFSHCD_QUIRK_DME_PEER_ACCESS_AUTO_MODE		UFS_BIT(4)
+#define UFSHCD_QUIRK_DME_PEER_ACCESS_AUTO_MODE		UFS_BIT(4)
 
 	/*
 	 * This quirk needs to be enabled if the host contoller doesn't
@@ -472,7 +491,7 @@ struct ufs_hba {
 	 * is enabled, standard UFS host driver will call the vendor specific
 	 * ops (get_ufs_hci_version) to get the correct version.
 	 */
-	#define UFSHCD_QUIRK_BROKEN_UFS_HCI_VERSION		UFS_BIT(5)
+#define UFSHCD_QUIRK_BROKEN_UFS_HCI_VERSION		UFS_BIT(5)
 
 	unsigned int quirks;	/* Deviations from standard UFSHCI spec. */
 
@@ -569,15 +588,20 @@ static inline bool ufshcd_can_autobkops_during_suspend(struct ufs_hba *hba)
 
 static inline bool ufshcd_is_intr_aggr_allowed(struct ufs_hba *hba)
 {
-/* DWC UFS Core has the Interrupt aggregation feature but is not detectable*/
+	/* DWC UFS Core has the Interrupt aggregation feature but is not detectable*/
 #ifndef CONFIG_SCSI_UFS_DWC
 	if ((hba->caps & UFSHCD_CAP_INTR_AGGR) &&
-	    !(hba->quirks & UFSHCD_QUIRK_BROKEN_INTR_AGGR))
+		!(hba->quirks & UFSHCD_QUIRK_BROKEN_INTR_AGGR))
+	{
 		return true;
+	}
 	else
+	{
 		return false;
+	}
+
 #else
-return true;
+	return true;
 #endif
 }
 
@@ -605,16 +629,16 @@ static inline void ufshcd_rmwl(struct ufs_hba *hba, u32 mask, u32 val, u32 reg)
 
 int ufshcd_alloc_host(struct device *, struct ufs_hba **);
 void ufshcd_dealloc_host(struct ufs_hba *);
-int ufshcd_init(struct ufs_hba * , void __iomem * , unsigned int);
+int ufshcd_init(struct ufs_hba *, void __iomem *, unsigned int);
 void ufshcd_remove(struct ufs_hba *);
 int ufshcd_wait_for_register(struct ufs_hba *hba, u32 reg, u32 mask,
-				u32 val, unsigned long interval_us,
-				unsigned long timeout_ms, bool can_sleep);
+							 u32 val, unsigned long interval_us,
+							 unsigned long timeout_ms, bool can_sleep);
 
 static inline void check_upiu_size(void)
 {
 	BUILD_BUG_ON(ALIGNED_UPIU_SIZE <
-		GENERAL_UPIU_REQUEST_SIZE + QUERY_DESC_MAX_SIZE);
+				 GENERAL_UPIU_REQUEST_SIZE + QUERY_DESC_MAX_SIZE);
 }
 
 /**
@@ -645,9 +669,9 @@ extern int ufshcd_system_suspend(struct ufs_hba *hba);
 extern int ufshcd_system_resume(struct ufs_hba *hba);
 extern int ufshcd_shutdown(struct ufs_hba *hba);
 extern int ufshcd_dme_set_attr(struct ufs_hba *hba, u32 attr_sel,
-			       u8 attr_set, u32 mib_val, u8 peer);
+							   u8 attr_set, u32 mib_val, u8 peer);
 extern int ufshcd_dme_get_attr(struct ufs_hba *hba, u32 attr_sel,
-			       u32 *mib_val, u8 peer);
+							   u32 *mib_val, u8 peer);
 
 /* UIC command interfaces for DME primitives */
 #define DME_LOCAL	0
@@ -656,41 +680,41 @@ extern int ufshcd_dme_get_attr(struct ufs_hba *hba, u32 attr_sel,
 #define ATTR_SET_ST	1	/* STATIC */
 
 static inline int ufshcd_dme_set(struct ufs_hba *hba, u32 attr_sel,
-				 u32 mib_val)
+								 u32 mib_val)
 {
 	return ufshcd_dme_set_attr(hba, attr_sel, ATTR_SET_NOR,
-				   mib_val, DME_LOCAL);
+							   mib_val, DME_LOCAL);
 }
 
 static inline int ufshcd_dme_st_set(struct ufs_hba *hba, u32 attr_sel,
-				    u32 mib_val)
+									u32 mib_val)
 {
 	return ufshcd_dme_set_attr(hba, attr_sel, ATTR_SET_ST,
-				   mib_val, DME_LOCAL);
+							   mib_val, DME_LOCAL);
 }
 
 static inline int ufshcd_dme_peer_set(struct ufs_hba *hba, u32 attr_sel,
-				      u32 mib_val)
+									  u32 mib_val)
 {
 	return ufshcd_dme_set_attr(hba, attr_sel, ATTR_SET_NOR,
-				   mib_val, DME_PEER);
+							   mib_val, DME_PEER);
 }
 
 static inline int ufshcd_dme_peer_st_set(struct ufs_hba *hba, u32 attr_sel,
-					 u32 mib_val)
+		u32 mib_val)
 {
 	return ufshcd_dme_set_attr(hba, attr_sel, ATTR_SET_ST,
-				   mib_val, DME_PEER);
+							   mib_val, DME_PEER);
 }
 
 static inline int ufshcd_dme_get(struct ufs_hba *hba,
-				 u32 attr_sel, u32 *mib_val)
+								 u32 attr_sel, u32 *mib_val)
 {
 	return ufshcd_dme_get_attr(hba, attr_sel, mib_val, DME_LOCAL);
 }
 
 static inline int ufshcd_dme_peer_get(struct ufs_hba *hba,
-				      u32 attr_sel, u32 *mib_val)
+									  u32 attr_sel, u32 *mib_val)
 {
 	return ufshcd_dme_get_attr(hba, attr_sel, mib_val, DME_PEER);
 }
@@ -700,19 +724,19 @@ int ufshcd_read_device_desc(struct ufs_hba *hba, u8 *buf, u32 size);
 static inline bool ufshcd_is_hs_mode(struct ufs_pa_layer_attr *pwr_info)
 {
 	return (pwr_info->pwr_rx == FAST_MODE ||
-		pwr_info->pwr_rx == FASTAUTO_MODE) &&
-		(pwr_info->pwr_tx == FAST_MODE ||
-		pwr_info->pwr_tx == FASTAUTO_MODE);
+			pwr_info->pwr_rx == FASTAUTO_MODE) &&
+		   (pwr_info->pwr_tx == FAST_MODE ||
+			pwr_info->pwr_tx == FASTAUTO_MODE);
 }
 
 #define ASCII_STD true
 
 int ufshcd_read_string_desc(struct ufs_hba *hba, int desc_index, u8 *buf,
-				u32 size, bool ascii);
+							u32 size, bool ascii);
 
 /* Expose Query-Request API */
 int ufshcd_query_flag(struct ufs_hba *hba, enum query_opcode opcode,
-	enum flag_idn idn, bool *flag_res);
+					  enum flag_idn idn, bool *flag_res);
 int ufshcd_hold(struct ufs_hba *hba, bool async);
 void ufshcd_release(struct ufs_hba *hba);
 u32 ufshcd_get_local_unipro_ver(struct ufs_hba *hba);
@@ -721,14 +745,19 @@ u32 ufshcd_get_local_unipro_ver(struct ufs_hba *hba);
 static inline const char *ufshcd_get_var_name(struct ufs_hba *hba)
 {
 	if (hba->vops)
+	{
 		return hba->vops->name;
+	}
+
 	return "";
 }
 
 static inline int ufshcd_vops_init(struct ufs_hba *hba)
 {
 	if (hba->vops && hba->vops->init)
+	{
 		return hba->vops->init(hba);
+	}
 
 	return 0;
 }
@@ -736,65 +765,81 @@ static inline int ufshcd_vops_init(struct ufs_hba *hba)
 static inline void ufshcd_vops_exit(struct ufs_hba *hba)
 {
 	if (hba->vops && hba->vops->exit)
+	{
 		return hba->vops->exit(hba);
+	}
 }
 
 static inline u32 ufshcd_vops_get_ufs_hci_version(struct ufs_hba *hba)
 {
 	if (hba->vops && hba->vops->get_ufs_hci_version)
+	{
 		return hba->vops->get_ufs_hci_version(hba);
+	}
 
 	return ufshcd_readl(hba, REG_UFS_VERSION);
 }
 
 static inline int ufshcd_vops_clk_scale_notify(struct ufs_hba *hba,
-			bool up, enum ufs_notify_change_status status)
+		bool up, enum ufs_notify_change_status status)
 {
 	if (hba->vops && hba->vops->clk_scale_notify)
+	{
 		return hba->vops->clk_scale_notify(hba, up, status);
+	}
+
 	return 0;
 }
 
 static inline int ufshcd_vops_setup_clocks(struct ufs_hba *hba, bool on)
 {
 	if (hba->vops && hba->vops->setup_clocks)
+	{
 		return hba->vops->setup_clocks(hba, on);
+	}
+
 	return 0;
 }
 
 static inline int ufshcd_vops_setup_regulators(struct ufs_hba *hba, bool status)
 {
 	if (hba->vops && hba->vops->setup_regulators)
+	{
 		return hba->vops->setup_regulators(hba, status);
+	}
 
 	return 0;
 }
 
 static inline int ufshcd_vops_hce_enable_notify(struct ufs_hba *hba,
-						bool status)
+		bool status)
 {
 	if (hba->vops && hba->vops->hce_enable_notify)
+	{
 		return hba->vops->hce_enable_notify(hba, status);
+	}
 
 	return 0;
 }
 static inline int ufshcd_vops_link_startup_notify(struct ufs_hba *hba,
-						bool status)
+		bool status)
 {
 	if (hba->vops && hba->vops->link_startup_notify)
+	{
 		return hba->vops->link_startup_notify(hba, status);
+	}
 
 	return 0;
 }
 
 static inline int ufshcd_vops_pwr_change_notify(struct ufs_hba *hba,
-				  bool status,
-				  struct ufs_pa_layer_attr *dev_max_params,
-				  struct ufs_pa_layer_attr *dev_req_params)
+		bool status,
+		struct ufs_pa_layer_attr *dev_max_params,
+		struct ufs_pa_layer_attr *dev_req_params)
 {
 	if (hba->vops && hba->vops->pwr_change_notify)
 		return hba->vops->pwr_change_notify(hba, status,
-					dev_max_params, dev_req_params);
+											dev_max_params, dev_req_params);
 
 	return -ENOTSUPP;
 }
@@ -802,7 +847,9 @@ static inline int ufshcd_vops_pwr_change_notify(struct ufs_hba *hba,
 static inline int ufshcd_vops_suspend(struct ufs_hba *hba, enum ufs_pm_op op)
 {
 	if (hba->vops && hba->vops->suspend)
+	{
 		return hba->vops->suspend(hba, op);
+	}
 
 	return 0;
 }
@@ -810,7 +857,9 @@ static inline int ufshcd_vops_suspend(struct ufs_hba *hba, enum ufs_pm_op op)
 static inline int ufshcd_vops_resume(struct ufs_hba *hba, enum ufs_pm_op op)
 {
 	if (hba->vops && hba->vops->resume)
+	{
 		return hba->vops->resume(hba, op);
+	}
 
 	return 0;
 }
@@ -818,7 +867,9 @@ static inline int ufshcd_vops_resume(struct ufs_hba *hba, enum ufs_pm_op op)
 static inline void ufshcd_vops_dbg_register_dump(struct ufs_hba *hba)
 {
 	if (hba->vops && hba->vops->dbg_register_dump)
+	{
 		hba->vops->dbg_register_dump(hba);
+	}
 }
 
 #endif /* End of Header */

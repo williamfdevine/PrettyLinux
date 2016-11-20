@@ -121,7 +121,8 @@
  */
 #define	NICVF_TX_TIMEOUT		(50 * HZ)
 
-struct nicvf_cq_poll {
+struct nicvf_cq_poll
+{
 	struct  nicvf *nicvf;
 	u8	cq_idx;		/* Completion queue index */
 	struct	napi_struct napi;
@@ -131,7 +132,8 @@ struct nicvf_cq_poll {
 #define NIC_MAX_RSS_IDR_TBL_SIZE	(1 << NIC_MAX_RSS_HASH_BITS)
 #define RSS_HASH_KEY_SIZE		5 /* 320 bit key */
 
-struct nicvf_rss_info {
+struct nicvf_rss_info
+{
 	bool enable;
 #define	RSS_L2_EXTENDED_HASH_ENA	BIT(0)
 #define	RSS_IP_HASH_ENA			BIT(1)
@@ -149,7 +151,8 @@ struct nicvf_rss_info {
 	u64 key[RSS_HASH_KEY_SIZE];
 } ____cacheline_aligned_in_smp;
 
-enum rx_stats_reg_offset {
+enum rx_stats_reg_offset
+{
 	RX_OCTS = 0x0,
 	RX_UCAST = 0x1,
 	RX_BCAST = 0x2,
@@ -167,7 +170,8 @@ enum rx_stats_reg_offset {
 	RX_STATS_ENUM_LAST,
 };
 
-enum tx_stats_reg_offset {
+enum tx_stats_reg_offset
+{
 	TX_OCTS = 0x0,
 	TX_UCAST = 0x1,
 	TX_BCAST = 0x2,
@@ -176,7 +180,8 @@ enum tx_stats_reg_offset {
 	TX_STATS_ENUM_LAST,
 };
 
-struct nicvf_hw_stats {
+struct nicvf_hw_stats
+{
 	u64 rx_bytes;
 	u64 rx_ucast_frames;
 	u64 rx_bcast_frames;
@@ -223,7 +228,8 @@ struct nicvf_hw_stats {
 	u64 tx_drops;
 };
 
-struct nicvf_drv_stats {
+struct nicvf_drv_stats
+{
 	/* Rx */
 	u64 rx_frames_ok;
 	u64 rx_frames_64;
@@ -246,7 +252,8 @@ struct nicvf_drv_stats {
 	u64 txq_wake;
 };
 
-struct nicvf {
+struct nicvf
+{
 	struct nicvf		*pnicvf;
 	struct net_device	*netdev;
 	struct pci_dev		*pdev;
@@ -352,18 +359,20 @@ struct nicvf {
 #define	NIC_MBOX_MSG_CFG_DONE		0xF0	/* VF configuration done */
 #define	NIC_MBOX_MSG_SHUTDOWN		0xF1	/* VF is being shutdown */
 
-struct nic_cfg_msg {
+struct nic_cfg_msg
+{
 	u8    msg;
 	u8    vf_id;
 	u8    node_id;
-	u8    tns_mode:1;
-	u8    sqs_mode:1;
-	u8    loopback_supported:1;
+	u8    tns_mode: 1;
+	u8    sqs_mode: 1;
+	u8    loopback_supported: 1;
 	u8    mac_addr[ETH_ALEN];
 };
 
 /* Qset configuration */
-struct qs_cfg_msg {
+struct qs_cfg_msg
+{
 	u8    msg;
 	u8    num;
 	u8    sqs_count;
@@ -371,7 +380,8 @@ struct qs_cfg_msg {
 };
 
 /* Receive queue configuration */
-struct rq_cfg_msg {
+struct rq_cfg_msg
+{
 	u8    msg;
 	u8    qs_num;
 	u8    rq_num;
@@ -379,7 +389,8 @@ struct rq_cfg_msg {
 };
 
 /* Send queue configuration */
-struct sq_cfg_msg {
+struct sq_cfg_msg
+{
 	u8    msg;
 	u8    qs_num;
 	u8    sq_num;
@@ -388,21 +399,24 @@ struct sq_cfg_msg {
 };
 
 /* Set VF's MAC address */
-struct set_mac_msg {
+struct set_mac_msg
+{
 	u8    msg;
 	u8    vf_id;
 	u8    mac_addr[ETH_ALEN];
 };
 
 /* Set Maximum frame size */
-struct set_frs_msg {
+struct set_frs_msg
+{
 	u8    msg;
 	u8    vf_id;
 	u16   max_frs;
 };
 
 /* Set CPI algorithm type */
-struct cpi_cfg_msg {
+struct cpi_cfg_msg
+{
 	u8    msg;
 	u8    vf_id;
 	u8    rq_cnt;
@@ -410,14 +424,16 @@ struct cpi_cfg_msg {
 };
 
 /* Get RSS table size */
-struct rss_sz_msg {
+struct rss_sz_msg
+{
 	u8    msg;
 	u8    vf_id;
 	u16   ind_tbl_size;
 };
 
 /* Set RSS configuration */
-struct rss_cfg_msg {
+struct rss_cfg_msg
+{
 	u8    msg;
 	u8    vf_id;
 	u8    hash_bits;
@@ -427,7 +443,8 @@ struct rss_cfg_msg {
 	u8    ind_tbl[RSS_IND_TBL_LEN_PER_MBX_MSG];
 };
 
-struct bgx_stats_msg {
+struct bgx_stats_msg
+{
 	u8    msg;
 	u8    vf_id;
 	u8    rx;
@@ -436,7 +453,8 @@ struct bgx_stats_msg {
 };
 
 /* Physical interface link status */
-struct bgx_link_status {
+struct bgx_link_status
+{
 	u8    msg;
 	u8    link_up;
 	u8    duplex;
@@ -444,13 +462,15 @@ struct bgx_link_status {
 };
 
 /* Get Extra Qset IDs */
-struct sqs_alloc {
+struct sqs_alloc
+{
 	u8    msg;
 	u8    vf_id;
 	u8    qs_count;
 };
 
-struct nicvf_ptr {
+struct nicvf_ptr
+{
 	u8    msg;
 	u8    vf_id;
 	bool  sqs_mode;
@@ -459,14 +479,16 @@ struct nicvf_ptr {
 };
 
 /* Set interface in loopback mode */
-struct set_loopback {
+struct set_loopback
+{
 	u8    msg;
 	u8    vf_id;
 	bool  enable;
 };
 
 /* Reset statistics counters */
-struct reset_stat_cfg {
+struct reset_stat_cfg
+{
 	u8    msg;
 	/* Bitmap to select NIC_PF_VNIC(vf_id)_RX_STAT(0..13) */
 	u16   rx_stat_mask;
@@ -491,7 +513,8 @@ struct reset_stat_cfg {
 };
 
 /* 128 bit shared memory between PF and each VF */
-union nic_mbx {
+union nic_mbx
+{
 	struct { u8 msg; }	msg;
 	struct nic_cfg_msg	nic_cfg;
 	struct qs_cfg_msg	qs;
@@ -522,17 +545,17 @@ static inline int nic_get_node_id(struct pci_dev *pdev)
 static inline bool pass1_silicon(struct pci_dev *pdev)
 {
 	return (pdev->revision < 8) &&
-		(pdev->subsystem_device == PCI_SUBSYS_DEVID_88XX_NIC_PF);
+		   (pdev->subsystem_device == PCI_SUBSYS_DEVID_88XX_NIC_PF);
 }
 
 static inline bool pass2_silicon(struct pci_dev *pdev)
 {
 	return (pdev->revision >= 8) &&
-		(pdev->subsystem_device == PCI_SUBSYS_DEVID_88XX_NIC_PF);
+		   (pdev->subsystem_device == PCI_SUBSYS_DEVID_88XX_NIC_PF);
 }
 
 int nicvf_set_real_num_queues(struct net_device *netdev,
-			      int tx_queues, int rx_queues);
+							  int tx_queues, int rx_queues);
 int nicvf_open(struct net_device *netdev);
 int nicvf_stop(struct net_device *netdev);
 int nicvf_send_msg_to_pf(struct nicvf *vf, union nic_mbx *mbx);

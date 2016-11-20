@@ -50,17 +50,23 @@ static void write_reg8_bus8(struct fbtft_par *par, int len, ...)
 	u8 *buf = par->buf;
 
 	va_start(args, len);
+
 	for (i = 0; i < len; i++)
+	{
 		*buf++ = (u8)va_arg(args, unsigned int);
+	}
+
 	va_end(args);
 
 	fbtft_par_dbg_hex(DEBUG_WRITE_REGISTER, par,
-		par->info->device, u8, par->buf, len, "%s: ", __func__);
+					  par->info->device, u8, par->buf, len, "%s: ", __func__);
 
 	ret = par->fbtftops.write(par, par->buf, len);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(par->info->device,
-			"write() failed and returned %d\n", ret);
+				"write() failed and returned %d\n", ret);
 		return;
 	}
 }
@@ -84,14 +90,23 @@ static int write_vmem(struct fbtft_par *par, size_t offset, size_t len)
 	pos[3] = cpu_to_be16(1);
 	((u8 *)par->txbuf.buf)[9] = COLOR_RGB565;
 
-	for (i = start_line; i <= end_line; i++) {
+	for (i = start_line; i <= end_line; i++)
+	{
 		pos[1] = cpu_to_be16(i);
+
 		for (j = 0; j < par->info->var.xres; j++)
+		{
 			buf16[j] = cpu_to_be16(*vmem16++);
+		}
+
 		ret = par->fbtftops.write(par,
-			par->txbuf.buf, 10 + par->info->fix.line_length);
+								  par->txbuf.buf, 10 + par->info->fix.line_length);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		udelay(300);
 	}
 
@@ -121,16 +136,24 @@ static int write_vmem_8bit(struct fbtft_par *par, size_t offset, size_t len)
 	pos[3] = cpu_to_be16(1);
 	((u8 *)par->txbuf.buf)[9] = COLOR_RGB332;
 
-	for (i = start_line; i <= end_line; i++) {
+	for (i = start_line; i <= end_line; i++)
+	{
 		pos[1] = cpu_to_be16(i);
-		for (j = 0; j < par->info->var.xres; j++) {
+
+		for (j = 0; j < par->info->var.xres; j++)
+		{
 			buf8[j] = RGB565toRGB332(*vmem16);
 			vmem16++;
 		}
+
 		ret = par->fbtftops.write(par,
-			par->txbuf.buf, 10 + par->info->var.xres);
+								  par->txbuf.buf, 10 + par->info->var.xres);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		udelay(700);
 	}
 
@@ -143,8 +166,11 @@ static unsigned int firmware_version(struct fbtft_par *par)
 
 	write_reg(par, CMD_VERSION);
 	par->fbtftops.read(par, rxbuf, 4);
+
 	if (rxbuf[1] != '.')
+	{
 		return 0;
+	}
 
 	return (rxbuf[0] - '0') << 8 | (rxbuf[2] - '0') << 4 | (rxbuf[3] - '0');
 }
@@ -159,10 +185,13 @@ static int init_display(struct fbtft_par *par)
 	save_mode = par->spi->mode;
 	par->spi->mode |= SPI_CS_HIGH;
 	ret = spi_setup(par->spi); /* set CS inactive low */
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(par->info->device, "Could not set SPI_CS_HIGH\n");
 		return ret;
 	}
+
 	write_reg(par, 0x00); /* make sure mode is set */
 
 	mdelay(50);
@@ -170,18 +199,24 @@ static int init_display(struct fbtft_par *par)
 	mdelay(1000);
 	par->spi->mode = save_mode;
 	ret = spi_setup(par->spi);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(par->info->device, "Could not restore SPI mode\n");
 		return ret;
 	}
+
 	write_reg(par, 0x00);
 
 	version = firmware_version(par);
 	fbtft_par_dbg(DEBUG_INIT_DISPLAY, par, "Firmware version: %x.%02x\n",
-						version >> 8, version & 0xFF);
+				  version >> 8, version & 0xFF);
 
 	if (mode == 332)
+	{
 		par->fbtftops.write_vmem = write_vmem_8bit;
+	}
+
 	return 0;
 }
 
@@ -195,19 +230,24 @@ static int set_var(struct fbtft_par *par)
 	u8 rotate;
 
 	/* this controller rotates clock wise */
-	switch (par->info->var.rotate) {
-	case 90:
-		rotate = 27;
-		break;
-	case 180:
-		rotate = 18;
-		break;
-	case 270:
-		rotate = 9;
-		break;
-	default:
-		rotate = 0;
+	switch (par->info->var.rotate)
+	{
+		case 90:
+			rotate = 27;
+			break;
+
+		case 180:
+			rotate = 18;
+			break;
+
+		case 270:
+			rotate = 9;
+			break;
+
+		default:
+			rotate = 0;
 	}
+
 	write_reg(par, CMD_LCD_ORIENTATION, rotate);
 
 	return 0;
@@ -215,10 +255,12 @@ static int set_var(struct fbtft_par *par)
 
 static int verify_gpios(struct fbtft_par *par)
 {
-	if (par->gpio.reset < 0) {
+	if (par->gpio.reset < 0)
+	{
 		dev_err(par->info->device, "Missing 'reset' gpio. Aborting.\n");
 		return -EINVAL;
 	}
+
 	return 0;
 }
 
@@ -229,22 +271,27 @@ static int backlight_chip_update_status(struct backlight_device *bd)
 	int brightness = bd->props.brightness;
 
 	fbtft_par_dbg(DEBUG_BACKLIGHT, par,
-		"%s: brightness=%d, power=%d, fb_blank=%d\n",
-		__func__, bd->props.brightness, bd->props.power,
-		bd->props.fb_blank);
+				  "%s: brightness=%d, power=%d, fb_blank=%d\n",
+				  __func__, bd->props.brightness, bd->props.power,
+				  bd->props.fb_blank);
 
 	if (bd->props.power != FB_BLANK_UNBLANK)
+	{
 		brightness = 0;
+	}
 
 	if (bd->props.fb_blank != FB_BLANK_UNBLANK)
+	{
 		brightness = 0;
+	}
 
 	write_reg(par, CMD_LCD_LED, brightness);
 
 	return 0;
 }
 
-static const struct backlight_ops bl_ops = {
+static const struct backlight_ops bl_ops =
+{
 	.update_status = backlight_chip_update_status,
 };
 
@@ -259,23 +306,29 @@ static void register_chip_backlight(struct fbtft_par *par)
 	bl_props.brightness = DEFAULT_BRIGHTNESS;
 
 	bd = backlight_device_register(dev_driver_string(par->info->device),
-				par->info->device, par, &bl_ops, &bl_props);
-	if (IS_ERR(bd)) {
+								   par->info->device, par, &bl_ops, &bl_props);
+
+	if (IS_ERR(bd))
+	{
 		dev_err(par->info->device,
-			"cannot register backlight device (%ld)\n",
-			PTR_ERR(bd));
+				"cannot register backlight device (%ld)\n",
+				PTR_ERR(bd));
 		return;
 	}
+
 	par->info->bl_dev = bd;
 
 	if (!par->fbtftops.unregister_backlight)
+	{
 		par->fbtftops.unregister_backlight = fbtft_unregister_backlight;
+	}
 }
 #else
 #define register_chip_backlight NULL
 #endif
 
-static struct fbtft_display display = {
+static struct fbtft_display display =
+{
 	.regwidth = 8,
 	.buswidth = 8,
 	.width = WIDTH,

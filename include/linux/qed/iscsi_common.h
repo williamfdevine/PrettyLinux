@@ -97,7 +97,8 @@
 #define CQE_ERROR_BITMAP_RCV_ON_INVALID_CONN  (0x10)
 #define CQE_ERROR_BITMAP_DATA_TRUNCATED       (0x20)
 
-struct cqe_error_bitmap {
+struct cqe_error_bitmap
+{
 	u8 cqe_error_status_bits;
 #define CQE_ERROR_BITMAP_DIF_ERR_BITS_MASK         0x7
 #define CQE_ERROR_BITMAP_DIF_ERR_BITS_SHIFT        0
@@ -113,16 +114,19 @@ struct cqe_error_bitmap {
 #define CQE_ERROR_BITMAP_RESERVED2_SHIFT           7
 };
 
-union cqe_error_status {
+union cqe_error_status
+{
 	u8 error_status;
 	struct cqe_error_bitmap error_bits;
 };
 
-struct data_hdr {
+struct data_hdr
+{
 	__le32 data[12];
 };
 
-struct iscsi_async_msg_hdr {
+struct iscsi_async_msg_hdr
+{
 	__le16 reserved0;
 	u8 flags_attr;
 #define ISCSI_ASYNC_MSG_HDR_RSRV_MASK           0x7F
@@ -149,20 +153,23 @@ struct iscsi_async_msg_hdr {
 	__le32 reserved7;
 };
 
-struct iscsi_sge {
+struct iscsi_sge
+{
 	struct regpair sge_addr;
 	__le16 sge_len;
 	__le16 reserved0;
 	__le32 reserved1;
 };
 
-struct iscsi_cached_sge_ctx {
+struct iscsi_cached_sge_ctx
+{
 	struct iscsi_sge sge;
 	struct regpair reserved;
 	__le32 dsgl_curr_offset[2];
 };
 
-struct iscsi_cmd_hdr {
+struct iscsi_cmd_hdr
+{
 	__le16 reserved1;
 	u8 flags_attr;
 #define ISCSI_CMD_HDR_ATTR_MASK           0x7
@@ -189,7 +196,8 @@ struct iscsi_cmd_hdr {
 	__le32 cdb[4];
 };
 
-struct iscsi_common_hdr {
+struct iscsi_common_hdr
+{
 	u8 hdr_status;
 	u8 hdr_response;
 	u8 hdr_flags;
@@ -209,7 +217,8 @@ struct iscsi_common_hdr {
 	__le32 data[6];
 };
 
-struct iscsi_conn_offload_params {
+struct iscsi_conn_offload_params
+{
 	struct regpair sq_pbl_addr;
 	struct regpair r2tq_pbl_addr;
 	struct regpair xhq_pbl_addr;
@@ -230,7 +239,8 @@ struct iscsi_conn_offload_params {
 	__le32 stat_sn;
 };
 
-struct iscsi_slow_path_hdr {
+struct iscsi_slow_path_hdr
+{
 	u8 op_code;
 	u8 flags;
 #define ISCSI_SLOW_PATH_HDR_RESERVED0_MASK   0xF
@@ -241,7 +251,8 @@ struct iscsi_slow_path_hdr {
 #define ISCSI_SLOW_PATH_HDR_RESERVED1_SHIFT  7
 };
 
-struct iscsi_conn_update_ramrod_params {
+struct iscsi_conn_update_ramrod_params
+{
 	struct iscsi_slow_path_hdr hdr;
 	__le16 conn_id;
 	__le32 fw_cid;
@@ -264,7 +275,8 @@ struct iscsi_conn_update_ramrod_params {
 	__le32 exp_stat_sn;
 };
 
-struct iscsi_ext_cdb_cmd_hdr {
+struct iscsi_ext_cdb_cmd_hdr
+{
 	__le16 reserved1;
 	u8 flags_attr;
 #define ISCSI_EXT_CDB_CMD_HDR_ATTR_MASK          0x7
@@ -291,7 +303,8 @@ struct iscsi_ext_cdb_cmd_hdr {
 	struct iscsi_sge cdb_sge;
 };
 
-struct iscsi_login_req_hdr {
+struct iscsi_login_req_hdr
+{
 	u8 version_min;
 	u8 version_max;
 	u8 flags_attr;
@@ -322,7 +335,8 @@ struct iscsi_login_req_hdr {
 	__le32 reserved2[4];
 };
 
-struct iscsi_logout_req_hdr {
+struct iscsi_logout_req_hdr
+{
 	__le16 reserved0;
 	u8 reason_code;
 	u8 opcode;
@@ -336,7 +350,8 @@ struct iscsi_logout_req_hdr {
 	__le32 reserved4[4];
 };
 
-struct iscsi_data_out_hdr {
+struct iscsi_data_out_hdr
+{
 	__le16 reserved1;
 	u8 flags_attr;
 #define ISCSI_DATA_OUT_HDR_RSRV_MASK   0x7F
@@ -356,7 +371,8 @@ struct iscsi_data_out_hdr {
 	__le32 reserved5;
 };
 
-struct iscsi_data_in_hdr {
+struct iscsi_data_in_hdr
+{
 	u8 status_rsvd;
 	u8 reserved1;
 	u8 flags;
@@ -385,7 +401,8 @@ struct iscsi_data_in_hdr {
 	__le32 residual_count;
 };
 
-struct iscsi_r2t_hdr {
+struct iscsi_r2t_hdr
+{
 	u8 reserved0[3];
 	u8 opcode;
 	__le32 reserved2;
@@ -400,7 +417,8 @@ struct iscsi_r2t_hdr {
 	__le32 desired_data_trns_len;
 };
 
-struct iscsi_nop_out_hdr {
+struct iscsi_nop_out_hdr
+{
 	__le16 reserved1;
 	u8 flags_attr;
 #define ISCSI_NOP_OUT_HDR_RSRV_MASK    0x7F
@@ -420,7 +438,8 @@ struct iscsi_nop_out_hdr {
 	__le32 reserved6;
 };
 
-struct iscsi_nop_in_hdr {
+struct iscsi_nop_in_hdr
+{
 	__le16 reserved0;
 	u8 flags_attr;
 #define ISCSI_NOP_IN_HDR_RSRV_MASK           0x7F
@@ -444,7 +463,8 @@ struct iscsi_nop_in_hdr {
 	__le32 reserved7;
 };
 
-struct iscsi_login_response_hdr {
+struct iscsi_login_response_hdr
+{
 	u8 version_active;
 	u8 version_max;
 	u8 flags_attr;
@@ -478,7 +498,8 @@ struct iscsi_login_response_hdr {
 	__le32 reserved4[2];
 };
 
-struct iscsi_logout_response_hdr {
+struct iscsi_logout_response_hdr
+{
 	u8 reserved1;
 	u8 response;
 	u8 flags;
@@ -500,7 +521,8 @@ struct iscsi_logout_response_hdr {
 	__le32 reserved5[1];
 };
 
-struct iscsi_text_request_hdr {
+struct iscsi_text_request_hdr
+{
 	__le16 reserved0;
 	u8 flags_attr;
 #define ISCSI_TEXT_REQUEST_HDR_RSRV_MASK           0x3F
@@ -523,7 +545,8 @@ struct iscsi_text_request_hdr {
 	__le32 reserved4[4];
 };
 
-struct iscsi_text_response_hdr {
+struct iscsi_text_response_hdr
+{
 	__le16 reserved1;
 	u8 flags;
 #define ISCSI_TEXT_RESPONSE_HDR_RSRV_MASK           0x3F
@@ -547,7 +570,8 @@ struct iscsi_text_response_hdr {
 	__le32 reserved4[3];
 };
 
-struct iscsi_tmf_request_hdr {
+struct iscsi_tmf_request_hdr
+{
 	__le16 reserved0;
 	u8 function;
 	u8 opcode;
@@ -566,7 +590,8 @@ struct iscsi_tmf_request_hdr {
 	__le32 reserved4[2];
 };
 
-struct iscsi_tmf_response_hdr {
+struct iscsi_tmf_response_hdr
+{
 	u8 reserved2;
 	u8 hdr_response;
 	u8 hdr_flags;
@@ -585,7 +610,8 @@ struct iscsi_tmf_response_hdr {
 	__le32 reserved4[3];
 };
 
-struct iscsi_response_hdr {
+struct iscsi_response_hdr
+{
 	u8 hdr_status;
 	u8 hdr_response;
 	u8 hdr_flags;
@@ -606,7 +632,8 @@ struct iscsi_response_hdr {
 	__le32 residual_count;
 };
 
-struct iscsi_reject_hdr {
+struct iscsi_reject_hdr
+{
 	u8 reserved4;
 	u8 hdr_reason;
 	u8 hdr_flags;
@@ -626,7 +653,8 @@ struct iscsi_reject_hdr {
 	__le32 reserved3[2];
 };
 
-union iscsi_task_hdr {
+union iscsi_task_hdr
+{
 	struct iscsi_common_hdr common;
 	struct data_hdr data;
 	struct iscsi_cmd_hdr cmd;
@@ -649,7 +677,8 @@ union iscsi_task_hdr {
 	struct iscsi_async_msg_hdr async_msg;
 };
 
-struct iscsi_cqe_common {
+struct iscsi_cqe_common
+{
 	__le16 conn_id;
 	u8 cqe_type;
 	union cqe_error_status error_bitmap;
@@ -657,7 +686,8 @@ struct iscsi_cqe_common {
 	union iscsi_task_hdr iscsi_hdr;
 };
 
-struct iscsi_cqe_solicited {
+struct iscsi_cqe_solicited
+{
 	__le16 conn_id;
 	u8 cqe_type;
 	union cqe_error_status error_bitmap;
@@ -668,7 +698,8 @@ struct iscsi_cqe_solicited {
 	union iscsi_task_hdr iscsi_hdr;
 };
 
-struct iscsi_cqe_unsolicited {
+struct iscsi_cqe_unsolicited
+{
 	__le16 conn_id;
 	u8 cqe_type;
 	union cqe_error_status error_bitmap;
@@ -679,13 +710,15 @@ struct iscsi_cqe_unsolicited {
 	union iscsi_task_hdr iscsi_hdr;
 };
 
-union iscsi_cqe {
+union iscsi_cqe
+{
 	struct iscsi_cqe_common cqe_common;
 	struct iscsi_cqe_solicited cqe_solicited;
 	struct iscsi_cqe_unsolicited cqe_unsolicited;
 };
 
-enum iscsi_cqes_type {
+enum iscsi_cqes_type
+{
 	ISCSI_CQE_TYPE_SOLICITED = 1,
 	ISCSI_CQE_TYPE_UNSOLICITED,
 	ISCSI_CQE_TYPE_SOLICITED_WITH_SENSE,
@@ -694,7 +727,8 @@ enum iscsi_cqes_type {
 	MAX_ISCSI_CQES_TYPE
 };
 
-enum iscsi_cqe_unsolicited_type {
+enum iscsi_cqe_unsolicited_type
+{
 	ISCSI_CQE_UNSOLICITED_NONE,
 	ISCSI_CQE_UNSOLICITED_SINGLE,
 	ISCSI_CQE_UNSOLICITED_FIRST,
@@ -703,7 +737,8 @@ enum iscsi_cqe_unsolicited_type {
 	MAX_ISCSI_CQE_UNSOLICITED_TYPE
 };
 
-struct iscsi_virt_sgl_ctx {
+struct iscsi_virt_sgl_ctx
+{
 	struct regpair sgl_base;
 	struct regpair dsgl_base;
 	__le32 sgl_initial_offset;
@@ -711,14 +746,16 @@ struct iscsi_virt_sgl_ctx {
 	__le32 dsgl_curr_offset[2];
 };
 
-struct iscsi_sgl_var_params {
+struct iscsi_sgl_var_params
+{
 	u8 sgl_ptr;
 	u8 dsgl_ptr;
 	__le16 sge_offset;
 	__le16 dsge_offset;
 };
 
-struct iscsi_phys_sgl_ctx {
+struct iscsi_phys_sgl_ctx
+{
 	struct regpair sgl_base;
 	struct regpair dsgl_base;
 	u8 sgl_size;
@@ -727,13 +764,15 @@ struct iscsi_phys_sgl_ctx {
 	struct iscsi_sgl_var_params var_params[2];
 };
 
-union iscsi_data_desc_ctx {
+union iscsi_data_desc_ctx
+{
 	struct iscsi_virt_sgl_ctx virt_sgl;
 	struct iscsi_phys_sgl_ctx phys_sgl;
 	struct iscsi_cached_sge_ctx cached_sge;
 };
 
-struct iscsi_debug_modes {
+struct iscsi_debug_modes
+{
 	u8 flags;
 #define ISCSI_DEBUG_MODES_ASSERT_IF_RX_CONN_ERROR_MASK         0x1
 #define ISCSI_DEBUG_MODES_ASSERT_IF_RX_CONN_ERROR_SHIFT        0
@@ -751,7 +790,8 @@ struct iscsi_debug_modes {
 #define ISCSI_DEBUG_MODES_RESERVED0_SHIFT                      6
 };
 
-struct iscsi_dif_flags {
+struct iscsi_dif_flags
+{
 	u8 flags;
 #define ISCSI_DIF_FLAGS_PROT_INTERVAL_SIZE_LOG_MASK  0xF
 #define ISCSI_DIF_FLAGS_PROT_INTERVAL_SIZE_LOG_SHIFT 0
@@ -761,7 +801,8 @@ struct iscsi_dif_flags {
 #define ISCSI_DIF_FLAGS_HOST_INTERFACE_SHIFT         5
 };
 
-enum iscsi_eqe_opcode {
+enum iscsi_eqe_opcode
+{
 	ISCSI_EVENT_TYPE_INIT_FUNC = 0,
 	ISCSI_EVENT_TYPE_DESTROY_FUNC,
 	ISCSI_EVENT_TYPE_OFFLOAD_CONN,
@@ -786,7 +827,8 @@ enum iscsi_eqe_opcode {
 	MAX_ISCSI_EQE_OPCODE
 };
 
-enum iscsi_error_types {
+enum iscsi_error_types
+{
 	ISCSI_STATUS_NONE = 0,
 	ISCSI_CQE_ERROR_UNSOLICITED_RCV_ON_INVALID_CONN = 1,
 	ISCSI_CONN_ERROR_TASK_CID_MISMATCH,
@@ -836,7 +878,8 @@ enum iscsi_error_types {
 	MAX_ISCSI_ERROR_TYPES
 };
 
-struct iscsi_mflags {
+struct iscsi_mflags
+{
 	u8 mflags;
 #define ISCSI_MFLAGS_SLOW_IO_MASK     0x1
 #define ISCSI_MFLAGS_SLOW_IO_SHIFT    0
@@ -846,19 +889,22 @@ struct iscsi_mflags {
 #define ISCSI_MFLAGS_RESERVED_SHIFT   2
 };
 
-struct iscsi_sgl {
+struct iscsi_sgl
+{
 	struct regpair sgl_addr;
 	__le16 updated_sge_size;
 	__le16 updated_sge_offset;
 	__le32 byte_offset;
 };
 
-union iscsi_mstorm_sgl {
+union iscsi_mstorm_sgl
+{
 	struct iscsi_sgl sgl_struct;
 	struct iscsi_sge single_sge;
 };
 
-enum iscsi_ramrod_cmd_id {
+enum iscsi_ramrod_cmd_id
+{
 	ISCSI_RAMROD_CMD_ID_UNUSED = 0,
 	ISCSI_RAMROD_CMD_ID_INIT_FUNC = 1,
 	ISCSI_RAMROD_CMD_ID_DESTROY_FUNC = 2,
@@ -870,7 +916,8 @@ enum iscsi_ramrod_cmd_id {
 	MAX_ISCSI_RAMROD_CMD_ID
 };
 
-struct iscsi_reg1 {
+struct iscsi_reg1
+{
 	__le32 reg1_map;
 #define ISCSI_REG1_NUM_FAST_SGES_MASK  0x7
 #define ISCSI_REG1_NUM_FAST_SGES_SHIFT 0
@@ -878,12 +925,14 @@ struct iscsi_reg1 {
 #define ISCSI_REG1_RESERVED1_SHIFT     3
 };
 
-union iscsi_seq_num {
+union iscsi_seq_num
+{
 	__le16 data_sn;
 	__le16 r2t_sn;
 };
 
-struct iscsi_spe_conn_mac_update {
+struct iscsi_spe_conn_mac_update
+{
 	struct iscsi_slow_path_hdr hdr;
 	__le16 conn_id;
 	__le32 fw_cid;
@@ -893,7 +942,8 @@ struct iscsi_spe_conn_mac_update {
 	u8 reserved0[2];
 };
 
-struct iscsi_spe_conn_offload {
+struct iscsi_spe_conn_offload
+{
 	struct iscsi_slow_path_hdr hdr;
 	__le16 conn_id;
 	__le32 fw_cid;
@@ -901,7 +951,8 @@ struct iscsi_spe_conn_offload {
 	struct tcp_offload_params tcp;
 };
 
-struct iscsi_spe_conn_offload_option2 {
+struct iscsi_spe_conn_offload_option2
+{
 	struct iscsi_slow_path_hdr hdr;
 	__le16 conn_id;
 	__le32 fw_cid;
@@ -909,7 +960,8 @@ struct iscsi_spe_conn_offload_option2 {
 	struct tcp_offload_params_opt2 tcp;
 };
 
-struct iscsi_spe_conn_termination {
+struct iscsi_spe_conn_termination
+{
 	struct iscsi_slow_path_hdr hdr;
 	__le16 conn_id;
 	__le32 fw_cid;
@@ -919,13 +971,15 @@ struct iscsi_spe_conn_termination {
 	struct regpair query_params_addr;
 };
 
-struct iscsi_spe_func_dstry {
+struct iscsi_spe_func_dstry
+{
 	struct iscsi_slow_path_hdr hdr;
 	__le16 reserved0;
 	__le32 reserved1;
 };
 
-struct iscsi_spe_func_init {
+struct iscsi_spe_func_init
+{
 	struct iscsi_slow_path_hdr hdr;
 	__le16 half_way_close_timeout;
 	u8 num_sq_pages_in_ring;
@@ -942,7 +996,8 @@ struct iscsi_spe_func_init {
 	struct scsi_init_func_queues q_params;
 };
 
-struct ystorm_iscsi_task_state {
+struct ystorm_iscsi_task_state
+{
 	union iscsi_data_desc_ctx sgl_ctx_union;
 	__le32 buffer_offset[2];
 	__le16 bytes_nxt_dif;
@@ -957,12 +1012,14 @@ struct ystorm_iscsi_task_state {
 	__le32 sgl_offset[2];
 };
 
-struct ystorm_iscsi_task_st_ctx {
+struct ystorm_iscsi_task_st_ctx
+{
 	struct ystorm_iscsi_task_state state;
 	union iscsi_task_hdr pdu_hdr;
 };
 
-struct ystorm_iscsi_task_ag_ctx {
+struct ystorm_iscsi_task_ag_ctx
+{
 	u8 reserved;
 	u8 byte1;
 	__le16 word0;
@@ -1012,7 +1069,8 @@ struct ystorm_iscsi_task_ag_ctx {
 	__le16 word1;
 };
 
-struct mstorm_iscsi_task_ag_ctx {
+struct mstorm_iscsi_task_ag_ctx
+{
 	u8 cdu_validation;
 	u8 byte1;
 	__le16 task_cid;
@@ -1062,7 +1120,8 @@ struct mstorm_iscsi_task_ag_ctx {
 	__le16 word1;
 };
 
-struct ustorm_iscsi_task_ag_ctx {
+struct ustorm_iscsi_task_ag_ctx
+{
 	u8 reserved;
 	u8 state;
 	__le16 icid;
@@ -1127,7 +1186,8 @@ struct ustorm_iscsi_task_ag_ctx {
 	__le32 exp_r2t_sn;
 };
 
-struct mstorm_iscsi_task_st_ctx {
+struct mstorm_iscsi_task_st_ctx
+{
 	union iscsi_mstorm_sgl sgl_union;
 	struct iscsi_dif_flags dif_flags;
 	struct iscsi_mflags flags;
@@ -1149,7 +1209,8 @@ struct mstorm_iscsi_task_st_ctx {
 	__le32 reserved1[1];
 };
 
-struct ustorm_iscsi_task_st_ctx {
+struct ustorm_iscsi_task_st_ctx
+{
 	__le32 rem_rcv_len;
 	__le32 exp_data_transfer_len;
 	__le32 exp_data_sn;
@@ -1194,7 +1255,8 @@ struct ustorm_iscsi_task_st_ctx {
 	u8 cq_rss_number;
 };
 
-struct iscsi_task_context {
+struct iscsi_task_context
+{
 	struct ystorm_iscsi_task_st_ctx ystorm_st_context;
 	struct regpair ystorm_st_padding[2];
 	struct ystorm_iscsi_task_ag_ctx ystorm_ag_context;
@@ -1208,7 +1270,8 @@ struct iscsi_task_context {
 	struct rdif_task_context rdif_context;
 };
 
-enum iscsi_task_type {
+enum iscsi_task_type
+{
 	ISCSI_TASK_TYPE_INITIATOR_WRITE,
 	ISCSI_TASK_TYPE_INITIATOR_READ,
 	ISCSI_TASK_TYPE_MIDPATH,
@@ -1222,12 +1285,14 @@ enum iscsi_task_type {
 	MAX_ISCSI_TASK_TYPE
 };
 
-union iscsi_ttt_txlen_union {
+union iscsi_ttt_txlen_union
+{
 	__le32 desired_tx_len;
 	__le32 ttt;
 };
 
-struct iscsi_uhqe {
+struct iscsi_uhqe
+{
 	__le32 reg1;
 #define ISCSI_UHQE_PDU_PAYLOAD_LEN_MASK     0xFFFFF
 #define ISCSI_UHQE_PDU_PAYLOAD_LEN_SHIFT    0
@@ -1248,7 +1313,8 @@ struct iscsi_uhqe {
 #define ISCSI_UHQE_TASK_ID_LO_SHIFT         24
 };
 
-struct iscsi_wqe_field {
+struct iscsi_wqe_field
+{
 	__le32 contlen_cdbsize_field;
 #define ISCSI_WQE_FIELD_CONT_LEN_MASK  0xFFFFFF
 #define ISCSI_WQE_FIELD_CONT_LEN_SHIFT 0
@@ -1256,12 +1322,14 @@ struct iscsi_wqe_field {
 #define ISCSI_WQE_FIELD_CDB_SIZE_SHIFT 24
 };
 
-union iscsi_wqe_field_union {
+union iscsi_wqe_field_union
+{
 	struct iscsi_wqe_field cont_field;
 	__le32 prev_tid;
 };
 
-struct iscsi_wqe {
+struct iscsi_wqe
+{
 	__le16 task_id;
 	u8 flags;
 #define ISCSI_WQE_WQE_TYPE_MASK        0x7
@@ -1276,7 +1344,8 @@ struct iscsi_wqe {
 	union iscsi_wqe_field_union cont_prevtid_union;
 };
 
-enum iscsi_wqe_type {
+enum iscsi_wqe_type
+{
 	ISCSI_WQE_TYPE_NORMAL,
 	ISCSI_WQE_TYPE_TASK_CLEANUP,
 	ISCSI_WQE_TYPE_MIDDLE_PATH,
@@ -1287,7 +1356,8 @@ enum iscsi_wqe_type {
 	MAX_ISCSI_WQE_TYPE
 };
 
-struct iscsi_xhqe {
+struct iscsi_xhqe
+{
 	union iscsi_ttt_txlen_union ttt_or_txlen;
 	__le32 exp_stat_sn;
 	struct iscsi_dif_flags prot_flags;
@@ -1308,16 +1378,19 @@ struct iscsi_xhqe {
 	__le16 reserved1;
 };
 
-struct mstorm_iscsi_stats_drv {
+struct mstorm_iscsi_stats_drv
+{
 	struct regpair iscsi_rx_dropped_pdus_task_not_valid;
 };
 
-struct pstorm_iscsi_stats_drv {
+struct pstorm_iscsi_stats_drv
+{
 	struct regpair iscsi_tx_bytes_cnt;
 	struct regpair iscsi_tx_packet_cnt;
 };
 
-struct tstorm_iscsi_stats_drv {
+struct tstorm_iscsi_stats_drv
+{
 	struct regpair iscsi_rx_bytes_cnt;
 	struct regpair iscsi_rx_packet_cnt;
 	struct regpair iscsi_rx_new_ooo_isle_events_cnt;
@@ -1326,24 +1399,28 @@ struct tstorm_iscsi_stats_drv {
 	__le32 iscsi_immq_threshold_cnt;
 };
 
-struct ustorm_iscsi_stats_drv {
+struct ustorm_iscsi_stats_drv
+{
 	struct regpair iscsi_rx_data_pdu_cnt;
 	struct regpair iscsi_rx_r2t_pdu_cnt;
 	struct regpair iscsi_rx_total_pdu_cnt;
 };
 
-struct xstorm_iscsi_stats_drv {
+struct xstorm_iscsi_stats_drv
+{
 	struct regpair iscsi_tx_go_to_slow_start_event_cnt;
 	struct regpair iscsi_tx_fast_retransmit_event_cnt;
 };
 
-struct ystorm_iscsi_stats_drv {
+struct ystorm_iscsi_stats_drv
+{
 	struct regpair iscsi_tx_data_pdu_cnt;
 	struct regpair iscsi_tx_r2t_pdu_cnt;
 	struct regpair iscsi_tx_total_pdu_cnt;
 };
 
-struct iscsi_db_data {
+struct iscsi_db_data
+{
 	u8 params;
 #define ISCSI_DB_DATA_DEST_MASK         0x3
 #define ISCSI_DB_DATA_DEST_SHIFT        0
@@ -1359,7 +1436,8 @@ struct iscsi_db_data {
 	__le16 sq_prod;
 };
 
-struct tstorm_iscsi_task_ag_ctx {
+struct tstorm_iscsi_task_ag_ctx
+{
 	u8 byte0;
 	u8 byte1;
 	__le16 word0;

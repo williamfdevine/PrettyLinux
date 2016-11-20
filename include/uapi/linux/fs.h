@@ -19,8 +19,8 @@
  * nr_file rlimit, so it's safe to set up a ridiculously high absolute
  * upper limit on files-per-process.
  *
- * Some programs (notably those using select()) may have to be 
- * recompiled to take full advantage of the new limits..  
+ * Some programs (notably those using select()) may have to be
+ * recompiled to take full advantage of the new limits..
  */
 
 /* Fixed constants first: */
@@ -42,14 +42,16 @@
 #define RENAME_EXCHANGE		(1 << 1)	/* Exchange source and dest */
 #define RENAME_WHITEOUT		(1 << 2)	/* Whiteout source */
 
-struct file_clone_range {
+struct file_clone_range
+{
 	__s64 src_fd;
 	__u64 src_offset;
 	__u64 src_length;
 	__u64 dest_offset;
 };
 
-struct fstrim_range {
+struct fstrim_range
+{
 	__u64 start;
 	__u64 len;
 	__u64 minlen;
@@ -60,7 +62,8 @@ struct fstrim_range {
 #define FILE_DEDUPE_RANGE_DIFFERS	1
 
 /* from struct btrfs_ioctl_file_extent_same_info */
-struct file_dedupe_range_info {
+struct file_dedupe_range_info
+{
 	__s64 dest_fd;		/* in - destination file */
 	__u64 dest_offset;	/* in - start of extent in destination */
 	__u64 bytes_deduped;	/* out - total # of bytes we were able
@@ -75,7 +78,8 @@ struct file_dedupe_range_info {
 };
 
 /* from struct btrfs_ioctl_file_extent_same_args */
-struct file_dedupe_range {
+struct file_dedupe_range
+{
 	__u64 src_offset;	/* in - start of extent in source */
 	__u64 src_length;	/* in - length of extent */
 	__u16 dest_count;	/* in - total elements in info array */
@@ -85,13 +89,15 @@ struct file_dedupe_range {
 };
 
 /* And dynamically-tunable limits and defaults: */
-struct files_stat_struct {
+struct files_stat_struct
+{
 	unsigned long nr_files;		/* read only */
 	unsigned long nr_free_files;	/* read only */
 	unsigned long max_files;		/* tunable */
 };
 
-struct inodes_stat_t {
+struct inodes_stat_t
+{
 	long nr_inodes;
 	long nr_unused;
 	long dummy[5];		/* padding for sysctl ABI compatibility */
@@ -142,7 +148,7 @@ struct inodes_stat_t {
  * Superblock flags that can be altered by MS_REMOUNT
  */
 #define MS_RMT_MASK	(MS_RDONLY|MS_SYNCHRONOUS|MS_MANDLOCK|MS_I_VERSION|\
-			 MS_LAZYTIME)
+					 MS_LAZYTIME)
 
 /*
  * Old magic mount flag and mask
@@ -153,7 +159,8 @@ struct inodes_stat_t {
 /*
  * Structure for FS_IOC_FSGETXATTR[A] and FS_IOC_FSSETXATTR.
  */
-struct fsxattr {
+struct fsxattr
+{
 	__u32		fsx_xflags;	/* xflags field value (get/set) */
 	__u32		fsx_extsize;	/* extsize field value (get/set)*/
 	__u32		fsx_nextents;	/* nextents field value (get)	*/
@@ -199,14 +206,14 @@ struct fsxattr {
 #define BLKSECTGET _IO(0x12,103)/* get max sectors per request (ll_rw_blk.c) */
 #define BLKSSZGET  _IO(0x12,104)/* get block device sector size */
 #if 0
-#define BLKPG      _IO(0x12,105)/* See blkpg.h */
+	#define BLKPG      _IO(0x12,105)/* See blkpg.h */
 
-/* Some people are morons.  Do not use sizeof! */
+	/* Some people are morons.  Do not use sizeof! */
 
-#define BLKELVGET  _IOR(0x12,106,size_t)/* elevator get */
-#define BLKELVSET  _IOW(0x12,107,size_t)/* elevator set */
-/* This was here just to show that the number is taken -
-   probably all these _IO(0x12,*) ioctls should be moved to blkpg.h. */
+	#define BLKELVGET  _IOR(0x12,106,size_t)/* elevator get */
+	#define BLKELVSET  _IOW(0x12,107,size_t)/* elevator set */
+	/* This was here just to show that the number is taken -
+	probably all these _IO(0x12,*) ioctls should be moved to blkpg.h. */
 #endif
 /* A jump here: 108-111 have been used for various private purposes. */
 #define BLKBSZGET  _IOR(0x12,112,size_t)
@@ -254,7 +261,8 @@ struct fsxattr {
 /* Policy provided via an ioctl on the topmost directory */
 #define FS_KEY_DESCRIPTOR_SIZE	8
 
-struct fscrypt_policy {
+struct fscrypt_policy
+{
 	__u8 version;
 	__u8 contents_encryption_mode;
 	__u8 filenames_encryption_mode;

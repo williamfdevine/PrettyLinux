@@ -22,7 +22,8 @@
 
 #define ZD1201_RXSIZE		3000
 
-struct zd1201 {
+struct zd1201
+{
 	struct usb_device	*usb;
 	int			removed;
 	struct net_device	*dev;
@@ -42,7 +43,7 @@ struct zd1201 {
 	unsigned char		txdata[ZD1201_RXSIZE];
 
 	int			ap;
-	char			essid[IW_ESSID_MAX_SIZE+1];
+	char			essid[IW_ESSID_MAX_SIZE + 1];
 	int			essidlen;
 	int			mac_enabled;
 	int			was_enabled;
@@ -53,7 +54,8 @@ struct zd1201 {
 	int			encode_keylen[ZD1201_NUMKEYS];
 };
 
-struct zd1201_frag {
+struct zd1201_frag
+{
 	struct hlist_node	fnode;
 	int			seq;
 	struct sk_buff		*skb;

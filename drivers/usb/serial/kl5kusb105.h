@@ -16,7 +16,8 @@
 
 /* baud rates */
 
-enum {
+enum
+{
 	kl5kusb105a_sio_b115200 = 0,
 	kl5kusb105a_sio_b57600  = 1,
 	kl5kusb105a_sio_b38400  = 2,

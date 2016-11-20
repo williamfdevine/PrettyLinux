@@ -28,19 +28,22 @@
  * Any other use of the locks below is probably wrong.
  */
 
-enum backlight_update_reason {
+enum backlight_update_reason
+{
 	BACKLIGHT_UPDATE_HOTKEY,
 	BACKLIGHT_UPDATE_SYSFS,
 };
 
-enum backlight_type {
+enum backlight_type
+{
 	BACKLIGHT_RAW = 1,
 	BACKLIGHT_PLATFORM,
 	BACKLIGHT_FIRMWARE,
 	BACKLIGHT_TYPE_MAX,
 };
 
-enum backlight_notification {
+enum backlight_notification
+{
 	BACKLIGHT_REGISTERED,
 	BACKLIGHT_UNREGISTERED,
 };
@@ -48,7 +51,8 @@ enum backlight_notification {
 struct backlight_device;
 struct fb_info;
 
-struct backlight_ops {
+struct backlight_ops
+{
 	unsigned int options;
 
 #define BL_CORE_SUSPENDRESUME	(1 << 0)
@@ -64,7 +68,8 @@ struct backlight_ops {
 };
 
 /* This structure defines all the properties of a backlight */
-struct backlight_properties {
+struct backlight_properties
+{
 	/* Current User requested brightness (0 - max_brightness) */
 	int brightness;
 	/* Maximal value for brightness (read-only) */
@@ -90,7 +95,8 @@ struct backlight_properties {
 
 };
 
-struct backlight_device {
+struct backlight_device
+{
 	/* Backlight properties */
 	struct backlight_properties props;
 
@@ -122,25 +128,29 @@ static inline int backlight_update_status(struct backlight_device *bd)
 	int ret = -ENOENT;
 
 	mutex_lock(&bd->update_lock);
+
 	if (bd->ops && bd->ops->update_status)
+	{
 		ret = bd->ops->update_status(bd);
+	}
+
 	mutex_unlock(&bd->update_lock);
 
 	return ret;
 }
 
 extern struct backlight_device *backlight_device_register(const char *name,
-	struct device *dev, void *devdata, const struct backlight_ops *ops,
-	const struct backlight_properties *props);
+		struct device *dev, void *devdata, const struct backlight_ops *ops,
+		const struct backlight_properties *props);
 extern struct backlight_device *devm_backlight_device_register(
 	struct device *dev, const char *name, struct device *parent,
 	void *devdata, const struct backlight_ops *ops,
 	const struct backlight_properties *props);
 extern void backlight_device_unregister(struct backlight_device *bd);
 extern void devm_backlight_device_unregister(struct device *dev,
-					struct backlight_device *bd);
+		struct backlight_device *bd);
 extern void backlight_force_update(struct backlight_device *bd,
-				   enum backlight_update_reason reason);
+								   enum backlight_update_reason reason);
 extern int backlight_register_notifier(struct notifier_block *nb);
 extern int backlight_unregister_notifier(struct notifier_block *nb);
 extern struct backlight_device *backlight_device_get_by_type(enum backlight_type type);
@@ -148,12 +158,13 @@ extern int backlight_device_set_brightness(struct backlight_device *bd, unsigned
 
 #define to_backlight_device(obj) container_of(obj, struct backlight_device, dev)
 
-static inline void * bl_get_data(struct backlight_device *bl_dev)
+static inline void *bl_get_data(struct backlight_device *bl_dev)
 {
 	return dev_get_drvdata(&bl_dev->dev);
 }
 
-struct generic_bl_info {
+struct generic_bl_info
+{
 	const char *name;
 	int max_intensity;
 	int default_intensity;

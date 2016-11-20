@@ -40,7 +40,7 @@ MODULE_PARM_DESC(dev, "MTD device number to use");
 static int count;
 module_param(count, int, S_IRUGO);
 MODULE_PARM_DESC(count, "Maximum number of eraseblocks to use "
-			"(0 means use all)");
+				 "(0 means use all)");
 
 static struct mtd_info *mtd;
 static unsigned char *iobuf;
@@ -64,15 +64,18 @@ static int multiblock_erase(int ebnum, int blocks)
 	ei.len  = mtd->erasesize * blocks;
 
 	err = mtd_erase(mtd, &ei);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("error %d while erasing EB %d, blocks %d\n",
-		       err, ebnum, blocks);
+			   err, ebnum, blocks);
 		return err;
 	}
 
-	if (ei.state == MTD_ERASE_FAILED) {
+	if (ei.state == MTD_ERASE_FAILED)
+	{
 		pr_err("some erase error occurred at EB %d,"
-		       "blocks %d\n", ebnum, blocks);
+			   "blocks %d\n", ebnum, blocks);
 		return -EIO;
 	}
 
@@ -92,10 +95,15 @@ static int write_eraseblock_by_page(int ebnum)
 	loff_t addr = (loff_t)ebnum * mtd->erasesize;
 	void *buf = iobuf;
 
-	for (i = 0; i < pgcnt; i++) {
+	for (i = 0; i < pgcnt; i++)
+	{
 		err = mtdtest_write(mtd, addr, pgsize, buf);
+
 		if (err)
+		{
 			break;
+		}
+
 		addr += pgsize;
 		buf += pgsize;
 	}
@@ -110,15 +118,23 @@ static int write_eraseblock_by_2pages(int ebnum)
 	loff_t addr = (loff_t)ebnum * mtd->erasesize;
 	void *buf = iobuf;
 
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < n; i++)
+	{
 		err = mtdtest_write(mtd, addr, sz, buf);
+
 		if (err)
+		{
 			return err;
+		}
+
 		addr += sz;
 		buf += sz;
 	}
+
 	if (pgcnt % 2)
+	{
 		err = mtdtest_write(mtd, addr, pgsize, buf);
+	}
 
 	return err;
 }
@@ -136,10 +152,15 @@ static int read_eraseblock_by_page(int ebnum)
 	loff_t addr = (loff_t)ebnum * mtd->erasesize;
 	void *buf = iobuf;
 
-	for (i = 0; i < pgcnt; i++) {
+	for (i = 0; i < pgcnt; i++)
+	{
 		err = mtdtest_read(mtd, addr, pgsize, buf);
+
 		if (err)
+		{
 			break;
+		}
+
 		addr += pgsize;
 		buf += pgsize;
 	}
@@ -154,15 +175,23 @@ static int read_eraseblock_by_2pages(int ebnum)
 	loff_t addr = (loff_t)ebnum * mtd->erasesize;
 	void *buf = iobuf;
 
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < n; i++)
+	{
 		err = mtdtest_read(mtd, addr, sz, buf);
+
 		if (err)
+		{
 			return err;
+		}
+
 		addr += sz;
 		buf += sz;
 	}
+
 	if (pgcnt % 2)
+	{
 		err = mtdtest_read(mtd, addr, pgsize, buf);
+	}
 
 	return err;
 }
@@ -183,8 +212,12 @@ static long calc_speed(void)
 	long ms;
 
 	ms = ktime_ms_delta(finish, start);
+
 	if (ms == 0)
+	{
 		return 0;
+	}
+
 	k = (uint64_t)goodebcnt * (mtd->erasesize / 1024) * 1000;
 	do_div(k, ms);
 	return k;
@@ -199,30 +232,41 @@ static int __init mtd_speedtest_init(void)
 	printk(KERN_INFO "\n");
 	printk(KERN_INFO "=================================================\n");
 
-	if (dev < 0) {
+	if (dev < 0)
+	{
 		pr_info("Please specify a valid mtd-device via module parameter\n");
 		pr_crit("CAREFUL: This test wipes all data on the specified MTD device!\n");
 		return -EINVAL;
 	}
 
 	if (count)
+	{
 		pr_info("MTD device: %d    count: %d\n", dev, count);
+	}
 	else
+	{
 		pr_info("MTD device: %d\n", dev);
+	}
 
 	mtd = get_mtd_device(NULL, dev);
-	if (IS_ERR(mtd)) {
+
+	if (IS_ERR(mtd))
+	{
 		err = PTR_ERR(mtd);
 		pr_err("error: cannot get MTD device\n");
 		return err;
 	}
 
-	if (mtd->writesize == 1) {
+	if (mtd->writesize == 1)
+	{
 		pr_info("not NAND flash, assume page size is 512 "
-		       "bytes.\n");
+				"bytes.\n");
 		pgsize = 512;
-	} else
+	}
+	else
+	{
 		pgsize = mtd->writesize;
+	}
 
 	tmp = mtd->size;
 	do_div(tmp, mtd->erasesize);
@@ -230,50 +274,81 @@ static int __init mtd_speedtest_init(void)
 	pgcnt = mtd->erasesize / pgsize;
 
 	pr_info("MTD device size %llu, eraseblock size %u, "
-	       "page size %u, count of eraseblocks %u, pages per "
-	       "eraseblock %u, OOB size %u\n",
-	       (unsigned long long)mtd->size, mtd->erasesize,
-	       pgsize, ebcnt, pgcnt, mtd->oobsize);
+			"page size %u, count of eraseblocks %u, pages per "
+			"eraseblock %u, OOB size %u\n",
+			(unsigned long long)mtd->size, mtd->erasesize,
+			pgsize, ebcnt, pgcnt, mtd->oobsize);
 
 	if (count > 0 && count < ebcnt)
+	{
 		ebcnt = count;
+	}
 
 	err = -ENOMEM;
 	iobuf = kmalloc(mtd->erasesize, GFP_KERNEL);
+
 	if (!iobuf)
+	{
 		goto out;
+	}
 
 	prandom_bytes(iobuf, mtd->erasesize);
 
 	bbt = kzalloc(ebcnt, GFP_KERNEL);
+
 	if (!bbt)
+	{
 		goto out;
+	}
+
 	err = mtdtest_scan_for_bad_eraseblocks(mtd, bbt, 0, ebcnt);
+
 	if (err)
+	{
 		goto out;
-	for (i = 0; i < ebcnt; i++) {
+	}
+
+	for (i = 0; i < ebcnt; i++)
+	{
 		if (!bbt[i])
+		{
 			goodebcnt++;
+		}
 	}
 
 	err = mtdtest_erase_good_eraseblocks(mtd, bbt, 0, ebcnt);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	/* Write all eraseblocks, 1 eraseblock at a time */
 	pr_info("testing eraseblock write speed\n");
 	start_timing();
-	for (i = 0; i < ebcnt; ++i) {
+
+	for (i = 0; i < ebcnt; ++i)
+	{
 		if (bbt[i])
+		{
 			continue;
+		}
+
 		err = write_eraseblock(i);
+
 		if (err)
+		{
 			goto out;
+		}
 
 		err = mtdtest_relax();
+
 		if (err)
+		{
 			goto out;
+		}
 	}
+
 	stop_timing();
 	speed = calc_speed();
 	pr_info("eraseblock write speed is %ld KiB/s\n", speed);
@@ -281,39 +356,66 @@ static int __init mtd_speedtest_init(void)
 	/* Read all eraseblocks, 1 eraseblock at a time */
 	pr_info("testing eraseblock read speed\n");
 	start_timing();
-	for (i = 0; i < ebcnt; ++i) {
+
+	for (i = 0; i < ebcnt; ++i)
+	{
 		if (bbt[i])
+		{
 			continue;
+		}
+
 		err = read_eraseblock(i);
+
 		if (err)
+		{
 			goto out;
+		}
 
 		err = mtdtest_relax();
+
 		if (err)
+		{
 			goto out;
+		}
 	}
+
 	stop_timing();
 	speed = calc_speed();
 	pr_info("eraseblock read speed is %ld KiB/s\n", speed);
 
 	err = mtdtest_erase_good_eraseblocks(mtd, bbt, 0, ebcnt);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	/* Write all eraseblocks, 1 page at a time */
 	pr_info("testing page write speed\n");
 	start_timing();
-	for (i = 0; i < ebcnt; ++i) {
+
+	for (i = 0; i < ebcnt; ++i)
+	{
 		if (bbt[i])
+		{
 			continue;
+		}
+
 		err = write_eraseblock_by_page(i);
+
 		if (err)
+		{
 			goto out;
+		}
 
 		err = mtdtest_relax();
+
 		if (err)
+		{
 			goto out;
+		}
 	}
+
 	stop_timing();
 	speed = calc_speed();
 	pr_info("page write speed is %ld KiB/s\n", speed);
@@ -321,39 +423,66 @@ static int __init mtd_speedtest_init(void)
 	/* Read all eraseblocks, 1 page at a time */
 	pr_info("testing page read speed\n");
 	start_timing();
-	for (i = 0; i < ebcnt; ++i) {
+
+	for (i = 0; i < ebcnt; ++i)
+	{
 		if (bbt[i])
+		{
 			continue;
+		}
+
 		err = read_eraseblock_by_page(i);
+
 		if (err)
+		{
 			goto out;
+		}
 
 		err = mtdtest_relax();
+
 		if (err)
+		{
 			goto out;
+		}
 	}
+
 	stop_timing();
 	speed = calc_speed();
 	pr_info("page read speed is %ld KiB/s\n", speed);
 
 	err = mtdtest_erase_good_eraseblocks(mtd, bbt, 0, ebcnt);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	/* Write all eraseblocks, 2 pages at a time */
 	pr_info("testing 2 page write speed\n");
 	start_timing();
-	for (i = 0; i < ebcnt; ++i) {
+
+	for (i = 0; i < ebcnt; ++i)
+	{
 		if (bbt[i])
+		{
 			continue;
+		}
+
 		err = write_eraseblock_by_2pages(i);
+
 		if (err)
+		{
 			goto out;
+		}
 
 		err = mtdtest_relax();
+
 		if (err)
+		{
 			goto out;
+		}
 	}
+
 	stop_timing();
 	speed = calc_speed();
 	pr_info("2 page write speed is %ld KiB/s\n", speed);
@@ -361,17 +490,29 @@ static int __init mtd_speedtest_init(void)
 	/* Read all eraseblocks, 2 pages at a time */
 	pr_info("testing 2 page read speed\n");
 	start_timing();
-	for (i = 0; i < ebcnt; ++i) {
+
+	for (i = 0; i < ebcnt; ++i)
+	{
 		if (bbt[i])
+		{
 			continue;
+		}
+
 		err = read_eraseblock_by_2pages(i);
+
 		if (err)
+		{
 			goto out;
+		}
 
 		err = mtdtest_relax();
+
 		if (err)
+		{
 			goto out;
+		}
 	}
+
 	stop_timing();
 	speed = calc_speed();
 	pr_info("2 page read speed is %ld KiB/s\n", speed);
@@ -380,48 +521,72 @@ static int __init mtd_speedtest_init(void)
 	pr_info("Testing erase speed\n");
 	start_timing();
 	err = mtdtest_erase_good_eraseblocks(mtd, bbt, 0, ebcnt);
+
 	if (err)
+	{
 		goto out;
+	}
+
 	stop_timing();
 	speed = calc_speed();
 	pr_info("erase speed is %ld KiB/s\n", speed);
 
 	/* Multi-block erase all eraseblocks */
-	for (k = 1; k < 7; k++) {
+	for (k = 1; k < 7; k++)
+	{
 		blocks = 1 << k;
 		pr_info("Testing %dx multi-block erase speed\n",
-		       blocks);
+				blocks);
 		start_timing();
-		for (i = 0; i < ebcnt; ) {
+
+		for (i = 0; i < ebcnt; )
+		{
 			for (j = 0; j < blocks && (i + j) < ebcnt; j++)
 				if (bbt[i + j])
+				{
 					break;
-			if (j < 1) {
+				}
+
+			if (j < 1)
+			{
 				i++;
 				continue;
 			}
+
 			err = multiblock_erase(i, j);
+
 			if (err)
+			{
 				goto out;
+			}
 
 			err = mtdtest_relax();
+
 			if (err)
+			{
 				goto out;
+			}
 
 			i += j;
 		}
+
 		stop_timing();
 		speed = calc_speed();
 		pr_info("%dx multi-block erase speed is %ld KiB/s\n",
-		       blocks, speed);
+				blocks, speed);
 	}
+
 	pr_info("finished\n");
 out:
 	kfree(iobuf);
 	kfree(bbt);
 	put_mtd_device(mtd);
+
 	if (err)
+	{
 		pr_info("error %d occurred\n", err);
+	}
+
 	printk(KERN_INFO "=================================================\n");
 	return err;
 }

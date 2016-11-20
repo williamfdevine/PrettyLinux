@@ -94,20 +94,20 @@ void LNetSnprintHandle(char *str, int str_len, lnet_handle_any_t handle);
  * @{
  */
 int LNetMEAttach(unsigned int      portal,
-		 lnet_process_id_t match_id_in,
-		 __u64		   match_bits_in,
-		 __u64		   ignore_bits_in,
-		 lnet_unlink_t     unlink_in,
-		 lnet_ins_pos_t    pos_in,
-		 lnet_handle_me_t *handle_out);
+				 lnet_process_id_t match_id_in,
+				 __u64		   match_bits_in,
+				 __u64		   ignore_bits_in,
+				 lnet_unlink_t     unlink_in,
+				 lnet_ins_pos_t    pos_in,
+				 lnet_handle_me_t *handle_out);
 
 int LNetMEInsert(lnet_handle_me_t  current_in,
-		 lnet_process_id_t match_id_in,
-		 __u64		   match_bits_in,
-		 __u64		   ignore_bits_in,
-		 lnet_unlink_t     unlink_in,
-		 lnet_ins_pos_t    position_in,
-		 lnet_handle_me_t *handle_out);
+				 lnet_process_id_t match_id_in,
+				 __u64		   match_bits_in,
+				 __u64		   ignore_bits_in,
+				 lnet_unlink_t     unlink_in,
+				 lnet_ins_pos_t    position_in,
+				 lnet_handle_me_t *handle_out);
 
 int LNetMEUnlink(lnet_handle_me_t current_in);
 /** @} lnet_me */
@@ -126,13 +126,13 @@ int LNetMEUnlink(lnet_handle_me_t current_in);
  * @{
  */
 int LNetMDAttach(lnet_handle_me_t  current_in,
-		 lnet_md_t	   md_in,
-		 lnet_unlink_t     unlink_in,
-		 lnet_handle_md_t *handle_out);
+				 lnet_md_t	   md_in,
+				 lnet_unlink_t     unlink_in,
+				 lnet_handle_md_t *handle_out);
 
 int LNetMDBind(lnet_md_t	   md_in,
-	       lnet_unlink_t       unlink_in,
-	       lnet_handle_md_t   *handle_out);
+			   lnet_unlink_t       unlink_in,
+			   lnet_handle_md_t   *handle_out);
 
 int LNetMDUnlink(lnet_handle_md_t md_in);
 /** @} lnet_md */
@@ -161,16 +161,16 @@ int LNetMDUnlink(lnet_handle_md_t md_in);
  * @{
  */
 int LNetEQAlloc(unsigned int       count_in,
-		lnet_eq_handler_t  handler,
-		lnet_handle_eq_t  *handle_out);
+				lnet_eq_handler_t  handler,
+				lnet_handle_eq_t  *handle_out);
 
 int LNetEQFree(lnet_handle_eq_t eventq_in);
 
 int LNetEQPoll(lnet_handle_eq_t *eventqs_in,
-	       int		 neq_in,
-	       int		 timeout_ms,
-	       lnet_event_t     *event_out,
-	       int		*which_eq_out);
+			   int		 neq_in,
+			   int		 timeout_ms,
+			   lnet_event_t     *event_out,
+			   int		*which_eq_out);
 /** @} lnet_eq */
 
 /** \defgroup lnet_data Data movement operations
@@ -180,20 +180,20 @@ int LNetEQPoll(lnet_handle_eq_t *eventqs_in,
  * @{
  */
 int LNetPut(lnet_nid_t	      self,
-	    lnet_handle_md_t  md_in,
-	    lnet_ack_req_t    ack_req_in,
-	    lnet_process_id_t target_in,
-	    unsigned int      portal_in,
-	    __u64	      match_bits_in,
-	    unsigned int      offset_in,
-	    __u64	      hdr_data_in);
+			lnet_handle_md_t  md_in,
+			lnet_ack_req_t    ack_req_in,
+			lnet_process_id_t target_in,
+			unsigned int      portal_in,
+			__u64	      match_bits_in,
+			unsigned int      offset_in,
+			__u64	      hdr_data_in);
 
 int LNetGet(lnet_nid_t	      self,
-	    lnet_handle_md_t  md_in,
-	    lnet_process_id_t target_in,
-	    unsigned int      portal_in,
-	    __u64	      match_bits_in,
-	    unsigned int      offset_in);
+			lnet_handle_md_t  md_in,
+			lnet_process_id_t target_in,
+			unsigned int      portal_in,
+			__u64	      match_bits_in,
+			unsigned int      offset_in);
 /** @} lnet_data */
 
 /** \defgroup lnet_misc Miscellaneous operations.

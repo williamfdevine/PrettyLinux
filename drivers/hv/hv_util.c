@@ -60,7 +60,8 @@ static int hb_srv_version;
 static int util_fw_version;
 
 static void shutdown_onchannelcallback(void *context);
-static struct hv_util_service util_shutdown = {
+static struct hv_util_service util_shutdown =
+{
 	.util_cb = shutdown_onchannelcallback,
 };
 
@@ -68,30 +69,35 @@ static int hv_timesync_init(struct hv_util_service *srv);
 static void hv_timesync_deinit(void);
 
 static void timesync_onchannelcallback(void *context);
-static struct hv_util_service util_timesynch = {
+static struct hv_util_service util_timesynch =
+{
 	.util_cb = timesync_onchannelcallback,
 	.util_init = hv_timesync_init,
 	.util_deinit = hv_timesync_deinit,
 };
 
 static void heartbeat_onchannelcallback(void *context);
-static struct hv_util_service util_heartbeat = {
+static struct hv_util_service util_heartbeat =
+{
 	.util_cb = heartbeat_onchannelcallback,
 };
 
-static struct hv_util_service util_kvp = {
+static struct hv_util_service util_kvp =
+{
 	.util_cb = hv_kvp_onchannelcallback,
 	.util_init = hv_kvp_init,
 	.util_deinit = hv_kvp_deinit,
 };
 
-static struct hv_util_service util_vss = {
+static struct hv_util_service util_vss =
+{
 	.util_cb = hv_vss_onchannelcallback,
 	.util_init = hv_vss_init,
 	.util_deinit = hv_vss_deinit,
 };
 
-static struct hv_util_service util_fcopy = {
+static struct hv_util_service util_fcopy =
+{
 	.util_cb = hv_fcopy_onchannelcallback,
 	.util_init = hv_fcopy_init,
 	.util_deinit = hv_fcopy_deinit,
@@ -121,58 +127,67 @@ static void shutdown_onchannelcallback(void *context)
 	struct icmsg_negotiate *negop = NULL;
 
 	vmbus_recvpacket(channel, shut_txf_buf,
-			 PAGE_SIZE, &recvlen, &requestid);
+					 PAGE_SIZE, &recvlen, &requestid);
 
-	if (recvlen > 0) {
+	if (recvlen > 0)
+	{
 		icmsghdrp = (struct icmsg_hdr *)&shut_txf_buf[
-			sizeof(struct vmbuspipe_hdr)];
+						sizeof(struct vmbuspipe_hdr)];
 
-		if (icmsghdrp->icmsgtype == ICMSGTYPE_NEGOTIATE) {
+		if (icmsghdrp->icmsgtype == ICMSGTYPE_NEGOTIATE)
+		{
 			vmbus_prep_negotiate_resp(icmsghdrp, negop,
-					shut_txf_buf, util_fw_version,
-					sd_srv_version);
-		} else {
+									  shut_txf_buf, util_fw_version,
+									  sd_srv_version);
+		}
+		else
+		{
 			shutdown_msg =
 				(struct shutdown_msg_data *)&shut_txf_buf[
 					sizeof(struct vmbuspipe_hdr) +
 					sizeof(struct icmsg_hdr)];
 
-			switch (shutdown_msg->flags) {
-			case 0:
-			case 1:
-				icmsghdrp->status = HV_S_OK;
-				execute_shutdown = true;
+			switch (shutdown_msg->flags)
+			{
+				case 0:
+				case 1:
+					icmsghdrp->status = HV_S_OK;
+					execute_shutdown = true;
 
-				pr_info("Shutdown request received -"
-					    " graceful shutdown initiated\n");
-				break;
-			default:
-				icmsghdrp->status = HV_E_FAIL;
-				execute_shutdown = false;
+					pr_info("Shutdown request received -"
+							" graceful shutdown initiated\n");
+					break;
 
-				pr_info("Shutdown request received -"
-					    " Invalid request\n");
-				break;
+				default:
+					icmsghdrp->status = HV_E_FAIL;
+					execute_shutdown = false;
+
+					pr_info("Shutdown request received -"
+							" Invalid request\n");
+					break;
 			}
 		}
 
 		icmsghdrp->icflags = ICMSGHDRFLAG_TRANSACTION
-			| ICMSGHDRFLAG_RESPONSE;
+							 | ICMSGHDRFLAG_RESPONSE;
 
 		vmbus_sendpacket(channel, shut_txf_buf,
-				       recvlen, requestid,
-				       VM_PKT_DATA_INBAND, 0);
+						 recvlen, requestid,
+						 VM_PKT_DATA_INBAND, 0);
 	}
 
 	if (execute_shutdown == true)
+	{
 		schedule_work(&shutdown_work);
+	}
 }
 
 /*
  * Set the host time in a process context.
  */
 
-struct adj_time_work {
+struct adj_time_work
+{
 	struct work_struct work;
 	u64	host_time;
 	u64	ref_time;
@@ -189,7 +204,9 @@ static void hv_set_host_time(struct work_struct *work)
 	wrk = container_of(work, struct adj_time_work, work);
 
 	newtime = wrk->host_time;
-	if (ts_srv_version > TS_VERSION_3) {
+
+	if (ts_srv_version > TS_VERSION_3)
+	{
 		/*
 		 * Some latency has been introduced since Hyper-V generated
 		 * its time sample. Take that latency into account before
@@ -202,6 +219,7 @@ static void hv_set_host_time(struct work_struct *work)
 		rdmsrl(HV_X64_MSR_TIME_REF_COUNT, current_tick);
 		newtime += (current_tick - wrk->ref_time);
 	}
+
 	host_tns = (newtime - WLTIMEDELTA) * 100;
 	host_ts = ns_to_timespec(host_tns);
 
@@ -231,12 +249,16 @@ static inline void adj_guesttime(u64 hosttime, u64 reftime, u8 flags)
 	 * delivered on the same CPU.
 	 */
 	if (work_pending(&wrk.work))
+	{
 		return;
+	}
 
 	wrk.host_time = hosttime;
 	wrk.ref_time = reftime;
 	wrk.flags = flags;
-	if ((flags & (ICTIMESYNCFLAG_SYNC | ICTIMESYNCFLAG_SAMPLE)) != 0) {
+
+	if ((flags & (ICTIMESYNCFLAG_SYNC | ICTIMESYNCFLAG_SAMPLE)) != 0)
+	{
 		schedule_work(&wrk.work);
 	}
 }
@@ -256,46 +278,53 @@ static void timesync_onchannelcallback(void *context)
 	struct icmsg_negotiate *negop = NULL;
 
 	vmbus_recvpacket(channel, time_txf_buf,
-			 PAGE_SIZE, &recvlen, &requestid);
+					 PAGE_SIZE, &recvlen, &requestid);
 
-	if (recvlen > 0) {
+	if (recvlen > 0)
+	{
 		icmsghdrp = (struct icmsg_hdr *)&time_txf_buf[
-				sizeof(struct vmbuspipe_hdr)];
+						sizeof(struct vmbuspipe_hdr)];
 
-		if (icmsghdrp->icmsgtype == ICMSGTYPE_NEGOTIATE) {
+		if (icmsghdrp->icmsgtype == ICMSGTYPE_NEGOTIATE)
+		{
 			vmbus_prep_negotiate_resp(icmsghdrp, negop,
-						time_txf_buf,
-						util_fw_version,
-						ts_srv_version);
+									  time_txf_buf,
+									  util_fw_version,
+									  ts_srv_version);
 			pr_info("Using TimeSync version %d.%d\n",
-				ts_srv_version >> 16, ts_srv_version & 0xFFFF);
-		} else {
-			if (ts_srv_version > TS_VERSION_3) {
+					ts_srv_version >> 16, ts_srv_version & 0xFFFF);
+		}
+		else
+		{
+			if (ts_srv_version > TS_VERSION_3)
+			{
 				refdata = (struct ictimesync_ref_data *)
-					&time_txf_buf[
-					sizeof(struct vmbuspipe_hdr) +
-					sizeof(struct icmsg_hdr)];
+						  &time_txf_buf[
+							  sizeof(struct vmbuspipe_hdr) +
+							  sizeof(struct icmsg_hdr)];
 
 				adj_guesttime(refdata->parenttime,
-						refdata->vmreferencetime,
-						refdata->flags);
-			} else {
+							  refdata->vmreferencetime,
+							  refdata->flags);
+			}
+			else
+			{
 				timedatap = (struct ictimesync_data *)
-					&time_txf_buf[
-					sizeof(struct vmbuspipe_hdr) +
-					sizeof(struct icmsg_hdr)];
+							&time_txf_buf[
+								sizeof(struct vmbuspipe_hdr) +
+								sizeof(struct icmsg_hdr)];
 				adj_guesttime(timedatap->parenttime,
-						0,
-						timedatap->flags);
+							  0,
+							  timedatap->flags);
 			}
 		}
 
 		icmsghdrp->icflags = ICMSGHDRFLAG_TRANSACTION
-			| ICMSGHDRFLAG_RESPONSE;
+							 | ICMSGHDRFLAG_RESPONSE;
 
 		vmbus_sendpacket(channel, time_txf_buf,
-				recvlen, requestid,
-				VM_PKT_DATA_INBAND, 0);
+						 recvlen, requestid,
+						 VM_PKT_DATA_INBAND, 0);
 	}
 }
 
@@ -314,22 +343,28 @@ static void heartbeat_onchannelcallback(void *context)
 	u8 *hbeat_txf_buf = util_heartbeat.recv_buffer;
 	struct icmsg_negotiate *negop = NULL;
 
-	while (1) {
+	while (1)
+	{
 
 		vmbus_recvpacket(channel, hbeat_txf_buf,
-				 PAGE_SIZE, &recvlen, &requestid);
+						 PAGE_SIZE, &recvlen, &requestid);
 
 		if (!recvlen)
+		{
 			break;
+		}
 
 		icmsghdrp = (struct icmsg_hdr *)&hbeat_txf_buf[
-				sizeof(struct vmbuspipe_hdr)];
+						sizeof(struct vmbuspipe_hdr)];
 
-		if (icmsghdrp->icmsgtype == ICMSGTYPE_NEGOTIATE) {
+		if (icmsghdrp->icmsgtype == ICMSGTYPE_NEGOTIATE)
+		{
 			vmbus_prep_negotiate_resp(icmsghdrp, negop,
-				hbeat_txf_buf, util_fw_version,
-				hb_srv_version);
-		} else {
+									  hbeat_txf_buf, util_fw_version,
+									  hb_srv_version);
+		}
+		else
+		{
 			heartbeat_msg =
 				(struct heartbeat_msg_data *)&hbeat_txf_buf[
 					sizeof(struct vmbuspipe_hdr) +
@@ -339,28 +374,36 @@ static void heartbeat_onchannelcallback(void *context)
 		}
 
 		icmsghdrp->icflags = ICMSGHDRFLAG_TRANSACTION
-			| ICMSGHDRFLAG_RESPONSE;
+							 | ICMSGHDRFLAG_RESPONSE;
 
 		vmbus_sendpacket(channel, hbeat_txf_buf,
-				       recvlen, requestid,
-				       VM_PKT_DATA_INBAND, 0);
+						 recvlen, requestid,
+						 VM_PKT_DATA_INBAND, 0);
 	}
 }
 
 static int util_probe(struct hv_device *dev,
-			const struct hv_vmbus_device_id *dev_id)
+					  const struct hv_vmbus_device_id *dev_id)
 {
 	struct hv_util_service *srv =
 		(struct hv_util_service *)dev_id->driver_data;
 	int ret;
 
 	srv->recv_buffer = kmalloc(PAGE_SIZE * 4, GFP_KERNEL);
+
 	if (!srv->recv_buffer)
+	{
 		return -ENOMEM;
+	}
+
 	srv->channel = dev->channel;
-	if (srv->util_init) {
+
+	if (srv->util_init)
+	{
 		ret = srv->util_init(srv);
-		if (ret) {
+
+		if (ret)
+		{
 			ret = -ENODEV;
 			goto error1;
 		}
@@ -382,36 +425,46 @@ static int util_probe(struct hv_device *dev,
 	 * Based on the host; initialize the framework and
 	 * service version numbers we will negotiate.
 	 */
-	switch (vmbus_proto_version) {
-	case (VERSION_WS2008):
-		util_fw_version = UTIL_WS2K8_FW_VERSION;
-		sd_srv_version = SD_VERSION_1;
-		ts_srv_version = TS_VERSION_1;
-		hb_srv_version = HB_VERSION_1;
-		break;
-	case(VERSION_WIN10):
-		util_fw_version = UTIL_FW_VERSION;
-		sd_srv_version = SD_VERSION;
-		ts_srv_version = TS_VERSION;
-		hb_srv_version = HB_VERSION;
-		break;
-	default:
-		util_fw_version = UTIL_FW_VERSION;
-		sd_srv_version = SD_VERSION;
-		ts_srv_version = TS_VERSION_3;
-		hb_srv_version = HB_VERSION;
+	switch (vmbus_proto_version)
+	{
+		case (VERSION_WS2008):
+			util_fw_version = UTIL_WS2K8_FW_VERSION;
+			sd_srv_version = SD_VERSION_1;
+			ts_srv_version = TS_VERSION_1;
+			hb_srv_version = HB_VERSION_1;
+			break;
+
+		case (VERSION_WIN10):
+			util_fw_version = UTIL_FW_VERSION;
+			sd_srv_version = SD_VERSION;
+			ts_srv_version = TS_VERSION;
+			hb_srv_version = HB_VERSION;
+			break;
+
+		default:
+			util_fw_version = UTIL_FW_VERSION;
+			sd_srv_version = SD_VERSION;
+			ts_srv_version = TS_VERSION_3;
+			hb_srv_version = HB_VERSION;
 	}
 
 	ret = vmbus_open(dev->channel, 4 * PAGE_SIZE, 4 * PAGE_SIZE, NULL, 0,
-			srv->util_cb, dev->channel);
+					 srv->util_cb, dev->channel);
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	return 0;
 
 error:
+
 	if (srv->util_deinit)
+	{
 		srv->util_deinit();
+	}
+
 error1:
 	kfree(srv->recv_buffer);
 	return ret;
@@ -422,37 +475,47 @@ static int util_remove(struct hv_device *dev)
 	struct hv_util_service *srv = hv_get_drvdata(dev);
 
 	if (srv->util_deinit)
+	{
 		srv->util_deinit();
+	}
+
 	vmbus_close(dev->channel);
 	kfree(srv->recv_buffer);
 
 	return 0;
 }
 
-static const struct hv_vmbus_device_id id_table[] = {
+static const struct hv_vmbus_device_id id_table[] =
+{
 	/* Shutdown guid */
-	{ HV_SHUTDOWN_GUID,
-	  .driver_data = (unsigned long)&util_shutdown
+	{
+		HV_SHUTDOWN_GUID,
+		.driver_data = (unsigned long) &util_shutdown
 	},
 	/* Time synch guid */
-	{ HV_TS_GUID,
-	  .driver_data = (unsigned long)&util_timesynch
+	{
+		HV_TS_GUID,
+		.driver_data = (unsigned long) &util_timesynch
 	},
 	/* Heartbeat guid */
-	{ HV_HEART_BEAT_GUID,
-	  .driver_data = (unsigned long)&util_heartbeat
+	{
+		HV_HEART_BEAT_GUID,
+		.driver_data = (unsigned long) &util_heartbeat
 	},
 	/* KVP guid */
-	{ HV_KVP_GUID,
-	  .driver_data = (unsigned long)&util_kvp
+	{
+		HV_KVP_GUID,
+		.driver_data = (unsigned long) &util_kvp
 	},
 	/* VSS GUID */
-	{ HV_VSS_GUID,
-	  .driver_data = (unsigned long)&util_vss
+	{
+		HV_VSS_GUID,
+		.driver_data = (unsigned long) &util_vss
 	},
 	/* File copy GUID */
-	{ HV_FCOPY_GUID,
-	  .driver_data = (unsigned long)&util_fcopy
+	{
+		HV_FCOPY_GUID,
+		.driver_data = (unsigned long) &util_fcopy
 	},
 	{ },
 };
@@ -460,7 +523,8 @@ static const struct hv_vmbus_device_id id_table[] = {
 MODULE_DEVICE_TABLE(vmbus, id_table);
 
 /* The one and only one */
-static  struct hv_driver util_drv = {
+static  struct hv_driver util_drv =
+{
 	.name = "hv_util",
 	.id_table = id_table,
 	.probe =  util_probe,

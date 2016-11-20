@@ -60,13 +60,17 @@ int main(int argv, char **argc)
 	printf("Running Asyncrhonous Frequency Changing Tests...\n");
 
 	pid = fork();
+
 	if (!pid)
+	{
 		return system("./inconsistency-check -c 1 -t 600");
+	}
 
 	ppm = 500;
 	ret = 0;
 
-	while (pid != waitpid(pid, &ret, WNOHANG)) {
+	while (pid != waitpid(pid, &ret, WNOHANG))
+	{
 		ppm = -ppm;
 		tx.modes = ADJ_FREQUENCY;
 		tx.freq = ppm << 16;
@@ -80,10 +84,12 @@ int main(int argv, char **argc)
 	adjtimex(&tx);
 
 
-	if (ret) {
+	if (ret)
+	{
 		printf("[FAILED]\n");
 		return ksft_exit_fail();
 	}
+
 	printf("[OK]\n");
 	return ksft_exit_pass();
 }

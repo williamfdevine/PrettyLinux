@@ -11,7 +11,8 @@ struct sk_buff;
 struct nlmsghdr;
 struct sock;
 
-struct sock_diag_handler {
+struct sock_diag_handler
+{
 	__u8 family;
 	int (*dump)(struct sk_buff *skb, struct nlmsghdr *nlh);
 	int (*get_info)(struct sk_buff *skb, struct sock *sk);
@@ -29,38 +30,51 @@ void sock_diag_save_cookie(struct sock *sk, __u32 *cookie);
 
 int sock_diag_put_meminfo(struct sock *sk, struct sk_buff *skb, int attr);
 int sock_diag_put_filterinfo(bool may_report_filterinfo, struct sock *sk,
-			     struct sk_buff *skb, int attrtype);
+							 struct sk_buff *skb, int attrtype);
 
 static inline
 enum sknetlink_groups sock_diag_destroy_group(const struct sock *sk)
 {
-	switch (sk->sk_family) {
-	case AF_INET:
-		if (sk->sk_type == SOCK_RAW)
-			return SKNLGRP_NONE;
+	switch (sk->sk_family)
+	{
+		case AF_INET:
+					if (sk->sk_type == SOCK_RAW)
+				{
+					return SKNLGRP_NONE;
+				}
 
-		switch (sk->sk_protocol) {
-		case IPPROTO_TCP:
-			return SKNLGRP_INET_TCP_DESTROY;
-		case IPPROTO_UDP:
-			return SKNLGRP_INET_UDP_DESTROY;
+			switch (sk->sk_protocol)
+			{
+				case IPPROTO_TCP:
+					return SKNLGRP_INET_TCP_DESTROY;
+
+				case IPPROTO_UDP:
+					return SKNLGRP_INET_UDP_DESTROY;
+
+				default:
+					return SKNLGRP_NONE;
+			}
+
+		case AF_INET6:
+			if (sk->sk_type == SOCK_RAW)
+			{
+				return SKNLGRP_NONE;
+			}
+
+			switch (sk->sk_protocol)
+			{
+				case IPPROTO_TCP:
+					return SKNLGRP_INET6_TCP_DESTROY;
+
+				case IPPROTO_UDP:
+					return SKNLGRP_INET6_UDP_DESTROY;
+
+				default:
+					return SKNLGRP_NONE;
+			}
+
 		default:
 			return SKNLGRP_NONE;
-		}
-	case AF_INET6:
-		if (sk->sk_type == SOCK_RAW)
-			return SKNLGRP_NONE;
-
-		switch (sk->sk_protocol) {
-		case IPPROTO_TCP:
-			return SKNLGRP_INET6_TCP_DESTROY;
-		case IPPROTO_UDP:
-			return SKNLGRP_INET6_UDP_DESTROY;
-		default:
-			return SKNLGRP_NONE;
-		}
-	default:
-		return SKNLGRP_NONE;
 	}
 }
 
@@ -71,7 +85,7 @@ bool sock_diag_has_destroy_listeners(const struct sock *sk)
 	const enum sknetlink_groups group = sock_diag_destroy_group(sk);
 
 	return group != SKNLGRP_NONE && n->diag_nlsk &&
-		netlink_has_listeners(n->diag_nlsk, group);
+		   netlink_has_listeners(n->diag_nlsk, group);
 }
 void sock_diag_broadcast_destroy(struct sock *sk);
 

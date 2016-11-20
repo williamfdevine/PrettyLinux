@@ -12,7 +12,7 @@
 #define _DVB_USB_DIBUSB_H_
 
 #ifndef DVB_USB_LOG_PREFIX
- #define DVB_USB_LOG_PREFIX "dibusb"
+	#define DVB_USB_LOG_PREFIX "dibusb"
 #endif
 #include "dvb-usb.h"
 
@@ -99,13 +99,15 @@
 /* Max transfer size done by I2C transfer functions */
 #define MAX_XFER_SIZE  64
 
-struct dibusb_state {
+struct dibusb_state
+{
 	struct dib_fe_xfer_ops ops;
 	int mt2060_present;
 	u8 tuner_addr;
 };
 
-struct dibusb_device_state {
+struct dibusb_device_state
+{
 	/* for RC5 remote control */
 	int old_toggle;
 	int last_repeat_count;

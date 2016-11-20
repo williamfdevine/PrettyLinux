@@ -17,7 +17,8 @@
 #define __INTEL_TH_H__
 
 /* intel_th_device device types */
-enum {
+enum
+{
 	/* Devices that generate trace data */
 	INTEL_TH_SOURCE = 0,
 	/* Output ports (MSC, PTI) */
@@ -39,7 +40,8 @@ enum {
  * probe time by switch::assign(). Passed from output device driver to
  * switch related code to enable/disable its port.
  */
-struct intel_th_output {
+struct intel_th_output
+{
 	int		port;
 	unsigned int	type;
 	unsigned int	scratchpad;
@@ -57,7 +59,8 @@ struct intel_th_output {
  * @output:		output descriptor for INTEL_TH_OUTPUT devices
  * @name:		device name to match the driver
  */
-struct intel_th_device {
+struct intel_th_device
+{
 	struct device	dev;
 	struct resource	*resource;
 	unsigned int	num_resources;
@@ -81,13 +84,15 @@ struct intel_th_device {
  */
 static inline struct resource *
 intel_th_device_get_resource(struct intel_th_device *thdev, unsigned int type,
-			     unsigned int num)
+							 unsigned int num)
 {
 	int i;
 
 	for (i = 0; i < thdev->num_resources; i++)
 		if (resource_type(&thdev->resource[i]) == type && !num--)
+		{
 			return &thdev->resource[i];
+		}
 
 	return NULL;
 }
@@ -102,7 +107,7 @@ static inline bool
 intel_th_output_assigned(struct intel_th_device *thdev)
 {
 	return thdev->type == INTEL_TH_OUTPUT &&
-		thdev->output.port >= 0;
+		   thdev->output.port >= 0;
 }
 
 /**
@@ -124,19 +129,20 @@ intel_th_output_assigned(struct intel_th_device *thdev)
  * Switch device driver needs to fill in @assign, @enable and @disable
  * callbacks.
  */
-struct intel_th_driver {
+struct intel_th_driver
+{
 	struct device_driver	driver;
 	int			(*probe)(struct intel_th_device *thdev);
 	void			(*remove)(struct intel_th_device *thdev);
 	/* switch (GTH) ops */
 	int			(*assign)(struct intel_th_device *thdev,
-					  struct intel_th_device *othdev);
+						  struct intel_th_device *othdev);
 	void			(*unassign)(struct intel_th_device *thdev,
-					    struct intel_th_device *othdev);
+								struct intel_th_device *othdev);
 	void			(*enable)(struct intel_th_device *thdev,
-					  struct intel_th_output *output);
+							  struct intel_th_output *output);
 	void			(*disable)(struct intel_th_device *thdev,
-					   struct intel_th_output *output);
+							   struct intel_th_output *output);
 	/* output ops */
 	void			(*irq)(struct intel_th_device *thdev);
 	int			(*activate)(struct intel_th_device *thdev);
@@ -148,7 +154,7 @@ struct intel_th_driver {
 
 	/* source ops */
 	int			(*set_output)(struct intel_th_device *thdev,
-					      unsigned int master);
+							  unsigned int master);
 };
 
 #define to_intel_th_driver(_d)					\
@@ -163,14 +169,16 @@ to_intel_th_hub(struct intel_th_device *thdev)
 	struct device *parent = thdev->dev.parent;
 
 	if (!parent)
+	{
 		return NULL;
+	}
 
 	return to_intel_th_device(parent);
 }
 
 struct intel_th *
 intel_th_alloc(struct device *dev, struct resource *devres,
-	       unsigned int ndevres, int irq);
+			   unsigned int ndevres, int irq);
 void intel_th_free(struct intel_th *th);
 
 int intel_th_driver_register(struct intel_th_driver *thdrv);
@@ -179,9 +187,10 @@ void intel_th_driver_unregister(struct intel_th_driver *thdrv);
 int intel_th_trace_enable(struct intel_th_device *thdev);
 int intel_th_trace_disable(struct intel_th_device *thdev);
 int intel_th_set_output(struct intel_th_device *thdev,
-			unsigned int master);
+						unsigned int master);
 
-enum {
+enum
+{
 	TH_MMIO_CONFIG = 0,
 	TH_MMIO_SW = 2,
 	TH_MMIO_END,
@@ -200,7 +209,8 @@ enum {
  * @id:		this Intel TH controller's device ID in the system
  * @major:	device node major for output devices
  */
-struct intel_th {
+struct intel_th
+{
 	struct device		*dev;
 
 	struct intel_th_device	*thdev[TH_SUBDEVICE_MAX];
@@ -219,7 +229,8 @@ struct intel_th {
 /*
  * Register windows
  */
-enum {
+enum
+{
 	/* Global Trace Hub (GTH) */
 	REG_GTH_OFFSET		= 0x0000,
 	REG_GTH_LENGTH		= 0x2000,
@@ -248,7 +259,8 @@ enum {
 /*
  * GTH, output ports configuration
  */
-enum {
+enum
+{
 	GTH_NONE = 0,
 	GTH_MSU,	/* memory/usb */
 	GTH_CTP,	/* Common Trace Port */
@@ -259,7 +271,8 @@ enum {
  * Scratchpad bits: tell firmware and external debuggers
  * what we are up to.
  */
-enum {
+enum
+{
 	/* Memory is the primary destination */
 	SCRPD_MEM_IS_PRIM_DEST		= BIT(0),
 	/* XHCI DbC is the primary destination */

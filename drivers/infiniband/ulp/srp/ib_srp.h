@@ -46,7 +46,8 @@
 #include <rdma/ib_cm.h>
 #include <rdma/ib_fmr_pool.h>
 
-enum {
+enum
+{
 	SRP_PATH_REC_TIMEOUT_MS	= 1000,
 	SRP_ABORT_TIMEOUT_MS	= 5000,
 
@@ -60,7 +61,7 @@ enum {
 	SRP_RSP_SQ_SIZE		= 1,
 	SRP_TSK_MGMT_SQ_SIZE	= 1,
 	SRP_DEFAULT_CMD_SQ_SIZE = SRP_DEFAULT_QUEUE_SIZE - SRP_RSP_SQ_SIZE -
-				  SRP_TSK_MGMT_SQ_SIZE,
+							  SRP_TSK_MGMT_SQ_SIZE,
 
 	SRP_TAG_NO_REQ		= ~0U,
 	SRP_TAG_TSK_MGMT	= 1U << 31,
@@ -68,13 +69,15 @@ enum {
 	SRP_MAX_PAGES_PER_MR	= 512,
 };
 
-enum srp_target_state {
+enum srp_target_state
+{
 	SRP_TARGET_SCANNING,
 	SRP_TARGET_LIVE,
 	SRP_TARGET_REMOVED,
 };
 
-enum srp_iu_type {
+enum srp_iu_type
+{
 	SRP_IU_CMD,
 	SRP_IU_TSK_MGMT,
 	SRP_IU_RSP,
@@ -86,7 +89,8 @@ enum srp_iu_type {
  * @mr_max_size: Maximum size in bytes of a single FMR / FR registration
  *   request.
  */
-struct srp_device {
+struct srp_device
+{
 	struct list_head	dev_list;
 	struct ib_device       *dev;
 	struct ib_pd	       *pd;
@@ -100,7 +104,8 @@ struct srp_device {
 	bool			use_fast_reg;
 };
 
-struct srp_host {
+struct srp_host
+{
 	struct srp_device      *srp_dev;
 	u8			port;
 	struct device		dev;
@@ -111,10 +116,12 @@ struct srp_host {
 	struct mutex		add_target_mutex;
 };
 
-struct srp_request {
+struct srp_request
+{
 	struct scsi_cmnd       *scmnd;
 	struct srp_iu	       *cmd;
-	union {
+	union
+	{
 		struct ib_pool_fmr **fmr_list;
 		struct srp_fr_desc **fr_list;
 	};
@@ -129,7 +136,8 @@ struct srp_request {
  * struct srp_rdma_ch
  * @comp_vector: Completion vector used by this RDMA channel.
  */
-struct srp_rdma_ch {
+struct srp_rdma_ch
+{
 	/* These are RW in the hot path, and commonly used together */
 	struct list_head	free_tx;
 	spinlock_t		lock;
@@ -140,7 +148,8 @@ struct srp_rdma_ch {
 	struct ib_cq	       *send_cq;
 	struct ib_cq	       *recv_cq;
 	struct ib_qp	       *qp;
-	union {
+	union
+	{
 		struct ib_fmr_pool     *fmr_pool;
 		struct srp_fr_pool     *fr_pool;
 	};
@@ -173,7 +182,8 @@ struct srp_rdma_ch {
  * @comp_vector: Completion vector used by the first RDMA channel created for
  *   this target port.
  */
-struct srp_target_port {
+struct srp_target_port
+{
 	/* read and written in the hot path */
 	spinlock_t		lock;
 
@@ -222,7 +232,8 @@ struct srp_target_port {
 	bool			qp_in_error;
 };
 
-struct srp_iu {
+struct srp_iu
+{
 	struct list_head	list;
 	u64			dma;
 	void		       *buf;
@@ -237,7 +248,8 @@ struct srp_iu {
  * @mr:    Memory region.
  * @frpl:  Fast registration page list.
  */
-struct srp_fr_desc {
+struct srp_fr_desc
+{
 	struct list_head		entry;
 	struct ib_mr			*mr;
 };
@@ -253,7 +265,8 @@ struct srp_fr_desc {
  * @free_list: List of free descriptors.
  * @desc:      Fast registration descriptor pool.
  */
-struct srp_fr_pool {
+struct srp_fr_pool
+{
 	int			size;
 	int			max_page_list_len;
 	spinlock_t		lock;
@@ -275,23 +288,29 @@ struct srp_fr_pool {
  * @nmdesc:	    Number of FMR or FR memory descriptors used for mapping.
  * @ndesc:	    Number of SRP buffer descriptors that have been filled in.
  */
-struct srp_map_state {
-	union {
-		struct {
+struct srp_map_state
+{
+	union
+	{
+		struct
+		{
 			struct ib_pool_fmr **next;
 			struct ib_pool_fmr **end;
 		} fmr;
-		struct {
+		struct
+		{
 			struct srp_fr_desc **next;
 			struct srp_fr_desc **end;
 		} fr;
-		struct {
+		struct
+		{
 			void		   **next;
 			void		   **end;
 		} gen;
 	};
 	struct srp_direct_buf  *desc;
-	union {
+	union
+	{
 		u64			*pages;
 		struct scatterlist	*sg;
 	};

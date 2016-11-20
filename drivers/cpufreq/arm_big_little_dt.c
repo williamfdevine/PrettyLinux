@@ -35,7 +35,8 @@ static struct device_node *get_cpu_node_with_valid_op(int cpu)
 {
 	struct device_node *np = of_cpu_device_node_get(cpu);
 
-	if (!of_get_property(np, "operating-points", NULL)) {
+	if (!of_get_property(np, "operating-points", NULL))
+	{
 		of_node_put(np);
 		np = NULL;
 	}
@@ -49,7 +50,9 @@ static int dt_get_transition_latency(struct device *cpu_dev)
 	u32 transition_latency = CPUFREQ_ETERNAL;
 
 	np = of_node_get(cpu_dev->of_node);
-	if (!np) {
+
+	if (!np)
+	{
 		pr_info("Failed to find cpu node. Use CPUFREQ_ETERNAL transition latency\n");
 		return CPUFREQ_ETERNAL;
 	}
@@ -61,7 +64,8 @@ static int dt_get_transition_latency(struct device *cpu_dev)
 	return transition_latency;
 }
 
-static struct cpufreq_arm_bL_ops dt_bL_ops = {
+static struct cpufreq_arm_bL_ops dt_bL_ops =
+{
 	.name	= "dt-bl",
 	.get_transition_latency = dt_get_transition_latency,
 	.init_opp_table = dev_pm_opp_of_cpumask_add_table,
@@ -73,8 +77,11 @@ static int generic_bL_probe(struct platform_device *pdev)
 	struct device_node *np;
 
 	np = get_cpu_node_with_valid_op(0);
+
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	of_node_put(np);
 	return bL_cpufreq_register(&dt_bL_ops);
@@ -86,7 +93,8 @@ static int generic_bL_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver generic_bL_platdrv = {
+static struct platform_driver generic_bL_platdrv =
+{
 	.driver = {
 		.name	= "arm-bL-cpufreq-dt",
 	},

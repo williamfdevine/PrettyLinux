@@ -81,7 +81,8 @@
 
 #define P2WI_MAX_FREQ			6000000
 
-struct p2wi {
+struct p2wi
+{
 	struct i2c_adapter adapter;
 	struct completion complete;
 	unsigned int status;
@@ -101,7 +102,7 @@ static irqreturn_t p2wi_interrupt(int irq, void *dev_id)
 
 	/* Clear interrupts */
 	status &= (P2WI_INTS_LOAD_BSY | P2WI_INTS_TRANS_ERR |
-		   P2WI_INTS_TRANS_OVER);
+			   P2WI_INTS_TRANS_OVER);
 	writel(status, p2wi->regs + P2WI_INTS);
 
 	complete(&p2wi->complete);
@@ -115,30 +116,38 @@ static u32 p2wi_functionality(struct i2c_adapter *adap)
 }
 
 static int p2wi_smbus_xfer(struct i2c_adapter *adap, u16 addr,
-			   unsigned short flags, char read_write,
-			   u8 command, int size, union i2c_smbus_data *data)
+						   unsigned short flags, char read_write,
+						   u8 command, int size, union i2c_smbus_data *data)
 {
 	struct p2wi *p2wi = i2c_get_adapdata(adap);
 	unsigned long dlen = P2WI_DLEN_DATA_LENGTH(1);
 
-	if (p2wi->slave_addr >= 0 && addr != p2wi->slave_addr) {
+	if (p2wi->slave_addr >= 0 && addr != p2wi->slave_addr)
+	{
 		dev_err(&adap->dev, "invalid P2WI address\n");
 		return -EINVAL;
 	}
 
 	if (!data)
+	{
 		return -EINVAL;
+	}
 
 	writel(command, p2wi->regs + P2WI_DADDR0);
 
 	if (read_write == I2C_SMBUS_READ)
+	{
 		dlen |= P2WI_DLEN_READ;
+	}
 	else
+	{
 		writel(data->byte, p2wi->regs + P2WI_DATA0);
+	}
 
 	writel(dlen, p2wi->regs + P2WI_DLEN);
 
-	if (readl(p2wi->regs + P2WI_CTRL) & P2WI_CTRL_START_TRANS) {
+	if (readl(p2wi->regs + P2WI_CTRL) & P2WI_CTRL_START_TRANS)
+	{
 		dev_err(&adap->dev, "P2WI bus busy\n");
 		return -EBUSY;
 	}
@@ -146,35 +155,41 @@ static int p2wi_smbus_xfer(struct i2c_adapter *adap, u16 addr,
 	reinit_completion(&p2wi->complete);
 
 	writel(P2WI_INTS_LOAD_BSY | P2WI_INTS_TRANS_ERR | P2WI_INTS_TRANS_OVER,
-	       p2wi->regs + P2WI_INTE);
+		   p2wi->regs + P2WI_INTE);
 
 	writel(P2WI_CTRL_START_TRANS | P2WI_CTRL_GLOBAL_INT_ENB,
-	       p2wi->regs + P2WI_CTRL);
+		   p2wi->regs + P2WI_CTRL);
 
 	wait_for_completion(&p2wi->complete);
 
-	if (p2wi->status & P2WI_INTS_LOAD_BSY) {
+	if (p2wi->status & P2WI_INTS_LOAD_BSY)
+	{
 		dev_err(&adap->dev, "P2WI bus busy\n");
 		return -EBUSY;
 	}
 
-	if (p2wi->status & P2WI_INTS_TRANS_ERR) {
+	if (p2wi->status & P2WI_INTS_TRANS_ERR)
+	{
 		dev_err(&adap->dev, "P2WI bus xfer error\n");
 		return -ENXIO;
 	}
 
 	if (read_write == I2C_SMBUS_READ)
+	{
 		data->byte = readl(p2wi->regs + P2WI_DATA0);
+	}
 
 	return 0;
 }
 
-static const struct i2c_algorithm p2wi_algo = {
+static const struct i2c_algorithm p2wi_algo =
+{
 	.smbus_xfer = p2wi_smbus_xfer,
 	.functionality = p2wi_functionality,
 };
 
-static const struct of_device_id p2wi_of_match_table[] = {
+static const struct of_device_id p2wi_of_match_table[] =
+{
 	{ .compatible = "allwinner,sun6i-a31-p2wi" },
 	{}
 };
@@ -195,21 +210,27 @@ static int p2wi_probe(struct platform_device *pdev)
 	int ret;
 
 	of_property_read_u32(np, "clock-frequency", &clk_freq);
-	if (clk_freq > P2WI_MAX_FREQ) {
+
+	if (clk_freq > P2WI_MAX_FREQ)
+	{
 		dev_err(dev,
-			"required clock-frequency (%u Hz) is too high (max = 6MHz)",
-			clk_freq);
+				"required clock-frequency (%u Hz) is too high (max = 6MHz)",
+				clk_freq);
 		return -EINVAL;
 	}
 
-	if (of_get_child_count(np) > 1) {
+	if (of_get_child_count(np) > 1)
+	{
 		dev_err(dev, "P2WI only supports one slave device\n");
 		return -EINVAL;
 	}
 
 	p2wi = devm_kzalloc(dev, sizeof(struct p2wi), GFP_KERNEL);
+
 	if (!p2wi)
+	{
 		return -ENOMEM;
+	}
 
 	p2wi->slave_addr = -1;
 
@@ -220,11 +241,15 @@ static int p2wi_probe(struct platform_device *pdev)
 	 * launching a P2WI transfer.
 	 */
 	childnp = of_get_next_available_child(np, NULL);
-	if (childnp) {
+
+	if (childnp)
+	{
 		ret = of_property_read_u32(childnp, "reg", &slave_addr);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev, "invalid slave address on node %s\n",
-				childnp->full_name);
+					childnp->full_name);
 			return -EINVAL;
 		}
 
@@ -233,25 +258,34 @@ static int p2wi_probe(struct platform_device *pdev)
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	p2wi->regs = devm_ioremap_resource(dev, r);
+
 	if (IS_ERR(p2wi->regs))
+	{
 		return PTR_ERR(p2wi->regs);
+	}
 
 	strlcpy(p2wi->adapter.name, pdev->name, sizeof(p2wi->adapter.name));
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(dev, "failed to retrieve irq: %d\n", irq);
 		return irq;
 	}
 
 	p2wi->clk = devm_clk_get(dev, NULL);
-	if (IS_ERR(p2wi->clk)) {
+
+	if (IS_ERR(p2wi->clk))
+	{
 		ret = PTR_ERR(p2wi->clk);
 		dev_err(dev, "failed to retrieve clk: %d\n", ret);
 		return ret;
 	}
 
 	ret = clk_prepare_enable(p2wi->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to enable clk: %d\n", ret);
 		return ret;
 	}
@@ -259,14 +293,18 @@ static int p2wi_probe(struct platform_device *pdev)
 	parent_clk_freq = clk_get_rate(p2wi->clk);
 
 	p2wi->rstc = devm_reset_control_get(dev, NULL);
-	if (IS_ERR(p2wi->rstc)) {
+
+	if (IS_ERR(p2wi->rstc))
+	{
 		ret = PTR_ERR(p2wi->rstc);
 		dev_err(dev, "failed to retrieve reset controller: %d\n", ret);
 		goto err_clk_disable;
 	}
 
 	ret = reset_control_deassert(p2wi->rstc);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to deassert reset line: %d\n", ret);
 		goto err_clk_disable;
 	}
@@ -280,33 +318,42 @@ static int p2wi_probe(struct platform_device *pdev)
 	i2c_set_adapdata(&p2wi->adapter, p2wi);
 
 	ret = devm_request_irq(dev, irq, p2wi_interrupt, 0, pdev->name, p2wi);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "can't register interrupt handler irq%d: %d\n",
-			irq, ret);
+				irq, ret);
 		goto err_reset_assert;
 	}
 
 	writel(P2WI_CTRL_SOFT_RST, p2wi->regs + P2WI_CTRL);
 
 	clk_div = parent_clk_freq / clk_freq;
-	if (!clk_div) {
+
+	if (!clk_div)
+	{
 		dev_warn(dev,
-			 "clock-frequency is too high, setting it to %lu Hz\n",
-			 parent_clk_freq);
+				 "clock-frequency is too high, setting it to %lu Hz\n",
+				 parent_clk_freq);
 		clk_div = 1;
-	} else if (clk_div > P2WI_CCR_MAX_CLK_DIV) {
+	}
+	else if (clk_div > P2WI_CCR_MAX_CLK_DIV)
+	{
 		dev_warn(dev,
-			 "clock-frequency is too low, setting it to %lu Hz\n",
-			 parent_clk_freq / P2WI_CCR_MAX_CLK_DIV);
+				 "clock-frequency is too low, setting it to %lu Hz\n",
+				 parent_clk_freq / P2WI_CCR_MAX_CLK_DIV);
 		clk_div = P2WI_CCR_MAX_CLK_DIV;
 	}
 
 	writel(P2WI_CCR_SDA_OUT_DELAY(1) | P2WI_CCR_CLK_DIV(clk_div),
-	       p2wi->regs + P2WI_CCR);
+		   p2wi->regs + P2WI_CCR);
 
 	ret = i2c_add_adapter(&p2wi->adapter);
+
 	if (!ret)
+	{
 		return 0;
+	}
 
 err_reset_assert:
 	reset_control_assert(p2wi->rstc);
@@ -328,7 +375,8 @@ static int p2wi_remove(struct platform_device *dev)
 	return 0;
 }
 
-static struct platform_driver p2wi_driver = {
+static struct platform_driver p2wi_driver =
+{
 	.probe	= p2wi_probe,
 	.remove	= p2wi_remove,
 	.driver	= {

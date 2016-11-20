@@ -26,7 +26,8 @@
  */
 #define NUM_MINORS		U8_MAX
 
-struct gb_cap {
+struct gb_cap
+{
 	struct device		*parent;
 	struct gb_connection	*connection;
 	struct kref		kref;
@@ -69,8 +70,10 @@ static struct gb_cap *get_cap(struct cdev *cdev)
 
 	mutex_lock(&list_mutex);
 
-	list_for_each_entry(cap, &cap_list, node) {
-		if (&cap->cdev == cdev) {
+	list_for_each_entry(cap, &cap_list, node)
+	{
+		if (&cap->cdev == cdev)
+		{
 			kref_get(&cap->kref);
 			goto unlock;
 		}
@@ -91,8 +94,10 @@ static int cap_get_endpoint_uid(struct gb_cap *cap, u8 *euid)
 	int ret;
 
 	ret = gb_operation_sync(connection, GB_CAP_TYPE_GET_ENDPOINT_UID, NULL,
-				0, &response, sizeof(response));
-	if (ret) {
+							0, &response, sizeof(response));
+
+	if (ret)
+	{
 		dev_err(cap->parent, "failed to get endpoint uid (%d)\n", ret);
 		return ret;
 	}
@@ -103,7 +108,7 @@ static int cap_get_endpoint_uid(struct gb_cap *cap, u8 *euid)
 }
 
 static int cap_get_ims_certificate(struct gb_cap *cap, u32 class, u32 id,
-				   u8 *certificate, u32 *size, u8 *result)
+								   u8 *certificate, u32 *size, u8 *result)
 {
 	struct gb_connection *connection = cap->connection;
 	struct gb_cap_get_ims_certificate_request *request;
@@ -113,19 +118,24 @@ static int cap_get_ims_certificate(struct gb_cap *cap, u32 class, u32 id,
 	int ret;
 
 	op = gb_operation_create_flags(connection,
-				       GB_CAP_TYPE_GET_IMS_CERTIFICATE,
-				       sizeof(*request), max_size,
-				       GB_OPERATION_FLAG_SHORT_RESPONSE,
-				       GFP_KERNEL);
+								   GB_CAP_TYPE_GET_IMS_CERTIFICATE,
+								   sizeof(*request), max_size,
+								   GB_OPERATION_FLAG_SHORT_RESPONSE,
+								   GFP_KERNEL);
+
 	if (!op)
+	{
 		return -ENOMEM;
+	}
 
 	request = op->request->payload;
 	request->certificate_class = cpu_to_le32(class);
 	request->certificate_id = cpu_to_le32(id);
 
 	ret = gb_operation_request_send_sync(op);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(cap->parent, "failed to get certificate (%d)\n", ret);
 		goto done;
 	}
@@ -141,8 +151,8 @@ done:
 }
 
 static int cap_authenticate(struct gb_cap *cap, u32 auth_type, u8 *uid,
-			    u8 *challenge, u8 *result, u8 *auth_response,
-			    u32 *signature_size, u8 *signature)
+							u8 *challenge, u8 *result, u8 *auth_response,
+							u32 *signature_size, u8 *signature)
 {
 	struct gb_connection *connection = cap->connection;
 	struct gb_cap_authenticate_request *request;
@@ -152,11 +162,14 @@ static int cap_authenticate(struct gb_cap *cap, u32 auth_type, u8 *uid,
 	int ret;
 
 	op = gb_operation_create_flags(connection, GB_CAP_TYPE_AUTHENTICATE,
-				       sizeof(*request), max_size,
-				       GB_OPERATION_FLAG_SHORT_RESPONSE,
-				       GFP_KERNEL);
+								   sizeof(*request), max_size,
+								   GB_OPERATION_FLAG_SHORT_RESPONSE,
+								   GFP_KERNEL);
+
 	if (!op)
+	{
 		return -ENOMEM;
+	}
 
 	request = op->request->payload;
 	request->auth_type = cpu_to_le32(auth_type);
@@ -164,7 +177,9 @@ static int cap_authenticate(struct gb_cap *cap, u32 auth_type, u8 *uid,
 	memcpy(request->challenge, challenge, sizeof(request->challenge));
 
 	ret = gb_operation_request_send_sync(op);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(cap->parent, "failed to authenticate (%d)\n", ret);
 		goto done;
 	}
@@ -187,7 +202,8 @@ static int cap_open(struct inode *inode, struct file *file)
 	struct gb_cap *cap = get_cap(inode->i_cdev);
 
 	/* cap structure can't get freed until file descriptor is closed */
-	if (cap) {
+	if (cap)
+	{
 		file->private_data = cap;
 		return 0;
 	}
@@ -204,7 +220,7 @@ static int cap_release(struct inode *inode, struct file *file)
 }
 
 static int cap_ioctl(struct gb_cap *cap, unsigned int cmd,
-			 void __user *buf)
+					 void __user *buf)
 {
 	struct cap_ioc_get_endpoint_uid endpoint_uid;
 	struct cap_ioc_get_ims_certificate *ims_cert;
@@ -212,57 +228,80 @@ static int cap_ioctl(struct gb_cap *cap, unsigned int cmd,
 	size_t size;
 	int ret;
 
-	switch (cmd) {
-	case CAP_IOC_GET_ENDPOINT_UID:
-		ret = cap_get_endpoint_uid(cap, endpoint_uid.uid);
-		if (ret)
+	switch (cmd)
+	{
+		case CAP_IOC_GET_ENDPOINT_UID:
+			ret = cap_get_endpoint_uid(cap, endpoint_uid.uid);
+
+			if (ret)
+			{
+				return ret;
+			}
+
+			if (copy_to_user(buf, &endpoint_uid, sizeof(endpoint_uid)))
+			{
+				return -EFAULT;
+			}
+
+			return 0;
+
+		case CAP_IOC_GET_IMS_CERTIFICATE:
+			size = sizeof(*ims_cert);
+			ims_cert = memdup_user(buf, size);
+
+			if (IS_ERR(ims_cert))
+			{
+				return PTR_ERR(ims_cert);
+			}
+
+			ret = cap_get_ims_certificate(cap, ims_cert->certificate_class,
+										  ims_cert->certificate_id,
+										  ims_cert->certificate,
+										  &ims_cert->cert_size,
+										  &ims_cert->result_code);
+
+			if (!ret && copy_to_user(buf, ims_cert, size))
+			{
+				ret = -EFAULT;
+			}
+
+			kfree(ims_cert);
+
 			return ret;
 
-		if (copy_to_user(buf, &endpoint_uid, sizeof(endpoint_uid)))
-			return -EFAULT;
+		case CAP_IOC_AUTHENTICATE:
+			size = sizeof(*authenticate);
+			authenticate = memdup_user(buf, size);
 
-		return 0;
-	case CAP_IOC_GET_IMS_CERTIFICATE:
-		size = sizeof(*ims_cert);
-		ims_cert = memdup_user(buf, size);
-		if (IS_ERR(ims_cert))
-			return PTR_ERR(ims_cert);
+			if (IS_ERR(authenticate))
+			{
+				return PTR_ERR(authenticate);
+			}
 
-		ret = cap_get_ims_certificate(cap, ims_cert->certificate_class,
-					      ims_cert->certificate_id,
-					      ims_cert->certificate,
-					      &ims_cert->cert_size,
-					      &ims_cert->result_code);
-		if (!ret && copy_to_user(buf, ims_cert, size))
-			ret = -EFAULT;
-		kfree(ims_cert);
+			ret = cap_authenticate(cap, authenticate->auth_type,
+								   authenticate->uid,
+								   authenticate->challenge,
+								   &authenticate->result_code,
+								   authenticate->response,
+								   &authenticate->signature_size,
+								   authenticate->signature);
 
-		return ret;
-	case CAP_IOC_AUTHENTICATE:
-		size = sizeof(*authenticate);
-		authenticate = memdup_user(buf, size);
-		if (IS_ERR(authenticate))
-			return PTR_ERR(authenticate);
+			if (!ret && copy_to_user(buf, authenticate, size))
+			{
+				ret = -EFAULT;
+			}
 
-		ret = cap_authenticate(cap, authenticate->auth_type,
-				       authenticate->uid,
-				       authenticate->challenge,
-				       &authenticate->result_code,
-				       authenticate->response,
-				       &authenticate->signature_size,
-				       authenticate->signature);
-		if (!ret && copy_to_user(buf, authenticate, size))
-			ret = -EFAULT;
-		kfree(authenticate);
+			kfree(authenticate);
 
-		return ret;
-	default:
-		return -ENOTTY;
+			return ret;
+
+		default:
+			return -ENOTTY;
 	}
 }
 
 static long cap_ioctl_unlocked(struct file *file, unsigned int cmd,
-			       unsigned long arg)
+							   unsigned long arg)
 {
 	struct gb_cap *cap = file->private_data;
 	struct gb_bundle *bundle = cap->connection->bundle;
@@ -279,19 +318,25 @@ static long cap_ioctl_unlocked(struct file *file, unsigned int cmd,
 	 * new operations.
 	 */
 	mutex_lock(&cap->mutex);
-	if (!cap->disabled) {
+
+	if (!cap->disabled)
+	{
 		ret = gb_pm_runtime_get_sync(bundle);
-		if (!ret) {
+
+		if (!ret)
+		{
 			ret = cap_ioctl(cap, cmd, (void __user *)arg);
 			gb_pm_runtime_put_autosuspend(bundle);
 		}
 	}
+
 	mutex_unlock(&cap->mutex);
 
 	return ret;
 }
 
-static const struct file_operations cap_fops = {
+static const struct file_operations cap_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= cap_open,
 	.release	= cap_release,
@@ -304,11 +349,16 @@ int gb_cap_connection_init(struct gb_connection *connection)
 	int ret, minor;
 
 	if (!connection)
+	{
 		return 0;
+	}
 
 	cap = kzalloc(sizeof(*cap), GFP_KERNEL);
+
 	if (!cap)
+	{
 		return -ENOMEM;
+	}
 
 	cap->parent = &connection->bundle->dev;
 	cap->connection = connection;
@@ -321,11 +371,16 @@ int gb_cap_connection_init(struct gb_connection *connection)
 	mutex_unlock(&list_mutex);
 
 	ret = gb_connection_enable(connection);
+
 	if (ret)
+	{
 		goto err_list_del;
+	}
 
 	minor = ida_simple_get(&cap_minors_map, 0, NUM_MINORS, GFP_KERNEL);
-	if (minor < 0) {
+
+	if (minor < 0)
+	{
 		ret = minor;
 		goto err_connection_disable;
 	}
@@ -335,13 +390,18 @@ int gb_cap_connection_init(struct gb_connection *connection)
 	cdev_init(&cap->cdev, &cap_fops);
 
 	ret = cdev_add(&cap->cdev, cap->dev_num, 1);
+
 	if (ret)
+	{
 		goto err_remove_ida;
+	}
 
 	/* Add a soft link to the previously added char-dev within the bundle */
 	cap->class_device = device_create(cap_class, cap->parent, cap->dev_num,
-					  NULL, "gb-authenticate-%d", minor);
-	if (IS_ERR(cap->class_device)) {
+									  NULL, "gb-authenticate-%d", minor);
+
+	if (IS_ERR(cap->class_device))
+	{
 		ret = PTR_ERR(cap->class_device);
 		goto err_del_cdev;
 	}
@@ -369,7 +429,9 @@ void gb_cap_connection_exit(struct gb_connection *connection)
 	struct gb_cap *cap;
 
 	if (!connection)
+	{
 		return;
+	}
 
 	cap = gb_connection_get_data(connection);
 
@@ -406,13 +468,19 @@ int cap_init(void)
 	int ret;
 
 	cap_class = class_create(THIS_MODULE, "gb_authenticate");
+
 	if (IS_ERR(cap_class))
+	{
 		return PTR_ERR(cap_class);
+	}
 
 	ret = alloc_chrdev_region(&cap_dev_num, 0, NUM_MINORS,
-				  "gb_authenticate");
+							  "gb_authenticate");
+
 	if (ret)
+	{
 		goto err_remove_class;
+	}
 
 	return 0;
 

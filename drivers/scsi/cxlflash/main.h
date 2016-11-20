@@ -78,7 +78,8 @@
 #define WWPN_LEN	16
 #define WWPN_BUF_LEN	(WWPN_LEN + 1)
 
-enum undo_level {
+enum undo_level
+{
 	UNDO_NOOP = 0,
 	FREE_IRQ,
 	UNMAP_ONE,
@@ -86,13 +87,15 @@ enum undo_level {
 	UNMAP_THREE
 };
 
-struct dev_dependent_vals {
+struct dev_dependent_vals
+{
 	u64 max_sectors;
 	u64 flags;
 #define CXLFLASH_NOTIFY_SHUTDOWN   0x0000000000000001ULL
 };
 
-struct asyc_intr_info {
+struct asyc_intr_info
+{
 	u64 status;
 	char *desc;
 	u8 port;

@@ -26,7 +26,8 @@
 #include <linux/slab.h>
 #include <linux/mtd/mtd.h>
 
-struct phram_mtd_list {
+struct phram_mtd_list
+{
 	struct mtd_info mtd;
 	struct list_head list;
 };
@@ -50,7 +51,7 @@ static int phram_erase(struct mtd_info *mtd, struct erase_info *instr)
 }
 
 static int phram_point(struct mtd_info *mtd, loff_t from, size_t len,
-		size_t *retlen, void **virt, resource_size_t *phys)
+					   size_t *retlen, void **virt, resource_size_t *phys)
 {
 	*virt = mtd->priv + from;
 	*retlen = len;
@@ -63,7 +64,7 @@ static int phram_unpoint(struct mtd_info *mtd, loff_t from, size_t len)
 }
 
 static int phram_read(struct mtd_info *mtd, loff_t from, size_t len,
-		size_t *retlen, u_char *buf)
+					  size_t *retlen, u_char *buf)
 {
 	u_char *start = mtd->priv;
 
@@ -73,7 +74,7 @@ static int phram_read(struct mtd_info *mtd, loff_t from, size_t len,
 }
 
 static int phram_write(struct mtd_info *mtd, loff_t to, size_t len,
-		size_t *retlen, const u_char *buf)
+					   size_t *retlen, const u_char *buf)
 {
 	u_char *start = mtd->priv;
 
@@ -86,7 +87,8 @@ static void unregister_devices(void)
 {
 	struct phram_mtd_list *this, *safe;
 
-	list_for_each_entry_safe(this, safe, &phram_list, list) {
+	list_for_each_entry_safe(this, safe, &phram_list, list)
+	{
 		mtd_device_unregister(&this->mtd);
 		iounmap(this->mtd.priv);
 		kfree(this->mtd.name);
@@ -100,12 +102,17 @@ static int register_device(char *name, phys_addr_t start, size_t len)
 	int ret = -ENOMEM;
 
 	new = kzalloc(sizeof(*new), GFP_KERNEL);
+
 	if (!new)
+	{
 		goto out0;
+	}
 
 	ret = -EIO;
 	new->mtd.priv = ioremap(start, len);
-	if (!new->mtd.priv) {
+
+	if (!new->mtd.priv)
+	{
 		pr_err("ioremap failed\n");
 		goto out1;
 	}
@@ -125,7 +132,9 @@ static int register_device(char *name, phys_addr_t start, size_t len)
 	new->mtd.writesize = 1;
 
 	ret = -EAGAIN;
-	if (mtd_device_register(&new->mtd, NULL, 0)) {
+
+	if (mtd_device_register(&new->mtd, NULL, 0))
+	{
 		pr_err("Failed to register new device\n");
 		goto out2;
 	}
@@ -148,20 +157,27 @@ static int parse_num64(uint64_t *num64, char *token)
 	int ret;
 
 	len = strlen(token);
+
 	/* By dwmw2 editorial decree, "ki", "Mi" or "Gi" are to be used. */
-	if (len > 2) {
-		if (token[len - 1] == 'i') {
-			switch (token[len - 2]) {
-			case 'G':
-				shift += 10;
-			case 'M':
-				shift += 10;
-			case 'k':
-				shift += 10;
-				token[len - 2] = 0;
-				break;
-			default:
-				return -EINVAL;
+	if (len > 2)
+	{
+		if (token[len - 1] == 'i')
+		{
+			switch (token[len - 2])
+			{
+				case 'G':
+					shift += 10;
+
+				case 'M':
+					shift += 10;
+
+				case 'k':
+					shift += 10;
+					token[len - 2] = 0;
+					break;
+
+				default:
+					return -EINVAL;
 			}
 		}
 	}
@@ -178,12 +194,18 @@ static int parse_name(char **pname, const char *token)
 	char *name;
 
 	len = strlen(token) + 1;
+
 	if (len > 64)
+	{
 		return -ENOSPC;
+	}
 
 	name = kstrdup(token, GFP_KERNEL);
+
 	if (!name)
+	{
 		return -ENOMEM;
+	}
 
 	*pname = name;
 	return 0;
@@ -195,26 +217,28 @@ static inline void kill_final_newline(char *str)
 	char *newline = strrchr(str, '\n');
 
 	if (newline && !newline[1])
+	{
 		*newline = 0;
+	}
 }
 
 
 #define parse_err(fmt, args...) do {	\
-	pr_err(fmt , ## args);	\
-	return 1;		\
-} while (0)
+		pr_err(fmt , ## args);	\
+		return 1;		\
+	} while (0)
 
 #ifndef MODULE
-static int phram_init_called;
-/*
- * This shall contain the module parameter if any. It is of the form:
- * - phram=<device>,<address>,<size> for module case
- * - phram.phram=<device>,<address>,<size> for built-in case
- * We leave 64 bytes for the device name, 20 for the address and 20 for the
- * size.
- * Example: phram.phram=rootfs,0xa0000000,512Mi
- */
-static char phram_paramline[64 + 20 + 20];
+	static int phram_init_called;
+	/*
+	* This shall contain the module parameter if any. It is of the form:
+	* - phram=<device>,<address>,<size> for module case
+	* - phram.phram=<device>,<address>,<size> for built-in case
+	* We leave 64 bytes for the device name, 20 for the address and 20 for the
+	* size.
+	* Example: phram.phram=rootfs,0xa0000000,512Mi
+	*/
+	static char phram_paramline[64 + 20 + 20];
 #endif
 
 static int phram_setup(const char *val)
@@ -227,41 +251,61 @@ static int phram_setup(const char *val)
 	int i, ret;
 
 	if (strnlen(val, sizeof(buf)) >= sizeof(buf))
+	{
 		parse_err("parameter too long\n");
+	}
 
 	strcpy(str, val);
 	kill_final_newline(str);
 
 	for (i = 0; i < 3; i++)
+	{
 		token[i] = strsep(&str, ",");
+	}
 
 	if (str)
+	{
 		parse_err("too many arguments\n");
+	}
 
 	if (!token[2])
+	{
 		parse_err("not enough arguments\n");
+	}
 
 	ret = parse_name(&name, token[0]);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = parse_num64(&start, token[1]);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(name);
 		parse_err("illegal start address\n");
 	}
 
 	ret = parse_num64(&len, token[2]);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(name);
 		parse_err("illegal device length\n");
 	}
 
 	ret = register_device(name, start, len);
+
 	if (!ret)
+	{
 		pr_info("%s device: %#llx at %#llx\n", name, len, start);
+	}
 	else
+	{
 		kfree(name);
+	}
 
 	return ret;
 }
@@ -279,7 +323,9 @@ static int phram_param_call(const char *val, struct kernel_param *kp)
 	 */
 
 	if (phram_init_called)
+	{
 		return phram_setup(val);
+	}
 
 	/*
 	 * During early boot stage, we only save the parameters
@@ -291,7 +337,10 @@ static int phram_param_call(const char *val, struct kernel_param *kp)
 	 */
 
 	if (strlen(val) >= sizeof(phram_paramline))
+	{
 		return -ENOSPC;
+	}
+
 	strcpy(phram_paramline, val);
 
 	return 0;
@@ -307,8 +356,12 @@ static int __init init_phram(void)
 	int ret = 0;
 
 #ifndef MODULE
+
 	if (phram_paramline[0])
+	{
 		ret = phram_setup(phram_paramline);
+	}
+
 	phram_init_called = 1;
 #endif
 

@@ -35,7 +35,8 @@
  * @atclk:	optional clock for the core parts of the replicator.
  * @csdev:	component vitals needed by the framework
  */
-struct replicator_state {
+struct replicator_state
+{
 	void __iomem		*base;
 	struct device		*dev;
 	struct clk		*atclk;
@@ -43,7 +44,7 @@ struct replicator_state {
 };
 
 static int replicator_enable(struct coresight_device *csdev, int inport,
-			      int outport)
+							 int outport)
 {
 	struct replicator_state *drvdata = dev_get_drvdata(csdev->dev.parent);
 
@@ -54,10 +55,13 @@ static int replicator_enable(struct coresight_device *csdev, int inport,
 	 * 0x00 - passing through the replicator unimpeded
 	 * 0xff - disable (or impede) the flow of ATB data
 	 */
-	if (outport == 0) {
+	if (outport == 0)
+	{
 		writel_relaxed(0x00, drvdata->base + REPLICATOR_IDFILTER0);
 		writel_relaxed(0xff, drvdata->base + REPLICATOR_IDFILTER1);
-	} else {
+	}
+	else
+	{
 		writel_relaxed(0x00, drvdata->base + REPLICATOR_IDFILTER1);
 		writel_relaxed(0xff, drvdata->base + REPLICATOR_IDFILTER0);
 	}
@@ -69,7 +73,7 @@ static int replicator_enable(struct coresight_device *csdev, int inport,
 }
 
 static void replicator_disable(struct coresight_device *csdev, int inport,
-				int outport)
+							   int outport)
 {
 	struct replicator_state *drvdata = dev_get_drvdata(csdev->dev.parent);
 
@@ -77,21 +81,27 @@ static void replicator_disable(struct coresight_device *csdev, int inport,
 
 	/* disable the flow of ATB data through port */
 	if (outport == 0)
+	{
 		writel_relaxed(0xff, drvdata->base + REPLICATOR_IDFILTER0);
+	}
 	else
+	{
 		writel_relaxed(0xff, drvdata->base + REPLICATOR_IDFILTER1);
+	}
 
 	CS_LOCK(drvdata->base);
 
 	dev_info(drvdata->dev, "REPLICATOR disabled\n");
 }
 
-static const struct coresight_ops_link replicator_link_ops = {
+static const struct coresight_ops_link replicator_link_ops =
+{
 	.enable		= replicator_enable,
 	.disable	= replicator_disable,
 };
 
-static const struct coresight_ops replicator_cs_ops = {
+static const struct coresight_ops replicator_cs_ops =
+{
 	.link_ops	= &replicator_link_ops,
 };
 
@@ -106,29 +116,45 @@ static int replicator_probe(struct amba_device *adev, const struct amba_id *id)
 	struct device_node *np = adev->dev.of_node;
 	void __iomem *base;
 
-	if (np) {
+	if (np)
+	{
 		pdata = of_get_coresight_platform_data(dev, np);
+
 		if (IS_ERR(pdata))
+		{
 			return PTR_ERR(pdata);
+		}
+
 		adev->dev.platform_data = pdata;
 	}
 
 	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
+
 	if (!drvdata)
+	{
 		return -ENOMEM;
+	}
 
 	drvdata->dev = &adev->dev;
 	drvdata->atclk = devm_clk_get(&adev->dev, "atclk"); /* optional */
-	if (!IS_ERR(drvdata->atclk)) {
+
+	if (!IS_ERR(drvdata->atclk))
+	{
 		ret = clk_prepare_enable(drvdata->atclk);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	/* Validity for the resource is already checked by the AMBA core */
 	base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(base))
+	{
 		return PTR_ERR(base);
+	}
 
 	drvdata->base = base;
 	dev_set_drvdata(dev, drvdata);
@@ -140,8 +166,11 @@ static int replicator_probe(struct amba_device *adev, const struct amba_id *id)
 	desc.pdata = adev->dev.platform_data;
 	desc.dev = &adev->dev;
 	drvdata->csdev = coresight_register(&desc);
+
 	if (IS_ERR(drvdata->csdev))
+	{
 		return PTR_ERR(drvdata->csdev);
+	}
 
 	dev_info(dev, "%s initialized\n", (char *)id->data);
 	return 0;
@@ -153,7 +182,9 @@ static int replicator_runtime_suspend(struct device *dev)
 	struct replicator_state *drvdata = dev_get_drvdata(dev);
 
 	if (drvdata && !IS_ERR(drvdata->atclk))
+	{
 		clk_disable_unprepare(drvdata->atclk);
+	}
 
 	return 0;
 }
@@ -163,19 +194,23 @@ static int replicator_runtime_resume(struct device *dev)
 	struct replicator_state *drvdata = dev_get_drvdata(dev);
 
 	if (drvdata && !IS_ERR(drvdata->atclk))
+	{
 		clk_prepare_enable(drvdata->atclk);
+	}
 
 	return 0;
 }
 #endif
 
-static const struct dev_pm_ops replicator_dev_pm_ops = {
+static const struct dev_pm_ops replicator_dev_pm_ops =
+{
 	SET_RUNTIME_PM_OPS(replicator_runtime_suspend,
-			   replicator_runtime_resume,
-			   NULL)
+	replicator_runtime_resume,
+	NULL)
 };
 
-static struct amba_id replicator_ids[] = {
+static struct amba_id replicator_ids[] =
+{
 	{
 		.id     = 0x0003b909,
 		.mask   = 0x0003ffff,
@@ -184,7 +219,8 @@ static struct amba_id replicator_ids[] = {
 	{ 0, 0 },
 };
 
-static struct amba_driver replicator_driver = {
+static struct amba_driver replicator_driver =
+{
 	.drv = {
 		.name	= "coresight-replicator-qcom",
 		.pm	= &replicator_dev_pm_ops,

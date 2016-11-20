@@ -53,7 +53,7 @@ static void host1x_pushbuffer_destroy(struct push_buffer *pb)
 
 	if (pb->phys != 0)
 		dma_free_wc(host1x->dev, pb->size_bytes + 4, pb->mapped,
-			    pb->phys);
+					pb->phys);
 
 	pb->mapped = NULL;
 	pb->phys = 0;
@@ -77,9 +77,12 @@ static int host1x_pushbuffer_init(struct push_buffer *pb)
 
 	/* allocate and map pushbuffer memory */
 	pb->mapped = dma_alloc_wc(host1x->dev, pb->size_bytes + 4, &pb->phys,
-				  GFP_KERNEL);
+							  GFP_KERNEL);
+
 	if (!pb->mapped)
+	{
 		goto fail;
+	}
 
 	host1x_hw_pushbuffer_init(host1x, pb);
 
@@ -131,34 +134,39 @@ static u32 host1x_pushbuffer_space(struct push_buffer *pb)
  * Must be called with the cdma lock held.
  */
 unsigned int host1x_cdma_wait_locked(struct host1x_cdma *cdma,
-				     enum cdma_event event)
+									 enum cdma_event event)
 {
-	for (;;) {
+	for (;;)
+	{
 		struct push_buffer *pb = &cdma->push_buffer;
 		unsigned int space;
 
-		switch (event) {
-		case CDMA_EVENT_SYNC_QUEUE_EMPTY:
-			space = list_empty(&cdma->sync_queue) ? 1 : 0;
-			break;
+		switch (event)
+		{
+			case CDMA_EVENT_SYNC_QUEUE_EMPTY:
+				space = list_empty(&cdma->sync_queue) ? 1 : 0;
+				break;
 
-		case CDMA_EVENT_PUSH_BUFFER_SPACE:
-			space = host1x_pushbuffer_space(pb);
-			break;
+			case CDMA_EVENT_PUSH_BUFFER_SPACE:
+				space = host1x_pushbuffer_space(pb);
+				break;
 
-		default:
-			WARN_ON(1);
-			return -EINVAL;
+			default:
+				WARN_ON(1);
+				return -EINVAL;
 		}
 
 		if (space)
+		{
 			return space;
+		}
 
 		trace_host1x_wait_cdma(dev_name(cdma_to_channel(cdma)->dev),
-				       event);
+							   event);
 
 		/* If somebody has managed to already start waiting, yield */
-		if (cdma->event != CDMA_EVENT_NONE) {
+		if (cdma->event != CDMA_EVENT_NONE)
+		{
 			mutex_unlock(&cdma->lock);
 			schedule();
 			mutex_lock(&cdma->lock);
@@ -180,11 +188,12 @@ unsigned int host1x_cdma_wait_locked(struct host1x_cdma *cdma,
  * Must be called with the cdma lock held.
  */
 static void cdma_start_timer_locked(struct host1x_cdma *cdma,
-				    struct host1x_job *job)
+									struct host1x_job *job)
 {
 	struct host1x *host = cdma_to_host1x(cdma);
 
-	if (cdma->timeout.client) {
+	if (cdma->timeout.client)
+	{
 		/* timer already started */
 		return;
 	}
@@ -195,7 +204,7 @@ static void cdma_start_timer_locked(struct host1x_cdma *cdma,
 	cdma->timeout.start_ktime = ktime_get();
 
 	schedule_delayed_work(&cdma->timeout.wq,
-			      msecs_to_jiffies(job->timeout));
+						  msecs_to_jiffies(job->timeout));
 }
 
 /*
@@ -226,40 +235,51 @@ static void update_cdma_locked(struct host1x_cdma *cdma)
 
 	/* If CDMA is stopped, queue is cleared and we can return */
 	if (!cdma->running)
+	{
 		return;
+	}
 
 	/*
 	 * Walk the sync queue, reading the sync point registers as necessary,
 	 * to consume as many sync queue entries as possible without blocking
 	 */
-	list_for_each_entry_safe(job, n, &cdma->sync_queue, list) {
+	list_for_each_entry_safe(job, n, &cdma->sync_queue, list)
+	{
 		struct host1x_syncpt *sp =
 			host1x_syncpt_get(host1x, job->syncpt_id);
 
 		/* Check whether this syncpt has completed, and bail if not */
-		if (!host1x_syncpt_is_expired(sp, job->syncpt_end)) {
+		if (!host1x_syncpt_is_expired(sp, job->syncpt_end))
+		{
 			/* Start timer on next pending syncpt */
 			if (job->timeout)
+			{
 				cdma_start_timer_locked(cdma, job);
+			}
 
 			break;
 		}
 
 		/* Cancel timeout, when a buffer completes */
 		if (cdma->timeout.client)
+		{
 			stop_cdma_timer_locked(cdma);
+		}
 
 		/* Unpin the memory */
 		host1x_job_unpin(job);
 
 		/* Pop push buffer slots */
-		if (job->num_slots) {
+		if (job->num_slots)
+		{
 			struct push_buffer *pb = &cdma->push_buffer;
 
 			host1x_pushbuffer_pop(pb, job->num_slots);
 
 			if (cdma->event == CDMA_EVENT_PUSH_BUFFER_SPACE)
+			{
 				signal = true;
+			}
 		}
 
 		list_del(&job->list);
@@ -267,17 +287,20 @@ static void update_cdma_locked(struct host1x_cdma *cdma)
 	}
 
 	if (cdma->event == CDMA_EVENT_SYNC_QUEUE_EMPTY &&
-	    list_empty(&cdma->sync_queue))
+		list_empty(&cdma->sync_queue))
+	{
 		signal = true;
+	}
 
-	if (signal) {
+	if (signal)
+	{
 		cdma->event = CDMA_EVENT_NONE;
 		up(&cdma->sem);
 	}
 }
 
 void host1x_cdma_update_sync_queue(struct host1x_cdma *cdma,
-				   struct device *dev)
+								   struct device *dev)
 {
 	struct host1x *host1x = cdma_to_host1x(cdma);
 	u32 restart_addr, syncpt_incrs, syncpt_val;
@@ -286,7 +309,7 @@ void host1x_cdma_update_sync_queue(struct host1x_cdma *cdma,
 	syncpt_val = host1x_syncpt_load(cdma->timeout.syncpt);
 
 	dev_dbg(dev, "%s: starting cleanup (thresh %d)\n",
-		__func__, syncpt_val);
+			__func__, syncpt_val);
 
 	/*
 	 * Move the sync_queue read pointer to the first entry that hasn't
@@ -296,11 +319,14 @@ void host1x_cdma_update_sync_queue(struct host1x_cdma *cdma,
 	 */
 
 	dev_dbg(dev, "%s: skip completed buffers still in sync_queue\n",
-		__func__);
+			__func__);
 
-	list_for_each_entry(job, &cdma->sync_queue, list) {
+	list_for_each_entry(job, &cdma->sync_queue, list)
+	{
 		if (syncpt_val < job->syncpt_end)
+		{
 			break;
+		}
 
 		host1x_job_dump(dev, job);
 	}
@@ -321,18 +347,25 @@ void host1x_cdma_update_sync_queue(struct host1x_cdma *cdma,
 	 */
 
 	dev_dbg(dev, "%s: perform CPU incr on pending same ctx buffers\n",
-		__func__);
+			__func__);
 
 	if (!list_empty(&cdma->sync_queue))
+	{
 		restart_addr = job->first_get;
+	}
 	else
+	{
 		restart_addr = cdma->last_pos;
+	}
 
 	/* do CPU increments as long as this context continues */
-	list_for_each_entry_from(job, &cdma->sync_queue, list) {
+	list_for_each_entry_from(job, &cdma->sync_queue, list)
+	{
 		/* different context, gets us out of this loop */
 		if (job->client != cdma->timeout.client)
+		{
 			break;
+		}
 
 		/* won't need a timeout when replayed */
 		job->timeout = 0;
@@ -344,8 +377,8 @@ void host1x_cdma_update_sync_queue(struct host1x_cdma *cdma,
 
 		/* safe to use CPU to incr syncpts */
 		host1x_hw_cdma_timeout_cpu_incr(host1x, cdma, job->first_get,
-						syncpt_incrs, job->syncpt_end,
-						job->num_slots);
+										syncpt_incrs, job->syncpt_end,
+										job->num_slots);
 
 		syncpt_val += syncpt_incrs;
 	}
@@ -357,8 +390,11 @@ void host1x_cdma_update_sync_queue(struct host1x_cdma *cdma,
 	 */
 
 	list_for_each_entry_from(job, &cdma->sync_queue, list)
-		if (job->client == cdma->timeout.client)
-			job->timeout = min_t(unsigned int, job->timeout, 500);
+
+	if (job->client == cdma->timeout.client)
+	{
+		job->timeout = min_t(unsigned int, job->timeout, 500);
+	}
 
 	dev_dbg(dev, "%s: finished sync_queue modification\n", __func__);
 
@@ -383,8 +419,11 @@ int host1x_cdma_init(struct host1x_cdma *cdma)
 	cdma->torndown = false;
 
 	err = host1x_pushbuffer_init(&cdma->push_buffer);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -397,7 +436,8 @@ int host1x_cdma_deinit(struct host1x_cdma *cdma)
 	struct push_buffer *pb = &cdma->push_buffer;
 	struct host1x *host1x = cdma_to_host1x(cdma);
 
-	if (cdma->running) {
+	if (cdma->running)
+	{
 		pr_warn("%s: CDMA still running\n", __func__);
 		return -EBUSY;
 	}
@@ -417,14 +457,18 @@ int host1x_cdma_begin(struct host1x_cdma *cdma, struct host1x_job *job)
 
 	mutex_lock(&cdma->lock);
 
-	if (job->timeout) {
+	if (job->timeout)
+	{
 		/* init state on first submit with timeout value */
-		if (!cdma->timeout.initialized) {
+		if (!cdma->timeout.initialized)
+		{
 			int err;
 
 			err = host1x_hw_cdma_timeout_init(host1x, cdma,
-							  job->syncpt_id);
-			if (err) {
+											  job->syncpt_id);
+
+			if (err)
+			{
 				mutex_unlock(&cdma->lock);
 				return err;
 			}
@@ -432,7 +476,9 @@ int host1x_cdma_begin(struct host1x_cdma *cdma, struct host1x_job *job)
 	}
 
 	if (!cdma->running)
+	{
 		host1x_hw_cdma_start(host1x, cdma);
+	}
 
 	cdma->slots_free = 0;
 	cdma->slots_used = 0;
@@ -454,12 +500,13 @@ void host1x_cdma_push(struct host1x_cdma *cdma, u32 op1, u32 op2)
 
 	if (host1x_debug_trace_cmdbuf)
 		trace_host1x_cdma_push(dev_name(cdma_to_channel(cdma)->dev),
-				       op1, op2);
+							   op1, op2);
 
-	if (slots_free == 0) {
+	if (slots_free == 0)
+	{
 		host1x_hw_cdma_flush(host1x, cdma);
 		slots_free = host1x_cdma_wait_locked(cdma,
-						CDMA_EVENT_PUSH_BUFFER_SPACE);
+											 CDMA_EVENT_PUSH_BUFFER_SPACE);
 	}
 
 	cdma->slots_free = slots_free - 1;
@@ -474,7 +521,7 @@ void host1x_cdma_push(struct host1x_cdma *cdma, u32 op1, u32 op2)
  * time, but they can be unpinned in smaller chunks.
  */
 void host1x_cdma_end(struct host1x_cdma *cdma,
-		     struct host1x_job *job)
+					 struct host1x_job *job)
 {
 	struct host1x *host1x = cdma_to_host1x(cdma);
 	bool idle = list_empty(&cdma->sync_queue);
@@ -488,7 +535,9 @@ void host1x_cdma_end(struct host1x_cdma *cdma,
 
 	/* start timer on idle -> active transitions */
 	if (job->timeout && idle)
+	{
 		cdma_start_timer_locked(cdma, job);
+	}
 
 	trace_host1x_cdma_end(dev_name(job->channel->dev));
 	mutex_unlock(&cdma->lock);

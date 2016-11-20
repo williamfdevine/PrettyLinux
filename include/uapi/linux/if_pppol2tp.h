@@ -22,7 +22,8 @@
 /* Structure used to connect() the socket to a particular tunnel UDP
  * socket over IPv4.
  */
-struct pppol2tp_addr {
+struct pppol2tp_addr
+{
 	__kernel_pid_t	pid;		/* pid that owns the fd.
 					 * 0 => current */
 	int	fd;			/* FD of UDP socket to use */
@@ -36,7 +37,8 @@ struct pppol2tp_addr {
 /* Structure used to connect() the socket to a particular tunnel UDP
  * socket over IPv6.
  */
-struct pppol2tpin6_addr {
+struct pppol2tpin6_addr
+{
 	__kernel_pid_t	pid;		/* pid that owns the fd.
 					 * 0 => current */
 	int	fd;			/* FD of UDP socket to use */
@@ -50,7 +52,8 @@ struct pppol2tpin6_addr {
 /* The L2TPv3 protocol changes tunnel and session ids from 16 to 32
  * bits. So we need a different sockaddr structure.
  */
-struct pppol2tpv3_addr {
+struct pppol2tpv3_addr
+{
 	__kernel_pid_t	pid;		/* pid that owns the fd.
 					 * 0 => current */
 	int	fd;			/* FD of UDP or IP socket to use */
@@ -61,7 +64,8 @@ struct pppol2tpv3_addr {
 	__u32 d_tunnel, d_session;	/* For sending outgoing packets */
 };
 
-struct pppol2tpv3in6_addr {
+struct pppol2tpv3in6_addr
+{
 	__kernel_pid_t	pid;		/* pid that owns the fd.
 					 * 0 => current */
 	int	fd;			/* FD of UDP or IP socket to use */
@@ -82,7 +86,8 @@ struct pppol2tpv3in6_addr {
  *		  1 => act as LNS.
  * REORDERTO	- reorder timeout (in millisecs). If 0, don't try to reorder.
  */
-enum {
+enum
+{
 	PPPOL2TP_SO_DEBUG	= 1,
 	PPPOL2TP_SO_RECVSEQ	= 2,
 	PPPOL2TP_SO_SENDSEQ	= 3,
@@ -91,7 +96,8 @@ enum {
 };
 
 /* Debug message categories for the DEBUG socket option */
-enum {
+enum
+{
 	PPPOL2TP_MSG_DEBUG	= (1 << 0),	/* verbose debug (if
 						 * compiled in) */
 	PPPOL2TP_MSG_CONTROL	= (1 << 1),	/* userspace - kernel

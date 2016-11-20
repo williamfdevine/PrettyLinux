@@ -24,7 +24,8 @@
 #define gm200_i2c_aux(p) container_of((p), struct gm200_i2c_aux, base)
 #include "aux.h"
 
-struct gm200_i2c_aux {
+struct gm200_i2c_aux
+{
 	struct nvkm_i2c_aux base;
 	int ch;
 };
@@ -47,34 +48,44 @@ gm200_i2c_aux_init(struct gm200_i2c_aux *aux)
 
 	/* wait up to 1ms for any previous transaction to be done... */
 	timeout = 1000;
-	do {
+
+	do
+	{
 		ctrl = nvkm_rd32(device, 0x00d954 + (aux->ch * 0x50));
 		udelay(1);
-		if (!timeout--) {
+
+		if (!timeout--)
+		{
 			AUX_ERR(&aux->base, "begin idle timeout %08x", ctrl);
 			return -EBUSY;
 		}
-	} while (ctrl & 0x03010000);
+	}
+	while (ctrl & 0x03010000);
 
 	/* set some magic, and wait up to 1ms for it to appear */
 	nvkm_mask(device, 0x00d954 + (aux->ch * 0x50), 0x00300000, ureq);
 	timeout = 1000;
-	do {
+
+	do
+	{
 		ctrl = nvkm_rd32(device, 0x00d954 + (aux->ch * 0x50));
 		udelay(1);
-		if (!timeout--) {
+
+		if (!timeout--)
+		{
 			AUX_ERR(&aux->base, "magic wait %08x", ctrl);
 			gm200_i2c_aux_fini(aux);
 			return -EBUSY;
 		}
-	} while ((ctrl & 0x03000000) != urep);
+	}
+	while ((ctrl & 0x03000000) != urep);
 
 	return 0;
 }
 
 static int
 gm200_i2c_aux_xfer(struct nvkm_i2c_aux *obj, bool retry,
-		   u8 type, u32 addr, u8 *data, u8 size)
+				   u8 type, u32 addr, u8 *data, u8 size)
 {
 	struct gm200_i2c_aux *aux = gm200_i2c_aux(obj);
 	struct nvkm_device *device = aux->base.pad->i2c->subdev.device;
@@ -86,19 +97,27 @@ gm200_i2c_aux_xfer(struct nvkm_i2c_aux *obj, bool retry,
 	AUX_TRACE(&aux->base, "%d: %08x %d", type, addr, size);
 
 	ret = gm200_i2c_aux_init(aux);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	stat = nvkm_rd32(device, 0x00d958 + base);
-	if (!(stat & 0x10000000)) {
+
+	if (!(stat & 0x10000000))
+	{
 		AUX_TRACE(&aux->base, "sink not detected");
 		ret = -ENXIO;
 		goto out;
 	}
 
-	if (!(type & 1)) {
+	if (!(type & 1))
+	{
 		memcpy(xbuf, data, size);
-		for (i = 0; i < 16; i += 4) {
+
+		for (i = 0; i < 16; i += 4)
+		{
 			AUX_TRACE(&aux->base, "wr %08x", xbuf[i / 4]);
 			nvkm_wr32(device, 0x00d930 + base + i, xbuf[i / 4]);
 		}
@@ -111,46 +130,68 @@ gm200_i2c_aux_xfer(struct nvkm_i2c_aux *obj, bool retry,
 	nvkm_wr32(device, 0x00d950 + base, addr);
 
 	/* (maybe) retry transaction a number of times on failure... */
-	for (retries = 0; !ret && retries < 32; retries++) {
+	for (retries = 0; !ret && retries < 32; retries++)
+	{
 		/* reset, and delay a while if this is a retry */
 		nvkm_wr32(device, 0x00d954 + base, 0x80000000 | ctrl);
 		nvkm_wr32(device, 0x00d954 + base, 0x00000000 | ctrl);
+
 		if (retries)
+		{
 			udelay(400);
+		}
 
 		/* transaction request, wait up to 1ms for it to complete */
 		nvkm_wr32(device, 0x00d954 + base, 0x00010000 | ctrl);
 
 		timeout = 1000;
-		do {
+
+		do
+		{
 			ctrl = nvkm_rd32(device, 0x00d954 + base);
 			udelay(1);
-			if (!timeout--) {
+
+			if (!timeout--)
+			{
 				AUX_ERR(&aux->base, "timeout %08x", ctrl);
 				ret = -EIO;
 				goto out;
 			}
-		} while (ctrl & 0x00010000);
+		}
+		while (ctrl & 0x00010000);
+
 		ret = 1;
 
 		/* read status, and check if transaction completed ok */
 		stat = nvkm_mask(device, 0x00d958 + base, 0, 0);
+
 		if ((stat & 0x000f0000) == 0x00080000 ||
-		    (stat & 0x000f0000) == 0x00020000)
+			(stat & 0x000f0000) == 0x00020000)
+		{
 			ret = retry ? 0 : 1;
+		}
+
 		if ((stat & 0x00000100))
+		{
 			ret = -ETIMEDOUT;
+		}
+
 		if ((stat & 0x00000e00))
+		{
 			ret = -EIO;
+		}
 
 		AUX_TRACE(&aux->base, "%02d %08x %08x", retries, ctrl, stat);
 	}
 
-	if (type & 1) {
-		for (i = 0; i < 16; i += 4) {
+	if (type & 1)
+	{
+		for (i = 0; i < 16; i += 4)
+		{
 			xbuf[i / 4] = nvkm_rd32(device, 0x00d940 + base + i);
 			AUX_TRACE(&aux->base, "rd %08x", xbuf[i / 4]);
 		}
+
 		memcpy(data, xbuf, size);
 	}
 
@@ -160,18 +201,22 @@ out:
 }
 
 static const struct nvkm_i2c_aux_func
-gm200_i2c_aux_func = {
+	gm200_i2c_aux_func =
+{
 	.xfer = gm200_i2c_aux_xfer,
 };
 
 int
 gm200_i2c_aux_new(struct nvkm_i2c_pad *pad, int index, u8 drive,
-		struct nvkm_i2c_aux **paux)
+				  struct nvkm_i2c_aux **paux)
 {
 	struct gm200_i2c_aux *aux;
 
 	if (!(aux = kzalloc(sizeof(*aux), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	*paux = &aux->base;
 
 	nvkm_i2c_aux_ctor(&gm200_i2c_aux_func, pad, index, &aux->base);

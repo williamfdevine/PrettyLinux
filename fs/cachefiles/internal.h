@@ -10,7 +10,7 @@
  */
 
 #ifdef pr_fmt
-#undef pr_fmt
+	#undef pr_fmt
 #endif
 
 #define pr_fmt(fmt) "CacheFiles: " fmt
@@ -35,7 +35,8 @@ extern unsigned cachefiles_debug;
 /*
  * node records
  */
-struct cachefiles_object {
+struct cachefiles_object
+{
 	struct fscache_object		fscache;	/* fscache handle */
 	struct cachefiles_lookup_data	*lookup_data;	/* cached lookup data */
 	struct dentry			*dentry;	/* the file/dir representing this object */
@@ -55,7 +56,8 @@ extern struct kmem_cache *cachefiles_object_jar;
 /*
  * Cache files cache definition
  */
-struct cachefiles_cache {
+struct cachefiles_cache
+{
 	struct fscache_cache		cache;		/* FS-Cache record */
 	struct vfsmount			*mnt;		/* mountpoint holding the cache */
 	struct dentry			*graveyard;	/* directory into which dead objects go */
@@ -95,7 +97,8 @@ struct cachefiles_cache {
 /*
  * backing file read tracking
  */
-struct cachefiles_one_read {
+struct cachefiles_one_read
+{
 	wait_queue_t			monitor;	/* link into monitored waitqueue */
 	struct page			*back_page;	/* backing file page we're waiting for */
 	struct page			*netfs_page;	/* netfs page we're going to fill */
@@ -106,7 +109,8 @@ struct cachefiles_one_read {
 /*
  * backing file write tracking
  */
-struct cachefiles_one_write {
+struct cachefiles_one_write
+{
 	struct page			*netfs_page;	/* netfs page to copy */
 	struct cachefiles_object	*object;
 	struct list_head		obj_link;	/* link in object's lists */
@@ -117,7 +121,8 @@ struct cachefiles_one_write {
 /*
  * auxiliary data xattr buffer
  */
-struct cachefiles_xattr {
+struct cachefiles_xattr
+{
 	uint16_t			len;
 	uint8_t				type;
 	uint8_t				data[];
@@ -144,7 +149,7 @@ extern void cachefiles_daemon_unbind(struct cachefiles_cache *cache);
 extern const struct file_operations cachefiles_daemon_fops;
 
 extern int cachefiles_has_space(struct cachefiles_cache *cache,
-				unsigned fnr, unsigned bnr);
+								unsigned fnr, unsigned bnr);
 
 /*
  * interface.c
@@ -160,23 +165,23 @@ extern char *cachefiles_cook_key(const u8 *raw, int keylen, uint8_t type);
  * namei.c
  */
 extern void cachefiles_mark_object_inactive(struct cachefiles_cache *cache,
-					    struct cachefiles_object *object,
-					    blkcnt_t i_blocks);
+		struct cachefiles_object *object,
+		blkcnt_t i_blocks);
 extern int cachefiles_delete_object(struct cachefiles_cache *cache,
-				    struct cachefiles_object *object);
+									struct cachefiles_object *object);
 extern int cachefiles_walk_to_object(struct cachefiles_object *parent,
-				     struct cachefiles_object *object,
-				     const char *key,
-				     struct cachefiles_xattr *auxdata);
+									 struct cachefiles_object *object,
+									 const char *key,
+									 struct cachefiles_xattr *auxdata);
 extern struct dentry *cachefiles_get_directory(struct cachefiles_cache *cache,
-					       struct dentry *dir,
-					       const char *name);
+		struct dentry *dir,
+		const char *name);
 
 extern int cachefiles_cull(struct cachefiles_cache *cache, struct dentry *dir,
-			   char *filename);
+						   char *filename);
 
 extern int cachefiles_check_in_use(struct cachefiles_cache *cache,
-				   struct dentry *dir, char *filename);
+								   struct dentry *dir, char *filename);
 
 /*
  * proc.c
@@ -192,8 +197,12 @@ static inline
 void cachefiles_hist(atomic_t histogram[], unsigned long start_jif)
 {
 	unsigned long jif = jiffies - start_jif;
+
 	if (jif >= HZ)
+	{
 		jif = HZ - 1;
+	}
+
 	atomic_inc(&histogram[jif]);
 }
 
@@ -207,14 +216,14 @@ void cachefiles_hist(atomic_t histogram[], unsigned long start_jif)
  * rdwr.c
  */
 extern int cachefiles_read_or_alloc_page(struct fscache_retrieval *,
-					 struct page *, gfp_t);
+		struct page *, gfp_t);
 extern int cachefiles_read_or_alloc_pages(struct fscache_retrieval *,
-					  struct list_head *, unsigned *,
-					  gfp_t);
+		struct list_head *, unsigned *,
+		gfp_t);
 extern int cachefiles_allocate_page(struct fscache_retrieval *, struct page *,
-				    gfp_t);
+									gfp_t);
 extern int cachefiles_allocate_pages(struct fscache_retrieval *,
-				     struct list_head *, unsigned *, gfp_t);
+									 struct list_head *, unsigned *, gfp_t);
 extern int cachefiles_write_page(struct fscache_storage *, struct page *);
 extern void cachefiles_uncache_page(struct fscache_object *, struct page *);
 
@@ -223,17 +232,17 @@ extern void cachefiles_uncache_page(struct fscache_object *, struct page *);
  */
 extern int cachefiles_get_security_ID(struct cachefiles_cache *cache);
 extern int cachefiles_determine_cache_security(struct cachefiles_cache *cache,
-					       struct dentry *root,
-					       const struct cred **_saved_cred);
+		struct dentry *root,
+		const struct cred **_saved_cred);
 
 static inline void cachefiles_begin_secure(struct cachefiles_cache *cache,
-					   const struct cred **_saved_cred)
+		const struct cred **_saved_cred)
 {
 	*_saved_cred = override_creds(cache->cache_cred);
 }
 
 static inline void cachefiles_end_secure(struct cachefiles_cache *cache,
-					 const struct cred *saved_cred)
+		const struct cred *saved_cred)
 {
 	revert_creds(saved_cred);
 }
@@ -243,14 +252,14 @@ static inline void cachefiles_end_secure(struct cachefiles_cache *cache,
  */
 extern int cachefiles_check_object_type(struct cachefiles_object *object);
 extern int cachefiles_set_object_xattr(struct cachefiles_object *object,
-				       struct cachefiles_xattr *auxdata);
+									   struct cachefiles_xattr *auxdata);
 extern int cachefiles_update_object_xattr(struct cachefiles_object *object,
-					  struct cachefiles_xattr *auxdata);
+		struct cachefiles_xattr *auxdata);
 extern int cachefiles_check_auxdata(struct cachefiles_object *object);
 extern int cachefiles_check_object_xattr(struct cachefiles_object *object,
-					 struct cachefiles_xattr *auxdata);
+		struct cachefiles_xattr *auxdata);
 extern int cachefiles_remove_object_xattr(struct cachefiles_cache *cache,
-					  struct dentry *dentry);
+		struct dentry *dentry);
 
 
 /*
@@ -258,20 +267,20 @@ extern int cachefiles_remove_object_xattr(struct cachefiles_cache *cache,
  */
 
 #define cachefiles_io_error(___cache, FMT, ...)		\
-do {							\
-	pr_err("I/O Error: " FMT"\n", ##__VA_ARGS__);	\
-	fscache_io_error(&(___cache)->cache);		\
-	set_bit(CACHEFILES_DEAD, &(___cache)->flags);	\
-} while (0)
+	do {							\
+		pr_err("I/O Error: " FMT"\n", ##__VA_ARGS__);	\
+		fscache_io_error(&(___cache)->cache);		\
+		set_bit(CACHEFILES_DEAD, &(___cache)->flags);	\
+	} while (0)
 
 #define cachefiles_io_error_obj(object, FMT, ...)			\
-do {									\
-	struct cachefiles_cache *___cache;				\
-									\
-	___cache = container_of((object)->fscache.cache,		\
-				struct cachefiles_cache, cache);	\
-	cachefiles_io_error(___cache, FMT, ##__VA_ARGS__);		\
-} while (0)
+	do {									\
+		struct cachefiles_cache *___cache;				\
+		\
+		___cache = container_of((object)->fscache.cache,		\
+								struct cachefiles_cache, cache);	\
+		cachefiles_io_error(___cache, FMT, ##__VA_ARGS__);		\
+	} while (0)
 
 
 /*
@@ -292,22 +301,22 @@ do {									\
 
 #elif defined(CONFIG_CACHEFILES_DEBUG)
 #define _enter(FMT, ...)				\
-do {							\
-	if (cachefiles_debug & CACHEFILES_DEBUG_KENTER)	\
-		kenter(FMT, ##__VA_ARGS__);		\
-} while (0)
+	do {							\
+		if (cachefiles_debug & CACHEFILES_DEBUG_KENTER)	\
+			kenter(FMT, ##__VA_ARGS__);		\
+	} while (0)
 
 #define _leave(FMT, ...)				\
-do {							\
-	if (cachefiles_debug & CACHEFILES_DEBUG_KLEAVE)	\
-		kleave(FMT, ##__VA_ARGS__);		\
-} while (0)
+	do {							\
+		if (cachefiles_debug & CACHEFILES_DEBUG_KLEAVE)	\
+			kleave(FMT, ##__VA_ARGS__);		\
+	} while (0)
 
 #define _debug(FMT, ...)				\
-do {							\
-	if (cachefiles_debug & CACHEFILES_DEBUG_KDEBUG)	\
-		kdebug(FMT, ##__VA_ARGS__);		\
-} while (0)
+	do {							\
+		if (cachefiles_debug & CACHEFILES_DEBUG_KDEBUG)	\
+			kdebug(FMT, ##__VA_ARGS__);		\
+	} while (0)
 
 #else
 #define _enter(FMT, ...) no_printk("==> %s("FMT")", __func__, ##__VA_ARGS__)
@@ -318,44 +327,44 @@ do {							\
 #if 1 /* defined(__KDEBUGALL) */
 
 #define ASSERT(X)							\
-do {									\
-	if (unlikely(!(X))) {						\
-		pr_err("\n");						\
-		pr_err("Assertion failed\n");		\
-		BUG();							\
-	}								\
-} while (0)
+	do {									\
+		if (unlikely(!(X))) {						\
+			pr_err("\n");						\
+			pr_err("Assertion failed\n");		\
+			BUG();							\
+		}								\
+	} while (0)
 
 #define ASSERTCMP(X, OP, Y)						\
-do {									\
-	if (unlikely(!((X) OP (Y)))) {					\
-		pr_err("\n");						\
-		pr_err("Assertion failed\n");		\
-		pr_err("%lx " #OP " %lx is false\n",			\
-		       (unsigned long)(X), (unsigned long)(Y));		\
-		BUG();							\
-	}								\
-} while (0)
+	do {									\
+		if (unlikely(!((X) OP (Y)))) {					\
+			pr_err("\n");						\
+			pr_err("Assertion failed\n");		\
+			pr_err("%lx " #OP " %lx is false\n",			\
+				   (unsigned long)(X), (unsigned long)(Y));		\
+			BUG();							\
+		}								\
+	} while (0)
 
 #define ASSERTIF(C, X)							\
-do {									\
-	if (unlikely((C) && !(X))) {					\
-		pr_err("\n");						\
-		pr_err("Assertion failed\n");		\
-		BUG();							\
-	}								\
-} while (0)
+	do {									\
+		if (unlikely((C) && !(X))) {					\
+			pr_err("\n");						\
+			pr_err("Assertion failed\n");		\
+			BUG();							\
+		}								\
+	} while (0)
 
 #define ASSERTIFCMP(C, X, OP, Y)					\
-do {									\
-	if (unlikely((C) && !((X) OP (Y)))) {				\
-		pr_err("\n");						\
-		pr_err("Assertion failed\n");		\
-		pr_err("%lx " #OP " %lx is false\n",			\
-		       (unsigned long)(X), (unsigned long)(Y));		\
-		BUG();							\
-	}								\
-} while (0)
+	do {									\
+		if (unlikely((C) && !((X) OP (Y)))) {				\
+			pr_err("\n");						\
+			pr_err("Assertion failed\n");		\
+			pr_err("%lx " #OP " %lx is false\n",			\
+				   (unsigned long)(X), (unsigned long)(Y));		\
+			BUG();							\
+		}								\
+	} while (0)
 
 #else
 

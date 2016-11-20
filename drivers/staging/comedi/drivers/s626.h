@@ -141,10 +141,10 @@
 					 * PCI/RPS clks (undocumented!!).
 					 */
 #define S626_RPSCLK_PER_US	(33 / S626_RPSCLK_SCALAR)
-					/*
-					 * Number of RPS clocks in one
-					 * microsecond.
-					 */
+/*
+ * Number of RPS clocks in one
+ * microsecond.
+ */
 
 /* Event counter source addresses. */
 #define S626_SBA_RPS_A0		0x27	/* Time of RPS0 busy, in PCI clocks. */
@@ -285,7 +285,7 @@
 
 /* Counter PreLoad (write) and Latch (read) Registers: 0A 1A 2A 0B 1B 2B */
 #define S626_LP_CNTR(x)		(0x000c  + (((x) < 3) ? 0x0 : 0x4) + \
-					   (((x) % 3) * 0x8))
+							 (((x) % 3) * 0x8))
 
 /* Miscellaneous Registers (read/write): */
 #define S626_LP_MISC1		0x0088	/* Read/write Misc1. */
@@ -369,8 +369,8 @@
 						 */
 
 #define S626_ACON2_INIT		(S626_ACON2_XORMASK ^ \
-				 (S626_A1_CLKSRC_BCLK1 | S626_A2_CLKSRC_X2 | \
-				  S626_INVERT_BCLK2 | S626_BCLK2_OE))
+							 (S626_A1_CLKSRC_BCLK1 | S626_A2_CLKSRC_X2 | \
+							  S626_INVERT_BCLK2 | S626_BCLK2_OE))
 
 /* Bit masks for timeslot records. */
 #define S626_WS1		0x40000000	/* WS output to assert. */
@@ -477,10 +477,10 @@
 						 * on GPIO3.
 						 */
 #define S626_DEBI_CFG_XRESUME	0x40000000	/* Resume block */
-						/*
-						 * Transfer when XIRQ
-						 * deasserted.
-						 */
+/*
+ * Transfer when XIRQ
+ * deasserted.
+ */
 #define S626_DEBI_CFG_TOQ	0x03C00000	/* Timeout (15 PCI cycles). */
 #define S626_DEBI_CFG_FAST	0x10000000	/* Fast mode enable. */
 
@@ -510,23 +510,23 @@
 
 #if S626_PLATFORM == S626_INTEL
 
-#define S626_DEBI_TOUT		7	/*
-					 * Wait 7 PCI clocks (212 ns) before
-					 * polling RDY.
-					 */
+	#define S626_DEBI_TOUT		7	/*
+	* Wait 7 PCI clocks (212 ns) before
+	* polling RDY.
+	*/
 
-/* Intel byte lane steering (pass through all byte lanes). */
-#define S626_DEBI_SWAP		S626_DEBI_CFG_SWAP_NONE
+	/* Intel byte lane steering (pass through all byte lanes). */
+	#define S626_DEBI_SWAP		S626_DEBI_CFG_SWAP_NONE
 
 #elif S626_PLATFORM == S626_MOTOROLA
 
-#define S626_DEBI_TOUT		15	/*
-					 * Wait 15 PCI clocks (454 ns) maximum
-					 * before timing out.
-					 */
+	#define S626_DEBI_TOUT		15	/*
+	* Wait 15 PCI clocks (454 ns) maximum
+	* before timing out.
+	*/
 
-/* Motorola byte lane steering. */
-#define S626_DEBI_SWAP		S626_DEBI_CFG_SWAP_2
+	/* Motorola byte lane steering. */
+	#define S626_DEBI_SWAP		S626_DEBI_CFG_SWAP_2
 
 #endif
 
@@ -747,8 +747,8 @@
 
 /* Interrupt reset control bits. */
 #define S626_CRBMSK_INTCTRL	(S626_CRBMSK_INTRESETCMD | \
-				 S626_CRBMSK_INTRESET_A | \
-				 S626_CRBMSK_INTRESET_B)
+							 S626_CRBMSK_INTRESET_A | \
+							 S626_CRBMSK_INTRESET_B)
 
 /* Construct parts of the CRB value: */
 #define S626_SET_CRB_INTRESETCMD(x)	\

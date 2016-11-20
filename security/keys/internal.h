@@ -48,7 +48,8 @@ extern struct key_type key_type_logon;
  *
  * We also keep track of keys under request from userspace for this UID here.
  */
-struct key_user {
+struct key_user
+{
 	struct rb_node		node;
 	struct mutex		cons_lock;	/* construction initiation lock */
 	spinlock_t		lock;
@@ -90,25 +91,26 @@ extern struct key_type *key_type_lookup(const char *type);
 extern void key_type_put(struct key_type *ktype);
 
 extern int __key_link_begin(struct key *keyring,
-			    const struct keyring_index_key *index_key,
-			    struct assoc_array_edit **_edit);
+							const struct keyring_index_key *index_key,
+							struct assoc_array_edit **_edit);
 extern int __key_link_check_live_key(struct key *keyring, struct key *key);
 extern void __key_link(struct key *key, struct assoc_array_edit **_edit);
 extern void __key_link_end(struct key *keyring,
-			   const struct keyring_index_key *index_key,
-			   struct assoc_array_edit *edit);
+						   const struct keyring_index_key *index_key,
+						   struct assoc_array_edit *edit);
 
 extern key_ref_t find_key_to_update(key_ref_t keyring_ref,
-				    const struct keyring_index_key *index_key);
+									const struct keyring_index_key *index_key);
 
 extern struct key *keyring_search_instkey(struct key *keyring,
-					  key_serial_t target_id);
+		key_serial_t target_id);
 
 extern int iterate_over_keyring(const struct key *keyring,
-				int (*func)(const struct key *key, void *data),
-				void *data);
+								int (*func)(const struct key *key, void *data),
+								void *data);
 
-struct keyring_search_context {
+struct keyring_search_context
+{
 	struct keyring_index_key index_key;
 	const struct cred	*cred;
 	struct key_match_data	match_data;
@@ -130,9 +132,9 @@ struct keyring_search_context {
 };
 
 extern bool key_default_cmp(const struct key *key,
-			    const struct key_match_data *match_data);
+							const struct key_match_data *match_data);
 extern key_ref_t keyring_search_aux(key_ref_t keyring_ref,
-				    struct keyring_search_context *ctx);
+									struct keyring_search_context *ctx);
 
 extern key_ref_t search_my_process_keyrings(struct keyring_search_context *ctx);
 extern key_ref_t search_process_keyrings(struct keyring_search_context *ctx);
@@ -145,17 +147,17 @@ extern int install_process_keyring_to_cred(struct cred *);
 extern int install_session_keyring_to_cred(struct cred *, struct key *);
 
 extern struct key *request_key_and_link(struct key_type *type,
-					const char *description,
-					const void *callout_info,
-					size_t callout_len,
-					void *aux,
-					struct key *dest_keyring,
-					unsigned long flags);
+										const char *description,
+										const void *callout_info,
+										size_t callout_len,
+										void *aux,
+										struct key *dest_keyring,
+										unsigned long flags);
 
 extern bool lookup_user_key_possessed(const struct key *key,
-				      const struct key_match_data *match_data);
+									  const struct key_match_data *match_data);
 extern key_ref_t lookup_user_key(key_serial_t id, unsigned long flags,
-				 key_perm_t perm);
+								 key_perm_t perm);
 #define KEY_LOOKUP_CREATE	0x01
 #define KEY_LOOKUP_PARTIAL	0x02
 #define KEY_LOOKUP_FOR_UNLINK	0x04
@@ -171,8 +173,8 @@ extern void key_schedule_gc_links(void);
 extern void key_gc_keytype(struct key_type *ktype);
 
 extern int key_task_permission(const key_ref_t key_ref,
-			       const struct cred *cred,
-			       key_perm_t perm);
+							   const struct cred *cred,
+							   key_perm_t perm);
 
 /*
  * Check to see whether permission is granted to use a key in the desired way.
@@ -185,7 +187,8 @@ static inline int key_permission(const key_ref_t key_ref, unsigned perm)
 /*
  * Authorisation record for request_key().
  */
-struct request_key_auth {
+struct request_key_auth
+{
 	struct key		*target_key;
 	struct key		*dest_keyring;
 	const struct cred	*cred;
@@ -196,9 +199,9 @@ struct request_key_auth {
 
 extern struct key_type key_type_request_key_auth;
 extern struct key *request_key_auth_new(struct key *target,
-					const void *callout_info,
-					size_t callout_len,
-					struct key *dest_keyring);
+										const void *callout_info,
+										size_t callout_len,
+										struct key *dest_keyring);
 
 extern struct key *key_get_instantiation_authkey(key_serial_t target_id);
 
@@ -209,7 +212,7 @@ static inline bool key_is_dead(const struct key *key, time_t limit)
 {
 	return
 		key->flags & ((1 << KEY_FLAG_DEAD) |
-			      (1 << KEY_FLAG_INVALIDATED)) ||
+					  (1 << KEY_FLAG_INVALIDATED)) ||
 		(key->expiry > 0 && key->expiry <= limit);
 }
 
@@ -225,29 +228,29 @@ extern long keyctl_keyring_link(key_serial_t, key_serial_t);
 extern long keyctl_keyring_unlink(key_serial_t, key_serial_t);
 extern long keyctl_describe_key(key_serial_t, char __user *, size_t);
 extern long keyctl_keyring_search(key_serial_t, const char __user *,
-				  const char __user *, key_serial_t);
+								  const char __user *, key_serial_t);
 extern long keyctl_read_key(key_serial_t, char __user *, size_t);
 extern long keyctl_chown_key(key_serial_t, uid_t, gid_t);
 extern long keyctl_setperm_key(key_serial_t, key_perm_t);
 extern long keyctl_instantiate_key(key_serial_t, const void __user *,
-				   size_t, key_serial_t);
+								   size_t, key_serial_t);
 extern long keyctl_negate_key(key_serial_t, unsigned, key_serial_t);
 extern long keyctl_set_reqkey_keyring(int);
 extern long keyctl_set_timeout(key_serial_t, unsigned);
 extern long keyctl_assume_authority(key_serial_t);
 extern long keyctl_get_security(key_serial_t keyid, char __user *buffer,
-				size_t buflen);
+								size_t buflen);
 extern long keyctl_session_to_parent(void);
 extern long keyctl_reject_key(key_serial_t, unsigned, unsigned, key_serial_t);
 extern long keyctl_instantiate_key_iov(key_serial_t,
-				       const struct iovec __user *,
-				       unsigned, key_serial_t);
+									   const struct iovec __user *,
+									   unsigned, key_serial_t);
 extern long keyctl_invalidate_key(key_serial_t);
 
 struct iov_iter;
 extern long keyctl_instantiate_key_common(key_serial_t,
-					  struct iov_iter *,
-					  key_serial_t);
+		struct iov_iter *,
+		key_serial_t);
 #ifdef CONFIG_PERSISTENT_KEYRINGS
 extern long keyctl_get_persistent(uid_t, key_serial_t);
 extern unsigned persistent_keyring_expiry;
@@ -260,11 +263,11 @@ static inline long keyctl_get_persistent(uid_t uid, key_serial_t destring)
 
 #ifdef CONFIG_KEY_DH_OPERATIONS
 extern long keyctl_dh_compute(struct keyctl_dh_params __user *, char __user *,
-			      size_t, void __user *);
+							  size_t, void __user *);
 #else
 static inline long keyctl_dh_compute(struct keyctl_dh_params __user *params,
-				     char __user *buffer, size_t buflen,
-				     void __user *reserved)
+									 char __user *buffer, size_t buflen,
+									 void __user *reserved)
 {
 	return -EOPNOTSUPP;
 }
@@ -279,7 +282,9 @@ extern void __key_check(const struct key *);
 static inline void key_check(const struct key *key)
 {
 	if (key && (IS_ERR(key) || key->magic != KEY_DEBUG_MAGIC))
+	{
 		__key_check(key);
+	}
 }
 
 #else

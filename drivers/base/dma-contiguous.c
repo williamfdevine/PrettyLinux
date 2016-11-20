@@ -14,9 +14,9 @@
 #define pr_fmt(fmt) "cma: " fmt
 
 #ifdef CONFIG_CMA_DEBUG
-#ifndef DEBUG
-#  define DEBUG
-#endif
+	#ifndef DEBUG
+		#define DEBUG
+	#endif
 #endif
 
 #include <asm/page.h>
@@ -29,9 +29,9 @@
 #include <linux/cma.h>
 
 #ifdef CONFIG_CMA_SIZE_MBYTES
-#define CMA_SIZE_MBYTES CONFIG_CMA_SIZE_MBYTES
+	#define CMA_SIZE_MBYTES CONFIG_CMA_SIZE_MBYTES
 #else
-#define CMA_SIZE_MBYTES 0
+	#define CMA_SIZE_MBYTES 0
 #endif
 
 struct cma *dma_contiguous_default_area;
@@ -55,13 +55,20 @@ static int __init early_cma(char *p)
 {
 	pr_debug("%s(%s)\n", __func__, p);
 	size_cmdline = memparse(p, &p);
+
 	if (*p != '@')
+	{
 		return 0;
+	}
+
 	base_cmdline = memparse(p + 1, &p);
-	if (*p != '-') {
+
+	if (*p != '-')
+	{
 		limit_cmdline = base_cmdline + size_cmdline;
 		return 0;
 	}
+
 	limit_cmdline = memparse(p + 1, &p);
 
 	return 0;
@@ -80,8 +87,8 @@ static phys_addr_t __init __maybe_unused cma_early_percent_memory(void)
 	 * memblock_analyze() has not been called yet.
 	 */
 	for_each_memblock(memory, reg)
-		total_pages += memblock_region_memory_end_pfn(reg) -
-			       memblock_region_memory_base_pfn(reg);
+	total_pages += memblock_region_memory_end_pfn(reg) -
+				   memblock_region_memory_base_pfn(reg);
 
 	return (total_pages * CONFIG_CMA_SIZE_PERCENTAGE / 100) << PAGE_SHIFT;
 }
@@ -113,13 +120,19 @@ void __init dma_contiguous_reserve(phys_addr_t limit)
 
 	pr_debug("%s(limit %08lx)\n", __func__, (unsigned long)limit);
 
-	if (size_cmdline != -1) {
+	if (size_cmdline != -1)
+	{
 		selected_size = size_cmdline;
 		selected_base = base_cmdline;
 		selected_limit = min_not_zero(limit_cmdline, limit);
+
 		if (base_cmdline + size_cmdline == limit_cmdline)
+		{
 			fixed = true;
-	} else {
+		}
+	}
+	else
+	{
 #ifdef CONFIG_CMA_SIZE_SEL_MBYTES
 		selected_size = size_bytes;
 #elif defined(CONFIG_CMA_SIZE_SEL_PERCENTAGE)
@@ -131,14 +144,15 @@ void __init dma_contiguous_reserve(phys_addr_t limit)
 #endif
 	}
 
-	if (selected_size && !dma_contiguous_default_area) {
+	if (selected_size && !dma_contiguous_default_area)
+	{
 		pr_debug("%s: reserving %ld MiB for global area\n", __func__,
-			 (unsigned long)selected_size / SZ_1M);
+				 (unsigned long)selected_size / SZ_1M);
 
 		dma_contiguous_reserve_area(selected_size, selected_base,
-					    selected_limit,
-					    &dma_contiguous_default_area,
-					    fixed);
+									selected_limit,
+									&dma_contiguous_default_area,
+									fixed);
 	}
 }
 
@@ -160,18 +174,21 @@ void __init dma_contiguous_reserve(phys_addr_t limit)
  * reserve in range from @base to @limit.
  */
 int __init dma_contiguous_reserve_area(phys_addr_t size, phys_addr_t base,
-				       phys_addr_t limit, struct cma **res_cma,
-				       bool fixed)
+									   phys_addr_t limit, struct cma **res_cma,
+									   bool fixed)
 {
 	int ret;
 
 	ret = cma_declare_contiguous(base, size, limit, 0, 0, fixed, res_cma);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Architecture specific contiguous memory fixup. */
 	dma_contiguous_early_fixup(cma_get_base(*res_cma),
-				cma_get_size(*res_cma));
+							   cma_get_size(*res_cma));
 
 	return 0;
 }
@@ -188,10 +205,12 @@ int __init dma_contiguous_reserve_area(phys_addr_t size, phys_addr_t base,
  * function.
  */
 struct page *dma_alloc_from_contiguous(struct device *dev, size_t count,
-				       unsigned int align)
+									   unsigned int align)
 {
 	if (align > CONFIG_CMA_ALIGNMENT)
+	{
 		align = CONFIG_CMA_ALIGNMENT;
+	}
 
 	return cma_alloc(dev_get_cma_area(dev), count, align);
 }
@@ -207,7 +226,7 @@ struct page *dma_alloc_from_contiguous(struct device *dev, size_t count,
  * true otherwise.
  */
 bool dma_release_from_contiguous(struct device *dev, struct page *pages,
-				 int count)
+								 int count)
 {
 	return cma_release(dev_get_cma_area(dev), pages, count);
 }
@@ -230,12 +249,13 @@ static int rmem_cma_device_init(struct reserved_mem *rmem, struct device *dev)
 }
 
 static void rmem_cma_device_release(struct reserved_mem *rmem,
-				    struct device *dev)
+									struct device *dev)
 {
 	dev_set_cma_area(dev, NULL);
 }
 
-static const struct reserved_mem_ops rmem_cma_ops = {
+static const struct reserved_mem_ops rmem_cma_ops =
+{
 	.device_init	= rmem_cma_device_init,
 	.device_release = rmem_cma_device_release,
 };
@@ -249,30 +269,38 @@ static int __init rmem_cma_setup(struct reserved_mem *rmem)
 	int err;
 
 	if (!of_get_flat_dt_prop(node, "reusable", NULL) ||
-	    of_get_flat_dt_prop(node, "no-map", NULL))
+		of_get_flat_dt_prop(node, "no-map", NULL))
+	{
 		return -EINVAL;
+	}
 
-	if ((rmem->base & mask) || (rmem->size & mask)) {
+	if ((rmem->base & mask) || (rmem->size & mask))
+	{
 		pr_err("Reserved memory: incorrect alignment of CMA region\n");
 		return -EINVAL;
 	}
 
 	err = cma_init_reserved_mem(rmem->base, rmem->size, 0, &cma);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Reserved memory: unable to setup CMA region\n");
 		return err;
 	}
+
 	/* Architecture specific contiguous memory fixup. */
 	dma_contiguous_early_fixup(rmem->base, rmem->size);
 
 	if (of_get_flat_dt_prop(node, "linux,cma-default", NULL))
+	{
 		dma_contiguous_set_default(cma);
+	}
 
 	rmem->ops = &rmem_cma_ops;
 	rmem->priv = cma;
 
 	pr_info("Reserved memory: created CMA memory pool at %pa, size %ld MiB\n",
-		&rmem->base, (unsigned long)rmem->size / SZ_1M);
+			&rmem->base, (unsigned long)rmem->size / SZ_1M);
 
 	return 0;
 }

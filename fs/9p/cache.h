@@ -45,17 +45,17 @@ extern void __v9fs_cache_unregister(void);
 extern int __v9fs_fscache_release_page(struct page *page, gfp_t gfp);
 extern void __v9fs_fscache_invalidate_page(struct page *page);
 extern int __v9fs_readpage_from_fscache(struct inode *inode,
-					struct page *page);
+										struct page *page);
 extern int __v9fs_readpages_from_fscache(struct inode *inode,
-					 struct address_space *mapping,
-					 struct list_head *pages,
-					 unsigned *nr_pages);
+		struct address_space *mapping,
+		struct list_head *pages,
+		unsigned *nr_pages);
 extern void __v9fs_readpage_to_fscache(struct inode *inode, struct page *page);
 extern void __v9fs_fscache_wait_on_page_write(struct inode *inode,
-					      struct page *page);
+		struct page *page);
 
 static inline int v9fs_fscache_release_page(struct page *page,
-					    gfp_t gfp)
+		gfp_t gfp)
 {
 	return __v9fs_fscache_release_page(page, gfp);
 }
@@ -66,25 +66,27 @@ static inline void v9fs_fscache_invalidate_page(struct page *page)
 }
 
 static inline int v9fs_readpage_from_fscache(struct inode *inode,
-					     struct page *page)
+		struct page *page)
 {
 	return __v9fs_readpage_from_fscache(inode, page);
 }
 
 static inline int v9fs_readpages_from_fscache(struct inode *inode,
-					      struct address_space *mapping,
-					      struct list_head *pages,
-					      unsigned *nr_pages)
+		struct address_space *mapping,
+		struct list_head *pages,
+		unsigned *nr_pages)
 {
 	return __v9fs_readpages_from_fscache(inode, mapping, pages,
-					     nr_pages);
+										 nr_pages);
 }
 
 static inline void v9fs_readpage_to_fscache(struct inode *inode,
-					    struct page *page)
+		struct page *page)
 {
 	if (PageFsCache(page))
+	{
 		__v9fs_readpage_to_fscache(inode, page);
+	}
 }
 
 static inline void v9fs_uncache_page(struct inode *inode, struct page *page)
@@ -95,7 +97,7 @@ static inline void v9fs_uncache_page(struct inode *inode, struct page *page)
 }
 
 static inline void v9fs_fscache_wait_on_page_write(struct inode *inode,
-						   struct page *page)
+		struct page *page)
 {
 	return __v9fs_fscache_wait_on_page_write(inode, page);
 }
@@ -115,35 +117,36 @@ static inline void v9fs_cache_inode_set_cookie(struct inode *inode, struct file 
 }
 
 static inline int v9fs_fscache_release_page(struct page *page,
-					    gfp_t gfp) {
+		gfp_t gfp)
+{
 	return 1;
 }
 
 static inline void v9fs_fscache_invalidate_page(struct page *page) {}
 
 static inline int v9fs_readpage_from_fscache(struct inode *inode,
-					     struct page *page)
+		struct page *page)
 {
 	return -ENOBUFS;
 }
 
 static inline int v9fs_readpages_from_fscache(struct inode *inode,
-					      struct address_space *mapping,
-					      struct list_head *pages,
-					      unsigned *nr_pages)
+		struct address_space *mapping,
+		struct list_head *pages,
+		unsigned *nr_pages)
 {
 	return -ENOBUFS;
 }
 
 static inline void v9fs_readpage_to_fscache(struct inode *inode,
-					    struct page *page)
+		struct page *page)
 {}
 
 static inline void v9fs_uncache_page(struct inode *inode, struct page *page)
 {}
 
 static inline void v9fs_fscache_wait_on_page_write(struct inode *inode,
-						   struct page *page)
+		struct page *page)
 {
 	return;
 }

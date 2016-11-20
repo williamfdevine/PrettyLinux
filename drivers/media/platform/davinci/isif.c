@@ -44,7 +44,8 @@
 #include "ccdc_hw_device.h"
 
 /* Defaults for module configuration parameters */
-static struct isif_config_params_raw isif_config_defaults = {
+static struct isif_config_params_raw isif_config_defaults =
+{
 	.linearize = {
 		.en = 0,
 		.corr_shft = ISIF_NO_SHIFT,
@@ -81,7 +82,8 @@ static struct isif_config_params_raw isif_config_defaults = {
 };
 
 /* ISIF operation configuration */
-static struct isif_oper_config {
+static struct isif_oper_config
+{
 	struct device *dev;
 	enum vpfe_hw_if_type if_type;
 	struct isif_ycbcr_config ycbcr;
@@ -93,7 +95,8 @@ static struct isif_oper_config {
 	void __iomem *linear_tbl0_addr;
 	/* ISIF Linear Table 1 */
 	void __iomem *linear_tbl1_addr;
-} isif_cfg = {
+} isif_cfg =
+{
 	.ycbcr = {
 		.pix_fmt = CCDC_PIXFMT_YCBCR_8BIT,
 		.frm_fmt = CCDC_FRMFMT_INTERLACED,
@@ -140,12 +143,16 @@ static struct isif_oper_config {
 };
 
 /* Raw Bayer formats */
-static const u32 isif_raw_bayer_pix_formats[] = {
-	V4L2_PIX_FMT_SBGGR8, V4L2_PIX_FMT_SBGGR16};
+static const u32 isif_raw_bayer_pix_formats[] =
+{
+	V4L2_PIX_FMT_SBGGR8, V4L2_PIX_FMT_SBGGR16
+};
 
 /* Raw YUV formats */
-static const u32 isif_raw_yuv_pix_formats[] = {
-	V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_YUYV};
+static const u32 isif_raw_yuv_pix_formats[] =
+{
+	V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_YUYV
+};
 
 /* register access routines */
 static inline u32 regr(u32 offset)
@@ -170,9 +177,13 @@ static inline u32 reg_modify(u32 mask, u32 val, u32 offset)
 static inline void regw_lin_tbl(u32 val, u32 offset, int i)
 {
 	if (!i)
+	{
 		__raw_writel(val, isif_cfg.linear_tbl0_addr + offset);
+	}
 	else
+	{
 		__raw_writel(val, isif_cfg.linear_tbl1_addr + offset);
+	}
 }
 
 static void isif_disable_all_modules(void)
@@ -190,7 +201,8 @@ static void isif_disable_all_modules(void)
 
 static void isif_enable(int en)
 {
-	if (!en) {
+	if (!en)
+	{
 		/* Before disable isif, disable all ISIF modules */
 		isif_disable_all_modules();
 		/*
@@ -199,6 +211,7 @@ static void isif_enable(int en)
 		 */
 		msleep(100);
 	}
+
 	reg_modify(ISIF_SYNCEN_VDHDEN_MASK, en, SYNCEN);
 }
 
@@ -220,38 +233,38 @@ static void isif_config_culling(struct isif_cul *cul)
 
 	/* LPF */
 	reg_modify(ISIF_LPF_MASK << ISIF_LPF_SHIFT,
-		  cul->en_lpf << ISIF_LPF_SHIFT, MODESET);
+			   cul->en_lpf << ISIF_LPF_SHIFT, MODESET);
 }
 
 static void isif_config_gain_offset(void)
 {
 	struct isif_gain_offsets_adj *gain_off_p =
-		&isif_cfg.bayer.config_params.gain_offset;
+			&isif_cfg.bayer.config_params.gain_offset;
 	u32 val;
 
 	val = (!!gain_off_p->gain_sdram_en << GAIN_SDRAM_EN_SHIFT) |
-	      (!!gain_off_p->gain_ipipe_en << GAIN_IPIPE_EN_SHIFT) |
-	      (!!gain_off_p->gain_h3a_en << GAIN_H3A_EN_SHIFT) |
-	      (!!gain_off_p->offset_sdram_en << OFST_SDRAM_EN_SHIFT) |
-	      (!!gain_off_p->offset_ipipe_en << OFST_IPIPE_EN_SHIFT) |
-	      (!!gain_off_p->offset_h3a_en << OFST_H3A_EN_SHIFT);
+		  (!!gain_off_p->gain_ipipe_en << GAIN_IPIPE_EN_SHIFT) |
+		  (!!gain_off_p->gain_h3a_en << GAIN_H3A_EN_SHIFT) |
+		  (!!gain_off_p->offset_sdram_en << OFST_SDRAM_EN_SHIFT) |
+		  (!!gain_off_p->offset_ipipe_en << OFST_IPIPE_EN_SHIFT) |
+		  (!!gain_off_p->offset_h3a_en << OFST_H3A_EN_SHIFT);
 
 	reg_modify(GAIN_OFFSET_EN_MASK, val, CGAMMAWD);
 
 	val = (gain_off_p->gain.r_ye.integer << GAIN_INTEGER_SHIFT) |
-	       gain_off_p->gain.r_ye.decimal;
+		  gain_off_p->gain.r_ye.decimal;
 	regw(val, CRGAIN);
 
 	val = (gain_off_p->gain.gr_cy.integer << GAIN_INTEGER_SHIFT) |
-	       gain_off_p->gain.gr_cy.decimal;
+		  gain_off_p->gain.gr_cy.decimal;
 	regw(val, CGRGAIN);
 
 	val = (gain_off_p->gain.gb_g.integer << GAIN_INTEGER_SHIFT) |
-	       gain_off_p->gain.gb_g.decimal;
+		  gain_off_p->gain.gb_g.decimal;
 	regw(val, CGBGAIN);
 
 	val = (gain_off_p->gain.b_mg.integer << GAIN_INTEGER_SHIFT) |
-	       gain_off_p->gain.b_mg.decimal;
+		  gain_off_p->gain.b_mg.decimal;
 	regw(val, CBGAIN);
 
 	regw(gain_off_p->offset, COFSTA);
@@ -281,7 +294,7 @@ static int isif_open(struct device *device)
 
 /* This function will configure the window size to be capture in ISIF reg */
 static void isif_setwin(struct v4l2_rect *image_win,
-			enum ccdc_frmfmt frm_fmt, int ppc)
+						enum ccdc_frmfmt frm_fmt, int ppc)
 {
 	int horz_start, horz_nr_pixels;
 	int vert_start, vert_nr_lines;
@@ -301,12 +314,15 @@ static void isif_setwin(struct v4l2_rect *image_win,
 	regw(horz_nr_pixels & NUM_PX_HOR_MASK, LNH);
 	vert_start = image_win->top;
 
-	if (frm_fmt == CCDC_FRMFMT_INTERLACED) {
+	if (frm_fmt == CCDC_FRMFMT_INTERLACED)
+	{
 		vert_nr_lines = (image_win->height >> 1) - 1;
 		vert_start >>= 1;
 		/* To account for VD since line 0 doesn't have any data */
 		vert_start += 1;
-	} else {
+	}
+	else
+	{
 		/* To account for VD since line 0 doesn't have any data */
 		vert_start += 1;
 		vert_nr_lines = image_win->height - 1;
@@ -331,7 +347,8 @@ static void isif_config_bclamp(struct isif_black_clamp *bc)
 	 */
 	regw(bc->dc_offset, CLDCOFST);
 
-	if (bc->en) {
+	if (bc->en)
+	{
 		val = bc->bc_mode_color << ISIF_BC_MODE_COLOR_SHIFT;
 
 		/* Enable BC and horizontal clamp caculation paramaters */
@@ -339,7 +356,8 @@ static void isif_config_bclamp(struct isif_black_clamp *bc)
 
 		regw(val, CLAMPCFG);
 
-		if (bc->horz.mode != ISIF_HORZ_BC_DISABLE) {
+		if (bc->horz.mode != ISIF_HORZ_BC_DISABLE)
+		{
 			/*
 			 * Window count for calculation
 			 * Base window selection
@@ -350,14 +368,14 @@ static void isif_config_bclamp(struct isif_black_clamp *bc)
 			 * Vertical start position of the window
 			 */
 			val = bc->horz.win_count_calc |
-			      ((!!bc->horz.base_win_sel_calc) <<
-				ISIF_HORZ_BC_WIN_SEL_SHIFT) |
-			      ((!!bc->horz.clamp_pix_limit) <<
-				ISIF_HORZ_BC_PIX_LIMIT_SHIFT) |
-			      (bc->horz.win_h_sz_calc <<
-				ISIF_HORZ_BC_WIN_H_SIZE_SHIFT) |
-			      (bc->horz.win_v_sz_calc <<
-				ISIF_HORZ_BC_WIN_V_SIZE_SHIFT);
+				  ((!!bc->horz.base_win_sel_calc) <<
+				   ISIF_HORZ_BC_WIN_SEL_SHIFT) |
+				  ((!!bc->horz.clamp_pix_limit) <<
+				   ISIF_HORZ_BC_PIX_LIMIT_SHIFT) |
+				  (bc->horz.win_h_sz_calc <<
+				   ISIF_HORZ_BC_WIN_H_SIZE_SHIFT) |
+				  (bc->horz.win_v_sz_calc <<
+				   ISIF_HORZ_BC_WIN_V_SIZE_SHIFT);
 			regw(val, CLHWIN0);
 
 			regw(bc->horz.win_start_h_calc, CLHWIN1);
@@ -368,8 +386,8 @@ static void isif_config_bclamp(struct isif_black_clamp *bc)
 
 		/* Reset clamp value sel for previous line */
 		val |=
-		(bc->vert.reset_val_sel << ISIF_VERT_BC_RST_VAL_SEL_SHIFT) |
-		(bc->vert.line_ave_coef << ISIF_VERT_BC_LINE_AVE_COEF_SHIFT);
+			(bc->vert.reset_val_sel << ISIF_VERT_BC_RST_VAL_SEL_SHIFT) |
+			(bc->vert.line_ave_coef << ISIF_VERT_BC_LINE_AVE_COEF_SHIFT);
 		regw(val, CLVWIN0);
 
 		/* Optical Black horizontal start position */
@@ -387,7 +405,8 @@ static void isif_config_linearization(struct isif_linearize *linearize)
 {
 	u32 val, i;
 
-	if (!linearize->en) {
+	if (!linearize->en)
+	{
 		regw(0, LINCFG0);
 		return;
 	}
@@ -398,33 +417,42 @@ static void isif_config_linearization(struct isif_linearize *linearize)
 
 	/* Scale factor */
 	val = ((!!linearize->scale_fact.integer) <<
-	       ISIF_LIN_SCALE_FACT_INTEG_SHIFT) |
-	       linearize->scale_fact.decimal;
+		   ISIF_LIN_SCALE_FACT_INTEG_SHIFT) |
+		  linearize->scale_fact.decimal;
 	regw(val, LINCFG1);
 
-	for (i = 0; i < ISIF_LINEAR_TAB_SIZE; i++) {
+	for (i = 0; i < ISIF_LINEAR_TAB_SIZE; i++)
+	{
 		if (i % 2)
+		{
 			regw_lin_tbl(linearize->table[i], ((i >> 1) << 2), 1);
+		}
 		else
+		{
 			regw_lin_tbl(linearize->table[i], ((i >> 1) << 2), 0);
+		}
 	}
 }
 
 static int isif_config_dfc(struct isif_dfc *vdfc)
 {
 	/* initialize retries to loop for max ~ 250 usec */
-	u32 val, count, retries = loops_per_jiffy / (4000/HZ);
+	u32 val, count, retries = loops_per_jiffy / (4000 / HZ);
 	int i;
 
 	if (!vdfc->en)
+	{
 		return 0;
+	}
 
 	/* Correction mode */
 	val = (vdfc->corr_mode << ISIF_VDFC_CORR_MOD_SHIFT);
 
 	/* Correct whole line or partial */
 	if (vdfc->corr_whole_line)
+	{
 		val |= 1 << ISIF_VDFC_CORR_WHOLE_LN_SHIFT;
+	}
 
 	/* level shift value */
 	val |= vdfc->def_level_shift << ISIF_VDFC_LEVEL_SHFT_SHIFT;
@@ -436,8 +464,10 @@ static int isif_config_dfc(struct isif_dfc *vdfc)
 
 	regw(vdfc->table[0].pos_vert, DFCMEM0);
 	regw(vdfc->table[0].pos_horz, DFCMEM1);
+
 	if (vdfc->corr_mode == ISIF_VDFC_NORMAL ||
-	    vdfc->corr_mode == ISIF_VDFC_HORZ_INTERPOL_IF_SAT) {
+		vdfc->corr_mode == ISIF_VDFC_HORZ_INTERPOL_IF_SAT)
+	{
 		regw(vdfc->table[0].level_at_pos, DFCMEM2);
 		regw(vdfc->table[0].level_up_pixels, DFCMEM3);
 		regw(vdfc->table[0].level_low_pixels, DFCMEM4);
@@ -448,23 +478,31 @@ static int isif_config_dfc(struct isif_dfc *vdfc)
 	regw(val, DFCMEMCTL);
 
 	count = retries;
-	while (count && (regr(DFCMEMCTL) & 0x1))
-		count--;
 
-	if (!count) {
+	while (count && (regr(DFCMEMCTL) & 0x1))
+	{
+		count--;
+	}
+
+	if (!count)
+	{
 		dev_dbg(isif_cfg.dev, "defect table write timeout !!!\n");
 		return -1;
 	}
 
-	for (i = 1; i < vdfc->num_vdefects; i++) {
+	for (i = 1; i < vdfc->num_vdefects; i++)
+	{
 		regw(vdfc->table[i].pos_vert, DFCMEM0);
 		regw(vdfc->table[i].pos_horz, DFCMEM1);
+
 		if (vdfc->corr_mode == ISIF_VDFC_NORMAL ||
-		    vdfc->corr_mode == ISIF_VDFC_HORZ_INTERPOL_IF_SAT) {
+			vdfc->corr_mode == ISIF_VDFC_HORZ_INTERPOL_IF_SAT)
+		{
 			regw(vdfc->table[i].level_at_pos, DFCMEM2);
 			regw(vdfc->table[i].level_up_pixels, DFCMEM3);
 			regw(vdfc->table[i].level_low_pixels, DFCMEM4);
 		}
+
 		val = regr(DFCMEMCTL);
 		/* clear DFCMARST and set DFCMWR */
 		val &= ~BIT(ISIF_DFCMEMCTL_DFCMARST_SHIFT);
@@ -472,16 +510,22 @@ static int isif_config_dfc(struct isif_dfc *vdfc)
 		regw(val, DFCMEMCTL);
 
 		count = retries;
-		while (count && (regr(DFCMEMCTL) & 0x1))
-			count--;
 
-		if (!count) {
+		while (count && (regr(DFCMEMCTL) & 0x1))
+		{
+			count--;
+		}
+
+		if (!count)
+		{
 			dev_err(isif_cfg.dev,
-				"defect table write timeout !!!\n");
+					"defect table write timeout !!!\n");
 			return -1;
 		}
 	}
-	if (vdfc->num_vdefects < ISIF_VDFC_TABLE_SIZE) {
+
+	if (vdfc->num_vdefects < ISIF_VDFC_TABLE_SIZE)
+	{
 		/* Extra cycle needed */
 		regw(0, DFCMEM0);
 		regw(0x1FFF, DFCMEM1);
@@ -490,7 +534,7 @@ static int isif_config_dfc(struct isif_dfc *vdfc)
 
 	/* enable VDFC */
 	reg_modify((1 << ISIF_VDFC_EN_SHIFT), (1 << ISIF_VDFC_EN_SHIFT),
-		   DFCCTL);
+			   DFCCTL);
 	return 0;
 }
 
@@ -498,22 +542,28 @@ static void isif_config_csc(struct isif_df_csc *df_csc)
 {
 	u32 val1 = 0, val2 = 0, i;
 
-	if (!df_csc->csc.en) {
+	if (!df_csc->csc.en)
+	{
 		regw(0, CSCCTL);
 		return;
 	}
-	for (i = 0; i < ISIF_CSC_NUM_COEFF; i++) {
-		if ((i % 2) == 0) {
+
+	for (i = 0; i < ISIF_CSC_NUM_COEFF; i++)
+	{
+		if ((i % 2) == 0)
+		{
 			/* CSCM - LSB */
 			val1 = (df_csc->csc.coeff[i].integer <<
-				ISIF_CSC_COEF_INTEG_SHIFT) |
-				df_csc->csc.coeff[i].decimal;
-		} else {
+					ISIF_CSC_COEF_INTEG_SHIFT) |
+				   df_csc->csc.coeff[i].decimal;
+		}
+		else
+		{
 
 			/* CSCM - MSB */
 			val2 = (df_csc->csc.coeff[i].integer <<
-				ISIF_CSC_COEF_INTEG_SHIFT) |
-				df_csc->csc.coeff[i].decimal;
+					ISIF_CSC_COEF_INTEG_SHIFT) |
+				   df_csc->csc.coeff[i].decimal;
 			val2 <<= ISIF_CSCM_MSB_SHIFT;
 			val2 |= val1;
 			regw(val2, (CSCM0 + ((i - 1) << 1)));
@@ -544,7 +594,7 @@ static int isif_config_raw(void)
 {
 	struct isif_params_raw *params = &isif_cfg.bayer;
 	struct isif_config_params_raw *module_params =
-		&isif_cfg.bayer.config_params;
+			&isif_cfg.bayer.config_params;
 	struct vpss_pg_frame_size frame_size;
 	struct vpss_sync_pol sync;
 	u32 val;
@@ -562,8 +612,8 @@ static int isif_config_raw(void)
 	 */
 
 	val = ISIF_YCINSWP_RAW | ISIF_CCDCFG_FIDMD_LATCH_VSYNC |
-		ISIF_CCDCFG_WENLOG_AND | ISIF_CCDCFG_TRGSEL_WEN |
-		ISIF_CCDCFG_EXTRG_DISABLE | isif_cfg.data_pack;
+		  ISIF_CCDCFG_WENLOG_AND | ISIF_CCDCFG_TRGSEL_WEN |
+		  ISIF_CCDCFG_EXTRG_DISABLE | isif_cfg.data_pack;
 
 	dev_dbg(isif_cfg.dev, "Writing 0x%x to ...CCDCFG \n", val);
 	regw(val, CCDCFG);
@@ -580,13 +630,13 @@ static int isif_config_raw(void)
 	 */
 
 	val = ISIF_VDHDOUT_INPUT | (params->vd_pol << ISIF_VD_POL_SHIFT) |
-		(params->hd_pol << ISIF_HD_POL_SHIFT) |
-		(params->fid_pol << ISIF_FID_POL_SHIFT) |
-		(ISIF_DATAPOL_NORMAL << ISIF_DATAPOL_SHIFT) |
-		(ISIF_EXWEN_DISABLE << ISIF_EXWEN_SHIFT) |
-		(params->frm_fmt << ISIF_FRM_FMT_SHIFT) |
-		(params->pix_fmt << ISIF_INPUT_SHIFT) |
-		(params->config_params.data_shift << ISIF_DATASFT_SHIFT);
+		  (params->hd_pol << ISIF_HD_POL_SHIFT) |
+		  (params->fid_pol << ISIF_FID_POL_SHIFT) |
+		  (ISIF_DATAPOL_NORMAL << ISIF_DATAPOL_SHIFT) |
+		  (ISIF_EXWEN_DISABLE << ISIF_EXWEN_SHIFT) |
+		  (params->frm_fmt << ISIF_FRM_FMT_SHIFT) |
+		  (params->pix_fmt << ISIF_INPUT_SHIFT) |
+		  (params->config_params.data_shift << ISIF_DATASFT_SHIFT);
 
 	regw(val, MODESET);
 	dev_dbg(isif_cfg.dev, "Writing 0x%x to MODESET...\n", val);
@@ -599,16 +649,19 @@ static int isif_config_raw(void)
 
 	/* Gamma msb */
 	if (module_params->compress.alg == ISIF_ALAW)
+	{
 		val |= ISIF_ALAW_ENABLE;
+	}
 
 	val |= (params->data_msb << ISIF_ALAW_GAMMA_WD_SHIFT);
 	regw(val, CGAMMAWD);
 
 	/* Configure DPCM compression settings */
-	if (module_params->compress.alg == ISIF_DPCM) {
+	if (module_params->compress.alg == ISIF_DPCM)
+	{
 		val =  BIT(ISIF_DPCM_EN_SHIFT) |
-		       (module_params->compress.pred <<
-		       ISIF_DPCM_PREDICTOR_SHIFT);
+			   (module_params->compress.pred <<
+				ISIF_DPCM_PREDICTOR_SHIFT);
 	}
 
 	regw(val, MISC);
@@ -618,13 +671,13 @@ static int isif_config_raw(void)
 
 	/* Configure Color pattern */
 	val = (params->config_params.col_pat_field0.olop) |
-	      (params->config_params.col_pat_field0.olep << 2) |
-	      (params->config_params.col_pat_field0.elop << 4) |
-	      (params->config_params.col_pat_field0.elep << 6) |
-	      (params->config_params.col_pat_field1.olop << 8) |
-	      (params->config_params.col_pat_field1.olep << 10) |
-	      (params->config_params.col_pat_field1.elop << 12) |
-	      (params->config_params.col_pat_field1.elep << 14);
+		  (params->config_params.col_pat_field0.olep << 2) |
+		  (params->config_params.col_pat_field0.elop << 4) |
+		  (params->config_params.col_pat_field0.elep << 6) |
+		  (params->config_params.col_pat_field1.olop << 8) |
+		  (params->config_params.col_pat_field1.olep << 10) |
+		  (params->config_params.col_pat_field1.elop << 12) |
+		  (params->config_params.col_pat_field1.elep << 14);
 	regw(val, CCOLP);
 	dev_dbg(isif_cfg.dev, "Writing %x to CCOLP ...\n", val);
 
@@ -633,31 +686,45 @@ static int isif_config_raw(void)
 
 	/* calculate line offset in 32 bytes based on pack value */
 	if (isif_cfg.data_pack == ISIF_PACK_8BIT)
+	{
 		val |= ((params->win.width + 31) >> 5);
+	}
 	else if (isif_cfg.data_pack == ISIF_PACK_12BIT)
 		val |= (((params->win.width +
-		       (params->win.width >> 2)) + 31) >> 5);
+				  (params->win.width >> 2)) + 31) >> 5);
 	else
+	{
 		val |= (((params->win.width * 2) + 31) >> 5);
+	}
+
 	regw(val, HSIZE);
 
 	/* Configure SDOFST register  */
-	if (params->frm_fmt == CCDC_FRMFMT_INTERLACED) {
-		if (params->image_invert_en) {
+	if (params->frm_fmt == CCDC_FRMFMT_INTERLACED)
+	{
+		if (params->image_invert_en)
+		{
 			/* For interlace inverse mode */
 			regw(0x4B6D, SDOFST);
 			dev_dbg(isif_cfg.dev, "Writing 0x4B6D to SDOFST...\n");
-		} else {
+		}
+		else
+		{
 			/* For interlace non inverse mode */
 			regw(0x0B6D, SDOFST);
 			dev_dbg(isif_cfg.dev, "Writing 0x0B6D to SDOFST...\n");
 		}
-	} else if (params->frm_fmt == CCDC_FRMFMT_PROGRESSIVE) {
-		if (params->image_invert_en) {
+	}
+	else if (params->frm_fmt == CCDC_FRMFMT_PROGRESSIVE)
+	{
+		if (params->image_invert_en)
+		{
 			/* For progressive inverse mode */
 			regw(0x4000, SDOFST);
 			dev_dbg(isif_cfg.dev, "Writing 0x4000 to SDOFST...\n");
-		} else {
+		}
+		else
+		{
 			/* For progressive non inverse mode */
 			regw(0x0000, SDOFST);
 			dev_dbg(isif_cfg.dev, "Writing 0x0000 to SDOFST...\n");
@@ -672,11 +739,15 @@ static int isif_config_raw(void)
 
 	/* Configure Vertical Defection Pixel Correction */
 	if (isif_config_dfc(&module_params->dfc) < 0)
+	{
 		return -EFAULT;
+	}
 
 	if (!module_params->df_csc.df_or_csc)
 		/* Configure Color Space Conversion */
+	{
 		isif_config_csc(&module_params->df_csc);
+	}
 
 	isif_config_linearization(&module_params->linearize);
 
@@ -688,7 +759,8 @@ static int isif_config_raw(void)
 	regw(module_params->vert_offset, DATAVOFST);
 
 	/* Setup test pattern if enabled */
-	if (params->config_params.test_pat_gen) {
+	if (params->config_params.test_pat_gen)
+	{
 		/* Use the HD/VD pol settings from user */
 		sync.ccdpg_hdpol = params->hd_pol;
 		sync.ccdpg_vdpol = params->vd_pol;
@@ -706,9 +778,13 @@ static int isif_config_raw(void)
 static int isif_set_buftype(enum ccdc_buftype buf_type)
 {
 	if (isif_cfg.if_type == VPFE_RAW_BAYER)
+	{
 		isif_cfg.bayer.buf_type = buf_type;
+	}
 	else
+	{
 		isif_cfg.ycbcr.buf_type = buf_type;
+	}
 
 	return 0;
 
@@ -716,7 +792,9 @@ static int isif_set_buftype(enum ccdc_buftype buf_type)
 static enum ccdc_buftype isif_get_buftype(void)
 {
 	if (isif_cfg.if_type == VPFE_RAW_BAYER)
+	{
 		return isif_cfg.bayer.buf_type;
+	}
 
 	return isif_cfg.ycbcr.buf_type;
 }
@@ -725,13 +803,18 @@ static int isif_enum_pix(u32 *pix, int i)
 {
 	int ret = -EINVAL;
 
-	if (isif_cfg.if_type == VPFE_RAW_BAYER) {
-		if (i < ARRAY_SIZE(isif_raw_bayer_pix_formats)) {
+	if (isif_cfg.if_type == VPFE_RAW_BAYER)
+	{
+		if (i < ARRAY_SIZE(isif_raw_bayer_pix_formats))
+		{
 			*pix = isif_raw_bayer_pix_formats[i];
 			ret = 0;
 		}
-	} else {
-		if (i < ARRAY_SIZE(isif_raw_yuv_pix_formats)) {
+	}
+	else
+	{
+		if (i < ARRAY_SIZE(isif_raw_yuv_pix_formats))
+		{
 			*pix = isif_raw_yuv_pix_formats[i];
 			ret = 0;
 		}
@@ -742,33 +825,53 @@ static int isif_enum_pix(u32 *pix, int i)
 
 static int isif_set_pixel_format(unsigned int pixfmt)
 {
-	if (isif_cfg.if_type == VPFE_RAW_BAYER) {
-		if (pixfmt == V4L2_PIX_FMT_SBGGR8) {
+	if (isif_cfg.if_type == VPFE_RAW_BAYER)
+	{
+		if (pixfmt == V4L2_PIX_FMT_SBGGR8)
+		{
 			if ((isif_cfg.bayer.config_params.compress.alg !=
-			     ISIF_ALAW) &&
-			    (isif_cfg.bayer.config_params.compress.alg !=
-			     ISIF_DPCM)) {
+				 ISIF_ALAW) &&
+				(isif_cfg.bayer.config_params.compress.alg !=
+				 ISIF_DPCM))
+			{
 				dev_dbg(isif_cfg.dev,
-					"Either configure A-Law or DPCM\n");
+						"Either configure A-Law or DPCM\n");
 				return -EINVAL;
 			}
+
 			isif_cfg.data_pack = ISIF_PACK_8BIT;
-		} else if (pixfmt == V4L2_PIX_FMT_SBGGR16) {
+		}
+		else if (pixfmt == V4L2_PIX_FMT_SBGGR16)
+		{
 			isif_cfg.bayer.config_params.compress.alg =
-					ISIF_NO_COMPRESSION;
+				ISIF_NO_COMPRESSION;
 			isif_cfg.data_pack = ISIF_PACK_16BIT;
-		} else
-			return -EINVAL;
-		isif_cfg.bayer.pix_fmt = CCDC_PIXFMT_RAW;
-	} else {
-		if (pixfmt == V4L2_PIX_FMT_YUYV)
-			isif_cfg.ycbcr.pix_order = CCDC_PIXORDER_YCBYCR;
-		else if (pixfmt == V4L2_PIX_FMT_UYVY)
-			isif_cfg.ycbcr.pix_order = CCDC_PIXORDER_CBYCRY;
+		}
 		else
+		{
 			return -EINVAL;
+		}
+
+		isif_cfg.bayer.pix_fmt = CCDC_PIXFMT_RAW;
+	}
+	else
+	{
+		if (pixfmt == V4L2_PIX_FMT_YUYV)
+		{
+			isif_cfg.ycbcr.pix_order = CCDC_PIXORDER_YCBYCR;
+		}
+		else if (pixfmt == V4L2_PIX_FMT_UYVY)
+		{
+			isif_cfg.ycbcr.pix_order = CCDC_PIXORDER_CBYCRY;
+		}
+		else
+		{
+			return -EINVAL;
+		}
+
 		isif_cfg.data_pack = ISIF_PACK_8BIT;
 	}
+
 	return 0;
 }
 
@@ -778,72 +881,107 @@ static u32 isif_get_pixel_format(void)
 
 	if (isif_cfg.if_type == VPFE_RAW_BAYER)
 		if (isif_cfg.bayer.config_params.compress.alg == ISIF_ALAW ||
-		    isif_cfg.bayer.config_params.compress.alg == ISIF_DPCM)
+			isif_cfg.bayer.config_params.compress.alg == ISIF_DPCM)
+		{
 			pixfmt = V4L2_PIX_FMT_SBGGR8;
+		}
 		else
+		{
 			pixfmt = V4L2_PIX_FMT_SBGGR16;
-	else {
+		}
+	else
+	{
 		if (isif_cfg.ycbcr.pix_order == CCDC_PIXORDER_YCBYCR)
+		{
 			pixfmt = V4L2_PIX_FMT_YUYV;
+		}
 		else
+		{
 			pixfmt = V4L2_PIX_FMT_UYVY;
+		}
 	}
+
 	return pixfmt;
 }
 
 static int isif_set_image_window(struct v4l2_rect *win)
 {
-	if (isif_cfg.if_type == VPFE_RAW_BAYER) {
+	if (isif_cfg.if_type == VPFE_RAW_BAYER)
+	{
 		isif_cfg.bayer.win.top = win->top;
 		isif_cfg.bayer.win.left = win->left;
 		isif_cfg.bayer.win.width = win->width;
 		isif_cfg.bayer.win.height = win->height;
-	} else {
+	}
+	else
+	{
 		isif_cfg.ycbcr.win.top = win->top;
 		isif_cfg.ycbcr.win.left = win->left;
 		isif_cfg.ycbcr.win.width = win->width;
 		isif_cfg.ycbcr.win.height = win->height;
 	}
+
 	return 0;
 }
 
 static void isif_get_image_window(struct v4l2_rect *win)
 {
 	if (isif_cfg.if_type == VPFE_RAW_BAYER)
+	{
 		*win = isif_cfg.bayer.win;
+	}
 	else
+	{
 		*win = isif_cfg.ycbcr.win;
+	}
 }
 
 static unsigned int isif_get_line_length(void)
 {
 	unsigned int len;
 
-	if (isif_cfg.if_type == VPFE_RAW_BAYER) {
+	if (isif_cfg.if_type == VPFE_RAW_BAYER)
+	{
 		if (isif_cfg.data_pack == ISIF_PACK_8BIT)
+		{
 			len = ((isif_cfg.bayer.win.width));
+		}
 		else if (isif_cfg.data_pack == ISIF_PACK_12BIT)
 			len = (((isif_cfg.bayer.win.width * 2) +
-				 (isif_cfg.bayer.win.width >> 2)));
+					(isif_cfg.bayer.win.width >> 2)));
 		else
+		{
 			len = (((isif_cfg.bayer.win.width * 2)));
-	} else
+		}
+	}
+	else
+	{
 		len = (((isif_cfg.ycbcr.win.width * 2)));
+	}
+
 	return ALIGN(len, 32);
 }
 
 static int isif_set_frame_format(enum ccdc_frmfmt frm_fmt)
 {
 	if (isif_cfg.if_type == VPFE_RAW_BAYER)
+	{
 		isif_cfg.bayer.frm_fmt = frm_fmt;
+	}
 	else
+	{
 		isif_cfg.ycbcr.frm_fmt = frm_fmt;
+	}
+
 	return 0;
 }
 static enum ccdc_frmfmt isif_get_frame_format(void)
 {
 	if (isif_cfg.if_type == VPFE_RAW_BAYER)
+	{
 		return isif_cfg.bayer.frm_fmt;
+	}
+
 	return isif_cfg.ycbcr.frm_fmt;
 }
 
@@ -863,24 +1001,28 @@ static int isif_set_hw_if_params(struct vpfe_hw_if_param *params)
 {
 	isif_cfg.if_type = params->if_type;
 
-	switch (params->if_type) {
-	case VPFE_BT656:
-	case VPFE_BT656_10BIT:
-	case VPFE_YCBCR_SYNC_8:
-		isif_cfg.ycbcr.pix_fmt = CCDC_PIXFMT_YCBCR_8BIT;
-		isif_cfg.ycbcr.pix_order = CCDC_PIXORDER_CBYCRY;
-		break;
-	case VPFE_BT1120:
-	case VPFE_YCBCR_SYNC_16:
-		isif_cfg.ycbcr.pix_fmt = CCDC_PIXFMT_YCBCR_16BIT;
-		isif_cfg.ycbcr.pix_order = CCDC_PIXORDER_CBYCRY;
-		break;
-	case VPFE_RAW_BAYER:
-		isif_cfg.bayer.pix_fmt = CCDC_PIXFMT_RAW;
-		break;
-	default:
-		dev_dbg(isif_cfg.dev, "Invalid interface type\n");
-		return -EINVAL;
+	switch (params->if_type)
+	{
+		case VPFE_BT656:
+		case VPFE_BT656_10BIT:
+		case VPFE_YCBCR_SYNC_8:
+			isif_cfg.ycbcr.pix_fmt = CCDC_PIXFMT_YCBCR_8BIT;
+			isif_cfg.ycbcr.pix_order = CCDC_PIXORDER_CBYCRY;
+			break;
+
+		case VPFE_BT1120:
+		case VPFE_YCBCR_SYNC_16:
+			isif_cfg.ycbcr.pix_fmt = CCDC_PIXFMT_YCBCR_16BIT;
+			isif_cfg.ycbcr.pix_order = CCDC_PIXORDER_CBYCRY;
+			break;
+
+		case VPFE_RAW_BAYER:
+			isif_cfg.bayer.pix_fmt = CCDC_PIXFMT_RAW;
+			break;
+
+		default:
+			dev_dbg(isif_cfg.dev, "Invalid interface type\n");
+			return -EINVAL;
 	}
 
 	return 0;
@@ -898,59 +1040,75 @@ static int isif_config_ycbcr(void)
 
 	/* configure pixel format or input mode */
 	modeset = modeset | (params->pix_fmt << ISIF_INPUT_SHIFT) |
-		  (params->frm_fmt << ISIF_FRM_FMT_SHIFT) |
-		  (params->fid_pol << ISIF_FID_POL_SHIFT) |
-		  (params->hd_pol << ISIF_HD_POL_SHIFT) |
-		  (params->vd_pol << ISIF_VD_POL_SHIFT);
+			  (params->frm_fmt << ISIF_FRM_FMT_SHIFT) |
+			  (params->fid_pol << ISIF_FID_POL_SHIFT) |
+			  (params->hd_pol << ISIF_HD_POL_SHIFT) |
+			  (params->vd_pol << ISIF_VD_POL_SHIFT);
 
 	/* pack the data to 8-bit ISIFCFG */
-	switch (isif_cfg.if_type) {
-	case VPFE_BT656:
-		if (params->pix_fmt != CCDC_PIXFMT_YCBCR_8BIT) {
-			dev_dbg(isif_cfg.dev, "Invalid pix_fmt(input mode)\n");
-			return -EINVAL;
-		}
-		modeset |= (VPFE_PINPOL_NEGATIVE << ISIF_VD_POL_SHIFT);
-		regw(3, REC656IF);
-		ccdcfg = ccdcfg | ISIF_DATA_PACK8 | ISIF_YCINSWP_YCBCR;
-		break;
-	case VPFE_BT656_10BIT:
-		if (params->pix_fmt != CCDC_PIXFMT_YCBCR_8BIT) {
-			dev_dbg(isif_cfg.dev, "Invalid pix_fmt(input mode)\n");
-			return -EINVAL;
-		}
-		/* setup BT.656, embedded sync  */
-		regw(3, REC656IF);
-		/* enable 10 bit mode in ccdcfg */
-		ccdcfg = ccdcfg | ISIF_DATA_PACK8 | ISIF_YCINSWP_YCBCR |
-			ISIF_BW656_ENABLE;
-		break;
-	case VPFE_BT1120:
-		if (params->pix_fmt != CCDC_PIXFMT_YCBCR_16BIT) {
-			dev_dbg(isif_cfg.dev, "Invalid pix_fmt(input mode)\n");
-			return -EINVAL;
-		}
-		regw(3, REC656IF);
-		break;
+	switch (isif_cfg.if_type)
+	{
+		case VPFE_BT656:
+			if (params->pix_fmt != CCDC_PIXFMT_YCBCR_8BIT)
+			{
+				dev_dbg(isif_cfg.dev, "Invalid pix_fmt(input mode)\n");
+				return -EINVAL;
+			}
 
-	case VPFE_YCBCR_SYNC_8:
-		ccdcfg |= ISIF_DATA_PACK8;
-		ccdcfg |= ISIF_YCINSWP_YCBCR;
-		if (params->pix_fmt != CCDC_PIXFMT_YCBCR_8BIT) {
-			dev_dbg(isif_cfg.dev, "Invalid pix_fmt(input mode)\n");
+			modeset |= (VPFE_PINPOL_NEGATIVE << ISIF_VD_POL_SHIFT);
+			regw(3, REC656IF);
+			ccdcfg = ccdcfg | ISIF_DATA_PACK8 | ISIF_YCINSWP_YCBCR;
+			break;
+
+		case VPFE_BT656_10BIT:
+			if (params->pix_fmt != CCDC_PIXFMT_YCBCR_8BIT)
+			{
+				dev_dbg(isif_cfg.dev, "Invalid pix_fmt(input mode)\n");
+				return -EINVAL;
+			}
+
+			/* setup BT.656, embedded sync  */
+			regw(3, REC656IF);
+			/* enable 10 bit mode in ccdcfg */
+			ccdcfg = ccdcfg | ISIF_DATA_PACK8 | ISIF_YCINSWP_YCBCR |
+					 ISIF_BW656_ENABLE;
+			break;
+
+		case VPFE_BT1120:
+			if (params->pix_fmt != CCDC_PIXFMT_YCBCR_16BIT)
+			{
+				dev_dbg(isif_cfg.dev, "Invalid pix_fmt(input mode)\n");
+				return -EINVAL;
+			}
+
+			regw(3, REC656IF);
+			break;
+
+		case VPFE_YCBCR_SYNC_8:
+			ccdcfg |= ISIF_DATA_PACK8;
+			ccdcfg |= ISIF_YCINSWP_YCBCR;
+
+			if (params->pix_fmt != CCDC_PIXFMT_YCBCR_8BIT)
+			{
+				dev_dbg(isif_cfg.dev, "Invalid pix_fmt(input mode)\n");
+				return -EINVAL;
+			}
+
+			break;
+
+		case VPFE_YCBCR_SYNC_16:
+			if (params->pix_fmt != CCDC_PIXFMT_YCBCR_16BIT)
+			{
+				dev_dbg(isif_cfg.dev, "Invalid pix_fmt(input mode)\n");
+				return -EINVAL;
+			}
+
+			break;
+
+		default:
+			/* should never come here */
+			dev_dbg(isif_cfg.dev, "Invalid interface type\n");
 			return -EINVAL;
-		}
-		break;
-	case VPFE_YCBCR_SYNC_16:
-		if (params->pix_fmt != CCDC_PIXFMT_YCBCR_16BIT) {
-			dev_dbg(isif_cfg.dev, "Invalid pix_fmt(input mode)\n");
-			return -EINVAL;
-		}
-		break;
-	default:
-		/* should never come here */
-		dev_dbg(isif_cfg.dev, "Invalid interface type\n");
-		return -EINVAL;
 	}
 
 	regw(modeset, MODESET);
@@ -962,10 +1120,14 @@ static int isif_config_ycbcr(void)
 
 	/* configure video window */
 	if ((isif_cfg.if_type == VPFE_BT1120) ||
-	    (isif_cfg.if_type == VPFE_YCBCR_SYNC_16))
+		(isif_cfg.if_type == VPFE_YCBCR_SYNC_16))
+	{
 		isif_setwin(&params->win, params->frm_fmt, 1);
+	}
 	else
+	{
 		isif_setwin(&params->win, params->frm_fmt, 2);
+	}
 
 	/*
 	 * configure the horizontal line offset
@@ -976,24 +1138,31 @@ static int isif_config_ycbcr(void)
 
 	/* configure the memory line offset */
 	if ((params->frm_fmt == CCDC_FRMFMT_INTERLACED) &&
-	    (params->buf_type == CCDC_BUFTYPE_FLD_INTERLEAVED))
+		(params->buf_type == CCDC_BUFTYPE_FLD_INTERLEAVED))
 		/* two fields are interleaved in memory */
+	{
 		regw(0x00000249, SDOFST);
+	}
 
 	/* Setup test pattern if enabled */
-	if (isif_cfg.bayer.config_params.test_pat_gen) {
+	if (isif_cfg.bayer.config_params.test_pat_gen)
+	{
 		sync.ccdpg_hdpol = params->hd_pol;
 		sync.ccdpg_vdpol = params->vd_pol;
 		dm365_vpss_set_sync_pol(sync);
 		dm365_vpss_set_pg_frame_size(frame_size);
 	}
+
 	return 0;
 }
 
 static int isif_configure(void)
 {
 	if (isif_cfg.if_type == VPFE_RAW_BAYER)
+	{
 		return isif_config_raw();
+	}
+
 	return isif_config_ycbcr();
 }
 
@@ -1004,7 +1173,8 @@ static int isif_close(struct device *device)
 	return 0;
 }
 
-static struct ccdc_hw_device isif_hw_dev = {
+static struct ccdc_hw_device isif_hw_dev =
+{
 	.name = "ISIF",
 	.owner = THIS_MODULE,
 	.hw_ops = {
@@ -1038,15 +1208,20 @@ static int isif_probe(struct platform_device *pdev)
 
 	/* Platform data holds setup_pinmux function ptr */
 	if (!pdev->dev.platform_data)
+	{
 		return -ENODEV;
+	}
 
 	/*
 	 * first try to register with vpfe. If not correct platform, then we
 	 * don't have to iomap
 	 */
 	status = vpfe_register_ccdc_device(&isif_hw_dev);
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	setup_pinmux = pdev->dev.platform_data;
 	/*
@@ -1056,59 +1231,83 @@ static int isif_probe(struct platform_device *pdev)
 	setup_pinmux();
 
 	i = 0;
+
 	/* Get the ISIF base address, linearization table0 and table1 addr. */
-	while (i < 3) {
+	while (i < 3)
+	{
 		res = platform_get_resource(pdev, IORESOURCE_MEM, i);
-		if (!res) {
+
+		if (!res)
+		{
 			status = -ENODEV;
 			goto fail_nobase_res;
 		}
+
 		res = request_mem_region(res->start, resource_size(res),
-					 res->name);
-		if (!res) {
+								 res->name);
+
+		if (!res)
+		{
 			status = -EBUSY;
 			goto fail_nobase_res;
 		}
+
 		addr = ioremap_nocache(res->start, resource_size(res));
-		if (!addr) {
+
+		if (!addr)
+		{
 			status = -ENOMEM;
 			goto fail_base_iomap;
 		}
-		switch (i) {
-		case 0:
-			/* ISIF base address */
-			isif_cfg.base_addr = addr;
-			break;
-		case 1:
-			/* ISIF linear tbl0 address */
-			isif_cfg.linear_tbl0_addr = addr;
-			break;
-		default:
-			/* ISIF linear tbl0 address */
-			isif_cfg.linear_tbl1_addr = addr;
-			break;
+
+		switch (i)
+		{
+			case 0:
+				/* ISIF base address */
+				isif_cfg.base_addr = addr;
+				break;
+
+			case 1:
+				/* ISIF linear tbl0 address */
+				isif_cfg.linear_tbl0_addr = addr;
+				break;
+
+			default:
+				/* ISIF linear tbl0 address */
+				isif_cfg.linear_tbl1_addr = addr;
+				break;
 		}
+
 		i++;
 	}
+
 	isif_cfg.dev = &pdev->dev;
 
 	printk(KERN_NOTICE "%s is registered with vpfe.\n",
-		isif_hw_dev.name);
+		   isif_hw_dev.name);
 	return 0;
 fail_base_iomap:
 	release_mem_region(res->start, resource_size(res));
 	i--;
 fail_nobase_res:
-	if (isif_cfg.base_addr)
-		iounmap(isif_cfg.base_addr);
-	if (isif_cfg.linear_tbl0_addr)
-		iounmap(isif_cfg.linear_tbl0_addr);
 
-	while (i >= 0) {
+	if (isif_cfg.base_addr)
+	{
+		iounmap(isif_cfg.base_addr);
+	}
+
+	if (isif_cfg.linear_tbl0_addr)
+	{
+		iounmap(isif_cfg.linear_tbl0_addr);
+	}
+
+	while (i >= 0)
+	{
 		res = platform_get_resource(pdev, IORESOURCE_MEM, i);
 		release_mem_region(res->start, resource_size(res));
 		i--;
 	}
+
 	vpfe_unregister_ccdc_device(&isif_hw_dev);
 	return status;
 }
@@ -1121,17 +1320,25 @@ static int isif_remove(struct platform_device *pdev)
 	iounmap(isif_cfg.base_addr);
 	iounmap(isif_cfg.linear_tbl0_addr);
 	iounmap(isif_cfg.linear_tbl1_addr);
-	while (i < 3) {
+
+	while (i < 3)
+	{
 		res = platform_get_resource(pdev, IORESOURCE_MEM, i);
+
 		if (res)
+		{
 			release_mem_region(res->start, resource_size(res));
+		}
+
 		i++;
 	}
+
 	vpfe_unregister_ccdc_device(&isif_hw_dev);
 	return 0;
 }
 
-static struct platform_driver isif_driver = {
+static struct platform_driver isif_driver =
+{
 	.driver = {
 		.name	= "isif",
 	},

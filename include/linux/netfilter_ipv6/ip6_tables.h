@@ -26,30 +26,32 @@ extern void ip6t_init(void) __init;
 
 extern void *ip6t_alloc_initial_table(const struct xt_table *);
 int ip6t_register_table(struct net *net, const struct xt_table *table,
-			const struct ip6t_replace *repl,
-			const struct nf_hook_ops *ops, struct xt_table **res);
+						const struct ip6t_replace *repl,
+						const struct nf_hook_ops *ops, struct xt_table **res);
 void ip6t_unregister_table(struct net *net, struct xt_table *table,
-			   const struct nf_hook_ops *ops);
+						   const struct nf_hook_ops *ops);
 extern unsigned int ip6t_do_table(struct sk_buff *skb,
-				  const struct nf_hook_state *state,
-				  struct xt_table *table);
+								  const struct nf_hook_state *state,
+								  struct xt_table *table);
 
 /* Check for an extension */
 static inline int
 ip6t_ext_hdr(u8 nexthdr)
-{	return (nexthdr == IPPROTO_HOPOPTS) ||
-	       (nexthdr == IPPROTO_ROUTING) ||
-	       (nexthdr == IPPROTO_FRAGMENT) ||
-	       (nexthdr == IPPROTO_ESP) ||
-	       (nexthdr == IPPROTO_AH) ||
-	       (nexthdr == IPPROTO_NONE) ||
-	       (nexthdr == IPPROTO_DSTOPTS);
+{
+	return (nexthdr == IPPROTO_HOPOPTS) ||
+		   (nexthdr == IPPROTO_ROUTING) ||
+		   (nexthdr == IPPROTO_FRAGMENT) ||
+		   (nexthdr == IPPROTO_ESP) ||
+		   (nexthdr == IPPROTO_AH) ||
+		   (nexthdr == IPPROTO_NONE) ||
+		   (nexthdr == IPPROTO_DSTOPTS);
 }
 
 #ifdef CONFIG_COMPAT
 #include <net/compat.h>
 
-struct compat_ip6t_entry {
+struct compat_ip6t_entry
+{
 	struct ip6t_ip6 ipv6;
 	compat_uint_t nfcache;
 	__u16 target_offset;

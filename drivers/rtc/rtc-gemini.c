@@ -34,13 +34,15 @@ MODULE_DESCRIPTION("RTC driver for Gemini SoC");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("platform:" DRV_NAME);
 
-struct gemini_rtc {
+struct gemini_rtc
+{
 	struct rtc_device	*rtc_dev;
 	void __iomem		*rtc_base;
 	int			rtc_irq;
 };
 
-enum gemini_rtc_offsets {
+enum gemini_rtc_offsets
+{
 	GEMINI_RTC_SECOND	= 0x00,
 	GEMINI_RTC_MINUTE	= 0x04,
 	GEMINI_RTC_HOUR		= 0x08,
@@ -93,7 +95,9 @@ static int gemini_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	unsigned long offset, time;
 
 	if (tm->tm_year >= 2148)	/* EPOCH Year + 179 */
+	{
 		return -EINVAL;
+	}
 
 	rtc_tm_to_time(tm, &time);
 
@@ -110,7 +114,8 @@ static int gemini_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	return 0;
 }
 
-static const struct rtc_class_ops gemini_rtc_ops = {
+static const struct rtc_class_ops gemini_rtc_ops =
+{
 	.read_time     = gemini_rtc_read_time,
 	.set_time      = gemini_rtc_set_time,
 };
@@ -123,30 +128,43 @@ static int gemini_rtc_probe(struct platform_device *pdev)
 	int ret;
 
 	rtc = devm_kzalloc(&pdev->dev, sizeof(*rtc), GFP_KERNEL);
+
 	if (unlikely(!rtc))
+	{
 		return -ENOMEM;
+	}
+
 	platform_set_drvdata(pdev, rtc);
 
 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+
 	if (!res)
+	{
 		return -ENODEV;
+	}
 
 	rtc->rtc_irq = res->start;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (!res)
+	{
 		return -ENODEV;
+	}
 
 	rtc->rtc_base = devm_ioremap(dev, res->start,
-				     resource_size(res));
+								 resource_size(res));
 
 	ret = devm_request_irq(dev, rtc->rtc_irq, gemini_rtc_interrupt,
-			       IRQF_SHARED, pdev->name, dev);
+						   IRQF_SHARED, pdev->name, dev);
+
 	if (unlikely(ret))
+	{
 		return ret;
+	}
 
 	rtc->rtc_dev = rtc_device_register(pdev->name, dev,
-					   &gemini_rtc_ops, THIS_MODULE);
+									   &gemini_rtc_ops, THIS_MODULE);
 	return PTR_ERR_OR_ZERO(rtc->rtc_dev);
 }
 
@@ -159,7 +177,8 @@ static int gemini_rtc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver gemini_rtc_driver = {
+static struct platform_driver gemini_rtc_driver =
+{
 	.driver		= {
 		.name	= DRV_NAME,
 	},

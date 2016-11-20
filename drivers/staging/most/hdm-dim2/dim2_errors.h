@@ -18,7 +18,8 @@
 /**
  * MOST DIM errors.
  */
-enum dim_errors_t {
+enum dim_errors_t
+{
 	/** Not an error */
 	DIM_NO_ERROR = 0,
 

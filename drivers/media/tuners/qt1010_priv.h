@@ -86,11 +86,13 @@ reg def meaning
 #define QT1010_RD 1
 #define QT1010_M1 3
 
-typedef struct {
+typedef struct
+{
 	u8 oper, reg, val;
 } qt1010_i2c_oper_t;
 
-struct qt1010_priv {
+struct qt1010_priv
+{
 	struct qt1010_config *cfg;
 	struct i2c_adapter   *i2c;
 

@@ -54,21 +54,27 @@ static void seqno_release(struct fence *fence)
 	struct seqno_fence *f = to_seqno_fence(fence);
 
 	dma_buf_put(f->sync_buf);
+
 	if (f->ops->release)
+	{
 		f->ops->release(fence);
+	}
 	else
+	{
 		fence_free(&f->base);
+	}
 }
 
 static signed long seqno_wait(struct fence *fence, bool intr,
-				signed long timeout)
+							  signed long timeout)
 {
 	struct seqno_fence *f = to_seqno_fence(fence);
 
 	return f->ops->wait(fence, intr, timeout);
 }
 
-const struct fence_ops seqno_fence_ops = {
+const struct fence_ops seqno_fence_ops =
+{
 	.get_driver_name = seqno_fence_get_driver_name,
 	.get_timeline_name = seqno_fence_get_timeline_name,
 	.enable_signaling = seqno_enable_signaling,

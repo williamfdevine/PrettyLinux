@@ -61,14 +61,16 @@ static int crc32_cra_init(struct crypto_tfm *tfm)
  * the seed.
  */
 static int crc32_setkey(struct crypto_shash *hash, const u8 *key,
-			unsigned int keylen)
+						unsigned int keylen)
 {
 	u32 *mctx = crypto_shash_ctx(hash);
 
-	if (keylen != sizeof(u32)) {
+	if (keylen != sizeof(u32))
+	{
 		crypto_shash_set_flags(hash, CRYPTO_TFM_RES_BAD_KEY_LEN);
 		return -EINVAL;
 	}
+
 	*mctx = le32_to_cpup((__le32 *)key);
 	return 0;
 }
@@ -84,7 +86,7 @@ static int crc32_init(struct shash_desc *desc)
 }
 
 static int crc32_update(struct shash_desc *desc, const u8 *data,
-			unsigned int len)
+						unsigned int len)
 {
 	u32 *crcp = shash_desc_ctx(desc);
 
@@ -94,14 +96,14 @@ static int crc32_update(struct shash_desc *desc, const u8 *data,
 
 /* No final XOR 0xFFFFFFFF, like crc32_le */
 static int __crc32_finup(u32 *crcp, const u8 *data, unsigned int len,
-			 u8 *out)
+						 u8 *out)
 {
 	*(__le32 *)out = cpu_to_le32(__crc32_le(*crcp, data, len));
 	return 0;
 }
 
 static int crc32_finup(struct shash_desc *desc, const u8 *data,
-		       unsigned int len, u8 *out)
+					   unsigned int len, u8 *out)
 {
 	return __crc32_finup(shash_desc_ctx(desc), data, len, out);
 }
@@ -115,12 +117,13 @@ static int crc32_final(struct shash_desc *desc, u8 *out)
 }
 
 static int crc32_digest(struct shash_desc *desc, const u8 *data,
-			unsigned int len, u8 *out)
+						unsigned int len, u8 *out)
 {
 	return __crc32_finup(crypto_shash_ctx(desc->tfm), data, len,
-			     out);
+						 out);
 }
-static struct shash_alg alg = {
+static struct shash_alg alg =
+{
 	.setkey		= crc32_setkey,
 	.init		= crc32_init,
 	.update		= crc32_update,

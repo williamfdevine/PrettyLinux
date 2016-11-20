@@ -13,7 +13,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table videomate_tv_pvr[] = {
+static struct rc_map_table videomate_tv_pvr[] =
+{
 	{ 0x14, KEY_MUTE },
 	{ 0x24, KEY_ZOOM },
 
@@ -62,7 +63,8 @@ static struct rc_map_table videomate_tv_pvr[] = {
 	{ 0x21, KEY_SLEEP },
 };
 
-static struct rc_map_list videomate_tv_pvr_map = {
+static struct rc_map_list videomate_tv_pvr_map =
+{
 	.map = {
 		.scan    = videomate_tv_pvr,
 		.size    = ARRAY_SIZE(videomate_tv_pvr),

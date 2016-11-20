@@ -25,7 +25,7 @@
 #include "vop_bus.h"
 
 static ssize_t device_show(struct device *d,
-			   struct device_attribute *attr, char *buf)
+						   struct device_attribute *attr, char *buf)
 {
 	struct vop_device *dev = dev_to_vop(d);
 
@@ -34,7 +34,7 @@ static ssize_t device_show(struct device *d,
 static DEVICE_ATTR_RO(device);
 
 static ssize_t vendor_show(struct device *d,
-			   struct device_attribute *attr, char *buf)
+						   struct device_attribute *attr, char *buf)
 {
 	struct vop_device *dev = dev_to_vop(d);
 
@@ -43,16 +43,17 @@ static ssize_t vendor_show(struct device *d,
 static DEVICE_ATTR_RO(vendor);
 
 static ssize_t modalias_show(struct device *d,
-			     struct device_attribute *attr, char *buf)
+							 struct device_attribute *attr, char *buf)
 {
 	struct vop_device *dev = dev_to_vop(d);
 
 	return sprintf(buf, "vop:d%08Xv%08X\n",
-		       dev->id.device, dev->id.vendor);
+				   dev->id.device, dev->id.vendor);
 }
 static DEVICE_ATTR_RO(modalias);
 
-static struct attribute *vop_dev_attrs[] = {
+static struct attribute *vop_dev_attrs[] =
+{
 	&dev_attr_device.attr,
 	&dev_attr_vendor.attr,
 	&dev_attr_modalias.attr,
@@ -61,10 +62,12 @@ static struct attribute *vop_dev_attrs[] = {
 ATTRIBUTE_GROUPS(vop_dev);
 
 static inline int vop_id_match(const struct vop_device *dev,
-			       const struct vop_device_id *id)
+							   const struct vop_device_id *id)
 {
 	if (id->device != dev->id.device && id->device != VOP_DEV_ANY_ID)
+	{
 		return 0;
+	}
 
 	return id->vendor == VOP_DEV_ANY_ID || id->vendor == dev->id.vendor;
 }
@@ -80,9 +83,13 @@ static int vop_dev_match(struct device *dv, struct device_driver *dr)
 	const struct vop_device_id *ids;
 
 	ids = drv_to_vop(dr)->id_table;
+
 	for (i = 0; ids[i].device; i++)
 		if (vop_id_match(dev, &ids[i]))
+		{
 			return 1;
+		}
+
 	return 0;
 }
 
@@ -91,7 +98,7 @@ static int vop_uevent(struct device *dv, struct kobj_uevent_env *env)
 	struct vop_device *dev = dev_to_vop(dv);
 
 	return add_uevent_var(env, "MODALIAS=vop:d%08Xv%08X",
-			      dev->id.device, dev->id.vendor);
+						  dev->id.device, dev->id.vendor);
 }
 
 static int vop_dev_probe(struct device *d)
@@ -111,7 +118,8 @@ static int vop_dev_remove(struct device *d)
 	return 0;
 }
 
-static struct bus_type vop_bus = {
+static struct bus_type vop_bus =
+{
 	.name  = "vop_bus",
 	.match = vop_dev_match,
 	.dev_groups = vop_dev_groups,
@@ -140,16 +148,19 @@ static void vop_release_dev(struct device *d)
 
 struct vop_device *
 vop_register_device(struct device *pdev, int id,
-		    const struct dma_map_ops *dma_ops,
-		    struct vop_hw_ops *hw_ops, u8 dnode, struct mic_mw *aper,
-		    struct dma_chan *chan)
+					const struct dma_map_ops *dma_ops,
+					struct vop_hw_ops *hw_ops, u8 dnode, struct mic_mw *aper,
+					struct dma_chan *chan)
 {
 	int ret;
 	struct vop_device *vdev;
 
 	vdev = kzalloc(sizeof(*vdev), GFP_KERNEL);
+
 	if (!vdev)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	vdev->dev.parent = pdev;
 	vdev->id.device = id;
@@ -170,8 +181,12 @@ vop_register_device(struct device *pdev, int id,
 	 * matching driver.
 	 */
 	ret = device_register(&vdev->dev);
+
 	if (ret)
+	{
 		goto free_vdev;
+	}
+
 	return vdev;
 free_vdev:
 	kfree(vdev);

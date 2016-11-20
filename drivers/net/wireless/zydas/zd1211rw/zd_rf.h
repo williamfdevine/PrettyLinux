@@ -39,26 +39,28 @@
 
 /* Provides functions of the RF transceiver. */
 
-enum {
+enum
+{
 	RF_REG_BITS = 6,
 	RF_VALUE_BITS = 18,
 	RF_RV_BITS = RF_REG_BITS + RF_VALUE_BITS,
 };
 
-struct zd_rf {
+struct zd_rf
+{
 	u8 type;
 
 	u8 channel;
 
 	/* whether channel integration and calibration should be updated
 	 * defaults to 1 (yes) */
-	u8 update_channel_int:1;
+	u8 update_channel_int: 1;
 
 	/* whether ZD_CR47 should be patched from the EEPROM, if the appropriate
 	 * flag is set in the POD. The vendor driver suggests that this should
 	 * be done for all RF's, but a bug in their code prevents but their
 	 * HW_OverWritePhyRegFromE2P() routine from ever taking effect. */
-	u8 patch_cck_gain:1;
+	u8 patch_cck_gain: 1;
 
 	/* private RF driver data */
 	void *priv;

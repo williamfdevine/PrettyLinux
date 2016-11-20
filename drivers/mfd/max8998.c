@@ -35,7 +35,8 @@
 
 #define RTC_I2C_ADDR		(0x0c >> 1)
 
-static const struct mfd_cell max8998_devs[] = {
+static const struct mfd_cell max8998_devs[] =
+{
 	{
 		.name = "max8998-pmic",
 	}, {
@@ -45,7 +46,8 @@ static const struct mfd_cell max8998_devs[] = {
 	},
 };
 
-static const struct mfd_cell lp3974_devs[] = {
+static const struct mfd_cell lp3974_devs[] =
+{
 	{
 		.name = "lp3974-pmic",
 	}, {
@@ -61,8 +63,11 @@ int max8998_read_reg(struct i2c_client *i2c, u8 reg, u8 *dest)
 	mutex_lock(&max8998->iolock);
 	ret = i2c_smbus_read_byte_data(i2c, reg);
 	mutex_unlock(&max8998->iolock);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret &= 0xff;
 	*dest = ret;
@@ -78,8 +83,11 @@ int max8998_bulk_read(struct i2c_client *i2c, u8 reg, int count, u8 *buf)
 	mutex_lock(&max8998->iolock);
 	ret = i2c_smbus_read_i2c_block_data(i2c, reg, count, buf);
 	mutex_unlock(&max8998->iolock);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -105,8 +113,11 @@ int max8998_bulk_write(struct i2c_client *i2c, u8 reg, int count, u8 *buf)
 	mutex_lock(&max8998->iolock);
 	ret = i2c_smbus_write_i2c_block_data(i2c, reg, count, buf);
 	mutex_unlock(&max8998->iolock);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -119,18 +130,22 @@ int max8998_update_reg(struct i2c_client *i2c, u8 reg, u8 val, u8 mask)
 
 	mutex_lock(&max8998->iolock);
 	ret = i2c_smbus_read_byte_data(i2c, reg);
-	if (ret >= 0) {
+
+	if (ret >= 0)
+	{
 		u8 old_val = ret & 0xff;
 		u8 new_val = (val & mask) | (old_val & (~mask));
 		ret = i2c_smbus_write_byte_data(i2c, reg, new_val);
 	}
+
 	mutex_unlock(&max8998->iolock);
 	return ret;
 }
 EXPORT_SYMBOL(max8998_update_reg);
 
 #ifdef CONFIG_OF
-static const struct of_device_id max8998_dt_match[] = {
+static const struct of_device_id max8998_dt_match[] =
+{
 	{ .compatible = "maxim,max8998", .data = (void *)TYPE_MAX8998 },
 	{ .compatible = "national,lp3974", .data = (void *)TYPE_LP3974 },
 	{ .compatible = "ti,lp3974", .data = (void *)TYPE_LP3974 },
@@ -148,13 +163,16 @@ static const struct of_device_id max8998_dt_match[] = {
  * platform data.
  */
 static struct max8998_platform_data *max8998_i2c_parse_dt_pdata(
-							struct device *dev)
+	struct device *dev)
 {
 	struct max8998_platform_data *pd;
 
 	pd = devm_kzalloc(dev, sizeof(*pd), GFP_KERNEL);
+
 	if (!pd)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	pd->ono = irq_of_parse_and_map(dev->of_node, 1);
 
@@ -167,9 +185,10 @@ static struct max8998_platform_data *max8998_i2c_parse_dt_pdata(
 }
 
 static inline unsigned long max8998_i2c_get_driver_data(struct i2c_client *i2c,
-						const struct i2c_device_id *id)
+		const struct i2c_device_id *id)
 {
-	if (IS_ENABLED(CONFIG_OF) && i2c->dev.of_node) {
+	if (IS_ENABLED(CONFIG_OF) && i2c->dev.of_node)
+	{
 		const struct of_device_id *match;
 		match = of_match_node(max8998_dt_match, i2c->dev.of_node);
 		return (unsigned long)match->data;
@@ -179,20 +198,26 @@ static inline unsigned long max8998_i2c_get_driver_data(struct i2c_client *i2c,
 }
 
 static int max8998_i2c_probe(struct i2c_client *i2c,
-			    const struct i2c_device_id *id)
+							 const struct i2c_device_id *id)
 {
 	struct max8998_platform_data *pdata = dev_get_platdata(&i2c->dev);
 	struct max8998_dev *max8998;
 	int ret = 0;
 
 	max8998 = devm_kzalloc(&i2c->dev, sizeof(struct max8998_dev),
-				GFP_KERNEL);
-	if (max8998 == NULL)
-		return -ENOMEM;
+						   GFP_KERNEL);
 
-	if (IS_ENABLED(CONFIG_OF) && i2c->dev.of_node) {
+	if (max8998 == NULL)
+	{
+		return -ENOMEM;
+	}
+
+	if (IS_ENABLED(CONFIG_OF) && i2c->dev.of_node)
+	{
 		pdata = max8998_i2c_parse_dt_pdata(&i2c->dev);
-		if (IS_ERR(pdata)) {
+
+		if (IS_ERR(pdata))
+		{
 			ret = PTR_ERR(pdata);
 			goto err;
 		}
@@ -204,41 +229,52 @@ static int max8998_i2c_probe(struct i2c_client *i2c,
 	max8998->irq = i2c->irq;
 	max8998->type = max8998_i2c_get_driver_data(i2c, id);
 	max8998->pdata = pdata;
-	if (pdata) {
+
+	if (pdata)
+	{
 		max8998->ono = pdata->ono;
 		max8998->irq_base = pdata->irq_base;
 		max8998->wakeup = pdata->wakeup;
 	}
+
 	mutex_init(&max8998->iolock);
 
 	max8998->rtc = i2c_new_dummy(i2c->adapter, RTC_I2C_ADDR);
-	if (!max8998->rtc) {
+
+	if (!max8998->rtc)
+	{
 		dev_err(&i2c->dev, "Failed to allocate I2C device for RTC\n");
 		return -ENODEV;
 	}
+
 	i2c_set_clientdata(max8998->rtc, max8998);
 
 	max8998_irq_init(max8998);
 
 	pm_runtime_set_active(max8998->dev);
 
-	switch (max8998->type) {
-	case TYPE_LP3974:
-		ret = mfd_add_devices(max8998->dev, -1,
-				      lp3974_devs, ARRAY_SIZE(lp3974_devs),
-				      NULL, 0, NULL);
-		break;
-	case TYPE_MAX8998:
-		ret = mfd_add_devices(max8998->dev, -1,
-				      max8998_devs, ARRAY_SIZE(max8998_devs),
-				      NULL, 0, NULL);
-		break;
-	default:
-		ret = -EINVAL;
+	switch (max8998->type)
+	{
+		case TYPE_LP3974:
+			ret = mfd_add_devices(max8998->dev, -1,
+								  lp3974_devs, ARRAY_SIZE(lp3974_devs),
+								  NULL, 0, NULL);
+			break;
+
+		case TYPE_MAX8998:
+			ret = mfd_add_devices(max8998->dev, -1,
+								  max8998_devs, ARRAY_SIZE(max8998_devs),
+								  NULL, 0, NULL);
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
 
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	device_init_wakeup(max8998->dev, max8998->wakeup);
 
@@ -251,7 +287,8 @@ err:
 	return ret;
 }
 
-static const struct i2c_device_id max8998_i2c_id[] = {
+static const struct i2c_device_id max8998_i2c_id[] =
+{
 	{ "max8998", TYPE_MAX8998 },
 	{ "lp3974", TYPE_LP3974},
 	{ }
@@ -263,7 +300,10 @@ static int max8998_suspend(struct device *dev)
 	struct max8998_dev *max8998 = i2c_get_clientdata(i2c);
 
 	if (device_may_wakeup(dev))
+	{
 		irq_set_irq_wake(max8998->irq, 1);
+	}
+
 	return 0;
 }
 
@@ -273,7 +313,10 @@ static int max8998_resume(struct device *dev)
 	struct max8998_dev *max8998 = i2c_get_clientdata(i2c);
 
 	if (device_may_wakeup(dev))
+	{
 		irq_set_irq_wake(max8998->irq, 0);
+	}
+
 	/*
 	 * In LP3974, if IRQ registers are not "read & clear"
 	 * when it's set during sleep, the interrupt becomes
@@ -282,12 +325,14 @@ static int max8998_resume(struct device *dev)
 	return max8998_irq_resume(i2c_get_clientdata(i2c));
 }
 
-struct max8998_reg_dump {
+struct max8998_reg_dump
+{
 	u8	addr;
 	u8	val;
 };
 #define SAVE_ITEM(x)	{ .addr = (x), .val = 0x0, }
-static struct max8998_reg_dump max8998_dump[] = {
+static struct max8998_reg_dump max8998_dump[] =
+{
 	SAVE_ITEM(MAX8998_REG_IRQM1),
 	SAVE_ITEM(MAX8998_REG_IRQM2),
 	SAVE_ITEM(MAX8998_REG_IRQM3),
@@ -334,7 +379,7 @@ static int max8998_freeze(struct device *dev)
 
 	for (i = 0; i < ARRAY_SIZE(max8998_dump); i++)
 		max8998_read_reg(i2c, max8998_dump[i].addr,
-				&max8998_dump[i].val);
+						 &max8998_dump[i].val);
 
 	return 0;
 }
@@ -347,24 +392,26 @@ static int max8998_restore(struct device *dev)
 
 	for (i = 0; i < ARRAY_SIZE(max8998_dump); i++)
 		max8998_write_reg(i2c, max8998_dump[i].addr,
-				max8998_dump[i].val);
+						  max8998_dump[i].val);
 
 	return 0;
 }
 
-static const struct dev_pm_ops max8998_pm = {
+static const struct dev_pm_ops max8998_pm =
+{
 	.suspend = max8998_suspend,
 	.resume = max8998_resume,
 	.freeze = max8998_freeze,
 	.restore = max8998_restore,
 };
 
-static struct i2c_driver max8998_i2c_driver = {
+static struct i2c_driver max8998_i2c_driver =
+{
 	.driver = {
-		   .name = "max8998",
-		   .pm = &max8998_pm,
-		   .suppress_bind_attrs = true,
-		   .of_match_table = of_match_ptr(max8998_dt_match),
+		.name = "max8998",
+		.pm = &max8998_pm,
+		.suppress_bind_attrs = true,
+		.of_match_table = of_match_ptr(max8998_dt_match),
 	},
 	.probe = max8998_i2c_probe,
 	.id_table = max8998_i2c_id,

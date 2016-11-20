@@ -61,13 +61,15 @@
 
 /* Flags for ocfs2_caching_info */
 
-enum ocfs2_caching_info_flags {
+enum ocfs2_caching_info_flags
+{
 	/* Indicates that the metadata cache is using the inline array */
-	OCFS2_CACHE_FL_INLINE	= 1<<1,
+	OCFS2_CACHE_FL_INLINE	= 1 << 1,
 };
 
 struct ocfs2_caching_operations;
-struct ocfs2_caching_info {
+struct ocfs2_caching_info
+{
 	/*
 	 * The parent structure provides the locks, but because the
 	 * parent structure can differ, it provides locking operations
@@ -84,8 +86,9 @@ struct ocfs2_caching_info {
 	/* Cache structures */
 	unsigned int		ci_flags;
 	unsigned int		ci_num_cached;
-	union {
-	sector_t	ci_array[OCFS2_CACHE_INFO_MAX_ARRAY];
+	union
+	{
+		sector_t	ci_array[OCFS2_CACHE_INFO_MAX_ARRAY];
 		struct rb_root	ci_tree;
 	} ci_cache;
 };
@@ -98,12 +101,14 @@ struct super_block *ocfs2_metadata_cache_get_super(struct ocfs2_caching_info *ci
 /* this limits us to 256 nodes
  * if we need more, we can do a kmalloc for the map */
 #define OCFS2_NODE_MAP_MAX_NODES    256
-struct ocfs2_node_map {
+struct ocfs2_node_map
+{
 	u16 num_nodes;
 	unsigned long map[BITS_TO_LONGS(OCFS2_NODE_MAP_MAX_NODES)];
 };
 
-enum ocfs2_ast_action {
+enum ocfs2_ast_action
+{
 	OCFS2_AST_INVALID = 0,
 	OCFS2_AST_ATTACH,
 	OCFS2_AST_CONVERT,
@@ -111,7 +116,8 @@ enum ocfs2_ast_action {
 };
 
 /* actions for an unlockast function to take. */
-enum ocfs2_unlock_action {
+enum ocfs2_unlock_action
+{
 	OCFS2_UNLOCK_INVALID = 0,
 	OCFS2_UNLOCK_CANCEL_CONVERT,
 	OCFS2_UNLOCK_DROP_LOCK,
@@ -155,7 +161,8 @@ struct ocfs2_lock_res_ops;
 typedef void (*ocfs2_lock_callback)(int status, unsigned long data);
 
 #ifdef CONFIG_OCFS2_FS_STATS
-struct ocfs2_lock_stats {
+struct ocfs2_lock_stats
+{
 	u64		ls_total;	/* Total wait in NSEC */
 	u32		ls_gets;	/* Num acquires */
 	u32		ls_fail;	/* Num failed acquires */
@@ -165,7 +172,8 @@ struct ocfs2_lock_stats {
 };
 #endif
 
-struct ocfs2_lock_res {
+struct ocfs2_lock_res
+{
 	void                    *l_priv;
 	struct ocfs2_lock_res_ops *l_ops;
 
@@ -209,17 +217,20 @@ struct ocfs2_lock_res {
 #endif
 };
 
-enum ocfs2_orphan_reco_type {
+enum ocfs2_orphan_reco_type
+{
 	ORPHAN_NO_NEED_TRUNCATE = 0,
 	ORPHAN_NEED_TRUNCATE,
 };
 
-enum ocfs2_orphan_scan_state {
+enum ocfs2_orphan_scan_state
+{
 	ORPHAN_SCAN_ACTIVE,
 	ORPHAN_SCAN_INACTIVE
 };
 
-struct ocfs2_orphan_scan {
+struct ocfs2_orphan_scan
+{
 	struct mutex 		os_lock;
 	struct ocfs2_super 	*os_osb;
 	struct ocfs2_lock_res 	os_lockres;     /* lock to synchronize scans */
@@ -230,7 +241,8 @@ struct ocfs2_orphan_scan {
 	atomic_t		os_state;              /* ACTIVE or INACTIVE */
 };
 
-struct ocfs2_dlm_debug {
+struct ocfs2_dlm_debug
+{
 	struct kref d_refcnt;
 	struct dentry *d_locking_state;
 	struct list_head d_lockres_tracking;
@@ -478,22 +490,31 @@ struct ocfs2_super
 
 /* Useful typedef for passing around journal access functions */
 typedef int (*ocfs2_journal_access_func)(handle_t *handle,
-					 struct ocfs2_caching_info *ci,
-					 struct buffer_head *bh, int type);
+		struct ocfs2_caching_info *ci,
+		struct buffer_head *bh, int type);
 
 static inline int ocfs2_should_order_data(struct inode *inode)
 {
 	if (!S_ISREG(inode->i_mode))
+	{
 		return 0;
+	}
+
 	if (OCFS2_SB(inode->i_sb)->s_mount_opt & OCFS2_MOUNT_DATA_WRITEBACK)
+	{
 		return 0;
+	}
+
 	return 1;
 }
 
 static inline int ocfs2_sparse_alloc(struct ocfs2_super *osb)
 {
 	if (osb->s_feature_incompat & OCFS2_FEATURE_INCOMPAT_SPARSE_ALLOC)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -503,17 +524,25 @@ static inline int ocfs2_writes_unwritten_extents(struct ocfs2_super *osb)
 	 * Support for sparse files is a pre-requisite
 	 */
 	if (!ocfs2_sparse_alloc(osb))
+	{
 		return 0;
+	}
 
 	if (osb->s_feature_ro_compat & OCFS2_FEATURE_RO_COMPAT_UNWRITTEN)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
 static inline int ocfs2_supports_append_dio(struct ocfs2_super *osb)
 {
 	if (osb->s_feature_incompat & OCFS2_FEATURE_INCOMPAT_APPEND_DIO)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -521,42 +550,60 @@ static inline int ocfs2_supports_append_dio(struct ocfs2_super *osb)
 static inline int ocfs2_supports_inline_data(struct ocfs2_super *osb)
 {
 	if (osb->s_feature_incompat & OCFS2_FEATURE_INCOMPAT_INLINE_DATA)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
 static inline int ocfs2_supports_xattr(struct ocfs2_super *osb)
 {
 	if (osb->s_feature_incompat & OCFS2_FEATURE_INCOMPAT_XATTR)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
 static inline int ocfs2_meta_ecc(struct ocfs2_super *osb)
 {
 	if (osb->s_feature_incompat & OCFS2_FEATURE_INCOMPAT_META_ECC)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
 static inline int ocfs2_supports_indexed_dirs(struct ocfs2_super *osb)
 {
 	if (osb->s_feature_incompat & OCFS2_FEATURE_INCOMPAT_INDEXED_DIRS)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
 static inline int ocfs2_supports_discontig_bg(struct ocfs2_super *osb)
 {
 	if (osb->s_feature_incompat & OCFS2_FEATURE_INCOMPAT_DISCONTIG_BG)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
 static inline unsigned int ocfs2_link_max(struct ocfs2_super *osb)
 {
 	if (ocfs2_supports_indexed_dirs(osb))
+	{
 		return OCFS2_DX_LINK_MAX;
+	}
+
 	return OCFS2_LINK_MAX;
 }
 
@@ -566,7 +613,9 @@ static inline unsigned int ocfs2_read_links_count(struct ocfs2_dinode *di)
 	u32 hi = le16_to_cpu(di->i_links_count_hi);
 
 	if (di->i_dyn_features & cpu_to_le16(OCFS2_INDEXED_DIR_FL))
+	{
 		nlink |= (hi << OCFS2_LINKS_HI_SHIFT);
+	}
 
 	return nlink;
 }
@@ -594,7 +643,10 @@ static inline void ocfs2_add_links_count(struct ocfs2_dinode *di, int n)
 static inline int ocfs2_refcount_tree(struct ocfs2_super *osb)
 {
 	if (osb->s_feature_incompat & OCFS2_FEATURE_INCOMPAT_REFCOUNT_TREE)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -603,7 +655,7 @@ static inline int ocfs2_refcount_tree(struct ocfs2_super *osb)
  * means that any future flags osb_flags must be protected by spinlock
  * too! */
 static inline void ocfs2_set_osb_flag(struct ocfs2_super *osb,
-				      unsigned long flag)
+									  unsigned long flag)
 {
 	spin_lock(&osb->osb_lock);
 	osb->osb_flags |= flag;
@@ -611,14 +663,20 @@ static inline void ocfs2_set_osb_flag(struct ocfs2_super *osb,
 }
 
 static inline void ocfs2_set_ro_flag(struct ocfs2_super *osb,
-				     int hard)
+									 int hard)
 {
 	spin_lock(&osb->osb_lock);
-	osb->osb_flags &= ~(OCFS2_OSB_SOFT_RO|OCFS2_OSB_HARD_RO);
+	osb->osb_flags &= ~(OCFS2_OSB_SOFT_RO | OCFS2_OSB_HARD_RO);
+
 	if (hard)
+	{
 		osb->osb_flags |= OCFS2_OSB_HARD_RO;
+	}
 	else
+	{
 		osb->osb_flags |= OCFS2_OSB_SOFT_RO;
+	}
+
 	spin_unlock(&osb->osb_lock);
 }
 
@@ -647,32 +705,38 @@ static inline int ocfs2_is_soft_readonly(struct ocfs2_super *osb)
 static inline int ocfs2_clusterinfo_valid(struct ocfs2_super *osb)
 {
 	return (osb->s_feature_incompat &
-		(OCFS2_FEATURE_INCOMPAT_USERSPACE_STACK |
-		 OCFS2_FEATURE_INCOMPAT_CLUSTERINFO));
+			(OCFS2_FEATURE_INCOMPAT_USERSPACE_STACK |
+			 OCFS2_FEATURE_INCOMPAT_CLUSTERINFO));
 }
 
 static inline int ocfs2_userspace_stack(struct ocfs2_super *osb)
 {
 	if (ocfs2_clusterinfo_valid(osb) &&
-	    memcmp(osb->osb_cluster_stack, OCFS2_CLASSIC_CLUSTER_STACK,
-		   OCFS2_STACK_LABEL_LEN))
+		memcmp(osb->osb_cluster_stack, OCFS2_CLASSIC_CLUSTER_STACK,
+			   OCFS2_STACK_LABEL_LEN))
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
 static inline int ocfs2_o2cb_stack(struct ocfs2_super *osb)
 {
 	if (ocfs2_clusterinfo_valid(osb) &&
-	    !memcmp(osb->osb_cluster_stack, OCFS2_CLASSIC_CLUSTER_STACK,
-		   OCFS2_STACK_LABEL_LEN))
+		!memcmp(osb->osb_cluster_stack, OCFS2_CLASSIC_CLUSTER_STACK,
+				OCFS2_STACK_LABEL_LEN))
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
 static inline int ocfs2_cluster_o2cb_global_heartbeat(struct ocfs2_super *osb)
 {
 	return ocfs2_o2cb_stack(osb) &&
-		(osb->osb_stackflags & OCFS2_CLUSTER_O2CB_GLOBAL_HEARTBEAT);
+		   (osb->osb_stackflags & OCFS2_CLUSTER_O2CB_GLOBAL_HEARTBEAT);
 }
 
 static inline int ocfs2_mount_local(struct ocfs2_super *osb)
@@ -683,7 +747,7 @@ static inline int ocfs2_mount_local(struct ocfs2_super *osb)
 static inline int ocfs2_uses_extended_slot_map(struct ocfs2_super *osb)
 {
 	return (osb->s_feature_incompat &
-		OCFS2_FEATURE_INCOMPAT_EXTENDED_SLOT_MAP);
+			OCFS2_FEATURE_INCOMPAT_EXTENDED_SLOT_MAP);
 }
 
 
@@ -713,16 +777,16 @@ static inline int ocfs2_uses_extended_slot_map(struct ocfs2_super *osb)
 	(!strcmp((ptr)->rf_signature, OCFS2_REFCOUNT_BLOCK_SIGNATURE))
 
 static inline unsigned long ino_from_blkno(struct super_block *sb,
-					   u64 blkno)
+		u64 blkno)
 {
 	return (unsigned long)(blkno & (u64)ULONG_MAX);
 }
 
 static inline u64 ocfs2_clusters_to_blocks(struct super_block *sb,
-					   u32 clusters)
+		u32 clusters)
 {
 	int c_to_b_bits = OCFS2_SB(sb)->s_clustersize_bits -
-		sb->s_blocksize_bits;
+					  sb->s_blocksize_bits;
 
 	return (u64)clusters << c_to_b_bits;
 }
@@ -731,23 +795,23 @@ static inline u32 ocfs2_clusters_for_blocks(struct super_block *sb,
 		u64 blocks)
 {
 	int b_to_c_bits = OCFS2_SB(sb)->s_clustersize_bits -
-			sb->s_blocksize_bits;
+					  sb->s_blocksize_bits;
 
 	blocks += (1 << b_to_c_bits) - 1;
 	return (u32)(blocks >> b_to_c_bits);
 }
 
 static inline u32 ocfs2_blocks_to_clusters(struct super_block *sb,
-					   u64 blocks)
+		u64 blocks)
 {
 	int b_to_c_bits = OCFS2_SB(sb)->s_clustersize_bits -
-		sb->s_blocksize_bits;
+					  sb->s_blocksize_bits;
 
 	return (u32)(blocks >> b_to_c_bits);
 }
 
 static inline unsigned int ocfs2_clusters_for_bytes(struct super_block *sb,
-						    u64 bytes)
+		u64 bytes)
 {
 	int cl_bits = OCFS2_SB(sb)->s_clustersize_bits;
 	unsigned int clusters;
@@ -770,20 +834,20 @@ static inline unsigned int ocfs2_bytes_to_clusters(struct super_block *sb,
 }
 
 static inline u64 ocfs2_blocks_for_bytes(struct super_block *sb,
-					 u64 bytes)
+		u64 bytes)
 {
 	bytes += sb->s_blocksize - 1;
 	return bytes >> sb->s_blocksize_bits;
 }
 
 static inline u64 ocfs2_clusters_to_bytes(struct super_block *sb,
-					  u32 clusters)
+		u32 clusters)
 {
 	return (u64)clusters << OCFS2_SB(sb)->s_clustersize_bits;
 }
 
 static inline u64 ocfs2_block_to_cluster_start(struct super_block *sb,
-					       u64 blocks)
+		u64 blocks)
 {
 	int bits = OCFS2_SB(sb)->s_clustersize_bits - sb->s_blocksize_bits;
 	unsigned int clusters;
@@ -793,7 +857,7 @@ static inline u64 ocfs2_block_to_cluster_start(struct super_block *sb,
 }
 
 static inline u64 ocfs2_align_bytes_to_clusters(struct super_block *sb,
-						u64 bytes)
+		u64 bytes)
 {
 	int cl_bits = OCFS2_SB(sb)->s_clustersize_bits;
 	unsigned int clusters;
@@ -803,11 +867,11 @@ static inline u64 ocfs2_align_bytes_to_clusters(struct super_block *sb,
 }
 
 static inline u64 ocfs2_align_bytes_to_blocks(struct super_block *sb,
-					      u64 bytes)
+		u64 bytes)
 {
 	u64 blocks;
 
-        blocks = ocfs2_blocks_for_bytes(sb, bytes);
+	blocks = ocfs2_blocks_for_bytes(sb, bytes);
 	return blocks << sb->s_blocksize_bits;
 }
 
@@ -817,15 +881,19 @@ static inline unsigned long ocfs2_align_bytes_to_sectors(u64 bytes)
 }
 
 static inline unsigned int ocfs2_page_index_to_clusters(struct super_block *sb,
-							unsigned long pg_index)
+		unsigned long pg_index)
 {
 	u32 clusters = pg_index;
 	unsigned int cbits = OCFS2_SB(sb)->s_clustersize_bits;
 
 	if (unlikely(PAGE_SHIFT > cbits))
+	{
 		clusters = pg_index << (PAGE_SHIFT - cbits);
+	}
 	else if (PAGE_SHIFT < cbits)
+	{
 		clusters = pg_index >> (cbits - PAGE_SHIFT);
+	}
 
 	return clusters;
 }
@@ -834,14 +902,17 @@ static inline unsigned int ocfs2_page_index_to_clusters(struct super_block *sb,
  * Find the 1st page index which covers the given clusters.
  */
 static inline pgoff_t ocfs2_align_clusters_to_page_index(struct super_block *sb,
-							u32 clusters)
+		u32 clusters)
 {
 	unsigned int cbits = OCFS2_SB(sb)->s_clustersize_bits;
-        pgoff_t index = clusters;
+	pgoff_t index = clusters;
 
-	if (PAGE_SHIFT > cbits) {
+	if (PAGE_SHIFT > cbits)
+	{
 		index = (pgoff_t)clusters >> (PAGE_SHIFT - cbits);
-	} else if (PAGE_SHIFT < cbits) {
+	}
+	else if (PAGE_SHIFT < cbits)
+	{
 		index = (pgoff_t)clusters << (cbits - PAGE_SHIFT);
 	}
 
@@ -854,13 +925,15 @@ static inline unsigned int ocfs2_pages_per_cluster(struct super_block *sb)
 	unsigned int pages_per_cluster = 1;
 
 	if (PAGE_SHIFT < cbits)
+	{
 		pages_per_cluster = 1 << (cbits - PAGE_SHIFT);
+	}
 
 	return pages_per_cluster;
 }
 
 static inline unsigned int ocfs2_megabytes_to_clusters(struct super_block *sb,
-						       unsigned int megs)
+		unsigned int megs)
 {
 	BUILD_BUG_ON(OCFS2_MAX_CLUSTERSIZE > 1048576);
 
@@ -868,7 +941,7 @@ static inline unsigned int ocfs2_megabytes_to_clusters(struct super_block *sb,
 }
 
 static inline unsigned int ocfs2_clusters_to_megabytes(struct super_block *sb,
-						       unsigned int clusters)
+		unsigned int clusters)
 {
 	return clusters >> (20 - OCFS2_SB(sb)->s_clustersize_bits);
 }
@@ -922,7 +995,7 @@ static inline int ocfs2_test_bit_unaligned(int bit, void *bitmap)
 }
 
 static inline int ocfs2_find_next_zero_bit_unaligned(void *bitmap, int max,
-							int start)
+		int start)
 {
 	int fix = 0, ret, tmpmax;
 	bitmap = correct_addr_and_bit_unaligned(&fix, bitmap);
@@ -930,8 +1003,12 @@ static inline int ocfs2_find_next_zero_bit_unaligned(void *bitmap, int max,
 	start += fix;
 
 	ret = ocfs2_find_next_zero_bit(bitmap, tmpmax, start) - fix;
+
 	if (ret > max)
+	{
 		return max;
+	}
+
 	return ret;
 }
 

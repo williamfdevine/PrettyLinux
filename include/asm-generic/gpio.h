@@ -26,11 +26,11 @@
  */
 
 #ifndef ARCH_NR_GPIOS
-#if defined(CONFIG_ARCH_NR_GPIO) && CONFIG_ARCH_NR_GPIO > 0
-#define ARCH_NR_GPIOS CONFIG_ARCH_NR_GPIO
-#else
-#define ARCH_NR_GPIOS		512
-#endif
+	#if defined(CONFIG_ARCH_NR_GPIO) && CONFIG_ARCH_NR_GPIO > 0
+		#define ARCH_NR_GPIOS CONFIG_ARCH_NR_GPIO
+	#else
+		#define ARCH_NR_GPIOS		512
+	#endif
 #endif
 
 /*
@@ -127,7 +127,7 @@ static inline int gpio_export(unsigned gpio, bool direction_may_change)
 }
 
 static inline int gpio_export_link(struct device *dev, const char *name,
-				   unsigned gpio)
+								   unsigned gpio)
 {
 	return gpiod_export_link(dev, name, gpio_to_desc(gpio));
 }

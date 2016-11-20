@@ -26,17 +26,17 @@
 		u32 sum = 0;						\
 		int n = rounds;						\
 		u32 b0, b1;						\
-									\
+		\
 		b0 = h0;						\
 		b1 = h1;						\
-									\
+		\
 		do							\
 		{							\
 			sum += DELTA;					\
 			b0 += ((b1 << 4)+a) ^ (b1+sum) ^ ((b1 >> 5)+b);	\
 			b1 += ((b0 << 4)+c) ^ (b0+sum) ^ ((b0 >> 5)+d);	\
 		} while(--n);						\
-									\
+		\
 		h0 += b0;						\
 		h1 += b1;						\
 	} while(0)
@@ -55,17 +55,18 @@ u32 keyed_hash(const signed char *msg, int len)
 	pad = (u32) len | ((u32) len << 8);
 	pad |= pad << 16;
 
-	while (len >= 16) {
+	while (len >= 16)
+	{
 		a = (u32) msg[0] |
-		    (u32) msg[1] << 8 | (u32) msg[2] << 16 | (u32) msg[3] << 24;
+			(u32) msg[1] << 8 | (u32) msg[2] << 16 | (u32) msg[3] << 24;
 		b = (u32) msg[4] |
-		    (u32) msg[5] << 8 | (u32) msg[6] << 16 | (u32) msg[7] << 24;
+			(u32) msg[5] << 8 | (u32) msg[6] << 16 | (u32) msg[7] << 24;
 		c = (u32) msg[8] |
-		    (u32) msg[9] << 8 |
-		    (u32) msg[10] << 16 | (u32) msg[11] << 24;
+			(u32) msg[9] << 8 |
+			(u32) msg[10] << 16 | (u32) msg[11] << 24;
 		d = (u32) msg[12] |
-		    (u32) msg[13] << 8 |
-		    (u32) msg[14] << 16 | (u32) msg[15] << 24;
+			(u32) msg[13] << 8 |
+			(u32) msg[14] << 16 | (u32) msg[15] << 24;
 
 		TEACORE(PARTROUNDS);
 
@@ -73,43 +74,58 @@ u32 keyed_hash(const signed char *msg, int len)
 		msg += 16;
 	}
 
-	if (len >= 12) {
+	if (len >= 12)
+	{
 		a = (u32) msg[0] |
-		    (u32) msg[1] << 8 | (u32) msg[2] << 16 | (u32) msg[3] << 24;
+			(u32) msg[1] << 8 | (u32) msg[2] << 16 | (u32) msg[3] << 24;
 		b = (u32) msg[4] |
-		    (u32) msg[5] << 8 | (u32) msg[6] << 16 | (u32) msg[7] << 24;
+			(u32) msg[5] << 8 | (u32) msg[6] << 16 | (u32) msg[7] << 24;
 		c = (u32) msg[8] |
-		    (u32) msg[9] << 8 |
-		    (u32) msg[10] << 16 | (u32) msg[11] << 24;
+			(u32) msg[9] << 8 |
+			(u32) msg[10] << 16 | (u32) msg[11] << 24;
 
 		d = pad;
-		for (i = 12; i < len; i++) {
+
+		for (i = 12; i < len; i++)
+		{
 			d <<= 8;
 			d |= msg[i];
 		}
-	} else if (len >= 8) {
+	}
+	else if (len >= 8)
+	{
 		a = (u32) msg[0] |
-		    (u32) msg[1] << 8 | (u32) msg[2] << 16 | (u32) msg[3] << 24;
+			(u32) msg[1] << 8 | (u32) msg[2] << 16 | (u32) msg[3] << 24;
 		b = (u32) msg[4] |
-		    (u32) msg[5] << 8 | (u32) msg[6] << 16 | (u32) msg[7] << 24;
+			(u32) msg[5] << 8 | (u32) msg[6] << 16 | (u32) msg[7] << 24;
 
 		c = d = pad;
-		for (i = 8; i < len; i++) {
+
+		for (i = 8; i < len; i++)
+		{
 			c <<= 8;
 			c |= msg[i];
 		}
-	} else if (len >= 4) {
+	}
+	else if (len >= 4)
+	{
 		a = (u32) msg[0] |
-		    (u32) msg[1] << 8 | (u32) msg[2] << 16 | (u32) msg[3] << 24;
+			(u32) msg[1] << 8 | (u32) msg[2] << 16 | (u32) msg[3] << 24;
 
 		b = c = d = pad;
-		for (i = 4; i < len; i++) {
+
+		for (i = 4; i < len; i++)
+		{
 			b <<= 8;
 			b |= msg[i];
 		}
-	} else {
+	}
+	else
+	{
 		a = b = c = d = pad;
-		for (i = 0; i < len; i++) {
+
+		for (i = 0; i < len; i++)
+		{
 			a <<= 8;
 			a |= msg[i];
 		}
@@ -117,7 +133,7 @@ u32 keyed_hash(const signed char *msg, int len)
 
 	TEACORE(FULLROUNDS);
 
-/*	return 0;*/
+	/*	return 0;*/
 	return h0 ^ h1;
 }
 
@@ -132,31 +148,52 @@ u32 yura_hash(const signed char *msg, int len)
 	int i;
 
 	for (pow = 1, i = 1; i < len; i++)
+	{
 		pow = pow * 10;
+	}
 
 	if (len == 1)
+	{
 		a = msg[0] - 48;
+	}
 	else
+	{
 		a = (msg[0] - 48) * pow;
+	}
 
-	for (i = 1; i < len; i++) {
+	for (i = 1; i < len; i++)
+	{
 		c = msg[i] - 48;
+
 		for (pow = 1, j = i; j < len - 1; j++)
+		{
 			pow = pow * 10;
+		}
+
 		a = a + c * pow;
 	}
 
-	for (; i < 40; i++) {
+	for (; i < 40; i++)
+	{
 		c = '0' - 48;
+
 		for (pow = 1, j = i; j < len - 1; j++)
+		{
 			pow = pow * 10;
+		}
+
 		a = a + c * pow;
 	}
 
-	for (; i < 256; i++) {
+	for (; i < 256; i++)
+	{
 		c = i;
+
 		for (pow = 1, j = i; j < len - 1; j++)
+		{
 			pow = pow * 10;
+		}
+
 		a = a + c * pow;
 	}
 
@@ -167,11 +204,14 @@ u32 yura_hash(const signed char *msg, int len)
 u32 r5_hash(const signed char *msg, int len)
 {
 	u32 a = 0;
-	while (*msg) {
+
+	while (*msg)
+	{
 		a += *msg << 4;
 		a += *msg >> 4;
 		a *= 11;
 		msg++;
 	}
+
 	return a;
 }

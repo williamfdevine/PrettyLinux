@@ -47,7 +47,8 @@
 #define LM70_CHIP_LM71		2	/* NS LM71 */
 #define LM70_CHIP_LM74		3	/* NS LM74 */
 
-struct lm70 {
+struct lm70
+{
 	struct spi_device *spi;
 	struct mutex lock;
 	unsigned int chip;
@@ -55,7 +56,7 @@ struct lm70 {
 
 /* sysfs hook function */
 static ssize_t lm70_sense_temp(struct device *dev,
-		struct device_attribute *attr, char *buf)
+							   struct device_attribute *attr, char *buf)
 {
 	struct lm70 *p_lm70 = dev_get_drvdata(dev);
 	struct spi_device *spi = p_lm70->spi;
@@ -64,20 +65,25 @@ static ssize_t lm70_sense_temp(struct device *dev,
 	s16 raw = 0;
 
 	if (mutex_lock_interruptible(&p_lm70->lock))
+	{
 		return -ERESTARTSYS;
+	}
 
 	/*
 	 * spi_read() requires a DMA-safe buffer; so we use
 	 * spi_write_then_read(), transmitting 0 bytes.
 	 */
 	status = spi_write_then_read(spi, NULL, 0, &rxbuf[0], 2);
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		pr_warn("spi_write_then_read failed with status %d\n", status);
 		goto out;
 	}
+
 	raw = (rxbuf[0] << 8) + rxbuf[1];
 	dev_dbg(dev, "rxbuf[0] : 0x%02x rxbuf[1] : 0x%02x raw=0x%04x\n",
-		rxbuf[0], rxbuf[1], raw);
+			rxbuf[0], rxbuf[1], raw);
 
 	/*
 	 * LM70:
@@ -99,19 +105,20 @@ static ssize_t lm70_sense_temp(struct device *dev,
 	 * 14 bits of 2's complement data, discard LSB 2 bits,
 	 * resolution 0.0312 degrees celsius.
 	 */
-	switch (p_lm70->chip) {
-	case LM70_CHIP_LM70:
-		val = ((int)raw / 32) * 250;
-		break;
+	switch (p_lm70->chip)
+	{
+		case LM70_CHIP_LM70:
+			val = ((int)raw / 32) * 250;
+			break;
 
-	case LM70_CHIP_TMP121:
-	case LM70_CHIP_LM74:
-		val = ((int)raw / 8) * 625 / 10;
-		break;
+		case LM70_CHIP_TMP121:
+		case LM70_CHIP_LM74:
+			val = ((int)raw / 8) * 625 / 10;
+			break;
 
-	case LM70_CHIP_LM71:
-		val = ((int)raw / 4) * 3125 / 100;
-		break;
+		case LM70_CHIP_LM71:
+			val = ((int)raw / 4) * 3125 / 100;
+			break;
 	}
 
 	status = sprintf(buf, "%d\n", val); /* millidegrees Celsius */
@@ -122,7 +129,8 @@ out:
 
 static DEVICE_ATTR(temp1_input, S_IRUGO, lm70_sense_temp, NULL);
 
-static struct attribute *lm70_attrs[] = {
+static struct attribute *lm70_attrs[] =
+{
 	&dev_attr_temp1_input.attr,
 	NULL
 };
@@ -132,7 +140,8 @@ ATTRIBUTE_GROUPS(lm70);
 /*----------------------------------------------------------------------*/
 
 #ifdef CONFIG_OF
-static const struct of_device_id lm70_of_ids[] = {
+static const struct of_device_id lm70_of_ids[] =
+{
 	{
 		.compatible = "ti,lm70",
 		.data = (void *) LM70_CHIP_LM70,
@@ -162,32 +171,43 @@ static int lm70_probe(struct spi_device *spi)
 	int chip;
 
 	match = of_match_device(lm70_of_ids, &spi->dev);
+
 	if (match)
+	{
 		chip = (int)(uintptr_t)match->data;
+	}
 	else
+	{
 		chip = spi_get_device_id(spi)->driver_data;
+	}
 
 	/* signaling is SPI_MODE_0 */
 	if (spi->mode & (SPI_CPOL | SPI_CPHA))
+	{
 		return -EINVAL;
+	}
 
 	/* NOTE:  we assume 8-bit words, and convert to 16 bits manually */
 
 	p_lm70 = devm_kzalloc(&spi->dev, sizeof(*p_lm70), GFP_KERNEL);
+
 	if (!p_lm70)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&p_lm70->lock);
 	p_lm70->chip = chip;
 	p_lm70->spi = spi;
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(&spi->dev,
-							   spi->modalias,
-							   p_lm70, lm70_groups);
+				spi->modalias,
+				p_lm70, lm70_groups);
 	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
-static const struct spi_device_id lm70_ids[] = {
+static const struct spi_device_id lm70_ids[] =
+{
 	{ "lm70",   LM70_CHIP_LM70 },
 	{ "tmp121", LM70_CHIP_TMP121 },
 	{ "lm71",   LM70_CHIP_LM71 },
@@ -196,7 +216,8 @@ static const struct spi_device_id lm70_ids[] = {
 };
 MODULE_DEVICE_TABLE(spi, lm70_ids);
 
-static struct spi_driver lm70_driver = {
+static struct spi_driver lm70_driver =
+{
 	.driver = {
 		.name	= "lm70",
 		.of_match_table	= of_match_ptr(lm70_of_ids),

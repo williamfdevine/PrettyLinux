@@ -22,16 +22,17 @@
 #define _LINUX_PTR_RING_H 1
 
 #ifdef __KERNEL__
-#include <linux/spinlock.h>
-#include <linux/cache.h>
-#include <linux/types.h>
-#include <linux/compiler.h>
-#include <linux/cache.h>
-#include <linux/slab.h>
-#include <asm/errno.h>
+	#include <linux/spinlock.h>
+	#include <linux/cache.h>
+	#include <linux/types.h>
+	#include <linux/compiler.h>
+	#include <linux/cache.h>
+	#include <linux/slab.h>
+	#include <asm/errno.h>
 #endif
 
-struct ptr_ring {
+struct ptr_ring
+{
 	int producer ____cacheline_aligned_in_smp;
 	spinlock_t producer_lock;
 	int consumer ____cacheline_aligned_in_smp;
@@ -103,11 +104,17 @@ static inline bool ptr_ring_full_bh(struct ptr_ring *r)
 static inline int __ptr_ring_produce(struct ptr_ring *r, void *ptr)
 {
 	if (unlikely(!r->size) || r->queue[r->producer])
+	{
 		return -ENOSPC;
+	}
 
 	r->queue[r->producer++] = ptr;
+
 	if (unlikely(r->producer >= r->size))
+	{
 		r->producer = 0;
+	}
+
 	return 0;
 }
 
@@ -165,7 +172,10 @@ static inline int ptr_ring_produce_bh(struct ptr_ring *r, void *ptr)
 static inline void *__ptr_ring_peek(struct ptr_ring *r)
 {
 	if (likely(r->size))
+	{
 		return r->queue[r->consumer];
+	}
+
 	return NULL;
 }
 
@@ -227,8 +237,11 @@ static inline bool ptr_ring_empty_bh(struct ptr_ring *r)
 static inline void __ptr_ring_discard_one(struct ptr_ring *r)
 {
 	r->queue[r->consumer++] = NULL;
+
 	if (unlikely(r->consumer >= r->size))
+	{
 		r->consumer = 0;
+	}
 }
 
 static inline void *__ptr_ring_consume(struct ptr_ring *r)
@@ -236,8 +249,11 @@ static inline void *__ptr_ring_consume(struct ptr_ring *r)
 	void *ptr;
 
 	ptr = __ptr_ring_peek(r);
+
 	if (ptr)
+	{
 		__ptr_ring_discard_one(r);
+	}
 
 	return ptr;
 }
@@ -294,41 +310,41 @@ static inline void *ptr_ring_consume_bh(struct ptr_ring *r)
 #define __PTR_RING_PEEK_CALL(r, f) ((f)(__ptr_ring_peek(r)))
 
 #define PTR_RING_PEEK_CALL(r, f) ({ \
-	typeof((f)(NULL)) __PTR_RING_PEEK_CALL_v; \
-	\
-	spin_lock(&(r)->consumer_lock); \
-	__PTR_RING_PEEK_CALL_v = __PTR_RING_PEEK_CALL(r, f); \
-	spin_unlock(&(r)->consumer_lock); \
-	__PTR_RING_PEEK_CALL_v; \
-})
+		typeof((f)(NULL)) __PTR_RING_PEEK_CALL_v; \
+		\
+		spin_lock(&(r)->consumer_lock); \
+		__PTR_RING_PEEK_CALL_v = __PTR_RING_PEEK_CALL(r, f); \
+		spin_unlock(&(r)->consumer_lock); \
+		__PTR_RING_PEEK_CALL_v; \
+	})
 
 #define PTR_RING_PEEK_CALL_IRQ(r, f) ({ \
-	typeof((f)(NULL)) __PTR_RING_PEEK_CALL_v; \
-	\
-	spin_lock_irq(&(r)->consumer_lock); \
-	__PTR_RING_PEEK_CALL_v = __PTR_RING_PEEK_CALL(r, f); \
-	spin_unlock_irq(&(r)->consumer_lock); \
-	__PTR_RING_PEEK_CALL_v; \
-})
+		typeof((f)(NULL)) __PTR_RING_PEEK_CALL_v; \
+		\
+		spin_lock_irq(&(r)->consumer_lock); \
+		__PTR_RING_PEEK_CALL_v = __PTR_RING_PEEK_CALL(r, f); \
+		spin_unlock_irq(&(r)->consumer_lock); \
+		__PTR_RING_PEEK_CALL_v; \
+	})
 
 #define PTR_RING_PEEK_CALL_BH(r, f) ({ \
-	typeof((f)(NULL)) __PTR_RING_PEEK_CALL_v; \
-	\
-	spin_lock_bh(&(r)->consumer_lock); \
-	__PTR_RING_PEEK_CALL_v = __PTR_RING_PEEK_CALL(r, f); \
-	spin_unlock_bh(&(r)->consumer_lock); \
-	__PTR_RING_PEEK_CALL_v; \
-})
+		typeof((f)(NULL)) __PTR_RING_PEEK_CALL_v; \
+		\
+		spin_lock_bh(&(r)->consumer_lock); \
+		__PTR_RING_PEEK_CALL_v = __PTR_RING_PEEK_CALL(r, f); \
+		spin_unlock_bh(&(r)->consumer_lock); \
+		__PTR_RING_PEEK_CALL_v; \
+	})
 
 #define PTR_RING_PEEK_CALL_ANY(r, f) ({ \
-	typeof((f)(NULL)) __PTR_RING_PEEK_CALL_v; \
-	unsigned long __PTR_RING_PEEK_CALL_f;\
-	\
-	spin_lock_irqsave(&(r)->consumer_lock, __PTR_RING_PEEK_CALL_f); \
-	__PTR_RING_PEEK_CALL_v = __PTR_RING_PEEK_CALL(r, f); \
-	spin_unlock_irqrestore(&(r)->consumer_lock, __PTR_RING_PEEK_CALL_f); \
-	__PTR_RING_PEEK_CALL_v; \
-})
+		typeof((f)(NULL)) __PTR_RING_PEEK_CALL_v; \
+		unsigned long __PTR_RING_PEEK_CALL_f;\
+		\
+		spin_lock_irqsave(&(r)->consumer_lock, __PTR_RING_PEEK_CALL_f); \
+		__PTR_RING_PEEK_CALL_v = __PTR_RING_PEEK_CALL(r, f); \
+		spin_unlock_irqrestore(&(r)->consumer_lock, __PTR_RING_PEEK_CALL_f); \
+		__PTR_RING_PEEK_CALL_v; \
+	})
 
 static inline void **__ptr_ring_init_queue_alloc(int size, gfp_t gfp)
 {
@@ -338,8 +354,11 @@ static inline void **__ptr_ring_init_queue_alloc(int size, gfp_t gfp)
 static inline int ptr_ring_init(struct ptr_ring *r, int size, gfp_t gfp)
 {
 	r->queue = __ptr_ring_init_queue_alloc(size, gfp);
+
 	if (!r->queue)
+	{
 		return -ENOMEM;
+	}
 
 	r->size = size;
 	r->producer = r->consumer = 0;
@@ -350,8 +369,8 @@ static inline int ptr_ring_init(struct ptr_ring *r, int size, gfp_t gfp)
 }
 
 static inline void **__ptr_ring_swap_queue(struct ptr_ring *r, void **queue,
-					   int size, gfp_t gfp,
-					   void (*destroy)(void *))
+		int size, gfp_t gfp,
+		void (*destroy)(void *))
 {
 	int producer = 0;
 	void **old;
@@ -359,9 +378,13 @@ static inline void **__ptr_ring_swap_queue(struct ptr_ring *r, void **queue,
 
 	while ((ptr = ptr_ring_consume(r)))
 		if (producer < size)
+		{
 			queue[producer++] = ptr;
+		}
 		else if (destroy)
+		{
 			destroy(ptr);
+		}
 
 	r->size = size;
 	r->producer = producer;
@@ -373,14 +396,16 @@ static inline void **__ptr_ring_swap_queue(struct ptr_ring *r, void **queue,
 }
 
 static inline int ptr_ring_resize(struct ptr_ring *r, int size, gfp_t gfp,
-				  void (*destroy)(void *))
+								  void (*destroy)(void *))
 {
 	unsigned long flags;
 	void **queue = __ptr_ring_init_queue_alloc(size, gfp);
 	void **old;
 
 	if (!queue)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_irqsave(&(r)->producer_lock, flags);
 
@@ -394,40 +419,53 @@ static inline int ptr_ring_resize(struct ptr_ring *r, int size, gfp_t gfp,
 }
 
 static inline int ptr_ring_resize_multiple(struct ptr_ring **rings, int nrings,
-					   int size,
-					   gfp_t gfp, void (*destroy)(void *))
+		int size,
+		gfp_t gfp, void (*destroy)(void *))
 {
 	unsigned long flags;
 	void ***queues;
 	int i;
 
-	queues = kmalloc(nrings * sizeof *queues, gfp);
-	if (!queues)
-		goto noqueues;
+	queues = kmalloc(nrings * sizeof * queues, gfp);
 
-	for (i = 0; i < nrings; ++i) {
-		queues[i] = __ptr_ring_init_queue_alloc(size, gfp);
-		if (!queues[i])
-			goto nomem;
+	if (!queues)
+	{
+		goto noqueues;
 	}
 
-	for (i = 0; i < nrings; ++i) {
+	for (i = 0; i < nrings; ++i)
+	{
+		queues[i] = __ptr_ring_init_queue_alloc(size, gfp);
+
+		if (!queues[i])
+		{
+			goto nomem;
+		}
+	}
+
+	for (i = 0; i < nrings; ++i)
+	{
 		spin_lock_irqsave(&(rings[i])->producer_lock, flags);
 		queues[i] = __ptr_ring_swap_queue(rings[i], queues[i],
-						  size, gfp, destroy);
+										  size, gfp, destroy);
 		spin_unlock_irqrestore(&(rings[i])->producer_lock, flags);
 	}
 
 	for (i = 0; i < nrings; ++i)
+	{
 		kfree(queues[i]);
+	}
 
 	kfree(queues);
 
 	return 0;
 
 nomem:
+
 	while (--i >= 0)
+	{
 		kfree(queues[i]);
+	}
 
 	kfree(queues);
 
@@ -441,7 +479,10 @@ static inline void ptr_ring_cleanup(struct ptr_ring *r, void (*destroy)(void *))
 
 	if (destroy)
 		while ((ptr = ptr_ring_consume(r)))
+		{
 			destroy(ptr);
+		}
+
 	kfree(r->queue);
 }
 

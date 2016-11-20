@@ -28,7 +28,8 @@
 #define ZR36016_H
 
 /* data stored for each zoran jpeg codec chip */
-struct zr36016 {
+struct zr36016
+{
 	char name[32];
 	int num;
 	/* io datastructure */

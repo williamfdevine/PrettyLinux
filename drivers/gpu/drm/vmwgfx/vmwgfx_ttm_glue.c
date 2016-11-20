@@ -33,7 +33,8 @@ int vmw_mmap(struct file *filp, struct vm_area_struct *vma)
 	struct drm_file *file_priv;
 	struct vmw_private *dev_priv;
 
-	if (unlikely(vma->vm_pgoff < VMWGFX_FILE_PAGE_OFFSET)) {
+	if (unlikely(vma->vm_pgoff < VMWGFX_FILE_PAGE_OFFSET))
+	{
 		DRM_ERROR("Illegal attempt to mmap old fifo space.\n");
 		return -EINVAL;
 	}
@@ -66,7 +67,9 @@ int vmw_ttm_global_init(struct vmw_private *dev_priv)
 	global_ref->release = &vmw_ttm_mem_global_release;
 
 	ret = drm_global_item_ref(global_ref);
-	if (unlikely(ret != 0)) {
+
+	if (unlikely(ret != 0))
+	{
 		DRM_ERROR("Failed setting up TTM memory accounting.\n");
 		return ret;
 	}
@@ -80,7 +83,8 @@ int vmw_ttm_global_init(struct vmw_private *dev_priv)
 	global_ref->release = &ttm_bo_global_release;
 	ret = drm_global_item_ref(global_ref);
 
-	if (unlikely(ret != 0)) {
+	if (unlikely(ret != 0))
+	{
 		DRM_ERROR("Failed setting up TTM buffer objects.\n");
 		goto out_no_bo;
 	}

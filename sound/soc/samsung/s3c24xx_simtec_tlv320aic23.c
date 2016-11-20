@@ -23,14 +23,16 @@
  * Anubis	LIN, LOUT, MIC, HP	TPA2001D1 (HPOUTL,R)
  */
 
-static const struct snd_soc_dapm_widget dapm_widgets[] = {
+static const struct snd_soc_dapm_widget dapm_widgets[] =
+{
 	SND_SOC_DAPM_HP("Headphone Jack", NULL),
 	SND_SOC_DAPM_LINE("Line In", NULL),
 	SND_SOC_DAPM_LINE("Line Out", NULL),
 	SND_SOC_DAPM_MIC("Mic Jack", NULL),
 };
 
-static const struct snd_soc_dapm_route base_map[] = {
+static const struct snd_soc_dapm_route base_map[] =
+{
 	{ "Headphone Jack", NULL, "LHPOUT"},
 	{ "Headphone Jack", NULL, "RHPOUT"},
 
@@ -57,7 +59,8 @@ static int simtec_tlv320aic23_init(struct snd_soc_pcm_runtime *rtd)
 	return 0;
 }
 
-static struct snd_soc_dai_link simtec_dai_aic23 = {
+static struct snd_soc_dai_link simtec_dai_aic23 =
+{
 	.name		= "tlv320aic23",
 	.stream_name	= "TLV320AIC23",
 	.codec_name	= "tlv320aic3x-codec.0-001a",
@@ -68,7 +71,8 @@ static struct snd_soc_dai_link simtec_dai_aic23 = {
 };
 
 /* simtec audio machine driver */
-static struct snd_soc_card snd_soc_machine_simtec_aic23 = {
+static struct snd_soc_card snd_soc_machine_simtec_aic23 =
+{
 	.name		= "Simtec",
 	.owner		= THIS_MODULE,
 	.dai_link	= &simtec_dai_aic23,
@@ -85,7 +89,8 @@ static int simtec_audio_tlv320aic23_probe(struct platform_device *pd)
 	return simtec_audio_core_probe(pd, &snd_soc_machine_simtec_aic23);
 }
 
-static struct platform_driver simtec_audio_tlv320aic23_driver = {
+static struct platform_driver simtec_audio_tlv320aic23_driver =
+{
 	.driver	= {
 		.name	= "s3c24xx-simtec-tlv320aic23",
 		.pm	= simtec_audio_pm,

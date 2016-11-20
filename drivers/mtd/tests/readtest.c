@@ -51,14 +51,21 @@ static int read_eraseblock_by_page(int ebnum)
 	void *buf = iobuf;
 	void *oobbuf = iobuf1;
 
-	for (i = 0; i < pgcnt; i++) {
+	for (i = 0; i < pgcnt; i++)
+	{
 		memset(buf, 0 , pgsize);
 		ret = mtdtest_read(mtd, addr, pgsize, buf);
-		if (ret) {
+
+		if (ret)
+		{
 			if (!err)
+			{
 				err = ret;
+			}
 		}
-		if (mtd->oobsize) {
+
+		if (mtd->oobsize)
+		{
 			struct mtd_oob_ops ops;
 
 			ops.mode      = MTD_OPS_PLACE_OOB;
@@ -70,17 +77,27 @@ static int read_eraseblock_by_page(int ebnum)
 			ops.datbuf    = NULL;
 			ops.oobbuf    = oobbuf;
 			ret = mtd_read_oob(mtd, addr, &ops);
+
 			if ((ret && !mtd_is_bitflip(ret)) ||
-					ops.oobretlen != mtd->oobsize) {
+				ops.oobretlen != mtd->oobsize)
+			{
 				pr_err("error: read oob failed at "
-						  "%#llx\n", (long long)addr);
+					   "%#llx\n", (long long)addr);
+
 				if (!err)
+				{
 					err = ret;
+				}
+
 				if (!err)
+				{
 					err = -EINVAL;
+				}
 			}
+
 			oobbuf += mtd->oobsize;
 		}
+
 		addr += pgsize;
 		buf += pgsize;
 	}
@@ -96,27 +113,41 @@ static void dump_eraseblock(int ebnum)
 
 	pr_info("dumping eraseblock %d\n", ebnum);
 	n = mtd->erasesize;
-	for (i = 0; i < n;) {
+
+	for (i = 0; i < n;)
+	{
 		char *p = line;
 
 		p += sprintf(p, "%05x: ", i);
+
 		for (j = 0; j < 32 && i < n; j++, i++)
+		{
 			p += sprintf(p, "%02x", (unsigned int)iobuf[i]);
+		}
+
 		printk(KERN_CRIT "%s\n", line);
 		cond_resched();
 	}
+
 	if (!mtd->oobsize)
+	{
 		return;
+	}
+
 	pr_info("dumping oob from eraseblock %d\n", ebnum);
 	n = mtd->oobsize;
+
 	for (pg = 0, i = 0; pg < pgcnt; pg++)
-		for (oob = 0; oob < n;) {
+		for (oob = 0; oob < n;)
+		{
 			char *p = line;
 
 			p += sprintf(p, "%05x: ", i);
+
 			for (j = 0; j < 32 && oob < n; j++, oob++, i++)
 				p += sprintf(p, "%02x",
-					     (unsigned int)iobuf1[i]);
+							 (unsigned int)iobuf1[i]);
+
 			printk(KERN_CRIT "%s\n", line);
 			cond_resched();
 		}
@@ -130,7 +161,8 @@ static int __init mtd_readtest_init(void)
 	printk(KERN_INFO "\n");
 	printk(KERN_INFO "=================================================\n");
 
-	if (dev < 0) {
+	if (dev < 0)
+	{
 		pr_info("Please specify a valid mtd-device via module parameter\n");
 		return -EINVAL;
 	}
@@ -138,18 +170,24 @@ static int __init mtd_readtest_init(void)
 	pr_info("MTD device: %d\n", dev);
 
 	mtd = get_mtd_device(NULL, dev);
-	if (IS_ERR(mtd)) {
+
+	if (IS_ERR(mtd))
+	{
 		err = PTR_ERR(mtd);
 		pr_err("error: Cannot get MTD device\n");
 		return err;
 	}
 
-	if (mtd->writesize == 1) {
+	if (mtd->writesize == 1)
+	{
 		pr_info("not NAND flash, assume page size is 512 "
-		       "bytes.\n");
+				"bytes.\n");
 		pgsize = 512;
-	} else
+	}
+	else
+	{
 		pgsize = mtd->writesize;
+	}
 
 	tmp = mtd->size;
 	do_div(tmp, mtd->erasesize);
@@ -157,51 +195,81 @@ static int __init mtd_readtest_init(void)
 	pgcnt = mtd->erasesize / pgsize;
 
 	pr_info("MTD device size %llu, eraseblock size %u, "
-	       "page size %u, count of eraseblocks %u, pages per "
-	       "eraseblock %u, OOB size %u\n",
-	       (unsigned long long)mtd->size, mtd->erasesize,
-	       pgsize, ebcnt, pgcnt, mtd->oobsize);
+			"page size %u, count of eraseblocks %u, pages per "
+			"eraseblock %u, OOB size %u\n",
+			(unsigned long long)mtd->size, mtd->erasesize,
+			pgsize, ebcnt, pgcnt, mtd->oobsize);
 
 	err = -ENOMEM;
 	iobuf = kmalloc(mtd->erasesize, GFP_KERNEL);
+
 	if (!iobuf)
+	{
 		goto out;
+	}
+
 	iobuf1 = kmalloc(mtd->erasesize, GFP_KERNEL);
+
 	if (!iobuf1)
+	{
 		goto out;
+	}
 
 	bbt = kzalloc(ebcnt, GFP_KERNEL);
+
 	if (!bbt)
+	{
 		goto out;
+	}
+
 	err = mtdtest_scan_for_bad_eraseblocks(mtd, bbt, 0, ebcnt);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	/* Read all eraseblocks 1 page at a time */
 	pr_info("testing page read\n");
-	for (i = 0; i < ebcnt; ++i) {
+
+	for (i = 0; i < ebcnt; ++i)
+	{
 		int ret;
 
 		if (bbt[i])
+		{
 			continue;
+		}
+
 		ret = read_eraseblock_by_page(i);
-		if (ret) {
+
+		if (ret)
+		{
 			dump_eraseblock(i);
+
 			if (!err)
+			{
 				err = ret;
+			}
 		}
 
 		ret = mtdtest_relax();
-		if (ret) {
+
+		if (ret)
+		{
 			err = ret;
 			goto out;
 		}
 	}
 
 	if (err)
+	{
 		pr_info("finished with errors\n");
+	}
 	else
+	{
 		pr_info("finished\n");
+	}
 
 out:
 
@@ -209,8 +277,12 @@ out:
 	kfree(iobuf1);
 	kfree(bbt);
 	put_mtd_device(mtd);
+
 	if (err)
+	{
 		pr_info("error %d occurred\n", err);
+	}
+
 	printk(KERN_INFO "=================================================\n");
 	return err;
 }

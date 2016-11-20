@@ -51,8 +51,11 @@ xfs_trim_extents(
 	pag = xfs_perag_get(mp, agno);
 
 	error = xfs_alloc_read_agf(mp, NULL, agno, 0, &agbp);
+
 	if (error || !agbp)
+	{
 		goto out_put_perag;
+	}
 
 	cur = xfs_allocbt_init_cursor(mp, NULL, agbp, agno, XFS_BTNUM_CNT);
 
@@ -67,23 +70,31 @@ xfs_trim_extents(
 	 * Look up the longest btree in the AGF and start with it.
 	 */
 	error = xfs_alloc_lookup_ge(cur, 0,
-			    be32_to_cpu(XFS_BUF_TO_AGF(agbp)->agf_longest), &i);
+								be32_to_cpu(XFS_BUF_TO_AGF(agbp)->agf_longest), &i);
+
 	if (error)
+	{
 		goto out_del_cursor;
+	}
 
 	/*
 	 * Loop until we are done with all extents that are large
 	 * enough to be worth discarding.
 	 */
-	while (i) {
+	while (i)
+	{
 		xfs_agblock_t	fbno;
 		xfs_extlen_t	flen;
 		xfs_daddr_t	dbno;
 		xfs_extlen_t	dlen;
 
 		error = xfs_alloc_get_rec(cur, &fbno, &flen, &i);
+
 		if (error)
+		{
 			goto out_del_cursor;
+		}
+
 		XFS_WANT_CORRUPTED_GOTO(mp, i == 1, out_del_cursor);
 		ASSERT(flen <= be32_to_cpu(XFS_BUF_TO_AGF(agbp)->agf_longest));
 
@@ -98,7 +109,8 @@ xfs_trim_extents(
 		/*
 		 * Too small?  Give up.
 		 */
-		if (dlen < minlen) {
+		if (dlen < minlen)
+		{
 			trace_xfs_discard_toosmall(mp, agno, fbno, flen);
 			goto out_del_cursor;
 		}
@@ -108,7 +120,8 @@ xfs_trim_extents(
 		 * supposed to discard skip it.  Do not bother to trim
 		 * down partially overlapping ranges for now.
 		 */
-		if (dbno + dlen < start || dbno > end) {
+		if (dbno + dlen < start || dbno > end)
+		{
 			trace_xfs_discard_exclude(mp, agno, fbno, flen);
 			goto next_extent;
 		}
@@ -117,21 +130,29 @@ xfs_trim_extents(
 		 * If any blocks in the range are still busy, skip the
 		 * discard and try again the next time.
 		 */
-		if (xfs_extent_busy_search(mp, agno, fbno, flen)) {
+		if (xfs_extent_busy_search(mp, agno, fbno, flen))
+		{
 			trace_xfs_discard_busy(mp, agno, fbno, flen);
 			goto next_extent;
 		}
 
 		trace_xfs_discard_extent(mp, agno, fbno, flen);
 		error = blkdev_issue_discard(bdev, dbno, dlen, GFP_NOFS, 0);
+
 		if (error)
+		{
 			goto out_del_cursor;
+		}
+
 		*blocks_trimmed += flen;
 
 next_extent:
 		error = xfs_btree_decrement(cur, 0, &i);
+
 		if (error)
+		{
 			goto out_del_cursor;
+		}
 	}
 
 out_del_cursor:
@@ -165,11 +186,19 @@ xfs_ioc_trim(
 	int			error, last_error = 0;
 
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
+
 	if (!blk_queue_discard(q))
+	{
 		return -EOPNOTSUPP;
+	}
+
 	if (copy_from_user(&range, urange, sizeof(range)))
+	{
 		return -EFAULT;
+	}
 
 	/*
 	 * Truncating down the len isn't actually quite correct, but using
@@ -179,33 +208,47 @@ xfs_ioc_trim(
 	 * matter as trimming blocks is an advisory interface.
 	 */
 	if (range.start >= XFS_FSB_TO_B(mp, mp->m_sb.sb_dblocks) ||
-	    range.minlen > XFS_FSB_TO_B(mp, mp->m_ag_max_usable) ||
-	    range.len < mp->m_sb.sb_blocksize)
+		range.minlen > XFS_FSB_TO_B(mp, mp->m_ag_max_usable) ||
+		range.len < mp->m_sb.sb_blocksize)
+	{
 		return -EINVAL;
+	}
 
 	start = BTOBB(range.start);
 	end = start + BTOBBT(range.len) - 1;
 	minlen = BTOBB(max_t(u64, granularity, range.minlen));
 
 	if (end > XFS_FSB_TO_BB(mp, mp->m_sb.sb_dblocks) - 1)
-		end = XFS_FSB_TO_BB(mp, mp->m_sb.sb_dblocks)- 1;
+	{
+		end = XFS_FSB_TO_BB(mp, mp->m_sb.sb_dblocks) - 1;
+	}
 
 	start_agno = xfs_daddr_to_agno(mp, start);
 	end_agno = xfs_daddr_to_agno(mp, end);
 
-	for (agno = start_agno; agno <= end_agno; agno++) {
+	for (agno = start_agno; agno <= end_agno; agno++)
+	{
 		error = xfs_trim_extents(mp, agno, start, end, minlen,
-					  &blocks_trimmed);
+								 &blocks_trimmed);
+
 		if (error)
+		{
 			last_error = error;
+		}
 	}
 
 	if (last_error)
+	{
 		return last_error;
+	}
 
 	range.len = XFS_FSB_TO_B(mp, blocks_trimmed);
+
 	if (copy_to_user(urange, &range, sizeof(range)))
+	{
 		return -EFAULT;
+	}
+
 	return 0;
 }
 
@@ -217,20 +260,23 @@ xfs_discard_extents(
 	struct xfs_extent_busy	*busyp;
 	int			error = 0;
 
-	list_for_each_entry(busyp, list, list) {
+	list_for_each_entry(busyp, list, list)
+	{
 		trace_xfs_discard_extent(mp, busyp->agno, busyp->bno,
-					 busyp->length);
+								 busyp->length);
 
 		error = blkdev_issue_discard(mp->m_ddev_targp->bt_bdev,
-				XFS_AGB_TO_DADDR(mp, busyp->agno, busyp->bno),
-				XFS_FSB_TO_BB(mp, busyp->length),
-				GFP_NOFS, 0);
-		if (error && error != -EOPNOTSUPP) {
+									 XFS_AGB_TO_DADDR(mp, busyp->agno, busyp->bno),
+									 XFS_FSB_TO_BB(mp, busyp->length),
+									 GFP_NOFS, 0);
+
+		if (error && error != -EOPNOTSUPP)
+		{
 			xfs_info(mp,
-	 "discard failed for extent [0x%llx,%u], error %d",
-				 (unsigned long long)busyp->bno,
-				 busyp->length,
-				 error);
+					 "discard failed for extent [0x%llx,%u], error %d",
+					 (unsigned long long)busyp->bno,
+					 busyp->length,
+					 error);
 			return error;
 		}
 	}

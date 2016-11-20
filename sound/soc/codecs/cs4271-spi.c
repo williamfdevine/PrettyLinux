@@ -39,7 +39,8 @@ static int cs4271_spi_remove(struct spi_device *spi)
 	return 0;
 }
 
-static struct spi_driver cs4271_spi_driver = {
+static struct spi_driver cs4271_spi_driver =
+{
 	.driver = {
 		.name	= "cs4271",
 		.of_match_table = of_match_ptr(cs4271_dt_ids),

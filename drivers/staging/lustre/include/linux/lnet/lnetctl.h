@@ -21,7 +21,8 @@
  * @{
  */
 
-enum {
+enum
+{
 	LNET_CTL_DROP_ADD,
 	LNET_CTL_DROP_DEL,
 	LNET_CTL_DROP_RESET,
@@ -38,7 +39,8 @@ enum {
 #define LNET_REPLY_BIT		BIT(3)
 
 /** ioctl parameter for LNet fault simulation */
-struct lnet_fault_attr {
+struct lnet_fault_attr
+{
 	/**
 	 * source NID of drop rule
 	 * LNET_NID_ANY is wildcard for all sources
@@ -64,9 +66,11 @@ struct lnet_fault_attr {
 	 * otherwise all message types will be checked.
 	 */
 	__u32				fa_msg_mask;
-	union {
+	union
+	{
 		/** message drop simulation */
-		struct {
+		struct
+		{
 			/** drop rate of this rule */
 			__u32			da_rate;
 			/**
@@ -76,7 +80,8 @@ struct lnet_fault_attr {
 			__u32			da_interval;
 		} drop;
 		/** message latency simulation */
-		struct {
+		struct
+		{
 			__u32			la_rate;
 			/**
 			 * time interval of message delay, it is exclusive
@@ -91,7 +96,8 @@ struct lnet_fault_attr {
 };
 
 /** fault simluation stats */
-struct lnet_fault_stat {
+struct lnet_fault_stat
+{
 	/** total # matched messages */
 	__u64				fs_count;
 	/** # dropped LNET_MSG_PUT by this rule */
@@ -102,12 +108,15 @@ struct lnet_fault_stat {
 	__u64				fs_get;
 	/** # dropped LNET_MSG_REPLY by this rule */
 	__u64				fs_reply;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			/** total # dropped messages */
 			__u64			ds_dropped;
 		} drop;
-		struct {
+		struct
+		{
 			/** total # delayed messages */
 			__u64			ls_delayed;
 		} delay;

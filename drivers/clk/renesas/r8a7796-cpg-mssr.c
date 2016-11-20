@@ -22,7 +22,8 @@
 #include "renesas-cpg-mssr.h"
 #include "rcar-gen3-cpg.h"
 
-enum clk_ids {
+enum clk_ids
+{
 	/* Core Clock Outputs exported to DT */
 	LAST_DT_CORE_CLK = R8A7796_CLK_OSC,
 
@@ -51,7 +52,8 @@ enum clk_ids {
 	MOD_CLK_BASE
 };
 
-static const struct cpg_core_clk r8a7796_core_clks[] __initconst = {
+static const struct cpg_core_clk r8a7796_core_clks[] __initconst =
+{
 	/* External Clock Inputs */
 	DEF_INPUT("extal",  CLK_EXTAL),
 	DEF_INPUT("extalr", CLK_EXTALR),
@@ -108,7 +110,8 @@ static const struct cpg_core_clk r8a7796_core_clks[] __initconst = {
 	DEF_BASE("r",           R8A7796_CLK_R,     CLK_TYPE_GEN3_R, CLK_RINT),
 };
 
-static const struct mssr_mod_clk r8a7796_mod_clks[] __initconst = {
+static const struct mssr_mod_clk r8a7796_mod_clks[] __initconst =
+{
 	DEF_MOD("cmt3",			 300,	R8A7796_CLK_R),
 	DEF_MOD("cmt2",			 301,	R8A7796_CLK_R),
 	DEF_MOD("cmt1",			 302,	R8A7796_CLK_R),
@@ -132,7 +135,8 @@ static const struct mssr_mod_clk r8a7796_mod_clks[] __initconst = {
 	DEF_MOD("gpio0",		 912,	R8A7796_CLK_S3D4),
 };
 
-static const unsigned int r8a7796_crit_mod_clks[] __initconst = {
+static const unsigned int r8a7796_crit_mod_clks[] __initconst =
+{
 	MOD_CLK_ID(408),	/* INTC-AP (GIC) */
 };
 
@@ -163,11 +167,12 @@ static const unsigned int r8a7796_crit_mod_clks[] __initconst = {
  * 1  1  1  1	33.33 / 2	x180	x192	x144	x192	x144
  */
 #define CPG_PLL_CONFIG_INDEX(md)	((((md) & BIT(14)) >> 11) | \
-					 (((md) & BIT(13)) >> 11) | \
-					 (((md) & BIT(19)) >> 18) | \
-					 (((md) & BIT(17)) >> 17))
+									 (((md) & BIT(13)) >> 11) | \
+									 (((md) & BIT(19)) >> 18) | \
+									 (((md) & BIT(17)) >> 17))
 
-static const struct rcar_gen3_cpg_pll_config cpg_pll_configs[16] __initconst = {
+static const struct rcar_gen3_cpg_pll_config cpg_pll_configs[16] __initconst =
+{
 	/* EXTAL div	PLL1 mult	PLL3 mult */
 	{ 1,		192,		192,	},
 	{ 1,		192,		128,	},
@@ -193,7 +198,9 @@ static int __init r8a7796_cpg_mssr_init(struct device *dev)
 	u32 cpg_mode = rcar_gen3_read_mode_pins();
 
 	cpg_pll_config = &cpg_pll_configs[CPG_PLL_CONFIG_INDEX(cpg_mode)];
-	if (!cpg_pll_config->extal_div) {
+
+	if (!cpg_pll_config->extal_div)
+	{
 		dev_err(dev, "Prohibited setting (cpg_mode=0x%x)\n", cpg_mode);
 		return -EINVAL;
 	}
@@ -201,7 +208,8 @@ static int __init r8a7796_cpg_mssr_init(struct device *dev)
 	return rcar_gen3_cpg_init(cpg_pll_config, CLK_EXTALR);
 }
 
-const struct cpg_mssr_info r8a7796_cpg_mssr_info __initconst = {
+const struct cpg_mssr_info r8a7796_cpg_mssr_info __initconst =
+{
 	/* Core Clocks */
 	.core_clks = r8a7796_core_clks,
 	.num_core_clks = ARRAY_SIZE(r8a7796_core_clks),

@@ -104,27 +104,39 @@ static inline bool ceph_has_room(void **p, void *end, size_t n)
  *   - memory could not be allocated for the result (-ENOMEM)
  */
 static inline char *ceph_extract_encoded_string(void **p, void *end,
-						size_t *lenp, gfp_t gfp)
+		size_t *lenp, gfp_t gfp)
 {
 	u32 len;
 	void *sp = *p;
 	char *buf;
 
 	ceph_decode_32_safe(&sp, end, len, bad);
+
 	if (!ceph_has_room(&sp, end, len))
+	{
 		goto bad;
+	}
 
 	buf = kmalloc(len + 1, gfp);
+
 	if (!buf)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	if (len)
+	{
 		memcpy(buf, sp, len);
+	}
+
 	buf[len] = '\0';
 
 	*p = (char *) *p + sizeof (u32) + len;
+
 	if (lenp)
+	{
 		*lenp = (size_t) len;
+	}
 
 	return buf;
 
@@ -136,13 +148,13 @@ bad:
  * struct ceph_timespec <-> struct timespec
  */
 static inline void ceph_decode_timespec(struct timespec *ts,
-					const struct ceph_timespec *tv)
+										const struct ceph_timespec *tv)
 {
 	ts->tv_sec = (__kernel_time_t)le32_to_cpu(tv->tv_sec);
 	ts->tv_nsec = (long)le32_to_cpu(tv->tv_nsec);
 }
 static inline void ceph_encode_timespec(struct ceph_timespec *tv,
-					const struct timespec *ts)
+										const struct timespec *ts)
 {
 	tv->tv_sec = cpu_to_le32((u32)ts->tv_sec);
 	tv->tv_nsec = cpu_to_le32((u32)ts->tv_nsec);
@@ -196,25 +208,33 @@ static inline void ceph_encode_copy(void **p, const void *s, int len)
  * filepath, string encoders
  */
 static inline void ceph_encode_filepath(void **p, void *end,
-					u64 ino, const char *path)
+										u64 ino, const char *path)
 {
 	u32 len = path ? strlen(path) : 0;
 	BUG_ON(*p + 1 + sizeof(ino) + sizeof(len) + len > end);
 	ceph_encode_8(p, 1);
 	ceph_encode_64(p, ino);
 	ceph_encode_32(p, len);
+
 	if (len)
+	{
 		memcpy(*p, path, len);
+	}
+
 	*p += len;
 }
 
 static inline void ceph_encode_string(void **p, void *end,
-				      const char *s, u32 len)
+									  const char *s, u32 len)
 {
 	BUG_ON(*p + sizeof(len) + len > end);
 	ceph_encode_32(p, len);
+
 	if (len)
+	{
 		memcpy(*p, s, len);
+	}
+
 	*p += len;
 }
 
@@ -232,7 +252,7 @@ static inline void ceph_encode_string(void **p, void *end,
  * @struct_len: length of struct encoding
  */
 static inline void ceph_start_encoding(void **p, u8 struct_v, u8 struct_compat,
-				       u32 struct_len)
+									   u32 struct_len)
 {
 	ceph_encode_8(p, struct_v);
 	ceph_encode_8(p, struct_compat);
@@ -250,17 +270,19 @@ static inline void ceph_start_encoding(void **p, u8 struct_v, u8 struct_compat,
  * variants can be used for decoding.
  */
 static inline int ceph_start_decoding(void **p, void *end, u8 v,
-				      const char *name, u8 *struct_v,
-				      u32 *struct_len)
+									  const char *name, u8 *struct_v,
+									  u32 *struct_len)
 {
 	u8 struct_compat;
 
 	ceph_decode_need(p, end, CEPH_ENCODING_START_BLK_LEN, bad);
 	*struct_v = ceph_decode_8(p);
 	struct_compat = ceph_decode_8(p);
-	if (v < struct_compat) {
+
+	if (v < struct_compat)
+	{
 		pr_warn("got struct_v %d struct_compat %d > %d of %s\n",
-			*struct_v, struct_compat, v, name);
+				*struct_v, struct_compat, v, name);
 		return -EINVAL;
 	}
 

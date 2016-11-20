@@ -39,7 +39,7 @@ extern "C" {
 #endif
 static inline const char *CONFIG_prefix(void)
 {
-	return getenv( "CONFIG_" ) ?: CONFIG_;
+	return getenv( "CONFIG_" ) ? : CONFIG_;
 }
 #undef CONFIG_
 #define CONFIG_ CONFIG_prefix()
@@ -48,7 +48,8 @@ static inline const char *CONFIG_prefix(void)
 #define TF_PARAM	0x0002
 #define TF_OPTION	0x0004
 
-enum conf_def_mode {
+enum conf_def_mode
+{
 	def_default,
 	def_yes,
 	def_mod,
@@ -61,7 +62,8 @@ enum conf_def_mode {
 #define T_OPT_ENV		3
 #define T_OPT_ALLNOCONFIG_Y	4
 
-struct kconf_id {
+struct kconf_id
+{
 	int name;
 	int token;
 	unsigned int flags;
@@ -91,7 +93,9 @@ static inline void xfwrite(const void *str, size_t len, size_t count, FILE *out)
 	assert(len != 0);
 
 	if (fwrite(str, len, count, out) != count)
+	{
 		fprintf(stderr, "Error in writing or end of file.\n");
+	}
 }
 
 /* menu.c */
@@ -116,7 +120,8 @@ int file_write_dep(const char *name);
 void *xmalloc(size_t size);
 void *xcalloc(size_t nmemb, size_t size);
 
-struct gstr {
+struct gstr
+{
 	size_t len;
 	char  *s;
 	/*

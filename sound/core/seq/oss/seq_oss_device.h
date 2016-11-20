@@ -57,14 +57,16 @@ typedef unsigned int abstime_t;
 /*
  * synthesizer channel information
  */
-struct seq_oss_chinfo {
+struct seq_oss_chinfo
+{
 	int note, vel;
 };
 
 /*
  * synthesizer information
  */
-struct seq_oss_synthinfo {
+struct seq_oss_synthinfo
+{
 	struct snd_seq_oss_arg arg;
 	struct seq_oss_chinfo *ch;
 	struct seq_oss_synth_sysex *sysex;
@@ -79,7 +81,8 @@ struct seq_oss_synthinfo {
  * sequencer client information
  */
 
-struct seq_oss_devinfo {
+struct seq_oss_devinfo
+{
 
 	int index;	/* application index */
 	int cseq;	/* sequencer client number */
@@ -124,7 +127,7 @@ void snd_seq_oss_release(struct seq_oss_devinfo *dp);
 int snd_seq_oss_ioctl(struct seq_oss_devinfo *dp, unsigned int cmd, unsigned long arg);
 int snd_seq_oss_read(struct seq_oss_devinfo *dev, char __user *buf, int count);
 int snd_seq_oss_write(struct seq_oss_devinfo *dp, const char __user *buf, int count, struct file *opt);
-unsigned int snd_seq_oss_poll(struct seq_oss_devinfo *dp, struct file *file, poll_table * wait);
+unsigned int snd_seq_oss_poll(struct seq_oss_devinfo *dp, struct file *file, poll_table *wait);
 
 void snd_seq_oss_reset(struct seq_oss_devinfo *dp);
 
@@ -160,7 +163,7 @@ snd_seq_oss_control(struct seq_oss_devinfo *dp, unsigned int type, void *arg)
 /* fill the addresses in header */
 static inline void
 snd_seq_oss_fill_addr(struct seq_oss_devinfo *dp, struct snd_seq_event *ev,
-		     int dest_client, int dest_port)
+					  int dest_client, int dest_port)
 {
 	ev->queue = dp->queue;
 	ev->source = dp->addr;

@@ -34,26 +34,39 @@ static int vnic_wq_alloc_bufs(struct vnic_wq *wq)
 	unsigned int i, j, count = wq->ring.desc_count;
 	unsigned int blks = VNIC_WQ_BUF_BLKS_NEEDED(count);
 
-	for (i = 0; i < blks; i++) {
+	for (i = 0; i < blks; i++)
+	{
 		wq->bufs[i] = kzalloc(VNIC_WQ_BUF_BLK_SZ(count), GFP_ATOMIC);
+
 		if (!wq->bufs[i])
+		{
 			return -ENOMEM;
+		}
 	}
 
-	for (i = 0; i < blks; i++) {
+	for (i = 0; i < blks; i++)
+	{
 		buf = wq->bufs[i];
-		for (j = 0; j < VNIC_WQ_BUF_BLK_ENTRIES(count); j++) {
+
+		for (j = 0; j < VNIC_WQ_BUF_BLK_ENTRIES(count); j++)
+		{
 			buf->index = i * VNIC_WQ_BUF_BLK_ENTRIES(count) + j;
 			buf->desc = (u8 *)wq->ring.descs +
-				wq->ring.desc_size * buf->index;
-			if (buf->index + 1 == count) {
+						wq->ring.desc_size * buf->index;
+
+			if (buf->index + 1 == count)
+			{
 				buf->next = wq->bufs[0];
 				buf->next->prev = buf;
 				break;
-			} else if (j + 1 == VNIC_WQ_BUF_BLK_ENTRIES(count)) {
+			}
+			else if (j + 1 == VNIC_WQ_BUF_BLK_ENTRIES(count))
+			{
 				buf->next = wq->bufs[i + 1];
 				buf->next->prev = buf;
-			} else {
+			}
+			else
+			{
 				buf->next = buf + 1;
 				buf->next->prev = buf;
 				buf++;
@@ -75,8 +88,10 @@ void vnic_wq_free(struct vnic_wq *wq)
 
 	vnic_dev_free_desc_ring(vdev, &wq->ring);
 
-	for (i = 0; i < VNIC_WQ_BUF_BLKS_MAX; i++) {
-		if (wq->bufs[i]) {
+	for (i = 0; i < VNIC_WQ_BUF_BLKS_MAX; i++)
+	{
+		if (wq->bufs[i])
+		{
 			kfree(wq->bufs[i]);
 			wq->bufs[i] = NULL;
 		}
@@ -86,7 +101,7 @@ void vnic_wq_free(struct vnic_wq *wq)
 }
 
 int vnic_wq_alloc(struct vnic_dev *vdev, struct vnic_wq *wq, unsigned int index,
-	unsigned int desc_count, unsigned int desc_size)
+				  unsigned int desc_count, unsigned int desc_size)
 {
 	int err;
 
@@ -94,7 +109,9 @@ int vnic_wq_alloc(struct vnic_dev *vdev, struct vnic_wq *wq, unsigned int index,
 	wq->vdev = vdev;
 
 	wq->ctrl = vnic_dev_get_res(vdev, RES_TYPE_WQ, index);
-	if (!wq->ctrl) {
+
+	if (!wq->ctrl)
+	{
 		vdev_err(vdev, "Failed to hook WQ[%d] resource\n", index);
 		return -EINVAL;
 	}
@@ -102,11 +119,16 @@ int vnic_wq_alloc(struct vnic_dev *vdev, struct vnic_wq *wq, unsigned int index,
 	vnic_wq_disable(wq);
 
 	err = vnic_dev_alloc_desc_ring(vdev, &wq->ring, desc_count, desc_size);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = vnic_wq_alloc_bufs(wq);
-	if (err) {
+
+	if (err)
+	{
 		vnic_wq_free(wq);
 		return err;
 	}
@@ -115,7 +137,7 @@ int vnic_wq_alloc(struct vnic_dev *vdev, struct vnic_wq *wq, unsigned int index,
 }
 
 int enic_wq_devcmd2_alloc(struct vnic_dev *vdev, struct vnic_wq *wq,
-			  unsigned int desc_count, unsigned int desc_size)
+						  unsigned int desc_count, unsigned int desc_size)
 {
 	int err;
 
@@ -123,8 +145,12 @@ int enic_wq_devcmd2_alloc(struct vnic_dev *vdev, struct vnic_wq *wq,
 	wq->vdev = vdev;
 
 	wq->ctrl = vnic_dev_get_res(vdev, RES_TYPE_DEVCMD2, 0);
+
 	if (!wq->ctrl)
+	{
 		return -EINVAL;
+	}
+
 	vnic_wq_disable(wq);
 	err = vnic_dev_alloc_desc_ring(vdev, &wq->ring, desc_count, desc_size);
 
@@ -132,9 +158,9 @@ int enic_wq_devcmd2_alloc(struct vnic_dev *vdev, struct vnic_wq *wq,
 }
 
 void enic_wq_init_start(struct vnic_wq *wq, unsigned int cq_index,
-			unsigned int fetch_index, unsigned int posted_index,
-			unsigned int error_interrupt_enable,
-			unsigned int error_interrupt_offset)
+						unsigned int fetch_index, unsigned int posted_index,
+						unsigned int error_interrupt_enable,
+						unsigned int error_interrupt_offset)
 {
 	u64 paddr;
 	unsigned int count = wq->ring.desc_count;
@@ -150,17 +176,17 @@ void enic_wq_init_start(struct vnic_wq *wq, unsigned int cq_index,
 	iowrite32(0, &wq->ctrl->error_status);
 
 	wq->to_use = wq->to_clean =
-		&wq->bufs[fetch_index / VNIC_WQ_BUF_BLK_ENTRIES(count)]
-			[fetch_index % VNIC_WQ_BUF_BLK_ENTRIES(count)];
+					 &wq->bufs[fetch_index / VNIC_WQ_BUF_BLK_ENTRIES(count)]
+					 [fetch_index % VNIC_WQ_BUF_BLK_ENTRIES(count)];
 }
 
 void vnic_wq_init(struct vnic_wq *wq, unsigned int cq_index,
-	unsigned int error_interrupt_enable,
-	unsigned int error_interrupt_offset)
+				  unsigned int error_interrupt_enable,
+				  unsigned int error_interrupt_offset)
 {
 	enic_wq_init_start(wq, cq_index, 0, 0,
-		error_interrupt_enable,
-		error_interrupt_offset);
+					   error_interrupt_enable,
+					   error_interrupt_offset);
 }
 
 unsigned int vnic_wq_error_status(struct vnic_wq *wq)
@@ -181,9 +207,13 @@ int vnic_wq_disable(struct vnic_wq *wq)
 	iowrite32(0, &wq->ctrl->enable);
 
 	/* Wait for HW to ACK disable request */
-	for (wait = 0; wait < 1000; wait++) {
+	for (wait = 0; wait < 1000; wait++)
+	{
 		if (!(ioread32(&wq->ctrl->running)))
+		{
 			return 0;
+		}
+
 		udelay(10);
 	}
 
@@ -193,13 +223,14 @@ int vnic_wq_disable(struct vnic_wq *wq)
 }
 
 void vnic_wq_clean(struct vnic_wq *wq,
-	void (*buf_clean)(struct vnic_wq *wq, struct vnic_wq_buf *buf))
+				   void (*buf_clean)(struct vnic_wq *wq, struct vnic_wq_buf *buf))
 {
 	struct vnic_wq_buf *buf;
 
 	buf = wq->to_clean;
 
-	while (vnic_wq_desc_used(wq) > 0) {
+	while (vnic_wq_desc_used(wq) > 0)
+	{
 
 		(*buf_clean)(wq, buf);
 

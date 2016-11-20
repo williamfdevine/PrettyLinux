@@ -34,14 +34,17 @@
 
 static int
 gk104_fifo_class_get(struct nvkm_fifo *base, int index,
-		     const struct nvkm_fifo_chan_oclass **psclass)
+					 const struct nvkm_fifo_chan_oclass **psclass)
 {
 	struct gk104_fifo *fifo = gk104_fifo(base);
 	int c = 0;
 
-	while ((*psclass = fifo->func->chan[c])) {
+	while ((*psclass = fifo->func->chan[c]))
+	{
 		if (c++ == index)
+		{
 			return 0;
+		}
 	}
 
 	return c;
@@ -76,7 +79,8 @@ gk104_fifo_runlist_commit(struct gk104_fifo *fifo, int runl)
 	fifo->runlist[runl].next = !fifo->runlist[runl].next;
 
 	nvkm_kmap(mem);
-	list_for_each_entry(chan, &fifo->runlist[runl].chan, head) {
+	list_for_each_entry(chan, &fifo->runlist[runl].chan, head)
+	{
 		nvkm_wo32(mem, (nr * 8) + 0, chan->base.chid);
 		nvkm_wo32(mem, (nr * 8) + 4, 0x00000000);
 		nr++;
@@ -84,19 +88,26 @@ gk104_fifo_runlist_commit(struct gk104_fifo *fifo, int runl)
 	nvkm_done(mem);
 
 	if (nvkm_memory_target(mem) == NVKM_MEM_TARGET_VRAM)
+	{
 		target = 0;
+	}
 	else
+	{
 		target = 3;
+	}
 
 	nvkm_wr32(device, 0x002270, (nvkm_memory_addr(mem) >> 12) |
-				    (target << 28));
+			  (target << 28));
 	nvkm_wr32(device, 0x002274, (runl << 20) | nr);
 
 	if (wait_event_timeout(fifo->runlist[runl].wait,
-			       !(nvkm_rd32(device, 0x002284 + (runl * 0x08))
-				       & 0x00100000),
-			       msecs_to_jiffies(2000)) == 0)
+						   !(nvkm_rd32(device, 0x002284 + (runl * 0x08))
+							 & 0x00100000),
+						   msecs_to_jiffies(2000)) == 0)
+	{
 		nvkm_error(subdev, "runlist %d update timeout\n", runl);
+	}
+
 	mutex_unlock(&subdev->mutex);
 }
 
@@ -135,15 +146,19 @@ gk104_fifo_recover_work(struct work_struct *w)
 
 	nvkm_mask(device, 0x002630, runm, runm);
 
-	for (todo = engm; engn = __ffs(todo), todo; todo &= ~BIT(engn)) {
-		if ((engine = fifo->engine[engn].engine)) {
+	for (todo = engm; engn = __ffs(todo), todo; todo &= ~BIT(engn))
+	{
+		if ((engine = fifo->engine[engn].engine))
+		{
 			nvkm_subdev_fini(&engine->subdev, false);
 			WARN_ON(nvkm_subdev_init(&engine->subdev));
 		}
 	}
 
 	for (todo = runm; runl = __ffs(todo), todo; todo &= ~BIT(runl))
+	{
 		gk104_fifo_runlist_commit(fifo, runl);
+	}
 
 	nvkm_wr32(device, 0x00262c, runm);
 	nvkm_mask(device, 0x002630, runm, 0x00000000);
@@ -151,7 +166,7 @@ gk104_fifo_recover_work(struct work_struct *w)
 
 static void
 gk104_fifo_recover(struct gk104_fifo *fifo, struct nvkm_engine *engine,
-		   struct gk104_fifo_chan *chan)
+				   struct gk104_fifo_chan *chan)
 {
 	struct nvkm_subdev *subdev = &fifo->base.engine.subdev;
 	struct nvkm_device *device = subdev->device;
@@ -159,15 +174,17 @@ gk104_fifo_recover(struct gk104_fifo *fifo, struct nvkm_engine *engine,
 	int engn;
 
 	nvkm_error(subdev, "%s engine fault on channel %d, recovering...\n",
-		   nvkm_subdev_name[engine->subdev.index], chid);
+			   nvkm_subdev_name[engine->subdev.index], chid);
 	assert_spin_locked(&fifo->base.lock);
 
 	nvkm_mask(device, 0x800004 + (chid * 0x08), 0x00000800, 0x00000800);
 	list_del_init(&chan->head);
 	chan->killed = true;
 
-	for (engn = 0; engn < fifo->engine_nr; engn++) {
-		if (fifo->engine[engn].engine == engine) {
+	for (engn = 0; engn < fifo->engine_nr; engn++)
+	{
+		if (fifo->engine[engn].engine == engine)
+		{
 			fifo->recover.engm |= BIT(engn);
 			break;
 		}
@@ -178,7 +195,8 @@ gk104_fifo_recover(struct gk104_fifo *fifo, struct nvkm_engine *engine,
 }
 
 static const struct nvkm_enum
-gk104_fifo_bind_reason[] = {
+	gk104_fifo_bind_reason[] =
+{
 	{ 0x01, "BIND_NOT_UNBOUND" },
 	{ 0x02, "SNOOP_WITHOUT_BAR1" },
 	{ 0x03, "UNBIND_WHILE_RUNNING" },
@@ -202,7 +220,8 @@ gk104_fifo_intr_bind(struct gk104_fifo *fifo)
 }
 
 static const struct nvkm_enum
-gk104_fifo_sched_reason[] = {
+	gk104_fifo_sched_reason[] =
+{
 	{ 0x0a, "CTXSW_TIMEOUT" },
 	{}
 };
@@ -216,7 +235,9 @@ gk104_fifo_intr_sched_ctxsw(struct gk104_fifo *fifo)
 	u32 engn;
 
 	spin_lock_irqsave(&fifo->base.lock, flags);
-	for (engn = 0; engn < fifo->engine_nr; engn++) {
+
+	for (engn = 0; engn < fifo->engine_nr; engn++)
+	{
 		struct nvkm_engine *engine = fifo->engine[engn].engine;
 		int runl = fifo->engine[engn].runl;
 		u32 stat = nvkm_rd32(device, 0x002640 + (engn * 0x08));
@@ -230,15 +251,20 @@ gk104_fifo_intr_sched_ctxsw(struct gk104_fifo *fifo)
 		(void)save;
 
 		if (!busy || !chsw)
+		{
 			continue;
+		}
 
-		list_for_each_entry(chan, &fifo->runlist[runl].chan, head) {
-			if (chan->base.chid == chid && engine) {
+		list_for_each_entry(chan, &fifo->runlist[runl].chan, head)
+		{
+			if (chan->base.chid == chid && engine)
+			{
 				gk104_fifo_recover(fifo, engine, chan);
 				break;
 			}
 		}
 	}
+
 	spin_unlock_irqrestore(&fifo->base.lock, flags);
 }
 
@@ -254,12 +280,14 @@ gk104_fifo_intr_sched(struct gk104_fifo *fifo)
 
 	nvkm_error(subdev, "SCHED_ERROR %02x [%s]\n", code, en ? en->name : "");
 
-	switch (code) {
-	case 0x0a:
-		gk104_fifo_intr_sched_ctxsw(fifo);
-		break;
-	default:
-		break;
+	switch (code)
+	{
+		case 0x0a:
+			gk104_fifo_intr_sched_ctxsw(fifo);
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -304,61 +332,83 @@ gk104_fifo_intr_fault(struct gk104_fifo *fifo, int unit)
 
 	er = nvkm_enum_find(fifo->func->fault.reason, reason);
 	eu = nvkm_enum_find(fifo->func->fault.engine, unit);
-	if (hub) {
+
+	if (hub)
+	{
 		ec = nvkm_enum_find(fifo->func->fault.hubclient, client);
-	} else {
+	}
+	else
+	{
 		ec = nvkm_enum_find(fifo->func->fault.gpcclient, client);
 		snprintf(gpcid, sizeof(gpcid), "GPC%d/", gpc);
 	}
 
-	if (eu && eu->data2) {
-		switch (eu->data2) {
-		case NVKM_SUBDEV_BAR:
-			nvkm_mask(device, 0x001704, 0x00000000, 0x00000000);
-			break;
-		case NVKM_SUBDEV_INSTMEM:
-			nvkm_mask(device, 0x001714, 0x00000000, 0x00000000);
-			break;
-		case NVKM_ENGINE_IFB:
-			nvkm_mask(device, 0x001718, 0x00000000, 0x00000000);
-			break;
-		default:
-			engine = nvkm_device_engine(device, eu->data2);
-			break;
+	if (eu && eu->data2)
+	{
+		switch (eu->data2)
+		{
+			case NVKM_SUBDEV_BAR:
+				nvkm_mask(device, 0x001704, 0x00000000, 0x00000000);
+				break;
+
+			case NVKM_SUBDEV_INSTMEM:
+				nvkm_mask(device, 0x001714, 0x00000000, 0x00000000);
+				break;
+
+			case NVKM_ENGINE_IFB:
+				nvkm_mask(device, 0x001718, 0x00000000, 0x00000000);
+				break;
+
+			default:
+				engine = nvkm_device_engine(device, eu->data2);
+				break;
 		}
 	}
 
-	if (eu == NULL) {
+	if (eu == NULL)
+	{
 		enum nvkm_devidx engidx = nvkm_top_fault(device, unit);
-		if (engidx < NVKM_SUBDEV_NR) {
+
+		if (engidx < NVKM_SUBDEV_NR)
+		{
 			const char *src = nvkm_subdev_name[engidx];
 			char *dst = en;
-			do {
+
+			do
+			{
 				*dst++ = toupper(*src++);
-			} while(*src);
+			}
+			while (*src);
+
 			engine = nvkm_device_engine(device, engidx);
 		}
-	} else {
+	}
+	else
+	{
 		snprintf(en, sizeof(en), "%s", eu->name);
 	}
 
 	chan = nvkm_fifo_chan_inst(&fifo->base, (u64)inst << 12, &flags);
 
 	nvkm_error(subdev,
-		   "%s fault at %010llx engine %02x [%s] client %02x [%s%s] "
-		   "reason %02x [%s] on channel %d [%010llx %s]\n",
-		   write ? "write" : "read", (u64)vahi << 32 | valo,
-		   unit, en, client, gpcid, ec ? ec->name : "",
-		   reason, er ? er->name : "", chan ? chan->chid : -1,
-		   (u64)inst << 12,
-		   chan ? chan->object.client->name : "unknown");
+			   "%s fault at %010llx engine %02x [%s] client %02x [%s%s] "
+			   "reason %02x [%s] on channel %d [%010llx %s]\n",
+			   write ? "write" : "read", (u64)vahi << 32 | valo,
+			   unit, en, client, gpcid, ec ? ec->name : "",
+			   reason, er ? er->name : "", chan ? chan->chid : -1,
+			   (u64)inst << 12,
+			   chan ? chan->object.client->name : "unknown");
 
 	if (engine && chan)
+	{
 		gk104_fifo_recover(fifo, engine, (void *)chan);
+	}
+
 	nvkm_fifo_chan_put(&fifo->base, flags, &chan);
 }
 
-static const struct nvkm_bitfield gk104_fifo_pbdma_intr_0[] = {
+static const struct nvkm_bitfield gk104_fifo_pbdma_intr_0[] =
+{
 	{ 0x00000001, "MEMREQ" },
 	{ 0x00000002, "MEMACK_TIMEOUT" },
 	{ 0x00000004, "MEMACK_EXTRA" },
@@ -409,30 +459,36 @@ gk104_fifo_intr_pbdma_0(struct gk104_fifo *fifo, int unit)
 	unsigned long flags;
 	char msg[128];
 
-	if (stat & 0x00800000) {
-		if (device->sw) {
+	if (stat & 0x00800000)
+	{
+		if (device->sw)
+		{
 			if (nvkm_sw_mthd(device->sw, chid, subc, mthd, data))
+			{
 				show &= ~0x00800000;
+			}
 		}
 	}
 
 	nvkm_wr32(device, 0x0400c0 + (unit * 0x2000), 0x80600008);
 
-	if (show) {
+	if (show)
+	{
 		nvkm_snprintbf(msg, sizeof(msg), gk104_fifo_pbdma_intr_0, show);
 		chan = nvkm_fifo_chan_chid(&fifo->base, chid, &flags);
 		nvkm_error(subdev, "PBDMA%d: %08x [%s] ch %d [%010llx %s] "
 				   "subc %d mthd %04x data %08x\n",
-			   unit, show, msg, chid, chan ? chan->inst->addr : 0,
-			   chan ? chan->object.client->name : "unknown",
-			   subc, mthd, data);
+				   unit, show, msg, chid, chan ? chan->inst->addr : 0,
+				   chan ? chan->object.client->name : "unknown",
+				   subc, mthd, data);
 		nvkm_fifo_chan_put(&fifo->base, flags, &chan);
 	}
 
 	nvkm_wr32(device, 0x040108 + (unit * 0x2000), stat);
 }
 
-static const struct nvkm_bitfield gk104_fifo_pbdma_intr_1[] = {
+static const struct nvkm_bitfield gk104_fifo_pbdma_intr_1[] =
+{
 	{ 0x00000001, "HCE_RE_ILLEGAL_OP" },
 	{ 0x00000002, "HCE_RE_ALIGNB" },
 	{ 0x00000004, "HCE_PRIV" },
@@ -451,12 +507,13 @@ gk104_fifo_intr_pbdma_1(struct gk104_fifo *fifo, int unit)
 	u32 chid = nvkm_rd32(device, 0x040120 + (unit * 0x2000)) & 0xfff;
 	char msg[128];
 
-	if (stat) {
+	if (stat)
+	{
 		nvkm_snprintbf(msg, sizeof(msg), gk104_fifo_pbdma_intr_1, stat);
 		nvkm_error(subdev, "PBDMA%d: %08x [%s] ch %d %08x %08x\n",
-			   unit, stat, msg, chid,
-			   nvkm_rd32(device, 0x040150 + (unit * 0x2000)),
-			   nvkm_rd32(device, 0x040154 + (unit * 0x2000)));
+				   unit, stat, msg, chid,
+				   nvkm_rd32(device, 0x040150 + (unit * 0x2000)),
+				   nvkm_rd32(device, 0x040154 + (unit * 0x2000)));
 	}
 
 	nvkm_wr32(device, 0x040148 + (unit * 0x2000), stat);
@@ -467,7 +524,9 @@ gk104_fifo_intr_runlist(struct gk104_fifo *fifo)
 {
 	struct nvkm_device *device = fifo->base.engine.subdev.device;
 	u32 mask = nvkm_rd32(device, 0x002a00);
-	while (mask) {
+
+	while (mask)
+	{
 		int runl = __ffs(mask);
 		wake_up(&fifo->runlist[runl].wait);
 		nvkm_wr32(device, 0x002a00, 1 << runl);
@@ -490,83 +549,101 @@ gk104_fifo_intr(struct nvkm_fifo *base)
 	u32 mask = nvkm_rd32(device, 0x002140);
 	u32 stat = nvkm_rd32(device, 0x002100) & mask;
 
-	if (stat & 0x00000001) {
+	if (stat & 0x00000001)
+	{
 		gk104_fifo_intr_bind(fifo);
 		nvkm_wr32(device, 0x002100, 0x00000001);
 		stat &= ~0x00000001;
 	}
 
-	if (stat & 0x00000010) {
+	if (stat & 0x00000010)
+	{
 		nvkm_error(subdev, "PIO_ERROR\n");
 		nvkm_wr32(device, 0x002100, 0x00000010);
 		stat &= ~0x00000010;
 	}
 
-	if (stat & 0x00000100) {
+	if (stat & 0x00000100)
+	{
 		gk104_fifo_intr_sched(fifo);
 		nvkm_wr32(device, 0x002100, 0x00000100);
 		stat &= ~0x00000100;
 	}
 
-	if (stat & 0x00010000) {
+	if (stat & 0x00010000)
+	{
 		gk104_fifo_intr_chsw(fifo);
 		nvkm_wr32(device, 0x002100, 0x00010000);
 		stat &= ~0x00010000;
 	}
 
-	if (stat & 0x00800000) {
+	if (stat & 0x00800000)
+	{
 		nvkm_error(subdev, "FB_FLUSH_TIMEOUT\n");
 		nvkm_wr32(device, 0x002100, 0x00800000);
 		stat &= ~0x00800000;
 	}
 
-	if (stat & 0x01000000) {
+	if (stat & 0x01000000)
+	{
 		nvkm_error(subdev, "LB_ERROR\n");
 		nvkm_wr32(device, 0x002100, 0x01000000);
 		stat &= ~0x01000000;
 	}
 
-	if (stat & 0x08000000) {
+	if (stat & 0x08000000)
+	{
 		gk104_fifo_intr_dropped_fault(fifo);
 		nvkm_wr32(device, 0x002100, 0x08000000);
 		stat &= ~0x08000000;
 	}
 
-	if (stat & 0x10000000) {
+	if (stat & 0x10000000)
+	{
 		u32 mask = nvkm_rd32(device, 0x00259c);
-		while (mask) {
+
+		while (mask)
+		{
 			u32 unit = __ffs(mask);
 			gk104_fifo_intr_fault(fifo, unit);
 			nvkm_wr32(device, 0x00259c, (1 << unit));
 			mask &= ~(1 << unit);
 		}
+
 		stat &= ~0x10000000;
 	}
 
-	if (stat & 0x20000000) {
+	if (stat & 0x20000000)
+	{
 		u32 mask = nvkm_rd32(device, 0x0025a0);
-		while (mask) {
+
+		while (mask)
+		{
 			u32 unit = __ffs(mask);
 			gk104_fifo_intr_pbdma_0(fifo, unit);
 			gk104_fifo_intr_pbdma_1(fifo, unit);
 			nvkm_wr32(device, 0x0025a0, (1 << unit));
 			mask &= ~(1 << unit);
 		}
+
 		stat &= ~0x20000000;
 	}
 
-	if (stat & 0x40000000) {
+	if (stat & 0x40000000)
+	{
 		gk104_fifo_intr_runlist(fifo);
 		stat &= ~0x40000000;
 	}
 
-	if (stat & 0x80000000) {
+	if (stat & 0x80000000)
+	{
 		nvkm_wr32(device, 0x002100, 0x80000000);
 		gk104_fifo_intr_engine(fifo);
 		stat &= ~0x80000000;
 	}
 
-	if (stat) {
+	if (stat)
+	{
 		nvkm_error(subdev, "INTR %08x\n", stat);
 		nvkm_mask(device, 0x002140, stat, 0x00000000);
 		nvkm_wr32(device, 0x002100, stat);
@@ -600,24 +677,32 @@ gk104_fifo_oneinit(struct nvkm_fifo *base)
 
 	/* Read PBDMA->runlist(s) mapping from HW. */
 	if (!(map = kzalloc(sizeof(*map) * fifo->pbdma_nr, GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
 
 	for (i = 0; i < fifo->pbdma_nr; i++)
+	{
 		map[i] = nvkm_rd32(device, 0x002390 + (i * 0x04));
+	}
 
 	/* Determine runlist configuration from topology device info. */
 	i = 0;
-	while ((int)(engidx = nvkm_top_engine(device, i++, &runl, &engn)) >= 0) {
+
+	while ((int)(engidx = nvkm_top_engine(device, i++, &runl, &engn)) >= 0)
+	{
 		/* Determine which PBDMA handles requests for this engine. */
-		for (j = 0, pbid = -1; j < fifo->pbdma_nr; j++) {
-			if (map[j] & (1 << runl)) {
+		for (j = 0, pbid = -1; j < fifo->pbdma_nr; j++)
+		{
+			if (map[j] & (1 << runl))
+			{
 				pbid = j;
 				break;
 			}
 		}
 
 		nvkm_debug(subdev, "engine %2d: runlist %2d pbdma %2d (%s)\n",
-			   engn, runl, pbid, nvkm_subdev_name[engidx]);
+				   engn, runl, pbid, nvkm_subdev_name[engidx]);
 
 		fifo->engine[engn].engine = nvkm_device_engine(device, engidx);
 		fifo->engine[engn].runl = runl;
@@ -629,33 +714,46 @@ gk104_fifo_oneinit(struct nvkm_fifo *base)
 
 	kfree(map);
 
-	for (i = 0; i < fifo->runlist_nr; i++) {
+	for (i = 0; i < fifo->runlist_nr; i++)
+	{
 		ret = nvkm_memory_new(device, NVKM_MEM_TARGET_INST,
-				      0x8000, 0x1000, false,
-				      &fifo->runlist[i].mem[0]);
+							  0x8000, 0x1000, false,
+							  &fifo->runlist[i].mem[0]);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		ret = nvkm_memory_new(device, NVKM_MEM_TARGET_INST,
-				      0x8000, 0x1000, false,
-				      &fifo->runlist[i].mem[1]);
+							  0x8000, 0x1000, false,
+							  &fifo->runlist[i].mem[1]);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		init_waitqueue_head(&fifo->runlist[i].wait);
 		INIT_LIST_HEAD(&fifo->runlist[i].chan);
 	}
 
 	ret = nvkm_memory_new(device, NVKM_MEM_TARGET_INST,
-			      fifo->base.nr * 0x200, 0x1000, true,
-			      &fifo->user.mem);
+						  fifo->base.nr * 0x200, 0x1000, true,
+						  &fifo->user.mem);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = nvkm_bar_umap(device->bar, fifo->base.nr * 0x200, 12,
-			    &fifo->user.bar);
+						&fifo->user.bar);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	nvkm_memory_map(fifo->user.mem, &fifo->user.bar, 0);
 	return 0;
@@ -672,14 +770,16 @@ gk104_fifo_init(struct nvkm_fifo *base)
 	nvkm_wr32(device, 0x000204, (1 << fifo->pbdma_nr) - 1);
 
 	/* PBDMA[n] */
-	for (i = 0; i < fifo->pbdma_nr; i++) {
+	for (i = 0; i < fifo->pbdma_nr; i++)
+	{
 		nvkm_mask(device, 0x04013c + (i * 0x2000), 0x10000100, 0x00000000);
 		nvkm_wr32(device, 0x040108 + (i * 0x2000), 0xffffffff); /* INTR */
 		nvkm_wr32(device, 0x04010c + (i * 0x2000), 0xfffffeff); /* INTREN */
 	}
 
 	/* PBDMA[n].HCE */
-	for (i = 0; i < fifo->pbdma_nr; i++) {
+	for (i = 0; i < fifo->pbdma_nr; i++)
+	{
 		nvkm_wr32(device, 0x040148 + (i * 0x2000), 0xffffffff); /* INTR */
 		nvkm_wr32(device, 0x04014c + (i * 0x2000), 0xffffffff); /* INTREN */
 	}
@@ -699,7 +799,8 @@ gk104_fifo_dtor(struct nvkm_fifo *base)
 	nvkm_vm_put(&fifo->user.bar);
 	nvkm_memory_del(&fifo->user.mem);
 
-	for (i = 0; i < fifo->runlist_nr; i++) {
+	for (i = 0; i < fifo->runlist_nr; i++)
+	{
 		nvkm_memory_del(&fifo->runlist[i].mem[1]);
 		nvkm_memory_del(&fifo->runlist[i].mem[0]);
 	}
@@ -708,7 +809,8 @@ gk104_fifo_dtor(struct nvkm_fifo *base)
 }
 
 static const struct nvkm_fifo_func
-gk104_fifo_ = {
+	gk104_fifo_ =
+{
 	.dtor = gk104_fifo_dtor,
 	.oneinit = gk104_fifo_oneinit,
 	.init = gk104_fifo_init,
@@ -721,12 +823,15 @@ gk104_fifo_ = {
 
 int
 gk104_fifo_new_(const struct gk104_fifo_func *func, struct nvkm_device *device,
-		int index, int nr, struct nvkm_fifo **pfifo)
+				int index, int nr, struct nvkm_fifo **pfifo)
 {
 	struct gk104_fifo *fifo;
 
 	if (!(fifo = kzalloc(sizeof(*fifo), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	fifo->func = func;
 	INIT_WORK(&fifo->recover.work, gk104_fifo_recover_work);
 	*pfifo = &fifo->base;
@@ -735,7 +840,8 @@ gk104_fifo_new_(const struct gk104_fifo_func *func, struct nvkm_device *device,
 }
 
 const struct nvkm_enum
-gk104_fifo_fault_engine[] = {
+	gk104_fifo_fault_engine[] =
+{
 	{ 0x00, "GR", NULL, NVKM_ENGINE_GR },
 	{ 0x01, "DISPLAY" },
 	{ 0x02, "CAPTURE" },
@@ -766,7 +872,8 @@ gk104_fifo_fault_engine[] = {
 };
 
 const struct nvkm_enum
-gk104_fifo_fault_reason[] = {
+	gk104_fifo_fault_reason[] =
+{
 	{ 0x00, "PDE" },
 	{ 0x01, "PDE_SIZE" },
 	{ 0x02, "PTE" },
@@ -787,7 +894,8 @@ gk104_fifo_fault_reason[] = {
 };
 
 const struct nvkm_enum
-gk104_fifo_fault_hubclient[] = {
+	gk104_fifo_fault_hubclient[] =
+{
 	{ 0x00, "VIP" },
 	{ 0x01, "CE0" },
 	{ 0x02, "CE1" },
@@ -824,7 +932,8 @@ gk104_fifo_fault_hubclient[] = {
 };
 
 const struct nvkm_enum
-gk104_fifo_fault_gpcclient[] = {
+	gk104_fifo_fault_gpcclient[] =
+{
 	{ 0x00, "L1_0" }, { 0x01, "T1_0" }, { 0x02, "PE_0" },
 	{ 0x03, "L1_1" }, { 0x04, "T1_1" }, { 0x05, "PE_1" },
 	{ 0x06, "L1_2" }, { 0x07, "T1_2" }, { 0x08, "PE_2" },
@@ -850,7 +959,8 @@ gk104_fifo_fault_gpcclient[] = {
 };
 
 static const struct gk104_fifo_func
-gk104_fifo = {
+	gk104_fifo =
+{
 	.fault.engine = gk104_fifo_fault_engine,
 	.fault.reason = gk104_fifo_fault_reason,
 	.fault.hubclient = gk104_fifo_fault_hubclient,

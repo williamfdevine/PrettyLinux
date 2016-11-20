@@ -36,7 +36,7 @@
 #define STACK_SIZE 65535
 
 static int sys_memfd_create(const char *name,
-			    unsigned int flags)
+							unsigned int flags)
 {
 	return syscall(__NR_memfd_create, name, flags);
 }
@@ -46,14 +46,18 @@ static int mfd_assert_new(const char *name, loff_t sz, unsigned int flags)
 	int r, fd;
 
 	fd = sys_memfd_create(name, flags);
-	if (fd < 0) {
+
+	if (fd < 0)
+	{
 		printf("memfd_create(\"%s\", %u) failed: %m\n",
-		       name, flags);
+			   name, flags);
 		abort();
 	}
 
 	r = ftruncate(fd, sz);
-	if (r < 0) {
+
+	if (r < 0)
+	{
 		printf("ftruncate(%llu) failed: %m\n", (unsigned long long)sz);
 		abort();
 	}
@@ -66,7 +70,9 @@ static __u64 mfd_assert_get_seals(int fd)
 	long r;
 
 	r = fcntl(fd, F_GET_SEALS);
-	if (r < 0) {
+
+	if (r < 0)
+	{
 		printf("GET_SEALS(%d) failed: %m\n", fd);
 		abort();
 	}
@@ -79,9 +85,11 @@ static void mfd_assert_has_seals(int fd, __u64 seals)
 	__u64 s;
 
 	s = mfd_assert_get_seals(fd);
-	if (s != seals) {
+
+	if (s != seals)
+	{
 		printf("%llu != %llu = GET_SEALS(%d)\n",
-		       (unsigned long long)seals, (unsigned long long)s, fd);
+			   (unsigned long long)seals, (unsigned long long)s, fd);
 		abort();
 	}
 }
@@ -93,9 +101,11 @@ static void mfd_assert_add_seals(int fd, __u64 seals)
 
 	s = mfd_assert_get_seals(fd);
 	r = fcntl(fd, F_ADD_SEALS, seals);
-	if (r < 0) {
+
+	if (r < 0)
+	{
 		printf("ADD_SEALS(%d, %llu -> %llu) failed: %m\n",
-		       fd, (unsigned long long)s, (unsigned long long)seals);
+			   fd, (unsigned long long)s, (unsigned long long)seals);
 		abort();
 	}
 }
@@ -106,15 +116,22 @@ static int mfd_busy_add_seals(int fd, __u64 seals)
 	__u64 s;
 
 	r = fcntl(fd, F_GET_SEALS);
+
 	if (r < 0)
+	{
 		s = 0;
+	}
 	else
+	{
 		s = r;
+	}
 
 	r = fcntl(fd, F_ADD_SEALS, seals);
-	if (r < 0 && errno != EBUSY) {
+
+	if (r < 0 && errno != EBUSY)
+	{
 		printf("ADD_SEALS(%d, %llu -> %llu) didn't fail as expected with EBUSY: %m\n",
-		       fd, (unsigned long long)s, (unsigned long long)seals);
+			   fd, (unsigned long long)s, (unsigned long long)seals);
 		abort();
 	}
 
@@ -126,12 +143,14 @@ static void *mfd_assert_mmap_shared(int fd)
 	void *p;
 
 	p = mmap(NULL,
-		 MFD_DEF_SIZE,
-		 PROT_READ | PROT_WRITE,
-		 MAP_SHARED,
-		 fd,
-		 0);
-	if (p == MAP_FAILED) {
+			 MFD_DEF_SIZE,
+			 PROT_READ | PROT_WRITE,
+			 MAP_SHARED,
+			 fd,
+			 0);
+
+	if (p == MAP_FAILED)
+	{
 		printf("mmap() failed: %m\n");
 		abort();
 	}
@@ -144,12 +163,14 @@ static void *mfd_assert_mmap_private(int fd)
 	void *p;
 
 	p = mmap(NULL,
-		 MFD_DEF_SIZE,
-		 PROT_READ | PROT_WRITE,
-		 MAP_PRIVATE,
-		 fd,
-		 0);
-	if (p == MAP_FAILED) {
+			 MFD_DEF_SIZE,
+			 PROT_READ | PROT_WRITE,
+			 MAP_PRIVATE,
+			 fd,
+			 0);
+
+	if (p == MAP_FAILED)
+	{
 		printf("mmap() failed: %m\n");
 		abort();
 	}
@@ -184,9 +205,13 @@ static int sealing_thread_fn(void *arg)
 	 * implement page-replacements or other fancy ways to avoid racing
 	 * writes. */
 	r = mfd_busy_add_seals(global_mfd, F_SEAL_WRITE);
-	if (r >= 0) {
+
+	if (r >= 0)
+	{
 		printf("HURRAY! This kernel fixed GUP races!\n");
-	} else {
+	}
+	else
+	{
 		/* wait 1s more so the FUSE-request is done */
 		sleep(1);
 
@@ -203,16 +228,20 @@ static pid_t spawn_sealing_thread(void)
 	pid_t pid;
 
 	stack = malloc(STACK_SIZE);
-	if (!stack) {
+
+	if (!stack)
+	{
 		printf("malloc(STACK_SIZE) failed: %m\n");
 		abort();
 	}
 
 	pid = clone(sealing_thread_fn,
-		    stack + STACK_SIZE,
-		    SIGCHLD | CLONE_FILES | CLONE_FS | CLONE_VM,
-		    NULL);
-	if (pid < 0) {
+				stack + STACK_SIZE,
+				SIGCHLD | CLONE_FILES | CLONE_FS | CLONE_VM,
+				NULL);
+
+	if (pid < 0)
+	{
 		printf("clone() failed: %m\n");
 		abort();
 	}
@@ -233,7 +262,8 @@ int main(int argc, char **argv)
 	int was_sealed;
 	pid_t pid;
 
-	if (argc < 2) {
+	if (argc < 2)
+	{
 		printf("error: please pass path to file in fuse_mnt mount-point\n");
 		abort();
 	}
@@ -241,15 +271,17 @@ int main(int argc, char **argv)
 	/* open FUSE memfd file for GUP testing */
 	printf("opening: %s\n", argv[1]);
 	fd = open(argv[1], O_RDONLY | O_CLOEXEC);
-	if (fd < 0) {
+
+	if (fd < 0)
+	{
 		printf("cannot open(\"%s\"): %m\n", argv[1]);
 		abort();
 	}
 
 	/* create new memfd-object */
 	mfd = mfd_assert_new("kern_memfd_fuse",
-			     MFD_DEF_SIZE,
-			     MFD_CLOEXEC | MFD_ALLOW_SEALING);
+						 MFD_DEF_SIZE,
+						 MFD_CLOEXEC | MFD_ALLOW_SEALING);
 
 	/* mmap memfd-object for writing */
 	p = mfd_assert_mmap_shared(mfd);
@@ -268,10 +300,14 @@ int main(int argc, char **argv)
 	 * data is written into it. The racing ADD_SEALS should thus fail as
 	 * the pages are still pinned. */
 	r = read(fd, p, MFD_DEF_SIZE);
-	if (r < 0) {
+
+	if (r < 0)
+	{
 		printf("read() failed: %m\n");
 		abort();
-	} else if (!r) {
+	}
+	else if (!r)
+	{
 		printf("unexpected EOF on read()\n");
 		abort();
 	}
@@ -294,10 +330,14 @@ int main(int argc, char **argv)
 	 * enough to avoid any in-flight writes. */
 
 	p = mfd_assert_mmap_private(mfd);
-	if (was_sealed && memcmp(p, zero, MFD_DEF_SIZE)) {
+
+	if (was_sealed && memcmp(p, zero, MFD_DEF_SIZE))
+	{
 		printf("memfd sealed during read() but data not discarded\n");
 		abort();
-	} else if (!was_sealed && !memcmp(p, zero, MFD_DEF_SIZE)) {
+	}
+	else if (!was_sealed && !memcmp(p, zero, MFD_DEF_SIZE))
+	{
 		printf("memfd sealed after read() but data discarded\n");
 		abort();
 	}

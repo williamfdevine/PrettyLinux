@@ -45,8 +45,11 @@ nv04_display_create(struct drm_device *dev)
 	int i, ret;
 
 	disp = kzalloc(sizeof(*disp), GFP_KERNEL);
+
 	if (!disp)
+	{
 		return -ENOMEM;
+	}
 
 	nvif_object_map(&drm->device.object);
 
@@ -58,49 +61,70 @@ nv04_display_create(struct drm_device *dev)
 	nouveau_hw_save_vga_fonts(dev, 1);
 
 	nv04_crtc_create(dev, 0);
-	if (nv_two_heads(dev))
-		nv04_crtc_create(dev, 1);
 
-	for (i = 0; i < dcb->entries; i++) {
+	if (nv_two_heads(dev))
+	{
+		nv04_crtc_create(dev, 1);
+	}
+
+	for (i = 0; i < dcb->entries; i++)
+	{
 		struct dcb_output *dcbent = &dcb->entry[i];
 
 		connector = nouveau_connector_create(dev, dcbent->connector);
-		if (IS_ERR(connector))
-			continue;
 
-		switch (dcbent->type) {
-		case DCB_OUTPUT_ANALOG:
-			ret = nv04_dac_create(connector, dcbent);
-			break;
-		case DCB_OUTPUT_LVDS:
-		case DCB_OUTPUT_TMDS:
-			ret = nv04_dfp_create(connector, dcbent);
-			break;
-		case DCB_OUTPUT_TV:
-			if (dcbent->location == DCB_LOC_ON_CHIP)
-				ret = nv17_tv_create(connector, dcbent);
-			else
-				ret = nv04_tv_create(connector, dcbent);
-			break;
-		default:
-			NV_WARN(drm, "DCB type %d not known\n", dcbent->type);
+		if (IS_ERR(connector))
+		{
 			continue;
 		}
 
+		switch (dcbent->type)
+		{
+			case DCB_OUTPUT_ANALOG:
+				ret = nv04_dac_create(connector, dcbent);
+				break;
+
+			case DCB_OUTPUT_LVDS:
+			case DCB_OUTPUT_TMDS:
+				ret = nv04_dfp_create(connector, dcbent);
+				break;
+
+			case DCB_OUTPUT_TV:
+				if (dcbent->location == DCB_LOC_ON_CHIP)
+				{
+					ret = nv17_tv_create(connector, dcbent);
+				}
+				else
+				{
+					ret = nv04_tv_create(connector, dcbent);
+				}
+
+				break;
+
+			default:
+				NV_WARN(drm, "DCB type %d not known\n", dcbent->type);
+				continue;
+		}
+
 		if (ret)
+		{
 			continue;
+		}
 	}
 
 	list_for_each_entry_safe(connector, ct,
-				 &dev->mode_config.connector_list, head) {
-		if (!connector->encoder_ids[0]) {
+							 &dev->mode_config.connector_list, head)
+	{
+		if (!connector->encoder_ids[0])
+		{
 			NV_WARN(drm, "%s has no encoders, removing\n",
-				connector->name);
+					connector->name);
 			connector->funcs->destroy(connector);
 		}
 	}
 
-	list_for_each_entry(encoder, &dev->mode_config.encoder_list, head) {
+	list_for_each_entry(encoder, &dev->mode_config.encoder_list, head)
+	{
 		struct nouveau_encoder *nv_encoder = nouveau_encoder(encoder);
 		struct nvkm_i2c_bus *bus =
 			nvkm_i2c_bus_find(i2c, nv_encoder->dcb->i2c_index);
@@ -109,10 +133,10 @@ nv04_display_create(struct drm_device *dev)
 
 	/* Save previous state */
 	list_for_each_entry(crtc, &dev->mode_config.crtc_list, base.head)
-		crtc->save(&crtc->base);
+	crtc->save(&crtc->base);
 
 	list_for_each_entry(nv_encoder, &dev->mode_config.encoder_list, base.base.head)
-		nv_encoder->enc_save(&nv_encoder->base.base);
+	nv_encoder->enc_save(&nv_encoder->base.base);
 
 	nouveau_overlay_init(dev);
 
@@ -129,10 +153,10 @@ nv04_display_destroy(struct drm_device *dev)
 
 	/* Restore state */
 	list_for_each_entry(encoder, &dev->mode_config.encoder_list, base.base.head)
-		encoder->enc_restore(&encoder->base.base);
+	encoder->enc_restore(&encoder->base.base);
 
 	list_for_each_entry(nv_crtc, &dev->mode_config.crtc_list, base.head)
-		nv_crtc->restore(&nv_crtc->base);
+	nv_crtc->restore(&nv_crtc->base);
 
 	nouveau_hw_save_vga_fonts(dev, 0);
 
@@ -157,10 +181,10 @@ nv04_display_init(struct drm_device *dev)
 	 * on suspend too.
 	 */
 	list_for_each_entry(crtc, &dev->mode_config.crtc_list, base.head)
-		crtc->save(&crtc->base);
+	crtc->save(&crtc->base);
 
 	list_for_each_entry(encoder, &dev->mode_config.encoder_list, base.base.head)
-		encoder->enc_save(&encoder->base.base);
+	encoder->enc_save(&encoder->base.base);
 
 	return 0;
 }
@@ -170,6 +194,9 @@ nv04_display_fini(struct drm_device *dev)
 {
 	/* disable vblank interrupts */
 	NVWriteCRTC(dev, 0, NV_PCRTC_INTR_EN_0, 0);
+
 	if (nv_two_heads(dev))
+	{
 		NVWriteCRTC(dev, 1, NV_PCRTC_INTR_EN_0, 0);
+	}
 }

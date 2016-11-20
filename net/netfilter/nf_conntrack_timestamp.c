@@ -21,7 +21,8 @@ module_param_named(tstamp, nf_ct_tstamp, bool, 0644);
 MODULE_PARM_DESC(tstamp, "Enable connection tracking flow timestamping.");
 
 #ifdef CONFIG_SYSCTL
-static struct ctl_table tstamp_sysctl_table[] = {
+static struct ctl_table tstamp_sysctl_table[] =
+{
 	{
 		.procname	= "nf_conntrack_timestamp",
 		.data		= &init_net.ct.sysctl_tstamp,
@@ -33,7 +34,8 @@ static struct ctl_table tstamp_sysctl_table[] = {
 };
 #endif /* CONFIG_SYSCTL */
 
-static struct nf_ct_ext_type tstamp_extend __read_mostly = {
+static struct nf_ct_ext_type tstamp_extend __read_mostly =
+{
 	.len	= sizeof(struct nf_conn_tstamp),
 	.align	= __alignof__(struct nf_conn_tstamp),
 	.id	= NF_CT_EXT_TSTAMP,
@@ -45,22 +47,30 @@ static int nf_conntrack_tstamp_init_sysctl(struct net *net)
 	struct ctl_table *table;
 
 	table = kmemdup(tstamp_sysctl_table, sizeof(tstamp_sysctl_table),
-			GFP_KERNEL);
+					GFP_KERNEL);
+
 	if (!table)
+	{
 		goto out;
+	}
 
 	table[0].data = &net->ct.sysctl_tstamp;
 
 	/* Don't export sysctls to unprivileged users */
 	if (net->user_ns != &init_user_ns)
+	{
 		table[0].procname = NULL;
+	}
 
 	net->ct.tstamp_sysctl_header = register_net_sysctl(net,	"net/netfilter",
-							   table);
-	if (!net->ct.tstamp_sysctl_header) {
+								   table);
+
+	if (!net->ct.tstamp_sysctl_header)
+	{
 		printk(KERN_ERR "nf_ct_tstamp: can't register to sysctl.\n");
 		goto out_register;
 	}
+
 	return 0;
 
 out_register:
@@ -103,8 +113,12 @@ int nf_conntrack_tstamp_init(void)
 {
 	int ret;
 	ret = nf_ct_extend_register(&tstamp_extend);
+
 	if (ret < 0)
+	{
 		pr_err("nf_ct_tstamp: Unable to register extension\n");
+	}
+
 	return ret;
 }
 

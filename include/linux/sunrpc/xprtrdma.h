@@ -58,7 +58,8 @@
 
 /* Memory registration strategies, by number.
  * This is part of a kernel / user space API. Do not remove. */
-enum rpcrdma_memreg {
+enum rpcrdma_memreg
+{
 	RPCRDMA_BOUNCEBUFFERS = 0,
 	RPCRDMA_REGISTER,
 	RPCRDMA_MEMWINDOWS,

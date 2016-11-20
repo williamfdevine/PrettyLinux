@@ -65,14 +65,15 @@ struct display_timing;
  * To save power when no video data is transmitted, a driver can power down
  * the panel. This is the job of the .unprepare() function.
  */
-struct drm_panel_funcs {
+struct drm_panel_funcs
+{
 	int (*disable)(struct drm_panel *panel);
 	int (*unprepare)(struct drm_panel *panel);
 	int (*prepare)(struct drm_panel *panel);
 	int (*enable)(struct drm_panel *panel);
 	int (*get_modes)(struct drm_panel *panel);
 	int (*get_timings)(struct drm_panel *panel, unsigned int num_timings,
-			   struct display_timing *timings);
+					   struct display_timing *timings);
 };
 
 /**
@@ -83,7 +84,8 @@ struct drm_panel_funcs {
  * @funcs: operations that can be performed on the panel
  * @list: panel entry in registry
  */
-struct drm_panel {
+struct drm_panel
+{
 	struct drm_device *drm;
 	struct drm_connector *connector;
 	struct device *dev;
@@ -107,7 +109,9 @@ struct drm_panel {
 static inline int drm_panel_unprepare(struct drm_panel *panel)
 {
 	if (panel && panel->funcs && panel->funcs->unprepare)
+	{
 		return panel->funcs->unprepare(panel);
+	}
 
 	return panel ? -ENOSYS : -EINVAL;
 }
@@ -125,7 +129,9 @@ static inline int drm_panel_unprepare(struct drm_panel *panel)
 static inline int drm_panel_disable(struct drm_panel *panel)
 {
 	if (panel && panel->funcs && panel->funcs->disable)
+	{
 		return panel->funcs->disable(panel);
+	}
 
 	return panel ? -ENOSYS : -EINVAL;
 }
@@ -143,7 +149,9 @@ static inline int drm_panel_disable(struct drm_panel *panel)
 static inline int drm_panel_prepare(struct drm_panel *panel)
 {
 	if (panel && panel->funcs && panel->funcs->prepare)
+	{
 		return panel->funcs->prepare(panel);
+	}
 
 	return panel ? -ENOSYS : -EINVAL;
 }
@@ -161,7 +169,9 @@ static inline int drm_panel_prepare(struct drm_panel *panel)
 static inline int drm_panel_enable(struct drm_panel *panel)
 {
 	if (panel && panel->funcs && panel->funcs->enable)
+	{
 		return panel->funcs->enable(panel);
+	}
 
 	return panel ? -ENOSYS : -EINVAL;
 }
@@ -179,7 +189,9 @@ static inline int drm_panel_enable(struct drm_panel *panel)
 static inline int drm_panel_get_modes(struct drm_panel *panel)
 {
 	if (panel && panel->funcs && panel->funcs->get_modes)
+	{
 		return panel->funcs->get_modes(panel);
+	}
 
 	return panel ? -ENOSYS : -EINVAL;
 }

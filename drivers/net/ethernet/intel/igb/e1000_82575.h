@@ -29,14 +29,14 @@ void igb_power_up_serdes_link_82575(struct e1000_hw *hw);
 void igb_power_down_phy_copper_82575(struct e1000_hw *hw);
 void igb_rx_fifo_flush_82575(struct e1000_hw *hw);
 s32 igb_read_i2c_byte(struct e1000_hw *hw, u8 byte_offset, u8 dev_addr,
-		      u8 *data);
+					  u8 *data);
 s32 igb_write_i2c_byte(struct e1000_hw *hw, u8 byte_offset, u8 dev_addr,
-		       u8 data);
+					   u8 data);
 
 #define ID_LED_DEFAULT_82575_SERDES ((ID_LED_DEF1_DEF2 << 12) | \
-				     (ID_LED_DEF1_DEF2 <<  8) | \
-				     (ID_LED_DEF1_DEF2 <<  4) | \
-				     (ID_LED_OFF1_ON2))
+									 (ID_LED_DEF1_DEF2 <<  8) | \
+									 (ID_LED_DEF1_DEF2 <<  4) | \
+									 (ID_LED_OFF1_ON2))
 
 #define E1000_RAR_ENTRIES_82575        16
 #define E1000_RAR_ENTRIES_82576        24
@@ -64,42 +64,50 @@ s32 igb_write_i2c_byte(struct e1000_hw *hw, u8 byte_offset, u8 dev_addr,
 #define E1000_MRQC_RSS_FIELD_IPV6_UDP_EX    0x01000000
 
 #define E1000_EICR_TX_QUEUE ( \
-	E1000_EICR_TX_QUEUE0 |    \
-	E1000_EICR_TX_QUEUE1 |    \
-	E1000_EICR_TX_QUEUE2 |    \
-	E1000_EICR_TX_QUEUE3)
+							  E1000_EICR_TX_QUEUE0 |    \
+							  E1000_EICR_TX_QUEUE1 |    \
+							  E1000_EICR_TX_QUEUE2 |    \
+							  E1000_EICR_TX_QUEUE3)
 
 #define E1000_EICR_RX_QUEUE ( \
-	E1000_EICR_RX_QUEUE0 |    \
-	E1000_EICR_RX_QUEUE1 |    \
-	E1000_EICR_RX_QUEUE2 |    \
-	E1000_EICR_RX_QUEUE3)
+							  E1000_EICR_RX_QUEUE0 |    \
+							  E1000_EICR_RX_QUEUE1 |    \
+							  E1000_EICR_RX_QUEUE2 |    \
+							  E1000_EICR_RX_QUEUE3)
 
 /* Immediate Interrupt Rx (A.K.A. Low Latency Interrupt) */
 #define E1000_IMIREXT_SIZE_BP     0x00001000  /* Packet size bypass */
 #define E1000_IMIREXT_CTRL_BP     0x00080000  /* Bypass check of ctrl bits */
 
 /* Receive Descriptor - Advanced */
-union e1000_adv_rx_desc {
-	struct {
+union e1000_adv_rx_desc
+{
+	struct
+	{
 		__le64 pkt_addr;             /* Packet buffer address */
 		__le64 hdr_addr;             /* Header buffer address */
 	} read;
-	struct {
-		struct {
-			struct {
+	struct
+	{
+		struct
+		{
+			struct
+			{
 				__le16 pkt_info;   /* RSS type, Packet type */
 				__le16 hdr_info;   /* Split Head, buf len */
 			} lo_dword;
-			union {
+			union
+			{
 				__le32 rss;          /* RSS Hash */
-				struct {
+				struct
+				{
 					__le16 ip_id;    /* IP id */
 					__le16 csum;     /* Packet Checksum */
 				} csum_ip;
 			} hi_dword;
 		} lower;
-		struct {
+		struct
+		{
 			__le32 status_error;     /* ext status/error */
 			__le16 length;           /* Packet length */
 			__le16 vlan;             /* VLAN tag */
@@ -113,13 +121,16 @@ union e1000_adv_rx_desc {
 #define E1000_RXDADV_STAT_TSIP           0x08000 /* timestamp in packet */
 
 /* Transmit Descriptor - Advanced */
-union e1000_adv_tx_desc {
-	struct {
+union e1000_adv_tx_desc
+{
+	struct
+	{
 		__le64 buffer_addr;    /* Address of descriptor's data buf */
 		__le32 cmd_type_len;
 		__le32 olinfo_status;
 	} read;
-	struct {
+	struct
+	{
 		__le64 rsvd;       /* Reserved */
 		__le32 nxtseq_seed;
 		__le32 status;
@@ -139,7 +150,8 @@ union e1000_adv_tx_desc {
 #define E1000_ADVTXD_PAYLEN_SHIFT    14 /* Adv desc PAYLEN shift */
 
 /* Context descriptors */
-struct e1000_adv_tx_context_desc {
+struct e1000_adv_tx_context_desc
+{
 	__le32 vlan_macip_lens;
 	__le32 seqnum_seed;
 	__le32 type_tucmd_mlhl;

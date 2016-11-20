@@ -17,7 +17,8 @@
    Mauro Carvalho Chehab
  */
 
-static struct rc_map_table nec_terratec_cinergy_xs[] = {
+static struct rc_map_table nec_terratec_cinergy_xs[] =
+{
 
 	/* Terratec Grey IR, with most keys in orange */
 	{ 0x1441, KEY_HOME},
@@ -132,7 +133,8 @@ static struct rc_map_table nec_terratec_cinergy_xs[] = {
 	{ 0x04eb5c, KEY_NEXT},
 };
 
-static struct rc_map_list nec_terratec_cinergy_xs_map = {
+static struct rc_map_list nec_terratec_cinergy_xs_map =
+{
 	.map = {
 		.scan    = nec_terratec_cinergy_xs,
 		.size    = ARRAY_SIZE(nec_terratec_cinergy_xs),

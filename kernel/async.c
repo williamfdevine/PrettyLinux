@@ -68,7 +68,8 @@ static LIST_HEAD(async_global_pending);	/* pending from all registered doms */
 static ASYNC_DOMAIN(async_dfl_domain);
 static DEFINE_SPINLOCK(async_lock);
 
-struct async_entry {
+struct async_entry
+{
 	struct list_head	domain_list;
 	struct list_head	global_list;
 	struct work_struct	work;
@@ -91,13 +92,17 @@ static async_cookie_t lowest_in_progress(struct async_domain *domain)
 	spin_lock_irqsave(&async_lock, flags);
 
 	if (domain)
+	{
 		pending = &domain->pending;
+	}
 	else
+	{
 		pending = &async_global_pending;
+	}
 
 	if (!list_empty(pending))
 		ret = list_first_entry(pending, struct async_entry,
-				       domain_list)->cookie;
+							   domain_list)->cookie;
 
 	spin_unlock_irqrestore(&async_lock, flags);
 	return ret;
@@ -114,20 +119,24 @@ static void async_run_entry_fn(struct work_struct *work)
 	ktime_t uninitialized_var(calltime), delta, rettime;
 
 	/* 1) run (and print duration) */
-	if (initcall_debug && system_state == SYSTEM_BOOTING) {
+	if (initcall_debug && system_state == SYSTEM_BOOTING)
+	{
 		pr_debug("calling  %lli_%pF @ %i\n",
-			(long long)entry->cookie,
-			entry->func, task_pid_nr(current));
+				 (long long)entry->cookie,
+				 entry->func, task_pid_nr(current));
 		calltime = ktime_get();
 	}
+
 	entry->func(entry->data, entry->cookie);
-	if (initcall_debug && system_state == SYSTEM_BOOTING) {
+
+	if (initcall_debug && system_state == SYSTEM_BOOTING)
+	{
 		rettime = ktime_get();
 		delta = ktime_sub(rettime, calltime);
 		pr_debug("initcall %lli_%pF returned 0 after %lld usecs\n",
-			(long long)entry->cookie,
-			entry->func,
-			(long long)ktime_to_ns(delta) >> 10);
+				 (long long)entry->cookie,
+				 entry->func,
+				 (long long)ktime_to_ns(delta) >> 10);
 	}
 
 	/* 2) remove self from the pending queues */
@@ -158,7 +167,8 @@ static async_cookie_t __async_schedule(async_func_t func, void *data, struct asy
 	 * If we're out of memory or if there's too much work
 	 * pending already, we execute synchronously.
 	 */
-	if (!entry || atomic_read(&entry_count) > MAX_WORK) {
+	if (!entry || atomic_read(&entry_count) > MAX_WORK)
+	{
 		kfree(entry);
 		spin_lock_irqsave(&async_lock, flags);
 		newcookie = next_cookie++;
@@ -168,6 +178,7 @@ static async_cookie_t __async_schedule(async_func_t func, void *data, struct asy
 		func(data, newcookie);
 		return newcookie;
 	}
+
 	INIT_LIST_HEAD(&entry->domain_list);
 	INIT_LIST_HEAD(&entry->global_list);
 	INIT_WORK(&entry->work, async_run_entry_fn);
@@ -181,8 +192,11 @@ static async_cookie_t __async_schedule(async_func_t func, void *data, struct asy
 	newcookie = entry->cookie = next_cookie++;
 
 	list_add_tail(&entry->domain_list, &domain->pending);
+
 	if (domain->registered)
+	{
 		list_add_tail(&entry->global_list, &async_global_pending);
+	}
 
 	atomic_inc(&entry_count);
 	spin_unlock_irqrestore(&async_lock, flags);
@@ -223,7 +237,7 @@ EXPORT_SYMBOL_GPL(async_schedule);
  * may be called from atomic or non-atomic contexts.
  */
 async_cookie_t async_schedule_domain(async_func_t func, void *data,
-				     struct async_domain *domain)
+									 struct async_domain *domain)
 {
 	return __async_schedule(func, data, domain);
 }
@@ -284,20 +298,22 @@ void async_synchronize_cookie_domain(async_cookie_t cookie, struct async_domain 
 {
 	ktime_t uninitialized_var(starttime), delta, endtime;
 
-	if (initcall_debug && system_state == SYSTEM_BOOTING) {
+	if (initcall_debug && system_state == SYSTEM_BOOTING)
+	{
 		pr_debug("async_waiting @ %i\n", task_pid_nr(current));
 		starttime = ktime_get();
 	}
 
 	wait_event(async_done, lowest_in_progress(domain) >= cookie);
 
-	if (initcall_debug && system_state == SYSTEM_BOOTING) {
+	if (initcall_debug && system_state == SYSTEM_BOOTING)
+	{
 		endtime = ktime_get();
 		delta = ktime_sub(endtime, starttime);
 
 		pr_debug("async_continuing @ %i after %lli usec\n",
-			task_pid_nr(current),
-			(long long)ktime_to_ns(delta) >> 10);
+				 task_pid_nr(current),
+				 (long long)ktime_to_ns(delta) >> 10);
 	}
 }
 EXPORT_SYMBOL_GPL(async_synchronize_cookie_domain);

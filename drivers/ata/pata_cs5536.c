@@ -40,22 +40,23 @@
 #include <linux/dmi.h>
 
 #ifdef CONFIG_X86_32
-#include <asm/msr.h>
-static int use_msr;
-module_param_named(msr, use_msr, int, 0644);
-MODULE_PARM_DESC(msr, "Force using MSR to configure IDE function (Default: 0)");
+	#include <asm/msr.h>
+	static int use_msr;
+	module_param_named(msr, use_msr, int, 0644);
+	MODULE_PARM_DESC(msr, "Force using MSR to configure IDE function (Default: 0)");
 #else
-#undef rdmsr	/* avoid accidental MSR usage on, e.g. x86-64 */
-#undef wrmsr
-#define rdmsr(x, y, z) do { } while (0)
-#define wrmsr(x, y, z) do { } while (0)
-#define use_msr 0
+	#undef rdmsr	/* avoid accidental MSR usage on, e.g. x86-64 */
+	#undef wrmsr
+	#define rdmsr(x, y, z) do { } while (0)
+	#define wrmsr(x, y, z) do { } while (0)
+	#define use_msr 0
 #endif
 
 #define DRV_NAME	"pata_cs5536"
 #define DRV_VERSION	"0.0.8"
 
-enum {
+enum
+{
 	MSR_IDE_CFG		= 0x51300010,
 	PCI_IDE_CFG		= 0x40,
 
@@ -83,7 +84,8 @@ enum {
 /* Some Bachmann OT200 devices have a non working UDMA support due a
  * missing resistor.
  */
-static const struct dmi_system_id udma_quirk_dmi_table[] = {
+static const struct dmi_system_id udma_quirk_dmi_table[] =
+{
 	{
 		.ident = "Bachmann electronic OT200",
 		.matches = {
@@ -97,7 +99,8 @@ static const struct dmi_system_id udma_quirk_dmi_table[] = {
 
 static int cs5536_read(struct pci_dev *pdev, int reg, u32 *val)
 {
-	if (unlikely(use_msr)) {
+	if (unlikely(use_msr))
+	{
 		u32 dummy __maybe_unused;
 
 		rdmsr(MSR_IDE_CFG + reg, *val, dummy);
@@ -109,7 +112,8 @@ static int cs5536_read(struct pci_dev *pdev, int reg, u32 *val)
 
 static int cs5536_write(struct pci_dev *pdev, int reg, int val)
 {
-	if (unlikely(use_msr)) {
+	if (unlikely(use_msr))
+	{
 		wrmsr(MSR_IDE_CFG + reg, val, 0);
 		return 0;
 	}
@@ -146,9 +150,13 @@ static int cs5536_cable_detect(struct ata_port *ap)
 	cs5536_read(pdev, CFG, &cfg);
 
 	if (cfg & IDE_CFG_CABLE)
+	{
 		return ATA_CBL_PATA80;
+	}
 	else
+	{
 		return ATA_CBL_PATA40;
+	}
 }
 
 /**
@@ -159,15 +167,18 @@ static int cs5536_cable_detect(struct ata_port *ap)
 
 static void cs5536_set_piomode(struct ata_port *ap, struct ata_device *adev)
 {
-	static const u8 drv_timings[5] = {
+	static const u8 drv_timings[5] =
+	{
 		0x98, 0x55, 0x32, 0x21, 0x20,
 	};
 
-	static const u8 addr_timings[5] = {
+	static const u8 addr_timings[5] =
+	{
 		0x2, 0x1, 0x0, 0x0, 0x0,
 	};
 
-	static const u8 cmd_timings[5] = {
+	static const u8 cmd_timings[5] =
+	{
 		0x99, 0x92, 0x90, 0x22, 0x20,
 	};
 
@@ -179,7 +190,9 @@ static void cs5536_set_piomode(struct ata_port *ap, struct ata_device *adev)
 	u32 cast;
 
 	if (pair)
+	{
 		cmdmode = min(mode, pair->pio_mode - XFER_PIO_0);
+	}
 
 	cs5536_program_dtc(adev, drv_timings[mode]);
 
@@ -203,11 +216,13 @@ static void cs5536_set_piomode(struct ata_port *ap, struct ata_device *adev)
 
 static void cs5536_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 {
-	static const u8 udma_timings[6] = {
+	static const u8 udma_timings[6] =
+	{
 		0xc2, 0xc1, 0xc0, 0xc4, 0xc5, 0xc6,
 	};
 
-	static const u8 mwdma_timings[3] = {
+	static const u8 mwdma_timings[3] =
+	{
 		0x67, 0x21, 0x20,
 	};
 
@@ -218,10 +233,13 @@ static void cs5536_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 
 	cs5536_read(pdev, ETC, &etc);
 
-	if (mode >= XFER_UDMA_0) {
+	if (mode >= XFER_UDMA_0)
+	{
 		etc &= ~(IDE_DRV_MASK << dshift);
 		etc |= udma_timings[mode - XFER_UDMA_0] << dshift;
-	} else { /* MWDMA */
+	}
+	else     /* MWDMA */
+	{
 		etc &= ~(IDE_ETC_UDMA_MASK << dshift);
 		cs5536_program_dtc(adev, mwdma_timings[mode - XFER_MW_DMA_0]);
 	}
@@ -229,11 +247,13 @@ static void cs5536_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 	cs5536_write(pdev, ETC, etc);
 }
 
-static struct scsi_host_template cs5536_sht = {
+static struct scsi_host_template cs5536_sht =
+{
 	ATA_BMDMA_SHT(DRV_NAME),
 };
 
-static struct ata_port_operations cs5536_port_ops = {
+static struct ata_port_operations cs5536_port_ops =
+{
 	.inherits		= &ata_bmdma32_port_ops,
 	.cable_detect		= cs5536_cable_detect,
 	.set_piomode		= cs5536_set_piomode,
@@ -249,7 +269,8 @@ static struct ata_port_operations cs5536_port_ops = {
 
 static int cs5536_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 {
-	static const struct ata_port_info info = {
+	static const struct ata_port_info info =
+	{
 		.flags = ATA_FLAG_SLAVE_POSS,
 		.pio_mask = ATA_PIO4,
 		.mwdma_mask = ATA_MWDMA2,
@@ -257,7 +278,8 @@ static int cs5536_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 		.port_ops = &cs5536_port_ops,
 	};
 
-	static const struct ata_port_info no_udma_info = {
+	static const struct ata_port_info no_udma_info =
+	{
 		.flags = ATA_FLAG_SLAVE_POSS,
 		.pio_mask = ATA_PIO4,
 		.port_ops = &cs5536_port_ops,
@@ -268,18 +290,25 @@ static int cs5536_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 	u32 cfg;
 
 	if (dmi_check_system(udma_quirk_dmi_table))
+	{
 		ppi[0] = &no_udma_info;
+	}
 	else
+	{
 		ppi[0] = &info;
+	}
 
 	ppi[1] = &ata_dummy_port_info;
 
 	if (use_msr)
+	{
 		printk(KERN_ERR DRV_NAME ": Using MSR regs instead of PCI\n");
+	}
 
 	cs5536_read(dev, CFG, &cfg);
 
-	if ((cfg & IDE_CFG_CHANEN) == 0) {
+	if ((cfg & IDE_CFG_CHANEN) == 0)
+	{
 		printk(KERN_ERR DRV_NAME ": disabled by BIOS\n");
 		return -ENODEV;
 	}
@@ -287,12 +316,14 @@ static int cs5536_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 	return ata_pci_bmdma_init_one(dev, ppi, &cs5536_sht, NULL, 0);
 }
 
-static const struct pci_device_id cs5536[] = {
+static const struct pci_device_id cs5536[] =
+{
 	{ PCI_VDEVICE(AMD,	PCI_DEVICE_ID_AMD_CS5536_IDE), },
 	{ },
 };
 
-static struct pci_driver cs5536_pci_driver = {
+static struct pci_driver cs5536_pci_driver =
+{
 	.name		= DRV_NAME,
 	.id_table	= cs5536,
 	.probe		= cs5536_init_one,

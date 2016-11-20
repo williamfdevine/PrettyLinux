@@ -30,7 +30,8 @@
 #define MID_WDT_DEFAULT_TIMEOUT		90
 
 /* SCU watchdog messages */
-enum {
+enum
+{
 	SCU_WATCHDOG_START = 0,
 	SCU_WATCHDOG_STOP,
 	SCU_WATCHDOG_KEEPALIVE,
@@ -45,7 +46,8 @@ static int wdt_start(struct watchdog_device *wd)
 {
 	int ret, in_size;
 	int timeout = wd->timeout;
-	struct ipc_wd_start {
+	struct ipc_wd_start
+	{
 		u32 pretimeout;
 		u32 timeout;
 	} ipc_wd_start = { timeout - MID_WDT_PRETIMEOUT, timeout };
@@ -57,7 +59,9 @@ static int wdt_start(struct watchdog_device *wd)
 	in_size = DIV_ROUND_UP(sizeof(ipc_wd_start), 4);
 
 	ret = wdt_command(SCU_WATCHDOG_START, (u32 *)&ipc_wd_start, in_size);
-	if (ret) {
+
+	if (ret)
+	{
 		struct device *dev = watchdog_get_drvdata(wd);
 		dev_crit(dev, "error starting watchdog: %d\n", ret);
 	}
@@ -70,7 +74,9 @@ static int wdt_ping(struct watchdog_device *wd)
 	int ret;
 
 	ret = wdt_command(SCU_WATCHDOG_KEEPALIVE, NULL, 0);
-	if (ret) {
+
+	if (ret)
+	{
 		struct device *dev = watchdog_get_drvdata(wd);
 		dev_crit(dev, "Error executing keepalive: 0x%x\n", ret);
 	}
@@ -83,7 +89,9 @@ static int wdt_stop(struct watchdog_device *wd)
 	int ret;
 
 	ret = wdt_command(SCU_WATCHDOG_STOP, NULL, 0);
-	if (ret) {
+
+	if (ret)
+	{
 		struct device *dev = watchdog_get_drvdata(wd);
 		dev_crit(dev, "Error stopping watchdog: 0x%x\n", ret);
 	}
@@ -99,12 +107,14 @@ static irqreturn_t mid_wdt_irq(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static const struct watchdog_info mid_wdt_info = {
+static const struct watchdog_info mid_wdt_info =
+{
 	.identity = "Intel MID SCU watchdog",
 	.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE,
 };
 
-static const struct watchdog_ops mid_wdt_ops = {
+static const struct watchdog_ops mid_wdt_ops =
+{
 	.owner = THIS_MODULE,
 	.start = wdt_start,
 	.stop = wdt_stop,
@@ -117,20 +127,28 @@ static int mid_wdt_probe(struct platform_device *pdev)
 	struct intel_mid_wdt_pdata *pdata = pdev->dev.platform_data;
 	int ret;
 
-	if (!pdata) {
+	if (!pdata)
+	{
 		dev_err(&pdev->dev, "missing platform data\n");
 		return -EINVAL;
 	}
 
-	if (pdata->probe) {
+	if (pdata->probe)
+	{
 		ret = pdata->probe(pdev);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	wdt_dev = devm_kzalloc(&pdev->dev, sizeof(*wdt_dev), GFP_KERNEL);
+
 	if (!wdt_dev)
+	{
 		return -ENOMEM;
+	}
 
 	wdt_dev->info = &mid_wdt_info;
 	wdt_dev->ops = &mid_wdt_ops;
@@ -143,16 +161,20 @@ static int mid_wdt_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, wdt_dev);
 
 	ret = devm_request_irq(&pdev->dev, pdata->irq, mid_wdt_irq,
-			       IRQF_SHARED | IRQF_NO_SUSPEND, "watchdog",
-			       wdt_dev);
-	if (ret) {
+						   IRQF_SHARED | IRQF_NO_SUSPEND, "watchdog",
+						   wdt_dev);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "error requesting warning irq %d\n",
-			pdata->irq);
+				pdata->irq);
 		return ret;
 	}
 
 	ret = watchdog_register_device(wdt_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "error registering watchdog device\n");
 		return ret;
 	}
@@ -169,7 +191,8 @@ static int mid_wdt_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver mid_wdt_driver = {
+static struct platform_driver mid_wdt_driver =
+{
 	.probe		= mid_wdt_probe,
 	.remove		= mid_wdt_remove,
 	.driver		= {

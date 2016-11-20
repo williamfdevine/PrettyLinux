@@ -37,7 +37,8 @@
 static int mc44s803_writereg(struct mc44s803_priv *priv, u32 val)
 {
 	u8 buf[3];
-	struct i2c_msg msg = {
+	struct i2c_msg msg =
+	{
 		.addr = priv->cfg->i2c_address, .flags = 0, .buf = buf, .len = 3
 	};
 
@@ -45,10 +46,12 @@ static int mc44s803_writereg(struct mc44s803_priv *priv, u32 val)
 	buf[1] = (val & 0xff00) >> 8;
 	buf[2] = (val & 0xff);
 
-	if (i2c_transfer(priv->i2c, &msg, 1) != 1) {
+	if (i2c_transfer(priv->i2c, &msg, 1) != 1)
+	{
 		mc_printk(KERN_WARNING, "I2C write failed\n");
 		return -EREMOTEIO;
 	}
+
 	return 0;
 }
 
@@ -58,19 +61,26 @@ static int mc44s803_readreg(struct mc44s803_priv *priv, u8 reg, u32 *val)
 	u32 wval;
 	u8 buf[3];
 	int ret;
-	struct i2c_msg msg[] = {
-		{ .addr = priv->cfg->i2c_address, .flags = I2C_M_RD,
-		  .buf = buf, .len = 3 },
+	struct i2c_msg msg[] =
+	{
+		{
+			.addr = priv->cfg->i2c_address, .flags = I2C_M_RD,
+			.buf = buf, .len = 3
+		},
 	};
 
 	wval = MC44S803_REG_SM(MC44S803_REG_DATAREG, MC44S803_ADDR) |
-	       MC44S803_REG_SM(reg, MC44S803_D);
+		   MC44S803_REG_SM(reg, MC44S803_D);
 
 	ret = mc44s803_writereg(priv, wval);
-	if (ret)
-		return ret;
 
-	if (i2c_transfer(priv->i2c, msg, 1) != 1) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (i2c_transfer(priv->i2c, msg, 1) != 1)
+	{
 		mc_printk(KERN_WARNING, "I2C read failed\n");
 		return -EREMOTEIO;
 	}
@@ -97,118 +107,156 @@ static int mc44s803_init(struct dvb_frontend *fe)
 	int err;
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
 
-/* Reset chip */
+	/* Reset chip */
 	val = MC44S803_REG_SM(MC44S803_REG_RESET, MC44S803_ADDR) |
-	      MC44S803_REG_SM(1, MC44S803_RS);
+		  MC44S803_REG_SM(1, MC44S803_RS);
 
 	err = mc44s803_writereg(priv, val);
+
 	if (err)
+	{
 		goto exit;
+	}
 
 	val = MC44S803_REG_SM(MC44S803_REG_RESET, MC44S803_ADDR);
 
 	err = mc44s803_writereg(priv, val);
-	if (err)
-		goto exit;
 
-/* Power Up and Start Osc */
+	if (err)
+	{
+		goto exit;
+	}
+
+	/* Power Up and Start Osc */
 
 	val = MC44S803_REG_SM(MC44S803_REG_REFOSC, MC44S803_ADDR) |
-	      MC44S803_REG_SM(0xC0, MC44S803_REFOSC) |
-	      MC44S803_REG_SM(1, MC44S803_OSCSEL);
+		  MC44S803_REG_SM(0xC0, MC44S803_REFOSC) |
+		  MC44S803_REG_SM(1, MC44S803_OSCSEL);
 
 	err = mc44s803_writereg(priv, val);
+
 	if (err)
+	{
 		goto exit;
+	}
 
 	val = MC44S803_REG_SM(MC44S803_REG_POWER, MC44S803_ADDR) |
-	      MC44S803_REG_SM(0x200, MC44S803_POWER);
+		  MC44S803_REG_SM(0x200, MC44S803_POWER);
 
 	err = mc44s803_writereg(priv, val);
+
 	if (err)
+	{
 		goto exit;
+	}
 
 	msleep(10);
 
 	val = MC44S803_REG_SM(MC44S803_REG_REFOSC, MC44S803_ADDR) |
-	      MC44S803_REG_SM(0x40, MC44S803_REFOSC) |
-	      MC44S803_REG_SM(1, MC44S803_OSCSEL);
+		  MC44S803_REG_SM(0x40, MC44S803_REFOSC) |
+		  MC44S803_REG_SM(1, MC44S803_OSCSEL);
 
 	err = mc44s803_writereg(priv, val);
+
 	if (err)
+	{
 		goto exit;
+	}
 
 	msleep(20);
 
-/* Setup Mixer */
+	/* Setup Mixer */
 
 	val = MC44S803_REG_SM(MC44S803_REG_MIXER, MC44S803_ADDR) |
-	      MC44S803_REG_SM(1, MC44S803_TRI_STATE) |
-	      MC44S803_REG_SM(0x7F, MC44S803_MIXER_RES);
+		  MC44S803_REG_SM(1, MC44S803_TRI_STATE) |
+		  MC44S803_REG_SM(0x7F, MC44S803_MIXER_RES);
 
 	err = mc44s803_writereg(priv, val);
-	if (err)
-		goto exit;
 
-/* Setup Cirquit Adjust */
+	if (err)
+	{
+		goto exit;
+	}
+
+	/* Setup Cirquit Adjust */
 
 	val = MC44S803_REG_SM(MC44S803_REG_CIRCADJ, MC44S803_ADDR) |
-	      MC44S803_REG_SM(1, MC44S803_G1) |
-	      MC44S803_REG_SM(1, MC44S803_G3) |
-	      MC44S803_REG_SM(0x3, MC44S803_CIRCADJ_RES) |
-	      MC44S803_REG_SM(1, MC44S803_G6) |
-	      MC44S803_REG_SM(priv->cfg->dig_out, MC44S803_S1) |
-	      MC44S803_REG_SM(0x3, MC44S803_LP) |
-	      MC44S803_REG_SM(1, MC44S803_CLRF) |
-	      MC44S803_REG_SM(1, MC44S803_CLIF);
+		  MC44S803_REG_SM(1, MC44S803_G1) |
+		  MC44S803_REG_SM(1, MC44S803_G3) |
+		  MC44S803_REG_SM(0x3, MC44S803_CIRCADJ_RES) |
+		  MC44S803_REG_SM(1, MC44S803_G6) |
+		  MC44S803_REG_SM(priv->cfg->dig_out, MC44S803_S1) |
+		  MC44S803_REG_SM(0x3, MC44S803_LP) |
+		  MC44S803_REG_SM(1, MC44S803_CLRF) |
+		  MC44S803_REG_SM(1, MC44S803_CLIF);
 
 	err = mc44s803_writereg(priv, val);
+
 	if (err)
+	{
 		goto exit;
+	}
 
 	val = MC44S803_REG_SM(MC44S803_REG_CIRCADJ, MC44S803_ADDR) |
-	      MC44S803_REG_SM(1, MC44S803_G1) |
-	      MC44S803_REG_SM(1, MC44S803_G3) |
-	      MC44S803_REG_SM(0x3, MC44S803_CIRCADJ_RES) |
-	      MC44S803_REG_SM(1, MC44S803_G6) |
-	      MC44S803_REG_SM(priv->cfg->dig_out, MC44S803_S1) |
-	      MC44S803_REG_SM(0x3, MC44S803_LP);
+		  MC44S803_REG_SM(1, MC44S803_G1) |
+		  MC44S803_REG_SM(1, MC44S803_G3) |
+		  MC44S803_REG_SM(0x3, MC44S803_CIRCADJ_RES) |
+		  MC44S803_REG_SM(1, MC44S803_G6) |
+		  MC44S803_REG_SM(priv->cfg->dig_out, MC44S803_S1) |
+		  MC44S803_REG_SM(0x3, MC44S803_LP);
 
 	err = mc44s803_writereg(priv, val);
-	if (err)
-		goto exit;
 
-/* Setup Digtune */
+	if (err)
+	{
+		goto exit;
+	}
+
+	/* Setup Digtune */
 
 	val = MC44S803_REG_SM(MC44S803_REG_DIGTUNE, MC44S803_ADDR) |
-	      MC44S803_REG_SM(3, MC44S803_XOD);
+		  MC44S803_REG_SM(3, MC44S803_XOD);
 
 	err = mc44s803_writereg(priv, val);
-	if (err)
-		goto exit;
 
-/* Setup AGC */
+	if (err)
+	{
+		goto exit;
+	}
+
+	/* Setup AGC */
 
 	val = MC44S803_REG_SM(MC44S803_REG_LNAAGC, MC44S803_ADDR) |
-	      MC44S803_REG_SM(1, MC44S803_AT1) |
-	      MC44S803_REG_SM(1, MC44S803_AT2) |
-	      MC44S803_REG_SM(1, MC44S803_AGC_AN_DIG) |
-	      MC44S803_REG_SM(1, MC44S803_AGC_READ_EN) |
-	      MC44S803_REG_SM(1, MC44S803_LNA0);
+		  MC44S803_REG_SM(1, MC44S803_AT1) |
+		  MC44S803_REG_SM(1, MC44S803_AT2) |
+		  MC44S803_REG_SM(1, MC44S803_AGC_AN_DIG) |
+		  MC44S803_REG_SM(1, MC44S803_AGC_READ_EN) |
+		  MC44S803_REG_SM(1, MC44S803_LNA0);
 
 	err = mc44s803_writereg(priv, val);
+
 	if (err)
+	{
 		goto exit;
+	}
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 0);
+	}
+
 	return 0;
 
 exit:
+
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 0);
+	}
 
 	mc_printk(KERN_WARNING, "I/O Error\n");
 	return err;
@@ -235,57 +283,79 @@ static int mc44s803_set_params(struct dvb_frontend *fe)
 	lo2 = ((60 * n2) + (r2 / 2)) / r2;
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 1);
+	}
 
 	val = MC44S803_REG_SM(MC44S803_REG_REFDIV, MC44S803_ADDR) |
-	      MC44S803_REG_SM(r1-1, MC44S803_R1) |
-	      MC44S803_REG_SM(r2-1, MC44S803_R2) |
-	      MC44S803_REG_SM(1, MC44S803_REFBUF_EN);
+		  MC44S803_REG_SM(r1 - 1, MC44S803_R1) |
+		  MC44S803_REG_SM(r2 - 1, MC44S803_R2) |
+		  MC44S803_REG_SM(1, MC44S803_REFBUF_EN);
 
 	err = mc44s803_writereg(priv, val);
+
 	if (err)
+	{
 		goto exit;
+	}
 
 	val = MC44S803_REG_SM(MC44S803_REG_LO1, MC44S803_ADDR) |
-	      MC44S803_REG_SM(n1-2, MC44S803_LO1);
+		  MC44S803_REG_SM(n1 - 2, MC44S803_LO1);
 
 	err = mc44s803_writereg(priv, val);
+
 	if (err)
+	{
 		goto exit;
+	}
 
 	val = MC44S803_REG_SM(MC44S803_REG_LO2, MC44S803_ADDR) |
-	      MC44S803_REG_SM(n2-2, MC44S803_LO2);
+		  MC44S803_REG_SM(n2 - 2, MC44S803_LO2);
 
 	err = mc44s803_writereg(priv, val);
+
 	if (err)
+	{
 		goto exit;
+	}
 
 	val = MC44S803_REG_SM(MC44S803_REG_DIGTUNE, MC44S803_ADDR) |
-	      MC44S803_REG_SM(1, MC44S803_DA) |
-	      MC44S803_REG_SM(lo1, MC44S803_LO_REF) |
-	      MC44S803_REG_SM(1, MC44S803_AT);
+		  MC44S803_REG_SM(1, MC44S803_DA) |
+		  MC44S803_REG_SM(lo1, MC44S803_LO_REF) |
+		  MC44S803_REG_SM(1, MC44S803_AT);
 
 	err = mc44s803_writereg(priv, val);
+
 	if (err)
+	{
 		goto exit;
+	}
 
 	val = MC44S803_REG_SM(MC44S803_REG_DIGTUNE, MC44S803_ADDR) |
-	      MC44S803_REG_SM(2, MC44S803_DA) |
-	      MC44S803_REG_SM(lo2, MC44S803_LO_REF) |
-	      MC44S803_REG_SM(1, MC44S803_AT);
+		  MC44S803_REG_SM(2, MC44S803_DA) |
+		  MC44S803_REG_SM(lo2, MC44S803_LO_REF) |
+		  MC44S803_REG_SM(1, MC44S803_AT);
 
 	err = mc44s803_writereg(priv, val);
+
 	if (err)
+	{
 		goto exit;
+	}
 
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 0);
+	}
 
 	return 0;
 
 exit:
+
 	if (fe->ops.i2c_gate_ctrl)
+	{
 		fe->ops.i2c_gate_ctrl(fe, 0);
+	}
 
 	mc_printk(KERN_WARNING, "I/O Error\n");
 	return err;
@@ -304,7 +374,8 @@ static int mc44s803_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
 	return 0;
 }
 
-static const struct dvb_tuner_ops mc44s803_tuner_ops = {
+static const struct dvb_tuner_ops mc44s803_tuner_ops =
+{
 	.info = {
 		.name           = "Freescale MC44S803",
 		.frequency_min  =   48000000,
@@ -322,7 +393,7 @@ static const struct dvb_tuner_ops mc44s803_tuner_ops = {
 /* This functions tries to identify a MC44S803 tuner by reading the ID
    register. This is hasty. */
 struct dvb_frontend *mc44s803_attach(struct dvb_frontend *fe,
-	 struct i2c_adapter *i2c, struct mc44s803_config *cfg)
+									 struct i2c_adapter *i2c, struct mc44s803_config *cfg)
 {
 	struct mc44s803_priv *priv;
 	u32 reg;
@@ -332,42 +403,56 @@ struct dvb_frontend *mc44s803_attach(struct dvb_frontend *fe,
 	reg = 0;
 
 	priv = kzalloc(sizeof(struct mc44s803_priv), GFP_KERNEL);
+
 	if (priv == NULL)
+	{
 		return NULL;
+	}
 
 	priv->cfg = cfg;
 	priv->i2c = i2c;
 	priv->fe  = fe;
 
 	if (fe->ops.i2c_gate_ctrl)
-		fe->ops.i2c_gate_ctrl(fe, 1); /* open i2c_gate */
+	{
+		fe->ops.i2c_gate_ctrl(fe, 1);    /* open i2c_gate */
+	}
 
 	ret = mc44s803_readreg(priv, MC44S803_REG_ID, &reg);
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	id = MC44S803_REG_MS(reg, MC44S803_ID);
 
-	if (id != 0x14) {
+	if (id != 0x14)
+	{
 		mc_printk(KERN_ERR, "unsupported ID "
-		       "(%x should be 0x14)\n", id);
+				  "(%x should be 0x14)\n", id);
 		goto error;
 	}
 
 	mc_printk(KERN_INFO, "successfully identified (ID = %x)\n", id);
 	memcpy(&fe->ops.tuner_ops, &mc44s803_tuner_ops,
-	       sizeof(struct dvb_tuner_ops));
+		   sizeof(struct dvb_tuner_ops));
 
 	fe->tuner_priv = priv;
 
 	if (fe->ops.i2c_gate_ctrl)
-		fe->ops.i2c_gate_ctrl(fe, 0); /* close i2c_gate */
+	{
+		fe->ops.i2c_gate_ctrl(fe, 0);    /* close i2c_gate */
+	}
 
 	return fe;
 
 error:
+
 	if (fe->ops.i2c_gate_ctrl)
-		fe->ops.i2c_gate_ctrl(fe, 0); /* close i2c_gate */
+	{
+		fe->ops.i2c_gate_ctrl(fe, 0);    /* close i2c_gate */
+	}
 
 	kfree(priv);
 	return NULL;

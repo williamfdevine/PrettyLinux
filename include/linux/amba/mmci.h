@@ -24,7 +24,8 @@
  * @gpio_cd: read this GPIO pin to detect card insertion
  * @cd_invert: true if the gpio_cd pin value is active low
  */
-struct mmci_platform_data {
+struct mmci_platform_data
+{
 	unsigned int ocr_mask;
 	int (*ios_handler)(struct device *, struct mmc_ios *);
 	unsigned int (*status)(struct device *);

@@ -2,10 +2,10 @@
 #define _UAPI_LINUX_BYTEORDER_BIG_ENDIAN_H
 
 #ifndef __BIG_ENDIAN
-#define __BIG_ENDIAN 4321
+	#define __BIG_ENDIAN 4321
 #endif
 #ifndef __BIG_ENDIAN_BITFIELD
-#define __BIG_ENDIAN_BITFIELD
+	#define __BIG_ENDIAN_BITFIELD
 #endif
 
 #include <linux/types.h>
@@ -66,27 +66,27 @@ static __always_inline __u16 __le16_to_cpup(const __le16 *p)
 }
 static __always_inline __be64 __cpu_to_be64p(const __u64 *p)
 {
-	return (__force __be64)*p;
+	return (__force __be64) * p;
 }
 static __always_inline __u64 __be64_to_cpup(const __be64 *p)
 {
-	return (__force __u64)*p;
+	return (__force __u64) * p;
 }
 static __always_inline __be32 __cpu_to_be32p(const __u32 *p)
 {
-	return (__force __be32)*p;
+	return (__force __be32) * p;
 }
 static __always_inline __u32 __be32_to_cpup(const __be32 *p)
 {
-	return (__force __u32)*p;
+	return (__force __u32) * p;
 }
 static __always_inline __be16 __cpu_to_be16p(const __u16 *p)
 {
-	return (__force __be16)*p;
+	return (__force __be16) * p;
 }
 static __always_inline __u16 __be16_to_cpup(const __be16 *p)
 {
-	return (__force __u16)*p;
+	return (__force __u16) * p;
 }
 #define __cpu_to_le64s(x) __swab64s((x))
 #define __le64_to_cpus(x) __swab64s((x))

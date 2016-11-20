@@ -49,19 +49,24 @@ static char *udl_vidreg_unlock(char *buf)
 static char *udl_set_blank(char *buf, int dpms_mode)
 {
 	u8 reg;
-	switch (dpms_mode) {
-	case DRM_MODE_DPMS_OFF:
-		reg = 0x07;
-		break;
-	case DRM_MODE_DPMS_STANDBY:
-		reg = 0x05;
-		break;
-	case DRM_MODE_DPMS_SUSPEND:
-		reg = 0x01;
-		break;
-	case DRM_MODE_DPMS_ON:
-		reg = 0x00;
-		break;
+
+	switch (dpms_mode)
+	{
+		case DRM_MODE_DPMS_OFF:
+			reg = 0x07;
+			break;
+
+		case DRM_MODE_DPMS_STANDBY:
+			reg = 0x05;
+			break;
+
+		case DRM_MODE_DPMS_SUSPEND:
+			reg = 0x01;
+			break;
+
+		case DRM_MODE_DPMS_ON:
+			reg = 0x00;
+			break;
 	}
 
 	return udl_set_register(buf, 0x1f, reg);
@@ -94,7 +99,7 @@ static char *udl_set_base8bpp(char *wrptr, u32 base)
 static char *udl_set_register_16(char *wrptr, u8 reg, u16 value)
 {
 	wrptr = udl_set_register(wrptr, reg, value >> 8);
-	return udl_set_register(wrptr, reg+1, value);
+	return udl_set_register(wrptr, reg + 1, value);
 }
 
 /*
@@ -104,7 +109,7 @@ static char *udl_set_register_16(char *wrptr, u8 reg, u16 value)
 static char *udl_set_register_16be(char *wrptr, u8 reg, u16 value)
 {
 	wrptr = udl_set_register(wrptr, reg, value);
-	return udl_set_register(wrptr, reg+1, value >> 8);
+	return udl_set_register(wrptr, reg + 1, value >> 8);
 }
 
 /*
@@ -120,10 +125,11 @@ static u16 udl_lfsr16(u16 actual_count)
 {
 	u32 lv = 0xFFFF; /* This is the lfsr value that the hw starts with */
 
-	while (actual_count--) {
+	while (actual_count--)
+	{
 		lv =	 ((lv << 1) |
-			(((lv >> 15) ^ (lv >> 4) ^ (lv >> 2) ^ (lv >> 1)) & 1))
-			& 0xFFFF;
+				  (((lv >> 15) ^ (lv >> 4) ^ (lv >> 2) ^ (lv >> 1)) & 1))
+				 & 0xFFFF;
 	}
 
 	return (u16) lv;
@@ -182,14 +188,14 @@ static char *udl_set_vid_cmds(char *wrptr, struct drm_display_mode *mode)
 
 	/* x end count is active + blanking - 1 */
 	wrptr = udl_set_register_lfsr16(wrptr, 0x09,
-					mode->crtc_htotal - 1);
+									mode->crtc_htotal - 1);
 
 	/* libdlo hardcodes hsync start to 1 */
 	wrptr = udl_set_register_lfsr16(wrptr, 0x0B, 1);
 
 	/* hsync end is width of sync pulse + 1 */
 	wrptr = udl_set_register_lfsr16(wrptr, 0x0D,
-					mode->crtc_hsync_end - mode->crtc_hsync_start + 1);
+									mode->crtc_hsync_end - mode->crtc_hsync_start + 1);
 
 	/* hpixels is active pixels */
 	wrptr = udl_set_register_16(wrptr, 0x0F, mode->hdisplay);
@@ -208,7 +214,7 @@ static char *udl_set_vid_cmds(char *wrptr, struct drm_display_mode *mode)
 	wrptr = udl_set_register_16(wrptr, 0x17, mode->crtc_vdisplay);
 
 	wrptr = udl_set_register_16be(wrptr, 0x1B,
-				      mode->clock / 5);
+								  mode->clock / 5);
 
 	return wrptr;
 }
@@ -236,8 +242,11 @@ static int udl_crtc_write_mode_to_hw(struct drm_crtc *crtc)
 	int retval;
 
 	urb = udl_get_urb(dev);
+
 	if (!urb)
+	{
 		return -ENOMEM;
+	}
 
 	buf = (char *)urb->transfer_buffer;
 
@@ -254,12 +263,16 @@ static void udl_crtc_dpms(struct drm_crtc *crtc, int mode)
 	struct udl_device *udl = dev->dev_private;
 	int retval;
 
-	if (mode == DRM_MODE_DPMS_OFF) {
+	if (mode == DRM_MODE_DPMS_OFF)
+	{
 		char *buf;
 		struct urb *urb;
 		urb = udl_get_urb(dev);
+
 		if (!urb)
+		{
 			return;
+		}
 
 		buf = (char *)urb->transfer_buffer;
 		buf = udl_vidreg_lock(buf);
@@ -268,12 +281,16 @@ static void udl_crtc_dpms(struct drm_crtc *crtc, int mode)
 
 		buf = udl_dummy_render(buf);
 		retval = udl_submit_urb(dev, urb, buf - (char *)
-					urb->transfer_buffer);
-	} else {
-		if (udl->mode_buf_len == 0) {
+								urb->transfer_buffer);
+	}
+	else
+	{
+		if (udl->mode_buf_len == 0)
+		{
 			DRM_ERROR("Trying to enable DPMS with no mode\n");
 			return;
 		}
+
 		udl_crtc_write_mode_to_hw(crtc);
 	}
 
@@ -282,24 +299,24 @@ static void udl_crtc_dpms(struct drm_crtc *crtc, int mode)
 #if 0
 static int
 udl_pipe_set_base_atomic(struct drm_crtc *crtc, struct drm_framebuffer *fb,
-			   int x, int y, enum mode_set_atomic state)
+						 int x, int y, enum mode_set_atomic state)
 {
 	return 0;
 }
 
 static int
 udl_pipe_set_base(struct drm_crtc *crtc, int x, int y,
-		    struct drm_framebuffer *old_fb)
+				  struct drm_framebuffer *old_fb)
 {
 	return 0;
 }
 #endif
 
 static int udl_crtc_mode_set(struct drm_crtc *crtc,
-			       struct drm_display_mode *mode,
-			       struct drm_display_mode *adjusted_mode,
-			       int x, int y,
-			       struct drm_framebuffer *old_fb)
+							 struct drm_display_mode *mode,
+							 struct drm_display_mode *adjusted_mode,
+							 int x, int y,
+							 struct drm_framebuffer *old_fb)
 
 {
 	struct drm_device *dev = crtc->dev;
@@ -334,10 +351,12 @@ static int udl_crtc_mode_set(struct drm_crtc *crtc,
 
 	wrptr = udl_dummy_render(wrptr);
 
-	if (old_fb) {
+	if (old_fb)
+	{
 		struct udl_framebuffer *uold_fb = to_udl_fb(old_fb);
 		uold_fb->active_16 = false;
 	}
+
 	ufb->active_16 = true;
 	udl->mode_buf_len = wrptr - buf;
 
@@ -359,26 +378,33 @@ static void udl_crtc_destroy(struct drm_crtc *crtc)
 }
 
 static int udl_crtc_page_flip(struct drm_crtc *crtc,
-			      struct drm_framebuffer *fb,
-			      struct drm_pending_vblank_event *event,
-			      uint32_t page_flip_flags)
+							  struct drm_framebuffer *fb,
+							  struct drm_pending_vblank_event *event,
+							  uint32_t page_flip_flags)
 {
 	struct udl_framebuffer *ufb = to_udl_fb(fb);
 	struct drm_device *dev = crtc->dev;
 	unsigned long flags;
 
 	struct drm_framebuffer *old_fb = crtc->primary->fb;
-	if (old_fb) {
+
+	if (old_fb)
+	{
 		struct udl_framebuffer *uold_fb = to_udl_fb(old_fb);
 		uold_fb->active_16 = false;
 	}
+
 	ufb->active_16 = true;
 
 	udl_handle_damage(ufb, 0, 0, fb->width, fb->height);
 
 	spin_lock_irqsave(&dev->event_lock, flags);
+
 	if (event)
+	{
 		drm_crtc_send_vblank_event(crtc, event);
+	}
+
 	spin_unlock_irqrestore(&dev->event_lock, flags);
 	crtc->primary->fb = fb;
 
@@ -394,7 +420,8 @@ static void udl_crtc_commit(struct drm_crtc *crtc)
 	udl_crtc_dpms(crtc, DRM_MODE_DPMS_ON);
 }
 
-static const struct drm_crtc_helper_funcs udl_helper_funcs = {
+static const struct drm_crtc_helper_funcs udl_helper_funcs =
+{
 	.dpms = udl_crtc_dpms,
 	.mode_set = udl_crtc_mode_set,
 	.prepare = udl_crtc_prepare,
@@ -402,7 +429,8 @@ static const struct drm_crtc_helper_funcs udl_helper_funcs = {
 	.disable = udl_crtc_disable,
 };
 
-static const struct drm_crtc_funcs udl_crtc_funcs = {
+static const struct drm_crtc_funcs udl_crtc_funcs =
+{
 	.set_config = drm_crtc_helper_set_config,
 	.destroy = udl_crtc_destroy,
 	.page_flip = udl_crtc_page_flip,
@@ -413,8 +441,11 @@ static int udl_crtc_init(struct drm_device *dev)
 	struct drm_crtc *crtc;
 
 	crtc = kzalloc(sizeof(struct drm_crtc) + sizeof(struct drm_connector *), GFP_KERNEL);
+
 	if (crtc == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	drm_crtc_init(dev, crtc, &udl_crtc_funcs);
 	drm_crtc_helper_add(crtc, &udl_helper_funcs);
@@ -422,7 +453,8 @@ static int udl_crtc_init(struct drm_device *dev)
 	return 0;
 }
 
-static const struct drm_mode_config_funcs udl_mode_funcs = {
+static const struct drm_mode_config_funcs udl_mode_funcs =
+{
 	.fb_create = udl_fb_user_fb_create,
 	.output_poll_changed = NULL,
 };
@@ -458,7 +490,10 @@ void udl_modeset_restore(struct drm_device *dev)
 	struct udl_framebuffer *ufb;
 
 	if (!udl->crtc || !udl->crtc->primary->fb)
+	{
 		return;
+	}
+
 	udl_crtc_commit(udl->crtc);
 	ufb = to_udl_fb(udl->crtc->primary->fb);
 	udl_handle_damage(ufb, 0, 0, ufb->base.width, ufb->base.height);

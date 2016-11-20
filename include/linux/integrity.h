@@ -12,7 +12,8 @@
 
 #include <linux/fs.h>
 
-enum integrity_status {
+enum integrity_status
+{
 	INTEGRITY_PASS = 0,
 	INTEGRITY_FAIL,
 	INTEGRITY_NOLABEL,
@@ -28,7 +29,7 @@ extern void __init integrity_load_keys(void);
 
 #else
 static inline struct integrity_iint_cache *
-				integrity_inode_get(struct inode *inode)
+integrity_inode_get(struct inode *inode)
 {
 	return NULL;
 }

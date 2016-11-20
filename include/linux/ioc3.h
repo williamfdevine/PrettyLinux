@@ -22,7 +22,8 @@
 #define IOC3_CLASS_SERIAL	6
 
 /* One of these per IOC3 */
-struct ioc3_driver_data {
+struct ioc3_driver_data
+{
 	struct list_head list;
 	int id;				/* IOC3 sequence number */
 	/* PCI mapping */
@@ -53,7 +54,8 @@ struct ioc3_driver_data {
 };
 
 /* One per submodule */
-struct ioc3_submodule {
+struct ioc3_submodule
+{
 	char *name;		/* descriptive submodule name */
 	struct module *owner;	/* owning kernel module */
 	int ethernet;		/* set for ethernet drivers */

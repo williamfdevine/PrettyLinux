@@ -38,7 +38,7 @@
 #define INTF_HDR_ALIGN		     4
 
 #define MWIFIEX_MIN_DATA_HEADER_LEN (MWIFIEX_DMA_ALIGN_SZ + INTF_HDR_ALIGN + \
-				     MAX_TXPD_SZ)
+									 MAX_TXPD_SZ)
 #define MWIFIEX_MGMT_FRAME_HEADER_SIZE	8	/* sizeof(pkt_type)
 						 *   + sizeof(tx_control)
 						 */
@@ -124,20 +124,23 @@
 
 #define MWIFIEX_SIZE_4K 0x4000
 
-enum mwifiex_bss_type {
+enum mwifiex_bss_type
+{
 	MWIFIEX_BSS_TYPE_STA = 0,
 	MWIFIEX_BSS_TYPE_UAP = 1,
 	MWIFIEX_BSS_TYPE_P2P = 2,
 	MWIFIEX_BSS_TYPE_ANY = 0xff,
 };
 
-enum mwifiex_bss_role {
+enum mwifiex_bss_role
+{
 	MWIFIEX_BSS_ROLE_STA = 0,
 	MWIFIEX_BSS_ROLE_UAP = 1,
 	MWIFIEX_BSS_ROLE_ANY = 0xff,
 };
 
-enum mwifiex_tdls_status {
+enum mwifiex_tdls_status
+{
 	TDLS_NOT_SETUP = 0,
 	TDLS_SETUP_INPROGRESS,
 	TDLS_SETUP_COMPLETE,
@@ -148,7 +151,8 @@ enum mwifiex_tdls_status {
 	TDLS_IN_OFF_CHAN,
 };
 
-enum mwifiex_tdls_error_code {
+enum mwifiex_tdls_error_code
+{
 	TDLS_ERR_NO_ERROR = 0,
 	TDLS_ERR_INTERNAL_ERROR,
 	TDLS_ERR_MAX_LINKS_EST,
@@ -161,29 +165,34 @@ enum mwifiex_tdls_error_code {
 
 #define GET_BSS_ROLE(priv)   ((priv)->bss_role & BSS_ROLE_BIT_MASK)
 
-enum mwifiex_data_frame_type {
+enum mwifiex_data_frame_type
+{
 	MWIFIEX_DATA_FRAME_TYPE_ETH_II = 0,
 	MWIFIEX_DATA_FRAME_TYPE_802_11,
 };
 
-struct mwifiex_fw_image {
+struct mwifiex_fw_image
+{
 	u8 *helper_buf;
 	u32 helper_len;
 	u8 *fw_buf;
 	u32 fw_len;
 };
 
-struct mwifiex_802_11_ssid {
+struct mwifiex_802_11_ssid
+{
 	u32 ssid_len;
 	u8 ssid[IEEE80211_MAX_SSID_LEN];
 };
 
-struct mwifiex_wait_queue {
+struct mwifiex_wait_queue
+{
 	wait_queue_head_t wait;
 	int status;
 };
 
-struct mwifiex_rxinfo {
+struct mwifiex_rxinfo
+{
 	struct sk_buff *parent;
 	u8 bss_num;
 	u8 bss_type;
@@ -191,7 +200,8 @@ struct mwifiex_rxinfo {
 	u8 buf_type;
 };
 
-struct mwifiex_txinfo {
+struct mwifiex_txinfo
+{
 	u32 status_code;
 	u8 flags;
 	u8 bss_num;
@@ -202,20 +212,23 @@ struct mwifiex_txinfo {
 	u64 cookie;
 };
 
-enum mwifiex_wmm_ac_e {
+enum mwifiex_wmm_ac_e
+{
 	WMM_AC_BK,
 	WMM_AC_BE,
 	WMM_AC_VI,
 	WMM_AC_VO
 } __packed;
 
-struct ieee_types_wmm_ac_parameters {
+struct ieee_types_wmm_ac_parameters
+{
 	u8 aci_aifsn_bitmap;
 	u8 ecw_bitmap;
 	__le16 tx_op_limit;
 } __packed;
 
-struct mwifiex_types_wmm_info {
+struct mwifiex_types_wmm_info
+{
 	u8 oui[4];
 	u8 subtype;
 	u8 version;
@@ -224,7 +237,8 @@ struct mwifiex_types_wmm_info {
 	struct ieee_types_wmm_ac_parameters ac_params[IEEE80211_NUM_ACS];
 } __packed;
 
-struct mwifiex_arp_eth_header {
+struct mwifiex_arp_eth_header
+{
 	struct arphdr hdr;
 	u8 ar_sha[ETH_ALEN];
 	u8 ar_sip[4];
@@ -232,7 +246,8 @@ struct mwifiex_arp_eth_header {
 	u8 ar_tip[4];
 } __packed;
 
-struct mwifiex_chan_stats {
+struct mwifiex_chan_stats
+{
 	u8 chan_num;
 	u8 bandcfg;
 	u8 flags;
@@ -249,7 +264,8 @@ struct mwifiex_chan_stats {
 #define MWIFIEX_MAX_NOISE_FLR		    256
 #define MWIFIEX_MAX_SIG_STRENGTH	    256
 
-struct mwifiex_histogram_data {
+struct mwifiex_histogram_data
+{
 	atomic_t rx_rate[MWIFIEX_MAX_AC_RX_RATES];
 	atomic_t snr[MWIFIEX_MAX_SNR];
 	atomic_t noise_flr[MWIFIEX_MAX_NOISE_FLR];
@@ -257,18 +273,21 @@ struct mwifiex_histogram_data {
 	atomic_t num_samples;
 };
 
-struct mwifiex_iface_comb {
+struct mwifiex_iface_comb
+{
 	u8 sta_intf;
 	u8 uap_intf;
 	u8 p2p_intf;
 };
 
-struct mwifiex_radar_params {
+struct mwifiex_radar_params
+{
 	struct cfg80211_chan_def *chandef;
 	u32 cac_time_ms;
 } __packed;
 
-struct mwifiex_11h_intf_state {
+struct mwifiex_11h_intf_state
+{
 	bool is_11h_enabled;
 	bool is_11h_active;
 } __packed;
@@ -281,14 +300,16 @@ struct mwifiex_11h_intf_state {
 #define FW_DUMP_DONE			0xFF
 #define FW_DUMP_READ_DONE		0xFE
 
-struct memory_type_mapping {
+struct memory_type_mapping
+{
 	u8 mem_name[FW_DUMP_MAX_NAME_LEN];
 	u8 *mem_ptr;
 	u32 mem_size;
 	u8 done_flag;
 };
 
-enum rdwr_status {
+enum rdwr_status
+{
 	RDWR_STATUS_SUCCESS = 0,
 	RDWR_STATUS_FAILURE = 1,
 	RDWR_STATUS_DONE = 2

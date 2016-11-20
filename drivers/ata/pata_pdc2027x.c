@@ -39,12 +39,13 @@
 #undef PDC_DEBUG
 
 #ifdef PDC_DEBUG
-#define PDPRINTK(fmt, args...) printk(KERN_ERR "%s: " fmt, __func__, ## args)
+	#define PDPRINTK(fmt, args...) printk(KERN_ERR "%s: " fmt, __func__, ## args)
 #else
-#define PDPRINTK(fmt, args...)
+	#define PDPRINTK(fmt, args...)
 #endif
 
-enum {
+enum
+{
 	PDC_MMIO_BAR		= 5,
 
 	PDC_UDMA_100		= 0,
@@ -64,7 +65,7 @@ enum {
 
 static int pdc2027x_init_one(struct pci_dev *pdev, const struct pci_device_id *ent);
 #ifdef CONFIG_PM_SLEEP
-static int pdc2027x_reinit_one(struct pci_dev *pdev);
+	static int pdc2027x_reinit_one(struct pci_dev *pdev);
 #endif
 static int pdc2027x_prereset(struct ata_link *link, unsigned long deadline);
 static void pdc2027x_set_piomode(struct ata_port *ap, struct ata_device *adev);
@@ -82,9 +83,11 @@ static int pdc2027x_set_mode(struct ata_link *link, struct ata_device **r_failed
  * is issued to the device. However, if the controller clock is 133MHz,
  * the following tables must be used.
  */
-static struct pdc2027x_pio_timing {
+static struct pdc2027x_pio_timing
+{
 	u8 value0, value1, value2;
-} pdc2027x_pio_timing_tbl [] = {
+} pdc2027x_pio_timing_tbl [] =
+{
 	{ 0xfb, 0x2b, 0xac }, /* PIO mode 0 */
 	{ 0x46, 0x29, 0xa4 }, /* PIO mode 1 */
 	{ 0x23, 0x26, 0x64 }, /* PIO mode 2 */
@@ -92,17 +95,21 @@ static struct pdc2027x_pio_timing {
 	{ 0x23, 0x09, 0x25 }, /* PIO mode 4, IORDY on, Prefetch off */
 };
 
-static struct pdc2027x_mdma_timing {
+static struct pdc2027x_mdma_timing
+{
 	u8 value0, value1;
-} pdc2027x_mdma_timing_tbl [] = {
+} pdc2027x_mdma_timing_tbl [] =
+{
 	{ 0xdf, 0x5f }, /* MDMA mode 0 */
 	{ 0x6b, 0x27 }, /* MDMA mode 1 */
 	{ 0x69, 0x25 }, /* MDMA mode 2 */
 };
 
-static struct pdc2027x_udma_timing {
+static struct pdc2027x_udma_timing
+{
 	u8 value0, value1, value2;
-} pdc2027x_udma_timing_tbl [] = {
+} pdc2027x_udma_timing_tbl [] =
+{
 	{ 0x4a, 0x0f, 0xd5 }, /* UDMA mode 0 */
 	{ 0x3a, 0x0a, 0xd0 }, /* UDMA mode 1 */
 	{ 0x2a, 0x07, 0xcd }, /* UDMA mode 2 */
@@ -112,7 +119,8 @@ static struct pdc2027x_udma_timing {
 	{ 0x1a, 0x01, 0xcb }, /* UDMA mode 6 */
 };
 
-static const struct pci_device_id pdc2027x_pci_tbl[] = {
+static const struct pci_device_id pdc2027x_pci_tbl[] =
+{
 	{ PCI_VDEVICE(PROMISE, PCI_DEVICE_ID_PROMISE_20268), PDC_UDMA_100 },
 	{ PCI_VDEVICE(PROMISE, PCI_DEVICE_ID_PROMISE_20269), PDC_UDMA_133 },
 	{ PCI_VDEVICE(PROMISE, PCI_DEVICE_ID_PROMISE_20270), PDC_UDMA_100 },
@@ -124,7 +132,8 @@ static const struct pci_device_id pdc2027x_pci_tbl[] = {
 	{ }	/* terminate list */
 };
 
-static struct pci_driver pdc2027x_pci_driver = {
+static struct pci_driver pdc2027x_pci_driver =
+{
 	.name			= DRV_NAME,
 	.id_table		= pdc2027x_pci_tbl,
 	.probe			= pdc2027x_init_one,
@@ -135,18 +144,21 @@ static struct pci_driver pdc2027x_pci_driver = {
 #endif
 };
 
-static struct scsi_host_template pdc2027x_sht = {
+static struct scsi_host_template pdc2027x_sht =
+{
 	ATA_BMDMA_SHT(DRV_NAME),
 };
 
-static struct ata_port_operations pdc2027x_pata100_ops = {
+static struct ata_port_operations pdc2027x_pata100_ops =
+{
 	.inherits		= &ata_bmdma_port_ops,
 	.check_atapi_dma	= pdc2027x_check_atapi_dma,
 	.cable_detect		= pdc2027x_cable_detect,
 	.prereset		= pdc2027x_prereset,
 };
 
-static struct ata_port_operations pdc2027x_pata133_ops = {
+static struct ata_port_operations pdc2027x_pata133_ops =
+{
 	.inherits		= &pdc2027x_pata100_ops,
 	.mode_filter		= pdc2027x_mode_filter,
 	.set_piomode		= pdc2027x_set_piomode,
@@ -154,7 +166,8 @@ static struct ata_port_operations pdc2027x_pata133_ops = {
 	.set_mode		= pdc2027x_set_mode,
 };
 
-static struct ata_port_info pdc2027x_port_info[] = {
+static struct ata_port_info pdc2027x_port_info[] =
+{
 	/* PDC_UDMA_100 */
 	{
 		.flags		= ATA_FLAG_SLAVE_POSS,
@@ -217,8 +230,11 @@ static int pdc2027x_cable_detect(struct ata_port *ap)
 
 	/* check cable detect results */
 	cgcr = ioread32(port_mmio(ap, PDC_GLOBAL_CTL));
+
 	if (cgcr & (1 << 26))
+	{
 		goto cbl40;
+	}
 
 	PDPRINTK("No cable or 80-conductor cable on port %d\n", ap->port_no);
 
@@ -252,7 +268,10 @@ static int pdc2027x_prereset(struct ata_link *link, unsigned long deadline)
 {
 	/* Check whether port enabled */
 	if (!pdc2027x_port_enabled(link->ap))
+	{
 		return -ENOENT;
+	}
+
 	return ata_sff_prereset(link, deadline);
 }
 
@@ -270,14 +289,19 @@ static unsigned long pdc2027x_mode_filter(struct ata_device *adev, unsigned long
 	struct ata_device *pair = ata_dev_pair(adev);
 
 	if (adev->class != ATA_DEV_ATA || adev->devno == 0 || pair == NULL)
+	{
 		return mask;
+	}
 
 	/* Check for slave of a Maxtor at UDMA6 */
 	ata_id_c_string(pair->id, model_num, ATA_ID_PROD,
-			  ATA_ID_PROD_LEN + 1);
+					ATA_ID_PROD_LEN + 1);
+
 	/* If the master is a maxtor in UDMA6 then the slave should not use UDMA 6 */
 	if (strstr(model_num, "Maxtor") == NULL && pair->dma_mode == XFER_UDMA_6)
+	{
 		mask &= ~ (1 << (6 + ATA_SHIFT_UDMA));
+	}
 
 	return mask;
 }
@@ -301,7 +325,8 @@ static void pdc2027x_set_piomode(struct ata_port *ap, struct ata_device *adev)
 	PDPRINTK("adev->pio_mode[%X]\n", adev->pio_mode);
 
 	/* Sanity check */
-	if (pio > 4) {
+	if (pio > 4)
+	{
 		printk(KERN_ERR DRV_NAME ": Unknown pio mode [%d] ignored\n", pio);
 		return;
 
@@ -313,7 +338,7 @@ static void pdc2027x_set_piomode(struct ata_port *ap, struct ata_device *adev)
 	ctcr0 = ioread32(dev_mmio(ap, adev, PDC_CTCR0));
 	ctcr0 &= 0xffff0000;
 	ctcr0 |= pdc2027x_pio_timing_tbl[pio].value0 |
-		(pdc2027x_pio_timing_tbl[pio].value1 << 8);
+			 (pdc2027x_pio_timing_tbl[pio].value1 << 8);
 	iowrite32(ctcr0, dev_mmio(ap, adev, PDC_CTCR0));
 
 	ctcr1 = ioread32(dev_mmio(ap, adev, PDC_CTCR1));
@@ -342,11 +367,13 @@ static void pdc2027x_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 	u32 ctcr0, ctcr1;
 
 	if ((dma_mode >= XFER_UDMA_0) &&
-	   (dma_mode <= XFER_UDMA_6)) {
+		(dma_mode <= XFER_UDMA_6))
+	{
 		/* Set the UDMA timing registers with value table for 133MHz */
 		unsigned int udma_mode = dma_mode & 0x07;
 
-		if (dma_mode == XFER_UDMA_2) {
+		if (dma_mode == XFER_UDMA_2)
+		{
 			/*
 			 * Turn off tHOLD.
 			 * If tHOLD is '1', the hardware will add half clock for data hold time.
@@ -361,16 +388,18 @@ static void pdc2027x_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 		ctcr1 = ioread32(dev_mmio(ap, adev, PDC_CTCR1));
 		ctcr1 &= 0xff000000;
 		ctcr1 |= pdc2027x_udma_timing_tbl[udma_mode].value0 |
-			(pdc2027x_udma_timing_tbl[udma_mode].value1 << 8) |
-			(pdc2027x_udma_timing_tbl[udma_mode].value2 << 16);
+				 (pdc2027x_udma_timing_tbl[udma_mode].value1 << 8) |
+				 (pdc2027x_udma_timing_tbl[udma_mode].value2 << 16);
 		iowrite32(ctcr1, dev_mmio(ap, adev, PDC_CTCR1));
 
 		PDPRINTK("Set udma regs done\n");
 
 		PDPRINTK("Set to udma mode[%u] \n", udma_mode);
 
-	} else  if ((dma_mode >= XFER_MW_DMA_0) &&
-		   (dma_mode <= XFER_MW_DMA_2)) {
+	}
+	else  if ((dma_mode >= XFER_MW_DMA_0) &&
+			  (dma_mode <= XFER_MW_DMA_2))
+	{
 		/* Set the MDMA timing registers with value table for 133MHz */
 		unsigned int mdma_mode = dma_mode & 0x07;
 
@@ -379,13 +408,15 @@ static void pdc2027x_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 
 		ctcr0 &= 0x0000ffff;
 		ctcr0 |= (pdc2027x_mdma_timing_tbl[mdma_mode].value0 << 16) |
-			(pdc2027x_mdma_timing_tbl[mdma_mode].value1 << 24);
+				 (pdc2027x_mdma_timing_tbl[mdma_mode].value1 << 24);
 
 		iowrite32(ctcr0, dev_mmio(ap, adev, PDC_CTCR0));
 		PDPRINTK("Set mdma regs done\n");
 
 		PDPRINTK("Set to mdma mode[%u] \n", mdma_mode);
-	} else {
+	}
+	else
+	{
 		printk(KERN_ERR DRV_NAME ": Unknown dma mode [%u] ignored\n", dma_mode);
 	}
 }
@@ -406,22 +437,29 @@ static int pdc2027x_set_mode(struct ata_link *link, struct ata_device **r_failed
 	int rc;
 
 	rc = ata_do_set_mode(link, r_failed);
-	if (rc < 0)
-		return rc;
 
-	ata_for_each_dev(dev, link, ENABLED) {
+	if (rc < 0)
+	{
+		return rc;
+	}
+
+	ata_for_each_dev(dev, link, ENABLED)
+	{
 		pdc2027x_set_piomode(ap, dev);
 
 		/*
 		 * Enable prefetch if the device support PIO only.
 		 */
-		if (dev->xfer_shift == ATA_SHIFT_PIO) {
+		if (dev->xfer_shift == ATA_SHIFT_PIO)
+		{
 			u32 ctcr1 = ioread32(dev_mmio(ap, dev, PDC_CTCR1));
 			ctcr1 |= (1 << 25);
 			iowrite32(ctcr1, dev_mmio(ap, dev, PDC_CTCR1));
 
 			PDPRINTK("Turn on prefetch\n");
-		} else {
+		}
+		else
+		{
 			pdc2027x_set_dmamode(ap, dev);
 		}
 	}
@@ -450,20 +488,22 @@ static int pdc2027x_check_atapi_dma(struct ata_queued_cmd *qc)
 	 * following white list, say MODE_SENSE and REQUEST_SENSE,
 	 * pdc2027x might hit the irq lost problem.
 	 */
-	switch (scsicmd[0]) {
-	case READ_10:
-	case WRITE_10:
-	case READ_12:
-	case WRITE_12:
-	case READ_6:
-	case WRITE_6:
-	case 0xad: /* READ_DVD_STRUCTURE */
-	case 0xbe: /* READ_CD */
-		/* ATAPI DMA is ok */
-		rc = 0;
-		break;
-	default:
-		;
+	switch (scsicmd[0])
+	{
+		case READ_10:
+		case WRITE_10:
+		case READ_12:
+		case WRITE_12:
+		case READ_6:
+		case WRITE_6:
+		case 0xad: /* READ_DVD_STRUCTURE */
+		case 0xbe: /* READ_CD */
+			/* ATAPI DMA is ok */
+			rc = 0;
+			break;
+
+		default:
+			;
 	}
 
 	return rc;
@@ -499,7 +539,8 @@ retry:
 	 * Incorrect value may be read when both bccrh and bccrl are changing.
 	 * Ex. When 7900 decrease to 78FF, wrong value 7800 might be read.
 	 */
-	if (retry && !(bccrh == bccrhv && bccrl >= bccrlv)) {
+	if (retry && !(bccrh == bccrhv && bccrl >= bccrlv))
+	{
 		retry--;
 		PDPRINTK("rereading counter\n");
 		goto retry;
@@ -520,12 +561,13 @@ static void pdc_adjust_pll(struct ata_host *host, long pll_clock, unsigned int b
 	void __iomem *mmio_base = host->iomap[PDC_MMIO_BAR];
 	u16 pll_ctl;
 	long pll_clock_khz = pll_clock / 1000;
-	long pout_required = board_idx? PDC_133_MHZ:PDC_100_MHZ;
+	long pout_required = board_idx ? PDC_133_MHZ : PDC_100_MHZ;
 	long ratio = pout_required / pll_clock_khz;
 	int F, R;
 
 	/* Sanity check */
-	if (unlikely(pll_clock_khz < 5000L || pll_clock_khz > 70000L)) {
+	if (unlikely(pll_clock_khz < 5000L || pll_clock_khz > 70000L))
+	{
 		printk(KERN_ERR DRV_NAME ": Invalid PLL input clock %ldkHz, give up!\n", pll_clock_khz);
 		return;
 	}
@@ -545,26 +587,36 @@ static void pdc_adjust_pll(struct ata_host *host, long pll_clock, unsigned int b
 	 * Calculate the ratio of F, R and OD
 	 * POUT = (F + 2) / (( R + 2) * NO)
 	 */
-	if (ratio < 8600L) { /* 8.6x */
+	if (ratio < 8600L)   /* 8.6x */
+	{
 		/* Using NO = 0x01, R = 0x0D */
 		R = 0x0d;
-	} else if (ratio < 12900L) { /* 12.9x */
+	}
+	else if (ratio < 12900L)     /* 12.9x */
+	{
 		/* Using NO = 0x01, R = 0x08 */
 		R = 0x08;
-	} else if (ratio < 16100L) { /* 16.1x */
+	}
+	else if (ratio < 16100L)     /* 16.1x */
+	{
 		/* Using NO = 0x01, R = 0x06 */
 		R = 0x06;
-	} else if (ratio < 64000L) { /* 64x */
+	}
+	else if (ratio < 64000L)     /* 64x */
+	{
 		R = 0x00;
-	} else {
+	}
+	else
+	{
 		/* Invalid ratio */
 		printk(KERN_ERR DRV_NAME ": Invalid ratio %ld, give up!\n", ratio);
 		return;
 	}
 
-	F = (ratio * (R+2)) / 1000 - 2;
+	F = (ratio * (R + 2)) / 1000 - 2;
 
-	if (unlikely(F < 0 || F > 127)) {
+	if (unlikely(F < 0 || F > 127))
+	{
 		/* Invalid F */
 		printk(KERN_ERR DRV_NAME ": F[%d] invalid!\n", F);
 		return;
@@ -636,7 +688,7 @@ static long pdc_detect_pll_input_clock(struct ata_host *host)
 	usec_elapsed = (long) ktime_us_delta(end_time, start_time);
 
 	pll_clock = ((start_count - end_count) & 0x3fffffff) / 100 *
-		(100000000 / usec_elapsed);
+				(100000000 / usec_elapsed);
 
 	PDPRINTK("start[%ld] end[%ld] \n", start_count, end_count);
 	PDPRINTK("PLL input clock[%ld]Hz\n", pll_clock);
@@ -661,7 +713,7 @@ static int pdc_hardware_init(struct ata_host *host, unsigned int board_idx)
 	 */
 	pll_clock = pdc_detect_pll_input_clock(host);
 
-	dev_info(host->dev, "PLL input clock %ld kHz\n", pll_clock/1000);
+	dev_info(host->dev, "PLL input clock %ld kHz\n", pll_clock / 1000);
 
 	/* Adjust PLL control register */
 	pdc_adjust_pll(host, pll_clock, board_idx);
@@ -677,18 +729,18 @@ static int pdc_hardware_init(struct ata_host *host, unsigned int board_idx)
 static void pdc_ata_setup_port(struct ata_ioports *port, void __iomem *base)
 {
 	port->cmd_addr		=
-	port->data_addr		= base;
+		port->data_addr		= base;
 	port->feature_addr	=
-	port->error_addr	= base + 0x05;
+		port->error_addr	= base + 0x05;
 	port->nsect_addr	= base + 0x0a;
 	port->lbal_addr		= base + 0x0f;
 	port->lbam_addr		= base + 0x10;
 	port->lbah_addr		= base + 0x15;
 	port->device_addr	= base + 0x1a;
 	port->command_addr	=
-	port->status_addr	= base + 0x1f;
+		port->status_addr	= base + 0x1f;
 	port->altstatus_addr	=
-	port->ctl_addr		= base + 0x81a;
+		port->ctl_addr		= base + 0x81a;
 }
 
 /**
@@ -702,13 +754,13 @@ static void pdc_ata_setup_port(struct ata_ioports *port, void __iomem *base)
  * @ent:  matching entry in the id_tbl[]
  */
 static int pdc2027x_init_one(struct pci_dev *pdev,
-			     const struct pci_device_id *ent)
+							 const struct pci_device_id *ent)
 {
 	static const unsigned long cmd_offset[] = { 0x17c0, 0x15c0 };
 	static const unsigned long bmdma_offset[] = { 0x1000, 0x1008 };
 	unsigned int board_idx = (unsigned int) ent->driver_data;
 	const struct ata_port_info *ppi[] =
-		{ &pdc2027x_port_info[board_idx], NULL };
+	{ &pdc2027x_port_info[board_idx], NULL };
 	struct ata_host *host;
 	void __iomem *mmio_base;
 	int i, rc;
@@ -717,30 +769,47 @@ static int pdc2027x_init_one(struct pci_dev *pdev,
 
 	/* alloc host */
 	host = ata_host_alloc_pinfo(&pdev->dev, ppi, 2);
+
 	if (!host)
+	{
 		return -ENOMEM;
+	}
 
 	/* acquire resources and fill host */
 	rc = pcim_enable_device(pdev);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = pcim_iomap_regions(pdev, 1 << PDC_MMIO_BAR, DRV_NAME);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	host->iomap = pcim_iomap_table(pdev);
 
 	rc = dma_set_mask(&pdev->dev, ATA_DMA_MASK);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = dma_set_coherent_mask(&pdev->dev, ATA_DMA_MASK);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	mmio_base = host->iomap[PDC_MMIO_BAR];
 
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		struct ata_port *ap = host->ports[i];
 
 		pdc_ata_setup_port(&ap->ioaddr, mmio_base + cmd_offset[i]);
@@ -754,11 +823,13 @@ static int pdc2027x_init_one(struct pci_dev *pdev,
 
 	/* initialize adapter */
 	if (pdc_hardware_init(host, board_idx) != 0)
+	{
 		return -EIO;
+	}
 
 	pci_set_master(pdev);
 	return ata_host_activate(host, pdev->irq, ata_bmdma_interrupt,
-				 IRQF_SHARED, &pdc2027x_sht);
+							 IRQF_SHARED, &pdc2027x_sht);
 }
 
 #ifdef CONFIG_PM_SLEEP
@@ -769,17 +840,26 @@ static int pdc2027x_reinit_one(struct pci_dev *pdev)
 	int rc;
 
 	rc = ata_pci_device_do_resume(pdev);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	if (pdev->device == PCI_DEVICE_ID_PROMISE_20268 ||
-	    pdev->device == PCI_DEVICE_ID_PROMISE_20270)
+		pdev->device == PCI_DEVICE_ID_PROMISE_20270)
+	{
 		board_idx = PDC_UDMA_100;
+	}
 	else
+	{
 		board_idx = PDC_UDMA_133;
+	}
 
 	if (pdc_hardware_init(host, board_idx))
+	{
 		return -EIO;
+	}
 
 	ata_host_resume(host);
 	return 0;

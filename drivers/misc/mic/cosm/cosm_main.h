@@ -34,23 +34,26 @@
  * @COSM_MSG_HEARTBEAT: card->host heartbeat
  * @COSM_MSG_SHUTDOWN_STATUS: card->host with shutdown status as payload
  */
-enum cosm_msg_id {
+enum cosm_msg_id
+{
 	COSM_MSG_SHUTDOWN,
 	COSM_MSG_SYNC_TIME,
 	COSM_MSG_HEARTBEAT,
 	COSM_MSG_SHUTDOWN_STATUS,
 };
 
-struct cosm_msg {
+struct cosm_msg
+{
 	u64 id;
-	union {
+	union
+	{
 		u64 shutdown_status;
 		struct timespec64 timespec;
 	};
 };
 
-extern const char * const cosm_state_string[];
-extern const char * const cosm_shutdown_status_string[];
+extern const char *const cosm_state_string[];
+extern const char *const cosm_shutdown_status_string[];
 
 void cosm_sysfs_init(struct cosm_device *cdev);
 int cosm_start(struct cosm_device *cdev);

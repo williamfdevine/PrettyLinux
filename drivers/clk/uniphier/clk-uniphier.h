@@ -22,30 +22,35 @@ struct regmap;
 
 #define UNIPHIER_CLK_MUX_MAX_PARENTS	8
 
-enum uniphier_clk_type {
+enum uniphier_clk_type
+{
 	UNIPHIER_CLK_TYPE_FIXED_FACTOR,
 	UNIPHIER_CLK_TYPE_FIXED_RATE,
 	UNIPHIER_CLK_TYPE_GATE,
 	UNIPHIER_CLK_TYPE_MUX,
 };
 
-struct uniphier_clk_fixed_factor_data {
+struct uniphier_clk_fixed_factor_data
+{
 	const char *parent_name;
 	unsigned int mult;
 	unsigned int div;
 };
 
-struct uniphier_clk_fixed_rate_data {
+struct uniphier_clk_fixed_rate_data
+{
 	unsigned long fixed_rate;
 };
 
-struct uniphier_clk_gate_data {
+struct uniphier_clk_gate_data
+{
 	const char *parent_name;
 	unsigned int reg;
 	unsigned int bit;
 };
 
-struct uniphier_clk_mux_data {
+struct uniphier_clk_mux_data
+{
 	const char *parent_names[UNIPHIER_CLK_MUX_MAX_PARENTS];
 	unsigned int num_parents;
 	unsigned int reg;
@@ -53,11 +58,13 @@ struct uniphier_clk_mux_data {
 	unsigned int vals[UNIPHIER_CLK_MUX_MAX_PARENTS];
 };
 
-struct uniphier_clk_data {
+struct uniphier_clk_data
+{
 	const char *name;
 	enum uniphier_clk_type type;
 	int idx;
-	union {
+	union
+	{
 		struct uniphier_clk_fixed_factor_data factor;
 		struct uniphier_clk_fixed_rate_data rate;
 		struct uniphier_clk_gate_data gate;
@@ -68,43 +75,43 @@ struct uniphier_clk_data {
 #define UNIPHIER_CLK_FACTOR(_name, _idx, _parent, _mult, _div)	\
 	{							\
 		.name = (_name),				\
-		.type = UNIPHIER_CLK_TYPE_FIXED_FACTOR,		\
-		.idx = (_idx),					\
-		.data.factor = {				\
-			.parent_name = (_parent),		\
-			.mult = (_mult),			\
-			.div = (_div),				\
-		},						\
+				.type = UNIPHIER_CLK_TYPE_FIXED_FACTOR,		\
+						.idx = (_idx),					\
+							   .data.factor = {				\
+															   .parent_name = (_parent),		\
+															   .mult = (_mult),			\
+															   .div = (_div),				\
+											  },						\
 	}
 
 
 #define UNIPHIER_CLK_GATE(_name, _idx, _parent, _reg, _bit)	\
 	{							\
 		.name = (_name),				\
-		.type = UNIPHIER_CLK_TYPE_GATE,			\
-		.idx = (_idx),					\
-		.data.gate = {					\
-			.parent_name = (_parent),		\
-			.reg = (_reg),				\
-			.bit = (_bit),				\
-		},						\
+				.type = UNIPHIER_CLK_TYPE_GATE,			\
+						.idx = (_idx),					\
+							   .data.gate = {					\
+															   .parent_name = (_parent),		\
+															   .reg = (_reg),				\
+															   .bit = (_bit),				\
+											},						\
 	}
 
 
 struct clk_hw *uniphier_clk_register_fixed_factor(struct device *dev,
-						  const char *name,
-			const struct uniphier_clk_fixed_factor_data *data);
+		const char *name,
+		const struct uniphier_clk_fixed_factor_data *data);
 struct clk_hw *uniphier_clk_register_fixed_rate(struct device *dev,
-						const char *name,
-			const struct uniphier_clk_fixed_rate_data *data);
+		const char *name,
+		const struct uniphier_clk_fixed_rate_data *data);
 struct clk_hw *uniphier_clk_register_gate(struct device *dev,
-					  struct regmap *regmap,
-					  const char *name,
-				const struct uniphier_clk_gate_data *data);
+		struct regmap *regmap,
+		const char *name,
+		const struct uniphier_clk_gate_data *data);
 struct clk_hw *uniphier_clk_register_mux(struct device *dev,
-					 struct regmap *regmap,
-					 const char *name,
-				const struct uniphier_clk_mux_data *data);
+		struct regmap *regmap,
+		const char *name,
+		const struct uniphier_clk_mux_data *data);
 
 extern const struct uniphier_clk_data uniphier_sld3_sys_clk_data[];
 extern const struct uniphier_clk_data uniphier_ld4_sys_clk_data[];

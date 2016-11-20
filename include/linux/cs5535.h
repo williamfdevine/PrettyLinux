@@ -50,7 +50,7 @@
 #define MSR_GX_MSR_PADSEL	0xC0002011
 
 static inline int cs5535_pic_unreqz_select_high(unsigned int group,
-						unsigned int irq)
+		unsigned int irq)
 {
 	uint32_t lo, hi;
 
@@ -125,7 +125,8 @@ static inline int cs5535_has_vsa2(void)
 {
 	static int has_vsa2 = -1;
 
-	if (has_vsa2 == -1) {
+	if (has_vsa2 == -1)
+	{
 		uint16_t val;
 
 		/*
@@ -212,14 +213,14 @@ void cs5535_gpio_setup_event(unsigned offset, int pair, int pme);
 struct cs5535_mfgpt_timer;
 
 extern uint16_t cs5535_mfgpt_read(struct cs5535_mfgpt_timer *timer,
-		uint16_t reg);
+								  uint16_t reg);
 extern void cs5535_mfgpt_write(struct cs5535_mfgpt_timer *timer, uint16_t reg,
-		uint16_t value);
+							   uint16_t value);
 
 extern int cs5535_mfgpt_toggle_event(struct cs5535_mfgpt_timer *timer, int cmp,
-		int event, int enable);
+									 int event, int enable);
 extern int cs5535_mfgpt_set_irq(struct cs5535_mfgpt_timer *timer, int cmp,
-		int *irq, int enable);
+								int *irq, int enable);
 extern struct cs5535_mfgpt_timer *cs5535_mfgpt_alloc_timer(int timer,
 		int domain);
 extern void cs5535_mfgpt_free_timer(struct cs5535_mfgpt_timer *timer);

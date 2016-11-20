@@ -4,11 +4,12 @@
 
 #include <linux/spinlock.h>
 #include <linux/wait.h>
-    /*
-     *  Elements of the hardware specific atyfb_par structure
-     */
+/*
+ *  Elements of the hardware specific atyfb_par structure
+ */
 
-struct crtc {
+struct crtc
+{
 	u32 vxres;
 	u32 vyres;
 	u32 xoffset;
@@ -37,13 +38,15 @@ struct crtc {
 #endif
 };
 
-struct aty_interrupt {
+struct aty_interrupt
+{
 	wait_queue_head_t wait;
 	unsigned int count;
 	int pan_display;
 };
 
-struct pll_info {
+struct pll_info
+{
 	int pll_max;
 	int pll_min;
 	int sclk, mclk, mclk_pm, xclk;
@@ -52,7 +55,8 @@ struct pll_info {
 	int ecp_max;
 };
 
-typedef struct {
+typedef struct
+{
 	u16 unknown1;
 	u16 PCLK_min_freq;
 	u16 PCLK_max_freq;
@@ -66,19 +70,22 @@ typedef struct {
 	u16 SCLK_freq;
 } __attribute__ ((packed)) PLL_BLOCK_MACH64;
 
-struct pll_514 {
+struct pll_514
+{
 	u8 m;
 	u8 n;
 };
 
-struct pll_18818 {
+struct pll_18818
+{
 	u32 program_bits;
 	u32 locationAddr;
 	u32 period_in_ps;
 	u32 post_divider;
 };
 
-struct pll_ct {
+struct pll_ct
+{
 	u8 pll_ref_div;
 	u8 pll_gen_cntl;
 	u8 mclk_fb_div;
@@ -115,17 +122,19 @@ struct pll_ct {
 #define USE_CPUCLK    0x4
 #define POWERDOWN_PLL 0x8
 
-union aty_pll {
+union aty_pll
+{
 	struct pll_ct ct;
 	struct pll_514 ibm514;
 	struct pll_18818 ics2595;
 };
 
-    /*
-     *  The hardware parameters for each card
-     */
+/*
+ *  The hardware parameters for each card
+ */
 
-struct atyfb_par {
+struct atyfb_par
+{
 	u32 pseudo_palette[16];
 	struct { u8 red, green, blue; } palette[256];
 	const struct aty_dac_ops *dac_ops;
@@ -188,9 +197,9 @@ struct atyfb_par {
 	union aty_pll saved_pll;
 };
 
-    /*
-     *  ATI Mach64 features
-     */
+/*
+ *  ATI Mach64 features
+ */
 
 #define M64_HAS(feature)	((par)->features & (M64F_##feature))
 
@@ -217,15 +226,17 @@ struct atyfb_par {
 #define M64F_MFB_FORCE_4	0x00100000
 #define M64F_HW_TRIPLE		0x00200000
 #define M64F_XL_MEM		0x00400000
-    /*
-     *  Register access
-     */
+/*
+ *  Register access
+ */
 
 static inline u32 aty_ld_le32(int regindex, const struct atyfb_par *par)
 {
 	/* Hack for bloc 1, should be cleanly optimized by compiler */
 	if (regindex >= 0x400)
+	{
 		regindex -= 0x800;
+	}
 
 #ifdef CONFIG_ATARI
 	return in_le32(par->ati_regbase + regindex);
@@ -238,7 +249,9 @@ static inline void aty_st_le32(int regindex, u32 val, const struct atyfb_par *pa
 {
 	/* Hack for bloc 1, should be cleanly optimized by compiler */
 	if (regindex >= 0x400)
+	{
 		regindex -= 0x800;
+	}
 
 #ifdef CONFIG_ATARI
 	out_le32(par->ati_regbase + regindex, val);
@@ -248,11 +261,14 @@ static inline void aty_st_le32(int regindex, u32 val, const struct atyfb_par *pa
 }
 
 static inline void aty_st_le16(int regindex, u16 val,
-			       const struct atyfb_par *par)
+							   const struct atyfb_par *par)
 {
 	/* Hack for bloc 1, should be cleanly optimized by compiler */
 	if (regindex >= 0x400)
+	{
 		regindex -= 0x800;
+	}
+
 #ifdef CONFIG_ATARI
 	out_le16(par->ati_regbase + regindex, val);
 #else
@@ -264,7 +280,10 @@ static inline u8 aty_ld_8(int regindex, const struct atyfb_par *par)
 {
 	/* Hack for bloc 1, should be cleanly optimized by compiler */
 	if (regindex >= 0x400)
+	{
 		regindex -= 0x800;
+	}
+
 #ifdef CONFIG_ATARI
 	return in_8(par->ati_regbase + regindex);
 #else
@@ -276,7 +295,9 @@ static inline void aty_st_8(int regindex, u8 val, const struct atyfb_par *par)
 {
 	/* Hack for bloc 1, should be cleanly optimized by compiler */
 	if (regindex >= 0x400)
+	{
 		regindex -= 0x800;
+	}
 
 #ifdef CONFIG_ATARI
 	out_8(par->ati_regbase + regindex, val);
@@ -286,18 +307,19 @@ static inline void aty_st_8(int regindex, u8 val, const struct atyfb_par *par)
 }
 
 #if defined(CONFIG_PM) || defined(CONFIG_PMAC_BACKLIGHT) || \
-defined (CONFIG_FB_ATY_GENERIC_LCD) || defined (CONFIG_FB_ATY_BACKLIGHT)
-extern void aty_st_lcd(int index, u32 val, const struct atyfb_par *par);
-extern u32 aty_ld_lcd(int index, const struct atyfb_par *par);
+	defined (CONFIG_FB_ATY_GENERIC_LCD) || defined (CONFIG_FB_ATY_BACKLIGHT)
+	extern void aty_st_lcd(int index, u32 val, const struct atyfb_par *par);
+	extern u32 aty_ld_lcd(int index, const struct atyfb_par *par);
 #endif
 
-    /*
-     *  DAC operations
-     */
+/*
+ *  DAC operations
+ */
 
-struct aty_dac_ops {
-	int (*set_dac) (const struct fb_info * info,
-		const union aty_pll * pll, u32 bpp, u32 accel);
+struct aty_dac_ops
+{
+	int (*set_dac) (const struct fb_info *info,
+					const union aty_pll *pll, u32 bpp, u32 accel);
 };
 
 extern const struct aty_dac_ops aty_dac_ibm514; /* IBM RGB514 */
@@ -307,16 +329,17 @@ extern const struct aty_dac_ops aty_dac_unsupported; /* unsupported */
 extern const struct aty_dac_ops aty_dac_ct; /* Integrated */
 
 
-    /*
-     *  Clock operations
-     */
+/*
+ *  Clock operations
+ */
 
-struct aty_pll_ops {
-	int (*var_to_pll) (const struct fb_info * info, u32 vclk_per, u32 bpp, union aty_pll * pll);
-	u32 (*pll_to_var) (const struct fb_info * info, const union aty_pll * pll);
-	void (*set_pll)   (const struct fb_info * info, const union aty_pll * pll);
-	void (*get_pll)   (const struct fb_info *info, union aty_pll * pll);
-	int (*init_pll)   (const struct fb_info * info, union aty_pll * pll);
+struct aty_pll_ops
+{
+	int (*var_to_pll) (const struct fb_info *info, u32 vclk_per, u32 bpp, union aty_pll *pll);
+	u32 (*pll_to_var) (const struct fb_info *info, const union aty_pll *pll);
+	void (*set_pll)   (const struct fb_info *info, const union aty_pll *pll);
+	void (*get_pll)   (const struct fb_info *info, union aty_pll *pll);
+	int (*init_pll)   (const struct fb_info *info, union aty_pll *pll);
 	void (*resume_pll)(const struct fb_info *info, union aty_pll *pll);
 };
 
@@ -333,26 +356,28 @@ extern void aty_set_pll_ct(const struct fb_info *info, const union aty_pll *pll)
 extern u8 aty_ld_pll_ct(int offset, const struct atyfb_par *par);
 
 
-    /*
-     *  Hardware cursor support
-     */
+/*
+ *  Hardware cursor support
+ */
 
 extern int aty_init_cursor(struct fb_info *info);
 
-    /*
-     *  Hardware acceleration
-     */
+/*
+ *  Hardware acceleration
+ */
 
 static inline void wait_for_fifo(u16 entries, const struct atyfb_par *par)
 {
 	while ((aty_ld_le32(FIFO_STAT, par) & 0xffff) >
-	       ((u32) (0x8000 >> entries)));
+		   ((u32) (0x8000 >> entries)));
 }
 
 static inline void wait_for_idle(struct atyfb_par *par)
 {
 	wait_for_fifo(16, par);
+
 	while ((aty_ld_le32(GUI_STAT, par) & 1) != 0);
+
 	par->blitter_may_be_busy = 0;
 }
 

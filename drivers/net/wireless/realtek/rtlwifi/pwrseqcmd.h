@@ -62,18 +62,20 @@
 #define	PWR_CUT_G_MSK		BIT(7)
 #define	PWR_CUT_ALL_MSK		0xFF
 
-enum pwrseq_delay_unit {
+enum pwrseq_delay_unit
+{
 	PWRSEQ_DELAY_US,
 	PWRSEQ_DELAY_MS,
 };
 
-struct wlan_pwr_cfg {
+struct wlan_pwr_cfg
+{
 	u16 offset;
 	u8 cut_msk;
-	u8 fab_msk:4;
-	u8 interface_msk:4;
-	u8 base:4;
-	u8 cmd:4;
+	u8 fab_msk: 4;
+	u8 interface_msk: 4;
+	u8 base: 4;
+	u8 cmd: 4;
 	u8 msk;
 	u8 value;
 };
@@ -88,7 +90,7 @@ struct wlan_pwr_cfg {
 #define	GET_PWR_CFG_VALUE(__PWR_CMD)	(__PWR_CMD.value)
 
 bool rtl_hal_pwrseqcmdparsing(struct rtl_priv *rtlpriv, u8 cut_version,
-			      u8 fab_version, u8 interface_type,
-			      struct wlan_pwr_cfg pwrcfgcmd[]);
+							  u8 fab_version, u8 interface_type,
+							  struct wlan_pwr_cfg pwrcfgcmd[]);
 
 #endif

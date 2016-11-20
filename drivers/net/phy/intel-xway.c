@@ -34,7 +34,7 @@
 #define XWAY_MDIO_INIT_LSPC		BIT(1)	/* Link speed change */
 #define XWAY_MDIO_INIT_LSTC		BIT(0)	/* Link state change */
 #define XWAY_MDIO_INIT_MASK		(XWAY_MDIO_INIT_LSTC | \
-					 XWAY_MDIO_INIT_ADSC)
+								 XWAY_MDIO_INIT_ADSC)
 
 #define ADVERTISED_MPD			BIT(10)	/* Multi-port device */
 
@@ -160,19 +160,22 @@ static int xway_gphy_config_init(struct phy_device *phydev)
 
 	/* Mask all interrupts */
 	err = phy_write(phydev, XWAY_MDIO_IMASK, 0);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* Clear all pending interrupts */
 	phy_read(phydev, XWAY_MDIO_ISTAT);
 
 	phy_write_mmd_indirect(phydev, XWAY_MMD_LEDCH, MDIO_MMD_VEND2,
-			       XWAY_MMD_LEDCH_NACS_NONE |
-			       XWAY_MMD_LEDCH_SBF_F02HZ |
-			       XWAY_MMD_LEDCH_FBF_F16HZ);
+						   XWAY_MMD_LEDCH_NACS_NONE |
+						   XWAY_MMD_LEDCH_SBF_F02HZ |
+						   XWAY_MMD_LEDCH_FBF_F16HZ);
 	phy_write_mmd_indirect(phydev, XWAY_MMD_LEDCL, MDIO_MMD_VEND2,
-			       XWAY_MMD_LEDCH_CBLINK_NONE |
-			       XWAY_MMD_LEDCH_SCAN_NONE);
+						   XWAY_MMD_LEDCH_CBLINK_NONE |
+						   XWAY_MMD_LEDCH_SCAN_NONE);
 
 	/**
 	 * In most cases only one LED is connected to this phy, so
@@ -182,7 +185,7 @@ static int xway_gphy_config_init(struct phy_device *phydev)
 	 */
 	ledxh = XWAY_MMD_LEDxH_BLINKF_NONE | XWAY_MMD_LEDxH_CON_LINK10XX;
 	ledxl = XWAY_MMD_LEDxL_PULSE_TXACT | XWAY_MMD_LEDxL_PULSE_RXACT |
-		XWAY_MMD_LEDxL_BLINKS_NONE;
+			XWAY_MMD_LEDxL_BLINKS_NONE;
 	phy_write_mmd_indirect(phydev, XWAY_MMD_LED0H, MDIO_MMD_VEND2, ledxh);
 	phy_write_mmd_indirect(phydev, XWAY_MMD_LED0L, MDIO_MMD_VEND2, ledxl);
 	phy_write_mmd_indirect(phydev, XWAY_MMD_LED1H, MDIO_MMD_VEND2, ledxh);
@@ -202,8 +205,11 @@ static int xway_gphy14_config_aneg(struct phy_device *phydev)
 	reg = phy_read(phydev, MII_CTRL1000);
 	reg |= ADVERTISED_MPD;
 	err = phy_write(phydev, MII_CTRL1000, reg);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return genphy_config_aneg(phydev);
 }
@@ -229,18 +235,21 @@ static int xway_gphy_config_intr(struct phy_device *phydev)
 	u16 mask = 0;
 
 	if (phydev->interrupts == PHY_INTERRUPT_ENABLED)
+	{
 		mask = XWAY_MDIO_INIT_MASK;
+	}
 
 	return phy_write(phydev, XWAY_MDIO_IMASK, mask);
 }
 
-static struct phy_driver xway_gphy[] = {
+static struct phy_driver xway_gphy[] =
+{
 	{
 		.phy_id		= PHY_ID_PHY11G_1_3,
 		.phy_id_mask	= 0xffffffff,
 		.name		= "Intel XWAY PHY11G (PEF 7071/PEF 7072) v1.3",
 		.features	= (PHY_GBIT_FEATURES | SUPPORTED_Pause |
-				   SUPPORTED_Asym_Pause),
+		SUPPORTED_Asym_Pause),
 		.flags		= PHY_HAS_INTERRUPT,
 		.config_init	= xway_gphy_config_init,
 		.config_aneg	= xway_gphy14_config_aneg,
@@ -255,7 +264,7 @@ static struct phy_driver xway_gphy[] = {
 		.phy_id_mask	= 0xffffffff,
 		.name		= "Intel XWAY PHY22F (PEF 7061) v1.3",
 		.features	= (PHY_BASIC_FEATURES | SUPPORTED_Pause |
-				   SUPPORTED_Asym_Pause),
+		SUPPORTED_Asym_Pause),
 		.flags		= PHY_HAS_INTERRUPT,
 		.config_init	= xway_gphy_config_init,
 		.config_aneg	= xway_gphy14_config_aneg,
@@ -270,7 +279,7 @@ static struct phy_driver xway_gphy[] = {
 		.phy_id_mask	= 0xffffffff,
 		.name		= "Intel XWAY PHY11G (PEF 7071/PEF 7072) v1.4",
 		.features	= (PHY_GBIT_FEATURES | SUPPORTED_Pause |
-				   SUPPORTED_Asym_Pause),
+		SUPPORTED_Asym_Pause),
 		.flags		= PHY_HAS_INTERRUPT,
 		.config_init	= xway_gphy_config_init,
 		.config_aneg	= xway_gphy14_config_aneg,
@@ -285,7 +294,7 @@ static struct phy_driver xway_gphy[] = {
 		.phy_id_mask	= 0xffffffff,
 		.name		= "Intel XWAY PHY22F (PEF 7061) v1.4",
 		.features	= (PHY_BASIC_FEATURES | SUPPORTED_Pause |
-				   SUPPORTED_Asym_Pause),
+		SUPPORTED_Asym_Pause),
 		.flags		= PHY_HAS_INTERRUPT,
 		.config_init	= xway_gphy_config_init,
 		.config_aneg	= xway_gphy14_config_aneg,
@@ -300,7 +309,7 @@ static struct phy_driver xway_gphy[] = {
 		.phy_id_mask	= 0xffffffff,
 		.name		= "Intel XWAY PHY11G (PEF 7071/PEF 7072) v1.5 / v1.6",
 		.features	= (PHY_GBIT_FEATURES | SUPPORTED_Pause |
-				   SUPPORTED_Asym_Pause),
+		SUPPORTED_Asym_Pause),
 		.flags		= PHY_HAS_INTERRUPT,
 		.config_init	= xway_gphy_config_init,
 		.config_aneg	= genphy_config_aneg,
@@ -315,7 +324,7 @@ static struct phy_driver xway_gphy[] = {
 		.phy_id_mask	= 0xffffffff,
 		.name		= "Intel XWAY PHY22F (PEF 7061) v1.5 / v1.6",
 		.features	= (PHY_BASIC_FEATURES | SUPPORTED_Pause |
-				   SUPPORTED_Asym_Pause),
+		SUPPORTED_Asym_Pause),
 		.flags		= PHY_HAS_INTERRUPT,
 		.config_init	= xway_gphy_config_init,
 		.config_aneg	= genphy_config_aneg,
@@ -330,7 +339,7 @@ static struct phy_driver xway_gphy[] = {
 		.phy_id_mask	= 0xffffffff,
 		.name		= "Intel XWAY PHY11G (xRX integrated)",
 		.features	= (PHY_GBIT_FEATURES | SUPPORTED_Pause |
-				   SUPPORTED_Asym_Pause),
+		SUPPORTED_Asym_Pause),
 		.flags		= PHY_HAS_INTERRUPT,
 		.config_init	= xway_gphy_config_init,
 		.config_aneg	= genphy_config_aneg,
@@ -345,7 +354,7 @@ static struct phy_driver xway_gphy[] = {
 		.phy_id_mask	= 0xffffffff,
 		.name		= "Intel XWAY PHY22F (xRX integrated)",
 		.features	= (PHY_BASIC_FEATURES | SUPPORTED_Pause |
-				   SUPPORTED_Asym_Pause),
+		SUPPORTED_Asym_Pause),
 		.flags		= PHY_HAS_INTERRUPT,
 		.config_init	= xway_gphy_config_init,
 		.config_aneg	= genphy_config_aneg,
@@ -359,7 +368,8 @@ static struct phy_driver xway_gphy[] = {
 };
 module_phy_driver(xway_gphy);
 
-static struct mdio_device_id __maybe_unused xway_gphy_tbl[] = {
+static struct mdio_device_id __maybe_unused xway_gphy_tbl[] =
+{
 	{ PHY_ID_PHY11G_1_3, 0xffffffff },
 	{ PHY_ID_PHY22F_1_3, 0xffffffff },
 	{ PHY_ID_PHY11G_1_4, 0xffffffff },

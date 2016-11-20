@@ -53,14 +53,16 @@ struct firmware;
 #define CW1200_JOIN_TIMEOUT		(1 * HZ)
 #define CW1200_AUTH_TIMEOUT		(5 * HZ)
 
-struct cw1200_ht_info {
+struct cw1200_ht_info
+{
 	struct ieee80211_sta_ht_cap     ht_cap;
 	enum nl80211_channel_type       channel_type;
 	u16                             operation_mode;
 };
 
 /* Please keep order */
-enum cw1200_join_status {
+enum cw1200_join_status
+{
 	CW1200_JOIN_STATUS_PASSIVE = 0,
 	CW1200_JOIN_STATUS_MONITOR,
 	CW1200_JOIN_STATUS_JOINING,
@@ -70,7 +72,8 @@ enum cw1200_join_status {
 	CW1200_JOIN_STATUS_AP,
 };
 
-enum cw1200_link_status {
+enum cw1200_link_status
+{
 	CW1200_LINK_OFF,
 	CW1200_LINK_RESERVE,
 	CW1200_LINK_SOFT,
@@ -80,9 +83,10 @@ enum cw1200_link_status {
 };
 
 extern int cw1200_power_mode;
-extern const char * const cw1200_fw_types[];
+extern const char *const cw1200_fw_types[];
 
-struct cw1200_link_entry {
+struct cw1200_link_entry
+{
 	unsigned long			timestamp;
 	enum cw1200_link_status		status;
 	enum cw1200_link_status		prev_status;
@@ -91,7 +95,8 @@ struct cw1200_link_entry {
 	struct sk_buff_head		rx_queue;
 };
 
-struct cw1200_common {
+struct cw1200_common
+{
 	/* interfaces to the rest of the stack */
 	struct ieee80211_hw		*hw;
 	struct ieee80211_vif		*vif;
@@ -108,12 +113,14 @@ struct cw1200_common {
 	struct hwbus_priv		*hwbus_priv;
 
 	/* Hardware information */
-	enum {
+	enum
+	{
 		HIF_9000_SILICON_VERSATILE = 0,
 		HIF_8601_VERSATILE,
 		HIF_8601_SILICON,
 	} hw_type;
-	enum {
+	enum
+	{
 		CW1200_HW_REV_CUT10 = 10,
 		CW1200_HW_REV_CUT11 = 11,
 		CW1200_HW_REV_CUT20 = 20,
@@ -285,17 +292,18 @@ struct cw1200_common {
 	u8			action_linkid;
 };
 
-struct cw1200_sta_priv {
+struct cw1200_sta_priv
+{
 	int link_id;
 };
 
 /* interfaces for the drivers */
 int cw1200_core_probe(const struct hwbus_ops *hwbus_ops,
-		      struct hwbus_priv *hwbus,
-		      struct device *pdev,
-		      struct cw1200_common **pself,
-		      int ref_clk, const u8 *macaddr,
-		      const char *sdd_path, bool have_5ghz);
+					  struct hwbus_priv *hwbus,
+					  struct device *pdev,
+					  struct cw1200_common **pself,
+					  int ref_clk, const u8 *macaddr,
+					  const char *sdd_path, bool have_5ghz);
 void cw1200_core_release(struct cw1200_common *self);
 
 #define FWLOAD_BLOCK_SIZE (1024)
@@ -308,15 +316,18 @@ static inline int cw1200_is_ht(const struct cw1200_ht_info *ht_info)
 static inline int cw1200_ht_greenfield(const struct cw1200_ht_info *ht_info)
 {
 	return cw1200_is_ht(ht_info) &&
-		(ht_info->ht_cap.cap & IEEE80211_HT_CAP_GRN_FLD) &&
-		!(ht_info->operation_mode &
-		  IEEE80211_HT_OP_MODE_NON_GF_STA_PRSNT);
+		   (ht_info->ht_cap.cap & IEEE80211_HT_CAP_GRN_FLD) &&
+		   !(ht_info->operation_mode &
+			 IEEE80211_HT_OP_MODE_NON_GF_STA_PRSNT);
 }
 
 static inline int cw1200_ht_ampdu_density(const struct cw1200_ht_info *ht_info)
 {
 	if (!cw1200_is_ht(ht_info))
+	{
 		return 0;
+	}
+
 	return ht_info->ht_cap.ampdu_density;
 }
 

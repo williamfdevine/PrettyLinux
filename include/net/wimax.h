@@ -407,7 +407,8 @@ struct wimax_dev;
  * switches, it should call wimax_report_rfkill_hw() or
  * wimax_report_rfkill_sw() to report it to the stack.
  */
-struct wimax_dev {
+struct wimax_dev
+{
 	struct net_device *net_dev;
 	struct list_head id_table_node;
 	struct mutex mutex;		/* Protects all members and API calls */
@@ -415,11 +416,11 @@ struct wimax_dev {
 	enum wimax_st state;
 
 	int (*op_msg_from_user)(struct wimax_dev *wimax_dev,
-				const char *,
-				const void *, size_t,
-				const struct genl_info *info);
+							const char *,
+							const void *, size_t,
+							const struct genl_info *info);
 	int (*op_rfkill_sw_toggle)(struct wimax_dev *wimax_dev,
-				   enum wimax_rf_state);
+							   enum wimax_rf_state);
 	int (*op_reset)(struct wimax_dev *wimax_dev);
 
 	struct rfkill *rfkill;
@@ -491,7 +492,7 @@ void wimax_report_rfkill_sw(struct wimax_dev *, enum wimax_rf_state);
  * tool would be interested in.
  */
 struct sk_buff *wimax_msg_alloc(struct wimax_dev *, const char *, const void *,
-				size_t, gfp_t);
+								size_t, gfp_t);
 int wimax_msg_send(struct wimax_dev *, struct sk_buff *);
 int wimax_msg(struct wimax_dev *, const char *, const void *, size_t, gfp_t);
 

@@ -68,7 +68,8 @@
 
 #define UCODE_FLAG_UNHALT_MASK   0x1
 
-struct SMU_Entry {
+struct SMU_Entry
+{
 #ifndef __BIG_ENDIAN
 	uint16_t id;
 	uint16_t version;
@@ -92,7 +93,8 @@ struct SMU_Entry {
 #endif
 };
 
-struct SMU_DRAMData_TOC {
+struct SMU_DRAMData_TOC
+{
 	uint32_t structure_version;
 	uint32_t num_entries;
 	struct SMU_Entry entry[SMU_MAX_ENTRIES];

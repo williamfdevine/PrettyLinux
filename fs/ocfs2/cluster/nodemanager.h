@@ -33,16 +33,18 @@
 #include <linux/configfs.h>
 #include <linux/rbtree.h>
 
-enum o2nm_fence_method {
+enum o2nm_fence_method
+{
 	O2NM_FENCE_RESET	= 0,
 	O2NM_FENCE_PANIC,
 	O2NM_FENCE_METHODS,	/* Number of fence methods */
 };
 
-struct o2nm_node {
+struct o2nm_node
+{
 	spinlock_t		nd_lock;
 	struct config_item	nd_item;
-	char			nd_name[O2NM_MAX_NAME_LEN+1]; /* replace? */
+	char			nd_name[O2NM_MAX_NAME_LEN + 1]; /* replace? */
 	__u8			nd_num;
 	/* only one address per node, as attributes, for now. */
 	__be32			nd_ipv4_address;
@@ -54,9 +56,10 @@ struct o2nm_node {
 	unsigned long		nd_set_attributes;
 };
 
-struct o2nm_cluster {
+struct o2nm_cluster
+{
 	struct config_group	cl_group;
-	unsigned		cl_has_local:1;
+	unsigned		cl_has_local: 1;
 	u8			cl_local_node;
 	rwlock_t		cl_nodes_lock;
 	struct o2nm_node  	*cl_nodes[O2NM_MAX_NODES];

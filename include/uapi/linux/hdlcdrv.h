@@ -12,7 +12,8 @@
  * structs for the IOCTL commands
  */
 
-struct hdlcdrv_params {
+struct hdlcdrv_params
+{
 	int iobase;
 	int irq;
 	int dma;
@@ -20,36 +21,41 @@ struct hdlcdrv_params {
 	int seriobase;
 	int pariobase;
 	int midiiobase;
-};	
+};
 
-struct hdlcdrv_channel_params {
+struct hdlcdrv_channel_params
+{
 	int tx_delay;  /* the transmitter keyup delay in 10ms units */
 	int tx_tail;   /* the transmitter keyoff delay in 10ms units */
 	int slottime;  /* the slottime in 10ms; usually 10 = 100ms */
 	int ppersist;  /* the p-persistence 0..255 */
 	int fulldup;   /* some driver do not support full duplex, setting */
-	               /* this just makes them send even if DCD is on */
-};	
-
-struct hdlcdrv_old_channel_state {
-  	int ptt;
-  	int dcd;
-  	int ptt_keyed;
+	/* this just makes them send even if DCD is on */
 };
 
-struct hdlcdrv_channel_state {
- 	int ptt;
- 	int dcd;
- 	int ptt_keyed;
- 	unsigned long tx_packets;
- 	unsigned long tx_errors;
- 	unsigned long rx_packets;
- 	unsigned long rx_errors;
+struct hdlcdrv_old_channel_state
+{
+	int ptt;
+	int dcd;
+	int ptt_keyed;
 };
 
-struct hdlcdrv_ioctl {
+struct hdlcdrv_channel_state
+{
+	int ptt;
+	int dcd;
+	int ptt_keyed;
+	unsigned long tx_packets;
+	unsigned long tx_errors;
+	unsigned long rx_packets;
+	unsigned long rx_errors;
+};
+
+struct hdlcdrv_ioctl
+{
 	int cmd;
-	union {
+	union
+	{
 		struct hdlcdrv_params mp;
 		struct hdlcdrv_channel_params cp;
 		struct hdlcdrv_channel_state cs;

@@ -3,7 +3,8 @@
 
 #define NV_CLIENT_DEVLIST                                                  0x00
 
-struct nv_client_devlist_v0 {
+struct nv_client_devlist_v0
+{
 	__u8  version;
 	__u8  count;
 	__u8  pad02[6];

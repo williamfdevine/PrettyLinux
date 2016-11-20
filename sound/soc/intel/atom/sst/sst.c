@@ -62,11 +62,12 @@ static irqreturn_t intel_sst_interrupt_mrfld(int irq, void *context)
 	/* Interrupt arrived, check src */
 	isr.full = sst_shim_read64(drv->shim, SST_ISRX);
 
-	if (isr.part.done_interrupt) {
+	if (isr.part.done_interrupt)
+	{
 		/* Clear done bit */
 		spin_lock(&drv->ipc_spin_lock);
 		header.full = sst_shim_read64(drv->shim,
-					drv->ipc_reg.ipcx);
+									  drv->ipc_reg.ipcx);
 		header.p.header_high.part.done = 0;
 		sst_shim_write64(drv->shim, drv->ipc_reg.ipcx, header.full);
 
@@ -80,7 +81,8 @@ static irqreturn_t intel_sst_interrupt_mrfld(int irq, void *context)
 		retval = IRQ_HANDLED;
 	}
 
-	if (isr.part.busy_interrupt) {
+	if (isr.part.busy_interrupt)
+	{
 		/* message from dsp so copy that */
 		spin_lock(&drv->ipc_spin_lock);
 		imr.full = sst_shim_read64(drv->shim, SST_IMRX);
@@ -89,19 +91,25 @@ static irqreturn_t intel_sst_interrupt_mrfld(int irq, void *context)
 		spin_unlock(&drv->ipc_spin_lock);
 		header.full =  sst_shim_read64(drv->shim, drv->ipc_reg.ipcd);
 
-		if (sst_create_ipc_msg(&msg, header.p.header_high.part.large)) {
+		if (sst_create_ipc_msg(&msg, header.p.header_high.part.large))
+		{
 			drv->ops->clear_interrupt(drv);
 			return IRQ_HANDLED;
 		}
 
-		if (header.p.header_high.part.large) {
+		if (header.p.header_high.part.large)
+		{
 			size = header.p.header_low_payload;
-			if (sst_validate_mailbox_size(size)) {
+
+			if (sst_validate_mailbox_size(size))
+			{
 				memcpy_fromio(msg->mailbox_data,
-					drv->mailbox + drv->mailbox_recv_offset, size);
-			} else {
+							  drv->mailbox + drv->mailbox_recv_offset, size);
+			}
+			else
+			{
 				dev_err(drv->dev,
-					"Mailbox not copied, payload size is: %u\n", size);
+						"Mailbox not copied, payload size is: %u\n", size);
 				header.p.header_low_payload = 0;
 			}
 		}
@@ -115,6 +123,7 @@ static irqreturn_t intel_sst_interrupt_mrfld(int irq, void *context)
 		drv->ops->clear_interrupt(drv);
 		retval = IRQ_WAKE_THREAD;
 	}
+
 	return retval;
 }
 
@@ -125,21 +134,32 @@ static irqreturn_t intel_sst_irq_thread_mrfld(int irq, void *context)
 	unsigned long irq_flags;
 
 	spin_lock_irqsave(&drv->rx_msg_lock, irq_flags);
-	if (list_empty(&drv->rx_list)) {
+
+	if (list_empty(&drv->rx_list))
+	{
 		spin_unlock_irqrestore(&drv->rx_msg_lock, irq_flags);
 		return IRQ_HANDLED;
 	}
 
-	list_for_each_entry_safe(msg, __msg, &drv->rx_list, node) {
+	list_for_each_entry_safe(msg, __msg, &drv->rx_list, node)
+	{
 		list_del(&msg->node);
 		spin_unlock_irqrestore(&drv->rx_msg_lock, irq_flags);
+
 		if (msg->is_process_reply)
+		{
 			drv->ops->process_message(msg);
+		}
 		else
+		{
 			drv->ops->process_reply(drv, msg);
+		}
 
 		if (msg->is_large)
+		{
 			kfree(msg->mailbox_data);
+		}
+
 		kfree(msg);
 		spin_lock_irqsave(&drv->rx_msg_lock, irq_flags);
 	}
@@ -152,10 +172,11 @@ static int sst_save_dsp_context_v2(struct intel_sst_drv *sst)
 	int ret = 0;
 
 	ret = sst_prepare_and_post_msg(sst, SST_TASK_ID_MEDIA, IPC_CMD,
-			IPC_PREP_D3, PIPE_RSVD, 0, NULL, NULL,
-			true, true, false, true);
+								   IPC_PREP_D3, PIPE_RSVD, 0, NULL, NULL,
+								   true, true, false, true);
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		dev_err(sst->dev, "not suspending FW!!, Err: %d\n", ret);
 		return -EIO;
 	}
@@ -164,7 +185,8 @@ static int sst_save_dsp_context_v2(struct intel_sst_drv *sst)
 }
 
 
-static struct intel_sst_ops mrfld_ops = {
+static struct intel_sst_ops mrfld_ops =
+{
 	.interrupt = intel_sst_interrupt_mrfld,
 	.irq_thread = intel_sst_irq_thread_mrfld,
 	.clear_interrupt = intel_sst_clear_intr_mrfld,
@@ -180,26 +202,27 @@ static struct intel_sst_ops mrfld_ops = {
 int sst_driver_ops(struct intel_sst_drv *sst)
 {
 
-	switch (sst->dev_id) {
-	case SST_MRFLD_PCI_ID:
-	case SST_BYT_ACPI_ID:
-	case SST_CHV_ACPI_ID:
-		sst->tstamp = SST_TIME_STAMP_MRFLD;
-		sst->ops = &mrfld_ops;
-		return 0;
+	switch (sst->dev_id)
+	{
+		case SST_MRFLD_PCI_ID:
+		case SST_BYT_ACPI_ID:
+		case SST_CHV_ACPI_ID:
+			sst->tstamp = SST_TIME_STAMP_MRFLD;
+			sst->ops = &mrfld_ops;
+			return 0;
 
-	default:
-		dev_err(sst->dev,
-			"SST Driver capabilities missing for dev_id: %x",
-			sst->dev_id);
-		return -EINVAL;
+		default:
+			dev_err(sst->dev,
+					"SST Driver capabilities missing for dev_id: %x",
+					sst->dev_id);
+			return -EINVAL;
 	};
 }
 
 void sst_process_pending_msg(struct work_struct *work)
 {
 	struct intel_sst_drv *ctx = container_of(work,
-			struct intel_sst_drv, ipc_post_msg_wq);
+								struct intel_sst_drv, ipc_post_msg_wq);
 
 	ctx->ops->post_message(ctx, NULL, false);
 }
@@ -215,8 +238,12 @@ static int sst_workqueue_init(struct intel_sst_drv *ctx)
 
 	ctx->post_msg_wq =
 		create_singlethread_workqueue("sst_post_msg_wq");
+
 	if (!ctx->post_msg_wq)
+	{
 		return -EBUSY;
+	}
+
 	return 0;
 }
 
@@ -229,11 +256,14 @@ static void sst_init_locks(struct intel_sst_drv *ctx)
 }
 
 int sst_alloc_drv_context(struct intel_sst_drv **ctx,
-		struct device *dev, unsigned int dev_id)
+						  struct device *dev, unsigned int dev_id)
 {
 	*ctx = devm_kzalloc(dev, sizeof(struct intel_sst_drv), GFP_KERNEL);
+
 	if (!(*ctx))
+	{
 		return -ENOMEM;
+	}
 
 	(*ctx)->dev = dev;
 	(*ctx)->dev_id = dev_id;
@@ -247,16 +277,23 @@ int sst_context_init(struct intel_sst_drv *ctx)
 	int ret = 0, i;
 
 	if (!ctx->pdata)
+	{
 		return -EINVAL;
+	}
 
 	if (!ctx->pdata->probe_data)
+	{
 		return -EINVAL;
+	}
 
 	memcpy(&ctx->info, ctx->pdata->probe_data, sizeof(ctx->info));
 
 	ret = sst_driver_ops(ctx);
+
 	if (ret != 0)
+	{
 		return -EINVAL;
+	}
 
 	sst_init_locks(ctx);
 	sst_set_fw_state_locked(ctx, SST_RESET);
@@ -270,16 +307,19 @@ int sst_context_init(struct intel_sst_drv *ctx)
 	ctx->use_lli = 0;
 
 	if (sst_workqueue_init(ctx))
+	{
 		return -EINVAL;
+	}
 
 	ctx->mailbox_recv_offset = ctx->pdata->ipc_info->mbox_recv_off;
 	ctx->ipc_reg.ipcx = SST_IPCX + ctx->pdata->ipc_info->ipc_offset;
 	ctx->ipc_reg.ipcd = SST_IPCD + ctx->pdata->ipc_info->ipc_offset;
 
 	dev_info(ctx->dev, "Got drv data max stream %d\n",
-				ctx->info.max_streams);
+			 ctx->info.max_streams);
 
-	for (i = 1; i <= ctx->info.max_streams; i++) {
+	for (i = 1; i <= ctx->info.max_streams; i++)
+	{
 		struct stream_info *stream = &ctx->streams[i];
 
 		memset(stream, 0, sizeof(*stream));
@@ -289,10 +329,13 @@ int sst_context_init(struct intel_sst_drv *ctx)
 
 	/* Register the ISR */
 	ret = devm_request_threaded_irq(ctx->dev, ctx->irq_num, ctx->ops->interrupt,
-					ctx->ops->irq_thread, 0, SST_DRV_NAME,
-					ctx);
+									ctx->ops->irq_thread, 0, SST_DRV_NAME,
+									ctx);
+
 	if (ret)
+	{
 		goto do_free_mem;
+	}
 
 	dev_dbg(ctx->dev, "Registered IRQ %#x\n", ctx->irq_num);
 
@@ -300,21 +343,27 @@ int sst_context_init(struct intel_sst_drv *ctx)
 	sst_shim_write64(ctx->shim, SST_IMRX, 0xFFFF0038);
 
 	ctx->qos = devm_kzalloc(ctx->dev,
-		sizeof(struct pm_qos_request), GFP_KERNEL);
-	if (!ctx->qos) {
+							sizeof(struct pm_qos_request), GFP_KERNEL);
+
+	if (!ctx->qos)
+	{
 		ret = -ENOMEM;
 		goto do_free_mem;
 	}
+
 	pm_qos_add_request(ctx->qos, PM_QOS_CPU_DMA_LATENCY,
-				PM_QOS_DEFAULT_VALUE);
+					   PM_QOS_DEFAULT_VALUE);
 
 	dev_dbg(ctx->dev, "Requesting FW %s now...\n", ctx->firmware_name);
 	ret = request_firmware_nowait(THIS_MODULE, true, ctx->firmware_name,
-				      ctx->dev, GFP_KERNEL, ctx, sst_firmware_load_cb);
-	if (ret) {
+								  ctx->dev, GFP_KERNEL, ctx, sst_firmware_load_cb);
+
+	if (ret)
+	{
 		dev_err(ctx->dev, "Firmware download failed:%d\n", ret);
 		goto do_free_mem;
 	}
+
 	sst_register(ctx->dev);
 	return 0;
 
@@ -344,8 +393,8 @@ void sst_context_cleanup(struct intel_sst_drv *ctx)
 EXPORT_SYMBOL_GPL(sst_context_cleanup);
 
 static inline void sst_save_shim64(struct intel_sst_drv *ctx,
-			    void __iomem *shim,
-			    struct sst_shim_regs64 *shim_regs)
+								   void __iomem *shim,
+								   struct sst_shim_regs64 *shim_regs)
 {
 	unsigned long irq_flags;
 
@@ -359,8 +408,8 @@ static inline void sst_save_shim64(struct intel_sst_drv *ctx,
 }
 
 static inline void sst_restore_shim64(struct intel_sst_drv *ctx,
-				      void __iomem *shim,
-				      struct sst_shim_regs64 *shim_regs)
+									  void __iomem *shim,
+									  struct sst_shim_regs64 *shim_regs)
 {
 	unsigned long irq_flags;
 
@@ -385,14 +434,20 @@ void sst_configure_runtime_pm(struct intel_sst_drv *ctx)
 	 */
 
 	if (!acpi_disabled)
+	{
 		pm_runtime_set_active(ctx->dev);
+	}
 
 	pm_runtime_enable(ctx->dev);
 
 	if (acpi_disabled)
+	{
 		pm_runtime_set_active(ctx->dev);
+	}
 	else
+	{
 		pm_runtime_put_noidle(ctx->dev);
+	}
 
 	sst_save_shim64(ctx, ctx->shim, ctx->shim_regs64);
 }
@@ -403,13 +458,17 @@ static int intel_sst_runtime_suspend(struct device *dev)
 	int ret = 0;
 	struct intel_sst_drv *ctx = dev_get_drvdata(dev);
 
-	if (ctx->sst_state == SST_RESET) {
+	if (ctx->sst_state == SST_RESET)
+	{
 		dev_dbg(dev, "LPE is already in RESET state, No action\n");
 		return 0;
 	}
+
 	/* save fw context */
 	if (ctx->ops->save_dsp_context(ctx))
+	{
 		return -EBUSY;
+	}
 
 	/* Move the SST state to Reset */
 	sst_set_fw_state_locked(ctx, SST_RESET);
@@ -432,20 +491,25 @@ static int intel_sst_suspend(struct device *dev)
 
 	/* check first if we are already in SW reset */
 	if (ctx->sst_state == SST_RESET)
+	{
 		return 0;
+	}
 
 	/*
 	 * check if any stream is active and running
 	 * they should already by suspend by soc_suspend
 	 */
-	for (i = 1; i <= ctx->info.max_streams; i++) {
+	for (i = 1; i <= ctx->info.max_streams; i++)
+	{
 		struct stream_info *stream = &ctx->streams[i];
 
-		if (stream->status == STREAM_RUNNING) {
+		if (stream->status == STREAM_RUNNING)
+		{
 			dev_err(dev, "stream %d is running, can't suspend, abort\n", i);
 			return -EBUSY;
 		}
 	}
+
 	synchronize_irq(ctx->irq_num);
 	flush_workqueue(ctx->post_msg_wq);
 
@@ -454,30 +518,46 @@ static int intel_sst_suspend(struct device *dev)
 
 	/* tell DSP we are suspending */
 	if (ctx->ops->save_dsp_context(ctx))
+	{
 		return -EBUSY;
+	}
 
 	/* save the memories */
 	fw_save = kzalloc(sizeof(*fw_save), GFP_KERNEL);
+
 	if (!fw_save)
+	{
 		return -ENOMEM;
+	}
+
 	fw_save->iram = kzalloc(ctx->iram_end - ctx->iram_base, GFP_KERNEL);
-	if (!fw_save->iram) {
+
+	if (!fw_save->iram)
+	{
 		ret = -ENOMEM;
 		goto iram;
 	}
+
 	fw_save->dram = kzalloc(ctx->dram_end - ctx->dram_base, GFP_KERNEL);
-	if (!fw_save->dram) {
+
+	if (!fw_save->dram)
+	{
 		ret = -ENOMEM;
 		goto dram;
 	}
+
 	fw_save->sram = kzalloc(SST_MAILBOX_SIZE, GFP_KERNEL);
-	if (!fw_save->sram) {
+
+	if (!fw_save->sram)
+	{
 		ret = -ENOMEM;
 		goto sram;
 	}
 
 	fw_save->ddr = kzalloc(ctx->ddr_end - ctx->ddr_base, GFP_KERNEL);
-	if (!fw_save->ddr) {
+
+	if (!fw_save->ddr)
+	{
 		ret = -ENOMEM;
 		goto ddr;
 	}
@@ -509,7 +589,9 @@ static int intel_sst_resume(struct device *dev)
 	struct sst_block *block;
 
 	if (!fw_save)
+	{
 		return 0;
+	}
 
 	sst_set_fw_state_locked(ctx, SST_FW_LOADING);
 
@@ -530,19 +612,26 @@ static int intel_sst_resume(struct device *dev)
 	kfree(fw_save);
 
 	block = sst_create_block(ctx, 0, FW_DWNL_ID);
+
 	if (block == NULL)
+	{
 		return -ENOMEM;
+	}
 
 
 	/* start and wait for ack */
 	ctx->ops->start(ctx);
 	ret = sst_wait_timeout(ctx, block);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(ctx->dev, "fw download failed %d\n", ret);
 		/* FW download failed due to timeout */
 		ret = -EBUSY;
 
-	} else {
+	}
+	else
+	{
 		sst_set_fw_state_locked(ctx, SST_FW_RUNNING);
 	}
 
@@ -550,7 +639,8 @@ static int intel_sst_resume(struct device *dev)
 	return ret;
 }
 
-const struct dev_pm_ops intel_sst_pm = {
+const struct dev_pm_ops intel_sst_pm =
+{
 	.suspend = intel_sst_suspend,
 	.resume = intel_sst_resume,
 	.runtime_suspend = intel_sst_runtime_suspend,

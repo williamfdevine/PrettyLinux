@@ -62,15 +62,21 @@ static u32 tegra20_fuse_read(struct tegra_fuse *fuse, unsigned int offset)
 	fuse->apbdma.config.src_addr = fuse->apbdma.phys + FUSE_BEGIN + offset;
 
 	err = dmaengine_slave_config(fuse->apbdma.chan, &fuse->apbdma.config);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	dma_desc = dmaengine_prep_slave_single(fuse->apbdma.chan,
-					       fuse->apbdma.phys,
-					       sizeof(u32), DMA_DEV_TO_MEM,
-					       flags);
+										   fuse->apbdma.phys,
+										   sizeof(u32), DMA_DEV_TO_MEM,
+										   flags);
+
 	if (!dma_desc)
+	{
 		goto out;
+	}
 
 	dma_desc->callback = apb_dma_complete;
 	dma_desc->callback_param = fuse;
@@ -82,12 +88,16 @@ static u32 tegra20_fuse_read(struct tegra_fuse *fuse, unsigned int offset)
 	dmaengine_submit(dma_desc);
 	dma_async_issue_pending(fuse->apbdma.chan);
 	time_left = wait_for_completion_timeout(&fuse->apbdma.wait,
-						msecs_to_jiffies(50));
+											msecs_to_jiffies(50));
 
 	if (WARN(time_left == 0, "apb read dma timed out"))
+	{
 		dmaengine_terminate_all(fuse->apbdma.chan);
+	}
 	else
+	{
 		value = *fuse->apbdma.virt;
+	}
 
 	clk_disable_unprepare(fuse->clk);
 
@@ -104,13 +114,18 @@ static int tegra20_fuse_probe(struct tegra_fuse *fuse)
 	dma_cap_set(DMA_SLAVE, mask);
 
 	fuse->apbdma.chan = dma_request_channel(mask, NULL, NULL);
+
 	if (!fuse->apbdma.chan)
+	{
 		return -EPROBE_DEFER;
+	}
 
 	fuse->apbdma.virt = dma_alloc_coherent(fuse->dev, sizeof(u32),
-					       &fuse->apbdma.phys,
-					       GFP_KERNEL);
-	if (!fuse->apbdma.virt) {
+										   &fuse->apbdma.phys,
+										   GFP_KERNEL);
+
+	if (!fuse->apbdma.virt)
+	{
 		dma_release_channel(fuse->apbdma.chan);
 		return -ENOMEM;
 	}
@@ -127,7 +142,8 @@ static int tegra20_fuse_probe(struct tegra_fuse *fuse)
 	return 0;
 }
 
-static const struct tegra_fuse_info tegra20_fuse_info = {
+static const struct tegra_fuse_info tegra20_fuse_info =
+{
 	.read = tegra20_fuse_read,
 	.size = 0x1f8,
 	.spare = 0x100,
@@ -161,7 +177,8 @@ static void __init tegra20_fuse_init(struct tegra_fuse *fuse)
 	tegra20_fuse_add_randomness();
 }
 
-const struct tegra_fuse_soc tegra20_fuse_soc = {
+const struct tegra_fuse_soc tegra20_fuse_soc =
+{
 	.init = tegra20_fuse_init,
 	.speedo_init = tegra20_init_speedo_data,
 	.probe = tegra20_fuse_probe,

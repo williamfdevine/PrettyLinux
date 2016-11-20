@@ -8,20 +8,20 @@
 
 DECLARE_EVENT_CLASS(context_tracking_user,
 
-	TP_PROTO(int dummy),
+					TP_PROTO(int dummy),
 
-	TP_ARGS(dummy),
+					TP_ARGS(dummy),
 
-	TP_STRUCT__entry(
-		__field( int,	dummy	)
-	),
+					TP_STRUCT__entry(
+						__field( int,	dummy	)
+					),
 
-	TP_fast_assign(
-		__entry->dummy		= dummy;
-	),
+					TP_fast_assign(
+						__entry->dummy		= dummy;
+					),
 
-	TP_printk("%s", "")
-);
+					TP_printk("%s", "")
+				   );
 
 /**
  * user_enter - called when the kernel resumes to userspace
@@ -32,10 +32,10 @@ DECLARE_EVENT_CLASS(context_tracking_user,
  */
 DEFINE_EVENT(context_tracking_user, user_enter,
 
-	TP_PROTO(int dummy),
+			 TP_PROTO(int dummy),
 
-	TP_ARGS(dummy)
-);
+			 TP_ARGS(dummy)
+			);
 
 /**
  * user_exit - called when userspace enters the kernel
@@ -46,10 +46,10 @@ DEFINE_EVENT(context_tracking_user, user_enter,
  */
 DEFINE_EVENT(context_tracking_user, user_exit,
 
-	TP_PROTO(int dummy),
+			 TP_PROTO(int dummy),
 
-	TP_ARGS(dummy)
-);
+			 TP_ARGS(dummy)
+			);
 
 
 #endif /*  _TRACE_CONTEXT_TRACKING_H */

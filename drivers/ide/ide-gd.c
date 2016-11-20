@@ -11,9 +11,9 @@
 #include <linux/slab.h>
 
 #if !defined(CONFIG_DEBUG_BLOCK_EXT_DEVT)
-#define IDE_DISK_MINORS		(1 << PARTN_BITS)
+	#define IDE_DISK_MINORS		(1 << PARTN_BITS)
 #else
-#define IDE_DISK_MINORS		0
+	#define IDE_DISK_MINORS		0
 #endif
 
 #include "ide-disk.h"
@@ -36,12 +36,19 @@ static struct ide_disk_obj *ide_disk_get(struct gendisk *disk)
 
 	mutex_lock(&ide_disk_ref_mutex);
 	idkp = ide_drv_g(disk, ide_disk_obj);
-	if (idkp) {
+
+	if (idkp)
+	{
 		if (ide_device_get(idkp->drive))
+		{
 			idkp = NULL;
+		}
 		else
+		{
 			get_device(&idkp->dev);
+		}
 	}
+
 	mutex_unlock(&ide_disk_ref_mutex);
 	return idkp;
 }
@@ -99,10 +106,13 @@ static void ide_disk_release(struct device *dev)
 static void ide_gd_resume(ide_drive_t *drive)
 {
 	if (ata_id_hpa_enabled(drive->id))
+	{
 		(void)drive->disk_ops->get_capacity(drive);
+	}
 }
 
-static const struct dmi_system_id ide_coldreboot_table[] = {
+static const struct dmi_system_id ide_coldreboot_table[] =
+{
 	{
 		/* Acer TravelMate 66x cuts power during reboot */
 		.ident   = "Acer TravelMate 660",
@@ -118,6 +128,7 @@ static const struct dmi_system_id ide_coldreboot_table[] = {
 static void ide_gd_shutdown(ide_drive_t *drive)
 {
 #ifdef	CONFIG_ALPHA
+
 	/* On Alpha, halt(8) doesn't actually turn the machine off,
 	   it puts you into the sort of firmware monitor. Typically,
 	   it's used to boot another kernel image, so it's not much
@@ -129,10 +140,13 @@ static void ide_gd_shutdown(ide_drive_t *drive)
 	   as the firmware initialization takes rather long time -
 	   at least 10 seconds, which should be sufficient for
 	   the disk to expire its write cache. */
-	if (system_state != SYSTEM_POWER_OFF) {
+	if (system_state != SYSTEM_POWER_OFF)
+	{
 #else
+
 	if (system_state == SYSTEM_RESTART &&
-		!dmi_check_system(ide_coldreboot_table)) {
+		!dmi_check_system(ide_coldreboot_table))
+	{
 #endif
 		drive->disk_ops->flush(drive);
 		return;
@@ -152,17 +166,18 @@ static ide_proc_entry_t *ide_disk_proc_entries(ide_drive_t *drive)
 static const struct ide_proc_devset *ide_disk_proc_devsets(ide_drive_t *drive)
 {
 	return (drive->media == ide_disk) ? ide_disk_settings
-					  : ide_floppy_settings;
+		   : ide_floppy_settings;
 }
 #endif
 
 static ide_startstop_t ide_gd_do_request(ide_drive_t *drive,
-					 struct request *rq, sector_t sector)
+		struct request *rq, sector_t sector)
 {
 	return drive->disk_ops->do_request(drive, rq, sector);
 }
 
-static struct ide_driver ide_gd_driver = {
+static struct ide_driver ide_gd_driver =
+{
 	.gen_driver = {
 		.owner		= THIS_MODULE,
 		.name		= "ide-gd",
@@ -188,8 +203,11 @@ static int ide_gd_open(struct block_device *bdev, fmode_t mode)
 	int ret = 0;
 
 	idkp = ide_disk_get(disk);
+
 	if (idkp == NULL)
+	{
 		return -ENXIO;
+	}
 
 	drive = idkp->drive;
 
@@ -197,7 +215,8 @@ static int ide_gd_open(struct block_device *bdev, fmode_t mode)
 
 	idkp->openers++;
 
-	if ((drive->dev_flags & IDE_DFLAG_REMOVABLE) && idkp->openers == 1) {
+	if ((drive->dev_flags & IDE_DFLAG_REMOVABLE) && idkp->openers == 1)
+	{
 		drive->dev_flags &= ~IDE_DFLAG_FORMAT_IN_PROGRESS;
 		/* Just in case */
 
@@ -208,12 +227,14 @@ static int ide_gd_open(struct block_device *bdev, fmode_t mode)
 		 * unreadable disk, so that we can get the format capacity
 		 * of the drive or begin the format - Sam
 		 */
-		if (ret && (mode & FMODE_NDELAY) == 0) {
+		if (ret && (mode & FMODE_NDELAY) == 0)
+		{
 			ret = -EIO;
 			goto out_put_idkp;
 		}
 
-		if ((drive->dev_flags & IDE_DFLAG_WP) && (mode & FMODE_WRITE)) {
+		if ((drive->dev_flags & IDE_DFLAG_WP) && (mode & FMODE_WRITE))
+		{
 			ret = -EROFS;
 			goto out_put_idkp;
 		}
@@ -226,10 +247,13 @@ static int ide_gd_open(struct block_device *bdev, fmode_t mode)
 		drive->disk_ops->set_doorlock(drive, disk, 1);
 		drive->dev_flags |= IDE_DFLAG_MEDIA_CHANGED;
 		check_disk_change(bdev);
-	} else if (drive->dev_flags & IDE_DFLAG_FORMAT_IN_PROGRESS) {
+	}
+	else if (drive->dev_flags & IDE_DFLAG_FORMAT_IN_PROGRESS)
+	{
 		ret = -EBUSY;
 		goto out_put_idkp;
 	}
+
 	return 0;
 
 out_put_idkp:
@@ -258,10 +282,14 @@ static void ide_gd_release(struct gendisk *disk, fmode_t mode)
 	ide_debug_log(IDE_DBG_FUNC, "enter");
 
 	mutex_lock(&ide_gd_mutex);
-	if (idkp->openers == 1)
-		drive->disk_ops->flush(drive);
 
-	if ((drive->dev_flags & IDE_DFLAG_REMOVABLE) && idkp->openers == 1) {
+	if (idkp->openers == 1)
+	{
+		drive->disk_ops->flush(drive);
+	}
+
+	if ((drive->dev_flags & IDE_DFLAG_REMOVABLE) && idkp->openers == 1)
+	{
 		drive->disk_ops->set_doorlock(drive, disk, 0);
 		drive->dev_flags &= ~IDE_DFLAG_FORMAT_IN_PROGRESS;
 	}
@@ -284,14 +312,15 @@ static int ide_gd_getgeo(struct block_device *bdev, struct hd_geometry *geo)
 }
 
 static unsigned int ide_gd_check_events(struct gendisk *disk,
-					unsigned int clearing)
+										unsigned int clearing)
 {
 	struct ide_disk_obj *idkp = ide_drv_g(disk, ide_disk_obj);
 	ide_drive_t *drive = idkp->drive;
 	bool ret;
 
 	/* do not scan partitions twice if this is a removable device */
-	if (drive->dev_flags & IDE_DFLAG_ATTACH) {
+	if (drive->dev_flags & IDE_DFLAG_ATTACH)
+	{
 		drive->dev_flags &= ~IDE_DFLAG_ATTACH;
 		return 0;
 	}
@@ -315,7 +344,9 @@ static void ide_gd_unlock_native_capacity(struct gendisk *disk)
 	const struct ide_disk_ops *disk_ops = drive->disk_ops;
 
 	if (disk_ops->unlock_native_capacity)
+	{
 		disk_ops->unlock_native_capacity(drive);
+	}
 }
 
 static int ide_gd_revalidate_disk(struct gendisk *disk)
@@ -324,14 +355,16 @@ static int ide_gd_revalidate_disk(struct gendisk *disk)
 	ide_drive_t *drive = idkp->drive;
 
 	if (ide_gd_check_events(disk, 0))
+	{
 		drive->disk_ops->get_capacity(drive);
+	}
 
 	set_capacity(disk, ide_gd_capacity(drive));
 	return 0;
 }
 
 static int ide_gd_ioctl(struct block_device *bdev, fmode_t mode,
-			     unsigned int cmd, unsigned long arg)
+						unsigned int cmd, unsigned long arg)
 {
 	struct ide_disk_obj *idkp = ide_drv_g(bdev->bd_disk, ide_disk_obj);
 	ide_drive_t *drive = idkp->drive;
@@ -339,7 +372,8 @@ static int ide_gd_ioctl(struct block_device *bdev, fmode_t mode,
 	return drive->disk_ops->ioctl(drive, bdev, mode, cmd, arg);
 }
 
-static const struct block_device_operations ide_gd_ops = {
+static const struct block_device_operations ide_gd_ops =
+{
 	.owner			= THIS_MODULE,
 	.open			= ide_gd_unlocked_open,
 	.release		= ide_gd_release,
@@ -358,35 +392,54 @@ static int ide_gd_probe(ide_drive_t *drive)
 
 	/* strstr("foo", "") is non-NULL */
 	if (!strstr("ide-gd", drive->driver_req))
+	{
 		goto failed;
+	}
 
 #ifdef CONFIG_IDE_GD_ATA
+
 	if (drive->media == ide_disk)
+	{
 		disk_ops = &ide_ata_disk_ops;
+	}
+
 #endif
 #ifdef CONFIG_IDE_GD_ATAPI
-	if (drive->media == ide_floppy)
-		disk_ops = &ide_atapi_disk_ops;
-#endif
-	if (disk_ops == NULL)
-		goto failed;
 
-	if (disk_ops->check(drive, DRV_NAME) == 0) {
+	if (drive->media == ide_floppy)
+	{
+		disk_ops = &ide_atapi_disk_ops;
+	}
+
+#endif
+
+	if (disk_ops == NULL)
+	{
+		goto failed;
+	}
+
+	if (disk_ops->check(drive, DRV_NAME) == 0)
+	{
 		printk(KERN_ERR PFX "%s: not supported by this driver\n",
-			drive->name);
+			   drive->name);
 		goto failed;
 	}
 
 	idkp = kzalloc(sizeof(*idkp), GFP_KERNEL);
-	if (!idkp) {
+
+	if (!idkp)
+	{
 		printk(KERN_ERR PFX "%s: can't allocate a disk structure\n",
-			drive->name);
+			   drive->name);
 		goto failed;
 	}
 
 	g = alloc_disk_node(IDE_DISK_MINORS, hwif_to_node(drive->hwif));
+
 	if (!g)
+	{
 		goto out_free_idkp;
+	}
 
 	ide_init_disk(g, drive);
 
@@ -395,7 +448,9 @@ static int ide_gd_probe(ide_drive_t *drive)
 	dev_set_name(&idkp->dev, "%s", dev_name(&drive->gendev));
 
 	if (device_register(&idkp->dev))
+	{
 		goto out_free_disk;
+	}
 
 	idkp->drive = drive;
 	idkp->driver = &ide_gd_driver;
@@ -413,8 +468,12 @@ static int ide_gd_probe(ide_drive_t *drive)
 
 	g->minors = IDE_DISK_MINORS;
 	g->flags |= GENHD_FL_EXT_DEVT;
+
 	if (drive->dev_flags & IDE_DFLAG_REMOVABLE)
+	{
 		g->flags = GENHD_FL_REMOVABLE;
+	}
+
 	g->fops = &ide_gd_ops;
 	device_add_disk(&drive->gendev, g);
 	return 0;

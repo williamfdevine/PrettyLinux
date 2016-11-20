@@ -24,12 +24,14 @@
 #define DRV_NAME "pata_cmd640"
 #define DRV_VERSION "0.0.5"
 
-struct cmd640_reg {
+struct cmd640_reg
+{
 	int last;
 	u8 reg58[ATA_MAX_DEVICES];
 };
 
-enum {
+enum
+{
 	CFR = 0x50,
 	CNTRL = 0x51,
 	CMDTIM = 0x52,
@@ -59,41 +61,56 @@ static void cmd640_set_piomode(struct ata_port *ap, struct ata_device *adev)
 	int arttim = ARTIM0 + 2 * adev->devno;
 	struct ata_device *pair = ata_dev_pair(adev);
 
-	if (ata_timing_compute(adev, adev->pio_mode, &t, T, 0) < 0) {
+	if (ata_timing_compute(adev, adev->pio_mode, &t, T, 0) < 0)
+	{
 		printk(KERN_ERR DRV_NAME ": mode computation failed.\n");
 		return;
 	}
 
 	/* The second channel has shared timings and the setup timing is
 	   messy to switch to merge it for worst case */
-	if (ap->port_no && pair) {
+	if (ap->port_no && pair)
+	{
 		struct ata_timing p;
 		ata_timing_compute(pair, pair->pio_mode, &p, T, 1);
 		ata_timing_merge(&p, &t, &t, ATA_TIMING_SETUP);
 	}
 
 	/* Make the timings fit */
-	if (t.recover > 16) {
+	if (t.recover > 16)
+	{
 		t.active += t.recover - 16;
 		t.recover = 16;
 	}
+
 	if (t.active > 16)
+	{
 		t.active = 16;
+	}
 
 	/* Now convert the clocks into values we can actually stuff into
 	   the chip */
 
 	if (t.recover > 1)
-		t.recover--;	/* 640B only */
+	{
+		t.recover--;    /* 640B only */
+	}
 	else
+	{
 		t.recover = 15;
+	}
 
 	if (t.setup > 4)
+	{
 		t.setup = 0xC0;
+	}
 	else
+	{
 		t.setup = setup_data[t.setup];
+	}
 
-	if (ap->port_no == 0) {
+	if (ap->port_no == 0)
+	{
 		t.active &= 0x0F;	/* 0 = 16 */
 
 		/* Load setup timing */
@@ -104,7 +121,9 @@ static void cmd640_set_piomode(struct ata_port *ap, struct ata_device *adev)
 
 		/* Load active/recovery */
 		pci_write_config_byte(pdev, arttim + 1, (t.active << 4) | t.recover);
-	} else {
+	}
+	else
+	{
 		/* Save the shared timings for channel, they will be loaded
 		   by qc_issue. Reloading the setup time is expensive so we
 		   keep a merged one loaded */
@@ -132,10 +151,12 @@ static unsigned int cmd640_qc_issue(struct ata_queued_cmd *qc)
 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
 	struct cmd640_reg *timing = ap->private_data;
 
-	if (ap->port_no != 0 && adev->devno != timing->last) {
+	if (ap->port_no != 0 && adev->devno != timing->last)
+	{
 		pci_write_config_byte(pdev, DRWTIM23, timing->reg58[adev->devno]);
 		timing->last = adev->devno;
 	}
+
 	return ata_sff_qc_issue(qc);
 }
 
@@ -153,8 +174,12 @@ static int cmd640_port_start(struct ata_port *ap)
 	struct cmd640_reg *timing;
 
 	timing = devm_kzalloc(&pdev->dev, sizeof(struct cmd640_reg), GFP_KERNEL);
+
 	if (timing == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	timing->last = -1;	/* Force a load */
 	ap->private_data = timing;
 	return 0;
@@ -171,11 +196,13 @@ static bool cmd640_sff_irq_check(struct ata_port *ap)
 	return irq_stat & irq_mask;
 }
 
-static struct scsi_host_template cmd640_sht = {
+static struct scsi_host_template cmd640_sht =
+{
 	ATA_PIO_SHT(DRV_NAME),
 };
 
-static struct ata_port_operations cmd640_port_ops = {
+static struct ata_port_operations cmd640_port_ops =
+{
 	.inherits	= &ata_sff_port_ops,
 	/* In theory xfer_noirq is not needed once we kill the prefetcher */
 	.sff_data_xfer	= ata_sff_data_xfer_noirq,
@@ -214,7 +241,8 @@ static void cmd640_hardware_init(struct pci_dev *pdev)
 
 static int cmd640_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 {
-	static const struct ata_port_info info = {
+	static const struct ata_port_info info =
+	{
 		.flags = ATA_FLAG_SLAVE_POSS,
 		.pio_mask = ATA_PIO4,
 		.port_ops = &cmd640_port_ops
@@ -223,8 +251,11 @@ static int cmd640_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
 	int rc;
 
 	rc = pcim_enable_device(pdev);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	cmd640_hardware_init(pdev);
 
@@ -238,20 +269,26 @@ static int cmd640_reinit_one(struct pci_dev *pdev)
 	int rc;
 
 	rc = ata_pci_device_do_resume(pdev);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	cmd640_hardware_init(pdev);
 	ata_host_resume(host);
 	return 0;
 }
 #endif
 
-static const struct pci_device_id cmd640[] = {
+static const struct pci_device_id cmd640[] =
+{
 	{ PCI_VDEVICE(CMD, 0x640), 0 },
 	{ },
 };
 
-static struct pci_driver cmd640_pci_driver = {
+static struct pci_driver cmd640_pci_driver =
+{
 	.name 		= DRV_NAME,
 	.id_table	= cmd640,
 	.probe 		= cmd640_init_one,

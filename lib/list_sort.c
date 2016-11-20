@@ -17,24 +17,30 @@
  * sentinel head node, "prev" links not maintained.
  */
 static struct list_head *merge(void *priv,
-				int (*cmp)(void *priv, struct list_head *a,
-					struct list_head *b),
-				struct list_head *a, struct list_head *b)
+							   int (*cmp)(void *priv, struct list_head *a,
+									   struct list_head *b),
+							   struct list_head *a, struct list_head *b)
 {
 	struct list_head head, *tail = &head;
 
-	while (a && b) {
+	while (a && b)
+	{
 		/* if equal, take 'a' -- important for sort stability */
-		if ((*cmp)(priv, a, b) <= 0) {
+		if ((*cmp)(priv, a, b) <= 0)
+		{
 			tail->next = a;
 			a = a->next;
-		} else {
+		}
+		else
+		{
 			tail->next = b;
 			b = b->next;
 		}
+
 		tail = tail->next;
 	}
-	tail->next = a?:b;
+
+	tail->next = a ? : b;
 	return head.next;
 }
 
@@ -46,30 +52,37 @@ static struct list_head *merge(void *priv,
  * throughout.
  */
 static void merge_and_restore_back_links(void *priv,
-				int (*cmp)(void *priv, struct list_head *a,
-					struct list_head *b),
-				struct list_head *head,
-				struct list_head *a, struct list_head *b)
+		int (*cmp)(void *priv, struct list_head *a,
+				   struct list_head *b),
+		struct list_head *head,
+		struct list_head *a, struct list_head *b)
 {
 	struct list_head *tail = head;
 	u8 count = 0;
 
-	while (a && b) {
+	while (a && b)
+	{
 		/* if equal, take 'a' -- important for sort stability */
-		if ((*cmp)(priv, a, b) <= 0) {
+		if ((*cmp)(priv, a, b) <= 0)
+		{
 			tail->next = a;
 			a->prev = tail;
 			a = a->next;
-		} else {
+		}
+		else
+		{
 			tail->next = b;
 			b->prev = tail;
 			b = b->next;
 		}
+
 		tail = tail->next;
 	}
+
 	tail->next = a ? : b;
 
-	do {
+	do
+	{
 		/*
 		 * In worst cases this loop may run many iterations.
 		 * Continue callbacks to the client even though no
@@ -77,11 +90,14 @@ static void merge_and_restore_back_links(void *priv,
 		 * routine can invoke cond_resched() periodically.
 		 */
 		if (unlikely(!(++count)))
+		{
 			(*cmp)(priv, tail->next, tail->next);
+		}
 
 		tail->next->prev = tail;
 		tail = tail->next;
-	} while (tail->next);
+	}
+	while (tail->next);
 
 	tail->next = head;
 	head->prev = tail;
@@ -102,45 +118,56 @@ static void merge_and_restore_back_links(void *priv,
  * ordering is to be preserved, @cmp must return 0.
  */
 void list_sort(void *priv, struct list_head *head,
-		int (*cmp)(void *priv, struct list_head *a,
-			struct list_head *b))
+			   int (*cmp)(void *priv, struct list_head *a,
+						  struct list_head *b))
 {
-	struct list_head *part[MAX_LIST_LENGTH_BITS+1]; /* sorted partial lists
+	struct list_head *part[MAX_LIST_LENGTH_BITS + 1]; /* sorted partial lists
 						-- last slot is a sentinel */
 	int lev;  /* index into part[] */
 	int max_lev = 0;
 	struct list_head *list;
 
 	if (list_empty(head))
+	{
 		return;
+	}
 
 	memset(part, 0, sizeof(part));
 
 	head->prev->next = NULL;
 	list = head->next;
 
-	while (list) {
+	while (list)
+	{
 		struct list_head *cur = list;
 		list = list->next;
 		cur->next = NULL;
 
-		for (lev = 0; part[lev]; lev++) {
+		for (lev = 0; part[lev]; lev++)
+		{
 			cur = merge(priv, cmp, part[lev], cur);
 			part[lev] = NULL;
 		}
-		if (lev > max_lev) {
-			if (unlikely(lev >= ARRAY_SIZE(part)-1)) {
+
+		if (lev > max_lev)
+		{
+			if (unlikely(lev >= ARRAY_SIZE(part) - 1))
+			{
 				printk_once(KERN_DEBUG "list too long for efficiency\n");
 				lev--;
 			}
+
 			max_lev = lev;
 		}
+
 		part[lev] = cur;
 	}
 
 	for (lev = 0; lev < max_lev; lev++)
 		if (part[lev])
+		{
 			list = merge(priv, cmp, part[lev], list);
+		}
 
 	merge_and_restore_back_links(priv, cmp, head, part[max_lev], list);
 }
@@ -160,7 +187,8 @@ EXPORT_SYMBOL(list_sort);
 #define TEST_POISON1 0xDEADBEEF
 #define TEST_POISON2 0xA324354C
 
-struct debug_el {
+struct debug_el
+{
 	unsigned int poison1;
 	struct list_head list;
 	unsigned int poison2;
@@ -173,28 +201,38 @@ static struct debug_el **elts __initdata;
 
 static int __init check(struct debug_el *ela, struct debug_el *elb)
 {
-	if (ela->serial >= TEST_LIST_LEN) {
+	if (ela->serial >= TEST_LIST_LEN)
+	{
 		pr_err("error: incorrect serial %d\n", ela->serial);
 		return -EINVAL;
 	}
-	if (elb->serial >= TEST_LIST_LEN) {
+
+	if (elb->serial >= TEST_LIST_LEN)
+	{
 		pr_err("error: incorrect serial %d\n", elb->serial);
 		return -EINVAL;
 	}
-	if (elts[ela->serial] != ela || elts[elb->serial] != elb) {
+
+	if (elts[ela->serial] != ela || elts[elb->serial] != elb)
+	{
 		pr_err("error: phantom element\n");
 		return -EINVAL;
 	}
-	if (ela->poison1 != TEST_POISON1 || ela->poison2 != TEST_POISON2) {
+
+	if (ela->poison1 != TEST_POISON1 || ela->poison2 != TEST_POISON2)
+	{
 		pr_err("error: bad poison: %#x/%#x\n",
-			ela->poison1, ela->poison2);
+			   ela->poison1, ela->poison2);
 		return -EINVAL;
 	}
-	if (elb->poison1 != TEST_POISON1 || elb->poison2 != TEST_POISON2) {
+
+	if (elb->poison1 != TEST_POISON1 || elb->poison2 != TEST_POISON2)
+	{
 		pr_err("error: bad poison: %#x/%#x\n",
-			elb->poison1, elb->poison2);
+			   elb->poison1, elb->poison2);
 		return -EINVAL;
 	}
+
 	return 0;
 }
 
@@ -219,18 +257,24 @@ static int __init list_sort_test(void)
 	pr_debug("start testing list_sort()\n");
 
 	elts = kcalloc(TEST_LIST_LEN, sizeof(*elts), GFP_KERNEL);
-	if (!elts) {
+
+	if (!elts)
+	{
 		pr_err("error: cannot allocate memory\n");
 		return err;
 	}
 
-	for (i = 0; i < TEST_LIST_LEN; i++) {
+	for (i = 0; i < TEST_LIST_LEN; i++)
+	{
 		el = kmalloc(sizeof(*el), GFP_KERNEL);
-		if (!el) {
+
+		if (!el)
+		{
 			pr_err("error: cannot allocate memory\n");
 			goto exit;
 		}
-		 /* force some equivalencies */
+
+		/* force some equivalencies */
 		el->value = prandom_u32() % (TEST_LIST_LEN / 3);
 		el->serial = i;
 		el->poison1 = TEST_POISON1;
@@ -242,50 +286,66 @@ static int __init list_sort_test(void)
 	list_sort(NULL, &head, cmp);
 
 	err = -EINVAL;
-	for (cur = head.next; cur->next != &head; cur = cur->next) {
+
+	for (cur = head.next; cur->next != &head; cur = cur->next)
+	{
 		struct debug_el *el1;
 		int cmp_result;
 
-		if (cur->next->prev != cur) {
+		if (cur->next->prev != cur)
+		{
 			pr_err("error: list is corrupted\n");
 			goto exit;
 		}
 
 		cmp_result = cmp(NULL, cur, cur->next);
-		if (cmp_result > 0) {
+
+		if (cmp_result > 0)
+		{
 			pr_err("error: list is not sorted\n");
 			goto exit;
 		}
 
 		el = container_of(cur, struct debug_el, list);
 		el1 = container_of(cur->next, struct debug_el, list);
-		if (cmp_result == 0 && el->serial >= el1->serial) {
+
+		if (cmp_result == 0 && el->serial >= el1->serial)
+		{
 			pr_err("error: order of equivalent elements not "
-				"preserved\n");
+				   "preserved\n");
 			goto exit;
 		}
 
-		if (check(el, el1)) {
+		if (check(el, el1))
+		{
 			pr_err("error: element check failed\n");
 			goto exit;
 		}
+
 		count++;
 	}
-	if (head.prev != cur) {
+
+	if (head.prev != cur)
+	{
 		pr_err("error: list is corrupted\n");
 		goto exit;
 	}
 
 
-	if (count != TEST_LIST_LEN) {
+	if (count != TEST_LIST_LEN)
+	{
 		pr_err("error: bad list length %d", count);
 		goto exit;
 	}
 
 	err = 0;
 exit:
+
 	for (i = 0; i < TEST_LIST_LEN; i++)
+	{
 		kfree(elts[i]);
+	}
+
 	kfree(elts);
 	return err;
 }

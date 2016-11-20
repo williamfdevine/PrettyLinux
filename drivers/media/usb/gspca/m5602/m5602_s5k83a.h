@@ -50,7 +50,8 @@ int s5k83a_start(struct sd *sd);
 int s5k83a_stop(struct sd *sd);
 void s5k83a_disconnect(struct sd *sd);
 
-static const struct m5602_sensor s5k83a = {
+static const struct m5602_sensor s5k83a =
+{
 	.name = "S5K83A",
 	.probe = s5k83a_probe,
 	.init = s5k83a_init,

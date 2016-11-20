@@ -23,28 +23,33 @@
 
 #define MCLK_FOR_CODECS		12288000
 
-enum mt8173_rt5650_mclk {
+enum mt8173_rt5650_mclk
+{
 	MT8173_RT5650_MCLK_EXTERNAL = 0,
 	MT8173_RT5650_MCLK_INTERNAL,
 };
 
-struct mt8173_rt5650_platform_data {
+struct mt8173_rt5650_platform_data
+{
 	enum mt8173_rt5650_mclk pll_from;
 	/* 0 = external oscillator; 1 = internal source from mt8173 */
 };
 
-static struct mt8173_rt5650_platform_data mt8173_rt5650_priv = {
+static struct mt8173_rt5650_platform_data mt8173_rt5650_priv =
+{
 	.pll_from = MT8173_RT5650_MCLK_EXTERNAL,
 };
 
-static const struct snd_soc_dapm_widget mt8173_rt5650_widgets[] = {
+static const struct snd_soc_dapm_widget mt8173_rt5650_widgets[] =
+{
 	SND_SOC_DAPM_SPK("Speaker", NULL),
 	SND_SOC_DAPM_MIC("Int Mic", NULL),
 	SND_SOC_DAPM_HP("Headphone", NULL),
 	SND_SOC_DAPM_MIC("Headset Mic", NULL),
 };
 
-static const struct snd_soc_dapm_route mt8173_rt5650_routes[] = {
+static const struct snd_soc_dapm_route mt8173_rt5650_routes[] =
+{
 	{"Speaker", NULL, "SPOL"},
 	{"Speaker", NULL, "SPOR"},
 	{"DMIC L1", NULL, "Int Mic"},
@@ -57,7 +62,8 @@ static const struct snd_soc_dapm_route mt8173_rt5650_routes[] = {
 	{"IN1N", NULL, "Headset Mic"},
 };
 
-static const struct snd_kcontrol_new mt8173_rt5650_controls[] = {
+static const struct snd_kcontrol_new mt8173_rt5650_controls[] =
+{
 	SOC_DAPM_PIN_SWITCH("Speaker"),
 	SOC_DAPM_PIN_SWITCH("Int Mic"),
 	SOC_DAPM_PIN_SWITCH("Headphone"),
@@ -65,47 +71,59 @@ static const struct snd_kcontrol_new mt8173_rt5650_controls[] = {
 };
 
 static int mt8173_rt5650_hw_params(struct snd_pcm_substream *substream,
-				   struct snd_pcm_hw_params *params)
+								   struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	unsigned int mclk_clock;
 	int i, ret;
 
-	switch (mt8173_rt5650_priv.pll_from) {
-	case MT8173_RT5650_MCLK_EXTERNAL:
-		/* mclk = 12.288M */
-		mclk_clock = MCLK_FOR_CODECS;
-		break;
-	case MT8173_RT5650_MCLK_INTERNAL:
-		/* mclk = sampling rate*256 */
-		mclk_clock = params_rate(params) * 256;
-		break;
-	default:
-		/* mclk = 12.288M */
-		mclk_clock = MCLK_FOR_CODECS;
-		break;
+	switch (mt8173_rt5650_priv.pll_from)
+	{
+		case MT8173_RT5650_MCLK_EXTERNAL:
+			/* mclk = 12.288M */
+			mclk_clock = MCLK_FOR_CODECS;
+			break;
+
+		case MT8173_RT5650_MCLK_INTERNAL:
+			/* mclk = sampling rate*256 */
+			mclk_clock = params_rate(params) * 256;
+			break;
+
+		default:
+			/* mclk = 12.288M */
+			mclk_clock = MCLK_FOR_CODECS;
+			break;
 	}
 
-	for (i = 0; i < rtd->num_codecs; i++) {
+	for (i = 0; i < rtd->num_codecs; i++)
+	{
 		struct snd_soc_dai *codec_dai = rtd->codec_dais[i];
 
 		/* pll from mclk */
 		ret = snd_soc_dai_set_pll(codec_dai, 0, 0, mclk_clock,
-					  params_rate(params) * 512);
+								  params_rate(params) * 512);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		/* sysclk from pll */
 		ret = snd_soc_dai_set_sysclk(codec_dai, 1,
-					     params_rate(params) * 512,
-					     SND_SOC_CLOCK_IN);
+									 params_rate(params) * 512,
+									 SND_SOC_CLOCK_IN);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
+
 	return 0;
 }
 
-static struct snd_soc_ops mt8173_rt5650_ops = {
+static struct snd_soc_ops mt8173_rt5650_ops =
+{
 	.hw_params = mt8173_rt5650_hw_params,
 };
 
@@ -119,43 +137,51 @@ static int mt8173_rt5650_init(struct snd_soc_pcm_runtime *runtime)
 	int ret;
 
 	rt5645_sel_asrc_clk_src(codec,
-				RT5645_DA_STEREO_FILTER,
-				RT5645_CLK_SEL_I2S1_ASRC);
+							RT5645_DA_STEREO_FILTER,
+							RT5645_CLK_SEL_I2S1_ASRC);
 
-	if (!strcmp(codec_capture_dai, "rt5645-aif1")) {
+	if (!strcmp(codec_capture_dai, "rt5645-aif1"))
+	{
 		rt5645_sel_asrc_clk_src(codec,
-					RT5645_AD_STEREO_FILTER,
-					RT5645_CLK_SEL_I2S1_ASRC);
-	} else if (!strcmp(codec_capture_dai, "rt5645-aif2")) {
+								RT5645_AD_STEREO_FILTER,
+								RT5645_CLK_SEL_I2S1_ASRC);
+	}
+	else if (!strcmp(codec_capture_dai, "rt5645-aif2"))
+	{
 		rt5645_sel_asrc_clk_src(codec,
-					RT5645_AD_STEREO_FILTER,
-					RT5645_CLK_SEL_I2S2_ASRC);
-	} else {
+								RT5645_AD_STEREO_FILTER,
+								RT5645_CLK_SEL_I2S2_ASRC);
+	}
+	else
+	{
 		dev_warn(card->dev,
-			 "Only one dai codec found in DTS, enabled rt5645 AD filter\n");
+				 "Only one dai codec found in DTS, enabled rt5645 AD filter\n");
 		rt5645_sel_asrc_clk_src(codec,
-					RT5645_AD_STEREO_FILTER,
-					RT5645_CLK_SEL_I2S1_ASRC);
+								RT5645_AD_STEREO_FILTER,
+								RT5645_CLK_SEL_I2S1_ASRC);
 	}
 
 	/* enable jack detection */
 	ret = snd_soc_card_jack_new(card, "Headset Jack",
-				    SND_JACK_HEADPHONE | SND_JACK_MICROPHONE |
-				    SND_JACK_BTN_0 | SND_JACK_BTN_1 |
-				    SND_JACK_BTN_2 | SND_JACK_BTN_3,
-				    &mt8173_rt5650_jack, NULL, 0);
-	if (ret) {
+								SND_JACK_HEADPHONE | SND_JACK_MICROPHONE |
+								SND_JACK_BTN_0 | SND_JACK_BTN_1 |
+								SND_JACK_BTN_2 | SND_JACK_BTN_3,
+								&mt8173_rt5650_jack, NULL, 0);
+
+	if (ret)
+	{
 		dev_err(card->dev, "Can't new Headset Jack %d\n", ret);
 		return ret;
 	}
 
 	return rt5645_set_jack_detect(codec,
-				      &mt8173_rt5650_jack,
-				      &mt8173_rt5650_jack,
-				      &mt8173_rt5650_jack);
+								  &mt8173_rt5650_jack,
+								  &mt8173_rt5650_jack,
+								  &mt8173_rt5650_jack);
 }
 
-static struct snd_soc_dai_link_component mt8173_rt5650_codecs[] = {
+static struct snd_soc_dai_link_component mt8173_rt5650_codecs[] =
+{
 	{
 		/* Playback */
 		.dai_name = "rt5645-aif1",
@@ -166,7 +192,8 @@ static struct snd_soc_dai_link_component mt8173_rt5650_codecs[] = {
 	},
 };
 
-enum {
+enum
+{
 	DAI_LINK_PLAYBACK,
 	DAI_LINK_CAPTURE,
 	DAI_LINK_HDMI,
@@ -175,7 +202,8 @@ enum {
 };
 
 /* Digital audio interface glue - connects codec <---> CPU */
-static struct snd_soc_dai_link mt8173_rt5650_dais[] = {
+static struct snd_soc_dai_link mt8173_rt5650_dais[] =
+{
 	/* Front End DAI links */
 	[DAI_LINK_PLAYBACK] = {
 		.name = "rt5650 Playback",
@@ -216,7 +244,7 @@ static struct snd_soc_dai_link mt8173_rt5650_dais[] = {
 		.num_codecs = 2,
 		.init = mt8173_rt5650_init,
 		.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
-			   SND_SOC_DAIFMT_CBS_CFS,
+		SND_SOC_DAIFMT_CBS_CFS,
 		.ops = &mt8173_rt5650_ops,
 		.ignore_pmdown_time = 1,
 		.dpcm_playback = 1,
@@ -231,7 +259,8 @@ static struct snd_soc_dai_link mt8173_rt5650_dais[] = {
 	},
 };
 
-static struct snd_soc_card mt8173_rt5650_card = {
+static struct snd_soc_card mt8173_rt5650_card =
+{
 	.name = "mtk-rt5650",
 	.owner = THIS_MODULE,
 	.dai_link = mt8173_rt5650_dais,
@@ -253,85 +282,111 @@ static int mt8173_rt5650_dev_probe(struct platform_device *pdev)
 	int i, ret;
 
 	platform_node = of_parse_phandle(pdev->dev.of_node,
-					 "mediatek,platform", 0);
-	if (!platform_node) {
+									 "mediatek,platform", 0);
+
+	if (!platform_node)
+	{
 		dev_err(&pdev->dev, "Property 'platform' missing or invalid\n");
 		return -EINVAL;
 	}
 
-	for (i = 0; i < card->num_links; i++) {
+	for (i = 0; i < card->num_links; i++)
+	{
 		if (mt8173_rt5650_dais[i].platform_name)
+		{
 			continue;
+		}
+
 		mt8173_rt5650_dais[i].platform_of_node = platform_node;
 	}
 
 	mt8173_rt5650_codecs[0].of_node =
 		of_parse_phandle(pdev->dev.of_node, "mediatek,audio-codec", 0);
-	if (!mt8173_rt5650_codecs[0].of_node) {
+
+	if (!mt8173_rt5650_codecs[0].of_node)
+	{
 		dev_err(&pdev->dev,
-			"Property 'audio-codec' missing or invalid\n");
+				"Property 'audio-codec' missing or invalid\n");
 		return -EINVAL;
 	}
+
 	mt8173_rt5650_codecs[1].of_node = mt8173_rt5650_codecs[0].of_node;
 
-	if (of_find_node_by_name(platform_node, "codec-capture")) {
+	if (of_find_node_by_name(platform_node, "codec-capture"))
+	{
 		np = of_get_child_by_name(pdev->dev.of_node, "codec-capture");
-		if (!np) {
+
+		if (!np)
+		{
 			dev_err(&pdev->dev,
-				"%s: Can't find codec-capture DT node\n",
-				__func__);
+					"%s: Can't find codec-capture DT node\n",
+					__func__);
 			return -EINVAL;
 		}
+
 		ret = snd_soc_of_get_dai_name(np, &codec_capture_dai);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(&pdev->dev,
-				"%s codec_capture_dai name fail %d\n",
-				__func__, ret);
+					"%s codec_capture_dai name fail %d\n",
+					__func__, ret);
 			return ret;
 		}
+
 		mt8173_rt5650_codecs[1].dai_name = codec_capture_dai;
 	}
 
-	if (device_property_present(&pdev->dev, "mediatek,mclk")) {
+	if (device_property_present(&pdev->dev, "mediatek,mclk"))
+	{
 		ret = device_property_read_u32(&pdev->dev,
-					       "mediatek,mclk",
-					       &mt8173_rt5650_priv.pll_from);
-		if (ret) {
+									   "mediatek,mclk",
+									   &mt8173_rt5650_priv.pll_from);
+
+		if (ret)
+		{
 			dev_err(&pdev->dev,
-				"%s snd_soc_register_card fail %d\n",
-				__func__, ret);
+					"%s snd_soc_register_card fail %d\n",
+					__func__, ret);
 		}
 	}
 
 	mt8173_rt5650_dais[DAI_LINK_HDMI_I2S].codec_of_node =
 		of_parse_phandle(pdev->dev.of_node, "mediatek,audio-codec", 1);
-	if (!mt8173_rt5650_dais[DAI_LINK_HDMI_I2S].codec_of_node) {
+
+	if (!mt8173_rt5650_dais[DAI_LINK_HDMI_I2S].codec_of_node)
+	{
 		dev_err(&pdev->dev,
-			"Property 'audio-codec' missing or invalid\n");
+				"Property 'audio-codec' missing or invalid\n");
 		return -EINVAL;
 	}
+
 	card->dev = &pdev->dev;
 	platform_set_drvdata(pdev, card);
 
 	ret = devm_snd_soc_register_card(&pdev->dev, card);
+
 	if (ret)
 		dev_err(&pdev->dev, "%s snd_soc_register_card fail %d\n",
-			__func__, ret);
+				__func__, ret);
+
 	return ret;
 }
 
-static const struct of_device_id mt8173_rt5650_dt_match[] = {
+static const struct of_device_id mt8173_rt5650_dt_match[] =
+{
 	{ .compatible = "mediatek,mt8173-rt5650", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, mt8173_rt5650_dt_match);
 
-static struct platform_driver mt8173_rt5650_driver = {
+static struct platform_driver mt8173_rt5650_driver =
+{
 	.driver = {
-		   .name = "mtk-rt5650",
-		   .of_match_table = mt8173_rt5650_dt_match,
+		.name = "mtk-rt5650",
+		.of_match_table = mt8173_rt5650_dt_match,
 #ifdef CONFIG_PM
-		   .pm = &snd_soc_pm_ops,
+		.pm = &snd_soc_pm_ops,
 #endif
 	},
 	.probe = mt8173_rt5650_dev_probe,

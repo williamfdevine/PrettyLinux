@@ -34,10 +34,10 @@
 #define EXYNOS_5250_HOSTPHYCTRL0_PHYSWRSTALL		BIT(31)
 #define EXYNOS_5250_HOSTPHYCTRL0_REFCLKSEL_SHIFT	19
 #define EXYNOS_5250_HOSTPHYCTRL0_REFCLKSEL_MASK	\
-		(0x3 << EXYNOS_5250_HOSTPHYCTRL0_REFCLKSEL_SHIFT)
+	(0x3 << EXYNOS_5250_HOSTPHYCTRL0_REFCLKSEL_SHIFT)
 #define EXYNOS_5250_HOSTPHYCTRL0_FSEL_SHIFT		16
 #define EXYNOS_5250_HOSTPHYCTRL0_FSEL_MASK \
-		(0x7 << EXYNOS_5250_HOSTPHYCTRL0_FSEL_SHIFT)
+	(0x7 << EXYNOS_5250_HOSTPHYCTRL0_FSEL_SHIFT)
 #define EXYNOS_5250_HOSTPHYCTRL0_TESTBURNIN		BIT(11)
 #define EXYNOS_5250_HOSTPHYCTRL0_RETENABLE		BIT(10)
 #define EXYNOS_5250_HOSTPHYCTRL0_COMMON_ON_N		BIT(9)
@@ -81,23 +81,23 @@
 #define EXYNOS_5250_HOSTEHCICTRL_AUTOPPDONOVRCUREN	BIT(25)
 #define EXYNOS_5250_HOSTEHCICTRL_FLADJVAL0_SHIFT	19
 #define EXYNOS_5250_HOSTEHCICTRL_FLADJVAL0_MASK	\
-		(0x3f << EXYNOS_5250_HOSTEHCICTRL_FLADJVAL0_SHIFT)
+	(0x3f << EXYNOS_5250_HOSTEHCICTRL_FLADJVAL0_SHIFT)
 #define EXYNOS_5250_HOSTEHCICTRL_FLADJVAL1_SHIFT	13
 #define EXYNOS_5250_HOSTEHCICTRL_FLADJVAL1_MASK	\
-		(0x3f << EXYNOS_5250_HOSTEHCICTRL_FLADJVAL1_SHIFT)
+	(0x3f << EXYNOS_5250_HOSTEHCICTRL_FLADJVAL1_SHIFT)
 #define EXYNOS_5250_HOSTEHCICTRL_FLADJVAL2_SHIFT	7
 #define EXYNOS_5250_HOSTEHCICTRL_FLADJVAL0_MASK	\
-		(0x3f << EXYNOS_5250_HOSTEHCICTRL_FLADJVAL0_SHIFT)
+	(0x3f << EXYNOS_5250_HOSTEHCICTRL_FLADJVAL0_SHIFT)
 #define EXYNOS_5250_HOSTEHCICTRL_FLADJVALHOST_SHIFT	1
 #define EXYNOS_5250_HOSTEHCICTRL_FLADJVALHOST_MASK \
-		(0x1 << EXYNOS_5250_HOSTEHCICTRL_FLADJVALHOST_SHIFT)
+	(0x1 << EXYNOS_5250_HOSTEHCICTRL_FLADJVALHOST_SHIFT)
 #define EXYNOS_5250_HOSTEHCICTRL_SIMULATIONMODE		BIT(0)
 
 /* OHCI control */
 #define EXYNOS_5250_HOSTOHCICTRL                        0x34
 #define EXYNOS_5250_HOSTOHCICTRL_FRAMELENVAL_SHIFT	1
 #define EXYNOS_5250_HOSTOHCICTRL_FRAMELENVAL_MASK \
-		(0x3ff << EXYNOS_5250_HOSTOHCICTRL_FRAMELENVAL_SHIFT)
+	(0x3ff << EXYNOS_5250_HOSTOHCICTRL_FRAMELENVAL_SHIFT)
 #define EXYNOS_5250_HOSTOHCICTRL_FRAMELENVALEN		BIT(0)
 
 /* USBOTG */
@@ -107,12 +107,12 @@
 #define EXYNOS_5250_USBOTGSYS_PHY_SW_RST		BIT(12)
 #define EXYNOS_5250_USBOTGSYS_REFCLKSEL_SHIFT		9
 #define EXYNOS_5250_USBOTGSYS_REFCLKSEL_MASK \
-		(0x3 << EXYNOS_5250_USBOTGSYS_REFCLKSEL_SHIFT)
+	(0x3 << EXYNOS_5250_USBOTGSYS_REFCLKSEL_SHIFT)
 #define EXYNOS_5250_USBOTGSYS_ID_PULLUP			BIT(8)
 #define EXYNOS_5250_USBOTGSYS_COMMON_ON			BIT(7)
 #define EXYNOS_5250_USBOTGSYS_FSEL_SHIFT		4
 #define EXYNOS_5250_USBOTGSYS_FSEL_MASK \
-		(0x3 << EXYNOS_5250_USBOTGSYS_FSEL_SHIFT)
+	(0x3 << EXYNOS_5250_USBOTGSYS_FSEL_SHIFT)
 #define EXYNOS_5250_USBOTGSYS_FORCE_SLEEP		BIT(3)
 #define EXYNOS_5250_USBOTGSYS_OTGDISABLE		BIT(2)
 #define EXYNOS_5250_USBOTGSYS_SIDDQ_UOTG		BIT(1)
@@ -130,7 +130,8 @@
 #define EXYNOS_5250_MODE_SWITCH_DEVICE		0
 #define EXYNOS_5250_MODE_SWITCH_HOST		1
 
-enum exynos4x12_phy_id {
+enum exynos4x12_phy_id
+{
 	EXYNOS5250_DEVICE,
 	EXYNOS5250_HOST,
 	EXYNOS5250_HSIC0,
@@ -146,30 +147,38 @@ static int exynos5250_rate_to_clk(unsigned long rate, u32 *reg)
 {
 	/* EXYNOS_5250_FSEL_MASK */
 
-	switch (rate) {
-	case 9600 * KHZ:
-		*reg = EXYNOS_5250_FSEL_9MHZ6;
-		break;
-	case 10 * MHZ:
-		*reg = EXYNOS_5250_FSEL_10MHZ;
-		break;
-	case 12 * MHZ:
-		*reg = EXYNOS_5250_FSEL_12MHZ;
-		break;
-	case 19200 * KHZ:
-		*reg = EXYNOS_5250_FSEL_19MHZ2;
-		break;
-	case 20 * MHZ:
-		*reg = EXYNOS_5250_FSEL_20MHZ;
-		break;
-	case 24 * MHZ:
-		*reg = EXYNOS_5250_FSEL_24MHZ;
-		break;
-	case 50 * MHZ:
-		*reg = EXYNOS_5250_FSEL_50MHZ;
-		break;
-	default:
-		return -EINVAL;
+	switch (rate)
+	{
+		case 9600 * KHZ:
+			*reg = EXYNOS_5250_FSEL_9MHZ6;
+			break;
+
+		case 10 * MHZ:
+			*reg = EXYNOS_5250_FSEL_10MHZ;
+			break;
+
+		case 12 * MHZ:
+			*reg = EXYNOS_5250_FSEL_12MHZ;
+			break;
+
+		case 19200 * KHZ:
+			*reg = EXYNOS_5250_FSEL_19MHZ2;
+			break;
+
+		case 20 * MHZ:
+			*reg = EXYNOS_5250_FSEL_20MHZ;
+			break;
+
+		case 24 * MHZ:
+			*reg = EXYNOS_5250_FSEL_24MHZ;
+			break;
+
+		case 50 * MHZ:
+			*reg = EXYNOS_5250_FSEL_50MHZ;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
@@ -181,17 +190,20 @@ static void exynos5250_isol(struct samsung_usb2_phy_instance *inst, bool on)
 	u32 offset;
 	u32 mask;
 
-	switch (inst->cfg->id) {
-	case EXYNOS5250_DEVICE:
-		offset = EXYNOS_5250_USB_ISOL_OTG_OFFSET;
-		mask = EXYNOS_5250_USB_ISOL_OTG;
-		break;
-	case EXYNOS5250_HOST:
-		offset = EXYNOS_5250_USB_ISOL_HOST_OFFSET;
-		mask = EXYNOS_5250_USB_ISOL_HOST;
-		break;
-	default:
-		return;
+	switch (inst->cfg->id)
+	{
+		case EXYNOS5250_DEVICE:
+			offset = EXYNOS_5250_USB_ISOL_OTG_OFFSET;
+			mask = EXYNOS_5250_USB_ISOL_OTG;
+			break;
+
+		case EXYNOS5250_HOST:
+			offset = EXYNOS_5250_USB_ISOL_HOST_OFFSET;
+			mask = EXYNOS_5250_USB_ISOL_HOST;
+			break;
+
+		default:
+			return;
 	};
 
 	regmap_update_bits(drv->reg_pmu, offset, mask, on ? 0 : mask);
@@ -206,118 +218,121 @@ static int exynos5250_power_on(struct samsung_usb2_phy_instance *inst)
 	u32 ohci;
 	u32 hsic;
 
-	switch (inst->cfg->id) {
-	case EXYNOS5250_DEVICE:
-		regmap_update_bits(drv->reg_sys,
-				   EXYNOS_5250_MODE_SWITCH_OFFSET,
-				   EXYNOS_5250_MODE_SWITCH_MASK,
-				   EXYNOS_5250_MODE_SWITCH_DEVICE);
+	switch (inst->cfg->id)
+	{
+		case EXYNOS5250_DEVICE:
+			regmap_update_bits(drv->reg_sys,
+							   EXYNOS_5250_MODE_SWITCH_OFFSET,
+							   EXYNOS_5250_MODE_SWITCH_MASK,
+							   EXYNOS_5250_MODE_SWITCH_DEVICE);
 
-		/* OTG configuration */
-		otg = readl(drv->reg_phy + EXYNOS_5250_USBOTGSYS);
-		/* The clock */
-		otg &= ~EXYNOS_5250_USBOTGSYS_FSEL_MASK;
-		otg |= drv->ref_reg_val << EXYNOS_5250_USBOTGSYS_FSEL_SHIFT;
-		/* Reset */
-		otg &= ~(EXYNOS_5250_USBOTGSYS_FORCE_SUSPEND |
-			EXYNOS_5250_USBOTGSYS_FORCE_SLEEP |
-			EXYNOS_5250_USBOTGSYS_SIDDQ_UOTG);
-		otg |=	EXYNOS_5250_USBOTGSYS_PHY_SW_RST |
-			EXYNOS_5250_USBOTGSYS_PHYLINK_SW_RESET |
-			EXYNOS_5250_USBOTGSYS_LINK_SW_RST_UOTG |
-			EXYNOS_5250_USBOTGSYS_OTGDISABLE;
-		/* Ref clock */
-		otg &=	~EXYNOS_5250_USBOTGSYS_REFCLKSEL_MASK;
-		otg |=  EXYNOS_5250_REFCLKSEL_CLKCORE <<
+			/* OTG configuration */
+			otg = readl(drv->reg_phy + EXYNOS_5250_USBOTGSYS);
+			/* The clock */
+			otg &= ~EXYNOS_5250_USBOTGSYS_FSEL_MASK;
+			otg |= drv->ref_reg_val << EXYNOS_5250_USBOTGSYS_FSEL_SHIFT;
+			/* Reset */
+			otg &= ~(EXYNOS_5250_USBOTGSYS_FORCE_SUSPEND |
+					 EXYNOS_5250_USBOTGSYS_FORCE_SLEEP |
+					 EXYNOS_5250_USBOTGSYS_SIDDQ_UOTG);
+			otg |=	EXYNOS_5250_USBOTGSYS_PHY_SW_RST |
+					EXYNOS_5250_USBOTGSYS_PHYLINK_SW_RESET |
+					EXYNOS_5250_USBOTGSYS_LINK_SW_RST_UOTG |
+					EXYNOS_5250_USBOTGSYS_OTGDISABLE;
+			/* Ref clock */
+			otg &=	~EXYNOS_5250_USBOTGSYS_REFCLKSEL_MASK;
+			otg |=  EXYNOS_5250_REFCLKSEL_CLKCORE <<
 					EXYNOS_5250_USBOTGSYS_REFCLKSEL_SHIFT;
-		writel(otg, drv->reg_phy + EXYNOS_5250_USBOTGSYS);
-		udelay(100);
-		otg &= ~(EXYNOS_5250_USBOTGSYS_PHY_SW_RST |
-			EXYNOS_5250_USBOTGSYS_LINK_SW_RST_UOTG |
-			EXYNOS_5250_USBOTGSYS_PHYLINK_SW_RESET |
-			EXYNOS_5250_USBOTGSYS_OTGDISABLE);
-		writel(otg, drv->reg_phy + EXYNOS_5250_USBOTGSYS);
+			writel(otg, drv->reg_phy + EXYNOS_5250_USBOTGSYS);
+			udelay(100);
+			otg &= ~(EXYNOS_5250_USBOTGSYS_PHY_SW_RST |
+					 EXYNOS_5250_USBOTGSYS_LINK_SW_RST_UOTG |
+					 EXYNOS_5250_USBOTGSYS_PHYLINK_SW_RESET |
+					 EXYNOS_5250_USBOTGSYS_OTGDISABLE);
+			writel(otg, drv->reg_phy + EXYNOS_5250_USBOTGSYS);
 
 
-		break;
-	case EXYNOS5250_HOST:
-	case EXYNOS5250_HSIC0:
-	case EXYNOS5250_HSIC1:
-		/* Host registers configuration */
-		ctrl0 = readl(drv->reg_phy + EXYNOS_5250_HOSTPHYCTRL0);
-		/* The clock */
-		ctrl0 &= ~EXYNOS_5250_HOSTPHYCTRL0_FSEL_MASK;
-		ctrl0 |= drv->ref_reg_val <<
-					EXYNOS_5250_HOSTPHYCTRL0_FSEL_SHIFT;
+			break;
 
-		/* Reset */
-		ctrl0 &=	~(EXYNOS_5250_HOSTPHYCTRL0_PHYSWRST |
-				EXYNOS_5250_HOSTPHYCTRL0_PHYSWRSTALL |
-				EXYNOS_5250_HOSTPHYCTRL0_SIDDQ |
-				EXYNOS_5250_HOSTPHYCTRL0_FORCESUSPEND |
-				EXYNOS_5250_HOSTPHYCTRL0_FORCESLEEP);
-		ctrl0 |=	EXYNOS_5250_HOSTPHYCTRL0_LINKSWRST |
-				EXYNOS_5250_HOSTPHYCTRL0_UTMISWRST |
-				EXYNOS_5250_HOSTPHYCTRL0_COMMON_ON_N;
-		writel(ctrl0, drv->reg_phy + EXYNOS_5250_HOSTPHYCTRL0);
-		udelay(10);
-		ctrl0 &=	~(EXYNOS_5250_HOSTPHYCTRL0_LINKSWRST |
-				EXYNOS_5250_HOSTPHYCTRL0_UTMISWRST);
-		writel(ctrl0, drv->reg_phy + EXYNOS_5250_HOSTPHYCTRL0);
+		case EXYNOS5250_HOST:
+		case EXYNOS5250_HSIC0:
+		case EXYNOS5250_HSIC1:
+			/* Host registers configuration */
+			ctrl0 = readl(drv->reg_phy + EXYNOS_5250_HOSTPHYCTRL0);
+			/* The clock */
+			ctrl0 &= ~EXYNOS_5250_HOSTPHYCTRL0_FSEL_MASK;
+			ctrl0 |= drv->ref_reg_val <<
+					 EXYNOS_5250_HOSTPHYCTRL0_FSEL_SHIFT;
 
-		/* OTG configuration */
-		otg = readl(drv->reg_phy + EXYNOS_5250_USBOTGSYS);
-		/* The clock */
-		otg &= ~EXYNOS_5250_USBOTGSYS_FSEL_MASK;
-		otg |= drv->ref_reg_val << EXYNOS_5250_USBOTGSYS_FSEL_SHIFT;
-		/* Reset */
-		otg &= ~(EXYNOS_5250_USBOTGSYS_FORCE_SUSPEND |
-			EXYNOS_5250_USBOTGSYS_FORCE_SLEEP |
-			EXYNOS_5250_USBOTGSYS_SIDDQ_UOTG);
-		otg |=	EXYNOS_5250_USBOTGSYS_PHY_SW_RST |
-			EXYNOS_5250_USBOTGSYS_PHYLINK_SW_RESET |
-			EXYNOS_5250_USBOTGSYS_LINK_SW_RST_UOTG |
-			EXYNOS_5250_USBOTGSYS_OTGDISABLE;
-		/* Ref clock */
-		otg &=	~EXYNOS_5250_USBOTGSYS_REFCLKSEL_MASK;
-		otg |=  EXYNOS_5250_REFCLKSEL_CLKCORE <<
+			/* Reset */
+			ctrl0 &=	~(EXYNOS_5250_HOSTPHYCTRL0_PHYSWRST |
+						  EXYNOS_5250_HOSTPHYCTRL0_PHYSWRSTALL |
+						  EXYNOS_5250_HOSTPHYCTRL0_SIDDQ |
+						  EXYNOS_5250_HOSTPHYCTRL0_FORCESUSPEND |
+						  EXYNOS_5250_HOSTPHYCTRL0_FORCESLEEP);
+			ctrl0 |=	EXYNOS_5250_HOSTPHYCTRL0_LINKSWRST |
+						EXYNOS_5250_HOSTPHYCTRL0_UTMISWRST |
+						EXYNOS_5250_HOSTPHYCTRL0_COMMON_ON_N;
+			writel(ctrl0, drv->reg_phy + EXYNOS_5250_HOSTPHYCTRL0);
+			udelay(10);
+			ctrl0 &=	~(EXYNOS_5250_HOSTPHYCTRL0_LINKSWRST |
+						  EXYNOS_5250_HOSTPHYCTRL0_UTMISWRST);
+			writel(ctrl0, drv->reg_phy + EXYNOS_5250_HOSTPHYCTRL0);
+
+			/* OTG configuration */
+			otg = readl(drv->reg_phy + EXYNOS_5250_USBOTGSYS);
+			/* The clock */
+			otg &= ~EXYNOS_5250_USBOTGSYS_FSEL_MASK;
+			otg |= drv->ref_reg_val << EXYNOS_5250_USBOTGSYS_FSEL_SHIFT;
+			/* Reset */
+			otg &= ~(EXYNOS_5250_USBOTGSYS_FORCE_SUSPEND |
+					 EXYNOS_5250_USBOTGSYS_FORCE_SLEEP |
+					 EXYNOS_5250_USBOTGSYS_SIDDQ_UOTG);
+			otg |=	EXYNOS_5250_USBOTGSYS_PHY_SW_RST |
+					EXYNOS_5250_USBOTGSYS_PHYLINK_SW_RESET |
+					EXYNOS_5250_USBOTGSYS_LINK_SW_RST_UOTG |
+					EXYNOS_5250_USBOTGSYS_OTGDISABLE;
+			/* Ref clock */
+			otg &=	~EXYNOS_5250_USBOTGSYS_REFCLKSEL_MASK;
+			otg |=  EXYNOS_5250_REFCLKSEL_CLKCORE <<
 					EXYNOS_5250_USBOTGSYS_REFCLKSEL_SHIFT;
-		writel(otg, drv->reg_phy + EXYNOS_5250_USBOTGSYS);
-		udelay(10);
-		otg &= ~(EXYNOS_5250_USBOTGSYS_PHY_SW_RST |
-			EXYNOS_5250_USBOTGSYS_LINK_SW_RST_UOTG |
-			EXYNOS_5250_USBOTGSYS_PHYLINK_SW_RESET);
+			writel(otg, drv->reg_phy + EXYNOS_5250_USBOTGSYS);
+			udelay(10);
+			otg &= ~(EXYNOS_5250_USBOTGSYS_PHY_SW_RST |
+					 EXYNOS_5250_USBOTGSYS_LINK_SW_RST_UOTG |
+					 EXYNOS_5250_USBOTGSYS_PHYLINK_SW_RESET);
 
-		/* HSIC phy configuration */
-		hsic = (EXYNOS_5250_HSICPHYCTRLX_REFCLKDIV_12 |
-				EXYNOS_5250_HSICPHYCTRLX_REFCLKSEL_DEFAULT |
-				EXYNOS_5250_HSICPHYCTRLX_PHYSWRST);
-		writel(hsic, drv->reg_phy + EXYNOS_5250_HSICPHYCTRL1);
-		writel(hsic, drv->reg_phy + EXYNOS_5250_HSICPHYCTRL2);
-		udelay(10);
-		hsic &= ~EXYNOS_5250_HSICPHYCTRLX_PHYSWRST;
-		writel(hsic, drv->reg_phy + EXYNOS_5250_HSICPHYCTRL1);
-		writel(hsic, drv->reg_phy + EXYNOS_5250_HSICPHYCTRL2);
-		/* The following delay is necessary for the reset sequence to be
-		 * completed */
-		udelay(80);
+			/* HSIC phy configuration */
+			hsic = (EXYNOS_5250_HSICPHYCTRLX_REFCLKDIV_12 |
+					EXYNOS_5250_HSICPHYCTRLX_REFCLKSEL_DEFAULT |
+					EXYNOS_5250_HSICPHYCTRLX_PHYSWRST);
+			writel(hsic, drv->reg_phy + EXYNOS_5250_HSICPHYCTRL1);
+			writel(hsic, drv->reg_phy + EXYNOS_5250_HSICPHYCTRL2);
+			udelay(10);
+			hsic &= ~EXYNOS_5250_HSICPHYCTRLX_PHYSWRST;
+			writel(hsic, drv->reg_phy + EXYNOS_5250_HSICPHYCTRL1);
+			writel(hsic, drv->reg_phy + EXYNOS_5250_HSICPHYCTRL2);
+			/* The following delay is necessary for the reset sequence to be
+			 * completed */
+			udelay(80);
 
-		/* Enable EHCI DMA burst */
-		ehci = readl(drv->reg_phy + EXYNOS_5250_HOSTEHCICTRL);
-		ehci |=	EXYNOS_5250_HOSTEHCICTRL_ENAINCRXALIGN |
-			EXYNOS_5250_HOSTEHCICTRL_ENAINCR4 |
-			EXYNOS_5250_HOSTEHCICTRL_ENAINCR8 |
-			EXYNOS_5250_HOSTEHCICTRL_ENAINCR16;
-		writel(ehci, drv->reg_phy + EXYNOS_5250_HOSTEHCICTRL);
+			/* Enable EHCI DMA burst */
+			ehci = readl(drv->reg_phy + EXYNOS_5250_HOSTEHCICTRL);
+			ehci |=	EXYNOS_5250_HOSTEHCICTRL_ENAINCRXALIGN |
+					EXYNOS_5250_HOSTEHCICTRL_ENAINCR4 |
+					EXYNOS_5250_HOSTEHCICTRL_ENAINCR8 |
+					EXYNOS_5250_HOSTEHCICTRL_ENAINCR16;
+			writel(ehci, drv->reg_phy + EXYNOS_5250_HOSTEHCICTRL);
 
-		/* OHCI settings */
-		ohci = readl(drv->reg_phy + EXYNOS_5250_HOSTOHCICTRL);
-		/* Following code is based on the old driver */
-		ohci |=	0x1 << 3;
-		writel(ohci, drv->reg_phy + EXYNOS_5250_HOSTOHCICTRL);
+			/* OHCI settings */
+			ohci = readl(drv->reg_phy + EXYNOS_5250_HOSTOHCICTRL);
+			/* Following code is based on the old driver */
+			ohci |=	0x1 << 3;
+			writel(ohci, drv->reg_phy + EXYNOS_5250_HOSTOHCICTRL);
 
-		break;
+			break;
 	}
+
 	exynos5250_isol(inst, 0);
 
 	return 0;
@@ -332,41 +347,45 @@ static int exynos5250_power_off(struct samsung_usb2_phy_instance *inst)
 
 	exynos5250_isol(inst, 1);
 
-	switch (inst->cfg->id) {
-	case EXYNOS5250_DEVICE:
-		otg = readl(drv->reg_phy + EXYNOS_5250_USBOTGSYS);
-		otg |= (EXYNOS_5250_USBOTGSYS_FORCE_SUSPEND |
-			EXYNOS_5250_USBOTGSYS_SIDDQ_UOTG |
-			EXYNOS_5250_USBOTGSYS_FORCE_SLEEP);
-		writel(otg, drv->reg_phy + EXYNOS_5250_USBOTGSYS);
-		break;
-	case EXYNOS5250_HOST:
-		ctrl0 = readl(drv->reg_phy + EXYNOS_5250_HOSTPHYCTRL0);
-		ctrl0 |= (EXYNOS_5250_HOSTPHYCTRL0_SIDDQ |
-				EXYNOS_5250_HOSTPHYCTRL0_FORCESUSPEND |
-				EXYNOS_5250_HOSTPHYCTRL0_FORCESLEEP |
-				EXYNOS_5250_HOSTPHYCTRL0_PHYSWRST |
-				EXYNOS_5250_HOSTPHYCTRL0_PHYSWRSTALL);
-		writel(ctrl0, drv->reg_phy + EXYNOS_5250_HOSTPHYCTRL0);
-		break;
-	case EXYNOS5250_HSIC0:
-	case EXYNOS5250_HSIC1:
-		hsic = (EXYNOS_5250_HSICPHYCTRLX_REFCLKDIV_12 |
-				EXYNOS_5250_HSICPHYCTRLX_REFCLKSEL_DEFAULT |
-				EXYNOS_5250_HSICPHYCTRLX_SIDDQ |
-				EXYNOS_5250_HSICPHYCTRLX_FORCESLEEP |
-				EXYNOS_5250_HSICPHYCTRLX_FORCESUSPEND
-				);
-		writel(hsic, drv->reg_phy + EXYNOS_5250_HSICPHYCTRL1);
-		writel(hsic, drv->reg_phy + EXYNOS_5250_HSICPHYCTRL2);
-		break;
+	switch (inst->cfg->id)
+	{
+		case EXYNOS5250_DEVICE:
+			otg = readl(drv->reg_phy + EXYNOS_5250_USBOTGSYS);
+			otg |= (EXYNOS_5250_USBOTGSYS_FORCE_SUSPEND |
+					EXYNOS_5250_USBOTGSYS_SIDDQ_UOTG |
+					EXYNOS_5250_USBOTGSYS_FORCE_SLEEP);
+			writel(otg, drv->reg_phy + EXYNOS_5250_USBOTGSYS);
+			break;
+
+		case EXYNOS5250_HOST:
+			ctrl0 = readl(drv->reg_phy + EXYNOS_5250_HOSTPHYCTRL0);
+			ctrl0 |= (EXYNOS_5250_HOSTPHYCTRL0_SIDDQ |
+					  EXYNOS_5250_HOSTPHYCTRL0_FORCESUSPEND |
+					  EXYNOS_5250_HOSTPHYCTRL0_FORCESLEEP |
+					  EXYNOS_5250_HOSTPHYCTRL0_PHYSWRST |
+					  EXYNOS_5250_HOSTPHYCTRL0_PHYSWRSTALL);
+			writel(ctrl0, drv->reg_phy + EXYNOS_5250_HOSTPHYCTRL0);
+			break;
+
+		case EXYNOS5250_HSIC0:
+		case EXYNOS5250_HSIC1:
+			hsic = (EXYNOS_5250_HSICPHYCTRLX_REFCLKDIV_12 |
+					EXYNOS_5250_HSICPHYCTRLX_REFCLKSEL_DEFAULT |
+					EXYNOS_5250_HSICPHYCTRLX_SIDDQ |
+					EXYNOS_5250_HSICPHYCTRLX_FORCESLEEP |
+					EXYNOS_5250_HSICPHYCTRLX_FORCESUSPEND
+				   );
+			writel(hsic, drv->reg_phy + EXYNOS_5250_HSICPHYCTRL1);
+			writel(hsic, drv->reg_phy + EXYNOS_5250_HSICPHYCTRL2);
+			break;
 	}
 
 	return 0;
 }
 
 
-static const struct samsung_usb2_common_phy exynos5250_phys[] = {
+static const struct samsung_usb2_common_phy exynos5250_phys[] =
+{
 	{
 		.label		= "device",
 		.id		= EXYNOS5250_DEVICE,
@@ -393,7 +412,8 @@ static const struct samsung_usb2_common_phy exynos5250_phys[] = {
 	},
 };
 
-const struct samsung_usb2_phy_config exynos5250_usb2_phy_config = {
+const struct samsung_usb2_phy_config exynos5250_usb2_phy_config =
+{
 	.has_mode_switch	= 1,
 	.num_phys		= EXYNOS5250_NUM_PHYS,
 	.phys			= exynos5250_phys,

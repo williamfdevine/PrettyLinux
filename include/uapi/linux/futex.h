@@ -36,9 +36,9 @@
 #define FUTEX_WAIT_BITSET_PRIVATE	(FUTEX_WAIT_BITSET | FUTEX_PRIVATE_FLAG)
 #define FUTEX_WAKE_BITSET_PRIVATE	(FUTEX_WAKE_BITSET | FUTEX_PRIVATE_FLAG)
 #define FUTEX_WAIT_REQUEUE_PI_PRIVATE	(FUTEX_WAIT_REQUEUE_PI | \
-					 FUTEX_PRIVATE_FLAG)
+		FUTEX_PRIVATE_FLAG)
 #define FUTEX_CMP_REQUEUE_PI_PRIVATE	(FUTEX_CMP_REQUEUE_PI | \
-					 FUTEX_PRIVATE_FLAG)
+		FUTEX_PRIVATE_FLAG)
 
 /*
  * Support for robust futexes: the kernel cleans up held futexes at
@@ -54,7 +54,8 @@
  * NOTE: this structure is part of the syscall ABI, and must not be
  * changed.
  */
-struct robust_list {
+struct robust_list
+{
 	struct robust_list __user *next;
 };
 
@@ -66,7 +67,8 @@ struct robust_list {
  * (When an incompatible change is done, we'll increase the structure
  *  size, which glibc will detect)
  */
-struct robust_list_head {
+struct robust_list_head
+{
 	/*
 	 * The head of the list. Points back to itself if empty:
 	 */
@@ -146,7 +148,7 @@ struct robust_list_head {
      wake UADDR2;  */
 
 #define FUTEX_OP(op, oparg, cmp, cmparg) \
-  (((op & 0xf) << 28) | ((cmp & 0xf) << 24)		\
-   | ((oparg & 0xfff) << 12) | (cmparg & 0xfff))
+	(((op & 0xf) << 28) | ((cmp & 0xf) << 24)		\
+	 | ((oparg & 0xfff) << 12) | (cmparg & 0xfff))
 
 #endif /* _UAPI_LINUX_FUTEX_H */

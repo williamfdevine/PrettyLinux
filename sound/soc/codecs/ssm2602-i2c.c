@@ -21,10 +21,10 @@
  *    high = 0x1b
  */
 static int ssm2602_i2c_probe(struct i2c_client *client,
-			     const struct i2c_device_id *id)
+							 const struct i2c_device_id *id)
 {
 	return ssm2602_probe(&client->dev, id->driver_data,
-		devm_regmap_init_i2c(client, &ssm2602_regmap_config));
+						 devm_regmap_init_i2c(client, &ssm2602_regmap_config));
 }
 
 static int ssm2602_i2c_remove(struct i2c_client *client)
@@ -33,7 +33,8 @@ static int ssm2602_i2c_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id ssm2602_i2c_id[] = {
+static const struct i2c_device_id ssm2602_i2c_id[] =
+{
 	{ "ssm2602", SSM2602 },
 	{ "ssm2603", SSM2602 },
 	{ "ssm2604", SSM2604 },
@@ -41,7 +42,8 @@ static const struct i2c_device_id ssm2602_i2c_id[] = {
 };
 MODULE_DEVICE_TABLE(i2c, ssm2602_i2c_id);
 
-static const struct of_device_id ssm2602_of_match[] = {
+static const struct of_device_id ssm2602_of_match[] =
+{
 	{ .compatible = "adi,ssm2602", },
 	{ .compatible = "adi,ssm2603", },
 	{ .compatible = "adi,ssm2604", },
@@ -49,7 +51,8 @@ static const struct of_device_id ssm2602_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, ssm2602_of_match);
 
-static struct i2c_driver ssm2602_i2c_driver = {
+static struct i2c_driver ssm2602_i2c_driver =
+{
 	.driver = {
 		.name = "ssm2602",
 		.of_match_table = ssm2602_of_match,

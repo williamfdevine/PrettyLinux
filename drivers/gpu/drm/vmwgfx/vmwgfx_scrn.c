@@ -48,7 +48,8 @@
  * @dst_y: Difference between source clip rects and framebuffer coordinates.
  * @sid: Surface id of surface to copy from.
  */
-struct vmw_kms_sou_surface_dirty {
+struct vmw_kms_sou_surface_dirty
+{
 	struct vmw_kms_dirty base;
 	s32 left, right, top, bottom;
 	s32 dst_x, dst_y;
@@ -59,17 +60,20 @@ struct vmw_kms_sou_surface_dirty {
  * SVGA commands that are used by this code. Please see the device headers
  * for explanation.
  */
-struct vmw_kms_sou_readback_blit {
+struct vmw_kms_sou_readback_blit
+{
 	uint32 header;
 	SVGAFifoCmdBlitScreenToGMRFB body;
 };
 
-struct vmw_kms_sou_dmabuf_blit {
+struct vmw_kms_sou_dmabuf_blit
+{
 	uint32 header;
 	SVGAFifoCmdBlitGMRFBToScreen body;
 };
 
-struct vmw_kms_sou_dirty_cmd {
+struct vmw_kms_sou_dirty_cmd
+{
 	SVGA3dCmdHeader header;
 	SVGA3dCmdBlitSurfaceToScreen body;
 };
@@ -77,7 +81,8 @@ struct vmw_kms_sou_dirty_cmd {
 /**
  * Display unit using screen objects.
  */
-struct vmw_screen_object_unit {
+struct vmw_screen_object_unit
+{
 	struct vmw_display_unit base;
 
 	unsigned long buffer_size; /**< Size of allocated buffer */
@@ -106,14 +111,16 @@ static void vmw_sou_crtc_destroy(struct drm_crtc *crtc)
  * Send the fifo command to create a screen.
  */
 static int vmw_sou_fifo_create(struct vmw_private *dev_priv,
-			       struct vmw_screen_object_unit *sou,
-			       uint32_t x, uint32_t y,
-			       struct drm_display_mode *mode)
+							   struct vmw_screen_object_unit *sou,
+							   uint32_t x, uint32_t y,
+							   struct drm_display_mode *mode)
 {
 	size_t fifo_size;
 
-	struct {
-		struct {
+	struct
+	{
+		struct
+		{
 			uint32_t cmdType;
 		} header;
 		SVGAScreenObject obj;
@@ -123,8 +130,10 @@ static int vmw_sou_fifo_create(struct vmw_private *dev_priv,
 
 	fifo_size = sizeof(*cmd);
 	cmd = vmw_fifo_reserve(dev_priv, fifo_size);
+
 	/* The hardware has hung, nothing we can do about it here. */
-	if (unlikely(cmd == NULL)) {
+	if (unlikely(cmd == NULL))
+	{
 		DRM_ERROR("Fifo reserve failed.\n");
 		return -ENOMEM;
 	}
@@ -134,16 +143,21 @@ static int vmw_sou_fifo_create(struct vmw_private *dev_priv,
 	cmd->obj.structSize = sizeof(SVGAScreenObject);
 	cmd->obj.id = sou->base.unit;
 	cmd->obj.flags = SVGA_SCREEN_HAS_ROOT |
-		(sou->base.unit == 0 ? SVGA_SCREEN_IS_PRIMARY : 0);
+					 (sou->base.unit == 0 ? SVGA_SCREEN_IS_PRIMARY : 0);
 	cmd->obj.size.width = mode->hdisplay;
 	cmd->obj.size.height = mode->vdisplay;
-	if (sou->base.is_implicit) {
+
+	if (sou->base.is_implicit)
+	{
 		cmd->obj.root.x = x;
 		cmd->obj.root.y = y;
-	} else {
+	}
+	else
+	{
 		cmd->obj.root.x = sou->base.gui_x;
 		cmd->obj.root.y = sou->base.gui_y;
 	}
+
 	sou->base.set_gui_x = cmd->obj.root.x;
 	sou->base.set_gui_y = cmd->obj.root.y;
 
@@ -162,13 +176,15 @@ static int vmw_sou_fifo_create(struct vmw_private *dev_priv,
  * Send the fifo command to destroy a screen.
  */
 static int vmw_sou_fifo_destroy(struct vmw_private *dev_priv,
-				struct vmw_screen_object_unit *sou)
+								struct vmw_screen_object_unit *sou)
 {
 	size_t fifo_size;
 	int ret;
 
-	struct {
-		struct {
+	struct
+	{
+		struct
+		{
 			uint32_t cmdType;
 		} header;
 		SVGAFifoCmdDestroyScreen body;
@@ -176,12 +192,16 @@ static int vmw_sou_fifo_destroy(struct vmw_private *dev_priv,
 
 	/* no need to do anything */
 	if (unlikely(!sou->defined))
+	{
 		return 0;
+	}
 
 	fifo_size = sizeof(*cmd);
 	cmd = vmw_fifo_reserve(dev_priv, fifo_size);
+
 	/* the hardware has hung, nothing we can do about it here */
-	if (unlikely(cmd == NULL)) {
+	if (unlikely(cmd == NULL))
+	{
 		DRM_ERROR("Fifo reserve failed.\n");
 		return -ENOMEM;
 	}
@@ -193,11 +213,16 @@ static int vmw_sou_fifo_destroy(struct vmw_private *dev_priv,
 	vmw_fifo_commit(dev_priv, fifo_size);
 
 	/* Force sync */
-	ret = vmw_fallback_wait(dev_priv, false, true, 0, false, 3*HZ);
+	ret = vmw_fallback_wait(dev_priv, false, true, 0, false, 3 * HZ);
+
 	if (unlikely(ret != 0))
+	{
 		DRM_ERROR("Failed to sync with HW");
+	}
 	else
+	{
 		sou->defined = false;
+	}
 
 	return ret;
 }
@@ -206,7 +231,7 @@ static int vmw_sou_fifo_destroy(struct vmw_private *dev_priv,
  * Free the backing store.
  */
 static void vmw_sou_backing_free(struct vmw_private *dev_priv,
-				 struct vmw_screen_object_unit *sou)
+								 struct vmw_screen_object_unit *sou)
 {
 	vmw_dmabuf_unreference(&sou->buffer);
 	sou->buffer_size = 0;
@@ -216,34 +241,45 @@ static void vmw_sou_backing_free(struct vmw_private *dev_priv,
  * Allocate the backing store for the buffer.
  */
 static int vmw_sou_backing_alloc(struct vmw_private *dev_priv,
-				 struct vmw_screen_object_unit *sou,
-				 unsigned long size)
+								 struct vmw_screen_object_unit *sou,
+								 unsigned long size)
 {
 	int ret;
 
 	if (sou->buffer_size == size)
+	{
 		return 0;
+	}
 
 	if (sou->buffer)
+	{
 		vmw_sou_backing_free(dev_priv, sou);
+	}
 
 	sou->buffer = kzalloc(sizeof(*sou->buffer), GFP_KERNEL);
+
 	if (unlikely(sou->buffer == NULL))
+	{
 		return -ENOMEM;
+	}
 
 	/* After we have alloced the backing store might not be able to
 	 * resume the overlays, this is preferred to failing to alloc.
 	 */
 	vmw_overlay_pause_all(dev_priv);
 	ret = vmw_dmabuf_init(dev_priv, sou->buffer, size,
-			      &vmw_vram_ne_placement,
-			      false, &vmw_dmabuf_bo_free);
+						  &vmw_vram_ne_placement,
+						  false, &vmw_dmabuf_bo_free);
 	vmw_overlay_resume_all(dev_priv);
 
 	if (unlikely(ret != 0))
-		sou->buffer = NULL; /* vmw_dmabuf_init frees on error */
+	{
+		sou->buffer = NULL;    /* vmw_dmabuf_init frees on error */
+	}
 	else
+	{
 		sou->buffer_size = size;
+	}
 
 	return ret;
 }
@@ -261,10 +297,14 @@ static int vmw_sou_crtc_set_config(struct drm_mode_set *set)
 	int ret = 0;
 
 	if (!set)
+	{
 		return -EINVAL;
+	}
 
 	if (!set->crtc)
+	{
 		return -EINVAL;
+	}
 
 	/* get the sou */
 	crtc = set->crtc;
@@ -272,29 +312,34 @@ static int vmw_sou_crtc_set_config(struct drm_mode_set *set)
 	vfb = set->fb ? vmw_framebuffer_to_vfb(set->fb) : NULL;
 	dev_priv = vmw_priv(crtc->dev);
 
-	if (set->num_connectors > 1) {
+	if (set->num_connectors > 1)
+	{
 		DRM_ERROR("Too many connectors\n");
 		return -EINVAL;
 	}
 
 	if (set->num_connectors == 1 &&
-	    set->connectors[0] != &sou->base.connector) {
+		set->connectors[0] != &sou->base.connector)
+	{
 		DRM_ERROR("Connector doesn't match %p %p\n",
-			set->connectors[0], &sou->base.connector);
+				  set->connectors[0], &sou->base.connector);
 		return -EINVAL;
 	}
 
 	/* Only one active implicit frame-buffer at a time. */
 	mutex_lock(&dev_priv->global_kms_state_mutex);
+
 	if (sou->base.is_implicit &&
-	    dev_priv->implicit_fb && vfb &&
-	    !(dev_priv->num_implicit == 1 &&
-	      sou->base.active_implicit) &&
-	    dev_priv->implicit_fb != vfb) {
+		dev_priv->implicit_fb && vfb &&
+		!(dev_priv->num_implicit == 1 &&
+		  sou->base.active_implicit) &&
+		dev_priv->implicit_fb != vfb)
+	{
 		mutex_unlock(&dev_priv->global_kms_state_mutex);
 		DRM_ERROR("Multiple implicit framebuffers not supported.\n");
 		return -EINVAL;
 	}
+
 	mutex_unlock(&dev_priv->global_kms_state_mutex);
 
 	/* since they always map one to one these are safe */
@@ -302,11 +347,15 @@ static int vmw_sou_crtc_set_config(struct drm_mode_set *set)
 	encoder = &sou->base.encoder;
 
 	/* should we turn the crtc off */
-	if (set->num_connectors == 0 || !set->mode || !set->fb) {
+	if (set->num_connectors == 0 || !set->mode || !set->fb)
+	{
 		ret = vmw_sou_fifo_destroy(dev_priv, sou);
+
 		/* the hardware has hung don't do anything more */
 		if (unlikely(ret != 0))
+		{
 			return ret;
+		}
 
 		connector->encoder = NULL;
 		encoder->crtc = NULL;
@@ -328,7 +377,8 @@ static int vmw_sou_crtc_set_config(struct drm_mode_set *set)
 	fb = set->fb;
 
 	if (set->x + mode->hdisplay > fb->width ||
-	    set->y + mode->vdisplay > fb->height) {
+		set->y + mode->vdisplay > fb->height)
+	{
 		DRM_ERROR("set outside of framebuffer\n");
 		return -EINVAL;
 	}
@@ -336,29 +386,39 @@ static int vmw_sou_crtc_set_config(struct drm_mode_set *set)
 	vmw_svga_enable(dev_priv);
 
 	if (mode->hdisplay != crtc->mode.hdisplay ||
-	    mode->vdisplay != crtc->mode.vdisplay) {
+		mode->vdisplay != crtc->mode.vdisplay)
+	{
 		/* no need to check if depth is different, because backing
 		 * store depth is forced to 4 by the device.
 		 */
 
 		ret = vmw_sou_fifo_destroy(dev_priv, sou);
+
 		/* the hardware has hung don't do anything more */
 		if (unlikely(ret != 0))
+		{
 			return ret;
+		}
 
 		vmw_sou_backing_free(dev_priv, sou);
 	}
 
-	if (!sou->buffer) {
+	if (!sou->buffer)
+	{
 		/* forced to depth 4 by the device */
 		size_t size = mode->hdisplay * mode->vdisplay * 4;
 		ret = vmw_sou_backing_alloc(dev_priv, sou, size);
+
 		if (unlikely(ret != 0))
+		{
 			return ret;
+		}
 	}
 
 	ret = vmw_sou_fifo_create(dev_priv, sou, set->x, set->y, mode);
-	if (unlikely(ret != 0)) {
+
+	if (unlikely(ret != 0))
+	{
 		/*
 		 * We are in a bit of a situation here, the hardware has
 		 * hung and we may or may not have a buffer hanging of
@@ -367,7 +427,9 @@ static int vmw_sou_crtc_set_config(struct drm_mode_set *set)
 		 * Not what userspace wants but it needs to htfu.
 		 */
 		if (sou->defined)
+		{
 			return ret;
+		}
 
 		connector->encoder = NULL;
 		encoder->crtc = NULL;
@@ -393,9 +455,9 @@ static int vmw_sou_crtc_set_config(struct drm_mode_set *set)
 }
 
 static int vmw_sou_crtc_page_flip(struct drm_crtc *crtc,
-				  struct drm_framebuffer *fb,
-				  struct drm_pending_vblank_event *event,
-				  uint32_t flags)
+								  struct drm_framebuffer *fb,
+								  struct drm_pending_vblank_event *event,
+								  uint32_t flags)
 {
 	struct vmw_private *dev_priv = vmw_priv(crtc->dev);
 	struct drm_framebuffer *old_fb = crtc->primary->fb;
@@ -405,7 +467,9 @@ static int vmw_sou_crtc_page_flip(struct drm_crtc *crtc,
 	int ret;
 
 	if (!vmw_kms_crtc_flippable(dev_priv, crtc))
+	{
 		return -EINVAL;
+	}
 
 	crtc->primary->fb = fb;
 
@@ -417,29 +481,34 @@ static int vmw_sou_crtc_page_flip(struct drm_crtc *crtc,
 
 	if (vfb->dmabuf)
 		ret = vmw_kms_sou_do_dmabuf_dirty(dev_priv, vfb,
-						  NULL, &vclips, 1, 1,
-						  true, &fence);
+										  NULL, &vclips, 1, 1,
+										  true, &fence);
 	else
 		ret = vmw_kms_sou_do_surface_dirty(dev_priv, vfb,
-						   NULL, &vclips, NULL,
-						   0, 0, 1, 1, &fence);
+										   NULL, &vclips, NULL,
+										   0, 0, 1, 1, &fence);
 
 
 	if (ret != 0)
+	{
 		goto out_no_fence;
-	if (!fence) {
+	}
+
+	if (!fence)
+	{
 		ret = -EINVAL;
 		goto out_no_fence;
 	}
 
-	if (event) {
+	if (event)
+	{
 		struct drm_file *file_priv = event->base.file_priv;
 
 		ret = vmw_event_fence_action_queue(file_priv, fence,
-						   &event->base,
-						   &event->event.tv_sec,
-						   &event->event.tv_usec,
-						   true);
+										   &event->base,
+										   &event->event.tv_sec,
+										   &event->event.tv_usec,
+										   true);
 	}
 
 	/*
@@ -449,7 +518,9 @@ static int vmw_sou_crtc_page_flip(struct drm_crtc *crtc,
 	vmw_fence_obj_unreference(&fence);
 
 	if (vmw_crtc_to_du(crtc)->is_implicit)
+	{
 		vmw_kms_update_implicit_fb(dev_priv, crtc);
+	}
 
 	return ret;
 
@@ -458,7 +529,8 @@ out_no_fence:
 	return ret;
 }
 
-static const struct drm_crtc_funcs vmw_screen_object_crtc_funcs = {
+static const struct drm_crtc_funcs vmw_screen_object_crtc_funcs =
+{
 	.cursor_set2 = vmw_du_crtc_cursor_set2,
 	.cursor_move = vmw_du_crtc_cursor_move,
 	.gamma_set = vmw_du_crtc_gamma_set,
@@ -476,7 +548,8 @@ static void vmw_sou_encoder_destroy(struct drm_encoder *encoder)
 	vmw_sou_destroy(vmw_encoder_to_sou(encoder));
 }
 
-static const struct drm_encoder_funcs vmw_screen_object_encoder_funcs = {
+static const struct drm_encoder_funcs vmw_screen_object_encoder_funcs =
+{
 	.destroy = vmw_sou_encoder_destroy,
 };
 
@@ -489,7 +562,8 @@ static void vmw_sou_connector_destroy(struct drm_connector *connector)
 	vmw_sou_destroy(vmw_connector_to_sou(connector));
 }
 
-static const struct drm_connector_funcs vmw_sou_connector_funcs = {
+static const struct drm_connector_funcs vmw_sou_connector_funcs =
+{
 	.dpms = vmw_du_connector_dpms,
 	.detect = vmw_du_connector_detect,
 	.fill_modes = vmw_du_connector_fill_modes,
@@ -506,8 +580,11 @@ static int vmw_sou_init(struct vmw_private *dev_priv, unsigned unit)
 	struct drm_crtc *crtc;
 
 	sou = kzalloc(sizeof(*sou), GFP_KERNEL);
+
 	if (!sou)
+	{
 		return -ENOMEM;
+	}
 
 	sou->base.unit = unit;
 	crtc = &sou->base.crtc;
@@ -522,11 +599,11 @@ static int vmw_sou_init(struct vmw_private *dev_priv, unsigned unit)
 	sou->base.is_implicit = false;
 
 	drm_connector_init(dev, connector, &vmw_sou_connector_funcs,
-			   DRM_MODE_CONNECTOR_VIRTUAL);
+					   DRM_MODE_CONNECTOR_VIRTUAL);
 	connector->status = vmw_du_connector_detect(connector, true);
 
 	drm_encoder_init(dev, encoder, &vmw_screen_object_encoder_funcs,
-			 DRM_MODE_ENCODER_VIRTUAL, NULL);
+					 DRM_MODE_ENCODER_VIRTUAL, NULL);
 	drm_mode_connector_attach_encoder(connector, encoder);
 	encoder->possible_crtcs = (1 << unit);
 	encoder->possible_clones = 0;
@@ -538,16 +615,17 @@ static int vmw_sou_init(struct vmw_private *dev_priv, unsigned unit)
 	drm_mode_crtc_set_gamma_size(crtc, 256);
 
 	drm_object_attach_property(&connector->base,
-				   dev_priv->hotplug_mode_update_property, 1);
+							   dev_priv->hotplug_mode_update_property, 1);
 	drm_object_attach_property(&connector->base,
-				   dev->mode_config.suggested_x_property, 0);
+							   dev->mode_config.suggested_x_property, 0);
 	drm_object_attach_property(&connector->base,
-				   dev->mode_config.suggested_y_property, 0);
+							   dev->mode_config.suggested_y_property, 0);
+
 	if (dev_priv->implicit_placement_property)
 		drm_object_attach_property
-			(&connector->base,
-			 dev_priv->implicit_placement_property,
-			 sou->base.is_implicit);
+		(&connector->base,
+		 dev_priv->implicit_placement_property,
+		 sou->base.is_implicit);
 
 	return 0;
 }
@@ -557,9 +635,10 @@ int vmw_kms_sou_init_display(struct vmw_private *dev_priv)
 	struct drm_device *dev = dev_priv->dev;
 	int i, ret;
 
-	if (!(dev_priv->capabilities & SVGA_CAP_SCREEN_OBJECT_2)) {
+	if (!(dev_priv->capabilities & SVGA_CAP_SCREEN_OBJECT_2))
+	{
 		DRM_INFO("Not using screen objects,"
-			 " missing cap SCREEN_OBJECT_2\n");
+				 " missing cap SCREEN_OBJECT_2\n");
 		return -ENOSYS;
 	}
 
@@ -568,13 +647,18 @@ int vmw_kms_sou_init_display(struct vmw_private *dev_priv)
 	dev_priv->implicit_fb = NULL;
 
 	ret = drm_vblank_init(dev, VMWGFX_NUM_DISPLAY_UNITS);
+
 	if (unlikely(ret != 0))
+	{
 		return ret;
+	}
 
 	vmw_kms_create_implicit_placement_property(dev_priv, false);
 
 	for (i = 0; i < VMWGFX_NUM_DISPLAY_UNITS; ++i)
+	{
 		vmw_sou_init(dev_priv, i);
+	}
 
 	dev_priv->active_display_unit = vmw_du_screen_object;
 
@@ -593,13 +677,14 @@ int vmw_kms_sou_close_display(struct vmw_private *dev_priv)
 }
 
 static int do_dmabuf_define_gmrfb(struct vmw_private *dev_priv,
-				  struct vmw_framebuffer *framebuffer)
+								  struct vmw_framebuffer *framebuffer)
 {
 	struct vmw_dma_buffer *buf =
 		container_of(framebuffer, struct vmw_framebuffer_dmabuf,
-			     base)->buffer;
+					 base)->buffer;
 	int depth = framebuffer->base.depth;
-	struct {
+	struct
+	{
 		uint32_t header;
 		SVGAFifoCmdDefineGMRFB body;
 	} *cmd;
@@ -609,10 +694,14 @@ static int do_dmabuf_define_gmrfb(struct vmw_private *dev_priv,
 	 * this value later and expecting what we uploaded back.
 	 */
 	if (depth == 32)
+	{
 		depth = 24;
+	}
 
 	cmd = vmw_fifo_reserve(dev_priv, sizeof(*cmd));
-	if (!cmd) {
+
+	if (!cmd)
+	{
 		DRM_ERROR("Out of fifo space for dirty framebuffer command.\n");
 		return -ENOMEM;
 	}
@@ -649,7 +738,8 @@ static void vmw_sou_surface_fifo_commit(struct vmw_kms_dirty *dirty)
 	SVGASignedRect *blit = (SVGASignedRect *) &cmd[1];
 	int i;
 
-	if (!dirty->num_hits) {
+	if (!dirty->num_hits)
+	{
 		vmw_fifo_commit(dirty->dev_priv, 0);
 		return;
 	}
@@ -675,7 +765,8 @@ static void vmw_sou_surface_fifo_commit(struct vmw_kms_dirty *dirty)
 	cmd->body.destScreenId = dirty->unit->unit;
 
 	/* Blits are relative to the destination rect. Translate. */
-	for (i = 0; i < dirty->num_hits; ++i, ++blit) {
+	for (i = 0; i < dirty->num_hits; ++i, ++blit)
+	{
 		blit->left -= sdirty->left;
 		blit->right -= sdirty->left;
 		blit->top -= sdirty->top;
@@ -741,14 +832,14 @@ static void vmw_sou_surface_clip(struct vmw_kms_dirty *dirty)
  * interrupted.
  */
 int vmw_kms_sou_do_surface_dirty(struct vmw_private *dev_priv,
-				 struct vmw_framebuffer *framebuffer,
-				 struct drm_clip_rect *clips,
-				 struct drm_vmw_rect *vclips,
-				 struct vmw_resource *srf,
-				 s32 dest_x,
-				 s32 dest_y,
-				 unsigned num_clips, int inc,
-				 struct vmw_fence_obj **out_fence)
+								 struct vmw_framebuffer *framebuffer,
+								 struct drm_clip_rect *clips,
+								 struct drm_vmw_rect *vclips,
+								 struct vmw_resource *srf,
+								 s32 dest_x,
+								 s32 dest_y,
+								 unsigned num_clips, int inc,
+								 struct vmw_fence_obj **out_fence)
 {
 	struct vmw_framebuffer_surface *vfbs =
 		container_of(framebuffer, typeof(*vfbs), base);
@@ -756,17 +847,22 @@ int vmw_kms_sou_do_surface_dirty(struct vmw_private *dev_priv,
 	int ret;
 
 	if (!srf)
+	{
 		srf = &vfbs->surface->res;
+	}
 
 	ret = vmw_kms_helper_resource_prepare(srf, true);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	sdirty.base.fifo_commit = vmw_sou_surface_fifo_commit;
 	sdirty.base.clip = vmw_sou_surface_clip;
 	sdirty.base.dev_priv = dev_priv;
 	sdirty.base.fifo_reserve_size = sizeof(struct vmw_kms_sou_dirty_cmd) +
-	  sizeof(SVGASignedRect) * num_clips;
+									sizeof(SVGASignedRect) * num_clips;
 
 	sdirty.sid = srf->id;
 	sdirty.left = sdirty.top = S32_MAX;
@@ -775,8 +871,8 @@ int vmw_kms_sou_do_surface_dirty(struct vmw_private *dev_priv,
 	sdirty.dst_y = dest_y;
 
 	ret = vmw_kms_helper_dirty(dev_priv, framebuffer, clips, vclips,
-				   dest_x, dest_y, num_clips, inc,
-				   &sdirty.base);
+							   dest_x, dest_y, num_clips, inc,
+							   &sdirty.base);
 	vmw_kms_helper_resource_finish(srf, out_fence);
 
 	return ret;
@@ -791,14 +887,15 @@ int vmw_kms_sou_do_surface_dirty(struct vmw_private *dev_priv,
  */
 static void vmw_sou_dmabuf_fifo_commit(struct vmw_kms_dirty *dirty)
 {
-	if (!dirty->num_hits) {
+	if (!dirty->num_hits)
+	{
 		vmw_fifo_commit(dirty->dev_priv, 0);
 		return;
 	}
 
 	vmw_fifo_commit(dirty->dev_priv,
-			sizeof(struct vmw_kms_sou_dmabuf_blit) *
-			dirty->num_hits);
+					sizeof(struct vmw_kms_sou_dmabuf_blit) *
+					dirty->num_hits);
 }
 
 /**
@@ -843,34 +940,40 @@ static void vmw_sou_dmabuf_clip(struct vmw_kms_dirty *dirty)
  * interrupted.
  */
 int vmw_kms_sou_do_dmabuf_dirty(struct vmw_private *dev_priv,
-				struct vmw_framebuffer *framebuffer,
-				struct drm_clip_rect *clips,
-				struct drm_vmw_rect *vclips,
-				unsigned num_clips, int increment,
-				bool interruptible,
-				struct vmw_fence_obj **out_fence)
+								struct vmw_framebuffer *framebuffer,
+								struct drm_clip_rect *clips,
+								struct drm_vmw_rect *vclips,
+								unsigned num_clips, int increment,
+								bool interruptible,
+								struct vmw_fence_obj **out_fence)
 {
 	struct vmw_dma_buffer *buf =
 		container_of(framebuffer, struct vmw_framebuffer_dmabuf,
-			     base)->buffer;
+					 base)->buffer;
 	struct vmw_kms_dirty dirty;
 	int ret;
 
 	ret = vmw_kms_helper_buffer_prepare(dev_priv, buf, interruptible,
-					    false);
+										false);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = do_dmabuf_define_gmrfb(dev_priv, framebuffer);
+
 	if (unlikely(ret != 0))
+	{
 		goto out_revert;
+	}
 
 	dirty.fifo_commit = vmw_sou_dmabuf_fifo_commit;
 	dirty.clip = vmw_sou_dmabuf_clip;
 	dirty.fifo_reserve_size = sizeof(struct vmw_kms_sou_dmabuf_blit) *
-		num_clips;
+							  num_clips;
 	ret = vmw_kms_helper_dirty(dev_priv, framebuffer, clips, vclips,
-				   0, 0, num_clips, increment, &dirty);
+							   0, 0, num_clips, increment, &dirty);
 	vmw_kms_helper_buffer_finish(dev_priv, NULL, buf, out_fence, NULL);
 
 	return ret;
@@ -891,14 +994,15 @@ out_revert:
  */
 static void vmw_sou_readback_fifo_commit(struct vmw_kms_dirty *dirty)
 {
-	if (!dirty->num_hits) {
+	if (!dirty->num_hits)
+	{
 		vmw_fifo_commit(dirty->dev_priv, 0);
 		return;
 	}
 
 	vmw_fifo_commit(dirty->dev_priv,
-			sizeof(struct vmw_kms_sou_readback_blit) *
-			dirty->num_hits);
+					sizeof(struct vmw_kms_sou_readback_blit) *
+					dirty->num_hits);
 }
 
 /**
@@ -941,11 +1045,11 @@ static void vmw_sou_readback_clip(struct vmw_kms_dirty *dirty)
  * interrupted.
  */
 int vmw_kms_sou_readback(struct vmw_private *dev_priv,
-			 struct drm_file *file_priv,
-			 struct vmw_framebuffer *vfb,
-			 struct drm_vmw_fence_rep __user *user_fence_rep,
-			 struct drm_vmw_rect *vclips,
-			 uint32_t num_clips)
+						 struct drm_file *file_priv,
+						 struct vmw_framebuffer *vfb,
+						 struct drm_vmw_fence_rep __user *user_fence_rep,
+						 struct drm_vmw_rect *vclips,
+						 uint32_t num_clips)
 {
 	struct vmw_dma_buffer *buf =
 		container_of(vfb, struct vmw_framebuffer_dmabuf, base)->buffer;
@@ -953,21 +1057,27 @@ int vmw_kms_sou_readback(struct vmw_private *dev_priv,
 	int ret;
 
 	ret = vmw_kms_helper_buffer_prepare(dev_priv, buf, true, false);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = do_dmabuf_define_gmrfb(dev_priv, vfb);
+
 	if (unlikely(ret != 0))
+	{
 		goto out_revert;
+	}
 
 	dirty.fifo_commit = vmw_sou_readback_fifo_commit;
 	dirty.clip = vmw_sou_readback_clip;
 	dirty.fifo_reserve_size = sizeof(struct vmw_kms_sou_readback_blit) *
-		num_clips;
+							  num_clips;
 	ret = vmw_kms_helper_dirty(dev_priv, vfb, NULL, vclips,
-				   0, 0, num_clips, 1, &dirty);
+							   0, 0, num_clips, 1, &dirty);
 	vmw_kms_helper_buffer_finish(dev_priv, file_priv, buf, NULL,
-				     user_fence_rep);
+								 user_fence_rep);
 
 	return ret;
 

@@ -69,13 +69,15 @@ static inline int musb_gadget_setup(struct musb *musb)
 }
 #endif
 
-enum buffer_map_state {
+enum buffer_map_state
+{
 	UN_MAPPED = 0,
 	PRE_MAPPED,
 	MUSB_MAPPED
 };
 
-struct musb_request {
+struct musb_request
+{
 	struct usb_request	request;
 	struct list_head	list;
 	struct musb_ep		*ep;
@@ -98,7 +100,8 @@ extern void musb_free_request(struct usb_ep *ep, struct usb_request *req);
 /*
  * struct musb_ep - peripheral side view of endpoint rx or tx side
  */
-struct musb_ep {
+struct musb_ep
+{
 	/* stuff towards the head is basically write-once. */
 	struct usb_ep			end_point;
 	char				name[12];
@@ -134,7 +137,10 @@ static inline struct musb_request *next_request(struct musb_ep *ep)
 	struct list_head	*queue = &ep->req_list;
 
 	if (list_empty(queue))
+	{
 		return NULL;
+	}
+
 	return container_of(queue->next, struct musb_request, list);
 }
 

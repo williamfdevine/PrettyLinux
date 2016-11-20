@@ -30,20 +30,20 @@
 
 #define ABS(X) ((X) < 0 ? (-1 * (X)) : (X))
 #define INRANGE(X, Y, Z) ((((X) <= (Y)) && ((Y) <= (Z))) \
-		|| (((Z) <= (Y)) && ((Y) <= (X))) ? 1 : 0)
+						  || (((Z) <= (Y)) && ((Y) <= (X))) ? 1 : 0)
 
 #ifndef MAKEWORD
-#define MAKEWORD(X, Y) (((X) << 8) + (Y))
+	#define MAKEWORD(X, Y) (((X) << 8) + (Y))
 #endif
 
 #define LSB(X) (((X) & 0xFF))
 #define MSB(Y) (((Y) >> 8) & 0xFF)
 
 #ifndef TRUE
-#define TRUE (1 == 1)
+	#define TRUE (1 == 1)
 #endif
 #ifndef FALSE
-#define FALSE (!TRUE)
+	#define FALSE (!TRUE)
 #endif
 
 #define dprintk(args...) \
@@ -58,18 +58,21 @@
 #define IQPOWER_THRESHOLD  30
 
 /* One point of the lookup table */
-struct stv000_lookpoint {
+struct stv000_lookpoint
+{
 	s32 realval;/* real value */
 	s32 regval;/* binary value */
 };
 
 /* Lookup table definition */
-struct stv0900_table{
+struct stv0900_table
+{
 	s32 size;/* Size of the lookup table */
 	struct stv000_lookpoint table[STV0900_MAXLOOKUPSIZE];/* Lookup table */
 };
 
-enum fe_stv0900_error {
+enum fe_stv0900_error
+{
 	STV0900_NO_ERROR = 0,
 	STV0900_INVALID_HANDLE,
 	STV0900_BAD_PARAMETER,
@@ -77,7 +80,8 @@ enum fe_stv0900_error {
 	STV0900_SEARCH_FAILED,
 };
 
-enum fe_stv0900_clock_type {
+enum fe_stv0900_clock_type
+{
 	STV0900_USE_REGISTERS_DEFAULT,
 	STV0900_SERIAL_PUNCT_CLOCK,/*Serial punctured clock */
 	STV0900_SERIAL_CONT_CLOCK,/*Serial continues clock */
@@ -85,7 +89,8 @@ enum fe_stv0900_clock_type {
 	STV0900_DVBCI_CLOCK/*Parallel continues clock : DVBCI */
 };
 
-enum fe_stv0900_search_state {
+enum fe_stv0900_search_state
+{
 	STV0900_SEARCH = 0,
 	STV0900_PLH_DETECTED,
 	STV0900_DVBS2_FOUND,
@@ -93,14 +98,16 @@ enum fe_stv0900_search_state {
 
 };
 
-enum fe_stv0900_ldpc_state {
+enum fe_stv0900_ldpc_state
+{
 	STV0900_PATH1_OFF_PATH2_OFF = 0,
 	STV0900_PATH1_ON_PATH2_OFF = 1,
 	STV0900_PATH1_OFF_PATH2_ON = 2,
 	STV0900_PATH1_ON_PATH2_ON = 3
 };
 
-enum fe_stv0900_signal_type {
+enum fe_stv0900_signal_type
+{
 	STV0900_NOAGC1 = 0,
 	STV0900_AGC1OK,
 	STV0900_NOTIMING,
@@ -116,12 +123,14 @@ enum fe_stv0900_signal_type {
 	STV0900_RANGEOK
 };
 
-enum fe_stv0900_demod_num {
+enum fe_stv0900_demod_num
+{
 	STV0900_DEMOD_1,
 	STV0900_DEMOD_2
 };
 
-enum fe_stv0900_tracking_standard {
+enum fe_stv0900_tracking_standard
+{
 	STV0900_DVBS1_STANDARD,/* Found Standard*/
 	STV0900_DVBS2_STANDARD,
 	STV0900_DSS_STANDARD,
@@ -129,7 +138,8 @@ enum fe_stv0900_tracking_standard {
 	STV0900_UNKNOWN_STANDARD
 };
 
-enum fe_stv0900_search_standard {
+enum fe_stv0900_search_standard
+{
 	STV0900_AUTO_SEARCH,
 	STV0900_SEARCH_DVBS1,/* Search Standard*/
 	STV0900_SEARCH_DVBS2,
@@ -137,13 +147,15 @@ enum fe_stv0900_search_standard {
 	STV0900_SEARCH_TURBOCODE
 };
 
-enum fe_stv0900_search_algo {
+enum fe_stv0900_search_algo
+{
 	STV0900_BLIND_SEARCH,/* offset freq and SR are Unknown */
 	STV0900_COLD_START,/* only the SR is known */
 	STV0900_WARM_START/* offset freq and SR are known */
 };
 
-enum fe_stv0900_modulation {
+enum fe_stv0900_modulation
+{
 	STV0900_QPSK,
 	STV0900_8PSK,
 	STV0900_16APSK,
@@ -151,7 +163,8 @@ enum fe_stv0900_modulation {
 	STV0900_UNKNOWN
 };
 
-enum fe_stv0900_modcode {
+enum fe_stv0900_modcode
+{
 	STV0900_DUMMY_PLF,
 	STV0900_QPSK_14,
 	STV0900_QPSK_13,
@@ -184,7 +197,8 @@ enum fe_stv0900_modcode {
 	STV0900_MODCODE_UNKNOWN
 };
 
-enum fe_stv0900_fec {/*DVBS1, DSS and turbo code puncture rate*/
+enum fe_stv0900_fec  /*DVBS1, DSS and turbo code puncture rate*/
+{
 	STV0900_FEC_1_2 = 0,
 	STV0900_FEC_2_3,
 	STV0900_FEC_3_4,
@@ -196,35 +210,41 @@ enum fe_stv0900_fec {/*DVBS1, DSS and turbo code puncture rate*/
 	STV0900_FEC_UNKNOWN
 };
 
-enum fe_stv0900_frame_length {
+enum fe_stv0900_frame_length
+{
 	STV0900_LONG_FRAME,
 	STV0900_SHORT_FRAME
 };
 
-enum fe_stv0900_pilot {
+enum fe_stv0900_pilot
+{
 	STV0900_PILOTS_OFF,
 	STV0900_PILOTS_ON
 };
 
-enum fe_stv0900_rolloff {
+enum fe_stv0900_rolloff
+{
 	STV0900_35,
 	STV0900_25,
 	STV0900_20
 };
 
-enum fe_stv0900_search_iq {
+enum fe_stv0900_search_iq
+{
 	STV0900_IQ_AUTO,
 	STV0900_IQ_AUTO_NORMAL_FIRST,
 	STV0900_IQ_FORCE_NORMAL,
 	STV0900_IQ_FORCE_SWAPPED
 };
 
-enum stv0900_iq_inversion {
+enum stv0900_iq_inversion
+{
 	STV0900_IQ_NORMAL,
 	STV0900_IQ_SWAPPED
 };
 
-enum fe_stv0900_diseqc_mode {
+enum fe_stv0900_diseqc_mode
+{
 	STV0900_22KHZ_Continues = 0,
 	STV0900_DISEQC_2_3_PWM = 2,
 	STV0900_DISEQC_3_3_PWM = 3,
@@ -232,12 +252,14 @@ enum fe_stv0900_diseqc_mode {
 	STV0900_DISEQC_3_3_ENVELOP = 5
 };
 
-enum fe_stv0900_demod_mode {
+enum fe_stv0900_demod_mode
+{
 	STV0900_SINGLE = 0,
 	STV0900_DUAL
 };
 
-struct stv0900_init_params{
+struct stv0900_init_params
+{
 	u32	dmd_ref_clk;/* Reference,Input clock for the demod in Hz */
 
 	/* Demodulator Type (single demod or dual demod) */
@@ -262,7 +284,8 @@ struct stv0900_init_params{
 	struct stv0900_reg		*ts_config;
 };
 
-struct stv0900_search_params {
+struct stv0900_search_params
+{
 	enum fe_stv0900_demod_num	path;/* Path Used demod1 or 2 */
 
 	u32	frequency;/* Transponder frequency (in KHz) */
@@ -278,7 +301,8 @@ struct stv0900_search_params {
 
 };
 
-struct stv0900_signal_info {
+struct stv0900_signal_info
+{
 	int	locked;/* Transponder locked */
 	u32	frequency;/* Transponder frequency (in KHz) */
 	u32	symbol_rate;/* Transponder symbol rate  (in Mbds) */
@@ -298,7 +322,8 @@ struct stv0900_signal_info {
 
 };
 
-struct stv0900_internal{
+struct stv0900_internal
+{
 	s32	quartz;
 	s32	mclk;
 	/* manual RollOff for DVBS1/DSS only */
@@ -338,7 +363,8 @@ struct stv0900_internal{
 };
 
 /* state for each demod */
-struct stv0900_state {
+struct stv0900_state
+{
 	/* pointer for internal params, one for each pair of demods */
 	struct stv0900_internal		*internal;
 	struct i2c_adapter		*i2c_adap;
@@ -352,57 +378,57 @@ extern int stvdebug;
 extern s32 ge2comp(s32 a, s32 width);
 
 extern void stv0900_write_reg(struct stv0900_internal *i_params,
-				u16 reg_addr, u8 reg_data);
+							  u16 reg_addr, u8 reg_data);
 
 extern u8 stv0900_read_reg(struct stv0900_internal *i_params,
-				u16 reg_addr);
+						   u16 reg_addr);
 
 extern void stv0900_write_bits(struct stv0900_internal *i_params,
-				u32 label, u8 val);
+							   u32 label, u8 val);
 
 extern u8 stv0900_get_bits(struct stv0900_internal *i_params,
-				u32 label);
+						   u32 label);
 
 extern int stv0900_get_demod_lock(struct stv0900_internal *i_params,
-				enum fe_stv0900_demod_num demod, s32 time_out);
+								  enum fe_stv0900_demod_num demod, s32 time_out);
 extern int stv0900_check_signal_presence(struct stv0900_internal *i_params,
-				enum fe_stv0900_demod_num demod);
+		enum fe_stv0900_demod_num demod);
 
 extern enum fe_stv0900_signal_type stv0900_algo(struct dvb_frontend *fe);
 
 extern void stv0900_set_tuner(struct dvb_frontend *fe, u32 frequency,
-				u32 bandwidth);
+							  u32 bandwidth);
 extern void stv0900_set_bandwidth(struct dvb_frontend *fe, u32 bandwidth);
 
 extern void stv0900_start_search(struct stv0900_internal *i_params,
-				enum fe_stv0900_demod_num demod);
+								 enum fe_stv0900_demod_num demod);
 
 extern u8 stv0900_get_optim_carr_loop(s32 srate,
-				enum fe_stv0900_modcode modcode,
-				s32 pilot, u8 chip_id);
+									  enum fe_stv0900_modcode modcode,
+									  s32 pilot, u8 chip_id);
 
 extern u8 stv0900_get_optim_short_carr_loop(s32 srate,
-				enum fe_stv0900_modulation modulation,
-				u8 chip_id);
+		enum fe_stv0900_modulation modulation,
+		u8 chip_id);
 
 extern void stv0900_stop_all_s2_modcod(struct stv0900_internal *i_params,
-				enum fe_stv0900_demod_num demod);
+									   enum fe_stv0900_demod_num demod);
 
 extern void stv0900_activate_s2_modcod(struct stv0900_internal *i_params,
-				enum fe_stv0900_demod_num demod);
+									   enum fe_stv0900_demod_num demod);
 
 extern void stv0900_activate_s2_modcod_single(struct stv0900_internal *i_params,
-				enum fe_stv0900_demod_num demod);
+		enum fe_stv0900_demod_num demod);
 
 extern enum
 fe_stv0900_tracking_standard stv0900_get_standard(struct dvb_frontend *fe,
-				enum fe_stv0900_demod_num demod);
+		enum fe_stv0900_demod_num demod);
 
 extern u32
 stv0900_get_freq_auto(struct stv0900_internal *intp, int demod);
 
 extern void
 stv0900_set_tuner_auto(struct stv0900_internal *intp, u32 Frequency,
-						u32 Bandwidth, int demod);
+					   u32 Bandwidth, int demod);
 
 #endif

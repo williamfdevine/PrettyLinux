@@ -26,7 +26,8 @@
 #include "rtl8180.h"
 #include "sa2400.h"
 
-static const u32 sa2400_chan[] = {
+static const u32 sa2400_chan[] =
+{
 	0x00096c, /* ch1 */
 	0x080970,
 	0x100974,
@@ -55,7 +56,7 @@ static void write_sa2400(struct ieee80211_hw *dev, u8 addr, u32 data)
 	phy_config |= data & 0xffffff;
 
 	rtl818x_iowrite32(priv,
-		(__le32 __iomem *) &priv->map->RFPinsOutput, phy_config);
+					  (__le32 __iomem *) &priv->map->RFPinsOutput, phy_config);
 
 	msleep(3);
 }
@@ -66,16 +67,21 @@ static void sa2400_write_phy_antenna(struct ieee80211_hw *dev, short chan)
 	u8 ant = SA2400_ANTENNA;
 
 	if (priv->rfparam & RF_PARAM_ANTBDEFAULT)
+	{
 		ant |= BB_ANTENNA_B;
+	}
 
 	if (chan == 14)
+	{
 		ant |= BB_ANTATTEN_CHAN14;
+	}
 
 	rtl8180_write_phy(dev, 0x10, ant);
 
 }
 
-static u8 sa2400_rf_rssi_map[] = {
+static u8 sa2400_rf_rssi_map[] =
+{
 	0x64, 0x64, 0x63, 0x62, 0x61, 0x60, 0x5f, 0x5e,
 	0x5d, 0x5c, 0x5b, 0x5a, 0x57, 0x54, 0x52, 0x50,
 	0x4e, 0x4c, 0x4a, 0x48, 0x46, 0x44, 0x41, 0x3f,
@@ -91,17 +97,21 @@ static u8 sa2400_rf_rssi_map[] = {
 static u8 sa2400_rf_calc_rssi(u8 agc, u8 sq)
 {
 	if (sq == 0x80)
+	{
 		return 1;
+	}
 
 	if (sq > 78)
+	{
 		return 32;
+	}
 
 	/* TODO: recalc sa2400_rf_rssi_map to avoid mult / div */
 	return 65 * sa2400_rf_rssi_map[sq] / 100;
 }
 
 static void sa2400_rf_set_channel(struct ieee80211_hw *dev,
-				  struct ieee80211_conf *conf)
+								  struct ieee80211_conf *conf)
 {
 	struct rtl8180_priv *priv = dev->priv;
 	int channel =
@@ -136,10 +146,13 @@ static void sa2400_rf_init(struct ieee80211_hw *dev)
 	anaparam &= ~ANAPARAM_PWR1_MASK;
 	anaparam &= ~ANAPARAM_PWR0_MASK;
 
-	if (analogphy) {
+	if (analogphy)
+	{
 		anaparam |= SA2400_ANA_ANAPARAM_PWR1_ON << ANAPARAM_PWR1_SHIFT;
 		firdac = 0;
-	} else {
+	}
+	else
+	{
 		anaparam |= (SA2400_DIG_ANAPARAM_PWR1_ON << ANAPARAM_PWR1_SHIFT);
 		anaparam |= (SA2400_ANAPARAM_PWR0_ON << ANAPARAM_PWR0_SHIFT);
 		firdac = 1 << SA2400_REG4_FIRDAC_SHIFT;
@@ -156,7 +169,9 @@ static void sa2400_rf_init(struct ieee80211_hw *dev)
 	write_sa2400(dev, 4, 0x19348 | firdac); /* calibrate VCO */
 
 	if (!analogphy)
-		write_sa2400(dev, 4, 0x1938c); /*???*/
+	{
+		write_sa2400(dev, 4, 0x1938c);    /*???*/
+	}
 
 	write_sa2400(dev, 4, 0x19340 | firdac);
 
@@ -170,13 +185,14 @@ static void sa2400_rf_init(struct ieee80211_hw *dev)
 	write_sa2400(dev, 6, 0x13ff | (1 << 23)); /* MANRX */
 	write_sa2400(dev, 8, 0); /* VCO */
 
-	if (analogphy) {
+	if (analogphy)
+	{
 		rtl8180_set_anaparam(priv, anaparam |
-				     (1 << ANAPARAM_TXDACOFF_SHIFT));
+							 (1 << ANAPARAM_TXDACOFF_SHIFT));
 
 		txconf = rtl818x_ioread32(priv, &priv->map->TX_CONF);
 		rtl818x_iowrite32(priv, &priv->map->TX_CONF,
-			txconf | RTL818X_TX_CONF_LOOPBACK_CONT);
+						  txconf | RTL818X_TX_CONF_LOOPBACK_CONT);
 
 		write_sa2400(dev, 4, 0x19341); /* calibrates DC */
 
@@ -191,6 +207,7 @@ static void sa2400_rf_init(struct ieee80211_hw *dev)
 
 		rtl8180_set_anaparam(priv, anaparam);
 	}
+
 	/* end new code */
 
 	write_sa2400(dev, 4, 0x19341 | firdac); /* RTX MODE */
@@ -208,10 +225,14 @@ static void sa2400_rf_init(struct ieee80211_hw *dev)
 	rtl8180_write_phy(dev, 0x11, 0x80);
 
 	if (rtl818x_ioread8(priv, &priv->map->CONFIG2) &
-	    RTL818X_CONFIG2_ANTENNA_DIV)
-		rtl8180_write_phy(dev, 0x12, 0xc7); /* enable ant diversity */
+		RTL818X_CONFIG2_ANTENNA_DIV)
+	{
+		rtl8180_write_phy(dev, 0x12, 0xc7);    /* enable ant diversity */
+	}
 	else
-		rtl8180_write_phy(dev, 0x12, 0x47); /* disable ant diversity */
+	{
+		rtl8180_write_phy(dev, 0x12, 0x47);    /* disable ant diversity */
+	}
 
 	rtl8180_write_phy(dev, 0x13, 0x90 | priv->csthreshold);
 
@@ -219,7 +240,8 @@ static void sa2400_rf_init(struct ieee80211_hw *dev)
 	rtl8180_write_phy(dev, 0x1a, 0xa0);
 }
 
-const struct rtl818x_rf_ops sa2400_rf_ops = {
+const struct rtl818x_rf_ops sa2400_rf_ops =
+{
 	.name		= "Philips",
 	.init		= sa2400_rf_init,
 	.stop		= sa2400_rf_stop,

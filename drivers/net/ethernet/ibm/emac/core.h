@@ -51,7 +51,7 @@
 
 /* Simple sanity check */
 #if NUM_TX_BUFF > 256 || NUM_RX_BUFF > 256
-#error Invalid number of buffer descriptors (greater than 256)
+	#error Invalid number of buffer descriptors (greater than 256)
 #endif
 
 #define EMAC_MIN_MTU			46
@@ -63,9 +63,13 @@
 static inline int emac_rx_size(int mtu)
 {
 	if (mtu > ETH_DATA_LEN)
+	{
 		return MAL_MAX_RX_SIZE;
+	}
 	else
+	{
 		return mal_rx_size(ETH_DATA_LEN + EMAC_MTU_OVERHEAD);
+	}
 }
 
 #define EMAC_DMA_ALIGN(x)		ALIGN((x), dma_get_cache_alignment())
@@ -97,7 +101,8 @@ static inline int emac_rx_sync_size(int mtu)
  */
 
 /* Normal TX/RX Statistics */
-struct emac_stats {
+struct emac_stats
+{
 	u64 rx_packets;
 	u64 rx_bytes;
 	u64 tx_packets;
@@ -107,7 +112,8 @@ struct emac_stats {
 };
 
 /* Error statistics */
-struct emac_error_stats {
+struct emac_error_stats
+{
 	u64 tx_undo;
 
 	/* Software RX Errors */
@@ -162,10 +168,11 @@ struct emac_error_stats {
 };
 
 #define EMAC_ETHTOOL_STATS_COUNT	((sizeof(struct emac_stats) + \
-					  sizeof(struct emac_error_stats)) \
-					 / sizeof(u64))
+									  sizeof(struct emac_error_stats)) \
+									 / sizeof(u64))
 
-struct emac_instance {
+struct emac_instance
+{
 	struct net_device		*ndev;
 	struct resource			rsrc_regs;
 	struct emac_regs		__iomem *emacp;
@@ -337,38 +344,39 @@ struct emac_instance {
  * most optimal way as we don't have a way to say something like
  * always EMAC4. Patches welcome.
  */
-enum {
+enum
+{
 	EMAC_FTRS_ALWAYS	= 0,
 
 	EMAC_FTRS_POSSIBLE	=
 #ifdef CONFIG_IBM_EMAC_EMAC4
-	    EMAC_FTR_EMAC4	| EMAC_FTR_EMAC4SYNC	|
-	    EMAC_FTR_HAS_NEW_STACR	|
-	    EMAC_FTR_STACR_OC_INVERT | EMAC_FTR_440GX_PHY_CLK_FIX |
+		EMAC_FTR_EMAC4	| EMAC_FTR_EMAC4SYNC	|
+		EMAC_FTR_HAS_NEW_STACR	|
+		EMAC_FTR_STACR_OC_INVERT | EMAC_FTR_440GX_PHY_CLK_FIX |
 #endif
 #ifdef CONFIG_IBM_EMAC_TAH
-	    EMAC_FTR_HAS_TAH	|
+		EMAC_FTR_HAS_TAH	|
 #endif
 #ifdef CONFIG_IBM_EMAC_ZMII
-	    EMAC_FTR_HAS_ZMII	|
+		EMAC_FTR_HAS_ZMII	|
 #endif
 #ifdef CONFIG_IBM_EMAC_RGMII
-	    EMAC_FTR_HAS_RGMII	|
+		EMAC_FTR_HAS_RGMII	|
 #endif
 #ifdef CONFIG_IBM_EMAC_NO_FLOW_CTRL
-	    EMAC_FTR_NO_FLOW_CONTROL_40x |
+		EMAC_FTR_NO_FLOW_CONTROL_40x |
 #endif
-	EMAC_FTR_460EX_PHY_CLK_FIX |
-	EMAC_FTR_440EP_PHY_CLK_FIX |
-	EMAC_APM821XX_REQ_JUMBO_FRAME_SIZE |
-	EMAC_FTR_APM821XX_NO_HALF_DUPLEX,
+		EMAC_FTR_460EX_PHY_CLK_FIX |
+		EMAC_FTR_440EP_PHY_CLK_FIX |
+		EMAC_APM821XX_REQ_JUMBO_FRAME_SIZE |
+		EMAC_FTR_APM821XX_NO_HALF_DUPLEX,
 };
 
 static inline int emac_has_feature(struct emac_instance *dev,
-				   unsigned long feature)
+								   unsigned long feature)
 {
 	return (EMAC_FTRS_ALWAYS & feature) ||
-	       (EMAC_FTRS_POSSIBLE & dev->features & feature);
+		   (EMAC_FTRS_POSSIBLE & dev->features & feature);
 }
 
 /*
@@ -391,12 +399,12 @@ static inline int emac_has_feature(struct emac_instance *dev,
 #define	EMAC_XAHT_SLOTS(dev)         	(1 << (dev)->xaht_slots_shift)
 #define	EMAC_XAHT_WIDTH(dev)         	(1 << (dev)->xaht_width_shift)
 #define	EMAC_XAHT_REGS(dev)          	(1 << ((dev)->xaht_slots_shift - \
-					       (dev)->xaht_width_shift))
+		(dev)->xaht_width_shift))
 
 #define	EMAC_XAHT_CRC_TO_SLOT(dev, crc)			\
 	((EMAC_XAHT_SLOTS(dev) - 1) -			\
 	 ((crc) >> ((sizeof (u32) * BITS_PER_BYTE) -	\
-		    (dev)->xaht_slots_shift)))
+				(dev)->xaht_slots_shift)))
 
 #define	EMAC_XAHT_SLOT_TO_REG(dev, slot)		\
 	((slot) >> (dev)->xaht_width_shift)
@@ -414,9 +422,13 @@ static inline u32 *emac_xaht_base(struct emac_instance *dev)
 	 * IAHT and GAHT registers.
 	 */
 	if (emac_has_feature(dev, EMAC_FTR_EMAC4SYNC))
+	{
 		offset = offsetof(struct emac_regs, u1.emac4sync.iaht1);
+	}
 	else
+	{
 		offset = offsetof(struct emac_regs, u0.emac4.iaht1);
+	}
 
 	return (u32 *)((ptrdiff_t)p + offset);
 }
@@ -451,11 +463,13 @@ static inline u32 *emac_iaht_base(struct emac_instance *dev)
 #define EMAC_ETHTOOL_REGS_RGMII		0x00000002
 #define EMAC_ETHTOOL_REGS_TAH		0x00000004
 
-struct emac_ethtool_regs_hdr {
+struct emac_ethtool_regs_hdr
+{
 	u32 components;
 };
 
-struct emac_ethtool_regs_subhdr {
+struct emac_ethtool_regs_subhdr
+{
 	u32 version;
 	u32 index;
 };

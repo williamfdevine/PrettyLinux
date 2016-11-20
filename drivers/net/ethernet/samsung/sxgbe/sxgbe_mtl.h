@@ -33,7 +33,8 @@
 #define RX_FC_ACTIVE			8
 #define RX_FC_DEACTIVE			13
 
-enum ttc_control {
+enum ttc_control
+{
 	MTL_CONTROL_TTC_64 = 0x00000000,
 	MTL_CONTROL_TTC_96 = 0x00000020,
 	MTL_CONTROL_TTC_128 = 0x00000030,
@@ -43,13 +44,15 @@ enum ttc_control {
 	MTL_CONTROL_TTC_512 = 0x00000070,
 };
 
-enum rtc_control {
+enum rtc_control
+{
 	MTL_CONTROL_RTC_64 = 0x00000000,
 	MTL_CONTROL_RTC_96 = 0x00000002,
 	MTL_CONTROL_RTC_128 = 0x00000003,
 };
 
-enum flow_control_th {
+enum flow_control_th
+{
 	MTL_FC_FULL_1K = 0x00000000,
 	MTL_FC_FULL_2K = 0x00000001,
 	MTL_FC_FULL_4K = 0x00000002,
@@ -60,33 +63,34 @@ enum flow_control_th {
 	MTL_FC_FULL_24K = 0x00000007,
 };
 
-struct sxgbe_mtl_ops {
+struct sxgbe_mtl_ops
+{
 	void (*mtl_init)(void __iomem *ioaddr, unsigned int etsalg,
-			 unsigned int raa);
+					 unsigned int raa);
 
 	void (*mtl_set_txfifosize)(void __iomem *ioaddr, int queue_num,
-				   int mtl_fifo);
+							   int mtl_fifo);
 
 	void (*mtl_set_rxfifosize)(void __iomem *ioaddr, int queue_num,
-				   int queue_fifo);
+							   int queue_fifo);
 
 	void (*mtl_enable_txqueue)(void __iomem *ioaddr, int queue_num);
 
 	void (*mtl_disable_txqueue)(void __iomem *ioaddr, int queue_num);
 
 	void (*set_tx_mtl_mode)(void __iomem *ioaddr, int queue_num,
-				int tx_mode);
+							int tx_mode);
 
 	void (*set_rx_mtl_mode)(void __iomem *ioaddr, int queue_num,
-				int rx_mode);
+							int rx_mode);
 
 	void (*mtl_dynamic_dma_rxqueue)(void __iomem *ioaddr);
 
 	void (*mtl_fc_active)(void __iomem *ioaddr, int queue_num,
-			      int threshold);
+						  int threshold);
 
 	void (*mtl_fc_deactive)(void __iomem *ioaddr, int queue_num,
-				int threshold);
+							int threshold);
 
 	void (*mtl_fc_enable)(void __iomem *ioaddr, int queue_num);
 

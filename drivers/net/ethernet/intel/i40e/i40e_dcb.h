@@ -102,25 +102,29 @@
 #pragma pack(1)
 
 /* IEEE 802.1AB LLDP Organization specific TLV */
-struct i40e_lldp_org_tlv {
+struct i40e_lldp_org_tlv
+{
 	__be16 typelength;
 	__be32 ouisubtype;
 	u8 tlvinfo[1];
 };
 
-struct i40e_cee_tlv_hdr {
+struct i40e_cee_tlv_hdr
+{
 	__be16 typelen;
 	u8 operver;
 	u8 maxver;
 };
 
-struct i40e_cee_ctrl_tlv {
+struct i40e_cee_ctrl_tlv
+{
 	struct i40e_cee_tlv_hdr hdr;
 	__be32 seqno;
 	__be32 ackno;
 };
 
-struct i40e_cee_feat_tlv {
+struct i40e_cee_feat_tlv
+{
 	struct i40e_cee_tlv_hdr hdr;
 	u8 en_will_err; /* Bits: |En|Will|Err|Reserved(5)| */
 #define I40E_CEE_FEAT_TLV_ENABLE_MASK	0x80
@@ -130,7 +134,8 @@ struct i40e_cee_feat_tlv {
 	u8 tlvinfo[1];
 };
 
-struct i40e_cee_app_prio {
+struct i40e_cee_app_prio
+{
 	__be16 protocol;
 	u8 upper_oui_sel; /* Bits: |Upper OUI(6)|Selector(2)| */
 #define I40E_CEE_APP_SELECTOR_MASK	0x03
@@ -140,12 +145,12 @@ struct i40e_cee_app_prio {
 #pragma pack()
 
 i40e_status i40e_get_dcbx_status(struct i40e_hw *hw,
-					   u16 *status);
+								 u16 *status);
 i40e_status i40e_lldp_to_dcb_config(u8 *lldpmib,
-					      struct i40e_dcbx_config *dcbcfg);
+									struct i40e_dcbx_config *dcbcfg);
 i40e_status i40e_aq_get_dcb_config(struct i40e_hw *hw, u8 mib_type,
-					     u8 bridgetype,
-					     struct i40e_dcbx_config *dcbcfg);
+								   u8 bridgetype,
+								   struct i40e_dcbx_config *dcbcfg);
 i40e_status i40e_get_dcb_config(struct i40e_hw *hw);
 i40e_status i40e_init_dcb(struct i40e_hw *hw);
 #endif /* _I40E_DCB_H_ */

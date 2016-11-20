@@ -36,7 +36,8 @@
 /* Module parameter */
 static int max_freq;
 
-struct s_elan_multiplier {
+struct s_elan_multiplier
+{
 	int clock;		/* frequency in kHz                         */
 	int val40h;		/* PMU Force Mode register                  */
 	int val80h;		/* CPU Clock Speed Register                 */
@@ -46,7 +47,8 @@ struct s_elan_multiplier {
  * It is important that the frequencies
  * are listed in ascending order here!
  */
-static struct s_elan_multiplier elan_multiplier[] = {
+static struct s_elan_multiplier elan_multiplier[] =
+{
 	{1000,	0x02,	0x18},
 	{2000,	0x02,	0x10},
 	{4000,	0x02,	0x08},
@@ -57,7 +59,8 @@ static struct s_elan_multiplier elan_multiplier[] = {
 	{99000,	0x01,	0x05}
 };
 
-static struct cpufreq_frequency_table elanfreq_table[] = {
+static struct cpufreq_frequency_table elanfreq_table[] =
+{
 	{0, 0,	1000},
 	{0, 1,	2000},
 	{0, 2,	4000},
@@ -89,26 +92,35 @@ static unsigned int elanfreq_get_cpu_frequency(unsigned int cpu)
 	local_irq_enable();
 
 	if ((clockspeed_reg & 0xE0) == 0xE0)
+	{
 		return 0;
+	}
 
 	/* Are we in CPU clock multiplied mode (66/99 MHz)? */
-	if ((clockspeed_reg & 0xE0) == 0xC0) {
+	if ((clockspeed_reg & 0xE0) == 0xC0)
+	{
 		if ((clockspeed_reg & 0x01) == 0)
+		{
 			return 66000;
+		}
 		else
+		{
 			return 99000;
+		}
 	}
 
 	/* 33 MHz is not 32 MHz... */
 	if ((clockspeed_reg & 0xE0) == 0xA0)
+	{
 		return 33000;
+	}
 
-	return (1<<((clockspeed_reg & 0xE0) >> 5)) * 1000;
+	return (1 << ((clockspeed_reg & 0xE0) >> 5)) * 1000;
 }
 
 
 static int elanfreq_target(struct cpufreq_policy *policy,
-			    unsigned int state)
+						   unsigned int state)
 {
 	/*
 	 * Access to the Elan's internal registers is indexed via
@@ -153,17 +165,24 @@ static int elanfreq_cpu_init(struct cpufreq_policy *policy)
 
 	/* capability check */
 	if ((c->x86_vendor != X86_VENDOR_AMD) ||
-	    (c->x86 != 4) || (c->x86_model != 10))
+		(c->x86 != 4) || (c->x86_model != 10))
+	{
 		return -ENODEV;
+	}
 
 	/* max freq */
 	if (!max_freq)
+	{
 		max_freq = elanfreq_get_cpu_frequency(0);
+	}
 
 	/* table init */
 	cpufreq_for_each_entry(pos, elanfreq_table)
-		if (pos->frequency > max_freq)
-			pos->frequency = CPUFREQ_ENTRY_INVALID;
+
+	if (pos->frequency > max_freq)
+	{
+		pos->frequency = CPUFREQ_ENTRY_INVALID;
+	}
 
 	/* cpuinfo and default policy values */
 	policy->cpuinfo.transition_latency = CPUFREQ_ETERNAL;
@@ -194,7 +213,8 @@ __setup("elanfreq=", elanfreq_setup);
 #endif
 
 
-static struct cpufreq_driver elanfreq_driver = {
+static struct cpufreq_driver elanfreq_driver =
+{
 	.get		= elanfreq_get_cpu_frequency,
 	.verify		= cpufreq_generic_frequency_table_verify,
 	.target_index	= elanfreq_target,
@@ -203,7 +223,8 @@ static struct cpufreq_driver elanfreq_driver = {
 	.attr		= cpufreq_generic_attr,
 };
 
-static const struct x86_cpu_id elan_id[] = {
+static const struct x86_cpu_id elan_id[] =
+{
 	{ X86_VENDOR_AMD, 4, 10, },
 	{}
 };
@@ -212,7 +233,10 @@ MODULE_DEVICE_TABLE(x86cpu, elan_id);
 static int __init elanfreq_init(void)
 {
 	if (!x86_match_cpu(elan_id))
+	{
 		return -ENODEV;
+	}
+
 	return cpufreq_register_driver(&elanfreq_driver);
 }
 
@@ -227,7 +251,7 @@ module_param(max_freq, int, 0444);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Robert Schwebel <r.schwebel@pengutronix.de>, "
-		"Sven Geggus <sven@geggus.net>");
+			  "Sven Geggus <sven@geggus.net>");
 MODULE_DESCRIPTION("cpufreq driver for AMD's Elan CPUs");
 
 module_init(elanfreq_init);

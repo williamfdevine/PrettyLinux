@@ -41,7 +41,8 @@
 /* ib_cm and ib_user_cm modules share /sys/class/infiniband_cm */
 extern struct class cm_class;
 
-enum ib_cm_state {
+enum ib_cm_state
+{
 	IB_CM_IDLE,
 	IB_CM_LISTEN,
 	IB_CM_REQ_SENT,
@@ -60,7 +61,8 @@ enum ib_cm_state {
 	IB_CM_SIDR_REQ_RCVD
 };
 
-enum ib_cm_lap_state {
+enum ib_cm_lap_state
+{
 	IB_CM_LAP_UNINIT,
 	IB_CM_LAP_IDLE,
 	IB_CM_LAP_SENT,
@@ -69,7 +71,8 @@ enum ib_cm_lap_state {
 	IB_CM_MRA_LAP_RCVD,
 };
 
-enum ib_cm_event_type {
+enum ib_cm_event_type
+{
 	IB_CM_REQ_ERROR,
 	IB_CM_REQ_RECEIVED,
 	IB_CM_REP_ERROR,
@@ -90,7 +93,8 @@ enum ib_cm_event_type {
 	IB_CM_SIDR_REP_RECEIVED
 };
 
-enum ib_cm_data_size {
+enum ib_cm_data_size
+{
 	IB_CM_REQ_PRIVATE_DATA_SIZE	 = 92,
 	IB_CM_MRA_PRIVATE_DATA_SIZE	 = 222,
 	IB_CM_REJ_PRIVATE_DATA_SIZE	 = 148,
@@ -109,7 +113,8 @@ enum ib_cm_data_size {
 
 struct ib_cm_id;
 
-struct ib_cm_req_event_param {
+struct ib_cm_req_event_param
+{
 	struct ib_cm_id		*listen_id;
 
 	/* P_Key that was used by the GMP's BTH header */
@@ -128,29 +133,31 @@ struct ib_cm_req_event_param {
 	u32			starting_psn;
 	u8			responder_resources;
 	u8			initiator_depth;
-	unsigned int		local_cm_response_timeout:5;
-	unsigned int		flow_control:1;
-	unsigned int		remote_cm_response_timeout:5;
-	unsigned int		retry_count:3;
-	unsigned int		rnr_retry_count:3;
-	unsigned int		srq:1;
+	unsigned int		local_cm_response_timeout: 5;
+	unsigned int		flow_control: 1;
+	unsigned int		remote_cm_response_timeout: 5;
+	unsigned int		retry_count: 3;
+	unsigned int		rnr_retry_count: 3;
+	unsigned int		srq: 1;
 };
 
-struct ib_cm_rep_event_param {
+struct ib_cm_rep_event_param
+{
 	__be64			remote_ca_guid;
 	u32			remote_qkey;
 	u32			remote_qpn;
 	u32			starting_psn;
 	u8			responder_resources;
 	u8			initiator_depth;
-	unsigned int		target_ack_delay:5;
-	unsigned int		failover_accepted:2;
-	unsigned int		flow_control:1;
-	unsigned int		rnr_retry_count:3;
-	unsigned int		srq:1;
+	unsigned int		target_ack_delay: 5;
+	unsigned int		failover_accepted: 2;
+	unsigned int		flow_control: 1;
+	unsigned int		rnr_retry_count: 3;
+	unsigned int		srq: 1;
 };
 
-enum ib_cm_rej_reason {
+enum ib_cm_rej_reason
+{
 	IB_CM_REJ_NO_QP				= 1,
 	IB_CM_REJ_NO_EEC			= 2,
 	IB_CM_REJ_NO_RESOURCES			= 3,
@@ -186,21 +193,25 @@ enum ib_cm_rej_reason {
 	IB_CM_REJ_INVALID_ALT_FLOW_LABEL	= 33
 };
 
-struct ib_cm_rej_event_param {
+struct ib_cm_rej_event_param
+{
 	enum ib_cm_rej_reason	reason;
 	void			*ari;
 	u8			ari_length;
 };
 
-struct ib_cm_mra_event_param {
+struct ib_cm_mra_event_param
+{
 	u8	service_timeout;
 };
 
-struct ib_cm_lap_event_param {
+struct ib_cm_lap_event_param
+{
 	struct ib_sa_path_rec	*alternate_path;
 };
 
-enum ib_cm_apr_status {
+enum ib_cm_apr_status
+{
 	IB_CM_APR_SUCCESS,
 	IB_CM_APR_INVALID_COMM_ID,
 	IB_CM_APR_UNSUPPORTED,
@@ -217,13 +228,15 @@ enum ib_cm_apr_status {
 	IB_CM_APR_INVALID_SL
 };
 
-struct ib_cm_apr_event_param {
+struct ib_cm_apr_event_param
+{
 	enum ib_cm_apr_status	ap_status;
 	void			*apr_info;
 	u8			info_len;
 };
 
-struct ib_cm_sidr_req_event_param {
+struct ib_cm_sidr_req_event_param
+{
 	struct ib_cm_id		*listen_id;
 	__be64			service_id;
 	/* P_Key that was used by the GMP's BTH header */
@@ -232,7 +245,8 @@ struct ib_cm_sidr_req_event_param {
 	u16			pkey;
 };
 
-enum ib_cm_sidr_status {
+enum ib_cm_sidr_status
+{
 	IB_SIDR_SUCCESS,
 	IB_SIDR_UNSUPPORTED,
 	IB_SIDR_REJECT,
@@ -241,7 +255,8 @@ enum ib_cm_sidr_status {
 	IB_SIDR_UNSUPPORTED_VERSION
 };
 
-struct ib_cm_sidr_rep_event_param {
+struct ib_cm_sidr_rep_event_param
+{
 	enum ib_cm_sidr_status	status;
 	u32			qkey;
 	u32			qpn;
@@ -249,9 +264,11 @@ struct ib_cm_sidr_rep_event_param {
 	u8			info_len;
 };
 
-struct ib_cm_event {
+struct ib_cm_event
+{
 	enum ib_cm_event_type	event;
-	union {
+	union
+	{
 		struct ib_cm_req_event_param	req_rcvd;
 		struct ib_cm_rep_event_param	rep_rcvd;
 		/* No data for RTU received events. */
@@ -297,9 +314,10 @@ struct ib_cm_event {
  * destroy the @cm_id after the callback completes.
  */
 typedef int (*ib_cm_handler)(struct ib_cm_id *cm_id,
-			     struct ib_cm_event *event);
+							 struct ib_cm_event *event);
 
-struct ib_cm_id {
+struct ib_cm_id
+{
 	ib_cm_handler		cm_handler;
 	void			*context;
 	struct ib_device	*device;
@@ -324,8 +342,8 @@ struct ib_cm_id {
  * ID resolution requests, and listen requests.
  */
 struct ib_cm_id *ib_create_cm_id(struct ib_device *device,
-				 ib_cm_handler cm_handler,
-				 void *context);
+								 ib_cm_handler cm_handler,
+								 void *context);
 
 /**
  * ib_destroy_cm_id - Destroy a connection identifier.
@@ -356,13 +374,14 @@ void ib_destroy_cm_id(struct ib_cm_id *cm_id);
  *   IB_CM_ASSIGN_SERVICE_ID.
  */
 int ib_cm_listen(struct ib_cm_id *cm_id, __be64 service_id,
-		 __be64 service_mask);
+				 __be64 service_mask);
 
 struct ib_cm_id *ib_cm_insert_listen(struct ib_device *device,
-				     ib_cm_handler cm_handler,
-				     __be64 service_id);
+									 ib_cm_handler cm_handler,
+									 __be64 service_id);
 
-struct ib_cm_req_param {
+struct ib_cm_req_param
+{
 	struct ib_sa_path_rec	*primary_path;
 	struct ib_sa_path_rec	*alternate_path;
 	__be64			service_id;
@@ -391,9 +410,10 @@ struct ib_cm_req_param {
  *   connection.
  */
 int ib_send_cm_req(struct ib_cm_id *cm_id,
-		   struct ib_cm_req_param *param);
+				   struct ib_cm_req_param *param);
 
-struct ib_cm_rep_param {
+struct ib_cm_rep_param
+{
 	u32		qp_num;
 	u32		starting_psn;
 	const void	*private_data;
@@ -415,7 +435,7 @@ struct ib_cm_rep_param {
  *   connection.
  */
 int ib_send_cm_rep(struct ib_cm_id *cm_id,
-		   struct ib_cm_rep_param *param);
+				   struct ib_cm_rep_param *param);
 
 /**
  * ib_send_cm_rtu - Sends a connection ready to use message in response
@@ -426,8 +446,8 @@ int ib_send_cm_rep(struct ib_cm_id *cm_id,
  * @private_data_len: Size of the private data buffer, in bytes.
  */
 int ib_send_cm_rtu(struct ib_cm_id *cm_id,
-		   const void *private_data,
-		   u8 private_data_len);
+				   const void *private_data,
+				   u8 private_data_len);
 
 /**
  * ib_send_cm_dreq - Sends a disconnection request for an existing
@@ -439,8 +459,8 @@ int ib_send_cm_rtu(struct ib_cm_id *cm_id,
  * @private_data_len: Size of the private data buffer, in bytes.
  */
 int ib_send_cm_dreq(struct ib_cm_id *cm_id,
-		    const void *private_data,
-		    u8 private_data_len);
+					const void *private_data,
+					u8 private_data_len);
 
 /**
  * ib_send_cm_drep - Sends a disconnection reply to a disconnection request.
@@ -454,8 +474,8 @@ int ib_send_cm_dreq(struct ib_cm_id *cm_id,
  * to the timewait state, even if an error occurs sending the DREP message.
  */
 int ib_send_cm_drep(struct ib_cm_id *cm_id,
-		    const void *private_data,
-		    u8 private_data_len);
+					const void *private_data,
+					u8 private_data_len);
 
 /**
  * ib_cm_notify - Notifies the CM of an event reported to the consumer.
@@ -486,11 +506,11 @@ int ib_cm_notify(struct ib_cm_id *cm_id, enum ib_event_type event);
  * @private_data_len: Size of the private data buffer, in bytes.
  */
 int ib_send_cm_rej(struct ib_cm_id *cm_id,
-		   enum ib_cm_rej_reason reason,
-		   void *ari,
-		   u8 ari_length,
-		   const void *private_data,
-		   u8 private_data_len);
+				   enum ib_cm_rej_reason reason,
+				   void *ari,
+				   u8 ari_length,
+				   const void *private_data,
+				   u8 private_data_len);
 
 #define IB_CM_MRA_FLAG_DELAY 0x80  /* Send MRA only after a duplicate msg */
 
@@ -506,9 +526,9 @@ int ib_send_cm_rej(struct ib_cm_id *cm_id,
  * @private_data_len: Size of the private data buffer, in bytes.
  */
 int ib_send_cm_mra(struct ib_cm_id *cm_id,
-		   u8 service_timeout,
-		   const void *private_data,
-		   u8 private_data_len);
+				   u8 service_timeout,
+				   const void *private_data,
+				   u8 private_data_len);
 
 /**
  * ib_send_cm_lap - Sends a load alternate path request.
@@ -521,9 +541,9 @@ int ib_send_cm_mra(struct ib_cm_id *cm_id,
  * @private_data_len: Size of the private data buffer, in bytes.
  */
 int ib_send_cm_lap(struct ib_cm_id *cm_id,
-		   struct ib_sa_path_rec *alternate_path,
-		   const void *private_data,
-		   u8 private_data_len);
+				   struct ib_sa_path_rec *alternate_path,
+				   const void *private_data,
+				   u8 private_data_len);
 
 /**
  * ib_cm_init_qp_attr - Initializes the QP attributes for use in transitioning
@@ -542,8 +562,8 @@ int ib_send_cm_lap(struct ib_cm_id *cm_id,
  * this call before calling ib_modify_qp.
  */
 int ib_cm_init_qp_attr(struct ib_cm_id *cm_id,
-		       struct ib_qp_attr *qp_attr,
-		       int *qp_attr_mask);
+					   struct ib_qp_attr *qp_attr,
+					   int *qp_attr_mask);
 
 /**
  * ib_send_cm_apr - Sends an alternate path response message in response to
@@ -558,13 +578,14 @@ int ib_cm_init_qp_attr(struct ib_cm_id *cm_id,
  * @private_data_len: Size of the private data buffer, in bytes.
  */
 int ib_send_cm_apr(struct ib_cm_id *cm_id,
-		   enum ib_cm_apr_status status,
-		   void *info,
-		   u8 info_length,
-		   const void *private_data,
-		   u8 private_data_len);
+				   enum ib_cm_apr_status status,
+				   void *info,
+				   u8 info_length,
+				   const void *private_data,
+				   u8 private_data_len);
 
-struct ib_cm_sidr_req_param {
+struct ib_cm_sidr_req_param
+{
 	struct ib_sa_path_rec	*path;
 	__be64			service_id;
 	int			timeout_ms;
@@ -581,9 +602,10 @@ struct ib_cm_sidr_req_param {
  * @param: Service ID resolution request information.
  */
 int ib_send_cm_sidr_req(struct ib_cm_id *cm_id,
-			struct ib_cm_sidr_req_param *param);
+						struct ib_cm_sidr_req_param *param);
 
-struct ib_cm_sidr_rep_param {
+struct ib_cm_sidr_rep_param
+{
 	u32			qp_num;
 	u32			qkey;
 	enum ib_cm_sidr_status	status;
@@ -601,6 +623,6 @@ struct ib_cm_sidr_rep_param {
  * @param: Service ID resolution reply information.
  */
 int ib_send_cm_sidr_rep(struct ib_cm_id *cm_id,
-			struct ib_cm_sidr_rep_param *param);
+						struct ib_cm_sidr_rep_param *param);
 
 #endif /* IB_CM_H */

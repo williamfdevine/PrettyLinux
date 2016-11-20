@@ -12,8 +12,8 @@
 #include <linux/types.h>
 
 #define DPOT_CONF(features, wipers, max_pos, uid) \
-		(((features) << 18) | (((wipers) & 0xFF) << 10) | \
-		((max_pos & 0xF) << 6) | (uid & 0x3F))
+	(((features) << 18) | (((wipers) & 0xFF) << 10) | \
+	 ((max_pos & 0xF) << 6) | (uid & 0x3F))
 
 #define DPOT_UID(conf)		(conf & 0x3F)
 #define DPOT_MAX_POS(conf)	((conf >> 6) & 0xF)
@@ -43,71 +43,72 @@
 #define F_RDACS_RW_EEP	(F_RDACS_RW | F_CMD_EEP)
 #define F_SPI		(F_SPI_8BIT | F_SPI_16BIT | F_SPI_24BIT)
 
-enum dpot_devid {
+enum dpot_devid
+{
 	AD5258_ID = DPOT_CONF(F_RDACS_RW_TOL, BRDAC0, 6, 0), /* I2C */
 	AD5259_ID = DPOT_CONF(F_RDACS_RW_TOL, BRDAC0, 8, 1),
 	AD5251_ID = DPOT_CONF(F_RDACS_RW_TOL | F_CMD_INC,
-			BRDAC1 | BRDAC3, 6, 2),
+						  BRDAC1 | BRDAC3, 6, 2),
 	AD5252_ID = DPOT_CONF(F_RDACS_RW_TOL | F_CMD_INC,
-			BRDAC1 | BRDAC3, 8, 3),
+						  BRDAC1 | BRDAC3, 8, 3),
 	AD5253_ID = DPOT_CONF(F_RDACS_RW_TOL | F_CMD_INC,
-			BRDAC0 | BRDAC1 | BRDAC2 | BRDAC3, 6, 4),
+						  BRDAC0 | BRDAC1 | BRDAC2 | BRDAC3, 6, 4),
 	AD5254_ID = DPOT_CONF(F_RDACS_RW_TOL | F_CMD_INC,
-			BRDAC0 | BRDAC1 | BRDAC2 | BRDAC3, 8, 5),
+						  BRDAC0 | BRDAC1 | BRDAC2 | BRDAC3, 8, 5),
 	AD5255_ID = DPOT_CONF(F_RDACS_RW_TOL | F_CMD_INC,
-			BRDAC0 | BRDAC1 | BRDAC2, 9, 6),
+						  BRDAC0 | BRDAC1 | BRDAC2, 9, 6),
 	AD5160_ID = DPOT_CONF(F_RDACS_WONLY | F_AD_APPDATA | F_SPI_8BIT,
-			BRDAC0, 8, 7), /* SPI */
+						  BRDAC0, 8, 7), /* SPI */
 	AD5161_ID = DPOT_CONF(F_RDACS_WONLY | F_AD_APPDATA | F_SPI_8BIT,
-			BRDAC0, 8, 8),
+						  BRDAC0, 8, 8),
 	AD5162_ID = DPOT_CONF(F_RDACS_WONLY | F_AD_APPDATA | F_SPI_16BIT,
-			BRDAC0 | BRDAC1, 8, 9),
+						  BRDAC0 | BRDAC1, 8, 9),
 	AD5165_ID = DPOT_CONF(F_RDACS_WONLY | F_AD_APPDATA | F_SPI_8BIT,
-			BRDAC0, 8, 10),
+						  BRDAC0, 8, 10),
 	AD5200_ID = DPOT_CONF(F_RDACS_WONLY | F_AD_APPDATA | F_SPI_8BIT,
-			BRDAC0, 8, 11),
+						  BRDAC0, 8, 11),
 	AD5201_ID = DPOT_CONF(F_RDACS_WONLY | F_AD_APPDATA | F_SPI_8BIT,
-			BRDAC0, 5, 12),
+						  BRDAC0, 5, 12),
 	AD5203_ID = DPOT_CONF(F_RDACS_WONLY | F_AD_APPDATA | F_SPI_8BIT,
-			BRDAC0 | BRDAC1 | BRDAC2 | BRDAC3, 6, 13),
+						  BRDAC0 | BRDAC1 | BRDAC2 | BRDAC3, 6, 13),
 	AD5204_ID = DPOT_CONF(F_RDACS_WONLY | F_AD_APPDATA | F_SPI_16BIT,
-			BRDAC0 | BRDAC1 | BRDAC2 | BRDAC3, 8, 14),
+						  BRDAC0 | BRDAC1 | BRDAC2 | BRDAC3, 8, 14),
 	AD5206_ID = DPOT_CONF(F_RDACS_WONLY | F_AD_APPDATA | F_SPI_16BIT,
-			BRDAC0 | BRDAC1 | BRDAC2 | BRDAC3 | BRDAC4 | BRDAC5,
-			8, 15),
+						  BRDAC0 | BRDAC1 | BRDAC2 | BRDAC3 | BRDAC4 | BRDAC5,
+						  8, 15),
 	AD5207_ID = DPOT_CONF(F_RDACS_WONLY | F_AD_APPDATA | F_SPI_16BIT,
-			BRDAC0 | BRDAC1, 8, 16),
+						  BRDAC0 | BRDAC1, 8, 16),
 	AD5231_ID = DPOT_CONF(F_RDACS_RW_EEP | F_CMD_INC | F_SPI_24BIT,
-			BRDAC0, 10, 17),
+						  BRDAC0, 10, 17),
 	AD5232_ID = DPOT_CONF(F_RDACS_RW_EEP | F_CMD_INC | F_SPI_16BIT,
-			BRDAC0 | BRDAC1, 8, 18),
+						  BRDAC0 | BRDAC1, 8, 18),
 	AD5233_ID = DPOT_CONF(F_RDACS_RW_EEP | F_CMD_INC | F_SPI_16BIT,
-			BRDAC0 | BRDAC1 | BRDAC2 | BRDAC3, 6, 19),
+						  BRDAC0 | BRDAC1 | BRDAC2 | BRDAC3, 6, 19),
 	AD5235_ID = DPOT_CONF(F_RDACS_RW_EEP | F_CMD_INC | F_SPI_24BIT,
-			BRDAC0 | BRDAC1, 10, 20),
+						  BRDAC0 | BRDAC1, 10, 20),
 	AD5260_ID = DPOT_CONF(F_RDACS_WONLY | F_AD_APPDATA | F_SPI_8BIT,
-			BRDAC0, 8, 21),
+						  BRDAC0, 8, 21),
 	AD5262_ID = DPOT_CONF(F_RDACS_WONLY | F_AD_APPDATA | F_SPI_16BIT,
-			BRDAC0 | BRDAC1, 8, 22),
+						  BRDAC0 | BRDAC1, 8, 22),
 	AD5263_ID = DPOT_CONF(F_RDACS_WONLY | F_AD_APPDATA | F_SPI_16BIT,
-			BRDAC0 | BRDAC1 | BRDAC2 | BRDAC3, 8, 23),
+						  BRDAC0 | BRDAC1 | BRDAC2 | BRDAC3, 8, 23),
 	AD5290_ID = DPOT_CONF(F_RDACS_WONLY | F_AD_APPDATA | F_SPI_8BIT,
-			BRDAC0, 8, 24),
+						  BRDAC0, 8, 24),
 	AD5291_ID = DPOT_CONF(F_RDACS_RW | F_SPI_16BIT | F_CMD_OTP,
-			BRDAC0, 8, 25),
+						  BRDAC0, 8, 25),
 	AD5292_ID = DPOT_CONF(F_RDACS_RW | F_SPI_16BIT | F_CMD_OTP,
-			BRDAC0, 10, 26),
+						  BRDAC0, 10, 26),
 	AD5293_ID = DPOT_CONF(F_RDACS_RW | F_SPI_16BIT, BRDAC0, 10, 27),
 	AD7376_ID = DPOT_CONF(F_RDACS_WONLY | F_AD_APPDATA | F_SPI_8BIT,
-			BRDAC0, 7, 28),
+						  BRDAC0, 7, 28),
 	AD8400_ID = DPOT_CONF(F_RDACS_WONLY | F_AD_APPDATA | F_SPI_16BIT,
-			BRDAC0, 8, 29),
+						  BRDAC0, 8, 29),
 	AD8402_ID = DPOT_CONF(F_RDACS_WONLY | F_AD_APPDATA | F_SPI_16BIT,
-			BRDAC0 | BRDAC1, 8, 30),
+						  BRDAC0 | BRDAC1, 8, 30),
 	AD8403_ID = DPOT_CONF(F_RDACS_WONLY | F_AD_APPDATA | F_SPI_16BIT,
-			BRDAC0 | BRDAC1 | BRDAC2, 8, 31),
+						  BRDAC0 | BRDAC1 | BRDAC2, 8, 31),
 	ADN2850_ID = DPOT_CONF(F_RDACS_RW_EEP | F_CMD_INC | F_SPI_24BIT,
-			BRDAC0 | BRDAC1, 10, 32),
+						   BRDAC0 | BRDAC1, 10, 32),
 	AD5241_ID = DPOT_CONF(F_RDACS_RW, BRDAC0, 8, 33),
 	AD5242_ID = DPOT_CONF(F_RDACS_RW, BRDAC0 | BRDAC1, 8, 34),
 	AD5243_ID = DPOT_CONF(F_RDACS_RW, BRDAC0 | BRDAC1, 8, 35),
@@ -118,16 +119,16 @@ enum dpot_devid {
 	AD5280_ID = DPOT_CONF(F_RDACS_RW, BRDAC0, 8, 40),
 	AD5282_ID = DPOT_CONF(F_RDACS_RW, BRDAC0 | BRDAC1, 8, 41),
 	ADN2860_ID = DPOT_CONF(F_RDACS_RW_TOL | F_CMD_INC,
-			BRDAC0 | BRDAC1 | BRDAC2, 9, 42),
+						   BRDAC0 | BRDAC1 | BRDAC2, 9, 42),
 	AD5273_ID = DPOT_CONF(F_RDACS_RW | F_CMD_OTP, BRDAC0, 6, 43),
 	AD5171_ID = DPOT_CONF(F_RDACS_RW | F_CMD_OTP, BRDAC0, 6, 44),
 	AD5170_ID = DPOT_CONF(F_RDACS_RW | F_CMD_OTP, BRDAC0, 8, 45),
 	AD5172_ID = DPOT_CONF(F_RDACS_RW | F_CMD_OTP, BRDAC0 | BRDAC1, 8, 46),
 	AD5173_ID = DPOT_CONF(F_RDACS_RW | F_CMD_OTP, BRDAC0 | BRDAC1, 8, 47),
 	AD5270_ID = DPOT_CONF(F_RDACS_RW | F_CMD_OTP | F_SPI_16BIT,
-			BRDAC0, 10, 48),
+						  BRDAC0, 10, 48),
 	AD5271_ID = DPOT_CONF(F_RDACS_RW | F_CMD_OTP | F_SPI_16BIT,
-			BRDAC0, 8, 49),
+						  BRDAC0, 8, 49),
 	AD5272_ID = DPOT_CONF(F_RDACS_RW | F_CMD_OTP, BRDAC0, 10, 50),
 	AD5274_ID = DPOT_CONF(F_RDACS_RW | F_CMD_OTP, BRDAC0, 8, 51),
 };
@@ -194,7 +195,8 @@ enum dpot_devid {
 
 struct dpot_data;
 
-struct ad_dpot_bus_ops {
+struct ad_dpot_bus_ops
+{
 	int (*read_d8) (void *client);
 	int (*read_r8d8) (void *client, u8 reg);
 	int (*read_r8d16) (void *client, u8 reg);
@@ -203,13 +205,14 @@ struct ad_dpot_bus_ops {
 	int (*write_r8d16) (void *client, u8 reg, u16 val);
 };
 
-struct ad_dpot_bus_data {
+struct ad_dpot_bus_data
+{
 	void *client;
 	const struct ad_dpot_bus_ops *bops;
 };
 
 int ad_dpot_probe(struct device *dev, struct ad_dpot_bus_data *bdata,
-		  unsigned long devid, const char *name);
+				  unsigned long devid, const char *name);
 int ad_dpot_remove(struct device *dev);
 
 #endif

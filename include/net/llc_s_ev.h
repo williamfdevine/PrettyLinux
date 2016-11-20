@@ -34,7 +34,8 @@
 #define LLC_SAP_EV_RX_TEST_R		 9
 #define LLC_SAP_EV_DEACTIVATION_REQ	10
 
-struct llc_sap_state_ev {
+struct llc_sap_state_ev
+{
 	u8		prim;
 	u8		prim_type;
 	u8		type;

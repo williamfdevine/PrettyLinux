@@ -4,10 +4,11 @@
 #include <linux/ns_common.h>
 #include <linux/fs_pin.h>
 
-struct mnt_namespace {
+struct mnt_namespace
+{
 	atomic_t		count;
 	struct ns_common	ns;
-	struct mount *	root;
+	struct mount 	*root;
 	struct list_head	list;
 	struct user_namespace	*user_ns;
 	struct ucounts		*ucounts;
@@ -18,24 +19,28 @@ struct mnt_namespace {
 	unsigned int		pending_mounts;
 };
 
-struct mnt_pcp {
+struct mnt_pcp
+{
 	int mnt_count;
 	int mnt_writers;
 };
 
-struct mountpoint {
+struct mountpoint
+{
 	struct hlist_node m_hash;
 	struct dentry *m_dentry;
 	struct hlist_head m_list;
 	int m_count;
 };
 
-struct mount {
+struct mount
+{
 	struct hlist_node mnt_hash;
 	struct mount *mnt_parent;
 	struct dentry *mnt_mountpoint;
 	struct vfsmount mnt;
-	union {
+	union
+	{
 		struct rcu_head mnt_rcu;
 		struct llist_node mnt_llist;
 	};
@@ -99,7 +104,10 @@ extern void __detach_mounts(struct dentry *dentry);
 static inline void detach_mounts(struct dentry *dentry)
 {
 	if (!d_mountpoint(dentry))
+	{
 		return;
+	}
+
 	__detach_mounts(dentry);
 }
 
@@ -120,7 +128,8 @@ static inline void unlock_mount_hash(void)
 	write_sequnlock(&mount_lock);
 }
 
-struct proc_mounts {
+struct proc_mounts
+{
 	struct mnt_namespace *ns;
 	struct path root;
 	int (*show)(struct seq_file *, struct vfsmount *);
@@ -135,7 +144,9 @@ extern bool __is_local_mountpoint(struct dentry *dentry);
 static inline bool is_local_mountpoint(struct dentry *dentry)
 {
 	if (!d_mountpoint(dentry))
+	{
 		return false;
+	}
 
 	return __is_local_mountpoint(dentry);
 }

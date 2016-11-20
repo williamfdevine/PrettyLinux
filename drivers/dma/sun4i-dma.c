@@ -126,7 +126,8 @@
 	 SUN4I_DDMA_PARA_DST_WAIT_CYCLES(2) |				\
 	 SUN4I_DDMA_PARA_SRC_WAIT_CYCLES(2))
 
-struct sun4i_dma_pchan {
+struct sun4i_dma_pchan
+{
 	/* Register base of channel */
 	void __iomem			*base;
 	/* vchan currently being serviced */
@@ -135,7 +136,8 @@ struct sun4i_dma_pchan {
 	int				is_dedicated;
 };
 
-struct sun4i_dma_vchan {
+struct sun4i_dma_vchan
+{
 	struct virt_dma_chan		vc;
 	struct dma_slave_config		cfg;
 	struct sun4i_dma_pchan		*pchan;
@@ -145,7 +147,8 @@ struct sun4i_dma_vchan {
 	int				is_dedicated;
 };
 
-struct sun4i_dma_promise {
+struct sun4i_dma_promise
+{
 	u32				cfg;
 	u32				para;
 	dma_addr_t			src;
@@ -155,14 +158,16 @@ struct sun4i_dma_promise {
 };
 
 /* A contract is a set of promises */
-struct sun4i_dma_contract {
+struct sun4i_dma_contract
+{
 	struct virt_dma_desc		vd;
 	struct list_head		demands;
 	struct list_head		completed_demands;
 	int				is_cyclic;
 };
 
-struct sun4i_dma_dev {
+struct sun4i_dma_dev
+{
 	DECLARE_BITMAP(pchans_used, SUN4I_DMA_NR_MAX_CHANNELS);
 	struct dma_device		slave;
 	struct sun4i_dma_pchan		*pchans;
@@ -196,7 +201,9 @@ static struct device *chan2dev(struct dma_chan *chan)
 static int convert_burst(u32 maxburst)
 {
 	if (maxburst > 8)
+	{
 		return -EINVAL;
+	}
 
 	/* 1 -> 0, 4 -> 1, 8 -> 2 */
 	return (maxburst >> 2);
@@ -205,7 +212,9 @@ static int convert_burst(u32 maxburst)
 static int convert_buswidth(enum dma_slave_buswidth addr_width)
 {
 	if (addr_width > DMA_SLAVE_BUSWIDTH_4_BYTES)
+	{
 		return -EINVAL;
+	}
 
 	/* 8 (1 byte) -> 0, 16 (2 bytes) -> 1, 32 (4 bytes) -> 2 */
 	return (addr_width >> 1);
@@ -219,7 +228,7 @@ static void sun4i_dma_free_chan_resources(struct dma_chan *chan)
 }
 
 static struct sun4i_dma_pchan *find_and_use_pchan(struct sun4i_dma_dev *priv,
-						  struct sun4i_dma_vchan *vchan)
+		struct sun4i_dma_vchan *vchan)
 {
 	struct sun4i_dma_pchan *pchan = NULL, *pchans = priv->pchans;
 	unsigned long flags;
@@ -229,16 +238,20 @@ static struct sun4i_dma_pchan *find_and_use_pchan(struct sun4i_dma_dev *priv,
 	 * pchans 0-SUN4I_NDMA_NR_MAX_CHANNELS are normal, and
 	 * SUN4I_NDMA_NR_MAX_CHANNELS+ are dedicated ones
 	 */
-	if (vchan->is_dedicated) {
+	if (vchan->is_dedicated)
+	{
 		i = SUN4I_NDMA_NR_MAX_CHANNELS;
 		max = SUN4I_DMA_NR_MAX_CHANNELS;
-	} else {
+	}
+	else
+	{
 		i = 0;
 		max = SUN4I_NDMA_NR_MAX_CHANNELS;
 	}
 
 	spin_lock_irqsave(&priv->lock, flags);
-	for_each_clear_bit_from(i, &priv->pchans_used, max) {
+	for_each_clear_bit_from(i, &priv->pchans_used, max)
+	{
 		pchan = &pchans[i];
 		pchan->vchan = vchan;
 		set_bit(i, priv->pchans_used);
@@ -250,7 +263,7 @@ static struct sun4i_dma_pchan *find_and_use_pchan(struct sun4i_dma_dev *priv,
 }
 
 static void release_pchan(struct sun4i_dma_dev *priv,
-			  struct sun4i_dma_pchan *pchan)
+						  struct sun4i_dma_pchan *pchan)
 {
 	unsigned long flags;
 	int nr = pchan - priv->pchans;
@@ -264,19 +277,22 @@ static void release_pchan(struct sun4i_dma_dev *priv,
 }
 
 static void configure_pchan(struct sun4i_dma_pchan *pchan,
-			    struct sun4i_dma_promise *d)
+							struct sun4i_dma_promise *d)
 {
 	/*
 	 * Configure addresses and misc parameters depending on type
 	 * SUN4I_DDMA has an extra field with timing parameters
 	 */
-	if (pchan->is_dedicated) {
+	if (pchan->is_dedicated)
+	{
 		writel_relaxed(d->src, pchan->base + SUN4I_DDMA_SRC_ADDR_REG);
 		writel_relaxed(d->dst, pchan->base + SUN4I_DDMA_DST_ADDR_REG);
 		writel_relaxed(d->len, pchan->base + SUN4I_DDMA_BYTE_COUNT_REG);
 		writel_relaxed(d->para, pchan->base + SUN4I_DDMA_PARA_REG);
 		writel_relaxed(d->cfg, pchan->base + SUN4I_DDMA_CFG_REG);
-	} else {
+	}
+	else
+	{
 		writel_relaxed(d->src, pchan->base + SUN4I_NDMA_SRC_ADDR_REG);
 		writel_relaxed(d->dst, pchan->base + SUN4I_NDMA_DST_ADDR_REG);
 		writel_relaxed(d->len, pchan->base + SUN4I_NDMA_BYTE_COUNT_REG);
@@ -285,8 +301,8 @@ static void configure_pchan(struct sun4i_dma_pchan *pchan,
 }
 
 static void set_pchan_interrupt(struct sun4i_dma_dev *priv,
-				struct sun4i_dma_pchan *pchan,
-				int half, int end)
+								struct sun4i_dma_pchan *pchan,
+								int half, int end)
 {
 	u32 reg;
 	int pchan_number = pchan - priv->pchans;
@@ -297,14 +313,22 @@ static void set_pchan_interrupt(struct sun4i_dma_dev *priv,
 	reg = readl_relaxed(priv->base + SUN4I_DMA_IRQ_ENABLE_REG);
 
 	if (half)
+	{
 		reg |= BIT(pchan_number * 2);
+	}
 	else
+	{
 		reg &= ~BIT(pchan_number * 2);
+	}
 
 	if (end)
+	{
 		reg |= BIT(pchan_number * 2 + 1);
+	}
 	else
+	{
 		reg &= ~BIT(pchan_number * 2 + 1);
+	}
 
 	writel_relaxed(reg, priv->base + SUN4I_DMA_IRQ_ENABLE_REG);
 
@@ -321,7 +345,7 @@ static void set_pchan_interrupt(struct sun4i_dma_dev *priv,
  * This function must be called with &vchan->vc.lock held.
  */
 static int __execute_vchan_pending(struct sun4i_dma_dev *priv,
-				   struct sun4i_dma_vchan *vchan)
+								   struct sun4i_dma_vchan *vchan)
 {
 	struct sun4i_dma_promise *promise = NULL;
 	struct sun4i_dma_contract *contract = NULL;
@@ -333,47 +357,58 @@ static int __execute_vchan_pending(struct sun4i_dma_dev *priv,
 
 	/* We need a pchan to do anything, so secure one if available */
 	pchan = find_and_use_pchan(priv, vchan);
+
 	if (!pchan)
+	{
 		return -EBUSY;
+	}
 
 	/*
 	 * Channel endpoints must not be repeated, so if this vchan
 	 * has already submitted some work, we can't do anything else
 	 */
-	if (vchan->processing) {
+	if (vchan->processing)
+	{
 		dev_dbg(chan2dev(&vchan->vc.chan),
-			"processing something to this endpoint already\n");
+				"processing something to this endpoint already\n");
 		ret = -EBUSY;
 		goto release_pchan;
 	}
 
-	do {
+	do
+	{
 		/* Figure out which contract we're working with today */
 		vd = vchan_next_desc(&vchan->vc);
-		if (!vd) {
+
+		if (!vd)
+		{
 			dev_dbg(chan2dev(&vchan->vc.chan),
-				"No pending contract found");
+					"No pending contract found");
 			ret = 0;
 			goto release_pchan;
 		}
 
 		contract = to_sun4i_dma_contract(vd);
-		if (list_empty(&contract->demands)) {
+
+		if (list_empty(&contract->demands))
+		{
 			/* The contract has been completed so mark it as such */
 			list_del(&contract->vd.node);
 			vchan_cookie_complete(&contract->vd);
 			dev_dbg(chan2dev(&vchan->vc.chan),
-				"Empty contract found and marked complete");
+					"Empty contract found and marked complete");
 		}
-	} while (list_empty(&contract->demands));
+	}
+	while (list_empty(&contract->demands));
 
 	/* Now find out what we need to do */
 	promise = list_first_entry(&contract->demands,
-				   struct sun4i_dma_promise, list);
+							   struct sun4i_dma_promise, list);
 	vchan->processing = promise;
 
 	/* ... and make it reality */
-	if (promise) {
+	if (promise)
+	{
 		vchan->contract = contract;
 		vchan->pchan = pchan;
 		set_pchan_interrupt(priv, pchan, contract->is_cyclic, 1);
@@ -388,36 +423,50 @@ release_pchan:
 }
 
 static int sanitize_config(struct dma_slave_config *sconfig,
-			   enum dma_transfer_direction direction)
+						   enum dma_transfer_direction direction)
 {
-	switch (direction) {
-	case DMA_MEM_TO_DEV:
-		if ((sconfig->dst_addr_width == DMA_SLAVE_BUSWIDTH_UNDEFINED) ||
-		    !sconfig->dst_maxburst)
-			return -EINVAL;
+	switch (direction)
+	{
+		case DMA_MEM_TO_DEV:
+			if ((sconfig->dst_addr_width == DMA_SLAVE_BUSWIDTH_UNDEFINED) ||
+				!sconfig->dst_maxburst)
+			{
+				return -EINVAL;
+			}
 
-		if (sconfig->src_addr_width == DMA_SLAVE_BUSWIDTH_UNDEFINED)
-			sconfig->src_addr_width = sconfig->dst_addr_width;
+			if (sconfig->src_addr_width == DMA_SLAVE_BUSWIDTH_UNDEFINED)
+			{
+				sconfig->src_addr_width = sconfig->dst_addr_width;
+			}
 
-		if (!sconfig->src_maxburst)
-			sconfig->src_maxburst = sconfig->dst_maxburst;
+			if (!sconfig->src_maxburst)
+			{
+				sconfig->src_maxburst = sconfig->dst_maxburst;
+			}
 
-		break;
+			break;
 
-	case DMA_DEV_TO_MEM:
-		if ((sconfig->src_addr_width == DMA_SLAVE_BUSWIDTH_UNDEFINED) ||
-		    !sconfig->src_maxburst)
-			return -EINVAL;
+		case DMA_DEV_TO_MEM:
+			if ((sconfig->src_addr_width == DMA_SLAVE_BUSWIDTH_UNDEFINED) ||
+				!sconfig->src_maxburst)
+			{
+				return -EINVAL;
+			}
 
-		if (sconfig->dst_addr_width == DMA_SLAVE_BUSWIDTH_UNDEFINED)
-			sconfig->dst_addr_width = sconfig->src_addr_width;
+			if (sconfig->dst_addr_width == DMA_SLAVE_BUSWIDTH_UNDEFINED)
+			{
+				sconfig->dst_addr_width = sconfig->src_addr_width;
+			}
 
-		if (!sconfig->dst_maxburst)
-			sconfig->dst_maxburst = sconfig->src_maxburst;
+			if (!sconfig->dst_maxburst)
+			{
+				sconfig->dst_maxburst = sconfig->src_maxburst;
+			}
 
-		break;
-	default:
-		return 0;
+			break;
+
+		default:
+			return 0;
 	}
 
 	return 0;
@@ -434,53 +483,75 @@ static int sanitize_config(struct dma_slave_config *sconfig,
  */
 static struct sun4i_dma_promise *
 generate_ndma_promise(struct dma_chan *chan, dma_addr_t src, dma_addr_t dest,
-		      size_t len, struct dma_slave_config *sconfig,
-		      enum dma_transfer_direction direction)
+					  size_t len, struct dma_slave_config *sconfig,
+					  enum dma_transfer_direction direction)
 {
 	struct sun4i_dma_promise *promise;
 	int ret;
 
 	ret = sanitize_config(sconfig, direction);
+
 	if (ret)
+	{
 		return NULL;
+	}
 
 	promise = kzalloc(sizeof(*promise), GFP_NOWAIT);
+
 	if (!promise)
+	{
 		return NULL;
+	}
 
 	promise->src = src;
 	promise->dst = dest;
 	promise->len = len;
 	promise->cfg = SUN4I_DMA_CFG_LOADING |
-		SUN4I_NDMA_CFG_BYTE_COUNT_MODE_REMAIN;
+				   SUN4I_NDMA_CFG_BYTE_COUNT_MODE_REMAIN;
 
 	dev_dbg(chan2dev(chan),
-		"src burst %d, dst burst %d, src buswidth %d, dst buswidth %d",
-		sconfig->src_maxburst, sconfig->dst_maxburst,
-		sconfig->src_addr_width, sconfig->dst_addr_width);
+			"src burst %d, dst burst %d, src buswidth %d, dst buswidth %d",
+			sconfig->src_maxburst, sconfig->dst_maxburst,
+			sconfig->src_addr_width, sconfig->dst_addr_width);
 
 	/* Source burst */
 	ret = convert_burst(sconfig->src_maxburst);
+
 	if (ret < 0)
+	{
 		goto fail;
+	}
+
 	promise->cfg |= SUN4I_DMA_CFG_SRC_BURST_LENGTH(ret);
 
 	/* Destination burst */
 	ret = convert_burst(sconfig->dst_maxburst);
+
 	if (ret < 0)
+	{
 		goto fail;
+	}
+
 	promise->cfg |= SUN4I_DMA_CFG_DST_BURST_LENGTH(ret);
 
 	/* Source bus width */
 	ret = convert_buswidth(sconfig->src_addr_width);
+
 	if (ret < 0)
+	{
 		goto fail;
+	}
+
 	promise->cfg |= SUN4I_DMA_CFG_SRC_DATA_WIDTH(ret);
 
 	/* Destination bus width */
 	ret = convert_buswidth(sconfig->dst_addr_width);
+
 	if (ret < 0)
+	{
 		goto fail;
+	}
+
 	promise->cfg |= SUN4I_DMA_CFG_DST_DATA_WIDTH(ret);
 
 	return promise;
@@ -501,43 +572,62 @@ fail:
  */
 static struct sun4i_dma_promise *
 generate_ddma_promise(struct dma_chan *chan, dma_addr_t src, dma_addr_t dest,
-		      size_t len, struct dma_slave_config *sconfig)
+					  size_t len, struct dma_slave_config *sconfig)
 {
 	struct sun4i_dma_promise *promise;
 	int ret;
 
 	promise = kzalloc(sizeof(*promise), GFP_NOWAIT);
+
 	if (!promise)
+	{
 		return NULL;
+	}
 
 	promise->src = src;
 	promise->dst = dest;
 	promise->len = len;
 	promise->cfg = SUN4I_DMA_CFG_LOADING |
-		SUN4I_DDMA_CFG_BYTE_COUNT_MODE_REMAIN;
+				   SUN4I_DDMA_CFG_BYTE_COUNT_MODE_REMAIN;
 
 	/* Source burst */
 	ret = convert_burst(sconfig->src_maxburst);
+
 	if (ret < 0)
+	{
 		goto fail;
+	}
+
 	promise->cfg |= SUN4I_DMA_CFG_SRC_BURST_LENGTH(ret);
 
 	/* Destination burst */
 	ret = convert_burst(sconfig->dst_maxburst);
+
 	if (ret < 0)
+	{
 		goto fail;
+	}
+
 	promise->cfg |= SUN4I_DMA_CFG_DST_BURST_LENGTH(ret);
 
 	/* Source bus width */
 	ret = convert_buswidth(sconfig->src_addr_width);
+
 	if (ret < 0)
+	{
 		goto fail;
+	}
+
 	promise->cfg |= SUN4I_DMA_CFG_SRC_DATA_WIDTH(ret);
 
 	/* Destination bus width */
 	ret = convert_buswidth(sconfig->dst_addr_width);
+
 	if (ret < 0)
+	{
 		goto fail;
+	}
+
 	promise->cfg |= SUN4I_DMA_CFG_DST_DATA_WIDTH(ret);
 
 	return promise;
@@ -560,8 +650,11 @@ static struct sun4i_dma_contract *generate_dma_contract(void)
 	struct sun4i_dma_contract *contract;
 
 	contract = kzalloc(sizeof(*contract), GFP_NOWAIT);
+
 	if (!contract)
+	{
 		return NULL;
+	}
 
 	INIT_LIST_HEAD(&contract->demands);
 	INIT_LIST_HEAD(&contract->completed_demands);
@@ -582,12 +675,14 @@ get_next_cyclic_promise(struct sun4i_dma_contract *contract)
 	struct sun4i_dma_promise *promise;
 
 	promise = list_first_entry_or_null(&contract->demands,
-					   struct sun4i_dma_promise, list);
-	if (!promise) {
+									   struct sun4i_dma_promise, list);
+
+	if (!promise)
+	{
 		list_splice_init(&contract->completed_demands,
-				 &contract->demands);
+						 &contract->demands);
 		promise = list_first_entry(&contract->demands,
-					   struct sun4i_dma_promise, list);
+								   struct sun4i_dma_promise, list);
 	}
 
 	return promise;
@@ -603,17 +698,17 @@ static void sun4i_dma_free_contract(struct virt_dma_desc *vd)
 
 	/* Free all the demands and completed demands */
 	list_for_each_entry_safe(promise, tmp, &contract->demands, list)
-		kfree(promise);
+	kfree(promise);
 
 	list_for_each_entry_safe(promise, tmp, &contract->completed_demands, list)
-		kfree(promise);
+	kfree(promise);
 
 	kfree(contract);
 }
 
 static struct dma_async_tx_descriptor *
 sun4i_dma_prep_dma_memcpy(struct dma_chan *chan, dma_addr_t dest,
-			  dma_addr_t src, size_t len, unsigned long flags)
+						  dma_addr_t src, size_t len, unsigned long flags)
 {
 	struct sun4i_dma_vchan *vchan = to_sun4i_dma_vchan(chan);
 	struct dma_slave_config *sconfig = &vchan->cfg;
@@ -621,8 +716,11 @@ sun4i_dma_prep_dma_memcpy(struct dma_chan *chan, dma_addr_t dest,
 	struct sun4i_dma_contract *contract;
 
 	contract = generate_dma_contract();
+
 	if (!contract)
+	{
 		return NULL;
+	}
 
 	/*
 	 * We can only do the copy to bus aligned addresses, so
@@ -635,23 +733,29 @@ sun4i_dma_prep_dma_memcpy(struct dma_chan *chan, dma_addr_t dest,
 	sconfig->dst_maxburst = 8;
 
 	if (vchan->is_dedicated)
+	{
 		promise = generate_ddma_promise(chan, src, dest, len, sconfig);
+	}
 	else
 		promise = generate_ndma_promise(chan, src, dest, len, sconfig,
-						DMA_MEM_TO_MEM);
+										DMA_MEM_TO_MEM);
 
-	if (!promise) {
+	if (!promise)
+	{
 		kfree(contract);
 		return NULL;
 	}
 
 	/* Configure memcpy mode */
-	if (vchan->is_dedicated) {
+	if (vchan->is_dedicated)
+	{
 		promise->cfg |= SUN4I_DMA_CFG_SRC_DRQ_TYPE(SUN4I_DDMA_DRQ_TYPE_SDRAM) |
-				SUN4I_DMA_CFG_DST_DRQ_TYPE(SUN4I_DDMA_DRQ_TYPE_SDRAM);
-	} else {
+						SUN4I_DMA_CFG_DST_DRQ_TYPE(SUN4I_DDMA_DRQ_TYPE_SDRAM);
+	}
+	else
+	{
 		promise->cfg |= SUN4I_DMA_CFG_SRC_DRQ_TYPE(SUN4I_NDMA_DRQ_TYPE_SDRAM) |
-				SUN4I_DMA_CFG_DST_DRQ_TYPE(SUN4I_NDMA_DRQ_TYPE_SDRAM);
+						SUN4I_DMA_CFG_DST_DRQ_TYPE(SUN4I_NDMA_DRQ_TYPE_SDRAM);
 	}
 
 	/* Fill the contract with our only promise */
@@ -663,8 +767,8 @@ sun4i_dma_prep_dma_memcpy(struct dma_chan *chan, dma_addr_t dest,
 
 static struct dma_async_tx_descriptor *
 sun4i_dma_prep_dma_cyclic(struct dma_chan *chan, dma_addr_t buf, size_t len,
-			  size_t period_len, enum dma_transfer_direction dir,
-			  unsigned long flags)
+						  size_t period_len, enum dma_transfer_direction dir,
+						  unsigned long flags)
 {
 	struct sun4i_dma_vchan *vchan = to_sun4i_dma_vchan(chan);
 	struct dma_slave_config *sconfig = &vchan->cfg;
@@ -674,12 +778,14 @@ sun4i_dma_prep_dma_cyclic(struct dma_chan *chan, dma_addr_t buf, size_t len,
 	u32 endpoints;
 	int nr_periods, offset, plength, i;
 
-	if (!is_slave_direction(dir)) {
+	if (!is_slave_direction(dir))
+	{
 		dev_err(chan2dev(chan), "Invalid DMA direction\n");
 		return NULL;
 	}
 
-	if (vchan->is_dedicated) {
+	if (vchan->is_dedicated)
+	{
 		/*
 		 * As we are using this just for audio data, we need to use
 		 * normal DMA. There is nothing stopping us from supporting
@@ -687,29 +793,35 @@ sun4i_dma_prep_dma_cyclic(struct dma_chan *chan, dma_addr_t buf, size_t len,
 		 * requires it, it will be simple to implement it.
 		 */
 		dev_err(chan2dev(chan),
-			"Cyclic transfers are only supported on Normal DMA\n");
+				"Cyclic transfers are only supported on Normal DMA\n");
 		return NULL;
 	}
 
 	contract = generate_dma_contract();
+
 	if (!contract)
+	{
 		return NULL;
+	}
 
 	contract->is_cyclic = 1;
 
 	/* Figure out the endpoints and the address we need */
-	if (dir == DMA_MEM_TO_DEV) {
+	if (dir == DMA_MEM_TO_DEV)
+	{
 		src = buf;
 		dest = sconfig->dst_addr;
 		endpoints = SUN4I_DMA_CFG_SRC_DRQ_TYPE(SUN4I_NDMA_DRQ_TYPE_SDRAM) |
-			    SUN4I_DMA_CFG_DST_DRQ_TYPE(vchan->endpoint) |
-			    SUN4I_DMA_CFG_DST_ADDR_MODE(SUN4I_NDMA_ADDR_MODE_IO);
-	} else {
+					SUN4I_DMA_CFG_DST_DRQ_TYPE(vchan->endpoint) |
+					SUN4I_DMA_CFG_DST_ADDR_MODE(SUN4I_NDMA_ADDR_MODE_IO);
+	}
+	else
+	{
 		src = sconfig->src_addr;
 		dest = buf;
 		endpoints = SUN4I_DMA_CFG_SRC_DRQ_TYPE(vchan->endpoint) |
-			    SUN4I_DMA_CFG_SRC_ADDR_MODE(SUN4I_NDMA_ADDR_MODE_IO) |
-			    SUN4I_DMA_CFG_DST_DRQ_TYPE(SUN4I_NDMA_DRQ_TYPE_SDRAM);
+					SUN4I_DMA_CFG_SRC_ADDR_MODE(SUN4I_NDMA_ADDR_MODE_IO) |
+					SUN4I_DMA_CFG_DST_DRQ_TYPE(SUN4I_NDMA_DRQ_TYPE_SDRAM);
 	}
 
 	/*
@@ -741,22 +853,32 @@ sun4i_dma_prep_dma_cyclic(struct dma_chan *chan, dma_addr_t buf, size_t len,
 	 * functionality.
 	 */
 	nr_periods = DIV_ROUND_UP(len / period_len, 2);
-	for (i = 0; i < nr_periods; i++) {
+
+	for (i = 0; i < nr_periods; i++)
+	{
 		/* Calculate the offset in the buffer and the length needed */
 		offset = i * period_len * 2;
 		plength = min((len - offset), (period_len * 2));
+
 		if (dir == DMA_MEM_TO_DEV)
+		{
 			src = buf + offset;
+		}
 		else
+		{
 			dest = buf + offset;
+		}
 
 		/* Make the promise */
 		promise = generate_ndma_promise(chan, src, dest,
-						plength, sconfig, dir);
-		if (!promise) {
+										plength, sconfig, dir);
+
+		if (!promise)
+		{
 			/* TODO: should we free everything? */
 			return NULL;
 		}
+
 		promise->cfg |= endpoints;
 
 		/* Then add it to the contract */
@@ -769,8 +891,8 @@ sun4i_dma_prep_dma_cyclic(struct dma_chan *chan, dma_addr_t buf, size_t len,
 
 static struct dma_async_tx_descriptor *
 sun4i_dma_prep_slave_sg(struct dma_chan *chan, struct scatterlist *sgl,
-			unsigned int sg_len, enum dma_transfer_direction dir,
-			unsigned long flags, void *context)
+						unsigned int sg_len, enum dma_transfer_direction dir,
+						unsigned long flags, void *context)
 {
 	struct sun4i_dma_vchan *vchan = to_sun4i_dma_vchan(chan);
 	struct dma_slave_config *sconfig = &vchan->cfg;
@@ -783,22 +905,31 @@ sun4i_dma_prep_slave_sg(struct dma_chan *chan, struct scatterlist *sgl,
 	int i;
 
 	if (!sgl)
+	{
 		return NULL;
+	}
 
-	if (!is_slave_direction(dir)) {
+	if (!is_slave_direction(dir))
+	{
 		dev_err(chan2dev(chan), "Invalid DMA direction\n");
 		return NULL;
 	}
 
 	contract = generate_dma_contract();
-	if (!contract)
-		return NULL;
 
-	if (vchan->is_dedicated) {
+	if (!contract)
+	{
+		return NULL;
+	}
+
+	if (vchan->is_dedicated)
+	{
 		io_mode = SUN4I_DDMA_ADDR_MODE_IO;
 		linear_mode = SUN4I_DDMA_ADDR_MODE_LINEAR;
 		ram_type = SUN4I_DDMA_DRQ_TYPE_SDRAM;
-	} else {
+	}
+	else
+	{
 		io_mode = SUN4I_NDMA_ADDR_MODE_IO;
 		linear_mode = SUN4I_NDMA_ADDR_MODE_LINEAR;
 		ram_type = SUN4I_NDMA_DRQ_TYPE_SDRAM;
@@ -806,21 +937,25 @@ sun4i_dma_prep_slave_sg(struct dma_chan *chan, struct scatterlist *sgl,
 
 	if (dir == DMA_MEM_TO_DEV)
 		endpoints = SUN4I_DMA_CFG_DST_DRQ_TYPE(vchan->endpoint) |
-			    SUN4I_DMA_CFG_DST_ADDR_MODE(io_mode) |
-			    SUN4I_DMA_CFG_SRC_DRQ_TYPE(ram_type) |
-			    SUN4I_DMA_CFG_SRC_ADDR_MODE(linear_mode);
+					SUN4I_DMA_CFG_DST_ADDR_MODE(io_mode) |
+					SUN4I_DMA_CFG_SRC_DRQ_TYPE(ram_type) |
+					SUN4I_DMA_CFG_SRC_ADDR_MODE(linear_mode);
 	else
 		endpoints = SUN4I_DMA_CFG_DST_DRQ_TYPE(ram_type) |
-			    SUN4I_DMA_CFG_DST_ADDR_MODE(linear_mode) |
-			    SUN4I_DMA_CFG_SRC_DRQ_TYPE(vchan->endpoint) |
-			    SUN4I_DMA_CFG_SRC_ADDR_MODE(io_mode);
+					SUN4I_DMA_CFG_DST_ADDR_MODE(linear_mode) |
+					SUN4I_DMA_CFG_SRC_DRQ_TYPE(vchan->endpoint) |
+					SUN4I_DMA_CFG_SRC_ADDR_MODE(io_mode);
 
-	for_each_sg(sgl, sg, sg_len, i) {
+	for_each_sg(sgl, sg, sg_len, i)
+	{
 		/* Figure out addresses */
-		if (dir == DMA_MEM_TO_DEV) {
+		if (dir == DMA_MEM_TO_DEV)
+		{
 			srcaddr = sg_dma_address(sg);
 			dstaddr = sconfig->dst_addr;
-		} else {
+		}
+		else
+		{
 			srcaddr = sconfig->src_addr;
 			dstaddr = sg_dma_address(sg);
 		}
@@ -839,15 +974,17 @@ sun4i_dma_prep_slave_sg(struct dma_chan *chan, struct scatterlist *sgl,
 		/* And make a suitable promise */
 		if (vchan->is_dedicated)
 			promise = generate_ddma_promise(chan, srcaddr, dstaddr,
-							sg_dma_len(sg),
-							sconfig);
+											sg_dma_len(sg),
+											sconfig);
 		else
 			promise = generate_ndma_promise(chan, srcaddr, dstaddr,
-							sg_dma_len(sg),
-							sconfig, dir);
+											sg_dma_len(sg),
+											sconfig, dir);
 
 		if (!promise)
-			return NULL; /* TODO: should we free everything? */
+		{
+			return NULL;    /* TODO: should we free everything? */
+		}
 
 		promise->cfg |= endpoints;
 		promise->para = para;
@@ -879,11 +1016,17 @@ static int sun4i_dma_terminate_all(struct dma_chan *chan)
 	 * Clearing the configuration register will halt the pchan. Interrupts
 	 * may still trigger, so don't forget to disable them.
 	 */
-	if (pchan) {
+	if (pchan)
+	{
 		if (pchan->is_dedicated)
+		{
 			writel(0, pchan->base + SUN4I_DDMA_CFG_REG);
+		}
 		else
+		{
 			writel(0, pchan->base + SUN4I_NDMA_CFG_REG);
+		}
+
 		set_pchan_interrupt(priv, pchan, 0, 0);
 		release_pchan(priv, pchan);
 	}
@@ -899,7 +1042,7 @@ static int sun4i_dma_terminate_all(struct dma_chan *chan)
 }
 
 static int sun4i_dma_config(struct dma_chan *chan,
-			    struct dma_slave_config *config)
+							struct dma_slave_config *config)
 {
 	struct sun4i_dma_vchan *vchan = to_sun4i_dma_vchan(chan);
 
@@ -909,7 +1052,7 @@ static int sun4i_dma_config(struct dma_chan *chan,
 }
 
 static struct dma_chan *sun4i_dma_of_xlate(struct of_phandle_args *dma_spec,
-					   struct of_dma *ofdma)
+		struct of_dma *ofdma)
 {
 	struct sun4i_dma_dev *priv = ofdma->of_dma_data;
 	struct sun4i_dma_vchan *vchan;
@@ -919,16 +1062,23 @@ static struct dma_chan *sun4i_dma_of_xlate(struct of_phandle_args *dma_spec,
 
 	/* Check if type is Normal or Dedicated */
 	if (is_dedicated != 0 && is_dedicated != 1)
+	{
 		return NULL;
+	}
 
 	/* Make sure the endpoint looks sane */
 	if ((is_dedicated && endpoint >= SUN4I_DDMA_DRQ_TYPE_LIMIT) ||
-	    (!is_dedicated && endpoint >= SUN4I_NDMA_DRQ_TYPE_LIMIT))
+		(!is_dedicated && endpoint >= SUN4I_NDMA_DRQ_TYPE_LIMIT))
+	{
 		return NULL;
+	}
 
 	chan = dma_get_any_slave_channel(&priv->slave);
+
 	if (!chan)
+	{
 		return NULL;
+	}
 
 	/* Assign the endpoint to the vchan */
 	vchan = to_sun4i_dma_vchan(chan);
@@ -939,8 +1089,8 @@ static struct dma_chan *sun4i_dma_of_xlate(struct of_phandle_args *dma_spec,
 }
 
 static enum dma_status sun4i_dma_tx_status(struct dma_chan *chan,
-					   dma_cookie_t cookie,
-					   struct dma_tx_state *state)
+		dma_cookie_t cookie,
+		struct dma_tx_state *state)
 {
 	struct sun4i_dma_vchan *vchan = to_sun4i_dma_vchan(chan);
 	struct sun4i_dma_pchan *pchan = vchan->pchan;
@@ -952,17 +1102,24 @@ static enum dma_status sun4i_dma_tx_status(struct dma_chan *chan,
 	size_t bytes = 0;
 
 	ret = dma_cookie_status(chan, cookie, state);
+
 	if (!state || (ret == DMA_COMPLETE))
+	{
 		return ret;
+	}
 
 	spin_lock_irqsave(&vchan->vc.lock, flags);
 	vd = vchan_find_desc(&vchan->vc, cookie);
+
 	if (!vd)
+	{
 		goto exit;
+	}
+
 	contract = to_sun4i_dma_contract(vd);
 
 	list_for_each_entry(promise, &contract->demands, list)
-		bytes += promise->len;
+	bytes += promise->len;
 
 	/*
 	 * The hardware is configured to return the remaining byte
@@ -970,13 +1127,20 @@ static enum dma_status sun4i_dma_tx_status(struct dma_chan *chan,
 	 * full size with the actual remaining amount
 	 */
 	promise = list_first_entry_or_null(&contract->demands,
-					   struct sun4i_dma_promise, list);
-	if (promise && pchan) {
+									   struct sun4i_dma_promise, list);
+
+	if (promise && pchan)
+	{
 		bytes -= promise->len;
+
 		if (pchan->is_dedicated)
+		{
 			bytes += readl(pchan->base + SUN4I_DDMA_BYTE_COUNT_REG);
+		}
 		else
+		{
 			bytes += readl(pchan->base + SUN4I_NDMA_BYTE_COUNT_REG);
+		}
 	}
 
 exit:
@@ -1000,7 +1164,9 @@ static void sun4i_dma_issue_pending(struct dma_chan *chan)
 	 * them into the engine to get the ball rolling.
 	 */
 	if (vchan_issue_pending(&vchan->vc))
+	{
 		__execute_vchan_pending(priv, vchan);
+	}
 
 	spin_unlock_irqrestore(&vchan->vc.lock, flags);
 }
@@ -1022,18 +1188,24 @@ handle_pending:
 	disableirqs = 0;
 	free_room = 0;
 
-	for_each_set_bit(bit, &pendirq, 32) {
+	for_each_set_bit(bit, &pendirq, 32)
+	{
 		pchan = &pchans[bit >> 1];
 		vchan = pchan->vchan;
+
 		if (!vchan) /* a terminated channel may still interrupt */
+		{
 			continue;
+		}
+
 		contract = vchan->contract;
 
 		/*
 		 * Disable the IRQ and free the pchan if it's an end
 		 * interrupt (odd bit)
 		 */
-		if (bit & 1) {
+		if (bit & 1)
+		{
 			spin_lock(&vchan->vc.lock);
 
 			/*
@@ -1042,7 +1214,7 @@ handle_pending:
 			 */
 			list_del(&vchan->processing->list);
 			list_add_tail(&vchan->processing->list,
-				      &contract->completed_demands);
+						  &contract->completed_demands);
 
 			/*
 			 * Cyclic DMA transfers are special:
@@ -1057,12 +1229,15 @@ handle_pending:
 			 * so we can program some more work, or notify the
 			 * client that their transfers have been completed.
 			 */
-			if (contract->is_cyclic) {
+			if (contract->is_cyclic)
+			{
 				promise = get_next_cyclic_promise(contract);
 				vchan->processing = promise;
 				configure_pchan(pchan, promise);
 				vchan_cyclic_callback(&contract->vd);
-			} else {
+			}
+			else
+			{
 				vchan->processing = NULL;
 				vchan->pchan = NULL;
 
@@ -1072,12 +1247,18 @@ handle_pending:
 			}
 
 			spin_unlock(&vchan->vc.lock);
-		} else {
+		}
+		else
+		{
 			/* Half done interrupt */
 			if (contract->is_cyclic)
+			{
 				vchan_cyclic_callback(&contract->vd);
+			}
 			else
+			{
 				disableirqs |= BIT(bit);
+			}
 		}
 	}
 
@@ -1085,7 +1266,7 @@ handle_pending:
 	spin_lock(&priv->lock);
 	irqs = readl_relaxed(priv->base + SUN4I_DMA_IRQ_ENABLE_REG);
 	writel_relaxed(irqs & ~disableirqs,
-		       priv->base + SUN4I_DMA_IRQ_ENABLE_REG);
+				   priv->base + SUN4I_DMA_IRQ_ENABLE_REG);
 	spin_unlock(&priv->lock);
 
 	/* Writing 1 to the pending field will clear the pending interrupt */
@@ -1095,8 +1276,10 @@ handle_pending:
 	 * If a pchan was freed, we may be able to schedule something else,
 	 * so have a look around
 	 */
-	if (free_room) {
-		for (i = 0; i < SUN4I_DMA_NR_MAX_VCHANS; i++) {
+	if (free_room)
+	{
+		for (i = 0; i < SUN4I_DMA_NR_MAX_VCHANS; i++)
+		{
 			vchan = &priv->vchans[i];
 			spin_lock(&vchan->vc.lock);
 			__execute_vchan_pending(priv, vchan);
@@ -1108,10 +1291,13 @@ handle_pending:
 	 * Handle newer interrupts if some showed up, but only do it once
 	 * to avoid a too long a loop
 	 */
-	if (allow_mitigation) {
+	if (allow_mitigation)
+	{
 		pendirq = readl_relaxed(priv->base +
-					SUN4I_DMA_IRQ_PENDING_STATUS_REG);
-		if (pendirq) {
+								SUN4I_DMA_IRQ_PENDING_STATUS_REG);
+
+		if (pendirq)
+		{
 			allow_mitigation = 0;
 			goto handle_pending;
 		}
@@ -1127,22 +1313,32 @@ static int sun4i_dma_probe(struct platform_device *pdev)
 	int i, j, ret;
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(priv->base))
+	{
 		return PTR_ERR(priv->base);
+	}
 
 	priv->irq = platform_get_irq(pdev, 0);
-	if (priv->irq < 0) {
+
+	if (priv->irq < 0)
+	{
 		dev_err(&pdev->dev, "Cannot claim IRQ\n");
 		return priv->irq;
 	}
 
 	priv->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(priv->clk)) {
+
+	if (IS_ERR(priv->clk))
+	{
 		dev_err(&pdev->dev, "No clock specified\n");
 		return PTR_ERR(priv->clk);
 	}
@@ -1167,23 +1363,26 @@ static int sun4i_dma_probe(struct platform_device *pdev)
 	priv->slave.device_terminate_all	= sun4i_dma_terminate_all;
 	priv->slave.copy_align			= 2;
 	priv->slave.src_addr_widths		= BIT(DMA_SLAVE_BUSWIDTH_1_BYTE) |
-						  BIT(DMA_SLAVE_BUSWIDTH_2_BYTES) |
-						  BIT(DMA_SLAVE_BUSWIDTH_4_BYTES);
+									  BIT(DMA_SLAVE_BUSWIDTH_2_BYTES) |
+									  BIT(DMA_SLAVE_BUSWIDTH_4_BYTES);
 	priv->slave.dst_addr_widths		= BIT(DMA_SLAVE_BUSWIDTH_1_BYTE) |
-						  BIT(DMA_SLAVE_BUSWIDTH_2_BYTES) |
-						  BIT(DMA_SLAVE_BUSWIDTH_4_BYTES);
+									  BIT(DMA_SLAVE_BUSWIDTH_2_BYTES) |
+									  BIT(DMA_SLAVE_BUSWIDTH_4_BYTES);
 	priv->slave.directions			= BIT(DMA_DEV_TO_MEM) |
-						  BIT(DMA_MEM_TO_DEV);
+									  BIT(DMA_MEM_TO_DEV);
 	priv->slave.residue_granularity		= DMA_RESIDUE_GRANULARITY_BURST;
 
 	priv->slave.dev = &pdev->dev;
 
 	priv->pchans = devm_kcalloc(&pdev->dev, SUN4I_DMA_NR_MAX_CHANNELS,
-				    sizeof(struct sun4i_dma_pchan), GFP_KERNEL);
+								sizeof(struct sun4i_dma_pchan), GFP_KERNEL);
 	priv->vchans = devm_kcalloc(&pdev->dev, SUN4I_DMA_NR_MAX_VCHANS,
-				    sizeof(struct sun4i_dma_vchan), GFP_KERNEL);
+								sizeof(struct sun4i_dma_vchan), GFP_KERNEL);
+
 	if (!priv->vchans || !priv->pchans)
+	{
 		return -ENOMEM;
+	}
 
 	/*
 	 * [0..SUN4I_NDMA_NR_MAX_CHANNELS) are normal pchans, and
@@ -1192,15 +1391,17 @@ static int sun4i_dma_probe(struct platform_device *pdev)
 	 */
 	for (i = 0; i < SUN4I_NDMA_NR_MAX_CHANNELS; i++)
 		priv->pchans[i].base = priv->base +
-			SUN4I_NDMA_CHANNEL_REG_BASE(i);
+							   SUN4I_NDMA_CHANNEL_REG_BASE(i);
 
-	for (j = 0; i < SUN4I_DMA_NR_MAX_CHANNELS; i++, j++) {
+	for (j = 0; i < SUN4I_DMA_NR_MAX_CHANNELS; i++, j++)
+	{
 		priv->pchans[i].base = priv->base +
-			SUN4I_DDMA_CHANNEL_REG_BASE(j);
+							   SUN4I_DDMA_CHANNEL_REG_BASE(j);
 		priv->pchans[i].is_dedicated = 1;
 	}
 
-	for (i = 0; i < SUN4I_DMA_NR_MAX_VCHANS; i++) {
+	for (i = 0; i < SUN4I_DMA_NR_MAX_VCHANS; i++)
+	{
 		struct sun4i_dma_vchan *vchan = &priv->vchans[i];
 
 		spin_lock_init(&vchan->vc.lock);
@@ -1209,7 +1410,9 @@ static int sun4i_dma_probe(struct platform_device *pdev)
 	}
 
 	ret = clk_prepare_enable(priv->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Couldn't enable the clock\n");
 		return ret;
 	}
@@ -1222,21 +1425,27 @@ static int sun4i_dma_probe(struct platform_device *pdev)
 	writel(0xFFFFFFFF, priv->base + SUN4I_DMA_IRQ_PENDING_STATUS_REG);
 
 	ret = devm_request_irq(&pdev->dev, priv->irq, sun4i_dma_interrupt,
-			       0, dev_name(&pdev->dev), priv);
-	if (ret) {
+						   0, dev_name(&pdev->dev), priv);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Cannot request IRQ\n");
 		goto err_clk_disable;
 	}
 
 	ret = dma_async_device_register(&priv->slave);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_warn(&pdev->dev, "Failed to register DMA engine device\n");
 		goto err_clk_disable;
 	}
 
 	ret = of_dma_controller_register(pdev->dev.of_node, sun4i_dma_of_xlate,
-					 priv);
-	if (ret) {
+									 priv);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "of_dma_controller_register failed\n");
 		goto err_dma_unregister;
 	}
@@ -1267,13 +1476,15 @@ static int sun4i_dma_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id sun4i_dma_match[] = {
+static const struct of_device_id sun4i_dma_match[] =
+{
 	{ .compatible = "allwinner,sun4i-a10-dma" },
 	{ /* sentinel */ },
 };
 MODULE_DEVICE_TABLE(of, sun4i_dma_match);
 
-static struct platform_driver sun4i_dma_driver = {
+static struct platform_driver sun4i_dma_driver =
+{
 	.probe	= sun4i_dma_probe,
 	.remove	= sun4i_dma_remove,
 	.driver	= {

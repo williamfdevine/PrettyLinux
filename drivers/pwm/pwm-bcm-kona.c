@@ -65,7 +65,8 @@
 #define DUTY_CYCLE_HIGH_MIN			(0x00000000)
 #define DUTY_CYCLE_HIGH_MAX			(0x00ffffff)
 
-struct kona_pwmc {
+struct kona_pwmc
+{
 	struct pwm_chip chip;
 	void __iomem *base;
 	struct clk *clk;
@@ -80,7 +81,7 @@ static inline struct kona_pwmc *to_kona_pwmc(struct pwm_chip *_chip)
  * Clear trigger bit but set smooth bit to maintain old output.
  */
 static void kona_pwmc_prepare_for_settings(struct kona_pwmc *kp,
-	unsigned int chan)
+		unsigned int chan)
 {
 	unsigned int value = readl(kp->base + PWM_CONTROL_OFFSET);
 
@@ -109,7 +110,7 @@ static void kona_pwmc_apply_settings(struct kona_pwmc *kp, unsigned int chan)
 }
 
 static int kona_pwmc_config(struct pwm_chip *chip, struct pwm_device *pwm,
-			    int duty_ns, int period_ns)
+							int duty_ns, int period_ns)
 {
 	struct kona_pwmc *kp = to_kona_pwmc(chip);
 	u64 val, div, rate;
@@ -129,7 +130,8 @@ static int kona_pwmc_config(struct pwm_chip *chip, struct pwm_device *pwm,
 
 	rate = clk_get_rate(kp->clk);
 
-	while (1) {
+	while (1)
+	{
 		div = 1000000000;
 		div *= 1 + prescale;
 		val = rate * period_ns;
@@ -139,15 +141,21 @@ static int kona_pwmc_config(struct pwm_chip *chip, struct pwm_device *pwm,
 
 		/* If duty_ns or period_ns are not achievable then return */
 		if (pc < PERIOD_COUNT_MIN || dc < DUTY_CYCLE_HIGH_MIN)
+		{
 			return -EINVAL;
+		}
 
 		/* If pc and dc are in bounds, the calculation is done */
 		if (pc <= PERIOD_COUNT_MAX && dc <= DUTY_CYCLE_HIGH_MAX)
+		{
 			break;
+		}
 
 		/* Otherwise, increase prescale and recalculate pc and dc */
 		if (++prescale > PRESCALE_MAX)
+		{
 			return -EINVAL;
+		}
 	}
 
 	/*
@@ -155,7 +163,8 @@ static int kona_pwmc_config(struct pwm_chip *chip, struct pwm_device *pwm,
 	 * always calculated above to ensure the new values are
 	 * validated immediately instead of on enable.
 	 */
-	if (pwm_is_enabled(pwm)) {
+	if (pwm_is_enabled(pwm))
+	{
 		kona_pwmc_prepare_for_settings(kp, chan);
 
 		value = readl(kp->base + PRESCALE_OFFSET);
@@ -174,7 +183,7 @@ static int kona_pwmc_config(struct pwm_chip *chip, struct pwm_device *pwm,
 }
 
 static int kona_pwmc_set_polarity(struct pwm_chip *chip, struct pwm_device *pwm,
-				  enum pwm_polarity polarity)
+								  enum pwm_polarity polarity)
 {
 	struct kona_pwmc *kp = to_kona_pwmc(chip);
 	unsigned int chan = pwm->hwpwm;
@@ -182,7 +191,9 @@ static int kona_pwmc_set_polarity(struct pwm_chip *chip, struct pwm_device *pwm,
 	int ret;
 
 	ret = clk_prepare_enable(kp->clk);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(chip->dev, "failed to enable clock: %d\n", ret);
 		return ret;
 	}
@@ -192,9 +203,13 @@ static int kona_pwmc_set_polarity(struct pwm_chip *chip, struct pwm_device *pwm,
 	value = readl(kp->base + PWM_CONTROL_OFFSET);
 
 	if (polarity == PWM_POLARITY_NORMAL)
+	{
 		value |= 1 << PWM_CONTROL_POLARITY_SHIFT(chan);
+	}
 	else
+	{
 		value &= ~(1 << PWM_CONTROL_POLARITY_SHIFT(chan));
+	}
 
 	writel(value, kp->base + PWM_CONTROL_OFFSET);
 
@@ -211,14 +226,18 @@ static int kona_pwmc_enable(struct pwm_chip *chip, struct pwm_device *pwm)
 	int ret;
 
 	ret = clk_prepare_enable(kp->clk);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(chip->dev, "failed to enable clock: %d\n", ret);
 		return ret;
 	}
 
 	ret = kona_pwmc_config(chip, pwm, pwm_get_duty_cycle(pwm),
-			       pwm_get_period(pwm));
-	if (ret < 0) {
+						   pwm_get_period(pwm));
+
+	if (ret < 0)
+	{
 		clk_disable_unprepare(kp->clk);
 		return ret;
 	}
@@ -248,7 +267,8 @@ static void kona_pwmc_disable(struct pwm_chip *chip, struct pwm_device *pwm)
 	clk_disable_unprepare(kp->clk);
 }
 
-static const struct pwm_ops kona_pwm_ops = {
+static const struct pwm_ops kona_pwm_ops =
+{
 	.config = kona_pwmc_config,
 	.set_polarity = kona_pwmc_set_polarity,
 	.enable = kona_pwmc_enable,
@@ -265,8 +285,11 @@ static int kona_pwmc_probe(struct platform_device *pdev)
 	int ret = 0;
 
 	kp = devm_kzalloc(&pdev->dev, sizeof(*kp), GFP_KERNEL);
+
 	if (kp == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, kp);
 
@@ -280,33 +303,45 @@ static int kona_pwmc_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	kp->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(kp->base))
+	{
 		return PTR_ERR(kp->base);
+	}
 
 	kp->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(kp->clk)) {
+
+	if (IS_ERR(kp->clk))
+	{
 		dev_err(&pdev->dev, "failed to get clock: %ld\n",
-			PTR_ERR(kp->clk));
+				PTR_ERR(kp->clk));
 		return PTR_ERR(kp->clk);
 	}
 
 	ret = clk_prepare_enable(kp->clk);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "failed to enable clock: %d\n", ret);
 		return ret;
 	}
 
 	/* Set push/pull for all channels */
 	for (chan = 0; chan < kp->chip.npwm; chan++)
+	{
 		value |= (1 << PWM_CONTROL_TYPE_SHIFT(chan));
+	}
 
 	writel(value, kp->base + PWM_CONTROL_OFFSET);
 
 	clk_disable_unprepare(kp->clk);
 
 	ret = pwmchip_add_with_polarity(&kp->chip, PWM_POLARITY_INVERSED);
+
 	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "failed to add PWM chip: %d\n", ret);
+	}
 
 	return ret;
 }
@@ -318,18 +353,22 @@ static int kona_pwmc_remove(struct platform_device *pdev)
 
 	for (chan = 0; chan < kp->chip.npwm; chan++)
 		if (pwm_is_enabled(&kp->chip.pwms[chan]))
+		{
 			clk_disable_unprepare(kp->clk);
+		}
 
 	return pwmchip_remove(&kp->chip);
 }
 
-static const struct of_device_id bcm_kona_pwmc_dt[] = {
+static const struct of_device_id bcm_kona_pwmc_dt[] =
+{
 	{ .compatible = "brcm,kona-pwm" },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, bcm_kona_pwmc_dt);
 
-static struct platform_driver kona_pwmc_driver = {
+static struct platform_driver kona_pwmc_driver =
+{
 	.driver = {
 		.name = "bcm-kona-pwm",
 		.of_match_table = bcm_kona_pwmc_dt,

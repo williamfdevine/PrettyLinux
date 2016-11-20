@@ -124,7 +124,8 @@
 #define DAS1600_STATUS_WS		BIT(1)
 #define DAS1600_STATUS_CLK_10MHZ	BIT(0)
 
-static const struct comedi_lrange range_das1x01_bip = {
+static const struct comedi_lrange range_das1x01_bip =
+{
 	4, {
 		BIP_RANGE(10),
 		BIP_RANGE(1),
@@ -133,7 +134,8 @@ static const struct comedi_lrange range_das1x01_bip = {
 	}
 };
 
-static const struct comedi_lrange range_das1x01_unip = {
+static const struct comedi_lrange range_das1x01_unip =
+{
 	4, {
 		UNI_RANGE(10),
 		UNI_RANGE(1),
@@ -142,7 +144,8 @@ static const struct comedi_lrange range_das1x01_unip = {
 	}
 };
 
-static const struct comedi_lrange range_das1x02_bip = {
+static const struct comedi_lrange range_das1x02_bip =
+{
 	4, {
 		BIP_RANGE(10),
 		BIP_RANGE(5),
@@ -151,7 +154,8 @@ static const struct comedi_lrange range_das1x02_bip = {
 	}
 };
 
-static const struct comedi_lrange range_das1x02_unip = {
+static const struct comedi_lrange range_das1x02_unip =
+{
 	4, {
 		UNI_RANGE(10),
 		UNI_RANGE(5),
@@ -160,7 +164,8 @@ static const struct comedi_lrange range_das1x02_unip = {
 	}
 };
 
-static const struct comedi_lrange range_das16jr = {
+static const struct comedi_lrange range_das16jr =
+{
 	9, {
 		BIP_RANGE(10),
 		BIP_RANGE(5),
@@ -174,7 +179,8 @@ static const struct comedi_lrange range_das16jr = {
 	}
 };
 
-static const struct comedi_lrange range_das16jr_16 = {
+static const struct comedi_lrange range_das16jr_16 =
+{
 	8, {
 		BIP_RANGE(10),
 		BIP_RANGE(5),
@@ -191,7 +197,8 @@ static const int das16jr_gainlist[] = { 8, 0, 1, 2, 3, 4, 5, 6, 7 };
 static const int das16jr_16_gainlist[] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 static const int das1600_gainlist[] = { 0, 1, 2, 3 };
 
-enum {
+enum
+{
 	das16_pg_none = 0,
 	das16_pg_16jr,
 	das16_pg_16jr_16,
@@ -199,7 +206,8 @@ enum {
 	das16_pg_1602,
 };
 
-static const int *const das16_gainlists[] = {
+static const int *const das16_gainlists[] =
+{
 	NULL,
 	das16jr_gainlist,
 	das16jr_16_gainlist,
@@ -207,7 +215,8 @@ static const int *const das16_gainlists[] = {
 	das1600_gainlist,
 };
 
-static const struct comedi_lrange *const das16_ai_uni_lranges[] = {
+static const struct comedi_lrange *const das16_ai_uni_lranges[] =
+{
 	&range_unknown,
 	&range_das16jr,
 	&range_das16jr_16,
@@ -215,7 +224,8 @@ static const struct comedi_lrange *const das16_ai_uni_lranges[] = {
 	&range_das1x02_unip,
 };
 
-static const struct comedi_lrange *const das16_ai_bip_lranges[] = {
+static const struct comedi_lrange *const das16_ai_bip_lranges[] =
+{
 	&range_unknown,
 	&range_das16jr,
 	&range_das16jr_16,
@@ -223,13 +233,14 @@ static const struct comedi_lrange *const das16_ai_bip_lranges[] = {
 	&range_das1x02_bip,
 };
 
-struct das16_board {
+struct das16_board
+{
 	const char *name;
 	unsigned int ai_maxdata;
 	unsigned int ai_speed;	/*  max conversion speed in nanosec */
 	unsigned int ai_pg;
-	unsigned int has_ao:1;
-	unsigned int has_8255:1;
+	unsigned int has_ao: 1;
+	unsigned int has_8255: 1;
 
 	unsigned int i8255_offset;
 
@@ -237,7 +248,8 @@ struct das16_board {
 	unsigned int id;
 };
 
-static const struct das16_board das16_boards[] = {
+static const struct das16_board das16_boards[] =
+{
 	{
 		.name		= "das-16",
 		.ai_maxdata	= 0x0fff,
@@ -438,7 +450,8 @@ static inline int timer_period(void)
 	return HZ / 20;
 }
 
-struct das16_private_struct {
+struct das16_private_struct
+{
 	struct comedi_isadma	*dma;
 	unsigned int		clockbase;
 	unsigned int		ctrl_reg;
@@ -446,13 +459,13 @@ struct das16_private_struct {
 	unsigned int		divisor2;
 	struct timer_list	timer;
 	unsigned long		extra_iobase;
-	unsigned int		can_burst:1;
-	unsigned int		timer_running:1;
+	unsigned int		can_burst: 1;
+	unsigned int		timer_running: 1;
 };
 
 static void das16_ai_setup_dma(struct comedi_device *dev,
-			       struct comedi_subdevice *s,
-			       unsigned int unread_samples)
+							   struct comedi_subdevice *s,
+							   unsigned int unread_samples)
 {
 	struct das16_private_struct *devpriv = dev->private;
 	struct comedi_isadma *dma = devpriv->dma;
@@ -465,7 +478,9 @@ static void das16_ai_setup_dma(struct comedi_device *dev,
 	 * unread samples and the number of samples remaining in the command.
 	 */
 	nsamples = comedi_nsamples_left(s, max_samples + unread_samples);
-	if (nsamples > unread_samples) {
+
+	if (nsamples > unread_samples)
+	{
 		nsamples -= unread_samples;
 		desc->size = comedi_samples_to_bytes(s, nsamples);
 		comedi_isadma_program(desc);
@@ -486,7 +501,9 @@ static void das16_interrupt(struct comedi_device *dev)
 	unsigned int nsamples;
 
 	spin_lock_irqsave(&dev->spinlock, spin_flags);
-	if (!(devpriv->ctrl_reg & DAS16_CTRL_DMAE)) {
+
+	if (!(devpriv->ctrl_reg & DAS16_CTRL_DMAE))
+	{
 		spin_unlock_irqrestore(&dev->spinlock, spin_flags);
 		return;
 	}
@@ -497,20 +514,25 @@ static void das16_interrupt(struct comedi_device *dev)
 	 * a 16 bit sample.
 	 */
 	residue = comedi_isadma_disable_on_sample(desc->chan,
-						  comedi_bytes_per_sample(s));
+			  comedi_bytes_per_sample(s));
 
 	/* figure out how many samples to read */
-	if (residue > desc->size) {
+	if (residue > desc->size)
+	{
 		dev_err(dev->class_dev, "residue > transfer size!\n");
 		async->events |= COMEDI_CB_ERROR;
 		nbytes = 0;
-	} else {
+	}
+	else
+	{
 		nbytes = desc->size - residue;
 	}
+
 	nsamples = comedi_bytes_to_samples(s, nbytes);
 
 	/* restart DMA if more samples are needed */
-	if (nsamples) {
+	if (nsamples)
+	{
 		dma->cur_dma = 1 - dma->cur_dma;
 		das16_ai_setup_dma(dev, s, nsamples);
 	}
@@ -520,7 +542,9 @@ static void das16_interrupt(struct comedi_device *dev)
 	comedi_buf_write_samples(s, desc->virt_addr, nsamples);
 
 	if (cmd->stop_src == TRIG_COUNT && async->scans_done >= cmd->stop_arg)
+	{
 		async->events |= COMEDI_CB_EOA;
+	}
 
 	comedi_handle_events(dev, s);
 }
@@ -534,15 +558,19 @@ static void das16_timer_interrupt(unsigned long arg)
 	das16_interrupt(dev);
 
 	spin_lock_irqsave(&dev->spinlock, flags);
+
 	if (devpriv->timer_running)
+	{
 		mod_timer(&devpriv->timer, jiffies + timer_period());
+	}
+
 	spin_unlock_irqrestore(&dev->spinlock, flags);
 }
 
 static void das16_ai_set_mux_range(struct comedi_device *dev,
-				   unsigned int first_chan,
-				   unsigned int last_chan,
-				   unsigned int range)
+								   unsigned int first_chan,
+								   unsigned int last_chan,
+								   unsigned int range)
 {
 	const struct das16_board *board = dev->board_ptr;
 
@@ -551,7 +579,9 @@ static void das16_ai_set_mux_range(struct comedi_device *dev,
 
 	/* some boards do not have programmable gain */
 	if (board->ai_pg == das16_pg_none)
+	{
 		return;
+	}
 
 	/*
 	 * Set gain (this is also burst rate register but according to
@@ -559,30 +589,33 @@ static void das16_ai_set_mux_range(struct comedi_device *dev,
 	 * keithley cards).
 	 */
 	outb((das16_gainlists[board->ai_pg])[range],
-	     dev->iobase + DAS16_GAIN_REG);
+		 dev->iobase + DAS16_GAIN_REG);
 }
 
 static int das16_ai_check_chanlist(struct comedi_device *dev,
-				   struct comedi_subdevice *s,
-				   struct comedi_cmd *cmd)
+								   struct comedi_subdevice *s,
+								   struct comedi_cmd *cmd)
 {
 	unsigned int chan0 = CR_CHAN(cmd->chanlist[0]);
 	unsigned int range0 = CR_RANGE(cmd->chanlist[0]);
 	int i;
 
-	for (i = 1; i < cmd->chanlist_len; i++) {
+	for (i = 1; i < cmd->chanlist_len; i++)
+	{
 		unsigned int chan = CR_CHAN(cmd->chanlist[i]);
 		unsigned int range = CR_RANGE(cmd->chanlist[i]);
 
-		if (chan != ((chan0 + i) % s->n_chan)) {
+		if (chan != ((chan0 + i) % s->n_chan))
+		{
 			dev_dbg(dev->class_dev,
-				"entries in chanlist must be consecutive channels, counting upwards\n");
+					"entries in chanlist must be consecutive channels, counting upwards\n");
 			return -EINVAL;
 		}
 
-		if (range != range0) {
+		if (range != range0)
+		{
 			dev_dbg(dev->class_dev,
-				"entries in chanlist must all have the same gain\n");
+					"entries in chanlist must all have the same gain\n");
 			return -EINVAL;
 		}
 	}
@@ -591,7 +624,7 @@ static int das16_ai_check_chanlist(struct comedi_device *dev,
 }
 
 static int das16_cmd_test(struct comedi_device *dev, struct comedi_subdevice *s,
-			  struct comedi_cmd *cmd)
+						  struct comedi_cmd *cmd)
 {
 	const struct das16_board *board = dev->board_ptr;
 	struct das16_private_struct *devpriv = dev->private;
@@ -604,20 +637,30 @@ static int das16_cmd_test(struct comedi_device *dev, struct comedi_subdevice *s,
 	err |= comedi_check_trigger_src(&cmd->start_src, TRIG_NOW);
 
 	trig_mask = TRIG_FOLLOW;
+
 	if (devpriv->can_burst)
+	{
 		trig_mask |= TRIG_TIMER | TRIG_EXT;
+	}
+
 	err |= comedi_check_trigger_src(&cmd->scan_begin_src, trig_mask);
 
 	trig_mask = TRIG_TIMER | TRIG_EXT;
+
 	if (devpriv->can_burst)
+	{
 		trig_mask |= TRIG_NOW;
+	}
+
 	err |= comedi_check_trigger_src(&cmd->convert_src, trig_mask);
 
 	err |= comedi_check_trigger_src(&cmd->scan_end_src, TRIG_COUNT);
 	err |= comedi_check_trigger_src(&cmd->stop_src, TRIG_COUNT | TRIG_NONE);
 
 	if (err)
+	{
 		return 1;
+	}
 
 	/* Step 2a : make sure trigger sources are unique */
 
@@ -629,69 +672,96 @@ static int das16_cmd_test(struct comedi_device *dev, struct comedi_subdevice *s,
 
 	/*  make sure scan_begin_src and convert_src dont conflict */
 	if (cmd->scan_begin_src == TRIG_FOLLOW && cmd->convert_src == TRIG_NOW)
+	{
 		err |= -EINVAL;
+	}
+
 	if (cmd->scan_begin_src != TRIG_FOLLOW && cmd->convert_src != TRIG_NOW)
+	{
 		err |= -EINVAL;
+	}
 
 	if (err)
+	{
 		return 2;
+	}
 
 	/* Step 3: check if arguments are trivially valid */
 
 	err |= comedi_check_trigger_arg_is(&cmd->start_arg, 0);
 
 	if (cmd->scan_begin_src == TRIG_FOLLOW)	/* internal trigger */
+	{
 		err |= comedi_check_trigger_arg_is(&cmd->scan_begin_arg, 0);
-
-	err |= comedi_check_trigger_arg_is(&cmd->scan_end_arg,
-					   cmd->chanlist_len);
-
-	/* check against maximum frequency */
-	if (cmd->scan_begin_src == TRIG_TIMER) {
-		err |= comedi_check_trigger_arg_min(&cmd->scan_begin_arg,
-						    board->ai_speed *
-						    cmd->chanlist_len);
 	}
 
-	if (cmd->convert_src == TRIG_TIMER) {
+	err |= comedi_check_trigger_arg_is(&cmd->scan_end_arg,
+									   cmd->chanlist_len);
+
+	/* check against maximum frequency */
+	if (cmd->scan_begin_src == TRIG_TIMER)
+	{
+		err |= comedi_check_trigger_arg_min(&cmd->scan_begin_arg,
+											board->ai_speed *
+											cmd->chanlist_len);
+	}
+
+	if (cmd->convert_src == TRIG_TIMER)
+	{
 		err |= comedi_check_trigger_arg_min(&cmd->convert_arg,
-						    board->ai_speed);
+											board->ai_speed);
 	}
 
 	if (cmd->stop_src == TRIG_COUNT)
+	{
 		err |= comedi_check_trigger_arg_min(&cmd->stop_arg, 1);
+	}
 	else	/* TRIG_NONE */
+	{
 		err |= comedi_check_trigger_arg_is(&cmd->stop_arg, 0);
+	}
 
 	if (err)
+	{
 		return 3;
+	}
 
 	/*  step 4: fix up arguments */
-	if (cmd->scan_begin_src == TRIG_TIMER) {
+	if (cmd->scan_begin_src == TRIG_TIMER)
+	{
 		arg = cmd->scan_begin_arg;
 		comedi_8254_cascade_ns_to_timer(dev->pacer, &arg, cmd->flags);
 		err |= comedi_check_trigger_arg_is(&cmd->scan_begin_arg, arg);
 	}
-	if (cmd->convert_src == TRIG_TIMER) {
+
+	if (cmd->convert_src == TRIG_TIMER)
+	{
 		arg = cmd->convert_arg;
 		comedi_8254_cascade_ns_to_timer(dev->pacer, &arg, cmd->flags);
 		err |= comedi_check_trigger_arg_is(&cmd->convert_arg, arg);
 	}
+
 	if (err)
+	{
 		return 4;
+	}
 
 	/* Step 5: check channel list if it exists */
 	if (cmd->chanlist && cmd->chanlist_len > 0)
+	{
 		err |= das16_ai_check_chanlist(dev, s, cmd);
+	}
 
 	if (err)
+	{
 		return 5;
+	}
 
 	return 0;
 }
 
 static unsigned int das16_set_pacer(struct comedi_device *dev, unsigned int ns,
-				    unsigned int flags)
+									unsigned int flags)
 {
 	comedi_8254_cascade_ns_to_timer(dev->pacer, &ns, flags);
 	comedi_8254_update_divisors(dev->pacer);
@@ -712,14 +782,17 @@ static int das16_cmd_exec(struct comedi_device *dev, struct comedi_subdevice *s)
 	unsigned int byte;
 	unsigned long flags;
 
-	if (cmd->flags & CMDF_PRIORITY) {
+	if (cmd->flags & CMDF_PRIORITY)
+	{
 		dev_err(dev->class_dev,
-			"isa dma transfers cannot be performed with CMDF_PRIORITY, aborting\n");
+				"isa dma transfers cannot be performed with CMDF_PRIORITY, aborting\n");
 		return -1;
 	}
 
 	if (devpriv->can_burst)
+	{
 		outb(DAS1600_CONV_DISABLE, dev->iobase + DAS1600_CONV_REG);
+	}
 
 	/* set mux and range for chanlist scan */
 	das16_ai_set_mux_range(dev, first_chan, last_chan, range);
@@ -729,16 +802,22 @@ static int das16_cmd_exec(struct comedi_device *dev, struct comedi_subdevice *s)
 
 	/* enable counters */
 	byte = 0;
-	if (devpriv->can_burst) {
-		if (cmd->convert_src == TRIG_NOW) {
+
+	if (devpriv->can_burst)
+	{
+		if (cmd->convert_src == TRIG_NOW)
+		{
 			outb(DAS1600_BURST_VAL,
-			     dev->iobase + DAS1600_BURST_REG);
+				 dev->iobase + DAS1600_BURST_REG);
 			/*  set burst length */
 			byte |= DAS16_PACER_BURST_LEN(cmd->chanlist_len - 1);
-		} else {
+		}
+		else
+		{
 			outb(0, dev->iobase + DAS1600_BURST_REG);
 		}
 	}
+
 	outb(byte, dev->iobase + DAS16_PACER_REG);
 
 	/* set up dma transfer */
@@ -754,14 +833,23 @@ static int das16_cmd_exec(struct comedi_device *dev, struct comedi_subdevice *s)
 	/* enable DMA interrupt with external or internal pacing */
 	devpriv->ctrl_reg &= ~(DAS16_CTRL_INTE | DAS16_CTRL_PACING_MASK);
 	devpriv->ctrl_reg |= DAS16_CTRL_DMAE;
+
 	if (cmd->convert_src == TRIG_EXT)
+	{
 		devpriv->ctrl_reg |= DAS16_CTRL_EXT_PACER;
+	}
 	else
+	{
 		devpriv->ctrl_reg |= DAS16_CTRL_INT_PACER;
+	}
+
 	outb(devpriv->ctrl_reg, dev->iobase + DAS16_CTRL_REG);
 
 	if (devpriv->can_burst)
+	{
 		outb(0, dev->iobase + DAS1600_CONV_REG);
+	}
+
 	spin_unlock_irqrestore(&dev->spinlock, flags);
 
 	return 0;
@@ -777,19 +865,22 @@ static int das16_cancel(struct comedi_device *dev, struct comedi_subdevice *s)
 
 	/* disable interrupts, dma and pacer clocked conversions */
 	devpriv->ctrl_reg &= ~(DAS16_CTRL_INTE | DAS16_CTRL_DMAE |
-			       DAS16_CTRL_PACING_MASK);
+						   DAS16_CTRL_PACING_MASK);
 	outb(devpriv->ctrl_reg, dev->iobase + DAS16_CTRL_REG);
 
 	comedi_isadma_disable(dma->chan);
 
 	/*  disable SW timer */
-	if (devpriv->timer_running) {
+	if (devpriv->timer_running)
+	{
 		devpriv->timer_running = 0;
 		del_timer(&devpriv->timer);
 	}
 
 	if (devpriv->can_burst)
+	{
 		outb(0, dev->iobase + DAS1600_BURST_REG);
+	}
 
 	spin_unlock_irqrestore(&dev->spinlock, flags);
 
@@ -797,40 +888,49 @@ static int das16_cancel(struct comedi_device *dev, struct comedi_subdevice *s)
 }
 
 static void das16_ai_munge(struct comedi_device *dev,
-			   struct comedi_subdevice *s, void *array,
-			   unsigned int num_bytes,
-			   unsigned int start_chan_index)
+						   struct comedi_subdevice *s, void *array,
+						   unsigned int num_bytes,
+						   unsigned int start_chan_index)
 {
 	unsigned short *data = array;
 	unsigned int num_samples = comedi_bytes_to_samples(s, num_bytes);
 	unsigned int i;
 	__le16 *buf = array;
 
-	for (i = 0; i < num_samples; i++) {
+	for (i = 0; i < num_samples; i++)
+	{
 		data[i] = le16_to_cpu(buf[i]);
+
 		if (s->maxdata == 0x0fff)
+		{
 			data[i] >>= 4;
+		}
+
 		data[i] &= s->maxdata;
 	}
 }
 
 static int das16_ai_eoc(struct comedi_device *dev,
-			struct comedi_subdevice *s,
-			struct comedi_insn *insn,
-			unsigned long context)
+						struct comedi_subdevice *s,
+						struct comedi_insn *insn,
+						unsigned long context)
 {
 	unsigned int status;
 
 	status = inb(dev->iobase + DAS16_STATUS_REG);
+
 	if ((status & DAS16_STATUS_BUSY) == 0)
+	{
 		return 0;
+	}
+
 	return -EBUSY;
 }
 
 static int das16_ai_insn_read(struct comedi_device *dev,
-			      struct comedi_subdevice *s,
-			      struct comedi_insn *insn,
-			      unsigned int *data)
+							  struct comedi_subdevice *s,
+							  struct comedi_insn *insn,
+							  unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	unsigned int range = CR_RANGE(insn->chanspec);
@@ -841,18 +941,26 @@ static int das16_ai_insn_read(struct comedi_device *dev,
 	/* set mux and range for single channel */
 	das16_ai_set_mux_range(dev, chan, chan, range);
 
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		/* trigger conversion */
 		outb_p(0, dev->iobase + DAS16_TRIG_REG);
 
 		ret = comedi_timeout(dev, s, insn, das16_ai_eoc, 0);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		val = inb(dev->iobase + DAS16_AI_MSB_REG) << 8;
 		val |= inb(dev->iobase + DAS16_AI_LSB_REG);
+
 		if (s->maxdata == 0x0fff)
+		{
 			val >>= 4;
+		}
+
 		val &= s->maxdata;
 
 		data[i] = val;
@@ -862,14 +970,15 @@ static int das16_ai_insn_read(struct comedi_device *dev,
 }
 
 static int das16_ao_insn_write(struct comedi_device *dev,
-			       struct comedi_subdevice *s,
-			       struct comedi_insn *insn,
-			       unsigned int *data)
+							   struct comedi_subdevice *s,
+							   struct comedi_insn *insn,
+							   unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	int i;
 
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		unsigned int val = data[i];
 
 		s->readback[chan] = val;
@@ -884,9 +993,9 @@ static int das16_ao_insn_write(struct comedi_device *dev,
 }
 
 static int das16_di_insn_bits(struct comedi_device *dev,
-			      struct comedi_subdevice *s,
-			      struct comedi_insn *insn,
-			      unsigned int *data)
+							  struct comedi_subdevice *s,
+							  struct comedi_insn *insn,
+							  unsigned int *data)
 {
 	data[1] = inb(dev->iobase + DAS16_DIO_REG) & 0xf;
 
@@ -894,12 +1003,14 @@ static int das16_di_insn_bits(struct comedi_device *dev,
 }
 
 static int das16_do_insn_bits(struct comedi_device *dev,
-			      struct comedi_subdevice *s,
-			      struct comedi_insn *insn,
-			      unsigned int *data)
+							  struct comedi_subdevice *s,
+							  struct comedi_insn *insn,
+							  unsigned int *data)
 {
 	if (comedi_dio_update_state(s, data))
+	{
 		outb(s->state, dev->iobase + DAS16_DIO_REG);
+	}
 
 	data[1] = s->state;
 
@@ -913,10 +1024,12 @@ static int das16_probe(struct comedi_device *dev, struct comedi_devconfig *it)
 
 	/* diobits indicates boards */
 	diobits = inb(dev->iobase + DAS16_DIO_REG) & 0xf0;
-	if (board->id != diobits) {
+
+	if (board->id != diobits)
+	{
 		dev_err(dev->class_dev,
-			"requested board's id bits are incorrect (0x%x != 0x%x)\n",
-			board->id, diobits);
+				"requested board's id bits are incorrect (0x%x != 0x%x)\n",
+				board->id, diobits);
 		return -EINVAL;
 	}
 
@@ -936,14 +1049,18 @@ static void das16_alloc_dma(struct comedi_device *dev, unsigned int dma_chan)
 
 	/* only DMA channels 3 and 1 are valid */
 	if (!(dma_chan == 1 || dma_chan == 3))
+	{
 		return;
+	}
 
 	/* DMA uses two buffers */
 	devpriv->dma = comedi_isadma_alloc(dev, 2, dma_chan, dma_chan,
-					   DAS16_DMA_SIZE, COMEDI_ISADMA_READ);
-	if (devpriv->dma) {
+									   DAS16_DMA_SIZE, COMEDI_ISADMA_READ);
+
+	if (devpriv->dma)
+	{
 		setup_timer(&devpriv->timer, das16_timer_interrupt,
-			    (unsigned long)dev);
+					(unsigned long)dev);
 	}
 }
 
@@ -951,32 +1068,40 @@ static void das16_free_dma(struct comedi_device *dev)
 {
 	struct das16_private_struct *devpriv = dev->private;
 
-	if (devpriv) {
+	if (devpriv)
+	{
 		if (devpriv->timer.data)
+		{
 			del_timer_sync(&devpriv->timer);
+		}
+
 		comedi_isadma_free(devpriv->dma);
 	}
 }
 
 static const struct comedi_lrange *das16_ai_range(struct comedi_device *dev,
-						  struct comedi_subdevice *s,
-						  struct comedi_devconfig *it,
-						  unsigned int pg_type,
-						  unsigned int status)
+		struct comedi_subdevice *s,
+		struct comedi_devconfig *it,
+		unsigned int pg_type,
+		unsigned int status)
 {
 	unsigned int min = it->options[4];
 	unsigned int max = it->options[5];
 
 	/* get any user-defined input range */
-	if (pg_type == das16_pg_none && (min || max)) {
+	if (pg_type == das16_pg_none && (min || max))
+	{
 		struct comedi_lrange *lrange;
 		struct comedi_krange *krange;
 
 		/* allocate single-range range table */
 		lrange = comedi_alloc_spriv(s,
-					    sizeof(*lrange) + sizeof(*krange));
+									sizeof(*lrange) + sizeof(*krange));
+
 		if (!lrange)
+		{
 			return &range_unknown;
+		}
 
 		/* initialize ai range */
 		lrange->length = 1;
@@ -990,27 +1115,34 @@ static const struct comedi_lrange *das16_ai_range(struct comedi_device *dev,
 
 	/* use software programmable range */
 	if (status & DAS16_STATUS_UNIPOLAR)
+	{
 		return das16_ai_uni_lranges[pg_type];
+	}
+
 	return das16_ai_bip_lranges[pg_type];
 }
 
 static const struct comedi_lrange *das16_ao_range(struct comedi_device *dev,
-						  struct comedi_subdevice *s,
-						  struct comedi_devconfig *it)
+		struct comedi_subdevice *s,
+		struct comedi_devconfig *it)
 {
 	unsigned int min = it->options[6];
 	unsigned int max = it->options[7];
 
 	/* get any user-defined output range */
-	if (min || max) {
+	if (min || max)
+	{
 		struct comedi_lrange *lrange;
 		struct comedi_krange *krange;
 
 		/* allocate single-range range table */
 		lrange = comedi_alloc_spriv(s,
-					    sizeof(*lrange) + sizeof(*krange));
+									sizeof(*lrange) + sizeof(*krange));
+
 		if (!lrange)
+		{
 			return &range_unknown;
+		}
 
 		/* initialize ao range */
 		lrange->length = 1;
@@ -1035,60 +1167,96 @@ static int das16_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	int ret;
 
 	/*  check that clock setting is valid */
-	if (it->options[3]) {
-		if (it->options[3] != 1 && it->options[3] != 10) {
+	if (it->options[3])
+	{
+		if (it->options[3] != 1 && it->options[3] != 10)
+		{
 			dev_err(dev->class_dev,
-				"Invalid option. Master clock must be set to 1 or 10 (MHz)\n");
+					"Invalid option. Master clock must be set to 1 or 10 (MHz)\n");
 			return -EINVAL;
 		}
 	}
 
 	devpriv = comedi_alloc_devpriv(dev, sizeof(*devpriv));
-	if (!devpriv)
-		return -ENOMEM;
 
-	if (board->size < 0x400) {
+	if (!devpriv)
+	{
+		return -ENOMEM;
+	}
+
+	if (board->size < 0x400)
+	{
 		ret = comedi_request_region(dev, it->options[0], board->size);
+
 		if (ret)
+		{
 			return ret;
-	} else {
+		}
+	}
+	else
+	{
 		ret = comedi_request_region(dev, it->options[0], 0x10);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		/* Request an additional region for the 8255 */
 		ret = __comedi_request_region(dev, dev->iobase + 0x400,
-					      board->size & 0x3ff);
+									  board->size & 0x3ff);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		devpriv->extra_iobase = dev->iobase + 0x400;
 		devpriv->can_burst = 1;
 	}
 
 	/*  probe id bits to make sure they are consistent */
 	if (das16_probe(dev, it))
+	{
 		return -EINVAL;
+	}
 
 	/*  get master clock speed */
 	osc_base = I8254_OSC_BASE_1MHZ;
-	if (devpriv->can_burst) {
+
+	if (devpriv->can_burst)
+	{
 		status = inb(dev->iobase + DAS1600_STATUS_REG);
+
 		if (status & DAS1600_STATUS_CLK_10MHZ)
+		{
 			osc_base = I8254_OSC_BASE_10MHZ;
-	} else {
+		}
+	}
+	else
+	{
 		if (it->options[3])
+		{
 			osc_base = I8254_OSC_BASE_1MHZ / it->options[3];
+		}
 	}
 
 	dev->pacer = comedi_8254_init(dev->iobase + DAS16_TIMER_BASE_REG,
-				      osc_base, I8254_IO8, 0);
+								  osc_base, I8254_IO8, 0);
+
 	if (!dev->pacer)
+	{
 		return -ENOMEM;
+	}
 
 	das16_alloc_dma(dev, it->options[2]);
 
 	ret = comedi_alloc_subdevices(dev, 4 + board->has_8255);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	status = inb(dev->iobase + DAS16_STATUS_REG);
 
@@ -1096,18 +1264,25 @@ static int das16_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	s = &dev->subdevices[0];
 	s->type		= COMEDI_SUBD_AI;
 	s->subdev_flags	= SDF_READABLE;
-	if (status & DAS16_STATUS_MUXBIT) {
+
+	if (status & DAS16_STATUS_MUXBIT)
+	{
 		s->subdev_flags	|= SDF_GROUND;
 		s->n_chan	= 16;
-	} else {
+	}
+	else
+	{
 		s->subdev_flags	|= SDF_DIFF;
 		s->n_chan	= 8;
 	}
+
 	s->len_chanlist	= s->n_chan;
 	s->maxdata	= board->ai_maxdata;
 	s->range_table	= das16_ai_range(dev, s, it, board->ai_pg, status);
 	s->insn_read	= das16_ai_insn_read;
-	if (devpriv->dma) {
+
+	if (devpriv->dma)
+	{
 		dev->read_subdev = s;
 		s->subdev_flags	|= SDF_CMD_READ;
 		s->do_cmdtest	= das16_cmd_test;
@@ -1118,7 +1293,9 @@ static int das16_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 
 	/* Analog Output subdevice */
 	s = &dev->subdevices[1];
-	if (board->has_ao) {
+
+	if (board->has_ao)
+	{
 		s->type		= COMEDI_SUBD_AO;
 		s->subdev_flags	= SDF_WRITABLE;
 		s->n_chan	= 2;
@@ -1127,9 +1304,14 @@ static int das16_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 		s->insn_write	= das16_ao_insn_write;
 
 		ret = comedi_alloc_subdev_readback(s);
+
 		if (ret)
+		{
 			return ret;
-	} else {
+		}
+	}
+	else
+	{
 		s->type		= COMEDI_SUBD_UNUSED;
 	}
 
@@ -1155,11 +1337,15 @@ static int das16_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	outb(s->state, dev->iobase + DAS16_DIO_REG);
 
 	/* 8255 Digital I/O subdevice */
-	if (board->has_8255) {
+	if (board->has_8255)
+	{
 		s = &dev->subdevices[4];
 		ret = subdev_8255_init(dev, s, NULL, board->i8255_offset);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	das16_reset(dev);
@@ -1167,7 +1353,8 @@ static int das16_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	devpriv->ctrl_reg = DAS16_CTRL_IRQ(dev->irq);
 	outb(devpriv->ctrl_reg, dev->iobase + DAS16_CTRL_REG);
 
-	if (devpriv->can_burst) {
+	if (devpriv->can_burst)
+	{
 		outb(DAS1600_ENABLE_VAL, dev->iobase + DAS1600_ENABLE_REG);
 		outb(0, dev->iobase + DAS1600_CONV_REG);
 		outb(0, dev->iobase + DAS1600_BURST_REG);
@@ -1181,20 +1368,25 @@ static void das16_detach(struct comedi_device *dev)
 	const struct das16_board *board = dev->board_ptr;
 	struct das16_private_struct *devpriv = dev->private;
 
-	if (devpriv) {
+	if (devpriv)
+	{
 		if (dev->iobase)
+		{
 			das16_reset(dev);
+		}
+
 		das16_free_dma(dev);
 
 		if (devpriv->extra_iobase)
 			release_region(devpriv->extra_iobase,
-				       board->size & 0x3ff);
+						   board->size & 0x3ff);
 	}
 
 	comedi_legacy_detach(dev);
 }
 
-static struct comedi_driver das16_driver = {
+static struct comedi_driver das16_driver =
+{
 	.driver_name	= "das16",
 	.module		= THIS_MODULE,
 	.attach		= das16_attach,

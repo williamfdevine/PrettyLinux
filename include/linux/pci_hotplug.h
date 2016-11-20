@@ -59,7 +59,8 @@
  * the user wants to do something to a specific slot (query it for information,
  * set an LED, enable / disable power, etc.)
  */
-struct hotplug_slot_ops {
+struct hotplug_slot_ops
+{
 	struct module *owner;
 	const char *mod_name;
 	int (*enable_slot)		(struct hotplug_slot *slot);
@@ -82,7 +83,8 @@ struct hotplug_slot_ops {
  *
  * Used to notify the hotplug pci core of the status of a specific slot.
  */
-struct hotplug_slot_info {
+struct hotplug_slot_info
+{
 	u8	power_status;
 	u8	attention_status;
 	u8	latch_status;
@@ -99,15 +101,16 @@ struct hotplug_slot_info {
  * @private: used by the hotplug pci controller driver to store whatever it
  * needs.
  */
-struct hotplug_slot {
-	struct hotplug_slot_ops		*ops;
-	struct hotplug_slot_info	*info;
-	void (*release) (struct hotplug_slot *slot);
-	void				*private;
+struct hotplug_slot
+{
+		struct hotplug_slot_ops		*ops;
+		struct hotplug_slot_info	*info;
+		void (*release) (struct hotplug_slot *slot);
+		void				*private;
 
-	/* Variables below this are for use only by the hotplug pci core. */
-	struct list_head		slot_list;
-	struct pci_slot			*pci_slot;
+		/* Variables below this are for use only by the hotplug pci core. */
+		struct list_head		slot_list;
+		struct pci_slot			*pci_slot;
 };
 
 static inline const char *hotplug_slot_name(const struct hotplug_slot *slot)
@@ -116,18 +119,19 @@ static inline const char *hotplug_slot_name(const struct hotplug_slot *slot)
 }
 
 int __pci_hp_register(struct hotplug_slot *slot, struct pci_bus *pbus, int nr,
-		      const char *name, struct module *owner,
-		      const char *mod_name);
+					  const char *name, struct module *owner,
+					  const char *mod_name);
 int pci_hp_deregister(struct hotplug_slot *slot);
 int __must_check pci_hp_change_slot_info(struct hotplug_slot *slot,
-					 struct hotplug_slot_info *info);
+		struct hotplug_slot_info *info);
 
 /* use a define to avoid include chaining to get THIS_MODULE & friends */
 #define pci_hp_register(slot, pbus, devnr, name) \
 	__pci_hp_register(slot, pbus, devnr, name, THIS_MODULE, KBUILD_MODNAME)
 
 /* PCI Setting Record (Type 0) */
-struct hpp_type0 {
+struct hpp_type0
+{
 	u32 revision;
 	u8  cache_line_size;
 	u8  latency_timer;
@@ -136,7 +140,8 @@ struct hpp_type0 {
 };
 
 /* PCI-X Setting Record (Type 1) */
-struct hpp_type1 {
+struct hpp_type1
+{
 	u32 revision;
 	u8  max_mem_read;
 	u8  avg_max_split;
@@ -144,7 +149,8 @@ struct hpp_type1 {
 };
 
 /* PCI Express Setting Record (Type 2) */
-struct hpp_type2 {
+struct hpp_type2
+{
 	u32 revision;
 	u32 unc_err_mask_and;
 	u32 unc_err_mask_or;
@@ -164,7 +170,8 @@ struct hpp_type2 {
 	u32 sec_unc_err_mask_or;
 };
 
-struct hotplug_params {
+struct hotplug_params
+{
 	struct hpp_type0 *t0;		/* Type0: NULL if not available */
 	struct hpp_type1 *t1;		/* Type1: NULL if not available */
 	struct hpp_type2 *t2;		/* Type2: NULL if not available */
@@ -181,7 +188,7 @@ int acpi_pci_check_ejectable(struct pci_bus *pbus, acpi_handle handle);
 int acpi_pci_detect_ejectable(acpi_handle handle);
 #else
 static inline int pci_get_hp_params(struct pci_dev *dev,
-				    struct hotplug_params *hpp)
+									struct hotplug_params *hpp)
 {
 	return -ENODEV;
 }

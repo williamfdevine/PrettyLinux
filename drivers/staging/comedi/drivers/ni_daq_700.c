@@ -71,7 +71,8 @@
 /* daqcard700 modes */
 #define CMD_R3_DIFF     0x04    /* diff mode */
 
-static const struct comedi_lrange range_daq700_ai = {
+static const struct comedi_lrange range_daq700_ai =
+{
 	3,
 	{
 		BIP_RANGE(10),
@@ -81,17 +82,21 @@ static const struct comedi_lrange range_daq700_ai = {
 };
 
 static int daq700_dio_insn_bits(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_insn *insn,
-				unsigned int *data)
+								struct comedi_subdevice *s,
+								struct comedi_insn *insn,
+								unsigned int *data)
 {
 	unsigned int mask;
 	unsigned int val;
 
 	mask = comedi_dio_update_state(s, data);
-	if (mask) {
+
+	if (mask)
+	{
 		if (mask & 0xff)
+		{
 			outb(s->state & 0xff, dev->iobase + DIO_W);
+		}
 	}
 
 	val = s->state & 0xff;
@@ -103,15 +108,18 @@ static int daq700_dio_insn_bits(struct comedi_device *dev,
 }
 
 static int daq700_dio_insn_config(struct comedi_device *dev,
-				  struct comedi_subdevice *s,
-				  struct comedi_insn *insn,
-				  unsigned int *data)
+								  struct comedi_subdevice *s,
+								  struct comedi_insn *insn,
+								  unsigned int *data)
 {
 	int ret;
 
 	ret = comedi_dio_insn_config(dev, s, insn, data, 0);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* The DIO channels are not configurable, fix the io_bits */
 	s->io_bits = 0x00ff;
@@ -120,26 +128,37 @@ static int daq700_dio_insn_config(struct comedi_device *dev,
 }
 
 static int daq700_ai_eoc(struct comedi_device *dev,
-			 struct comedi_subdevice *s,
-			 struct comedi_insn *insn,
-			 unsigned long context)
+						 struct comedi_subdevice *s,
+						 struct comedi_insn *insn,
+						 unsigned long context)
 {
 	unsigned int status;
 
 	status = inb(dev->iobase + STA_R2);
+
 	if ((status & 0x03))
+	{
 		return -EOVERFLOW;
+	}
+
 	status = inb(dev->iobase + STA_R1);
+
 	if ((status & 0x02))
+	{
 		return -ENODATA;
+	}
+
 	if ((status & 0x11) == 0x01)
+	{
 		return 0;
+	}
+
 	return -EBUSY;
 }
 
 static int daq700_ai_rinsn(struct comedi_device *dev,
-			   struct comedi_subdevice *s,
-			   struct comedi_insn *insn, unsigned int *data)
+						   struct comedi_subdevice *s,
+						   struct comedi_insn *insn, unsigned int *data)
 {
 	int n;
 	int d;
@@ -151,10 +170,16 @@ static int daq700_ai_rinsn(struct comedi_device *dev,
 
 	/* set channel input modes */
 	if (aref == AREF_DIFF)
+	{
 		r3_bits |= CMD_R3_DIFF;
+	}
+
 	/* write channel mode/range */
 	if (range >= 1)
-		range++;        /* convert range to hardware value */
+	{
+		range++;    /* convert range to hardware value */
+	}
+
 	outb(r3_bits | (range & 0x03), dev->iobase + CMD_R3);
 
 	/* write channel to multiplexer */
@@ -164,7 +189,8 @@ static int daq700_ai_rinsn(struct comedi_device *dev,
 	udelay(2);
 
 	/* convert n samples */
-	for (n = 0; n < insn->n; n++) {
+	for (n = 0; n < insn->n; n++)
+	{
 		/* trigger conversion with out0 L to H */
 		outb(0x00, dev->iobase + CMD_R2); /* enable ADC conversions */
 		outb(0x30, dev->iobase + CMO_R); /* mode 0 out0 L, from H */
@@ -176,8 +202,11 @@ static int daq700_ai_rinsn(struct comedi_device *dev,
 
 		/* wait for conversion to end */
 		ret = comedi_timeout(dev, s, insn, daq700_ai_eoc, 0);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		/* read data */
 		d = inw(dev->iobase + ADFIFO_R);
@@ -187,6 +216,7 @@ static int daq700_ai_rinsn(struct comedi_device *dev,
 		d ^= 0x0800;
 		data[n] = d;
 	}
+
 	return n;
 }
 
@@ -202,7 +232,7 @@ static int daq700_ai_rinsn(struct comedi_device *dev,
  * The A/D FIFO is cleared.
  */
 static void daq700_ai_config(struct comedi_device *dev,
-			     struct comedi_subdevice *s)
+							 struct comedi_subdevice *s)
 {
 	unsigned long iobase = dev->iobase;
 
@@ -216,7 +246,7 @@ static void daq700_ai_config(struct comedi_device *dev,
 }
 
 static int daq700_auto_attach(struct comedi_device *dev,
-			      unsigned long context)
+							  unsigned long context)
 {
 	struct pcmcia_device *link = comedi_to_pcmcia_dev(dev);
 	struct comedi_subdevice *s;
@@ -224,13 +254,20 @@ static int daq700_auto_attach(struct comedi_device *dev,
 
 	link->config_flags |= CONF_AUTO_SET_IO;
 	ret = comedi_pcmcia_enable(dev, NULL);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	dev->iobase = link->resource[0]->start;
 
 	ret = comedi_alloc_subdevices(dev, 2);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* DAQCard-700 dio */
 	s = &dev->subdevices[0];
@@ -256,7 +293,8 @@ static int daq700_auto_attach(struct comedi_device *dev,
 	return 0;
 }
 
-static struct comedi_driver daq700_driver = {
+static struct comedi_driver daq700_driver =
+{
 	.driver_name	= "ni_daq_700",
 	.module		= THIS_MODULE,
 	.auto_attach	= daq700_auto_attach,
@@ -268,13 +306,15 @@ static int daq700_cs_attach(struct pcmcia_device *link)
 	return comedi_pcmcia_auto_config(link, &daq700_driver);
 }
 
-static const struct pcmcia_device_id daq700_cs_ids[] = {
+static const struct pcmcia_device_id daq700_cs_ids[] =
+{
 	PCMCIA_DEVICE_MANF_CARD(0x010b, 0x4743),
 	PCMCIA_DEVICE_NULL
 };
 MODULE_DEVICE_TABLE(pcmcia, daq700_cs_ids);
 
-static struct pcmcia_driver daq700_cs_driver = {
+static struct pcmcia_driver daq700_cs_driver =
+{
 	.name		= "ni_daq_700",
 	.owner		= THIS_MODULE,
 	.id_table	= daq700_cs_ids,

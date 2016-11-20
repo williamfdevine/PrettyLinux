@@ -22,7 +22,8 @@
 
 static struct snd_soc_jack mt8173_max98090_jack;
 
-static struct snd_soc_jack_pin mt8173_max98090_jack_pins[] = {
+static struct snd_soc_jack_pin mt8173_max98090_jack_pins[] =
+{
 	{
 		.pin	= "Headphone",
 		.mask	= SND_JACK_HEADPHONE,
@@ -33,14 +34,16 @@ static struct snd_soc_jack_pin mt8173_max98090_jack_pins[] = {
 	},
 };
 
-static const struct snd_soc_dapm_widget mt8173_max98090_widgets[] = {
+static const struct snd_soc_dapm_widget mt8173_max98090_widgets[] =
+{
 	SND_SOC_DAPM_SPK("Speaker", NULL),
 	SND_SOC_DAPM_MIC("Int Mic", NULL),
 	SND_SOC_DAPM_HP("Headphone", NULL),
 	SND_SOC_DAPM_MIC("Headset Mic", NULL),
 };
 
-static const struct snd_soc_dapm_route mt8173_max98090_routes[] = {
+static const struct snd_soc_dapm_route mt8173_max98090_routes[] =
+{
 	{"Speaker", NULL, "SPKL"},
 	{"Speaker", NULL, "SPKR"},
 	{"DMICL", NULL, "Int Mic"},
@@ -50,7 +53,8 @@ static const struct snd_soc_dapm_route mt8173_max98090_routes[] = {
 	{"IN34", NULL, "Headset Mic"},
 };
 
-static const struct snd_kcontrol_new mt8173_max98090_controls[] = {
+static const struct snd_kcontrol_new mt8173_max98090_controls[] =
+{
 	SOC_DAPM_PIN_SWITCH("Speaker"),
 	SOC_DAPM_PIN_SWITCH("Int Mic"),
 	SOC_DAPM_PIN_SWITCH("Headphone"),
@@ -58,16 +62,17 @@ static const struct snd_kcontrol_new mt8173_max98090_controls[] = {
 };
 
 static int mt8173_max98090_hw_params(struct snd_pcm_substream *substream,
-				     struct snd_pcm_hw_params *params)
+									 struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
 
 	return snd_soc_dai_set_sysclk(codec_dai, 0, params_rate(params) * 256,
-				      SND_SOC_CLOCK_IN);
+								  SND_SOC_CLOCK_IN);
 }
 
-static struct snd_soc_ops mt8173_max98090_ops = {
+static struct snd_soc_ops mt8173_max98090_ops =
+{
 	.hw_params = mt8173_max98090_hw_params,
 };
 
@@ -79,16 +84,20 @@ static int mt8173_max98090_init(struct snd_soc_pcm_runtime *runtime)
 
 	/* enable jack detection */
 	ret = snd_soc_card_jack_new(card, "Headphone", SND_JACK_HEADPHONE,
-				    &mt8173_max98090_jack, NULL, 0);
-	if (ret) {
+								&mt8173_max98090_jack, NULL, 0);
+
+	if (ret)
+	{
 		dev_err(card->dev, "Can't snd_soc_jack_new %d\n", ret);
 		return ret;
 	}
 
 	ret = snd_soc_jack_add_pins(&mt8173_max98090_jack,
-				    ARRAY_SIZE(mt8173_max98090_jack_pins),
-				    mt8173_max98090_jack_pins);
-	if (ret) {
+								ARRAY_SIZE(mt8173_max98090_jack_pins),
+								mt8173_max98090_jack_pins);
+
+	if (ret)
+	{
 		dev_err(card->dev, "Can't snd_soc_jack_add_pins %d\n", ret);
 		return ret;
 	}
@@ -97,7 +106,8 @@ static int mt8173_max98090_init(struct snd_soc_pcm_runtime *runtime)
 }
 
 /* Digital audio interface glue - connects codec <---> CPU */
-static struct snd_soc_dai_link mt8173_max98090_dais[] = {
+static struct snd_soc_dai_link mt8173_max98090_dais[] =
+{
 	/* Front End DAI links */
 	{
 		.name = "MAX98090 Playback",
@@ -128,13 +138,14 @@ static struct snd_soc_dai_link mt8173_max98090_dais[] = {
 		.init = mt8173_max98090_init,
 		.ops = &mt8173_max98090_ops,
 		.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
-			   SND_SOC_DAIFMT_CBS_CFS,
+		SND_SOC_DAIFMT_CBS_CFS,
 		.dpcm_playback = 1,
 		.dpcm_capture = 1,
 	},
 };
 
-static struct snd_soc_card mt8173_max98090_card = {
+static struct snd_soc_card mt8173_max98090_card =
+{
 	.name = "mt8173-max98090",
 	.owner = THIS_MODULE,
 	.dai_link = mt8173_max98090_dais,
@@ -154,50 +165,69 @@ static int mt8173_max98090_dev_probe(struct platform_device *pdev)
 	int ret, i;
 
 	platform_node = of_parse_phandle(pdev->dev.of_node,
-					 "mediatek,platform", 0);
-	if (!platform_node) {
+									 "mediatek,platform", 0);
+
+	if (!platform_node)
+	{
 		dev_err(&pdev->dev, "Property 'platform' missing or invalid\n");
 		return -EINVAL;
 	}
-	for (i = 0; i < card->num_links; i++) {
+
+	for (i = 0; i < card->num_links; i++)
+	{
 		if (mt8173_max98090_dais[i].platform_name)
+		{
 			continue;
+		}
+
 		mt8173_max98090_dais[i].platform_of_node = platform_node;
 	}
 
 	codec_node = of_parse_phandle(pdev->dev.of_node,
-				      "mediatek,audio-codec", 0);
-	if (!codec_node) {
+								  "mediatek,audio-codec", 0);
+
+	if (!codec_node)
+	{
 		dev_err(&pdev->dev,
-			"Property 'audio-codec' missing or invalid\n");
+				"Property 'audio-codec' missing or invalid\n");
 		return -EINVAL;
 	}
-	for (i = 0; i < card->num_links; i++) {
+
+	for (i = 0; i < card->num_links; i++)
+	{
 		if (mt8173_max98090_dais[i].codec_name)
+		{
 			continue;
+		}
+
 		mt8173_max98090_dais[i].codec_of_node = codec_node;
 	}
+
 	card->dev = &pdev->dev;
 
 	ret = devm_snd_soc_register_card(&pdev->dev, card);
+
 	if (ret)
 		dev_err(&pdev->dev, "%s snd_soc_register_card fail %d\n",
-			__func__, ret);
+				__func__, ret);
+
 	return ret;
 }
 
-static const struct of_device_id mt8173_max98090_dt_match[] = {
+static const struct of_device_id mt8173_max98090_dt_match[] =
+{
 	{ .compatible = "mediatek,mt8173-max98090", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, mt8173_max98090_dt_match);
 
-static struct platform_driver mt8173_max98090_driver = {
+static struct platform_driver mt8173_max98090_driver =
+{
 	.driver = {
-		   .name = "mt8173-max98090",
-		   .of_match_table = mt8173_max98090_dt_match,
+		.name = "mt8173-max98090",
+		.of_match_table = mt8173_max98090_dt_match,
 #ifdef CONFIG_PM
-		   .pm = &snd_soc_pm_ops,
+		.pm = &snd_soc_pm_ops,
 #endif
 	},
 	.probe = mt8173_max98090_dev_probe,

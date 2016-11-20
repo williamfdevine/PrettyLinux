@@ -14,7 +14,8 @@
 
 struct mcp_ops;
 
-struct mcp {
+struct mcp
+{
 	struct module	*owner;
 	struct mcp_ops	*ops;
 	spinlock_t	lock;
@@ -24,7 +25,8 @@ struct mcp {
 	struct device	attached_device;
 };
 
-struct mcp_ops {
+struct mcp_ops
+{
 	void		(*set_telecom_divisor)(struct mcp *, unsigned int);
 	void		(*set_audio_divisor)(struct mcp *, unsigned int);
 	void		(*reg_write)(struct mcp *, unsigned int, unsigned int);
@@ -46,7 +48,8 @@ int mcp_host_add(struct mcp *, void *);
 void mcp_host_del(struct mcp *);
 void mcp_host_free(struct mcp *);
 
-struct mcp_driver {
+struct mcp_driver
+{
 	struct device_driver drv;
 	int (*probe)(struct mcp *);
 	void (*remove)(struct mcp *);

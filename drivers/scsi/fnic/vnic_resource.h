@@ -22,7 +22,8 @@
 #define VNIC_RES_VERSION	0x00000000L
 
 /* vNIC resource types */
-enum vnic_res_type {
+enum vnic_res_type
+{
 	RES_TYPE_EOL,			/* End-of-list */
 	RES_TYPE_WQ,			/* Work queues */
 	RES_TYPE_RQ,			/* Receive queues */
@@ -45,12 +46,14 @@ enum vnic_res_type {
 	RES_TYPE_MAX,			/* Count of resource types */
 };
 
-struct vnic_resource_header {
+struct vnic_resource_header
+{
 	u32 magic;
 	u32 version;
 };
 
-struct vnic_resource {
+struct vnic_resource
+{
 	u8 type;
 	u8 bar;
 	u8 pad[2];

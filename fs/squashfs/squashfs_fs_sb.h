@@ -25,7 +25,8 @@
 
 #include "squashfs_fs.h"
 
-struct squashfs_cache {
+struct squashfs_cache
+{
 	char			*name;
 	int			entries;
 	int			curr_blk;
@@ -39,7 +40,8 @@ struct squashfs_cache {
 	struct squashfs_cache_entry *entry;
 };
 
-struct squashfs_cache_entry {
+struct squashfs_cache_entry
+{
 	u64			block;
 	int			length;
 	int			refcount;
@@ -53,7 +55,8 @@ struct squashfs_cache_entry {
 	struct squashfs_page_actor	*actor;
 };
 
-struct squashfs_sb_info {
+struct squashfs_sb_info
+{
 	const struct squashfs_decompressor	*decompressor;
 	int					devblksize;
 	int					devblksize_log2;

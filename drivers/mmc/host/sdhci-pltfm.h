@@ -15,20 +15,22 @@
 #include <linux/platform_device.h>
 #include "sdhci.h"
 
-struct sdhci_pltfm_data {
+struct sdhci_pltfm_data
+{
 	const struct sdhci_ops *ops;
 	unsigned int quirks;
 	unsigned int quirks2;
 };
 
-struct sdhci_pltfm_host {
-	struct clk *clk;
+struct sdhci_pltfm_host
+{
+		struct clk *clk;
 
-	/* migrate from sdhci_of_host */
-	unsigned int clock;
-	u16 xfer_mode_shadow;
+		/* migrate from sdhci_of_host */
+		unsigned int clock;
+		u16 xfer_mode_shadow;
 
-	unsigned long private[0] ____cacheline_aligned;
+		unsigned long private[0] ____cacheline_aligned;
 };
 
 #ifdef CONFIG_MMC_SDHCI_BIG_ENDIAN_32BIT_BYTE_SWAPPER
@@ -52,32 +54,35 @@ static inline u8 sdhci_be32bs_readb(struct sdhci_host *host, int reg)
 }
 
 static inline void sdhci_be32bs_writel(struct sdhci_host *host,
-				       u32 val, int reg)
+									   u32 val, int reg)
 {
 	out_be32(host->ioaddr + reg, val);
 }
 
 static inline void sdhci_be32bs_writew(struct sdhci_host *host,
-				       u16 val, int reg)
+									   u16 val, int reg)
 {
 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
 	int base = reg & ~0x3;
 	int shift = (reg & 0x2) * 8;
 
-	switch (reg) {
-	case SDHCI_TRANSFER_MODE:
-		/*
-		 * Postpone this write, we must do it together with a
-		 * command write that is down below.
-		 */
-		pltfm_host->xfer_mode_shadow = val;
-		return;
-	case SDHCI_COMMAND:
-		sdhci_be32bs_writel(host,
-				    val << 16 | pltfm_host->xfer_mode_shadow,
-				    SDHCI_TRANSFER_MODE);
-		return;
+	switch (reg)
+	{
+		case SDHCI_TRANSFER_MODE:
+			/*
+			 * Postpone this write, we must do it together with a
+			 * command write that is down below.
+			 */
+			pltfm_host->xfer_mode_shadow = val;
+			return;
+
+		case SDHCI_COMMAND:
+			sdhci_be32bs_writel(host,
+								val << 16 | pltfm_host->xfer_mode_shadow,
+								SDHCI_TRANSFER_MODE);
+			return;
 	}
+
 	clrsetbits_be32(host->ioaddr + base, 0xffff << shift, val << shift);
 }
 
@@ -93,13 +98,13 @@ static inline void sdhci_be32bs_writeb(struct sdhci_host *host, u8 val, int reg)
 extern void sdhci_get_of_property(struct platform_device *pdev);
 
 extern struct sdhci_host *sdhci_pltfm_init(struct platform_device *pdev,
-					  const struct sdhci_pltfm_data *pdata,
-					  size_t priv_size);
+		const struct sdhci_pltfm_data *pdata,
+		size_t priv_size);
 extern void sdhci_pltfm_free(struct platform_device *pdev);
 
 extern int sdhci_pltfm_register(struct platform_device *pdev,
-				const struct sdhci_pltfm_data *pdata,
-				size_t priv_size);
+								const struct sdhci_pltfm_data *pdata,
+								size_t priv_size);
 extern int sdhci_pltfm_unregister(struct platform_device *pdev);
 
 extern unsigned int sdhci_pltfm_clk_get_max_clock(struct sdhci_host *host);

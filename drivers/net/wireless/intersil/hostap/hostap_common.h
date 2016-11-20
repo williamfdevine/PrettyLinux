@@ -210,7 +210,8 @@ struct hfa384x_rid_download_buffer
 } __packed;
 
 /* BSS connection quality (RID FD43 range, RID FD51 dBm-normalized) */
-struct hfa384x_comms_quality {
+struct hfa384x_comms_quality
+{
 	__le16 comm_qual; /* 0 .. 92 */
 	__le16 signal_level; /* 27 .. 154 */
 	__le16 noise_level; /* 27 .. 154 */
@@ -244,7 +245,8 @@ struct hfa384x_comms_quality {
 
 
 /* PRISM2_IOCTL_PRISM2_PARAM ioctl() subtypes: */
-enum {
+enum
+{
 	/* PRISM2_PARAM_PTYPE = 1, */ /* REMOVED 2003-10-22 */
 	PRISM2_PARAM_TXRATECTRL = 2,
 	PRISM2_PARAM_BEACON_INT = 3,
@@ -288,17 +290,20 @@ enum {
 };
 
 enum { HOSTAP_ANTSEL_DO_NOT_TOUCH = 0, HOSTAP_ANTSEL_DIVERSITY = 1,
-       HOSTAP_ANTSEL_LOW = 2, HOSTAP_ANTSEL_HIGH = 3 };
+	   HOSTAP_ANTSEL_LOW = 2, HOSTAP_ANTSEL_HIGH = 3
+	 };
 
 
 /* PRISM2_IOCTL_MACCMD ioctl() subcommands: */
 enum { AP_MAC_CMD_POLICY_OPEN = 0, AP_MAC_CMD_POLICY_ALLOW = 1,
-       AP_MAC_CMD_POLICY_DENY = 2, AP_MAC_CMD_FLUSH = 3,
-       AP_MAC_CMD_KICKALL = 4 };
+	   AP_MAC_CMD_POLICY_DENY = 2, AP_MAC_CMD_FLUSH = 3,
+	   AP_MAC_CMD_KICKALL = 4
+	 };
 
 
 /* PRISM2_IOCTL_DOWNLOAD ioctl() dl_cmd: */
-enum {
+enum
+{
 	PRISM2_DOWNLOAD_VOLATILE = 1 /* RAM */,
 	/* Note! Old versions of prism2_srec have a fatal error in CRC-16
 	 * calculation, which will corrupt all non-volatile downloads.
@@ -313,11 +318,13 @@ enum {
 	PRISM2_DOWNLOAD_VOLATILE_GENESIS_PERSISTENT = 6,
 };
 
-struct prism2_download_param {
+struct prism2_download_param
+{
 	u32 dl_cmd;
 	u32 start_addr;
 	u32 num_areas;
-	struct prism2_download_area {
+	struct prism2_download_area
+	{
 		u32 addr; /* wlan card address */
 		u32 len;
 		void __user *ptr; /* pointer to data in user space */
@@ -329,7 +336,8 @@ struct prism2_download_param {
 
 
 /* PRISM2_IOCTL_HOSTAPD ioctl() cmd: */
-enum {
+enum
+{
 	PRISM2_HOSTAPD_FLUSH = 1,
 	PRISM2_HOSTAPD_ADD_STA = 2,
 	PRISM2_HOSTAPD_REMOVE_STA = 3,
@@ -349,28 +357,33 @@ enum {
 
 #define PRISM2_HOSTAPD_MAX_BUF_SIZE 1024
 #define PRISM2_HOSTAPD_RID_HDR_LEN \
-offsetof(struct prism2_hostapd_param, u.rid.data)
+	offsetof(struct prism2_hostapd_param, u.rid.data)
 #define PRISM2_HOSTAPD_GENERIC_ELEMENT_HDR_LEN \
-offsetof(struct prism2_hostapd_param, u.generic_elem.data)
+	offsetof(struct prism2_hostapd_param, u.generic_elem.data)
 
 /* Maximum length for algorithm names (-1 for nul termination) used in ioctl()
  */
 #define HOSTAP_CRYPT_ALG_NAME_LEN 16
 
 
-struct prism2_hostapd_param {
+struct prism2_hostapd_param
+{
 	u32 cmd;
 	u8 sta_addr[ETH_ALEN];
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u16 aid;
 			u16 capability;
 			u8 tx_supp_rates;
 		} add_sta;
-		struct {
+		struct
+		{
 			u32 inactive_sec;
 		} get_info_sta;
-		struct {
+		struct
+		{
 			u8 alg[HOSTAP_CRYPT_ALG_NAME_LEN];
 			u32 flags;
 			u32 err;
@@ -379,26 +392,31 @@ struct prism2_hostapd_param {
 			u16 key_len;
 			u8 key[0];
 		} crypt;
-		struct {
+		struct
+		{
 			u32 flags_and;
 			u32 flags_or;
 		} set_flags_sta;
-		struct {
+		struct
+		{
 			u16 rid;
 			u16 len;
 			u8 data[0];
 		} rid;
-		struct {
+		struct
+		{
 			u8 len;
 			u8 data[0];
 		} generic_elem;
-		struct {
+		struct
+		{
 #define MLME_STA_DEAUTH 0
 #define MLME_STA_DISASSOC 1
 			u16 cmd;
 			u16 reason_code;
 		} mlme;
-		struct {
+		struct
+		{
 			u8 ssid_len;
 			u8 ssid[32];
 		} scan_req;

@@ -42,7 +42,8 @@ typedef u16 lid_t;
 /*
  * Almost identical to Linux's timespec, but not quite
  */
-struct timestruc_t {
+struct timestruc_t
+{
 	__le32 tv_sec;
 	__le32 tv_nsec;
 };
@@ -62,7 +63,8 @@ struct timestruc_t {
  *	The rightmost 8 bits of len_addr are the most signficant bits of
  *	the extent address
  */
-typedef struct {
+typedef struct
+{
 	__le32 len_addr;
 	__le32 addr2;
 } pxd_t;
@@ -72,13 +74,13 @@ typedef struct {
 static inline void PXDlength(pxd_t *pxd, __u32 len)
 {
 	pxd->len_addr = (pxd->len_addr & cpu_to_le32(~0xffffff)) |
-			cpu_to_le32(len & 0xffffff);
+					cpu_to_le32(len & 0xffffff);
 }
 
 static inline void PXDaddress(pxd_t *pxd, __u64 addr)
 {
 	pxd->len_addr = (pxd->len_addr & cpu_to_le32(0xffffff)) |
-			cpu_to_le32((addr >> 32)<<24);
+					cpu_to_le32((addr >> 32) << 24);
 	pxd->addr2 = cpu_to_le32(addr & 0xffffffff);
 }
 
@@ -96,7 +98,8 @@ static inline __u64 addressPXD(pxd_t *pxd)
 
 #define MAXTREEHEIGHT 8
 /* pxd list */
-struct pxdlist {
+struct pxdlist
+{
 	s16 maxnpxd;
 	s16 npxd;
 	pxd_t pxd[MAXTREEHEIGHT];
@@ -106,7 +109,8 @@ struct pxdlist {
 /*
  *	data extent descriptor (dxd)
  */
-typedef struct {
+typedef struct
+{
 	__u8 flag;	/* 1: flags */
 	__u8 rsrvd[3];
 	__le32 size;		/* 4: size in byte */
@@ -132,7 +136,8 @@ typedef struct {
 /*
  *	directory entry argument
  */
-struct component_name {
+struct component_name
+{
 	int namlen;
 	wchar_t *name;
 };
@@ -141,7 +146,8 @@ struct component_name {
 /*
  *	DASD limit information - stored in directory inode
  */
-struct dasd {
+struct dasd
+{
 	u8 thresh;		/* Alert Threshold (in percent)		*/
 	u8 delta;		/* Alert Threshold delta (in percent)	*/
 	u8 rsrvd1;
@@ -155,16 +161,16 @@ struct dasd {
 #define DASDLIMIT(dasdp) \
 	(((u64)((dasdp)->limit_hi) << 32) + __le32_to_cpu((dasdp)->limit_lo))
 #define setDASDLIMIT(dasdp, limit)\
-{\
-	(dasdp)->limit_hi = ((u64)limit) >> 32;\
-	(dasdp)->limit_lo = __cpu_to_le32(limit);\
-}
+	{\
+		(dasdp)->limit_hi = ((u64)limit) >> 32;\
+		(dasdp)->limit_lo = __cpu_to_le32(limit);\
+	}
 #define DASDUSED(dasdp) \
 	(((u64)((dasdp)->used_hi) << 32) + __le32_to_cpu((dasdp)->used_lo))
 #define setDASDUSED(dasdp, used)\
-{\
-	(dasdp)->used_hi = ((u64)used) >> 32;\
-	(dasdp)->used_lo = __cpu_to_le32(used);\
-}
+	{\
+		(dasdp)->used_hi = ((u64)used) >> 32;\
+		(dasdp)->used_lo = __cpu_to_le32(used);\
+	}
 
 #endif				/* !_H_JFS_TYPES */

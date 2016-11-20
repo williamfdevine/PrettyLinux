@@ -42,7 +42,8 @@
 #define ACAUDIDAT		0xb0	/* audio in data */
 #define ACREVID			0xfc	/* revision ID */
 
-struct txx9aclc_dmadata {
+struct txx9aclc_dmadata
+{
 	struct resource *dma_res;
 	struct txx9dmac_slave dma_slave;
 	struct dma_chan *dma_chan;
@@ -60,7 +61,8 @@ struct txx9aclc_dmadata {
 	int dmacount;
 };
 
-struct txx9aclc_plat_drvdata {
+struct txx9aclc_plat_drvdata
+{
 	void __iomem *base;
 	u64 physbase;
 };

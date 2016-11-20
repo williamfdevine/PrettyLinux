@@ -76,31 +76,31 @@
 /* Bit definitions for IPROC_ADC_CHANNEL_REGCTL2 */
 #define IPROC_ADC_CHANNEL_WATERMARK	0x0
 #define IPROC_ADC_CHANNEL_WATERMARK_MASK \
-		(0x3F << IPROC_ADC_CHANNEL_WATERMARK)
+	(0x3F << IPROC_ADC_CHANNEL_WATERMARK)
 
 #define IPROC_ADC_WATER_MARK_LEVEL	0x1
 
 /* Bit definitions for IPROC_ADC_CHANNEL_STATUS */
 #define IPROC_ADC_CHANNEL_DATA_LOST		0x0
 #define IPROC_ADC_CHANNEL_DATA_LOST_MASK	\
-		(0x0 << IPROC_ADC_CHANNEL_DATA_LOST)
+	(0x0 << IPROC_ADC_CHANNEL_DATA_LOST)
 #define IPROC_ADC_CHANNEL_VALID_ENTERIES	0x1
 #define IPROC_ADC_CHANNEL_VALID_ENTERIES_MASK	\
-		(0xFF << IPROC_ADC_CHANNEL_VALID_ENTERIES)
+	(0xFF << IPROC_ADC_CHANNEL_VALID_ENTERIES)
 #define IPROC_ADC_CHANNEL_TOTAL_ENTERIES	0x9
 #define IPROC_ADC_CHANNEL_TOTAL_ENTERIES_MASK	\
-		(0xFF << IPROC_ADC_CHANNEL_TOTAL_ENTERIES)
+	(0xFF << IPROC_ADC_CHANNEL_TOTAL_ENTERIES)
 
 /* Bit definitions for IPROC_ADC_CHANNEL_INTERRUPT_MASK */
 #define IPROC_ADC_CHANNEL_WTRMRK_INTR			0x0
 #define IPROC_ADC_CHANNEL_WTRMRK_INTR_MASK		\
-		(0x1 << IPROC_ADC_CHANNEL_WTRMRK_INTR)
+	(0x1 << IPROC_ADC_CHANNEL_WTRMRK_INTR)
 #define IPROC_ADC_CHANNEL_FULL_INTR			0x1
 #define IPROC_ADC_CHANNEL_FULL_INTR_MASK		\
-		(0x1 << IPROC_ADC_IPROC_ADC_CHANNEL_FULL_INTR)
+	(0x1 << IPROC_ADC_IPROC_ADC_CHANNEL_FULL_INTR)
 #define IPROC_ADC_CHANNEL_EMPTY_INTR			0x2
 #define IPROC_ADC_CHANNEL_EMPTY_INTR_MASK		\
-		(0x1 << IPROC_ADC_CHANNEL_EMPTY_INTR)
+	(0x1 << IPROC_ADC_CHANNEL_EMPTY_INTR)
 
 #define IPROC_ADC_WATER_MARK_INTR_ENABLE		0x1
 
@@ -110,13 +110,14 @@
 #define IPROC_ADC_READ_TIMEOUT        (HZ*2)
 
 #define iproc_adc_dbg_reg(dev, priv, reg) \
-do { \
-	u32 val; \
-	regmap_read(priv->regmap, reg, &val); \
-	dev_dbg(dev, "%20s= 0x%08x\n", #reg, val); \
-} while (0)
+	do { \
+		u32 val; \
+		regmap_read(priv->regmap, reg, &val); \
+		dev_dbg(dev, "%20s= 0x%08x\n", #reg, val); \
+	} while (0)
 
-struct iproc_adc_priv {
+struct iproc_adc_priv
+{
 	struct regmap *regmap;
 	struct clk *adc_clk;
 	struct mutex mutex;
@@ -160,9 +161,12 @@ static irqreturn_t iproc_adc_interrupt_handler(int irq, void *data)
 	regmap_read(adc_priv->regmap, IPROC_INTERRUPT_MASK, &intr_mask);
 	intr_status = intr_status & intr_mask;
 	channel_intr_status = (intr_status & IPROC_ADC_INTR_MASK) >>
-				IPROC_ADC_INTR;
+						  IPROC_ADC_INTR;
+
 	if (channel_intr_status)
+	{
 		return IRQ_WAKE_THREAD;
+	}
 
 	return IRQ_NONE;
 }
@@ -185,47 +189,56 @@ static irqreturn_t iproc_adc_interrupt_thread(int irq, void *data)
 			intr_status);
 
 	intr_channels = (intr_status & IPROC_ADC_INTR_MASK) >> IPROC_ADC_INTR;
-	if (intr_channels) {
-		regmap_read(adc_priv->regmap,
-			    IPROC_ADC_CHANNEL_INTERRUPT_STATUS +
-			    IPROC_ADC_CHANNEL_OFFSET * adc_priv->chan_id,
-			    &ch_intr_status);
 
-		if (ch_intr_status & IPROC_ADC_CHANNEL_WTRMRK_INTR_MASK) {
+	if (intr_channels)
+	{
+		regmap_read(adc_priv->regmap,
+					IPROC_ADC_CHANNEL_INTERRUPT_STATUS +
+					IPROC_ADC_CHANNEL_OFFSET * adc_priv->chan_id,
+					&ch_intr_status);
+
+		if (ch_intr_status & IPROC_ADC_CHANNEL_WTRMRK_INTR_MASK)
+		{
 			regmap_read(adc_priv->regmap,
-					IPROC_ADC_CHANNEL_STATUS +
-					IPROC_ADC_CHANNEL_OFFSET *
-					adc_priv->chan_id,
-					&channel_status);
+						IPROC_ADC_CHANNEL_STATUS +
+						IPROC_ADC_CHANNEL_OFFSET *
+						adc_priv->chan_id,
+						&channel_status);
 
 			valid_entries = ((channel_status &
-				IPROC_ADC_CHANNEL_VALID_ENTERIES_MASK) >>
-				IPROC_ADC_CHANNEL_VALID_ENTERIES);
-			if (valid_entries >= 1) {
+							  IPROC_ADC_CHANNEL_VALID_ENTERIES_MASK) >>
+							 IPROC_ADC_CHANNEL_VALID_ENTERIES);
+
+			if (valid_entries >= 1)
+			{
 				regmap_read(adc_priv->regmap,
-					IPROC_ADC_CHANNEL_DATA +
-					IPROC_ADC_CHANNEL_OFFSET *
-					adc_priv->chan_id,
-					&adc_priv->chan_val);
+							IPROC_ADC_CHANNEL_DATA +
+							IPROC_ADC_CHANNEL_OFFSET *
+							adc_priv->chan_id,
+							&adc_priv->chan_val);
 				complete(&adc_priv->completion);
-			} else {
-				dev_err(&indio_dev->dev,
-					"No data rcvd on channel %d\n",
-					adc_priv->chan_id);
 			}
+			else
+			{
+				dev_err(&indio_dev->dev,
+						"No data rcvd on channel %d\n",
+						adc_priv->chan_id);
+			}
+
 			regmap_write(adc_priv->regmap,
-					IPROC_ADC_CHANNEL_INTERRUPT_MASK +
-					IPROC_ADC_CHANNEL_OFFSET *
-					adc_priv->chan_id,
-					(ch_intr_status &
-					~(IPROC_ADC_CHANNEL_WTRMRK_INTR_MASK)));
+						 IPROC_ADC_CHANNEL_INTERRUPT_MASK +
+						 IPROC_ADC_CHANNEL_OFFSET *
+						 adc_priv->chan_id,
+						 (ch_intr_status &
+						  ~(IPROC_ADC_CHANNEL_WTRMRK_INTR_MASK)));
 		}
+
 		regmap_write(adc_priv->regmap,
-				IPROC_ADC_CHANNEL_INTERRUPT_STATUS +
-				IPROC_ADC_CHANNEL_OFFSET * adc_priv->chan_id,
-				ch_intr_status);
+					 IPROC_ADC_CHANNEL_INTERRUPT_STATUS +
+					 IPROC_ADC_CHANNEL_OFFSET * adc_priv->chan_id,
+					 ch_intr_status);
 		regmap_write(adc_priv->regmap, IPROC_INTERRUPT_STATUS,
-				intr_channels);
+					 intr_channels);
 		retval = IRQ_HANDLED;
 	}
 
@@ -233,8 +246,8 @@ static irqreturn_t iproc_adc_interrupt_thread(int irq, void *data)
 }
 
 static int iproc_adc_do_read(struct iio_dev *indio_dev,
-			   int channel,
-			   u16 *p_adc_data)
+							 int channel,
+							 u16 *p_adc_data)
 {
 	int read_len = 0;
 	u32 val;
@@ -255,33 +268,33 @@ static int iproc_adc_do_read(struct iio_dev *indio_dev,
 	reinit_completion(&adc_priv->completion);
 	/* Clear any pending interrupt */
 	regmap_update_bits(adc_priv->regmap, IPROC_INTERRUPT_STATUS,
-			IPROC_ADC_INTR_MASK | IPROC_ADC_AUXDATA_RDY_INTR,
-			((0x0 << channel) << IPROC_ADC_INTR) |
-			IPROC_ADC_AUXDATA_RDY_INTR);
+					   IPROC_ADC_INTR_MASK | IPROC_ADC_AUXDATA_RDY_INTR,
+					   ((0x0 << channel) << IPROC_ADC_INTR) |
+					   IPROC_ADC_AUXDATA_RDY_INTR);
 
 	/* Configure channel for snapshot mode and enable  */
 	val = (BIT(IPROC_ADC_CHANNEL_ROUNDS) |
-		(IPROC_ADC_CHANNEL_MODE_SNAPSHOT << IPROC_ADC_CHANNEL_MODE) |
-		(0x1 << IPROC_ADC_CHANNEL_ENABLE));
+		   (IPROC_ADC_CHANNEL_MODE_SNAPSHOT << IPROC_ADC_CHANNEL_MODE) |
+		   (0x1 << IPROC_ADC_CHANNEL_ENABLE));
 
 	mask = IPROC_ADC_CHANNEL_ROUNDS_MASK | IPROC_ADC_CHANNEL_MODE_MASK |
-		IPROC_ADC_CHANNEL_ENABLE_MASK;
+		   IPROC_ADC_CHANNEL_ENABLE_MASK;
 	regmap_update_bits(adc_priv->regmap, (IPROC_ADC_CHANNEL_REGCTL1 +
-				IPROC_ADC_CHANNEL_OFFSET * channel),
-				mask, val);
+										  IPROC_ADC_CHANNEL_OFFSET * channel),
+					   mask, val);
 
 	/* Set the Watermark for a channel */
 	regmap_update_bits(adc_priv->regmap, (IPROC_ADC_CHANNEL_REGCTL2 +
-					IPROC_ADC_CHANNEL_OFFSET * channel),
-					IPROC_ADC_CHANNEL_WATERMARK_MASK,
-					0x1);
+										  IPROC_ADC_CHANNEL_OFFSET * channel),
+					   IPROC_ADC_CHANNEL_WATERMARK_MASK,
+					   0x1);
 
 	/* Enable water mark interrupt */
 	regmap_update_bits(adc_priv->regmap, (IPROC_ADC_CHANNEL_INTERRUPT_MASK +
-					IPROC_ADC_CHANNEL_OFFSET *
-					channel),
-					IPROC_ADC_CHANNEL_WTRMRK_INTR_MASK,
-					IPROC_ADC_WATER_MARK_INTR_ENABLE);
+										  IPROC_ADC_CHANNEL_OFFSET *
+										  channel),
+					   IPROC_ADC_CHANNEL_WTRMRK_INTR_MASK,
+					   IPROC_ADC_WATER_MARK_INTR_ENABLE);
 	regmap_read(adc_priv->regmap, IPROC_INTERRUPT_MASK, &val);
 
 	/* Enable ADC interrupt for a channel */
@@ -296,41 +309,52 @@ static int iproc_adc_do_read(struct iio_dev *indio_dev,
 	 * hit the full count.
 	 */
 	regmap_read(adc_priv->regmap, IPROC_INTERRUPT_MASK, &val_check);
-	while (val_check != val) {
+
+	while (val_check != val)
+	{
 		failed_cnt++;
 
 		if (failed_cnt > IPROC_ADC_INTMASK_RETRY_ATTEMPTS)
+		{
 			break;
+		}
 
 		udelay(10);
 		regmap_update_bits(adc_priv->regmap, IPROC_INTERRUPT_MASK,
-				IPROC_ADC_INTR_MASK,
-				((0x1 << channel) <<
-				IPROC_ADC_INTR));
+						   IPROC_ADC_INTR_MASK,
+						   ((0x1 << channel) <<
+							IPROC_ADC_INTR));
 
 		regmap_read(adc_priv->regmap, IPROC_INTERRUPT_MASK, &val_check);
 	}
 
-	if (failed_cnt) {
+	if (failed_cnt)
+	{
 		dev_dbg(&indio_dev->dev,
-			"IntMask failed (%d times)", failed_cnt);
-		if (failed_cnt > IPROC_ADC_INTMASK_RETRY_ATTEMPTS) {
+				"IntMask failed (%d times)", failed_cnt);
+
+		if (failed_cnt > IPROC_ADC_INTMASK_RETRY_ATTEMPTS)
+		{
 			dev_err(&indio_dev->dev,
-				"IntMask set failed. Read will likely fail.");
+					"IntMask set failed. Read will likely fail.");
 			read_len = -EIO;
 			goto adc_err;
 		};
 	}
+
 	regmap_read(adc_priv->regmap, IPROC_INTERRUPT_MASK, &val_check);
 
 	if (wait_for_completion_timeout(&adc_priv->completion,
-		IPROC_ADC_READ_TIMEOUT) > 0) {
+									IPROC_ADC_READ_TIMEOUT) > 0)
+	{
 
 		/* Only the lower 16 bits are relevant */
 		*p_adc_data = adc_priv->chan_val & 0xFFFF;
 		read_len = sizeof(*p_adc_data);
 
-	} else {
+	}
+	else
+	{
 		/*
 		 * We never got the interrupt, something went wrong.
 		 * Perhaps the interrupt may still be coming, we do not want
@@ -340,18 +364,19 @@ static int iproc_adc_do_read(struct iio_dev *indio_dev,
 		read_len = -ETIMEDOUT;
 		goto adc_err;
 	}
+
 	mutex_unlock(&adc_priv->mutex);
 
 	return read_len;
 
 adc_err:
 	regmap_update_bits(adc_priv->regmap, IPROC_INTERRUPT_MASK,
-			   IPROC_ADC_INTR_MASK,
-			   ((0x0 << channel) << IPROC_ADC_INTR));
+					   IPROC_ADC_INTR_MASK,
+					   ((0x0 << channel) << IPROC_ADC_INTR));
 
 	regmap_update_bits(adc_priv->regmap, IPROC_INTERRUPT_STATUS,
-			   IPROC_ADC_INTR_MASK,
-			   ((0x0 << channel) << IPROC_ADC_INTR));
+					   IPROC_ADC_INTR_MASK,
+					   ((0x0 << channel) << IPROC_ADC_INTR));
 
 	dev_err(&indio_dev->dev, "Timed out waiting for ADC data!\n");
 	iproc_adc_reg_dump(indio_dev);
@@ -369,12 +394,15 @@ static int iproc_adc_enable(struct iio_dev *indio_dev)
 
 	/* Set i_amux = 3b'000, select channel 0 */
 	ret = regmap_update_bits(adc_priv->regmap, IPROC_ANALOG_CONTROL,
-				IPROC_ADC_CHANNEL_SEL_MASK, 0);
-	if (ret) {
+							 IPROC_ADC_CHANNEL_SEL_MASK, 0);
+
+	if (ret)
+	{
 		dev_err(&indio_dev->dev,
-			"failed to write IPROC_ANALOG_CONTROL %d\n", ret);
+				"failed to write IPROC_ANALOG_CONTROL %d\n", ret);
 		return ret;
 	}
+
 	adc_priv->chan_val = -1;
 
 	/*
@@ -382,55 +410,68 @@ static int iproc_adc_enable(struct iio_dev *indio_dev)
 	 * Also enable ADC controller (set high)
 	 */
 	ret = regmap_read(adc_priv->regmap, IPROC_REGCTL2, &val);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&indio_dev->dev,
-			"failed to read IPROC_REGCTL2 %d\n", ret);
+				"failed to read IPROC_REGCTL2 %d\n", ret);
 		return ret;
 	}
 
 	val &= ~(IPROC_ADC_PWR_LDO | IPROC_ADC_PWR_ADC | IPROC_ADC_PWR_BG);
 
 	ret = regmap_write(adc_priv->regmap, IPROC_REGCTL2, val);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&indio_dev->dev,
-			"failed to write IPROC_REGCTL2 %d\n", ret);
+				"failed to write IPROC_REGCTL2 %d\n", ret);
 		return ret;
 	}
 
 	ret = regmap_read(adc_priv->regmap, IPROC_REGCTL2, &val);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&indio_dev->dev,
-			"failed to read IPROC_REGCTL2 %d\n", ret);
+				"failed to read IPROC_REGCTL2 %d\n", ret);
 		return ret;
 	}
 
 	val |= IPROC_ADC_CONTROLLER_EN;
 	ret = regmap_write(adc_priv->regmap, IPROC_REGCTL2, val);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&indio_dev->dev,
-			"failed to write IPROC_REGCTL2 %d\n", ret);
+				"failed to write IPROC_REGCTL2 %d\n", ret);
 		return ret;
 	}
 
 	for (channel_id = 0; channel_id < indio_dev->num_channels;
-		channel_id++) {
+		 channel_id++)
+	{
 		ret = regmap_write(adc_priv->regmap,
-				IPROC_ADC_CHANNEL_INTERRUPT_MASK +
-				IPROC_ADC_CHANNEL_OFFSET * channel_id, 0);
-		if (ret) {
+						   IPROC_ADC_CHANNEL_INTERRUPT_MASK +
+						   IPROC_ADC_CHANNEL_OFFSET * channel_id, 0);
+
+		if (ret)
+		{
 			dev_err(&indio_dev->dev,
-			    "failed to write ADC_CHANNEL_INTERRUPT_MASK %d\n",
-			    ret);
+					"failed to write ADC_CHANNEL_INTERRUPT_MASK %d\n",
+					ret);
 			return ret;
 		}
 
 		ret = regmap_write(adc_priv->regmap,
-				IPROC_ADC_CHANNEL_INTERRUPT_STATUS +
-				IPROC_ADC_CHANNEL_OFFSET * channel_id, 0);
-		if (ret) {
+						   IPROC_ADC_CHANNEL_INTERRUPT_STATUS +
+						   IPROC_ADC_CHANNEL_OFFSET * channel_id, 0);
+
+		if (ret)
+		{
 			dev_err(&indio_dev->dev,
-			    "failed to write ADC_CHANNEL_INTERRUPT_STATUS %d\n",
-			    ret);
+					"failed to write ADC_CHANNEL_INTERRUPT_STATUS %d\n",
+					ret);
 			return ret;
 		}
 	}
@@ -445,66 +486,81 @@ static void iproc_adc_disable(struct iio_dev *indio_dev)
 	struct iproc_adc_priv *adc_priv = iio_priv(indio_dev);
 
 	ret = regmap_read(adc_priv->regmap, IPROC_REGCTL2, &val);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&indio_dev->dev,
-			"failed to read IPROC_REGCTL2 %d\n", ret);
+				"failed to read IPROC_REGCTL2 %d\n", ret);
 		return;
 	}
 
 	val &= ~IPROC_ADC_CONTROLLER_EN;
 	ret = regmap_write(adc_priv->regmap, IPROC_REGCTL2, val);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&indio_dev->dev,
-			"failed to write IPROC_REGCTL2 %d\n", ret);
+				"failed to write IPROC_REGCTL2 %d\n", ret);
 		return;
 	}
 }
 
 static int iproc_adc_read_raw(struct iio_dev *indio_dev,
-			  struct iio_chan_spec const *chan,
-			  int *val,
-			  int *val2,
-			  long mask)
+							  struct iio_chan_spec const *chan,
+							  int *val,
+							  int *val2,
+							  long mask)
 {
 	u16 adc_data;
 	int err;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		err =  iproc_adc_do_read(indio_dev, chan->channel, &adc_data);
-		if (err < 0)
-			return err;
-		*val = adc_data;
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_SCALE:
-		switch (chan->type) {
-		case IIO_VOLTAGE:
-			*val = 1800;
-			*val2 = 10;
-			return IIO_VAL_FRACTIONAL_LOG2;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			err =  iproc_adc_do_read(indio_dev, chan->channel, &adc_data);
+
+			if (err < 0)
+			{
+				return err;
+			}
+
+			*val = adc_data;
+			return IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_SCALE:
+			switch (chan->type)
+			{
+				case IIO_VOLTAGE:
+					*val = 1800;
+					*val2 = 10;
+					return IIO_VAL_FRACTIONAL_LOG2;
+
+				default:
+					return -EINVAL;
+			}
+
 		default:
 			return -EINVAL;
-		}
-	default:
-		return -EINVAL;
 	}
 }
 
-static const struct iio_info iproc_adc_iio_info = {
+static const struct iio_info iproc_adc_iio_info =
+{
 	.read_raw = &iproc_adc_read_raw,
 	.driver_module = THIS_MODULE,
 };
 
 #define IPROC_ADC_CHANNEL(_index, _id) {                \
-	.type = IIO_VOLTAGE,                            \
-	.indexed = 1,                                   \
-	.channel = _index,                              \
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),   \
-	.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE), \
-	.datasheet_name = _id,                          \
-}
+		.type = IIO_VOLTAGE,                            \
+				.indexed = 1,                                   \
+						   .channel = _index,                              \
+									  .info_mask_separate = BIT(IIO_CHAN_INFO_RAW),   \
+											  .info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE), \
+													  .datasheet_name = _id,                          \
+	}
 
-static const struct iio_chan_spec iproc_adc_iio_channels[] = {
+static const struct iio_chan_spec iproc_adc_iio_channels[] =
+{
 	IPROC_ADC_CHANNEL(0, "adc0"),
 	IPROC_ADC_CHANNEL(1, "adc1"),
 	IPROC_ADC_CHANNEL(2, "adc2"),
@@ -522,8 +578,10 @@ static int iproc_adc_probe(struct platform_device *pdev)
 	int ret;
 
 	indio_dev = devm_iio_device_alloc(&pdev->dev,
-					sizeof(*adc_priv));
-	if (!indio_dev) {
+									  sizeof(*adc_priv));
+
+	if (!indio_dev)
+	{
 		dev_err(&pdev->dev, "failed to allocate iio device\n");
 		return -ENOMEM;
 	}
@@ -536,53 +594,67 @@ static int iproc_adc_probe(struct platform_device *pdev)
 	init_completion(&adc_priv->completion);
 
 	adc_priv->regmap = syscon_regmap_lookup_by_phandle(pdev->dev.of_node,
-			   "adc-syscon");
-	if (IS_ERR(adc_priv->regmap)) {
+					   "adc-syscon");
+
+	if (IS_ERR(adc_priv->regmap))
+	{
 		dev_err(&pdev->dev, "failed to get handle for tsc syscon\n");
 		ret = PTR_ERR(adc_priv->regmap);
 		return ret;
 	}
 
 	adc_priv->adc_clk = devm_clk_get(&pdev->dev, "tsc_clk");
-	if (IS_ERR(adc_priv->adc_clk)) {
+
+	if (IS_ERR(adc_priv->adc_clk))
+	{
 		dev_err(&pdev->dev,
-			"failed getting clock tsc_clk\n");
+				"failed getting clock tsc_clk\n");
 		ret = PTR_ERR(adc_priv->adc_clk);
 		return ret;
 	}
 
 	adc_priv->irqno = platform_get_irq(pdev, 0);
-	if (adc_priv->irqno <= 0) {
+
+	if (adc_priv->irqno <= 0)
+	{
 		dev_err(&pdev->dev, "platform_get_irq failed\n");
 		ret = -ENODEV;
 		return ret;
 	}
 
 	ret = regmap_update_bits(adc_priv->regmap, IPROC_REGCTL2,
-				IPROC_ADC_AUXIN_SCAN_ENA, 0);
-	if (ret) {
+							 IPROC_ADC_AUXIN_SCAN_ENA, 0);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to write IPROC_REGCTL2 %d\n", ret);
 		return ret;
 	}
 
 	ret = devm_request_threaded_irq(&pdev->dev, adc_priv->irqno,
-				iproc_adc_interrupt_thread,
-				iproc_adc_interrupt_handler,
-				IRQF_SHARED, "iproc-adc", indio_dev);
-	if (ret) {
+									iproc_adc_interrupt_thread,
+									iproc_adc_interrupt_handler,
+									IRQF_SHARED, "iproc-adc", indio_dev);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "request_irq error %d\n", ret);
 		return ret;
 	}
 
 	ret = clk_prepare_enable(adc_priv->adc_clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev,
-			"clk_prepare_enable failed %d\n", ret);
+				"clk_prepare_enable failed %d\n", ret);
 		return ret;
 	}
 
 	ret = iproc_adc_enable(indio_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to enable adc %d\n", ret);
 		goto err_adc_enable;
 	}
@@ -596,7 +668,9 @@ static int iproc_adc_probe(struct platform_device *pdev)
 	indio_dev->num_channels = ARRAY_SIZE(iproc_adc_iio_channels);
 
 	ret = iio_device_register(indio_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "iio_device_register failed:err %d\n", ret);
 		goto err_clk;
 	}
@@ -623,13 +697,15 @@ static int iproc_adc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id iproc_adc_of_match[] = {
+static const struct of_device_id iproc_adc_of_match[] =
+{
 	{.compatible = "brcm,iproc-static-adc", },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, iproc_adc_of_match);
 
-static struct platform_driver iproc_adc_driver = {
+static struct platform_driver iproc_adc_driver =
+{
 	.probe  = iproc_adc_probe,
 	.remove	= iproc_adc_remove,
 	.driver	= {

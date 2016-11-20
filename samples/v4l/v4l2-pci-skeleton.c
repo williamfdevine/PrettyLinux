@@ -60,7 +60,8 @@ MODULE_LICENSE("GPL v2");
  * @buf_list: list of buffers queued for DMA
  * @sequence: frame sequence counter
  */
-struct skeleton {
+struct skeleton
+{
 	struct pci_dev *pdev;
 	struct v4l2_device v4l2_dev;
 	struct video_device vdev;
@@ -79,7 +80,8 @@ struct skeleton {
 	unsigned sequence;
 };
 
-struct skel_buffer {
+struct skel_buffer
+{
 	struct vb2_buffer vb;
 	struct list_head list;
 };
@@ -89,7 +91,8 @@ static inline struct skel_buffer *to_skel_buffer(struct vb2_buffer *vb2)
 	return container_of(vb2, struct skel_buffer, vb);
 }
 
-static const struct pci_device_id skeleton_pci_tbl[] = {
+static const struct pci_device_id skeleton_pci_tbl[] =
+{
 	/* { PCI_DEVICE(PCI_VENDOR_ID_, PCI_DEVICE_ID_) }, */
 	{ 0, }
 };
@@ -100,7 +103,8 @@ MODULE_DEVICE_TABLE(pci, skeleton_pci_tbl);
  * It is used to constrain the huge list of possible formats based
  * upon the hardware capabilities.
  */
-static const struct v4l2_dv_timings_cap skel_timings_cap = {
+static const struct v4l2_dv_timings_cap skel_timings_cap =
+{
 	.type = V4L2_DV_BT_656_1120,
 	/* keep this initialization for compatibility with GCC < 4.4.6 */
 	.reserved = { 0 },
@@ -134,7 +138,8 @@ static irqreturn_t skeleton_irq(int irq, void *dev_id)
 	/* handle interrupt */
 
 	/* Once a new frame has been captured, mark it as done like this: */
-	if (captured_new_frame) {
+	if (captured_new_frame)
+	{
 		...
 		spin_lock(&skel->qlock);
 		list_del(&new_buf->list);
@@ -142,14 +147,22 @@ static irqreturn_t skeleton_irq(int irq, void *dev_id)
 		v4l2_get_timestamp(&new_buf->vb.v4l2_buf.timestamp);
 		new_buf->vb.v4l2_buf.sequence = skel->sequence++;
 		new_buf->vb.v4l2_buf.field = skel->field;
-		if (skel->format.field == V4L2_FIELD_ALTERNATE) {
+
+		if (skel->format.field == V4L2_FIELD_ALTERNATE)
+		{
 			if (skel->field == V4L2_FIELD_BOTTOM)
+			{
 				skel->field = V4L2_FIELD_TOP;
+			}
 			else if (skel->field == V4L2_FIELD_TOP)
+			{
 				skel->field = V4L2_FIELD_BOTTOM;
+			}
 		}
+
 		vb2_buffer_done(&new_buf->vb, VB2_BUF_STATE_DONE);
 	}
+
 #endif
 	return IRQ_HANDLED;
 }
@@ -162,27 +175,37 @@ static irqreturn_t skeleton_irq(int irq, void *dev_id)
  * queue and you need to have another available for userspace processing.
  */
 static int queue_setup(struct vb2_queue *vq,
-		       unsigned int *nbuffers, unsigned int *nplanes,
-		       unsigned int sizes[], struct device *alloc_devs[])
+					   unsigned int *nbuffers, unsigned int *nplanes,
+					   unsigned int sizes[], struct device *alloc_devs[])
 {
 	struct skeleton *skel = vb2_get_drv_priv(vq);
 
 	skel->field = skel->format.field;
-	if (skel->field == V4L2_FIELD_ALTERNATE) {
+
+	if (skel->field == V4L2_FIELD_ALTERNATE)
+	{
 		/*
 		 * You cannot use read() with FIELD_ALTERNATE since the field
 		 * information (TOP/BOTTOM) cannot be passed back to the user.
 		 */
 		if (vb2_fileio_is_active(vq))
+		{
 			return -EINVAL;
+		}
+
 		skel->field = V4L2_FIELD_TOP;
 	}
 
 	if (vq->num_buffers + *nbuffers < 3)
+	{
 		*nbuffers = 3 - vq->num_buffers;
+	}
 
 	if (*nplanes)
+	{
 		return sizes[0] < skel->format.sizeimage ? -EINVAL : 0;
+	}
+
 	*nplanes = 1;
 	sizes[0] = skel->format.sizeimage;
 	return 0;
@@ -197,9 +220,10 @@ static int buffer_prepare(struct vb2_buffer *vb)
 	struct skeleton *skel = vb2_get_drv_priv(vb->vb2_queue);
 	unsigned long size = skel->format.sizeimage;
 
-	if (vb2_plane_size(vb, 0) < size) {
+	if (vb2_plane_size(vb, 0) < size)
+	{
 		dev_err(&skel->pdev->dev, "buffer too small (%lu < %lu)\n",
-			 vb2_plane_size(vb, 0), size);
+				vb2_plane_size(vb, 0), size);
 		return -EINVAL;
 	}
 
@@ -225,13 +249,14 @@ static void buffer_queue(struct vb2_buffer *vb)
 }
 
 static void return_all_buffers(struct skeleton *skel,
-			       enum vb2_buffer_state state)
+							   enum vb2_buffer_state state)
 {
 	struct skel_buffer *buf, *node;
 	unsigned long flags;
 
 	spin_lock_irqsave(&skel->qlock, flags);
-	list_for_each_entry_safe(buf, node, &skel->buf_list, list) {
+	list_for_each_entry_safe(buf, node, &skel->buf_list, list)
+	{
 		vb2_buffer_done(&buf->vb, state);
 		list_del(&buf->list);
 	}
@@ -253,13 +278,15 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
 
 	/* TODO: start DMA */
 
-	if (ret) {
+	if (ret)
+	{
 		/*
 		 * In case of an error, return all active buffers to the
 		 * QUEUED state
 		 */
 		return_all_buffers(skel, VB2_BUF_STATE_QUEUED);
 	}
+
 	return ret;
 }
 
@@ -282,7 +309,8 @@ static void stop_streaming(struct vb2_queue *vq)
  * vb2_ops_wait_prepare/finish helper functions. If q->lock would be NULL,
  * then this driver would have to provide these ops.
  */
-static struct vb2_ops skel_qops = {
+static struct vb2_ops skel_qops =
+{
 	.queue_setup		= queue_setup,
 	.buf_prepare		= buffer_prepare,
 	.buf_queue		= buffer_queue,
@@ -297,14 +325,14 @@ static struct vb2_ops skel_qops = {
  * the version of the kernel.
  */
 static int skeleton_querycap(struct file *file, void *priv,
-			     struct v4l2_capability *cap)
+							 struct v4l2_capability *cap)
 {
 	struct skeleton *skel = video_drvdata(file);
 
 	strlcpy(cap->driver, KBUILD_MODNAME, sizeof(cap->driver));
 	strlcpy(cap->card, "V4L2 PCI Skeleton", sizeof(cap->card));
 	snprintf(cap->bus_info, sizeof(cap->bus_info), "PCI:%s",
-		 pci_name(skel->pdev));
+			 pci_name(skel->pdev));
 	return 0;
 }
 
@@ -315,25 +343,34 @@ static int skeleton_querycap(struct file *file, void *priv,
  * current format.
  */
 static void skeleton_fill_pix_format(struct skeleton *skel,
-				     struct v4l2_pix_format *pix)
+									 struct v4l2_pix_format *pix)
 {
 	pix->pixelformat = V4L2_PIX_FMT_YUYV;
-	if (skel->input == 0) {
+
+	if (skel->input == 0)
+	{
 		/* S-Video input */
 		pix->width = 720;
 		pix->height = (skel->std & V4L2_STD_525_60) ? 480 : 576;
 		pix->field = V4L2_FIELD_INTERLACED;
 		pix->colorspace = V4L2_COLORSPACE_SMPTE170M;
-	} else {
+	}
+	else
+	{
 		/* HDMI input */
 		pix->width = skel->timings.bt.width;
 		pix->height = skel->timings.bt.height;
-		if (skel->timings.bt.interlaced) {
+
+		if (skel->timings.bt.interlaced)
+		{
 			pix->field = V4L2_FIELD_ALTERNATE;
 			pix->height /= 2;
-		} else {
+		}
+		else
+		{
 			pix->field = V4L2_FIELD_NONE;
 		}
+
 		pix->colorspace = V4L2_COLORSPACE_REC709;
 	}
 
@@ -347,7 +384,7 @@ static void skeleton_fill_pix_format(struct skeleton *skel,
 }
 
 static int skeleton_try_fmt_vid_cap(struct file *file, void *priv,
-				    struct v4l2_format *f)
+									struct v4l2_format *f)
 {
 	struct skeleton *skel = video_drvdata(file);
 	struct v4l2_pix_format *pix = &f->fmt.pix;
@@ -359,27 +396,35 @@ static int skeleton_try_fmt_vid_cap(struct file *file, void *priv,
 	 * applications rely on this behavior...
 	 */
 	if (pix->pixelformat != V4L2_PIX_FMT_YUYV)
+	{
 		return -EINVAL;
+	}
+
 	skeleton_fill_pix_format(skel, pix);
 	return 0;
 }
 
 static int skeleton_s_fmt_vid_cap(struct file *file, void *priv,
-				  struct v4l2_format *f)
+								  struct v4l2_format *f)
 {
 	struct skeleton *skel = video_drvdata(file);
 	int ret;
 
 	ret = skeleton_try_fmt_vid_cap(file, priv, f);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/*
 	 * It is not allowed to change the format while buffers for use with
 	 * streaming have already been allocated.
 	 */
 	if (vb2_is_busy(&skel->queue))
+	{
 		return -EBUSY;
+	}
 
 	/* TODO: change format */
 	skel->format = f->fmt.pix;
@@ -387,7 +432,7 @@ static int skeleton_s_fmt_vid_cap(struct file *file, void *priv,
 }
 
 static int skeleton_g_fmt_vid_cap(struct file *file, void *priv,
-				  struct v4l2_format *f)
+								  struct v4l2_format *f)
 {
 	struct skeleton *skel = video_drvdata(file);
 
@@ -396,10 +441,12 @@ static int skeleton_g_fmt_vid_cap(struct file *file, void *priv,
 }
 
 static int skeleton_enum_fmt_vid_cap(struct file *file, void *priv,
-				     struct v4l2_fmtdesc *f)
+									 struct v4l2_fmtdesc *f)
 {
 	if (f->index != 0)
+	{
 		return -EINVAL;
+	}
 
 	f->pixelformat = V4L2_PIX_FMT_YUYV;
 	return 0;
@@ -411,7 +458,9 @@ static int skeleton_s_std(struct file *file, void *priv, v4l2_std_id std)
 
 	/* S_STD is not supported on the HDMI input */
 	if (skel->input)
+	{
 		return -ENODATA;
+	}
 
 	/*
 	 * No change, so just return. Some applications call S_STD again after
@@ -419,14 +468,18 @@ static int skeleton_s_std(struct file *file, void *priv, v4l2_std_id std)
 	 * this behavior.
 	 */
 	if (std == skel->std)
+	{
 		return 0;
+	}
 
 	/*
 	 * Changing the standard implies a format change, which is not allowed
 	 * while buffers for use with streaming have already been allocated.
 	 */
 	if (vb2_is_busy(&skel->queue))
+	{
 		return -EBUSY;
+	}
 
 	/* TODO: handle changing std */
 
@@ -443,7 +496,9 @@ static int skeleton_g_std(struct file *file, void *priv, v4l2_std_id *std)
 
 	/* G_STD is not supported on the HDMI input */
 	if (skel->input)
+	{
 		return -ENODATA;
+	}
 
 	*std = skel->std;
 	return 0;
@@ -462,7 +517,9 @@ static int skeleton_querystd(struct file *file, void *priv, v4l2_std_id *std)
 
 	/* QUERY_STD is not supported on the HDMI input */
 	if (skel->input)
+	{
 		return -ENODATA;
+	}
 
 #ifdef TODO
 	/*
@@ -470,47 +527,65 @@ static int skeleton_querystd(struct file *file, void *priv, v4l2_std_id *std)
 	 * V4L2_STD_ALL. This function should look something like this:
 	 */
 	get_signal_info();
-	if (no_signal) {
+
+	if (no_signal)
+	{
 		*std = 0;
 		return 0;
 	}
+
 	/* Use signal information to reduce the number of possible standards */
 	if (signal_has_525_lines)
+	{
 		*std &= V4L2_STD_525_60;
+	}
 	else
+	{
 		*std &= V4L2_STD_625_50;
+	}
+
 #endif
 	return 0;
 }
 
 static int skeleton_s_dv_timings(struct file *file, void *_fh,
-				 struct v4l2_dv_timings *timings)
+								 struct v4l2_dv_timings *timings)
 {
 	struct skeleton *skel = video_drvdata(file);
 
 	/* S_DV_TIMINGS is not supported on the S-Video input */
 	if (skel->input == 0)
+	{
 		return -ENODATA;
+	}
 
 	/* Quick sanity check */
 	if (!v4l2_valid_dv_timings(timings, &skel_timings_cap, NULL, NULL))
+	{
 		return -EINVAL;
+	}
 
 	/* Check if the timings are part of the CEA-861 timings. */
 	if (!v4l2_find_dv_timings_cap(timings, &skel_timings_cap,
-				      0, NULL, NULL))
+								  0, NULL, NULL))
+	{
 		return -EINVAL;
+	}
 
 	/* Return 0 if the new timings are the same as the current timings. */
 	if (v4l2_match_dv_timings(timings, &skel->timings, 0, false))
+	{
 		return 0;
+	}
 
 	/*
 	 * Changing the timings implies a format change, which is not allowed
 	 * while buffers for use with streaming have already been allocated.
 	 */
 	if (vb2_is_busy(&skel->queue))
+	{
 		return -EBUSY;
+	}
 
 	/* TODO: Configure new timings */
 
@@ -523,29 +598,33 @@ static int skeleton_s_dv_timings(struct file *file, void *_fh,
 }
 
 static int skeleton_g_dv_timings(struct file *file, void *_fh,
-				 struct v4l2_dv_timings *timings)
+								 struct v4l2_dv_timings *timings)
 {
 	struct skeleton *skel = video_drvdata(file);
 
 	/* G_DV_TIMINGS is not supported on the S-Video input */
 	if (skel->input == 0)
+	{
 		return -ENODATA;
+	}
 
 	*timings = skel->timings;
 	return 0;
 }
 
 static int skeleton_enum_dv_timings(struct file *file, void *_fh,
-				    struct v4l2_enum_dv_timings *timings)
+									struct v4l2_enum_dv_timings *timings)
 {
 	struct skeleton *skel = video_drvdata(file);
 
 	/* ENUM_DV_TIMINGS is not supported on the S-Video input */
 	if (skel->input == 0)
+	{
 		return -ENODATA;
+	}
 
 	return v4l2_enum_dv_timings_cap(timings, &skel_timings_cap,
-					NULL, NULL);
+									NULL, NULL);
 }
 
 /*
@@ -558,13 +637,15 @@ static int skeleton_enum_dv_timings(struct file *file, void *_fh,
  * pixelclocks above a certain frequency), then -ERANGE is returned.
  */
 static int skeleton_query_dv_timings(struct file *file, void *_fh,
-				     struct v4l2_dv_timings *timings)
+									 struct v4l2_dv_timings *timings)
 {
 	struct skeleton *skel = video_drvdata(file);
 
 	/* QUERY_DV_TIMINGS is not supported on the S-Video input */
 	if (skel->input == 0)
+	{
 		return -ENODATA;
+	}
 
 #ifdef TODO
 	/*
@@ -572,48 +653,67 @@ static int skeleton_query_dv_timings(struct file *file, void *_fh,
 	 * something like this:
 	 */
 	detect_timings();
+
 	if (no_signal)
+	{
 		return -ENOLINK;
+	}
+
 	if (cannot_lock_to_signal)
+	{
 		return -ENOLCK;
+	}
+
 	if (signal_out_of_range_of_capabilities)
+	{
 		return -ERANGE;
+	}
 
 	/* Useful for debugging */
 	v4l2_print_dv_timings(skel->v4l2_dev.name, "query_dv_timings:",
-			timings, true);
+						  timings, true);
 #endif
 	return 0;
 }
 
 static int skeleton_dv_timings_cap(struct file *file, void *fh,
-				   struct v4l2_dv_timings_cap *cap)
+								   struct v4l2_dv_timings_cap *cap)
 {
 	struct skeleton *skel = video_drvdata(file);
 
 	/* DV_TIMINGS_CAP is not supported on the S-Video input */
 	if (skel->input == 0)
+	{
 		return -ENODATA;
+	}
+
 	*cap = skel_timings_cap;
 	return 0;
 }
 
 static int skeleton_enum_input(struct file *file, void *priv,
-			       struct v4l2_input *i)
+							   struct v4l2_input *i)
 {
 	if (i->index > 1)
+	{
 		return -EINVAL;
+	}
 
 	i->type = V4L2_INPUT_TYPE_CAMERA;
-	if (i->index == 0) {
+
+	if (i->index == 0)
+	{
 		i->std = SKEL_TVNORMS;
 		strlcpy(i->name, "S-Video", sizeof(i->name));
 		i->capabilities = V4L2_IN_CAP_STD;
-	} else {
+	}
+	else
+	{
 		i->std = 0;
 		strlcpy(i->name, "HDMI", sizeof(i->name));
 		i->capabilities = V4L2_IN_CAP_DV_TIMINGS;
 	}
+
 	return 0;
 }
 
@@ -622,14 +722,18 @@ static int skeleton_s_input(struct file *file, void *priv, unsigned int i)
 	struct skeleton *skel = video_drvdata(file);
 
 	if (i > 1)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Changing the input implies a format change, which is not allowed
 	 * while buffers for use with streaming have already been allocated.
 	 */
 	if (vb2_is_busy(&skel->queue))
+	{
 		return -EBUSY;
+	}
 
 	skel->input = i;
 	/*
@@ -658,22 +762,28 @@ static int skeleton_s_ctrl(struct v4l2_ctrl *ctrl)
 	/*struct skeleton *skel =
 		container_of(ctrl->handler, struct skeleton, ctrl_handler);*/
 
-	switch (ctrl->id) {
-	case V4L2_CID_BRIGHTNESS:
-		/* TODO: set brightness to ctrl->val */
-		break;
-	case V4L2_CID_CONTRAST:
-		/* TODO: set contrast to ctrl->val */
-		break;
-	case V4L2_CID_SATURATION:
-		/* TODO: set saturation to ctrl->val */
-		break;
-	case V4L2_CID_HUE:
-		/* TODO: set hue to ctrl->val */
-		break;
-	default:
-		return -EINVAL;
+	switch (ctrl->id)
+	{
+		case V4L2_CID_BRIGHTNESS:
+			/* TODO: set brightness to ctrl->val */
+			break;
+
+		case V4L2_CID_CONTRAST:
+			/* TODO: set contrast to ctrl->val */
+			break;
+
+		case V4L2_CID_SATURATION:
+			/* TODO: set saturation to ctrl->val */
+			break;
+
+		case V4L2_CID_HUE:
+			/* TODO: set hue to ctrl->val */
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	return 0;
 }
 
@@ -681,7 +791,8 @@ static int skeleton_s_ctrl(struct v4l2_ctrl *ctrl)
 	File operations for the device
    ------------------------------------------------------------------*/
 
-static const struct v4l2_ctrl_ops skel_ctrl_ops = {
+static const struct v4l2_ctrl_ops skel_ctrl_ops =
+{
 	.s_ctrl = skeleton_s_ctrl,
 };
 
@@ -695,7 +806,8 @@ static const struct v4l2_ctrl_ops skel_ctrl_ops = {
  * The last three ioctls also use standard helper functions: these implement
  * standard behavior for drivers with controls.
  */
-static const struct v4l2_ioctl_ops skel_ioctl_ops = {
+static const struct v4l2_ioctl_ops skel_ioctl_ops =
+{
 	.vidioc_querycap = skeleton_querycap,
 	.vidioc_try_fmt_vid_cap = skeleton_try_fmt_vid_cap,
 	.vidioc_s_fmt_vid_cap = skeleton_s_fmt_vid_cap,
@@ -734,7 +846,8 @@ static const struct v4l2_ioctl_ops skel_ioctl_ops = {
  * The set of file operations. Note that all these ops are standard core
  * helper functions.
  */
-static const struct v4l2_file_operations skel_fops = {
+static const struct v4l2_file_operations skel_fops =
+{
 	.owner = THIS_MODULE,
 	.open = v4l2_fh_open,
 	.release = vb2_fop_release,
@@ -753,7 +866,7 @@ static int skeleton_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 {
 	/* The initial timings are chosen to be 720p60. */
 	static const struct v4l2_dv_timings timings_def =
-		V4L2_DV_BT_CEA_1280X720P60;
+			V4L2_DV_BT_CEA_1280X720P60;
 	struct skeleton *skel;
 	struct video_device *vdev;
 	struct v4l2_ctrl_handler *hdl;
@@ -762,26 +875,38 @@ static int skeleton_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	/* Enable PCI */
 	ret = pci_enable_device(pdev);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "no suitable DMA available.\n");
 		goto disable_pci;
 	}
 
 	/* Allocate a new instance */
 	skel = devm_kzalloc(&pdev->dev, sizeof(struct skeleton), GFP_KERNEL);
+
 	if (!skel)
+	{
 		return -ENOMEM;
+	}
 
 	/* Allocate the interrupt */
 	ret = devm_request_irq(&pdev->dev, pdev->irq,
-			       skeleton_irq, 0, KBUILD_MODNAME, skel);
-	if (ret) {
+						   skeleton_irq, 0, KBUILD_MODNAME, skel);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "request_irq failed\n");
 		goto disable_pci;
 	}
+
 	skel->pdev = pdev;
 
 	/* Fill in the initial format-related settings */
@@ -791,8 +916,11 @@ static int skeleton_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	/* Initialize the top-level structure */
 	ret = v4l2_device_register(&pdev->dev, &skel->v4l2_dev);
+
 	if (ret)
+	{
 		goto disable_pci;
+	}
 
 	mutex_init(&skel->lock);
 
@@ -800,17 +928,20 @@ static int skeleton_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	hdl = &skel->ctrl_handler;
 	v4l2_ctrl_handler_init(hdl, 4);
 	v4l2_ctrl_new_std(hdl, &skel_ctrl_ops,
-			  V4L2_CID_BRIGHTNESS, 0, 255, 1, 127);
+					  V4L2_CID_BRIGHTNESS, 0, 255, 1, 127);
 	v4l2_ctrl_new_std(hdl, &skel_ctrl_ops,
-			  V4L2_CID_CONTRAST, 0, 255, 1, 16);
+					  V4L2_CID_CONTRAST, 0, 255, 1, 16);
 	v4l2_ctrl_new_std(hdl, &skel_ctrl_ops,
-			  V4L2_CID_SATURATION, 0, 255, 1, 127);
+					  V4L2_CID_SATURATION, 0, 255, 1, 127);
 	v4l2_ctrl_new_std(hdl, &skel_ctrl_ops,
-			  V4L2_CID_HUE, -128, 127, 1, 0);
-	if (hdl->error) {
+					  V4L2_CID_HUE, -128, 127, 1, 0);
+
+	if (hdl->error)
+	{
 		ret = hdl->error;
 		goto free_hdl;
 	}
+
 	skel->v4l2_dev.ctrl_handler = hdl;
 
 	/* Initialize the vb2 queue */
@@ -845,8 +976,11 @@ static int skeleton_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	 */
 	q->gfp_flags = GFP_DMA32;
 	ret = vb2_queue_init(q);
+
 	if (ret)
+	{
 		goto free_hdl;
+	}
 
 	INIT_LIST_HEAD(&skel->buf_list);
 	spin_lock_init(&skel->qlock);
@@ -860,9 +994,9 @@ static int skeleton_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	 */
 	vdev->release = video_device_release_empty;
 	vdev->fops = &skel_fops,
-	vdev->ioctl_ops = &skel_ioctl_ops,
-	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_READWRITE |
-			    V4L2_CAP_STREAMING;
+		  vdev->ioctl_ops = &skel_ioctl_ops,
+				vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_READWRITE |
+									V4L2_CAP_STREAMING;
 	/*
 	 * The main serialization lock. All ioctls are serialized by this
 	 * lock. Exception: if q->lock is set, then the streaming ioctls
@@ -876,8 +1010,11 @@ static int skeleton_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	video_set_drvdata(vdev, skel);
 
 	ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
+
 	if (ret)
+	{
 		goto free_hdl;
+	}
 
 	dev_info(&pdev->dev, "V4L2 PCI Skeleton Driver loaded\n");
 	return 0;
@@ -901,7 +1038,8 @@ static void skeleton_remove(struct pci_dev *pdev)
 	pci_disable_device(skel->pdev);
 }
 
-static struct pci_driver skeleton_driver = {
+static struct pci_driver skeleton_driver =
+{
 	.name = KBUILD_MODNAME,
 	.probe = skeleton_probe,
 	.remove = skeleton_remove,

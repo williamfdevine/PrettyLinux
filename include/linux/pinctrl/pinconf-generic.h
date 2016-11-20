@@ -93,7 +93,8 @@
  *	you need to pass in custom configurations to the pin controller, use
  *	PIN_CONFIG_END+1 as the base offset.
  */
-enum pin_config_param {
+enum pin_config_param
+{
 	PIN_CONFIG_BIAS_BUS_HOLD,
 	PIN_CONFIG_BIAS_DISABLE,
 	PIN_CONFIG_BIAS_HIGH_IMPEDANCE,
@@ -117,12 +118,13 @@ enum pin_config_param {
 
 #ifdef CONFIG_DEBUG_FS
 #define PCONFDUMP(a, b, c, d) { .param = a, .display = b, .format = c, \
-				.has_arg = d }
+			.has_arg = d }
 
-struct pin_config_item {
+struct pin_config_item
+{
 	const enum pin_config_param param;
-	const char * const display;
-	const char * const format;
+	const char *const display;
+	const char *const format;
 	bool has_arg;
 };
 #endif /* CONFIG_DEBUG_FS */
@@ -150,7 +152,7 @@ static inline u16 pinconf_to_config_argument(unsigned long config)
 }
 
 static inline unsigned long pinconf_to_config_packed(enum pin_config_param param,
-						     u16 argument)
+		u16 argument)
 {
 	return PIN_CONF_PACKED(param, argument);
 }
@@ -162,48 +164,49 @@ static inline unsigned long pinconf_to_config_packed(enum pin_config_param param
 struct pinctrl_dev;
 struct pinctrl_map;
 
-struct pinconf_generic_params {
-	const char * const property;
+struct pinconf_generic_params
+{
+	const char *const property;
 	enum pin_config_param param;
 	u32 default_value;
 };
 
 int pinconf_generic_dt_subnode_to_map(struct pinctrl_dev *pctldev,
-		struct device_node *np, struct pinctrl_map **map,
-		unsigned *reserved_maps, unsigned *num_maps,
-		enum pinctrl_map_type type);
+									  struct device_node *np, struct pinctrl_map **map,
+									  unsigned *reserved_maps, unsigned *num_maps,
+									  enum pinctrl_map_type type);
 int pinconf_generic_dt_node_to_map(struct pinctrl_dev *pctldev,
-		struct device_node *np_config, struct pinctrl_map **map,
-		unsigned *num_maps, enum pinctrl_map_type type);
+								   struct device_node *np_config, struct pinctrl_map **map,
+								   unsigned *num_maps, enum pinctrl_map_type type);
 void pinconf_generic_dt_free_map(struct pinctrl_dev *pctldev,
-		struct pinctrl_map *map, unsigned num_maps);
+								 struct pinctrl_map *map, unsigned num_maps);
 
 static inline int pinconf_generic_dt_node_to_map_group(
-		struct pinctrl_dev *pctldev, struct device_node *np_config,
-		struct pinctrl_map **map, unsigned *num_maps)
+	struct pinctrl_dev *pctldev, struct device_node *np_config,
+	struct pinctrl_map **map, unsigned *num_maps)
 {
 	return pinconf_generic_dt_node_to_map(pctldev, np_config, map, num_maps,
-			PIN_MAP_TYPE_CONFIGS_GROUP);
+										  PIN_MAP_TYPE_CONFIGS_GROUP);
 }
 
 static inline int pinconf_generic_dt_node_to_map_pin(
-		struct pinctrl_dev *pctldev, struct device_node *np_config,
-		struct pinctrl_map **map, unsigned *num_maps)
+	struct pinctrl_dev *pctldev, struct device_node *np_config,
+	struct pinctrl_map **map, unsigned *num_maps)
 {
 	return pinconf_generic_dt_node_to_map(pctldev, np_config, map, num_maps,
-			PIN_MAP_TYPE_CONFIGS_PIN);
+										  PIN_MAP_TYPE_CONFIGS_PIN);
 }
 
 static inline int pinconf_generic_dt_node_to_map_all(
-		struct pinctrl_dev *pctldev, struct device_node *np_config,
-		struct pinctrl_map **map, unsigned *num_maps)
+	struct pinctrl_dev *pctldev, struct device_node *np_config,
+	struct pinctrl_map **map, unsigned *num_maps)
 {
 	/*
 	 * passing the type as PIN_MAP_TYPE_INVALID causes the underlying parser
 	 * to infer the map type from the DT properties used.
 	 */
 	return pinconf_generic_dt_node_to_map(pctldev, np_config, map, num_maps,
-			PIN_MAP_TYPE_INVALID);
+										  PIN_MAP_TYPE_INVALID);
 }
 #endif
 

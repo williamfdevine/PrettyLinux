@@ -20,7 +20,8 @@
 /* Unused */
 void *__kmalloc_fake, *__kfree_ignore_start, *__kfree_ignore_end;
 
-struct vq_info {
+struct vq_info
+{
 	int kick;
 	int call;
 	int num;
@@ -31,7 +32,8 @@ struct vq_info {
 	struct virtqueue *vq;
 };
 
-struct vdev_info {
+struct vdev_info
+{
 	struct virtio_device vdev;
 	int control;
 	struct pollfd fds[1];
@@ -62,7 +64,8 @@ void vhost_vq_setup(struct vdev_info *dev, struct vq_info *info)
 	struct vhost_vring_state state = { .index = info->idx };
 	struct vhost_vring_file file = { .index = info->idx };
 	unsigned long long features = dev->vdev.features;
-	struct vhost_vring_addr addr = {
+	struct vhost_vring_addr addr =
+	{
 		.index = info->idx,
 		.desc_user_addr = (uint64_t)(unsigned long)info->vring.desc,
 		.avail_user_addr = (uint64_t)(unsigned long)info->vring.avail,
@@ -99,9 +102,9 @@ static void vq_info_add(struct vdev_info *dev, int num)
 	memset(info->ring, 0, vring_size(num, 4096));
 	vring_init(&info->vring, num, info->ring, 4096);
 	info->vq = vring_new_virtqueue(info->idx,
-				       info->vring.num, 4096, &dev->vdev,
-				       true, info->ring,
-				       vq_notify, vq_callback, "test");
+								   info->vring.num, 4096, &dev->vdev,
+								   true, info->ring,
+								   vq_notify, vq_callback, "test");
 	assert(info->vq);
 	info->vq->priv = info;
 	vhost_vq_setup(dev, info);
@@ -110,23 +113,23 @@ static void vq_info_add(struct vdev_info *dev, int num)
 	dev->nvqs++;
 }
 
-static void vdev_info_init(struct vdev_info* dev, unsigned long long features)
+static void vdev_info_init(struct vdev_info *dev, unsigned long long features)
 {
 	int r;
-	memset(dev, 0, sizeof *dev);
+	memset(dev, 0, sizeof * dev);
 	dev->vdev.features = features;
 	dev->buf_size = 1024;
 	dev->buf = malloc(dev->buf_size);
 	assert(dev->buf);
-        dev->control = open("/dev/vhost-test", O_RDWR);
+	dev->control = open("/dev/vhost-test", O_RDWR);
 	assert(dev->control >= 0);
 	r = ioctl(dev->control, VHOST_SET_OWNER, NULL);
 	assert(r >= 0);
 	dev->mem = malloc(offsetof(struct vhost_memory, regions) +
-			  sizeof dev->mem->regions[0]);
+					  sizeof dev->mem->regions[0]);
 	assert(dev->mem);
 	memset(dev->mem, 0, offsetof(struct vhost_memory, regions) +
-                          sizeof dev->mem->regions[0]);
+		   sizeof dev->mem->regions[0]);
 	dev->mem->nregions = 1;
 	dev->mem->regions[0].guest_phys_addr = (long)dev->buf;
 	dev->mem->regions[0].userspace_addr = (long)dev->buf;
@@ -144,14 +147,16 @@ static void wait_for_interrupt(struct vdev_info *dev)
 	int i;
 	unsigned long long val;
 	poll(dev->fds, dev->nvqs, -1);
+
 	for (i = 0; i < dev->nvqs; ++i)
-		if (dev->fds[i].revents & POLLIN) {
+		if (dev->fds[i].revents & POLLIN)
+		{
 			read(dev->fds[i].fd, &val, sizeof val);
 		}
 }
 
 static void run_test(struct vdev_info *dev, struct vq_info *vq,
-		     bool delayed, int bufs)
+					 bool delayed, int bufs)
 {
 	struct scatterlist sl;
 	long started = 0, completed = 0;
@@ -161,44 +166,75 @@ static void run_test(struct vdev_info *dev, struct vq_info *vq,
 	long long spurious = 0;
 	r = ioctl(dev->control, VHOST_TEST_RUN, &test);
 	assert(r >= 0);
-	for (;;) {
+
+	for (;;)
+	{
 		virtqueue_disable_cb(vq->vq);
 		completed_before = completed;
-		do {
-			if (started < bufs) {
+
+		do
+		{
+			if (started < bufs)
+			{
 				sg_init_one(&sl, dev->buf, dev->buf_size);
 				r = virtqueue_add_outbuf(vq->vq, &sl, 1,
-							 dev->buf + started,
-							 GFP_ATOMIC);
-				if (likely(r == 0)) {
+										 dev->buf + started,
+										 GFP_ATOMIC);
+
+				if (likely(r == 0))
+				{
 					++started;
+
 					if (unlikely(!virtqueue_kick(vq->vq)))
+					{
 						r = -1;
+					}
 				}
-			} else
+			}
+			else
+			{
 				r = -1;
+			}
 
 			/* Flush out completed bufs if any */
-			if (virtqueue_get_buf(vq->vq, &len)) {
+			if (virtqueue_get_buf(vq->vq, &len))
+			{
 				++completed;
 				r = 0;
 			}
 
-		} while (r == 0);
+		}
+		while (r == 0);
+
 		if (completed == completed_before)
+		{
 			++spurious;
+		}
+
 		assert(completed <= bufs);
 		assert(started <= bufs);
+
 		if (completed == bufs)
+		{
 			break;
-		if (delayed) {
+		}
+
+		if (delayed)
+		{
 			if (virtqueue_enable_cb_delayed(vq->vq))
+			{
 				wait_for_interrupt(dev);
-		} else {
+			}
+		}
+		else
+		{
 			if (virtqueue_enable_cb(vq->vq))
+			{
 				wait_for_interrupt(dev);
+			}
 		}
 	}
+
 	test = 0;
 	r = ioctl(dev->control, VHOST_TEST_RUN, &test);
 	assert(r >= 0);
@@ -206,7 +242,8 @@ static void run_test(struct vdev_info *dev, struct vq_info *vq,
 }
 
 const char optstring[] = "h";
-const struct option longopts[] = {
+const struct option longopts[] =
+{
 	{
 		.name = "help",
 		.val = 'h',
@@ -250,47 +287,57 @@ const struct option longopts[] = {
 static void help(void)
 {
 	fprintf(stderr, "Usage: virtio_test [--help]"
-		" [--no-indirect]"
-		" [--no-event-idx]"
-		" [--no-virtio-1]"
-		" [--delayed-interrupt]"
-		"\n");
+			" [--no-indirect]"
+			" [--no-event-idx]"
+			" [--no-virtio-1]"
+			" [--delayed-interrupt]"
+			"\n");
 }
 
 int main(int argc, char **argv)
 {
 	struct vdev_info dev;
 	unsigned long long features = (1ULL << VIRTIO_RING_F_INDIRECT_DESC) |
-		(1ULL << VIRTIO_RING_F_EVENT_IDX) | (1ULL << VIRTIO_F_VERSION_1);
+								  (1ULL << VIRTIO_RING_F_EVENT_IDX) | (1ULL << VIRTIO_F_VERSION_1);
 	int o;
 	bool delayed = false;
 
-	for (;;) {
+	for (;;)
+	{
 		o = getopt_long(argc, argv, optstring, longopts, NULL);
-		switch (o) {
-		case -1:
-			goto done;
-		case '?':
-			help();
-			exit(2);
-		case 'e':
-			features &= ~(1ULL << VIRTIO_RING_F_EVENT_IDX);
-			break;
-		case 'h':
-			help();
-			goto done;
-		case 'i':
-			features &= ~(1ULL << VIRTIO_RING_F_INDIRECT_DESC);
-			break;
-		case '0':
-			features &= ~(1ULL << VIRTIO_F_VERSION_1);
-			break;
-		case 'D':
-			delayed = true;
-			break;
-		default:
-			assert(0);
-			break;
+
+		switch (o)
+		{
+			case -1:
+				goto done;
+
+			case '?':
+				help();
+				exit(2);
+
+			case 'e':
+				features &= ~(1ULL << VIRTIO_RING_F_EVENT_IDX);
+				break;
+
+			case 'h':
+				help();
+				goto done;
+
+			case 'i':
+				features &= ~(1ULL << VIRTIO_RING_F_INDIRECT_DESC);
+				break;
+
+			case '0':
+				features &= ~(1ULL << VIRTIO_F_VERSION_1);
+				break;
+
+			case 'D':
+				delayed = true;
+				break;
+
+			default:
+				assert(0);
+				break;
 		}
 	}
 

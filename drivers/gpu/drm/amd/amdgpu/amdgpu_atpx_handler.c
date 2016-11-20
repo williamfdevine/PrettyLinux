@@ -14,7 +14,8 @@
 
 #include "amd_acpi.h"
 
-struct amdgpu_atpx_functions {
+struct amdgpu_atpx_functions
+{
 	bool px_params;
 	bool power_cntl;
 	bool disp_mux_cntl;
@@ -25,14 +26,16 @@ struct amdgpu_atpx_functions {
 	bool disp_detetion_ports;
 };
 
-struct amdgpu_atpx {
+struct amdgpu_atpx
+{
 	acpi_handle handle;
 	struct amdgpu_atpx_functions functions;
 	bool is_hybrid;
 	bool dgpu_req_power_for_displays;
 };
 
-static struct amdgpu_atpx_priv {
+static struct amdgpu_atpx_priv
+{
 	bool atpx_detected;
 	/* handle for device - and atpx */
 	acpi_handle dhandle;
@@ -40,41 +43,49 @@ static struct amdgpu_atpx_priv {
 	struct amdgpu_atpx atpx;
 } amdgpu_atpx_priv;
 
-struct atpx_verify_interface {
+struct atpx_verify_interface
+{
 	u16 size;		/* structure size in bytes (includes size field) */
 	u16 version;		/* version */
 	u32 function_bits;	/* supported functions bit vector */
 } __packed;
 
-struct atpx_px_params {
+struct atpx_px_params
+{
 	u16 size;		/* structure size in bytes (includes size field) */
 	u32 valid_flags;	/* which flags are valid */
 	u32 flags;		/* flags */
 } __packed;
 
-struct atpx_power_control {
+struct atpx_power_control
+{
 	u16 size;
 	u8 dgpu_state;
 } __packed;
 
-struct atpx_mux {
+struct atpx_mux
+{
 	u16 size;
 	u16 mux;
 } __packed;
 
-bool amdgpu_has_atpx(void) {
+bool amdgpu_has_atpx(void)
+{
 	return amdgpu_atpx_priv.atpx_detected;
 }
 
-bool amdgpu_has_atpx_dgpu_power_cntl(void) {
+bool amdgpu_has_atpx_dgpu_power_cntl(void)
+{
 	return amdgpu_atpx_priv.atpx.functions.power_cntl;
 }
 
-bool amdgpu_is_atpx_hybrid(void) {
+bool amdgpu_is_atpx_hybrid(void)
+{
 	return amdgpu_atpx_priv.atpx.is_hybrid;
 }
 
-bool amdgpu_atpx_dgpu_req_power_for_displays(void) {
+bool amdgpu_atpx_dgpu_req_power_for_displays(void)
+{
 	return amdgpu_atpx_priv.atpx.dgpu_req_power_for_displays;
 }
 
@@ -89,7 +100,7 @@ bool amdgpu_atpx_dgpu_req_power_for_displays(void) {
  * Returns a pointer to the acpi output buffer.
  */
 static union acpi_object *amdgpu_atpx_call(acpi_handle handle, int function,
-					   struct acpi_buffer *params)
+			struct acpi_buffer *params)
 {
 	acpi_status status;
 	union acpi_object atpx_arg_elements[2];
@@ -102,11 +113,14 @@ static union acpi_object *amdgpu_atpx_call(acpi_handle handle, int function,
 	atpx_arg_elements[0].type = ACPI_TYPE_INTEGER;
 	atpx_arg_elements[0].integer.value = function;
 
-	if (params) {
+	if (params)
+	{
 		atpx_arg_elements[1].type = ACPI_TYPE_BUFFER;
 		atpx_arg_elements[1].buffer.length = params->length;
 		atpx_arg_elements[1].buffer.pointer = params->pointer;
-	} else {
+	}
+	else
+	{
 		/* We need a second fake parameter */
 		atpx_arg_elements[1].type = ACPI_TYPE_INTEGER;
 		atpx_arg_elements[1].integer.value = 0;
@@ -115,9 +129,10 @@ static union acpi_object *amdgpu_atpx_call(acpi_handle handle, int function,
 	status = acpi_evaluate_object(handle, NULL, &atpx_arg, &buffer);
 
 	/* Fail only if calling the method fails and ATPX is supported */
-	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
+	{
 		printk("failed to evaluate ATPX got %s\n",
-		       acpi_format_exception(status));
+			   acpi_format_exception(status));
 		kfree(buffer.pointer);
 		return NULL;
 	}
@@ -159,23 +174,30 @@ static int amdgpu_atpx_validate(struct amdgpu_atpx *atpx)
 {
 	u32 valid_bits = 0;
 
-	if (atpx->functions.px_params) {
+	if (atpx->functions.px_params)
+	{
 		union acpi_object *info;
 		struct atpx_px_params output;
 		size_t size;
 
 		info = amdgpu_atpx_call(atpx->handle, ATPX_FUNCTION_GET_PX_PARAMETERS, NULL);
+
 		if (!info)
+		{
 			return -EIO;
+		}
 
 		memset(&output, 0, sizeof(output));
 
 		size = *(u16 *) info->buffer.pointer;
-		if (size < 10) {
+
+		if (size < 10)
+		{
 			printk("ATPX buffer is too small: %zu\n", size);
 			kfree(info);
 			return -EINVAL;
 		}
+
 		size = min(sizeof(output), size);
 
 		memcpy(&output, info->buffer.pointer, size);
@@ -186,32 +208,43 @@ static int amdgpu_atpx_validate(struct amdgpu_atpx *atpx)
 	}
 
 	/* if separate mux flag is set, mux controls are required */
-	if (valid_bits & ATPX_SEPARATE_MUX_FOR_I2C) {
+	if (valid_bits & ATPX_SEPARATE_MUX_FOR_I2C)
+	{
 		atpx->functions.i2c_mux_cntl = true;
 		atpx->functions.disp_mux_cntl = true;
 	}
+
 	/* if any outputs are muxed, mux controls are required */
 	if (valid_bits & (ATPX_CRT1_RGB_SIGNAL_MUXED |
-			  ATPX_TV_SIGNAL_MUXED |
-			  ATPX_DFP_SIGNAL_MUXED))
+					  ATPX_TV_SIGNAL_MUXED |
+					  ATPX_DFP_SIGNAL_MUXED))
+	{
 		atpx->functions.disp_mux_cntl = true;
+	}
 
 
 	/* some bioses set these bits rather than flagging power_cntl as supported */
 	if (valid_bits & (ATPX_DYNAMIC_PX_SUPPORTED |
-			  ATPX_DYNAMIC_DGPU_POWER_OFF_SUPPORTED))
+					  ATPX_DYNAMIC_DGPU_POWER_OFF_SUPPORTED))
+	{
 		atpx->functions.power_cntl = true;
+	}
 
 	atpx->is_hybrid = false;
-	if (valid_bits & ATPX_MS_HYBRID_GFX_SUPPORTED) {
+
+	if (valid_bits & ATPX_MS_HYBRID_GFX_SUPPORTED)
+	{
 		printk("ATPX Hybrid Graphics\n");
 		atpx->functions.power_cntl = false;
 		atpx->is_hybrid = true;
 	}
 
 	atpx->dgpu_req_power_for_displays = false;
+
 	if (valid_bits & ATPX_DGPU_REQ_POWER_FOR_DISPLAYS)
+	{
 		atpx->dgpu_req_power_for_displays = true;
+	}
 
 	return 0;
 }
@@ -234,24 +267,30 @@ static int amdgpu_atpx_verify_interface(struct amdgpu_atpx *atpx)
 	int err = 0;
 
 	info = amdgpu_atpx_call(atpx->handle, ATPX_FUNCTION_VERIFY_INTERFACE, NULL);
+
 	if (!info)
+	{
 		return -EIO;
+	}
 
 	memset(&output, 0, sizeof(output));
 
 	size = *(u16 *) info->buffer.pointer;
-	if (size < 8) {
+
+	if (size < 8)
+	{
 		printk("ATPX buffer is too small: %zu\n", size);
 		err = -EINVAL;
 		goto out;
 	}
+
 	size = min(sizeof(output), size);
 
 	memcpy(&output, info->buffer.pointer, size);
 
 	/* TODO: check version? */
 	printk("ATPX version %u, functions 0x%08x\n",
-	       output.version, output.function_bits);
+		   output.version, output.function_bits);
 
 	amdgpu_atpx_parse_functions(&atpx->functions, output.function_bits);
 
@@ -276,22 +315,30 @@ static int amdgpu_atpx_set_discrete_state(struct amdgpu_atpx *atpx, u8 state)
 	union acpi_object *info;
 	struct atpx_power_control input;
 
-	if (atpx->functions.power_cntl) {
+	if (atpx->functions.power_cntl)
+	{
 		input.size = 3;
 		input.dgpu_state = state;
 		params.length = input.size;
 		params.pointer = &input;
 		info = amdgpu_atpx_call(atpx->handle,
-					ATPX_FUNCTION_POWER_CONTROL,
-					&params);
+								ATPX_FUNCTION_POWER_CONTROL,
+								&params);
+
 		if (!info)
+		{
 			return -EIO;
+		}
+
 		kfree(info);
 
 		/* 200ms delay is required after off */
 		if (state == 0)
+		{
 			msleep(200);
+		}
 	}
+
 	return 0;
 }
 
@@ -312,18 +359,24 @@ static int amdgpu_atpx_switch_disp_mux(struct amdgpu_atpx *atpx, u16 mux_id)
 	union acpi_object *info;
 	struct atpx_mux input;
 
-	if (atpx->functions.disp_mux_cntl) {
+	if (atpx->functions.disp_mux_cntl)
+	{
 		input.size = 4;
 		input.mux = mux_id;
 		params.length = input.size;
 		params.pointer = &input;
 		info = amdgpu_atpx_call(atpx->handle,
-					ATPX_FUNCTION_DISPLAY_MUX_CONTROL,
-					&params);
+								ATPX_FUNCTION_DISPLAY_MUX_CONTROL,
+								&params);
+
 		if (!info)
+		{
 			return -EIO;
+		}
+
 		kfree(info);
 	}
+
 	return 0;
 }
 
@@ -344,18 +397,24 @@ static int amdgpu_atpx_switch_i2c_mux(struct amdgpu_atpx *atpx, u16 mux_id)
 	union acpi_object *info;
 	struct atpx_mux input;
 
-	if (atpx->functions.i2c_mux_cntl) {
+	if (atpx->functions.i2c_mux_cntl)
+	{
 		input.size = 4;
 		input.mux = mux_id;
 		params.length = input.size;
 		params.pointer = &input;
 		info = amdgpu_atpx_call(atpx->handle,
-					ATPX_FUNCTION_I2C_MUX_CONTROL,
-					&params);
+								ATPX_FUNCTION_I2C_MUX_CONTROL,
+								&params);
+
 		if (!info)
+		{
 			return -EIO;
+		}
+
 		kfree(info);
 	}
+
 	return 0;
 }
 
@@ -376,18 +435,24 @@ static int amdgpu_atpx_switch_start(struct amdgpu_atpx *atpx, u16 mux_id)
 	union acpi_object *info;
 	struct atpx_mux input;
 
-	if (atpx->functions.switch_start) {
+	if (atpx->functions.switch_start)
+	{
 		input.size = 4;
 		input.mux = mux_id;
 		params.length = input.size;
 		params.pointer = &input;
 		info = amdgpu_atpx_call(atpx->handle,
-					ATPX_FUNCTION_GRAPHICS_DEVICE_SWITCH_START_NOTIFICATION,
-					&params);
+								ATPX_FUNCTION_GRAPHICS_DEVICE_SWITCH_START_NOTIFICATION,
+								&params);
+
 		if (!info)
+		{
 			return -EIO;
+		}
+
 		kfree(info);
 	}
+
 	return 0;
 }
 
@@ -408,18 +473,24 @@ static int amdgpu_atpx_switch_end(struct amdgpu_atpx *atpx, u16 mux_id)
 	union acpi_object *info;
 	struct atpx_mux input;
 
-	if (atpx->functions.switch_end) {
+	if (atpx->functions.switch_end)
+	{
 		input.size = 4;
 		input.mux = mux_id;
 		params.length = input.size;
 		params.pointer = &input;
 		info = amdgpu_atpx_call(atpx->handle,
-					ATPX_FUNCTION_GRAPHICS_DEVICE_SWITCH_END_NOTIFICATION,
-					&params);
+								ATPX_FUNCTION_GRAPHICS_DEVICE_SWITCH_END_NOTIFICATION,
+								&params);
+
 		if (!info)
+		{
 			return -EIO;
+		}
+
 		kfree(info);
 	}
+
 	return 0;
 }
 
@@ -437,9 +508,13 @@ static int amdgpu_atpx_switchto(enum vga_switcheroo_client_id id)
 	u16 gpu_id;
 
 	if (id == VGA_SWITCHEROO_IGD)
+	{
 		gpu_id = ATPX_INTEGRATED_GPU;
+	}
 	else
+	{
 		gpu_id = ATPX_DISCRETE_GPU;
+	}
 
 	amdgpu_atpx_switch_start(&amdgpu_atpx_priv.atpx, gpu_id);
 	amdgpu_atpx_switch_disp_mux(&amdgpu_atpx_priv.atpx, gpu_id);
@@ -460,11 +535,13 @@ static int amdgpu_atpx_switchto(enum vga_switcheroo_client_id id)
  * Returns 0 on success, error on failure.
  */
 static int amdgpu_atpx_power_state(enum vga_switcheroo_client_id id,
-				   enum vga_switcheroo_state state)
+								   enum vga_switcheroo_state state)
 {
 	/* on w500 ACPI can't change intel gpu state */
 	if (id == VGA_SWITCHEROO_IGD)
+	{
 		return 0;
+	}
 
 	amdgpu_atpx_set_discrete_state(&amdgpu_atpx_priv.atpx, state);
 	return 0;
@@ -484,14 +561,20 @@ static bool amdgpu_atpx_pci_probe_handle(struct pci_dev *pdev)
 	acpi_status status;
 
 	dhandle = ACPI_HANDLE(&pdev->dev);
+
 	if (!dhandle)
+	{
 		return false;
+	}
 
 	status = acpi_get_handle(dhandle, "ATPX", &atpx_handle);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		amdgpu_atpx_priv.other_handle = dhandle;
 		return false;
 	}
+
 	amdgpu_atpx_priv.dhandle = dhandle;
 	amdgpu_atpx_priv.atpx.handle = atpx_handle;
 	return true;
@@ -509,13 +592,19 @@ static int amdgpu_atpx_init(void)
 
 	/* set up the ATPX handle */
 	r = amdgpu_atpx_verify_interface(&amdgpu_atpx_priv.atpx);
+
 	if (r)
+	{
 		return r;
+	}
 
 	/* validate the atpx setup */
 	r = amdgpu_atpx_validate(&amdgpu_atpx_priv.atpx);
+
 	if (r)
+	{
 		return r;
+	}
 
 	return 0;
 }
@@ -531,12 +620,17 @@ static int amdgpu_atpx_init(void)
 static int amdgpu_atpx_get_client_id(struct pci_dev *pdev)
 {
 	if (amdgpu_atpx_priv.dhandle == ACPI_HANDLE(&pdev->dev))
+	{
 		return VGA_SWITCHEROO_IGD;
+	}
 	else
+	{
 		return VGA_SWITCHEROO_DIS;
+	}
 }
 
-static const struct vga_switcheroo_handler amdgpu_atpx_handler = {
+static const struct vga_switcheroo_handler amdgpu_atpx_handler =
+{
 	.switchto = amdgpu_atpx_switchto,
 	.power_state = amdgpu_atpx_power_state,
 	.get_client_id = amdgpu_atpx_get_client_id,
@@ -556,26 +650,30 @@ static bool amdgpu_atpx_detect(void)
 	bool has_atpx = false;
 	int vga_count = 0;
 
-	while ((pdev = pci_get_class(PCI_CLASS_DISPLAY_VGA << 8, pdev)) != NULL) {
+	while ((pdev = pci_get_class(PCI_CLASS_DISPLAY_VGA << 8, pdev)) != NULL)
+	{
 		vga_count++;
 
 		has_atpx |= (amdgpu_atpx_pci_probe_handle(pdev) == true);
 	}
 
-	while ((pdev = pci_get_class(PCI_CLASS_DISPLAY_OTHER << 8, pdev)) != NULL) {
+	while ((pdev = pci_get_class(PCI_CLASS_DISPLAY_OTHER << 8, pdev)) != NULL)
+	{
 		vga_count++;
 
 		has_atpx |= (amdgpu_atpx_pci_probe_handle(pdev) == true);
 	}
 
-	if (has_atpx && vga_count == 2) {
+	if (has_atpx && vga_count == 2)
+	{
 		acpi_get_name(amdgpu_atpx_priv.atpx.handle, ACPI_FULL_PATHNAME, &buffer);
 		printk(KERN_INFO "vga_switcheroo: detected switching method %s handle\n",
-		       acpi_method_name);
+			   acpi_method_name);
 		amdgpu_atpx_priv.atpx_detected = true;
 		amdgpu_atpx_init();
 		return true;
 	}
+
 	return false;
 }
 
@@ -591,8 +689,11 @@ void amdgpu_register_atpx_handler(void)
 
 	/* detect if we have any ATPX + 2 VGA in the system */
 	r = amdgpu_atpx_detect();
+
 	if (!r)
+	{
 		return;
+	}
 
 	vga_switcheroo_register_handler(&amdgpu_atpx_handler, handler_flags);
 }

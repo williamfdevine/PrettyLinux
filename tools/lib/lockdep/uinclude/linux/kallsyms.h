@@ -9,9 +9,9 @@
 struct module;
 
 static inline const char *kallsyms_lookup(unsigned long addr,
-					  unsigned long *symbolsize,
-					  unsigned long *offset,
-					  char **modname, char *namebuf)
+		unsigned long *symbolsize,
+		unsigned long *offset,
+		char **modname, char *namebuf)
 {
 	return NULL;
 }

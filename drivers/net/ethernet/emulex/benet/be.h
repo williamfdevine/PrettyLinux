@@ -70,7 +70,7 @@
 #define BE_MAX_JUMBO_FRAME_SIZE	9018
 #define BE_MIN_MTU		256
 #define BE_MAX_MTU              (BE_MAX_JUMBO_FRAME_SIZE -	\
-				 (ETH_HLEN + ETH_FCS_LEN))
+								 (ETH_HLEN + ETH_FCS_LEN))
 
 /* Accommodate for QnQ configurations where VLAN insertion is enabled in HW */
 #define BE_MAX_GSO_SIZE		(65535 - 2 * VLAN_HLEN)
@@ -121,13 +121,15 @@
 
 #define BE_UNKNOWN_PHY_STATE	0xFF
 
-struct be_dma_mem {
+struct be_dma_mem
+{
 	void *va;
 	dma_addr_t dma;
 	u32 size;
 };
 
-struct be_queue_info {
+struct be_queue_info
+{
 	u32 len;
 	u32 entry_size;	/* Size of an element in the queue */
 	u32 tail, head;
@@ -183,7 +185,8 @@ static inline void queue_tail_inc(struct be_queue_info *q)
 	index_inc(&q->tail, q->len);
 }
 
-struct be_eq_obj {
+struct be_eq_obj
+{
 	struct be_queue_info q;
 	char desc[32];
 
@@ -215,7 +218,8 @@ struct be_eq_obj {
 #endif  /* CONFIG_NET_RX_BUSY_POLL */
 } ____cacheline_aligned_in_smp;
 
-struct be_aic_obj {		/* Adaptive interrupt coalescing (AIC) info */
+struct be_aic_obj  		/* Adaptive interrupt coalescing (AIC) info */
+{
 	bool enable;
 	u32 min_eqd;		/* in usecs */
 	u32 max_eqd;		/* in usecs */
@@ -226,18 +230,21 @@ struct be_aic_obj {		/* Adaptive interrupt coalescing (AIC) info */
 	u64 tx_reqs_prev;	/* Used to calculate TX pps */
 };
 
-enum {
+enum
+{
 	NAPI_POLLING,
 	BUSY_POLLING
 };
 
-struct be_mcc_obj {
+struct be_mcc_obj
+{
 	struct be_queue_info q;
 	struct be_queue_info cq;
 	bool rearm_cq;
 };
 
-struct be_tx_stats {
+struct be_tx_stats
+{
 	u64 tx_bytes;
 	u64 tx_pkts;
 	u64 tx_vxlan_offload_pkts;
@@ -258,12 +265,14 @@ struct be_tx_stats {
 };
 
 /* Structure to hold some data of interest obtained from a TX CQE */
-struct be_tx_compl_info {
+struct be_tx_compl_info
+{
 	u8 status;		/* Completion status */
 	u16 end_index;		/* Completed TXQ Index */
 };
 
-struct be_tx_obj {
+struct be_tx_obj
+{
 	u32 db_offset;
 	struct be_queue_info q;
 	struct be_queue_info cq;
@@ -277,7 +286,8 @@ struct be_tx_obj {
 } ____cacheline_aligned_in_smp;
 
 /* Struct to remember the pages posted for rx frags */
-struct be_rx_page_info {
+struct be_rx_page_info
+{
 	struct page *page;
 	/* set to page-addr for last frag of the page & frag-addr otherwise */
 	DEFINE_DMA_UNMAP_ADDR(bus);
@@ -285,7 +295,8 @@ struct be_rx_page_info {
 	bool last_frag;		/* last frag of the page */
 };
 
-struct be_rx_stats {
+struct be_rx_stats
+{
 	u64 rx_bytes;
 	u64 rx_pkts;
 	u64 rx_vxlan_offload_pkts;
@@ -298,7 +309,8 @@ struct be_rx_stats {
 	struct u64_stats_sync sync;
 };
 
-struct be_rx_compl_info {
+struct be_rx_compl_info
+{
 	u32 rss_hash;
 	u16 vlan_tag;
 	u16 pkt_size;
@@ -318,7 +330,8 @@ struct be_rx_compl_info {
 	u8 tunneled;
 };
 
-struct be_rx_obj {
+struct be_rx_obj
+{
 	struct be_adapter *adapter;
 	struct be_queue_info q;
 	struct be_queue_info cq;
@@ -329,7 +342,8 @@ struct be_rx_obj {
 	bool rx_post_starved;	/* Zero rx frags have been posted to BE */
 } ____cacheline_aligned_in_smp;
 
-struct be_drv_stats {
+struct be_drv_stats
+{
 	u32 eth_red_drops;
 	u32 dma_map_errors;
 	u32 rx_drops_no_pbuf;
@@ -373,7 +387,8 @@ struct be_drv_stats {
 /* A vlan-id of 0xFFFF must be used to clear transparent vlan-tagging */
 #define BE_RESET_VLAN_TAG_ID	0xFFFF
 
-struct be_vf_cfg {
+struct be_vf_cfg
+{
 	unsigned char mac_addr[ETH_ALEN];
 	int if_handle;
 	int pmac_id;
@@ -384,7 +399,8 @@ struct be_vf_cfg {
 	bool spoofchk;
 };
 
-enum vf_state {
+enum vf_state
+{
 	ENABLED = 0,
 	ASSIGNED = 1
 };
@@ -411,8 +427,9 @@ enum vf_state {
 #define LANCER_INITIATE_FW_DUMP			0x1
 #define LANCER_DELETE_FW_DUMP			0x2
 
-struct phy_info {
-/* From SFF-8472 spec */
+struct phy_info
+{
+	/* From SFF-8472 spec */
 #define SFP_VENDOR_NAME_LEN			17
 	u8 transceiver;
 	u8 autoneg;
@@ -431,7 +448,8 @@ struct phy_info {
 	u8 vendor_pn[SFP_VENDOR_NAME_LEN];
 };
 
-struct be_resources {
+struct be_resources
+{
 	u16 max_vfs;		/* Total VFs "really" supported by FW/HW */
 	u16 max_mcast_mac;
 	u16 max_tx_qs;
@@ -454,14 +472,16 @@ struct be_resources {
 };
 
 /* These are port-wide values */
-struct be_port_resources {
+struct be_port_resources
+{
 	u16 max_vfs;
 	u16 nic_pfs;
 };
 
 #define be_is_os2bmc_enabled(adapter) (adapter->flags & BE_FLAGS_OS2BMC)
 
-struct rss_info {
+struct rss_info
+{
 	u64 rss_flags;
 	u8 rsstable[RSS_INDIR_TABLE_LEN];
 	u8 rss_queue[RSS_INDIR_TABLE_LEN];
@@ -469,7 +489,8 @@ struct rss_info {
 };
 
 #define BE_INVALID_DIE_TEMP	0xFF
-struct be_hwmon {
+struct be_hwmon
+{
 	struct device *hwmon_dev;
 	u8 be_on_die_temp;  /* Unit: millidegree Celsius */
 };
@@ -486,7 +507,8 @@ struct be_hwmon {
 	((word) |= (((val) << BE_WRB_F_BIT(name)) & BE_WRB_F_MASK(name)))
 
 /* Feature/offload bits */
-enum {
+enum
+{
 	BE_WRB_F_CRC_BIT,		/* Ethernet CRC */
 	BE_WRB_F_IPCS_BIT,		/* IP csum */
 	BE_WRB_F_TCPCS_BIT,		/* TCP csum */
@@ -502,13 +524,15 @@ enum {
  * retrieved from a TX skb. This is in turn passed to chip specific routines
  * during transmit, to set the corresponding params in the WRB.
  */
-struct be_wrb_params {
+struct be_wrb_params
+{
 	u32 features;	/* Feature bits */
 	u16 vlan_tag;	/* VLAN tag */
 	u16 lso_mss;	/* MSS for LSO */
 };
 
-struct be_eth_addr {
+struct be_eth_addr
+{
 	unsigned char mac[ETH_ALEN];
 };
 
@@ -539,7 +563,8 @@ struct be_eth_addr {
 #define ERR_RECOVERY_INTERVAL		(ERR_INTERVAL_HR * BE_HOUR)
 
 /* BEx/SH UE recovery state machine */
-enum {
+enum
+{
 	ERR_RECOVERY_ST_NONE = 0,		/* No Recovery */
 	ERR_RECOVERY_ST_DETECT = 1,		/* UE detection duration */
 	ERR_RECOVERY_ST_RESET = 2,		/* Reset Phase (PF0 only) */
@@ -547,7 +572,8 @@ enum {
 	ERR_RECOVERY_ST_REINIT = 4		/* Re-initialize Phase */
 };
 
-struct be_error_recovery {
+struct be_error_recovery
+{
 	/* Lancer error recovery variables */
 	u8 recovery_retries;
 
@@ -572,7 +598,8 @@ struct be_error_recovery {
 /* Ethtool priv_flags */
 #define	BE_DISABLE_TPE_RECOVERY	0x1
 
-struct be_adapter {
+struct be_adapter
+{
 	struct pci_dev *pdev;
 	struct net_device *netdev;
 
@@ -653,7 +680,8 @@ struct be_adapter {
 	u32 rx_fc;		/* Rx flow control */
 	u32 tx_fc;		/* Tx flow control */
 	bool stats_cmd_sent;
-	struct {
+	struct
+	{
 		u32 size;
 		u32 total_size;
 		u64 io_addr;
@@ -699,10 +727,12 @@ struct be_adapter {
 };
 
 /* Used for defered FW config cmds. Add fields to this struct as reqd */
-struct be_cmd_work {
+struct be_cmd_work
+{
 	struct work_struct work;
 	struct be_adapter *adapter;
-	union {
+	union
+	{
 		__be16 vxlan_port;
 	} info;
 };
@@ -710,11 +740,11 @@ struct be_cmd_work {
 #define be_physfn(adapter)		(!adapter->virtfn)
 #define be_virtfn(adapter)		(adapter->virtfn)
 #define sriov_enabled(adapter)		(adapter->flags &	\
-					 BE_FLAGS_SRIOV_ENABLED)
+									 BE_FLAGS_SRIOV_ENABLED)
 
 #define for_all_vfs(adapter, vf_cfg, i)					\
 	for (i = 0, vf_cfg = &adapter->vf_cfg[i]; i < adapter->num_vfs;	\
-		i++, vf_cfg++)
+		 i++, vf_cfg++)
 
 #define ON				1
 #define OFF				0
@@ -733,10 +763,10 @@ struct be_cmd_work {
 #define be_max_nic_eqs(adapter)		(adapter->res.max_nic_evt_qs)
 #define be_if_cap_flags(adapter)	(adapter->res.if_cap_flags)
 #define be_max_pf_pool_rss_tables(adapter)	\
-				(adapter->pool_res.max_rss_tables)
+	(adapter->pool_res.max_rss_tables)
 /* Max irqs avaialble for NIC */
 #define be_max_irqs(adapter)		\
-			(min_t(u16, be_max_nic_eqs(adapter), num_online_cpus()))
+	(min_t(u16, be_max_nic_eqs(adapter), num_online_cpus()))
 
 /* Max irqs *needed* for RX queues */
 static inline u16 be_max_rx_irqs(struct be_adapter *adapter)
@@ -772,27 +802,27 @@ static inline u16 be_max_any_irqs(struct be_adapter *adapter)
 #define be_is_qnq_mode(adapter)		(adapter->function_mode & QNQ_MODE)
 
 #define lancer_chip(adapter)	(adapter->pdev->device == OC_DEVICE_ID3 || \
-				 adapter->pdev->device == OC_DEVICE_ID4)
+								 adapter->pdev->device == OC_DEVICE_ID4)
 
 #define skyhawk_chip(adapter)	(adapter->pdev->device == OC_DEVICE_ID5 || \
-				 adapter->pdev->device == OC_DEVICE_ID6)
+								 adapter->pdev->device == OC_DEVICE_ID6)
 
 #define BE3_chip(adapter)	(adapter->pdev->device == BE_DEVICE_ID2 || \
-				 adapter->pdev->device == OC_DEVICE_ID2)
+							 adapter->pdev->device == OC_DEVICE_ID2)
 
 #define BE2_chip(adapter)	(adapter->pdev->device == BE_DEVICE_ID1 || \
-				 adapter->pdev->device == OC_DEVICE_ID1)
+							 adapter->pdev->device == OC_DEVICE_ID1)
 
 #define BEx_chip(adapter)	(BE3_chip(adapter) || BE2_chip(adapter))
 
 #define be_roce_supported(adapter)	(skyhawk_chip(adapter) && \
-					(adapter->function_mode & RDMA_ENABLED))
+									 (adapter->function_mode & RDMA_ENABLED))
 
 extern const struct ethtool_ops be_ethtool_ops;
 
 #define msix_enabled(adapter)		(adapter->num_msix_vec > 0)
 #define num_irqs(adapter)		(msix_enabled(adapter) ?	\
-						adapter->num_msix_vec : 1)
+								 adapter->num_msix_vec : 1)
 #define tx_stats(txo)			(&(txo)->stats)
 #define rx_stats(rxo)			(&(rxo)->stats)
 
@@ -801,19 +831,19 @@ extern const struct ethtool_ops be_ethtool_ops;
 
 #define for_all_rx_queues(adapter, rxo, i)				\
 	for (i = 0, rxo = &adapter->rx_obj[i]; i < adapter->num_rx_qs;	\
-		i++, rxo++)
+		 i++, rxo++)
 
 #define for_all_rss_queues(adapter, rxo, i)				\
 	for (i = 0, rxo = &adapter->rx_obj[i]; i < adapter->num_rss_qs;	\
-		i++, rxo++)
+		 i++, rxo++)
 
 #define for_all_tx_queues(adapter, txo, i)				\
 	for (i = 0, txo = &adapter->tx_obj[i]; i < adapter->num_tx_qs;	\
-		i++, txo++)
+		 i++, txo++)
 
 #define for_all_evt_queues(adapter, eqo, i)				\
 	for (i = 0, eqo = &adapter->eq_obj[i]; i < adapter->num_evt_qs; \
-		i++, eqo++)
+		 i++, eqo++)
 
 #define for_all_rx_queues_on_eq(adapter, eqo, rxo, i)			\
 	for (i = eqo->idx, rxo = &adapter->rx_obj[i]; i < adapter->num_rx_qs;\
@@ -821,7 +851,7 @@ extern const struct ethtool_ops be_ethtool_ops;
 
 #define for_all_tx_queues_on_eq(adapter, eqo, txo, i)			\
 	for (i = eqo->idx, txo = &adapter->tx_obj[i]; i < adapter->num_tx_qs;\
-		i += adapter->num_evt_qs, txo += adapter->num_evt_qs)
+		 i += adapter->num_evt_qs, txo += adapter->num_evt_qs)
 
 #define is_mcc_eqo(eqo)			(eqo->idx == 0)
 #define mcc_eqo(adapter)		(&adapter->eq_obj[0])
@@ -831,12 +861,12 @@ extern const struct ethtool_ops be_ethtool_ops;
 
 /* Returns number of pages spanned by the data starting at the given addr */
 #define PAGES_4K_SPANNED(_address, size) 				\
-		((u32)((((size_t)(_address) & (PAGE_SIZE_4K - 1)) + 	\
+	((u32)((((size_t)(_address) & (PAGE_SIZE_4K - 1)) + 	\
 			(size) + (PAGE_SIZE_4K - 1)) >> PAGE_SHIFT_4K))
 
 /* Returns bit offset within a DWORD of a bitfield */
 #define AMAP_BIT_OFFSET(_struct, field)  				\
-		(((size_t)&(((_struct *)0)->field))%32)
+	(((size_t)&(((_struct *)0)->field))%32)
 
 /* Returns the bit mask of the field that is NOT shifted into location. */
 static inline u32 amap_mask(u32 bitsize)
@@ -853,11 +883,11 @@ amap_set(void *ptr, u32 dw_offset, u32 mask, u32 offset, u32 value)
 }
 
 #define AMAP_SET_BITS(_struct, field, ptr, val)				\
-		amap_set(ptr,						\
-			offsetof(_struct, field)/32,			\
-			amap_mask(sizeof(((_struct *)0)->field)),	\
-			AMAP_BIT_OFFSET(_struct, field),		\
-			val)
+	amap_set(ptr,						\
+			 offsetof(_struct, field)/32,			\
+			 amap_mask(sizeof(((_struct *)0)->field)),	\
+			 AMAP_BIT_OFFSET(_struct, field),		\
+			 val)
 
 static inline u32 amap_get(void *ptr, u32 dw_offset, u32 mask, u32 offset)
 {
@@ -866,22 +896,22 @@ static inline u32 amap_get(void *ptr, u32 dw_offset, u32 mask, u32 offset)
 }
 
 #define AMAP_GET_BITS(_struct, field, ptr)				\
-		amap_get(ptr,						\
-			offsetof(_struct, field)/32,			\
-			amap_mask(sizeof(((_struct *)0)->field)),	\
-			AMAP_BIT_OFFSET(_struct, field))
+	amap_get(ptr,						\
+			 offsetof(_struct, field)/32,			\
+			 amap_mask(sizeof(((_struct *)0)->field)),	\
+			 AMAP_BIT_OFFSET(_struct, field))
 
 #define GET_RX_COMPL_V0_BITS(field, ptr)				\
-		AMAP_GET_BITS(struct amap_eth_rx_compl_v0, field, ptr)
+	AMAP_GET_BITS(struct amap_eth_rx_compl_v0, field, ptr)
 
 #define GET_RX_COMPL_V1_BITS(field, ptr)				\
-		AMAP_GET_BITS(struct amap_eth_rx_compl_v1, field, ptr)
+	AMAP_GET_BITS(struct amap_eth_rx_compl_v1, field, ptr)
 
 #define GET_TX_COMPL_BITS(field, ptr)					\
-		AMAP_GET_BITS(struct amap_eth_tx_compl, field, ptr)
+	AMAP_GET_BITS(struct amap_eth_tx_compl, field, ptr)
 
 #define SET_TX_WRB_HDR_BITS(field, ptr, val)				\
-		AMAP_SET_BITS(struct amap_eth_hdr_wrb, field, ptr, val)
+	AMAP_SET_BITS(struct amap_eth_hdr_wrb, field, ptr, val)
 
 #define be_dws_cpu_to_le(wrb, len)	swap_dws(wrb, len)
 #define be_dws_le_to_cpu(wrb, len)	swap_dws(wrb, len)
@@ -890,11 +920,15 @@ static inline void swap_dws(void *wrb, int len)
 #ifdef __BIG_ENDIAN
 	u32 *dw = wrb;
 	BUG_ON(len % 4);
-	do {
+
+	do
+	{
 		*dw = cpu_to_le32(*dw);
 		dw++;
 		len -= 4;
-	} while (len);
+	}
+	while (len);
+
 #endif				/* __BIG_ENDIAN */
 }
 
@@ -905,9 +939,13 @@ static inline u8 is_tcp_pkt(struct sk_buff *skb)
 	u8 val = 0;
 
 	if (ip_hdr(skb)->version == 4)
+	{
 		val = (ip_hdr(skb)->protocol == IPPROTO_TCP);
+	}
 	else if (ip_hdr(skb)->version == 6)
+	{
 		val = (ipv6_hdr(skb)->nexthdr == NEXTHDR_TCP);
+	}
 
 	return val;
 }
@@ -917,9 +955,13 @@ static inline u8 is_udp_pkt(struct sk_buff *skb)
 	u8 val = 0;
 
 	if (ip_hdr(skb)->version == 4)
+	{
 		val = (ip_hdr(skb)->protocol == IPPROTO_UDP);
+	}
 	else if (ip_hdr(skb)->version == 6)
+	{
 		val = (ipv6_hdr(skb)->nexthdr == NEXTHDR_UDP);
+	}
 
 	return val;
 }
@@ -930,7 +972,7 @@ static inline bool is_ipv4_pkt(struct sk_buff *skb)
 }
 
 #define be_error_recovering(adapter)	\
-		(adapter->flags & BE_FLAGS_TRY_RECOVERY)
+	(adapter->flags & BE_FLAGS_TRY_RECOVERY)
 
 #define BE_ERROR_EEH		1
 #define BE_ERROR_UE		BIT(1)
@@ -965,7 +1007,7 @@ static inline bool be_multi_rxq(const struct be_adapter *adapter)
 }
 
 void be_cq_notify(struct be_adapter *adapter, u16 qid, bool arm,
-		  u16 num_popped);
+				  u16 num_popped);
 void be_link_status_update(struct be_adapter *adapter, u8 link_status);
 void be_parse_stats(struct be_adapter *adapter);
 int be_load_fw(struct be_adapter *adapter, u8 *func);

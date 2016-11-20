@@ -40,11 +40,14 @@ int rose_loopback_queue(struct sk_buff *skb, struct rose_neigh *neigh)
 
 	kfree_skb(skb);
 
-	if (skbn != NULL) {
+	if (skbn != NULL)
+	{
 		skb_queue_tail(&loopback_queue, skbn);
 
 		if (!rose_loopback_running())
+		{
 			rose_set_loopback_timer();
+		}
 	}
 
 	return 1;
@@ -72,40 +75,59 @@ static void rose_loopback_timer(unsigned long param)
 	unsigned short frametype;
 	unsigned int lci_i, lci_o;
 
-	while ((skb = skb_dequeue(&loopback_queue)) != NULL) {
-		if (skb->len < ROSE_MIN_LEN) {
+	while ((skb = skb_dequeue(&loopback_queue)) != NULL)
+	{
+		if (skb->len < ROSE_MIN_LEN)
+		{
 			kfree_skb(skb);
 			continue;
 		}
+
 		lci_i     = ((skb->data[0] << 8) & 0xF00) + ((skb->data[1] << 0) & 0x0FF);
 		frametype = skb->data[2];
+
 		if (frametype == ROSE_CALL_REQUEST &&
-		    (skb->len <= ROSE_CALL_REQ_FACILITIES_OFF ||
-		     skb->data[ROSE_CALL_REQ_ADDR_LEN_OFF] !=
-		     ROSE_CALL_REQ_ADDR_LEN_VAL)) {
+			(skb->len <= ROSE_CALL_REQ_FACILITIES_OFF ||
+			 skb->data[ROSE_CALL_REQ_ADDR_LEN_OFF] !=
+			 ROSE_CALL_REQ_ADDR_LEN_VAL))
+		{
 			kfree_skb(skb);
 			continue;
 		}
+
 		dest      = (rose_address *)(skb->data + ROSE_CALL_REQ_DEST_ADDR_OFF);
 		lci_o     = ROSE_DEFAULT_MAXVC + 1 - lci_i;
 
 		skb_reset_transport_header(skb);
 
 		sk = rose_find_socket(lci_o, rose_loopback_neigh);
-		if (sk) {
+
+		if (sk)
+		{
 			if (rose_process_rx_frame(sk, skb) == 0)
+			{
 				kfree_skb(skb);
+			}
+
 			continue;
 		}
 
-		if (frametype == ROSE_CALL_REQUEST) {
-			if ((dev = rose_dev_get(dest)) != NULL) {
+		if (frametype == ROSE_CALL_REQUEST)
+		{
+			if ((dev = rose_dev_get(dest)) != NULL)
+			{
 				if (rose_rx_call_request(skb, dev, rose_loopback_neigh, lci_o) == 0)
+				{
 					kfree_skb(skb);
-			} else {
+				}
+			}
+			else
+			{
 				kfree_skb(skb);
 			}
-		} else {
+		}
+		else
+		{
 			kfree_skb(skb);
 		}
 	}
@@ -117,7 +139,8 @@ void __exit rose_loopback_clear(void)
 
 	del_timer(&loopback_timer);
 
-	while ((skb = skb_dequeue(&loopback_queue)) != NULL) {
+	while ((skb = skb_dequeue(&loopback_queue)) != NULL)
+	{
 		skb->sk = NULL;
 		kfree_skb(skb);
 	}

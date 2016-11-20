@@ -87,7 +87,8 @@
  * inuse and pending state of all clients..
  */
 
-struct mdp5_smp {
+struct mdp5_smp
+{
 	struct drm_device *dev;
 
 	uint8_t reserved[MAX_CLIENTS]; /* fixed MMBs allocation per client */
@@ -102,7 +103,7 @@ struct mdp5_smp {
 };
 
 static void update_smp_state(struct mdp5_smp *smp,
-		u32 cid, mdp5_smp_state_t *assigned);
+							 u32 cid, mdp5_smp_state_t *assigned);
 
 static inline
 struct mdp5_kms *get_kms(struct mdp5_smp *smp)
@@ -117,7 +118,9 @@ static inline u32 pipe2client(enum mdp5_pipe pipe, int plane)
 #define CID_UNUSED	0
 
 	if (WARN_ON(plane >= pipe2nclients(pipe)))
+	{
 		return CID_UNUSED;
+	}
 
 	/*
 	 * Note on SMP clients:
@@ -136,7 +139,7 @@ static inline u32 pipe2client(enum mdp5_pipe pipe, int plane)
 
 /* step #1: update # of blocks pending for the client: */
 static int smp_request_block(struct mdp5_smp *smp,
-		u32 cid, int nblks)
+							 u32 cid, int nblks)
 {
 	struct mdp5_kms *mdp5_kms = get_kms(smp);
 	struct mdp5_client_smp_state *ps = &smp->client_state[cid];
@@ -148,13 +151,16 @@ static int smp_request_block(struct mdp5_smp *smp,
 
 	spin_lock_irqsave(&smp->state_lock, flags);
 
-	if (reserved) {
+	if (reserved)
+	{
 		nblks = max(0, nblks - reserved);
 		DBG("%d MMBs allocated (%d reserved)", nblks, reserved);
 	}
 
 	avail = cnt - bitmap_weight(smp->state, cnt);
-	if (nblks > avail) {
+
+	if (nblks > avail)
+	{
 		dev_err(mdp5_kms->dev->dev, "out of blks (req=%d > avail=%d)\n",
 				nblks, avail);
 		ret = -ENOSPC;
@@ -162,16 +168,22 @@ static int smp_request_block(struct mdp5_smp *smp,
 	}
 
 	cur_nblks = bitmap_weight(ps->pending, cnt);
-	if (nblks > cur_nblks) {
+
+	if (nblks > cur_nblks)
+	{
 		/* grow the existing pending reservation: */
-		for (i = cur_nblks; i < nblks; i++) {
+		for (i = cur_nblks; i < nblks; i++)
+		{
 			int blk = find_first_zero_bit(smp->state, cnt);
 			set_bit(blk, ps->pending);
 			set_bit(blk, smp->state);
 		}
-	} else {
+	}
+	else
+	{
 		/* shrink the existing pending reservation: */
-		for (i = cur_nblks; i > nblks; i--) {
+		for (i = cur_nblks; i > nblks; i--)
+		{
 			int blk = find_first_bit(ps->pending, cnt);
 			clear_bit(blk, ps->pending);
 
@@ -179,7 +191,9 @@ static int smp_request_block(struct mdp5_smp *smp,
 			 * otherwise until _commit()
 			 */
 			if (!test_bit(blk, ps->configured))
+			{
 				clear_bit(blk, smp->state);
+			}
 		}
 	}
 
@@ -189,7 +203,7 @@ fail:
 }
 
 static void set_fifo_thresholds(struct mdp5_smp *smp,
-		enum mdp5_pipe pipe, int nblks)
+								enum mdp5_pipe pipe, int nblks)
 {
 	struct mdp5_kms *mdp5_kms = get_kms(smp);
 	u32 smp_entries_per_blk = smp->blk_size / (128 / BITS_PER_BYTE);
@@ -210,7 +224,7 @@ static void set_fifo_thresholds(struct mdp5_smp *smp,
  * presumably happens during the dma from scanout buffer).
  */
 int mdp5_smp_request(struct mdp5_smp *smp, enum mdp5_pipe pipe,
-		const struct mdp_format *format, u32 width, bool hdecim)
+					 const struct mdp_format *format, u32 width, bool hdecim)
 {
 	struct mdp5_kms *mdp5_kms = get_kms(smp);
 	struct drm_device *dev = mdp5_kms->dev;
@@ -228,7 +242,8 @@ int mdp5_smp_request(struct mdp5_smp *smp, enum mdp5_pipe pipe,
 	 * U and V components (splits them from Y if necessary) and packs
 	 * them together, writes to SMP using a single client.
 	 */
-	if ((rev > 0) && (format->chroma_sample > CHROMA_FULL)) {
+	if ((rev > 0) && (format->chroma_sample > CHROMA_FULL))
+	{
 		fmt = DRM_FORMAT_NV24;
 		nplanes = 2;
 
@@ -236,10 +251,13 @@ int mdp5_smp_request(struct mdp5_smp *smp, enum mdp5_pipe pipe,
 		 * sub sampled chroma components
 		 */
 		if (hdecim && (hsub > 1))
+		{
 			hsub = 1;
+		}
 	}
 
-	for (i = 0, nblks = 0; i < nplanes; i++) {
+	for (i = 0, nblks = 0; i < nplanes; i++)
+	{
 		int n, fetch_stride, cpp;
 
 		cpp = drm_format_plane_cpp(fmt, i);
@@ -249,11 +267,15 @@ int mdp5_smp_request(struct mdp5_smp *smp, enum mdp5_pipe pipe,
 
 		/* for hw rev v1.00 */
 		if (rev == 0)
+		{
 			n = roundup_pow_of_two(n);
+		}
 
 		DBG("%s[%d]: request %d SMP blocks", pipe2name(pipe), i, n);
 		ret = smp_request_block(smp, pipe2client(pipe, i), n);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev->dev, "Cannot allocate %d SMP blocks: %d\n",
 					n, ret);
 			return ret;
@@ -274,7 +296,8 @@ void mdp5_smp_release(struct mdp5_smp *smp, enum mdp5_pipe pipe)
 	unsigned long flags;
 	int cnt = smp->blk_cnt;
 
-	for (i = 0; i < pipe2nclients(pipe); i++) {
+	for (i = 0; i < pipe2nclients(pipe); i++)
+	{
 		mdp5_smp_state_t assigned;
 		u32 cid = pipe2client(pipe, i);
 		struct mdp5_client_smp_state *ps = &smp->client_state[cid];
@@ -301,31 +324,35 @@ void mdp5_smp_release(struct mdp5_smp *smp, enum mdp5_pipe pipe)
 }
 
 static void update_smp_state(struct mdp5_smp *smp,
-		u32 cid, mdp5_smp_state_t *assigned)
+							 u32 cid, mdp5_smp_state_t *assigned)
 {
 	struct mdp5_kms *mdp5_kms = get_kms(smp);
 	int cnt = smp->blk_cnt;
 	u32 blk, val;
 
-	for_each_set_bit(blk, *assigned, cnt) {
+	for_each_set_bit(blk, *assigned, cnt)
+	{
 		int idx = blk / 3;
 		int fld = blk % 3;
 
 		val = mdp5_read(mdp5_kms, REG_MDP5_SMP_ALLOC_W_REG(idx));
 
-		switch (fld) {
-		case 0:
-			val &= ~MDP5_SMP_ALLOC_W_REG_CLIENT0__MASK;
-			val |= MDP5_SMP_ALLOC_W_REG_CLIENT0(cid);
-			break;
-		case 1:
-			val &= ~MDP5_SMP_ALLOC_W_REG_CLIENT1__MASK;
-			val |= MDP5_SMP_ALLOC_W_REG_CLIENT1(cid);
-			break;
-		case 2:
-			val &= ~MDP5_SMP_ALLOC_W_REG_CLIENT2__MASK;
-			val |= MDP5_SMP_ALLOC_W_REG_CLIENT2(cid);
-			break;
+		switch (fld)
+		{
+			case 0:
+				val &= ~MDP5_SMP_ALLOC_W_REG_CLIENT0__MASK;
+				val |= MDP5_SMP_ALLOC_W_REG_CLIENT0(cid);
+				break;
+
+			case 1:
+				val &= ~MDP5_SMP_ALLOC_W_REG_CLIENT1__MASK;
+				val |= MDP5_SMP_ALLOC_W_REG_CLIENT1(cid);
+				break;
+
+			case 2:
+				val &= ~MDP5_SMP_ALLOC_W_REG_CLIENT2__MASK;
+				val |= MDP5_SMP_ALLOC_W_REG_CLIENT2(cid);
+				break;
 		}
 
 		mdp5_write(mdp5_kms, REG_MDP5_SMP_ALLOC_W_REG(idx), val);
@@ -340,7 +367,8 @@ void mdp5_smp_configure(struct mdp5_smp *smp, enum mdp5_pipe pipe)
 	mdp5_smp_state_t assigned;
 	int i;
 
-	for (i = 0; i < pipe2nclients(pipe); i++) {
+	for (i = 0; i < pipe2nclients(pipe); i++)
+	{
 		u32 cid = pipe2client(pipe, i);
 		struct mdp5_client_smp_state *ps = &smp->client_state[cid];
 
@@ -349,7 +377,9 @@ void mdp5_smp_configure(struct mdp5_smp *smp, enum mdp5_pipe pipe)
 		 * skip the configure for now
 		 */
 		if (!bitmap_equal(ps->inuse, ps->configured, cnt))
+		{
 			continue;
+		}
 
 		bitmap_copy(ps->configured, ps->pending, cnt);
 		bitmap_or(assigned, ps->inuse, ps->configured, cnt);
@@ -364,7 +394,8 @@ void mdp5_smp_commit(struct mdp5_smp *smp, enum mdp5_pipe pipe)
 	mdp5_smp_state_t released;
 	int i;
 
-	for (i = 0; i < pipe2nclients(pipe); i++) {
+	for (i = 0; i < pipe2nclients(pipe); i++)
+	{
 		u32 cid = pipe2client(pipe, i);
 		struct mdp5_client_smp_state *ps = &smp->client_state[cid];
 
@@ -373,7 +404,8 @@ void mdp5_smp_commit(struct mdp5_smp *smp, enum mdp5_pipe pipe)
 		 * using, which can be released and made available to other
 		 * clients:
 		 */
-		if (bitmap_andnot(released, ps->inuse, ps->configured, cnt)) {
+		if (bitmap_andnot(released, ps->inuse, ps->configured, cnt))
+		{
 			unsigned long flags;
 
 			spin_lock_irqsave(&smp->state_lock, flags);
@@ -399,7 +431,9 @@ struct mdp5_smp *mdp5_smp_init(struct drm_device *dev, const struct mdp5_smp_blo
 	int ret;
 
 	smp = kzalloc(sizeof(*smp), GFP_KERNEL);
-	if (unlikely(!smp)) {
+
+	if (unlikely(!smp))
+	{
 		ret = -ENOMEM;
 		goto fail;
 	}
@@ -415,8 +449,11 @@ struct mdp5_smp *mdp5_smp_init(struct drm_device *dev, const struct mdp5_smp_blo
 
 	return smp;
 fail:
+
 	if (smp)
+	{
 		mdp5_smp_destroy(smp);
+	}
 
 	return ERR_PTR(ret);
 }

@@ -24,7 +24,8 @@
 
 #include <core/pci.h>
 
-struct priv {
+struct priv
+{
 	struct pci_dev *pdev;
 	void __iomem *rom;
 	size_t size;
@@ -34,10 +35,13 @@ static u32
 pcirom_read(void *data, u32 offset, u32 length, struct nvkm_bios *bios)
 {
 	struct priv *priv = data;
-	if (offset + length <= priv->size) {
+
+	if (offset + length <= priv->size)
+	{
 		memcpy_fromio(bios->data + offset, priv->rom + offset, length);
 		return length;
 	}
+
 	return 0;
 }
 
@@ -59,20 +63,29 @@ pcirom_init(struct nvkm_bios *bios, const char *name)
 	int ret;
 
 	if (device->func->pci)
+	{
 		pdev = device->func->pci(device)->pdev;
+	}
 	else
+	{
 		return ERR_PTR(-ENODEV);
+	}
 
-	if (!(ret = pci_enable_rom(pdev))) {
+	if (!(ret = pci_enable_rom(pdev)))
+	{
 		if (ret = -ENOMEM,
-		    (priv = kmalloc(sizeof(*priv), GFP_KERNEL))) {
+			(priv = kmalloc(sizeof(*priv), GFP_KERNEL)))
+		{
 			if (ret = -EFAULT,
-			    (priv->rom = pci_map_rom(pdev, &priv->size))) {
+				(priv->rom = pci_map_rom(pdev, &priv->size)))
+			{
 				priv->pdev = pdev;
 				return priv;
 			}
+
 			kfree(priv);
 		}
+
 		pci_disable_rom(pdev);
 	}
 
@@ -80,7 +93,8 @@ pcirom_init(struct nvkm_bios *bios, const char *name)
 }
 
 const struct nvbios_source
-nvbios_pcirom = {
+	nvbios_pcirom =
+{
 	.name = "PCIROM",
 	.init = pcirom_init,
 	.fini = pcirom_fini,
@@ -97,14 +111,22 @@ platform_init(struct nvkm_bios *bios, const char *name)
 	int ret = -ENOMEM;
 
 	if (device->func->pci)
+	{
 		pdev = device->func->pci(device)->pdev;
+	}
 	else
+	{
 		return ERR_PTR(-ENODEV);
+	}
 
-	if ((priv = kmalloc(sizeof(*priv), GFP_KERNEL))) {
+	if ((priv = kmalloc(sizeof(*priv), GFP_KERNEL)))
+	{
 		if (ret = -ENODEV,
-		    (priv->rom = pci_platform_rom(pdev, &priv->size)))
+			(priv->rom = pci_platform_rom(pdev, &priv->size)))
+		{
 			return priv;
+		}
+
 		kfree(priv);
 	}
 
@@ -112,7 +134,8 @@ platform_init(struct nvkm_bios *bios, const char *name)
 }
 
 const struct nvbios_source
-nvbios_platform = {
+	nvbios_platform =
+{
 	.name = "PLATFORM",
 	.init = platform_init,
 	.fini = (void(*)(void *))kfree,

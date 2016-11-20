@@ -32,10 +32,16 @@ void fsstack_copy_inode_size(struct inode *dst, struct inode *src)
 	 * i_lock as in inode_add_bytes().
 	 */
 	if (sizeof(i_blocks) > sizeof(long))
+	{
 		spin_lock(&src->i_lock);
+	}
+
 	i_blocks = src->i_blocks;
+
 	if (sizeof(i_blocks) > sizeof(long))
+	{
 		spin_unlock(&src->i_lock);
+	}
 
 	/*
 	 * If CONFIG_SMP or CONFIG_PREEMPT on 32-bit, it's vital for
@@ -51,11 +57,17 @@ void fsstack_copy_inode_size(struct inode *dst, struct inode *src)
 	 * There is none of this locking overhead in the 64-bit case.
 	 */
 	if (sizeof(i_size) > sizeof(long) || sizeof(i_blocks) > sizeof(long))
+	{
 		spin_lock(&dst->i_lock);
+	}
+
 	i_size_write(dst, i_size);
 	dst->i_blocks = i_blocks;
+
 	if (sizeof(i_size) > sizeof(long) || sizeof(i_blocks) > sizeof(long))
+	{
 		spin_unlock(&dst->i_lock);
+	}
 }
 EXPORT_SYMBOL_GPL(fsstack_copy_inode_size);
 

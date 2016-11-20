@@ -112,13 +112,15 @@
 #define RX_BUF_ALIGN                 2
 
 /* Describes the alignment state of a Rx buffer */
-enum wl_rx_buf_align {
+enum wl_rx_buf_align
+{
 	WLCORE_RX_BUF_ALIGNED,
 	WLCORE_RX_BUF_UNALIGNED,
 	WLCORE_RX_BUF_PADDED,
 };
 
-enum {
+enum
+{
 	WL12XX_RX_CLASS_UNKNOWN,
 	WL12XX_RX_CLASS_MANAGEMENT,
 	WL12XX_RX_CLASS_DATA,
@@ -130,7 +132,8 @@ enum {
 	WL12XX_RX_CLASS_LOGGER,
 };
 
-struct wl1271_rx_descriptor {
+struct wl1271_rx_descriptor
+{
 	__le16 length;
 	u8  status;
 	u8  flags;
@@ -148,8 +151,8 @@ struct wl1271_rx_descriptor {
 int wlcore_rx(struct wl1271 *wl, struct wl_fw_status *status);
 u8 wl1271_rate_to_idx(int rate, enum nl80211_band band);
 int wl1271_rx_filter_enable(struct wl1271 *wl,
-			    int index, bool enable,
-			    struct wl12xx_rx_filter *filter);
+							int index, bool enable,
+							struct wl12xx_rx_filter *filter);
 int wl1271_rx_filter_clear_all(struct wl1271 *wl);
 
 #endif

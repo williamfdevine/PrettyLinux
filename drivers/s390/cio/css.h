@@ -33,24 +33,29 @@
 #define SNID_STATE3_MULTI_PATH	   1
 #define SNID_STATE3_SINGLE_PATH	   0
 
-struct path_state {
+struct path_state
+{
 	__u8  state1 : 2;	/* path state value 1 */
 	__u8  state2 : 2;	/* path state value 2 */
 	__u8  state3 : 1;	/* path state value 3 */
 	__u8  resvd  : 3;	/* reserved */
 } __attribute__ ((packed));
 
-struct extended_cssid {
+struct extended_cssid
+{
 	u8 version;
 	u8 cssid;
 } __attribute__ ((packed));
 
-struct pgid {
-	union {
+struct pgid
+{
+	union
+	{
 		__u8 fc;   	/* SPID function code */
 		struct path_state ps;	/* SNID path state */
 	} __attribute__ ((packed)) inf;
-	union {
+	union
+	{
 		__u32 cpu_addr	: 16;	/* CPU address */
 		struct extended_cssid ext_cssid;
 	} __attribute__ ((packed)) pgid_high;
@@ -78,7 +83,8 @@ struct chp_link;
  * @restore: callback for restoring after hibernation
  * @settle: wait for asynchronous work to finish
  */
-struct css_driver {
+struct css_driver
+{
 	struct css_device_id *subchannel_type;
 	struct device_driver drv;
 	void (*irq)(struct subchannel *);
@@ -107,12 +113,13 @@ extern struct subchannel *get_subchannel_by_schid(struct subchannel_id);
 extern int css_init_done;
 extern int max_ssid;
 int for_each_subchannel_staged(int (*fn_known)(struct subchannel *, void *),
-			       int (*fn_unknown)(struct subchannel_id,
-			       void *), void *data);
+							   int (*fn_unknown)(struct subchannel_id,
+									   void *), void *data);
 extern int for_each_subchannel(int(*fn)(struct subchannel_id, void *), void *);
 void css_update_ssd_info(struct subchannel *sch);
 
-struct channel_subsystem {
+struct channel_subsystem
+{
 	u8 cssid;
 	int valid;
 	struct channel_path *chps[__MAX_CHPID + 1];

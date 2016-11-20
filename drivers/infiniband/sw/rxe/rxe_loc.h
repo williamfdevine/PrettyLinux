@@ -39,26 +39,26 @@
 int rxe_av_chk_attr(struct rxe_dev *rxe, struct ib_ah_attr *attr);
 
 int rxe_av_from_attr(struct rxe_dev *rxe, u8 port_num,
-		     struct rxe_av *av, struct ib_ah_attr *attr);
+					 struct rxe_av *av, struct ib_ah_attr *attr);
 
 int rxe_av_to_attr(struct rxe_dev *rxe, struct rxe_av *av,
-		   struct ib_ah_attr *attr);
+				   struct ib_ah_attr *attr);
 
 int rxe_av_fill_ip_info(struct rxe_dev *rxe,
-			struct rxe_av *av,
-			struct ib_ah_attr *attr,
-			struct ib_gid_attr *sgid_attr,
-			union ib_gid *sgid);
+						struct rxe_av *av,
+						struct ib_ah_attr *attr,
+						struct ib_gid_attr *sgid_attr,
+						union ib_gid *sgid);
 
 struct rxe_av *rxe_get_av(struct rxe_pkt_info *pkt);
 
 /* rxe_cq.c */
 int rxe_cq_chk_attr(struct rxe_dev *rxe, struct rxe_cq *cq,
-		    int cqe, int comp_vector, struct ib_udata *udata);
+					int cqe, int comp_vector, struct ib_udata *udata);
 
 int rxe_cq_from_init(struct rxe_dev *rxe, struct rxe_cq *cq, int cqe,
-		     int comp_vector, struct ib_ucontext *context,
-		     struct ib_udata *udata);
+					 int comp_vector, struct ib_ucontext *context,
+					 struct ib_udata *udata);
 
 int rxe_cq_resize_queue(struct rxe_cq *cq, int new_cqe, struct ib_udata *udata);
 
@@ -68,20 +68,21 @@ void rxe_cq_cleanup(void *arg);
 
 /* rxe_mcast.c */
 int rxe_mcast_get_grp(struct rxe_dev *rxe, union ib_gid *mgid,
-		      struct rxe_mc_grp **grp_p);
+					  struct rxe_mc_grp **grp_p);
 
 int rxe_mcast_add_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
-			   struct rxe_mc_grp *grp);
+						   struct rxe_mc_grp *grp);
 
 int rxe_mcast_drop_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
-			    union ib_gid *mgid);
+							union ib_gid *mgid);
 
 void rxe_drop_all_mcast_groups(struct rxe_qp *qp);
 
 void rxe_mc_cleanup(void *arg);
 
 /* rxe_mmap.c */
-struct rxe_mmap_info {
+struct rxe_mmap_info
+{
 	struct list_head	pending_mmaps;
 	struct ib_ucontext	*context;
 	struct kref		ref;
@@ -93,49 +94,51 @@ struct rxe_mmap_info {
 void rxe_mmap_release(struct kref *ref);
 
 struct rxe_mmap_info *rxe_create_mmap_info(struct rxe_dev *dev,
-					   u32 size,
-					   struct ib_ucontext *context,
-					   void *obj);
+		u32 size,
+		struct ib_ucontext *context,
+		void *obj);
 
 int rxe_mmap(struct ib_ucontext *context, struct vm_area_struct *vma);
 
 /* rxe_mr.c */
-enum copy_direction {
+enum copy_direction
+{
 	to_mem_obj,
 	from_mem_obj,
 };
 
 int rxe_mem_init_dma(struct rxe_dev *rxe, struct rxe_pd *pd,
-		     int access, struct rxe_mem *mem);
+					 int access, struct rxe_mem *mem);
 
 int rxe_mem_init_user(struct rxe_dev *rxe, struct rxe_pd *pd, u64 start,
-		      u64 length, u64 iova, int access, struct ib_udata *udata,
-		      struct rxe_mem *mr);
+					  u64 length, u64 iova, int access, struct ib_udata *udata,
+					  struct rxe_mem *mr);
 
 int rxe_mem_init_fast(struct rxe_dev *rxe, struct rxe_pd *pd,
-		      int max_pages, struct rxe_mem *mem);
+					  int max_pages, struct rxe_mem *mem);
 
 int rxe_mem_copy(struct rxe_mem *mem, u64 iova, void *addr,
-		 int length, enum copy_direction dir, u32 *crcp);
+				 int length, enum copy_direction dir, u32 *crcp);
 
 int copy_data(struct rxe_dev *rxe, struct rxe_pd *pd, int access,
-	      struct rxe_dma_info *dma, void *addr, int length,
-	      enum copy_direction dir, u32 *crcp);
+			  struct rxe_dma_info *dma, void *addr, int length,
+			  enum copy_direction dir, u32 *crcp);
 
 void *iova_to_vaddr(struct rxe_mem *mem, u64 iova, int length);
 
-enum lookup_type {
+enum lookup_type
+{
 	lookup_local,
 	lookup_remote,
 };
 
 struct rxe_mem *lookup_mem(struct rxe_pd *pd, int access, u32 key,
-			   enum lookup_type type);
+						   enum lookup_type type);
 
 int mem_check_range(struct rxe_mem *mem, u64 iova, size_t length);
 
 int rxe_mem_map_pages(struct rxe_dev *rxe, struct rxe_mem *mem,
-		      u64 *page, int num_pages, u64 iova);
+					  u64 *page, int num_pages, u64 iova);
 
 void rxe_mem_cleanup(void *arg);
 
@@ -145,16 +148,16 @@ int advance_dma_data(struct rxe_dma_info *dma, unsigned int length);
 int rxe_qp_chk_init(struct rxe_dev *rxe, struct ib_qp_init_attr *init);
 
 int rxe_qp_from_init(struct rxe_dev *rxe, struct rxe_qp *qp, struct rxe_pd *pd,
-		     struct ib_qp_init_attr *init, struct ib_udata *udata,
-		     struct ib_pd *ibpd);
+					 struct ib_qp_init_attr *init, struct ib_udata *udata,
+					 struct ib_pd *ibpd);
 
 int rxe_qp_to_init(struct rxe_qp *qp, struct ib_qp_init_attr *init);
 
 int rxe_qp_chk_attr(struct rxe_dev *rxe, struct rxe_qp *qp,
-		    struct ib_qp_attr *attr, int mask);
+					struct ib_qp_attr *attr, int mask);
 
 int rxe_qp_from_attr(struct rxe_qp *qp, struct ib_qp_attr *attr,
-		     int mask, struct ib_udata *udata);
+					 int mask, struct ib_udata *udata);
 
 int rxe_qp_to_attr(struct rxe_qp *qp, struct ib_qp_attr *attr, int mask);
 
@@ -182,15 +185,19 @@ static inline enum ib_qp_state qp_state(struct rxe_qp *qp)
 static inline int qp_mtu(struct rxe_qp *qp)
 {
 	if (qp->ibqp.qp_type == IB_QPT_RC || qp->ibqp.qp_type == IB_QPT_UC)
+	{
 		return qp->attr.path_mtu;
+	}
 	else
+	{
 		return RXE_PORT_MAX_MTU;
+	}
 }
 
 static inline int rcv_wqe_size(int max_sge)
 {
 	return sizeof(struct rxe_recv_wqe) +
-		max_sge * sizeof(struct ib_sge);
+		   max_sge * sizeof(struct ib_sge);
 }
 
 void free_rd_atomic_resource(struct rxe_qp *qp, struct resp_res *res);
@@ -198,8 +205,11 @@ void free_rd_atomic_resource(struct rxe_qp *qp, struct resp_res *res);
 static inline void rxe_advance_resp_resource(struct rxe_qp *qp)
 {
 	qp->resp.res_head++;
+
 	if (unlikely(qp->resp.res_head == qp->attr.max_dest_rd_atomic))
+	{
 		qp->resp.res_head = 0;
+	}
 }
 
 void retransmit_timer(unsigned long data);
@@ -211,15 +221,15 @@ void dump_qp(struct rxe_qp *qp);
 #define IB_SRQ_INIT_MASK (~IB_SRQ_LIMIT)
 
 int rxe_srq_chk_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
-		     struct ib_srq_attr *attr, enum ib_srq_attr_mask mask);
+					 struct ib_srq_attr *attr, enum ib_srq_attr_mask mask);
 
 int rxe_srq_from_init(struct rxe_dev *rxe, struct rxe_srq *srq,
-		      struct ib_srq_init_attr *init,
-		      struct ib_ucontext *context, struct ib_udata *udata);
+					  struct ib_srq_init_attr *init,
+					  struct ib_ucontext *context, struct ib_udata *udata);
 
 int rxe_srq_from_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
-		      struct ib_srq_attr *attr, enum ib_srq_attr_mask mask,
-		      struct ib_udata *udata);
+					  struct ib_srq_attr *attr, enum ib_srq_attr_mask mask,
+					  struct ib_udata *udata);
 
 extern struct ib_dma_mapping_ops rxe_dma_mapping_ops;
 
@@ -232,10 +242,10 @@ int rxe_responder(void *arg);
 u32 rxe_icrc_hdr(struct rxe_pkt_info *pkt, struct sk_buff *skb);
 
 void rxe_resp_queue_pkt(struct rxe_dev *rxe,
-			struct rxe_qp *qp, struct sk_buff *skb);
+						struct rxe_qp *qp, struct sk_buff *skb);
 
 void rxe_comp_queue_pkt(struct rxe_dev *rxe,
-			struct rxe_qp *qp, struct sk_buff *skb);
+						struct rxe_qp *qp, struct sk_buff *skb);
 
 static inline unsigned wr_opcode_mask(int opcode, struct rxe_qp *qp)
 {
@@ -243,25 +253,30 @@ static inline unsigned wr_opcode_mask(int opcode, struct rxe_qp *qp)
 }
 
 static inline int rxe_xmit_packet(struct rxe_dev *rxe, struct rxe_qp *qp,
-				  struct rxe_pkt_info *pkt, struct sk_buff *skb)
+								  struct rxe_pkt_info *pkt, struct sk_buff *skb)
 {
 	int err;
 	int is_request = pkt->mask & RXE_REQ_MASK;
 
 	if ((is_request && (qp->req.state != QP_STATE_READY)) ||
-	    (!is_request && (qp->resp.state != QP_STATE_READY))) {
+		(!is_request && (qp->resp.state != QP_STATE_READY)))
+	{
 		pr_info("Packet dropped. QP is not in ready state\n");
 		goto drop;
 	}
 
-	if (pkt->mask & RXE_LOOPBACK_MASK) {
+	if (pkt->mask & RXE_LOOPBACK_MASK)
+	{
 		memcpy(SKB_TO_PKT(skb), pkt, sizeof(*pkt));
 		err = rxe->ifc_ops->loopback(skb);
-	} else {
+	}
+	else
+	{
 		err = rxe->ifc_ops->send(rxe, pkt, skb);
 	}
 
-	if (err) {
+	if (err)
+	{
 		rxe->xmit_errors++;
 		return err;
 	}
@@ -269,7 +284,8 @@ static inline int rxe_xmit_packet(struct rxe_dev *rxe, struct rxe_qp *qp,
 	atomic_inc(&qp->skb_out);
 
 	if ((qp_type(qp) != IB_QPT_RC) &&
-	    (pkt->mask & RXE_END_MASK)) {
+		(pkt->mask & RXE_END_MASK))
+	{
 		pkt->wqe->state = wqe_state_done;
 		rxe_run_task(&qp->comp.task, 1);
 	}

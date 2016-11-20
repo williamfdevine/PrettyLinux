@@ -6,7 +6,8 @@
  * Architectures with an MMU need something more complex.
  */
 #ifndef __ASSEMBLY__
-typedef struct {
+typedef struct
+{
 	unsigned long		end_brk;
 
 #ifdef CONFIG_BINFMT_ELF_FDPIC

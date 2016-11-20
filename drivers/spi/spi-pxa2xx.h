@@ -22,7 +22,8 @@
 #include <linux/spi/spi.h>
 #include <linux/spi/pxa2xx_spi.h>
 
-struct driver_data {
+struct driver_data
+{
 	/* Driver model hookup */
 	struct platform_device *pdev;
 
@@ -71,7 +72,8 @@ struct driver_data {
 	struct gpio_desc **cs_gpiods;
 };
 
-struct chip_data {
+struct chip_data
+{
 	u32 cr1;
 	u32 dds_rate;
 	u32 timeout;
@@ -82,7 +84,8 @@ struct chip_data {
 	u16 lpss_rx_threshold;
 	u16 lpss_tx_threshold;
 	u8 enable_dma;
-	union {
+	union
+	{
 		int gpio_cs;
 		unsigned int frm;
 	};
@@ -93,13 +96,13 @@ struct chip_data {
 };
 
 static inline u32 pxa2xx_spi_read(const struct driver_data *drv_data,
-				  unsigned reg)
+								  unsigned reg)
 {
 	return __raw_readl(drv_data->ioaddr + reg);
 }
 
 static  inline void pxa2xx_spi_write(const struct driver_data *drv_data,
-				     unsigned reg, u32 val)
+									 unsigned reg, u32 val)
 {
 	__raw_writel(val, drv_data->ioaddr + reg);
 }
@@ -114,21 +117,25 @@ static  inline void pxa2xx_spi_write(const struct driver_data *drv_data,
 
 static inline int pxa25x_ssp_comp(struct driver_data *drv_data)
 {
-	switch (drv_data->ssp_type) {
-	case PXA25x_SSP:
-	case CE4100_SSP:
-	case QUARK_X1000_SSP:
-		return 1;
-	default:
-		return 0;
+	switch (drv_data->ssp_type)
+	{
+		case PXA25x_SSP:
+		case CE4100_SSP:
+		case QUARK_X1000_SSP:
+			return 1;
+
+		default:
+			return 0;
 	}
 }
 
 static inline void write_SSSR_CS(struct driver_data *drv_data, u32 val)
 {
 	if (drv_data->ssp_type == CE4100_SSP ||
-	    drv_data->ssp_type == QUARK_X1000_SSP)
+		drv_data->ssp_type == QUARK_X1000_SSP)
+	{
 		val |= pxa2xx_spi_read(drv_data, SSSR) & SSSR_ALT_FRM_MASK;
+	}
 
 	pxa2xx_spi_write(drv_data, SSSR, val);
 }
@@ -145,9 +152,9 @@ extern void pxa2xx_spi_dma_start(struct driver_data *drv_data);
 extern int pxa2xx_spi_dma_setup(struct driver_data *drv_data);
 extern void pxa2xx_spi_dma_release(struct driver_data *drv_data);
 extern int pxa2xx_spi_set_dma_burst_and_threshold(struct chip_data *chip,
-						  struct spi_device *spi,
-						  u8 bits_per_word,
-						  u32 *burst_code,
-						  u32 *threshold);
+		struct spi_device *spi,
+		u8 bits_per_word,
+		u32 *burst_code,
+		u32 *threshold);
 
 #endif /* SPI_PXA2XX_H */

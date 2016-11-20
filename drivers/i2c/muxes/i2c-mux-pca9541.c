@@ -72,13 +72,15 @@
 #define SELECT_DELAY_SHORT	50
 #define SELECT_DELAY_LONG	1000
 
-struct pca9541 {
+struct pca9541
+{
 	struct i2c_client *client;
 	unsigned long select_timeout;
 	unsigned long arb_timeout;
 };
 
-static const struct i2c_device_id pca9541_id[] = {
+static const struct i2c_device_id pca9541_id[] =
+{
 	{"pca9541", 0},
 	{}
 };
@@ -86,7 +88,8 @@ static const struct i2c_device_id pca9541_id[] = {
 MODULE_DEVICE_TABLE(i2c, pca9541_id);
 
 #ifdef CONFIG_OF
-static const struct of_device_id pca9541_of_match[] = {
+static const struct of_device_id pca9541_of_match[] =
+{
 	{ .compatible = "nxp,pca9541" },
 	{}
 };
@@ -101,7 +104,8 @@ static int pca9541_reg_write(struct i2c_client *client, u8 command, u8 val)
 	struct i2c_adapter *adap = client->adapter;
 	int ret;
 
-	if (adap->algo->master_xfer) {
+	if (adap->algo->master_xfer)
+	{
 		struct i2c_msg msg;
 		char buf[2];
 
@@ -112,15 +116,17 @@ static int pca9541_reg_write(struct i2c_client *client, u8 command, u8 val)
 		buf[1] = val;
 		msg.buf = buf;
 		ret = __i2c_transfer(adap, &msg, 1);
-	} else {
+	}
+	else
+	{
 		union i2c_smbus_data data;
 
 		data.byte = val;
 		ret = adap->algo->smbus_xfer(adap, client->addr,
-					     client->flags,
-					     I2C_SMBUS_WRITE,
-					     command,
-					     I2C_SMBUS_BYTE_DATA, &data);
+									 client->flags,
+									 I2C_SMBUS_WRITE,
+									 command,
+									 I2C_SMBUS_BYTE_DATA, &data);
 	}
 
 	return ret;
@@ -136,8 +142,10 @@ static int pca9541_reg_read(struct i2c_client *client, u8 command)
 	int ret;
 	u8 val;
 
-	if (adap->algo->master_xfer) {
-		struct i2c_msg msg[2] = {
+	if (adap->algo->master_xfer)
+	{
+		struct i2c_msg msg[2] =
+		{
 			{
 				.addr = client->addr,
 				.flags = 0,
@@ -152,21 +160,32 @@ static int pca9541_reg_read(struct i2c_client *client, u8 command)
 			}
 		};
 		ret = __i2c_transfer(adap, msg, 2);
+
 		if (ret == 2)
+		{
 			ret = val;
+		}
 		else if (ret >= 0)
+		{
 			ret = -EIO;
-	} else {
+		}
+	}
+	else
+	{
 		union i2c_smbus_data data;
 
 		ret = adap->algo->smbus_xfer(adap, client->addr,
-					     client->flags,
-					     I2C_SMBUS_READ,
-					     command,
-					     I2C_SMBUS_BYTE_DATA, &data);
+									 client->flags,
+									 I2C_SMBUS_READ,
+									 command,
+									 I2C_SMBUS_BYTE_DATA, &data);
+
 		if (!ret)
+		{
 			ret = data.byte;
+		}
 	}
+
 	return ret;
 }
 
@@ -180,9 +199,10 @@ static void pca9541_release_bus(struct i2c_client *client)
 	int reg;
 
 	reg = pca9541_reg_read(client, PCA9541_CONTROL);
+
 	if (reg >= 0 && !busoff(reg) && mybus(reg))
 		pca9541_reg_write(client, PCA9541_CONTROL,
-				  (reg & PCA9541_CTL_NBUSON) >> 1);
+						  (reg & PCA9541_CTL_NBUSON) >> 1);
 }
 
 /*
@@ -210,7 +230,8 @@ static void pca9541_release_bus(struct i2c_client *client)
  */
 
 /* Control commands per PCA9541 datasheet */
-static const u8 pca9541_control[16] = {
+static const u8 pca9541_control[16] =
+{
 	4, 0, 1, 5, 4, 4, 5, 5, 0, 0, 1, 1, 0, 4, 5, 1
 };
 
@@ -229,67 +250,85 @@ static int pca9541_arbitrate(struct i2c_client *client)
 	int reg;
 
 	reg = pca9541_reg_read(client, PCA9541_CONTROL);
-	if (reg < 0)
-		return reg;
 
-	if (busoff(reg)) {
+	if (reg < 0)
+	{
+		return reg;
+	}
+
+	if (busoff(reg))
+	{
 		int istat;
 		/*
 		 * Bus is off. Request ownership or turn it on unless
 		 * other master requested ownership.
 		 */
 		istat = pca9541_reg_read(client, PCA9541_ISTAT);
+
 		if (!(istat & PCA9541_ISTAT_NMYTEST)
-		    || time_is_before_eq_jiffies(data->arb_timeout)) {
+			|| time_is_before_eq_jiffies(data->arb_timeout))
+		{
 			/*
 			 * Other master did not request ownership,
 			 * or arbitration timeout expired. Take the bus.
 			 */
 			pca9541_reg_write(client,
-					  PCA9541_CONTROL,
-					  pca9541_control[reg & 0x0f]
-					  | PCA9541_CTL_NTESTON);
+							  PCA9541_CONTROL,
+							  pca9541_control[reg & 0x0f]
+							  | PCA9541_CTL_NTESTON);
 			data->select_timeout = SELECT_DELAY_SHORT;
-		} else {
+		}
+		else
+		{
 			/*
 			 * Other master requested ownership.
 			 * Set extra long timeout to give it time to acquire it.
 			 */
 			data->select_timeout = SELECT_DELAY_LONG * 2;
 		}
-	} else if (mybus(reg)) {
+	}
+	else if (mybus(reg))
+	{
 		/*
 		 * Bus is on, and we own it. We are done with acquisition.
 		 * Reset NTESTON and BUSINIT, then return success.
 		 */
 		if (reg & (PCA9541_CTL_NTESTON | PCA9541_CTL_BUSINIT))
 			pca9541_reg_write(client,
-					  PCA9541_CONTROL,
-					  reg & ~(PCA9541_CTL_NTESTON
-						  | PCA9541_CTL_BUSINIT));
+							  PCA9541_CONTROL,
+							  reg & ~(PCA9541_CTL_NTESTON
+									  | PCA9541_CTL_BUSINIT));
+
 		return 1;
-	} else {
+	}
+	else
+	{
 		/*
 		 * Other master owns the bus.
 		 * If arbitration timeout has expired, force ownership.
 		 * Otherwise request it.
 		 */
 		data->select_timeout = SELECT_DELAY_LONG;
-		if (time_is_before_eq_jiffies(data->arb_timeout)) {
+
+		if (time_is_before_eq_jiffies(data->arb_timeout))
+		{
 			/* Time is up, take the bus and reset it. */
 			pca9541_reg_write(client,
-					  PCA9541_CONTROL,
-					  pca9541_control[reg & 0x0f]
-					  | PCA9541_CTL_BUSINIT
-					  | PCA9541_CTL_NTESTON);
-		} else {
+							  PCA9541_CONTROL,
+							  pca9541_control[reg & 0x0f]
+							  | PCA9541_CTL_BUSINIT
+							  | PCA9541_CTL_NTESTON);
+		}
+		else
+		{
 			/* Request bus ownership if needed */
 			if (!(reg & PCA9541_CTL_NTESTON))
 				pca9541_reg_write(client,
-						  PCA9541_CONTROL,
-						  reg | PCA9541_CTL_NTESTON);
+								  PCA9541_CONTROL,
+								  reg | PCA9541_CTL_NTESTON);
 		}
 	}
+
 	return 0;
 }
 
@@ -299,21 +338,30 @@ static int pca9541_select_chan(struct i2c_mux_core *muxc, u32 chan)
 	struct i2c_client *client = data->client;
 	int ret;
 	unsigned long timeout = jiffies + ARB2_TIMEOUT;
-		/* give up after this time */
+	/* give up after this time */
 
 	data->arb_timeout = jiffies + ARB_TIMEOUT;
-		/* force bus ownership after this time */
+	/* force bus ownership after this time */
 
-	do {
+	do
+	{
 		ret = pca9541_arbitrate(client);
+
 		if (ret)
+		{
 			return ret < 0 ? ret : 0;
+		}
 
 		if (data->select_timeout == SELECT_DELAY_SHORT)
+		{
 			udelay(data->select_timeout);
+		}
 		else
+		{
 			msleep(data->select_timeout / 1000);
-	} while (time_is_after_eq_jiffies(timeout));
+		}
+	}
+	while (time_is_after_eq_jiffies(timeout));
 
 	return -ETIMEDOUT;
 }
@@ -331,7 +379,7 @@ static int pca9541_release_chan(struct i2c_mux_core *muxc, u32 chan)
  * I2C init/probing/exit functions
  */
 static int pca9541_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct i2c_adapter *adap = client->adapter;
 	struct pca954x_platform_data *pdata = dev_get_platdata(&client->dev);
@@ -341,7 +389,9 @@ static int pca9541_probe(struct i2c_client *client,
 	int ret;
 
 	if (!i2c_check_functionality(adap, I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		return -ENODEV;
+	}
 
 	/*
 	 * I2C accesses are unprotected here.
@@ -354,13 +404,20 @@ static int pca9541_probe(struct i2c_client *client,
 	/* Create mux adapter */
 
 	force = 0;
+
 	if (pdata)
+	{
 		force = pdata->modes[0].adap_id;
+	}
+
 	muxc = i2c_mux_alloc(adap, &client->dev, 1, sizeof(*data),
-			     I2C_MUX_ARBITRATOR,
-			     pca9541_select_chan, pca9541_release_chan);
+						 I2C_MUX_ARBITRATOR,
+						 pca9541_select_chan, pca9541_release_chan);
+
 	if (!muxc)
+	{
 		return -ENOMEM;
+	}
 
 	data = i2c_mux_priv(muxc);
 	data->client = client;
@@ -368,13 +425,15 @@ static int pca9541_probe(struct i2c_client *client,
 	i2c_set_clientdata(client, muxc);
 
 	ret = i2c_mux_add_adapter(muxc, force, 0, 0);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&client->dev, "failed to register master selector\n");
 		return ret;
 	}
 
 	dev_info(&client->dev, "registered master selector for I2C %s\n",
-		 client->name);
+			 client->name);
 
 	return 0;
 }
@@ -387,11 +446,12 @@ static int pca9541_remove(struct i2c_client *client)
 	return 0;
 }
 
-static struct i2c_driver pca9541_driver = {
+static struct i2c_driver pca9541_driver =
+{
 	.driver = {
-		   .name = "pca9541",
-		   .of_match_table = of_match_ptr(pca9541_of_match),
-		   },
+		.name = "pca9541",
+		.of_match_table = of_match_ptr(pca9541_of_match),
+	},
 	.probe = pca9541_probe,
 	.remove = pca9541_remove,
 	.id_table = pca9541_id,

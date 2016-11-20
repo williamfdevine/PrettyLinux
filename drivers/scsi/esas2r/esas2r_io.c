@@ -50,18 +50,28 @@ void esas2r_start_request(struct esas2r_adapter *a, struct esas2r_request *rq)
 	unsigned long flags;
 
 	if (unlikely(test_bit(AF_DEGRADED_MODE, &a->flags) ||
-		     test_bit(AF_POWER_DOWN, &a->flags))) {
+				 test_bit(AF_POWER_DOWN, &a->flags)))
+	{
 		if (rq->vrq->scsi.function == VDA_FUNC_SCSI)
+		{
 			rq->req_stat = RS_SEL2;
+		}
 		else
+		{
 			rq->req_stat = RS_DEGRADED;
-	} else if (likely(rq->vrq->scsi.function == VDA_FUNC_SCSI)) {
+		}
+	}
+	else if (likely(rq->vrq->scsi.function == VDA_FUNC_SCSI))
+	{
 		t = a->targetdb + rq->target_id;
 
 		if (unlikely(t >= a->targetdb_end
-			     || !(t->flags & TF_USED))) {
+					 || !(t->flags & TF_USED)))
+		{
 			rq->req_stat = RS_SEL;
-		} else {
+		}
+		else
+		{
 			/* copy in the target ID. */
 			rq->vrq->scsi.target_id = cpu_to_le16(t->virt_targ_id);
 
@@ -71,12 +81,15 @@ void esas2r_start_request(struct esas2r_adapter *a, struct esas2r_request *rq)
 			 * go on the defer queue.
 			 */
 			if (unlikely(t->target_state != TS_PRESENT &&
-				     !test_bit(AF_DISC_PENDING, &a->flags)))
+						 !test_bit(AF_DISC_PENDING, &a->flags)))
+			{
 				rq->req_stat = RS_SEL;
+			}
 		}
 	}
 
-	if (unlikely(rq->req_stat != RS_PENDING)) {
+	if (unlikely(rq->req_stat != RS_PENDING))
+	{
 		esas2r_complete_request(a, rq);
 		return;
 	}
@@ -84,7 +97,8 @@ void esas2r_start_request(struct esas2r_adapter *a, struct esas2r_request *rq)
 	esas2r_trace("rq=%p", rq);
 	esas2r_trace("rq->vrq->scsi.handle=%x", rq->vrq->scsi.handle);
 
-	if (rq->vrq->scsi.function == VDA_FUNC_SCSI) {
+	if (rq->vrq->scsi.function == VDA_FUNC_SCSI)
+	{
 		esas2r_trace("rq->target_id=%d", rq->target_id);
 		esas2r_trace("rq->vrq->scsi.flags=%x", rq->vrq->scsi.flags);
 	}
@@ -92,12 +106,16 @@ void esas2r_start_request(struct esas2r_adapter *a, struct esas2r_request *rq)
 	spin_lock_irqsave(&a->queue_lock, flags);
 
 	if (likely(list_empty(&a->defer_list) &&
-		   !test_bit(AF_CHPRST_PENDING, &a->flags) &&
-		   !test_bit(AF_FLASHING, &a->flags) &&
-		   !test_bit(AF_DISC_PENDING, &a->flags)))
+			   !test_bit(AF_CHPRST_PENDING, &a->flags) &&
+			   !test_bit(AF_FLASHING, &a->flags) &&
+			   !test_bit(AF_DISC_PENDING, &a->flags)))
+	{
 		esas2r_local_start_request(a, startrq);
+	}
 	else
+	{
 		list_add_tail(&startrq->req_list, &a->defer_list);
+	}
 
 	spin_unlock_irqrestore(&a->queue_lock, flags);
 }
@@ -117,7 +135,7 @@ void esas2r_start_request(struct esas2r_adapter *a, struct esas2r_request *rq)
  * the controller.
  */
 void esas2r_local_start_request(struct esas2r_adapter *a,
-				struct esas2r_request *rq)
+								struct esas2r_request *rq)
 {
 	esas2r_trace_enter();
 	esas2r_trace("rq=%p", rq);
@@ -125,8 +143,10 @@ void esas2r_local_start_request(struct esas2r_adapter *a,
 	esas2r_trace("rq->vrq_md->phys_addr:%x", rq->vrq_md->phys_addr);
 
 	if (unlikely(rq->vrq->scsi.function == VDA_FUNC_FLASH
-		     && rq->vrq->flash.sub_func == VDA_FLASH_COMMIT))
+				 && rq->vrq->flash.sub_func == VDA_FLASH_COMMIT))
+	{
 		set_bit(AF_FLASHING, &a->flags);
+	}
 
 	list_add_tail(&rq->req_list, &a->active_list);
 	esas2r_start_vda_request(a, rq);
@@ -135,7 +155,7 @@ void esas2r_local_start_request(struct esas2r_adapter *a,
 }
 
 void esas2r_start_vda_request(struct esas2r_adapter *a,
-			      struct esas2r_request *rq)
+							  struct esas2r_request *rq)
 {
 	struct esas2r_inbound_list_source_entry *element;
 	u32 dw;
@@ -146,13 +166,20 @@ void esas2r_start_vda_request(struct esas2r_adapter *a,
 	 * toggle bit.
 	 */
 	a->last_write++;
-	if (a->last_write >= a->list_size) {
+
+	if (a->last_write >= a->list_size)
+	{
 		a->last_write = 0;
+
 		/* update the toggle bit */
 		if (test_bit(AF_COMM_LIST_TOGGLE, &a->flags))
+		{
 			clear_bit(AF_COMM_LIST_TOGGLE, &a->flags);
+		}
 		else
+		{
 			set_bit(AF_COMM_LIST_TOGGLE, &a->flags);
+		}
 	}
 
 	element =
@@ -162,7 +189,9 @@ void esas2r_start_vda_request(struct esas2r_adapter *a,
 
 	/* Set the VDA request size if it was never modified */
 	if (rq->vda_req_sz == RQ_SIZE_DEFAULT)
+	{
 		rq->vda_req_sz = (u16)(a->max_vdareq_size / sizeof(u32));
+	}
 
 	element->address = cpu_to_le64(rq->vrq_md->phys_addr);
 	element->length = cpu_to_le32(rq->vda_req_sz);
@@ -171,7 +200,9 @@ void esas2r_start_vda_request(struct esas2r_adapter *a,
 	dw = a->last_write;
 
 	if (test_bit(AF_COMM_LIST_TOGGLE, &a->flags))
+	{
 		dw |= MU_ILW_TOGGLE;
+	}
 
 	esas2r_trace("rq->vrq->scsi.handle:%x", rq->vrq->scsi.handle);
 	esas2r_trace("dw:%x", dw);
@@ -185,12 +216,13 @@ void esas2r_start_vda_request(struct esas2r_adapter *a,
  * context prior to the initial call by calling esas2r_sgc_init().
  */
 bool esas2r_build_sg_list_sge(struct esas2r_adapter *a,
-			      struct esas2r_sg_context *sgc)
+							  struct esas2r_sg_context *sgc)
 {
 	struct esas2r_request *rq = sgc->first_req;
 	union atto_vda_req *vrq = rq->vrq;
 
-	while (sgc->length) {
+	while (sgc->length)
+	{
 		u32 rem = 0;
 		u64 addr;
 		u32 len;
@@ -198,15 +230,21 @@ bool esas2r_build_sg_list_sge(struct esas2r_adapter *a,
 		len = (*sgc->get_phys_addr)(sgc, &addr);
 
 		if (unlikely(len == 0))
+		{
 			return false;
+		}
 
 		/* if current length is more than what's left, stop there */
 		if (unlikely(len > sgc->length))
+		{
 			len = sgc->length;
+		}
 
 another_entry:
+
 		/* limit to a round number less than the maximum length */
-		if (len > SGE_LEN_MAX) {
+		if (len > SGE_LEN_MAX)
+		{
 			/*
 			 * Save the remainder of the split.  Whenever we limit
 			 * an entry we come back around to build entries out
@@ -219,7 +257,8 @@ another_entry:
 		}
 
 		/* See if we need to allocate a new SGL */
-		if (unlikely(sgc->sge.a64.curr > sgc->sge.a64.limit)) {
+		if (unlikely(sgc->sge.a64.curr > sgc->sge.a64.limit))
+		{
 			u8 sgelen;
 			struct esas2r_mem_desc *sgl;
 
@@ -231,11 +270,13 @@ another_entry:
 			sgl = esas2r_alloc_sgl(a);
 
 			if (unlikely(sgl == NULL))
+			{
 				return false;
+			}
 
 			/* Calculate the length of the last SGE filled in */
 			sgelen = (u8)((u8 *)sgc->sge.a64.curr
-				      - (u8 *)sgc->sge.a64.last);
+						  - (u8 *)sgc->sge.a64.last);
 
 			/*
 			 * Copy the last SGE filled in to the first entry of
@@ -246,16 +287,16 @@ another_entry:
 			/* Figure out the new curr pointer in the new segment */
 			sgc->sge.a64.curr =
 				(struct atto_vda_sge *)((u8 *)sgl->virt_addr +
-							sgelen);
+										sgelen);
 
 			/* Set the limit pointer and build the chain entry */
 			sgc->sge.a64.limit =
 				(struct atto_vda_sge *)((u8 *)sgl->virt_addr
-							+ sgl_page_size
-							- sizeof(struct
-								 atto_vda_sge));
+										+ sgl_page_size
+										- sizeof(struct
+												 atto_vda_sge));
 			sgc->sge.a64.last->length = cpu_to_le32(
-				SGE_CHAIN | SGE_ADDR_64);
+											SGE_CHAIN | SGE_ADDR_64);
 			sgc->sge.a64.last->address =
 				cpu_to_le64(sgl->phys_addr);
 
@@ -265,20 +306,23 @@ another_entry:
 			 * and size of this chain.  otherwise this is the
 			 * first SGL, so set the chain_offset in the request.
 			 */
-			if (sgc->sge.a64.chain) {
+			if (sgc->sge.a64.chain)
+			{
 				sgc->sge.a64.chain->length |=
 					cpu_to_le32(
 						((u8 *)(sgc->sge.a64.
-							last + 1)
+								last + 1)
 						 - (u8 *)rq->sg_table->
 						 virt_addr)
 						+ sizeof(struct atto_vda_sge) *
 						LOBIT(SGE_CHAIN_SZ));
-			} else {
+			}
+			else
+			{
 				vrq->scsi.chain_offset = (u8)
-							 ((u8 *)sgc->
-							  sge.a64.last -
-							  (u8 *)vrq);
+										 ((u8 *)sgc->
+										  sge.a64.last -
+										  (u8 *)vrq);
 
 				/*
 				 * This is the first SGL, so set the
@@ -316,7 +360,8 @@ another_entry:
 		 * Check if we previously split an entry.  If so we have to
 		 * pick up where we left off.
 		 */
-		if (rem) {
+		if (rem)
+		{
 			addr += len;
 			len = rem;
 			rem = 0;
@@ -331,11 +376,14 @@ another_entry:
 	 * If there was a previous chain entry, update the length to indicate
 	 * the length of this last segment.
 	 */
-	if (sgc->sge.a64.chain) {
+	if (sgc->sge.a64.chain)
+	{
 		sgc->sge.a64.chain->length |= cpu_to_le32(
-			((u8 *)(sgc->sge.a64.curr) -
-			 (u8 *)rq->sg_table->virt_addr));
-	} else {
+										  ((u8 *)(sgc->sge.a64.curr) -
+										   (u8 *)rq->sg_table->virt_addr));
+	}
+	else
+	{
 		u16 reqsize;
 
 		/*
@@ -352,8 +400,11 @@ another_entry:
 		 * commands.
 		 */
 		if (reqsize > rq->vda_req_sz)
+		{
 			rq->vda_req_sz = reqsize;
+		}
 	}
+
 	return true;
 }
 
@@ -368,7 +419,7 @@ another_entry:
  * I-block and the remaining I-blocks are what remeains.
  */
 static bool esas2r_build_prd_iblk(struct esas2r_adapter *a,
-				  struct esas2r_sg_context *sgc)
+								  struct esas2r_sg_context *sgc)
 {
 	struct esas2r_request *rq = sgc->first_req;
 	u64 addr;
@@ -377,23 +428,29 @@ static bool esas2r_build_prd_iblk(struct esas2r_adapter *a,
 	u32 numchain = 1;
 	u32 rem = 0;
 
-	while (sgc->length) {
+	while (sgc->length)
+	{
 		/* Get the next address/length pair */
 
 		len = (*sgc->get_phys_addr)(sgc, &addr);
 
 		if (unlikely(len == 0))
+		{
 			return false;
+		}
 
 		/* If current length is more than what's left, stop there */
 
 		if (unlikely(len > sgc->length))
+		{
 			len = sgc->length;
+		}
 
 another_entry:
 		/* Limit to a round number less than the maximum length */
 
-		if (len > PRD_LEN_MAX) {
+		if (len > PRD_LEN_MAX)
+		{
 			/*
 			 * Save the remainder of the split.  whenever we limit
 			 * an entry we come back around to build entries out
@@ -406,8 +463,10 @@ another_entry:
 		}
 
 		/* See if we need to allocate a new SGL */
-		if (sgc->sge.prd.sge_cnt == 0) {
-			if (len == sgc->length) {
+		if (sgc->sge.prd.sge_cnt == 0)
+		{
+			if (len == sgc->length)
+			{
 				/*
 				 * We only have 1 PRD entry left.
 				 * It can be placed where the chain
@@ -416,7 +475,7 @@ another_entry:
 
 				/* Build the simple SGE */
 				sgc->sge.prd.curr->ctl_len = cpu_to_le32(
-					PRD_DATA | len);
+												 PRD_DATA | len);
 				sgc->sge.prd.curr->address = cpu_to_le64(addr);
 
 				/* Adjust length related fields */
@@ -429,7 +488,8 @@ another_entry:
 				break;
 			}
 
-			if (sgc->sge.prd.chain) {
+			if (sgc->sge.prd.chain)
+			{
 				/*
 				 * Fill # of entries of current SGL in previous
 				 * chain the length of this current SGL may not
@@ -437,7 +497,7 @@ another_entry:
 				 */
 
 				sgc->sge.prd.chain->ctl_len |= cpu_to_le32(
-					sgc->sge.prd.sgl_max_cnt);
+												   sgc->sge.prd.sgl_max_cnt);
 			}
 
 			/*
@@ -449,7 +509,9 @@ another_entry:
 			sgl = esas2r_alloc_sgl(a);
 
 			if (unlikely(sgl == NULL))
+			{
 				return false;
+			}
 
 			/*
 			 * Link the new SGL onto the chain
@@ -501,7 +563,8 @@ another_entry:
 		 * pick up where we left off.
 		 */
 
-		if (rem) {
+		if (rem)
+		{
 			addr += len;
 			len = rem;
 			rem = 0;
@@ -509,12 +572,14 @@ another_entry:
 		}
 	}
 
-	if (!list_empty(&rq->sg_table_head)) {
-		if (sgc->sge.prd.chain) {
+	if (!list_empty(&rq->sg_table_head))
+	{
+		if (sgc->sge.prd.chain)
+		{
 			sgc->sge.prd.chain->ctl_len |=
 				cpu_to_le32(sgc->sge.prd.sgl_max_cnt
-					    - sgc->sge.prd.sge_cnt
-					    - numchain);
+							- sgc->sge.prd.sge_cnt
+							- numchain);
 		}
 	}
 
@@ -522,7 +587,7 @@ another_entry:
 }
 
 bool esas2r_build_sg_list_prd(struct esas2r_adapter *a,
-			      struct esas2r_sg_context *sgc)
+							  struct esas2r_sg_context *sgc)
 {
 	struct esas2r_request *rq = sgc->first_req;
 	u32 len = sgc->length;
@@ -538,73 +603,84 @@ bool esas2r_build_sg_list_prd(struct esas2r_adapter *a,
 	 */
 
 	if (rq->vrq->scsi.function == VDA_FUNC_SCSI
-	    && t->target_state == TS_PRESENT
-	    && !(t->flags & TF_PASS_THRU)) {
+		&& t->target_state == TS_PRESENT
+		&& !(t->flags & TF_PASS_THRU))
+	{
 		u32 lbalo = 0;
 
-		switch (rq->vrq->scsi.cdb[0]) {
-		case    READ_16:
-		case    WRITE_16:
+		switch (rq->vrq->scsi.cdb[0])
 		{
-			lbalo =
-				MAKEDWORD(MAKEWORD(cdb[9],
-						   cdb[8]),
-					  MAKEWORD(cdb[7],
-						   cdb[6]));
-			is_i_o = 1;
-			break;
+			case    READ_16:
+			case    WRITE_16:
+				{
+					lbalo =
+						MAKEDWORD(MAKEWORD(cdb[9],
+										   cdb[8]),
+								  MAKEWORD(cdb[7],
+										   cdb[6]));
+					is_i_o = 1;
+					break;
+				}
+
+			case    READ_12:
+			case    WRITE_12:
+			case    READ_10:
+			case    WRITE_10:
+				{
+					lbalo =
+						MAKEDWORD(MAKEWORD(cdb[5],
+										   cdb[4]),
+								  MAKEWORD(cdb[3],
+										   cdb[2]));
+					is_i_o = 1;
+					break;
+				}
+
+			case    READ_6:
+			case    WRITE_6:
+				{
+					lbalo =
+						MAKEDWORD(MAKEWORD(cdb[3],
+										   cdb[2]),
+								  MAKEWORD(cdb[1] & 0x1F,
+										   0));
+					is_i_o = 1;
+					break;
+				}
+
+			default:
+				break;
 		}
 
-		case    READ_12:
-		case    WRITE_12:
-		case    READ_10:
-		case    WRITE_10:
+		if (is_i_o)
 		{
-			lbalo =
-				MAKEDWORD(MAKEWORD(cdb[5],
-						   cdb[4]),
-					  MAKEWORD(cdb[3],
-						   cdb[2]));
-			is_i_o = 1;
-			break;
-		}
-
-		case    READ_6:
-		case    WRITE_6:
-		{
-			lbalo =
-				MAKEDWORD(MAKEWORD(cdb[3],
-						   cdb[2]),
-					  MAKEWORD(cdb[1] & 0x1F,
-						   0));
-			is_i_o = 1;
-			break;
-		}
-
-		default:
-			break;
-		}
-
-		if (is_i_o) {
 			u32 startlba;
 
 			rq->vrq->scsi.iblk_cnt_prd = 0;
 
 			/* Determine size of 1st I-block PRD list       */
 			startlba = t->inter_block - (lbalo & (t->inter_block -
-							      1));
+												  1));
 			sgc->length = startlba * t->block_size;
 
 			/* Chk if the 1st iblk chain starts at base of Iblock */
 			if ((lbalo & (t->inter_block - 1)) == 0)
+			{
 				rq->flags |= RF_1ST_IBLK_BASE;
+			}
 
 			if (sgc->length > len)
+			{
 				sgc->length = len;
-		} else {
+			}
+		}
+		else
+		{
 			sgc->length = len;
 		}
-	} else {
+	}
+	else
+	{
 		sgc->length = len;
 	}
 
@@ -614,12 +690,13 @@ bool esas2r_build_sg_list_prd(struct esas2r_adapter *a,
 		(struct atto_physical_region_description *)sgc->sge.a64.curr;
 
 	sgc->sge.prd.sgl_max_cnt = sgl_page_size /
-				   sizeof(struct
-					  atto_physical_region_description);
+							   sizeof(struct
+									  atto_physical_region_description);
 
 	/* create all of the I-block PRD lists          */
 
-	while (len) {
+	while (len)
+	{
 		sgc->sge.prd.sge_cnt = 0;
 		sgc->sge.prd.chain = NULL;
 		sgc->sge.prd.curr = curr_iblk_chn;
@@ -631,24 +708,31 @@ bool esas2r_build_sg_list_prd(struct esas2r_adapter *a,
 		/* go build the next I-Block PRD list   */
 
 		if (unlikely(!esas2r_build_prd_iblk(a, sgc)))
+		{
 			return false;
+		}
 
 		curr_iblk_chn++;
 
-		if (is_i_o) {
+		if (is_i_o)
+		{
 			rq->vrq->scsi.iblk_cnt_prd++;
 
 			if (len > t->inter_byte)
+			{
 				sgc->length = t->inter_byte;
+			}
 			else
+			{
 				sgc->length = len;
+			}
 		}
 	}
 
 	/* figure out the size used of the VDA request */
 
 	reqsize = ((u16)((u8 *)curr_iblk_chn - (u8 *)rq->vrq))
-		  / sizeof(u32);
+			  / sizeof(u32);
 
 	/*
 	 * only update the request size if it is bigger than what is
@@ -657,7 +741,9 @@ bool esas2r_build_sg_list_prd(struct esas2r_adapter *a,
 	 */
 
 	if (reqsize > rq->vda_req_sz)
+	{
 		rq->vda_req_sz = reqsize;
+	}
 
 	return true;
 }
@@ -666,40 +752,55 @@ static void esas2r_handle_pending_reset(struct esas2r_adapter *a, u32 currtime)
 {
 	u32 delta = currtime - a->chip_init_time;
 
-	if (delta <= ESAS2R_CHPRST_WAIT_TIME) {
+	if (delta <= ESAS2R_CHPRST_WAIT_TIME)
+	{
 		/* Wait before accessing registers */
-	} else if (delta >= ESAS2R_CHPRST_TIME) {
+	}
+	else if (delta >= ESAS2R_CHPRST_TIME)
+	{
 		/*
 		 * The last reset failed so try again. Reset
 		 * processing will give up after three tries.
 		 */
 		esas2r_local_reset_adapter(a);
-	} else {
+	}
+	else
+	{
 		/* We can now see if the firmware is ready */
 		u32 doorbell;
 
 		doorbell = esas2r_read_register_dword(a, MU_DOORBELL_OUT);
-		if (doorbell == 0xFFFFFFFF || !(doorbell & DRBL_FORCE_INT)) {
+
+		if (doorbell == 0xFFFFFFFF || !(doorbell & DRBL_FORCE_INT))
+		{
 			esas2r_force_interrupt(a);
-		} else {
+		}
+		else
+		{
 			u32 ver = (doorbell & DRBL_FW_VER_MSK);
 
 			/* Driver supports API version 0 and 1 */
 			esas2r_write_register_dword(a, MU_DOORBELL_OUT,
-						    doorbell);
-			if (ver == DRBL_FW_VER_0) {
+										doorbell);
+
+			if (ver == DRBL_FW_VER_0)
+			{
 				set_bit(AF_CHPRST_DETECTED, &a->flags);
 				set_bit(AF_LEGACY_SGE_MODE, &a->flags);
 
 				a->max_vdareq_size = 128;
 				a->build_sgl = esas2r_build_sg_list_sge;
-			} else if (ver == DRBL_FW_VER_1) {
+			}
+			else if (ver == DRBL_FW_VER_1)
+			{
 				set_bit(AF_CHPRST_DETECTED, &a->flags);
 				clear_bit(AF_LEGACY_SGE_MODE, &a->flags);
 
 				a->max_vdareq_size = 1024;
 				a->build_sgl = esas2r_build_sg_list_prd;
-			} else {
+			}
+			else
+			{
 				esas2r_local_reset_adapter(a);
 			}
 		}
@@ -717,33 +818,51 @@ void esas2r_timer_tick(struct esas2r_adapter *a)
 
 	/* count down the uptime */
 	if (a->chip_uptime &&
-	    !test_bit(AF_CHPRST_PENDING, &a->flags) &&
-	    !test_bit(AF_DISC_PENDING, &a->flags)) {
+		!test_bit(AF_CHPRST_PENDING, &a->flags) &&
+		!test_bit(AF_DISC_PENDING, &a->flags))
+	{
 		if (deltatime >= a->chip_uptime)
+		{
 			a->chip_uptime = 0;
+		}
 		else
+		{
 			a->chip_uptime -= deltatime;
+		}
 	}
 
-	if (test_bit(AF_CHPRST_PENDING, &a->flags)) {
+	if (test_bit(AF_CHPRST_PENDING, &a->flags))
+	{
 		if (!test_bit(AF_CHPRST_NEEDED, &a->flags) &&
-		    !test_bit(AF_CHPRST_DETECTED, &a->flags))
+			!test_bit(AF_CHPRST_DETECTED, &a->flags))
+		{
 			esas2r_handle_pending_reset(a, currtime);
-	} else {
+		}
+	}
+	else
+	{
 		if (test_bit(AF_DISC_PENDING, &a->flags))
+		{
 			esas2r_disc_check_complete(a);
-		if (test_bit(AF_HEARTBEAT_ENB, &a->flags)) {
-			if (test_bit(AF_HEARTBEAT, &a->flags)) {
+		}
+
+		if (test_bit(AF_HEARTBEAT_ENB, &a->flags))
+		{
+			if (test_bit(AF_HEARTBEAT, &a->flags))
+			{
 				if ((currtime - a->heartbeat_time) >=
-				    ESAS2R_HEARTBEAT_TIME) {
+					ESAS2R_HEARTBEAT_TIME)
+				{
 					clear_bit(AF_HEARTBEAT, &a->flags);
 					esas2r_hdebug("heartbeat failed");
 					esas2r_log(ESAS2R_LOG_CRIT,
-						   "heartbeat failed");
+							   "heartbeat failed");
 					esas2r_bugon();
 					esas2r_local_reset_adapter(a);
 				}
-			} else {
+			}
+			else
+			{
 				set_bit(AF_HEARTBEAT, &a->flags);
 				a->heartbeat_time = currtime;
 				esas2r_force_interrupt(a);
@@ -752,7 +871,9 @@ void esas2r_timer_tick(struct esas2r_adapter *a)
 	}
 
 	if (atomic_read(&a->disable_cnt) == 0)
+	{
 		esas2r_do_deferred_processes(a);
+	}
 }
 
 /*
@@ -762,7 +883,7 @@ void esas2r_timer_tick(struct esas2r_adapter *a)
  * by the task management function.
  */
 bool esas2r_send_task_mgmt(struct esas2r_adapter *a,
-			   struct esas2r_request *rqaux, u8 task_mgt_func)
+						   struct esas2r_request *rqaux, u8 task_mgt_func)
 {
 	u16 targetid = rqaux->target_id;
 	u8 lun = (u8)le32_to_cpu(rqaux->vrq->scsi.flags);
@@ -779,22 +900,25 @@ bool esas2r_send_task_mgmt(struct esas2r_adapter *a,
 	spin_lock_irqsave(&a->queue_lock, flags);
 
 	/* search the defer queue looking for requests for the device */
-	list_for_each_safe(element, next, &a->defer_list) {
+	list_for_each_safe(element, next, &a->defer_list)
+	{
 		rq = list_entry(element, struct esas2r_request, req_list);
 
 		if (rq->vrq->scsi.function == VDA_FUNC_SCSI
-		    && rq->target_id == targetid
-		    && (((u8)le32_to_cpu(rq->vrq->scsi.flags)) == lun
-			|| task_mgt_func == 0x20)) { /* target reset */
+			&& rq->target_id == targetid
+			&& (((u8)le32_to_cpu(rq->vrq->scsi.flags)) == lun
+				|| task_mgt_func == 0x20))   /* target reset */
+		{
 			/* Found a request affected by the task management */
-			if (rq->req_stat == RS_PENDING) {
+			if (rq->req_stat == RS_PENDING)
+			{
 				/*
 				 * The request is pending or waiting.  We can
 				 * safelycomplete the request now.
 				 */
 				if (esas2r_ioreq_aborted(a, rq, RS_ABORTED))
 					list_add_tail(&rq->comp_list,
-						      &comp_list);
+								  &comp_list);
 			}
 		}
 	}
@@ -808,18 +932,23 @@ bool esas2r_send_task_mgmt(struct esas2r_adapter *a,
 	rqaux->vrq->scsi.flags |=
 		cpu_to_le16(task_mgt_func * LOBIT(FCP_CMND_TM_MASK));
 
-	if (test_bit(AF_FLASHING, &a->flags)) {
+	if (test_bit(AF_FLASHING, &a->flags))
+	{
 		/* Assume success.  if there are active requests, return busy */
 		rqaux->req_stat = RS_SUCCESS;
 
-		list_for_each_safe(element, next, &a->active_list) {
+		list_for_each_safe(element, next, &a->active_list)
+		{
 			rq = list_entry(element, struct esas2r_request,
-					req_list);
+							req_list);
+
 			if (rq->vrq->scsi.function == VDA_FUNC_SCSI
-			    && rq->target_id == targetid
-			    && (((u8)le32_to_cpu(rq->vrq->scsi.flags)) == lun
-				|| task_mgt_func == 0x20))  /* target reset */
+				&& rq->target_id == targetid
+				&& (((u8)le32_to_cpu(rq->vrq->scsi.flags)) == lun
+					|| task_mgt_func == 0x20))  /* target reset */
+			{
 				rqaux->req_stat = RS_BUSY;
+			}
 		}
 
 		ret = true;
@@ -828,12 +957,16 @@ bool esas2r_send_task_mgmt(struct esas2r_adapter *a,
 	spin_unlock_irqrestore(&a->queue_lock, flags);
 
 	if (!test_bit(AF_FLASHING, &a->flags))
+	{
 		esas2r_start_request(a, rqaux);
+	}
 
 	esas2r_comp_list_drain(a, &comp_list);
 
 	if (atomic_read(&a->disable_cnt) == 0)
+	{
 		esas2r_do_deferred_processes(a);
+	}
 
 	esas2r_trace_exit();
 
@@ -845,8 +978,9 @@ void esas2r_reset_bus(struct esas2r_adapter *a)
 	esas2r_log(ESAS2R_LOG_INFO, "performing a bus reset");
 
 	if (!test_bit(AF_DEGRADED_MODE, &a->flags) &&
-	    !test_bit(AF_CHPRST_PENDING, &a->flags) &&
-	    !test_bit(AF_DISC_PENDING, &a->flags)) {
+		!test_bit(AF_CHPRST_PENDING, &a->flags) &&
+		!test_bit(AF_DISC_PENDING, &a->flags))
+	{
 		set_bit(AF_BUSRST_NEEDED, &a->flags);
 		set_bit(AF_BUSRST_PENDING, &a->flags);
 		set_bit(AF_OS_RESET, &a->flags);
@@ -856,12 +990,14 @@ void esas2r_reset_bus(struct esas2r_adapter *a)
 }
 
 bool esas2r_ioreq_aborted(struct esas2r_adapter *a, struct esas2r_request *rq,
-			  u8 status)
+						  u8 status)
 {
 	esas2r_trace_enter();
 	esas2r_trace("rq:%p", rq);
 	list_del_init(&rq->req_list);
-	if (rq->timeout > RQ_MAX_TIMEOUT) {
+
+	if (rq->timeout > RQ_MAX_TIMEOUT)
+	{
 		/*
 		 * The request timed out, but we could not abort it because a
 		 * chip reset occurred.  Return busy status.

@@ -28,11 +28,17 @@ static void *add_entries_fn(void *arg)
 {
 	int pgoff;
 
-	while (!test_complete) {
-		for (pgoff = 0; pgoff < 100; pgoff++) {
+	while (!test_complete)
+	{
+		for (pgoff = 0; pgoff < 100; pgoff++)
+		{
 			pthread_mutex_lock(&tree_lock);
+
 			if (item_insert(&tree, pgoff) == 0)
+			{
 				item_tag_set(&tree, pgoff, TAG);
+			}
+
 			pthread_mutex_unlock(&tree_lock);
 		}
 	}
@@ -52,9 +58,11 @@ static void *tagged_iteration_fn(void *arg)
 	struct radix_tree_iter iter;
 	void **slot;
 
-	while (!test_complete) {
+	while (!test_complete)
+	{
 		rcu_read_lock();
-		radix_tree_for_each_tagged(slot, &tree, &iter, 0, TAG) {
+		radix_tree_for_each_tagged(slot, &tree, &iter, 0, TAG)
+		{
 			void *entry;
 			int i;
 
@@ -63,16 +71,22 @@ static void *tagged_iteration_fn(void *arg)
 				;
 
 			entry = radix_tree_deref_slot(slot);
-			if (unlikely(!entry))
-				continue;
 
-			if (radix_tree_deref_retry(entry)) {
+			if (unlikely(!entry))
+			{
+				continue;
+			}
+
+			if (radix_tree_deref_retry(entry))
+			{
 				slot = radix_tree_iter_retry(&iter);
 				continue;
 			}
 
 			if (rand() % 50 == 0)
+			{
 				slot = radix_tree_iter_next(&iter);
+			}
 		}
 		rcu_read_unlock();
 	}
@@ -92,9 +106,11 @@ static void *untagged_iteration_fn(void *arg)
 	struct radix_tree_iter iter;
 	void **slot;
 
-	while (!test_complete) {
+	while (!test_complete)
+	{
 		rcu_read_lock();
-		radix_tree_for_each_slot(slot, &tree, &iter, 0) {
+		radix_tree_for_each_slot(slot, &tree, &iter, 0)
+		{
 			void *entry;
 			int i;
 
@@ -103,16 +119,22 @@ static void *untagged_iteration_fn(void *arg)
 				;
 
 			entry = radix_tree_deref_slot(slot);
-			if (unlikely(!entry))
-				continue;
 
-			if (radix_tree_deref_retry(entry)) {
+			if (unlikely(!entry))
+			{
+				continue;
+			}
+
+			if (radix_tree_deref_retry(entry))
+			{
 				slot = radix_tree_iter_retry(&iter);
 				continue;
 			}
 
 			if (rand() % 50 == 0)
+			{
 				slot = radix_tree_iter_next(&iter);
+			}
 		}
 		rcu_read_unlock();
 	}
@@ -126,7 +148,8 @@ static void *untagged_iteration_fn(void *arg)
  */
 static void *remove_entries_fn(void *arg)
 {
-	while (!test_complete) {
+	while (!test_complete)
+	{
 		int pgoff;
 
 		pgoff = rand() % 100;
@@ -149,19 +172,26 @@ void iteration_test(void)
 	srand(time(0));
 	test_complete = false;
 
-	if (pthread_create(&threads[0], NULL, tagged_iteration_fn, NULL)) {
+	if (pthread_create(&threads[0], NULL, tagged_iteration_fn, NULL))
+	{
 		perror("pthread_create");
 		exit(1);
 	}
-	if (pthread_create(&threads[1], NULL, untagged_iteration_fn, NULL)) {
+
+	if (pthread_create(&threads[1], NULL, untagged_iteration_fn, NULL))
+	{
 		perror("pthread_create");
 		exit(1);
 	}
-	if (pthread_create(&threads[2], NULL, add_entries_fn, NULL)) {
+
+	if (pthread_create(&threads[2], NULL, add_entries_fn, NULL))
+	{
 		perror("pthread_create");
 		exit(1);
 	}
-	if (pthread_create(&threads[3], NULL, remove_entries_fn, NULL)) {
+
+	if (pthread_create(&threads[3], NULL, remove_entries_fn, NULL))
+	{
 		perror("pthread_create");
 		exit(1);
 	}
@@ -169,8 +199,10 @@ void iteration_test(void)
 	sleep(10);
 	test_complete = true;
 
-	for (i = 0; i < NUM_THREADS; i++) {
-		if (pthread_join(threads[i], NULL)) {
+	for (i = 0; i < NUM_THREADS; i++)
+	{
+		if (pthread_join(threads[i], NULL))
+		{
 			perror("pthread_join");
 			exit(1);
 		}

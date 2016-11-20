@@ -28,7 +28,8 @@
 /*
  *	extent allocation descriptor (xad)
  */
-typedef struct xad {
+typedef struct xad
+{
 	__u8 flag;	/* 1: flag */
 	__u8 rsvrd[2];	/* 2: reserved */
 	__u8 off1;	/* 1: offset in unit of fsblksize */
@@ -43,10 +44,10 @@ typedef struct xad {
 
 /* xad_t field construction */
 #define XADoffset(xad, offset64)\
-{\
-	(xad)->off1 = ((u64)offset64) >> 32;\
-	(xad)->off2 = __cpu_to_le32((offset64) & 0xffffffff);\
-}
+	{\
+		(xad)->off1 = ((u64)offset64) >> 32;\
+		(xad)->off2 = __cpu_to_le32((offset64) & 0xffffffff);\
+	}
 #define XADaddress(xad, address64) PXDaddress(&(xad)->loc, address64)
 #define XADlength(xad, length32) PXDlength(&(xad)->loc, length32)
 
@@ -57,7 +58,8 @@ typedef struct xad {
 #define lengthXAD(xad) lengthPXD(&(xad)->loc)
 
 /* xad list */
-struct xadlist {
+struct xadlist
+{
 	s16 maxnxad;
 	s16 nxad;
 	xad_t *xad;
@@ -81,8 +83,10 @@ struct xadlist {
 /*
  *	xtree page:
  */
-typedef union {
-	struct xtheader {
+typedef union
+{
+	struct xtheader
+	{
 		__le64 next;	/* 8: */
 		__le64 prev;	/* 8: */
 
@@ -102,24 +106,24 @@ typedef union {
  *	external declaration
  */
 extern int xtLookup(struct inode *ip, s64 lstart, s64 llen,
-		    int *pflag, s64 * paddr, int *plen, int flag);
+					int *pflag, s64 *paddr, int *plen, int flag);
 extern void xtInitRoot(tid_t tid, struct inode *ip);
 extern int xtInsert(tid_t tid, struct inode *ip,
-		    int xflag, s64 xoff, int xlen, s64 * xaddrp, int flag);
+					int xflag, s64 xoff, int xlen, s64 *xaddrp, int flag);
 extern int xtExtend(tid_t tid, struct inode *ip, s64 xoff, int xlen,
-		    int flag);
+					int flag);
 #ifdef _NOTYET
 extern int xtTailgate(tid_t tid, struct inode *ip,
-		      s64 xoff, int xlen, s64 xaddr, int flag);
+					  s64 xoff, int xlen, s64 xaddr, int flag);
 #endif
 extern int xtUpdate(tid_t tid, struct inode *ip, struct xad *nxad);
 extern int xtDelete(tid_t tid, struct inode *ip, s64 xoff, int xlen,
-		    int flag);
+					int flag);
 extern s64 xtTruncate(tid_t tid, struct inode *ip, s64 newsize, int type);
 extern s64 xtTruncate_pmap(tid_t tid, struct inode *ip, s64 committed_size);
 extern int xtRelocate(tid_t tid, struct inode *ip,
-		      xad_t * oxad, s64 nxaddr, int xtype);
+					  xad_t *oxad, s64 nxaddr, int xtype);
 extern int xtAppend(tid_t tid,
-		    struct inode *ip, int xflag, s64 xoff, int maxblocks,
-		    int *xlenp, s64 * xaddrp, int flag);
+					struct inode *ip, int xflag, s64 xoff, int maxblocks,
+					int *xlenp, s64 *xaddrp, int flag);
 #endif				/* !_H_JFS_XTREE */

@@ -37,7 +37,8 @@
  * @chip: the abstract pwm_chip structure.
  * @regmap: the regmap from the parent device.
  */
-struct crystalcove_pwm {
+struct crystalcove_pwm
+{
 	struct pwm_chip chip;
 	struct regmap *regmap;
 };
@@ -64,18 +65,20 @@ static void crc_pwm_disable(struct pwm_chip *c, struct pwm_device *pwm)
 }
 
 static int crc_pwm_config(struct pwm_chip *c, struct pwm_device *pwm,
-			  int duty_ns, int period_ns)
+						  int duty_ns, int period_ns)
 {
 	struct crystalcove_pwm *crc_pwm = to_crc_pwm(c);
 	struct device *dev = crc_pwm->chip.dev;
 	int level;
 
-	if (period_ns > PWM_MAX_PERIOD_NS) {
+	if (period_ns > PWM_MAX_PERIOD_NS)
+	{
 		dev_err(dev, "un-supported period_ns\n");
 		return -EINVAL;
 	}
 
-	if (pwm_get_period(pwm) != period_ns) {
+	if (pwm_get_period(pwm) != period_ns)
+	{
 		int clk_div;
 
 		/* changing the clk divisor, need to disable fisrt */
@@ -83,7 +86,7 @@ static int crc_pwm_config(struct pwm_chip *c, struct pwm_device *pwm,
 		clk_div = PWM_BASE_CLK * period_ns / NSEC_PER_SEC;
 
 		regmap_write(crc_pwm->regmap, PWM0_CLK_DIV,
-					clk_div | PWM_OUTPUT_ENABLE);
+					 clk_div | PWM_OUTPUT_ENABLE);
 
 		/* enable back */
 		crc_pwm_enable(c, pwm);
@@ -96,7 +99,8 @@ static int crc_pwm_config(struct pwm_chip *c, struct pwm_device *pwm,
 	return 0;
 }
 
-static const struct pwm_ops crc_pwm_ops = {
+static const struct pwm_ops crc_pwm_ops =
+{
 	.config = crc_pwm_config,
 	.enable = crc_pwm_enable,
 	.disable = crc_pwm_disable,
@@ -109,8 +113,11 @@ static int crystalcove_pwm_probe(struct platform_device *pdev)
 	struct intel_soc_pmic *pmic = dev_get_drvdata(dev);
 
 	pwm = devm_kzalloc(&pdev->dev, sizeof(*pwm), GFP_KERNEL);
+
 	if (!pwm)
+	{
 		return -ENOMEM;
+	}
 
 	pwm->chip.dev = &pdev->dev;
 	pwm->chip.ops = &crc_pwm_ops;
@@ -132,7 +139,8 @@ static int crystalcove_pwm_remove(struct platform_device *pdev)
 	return pwmchip_remove(&pwm->chip);
 }
 
-static struct platform_driver crystalcove_pwm_driver = {
+static struct platform_driver crystalcove_pwm_driver =
+{
 	.probe = crystalcove_pwm_probe,
 	.remove = crystalcove_pwm_remove,
 	.driver = {

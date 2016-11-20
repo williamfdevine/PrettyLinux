@@ -12,7 +12,8 @@ static void __net_init __xfrm_sysctl_init(struct net *net)
 }
 
 #ifdef CONFIG_SYSCTL
-static struct ctl_table xfrm_table[] = {
+static struct ctl_table xfrm_table[] =
+{
 	{
 		.procname	= "xfrm_aevent_etime",
 		.maxlen		= sizeof(u32),
@@ -47,8 +48,12 @@ int __net_init xfrm_sysctl_init(struct net *net)
 	__xfrm_sysctl_init(net);
 
 	table = kmemdup(xfrm_table, sizeof(xfrm_table), GFP_KERNEL);
+
 	if (!table)
+	{
 		goto out_kmemdup;
+	}
+
 	table[0].data = &net->xfrm.sysctl_aevent_etime;
 	table[1].data = &net->xfrm.sysctl_aevent_rseqth;
 	table[2].data = &net->xfrm.sysctl_larval_drop;
@@ -56,11 +61,17 @@ int __net_init xfrm_sysctl_init(struct net *net)
 
 	/* Don't export sysctls to unprivileged users */
 	if (net->user_ns != &init_user_ns)
+	{
 		table[0].procname = NULL;
+	}
 
 	net->xfrm.sysctl_hdr = register_net_sysctl(net, "net/core", table);
+
 	if (!net->xfrm.sysctl_hdr)
+	{
 		goto out_register;
+	}
+
 	return 0;
 
 out_register:

@@ -21,7 +21,8 @@
 #define PFN_SIG "NVDIMM_PFN_INFO\0"
 #define DAX_SIG "NVDIMM_DAX_INFO\0"
 
-struct nd_pfn_sb {
+struct nd_pfn_sb
+{
 	u8 signature[PFN_SIG_LEN];
 	u8 uuid[16];
 	u8 parent_uuid[16];
@@ -41,15 +42,15 @@ struct nd_pfn_sb {
 };
 
 #ifdef CONFIG_SPARSEMEM
-#define PFN_SECTION_ALIGN_DOWN(x) SECTION_ALIGN_DOWN(x)
-#define PFN_SECTION_ALIGN_UP(x) SECTION_ALIGN_UP(x)
+	#define PFN_SECTION_ALIGN_DOWN(x) SECTION_ALIGN_DOWN(x)
+	#define PFN_SECTION_ALIGN_UP(x) SECTION_ALIGN_UP(x)
 #else
-/*
- * In this case ZONE_DEVICE=n and we will disable 'pfn' device support,
- * but we still want pmem to compile.
- */
-#define PFN_SECTION_ALIGN_DOWN(x) (x)
-#define PFN_SECTION_ALIGN_UP(x) (x)
+	/*
+	* In this case ZONE_DEVICE=n and we will disable 'pfn' device support,
+	* but we still want pmem to compile.
+	*/
+	#define PFN_SECTION_ALIGN_DOWN(x) (x)
+	#define PFN_SECTION_ALIGN_UP(x) (x)
 #endif
 
 #define PHYS_SECTION_ALIGN_DOWN(x) PFN_PHYS(PFN_SECTION_ALIGN_DOWN(PHYS_PFN(x)))

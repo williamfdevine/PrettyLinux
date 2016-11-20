@@ -25,12 +25,14 @@
 #define VMCI_RESOURCE_HASH_BITS         7
 #define VMCI_RESOURCE_HASH_BUCKETS      (1 << VMCI_RESOURCE_HASH_BITS)
 
-struct vmci_hash_table {
+struct vmci_hash_table
+{
 	spinlock_t lock;
 	struct hlist_head entries[VMCI_RESOURCE_HASH_BUCKETS];
 };
 
-static struct vmci_hash_table vmci_resource_table = {
+static struct vmci_hash_table vmci_resource_table =
+{
 	.lock = __SPIN_LOCK_UNLOCKED(vmci_resource_table.lock),
 };
 
@@ -43,20 +45,22 @@ static unsigned int vmci_resource_hash(struct vmci_handle handle)
  * Gets a resource (if one exists) matching given handle from the hash table.
  */
 static struct vmci_resource *vmci_resource_lookup(struct vmci_handle handle,
-						  enum vmci_resource_type type)
+		enum vmci_resource_type type)
 {
 	struct vmci_resource *r, *resource = NULL;
 	unsigned int idx = vmci_resource_hash(handle);
 
 	rcu_read_lock();
 	hlist_for_each_entry_rcu(r,
-				 &vmci_resource_table.entries[idx], node) {
+							 &vmci_resource_table.entries[idx], node)
+	{
 		u32 cid = r->handle.context;
 		u32 rid = r->handle.resource;
 
 		if (r->type == type &&
-		    rid == handle.resource &&
-		    (cid == handle.context || cid == VMCI_INVALID_ID)) {
+			rid == handle.resource &&
+			(cid == handle.context || cid == VMCI_INVALID_ID))
+		{
 			resource = r;
 			break;
 		}
@@ -73,7 +77,7 @@ static struct vmci_resource *vmci_resource_lookup(struct vmci_handle handle,
  * Returns VMCI resource id on success, VMCI_INVALID_ID on failure.
  */
 static u32 vmci_resource_find_id(u32 context_id,
-				 enum vmci_resource_type resource_type)
+								 enum vmci_resource_type resource_type)
 {
 	static u32 resource_id = VMCI_RESERVED_RESOURCE_ID_MAX + 1;
 	u32 old_rid = resource_id;
@@ -83,28 +87,35 @@ static u32 vmci_resource_find_id(u32 context_id,
 	 * Generate a unique resource ID.  Keep on trying until we wrap around
 	 * in the RID space.
 	 */
-	do {
+	do
+	{
 		struct vmci_handle handle;
 
 		current_rid = resource_id;
 		resource_id++;
-		if (unlikely(resource_id == VMCI_INVALID_ID)) {
+
+		if (unlikely(resource_id == VMCI_INVALID_ID))
+		{
 			/* Skip the reserved rids. */
 			resource_id = VMCI_RESERVED_RESOURCE_ID_MAX + 1;
 		}
 
 		handle = vmci_make_handle(context_id, current_rid);
+
 		if (!vmci_resource_lookup(handle, resource_type))
+		{
 			return current_rid;
-	} while (resource_id != old_rid);
+		}
+	}
+	while (resource_id != old_rid);
 
 	return VMCI_INVALID_ID;
 }
 
 
 int vmci_resource_add(struct vmci_resource *resource,
-		      enum vmci_resource_type resource_type,
-		      struct vmci_handle handle)
+					  enum vmci_resource_type resource_type,
+					  struct vmci_handle handle)
 
 {
 	unsigned int idx;
@@ -112,14 +123,19 @@ int vmci_resource_add(struct vmci_resource *resource,
 
 	spin_lock(&vmci_resource_table.lock);
 
-	if (handle.resource == VMCI_INVALID_ID) {
+	if (handle.resource == VMCI_INVALID_ID)
+	{
 		handle.resource = vmci_resource_find_id(handle.context,
-			resource_type);
-		if (handle.resource == VMCI_INVALID_ID) {
+												resource_type);
+
+		if (handle.resource == VMCI_INVALID_ID)
+		{
 			result = VMCI_ERROR_NO_HANDLE;
 			goto out;
 		}
-	} else if (vmci_resource_lookup(handle, resource_type)) {
+	}
+	else if (vmci_resource_lookup(handle, resource_type))
+	{
 		result = VMCI_ERROR_ALREADY_EXISTS;
 		goto out;
 	}
@@ -149,8 +165,10 @@ void vmci_resource_remove(struct vmci_resource *resource)
 	/* Remove resource from hash table. */
 	spin_lock(&vmci_resource_table.lock);
 
-	hlist_for_each_entry(r, &vmci_resource_table.entries[idx], node) {
-		if (vmci_handle_is_equal(r->handle, resource->handle)) {
+	hlist_for_each_entry(r, &vmci_resource_table.entries[idx], node)
+	{
+		if (vmci_handle_is_equal(r->handle, resource->handle))
+		{
 			hlist_del_init_rcu(&r->node);
 			break;
 		}
@@ -165,16 +183,18 @@ void vmci_resource_remove(struct vmci_resource *resource)
 
 struct vmci_resource *
 vmci_resource_by_handle(struct vmci_handle resource_handle,
-			enum vmci_resource_type resource_type)
+						enum vmci_resource_type resource_type)
 {
 	struct vmci_resource *r, *resource = NULL;
 
 	rcu_read_lock();
 
 	r = vmci_resource_lookup(resource_handle, resource_type);
+
 	if (r &&
-	    (resource_type == r->type ||
-	     resource_type == VMCI_RESOURCE_TYPE_ANY)) {
+		(resource_type == r->type ||
+		 resource_type == VMCI_RESOURCE_TYPE_ANY))
+	{
 		resource = vmci_resource_get(r);
 	}
 
@@ -218,7 +238,7 @@ int vmci_resource_put(struct vmci_resource *resource)
 	 * whether entry was freed.
 	 */
 	return kref_put(&resource->kref, vmci_release_resource) ?
-		VMCI_SUCCESS_ENTRY_DEAD : VMCI_SUCCESS;
+		   VMCI_SUCCESS_ENTRY_DEAD : VMCI_SUCCESS;
 }
 
 struct vmci_handle vmci_resource_handle(struct vmci_resource *resource)

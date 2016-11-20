@@ -47,12 +47,12 @@
 #define MSR_DIVIL_LBAR_FLSH1	0x51400011	/* Flash Chip Select 1 */
 #define MSR_DIVIL_LBAR_FLSH2	0x51400012	/* Flash Chip Select 2 */
 #define MSR_DIVIL_LBAR_FLSH3	0x51400013	/* Flash Chip Select 3 */
-	/* Each made up of... */
+/* Each made up of... */
 #define FLSH_LBAR_EN		(1ULL<<32)
 #define FLSH_NOR_NAND		(1ULL<<33)	/* 1 for NAND */
 #define FLSH_MEM_IO		(1ULL<<34)	/* 1 for MMIO */
-	/* I/O BARs have BASE_ADDR in bits 15:4, IO_MASK in 47:36 */
-	/* MMIO BARs have BASE_ADDR in bits 31:12, MEM_MASK in 63:44 */
+/* I/O BARs have BASE_ADDR in bits 15:4, IO_MASK in 47:36 */
+/* MMIO BARs have BASE_ADDR in bits 31:12, MEM_MASK in 63:44 */
 
 /* Pin function selection MSR (IDE vs. flash on the IDE pins) */
 #define MSR_DIVIL_BALL_OPTS	0x51400015
@@ -99,11 +99,13 @@ static void cs553x_read_buf(struct mtd_info *mtd, u_char *buf, int len)
 {
 	struct nand_chip *this = mtd_to_nand(mtd);
 
-	while (unlikely(len > 0x800)) {
+	while (unlikely(len > 0x800))
+	{
 		memcpy_fromio(buf, this->IO_ADDR_R, 0x800);
 		buf += 0x800;
 		len -= 0x800;
 	}
+
 	memcpy_fromio(buf, this->IO_ADDR_R, len);
 }
 
@@ -111,11 +113,13 @@ static void cs553x_write_buf(struct mtd_info *mtd, const u_char *buf, int len)
 {
 	struct nand_chip *this = mtd_to_nand(mtd);
 
-	while (unlikely(len > 0x800)) {
+	while (unlikely(len > 0x800))
+	{
 		memcpy_toio(this->IO_ADDR_R, buf, 0x800);
 		buf += 0x800;
 		len -= 0x800;
 	}
+
 	memcpy_toio(this->IO_ADDR_R, buf, len);
 }
 
@@ -130,24 +134,31 @@ static void cs553x_write_byte(struct mtd_info *mtd, u_char byte)
 	struct nand_chip *this = mtd_to_nand(mtd);
 	int i = 100000;
 
-	while (i && readb(this->IO_ADDR_R + MM_NAND_STS) & CS_NAND_CTLR_BUSY) {
+	while (i && readb(this->IO_ADDR_R + MM_NAND_STS) & CS_NAND_CTLR_BUSY)
+	{
 		udelay(1);
 		i--;
 	}
+
 	writeb(byte, this->IO_ADDR_W + 0x801);
 }
 
 static void cs553x_hwcontrol(struct mtd_info *mtd, int cmd,
-			     unsigned int ctrl)
+							 unsigned int ctrl)
 {
 	struct nand_chip *this = mtd_to_nand(mtd);
 	void __iomem *mmio_base = this->IO_ADDR_R;
-	if (ctrl & NAND_CTRL_CHANGE) {
+
+	if (ctrl & NAND_CTRL_CHANGE)
+	{
 		unsigned char ctl = (ctrl & ~NAND_CTRL_CHANGE ) ^ 0x01;
 		writeb(ctl, mmio_base + MM_NAND_CTL);
 	}
+
 	if (cmd != NAND_CMD_NONE)
+	{
 		cs553x_write_byte(mtd, cmd);
+	}
 }
 
 static int cs553x_device_ready(struct mtd_info *mtd)
@@ -189,16 +200,19 @@ static int __init cs553x_init_one(int cs, int mmio, unsigned long adr)
 	struct nand_chip *this;
 	struct mtd_info *new_mtd;
 
-	printk(KERN_NOTICE "Probing CS553x NAND controller CS#%d at %sIO 0x%08lx\n", cs, mmio?"MM":"P", adr);
+	printk(KERN_NOTICE "Probing CS553x NAND controller CS#%d at %sIO 0x%08lx\n", cs, mmio ? "MM" : "P", adr);
 
-	if (!mmio) {
+	if (!mmio)
+	{
 		printk(KERN_NOTICE "PIO mode not yet implemented for CS553X NAND controller\n");
 		return -ENXIO;
 	}
 
 	/* Allocate memory for MTD device structure and private data */
 	this = kzalloc(sizeof(struct nand_chip), GFP_KERNEL);
-	if (!this) {
+
+	if (!this)
+	{
 		err = -ENOMEM;
 		goto out;
 	}
@@ -210,7 +224,9 @@ static int __init cs553x_init_one(int cs, int mmio, unsigned long adr)
 
 	/* map physical address */
 	this->IO_ADDR_R = this->IO_ADDR_W = ioremap(adr, 4096);
-	if (!this->IO_ADDR_R) {
+
+	if (!this->IO_ADDR_R)
+	{
 		printk(KERN_WARNING "ioremap cs553x NAND @0x%08lx failed\n", adr);
 		err = -EIO;
 		goto out_mtd;
@@ -236,13 +252,16 @@ static int __init cs553x_init_one(int cs, int mmio, unsigned long adr)
 	this->bbt_options = NAND_BBT_USE_FLASH;
 
 	new_mtd->name = kasprintf(GFP_KERNEL, "cs553x_nand_cs%d", cs);
-	if (!new_mtd->name) {
+
+	if (!new_mtd->name)
+	{
 		err = -ENOMEM;
 		goto out_ior;
 	}
 
 	/* Scan to find existence of the device */
-	if (nand_scan(new_mtd, 1)) {
+	if (nand_scan(new_mtd, 1))
+	{
 		err = -ENXIO;
 		goto out_free;
 	}
@@ -264,15 +283,19 @@ static int is_geode(void)
 {
 	/* These are the CPUs which will have a CS553[56] companion chip */
 	if (boot_cpu_data.x86_vendor == X86_VENDOR_AMD &&
-	    boot_cpu_data.x86 == 5 &&
-	    boot_cpu_data.x86_model == 10)
-		return 1; /* Geode LX */
+		boot_cpu_data.x86 == 5 &&
+		boot_cpu_data.x86_model == 10)
+	{
+		return 1;    /* Geode LX */
+	}
 
 	if ((boot_cpu_data.x86_vendor == X86_VENDOR_NSC ||
-	     boot_cpu_data.x86_vendor == X86_VENDOR_CYRIX) &&
-	    boot_cpu_data.x86 == 5 &&
-	    boot_cpu_data.x86_model == 5)
-		return 1; /* Geode GX (née GX2) */
+		 boot_cpu_data.x86_vendor == X86_VENDOR_CYRIX) &&
+		boot_cpu_data.x86 == 5 &&
+		boot_cpu_data.x86_model == 5)
+	{
+		return 1;    /* Geode GX (née GX2) */
+	}
 
 	return 0;
 }
@@ -285,35 +308,47 @@ static int __init cs553x_init(void)
 
 	/* If the CPU isn't a Geode GX or LX, abort */
 	if (!is_geode())
+	{
 		return -ENXIO;
+	}
 
 	/* If it doesn't have the CS553[56], abort */
 	rdmsrl(MSR_DIVIL_GLD_CAP, val);
 	val &= ~0xFFULL;
+
 	if (val != CAP_CS5535 && val != CAP_CS5536)
+	{
 		return -ENXIO;
+	}
 
 	/* If it doesn't have the NAND controller enabled, abort */
 	rdmsrl(MSR_DIVIL_BALL_OPTS, val);
-	if (val & PIN_OPT_IDE) {
+
+	if (val & PIN_OPT_IDE)
+	{
 		printk(KERN_INFO "CS553x NAND controller: Flash I/O not enabled in MSR_DIVIL_BALL_OPTS.\n");
 		return -ENXIO;
 	}
 
-	for (i = 0; i < NR_CS553X_CONTROLLERS; i++) {
+	for (i = 0; i < NR_CS553X_CONTROLLERS; i++)
+	{
 		rdmsrl(MSR_DIVIL_LBAR_FLSH0 + i, val);
 
-		if ((val & (FLSH_LBAR_EN|FLSH_NOR_NAND)) == (FLSH_LBAR_EN|FLSH_NOR_NAND))
+		if ((val & (FLSH_LBAR_EN | FLSH_NOR_NAND)) == (FLSH_LBAR_EN | FLSH_NOR_NAND))
+		{
 			err = cs553x_init_one(i, !!(val & FLSH_MEM_IO), val & 0xFFFFFFFF);
+		}
 	}
 
 	/* Register all devices together here. This means we can easily hack it to
 	   do mtdconcat etc. if we want to. */
-	for (i = 0; i < NR_CS553X_CONTROLLERS; i++) {
-		if (cs553x_mtd[i]) {
+	for (i = 0; i < NR_CS553X_CONTROLLERS; i++)
+	{
+		if (cs553x_mtd[i])
+		{
 			/* If any devices registered, return success. Else the last error. */
 			mtd_device_parse_register(cs553x_mtd[i], NULL, NULL,
-						  NULL, 0);
+									  NULL, 0);
 			err = 0;
 		}
 	}
@@ -327,13 +362,16 @@ static void __exit cs553x_cleanup(void)
 {
 	int i;
 
-	for (i = 0; i < NR_CS553X_CONTROLLERS; i++) {
+	for (i = 0; i < NR_CS553X_CONTROLLERS; i++)
+	{
 		struct mtd_info *mtd = cs553x_mtd[i];
 		struct nand_chip *this;
 		void __iomem *mmio_base;
 
 		if (!mtd)
+		{
 			continue;
+		}
 
 		this = mtd_to_nand(mtd);
 		mmio_base = this->IO_ADDR_R;

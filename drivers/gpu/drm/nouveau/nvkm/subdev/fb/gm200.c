@@ -30,17 +30,21 @@ void
 gm200_fb_init_page(struct nvkm_fb *fb)
 {
 	struct nvkm_device *device = fb->subdev.device;
-	switch (fb->page) {
-	case 16:
-		nvkm_mask(device, 0x100c80, 0x00000801, 0x00000001);
-		break;
-	case 17:
-		nvkm_mask(device, 0x100c80, 0x00000801, 0x00000000);
-		break;
-	default:
-		nvkm_mask(device, 0x100c80, 0x00000800, 0x00000800);
-		fb->page = 0;
-		break;
+
+	switch (fb->page)
+	{
+		case 16:
+			nvkm_mask(device, 0x100c80, 0x00000801, 0x00000001);
+			break;
+
+		case 17:
+			nvkm_mask(device, 0x100c80, 0x00000801, 0x00000000);
+			break;
+
+		default:
+			nvkm_mask(device, 0x100c80, 0x00000800, 0x00000800);
+			fb->page = 0;
+			break;
 	}
 }
 
@@ -51,18 +55,21 @@ gm200_fb_init(struct nvkm_fb *base)
 	struct nvkm_device *device = fb->base.subdev.device;
 
 	if (fb->r100c10_page)
+	{
 		nvkm_wr32(device, 0x100c10, fb->r100c10 >> 8);
+	}
 
 	nvkm_mask(device, 0x100c80, 0x00000001, 0x00000000); /* 128KiB lpg */
 
 	nvkm_wr32(device, 0x100cc8, nvkm_memory_addr(fb->base.mmu_wr) >> 8);
 	nvkm_wr32(device, 0x100ccc, nvkm_memory_addr(fb->base.mmu_rd) >> 8);
 	nvkm_mask(device, 0x100cc4, 0x00060000,
-		  min(nvkm_memory_size(fb->base.mmu_rd) >> 16, (u64)2) << 17);
+			  min(nvkm_memory_size(fb->base.mmu_rd) >> 16, (u64)2) << 17);
 }
 
 static const struct nvkm_fb_func
-gm200_fb = {
+	gm200_fb =
+{
 	.dtor = gf100_fb_dtor,
 	.oneinit = gf100_fb_oneinit,
 	.init = gm200_fb_init,

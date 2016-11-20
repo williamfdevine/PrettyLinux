@@ -23,9 +23,12 @@
 #include <net/nfc/nci_core.h>
 #include "nfcmrvl.h"
 
-static struct usb_device_id nfcmrvl_table[] = {
-	{ USB_DEVICE_AND_INTERFACE_INFO(0x1286, 0x2046,
-					USB_CLASS_VENDOR_SPEC, 4, 1) },
+static struct usb_device_id nfcmrvl_table[] =
+{
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x1286, 0x2046,
+		USB_CLASS_VENDOR_SPEC, 4, 1)
+	},
 	{ }	/* Terminating entry */
 };
 
@@ -34,7 +37,8 @@ MODULE_DEVICE_TABLE(usb, nfcmrvl_table);
 #define NFCMRVL_USB_BULK_RUNNING	1
 #define NFCMRVL_USB_SUSPENDING		2
 
-struct nfcmrvl_usb_drv_data {
+struct nfcmrvl_usb_drv_data
+{
 	struct usb_device *udev;
 	struct usb_interface *intf;
 	unsigned long flags;
@@ -58,8 +62,12 @@ static int nfcmrvl_inc_tx(struct nfcmrvl_usb_drv_data *drv_data)
 
 	spin_lock_irqsave(&drv_data->txlock, flags);
 	rv = test_bit(NFCMRVL_USB_SUSPENDING, &drv_data->flags);
+
 	if (!rv)
+	{
 		drv_data->tx_in_flight++;
+	}
+
 	spin_unlock_irqrestore(&drv_data->txlock, flags);
 
 	return rv;
@@ -72,39 +80,52 @@ static void nfcmrvl_bulk_complete(struct urb *urb)
 	int err;
 
 	dev_dbg(&drv_data->udev->dev, "urb %p status %d count %d\n",
-		urb, urb->status, urb->actual_length);
+			urb, urb->status, urb->actual_length);
 
 	if (!test_bit(NFCMRVL_NCI_RUNNING, &drv_data->flags))
+	{
 		return;
+	}
 
-	if (!urb->status) {
+	if (!urb->status)
+	{
 		skb = nci_skb_alloc(drv_data->priv->ndev, urb->actual_length,
-				    GFP_ATOMIC);
-		if (!skb) {
+							GFP_ATOMIC);
+
+		if (!skb)
+		{
 			nfc_err(&drv_data->udev->dev, "failed to alloc mem\n");
-		} else {
+		}
+		else
+		{
 			memcpy(skb_put(skb, urb->actual_length),
-			       urb->transfer_buffer, urb->actual_length);
+				   urb->transfer_buffer, urb->actual_length);
+
 			if (nfcmrvl_nci_recv_frame(drv_data->priv, skb) < 0)
 				nfc_err(&drv_data->udev->dev,
-					"corrupted Rx packet\n");
+						"corrupted Rx packet\n");
 		}
 	}
 
 	if (!test_bit(NFCMRVL_USB_BULK_RUNNING, &drv_data->flags))
+	{
 		return;
+	}
 
 	usb_anchor_urb(urb, &drv_data->bulk_anchor);
 	usb_mark_last_busy(drv_data->udev);
 
 	err = usb_submit_urb(urb, GFP_ATOMIC);
-	if (err) {
+
+	if (err)
+	{
 		/* -EPERM: urb is being killed;
 		 * -ENODEV: device got disconnected
 		 */
 		if (err != -EPERM && err != -ENODEV)
 			nfc_err(&drv_data->udev->dev,
-				"urb %p failed to resubmit (%d)\n", urb, -err);
+					"urb %p failed to resubmit (%d)\n", urb, -err);
+
 		usb_unanchor_urb(urb);
 	}
 }
@@ -118,23 +139,30 @@ nfcmrvl_submit_bulk_urb(struct nfcmrvl_usb_drv_data *drv_data, gfp_t mem_flags)
 	int err, size = NFCMRVL_NCI_MAX_EVENT_SIZE;
 
 	if (!drv_data->bulk_rx_ep)
+	{
 		return -ENODEV;
+	}
 
 	urb = usb_alloc_urb(0, mem_flags);
+
 	if (!urb)
+	{
 		return -ENOMEM;
+	}
 
 	buf = kmalloc(size, mem_flags);
-	if (!buf) {
+
+	if (!buf)
+	{
 		usb_free_urb(urb);
 		return -ENOMEM;
 	}
 
 	pipe = usb_rcvbulkpipe(drv_data->udev,
-			       drv_data->bulk_rx_ep->bEndpointAddress);
+						   drv_data->bulk_rx_ep->bEndpointAddress);
 
 	usb_fill_bulk_urb(urb, drv_data->udev, pipe, buf, size,
-			  nfcmrvl_bulk_complete, drv_data);
+					  nfcmrvl_bulk_complete, drv_data);
 
 	urb->transfer_flags |= URB_FREE_BUFFER;
 
@@ -142,10 +170,13 @@ nfcmrvl_submit_bulk_urb(struct nfcmrvl_usb_drv_data *drv_data, gfp_t mem_flags)
 	usb_anchor_urb(urb, &drv_data->bulk_anchor);
 
 	err = usb_submit_urb(urb, mem_flags);
-	if (err) {
+
+	if (err)
+	{
 		if (err != -EPERM && err != -ENODEV)
 			nfc_err(&drv_data->udev->dev,
-				"urb %p submission failed (%d)\n", urb, -err);
+					"urb %p submission failed (%d)\n", urb, -err);
+
 		usb_unanchor_urb(urb);
 	}
 
@@ -162,7 +193,7 @@ static void nfcmrvl_tx_complete(struct urb *urb)
 	struct nfcmrvl_usb_drv_data *drv_data = priv->drv_data;
 
 	nfc_info(priv->dev, "urb %p status %d count %d\n",
-		 urb, urb->status, urb->actual_length);
+			 urb, urb->status, urb->actual_length);
 
 	spin_lock(&drv_data->txlock);
 	drv_data->tx_in_flight--;
@@ -178,14 +209,20 @@ static int nfcmrvl_usb_nci_open(struct nfcmrvl_private *priv)
 	int err;
 
 	err = usb_autopm_get_interface(drv_data->intf);
+
 	if (err)
+	{
 		return err;
+	}
 
 	drv_data->intf->needs_remote_wakeup = 1;
 
 	err = nfcmrvl_submit_bulk_urb(drv_data, GFP_KERNEL);
+
 	if (err)
+	{
 		goto failed;
+	}
 
 	set_bit(NFCMRVL_USB_BULK_RUNNING, &drv_data->flags);
 	nfcmrvl_submit_bulk_urb(drv_data, GFP_KERNEL);
@@ -215,8 +252,11 @@ static int nfcmrvl_usb_nci_close(struct nfcmrvl_private *priv)
 	nfcmrvl_usb_stop_traffic(drv_data);
 	usb_kill_anchored_urbs(&drv_data->tx_anchor);
 	err = usb_autopm_get_interface(drv_data->intf);
+
 	if (err)
+	{
 		goto failed;
+	}
 
 	drv_data->intf->needs_remote_wakeup = 0;
 	usb_autopm_put_interface(drv_data->intf);
@@ -227,7 +267,7 @@ failed:
 }
 
 static int nfcmrvl_usb_nci_send(struct nfcmrvl_private *priv,
-				struct sk_buff *skb)
+								struct sk_buff *skb)
 {
 	struct nfcmrvl_usb_drv_data *drv_data = priv->drv_data;
 	struct urb *urb;
@@ -235,20 +275,27 @@ static int nfcmrvl_usb_nci_send(struct nfcmrvl_private *priv,
 	int err;
 
 	if (!drv_data->bulk_tx_ep)
+	{
 		return -ENODEV;
+	}
 
 	urb = usb_alloc_urb(0, GFP_ATOMIC);
+
 	if (!urb)
+	{
 		return -ENOMEM;
+	}
 
 	pipe = usb_sndbulkpipe(drv_data->udev,
-				drv_data->bulk_tx_ep->bEndpointAddress);
+						   drv_data->bulk_tx_ep->bEndpointAddress);
 
 	usb_fill_bulk_urb(urb, drv_data->udev, pipe, skb->data, skb->len,
-			  nfcmrvl_tx_complete, skb);
+					  nfcmrvl_tx_complete, skb);
 
 	err = nfcmrvl_inc_tx(drv_data);
-	if (err) {
+
+	if (err)
+	{
 		usb_anchor_urb(urb, &drv_data->deferred);
 		schedule_work(&drv_data->waker);
 		err = 0;
@@ -258,13 +305,18 @@ static int nfcmrvl_usb_nci_send(struct nfcmrvl_private *priv,
 	usb_anchor_urb(urb, &drv_data->tx_anchor);
 
 	err = usb_submit_urb(urb, GFP_ATOMIC);
-	if (err) {
+
+	if (err)
+	{
 		if (err != -EPERM && err != -ENODEV)
 			nfc_err(&drv_data->udev->dev,
-				"urb %p submission failed (%d)\n", urb, -err);
+					"urb %p submission failed (%d)\n", urb, -err);
+
 		kfree(urb->setup_packet);
 		usb_unanchor_urb(urb);
-	} else {
+	}
+	else
+	{
 		usb_mark_last_busy(drv_data->udev);
 	}
 
@@ -273,7 +325,8 @@ done:
 	return err;
 }
 
-static struct nfcmrvl_if_ops usb_ops = {
+static struct nfcmrvl_if_ops usb_ops =
+{
 	.nci_open = nfcmrvl_usb_nci_open,
 	.nci_close = nfcmrvl_usb_nci_close,
 	.nci_send = nfcmrvl_usb_nci_send,
@@ -282,18 +335,21 @@ static struct nfcmrvl_if_ops usb_ops = {
 static void nfcmrvl_waker(struct work_struct *work)
 {
 	struct nfcmrvl_usb_drv_data *drv_data =
-			container_of(work, struct nfcmrvl_usb_drv_data, waker);
+		container_of(work, struct nfcmrvl_usb_drv_data, waker);
 	int err;
 
 	err = usb_autopm_get_interface(drv_data->intf);
+
 	if (err)
+	{
 		return;
+	}
 
 	usb_autopm_put_interface(drv_data->intf);
 }
 
 static int nfcmrvl_probe(struct usb_interface *intf,
-			 const struct usb_device_id *id)
+						 const struct usb_device_id *id)
 {
 	struct usb_endpoint_descriptor *ep_desc;
 	struct nfcmrvl_usb_drv_data *drv_data;
@@ -308,27 +364,35 @@ static int nfcmrvl_probe(struct usb_interface *intf,
 	nfc_info(&udev->dev, "intf %p id %p\n", intf, id);
 
 	drv_data = devm_kzalloc(&intf->dev, sizeof(*drv_data), GFP_KERNEL);
-	if (!drv_data)
-		return -ENOMEM;
 
-	for (i = 0; i < intf->cur_altsetting->desc.bNumEndpoints; i++) {
+	if (!drv_data)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < intf->cur_altsetting->desc.bNumEndpoints; i++)
+	{
 		ep_desc = &intf->cur_altsetting->endpoint[i].desc;
 
 		if (!drv_data->bulk_tx_ep &&
-		    usb_endpoint_is_bulk_out(ep_desc)) {
+			usb_endpoint_is_bulk_out(ep_desc))
+		{
 			drv_data->bulk_tx_ep = ep_desc;
 			continue;
 		}
 
 		if (!drv_data->bulk_rx_ep &&
-		    usb_endpoint_is_bulk_in(ep_desc)) {
+			usb_endpoint_is_bulk_in(ep_desc))
+		{
 			drv_data->bulk_rx_ep = ep_desc;
 			continue;
 		}
 	}
 
 	if (!drv_data->bulk_tx_ep || !drv_data->bulk_rx_ep)
+	{
 		return -ENODEV;
+	}
 
 	drv_data->udev = udev;
 	drv_data->intf = intf;
@@ -341,9 +405,12 @@ static int nfcmrvl_probe(struct usb_interface *intf,
 	init_usb_anchor(&drv_data->deferred);
 
 	priv = nfcmrvl_nci_register_dev(NFCMRVL_PHY_USB, drv_data, &usb_ops,
-					&drv_data->udev->dev, &config);
+									&drv_data->udev->dev, &config);
+
 	if (IS_ERR(priv))
+	{
 		return PTR_ERR(priv);
+	}
 
 	drv_data->priv = priv;
 	drv_data->priv->support_fw_dnld = false;
@@ -360,7 +427,9 @@ static void nfcmrvl_disconnect(struct usb_interface *intf)
 	struct nfcmrvl_usb_drv_data *drv_data = usb_get_intfdata(intf);
 
 	if (!drv_data)
+	{
 		return;
+	}
 
 	nfc_info(&drv_data->udev->dev, "intf %p\n", intf);
 
@@ -377,13 +446,19 @@ static int nfcmrvl_suspend(struct usb_interface *intf, pm_message_t message)
 	nfc_info(&drv_data->udev->dev, "intf %p\n", intf);
 
 	if (drv_data->suspend_count++)
+	{
 		return 0;
+	}
 
 	spin_lock_irq(&drv_data->txlock);
-	if (!(PMSG_IS_AUTO(message) && drv_data->tx_in_flight)) {
+
+	if (!(PMSG_IS_AUTO(message) && drv_data->tx_in_flight))
+	{
 		set_bit(NFCMRVL_USB_SUSPENDING, &drv_data->flags);
 		spin_unlock_irq(&drv_data->txlock);
-	} else {
+	}
+	else
+	{
 		spin_unlock_irq(&drv_data->txlock);
 		drv_data->suspend_count--;
 		return -EBUSY;
@@ -400,13 +475,18 @@ static void nfcmrvl_play_deferred(struct nfcmrvl_usb_drv_data *drv_data)
 	struct urb *urb;
 	int err;
 
-	while ((urb = usb_get_from_anchor(&drv_data->deferred))) {
+	while ((urb = usb_get_from_anchor(&drv_data->deferred)))
+	{
 		err = usb_submit_urb(urb, GFP_ATOMIC);
+
 		if (err)
+		{
 			break;
+		}
 
 		drv_data->tx_in_flight++;
 	}
+
 	usb_scuttle_anchored_urbs(&drv_data->deferred);
 }
 
@@ -418,14 +498,21 @@ static int nfcmrvl_resume(struct usb_interface *intf)
 	nfc_info(&drv_data->udev->dev, "intf %p\n", intf);
 
 	if (--drv_data->suspend_count)
+	{
 		return 0;
+	}
 
 	if (!test_bit(NFCMRVL_NCI_RUNNING, &drv_data->flags))
+	{
 		goto done;
+	}
 
-	if (test_bit(NFCMRVL_USB_BULK_RUNNING, &drv_data->flags)) {
+	if (test_bit(NFCMRVL_USB_BULK_RUNNING, &drv_data->flags))
+	{
 		err = nfcmrvl_submit_bulk_urb(drv_data, GFP_NOIO);
-		if (err) {
+
+		if (err)
+		{
 			clear_bit(NFCMRVL_USB_BULK_RUNNING, &drv_data->flags);
 			goto failed;
 		}
@@ -451,7 +538,8 @@ done:
 }
 #endif
 
-static struct usb_driver nfcmrvl_usb_driver = {
+static struct usb_driver nfcmrvl_usb_driver =
+{
 	.name		= "nfcmrvl",
 	.probe		= nfcmrvl_probe,
 	.disconnect	= nfcmrvl_disconnect,

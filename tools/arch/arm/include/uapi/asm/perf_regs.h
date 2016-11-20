@@ -1,7 +1,8 @@
 #ifndef _ASM_ARM_PERF_REGS_H
 #define _ASM_ARM_PERF_REGS_H
 
-enum perf_event_arm_regs {
+enum perf_event_arm_regs
+{
 	PERF_REG_ARM_R0,
 	PERF_REG_ARM_R1,
 	PERF_REG_ARM_R2,

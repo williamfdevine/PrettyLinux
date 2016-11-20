@@ -31,7 +31,8 @@
 #define FW_8192C_PAGE_SIZE			4096
 #define FW_8192C_POLLING_DELAY		5
 
-struct rtl92c_firmware_header {
+struct rtl92c_firmware_header
+{
 	__le16 signature;
 	u8 category;
 	u8 function;

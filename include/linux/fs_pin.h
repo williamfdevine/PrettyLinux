@@ -1,6 +1,7 @@
 #include <linux/wait.h>
 
-struct fs_pin {
+struct fs_pin
+{
 	wait_queue_head_t	wait;
 	int			done;
 	struct hlist_node	s_list;

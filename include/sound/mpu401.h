@@ -68,7 +68,8 @@
 #define MPU401_MODE_INPUT_TIMER		(1<<0)
 #define MPU401_MODE_OUTPUT_TIMER	(1<<1)
 
-struct snd_mpu401 {
+struct snd_mpu401
+{
 	struct snd_rawmidi *rmidi;
 
 	unsigned short hardware;	/* MPU401_HW_XXXX */
@@ -81,10 +82,10 @@ struct snd_mpu401 {
 	unsigned long mode;		/* MPU401_MODE_XXXX */
 	int timer_invoked;
 
-	int (*open_input) (struct snd_mpu401 * mpu);
-	void (*close_input) (struct snd_mpu401 * mpu);
-	int (*open_output) (struct snd_mpu401 * mpu);
-	void (*close_output) (struct snd_mpu401 * mpu);
+	int (*open_input) (struct snd_mpu401 *mpu);
+	void (*close_input) (struct snd_mpu401 *mpu);
+	int (*open_output) (struct snd_mpu401 *mpu);
+	void (*close_output) (struct snd_mpu401 *mpu);
 	void *private_data;
 
 	struct snd_rawmidi_substream *substream_input;
@@ -93,10 +94,10 @@ struct snd_mpu401 {
 	spinlock_t input_lock;
 	spinlock_t output_lock;
 	spinlock_t timer_lock;
-	
+
 	struct timer_list timer;
 
-	void (*write) (struct snd_mpu401 * mpu, unsigned char data, unsigned long addr);
+	void (*write) (struct snd_mpu401 *mpu, unsigned char data, unsigned long addr);
 	unsigned char (*read) (struct snd_mpu401 *mpu, unsigned long addr);
 };
 
@@ -128,11 +129,11 @@ irqreturn_t snd_mpu401_uart_interrupt(int irq, void *dev_id);
 irqreturn_t snd_mpu401_uart_interrupt_tx(int irq, void *dev_id);
 
 int snd_mpu401_uart_new(struct snd_card *card,
-			int device,
-			unsigned short hardware,
-			unsigned long port,
-			unsigned int info_flags,
-			int irq,
-			struct snd_rawmidi ** rrawmidi);
+						int device,
+						unsigned short hardware,
+						unsigned long port,
+						unsigned int info_flags,
+						int irq,
+						struct snd_rawmidi **rrawmidi);
 
 #endif /* __SOUND_MPU401_H */

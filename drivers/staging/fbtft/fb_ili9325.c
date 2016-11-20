@@ -30,7 +30,7 @@
 #define BPP		16
 #define FPS		20
 #define DEFAULT_GAMMA	"0F 00 7 2 0 0 6 5 4 1\n" \
-			"04 16 2 7 6 3 2 1 7 7"
+	"04 16 2 7 6 3 2 1 7 7"
 
 static unsigned int bt = 6; /* VGL=Vci*4 , VGH=Vci*4 */
 module_param(bt, uint, 0);
@@ -39,17 +39,17 @@ MODULE_PARM_DESC(bt, "Sets the factor used in the step-up circuits");
 static unsigned int vc = 0x03; /* Vci1=Vci*0.80 */
 module_param(vc, uint, 0);
 MODULE_PARM_DESC(vc,
-"Sets the ratio factor of Vci to generate the reference voltages Vci1");
+				 "Sets the ratio factor of Vci to generate the reference voltages Vci1");
 
 static unsigned int vrh = 0x0d; /* VREG1OUT=Vci*1.85 */
 module_param(vrh, uint, 0);
 MODULE_PARM_DESC(vrh,
-"Set the amplifying rate (1.6 ~ 1.9) of Vci applied to output the VREG1OUT");
+				 "Set the amplifying rate (1.6 ~ 1.9) of Vci applied to output the VREG1OUT");
 
 static unsigned int vdv = 0x12; /* VCOMH amplitude=VREG1OUT*0.98 */
 module_param(vdv, uint, 0);
 MODULE_PARM_DESC(vdv,
-"Select the factor of VREG1OUT to set the amplitude of Vcom");
+				 "Select the factor of VREG1OUT to set the amplitude of Vcom");
 
 static unsigned int vcm = 0x0a; /* VCOMH=VREG1OUT*0.735 */
 module_param(vcm, uint, 0);
@@ -98,7 +98,9 @@ static int init_display(struct fbtft_par *par)
 	par->fbtftops.reset(par);
 
 	if (par->gpio.cs != -1)
-		gpio_set_value(par->gpio.cs, 0);  /* Activate chip */
+	{
+		gpio_set_value(par->gpio.cs, 0);    /* Activate chip */
+	}
 
 	bt &= 0x07;
 	vc &= 0x07;
@@ -129,7 +131,7 @@ static int init_display(struct fbtft_par *par)
 	write_reg(par, 0x0013, 0x0000); /* VDV[4:0] for VCOM amplitude */
 	mdelay(200); /* Dis-charge capacitor power voltage */
 	write_reg(par, 0x0010, /* SAP, BT[3:0], AP, DSTB, SLP, STB */
-		(1 << 12) | (bt << 8) | (1 << 7) | (0x01 << 4));
+			  (1 << 12) | (bt << 8) | (1 << 7) | (0x01 << 4));
 	write_reg(par, 0x0011, 0x220 | vc); /* DC1[2:0], DC0[2:0], VC[2:0] */
 	mdelay(50); /* Delay 50ms */
 	write_reg(par, 0x0012, vrh); /* Internal reference voltage= Vci; */
@@ -168,45 +170,54 @@ static int init_display(struct fbtft_par *par)
 
 static void set_addr_win(struct fbtft_par *par, int xs, int ys, int xe, int ye)
 {
-	switch (par->info->var.rotate) {
-	/* R20h = Horizontal GRAM Start Address */
-	/* R21h = Vertical GRAM Start Address */
-	case 0:
-		write_reg(par, 0x0020, xs);
-		write_reg(par, 0x0021, ys);
-		break;
-	case 180:
-		write_reg(par, 0x0020, WIDTH - 1 - xs);
-		write_reg(par, 0x0021, HEIGHT - 1 - ys);
-		break;
-	case 270:
-		write_reg(par, 0x0020, WIDTH - 1 - ys);
-		write_reg(par, 0x0021, xs);
-		break;
-	case 90:
-		write_reg(par, 0x0020, ys);
-		write_reg(par, 0x0021, HEIGHT - 1 - xs);
-		break;
+	switch (par->info->var.rotate)
+	{
+		/* R20h = Horizontal GRAM Start Address */
+		/* R21h = Vertical GRAM Start Address */
+		case 0:
+			write_reg(par, 0x0020, xs);
+			write_reg(par, 0x0021, ys);
+			break;
+
+		case 180:
+			write_reg(par, 0x0020, WIDTH - 1 - xs);
+			write_reg(par, 0x0021, HEIGHT - 1 - ys);
+			break;
+
+		case 270:
+			write_reg(par, 0x0020, WIDTH - 1 - ys);
+			write_reg(par, 0x0021, xs);
+			break;
+
+		case 90:
+			write_reg(par, 0x0020, ys);
+			write_reg(par, 0x0021, HEIGHT - 1 - xs);
+			break;
 	}
+
 	write_reg(par, 0x0022); /* Write Data to GRAM */
 }
 
 static int set_var(struct fbtft_par *par)
 {
-	switch (par->info->var.rotate) {
-	/* AM: GRAM update direction */
-	case 0:
-		write_reg(par, 0x03, 0x0030 | (par->bgr << 12));
-		break;
-	case 180:
-		write_reg(par, 0x03, 0x0000 | (par->bgr << 12));
-		break;
-	case 270:
-		write_reg(par, 0x03, 0x0028 | (par->bgr << 12));
-		break;
-	case 90:
-		write_reg(par, 0x03, 0x0018 | (par->bgr << 12));
-		break;
+	switch (par->info->var.rotate)
+	{
+		/* AM: GRAM update direction */
+		case 0:
+			write_reg(par, 0x03, 0x0030 | (par->bgr << 12));
+			break;
+
+		case 180:
+			write_reg(par, 0x03, 0x0000 | (par->bgr << 12));
+			break;
+
+		case 270:
+			write_reg(par, 0x03, 0x0028 | (par->bgr << 12));
+			break;
+
+		case 90:
+			write_reg(par, 0x03, 0x0018 | (par->bgr << 12));
+			break;
 	}
 
 	return 0;
@@ -220,7 +231,8 @@ static int set_var(struct fbtft_par *par)
 #define CURVE(num, idx)  curves[num * par->gamma.num_values + idx]
 static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 {
-	unsigned long mask[] = {
+	unsigned long mask[] =
+	{
 		0x1f, 0x1f, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
 		0x1f, 0x1f, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
 	};
@@ -229,7 +241,9 @@ static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 	/* apply mask */
 	for (i = 0; i < 2; i++)
 		for (j = 0; j < 10; j++)
+		{
 			CURVE(i, j) &= mask[i * par->gamma.num_values + j];
+		}
 
 	write_reg(par, 0x0030, CURVE(0, 5) << 8 | CURVE(0, 4));
 	write_reg(par, 0x0031, CURVE(0, 7) << 8 | CURVE(0, 6));
@@ -248,7 +262,8 @@ static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 
 #undef CURVE
 
-static struct fbtft_display display = {
+static struct fbtft_display display =
+{
 	.regwidth = 16,
 	.width = WIDTH,
 	.height = HEIGHT,

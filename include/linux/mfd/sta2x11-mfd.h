@@ -26,7 +26,8 @@
 #include <linux/types.h>
 #include <linux/pci.h>
 
-enum sta2x11_mfd_plat_dev {
+enum sta2x11_mfd_plat_dev
+{
 	sta2x11_sctl = 0,
 	sta2x11_gpio,
 	sta2x11_scr,
@@ -57,7 +58,8 @@ __sta2x11_mfd_mask(struct pci_dev *, u32, u32, u32, enum sta2x11_mfd_plat_dev);
 #define GSTA_NR_GPIO		(GSTA_GPIO_PER_BLOCK * GSTA_NR_BLOCKS)
 
 /* Pinconfig is set by the board definition: altfunc, pull-up, pull-down */
-struct sta2x11_gpio_pdata {
+struct sta2x11_gpio_pdata
+{
 	unsigned pinconfig[GSTA_NR_GPIO];
 };
 
@@ -511,8 +513,8 @@ u32 sta2x11_apb_soc_regs_mask(struct pci_dev *pdev, u32 reg, u32 mask, u32 val)
 #define STA2X11_SECR_FVR1		0x14
 
 extern int sta2x11_mfd_get_regs_data(struct platform_device *pdev,
-				     enum sta2x11_mfd_plat_dev index,
-				     void __iomem **regs,
-				     spinlock_t **lock);
+									 enum sta2x11_mfd_plat_dev index,
+									 void __iomem **regs,
+									 spinlock_t **lock);
 
 #endif /* __STA2X11_MFD_H */

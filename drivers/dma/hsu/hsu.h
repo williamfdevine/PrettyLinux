@@ -62,12 +62,14 @@
 #define HSU_CH_DxTSR_MASK	GENMASK(15, 0)
 #define HSU_CH_DxTSR_TSR(x)	((x) & HSU_CH_DxTSR_MASK)
 
-struct hsu_dma_sg {
+struct hsu_dma_sg
+{
 	dma_addr_t addr;
 	unsigned int len;
 };
 
-struct hsu_dma_desc {
+struct hsu_dma_desc
+{
 	struct virt_dma_desc vdesc;
 	enum dma_transfer_direction direction;
 	struct hsu_dma_sg *sg;
@@ -82,7 +84,8 @@ static inline struct hsu_dma_desc *to_hsu_dma_desc(struct virt_dma_desc *vdesc)
 	return container_of(vdesc, struct hsu_dma_desc, vdesc);
 }
 
-struct hsu_dma_chan {
+struct hsu_dma_chan
+{
 	struct virt_dma_chan vchan;
 
 	void __iomem *reg;
@@ -105,12 +108,13 @@ static inline u32 hsu_chan_readl(struct hsu_dma_chan *hsuc, int offset)
 }
 
 static inline void hsu_chan_writel(struct hsu_dma_chan *hsuc, int offset,
-				   u32 value)
+								   u32 value)
 {
 	writel(value, hsuc->reg + offset);
 }
 
-struct hsu_dma {
+struct hsu_dma
+{
 	struct dma_device		dma;
 
 	/* channels */

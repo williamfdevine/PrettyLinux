@@ -28,7 +28,8 @@
  * @n_gpios: Number of GPIOs used to control MUX
  * @idle: Bitmask to write to MUX when idle or GPIO_I2CMUX_NO_IDLE if not used
  */
-struct i2c_mux_gpio_platform_data {
+struct i2c_mux_gpio_platform_data
+{
 	int parent;
 	int base_nr;
 	const unsigned *values;

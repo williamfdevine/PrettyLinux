@@ -4,10 +4,11 @@
 #include <linux/jiffies.h>
 #include <net/dst.h>
 #if IS_ENABLED(CONFIG_IPV6)
-#include <net/ip6_fib.h>
+	#include <net/ip6_fib.h>
 #endif
 
-struct dst_cache {
+struct dst_cache
+{
 	struct dst_cache_pcpu __percpu *cache;
 	unsigned long reset_ts;
 };
@@ -40,7 +41,7 @@ struct rtable *dst_cache_get_ip4(struct dst_cache *dst_cache, __be32 *saddr);
  *	local BH must be disabled.
  */
 void dst_cache_set_ip4(struct dst_cache *dst_cache, struct dst_entry *dst,
-		       __be32 saddr);
+					   __be32 saddr);
 
 #if IS_ENABLED(CONFIG_IPV6)
 
@@ -53,7 +54,7 @@ void dst_cache_set_ip4(struct dst_cache *dst_cache, struct dst_entry *dst,
  *	local BH must be disabled.
  */
 void dst_cache_set_ip6(struct dst_cache *dst_cache, struct dst_entry *dst,
-		       const struct in6_addr *addr);
+					   const struct in6_addr *addr);
 
 /**
  *	dst_cache_get_ip6 - perform cache lookup and fetch ipv6 source address
@@ -63,7 +64,7 @@ void dst_cache_set_ip6(struct dst_cache *dst_cache, struct dst_entry *dst,
  *	local BH must be disabled.
  */
 struct dst_entry *dst_cache_get_ip6(struct dst_cache *dst_cache,
-				    struct in6_addr *saddr);
+									struct in6_addr *saddr);
 #endif
 
 /**

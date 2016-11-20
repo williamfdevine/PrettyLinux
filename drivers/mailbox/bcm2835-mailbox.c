@@ -58,7 +58,8 @@
 /* Configuration register: Enable interrupts. */
 #define ARM_MC_IHAVEDATAIRQEN	BIT(0)
 
-struct bcm2835_mbox {
+struct bcm2835_mbox
+{
 	void __iomem *regs;
 	spinlock_t lock;
 	struct mbox_controller controller;
@@ -75,11 +76,13 @@ static irqreturn_t bcm2835_mbox_irq(int irq, void *dev_id)
 	struct device *dev = mbox->controller.dev;
 	struct mbox_chan *link = &mbox->controller.chans[0];
 
-	while (!(readl(mbox->regs + MAIL0_STA) & ARM_MS_EMPTY)) {
+	while (!(readl(mbox->regs + MAIL0_STA) & ARM_MS_EMPTY))
+	{
 		u32 msg = readl(mbox->regs + MAIL0_RD);
 		dev_dbg(dev, "Reply 0x%08X\n", msg);
 		mbox_chan_received_data(link, &msg);
 	}
+
 	return IRQ_HANDLED;
 }
 
@@ -123,7 +126,8 @@ static bool bcm2835_last_tx_done(struct mbox_chan *link)
 	return ret;
 }
 
-static const struct mbox_chan_ops bcm2835_mbox_chan_ops = {
+static const struct mbox_chan_ops bcm2835_mbox_chan_ops =
+{
 	.send_data	= bcm2835_send_data,
 	.startup	= bcm2835_startup,
 	.shutdown	= bcm2835_shutdown,
@@ -131,10 +135,12 @@ static const struct mbox_chan_ops bcm2835_mbox_chan_ops = {
 };
 
 static struct mbox_chan *bcm2835_mbox_index_xlate(struct mbox_controller *mbox,
-		    const struct of_phandle_args *sp)
+		const struct of_phandle_args *sp)
 {
 	if (sp->args_count != 0)
+	{
 		return NULL;
+	}
 
 	return &mbox->chans[0];
 }
@@ -147,21 +153,29 @@ static int bcm2835_mbox_probe(struct platform_device *pdev)
 	struct bcm2835_mbox *mbox;
 
 	mbox = devm_kzalloc(dev, sizeof(*mbox), GFP_KERNEL);
+
 	if (mbox == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	spin_lock_init(&mbox->lock);
 
 	ret = devm_request_irq(dev, irq_of_parse_and_map(dev->of_node, 0),
-			       bcm2835_mbox_irq, 0, dev_name(dev), mbox);
-	if (ret) {
+						   bcm2835_mbox_irq, 0, dev_name(dev), mbox);
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to register a mailbox IRQ handler: %d\n",
-			ret);
+				ret);
 		return -ENODEV;
 	}
 
 	iomem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	mbox->regs = devm_ioremap_resource(&pdev->dev, iomem);
-	if (IS_ERR(mbox->regs)) {
+
+	if (IS_ERR(mbox->regs))
+	{
 		ret = PTR_ERR(mbox->regs);
 		dev_err(&pdev->dev, "Failed to remap mailbox regs: %d\n", ret);
 		return ret;
@@ -174,13 +188,19 @@ static int bcm2835_mbox_probe(struct platform_device *pdev)
 	mbox->controller.dev = dev;
 	mbox->controller.num_chans = 1;
 	mbox->controller.chans = devm_kzalloc(dev,
-		sizeof(*mbox->controller.chans), GFP_KERNEL);
+										  sizeof(*mbox->controller.chans), GFP_KERNEL);
+
 	if (!mbox->controller.chans)
+	{
 		return -ENOMEM;
+	}
 
 	ret = mbox_controller_register(&mbox->controller);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	platform_set_drvdata(pdev, mbox);
 	dev_info(dev, "mailbox enabled\n");
@@ -195,13 +215,15 @@ static int bcm2835_mbox_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id bcm2835_mbox_of_match[] = {
+static const struct of_device_id bcm2835_mbox_of_match[] =
+{
 	{ .compatible = "brcm,bcm2835-mbox", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, bcm2835_mbox_of_match);
 
-static struct platform_driver bcm2835_mbox_driver = {
+static struct platform_driver bcm2835_mbox_driver =
+{
 	.driver = {
 		.name = "bcm2835-mbox",
 		.of_match_table = bcm2835_mbox_of_match,

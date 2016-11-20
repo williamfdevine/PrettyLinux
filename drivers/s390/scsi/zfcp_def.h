@@ -99,7 +99,8 @@ struct zfcp_reqlist;
 struct zfcp_fsf_req;
 
 /* holds various memory pools of an adapter */
-struct zfcp_adapter_mempool {
+struct zfcp_adapter_mempool
+{
 	mempool_t *erp_req;
 	mempool_t *gid_pn_req;
 	mempool_t *scsi_req;
@@ -110,7 +111,8 @@ struct zfcp_adapter_mempool {
 	mempool_t *qtcb_pool;
 };
 
-struct zfcp_erp_action {
+struct zfcp_erp_action
+{
 	struct list_head list;
 	int action;	              /* requested action code */
 	struct zfcp_adapter *adapter; /* device which should be recovered */
@@ -122,26 +124,30 @@ struct zfcp_erp_action {
 	struct timer_list timer;
 };
 
-struct fsf_latency_record {
+struct fsf_latency_record
+{
 	u32 min;
 	u32 max;
 	u64 sum;
 };
 
-struct latency_cont {
+struct latency_cont
+{
 	struct fsf_latency_record channel;
 	struct fsf_latency_record fabric;
 	u64 counter;
 };
 
-struct zfcp_latencies {
+struct zfcp_latencies
+{
 	struct latency_cont read;
 	struct latency_cont write;
 	struct latency_cont cmd;
 	spinlock_t lock;
 };
 
-struct zfcp_adapter {
+struct zfcp_adapter
+{
 	struct kref		ref;
 	u64			peer_wwnn;	   /* P2P peer WWNN */
 	u64			peer_wwpn;	   /* P2P peer WWPN */
@@ -152,7 +158,7 @@ struct zfcp_adapter {
 	u32			fsf_lic_version;
 	u32			adapter_features;  /* FCP channel features */
 	u32			connection_features; /* host connection features */
-        u32			hardware_version;  /* of FCP channel */
+	u32			hardware_version;  /* of FCP channel */
 	u16			timer_ticks;       /* time int for a tick */
 	struct Scsi_Host	*scsi_host;	   /* Pointer to mid-layer */
 	struct list_head	port_list;	   /* remote port list */
@@ -174,7 +180,7 @@ struct zfcp_adapter {
 	rwlock_t		erp_lock;
 	wait_queue_head_t	erp_done_wqh;
 	struct zfcp_erp_action	erp_action;	   /* pending error recovery */
-        atomic_t                erp_counter;
+	atomic_t                erp_counter;
 	u32			erp_total_count;   /* total nr of enqueued erp
 						      actions */
 	u32			erp_low_mem_count; /* nr of erp actions waiting
@@ -195,7 +201,8 @@ struct zfcp_adapter {
 	unsigned long		next_port_scan;
 };
 
-struct zfcp_port {
+struct zfcp_port
+{
 	struct device          dev;
 	struct fc_rport        *rport;         /* rport of fc transport class */
 	struct list_head       list;	       /* list of remote ports */
@@ -209,7 +216,7 @@ struct zfcp_port {
 	u32		       d_id;	       /* D_ID */
 	u32		       handle;	       /* handle assigned by FSF */
 	struct zfcp_erp_action erp_action;     /* pending error recovery */
-        atomic_t               erp_counter;
+	atomic_t               erp_counter;
 	u32                    maxframe_size;
 	u32                    supported_classes;
 	struct work_struct     gid_pn_work;
@@ -231,7 +238,8 @@ struct zfcp_port {
  * usage. The main data here is the 64 bit LUN value, data for
  * running I/O and recovery is in struct zfcp_scsi_dev.
  */
-struct zfcp_unit {
+struct zfcp_unit
+{
 	struct device		dev;
 	struct list_head	list;
 	struct zfcp_port	*port;
@@ -248,7 +256,8 @@ struct zfcp_unit {
  * @latencies: FSF channel and fabric latencies
  * @port: zfcp_port where this LUN belongs to
  */
-struct zfcp_scsi_dev {
+struct zfcp_scsi_dev
+{
 	atomic_t		status;
 	u32			lun_handle;
 	struct zfcp_erp_action	erp_action;
@@ -296,7 +305,8 @@ static inline u64 zfcp_scsi_dev_lun(struct scsi_device *sdev)
  * @issued: time when request was send (STCK)
  * @handler: handler which should be called to process response
  */
-struct zfcp_fsf_req {
+struct zfcp_fsf_req
+{
 	struct list_head	list;
 	unsigned long		req_id;
 	struct zfcp_adapter	*adapter;

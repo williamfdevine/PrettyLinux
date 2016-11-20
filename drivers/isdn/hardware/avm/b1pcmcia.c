@@ -58,7 +58,7 @@ static LIST_HEAD(cards);
 static char *b1pcmcia_procinfo(struct capi_ctr *ctrl);
 
 static int b1pcmcia_add_card(unsigned int port, unsigned irq,
-			     enum avmcardtype cardtype)
+							 enum avmcardtype cardtype)
 {
 	avmctrl_info *cinfo;
 	avmcard *card;
@@ -66,36 +66,49 @@ static int b1pcmcia_add_card(unsigned int port, unsigned irq,
 	int retval;
 
 	card = b1_alloc_card(1);
-	if (!card) {
+
+	if (!card)
+	{
 		printk(KERN_WARNING "b1pcmcia: no memory.\n");
 		retval = -ENOMEM;
 		goto err;
 	}
+
 	cinfo = card->ctrlinfo;
 
-	switch (cardtype) {
-	case avm_m1: sprintf(card->name, "m1-%x", port); break;
-	case avm_m2: sprintf(card->name, "m2-%x", port); break;
-	default: sprintf(card->name, "b1pcmcia-%x", port); break;
+	switch (cardtype)
+	{
+		case avm_m1: sprintf(card->name, "m1-%x", port); break;
+
+		case avm_m2: sprintf(card->name, "m2-%x", port); break;
+
+		default: sprintf(card->name, "b1pcmcia-%x", port); break;
 	}
+
 	card->port = port;
 	card->irq = irq;
 	card->cardtype = cardtype;
 
 	retval = request_irq(card->irq, b1_interrupt, IRQF_SHARED, card->name, card);
-	if (retval) {
+
+	if (retval)
+	{
 		printk(KERN_ERR "b1pcmcia: unable to get IRQ %d.\n",
-		       card->irq);
+			   card->irq);
 		retval = -EBUSY;
 		goto err_free;
 	}
+
 	b1_reset(card->port);
-	if ((retval = b1_detect(card->port, card->cardtype)) != 0) {
+
+	if ((retval = b1_detect(card->port, card->cardtype)) != 0)
+	{
 		printk(KERN_NOTICE "b1pcmcia: NO card at 0x%x (%d)\n",
-		       card->port, retval);
+			   card->port, retval);
 		retval = -ENODEV;
 		goto err_free_irq;
 	}
+
 	b1_reset(card->port);
 	b1_getrevision(card);
 
@@ -112,18 +125,24 @@ static int b1pcmcia_add_card(unsigned int port, unsigned irq,
 	strcpy(cinfo->capi_ctrl.name, card->name);
 
 	retval = attach_capi_ctr(&cinfo->capi_ctrl);
-	if (retval) {
+
+	if (retval)
+	{
 		printk(KERN_ERR "b1pcmcia: attach controller failed.\n");
 		goto err_free_irq;
 	}
-	switch (cardtype) {
-	case avm_m1: cardname = "M1"; break;
-	case avm_m2: cardname = "M2"; break;
-	default: cardname = "B1 PCMCIA"; break;
+
+	switch (cardtype)
+	{
+		case avm_m1: cardname = "M1"; break;
+
+		case avm_m2: cardname = "M2"; break;
+
+		default: cardname = "B1 PCMCIA"; break;
 	}
 
 	printk(KERN_INFO "b1pcmcia: AVM %s at i/o %#x, irq %d, revision %d\n",
-	       cardname, card->port, card->irq, card->revision);
+		   cardname, card->port, card->irq, card->revision);
 
 	list_add(&card->list, &cards);
 	return cinfo->capi_ctrl.cnr;
@@ -143,14 +162,17 @@ static char *b1pcmcia_procinfo(struct capi_ctr *ctrl)
 	avmctrl_info *cinfo = (avmctrl_info *)(ctrl->driverdata);
 
 	if (!cinfo)
+	{
 		return "";
+	}
+
 	sprintf(cinfo->infobuf, "%s %s 0x%x %d r%d",
-		cinfo->cardname[0] ? cinfo->cardname : "-",
-		cinfo->version[VER_DRIVER] ? cinfo->version[VER_DRIVER] : "-",
-		cinfo->card ? cinfo->card->port : 0x0,
-		cinfo->card ? cinfo->card->irq : 0,
-		cinfo->card ? cinfo->card->revision : 0
-		);
+			cinfo->cardname[0] ? cinfo->cardname : "-",
+			cinfo->version[VER_DRIVER] ? cinfo->version[VER_DRIVER] : "-",
+			cinfo->card ? cinfo->card->port : 0x0,
+			cinfo->card ? cinfo->card->irq : 0,
+			cinfo->card ? cinfo->card->revision : 0
+		   );
 	return cinfo->infobuf;
 }
 
@@ -176,9 +198,12 @@ int b1pcmcia_delcard(unsigned int port, unsigned irq)
 	struct list_head *l;
 	avmcard *card;
 
-	list_for_each(l, &cards) {
+	list_for_each(l, &cards)
+	{
 		card = list_entry(l, avmcard, list);
-		if (card->port == port && card->irq == irq) {
+
+		if (card->port == port && card->irq == irq)
+		{
 			b1pcmcia_remove_ctr(&card->ctrlinfo[0].capi_ctrl);
 			return 0;
 		}
@@ -191,7 +216,8 @@ EXPORT_SYMBOL(b1pcmcia_addcard_m1);
 EXPORT_SYMBOL(b1pcmcia_addcard_m2);
 EXPORT_SYMBOL(b1pcmcia_delcard);
 
-static struct capi_driver capi_driver_b1pcmcia = {
+static struct capi_driver capi_driver_b1pcmcia =
+{
 	.name		= "b1pcmcia",
 	.revision	= "1.0",
 };
@@ -201,12 +227,19 @@ static int __init b1pcmcia_init(void)
 	char *p;
 	char rev[32];
 
-	if ((p = strchr(revision, ':')) != NULL && p[1]) {
+	if ((p = strchr(revision, ':')) != NULL && p[1])
+	{
 		strlcpy(rev, p + 2, 32);
+
 		if ((p = strchr(rev, '$')) != NULL && p > rev)
+		{
 			*(p - 1) = 0;
-	} else
+		}
+	}
+	else
+	{
 		strcpy(rev, "1.0");
+	}
 
 	strlcpy(capi_driver_b1pcmcia.revision, rev, 32);
 	register_capi_driver(&capi_driver_b1pcmcia);

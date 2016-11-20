@@ -13,7 +13,8 @@
 #ifndef _SUN4I_CRTC_H_
 #define _SUN4I_CRTC_H_
 
-struct sun4i_crtc {
+struct sun4i_crtc
+{
 	struct drm_crtc			crtc;
 	struct drm_pending_vblank_event	*event;
 

@@ -15,12 +15,14 @@ struct pollfd;
  *	  I.e. using 'fda->priv[N].idx = * value' where N < fda->nr is ok,
  *	  but doing 'fda->priv = malloc(M)' is not allowed.
  */
-struct fdarray {
+struct fdarray
+{
 	int	       nr;
 	int	       nr_alloc;
 	int	       nr_autogrow;
 	struct pollfd *entries;
-	union {
+	union
+	{
 		int    idx;
 		void   *ptr;
 	} *priv;
@@ -35,8 +37,8 @@ void fdarray__delete(struct fdarray *fda);
 int fdarray__add(struct fdarray *fda, int fd, short revents);
 int fdarray__poll(struct fdarray *fda, int timeout);
 int fdarray__filter(struct fdarray *fda, short revents,
-		    void (*entry_destructor)(struct fdarray *fda, int fd, void *arg),
-		    void *arg);
+					void (*entry_destructor)(struct fdarray *fda, int fd, void *arg),
+					void *arg);
 int fdarray__grow(struct fdarray *fda, int extra);
 int fdarray__fprintf(struct fdarray *fda, FILE *fp);
 

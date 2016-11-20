@@ -147,7 +147,8 @@
 
 /* Generic 802.11 Header types */
 
-struct p80211_hdr_a3 {
+struct p80211_hdr_a3
+{
 	__le16 fc;
 	u16 dur;
 	u8 a1[ETH_ALEN];
@@ -156,7 +157,8 @@ struct p80211_hdr_a3 {
 	u16 seq;
 } __packed;
 
-struct p80211_hdr_a4 {
+struct p80211_hdr_a4
+{
 	u16 fc;
 	u16 dur;
 	u8 a1[ETH_ALEN];
@@ -166,7 +168,8 @@ struct p80211_hdr_a4 {
 	u8 a4[ETH_ALEN];
 } __packed;
 
-union p80211_hdr {
+union p80211_hdr
+{
 	struct p80211_hdr_a3 a3;
 	struct p80211_hdr_a4 a4;
 } __packed;
@@ -174,14 +177,14 @@ union p80211_hdr {
 /* Frame and header length macros */
 
 #define WLAN_CTL_FRAMELEN(fstype) (\
-	(fstype) == WLAN_FSTYPE_BLOCKACKREQ	? 24 : \
-	(fstype) == WLAN_FSTYPE_BLOCKACK	? 152 : \
-	(fstype) == WLAN_FSTYPE_PSPOLL		? 20 : \
-	(fstype) == WLAN_FSTYPE_RTS		? 20 : \
-	(fstype) == WLAN_FSTYPE_CTS		? 14 : \
-	(fstype) == WLAN_FSTYPE_ACK		? 14 : \
-	(fstype) == WLAN_FSTYPE_CFEND		? 20 : \
-	(fstype) == WLAN_FSTYPE_CFENDCFACK	? 20 : 4)
+								   (fstype) == WLAN_FSTYPE_BLOCKACKREQ	? 24 : \
+								   (fstype) == WLAN_FSTYPE_BLOCKACK	? 152 : \
+								   (fstype) == WLAN_FSTYPE_PSPOLL		? 20 : \
+								   (fstype) == WLAN_FSTYPE_RTS		? 20 : \
+								   (fstype) == WLAN_FSTYPE_CTS		? 14 : \
+								   (fstype) == WLAN_FSTYPE_ACK		? 14 : \
+								   (fstype) == WLAN_FSTYPE_CFEND		? 20 : \
+								   (fstype) == WLAN_FSTYPE_CFENDCFACK	? 20 : 4)
 
 #define WLAN_FCS_LEN			4
 
@@ -190,21 +193,29 @@ static inline u16 p80211_headerlen(u16 fctl)
 {
 	u16 hdrlen = 0;
 
-	switch (WLAN_GET_FC_FTYPE(fctl)) {
-	case WLAN_FTYPE_MGMT:
-		hdrlen = WLAN_HDR_A3_LEN;
-		break;
-	case WLAN_FTYPE_DATA:
-		hdrlen = WLAN_HDR_A3_LEN;
-		if (WLAN_GET_FC_TODS(fctl) && WLAN_GET_FC_FROMDS(fctl))
-			hdrlen += ETH_ALEN;
-		break;
-	case WLAN_FTYPE_CTL:
-		hdrlen = WLAN_CTL_FRAMELEN(WLAN_GET_FC_FSTYPE(fctl)) -
-		    WLAN_FCS_LEN;
-		break;
-	default:
-		hdrlen = WLAN_HDR_A3_LEN;
+	switch (WLAN_GET_FC_FTYPE(fctl))
+	{
+		case WLAN_FTYPE_MGMT:
+			hdrlen = WLAN_HDR_A3_LEN;
+			break;
+
+		case WLAN_FTYPE_DATA:
+			hdrlen = WLAN_HDR_A3_LEN;
+
+			if (WLAN_GET_FC_TODS(fctl) && WLAN_GET_FC_FROMDS(fctl))
+			{
+				hdrlen += ETH_ALEN;
+			}
+
+			break;
+
+		case WLAN_FTYPE_CTL:
+			hdrlen = WLAN_CTL_FRAMELEN(WLAN_GET_FC_FSTYPE(fctl)) -
+					 WLAN_FCS_LEN;
+			break;
+
+		default:
+			hdrlen = WLAN_HDR_A3_LEN;
 	}
 
 	return hdrlen;

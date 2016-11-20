@@ -46,7 +46,7 @@ xfs_qm_dquot_logitem_size(
 {
 	*nvecs += 2;
 	*nbytes += sizeof(struct xfs_dq_logformat) +
-		   sizeof(struct xfs_disk_dquot);
+			   sizeof(struct xfs_disk_dquot);
 }
 
 /*
@@ -71,8 +71,8 @@ xfs_qm_dquot_logitem_format(
 	xlog_finish_iovec(lv, vecp, sizeof(struct xfs_dq_logformat));
 
 	xlog_copy_iovec(lv, &vecp, XLOG_REG_TYPE_DQUOT,
-			&qlip->qli_dquot->q_core,
-			sizeof(struct xfs_disk_dquot));
+					&qlip->qli_dquot->q_core,
+					sizeof(struct xfs_disk_dquot));
 }
 
 /*
@@ -102,8 +102,11 @@ xfs_qm_dquot_logitem_unpin(
 	struct xfs_dquot	*dqp = DQUOT_ITEM(lip)->qli_dquot;
 
 	ASSERT(atomic_read(&dqp->q_pincount) > 0);
+
 	if (atomic_dec_and_test(&dqp->q_pincount))
+	{
 		wake_up(&dqp->q_pinwait);
+	}
 }
 
 STATIC xfs_lsn_t
@@ -127,8 +130,11 @@ xfs_qm_dqunpin_wait(
 	struct xfs_dquot	*dqp)
 {
 	ASSERT(XFS_DQ_IS_LOCKED(dqp));
+
 	if (atomic_read(&dqp->q_pincount) == 0)
+	{
 		return;
+	}
 
 	/*
 	 * Give the log a push so we don't wait here too long.
@@ -141,7 +147,7 @@ STATIC uint
 xfs_qm_dquot_logitem_push(
 	struct xfs_log_item	*lip,
 	struct list_head	*buffer_list) __releases(&lip->li_ailp->xa_lock)
-					      __acquires(&lip->li_ailp->xa_lock)
+__acquires(&lip->li_ailp->xa_lock)
 {
 	struct xfs_dquot	*dqp = DQUOT_ITEM(lip)->qli_dquot;
 	struct xfs_buf		*bp = NULL;
@@ -149,16 +155,21 @@ xfs_qm_dquot_logitem_push(
 	int			error;
 
 	if (atomic_read(&dqp->q_pincount) > 0)
+	{
 		return XFS_ITEM_PINNED;
+	}
 
 	if (!xfs_dqlock_nowait(dqp))
+	{
 		return XFS_ITEM_LOCKED;
+	}
 
 	/*
 	 * Re-check the pincount now that we stabilized the value by
 	 * taking the quota lock.
 	 */
-	if (atomic_read(&dqp->q_pincount) > 0) {
+	if (atomic_read(&dqp->q_pincount) > 0)
+	{
 		rval = XFS_ITEM_PINNED;
 		goto out_unlock;
 	}
@@ -168,7 +179,8 @@ xfs_qm_dquot_logitem_push(
 	 * here but wait for the flush to finish and remove the item from
 	 * the AIL.
 	 */
-	if (!xfs_dqflock_nowait(dqp)) {
+	if (!xfs_dqflock_nowait(dqp))
+	{
 		rval = XFS_ITEM_FLUSHING;
 		goto out_unlock;
 	}
@@ -176,12 +188,19 @@ xfs_qm_dquot_logitem_push(
 	spin_unlock(&lip->li_ailp->xa_lock);
 
 	error = xfs_qm_dqflush(dqp, &bp);
-	if (error) {
+
+	if (error)
+	{
 		xfs_warn(dqp->q_mount, "%s: push error %d on dqp %p",
-			__func__, error, dqp);
-	} else {
+				 __func__, error, dqp);
+	}
+	else
+	{
 		if (!xfs_buf_delwri_queue(bp, buffer_list))
+		{
 			rval = XFS_ITEM_FLUSHING;
+		}
+
 		xfs_buf_relse(bp);
 	}
 
@@ -234,7 +253,8 @@ xfs_qm_dquot_logitem_committing(
 /*
  * This is the ops vector for dquots
  */
-static const struct xfs_item_ops xfs_dquot_item_ops = {
+static const struct xfs_item_ops xfs_dquot_item_ops =
+{
 	.iop_size	= xfs_qm_dquot_logitem_size,
 	.iop_format	= xfs_qm_dquot_logitem_format,
 	.iop_pin	= xfs_qm_dquot_logitem_pin,
@@ -257,7 +277,7 @@ xfs_qm_dquot_logitem_init(
 	struct xfs_dq_logitem	*lp = &dqp->q_logitem;
 
 	xfs_log_item_init(dqp->q_mount, &lp->qli_item, XFS_LI_DQUOT,
-					&xfs_dquot_item_ops);
+					  &xfs_dquot_item_ops);
 	lp->qli_dquot = dqp;
 }
 
@@ -374,7 +394,7 @@ xfs_qm_qoffend_logitem_committed(
 	kmem_free(lip->li_lv_shadow);
 	kmem_free(qfs);
 	kmem_free(qfe);
-	return (xfs_lsn_t)-1;
+	return (xfs_lsn_t) - 1;
 }
 
 /*
@@ -398,7 +418,8 @@ xfs_qm_qoff_logitem_committing(
 {
 }
 
-static const struct xfs_item_ops xfs_qm_qoffend_logitem_ops = {
+static const struct xfs_item_ops xfs_qm_qoffend_logitem_ops =
+{
 	.iop_size	= xfs_qm_qoff_logitem_size,
 	.iop_format	= xfs_qm_qoff_logitem_format,
 	.iop_pin	= xfs_qm_qoff_logitem_pin,
@@ -412,7 +433,8 @@ static const struct xfs_item_ops xfs_qm_qoffend_logitem_ops = {
 /*
  * This is the ops vector shared by all quotaoff-start log items.
  */
-static const struct xfs_item_ops xfs_qm_qoff_logitem_ops = {
+static const struct xfs_item_ops xfs_qm_qoff_logitem_ops =
+{
 	.iop_size	= xfs_qm_qoff_logitem_size,
 	.iop_format	= xfs_qm_qoff_logitem_format,
 	.iop_pin	= xfs_qm_qoff_logitem_pin,
@@ -437,7 +459,7 @@ xfs_qm_qoff_logitem_init(
 	qf = kmem_zalloc(sizeof(struct xfs_qoff_logitem), KM_SLEEP);
 
 	xfs_log_item_init(mp, &qf->qql_item, XFS_LI_QUOTAOFF, start ?
-			&xfs_qm_qoffend_logitem_ops : &xfs_qm_qoff_logitem_ops);
+					  &xfs_qm_qoffend_logitem_ops : &xfs_qm_qoff_logitem_ops);
 	qf->qql_item.li_mountp = mp;
 	qf->qql_start_lip = start;
 	qf->qql_flags = flags;

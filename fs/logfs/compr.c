@@ -21,8 +21,11 @@ int logfs_compress(void *in, void *out, size_t inlen, size_t outlen)
 	ret = -EIO;
 	mutex_lock(&compr_mutex);
 	err = zlib_deflateInit(&stream, COMPR_LEVEL);
+
 	if (err != Z_OK)
+	{
 		goto error;
+	}
 
 	stream.next_in = in;
 	stream.avail_in = inlen;
@@ -32,15 +35,23 @@ int logfs_compress(void *in, void *out, size_t inlen, size_t outlen)
 	stream.total_out = 0;
 
 	err = zlib_deflate(&stream, Z_FINISH);
+
 	if (err != Z_STREAM_END)
+	{
 		goto error;
+	}
 
 	err = zlib_deflateEnd(&stream);
+
 	if (err != Z_OK)
+	{
 		goto error;
+	}
 
 	if (stream.total_out >= stream.total_in)
+	{
 		goto error;
+	}
 
 	ret = stream.total_out;
 error:
@@ -55,8 +66,11 @@ int logfs_uncompress(void *in, void *out, size_t inlen, size_t outlen)
 	ret = -EIO;
 	mutex_lock(&compr_mutex);
 	err = zlib_inflateInit(&stream);
+
 	if (err != Z_OK)
+	{
 		goto error;
+	}
 
 	stream.next_in = in;
 	stream.avail_in = inlen;
@@ -66,12 +80,18 @@ int logfs_uncompress(void *in, void *out, size_t inlen, size_t outlen)
 	stream.total_out = 0;
 
 	err = zlib_inflate(&stream, Z_FINISH);
+
 	if (err != Z_STREAM_END)
+	{
 		goto error;
+	}
 
 	err = zlib_inflateEnd(&stream);
+
 	if (err != Z_OK)
+	{
 		goto error;
+	}
 
 	ret = 0;
 error:
@@ -82,10 +102,14 @@ error:
 int __init logfs_compr_init(void)
 {
 	size_t size = max(zlib_deflate_workspacesize(MAX_WBITS, MAX_MEM_LEVEL),
-			zlib_inflate_workspacesize());
+					  zlib_inflate_workspacesize());
 	stream.workspace = vmalloc(size);
+
 	if (!stream.workspace)
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 

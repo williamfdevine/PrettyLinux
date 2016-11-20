@@ -27,7 +27,8 @@
  *
  * Deprecated in favor of mounting matrix retrieved from device-tree.
  */
-struct inv_mpu6050_platform_data {
+struct inv_mpu6050_platform_data
+{
 	__s8 orientation[9];
 };
 

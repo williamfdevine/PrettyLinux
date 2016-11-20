@@ -15,7 +15,7 @@
 #define NETLINK_SELINUX		7	/* SELinux event notifications */
 #define NETLINK_ISCSI		8	/* Open-iSCSI */
 #define NETLINK_AUDIT		9	/* auditing */
-#define NETLINK_FIB_LOOKUP	10	
+#define NETLINK_FIB_LOOKUP	10
 #define NETLINK_CONNECTOR	11
 #define NETLINK_NETFILTER	12	/* netfilter subsystem */
 #define NETLINK_IP6_FW		13
@@ -30,16 +30,18 @@
 
 #define NETLINK_INET_DIAG	NETLINK_SOCK_DIAG
 
-#define MAX_LINKS 32		
+#define MAX_LINKS 32
 
-struct sockaddr_nl {
+struct sockaddr_nl
+{
 	__kernel_sa_family_t	nl_family;	/* AF_NETLINK	*/
 	unsigned short	nl_pad;		/* zero		*/
 	__u32		nl_pid;		/* port ID	*/
-       	__u32		nl_groups;	/* multicast groups mask */
+	__u32		nl_groups;	/* multicast groups mask */
 };
 
-struct nlmsghdr {
+struct nlmsghdr
+{
 	__u32		nlmsg_len;	/* Length of message including header */
 	__u16		nlmsg_type;	/* Message content */
 	__u16		nlmsg_flags;	/* Additional flags */
@@ -84,10 +86,10 @@ struct nlmsghdr {
 #define NLMSG_SPACE(len) NLMSG_ALIGN(NLMSG_LENGTH(len))
 #define NLMSG_DATA(nlh)  ((void*)(((char*)nlh) + NLMSG_LENGTH(0)))
 #define NLMSG_NEXT(nlh,len)	 ((len) -= NLMSG_ALIGN((nlh)->nlmsg_len), \
-				  (struct nlmsghdr*)(((char*)(nlh)) + NLMSG_ALIGN((nlh)->nlmsg_len)))
+							  (struct nlmsghdr*)(((char*)(nlh)) + NLMSG_ALIGN((nlh)->nlmsg_len)))
 #define NLMSG_OK(nlh,len) ((len) >= (int)sizeof(struct nlmsghdr) && \
-			   (nlh)->nlmsg_len >= sizeof(struct nlmsghdr) && \
-			   (nlh)->nlmsg_len <= (len))
+						   (nlh)->nlmsg_len >= sizeof(struct nlmsghdr) && \
+						   (nlh)->nlmsg_len <= (len))
 #define NLMSG_PAYLOAD(nlh,len) ((nlh)->nlmsg_len - NLMSG_SPACE((len)))
 
 #define NLMSG_NOOP		0x1	/* Nothing.		*/
@@ -97,7 +99,8 @@ struct nlmsghdr {
 
 #define NLMSG_MIN_TYPE		0x10	/* < 0x10: reserved control messages */
 
-struct nlmsgerr {
+struct nlmsgerr
+{
 	int		error;
 	struct nlmsghdr msg;
 };
@@ -108,25 +111,28 @@ struct nlmsgerr {
 #define NETLINK_BROADCAST_ERROR		4
 #define NETLINK_NO_ENOBUFS		5
 #ifndef __KERNEL__
-#define NETLINK_RX_RING			6
-#define NETLINK_TX_RING			7
+	#define NETLINK_RX_RING			6
+	#define NETLINK_TX_RING			7
 #endif
 #define NETLINK_LISTEN_ALL_NSID		8
 #define NETLINK_LIST_MEMBERSHIPS	9
 #define NETLINK_CAP_ACK			10
 
-struct nl_pktinfo {
+struct nl_pktinfo
+{
 	__u32	group;
 };
 
-struct nl_mmap_req {
+struct nl_mmap_req
+{
 	unsigned int	nm_block_size;
 	unsigned int	nm_block_nr;
 	unsigned int	nm_frame_size;
 	unsigned int	nm_frame_nr;
 };
 
-struct nl_mmap_hdr {
+struct nl_mmap_hdr
+{
 	unsigned int	nm_status;
 	unsigned int	nm_len;
 	__u32		nm_group;
@@ -137,7 +143,8 @@ struct nl_mmap_hdr {
 };
 
 #ifndef __KERNEL__
-enum nl_mmap_status {
+enum nl_mmap_status
+{
 	NL_MMAP_STATUS_UNUSED,
 	NL_MMAP_STATUS_RESERVED,
 	NL_MMAP_STATUS_VALID,
@@ -152,7 +159,8 @@ enum nl_mmap_status {
 
 #define NET_MAJOR 36		/* Major 36 is reserved for networking 						*/
 
-enum {
+enum
+{
 	NETLINK_UNCONNECTED = 0,
 	NETLINK_CONNECTED,
 };
@@ -166,7 +174,8 @@ enum {
  *  <-------------- nlattr->nla_len -------------->
  */
 
-struct nlattr {
+struct nlattr
+{
 	__u16           nla_len;
 	__u16           nla_type;
 };

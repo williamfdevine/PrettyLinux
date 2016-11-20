@@ -36,7 +36,9 @@ static void do_imx_poweroff(void)
 static int imx_poweroff_probe(struct platform_device *pdev)
 {
 	snvs_base = of_iomap(pdev->dev.of_node, 0);
-	if (!snvs_base) {
+
+	if (!snvs_base)
+	{
 		dev_err(&pdev->dev, "failed to get memory\n");
 		return -ENODEV;
 	}
@@ -45,13 +47,15 @@ static int imx_poweroff_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id of_imx_poweroff_match[] = {
+static const struct of_device_id of_imx_poweroff_match[] =
+{
 	{ .compatible = "fsl,sec-v4.0-poweroff", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, of_imx_poweroff_match);
 
-static struct platform_driver imx_poweroff_driver = {
+static struct platform_driver imx_poweroff_driver =
+{
 	.probe = imx_poweroff_probe,
 	.driver = {
 		.name = "imx-snvs-poweroff",

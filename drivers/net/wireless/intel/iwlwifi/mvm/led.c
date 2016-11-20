@@ -79,13 +79,18 @@ static void iwl_mvm_led_disable(struct iwl_mvm *mvm)
 }
 
 static void iwl_led_brightness_set(struct led_classdev *led_cdev,
-				   enum led_brightness brightness)
+								   enum led_brightness brightness)
 {
 	struct iwl_mvm *mvm = container_of(led_cdev, struct iwl_mvm, led);
+
 	if (brightness > 0)
+	{
 		iwl_mvm_led_enable(mvm);
+	}
 	else
+	{
 		iwl_mvm_led_disable(mvm);
+	}
 }
 
 int iwl_mvm_leds_init(struct iwl_mvm *mvm)
@@ -93,22 +98,26 @@ int iwl_mvm_leds_init(struct iwl_mvm *mvm)
 	int mode = iwlwifi_mod_params.led_mode;
 	int ret;
 
-	switch (mode) {
-	case IWL_LED_BLINK:
-		IWL_ERR(mvm, "Blink led mode not supported, used default\n");
-	case IWL_LED_DEFAULT:
-	case IWL_LED_RF_STATE:
-		mode = IWL_LED_RF_STATE;
-		break;
-	case IWL_LED_DISABLE:
-		IWL_INFO(mvm, "Led disabled\n");
-		return 0;
-	default:
-		return -EINVAL;
+	switch (mode)
+	{
+		case IWL_LED_BLINK:
+			IWL_ERR(mvm, "Blink led mode not supported, used default\n");
+
+		case IWL_LED_DEFAULT:
+		case IWL_LED_RF_STATE:
+			mode = IWL_LED_RF_STATE;
+			break;
+
+		case IWL_LED_DISABLE:
+			IWL_INFO(mvm, "Led disabled\n");
+			return 0;
+
+		default:
+			return -EINVAL;
 	}
 
 	mvm->led.name = kasprintf(GFP_KERNEL, "%s-led",
-				   wiphy_name(mvm->hw->wiphy));
+							  wiphy_name(mvm->hw->wiphy));
 	mvm->led.brightness_set = iwl_led_brightness_set;
 	mvm->led.max_brightness = 1;
 
@@ -117,7 +126,9 @@ int iwl_mvm_leds_init(struct iwl_mvm *mvm)
 			ieee80211_get_radio_led_name(mvm->hw);
 
 	ret = led_classdev_register(mvm->trans->dev, &mvm->led);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(mvm->led.name);
 		IWL_INFO(mvm, "Failed to enable led\n");
 		return ret;
@@ -129,7 +140,9 @@ int iwl_mvm_leds_init(struct iwl_mvm *mvm)
 void iwl_mvm_leds_exit(struct iwl_mvm *mvm)
 {
 	if (iwlwifi_mod_params.led_mode == IWL_LED_DISABLE)
+	{
 		return;
+	}
 
 	led_classdev_unregister(&mvm->led);
 	kfree(mvm->led.name);

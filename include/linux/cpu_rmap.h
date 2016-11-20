@@ -24,11 +24,13 @@
  * @near: For each CPU, the index and distance to the nearest object,
  *      based on affinity masks
  */
-struct cpu_rmap {
+struct cpu_rmap
+{
 	struct kref	refcount;
 	u16		size, used;
 	void		**obj;
-	struct {
+	struct
+	{
 		u16	index;
 		u16	dist;
 	}		near[0];
@@ -40,7 +42,7 @@ extern int cpu_rmap_put(struct cpu_rmap *rmap);
 
 extern int cpu_rmap_add(struct cpu_rmap *rmap, void *obj);
 extern int cpu_rmap_update(struct cpu_rmap *rmap, u16 index,
-			   const struct cpumask *affinity);
+						   const struct cpumask *affinity);
 
 static inline u16 cpu_rmap_lookup_index(struct cpu_rmap *rmap, unsigned int cpu)
 {

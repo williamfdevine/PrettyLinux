@@ -3,7 +3,8 @@
 
 #include <linux/types.h>
 
-struct packet_diag_req {
+struct packet_diag_req
+{
 	__u8	sdiag_family;
 	__u8	sdiag_protocol;
 	__u16	pad;
@@ -19,7 +20,8 @@ struct packet_diag_req {
 #define PACKET_SHOW_MEMINFO	0x00000010
 #define PACKET_SHOW_FILTER	0x00000020
 
-struct packet_diag_msg {
+struct packet_diag_msg
+{
 	__u8	pdiag_family;
 	__u8	pdiag_type;
 	__u16	pdiag_num;
@@ -28,7 +30,8 @@ struct packet_diag_msg {
 	__u32	pdiag_cookie[2];
 };
 
-enum {
+enum
+{
 	/* PACKET_DIAG_NONE, standard nl API requires this attribute!  */
 	PACKET_DIAG_INFO,
 	PACKET_DIAG_MCLIST,
@@ -44,7 +47,8 @@ enum {
 
 #define PACKET_DIAG_MAX (__PACKET_DIAG_MAX - 1)
 
-struct packet_diag_info {
+struct packet_diag_info
+{
 	__u32	pdi_index;
 	__u32	pdi_version;
 	__u32	pdi_reserve;
@@ -59,7 +63,8 @@ struct packet_diag_info {
 #define PDI_LOSS	0x10
 };
 
-struct packet_diag_mclist {
+struct packet_diag_mclist
+{
 	__u32	pdmc_index;
 	__u32	pdmc_count;
 	__u16	pdmc_type;
@@ -67,7 +72,8 @@ struct packet_diag_mclist {
 	__u8	pdmc_addr[MAX_ADDR_LEN];
 };
 
-struct packet_diag_ring {
+struct packet_diag_ring
+{
 	__u32	pdr_block_size;
 	__u32	pdr_block_nr;
 	__u32	pdr_frame_size;

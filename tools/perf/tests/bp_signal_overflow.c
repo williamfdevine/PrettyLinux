@@ -35,8 +35,8 @@ static int test_function(void)
 }
 
 static void sig_handler(int signum __maybe_unused,
-			siginfo_t *oh __maybe_unused,
-			void *uc __maybe_unused)
+						siginfo_t *oh __maybe_unused,
+						void *uc __maybe_unused)
 {
 	overflows++;
 }
@@ -47,7 +47,9 @@ static long long bp_count(int fd)
 	int ret;
 
 	ret = read(fd, &count, sizeof(long long));
-	if (ret != sizeof(long long)) {
+
+	if (ret != sizeof(long long))
+	{
 		pr_debug("failed to read: %d\n", ret);
 		return TEST_FAIL;
 	}
@@ -70,7 +72,8 @@ int test__bp_signal_overflow(int subtest __maybe_unused)
 	sa.sa_sigaction = (void *) sig_handler;
 	sa.sa_flags = SA_SIGINFO;
 
-	if (sigaction(SIGIO, &sa, NULL) < 0) {
+	if (sigaction(SIGIO, &sa, NULL) < 0)
+	{
 		pr_debug("failed setting up signal handler\n");
 		return TEST_FAIL;
 	}
@@ -93,13 +96,15 @@ int test__bp_signal_overflow(int subtest __maybe_unused)
 	pe.exclude_hv = 1;
 
 	fd = sys_perf_event_open(&pe, 0, -1, -1,
-				 perf_event_open_cloexec_flag());
-	if (fd < 0) {
+							 perf_event_open_cloexec_flag());
+
+	if (fd < 0)
+	{
 		pr_debug("failed opening event %llx\n", pe.config);
 		return TEST_FAIL;
 	}
 
-	fcntl(fd, F_SETFL, O_RDWR|O_NONBLOCK|O_ASYNC);
+	fcntl(fd, F_SETFL, O_RDWR | O_NONBLOCK | O_ASYNC);
 	fcntl(fd, F_SETSIG, SIGIO);
 	fcntl(fd, F_SETOWN, getpid());
 
@@ -107,7 +112,9 @@ int test__bp_signal_overflow(int subtest __maybe_unused)
 	ioctl(fd, PERF_EVENT_IOC_ENABLE, 0);
 
 	for (i = 0; i < EXECUTIONS; i++)
+	{
 		test_function();
+	}
 
 	ioctl(fd, PERF_EVENT_IOC_DISABLE, 0);
 
@@ -116,17 +123,19 @@ int test__bp_signal_overflow(int subtest __maybe_unused)
 	close(fd);
 
 	pr_debug("count %lld, overflow %d\n",
-		 count, overflows);
+			 count, overflows);
 
-	if (count != EXECUTIONS) {
+	if (count != EXECUTIONS)
+	{
 		pr_debug("\tWrong number of executions %lld != %d\n",
-		count, EXECUTIONS);
+				 count, EXECUTIONS);
 		fails++;
 	}
 
-	if (overflows != EXECUTIONS / THRESHOLD) {
+	if (overflows != EXECUTIONS / THRESHOLD)
+	{
 		pr_debug("\tWrong number of overflows %d != %d\n",
-		overflows, EXECUTIONS / THRESHOLD);
+				 overflows, EXECUTIONS / THRESHOLD);
 		fails++;
 	}
 

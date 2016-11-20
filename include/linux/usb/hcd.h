@@ -63,7 +63,8 @@
 
 /*-------------------------------------------------------------------------*/
 
-struct giveback_urb_bh {
+struct giveback_urb_bh
+{
 	bool running;
 	spinlock_t lock;
 	struct list_head  head;
@@ -71,7 +72,8 @@ struct giveback_urb_bh {
 	struct usb_host_endpoint *completing_ep;
 };
 
-struct usb_hcd {
+struct usb_hcd
+{
 
 	/*
 	 * housekeeping
@@ -145,21 +147,21 @@ struct usb_hcd {
 	((hcd)->flags & (1U << HCD_FLAG_DEV_AUTHORIZED))
 
 	/* Flags that get set only during HCD registration or removal. */
-	unsigned		rh_registered:1;/* is root hub registered? */
-	unsigned		rh_pollable:1;	/* may we poll the root hub? */
-	unsigned		msix_enabled:1;	/* driver has MSI-X enabled? */
-	unsigned		remove_phy:1;	/* auto-remove USB phy */
+	unsigned		rh_registered: 1; /* is root hub registered? */
+	unsigned		rh_pollable: 1;	/* may we poll the root hub? */
+	unsigned		msix_enabled: 1;	/* driver has MSI-X enabled? */
+	unsigned		remove_phy: 1;	/* auto-remove USB phy */
 
 	/* The next flag is a stopgap, to be removed when all the HCDs
 	 * support the new root-hub polling mechanism. */
-	unsigned		uses_new_polling:1;
-	unsigned		wireless:1;	/* Wireless USB HCD */
-	unsigned		has_tt:1;	/* Integrated TT in root hub */
-	unsigned		amd_resume_bug:1; /* AMD remote wakeup quirk */
-	unsigned		can_do_streams:1; /* HC supports streams */
-	unsigned		tpl_support:1; /* OTG & EH TPL support */
-	unsigned		cant_recv_wakeups:1;
-			/* wakeup requests from downstream aren't received */
+	unsigned		uses_new_polling: 1;
+	unsigned		wireless: 1;	/* Wireless USB HCD */
+	unsigned		has_tt: 1;	/* Integrated TT in root hub */
+	unsigned		amd_resume_bug: 1; /* AMD remote wakeup quirk */
+	unsigned		can_do_streams: 1; /* HC supports streams */
+	unsigned		tpl_support: 1; /* OTG & EH TPL support */
+	unsigned		cant_recv_wakeups: 1;
+	/* wakeup requests from downstream aren't received */
 
 	unsigned int		irq;		/* irq allocated */
 	void __iomem		*regs;		/* device memory/io */
@@ -214,7 +216,7 @@ struct usb_hcd {
 	 * this structure.
 	 */
 	unsigned long hcd_priv[0]
-			__attribute__ ((aligned(sizeof(s64))));
+	__attribute__ ((aligned(sizeof(s64))));
 };
 
 /* 2.4 does this a bit differently ... */
@@ -228,7 +230,8 @@ static inline struct usb_hcd *bus_to_hcd(struct usb_bus *bus)
 	return container_of(bus, struct usb_hcd, self);
 }
 
-struct hcd_timeout {	/* timeouts we allocate */
+struct hcd_timeout  	/* timeouts we allocate */
+{
 	struct list_head	timeout_list;
 	struct timer_list	timer;
 };
@@ -236,7 +239,8 @@ struct hcd_timeout {	/* timeouts we allocate */
 /*-------------------------------------------------------------------------*/
 
 
-struct hc_driver {
+struct hc_driver
+{
 	const char	*description;	/* "ehci-hcd" etc */
 	const char	*product_desc;	/* product/vendor string */
 	size_t		hcd_priv_size;	/* size of private data */
@@ -280,9 +284,9 @@ struct hc_driver {
 
 	/* manage i/o requests, device state */
 	int	(*urb_enqueue)(struct usb_hcd *hcd,
-				struct urb *urb, gfp_t mem_flags);
+					   struct urb *urb, gfp_t mem_flags);
 	int	(*urb_dequeue)(struct usb_hcd *hcd,
-				struct urb *urb, int status);
+					   struct urb *urb, int status);
 
 	/*
 	 * (optional) these hooks allow an HCD to override the default DMA
@@ -294,51 +298,51 @@ struct hc_driver {
 	 * implementation)
 	 */
 	int	(*map_urb_for_dma)(struct usb_hcd *hcd, struct urb *urb,
-				   gfp_t mem_flags);
+						   gfp_t mem_flags);
 	void    (*unmap_urb_for_dma)(struct usb_hcd *hcd, struct urb *urb);
 
 	/* hw synch, freeing endpoint resources that urb_dequeue can't */
 	void	(*endpoint_disable)(struct usb_hcd *hcd,
-			struct usb_host_endpoint *ep);
+								struct usb_host_endpoint *ep);
 
 	/* (optional) reset any endpoint state such as sequence number
 	   and current window */
 	void	(*endpoint_reset)(struct usb_hcd *hcd,
-			struct usb_host_endpoint *ep);
+							  struct usb_host_endpoint *ep);
 
 	/* root hub support */
 	int	(*hub_status_data) (struct usb_hcd *hcd, char *buf);
 	int	(*hub_control) (struct usb_hcd *hcd,
-				u16 typeReq, u16 wValue, u16 wIndex,
-				char *buf, u16 wLength);
+						u16 typeReq, u16 wValue, u16 wIndex,
+						char *buf, u16 wLength);
 	int	(*bus_suspend)(struct usb_hcd *);
 	int	(*bus_resume)(struct usb_hcd *);
 	int	(*start_port_reset)(struct usb_hcd *, unsigned port_num);
 
-		/* force handover of high-speed port to full-speed companion */
+	/* force handover of high-speed port to full-speed companion */
 	void	(*relinquish_port)(struct usb_hcd *, int);
-		/* has a port been handed over to a companion? */
+	/* has a port been handed over to a companion? */
 	int	(*port_handed_over)(struct usb_hcd *, int);
 
-		/* CLEAR_TT_BUFFER completion callback */
+	/* CLEAR_TT_BUFFER completion callback */
 	void	(*clear_tt_buffer_complete)(struct usb_hcd *,
-				struct usb_host_endpoint *);
+										struct usb_host_endpoint *);
 
 	/* xHCI specific functions */
-		/* Called by usb_alloc_dev to alloc HC device structures */
+	/* Called by usb_alloc_dev to alloc HC device structures */
 	int	(*alloc_dev)(struct usb_hcd *, struct usb_device *);
-		/* Called by usb_disconnect to free HC device structures */
+	/* Called by usb_disconnect to free HC device structures */
 	void	(*free_dev)(struct usb_hcd *, struct usb_device *);
 	/* Change a group of bulk endpoints to support multiple stream IDs */
 	int	(*alloc_streams)(struct usb_hcd *hcd, struct usb_device *udev,
-		struct usb_host_endpoint **eps, unsigned int num_eps,
-		unsigned int num_streams, gfp_t mem_flags);
+						 struct usb_host_endpoint **eps, unsigned int num_eps,
+						 unsigned int num_streams, gfp_t mem_flags);
 	/* Reverts a group of bulk endpoints back to not using stream IDs.
 	 * Can fail if we run out of memory.
 	 */
 	int	(*free_streams)(struct usb_hcd *hcd, struct usb_device *udev,
-		struct usb_host_endpoint **eps, unsigned int num_eps,
-		gfp_t mem_flags);
+						struct usb_host_endpoint **eps, unsigned int num_eps,
+						gfp_t mem_flags);
 
 	/* Bandwidth computation functions */
 	/* Note that add_endpoint() can only be called once per endpoint before
@@ -350,50 +354,50 @@ struct hc_driver {
 	 * in usb_host_endpoint.  A call to xhci_add_endpoint() followed by a
 	 * call to xhci_drop_endpoint() is not allowed.
 	 */
-		/* Allocate endpoint resources and add them to a new schedule */
+	/* Allocate endpoint resources and add them to a new schedule */
 	int	(*add_endpoint)(struct usb_hcd *, struct usb_device *,
-				struct usb_host_endpoint *);
-		/* Drop an endpoint from a new schedule */
+						struct usb_host_endpoint *);
+	/* Drop an endpoint from a new schedule */
 	int	(*drop_endpoint)(struct usb_hcd *, struct usb_device *,
-				 struct usb_host_endpoint *);
-		/* Check that a new hardware configuration, set using
-		 * endpoint_enable and endpoint_disable, does not exceed bus
-		 * bandwidth.  This must be called before any set configuration
-		 * or set interface requests are sent to the device.
-		 */
+						 struct usb_host_endpoint *);
+	/* Check that a new hardware configuration, set using
+	 * endpoint_enable and endpoint_disable, does not exceed bus
+	 * bandwidth.  This must be called before any set configuration
+	 * or set interface requests are sent to the device.
+	 */
 	int	(*check_bandwidth)(struct usb_hcd *, struct usb_device *);
-		/* Reset the device schedule to the last known good schedule,
-		 * which was set from a previous successful call to
-		 * check_bandwidth().  This reverts any add_endpoint() and
-		 * drop_endpoint() calls since that last successful call.
-		 * Used for when a check_bandwidth() call fails due to resource
-		 * or bandwidth constraints.
-		 */
+	/* Reset the device schedule to the last known good schedule,
+	 * which was set from a previous successful call to
+	 * check_bandwidth().  This reverts any add_endpoint() and
+	 * drop_endpoint() calls since that last successful call.
+	 * Used for when a check_bandwidth() call fails due to resource
+	 * or bandwidth constraints.
+	 */
 	void	(*reset_bandwidth)(struct usb_hcd *, struct usb_device *);
-		/* Returns the hardware-chosen device address */
+	/* Returns the hardware-chosen device address */
 	int	(*address_device)(struct usb_hcd *, struct usb_device *udev);
-		/* prepares the hardware to send commands to the device */
+	/* prepares the hardware to send commands to the device */
 	int	(*enable_device)(struct usb_hcd *, struct usb_device *udev);
-		/* Notifies the HCD after a hub descriptor is fetched.
-		 * Will block.
-		 */
+	/* Notifies the HCD after a hub descriptor is fetched.
+	 * Will block.
+	 */
 	int	(*update_hub_device)(struct usb_hcd *, struct usb_device *hdev,
-			struct usb_tt *tt, gfp_t mem_flags);
+							 struct usb_tt *tt, gfp_t mem_flags);
 	int	(*reset_device)(struct usb_hcd *, struct usb_device *);
-		/* Notifies the HCD after a device is connected and its
-		 * address is set
-		 */
+	/* Notifies the HCD after a device is connected and its
+	 * address is set
+	 */
 	int	(*update_device)(struct usb_hcd *, struct usb_device *);
 	int	(*set_usb2_hw_lpm)(struct usb_hcd *, struct usb_device *, int);
 	/* USB 3.0 Link Power Management */
-		/* Returns the USB3 hub-encoded value for the U1/U2 timeout. */
+	/* Returns the USB3 hub-encoded value for the U1/U2 timeout. */
 	int	(*enable_usb3_lpm_timeout)(struct usb_hcd *,
-			struct usb_device *, enum usb3_link_state state);
-		/* The xHCI host controller can still fail the command to
-		 * disable the LPM timeouts, so this can return an error code.
-		 */
+								   struct usb_device *, enum usb3_link_state state);
+	/* The xHCI host controller can still fail the command to
+	 * disable the LPM timeouts, so this can return an error code.
+	 */
 	int	(*disable_usb3_lpm_timeout)(struct usb_hcd *,
-			struct usb_device *, enum usb3_link_state state);
+									struct usb_device *, enum usb3_link_state state);
 	int	(*find_raw_port_number)(struct usb_hcd *, int);
 	/* Call for power on/off the port if necessary */
 	int	(*port_power)(struct usb_hcd *hcd, int portnum, bool enable);
@@ -413,32 +417,32 @@ static inline bool hcd_periodic_completion_in_progress(struct usb_hcd *hcd,
 
 extern int usb_hcd_link_urb_to_ep(struct usb_hcd *hcd, struct urb *urb);
 extern int usb_hcd_check_unlink_urb(struct usb_hcd *hcd, struct urb *urb,
-		int status);
+									int status);
 extern void usb_hcd_unlink_urb_from_ep(struct usb_hcd *hcd, struct urb *urb);
 
 extern int usb_hcd_submit_urb(struct urb *urb, gfp_t mem_flags);
 extern int usb_hcd_unlink_urb(struct urb *urb, int status);
 extern void usb_hcd_giveback_urb(struct usb_hcd *hcd, struct urb *urb,
-		int status);
+								 int status);
 extern int usb_hcd_map_urb_for_dma(struct usb_hcd *hcd, struct urb *urb,
-		gfp_t mem_flags);
+								   gfp_t mem_flags);
 extern void usb_hcd_unmap_urb_setup_for_dma(struct usb_hcd *, struct urb *);
 extern void usb_hcd_unmap_urb_for_dma(struct usb_hcd *, struct urb *);
 extern void usb_hcd_flush_endpoint(struct usb_device *udev,
-		struct usb_host_endpoint *ep);
+								   struct usb_host_endpoint *ep);
 extern void usb_hcd_disable_endpoint(struct usb_device *udev,
-		struct usb_host_endpoint *ep);
+									 struct usb_host_endpoint *ep);
 extern void usb_hcd_reset_endpoint(struct usb_device *udev,
-		struct usb_host_endpoint *ep);
+								   struct usb_host_endpoint *ep);
 extern void usb_hcd_synchronize_unlinks(struct usb_device *udev);
 extern int usb_hcd_alloc_bandwidth(struct usb_device *udev,
-		struct usb_host_config *new_config,
-		struct usb_host_interface *old_alt,
-		struct usb_host_interface *new_alt);
+								   struct usb_host_config *new_config,
+								   struct usb_host_interface *old_alt,
+								   struct usb_host_interface *new_alt);
 extern int usb_hcd_get_frame_number(struct usb_device *udev);
 
 extern struct usb_hcd *usb_create_hcd(const struct hc_driver *driver,
-		struct device *dev, const char *bus_name);
+									  struct device *dev, const char *bus_name);
 extern struct usb_hcd *usb_create_shared_hcd(const struct hc_driver *driver,
 		struct device *dev, const char *bus_name,
 		struct usb_hcd *shared_hcd);
@@ -446,7 +450,7 @@ extern struct usb_hcd *usb_get_hcd(struct usb_hcd *hcd);
 extern void usb_put_hcd(struct usb_hcd *hcd);
 extern int usb_hcd_is_primary_hcd(struct usb_hcd *hcd);
 extern int usb_add_hcd(struct usb_hcd *hcd,
-		unsigned int irqnum, unsigned long irqflags);
+					   unsigned int irqnum, unsigned long irqflags);
 extern void usb_remove_hcd(struct usb_hcd *hcd);
 extern int usb_hcd_find_raw_port_number(struct usb_hcd *hcd, int port1);
 
@@ -457,14 +461,14 @@ extern void usb_hcd_platform_shutdown(struct platform_device *dev);
 struct pci_dev;
 struct pci_device_id;
 extern int usb_hcd_pci_probe(struct pci_dev *dev,
-				const struct pci_device_id *id);
+							 const struct pci_device_id *id);
 extern void usb_hcd_pci_remove(struct pci_dev *dev);
 extern void usb_hcd_pci_shutdown(struct pci_dev *dev);
 
 extern int usb_hcd_amd_remote_wakeup_quirk(struct pci_dev *dev);
 
 #ifdef CONFIG_PM
-extern const struct dev_pm_ops usb_hcd_pci_pm_ops;
+	extern const struct dev_pm_ops usb_hcd_pci_pm_ops;
 #endif
 #endif /* CONFIG_PCI */
 
@@ -474,9 +478,9 @@ int hcd_buffer_create(struct usb_hcd *hcd);
 void hcd_buffer_destroy(struct usb_hcd *hcd);
 
 void *hcd_buffer_alloc(struct usb_bus *bus, size_t size,
-	gfp_t mem_flags, dma_addr_t *dma);
+					   gfp_t mem_flags, dma_addr_t *dma);
 void hcd_buffer_free(struct usb_bus *bus, size_t size,
-	void *addr, dma_addr_t dma);
+					 void *addr, dma_addr_t dma);
 
 /* generic bus glue, needed for host controllers that don't use PCI */
 extern irqreturn_t usb_hcd_irq(int irq, void *__hcd);
@@ -484,7 +488,7 @@ extern irqreturn_t usb_hcd_irq(int irq, void *__hcd);
 extern void usb_hc_died(struct usb_hcd *hcd);
 extern void usb_hcd_poll_rh_status(struct usb_hcd *hcd);
 extern void usb_wakeup_notification(struct usb_device *hdev,
-		unsigned int portnum);
+									unsigned int portnum);
 
 extern void usb_hcd_start_port_resume(struct usb_bus *bus, int portnum);
 extern void usb_hcd_end_port_resume(struct usb_bus *bus, int portnum);
@@ -493,14 +497,14 @@ extern void usb_hcd_end_port_resume(struct usb_bus *bus, int portnum);
 #define usb_gettoggle(dev, ep, out) (((dev)->toggle[out] >> (ep)) & 1)
 #define	usb_dotoggle(dev, ep, out)  ((dev)->toggle[out] ^= (1 << (ep)))
 #define usb_settoggle(dev, ep, out, bit) \
-		((dev)->toggle[out] = ((dev)->toggle[out] & ~(1 << (ep))) | \
-		 ((bit) << (ep)))
+	((dev)->toggle[out] = ((dev)->toggle[out] & ~(1 << (ep))) | \
+						  ((bit) << (ep)))
 
 /* -------------------------------------------------------------------------- */
 
 /* Enumeration is only for the hub driver, or HCD virtual root hubs */
 extern struct usb_device *usb_alloc_dev(struct usb_device *parent,
-					struct usb_bus *, unsigned port);
+										struct usb_bus *, unsigned port);
 extern int usb_new_device(struct usb_device *dev);
 extern void usb_disconnect(struct usb_device **);
 
@@ -528,7 +532,8 @@ extern void usb_destroy_configuration(struct usb_device *dev);
 
 struct usb_device;
 
-struct usb_tt {
+struct usb_tt
+{
 	struct usb_device	*hub;	/* upstream highspeed hub */
 	int			multi;	/* true means one TT per port */
 	unsigned		think_time;	/* think time in ns */
@@ -540,7 +545,8 @@ struct usb_tt {
 	struct work_struct	clear_work;
 };
 
-struct usb_tt_clear {
+struct usb_tt_clear
+{
 	struct list_head	clear_list;
 	unsigned		tt;
 	u16			devinfo;
@@ -587,19 +593,19 @@ extern void usb_ep0_reinit(struct usb_device *);
  */
 #define FRAME_TIME_USECS	1000L
 #define BitTime(bytecount) (7 * 8 * bytecount / 6) /* with integer truncation */
-		/* Trying not to use worst-case bit-stuffing
-		 * of (7/6 * 8 * bytecount) = 9.33 * bytecount */
-		/* bytecount = data payload byte count */
+/* Trying not to use worst-case bit-stuffing
+ * of (7/6 * 8 * bytecount) = 9.33 * bytecount */
+/* bytecount = data payload byte count */
 
 #define NS_TO_US(ns)	DIV_ROUND_UP(ns, 1000L)
-			/* convert nanoseconds to microseconds, rounding up */
+/* convert nanoseconds to microseconds, rounding up */
 
 /*
  * Full/low speed bandwidth allocation constants/support.
  */
 #define BW_HOST_DELAY	1000L		/* nanoseconds */
 #define BW_HUB_LS_SETUP	333L		/* nanoseconds */
-			/* 4 full-speed bit times (est.) */
+/* 4 full-speed bit times (est.) */
 
 #define FRAME_TIME_BITS			12000L	/* frame = 1 millisecond */
 #define FRAME_TIME_MAX_BITS_ALLOC	(90L * FRAME_TIME_BITS / 100L)
@@ -612,21 +618,21 @@ extern void usb_ep0_reinit(struct usb_device *);
  */
 #define USB2_HOST_DELAY	5	/* nsec, guess */
 #define HS_NSECS(bytes) (((55 * 8 * 2083) \
-	+ (2083UL * (3 + BitTime(bytes))))/1000 \
-	+ USB2_HOST_DELAY)
+						  + (2083UL * (3 + BitTime(bytes))))/1000 \
+						 + USB2_HOST_DELAY)
 #define HS_NSECS_ISO(bytes) (((38 * 8 * 2083) \
-	+ (2083UL * (3 + BitTime(bytes))))/1000 \
-	+ USB2_HOST_DELAY)
+							  + (2083UL * (3 + BitTime(bytes))))/1000 \
+							 + USB2_HOST_DELAY)
 #define HS_USECS(bytes)		NS_TO_US(HS_NSECS(bytes))
 #define HS_USECS_ISO(bytes)	NS_TO_US(HS_NSECS_ISO(bytes))
 
 extern long usb_calc_bus_time(int speed, int is_input,
-			int isoc, int bytecount);
+							  int isoc, int bytecount);
 
 /*-------------------------------------------------------------------------*/
 
 extern void usb_set_device_state(struct usb_device *udev,
-		enum usb_device_state new_state);
+								 enum usb_device_state new_state);
 
 /*-------------------------------------------------------------------------*/
 
@@ -655,7 +661,8 @@ static inline void usb_hcd_resume_root_hub(struct usb_hcd *hcd)
 
 #if defined(CONFIG_USB_MON) || defined(CONFIG_USB_MON_MODULE)
 
-struct usb_mon_operations {
+struct usb_mon_operations
+{
 	void (*urb_submit)(struct usb_bus *bus, struct urb *urb);
 	void (*urb_submit_error)(struct usb_bus *bus, struct urb *urb, int err);
 	void (*urb_complete)(struct usb_bus *bus, struct urb *urb, int status);
@@ -667,21 +674,27 @@ extern const struct usb_mon_operations *mon_ops;
 static inline void usbmon_urb_submit(struct usb_bus *bus, struct urb *urb)
 {
 	if (bus->monitored)
+	{
 		(*mon_ops->urb_submit)(bus, urb);
+	}
 }
 
 static inline void usbmon_urb_submit_error(struct usb_bus *bus, struct urb *urb,
-    int error)
+		int error)
 {
 	if (bus->monitored)
+	{
 		(*mon_ops->urb_submit_error)(bus, urb, error);
+	}
 }
 
 static inline void usbmon_urb_complete(struct usb_bus *bus, struct urb *urb,
-		int status)
+									   int status)
 {
 	if (bus->monitored)
+	{
 		(*mon_ops->urb_complete)(bus, urb, status);
+	}
 }
 
 int usb_mon_register(const struct usb_mon_operations *ops);
@@ -691,9 +704,9 @@ void usb_mon_deregister(void);
 
 static inline void usbmon_urb_submit(struct usb_bus *bus, struct urb *urb) {}
 static inline void usbmon_urb_submit_error(struct usb_bus *bus, struct urb *urb,
-    int error) {}
+		int error) {}
 static inline void usbmon_urb_complete(struct usb_bus *bus, struct urb *urb,
-		int status) {}
+									   int status) {}
 
 #endif /* CONFIG_USB_MON || CONFIG_USB_MON_MODULE */
 
@@ -702,7 +715,7 @@ static inline void usbmon_urb_complete(struct usb_bus *bus, struct urb *urb,
 /* random stuff */
 
 #define	RUN_CONTEXT (in_irq() ? "in_irq" \
-		: (in_interrupt() ? "in_interrupt" : "can sleep"))
+					 : (in_interrupt() ? "in_interrupt" : "can sleep"))
 
 
 /* This rwsem is for use only by the hub driver and ehci-hcd.

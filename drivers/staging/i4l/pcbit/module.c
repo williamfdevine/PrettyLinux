@@ -38,26 +38,33 @@ static int __init pcbit_init(void)
 	num_boards = 0;
 
 	printk(KERN_NOTICE
-	       "PCBIT-D device driver v 0.5-fjpc0 19991204 - "
-	       "Copyright (C) 1996 Universidade de Lisboa\n");
+		   "PCBIT-D device driver v 0.5-fjpc0 19991204 - "
+		   "Copyright (C) 1996 Universidade de Lisboa\n");
 
 	if (mem[0] || irq[0])
 	{
 		for (board = 0; board < MAX_PCBIT_CARDS && mem[board] && irq[board]; board++)
 		{
 			if (!mem[board])
+			{
 				mem[board] = 0xD0000;
+			}
+
 			if (!irq[board])
+			{
 				irq[board] = 5;
+			}
 
 			if (pcbit_init_dev(board, mem[board], irq[board]) == 0)
+			{
 				num_boards++;
+			}
 
 			else
 			{
 				printk(KERN_WARNING
-				       "pcbit_init failed for dev %d",
-				       board + 1);
+					   "pcbit_init failed for dev %d",
+					   board + 1);
 				return -EIO;
 			}
 		}
@@ -68,12 +75,18 @@ static int __init pcbit_init(void)
 	if (!num_boards)
 	{
 		printk(KERN_INFO
-		       "Trying to detect board using default settings\n");
+			   "Trying to detect board using default settings\n");
+
 		if (pcbit_init_dev(0, 0xD0000, 5) == 0)
+		{
 			num_boards++;
+		}
 		else
+		{
 			return -EIO;
+		}
 	}
+
 	return 0;
 }
 
@@ -83,9 +96,12 @@ static void __exit pcbit_exit(void)
 	int board;
 
 	for (board = 0; board < num_boards; board++)
+	{
 		pcbit_terminate(board);
+	}
+
 	printk(KERN_NOTICE
-	       "PCBIT-D module unloaded\n");
+		   "PCBIT-D module unloaded\n");
 #endif
 }
 
@@ -102,20 +118,24 @@ static int __init pcbit_setup(char *line)
 	i = 0;
 	j = 1;
 
-	while (argc && (i < MAX_PCBIT_CARDS)) {
+	while (argc && (i < MAX_PCBIT_CARDS))
+	{
 
-		if (argc) {
+		if (argc)
+		{
 			mem[i]	= ints[j];
 			j++; argc--;
 		}
 
-		if (argc) {
+		if (argc)
+		{
 			irq[i]	= ints[j];
 			j++; argc--;
 		}
 
 		i++;
 	}
+
 	return (1);
 }
 __setup("pcbit=", pcbit_setup);

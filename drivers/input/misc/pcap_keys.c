@@ -18,7 +18,8 @@
 #include <linux/mfd/ezx-pcap.h>
 #include <linux/slab.h>
 
-struct pcap_keys {
+struct pcap_keys
+{
 	struct pcap_chip *pcap;
 	struct input_dev *input;
 };
@@ -33,13 +34,15 @@ static irqreturn_t pcap_keys_handler(int irq, void *_pcap_keys)
 	ezx_pcap_read(pcap_keys->pcap, PCAP_REG_PSTAT, &pstat);
 	pstat &= 1 << pirq;
 
-	switch (pirq) {
-	case PCAP_IRQ_ONOFF:
-		input_report_key(pcap_keys->input, KEY_POWER, !pstat);
-		break;
-	case PCAP_IRQ_MIC:
-		input_report_key(pcap_keys->input, KEY_HP, !pstat);
-		break;
+	switch (pirq)
+	{
+		case PCAP_IRQ_ONOFF:
+			input_report_key(pcap_keys->input, KEY_POWER, !pstat);
+			break;
+
+		case PCAP_IRQ_MIC:
+			input_report_key(pcap_keys->input, KEY_HP, !pstat);
+			break;
 	}
 
 	input_sync(pcap_keys->input);
@@ -54,14 +57,20 @@ static int pcap_keys_probe(struct platform_device *pdev)
 	struct input_dev *input_dev;
 
 	pcap_keys = kmalloc(sizeof(struct pcap_keys), GFP_KERNEL);
+
 	if (!pcap_keys)
+	{
 		return err;
+	}
 
 	pcap_keys->pcap = dev_get_drvdata(pdev->dev.parent);
 
 	input_dev = input_allocate_device();
+
 	if (!input_dev)
+	{
 		goto fail;
+	}
 
 	pcap_keys->input = input_dev;
 
@@ -76,18 +85,27 @@ static int pcap_keys_probe(struct platform_device *pdev)
 	__set_bit(KEY_HP, input_dev->keybit);
 
 	err = input_register_device(input_dev);
+
 	if (err)
+	{
 		goto fail_allocate;
+	}
 
 	err = request_irq(pcap_to_irq(pcap_keys->pcap, PCAP_IRQ_ONOFF),
-			pcap_keys_handler, 0, "Power key", pcap_keys);
+					  pcap_keys_handler, 0, "Power key", pcap_keys);
+
 	if (err)
+	{
 		goto fail_register;
+	}
 
 	err = request_irq(pcap_to_irq(pcap_keys->pcap, PCAP_IRQ_MIC),
-			pcap_keys_handler, 0, "Headphone button", pcap_keys);
+					  pcap_keys_handler, 0, "Headphone button", pcap_keys);
+
 	if (err)
+	{
 		goto fail_pwrkey;
+	}
 
 	return 0;
 
@@ -116,7 +134,8 @@ static int pcap_keys_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver pcap_keys_device_driver = {
+static struct platform_driver pcap_keys_device_driver =
+{
 	.probe		= pcap_keys_probe,
 	.remove		= pcap_keys_remove,
 	.driver		= {

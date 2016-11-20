@@ -74,7 +74,8 @@ struct scu_task_context;
  * This structure defines the fields for managing power control for direct
  * attached disk devices.
  */
-struct sci_power_control {
+struct sci_power_control
+{
 	/**
 	 * This field is set when the power control timer is running and cleared when
 	 * it is not.
@@ -107,15 +108,17 @@ struct sci_power_control {
 
 struct sci_port_configuration_agent;
 typedef void (*port_config_fn)(struct isci_host *,
-			       struct sci_port_configuration_agent *,
-			       struct isci_port *, struct isci_phy *);
+							   struct sci_port_configuration_agent *,
+							   struct isci_port *, struct isci_phy *);
 bool is_port_config_apc(struct isci_host *ihost);
 bool is_controller_start_complete(struct isci_host *ihost);
 
-struct sci_port_configuration_agent {
+struct sci_port_configuration_agent
+{
 	u16 phy_configured_mask;
 	u16 phy_ready_mask;
-	struct {
+	struct
+	{
 		u8 min_index;
 		u8 max_index;
 	} phy_valid_port_range[SCI_MAX_PHYS];
@@ -146,7 +149,8 @@ struct sci_port_configuration_agent {
  * 		      port then this bit is cleared.
 
  */
-struct isci_host {
+struct isci_host
+{
 	struct sci_base_state_machine sm;
 	/* XXX can we time this externally */
 	struct sci_timer timer;
@@ -198,9 +202,9 @@ struct isci_host {
 	struct sas_ha_struct sas_ha;
 
 	struct pci_dev *pdev;
-	#define IHOST_START_PENDING 0
-	#define IHOST_STOP_PENDING 1
-	#define IHOST_IRQ_ENABLED 2
+#define IHOST_START_PENDING 0
+#define IHOST_STOP_PENDING 1
+#define IHOST_IRQ_ENABLED 2
 	unsigned long flags;
 	wait_queue_head_t eventq;
 	struct tasklet_struct completion_tasklet;
@@ -213,7 +217,8 @@ struct isci_host {
  * enum sci_controller_states - This enumeration depicts all the states
  *    for the common controller state machine.
  */
-enum sci_controller_states {
+enum sci_controller_states
+{
 	/**
 	 * Simply the initial state for the base controller state machine.
 	 */
@@ -294,7 +299,8 @@ enum sci_controller_states {
  */
 #define SCI_MAX_MSIX_INT (SCI_NUM_MSI_X_INT*SCI_MAX_CONTROLLERS)
 
-struct isci_pci_info {
+struct isci_pci_info
+{
 	struct msix_entry msix_entries[SCI_MAX_MSIX_INT];
 	struct isci_host *hosts[SCI_MAX_CONTROLLERS];
 	struct isci_orom *orom;
@@ -312,7 +318,7 @@ static inline struct Scsi_Host *to_shost(struct isci_host *ihost)
 
 #define for_each_isci_host(id, ihost, pdev) \
 	for (id = 0; id < SCI_MAX_CONTROLLERS && \
-	     (ihost = to_pci_info(pdev)->hosts[id]); id++)
+		 (ihost = to_pci_info(pdev)->hosts[id]); id++)
 
 static inline void wait_for_start(struct isci_host *ihost)
 {
@@ -363,7 +369,10 @@ static inline int sci_remote_device_node_count(struct isci_remote_device *idev)
 	struct domain_device *dev = idev->domain_dev;
 
 	if (dev_is_sata(dev) && dev->parent)
+	{
 		return SCU_STP_REMOTE_NODE_COUNT;
+	}
+
 	return SCU_SSP_REMOTE_NODE_COUNT;
 }
 
@@ -380,7 +389,9 @@ static inline int sci_remote_device_node_count(struct isci_remote_device *idev)
 static inline struct device *scirdev_to_dev(struct isci_remote_device *idev)
 {
 	if (!idev || !idev->isci_port || !idev->isci_port->isci_host)
+	{
 		return NULL;
+	}
 
 	return &idev->isci_port->isci_host->pdev->dev;
 }
@@ -388,32 +399,45 @@ static inline struct device *scirdev_to_dev(struct isci_remote_device *idev)
 static inline bool is_a2(struct pci_dev *pdev)
 {
 	if (pdev->revision < 4)
+	{
 		return true;
+	}
+
 	return false;
 }
 
 static inline bool is_b0(struct pci_dev *pdev)
 {
 	if (pdev->revision == 4)
+	{
 		return true;
+	}
+
 	return false;
 }
 
 static inline bool is_c0(struct pci_dev *pdev)
 {
 	if (pdev->revision == 5)
+	{
 		return true;
+	}
+
 	return false;
 }
 
 static inline bool is_c1(struct pci_dev *pdev)
 {
 	if (pdev->revision >= 6)
+	{
 		return true;
+	}
+
 	return false;
 }
 
-enum cable_selections {
+enum cable_selections
+{
 	short_cable     = 0,
 	long_cable      = 1,
 	medium_cable    = 2,
@@ -444,15 +468,15 @@ static inline int isci_gpio_count(struct isci_host *ihost)
 }
 
 void sci_controller_post_request(struct isci_host *ihost,
-				      u32 request);
+								 u32 request);
 void sci_controller_release_frame(struct isci_host *ihost,
-				       u32 frame_index);
+								  u32 frame_index);
 void sci_controller_copy_sata_response(void *response_buffer,
-					    void *frame_header,
-					    void *frame_buffer);
+									   void *frame_header,
+									   void *frame_buffer);
 enum sci_status sci_controller_allocate_remote_node_context(struct isci_host *ihost,
-								 struct isci_remote_device *idev,
-								 u16 *node_id);
+		struct isci_remote_device *idev,
+		u16 *node_id);
 void sci_controller_free_remote_node_context(
 	struct isci_host *ihost,
 	struct isci_remote_device *idev,
@@ -460,15 +484,15 @@ void sci_controller_free_remote_node_context(
 
 struct isci_request *sci_request_by_tag(struct isci_host *ihost, u16 io_tag);
 void sci_controller_power_control_queue_insert(struct isci_host *ihost,
-					       struct isci_phy *iphy);
+		struct isci_phy *iphy);
 void sci_controller_power_control_queue_remove(struct isci_host *ihost,
-					       struct isci_phy *iphy);
+		struct isci_phy *iphy);
 void sci_controller_link_up(struct isci_host *ihost, struct isci_port *iport,
-			    struct isci_phy *iphy);
+							struct isci_phy *iphy);
 void sci_controller_link_down(struct isci_host *ihost, struct isci_port *iport,
-			      struct isci_phy *iphy);
+							  struct isci_phy *iphy);
 void sci_controller_remote_device_stopped(struct isci_host *ihost,
-					  struct isci_remote_device *idev);
+		struct isci_remote_device *idev);
 
 enum sci_status sci_controller_continue_io(struct isci_request *ireq);
 int isci_host_scan_finished(struct Scsi_Host *, unsigned long);
@@ -513,5 +537,5 @@ enum sci_status sci_port_configuration_agent_initialize(
 	struct sci_port_configuration_agent *port_agent);
 
 int isci_gpio_write(struct sas_ha_struct *, u8 reg_type, u8 reg_index,
-		    u8 reg_count, u8 *write_data);
+					u8 reg_count, u8 *write_data);
 #endif

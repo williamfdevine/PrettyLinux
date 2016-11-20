@@ -26,21 +26,24 @@
 
 struct ctlr_info;
 
-struct access_method {
+struct access_method
+{
 	void (*submit_command)(struct ctlr_info *h,
-		struct CommandList *c);
+						   struct CommandList *c);
 	void (*set_intr_mask)(struct ctlr_info *h, unsigned long val);
 	bool (*intr_pending)(struct ctlr_info *h);
 	unsigned long (*command_completed)(struct ctlr_info *h, u8 q);
 };
 
 /* for SAS hosts and SAS expanders */
-struct hpsa_sas_node {
+struct hpsa_sas_node
+{
 	struct device *parent_dev;
 	struct list_head port_list_head;
 };
 
-struct hpsa_sas_port {
+struct hpsa_sas_port
+{
 	struct list_head port_list_entry;
 	u64 sas_address;
 	struct sas_port *port;
@@ -50,14 +53,16 @@ struct hpsa_sas_port {
 	struct sas_rphy *rphy;
 };
 
-struct hpsa_sas_phy {
+struct hpsa_sas_phy
+{
 	struct list_head phy_list_entry;
 	struct sas_phy *phy;
 	struct hpsa_sas_port *parent_port;
 	bool added_to_port;
 };
 
-struct hpsa_scsi_dev_t {
+struct hpsa_scsi_dev_t
+{
 	unsigned int devtype;
 	int bus, target, lun;		/* as presented to the OS */
 	unsigned char scsi3addr[8];	/* as presented to the HW */
@@ -107,7 +112,8 @@ struct hpsa_scsi_dev_t {
 	int external;   /* 1-from external array 0-not <0-unknown */
 };
 
-struct reply_queue_buffer {
+struct reply_queue_buffer
+{
 	u64 *head;
 	size_t size;
 	u8 wraparound;
@@ -116,7 +122,8 @@ struct reply_queue_buffer {
 };
 
 #pragma pack(1)
-struct bmic_controller_parameters {
+struct bmic_controller_parameters
+{
 	u8   led_flags;
 	u8   enable_command_list_verification;
 	u8   backed_out_write_drives;
@@ -155,7 +162,8 @@ struct bmic_controller_parameters {
 };
 #pragma pack()
 
-struct ctlr_info {
+struct ctlr_info
+{
 	int	ctlr;
 	char	devname[8];
 	char    *product_name;
@@ -280,11 +288,11 @@ struct ctlr_info {
 #define CTLR_STATE_CHANGE_EVENT_AIO_CONFIG_CHANGE	(1 << 31)
 
 #define RESCAN_REQUIRED_EVENT_BITS \
-		(CTLR_ENCLOSURE_HOT_PLUG_EVENT | \
-		CTLR_STATE_CHANGE_EVENT_PHYSICAL_DRV | \
-		CTLR_STATE_CHANGE_EVENT_LOGICAL_DRV | \
-		CTLR_STATE_CHANGE_EVENT_AIO_ENABLED_DISABLED | \
-		CTLR_STATE_CHANGE_EVENT_AIO_CONFIG_CHANGE)
+	(CTLR_ENCLOSURE_HOT_PLUG_EVENT | \
+	 CTLR_STATE_CHANGE_EVENT_PHYSICAL_DRV | \
+	 CTLR_STATE_CHANGE_EVENT_LOGICAL_DRV | \
+	 CTLR_STATE_CHANGE_EVENT_AIO_ENABLED_DISABLED | \
+	 CTLR_STATE_CHANGE_EVENT_AIO_CONFIG_CHANGE)
 	spinlock_t offline_device_lock;
 	struct list_head offline_device_list;
 	int	acciopath_status;
@@ -303,7 +311,8 @@ struct ctlr_info {
 	struct hpsa_sas_node *sas_host;
 };
 
-struct offline_device_entry {
+struct offline_device_entry
+{
 	unsigned char scsi3addr[8];
 	struct list_head offline_list;
 };
@@ -346,10 +355,10 @@ struct offline_device_entry {
 	((HPSA_BOARD_READY_POLL_INTERVAL_MSECS * HZ) / 1000)
 #define HPSA_BOARD_READY_ITERATIONS \
 	((HPSA_BOARD_READY_WAIT_SECS * 1000) / \
-		HPSA_BOARD_READY_POLL_INTERVAL_MSECS)
+	 HPSA_BOARD_READY_POLL_INTERVAL_MSECS)
 #define HPSA_BOARD_NOT_READY_ITERATIONS \
 	((HPSA_BOARD_NOT_READY_WAIT_SECS * 1000) / \
-		HPSA_BOARD_READY_POLL_INTERVAL_MSECS)
+	 HPSA_BOARD_READY_POLL_INTERVAL_MSECS)
 #define HPSA_POST_RESET_PAUSE_MSECS (3000)
 #define HPSA_POST_RESET_NOOP_RETRIES (12)
 
@@ -407,20 +416,20 @@ struct offline_device_entry {
 	Send the command to the hardware
 */
 static void SA5_submit_command(struct ctlr_info *h,
-	struct CommandList *c)
+							   struct CommandList *c)
 {
 	writel(c->busaddr, h->vaddr + SA5_REQUEST_PORT_OFFSET);
 	(void) readl(h->vaddr + SA5_SCRATCHPAD_OFFSET);
 }
 
 static void SA5_submit_command_no_read(struct ctlr_info *h,
-	struct CommandList *c)
+									   struct CommandList *c)
 {
 	writel(c->busaddr, h->vaddr + SA5_REQUEST_PORT_OFFSET);
 }
 
 static void SA5_submit_command_ioaccel2(struct ctlr_info *h,
-	struct CommandList *c)
+										struct CommandList *c)
 {
 	writel(c->busaddr, h->vaddr + SA5_REQUEST_PORT_OFFSET);
 }
@@ -432,28 +441,34 @@ static void SA5_submit_command_ioaccel2(struct ctlr_info *h,
  */
 static void SA5_intr_mask(struct ctlr_info *h, unsigned long val)
 {
-	if (val) { /* Turn interrupts on */
+	if (val)   /* Turn interrupts on */
+	{
 		h->interrupts_enabled = 1;
 		writel(0, h->vaddr + SA5_REPLY_INTR_MASK_OFFSET);
 		(void) readl(h->vaddr + SA5_REPLY_INTR_MASK_OFFSET);
-	} else { /* Turn them off */
+	}
+	else     /* Turn them off */
+	{
 		h->interrupts_enabled = 0;
 		writel(SA5_INTR_OFF,
-			h->vaddr + SA5_REPLY_INTR_MASK_OFFSET);
+			   h->vaddr + SA5_REPLY_INTR_MASK_OFFSET);
 		(void) readl(h->vaddr + SA5_REPLY_INTR_MASK_OFFSET);
 	}
 }
 
 static void SA5_performant_intr_mask(struct ctlr_info *h, unsigned long val)
 {
-	if (val) { /* turn on interrupts */
+	if (val)   /* turn on interrupts */
+	{
 		h->interrupts_enabled = 1;
 		writel(0, h->vaddr + SA5_REPLY_INTR_MASK_OFFSET);
 		(void) readl(h->vaddr + SA5_REPLY_INTR_MASK_OFFSET);
-	} else {
+	}
+	else
+	{
 		h->interrupts_enabled = 0;
 		writel(SA5_PERF_INTR_OFF,
-			h->vaddr + SA5_REPLY_INTR_MASK_OFFSET);
+			   h->vaddr + SA5_REPLY_INTR_MASK_OFFSET);
 		(void) readl(h->vaddr + SA5_REPLY_INTR_MASK_OFFSET);
 	}
 }
@@ -464,7 +479,8 @@ static unsigned long SA5_performant_completed(struct ctlr_info *h, u8 q)
 	unsigned long register_value = FIFO_EMPTY;
 
 	/* msi auto clears the interrupt pending bit. */
-	if (unlikely(!(h->msi_vector || h->msix_vector))) {
+	if (unlikely(!(h->msi_vector || h->msix_vector)))
+	{
 		/* flush the controller write of the reply queue by reading
 		 * outbound doorbell status register.
 		 */
@@ -476,18 +492,24 @@ static unsigned long SA5_performant_completed(struct ctlr_info *h, u8 q)
 		(void) readl(h->vaddr + SA5_OUTDB_STATUS);
 	}
 
-	if ((((u32) rq->head[rq->current_entry]) & 1) == rq->wraparound) {
+	if ((((u32) rq->head[rq->current_entry]) & 1) == rq->wraparound)
+	{
 		register_value = rq->head[rq->current_entry];
 		rq->current_entry++;
 		atomic_dec(&h->commands_outstanding);
-	} else {
+	}
+	else
+	{
 		register_value = FIFO_EMPTY;
 	}
+
 	/* Check for wraparound */
-	if (rq->current_entry == h->max_commands) {
+	if (rq->current_entry == h->max_commands)
+	{
 		rq->current_entry = 0;
 		rq->wraparound ^= 1;
 	}
+
 	return register_value;
 }
 
@@ -496,20 +518,26 @@ static unsigned long SA5_performant_completed(struct ctlr_info *h, u8 q)
  *     returns FIFO_EMPTY if there is nothing to read
  */
 static unsigned long SA5_completed(struct ctlr_info *h,
-	__attribute__((unused)) u8 q)
+								   __attribute__((unused)) u8 q)
 {
 	unsigned long register_value
 		= readl(h->vaddr + SA5_REPLY_PORT_OFFSET);
 
 	if (register_value != FIFO_EMPTY)
+	{
 		atomic_dec(&h->commands_outstanding);
+	}
 
 #ifdef HPSA_DEBUG
+
 	if (register_value != FIFO_EMPTY)
 		dev_dbg(&h->pdev->dev, "Read %lx back from board\n",
-			register_value);
+				register_value);
 	else
+	{
 		dev_dbg(&h->pdev->dev, "FIFO Empty read\n");
+	}
+
 #endif
 
 	return register_value;
@@ -529,7 +557,9 @@ static bool SA5_performant_intr_pending(struct ctlr_info *h)
 	unsigned long register_value = readl(h->vaddr + SA5_INTR_STATUS);
 
 	if (!register_value)
+	{
 		return false;
+	}
 
 	/* Read outbound doorbell to flush */
 	register_value = readl(h->vaddr + SA5_OUTDB_STATUS);
@@ -543,7 +573,7 @@ static bool SA5_ioaccel_mode1_intr_pending(struct ctlr_info *h)
 	unsigned long register_value = readl(h->vaddr + SA5_INTR_STATUS);
 
 	return (register_value & SA5_IOACCEL_MODE1_INTR_STATUS_CMP_BIT) ?
-		true : false;
+		   true : false;
 }
 
 #define IOACCEL_MODE1_REPLY_QUEUE_INDEX  0x1A0
@@ -559,10 +589,16 @@ static unsigned long SA5_ioaccel_mode1_completed(struct ctlr_info *h, u8 q)
 	BUG_ON(q >= h->nreply_queues);
 
 	register_value = rq->head[rq->current_entry];
-	if (register_value != IOACCEL_MODE1_REPLY_UNUSED) {
+
+	if (register_value != IOACCEL_MODE1_REPLY_UNUSED)
+	{
 		rq->head[rq->current_entry] = IOACCEL_MODE1_REPLY_UNUSED;
+
 		if (++rq->current_entry == rq->size)
+		{
 			rq->current_entry = 0;
+		}
+
 		/*
 		 * @todo
 		 *
@@ -571,48 +607,55 @@ static unsigned long SA5_ioaccel_mode1_completed(struct ctlr_info *h, u8 q)
 		 */
 		wmb();
 		writel((q << 24) | rq->current_entry, h->vaddr +
-				IOACCEL_MODE1_CONSUMER_INDEX);
+			   IOACCEL_MODE1_CONSUMER_INDEX);
 		atomic_dec(&h->commands_outstanding);
 	}
+
 	return (unsigned long) register_value;
 }
 
-static struct access_method SA5_access = {
+static struct access_method SA5_access =
+{
 	SA5_submit_command,
 	SA5_intr_mask,
 	SA5_intr_pending,
 	SA5_completed,
 };
 
-static struct access_method SA5_ioaccel_mode1_access = {
+static struct access_method SA5_ioaccel_mode1_access =
+{
 	SA5_submit_command,
 	SA5_performant_intr_mask,
 	SA5_ioaccel_mode1_intr_pending,
 	SA5_ioaccel_mode1_completed,
 };
 
-static struct access_method SA5_ioaccel_mode2_access = {
+static struct access_method SA5_ioaccel_mode2_access =
+{
 	SA5_submit_command_ioaccel2,
 	SA5_performant_intr_mask,
 	SA5_performant_intr_pending,
 	SA5_performant_completed,
 };
 
-static struct access_method SA5_performant_access = {
+static struct access_method SA5_performant_access =
+{
 	SA5_submit_command,
 	SA5_performant_intr_mask,
 	SA5_performant_intr_pending,
 	SA5_performant_completed,
 };
 
-static struct access_method SA5_performant_access_no_read = {
+static struct access_method SA5_performant_access_no_read =
+{
 	SA5_submit_command_no_read,
 	SA5_performant_intr_mask,
 	SA5_performant_intr_pending,
 	SA5_performant_completed,
 };
 
-struct board_type {
+struct board_type
+{
 	u32	board_id;
 	char	*product_name;
 	struct access_method *access;

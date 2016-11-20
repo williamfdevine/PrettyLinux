@@ -44,7 +44,8 @@
 #define VF_IS_V11(_v) (((_v)->vf_ver.major == 1) && ((_v)->vf_ver.minor == 1))
 
 /* Various queue ctrls */
-enum i40e_queue_ctrl {
+enum i40e_queue_ctrl
+{
 	I40E_QUEUE_CTRL_UNKNOWN = 0,
 	I40E_QUEUE_CTRL_ENABLE,
 	I40E_QUEUE_CTRL_ENABLECHECK,
@@ -55,7 +56,8 @@ enum i40e_queue_ctrl {
 };
 
 /* VF states */
-enum i40e_vf_states {
+enum i40e_vf_states
+{
 	I40E_VF_STAT_INIT = 0,
 	I40E_VF_STAT_ACTIVE,
 	I40E_VF_STAT_IWARPENA,
@@ -66,14 +68,16 @@ enum i40e_vf_states {
 };
 
 /* VF capabilities */
-enum i40e_vf_capabilities {
+enum i40e_vf_capabilities
+{
 	I40E_VIRTCHNL_VF_CAP_PRIVILEGE = 0,
 	I40E_VIRTCHNL_VF_CAP_L2,
 	I40E_VIRTCHNL_VF_CAP_IWARP,
 };
 
 /* VF information structure */
-struct i40e_vf {
+struct i40e_vf
+{
 	struct i40e_pf *pf;
 
 	/* VF id in the PF space */
@@ -122,7 +126,7 @@ void i40e_free_vfs(struct i40e_pf *pf);
 int i40e_pci_sriov_configure(struct pci_dev *dev, int num_vfs);
 int i40e_alloc_vfs(struct i40e_pf *pf, u16 num_alloc_vfs);
 int i40e_vc_process_vf_msg(struct i40e_pf *pf, s16 vf_id, u32 v_opcode,
-			   u32 v_retval, u8 *msg, u16 msglen);
+						   u32 v_retval, u8 *msg, u16 msglen);
 int i40e_vc_process_vflr_event(struct i40e_pf *pf);
 void i40e_reset_vf(struct i40e_vf *vf, bool flr);
 void i40e_vc_notify_vf_reset(struct i40e_vf *vf);
@@ -130,12 +134,12 @@ void i40e_vc_notify_vf_reset(struct i40e_vf *vf);
 /* VF configuration related iplink handlers */
 int i40e_ndo_set_vf_mac(struct net_device *netdev, int vf_id, u8 *mac);
 int i40e_ndo_set_vf_port_vlan(struct net_device *netdev, int vf_id,
-			      u16 vlan_id, u8 qos, __be16 vlan_proto);
+							  u16 vlan_id, u8 qos, __be16 vlan_proto);
 int i40e_ndo_set_vf_bw(struct net_device *netdev, int vf_id, int min_tx_rate,
-		       int max_tx_rate);
+					   int max_tx_rate);
 int i40e_ndo_set_vf_trust(struct net_device *netdev, int vf_id, bool setting);
 int i40e_ndo_get_vf_config(struct net_device *netdev,
-			   int vf_id, struct ifla_vf_info *ivi);
+						   int vf_id, struct ifla_vf_info *ivi);
 int i40e_ndo_set_vf_link_state(struct net_device *netdev, int vf_id, int link);
 int i40e_ndo_set_vf_spoofchk(struct net_device *netdev, int vf_id, bool enable);
 

@@ -15,7 +15,7 @@
 #define DEBUG_INT	 8
 #define DEBUG_IC	16
 #ifndef NET_DEBUG
-#define NET_DEBUG 	0
+	#define NET_DEBUG 	0
 #endif
 
 #define NET_UID		0
@@ -129,17 +129,18 @@
 #define ISALED0		0x0004
 #define ISALED0_LNKST	0x8000
 
-struct dev_priv {
-    unsigned long	rxbuffer[RX_BUFFERS];
-    unsigned long	txbuffer[TX_BUFFERS];
-    unsigned char	txhead;
-    unsigned char	txtail;
-    unsigned char	rxhead;
-    unsigned char	rxtail;
-    unsigned long	rxhdr;
-    unsigned long	txhdr;
-    spinlock_t		chip_lock;
-    struct timer_list	timer;
+struct dev_priv
+{
+	unsigned long	rxbuffer[RX_BUFFERS];
+	unsigned long	txbuffer[TX_BUFFERS];
+	unsigned char	txhead;
+	unsigned char	txtail;
+	unsigned char	rxhead;
+	unsigned char	rxtail;
+	unsigned long	rxhdr;
+	unsigned long	txhdr;
+	spinlock_t		chip_lock;
+	struct timer_list	timer;
 };
 
 #endif

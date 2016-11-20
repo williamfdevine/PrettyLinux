@@ -19,7 +19,8 @@
 
 #define container_obj(layr) container_of(layr, struct cffrml, layer)
 
-struct cffrml {
+struct cffrml
+{
 	struct cflayer layer;
 	bool dofcs;		/* !< FCS active */
 	int __percpu		*pcpu_refcnt;
@@ -28,17 +29,23 @@ struct cffrml {
 static int cffrml_receive(struct cflayer *layr, struct cfpkt *pkt);
 static int cffrml_transmit(struct cflayer *layr, struct cfpkt *pkt);
 static void cffrml_ctrlcmd(struct cflayer *layr, enum caif_ctrlcmd ctrl,
-			   int phyid);
+						   int phyid);
 
 static u32 cffrml_rcv_error;
 static u32 cffrml_rcv_checsum_error;
 struct cflayer *cffrml_create(u16 phyid, bool use_fcs)
 {
 	struct cffrml *this = kzalloc(sizeof(struct cffrml), GFP_ATOMIC);
+
 	if (!this)
+	{
 		return NULL;
+	}
+
 	this->pcpu_refcnt = alloc_percpu(int);
-	if (this->pcpu_refcnt == NULL) {
+
+	if (this->pcpu_refcnt == NULL)
+	{
 		kfree(this);
 		return NULL;
 	}
@@ -93,39 +100,49 @@ static int cffrml_receive(struct cflayer *layr, struct cfpkt *pkt)
 
 	/* Subtract for FCS on length if FCS is not used. */
 	if (!this->dofcs)
+	{
 		len -= 2;
+	}
 
-	if (cfpkt_setlen(pkt, len) < 0) {
+	if (cfpkt_setlen(pkt, len) < 0)
+	{
 		++cffrml_rcv_error;
 		pr_err("Framing length error (%d)\n", len);
 		cfpkt_destroy(pkt);
 		return -EPROTO;
 	}
+
 	/*
 	 * Don't do extract if FCS is false, rather do setlen - then we don't
 	 * get a cache-miss.
 	 */
-	if (this->dofcs) {
+	if (this->dofcs)
+	{
 		cfpkt_extr_trail(pkt, &tmp, 2);
 		hdrchks = le16_to_cpu(tmp);
 		pktchks = cfpkt_iterate(pkt, cffrml_checksum, 0xffff);
-		if (pktchks != hdrchks) {
+
+		if (pktchks != hdrchks)
+		{
 			cfpkt_add_trail(pkt, &tmp, 2);
 			++cffrml_rcv_error;
 			++cffrml_rcv_checsum_error;
 			pr_info("Frame checksum error (0x%x != 0x%x)\n",
-				hdrchks, pktchks);
+					hdrchks, pktchks);
 			return -EILSEQ;
 		}
 	}
-	if (cfpkt_erroneous(pkt)) {
+
+	if (cfpkt_erroneous(pkt))
+	{
 		++cffrml_rcv_error;
 		pr_err("Packet is erroneous!\n");
 		cfpkt_destroy(pkt);
 		return -EPROTO;
 	}
 
-	if (layr->up == NULL) {
+	if (layr->up == NULL)
+	{
 		pr_err("Layr up is missing!\n");
 		cfpkt_destroy(pkt);
 		return -EINVAL;
@@ -141,50 +158,67 @@ static int cffrml_transmit(struct cflayer *layr, struct cfpkt *pkt)
 	__le16 data;
 
 	struct cffrml *this = container_obj(layr);
-	if (this->dofcs) {
+
+	if (this->dofcs)
+	{
 		chks = cfpkt_iterate(pkt, cffrml_checksum, 0xffff);
 		data = cpu_to_le16(chks);
 		cfpkt_add_trail(pkt, &data, 2);
-	} else {
+	}
+	else
+	{
 		cfpkt_pad_trail(pkt, 2);
 	}
+
 	len = cfpkt_getlen(pkt);
 	data = cpu_to_le16(len);
 	cfpkt_add_head(pkt, &data, 2);
 	cfpkt_info(pkt)->hdr_len += 2;
-	if (cfpkt_erroneous(pkt)) {
+
+	if (cfpkt_erroneous(pkt))
+	{
 		pr_err("Packet is erroneous!\n");
 		cfpkt_destroy(pkt);
 		return -EPROTO;
 	}
 
-	if (layr->dn == NULL) {
+	if (layr->dn == NULL)
+	{
 		cfpkt_destroy(pkt);
 		return -ENODEV;
 
 	}
+
 	return layr->dn->transmit(layr->dn, pkt);
 }
 
 static void cffrml_ctrlcmd(struct cflayer *layr, enum caif_ctrlcmd ctrl,
-			   int phyid)
+						   int phyid)
 {
 	if (layr->up && layr->up->ctrlcmd)
+	{
 		layr->up->ctrlcmd(layr->up, ctrl, layr->id);
+	}
 }
 
 void cffrml_put(struct cflayer *layr)
 {
 	struct cffrml *this = container_obj(layr);
+
 	if (layr != NULL && this->pcpu_refcnt != NULL)
+	{
 		this_cpu_dec(*this->pcpu_refcnt);
+	}
 }
 
 void cffrml_hold(struct cflayer *layr)
 {
 	struct cffrml *this = container_obj(layr);
+
 	if (layr != NULL && this->pcpu_refcnt != NULL)
+	{
 		this_cpu_inc(*this->pcpu_refcnt);
+	}
 }
 
 int cffrml_refcnt_read(struct cflayer *layr)
@@ -192,6 +226,6 @@ int cffrml_refcnt_read(struct cflayer *layr)
 	int i, refcnt = 0;
 	struct cffrml *this = container_obj(layr);
 	for_each_possible_cpu(i)
-		refcnt += *per_cpu_ptr(this->pcpu_refcnt, i);
+	refcnt += *per_cpu_ptr(this->pcpu_refcnt, i);
 	return refcnt;
 }

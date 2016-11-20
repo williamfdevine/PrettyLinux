@@ -40,7 +40,8 @@ static int amilo_a1655_rfkill_set_block(void *data, bool blocked)
 	return rc;
 }
 
-static const struct rfkill_ops amilo_a1655_rfkill_ops = {
+static const struct rfkill_ops amilo_a1655_rfkill_ops =
+{
 	.set_block = amilo_a1655_rfkill_set_block
 };
 
@@ -65,36 +66,40 @@ static int amilo_m7440_rfkill_set_block(void *data, bool blocked)
 
 	/* Check whether the state has changed correctly */
 	if (inb(M7440_PORT1) != val1 || inb(M7440_PORT2) != val2)
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
 
-static const struct rfkill_ops amilo_m7440_rfkill_ops = {
+static const struct rfkill_ops amilo_m7440_rfkill_ops =
+{
 	.set_block = amilo_m7440_rfkill_set_block
 };
 
-static const struct dmi_system_id amilo_rfkill_id_table[] = {
+static const struct dmi_system_id amilo_rfkill_id_table[] =
+{
 	{
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU SIEMENS"),
 			DMI_MATCH(DMI_BOARD_NAME, "AMILO A1655"),
 		},
-		.driver_data = (void *)&amilo_a1655_rfkill_ops
+		.driver_data = (void *) &amilo_a1655_rfkill_ops
 	},
 	{
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU SIEMENS"),
 			DMI_MATCH(DMI_BOARD_NAME, "AMILO L1310"),
 		},
-		.driver_data = (void *)&amilo_a1655_rfkill_ops
+		.driver_data = (void *) &amilo_a1655_rfkill_ops
 	},
 	{
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU SIEMENS"),
 			DMI_MATCH(DMI_BOARD_NAME, "AMILO M7440"),
 		},
-		.driver_data = (void *)&amilo_m7440_rfkill_ops
+		.driver_data = (void *) &amilo_m7440_rfkill_ops
 	},
 	{}
 };
@@ -109,17 +114,25 @@ static int amilo_rfkill_probe(struct platform_device *device)
 		dmi_first_match(amilo_rfkill_id_table);
 
 	if (!system_id)
+	{
 		return -ENXIO;
+	}
 
 	amilo_rfkill_dev = rfkill_alloc(KBUILD_MODNAME, &device->dev,
-					RFKILL_TYPE_WLAN,
-					system_id->driver_data, NULL);
+									RFKILL_TYPE_WLAN,
+									system_id->driver_data, NULL);
+
 	if (!amilo_rfkill_dev)
+	{
 		return -ENOMEM;
+	}
 
 	rc = rfkill_register(amilo_rfkill_dev);
+
 	if (rc)
+	{
 		goto fail;
+	}
 
 	return 0;
 
@@ -135,7 +148,8 @@ static int amilo_rfkill_remove(struct platform_device *device)
 	return 0;
 }
 
-static struct platform_driver amilo_rfkill_driver = {
+static struct platform_driver amilo_rfkill_driver =
+{
 	.driver = {
 		.name	= KBUILD_MODNAME,
 	},
@@ -148,15 +162,22 @@ static int __init amilo_rfkill_init(void)
 	int rc;
 
 	if (dmi_first_match(amilo_rfkill_id_table) == NULL)
+	{
 		return -ENODEV;
+	}
 
 	rc = platform_driver_register(&amilo_rfkill_driver);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	amilo_rfkill_pdev = platform_device_register_simple(KBUILD_MODNAME, -1,
-							    NULL, 0);
-	if (IS_ERR(amilo_rfkill_pdev)) {
+						NULL, 0);
+
+	if (IS_ERR(amilo_rfkill_pdev))
+	{
 		rc = PTR_ERR(amilo_rfkill_pdev);
 		goto fail;
 	}

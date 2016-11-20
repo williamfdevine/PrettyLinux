@@ -28,7 +28,8 @@
 
 #define WL12XX_MAX_CHANNELS_5GHZ 23
 
-struct basic_scan_params {
+struct basic_scan_params
+{
 	/* Scan option flags (WL1271_SCAN_OPT_*) */
 	__le16 scan_options;
 	u8 role_id;
@@ -52,7 +53,8 @@ struct basic_scan_params {
 	u8 padding2[2];
 } __packed;
 
-struct basic_scan_channel_params {
+struct basic_scan_channel_params
+{
 	/* Duration in TU to wait for frames on a channel for active scan */
 	__le32 min_duration;
 	__le32 max_duration;
@@ -67,7 +69,8 @@ struct basic_scan_channel_params {
 	u8 pad;
 } __packed;
 
-struct wl1271_cmd_scan {
+struct wl1271_cmd_scan
+{
 	struct wl1271_cmd_header header;
 
 	struct basic_scan_params params;
@@ -78,7 +81,8 @@ struct wl1271_cmd_scan {
 	u8 padding[2];
 } __packed;
 
-struct wl1271_cmd_sched_scan_config {
+struct wl1271_cmd_sched_scan_config
+{
 	struct wl1271_cmd_header header;
 
 	__le32 intervals[SCAN_MAX_CYCLE_INTERVALS];
@@ -113,7 +117,8 @@ struct wl1271_cmd_sched_scan_config {
 	struct conn_scan_ch_params channels_4[MAX_CHANNELS_4GHZ];
 } __packed;
 
-struct wl1271_cmd_sched_scan_start {
+struct wl1271_cmd_sched_scan_start
+{
 	struct wl1271_cmd_header header;
 
 	u8 tag;
@@ -121,7 +126,8 @@ struct wl1271_cmd_sched_scan_start {
 	u8 padding[2];
 } __packed;
 
-struct wl1271_cmd_sched_scan_stop {
+struct wl1271_cmd_sched_scan_stop
+{
 	struct wl1271_cmd_header header;
 
 	u8 tag;
@@ -130,11 +136,11 @@ struct wl1271_cmd_sched_scan_stop {
 } __packed;
 
 int wl12xx_scan_start(struct wl1271 *wl, struct wl12xx_vif *wlvif,
-		      struct cfg80211_scan_request *req);
+					  struct cfg80211_scan_request *req);
 int wl12xx_scan_stop(struct wl1271 *wl, struct wl12xx_vif *wlvif);
 void wl12xx_scan_completed(struct wl1271 *wl, struct wl12xx_vif *wlvif);
 int wl12xx_sched_scan_start(struct wl1271 *wl, struct wl12xx_vif  *wlvif,
-			    struct cfg80211_sched_scan_request *req,
-			    struct ieee80211_scan_ies *ies);
+							struct cfg80211_sched_scan_request *req,
+							struct ieee80211_scan_ies *ies);
 void wl12xx_scan_sched_scan_stop(struct wl1271 *wl,  struct wl12xx_vif *wlvif);
 #endif

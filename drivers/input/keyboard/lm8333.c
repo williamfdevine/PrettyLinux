@@ -33,7 +33,8 @@
 #define LM8333_NUM_COLS		16
 #define LM8333_ROW_SHIFT	4
 
-struct lm8333 {
+struct lm8333
+{
 	struct i2c_client *client;
 	struct input_dev *input;
 	unsigned short keycodes[LM8333_NUM_ROWS << LM8333_ROW_SHIFT];
@@ -46,9 +47,11 @@ int lm8333_read8(struct lm8333 *lm8333, u8 cmd)
 {
 	int retries = 0, ret;
 
-	do {
+	do
+	{
 		ret = i2c_smbus_read_byte_data(lm8333->client, cmd);
-	} while (ret < 0 && retries++ < LM8333_READ_RETRIES);
+	}
+	while (ret < 0 && retries++ < LM8333_READ_RETRIES);
 
 	return ret;
 }
@@ -57,9 +60,11 @@ int lm8333_write8(struct lm8333 *lm8333, u8 cmd, u8 val)
 {
 	int retries = 0, ret;
 
-	do {
+	do
+	{
 		ret = i2c_smbus_write_byte_data(lm8333->client, cmd, val);
-	} while (ret < 0 && retries++ < LM8333_READ_RETRIES);
+	}
+	while (ret < 0 && retries++ < LM8333_READ_RETRIES);
 
 	return ret;
 }
@@ -68,10 +73,12 @@ int lm8333_read_block(struct lm8333 *lm8333, u8 cmd, u8 len, u8 *buf)
 {
 	int retries = 0, ret;
 
-	do {
+	do
+	{
 		ret = i2c_smbus_read_i2c_block_data(lm8333->client,
-						    cmd, len, buf);
-	} while (ret < 0 && retries++ < LM8333_READ_RETRIES);
+											cmd, len, buf);
+	}
+	while (ret < 0 && retries++ < LM8333_READ_RETRIES);
 
 	return ret;
 }
@@ -84,14 +91,17 @@ static void lm8333_key_handler(struct lm8333 *lm8333)
 	int i, ret;
 
 	ret = lm8333_read_block(lm8333, LM8333_FIFO_READ,
-				LM8333_FIFO_TRANSFER_SIZE, keys);
-	if (ret != LM8333_FIFO_TRANSFER_SIZE) {
+							LM8333_FIFO_TRANSFER_SIZE, keys);
+
+	if (ret != LM8333_FIFO_TRANSFER_SIZE)
+	{
 		dev_err(&lm8333->client->dev,
-			"Error %d while reading FIFO\n", ret);
+				"Error %d while reading FIFO\n", ret);
 		return;
 	}
 
-	for (i = 0; i < LM8333_FIFO_TRANSFER_SIZE && keys[i]; i++) {
+	for (i = 0; i < LM8333_FIFO_TRANSFER_SIZE && keys[i]; i++)
+	{
 		pressed = keys[i] & 0x80;
 		code = keys[i] & 0x7f;
 
@@ -108,47 +118,60 @@ static irqreturn_t lm8333_irq_thread(int irq, void *data)
 	u8 status = lm8333_read8(lm8333, LM8333_READ_INT);
 
 	if (!status)
+	{
 		return IRQ_NONE;
+	}
 
-	if (status & LM8333_ERROR_IRQ) {
+	if (status & LM8333_ERROR_IRQ)
+	{
 		u8 err = lm8333_read8(lm8333, LM8333_READ_ERROR);
 
-		if (err & (LM8333_ERROR_KEYOVR | LM8333_ERROR_FIFOOVR)) {
+		if (err & (LM8333_ERROR_KEYOVR | LM8333_ERROR_FIFOOVR))
+		{
 			u8 dummy[LM8333_FIFO_TRANSFER_SIZE];
 
 			lm8333_read_block(lm8333, LM8333_FIFO_READ,
-					LM8333_FIFO_TRANSFER_SIZE, dummy);
+							  LM8333_FIFO_TRANSFER_SIZE, dummy);
 		}
+
 		dev_err(&lm8333->client->dev, "Got error %02x\n", err);
 	}
 
 	if (status & LM8333_KEYPAD_IRQ)
+	{
 		lm8333_key_handler(lm8333);
+	}
 
 	return IRQ_HANDLED;
 }
 
 static int lm8333_probe(struct i2c_client *client,
-				  const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	const struct lm8333_platform_data *pdata =
-			dev_get_platdata(&client->dev);
+		dev_get_platdata(&client->dev);
 	struct lm8333 *lm8333;
 	struct input_dev *input;
 	int err, active_time;
 
 	if (!pdata)
+	{
 		return -EINVAL;
+	}
 
-	active_time = pdata->active_time ?: 500;
-	if (active_time / 3 <= pdata->debounce_time / 3) {
+	active_time = pdata->active_time ? : 500;
+
+	if (active_time / 3 <= pdata->debounce_time / 3)
+	{
 		dev_err(&client->dev, "Active time not big enough!\n");
 		return -EINVAL;
 	}
 
 	lm8333 = kzalloc(sizeof(*lm8333), GFP_KERNEL);
 	input = input_allocate_device();
-	if (!lm8333 || !input) {
+
+	if (!lm8333 || !input)
+	{
 		err = -ENOMEM;
 		goto free_mem;
 	}
@@ -163,41 +186,58 @@ static int lm8333_probe(struct i2c_client *client,
 	input_set_capability(input, EV_MSC, MSC_SCAN);
 
 	err = matrix_keypad_build_keymap(pdata->matrix_data, NULL,
-					 LM8333_NUM_ROWS, LM8333_NUM_COLS,
-					 lm8333->keycodes, input);
-	if (err)
-		goto free_mem;
+									 LM8333_NUM_ROWS, LM8333_NUM_COLS,
+									 lm8333->keycodes, input);
 
-	if (pdata->debounce_time) {
-		err = lm8333_write8(lm8333, LM8333_DEBOUNCE,
-				    pdata->debounce_time / 3);
-		if (err)
-			dev_warn(&client->dev, "Unable to set debounce time\n");
+	if (err)
+	{
+		goto free_mem;
 	}
 
-	if (pdata->active_time) {
-		err = lm8333_write8(lm8333, LM8333_ACTIVE,
-				    pdata->active_time / 3);
+	if (pdata->debounce_time)
+	{
+		err = lm8333_write8(lm8333, LM8333_DEBOUNCE,
+							pdata->debounce_time / 3);
+
 		if (err)
+		{
+			dev_warn(&client->dev, "Unable to set debounce time\n");
+		}
+	}
+
+	if (pdata->active_time)
+	{
+		err = lm8333_write8(lm8333, LM8333_ACTIVE,
+							pdata->active_time / 3);
+
+		if (err)
+		{
 			dev_warn(&client->dev, "Unable to set active time\n");
+		}
 	}
 
 	err = request_threaded_irq(client->irq, NULL, lm8333_irq_thread,
-				   IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
-				   "lm8333", lm8333);
+							   IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+							   "lm8333", lm8333);
+
 	if (err)
+	{
 		goto free_mem;
+	}
 
 	err = input_register_device(input);
+
 	if (err)
+	{
 		goto free_irq;
+	}
 
 	i2c_set_clientdata(client, lm8333);
 	return 0;
 
- free_irq:
+free_irq:
 	free_irq(client->irq, lm8333);
- free_mem:
+free_mem:
 	input_free_device(input);
 	kfree(lm8333);
 	return err;
@@ -214,13 +254,15 @@ static int lm8333_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id lm8333_id[] = {
+static const struct i2c_device_id lm8333_id[] =
+{
 	{ "lm8333", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, lm8333_id);
 
-static struct i2c_driver lm8333_driver = {
+static struct i2c_driver lm8333_driver =
+{
 	.driver = {
 		.name		= "lm8333",
 	},

@@ -31,17 +31,18 @@
 #include <linux/uaccess.h>
 
 #if defined(CONFIG_PPC)
-#include <linux/nvram.h>
-#include <asm/prom.h>
-#include "macmodes.h"
+	#include <linux/nvram.h>
+	#include <asm/prom.h>
+	#include "macmodes.h"
 #endif
 
 #ifndef __powerpc__
-#define eieio()		/* Enforce In-order Execution of I/O */
+	#define eieio()		/* Enforce In-order Execution of I/O */
 #endif
 
 /* TwinTurbo (Cosmo) registers */
-enum {
+enum
+{
 	S1SA	=  0, /* 0x00 */
 	S2SA	=  1, /* 0x04 */
 	SP	=  2, /* 0x08 */
@@ -87,7 +88,7 @@ enum {
 	SSTATUS	= 36, /* 0x90 */
 	PRC	= 37, /* 0x94 */
 
-#if 0	
+#if 0
 	/* PCI Registers */
 	DVID	= 0x00000000L,
 	SC	= 0x00000004L,
@@ -99,19 +100,21 @@ enum {
 };
 
 /* IBM 624 RAMDAC Direct Registers */
-enum {
+enum
+{
 	PADDRW	= 0x00,
 	PDATA	= 0x04,
 	PPMASK	= 0x08,
 	PADDRR	= 0x0c,
-	PIDXLO	= 0x10,	
-	PIDXHI	= 0x14,	
-	PIDXDATA= 0x18,
+	PIDXLO	= 0x10,
+	PIDXHI	= 0x14,
+	PIDXDATA = 0x18,
 	PIDXCTL	= 0x1c
 };
 
 /* IBM 624 RAMDAC Indirect Registers */
-enum {
+enum
+{
 	CLKCTL		= 0x02,	/* (0x01) Miscellaneous Clock Control */
 	SYNCCTL		= 0x03,	/* (0x00) Sync Control */
 	HSYNCPOS	= 0x04,	/* (0x00) Horizontal Sync Position */
@@ -132,7 +135,7 @@ enum {
 	SYSCLKC		= 0x18,	/* () System Clock C */
 	/*
 	 * Dot clock rate is 20MHz * (m + 1) / ((n + 1) * (p ? 2 * p : 1)
-	 * c is charge pump bias which depends on the VCO frequency  
+	 * c is charge pump bias which depends on the VCO frequency
 	 */
 	PIXM0		= 0x20,	/* () Pixel M 0 */
 	PIXN0		= 0x21,	/* () Pixel N 0 */
@@ -166,16 +169,17 @@ enum {
 };
 
 /* TI TVP 3030 RAMDAC Direct Registers */
-enum {
+enum
+{
 	TVPADDRW = 0x00,	/* 0  Palette/Cursor RAM Write Address/Index */
 	TVPPDATA = 0x04,	/* 1  Palette Data RAM Data */
 	TVPPMASK = 0x08,	/* 2  Pixel Read-Mask */
 	TVPPADRR = 0x0c,	/* 3  Palette/Cursor RAM Read Address */
 	TVPCADRW = 0x10,	/* 4  Cursor/Overscan Color Write Address */
 	TVPCDATA = 0x14,	/* 5  Cursor/Overscan Color Data */
-				/* 6  reserved */
+	/* 6  reserved */
 	TVPCADRR = 0x1c,	/* 7  Cursor/Overscan Color Read Address */
-				/* 8  reserved */
+	/* 8  reserved */
 	TVPDCCTL = 0x24,	/* 9  Direct Cursor Control */
 	TVPIDATA = 0x28,	/* 10 Index Data */
 	TVPCRDAT = 0x2c,	/* 11 Cursor RAM Data */
@@ -186,7 +190,8 @@ enum {
 };
 
 /* TI TVP 3030 RAMDAC Indirect Registers */
-enum {
+enum
+{
 	TVPIRREV = 0x01,	/* Silicon Revision [RO] */
 	TVPIRICC = 0x06,	/* Indirect Cursor Control 	(0x00) */
 	TVPIRBRC = 0x07,	/* Byte Router Control 	(0xe4) */
@@ -220,11 +225,13 @@ enum {
 	TVPIRRES = 0xff		/* Software Reset [WO] */
 };
 
-struct initvalues {
+struct initvalues
+{
 	__u8 addr, value;
 };
 
-static struct initvalues ibm_initregs[] = {
+static struct initvalues ibm_initregs[] =
+{
 	{ CLKCTL,	0x21 },
 	{ SYNCCTL,	0x00 },
 	{ HSYNCPOS,	0x00 },
@@ -271,7 +278,8 @@ static struct initvalues ibm_initregs[] = {
 	{ KEYCTL,	0x00 }
 };
 
-static struct initvalues tvp_initregs[] = {
+static struct initvalues tvp_initregs[] =
+{
 	{ TVPIRICC,	0x00 },
 	{ TVPIRBRC,	0xe4 },
 	{ TVPIRLAC,	0x06 },
@@ -304,7 +312,8 @@ static struct initvalues tvp_initregs[] = {
 	{ TVPIRLPD,	0xf3 },
 };
 
-struct imstt_regvals {
+struct imstt_regvals
+{
 	__u32 pitch;
 	__u16 hes, heb, hsb, ht, ves, veb, vsb, vt, vil;
 	__u8 pclk_m, pclk_n, pclk_p;
@@ -313,7 +322,8 @@ struct imstt_regvals {
 	__u8 lckl_p[3];	/* P value of LCKL PLL */
 };
 
-struct imstt_par {
+struct imstt_par
+{
 	struct imstt_regvals init;
 	__u32 __iomem *dc_regs;
 	unsigned long cmap_regs_phys;
@@ -321,8 +331,9 @@ struct imstt_par {
 	__u32 ramdac;
 	__u32 palette[16];
 };
- 
-enum {
+
+enum
+{
 	IBM = 0,
 	TVP = 1
 };
@@ -335,59 +346,67 @@ enum {
 static int inverse = 0;
 static char fontname[40] __initdata = { 0 };
 #if defined(CONFIG_PPC)
-static signed char init_vmode = -1, init_cmode = -1;
+	static signed char init_vmode = -1, init_cmode = -1;
 #endif
 
-static struct imstt_regvals tvp_reg_init_2 = {
+static struct imstt_regvals tvp_reg_init_2 =
+{
 	512,
 	0x0002, 0x0006, 0x0026, 0x0028, 0x0003, 0x0016, 0x0196, 0x0197, 0x0196,
 	0xec, 0x2a, 0xf3,
 	{ 0x3c, 0x3b, 0x39 }, { 0xf3, 0xf3, 0xf3 }
 };
 
-static struct imstt_regvals tvp_reg_init_6 = {
+static struct imstt_regvals tvp_reg_init_6 =
+{
 	640,
 	0x0004, 0x0009, 0x0031, 0x0036, 0x0003, 0x002a, 0x020a, 0x020d, 0x020a,
 	0xef, 0x2e, 0xb2,
 	{ 0x39, 0x39, 0x38 }, { 0xf3, 0xf3, 0xf3 }
 };
 
-static struct imstt_regvals tvp_reg_init_12 = {
+static struct imstt_regvals tvp_reg_init_12 =
+{
 	800,
 	0x0005, 0x000e, 0x0040, 0x0042, 0x0003, 0x018, 0x270, 0x271, 0x270,
 	0xf6, 0x2e, 0xf2,
 	{ 0x3a, 0x39, 0x38 }, { 0xf3, 0xf3, 0xf3 }
 };
 
-static struct imstt_regvals tvp_reg_init_13 = {
+static struct imstt_regvals tvp_reg_init_13 =
+{
 	832,
 	0x0004, 0x0011, 0x0045, 0x0048, 0x0003, 0x002a, 0x029a, 0x029b, 0x0000,
 	0xfe, 0x3e, 0xf1,
 	{ 0x39, 0x38, 0x38 }, { 0xf3, 0xf3, 0xf2 }
 };
 
-static struct imstt_regvals tvp_reg_init_17 = {
+static struct imstt_regvals tvp_reg_init_17 =
+{
 	1024,
 	0x0006, 0x0210, 0x0250, 0x0053, 0x1003, 0x0021, 0x0321, 0x0324, 0x0000,
 	0xfc, 0x3a, 0xf1,
 	{ 0x39, 0x38, 0x38 }, { 0xf3, 0xf3, 0xf2 }
 };
 
-static struct imstt_regvals tvp_reg_init_18 = {
+static struct imstt_regvals tvp_reg_init_18 =
+{
 	1152,
-  	0x0009, 0x0011, 0x059, 0x5b, 0x0003, 0x0031, 0x0397, 0x039a, 0x0000, 
+	0x0009, 0x0011, 0x059, 0x5b, 0x0003, 0x0031, 0x0397, 0x039a, 0x0000,
 	0xfd, 0x3a, 0xf1,
 	{ 0x39, 0x38, 0x38 }, { 0xf3, 0xf3, 0xf2 }
 };
 
-static struct imstt_regvals tvp_reg_init_19 = {
+static struct imstt_regvals tvp_reg_init_19 =
+{
 	1280,
 	0x0009, 0x0016, 0x0066, 0x0069, 0x0003, 0x0027, 0x03e7, 0x03e8, 0x03e7,
 	0xf7, 0x36, 0xf0,
 	{ 0x38, 0x38, 0x38 }, { 0xf3, 0xf2, 0xf1 }
 };
 
-static struct imstt_regvals tvp_reg_init_20 = {
+static struct imstt_regvals tvp_reg_init_20 =
+{
 	1280,
 	0x0009, 0x0018, 0x0068, 0x006a, 0x0003, 0x0029, 0x0429, 0x042a, 0x0000,
 	0xf0, 0x2d, 0xf0,
@@ -440,22 +459,34 @@ setclkMHz(struct imstt_par *par, __u32 MHz)
 
 	clk_m = clk_n = 0;
 	stage = spilled = 0;
-	for (;;) {
-		switch (stage) {
+
+	for (;;)
+	{
+		switch (stage)
+		{
 			case 0:
 				clk_m++;
 				break;
+
 			case 1:
 				clk_n++;
 				break;
 		}
+
 		x = 20 * (clk_m + 1) / (clk_n + 1);
+
 		if (x == MHz)
+		{
 			break;
-		if (x > MHz) {
+		}
+
+		if (x > MHz)
+		{
 			spilled = 1;
 			stage = 1;
-		} else if (spilled && x < MHz) {
+		}
+		else if (spilled && x < MHz)
+		{
 			stage = 0;
 		}
 	}
@@ -471,31 +502,38 @@ compute_imstt_regvals_ibm(struct imstt_par *par, int xres, int yres)
 	struct imstt_regvals *init = &par->init;
 	__u32 MHz, hes, heb, veb, htp, vtp;
 
-	switch (xres) {
+	switch (xres)
+	{
 		case 640:
 			hes = 0x0008; heb = 0x0012; veb = 0x002a; htp = 10; vtp = 2;
 			MHz = 30 /* .25 */ ;
 			break;
+
 		case 832:
 			hes = 0x0005; heb = 0x0020; veb = 0x0028; htp = 8; vtp = 3;
 			MHz = 57 /* .27_ */ ;
 			break;
+
 		case 1024:
 			hes = 0x000a; heb = 0x001c; veb = 0x0020; htp = 8; vtp = 3;
 			MHz = 80;
 			break;
+
 		case 1152:
 			hes = 0x0012; heb = 0x0022; veb = 0x0031; htp = 4; vtp = 3;
 			MHz = 101 /* .6_ */ ;
 			break;
+
 		case 1280:
 			hes = 0x0012; heb = 0x002f; veb = 0x0029; htp = 4; vtp = 1;
 			MHz = yres == 960 ? 126 : 135;
 			break;
+
 		case 1600:
 			hes = 0x0018; heb = 0x0040; veb = 0x002a; htp = 4; vtp = 3;
 			MHz = 200;
 			break;
+
 		default:
 			return NULL;
 	}
@@ -521,31 +559,40 @@ compute_imstt_regvals_tvp(struct imstt_par *par, int xres, int yres)
 {
 	struct imstt_regvals *init;
 
-	switch (xres) {
+	switch (xres)
+	{
 		case 512:
 			init = &tvp_reg_init_2;
 			break;
+
 		case 640:
 			init = &tvp_reg_init_6;
 			break;
+
 		case 800:
 			init = &tvp_reg_init_12;
 			break;
+
 		case 832:
 			init = &tvp_reg_init_13;
 			break;
+
 		case 1024:
 			init = &tvp_reg_init_17;
 			break;
+
 		case 1152:
 			init = &tvp_reg_init_18;
 			break;
+
 		case 1280:
 			init = yres == 960 ? &tvp_reg_init_19 : &tvp_reg_init_20;
 			break;
+
 		default:
 			return NULL;
 	}
+
 	par->init = *init;
 	return init;
 }
@@ -554,9 +601,13 @@ static struct imstt_regvals *
 compute_imstt_regvals (struct imstt_par *par, u_int xres, u_int yres)
 {
 	if (par->ramdac == IBM)
+	{
 		return compute_imstt_regvals_ibm(par, xres, yres);
+	}
 	else
+	{
 		return compute_imstt_regvals_tvp(par, xres, yres);
+	}
 }
 
 static void
@@ -567,11 +618,11 @@ set_imstt_regvals_ibm (struct imstt_par *par, u_int bpp)
 
 	par->cmap_regs[PIDXHI] = 0;		eieio();
 	par->cmap_regs[PIDXLO] = PIXM0;		eieio();
-	par->cmap_regs[PIDXDATA] = init->pclk_m;eieio();
+	par->cmap_regs[PIDXDATA] = init->pclk_m; eieio();
 	par->cmap_regs[PIDXLO] = PIXN0;		eieio();
-	par->cmap_regs[PIDXDATA] = init->pclk_n;eieio();
+	par->cmap_regs[PIDXDATA] = init->pclk_n; eieio();
 	par->cmap_regs[PIDXLO] = PIXP0;		eieio();
-	par->cmap_regs[PIDXDATA] = init->pclk_p;eieio();
+	par->cmap_regs[PIDXDATA] = init->pclk_p; eieio();
 	par->cmap_regs[PIDXLO] = PIXC0;		eieio();
 	par->cmap_regs[PIDXDATA] = 0x02;	eieio();
 
@@ -586,7 +637,8 @@ set_imstt_regvals_tvp (struct imstt_par *par, u_int bpp)
 	__u8 tcc, mxc, lckl_n, mic;
 	__u8 mlc, lckl_p;
 
-	switch (bpp) {
+	switch (bpp)
+	{
 		default:
 		case 8:
 			tcc = 0x80;
@@ -595,6 +647,7 @@ set_imstt_regvals_tvp (struct imstt_par *par, u_int bpp)
 			mlc = init->mlc[0];
 			lckl_p = init->lckl_p[0];
 			break;
+
 		case 16:
 			tcc = 0x44;
 			mxc = 0x55;
@@ -602,6 +655,7 @@ set_imstt_regvals_tvp (struct imstt_par *par, u_int bpp)
 			mlc = init->mlc[1];
 			lckl_p = init->lckl_p[1];
 			break;
+
 		case 24:
 			tcc = 0x5e;
 			mxc = 0x5d;
@@ -609,6 +663,7 @@ set_imstt_regvals_tvp (struct imstt_par *par, u_int bpp)
 			mlc = init->mlc[2];
 			lckl_p = init->lckl_p[2];
 			break;
+
 		case 32:
 			tcc = 0x46;
 			mxc = 0x5d;
@@ -617,6 +672,7 @@ set_imstt_regvals_tvp (struct imstt_par *par, u_int bpp)
 			lckl_p = init->lckl_p[2];
 			break;
 	}
+
 	mic = 0x08;
 
 	par->cmap_regs[TVPADDRW] = TVPIRPLA;		eieio();
@@ -659,46 +715,57 @@ set_imstt_regvals (struct fb_info *info, u_int bpp)
 	__u32 ctl, pitch, byteswap, scr;
 
 	if (par->ramdac == IBM)
+	{
 		set_imstt_regvals_ibm(par, bpp);
+	}
 	else
+	{
 		set_imstt_regvals_tvp(par, bpp);
+	}
 
-  /*
-   * From what I (jsk) can gather poking around with MacsBug,
-   * bits 8 and 9 in the SCR register control endianness
-   * correction (byte swapping).  These bits must be set according
-   * to the color depth as follows:
-   *     Color depth    Bit 9   Bit 8
-   *     ==========     =====   =====
-   *        8bpp          0       0
-   *       16bpp          0       1
-   *       32bpp          1       1
-   */
-	switch (bpp) {
+	/*
+	 * From what I (jsk) can gather poking around with MacsBug,
+	 * bits 8 and 9 in the SCR register control endianness
+	 * correction (byte swapping).  These bits must be set according
+	 * to the color depth as follows:
+	 *     Color depth    Bit 9   Bit 8
+	 *     ==========     =====   =====
+	 *        8bpp          0       0
+	 *       16bpp          0       1
+	 *       32bpp          1       1
+	 */
+	switch (bpp)
+	{
 		default:
 		case 8:
 			ctl = 0x17b1;
 			pitch = init->pitch >> 2;
 			byteswap = 0x000;
 			break;
+
 		case 16:
 			ctl = 0x17b3;
 			pitch = init->pitch >> 1;
 			byteswap = 0x100;
 			break;
+
 		case 24:
 			ctl = 0x17b9;
 			pitch = init->pitch - (init->pitch >> 2);
 			byteswap = 0x200;
 			break;
+
 		case 32:
 			ctl = 0x17b5;
 			pitch = init->pitch;
 			byteswap = 0x300;
 			break;
 	}
+
 	if (par->ramdac == TVP)
+	{
 		ctl -= 0x30;
+	}
 
 	write_reg_le32(par->dc_regs, HES, init->hes);
 	write_reg_le32(par->dc_regs, HEB, init->heb);
@@ -716,20 +783,25 @@ set_imstt_regvals (struct fb_info *info, u_int bpp)
 	write_reg_le32(par->dc_regs, RRSC, 0x980);
 	write_reg_le32(par->dc_regs, RRCR, 0x11);
 
-	if (par->ramdac == IBM) {
+	if (par->ramdac == IBM)
+	{
 		write_reg_le32(par->dc_regs, HRIR, 0x0100);
 		write_reg_le32(par->dc_regs, CMR, 0x00ff);
 		write_reg_le32(par->dc_regs, SRGCTL, 0x0073);
-	} else {
+	}
+	else
+	{
 		write_reg_le32(par->dc_regs, HRIR, 0x0200);
 		write_reg_le32(par->dc_regs, CMR, 0x01ff);
 		write_reg_le32(par->dc_regs, SRGCTL, 0x0003);
 	}
 
-	switch (info->fix.smem_len) {
+	switch (info->fix.smem_len)
+	{
 		case 0x200000:
 			scr = 0x059d | byteswap;
 			break;
+
 		/* case 0x400000:
 		   case 0x800000: */
 		default:
@@ -748,18 +820,21 @@ set_offset (struct fb_var_screeninfo *var, struct fb_info *info)
 {
 	struct imstt_par *par = info->par;
 	__u32 off = var->yoffset * (info->fix.line_length >> 3)
-		    + ((var->xoffset * (info->var.bits_per_pixel >> 3)) >> 3);
+				+ ((var->xoffset * (info->var.bits_per_pixel >> 3)) >> 3);
 	write_reg_le32(par->dc_regs, SSR, off);
 }
 
 static inline void
 set_555 (struct imstt_par *par)
 {
-	if (par->ramdac == IBM) {
+	if (par->ramdac == IBM)
+	{
 		par->cmap_regs[PIDXHI] = 0;		eieio();
 		par->cmap_regs[PIDXLO] = BPP16;		eieio();
 		par->cmap_regs[PIDXDATA] = 0x01;	eieio();
-	} else {
+	}
+	else
+	{
 		par->cmap_regs[TVPADDRW] = TVPIRTCC;	eieio();
 		par->cmap_regs[TVPIDATA] = 0x44;	eieio();
 	}
@@ -768,11 +843,14 @@ set_555 (struct imstt_par *par)
 static inline void
 set_565 (struct imstt_par *par)
 {
-	if (par->ramdac == IBM) {
+	if (par->ramdac == IBM)
+	{
 		par->cmap_regs[PIDXHI] = 0;		eieio();
 		par->cmap_regs[PIDXLO] = BPP16;		eieio();
 		par->cmap_regs[PIDXDATA] = 0x03;	eieio();
-	} else {
+	}
+	else
+	{
 		par->cmap_regs[TVPADDRW] = TVPIRTCC;	eieio();
 		par->cmap_regs[TVPIDATA] = 0x45;	eieio();
 	}
@@ -782,17 +860,22 @@ static int
 imsttfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 {
 	if ((var->bits_per_pixel != 8 && var->bits_per_pixel != 16
-	    && var->bits_per_pixel != 24 && var->bits_per_pixel != 32)
-	    || var->xres_virtual < var->xres || var->yres_virtual < var->yres
-	    || var->nonstd
-	    || (var->vmode & FB_VMODE_MASK) != FB_VMODE_NONINTERLACED)
+		 && var->bits_per_pixel != 24 && var->bits_per_pixel != 32)
+		|| var->xres_virtual < var->xres || var->yres_virtual < var->yres
+		|| var->nonstd
+		|| (var->vmode & FB_VMODE_MASK) != FB_VMODE_NONINTERLACED)
+	{
 		return -EINVAL;
+	}
 
 	if ((var->xres * var->yres) * (var->bits_per_pixel >> 3) > info->fix.smem_len
-	    || (var->xres_virtual * var->yres_virtual) * (var->bits_per_pixel >> 3) > info->fix.smem_len)
+		|| (var->xres_virtual * var->yres_virtual) * (var->bits_per_pixel >> 3) > info->fix.smem_len)
+	{
 		return -EINVAL;
+	}
 
-	switch (var->bits_per_pixel) {
+	switch (var->bits_per_pixel)
+	{
 		case 8:
 			var->red.offset = 0;
 			var->red.length = 8;
@@ -803,18 +886,27 @@ imsttfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 			var->transp.offset = 0;
 			var->transp.length = 0;
 			break;
+
 		case 16:	/* RGB 555 or 565 */
 			if (var->green.length != 6)
+			{
 				var->red.offset = 10;
+			}
+
 			var->red.length = 5;
 			var->green.offset = 5;
+
 			if (var->green.length != 6)
+			{
 				var->green.length = 5;
+			}
+
 			var->blue.offset = 0;
 			var->blue.length = 5;
 			var->transp.offset = 0;
 			var->transp.length = 0;
 			break;
+
 		case 24:	/* RGB 888 */
 			var->red.offset = 16;
 			var->red.length = 8;
@@ -825,6 +917,7 @@ imsttfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 			var->transp.offset = 0;
 			var->transp.length = 0;
 			break;
+
 		case 32:	/* RGBA 8888 */
 			var->red.offset = 16;
 			var->red.length = 8;
@@ -837,11 +930,15 @@ imsttfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 			break;
 	}
 
-	if (var->yres == var->yres_virtual) {
+	if (var->yres == var->yres_virtual)
+	{
 		__u32 vram = (info->fix.smem_len - (PAGE_SIZE << 2));
 		var->yres_virtual = ((vram << 3) / var->bits_per_pixel) / var->xres_virtual;
+
 		if (var->yres_virtual < var->yres)
+		{
 			var->yres_virtual = var->yres;
+		}
 	}
 
 	var->red.msb_right = 0;
@@ -858,17 +955,24 @@ imsttfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 }
 
 static int
-imsttfb_set_par(struct fb_info *info) 
+imsttfb_set_par(struct fb_info *info)
 {
 	struct imstt_par *par = info->par;
-		
+
 	if (!compute_imstt_regvals(par, info->var.xres, info->var.yres))
+	{
 		return -EINVAL;
+	}
 
 	if (info->var.green.length == 6)
+	{
 		set_565(par);
+	}
 	else
+	{
 		set_555(par);
+	}
+
 	set_imstt_regvals(info, info->var.bits_per_pixel);
 	info->var.pixclock = 1000000 / getclkMHz(par);
 	return 0;
@@ -876,13 +980,15 @@ imsttfb_set_par(struct fb_info *info)
 
 static int
 imsttfb_setcolreg (u_int regno, u_int red, u_int green, u_int blue,
-		   u_int transp, struct fb_info *info)
+				   u_int transp, struct fb_info *info)
 {
 	struct imstt_par *par = info->par;
 	u_int bpp = info->var.bits_per_pixel;
 
 	if (regno > 255)
+	{
 		return 1;
+	}
 
 	red >>= 8;
 	green >>= 8;
@@ -890,9 +996,14 @@ imsttfb_setcolreg (u_int regno, u_int red, u_int green, u_int blue,
 
 	/* PADDRW/PDATA are the same as TVPPADDRW/TVPPDATA */
 	if (0 && bpp == 16)	/* screws up X */
+	{
 		par->cmap_regs[PADDRW] = regno << 3;
+	}
 	else
+	{
 		par->cmap_regs[PADDRW] = regno;
+	}
+
 	eieio();
 
 	par->cmap_regs[PDATA] = red;	eieio();
@@ -900,22 +1011,27 @@ imsttfb_setcolreg (u_int regno, u_int red, u_int green, u_int blue,
 	par->cmap_regs[PDATA] = blue;	eieio();
 
 	if (regno < 16)
-		switch (bpp) {
+		switch (bpp)
+		{
 			case 16:
 				par->palette[regno] =
 					(regno << (info->var.green.length ==
-					5 ? 10 : 11)) | (regno << 5) | regno;
+							   5 ? 10 : 11)) | (regno << 5) | regno;
 				break;
+
 			case 24:
 				par->palette[regno] =
 					(regno << 16) | (regno << 8) | regno;
 				break;
-			case 32: {
-				int i = (regno << 8) | regno;
-				par->palette[regno] = (i << 16) |i;
-				break;
-			}
+
+			case 32:
+				{
+					int i = (regno << 8) | regno;
+					par->palette[regno] = (i << 16) | i;
+					break;
+				}
 		}
+
 	return 0;
 }
 
@@ -923,8 +1039,10 @@ static int
 imsttfb_pan_display(struct fb_var_screeninfo *var, struct fb_info *info)
 {
 	if (var->xoffset + info->var.xres > info->var.xres_virtual
-	    || var->yoffset + info->var.yres > info->var.yres_virtual)
+		|| var->yoffset + info->var.yres > info->var.yres_virtual)
+	{
 		return -EINVAL;
+	}
 
 	info->var.xoffset = var->xoffset;
 	info->var.yoffset = var->yoffset;
@@ -932,41 +1050,52 @@ imsttfb_pan_display(struct fb_var_screeninfo *var, struct fb_info *info)
 	return 0;
 }
 
-static int 
+static int
 imsttfb_blank(int blank, struct fb_info *info)
 {
 	struct imstt_par *par = info->par;
 	__u32 ctrl;
 
 	ctrl = read_reg_le32(par->dc_regs, STGCTL);
-	if (blank > 0) {
-		switch (blank) {
-		case FB_BLANK_NORMAL:
-		case FB_BLANK_POWERDOWN:
-			ctrl &= ~0x00000380;
-			if (par->ramdac == IBM) {
-				par->cmap_regs[PIDXHI] = 0;		eieio();
-				par->cmap_regs[PIDXLO] = MISCTL2;	eieio();
-				par->cmap_regs[PIDXDATA] = 0x55;	eieio();
-				par->cmap_regs[PIDXLO] = MISCTL1;	eieio();
-				par->cmap_regs[PIDXDATA] = 0x11;	eieio();
-				par->cmap_regs[PIDXLO] = SYNCCTL;	eieio();
-				par->cmap_regs[PIDXDATA] = 0x0f;	eieio();
-				par->cmap_regs[PIDXLO] = PWRMNGMT;	eieio();
-				par->cmap_regs[PIDXDATA] = 0x1f;	eieio();
-				par->cmap_regs[PIDXLO] = CLKCTL;	eieio();
-				par->cmap_regs[PIDXDATA] = 0xc0;
-			}
-			break;
-		case FB_BLANK_VSYNC_SUSPEND:
-			ctrl &= ~0x00000020;
-			break;
-		case FB_BLANK_HSYNC_SUSPEND:
-			ctrl &= ~0x00000010;
-			break;
+
+	if (blank > 0)
+	{
+		switch (blank)
+		{
+			case FB_BLANK_NORMAL:
+			case FB_BLANK_POWERDOWN:
+				ctrl &= ~0x00000380;
+
+				if (par->ramdac == IBM)
+				{
+					par->cmap_regs[PIDXHI] = 0;		eieio();
+					par->cmap_regs[PIDXLO] = MISCTL2;	eieio();
+					par->cmap_regs[PIDXDATA] = 0x55;	eieio();
+					par->cmap_regs[PIDXLO] = MISCTL1;	eieio();
+					par->cmap_regs[PIDXDATA] = 0x11;	eieio();
+					par->cmap_regs[PIDXLO] = SYNCCTL;	eieio();
+					par->cmap_regs[PIDXDATA] = 0x0f;	eieio();
+					par->cmap_regs[PIDXLO] = PWRMNGMT;	eieio();
+					par->cmap_regs[PIDXDATA] = 0x1f;	eieio();
+					par->cmap_regs[PIDXLO] = CLKCTL;	eieio();
+					par->cmap_regs[PIDXDATA] = 0xc0;
+				}
+
+				break;
+
+			case FB_BLANK_VSYNC_SUSPEND:
+				ctrl &= ~0x00000020;
+				break;
+
+			case FB_BLANK_HSYNC_SUSPEND:
+				ctrl &= ~0x00000010;
+				break;
 		}
-	} else {
-		if (par->ramdac == IBM) {
+	}
+	else
+	{
+		if (par->ramdac == IBM)
+		{
 			ctrl |= 0x000017b0;
 			par->cmap_regs[PIDXHI] = 0;		eieio();
 			par->cmap_regs[PIDXLO] = CLKCTL;	eieio();
@@ -979,16 +1108,20 @@ imsttfb_blank(int blank, struct fb_info *info)
 			par->cmap_regs[PIDXDATA] = 0x01;	eieio();
 			par->cmap_regs[PIDXLO] = MISCTL2;	eieio();
 			par->cmap_regs[PIDXDATA] = 0x45;	eieio();
-		} else
+		}
+		else
+		{
 			ctrl |= 0x00001780;
+		}
 	}
+
 	write_reg_le32(par->dc_regs, STGCTL, ctrl);
 	return 0;
 }
 
 static void
 imsttfb_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
-{ 
+{
 	struct imstt_par *par = info->par;
 	__u32 Bpp, line_pitch, bgc, dx, dy, width, height;
 
@@ -1006,8 +1139,10 @@ imsttfb_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
 	width = rect->width * Bpp;
 	width--;
 
-	if (rect->rop == ROP_COPY) {
-		while(read_reg_le32(par->dc_regs, SSTATUS) & 0x80);
+	if (rect->rop == ROP_COPY)
+	{
+		while (read_reg_le32(par->dc_regs, SSTATUS) & 0x80);
+
 		write_reg_le32(par->dc_regs, DSA, dy + dx);
 		write_reg_le32(par->dc_regs, CNT, (height << 16) | width);
 		write_reg_le32(par->dc_regs, DP_OCTL, line_pitch);
@@ -1015,18 +1150,25 @@ imsttfb_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
 		write_reg_le32(par->dc_regs, MBC, 0xffffffff);
 		write_reg_le32(par->dc_regs, CLR, bgc);
 		write_reg_le32(par->dc_regs, BLTCTL, 0x840); /* 0x200000 */
-		while(read_reg_le32(par->dc_regs, SSTATUS) & 0x80);
-		while(read_reg_le32(par->dc_regs, SSTATUS) & 0x40);
-	} else {
-		while(read_reg_le32(par->dc_regs, SSTATUS) & 0x80);
+
+		while (read_reg_le32(par->dc_regs, SSTATUS) & 0x80);
+
+		while (read_reg_le32(par->dc_regs, SSTATUS) & 0x40);
+	}
+	else
+	{
+		while (read_reg_le32(par->dc_regs, SSTATUS) & 0x80);
+
 		write_reg_le32(par->dc_regs, DSA, dy + dx);
 		write_reg_le32(par->dc_regs, S1SA, dy + dx);
 		write_reg_le32(par->dc_regs, CNT, (height << 16) | width);
 		write_reg_le32(par->dc_regs, DP_OCTL, line_pitch);
 		write_reg_le32(par->dc_regs, SP, line_pitch);
 		write_reg_le32(par->dc_regs, BLTCTL, 0x40005);
-		while(read_reg_le32(par->dc_regs, SSTATUS) & 0x80);
-		while(read_reg_le32(par->dc_regs, SSTATUS) & 0x40);
+
+		while (read_reg_le32(par->dc_regs, SSTATUS) & 0x80);
+
+		while (read_reg_le32(par->dc_regs, SSTATUS) & 0x40);
 	}
 }
 
@@ -1035,7 +1177,7 @@ imsttfb_copyarea(struct fb_info *info, const struct fb_copyarea *area)
 {
 	struct imstt_par *par = info->par;
 	__u32 Bpp, line_pitch, fb_offset_old, fb_offset_new, sp, dp_octl;
- 	__u32 cnt, bltctl, sx, sy, dx, dy, height, width;
+	__u32 cnt, bltctl, sx, sy, dx, dy, height, width;
 
 	Bpp = info->var.bits_per_pixel >> 3,
 
@@ -1053,35 +1195,46 @@ imsttfb_copyarea(struct fb_info *info, const struct fb_copyarea *area)
 	sp = line_pitch << 16;
 	cnt = height << 16;
 
-	if (sy < dy) {
+	if (sy < dy)
+	{
 		sy += height;
 		dy += height;
 		sp |= -(line_pitch) & 0xffff;
 		dp_octl = -(line_pitch) & 0xffff;
-	} else {
+	}
+	else
+	{
 		sp |= line_pitch;
 		dp_octl = line_pitch;
 	}
-	if (sx < dx) {
+
+	if (sx < dx)
+	{
 		sx += width;
 		dx += width;
 		bltctl |= 0x80;
 		cnt |= -(width) & 0xffff;
-	} else {
+	}
+	else
+	{
 		cnt |= width;
 	}
+
 	fb_offset_old = sy * line_pitch + sx;
 	fb_offset_new = dy * line_pitch + dx;
 
-	while(read_reg_le32(par->dc_regs, SSTATUS) & 0x80);
+	while (read_reg_le32(par->dc_regs, SSTATUS) & 0x80);
+
 	write_reg_le32(par->dc_regs, S1SA, fb_offset_old);
 	write_reg_le32(par->dc_regs, SP, sp);
 	write_reg_le32(par->dc_regs, DSA, fb_offset_new);
 	write_reg_le32(par->dc_regs, CNT, cnt);
 	write_reg_le32(par->dc_regs, DP_OCTL, dp_octl);
 	write_reg_le32(par->dc_regs, BLTCTL, bltctl);
-	while(read_reg_le32(par->dc_regs, SSTATUS) & 0x80);
-	while(read_reg_le32(par->dc_regs, SSTATUS) & 0x40);
+
+	while (read_reg_le32(par->dc_regs, SSTATUS) & 0x80);
+
+	while (read_reg_le32(par->dc_regs, SSTATUS) & 0x40);
 }
 
 #if 0
@@ -1091,20 +1244,29 @@ imsttfb_load_cursor_image(struct imstt_par *par, int width, int height, __u8 fgc
 	u_int x, y;
 
 	if (width > 32 || height > 32)
+	{
 		return -EINVAL;
+	}
 
-	if (par->ramdac == IBM) {
+	if (par->ramdac == IBM)
+	{
 		par->cmap_regs[PIDXHI] = 1;	eieio();
-		for (x = 0; x < 0x100; x++) {
+
+		for (x = 0; x < 0x100; x++)
+		{
 			par->cmap_regs[PIDXLO] = x;		eieio();
 			par->cmap_regs[PIDXDATA] = 0x00;	eieio();
 		}
+
 		par->cmap_regs[PIDXHI] = 1;	eieio();
+
 		for (y = 0; y < height; y++)
-			for (x = 0; x < width >> 2; x++) {
+			for (x = 0; x < width >> 2; x++)
+			{
 				par->cmap_regs[PIDXLO] = x + y * 8;	eieio();
 				par->cmap_regs[PIDXDATA] = 0xff;	eieio();
 			}
+
 		par->cmap_regs[PIDXHI] = 0;		eieio();
 		par->cmap_regs[PIDXLO] = CURS1R;	eieio();
 		par->cmap_regs[PIDXDATA] = fgc;		eieio();
@@ -1124,64 +1286,90 @@ imsttfb_load_cursor_image(struct imstt_par *par, int width, int height, __u8 fgc
 		par->cmap_regs[PIDXDATA] = fgc;		eieio();
 		par->cmap_regs[PIDXLO] = CURS3B;	eieio();
 		par->cmap_regs[PIDXDATA] = fgc;		eieio();
-	} else {
+	}
+	else
+	{
 		par->cmap_regs[TVPADDRW] = TVPIRICC;	eieio();
 		par->cmap_regs[TVPIDATA] &= 0x03;	eieio();
 		par->cmap_regs[TVPADDRW] = 0;		eieio();
-		for (x = 0; x < 0x200; x++) {
+
+		for (x = 0; x < 0x200; x++)
+		{
 			par->cmap_regs[TVPCRDAT] = 0x00;	eieio();
 		}
-		for (x = 0; x < 0x200; x++) {
+
+		for (x = 0; x < 0x200; x++)
+		{
 			par->cmap_regs[TVPCRDAT] = 0xff;	eieio();
 		}
+
 		par->cmap_regs[TVPADDRW] = TVPIRICC;	eieio();
 		par->cmap_regs[TVPIDATA] &= 0x03;	eieio();
+
 		for (y = 0; y < height; y++)
-			for (x = 0; x < width >> 3; x++) {
+			for (x = 0; x < width >> 3; x++)
+			{
 				par->cmap_regs[TVPADDRW] = x + y * 8;	eieio();
 				par->cmap_regs[TVPCRDAT] = 0xff;		eieio();
 			}
+
 		par->cmap_regs[TVPADDRW] = TVPIRICC;	eieio();
 		par->cmap_regs[TVPIDATA] |= 0x08;	eieio();
+
 		for (y = 0; y < height; y++)
-			for (x = 0; x < width >> 3; x++) {
+			for (x = 0; x < width >> 3; x++)
+			{
 				par->cmap_regs[TVPADDRW] = x + y * 8;	eieio();
 				par->cmap_regs[TVPCRDAT] = 0xff;		eieio();
 			}
+
 		par->cmap_regs[TVPCADRW] = 0x00;	eieio();
-		for (x = 0; x < 12; x++) {
+
+		for (x = 0; x < 12; x++)
+		{
 			par->cmap_regs[TVPCDATA] = fgc;
 			eieio();
 		}
 	}
+
 	return 1;
 }
 
 static void
 imstt_set_cursor(struct imstt_par *par, struct fb_image *d, int on)
 {
-	if (par->ramdac == IBM) {
+	if (par->ramdac == IBM)
+	{
 		par->cmap_regs[PIDXHI] = 0;	eieio();
-		if (!on) {
+
+		if (!on)
+		{
 			par->cmap_regs[PIDXLO] = CURSCTL;	eieio();
 			par->cmap_regs[PIDXDATA] = 0x00;	eieio();
-		} else {
+		}
+		else
+		{
 			par->cmap_regs[PIDXLO] = CURSXHI;	eieio();
 			par->cmap_regs[PIDXDATA] = d->dx >> 8;	eieio();
 			par->cmap_regs[PIDXLO] = CURSXLO;	eieio();
-			par->cmap_regs[PIDXDATA] = d->dx & 0xff;eieio();
+			par->cmap_regs[PIDXDATA] = d->dx & 0xff; eieio();
 			par->cmap_regs[PIDXLO] = CURSYHI;	eieio();
 			par->cmap_regs[PIDXDATA] = d->dy >> 8;	eieio();
 			par->cmap_regs[PIDXLO] = CURSYLO;	eieio();
-			par->cmap_regs[PIDXDATA] = d->dy & 0xff;eieio();
+			par->cmap_regs[PIDXDATA] = d->dy & 0xff; eieio();
 			par->cmap_regs[PIDXLO] = CURSCTL;	eieio();
 			par->cmap_regs[PIDXDATA] = 0x02;	eieio();
 		}
-	} else {
-		if (!on) {
+	}
+	else
+	{
+		if (!on)
+		{
 			par->cmap_regs[TVPADDRW] = TVPIRICC;	eieio();
 			par->cmap_regs[TVPIDATA] = 0x00;	eieio();
-		} else {
+		}
+		else
+		{
 			__u16 x = d->dx + 0x40, y = d->dy + 0x40;
 
 			par->cmap_regs[TVPCXPOH] = x >> 8;	eieio();
@@ -1194,65 +1382,82 @@ imstt_set_cursor(struct imstt_par *par, struct fb_image *d, int on)
 	}
 }
 
-static int 
+static int
 imsttfb_cursor(struct fb_info *info, struct fb_cursor *cursor)
 {
 	struct imstt_par *par = info->par;
-        u32 flags = cursor->set, fg, bg, xx, yy;
+	u32 flags = cursor->set, fg, bg, xx, yy;
 
 	if (cursor->dest == NULL && cursor->rop == ROP_XOR)
+	{
 		return 1;
-	
+	}
+
 	imstt_set_cursor(info, cursor, 0);
 
-	if (flags & FB_CUR_SETPOS) {
+	if (flags & FB_CUR_SETPOS)
+	{
 		xx = cursor->image.dx - info->var.xoffset;
 		yy = cursor->image.dy - info->var.yoffset;
 	}
 
-	if (flags & FB_CUR_SETSIZE) {
-        }
+	if (flags & FB_CUR_SETSIZE)
+	{
+	}
 
-        if (flags & (FB_CUR_SETSHAPE | FB_CUR_SETCMAP)) {
-                int fg_idx = cursor->image.fg_color;
-                int width = (cursor->image.width+7)/8;
-                u8 *dat = (u8 *) cursor->image.data;
-                u8 *dst = (u8 *) cursor->dest;
-                u8 *msk = (u8 *) cursor->mask;
+	if (flags & (FB_CUR_SETSHAPE | FB_CUR_SETCMAP))
+	{
+		int fg_idx = cursor->image.fg_color;
+		int width = (cursor->image.width + 7) / 8;
+		u8 *dat = (u8 *) cursor->image.data;
+		u8 *dst = (u8 *) cursor->dest;
+		u8 *msk = (u8 *) cursor->mask;
 
-                switch (cursor->rop) {
-                case ROP_XOR:
-                        for (i = 0; i < cursor->image.height; i++) {
-                                for (j = 0; j < width; j++) {
-                                        d_idx = i * MAX_CURS/8  + j;
-                                        data[d_idx] =  byte_rev[dat[s_idx] ^
-                                                                dst[s_idx]];
-                                        mask[d_idx] = byte_rev[msk[s_idx]];
-                                        s_idx++;
-                                }
-                        }
-                        break;
-                case ROP_COPY:
-                default:
-                        for (i = 0; i < cursor->image.height; i++) {
-                                for (j = 0; j < width; j++) {
-                                        d_idx = i * MAX_CURS/8 + j;
-                                        data[d_idx] = byte_rev[dat[s_idx]];
-                                        mask[d_idx] = byte_rev[msk[s_idx]];
-                                        s_idx++;
-                                }
-			}
-			break;
+		switch (cursor->rop)
+		{
+			case ROP_XOR:
+				for (i = 0; i < cursor->image.height; i++)
+				{
+					for (j = 0; j < width; j++)
+					{
+						d_idx = i * MAX_CURS / 8  + j;
+						data[d_idx] =  byte_rev[dat[s_idx] ^
+												dst[s_idx]];
+						mask[d_idx] = byte_rev[msk[s_idx]];
+						s_idx++;
+					}
+				}
+
+				break;
+
+			case ROP_COPY:
+			default:
+				for (i = 0; i < cursor->image.height; i++)
+				{
+					for (j = 0; j < width; j++)
+					{
+						d_idx = i * MAX_CURS / 8 + j;
+						data[d_idx] = byte_rev[dat[s_idx]];
+						mask[d_idx] = byte_rev[msk[s_idx]];
+						s_idx++;
+					}
+				}
+
+				break;
 		}
 
 		fg = ((info->cmap.red[fg_idx] & 0xf8) << 7) |
-                     ((info->cmap.green[fg_idx] & 0xf8) << 2) |
-                     ((info->cmap.blue[fg_idx] & 0xf8) >> 3) | 1 << 15;
+			 ((info->cmap.green[fg_idx] & 0xf8) << 2) |
+			 ((info->cmap.blue[fg_idx] & 0xf8) >> 3) | 1 << 15;
 
 		imsttfb_load_cursor_image(par, xx, yy, fgc);
 	}
+
 	if (cursor->enable)
+	{
 		imstt_set_cursor(info, cursor, 1);
+	}
+
 	return 0;
 }
 #endif
@@ -1272,70 +1477,114 @@ imsttfb_ioctl(struct fb_info *info, u_int cmd, u_long arg)
 	__u32 reg[2];
 	__u8 idx[2];
 
-	switch (cmd) {
+	switch (cmd)
+	{
 		case FBIMSTT_SETREG:
 			if (copy_from_user(reg, argp, 8) || reg[0] > (0x1000 - sizeof(reg[0])) / sizeof(reg[0]))
+			{
 				return -EFAULT;
+			}
+
 			write_reg_le32(par->dc_regs, reg[0], reg[1]);
 			return 0;
+
 		case FBIMSTT_GETREG:
 			if (copy_from_user(reg, argp, 4) || reg[0] > (0x1000 - sizeof(reg[0])) / sizeof(reg[0]))
+			{
 				return -EFAULT;
+			}
+
 			reg[1] = read_reg_le32(par->dc_regs, reg[0]);
+
 			if (copy_to_user((void __user *)(arg + 4), &reg[1], 4))
+			{
 				return -EFAULT;
+			}
+
 			return 0;
+
 		case FBIMSTT_SETCMAPREG:
 			if (copy_from_user(reg, argp, 8) || reg[0] > (0x1000 - sizeof(reg[0])) / sizeof(reg[0]))
+			{
 				return -EFAULT;
+			}
+
 			write_reg_le32(((u_int __iomem *)par->cmap_regs), reg[0], reg[1]);
 			return 0;
+
 		case FBIMSTT_GETCMAPREG:
 			if (copy_from_user(reg, argp, 4) || reg[0] > (0x1000 - sizeof(reg[0])) / sizeof(reg[0]))
+			{
 				return -EFAULT;
+			}
+
 			reg[1] = read_reg_le32(((u_int __iomem *)par->cmap_regs), reg[0]);
+
 			if (copy_to_user((void __user *)(arg + 4), &reg[1], 4))
+			{
 				return -EFAULT;
+			}
+
 			return 0;
+
 		case FBIMSTT_SETIDXREG:
 			if (copy_from_user(idx, argp, 2))
+			{
 				return -EFAULT;
+			}
+
 			par->cmap_regs[PIDXHI] = 0;		eieio();
 			par->cmap_regs[PIDXLO] = idx[0];	eieio();
 			par->cmap_regs[PIDXDATA] = idx[1];	eieio();
 			return 0;
+
 		case FBIMSTT_GETIDXREG:
 			if (copy_from_user(idx, argp, 1))
+			{
 				return -EFAULT;
+			}
+
 			par->cmap_regs[PIDXHI] = 0;		eieio();
 			par->cmap_regs[PIDXLO] = idx[0];	eieio();
 			idx[1] = par->cmap_regs[PIDXDATA];
+
 			if (copy_to_user((void __user *)(arg + 1), &idx[1], 1))
+			{
 				return -EFAULT;
+			}
+
 			return 0;
+
 		default:
 			return -ENOIOCTLCMD;
 	}
 }
 
-static struct pci_device_id imsttfb_pci_tbl[] = {
-	{ PCI_VENDOR_ID_IMS, PCI_DEVICE_ID_IMS_TT128,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, IBM },
-	{ PCI_VENDOR_ID_IMS, PCI_DEVICE_ID_IMS_TT3D,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, TVP },
+static struct pci_device_id imsttfb_pci_tbl[] =
+{
+	{
+		PCI_VENDOR_ID_IMS, PCI_DEVICE_ID_IMS_TT128,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, IBM
+	},
+	{
+		PCI_VENDOR_ID_IMS, PCI_DEVICE_ID_IMS_TT3D,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, TVP
+	},
 	{ 0, }
 };
 
 MODULE_DEVICE_TABLE(pci, imsttfb_pci_tbl);
 
-static struct pci_driver imsttfb_pci_driver = {
+static struct pci_driver imsttfb_pci_driver =
+{
 	.name =		"imsttfb",
 	.id_table =	imsttfb_pci_tbl,
 	.probe =	imsttfb_probe,
 	.remove =	imsttfb_remove,
 };
 
-static struct fb_ops imsttfb_ops = {
+static struct fb_ops imsttfb_ops =
+{
 	.owner 		= THIS_MODULE,
 	.fb_check_var	= imsttfb_check_var,
 	.fb_set_par 	= imsttfb_set_par,
@@ -1354,15 +1603,23 @@ static void init_imstt(struct fb_info *info)
 	__u32 i, tmp, *ip, *end;
 
 	tmp = read_reg_le32(par->dc_regs, PRC);
+
 	if (par->ramdac == IBM)
+	{
 		info->fix.smem_len = (tmp & 0x0004) ? 0x400000 : 0x200000;
+	}
 	else
+	{
 		info->fix.smem_len = 0x800000;
+	}
 
 	ip = (__u32 *)info->screen_base;
 	end = (__u32 *)(info->screen_base + info->fix.smem_len);
+
 	while (ip < end)
+	{
 		*ip++ = 0;
+	}
 
 	/* initialize the card */
 	tmp = read_reg_le32(par->dc_regs, STGCTL);
@@ -1370,19 +1627,25 @@ static void init_imstt(struct fb_info *info)
 	write_reg_le32(par->dc_regs, SSR, 0);
 
 	/* set default values for DAC registers */
-	if (par->ramdac == IBM) {
+	if (par->ramdac == IBM)
+	{
 		par->cmap_regs[PPMASK] = 0xff;
 		eieio();
 		par->cmap_regs[PIDXHI] = 0;
 		eieio();
-		for (i = 0; i < ARRAY_SIZE(ibm_initregs); i++) {
+
+		for (i = 0; i < ARRAY_SIZE(ibm_initregs); i++)
+		{
 			par->cmap_regs[PIDXLO] = ibm_initregs[i].addr;
 			eieio();
 			par->cmap_regs[PIDXDATA] = ibm_initregs[i].value;
 			eieio();
 		}
-	} else {
-		for (i = 0; i < ARRAY_SIZE(tvp_initregs); i++) {
+	}
+	else
+	{
+		for (i = 0; i < ARRAY_SIZE(tvp_initregs); i++)
+		{
 			par->cmap_regs[TVPADDRW] = tvp_initregs[i].addr;
 			eieio();
 			par->cmap_regs[TVPIDATA] = tvp_initregs[i].value;
@@ -1394,17 +1657,28 @@ static void init_imstt(struct fb_info *info)
 	{
 		int vmode = init_vmode, cmode = init_cmode;
 
-		if (vmode == -1) {
+		if (vmode == -1)
+		{
 			vmode = nvram_read_byte(NV_VMODE);
+
 			if (vmode <= 0 || vmode > VMODE_MAX)
+			{
 				vmode = VMODE_640_480_67;
+			}
 		}
-		if (cmode == -1) {
+
+		if (cmode == -1)
+		{
 			cmode = nvram_read_byte(NV_CMODE);
+
 			if (cmode < CMODE_8 || cmode > CMODE_32)
+			{
 				cmode = CMODE_8;
+			}
 		}
-		if (mac_vmode_to_var(vmode, cmode, &info->var)) {
+
+		if (mac_vmode_to_var(vmode, cmode, &info->var))
+		{
 			info->var.xres = info->var.xres_virtual = INIT_XRES;
 			info->var.yres = info->var.yres_virtual = INIT_YRES;
 			info->var.bits_per_pixel = INIT_BPP;
@@ -1417,7 +1691,8 @@ static void init_imstt(struct fb_info *info)
 #endif
 
 	if ((info->var.xres * info->var.yres) * (info->var.bits_per_pixel >> 3) > info->fix.smem_len
-	    || !(compute_imstt_regvals(par, info->var.xres, info->var.yres))) {
+		|| !(compute_imstt_regvals(par, info->var.xres, info->var.yres)))
+	{
 		printk("imsttfb: %ux%ux%u not supported\n", info->var.xres, info->var.yres, info->var.bits_per_pixel);
 		framebuffer_release(info);
 		return;
@@ -1428,7 +1703,7 @@ static void init_imstt(struct fb_info *info)
 	info->fix.accel = FB_ACCEL_IMS_TWINTURBO;
 	info->fix.type = FB_TYPE_PACKED_PIXELS;
 	info->fix.visual = info->var.bits_per_pixel == 8 ? FB_VISUAL_PSEUDOCOLOR
-							: FB_VISUAL_DIRECTCOLOR;
+					   : FB_VISUAL_DIRECTCOLOR;
 	info->fix.line_length = info->var.xres * (info->var.bits_per_pixel >> 3);
 	info->fix.xpanstep = 8;
 	info->fix.ypanstep = 1;
@@ -1436,32 +1711,38 @@ static void init_imstt(struct fb_info *info)
 
 	info->var.accel_flags = FB_ACCELF_TEXT;
 
-//	if (par->ramdac == IBM)
-//		imstt_cursor_init(info);
+	//	if (par->ramdac == IBM)
+	//		imstt_cursor_init(info);
 	if (info->var.green.length == 6)
+	{
 		set_565(par);
+	}
 	else
+	{
 		set_555(par);
+	}
+
 	set_imstt_regvals(info, info->var.bits_per_pixel);
 
 	info->var.pixclock = 1000000 / getclkMHz(par);
 
 	info->fbops = &imsttfb_ops;
 	info->flags = FBINFO_DEFAULT |
-                      FBINFO_HWACCEL_COPYAREA |
-	              FBINFO_HWACCEL_FILLRECT |
-	              FBINFO_HWACCEL_YPAN;
+				  FBINFO_HWACCEL_COPYAREA |
+				  FBINFO_HWACCEL_FILLRECT |
+				  FBINFO_HWACCEL_YPAN;
 
 	fb_alloc_cmap(&info->cmap, 0, 0);
 
-	if (register_framebuffer(info) < 0) {
+	if (register_framebuffer(info) < 0)
+	{
 		framebuffer_release(info);
 		return;
 	}
 
 	tmp = (read_reg_le32(par->dc_regs, SSTATUS) & 0x0f00) >> 8;
 	fb_info(info, "%s frame buffer; %uMB vram; chip version %u\n",
-		info->fix.id, info->fix.smem_len >> 20, tmp);
+			info->fix.id, info->fix.smem_len >> 20, tmp);
 }
 
 static int imsttfb_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
@@ -1470,16 +1751,22 @@ static int imsttfb_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	struct imstt_par *par;
 	struct fb_info *info;
 	struct device_node *dp;
-	
+
 	dp = pci_device_to_OF_node(pdev);
-	if(dp)
-		printk(KERN_INFO "%s: OF name %s\n",__func__, dp->name);
+
+	if (dp)
+	{
+		printk(KERN_INFO "%s: OF name %s\n", __func__, dp->name);
+	}
 	else if (IS_ENABLED(CONFIG_OF))
+	{
 		printk(KERN_ERR "imsttfb: no OF node for pci device\n");
+	}
 
 	info = framebuffer_alloc(sizeof(struct imstt_par), &pdev->dev);
 
-	if (!info) {
+	if (!info)
+	{
 		printk(KERN_ERR "imsttfb: Can't allocate memory\n");
 		return -ENOMEM;
 	}
@@ -1489,25 +1776,33 @@ static int imsttfb_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	addr = pci_resource_start (pdev, 0);
 	size = pci_resource_len (pdev, 0);
 
-	if (!request_mem_region(addr, size, "imsttfb")) {
+	if (!request_mem_region(addr, size, "imsttfb"))
+	{
 		printk(KERN_ERR "imsttfb: Can't reserve memory region\n");
 		framebuffer_release(info);
 		return -ENODEV;
 	}
 
-	switch (pdev->device) {
+	switch (pdev->device)
+	{
 		case PCI_DEVICE_ID_IMS_TT128: /* IMS,tt128mbA */
 			par->ramdac = IBM;
+
 			if (dp && ((strcmp(dp->name, "IMS,tt128mb8") == 0) ||
-				   (strcmp(dp->name, "IMS,tt128mb8A") == 0)))
+					   (strcmp(dp->name, "IMS,tt128mb8A") == 0)))
+			{
 				par->ramdac = TVP;
+			}
+
 			break;
+
 		case PCI_DEVICE_ID_IMS_TT3D:  /* IMS,tt3d */
 			par->ramdac = TVP;
 			break;
+
 		default:
 			printk(KERN_INFO "imsttfb: Device 0x%x unknown, "
-					 "contact maintainer.\n", pdev->device);
+				   "contact maintainer.\n", pdev->device);
 			release_mem_region(addr, size);
 			framebuffer_release(info);
 			return -ENODEV;
@@ -1515,7 +1810,7 @@ static int imsttfb_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	info->fix.smem_start = addr;
 	info->screen_base = (__u8 *)ioremap(addr, par->ramdac == IBM ?
-					    0x400000 : 0x800000);
+										0x400000 : 0x800000);
 	info->fix.mmio_start = addr + 0x800000;
 	par->dc_regs = ioremap(addr + 0x800000, 0x1000);
 	par->cmap_regs_phys = addr + 0x840000;
@@ -1548,40 +1843,61 @@ imsttfb_setup(char *options)
 	char *this_opt;
 
 	if (!options || !*options)
+	{
 		return 0;
+	}
 
-	while ((this_opt = strsep(&options, ",")) != NULL) {
-		if (!strncmp(this_opt, "font:", 5)) {
+	while ((this_opt = strsep(&options, ",")) != NULL)
+	{
+		if (!strncmp(this_opt, "font:", 5))
+		{
 			char *p;
 			int i;
 
 			p = this_opt + 5;
+
 			for (i = 0; i < sizeof(fontname) - 1; i++)
 				if (!*p || *p == ' ' || *p == ',')
+				{
 					break;
+				}
+
 			memcpy(fontname, this_opt + 5, i);
 			fontname[i] = 0;
-		} else if (!strncmp(this_opt, "inverse", 7)) {
+		}
+		else if (!strncmp(this_opt, "inverse", 7))
+		{
 			inverse = 1;
 			fb_invert_cmaps();
 		}
+
 #if defined(CONFIG_PPC)
-		else if (!strncmp(this_opt, "vmode:", 6)) {
-			int vmode = simple_strtoul(this_opt+6, NULL, 0);
+		else if (!strncmp(this_opt, "vmode:", 6))
+		{
+			int vmode = simple_strtoul(this_opt + 6, NULL, 0);
+
 			if (vmode > 0 && vmode <= VMODE_MAX)
+			{
 				init_vmode = vmode;
-		} else if (!strncmp(this_opt, "cmode:", 6)) {
-			int cmode = simple_strtoul(this_opt+6, NULL, 0);
-			switch (cmode) {
+			}
+		}
+		else if (!strncmp(this_opt, "cmode:", 6))
+		{
+			int cmode = simple_strtoul(this_opt + 6, NULL, 0);
+
+			switch (cmode)
+			{
 				case CMODE_8:
 				case 8:
 					init_cmode = CMODE_8;
 					break;
+
 				case CMODE_16:
 				case 15:
 				case 16:
 					init_cmode = CMODE_16;
 					break;
+
 				case CMODE_32:
 				case 24:
 				case 32:
@@ -1589,8 +1905,10 @@ imsttfb_setup(char *options)
 					break;
 			}
 		}
+
 #endif
 	}
+
 	return 0;
 }
 
@@ -1602,13 +1920,15 @@ static int __init imsttfb_init(void)
 	char *option = NULL;
 
 	if (fb_get_options("imsttfb", &option))
+	{
 		return -ENODEV;
+	}
 
 	imsttfb_setup(option);
 #endif
 	return pci_register_driver(&imsttfb_pci_driver);
 }
- 
+
 static void __exit imsttfb_exit(void)
 {
 	pci_unregister_driver(&imsttfb_pci_driver);

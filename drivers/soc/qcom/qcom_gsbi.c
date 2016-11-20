@@ -28,12 +28,14 @@
 
 #define TCSR_ADM_CRCI_BASE	0x70
 
-struct crci_config {
+struct crci_config
+{
 	u32 num_rows;
 	const u32 (*array)[MAX_GSBI];
 };
 
-static const u32 crci_ipq8064[][MAX_GSBI] = {
+static const u32 crci_ipq8064[][MAX_GSBI] =
+{
 	{
 		0x000003, 0x00000c, 0x000030, 0x0000c0,
 		0x000300, 0x000c00, 0x003000, 0x00c000,
@@ -46,12 +48,14 @@ static const u32 crci_ipq8064[][MAX_GSBI] = {
 	},
 };
 
-static const struct crci_config config_ipq8064 = {
+static const struct crci_config config_ipq8064 =
+{
 	.num_rows = ARRAY_SIZE(crci_ipq8064),
 	.array = crci_ipq8064,
 };
 
-static const unsigned int crci_apq8064[][MAX_GSBI] = {
+static const unsigned int crci_apq8064[][MAX_GSBI] =
+{
 	{
 		0x001800, 0x006000, 0x000030, 0x0000c0,
 		0x000300, 0x000400, 0x000000, 0x000000,
@@ -64,12 +68,14 @@ static const unsigned int crci_apq8064[][MAX_GSBI] = {
 	},
 };
 
-static const struct crci_config config_apq8064 = {
+static const struct crci_config config_apq8064 =
+{
 	.num_rows = ARRAY_SIZE(crci_apq8064),
 	.array = crci_apq8064,
 };
 
-static const unsigned int crci_msm8960[][MAX_GSBI] = {
+static const unsigned int crci_msm8960[][MAX_GSBI] =
+{
 	{
 		0x000003, 0x00000c, 0x000030, 0x0000c0,
 		0x000300, 0x000400, 0x000000, 0x000000,
@@ -82,12 +88,14 @@ static const unsigned int crci_msm8960[][MAX_GSBI] = {
 	},
 };
 
-static const struct crci_config config_msm8960 = {
+static const struct crci_config config_msm8960 =
+{
 	.num_rows = ARRAY_SIZE(crci_msm8960),
 	.array = crci_msm8960,
 };
 
-static const unsigned int crci_msm8660[][MAX_GSBI] = {
+static const unsigned int crci_msm8660[][MAX_GSBI] =
+{
 	{	/* ADM 0 - B */
 		0x000003, 0x00000c, 0x000030, 0x0000c0,
 		0x000300, 0x000c00, 0x003000, 0x00c000,
@@ -110,19 +118,22 @@ static const unsigned int crci_msm8660[][MAX_GSBI] = {
 	},
 };
 
-static const struct crci_config config_msm8660 = {
+static const struct crci_config config_msm8660 =
+{
 	.num_rows = ARRAY_SIZE(crci_msm8660),
 	.array = crci_msm8660,
 };
 
-struct gsbi_info {
+struct gsbi_info
+{
 	struct clk *hclk;
 	u32 mode;
 	u32 crci;
 	struct regmap *tcsr;
 };
 
-static const struct of_device_id tcsr_dt_match[] = {
+static const struct of_device_id tcsr_dt_match[] =
+{
 	{ .compatible = "qcom,tcsr-ipq8064", .data = &config_ipq8064},
 	{ .compatible = "qcom,tcsr-apq8064", .data = &config_apq8064},
 	{ .compatible = "qcom,tcsr-msm8960", .data = &config_msm8960},
@@ -145,40 +156,56 @@ static int gsbi_probe(struct platform_device *pdev)
 	gsbi = devm_kzalloc(&pdev->dev, sizeof(*gsbi), GFP_KERNEL);
 
 	if (!gsbi)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(base))
+	{
 		return PTR_ERR(base);
+	}
 
 	/* get the tcsr node and setup the config and regmap */
 	gsbi->tcsr = syscon_regmap_lookup_by_phandle(node, "syscon-tcsr");
 
-	if (!IS_ERR(gsbi->tcsr)) {
+	if (!IS_ERR(gsbi->tcsr))
+	{
 		tcsr_node = of_parse_phandle(node, "syscon-tcsr", 0);
-		if (tcsr_node) {
+
+		if (tcsr_node)
+		{
 			match = of_match_node(tcsr_dt_match, tcsr_node);
+
 			if (match)
+			{
 				config = match->data;
+			}
 			else
+			{
 				dev_warn(&pdev->dev, "no matching TCSR\n");
+			}
 
 			of_node_put(tcsr_node);
 		}
 	}
 
-	if (of_property_read_u32(node, "cell-index", &gsbi_num)) {
+	if (of_property_read_u32(node, "cell-index", &gsbi_num))
+	{
 		dev_err(&pdev->dev, "missing cell-index\n");
 		return -EINVAL;
 	}
 
-	if (gsbi_num < 1 || gsbi_num > MAX_GSBI) {
+	if (gsbi_num < 1 || gsbi_num > MAX_GSBI)
+	{
 		dev_err(&pdev->dev, "invalid cell-index\n");
 		return -EINVAL;
 	}
 
-	if (of_property_read_u32(node, "qcom,mode", &gsbi->mode)) {
+	if (of_property_read_u32(node, "qcom,mode", &gsbi->mode))
+	{
 		dev_err(&pdev->dev, "missing mode configuration\n");
 		return -EINVAL;
 	}
@@ -187,31 +214,36 @@ static int gsbi_probe(struct platform_device *pdev)
 	of_property_read_u32(node, "qcom,crci", &gsbi->crci);
 
 	dev_info(&pdev->dev, "GSBI port protocol: %d crci: %d\n",
-		 gsbi->mode, gsbi->crci);
+			 gsbi->mode, gsbi->crci);
 	gsbi->hclk = devm_clk_get(&pdev->dev, "iface");
+
 	if (IS_ERR(gsbi->hclk))
+	{
 		return PTR_ERR(gsbi->hclk);
+	}
 
 	clk_prepare_enable(gsbi->hclk);
 
 	writel_relaxed((gsbi->mode << GSBI_PROTOCOL_SHIFT) | gsbi->crci,
-				base + GSBI_CTRL_REG);
+				   base + GSBI_CTRL_REG);
 
 	/*
 	 * modify tcsr to reflect mode and ADM CRCI mux
 	 * Each gsbi contains a pair of bits, one for RX and one for TX
 	 * SPI mode requires both bits cleared, otherwise they are set
 	 */
-	if (config) {
-		for (i = 0; i < config->num_rows; i++) {
+	if (config)
+	{
+		for (i = 0; i < config->num_rows; i++)
+		{
 			mask = config->array[i][gsbi_num - 1];
 
 			if (gsbi->mode == GSBI_PROT_SPI)
 				regmap_update_bits(gsbi->tcsr,
-					TCSR_ADM_CRCI_BASE + 4 * i, mask, 0);
+								   TCSR_ADM_CRCI_BASE + 4 * i, mask, 0);
 			else
 				regmap_update_bits(gsbi->tcsr,
-					TCSR_ADM_CRCI_BASE + 4 * i, mask, mask);
+								   TCSR_ADM_CRCI_BASE + 4 * i, mask, mask);
 
 		}
 	}
@@ -233,14 +265,16 @@ static int gsbi_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id gsbi_dt_match[] = {
+static const struct of_device_id gsbi_dt_match[] =
+{
 	{ .compatible = "qcom,gsbi-v1.0.0", },
 	{ },
 };
 
 MODULE_DEVICE_TABLE(of, gsbi_dt_match);
 
-static struct platform_driver gsbi_driver = {
+static struct platform_driver gsbi_driver =
+{
 	.driver = {
 		.name		= "gsbi",
 		.of_match_table	= gsbi_dt_match,

@@ -20,20 +20,26 @@
 /* No PIO or DMA methods needed for this device */
 
 static unsigned int netcell_read_id(struct ata_device *adev,
-					struct ata_taskfile *tf, u16 *id)
+									struct ata_taskfile *tf, u16 *id)
 {
 	unsigned int err_mask = ata_do_dev_read_id(adev, tf, id);
+
 	/* Firmware forgets to mark words 85-87 valid */
 	if (err_mask == 0)
+	{
 		id[ATA_ID_CSF_DEFAULT] |= 0x4000;
+	}
+
 	return err_mask;
 }
 
-static struct scsi_host_template netcell_sht = {
+static struct scsi_host_template netcell_sht =
+{
 	ATA_BMDMA_SHT(DRV_NAME),
 };
 
-static struct ata_port_operations netcell_ops = {
+static struct ata_port_operations netcell_ops =
+{
 	.inherits	= &ata_bmdma_port_ops,
 	.cable_detect	= ata_cable_80wire,
 	.read_id	= netcell_read_id,
@@ -56,7 +62,8 @@ static struct ata_port_operations netcell_ops = {
 
 static int netcell_init_one (struct pci_dev *pdev, const struct pci_device_id *ent)
 {
-	static const struct ata_port_info info = {
+	static const struct ata_port_info info =
+	{
 		.flags		= ATA_FLAG_SLAVE_POSS,
 		/* Actually we don't really care about these as the
 		   firmware deals with it */
@@ -71,8 +78,11 @@ static int netcell_init_one (struct pci_dev *pdev, const struct pci_device_id *e
 	ata_print_version_once(&pdev->dev, DRV_VERSION);
 
 	rc = pcim_enable_device(pdev);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* Any chip specific setup/optimisation/messages here */
 	ata_pci_bmdma_clear_simplex(pdev);
@@ -81,13 +91,15 @@ static int netcell_init_one (struct pci_dev *pdev, const struct pci_device_id *e
 	return ata_pci_bmdma_init_one(pdev, port_info, &netcell_sht, NULL, 0);
 }
 
-static const struct pci_device_id netcell_pci_tbl[] = {
+static const struct pci_device_id netcell_pci_tbl[] =
+{
 	{ PCI_VDEVICE(NETCELL, PCI_DEVICE_ID_REVOLUTION), },
 
 	{ }	/* terminate list */
 };
 
-static struct pci_driver netcell_pci_driver = {
+static struct pci_driver netcell_pci_driver =
+{
 	.name			= DRV_NAME,
 	.id_table		= netcell_pci_tbl,
 	.probe			= netcell_init_one,

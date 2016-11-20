@@ -5,13 +5,15 @@
 
 #define NVKM_FIFO_CHID_NR 4096
 
-struct nvkm_fifo_engn {
+struct nvkm_fifo_engn
+{
 	struct nvkm_object *object;
 	int refcount;
 	int usecount;
 };
 
-struct nvkm_fifo_chan {
+struct nvkm_fifo_chan
+{
 	const struct nvkm_fifo_chan_func *func;
 	struct nvkm_fifo *fifo;
 	u64 engines;
@@ -29,7 +31,8 @@ struct nvkm_fifo_chan {
 	struct nvkm_fifo_engn engn[NVKM_SUBDEV_NR];
 };
 
-struct nvkm_fifo {
+struct nvkm_fifo
+{
 	const struct nvkm_fifo_func *func;
 	struct nvkm_engine engine;
 
@@ -46,7 +49,7 @@ void nvkm_fifo_pause(struct nvkm_fifo *, unsigned long *);
 void nvkm_fifo_start(struct nvkm_fifo *, unsigned long *);
 
 void nvkm_fifo_chan_put(struct nvkm_fifo *, unsigned long flags,
-			struct nvkm_fifo_chan **);
+						struct nvkm_fifo_chan **);
 struct nvkm_fifo_chan *
 nvkm_fifo_chan_inst(struct nvkm_fifo *, u64 inst, unsigned long *flags);
 struct nvkm_fifo_chan *

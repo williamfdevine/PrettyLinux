@@ -47,7 +47,8 @@
 
 struct ds278x_info;
 
-struct ds278x_battery_ops {
+struct ds278x_battery_ops
+{
 	int (*get_battery_current)(struct ds278x_info *info, int *current_uA);
 	int (*get_battery_voltage)(struct ds278x_info *info, int *voltage_uV);
 	int (*get_battery_capacity)(struct ds278x_info *info, int *capacity);
@@ -55,7 +56,8 @@ struct ds278x_battery_ops {
 
 #define to_ds278x_info(x) power_supply_get_drvdata(x)
 
-struct ds278x_info {
+struct ds278x_info
+{
 	struct i2c_client	*client;
 	struct power_supply	*battery;
 	struct power_supply_desc	battery_desc;
@@ -75,7 +77,9 @@ static inline int ds278x_read_reg(struct ds278x_info *info, int reg, u8 *val)
 	int ret;
 
 	ret = i2c_smbus_read_byte_data(info->client, reg);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&info->client->dev, "register read failed\n");
 		return ret;
 	}
@@ -85,12 +89,14 @@ static inline int ds278x_read_reg(struct ds278x_info *info, int reg, u8 *val)
 }
 
 static inline int ds278x_read_reg16(struct ds278x_info *info, int reg_msb,
-				    s16 *val)
+									s16 *val)
 {
 	int ret;
 
 	ret = i2c_smbus_read_word_data(info->client, reg_msb);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&info->client->dev, "register read failed\n");
 		return ret;
 	}
@@ -111,8 +117,12 @@ static int ds278x_get_temp(struct ds278x_info *info, int *temp)
 	 * sign in the upper bits of a 16 bit register.
 	 */
 	err = ds278x_read_reg16(info, DS278x_REG_TEMP_MSB, &raw);
+
 	if (err)
+	{
 		return err;
+	}
+
 	*temp = ((raw / 32) * 125) / 100;
 	return 0;
 }
@@ -129,19 +139,29 @@ static int ds2782_get_current(struct ds278x_info *info, int *current_uA)
 	 * the sense resistor.
 	 */
 	err = ds278x_read_reg(info, DS2782_REG_RSNSP, &sense_res_raw);
+
 	if (err)
+	{
 		return err;
-	if (sense_res_raw == 0) {
+	}
+
+	if (sense_res_raw == 0)
+	{
 		dev_err(&info->client->dev, "sense resistor value is 0\n");
 		return -ENXIO;
 	}
+
 	sense_res = 1000 / sense_res_raw;
 
 	dev_dbg(&info->client->dev, "sense resistor = %d milli-ohms\n",
-		sense_res);
+			sense_res);
 	err = ds278x_read_reg16(info, DS278x_REG_CURRENT_MSB, &raw);
+
 	if (err)
+	{
 		return err;
+	}
+
 	*current_uA = raw * (DS2782_CURRENT_UNITS / sense_res);
 	return 0;
 }
@@ -156,8 +176,12 @@ static int ds2782_get_voltage(struct ds278x_info *info, int *voltage_uV)
 	 * a 10-bit number plus sign, in the upper bits of a 16-bit register
 	 */
 	err = ds278x_read_reg16(info, DS278x_REG_VOLT_MSB, &raw);
+
 	if (err)
+	{
 		return err;
+	}
+
 	*voltage_uV = (raw / 32) * 4800;
 	return 0;
 }
@@ -168,8 +192,12 @@ static int ds2782_get_capacity(struct ds278x_info *info, int *capacity)
 	u8 raw;
 
 	err = ds278x_read_reg(info, DS2782_REG_RARC, &raw);
+
 	if (err)
+	{
 		return err;
+	}
+
 	*capacity = raw;
 	return 0;
 }
@@ -180,8 +208,12 @@ static int ds2786_get_current(struct ds278x_info *info, int *current_uA)
 	s16 raw;
 
 	err = ds278x_read_reg16(info, DS278x_REG_CURRENT_MSB, &raw);
+
 	if (err)
+	{
 		return err;
+	}
+
 	*current_uA = (raw / 16) * (DS2786_CURRENT_UNITS / info->rsns);
 	return 0;
 }
@@ -196,8 +228,12 @@ static int ds2786_get_voltage(struct ds278x_info *info, int *voltage_uV)
 	 * a 12-bit number plus sign, in the upper bits of a 16-bit register
 	 */
 	err = ds278x_read_reg16(info, DS278x_REG_VOLT_MSB, &raw);
+
 	if (err)
+	{
 		return err;
+	}
+
 	*voltage_uV = (raw / 8) * 1220;
 	return 0;
 }
@@ -208,10 +244,14 @@ static int ds2786_get_capacity(struct ds278x_info *info, int *capacity)
 	u8 raw;
 
 	err = ds278x_read_reg(info, DS2786_REG_RARC, &raw);
+
 	if (err)
+	{
 		return err;
+	}
+
 	/* Relative capacity is displayed with resolution 0.5 % */
-	*capacity = raw/2 ;
+	*capacity = raw / 2 ;
 	return 0;
 }
 
@@ -222,57 +262,72 @@ static int ds278x_get_status(struct ds278x_info *info, int *status)
 	int capacity;
 
 	err = info->ops->get_battery_current(info, &current_uA);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = info->ops->get_battery_capacity(info, &capacity);
+
 	if (err)
+	{
 		return err;
+	}
 
 	info->capacity = capacity;
 
 	if (capacity == 100)
+	{
 		*status = POWER_SUPPLY_STATUS_FULL;
+	}
 	else if (current_uA == 0)
+	{
 		*status = POWER_SUPPLY_STATUS_NOT_CHARGING;
+	}
 	else if (current_uA < 0)
+	{
 		*status = POWER_SUPPLY_STATUS_DISCHARGING;
+	}
 	else
+	{
 		*status = POWER_SUPPLY_STATUS_CHARGING;
+	}
 
 	return 0;
 }
 
 static int ds278x_battery_get_property(struct power_supply *psy,
-				       enum power_supply_property prop,
-				       union power_supply_propval *val)
+									   enum power_supply_property prop,
+									   union power_supply_propval *val)
 {
 	struct ds278x_info *info = to_ds278x_info(psy);
 	int ret;
 
-	switch (prop) {
-	case POWER_SUPPLY_PROP_STATUS:
-		ret = ds278x_get_status(info, &val->intval);
-		break;
+	switch (prop)
+	{
+		case POWER_SUPPLY_PROP_STATUS:
+			ret = ds278x_get_status(info, &val->intval);
+			break;
 
-	case POWER_SUPPLY_PROP_CAPACITY:
-		ret = info->ops->get_battery_capacity(info, &val->intval);
-		break;
+		case POWER_SUPPLY_PROP_CAPACITY:
+			ret = info->ops->get_battery_capacity(info, &val->intval);
+			break;
 
-	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
-		ret = info->ops->get_battery_voltage(info, &val->intval);
-		break;
+		case POWER_SUPPLY_PROP_VOLTAGE_NOW:
+			ret = info->ops->get_battery_voltage(info, &val->intval);
+			break;
 
-	case POWER_SUPPLY_PROP_CURRENT_NOW:
-		ret = info->ops->get_battery_current(info, &val->intval);
-		break;
+		case POWER_SUPPLY_PROP_CURRENT_NOW:
+			ret = info->ops->get_battery_current(info, &val->intval);
+			break;
 
-	case POWER_SUPPLY_PROP_TEMP:
-		ret = ds278x_get_temp(info, &val->intval);
-		break;
+		case POWER_SUPPLY_PROP_TEMP:
+			ret = ds278x_get_temp(info, &val->intval);
+			break;
 
-	default:
-		ret = -EINVAL;
+		default:
+			ret = -EINVAL;
 	}
 
 	return ret;
@@ -286,7 +341,9 @@ static void ds278x_bat_update(struct ds278x_info *info)
 	ds278x_get_status(info, &info->status);
 
 	if ((old_status != info->status) || (old_capacity != info->capacity))
+	{
 		power_supply_changed(info->battery);
+	}
 }
 
 static void ds278x_bat_work(struct work_struct *work)
@@ -299,7 +356,8 @@ static void ds278x_bat_work(struct work_struct *work)
 	schedule_delayed_work(&info->bat_work, DS278x_DELAY);
 }
 
-static enum power_supply_property ds278x_battery_props[] = {
+static enum power_supply_property ds278x_battery_props[] =
+{
 	POWER_SUPPLY_PROP_STATUS,
 	POWER_SUPPLY_PROP_CAPACITY,
 	POWER_SUPPLY_PROP_VOLTAGE_NOW,
@@ -356,12 +414,14 @@ static int ds278x_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(ds278x_battery_pm_ops, ds278x_suspend, ds278x_resume);
 
-enum ds278x_num_id {
+enum ds278x_num_id
+{
 	DS2782 = 0,
 	DS2786,
 };
 
-static const struct ds278x_battery_ops ds278x_ops[] = {
+static const struct ds278x_battery_ops ds278x_ops[] =
+{
 	[DS2782] = {
 		.get_battery_current  = ds2782_get_current,
 		.get_battery_voltage  = ds2782_get_voltage,
@@ -375,7 +435,7 @@ static const struct ds278x_battery_ops ds278x_ops[] = {
 };
 
 static int ds278x_battery_probe(struct i2c_client *client,
-				const struct i2c_device_id *id)
+								const struct i2c_device_id *id)
 {
 	struct ds278x_platform_data *pdata = client->dev.platform_data;
 	struct power_supply_config psy_cfg = {};
@@ -387,7 +447,8 @@ static int ds278x_battery_probe(struct i2c_client *client,
 	 * ds2786 should have the sense resistor value set
 	 * in the platform data
 	 */
-	if (id->driver_data == DS2786 && !pdata) {
+	if (id->driver_data == DS2786 && !pdata)
+	{
 		dev_err(&client->dev, "missing platform data for ds2786\n");
 		return -EINVAL;
 	}
@@ -396,25 +457,35 @@ static int ds278x_battery_probe(struct i2c_client *client,
 	mutex_lock(&battery_lock);
 	ret = idr_alloc(&battery_id, client, 0, 0, GFP_KERNEL);
 	mutex_unlock(&battery_lock);
+
 	if (ret < 0)
+	{
 		goto fail_id;
+	}
+
 	num = ret;
 
 	info = kzalloc(sizeof(*info), GFP_KERNEL);
-	if (!info) {
+
+	if (!info)
+	{
 		ret = -ENOMEM;
 		goto fail_info;
 	}
 
 	info->battery_desc.name = kasprintf(GFP_KERNEL, "%s-%d",
-					    client->name, num);
-	if (!info->battery_desc.name) {
+										client->name, num);
+
+	if (!info->battery_desc.name)
+	{
 		ret = -ENOMEM;
 		goto fail_name;
 	}
 
 	if (id->driver_data == DS2786)
+	{
 		info->rsns = pdata->rsns;
+	}
 
 	i2c_set_clientdata(client, info);
 	info->client = client;
@@ -429,12 +500,16 @@ static int ds278x_battery_probe(struct i2c_client *client,
 	INIT_DELAYED_WORK(&info->bat_work, ds278x_bat_work);
 
 	info->battery = power_supply_register(&client->dev,
-					      &info->battery_desc, &psy_cfg);
-	if (IS_ERR(info->battery)) {
+										  &info->battery_desc, &psy_cfg);
+
+	if (IS_ERR(info->battery))
+	{
 		dev_err(&client->dev, "failed to register battery\n");
 		ret = PTR_ERR(info->battery);
 		goto fail_register;
-	} else {
+	}
+	else
+	{
 		schedule_delayed_work(&info->bat_work, DS278x_DELAY);
 	}
 
@@ -452,14 +527,16 @@ fail_id:
 	return ret;
 }
 
-static const struct i2c_device_id ds278x_id[] = {
+static const struct i2c_device_id ds278x_id[] =
+{
 	{"ds2782", DS2782},
 	{"ds2786", DS2786},
 	{},
 };
 MODULE_DEVICE_TABLE(i2c, ds278x_id);
 
-static struct i2c_driver ds278x_battery_driver = {
+static struct i2c_driver ds278x_battery_driver =
+{
 	.driver 	= {
 		.name	= "ds2782-battery",
 		.pm	= &ds278x_battery_pm_ops,

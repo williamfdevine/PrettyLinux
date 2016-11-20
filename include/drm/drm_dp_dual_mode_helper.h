@@ -58,9 +58,9 @@
 struct i2c_adapter;
 
 ssize_t drm_dp_dual_mode_read(struct i2c_adapter *adapter,
-			      u8 offset, void *buffer, size_t size);
+							  u8 offset, void *buffer, size_t size);
 ssize_t drm_dp_dual_mode_write(struct i2c_adapter *adapter,
-			       u8 offset, const void *buffer, size_t size);
+							   u8 offset, const void *buffer, size_t size);
 
 /**
  * enum drm_dp_dual_mode_type - Type of the DP dual mode adaptor
@@ -71,7 +71,8 @@ ssize_t drm_dp_dual_mode_write(struct i2c_adapter *adapter,
  * @DRM_DP_DUAL_MODE_TYPE2_DVI: Type 2 DVI adaptor
  * @DRM_DP_DUAL_MODE_TYPE2_HDMI: Type 2 HDMI adaptor
  */
-enum drm_dp_dual_mode_type {
+enum drm_dp_dual_mode_type
+{
 	DRM_DP_DUAL_MODE_NONE,
 	DRM_DP_DUAL_MODE_UNKNOWN,
 	DRM_DP_DUAL_MODE_TYPE1_DVI,
@@ -82,11 +83,11 @@ enum drm_dp_dual_mode_type {
 
 enum drm_dp_dual_mode_type drm_dp_dual_mode_detect(struct i2c_adapter *adapter);
 int drm_dp_dual_mode_max_tmds_clock(enum drm_dp_dual_mode_type type,
-				    struct i2c_adapter *adapter);
+									struct i2c_adapter *adapter);
 int drm_dp_dual_mode_get_tmds_output(enum drm_dp_dual_mode_type type,
-				     struct i2c_adapter *adapter, bool *enabled);
+									 struct i2c_adapter *adapter, bool *enabled);
 int drm_dp_dual_mode_set_tmds_output(enum drm_dp_dual_mode_type type,
-				     struct i2c_adapter *adapter, bool enable);
+									 struct i2c_adapter *adapter, bool enable);
 const char *drm_dp_get_dual_mode_type_name(enum drm_dp_dual_mode_type type);
 
 #endif

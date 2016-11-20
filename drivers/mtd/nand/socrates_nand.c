@@ -28,7 +28,8 @@
 #define FPGA_NAND_ENABLE		(0x1 << 31)
 #define FPGA_NAND_DATA_SHIFT		16
 
-struct socrates_nand_host {
+struct socrates_nand_host
+{
 	struct nand_chip	nand_chip;
 	void __iomem		*io_base;
 	struct device		*dev;
@@ -41,16 +42,17 @@ struct socrates_nand_host {
  * @len:	number of bytes to write
  */
 static void socrates_nand_write_buf(struct mtd_info *mtd,
-		const uint8_t *buf, int len)
+									const uint8_t *buf, int len)
 {
 	int i;
 	struct nand_chip *this = mtd_to_nand(mtd);
 	struct socrates_nand_host *host = nand_get_controller_data(this);
 
-	for (i = 0; i < len; i++) {
+	for (i = 0; i < len; i++)
+	{
 		out_be32(host->io_base, FPGA_NAND_ENABLE |
-				FPGA_NAND_CMD_WRITE |
-				(buf[i] << FPGA_NAND_DATA_SHIFT));
+				 FPGA_NAND_CMD_WRITE |
+				 (buf[i] << FPGA_NAND_DATA_SHIFT));
 	}
 }
 
@@ -70,9 +72,11 @@ static void socrates_nand_read_buf(struct mtd_info *mtd, uint8_t *buf, int len)
 	val = FPGA_NAND_ENABLE | FPGA_NAND_CMD_READ;
 
 	out_be32(host->io_base, val);
-	for (i = 0; i < len; i++) {
+
+	for (i = 0; i < len; i++)
+	{
 		buf[i] = (in_be32(host->io_base) >>
-				FPGA_NAND_DATA_SHIFT) & 0xff;
+				  FPGA_NAND_DATA_SHIFT) & 0xff;
 	}
 }
 
@@ -102,22 +106,30 @@ static uint16_t socrates_nand_read_word(struct mtd_info *mtd)
  * Hardware specific access to control-lines
  */
 static void socrates_nand_cmd_ctrl(struct mtd_info *mtd, int cmd,
-		unsigned int ctrl)
+								   unsigned int ctrl)
 {
 	struct nand_chip *nand_chip = mtd_to_nand(mtd);
 	struct socrates_nand_host *host = nand_get_controller_data(nand_chip);
 	uint32_t val;
 
 	if (cmd == NAND_CMD_NONE)
+	{
 		return;
+	}
 
 	if (ctrl & NAND_CLE)
+	{
 		val = FPGA_NAND_CMD_COMMAND;
+	}
 	else
+	{
 		val = FPGA_NAND_CMD_ADDR;
+	}
 
 	if (ctrl & NAND_NCE)
+	{
 		val |= FPGA_NAND_ENABLE;
+	}
 
 	val |= (cmd & 0xff) << FPGA_NAND_DATA_SHIFT;
 
@@ -133,7 +145,10 @@ static int socrates_nand_device_ready(struct mtd_info *mtd)
 	struct socrates_nand_host *host = nand_get_controller_data(nand_chip);
 
 	if (in_be32(host->io_base) & FPGA_NAND_BUSY)
-		return 0; /* busy */
+	{
+		return 0;    /* busy */
+	}
+
 	return 1;
 }
 
@@ -149,11 +164,16 @@ static int socrates_nand_probe(struct platform_device *ofdev)
 
 	/* Allocate memory for the device structure (and zero it) */
 	host = devm_kzalloc(&ofdev->dev, sizeof(*host), GFP_KERNEL);
+
 	if (!host)
+	{
 		return -ENOMEM;
+	}
 
 	host->io_base = of_iomap(ofdev->dev.of_node, 0);
-	if (host->io_base == NULL) {
+
+	if (host->io_base == NULL)
+	{
 		dev_err(&ofdev->dev, "ioremap failed\n");
 		return -EIO;
 	}
@@ -188,20 +208,25 @@ static int socrates_nand_probe(struct platform_device *ofdev)
 	dev_set_drvdata(&ofdev->dev, host);
 
 	/* first scan to find the device and get the page size */
-	if (nand_scan_ident(mtd, 1, NULL)) {
+	if (nand_scan_ident(mtd, 1, NULL))
+	{
 		res = -ENXIO;
 		goto out;
 	}
 
 	/* second phase scan */
-	if (nand_scan_tail(mtd)) {
+	if (nand_scan_tail(mtd))
+	{
 		res = -ENXIO;
 		goto out;
 	}
 
 	res = mtd_device_register(mtd, NULL, 0);
+
 	if (!res)
+	{
 		return res;
+	}
 
 	nand_release(mtd);
 
@@ -235,7 +260,8 @@ static const struct of_device_id socrates_nand_match[] =
 
 MODULE_DEVICE_TABLE(of, socrates_nand_match);
 
-static struct platform_driver socrates_nand_driver = {
+static struct platform_driver socrates_nand_driver =
+{
 	.driver = {
 		.name = "socrates_nand",
 		.of_match_table = socrates_nand_match,

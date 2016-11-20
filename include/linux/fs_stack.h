@@ -13,13 +13,13 @@ extern void fsstack_copy_inode_size(struct inode *dst, struct inode *src);
 
 /* inlines */
 static inline void fsstack_copy_attr_atime(struct inode *dest,
-					   const struct inode *src)
+		const struct inode *src)
 {
 	dest->i_atime = src->i_atime;
 }
 
 static inline void fsstack_copy_attr_times(struct inode *dest,
-					   const struct inode *src)
+		const struct inode *src)
 {
 	dest->i_atime = src->i_atime;
 	dest->i_mtime = src->i_mtime;

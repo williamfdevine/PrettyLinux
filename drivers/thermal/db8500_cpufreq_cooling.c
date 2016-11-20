@@ -29,14 +29,16 @@ static int db8500_cpufreq_cooling_probe(struct platform_device *pdev)
 	struct thermal_cooling_device *cdev;
 
 	cdev = cpufreq_cooling_register(cpu_present_mask);
-	if (IS_ERR(cdev)) {
+
+	if (IS_ERR(cdev))
+	{
 		int ret = PTR_ERR(cdev);
 
 		if (ret != -EPROBE_DEFER)
 			dev_err(&pdev->dev,
-				"Failed to register cooling device %d\n",
-				ret);
-				
+					"Failed to register cooling device %d\n",
+					ret);
+
 		return ret;
 	}
 
@@ -68,14 +70,16 @@ static int db8500_cpufreq_cooling_resume(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id db8500_cpufreq_cooling_match[] = {
+static const struct of_device_id db8500_cpufreq_cooling_match[] =
+{
 	{ .compatible = "stericsson,db8500-cpufreq-cooling" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, db8500_cpufreq_cooling_match);
 #endif
 
-static struct platform_driver db8500_cpufreq_cooling_driver = {
+static struct platform_driver db8500_cpufreq_cooling_driver =
+{
 	.driver = {
 		.name = "db8500-cpufreq-cooling",
 		.of_match_table = of_match_ptr(db8500_cpufreq_cooling_match),

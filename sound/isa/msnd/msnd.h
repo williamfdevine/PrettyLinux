@@ -191,10 +191,10 @@
 #define DSPTOPC_BASED(w)	(((w) - DSP_BASE_ADDR) * 2)
 
 #ifdef SLOWIO
-#  undef outb
-#  undef inb
-#  define outb			outb_p
-#  define inb			inb_p
+	#undef outb
+	#undef inb
+	#define outb			outb_p
+	#define inb			inb_p
 #endif
 
 /* JobQueueStruct */
@@ -217,7 +217,8 @@
 
 #include <sound/pcm.h>
 
-struct snd_msnd {
+struct snd_msnd
+{
 	void __iomem		*mappedbase;
 	int			play_period_bytes;
 	int			playLimit;
@@ -287,11 +288,11 @@ void snd_msnd_init_queue(void *base, int start, int size);
 
 int snd_msnd_send_dsp_cmd(struct snd_msnd *chip, u8 cmd);
 int snd_msnd_send_word(struct snd_msnd *chip,
-			   unsigned char high,
-			   unsigned char mid,
-			   unsigned char low);
+					   unsigned char high,
+					   unsigned char mid,
+					   unsigned char low);
 int snd_msnd_upload_host(struct snd_msnd *chip,
-			     const u8 *bin, int len);
+						 const u8 *bin, int len);
 int snd_msnd_enable_irq(struct snd_msnd *chip);
 int snd_msnd_disable_irq(struct snd_msnd *chip);
 void snd_msnd_dsp_halt(struct snd_msnd *chip, struct file *file);

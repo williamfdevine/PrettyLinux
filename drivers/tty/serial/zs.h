@@ -18,7 +18,8 @@
 /*
  * This is our internal structure for each serial port's state.
  */
-struct zs_port {
+struct zs_port
+{
 	struct zs_scc	*scc;			/* Containing SCC.  */
 	struct uart_port port;			/* Underlying UART.  */
 
@@ -36,7 +37,8 @@ struct zs_port {
 /*
  * Per-SCC state for locking and the interrupt handler.
  */
-struct zs_scc {
+struct zs_scc
+{
 	struct zs_port	zport[2];
 	spinlock_t	zlock;
 	atomic_t	irq_guard;

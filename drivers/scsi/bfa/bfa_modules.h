@@ -29,7 +29,8 @@
 #include "bfa_fcpim.h"
 #include "bfa_port.h"
 
-struct bfa_modules_s {
+struct bfa_modules_s
+{
 	struct bfa_fcdiag_s	fcdiag;		/* fcdiag module */
 	struct bfa_fcport_s	fcport;		/*  fc port module	      */
 	struct bfa_fcxp_mod_s	fcxp_mod;	/*  fcxp module	      */
@@ -53,7 +54,8 @@ struct bfa_modules_s {
  * !!! Only append to the enums defined here to avoid any versioning
  * !!! needed between trace utility and driver version
  */
-enum {
+enum
+{
 	BFA_TRC_HAL_CORE	= 1,
 	BFA_TRC_HAL_FCXP	= 2,
 	BFA_TRC_HAL_FCPIM	= 3,
@@ -70,13 +72,13 @@ enum {
 			struct bfa_meminfo_s *meminfo,			\
 			struct bfa_s *bfa);				\
 	static void bfa_ ## __mod ## _attach(struct bfa_s *bfa,		\
-			void *bfad, struct bfa_iocfc_cfg_s *cfg,	\
-			struct bfa_pcidev_s *pcidev);      \
+										 void *bfad, struct bfa_iocfc_cfg_s *cfg,	\
+										 struct bfa_pcidev_s *pcidev);      \
 	static void bfa_ ## __mod ## _detach(struct bfa_s *bfa);      \
 	static void bfa_ ## __mod ## _start(struct bfa_s *bfa);      \
 	static void bfa_ ## __mod ## _stop(struct bfa_s *bfa);      \
 	static void bfa_ ## __mod ## _iocdisable(struct bfa_s *bfa);      \
-									\
+	\
 	extern struct bfa_module_s hal_mod_ ## __mod;			\
 	struct bfa_module_s hal_mod_ ## __mod = {			\
 		bfa_ ## __mod ## _meminfo,				\
@@ -95,13 +97,14 @@ enum {
  * Each sub module needs to implement only the entry points relevant to it (and
  * can leave entry points as NULL)
  */
-struct bfa_module_s {
+struct bfa_module_s
+{
 	void (*meminfo) (struct bfa_iocfc_cfg_s *cfg,
-			 struct bfa_meminfo_s *meminfo,
-			 struct bfa_s *bfa);
+					 struct bfa_meminfo_s *meminfo,
+					 struct bfa_s *bfa);
 	void (*attach) (struct bfa_s *bfa, void *bfad,
-			struct bfa_iocfc_cfg_s *cfg,
-			struct bfa_pcidev_s *pcidev);
+					struct bfa_iocfc_cfg_s *cfg,
+					struct bfa_pcidev_s *pcidev);
 	void (*detach) (struct bfa_s *bfa);
 	void (*start) (struct bfa_s *bfa);
 	void (*stop) (struct bfa_s *bfa);
@@ -109,7 +112,8 @@ struct bfa_module_s {
 };
 
 
-struct bfa_s {
+struct bfa_s
+{
 	void			*bfad;		/*  BFA driver instance    */
 	struct bfa_plog_s	*plog;		/*  portlog buffer	    */
 	struct bfa_trc_mod_s	*trcmod;	/*  driver tracing	    */

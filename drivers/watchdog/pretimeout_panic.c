@@ -25,7 +25,8 @@ static void pretimeout_panic(struct watchdog_device *wdd)
 	panic("watchdog pretimeout event\n");
 }
 
-static struct watchdog_governor watchdog_gov_panic = {
+static struct watchdog_governor watchdog_gov_panic =
+{
 	.name		= "panic",
 	.pretimeout	= pretimeout_panic,
 };

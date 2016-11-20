@@ -47,31 +47,38 @@ int ide_check_atapi_device(ide_drive_t *drive, const char *s)
 	packet_size =  gcw[0] & 0x03;
 
 #ifdef CONFIG_PPC
+
 	/* kludge for Apple PowerBook internal zip */
 	if (drive->media == ide_floppy && device_type == 5 &&
-	    !strstr((char *)&id[ATA_ID_PROD], "CD-ROM") &&
-	    strstr((char *)&id[ATA_ID_PROD], "ZIP"))
+		!strstr((char *)&id[ATA_ID_PROD], "CD-ROM") &&
+		strstr((char *)&id[ATA_ID_PROD], "ZIP"))
+	{
 		device_type = 0;
+	}
+
 #endif
 
 	if (protocol != 2)
 		printk(KERN_ERR "%s: %s: protocol (0x%02x) is not ATAPI\n",
-			s, drive->name, protocol);
+			   s, drive->name, protocol);
 	else if ((drive->media == ide_floppy && device_type != 0) ||
-		 (drive->media == ide_tape && device_type != 1))
+			 (drive->media == ide_tape && device_type != 1))
 		printk(KERN_ERR "%s: %s: invalid device type (0x%02x)\n",
-			s, drive->name, device_type);
+			   s, drive->name, device_type);
 	else if (removable == 0)
 		printk(KERN_ERR "%s: %s: the removable flag is not set\n",
-			s, drive->name);
+			   s, drive->name);
 	else if (drive->media == ide_floppy && drq_type == 3)
 		printk(KERN_ERR "%s: %s: sorry, DRQ type (0x%02x) not "
-			"supported\n", s, drive->name, drq_type);
+			   "supported\n", s, drive->name, drq_type);
 	else if (packet_size != 0)
 		printk(KERN_ERR "%s: %s: packet size (0x%02x) is not 12 "
-			"bytes\n", s, drive->name, packet_size);
+			   "bytes\n", s, drive->name, packet_size);
 	else
+	{
 		return 1;
+	}
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(ide_check_atapi_device);
@@ -87,7 +94,7 @@ EXPORT_SYMBOL_GPL(ide_init_pc);
  * and wait for it to be serviced.
  */
 int ide_queue_pc_tail(ide_drive_t *drive, struct gendisk *disk,
-		      struct ide_atapi_pc *pc, void *buf, unsigned int bufflen)
+					  struct ide_atapi_pc *pc, void *buf, unsigned int bufflen)
 {
 	struct request *rq;
 	int error;
@@ -96,16 +103,24 @@ int ide_queue_pc_tail(ide_drive_t *drive, struct gendisk *disk,
 	rq->cmd_type = REQ_TYPE_DRV_PRIV;
 	rq->special = (char *)pc;
 
-	if (buf && bufflen) {
+	if (buf && bufflen)
+	{
 		error = blk_rq_map_kern(drive->queue, rq, buf, bufflen,
-					GFP_NOIO);
+								GFP_NOIO);
+
 		if (error)
+		{
 			goto put_req;
+		}
 	}
 
 	memcpy(rq->cmd, pc->c, 12);
+
 	if (drive->media == ide_tape)
+	{
 		rq->cmd[13] = REQ_IDETAPE_PC1;
+	}
+
 	error = blk_execute_rq(drive->queue, disk, rq, 0);
 put_req:
 	blk_put_request(rq);
@@ -133,7 +148,9 @@ int ide_do_start_stop(ide_drive_t *drive, struct gendisk *disk, int start)
 	pc.c[4] = start;
 
 	if (drive->media == ide_tape)
+	{
 		pc.flags |= PC_FLAG_WAIT_FOR_DSC;
+	}
 
 	return ide_queue_pc_tail(drive, disk, &pc, NULL, 0);
 }
@@ -144,7 +161,9 @@ int ide_set_media_lock(ide_drive_t *drive, struct gendisk *disk, int on)
 	struct ide_atapi_pc pc;
 
 	if ((drive->dev_flags & IDE_DFLAG_DOORLOCKING) == 0)
+	{
 		return 0;
+	}
 
 	ide_init_pc(&pc);
 	pc.c[0] = ALLOW_MEDIUM_REMOVAL;
@@ -158,10 +177,14 @@ void ide_create_request_sense_cmd(ide_drive_t *drive, struct ide_atapi_pc *pc)
 {
 	ide_init_pc(pc);
 	pc->c[0] = REQUEST_SENSE;
-	if (drive->media == ide_floppy) {
+
+	if (drive->media == ide_floppy)
+	{
 		pc->c[4] = 255;
 		pc->req_xfer = 18;
-	} else {
+	}
+	else
+	{
 		pc->c[4] = 20;
 		pc->req_xfer = 20;
 	}
@@ -175,35 +198,43 @@ void ide_prep_sense(ide_drive_t *drive, struct request *rq)
 	unsigned int cmd_len, sense_len;
 	int err;
 
-	switch (drive->media) {
-	case ide_floppy:
-		cmd_len = 255;
-		sense_len = 18;
-		break;
-	case ide_tape:
-		cmd_len = 20;
-		sense_len = 20;
-		break;
-	default:
-		cmd_len = 18;
-		sense_len = 18;
+	switch (drive->media)
+	{
+		case ide_floppy:
+			cmd_len = 255;
+			sense_len = 18;
+			break;
+
+		case ide_tape:
+			cmd_len = 20;
+			sense_len = 20;
+			break;
+
+		default:
+			cmd_len = 18;
+			sense_len = 18;
 	}
 
 	BUG_ON(sense_len > sizeof(*sense));
 
 	if (rq->cmd_type == REQ_TYPE_ATA_SENSE || drive->sense_rq_armed)
+	{
 		return;
+	}
 
 	memset(sense, 0, sizeof(*sense));
 
 	blk_rq_init(rq->q, sense_rq);
 
 	err = blk_rq_map_kern(drive->queue, sense_rq, sense, sense_len,
-			      GFP_NOIO);
-	if (unlikely(err)) {
+						  GFP_NOIO);
+
+	if (unlikely(err))
+	{
 		if (printk_ratelimit())
 			printk(KERN_WARNING PFX "%s: failed to map sense "
-					    "buffer\n", drive->name);
+				   "buffer\n", drive->name);
+
 		return;
 	}
 
@@ -214,7 +245,9 @@ void ide_prep_sense(ide_drive_t *drive, struct request *rq)
 	sense_rq->cmd_flags |= REQ_PREEMPT;
 
 	if (drive->media == ide_tape)
+	{
 		sense_rq->cmd[13] = REQ_IDETAPE_PC1;
+	}
 
 	drive->sense_rq_armed = true;
 }
@@ -223,9 +256,10 @@ EXPORT_SYMBOL_GPL(ide_prep_sense);
 int ide_queue_sense_rq(ide_drive_t *drive, void *special)
 {
 	/* deferred failure from ide_prep_sense() */
-	if (!drive->sense_rq_armed) {
+	if (!drive->sense_rq_armed)
+	{
 		printk(KERN_WARNING PFX "%s: error queuing a sense request\n",
-		       drive->name);
+			   drive->name);
 		return -ENOMEM;
 	}
 
@@ -257,7 +291,9 @@ void ide_retry_pc(ide_drive_t *drive)
 	memcpy(pc->c, sense_rq->cmd, 12);
 
 	if (drive->media == ide_tape)
+	{
 		drive->atapi_flags |= IDE_AFLAG_IGNORE_DSC;
+	}
 
 	/*
 	 * Push back the failed request and put request sense on top
@@ -266,7 +302,9 @@ void ide_retry_pc(ide_drive_t *drive)
 	 */
 	drive->hwif->rq = NULL;
 	ide_requeue_and_plug(drive, failed_rq);
-	if (ide_queue_sense_rq(drive, pc)) {
+
+	if (ide_queue_sense_rq(drive, pc))
+	{
 		blk_start_request(failed_rq);
 		ide_complete_rq(drive, -EIO, blk_rq_bytes(failed_rq));
 	}
@@ -286,36 +324,43 @@ int ide_cd_expiry(ide_drive_t *drive)
 	 * commands/drives support that. Let ide_timer_expiry keep polling us
 	 * for these.
 	 */
-	switch (rq->cmd[0]) {
-	case GPCMD_BLANK:
-	case GPCMD_FORMAT_UNIT:
-	case GPCMD_RESERVE_RZONE_TRACK:
-	case GPCMD_CLOSE_TRACK:
-	case GPCMD_FLUSH_CACHE:
-		wait = ATAPI_WAIT_PC;
-		break;
-	default:
-		if (!(rq->cmd_flags & REQ_QUIET))
-			printk(KERN_INFO PFX "cmd 0x%x timed out\n",
-					 rq->cmd[0]);
-		wait = 0;
-		break;
+	switch (rq->cmd[0])
+	{
+		case GPCMD_BLANK:
+		case GPCMD_FORMAT_UNIT:
+		case GPCMD_RESERVE_RZONE_TRACK:
+		case GPCMD_CLOSE_TRACK:
+		case GPCMD_FLUSH_CACHE:
+			wait = ATAPI_WAIT_PC;
+			break;
+
+		default:
+			if (!(rq->cmd_flags & REQ_QUIET))
+				printk(KERN_INFO PFX "cmd 0x%x timed out\n",
+					   rq->cmd[0]);
+
+			wait = 0;
+			break;
 	}
+
 	return wait;
 }
 EXPORT_SYMBOL_GPL(ide_cd_expiry);
 
 int ide_cd_get_xferlen(struct request *rq)
 {
-	switch (rq->cmd_type) {
-	case REQ_TYPE_FS:
-		return 32768;
-	case REQ_TYPE_ATA_SENSE:
-	case REQ_TYPE_BLOCK_PC:
-	case REQ_TYPE_ATA_PC:
-		return blk_rq_bytes(rq);
-	default:
-		return 0;
+	switch (rq->cmd_type)
+	{
+		case REQ_TYPE_FS:
+			return 32768;
+
+		case REQ_TYPE_ATA_SENSE:
+		case REQ_TYPE_BLOCK_PC:
+		case REQ_TYPE_ATA_PC:
+			return blk_rq_bytes(rq);
+
+		default:
+			return 0;
 	}
 }
 EXPORT_SYMBOL_GPL(ide_cd_get_xferlen);
@@ -325,7 +370,7 @@ void ide_read_bcount_and_ireason(ide_drive_t *drive, u16 *bcount, u8 *ireason)
 	struct ide_taskfile tf;
 
 	drive->hwif->tp_ops->tf_read(drive, &tf, IDE_VALID_NSECT |
-				     IDE_VALID_LBAM | IDE_VALID_LBAH);
+								 IDE_VALID_LBAM | IDE_VALID_LBAH);
 
 	*bcount = (tf.lbah << 8) | tf.lbam;
 	*ireason = tf.nsect & 3;
@@ -341,22 +386,30 @@ EXPORT_SYMBOL_GPL(ide_read_bcount_and_ireason);
  * - 1 if the request has to be terminated.
  */
 int ide_check_ireason(ide_drive_t *drive, struct request *rq, int len,
-		      int ireason, int rw)
+					  int ireason, int rw)
 {
 	ide_hwif_t *hwif = drive->hwif;
 
 	debug_log("ireason: 0x%x, rw: 0x%x\n", ireason, rw);
 
 	if (ireason == (!rw << 1))
+	{
 		return 0;
-	else if (ireason == (rw << 1)) {
+	}
+	else if (ireason == (rw << 1))
+	{
 		printk(KERN_ERR PFX "%s: %s: wrong transfer direction!\n",
-				drive->name, __func__);
+			   drive->name, __func__);
 
 		if (dev_is_idecd(drive))
+		{
 			ide_pad_transfer(drive, rw, len);
-	} else if (!rw && ireason == ATAPI_COD) {
-		if (dev_is_idecd(drive)) {
+		}
+	}
+	else if (!rw && ireason == ATAPI_COD)
+	{
+		if (dev_is_idecd(drive))
+		{
 			/*
 			 * Some drives (ASUS) seem to tell us that status info
 			 * is available.  Just get it and ignore.
@@ -364,18 +417,22 @@ int ide_check_ireason(ide_drive_t *drive, struct request *rq, int len,
 			(void)hwif->tp_ops->read_status(hwif);
 			return 0;
 		}
-	} else {
+	}
+	else
+	{
 		if (ireason & ATAPI_COD)
 			printk(KERN_ERR PFX "%s: CoD != 0 in %s\n", drive->name,
-					__func__);
+				   __func__);
 
 		/* drive wants a command packet, or invalid ireason... */
 		printk(KERN_ERR PFX "%s: %s: bad interrupt reason 0x%02x\n",
-				drive->name, __func__, ireason);
+			   drive->name, __func__, ireason);
 	}
 
 	if (dev_is_idecd(drive) && rq->cmd_type == REQ_TYPE_ATA_PC)
+	{
 		rq->cmd_flags |= REQ_FAILED;
+	}
 
 	return 1;
 }
@@ -401,54 +458,68 @@ static ide_startstop_t ide_pc_intr(ide_drive_t *drive)
 	debug_log("Enter %s - interrupt handler\n", __func__);
 
 	timeout = (drive->media == ide_floppy) ? WAIT_FLOPPY_CMD
-					       : WAIT_TAPE_CMD;
+			  : WAIT_TAPE_CMD;
 
 	/* Clear the interrupt */
 	stat = tp_ops->read_status(hwif);
 
-	if (pc->flags & PC_FLAG_DMA_IN_PROGRESS) {
+	if (pc->flags & PC_FLAG_DMA_IN_PROGRESS)
+	{
 		int rc;
 
 		drive->waiting_for_dma = 0;
 		rc = hwif->dma_ops->dma_end(drive);
 		ide_dma_unmap_sg(drive, cmd);
 
-		if (rc || (drive->media == ide_tape && (stat & ATA_ERR))) {
+		if (rc || (drive->media == ide_tape && (stat & ATA_ERR)))
+		{
 			if (drive->media == ide_floppy)
 				printk(KERN_ERR PFX "%s: DMA %s error\n",
-					drive->name, rq_data_dir(pc->rq)
-						     ? "write" : "read");
+					   drive->name, rq_data_dir(pc->rq)
+					   ? "write" : "read");
+
 			pc->flags |= PC_FLAG_DMA_ERROR;
-		} else
+		}
+		else
+		{
 			rq->resid_len = 0;
+		}
+
 		debug_log("%s: DMA finished\n", drive->name);
 	}
 
 	/* No more interrupts */
-	if ((stat & ATA_DRQ) == 0) {
+	if ((stat & ATA_DRQ) == 0)
+	{
 		int uptodate, error;
 
 		debug_log("Packet command completed, %d bytes transferred\n",
-			  blk_rq_bytes(rq));
+				  blk_rq_bytes(rq));
 
 		pc->flags &= ~PC_FLAG_DMA_IN_PROGRESS;
 
 		local_irq_enable_in_hardirq();
 
 		if (drive->media == ide_tape &&
-		    (stat & ATA_ERR) && rq->cmd[0] == REQUEST_SENSE)
+			(stat & ATA_ERR) && rq->cmd[0] == REQUEST_SENSE)
+		{
 			stat &= ~ATA_ERR;
+		}
 
-		if ((stat & ATA_ERR) || (pc->flags & PC_FLAG_DMA_ERROR)) {
+		if ((stat & ATA_ERR) || (pc->flags & PC_FLAG_DMA_ERROR))
+		{
 			/* Error detected */
 			debug_log("%s: I/O error\n", drive->name);
 
 			if (drive->media != ide_tape)
+			{
 				pc->rq->errors++;
+			}
 
-			if (rq->cmd[0] == REQUEST_SENSE) {
+			if (rq->cmd[0] == REQUEST_SENSE)
+			{
 				printk(KERN_ERR PFX "%s: I/O error in request "
-						"sense command\n", drive->name);
+					   "sense command\n", drive->name);
 				return ide_do_reset(drive);
 			}
 
@@ -460,10 +531,13 @@ static ide_startstop_t ide_pc_intr(ide_drive_t *drive)
 			/* queued, but not started */
 			return ide_stopped;
 		}
+
 		pc->error = 0;
 
 		if ((pc->flags & PC_FLAG_WAIT_FOR_DSC) && (stat & ATA_DSC) == 0)
+		{
 			dsc = 1;
+		}
 
 		/*
 		 * ->pc_callback() might change rq->data_len for
@@ -475,16 +549,24 @@ static ide_startstop_t ide_pc_intr(ide_drive_t *drive)
 		uptodate = drive->pc_callback(drive, dsc);
 
 		if (uptodate == 0)
+		{
 			drive->failed_pc = NULL;
+		}
 
-		if (rq->cmd_type == REQ_TYPE_DRV_PRIV) {
+		if (rq->cmd_type == REQ_TYPE_DRV_PRIV)
+		{
 			rq->errors = 0;
 			error = 0;
-		} else {
+		}
+		else
+		{
 
-			if (rq->cmd_type != REQ_TYPE_FS && uptodate <= 0) {
+			if (rq->cmd_type != REQ_TYPE_FS && uptodate <= 0)
+			{
 				if (rq->errors == 0)
+				{
 					rq->errors = -EIO;
+				}
 			}
 
 			error = uptodate ? 0 : -EIO;
@@ -494,10 +576,11 @@ static ide_startstop_t ide_pc_intr(ide_drive_t *drive)
 		return ide_stopped;
 	}
 
-	if (pc->flags & PC_FLAG_DMA_IN_PROGRESS) {
+	if (pc->flags & PC_FLAG_DMA_IN_PROGRESS)
+	{
 		pc->flags &= ~PC_FLAG_DMA_IN_PROGRESS;
 		printk(KERN_ERR PFX "%s: The device wants to issue more "
-				"interrupts in DMA mode\n", drive->name);
+			   "interrupts in DMA mode\n", drive->name);
 		ide_dma_off(drive);
 		return ide_do_reset(drive);
 	}
@@ -506,7 +589,9 @@ static ide_startstop_t ide_pc_intr(ide_drive_t *drive)
 	ide_read_bcount_and_ireason(drive, &bcount, &ireason);
 
 	if (ide_check_ireason(drive, rq, bcount, ireason, write))
+	{
 		return ide_do_reset(drive);
+	}
 
 	done = min_t(unsigned int, bcount, cmd->nleft);
 	ide_pio_bytes(drive, cmd, write, done);
@@ -517,10 +602,12 @@ static ide_startstop_t ide_pc_intr(ide_drive_t *drive)
 	bcount -= done;
 
 	if (bcount)
+	{
 		ide_pad_transfer(drive, write, bcount);
+	}
 
 	debug_log("[cmd %x] transferred %d bytes, padded %d bytes, resid: %u\n",
-		  rq->cmd[0], done, bcount, rq->resid_len);
+			  rq->cmd[0], done, bcount, rq->resid_len);
 
 	/* And set the interrupt handler again */
 	ide_set_handler(drive, ide_pc_intr, timeout);
@@ -528,11 +615,11 @@ static ide_startstop_t ide_pc_intr(ide_drive_t *drive)
 }
 
 static void ide_init_packet_cmd(struct ide_cmd *cmd, u8 valid_tf,
-				u16 bcount, u8 dma)
+								u16 bcount, u8 dma)
 {
 	cmd->protocol = dma ? ATAPI_PROT_DMA : ATAPI_PROT_PIO;
 	cmd->valid.out.tf = IDE_VALID_LBAH | IDE_VALID_LBAM |
-			    IDE_VALID_FEATURE | valid_tf;
+						IDE_VALID_FEATURE | valid_tf;
 	cmd->tf.command = ATA_CMD_PACKET;
 	cmd->tf.feature = dma;		/* Use PIO/DMA */
 	cmd->tf.lbam    = bcount & 0xff;
@@ -553,15 +640,18 @@ static u8 ide_wait_ireason(ide_drive_t *drive, u8 ireason)
 	int retries = 100;
 
 	while (retries-- && ((ireason & ATAPI_COD) == 0 ||
-		(ireason & ATAPI_IO))) {
+						 (ireason & ATAPI_IO)))
+	{
 		printk(KERN_ERR PFX "%s: (IO,CoD != (0,1) while issuing "
-				"a packet command, retrying\n", drive->name);
+			   "a packet command, retrying\n", drive->name);
 		udelay(100);
 		ireason = ide_read_ireason(drive);
-		if (retries == 0) {
+
+		if (retries == 0)
+		{
 			printk(KERN_ERR PFX "%s: (IO,CoD != (0,1) while issuing"
-					" a packet command, ignoring\n",
-					drive->name);
+				   " a packet command, ignoring\n",
+				   drive->name);
 			ireason |= ATAPI_COD;
 			ireason &= ~ATAPI_IO;
 		}
@@ -590,26 +680,36 @@ static ide_startstop_t ide_transfer_pc(ide_drive_t *drive)
 	ide_startstop_t startstop;
 	u8 ireason;
 
-	if (ide_wait_stat(&startstop, drive, ATA_DRQ, ATA_BUSY, WAIT_READY)) {
+	if (ide_wait_stat(&startstop, drive, ATA_DRQ, ATA_BUSY, WAIT_READY))
+	{
 		printk(KERN_ERR PFX "%s: Strange, packet command initiated yet "
-				"DRQ isn't asserted\n", drive->name);
+			   "DRQ isn't asserted\n", drive->name);
 		return startstop;
 	}
 
-	if (drive->atapi_flags & IDE_AFLAG_DRQ_INTERRUPT) {
+	if (drive->atapi_flags & IDE_AFLAG_DRQ_INTERRUPT)
+	{
 		if (drive->dma)
+		{
 			drive->waiting_for_dma = 1;
+		}
 	}
 
-	if (dev_is_idecd(drive)) {
+	if (dev_is_idecd(drive))
+	{
 		/* ATAPI commands get padded out to 12 bytes minimum */
 		cmd_len = COMMAND_SIZE(rq->cmd[0]);
+
 		if (cmd_len < ATAPI_MIN_CDB_BYTES)
+		{
 			cmd_len = ATAPI_MIN_CDB_BYTES;
+		}
 
 		timeout = rq->timeout;
 		expiry  = ide_cd_expiry;
-	} else {
+	}
+	else
+	{
 		pc = drive->pc;
 
 		cmd_len = ATAPI_MIN_CDB_BYTES;
@@ -619,22 +719,29 @@ static ide_startstop_t ide_transfer_pc(ide_drive_t *drive)
 		 * milliseconds later in ide_delayed_transfer_pc() after the
 		 * device says it's ready for a packet.
 		 */
-		if (drive->atapi_flags & IDE_AFLAG_ZIP_DRIVE) {
+		if (drive->atapi_flags & IDE_AFLAG_ZIP_DRIVE)
+		{
 			timeout = drive->pc_delay;
 			expiry = &ide_delayed_transfer_pc;
-		} else {
+		}
+		else
+		{
 			timeout = (drive->media == ide_floppy) ? WAIT_FLOPPY_CMD
-							       : WAIT_TAPE_CMD;
+					  : WAIT_TAPE_CMD;
 			expiry = NULL;
 		}
 
 		ireason = ide_read_ireason(drive);
-		if (drive->media == ide_tape)
-			ireason = ide_wait_ireason(drive, ireason);
 
-		if ((ireason & ATAPI_COD) == 0 || (ireason & ATAPI_IO)) {
+		if (drive->media == ide_tape)
+		{
+			ireason = ide_wait_ireason(drive, ireason);
+		}
+
+		if ((ireason & ATAPI_COD) == 0 || (ireason & ATAPI_IO))
+		{
 			printk(KERN_ERR PFX "%s: (IO,CoD) != (0,1) while "
-				"issuing a packet command\n", drive->name);
+				   "issuing a packet command\n", drive->name);
 
 			return ide_do_reset(drive);
 		}
@@ -644,20 +751,28 @@ static ide_startstop_t ide_transfer_pc(ide_drive_t *drive)
 
 	/* Set the interrupt routine */
 	ide_set_handler(drive,
-			(dev_is_idecd(drive) ? drive->irq_handler
-					     : ide_pc_intr),
-			timeout);
+					(dev_is_idecd(drive) ? drive->irq_handler
+					 : ide_pc_intr),
+					timeout);
 
 	/* Send the actual packet */
 	if ((drive->atapi_flags & IDE_AFLAG_ZIP_DRIVE) == 0)
+	{
 		hwif->tp_ops->output_data(drive, NULL, rq->cmd, cmd_len);
+	}
 
 	/* Begin DMA, if necessary */
-	if (dev_is_idecd(drive)) {
+	if (dev_is_idecd(drive))
+	{
 		if (drive->dma)
+		{
 			hwif->dma_ops->dma_start(drive);
-	} else {
-		if (pc->flags & PC_FLAG_DMA_OK) {
+		}
+	}
+	else
+	{
+		if (pc->flags & PC_FLAG_DMA_OK)
+		{
 			pc->flags |= PC_FLAG_DMA_IN_PROGRESS;
 			hwif->dma_ops->dma_start(drive);
 		}
@@ -677,48 +792,62 @@ ide_startstop_t ide_issue_pc(ide_drive_t *drive, struct ide_cmd *cmd)
 	u8 valid_tf;
 	u8 drq_int = !!(drive->atapi_flags & IDE_AFLAG_DRQ_INTERRUPT);
 
-	if (dev_is_idecd(drive)) {
+	if (dev_is_idecd(drive))
+	{
 		valid_tf = IDE_VALID_NSECT | IDE_VALID_LBAL;
 		bcount = ide_cd_get_xferlen(rq);
 		expiry = ide_cd_expiry;
 		timeout = ATAPI_WAIT_PC;
 
 		if (drive->dma)
+		{
 			drive->dma = !ide_dma_prepare(drive, cmd);
-	} else {
+		}
+	}
+	else
+	{
 		pc = drive->pc;
 
 		valid_tf = IDE_VALID_DEVICE;
 		bytes = blk_rq_bytes(rq);
 		bcount = ((drive->media == ide_tape) ? bytes
-						     : min_t(unsigned int,
-							     bytes, 63 * 1024));
+				  : min_t(unsigned int,
+						  bytes, 63 * 1024));
 
 		/* We haven't transferred any data yet */
 		rq->resid_len = bcount;
 
-		if (pc->flags & PC_FLAG_DMA_ERROR) {
+		if (pc->flags & PC_FLAG_DMA_ERROR)
+		{
 			pc->flags &= ~PC_FLAG_DMA_ERROR;
 			ide_dma_off(drive);
 		}
 
 		if (pc->flags & PC_FLAG_DMA_OK)
+		{
 			drive->dma = !ide_dma_prepare(drive, cmd);
+		}
 
 		if (!drive->dma)
+		{
 			pc->flags &= ~PC_FLAG_DMA_OK;
+		}
 
 		timeout = (drive->media == ide_floppy) ? WAIT_FLOPPY_CMD
-						       : WAIT_TAPE_CMD;
+				  : WAIT_TAPE_CMD;
 	}
 
 	ide_init_packet_cmd(cmd, valid_tf, bcount, drive->dma);
 
 	(void)do_rw_taskfile(drive, cmd);
 
-	if (drq_int) {
+	if (drq_int)
+	{
 		if (drive->dma)
+		{
 			drive->waiting_for_dma = 0;
+		}
+
 		hwif->expiry = expiry;
 	}
 

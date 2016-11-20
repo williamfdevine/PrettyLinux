@@ -42,7 +42,8 @@
  *
  * Buffer objects are often abbreviated to BO.
  */
-struct drm_gem_object {
+struct drm_gem_object
+{
 	/**
 	 * @refcount:
 	 *
@@ -177,13 +178,13 @@ struct drm_gem_object {
 void drm_gem_object_release(struct drm_gem_object *obj);
 void drm_gem_object_free(struct kref *kref);
 int drm_gem_object_init(struct drm_device *dev,
-			struct drm_gem_object *obj, size_t size);
+						struct drm_gem_object *obj, size_t size);
 void drm_gem_private_object_init(struct drm_device *dev,
-				 struct drm_gem_object *obj, size_t size);
+								 struct drm_gem_object *obj, size_t size);
 void drm_gem_vm_open(struct vm_area_struct *vma);
 void drm_gem_vm_close(struct vm_area_struct *vma);
 int drm_gem_mmap_obj(struct drm_gem_object *obj, unsigned long obj_size,
-		     struct vm_area_struct *vma);
+					 struct vm_area_struct *vma);
 int drm_gem_mmap(struct file *filp, struct vm_area_struct *vma);
 
 /**
@@ -225,8 +226,8 @@ void drm_gem_object_unreference_unlocked(struct drm_gem_object *obj);
 void drm_gem_object_unreference(struct drm_gem_object *obj);
 
 int drm_gem_handle_create(struct drm_file *file_priv,
-			  struct drm_gem_object *obj,
-			  u32 *handlep);
+						  struct drm_gem_object *obj,
+						  u32 *handlep);
 int drm_gem_handle_delete(struct drm_file *filp, u32 handle);
 
 
@@ -236,11 +237,11 @@ int drm_gem_create_mmap_offset_size(struct drm_gem_object *obj, size_t size);
 
 struct page **drm_gem_get_pages(struct drm_gem_object *obj);
 void drm_gem_put_pages(struct drm_gem_object *obj, struct page **pages,
-		bool dirty, bool accessed);
+					   bool dirty, bool accessed);
 
 struct drm_gem_object *drm_gem_object_lookup(struct drm_file *filp, u32 handle);
 int drm_gem_dumb_destroy(struct drm_file *file,
-			 struct drm_device *dev,
-			 uint32_t handle);
+						 struct drm_device *dev,
+						 uint32_t handle);
 
 #endif /* __DRM_GEM_H__ */

@@ -9,15 +9,15 @@
 
 #ifndef container_of
 #define container_of(ptr, type, member) ({			\
-	const typeof(((type *)0)->member) * __mptr = (ptr);	\
-	(type *)((char *)__mptr - offsetof(type, member)); })
+		const typeof(((type *)0)->member) * __mptr = (ptr);	\
+		(type *)((char *)__mptr - offsetof(type, member)); })
 #endif
 
 #define max(x, y) ({				\
-	typeof(x) _max1 = (x);			\
-	typeof(y) _max2 = (y);			\
-	(void) (&_max1 == &_max2);		\
-	_max1 > _max2 ? _max1 : _max2; })
+		typeof(x) _max1 = (x);			\
+		typeof(y) _max2 = (y);			\
+		(void) (&_max1 == &_max2);		\
+		_max1 > _max2 ? _max1 : _max2; })
 
 #define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
 #define WARN_ON(x) (x)
@@ -29,19 +29,19 @@
 #define noinline
 #define list_add_tail_rcu list_add_tail
 #define list_for_each_entry_rcu list_for_each_entry
-#define barrier() 
+#define barrier()
 #define synchronize_sched()
 
 #ifndef CALLER_ADDR0
-#define CALLER_ADDR0 ((unsigned long)__builtin_return_address(0))
+	#define CALLER_ADDR0 ((unsigned long)__builtin_return_address(0))
 #endif
 
 #ifndef _RET_IP_
-#define _RET_IP_ CALLER_ADDR0
+	#define _RET_IP_ CALLER_ADDR0
 #endif
 
 #ifndef _THIS_IP_
-#define _THIS_IP_ ({ __label__ __here; __here: (unsigned long)&&__here; })
+	#define _THIS_IP_ ({ __label__ __here; __here: (unsigned long)&&__here; })
 #endif
 
 #endif

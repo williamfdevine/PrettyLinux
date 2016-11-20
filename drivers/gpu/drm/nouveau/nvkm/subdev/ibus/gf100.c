@@ -67,25 +67,34 @@ gf100_ibus_intr(struct nvkm_subdev *ibus)
 	u32 gpcnr = nvkm_rd32(device, 0x121c78);
 	u32 i;
 
-	for (i = 0; (intr0 & 0x0000ff00) && i < hubnr; i++) {
+	for (i = 0; (intr0 & 0x0000ff00) && i < hubnr; i++)
+	{
 		u32 stat = 0x00000100 << i;
-		if (intr0 & stat) {
+
+		if (intr0 & stat)
+		{
 			gf100_ibus_intr_hub(ibus, i);
 			intr0 &= ~stat;
 		}
 	}
 
-	for (i = 0; (intr0 & 0xffff0000) && i < ropnr; i++) {
+	for (i = 0; (intr0 & 0xffff0000) && i < ropnr; i++)
+	{
 		u32 stat = 0x00010000 << i;
-		if (intr0 & stat) {
+
+		if (intr0 & stat)
+		{
 			gf100_ibus_intr_rop(ibus, i);
 			intr0 &= ~stat;
 		}
 	}
 
-	for (i = 0; intr1 && i < gpcnr; i++) {
+	for (i = 0; intr1 && i < gpcnr; i++)
+	{
 		u32 stat = 0x00000001 << i;
-		if (intr1 & stat) {
+
+		if (intr1 & stat)
+		{
 			gf100_ibus_intr_gpc(ibus, i);
 			intr1 &= ~stat;
 		}
@@ -105,18 +114,23 @@ gf100_ibus_init(struct nvkm_subdev *ibus)
 }
 
 static const struct nvkm_subdev_func
-gf100_ibus = {
+	gf100_ibus =
+{
 	.init = gf100_ibus_init,
 	.intr = gf100_ibus_intr,
 };
 
 int
 gf100_ibus_new(struct nvkm_device *device, int index,
-	       struct nvkm_subdev **pibus)
+			   struct nvkm_subdev **pibus)
 {
 	struct nvkm_subdev *ibus;
+
 	if (!(ibus = *pibus = kzalloc(sizeof(*ibus), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	nvkm_subdev_ctor(&gf100_ibus, device, index, ibus);
 	return 0;
 }

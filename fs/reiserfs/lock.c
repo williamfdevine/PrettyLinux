@@ -22,7 +22,8 @@ void reiserfs_write_lock(struct super_block *s)
 {
 	struct reiserfs_sb_info *sb_i = REISERFS_SB(s);
 
-	if (sb_i->lock_owner != current) {
+	if (sb_i->lock_owner != current)
+	{
 		mutex_lock(&sb_i->lock);
 		sb_i->lock_owner = current;
 	}
@@ -42,7 +43,8 @@ void reiserfs_write_unlock(struct super_block *s)
 	 */
 	BUG_ON(sb_i->lock_owner != current);
 
-	if (--sb_i->lock_depth == -1) {
+	if (--sb_i->lock_depth == -1)
+	{
 		sb_i->lock_owner = NULL;
 		mutex_unlock(&sb_i->lock);
 	}
@@ -55,7 +57,9 @@ int __must_check reiserfs_write_unlock_nested(struct super_block *s)
 
 	/* this can happen when the lock isn't always held */
 	if (sb_i->lock_owner != current)
+	{
 		return -1;
+	}
 
 	depth = sb_i->lock_depth;
 
@@ -72,7 +76,9 @@ void reiserfs_write_lock_nested(struct super_block *s, int depth)
 
 	/* this can happen when the lock isn't always held */
 	if (depth == -1)
+	{
 		return;
+	}
 
 	mutex_lock(&sb_i->lock);
 	sb_i->lock_owner = current;

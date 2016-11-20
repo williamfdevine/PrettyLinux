@@ -71,10 +71,13 @@
 #include <linux/nl80211.h>
 
 /* v1/v2 uCode file layout */
-struct iwl_ucode_header {
+struct iwl_ucode_header
+{
 	__le32 ver;	/* major/minor/API/serial */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__le32 inst_size;	/* bytes of runtime code */
 			__le32 data_size;	/* bytes of runtime data */
 			__le32 init_size;	/* bytes of init code */
@@ -82,7 +85,8 @@ struct iwl_ucode_header {
 			__le32 boot_size;	/* bytes of bootstrap code */
 			u8 data[0];		/* in same order as sizes */
 		} v1;
-		struct {
+		struct
+		{
 			__le32 build;		/* build number */
 			__le32 inst_size;	/* bytes of runtime code */
 			__le32 data_size;	/* bytes of runtime data */
@@ -101,7 +105,8 @@ struct iwl_ucode_header {
  * some piece of data.
  */
 
-enum iwl_ucode_tlv_type {
+enum iwl_ucode_tlv_type
+{
 	IWL_UCODE_TLV_INVALID		= 0, /* unused */
 	IWL_UCODE_TLV_INST		= 1,
 	IWL_UCODE_TLV_DATA		= 2,
@@ -145,7 +150,8 @@ enum iwl_ucode_tlv_type {
 	IWL_UCODE_TLV_FW_MEM_SEG	= 51,
 };
 
-struct iwl_ucode_tlv {
+struct iwl_ucode_tlv
+{
 	__le32 type;		/* see above */
 	__le32 length;		/* not including type/length fields */
 	u8 data[0];
@@ -154,7 +160,8 @@ struct iwl_ucode_tlv {
 #define IWL_TLV_UCODE_MAGIC		0x0a4c5749
 #define FW_VER_HUMAN_READABLE_SZ	64
 
-struct iwl_tlv_ucode_header {
+struct iwl_tlv_ucode_header
+{
 	/*
 	 * The TLV style ucode header is distinguished from
 	 * the v1/v2 style header by first four bytes being
@@ -182,12 +189,14 @@ struct iwl_tlv_ucode_header {
  *
  * ability to get extension for: flags & capabilities from ucode binaries files
  */
-struct iwl_ucode_api {
+struct iwl_ucode_api
+{
 	__le32 api_index;
 	__le32 api_flags;
 } __packed;
 
-struct iwl_ucode_capa {
+struct iwl_ucode_capa
+{
 	__le32 api_index;
 	__le32 api_capa;
 } __packed;
@@ -213,7 +222,8 @@ struct iwl_ucode_capa {
  * @IWL_UCODE_TLV_FLAGS_BCAST_FILTERING: uCode supports broadcast filtering.
  * @IWL_UCODE_TLV_FLAGS_EBS_SUPPORT: this uCode image supports EBS.
  */
-enum iwl_ucode_tlv_flag {
+enum iwl_ucode_tlv_flag
+{
 	IWL_UCODE_TLV_FLAGS_PAN			= BIT(0),
 	IWL_UCODE_TLV_FLAGS_NEWSCAN		= BIT(1),
 	IWL_UCODE_TLV_FLAGS_MFP			= BIT(2),
@@ -244,7 +254,8 @@ typedef unsigned int __bitwise__ iwl_ucode_tlv_api_t;
  *
  * @NUM_IWL_UCODE_TLV_API: number of bits used
  */
-enum iwl_ucode_tlv_api {
+enum iwl_ucode_tlv_api
+{
 	IWL_UCODE_TLV_API_FRAGMENTED_SCAN	= (__force iwl_ucode_tlv_api_t)8,
 	IWL_UCODE_TLV_API_WIFI_MCC_UPDATE	= (__force iwl_ucode_tlv_api_t)9,
 	IWL_UCODE_TLV_API_LQ_SS_PARAMS		= (__force iwl_ucode_tlv_api_t)18,
@@ -253,7 +264,7 @@ enum iwl_ucode_tlv_api {
 
 	NUM_IWL_UCODE_TLV_API
 #ifdef __CHECKER__
-		/* sparse says it cannot increment the previous enum member */
+	/* sparse says it cannot increment the previous enum member */
 		= 128
 #endif
 };
@@ -319,7 +330,8 @@ typedef unsigned int __bitwise__ iwl_ucode_tlv_capa_t;
  *
  * @NUM_IWL_UCODE_TLV_CAPA: number of bits used
  */
-enum iwl_ucode_tlv_capa {
+enum iwl_ucode_tlv_capa
+{
 	IWL_UCODE_TLV_CAPA_D0I3_SUPPORT			= (__force iwl_ucode_tlv_capa_t)0,
 	IWL_UCODE_TLV_CAPA_LAR_SUPPORT			= (__force iwl_ucode_tlv_capa_t)1,
 	IWL_UCODE_TLV_CAPA_UMAC_SCAN			= (__force iwl_ucode_tlv_capa_t)2,
@@ -360,7 +372,7 @@ enum iwl_ucode_tlv_capa {
 
 	NUM_IWL_UCODE_TLV_CAPA
 #ifdef __CHECKER__
-		/* sparse says it cannot increment the previous enum member */
+	/* sparse says it cannot increment the previous enum member */
 		= 128
 #endif
 };
@@ -395,12 +407,14 @@ enum iwl_ucode_tlv_capa {
  * @event_trigger: bitmap for which calibrations to perform according to
  *		event triggers.
  */
-struct iwl_tlv_calib_ctrl {
+struct iwl_tlv_calib_ctrl
+{
 	__le32 flow_trigger;
 	__le32 event_trigger;
 } __packed;
 
-enum iwl_fw_phy_cfg {
+enum iwl_fw_phy_cfg
+{
 	FW_PHY_CFG_RADIO_TYPE_POS = 0,
 	FW_PHY_CFG_RADIO_TYPE = 0x3 << FW_PHY_CFG_RADIO_TYPE_POS,
 	FW_PHY_CFG_RADIO_STEP_POS = 2,
@@ -428,7 +442,8 @@ enum iwl_fw_phy_cfg {
  * @mic_len: mic length in bytes
  * @hw_cipher: a HW cipher index used in host commands
  */
-struct iwl_fw_cipher_scheme {
+struct iwl_fw_cipher_scheme
+{
 	__le32 cipher;
 	u8 flags;
 	u8 hdr_len;
@@ -441,7 +456,8 @@ struct iwl_fw_cipher_scheme {
 	u8 hw_cipher;
 } __packed;
 
-enum iwl_fw_dbg_reg_operator {
+enum iwl_fw_dbg_reg_operator
+{
 	CSR_ASSIGN,
 	CSR_SETBIT,
 	CSR_CLEARBIT,
@@ -464,7 +480,8 @@ enum iwl_fw_dbg_reg_operator {
  * @addr: offset of the register
  * @val: value
  */
-struct iwl_fw_dbg_reg_op {
+struct iwl_fw_dbg_reg_op
+{
 	u8 op;
 	u8 reserved[3];
 	__le32 addr;
@@ -479,7 +496,8 @@ struct iwl_fw_dbg_reg_op {
  * @MARBH_MODE: monitor stores the data in MARBH buffer
  * @MIPI_MODE: monitor outputs the data through the MIPI interface
  */
-enum iwl_fw_dbg_monitor_mode {
+enum iwl_fw_dbg_monitor_mode
+{
 	SMEM_MODE = 0,
 	EXTERNAL_MODE = 1,
 	MARBH_MODE = 2,
@@ -493,7 +511,8 @@ enum iwl_fw_dbg_monitor_mode {
  * @FW_DBG_MEM_DCCM_LMAC: the data type is DCCM_LMAC
  * @FW_DBG_MEM_DCCM_UMAC: the data type is DCCM_UMAC
  */
-enum iwl_fw_dbg_mem_seg_type {
+enum iwl_fw_dbg_mem_seg_type
+{
 	FW_DBG_MEM_DCCM_LMAC = 0,
 	FW_DBG_MEM_DCCM_UMAC,
 	FW_DBG_MEM_SMEM,
@@ -511,7 +530,8 @@ enum iwl_fw_dbg_mem_seg_type {
  *
  * This parses IWL_UCODE_TLV_FW_MEM_SEG
  */
-struct iwl_fw_dbg_mem_seg_tlv {
+struct iwl_fw_dbg_mem_seg_tlv
+{
 	__le32 data_type;
 	__le32 ofs;
 	__le32 len;
@@ -533,7 +553,8 @@ struct iwl_fw_dbg_mem_seg_tlv {
  *
  * This parses IWL_UCODE_TLV_FW_DBG_DEST
  */
-struct iwl_fw_dbg_dest_tlv {
+struct iwl_fw_dbg_dest_tlv
+{
 	u8 version;
 	u8 monitor_mode;
 	u8 size_power;
@@ -547,7 +568,8 @@ struct iwl_fw_dbg_dest_tlv {
 	struct iwl_fw_dbg_reg_op reg_ops[0];
 } __packed;
 
-struct iwl_fw_dbg_conf_hcmd {
+struct iwl_fw_dbg_conf_hcmd
+{
 	u8 id;
 	u8 reserved;
 	__le16 len;
@@ -562,7 +584,8 @@ struct iwl_fw_dbg_conf_hcmd {
  * @IWL_FW_DBG_TRIGGER_MONITOR_ONLY: when trigger occurs trigger is set to
  *	collect only monitor data
  */
-enum iwl_fw_dbg_trigger_mode {
+enum iwl_fw_dbg_trigger_mode
+{
 	IWL_FW_DBG_TRIGGER_START = BIT(0),
 	IWL_FW_DBG_TRIGGER_STOP = BIT(1),
 	IWL_FW_DBG_TRIGGER_MONITOR_ONLY = BIT(2),
@@ -578,7 +601,8 @@ enum iwl_fw_dbg_trigger_mode {
  * @IWL_FW_DBG_CONF_VIF_P2P_GO: P2P GO mode
  * @IWL_FW_DBG_CONF_VIF_P2P_DEVICE: P2P device
  */
-enum iwl_fw_dbg_trigger_vif_type {
+enum iwl_fw_dbg_trigger_vif_type
+{
 	IWL_FW_DBG_CONF_VIF_ANY = NL80211_IFTYPE_UNSPECIFIED,
 	IWL_FW_DBG_CONF_VIF_IBSS = NL80211_IFTYPE_ADHOC,
 	IWL_FW_DBG_CONF_VIF_STATION = NL80211_IFTYPE_STATION,
@@ -605,7 +629,8 @@ enum iwl_fw_dbg_trigger_vif_type {
  * @trig_dis_ms: the time, in milliseconds, after an occurrence of this
  *	trigger in which another occurrence should be ignored.
  */
-struct iwl_fw_dbg_trigger_tlv {
+struct iwl_fw_dbg_trigger_tlv
+{
 	__le32 id;
 	__le32 vif_type;
 	__le32 stop_conf_ids;
@@ -632,7 +657,8 @@ struct iwl_fw_dbg_trigger_tlv {
  * @reserved1: reserved
  * @reserved2: reserved
  */
-struct iwl_fw_dbg_trigger_missed_bcon {
+struct iwl_fw_dbg_trigger_missed_bcon
+{
 	__le32 stop_consec_missed_bcon;
 	__le32 stop_consec_missed_bcon_since_rx;
 	__le32 reserved2[2];
@@ -645,8 +671,10 @@ struct iwl_fw_dbg_trigger_missed_bcon {
  * struct iwl_fw_dbg_trigger_cmd - configures trigger for messages from FW.
  * cmds: the list of commands to trigger the collection on
  */
-struct iwl_fw_dbg_trigger_cmd {
-	struct cmd {
+struct iwl_fw_dbg_trigger_cmd
+{
+	struct cmd
+	{
 		u8 cmd_id;
 		u8 group_id;
 	} __packed cmds[16];
@@ -659,7 +687,8 @@ struct iwl_fw_dbg_trigger_cmd {
  * @start_offset: the offset of the value to be monitored
  * @start_threshold: the threshold above which to start recording
  */
-struct iwl_fw_dbg_trigger_stats {
+struct iwl_fw_dbg_trigger_stats
+{
 	__le32 stop_offset;
 	__le32 stop_threshold;
 	__le32 start_offset;
@@ -670,7 +699,8 @@ struct iwl_fw_dbg_trigger_stats {
  * struct iwl_fw_dbg_trigger_low_rssi - trigger for low beacon RSSI
  * @rssi: RSSI value to trigger at
  */
-struct iwl_fw_dbg_trigger_low_rssi {
+struct iwl_fw_dbg_trigger_low_rssi
+{
 	__le32 rssi;
 } __packed;
 
@@ -691,7 +721,8 @@ struct iwl_fw_dbg_trigger_low_rssi {
  * @start_assoc_timeout: number of association timeout to start recording
  * @start_connection_loss: number of connection loss to start recording
  */
-struct iwl_fw_dbg_trigger_mlme {
+struct iwl_fw_dbg_trigger_mlme
+{
 	u8 stop_auth_denied;
 	u8 stop_auth_timeout;
 	u8 stop_rx_deauth;
@@ -724,7 +755,8 @@ struct iwl_fw_dbg_trigger_mlme {
  * @ibss: timeout for the queues of an IBSS in ms
  * @tdls: timeout for the queues of a TDLS station in ms
  */
-struct iwl_fw_dbg_trigger_txq_timer {
+struct iwl_fw_dbg_trigger_txq_timer
+{
 	__le32 command_queue;
 	__le32 bss;
 	__le32 softap;
@@ -744,8 +776,10 @@ struct iwl_fw_dbg_trigger_txq_timer {
  *	BIT(notif->status) is set in status_bitmap.
  *
  */
-struct iwl_fw_dbg_trigger_time_event {
-	struct {
+struct iwl_fw_dbg_trigger_time_event
+{
+	struct
+	{
 		__le32 id;
 		__le32 action_bitmap;
 		__le32 status_bitmap;
@@ -769,7 +803,8 @@ struct iwl_fw_dbg_trigger_time_event {
  * frame_timeout: tid bitmap to configure on what tid the trigger should occur
  *	when a frame times out in the reodering buffer.
  */
-struct iwl_fw_dbg_trigger_ba {
+struct iwl_fw_dbg_trigger_ba
+{
 	__le16 rx_ba_start;
 	__le16 rx_ba_stop;
 	__le16 tx_ba_start;
@@ -785,7 +820,8 @@ struct iwl_fw_dbg_trigger_ba {
  * @peer_mode: trigger on specific peer or all
  * @peer: the TDLS peer to trigger the collection on
  */
-struct iwl_fw_dbg_trigger_tdls {
+struct iwl_fw_dbg_trigger_tdls
+{
 	u8 action_bitmap;
 	u8 peer_mode;
 	u8 peer[ETH_ALEN];
@@ -797,8 +833,10 @@ struct iwl_fw_dbg_trigger_tdls {
  *  status.
  * @statuses: the list of statuses to trigger the collection on
  */
-struct iwl_fw_dbg_trigger_tx_status {
-	struct tx_status {
+struct iwl_fw_dbg_trigger_tx_status
+{
+	struct tx_status
+	{
 		u8 status;
 		u8 reserved[3];
 	} __packed statuses[16];
@@ -816,7 +854,8 @@ struct iwl_fw_dbg_trigger_tx_status {
  * This parses IWL_UCODE_TLV_FW_DBG_CONF. The user can add up-to
  * %FW_DBG_CONF_MAX configuration per run.
  */
-struct iwl_fw_dbg_conf_tlv {
+struct iwl_fw_dbg_conf_tlv
+{
 	u8 id;
 	u8 usniffer;
 	u8 reserved;
@@ -843,7 +882,8 @@ struct iwl_fw_dbg_conf_tlv {
  * @max_number_of_white_listed_ssid: max number of white listed SSIDs.
  * @max_number_of_black_listed_ssid: max number of black listed SSIDs.
  */
-struct iwl_fw_gscan_capabilities {
+struct iwl_fw_gscan_capabilities
+{
 	__le32 max_scan_cache_size;
 	__le32 max_scan_buckets;
 	__le32 max_ap_cache_per_scan;

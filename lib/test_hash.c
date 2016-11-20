@@ -49,7 +49,8 @@ fill_buf(char *buf, size_t len, u32 seed)
 {
 	size_t i;
 
-	for (i = 0; i < len; i++) {
+	for (i = 0; i < len; i++)
+	{
 		seed = xorshift(seed);
 		buf[i] = mod255(seed);
 	}
@@ -75,60 +76,82 @@ test_int_hash(unsigned long long h64, u32 hash_or[2][33])
 #ifdef HAVE_ARCH__HASH_32
 	hash_or[1][0] |= h2 = __hash_32_generic(h0);
 #if HAVE_ARCH__HASH_32 == 1
-	if (h1 != h2) {
+
+	if (h1 != h2)
+	{
 		pr_err("__hash_32(%#x) = %#x != __hash_32_generic() = %#x",
-			h0, h1, h2);
+			   h0, h1, h2);
 		return false;
 	}
+
 #endif
 #endif
 
 	/* Test k = 1..32 bits */
-	for (k = 1; k <= 32; k++) {
-		u32 const m = ((u32)2 << (k-1)) - 1;	/* Low k bits set */
+	for (k = 1; k <= 32; k++)
+	{
+		u32 const m = ((u32)2 << (k - 1)) - 1;	/* Low k bits set */
 
 		/* Test hash_32 */
 		hash_or[0][k] |= h1 = hash_32(h0, k);
-		if (h1 > m) {
+
+		if (h1 > m)
+		{
 			pr_err("hash_32(%#x, %d) = %#x > %#x", h0, k, h1, m);
 			return false;
 		}
+
 #ifdef HAVE_ARCH_HASH_32
 		h2 = hash_32_generic(h0, k);
 #if HAVE_ARCH_HASH_32 == 1
-		if (h1 != h2) {
+
+		if (h1 != h2)
+		{
 			pr_err("hash_32(%#x, %d) = %#x != hash_32_generic() "
-				" = %#x", h0, k, h1, h2);
+				   " = %#x", h0, k, h1, h2);
 			return false;
 		}
+
 #else
-		if (h2 > m) {
+
+		if (h2 > m)
+		{
 			pr_err("hash_32_generic(%#x, %d) = %#x > %#x",
-				h0, k, h1, m);
+				   h0, k, h1, m);
 			return false;
 		}
+
 #endif
 #endif
 		/* Test hash_64 */
 		hash_or[1][k] |= h1 = hash_64(h64, k);
-		if (h1 > m) {
+
+		if (h1 > m)
+		{
 			pr_err("hash_64(%#llx, %d) = %#x > %#x", h64, k, h1, m);
 			return false;
 		}
+
 #ifdef HAVE_ARCH_HASH_64
 		h2 = hash_64_generic(h64, k);
 #if HAVE_ARCH_HASH_64 == 1
-		if (h1 != h2) {
+
+		if (h1 != h2)
+		{
 			pr_err("hash_64(%#llx, %d) = %#x != hash_64_generic() "
-				"= %#x", h64, k, h1, h2);
+				   "= %#x", h64, k, h1, h2);
 			return false;
 		}
+
 #else
-		if (h2 > m) {
+
+		if (h2 > m)
+		{
 			pr_err("hash_64_generic(%#llx, %d) = %#x > %#x",
-				h64, k, h1, m);
+				   h64, k, h1, m);
 			return false;
 		}
+
 #endif
 #endif
 	}
@@ -142,7 +165,7 @@ test_int_hash(unsigned long long h64, u32 hash_or[2][33])
 static int __init
 test_hash_init(void)
 {
-	char buf[SIZE+1];
+	char buf[SIZE + 1];
 	u32 string_or = 0, hash_or[2][33] = { { 0, } };
 	unsigned tests = 0;
 	unsigned long long h64 = 0;
@@ -151,69 +174,89 @@ test_hash_init(void)
 	fill_buf(buf, SIZE, 1);
 
 	/* Test every possible non-empty substring in the buffer. */
-	for (j = SIZE; j > 0; --j) {
+	for (j = SIZE; j > 0; --j)
+	{
 		buf[j] = '\0';
 
-		for (i = 0; i <= j; i++) {
-			u64 hashlen = hashlen_string(buf+i, buf+i);
-			u32 h0 = full_name_hash(buf+i, buf+i, j-i);
+		for (i = 0; i <= j; i++)
+		{
+			u64 hashlen = hashlen_string(buf + i, buf + i);
+			u32 h0 = full_name_hash(buf + i, buf + i, j - i);
 
 			/* Check that hashlen_string gets the length right */
-			if (hashlen_len(hashlen) != j-i) {
+			if (hashlen_len(hashlen) != j - i)
+			{
 				pr_err("hashlen_string(%d..%d) returned length"
-					" %u, expected %d",
-					i, j, hashlen_len(hashlen), j-i);
+					   " %u, expected %d",
+					   i, j, hashlen_len(hashlen), j - i);
 				return -EINVAL;
 			}
+
 			/* Check that the hashes match */
-			if (hashlen_hash(hashlen) != h0) {
+			if (hashlen_hash(hashlen) != h0)
+			{
 				pr_err("hashlen_string(%d..%d) = %08x != "
-					"full_name_hash() = %08x",
-					i, j, hashlen_hash(hashlen), h0);
+					   "full_name_hash() = %08x",
+					   i, j, hashlen_hash(hashlen), h0);
 				return -EINVAL;
 			}
 
 			string_or |= h0;
 			h64 = h64 << 32 | h0;	/* For use with hash_64 */
+
 			if (!test_int_hash(h64, hash_or))
+			{
 				return -EINVAL;
+			}
+
 			tests++;
 		} /* i */
 	} /* j */
 
 	/* The OR of all the hash values should cover all the bits */
-	if (~string_or) {
+	if (~string_or)
+	{
 		pr_err("OR of all string hash results = %#x != %#x",
-			string_or, -1u);
+			   string_or, -1u);
 		return -EINVAL;
 	}
-	if (~hash_or[0][0]) {
+
+	if (~hash_or[0][0])
+	{
 		pr_err("OR of all __hash_32 results = %#x != %#x",
-			hash_or[0][0], -1u);
+			   hash_or[0][0], -1u);
 		return -EINVAL;
 	}
+
 #ifdef HAVE_ARCH__HASH_32
 #if HAVE_ARCH__HASH_32 != 1	/* Test is pointless if results match */
-	if (~hash_or[1][0]) {
+
+	if (~hash_or[1][0])
+	{
 		pr_err("OR of all __hash_32_generic results = %#x != %#x",
-			hash_or[1][0], -1u);
+			   hash_or[1][0], -1u);
 		return -EINVAL;
 	}
+
 #endif
 #endif
 
 	/* Likewise for all the i-bit hash values */
-	for (i = 1; i <= 32; i++) {
-		u32 const m = ((u32)2 << (i-1)) - 1;	/* Low i bits set */
+	for (i = 1; i <= 32; i++)
+	{
+		u32 const m = ((u32)2 << (i - 1)) - 1;	/* Low i bits set */
 
-		if (hash_or[0][i] != m) {
+		if (hash_or[0][i] != m)
+		{
 			pr_err("OR of all hash_32(%d) results = %#x "
-				"(%#x expected)", i, hash_or[0][i], m);
+				   "(%#x expected)", i, hash_or[0][i], m);
 			return -EINVAL;
 		}
-		if (hash_or[1][i] != m) {
+
+		if (hash_or[1][i] != m)
+		{
 			pr_err("OR of all hash_64(%d) results = %#x "
-				"(%#x expected)", i, hash_or[1][i], m);
+				   "(%#x expected)", i, hash_or[1][i], m);
 			return -EINVAL;
 		}
 	}

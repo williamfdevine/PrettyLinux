@@ -23,13 +23,18 @@ static void *do_test(void *in)
 	unsigned long thread = (unsigned long)in;
 	unsigned long i;
 
-	for (i = 0; i < COUNT; i++) {
+	for (i = 0; i < COUNT; i++)
+	{
 		unsigned long d, cur_dscr, cur_dscr_usr;
 		unsigned long s1, s2;
 
 		s1 = ACCESS_ONCE(sequence);
+
 		if (s1 & 1)
+		{
 			continue;
+		}
+
 		rmb();
 
 		d = dscr;
@@ -40,22 +45,27 @@ static void *do_test(void *in)
 		s2 = sequence;
 
 		if (s1 != s2)
+		{
 			continue;
+		}
 
-		if (cur_dscr != d) {
+		if (cur_dscr != d)
+		{
 			fprintf(stderr, "thread %ld kernel DSCR should be %ld "
-				"but is %ld\n", thread, d, cur_dscr);
+					"but is %ld\n", thread, d, cur_dscr);
 			result[thread] = 1;
 			pthread_exit(&result[thread]);
 		}
 
-		if (cur_dscr_usr != d) {
+		if (cur_dscr_usr != d)
+		{
 			fprintf(stderr, "thread %ld user DSCR should be %ld "
-				"but is %ld\n", thread, d, cur_dscr_usr);
+					"but is %ld\n", thread, d, cur_dscr_usr);
 			result[thread] = 1;
 			pthread_exit(&result[thread]);
 		}
 	}
+
 	result[thread] = 0;
 	pthread_exit(&result[thread]);
 }
@@ -73,8 +83,10 @@ int dscr_default(void)
 	set_default_dscr(dscr);
 
 	/* Spawn all testing threads */
-	for (i = 0; i < THREADS; i++) {
-		if (pthread_create(&threads[i], NULL, do_test, (void *)i)) {
+	for (i = 0; i < THREADS; i++)
+	{
+		if (pthread_create(&threads[i], NULL, do_test, (void *)i))
+		{
 			perror("pthread_create() failed");
 			goto fail;
 		}
@@ -83,16 +95,21 @@ int dscr_default(void)
 	srand(getpid());
 
 	/* Keep changing the DSCR default */
-	for (i = 0; i < COUNT; i++) {
+	for (i = 0; i < COUNT; i++)
+	{
 		double ret = uniform_deviate(rand());
 
-		if (ret < 0.0001) {
+		if (ret < 0.0001)
+		{
 			sequence++;
 			wmb();
 
 			dscr++;
+
 			if (dscr > DSCR_MAX)
+			{
 				dscr = 0;
+			}
 
 			set_default_dscr(dscr);
 
@@ -102,18 +119,22 @@ int dscr_default(void)
 	}
 
 	/* Individual testing thread exit status */
-	for (i = 0; i < THREADS; i++) {
-		if (pthread_join(threads[i], (void **)&(status[i]))) {
+	for (i = 0; i < THREADS; i++)
+	{
+		if (pthread_join(threads[i], (void **) & (status[i])))
+		{
 			perror("pthread_join() failed");
 			goto fail;
 		}
 
-		if (*status[i]) {
+		if (*status[i])
+		{
 			printf("%ldth thread failed to join with %ld status\n",
-								i, *status[i]);
+				   i, *status[i]);
 			goto fail;
 		}
 	}
+
 	set_default_dscr(orig_dscr_default);
 	return 0;
 fail:

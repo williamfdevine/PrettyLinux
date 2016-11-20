@@ -29,7 +29,8 @@
 #include <asm/irq_regs.h>
 #include <asm/ptrace.h>
 
-struct profile_hit {
+struct profile_hit
+{
 	u32 pc, hits;
 };
 #define PROFILE_GRPSHIFT	3
@@ -45,9 +46,9 @@ EXPORT_SYMBOL_GPL(prof_on);
 
 static cpumask_var_t prof_cpu_mask;
 #if defined(CONFIG_SMP) && defined(CONFIG_PROC_FS)
-static DEFINE_PER_CPU(struct profile_hit *[2], cpu_profile_hits);
-static DEFINE_PER_CPU(int, cpu_profile_flip);
-static DEFINE_MUTEX(profile_flip_mutex);
+	static DEFINE_PER_CPU(struct profile_hit *[2], cpu_profile_hits);
+	static DEFINE_PER_CPU(int, cpu_profile_flip);
+	static DEFINE_MUTEX(profile_flip_mutex);
 #endif /* CONFIG_SMP */
 
 int profile_setup(char *str)
@@ -57,41 +58,70 @@ int profile_setup(char *str)
 	static const char kvmstr[] = "kvm";
 	int par;
 
-	if (!strncmp(str, sleepstr, strlen(sleepstr))) {
+	if (!strncmp(str, sleepstr, strlen(sleepstr)))
+	{
 #ifdef CONFIG_SCHEDSTATS
 		force_schedstat_enabled();
 		prof_on = SLEEP_PROFILING;
+
 		if (str[strlen(sleepstr)] == ',')
+		{
 			str += strlen(sleepstr) + 1;
+		}
+
 		if (get_option(&str, &par))
+		{
 			prof_shift = par;
+		}
+
 		pr_info("kernel sleep profiling enabled (shift: %ld)\n",
-			prof_shift);
+				prof_shift);
 #else
 		pr_warn("kernel sleep profiling requires CONFIG_SCHEDSTATS\n");
 #endif /* CONFIG_SCHEDSTATS */
-	} else if (!strncmp(str, schedstr, strlen(schedstr))) {
+	}
+	else if (!strncmp(str, schedstr, strlen(schedstr)))
+	{
 		prof_on = SCHED_PROFILING;
+
 		if (str[strlen(schedstr)] == ',')
+		{
 			str += strlen(schedstr) + 1;
+		}
+
 		if (get_option(&str, &par))
+		{
 			prof_shift = par;
+		}
+
 		pr_info("kernel schedule profiling enabled (shift: %ld)\n",
-			prof_shift);
-	} else if (!strncmp(str, kvmstr, strlen(kvmstr))) {
+				prof_shift);
+	}
+	else if (!strncmp(str, kvmstr, strlen(kvmstr)))
+	{
 		prof_on = KVM_PROFILING;
+
 		if (str[strlen(kvmstr)] == ',')
+		{
 			str += strlen(kvmstr) + 1;
+		}
+
 		if (get_option(&str, &par))
+		{
 			prof_shift = par;
+		}
+
 		pr_info("kernel KVM profiling enabled (shift: %ld)\n",
-			prof_shift);
-	} else if (get_option(&str, &par)) {
+				prof_shift);
+	}
+	else if (get_option(&str, &par))
+	{
 		prof_shift = par;
 		prof_on = CPU_PROFILING;
 		pr_info("kernel profiling enabled (shift: %ld)\n",
-			prof_shift);
+				prof_shift);
 	}
+
 	return 1;
 }
 __setup("profile=", profile_setup);
@@ -100,30 +130,44 @@ __setup("profile=", profile_setup);
 int __ref profile_init(void)
 {
 	int buffer_bytes;
+
 	if (!prof_on)
+	{
 		return 0;
+	}
 
 	/* only text is profiled */
 	prof_len = (_etext - _stext) >> prof_shift;
-	buffer_bytes = prof_len*sizeof(atomic_t);
+	buffer_bytes = prof_len * sizeof(atomic_t);
 
 	if (!alloc_cpumask_var(&prof_cpu_mask, GFP_KERNEL))
+	{
 		return -ENOMEM;
+	}
 
 	cpumask_copy(prof_cpu_mask, cpu_possible_mask);
 
-	prof_buffer = kzalloc(buffer_bytes, GFP_KERNEL|__GFP_NOWARN);
+	prof_buffer = kzalloc(buffer_bytes, GFP_KERNEL | __GFP_NOWARN);
+
 	if (prof_buffer)
+	{
 		return 0;
+	}
 
 	prof_buffer = alloc_pages_exact(buffer_bytes,
-					GFP_KERNEL|__GFP_ZERO|__GFP_NOWARN);
+									GFP_KERNEL | __GFP_ZERO | __GFP_NOWARN);
+
 	if (prof_buffer)
+	{
 		return 0;
+	}
 
 	prof_buffer = vzalloc(buffer_bytes);
+
 	if (prof_buffer)
+	{
 		return 0;
+	}
 
 	free_cpumask_var(prof_cpu_mask);
 	return -ENOMEM;
@@ -168,15 +212,17 @@ int profile_event_register(enum profile_type type, struct notifier_block *n)
 {
 	int err = -EINVAL;
 
-	switch (type) {
-	case PROFILE_TASK_EXIT:
-		err = blocking_notifier_chain_register(
-				&task_exit_notifier, n);
-		break;
-	case PROFILE_MUNMAP:
-		err = blocking_notifier_chain_register(
-				&munmap_notifier, n);
-		break;
+	switch (type)
+	{
+		case PROFILE_TASK_EXIT:
+			err = blocking_notifier_chain_register(
+					  &task_exit_notifier, n);
+			break;
+
+		case PROFILE_MUNMAP:
+			err = blocking_notifier_chain_register(
+					  &munmap_notifier, n);
+			break;
 	}
 
 	return err;
@@ -187,15 +233,17 @@ int profile_event_unregister(enum profile_type type, struct notifier_block *n)
 {
 	int err = -EINVAL;
 
-	switch (type) {
-	case PROFILE_TASK_EXIT:
-		err = blocking_notifier_chain_unregister(
-				&task_exit_notifier, n);
-		break;
-	case PROFILE_MUNMAP:
-		err = blocking_notifier_chain_unregister(
-				&munmap_notifier, n);
-		break;
+	switch (type)
+	{
+		case PROFILE_TASK_EXIT:
+			err = blocking_notifier_chain_unregister(
+					  &task_exit_notifier, n);
+			break;
+
+		case PROFILE_MUNMAP:
+			err = blocking_notifier_chain_unregister(
+					  &munmap_notifier, n);
+			break;
 	}
 
 	return err;
@@ -249,14 +297,22 @@ static void profile_flip_buffers(void)
 	j = per_cpu(cpu_profile_flip, get_cpu());
 	put_cpu();
 	on_each_cpu(__profile_flip_buffers, NULL, 1);
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		struct profile_hit *hits = per_cpu(cpu_profile_hits, cpu)[j];
-		for (i = 0; i < NR_PROFILE_HIT; ++i) {
-			if (!hits[i].hits) {
+
+		for (i = 0; i < NR_PROFILE_HIT; ++i)
+		{
+			if (!hits[i].hits)
+			{
 				if (hits[i].pc)
+				{
 					hits[i].pc = 0;
+				}
+
 				continue;
 			}
+
 			atomic_add(hits[i].hits, &prof_buffer[hits[i].pc]);
 			hits[i].hits = hits[i].pc = 0;
 		}
@@ -272,9 +328,10 @@ static void profile_discard_flip_buffers(void)
 	i = per_cpu(cpu_profile_flip, get_cpu());
 	put_cpu();
 	on_each_cpu(__profile_flip_buffers, NULL, 1);
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		struct profile_hit *hits = per_cpu(cpu_profile_hits, cpu)[i];
-		memset(hits, 0, NR_PROFILE_HIT*sizeof(struct profile_hit));
+		memset(hits, 0, NR_PROFILE_HIT * sizeof(struct profile_hit));
 	}
 	mutex_unlock(&profile_flip_mutex);
 }
@@ -290,39 +347,53 @@ static void do_profile_hits(int type, void *__pc, unsigned int nr_hits)
 	secondary = (~(pc << 1) & (NR_PROFILE_GRP - 1)) << PROFILE_GRPSHIFT;
 	cpu = get_cpu();
 	hits = per_cpu(cpu_profile_hits, cpu)[per_cpu(cpu_profile_flip, cpu)];
-	if (!hits) {
+
+	if (!hits)
+	{
 		put_cpu();
 		return;
 	}
+
 	/*
 	 * We buffer the global profiler buffer into a per-CPU
 	 * queue and thus reduce the number of global (and possibly
 	 * NUMA-alien) accesses. The write-queue is self-coalescing:
 	 */
 	local_irq_save(flags);
-	do {
-		for (j = 0; j < PROFILE_GRPSZ; ++j) {
-			if (hits[i + j].pc == pc) {
+
+	do
+	{
+		for (j = 0; j < PROFILE_GRPSZ; ++j)
+		{
+			if (hits[i + j].pc == pc)
+			{
 				hits[i + j].hits += nr_hits;
 				goto out;
-			} else if (!hits[i + j].hits) {
+			}
+			else if (!hits[i + j].hits)
+			{
 				hits[i + j].pc = pc;
 				hits[i + j].hits = nr_hits;
 				goto out;
 			}
 		}
+
 		i = (i + secondary) & (NR_PROFILE_HIT - 1);
-	} while (i != primary);
+	}
+	while (i != primary);
 
 	/*
 	 * Add the current hit(s) and flush the write-queue out
 	 * to the global buffer:
 	 */
 	atomic_add(nr_hits, &prof_buffer[pc]);
-	for (i = 0; i < NR_PROFILE_HIT; ++i) {
+
+	for (i = 0; i < NR_PROFILE_HIT; ++i)
+	{
 		atomic_add(hits[i].hits, &prof_buffer[hits[i].pc]);
 		hits[i].pc = hits[i].hits = 0;
 	}
+
 out:
 	local_irq_restore(flags);
 	put_cpu();
@@ -334,15 +405,20 @@ static int profile_dead_cpu(unsigned int cpu)
 	int i;
 
 	if (prof_cpu_mask != NULL)
+	{
 		cpumask_clear_cpu(cpu, prof_cpu_mask);
+	}
 
-	for (i = 0; i < 2; i++) {
-		if (per_cpu(cpu_profile_hits, cpu)[i]) {
+	for (i = 0; i < 2; i++)
+	{
+		if (per_cpu(cpu_profile_hits, cpu)[i])
+		{
 			page = virt_to_page(per_cpu(cpu_profile_hits, cpu)[i]);
 			per_cpu(cpu_profile_hits, cpu)[i] = NULL;
 			__free_page(page);
 		}
 	}
+
 	return 0;
 }
 
@@ -353,25 +429,34 @@ static int profile_prepare_cpu(unsigned int cpu)
 
 	per_cpu(cpu_profile_flip, cpu) = 0;
 
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		if (per_cpu(cpu_profile_hits, cpu)[i])
+		{
 			continue;
+		}
 
 		page = __alloc_pages_node(node, GFP_KERNEL | __GFP_ZERO, 0);
-		if (!page) {
+
+		if (!page)
+		{
 			profile_dead_cpu(cpu);
 			return -ENOMEM;
 		}
+
 		per_cpu(cpu_profile_hits, cpu)[i] = page_address(page);
 
 	}
+
 	return 0;
 }
 
 static int profile_online_cpu(unsigned int cpu)
 {
 	if (prof_cpu_mask != NULL)
+	{
 		cpumask_set_cpu(cpu, prof_cpu_mask);
+	}
 
 	return 0;
 }
@@ -391,7 +476,10 @@ static void do_profile_hits(int type, void *__pc, unsigned int nr_hits)
 void profile_hits(int type, void *__pc, unsigned int nr_hits)
 {
 	if (prof_on != type || !prof_buffer)
+	{
 		return;
+	}
+
 	do_profile_hits(type, __pc, nr_hits);
 }
 EXPORT_SYMBOL_GPL(profile_hits);
@@ -401,8 +489,10 @@ void profile_tick(int type)
 	struct pt_regs *regs = get_irq_regs();
 
 	if (!user_mode(regs) && prof_cpu_mask != NULL &&
-	    cpumask_test_cpu(smp_processor_id(), prof_cpu_mask))
+		cpumask_test_cpu(smp_processor_id(), prof_cpu_mask))
+	{
 		profile_hit(type, (void *)profile_pc(regs));
+	}
 }
 
 #ifdef CONFIG_PROC_FS
@@ -422,24 +512,30 @@ static int prof_cpu_mask_proc_open(struct inode *inode, struct file *file)
 }
 
 static ssize_t prof_cpu_mask_proc_write(struct file *file,
-	const char __user *buffer, size_t count, loff_t *pos)
+										const char __user *buffer, size_t count, loff_t *pos)
 {
 	cpumask_var_t new_value;
 	int err;
 
 	if (!alloc_cpumask_var(&new_value, GFP_KERNEL))
+	{
 		return -ENOMEM;
+	}
 
 	err = cpumask_parse_user(buffer, count, new_value);
-	if (!err) {
+
+	if (!err)
+	{
 		cpumask_copy(prof_cpu_mask, new_value);
 		err = count;
 	}
+
 	free_cpumask_var(new_value);
 	return err;
 }
 
-static const struct file_operations prof_cpu_mask_proc_fops = {
+static const struct file_operations prof_cpu_mask_proc_fops =
+{
 	.open		= prof_cpu_mask_proc_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -468,20 +564,36 @@ read_profile(struct file *file, char __user *buf, size_t count, loff_t *ppos)
 	unsigned int sample_step = 1 << prof_shift;
 
 	profile_flip_buffers();
-	if (p >= (prof_len+1)*sizeof(unsigned int))
+
+	if (p >= (prof_len + 1)*sizeof(unsigned int))
+	{
 		return 0;
-	if (count > (prof_len+1)*sizeof(unsigned int) - p)
-		count = (prof_len+1)*sizeof(unsigned int) - p;
+	}
+
+	if (count > (prof_len + 1)*sizeof(unsigned int) - p)
+	{
+		count = (prof_len + 1) * sizeof(unsigned int) - p;
+	}
+
 	read = 0;
 
-	while (p < sizeof(unsigned int) && count > 0) {
-		if (put_user(*((char *)(&sample_step)+p), buf))
+	while (p < sizeof(unsigned int) && count > 0)
+	{
+		if (put_user(*((char *)(&sample_step) + p), buf))
+		{
 			return -EFAULT;
+		}
+
 		buf++; p++; count--; read++;
 	}
+
 	pnt = (char *)prof_buffer + p - sizeof(atomic_t);
+
 	if (copy_to_user(buf, (void *)pnt, count))
+	{
 		return -EFAULT;
+	}
+
 	read += count;
 	*ppos += read;
 	return read;
@@ -494,27 +606,34 @@ read_profile(struct file *file, char __user *buf, size_t count, loff_t *ppos)
  * interrupt frequency, on architectures that support this.
  */
 static ssize_t write_profile(struct file *file, const char __user *buf,
-			     size_t count, loff_t *ppos)
+							 size_t count, loff_t *ppos)
 {
 #ifdef CONFIG_SMP
 	extern int setup_profiling_timer(unsigned int multiplier);
 
-	if (count == sizeof(int)) {
+	if (count == sizeof(int))
+	{
 		unsigned int multiplier;
 
 		if (copy_from_user(&multiplier, buf, sizeof(int)))
+		{
 			return -EFAULT;
+		}
 
 		if (setup_profiling_timer(multiplier))
+		{
 			return -EINVAL;
+		}
 	}
+
 #endif
 	profile_discard_flip_buffers();
 	memset(prof_buffer, 0, prof_len * sizeof(atomic_t));
 	return count;
 }
 
-static const struct file_operations proc_profile_operations = {
+static const struct file_operations proc_profile_operations =
+{
 	.read		= read_profile,
 	.write		= write_profile,
 	.llseek		= default_llseek,
@@ -530,24 +649,38 @@ int __ref create_proc_profile(void)
 	int err = 0;
 
 	if (!prof_on)
+	{
 		return 0;
+	}
+
 #ifdef CONFIG_SMP
 	err = cpuhp_setup_state(CPUHP_PROFILE_PREPARE, "PROFILE_PREPARE",
-				profile_prepare_cpu, profile_dead_cpu);
+							profile_prepare_cpu, profile_dead_cpu);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = cpuhp_setup_state(CPUHP_AP_ONLINE_DYN, "AP_PROFILE_ONLINE",
-				profile_online_cpu, NULL);
+							profile_online_cpu, NULL);
+
 	if (err < 0)
+	{
 		goto err_state_prep;
+	}
+
 	online_state = err;
 	err = 0;
 #endif
 	entry = proc_create("profile", S_IWUSR | S_IRUGO,
-			    NULL, &proc_profile_operations);
+						NULL, &proc_profile_operations);
+
 	if (!entry)
+	{
 		goto err_state_onl;
+	}
+
 	proc_set_size(entry, (1 + prof_len) * sizeof(atomic_t));
 
 	return err;

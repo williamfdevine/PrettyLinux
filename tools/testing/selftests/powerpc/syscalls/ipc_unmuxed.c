@@ -20,15 +20,15 @@
 
 
 #define DO_TEST(_name, _num)	\
-static int test_##_name(void)			\
-{						\
-	int rc;					\
-	printf("Testing " #_name);		\
-	errno = 0;				\
-	rc = syscall(_num, -1, 0, 0, 0, 0, 0);	\
-	printf("\treturned %d, errno %d\n", rc, errno); \
-	return errno == ENOSYS;			\
-}
+	static int test_##_name(void)			\
+	{						\
+		int rc;					\
+		printf("Testing " #_name);		\
+		errno = 0;				\
+		rc = syscall(_num, -1, 0, 0, 0, 0, 0);	\
+		printf("\treturned %d, errno %d\n", rc, errno); \
+		return errno == ENOSYS;			\
+	}
 
 #include "ipc.h"
 #undef DO_TEST

@@ -17,39 +17,39 @@
  */
 TRACE_EVENT(ipi_raise,
 
-	TP_PROTO(const struct cpumask *mask, const char *reason),
+			TP_PROTO(const struct cpumask *mask, const char *reason),
 
-	TP_ARGS(mask, reason),
+			TP_ARGS(mask, reason),
 
-	TP_STRUCT__entry(
-		__bitmask(target_cpus, nr_cpumask_bits)
-		__field(const char *, reason)
-	),
+			TP_STRUCT__entry(
+				__bitmask(target_cpus, nr_cpumask_bits)
+				__field(const char *, reason)
+			),
 
-	TP_fast_assign(
-		__assign_bitmask(target_cpus, cpumask_bits(mask), nr_cpumask_bits);
-		__entry->reason = reason;
-	),
+			TP_fast_assign(
+				__assign_bitmask(target_cpus, cpumask_bits(mask), nr_cpumask_bits);
+				__entry->reason = reason;
+			),
 
-	TP_printk("target_mask=%s (%s)", __get_bitmask(target_cpus), __entry->reason)
-);
+			TP_printk("target_mask=%s (%s)", __get_bitmask(target_cpus), __entry->reason)
+		   );
 
 DECLARE_EVENT_CLASS(ipi_handler,
 
-	TP_PROTO(const char *reason),
+					TP_PROTO(const char *reason),
 
-	TP_ARGS(reason),
+					TP_ARGS(reason),
 
-	TP_STRUCT__entry(
-		__field(const char *, reason)
-	),
+					TP_STRUCT__entry(
+						__field(const char *, reason)
+					),
 
-	TP_fast_assign(
-		__entry->reason = reason;
-	),
+					TP_fast_assign(
+						__entry->reason = reason;
+					),
 
-	TP_printk("(%s)", __entry->reason)
-);
+					TP_printk("(%s)", __entry->reason)
+				   );
 
 /**
  * ipi_entry - called immediately before the IPI handler
@@ -62,10 +62,10 @@ DECLARE_EVENT_CLASS(ipi_handler,
  */
 DEFINE_EVENT(ipi_handler, ipi_entry,
 
-	TP_PROTO(const char *reason),
+			 TP_PROTO(const char *reason),
 
-	TP_ARGS(reason)
-);
+			 TP_ARGS(reason)
+			);
 
 /**
  * ipi_exit - called immediately after the IPI handler returns
@@ -78,10 +78,10 @@ DEFINE_EVENT(ipi_handler, ipi_entry,
  */
 DEFINE_EVENT(ipi_handler, ipi_exit,
 
-	TP_PROTO(const char *reason),
+			 TP_PROTO(const char *reason),
 
-	TP_ARGS(reason)
-);
+			 TP_ARGS(reason)
+			);
 
 #endif /* _TRACE_IPI_H */
 

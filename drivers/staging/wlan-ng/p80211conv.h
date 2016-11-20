@@ -64,15 +64,16 @@
 
 #define P80211SKB_FRMMETA(s) \
 	(((((struct p80211_frmmeta *)((s)->cb))->magic) == \
-		P80211_FRMMETA_MAGIC) ? \
-		((struct p80211_frmmeta *)((s)->cb)) : \
-		(NULL))
+	  P80211_FRMMETA_MAGIC) ? \
+	 ((struct p80211_frmmeta *)((s)->cb)) : \
+	 (NULL))
 
 #define P80211SKB_RXMETA(s) \
 	(P80211SKB_FRMMETA((s)) ?  P80211SKB_FRMMETA((s))->rx : \
-		((struct p80211_rxmeta *)(NULL)))
+	 ((struct p80211_rxmeta *)(NULL)))
 
-struct p80211_rxmeta {
+struct p80211_rxmeta
+{
 	struct wlandevice *wlandev;
 
 	u64 mactime;		/* Hi-rez MAC-supplied time value */
@@ -88,7 +89,8 @@ struct p80211_rxmeta {
 
 };
 
-struct p80211_frmmeta {
+struct p80211_frmmeta
+{
 	unsigned int magic;
 	struct p80211_rxmeta *rx;
 };
@@ -100,7 +102,8 @@ void p80211skb_rxmeta_detach(struct sk_buff *skb);
 /*
  * Frame capture header.  (See doc/capturefrm.txt)
  */
-struct p80211_caphdr {
+struct p80211_caphdr
+{
 	u32 version;
 	u32 length;
 	u64 mactime;
@@ -120,28 +123,32 @@ struct p80211_caphdr {
 /* buffer free method pointer type */
 typedef void (*freebuf_method_t) (void *buf, int size);
 
-struct p80211_metawep {
+struct p80211_metawep
+{
 	void *data;
 	u8 iv[4];
 	u8 icv[4];
 };
 
 /* local ether header type */
-struct wlan_ethhdr {
+struct wlan_ethhdr
+{
 	u8 daddr[ETH_ALEN];
 	u8 saddr[ETH_ALEN];
 	u16 type;
 } __packed;
 
 /* local llc header type */
-struct wlan_llc {
+struct wlan_llc
+{
 	u8 dsap;
 	u8 ssap;
 	u8 ctl;
 } __packed;
 
 /* local snap header type */
-struct wlan_snap {
+struct wlan_snap
+{
 	u8 oui[WLAN_IEEE_OUI_LEN];
 	u16 type;
 } __packed;
@@ -150,10 +157,10 @@ struct wlan_snap {
 struct wlandevice;
 
 int skb_p80211_to_ether(struct wlandevice *wlandev, u32 ethconv,
-			struct sk_buff *skb);
+						struct sk_buff *skb);
 int skb_ether_to_p80211(struct wlandevice *wlandev, u32 ethconv,
-			struct sk_buff *skb, union p80211_hdr *p80211_hdr,
-			struct p80211_metawep *p80211_wep);
+						struct sk_buff *skb, union p80211_hdr *p80211_hdr,
+						struct p80211_metawep *p80211_wep);
 
 int p80211_stt_findproto(u16 proto);
 

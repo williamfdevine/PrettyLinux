@@ -45,7 +45,7 @@ xfs_buf_log_format_size(
 	struct xfs_buf_log_format *blfp)
 {
 	return offsetof(struct xfs_buf_log_format, blf_data_map) +
-			(blfp->blf_map_size * sizeof(blfp->blf_data_map[0]));
+		   (blfp->blf_map_size * sizeof(blfp->blf_data_map[0]));
 }
 
 /*
@@ -70,8 +70,11 @@ xfs_buf_item_size_segment(
 	int			last_bit;
 
 	last_bit = xfs_next_bit(blfp->blf_data_map, blfp->blf_map_size, 0);
+
 	if (last_bit == -1)
+	{
 		return;
+	}
 
 	/*
 	 * initial count for a dirty buffer is 2 vectors - the format structure
@@ -80,7 +83,8 @@ xfs_buf_item_size_segment(
 	*nvecs += 2;
 	*nbytes += xfs_buf_log_format_size(blfp) + XFS_BLF_CHUNK;
 
-	while (last_bit != -1) {
+	while (last_bit != -1)
+	{
 		/*
 		 * This takes the bit number to start looking from and
 		 * returns the next set bit from there.  It returns -1
@@ -88,25 +92,34 @@ xfs_buf_item_size_segment(
 		 * beyond the end of the bitmap.
 		 */
 		next_bit = xfs_next_bit(blfp->blf_data_map, blfp->blf_map_size,
-					last_bit + 1);
+								last_bit + 1);
+
 		/*
 		 * If we run out of bits, leave the loop,
 		 * else if we find a new set of bits bump the number of vecs,
 		 * else keep scanning the current set of bits.
 		 */
-		if (next_bit == -1) {
+		if (next_bit == -1)
+		{
 			break;
-		} else if (next_bit != last_bit + 1) {
+		}
+		else if (next_bit != last_bit + 1)
+		{
 			last_bit = next_bit;
 			(*nvecs)++;
-		} else if (xfs_buf_offset(bp, next_bit * XFS_BLF_CHUNK) !=
-			   (xfs_buf_offset(bp, last_bit * XFS_BLF_CHUNK) +
-			    XFS_BLF_CHUNK)) {
+		}
+		else if (xfs_buf_offset(bp, next_bit * XFS_BLF_CHUNK) !=
+				 (xfs_buf_offset(bp, last_bit * XFS_BLF_CHUNK) +
+				  XFS_BLF_CHUNK))
+		{
 			last_bit = next_bit;
 			(*nvecs)++;
-		} else {
+		}
+		else
+		{
 			last_bit++;
 		}
+
 		*nbytes += XFS_BLF_CHUNK;
 	}
 }
@@ -138,7 +151,9 @@ xfs_buf_item_size(
 	int			i;
 
 	ASSERT(atomic_read(&bip->bli_refcount) > 0);
-	if (bip->bli_flags & XFS_BLI_STALE) {
+
+	if (bip->bli_flags & XFS_BLI_STALE)
+	{
 		/*
 		 * The buffer is stale, so all we need to log
 		 * is the buf log format structure with the
@@ -147,15 +162,19 @@ xfs_buf_item_size(
 		trace_xfs_buf_item_size_stale(bip);
 		ASSERT(bip->__bli_format.blf_flags & XFS_BLF_CANCEL);
 		*nvecs += bip->bli_format_count;
-		for (i = 0; i < bip->bli_format_count; i++) {
+
+		for (i = 0; i < bip->bli_format_count; i++)
+		{
 			*nbytes += xfs_buf_log_format_size(&bip->bli_formats[i]);
 		}
+
 		return;
 	}
 
 	ASSERT(bip->bli_flags & XFS_BLI_LOGGED);
 
-	if (bip->bli_flags & XFS_BLI_ORDERED) {
+	if (bip->bli_flags & XFS_BLI_ORDERED)
+	{
 		/*
 		 * The buffer has been logged just to order it.
 		 * It is not being included in the transaction
@@ -175,10 +194,12 @@ xfs_buf_item_size(
 	 * count for the extra buf log format structure that will need to be
 	 * written.
 	 */
-	for (i = 0; i < bip->bli_format_count; i++) {
+	for (i = 0; i < bip->bli_format_count; i++)
+	{
 		xfs_buf_item_size_segment(bip, &bip->bli_formats[i],
-					  nvecs, nbytes);
+								  nvecs, nbytes);
 	}
+
 	trace_xfs_buf_item_size(bip);
 }
 
@@ -193,8 +214,8 @@ xfs_buf_item_copy_iovec(
 {
 	offset += first_bit * XFS_BLF_CHUNK;
 	xlog_copy_iovec(lv, vecp, XLOG_REG_TYPE_BCHUNK,
-			xfs_buf_offset(bp, offset),
-			nbits * XFS_BLF_CHUNK);
+					xfs_buf_offset(bp, offset),
+					nbits * XFS_BLF_CHUNK);
 }
 
 static inline bool
@@ -205,8 +226,8 @@ xfs_buf_item_straddle(
 	int			last_bit)
 {
 	return xfs_buf_offset(bp, offset + (next_bit << XFS_BLF_SHIFT)) !=
-		(xfs_buf_offset(bp, offset + (last_bit << XFS_BLF_SHIFT)) +
-		 XFS_BLF_CHUNK);
+		   (xfs_buf_offset(bp, offset + (last_bit << XFS_BLF_SHIFT)) +
+			XFS_BLF_CHUNK);
 }
 
 static void
@@ -235,7 +256,9 @@ xfs_buf_item_format_segment(
 	base_size = xfs_buf_log_format_size(blfp);
 
 	first_bit = xfs_next_bit(blfp->blf_data_map, blfp->blf_map_size, 0);
-	if (!(bip->bli_flags & XFS_BLI_STALE) && first_bit == -1) {
+
+	if (!(bip->bli_flags & XFS_BLI_STALE) && first_bit == -1)
+	{
 		/*
 		 * If the map is not be dirty in the transaction, mark
 		 * the size as zero and do not advance the vector pointer.
@@ -246,7 +269,8 @@ xfs_buf_item_format_segment(
 	blfp = xlog_copy_iovec(lv, vecp, XLOG_REG_TYPE_BFORMAT, blfp, base_size);
 	blfp->blf_size = 1;
 
-	if (bip->bli_flags & XFS_BLI_STALE) {
+	if (bip->bli_flags & XFS_BLI_STALE)
+	{
 		/*
 		 * The buffer is stale, so all we need to log
 		 * is the buf log format structure with the
@@ -263,7 +287,9 @@ xfs_buf_item_format_segment(
 	 */
 	last_bit = first_bit;
 	nbits = 1;
-	for (;;) {
+
+	for (;;)
+	{
 		/*
 		 * This takes the bit number to start looking from and
 		 * returns the next set bit from there.  It returns -1
@@ -271,7 +297,8 @@ xfs_buf_item_format_segment(
 		 * beyond the end of the bitmap.
 		 */
 		next_bit = xfs_next_bit(blfp->blf_data_map, blfp->blf_map_size,
-					(uint)last_bit + 1);
+								(uint)last_bit + 1);
+
 		/*
 		 * If we run out of bits fill in the last iovec and get out of
 		 * the loop.  Else if we start a new set of bits then fill in
@@ -279,20 +306,25 @@ xfs_buf_item_format_segment(
 		 * counting the bits in the new one.  Else we're still in the
 		 * same set of bits so just keep counting and scanning.
 		 */
-		if (next_bit == -1) {
+		if (next_bit == -1)
+		{
 			xfs_buf_item_copy_iovec(lv, vecp, bp, offset,
-						first_bit, nbits);
+									first_bit, nbits);
 			blfp->blf_size++;
 			break;
-		} else if (next_bit != last_bit + 1 ||
-		           xfs_buf_item_straddle(bp, offset, next_bit, last_bit)) {
+		}
+		else if (next_bit != last_bit + 1 ||
+				 xfs_buf_item_straddle(bp, offset, next_bit, last_bit))
+		{
 			xfs_buf_item_copy_iovec(lv, vecp, bp, offset,
-						first_bit, nbits);
+									first_bit, nbits);
 			blfp->blf_size++;
 			first_bit = next_bit;
 			last_bit = next_bit;
 			nbits = 1;
-		} else {
+		}
+		else
+		{
 			last_bit++;
 			nbits++;
 		}
@@ -318,10 +350,10 @@ xfs_buf_item_format(
 
 	ASSERT(atomic_read(&bip->bli_refcount) > 0);
 	ASSERT((bip->bli_flags & XFS_BLI_LOGGED) ||
-	       (bip->bli_flags & XFS_BLI_STALE));
+		   (bip->bli_flags & XFS_BLI_STALE));
 	ASSERT((bip->bli_flags & XFS_BLI_STALE) ||
-	       (xfs_blft_from_flags(&bip->__bli_format) > XFS_BLFT_UNKNOWN_BUF
-	        && xfs_blft_from_flags(&bip->__bli_format) < XFS_BLFT_MAX_BUF));
+		   (xfs_blft_from_flags(&bip->__bli_format) > XFS_BLFT_UNKNOWN_BUF
+			&& xfs_blft_from_flags(&bip->__bli_format) < XFS_BLFT_MAX_BUF));
 
 
 	/*
@@ -338,16 +370,21 @@ xfs_buf_item_format(
 	 * buffer as an inode buffer so that the correct unlinked list replay
 	 * occurs during recovery.
 	 */
-	if (bip->bli_flags & XFS_BLI_INODE_BUF) {
+	if (bip->bli_flags & XFS_BLI_INODE_BUF)
+	{
 		if (xfs_sb_version_hascrc(&lip->li_mountp->m_sb) ||
-		    !((bip->bli_flags & XFS_BLI_INODE_ALLOC_BUF) &&
-		      xfs_log_item_in_current_chkpt(lip)))
+			!((bip->bli_flags & XFS_BLI_INODE_ALLOC_BUF) &&
+			  xfs_log_item_in_current_chkpt(lip)))
+		{
 			bip->__bli_format.blf_flags |= XFS_BLF_INODE_BUF;
+		}
+
 		bip->bli_flags &= ~XFS_BLI_INODE_BUF;
 	}
 
-	if ((bip->bli_flags & (XFS_BLI_ORDERED|XFS_BLI_STALE)) ==
-							XFS_BLI_ORDERED) {
+	if ((bip->bli_flags & (XFS_BLI_ORDERED | XFS_BLI_STALE)) ==
+		XFS_BLI_ORDERED)
+	{
 		/*
 		 * The buffer has been logged just to order it.  It is not being
 		 * included in the transaction commit, so don't format it.
@@ -356,9 +393,10 @@ xfs_buf_item_format(
 		return;
 	}
 
-	for (i = 0; i < bip->bli_format_count; i++) {
+	for (i = 0; i < bip->bli_format_count; i++)
+	{
 		xfs_buf_item_format_segment(bip, lv, &vecp, offset,
-					    &bip->bli_formats[i]);
+									&bip->bli_formats[i]);
 		offset += BBTOB(bp->b_maps[i].bm_len);
 	}
 
@@ -385,8 +423,8 @@ xfs_buf_item_pin(
 
 	ASSERT(atomic_read(&bip->bli_refcount) > 0);
 	ASSERT((bip->bli_flags & XFS_BLI_LOGGED) ||
-	       (bip->bli_flags & XFS_BLI_ORDERED) ||
-	       (bip->bli_flags & XFS_BLI_STALE));
+		   (bip->bli_flags & XFS_BLI_ORDERED) ||
+		   (bip->bli_flags & XFS_BLI_STALE));
 
 	trace_xfs_buf_item_pin(bip);
 
@@ -426,9 +464,12 @@ xfs_buf_item_unpin(
 	freed = atomic_dec_and_test(&bip->bli_refcount);
 
 	if (atomic_dec_and_test(&bp->b_pin_count))
+	{
 		wake_up_all(&bp->b_waiters);
+	}
 
-	if (freed && stale) {
+	if (freed && stale)
+	{
 		ASSERT(bip->bli_flags & XFS_BLI_STALE);
 		ASSERT(xfs_buf_islocked(bp));
 		ASSERT(bp->b_flags & XBF_STALE);
@@ -436,7 +477,8 @@ xfs_buf_item_unpin(
 
 		trace_xfs_buf_item_unpin_stale(bip);
 
-		if (remove) {
+		if (remove)
+		{
 			/*
 			 * If we are in a transaction context, we have to
 			 * remove the log item from the transaction as we are
@@ -446,7 +488,9 @@ xfs_buf_item_unpin(
 			 * buffer which we no longer have a hold on.
 			 */
 			if (lip->li_desc)
+			{
 				xfs_trans_del_item(lip);
+			}
 
 			/*
 			 * Since the transaction no longer refers to the buffer,
@@ -461,18 +505,24 @@ xfs_buf_item_unpin(
 		 * will take care of that situation.
 		 * xfs_trans_ail_delete() drops the AIL lock.
 		 */
-		if (bip->bli_flags & XFS_BLI_STALE_INODE) {
+		if (bip->bli_flags & XFS_BLI_STALE_INODE)
+		{
 			xfs_buf_do_callbacks(bp);
 			bp->b_fspriv = NULL;
 			bp->b_iodone = NULL;
-		} else {
+		}
+		else
+		{
 			spin_lock(&ailp->xa_lock);
 			xfs_trans_ail_delete(ailp, lip, SHUTDOWN_LOG_IO_ERROR);
 			xfs_buf_item_relse(bp);
 			ASSERT(bp->b_fspriv == NULL);
 		}
+
 		xfs_buf_relse(bp);
-	} else if (freed && remove) {
+	}
+	else if (freed && remove)
+	{
 		/*
 		 * There are currently two references to the buffer - the active
 		 * LRU reference and the buf log item. What we are about to do
@@ -517,8 +567,12 @@ xfs_buf_item_push(
 	uint			rval = XFS_ITEM_SUCCESS;
 
 	if (xfs_buf_ispinned(bp))
+	{
 		return XFS_ITEM_PINNED;
-	if (!xfs_buf_trylock(bp)) {
+	}
+
+	if (!xfs_buf_trylock(bp))
+	{
 		/*
 		 * If we have just raced with a buffer being pinned and it has
 		 * been marked stale, we could end up stalling until someone else
@@ -527,7 +581,10 @@ xfs_buf_item_push(
 		 * and queues a log force to move it along.
 		 */
 		if (xfs_buf_ispinned(bp))
+		{
 			return XFS_ITEM_PINNED;
+		}
+
 		return XFS_ITEM_LOCKED;
 	}
 
@@ -537,14 +594,18 @@ xfs_buf_item_push(
 
 	/* has a previous flush failed due to IO errors? */
 	if ((bp->b_flags & XBF_WRITE_FAIL) &&
-	    ___ratelimit(&xfs_buf_write_fail_rl_state, "XFS: Failing async write")) {
+		___ratelimit(&xfs_buf_write_fail_rl_state, "XFS: Failing async write"))
+	{
 		xfs_warn(bp->b_target->bt_mount,
-"Failing async write on buffer block 0x%llx. Retrying async write.",
-			 (long long)bp->b_bn);
+				 "Failing async write on buffer block 0x%llx. Retrying async write.",
+				 (long long)bp->b_bn);
 	}
 
 	if (!xfs_buf_delwri_queue(bp, buffer_list))
+	{
 		rval = XFS_ITEM_FLUSHING;
+	}
+
 	xfs_buf_unlock(bp);
 	return rval;
 }
@@ -601,10 +662,13 @@ xfs_buf_item_unlock(
 	 * unlock the buffer and free the buf item when the buffer is unpinned
 	 * for the last time.
 	 */
-	if (flags & XFS_BLI_STALE) {
+	if (flags & XFS_BLI_STALE)
+	{
 		trace_xfs_buf_item_unlock_stale(bip);
 		ASSERT(bip->__bli_format.blf_flags & XFS_BLF_CANCEL);
-		if (!aborted) {
+
+		if (!aborted)
+		{
 			atomic_dec(&bip->bli_refcount);
 			return;
 		}
@@ -623,11 +687,16 @@ xfs_buf_item_unlock(
 	 * we only release clean items here.
 	 */
 	clean = (flags & XFS_BLI_DIRTY) ? false : true;
-	if (clean) {
+
+	if (clean)
+	{
 		int i;
-		for (i = 0; i < bip->bli_format_count; i++) {
+
+		for (i = 0; i < bip->bli_format_count; i++)
+		{
 			if (!xfs_bitmap_empty(bip->bli_formats[i].blf_data_map,
-				     bip->bli_formats[i].blf_map_size)) {
+								  bip->bli_formats[i].blf_map_size))
+			{
 				clean = false;
 				break;
 			}
@@ -642,10 +711,14 @@ xfs_buf_item_unlock(
 	 * it in this case, because an aborted transaction has already shut the
 	 * filesystem down and this is the last chance we will have to do so.
 	 */
-	if (atomic_dec_and_test(&bip->bli_refcount)) {
+	if (atomic_dec_and_test(&bip->bli_refcount))
+	{
 		if (clean)
+		{
 			xfs_buf_item_relse(bp);
-		else if (aborted) {
+		}
+		else if (aborted)
+		{
 			ASSERT(XFS_FORCED_SHUTDOWN(lip->li_mountp));
 			xfs_trans_ail_remove(lip, SHUTDOWN_LOG_IO_ERROR);
 			xfs_buf_item_relse(bp);
@@ -653,7 +726,9 @@ xfs_buf_item_unlock(
 	}
 
 	if (!(flags & XFS_BLI_HOLD))
+	{
 		xfs_buf_relse(bp);
+	}
 }
 
 /*
@@ -684,7 +759,10 @@ xfs_buf_item_committed(
 	trace_xfs_buf_item_committed(bip);
 
 	if ((bip->bli_flags & XFS_BLI_INODE_ALLOC_BUF) && lip->li_lsn != 0)
+	{
 		return lip->li_lsn;
+	}
+
 	return lsn;
 }
 
@@ -698,7 +776,8 @@ xfs_buf_item_committing(
 /*
  * This is the ops vector shared by all buf log items.
  */
-static const struct xfs_item_ops xfs_buf_item_ops = {
+static const struct xfs_item_ops xfs_buf_item_ops =
+{
 	.iop_size	= xfs_buf_item_size,
 	.iop_format	= xfs_buf_item_format,
 	.iop_pin	= xfs_buf_item_pin,
@@ -717,15 +796,20 @@ xfs_buf_item_get_format(
 	ASSERT(bip->bli_formats == NULL);
 	bip->bli_format_count = count;
 
-	if (count == 1) {
+	if (count == 1)
+	{
 		bip->bli_formats = &bip->__bli_format;
 		return 0;
 	}
 
 	bip->bli_formats = kmem_zalloc(count * sizeof(struct xfs_buf_log_format),
-				KM_SLEEP);
+								   KM_SLEEP);
+
 	if (!bip->bli_formats)
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 
@@ -733,7 +817,8 @@ STATIC void
 xfs_buf_item_free_format(
 	struct xfs_buf_log_item	*bip)
 {
-	if (bip->bli_formats != &bip->__bli_format) {
+	if (bip->bli_formats != &bip->__bli_format)
+	{
 		kmem_free(bip->bli_formats);
 		bip->bli_formats = NULL;
 	}
@@ -765,8 +850,11 @@ xfs_buf_item_init(
 	 * nothing to do here so return.
 	 */
 	ASSERT(bp->b_target->bt_mount == mp);
+
 	if (lip != NULL && lip->li_type == XFS_LI_BUF)
+	{
 		return 0;
+	}
 
 	bip = kmem_zone_zalloc(xfs_buf_item_zone, KM_SLEEP);
 	xfs_log_item_init(mp, &bip->bli_item, XFS_LI_BUF, &xfs_buf_item_ops);
@@ -783,15 +871,18 @@ xfs_buf_item_init(
 	 */
 	error = xfs_buf_item_get_format(bip, bp->b_map_count);
 	ASSERT(error == 0);
-	if (error) {	/* to stop gcc throwing set-but-unused warnings */
+
+	if (error)  	/* to stop gcc throwing set-but-unused warnings */
+	{
 		kmem_zone_free(xfs_buf_item_zone, bip);
 		return error;
 	}
 
 
-	for (i = 0; i < bip->bli_format_count; i++) {
+	for (i = 0; i < bip->bli_format_count; i++)
+	{
 		chunks = DIV_ROUND_UP(BBTOB(bp->b_maps[i].bm_len),
-				      XFS_BLF_CHUNK);
+							  XFS_BLF_CHUNK);
 		map_size = DIV_ROUND_UP(chunks, NBWORD);
 
 		bip->bli_formats[i].blf_type = XFS_LI_BUF;
@@ -805,7 +896,10 @@ xfs_buf_item_init(
 	 * buffer at the front.
 	 */
 	if (bp->b_fspriv)
+	{
 		bip->bli_item.li_bio_list = bp->b_fspriv;
+	}
+
 	bp->b_fspriv = bip;
 	xfs_buf_hold(bp);
 	return 0;
@@ -863,13 +957,16 @@ xfs_buf_item_log_segment(
 	 * of bits that have been set so far.  End_bit is the number
 	 * of the last bit to be set in this word plus one.
 	 */
-	if (bit) {
+	if (bit)
+	{
 		end_bit = MIN(bit + bits_to_set, (uint)NBWORD);
 		mask = ((1U << (end_bit - bit)) - 1) << bit;
 		*wordp |= mask;
 		wordp++;
 		bits_set = end_bit - bit;
-	} else {
+	}
+	else
+	{
 		bits_set = 0;
 	}
 
@@ -877,7 +974,8 @@ xfs_buf_item_log_segment(
 	 * Now set bits a whole word at a time that are between
 	 * first_bit and last_bit.
 	 */
-	while ((bits_to_set - bits_set) >= NBWORD) {
+	while ((bits_to_set - bits_set) >= NBWORD)
+	{
 		*wordp |= 0xffffffff;
 		bits_set += NBWORD;
 		wordp++;
@@ -887,7 +985,9 @@ xfs_buf_item_log_segment(
 	 * Finally, set any bits left to be set in one last partial word.
 	 */
 	end_bit = bits_to_set - bits_set;
-	if (end_bit) {
+
+	if (end_bit)
+	{
 		mask = (1U << end_bit) - 1;
 		*wordp |= mask;
 	}
@@ -912,13 +1012,19 @@ xfs_buf_item_log(
 	 * walk each buffer segment and mark them dirty appropriately.
 	 */
 	start = 0;
-	for (i = 0; i < bip->bli_format_count; i++) {
+
+	for (i = 0; i < bip->bli_format_count; i++)
+	{
 		if (start > last)
+		{
 			break;
+		}
+
 		end = start + BBTOB(bp->b_maps[i].bm_len) - 1;
 
 		/* skip to the map that includes the first byte to log */
-		if (first > end) {
+		if (first > end)
+		{
 			start += BBTOB(bp->b_maps[i].bm_len);
 			continue;
 		}
@@ -930,11 +1036,17 @@ xfs_buf_item_log(
 		 * that segment).
 		 */
 		if (first < start)
+		{
 			first = start;
+		}
+
 		if (end > last)
+		{
 			end = last;
+		}
+
 		xfs_buf_item_log_segment(first - start, end - start,
-					 &bip->bli_formats[i].blf_data_map[0]);
+								 &bip->bli_formats[i].blf_data_map[0]);
 
 		start += BBTOB(bp->b_maps[i].bm_len);
 	}
@@ -978,8 +1090,11 @@ xfs_buf_item_relse(
 	ASSERT(!(bip->bli_item.li_flags & XFS_LI_IN_AIL));
 
 	bp->b_fspriv = bip->bli_item.li_bio_list;
+
 	if (bp->b_fspriv == NULL)
+	{
 		bp->b_iodone = NULL;
+	}
 
 	xfs_buf_rele(bp);
 	xfs_buf_item_free(bip);
@@ -1007,15 +1122,19 @@ xfs_buf_attach_iodone(
 
 	lip->li_cb = cb;
 	head_lip = bp->b_fspriv;
-	if (head_lip) {
+
+	if (head_lip)
+	{
 		lip->li_bio_list = head_lip->li_bio_list;
 		head_lip->li_bio_list = lip;
-	} else {
+	}
+	else
+	{
 		bp->b_fspriv = lip;
 	}
 
 	ASSERT(bp->b_iodone == NULL ||
-	       bp->b_iodone == xfs_buf_iodone_callbacks);
+		   bp->b_iodone == xfs_buf_iodone_callbacks);
 	bp->b_iodone = xfs_buf_iodone_callbacks;
 }
 
@@ -1037,7 +1156,8 @@ xfs_buf_do_callbacks(
 {
 	struct xfs_log_item	*lip;
 
-	while ((lip = bp->b_fspriv) != NULL) {
+	while ((lip = bp->b_fspriv) != NULL)
+	{
 		bp->b_fspriv = lip->li_bio_list;
 		ASSERT(lip->li_cb != NULL);
 		/*
@@ -1066,18 +1186,24 @@ xfs_buf_iodone_callback_error(
 	 * I/O errors, there's no point in giving this a retry.
 	 */
 	if (XFS_FORCED_SHUTDOWN(mp))
+	{
 		goto out_stale;
+	}
 
 	if (bp->b_target != lasttarg ||
-	    time_after(jiffies, (lasttime + 5*HZ))) {
+		time_after(jiffies, (lasttime + 5 * HZ)))
+	{
 		lasttime = jiffies;
 		xfs_buf_ioerror_alert(bp, __func__);
 	}
+
 	lasttarg = bp->b_target;
 
 	/* synchronous writes will have callers process the error */
 	if (!(bp->b_flags & XBF_ASYNC))
+	{
 		goto out_stale;
+	}
 
 	trace_xfs_buf_item_iodone_async(bp, _RET_IP_);
 	ASSERT(bp->b_iodone != NULL);
@@ -1092,12 +1218,16 @@ xfs_buf_iodone_callback_error(
 	 * up to behave correctly now for repeated failures.
 	 */
 	if (!(bp->b_flags & (XBF_STALE | XBF_WRITE_FAIL)) ||
-	     bp->b_last_error != bp->b_error) {
+		bp->b_last_error != bp->b_error)
+	{
 		bp->b_flags |= (XBF_WRITE | XBF_DONE | XBF_WRITE_FAIL);
 		bp->b_last_error = bp->b_error;
+
 		if (cfg->retry_timeout != XFS_ERR_RETRY_FOREVER &&
-		    !bp->b_first_retry_time)
+			!bp->b_first_retry_time)
+		{
 			bp->b_first_retry_time = jiffies;
+		}
 
 		xfs_buf_ioerror(bp, 0);
 		xfs_buf_submit(bp);
@@ -1110,15 +1240,22 @@ xfs_buf_iodone_callback_error(
 	 */
 
 	if (cfg->max_retries != XFS_ERR_RETRY_FOREVER &&
-	    ++bp->b_retries > cfg->max_retries)
-			goto permanent_error;
+		++bp->b_retries > cfg->max_retries)
+	{
+		goto permanent_error;
+	}
+
 	if (cfg->retry_timeout != XFS_ERR_RETRY_FOREVER &&
-	    time_after(jiffies, cfg->retry_timeout + bp->b_first_retry_time))
-			goto permanent_error;
+		time_after(jiffies, cfg->retry_timeout + bp->b_first_retry_time))
+	{
+		goto permanent_error;
+	}
 
 	/* At unmount we may treat errors differently */
 	if ((mp->m_flags & XFS_MOUNT_UNMOUNTING) && mp->m_fail_unmount)
+	{
 		goto permanent_error;
+	}
 
 	/* still a transient error, higher layers will retry */
 	xfs_buf_ioerror(bp, 0);
@@ -1154,7 +1291,9 @@ xfs_buf_iodone_callbacks(
 	 * detect that and take appropriate action.
 	 */
 	if (bp->b_error && xfs_buf_iodone_callback_error(bp))
+	{
 		return;
+	}
 
 	/*
 	 * Successful IO or permanent error. Either way, we can clear the

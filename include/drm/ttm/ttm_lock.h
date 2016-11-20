@@ -66,7 +66,8 @@
  * @signal: Signal to send when kill_takers is true.
  */
 
-struct ttm_lock {
+struct ttm_lock
+{
 	struct ttm_base_object base;
 	wait_queue_head_t queue;
 	spinlock_t lock;
@@ -185,7 +186,7 @@ extern void ttm_suspend_unlock(struct ttm_lock *lock);
  * -ENOMEM: Out of memory when locking.
  */
 extern int ttm_vt_lock(struct ttm_lock *lock, bool interruptible,
-		       struct ttm_object_file *tfile);
+					   struct ttm_object_file *tfile);
 
 /**
  * ttm_vt_unlock
@@ -237,11 +238,14 @@ extern int ttm_write_lock(struct ttm_lock *lock, bool interruptible);
  *
  */
 static inline void ttm_lock_set_kill(struct ttm_lock *lock, bool val,
-				     int signal)
+									 int signal)
 {
 	lock->kill_takers = val;
+
 	if (val)
+	{
 		lock->signal = signal;
+	}
 }
 
 #endif

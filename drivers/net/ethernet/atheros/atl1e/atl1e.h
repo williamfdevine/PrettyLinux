@@ -88,11 +88,11 @@
 
 #define AT_VLAN_TAG_TO_TPD_TAG(_vlan, _tpd)    \
 	_tpd = (((_vlan) << (4)) | (((_vlan) >> 13) & 7) |\
-		 (((_vlan) >> 9) & 8))
+			(((_vlan) >> 9) & 8))
 
 #define AT_TPD_TAG_TO_VLAN_TAG(_tpd, _vlan)    \
 	_vlan = (((_tpd) >> 8) | (((_tpd) & 0x77) << 9) |\
-		   (((_tdp) & 0x88) << 5))
+			 (((_tdp) & 0x88) << 5))
 
 #define AT_MAX_RECEIVE_QUEUE    4
 #define AT_PAGE_NUM_PER_QUEUE   2
@@ -109,10 +109,10 @@
 #define AT_REGS_LEN	75
 #define AT_EEPROM_LEN 	512
 #define AT_ADV_MASK	(ADVERTISE_10_HALF  |\
-			 ADVERTISE_10_FULL  |\
-			 ADVERTISE_100_HALF |\
-			 ADVERTISE_100_FULL |\
-			 ADVERTISE_1000_FULL)
+					 ADVERTISE_10_FULL  |\
+					 ADVERTISE_100_HALF |\
+					 ADVERTISE_100_FULL |\
+					 ADVERTISE_1000_FULL)
 
 /* tpd word 2 */
 #define TPD_BUFLEN_MASK 	0x3FFF
@@ -176,7 +176,8 @@
 #define TPD_CCSUMOFFSET_MASK    0x00FF
 #define TPD_CCSUMOFFSET_SHIFT   24
 
-struct atl1e_tpd_desc {
+struct atl1e_tpd_desc
+{
 	__le64 buffer_addr;
 	__le32 word2;
 	__le32 word3;
@@ -223,7 +224,8 @@ struct atl1e_tpd_desc {
 #define RRS_ERR_LENGTH		0x0100
 #define RRS_ERR_DES_ADDR	0x0200
 
-struct atl1e_recv_ret_status {
+struct atl1e_recv_ret_status
+{
 	u16 seq_num;
 	u16 hash_lo;
 	__le32	word1;
@@ -233,7 +235,8 @@ struct atl1e_recv_ret_status {
 	u16 vtag;
 };
 
-enum atl1e_dma_req_block {
+enum atl1e_dma_req_block
+{
 	atl1e_dma_req_128 = 0,
 	atl1e_dma_req_256 = 1,
 	atl1e_dma_req_512 = 2,
@@ -242,7 +245,8 @@ enum atl1e_dma_req_block {
 	atl1e_dma_req_4096 = 5
 };
 
-enum atl1e_rrs_type {
+enum atl1e_rrs_type
+{
 	atl1e_rrs_disable = 0,
 	atl1e_rrs_ipv4 = 1,
 	atl1e_rrs_ipv4_tcp = 2,
@@ -250,13 +254,15 @@ enum atl1e_rrs_type {
 	atl1e_rrs_ipv6_tcp = 8
 };
 
-enum atl1e_nic_type {
+enum atl1e_nic_type
+{
 	athr_l1e = 0,
 	athr_l2e_revA = 1,
 	athr_l2e_revB = 2
 };
 
-struct atl1e_hw_stats {
+struct atl1e_hw_stats
+{
 	/* rx */
 	unsigned long rx_ok;	      /* The number of good packet received. */
 	unsigned long rx_bcast;       /* The number of good broadcast packet received. */
@@ -273,9 +279,11 @@ struct atl1e_hw_stats {
 	unsigned long rx_sz_128_255;  /* The number of good and bad packets received that are between 128 and 255-byte long. */
 	unsigned long rx_sz_256_511;  /* The number of good and bad packets received that are between 256 and 511-byte long. */
 	unsigned long rx_sz_512_1023; /* The number of good and bad packets received that are between 512 and 1023-byte long. */
-	unsigned long rx_sz_1024_1518;    /* The number of good and bad packets received that are between 1024 and 1518-byte long. */
+	unsigned long
+	rx_sz_1024_1518;    /* The number of good and bad packets received that are between 1024 and 1518-byte long. */
 	unsigned long rx_sz_1519_max; /* The number of good and bad packets received that are between 1519-byte and MTU. */
-	unsigned long rx_sz_ov;       /* The number of good and bad packets received that are more than MTU size truncated by Selene. */
+	unsigned long
+	rx_sz_ov;       /* The number of good and bad packets received that are more than MTU size truncated by Selene. */
 	unsigned long rx_rxf_ov;      /* The number of frame dropped due to occurrence of RX FIFO overflow. */
 	unsigned long rx_rrd_ov;      /* The number of frame dropped due to occurrence of RRD overflow. */
 	unsigned long rx_align_err;   /* Alignment Error */
@@ -293,25 +301,36 @@ struct atl1e_hw_stats {
 	unsigned long tx_defer;       /* The number of packets transmitted that is deferred. */
 	unsigned long tx_byte_cnt;    /* The number of bytes of data transmitted. FCS is NOT included. */
 	unsigned long tx_sz_64;       /* The number of good and bad packets transmitted that are 64 byte long. */
-	unsigned long tx_sz_65_127;   /* The number of good and bad packets transmitted that are between 65 and 127-byte long. */
-	unsigned long tx_sz_128_255;  /* The number of good and bad packets transmitted that are between 128 and 255-byte long. */
-	unsigned long tx_sz_256_511;  /* The number of good and bad packets transmitted that are between 256 and 511-byte long. */
-	unsigned long tx_sz_512_1023; /* The number of good and bad packets transmitted that are between 512 and 1023-byte long. */
-	unsigned long tx_sz_1024_1518;    /* The number of good and bad packets transmitted that are between 1024 and 1518-byte long. */
+	unsigned long
+	tx_sz_65_127;   /* The number of good and bad packets transmitted that are between 65 and 127-byte long. */
+	unsigned long
+	tx_sz_128_255;  /* The number of good and bad packets transmitted that are between 128 and 255-byte long. */
+	unsigned long
+	tx_sz_256_511;  /* The number of good and bad packets transmitted that are between 256 and 511-byte long. */
+	unsigned long
+	tx_sz_512_1023; /* The number of good and bad packets transmitted that are between 512 and 1023-byte long. */
+	unsigned long
+	tx_sz_1024_1518;    /* The number of good and bad packets transmitted that are between 1024 and 1518-byte long. */
 	unsigned long tx_sz_1519_max; /* The number of good and bad packets transmitted that are between 1519-byte and MTU. */
-	unsigned long tx_1_col;       /* The number of packets subsequently transmitted successfully with a single prior collision. */
-	unsigned long tx_2_col;       /* The number of packets subsequently transmitted successfully with multiple prior collisions. */
+	unsigned long
+	tx_1_col;       /* The number of packets subsequently transmitted successfully with a single prior collision. */
+	unsigned long
+	tx_2_col;       /* The number of packets subsequently transmitted successfully with multiple prior collisions. */
 	unsigned long tx_late_col;    /* The number of packets transmitted with late collisions. */
 	unsigned long tx_abort_col;   /* The number of transmit packets aborted due to excessive collisions. */
-	unsigned long tx_underrun;    /* The number of transmit packets aborted due to transmit FIFO underrun, or TRD FIFO underrun */
-	unsigned long tx_rd_eop;      /* The number of times that read beyond the EOP into the next frame area when TRD was not written timely */
-	unsigned long tx_len_err;     /* The number of transmit packets with length field does NOT match the actual frame size. */
+	unsigned long
+	tx_underrun;    /* The number of transmit packets aborted due to transmit FIFO underrun, or TRD FIFO underrun */
+	unsigned long
+	tx_rd_eop;      /* The number of times that read beyond the EOP into the next frame area when TRD was not written timely */
+	unsigned long
+	tx_len_err;     /* The number of transmit packets with length field does NOT match the actual frame size. */
 	unsigned long tx_trunc;       /* The number of transmit packets truncated due to size exceeding MTU. */
 	unsigned long tx_bcast_byte;  /* The byte count of broadcast packet transmitted, excluding FCS. */
 	unsigned long tx_mcast_byte;  /* The byte count of multicast packet transmitted, excluding FCS. */
 };
 
-struct atl1e_hw {
+struct atl1e_hw
+{
 	u8 __iomem      *hw_addr;            /* inner register address */
 	resource_size_t mem_rang;
 	struct atl1e_adapter *adapter;
@@ -374,7 +393,8 @@ struct atl1e_hw {
  * wrapper around a pointer to a socket buffer,
  * so a DMA handle can be stored along with the buffer
  */
-struct atl1e_tx_buffer {
+struct atl1e_tx_buffer
+{
 	struct sk_buff *skb;
 	u16 flags;
 #define ATL1E_TX_PCIMAP_SINGLE		0x0001
@@ -385,11 +405,12 @@ struct atl1e_tx_buffer {
 };
 
 #define ATL1E_SET_PCIMAP_TYPE(tx_buff, type) do {		\
-	((tx_buff)->flags) &= ~ATL1E_TX_PCIMAP_TYPE_MASK;	\
-	((tx_buff)->flags) |= (type);				\
+		((tx_buff)->flags) &= ~ATL1E_TX_PCIMAP_TYPE_MASK;	\
+		((tx_buff)->flags) |= (type);				\
 	} while (0)
 
-struct atl1e_rx_page {
+struct atl1e_rx_page
+{
 	dma_addr_t	dma;    /* receive rage DMA address */
 	u8		*addr;   /* receive rage virtual address */
 	dma_addr_t	write_offset_dma;  /* the DMA address which contain the
@@ -399,14 +420,16 @@ struct atl1e_rx_page {
 	u32		read_offset;       /* the offset where we have read */
 };
 
-struct atl1e_rx_page_desc {
+struct atl1e_rx_page_desc
+{
 	struct atl1e_rx_page   rx_page[AT_PAGE_NUM_PER_QUEUE];
 	u8  rx_using;
 	u16 rx_nxseq;
 };
 
 /* transmit packet descriptor (tpd) ring */
-struct atl1e_tx_ring {
+struct atl1e_tx_ring
+{
 	struct atl1e_tpd_desc *desc;  /* descriptor ring virtual address  */
 	dma_addr_t	   dma;    /* descriptor ring physical address */
 	u16       	   count;  /* the count of transmit rings  */
@@ -419,7 +442,8 @@ struct atl1e_tx_ring {
 };
 
 /* receive packet descriptor ring */
-struct atl1e_rx_ring {
+struct atl1e_rx_ring
+{
 	void        	*desc;
 	dma_addr_t  	dma;
 	int         	size;
@@ -429,7 +453,8 @@ struct atl1e_rx_ring {
 };
 
 /* board specific private data structure */
-struct atl1e_adapter {
+struct atl1e_adapter
+{
 	struct net_device   *netdev;
 	struct pci_dev      *pdev;
 	struct napi_struct  napi;
@@ -468,25 +493,25 @@ struct atl1e_adapter {
 };
 
 #define AT_WRITE_REG(a, reg, value) ( \
-		writel((value), ((a)->hw_addr + reg)))
+									  writel((value), ((a)->hw_addr + reg)))
 
 #define AT_WRITE_FLUSH(a) (\
-		readl((a)->hw_addr))
+						   readl((a)->hw_addr))
 
 #define AT_READ_REG(a, reg) ( \
-		readl((a)->hw_addr + reg))
+							  readl((a)->hw_addr + reg))
 
 #define AT_WRITE_REGB(a, reg, value) (\
-		writeb((value), ((a)->hw_addr + reg)))
+									  writeb((value), ((a)->hw_addr + reg)))
 
 #define AT_READ_REGB(a, reg) (\
-		readb((a)->hw_addr + reg))
+							  readb((a)->hw_addr + reg))
 
 #define AT_WRITE_REGW(a, reg, value) (\
-		writew((value), ((a)->hw_addr + reg)))
+									  writew((value), ((a)->hw_addr + reg)))
 
 #define AT_READ_REGW(a, reg) (\
-		readw((a)->hw_addr + reg))
+							  readw((a)->hw_addr + reg))
 
 #define AT_WRITE_REG_ARRAY(a, reg, offset, value) ( \
 		writel((value), (((a)->hw_addr + reg) + ((offset) << 2))))

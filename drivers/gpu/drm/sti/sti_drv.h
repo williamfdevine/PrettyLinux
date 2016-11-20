@@ -20,13 +20,15 @@ struct sti_tvout;
  * @plane_zorder_property: z-order property for CRTC planes
  * @drm_dev:               drm device
  */
-struct sti_private {
+struct sti_private
+{
 	struct sti_compositor *compo;
 	struct drm_property *plane_zorder_property;
 	struct drm_device *drm_dev;
 	struct drm_fbdev_cma *fbdev;
 
-	struct {
+	struct
+	{
 		struct drm_atomic_state *state;
 		struct work_struct work;
 		struct mutex lock;

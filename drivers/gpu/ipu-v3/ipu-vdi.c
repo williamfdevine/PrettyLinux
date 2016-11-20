@@ -15,7 +15,8 @@
 #include <linux/io.h>
 #include "ipu-prv.h"
 
-struct ipu_vdi {
+struct ipu_vdi
+{
 	void __iomem *base;
 	u32 module;
 	spinlock_t lock;
@@ -57,7 +58,7 @@ static inline u32 ipu_vdi_read(struct ipu_vdi *vdi, unsigned int offset)
 }
 
 static inline void ipu_vdi_write(struct ipu_vdi *vdi, u32 value,
-				 unsigned int offset)
+								 unsigned int offset)
 {
 	writel(value, vdi->base + offset);
 }
@@ -68,29 +69,38 @@ void ipu_vdi_set_field_order(struct ipu_vdi *vdi, v4l2_std_id std, u32 field)
 	unsigned long flags;
 	u32 reg;
 
-	switch (field) {
-	case V4L2_FIELD_INTERLACED_TB:
-	case V4L2_FIELD_SEQ_TB:
-	case V4L2_FIELD_TOP:
-		top_field_0 = true;
-		break;
-	case V4L2_FIELD_INTERLACED_BT:
-	case V4L2_FIELD_SEQ_BT:
-	case V4L2_FIELD_BOTTOM:
-		top_field_0 = false;
-		break;
-	default:
-		top_field_0 = (std & V4L2_STD_525_60) ? true : false;
-		break;
+	switch (field)
+	{
+		case V4L2_FIELD_INTERLACED_TB:
+		case V4L2_FIELD_SEQ_TB:
+		case V4L2_FIELD_TOP:
+			top_field_0 = true;
+			break;
+
+		case V4L2_FIELD_INTERLACED_BT:
+		case V4L2_FIELD_SEQ_BT:
+		case V4L2_FIELD_BOTTOM:
+			top_field_0 = false;
+			break;
+
+		default:
+			top_field_0 = (std & V4L2_STD_525_60) ? true : false;
+			break;
 	}
 
 	spin_lock_irqsave(&vdi->lock, flags);
 
 	reg = ipu_vdi_read(vdi, VDI_C);
+
 	if (top_field_0)
+	{
 		reg &= ~VDI_C_TOP_FIELD_MAN_1;
+	}
 	else
+	{
 		reg |= VDI_C_TOP_FIELD_MAN_1;
+	}
+
 	ipu_vdi_write(vdi, reg, VDI_C);
 
 	spin_unlock_irqrestore(&vdi->lock, flags);
@@ -108,16 +118,19 @@ void ipu_vdi_set_motion(struct ipu_vdi *vdi, enum ipu_motion_sel motion_sel)
 
 	reg &= ~VDI_C_MOT_SEL_MASK;
 
-	switch (motion_sel) {
-	case MED_MOTION:
-		reg |= VDI_C_MOT_SEL_MED;
-		break;
-	case HIGH_MOTION:
-		reg |= VDI_C_MOT_SEL_FULL;
-		break;
-	default:
-		reg |= VDI_C_MOT_SEL_LOW;
-		break;
+	switch (motion_sel)
+	{
+		case MED_MOTION:
+			reg |= VDI_C_MOT_SEL_MED;
+			break;
+
+		case HIGH_MOTION:
+			reg |= VDI_C_MOT_SEL_FULL;
+			break;
+
+		default:
+			reg |= VDI_C_MOT_SEL_LOW;
+			break;
 	}
 
 	ipu_vdi_write(vdi, reg, VDI_C);
@@ -141,12 +154,16 @@ void ipu_vdi_setup(struct ipu_vdi *vdi, u32 code, int xres, int yres)
 	 * Burst size is 4 accesses
 	 */
 	if (code == MEDIA_BUS_FMT_UYVY8_2X8 ||
-	    code == MEDIA_BUS_FMT_UYVY8_1X16 ||
-	    code == MEDIA_BUS_FMT_YUYV8_2X8 ||
-	    code == MEDIA_BUS_FMT_YUYV8_1X16)
+		code == MEDIA_BUS_FMT_UYVY8_1X16 ||
+		code == MEDIA_BUS_FMT_YUYV8_2X8 ||
+		code == MEDIA_BUS_FMT_YUYV8_1X16)
+	{
 		pixel_fmt = VDI_C_CH_422;
+	}
 	else
+	{
 		pixel_fmt = VDI_C_CH_420;
+	}
 
 	reg = ipu_vdi_read(vdi, VDI_C);
 	reg |= pixel_fmt;
@@ -177,7 +194,9 @@ int ipu_vdi_enable(struct ipu_vdi *vdi)
 	spin_lock_irqsave(&vdi->lock, flags);
 
 	if (!vdi->use_count)
+	{
 		ipu_module_enable(vdi->ipu, vdi->module);
+	}
 
 	vdi->use_count++;
 
@@ -193,9 +212,12 @@ int ipu_vdi_disable(struct ipu_vdi *vdi)
 
 	spin_lock_irqsave(&vdi->lock, flags);
 
-	if (vdi->use_count) {
+	if (vdi->use_count)
+	{
 		if (!--vdi->use_count)
+		{
 			ipu_module_disable(vdi->ipu, vdi->module);
+		}
 	}
 
 	spin_unlock_irqrestore(&vdi->lock, flags);
@@ -216,21 +238,27 @@ void ipu_vdi_put(struct ipu_vdi *vdi)
 EXPORT_SYMBOL_GPL(ipu_vdi_put);
 
 int ipu_vdi_init(struct ipu_soc *ipu, struct device *dev,
-		 unsigned long base, u32 module)
+				 unsigned long base, u32 module)
 {
 	struct ipu_vdi *vdi;
 
 	vdi = devm_kzalloc(dev, sizeof(*vdi), GFP_KERNEL);
+
 	if (!vdi)
+	{
 		return -ENOMEM;
+	}
 
 	ipu->vdi_priv = vdi;
 
 	spin_lock_init(&vdi->lock);
 	vdi->module = module;
 	vdi->base = devm_ioremap(dev, base, PAGE_SIZE);
+
 	if (!vdi->base)
+	{
 		return -ENOMEM;
+	}
 
 	dev_dbg(dev, "VDI base: 0x%08lx remapped to %p\n", base, vdi->base);
 	vdi->ipu = ipu;

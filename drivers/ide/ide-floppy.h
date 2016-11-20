@@ -24,12 +24,12 @@ void ide_floppy_create_read_capacity_cmd(struct ide_atapi_pc *);
 
 /* ide-floppy_ioctl.c */
 int ide_floppy_ioctl(ide_drive_t *, struct block_device *, fmode_t,
-		     unsigned int, unsigned long);
+					 unsigned int, unsigned long);
 
 #ifdef CONFIG_IDE_PROC_FS
-/* ide-floppy_proc.c */
-extern ide_proc_entry_t ide_floppy_proc[];
-extern const struct ide_proc_devset ide_floppy_settings[];
+	/* ide-floppy_proc.c */
+	extern ide_proc_entry_t ide_floppy_proc[];
+	extern const struct ide_proc_devset ide_floppy_settings[];
 #endif
 #else
 #define ide_floppy_proc		NULL

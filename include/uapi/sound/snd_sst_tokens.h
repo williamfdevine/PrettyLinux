@@ -160,7 +160,8 @@
  * module_id and loadable flags dont have tokens as these values will be
  * read from the DSP FW manifest
  */
-enum SKL_TKNS {
+enum SKL_TKNS
+{
 	SKL_TKN_UUID = 1,
 	SKL_TKN_U8_NUM_BLOCKS,
 	SKL_TKN_U8_BLOCK_TYPE,

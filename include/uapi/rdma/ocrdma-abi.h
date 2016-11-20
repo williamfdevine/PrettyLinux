@@ -49,7 +49,8 @@
 #define OCRDMA_BE_ROCE_ABI_VERSION 1
 /* user kernel communication data structures. */
 
-struct ocrdma_alloc_ucontext_resp {
+struct ocrdma_alloc_ucontext_resp
+{
 	__u32 dev_id;
 	__u32 wqe_size;
 	__u32 max_inline_data;
@@ -63,11 +64,13 @@ struct ocrdma_alloc_ucontext_resp {
 	__u64 rsvd2;
 };
 
-struct ocrdma_alloc_pd_ureq {
+struct ocrdma_alloc_pd_ureq
+{
 	__u64 rsvd1;
 };
 
-struct ocrdma_alloc_pd_uresp {
+struct ocrdma_alloc_pd_uresp
+{
 	__u32 id;
 	__u32 dpp_enabled;
 	__u32 dpp_page_addr_hi;
@@ -75,13 +78,15 @@ struct ocrdma_alloc_pd_uresp {
 	__u64 rsvd1;
 };
 
-struct ocrdma_create_cq_ureq {
+struct ocrdma_create_cq_ureq
+{
 	__u32 dpp_cq;
 	__u32 rsvd; /* pad */
 };
 
 #define MAX_CQ_PAGES 8
-struct ocrdma_create_cq_uresp {
+struct ocrdma_create_cq_uresp
+{
 	__u32 cq_id;
 	__u32 page_size;
 	__u32 num_pages;
@@ -98,14 +103,16 @@ struct ocrdma_create_cq_uresp {
 #define MAX_QP_PAGES 8
 #define MAX_UD_AV_PAGES 8
 
-struct ocrdma_create_qp_ureq {
+struct ocrdma_create_qp_ureq
+{
 	__u8 enable_dpp_cq;
 	__u8 rsvd;
 	__u16 dpp_cq_id;
 	__u32 rsvd1;	/* pad */
 };
 
-struct ocrdma_create_qp_uresp {
+struct ocrdma_create_qp_uresp
+{
 	__u16 qp_id;
 	__u16 sq_dbid;
 	__u16 rq_dbid;
@@ -128,7 +135,8 @@ struct ocrdma_create_qp_uresp {
 	__u64 rsvd[11];
 } __packed;
 
-struct ocrdma_create_srq_uresp {
+struct ocrdma_create_srq_uresp
+{
 	__u16 rq_dbid;
 	__u16 resv0;	/* pad */
 	__u32 resv1;

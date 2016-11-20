@@ -1011,9 +1011,9 @@ int switch_normal_clock(struct rtsx_chip *chip, int clk);
 int enable_card_clock(struct rtsx_chip *chip, u8 card);
 int disable_card_clock(struct rtsx_chip *chip, u8 card);
 int card_rw(struct scsi_cmnd *srb, struct rtsx_chip *chip,
-	u32 sec_addr, u16 sec_cnt);
+			u32 sec_addr, u16 sec_cnt);
 void trans_dma_enable(enum dma_data_direction dir,
-		struct rtsx_chip *chip, u32 byte_cnt, u8 pack_size);
+					  struct rtsx_chip *chip, u32 byte_cnt, u8 pack_size);
 void toggle_gpio(struct rtsx_chip *chip, u8 gpio);
 void turn_on_led(struct rtsx_chip *chip, u8 gpio);
 void turn_off_led(struct rtsx_chip *chip, u8 gpio);
@@ -1034,7 +1034,9 @@ static inline u32 get_card_size(struct rtsx_chip *chip, unsigned int lun)
 
 	if ((get_lun_card(chip, lun) == SD_CARD) &&
 		(sd_card->sd_lock_status & SD_LOCKED))
+	{
 		return 0;
+	}
 
 	return chip->capacity[lun];
 #else
@@ -1047,9 +1049,13 @@ static inline int switch_clock(struct rtsx_chip *chip, int clk)
 	int retval = 0;
 
 	if (chip->asic_code)
+	{
 		retval = switch_ssc_clock(chip, clk);
+	}
 	else
+	{
 		retval = switch_normal_clock(chip, clk);
+	}
 
 	return retval;
 }
@@ -1062,7 +1068,9 @@ static inline int card_power_off_all(struct rtsx_chip *chip)
 	int retval;
 
 	retval = rtsx_write_register(chip, CARD_PWR_CTL, 0x0F, 0x0F);
-	if (retval) {
+
+	if (retval)
+	{
 		rtsx_trace(chip);
 		return retval;
 	}
@@ -1073,29 +1081,29 @@ static inline int card_power_off_all(struct rtsx_chip *chip)
 static inline void rtsx_clear_xd_error(struct rtsx_chip *chip)
 {
 	rtsx_write_register(chip, CARD_STOP, XD_STOP | XD_CLR_ERR,
-			XD_STOP | XD_CLR_ERR);
+						XD_STOP | XD_CLR_ERR);
 }
 
 static inline void rtsx_clear_sd_error(struct rtsx_chip *chip)
 {
 	rtsx_write_register(chip, CARD_STOP, SD_STOP | SD_CLR_ERR,
-			SD_STOP | SD_CLR_ERR);
+						SD_STOP | SD_CLR_ERR);
 }
 
 static inline void rtsx_clear_ms_error(struct rtsx_chip *chip)
 {
 	rtsx_write_register(chip, CARD_STOP, MS_STOP | MS_CLR_ERR,
-			MS_STOP | MS_CLR_ERR);
+						MS_STOP | MS_CLR_ERR);
 }
 
 static inline void rtsx_clear_spi_error(struct rtsx_chip *chip)
 {
 	rtsx_write_register(chip, CARD_STOP, SPI_STOP | SPI_CLR_ERR,
-			SPI_STOP | SPI_CLR_ERR);
+						SPI_STOP | SPI_CLR_ERR);
 }
 
 #ifdef SUPPORT_SDIO_ASPM
-void dynamic_configure_sdio_aspm(struct rtsx_chip *chip);
+	void dynamic_configure_sdio_aspm(struct rtsx_chip *chip);
 #endif
 
 #endif  /* __REALTEK_RTSX_CARD_H */

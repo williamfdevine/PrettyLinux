@@ -26,7 +26,8 @@
 
 
 /* snic target types */
-static const char * const snic_tgt_type_str[] = {
+static const char *const snic_tgt_type_str[] =
+{
 	[SNIC_TGT_DAS] = "DAS",
 	[SNIC_TGT_SAN] = "SAN",
 };
@@ -35,10 +36,11 @@ static inline const char *
 snic_tgt_type_to_str(int typ)
 {
 	return ((typ > SNIC_TGT_NONE && typ <= SNIC_TGT_SAN) ?
-		 snic_tgt_type_str[typ] : "Unknown");
+			snic_tgt_type_str[typ] : "Unknown");
 }
 
-static const char * const snic_tgt_state_str[] = {
+static const char *const snic_tgt_state_str[] =
+{
 	[SNIC_TGT_STAT_INIT]	= "INIT",
 	[SNIC_TGT_STAT_ONLINE]	= "ONLINE",
 	[SNIC_TGT_STAT_OFFLINE]	= "OFFLINE",
@@ -49,7 +51,7 @@ const char *
 snic_tgt_state_to_str(int state)
 {
 	return ((state >= SNIC_TGT_STAT_INIT && state <= SNIC_TGT_STAT_DEL) ?
-		snic_tgt_state_str[state] : "UNKNOWN");
+			snic_tgt_state_str[state] : "UNKNOWN");
 }
 
 /*
@@ -57,13 +59,13 @@ snic_tgt_state_to_str(int state)
  */
 static void
 snic_report_tgt_init(struct snic_host_req *req, u32 hid, u8 *buf, u32 len,
-		     dma_addr_t rsp_buf_pa, ulong ctx)
+					 dma_addr_t rsp_buf_pa, ulong ctx)
 {
 	struct snic_sg_desc *sgd = NULL;
 
 
 	snic_io_hdr_enc(&req->hdr, SNIC_REQ_REPORT_TGTS, 0, SCSI_NO_TAG, hid,
-			1, ctx);
+					1, ctx);
 
 	req->u.rpt_tgts.sg_cnt = cpu_to_le16(1);
 	sgd = req_to_sgl(req);
@@ -86,22 +88,30 @@ snic_queue_report_tgt_req(struct snic *snic)
 	int ret = 0;
 
 	rqi = snic_req_init(snic, 1);
-	if (!rqi) {
+
+	if (!rqi)
+	{
 		ret = -ENOMEM;
 		goto error;
 	}
 
 	if (snic->fwinfo.max_tgts)
+	{
 		ntgts = min_t(u32, snic->fwinfo.max_tgts, snic->shost->max_id);
+	}
 	else
+	{
 		ntgts = snic->shost->max_id;
+	}
 
 	/* Allocate Response Buffer */
 	SNIC_BUG_ON(ntgts == 0);
 	buf_len = ntgts * sizeof(struct snic_tgt_id) + SNIC_SG_DESC_ALIGN;
 
-	buf = kzalloc(buf_len, GFP_KERNEL|GFP_DMA);
-	if (!buf) {
+	buf = kzalloc(buf_len, GFP_KERNEL | GFP_DMA);
+
+	if (!buf)
+	{
 		snic_req_free(snic, rqi);
 		SNIC_HOST_ERR(snic->shost, "Resp Buf Alloc Failed.\n");
 
@@ -112,10 +122,12 @@ snic_queue_report_tgt_req(struct snic *snic)
 	SNIC_BUG_ON((((unsigned long)buf) % SNIC_SG_DESC_ALIGN) != 0);
 
 	pa = pci_map_single(snic->pdev, buf, buf_len, PCI_DMA_FROMDEVICE);
-	if (pci_dma_mapping_error(snic->pdev, pa)) {
+
+	if (pci_dma_mapping_error(snic->pdev, pa))
+	{
 		SNIC_HOST_ERR(snic->shost,
-			      "Rpt-tgt rspbuf %p: PCI DMA Mapping Failed\n",
-			      buf);
+					  "Rpt-tgt rspbuf %p: PCI DMA Mapping Failed\n",
+					  buf);
 		kfree(buf);
 		snic_req_free(snic, rqi);
 		ret = -EINVAL;
@@ -128,16 +140,18 @@ snic_queue_report_tgt_req(struct snic *snic)
 	rqi->sge_va = (ulong) buf;
 
 	snic_report_tgt_init(rqi->req,
-			     snic->config.hid,
-			     buf,
-			     buf_len,
-			     pa,
-			     (ulong)rqi);
+						 snic->config.hid,
+						 buf,
+						 buf_len,
+						 pa,
+						 (ulong)rqi);
 
 	snic_handle_untagged_req(snic, rqi);
 
 	ret = snic_queue_wq_desc(snic, rqi->req, rqi->req_len);
-	if (ret) {
+
+	if (ret)
+	{
 		pci_unmap_single(snic->pdev, pa, buf_len, PCI_DMA_FROMDEVICE);
 		kfree(buf);
 		rqi->sge_va = 0;
@@ -153,8 +167,8 @@ snic_queue_report_tgt_req(struct snic *snic)
 
 error:
 	SNIC_HOST_ERR(snic->shost,
-		      "Queuing Report Targets Failed, err = %d\n",
-		      ret);
+				  "Queuing Report Targets Failed, err = %d\n",
+				  ret);
 	return ret;
 } /* end of snic_queue_report_tgt_req */
 
@@ -168,10 +182,10 @@ snic_scsi_scan_tgt(struct work_struct *work)
 
 	SNIC_HOST_INFO(shost, "Scanning Target id 0x%x\n", tgt->id);
 	scsi_scan_target(&tgt->dev,
-			 tgt->channel,
-			 tgt->scsi_tgt_id,
-			 SCAN_WILD_CARD,
-			 SCSI_SCAN_RESCAN);
+					 tgt->channel,
+					 tgt->scsi_tgt_id,
+					 SCAN_WILD_CARD,
+					 SCSI_SCAN_RESCAN);
 
 	spin_lock_irqsave(shost->host_lock, flags);
 	tgt->flags &= ~SNIC_TGT_SCAN_PENDING;
@@ -187,10 +201,15 @@ snic_tgt_lookup(struct snic *snic, struct snic_tgt_id *tgtid)
 	struct list_head *cur, *nxt;
 	struct snic_tgt *tgt = NULL;
 
-	list_for_each_safe(cur, nxt, &snic->disc.tgt_list) {
+	list_for_each_safe(cur, nxt, &snic->disc.tgt_list)
+	{
 		tgt = list_entry(cur, struct snic_tgt, list);
+
 		if (tgt->id == le32_to_cpu(tgtid->tgt_id))
+		{
 			return tgt;
+		}
+
 		tgt = NULL;
 	}
 
@@ -206,9 +225,9 @@ snic_tgt_dev_release(struct device *dev)
 	struct snic_tgt *tgt = dev_to_tgt(dev);
 
 	SNIC_HOST_INFO(snic_tgt_to_shost(tgt),
-		       "Target Device ID %d (%s) Permanently Deleted.\n",
-		       tgt->id,
-		       dev_name(dev));
+				   "Target Device ID %d (%s) Permanently Deleted.\n",
+				   tgt->id,
+				   dev_name(dev));
 
 	SNIC_BUG_ON(!list_empty(&tgt->list));
 	kfree(tgt);
@@ -224,7 +243,9 @@ snic_tgt_del(struct work_struct *work)
 	struct Scsi_Host *shost = snic_tgt_to_shost(tgt);
 
 	if (tgt->flags & SNIC_TGT_SCAN_PENDING)
+	{
 		scsi_flush_work(shost);
+	}
 
 	/* Block IOs on child devices, stops new IOs */
 	scsi_target_block(&tgt->dev);
@@ -252,13 +273,17 @@ snic_tgt_create(struct snic *snic, struct snic_tgt_id *tgtid)
 	int ret;
 
 	tgt = snic_tgt_lookup(snic, tgtid);
-	if (tgt) {
+
+	if (tgt)
+	{
 		/* update the information if required */
 		return tgt;
 	}
 
 	tgt = kzalloc(sizeof(*tgt), GFP_KERNEL);
-	if (!tgt) {
+
+	if (!tgt)
+	{
 		SNIC_HOST_ERR(snic->shost, "Failure to allocate snic_tgt.\n");
 		ret = -ENOMEM;
 
@@ -282,22 +307,24 @@ snic_tgt_create(struct snic *snic, struct snic_tgt_id *tgtid)
 	tgt->dev.release = snic_tgt_dev_release;
 	INIT_WORK(&tgt->scan_work, snic_scsi_scan_tgt);
 	INIT_WORK(&tgt->del_work, snic_tgt_del);
-	switch (tgt->tdata.typ) {
-	case SNIC_TGT_DAS:
-		dev_set_name(&tgt->dev, "snic_das_tgt:%d:%d-%d",
-			     snic->shost->host_no, tgt->channel, tgt->id);
-		break;
 
-	case SNIC_TGT_SAN:
-		dev_set_name(&tgt->dev, "snic_san_tgt:%d:%d-%d",
-			     snic->shost->host_no, tgt->channel, tgt->id);
-		break;
+	switch (tgt->tdata.typ)
+	{
+		case SNIC_TGT_DAS:
+			dev_set_name(&tgt->dev, "snic_das_tgt:%d:%d-%d",
+						 snic->shost->host_no, tgt->channel, tgt->id);
+			break;
 
-	default:
-		SNIC_HOST_INFO(snic->shost, "Target type Unknown Detected.\n");
-		dev_set_name(&tgt->dev, "snic_das_tgt:%d:%d-%d",
-			     snic->shost->host_no, tgt->channel, tgt->id);
-		break;
+		case SNIC_TGT_SAN:
+			dev_set_name(&tgt->dev, "snic_san_tgt:%d:%d-%d",
+						 snic->shost->host_no, tgt->channel, tgt->id);
+			break;
+
+		default:
+			SNIC_HOST_INFO(snic->shost, "Target type Unknown Detected.\n");
+			dev_set_name(&tgt->dev, "snic_das_tgt:%d:%d-%d",
+						 snic->shost->host_no, tgt->channel, tgt->id);
+			break;
 	}
 
 	spin_lock_irqsave(snic->shost->host_lock, flags);
@@ -307,14 +334,16 @@ snic_tgt_create(struct snic *snic, struct snic_tgt_id *tgtid)
 	spin_unlock_irqrestore(snic->shost->host_lock, flags);
 
 	SNIC_HOST_INFO(snic->shost,
-		       "Tgt %d, type = %s detected. Adding..\n",
-		       tgt->id, snic_tgt_type_to_str(tgt->tdata.typ));
+				   "Tgt %d, type = %s detected. Adding..\n",
+				   tgt->id, snic_tgt_type_to_str(tgt->tdata.typ));
 
 	ret = device_add(&tgt->dev);
-	if (ret) {
+
+	if (ret)
+	{
 		SNIC_HOST_ERR(snic->shost,
-			      "Snic Tgt: device_add, with err = %d\n",
-			      ret);
+					  "Snic Tgt: device_add, with err = %d\n",
+					  ret);
 
 		put_device(&snic->shost->shost_gendev);
 		kfree(tgt);
@@ -341,17 +370,22 @@ snic_handle_tgt_disc(struct work_struct *work)
 	int i;
 
 	spin_lock_irqsave(&snic->snic_lock, flags);
-	if (snic->in_remove) {
+
+	if (snic->in_remove)
+	{
 		spin_unlock_irqrestore(&snic->snic_lock, flags);
 		kfree(snic->disc.rtgt_info);
 
 		return;
 	}
+
 	spin_unlock_irqrestore(&snic->snic_lock, flags);
 
 	mutex_lock(&snic->disc.mutex);
+
 	/* Discover triggered during disc in progress */
-	if (snic->disc.req_cnt) {
+	if (snic->disc.req_cnt)
+	{
 		snic->disc.state = SNIC_DISC_DONE;
 		snic->disc.req_cnt = 0;
 		mutex_unlock(&snic->disc.mutex);
@@ -369,9 +403,12 @@ snic_handle_tgt_disc(struct work_struct *work)
 
 	SNIC_BUG_ON(snic->disc.rtgt_cnt == 0 || tgtid == NULL);
 
-	for (i = 0; i < snic->disc.rtgt_cnt; i++) {
+	for (i = 0; i < snic->disc.rtgt_cnt; i++)
+	{
 		tgt = snic_tgt_create(snic, &tgtid[i]);
-		if (!tgt) {
+
+		if (!tgt)
+		{
 			int buf_sz = snic->disc.rtgt_cnt * sizeof(*tgtid);
 
 			SNIC_HOST_ERR(snic->shost, "Failed to create tgt.\n");
@@ -406,7 +443,9 @@ snic_report_tgt_cmpl_handler(struct snic *snic, struct snic_fw_req *fwreq)
 	tgtid = (struct snic_tgt_id *) rqi->sge_va;
 
 	tgt_cnt = le32_to_cpu(fwreq->u.rpt_tgts_cmpl.tgt_cnt);
-	if (tgt_cnt == 0) {
+
+	if (tgt_cnt == 0)
+	{
 		SNIC_HOST_ERR(snic->shost, "No Targets Found on this host.\n");
 		ret = 1;
 
@@ -420,8 +459,8 @@ snic_report_tgt_cmpl_handler(struct snic *snic, struct snic_fw_req *fwreq)
 
 	for (i = 0; i < tgt_cnt; i++)
 		SNIC_HOST_INFO(snic->shost,
-			       "Tgt id = 0x%x\n",
-			       le32_to_cpu(tgtid[i].tgt_id));
+					   "Tgt id = 0x%x\n",
+					   le32_to_cpu(tgtid[i].tgt_id));
 
 	/*
 	 * Queue work for further processing,
@@ -435,8 +474,11 @@ snic_report_tgt_cmpl_handler(struct snic *snic, struct snic_fw_req *fwreq)
 end:
 	/* Unmap Response Buffer */
 	snic_pci_unmap_rsp_buf(snic, rqi);
+
 	if (ret)
+	{
 		kfree(tgtid);
+	}
 
 	rqi->sge_va = 0;
 	snic_release_untagged_req(snic, rqi);
@@ -466,10 +508,13 @@ snic_disc_term(struct snic *snic)
 	struct snic_disc *disc = &snic->disc;
 
 	mutex_lock(&disc->mutex);
-	if (disc->req_cnt) {
+
+	if (disc->req_cnt)
+	{
 		disc->req_cnt = 0;
 		SNIC_SCSI_DBG(snic->shost, "Terminating Discovery.\n");
 	}
+
 	mutex_unlock(&disc->mutex);
 }
 
@@ -486,28 +531,37 @@ snic_disc_start(struct snic *snic)
 	SNIC_SCSI_DBG(snic->shost, "Discovery Start.\n");
 
 	spin_lock_irqsave(&snic->snic_lock, flags);
-	if (snic->in_remove) {
+
+	if (snic->in_remove)
+	{
 		spin_unlock_irqrestore(&snic->snic_lock, flags);
 		SNIC_ERR("snic driver removal in progress ...\n");
 		ret = 0;
 
 		return ret;
 	}
+
 	spin_unlock_irqrestore(&snic->snic_lock, flags);
 
 	mutex_lock(&disc->mutex);
-	if (disc->state == SNIC_DISC_PENDING) {
+
+	if (disc->state == SNIC_DISC_PENDING)
+	{
 		disc->req_cnt++;
 		mutex_unlock(&disc->mutex);
 
 		return ret;
 	}
+
 	disc->state = SNIC_DISC_PENDING;
 	mutex_unlock(&disc->mutex);
 
 	ret = snic_queue_report_tgt_req(snic);
+
 	if (ret)
+	{
 		SNIC_HOST_INFO(snic->shost, "Discovery Failed, err=%d.\n", ret);
+	}
 
 	return ret;
 } /* end of snic_disc_start */
@@ -524,13 +578,16 @@ snic_handle_disc(struct work_struct *work)
 	SNIC_HOST_INFO(snic->shost, "disc_work: Discovery\n");
 
 	ret = snic_disc_start(snic);
+
 	if (ret)
+	{
 		goto disc_err;
+	}
 
 disc_err:
 	SNIC_HOST_ERR(snic->shost,
-		      "disc_work: Discovery Failed w/ err = %d\n",
-		      ret);
+				  "disc_work: Discovery Failed w/ err = %d\n",
+				  ret);
 } /* end of snic_disc_work */
 
 /*
@@ -549,7 +606,8 @@ snic_tgt_del_all(struct snic *snic)
 	mutex_lock(&snic->disc.mutex);
 	spin_lock_irqsave(snic->shost->host_lock, flags);
 
-	list_for_each_safe(cur, nxt, &snic->disc.tgt_list) {
+	list_for_each_safe(cur, nxt, &snic->disc.tgt_list)
+	{
 		tgt = list_entry(cur, struct snic_tgt, list);
 		tgt->state = SNIC_TGT_STAT_DEL;
 		list_del_init(&tgt->list);

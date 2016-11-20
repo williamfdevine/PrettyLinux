@@ -23,8 +23,10 @@ static int intel_fetch_size(void)
 	pci_read_config_word(agp_bridge->dev, INTEL_APSIZE, &temp);
 	values = A_SIZE_16(agp_bridge->driver->aperture_sizes);
 
-	for (i = 0; i < agp_bridge->driver->num_aperture_sizes; i++) {
-		if (temp == values[i].size_value) {
+	for (i = 0; i < agp_bridge->driver->num_aperture_sizes; i++)
+	{
+		if (temp == values[i].size_value)
+		{
 			agp_bridge->previous_size = agp_bridge->current_size = (void *) (values + i);
 			agp_bridge->aperture_size_idx = i;
 			return values[i].size;
@@ -41,14 +43,17 @@ static int __intel_8xx_fetch_size(u8 temp)
 
 	values = A_SIZE_8(agp_bridge->driver->aperture_sizes);
 
-	for (i = 0; i < agp_bridge->driver->num_aperture_sizes; i++) {
-		if (temp == values[i].size_value) {
+	for (i = 0; i < agp_bridge->driver->num_aperture_sizes; i++)
+	{
+		if (temp == values[i].size_value)
+		{
 			agp_bridge->previous_size =
 				agp_bridge->current_size = (void *) (values + i);
 			agp_bridge->aperture_size_idx = i;
 			return values[i].size;
 		}
 	}
+
 	return 0;
 }
 
@@ -125,7 +130,7 @@ static int intel_configure(void)
 
 	/* address to map to */
 	agp_bridge->gart_bus_addr = pci_bus_address(agp_bridge->dev,
-						    AGP_APERTURE_BAR);
+								AGP_APERTURE_BAR);
 
 	/* attbase - aperture base */
 	pci_write_config_dword(agp_bridge->dev, INTEL_ATTBASE, agp_bridge->gatt_bus_addr);
@@ -136,7 +141,7 @@ static int intel_configure(void)
 	/* paccfg/nbxcfg */
 	pci_read_config_word(agp_bridge->dev, INTEL_NBXCFG, &temp2);
 	pci_write_config_word(agp_bridge->dev, INTEL_NBXCFG,
-			(temp2 & ~(1 << 10)) | (1 << 9));
+						  (temp2 & ~(1 << 10)) | (1 << 9));
 	/* clear any possible error conditions */
 	pci_write_config_byte(agp_bridge->dev, INTEL_ERRSTS + 1, 7);
 	return 0;
@@ -151,7 +156,8 @@ static int intel_815_configure(void)
 	/* attbase - aperture base */
 	/* the Intel 815 chipset spec. says that bits 29-31 in the
 	* ATTBASE register are reserved -> try not to write them */
-	if (agp_bridge->gatt_bus_addr & INTEL_815_ATTBASE_MASK) {
+	if (agp_bridge->gatt_bus_addr & INTEL_815_ATTBASE_MASK)
+	{
 		dev_emerg(&agp_bridge->dev->dev, "gatt bus addr too high");
 		return -EINVAL;
 	}
@@ -160,11 +166,11 @@ static int intel_815_configure(void)
 
 	/* aperture size */
 	pci_write_config_byte(agp_bridge->dev, INTEL_APSIZE,
-			current_size->size_value);
+						  current_size->size_value);
 
 	/* address to map to */
 	agp_bridge->gart_bus_addr = pci_bus_address(agp_bridge->dev,
-						    AGP_APERTURE_BAR);
+								AGP_APERTURE_BAR);
 
 	pci_read_config_dword(agp_bridge->dev, INTEL_ATTBASE, &addr);
 	addr &= INTEL_815_ATTBASE_MASK;
@@ -196,9 +202,9 @@ static void intel_820_cleanup(void)
 	previous_size = A_SIZE_8(agp_bridge->previous_size);
 	pci_read_config_byte(agp_bridge->dev, INTEL_I820_RDCR, &temp);
 	pci_write_config_byte(agp_bridge->dev, INTEL_I820_RDCR,
-			temp & ~(1 << 1));
+						  temp & ~(1 << 1));
 	pci_write_config_byte(agp_bridge->dev, INTEL_APSIZE,
-			previous_size->size_value);
+						  previous_size->size_value);
 }
 
 
@@ -214,7 +220,7 @@ static int intel_820_configure(void)
 
 	/* address to map to */
 	agp_bridge->gart_bus_addr = pci_bus_address(agp_bridge->dev,
-						    AGP_APERTURE_BAR);
+								AGP_APERTURE_BAR);
 
 	/* attbase - aperture base */
 	pci_write_config_dword(agp_bridge->dev, INTEL_ATTBASE, agp_bridge->gatt_bus_addr);
@@ -244,7 +250,7 @@ static int intel_840_configure(void)
 
 	/* address to map to */
 	agp_bridge->gart_bus_addr = pci_bus_address(agp_bridge->dev,
-						    AGP_APERTURE_BAR);
+								AGP_APERTURE_BAR);
 
 	/* attbase - aperture base */
 	pci_write_config_dword(agp_bridge->dev, INTEL_ATTBASE, agp_bridge->gatt_bus_addr);
@@ -270,13 +276,16 @@ static int intel_845_configure(void)
 	/* aperture size */
 	pci_write_config_byte(agp_bridge->dev, INTEL_APSIZE, current_size->size_value);
 
-	if (agp_bridge->apbase_config != 0) {
+	if (agp_bridge->apbase_config != 0)
+	{
 		pci_write_config_dword(agp_bridge->dev, AGP_APBASE,
-				       agp_bridge->apbase_config);
-	} else {
+							   agp_bridge->apbase_config);
+	}
+	else
+	{
 		/* address to map to */
 		agp_bridge->gart_bus_addr = pci_bus_address(agp_bridge->dev,
-							    AGP_APERTURE_BAR);
+									AGP_APERTURE_BAR);
 		agp_bridge->apbase_config = agp_bridge->gart_bus_addr;
 	}
 
@@ -306,7 +315,7 @@ static int intel_850_configure(void)
 
 	/* address to map to */
 	agp_bridge->gart_bus_addr = pci_bus_address(agp_bridge->dev,
-						    AGP_APERTURE_BAR);
+								AGP_APERTURE_BAR);
 
 	/* attbase - aperture base */
 	pci_write_config_dword(agp_bridge->dev, INTEL_ATTBASE, agp_bridge->gatt_bus_addr);
@@ -334,7 +343,7 @@ static int intel_860_configure(void)
 
 	/* address to map to */
 	agp_bridge->gart_bus_addr = pci_bus_address(agp_bridge->dev,
-						    AGP_APERTURE_BAR);
+								AGP_APERTURE_BAR);
 
 	/* attbase - aperture base */
 	pci_write_config_dword(agp_bridge->dev, INTEL_ATTBASE, agp_bridge->gatt_bus_addr);
@@ -362,7 +371,7 @@ static int intel_830mp_configure(void)
 
 	/* address to map to */
 	agp_bridge->gart_bus_addr = pci_bus_address(agp_bridge->dev,
-						    AGP_APERTURE_BAR);
+								AGP_APERTURE_BAR);
 
 	/* attbase - aperture base */
 	pci_write_config_dword(agp_bridge->dev, INTEL_ATTBASE, agp_bridge->gatt_bus_addr);
@@ -390,7 +399,7 @@ static int intel_7505_configure(void)
 
 	/* address to map to */
 	agp_bridge->gart_bus_addr = pci_bus_address(agp_bridge->dev,
-						    AGP_APERTURE_BAR);
+								AGP_APERTURE_BAR);
 
 	/* attbase - aperture base */
 	pci_write_config_dword(agp_bridge->dev, INTEL_ATTBASE, agp_bridge->gatt_bus_addr);
@@ -447,7 +456,8 @@ static const struct aper_size_info_8 intel_830mp_sizes[4] =
 	{32, 8192, 3, 56}
 };
 
-static const struct agp_bridge_driver intel_generic_driver = {
+static const struct agp_bridge_driver intel_generic_driver =
+{
 	.owner			= THIS_MODULE,
 	.aperture_sizes		= intel_generic_sizes,
 	.size_type		= U16_APER_SIZE,
@@ -474,7 +484,8 @@ static const struct agp_bridge_driver intel_generic_driver = {
 	.agp_type_to_mask_type  = agp_generic_type_to_mask_type,
 };
 
-static const struct agp_bridge_driver intel_815_driver = {
+static const struct agp_bridge_driver intel_815_driver =
+{
 	.owner			= THIS_MODULE,
 	.aperture_sizes		= intel_815_sizes,
 	.size_type		= U8_APER_SIZE,
@@ -501,7 +512,8 @@ static const struct agp_bridge_driver intel_815_driver = {
 	.agp_type_to_mask_type	= agp_generic_type_to_mask_type,
 };
 
-static const struct agp_bridge_driver intel_820_driver = {
+static const struct agp_bridge_driver intel_820_driver =
+{
 	.owner			= THIS_MODULE,
 	.aperture_sizes		= intel_8xx_sizes,
 	.size_type		= U8_APER_SIZE,
@@ -528,7 +540,8 @@ static const struct agp_bridge_driver intel_820_driver = {
 	.agp_type_to_mask_type  = agp_generic_type_to_mask_type,
 };
 
-static const struct agp_bridge_driver intel_830mp_driver = {
+static const struct agp_bridge_driver intel_830mp_driver =
+{
 	.owner			= THIS_MODULE,
 	.aperture_sizes		= intel_830mp_sizes,
 	.size_type		= U8_APER_SIZE,
@@ -555,7 +568,8 @@ static const struct agp_bridge_driver intel_830mp_driver = {
 	.agp_type_to_mask_type  = agp_generic_type_to_mask_type,
 };
 
-static const struct agp_bridge_driver intel_840_driver = {
+static const struct agp_bridge_driver intel_840_driver =
+{
 	.owner			= THIS_MODULE,
 	.aperture_sizes		= intel_8xx_sizes,
 	.size_type		= U8_APER_SIZE,
@@ -582,7 +596,8 @@ static const struct agp_bridge_driver intel_840_driver = {
 	.agp_type_to_mask_type  = agp_generic_type_to_mask_type,
 };
 
-static const struct agp_bridge_driver intel_845_driver = {
+static const struct agp_bridge_driver intel_845_driver =
+{
 	.owner			= THIS_MODULE,
 	.aperture_sizes		= intel_8xx_sizes,
 	.size_type		= U8_APER_SIZE,
@@ -609,7 +624,8 @@ static const struct agp_bridge_driver intel_845_driver = {
 	.agp_type_to_mask_type  = agp_generic_type_to_mask_type,
 };
 
-static const struct agp_bridge_driver intel_850_driver = {
+static const struct agp_bridge_driver intel_850_driver =
+{
 	.owner			= THIS_MODULE,
 	.aperture_sizes		= intel_8xx_sizes,
 	.size_type		= U8_APER_SIZE,
@@ -636,7 +652,8 @@ static const struct agp_bridge_driver intel_850_driver = {
 	.agp_type_to_mask_type  = agp_generic_type_to_mask_type,
 };
 
-static const struct agp_bridge_driver intel_860_driver = {
+static const struct agp_bridge_driver intel_860_driver =
+{
 	.owner			= THIS_MODULE,
 	.aperture_sizes		= intel_8xx_sizes,
 	.size_type		= U8_APER_SIZE,
@@ -663,7 +680,8 @@ static const struct agp_bridge_driver intel_860_driver = {
 	.agp_type_to_mask_type  = agp_generic_type_to_mask_type,
 };
 
-static const struct agp_bridge_driver intel_7505_driver = {
+static const struct agp_bridge_driver intel_7505_driver =
+{
 	.owner			= THIS_MODULE,
 	.aperture_sizes		= intel_8xx_sizes,
 	.size_type		= U8_APER_SIZE,
@@ -694,11 +712,13 @@ static const struct agp_bridge_driver intel_7505_driver = {
  * driver and gmch_driver must be non-null, and find_gmch will determine
  * which one should be used if a gmch_chip_id is present.
  */
-static const struct intel_agp_driver_description {
+static const struct intel_agp_driver_description
+{
 	unsigned int chip_id;
 	char *name;
 	const struct agp_bridge_driver *driver;
-} intel_agp_chipsets[] = {
+} intel_agp_chipsets[] =
+{
 	{ PCI_DEVICE_ID_INTEL_82443LX_0, "440LX", &intel_generic_driver },
 	{ PCI_DEVICE_ID_INTEL_82443BX_0, "440BX", &intel_generic_driver },
 	{ PCI_DEVICE_ID_INTEL_82443GX_0, "440GX", &intel_generic_driver },
@@ -722,7 +742,7 @@ static const struct intel_agp_driver_description {
 };
 
 static int agp_intel_probe(struct pci_dev *pdev,
-			   const struct pci_device_id *ent)
+						   const struct pci_device_id *ent)
 {
 	struct agp_bridge_data *bridge;
 	u8 cap_ptr = 0;
@@ -732,28 +752,37 @@ static int agp_intel_probe(struct pci_dev *pdev,
 	cap_ptr = pci_find_capability(pdev, PCI_CAP_ID_AGP);
 
 	bridge = agp_alloc_bridge();
+
 	if (!bridge)
+	{
 		return -ENOMEM;
+	}
 
 	bridge->capndx = cap_ptr;
 
 	if (intel_gmch_probe(pdev, NULL, bridge))
+	{
 		goto found_gmch;
+	}
 
-	for (i = 0; intel_agp_chipsets[i].name != NULL; i++) {
+	for (i = 0; intel_agp_chipsets[i].name != NULL; i++)
+	{
 		/* In case that multiple models of gfx chip may
 		   stand on same host bridge type, this can be
 		   sure we detect the right IGD. */
-		if (pdev->device == intel_agp_chipsets[i].chip_id) {
+		if (pdev->device == intel_agp_chipsets[i].chip_id)
+		{
 			bridge->driver = intel_agp_chipsets[i].driver;
 			break;
 		}
 	}
 
-	if (!bridge->driver) {
+	if (!bridge->driver)
+	{
 		if (cap_ptr)
 			dev_warn(&pdev->dev, "unsupported Intel chipset [%04x/%04x]\n",
-				 pdev->vendor, pdev->device);
+					 pdev->vendor, pdev->device);
+
 		agp_put_bridge(bridge);
 		return -ENODEV;
 	}
@@ -774,8 +803,11 @@ static int agp_intel_probe(struct pci_dev *pdev,
 	* conflicts a lot of other devices).
 	*/
 	r = &pdev->resource[0];
-	if (!r->start && r->end) {
-		if (pci_assign_resource(pdev, 0)) {
+
+	if (!r->start && r->end)
+	{
+		if (pci_assign_resource(pdev, 0))
+		{
 			dev_err(&pdev->dev, "can't assign resource 0\n");
 			agp_put_bridge(bridge);
 			return -ENODEV;
@@ -787,17 +819,19 @@ static int agp_intel_probe(struct pci_dev *pdev,
 	* the problem and should stop the system from crashing.
 	* 20030610 - hamish@zot.org
 	*/
-	if (pci_enable_device(pdev)) {
+	if (pci_enable_device(pdev))
+	{
 		dev_err(&pdev->dev, "can't enable PCI device\n");
 		agp_put_bridge(bridge);
 		return -ENODEV;
 	}
 
 	/* Fill in the mode register */
-	if (cap_ptr) {
+	if (cap_ptr)
+	{
 		pci_read_config_dword(pdev,
-				bridge->capndx+PCI_AGP_STATUS,
-				&bridge->mode);
+							  bridge->capndx + PCI_AGP_STATUS,
+							  &bridge->mode);
 	}
 
 found_gmch:
@@ -828,15 +862,16 @@ static int agp_intel_resume(struct pci_dev *pdev)
 }
 #endif
 
-static struct pci_device_id agp_intel_pci_table[] = {
+static struct pci_device_id agp_intel_pci_table[] =
+{
 #define ID(x)						\
 	{						\
-	.class		= (PCI_CLASS_BRIDGE_HOST << 8),	\
-	.class_mask	= ~0,				\
-	.vendor		= PCI_VENDOR_ID_INTEL,		\
-	.device		= x,				\
-	.subvendor	= PCI_ANY_ID,			\
-	.subdevice	= PCI_ANY_ID,			\
+		.class		= (PCI_CLASS_BRIDGE_HOST << 8),	\
+		.class_mask	= ~0,				\
+		.vendor		= PCI_VENDOR_ID_INTEL,		\
+		.device		= x,				\
+		.subvendor	= PCI_ANY_ID,			\
+		.subdevice	= PCI_ANY_ID,			\
 	}
 	ID(PCI_DEVICE_ID_INTEL_82441), /* for HAS2 support */
 	ID(PCI_DEVICE_ID_INTEL_82443LX_0),
@@ -895,7 +930,8 @@ static struct pci_device_id agp_intel_pci_table[] = {
 
 MODULE_DEVICE_TABLE(pci, agp_intel_pci_table);
 
-static struct pci_driver agp_intel_pci_driver = {
+static struct pci_driver agp_intel_pci_driver =
+{
 	.name		= "agpgart-intel",
 	.id_table	= agp_intel_pci_table,
 	.probe		= agp_intel_probe,
@@ -908,7 +944,10 @@ static struct pci_driver agp_intel_pci_driver = {
 static int __init agp_intel_init(void)
 {
 	if (agp_off)
+	{
 		return -EINVAL;
+	}
+
 	return pci_register_driver(&agp_intel_pci_driver);
 }
 

@@ -47,7 +47,8 @@
 
 #include "usbtv.h"
 
-static struct usbtv_norm_params norm_params[] = {
+static struct usbtv_norm_params norm_params[] =
+{
 	{
 		.norm = V4L2_STD_525_60,
 		.cap_width = 720,
@@ -65,21 +66,27 @@ static int usbtv_configure_for_norm(struct usbtv *usbtv, v4l2_std_id norm)
 	int i, ret = 0;
 	struct usbtv_norm_params *params = NULL;
 
-	for (i = 0; i < ARRAY_SIZE(norm_params); i++) {
-		if (norm_params[i].norm & norm) {
+	for (i = 0; i < ARRAY_SIZE(norm_params); i++)
+	{
+		if (norm_params[i].norm & norm)
+		{
 			params = &norm_params[i];
 			break;
 		}
 	}
 
-	if (params) {
+	if (params)
+	{
 		usbtv->width = params->cap_width;
 		usbtv->height = params->cap_height;
 		usbtv->n_chunks = usbtv->width * usbtv->height
-						/ 4 / USBTV_CHUNK;
+						  / 4 / USBTV_CHUNK;
 		usbtv->norm = params->norm;
-	} else
+	}
+	else
+	{
 		ret = -EINVAL;
+	}
 
 	return ret;
 }
@@ -88,7 +95,8 @@ static int usbtv_select_input(struct usbtv *usbtv, int input)
 {
 	int ret;
 
-	static const u16 composite[][2] = {
+	static const u16 composite[][2] =
+	{
 		{ USBTV_BASE + 0x0105, 0x0060 },
 		{ USBTV_BASE + 0x011f, 0x00f2 },
 		{ USBTV_BASE + 0x0127, 0x0060 },
@@ -96,7 +104,8 @@ static int usbtv_select_input(struct usbtv *usbtv, int input)
 		{ USBTV_BASE + 0x0239, 0x0060 },
 	};
 
-	static const u16 svideo[][2] = {
+	static const u16 svideo[][2] =
+	{
 		{ USBTV_BASE + 0x0105, 0x0010 },
 		{ USBTV_BASE + 0x011f, 0x00ff },
 		{ USBTV_BASE + 0x0127, 0x0060 },
@@ -104,19 +113,24 @@ static int usbtv_select_input(struct usbtv *usbtv, int input)
 		{ USBTV_BASE + 0x0239, 0x0060 },
 	};
 
-	switch (input) {
-	case USBTV_COMPOSITE_INPUT:
-		ret = usbtv_set_regs(usbtv, composite, ARRAY_SIZE(composite));
-		break;
-	case USBTV_SVIDEO_INPUT:
-		ret = usbtv_set_regs(usbtv, svideo, ARRAY_SIZE(svideo));
-		break;
-	default:
-		ret = -EINVAL;
+	switch (input)
+	{
+		case USBTV_COMPOSITE_INPUT:
+			ret = usbtv_set_regs(usbtv, composite, ARRAY_SIZE(composite));
+			break;
+
+		case USBTV_SVIDEO_INPUT:
+			ret = usbtv_set_regs(usbtv, svideo, ARRAY_SIZE(svideo));
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
 
 	if (!ret)
+	{
 		usbtv->input = input;
+	}
 
 	return ret;
 }
@@ -124,7 +138,8 @@ static int usbtv_select_input(struct usbtv *usbtv, int input)
 static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
 {
 	int ret;
-	static const u16 pal[][2] = {
+	static const u16 pal[][2] =
+	{
 		{ USBTV_BASE + 0x001a, 0x0068 },
 		{ USBTV_BASE + 0x010e, 0x0072 },
 		{ USBTV_BASE + 0x010f, 0x00a2 },
@@ -142,7 +157,8 @@ static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
 		{ USBTV_BASE + 0x0267, 0x0036 }
 	};
 
-	static const u16 ntsc[][2] = {
+	static const u16 ntsc[][2] =
+	{
 		{ USBTV_BASE + 0x001a, 0x0079 },
 		{ USBTV_BASE + 0x010e, 0x0068 },
 		{ USBTV_BASE + 0x010f, 0x009c },
@@ -162,11 +178,16 @@ static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
 
 	ret = usbtv_configure_for_norm(usbtv, norm);
 
-	if (!ret) {
+	if (!ret)
+	{
 		if (norm & V4L2_STD_525_60)
+		{
 			ret = usbtv_set_regs(usbtv, ntsc, ARRAY_SIZE(ntsc));
+		}
 		else if (norm & V4L2_STD_PAL)
+		{
 			ret = usbtv_set_regs(usbtv, pal, ARRAY_SIZE(pal));
+		}
 	}
 
 	return ret;
@@ -175,7 +196,8 @@ static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
 static int usbtv_setup_capture(struct usbtv *usbtv)
 {
 	int ret;
-	static const u16 setup[][2] = {
+	static const u16 setup[][2] =
+	{
 		/* These seem to enable the device. */
 		{ USBTV_BASE + 0x0008, 0x0001 },
 		{ USBTV_BASE + 0x01d0, 0x00ff },
@@ -248,16 +270,25 @@ static int usbtv_setup_capture(struct usbtv *usbtv)
 	};
 
 	ret = usbtv_set_regs(usbtv, setup, ARRAY_SIZE(setup));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = usbtv_select_norm(usbtv, usbtv->norm);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = usbtv_select_input(usbtv, usbtv->input);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -286,15 +317,16 @@ static void usbtv_chunk_to_vbuf(u32 *frame, __be32 *src, int chunk_no, int odd)
 {
 	int half;
 
-	for (half = 0; half < 2; half++) {
+	for (half = 0; half < 2; half++)
+	{
 		int part_no = chunk_no * 2 + half;
 		int line = part_no / 3;
 		int part_index = (line * 2 + !odd) * 3 + (part_no % 3);
 
-		u32 *dst = &frame[part_index * USBTV_CHUNK/2];
+		u32 *dst = &frame[part_index * USBTV_CHUNK / 2];
 
-		memcpy(dst, src, USBTV_CHUNK/2 * sizeof(*src));
-		src += USBTV_CHUNK/2;
+		memcpy(dst, src, USBTV_CHUNK / 2 * sizeof(*src));
+		src += USBTV_CHUNK / 2;
 	}
 }
 
@@ -310,24 +342,35 @@ static void usbtv_image_chunk(struct usbtv *usbtv, __be32 *chunk)
 
 	/* Ignore corrupted lines. */
 	if (!USBTV_MAGIC_OK(chunk))
+	{
 		return;
+	}
+
 	frame_id = USBTV_FRAME_ID(chunk);
 	odd = USBTV_ODD(chunk);
 	chunk_no = USBTV_CHUNK_NO(chunk);
+
 	if (chunk_no >= usbtv->n_chunks)
+	{
 		return;
+	}
 
 	/* Beginning of a frame. */
-	if (chunk_no == 0) {
+	if (chunk_no == 0)
+	{
 		usbtv->frame_id = frame_id;
 		usbtv->chunks_done = 0;
 	}
 
 	if (usbtv->frame_id != frame_id)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&usbtv->buflock, flags);
-	if (list_empty(&usbtv->bufs)) {
+
+	if (list_empty(&usbtv->bufs))
+	{
 		/* No free buffers. Userspace likely too slow. */
 		spin_unlock_irqrestore(&usbtv->buflock, flags);
 		return;
@@ -342,14 +385,16 @@ static void usbtv_image_chunk(struct usbtv *usbtv, __be32 *chunk)
 	usbtv->chunks_done++;
 
 	/* Last chunk in a field */
-	if (chunk_no == usbtv->n_chunks-1) {
+	if (chunk_no == usbtv->n_chunks - 1)
+	{
 		/* Last chunk in a frame, signalling an end */
-		if (odd && !usbtv->last_odd) {
+		if (odd && !usbtv->last_odd)
+		{
 			int size = vb2_plane_size(&buf->vb.vb2_buf, 0);
 			enum vb2_buffer_state state = usbtv->chunks_done ==
-				usbtv->n_chunks ?
-				VB2_BUF_STATE_DONE :
-				VB2_BUF_STATE_ERROR;
+										  usbtv->n_chunks ?
+										  VB2_BUF_STATE_DONE :
+										  VB2_BUF_STATE_ERROR;
 
 			buf->vb.field = V4L2_FIELD_INTERLACED;
 			buf->vb.sequence = usbtv->sequence++;
@@ -358,6 +403,7 @@ static void usbtv_image_chunk(struct usbtv *usbtv, __be32 *chunk)
 			vb2_buffer_done(&buf->vb.vb2_buf, state);
 			list_del(&buf->list);
 		}
+
 		usbtv->last_odd = odd;
 	}
 
@@ -372,37 +418,44 @@ static void usbtv_iso_cb(struct urb *ip)
 	int i;
 	struct usbtv *usbtv = (struct usbtv *)ip->context;
 
-	switch (ip->status) {
-	/* All fine. */
-	case 0:
-		break;
-	/* Device disconnected or capture stopped? */
-	case -ENODEV:
-	case -ENOENT:
-	case -ECONNRESET:
-	case -ESHUTDOWN:
-		return;
-	/* Unknown error. Retry. */
-	default:
-		dev_warn(usbtv->dev, "Bad response for ISO request.\n");
-		goto resubmit;
+	switch (ip->status)
+	{
+		/* All fine. */
+		case 0:
+			break;
+
+		/* Device disconnected or capture stopped? */
+		case -ENODEV:
+		case -ENOENT:
+		case -ECONNRESET:
+		case -ESHUTDOWN:
+			return;
+
+		/* Unknown error. Retry. */
+		default:
+			dev_warn(usbtv->dev, "Bad response for ISO request.\n");
+			goto resubmit;
 	}
 
-	for (i = 0; i < ip->number_of_packets; i++) {
+	for (i = 0; i < ip->number_of_packets; i++)
+	{
 		int size = ip->iso_frame_desc[i].actual_length;
 		unsigned char *data = ip->transfer_buffer +
-				ip->iso_frame_desc[i].offset;
+							  ip->iso_frame_desc[i].offset;
 		int offset;
 
 		for (offset = 0; USBTV_CHUNK_SIZE * offset < size; offset++)
 			usbtv_image_chunk(usbtv,
-				(__be32 *)&data[USBTV_CHUNK_SIZE * offset]);
+							  (__be32 *)&data[USBTV_CHUNK_SIZE * offset]);
 	}
 
 resubmit:
 	ret = usb_submit_urb(ip, GFP_ATOMIC);
+
 	if (ret < 0)
+	{
 		dev_warn(usbtv->dev, "Could not resubmit ISO URB\n");
+	}
 }
 
 static struct urb *usbtv_setup_iso_transfer(struct usbtv *usbtv)
@@ -412,8 +465,11 @@ static struct urb *usbtv_setup_iso_transfer(struct usbtv *usbtv)
 	int i;
 
 	ip = usb_alloc_urb(USBTV_ISOC_PACKETS, GFP_KERNEL);
+
 	if (ip == NULL)
+	{
 		return NULL;
+	}
 
 	ip->dev = usbtv->udev;
 	ip->context = usbtv;
@@ -421,15 +477,20 @@ static struct urb *usbtv_setup_iso_transfer(struct usbtv *usbtv)
 	ip->interval = 1;
 	ip->transfer_flags = URB_ISO_ASAP;
 	ip->transfer_buffer = kzalloc(size * USBTV_ISOC_PACKETS,
-						GFP_KERNEL);
-	if (!ip->transfer_buffer) {
+								  GFP_KERNEL);
+
+	if (!ip->transfer_buffer)
+	{
 		usb_free_urb(ip);
 		return NULL;
 	}
+
 	ip->complete = usbtv_iso_cb;
 	ip->number_of_packets = USBTV_ISOC_PACKETS;
 	ip->transfer_buffer_length = size * USBTV_ISOC_PACKETS;
-	for (i = 0; i < USBTV_ISOC_PACKETS; i++) {
+
+	for (i = 0; i < USBTV_ISOC_PACKETS; i++)
+	{
 		ip->iso_frame_desc[i].offset = size * i;
 		ip->iso_frame_desc[i].length = size;
 	}
@@ -443,11 +504,15 @@ static void usbtv_stop(struct usbtv *usbtv)
 	unsigned long flags;
 
 	/* Cancel running transfers. */
-	for (i = 0; i < USBTV_ISOC_TRANSFERS; i++) {
+	for (i = 0; i < USBTV_ISOC_TRANSFERS; i++)
+	{
 		struct urb *ip = usbtv->isoc_urbs[i];
 
 		if (ip == NULL)
+		{
 			continue;
+		}
+
 		usb_kill_urb(ip);
 		kfree(ip->transfer_buffer);
 		usb_free_urb(ip);
@@ -456,12 +521,15 @@ static void usbtv_stop(struct usbtv *usbtv)
 
 	/* Return buffers to userspace. */
 	spin_lock_irqsave(&usbtv->buflock, flags);
-	while (!list_empty(&usbtv->bufs)) {
+
+	while (!list_empty(&usbtv->bufs))
+	{
 		struct usbtv_buf *buf = list_first_entry(&usbtv->bufs,
-						struct usbtv_buf, list);
+								struct usbtv_buf, list);
 		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
 		list_del(&buf->list);
 	}
+
 	spin_unlock_irqrestore(&usbtv->buflock, flags);
 }
 
@@ -473,32 +541,48 @@ static int usbtv_start(struct usbtv *usbtv)
 	usbtv_audio_suspend(usbtv);
 
 	ret = usb_set_interface(usbtv->udev, 0, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = usbtv_setup_capture(usbtv);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = usb_set_interface(usbtv->udev, 0, 1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	usbtv_audio_resume(usbtv);
 
-	for (i = 0; i < USBTV_ISOC_TRANSFERS; i++) {
+	for (i = 0; i < USBTV_ISOC_TRANSFERS; i++)
+	{
 		struct urb *ip;
 
 		ip = usbtv_setup_iso_transfer(usbtv);
-		if (ip == NULL) {
+
+		if (ip == NULL)
+		{
 			ret = -ENOMEM;
 			goto start_fail;
 		}
+
 		usbtv->isoc_urbs[i] = ip;
 
 		ret = usb_submit_urb(ip, GFP_KERNEL);
+
 		if (ret < 0)
+		{
 			goto start_fail;
+		}
 	}
 
 	return 0;
@@ -509,7 +593,7 @@ start_fail:
 }
 
 static int usbtv_querycap(struct file *file, void *priv,
-				struct v4l2_capability *cap)
+						  struct v4l2_capability *cap)
 {
 	struct usbtv *dev = video_drvdata(file);
 
@@ -523,19 +607,22 @@ static int usbtv_querycap(struct file *file, void *priv,
 }
 
 static int usbtv_enum_input(struct file *file, void *priv,
-					struct v4l2_input *i)
+							struct v4l2_input *i)
 {
 	struct usbtv *dev = video_drvdata(file);
 
-	switch (i->index) {
-	case USBTV_COMPOSITE_INPUT:
-		strlcpy(i->name, "Composite", sizeof(i->name));
-		break;
-	case USBTV_SVIDEO_INPUT:
-		strlcpy(i->name, "S-Video", sizeof(i->name));
-		break;
-	default:
-		return -EINVAL;
+	switch (i->index)
+	{
+		case USBTV_COMPOSITE_INPUT:
+			strlcpy(i->name, "Composite", sizeof(i->name));
+			break;
+
+		case USBTV_SVIDEO_INPUT:
+			strlcpy(i->name, "S-Video", sizeof(i->name));
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	i->type = V4L2_INPUT_TYPE_CAMERA;
@@ -544,19 +631,21 @@ static int usbtv_enum_input(struct file *file, void *priv,
 }
 
 static int usbtv_enum_fmt_vid_cap(struct file *file, void  *priv,
-					struct v4l2_fmtdesc *f)
+								  struct v4l2_fmtdesc *f)
 {
 	if (f->index > 0)
+	{
 		return -EINVAL;
+	}
 
 	strlcpy(f->description, "16 bpp YUY2, 4:2:2, packed",
-					sizeof(f->description));
+			sizeof(f->description));
 	f->pixelformat = V4L2_PIX_FMT_YUYV;
 	return 0;
 }
 
 static int usbtv_fmt_vid_cap(struct file *file, void *priv,
-					struct v4l2_format *f)
+							 struct v4l2_format *f)
 {
 	struct usbtv *usbtv = video_drvdata(file);
 
@@ -584,7 +673,9 @@ static int usbtv_s_std(struct file *file, void *priv, v4l2_std_id norm)
 	struct usbtv *usbtv = video_drvdata(file);
 
 	if ((norm & V4L2_STD_525_60) || (norm & V4L2_STD_PAL))
+	{
 		ret = usbtv_select_norm(usbtv, norm);
+	}
 
 	return ret;
 }
@@ -603,7 +694,8 @@ static int usbtv_s_input(struct file *file, void *priv, unsigned int i)
 	return usbtv_select_input(usbtv, i);
 }
 
-static struct v4l2_ioctl_ops usbtv_ioctl_ops = {
+static struct v4l2_ioctl_ops usbtv_ioctl_ops =
+{
 	.vidioc_querycap = usbtv_querycap,
 	.vidioc_enum_input = usbtv_enum_input,
 	.vidioc_enum_fmt_vid_cap = usbtv_enum_fmt_vid_cap,
@@ -625,7 +717,8 @@ static struct v4l2_ioctl_ops usbtv_ioctl_ops = {
 	.vidioc_streamoff = vb2_ioctl_streamoff,
 };
 
-static struct v4l2_file_operations usbtv_fops = {
+static struct v4l2_file_operations usbtv_fops =
+{
 	.owner = THIS_MODULE,
 	.unlocked_ioctl = video_ioctl2,
 	.mmap = vb2_fop_mmap,
@@ -636,16 +729,22 @@ static struct v4l2_file_operations usbtv_fops = {
 };
 
 static int usbtv_queue_setup(struct vb2_queue *vq,
-	unsigned int *nbuffers,
-	unsigned int *nplanes, unsigned int sizes[], struct device *alloc_devs[])
+							 unsigned int *nbuffers,
+							 unsigned int *nplanes, unsigned int sizes[], struct device *alloc_devs[])
 {
 	struct usbtv *usbtv = vb2_get_drv_priv(vq);
 	unsigned size = USBTV_CHUNK * usbtv->n_chunks * 2 * sizeof(u32);
 
 	if (vq->num_buffers + *nbuffers < 2)
+	{
 		*nbuffers = 2 - vq->num_buffers;
+	}
+
 	if (*nplanes)
+	{
 		return sizes[0] < size ? -EINVAL : 0;
+	}
+
 	*nplanes = 1;
 	sizes[0] = size;
 
@@ -659,7 +758,8 @@ static void usbtv_buf_queue(struct vb2_buffer *vb)
 	struct usbtv_buf *buf = container_of(vbuf, struct usbtv_buf, vb);
 	unsigned long flags;
 
-	if (usbtv->udev == NULL) {
+	if (usbtv->udev == NULL)
+	{
 		vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
 		return;
 	}
@@ -674,7 +774,9 @@ static int usbtv_start_streaming(struct vb2_queue *vq, unsigned int count)
 	struct usbtv *usbtv = vb2_get_drv_priv(vq);
 
 	if (usbtv->udev == NULL)
+	{
 		return -ENODEV;
+	}
 
 	usbtv->last_odd = 1;
 	usbtv->sequence = 0;
@@ -686,10 +788,13 @@ static void usbtv_stop_streaming(struct vb2_queue *vq)
 	struct usbtv *usbtv = vb2_get_drv_priv(vq);
 
 	if (usbtv->udev)
+	{
 		usbtv_stop(usbtv);
+	}
 }
 
-static const struct vb2_ops usbtv_vb2_ops = {
+static const struct vb2_ops usbtv_vb2_ops =
+{
 	.queue_setup = usbtv_queue_setup,
 	.buf_queue = usbtv_buf_queue,
 	.start_streaming = usbtv_start_streaming,
@@ -726,7 +831,9 @@ int usbtv_video_init(struct usbtv *usbtv)
 	usbtv->vb2q.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
 	usbtv->vb2q.lock = &usbtv->vb2q_lock;
 	ret = vb2_queue_init(&usbtv->vb2q);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_warn(usbtv->dev, "Could not initialize videobuf2 queue\n");
 		return ret;
 	}
@@ -734,7 +841,9 @@ int usbtv_video_init(struct usbtv *usbtv)
 	/* v4l2 structure */
 	usbtv->v4l2_dev.release = usbtv_release;
 	ret = v4l2_device_register(usbtv->dev, &usbtv->v4l2_dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_warn(usbtv->dev, "Could not register v4l2 device\n");
 		goto v4l2_fail;
 	}
@@ -750,7 +859,9 @@ int usbtv_video_init(struct usbtv *usbtv)
 	usbtv->vdev.lock = &usbtv->v4l2_lock;
 	video_set_drvdata(&usbtv->vdev, usbtv);
 	ret = video_register_device(&usbtv->vdev, VFL_TYPE_GRABBER, -1);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_warn(usbtv->dev, "Could not register video device\n");
 		goto vdev_fail;
 	}

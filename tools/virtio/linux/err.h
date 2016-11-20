@@ -4,7 +4,7 @@
 
 #define IS_ERR_VALUE(x) unlikely((x) >= (unsigned long)-MAX_ERRNO)
 
-static inline void * __must_check ERR_PTR(long error)
+static inline void *__must_check ERR_PTR(long error)
 {
 	return (void *) error;
 }

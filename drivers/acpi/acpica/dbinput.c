@@ -46,7 +46,7 @@
 #include "acdebug.h"
 
 #ifdef ACPI_APPLICATION
-#include "acapps.h"
+	#include "acapps.h"
 #endif
 
 #define _COMPONENT          ACPI_CA_DEBUGGER
@@ -63,14 +63,15 @@ static void acpi_db_display_help(char *command);
 
 static u8
 acpi_db_match_command_help(const char *command,
-			   const struct acpi_db_command_help *help);
+						   const struct acpi_db_command_help *help);
 
 /*
  * Top-level debugger commands.
  *
  * This list of commands must match the string table below it
  */
-enum acpi_ex_debugger_commands {
+enum acpi_ex_debugger_commands
+{
 	CMD_NOT_FOUND = 0,
 	CMD_NULL,
 	CMD_ALLOCATIONS,
@@ -146,7 +147,8 @@ enum acpi_ex_debugger_commands {
 
 /* Second parameter is the required argument count */
 
-static const struct acpi_db_command_info acpi_gbl_db_commands[] = {
+static const struct acpi_db_command_info acpi_gbl_db_commands[] =
+{
 	{"<NOT FOUND>", 0},
 	{"<NULL>", 0},
 	{"ALLOCATIONS", 0},
@@ -223,23 +225,32 @@ static const struct acpi_db_command_info acpi_gbl_db_commands[] = {
  * Help for all debugger commands. First argument is the number of lines
  * of help to output for the command.
  */
-static const struct acpi_db_command_help acpi_gbl_db_command_help[] = {
+static const struct acpi_db_command_help acpi_gbl_db_command_help[] =
+{
 	{0, "\nGeneral-Purpose Commands:", "\n"},
 	{1, "  Allocations", "Display list of current memory allocations\n"},
 	{2, "  Dump <Address>|<Namepath>", "\n"},
-	{0, "       [Byte|Word|Dword|Qword]",
-	 "Display ACPI objects or memory\n"},
+	{
+		0, "       [Byte|Word|Dword|Qword]",
+		"Display ACPI objects or memory\n"
+	},
 	{1, "  Handlers", "Info about global handlers\n"},
 	{1, "  Help [Command]", "This help screen or individual command\n"},
 	{1, "  History", "Display command history buffer\n"},
-	{1, "  Level <DebugLevel>] [console]",
-	 "Get/Set debug level for file or console\n"},
+	{
+		1, "  Level <DebugLevel>] [console]",
+		"Get/Set debug level for file or console\n"
+	},
 	{1, "  Locks", "Current status of internal mutexes\n"},
-	{1, "  Osi [Install|Remove <name>]",
-	 "Display or modify global _OSI list\n"},
+	{
+		1, "  Osi [Install|Remove <name>]",
+		"Display or modify global _OSI list\n"
+	},
 	{1, "  Quit or Exit", "Exit this command\n"},
-	{8, "  Stats <SubCommand>",
-	 "Display namespace and memory statistics\n"},
+	{
+		8, "  Stats <SubCommand>",
+		"Display namespace and memory statistics\n"
+	},
 	{1, "     Allocations", "Display list of current memory allocations\n"},
 	{1, "     Memory", "Dump internal memory lists\n"},
 	{1, "     Misc", "Namespace search and mutex stats\n"},
@@ -254,23 +265,33 @@ static const struct acpi_db_command_help acpi_gbl_db_command_help[] = {
 	{0, "\nNamespace Access Commands:", "\n"},
 	{1, "  Businfo", "Display system bus info\n"},
 	{1, "  Disassemble <Method>", "Disassemble a control method\n"},
-	{1, "  Find <AcpiName> (? is wildcard)",
-	 "Find ACPI name(s) with wildcards\n"},
+	{
+		1, "  Find <AcpiName> (? is wildcard)",
+		"Find ACPI name(s) with wildcards\n"
+	},
 	{1, "  Integrity", "Validate namespace integrity\n"},
 	{1, "  Methods", "Display list of loaded control methods\n"},
-	{1, "  Namespace [Object] [Depth]",
-	 "Display loaded namespace tree/subtree\n"},
+	{
+		1, "  Namespace [Object] [Depth]",
+		"Display loaded namespace tree/subtree\n"
+	},
 	{1, "  Notify <Object> <Value>", "Send a notification on Object\n"},
-	{1, "  Objects [ObjectType]",
-	 "Display summary of all objects or just given type\n"},
-	{1, "  Owner <OwnerId> [Depth]",
-	 "Display loaded namespace by object owner\n"},
+	{
+		1, "  Objects [ObjectType]",
+		"Display summary of all objects or just given type\n"
+	},
+	{
+		1, "  Owner <OwnerId> [Depth]",
+		"Display loaded namespace by object owner\n"
+	},
 	{1, "  Paths", "Display full pathnames of namespace objects\n"},
 	{1, "  Predefined", "Check all predefined names\n"},
 	{1, "  Prefix [<Namepath>]", "Set or Get current execution prefix\n"},
 	{1, "  References <Addr>", "Find all references to object at addr\n"},
-	{1, "  Resources [DeviceName]",
-	 "Display Device resources (no arg = all devices)\n"},
+	{
+		1, "  Resources [DeviceName]",
+		"Display Device resources (no arg = all devices)\n"
+	},
 	{1, "  Set N <NamedObject> <Value>", "Set value for named integer\n"},
 	{1, "  Template <Object>", "Format/dump a Buffer/ResourceTemplate\n"},
 	{1, "  Type <Object>", "Display object type\n"},
@@ -286,8 +307,10 @@ static const struct acpi_db_command_help acpi_gbl_db_command_help[] = {
 	{1, "     \"Ascii String\"", "String method argument\n"},
 	{1, "     (Hex Byte List)", "Buffer method argument\n"},
 	{1, "     [Package Element List]", "Package method argument\n"},
-	{5, "  Execute predefined",
-	 "Execute all predefined (public) methods\n"},
+	{
+		5, "  Execute predefined",
+		"Execute all predefined (public) methods\n"
+	},
 	{1, "  Go", "Allow method to run to completion\n"},
 	{1, "  Information", "Display info about the current method\n"},
 	{1, "  Into", "Step into (not over) a method call\n"},
@@ -296,8 +319,10 @@ static const struct acpi_db_command_help acpi_gbl_db_command_help[] = {
 	{1, "  Results", "Display method result stack\n"},
 	{1, "  Set <A|L> <#> <Value>", "Set method data (Arguments/Locals)\n"},
 	{1, "  Stop", "Terminate control method\n"},
-	{5, "  Trace <State> [<Namepath>] [Once]",
-	 "Trace control method execution\n"},
+	{
+		5, "  Trace <State> [<Namepath>] [Once]",
+		"Trace control method execution\n"
+	},
 	{1, "     Enable", "Enable all messages\n"},
 	{1, "     Disable", "Disable tracing\n"},
 	{1, "     Method", "Enable method execution messages\n"},
@@ -318,19 +343,25 @@ static const struct acpi_db_command_help acpi_gbl_db_command_help[] = {
 	{1, "  Close", "Close debug output file\n"},
 	{1, "  Load <Input Filename>", "Load ACPI table from a file\n"},
 	{1, "  Open <Output Filename>", "Open a file for debug output\n"},
-	{1, "  Unload <Namepath>",
-	 "Unload an ACPI table via namespace object\n"},
+	{
+		1, "  Unload <Namepath>",
+		"Unload an ACPI table via namespace object\n"
+	},
 
 	{0, "\nUser Space Commands:", "\n"},
 	{1, "  Terminate", "Delete namespace and all internal objects\n"},
-	{1, "  Thread <Threads><Loops><NamePath>",
-	 "Spawn threads to execute method(s)\n"},
+	{
+		1, "  Thread <Threads><Loops><NamePath>",
+		"Spawn threads to execute method(s)\n"
+	},
 
 	{0, "\nDebug Test Commands:", "\n"},
 	{3, "  Test <TestName>", "Invoke a debug test\n"},
 	{1, "     Objects", "Read/write/compare all namespace data objects\n"},
-	{1, "     Predefined",
-	 "Execute all ACPI predefined names (_STA, etc.)\n"},
+	{
+		1, "     Predefined",
+		"Execute all ACPI predefined names (_STA, etc.)\n"
+	},
 #endif
 	{0, NULL, NULL}
 };
@@ -351,25 +382,29 @@ static const struct acpi_db_command_help acpi_gbl_db_command_help[] = {
 
 static u8
 acpi_db_match_command_help(const char *command,
-			   const struct acpi_db_command_help *help)
+						   const struct acpi_db_command_help *help)
 {
 	char *invocation = help->invocation;
 	u32 line_count;
 
 	/* Valid commands in the help table begin with a couple of spaces */
 
-	if (*invocation != ' ') {
+	if (*invocation != ' ')
+	{
 		return (FALSE);
 	}
 
-	while (*invocation == ' ') {
+	while (*invocation == ' ')
+	{
 		invocation++;
 	}
 
 	/* Match command name (full command or substring) */
 
-	while ((*command) && (*invocation) && (*invocation != ' ')) {
-		if (tolower((int)*command) != tolower((int)*invocation)) {
+	while ((*command) && (*invocation) && (*invocation != ' '))
+	{
+		if (tolower((int)*command) != tolower((int)*invocation))
+		{
 			return (FALSE);
 		}
 
@@ -380,9 +415,11 @@ acpi_db_match_command_help(const char *command,
 	/* Print the appropriate number of help lines */
 
 	line_count = help->line_count;
-	while (line_count) {
+
+	while (line_count)
+	{
 		acpi_os_printf("%-38s : %s", help->invocation,
-			       help->description);
+					   help->description);
 		help++;
 		line_count--;
 	}
@@ -410,9 +447,13 @@ static void acpi_db_display_command_info(const char *command, u8 display_all)
 	u8 matched;
 
 	next = acpi_gbl_db_command_help;
-	while (next->invocation) {
+
+	while (next->invocation)
+	{
 		matched = acpi_db_match_command_help(command, next);
-		if (!display_all && matched) {
+
+		if (!display_all && matched)
+		{
 			return;
 		}
 
@@ -438,16 +479,20 @@ static void acpi_db_display_help(char *command)
 {
 	const struct acpi_db_command_help *next = acpi_gbl_db_command_help;
 
-	if (!command) {
+	if (!command)
+	{
 
 		/* No argument to help, display help for all commands */
 
-		while (next->invocation) {
+		while (next->invocation)
+		{
 			acpi_os_printf("%-38s%s", next->invocation,
-				       next->description);
+						   next->description);
 			next++;
 		}
-	} else {
+	}
+	else
+	{
 		/* Display help for all commands that match the subtring */
 
 		acpi_db_display_command_info(command, TRUE);
@@ -468,7 +513,7 @@ static void acpi_db_display_help(char *command)
  ******************************************************************************/
 
 char *acpi_db_get_next_token(char *string,
-			     char **next, acpi_object_type *return_type)
+							 char **next, acpi_object_type *return_type)
 {
 	char *start;
 	u32 depth;
@@ -476,106 +521,133 @@ char *acpi_db_get_next_token(char *string,
 
 	/* At end of buffer? */
 
-	if (!string || !(*string)) {
+	if (!string || !(*string))
+	{
 		return (NULL);
 	}
 
 	/* Remove any spaces at the beginning */
 
-	if (*string == ' ') {
-		while (*string && (*string == ' ')) {
+	if (*string == ' ')
+	{
+		while (*string && (*string == ' '))
+		{
 			string++;
 		}
 
-		if (!(*string)) {
+		if (!(*string))
+		{
 			return (NULL);
 		}
 	}
 
-	switch (*string) {
-	case '"':
+	switch (*string)
+	{
+		case '"':
 
-		/* This is a quoted string, scan until closing quote */
+			/* This is a quoted string, scan until closing quote */
 
-		string++;
-		start = string;
-		type = ACPI_TYPE_STRING;
-
-		/* Find end of string */
-
-		while (*string && (*string != '"')) {
 			string++;
-		}
-		break;
+			start = string;
+			type = ACPI_TYPE_STRING;
 
-	case '(':
+			/* Find end of string */
 
-		/* This is the start of a buffer, scan until closing paren */
-
-		string++;
-		start = string;
-		type = ACPI_TYPE_BUFFER;
-
-		/* Find end of buffer */
-
-		while (*string && (*string != ')')) {
-			string++;
-		}
-		break;
-
-	case '[':
-
-		/* This is the start of a package, scan until closing bracket */
-
-		string++;
-		depth = 1;
-		start = string;
-		type = ACPI_TYPE_PACKAGE;
-
-		/* Find end of package (closing bracket) */
-
-		while (*string) {
-
-			/* Handle String package elements */
-
-			if (*string == '"') {
-				/* Find end of string */
-
+			while (*string && (*string != '"'))
+			{
 				string++;
-				while (*string && (*string != '"')) {
-					string++;
-				}
-				if (!(*string)) {
-					break;
-				}
-			} else if (*string == '[') {
-				depth++;	/* A nested package declaration */
-			} else if (*string == ']') {
-				depth--;
-				if (depth == 0) {	/* Found final package closing bracket */
-					break;
-				}
 			}
 
+			break;
+
+		case '(':
+
+			/* This is the start of a buffer, scan until closing paren */
+
 			string++;
-		}
-		break;
+			start = string;
+			type = ACPI_TYPE_BUFFER;
 
-	default:
+			/* Find end of buffer */
 
-		start = string;
+			while (*string && (*string != ')'))
+			{
+				string++;
+			}
 
-		/* Find end of token */
+			break;
 
-		while (*string && (*string != ' ')) {
+		case '[':
+
+			/* This is the start of a package, scan until closing bracket */
+
 			string++;
-		}
-		break;
+			depth = 1;
+			start = string;
+			type = ACPI_TYPE_PACKAGE;
+
+			/* Find end of package (closing bracket) */
+
+			while (*string)
+			{
+
+				/* Handle String package elements */
+
+				if (*string == '"')
+				{
+					/* Find end of string */
+
+					string++;
+
+					while (*string && (*string != '"'))
+					{
+						string++;
+					}
+
+					if (!(*string))
+					{
+						break;
+					}
+				}
+				else if (*string == '[')
+				{
+					depth++;	/* A nested package declaration */
+				}
+				else if (*string == ']')
+				{
+					depth--;
+
+					if (depth == 0)  	/* Found final package closing bracket */
+					{
+						break;
+					}
+				}
+
+				string++;
+			}
+
+			break;
+
+		default:
+
+			start = string;
+
+			/* Find end of token */
+
+			while (*string && (*string != ' '))
+			{
+				string++;
+			}
+
+			break;
 	}
 
-	if (!(*string)) {
+	if (!(*string))
+	{
 		*next = NULL;
-	} else {
+	}
+	else
+	{
 		*string = 0;
 		*next = string + 1;
 	}
@@ -605,20 +677,25 @@ static u32 acpi_db_get_line(char *input_buffer)
 	char *this;
 
 	if (acpi_ut_safe_strcpy
-	    (acpi_gbl_db_parsed_buf, sizeof(acpi_gbl_db_parsed_buf),
-	     input_buffer)) {
+		(acpi_gbl_db_parsed_buf, sizeof(acpi_gbl_db_parsed_buf),
+		 input_buffer))
+	{
 		acpi_os_printf
-		    ("Buffer overflow while parsing input line (max %u characters)\n",
-		     sizeof(acpi_gbl_db_parsed_buf));
+		("Buffer overflow while parsing input line (max %u characters)\n",
+		 sizeof(acpi_gbl_db_parsed_buf));
 		return (0);
 	}
 
 	this = acpi_gbl_db_parsed_buf;
-	for (i = 0; i < ACPI_DEBUGGER_MAX_ARGS; i++) {
+
+	for (i = 0; i < ACPI_DEBUGGER_MAX_ARGS; i++)
+	{
 		acpi_gbl_db_args[i] = acpi_db_get_next_token(this, &next,
-							     &acpi_gbl_db_arg_types
-							     [i]);
-		if (!acpi_gbl_db_args[i]) {
+							  &acpi_gbl_db_arg_types
+							  [i]);
+
+		if (!acpi_gbl_db_args[i])
+		{
 			break;
 		}
 
@@ -630,7 +707,9 @@ static u32 acpi_db_get_line(char *input_buffer)
 	acpi_ut_strupr(acpi_gbl_db_args[0]);
 
 	count = i;
-	if (count) {
+
+	if (count)
+	{
 		count--;	/* Number of args only */
 	}
 
@@ -653,14 +732,17 @@ static u32 acpi_db_match_command(char *user_command)
 {
 	u32 i;
 
-	if (!user_command || user_command[0] == 0) {
+	if (!user_command || user_command[0] == 0)
+	{
 		return (CMD_NULL);
 	}
 
-	for (i = CMD_FIRST_VALID; acpi_gbl_db_commands[i].name; i++) {
+	for (i = CMD_FIRST_VALID; acpi_gbl_db_commands[i].name; i++)
+	{
 		if (strstr
-		    (ACPI_CAST_PTR(char, acpi_gbl_db_commands[i].name),
-		     user_command) == acpi_gbl_db_commands[i].name) {
+			(ACPI_CAST_PTR(char, acpi_gbl_db_commands[i].name),
+			 user_command) == acpi_gbl_db_commands[i].name)
+		{
 			return (i);
 		}
 	}
@@ -686,8 +768,8 @@ static u32 acpi_db_match_command(char *user_command)
 
 acpi_status
 acpi_db_command_dispatch(char *input_buffer,
-			 struct acpi_walk_state *walk_state,
-			 union acpi_parse_object *op)
+						 struct acpi_walk_state *walk_state,
+						 union acpi_parse_object *op)
 {
 	u32 temp;
 	u32 command_index;
@@ -697,7 +779,8 @@ acpi_db_command_dispatch(char *input_buffer,
 
 	/* If acpi_terminate has been called, terminate this thread */
 
-	if (acpi_gbl_db_terminate_loop) {
+	if (acpi_gbl_db_terminate_loop)
+	{
 		return (AE_CTRL_TERMINATE);
 	}
 
@@ -712,431 +795,458 @@ acpi_db_command_dispatch(char *input_buffer,
 	 * would cause an infinite loop because it would always be the
 	 * previous command.
 	 */
-	if (command_index != CMD_HISTORY_LAST) {
+	if (command_index != CMD_HISTORY_LAST)
+	{
 		acpi_db_add_to_history(input_buffer);
 	}
 
 	/* Verify that we have the minimum number of params */
 
-	if (param_count < acpi_gbl_db_commands[command_index].min_args) {
+	if (param_count < acpi_gbl_db_commands[command_index].min_args)
+	{
 		acpi_os_printf
-		    ("%u parameters entered, [%s] requires %u parameters\n",
-		     param_count, acpi_gbl_db_commands[command_index].name,
-		     acpi_gbl_db_commands[command_index].min_args);
+		("%u parameters entered, [%s] requires %u parameters\n",
+		 param_count, acpi_gbl_db_commands[command_index].name,
+		 acpi_gbl_db_commands[command_index].min_args);
 
 		acpi_db_display_command_info(acpi_gbl_db_commands
-					     [command_index].name, FALSE);
+									 [command_index].name, FALSE);
 		return (AE_CTRL_TRUE);
 	}
 
 	/* Decode and dispatch the command */
 
-	switch (command_index) {
-	case CMD_NULL:
+	switch (command_index)
+	{
+		case CMD_NULL:
 
-		if (op) {
-			return (AE_OK);
-		}
-		break;
+			if (op)
+			{
+				return (AE_OK);
+			}
 
-	case CMD_ALLOCATIONS:
+			break;
+
+		case CMD_ALLOCATIONS:
 
 #ifdef ACPI_DBG_TRACK_ALLOCATIONS
-		acpi_ut_dump_allocations((u32)-1, NULL);
+			acpi_ut_dump_allocations((u32) - 1, NULL);
 #endif
-		break;
+			break;
 
-	case CMD_ARGS:
-	case CMD_ARGUMENTS:
+		case CMD_ARGS:
+		case CMD_ARGUMENTS:
 
-		acpi_db_display_arguments();
-		break;
+			acpi_db_display_arguments();
+			break;
 
-	case CMD_BREAKPOINT:
+		case CMD_BREAKPOINT:
 
-		acpi_db_set_method_breakpoint(acpi_gbl_db_args[1], walk_state,
-					      op);
-		break;
+			acpi_db_set_method_breakpoint(acpi_gbl_db_args[1], walk_state,
+										  op);
+			break;
 
-	case CMD_BUSINFO:
+		case CMD_BUSINFO:
 
-		acpi_db_get_bus_info();
-		break;
+			acpi_db_get_bus_info();
+			break;
 
-	case CMD_CALL:
+		case CMD_CALL:
 
-		acpi_db_set_method_call_breakpoint(op);
-		status = AE_OK;
-		break;
+			acpi_db_set_method_call_breakpoint(op);
+			status = AE_OK;
+			break;
 
-	case CMD_DEBUG:
+		case CMD_DEBUG:
 
-		acpi_db_execute(acpi_gbl_db_args[1],
-				&acpi_gbl_db_args[2], &acpi_gbl_db_arg_types[2],
-				EX_SINGLE_STEP);
-		break;
+			acpi_db_execute(acpi_gbl_db_args[1],
+							&acpi_gbl_db_args[2], &acpi_gbl_db_arg_types[2],
+							EX_SINGLE_STEP);
+			break;
 
-	case CMD_DISASSEMBLE:
-	case CMD_DISASM:
+		case CMD_DISASSEMBLE:
+		case CMD_DISASM:
 
-		(void)acpi_db_disassemble_method(acpi_gbl_db_args[1]);
-		break;
+			(void)acpi_db_disassemble_method(acpi_gbl_db_args[1]);
+			break;
 
-	case CMD_DUMP:
+		case CMD_DUMP:
 
-		acpi_db_decode_and_display_object(acpi_gbl_db_args[1],
-						  acpi_gbl_db_args[2]);
-		break;
+			acpi_db_decode_and_display_object(acpi_gbl_db_args[1],
+											  acpi_gbl_db_args[2]);
+			break;
 
-	case CMD_EVALUATE:
-	case CMD_EXECUTE:
+		case CMD_EVALUATE:
+		case CMD_EXECUTE:
 
-		acpi_db_execute(acpi_gbl_db_args[1],
-				&acpi_gbl_db_args[2], &acpi_gbl_db_arg_types[2],
-				EX_NO_SINGLE_STEP);
-		break;
+			acpi_db_execute(acpi_gbl_db_args[1],
+							&acpi_gbl_db_args[2], &acpi_gbl_db_arg_types[2],
+							EX_NO_SINGLE_STEP);
+			break;
 
-	case CMD_FIND:
+		case CMD_FIND:
 
-		status = acpi_db_find_name_in_namespace(acpi_gbl_db_args[1]);
-		break;
+			status = acpi_db_find_name_in_namespace(acpi_gbl_db_args[1]);
+			break;
 
-	case CMD_GO:
+		case CMD_GO:
 
-		acpi_gbl_cm_single_step = FALSE;
-		return (AE_OK);
-
-	case CMD_HANDLERS:
-
-		acpi_db_display_handlers();
-		break;
-
-	case CMD_HELP:
-	case CMD_HELP2:
-
-		acpi_db_display_help(acpi_gbl_db_args[1]);
-		break;
-
-	case CMD_HISTORY:
-
-		acpi_db_display_history();
-		break;
-
-	case CMD_HISTORY_EXE:	/* ! command */
-
-		command_line = acpi_db_get_from_history(acpi_gbl_db_args[1]);
-		if (!command_line) {
-			return (AE_CTRL_TRUE);
-		}
-
-		status = acpi_db_command_dispatch(command_line, walk_state, op);
-		return (status);
-
-	case CMD_HISTORY_LAST:	/* !! command */
-
-		command_line = acpi_db_get_from_history(NULL);
-		if (!command_line) {
-			return (AE_CTRL_TRUE);
-		}
-
-		status = acpi_db_command_dispatch(command_line, walk_state, op);
-		return (status);
-
-	case CMD_INFORMATION:
-
-		acpi_db_display_method_info(op);
-		break;
-
-	case CMD_INTEGRITY:
-
-		acpi_db_check_integrity();
-		break;
-
-	case CMD_INTO:
-
-		if (op) {
-			acpi_gbl_cm_single_step = TRUE;
+			acpi_gbl_cm_single_step = FALSE;
 			return (AE_OK);
-		}
-		break;
 
-	case CMD_LEVEL:
+		case CMD_HANDLERS:
 
-		if (param_count == 0) {
-			acpi_os_printf
-			    ("Current debug level for file output is:    %8.8lX\n",
-			     acpi_gbl_db_debug_level);
-			acpi_os_printf
-			    ("Current debug level for console output is: %8.8lX\n",
-			     acpi_gbl_db_console_debug_level);
-		} else if (param_count == 2) {
-			temp = acpi_gbl_db_console_debug_level;
-			acpi_gbl_db_console_debug_level =
-			    strtoul(acpi_gbl_db_args[1], NULL, 16);
-			acpi_os_printf
-			    ("Debug Level for console output was %8.8lX, now %8.8lX\n",
-			     temp, acpi_gbl_db_console_debug_level);
-		} else {
-			temp = acpi_gbl_db_debug_level;
-			acpi_gbl_db_debug_level =
-			    strtoul(acpi_gbl_db_args[1], NULL, 16);
-			acpi_os_printf
-			    ("Debug Level for file output was %8.8lX, now %8.8lX\n",
-			     temp, acpi_gbl_db_debug_level);
-		}
-		break;
+			acpi_db_display_handlers();
+			break;
 
-	case CMD_LIST:
+		case CMD_HELP:
+		case CMD_HELP2:
 
-		acpi_db_disassemble_aml(acpi_gbl_db_args[1], op);
-		break;
+			acpi_db_display_help(acpi_gbl_db_args[1]);
+			break;
 
-	case CMD_LOCKS:
+		case CMD_HISTORY:
 
-		acpi_db_display_locks();
-		break;
+			acpi_db_display_history();
+			break;
 
-	case CMD_LOCALS:
+		case CMD_HISTORY_EXE:	/* ! command */
 
-		acpi_db_display_locals();
-		break;
+			command_line = acpi_db_get_from_history(acpi_gbl_db_args[1]);
 
-	case CMD_METHODS:
+			if (!command_line)
+			{
+				return (AE_CTRL_TRUE);
+			}
 
-		status = acpi_db_display_objects("METHOD", acpi_gbl_db_args[1]);
-		break;
+			status = acpi_db_command_dispatch(command_line, walk_state, op);
+			return (status);
 
-	case CMD_NAMESPACE:
+		case CMD_HISTORY_LAST:	/* !! command */
 
-		acpi_db_dump_namespace(acpi_gbl_db_args[1],
-				       acpi_gbl_db_args[2]);
-		break;
+			command_line = acpi_db_get_from_history(NULL);
 
-	case CMD_NOTIFY:
+			if (!command_line)
+			{
+				return (AE_CTRL_TRUE);
+			}
 
-		temp = strtoul(acpi_gbl_db_args[2], NULL, 0);
-		acpi_db_send_notify(acpi_gbl_db_args[1], temp);
-		break;
+			status = acpi_db_command_dispatch(command_line, walk_state, op);
+			return (status);
 
-	case CMD_OBJECTS:
+		case CMD_INFORMATION:
 
-		acpi_ut_strupr(acpi_gbl_db_args[1]);
-		status =
-		    acpi_db_display_objects(acpi_gbl_db_args[1],
-					    acpi_gbl_db_args[2]);
-		break;
+			acpi_db_display_method_info(op);
+			break;
 
-	case CMD_OSI:
+		case CMD_INTEGRITY:
 
-		acpi_db_display_interfaces(acpi_gbl_db_args[1],
-					   acpi_gbl_db_args[2]);
-		break;
+			acpi_db_check_integrity();
+			break;
 
-	case CMD_OWNER:
+		case CMD_INTO:
 
-		acpi_db_dump_namespace_by_owner(acpi_gbl_db_args[1],
-						acpi_gbl_db_args[2]);
-		break;
+			if (op)
+			{
+				acpi_gbl_cm_single_step = TRUE;
+				return (AE_OK);
+			}
 
-	case CMD_PATHS:
+			break;
 
-		acpi_db_dump_namespace_paths();
-		break;
+		case CMD_LEVEL:
 
-	case CMD_PREFIX:
+			if (param_count == 0)
+			{
+				acpi_os_printf
+				("Current debug level for file output is:    %8.8lX\n",
+				 acpi_gbl_db_debug_level);
+				acpi_os_printf
+				("Current debug level for console output is: %8.8lX\n",
+				 acpi_gbl_db_console_debug_level);
+			}
+			else if (param_count == 2)
+			{
+				temp = acpi_gbl_db_console_debug_level;
+				acpi_gbl_db_console_debug_level =
+					strtoul(acpi_gbl_db_args[1], NULL, 16);
+				acpi_os_printf
+				("Debug Level for console output was %8.8lX, now %8.8lX\n",
+				 temp, acpi_gbl_db_console_debug_level);
+			}
+			else
+			{
+				temp = acpi_gbl_db_debug_level;
+				acpi_gbl_db_debug_level =
+					strtoul(acpi_gbl_db_args[1], NULL, 16);
+				acpi_os_printf
+				("Debug Level for file output was %8.8lX, now %8.8lX\n",
+				 temp, acpi_gbl_db_debug_level);
+			}
 
-		acpi_db_set_scope(acpi_gbl_db_args[1]);
-		break;
+			break;
 
-	case CMD_REFERENCES:
+		case CMD_LIST:
 
-		acpi_db_find_references(acpi_gbl_db_args[1]);
-		break;
+			acpi_db_disassemble_aml(acpi_gbl_db_args[1], op);
+			break;
 
-	case CMD_RESOURCES:
+		case CMD_LOCKS:
 
-		acpi_db_display_resources(acpi_gbl_db_args[1]);
-		break;
+			acpi_db_display_locks();
+			break;
 
-	case CMD_RESULTS:
+		case CMD_LOCALS:
 
-		acpi_db_display_results();
-		break;
+			acpi_db_display_locals();
+			break;
 
-	case CMD_SET:
+		case CMD_METHODS:
 
-		acpi_db_set_method_data(acpi_gbl_db_args[1],
-					acpi_gbl_db_args[2],
-					acpi_gbl_db_args[3]);
-		break;
+			status = acpi_db_display_objects("METHOD", acpi_gbl_db_args[1]);
+			break;
 
-	case CMD_STATS:
+		case CMD_NAMESPACE:
 
-		status = acpi_db_display_statistics(acpi_gbl_db_args[1]);
-		break;
+			acpi_db_dump_namespace(acpi_gbl_db_args[1],
+								   acpi_gbl_db_args[2]);
+			break;
 
-	case CMD_STOP:
+		case CMD_NOTIFY:
 
-		return (AE_NOT_IMPLEMENTED);
+			temp = strtoul(acpi_gbl_db_args[2], NULL, 0);
+			acpi_db_send_notify(acpi_gbl_db_args[1], temp);
+			break;
 
-	case CMD_TABLES:
+		case CMD_OBJECTS:
 
-		acpi_db_display_table_info(acpi_gbl_db_args[1]);
-		break;
+			acpi_ut_strupr(acpi_gbl_db_args[1]);
+			status =
+				acpi_db_display_objects(acpi_gbl_db_args[1],
+										acpi_gbl_db_args[2]);
+			break;
 
-	case CMD_TEMPLATE:
+		case CMD_OSI:
 
-		acpi_db_display_template(acpi_gbl_db_args[1]);
-		break;
+			acpi_db_display_interfaces(acpi_gbl_db_args[1],
+									   acpi_gbl_db_args[2]);
+			break;
 
-	case CMD_TRACE:
+		case CMD_OWNER:
 
-		acpi_db_trace(acpi_gbl_db_args[1], acpi_gbl_db_args[2],
-			      acpi_gbl_db_args[3]);
-		break;
+			acpi_db_dump_namespace_by_owner(acpi_gbl_db_args[1],
+											acpi_gbl_db_args[2]);
+			break;
 
-	case CMD_TREE:
+		case CMD_PATHS:
 
-		acpi_db_display_calling_tree();
-		break;
+			acpi_db_dump_namespace_paths();
+			break;
 
-	case CMD_TYPE:
+		case CMD_PREFIX:
 
-		acpi_db_display_object_type(acpi_gbl_db_args[1]);
-		break;
+			acpi_db_set_scope(acpi_gbl_db_args[1]);
+			break;
+
+		case CMD_REFERENCES:
+
+			acpi_db_find_references(acpi_gbl_db_args[1]);
+			break;
+
+		case CMD_RESOURCES:
+
+			acpi_db_display_resources(acpi_gbl_db_args[1]);
+			break;
+
+		case CMD_RESULTS:
+
+			acpi_db_display_results();
+			break;
+
+		case CMD_SET:
+
+			acpi_db_set_method_data(acpi_gbl_db_args[1],
+									acpi_gbl_db_args[2],
+									acpi_gbl_db_args[3]);
+			break;
+
+		case CMD_STATS:
+
+			status = acpi_db_display_statistics(acpi_gbl_db_args[1]);
+			break;
+
+		case CMD_STOP:
+
+			return (AE_NOT_IMPLEMENTED);
+
+		case CMD_TABLES:
+
+			acpi_db_display_table_info(acpi_gbl_db_args[1]);
+			break;
+
+		case CMD_TEMPLATE:
+
+			acpi_db_display_template(acpi_gbl_db_args[1]);
+			break;
+
+		case CMD_TRACE:
+
+			acpi_db_trace(acpi_gbl_db_args[1], acpi_gbl_db_args[2],
+						  acpi_gbl_db_args[3]);
+			break;
+
+		case CMD_TREE:
+
+			acpi_db_display_calling_tree();
+			break;
+
+		case CMD_TYPE:
+
+			acpi_db_display_object_type(acpi_gbl_db_args[1]);
+			break;
 
 #ifdef ACPI_APPLICATION
 
 		/* Hardware simulation commands. */
 
-	case CMD_ENABLEACPI:
+		case CMD_ENABLEACPI:
 #if (!ACPI_REDUCED_HARDWARE)
 
-		status = acpi_enable();
-		if (ACPI_FAILURE(status)) {
-			acpi_os_printf("AcpiEnable failed (Status=%X)\n",
-				       status);
-			return (status);
-		}
+			status = acpi_enable();
+
+			if (ACPI_FAILURE(status))
+			{
+				acpi_os_printf("AcpiEnable failed (Status=%X)\n",
+							   status);
+				return (status);
+			}
+
 #endif				/* !ACPI_REDUCED_HARDWARE */
-		break;
+			break;
 
-	case CMD_EVENT:
+		case CMD_EVENT:
 
-		acpi_os_printf("Event command not implemented\n");
-		break;
+			acpi_os_printf("Event command not implemented\n");
+			break;
 
-	case CMD_GPE:
+		case CMD_GPE:
 
-		acpi_db_generate_gpe(acpi_gbl_db_args[1], acpi_gbl_db_args[2]);
-		break;
+			acpi_db_generate_gpe(acpi_gbl_db_args[1], acpi_gbl_db_args[2]);
+			break;
 
-	case CMD_GPES:
+		case CMD_GPES:
 
-		acpi_db_display_gpes();
-		break;
+			acpi_db_display_gpes();
+			break;
 
-	case CMD_SCI:
+		case CMD_SCI:
 
-		acpi_db_generate_sci();
-		break;
+			acpi_db_generate_sci();
+			break;
 
-	case CMD_SLEEP:
+		case CMD_SLEEP:
 
-		status = acpi_db_sleep(acpi_gbl_db_args[1]);
-		break;
+			status = acpi_db_sleep(acpi_gbl_db_args[1]);
+			break;
 
 		/* File I/O commands. */
 
-	case CMD_CLOSE:
+		case CMD_CLOSE:
 
-		acpi_db_close_debug_file();
-		break;
+			acpi_db_close_debug_file();
+			break;
 
-	case CMD_LOAD:{
-			struct acpi_new_table_desc *list_head = NULL;
+		case CMD_LOAD:
+			{
+				struct acpi_new_table_desc *list_head = NULL;
 
-			status =
-			    ac_get_all_tables_from_file(acpi_gbl_db_args[1],
-							ACPI_GET_ALL_TABLES,
-							&list_head);
-			if (ACPI_SUCCESS(status)) {
-				acpi_db_load_tables(list_head);
+				status =
+					ac_get_all_tables_from_file(acpi_gbl_db_args[1],
+												ACPI_GET_ALL_TABLES,
+												&list_head);
+
+				if (ACPI_SUCCESS(status))
+				{
+					acpi_db_load_tables(list_head);
+				}
 			}
-		}
-		break;
+			break;
 
-	case CMD_OPEN:
+		case CMD_OPEN:
 
-		acpi_db_open_debug_file(acpi_gbl_db_args[1]);
-		break;
+			acpi_db_open_debug_file(acpi_gbl_db_args[1]);
+			break;
 
 		/* User space commands. */
 
-	case CMD_TERMINATE:
+		case CMD_TERMINATE:
 
-		acpi_db_set_output_destination(ACPI_DB_REDIRECTABLE_OUTPUT);
-		acpi_ut_subsystem_shutdown();
+			acpi_db_set_output_destination(ACPI_DB_REDIRECTABLE_OUTPUT);
+			acpi_ut_subsystem_shutdown();
 
-		/*
-		 * TBD: [Restructure] Need some way to re-initialize without
-		 * re-creating the semaphores!
-		 */
+			/*
+			 * TBD: [Restructure] Need some way to re-initialize without
+			 * re-creating the semaphores!
+			 */
 
-		acpi_gbl_db_terminate_loop = TRUE;
-		/*  acpi_initialize (NULL); */
-		break;
+			acpi_gbl_db_terminate_loop = TRUE;
+			/*  acpi_initialize (NULL); */
+			break;
 
-	case CMD_THREADS:
+		case CMD_THREADS:
 
-		acpi_db_create_execution_threads(acpi_gbl_db_args[1],
-						 acpi_gbl_db_args[2],
-						 acpi_gbl_db_args[3]);
-		break;
+			acpi_db_create_execution_threads(acpi_gbl_db_args[1],
+											 acpi_gbl_db_args[2],
+											 acpi_gbl_db_args[3]);
+			break;
 
 		/* Debug test commands. */
 
-	case CMD_PREDEFINED:
+		case CMD_PREDEFINED:
 
-		acpi_db_check_predefined_names();
-		break;
+			acpi_db_check_predefined_names();
+			break;
 
-	case CMD_TEST:
+		case CMD_TEST:
 
-		acpi_db_execute_test(acpi_gbl_db_args[1]);
-		break;
+			acpi_db_execute_test(acpi_gbl_db_args[1]);
+			break;
 
-	case CMD_UNLOAD:
+		case CMD_UNLOAD:
 
-		acpi_db_unload_acpi_table(acpi_gbl_db_args[1]);
-		break;
+			acpi_db_unload_acpi_table(acpi_gbl_db_args[1]);
+			break;
 #endif
 
-	case CMD_EXIT:
-	case CMD_QUIT:
+		case CMD_EXIT:
+		case CMD_QUIT:
 
-		if (op) {
-			acpi_os_printf("Method execution terminated\n");
-			return (AE_CTRL_TERMINATE);
-		}
+			if (op)
+			{
+				acpi_os_printf("Method execution terminated\n");
+				return (AE_CTRL_TERMINATE);
+			}
 
-		if (!acpi_gbl_db_output_to_file) {
-			acpi_dbg_level = ACPI_DEBUG_DEFAULT;
-		}
+			if (!acpi_gbl_db_output_to_file)
+			{
+				acpi_dbg_level = ACPI_DEBUG_DEFAULT;
+			}
+
 #ifdef ACPI_APPLICATION
-		acpi_db_close_debug_file();
+			acpi_db_close_debug_file();
 #endif
-		acpi_gbl_db_terminate_loop = TRUE;
-		return (AE_CTRL_TERMINATE);
+			acpi_gbl_db_terminate_loop = TRUE;
+			return (AE_CTRL_TERMINATE);
 
-	case CMD_NOT_FOUND:
-	default:
+		case CMD_NOT_FOUND:
+		default:
 
-		acpi_os_printf("%s: unknown command\n", acpi_gbl_db_args[0]);
-		return (AE_CTRL_TRUE);
+			acpi_os_printf("%s: unknown command\n", acpi_gbl_db_args[0]);
+			return (AE_CTRL_TRUE);
 	}
 
-	if (ACPI_SUCCESS(status)) {
+	if (ACPI_SUCCESS(status))
+	{
 		status = AE_CTRL_TRUE;
 	}
 
@@ -1184,12 +1294,15 @@ acpi_status acpi_db_user_commands(void)
 
 	/* TBD: [Restructure] Need a separate command line buffer for step mode */
 
-	while (!acpi_gbl_db_terminate_loop) {
+	while (!acpi_gbl_db_terminate_loop)
+	{
 
 		/* Wait the readiness of the command */
 
 		status = acpi_os_wait_command_ready();
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			break;
 		}
 
@@ -1199,18 +1312,22 @@ acpi_status acpi_db_user_commands(void)
 		acpi_gbl_step_to_next_call = FALSE;
 
 		(void)acpi_db_command_dispatch(acpi_gbl_db_line_buf, NULL,
-					       NULL);
+									   NULL);
 
 		/* Notify the completion of the command */
 
 		status = acpi_os_notify_command_complete();
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			break;
 		}
 	}
 
-	if (ACPI_FAILURE(status) && status != AE_CTRL_TERMINATE) {
+	if (ACPI_FAILURE(status) && status != AE_CTRL_TERMINATE)
+	{
 		ACPI_EXCEPTION((AE_INFO, status, "While parsing command line"));
 	}
+
 	return (status);
 }

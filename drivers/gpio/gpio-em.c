@@ -32,7 +32,8 @@
 #include <linux/module.h>
 #include <linux/pinctrl/consumer.h>
 
-struct em_gio_priv {
+struct em_gio_priv
+{
 	void __iomem *base0;
 	void __iomem *base1;
 	spinlock_t sense_lock;
@@ -70,18 +71,26 @@ struct em_gio_priv {
 static inline unsigned long em_gio_read(struct em_gio_priv *p, int offs)
 {
 	if (offs < GIO_IDT0)
+	{
 		return ioread32(p->base0 + offs);
+	}
 	else
+	{
 		return ioread32(p->base1 + (offs - GIO_IDT0));
+	}
 }
 
 static inline void em_gio_write(struct em_gio_priv *p, int offs,
-				unsigned long value)
+								unsigned long value)
 {
 	if (offs < GIO_IDT0)
+	{
 		iowrite32(value, p->base0 + offs);
+	}
 	else
+	{
 		iowrite32(value, p->base1 + (offs - GIO_IDT0));
+	}
 }
 
 static void em_gio_irq_disable(struct irq_data *d)
@@ -102,12 +111,14 @@ static int em_gio_irq_reqres(struct irq_data *d)
 {
 	struct em_gio_priv *p = irq_data_get_irq_chip_data(d);
 
-	if (gpiochip_lock_as_irq(&p->gpio_chip, irqd_to_hwirq(d))) {
+	if (gpiochip_lock_as_irq(&p->gpio_chip, irqd_to_hwirq(d)))
+	{
 		dev_err(p->gpio_chip.parent,
-			"unable to lock HW IRQ %lu for IRQ\n",
-			irqd_to_hwirq(d));
+				"unable to lock HW IRQ %lu for IRQ\n",
+				irqd_to_hwirq(d));
 		return -EINVAL;
 	}
+
 	return 0;
 }
 
@@ -121,7 +132,8 @@ static void em_gio_irq_relres(struct irq_data *d)
 
 #define GIO_ASYNC(x) (x + 8)
 
-static unsigned char em_gio_sense_table[IRQ_TYPE_SENSE_MASK + 1] = {
+static unsigned char em_gio_sense_table[IRQ_TYPE_SENSE_MASK + 1] =
+{
 	[IRQ_TYPE_EDGE_RISING] = GIO_ASYNC(0x00),
 	[IRQ_TYPE_EDGE_FALLING] = GIO_ASYNC(0x01),
 	[IRQ_TYPE_LEVEL_HIGH] = GIO_ASYNC(0x02),
@@ -138,7 +150,9 @@ static int em_gio_irq_set_type(struct irq_data *d, unsigned int type)
 	unsigned long tmp;
 
 	if (!value)
+	{
 		return -EINVAL;
+	}
 
 	offset = irqd_to_hwirq(d);
 
@@ -180,7 +194,8 @@ static irqreturn_t em_gio_irq_handler(int irq, void *dev_id)
 	unsigned long pending;
 	unsigned int offset, irqs_handled = 0;
 
-	while ((pending = em_gio_read(p, GIO_MST))) {
+	while ((pending = em_gio_read(p, GIO_MST)))
+	{
 		offset = __ffs(pending);
 		em_gio_write(p, GIO_IIR, BIT(offset));
 		generic_handle_irq(irq_find_mapping(p->irq_domain, offset));
@@ -207,24 +222,28 @@ static int em_gio_get(struct gpio_chip *chip, unsigned offset)
 }
 
 static void __em_gio_set(struct gpio_chip *chip, unsigned int reg,
-			 unsigned shift, int value)
+						 unsigned shift, int value)
 {
 	/* upper 16 bits contains mask and lower 16 actual value */
 	em_gio_write(gpio_to_priv(chip), reg,
-		     (BIT(shift + 16)) | (value << shift));
+				 (BIT(shift + 16)) | (value << shift));
 }
 
 static void em_gio_set(struct gpio_chip *chip, unsigned offset, int value)
 {
 	/* output is split into two registers */
 	if (offset < 16)
+	{
 		__em_gio_set(chip, GIO_OL, offset, value);
+	}
 	else
+	{
 		__em_gio_set(chip, GIO_OH, offset - 16, value);
+	}
 }
 
 static int em_gio_direction_output(struct gpio_chip *chip, unsigned offset,
-				   int value)
+								   int value)
 {
 	/* write GPIO value to output before selecting output mode of pin */
 	em_gio_set(chip, offset, value);
@@ -253,7 +272,7 @@ static void em_gio_free(struct gpio_chip *chip, unsigned offset)
 }
 
 static int em_gio_irq_domain_map(struct irq_domain *h, unsigned int irq,
-				 irq_hw_number_t hwirq)
+								 irq_hw_number_t hwirq)
 {
 	struct em_gio_priv *p = h->host_data;
 
@@ -264,7 +283,8 @@ static int em_gio_irq_domain_map(struct irq_domain *h, unsigned int irq,
 	return 0;
 }
 
-static const struct irq_domain_ops em_gio_irq_domain_ops = {
+static const struct irq_domain_ops em_gio_irq_domain_ops =
+{
 	.map	= em_gio_irq_domain_map,
 	.xlate	= irq_domain_xlate_twocell,
 };
@@ -280,7 +300,9 @@ static int em_gio_probe(struct platform_device *pdev)
 	int ret;
 
 	p = devm_kzalloc(&pdev->dev, sizeof(*p), GFP_KERNEL);
-	if (!p) {
+
+	if (!p)
+	{
 		ret = -ENOMEM;
 		goto err0;
 	}
@@ -294,29 +316,35 @@ static int em_gio_probe(struct platform_device *pdev)
 	irq[0] = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
 	irq[1] = platform_get_resource(pdev, IORESOURCE_IRQ, 1);
 
-	if (!io[0] || !io[1] || !irq[0] || !irq[1]) {
+	if (!io[0] || !io[1] || !irq[0] || !irq[1])
+	{
 		dev_err(&pdev->dev, "missing IRQ or IOMEM\n");
 		ret = -EINVAL;
 		goto err0;
 	}
 
 	p->base0 = devm_ioremap_nocache(&pdev->dev, io[0]->start,
-					resource_size(io[0]));
-	if (!p->base0) {
+									resource_size(io[0]));
+
+	if (!p->base0)
+	{
 		dev_err(&pdev->dev, "failed to remap low I/O memory\n");
 		ret = -ENXIO;
 		goto err0;
 	}
 
 	p->base1 = devm_ioremap_nocache(&pdev->dev, io[1]->start,
-				   resource_size(io[1]));
-	if (!p->base1) {
+									resource_size(io[1]));
+
+	if (!p->base1)
+	{
 		dev_err(&pdev->dev, "failed to remap high I/O memory\n");
 		ret = -ENXIO;
 		goto err0;
 	}
 
-	if (of_property_read_u32(pdev->dev.of_node, "ngpios", &ngpios)) {
+	if (of_property_read_u32(pdev->dev.of_node, "ngpios", &ngpios))
+	{
 		dev_err(&pdev->dev, "Missing ngpios OF property\n");
 		ret = -EINVAL;
 		goto err0;
@@ -347,29 +375,35 @@ static int em_gio_probe(struct platform_device *pdev)
 	irq_chip->flags	= IRQCHIP_SKIP_SET_WAKE | IRQCHIP_MASK_ON_SUSPEND;
 
 	p->irq_domain = irq_domain_add_simple(pdev->dev.of_node, ngpios, 0,
-					      &em_gio_irq_domain_ops, p);
-	if (!p->irq_domain) {
+										  &em_gio_irq_domain_ops, p);
+
+	if (!p->irq_domain)
+	{
 		ret = -ENXIO;
 		dev_err(&pdev->dev, "cannot initialize irq domain\n");
 		goto err0;
 	}
 
 	if (devm_request_irq(&pdev->dev, irq[0]->start,
-			     em_gio_irq_handler, 0, name, p)) {
+						 em_gio_irq_handler, 0, name, p))
+	{
 		dev_err(&pdev->dev, "failed to request low IRQ\n");
 		ret = -ENOENT;
 		goto err1;
 	}
 
 	if (devm_request_irq(&pdev->dev, irq[1]->start,
-			     em_gio_irq_handler, 0, name, p)) {
+						 em_gio_irq_handler, 0, name, p))
+	{
 		dev_err(&pdev->dev, "failed to request high IRQ\n");
 		ret = -ENOENT;
 		goto err1;
 	}
 
 	ret = gpiochip_add_data(gpio_chip, p);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to add GPIO controller\n");
 		goto err1;
 	}
@@ -392,13 +426,15 @@ static int em_gio_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id em_gio_dt_ids[] = {
+static const struct of_device_id em_gio_dt_ids[] =
+{
 	{ .compatible = "renesas,em-gio", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, em_gio_dt_ids);
 
-static struct platform_driver em_gio_device_driver = {
+static struct platform_driver em_gio_device_driver =
+{
 	.probe		= em_gio_probe,
 	.remove		= em_gio_remove,
 	.driver		= {

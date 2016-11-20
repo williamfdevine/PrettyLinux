@@ -77,17 +77,17 @@
 #define WLAN_MSD_RUNNING		7
 
 #ifndef ETH_P_ECONET
-#define ETH_P_ECONET   0x0018	/* needed for 2.2.x kernels */
+	#define ETH_P_ECONET   0x0018	/* needed for 2.2.x kernels */
 #endif
 
 #define ETH_P_80211_RAW        (ETH_P_ECONET + 1)
 
 #ifndef ARPHRD_IEEE80211
-#define ARPHRD_IEEE80211 801	/* kernel 2.4.6 */
+	#define ARPHRD_IEEE80211 801	/* kernel 2.4.6 */
 #endif
 
 #ifndef ARPHRD_IEEE80211_PRISM	/* kernel 2.4.18 */
-#define ARPHRD_IEEE80211_PRISM 802
+	#define ARPHRD_IEEE80211_PRISM 802
 #endif
 
 /*--- NSD Capabilities Flags ------------------------------*/
@@ -98,7 +98,8 @@
 #define P80211_NSDCAP_NOSCAN                0x200 /* nsd can scan */
 
 /* Received frame statistics */
-struct p80211_frmrx {
+struct p80211_frmrx
+{
 	u32 mgmt;
 	u32 assocreq;
 	u32 assocresp;
@@ -154,7 +155,8 @@ extern int wlan_watchdog;
 extern int wlan_wext_write;
 
 /* WLAN device type */
-struct wlandevice {
+struct wlandevice
+{
 	void *priv;		/* private data for MSD */
 
 	/* Subsystem State */
@@ -179,11 +181,11 @@ struct wlandevice {
 	int (*close)(struct wlandevice *wlandev);
 	void (*reset)(struct wlandevice *wlandev);
 	int (*txframe)(struct wlandevice *wlandev, struct sk_buff *skb,
-			union p80211_hdr *p80211_hdr,
-			struct p80211_metawep *p80211_wep);
+				   union p80211_hdr *p80211_hdr,
+				   struct p80211_metawep *p80211_wep);
 	int (*mlmerequest)(struct wlandevice *wlandev, struct p80211msg *msg);
 	int (*set_multicast_list)(struct wlandevice *wlandev,
-				   struct net_device *dev);
+							  struct net_device *dev);
 	void (*tx_timeout)(struct wlandevice *wlandev);
 
 	/* 802.11 State */
@@ -224,9 +226,9 @@ struct wlandevice {
 /* WEP stuff */
 int wep_change_key(struct wlandevice *wlandev, int keynum, u8 *key, int keylen);
 int wep_decrypt(struct wlandevice *wlandev, u8 *buf, u32 len, int key_override,
-		u8 *iv, u8 *icv);
+				u8 *iv, u8 *icv);
 int wep_encrypt(struct wlandevice *wlandev, u8 *buf, u8 *dst, u32 len,
-		int keynum, u8 *iv, u8 *icv);
+				int keynum, u8 *iv, u8 *icv);
 
 int wlan_setup(struct wlandevice *wlandev, struct device *physdev);
 void wlan_unsetup(struct wlandevice *wlandev);

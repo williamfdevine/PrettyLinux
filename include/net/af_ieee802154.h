@@ -22,7 +22,8 @@
 
 #include <linux/socket.h> /* for sa_family_t */
 
-enum {
+enum
+{
 	IEEE802154_ADDR_NONE = 0x0,
 	/* RESERVED = 0x01, */
 	IEEE802154_ADDR_SHORT = 0x2, /* 16-bit address + PANid */
@@ -32,10 +33,12 @@ enum {
 /* address length, octets */
 #define IEEE802154_ADDR_LEN	8
 
-struct ieee802154_addr_sa {
+struct ieee802154_addr_sa
+{
 	int addr_type;
 	u16 pan_id;
-	union {
+	union
+	{
 		u8 hwaddr[IEEE802154_ADDR_LEN];
 		u16 short_addr;
 	};
@@ -45,7 +48,8 @@ struct ieee802154_addr_sa {
 #define IEEE802154_ADDR_BROADCAST	0xffff
 #define IEEE802154_ADDR_UNDEF		0xfffe
 
-struct sockaddr_ieee802154 {
+struct sockaddr_ieee802154
+{
 	sa_family_t family; /* AF_IEEE802154 */
 	struct ieee802154_addr_sa addr;
 };

@@ -28,7 +28,8 @@
 #include <linux/sched.h>
 #include <linux/mutex.h>
 
-typedef enum {
+typedef enum
+{
 	FL_READY,
 	FL_STATUS,
 	FL_CFI_QUERY,
@@ -68,7 +69,8 @@ typedef enum {
    if they're interleaved.  This can even refer to individual partitions on
    the same physical chip when present. */
 
-struct flchip {
+struct flchip
+{
 	unsigned long start; /* Offset within the map */
 	//	unsigned long len;
 	/* We omit len for now, because when we group them together
@@ -82,8 +84,8 @@ struct flchip {
 	flstate_t state;
 	flstate_t oldstate;
 
-	unsigned int write_suspended:1;
-	unsigned int erase_suspended:1;
+	unsigned int write_suspended: 1;
+	unsigned int erase_suspended: 1;
 	unsigned long in_progress_block_addr;
 
 	struct mutex mutex;
@@ -102,7 +104,8 @@ struct flchip {
 
 /* This is used to handle contention on write/erase operations
    between partitions of the same physical chip. */
-struct flchip_shared {
+struct flchip_shared
+{
 	struct mutex lock;
 	struct flchip *writing;
 	struct flchip *erasing;

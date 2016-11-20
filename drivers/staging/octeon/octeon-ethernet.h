@@ -22,7 +22,8 @@
  * This is the definition of the Ethernet driver's private
  * driver state stored in netdev_priv(dev).
  */
-struct octeon_ethernet {
+struct octeon_ethernet
+{
 	/* PKO hardware output port */
 	int port;
 	/* PKO hardware queue for the port */
@@ -65,9 +66,9 @@ void cvm_oct_common_uninit(struct net_device *dev);
 void cvm_oct_adjust_link(struct net_device *dev);
 int cvm_oct_common_stop(struct net_device *dev);
 int cvm_oct_common_open(struct net_device *dev,
-			void (*link_poll)(struct net_device *));
+						void (*link_poll)(struct net_device *));
 void cvm_oct_note_carrier(struct octeon_ethernet *priv,
-			  cvmx_helper_link_info_t li);
+						  cvmx_helper_link_info_t li);
 void cvm_oct_link_poll(struct net_device *dev);
 
 extern int always_use_pow;

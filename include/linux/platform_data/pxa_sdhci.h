@@ -41,7 +41,8 @@
  * @quirks2: quirks2 of platfrom
  * @pm_caps: pm_caps of platfrom
  */
-struct sdhci_pxa_platdata {
+struct sdhci_pxa_platdata
+{
 	unsigned int	flags;
 	unsigned int	clk_delay_cycles;
 	unsigned int	clk_delay_sel;

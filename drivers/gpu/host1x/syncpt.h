@@ -31,12 +31,14 @@ struct host1x;
 /* Reserved for replacing an expired wait with a NOP */
 #define HOST1X_SYNCPT_RESERVED			0
 
-struct host1x_syncpt_base {
+struct host1x_syncpt_base
+{
 	unsigned int id;
 	bool requested;
 };
 
-struct host1x_syncpt {
+struct host1x_syncpt
+{
 	unsigned int id;
 	atomic_t min_val;
 	atomic_t max_val;
@@ -75,8 +77,12 @@ unsigned int host1x_syncpt_nb_mlocks(struct host1x *host);
 static inline bool host1x_syncpt_check_max(struct host1x_syncpt *sp, u32 real)
 {
 	u32 max;
+
 	if (sp->client_managed)
+	{
 		return true;
+	}
+
 	max = host1x_syncpt_read_max(sp);
 	return (s32)(max - real) >= 0;
 }

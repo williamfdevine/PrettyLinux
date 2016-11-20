@@ -28,7 +28,8 @@
 #include "dvb_frontend.h"
 #include "s5h1411.h"
 
-struct s5h1411_state {
+struct s5h1411_state
+{
 
 	struct i2c_adapter *i2c;
 
@@ -38,7 +39,7 @@ struct s5h1411_state {
 	struct dvb_frontend frontend;
 
 	enum fe_modulation current_modulation;
-	unsigned int first_tune:1;
+	unsigned int first_tune: 1;
 
 	u32 current_frequency;
 	int if_freq;
@@ -49,16 +50,18 @@ struct s5h1411_state {
 static int debug;
 
 #define dprintk(arg...) do {	\
-	if (debug)		\
-		printk(arg);	\
+		if (debug)		\
+			printk(arg);	\
 	} while (0)
 
 /* Register values to initialise the demod, defaults to VSB */
-static struct init_tab {
+static struct init_tab
+{
 	u8	addr;
 	u8	reg;
 	u16	data;
-} init_tab[] = {
+} init_tab[] =
+{
 	{ S5H1411_I2C_TOP_ADDR, 0x00, 0x0071, },
 	{ S5H1411_I2C_TOP_ADDR, 0x08, 0x0047, },
 	{ S5H1411_I2C_TOP_ADDR, 0x1c, 0x0400, },
@@ -142,10 +145,12 @@ static struct init_tab {
 };
 
 /* VSB SNR lookup table */
-static struct vsb_snr_tab {
+static struct vsb_snr_tab
+{
 	u16	val;
 	u16	data;
-} vsb_snr_tab[] = {
+} vsb_snr_tab[] =
+{
 	{  0x39f, 300, },
 	{  0x39b, 295, },
 	{  0x397, 290, },
@@ -187,10 +192,12 @@ static struct vsb_snr_tab {
 };
 
 /* QAM64 SNR lookup table */
-static struct qam64_snr_tab {
+static struct qam64_snr_tab
+{
 	u16	val;
 	u16	data;
-} qam64_snr_tab[] = {
+} qam64_snr_tab[] =
+{
 	{  0x0001,   0, },
 	{  0x0af0, 300, },
 	{  0x0d80, 290, },
@@ -260,10 +267,12 @@ static struct qam64_snr_tab {
 };
 
 /* QAM256 SNR lookup table */
-static struct qam256_snr_tab {
+static struct qam256_snr_tab
+{
 	u16	val;
 	u16	data;
-} qam256_snr_tab[] = {
+} qam256_snr_tab[] =
+{
 	{  0x0001,   0, },
 	{  0x0970, 400, },
 	{  0x0a90, 390, },
@@ -340,7 +349,7 @@ static struct qam256_snr_tab {
 
 /* 8 bit registers, 16 bit values */
 static int s5h1411_writereg(struct s5h1411_state *state,
-	u8 addr, u8 reg, u16 data)
+							u8 addr, u8 reg, u16 data)
 {
 	int ret;
 	u8 buf[] = { reg, data >> 8,  data & 0xff };
@@ -351,7 +360,7 @@ static int s5h1411_writereg(struct s5h1411_state *state,
 
 	if (ret != 1)
 		printk(KERN_ERR "%s: writereg error 0x%02x 0x%02x 0x%04x, "
-		       "ret == %i)\n", __func__, addr, reg, data, ret);
+			   "ret == %i)\n", __func__, addr, reg, data, ret);
 
 	return (ret != 1) ? -1 : 0;
 }
@@ -362,15 +371,18 @@ static u16 s5h1411_readreg(struct s5h1411_state *state, u8 addr, u8 reg)
 	u8 b0[] = { reg };
 	u8 b1[] = { 0, 0 };
 
-	struct i2c_msg msg[] = {
+	struct i2c_msg msg[] =
+	{
 		{ .addr = addr, .flags = 0, .buf = b0, .len = 1 },
-		{ .addr = addr, .flags = I2C_M_RD, .buf = b1, .len = 2 } };
+		{ .addr = addr, .flags = I2C_M_RD, .buf = b1, .len = 2 }
+	};
 
 	ret = i2c_transfer(state->i2c, msg, 2);
 
 	if (ret != 2)
 		printk(KERN_ERR "%s: readreg error (ret == %i)\n",
-			__func__, ret);
+			   __func__, ret);
+
 	return (b1[0] << 8) | b1[1];
 }
 
@@ -391,32 +403,37 @@ static int s5h1411_set_if_freq(struct dvb_frontend *fe, int KHz)
 
 	dprintk("%s(%d KHz)\n", __func__, KHz);
 
-	switch (KHz) {
-	case 3250:
-		s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0x38, 0x10d5);
-		s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0x39, 0x5342);
-		s5h1411_writereg(state, S5H1411_I2C_QAM_ADDR, 0x2c, 0x10d9);
-		break;
-	case 3500:
-		s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0x38, 0x1225);
-		s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0x39, 0x1e96);
-		s5h1411_writereg(state, S5H1411_I2C_QAM_ADDR, 0x2c, 0x1225);
-		break;
-	case 4000:
-		s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0x38, 0x14bc);
-		s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0x39, 0xb53e);
-		s5h1411_writereg(state, S5H1411_I2C_QAM_ADDR, 0x2c, 0x14bd);
-		break;
-	default:
-		dprintk("%s(%d KHz) Invalid, defaulting to 5380\n",
-			__func__, KHz);
+	switch (KHz)
+	{
+		case 3250:
+			s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0x38, 0x10d5);
+			s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0x39, 0x5342);
+			s5h1411_writereg(state, S5H1411_I2C_QAM_ADDR, 0x2c, 0x10d9);
+			break;
+
+		case 3500:
+			s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0x38, 0x1225);
+			s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0x39, 0x1e96);
+			s5h1411_writereg(state, S5H1411_I2C_QAM_ADDR, 0x2c, 0x1225);
+			break;
+
+		case 4000:
+			s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0x38, 0x14bc);
+			s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0x39, 0xb53e);
+			s5h1411_writereg(state, S5H1411_I2C_QAM_ADDR, 0x2c, 0x14bd);
+			break;
+
+		default:
+			dprintk("%s(%d KHz) Invalid, defaulting to 5380\n",
+					__func__, KHz);
+
 		/* no break, need to continue */
-	case 5380:
-	case 44000:
-		s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0x38, 0x1be4);
-		s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0x39, 0x3655);
-		s5h1411_writereg(state, S5H1411_I2C_QAM_ADDR, 0x2c, 0x1be4);
-		break;
+		case 5380:
+		case 44000:
+			s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0x38, 0x1be4);
+			s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0x39, 0x3655);
+			s5h1411_writereg(state, S5H1411_I2C_QAM_ADDR, 0x2c, 0x1be4);
+			break;
 	}
 
 	state->if_freq = KHz;
@@ -432,22 +449,28 @@ static int s5h1411_set_mpeg_timing(struct dvb_frontend *fe, int mode)
 	dprintk("%s(%d)\n", __func__, mode);
 
 	val = s5h1411_readreg(state, S5H1411_I2C_TOP_ADDR, 0xbe) & 0xcfff;
-	switch (mode) {
-	case S5H1411_MPEGTIMING_CONTINOUS_INVERTING_CLOCK:
-		val |= 0x0000;
-		break;
-	case S5H1411_MPEGTIMING_CONTINOUS_NONINVERTING_CLOCK:
-		dprintk("%s(%d) Mode1 or Defaulting\n", __func__, mode);
-		val |= 0x1000;
-		break;
-	case S5H1411_MPEGTIMING_NONCONTINOUS_INVERTING_CLOCK:
-		val |= 0x2000;
-		break;
-	case S5H1411_MPEGTIMING_NONCONTINOUS_NONINVERTING_CLOCK:
-		val |= 0x3000;
-		break;
-	default:
-		return -EINVAL;
+
+	switch (mode)
+	{
+		case S5H1411_MPEGTIMING_CONTINOUS_INVERTING_CLOCK:
+			val |= 0x0000;
+			break;
+
+		case S5H1411_MPEGTIMING_CONTINOUS_NONINVERTING_CLOCK:
+			dprintk("%s(%d) Mode1 or Defaulting\n", __func__, mode);
+			val |= 0x1000;
+			break;
+
+		case S5H1411_MPEGTIMING_NONCONTINOUS_INVERTING_CLOCK:
+			val |= 0x2000;
+			break;
+
+		case S5H1411_MPEGTIMING_NONCONTINOUS_NONINVERTING_CLOCK:
+			val |= 0x3000;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	/* Configure MPEG Signal Timing charactistics */
@@ -463,7 +486,9 @@ static int s5h1411_set_spectralinversion(struct dvb_frontend *fe, int inversion)
 	val = s5h1411_readreg(state, S5H1411_I2C_TOP_ADDR, 0x24) & ~0x1000;
 
 	if (inversion == 1)
-		val |= 0x1000; /* Inverted */
+	{
+		val |= 0x1000;    /* Inverted */
+	}
 
 	state->inversion = inversion;
 	return s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0x24, val);
@@ -478,45 +503,51 @@ static int s5h1411_set_serialmode(struct dvb_frontend *fe, int serial)
 	val = s5h1411_readreg(state, S5H1411_I2C_TOP_ADDR, 0xbd) & ~0x100;
 
 	if (serial == 1)
+	{
 		val |= 0x100;
+	}
 
 	return s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0xbd, val);
 }
 
 static int s5h1411_enable_modulation(struct dvb_frontend *fe,
-				     enum fe_modulation m)
+									 enum fe_modulation m)
 {
 	struct s5h1411_state *state = fe->demodulator_priv;
 
 	dprintk("%s(0x%08x)\n", __func__, m);
 
-	if ((state->first_tune == 0) && (m == state->current_modulation)) {
+	if ((state->first_tune == 0) && (m == state->current_modulation))
+	{
 		dprintk("%s() Already at desired modulation.  Skipping...\n",
-			__func__);
+				__func__);
 		return 0;
 	}
 
-	switch (m) {
-	case VSB_8:
-		dprintk("%s() VSB_8\n", __func__);
-		s5h1411_set_if_freq(fe, state->config->vsb_if);
-		s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0x00, 0x71);
-		s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0xf6, 0x00);
-		s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0xcd, 0xf1);
-		break;
-	case QAM_64:
-	case QAM_256:
-	case QAM_AUTO:
-		dprintk("%s() QAM_AUTO (64/256)\n", __func__);
-		s5h1411_set_if_freq(fe, state->config->qam_if);
-		s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0x00, 0x0171);
-		s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0xf6, 0x0001);
-		s5h1411_writereg(state, S5H1411_I2C_QAM_ADDR, 0x16, 0x1101);
-		s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0xcd, 0x00f0);
-		break;
-	default:
-		dprintk("%s() Invalid modulation\n", __func__);
-		return -EINVAL;
+	switch (m)
+	{
+		case VSB_8:
+			dprintk("%s() VSB_8\n", __func__);
+			s5h1411_set_if_freq(fe, state->config->vsb_if);
+			s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0x00, 0x71);
+			s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0xf6, 0x00);
+			s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0xcd, 0xf1);
+			break;
+
+		case QAM_64:
+		case QAM_256:
+		case QAM_AUTO:
+			dprintk("%s() QAM_AUTO (64/256)\n", __func__);
+			s5h1411_set_if_freq(fe, state->config->qam_if);
+			s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0x00, 0x0171);
+			s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0xf6, 0x0001);
+			s5h1411_writereg(state, S5H1411_I2C_QAM_ADDR, 0x16, 0x1101);
+			s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0xcd, 0x00f0);
+			break;
+
+		default:
+			dprintk("%s() Invalid modulation\n", __func__);
+			return -EINVAL;
 	}
 
 	state->current_modulation = m;
@@ -533,9 +564,13 @@ static int s5h1411_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
 	dprintk("%s(%d)\n", __func__, enable);
 
 	if (enable)
+	{
 		return s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0xf5, 1);
+	}
 	else
+	{
 		return s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0xf5, 0);
+	}
 }
 
 static int s5h1411_set_gpio(struct dvb_frontend *fe, int enable)
@@ -549,9 +584,11 @@ static int s5h1411_set_gpio(struct dvb_frontend *fe, int enable)
 
 	if (enable)
 		return s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0xe0,
-				val | 0x02);
+								val | 0x02);
 	else
+	{
 		return s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0xe0, val);
+	}
 }
 
 static int s5h1411_set_powerstate(struct dvb_frontend *fe, int enable)
@@ -561,8 +598,11 @@ static int s5h1411_set_powerstate(struct dvb_frontend *fe, int enable)
 	dprintk("%s(%d)\n", __func__, enable);
 
 	if (enable)
+	{
 		s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0xf4, 1);
-	else {
+	}
+	else
+	{
 		s5h1411_writereg(state, S5H1411_I2C_TOP_ADDR, 0xf4, 0);
 		s5h1411_softreset(fe);
 	}
@@ -598,14 +638,19 @@ static int s5h1411_set_frontend(struct dvb_frontend *fe)
 
 	s5h1411_enable_modulation(fe, p->modulation);
 
-	if (fe->ops.tuner_ops.set_params) {
+	if (fe->ops.tuner_ops.set_params)
+	{
 		if (fe->ops.i2c_gate_ctrl)
+		{
 			fe->ops.i2c_gate_ctrl(fe, 1);
+		}
 
 		fe->ops.tuner_ops.set_params(fe);
 
 		if (fe->ops.i2c_gate_ctrl)
+		{
 			fe->ops.i2c_gate_ctrl(fe, 0);
+		}
 	}
 
 	/* Issue a reset to the demod so it knows to resync against the
@@ -629,8 +674,8 @@ static int s5h1411_init(struct dvb_frontend *fe)
 
 	for (i = 0; i < ARRAY_SIZE(init_tab); i++)
 		s5h1411_writereg(state, init_tab[i].addr,
-			init_tab[i].reg,
-			init_tab[i].data);
+						 init_tab[i].reg,
+						 init_tab[i].data);
 
 	/* The datasheet says that after initialisation, VSB is default */
 	state->current_modulation = VSB_8;
@@ -642,10 +687,14 @@ static int s5h1411_init(struct dvb_frontend *fe)
 
 	if (state->config->output_mode == S5H1411_SERIAL_OUTPUT)
 		/* Serial */
+	{
 		s5h1411_set_serialmode(fe, 1);
+	}
 	else
 		/* Parallel */
+	{
 		s5h1411_set_serialmode(fe, 0);
+	}
 
 	s5h1411_set_spectralinversion(fe, state->config->inversion);
 	s5h1411_set_if_freq(fe, state->config->vsb_if);
@@ -669,51 +718,84 @@ static int s5h1411_read_status(struct dvb_frontend *fe, enum fe_status *status)
 
 	/* Register F2 bit 15 = Master Lock, removed */
 
-	switch (state->current_modulation) {
-	case QAM_64:
-	case QAM_256:
-		reg = s5h1411_readreg(state, S5H1411_I2C_TOP_ADDR, 0xf0);
-		if (reg & 0x10) /* QAM FEC Lock */
-			*status |= FE_HAS_SYNC | FE_HAS_LOCK;
-		if (reg & 0x100) /* QAM EQ Lock */
-			*status |= FE_HAS_VITERBI | FE_HAS_CARRIER | FE_HAS_SIGNAL;
+	switch (state->current_modulation)
+	{
+		case QAM_64:
+		case QAM_256:
+			reg = s5h1411_readreg(state, S5H1411_I2C_TOP_ADDR, 0xf0);
 
-		break;
-	case VSB_8:
-		reg = s5h1411_readreg(state, S5H1411_I2C_TOP_ADDR, 0xf2);
-		if (reg & 0x1000) /* FEC Lock */
-			*status |= FE_HAS_SYNC | FE_HAS_LOCK;
-		if (reg & 0x2000) /* EQ Lock */
-			*status |= FE_HAS_VITERBI | FE_HAS_CARRIER | FE_HAS_SIGNAL;
+			if (reg & 0x10) /* QAM FEC Lock */
+			{
+				*status |= FE_HAS_SYNC | FE_HAS_LOCK;
+			}
 
-		reg = s5h1411_readreg(state, S5H1411_I2C_TOP_ADDR, 0x53);
-		if (reg & 0x1) /* AFC Lock */
-			*status |= FE_HAS_SIGNAL;
+			if (reg & 0x100) /* QAM EQ Lock */
+			{
+				*status |= FE_HAS_VITERBI | FE_HAS_CARRIER | FE_HAS_SIGNAL;
+			}
 
-		break;
-	default:
-		return -EINVAL;
+			break;
+
+		case VSB_8:
+			reg = s5h1411_readreg(state, S5H1411_I2C_TOP_ADDR, 0xf2);
+
+			if (reg & 0x1000) /* FEC Lock */
+			{
+				*status |= FE_HAS_SYNC | FE_HAS_LOCK;
+			}
+
+			if (reg & 0x2000) /* EQ Lock */
+			{
+				*status |= FE_HAS_VITERBI | FE_HAS_CARRIER | FE_HAS_SIGNAL;
+			}
+
+			reg = s5h1411_readreg(state, S5H1411_I2C_TOP_ADDR, 0x53);
+
+			if (reg & 0x1) /* AFC Lock */
+			{
+				*status |= FE_HAS_SIGNAL;
+			}
+
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
-	switch (state->config->status_mode) {
-	case S5H1411_DEMODLOCKING:
-		if (*status & FE_HAS_VITERBI)
-			*status |= FE_HAS_CARRIER | FE_HAS_SIGNAL;
-		break;
-	case S5H1411_TUNERLOCKING:
-		/* Get the tuner status */
-		if (fe->ops.tuner_ops.get_status) {
-			if (fe->ops.i2c_gate_ctrl)
-				fe->ops.i2c_gate_ctrl(fe, 1);
+	switch (state->config->status_mode)
+	{
+		case S5H1411_DEMODLOCKING:
+			if (*status & FE_HAS_VITERBI)
+			{
+				*status |= FE_HAS_CARRIER | FE_HAS_SIGNAL;
+			}
 
-			fe->ops.tuner_ops.get_status(fe, &tuner_status);
+			break;
 
-			if (fe->ops.i2c_gate_ctrl)
-				fe->ops.i2c_gate_ctrl(fe, 0);
-		}
-		if (tuner_status)
-			*status |= FE_HAS_CARRIER | FE_HAS_SIGNAL;
-		break;
+		case S5H1411_TUNERLOCKING:
+
+			/* Get the tuner status */
+			if (fe->ops.tuner_ops.get_status)
+			{
+				if (fe->ops.i2c_gate_ctrl)
+				{
+					fe->ops.i2c_gate_ctrl(fe, 1);
+				}
+
+				fe->ops.tuner_ops.get_status(fe, &tuner_status);
+
+				if (fe->ops.i2c_gate_ctrl)
+				{
+					fe->ops.i2c_gate_ctrl(fe, 0);
+				}
+			}
+
+			if (tuner_status)
+			{
+				*status |= FE_HAS_CARRIER | FE_HAS_SIGNAL;
+			}
+
+			break;
 	}
 
 	dprintk("%s() status 0x%08x\n", __func__, *status);
@@ -726,13 +808,16 @@ static int s5h1411_qam256_lookup_snr(struct dvb_frontend *fe, u16 *snr, u16 v)
 	int i, ret = -EINVAL;
 	dprintk("%s()\n", __func__);
 
-	for (i = 0; i < ARRAY_SIZE(qam256_snr_tab); i++) {
-		if (v < qam256_snr_tab[i].val) {
+	for (i = 0; i < ARRAY_SIZE(qam256_snr_tab); i++)
+	{
+		if (v < qam256_snr_tab[i].val)
+		{
 			*snr = qam256_snr_tab[i].data;
 			ret = 0;
 			break;
 		}
 	}
+
 	return ret;
 }
 
@@ -741,13 +826,16 @@ static int s5h1411_qam64_lookup_snr(struct dvb_frontend *fe, u16 *snr, u16 v)
 	int i, ret = -EINVAL;
 	dprintk("%s()\n", __func__);
 
-	for (i = 0; i < ARRAY_SIZE(qam64_snr_tab); i++) {
-		if (v < qam64_snr_tab[i].val) {
+	for (i = 0; i < ARRAY_SIZE(qam64_snr_tab); i++)
+	{
+		if (v < qam64_snr_tab[i].val)
+		{
 			*snr = qam64_snr_tab[i].data;
 			ret = 0;
 			break;
 		}
 	}
+
 	return ret;
 }
 
@@ -756,13 +844,16 @@ static int s5h1411_vsb_lookup_snr(struct dvb_frontend *fe, u16 *snr, u16 v)
 	int i, ret = -EINVAL;
 	dprintk("%s()\n", __func__);
 
-	for (i = 0; i < ARRAY_SIZE(vsb_snr_tab); i++) {
-		if (v > vsb_snr_tab[i].val) {
+	for (i = 0; i < ARRAY_SIZE(vsb_snr_tab); i++)
+	{
+		if (v > vsb_snr_tab[i].val)
+		{
 			*snr = vsb_snr_tab[i].data;
 			ret = 0;
 			break;
 		}
 	}
+
 	dprintk("%s() snr=%d\n", __func__, *snr);
 	return ret;
 }
@@ -773,26 +864,30 @@ static int s5h1411_read_snr(struct dvb_frontend *fe, u16 *snr)
 	u16 reg;
 	dprintk("%s()\n", __func__);
 
-	switch (state->current_modulation) {
-	case QAM_64:
-		reg = s5h1411_readreg(state, S5H1411_I2C_TOP_ADDR, 0xf1);
-		return s5h1411_qam64_lookup_snr(fe, snr, reg);
-	case QAM_256:
-		reg = s5h1411_readreg(state, S5H1411_I2C_TOP_ADDR, 0xf1);
-		return s5h1411_qam256_lookup_snr(fe, snr, reg);
-	case VSB_8:
-		reg = s5h1411_readreg(state, S5H1411_I2C_TOP_ADDR,
-			0xf2) & 0x3ff;
-		return s5h1411_vsb_lookup_snr(fe, snr, reg);
-	default:
-		break;
+	switch (state->current_modulation)
+	{
+		case QAM_64:
+			reg = s5h1411_readreg(state, S5H1411_I2C_TOP_ADDR, 0xf1);
+			return s5h1411_qam64_lookup_snr(fe, snr, reg);
+
+		case QAM_256:
+			reg = s5h1411_readreg(state, S5H1411_I2C_TOP_ADDR, 0xf1);
+			return s5h1411_qam256_lookup_snr(fe, snr, reg);
+
+		case VSB_8:
+			reg = s5h1411_readreg(state, S5H1411_I2C_TOP_ADDR,
+								  0xf2) & 0x3ff;
+			return s5h1411_vsb_lookup_snr(fe, snr, reg);
+
+		default:
+			break;
 	}
 
 	return -EINVAL;
 }
 
 static int s5h1411_read_signal_strength(struct dvb_frontend *fe,
-	u16 *signal_strength)
+										u16 *signal_strength)
 {
 	/* borrowed from lgdt330x.c
 	 *
@@ -807,7 +902,8 @@ static int s5h1411_read_signal_strength(struct dvb_frontend *fe,
 
 	*signal_strength = 0;
 
-	if (0 == ret) {
+	if (0 == ret)
+	{
 		/* The following calculation method was chosen
 		 * purely for the sake of code re-use from the
 		 * other demod drivers that use this method */
@@ -818,9 +914,13 @@ static int s5h1411_read_signal_strength(struct dvb_frontend *fe,
 		/* Convert from 8.24 fixed-point to
 		 * scale the range 0 - 35*2^24 into 0 - 65535*/
 		if (tmp >= 8960 * 0x10000)
+		{
 			*signal_strength = 0xffff;
+		}
 		else
+		{
 			*signal_strength = tmp / 8960;
+		}
 	}
 
 	return ret;
@@ -841,7 +941,7 @@ static int s5h1411_read_ber(struct dvb_frontend *fe, u32 *ber)
 }
 
 static int s5h1411_get_frontend(struct dvb_frontend *fe,
-				struct dtv_frontend_properties *p)
+								struct dtv_frontend_properties *p)
 {
 	struct s5h1411_state *state = fe->demodulator_priv;
 
@@ -852,7 +952,7 @@ static int s5h1411_get_frontend(struct dvb_frontend *fe,
 }
 
 static int s5h1411_get_tune_settings(struct dvb_frontend *fe,
-				     struct dvb_frontend_tune_settings *tune)
+									 struct dvb_frontend_tune_settings *tune)
 {
 	tune->min_delay_ms = 1000;
 	return 0;
@@ -867,15 +967,18 @@ static void s5h1411_release(struct dvb_frontend *fe)
 static struct dvb_frontend_ops s5h1411_ops;
 
 struct dvb_frontend *s5h1411_attach(const struct s5h1411_config *config,
-				    struct i2c_adapter *i2c)
+									struct i2c_adapter *i2c)
 {
 	struct s5h1411_state *state = NULL;
 	u16 reg;
 
 	/* allocate memory for the internal state */
 	state = kzalloc(sizeof(struct s5h1411_state), GFP_KERNEL);
+
 	if (state == NULL)
+	{
 		goto error;
+	}
 
 	/* setup the state */
 	state->config = config;
@@ -885,18 +988,22 @@ struct dvb_frontend *s5h1411_attach(const struct s5h1411_config *config,
 
 	/* check if the demod exists */
 	reg = s5h1411_readreg(state, S5H1411_I2C_TOP_ADDR, 0x05);
+
 	if (reg != 0x0066)
+	{
 		goto error;
+	}
 
 	/* create dvb_frontend */
 	memcpy(&state->frontend.ops, &s5h1411_ops,
-	       sizeof(struct dvb_frontend_ops));
+		   sizeof(struct dvb_frontend_ops));
 
 	state->frontend.demodulator_priv = state;
 
-	if (s5h1411_init(&state->frontend) != 0) {
+	if (s5h1411_init(&state->frontend) != 0)
+	{
 		printk(KERN_ERR "%s: Failed to initialize correctly\n",
-			__func__);
+			   __func__);
 		goto error;
 	}
 
@@ -914,7 +1021,8 @@ error:
 }
 EXPORT_SYMBOL(s5h1411_attach);
 
-static struct dvb_frontend_ops s5h1411_ops = {
+static struct dvb_frontend_ops s5h1411_ops =
+{
 	.delsys = { SYS_ATSC, SYS_DVBC_ANNEX_B },
 	.info = {
 		.name			= "Samsung S5H1411 QAM/8VSB Frontend",

@@ -208,7 +208,8 @@ struct bcma_drv_pci;
 struct bcma_bus;
 
 #ifdef CONFIG_BCMA_DRIVER_PCI_HOSTMODE
-struct bcma_drv_pci_host {
+struct bcma_drv_pci_host
+{
 	struct bcma_drv_pci *pdev;
 
 	u32 host_cfg_addr;
@@ -221,11 +222,12 @@ struct bcma_drv_pci_host {
 };
 #endif
 
-struct bcma_drv_pci {
+struct bcma_drv_pci
+{
 	struct bcma_device *core;
-	u8 early_setup_done:1;
-	u8 setup_done:1;
-	u8 hostmode:1;
+	u8 early_setup_done: 1;
+	u8 setup_done: 1;
+	u8 hostmode: 1;
 
 #ifdef CONFIG_BCMA_DRIVER_PCI_HOSTMODE
 	struct bcma_drv_pci_host *host_controller;

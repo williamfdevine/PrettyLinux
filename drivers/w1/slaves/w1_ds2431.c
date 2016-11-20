@@ -48,10 +48,14 @@
 static inline size_t w1_f2d_fix_count(loff_t off, size_t count, size_t size)
 {
 	if (off > size)
+	{
 		return 0;
+	}
 
 	if ((off + count) > size)
+	{
 		return size - off;
+	}
 
 	return count;
 }
@@ -69,26 +73,34 @@ static int w1_f2d_readblock(struct w1_slave *sl, int off, int count, char *buf)
 	u8 cmp[W1_F2D_READ_MAXLEN];
 	int tries = W1_F2D_READ_RETRIES;
 
-	do {
+	do
+	{
 		wrbuf[0] = W1_F2D_READ_EEPROM;
 		wrbuf[1] = off & 0xff;
 		wrbuf[2] = off >> 8;
 
 		if (w1_reset_select_slave(sl))
+		{
 			return -1;
+		}
 
 		w1_write_block(sl->master, wrbuf, 3);
 		w1_read_block(sl->master, buf, count);
 
 		if (w1_reset_select_slave(sl))
+		{
 			return -1;
+		}
 
 		w1_write_block(sl->master, wrbuf, 3);
 		w1_read_block(sl->master, cmp, count);
 
 		if (!memcmp(cmp, buf, count))
+		{
 			return 0;
-	} while (--tries);
+		}
+	}
+	while (--tries);
 
 	dev_err(&sl->dev, "proof reading failed %d times\n",
 			W1_F2D_READ_RETRIES);
@@ -97,29 +109,39 @@ static int w1_f2d_readblock(struct w1_slave *sl, int off, int count, char *buf)
 }
 
 static ssize_t eeprom_read(struct file *filp, struct kobject *kobj,
-			   struct bin_attribute *bin_attr, char *buf,
-			   loff_t off, size_t count)
+						   struct bin_attribute *bin_attr, char *buf,
+						   loff_t off, size_t count)
 {
 	struct w1_slave *sl = kobj_to_w1_slave(kobj);
 	int todo = count;
 
 	count = w1_f2d_fix_count(off, count, W1_F2D_EEPROM_SIZE);
+
 	if (count == 0)
+	{
 		return 0;
+	}
 
 	mutex_lock(&sl->master->bus_mutex);
 
 	/* read directly from the EEPROM in chunks of W1_F2D_READ_MAXLEN */
-	while (todo > 0) {
+	while (todo > 0)
+	{
 		int block_read;
 
 		if (todo >= W1_F2D_READ_MAXLEN)
+		{
 			block_read = W1_F2D_READ_MAXLEN;
+		}
 		else
+		{
 			block_read = todo;
+		}
 
 		if (w1_f2d_readblock(sl, off, block_read, buf) < 0)
+		{
 			count = -EIO;
+		}
 
 		todo -= W1_F2D_READ_MAXLEN;
 		buf += W1_F2D_READ_MAXLEN;
@@ -155,7 +177,9 @@ retry:
 
 	/* Write the data to the scratchpad */
 	if (w1_reset_select_slave(sl))
+	{
 		return -1;
+	}
 
 	wrbuf[0] = W1_F2D_WRITE_SCRATCH;
 	wrbuf[1] = addr & 0xff;
@@ -166,28 +190,35 @@ retry:
 
 	/* Read the scratchpad and verify */
 	if (w1_reset_select_slave(sl))
+	{
 		return -1;
+	}
 
 	w1_write_8(sl->master, W1_F2D_READ_SCRATCH);
 	w1_read_block(sl->master, rdbuf, len + 3);
 
 	/* Compare what was read against the data written */
 	if ((rdbuf[0] != wrbuf[1]) || (rdbuf[1] != wrbuf[2]) ||
-	    (rdbuf[2] != es) || (memcmp(data, &rdbuf[3], len) != 0)) {
+		(rdbuf[2] != es) || (memcmp(data, &rdbuf[3], len) != 0))
+	{
 
 		if (--tries)
+		{
 			goto retry;
+		}
 
 		dev_err(&sl->dev,
-			"could not write to eeprom, scratchpad compare failed %d times\n",
-			W1_F2D_READ_RETRIES);
+				"could not write to eeprom, scratchpad compare failed %d times\n",
+				W1_F2D_READ_RETRIES);
 
 		return -1;
 	}
 
 	/* Copy the scratchpad to EEPROM */
 	if (w1_reset_select_slave(sl))
+	{
 		return -1;
+	}
 
 	wrbuf[0] = W1_F2D_COPY_SCRATCH;
 	wrbuf[3] = es;
@@ -203,56 +234,72 @@ retry:
 }
 
 static ssize_t eeprom_write(struct file *filp, struct kobject *kobj,
-			    struct bin_attribute *bin_attr, char *buf,
-			    loff_t off, size_t count)
+							struct bin_attribute *bin_attr, char *buf,
+							loff_t off, size_t count)
 {
 	struct w1_slave *sl = kobj_to_w1_slave(kobj);
 	int addr, len;
 	int copy;
 
 	count = w1_f2d_fix_count(off, count, W1_F2D_EEPROM_SIZE);
+
 	if (count == 0)
+	{
 		return 0;
+	}
 
 	mutex_lock(&sl->master->bus_mutex);
 
 	/* Can only write data in blocks of the size of the scratchpad */
 	addr = off;
 	len = count;
-	while (len > 0) {
+
+	while (len > 0)
+	{
 
 		/* if len too short or addr not aligned */
-		if (len < W1_F2D_SCRATCH_SIZE || addr & W1_F2D_SCRATCH_MASK) {
+		if (len < W1_F2D_SCRATCH_SIZE || addr & W1_F2D_SCRATCH_MASK)
+		{
 			char tmp[W1_F2D_SCRATCH_SIZE];
 
 			/* read the block and update the parts to be written */
 			if (w1_f2d_readblock(sl, addr & ~W1_F2D_SCRATCH_MASK,
-					W1_F2D_SCRATCH_SIZE, tmp)) {
+								 W1_F2D_SCRATCH_SIZE, tmp))
+			{
 				count = -EIO;
 				goto out_up;
 			}
 
 			/* copy at most to the boundary of the PAGE or len */
 			copy = W1_F2D_SCRATCH_SIZE -
-				(addr & W1_F2D_SCRATCH_MASK);
+				   (addr & W1_F2D_SCRATCH_MASK);
 
 			if (copy > len)
+			{
 				copy = len;
+			}
 
 			memcpy(&tmp[addr & W1_F2D_SCRATCH_MASK], buf, copy);
-			if (w1_f2d_write(sl, addr & ~W1_F2D_SCRATCH_MASK,
-					W1_F2D_SCRATCH_SIZE, tmp) < 0) {
-				count = -EIO;
-				goto out_up;
-			}
-		} else {
 
-			copy = W1_F2D_SCRATCH_SIZE;
-			if (w1_f2d_write(sl, addr, copy, buf) < 0) {
+			if (w1_f2d_write(sl, addr & ~W1_F2D_SCRATCH_MASK,
+							 W1_F2D_SCRATCH_SIZE, tmp) < 0)
+			{
 				count = -EIO;
 				goto out_up;
 			}
 		}
+		else
+		{
+
+			copy = W1_F2D_SCRATCH_SIZE;
+
+			if (w1_f2d_write(sl, addr, copy, buf) < 0)
+			{
+				count = -EIO;
+				goto out_up;
+			}
+		}
+
 		buf += copy;
 		addr += copy;
 		len -= copy;
@@ -266,25 +313,30 @@ out_up:
 
 static BIN_ATTR_RW(eeprom, W1_F2D_EEPROM_SIZE);
 
-static struct bin_attribute *w1_f2d_bin_attrs[] = {
+static struct bin_attribute *w1_f2d_bin_attrs[] =
+{
 	&bin_attr_eeprom,
 	NULL,
 };
 
-static const struct attribute_group w1_f2d_group = {
+static const struct attribute_group w1_f2d_group =
+{
 	.bin_attrs = w1_f2d_bin_attrs,
 };
 
-static const struct attribute_group *w1_f2d_groups[] = {
+static const struct attribute_group *w1_f2d_groups[] =
+{
 	&w1_f2d_group,
 	NULL,
 };
 
-static struct w1_family_ops w1_f2d_fops = {
+static struct w1_family_ops w1_f2d_fops =
+{
 	.groups		= w1_f2d_groups,
 };
 
-static struct w1_family w1_family_2d = {
+static struct w1_family w1_family_2d =
+{
 	.fid = W1_EEPROM_DS2431,
 	.fops = &w1_f2d_fops,
 };

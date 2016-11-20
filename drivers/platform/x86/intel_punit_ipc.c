@@ -31,13 +31,15 @@
 
 #define CMD_TIMEOUT_SECONDS	1
 
-enum {
+enum
+{
 	BASE_DATA = 0,
 	BASE_IFACE,
 	BASE_MAX,
 };
 
-typedef struct {
+typedef struct
+{
 	struct device *dev;
 	struct mutex lock;
 	int irq;
@@ -82,21 +84,37 @@ static inline void ipc_write_data_high(IPC_DEV *ipcdev, IPC_TYPE type, u32 data)
 static const char *ipc_err_string(int error)
 {
 	if (error == IPC_PUNIT_ERR_SUCCESS)
+	{
 		return "no error";
+	}
 	else if (error == IPC_PUNIT_ERR_INVALID_CMD)
+	{
 		return "invalid command";
+	}
 	else if (error == IPC_PUNIT_ERR_INVALID_PARAMETER)
+	{
 		return "invalid parameter";
+	}
 	else if (error == IPC_PUNIT_ERR_CMD_TIMEOUT)
+	{
 		return "command timeout";
+	}
 	else if (error == IPC_PUNIT_ERR_CMD_LOCKED)
+	{
 		return "command locked";
+	}
 	else if (error == IPC_PUNIT_ERR_INVALID_VR_ID)
+	{
 		return "invalid vr id";
+	}
 	else if (error == IPC_PUNIT_ERR_VR_ERR)
+	{
 		return "vr error";
+	}
 	else
+	{
 		return "unknown error";
+	}
 }
 
 static int intel_punit_ipc_check_status(IPC_DEV *ipcdev, IPC_TYPE type)
@@ -105,16 +123,24 @@ static int intel_punit_ipc_check_status(IPC_DEV *ipcdev, IPC_TYPE type)
 	int errcode;
 	int status;
 
-	if (ipcdev->irq) {
+	if (ipcdev->irq)
+	{
 		if (!wait_for_completion_timeout(&ipcdev->cmd_complete,
-						 CMD_TIMEOUT_SECONDS * HZ)) {
+										 CMD_TIMEOUT_SECONDS * HZ))
+		{
 			dev_err(ipcdev->dev, "IPC timed out\n");
 			return -ETIMEDOUT;
 		}
-	} else {
+	}
+	else
+	{
 		while ((ipc_read_status(ipcdev, type) & CMD_RUN) && --loops)
+		{
 			udelay(1);
-		if (!loops) {
+		}
+
+		if (!loops)
+		{
 			dev_err(ipcdev->dev, "IPC timed out\n");
 			return -ETIMEDOUT;
 		}
@@ -122,9 +148,11 @@ static int intel_punit_ipc_check_status(IPC_DEV *ipcdev, IPC_TYPE type)
 
 	status = ipc_read_status(ipcdev, type);
 	errcode = status & CMD_ERRCODE_MASK;
-	if (errcode) {
+
+	if (errcode)
+	{
 		dev_err(ipcdev->dev, "IPC failed: %s, IPC_STS=0x%x\n",
-			ipc_err_string(errcode), status);
+				ipc_err_string(errcode), status);
 		return -EIO;
 	}
 
@@ -188,10 +216,14 @@ int intel_punit_ipc_command(u32 cmd, u32 para1, u32 para2, u32 *in, u32 *out)
 	reinit_completion(&ipcdev->cmd_complete);
 	type = (cmd & IPC_PUNIT_CMD_TYPE_MASK) >> IPC_TYPE_OFFSET;
 
-	if (in) {
+	if (in)
+	{
 		ipc_write_data_low(ipcdev, type, *in);
+
 		if (type == GTDRIVER_IPC || type == ISPDRIVER_IPC)
+		{
 			ipc_write_data_high(ipcdev, type, *++in);
+		}
 	}
 
 	val = cmd & ~IPC_PUNIT_CMD_TYPE_MASK;
@@ -199,13 +231,20 @@ int intel_punit_ipc_command(u32 cmd, u32 para1, u32 para2, u32 *in, u32 *out)
 	ipc_write_cmd(ipcdev, type, val);
 
 	ret = intel_punit_ipc_check_status(ipcdev, type);
-	if (ret)
-		goto out;
 
-	if (out) {
+	if (ret)
+	{
+		goto out;
+	}
+
+	if (out)
+	{
 		*out = ipc_read_data_low(ipcdev, type);
+
 		if (type == GTDRIVER_IPC || type == ISPDRIVER_IPC)
+		{
 			*++out = ipc_read_data_high(ipcdev, type);
+		}
 	}
 
 out:
@@ -234,14 +273,22 @@ static int intel_punit_get_bars(struct platform_device *pdev)
 	 */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	addr = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(addr))
+	{
 		return PTR_ERR(addr);
+	}
+
 	punit_ipcdev->base[BIOS_IPC][BASE_DATA] = addr;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 	addr = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(addr))
+	{
 		return PTR_ERR(addr);
+	}
+
 	punit_ipcdev->base[BIOS_IPC][BASE_IFACE] = addr;
 
 	/*
@@ -252,31 +299,51 @@ static int intel_punit_get_bars(struct platform_device *pdev)
 	 * - GTDRIVER_IPC BASE_IFACE
 	 */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 2);
-	if (res) {
+
+	if (res)
+	{
 		addr = devm_ioremap_resource(&pdev->dev, res);
+
 		if (!IS_ERR(addr))
+		{
 			punit_ipcdev->base[ISPDRIVER_IPC][BASE_DATA] = addr;
+		}
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 3);
-	if (res) {
+
+	if (res)
+	{
 		addr = devm_ioremap_resource(&pdev->dev, res);
+
 		if (!IS_ERR(addr))
+		{
 			punit_ipcdev->base[ISPDRIVER_IPC][BASE_IFACE] = addr;
+		}
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 4);
-	if (res) {
+
+	if (res)
+	{
 		addr = devm_ioremap_resource(&pdev->dev, res);
+
 		if (!IS_ERR(addr))
+		{
 			punit_ipcdev->base[GTDRIVER_IPC][BASE_DATA] = addr;
+		}
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 5);
-	if (res) {
+
+	if (res)
+	{
 		addr = devm_ioremap_resource(&pdev->dev, res);
+
 		if (!IS_ERR(addr))
+		{
 			punit_ipcdev->base[GTDRIVER_IPC][BASE_IFACE] = addr;
+		}
 	}
 
 	return 0;
@@ -287,30 +354,43 @@ static int intel_punit_ipc_probe(struct platform_device *pdev)
 	int irq, ret;
 
 	punit_ipcdev = devm_kzalloc(&pdev->dev,
-				    sizeof(*punit_ipcdev), GFP_KERNEL);
+								sizeof(*punit_ipcdev), GFP_KERNEL);
+
 	if (!punit_ipcdev)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, punit_ipcdev);
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		punit_ipcdev->irq = 0;
 		dev_warn(&pdev->dev, "Invalid IRQ, using polling mode\n");
-	} else {
+	}
+	else
+	{
 		ret = devm_request_irq(&pdev->dev, irq, intel_punit_ioc,
-				       IRQF_NO_SUSPEND, "intel_punit_ipc",
-				       &punit_ipcdev);
-		if (ret) {
+							   IRQF_NO_SUSPEND, "intel_punit_ipc",
+							   &punit_ipcdev);
+
+		if (ret)
+		{
 			dev_err(&pdev->dev, "Failed to request irq: %d\n", irq);
 			return ret;
 		}
+
 		punit_ipcdev->irq = irq;
 	}
 
 	ret = intel_punit_get_bars(pdev);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	punit_ipcdev->dev = &pdev->dev;
 	mutex_init(&punit_ipcdev->lock);
@@ -325,12 +405,14 @@ static int intel_punit_ipc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct acpi_device_id punit_ipc_acpi_ids[] = {
+static const struct acpi_device_id punit_ipc_acpi_ids[] =
+{
 	{ "INT34D4", 0 },
 	{ }
 };
 
-static struct platform_driver intel_punit_ipc_driver = {
+static struct platform_driver intel_punit_ipc_driver =
+{
 	.probe = intel_punit_ipc_probe,
 	.remove = intel_punit_ipc_remove,
 	.driver = {

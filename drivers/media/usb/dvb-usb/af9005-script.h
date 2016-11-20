@@ -7,14 +7,16 @@ python createinit.py > af9005-script.h
 
 */
 
-typedef struct {
+typedef struct
+{
 	u16 reg;
 	u8 pos;
 	u8 len;
 	u8 val;
 } RegDesc;
 
-static RegDesc script[] = {
+static RegDesc script[] =
+{
 	{0xa180, 0x0, 0x8, 0xa},
 	{0xa181, 0x0, 0x8, 0xd7},
 	{0xa182, 0x0, 0x8, 0xa3},

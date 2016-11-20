@@ -39,7 +39,8 @@ extern const struct qed_common_ops qed_common_ops_pass;
 #define QED_PF_DEMS_SIZE        (4)
 
 /* cau states */
-enum qed_coalescing_mode {
+enum qed_coalescing_mode
+{
 	QED_COAL_MODE_DISABLE,
 	QED_COAL_MODE_ENABLE
 };
@@ -53,7 +54,7 @@ enum qed_mcp_protocol_type;
 static inline u32 qed_db_addr(u32 cid, u32 DEMS)
 {
 	u32 db_addr = FIELD_VALUE(DB_LEGACY_ADDR_DEMS, DEMS) |
-		      (cid * QED_PF_DEMS_SIZE);
+				  (cid * QED_PF_DEMS_SIZE);
 
 	return db_addr;
 }
@@ -61,7 +62,7 @@ static inline u32 qed_db_addr(u32 cid, u32 DEMS)
 static inline u32 qed_db_addr_vf(u32 cid, u32 DEMS)
 {
 	u32 db_addr = FIELD_VALUE(DB_LEGACY_ADDR_DEMS, DEMS) |
-		      FIELD_VALUE(DB_LEGACY_ADDR_ICID, cid);
+				  FIELD_VALUE(DB_LEGACY_ADDR_ICID, cid);
 
 	return db_addr;
 }
@@ -86,12 +87,14 @@ struct qed_sb_sp_info;
 struct qed_ll2_info;
 struct qed_mcp_info;
 
-struct qed_rt_data {
+struct qed_rt_data
+{
 	u32	*init_val;
 	bool	*b_valid;
 };
 
-enum qed_tunn_mode {
+enum qed_tunn_mode
+{
 	QED_MODE_L2GENEVE_TUNN,
 	QED_MODE_IPGENEVE_TUNN,
 	QED_MODE_L2GRE_TUNN,
@@ -99,7 +102,8 @@ enum qed_tunn_mode {
 	QED_MODE_VXLAN_TUNN,
 };
 
-enum qed_tunn_clss {
+enum qed_tunn_clss
+{
 	QED_TUNN_CLSS_MAC_VLAN,
 	QED_TUNN_CLSS_MAC_VNI,
 	QED_TUNN_CLSS_INNER_MAC_VLAN,
@@ -107,7 +111,8 @@ enum qed_tunn_clss {
 	MAX_QED_TUNN_CLSS,
 };
 
-struct qed_tunn_start_params {
+struct qed_tunn_start_params
+{
 	unsigned long	tunn_mode;
 	u16		vxlan_udp_port;
 	u16		geneve_udp_port;
@@ -120,7 +125,8 @@ struct qed_tunn_start_params {
 	u8		tunn_clss_ipgre;
 };
 
-struct qed_tunn_update_params {
+struct qed_tunn_update_params
+{
 	unsigned long	tunn_mode_update_mask;
 	unsigned long	tunn_mode;
 	u16		vxlan_udp_port;
@@ -140,7 +146,8 @@ struct qed_tunn_update_params {
  * 1. All personalities need CORE connections
  * 2. The Ethernet personality may support also the RoCE protocol
  */
-enum qed_pci_personality {
+enum qed_pci_personality
+{
 	QED_PCI_ETH,
 	QED_PCI_ISCSI,
 	QED_PCI_ETH_ROCE,
@@ -148,13 +155,15 @@ enum qed_pci_personality {
 };
 
 /* All VFs are symmetric, all counters are PF + all VFs */
-struct qed_qm_iids {
+struct qed_qm_iids
+{
 	u32 cids;
 	u32 vf_cids;
 	u32 tids;
 };
 
-enum QED_RESOURCES {
+enum QED_RESOURCES
+{
 	QED_SB,
 	QED_L2_QUEUE,
 	QED_VPORT,
@@ -170,14 +179,16 @@ enum QED_RESOURCES {
 	QED_MAX_RESC,
 };
 
-enum QED_FEATURE {
+enum QED_FEATURE
+{
 	QED_PF_L2_QUE,
 	QED_VF,
 	QED_RDMA_CNQ,
 	QED_MAX_FEATURES,
 };
 
-enum QED_PORT_MODE {
+enum QED_PORT_MODE
+{
 	QED_PORT_MODE_DE_2X40G,
 	QED_PORT_MODE_DE_2X50G,
 	QED_PORT_MODE_DE_1X100G,
@@ -189,13 +200,15 @@ enum QED_PORT_MODE {
 	QED_PORT_MODE_DE_1X25G
 };
 
-enum qed_dev_cap {
+enum qed_dev_cap
+{
 	QED_DEV_CAP_ETH,
 	QED_DEV_CAP_ISCSI,
 	QED_DEV_CAP_ROCE,
 };
 
-struct qed_hw_info {
+struct qed_hw_info
+{
 	/* PCI personality */
 	enum qed_pci_personality	personality;
 
@@ -207,7 +220,7 @@ struct qed_hw_info {
 #define RESC_START(_p_hwfn, resc) ((_p_hwfn)->hw_info.resc_start[resc])
 #define RESC_NUM(_p_hwfn, resc) ((_p_hwfn)->hw_info.resc_num[resc])
 #define RESC_END(_p_hwfn, resc) (RESC_START(_p_hwfn, resc) + \
-				 RESC_NUM(_p_hwfn, resc))
+								 RESC_NUM(_p_hwfn, resc))
 #define FEAT_NUM(_p_hwfn, resc) ((_p_hwfn)->hw_info.feat_num[resc])
 
 	u8				num_tc;
@@ -228,7 +241,8 @@ struct qed_hw_info {
 	unsigned long		device_capabilities;
 };
 
-struct qed_hw_cid_data {
+struct qed_hw_cid_data
+{
 	u32	cid;
 	bool	b_cid_allocated;
 
@@ -240,7 +254,8 @@ struct qed_hw_cid_data {
 /* maximun size of read/write commands (HW limit) */
 #define DMAE_MAX_RW_SIZE        0x2000
 
-struct qed_dmae_info {
+struct qed_dmae_info
+{
 	/* Mutex for synchronizing access to functions */
 	struct mutex	mutex;
 
@@ -265,13 +280,15 @@ struct qed_dmae_info {
 	struct dmae_cmd *p_dmae_cmd;
 };
 
-struct qed_wfq_data {
+struct qed_wfq_data
+{
 	/* when feature is configured for at least 1 vport */
 	u32	min_speed;
 	bool	configured;
 };
 
-struct qed_qm_info {
+struct qed_qm_info
+{
 	struct init_qm_pq_params	*qm_pq_params;
 	struct init_qm_vport_params	*qm_vport_params;
 	struct init_qm_port_params	*qm_port_params;
@@ -296,19 +313,22 @@ struct qed_qm_info {
 	u8 num_pf_rls;
 };
 
-struct storm_stats {
+struct storm_stats
+{
 	u32     address;
 	u32     len;
 };
 
-struct qed_storm_stats {
+struct qed_storm_stats
+{
 	struct storm_stats mstats;
 	struct storm_stats pstats;
 	struct storm_stats tstats;
 	struct storm_stats ustats;
 };
 
-struct qed_fw_data {
+struct qed_fw_data
+{
 	struct fw_ver_info	*fw_ver_info;
 	const u8		*modes_tree_buf;
 	union init_op		*init_ops;
@@ -316,12 +336,14 @@ struct qed_fw_data {
 	u32			init_ops_size;
 };
 
-struct qed_simd_fp_handler {
+struct qed_simd_fp_handler
+{
 	void	*token;
 	void	(*func)(void *);
 };
 
-struct qed_hwfn {
+struct qed_hwfn
+{
 	struct qed_dev			*cdev;
 	u8				my_id;          /* ID inside the PF */
 #define IS_LEAD_HWFN(edev)              (!((edev)->my_id))
@@ -440,7 +462,8 @@ struct qed_hwfn {
 	struct qed_roce_ll2_info	*ll2;
 };
 
-struct pci_params {
+struct pci_params
+{
 	int		pm_cap;
 
 	unsigned long	mem_start;
@@ -449,13 +472,15 @@ struct pci_params {
 	u8		pf_num;
 };
 
-struct qed_int_param {
+struct qed_int_param
+{
 	u32	int_mode;
 	u8	num_vectors;
 	u8	min_msix_cnt; /* for minimal functionality */
 };
 
-struct qed_int_params {
+struct qed_int_params
+{
 	struct qed_int_param	in;
 	struct qed_int_param	out;
 	struct msix_entry	*msix_table;
@@ -466,20 +491,23 @@ struct qed_int_params {
 	u8			rdma_msix_cnt;
 };
 
-struct qed_dbg_feature {
+struct qed_dbg_feature
+{
 	struct dentry *dentry;
 	u8 *dump_buf;
 	u32 buf_size;
 	u32 dumped_dwords;
 };
 
-struct qed_dbg_params {
+struct qed_dbg_params
+{
 	struct qed_dbg_feature features[DBG_FEATURE_NUM];
 	u8 engine_for_debug;
 	bool print_data;
 };
 
-struct qed_dev {
+struct qed_dev
+{
 	u32	dp_module;
 	u8	dp_level;
 	char	name[NAME_SIZE];
@@ -487,17 +515,17 @@ struct qed_dev {
 	u8	type;
 #define QED_DEV_TYPE_BB (0 << 0)
 #define QED_DEV_TYPE_AH BIT(0)
-/* Translate type/revision combo into the proper conditions */
+	/* Translate type/revision combo into the proper conditions */
 #define QED_IS_BB(dev)  ((dev)->type == QED_DEV_TYPE_BB)
 #define QED_IS_BB_A0(dev)       (QED_IS_BB(dev) && \
-				 CHIP_REV_IS_A0(dev))
+								 CHIP_REV_IS_A0(dev))
 #define QED_IS_BB_B0(dev)       (QED_IS_BB(dev) && \
-				 CHIP_REV_IS_B0(dev))
+								 CHIP_REV_IS_B0(dev))
 #define QED_IS_AH(dev)  ((dev)->type == QED_DEV_TYPE_AH)
 #define QED_IS_K2(dev)  QED_IS_AH(dev)
 
 #define QED_GET_TYPE(dev)       (QED_IS_BB_A0(dev) ? CHIP_BB_A0 : \
-				 QED_IS_BB_B0(dev) ? CHIP_BB_B0 : CHIP_K2)
+								 QED_IS_BB_B0(dev) ? CHIP_BB_B0 : CHIP_K2)
 
 	u16	vendor_id;
 	u16	device_id;
@@ -588,7 +616,8 @@ struct qed_dev {
 #define IS_QED_ETH_IF(cdev)     ((cdev)->protocol == QED_PROTOCOL_ETH)
 
 	/* Callbacks to protocol driver */
-	union {
+	union
+	{
 		struct qed_common_cb_ops	*common;
 		struct qed_eth_cb_ops		*eth;
 	} protocol_ops;
@@ -622,18 +651,22 @@ struct qed_dev {
  * @return inline u8
  */
 static inline u8 qed_concrete_to_sw_fid(struct qed_dev *cdev,
-					u32 concrete_fid)
+										u32 concrete_fid)
 {
 	u8 vfid = GET_FIELD(concrete_fid, PXP_CONCRETE_FID_VFID);
 	u8 pfid = GET_FIELD(concrete_fid, PXP_CONCRETE_FID_PFID);
 	u8 vf_valid = GET_FIELD(concrete_fid,
-				PXP_CONCRETE_FID_VFVALID);
+							PXP_CONCRETE_FID_VFVALID);
 	u8 sw_fid;
 
 	if (vf_valid)
+	{
 		sw_fid = vfid + MAX_NUM_PFS;
+	}
 	else
+	{
 		sw_fid = pfid;
+	}
 
 	return sw_fid;
 }
@@ -651,8 +684,8 @@ void qed_clean_wfq_db(struct qed_hwfn *p_hwfn, struct qed_ptt *p_ptt);
 #define DP_NAME(cdev) ((cdev)->name)
 
 #define REG_ADDR(cdev, offset)          (void __iomem *)((u8 __iomem *)\
-						(cdev->regview) + \
-							 (offset))
+		(cdev->regview) + \
+		(offset))
 
 #define REG_RD(cdev, offset)            readl(REG_ADDR(cdev, offset))
 #define REG_WR(cdev, offset, val)       writel((u32)val, REG_ADDR(cdev, offset))
@@ -660,18 +693,18 @@ void qed_clean_wfq_db(struct qed_hwfn *p_hwfn, struct qed_ptt *p_ptt);
 
 #define DOORBELL(cdev, db_addr, val)			 \
 	writel((u32)val, (void __iomem *)((u8 __iomem *)\
-					  (cdev->doorbells) + (db_addr)))
+									  (cdev->doorbells) + (db_addr)))
 
 /* Prototypes */
 int qed_fill_dev_info(struct qed_dev *cdev,
-		      struct qed_dev_info *dev_info);
+					  struct qed_dev_info *dev_info);
 void qed_link_update(struct qed_hwfn *hwfn);
 u32 qed_unzip_data(struct qed_hwfn *p_hwfn,
-		   u32 input_len, u8 *input_buf,
-		   u32 max_size, u8 *unzip_buf);
+				   u32 input_len, u8 *input_buf,
+				   u32 max_size, u8 *unzip_buf);
 void qed_get_protocol_stats(struct qed_dev *cdev,
-			    enum qed_mcp_protocol_type type,
-			    union qed_mcp_protocol_stats *stats);
+							enum qed_mcp_protocol_type type,
+							union qed_mcp_protocol_stats *stats);
 int qed_slowpath_irq_req(struct qed_hwfn *hwfn);
 
 #endif /* _QED_H */

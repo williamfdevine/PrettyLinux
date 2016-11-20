@@ -35,7 +35,8 @@
 #include "mantis_vp1033.h"
 #include "mantis_reg.h"
 
-static u8 lgtdqcs001f_inittab[] = {
+static u8 lgtdqcs001f_inittab[] =
+{
 	0x01, 0x15,
 	0x02, 0x30,
 	0x03, 0x00,
@@ -103,43 +104,62 @@ static int lgtdqcs001f_tuner_set(struct dvb_frontend *fe)
 	buf[3] =  0xc0;
 
 	if (p->frequency < 1531000)
+	{
 		buf[3] |= 0x04;
+	}
 	else
+	{
 		buf[3] &= ~0x04;
-	if (i2c_transfer(adapter, &msg, 1) < 0) {
+	}
+
+	if (i2c_transfer(adapter, &msg, 1) < 0)
+	{
 		dprintk(MANTIS_ERROR, 1, "Write: I2C Transfer failed");
 		return -EIO;
 	}
+
 	msleep_interruptible(100);
 
 	return 0;
 }
 
 static int lgtdqcs001f_set_symbol_rate(struct dvb_frontend *fe,
-				       u32 srate, u32 ratio)
+									   u32 srate, u32 ratio)
 {
 	u8 aclk = 0;
 	u8 bclk = 0;
 
-	if (srate < 1500000) {
+	if (srate < 1500000)
+	{
 		aclk = 0xb7;
 		bclk = 0x47;
-	} else if (srate < 3000000) {
+	}
+	else if (srate < 3000000)
+	{
 		aclk = 0xb7;
 		bclk = 0x4b;
-	} else if (srate < 7000000) {
+	}
+	else if (srate < 7000000)
+	{
 		aclk = 0xb7;
 		bclk = 0x4f;
-	} else if (srate < 14000000) {
+	}
+	else if (srate < 14000000)
+	{
 		aclk = 0xb7;
 		bclk = 0x53;
-	} else if (srate < 30000000) {
+	}
+	else if (srate < 30000000)
+	{
 		aclk = 0xb6;
 		bclk = 0x53;
-	} else if (srate < 45000000) {
+	}
+	else if (srate < 45000000)
+	{
 		aclk = 0xb4;
 		bclk = 0x51;
 	}
+
 	stv0299_writereg(fe, 0x13, aclk);
 	stv0299_writereg(fe, 0x14, bclk);
 
@@ -150,7 +170,8 @@ static int lgtdqcs001f_set_symbol_rate(struct dvb_frontend *fe,
 	return 0;
 }
 
-static struct stv0299_config lgtdqcs001f_config = {
+static struct stv0299_config lgtdqcs001f_config =
+{
 	.demod_address		= 0x68,
 	.inittab		= lgtdqcs001f_inittab,
 	.mclk			= 88000000UL,
@@ -168,36 +189,45 @@ static int vp1033_frontend_init(struct mantis_pci *mantis, struct dvb_frontend *
 	int err = 0;
 
 	err = mantis_frontend_power(mantis, POWER_ON);
-	if (err == 0) {
+
+	if (err == 0)
+	{
 		mantis_frontend_soft_reset(mantis);
 		msleep(250);
 
 		dprintk(MANTIS_ERROR, 1, "Probing for STV0299 (DVB-S)");
 		fe = dvb_attach(stv0299_attach, &lgtdqcs001f_config, adapter);
 
-		if (fe) {
+		if (fe)
+		{
 			fe->ops.tuner_ops.set_params = lgtdqcs001f_tuner_set;
 			dprintk(MANTIS_ERROR, 1, "found STV0299 DVB-S frontend @ 0x%02x",
-				lgtdqcs001f_config.demod_address);
+					lgtdqcs001f_config.demod_address);
 
 			dprintk(MANTIS_ERROR, 1, "Mantis DVB-S STV0299 frontend attach success");
-		} else {
+		}
+		else
+		{
 			return -1;
 		}
-	} else {
+	}
+	else
+	{
 		dprintk(MANTIS_ERROR, 1, "Frontend on <%s> POWER ON failed! <%d>",
-			adapter->name,
-			err);
+				adapter->name,
+				err);
 
 		return -EIO;
 	}
+
 	mantis->fe = fe;
 	dprintk(MANTIS_ERROR, 1, "Done!");
 
 	return 0;
 }
 
-struct mantis_hwconfig vp1033_config = {
+struct mantis_hwconfig vp1033_config =
+{
 	.model_name		= MANTIS_MODEL_NAME,
 	.dev_type		= MANTIS_DEV_TYPE,
 	.ts_size		= MANTIS_TS_204,

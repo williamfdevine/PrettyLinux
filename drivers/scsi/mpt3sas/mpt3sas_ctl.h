@@ -47,14 +47,14 @@
 #define MPT3SAS_CTL_H_INCLUDED
 
 #ifdef __KERNEL__
-#include <linux/miscdevice.h>
+	#include <linux/miscdevice.h>
 #endif
 
 #ifndef MPT2SAS_MINOR
-#define MPT2SAS_MINOR		(MPT_MINOR + 1)
+	#define MPT2SAS_MINOR		(MPT_MINOR + 1)
 #endif
 #ifndef MPT3SAS_MINOR
-#define MPT3SAS_MINOR		(MPT_MINOR + 2)
+	#define MPT3SAS_MINOR		(MPT_MINOR + 2)
 #endif
 #define MPT2SAS_DEV_NAME	"mpt2ctl"
 #define MPT3SAS_DEV_NAME	"mpt3ctl"
@@ -65,35 +65,35 @@
  * IOCTL opcodes
  */
 #define MPT3IOCINFO	_IOWR(MPT3_MAGIC_NUMBER, 17, \
-	struct mpt3_ioctl_iocinfo)
+						  struct mpt3_ioctl_iocinfo)
 #define MPT3COMMAND	_IOWR(MPT3_MAGIC_NUMBER, 20, \
-	struct mpt3_ioctl_command)
+						  struct mpt3_ioctl_command)
 #ifdef CONFIG_COMPAT
 #define MPT3COMMAND32	_IOWR(MPT3_MAGIC_NUMBER, 20, \
-	struct mpt3_ioctl_command32)
+							  struct mpt3_ioctl_command32)
 #endif
 #define MPT3EVENTQUERY	_IOWR(MPT3_MAGIC_NUMBER, 21, \
-	struct mpt3_ioctl_eventquery)
+							  struct mpt3_ioctl_eventquery)
 #define MPT3EVENTENABLE	_IOWR(MPT3_MAGIC_NUMBER, 22, \
-	struct mpt3_ioctl_eventenable)
+							  struct mpt3_ioctl_eventenable)
 #define MPT3EVENTREPORT	_IOWR(MPT3_MAGIC_NUMBER, 23, \
-	struct mpt3_ioctl_eventreport)
+							  struct mpt3_ioctl_eventreport)
 #define MPT3HARDRESET	_IOWR(MPT3_MAGIC_NUMBER, 24, \
-	struct mpt3_ioctl_diag_reset)
+							  struct mpt3_ioctl_diag_reset)
 #define MPT3BTDHMAPPING	_IOWR(MPT3_MAGIC_NUMBER, 31, \
-	struct mpt3_ioctl_btdh_mapping)
+							  struct mpt3_ioctl_btdh_mapping)
 
 /* diag buffer support */
 #define MPT3DIAGREGISTER _IOWR(MPT3_MAGIC_NUMBER, 26, \
-	struct mpt3_diag_register)
+							   struct mpt3_diag_register)
 #define MPT3DIAGRELEASE	_IOWR(MPT3_MAGIC_NUMBER, 27, \
-	struct mpt3_diag_release)
+							  struct mpt3_diag_release)
 #define MPT3DIAGUNREGISTER _IOWR(MPT3_MAGIC_NUMBER, 28, \
-	struct mpt3_diag_unregister)
+								 struct mpt3_diag_unregister)
 #define MPT3DIAGQUERY	_IOWR(MPT3_MAGIC_NUMBER, 29, \
-	struct mpt3_diag_query)
+							  struct mpt3_diag_query)
 #define MPT3DIAGREADBUFFER _IOWR(MPT3_MAGIC_NUMBER, 30, \
-	struct mpt3_diag_read_buffer)
+								 struct mpt3_diag_read_buffer)
 
 /**
  * struct mpt3_ioctl_header - main header structure
@@ -101,7 +101,8 @@
  * @port_number - IOC port number
  * @max_data_size - maximum number bytes to transfer on read
  */
-struct mpt3_ioctl_header {
+struct mpt3_ioctl_header
+{
 	uint32_t ioc_number;
 	uint32_t port_number;
 	uint32_t max_data_size;
@@ -111,7 +112,8 @@ struct mpt3_ioctl_header {
  * struct mpt3_ioctl_diag_reset - diagnostic reset
  * @hdr - generic header
  */
-struct mpt3_ioctl_diag_reset {
+struct mpt3_ioctl_diag_reset
+{
 	struct mpt3_ioctl_header hdr;
 };
 
@@ -123,12 +125,15 @@ struct mpt3_ioctl_diag_reset {
  * @bus - pci bus id
  * @segment_id - pci segment id
  */
-struct mpt3_ioctl_pci_info {
-	union {
-		struct {
-			uint32_t device:5;
-			uint32_t function:3;
-			uint32_t bus:24;
+struct mpt3_ioctl_pci_info
+{
+	union
+	{
+		struct
+		{
+			uint32_t device: 5;
+			uint32_t function: 3;
+			uint32_t bus: 24;
 		} bits;
 		uint32_t  word;
 	} u;
@@ -163,7 +168,8 @@ struct mpt3_ioctl_pci_info {
  * @rsvd2 - reserved
  * @pci_information - pci info (2nd revision)
  */
-struct mpt3_ioctl_iocinfo {
+struct mpt3_ioctl_iocinfo
+{
 	struct mpt3_ioctl_header hdr;
 	uint32_t adapter_type;
 	uint32_t port_number;
@@ -192,7 +198,8 @@ struct mpt3_ioctl_iocinfo {
  * @rsvd - reserved
  * @event_types - type of events currently being captured
  */
-struct mpt3_ioctl_eventquery {
+struct mpt3_ioctl_eventquery
+{
 	struct mpt3_ioctl_header hdr;
 	uint16_t event_entries;
 	uint16_t rsvd;
@@ -204,7 +211,8 @@ struct mpt3_ioctl_eventquery {
  * @hdr - generic header
  * @event_types - toggle off/on type of events to be captured
  */
-struct mpt3_ioctl_eventenable {
+struct mpt3_ioctl_eventenable
+{
 	struct mpt3_ioctl_header hdr;
 	uint32_t event_types[4];
 };
@@ -216,7 +224,8 @@ struct mpt3_ioctl_eventenable {
  * @context - unique value for each event assigned by driver
  * @data - event data returned in fw reply message
  */
-struct MPT3_IOCTL_EVENTS {
+struct MPT3_IOCTL_EVENTS
+{
 	uint32_t event;
 	uint32_t context;
 	uint8_t data[MPT3_EVENT_DATA_SIZE];
@@ -227,7 +236,8 @@ struct MPT3_IOCTL_EVENTS {
  * @hdr - generic header
  * @event_data - (see struct MPT3_IOCTL_EVENTS)
  */
-struct mpt3_ioctl_eventreport {
+struct mpt3_ioctl_eventreport
+{
 	struct mpt3_ioctl_header hdr;
 	struct MPT3_IOCTL_EVENTS event_data[1];
 };
@@ -249,7 +259,8 @@ struct mpt3_ioctl_eventreport {
  * the first SGL
  * @mf[1];
  */
-struct mpt3_ioctl_command {
+struct mpt3_ioctl_command
+{
 	struct mpt3_ioctl_header hdr;
 	uint32_t timeout;
 	void __user *reply_frame_buf_ptr;
@@ -265,7 +276,8 @@ struct mpt3_ioctl_command {
 };
 
 #ifdef CONFIG_COMPAT
-struct mpt3_ioctl_command32 {
+struct mpt3_ioctl_command32
+{
 	struct mpt3_ioctl_header hdr;
 	uint32_t timeout;
 	uint32_t reply_frame_buf_ptr;
@@ -295,7 +307,8 @@ struct mpt3_ioctl_command32 {
  * To obtain the device handle the application sets
  * bus/id valid value, and the handle to 0xFFFF.
  */
-struct mpt3_ioctl_btdh_mapping {
+struct mpt3_ioctl_btdh_mapping
+{
 	struct mpt3_ioctl_header hdr;
 	uint32_t id;
 	uint32_t bus;
@@ -330,7 +343,8 @@ struct mpt3_ioctl_btdh_mapping {
  * This will allow the driver to setup any required buffers that will be
  * needed by firmware to communicate with the driver.
  */
-struct mpt3_diag_register {
+struct mpt3_diag_register
+{
 	struct mpt3_ioctl_header hdr;
 	uint8_t reserved;
 	uint8_t buffer_type;
@@ -349,7 +363,8 @@ struct mpt3_diag_register {
  * This will allow the driver to cleanup any memory allocated for diag
  * messages and to free up any resources.
  */
-struct mpt3_diag_unregister {
+struct mpt3_diag_unregister
+{
 	struct mpt3_ioctl_header hdr;
 	uint32_t unique_id;
 };
@@ -370,7 +385,8 @@ struct mpt3_diag_unregister {
  * inspect unique_id first, if valid, fill in all the info.  If unique_id is
  * 0x00, the driver will return info specified by Buffer Type.
  */
-struct mpt3_diag_query {
+struct mpt3_diag_query
+{
 	struct mpt3_ioctl_header hdr;
 	uint8_t reserved;
 	uint8_t buffer_type;
@@ -391,7 +407,8 @@ struct mpt3_diag_query {
  * allowing an application to read the buffer without fear that firmware is
  * overwritting information in the buffer.
  */
-struct mpt3_diag_release {
+struct mpt3_diag_release
+{
 	struct mpt3_ioctl_header hdr;
 	uint32_t unique_id;
 };
@@ -409,7 +426,8 @@ struct mpt3_diag_release {
  * @unique_id - unique id associated with this buffer.
  * @diagnostic_data - data payload
  */
-struct mpt3_diag_read_buffer {
+struct mpt3_diag_read_buffer
+{
 	struct mpt3_ioctl_header hdr;
 	uint8_t status;
 	uint8_t reserved;

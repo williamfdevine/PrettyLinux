@@ -14,11 +14,11 @@
 #define MAKE_MM_SEG(s)	((mm_segment_t) { (s) })
 
 #ifndef KERNEL_DS
-#define KERNEL_DS	MAKE_MM_SEG(~0UL)
+	#define KERNEL_DS	MAKE_MM_SEG(~0UL)
 #endif
 
 #ifndef USER_DS
-#define USER_DS		MAKE_MM_SEG(TASK_SIZE - 1)
+	#define USER_DS		MAKE_MM_SEG(TASK_SIZE - 1)
 #endif
 
 #ifndef get_fs
@@ -32,7 +32,7 @@ static inline void set_fs(mm_segment_t fs)
 #endif
 
 #ifndef segment_eq
-#define segment_eq(a, b) ((a).seg == (b).seg)
+	#define segment_eq(a, b) ((a).seg == (b).seg)
 #endif
 
 #define VERIFY_READ	0
@@ -74,26 +74,32 @@ struct exception_table_entry
  */
 #ifndef __copy_from_user
 static inline __must_check long __copy_from_user(void *to,
-		const void __user * from, unsigned long n)
+		const void __user *from, unsigned long n)
 {
-	if (__builtin_constant_p(n)) {
-		switch(n) {
-		case 1:
-			*(u8 *)to = *(u8 __force *)from;
-			return 0;
-		case 2:
-			*(u16 *)to = *(u16 __force *)from;
-			return 0;
-		case 4:
-			*(u32 *)to = *(u32 __force *)from;
-			return 0;
+	if (__builtin_constant_p(n))
+	{
+		switch (n)
+		{
+			case 1:
+				*(u8 *)to = *(u8 __force *)from;
+				return 0;
+
+			case 2:
+				*(u16 *)to = *(u16 __force *)from;
+				return 0;
+
+			case 4:
+				*(u32 *)to = *(u32 __force *)from;
+				return 0;
 #ifdef CONFIG_64BIT
-		case 8:
-			*(u64 *)to = *(u64 __force *)from;
-			return 0;
+
+			case 8:
+				*(u64 *)to = *(u64 __force *)from;
+				return 0;
 #endif
-		default:
-			break;
+
+			default:
+				break;
 		}
 	}
 
@@ -106,24 +112,30 @@ static inline __must_check long __copy_from_user(void *to,
 static inline __must_check long __copy_to_user(void __user *to,
 		const void *from, unsigned long n)
 {
-	if (__builtin_constant_p(n)) {
-		switch(n) {
-		case 1:
-			*(u8 __force *)to = *(u8 *)from;
-			return 0;
-		case 2:
-			*(u16 __force *)to = *(u16 *)from;
-			return 0;
-		case 4:
-			*(u32 __force *)to = *(u32 *)from;
-			return 0;
+	if (__builtin_constant_p(n))
+	{
+		switch (n)
+		{
+			case 1:
+				*(u8 __force *)to = *(u8 *)from;
+				return 0;
+
+			case 2:
+				*(u16 __force *)to = *(u16 *)from;
+				return 0;
+
+			case 4:
+				*(u32 __force *)to = *(u32 *)from;
+				return 0;
 #ifdef CONFIG_64BIT
-		case 8:
-			*(u64 __force *)to = *(u64 *)from;
-			return 0;
+
+			case 8:
+				*(u64 __force *)to = *(u64 *)from;
+				return 0;
 #endif
-		default:
-			break;
+
+			default:
+				break;
 		}
 	}
 
@@ -139,33 +151,33 @@ static inline __must_check long __copy_to_user(void __user *to,
  * provide a fast-path for small values.
  */
 #define __put_user(x, ptr) \
-({								\
-	__typeof__(*(ptr)) __x = (x);				\
-	int __pu_err = -EFAULT;					\
-        __chk_user_ptr(ptr);                                    \
-	switch (sizeof (*(ptr))) {				\
-	case 1:							\
-	case 2:							\
-	case 4:							\
-	case 8:							\
-		__pu_err = __put_user_fn(sizeof (*(ptr)),	\
-					 ptr, &__x);		\
-		break;						\
-	default:						\
-		__put_user_bad();				\
-		break;						\
-	 }							\
-	__pu_err;						\
-})
+	({								\
+		__typeof__(*(ptr)) __x = (x);				\
+		int __pu_err = -EFAULT;					\
+		__chk_user_ptr(ptr);                                    \
+		switch (sizeof (*(ptr))) {				\
+			case 1:							\
+			case 2:							\
+			case 4:							\
+			case 8:							\
+				__pu_err = __put_user_fn(sizeof (*(ptr)),	\
+										 ptr, &__x);		\
+				break;						\
+			default:						\
+				__put_user_bad();				\
+				break;						\
+		}							\
+		__pu_err;						\
+	})
 
 #define put_user(x, ptr)					\
-({								\
-	void *__p = (ptr);					\
-	might_fault();						\
-	access_ok(VERIFY_WRITE, __p, sizeof(*ptr)) ?		\
+	({								\
+		void *__p = (ptr);					\
+		might_fault();						\
+		access_ok(VERIFY_WRITE, __p, sizeof(*ptr)) ?		\
 		__put_user((x), ((__typeof__(*(ptr)) *)__p)) :	\
 		-EFAULT;					\
-})
+	})
 
 #ifndef __put_user_fn
 
@@ -182,62 +194,65 @@ static inline int __put_user_fn(size_t size, void __user *ptr, void *x)
 extern int __put_user_bad(void) __attribute__((noreturn));
 
 #define __get_user(x, ptr)					\
-({								\
-	int __gu_err = -EFAULT;					\
-	__chk_user_ptr(ptr);					\
-	switch (sizeof(*(ptr))) {				\
-	case 1: {						\
-		unsigned char __x;				\
-		__gu_err = __get_user_fn(sizeof (*(ptr)),	\
-					 ptr, &__x);		\
-		(x) = *(__force __typeof__(*(ptr)) *) &__x;	\
-		break;						\
-	};							\
-	case 2: {						\
-		unsigned short __x;				\
-		__gu_err = __get_user_fn(sizeof (*(ptr)),	\
-					 ptr, &__x);		\
-		(x) = *(__force __typeof__(*(ptr)) *) &__x;	\
-		break;						\
-	};							\
-	case 4: {						\
-		unsigned int __x;				\
-		__gu_err = __get_user_fn(sizeof (*(ptr)),	\
-					 ptr, &__x);		\
-		(x) = *(__force __typeof__(*(ptr)) *) &__x;	\
-		break;						\
-	};							\
-	case 8: {						\
-		unsigned long long __x;				\
-		__gu_err = __get_user_fn(sizeof (*(ptr)),	\
-					 ptr, &__x);		\
-		(x) = *(__force __typeof__(*(ptr)) *) &__x;	\
-		break;						\
-	};							\
-	default:						\
-		__get_user_bad();				\
-		break;						\
-	}							\
-	__gu_err;						\
-})
+	({								\
+		int __gu_err = -EFAULT;					\
+		__chk_user_ptr(ptr);					\
+		switch (sizeof(*(ptr))) {				\
+			case 1: {						\
+					unsigned char __x;				\
+					__gu_err = __get_user_fn(sizeof (*(ptr)),	\
+											 ptr, &__x);		\
+					(x) = *(__force __typeof__(*(ptr)) *) &__x;	\
+					break;						\
+				};							\
+			case 2: {						\
+					unsigned short __x;				\
+					__gu_err = __get_user_fn(sizeof (*(ptr)),	\
+											 ptr, &__x);		\
+					(x) = *(__force __typeof__(*(ptr)) *) &__x;	\
+					break;						\
+				};							\
+			case 4: {						\
+					unsigned int __x;				\
+					__gu_err = __get_user_fn(sizeof (*(ptr)),	\
+											 ptr, &__x);		\
+					(x) = *(__force __typeof__(*(ptr)) *) &__x;	\
+					break;						\
+				};							\
+			case 8: {						\
+					unsigned long long __x;				\
+					__gu_err = __get_user_fn(sizeof (*(ptr)),	\
+											 ptr, &__x);		\
+					(x) = *(__force __typeof__(*(ptr)) *) &__x;	\
+					break;						\
+				};							\
+			default:						\
+				__get_user_bad();				\
+				break;						\
+		}							\
+		__gu_err;						\
+	})
 
 #define get_user(x, ptr)					\
-({								\
-	const void *__p = (ptr);				\
-	might_fault();						\
-	access_ok(VERIFY_READ, __p, sizeof(*ptr)) ?		\
+	({								\
+		const void *__p = (ptr);				\
+		might_fault();						\
+		access_ok(VERIFY_READ, __p, sizeof(*ptr)) ?		\
 		__get_user((x), (__typeof__(*(ptr)) *)__p) :	\
 		((x) = (__typeof__(*(ptr)))0,-EFAULT);		\
-})
+	})
 
 #ifndef __get_user_fn
 static inline int __get_user_fn(size_t size, const void __user *ptr, void *x)
 {
 	size_t n = __copy_from_user(x, ptr, size);
-	if (unlikely(n)) {
+
+	if (unlikely(n))
+	{
 		memset(x + (size - n), 0, n);
 		return -EFAULT;
 	}
+
 	return 0;
 }
 
@@ -248,33 +263,45 @@ static inline int __get_user_fn(size_t size, const void __user *ptr, void *x)
 extern int __get_user_bad(void) __attribute__((noreturn));
 
 #ifndef __copy_from_user_inatomic
-#define __copy_from_user_inatomic __copy_from_user
+	#define __copy_from_user_inatomic __copy_from_user
 #endif
 
 #ifndef __copy_to_user_inatomic
-#define __copy_to_user_inatomic __copy_to_user
+	#define __copy_to_user_inatomic __copy_to_user
 #endif
 
 static inline long copy_from_user(void *to,
-		const void __user * from, unsigned long n)
+								  const void __user *from, unsigned long n)
 {
 	unsigned long res = n;
 	might_fault();
+
 	if (likely(access_ok(VERIFY_READ, from, n)))
+	{
 		res = __copy_from_user(to, from, n);
+	}
+
 	if (unlikely(res))
+	{
 		memset(to + (n - res), 0, res);
+	}
+
 	return res;
 }
 
 static inline long copy_to_user(void __user *to,
-		const void *from, unsigned long n)
+								const void *from, unsigned long n)
 {
 	might_fault();
+
 	if (access_ok(VERIFY_WRITE, to, n))
+	{
 		return __copy_to_user(to, from, n);
+	}
 	else
+	{
 		return n;
+	}
 }
 
 /*
@@ -286,8 +313,10 @@ __strncpy_from_user(char *dst, const char __user *src, long count)
 {
 	char *tmp;
 	strncpy(dst, (const char __force *)src, count);
+
 	for (tmp = dst; *tmp && count > 0; tmp++, count--)
 		;
+
 	return (tmp - dst);
 }
 #endif
@@ -296,7 +325,10 @@ static inline long
 strncpy_from_user(char *dst, const char __user *src, long count)
 {
 	if (!access_ok(VERIFY_READ, src, 1))
+	{
 		return -EFAULT;
+	}
+
 	return __strncpy_from_user(dst, src, count);
 }
 
@@ -306,7 +338,7 @@ strncpy_from_user(char *dst, const char __user *src, long count)
  * Return 0 on exception, a value greater than N if too long
  */
 #ifndef __strnlen_user
-#define __strnlen_user(s, n) (strnlen((s), (n)) + 1)
+	#define __strnlen_user(s, n) (strnlen((s), (n)) + 1)
 #endif
 
 /*
@@ -317,7 +349,10 @@ strncpy_from_user(char *dst, const char __user *src, long count)
 static inline long strnlen_user(const char __user *src, long n)
 {
 	if (!access_ok(VERIFY_READ, src, 1))
+	{
 		return 0;
+	}
+
 	return __strnlen_user(src, n);
 }
 
@@ -342,8 +377,11 @@ static inline __must_check unsigned long
 clear_user(void __user *to, unsigned long n)
 {
 	might_fault();
+
 	if (!access_ok(VERIFY_WRITE, to, n))
+	{
 		return n;
+	}
 
 	return __clear_user(to, n);
 }

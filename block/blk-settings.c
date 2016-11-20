@@ -194,20 +194,30 @@ void blk_queue_bounce_limit(struct request_queue *q, u64 max_addr)
 
 	q->bounce_gfp = GFP_NOIO;
 #if BITS_PER_LONG == 64
+
 	/*
 	 * Assume anything <= 4GB can be handled by IOMMU.  Actually
 	 * some IOMMUs can handle everything, but I don't know of a
 	 * way to test this here.
 	 */
 	if (b_pfn < (min_t(u64, 0xffffffffUL, BLK_BOUNCE_HIGH) >> PAGE_SHIFT))
+	{
 		dma = 1;
+	}
+
 	q->limits.bounce_pfn = max(max_low_pfn, b_pfn);
 #else
+
 	if (b_pfn < blk_max_low_pfn)
+	{
 		dma = 1;
+	}
+
 	q->limits.bounce_pfn = b_pfn;
 #endif
-	if (dma) {
+
+	if (dma)
+	{
 		init_emergency_isa_pool();
 		q->bounce_gfp = GFP_NOIO | GFP_DMA;
 		q->limits.bounce_pfn = b_pfn;
@@ -239,10 +249,11 @@ void blk_queue_max_hw_sectors(struct request_queue *q, unsigned int max_hw_secto
 	struct queue_limits *limits = &q->limits;
 	unsigned int max_sectors;
 
-	if ((max_hw_sectors << 9) < PAGE_SIZE) {
+	if ((max_hw_sectors << 9) < PAGE_SIZE)
+	{
 		max_hw_sectors = 1 << (PAGE_SHIFT - 9);
 		printk(KERN_INFO "%s: set to minimum %d\n",
-		       __func__, max_hw_sectors);
+			   __func__, max_hw_sectors);
 	}
 
 	limits->max_hw_sectors = max_hw_sectors;
@@ -278,7 +289,7 @@ EXPORT_SYMBOL(blk_queue_chunk_sectors);
  * @max_discard_sectors: maximum number of sectors to discard
  **/
 void blk_queue_max_discard_sectors(struct request_queue *q,
-		unsigned int max_discard_sectors)
+								   unsigned int max_discard_sectors)
 {
 	q->limits.max_hw_discard_sectors = max_discard_sectors;
 	q->limits.max_discard_sectors = max_discard_sectors;
@@ -291,7 +302,7 @@ EXPORT_SYMBOL(blk_queue_max_discard_sectors);
  * @max_write_same_sectors: maximum number of sectors to write per command
  **/
 void blk_queue_max_write_same_sectors(struct request_queue *q,
-				      unsigned int max_write_same_sectors)
+									  unsigned int max_write_same_sectors)
 {
 	q->limits.max_write_same_sectors = max_write_same_sectors;
 }
@@ -308,10 +319,11 @@ EXPORT_SYMBOL(blk_queue_max_write_same_sectors);
  **/
 void blk_queue_max_segments(struct request_queue *q, unsigned short max_segments)
 {
-	if (!max_segments) {
+	if (!max_segments)
+	{
 		max_segments = 1;
 		printk(KERN_INFO "%s: set to minimum %d\n",
-		       __func__, max_segments);
+			   __func__, max_segments);
 	}
 
 	q->limits.max_segments = max_segments;
@@ -329,10 +341,11 @@ EXPORT_SYMBOL(blk_queue_max_segments);
  **/
 void blk_queue_max_segment_size(struct request_queue *q, unsigned int max_size)
 {
-	if (max_size < PAGE_SIZE) {
+	if (max_size < PAGE_SIZE)
+	{
 		max_size = PAGE_SIZE;
 		printk(KERN_INFO "%s: set to minimum %d\n",
-		       __func__, max_size);
+			   __func__, max_size);
 	}
 
 	q->limits.max_segment_size = max_size;
@@ -354,10 +367,14 @@ void blk_queue_logical_block_size(struct request_queue *q, unsigned short size)
 	q->limits.logical_block_size = size;
 
 	if (q->limits.physical_block_size < size)
+	{
 		q->limits.physical_block_size = size;
+	}
 
 	if (q->limits.io_min < q->limits.physical_block_size)
+	{
 		q->limits.io_min = q->limits.physical_block_size;
+	}
 }
 EXPORT_SYMBOL(blk_queue_logical_block_size);
 
@@ -376,10 +393,14 @@ void blk_queue_physical_block_size(struct request_queue *q, unsigned int size)
 	q->limits.physical_block_size = size;
 
 	if (q->limits.physical_block_size < q->limits.logical_block_size)
+	{
 		q->limits.physical_block_size = q->limits.logical_block_size;
+	}
 
 	if (q->limits.io_min < q->limits.physical_block_size)
+	{
 		q->limits.io_min = q->limits.physical_block_size;
+	}
 }
 EXPORT_SYMBOL(blk_queue_physical_block_size);
 
@@ -418,10 +439,14 @@ void blk_limits_io_min(struct queue_limits *limits, unsigned int min)
 	limits->io_min = min;
 
 	if (limits->io_min < limits->logical_block_size)
+	{
 		limits->io_min = limits->logical_block_size;
+	}
 
 	if (limits->io_min < limits->physical_block_size)
+	{
 		limits->io_min = limits->physical_block_size;
+	}
 }
 EXPORT_SYMBOL(blk_limits_io_min);
 
@@ -516,7 +541,7 @@ EXPORT_SYMBOL(blk_queue_stack_limits);
  *    the alignment_offset is undefined.
  */
 int blk_stack_limits(struct queue_limits *t, struct queue_limits *b,
-		     sector_t start)
+					 sector_t start)
 {
 	unsigned int top, bottom, alignment, ret = 0;
 
@@ -524,20 +549,20 @@ int blk_stack_limits(struct queue_limits *t, struct queue_limits *b,
 	t->max_hw_sectors = min_not_zero(t->max_hw_sectors, b->max_hw_sectors);
 	t->max_dev_sectors = min_not_zero(t->max_dev_sectors, b->max_dev_sectors);
 	t->max_write_same_sectors = min(t->max_write_same_sectors,
-					b->max_write_same_sectors);
+									b->max_write_same_sectors);
 	t->bounce_pfn = min_not_zero(t->bounce_pfn, b->bounce_pfn);
 
 	t->seg_boundary_mask = min_not_zero(t->seg_boundary_mask,
-					    b->seg_boundary_mask);
+										b->seg_boundary_mask);
 	t->virt_boundary_mask = min_not_zero(t->virt_boundary_mask,
-					    b->virt_boundary_mask);
+										 b->virt_boundary_mask);
 
 	t->max_segments = min_not_zero(t->max_segments, b->max_segments);
 	t->max_integrity_segments = min_not_zero(t->max_integrity_segments,
-						 b->max_integrity_segments);
+								b->max_integrity_segments);
 
 	t->max_segment_size = min_not_zero(t->max_segment_size,
-					   b->max_segment_size);
+									   b->max_segment_size);
 
 	t->misaligned |= b->misaligned;
 
@@ -546,24 +571,26 @@ int blk_stack_limits(struct queue_limits *t, struct queue_limits *b,
 	/* Bottom device has different alignment.  Check that it is
 	 * compatible with the current top alignment.
 	 */
-	if (t->alignment_offset != alignment) {
+	if (t->alignment_offset != alignment)
+	{
 
 		top = max(t->physical_block_size, t->io_min)
-			+ t->alignment_offset;
+			  + t->alignment_offset;
 		bottom = max(b->physical_block_size, b->io_min) + alignment;
 
 		/* Verify that top and bottom intervals line up */
-		if (max(top, bottom) % min(top, bottom)) {
+		if (max(top, bottom) % min(top, bottom))
+		{
 			t->misaligned = 1;
 			ret = -1;
 		}
 	}
 
 	t->logical_block_size = max(t->logical_block_size,
-				    b->logical_block_size);
+								b->logical_block_size);
 
 	t->physical_block_size = max(t->physical_block_size,
-				     b->physical_block_size);
+								 b->physical_block_size);
 
 	t->io_min = max(t->io_min, b->io_min);
 	t->io_opt = lcm_not_zero(t->io_opt, b->io_opt);
@@ -572,21 +599,24 @@ int blk_stack_limits(struct queue_limits *t, struct queue_limits *b,
 	t->discard_zeroes_data &= b->discard_zeroes_data;
 
 	/* Physical block size a multiple of the logical block size? */
-	if (t->physical_block_size & (t->logical_block_size - 1)) {
+	if (t->physical_block_size & (t->logical_block_size - 1))
+	{
 		t->physical_block_size = t->logical_block_size;
 		t->misaligned = 1;
 		ret = -1;
 	}
 
 	/* Minimum I/O a multiple of the physical block size? */
-	if (t->io_min & (t->physical_block_size - 1)) {
+	if (t->io_min & (t->physical_block_size - 1))
+	{
 		t->io_min = t->physical_block_size;
 		t->misaligned = 1;
 		ret = -1;
 	}
 
 	/* Optimal I/O a multiple of the physical block size? */
-	if (t->io_opt & (t->physical_block_size - 1)) {
+	if (t->io_opt & (t->physical_block_size - 1))
+	{
 		t->io_opt = 0;
 		t->misaligned = 1;
 		ret = -1;
@@ -594,40 +624,45 @@ int blk_stack_limits(struct queue_limits *t, struct queue_limits *b,
 
 	t->raid_partial_stripes_expensive =
 		max(t->raid_partial_stripes_expensive,
-		    b->raid_partial_stripes_expensive);
+			b->raid_partial_stripes_expensive);
 
 	/* Find lowest common alignment_offset */
 	t->alignment_offset = lcm_not_zero(t->alignment_offset, alignment)
-		% max(t->physical_block_size, t->io_min);
+						  % max(t->physical_block_size, t->io_min);
 
 	/* Verify that new alignment_offset is on a logical block boundary */
-	if (t->alignment_offset & (t->logical_block_size - 1)) {
+	if (t->alignment_offset & (t->logical_block_size - 1))
+	{
 		t->misaligned = 1;
 		ret = -1;
 	}
 
 	/* Discard alignment and granularity */
-	if (b->discard_granularity) {
+	if (b->discard_granularity)
+	{
 		alignment = queue_limit_discard_alignment(b, start);
 
 		if (t->discard_granularity != 0 &&
-		    t->discard_alignment != alignment) {
+			t->discard_alignment != alignment)
+		{
 			top = t->discard_granularity + t->discard_alignment;
 			bottom = b->discard_granularity + alignment;
 
 			/* Verify that top and bottom intervals line up */
 			if ((max(top, bottom) % min(top, bottom)) != 0)
+			{
 				t->discard_misaligned = 1;
+			}
 		}
 
 		t->max_discard_sectors = min_not_zero(t->max_discard_sectors,
-						      b->max_discard_sectors);
+											  b->max_discard_sectors);
 		t->max_hw_discard_sectors = min_not_zero(t->max_hw_discard_sectors,
-							 b->max_hw_discard_sectors);
+									b->max_hw_discard_sectors);
 		t->discard_granularity = max(t->discard_granularity,
-					     b->discard_granularity);
+									 b->discard_granularity);
 		t->discard_alignment = lcm_not_zero(t->discard_alignment, alignment) %
-			t->discard_granularity;
+							   t->discard_granularity;
 	}
 
 	return ret;
@@ -646,7 +681,7 @@ EXPORT_SYMBOL(blk_stack_limits);
  *    device caused misalignment.
  */
 int bdev_stack_limits(struct queue_limits *t, struct block_device *bdev,
-		      sector_t start)
+					  sector_t start)
 {
 	struct request_queue *bq = bdev_get_queue(bdev);
 
@@ -667,18 +702,19 @@ EXPORT_SYMBOL(bdev_stack_limits);
  *    block_device.
  */
 void disk_stack_limits(struct gendisk *disk, struct block_device *bdev,
-		       sector_t offset)
+					   sector_t offset)
 {
 	struct request_queue *t = disk->queue;
 
-	if (bdev_stack_limits(&t->limits, bdev, offset >> 9) < 0) {
+	if (bdev_stack_limits(&t->limits, bdev, offset >> 9) < 0)
+	{
 		char top[BDEVNAME_SIZE], bottom[BDEVNAME_SIZE];
 
 		disk_name(disk, 0, top);
 		bdevname(bdev, bottom);
 
 		printk(KERN_NOTICE "%s: Warning: Device %s is misaligned\n",
-		       top, bottom);
+			   top, bottom);
 	}
 }
 EXPORT_SYMBOL(disk_stack_limits);
@@ -712,7 +748,9 @@ EXPORT_SYMBOL(blk_queue_dma_pad);
 void blk_queue_update_dma_pad(struct request_queue *q, unsigned int mask)
 {
 	if (mask > q->dma_pad_mask)
+	{
 		q->dma_pad_mask = mask;
+	}
 }
 EXPORT_SYMBOL(blk_queue_update_dma_pad);
 
@@ -738,11 +776,14 @@ EXPORT_SYMBOL(blk_queue_update_dma_pad);
  * can support otherwise there won't be room for the drain buffer.
  */
 int blk_queue_dma_drain(struct request_queue *q,
-			       dma_drain_needed_fn *dma_drain_needed,
-			       void *buf, unsigned int size)
+						dma_drain_needed_fn *dma_drain_needed,
+						void *buf, unsigned int size)
 {
 	if (queue_max_segments(q) < 2)
+	{
 		return -EINVAL;
+	}
+
 	/* make room for appending the drain */
 	blk_queue_max_segments(q, queue_max_segments(q) - 1);
 	q->dma_drain_needed = dma_drain_needed;
@@ -760,10 +801,11 @@ EXPORT_SYMBOL_GPL(blk_queue_dma_drain);
  **/
 void blk_queue_segment_boundary(struct request_queue *q, unsigned long mask)
 {
-	if (mask < PAGE_SIZE - 1) {
+	if (mask < PAGE_SIZE - 1)
+	{
 		mask = PAGE_SIZE - 1;
 		printk(KERN_INFO "%s: set to minimum %lx\n",
-		       __func__, mask);
+			   __func__, mask);
 	}
 
 	q->limits.seg_boundary_mask = mask;
@@ -816,17 +858,25 @@ void blk_queue_update_dma_alignment(struct request_queue *q, int mask)
 	BUG_ON(mask > PAGE_SIZE);
 
 	if (mask > q->dma_alignment)
+	{
 		q->dma_alignment = mask;
+	}
 }
 EXPORT_SYMBOL(blk_queue_update_dma_alignment);
 
 void blk_queue_flush_queueable(struct request_queue *q, bool queueable)
 {
 	spin_lock_irq(q->queue_lock);
+
 	if (queueable)
+	{
 		clear_bit(QUEUE_FLAG_FLUSH_NQ, &q->queue_flags);
+	}
 	else
+	{
 		set_bit(QUEUE_FLAG_FLUSH_NQ, &q->queue_flags);
+	}
+
 	spin_unlock_irq(q->queue_lock);
 }
 EXPORT_SYMBOL_GPL(blk_queue_flush_queueable);
@@ -842,14 +892,25 @@ EXPORT_SYMBOL_GPL(blk_queue_flush_queueable);
 void blk_queue_write_cache(struct request_queue *q, bool wc, bool fua)
 {
 	spin_lock_irq(q->queue_lock);
+
 	if (wc)
+	{
 		queue_flag_set(QUEUE_FLAG_WC, q);
+	}
 	else
+	{
 		queue_flag_clear(QUEUE_FLAG_WC, q);
+	}
+
 	if (fua)
+	{
 		queue_flag_set(QUEUE_FLAG_FUA, q);
+	}
 	else
+	{
 		queue_flag_clear(QUEUE_FLAG_FUA, q);
+	}
+
 	spin_unlock_irq(q->queue_lock);
 }
 EXPORT_SYMBOL_GPL(blk_queue_write_cache);

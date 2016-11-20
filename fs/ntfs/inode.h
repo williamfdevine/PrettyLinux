@@ -44,7 +44,8 @@ typedef struct _ntfs_inode ntfs_inode;
  * The NTFS in-memory inode structure. It is just used as an extension to the
  * fields already provided in the VFS inode.
  */
-struct _ntfs_inode {
+struct _ntfs_inode
+{
 	rwlock_t size_lock;	/* Lock serializing access to inode sizes. */
 	s64 initialized_size;	/* Copy from the attribute record. */
 	s64 allocated_size;	/* Copy from the attribute record. */
@@ -99,8 +100,10 @@ struct _ntfs_inode {
 	u32 attr_list_size;	/* Length of attribute list value in bytes. */
 	u8 *attr_list;		/* Attribute list value itself. */
 	runlist attr_list_rl;	/* Run list for the attribute list value. */
-	union {
-		struct { /* It is a directory, $MFT, or an index inode. */
+	union
+	{
+		struct   /* It is a directory, $MFT, or an index inode. */
+		{
 			u32 block_size;		/* Size of an index block. */
 			u32 vcn_size;		/* Size of a vcn in this
 						   index. */
@@ -109,7 +112,8 @@ struct _ntfs_inode {
 			u8 block_size_bits; 	/* Log2 of the above. */
 			u8 vcn_size_bits;	/* Log2 of the above. */
 		} index;
-		struct { /* It is a compressed/sparse file/attribute inode. */
+		struct   /* It is a compressed/sparse file/attribute inode. */
+		{
 			s64 size;		/* Copy of compressed_size from
 						   $DATA. */
 			u32 block_size;		/* Size of a compression block
@@ -123,7 +127,8 @@ struct _ntfs_inode {
 	s32 nr_extents;	/* For a base mft record, the number of attached extent
 			   inodes (0 if none), for extent records and for fake
 			   inodes describing an attribute this is -1. */
-	union {		/* This union is only used if nr_extents != 0. */
+	union  		/* This union is only used if nr_extents != 0. */
+	{
 		ntfs_inode **extent_ntfs_inos;	/* For nr_extents > 0, array of
 						   the ntfs inodes of the extent
 						   mft records belonging to
@@ -141,7 +146,8 @@ struct _ntfs_inode {
  * Defined bits for the state field in the ntfs_inode structure.
  * (f) = files only, (d) = directories only, (a) = attributes/fake inodes only
  */
-typedef enum {
+typedef enum
+{
 	NI_Dirty,		/* 1: Mft record needs to be written to disk. */
 	NI_AttrList,		/* 1: Mft record contains an attribute list. */
 	NI_AttrListNonResident,	/* 1: Attribute list is non-resident. Implies
@@ -180,31 +186,31 @@ typedef enum {
  * functions.
  */
 #define NINO_FNS(flag)					\
-static inline int NIno##flag(ntfs_inode *ni)		\
-{							\
-	return test_bit(NI_##flag, &(ni)->state);	\
-}							\
-static inline void NInoSet##flag(ntfs_inode *ni)	\
-{							\
-	set_bit(NI_##flag, &(ni)->state);		\
-}							\
-static inline void NInoClear##flag(ntfs_inode *ni)	\
-{							\
-	clear_bit(NI_##flag, &(ni)->state);		\
-}
+	static inline int NIno##flag(ntfs_inode *ni)		\
+	{							\
+		return test_bit(NI_##flag, &(ni)->state);	\
+	}							\
+	static inline void NInoSet##flag(ntfs_inode *ni)	\
+	{							\
+		set_bit(NI_##flag, &(ni)->state);		\
+	}							\
+	static inline void NInoClear##flag(ntfs_inode *ni)	\
+	{							\
+		clear_bit(NI_##flag, &(ni)->state);		\
+	}
 
 /*
  * As above for NInoTestSetFoo() and NInoTestClearFoo().
  */
 #define TAS_NINO_FNS(flag)					\
-static inline int NInoTestSet##flag(ntfs_inode *ni)		\
-{								\
-	return test_and_set_bit(NI_##flag, &(ni)->state);	\
-}								\
-static inline int NInoTestClear##flag(ntfs_inode *ni)		\
-{								\
-	return test_and_clear_bit(NI_##flag, &(ni)->state);	\
-}
+	static inline int NInoTestSet##flag(ntfs_inode *ni)		\
+	{								\
+		return test_and_set_bit(NI_##flag, &(ni)->state);	\
+	}								\
+	static inline int NInoTestClear##flag(ntfs_inode *ni)		\
+	{								\
+		return test_and_clear_bit(NI_##flag, &(ni)->state);	\
+	}
 
 /* Emit the ntfs inode bitops functions. */
 NINO_FNS(Dirty)
@@ -226,7 +232,8 @@ NINO_FNS(TruncateFailed)
  * all real and fake inodes but not for extent inodes which lack the vfs struct
  * inode.
  */
-typedef struct {
+typedef struct
+{
 	ntfs_inode ntfs_inode;
 	struct inode vfs_inode;		/* The vfs inode structure. */
 } big_ntfs_inode;
@@ -260,7 +267,8 @@ static inline struct inode *VFS_I(ntfs_inode *ni)
  * NOTE: Elements are ordered by size to make the structure as compact as
  * possible on all architectures.
  */
-typedef struct {
+typedef struct
+{
 	unsigned long mft_no;
 	ntfschar *name;
 	u32 name_len;
@@ -273,9 +281,9 @@ extern int ntfs_test_inode(struct inode *vi, ntfs_attr *na);
 
 extern struct inode *ntfs_iget(struct super_block *sb, unsigned long mft_no);
 extern struct inode *ntfs_attr_iget(struct inode *base_vi, ATTR_TYPE type,
-		ntfschar *name, u32 name_len);
+									ntfschar *name, u32 name_len);
 extern struct inode *ntfs_index_iget(struct inode *base_vi, ntfschar *name,
-		u32 name_len);
+									 u32 name_len);
 
 extern struct inode *ntfs_alloc_big_inode(struct super_block *sb);
 extern void ntfs_destroy_big_inode(struct inode *inode);
@@ -312,7 +320,10 @@ extern int __ntfs_write_inode(struct inode *vi, int sync);
 static inline void ntfs_commit_inode(struct inode *vi)
 {
 	if (!is_bad_inode(vi))
+	{
 		__ntfs_write_inode(vi, 1);
+	}
+
 	return;
 }
 

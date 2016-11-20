@@ -181,7 +181,7 @@ int32_t ath_hw_get_listen_time(struct ath_common *common)
 	int32_t listen_time;
 
 	listen_time = (cc->cycles - cc->rx_frame - cc->tx_frame) /
-		      (common->clockrate * 1000);
+				  (common->clockrate * 1000);
 
 	memset(cc, 0, sizeof(*cc));
 

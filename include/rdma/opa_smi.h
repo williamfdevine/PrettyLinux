@@ -48,7 +48,8 @@
 
 #define OPA_LID_PERMISSIVE			cpu_to_be32(0xFFFFFFFF)
 
-struct opa_smp {
+struct opa_smp
+{
 	u8	base_version;
 	u8	mgmt_class;
 	u8	class_version;
@@ -61,11 +62,14 @@ struct opa_smp {
 	__be16	resv;
 	__be32	attr_mod;
 	__be64	mkey;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			uint8_t data[OPA_SMP_LID_DATA_SIZE];
 		} lid;
-		struct {
+		struct
+		{
 			__be32	dr_slid;
 			__be32	dr_dlid;
 			u8	initial_path[OPA_SMP_MAX_PATH_HOPS];
@@ -98,11 +102,13 @@ struct opa_smp {
 #define OPA_ATTRIB_ID_BUFFER_CONTROL_TABLE	cpu_to_be16(0x008A)
 /* ... */
 
-struct opa_node_description {
+struct opa_node_description
+{
 	u8 data[64];
 } __attribute__ ((packed));
 
-struct opa_node_info {
+struct opa_node_info
+{
 	u8      base_version;
 	u8      class_version;
 	u8      node_type;
@@ -129,7 +135,9 @@ opa_get_smp_direction(struct opa_smp *smp)
 static inline u8 *opa_get_smp_data(struct opa_smp *smp)
 {
 	if (smp->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)
+	{
 		return smp->route.dr.data;
+	}
 
 	return smp->route.lid.data;
 }
@@ -137,7 +145,9 @@ static inline u8 *opa_get_smp_data(struct opa_smp *smp)
 static inline size_t opa_get_smp_data_size(struct opa_smp *smp)
 {
 	if (smp->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)
+	{
 		return sizeof(smp->route.dr.data);
+	}
 
 	return sizeof(smp->route.lid.data);
 }
@@ -145,7 +155,9 @@ static inline size_t opa_get_smp_data_size(struct opa_smp *smp)
 static inline size_t opa_get_smp_header_size(struct opa_smp *smp)
 {
 	if (smp->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)
+	{
 		return sizeof(*smp) - sizeof(smp->route.dr.data);
+	}
 
 	return sizeof(*smp) - sizeof(smp->route.lid.data);
 }

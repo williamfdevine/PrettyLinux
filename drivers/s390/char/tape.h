@@ -29,9 +29,9 @@ struct gendisk;
 #define DBF_LIKE_HELL
 #ifdef  DBF_LIKE_HELL
 #define DBF_LH(level, str, ...) \
-do { \
-	debug_sprintf_event(TAPE_DBF_AREA, level, str, ## __VA_ARGS__); \
-} while (0)
+	do { \
+		debug_sprintf_event(TAPE_DBF_AREA, level, str, ## __VA_ARGS__); \
+	} while (0)
 #else
 #define DBF_LH(level, str, ...) do {} while(0)
 #endif
@@ -40,14 +40,14 @@ do { \
  * macros s390 debug feature (dbf)
  */
 #define DBF_EVENT(d_level, d_str...) \
-do { \
-	debug_sprintf_event(TAPE_DBF_AREA, d_level, d_str); \
-} while (0)
+	do { \
+		debug_sprintf_event(TAPE_DBF_AREA, d_level, d_str); \
+	} while (0)
 
 #define DBF_EXCEPTION(d_level, d_str...) \
-do { \
-	debug_sprintf_exception(TAPE_DBF_AREA, d_level, d_str); \
-} while (0)
+	do { \
+		debug_sprintf_exception(TAPE_DBF_AREA, d_level, d_str); \
+	} while (0)
 
 #define TAPE_VERSION_MAJOR 2
 #define TAPE_VERSION_MINOR 0
@@ -58,15 +58,17 @@ do { \
 #define TAPEBLOCK_HSEC_S2B	2
 #define TAPEBLOCK_RETRIES	5
 
-enum tape_medium_state {
+enum tape_medium_state
+{
 	MS_UNKNOWN,
 	MS_LOADED,
 	MS_UNLOADED,
 	MS_SIZE
 };
 
-enum tape_state {
-	TS_UNUSED=0,
+enum tape_state
+{
+	TS_UNUSED = 0,
 	TS_IN_USE,
 	TS_BLKUSE,
 	TS_INIT,
@@ -74,7 +76,8 @@ enum tape_state {
 	TS_SIZE
 };
 
-enum tape_op {
+enum tape_op
+{
 	TO_BLOCK,	/* Block read */
 	TO_BSB,		/* Backward space block */
 	TO_BSF,		/* Backward space filemark */
@@ -109,7 +112,8 @@ enum tape_op {
 struct tape_device;
 
 /* tape_request->status can be: */
-enum tape_request_status {
+enum tape_request_status
+{
 	TAPE_REQUEST_INIT,	/* request is ready to be processed */
 	TAPE_REQUEST_QUEUED,	/* request is queued to be processed */
 	TAPE_REQUEST_IN_IO,	/* request is currently in IO */
@@ -119,7 +123,8 @@ enum tape_request_status {
 };
 
 /* Tape CCW request */
-struct tape_request {
+struct tape_request
+{
 	struct list_head list;		/* list head for request queueing. */
 	struct tape_device *device;	/* tape device of this request */
 	struct ccw1 *cpaddr;		/* address of the channel program. */
@@ -144,14 +149,15 @@ typedef int (*tape_mtop_fn)(struct tape_device *, int);
 #define TAPE_NR_MTOPS (MTMKPART+1)
 
 /* Tape Discipline */
-struct tape_discipline {
+struct tape_discipline
+{
 	struct module *owner;
 	int  (*setup_device)(struct tape_device *);
 	void (*cleanup_device)(struct tape_device *);
 	int (*irq)(struct tape_device *, struct tape_request *, struct irb *);
 	struct tape_request *(*read_block)(struct tape_device *, size_t);
 	struct tape_request *(*write_block)(struct tape_device *, size_t);
-	void (*process_eov)(struct tape_device*);
+	void (*process_eov)(struct tape_device *);
 	/* ioctl function for additional ioctls. */
 	int (*ioctl_fn)(struct tape_device *, unsigned int, unsigned long);
 	/* Array of tape commands with TAPE_NR_MTOPS entries */
@@ -169,27 +175,29 @@ struct tape_discipline {
 #define TAPE_IO_LONG_BUSY	4	/* delay the running request */
 
 /* Char Frontend Data */
-struct tape_char_data {
+struct tape_char_data
+{
 	struct idal_buffer *idal_buf;	/* idal buffer for user char data */
 	int block_size;			/*   of size block_size. */
 };
 
 /* Tape Info */
-struct tape_device {
+struct tape_device
+{
 	/* entry in tape_device_list */
 	struct list_head		node;
 
 	int				cdev_id;
-	struct ccw_device *		cdev;
-	struct tape_class_device *	nt;
-	struct tape_class_device *	rt;
+	struct ccw_device 		*cdev;
+	struct tape_class_device 	*nt;
+	struct tape_class_device 	*rt;
 
 	/* Device mutex to serialize tape commands. */
 	struct mutex			mutex;
 
 	/* Device discipline information. */
-	struct tape_discipline *	discipline;
-	void *				discdata;
+	struct tape_discipline 	*discipline;
+	void 				*discdata;
 
 	/* Generic status flags */
 	long				tape_generic_status;
@@ -198,7 +206,7 @@ struct tape_device {
 	wait_queue_head_t		state_change_wq;
 	enum tape_state			tape_state;
 	enum tape_medium_state		medium_state;
-	unsigned char *			modeset_byte;
+	unsigned char 			*modeset_byte;
 
 	/* Reference count. */
 	atomic_t			ref_count;
@@ -292,7 +300,7 @@ static inline void tape_proc_cleanup (void) {;}
 
 /* a function for dumping device sense info */
 extern void tape_dump_sense_dbf(struct tape_device *, struct tape_request *,
-				struct irb *);
+								struct irb *);
 
 /* functions for handling the status of a device */
 extern void tape_med_state_set(struct tape_device *, enum tape_medium_state);
@@ -334,13 +342,15 @@ tape_ccw_cmd(struct ccw1 *ccw, __u8 cmd_code)
 static inline struct ccw1 *
 tape_ccw_repeat(struct ccw1 *ccw, __u8 cmd_code, int count)
 {
-	while (count-- > 0) {
+	while (count-- > 0)
+	{
 		ccw->cmd_code = cmd_code;
 		ccw->flags = CCW_FLAG_CC;
 		ccw->count = 0;
 		ccw->cda = (__u32)(addr_t) &ccw->cmd_code;
 		ccw++;
 	}
+
 	return ccw;
 }
 

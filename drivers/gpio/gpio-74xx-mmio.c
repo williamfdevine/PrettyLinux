@@ -19,12 +19,14 @@
 #define MMIO_74XX_DIR_OUT	(1 << 8)
 #define MMIO_74XX_BIT_CNT(x)	((x) & 0xff)
 
-struct mmio_74xx_gpio_priv {
+struct mmio_74xx_gpio_priv
+{
 	struct gpio_chip	gc;
 	unsigned		flags;
 };
 
-static const struct of_device_id mmio_74xx_gpio_ids[] = {
+static const struct of_device_id mmio_74xx_gpio_ids[] =
+{
 	{
 		.compatible	= "ti,741g125",
 		.data		= (const void *)(MMIO_74XX_DIR_IN | 1),
@@ -95,7 +97,8 @@ static int mmio_74xx_dir_out(struct gpio_chip *gc, unsigned int gpio, int val)
 {
 	struct mmio_74xx_gpio_priv *priv = gpiochip_get_data(gc);
 
-	if (priv->flags & MMIO_74XX_DIR_OUT) {
+	if (priv->flags & MMIO_74XX_DIR_OUT)
+	{
 		gc->set(gc, gpio, val);
 		return 0;
 	}
@@ -112,25 +115,37 @@ static int mmio_74xx_gpio_probe(struct platform_device *pdev)
 	int err;
 
 	of_id = of_match_device(mmio_74xx_gpio_ids, &pdev->dev);
+
 	if (!of_id)
+	{
 		return -ENODEV;
+	}
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	dat = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(dat))
+	{
 		return PTR_ERR(dat);
+	}
 
 	priv->flags = (uintptr_t) of_id->data;
 
 	err = bgpio_init(&priv->gc, &pdev->dev,
-			 DIV_ROUND_UP(MMIO_74XX_BIT_CNT(priv->flags), 8),
-			 dat, NULL, NULL, NULL, NULL, 0);
+					 DIV_ROUND_UP(MMIO_74XX_BIT_CNT(priv->flags), 8),
+					 dat, NULL, NULL, NULL, NULL, 0);
+
 	if (err)
+	{
 		return err;
+	}
 
 	priv->gc.direction_input = mmio_74xx_dir_in;
 	priv->gc.direction_output = mmio_74xx_dir_out;
@@ -143,7 +158,8 @@ static int mmio_74xx_gpio_probe(struct platform_device *pdev)
 	return devm_gpiochip_add_data(&pdev->dev, &priv->gc, priv);
 }
 
-static struct platform_driver mmio_74xx_gpio_driver = {
+static struct platform_driver mmio_74xx_gpio_driver =
+{
 	.driver	= {
 		.name		= "74xx-mmio-gpio",
 		.of_match_table	= mmio_74xx_gpio_ids,

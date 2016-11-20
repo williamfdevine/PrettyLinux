@@ -27,18 +27,18 @@
 #define OCFS2_SUPER_H
 
 int ocfs2_publish_get_mount_state(struct ocfs2_super *osb,
-				  int node_num);
+								  int node_num);
 
 __printf(3, 4)
 int __ocfs2_error(struct super_block *sb, const char *function,
-		   const char *fmt, ...);
+				  const char *fmt, ...);
 
 #define ocfs2_error(sb, fmt, ...)					\
 	__ocfs2_error(sb, __PRETTY_FUNCTION__, fmt, ##__VA_ARGS__)
 
 __printf(3, 4)
 void __ocfs2_abort(struct super_block *sb, const char *function,
-		   const char *fmt, ...);
+				   const char *fmt, ...);
 
 #define ocfs2_abort(sb, fmt, ...)					\
 	__ocfs2_abort(sb, __PRETTY_FUNCTION__, fmt, ##__VA_ARGS__)

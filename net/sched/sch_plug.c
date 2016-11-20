@@ -57,7 +57,8 @@
  *
  */
 
-struct plug_sched_data {
+struct plug_sched_data
+{
 	/* If true, the dequeue function releases all packets
 	 * from head to end of the queue. The queue turns into
 	 * a pass-through queue for newly arriving packets.
@@ -89,13 +90,17 @@ struct plug_sched_data {
 };
 
 static int plug_enqueue(struct sk_buff *skb, struct Qdisc *sch,
-			struct sk_buff **to_free)
+						struct sk_buff **to_free)
 {
 	struct plug_sched_data *q = qdisc_priv(sch);
 
-	if (likely(sch->qstats.backlog + skb->len <= q->limit)) {
+	if (likely(sch->qstats.backlog + skb->len <= q->limit))
+	{
 		if (!q->unplug_indefinite)
+		{
 			q->pkts_current_epoch++;
+		}
+
 		return qdisc_enqueue_tail(skb, sch);
 	}
 
@@ -107,16 +112,21 @@ static struct sk_buff *plug_dequeue(struct Qdisc *sch)
 	struct plug_sched_data *q = qdisc_priv(sch);
 
 	if (q->throttled)
+	{
 		return NULL;
+	}
 
-	if (!q->unplug_indefinite) {
-		if (!q->pkts_to_release) {
+	if (!q->unplug_indefinite)
+	{
+		if (!q->pkts_to_release)
+		{
 			/* No more packets to dequeue. Block the queue
 			 * and wait for the next release command.
 			 */
 			q->throttled = true;
 			return NULL;
 		}
+
 		q->pkts_to_release--;
 	}
 
@@ -132,14 +142,19 @@ static int plug_init(struct Qdisc *sch, struct nlattr *opt)
 	q->pkts_to_release = 0;
 	q->unplug_indefinite = false;
 
-	if (opt == NULL) {
+	if (opt == NULL)
+	{
 		q->limit = qdisc_dev(sch)->tx_queue_len
-		           * psched_mtu(qdisc_dev(sch));
-	} else {
+				   * psched_mtu(qdisc_dev(sch));
+	}
+	else
+	{
 		struct tc_plug_qopt *ctl = nla_data(opt);
 
 		if (nla_len(opt) < sizeof(*ctl))
+		{
 			return -EINVAL;
+		}
 
 		q->limit = ctl->limit;
 	}
@@ -164,50 +179,65 @@ static int plug_change(struct Qdisc *sch, struct nlattr *opt)
 	struct tc_plug_qopt *msg;
 
 	if (opt == NULL)
+	{
 		return -EINVAL;
+	}
 
 	msg = nla_data(opt);
-	if (nla_len(opt) < sizeof(*msg))
-		return -EINVAL;
 
-	switch (msg->action) {
-	case TCQ_PLUG_BUFFER:
-		/* Save size of the current buffer */
-		q->pkts_last_epoch = q->pkts_current_epoch;
-		q->pkts_current_epoch = 0;
-		if (q->unplug_indefinite)
-			q->throttled = true;
-		q->unplug_indefinite = false;
-		break;
-	case TCQ_PLUG_RELEASE_ONE:
-		/* Add packets from the last complete buffer to the
-		 * packets to be released set.
-		 */
-		q->pkts_to_release += q->pkts_last_epoch;
-		q->pkts_last_epoch = 0;
-		q->throttled = false;
-		netif_schedule_queue(sch->dev_queue);
-		break;
-	case TCQ_PLUG_RELEASE_INDEFINITE:
-		q->unplug_indefinite = true;
-		q->pkts_to_release = 0;
-		q->pkts_last_epoch = 0;
-		q->pkts_current_epoch = 0;
-		q->throttled = false;
-		netif_schedule_queue(sch->dev_queue);
-		break;
-	case TCQ_PLUG_LIMIT:
-		/* Limit is supplied in bytes */
-		q->limit = msg->limit;
-		break;
-	default:
+	if (nla_len(opt) < sizeof(*msg))
+	{
 		return -EINVAL;
+	}
+
+	switch (msg->action)
+	{
+		case TCQ_PLUG_BUFFER:
+			/* Save size of the current buffer */
+			q->pkts_last_epoch = q->pkts_current_epoch;
+			q->pkts_current_epoch = 0;
+
+			if (q->unplug_indefinite)
+			{
+				q->throttled = true;
+			}
+
+			q->unplug_indefinite = false;
+			break;
+
+		case TCQ_PLUG_RELEASE_ONE:
+			/* Add packets from the last complete buffer to the
+			 * packets to be released set.
+			 */
+			q->pkts_to_release += q->pkts_last_epoch;
+			q->pkts_last_epoch = 0;
+			q->throttled = false;
+			netif_schedule_queue(sch->dev_queue);
+			break;
+
+		case TCQ_PLUG_RELEASE_INDEFINITE:
+			q->unplug_indefinite = true;
+			q->pkts_to_release = 0;
+			q->pkts_last_epoch = 0;
+			q->pkts_current_epoch = 0;
+			q->throttled = false;
+			netif_schedule_queue(sch->dev_queue);
+			break;
+
+		case TCQ_PLUG_LIMIT:
+			/* Limit is supplied in bytes */
+			q->limit = msg->limit;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
 }
 
-static struct Qdisc_ops plug_qdisc_ops __read_mostly = {
+static struct Qdisc_ops plug_qdisc_ops __read_mostly =
+{
 	.id          =       "plug",
 	.priv_size   =       sizeof(struct plug_sched_data),
 	.enqueue     =       plug_enqueue,

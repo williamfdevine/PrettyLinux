@@ -52,7 +52,8 @@ static void __exception_irq_entry zevio_handle_irq(struct pt_regs *regs)
 {
 	int irqnr;
 
-	while (readl(zevio_irq_io + IO_STATUS)) {
+	while (readl(zevio_irq_io + IO_STATUS))
+	{
 		irqnr = readl(zevio_irq_io + IO_CURRENT);
 		handle_domain_irq(zevio_irq_domain, irqnr, regs);
 	};
@@ -71,14 +72,16 @@ static void __init zevio_init_irq_base(void __iomem *base)
 }
 
 static int __init zevio_of_init(struct device_node *node,
-				struct device_node *parent)
+								struct device_node *parent)
 {
 	unsigned int clr = IRQ_NOREQUEST | IRQ_NOPROBE | IRQ_NOAUTOEN;
 	struct irq_chip_generic *gc;
 	int ret;
 
 	if (WARN_ON(zevio_irq_io || zevio_irq_domain))
+	{
 		return -EBUSY;
+	}
 
 	zevio_irq_io = of_iomap(node, 0);
 	BUG_ON(!zevio_irq_io);
@@ -97,12 +100,12 @@ static int __init zevio_of_init(struct device_node *node,
 	zevio_init_irq_base(zevio_irq_io + IO_FIQ_BASE);
 
 	zevio_irq_domain = irq_domain_add_linear(node, MAX_INTRS,
-						 &irq_generic_chip_ops, NULL);
+					   &irq_generic_chip_ops, NULL);
 	BUG_ON(!zevio_irq_domain);
 
 	ret = irq_alloc_domain_generic_chips(zevio_irq_domain, MAX_INTRS, 1,
-					     "zevio_intc", handle_level_irq,
-					     clr, 0, IRQ_GC_INIT_MASK_CACHE);
+										 "zevio_intc", handle_level_irq,
+										 clr, 0, IRQ_GC_INIT_MASK_CACHE);
 	BUG_ON(ret);
 
 	gc = irq_get_domain_generic_chip(zevio_irq_domain, 0);

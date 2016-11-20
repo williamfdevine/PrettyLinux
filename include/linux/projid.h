@@ -18,7 +18,8 @@ extern struct user_namespace init_user_ns;
 
 typedef __kernel_uid32_t projid_t;
 
-typedef struct {
+typedef struct
+{
 	projid_t val;
 } kprojid_t;
 
@@ -56,7 +57,7 @@ extern projid_t from_kprojid_munged(struct user_namespace *to, kprojid_t projid)
 
 static inline bool kprojid_has_mapping(struct user_namespace *ns, kprojid_t projid)
 {
-	return from_kprojid(ns, projid) != (projid_t)-1;
+	return from_kprojid(ns, projid) != (projid_t) - 1;
 }
 
 #else
@@ -74,8 +75,12 @@ static inline projid_t from_kprojid(struct user_namespace *to, kprojid_t kprojid
 static inline projid_t from_kprojid_munged(struct user_namespace *to, kprojid_t kprojid)
 {
 	projid_t projid = from_kprojid(to, kprojid);
-	if (projid == (projid_t)-1)
+
+	if (projid == (projid_t) - 1)
+	{
 		projid = OVERFLOW_PROJID;
+	}
+
 	return projid;
 }
 

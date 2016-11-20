@@ -52,7 +52,8 @@
 
 #define ar9565_1p1_baseband_core_txfir_coeff_japan_2484 ar9565_1p0_baseband_core_txfir_coeff_japan_2484
 
-static const u32 ar9565_1p1_radio_postamble[][5] = {
+static const u32 ar9565_1p1_radio_postamble[][5] =
+{
 	/* Addr      5G_HT20     5G_HT40     2G_HT40     2G_HT20   */
 	{0x0001609c, 0x0b8ee524, 0x0b8ee524, 0x0b8ee524, 0x0b8ee524},
 	{0x000160ac, 0xa4646c08, 0xa4646c08, 0x24645808, 0x24645808},

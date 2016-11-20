@@ -110,7 +110,8 @@
 #define ATOM_IO_SYSIO		2
 #define ATOM_IO_IIO		0x80
 
-struct card_info {
+struct card_info
+{
 	struct drm_device *dev;
 	void (* reg_write)(struct card_info *, uint32_t, uint32_t);   /*  filled by driver */
 	uint32_t (* reg_read)(struct card_info *, uint32_t);          /*  filled by driver */
@@ -122,7 +123,8 @@ struct card_info {
 	uint32_t (* pll_read)(struct card_info *, uint32_t);          /*  filled by driver */
 };
 
-struct atom_context {
+struct atom_context
+{
 	struct card_info *card;
 	struct mutex mutex;
 	void *bios;
@@ -148,9 +150,9 @@ int amdgpu_atom_execute_table(struct atom_context *, int, uint32_t *);
 int amdgpu_atom_asic_init(struct atom_context *);
 void amdgpu_atom_destroy(struct atom_context *);
 bool amdgpu_atom_parse_data_header(struct atom_context *ctx, int index, uint16_t *size,
-			    uint8_t *frev, uint8_t *crev, uint16_t *data_start);
+								   uint8_t *frev, uint8_t *crev, uint16_t *data_start);
 bool amdgpu_atom_parse_cmd_header(struct atom_context *ctx, int index,
-			   uint8_t *frev, uint8_t *crev);
+								  uint8_t *frev, uint8_t *crev);
 int amdgpu_atom_allocate_fb_scratch(struct atom_context *ctx);
 #include "atom-types.h"
 #include "atombios.h"

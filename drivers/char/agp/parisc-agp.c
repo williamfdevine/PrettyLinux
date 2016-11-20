@@ -34,9 +34,10 @@
 
 static unsigned long
 parisc_agp_mask_memory(struct agp_bridge_data *bridge, dma_addr_t addr,
-		       int type);
+					   int type);
 
-static struct _parisc_agp_info {
+static struct _parisc_agp_info
+{
 	void __iomem *ioc_regs;
 	void __iomem *lba_regs;
 
@@ -54,7 +55,7 @@ static struct _parisc_agp_info {
 
 static struct gatt_mask parisc_agp_masks[] =
 {
-        {
+	{
 		.mask = SBA_PDIR_VALID_BIT,
 		.type = 0
 	}
@@ -62,7 +63,7 @@ static struct gatt_mask parisc_agp_masks[] =
 
 static struct aper_size_info_fixed parisc_agp_sizes[] =
 {
-        {0, 0, 0},              /* filled in by parisc_agp_fetch_size() */
+	{0, 0, 0},              /* filled in by parisc_agp_fetch_size() */
 };
 
 static int
@@ -84,7 +85,7 @@ parisc_agp_configure(void)
 
 	agp_bridge->gart_bus_addr = info->gart_base;
 	agp_bridge->capndx = info->lba_cap_offset;
-	agp_bridge->mode = readl(info->lba_regs+info->lba_cap_offset+PCI_AGP_STATUS);
+	agp_bridge->mode = readl(info->lba_regs + info->lba_cap_offset + PCI_AGP_STATUS);
 
 	return 0;
 }
@@ -94,8 +95,8 @@ parisc_agp_tlbflush(struct agp_memory *mem)
 {
 	struct _parisc_agp_info *info = &parisc_agp_info;
 
-	writeq(info->gart_base | ilog2(info->gart_size), info->ioc_regs+IOC_PCOM);
-	readq(info->ioc_regs+IOC_PCOM);	/* flush */
+	writeq(info->gart_base | ilog2(info->gart_size), info->ioc_regs + IOC_PCOM);
+	readq(info->ioc_regs + IOC_PCOM);	/* flush */
 }
 
 static int
@@ -104,7 +105,8 @@ parisc_agp_create_gatt_table(struct agp_bridge_data *bridge)
 	struct _parisc_agp_info *info = &parisc_agp_info;
 	int i;
 
-	for (i = 0; i < info->gatt_entries; i++) {
+	for (i = 0; i < info->gatt_entries; i++)
+	{
 		info->gatt[i] = (unsigned long)agp_bridge->scratch_page;
 	}
 
@@ -130,38 +132,50 @@ parisc_agp_insert_memory(struct agp_memory *mem, off_t pg_start, int type)
 	int io_pg_count;
 
 	if (type != mem->type ||
-		agp_bridge->driver->agp_type_to_mask_type(agp_bridge, type)) {
+		agp_bridge->driver->agp_type_to_mask_type(agp_bridge, type))
+	{
 		return -EINVAL;
 	}
 
 	io_pg_start = info->io_pages_per_kpage * pg_start;
 	io_pg_count = info->io_pages_per_kpage * mem->page_count;
-	if ((io_pg_start + io_pg_count) > info->gatt_entries) {
+
+	if ((io_pg_start + io_pg_count) > info->gatt_entries)
+	{
 		return -EINVAL;
 	}
 
 	j = io_pg_start;
-	while (j < (io_pg_start + io_pg_count)) {
+
+	while (j < (io_pg_start + io_pg_count))
+	{
 		if (info->gatt[j])
+		{
 			return -EBUSY;
+		}
+
 		j++;
 	}
 
-	if (!mem->is_flushed) {
+	if (!mem->is_flushed)
+	{
 		global_cache_flush();
 		mem->is_flushed = true;
 	}
 
-	for (i = 0, j = io_pg_start; i < mem->page_count; i++) {
+	for (i = 0, j = io_pg_start; i < mem->page_count; i++)
+	{
 		unsigned long paddr;
 
 		paddr = page_to_phys(mem->pages[i]);
+
 		for (k = 0;
-		     k < info->io_pages_per_kpage;
-		     k++, j++, paddr += info->io_page_size) {
+			 k < info->io_pages_per_kpage;
+			 k++, j++, paddr += info->io_page_size)
+		{
 			info->gatt[j] =
 				parisc_agp_mask_memory(agp_bridge,
-					paddr, type);
+									   paddr, type);
 		}
 	}
 
@@ -177,13 +191,16 @@ parisc_agp_remove_memory(struct agp_memory *mem, off_t pg_start, int type)
 	int i, io_pg_start, io_pg_count;
 
 	if (type != mem->type ||
-		agp_bridge->driver->agp_type_to_mask_type(agp_bridge, type)) {
+		agp_bridge->driver->agp_type_to_mask_type(agp_bridge, type))
+	{
 		return -EINVAL;
 	}
 
 	io_pg_start = info->io_pages_per_kpage * pg_start;
 	io_pg_count = info->io_pages_per_kpage * mem->page_count;
-	for (i = io_pg_start; i < io_pg_count + io_pg_start; i++) {
+
+	for (i = io_pg_start; i < io_pg_count + io_pg_start; i++)
+	{
 		info->gatt[i] = agp_bridge->scratch_page;
 	}
 
@@ -193,7 +210,7 @@ parisc_agp_remove_memory(struct agp_memory *mem, off_t pg_start, int type)
 
 static unsigned long
 parisc_agp_mask_memory(struct agp_bridge_data *bridge, dma_addr_t addr,
-		       int type)
+					   int type)
 {
 	return SBA_PDIR_VALID_BIT | addr;
 }
@@ -214,7 +231,8 @@ parisc_agp_enable(struct agp_bridge_data *bridge, u32 mode)
 	agp_device_command(command, (mode & AGP8X_MODE) != 0);
 }
 
-static const struct agp_bridge_driver parisc_agp_driver = {
+static const struct agp_bridge_driver parisc_agp_driver =
+{
 	.owner			= THIS_MODULE,
 	.size_type		= FIXED_APER_SIZE,
 	.configure		= parisc_agp_configure,
@@ -242,90 +260,114 @@ static int __init
 agp_ioc_init(void __iomem *ioc_regs)
 {
 	struct _parisc_agp_info *info = &parisc_agp_info;
-        u64 iova_base, *io_pdir, io_tlb_ps;
-        int io_tlb_shift;
+	u64 iova_base, *io_pdir, io_tlb_ps;
+	int io_tlb_shift;
 
-        printk(KERN_INFO DRVPFX "IO PDIR shared with sba_iommu\n");
+	printk(KERN_INFO DRVPFX "IO PDIR shared with sba_iommu\n");
 
-        info->ioc_regs = ioc_regs;
+	info->ioc_regs = ioc_regs;
 
-        io_tlb_ps = readq(info->ioc_regs+IOC_TCNFG);
-        switch (io_tlb_ps) {
-        case 0: io_tlb_shift = 12; break;
-        case 1: io_tlb_shift = 13; break;
-        case 2: io_tlb_shift = 14; break;
-        case 3: io_tlb_shift = 16; break;
-        default:
-                printk(KERN_ERR DRVPFX "Invalid IOTLB page size "
-                       "configuration 0x%llx\n", io_tlb_ps);
-                info->gatt = NULL;
-                info->gatt_entries = 0;
-                return -ENODEV;
-        }
-        info->io_page_size = 1 << io_tlb_shift;
-        info->io_pages_per_kpage = PAGE_SIZE / info->io_page_size;
+	io_tlb_ps = readq(info->ioc_regs + IOC_TCNFG);
 
-        iova_base = readq(info->ioc_regs+IOC_IBASE) & ~0x1;
-        info->gart_base = iova_base + PLUTO_IOVA_SIZE - PLUTO_GART_SIZE;
+	switch (io_tlb_ps)
+	{
+		case 0: io_tlb_shift = 12; break;
 
-        info->gart_size = PLUTO_GART_SIZE;
-        info->gatt_entries = info->gart_size / info->io_page_size;
+		case 1: io_tlb_shift = 13; break;
 
-        io_pdir = phys_to_virt(readq(info->ioc_regs+IOC_PDIR_BASE));
-        info->gatt = &io_pdir[(PLUTO_IOVA_SIZE/2) >> PAGE_SHIFT];
+		case 2: io_tlb_shift = 14; break;
 
-        if (info->gatt[0] != SBA_AGPGART_COOKIE) {
-                info->gatt = NULL;
-                info->gatt_entries = 0;
-                printk(KERN_ERR DRVPFX "No reserved IO PDIR entry found; "
-                       "GART disabled\n");
-                return -ENODEV;
-        }
+		case 3: io_tlb_shift = 16; break;
 
-        return 0;
+		default:
+			printk(KERN_ERR DRVPFX "Invalid IOTLB page size "
+				   "configuration 0x%llx\n", io_tlb_ps);
+			info->gatt = NULL;
+			info->gatt_entries = 0;
+			return -ENODEV;
+	}
+
+	info->io_page_size = 1 << io_tlb_shift;
+	info->io_pages_per_kpage = PAGE_SIZE / info->io_page_size;
+
+	iova_base = readq(info->ioc_regs + IOC_IBASE) & ~0x1;
+	info->gart_base = iova_base + PLUTO_IOVA_SIZE - PLUTO_GART_SIZE;
+
+	info->gart_size = PLUTO_GART_SIZE;
+	info->gatt_entries = info->gart_size / info->io_page_size;
+
+	io_pdir = phys_to_virt(readq(info->ioc_regs + IOC_PDIR_BASE));
+	info->gatt = &io_pdir[(PLUTO_IOVA_SIZE / 2) >> PAGE_SHIFT];
+
+	if (info->gatt[0] != SBA_AGPGART_COOKIE)
+	{
+		info->gatt = NULL;
+		info->gatt_entries = 0;
+		printk(KERN_ERR DRVPFX "No reserved IO PDIR entry found; "
+			   "GART disabled\n");
+		return -ENODEV;
+	}
+
+	return 0;
 }
 
 static int
 lba_find_capability(int cap)
 {
 	struct _parisc_agp_info *info = &parisc_agp_info;
-        u16 status;
-        u8 pos, id;
-        int ttl = 48;
+	u16 status;
+	u8 pos, id;
+	int ttl = 48;
 
-        status = readw(info->lba_regs + PCI_STATUS);
-        if (!(status & PCI_STATUS_CAP_LIST))
-                return 0;
-        pos = readb(info->lba_regs + PCI_CAPABILITY_LIST);
-        while (ttl-- && pos >= 0x40) {
-                pos &= ~3;
-                id = readb(info->lba_regs + pos + PCI_CAP_LIST_ID);
-                if (id == 0xff)
-                        break;
-                if (id == cap)
-                        return pos;
-                pos = readb(info->lba_regs + pos + PCI_CAP_LIST_NEXT);
-        }
-        return 0;
+	status = readw(info->lba_regs + PCI_STATUS);
+
+	if (!(status & PCI_STATUS_CAP_LIST))
+	{
+		return 0;
+	}
+
+	pos = readb(info->lba_regs + PCI_CAPABILITY_LIST);
+
+	while (ttl-- && pos >= 0x40)
+	{
+		pos &= ~3;
+		id = readb(info->lba_regs + pos + PCI_CAP_LIST_ID);
+
+		if (id == 0xff)
+		{
+			break;
+		}
+
+		if (id == cap)
+		{
+			return pos;
+		}
+
+		pos = readb(info->lba_regs + pos + PCI_CAP_LIST_NEXT);
+	}
+
+	return 0;
 }
 
 static int __init
 agp_lba_init(void __iomem *lba_hpa)
 {
 	struct _parisc_agp_info *info = &parisc_agp_info;
-        int cap;
+	int cap;
 
 	info->lba_regs = lba_hpa;
-        info->lba_cap_offset = lba_find_capability(PCI_CAP_ID_AGP);
+	info->lba_cap_offset = lba_find_capability(PCI_CAP_ID_AGP);
 
-        cap = readl(lba_hpa + info->lba_cap_offset) & 0xff;
-        if (cap != PCI_CAP_ID_AGP) {
-                printk(KERN_ERR DRVPFX "Invalid capability ID 0x%02x at 0x%x\n",
-                       cap, info->lba_cap_offset);
-                return -ENODEV;
-        }
+	cap = readl(lba_hpa + info->lba_cap_offset) & 0xff;
 
-        return 0;
+	if (cap != PCI_CAP_ID_AGP)
+	{
+		printk(KERN_ERR DRVPFX "Invalid capability ID 0x%02x at 0x%x\n",
+			   cap, info->lba_cap_offset);
+		return -ENODEV;
+	}
+
+	return 0;
 }
 
 static int __init
@@ -336,24 +378,35 @@ parisc_agp_setup(void __iomem *ioc_hpa, void __iomem *lba_hpa)
 	int error = 0;
 
 	fake_bridge_dev = pci_alloc_dev(NULL);
-	if (!fake_bridge_dev) {
+
+	if (!fake_bridge_dev)
+	{
 		error = -ENOMEM;
 		goto fail;
 	}
 
 	error = agp_ioc_init(ioc_hpa);
+
 	if (error)
+	{
 		goto fail;
+	}
 
 	error = agp_lba_init(lba_hpa);
+
 	if (error)
+	{
 		goto fail;
+	}
 
 	bridge = agp_alloc_bridge();
-	if (!bridge) {
+
+	if (!bridge)
+	{
 		error = -ENOMEM;
 		goto fail;
 	}
+
 	bridge->driver = &parisc_agp_driver;
 
 	fake_bridge_dev->vendor = PCI_VENDOR_ID_HP;
@@ -361,8 +414,12 @@ parisc_agp_setup(void __iomem *ioc_hpa, void __iomem *lba_hpa)
 	bridge->dev = fake_bridge_dev;
 
 	error = agp_add_bridge(bridge);
+
 	if (error)
+	{
 		goto fail;
+	}
+
 	return 0;
 
 fail:
@@ -377,7 +434,9 @@ find_quicksilver(struct device *dev, void *data)
 	struct parisc_device *padev = to_parisc_device(dev);
 
 	if (IS_QUICKSILVER(padev))
+	{
 		*lba = padev;
+	}
 
 	return 0;
 }
@@ -392,11 +451,15 @@ parisc_agp_init(void)
 	struct lba_device *lbadev = NULL;
 
 	if (!sba_list)
+	{
 		goto out;
+	}
 
 	/* Find our parent Pluto */
 	sba = sba_list->dev;
-	if (!IS_PLUTO(sba)) {
+
+	if (!IS_PLUTO(sba))
+	{
 		printk(KERN_INFO DRVPFX "No Pluto found, so no AGPGART for you.\n");
 		goto out;
 	}
@@ -404,7 +467,8 @@ parisc_agp_init(void)
 	/* Now search our Pluto for our precious AGP device... */
 	device_for_each_child(&sba->dev, &lba, find_quicksilver);
 
-	if (!lba) {
+	if (!lba)
+	{
 		printk(KERN_INFO DRVPFX "No AGP devices found.\n");
 		goto out;
 	}

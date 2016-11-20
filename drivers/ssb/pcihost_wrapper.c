@@ -26,8 +26,12 @@ static int ssb_pcihost_suspend(struct device *d)
 	int err;
 
 	err = ssb_bus_suspend(ssb);
+
 	if (err)
+	{
 		return err;
+	}
+
 	pci_save_state(dev);
 	pci_disable_device(dev);
 
@@ -48,24 +52,32 @@ static int ssb_pcihost_resume(struct device *d)
 
 	pci_back_from_sleep(dev);
 	err = pci_enable_device(dev);
+
 	if (err)
+	{
 		return err;
+	}
+
 	pci_restore_state(dev);
 	err = ssb_bus_resume(ssb);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return 0;
 }
 
-static const struct dev_pm_ops ssb_pcihost_pm_ops = {
+static const struct dev_pm_ops ssb_pcihost_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(ssb_pcihost_suspend, ssb_pcihost_resume)
 };
 
 #endif /* CONFIG_PM_SLEEP */
 
 static int ssb_pcihost_probe(struct pci_dev *dev,
-			     const struct pci_device_id *id)
+							 const struct pci_device_id *id)
 {
 	struct ssb_bus *ssb;
 	int err = -ENOMEM;
@@ -73,28 +85,50 @@ static int ssb_pcihost_probe(struct pci_dev *dev,
 	u32 val;
 
 	ssb = kzalloc(sizeof(*ssb), GFP_KERNEL);
+
 	if (!ssb)
+	{
 		goto out;
+	}
+
 	err = pci_enable_device(dev);
+
 	if (err)
+	{
 		goto err_kfree_ssb;
+	}
+
 	name = dev_name(&dev->dev);
+
 	if (dev->driver && dev->driver->name)
+	{
 		name = dev->driver->name;
+	}
+
 	err = pci_request_regions(dev, name);
+
 	if (err)
+	{
 		goto err_pci_disable;
+	}
+
 	pci_set_master(dev);
 
 	/* Disable the RETRY_TIMEOUT register (0x41) to keep
 	 * PCI Tx retries from interfering with C3 CPU state */
 	pci_read_config_dword(dev, 0x40, &val);
+
 	if ((val & 0x0000ff00) != 0)
+	{
 		pci_write_config_dword(dev, 0x40, val & 0xffff00ff);
+	}
 
 	err = ssb_bus_pcibus_register(ssb, dev);
+
 	if (err)
+	{
 		goto err_pci_release_regions;
+	}
 
 	pci_set_drvdata(dev, ssb);
 

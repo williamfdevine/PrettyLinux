@@ -34,7 +34,8 @@
 
 #include "wm9090.h"
 
-static const struct reg_default wm9090_reg_defaults[] = {
+static const struct reg_default wm9090_reg_defaults[] =
+{
 	{ 1,  0x0006 },     /* R1   - Power Management (1) */
 	{ 2,  0x6000 },     /* R2   - Power Management (2) */
 	{ 3,  0x0000 },     /* R3   - Power Management (3) */
@@ -73,73 +74,76 @@ static const struct reg_default wm9090_reg_defaults[] = {
 };
 
 /* This struct is used to save the context */
-struct wm9090_priv {
+struct wm9090_priv
+{
 	struct wm9090_platform_data pdata;
 	struct regmap *regmap;
 };
 
 static bool wm9090_volatile(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case WM9090_SOFTWARE_RESET:
-	case WM9090_DC_SERVO_0:
-	case WM9090_DC_SERVO_READBACK_0:
-	case WM9090_DC_SERVO_READBACK_1:
-	case WM9090_DC_SERVO_READBACK_2:
-		return true;
+	switch (reg)
+	{
+		case WM9090_SOFTWARE_RESET:
+		case WM9090_DC_SERVO_0:
+		case WM9090_DC_SERVO_READBACK_0:
+		case WM9090_DC_SERVO_READBACK_1:
+		case WM9090_DC_SERVO_READBACK_2:
+			return true;
 
-	default:
-		return false;
+		default:
+			return false;
 	}
 }
 
 static bool wm9090_readable(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case WM9090_SOFTWARE_RESET:
-	case WM9090_POWER_MANAGEMENT_1:
-	case WM9090_POWER_MANAGEMENT_2:
-	case WM9090_POWER_MANAGEMENT_3:
-	case WM9090_CLOCKING_1:
-	case WM9090_IN1_LINE_CONTROL:
-	case WM9090_IN2_LINE_CONTROL:
-	case WM9090_IN1_LINE_INPUT_A_VOLUME:
-	case WM9090_IN1_LINE_INPUT_B_VOLUME:
-	case WM9090_IN2_LINE_INPUT_A_VOLUME:
-	case WM9090_IN2_LINE_INPUT_B_VOLUME:
-	case WM9090_LEFT_OUTPUT_VOLUME:
-	case WM9090_RIGHT_OUTPUT_VOLUME:
-	case WM9090_SPKMIXL_ATTENUATION:
-	case WM9090_SPKOUT_MIXERS:
-	case WM9090_CLASSD3:
-	case WM9090_SPEAKER_VOLUME_LEFT:
-	case WM9090_OUTPUT_MIXER1:
-	case WM9090_OUTPUT_MIXER2:
-	case WM9090_OUTPUT_MIXER3:
-	case WM9090_OUTPUT_MIXER4:
-	case WM9090_SPEAKER_MIXER:
-	case WM9090_ANTIPOP2:
-	case WM9090_WRITE_SEQUENCER_0:
-	case WM9090_WRITE_SEQUENCER_1:
-	case WM9090_WRITE_SEQUENCER_2:
-	case WM9090_WRITE_SEQUENCER_3:
-	case WM9090_WRITE_SEQUENCER_4:
-	case WM9090_WRITE_SEQUENCER_5:
-	case WM9090_CHARGE_PUMP_1:
-	case WM9090_DC_SERVO_0:
-	case WM9090_DC_SERVO_1:
-	case WM9090_DC_SERVO_3:
-	case WM9090_DC_SERVO_READBACK_0:
-	case WM9090_DC_SERVO_READBACK_1:
-	case WM9090_DC_SERVO_READBACK_2:
-	case WM9090_ANALOGUE_HP_0:
-	case WM9090_AGC_CONTROL_0:
-	case WM9090_AGC_CONTROL_1:
-	case WM9090_AGC_CONTROL_2:
-		return true;
+	switch (reg)
+	{
+		case WM9090_SOFTWARE_RESET:
+		case WM9090_POWER_MANAGEMENT_1:
+		case WM9090_POWER_MANAGEMENT_2:
+		case WM9090_POWER_MANAGEMENT_3:
+		case WM9090_CLOCKING_1:
+		case WM9090_IN1_LINE_CONTROL:
+		case WM9090_IN2_LINE_CONTROL:
+		case WM9090_IN1_LINE_INPUT_A_VOLUME:
+		case WM9090_IN1_LINE_INPUT_B_VOLUME:
+		case WM9090_IN2_LINE_INPUT_A_VOLUME:
+		case WM9090_IN2_LINE_INPUT_B_VOLUME:
+		case WM9090_LEFT_OUTPUT_VOLUME:
+		case WM9090_RIGHT_OUTPUT_VOLUME:
+		case WM9090_SPKMIXL_ATTENUATION:
+		case WM9090_SPKOUT_MIXERS:
+		case WM9090_CLASSD3:
+		case WM9090_SPEAKER_VOLUME_LEFT:
+		case WM9090_OUTPUT_MIXER1:
+		case WM9090_OUTPUT_MIXER2:
+		case WM9090_OUTPUT_MIXER3:
+		case WM9090_OUTPUT_MIXER4:
+		case WM9090_SPEAKER_MIXER:
+		case WM9090_ANTIPOP2:
+		case WM9090_WRITE_SEQUENCER_0:
+		case WM9090_WRITE_SEQUENCER_1:
+		case WM9090_WRITE_SEQUENCER_2:
+		case WM9090_WRITE_SEQUENCER_3:
+		case WM9090_WRITE_SEQUENCER_4:
+		case WM9090_WRITE_SEQUENCER_5:
+		case WM9090_CHARGE_PUMP_1:
+		case WM9090_DC_SERVO_0:
+		case WM9090_DC_SERVO_1:
+		case WM9090_DC_SERVO_3:
+		case WM9090_DC_SERVO_READBACK_0:
+		case WM9090_DC_SERVO_READBACK_1:
+		case WM9090_DC_SERVO_READBACK_2:
+		case WM9090_ANALOGUE_HP_0:
+		case WM9090_AGC_CONTROL_0:
+		case WM9090_AGC_CONTROL_1:
+		case WM9090_AGC_CONTROL_2:
+			return true;
 
-	default:
-		return false;
+		default:
+			return false;
 	}
 }
 
@@ -149,225 +153,240 @@ static void wait_for_dc_servo(struct snd_soc_codec *codec)
 	int count = 0;
 
 	dev_dbg(codec->dev, "Waiting for DC servo...\n");
-	do {
+
+	do
+	{
 		count++;
 		msleep(1);
 		reg = snd_soc_read(codec, WM9090_DC_SERVO_READBACK_0);
 		dev_dbg(codec->dev, "DC servo status: %x\n", reg);
-	} while ((reg & WM9090_DCS_CAL_COMPLETE_MASK)
-		 != WM9090_DCS_CAL_COMPLETE_MASK && count < 1000);
+	}
+	while ((reg & WM9090_DCS_CAL_COMPLETE_MASK)
+		   != WM9090_DCS_CAL_COMPLETE_MASK && count < 1000);
 
 	if ((reg & WM9090_DCS_CAL_COMPLETE_MASK)
-	    != WM9090_DCS_CAL_COMPLETE_MASK)
+		!= WM9090_DCS_CAL_COMPLETE_MASK)
+	{
 		dev_err(codec->dev, "Timed out waiting for DC Servo\n");
+	}
 }
 
 static const DECLARE_TLV_DB_RANGE(in_tlv,
-	0, 0, TLV_DB_SCALE_ITEM(-600, 0, 0),
-	1, 3, TLV_DB_SCALE_ITEM(-350, 350, 0),
-	4, 6, TLV_DB_SCALE_ITEM(600, 600, 0)
-);
+								  0, 0, TLV_DB_SCALE_ITEM(-600, 0, 0),
+								  1, 3, TLV_DB_SCALE_ITEM(-350, 350, 0),
+								  4, 6, TLV_DB_SCALE_ITEM(600, 600, 0)
+								 );
 static const DECLARE_TLV_DB_RANGE(mix_tlv,
-	0, 2, TLV_DB_SCALE_ITEM(-1200, 300, 0),
-	3, 3, TLV_DB_SCALE_ITEM(0, 0, 0)
-);
+								  0, 2, TLV_DB_SCALE_ITEM(-1200, 300, 0),
+								  3, 3, TLV_DB_SCALE_ITEM(0, 0, 0)
+								 );
 static const DECLARE_TLV_DB_SCALE(out_tlv, -5700, 100, 0);
 static const DECLARE_TLV_DB_RANGE(spkboost_tlv,
-	0, 6, TLV_DB_SCALE_ITEM(0, 150, 0),
-	7, 7, TLV_DB_SCALE_ITEM(1200, 0, 0)
-);
+								  0, 6, TLV_DB_SCALE_ITEM(0, 150, 0),
+								  7, 7, TLV_DB_SCALE_ITEM(1200, 0, 0)
+								 );
 
-static const struct snd_kcontrol_new wm9090_controls[] = {
-SOC_SINGLE_TLV("IN1A Volume", WM9090_IN1_LINE_INPUT_A_VOLUME, 0, 6, 0,
-	       in_tlv),
-SOC_SINGLE("IN1A Switch", WM9090_IN1_LINE_INPUT_A_VOLUME, 7, 1, 1),
-SOC_SINGLE("IN1A ZC Switch", WM9090_IN1_LINE_INPUT_A_VOLUME, 6, 1, 0),
+static const struct snd_kcontrol_new wm9090_controls[] =
+{
+	SOC_SINGLE_TLV("IN1A Volume", WM9090_IN1_LINE_INPUT_A_VOLUME, 0, 6, 0,
+	in_tlv),
+	SOC_SINGLE("IN1A Switch", WM9090_IN1_LINE_INPUT_A_VOLUME, 7, 1, 1),
+	SOC_SINGLE("IN1A ZC Switch", WM9090_IN1_LINE_INPUT_A_VOLUME, 6, 1, 0),
 
-SOC_SINGLE_TLV("IN2A Volume", WM9090_IN2_LINE_INPUT_A_VOLUME, 0, 6, 0,
-	       in_tlv),
-SOC_SINGLE("IN2A Switch", WM9090_IN2_LINE_INPUT_A_VOLUME, 7, 1, 1),
-SOC_SINGLE("IN2A ZC Switch", WM9090_IN2_LINE_INPUT_A_VOLUME, 6, 1, 0),
+	SOC_SINGLE_TLV("IN2A Volume", WM9090_IN2_LINE_INPUT_A_VOLUME, 0, 6, 0,
+	in_tlv),
+	SOC_SINGLE("IN2A Switch", WM9090_IN2_LINE_INPUT_A_VOLUME, 7, 1, 1),
+	SOC_SINGLE("IN2A ZC Switch", WM9090_IN2_LINE_INPUT_A_VOLUME, 6, 1, 0),
 
-SOC_SINGLE("MIXOUTL Switch", WM9090_OUTPUT_MIXER3, 8, 1, 1),
-SOC_SINGLE_TLV("MIXOUTL IN1A Volume", WM9090_OUTPUT_MIXER3, 6, 3, 1,
-	       mix_tlv),
-SOC_SINGLE_TLV("MIXOUTL IN2A Volume", WM9090_OUTPUT_MIXER3, 2, 3, 1,
-	       mix_tlv),
+	SOC_SINGLE("MIXOUTL Switch", WM9090_OUTPUT_MIXER3, 8, 1, 1),
+	SOC_SINGLE_TLV("MIXOUTL IN1A Volume", WM9090_OUTPUT_MIXER3, 6, 3, 1,
+	mix_tlv),
+	SOC_SINGLE_TLV("MIXOUTL IN2A Volume", WM9090_OUTPUT_MIXER3, 2, 3, 1,
+	mix_tlv),
 
-SOC_SINGLE("MIXOUTR Switch", WM9090_OUTPUT_MIXER4, 8, 1, 1),
-SOC_SINGLE_TLV("MIXOUTR IN1A Volume", WM9090_OUTPUT_MIXER4, 6, 3, 1,
-	       mix_tlv),
-SOC_SINGLE_TLV("MIXOUTR IN2A Volume", WM9090_OUTPUT_MIXER4, 2, 3, 1,
-	       mix_tlv),
+	SOC_SINGLE("MIXOUTR Switch", WM9090_OUTPUT_MIXER4, 8, 1, 1),
+	SOC_SINGLE_TLV("MIXOUTR IN1A Volume", WM9090_OUTPUT_MIXER4, 6, 3, 1,
+	mix_tlv),
+	SOC_SINGLE_TLV("MIXOUTR IN2A Volume", WM9090_OUTPUT_MIXER4, 2, 3, 1,
+	mix_tlv),
 
-SOC_SINGLE("SPKMIX Switch", WM9090_SPKMIXL_ATTENUATION, 8, 1, 1),
-SOC_SINGLE_TLV("SPKMIX IN1A Volume", WM9090_SPKMIXL_ATTENUATION, 6, 3, 1,
-	       mix_tlv),
-SOC_SINGLE_TLV("SPKMIX IN2A Volume", WM9090_SPKMIXL_ATTENUATION, 2, 3, 1,
-	       mix_tlv),
+	SOC_SINGLE("SPKMIX Switch", WM9090_SPKMIXL_ATTENUATION, 8, 1, 1),
+	SOC_SINGLE_TLV("SPKMIX IN1A Volume", WM9090_SPKMIXL_ATTENUATION, 6, 3, 1,
+	mix_tlv),
+	SOC_SINGLE_TLV("SPKMIX IN2A Volume", WM9090_SPKMIXL_ATTENUATION, 2, 3, 1,
+	mix_tlv),
 
-SOC_DOUBLE_R_TLV("Headphone Volume", WM9090_LEFT_OUTPUT_VOLUME,
-		 WM9090_RIGHT_OUTPUT_VOLUME, 0, 63, 0, out_tlv),
-SOC_DOUBLE_R("Headphone Switch", WM9090_LEFT_OUTPUT_VOLUME,
-	     WM9090_RIGHT_OUTPUT_VOLUME, 6, 1, 1),
-SOC_DOUBLE_R("Headphone ZC Switch", WM9090_LEFT_OUTPUT_VOLUME,
-	     WM9090_RIGHT_OUTPUT_VOLUME, 7, 1, 0),
+	SOC_DOUBLE_R_TLV("Headphone Volume", WM9090_LEFT_OUTPUT_VOLUME,
+	WM9090_RIGHT_OUTPUT_VOLUME, 0, 63, 0, out_tlv),
+	SOC_DOUBLE_R("Headphone Switch", WM9090_LEFT_OUTPUT_VOLUME,
+	WM9090_RIGHT_OUTPUT_VOLUME, 6, 1, 1),
+	SOC_DOUBLE_R("Headphone ZC Switch", WM9090_LEFT_OUTPUT_VOLUME,
+	WM9090_RIGHT_OUTPUT_VOLUME, 7, 1, 0),
 
-SOC_SINGLE_TLV("Speaker Volume", WM9090_SPEAKER_VOLUME_LEFT, 0, 63, 0,
-	       out_tlv),
-SOC_SINGLE("Speaker Switch", WM9090_SPEAKER_VOLUME_LEFT, 6, 1, 1),
-SOC_SINGLE("Speaker ZC Switch", WM9090_SPEAKER_VOLUME_LEFT, 7, 1, 0),
-SOC_SINGLE_TLV("Speaker Boost Volume", WM9090_CLASSD3, 3, 7, 0, spkboost_tlv),
+	SOC_SINGLE_TLV("Speaker Volume", WM9090_SPEAKER_VOLUME_LEFT, 0, 63, 0,
+	out_tlv),
+	SOC_SINGLE("Speaker Switch", WM9090_SPEAKER_VOLUME_LEFT, 6, 1, 1),
+	SOC_SINGLE("Speaker ZC Switch", WM9090_SPEAKER_VOLUME_LEFT, 7, 1, 0),
+	SOC_SINGLE_TLV("Speaker Boost Volume", WM9090_CLASSD3, 3, 7, 0, spkboost_tlv),
 };
 
-static const struct snd_kcontrol_new wm9090_in1_se_controls[] = {
-SOC_SINGLE_TLV("IN1B Volume", WM9090_IN1_LINE_INPUT_B_VOLUME, 0, 6, 0,
-	       in_tlv),
-SOC_SINGLE("IN1B Switch", WM9090_IN1_LINE_INPUT_B_VOLUME, 7, 1, 1),
-SOC_SINGLE("IN1B ZC Switch", WM9090_IN1_LINE_INPUT_B_VOLUME, 6, 1, 0),
+static const struct snd_kcontrol_new wm9090_in1_se_controls[] =
+{
+	SOC_SINGLE_TLV("IN1B Volume", WM9090_IN1_LINE_INPUT_B_VOLUME, 0, 6, 0,
+	in_tlv),
+	SOC_SINGLE("IN1B Switch", WM9090_IN1_LINE_INPUT_B_VOLUME, 7, 1, 1),
+	SOC_SINGLE("IN1B ZC Switch", WM9090_IN1_LINE_INPUT_B_VOLUME, 6, 1, 0),
 
-SOC_SINGLE_TLV("SPKMIX IN1B Volume", WM9090_SPKMIXL_ATTENUATION, 4, 3, 1,
-	       mix_tlv),
-SOC_SINGLE_TLV("MIXOUTL IN1B Volume", WM9090_OUTPUT_MIXER3, 4, 3, 1,
-	       mix_tlv),
-SOC_SINGLE_TLV("MIXOUTR IN1B Volume", WM9090_OUTPUT_MIXER4, 4, 3, 1,
-	       mix_tlv),
+	SOC_SINGLE_TLV("SPKMIX IN1B Volume", WM9090_SPKMIXL_ATTENUATION, 4, 3, 1,
+	mix_tlv),
+	SOC_SINGLE_TLV("MIXOUTL IN1B Volume", WM9090_OUTPUT_MIXER3, 4, 3, 1,
+	mix_tlv),
+	SOC_SINGLE_TLV("MIXOUTR IN1B Volume", WM9090_OUTPUT_MIXER4, 4, 3, 1,
+	mix_tlv),
 };
 
-static const struct snd_kcontrol_new wm9090_in2_se_controls[] = {
-SOC_SINGLE_TLV("IN2B Volume", WM9090_IN2_LINE_INPUT_B_VOLUME, 0, 6, 0,
-	       in_tlv),
-SOC_SINGLE("IN2B Switch", WM9090_IN2_LINE_INPUT_B_VOLUME, 7, 1, 1),
-SOC_SINGLE("IN2B ZC Switch", WM9090_IN2_LINE_INPUT_B_VOLUME, 6, 1, 0),
+static const struct snd_kcontrol_new wm9090_in2_se_controls[] =
+{
+	SOC_SINGLE_TLV("IN2B Volume", WM9090_IN2_LINE_INPUT_B_VOLUME, 0, 6, 0,
+	in_tlv),
+	SOC_SINGLE("IN2B Switch", WM9090_IN2_LINE_INPUT_B_VOLUME, 7, 1, 1),
+	SOC_SINGLE("IN2B ZC Switch", WM9090_IN2_LINE_INPUT_B_VOLUME, 6, 1, 0),
 
-SOC_SINGLE_TLV("SPKMIX IN2B Volume", WM9090_SPKMIXL_ATTENUATION, 0, 3, 1,
-	       mix_tlv),
-SOC_SINGLE_TLV("MIXOUTL IN2B Volume", WM9090_OUTPUT_MIXER3, 0, 3, 1,
-	       mix_tlv),
-SOC_SINGLE_TLV("MIXOUTR IN2B Volume", WM9090_OUTPUT_MIXER4, 0, 3, 1,
-	       mix_tlv),
+	SOC_SINGLE_TLV("SPKMIX IN2B Volume", WM9090_SPKMIXL_ATTENUATION, 0, 3, 1,
+	mix_tlv),
+	SOC_SINGLE_TLV("MIXOUTL IN2B Volume", WM9090_OUTPUT_MIXER3, 0, 3, 1,
+	mix_tlv),
+	SOC_SINGLE_TLV("MIXOUTR IN2B Volume", WM9090_OUTPUT_MIXER4, 0, 3, 1,
+	mix_tlv),
 };
 
 static int hp_ev(struct snd_soc_dapm_widget *w,
-		 struct snd_kcontrol *kcontrol, int event)
+				 struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
 	unsigned int reg = snd_soc_read(codec, WM9090_ANALOGUE_HP_0);
 
-	switch (event) {
-	case SND_SOC_DAPM_POST_PMU:
-		snd_soc_update_bits(codec, WM9090_CHARGE_PUMP_1,
-				    WM9090_CP_ENA, WM9090_CP_ENA);
+	switch (event)
+	{
+		case SND_SOC_DAPM_POST_PMU:
+			snd_soc_update_bits(codec, WM9090_CHARGE_PUMP_1,
+								WM9090_CP_ENA, WM9090_CP_ENA);
 
-		msleep(5);
+			msleep(5);
 
-		snd_soc_update_bits(codec, WM9090_POWER_MANAGEMENT_1,
-				    WM9090_HPOUT1L_ENA | WM9090_HPOUT1R_ENA,
-				    WM9090_HPOUT1L_ENA | WM9090_HPOUT1R_ENA);
+			snd_soc_update_bits(codec, WM9090_POWER_MANAGEMENT_1,
+								WM9090_HPOUT1L_ENA | WM9090_HPOUT1R_ENA,
+								WM9090_HPOUT1L_ENA | WM9090_HPOUT1R_ENA);
 
-		reg |= WM9090_HPOUT1L_DLY | WM9090_HPOUT1R_DLY;
-		snd_soc_write(codec, WM9090_ANALOGUE_HP_0, reg);
+			reg |= WM9090_HPOUT1L_DLY | WM9090_HPOUT1R_DLY;
+			snd_soc_write(codec, WM9090_ANALOGUE_HP_0, reg);
 
-		/* Start the DC servo.  We don't currently use the
-		 * ability to save the state since we don't have full
-		 * control of the analogue paths and they can change
-		 * DC offsets; see the WM8904 driver for an example of
-		 * doing so.
-		 */
-		snd_soc_write(codec, WM9090_DC_SERVO_0,
-			      WM9090_DCS_ENA_CHAN_0 |
-			      WM9090_DCS_ENA_CHAN_1 |
-			      WM9090_DCS_TRIG_STARTUP_1 |
-			      WM9090_DCS_TRIG_STARTUP_0);
-		wait_for_dc_servo(codec);
+			/* Start the DC servo.  We don't currently use the
+			 * ability to save the state since we don't have full
+			 * control of the analogue paths and they can change
+			 * DC offsets; see the WM8904 driver for an example of
+			 * doing so.
+			 */
+			snd_soc_write(codec, WM9090_DC_SERVO_0,
+						  WM9090_DCS_ENA_CHAN_0 |
+						  WM9090_DCS_ENA_CHAN_1 |
+						  WM9090_DCS_TRIG_STARTUP_1 |
+						  WM9090_DCS_TRIG_STARTUP_0);
+			wait_for_dc_servo(codec);
 
-		reg |= WM9090_HPOUT1R_OUTP | WM9090_HPOUT1R_RMV_SHORT |
-			WM9090_HPOUT1L_OUTP | WM9090_HPOUT1L_RMV_SHORT;
-		snd_soc_write(codec, WM9090_ANALOGUE_HP_0, reg);
-		break;
+			reg |= WM9090_HPOUT1R_OUTP | WM9090_HPOUT1R_RMV_SHORT |
+				   WM9090_HPOUT1L_OUTP | WM9090_HPOUT1L_RMV_SHORT;
+			snd_soc_write(codec, WM9090_ANALOGUE_HP_0, reg);
+			break;
 
-	case SND_SOC_DAPM_PRE_PMD:
-		reg &= ~(WM9090_HPOUT1L_RMV_SHORT |
-			 WM9090_HPOUT1L_DLY |
-			 WM9090_HPOUT1L_OUTP |
-			 WM9090_HPOUT1R_RMV_SHORT |
-			 WM9090_HPOUT1R_DLY |
-			 WM9090_HPOUT1R_OUTP);
+		case SND_SOC_DAPM_PRE_PMD:
+			reg &= ~(WM9090_HPOUT1L_RMV_SHORT |
+					 WM9090_HPOUT1L_DLY |
+					 WM9090_HPOUT1L_OUTP |
+					 WM9090_HPOUT1R_RMV_SHORT |
+					 WM9090_HPOUT1R_DLY |
+					 WM9090_HPOUT1R_OUTP);
 
-		snd_soc_write(codec, WM9090_ANALOGUE_HP_0, reg);
+			snd_soc_write(codec, WM9090_ANALOGUE_HP_0, reg);
 
-		snd_soc_write(codec, WM9090_DC_SERVO_0, 0);
+			snd_soc_write(codec, WM9090_DC_SERVO_0, 0);
 
-		snd_soc_update_bits(codec, WM9090_POWER_MANAGEMENT_1,
-				    WM9090_HPOUT1L_ENA | WM9090_HPOUT1R_ENA,
-				    0);
+			snd_soc_update_bits(codec, WM9090_POWER_MANAGEMENT_1,
+								WM9090_HPOUT1L_ENA | WM9090_HPOUT1R_ENA,
+								0);
 
-		snd_soc_update_bits(codec, WM9090_CHARGE_PUMP_1,
-				    WM9090_CP_ENA, 0);
-		break;
+			snd_soc_update_bits(codec, WM9090_CHARGE_PUMP_1,
+								WM9090_CP_ENA, 0);
+			break;
 	}
 
 	return 0;
 }
 
-static const struct snd_kcontrol_new spkmix[] = {
-SOC_DAPM_SINGLE("IN1A Switch", WM9090_SPEAKER_MIXER, 6, 1, 0),
-SOC_DAPM_SINGLE("IN1B Switch", WM9090_SPEAKER_MIXER, 4, 1, 0),
-SOC_DAPM_SINGLE("IN2A Switch", WM9090_SPEAKER_MIXER, 2, 1, 0),
-SOC_DAPM_SINGLE("IN2B Switch", WM9090_SPEAKER_MIXER, 0, 1, 0),
+static const struct snd_kcontrol_new spkmix[] =
+{
+	SOC_DAPM_SINGLE("IN1A Switch", WM9090_SPEAKER_MIXER, 6, 1, 0),
+	SOC_DAPM_SINGLE("IN1B Switch", WM9090_SPEAKER_MIXER, 4, 1, 0),
+	SOC_DAPM_SINGLE("IN2A Switch", WM9090_SPEAKER_MIXER, 2, 1, 0),
+	SOC_DAPM_SINGLE("IN2B Switch", WM9090_SPEAKER_MIXER, 0, 1, 0),
 };
 
-static const struct snd_kcontrol_new spkout[] = {
-SOC_DAPM_SINGLE("Mixer Switch", WM9090_SPKOUT_MIXERS, 4, 1, 0),
+static const struct snd_kcontrol_new spkout[] =
+{
+	SOC_DAPM_SINGLE("Mixer Switch", WM9090_SPKOUT_MIXERS, 4, 1, 0),
 };
 
-static const struct snd_kcontrol_new mixoutl[] = {
-SOC_DAPM_SINGLE("IN1A Switch", WM9090_OUTPUT_MIXER1, 6, 1, 0),
-SOC_DAPM_SINGLE("IN1B Switch", WM9090_OUTPUT_MIXER1, 4, 1, 0),
-SOC_DAPM_SINGLE("IN2A Switch", WM9090_OUTPUT_MIXER1, 2, 1, 0),
-SOC_DAPM_SINGLE("IN2B Switch", WM9090_OUTPUT_MIXER1, 0, 1, 0),
+static const struct snd_kcontrol_new mixoutl[] =
+{
+	SOC_DAPM_SINGLE("IN1A Switch", WM9090_OUTPUT_MIXER1, 6, 1, 0),
+	SOC_DAPM_SINGLE("IN1B Switch", WM9090_OUTPUT_MIXER1, 4, 1, 0),
+	SOC_DAPM_SINGLE("IN2A Switch", WM9090_OUTPUT_MIXER1, 2, 1, 0),
+	SOC_DAPM_SINGLE("IN2B Switch", WM9090_OUTPUT_MIXER1, 0, 1, 0),
 };
 
-static const struct snd_kcontrol_new mixoutr[] = {
-SOC_DAPM_SINGLE("IN1A Switch", WM9090_OUTPUT_MIXER2, 6, 1, 0),
-SOC_DAPM_SINGLE("IN1B Switch", WM9090_OUTPUT_MIXER2, 4, 1, 0),
-SOC_DAPM_SINGLE("IN2A Switch", WM9090_OUTPUT_MIXER2, 2, 1, 0),
-SOC_DAPM_SINGLE("IN2B Switch", WM9090_OUTPUT_MIXER2, 0, 1, 0),
+static const struct snd_kcontrol_new mixoutr[] =
+{
+	SOC_DAPM_SINGLE("IN1A Switch", WM9090_OUTPUT_MIXER2, 6, 1, 0),
+	SOC_DAPM_SINGLE("IN1B Switch", WM9090_OUTPUT_MIXER2, 4, 1, 0),
+	SOC_DAPM_SINGLE("IN2A Switch", WM9090_OUTPUT_MIXER2, 2, 1, 0),
+	SOC_DAPM_SINGLE("IN2B Switch", WM9090_OUTPUT_MIXER2, 0, 1, 0),
 };
 
-static const struct snd_soc_dapm_widget wm9090_dapm_widgets[] = {
-SND_SOC_DAPM_INPUT("IN1+"),
-SND_SOC_DAPM_INPUT("IN1-"),
-SND_SOC_DAPM_INPUT("IN2+"),
-SND_SOC_DAPM_INPUT("IN2-"),
+static const struct snd_soc_dapm_widget wm9090_dapm_widgets[] =
+{
+	SND_SOC_DAPM_INPUT("IN1+"),
+	SND_SOC_DAPM_INPUT("IN1-"),
+	SND_SOC_DAPM_INPUT("IN2+"),
+	SND_SOC_DAPM_INPUT("IN2-"),
 
-SND_SOC_DAPM_SUPPLY("OSC", WM9090_POWER_MANAGEMENT_1, 3, 0, NULL, 0),
+	SND_SOC_DAPM_SUPPLY("OSC", WM9090_POWER_MANAGEMENT_1, 3, 0, NULL, 0),
 
-SND_SOC_DAPM_PGA("IN1A PGA", WM9090_POWER_MANAGEMENT_2, 7, 0, NULL, 0),
-SND_SOC_DAPM_PGA("IN1B PGA", WM9090_POWER_MANAGEMENT_2, 6, 0, NULL, 0),
-SND_SOC_DAPM_PGA("IN2A PGA", WM9090_POWER_MANAGEMENT_2, 5, 0, NULL, 0),
-SND_SOC_DAPM_PGA("IN2B PGA", WM9090_POWER_MANAGEMENT_2, 4, 0, NULL, 0),
+	SND_SOC_DAPM_PGA("IN1A PGA", WM9090_POWER_MANAGEMENT_2, 7, 0, NULL, 0),
+	SND_SOC_DAPM_PGA("IN1B PGA", WM9090_POWER_MANAGEMENT_2, 6, 0, NULL, 0),
+	SND_SOC_DAPM_PGA("IN2A PGA", WM9090_POWER_MANAGEMENT_2, 5, 0, NULL, 0),
+	SND_SOC_DAPM_PGA("IN2B PGA", WM9090_POWER_MANAGEMENT_2, 4, 0, NULL, 0),
 
-SND_SOC_DAPM_MIXER("SPKMIX", WM9090_POWER_MANAGEMENT_3, 3, 0,
-		   spkmix, ARRAY_SIZE(spkmix)),
-SND_SOC_DAPM_MIXER("MIXOUTL", WM9090_POWER_MANAGEMENT_3, 5, 0,
-		   mixoutl, ARRAY_SIZE(mixoutl)),
-SND_SOC_DAPM_MIXER("MIXOUTR", WM9090_POWER_MANAGEMENT_3, 4, 0,
-		   mixoutr, ARRAY_SIZE(mixoutr)),
+	SND_SOC_DAPM_MIXER("SPKMIX", WM9090_POWER_MANAGEMENT_3, 3, 0,
+	spkmix, ARRAY_SIZE(spkmix)),
+	SND_SOC_DAPM_MIXER("MIXOUTL", WM9090_POWER_MANAGEMENT_3, 5, 0,
+	mixoutl, ARRAY_SIZE(mixoutl)),
+	SND_SOC_DAPM_MIXER("MIXOUTR", WM9090_POWER_MANAGEMENT_3, 4, 0,
+	mixoutr, ARRAY_SIZE(mixoutr)),
 
-SND_SOC_DAPM_PGA_E("HP PGA", SND_SOC_NOPM, 0, 0, NULL, 0,
-		   hp_ev, SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_PRE_PMD),
+	SND_SOC_DAPM_PGA_E("HP PGA", SND_SOC_NOPM, 0, 0, NULL, 0,
+	hp_ev, SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_PRE_PMD),
 
-SND_SOC_DAPM_PGA("SPKPGA", WM9090_POWER_MANAGEMENT_3, 8, 0, NULL, 0),
-SND_SOC_DAPM_MIXER("SPKOUT", WM9090_POWER_MANAGEMENT_1, 12, 0,
-		   spkout, ARRAY_SIZE(spkout)),
+	SND_SOC_DAPM_PGA("SPKPGA", WM9090_POWER_MANAGEMENT_3, 8, 0, NULL, 0),
+	SND_SOC_DAPM_MIXER("SPKOUT", WM9090_POWER_MANAGEMENT_1, 12, 0,
+	spkout, ARRAY_SIZE(spkout)),
 
-SND_SOC_DAPM_OUTPUT("HPR"),
-SND_SOC_DAPM_OUTPUT("HPL"),
-SND_SOC_DAPM_OUTPUT("Speaker"),
+	SND_SOC_DAPM_OUTPUT("HPR"),
+	SND_SOC_DAPM_OUTPUT("HPL"),
+	SND_SOC_DAPM_OUTPUT("Speaker"),
 };
 
-static const struct snd_soc_dapm_route audio_map[] = {
+static const struct snd_soc_dapm_route audio_map[] =
+{
 	{ "IN1A PGA", NULL, "IN1+" },
 	{ "IN2A PGA", NULL, "IN2+" },
 
@@ -395,28 +414,32 @@ static const struct snd_soc_dapm_route audio_map[] = {
 	{ "Speaker", NULL, "SPKOUT" },
 };
 
-static const struct snd_soc_dapm_route audio_map_in1_se[] = {
-	{ "IN1B PGA", NULL, "IN1-" },	
+static const struct snd_soc_dapm_route audio_map_in1_se[] =
+{
+	{ "IN1B PGA", NULL, "IN1-" },
 
 	{ "SPKMIX", "IN1B Switch", "IN1B PGA" },
 	{ "MIXOUTL", "IN1B Switch", "IN1B PGA" },
 	{ "MIXOUTR", "IN1B Switch", "IN1B PGA" },
 };
 
-static const struct snd_soc_dapm_route audio_map_in1_diff[] = {
-	{ "IN1A PGA", NULL, "IN1-" },	
+static const struct snd_soc_dapm_route audio_map_in1_diff[] =
+{
+	{ "IN1A PGA", NULL, "IN1-" },
 };
 
-static const struct snd_soc_dapm_route audio_map_in2_se[] = {
-	{ "IN2B PGA", NULL, "IN2-" },	
+static const struct snd_soc_dapm_route audio_map_in2_se[] =
+{
+	{ "IN2B PGA", NULL, "IN2-" },
 
 	{ "SPKMIX", "IN2B Switch", "IN2B PGA" },
 	{ "MIXOUTL", "IN2B Switch", "IN2B PGA" },
 	{ "MIXOUTR", "IN2B Switch", "IN2B PGA" },
 };
 
-static const struct snd_soc_dapm_route audio_map_in2_diff[] = {
-	{ "IN2A PGA", NULL, "IN2-" },	
+static const struct snd_soc_dapm_route audio_map_in2_diff[] =
+{
+	{ "IN2A PGA", NULL, "IN2-" },
 };
 
 static int wm9090_add_controls(struct snd_soc_codec *codec)
@@ -426,42 +449,52 @@ static int wm9090_add_controls(struct snd_soc_codec *codec)
 	int i;
 
 	snd_soc_dapm_new_controls(dapm, wm9090_dapm_widgets,
-				  ARRAY_SIZE(wm9090_dapm_widgets));
+							  ARRAY_SIZE(wm9090_dapm_widgets));
 
 	snd_soc_dapm_add_routes(dapm, audio_map, ARRAY_SIZE(audio_map));
 
 	snd_soc_add_codec_controls(codec, wm9090_controls,
-			     ARRAY_SIZE(wm9090_controls));
+							   ARRAY_SIZE(wm9090_controls));
 
-	if (wm9090->pdata.lin1_diff) {
+	if (wm9090->pdata.lin1_diff)
+	{
 		snd_soc_dapm_add_routes(dapm, audio_map_in1_diff,
-					ARRAY_SIZE(audio_map_in1_diff));
-	} else {
+								ARRAY_SIZE(audio_map_in1_diff));
+	}
+	else
+	{
 		snd_soc_dapm_add_routes(dapm, audio_map_in1_se,
-					ARRAY_SIZE(audio_map_in1_se));
+								ARRAY_SIZE(audio_map_in1_se));
 		snd_soc_add_codec_controls(codec, wm9090_in1_se_controls,
-				     ARRAY_SIZE(wm9090_in1_se_controls));
+								   ARRAY_SIZE(wm9090_in1_se_controls));
 	}
 
-	if (wm9090->pdata.lin2_diff) {
+	if (wm9090->pdata.lin2_diff)
+	{
 		snd_soc_dapm_add_routes(dapm, audio_map_in2_diff,
-					ARRAY_SIZE(audio_map_in2_diff));
-	} else {
+								ARRAY_SIZE(audio_map_in2_diff));
+	}
+	else
+	{
 		snd_soc_dapm_add_routes(dapm, audio_map_in2_se,
-					ARRAY_SIZE(audio_map_in2_se));
+								ARRAY_SIZE(audio_map_in2_se));
 		snd_soc_add_codec_controls(codec, wm9090_in2_se_controls,
-				     ARRAY_SIZE(wm9090_in2_se_controls));
+								   ARRAY_SIZE(wm9090_in2_se_controls));
 	}
 
-	if (wm9090->pdata.agc_ena) {
+	if (wm9090->pdata.agc_ena)
+	{
 		for (i = 0; i < ARRAY_SIZE(wm9090->pdata.agc); i++)
 			snd_soc_write(codec, WM9090_AGC_CONTROL_0 + i,
-				      wm9090->pdata.agc[i]);
+						  wm9090->pdata.agc[i]);
+
 		snd_soc_update_bits(codec, WM9090_POWER_MANAGEMENT_3,
-				    WM9090_AGC_ENA, WM9090_AGC_ENA);
-	} else {
+							WM9090_AGC_ENA, WM9090_AGC_ENA);
+	}
+	else
+	{
 		snd_soc_update_bits(codec, WM9090_POWER_MANAGEMENT_3,
-				    WM9090_AGC_ENA, 0);
+							WM9090_AGC_ENA, 0);
 	}
 
 	return 0;
@@ -473,43 +506,45 @@ static int wm9090_add_controls(struct snd_soc_codec *codec)
  * isn't one then this can just be set as the set_bias_level function.
  */
 static int wm9090_set_bias_level(struct snd_soc_codec *codec,
-				 enum snd_soc_bias_level level)
+								 enum snd_soc_bias_level level)
 {
 	struct wm9090_priv *wm9090 = snd_soc_codec_get_drvdata(codec);
 
-	switch (level) {
-	case SND_SOC_BIAS_ON:
-		break;
+	switch (level)
+	{
+		case SND_SOC_BIAS_ON:
+			break;
 
-	case SND_SOC_BIAS_PREPARE:
-		snd_soc_update_bits(codec, WM9090_ANTIPOP2, WM9090_VMID_ENA,
-				    WM9090_VMID_ENA);
-		snd_soc_update_bits(codec, WM9090_POWER_MANAGEMENT_1,
-				    WM9090_BIAS_ENA |
-				    WM9090_VMID_RES_MASK,
-				    WM9090_BIAS_ENA |
-				    1 << WM9090_VMID_RES_SHIFT);
-		msleep(1);  /* Probably an overestimate */
-		break;
+		case SND_SOC_BIAS_PREPARE:
+			snd_soc_update_bits(codec, WM9090_ANTIPOP2, WM9090_VMID_ENA,
+								WM9090_VMID_ENA);
+			snd_soc_update_bits(codec, WM9090_POWER_MANAGEMENT_1,
+								WM9090_BIAS_ENA |
+								WM9090_VMID_RES_MASK,
+								WM9090_BIAS_ENA |
+								1 << WM9090_VMID_RES_SHIFT);
+			msleep(1);  /* Probably an overestimate */
+			break;
 
-	case SND_SOC_BIAS_STANDBY:
-		if (snd_soc_codec_get_bias_level(codec) == SND_SOC_BIAS_OFF) {
-			/* Restore the register cache */
-			regcache_sync(wm9090->regmap);
-		}
+		case SND_SOC_BIAS_STANDBY:
+			if (snd_soc_codec_get_bias_level(codec) == SND_SOC_BIAS_OFF)
+			{
+				/* Restore the register cache */
+				regcache_sync(wm9090->regmap);
+			}
 
-		/* We keep VMID off during standby since the combination of
-		 * ground referenced outputs and class D speaker mean that
-		 * latency is not an issue.
-		 */
-		snd_soc_update_bits(codec, WM9090_POWER_MANAGEMENT_1,
-				    WM9090_BIAS_ENA | WM9090_VMID_RES_MASK, 0);
-		snd_soc_update_bits(codec, WM9090_ANTIPOP2,
-				    WM9090_VMID_ENA, 0);
-		break;
+			/* We keep VMID off during standby since the combination of
+			 * ground referenced outputs and class D speaker mean that
+			 * latency is not an issue.
+			 */
+			snd_soc_update_bits(codec, WM9090_POWER_MANAGEMENT_1,
+								WM9090_BIAS_ENA | WM9090_VMID_RES_MASK, 0);
+			snd_soc_update_bits(codec, WM9090_ANTIPOP2,
+								WM9090_VMID_ENA, 0);
+			break;
 
-	case SND_SOC_BIAS_OFF:
-		break;
+		case SND_SOC_BIAS_OFF:
+			break;
 	}
 
 	return 0;
@@ -521,42 +556,44 @@ static int wm9090_probe(struct snd_soc_codec *codec)
 	 * bring the bias up.
 	 */
 	snd_soc_update_bits(codec, WM9090_IN1_LINE_INPUT_A_VOLUME,
-			    WM9090_IN1_VU | WM9090_IN1A_ZC,
-			    WM9090_IN1_VU | WM9090_IN1A_ZC);
+						WM9090_IN1_VU | WM9090_IN1A_ZC,
+						WM9090_IN1_VU | WM9090_IN1A_ZC);
 	snd_soc_update_bits(codec, WM9090_IN1_LINE_INPUT_B_VOLUME,
-			    WM9090_IN1_VU | WM9090_IN1B_ZC,
-			    WM9090_IN1_VU | WM9090_IN1B_ZC);
+						WM9090_IN1_VU | WM9090_IN1B_ZC,
+						WM9090_IN1_VU | WM9090_IN1B_ZC);
 	snd_soc_update_bits(codec, WM9090_IN2_LINE_INPUT_A_VOLUME,
-			    WM9090_IN2_VU | WM9090_IN2A_ZC,
-			    WM9090_IN2_VU | WM9090_IN2A_ZC);
+						WM9090_IN2_VU | WM9090_IN2A_ZC,
+						WM9090_IN2_VU | WM9090_IN2A_ZC);
 	snd_soc_update_bits(codec, WM9090_IN2_LINE_INPUT_B_VOLUME,
-			    WM9090_IN2_VU | WM9090_IN2B_ZC,
-			    WM9090_IN2_VU | WM9090_IN2B_ZC);
+						WM9090_IN2_VU | WM9090_IN2B_ZC,
+						WM9090_IN2_VU | WM9090_IN2B_ZC);
 	snd_soc_update_bits(codec, WM9090_SPEAKER_VOLUME_LEFT,
-			    WM9090_SPKOUT_VU | WM9090_SPKOUTL_ZC,
-			    WM9090_SPKOUT_VU | WM9090_SPKOUTL_ZC);
+						WM9090_SPKOUT_VU | WM9090_SPKOUTL_ZC,
+						WM9090_SPKOUT_VU | WM9090_SPKOUTL_ZC);
 	snd_soc_update_bits(codec, WM9090_LEFT_OUTPUT_VOLUME,
-			    WM9090_HPOUT1_VU | WM9090_HPOUT1L_ZC,
-			    WM9090_HPOUT1_VU | WM9090_HPOUT1L_ZC);
+						WM9090_HPOUT1_VU | WM9090_HPOUT1L_ZC,
+						WM9090_HPOUT1_VU | WM9090_HPOUT1L_ZC);
 	snd_soc_update_bits(codec, WM9090_RIGHT_OUTPUT_VOLUME,
-			    WM9090_HPOUT1_VU | WM9090_HPOUT1R_ZC,
-			    WM9090_HPOUT1_VU | WM9090_HPOUT1R_ZC);
+						WM9090_HPOUT1_VU | WM9090_HPOUT1R_ZC,
+						WM9090_HPOUT1_VU | WM9090_HPOUT1R_ZC);
 
 	snd_soc_update_bits(codec, WM9090_CLOCKING_1,
-			    WM9090_TOCLK_ENA, WM9090_TOCLK_ENA);
+						WM9090_TOCLK_ENA, WM9090_TOCLK_ENA);
 
 	wm9090_add_controls(codec);
 
 	return 0;
 }
 
-static const struct snd_soc_codec_driver soc_codec_dev_wm9090 = {
+static const struct snd_soc_codec_driver soc_codec_dev_wm9090 =
+{
 	.probe = 	wm9090_probe,
 	.set_bias_level = wm9090_set_bias_level,
 	.suspend_bias_off = true,
 };
 
-static const struct regmap_config wm9090_regmap = {
+static const struct regmap_config wm9090_regmap =
+{
 	.reg_bits = 8,
 	.val_bits = 16,
 
@@ -571,45 +608,59 @@ static const struct regmap_config wm9090_regmap = {
 
 
 static int wm9090_i2c_probe(struct i2c_client *i2c,
-			    const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	struct wm9090_priv *wm9090;
 	unsigned int reg;
 	int ret;
 
 	wm9090 = devm_kzalloc(&i2c->dev, sizeof(*wm9090), GFP_KERNEL);
+
 	if (!wm9090)
+	{
 		return -ENOMEM;
+	}
 
 	wm9090->regmap = devm_regmap_init_i2c(i2c, &wm9090_regmap);
-	if (IS_ERR(wm9090->regmap)) {
+
+	if (IS_ERR(wm9090->regmap))
+	{
 		ret = PTR_ERR(wm9090->regmap);
 		dev_err(&i2c->dev, "Failed to allocate regmap: %d\n", ret);
 		return ret;
 	}
 
 	ret = regmap_read(wm9090->regmap, WM9090_SOFTWARE_RESET, &reg);
-	if (ret < 0)
-		return ret;
 
-	if (reg != 0x9093) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	if (reg != 0x9093)
+	{
 		dev_err(&i2c->dev, "Device is not a WM9090, ID=%x\n", reg);
 		return -ENODEV;
 	}
 
 	ret = regmap_write(wm9090->regmap, WM9090_SOFTWARE_RESET, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	if (i2c->dev.platform_data)
 		memcpy(&wm9090->pdata, i2c->dev.platform_data,
-		       sizeof(wm9090->pdata));
+			   sizeof(wm9090->pdata));
 
 	i2c_set_clientdata(i2c, wm9090);
 
 	ret =  snd_soc_register_codec(&i2c->dev,
-			&soc_codec_dev_wm9090,  NULL, 0);
-	if (ret != 0) {
+								  &soc_codec_dev_wm9090,  NULL, 0);
+
+	if (ret != 0)
+	{
 		dev_err(&i2c->dev, "Failed to register CODEC: %d\n", ret);
 		return ret;
 	}
@@ -623,14 +674,16 @@ static int wm9090_i2c_remove(struct i2c_client *i2c)
 	return 0;
 }
 
-static const struct i2c_device_id wm9090_id[] = {
+static const struct i2c_device_id wm9090_id[] =
+{
 	{ "wm9090", 0 },
 	{ "wm9093", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, wm9090_id);
 
-static struct i2c_driver wm9090_i2c_driver = {
+static struct i2c_driver wm9090_i2c_driver =
+{
 	.driver = {
 		.name = "wm9090",
 	},

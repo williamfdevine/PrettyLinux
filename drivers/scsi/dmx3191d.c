@@ -51,7 +51,8 @@
 #define DMX3191D_REGION_LEN	8
 
 
-static struct scsi_host_template dmx3191d_driver_template = {
+static struct scsi_host_template dmx3191d_driver_template =
+{
 	.module			= THIS_MODULE,
 	.proc_name		= DMX3191D_DRIVER_NAME,
 	.name			= "Domex DMX3191D",
@@ -68,26 +69,34 @@ static struct scsi_host_template dmx3191d_driver_template = {
 };
 
 static int dmx3191d_probe_one(struct pci_dev *pdev,
-			      const struct pci_device_id *id)
+							  const struct pci_device_id *id)
 {
 	struct Scsi_Host *shost;
 	unsigned long io;
 	int error = -ENODEV;
 
 	if (pci_enable_device(pdev))
+	{
 		goto out;
+	}
 
 	io = pci_resource_start(pdev, 0);
-	if (!request_region(io, DMX3191D_REGION_LEN, DMX3191D_DRIVER_NAME)) {
+
+	if (!request_region(io, DMX3191D_REGION_LEN, DMX3191D_DRIVER_NAME))
+	{
 		printk(KERN_ERR "dmx3191: region 0x%lx-0x%lx already reserved\n",
-				io, io + DMX3191D_REGION_LEN);
+			   io, io + DMX3191D_REGION_LEN);
 		goto out_disable_device;
 	}
 
 	shost = scsi_host_alloc(&dmx3191d_driver_template,
-			sizeof(struct NCR5380_hostdata));
+							sizeof(struct NCR5380_hostdata));
+
 	if (!shost)
-		goto out_release_region;       
+	{
+		goto out_release_region;
+	}
+
 	shost->io_port = io;
 
 	/* This card does not seem to raise an interrupt on pdev->irq.
@@ -96,16 +105,22 @@ static int dmx3191d_probe_one(struct pci_dev *pdev,
 	shost->irq = NO_IRQ;
 
 	error = NCR5380_init(shost, 0);
+
 	if (error)
+	{
 		goto out_host_put;
+	}
 
 	NCR5380_maybe_reset_bus(shost);
 
 	pci_set_drvdata(pdev, shost);
 
 	error = scsi_add_host(shost, &pdev->dev);
+
 	if (error)
+	{
 		goto out_exit;
+	}
 
 	scsi_scan_host(shost);
 	return 0;
@@ -114,11 +129,11 @@ out_exit:
 	NCR5380_exit(shost);
 out_host_put:
 	scsi_host_put(shost);
- out_release_region:
+out_release_region:
 	release_region(io, DMX3191D_REGION_LEN);
- out_disable_device:
+out_disable_device:
 	pci_disable_device(pdev);
- out:
+out:
 	return error;
 }
 
@@ -135,14 +150,18 @@ static void dmx3191d_remove_one(struct pci_dev *pdev)
 	pci_disable_device(pdev);
 }
 
-static struct pci_device_id dmx3191d_pci_tbl[] = {
-	{PCI_VENDOR_ID_DOMEX, PCI_DEVICE_ID_DOMEX_DMX3191D,
-		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 4},
+static struct pci_device_id dmx3191d_pci_tbl[] =
+{
+	{
+		PCI_VENDOR_ID_DOMEX, PCI_DEVICE_ID_DOMEX_DMX3191D,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 4
+	},
 	{ }
 };
 MODULE_DEVICE_TABLE(pci, dmx3191d_pci_tbl);
 
-static struct pci_driver dmx3191d_pci_driver = {
+static struct pci_driver dmx3191d_pci_driver =
+{
 	.name		= DMX3191D_DRIVER_NAME,
 	.id_table	= dmx3191d_pci_tbl,
 	.probe		= dmx3191d_probe_one,

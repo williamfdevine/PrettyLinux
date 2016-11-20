@@ -13,7 +13,8 @@
 
 #include "cryp.h"
 
-enum cryp_irq_src_id {
+enum cryp_irq_src_id
+{
 	CRYP_IRQ_SRC_INPUT_FIFO = 0x1,
 	CRYP_IRQ_SRC_OUTPUT_FIFO = 0x2,
 	CRYP_IRQ_SRC_ALL = 0x3

@@ -10,7 +10,8 @@
 #include "spk_priv.h"
 
 static char *speakup_msgs[MSG_LAST_INDEX];
-static char *speakup_default_msgs[MSG_LAST_INDEX] = {
+static char *speakup_default_msgs[MSG_LAST_INDEX] =
+{
 	[MSG_BLANK] = "blank",
 	[MSG_IAM_ALIVE] = "I'm aLive!",
 	[MSG_YOU_KILLED_SPEAKUP] = "You killed speakup!",
@@ -56,7 +57,7 @@ static char *speakup_default_msgs[MSG_LAST_INDEX] = {
 	[MSG_CTRL] = "control-",
 	[MSG_DISJUNCTION] = "or",
 
-/* Messages with embedded format specifiers. */
+	/* Messages with embedded format specifiers. */
 	[MSG_POS_INFO] = "line %ld, col %ld, t t y %d",
 	[MSG_CHAR_INFO] = "hex %02x, decimal %d",
 	[MSG_REPEAT_DESC] = "times %d .",
@@ -351,7 +352,8 @@ static char *speakup_default_msgs[MSG_LAST_INDEX] = {
 	[MSG_FUNCNAME_WORD_SAY_PREVIOUS] = "word, say previous",
 };
 
-static struct msg_group_t all_groups[] = {
+static struct msg_group_t all_groups[] =
+{
 	{
 		.name = "ctl_keys",
 		.start = MSG_CTL_START,
@@ -407,17 +409,27 @@ static char *next_specifier(char *input)
 	int found = 0;
 	char *next_percent = input;
 
-	while ((next_percent != NULL) && !found) {
+	while ((next_percent != NULL) && !found)
+	{
 		next_percent = strchr(next_percent, '%');
-		if (next_percent != NULL) {
+
+		if (next_percent != NULL)
+		{
 			/* skip over doubled percent signs */
 			while ((next_percent[0] == '%')
-			       && (next_percent[1] == '%'))
+				   && (next_percent[1] == '%'))
+			{
 				next_percent += 2;
+			}
+
 			if (*next_percent == '%')
+			{
 				found = 1;
+			}
 			else if (*next_percent == '\0')
+			{
 				next_percent = NULL;
+			}
 		}
 	}
 
@@ -428,7 +440,10 @@ static char *next_specifier(char *input)
 static char *skip_flags(char *input)
 {
 	while ((*input != '\0') && strchr(" 0+-#", *input))
+	{
 		input++;
+	}
+
 	return input;
 }
 
@@ -436,12 +451,20 @@ static char *skip_flags(char *input)
 static char *skip_width(char *input)
 {
 	while (isdigit(*input))
+	{
 		input++;
-	if (*input == '.') {
-		input++;
-		while (isdigit(*input))
-			input++;
 	}
+
+	if (*input == '.')
+	{
+		input++;
+
+		while (isdigit(*input))
+		{
+			input++;
+		}
+	}
+
 	return input;
 }
 
@@ -454,9 +477,14 @@ static char *skip_width(char *input)
 static char *skip_conversion(char *input)
 {
 	if ((input[0] == 'l') && (input[1] == 'd'))
+	{
 		input += 2;
+	}
 	else if ((*input != '\0') && strchr("cdsx", *input))
+	{
 		input++;
+	}
+
 	return input;
 }
 
@@ -488,7 +516,9 @@ static int compare_specifiers(char **input1, char **input2)
 	size_t length2 = end2 - *input2;
 
 	if ((length1 == length2) && !memcmp(*input1, *input2, length1))
+	{
 		same = 1;
+	}
 
 	*input1 = end1;
 	*input2 = end2;
@@ -508,20 +538,29 @@ static int fmt_validate(char *template, char *user)
 	char *template_ptr = template;
 	char *user_ptr = user;
 
-	while (still_comparing && valid) {
+	while (still_comparing && valid)
+	{
 		template_ptr = next_specifier(template_ptr);
 		user_ptr = next_specifier(user_ptr);
-		if (template_ptr && user_ptr) {
+
+		if (template_ptr && user_ptr)
+		{
 			/* Both have at least one more specifier. */
 			valid = compare_specifiers(&template_ptr, &user_ptr);
-		} else {
+		}
+		else
+		{
 			/* No more format specifiers in one or both strings. */
 			still_comparing = 0;
+
 			/* See if one has more specifiers than the other. */
 			if (template_ptr || user_ptr)
+			{
 				valid = 0;
+			}
 		}
 	}
+
 	return valid;
 }
 
@@ -544,29 +583,44 @@ ssize_t spk_msg_set(enum msg_index_t index, char *text, size_t length)
 	char *newstr = NULL;
 	unsigned long flags;
 
-	if ((index >= MSG_FIRST_INDEX) && (index < MSG_LAST_INDEX)) {
+	if ((index >= MSG_FIRST_INDEX) && (index < MSG_LAST_INDEX))
+	{
 		newstr = kmalloc(length + 1, GFP_KERNEL);
-		if (newstr) {
+
+		if (newstr)
+		{
 			memcpy(newstr, text, length);
 			newstr[length] = '\0';
+
 			if ((index >= MSG_FORMATTED_START
-			&& index <= MSG_FORMATTED_END)
-				&& !fmt_validate(speakup_default_msgs[index],
-				newstr)) {
+				 && index <= MSG_FORMATTED_END)
+				 && !fmt_validate(speakup_default_msgs[index],
+								  newstr))
+			{
 				kfree(newstr);
 				return -EINVAL;
 			}
+
 			spin_lock_irqsave(&speakup_info.spinlock, flags);
+
 			if (speakup_msgs[index] != speakup_default_msgs[index])
+			{
 				kfree(speakup_msgs[index]);
+			}
+
 			speakup_msgs[index] = newstr;
 			spin_unlock_irqrestore(&speakup_info.spinlock, flags);
-		} else {
+		}
+		else
+		{
 			rc = -ENOMEM;
 		}
-	} else {
+	}
+	else
+	{
 		rc = -EINVAL;
 	}
+
 	return rc;
 }
 
@@ -579,12 +633,15 @@ struct msg_group_t *spk_find_msg_group(const char *group_name)
 	struct msg_group_t *group = NULL;
 	int i;
 
-	for (i = 0; i < num_groups; i++) {
-		if (!strcmp(all_groups[i].name, group_name)) {
+	for (i = 0; i < num_groups; i++)
+	{
+		if (!strcmp(all_groups[i].name, group_name))
+		{
 			group = &all_groups[i];
 			break;
 		}
 	}
+
 	return group;
 }
 
@@ -595,11 +652,16 @@ void spk_reset_msg_group(struct msg_group_t *group)
 
 	spin_lock_irqsave(&speakup_info.spinlock, flags);
 
-	for (i = group->start; i <= group->end; i++) {
+	for (i = group->start; i <= group->end; i++)
+	{
 		if (speakup_msgs[i] != speakup_default_msgs[i])
+		{
 			kfree(speakup_msgs[i]);
+		}
+
 		speakup_msgs[i] = speakup_default_msgs[i];
 	}
+
 	spin_unlock_irqrestore(&speakup_info.spinlock, flags);
 }
 
@@ -607,7 +669,7 @@ void spk_reset_msg_group(struct msg_group_t *group)
 void spk_initialize_msgs(void)
 {
 	memcpy(speakup_msgs, speakup_default_msgs,
-		sizeof(speakup_default_msgs));
+		   sizeof(speakup_default_msgs));
 }
 
 /* Free user-supplied strings when module is unloaded: */
@@ -617,11 +679,15 @@ void spk_free_user_msgs(void)
 	unsigned long flags;
 
 	spin_lock_irqsave(&speakup_info.spinlock, flags);
-	for (index = MSG_FIRST_INDEX; index < MSG_LAST_INDEX; index++) {
-		if (speakup_msgs[index] != speakup_default_msgs[index]) {
+
+	for (index = MSG_FIRST_INDEX; index < MSG_LAST_INDEX; index++)
+	{
+		if (speakup_msgs[index] != speakup_default_msgs[index])
+		{
 			kfree(speakup_msgs[index]);
 			speakup_msgs[index] = speakup_default_msgs[index];
 		}
 	}
+
 	spin_unlock_irqrestore(&speakup_info.spinlock, flags);
 }

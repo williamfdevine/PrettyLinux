@@ -58,11 +58,13 @@
 #include <linux/atomic.h>
 #include <linux/kernel.h>
 
-struct llist_head {
+struct llist_head
+{
 	struct llist_node *first;
 };
 
-struct llist_node {
+struct llist_node
+{
 	struct llist_node *next;
 };
 
@@ -121,8 +123,8 @@ static inline void init_llist_head(struct llist_head *list)
  */
 #define llist_for_each_entry(pos, node, member)				\
 	for ((pos) = llist_entry((node), typeof(*(pos)), member);	\
-	     &(pos)->member != NULL;					\
-	     (pos) = llist_entry((pos)->member.next, typeof(*(pos)), member))
+		 &(pos)->member != NULL;					\
+		 (pos) = llist_entry((pos)->member.next, typeof(*(pos)), member))
 
 /**
  * llist_for_each_entry_safe - iterate over some deleted entries of lock-less list of given type
@@ -143,9 +145,9 @@ static inline void init_llist_head(struct llist_head *list)
  */
 #define llist_for_each_entry_safe(pos, n, node, member)			       \
 	for (pos = llist_entry((node), typeof(*pos), member);		       \
-	     &pos->member != NULL &&					       \
-	        (n = llist_entry(pos->member.next, typeof(*n), member), true); \
-	     pos = n)
+		 &pos->member != NULL &&					       \
+		 (n = llist_entry(pos->member.next, typeof(*n), member), true); \
+		 pos = n)
 
 /**
  * llist_empty - tests whether a lock-less list is empty
@@ -166,8 +168,8 @@ static inline struct llist_node *llist_next(struct llist_node *node)
 }
 
 extern bool llist_add_batch(struct llist_node *new_first,
-			    struct llist_node *new_last,
-			    struct llist_head *head);
+							struct llist_node *new_last,
+							struct llist_head *head);
 /**
  * llist_add - add a new entry
  * @new:	new entry to be added

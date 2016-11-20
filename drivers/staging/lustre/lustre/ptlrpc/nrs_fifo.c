@@ -77,10 +77,13 @@ static int nrs_fifo_start(struct ptlrpc_nrs_policy *policy)
 	struct nrs_fifo_head *head;
 
 	head = kzalloc_node(sizeof(*head), GFP_NOFS,
-			    cfs_cpt_spread_node(nrs_pol2cptab(policy),
-						nrs_pol2cptid(policy)));
+						cfs_cpt_spread_node(nrs_pol2cptab(policy),
+											nrs_pol2cptid(policy)));
+
 	if (!head)
+	{
 		return -ENOMEM;
+	}
 
 	INIT_LIST_HEAD(&head->fh_list);
 	policy->pol_private = head;
@@ -125,9 +128,9 @@ static void nrs_fifo_stop(struct ptlrpc_nrs_policy *policy)
  * \see nrs_resource_get_safe()
  */
 static int nrs_fifo_res_get(struct ptlrpc_nrs_policy *policy,
-			    struct ptlrpc_nrs_request *nrq,
-			    const struct ptlrpc_nrs_resource *parent,
-			    struct ptlrpc_nrs_resource **resp, bool moving_req)
+							struct ptlrpc_nrs_request *nrq,
+							const struct ptlrpc_nrs_resource *parent,
+							struct ptlrpc_nrs_resource **resp, bool moving_req)
 {
 	/**
 	 * Just return the resource embedded inside nrs_fifo_head, and end this
@@ -156,25 +159,26 @@ static int nrs_fifo_res_get(struct ptlrpc_nrs_policy *policy,
  */
 static
 struct ptlrpc_nrs_request *nrs_fifo_req_get(struct ptlrpc_nrs_policy *policy,
-					    bool peek, bool force)
+		bool peek, bool force)
 {
 	struct nrs_fifo_head *head = policy->pol_private;
 	struct ptlrpc_nrs_request *nrq;
 
 	nrq = unlikely(list_empty(&head->fh_list)) ? NULL :
-	      list_entry(head->fh_list.next, struct ptlrpc_nrs_request,
-			 nr_u.fifo.fr_list);
+		  list_entry(head->fh_list.next, struct ptlrpc_nrs_request,
+					 nr_u.fifo.fr_list);
 
-	if (likely(!peek && nrq)) {
+	if (likely(!peek && nrq))
+	{
 		struct ptlrpc_request *req = container_of(nrq,
-							  struct ptlrpc_request,
-							  rq_nrq);
+									 struct ptlrpc_request,
+									 rq_nrq);
 
 		list_del_init(&nrq->nr_u.fifo.fr_list);
 
 		CDEBUG(D_RPCTRACE, "NRS start %s request from %s, seq: %llu\n",
-		       policy->pol_desc->pd_name, libcfs_id2str(req->rq_peer),
-		       nrq->nr_u.fifo.fr_sequence);
+			   policy->pol_desc->pd_name, libcfs_id2str(req->rq_peer),
+			   nrq->nr_u.fifo.fr_sequence);
 	}
 
 	return nrq;
@@ -190,12 +194,12 @@ struct ptlrpc_nrs_request *nrs_fifo_req_get(struct ptlrpc_nrs_policy *policy,
  *		      succeed
  */
 static int nrs_fifo_req_add(struct ptlrpc_nrs_policy *policy,
-			    struct ptlrpc_nrs_request *nrq)
+							struct ptlrpc_nrs_request *nrq)
 {
 	struct nrs_fifo_head *head;
 
 	head = container_of(nrs_request_resource(nrq), struct nrs_fifo_head,
-			    fh_res);
+						fh_res);
 	/**
 	 * Only used for debugging
 	 */
@@ -212,7 +216,7 @@ static int nrs_fifo_req_add(struct ptlrpc_nrs_policy *policy,
  * \param[in] nrq    The request to remove
  */
 static void nrs_fifo_req_del(struct ptlrpc_nrs_policy *policy,
-			     struct ptlrpc_nrs_request *nrq)
+							 struct ptlrpc_nrs_request *nrq)
 {
 	LASSERT(!list_empty(&nrq->nr_u.fifo.fr_list));
 	list_del_init(&nrq->nr_u.fifo.fr_list);
@@ -229,20 +233,21 @@ static void nrs_fifo_req_del(struct ptlrpc_nrs_policy *policy,
  * \see ptlrpc_nrs_req_stop_nolock()
  */
 static void nrs_fifo_req_stop(struct ptlrpc_nrs_policy *policy,
-			      struct ptlrpc_nrs_request *nrq)
+							  struct ptlrpc_nrs_request *nrq)
 {
 	struct ptlrpc_request *req = container_of(nrq, struct ptlrpc_request,
-						  rq_nrq);
+								 rq_nrq);
 
 	CDEBUG(D_RPCTRACE, "NRS stop %s request from %s, seq: %llu\n",
-	       policy->pol_desc->pd_name, libcfs_id2str(req->rq_peer),
-	       nrq->nr_u.fifo.fr_sequence);
+		   policy->pol_desc->pd_name, libcfs_id2str(req->rq_peer),
+		   nrq->nr_u.fifo.fr_sequence);
 }
 
 /**
  * FIFO policy operations
  */
-static const struct ptlrpc_nrs_pol_ops nrs_fifo_ops = {
+static const struct ptlrpc_nrs_pol_ops nrs_fifo_ops =
+{
 	.op_policy_start	= nrs_fifo_start,
 	.op_policy_stop		= nrs_fifo_stop,
 	.op_res_get		= nrs_fifo_res_get,
@@ -255,12 +260,13 @@ static const struct ptlrpc_nrs_pol_ops nrs_fifo_ops = {
 /**
  * FIFO policy configuration
  */
-struct ptlrpc_nrs_pol_conf nrs_conf_fifo = {
+struct ptlrpc_nrs_pol_conf nrs_conf_fifo =
+{
 	.nc_name		= NRS_POL_NAME_FIFO,
 	.nc_ops			= &nrs_fifo_ops,
 	.nc_compat		= nrs_policy_compat_all,
 	.nc_flags		= PTLRPC_NRS_FL_FALLBACK |
-				  PTLRPC_NRS_FL_REG_START
+	PTLRPC_NRS_FL_REG_START
 };
 
 /** @} fifo */

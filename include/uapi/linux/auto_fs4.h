@@ -84,7 +84,8 @@ static inline unsigned int autofs_type_any(unsigned int type)
 }
 
 /* Daemon notification packet types */
-enum autofs_notify {
+enum autofs_notify
+{
 	NFY_NONE,
 	NFY_MOUNT,
 	NFY_EXPIRE
@@ -106,14 +107,16 @@ enum autofs_notify {
 #define autofs_ptype_expire_direct	6
 
 /* v4 multi expire (via pipe) */
-struct autofs_packet_expire_multi {
+struct autofs_packet_expire_multi
+{
 	struct autofs_packet_hdr hdr;
 	autofs_wqt_t wait_queue_token;
 	int len;
-	char name[NAME_MAX+1];
+	char name[NAME_MAX + 1];
 };
 
-union autofs_packet_union {
+union autofs_packet_union
+{
 	struct autofs_packet_hdr hdr;
 	struct autofs_packet_missing missing;
 	struct autofs_packet_expire expire;
@@ -121,7 +124,8 @@ union autofs_packet_union {
 };
 
 /* autofs v5 common packet struct */
-struct autofs_v5_packet {
+struct autofs_v5_packet
+{
 	struct autofs_packet_hdr hdr;
 	autofs_wqt_t wait_queue_token;
 	__u32 dev;
@@ -131,7 +135,7 @@ struct autofs_v5_packet {
 	__u32 pid;
 	__u32 tgid;
 	__u32 len;
-	char name[NAME_MAX+1];
+	char name[NAME_MAX + 1];
 };
 
 typedef struct autofs_v5_packet autofs_packet_missing_indirect_t;
@@ -139,7 +143,8 @@ typedef struct autofs_v5_packet autofs_packet_expire_indirect_t;
 typedef struct autofs_v5_packet autofs_packet_missing_direct_t;
 typedef struct autofs_v5_packet autofs_packet_expire_direct_t;
 
-union autofs_v5_packet_union {
+union autofs_v5_packet_union
+{
 	struct autofs_packet_hdr hdr;
 	struct autofs_v5_packet v5_packet;
 	autofs_packet_missing_indirect_t missing_indirect;

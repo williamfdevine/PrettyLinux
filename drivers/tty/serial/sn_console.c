@@ -70,7 +70,7 @@
 
 /* To use dynamic numbers only and not use the assigned major and minor,
  * define the following.. */
-				  /* #define USE_DYNAMIC_MINOR 1 *//* use dynamic minor number */
+/* #define USE_DYNAMIC_MINOR 1 *//* use dynamic minor number */
 #define USE_DYNAMIC_MINOR 0	/* Don't rely on misc_register dynamic minor */
 
 /* Device name we're using */
@@ -81,18 +81,20 @@
 #define DEVICE_MINOR 40
 
 #ifdef CONFIG_MAGIC_SYSRQ
-static char sysrq_serial_str[] = "\eSYS";
-static char *sysrq_serial_ptr = sysrq_serial_str;
-static unsigned long sysrq_requested;
+	static char sysrq_serial_str[] = "\eSYS";
+	static char *sysrq_serial_ptr = sysrq_serial_str;
+	static unsigned long sysrq_requested;
 #endif /* CONFIG_MAGIC_SYSRQ */
 
 /*
  * Port definition - this kinda drives it all
  */
-struct sn_cons_port {
+struct sn_cons_port
+{
 	struct timer_list sc_timer;
 	struct uart_port sc_port;
-	struct sn_sal_ops {
+	struct sn_sal_ops
+	{
 		int (*sal_puts_raw) (const char *s, int len);
 		int (*sal_puts) (const char *s, int len);
 		int (*sal_getc) (void);
@@ -113,10 +115,10 @@ extern void early_sn_setup(void);
 
 #undef DEBUG
 #ifdef DEBUG
-static int sn_debug_printf(const char *fmt, ...);
-#define DPRINTF(x...) sn_debug_printf(x)
+	static int sn_debug_printf(const char *fmt, ...);
+	#define DPRINTF(x...) sn_debug_printf(x)
 #else
-#define DPRINTF(x...) do { } while (0)
+	#define DPRINTF(x...) do { } while (0)
 #endif
 
 /* Prototypes */
@@ -130,7 +132,8 @@ static void sn_transmit_chars(struct sn_cons_port *, int);
 
 /* A table for polling:
  */
-static struct sn_sal_ops poll_ops = {
+static struct sn_sal_ops poll_ops =
+{
 	.sal_puts_raw = snt_hw_puts_raw,
 	.sal_puts = snt_hw_puts_raw,
 	.sal_getc = snt_poll_getc,
@@ -138,7 +141,8 @@ static struct sn_sal_ops poll_ops = {
 };
 
 /* A table for interrupts enabled */
-static struct sn_sal_ops intr_ops = {
+static struct sn_sal_ops intr_ops =
+{
 	.sal_puts_raw = snt_hw_puts_raw,
 	.sal_puts = snt_hw_puts_buffered,
 	.sal_getc = snt_intr_getc,
@@ -321,7 +325,7 @@ static void snp_start_tx(struct uart_port *port)
 {
 	if (sal_console_port.sc_ops->sal_wakeup_transmit)
 		sal_console_port.sc_ops->sal_wakeup_transmit(&sal_console_port,
-							     TRANSMIT_BUFFERED);
+				TRANSMIT_BUFFERED);
 
 }
 
@@ -354,7 +358,7 @@ static int snp_startup(struct uart_port *port)
  */
 static void
 snp_set_termios(struct uart_port *port, struct ktermios *termios,
-		struct ktermios *old)
+				struct ktermios *old)
 {
 }
 
@@ -380,7 +384,8 @@ static void snp_config_port(struct uart_port *port, int flags)
 
 /* Associate the uart functions above - given to serial core */
 
-static struct uart_ops sn_console_ops = {
+static struct uart_ops sn_console_ops =
+{
 	.tx_empty = snp_tx_empty,
 	.set_mctrl = snp_set_mctrl,
 	.get_mctrl = snp_get_mctrl,
@@ -420,10 +425,12 @@ static int sn_debug_printf(const char *fmt, ...)
 	va_start(args, fmt);
 	printed_len = vsnprintf(printk_buf, sizeof(printk_buf), fmt, args);
 
-	if (!sal_console_port.sc_ops) {
+	if (!sal_console_port.sc_ops)
+	{
 		sal_console_port.sc_ops = &poll_ops;
 		early_sn_setup();
 	}
+
 	sal_console_port.sc_ops->sal_puts_raw(printk_buf, printed_len);
 
 	va_end(args);
@@ -450,67 +457,93 @@ sn_receive_chars(struct sn_cons_port *port, unsigned long flags)
 	struct tty_port *tport = NULL;
 	int ch;
 
-	if (!port) {
+	if (!port)
+	{
 		printk(KERN_ERR "sn_receive_chars - port NULL so can't receive\n");
 		return;
 	}
 
-	if (!port->sc_ops) {
+	if (!port->sc_ops)
+	{
 		printk(KERN_ERR "sn_receive_chars - port->sc_ops  NULL so can't receive\n");
 		return;
 	}
 
-	if (port->sc_port.state) {
+	if (port->sc_port.state)
+	{
 		/* The serial_core stuffs are initialized, use them */
 		tport = &port->sc_port.state->port;
 	}
 
-	while (port->sc_ops->sal_input_pending()) {
+	while (port->sc_ops->sal_input_pending())
+	{
 		ch = port->sc_ops->sal_getc();
-		if (ch < 0) {
+
+		if (ch < 0)
+		{
 			printk(KERN_ERR "sn_console: An error occurred while "
-			       "obtaining data from the console (0x%0x)\n", ch);
+				   "obtaining data from the console (0x%0x)\n", ch);
 			break;
 		}
-#ifdef CONFIG_MAGIC_SYSRQ
-                if (sysrq_requested) {
-                        unsigned long sysrq_timeout = sysrq_requested + HZ*5;
 
-                        sysrq_requested = 0;
-                        if (ch && time_before(jiffies, sysrq_timeout)) {
-                                spin_unlock_irqrestore(&port->sc_port.lock, flags);
-                                handle_sysrq(ch);
-                                spin_lock_irqsave(&port->sc_port.lock, flags);
-                                /* ignore actual sysrq command char */
-                                continue;
-                        }
-                }
-                if (ch == *sysrq_serial_ptr) {
-                        if (!(*++sysrq_serial_ptr)) {
-                                sysrq_requested = jiffies;
-                                sysrq_serial_ptr = sysrq_serial_str;
-                        }
+#ifdef CONFIG_MAGIC_SYSRQ
+
+		if (sysrq_requested)
+		{
+			unsigned long sysrq_timeout = sysrq_requested + HZ * 5;
+
+			sysrq_requested = 0;
+
+			if (ch && time_before(jiffies, sysrq_timeout))
+			{
+				spin_unlock_irqrestore(&port->sc_port.lock, flags);
+				handle_sysrq(ch);
+				spin_lock_irqsave(&port->sc_port.lock, flags);
+				/* ignore actual sysrq command char */
+				continue;
+			}
+		}
+
+		if (ch == *sysrq_serial_ptr)
+		{
+			if (!(*++sysrq_serial_ptr))
+			{
+				sysrq_requested = jiffies;
+				sysrq_serial_ptr = sysrq_serial_str;
+			}
+
 			/*
 			 * ignore the whole sysrq string except for the
 			 * leading escape
 			 */
 			if (ch != '\e')
+			{
 				continue;
-                }
-                else
+			}
+		}
+		else
+		{
 			sysrq_serial_ptr = sysrq_serial_str;
+		}
+
 #endif /* CONFIG_MAGIC_SYSRQ */
 
 		/* record the character to pass up to the tty layer */
-		if (tport) {
+		if (tport)
+		{
 			if (tty_insert_flip_char(tport, ch, TTY_NORMAL) == 0)
+			{
 				break;
+			}
 		}
+
 		port->sc_port.icount.rx++;
 	}
 
 	if (tport)
+	{
 		tty_flip_buffer_push(tport);
+	}
 }
 
 /**
@@ -533,14 +566,19 @@ static void sn_transmit_chars(struct sn_cons_port *port, int raw)
 	struct circ_buf *xmit;
 
 	if (!port)
+	{
 		return;
+	}
 
 	BUG_ON(!port->sc_is_asynch);
 
-	if (port->sc_port.state) {
+	if (port->sc_port.state)
+	{
 		/* We're initialized, using serial core infrastructure */
 		xmit = &port->sc_port.state->xmit;
-	} else {
+	}
+	else
+	{
 		/* Probably sn_sal_switch_to_asynch has been run but serial core isn't
 		 * initialized yet.  Just return.  Writes are going through
 		 * sn_sal_console_write (due to register_console) at this time.
@@ -548,7 +586,8 @@ static void sn_transmit_chars(struct sn_cons_port *port, int raw)
 		return;
 	}
 
-	if (uart_circ_empty(xmit) || uart_tx_stopped(&port->sc_port)) {
+	if (uart_circ_empty(xmit) || uart_tx_stopped(&port->sc_port))
+	{
 		/* Nothing to do. */
 		ia64_sn_console_intr_disable(SAL_CONSOLE_INTR_XMIT);
 		return;
@@ -562,23 +601,32 @@ static void sn_transmit_chars(struct sn_cons_port *port, int raw)
 	 * then to the head, if needed */
 	loops = (head < tail) ? 2 : 1;
 
-	for (ii = 0; ii < loops; ii++) {
+	for (ii = 0; ii < loops; ii++)
+	{
 		xmit_count = (head < tail) ?
-		    (UART_XMIT_SIZE - tail) : (head - tail);
+					 (UART_XMIT_SIZE - tail) : (head - tail);
 
-		if (xmit_count > 0) {
+		if (xmit_count > 0)
+		{
 			if (raw == TRANSMIT_RAW)
 				result =
-				    port->sc_ops->sal_puts_raw(start,
-							       xmit_count);
+					port->sc_ops->sal_puts_raw(start,
+											   xmit_count);
 			else
 				result =
-				    port->sc_ops->sal_puts(start, xmit_count);
+					port->sc_ops->sal_puts(start, xmit_count);
+
 #ifdef DEBUG
+
 			if (!result)
+			{
 				DPRINTF("`");
+			}
+
 #endif
-			if (result > 0) {
+
+			if (result > 0)
+			{
 				xmit_count -= result;
 				port->sc_port.icount.tx += result;
 				tail += result;
@@ -590,10 +638,14 @@ static void sn_transmit_chars(struct sn_cons_port *port, int raw)
 	}
 
 	if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS)
+	{
 		uart_write_wakeup(&port->sc_port);
+	}
 
 	if (uart_circ_empty(xmit))
-		snp_stop_tx(&port->sc_port);	/* no-op for us */
+	{
+		snp_stop_tx(&port->sc_port);    /* no-op for us */
+	}
 }
 
 /**
@@ -609,15 +661,22 @@ static irqreturn_t sn_sal_interrupt(int irq, void *dev_id)
 	int status = ia64_sn_console_intr_status();
 
 	if (!port)
+	{
 		return IRQ_NONE;
+	}
 
 	spin_lock_irqsave(&port->sc_port.lock, flags);
-	if (status & SAL_CONSOLE_INTR_RECV) {
+
+	if (status & SAL_CONSOLE_INTR_RECV)
+	{
 		sn_receive_chars(port, flags);
 	}
-	if (status & SAL_CONSOLE_INTR_XMIT) {
+
+	if (status & SAL_CONSOLE_INTR_XMIT)
+	{
 		sn_transmit_chars(port, TRANSMIT_BUFFERED);
 	}
+
 	spin_unlock_irqrestore(&port->sc_port.lock, flags);
 	return IRQ_HANDLED;
 }
@@ -637,16 +696,23 @@ static void sn_sal_timer_poll(unsigned long data)
 	unsigned long flags;
 
 	if (!port)
+	{
 		return;
+	}
 
-	if (!port->sc_port.irq) {
+	if (!port->sc_port.irq)
+	{
 		spin_lock_irqsave(&port->sc_port.lock, flags);
+
 		if (sn_process_input)
+		{
 			sn_receive_chars(port, flags);
+		}
+
 		sn_transmit_chars(port, TRANSMIT_RAW);
 		spin_unlock_irqrestore(&port->sc_port.lock, flags);
 		mod_timer(&port->sc_timer,
-			  jiffies + port->sc_interrupt_timeout);
+				  jiffies + port->sc_interrupt_timeout);
 	}
 }
 
@@ -669,7 +735,9 @@ static void __init sn_sal_switch_to_asynch(struct sn_cons_port *port)
 	unsigned long flags;
 
 	if (!port)
+	{
 		return;
+	}
 
 	DPRINTF("sn_console: about to switch to asynchronous console\n");
 
@@ -680,7 +748,9 @@ static void __init sn_sal_switch_to_asynch(struct sn_cons_port *port)
 
 	/* early_printk invocation may have done this for us */
 	if (!port->sc_ops)
+	{
 		port->sc_ops = &poll_ops;
+	}
 
 	/* we can't turn on the console interrupt (as request_irq
 	 * calls kmalloc, which isn't set up yet), so we rely on a
@@ -692,13 +762,17 @@ static void __init sn_sal_switch_to_asynch(struct sn_cons_port *port)
 	port->sc_timer.data = (unsigned long)port;
 
 	if (IS_RUNNING_ON_SIMULATOR())
+	{
 		port->sc_interrupt_timeout = 6;
-	else {
+	}
+	else
+	{
 		/* 960cps / 16 char FIFO = 60HZ
 		 * HZ / (SN_SAL_FIFO_SPEED_CPS / SN_SAL_FIFO_DEPTH) */
 		port->sc_interrupt_timeout =
-		    HZ * SN_SAL_UART_FIFO_DEPTH / SN_SAL_UART_FIFO_SPEED_CPS;
+			HZ * SN_SAL_UART_FIFO_DEPTH / SN_SAL_UART_FIFO_SPEED_CPS;
 	}
+
 	mod_timer(&port->sc_timer, jiffies + port->sc_interrupt_timeout);
 
 	port->sc_is_asynch = 1;
@@ -720,12 +794,14 @@ static void __init sn_sal_switch_to_interrupts(struct sn_cons_port *port)
 {
 	unsigned long flags;
 
-	if (port) {
+	if (port)
+	{
 		DPRINTF("sn_console: switching to interrupt driven console\n");
 
 		if (request_irq(SGI_UART_VECTOR, sn_sal_interrupt,
-				IRQF_SHARED,
-				"SAL console driver", port) >= 0) {
+						IRQF_SHARED,
+						"SAL console driver", port) >= 0)
+		{
 			spin_lock_irqsave(&port->sc_port.lock, flags);
 			port->sc_port.irq = SGI_UART_VECTOR;
 			port->sc_ops = &intr_ops;
@@ -735,9 +811,10 @@ static void __init sn_sal_switch_to_interrupts(struct sn_cons_port *port)
 			ia64_sn_console_intr_enable(SAL_CONSOLE_INTR_RECV);
 			spin_unlock_irqrestore(&port->sc_port.lock, flags);
 		}
-		else {
+		else
+		{
 			printk(KERN_INFO
-			    "sn_console: console proceeding in polled mode\n");
+				   "sn_console: console proceeding in polled mode\n");
 		}
 	}
 }
@@ -751,7 +828,8 @@ static int sn_sal_console_setup(struct console *, char *);
 static struct uart_driver sal_console_uart;
 extern struct tty_driver *uart_console_device(struct console *, int *);
 
-static struct console sal_console = {
+static struct console sal_console =
+{
 	.name = DEVICE_NAME,
 	.write = sn_sal_console_write,
 	.device = uart_console_device,
@@ -762,7 +840,8 @@ static struct console sal_console = {
 
 #define SAL_CONSOLE	&sal_console
 
-static struct uart_driver sal_console_uart = {
+static struct uart_driver sal_console_uart =
+{
 	.owner = THIS_MODULE,
 	.driver_name = "sn_console",
 	.dev_name = DEVICE_NAME,
@@ -786,22 +865,30 @@ static int __init sn_sal_init(void)
 	int retval;
 
 	if (!ia64_platform_is("sn2"))
+	{
 		return 0;
+	}
 
 	printk(KERN_INFO "sn_console: Console driver init\n");
 
-	if (USE_DYNAMIC_MINOR == 1) {
+	if (USE_DYNAMIC_MINOR == 1)
+	{
 		misc.minor = MISC_DYNAMIC_MINOR;
 		misc.name = DEVICE_NAME_DYNAMIC;
 		retval = misc_register(&misc);
-		if (retval != 0) {
+
+		if (retval != 0)
+		{
 			printk(KERN_WARNING "Failed to register console "
-			       "device using misc_register.\n");
+				   "device using misc_register.\n");
 			return -ENODEV;
 		}
+
 		sal_console_uart.major = MISC_MAJOR;
 		sal_console_uart.minor = misc.minor;
-	} else {
+	}
+	else
+	{
 		sal_console_uart.major = DEVICE_MAJOR;
 		sal_console_uart.minor = DEVICE_MINOR;
 	}
@@ -809,10 +896,11 @@ static int __init sn_sal_init(void)
 	/* We register the driver and the port before switching to interrupts
 	 * or async above so the proper uart structures are populated */
 
-	if (uart_register_driver(&sal_console_uart) < 0) {
+	if (uart_register_driver(&sal_console_uart) < 0)
+	{
 		printk
-		    ("ERROR sn_sal_init failed uart_register_driver, line %d\n",
-		     __LINE__);
+		("ERROR sn_sal_init failed uart_register_driver, line %d\n",
+		 __LINE__);
 		return -ENODEV;
 	}
 
@@ -825,7 +913,8 @@ static int __init sn_sal_init(void)
 	sal_console_port.sc_port.ops = &sn_console_ops;
 	sal_console_port.sc_port.line = 0;
 
-	if (uart_add_one_port(&sal_console_uart, &sal_console_port.sc_port) < 0) {
+	if (uart_add_one_port(&sal_console_uart, &sal_console_port.sc_port) < 0)
+	{
 		/* error - not sure what I'd do - so I'll do nothing */
 		printk(KERN_ERR "%s: unable to add port\n", __func__);
 	}
@@ -833,14 +922,17 @@ static int __init sn_sal_init(void)
 	/* when this driver is compiled in, the console initialization
 	 * will have already switched us into asynchronous operation
 	 * before we get here through the initcalls */
-	if (!sal_console_port.sc_is_asynch) {
+	if (!sal_console_port.sc_is_asynch)
+	{
 		sn_sal_switch_to_asynch(&sal_console_port);
 	}
 
 	/* at this point (device_init) we can try to turn on interrupts */
-	if (!IS_RUNNING_ON_SIMULATOR()) {
+	if (!IS_RUNNING_ON_SIMULATOR())
+	{
 		sn_sal_switch_to_interrupts(&sal_console_port);
 	}
+
 	sn_process_input = 1;
 	return 0;
 }
@@ -858,17 +950,19 @@ device_initcall(sn_sal_init);
  */
 
 static void puts_raw_fixed(int (*puts_raw) (const char *s, int len),
-			   const char *s, int count)
+						   const char *s, int count)
 {
 	const char *s1;
 
 	/* Output '\r' before each '\n' */
-	while ((s1 = memchr(s, '\n', count)) != NULL) {
+	while ((s1 = memchr(s, '\n', count)) != NULL)
+	{
 		puts_raw(s, s1 - s);
 		puts_raw("\r\n", 2);
 		count -= s1 + 1 - s;
 		s = s1 + 1;
 	}
+
 	puts_raw(s, count);
 }
 
@@ -901,7 +995,8 @@ sn_sal_console_write(struct console *co, const char *s, unsigned count)
 	/* We can't look at the xmit buffer if we're not registered with serial core
 	 *  yet.  So only do the fancy recovery after registering
 	 */
-	if (!port->sc_port.state) {
+	if (!port->sc_port.state)
+	{
 		/* Not yet registered with serial core - simple case */
 		puts_raw_fixed(port->sc_ops->sal_puts_raw, s, count);
 		return;
@@ -909,7 +1004,8 @@ sn_sal_console_write(struct console *co, const char *s, unsigned count)
 
 	/* somebody really wants this output, might be an
 	 * oops, kdb, panic, etc.  make sure they get it. */
-	if (spin_is_locked(&port->sc_port.lock)) {
+	if (spin_is_locked(&port->sc_port.lock))
+	{
 		int lhead = port->sc_port.state->xmit.head;
 		int ltail = port->sc_port.state->xmit.tail;
 		int counter, got_lock = 0;
@@ -925,20 +1021,27 @@ sn_sal_console_write(struct console *co, const char *s, unsigned count)
 		 * is that we will time out again.
 		 */
 
-		for (counter = 0; counter < 150; mdelay(125), counter++) {
+		for (counter = 0; counter < 150; mdelay(125), counter++)
+		{
 			if (!spin_is_locked(&port->sc_port.lock)
-			    || stole_lock) {
-				if (!stole_lock) {
+				|| stole_lock)
+			{
+				if (!stole_lock)
+				{
 					spin_lock_irqsave(&port->sc_port.lock,
-							  flags);
+									  flags);
 					got_lock = 1;
 				}
+
 				break;
-			} else {
+			}
+			else
+			{
 				/* still locked */
 				if ((lhead != port->sc_port.state->xmit.head)
-				    || (ltail !=
-					port->sc_port.state->xmit.tail)) {
+					|| (ltail !=
+						port->sc_port.state->xmit.tail))
+				{
 					lhead =
 						port->sc_port.state->xmit.head;
 					ltail =
@@ -947,17 +1050,25 @@ sn_sal_console_write(struct console *co, const char *s, unsigned count)
 				}
 			}
 		}
+
 		/* flush anything in the serial core xmit buffer, raw */
 		sn_transmit_chars(port, 1);
-		if (got_lock) {
+
+		if (got_lock)
+		{
 			spin_unlock_irqrestore(&port->sc_port.lock, flags);
 			stole_lock = 0;
-		} else {
+		}
+		else
+		{
 			/* fell thru */
 			stole_lock = 1;
 		}
+
 		puts_raw_fixed(port->sc_ops->sal_puts_raw, s, count);
-	} else {
+	}
+	else
+	{
 		stole_lock = 0;
 		spin_lock_irqsave(&port->sc_port.lock, flags);
 		sn_transmit_chars(port, 1);
@@ -1004,7 +1115,8 @@ sn_sal_console_write_early(struct console *co, const char *s, unsigned count)
 
 /* Used for very early console printing - again, before
  * sn_sal_serial_console_init is run */
-static struct console sal_console_early __initdata = {
+static struct console sal_console_early __initdata =
+{
 	.name = "sn_sal",
 	.write = sn_sal_console_write_early,
 	.flags = CON_PRINTBUFFER,
@@ -1023,7 +1135,9 @@ static struct console sal_console_early __initdata = {
 int __init sn_serial_console_early_setup(void)
 {
 	if (!ia64_platform_is("sn2"))
+	{
 		return -1;
+	}
 
 	sal_console_port.sc_ops = &poll_ops;
 	spin_lock_init(&sal_console_port.sc_port.lock);
@@ -1047,12 +1161,14 @@ int __init sn_serial_console_early_setup(void)
  */
 static int __init sn_sal_serial_console_init(void)
 {
-	if (ia64_platform_is("sn2")) {
+	if (ia64_platform_is("sn2"))
+	{
 		sn_sal_switch_to_asynch(&sal_console_port);
 		DPRINTF("sn_sal_serial_console_init : register console\n");
 		register_console(&sal_console);
 		unregister_console(&sal_console_early);
 	}
+
 	return 0;
 }
 

@@ -11,11 +11,11 @@
 #include <linux/raid/pq.h>
 
 #ifdef __KERNEL__
-#include <asm/neon.h>
+	#include <asm/neon.h>
 #else
-#define kernel_neon_begin()
-#define kernel_neon_end()
-#define cpu_has_neon()		(1)
+	#define kernel_neon_begin()
+	#define kernel_neon_end()
+	#define cpu_has_neon()		(1)
 #endif
 
 /*
@@ -31,24 +31,24 @@
 
 #define RAID6_NEON_WRAPPER(_n)						\
 	static void raid6_neon ## _n ## _gen_syndrome(int disks,	\
-					size_t bytes, void **ptrs)	\
+			size_t bytes, void **ptrs)	\
 	{								\
 		void raid6_neon ## _n  ## _gen_syndrome_real(int,	\
-						unsigned long, void**);	\
+				unsigned long, void**);	\
 		kernel_neon_begin();					\
 		raid6_neon ## _n ## _gen_syndrome_real(disks,		\
-					(unsigned long)bytes, ptrs);	\
+											   (unsigned long)bytes, ptrs);	\
 		kernel_neon_end();					\
 	}								\
 	static void raid6_neon ## _n ## _xor_syndrome(int disks,	\
-					int start, int stop, 		\
-					size_t bytes, void **ptrs)	\
+			int start, int stop, 		\
+			size_t bytes, void **ptrs)	\
 	{								\
 		void raid6_neon ## _n  ## _xor_syndrome_real(int,	\
 				int, int, unsigned long, void**);	\
 		kernel_neon_begin();					\
 		raid6_neon ## _n ## _xor_syndrome_real(disks,		\
-			start, stop, (unsigned long)bytes, ptrs);	\
+											   start, stop, (unsigned long)bytes, ptrs);	\
 		kernel_neon_end();					\
 	}								\
 	struct raid6_calls const raid6_neonx ## _n = {			\

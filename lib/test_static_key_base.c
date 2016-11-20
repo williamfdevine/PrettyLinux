@@ -42,9 +42,13 @@ EXPORT_SYMBOL_GPL(base_inv_false_key);
 static void invert_key(struct static_key *key)
 {
 	if (static_key_enabled(key))
+	{
 		static_key_disable(key);
+	}
 	else
+	{
 		static_key_enable(key);
+	}
 }
 
 static int __init test_static_key_base_init(void)

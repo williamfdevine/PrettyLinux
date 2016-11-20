@@ -2,7 +2,8 @@
 
 static inline void device_pm_init_common(struct device *dev)
 {
-	if (!dev->power.early_init) {
+	if (!dev->power.early_init)
+	{
 		spin_lock_init(&dev->power.lock);
 		dev->power.qos = NULL;
 		dev->power.early_init = true;
@@ -21,10 +22,11 @@ extern void pm_runtime_init(struct device *dev);
 extern void pm_runtime_reinit(struct device *dev);
 extern void pm_runtime_remove(struct device *dev);
 
-struct wake_irq {
+struct wake_irq
+{
 	struct device *dev;
 	int irq;
-	bool dedicated_irq:1;
+	bool dedicated_irq: 1;
 };
 
 extern void dev_pm_arm_wake_irq(struct wake_irq *wirq);
@@ -33,7 +35,7 @@ extern void dev_pm_disarm_wake_irq(struct wake_irq *wirq);
 #ifdef CONFIG_PM_SLEEP
 
 extern int device_wakeup_attach_irq(struct device *dev,
-				    struct wake_irq *wakeirq);
+									struct wake_irq *wakeirq);
 extern void device_wakeup_detach_irq(struct device *dev);
 extern void device_wakeup_arm_wake_irqs(void);
 extern void device_wakeup_disarm_wake_irqs(void);
@@ -42,7 +44,7 @@ extern void device_wakeup_disarm_wake_irqs(void);
 
 static inline int
 device_wakeup_attach_irq(struct device *dev,
-			 struct wake_irq *wakeirq)
+						 struct wake_irq *wakeirq)
 {
 	return 0;
 }
@@ -139,9 +141,9 @@ static inline void device_pm_remove(struct device *dev)
 }
 
 static inline void device_pm_move_before(struct device *deva,
-					 struct device *devb) {}
+		struct device *devb) {}
 static inline void device_pm_move_after(struct device *deva,
-					struct device *devb) {}
+										struct device *devb) {}
 static inline void device_pm_move_last(struct device *dev) {}
 
 static inline void device_pm_check_callbacks(struct device *dev) {}

@@ -1,7 +1,8 @@
 #ifndef __PERF_SUBCMD_CONFIG_H
 #define __PERF_SUBCMD_CONFIG_H
 
-struct subcmd_config {
+struct subcmd_config
+{
 	const char *exec_name;
 	const char *prefix;
 	const char *exec_path;

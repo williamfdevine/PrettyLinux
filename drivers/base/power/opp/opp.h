@@ -74,7 +74,8 @@ extern struct list_head opp_tables;
  *
  * This structure stores the OPP information for a given device.
  */
-struct dev_pm_opp {
+struct dev_pm_opp
+{
 	struct list_head node;
 
 	bool available;
@@ -109,7 +110,8 @@ struct dev_pm_opp {
  * This is an internal data structure maintaining the devices that are managed
  * by 'struct opp_table'.
  */
-struct opp_device {
+struct opp_device
+{
 	struct list_head node;
 	const struct device *dev;
 	struct rcu_head rcu_head;
@@ -119,7 +121,8 @@ struct opp_device {
 #endif
 };
 
-enum opp_table_access {
+enum opp_table_access
+{
 	OPP_TABLE_ACCESS_UNKNOWN = 0,
 	OPP_TABLE_ACCESS_EXCLUSIVE = 1,
 	OPP_TABLE_ACCESS_SHARED = 2,
@@ -158,7 +161,8 @@ enum opp_table_access {
  * need to wait for the grace period of both of them before freeing any
  * resources. And so we have used kfree_rcu() from within call_srcu() handlers.
  */
-struct opp_table {
+struct opp_table
+{
 	struct list_head node;
 
 	struct srcu_notifier_head srcu_head;
@@ -213,14 +217,14 @@ void opp_debug_unregister(struct opp_device *opp_dev, struct opp_table *opp_tabl
 static inline void opp_debug_remove_one(struct dev_pm_opp *opp) {}
 
 static inline int opp_debug_create_one(struct dev_pm_opp *opp,
-				       struct opp_table *opp_table)
+									   struct opp_table *opp_table)
 { return 0; }
 static inline int opp_debug_register(struct opp_device *opp_dev,
-				     struct opp_table *opp_table)
+									 struct opp_table *opp_table)
 { return 0; }
 
 static inline void opp_debug_unregister(struct opp_device *opp_dev,
-					struct opp_table *opp_table)
+										struct opp_table *opp_table)
 { }
 #endif		/* DEBUG_FS */
 

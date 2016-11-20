@@ -57,21 +57,24 @@
  * (***) Accessed by one driver instance only - no locking needed
  */
 
-struct intc_irqpin_iomem {
+struct intc_irqpin_iomem
+{
 	void __iomem *iomem;
 	unsigned long (*read)(void __iomem *iomem);
 	void (*write)(void __iomem *iomem, unsigned long data);
 	int width;
 };
 
-struct intc_irqpin_irq {
+struct intc_irqpin_irq
+{
 	int hw_irq;
 	int requested_irq;
 	int domain_irq;
 	struct intc_irqpin_priv *p;
 };
 
-struct intc_irqpin_priv {
+struct intc_irqpin_priv
+{
 	struct intc_irqpin_iomem iomem[INTC_IRQPIN_REG_NR];
 	struct intc_irqpin_irq irq[INTC_IRQPIN_MAX];
 	unsigned int sense_bitfield_width;
@@ -79,15 +82,16 @@ struct intc_irqpin_priv {
 	struct irq_chip irq_chip;
 	struct irq_domain *irq_domain;
 	struct clk *clk;
-	unsigned shared_irqs:1;
-	unsigned needs_clk:1;
+	unsigned shared_irqs: 1;
+	unsigned needs_clk: 1;
 	u8 shared_irq_mask;
 };
 
-struct intc_irqpin_config {
+struct intc_irqpin_config
+{
 	unsigned int irlm_bit;
-	unsigned needs_irlm:1;
-	unsigned needs_clk:1;
+	unsigned needs_irlm: 1;
+	unsigned needs_clk: 1;
 };
 
 static unsigned long intc_irqpin_read32(void __iomem *iomem)
@@ -111,7 +115,7 @@ static void intc_irqpin_write8(void __iomem *iomem, unsigned long data)
 }
 
 static inline unsigned long intc_irqpin_read(struct intc_irqpin_priv *p,
-					     int reg)
+		int reg)
 {
 	struct intc_irqpin_iomem *i = &p->iomem[reg];
 
@@ -119,7 +123,7 @@ static inline unsigned long intc_irqpin_read(struct intc_irqpin_priv *p,
 }
 
 static inline void intc_irqpin_write(struct intc_irqpin_priv *p,
-				     int reg, unsigned long data)
+									 int reg, unsigned long data)
 {
 	struct intc_irqpin_iomem *i = &p->iomem[reg];
 
@@ -127,13 +131,13 @@ static inline void intc_irqpin_write(struct intc_irqpin_priv *p,
 }
 
 static inline unsigned long intc_irqpin_hwirq_mask(struct intc_irqpin_priv *p,
-						   int reg, int hw_irq)
+		int reg, int hw_irq)
 {
 	return BIT((p->iomem[reg].width - 1) - hw_irq);
 }
 
 static inline void intc_irqpin_irq_write_hwirq(struct intc_irqpin_priv *p,
-					       int reg, int hw_irq)
+		int reg, int hw_irq)
 {
 	intc_irqpin_write(p, reg, intc_irqpin_hwirq_mask(p, reg, hw_irq));
 }
@@ -141,8 +145,8 @@ static inline void intc_irqpin_irq_write_hwirq(struct intc_irqpin_priv *p,
 static DEFINE_RAW_SPINLOCK(intc_irqpin_lock); /* only used by slow path */
 
 static void intc_irqpin_read_modify_write(struct intc_irqpin_priv *p,
-					  int reg, int shift,
-					  int width, int value)
+		int reg, int shift,
+		int width, int value)
 {
 	unsigned long flags;
 	unsigned long tmp;
@@ -158,15 +162,15 @@ static void intc_irqpin_read_modify_write(struct intc_irqpin_priv *p,
 }
 
 static void intc_irqpin_mask_unmask_prio(struct intc_irqpin_priv *p,
-					 int irq, int do_mask)
+		int irq, int do_mask)
 {
 	/* The PRIO register is assumed to be 32-bit with fixed 4-bit fields. */
 	int bitfield_width = 4;
 	int shift = 32 - (irq + 1) * bitfield_width;
 
 	intc_irqpin_read_modify_write(p, INTC_IRQPIN_REG_PRIO,
-				      shift, bitfield_width,
-				      do_mask ? 0 : (1 << bitfield_width) - 1);
+								  shift, bitfield_width,
+								  do_mask ? 0 : (1 << bitfield_width) - 1);
 }
 
 static int intc_irqpin_set_sense(struct intc_irqpin_priv *p, int irq, int value)
@@ -178,17 +182,19 @@ static int intc_irqpin_set_sense(struct intc_irqpin_priv *p, int irq, int value)
 	dev_dbg(&p->pdev->dev, "sense irq = %d, mode = %d\n", irq, value);
 
 	if (value >= (1 << bitfield_width))
+	{
 		return -EINVAL;
+	}
 
 	intc_irqpin_read_modify_write(p, INTC_IRQPIN_REG_SENSE, shift,
-				      bitfield_width, value);
+								  bitfield_width, value);
 	return 0;
 }
 
 static void intc_irqpin_dbg(struct intc_irqpin_irq *i, char *str)
 {
 	dev_dbg(&i->p->pdev->dev, "%s (%d:%d:%d)\n",
-		str, i->requested_irq, i->hw_irq, i->domain_irq);
+			str, i->requested_irq, i->hw_irq, i->domain_irq);
 }
 
 static void intc_irqpin_irq_enable(struct irq_data *d)
@@ -261,7 +267,8 @@ static void intc_irqpin_irq_disable_force(struct irq_data *d)
 #define INTC_IRQ_SENSE_VALID 0x10
 #define INTC_IRQ_SENSE(x) (x + INTC_IRQ_SENSE_VALID)
 
-static unsigned char intc_irqpin_sense[IRQ_TYPE_SENSE_MASK + 1] = {
+static unsigned char intc_irqpin_sense[IRQ_TYPE_SENSE_MASK + 1] =
+{
 	[IRQ_TYPE_EDGE_FALLING] = INTC_IRQ_SENSE(0x00),
 	[IRQ_TYPE_EDGE_RISING] = INTC_IRQ_SENSE(0x01),
 	[IRQ_TYPE_LEVEL_LOW] = INTC_IRQ_SENSE(0x02),
@@ -275,10 +282,12 @@ static int intc_irqpin_irq_set_type(struct irq_data *d, unsigned int type)
 	struct intc_irqpin_priv *p = irq_data_get_irq_chip_data(d);
 
 	if (!(value & INTC_IRQ_SENSE_VALID))
+	{
 		return -EINVAL;
+	}
 
 	return intc_irqpin_set_sense(p, irqd_to_hwirq(d),
-				     value ^ INTC_IRQ_SENSE_VALID);
+								 value ^ INTC_IRQ_SENSE_VALID);
 }
 
 static int intc_irqpin_irq_set_wake(struct irq_data *d, unsigned int on)
@@ -289,12 +298,18 @@ static int intc_irqpin_irq_set_wake(struct irq_data *d, unsigned int on)
 	irq_set_irq_wake(p->irq[hw_irq].requested_irq, on);
 
 	if (!p->clk)
+	{
 		return 0;
+	}
 
 	if (on)
+	{
 		clk_enable(p->clk);
+	}
 	else
+	{
 		clk_disable(p->clk);
+	}
 
 	return 0;
 }
@@ -308,12 +323,14 @@ static irqreturn_t intc_irqpin_irq_handler(int irq, void *dev_id)
 	intc_irqpin_dbg(i, "demux1");
 	bit = intc_irqpin_hwirq_mask(p, INTC_IRQPIN_REG_SOURCE, i->hw_irq);
 
-	if (intc_irqpin_read(p, INTC_IRQPIN_REG_SOURCE) & bit) {
+	if (intc_irqpin_read(p, INTC_IRQPIN_REG_SOURCE) & bit)
+	{
 		intc_irqpin_write(p, INTC_IRQPIN_REG_SOURCE, ~bit);
 		intc_irqpin_dbg(i, "demux2");
 		generic_handle_irq(i->domain_irq);
 		return IRQ_HANDLED;
 	}
+
 	return IRQ_NONE;
 }
 
@@ -324,10 +341,14 @@ static irqreturn_t intc_irqpin_shared_irq_handler(int irq, void *dev_id)
 	irqreturn_t status = IRQ_NONE;
 	int k;
 
-	for (k = 0; k < 8; k++) {
-		if (reg_source & BIT(7 - k)) {
+	for (k = 0; k < 8; k++)
+	{
+		if (reg_source & BIT(7 - k))
+		{
 			if (BIT(k) & p->shared_irq_mask)
+			{
 				continue;
+			}
 
 			status |= intc_irqpin_irq_handler(irq, &p->irq[k]);
 		}
@@ -343,7 +364,7 @@ static irqreturn_t intc_irqpin_shared_irq_handler(int irq, void *dev_id)
 static struct lock_class_key intc_irqpin_irq_lock_class;
 
 static int intc_irqpin_irq_domain_map(struct irq_domain *h, unsigned int virq,
-				      irq_hw_number_t hw)
+									  irq_hw_number_t hw)
 {
 	struct intc_irqpin_priv *p = h->host_data;
 
@@ -357,32 +378,44 @@ static int intc_irqpin_irq_domain_map(struct irq_domain *h, unsigned int virq,
 	return 0;
 }
 
-static const struct irq_domain_ops intc_irqpin_irq_domain_ops = {
+static const struct irq_domain_ops intc_irqpin_irq_domain_ops =
+{
 	.map	= intc_irqpin_irq_domain_map,
 	.xlate  = irq_domain_xlate_twocell,
 };
 
-static const struct intc_irqpin_config intc_irqpin_irlm_r8a777x = {
+static const struct intc_irqpin_config intc_irqpin_irlm_r8a777x =
+{
 	.irlm_bit = 23, /* ICR0.IRLM0 */
 	.needs_irlm = 1,
 	.needs_clk = 0,
 };
 
-static const struct intc_irqpin_config intc_irqpin_rmobile = {
+static const struct intc_irqpin_config intc_irqpin_rmobile =
+{
 	.needs_irlm = 0,
 	.needs_clk = 1,
 };
 
-static const struct of_device_id intc_irqpin_dt_ids[] = {
+static const struct of_device_id intc_irqpin_dt_ids[] =
+{
 	{ .compatible = "renesas,intc-irqpin", },
-	{ .compatible = "renesas,intc-irqpin-r8a7778",
-	  .data = &intc_irqpin_irlm_r8a777x },
-	{ .compatible = "renesas,intc-irqpin-r8a7779",
-	  .data = &intc_irqpin_irlm_r8a777x },
-	{ .compatible = "renesas,intc-irqpin-r8a7740",
-	  .data = &intc_irqpin_rmobile },
-	{ .compatible = "renesas,intc-irqpin-sh73a0",
-	  .data = &intc_irqpin_rmobile },
+	{
+		.compatible = "renesas,intc-irqpin-r8a7778",
+		.data = &intc_irqpin_irlm_r8a777x
+	},
+	{
+		.compatible = "renesas,intc-irqpin-r8a7779",
+		.data = &intc_irqpin_irlm_r8a777x
+	},
+	{
+		.compatible = "renesas,intc-irqpin-r8a7740",
+		.data = &intc_irqpin_rmobile
+	},
+	{
+		.compatible = "renesas,intc-irqpin-sh73a0",
+		.data = &intc_irqpin_rmobile
+	},
 	{},
 };
 MODULE_DEVICE_TABLE(of, intc_irqpin_dt_ids);
@@ -397,8 +430,8 @@ static int intc_irqpin_probe(struct platform_device *pdev)
 	struct resource *io[INTC_IRQPIN_REG_NR];
 	struct resource *irq;
 	struct irq_chip *irq_chip;
-	void (*enable_fn)(struct irq_data *d);
-	void (*disable_fn)(struct irq_data *d);
+	void (*enable_fn)(struct irq_data * d);
+	void (*disable_fn)(struct irq_data * d);
 	const char *name = dev_name(dev);
 	bool control_parent;
 	unsigned int nirqs;
@@ -407,34 +440,45 @@ static int intc_irqpin_probe(struct platform_device *pdev)
 	int k;
 
 	p = devm_kzalloc(dev, sizeof(*p), GFP_KERNEL);
-	if (!p) {
+
+	if (!p)
+	{
 		dev_err(dev, "failed to allocate driver data\n");
 		return -ENOMEM;
 	}
 
 	/* deal with driver instance configuration */
 	of_property_read_u32(dev->of_node, "sense-bitfield-width",
-			     &p->sense_bitfield_width);
+						 &p->sense_bitfield_width);
 	control_parent = of_property_read_bool(dev->of_node, "control-parent");
+
 	if (!p->sense_bitfield_width)
-		p->sense_bitfield_width = 4; /* default to 4 bits */
+	{
+		p->sense_bitfield_width = 4;    /* default to 4 bits */
+	}
 
 	p->pdev = pdev;
 	platform_set_drvdata(pdev, p);
 
 	of_id = of_match_device(intc_irqpin_dt_ids, dev);
-	if (of_id && of_id->data) {
+
+	if (of_id && of_id->data)
+	{
 		config = of_id->data;
 		p->needs_clk = config->needs_clk;
 	}
 
 	p->clk = devm_clk_get(dev, NULL);
-	if (IS_ERR(p->clk)) {
-		if (p->needs_clk) {
+
+	if (IS_ERR(p->clk))
+	{
+		if (p->needs_clk)
+		{
 			dev_err(dev, "unable to get clock\n");
 			ret = PTR_ERR(p->clk);
 			goto err0;
 		}
+
 		p->clk = NULL;
 	}
 
@@ -443,9 +487,13 @@ static int intc_irqpin_probe(struct platform_device *pdev)
 
 	/* get hold of register banks */
 	memset(io, 0, sizeof(io));
-	for (k = 0; k < INTC_IRQPIN_REG_NR; k++) {
+
+	for (k = 0; k < INTC_IRQPIN_REG_NR; k++)
+	{
 		io[k] = platform_get_resource(pdev, IORESOURCE_MEM, k);
-		if (!io[k] && k < INTC_IRQPIN_REG_NR_MANDATORY) {
+
+		if (!io[k] && k < INTC_IRQPIN_REG_NR_MANDATORY)
+		{
 			dev_err(dev, "not enough IOMEM resources\n");
 			ret = -EINVAL;
 			goto err0;
@@ -453,50 +501,64 @@ static int intc_irqpin_probe(struct platform_device *pdev)
 	}
 
 	/* allow any number of IRQs between 1 and INTC_IRQPIN_MAX */
-	for (k = 0; k < INTC_IRQPIN_MAX; k++) {
+	for (k = 0; k < INTC_IRQPIN_MAX; k++)
+	{
 		irq = platform_get_resource(pdev, IORESOURCE_IRQ, k);
+
 		if (!irq)
+		{
 			break;
+		}
 
 		p->irq[k].p = p;
 		p->irq[k].requested_irq = irq->start;
 	}
 
 	nirqs = k;
-	if (nirqs < 1) {
+
+	if (nirqs < 1)
+	{
 		dev_err(dev, "not enough IRQ resources\n");
 		ret = -EINVAL;
 		goto err0;
 	}
 
 	/* ioremap IOMEM and setup read/write callbacks */
-	for (k = 0; k < INTC_IRQPIN_REG_NR; k++) {
+	for (k = 0; k < INTC_IRQPIN_REG_NR; k++)
+	{
 		i = &p->iomem[k];
 
 		/* handle optional registers */
 		if (!io[k])
+		{
 			continue;
+		}
 
-		switch (resource_size(io[k])) {
-		case 1:
-			i->width = 8;
-			i->read = intc_irqpin_read8;
-			i->write = intc_irqpin_write8;
-			break;
-		case 4:
-			i->width = 32;
-			i->read = intc_irqpin_read32;
-			i->write = intc_irqpin_write32;
-			break;
-		default:
-			dev_err(dev, "IOMEM size mismatch\n");
-			ret = -EINVAL;
-			goto err0;
+		switch (resource_size(io[k]))
+		{
+			case 1:
+				i->width = 8;
+				i->read = intc_irqpin_read8;
+				i->write = intc_irqpin_write8;
+				break;
+
+			case 4:
+				i->width = 32;
+				i->read = intc_irqpin_read32;
+				i->write = intc_irqpin_write32;
+				break;
+
+			default:
+				dev_err(dev, "IOMEM size mismatch\n");
+				ret = -EINVAL;
+				goto err0;
 		}
 
 		i->iomem = devm_ioremap_nocache(dev, io[k]->start,
-						resource_size(io[k]));
-		if (!i->iomem) {
+										resource_size(io[k]));
+
+		if (!i->iomem)
+		{
 			dev_err(dev, "failed to remap IOMEM\n");
 			ret = -ENXIO;
 			goto err0;
@@ -504,17 +566,22 @@ static int intc_irqpin_probe(struct platform_device *pdev)
 	}
 
 	/* configure "individual IRQ mode" where needed */
-	if (config && config->needs_irlm) {
+	if (config && config->needs_irlm)
+	{
 		if (io[INTC_IRQPIN_REG_IRLM])
 			intc_irqpin_read_modify_write(p, INTC_IRQPIN_REG_IRLM,
-						      config->irlm_bit, 1, 1);
+										  config->irlm_bit, 1, 1);
 		else
+		{
 			dev_warn(dev, "unable to select IRLM mode\n");
+		}
 	}
 
 	/* mask all interrupts using priority */
 	for (k = 0; k < nirqs; k++)
+	{
 		intc_irqpin_mask_unmask_prio(p, k, 1);
+	}
 
 	/* clear all pending interrupts */
 	intc_irqpin_write(p, INTC_IRQPIN_REG_SOURCE, 0x0);
@@ -522,21 +589,29 @@ static int intc_irqpin_probe(struct platform_device *pdev)
 	/* scan for shared interrupt lines */
 	ref_irq = p->irq[0].requested_irq;
 	p->shared_irqs = 1;
-	for (k = 1; k < nirqs; k++) {
-		if (ref_irq != p->irq[k].requested_irq) {
+
+	for (k = 1; k < nirqs; k++)
+	{
+		if (ref_irq != p->irq[k].requested_irq)
+		{
 			p->shared_irqs = 0;
 			break;
 		}
 	}
 
 	/* use more severe masking method if requested */
-	if (control_parent) {
+	if (control_parent)
+	{
 		enable_fn = intc_irqpin_irq_enable_force;
 		disable_fn = intc_irqpin_irq_disable_force;
-	} else if (!p->shared_irqs) {
+	}
+	else if (!p->shared_irqs)
+	{
 		enable_fn = intc_irqpin_irq_enable;
 		disable_fn = intc_irqpin_irq_disable;
-	} else {
+	}
+	else
+	{
 		enable_fn = intc_irqpin_shared_irq_enable;
 		disable_fn = intc_irqpin_shared_irq_disable;
 	}
@@ -550,28 +625,36 @@ static int intc_irqpin_probe(struct platform_device *pdev)
 	irq_chip->flags	= IRQCHIP_MASK_ON_SUSPEND;
 
 	p->irq_domain = irq_domain_add_simple(dev->of_node, nirqs, 0,
-					      &intc_irqpin_irq_domain_ops, p);
-	if (!p->irq_domain) {
+										  &intc_irqpin_irq_domain_ops, p);
+
+	if (!p->irq_domain)
+	{
 		ret = -ENXIO;
 		dev_err(dev, "cannot initialize irq domain\n");
 		goto err0;
 	}
 
-	if (p->shared_irqs) {
+	if (p->shared_irqs)
+	{
 		/* request one shared interrupt */
 		if (devm_request_irq(dev, p->irq[0].requested_irq,
-				intc_irqpin_shared_irq_handler,
-				IRQF_SHARED, name, p)) {
+							 intc_irqpin_shared_irq_handler,
+							 IRQF_SHARED, name, p))
+		{
 			dev_err(dev, "failed to request low IRQ\n");
 			ret = -ENOENT;
 			goto err1;
 		}
-	} else {
+	}
+	else
+	{
 		/* request interrupts one by one */
-		for (k = 0; k < nirqs; k++) {
+		for (k = 0; k < nirqs; k++)
+		{
 			if (devm_request_irq(dev, p->irq[k].requested_irq,
-					     intc_irqpin_irq_handler, 0, name,
-					     &p->irq[k])) {
+								 intc_irqpin_irq_handler, 0, name,
+								 &p->irq[k]))
+			{
 				dev_err(dev, "failed to request low IRQ\n");
 				ret = -ENOENT;
 				goto err1;
@@ -581,7 +664,9 @@ static int intc_irqpin_probe(struct platform_device *pdev)
 
 	/* unmask all interrupts on prio level */
 	for (k = 0; k < nirqs; k++)
+	{
 		intc_irqpin_mask_unmask_prio(p, k, 0);
+	}
 
 	dev_info(dev, "driving %d irqs\n", nirqs);
 
@@ -605,7 +690,8 @@ static int intc_irqpin_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver intc_irqpin_device_driver = {
+static struct platform_driver intc_irqpin_device_driver =
+{
 	.probe		= intc_irqpin_probe,
 	.remove		= intc_irqpin_remove,
 	.driver		= {

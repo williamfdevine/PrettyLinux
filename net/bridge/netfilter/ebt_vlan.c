@@ -45,16 +45,22 @@ ebt_vlan_mt(const struct sk_buff *skb, struct xt_action_param *par)
 	/* VLAN encapsulated Type/Length field, given from orig frame */
 	__be16 encap;
 
-	if (skb_vlan_tag_present(skb)) {
+	if (skb_vlan_tag_present(skb))
+	{
 		TCI = skb_vlan_tag_get(skb);
 		encap = skb->protocol;
-	} else {
+	}
+	else
+	{
 		const struct vlan_hdr *fp;
 		struct vlan_hdr _frame;
 
 		fp = skb_header_pointer(skb, 0, sizeof(_frame), &_frame);
+
 		if (fp == NULL)
+		{
 			return false;
+		}
 
 		TCI = ntohs(fp->h_vlan_TCI);
 		encap = fp->h_vlan_encapsulated_proto;
@@ -73,15 +79,21 @@ ebt_vlan_mt(const struct sk_buff *skb, struct xt_action_param *par)
 
 	/* Checking VLAN Identifier (VID) */
 	if (GET_BITMASK(EBT_VLAN_ID))
+	{
 		EXIT_ON_MISMATCH(id, EBT_VLAN_ID);
+	}
 
 	/* Checking user_priority */
 	if (GET_BITMASK(EBT_VLAN_PRIO))
+	{
 		EXIT_ON_MISMATCH(prio, EBT_VLAN_PRIO);
+	}
 
 	/* Checking Encapsulated Proto (Length/Type) field */
 	if (GET_BITMASK(EBT_VLAN_ENCAP))
+	{
 		EXIT_ON_MISMATCH(encap, EBT_VLAN_ENCAP);
+	}
 
 	return true;
 }
@@ -92,25 +104,28 @@ static int ebt_vlan_mt_check(const struct xt_mtchk_param *par)
 	const struct ebt_entry *e = par->entryinfo;
 
 	/* Is it 802.1Q frame checked? */
-	if (e->ethproto != htons(ETH_P_8021Q)) {
+	if (e->ethproto != htons(ETH_P_8021Q))
+	{
 		pr_debug("passed entry proto %2.4X is not 802.1Q (8100)\n",
-			 ntohs(e->ethproto));
+				 ntohs(e->ethproto));
 		return -EINVAL;
 	}
 
 	/* Check for bitmask range
 	 * True if even one bit is out of mask
 	 */
-	if (info->bitmask & ~EBT_VLAN_MASK) {
+	if (info->bitmask & ~EBT_VLAN_MASK)
+	{
 		pr_debug("bitmask %2X is out of mask (%2X)\n",
-			 info->bitmask, EBT_VLAN_MASK);
+				 info->bitmask, EBT_VLAN_MASK);
 		return -EINVAL;
 	}
 
 	/* Check for inversion flags range */
-	if (info->invflags & ~EBT_VLAN_MASK) {
+	if (info->invflags & ~EBT_VLAN_MASK)
+	{
 		pr_debug("inversion flags %2X is out of mask (%2X)\n",
-			 info->invflags, EBT_VLAN_MASK);
+				 info->invflags, EBT_VLAN_MASK);
 		return -EINVAL;
 	}
 
@@ -121,13 +136,17 @@ static int ebt_vlan_mt_check(const struct xt_mtchk_param *par)
 	 * 0x0FFF - Reserved for implementation use.
 	 * if_vlan.h: VLAN_N_VID 4096.
 	 */
-	if (GET_BITMASK(EBT_VLAN_ID)) {
-		if (!!info->id) { /* if id!=0 => check vid range */
-			if (info->id > VLAN_N_VID) {
+	if (GET_BITMASK(EBT_VLAN_ID))
+	{
+		if (!!info->id)   /* if id!=0 => check vid range */
+		{
+			if (info->id > VLAN_N_VID)
+			{
 				pr_debug("id %d is out of range (1-4096)\n",
-					 info->id);
+						 info->id);
 				return -EINVAL;
 			}
+
 			/* Note: This is valid VLAN-tagged frame point.
 			 * Any value of user_priority are acceptable,
 			 * but should be ignored according to 802.1Q Std.
@@ -135,24 +154,30 @@ static int ebt_vlan_mt_check(const struct xt_mtchk_param *par)
 			 */
 			info->bitmask &= ~EBT_VLAN_PRIO;
 		}
+
 		/* Else, id=0 (null VLAN ID)  => user_priority range (any?) */
 	}
 
-	if (GET_BITMASK(EBT_VLAN_PRIO)) {
-		if ((unsigned char) info->prio > 7) {
+	if (GET_BITMASK(EBT_VLAN_PRIO))
+	{
+		if ((unsigned char) info->prio > 7)
+		{
 			pr_debug("prio %d is out of range (0-7)\n",
-				 info->prio);
+					 info->prio);
 			return -EINVAL;
 		}
 	}
+
 	/* Check for encapsulated proto range - it is possible to be
 	 * any value for u_short range.
 	 * if_ether.h:  ETH_ZLEN        60   -  Min. octets in frame sans FCS
 	 */
-	if (GET_BITMASK(EBT_VLAN_ENCAP)) {
-		if ((unsigned short) ntohs(info->encap) < ETH_ZLEN) {
+	if (GET_BITMASK(EBT_VLAN_ENCAP))
+	{
+		if ((unsigned short) ntohs(info->encap) < ETH_ZLEN)
+		{
 			pr_debug("encap frame length %d is less than "
-				 "minimal\n", ntohs(info->encap));
+					 "minimal\n", ntohs(info->encap));
 			return -EINVAL;
 		}
 	}
@@ -160,7 +185,8 @@ static int ebt_vlan_mt_check(const struct xt_mtchk_param *par)
 	return 0;
 }
 
-static struct xt_match ebt_vlan_mt_reg __read_mostly = {
+static struct xt_match ebt_vlan_mt_reg __read_mostly =
+{
 	.name		= "vlan",
 	.revision	= 0,
 	.family		= NFPROTO_BRIDGE,

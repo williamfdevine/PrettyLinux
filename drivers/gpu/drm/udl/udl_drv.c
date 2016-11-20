@@ -17,7 +17,7 @@ static int udl_driver_set_busid(struct drm_device *d, struct drm_master *m)
 }
 
 static int udl_usb_suspend(struct usb_interface *interface,
-			   pm_message_t message)
+						   pm_message_t message)
 {
 	return 0;
 }
@@ -30,13 +30,15 @@ static int udl_usb_resume(struct usb_interface *interface)
 	return 0;
 }
 
-static const struct vm_operations_struct udl_gem_vm_ops = {
+static const struct vm_operations_struct udl_gem_vm_ops =
+{
 	.fault = udl_gem_fault,
 	.open = drm_gem_vm_open,
 	.close = drm_gem_vm_close,
 };
 
-static const struct file_operations udl_driver_fops = {
+static const struct file_operations udl_driver_fops =
+{
 	.owner = THIS_MODULE,
 	.open = drm_open,
 	.mmap = udl_drm_gem_mmap,
@@ -50,7 +52,8 @@ static const struct file_operations udl_driver_fops = {
 	.llseek = noop_llseek,
 };
 
-static struct drm_driver driver = {
+static struct drm_driver driver =
+{
 	.driver_features = DRIVER_MODESET | DRIVER_GEM | DRIVER_PRIME,
 	.load = udl_driver_load,
 	.unload = udl_driver_unload,
@@ -79,19 +82,25 @@ static struct drm_driver driver = {
 };
 
 static int udl_usb_probe(struct usb_interface *interface,
-			 const struct usb_device_id *id)
+						 const struct usb_device_id *id)
 {
 	struct usb_device *udev = interface_to_usbdev(interface);
 	struct drm_device *dev;
 	int r;
 
 	dev = drm_dev_alloc(&driver, &interface->dev);
+
 	if (IS_ERR(dev))
+	{
 		return PTR_ERR(dev);
+	}
 
 	r = drm_dev_register(dev, (unsigned long)udev);
+
 	if (r)
+	{
 		goto err_free;
+	}
 
 	usb_set_intfdata(interface, dev);
 	DRM_INFO("Initialized udl on minor %d\n", dev->primary->index);
@@ -120,19 +129,23 @@ static void udl_usb_disconnect(struct usb_interface *interface)
  * which is compatible with all known USB 2.0 era graphics chips and firmware,
  * but allows DisplayLink to increment those for any future incompatible chips
  */
-static struct usb_device_id id_table[] = {
-	{.idVendor = 0x17e9, .bInterfaceClass = 0xff,
-	 .bInterfaceSubClass = 0x00,
-	 .bInterfaceProtocol = 0x00,
-	 .match_flags = USB_DEVICE_ID_MATCH_VENDOR |
-			USB_DEVICE_ID_MATCH_INT_CLASS |
-			USB_DEVICE_ID_MATCH_INT_SUBCLASS |
-			USB_DEVICE_ID_MATCH_INT_PROTOCOL,},
+static struct usb_device_id id_table[] =
+{
+	{
+		.idVendor = 0x17e9, .bInterfaceClass = 0xff,
+		.bInterfaceSubClass = 0x00,
+		.bInterfaceProtocol = 0x00,
+		.match_flags = USB_DEVICE_ID_MATCH_VENDOR |
+		USB_DEVICE_ID_MATCH_INT_CLASS |
+		USB_DEVICE_ID_MATCH_INT_SUBCLASS |
+		USB_DEVICE_ID_MATCH_INT_PROTOCOL,
+	},
 	{},
 };
 MODULE_DEVICE_TABLE(usb, id_table);
 
-static struct usb_driver udl_driver = {
+static struct usb_driver udl_driver =
+{
 	.name = "udl",
 	.probe = udl_usb_probe,
 	.disconnect = udl_usb_disconnect,

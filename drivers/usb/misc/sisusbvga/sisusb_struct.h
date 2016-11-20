@@ -51,7 +51,8 @@
 #ifndef _SISUSB_STRUCT_H_
 #define _SISUSB_STRUCT_H_
 
-struct SiS_St {
+struct SiS_St
+{
 	unsigned char St_ModeID;
 	unsigned short St_ModeFlag;
 	unsigned char St_StTableIndex;
@@ -63,7 +64,8 @@ struct SiS_St {
 	unsigned char St_PDC;
 };
 
-struct SiS_StandTable {
+struct SiS_StandTable
+{
 	unsigned char CRT_COLS;
 	unsigned char ROWS;
 	unsigned char CHAR_HEIGHT;
@@ -75,12 +77,14 @@ struct SiS_StandTable {
 	unsigned char GRC[9];
 };
 
-struct SiS_StResInfo_S {
+struct SiS_StResInfo_S
+{
 	unsigned short HTotal;
 	unsigned short VTotal;
 };
 
-struct SiS_Ext {
+struct SiS_Ext
+{
 	unsigned char Ext_ModeID;
 	unsigned short Ext_ModeFlag;
 	unsigned short Ext_VESAID;
@@ -93,7 +97,8 @@ struct SiS_Ext {
 	char ROMMODEIDX661;
 };
 
-struct SiS_Ext2 {
+struct SiS_Ext2
+{
 	unsigned short Ext_InfoFlag;
 	unsigned char Ext_CRT1CRTC;
 	unsigned char Ext_CRTVCLK;
@@ -107,23 +112,27 @@ struct SiS_Ext2 {
 	unsigned char Ext_FakeCRT2Clk;
 };
 
-struct SiS_CRT1Table {
+struct SiS_CRT1Table
+{
 	unsigned char CR[17];
 };
 
-struct SiS_VCLKData {
+struct SiS_VCLKData
+{
 	unsigned char SR2B, SR2C;
 	unsigned short CLOCK;
 };
 
-struct SiS_ModeResInfo {
+struct SiS_ModeResInfo
+{
 	unsigned short HTotal;
 	unsigned short VTotal;
 	unsigned char XChar;
 	unsigned char YChar;
 };
 
-struct SiS_Private {
+struct SiS_Private
+{
 	void *sisusb;
 
 	unsigned long IOAddress;

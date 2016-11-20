@@ -32,7 +32,8 @@
 
 /* Module Parameters */
 static unsigned int num_modules = CMODIO_MAX_MODULES;
-static char *modules[CMODIO_MAX_MODULES] = {
+static char *modules[CMODIO_MAX_MODULES] =
+{
 	"empty", "empty", "empty", "empty",
 };
 
@@ -42,7 +43,8 @@ MODULE_PARM_DESC(modules, "MODULbus modules attached to the carrier board");
 /* Unique Device Id */
 static unsigned int cmodio_id;
 
-struct cmodio_device {
+struct cmodio_device
+{
 	/* Parent PCI device */
 	struct pci_dev *pdev;
 
@@ -63,8 +65,8 @@ struct cmodio_device {
  */
 
 static int cmodio_setup_subdevice(struct cmodio_device *priv,
-					    char *name, unsigned int devno,
-					    unsigned int modno)
+								  char *name, unsigned int devno,
+								  unsigned int modno)
 {
 	struct janz_platform_data *pdata;
 	struct mfd_cell *cell;
@@ -126,10 +128,14 @@ static int cmodio_probe_submodules(struct cmodio_device *priv)
 	char *name;
 	int i;
 
-	for (i = 0; i < num_modules; i++) {
+	for (i = 0; i < num_modules; i++)
+	{
 		name = modules[i];
+
 		if (!strcmp(name, "") || !strcmp(name, "empty"))
+		{
 			continue;
+		}
 
 		dev_dbg(&priv->pdev->dev, "MODULbus %d: name %s\n", i, name);
 		cmodio_setup_subdevice(priv, name, num_probed, i);
@@ -137,16 +143,17 @@ static int cmodio_probe_submodules(struct cmodio_device *priv)
 	}
 
 	/* print an error message if no modules were probed */
-	if (num_probed == 0) {
+	if (num_probed == 0)
+	{
 		dev_err(&priv->pdev->dev, "no MODULbus modules specified, "
-					  "please set the ``modules'' kernel "
-					  "parameter according to your "
-					  "hardware configuration\n");
+				"please set the ``modules'' kernel "
+				"parameter according to your "
+				"hardware configuration\n");
 		return -ENODEV;
 	}
 
 	return mfd_add_devices(&pdev->dev, 0, priv->cells,
-			       num_probed, NULL, pdev->irq, NULL);
+						   num_probed, NULL, pdev->irq, NULL);
 }
 
 /*
@@ -154,7 +161,7 @@ static int cmodio_probe_submodules(struct cmodio_device *priv)
  */
 
 static ssize_t mbus_show(struct device *dev, struct device_attribute *attr,
-			 char *buf)
+						 char *buf)
 {
 	struct cmodio_device *priv = dev_get_drvdata(dev);
 
@@ -163,12 +170,14 @@ static ssize_t mbus_show(struct device *dev, struct device_attribute *attr,
 
 static DEVICE_ATTR(modulbus_number, S_IRUGO, mbus_show, NULL);
 
-static struct attribute *cmodio_sysfs_attrs[] = {
+static struct attribute *cmodio_sysfs_attrs[] =
+{
 	&dev_attr_modulbus_number.attr,
 	NULL,
 };
 
-static const struct attribute_group cmodio_sysfs_attr_group = {
+static const struct attribute_group cmodio_sysfs_attr_group =
+{
 	.attrs = cmodio_sysfs_attrs,
 };
 
@@ -177,13 +186,15 @@ static const struct attribute_group cmodio_sysfs_attr_group = {
  */
 
 static int cmodio_pci_probe(struct pci_dev *dev,
-				      const struct pci_device_id *id)
+							const struct pci_device_id *id)
 {
 	struct cmodio_device *priv;
 	int ret;
 
 	priv = devm_kzalloc(&dev->dev, sizeof(*priv), GFP_KERNEL);
-	if (!priv) {
+
+	if (!priv)
+	{
 		dev_err(&dev->dev, "unable to allocate private data\n");
 		return -ENOMEM;
 	}
@@ -193,21 +204,27 @@ static int cmodio_pci_probe(struct pci_dev *dev,
 
 	/* Hardware Initialization */
 	ret = pci_enable_device(dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&dev->dev, "unable to enable device\n");
 		return ret;
 	}
 
 	pci_set_master(dev);
 	ret = pci_request_regions(dev, DRV_NAME);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&dev->dev, "unable to request regions\n");
 		goto out_pci_disable_device;
 	}
 
 	/* Onboard configuration registers */
 	priv->ctrl = pci_ioremap_bar(dev, 4);
-	if (!priv->ctrl) {
+
+	if (!priv->ctrl)
+	{
 		dev_err(&dev->dev, "unable to remap onboard regs\n");
 		ret = -ENOMEM;
 		goto out_pci_release_regions;
@@ -218,7 +235,9 @@ static int cmodio_pci_probe(struct pci_dev *dev,
 
 	/* Add the MODULbus number (hex switch value) to the device's sysfs */
 	ret = sysfs_create_group(&dev->dev.kobj, &cmodio_sysfs_attr_group);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&dev->dev, "unable to create sysfs attributes\n");
 		goto out_unmap_ctrl;
 	}
@@ -231,7 +250,9 @@ static int cmodio_pci_probe(struct pci_dev *dev,
 
 	/* Register drivers for all submodules */
 	ret = cmodio_probe_submodules(priv);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&dev->dev, "unable to probe submodules\n");
 		goto out_sysfs_remove_group;
 	}
@@ -264,7 +285,8 @@ static void cmodio_pci_remove(struct pci_dev *dev)
 #define PCI_VENDOR_ID_JANZ		0x13c3
 
 /* The list of devices that this module will support */
-static const struct pci_device_id cmodio_pci_ids[] = {
+static const struct pci_device_id cmodio_pci_ids[] =
+{
 	{ PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9030, PCI_VENDOR_ID_JANZ, 0x0101 },
 	{ PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050, PCI_VENDOR_ID_JANZ, 0x0100 },
 	{ PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9030, PCI_VENDOR_ID_JANZ, 0x0201 },
@@ -275,7 +297,8 @@ static const struct pci_device_id cmodio_pci_ids[] = {
 };
 MODULE_DEVICE_TABLE(pci, cmodio_pci_ids);
 
-static struct pci_driver cmodio_pci_driver = {
+static struct pci_driver cmodio_pci_driver =
+{
 	.name     = DRV_NAME,
 	.id_table = cmodio_pci_ids,
 	.probe    = cmodio_pci_probe,

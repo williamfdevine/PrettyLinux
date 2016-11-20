@@ -26,7 +26,8 @@
 #include "../wlcore/cmd.h"
 #include "../wlcore/scan.h"
 
-struct tracking_ch_params {
+struct tracking_ch_params
+{
 	struct conn_scan_ch_params channel;
 
 	__le32 bssid_lsb;
@@ -45,7 +46,8 @@ enum
 
 #define WL18XX_MAX_CHANNELS_5GHZ 32
 
-struct wl18xx_cmd_scan_params {
+struct wl18xx_cmd_scan_params
+{
 	struct wl1271_cmd_header header;
 
 	u8 role_id;
@@ -80,8 +82,10 @@ struct wl18xx_cmd_scan_params {
 	u8 total_cycles; /* 0 - infinite */
 	u8 padding[2];
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			struct conn_scan_ch_params channels_2[MAX_CHANNELS_2GHZ];
 			struct conn_scan_ch_params channels_5[WL18XX_MAX_CHANNELS_5GHZ];
 			struct conn_scan_ch_params channels_4[MAX_CHANNELS_4GHZ];
@@ -108,7 +112,8 @@ struct wl18xx_cmd_scan_params {
 	u8 padding1[3];
 } __packed;
 
-struct wl18xx_cmd_scan_stop {
+struct wl18xx_cmd_scan_stop
+{
 	struct wl1271_cmd_header header;
 
 	u8 role_id;
@@ -117,11 +122,11 @@ struct wl18xx_cmd_scan_stop {
 } __packed;
 
 int wl18xx_scan_start(struct wl1271 *wl, struct wl12xx_vif *wlvif,
-		      struct cfg80211_scan_request *req);
+					  struct cfg80211_scan_request *req);
 int wl18xx_scan_stop(struct wl1271 *wl, struct wl12xx_vif *wlvif);
 void wl18xx_scan_completed(struct wl1271 *wl, struct wl12xx_vif *wlvif);
 int wl18xx_sched_scan_start(struct wl1271 *wl, struct wl12xx_vif *wlvif,
-			    struct cfg80211_sched_scan_request *req,
-			    struct ieee80211_scan_ies *ies);
+							struct cfg80211_sched_scan_request *req,
+							struct ieee80211_scan_ies *ies);
 void wl18xx_scan_sched_scan_stop(struct wl1271 *wl, struct wl12xx_vif *wlvif);
 #endif

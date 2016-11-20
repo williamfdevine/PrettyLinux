@@ -43,7 +43,7 @@
 #include <asm/byteorder.h>
 
 #ifndef __KERNEL__
-#include <arpa/inet.h> /* for ntohs etc. */
+	#include <arpa/inet.h> /* for ntohs etc. */
 #endif
 
 /*
@@ -173,7 +173,7 @@
 #define TIPC_MAX_LINK_TOL 30000
 
 #if (TIPC_MIN_LINK_TOL < 16)
-#error "TIPC_MIN_LINK_TOL is too small (abort limit may be NaN)"
+	#error "TIPC_MIN_LINK_TOL is too small (abort limit may be NaN)"
 #endif
 
 /*
@@ -185,31 +185,36 @@
 #define TIPC_MAX_LINK_WIN 8191
 
 
-struct tipc_node_info {
+struct tipc_node_info
+{
 	__be32 addr;			/* network address of node */
 	__be32 up;			/* 0=down, 1= up */
 };
 
-struct tipc_link_info {
+struct tipc_link_info
+{
 	__be32 dest;			/* network address of peer node */
 	__be32 up;			/* 0=down, 1=up */
 	char str[TIPC_MAX_LINK_NAME];	/* link name */
 };
 
-struct tipc_bearer_config {
+struct tipc_bearer_config
+{
 	__be32 priority;		/* Range [1,31]. Override per link  */
 	__be32 disc_domain;		/* <Z.C.N> describing desired nodes */
 	char name[TIPC_MAX_BEARER_NAME];
 };
 
-struct tipc_link_config {
+struct tipc_link_config
+{
 	__be32 value;
 	char name[TIPC_MAX_LINK_NAME];
 };
 
 #define TIPC_NTQ_ALLTYPES 0x80000000
 
-struct tipc_name_table_query {
+struct tipc_name_table_query
+{
 	__be32 depth;	/* 1:type, 2:+name info, 3:+port info, 4+:+debug info */
 	__be32 type;	/* {t,l,u} info ignored if high bit of "depth" is set */
 	__be32 lowbound; /* (i.e. displays all entries of name table) */
@@ -239,7 +244,8 @@ struct tipc_name_table_query {
  * There must not be any padding between the TLV descriptor and its value.
  */
 
-struct tlv_desc {
+struct tlv_desc
+{
 	__be16 tlv_len;		/* TLV length (descriptor + value) */
 	__be16 tlv_type;		/* TLV identifier */
 };
@@ -263,13 +269,13 @@ static inline int TLV_OK(const void *tlv, __u16 space)
 	 */
 
 	return (space >= TLV_SPACE(0)) &&
-		(ntohs(((struct tlv_desc *)tlv)->tlv_len) <= space);
+		   (ntohs(((struct tlv_desc *)tlv)->tlv_len) <= space);
 }
 
 static inline int TLV_CHECK(const void *tlv, __u16 space, __u16 exp_type)
 {
 	return TLV_OK(tlv, space) &&
-		(ntohs(((struct tlv_desc *)tlv)->tlv_type) == exp_type);
+		   (ntohs(((struct tlv_desc *)tlv)->tlv_type) == exp_type);
 }
 
 static inline int TLV_GET_LEN(struct tlv_desc *tlv)
@@ -301,8 +307,12 @@ static inline int TLV_SET(void *tlv, __u16 type, void *data, __u16 len)
 	tlv_ptr = (struct tlv_desc *)tlv;
 	tlv_ptr->tlv_type = htons(type);
 	tlv_ptr->tlv_len  = htons(tlv_len);
+
 	if (len && data)
+	{
 		memcpy(TLV_DATA(tlv_ptr), data, tlv_len);
+	}
+
 	return TLV_SPACE(len);
 }
 
@@ -311,13 +321,14 @@ static inline int TLV_SET(void *tlv, __u16 type, void *data, __u16 len)
  * containing multiple TLVs.
  */
 
-struct tlv_list_desc {
+struct tlv_list_desc
+{
 	struct tlv_desc *tlv_ptr;	/* ptr to current TLV */
 	__u32 tlv_space;		/* # bytes from curr TLV to list end */
 };
 
 static inline void TLV_LIST_INIT(struct tlv_list_desc *list,
-				 void *data, __u32 space)
+								 void *data, __u32 space)
 {
 	list->tlv_ptr = (struct tlv_desc *)data;
 	list->tlv_space = space;
@@ -357,7 +368,8 @@ static inline void TLV_LIST_STEP(struct tlv_list_desc *list)
 /*
  * TIPC specific header used in NETLINK_GENERIC requests.
  */
-struct tipc_genlmsghdr {
+struct tipc_genlmsghdr
+{
 	__u32 dest;		/* Destination address */
 	__u16 cmd;		/* Command */
 	__u16 reserved;		/* Unused */
@@ -373,7 +385,8 @@ struct tipc_genlmsghdr {
  * that follows.
  */
 
-struct tipc_cfg_msg_hdr {
+struct tipc_cfg_msg_hdr
+{
 	__be32 tcm_len;		/* Message length (including header) */
 	__be16 tcm_type;	/* Command type */
 	__be16 tcm_flags;	/* Additional flags */
@@ -389,7 +402,7 @@ struct tipc_cfg_msg_hdr {
 #define TCM_DATA(tcm_hdr)   ((void *)((char *)(tcm_hdr) + TCM_LENGTH(0)))
 
 static inline int TCM_SET(void *msg, __u16 cmd, __u16 flags,
-			  void *data, __u16 data_len)
+						  void *data, __u16 data_len)
 {
 	struct tipc_cfg_msg_hdr *tcm_hdr;
 	int msg_len;
@@ -399,8 +412,12 @@ static inline int TCM_SET(void *msg, __u16 cmd, __u16 flags,
 	tcm_hdr->tcm_len   = htonl(msg_len);
 	tcm_hdr->tcm_type  = htons(cmd);
 	tcm_hdr->tcm_flags = htons(flags);
+
 	if (data_len && data)
+	{
 		memcpy(TCM_DATA(msg), data, data_len);
+	}
+
 	return TCM_SPACE(data_len);
 }
 

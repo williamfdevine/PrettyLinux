@@ -8,22 +8,23 @@ struct kmmio_probe;
 struct pt_regs;
 
 typedef void (*kmmio_pre_handler_t)(struct kmmio_probe *,
-				struct pt_regs *, unsigned long addr);
+									struct pt_regs *, unsigned long addr);
 typedef void (*kmmio_post_handler_t)(struct kmmio_probe *,
-				unsigned long condition, struct pt_regs *);
+									 unsigned long condition, struct pt_regs *);
 
-struct kmmio_probe {
-	/* kmmio internal list: */
-	struct list_head	list;
-	/* start location of the probe point: */
-	unsigned long		addr;
-	/* length of the probe region: */
-	unsigned long		len;
-	/* Called before addr is executed: */
-	kmmio_pre_handler_t	pre_handler;
-	/* Called after addr is executed: */
-	kmmio_post_handler_t	post_handler;
-	void			*private;
+struct kmmio_probe
+{
+		/* kmmio internal list: */
+		struct list_head	list;
+		/* start location of the probe point: */
+		unsigned long		addr;
+		/* length of the probe region: */
+		unsigned long		len;
+		/* Called before addr is executed: */
+		kmmio_pre_handler_t	pre_handler;
+		/* Called after addr is executed: */
+		kmmio_post_handler_t	post_handler;
+		void			*private;
 };
 
 extern unsigned int kmmio_count;
@@ -45,7 +46,7 @@ extern int kmmio_handler(struct pt_regs *regs, unsigned long addr);
 
 /* Called from ioremap.c */
 extern void mmiotrace_ioremap(resource_size_t offset, unsigned long size,
-							void __iomem *addr);
+							  void __iomem *addr);
 extern void mmiotrace_iounmap(volatile void __iomem *addr);
 
 /* For anyone to insert markers. Remember trailing newline. */
@@ -62,7 +63,7 @@ static inline int kmmio_handler(struct pt_regs *regs, unsigned long addr)
 }
 
 static inline void mmiotrace_ioremap(resource_size_t offset,
-					unsigned long size, void __iomem *addr)
+									 unsigned long size, void __iomem *addr)
 {
 }
 
@@ -76,7 +77,8 @@ static inline __printf(1, 2) int mmiotrace_printk(const char *fmt, ...)
 }
 #endif /* CONFIG_MMIOTRACE */
 
-enum mm_io_opcode {
+enum mm_io_opcode
+{
 	MMIO_READ	= 0x1,	/* struct mmiotrace_rw */
 	MMIO_WRITE	= 0x2,	/* struct mmiotrace_rw */
 	MMIO_PROBE	= 0x3,	/* struct mmiotrace_map */
@@ -84,7 +86,8 @@ enum mm_io_opcode {
 	MMIO_UNKNOWN_OP = 0x5,	/* struct mmiotrace_rw */
 };
 
-struct mmiotrace_rw {
+struct mmiotrace_rw
+{
 	resource_size_t	phys;	/* PCI address of register */
 	unsigned long	value;
 	unsigned long	pc;	/* optional program counter */
@@ -93,7 +96,8 @@ struct mmiotrace_rw {
 	unsigned char	width;	/* size of register access in bytes */
 };
 
-struct mmiotrace_map {
+struct mmiotrace_map
+{
 	resource_size_t	phys;	/* base address in PCI space */
 	unsigned long	virt;	/* base virtual address */
 	unsigned long	len;	/* mapping size */

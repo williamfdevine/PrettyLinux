@@ -41,15 +41,18 @@ typedef struct get_para_s GET_PARA;
    IDI_CALL
    -------------------------------------------------------- */
 typedef void (IDI_CALL_LINK_T *IDI_CALL)(ENTITY IDI_CALL_ENTITY_T *);
-typedef struct {
+typedef struct
+{
 	word length;          /* length of data/parameter field           */
 	byte P[270];          /* data/parameter field                     */
 } DBUFFER;
-struct get_name_s {
+struct get_name_s
+{
 	word command;         /* command = 0x0100 */
 	byte name[BOARD_NAME_LENGTH];
 };
-struct postcall_s {
+struct postcall_s
+{
 	word      command;                           /* command = 0x0300 */
 	word      dummy;                             /* not used */
 	void      (*callback)(void *);      /* call back */
@@ -59,16 +62,19 @@ struct postcall_s {
 #define REQ_PARA_LEN             1   /* number of data bytes */
 #define L1_STARTUP_DOWN_POS      0   /* '-y' command line parameter in......*/
 #define L1_STARTUP_DOWN_MSK   0x01   /* first byte position (index 0) with value 0x01 */
-struct get_para_s {
+struct get_para_s
+{
 	word  command;            /* command = 0x0600 */
 	byte  len;                /* max length of para field in bytes */
 	byte  para[REQ_PARA_LEN]; /* parameter field */
 };
-struct buffers_s {
+struct buffers_s
+{
 	word PLength;
 	byte *P;
 };
-struct entity_s {
+struct entity_s
+{
 	byte                  Req;            /* pending request          */
 	byte                  Rc;             /* return code received     */
 	byte                  Ind;            /* indication received      */
@@ -97,7 +103,8 @@ struct entity_s {
 	word                  XOffset;        /* offset in x-buffer       */
 	word                  ROffset;        /* offset in r-buffer       */
 };
-typedef struct {
+typedef struct
+{
 	byte                  type;
 	byte                  channels;
 	word                  features;
@@ -162,7 +169,8 @@ typedef struct {
 /* --------------------------------------------------------------------------
    Adapter array change notification framework
    -------------------------------------------------------------------------- */
-typedef void (IDI_CALL_LINK_T *didd_adapter_change_callback_t)(void IDI_CALL_ENTITY_T *context, DESCRIPTOR *adapter, int removal);
+typedef void (IDI_CALL_LINK_T *didd_adapter_change_callback_t)(void IDI_CALL_ENTITY_T *context, DESCRIPTOR *adapter,
+		int removal);
 /* -------------------------------------------------------------------------- */
 #define DI_VOICE          0x0 /* obsolete define */
 #define DI_FAX3           0x1

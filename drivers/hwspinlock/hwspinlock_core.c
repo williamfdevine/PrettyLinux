@@ -107,27 +107,42 @@ int __hwspin_trylock(struct hwspinlock *hwlock, int mode, unsigned long *flags)
 	 *    'scheduling while atomic' etc.)
 	 */
 	if (mode == HWLOCK_IRQSTATE)
+	{
 		ret = spin_trylock_irqsave(&hwlock->lock, *flags);
+	}
 	else if (mode == HWLOCK_IRQ)
+	{
 		ret = spin_trylock_irq(&hwlock->lock);
+	}
 	else
+	{
 		ret = spin_trylock(&hwlock->lock);
+	}
 
 	/* is lock already taken by another context on the local cpu ? */
 	if (!ret)
+	{
 		return -EBUSY;
+	}
 
 	/* try to take the hwspinlock device */
 	ret = hwlock->bank->ops->trylock(hwlock);
 
 	/* if hwlock is already taken, undo spin_trylock_* and exit */
-	if (!ret) {
+	if (!ret)
+	{
 		if (mode == HWLOCK_IRQSTATE)
+		{
 			spin_unlock_irqrestore(&hwlock->lock, *flags);
+		}
 		else if (mode == HWLOCK_IRQ)
+		{
 			spin_unlock_irq(&hwlock->lock);
+		}
 		else
+		{
 			spin_unlock(&hwlock->lock);
+		}
 
 		return -EBUSY;
 	}
@@ -176,32 +191,40 @@ EXPORT_SYMBOL_GPL(__hwspin_trylock);
  * busy after @timeout msecs). The function will never sleep.
  */
 int __hwspin_lock_timeout(struct hwspinlock *hwlock, unsigned int to,
-					int mode, unsigned long *flags)
+						  int mode, unsigned long *flags)
 {
 	int ret;
 	unsigned long expire;
 
 	expire = msecs_to_jiffies(to) + jiffies;
 
-	for (;;) {
+	for (;;)
+	{
 		/* Try to take the hwspinlock */
 		ret = __hwspin_trylock(hwlock, mode, flags);
+
 		if (ret != -EBUSY)
+		{
 			break;
+		}
 
 		/*
 		 * The lock is already taken, let's check if the user wants
 		 * us to try again
 		 */
 		if (time_is_before_eq_jiffies(expire))
+		{
 			return -ETIMEDOUT;
+		}
 
 		/*
 		 * Allow platform-specific relax handlers to prevent
 		 * hogging the interconnect (no sleeping, though)
 		 */
 		if (hwlock->bank->ops->relax)
+		{
 			hwlock->bank->ops->relax(hwlock);
+		}
 	}
 
 	return ret;
@@ -250,11 +273,17 @@ void __hwspin_unlock(struct hwspinlock *hwlock, int mode, unsigned long *flags)
 
 	/* Undo the spin_trylock{_irq, _irqsave} called while locking */
 	if (mode == HWLOCK_IRQSTATE)
+	{
 		spin_unlock_irqrestore(&hwlock->lock, *flags);
+	}
 	else if (mode == HWLOCK_IRQ)
+	{
 		spin_unlock_irq(&hwlock->lock);
+	}
 	else
+	{
 		spin_unlock(&hwlock->lock);
+	}
 }
 EXPORT_SYMBOL_GPL(__hwspin_unlock);
 
@@ -273,7 +302,9 @@ static inline int
 of_hwspin_lock_simple_xlate(const struct of_phandle_args *hwlock_spec)
 {
 	if (WARN_ON(hwlock_spec->args_count != 1))
+	{
 		return -EINVAL;
+	}
 
 	return hwlock_spec->args[0];
 }
@@ -302,36 +333,52 @@ int of_hwspin_lock_get_id(struct device_node *np, int index)
 	int ret;
 
 	ret = of_parse_phandle_with_args(np, "hwlocks", "#hwlock-cells", index,
-					 &args);
+									 &args);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Find the hwspinlock device: we need its base_id */
 	ret = -EPROBE_DEFER;
 	rcu_read_lock();
-	radix_tree_for_each_slot(slot, &hwspinlock_tree, &iter, 0) {
+	radix_tree_for_each_slot(slot, &hwspinlock_tree, &iter, 0)
+	{
 		hwlock = radix_tree_deref_slot(slot);
+
 		if (unlikely(!hwlock))
+		{
 			continue;
-		if (radix_tree_deref_retry(hwlock)) {
+		}
+
+		if (radix_tree_deref_retry(hwlock))
+		{
 			slot = radix_tree_iter_retry(&iter);
 			continue;
 		}
 
-		if (hwlock->bank->dev->of_node == args.np) {
+		if (hwlock->bank->dev->of_node == args.np)
+		{
 			ret = 0;
 			break;
 		}
 	}
 	rcu_read_unlock();
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	id = of_hwspin_lock_simple_xlate(&args);
-	if (id < 0 || id >= hwlock->bank->num_locks) {
+
+	if (id < 0 || id >= hwlock->bank->num_locks)
+	{
 		ret = -EINVAL;
 		goto out;
 	}
+
 	id += hwlock->bank->base_id;
 
 out:
@@ -348,9 +395,14 @@ static int hwspin_lock_register_single(struct hwspinlock *hwlock, int id)
 	mutex_lock(&hwspinlock_tree_lock);
 
 	ret = radix_tree_insert(&hwspinlock_tree, id, hwlock);
-	if (ret) {
+
+	if (ret)
+	{
 		if (ret == -EEXIST)
+		{
 			pr_err("hwspinlock id %d already exists!\n", id);
+		}
+
 		goto out;
 	}
 
@@ -374,13 +426,17 @@ static struct hwspinlock *hwspin_lock_unregister_single(unsigned int id)
 
 	/* make sure the hwspinlock is not in use (tag is set) */
 	ret = radix_tree_tag_get(&hwspinlock_tree, id, HWSPINLOCK_UNUSED);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		pr_err("hwspinlock %d still in use (or not present)\n", id);
 		goto out;
 	}
 
 	hwlock = radix_tree_delete(&hwspinlock_tree, id);
-	if (!hwlock) {
+
+	if (!hwlock)
+	{
 		pr_err("failed to delete hwspinlock %d\n", id);
 		goto out;
 	}
@@ -406,13 +462,14 @@ out:
  * Returns 0 on success, or an appropriate error code on failure
  */
 int hwspin_lock_register(struct hwspinlock_device *bank, struct device *dev,
-		const struct hwspinlock_ops *ops, int base_id, int num_locks)
+						 const struct hwspinlock_ops *ops, int base_id, int num_locks)
 {
 	struct hwspinlock *hwlock;
 	int ret = 0, i;
 
 	if (!bank || !ops || !dev || !num_locks || !ops->trylock ||
-							!ops->unlock) {
+		!ops->unlock)
+	{
 		pr_err("invalid parameters\n");
 		return -EINVAL;
 	}
@@ -422,22 +479,30 @@ int hwspin_lock_register(struct hwspinlock_device *bank, struct device *dev,
 	bank->base_id = base_id;
 	bank->num_locks = num_locks;
 
-	for (i = 0; i < num_locks; i++) {
+	for (i = 0; i < num_locks; i++)
+	{
 		hwlock = &bank->lock[i];
 
 		spin_lock_init(&hwlock->lock);
 		hwlock->bank = bank;
 
 		ret = hwspin_lock_register_single(hwlock, base_id + i);
+
 		if (ret)
+		{
 			goto reg_failed;
+		}
 	}
 
 	return 0;
 
 reg_failed:
+
 	while (--i >= 0)
+	{
 		hwspin_lock_unregister_single(base_id + i);
+	}
+
 	return ret;
 }
 EXPORT_SYMBOL_GPL(hwspin_lock_register);
@@ -458,12 +523,16 @@ int hwspin_lock_unregister(struct hwspinlock_device *bank)
 	struct hwspinlock *hwlock, *tmp;
 	int i;
 
-	for (i = 0; i < bank->num_locks; i++) {
+	for (i = 0; i < bank->num_locks; i++)
+	{
 		hwlock = &bank->lock[i];
 
 		tmp = hwspin_lock_unregister_single(bank->base_id + i);
+
 		if (!tmp)
+		{
 			return -EBUSY;
+		}
 
 		/* self-sanity check that should never fail */
 		WARN_ON(tmp != hwlock);
@@ -490,14 +559,17 @@ static int __hwspin_lock_request(struct hwspinlock *hwlock)
 	int ret;
 
 	/* prevent underlying implementation from being removed */
-	if (!try_module_get(dev->driver->owner)) {
+	if (!try_module_get(dev->driver->owner))
+	{
 		dev_err(dev, "%s: can't get owner\n", __func__);
 		return -EINVAL;
 	}
 
 	/* notify PM core that power is now needed */
 	ret = pm_runtime_get_sync(dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "%s: can't power on device\n", __func__);
 		pm_runtime_put_noidle(dev);
 		module_put(dev->driver->owner);
@@ -506,7 +578,7 @@ static int __hwspin_lock_request(struct hwspinlock *hwlock)
 
 	/* mark hwspinlock as used, should not fail */
 	tmp = radix_tree_tag_clear(&hwspinlock_tree, hwlock_to_id(hwlock),
-							HWSPINLOCK_UNUSED);
+							   HWSPINLOCK_UNUSED);
 
 	/* self-sanity check that should never fail */
 	WARN_ON(tmp != hwlock);
@@ -522,7 +594,8 @@ static int __hwspin_lock_request(struct hwspinlock *hwlock)
  */
 int hwspin_lock_get_id(struct hwspinlock *hwlock)
 {
-	if (!hwlock) {
+	if (!hwlock)
+	{
 		pr_err("invalid hwlock\n");
 		return -EINVAL;
 	}
@@ -553,8 +626,10 @@ struct hwspinlock *hwspin_lock_request(void)
 
 	/* look for an unused lock */
 	ret = radix_tree_gang_lookup_tag(&hwspinlock_tree, (void **)&hwlock,
-						0, 1, HWSPINLOCK_UNUSED);
-	if (ret == 0) {
+									 0, 1, HWSPINLOCK_UNUSED);
+
+	if (ret == 0)
+	{
 		pr_warn("a free hwspinlock is not available\n");
 		hwlock = NULL;
 		goto out;
@@ -565,8 +640,11 @@ struct hwspinlock *hwspin_lock_request(void)
 
 	/* mark as used and power up */
 	ret = __hwspin_lock_request(hwlock);
+
 	if (ret < 0)
+	{
 		hwlock = NULL;
+	}
 
 out:
 	mutex_unlock(&hwspinlock_tree_lock);
@@ -596,7 +674,9 @@ struct hwspinlock *hwspin_lock_request_specific(unsigned int id)
 
 	/* make sure this hwspinlock exists */
 	hwlock = radix_tree_lookup(&hwspinlock_tree, id);
-	if (!hwlock) {
+
+	if (!hwlock)
+	{
 		pr_warn("hwspinlock %u does not exist\n", id);
 		goto out;
 	}
@@ -606,7 +686,9 @@ struct hwspinlock *hwspin_lock_request_specific(unsigned int id)
 
 	/* make sure this hwspinlock is unused */
 	ret = radix_tree_tag_get(&hwspinlock_tree, id, HWSPINLOCK_UNUSED);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		pr_warn("hwspinlock %u is already in use\n", id);
 		hwlock = NULL;
 		goto out;
@@ -614,8 +696,11 @@ struct hwspinlock *hwspin_lock_request_specific(unsigned int id)
 
 	/* mark as used and power up */
 	ret = __hwspin_lock_request(hwlock);
+
 	if (ret < 0)
+	{
 		hwlock = NULL;
+	}
 
 out:
 	mutex_unlock(&hwspinlock_tree_lock);
@@ -641,7 +726,8 @@ int hwspin_lock_free(struct hwspinlock *hwlock)
 	struct hwspinlock *tmp;
 	int ret;
 
-	if (!hwlock) {
+	if (!hwlock)
+	{
 		pr_err("invalid hwlock\n");
 		return -EINVAL;
 	}
@@ -651,8 +737,10 @@ int hwspin_lock_free(struct hwspinlock *hwlock)
 
 	/* make sure the hwspinlock is used */
 	ret = radix_tree_tag_get(&hwspinlock_tree, hwlock_to_id(hwlock),
-							HWSPINLOCK_UNUSED);
-	if (ret == 1) {
+							 HWSPINLOCK_UNUSED);
+
+	if (ret == 1)
+	{
 		dev_err(dev, "%s: hwlock is already free\n", __func__);
 		dump_stack();
 		ret = -EINVAL;
@@ -661,12 +749,15 @@ int hwspin_lock_free(struct hwspinlock *hwlock)
 
 	/* notify the underlying device that power is not needed */
 	ret = pm_runtime_put(dev);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	/* mark this hwspinlock as available */
 	tmp = radix_tree_tag_set(&hwspinlock_tree, hwlock_to_id(hwlock),
-							HWSPINLOCK_UNUSED);
+							 HWSPINLOCK_UNUSED);
 
 	/* sanity check (this shouldn't happen) */
 	WARN_ON(tmp != hwlock);

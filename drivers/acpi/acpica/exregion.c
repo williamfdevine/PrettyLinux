@@ -67,10 +67,10 @@ ACPI_MODULE_NAME("exregion")
  ******************************************************************************/
 acpi_status
 acpi_ex_system_memory_space_handler(u32 function,
-				    acpi_physical_address address,
-				    u32 bit_width,
-				    u64 *value,
-				    void *handler_context, void *region_context)
+									acpi_physical_address address,
+									u32 bit_width,
+									u64 *value,
+									void *handler_context, void *region_context)
 {
 	acpi_status status = AE_OK;
 	void *logical_addr_ptr = NULL;
@@ -86,32 +86,33 @@ acpi_ex_system_memory_space_handler(u32 function,
 
 	/* Validate and translate the bit width */
 
-	switch (bit_width) {
-	case 8:
+	switch (bit_width)
+	{
+		case 8:
 
-		length = 1;
-		break;
+			length = 1;
+			break;
 
-	case 16:
+		case 16:
 
-		length = 2;
-		break;
+			length = 2;
+			break;
 
-	case 32:
+		case 32:
 
-		length = 4;
-		break;
+			length = 4;
+			break;
 
-	case 64:
+		case 64:
 
-		length = 8;
-		break;
+			length = 8;
+			break;
 
-	default:
+		default:
 
-		ACPI_ERROR((AE_INFO, "Invalid SystemMemory width %u",
-			    bit_width));
-		return_ACPI_STATUS(AE_AML_OPERAND_VALUE);
+			ACPI_ERROR((AE_INFO, "Invalid SystemMemory width %u",
+						bit_width));
+			return_ACPI_STATUS(AE_AML_OPERAND_VALUE);
 	}
 
 #ifdef ACPI_MISALIGNMENT_NOT_SUPPORTED
@@ -120,9 +121,12 @@ acpi_ex_system_memory_space_handler(u32 function,
 	 * the request.
 	 */
 	(void)acpi_ut_short_divide((u64) address, length, NULL, &remainder);
-	if (remainder != 0) {
+
+	if (remainder != 0)
+	{
 		return_ACPI_STATUS(AE_AML_ALIGNMENT);
 	}
+
 #endif
 
 	/*
@@ -131,19 +135,21 @@ acpi_ex_system_memory_space_handler(u32 function,
 	 *    2) Address beyond the current mapping?
 	 */
 	if ((address < mem_info->mapped_physical_address) ||
-	    (((u64) address + length) > ((u64)
-					 mem_info->mapped_physical_address +
-					 mem_info->mapped_length))) {
+		(((u64) address + length) > ((u64)
+									 mem_info->mapped_physical_address +
+									 mem_info->mapped_length)))
+	{
 		/*
 		 * The request cannot be resolved by the current memory mapping;
 		 * Delete the existing mapping and create a new one.
 		 */
-		if (mem_info->mapped_length) {
+		if (mem_info->mapped_length)
+		{
 
 			/* Valid mapping, delete it */
 
 			acpi_os_unmap_memory(mem_info->mapped_logical_address,
-					     mem_info->mapped_length);
+								 mem_info->mapped_length);
 		}
 
 		/*
@@ -152,7 +158,7 @@ acpi_ex_system_memory_space_handler(u32 function,
 		 * page, nor will we cross a page boundary.
 		 */
 		map_length = (acpi_size)
-		    ((mem_info->address + mem_info->length) - address);
+					 ((mem_info->address + mem_info->length) - address);
 
 		/*
 		 * If mapping the entire remaining portion of the region will cross
@@ -166,24 +172,29 @@ acpi_ex_system_memory_space_handler(u32 function,
 		 * maximum window.
 		 */
 		page_boundary_map_length = (acpi_size)
-		    (ACPI_ROUND_UP(address, ACPI_DEFAULT_PAGE_SIZE) - address);
-		if (page_boundary_map_length == 0) {
+								   (ACPI_ROUND_UP(address, ACPI_DEFAULT_PAGE_SIZE) - address);
+
+		if (page_boundary_map_length == 0)
+		{
 			page_boundary_map_length = ACPI_DEFAULT_PAGE_SIZE;
 		}
 
-		if (map_length > page_boundary_map_length) {
+		if (map_length > page_boundary_map_length)
+		{
 			map_length = page_boundary_map_length;
 		}
 
 		/* Create a new mapping starting at the address given */
 
 		mem_info->mapped_logical_address =
-		    acpi_os_map_memory(address, map_length);
-		if (!mem_info->mapped_logical_address) {
+			acpi_os_map_memory(address, map_length);
+
+		if (!mem_info->mapped_logical_address)
+		{
 			ACPI_ERROR((AE_INFO,
-				    "Could not map memory at 0x%8.8X%8.8X, size %u",
-				    ACPI_FORMAT_UINT64(address),
-				    (u32)map_length));
+						"Could not map memory at 0x%8.8X%8.8X, size %u",
+						ACPI_FORMAT_UINT64(address),
+						(u32)map_length));
 			mem_info->mapped_length = 0;
 			return_ACPI_STATUS(AE_NO_MEMORY);
 		}
@@ -199,11 +210,11 @@ acpi_ex_system_memory_space_handler(u32 function,
 	 * access
 	 */
 	logical_addr_ptr = mem_info->mapped_logical_address +
-	    ((u64) address - (u64) mem_info->mapped_physical_address);
+					   ((u64) address - (u64) mem_info->mapped_physical_address);
 
 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-			  "System-Memory (width %u) R/W %u Address=%8.8X%8.8X\n",
-			  bit_width, function, ACPI_FORMAT_UINT64(address)));
+					  "System-Memory (width %u) R/W %u Address=%8.8X%8.8X\n",
+					  bit_width, function, ACPI_FORMAT_UINT64(address)));
 
 	/*
 	 * Perform the memory read or write
@@ -213,74 +224,80 @@ acpi_ex_system_memory_space_handler(u32 function,
 	 * transfer up into smaller (byte-size) chunks because the AML specifically
 	 * asked for a transfer width that the hardware may require.
 	 */
-	switch (function) {
-	case ACPI_READ:
+	switch (function)
+	{
+		case ACPI_READ:
 
-		*value = 0;
-		switch (bit_width) {
-		case 8:
+			*value = 0;
 
-			*value = (u64)ACPI_GET8(logical_addr_ptr);
+			switch (bit_width)
+			{
+				case 8:
+
+					*value = (u64)ACPI_GET8(logical_addr_ptr);
+					break;
+
+				case 16:
+
+					*value = (u64)ACPI_GET16(logical_addr_ptr);
+					break;
+
+				case 32:
+
+					*value = (u64)ACPI_GET32(logical_addr_ptr);
+					break;
+
+				case 64:
+
+					*value = (u64)ACPI_GET64(logical_addr_ptr);
+					break;
+
+				default:
+
+					/* bit_width was already validated */
+
+					break;
+			}
+
 			break;
 
-		case 16:
+		case ACPI_WRITE:
 
-			*value = (u64)ACPI_GET16(logical_addr_ptr);
-			break;
+			switch (bit_width)
+			{
+				case 8:
 
-		case 32:
+					ACPI_SET8(logical_addr_ptr, *value);
+					break;
 
-			*value = (u64)ACPI_GET32(logical_addr_ptr);
-			break;
+				case 16:
 
-		case 64:
+					ACPI_SET16(logical_addr_ptr, *value);
+					break;
 
-			*value = (u64)ACPI_GET64(logical_addr_ptr);
+				case 32:
+
+					ACPI_SET32(logical_addr_ptr, *value);
+					break;
+
+				case 64:
+
+					ACPI_SET64(logical_addr_ptr, *value);
+					break;
+
+				default:
+
+					/* bit_width was already validated */
+
+					break;
+			}
+
 			break;
 
 		default:
 
-			/* bit_width was already validated */
-
+			status = AE_BAD_PARAMETER;
 			break;
-		}
-		break;
-
-	case ACPI_WRITE:
-
-		switch (bit_width) {
-		case 8:
-
-			ACPI_SET8(logical_addr_ptr, *value);
-			break;
-
-		case 16:
-
-			ACPI_SET16(logical_addr_ptr, *value);
-			break;
-
-		case 32:
-
-			ACPI_SET32(logical_addr_ptr, *value);
-			break;
-
-		case 64:
-
-			ACPI_SET64(logical_addr_ptr, *value);
-			break;
-
-		default:
-
-			/* bit_width was already validated */
-
-			break;
-		}
-		break;
-
-	default:
-
-		status = AE_BAD_PARAMETER;
-		break;
 	}
 
 	return_ACPI_STATUS(status);
@@ -306,10 +323,10 @@ acpi_ex_system_memory_space_handler(u32 function,
 
 acpi_status
 acpi_ex_system_io_space_handler(u32 function,
-				acpi_physical_address address,
-				u32 bit_width,
-				u64 *value,
-				void *handler_context, void *region_context)
+								acpi_physical_address address,
+								u32 bit_width,
+								u64 *value,
+								void *handler_context, void *region_context)
 {
 	acpi_status status = AE_OK;
 	u32 value32;
@@ -317,29 +334,30 @@ acpi_ex_system_io_space_handler(u32 function,
 	ACPI_FUNCTION_TRACE(ex_system_io_space_handler);
 
 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-			  "System-IO (width %u) R/W %u Address=%8.8X%8.8X\n",
-			  bit_width, function, ACPI_FORMAT_UINT64(address)));
+					  "System-IO (width %u) R/W %u Address=%8.8X%8.8X\n",
+					  bit_width, function, ACPI_FORMAT_UINT64(address)));
 
 	/* Decode the function parameter */
 
-	switch (function) {
-	case ACPI_READ:
+	switch (function)
+	{
+		case ACPI_READ:
 
-		status = acpi_hw_read_port((acpi_io_address)address,
-					   &value32, bit_width);
-		*value = value32;
-		break;
+			status = acpi_hw_read_port((acpi_io_address)address,
+									   &value32, bit_width);
+			*value = value32;
+			break;
 
-	case ACPI_WRITE:
+		case ACPI_WRITE:
 
-		status = acpi_hw_write_port((acpi_io_address)address,
-					    (u32)*value, bit_width);
-		break;
+			status = acpi_hw_write_port((acpi_io_address)address,
+										(u32) * value, bit_width);
+			break;
 
-	default:
+		default:
 
-		status = AE_BAD_PARAMETER;
-		break;
+			status = AE_BAD_PARAMETER;
+			break;
 	}
 
 	return_ACPI_STATUS(status);
@@ -365,10 +383,10 @@ acpi_ex_system_io_space_handler(u32 function,
 
 acpi_status
 acpi_ex_pci_config_space_handler(u32 function,
-				 acpi_physical_address address,
-				 u32 bit_width,
-				 u64 *value,
-				 void *handler_context, void *region_context)
+								 acpi_physical_address address,
+								 u32 bit_width,
+								 u64 *value,
+								 void *handler_context, void *region_context)
 {
 	acpi_status status = AE_OK;
 	struct acpi_pci_id *pci_id;
@@ -392,31 +410,32 @@ acpi_ex_pci_config_space_handler(u32 function,
 	pci_register = (u16) (u32) address;
 
 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-			  "Pci-Config %u (%u) Seg(%04x) Bus(%04x) "
-			  "Dev(%04x) Func(%04x) Reg(%04x)\n",
-			  function, bit_width, pci_id->segment, pci_id->bus,
-			  pci_id->device, pci_id->function, pci_register));
+					  "Pci-Config %u (%u) Seg(%04x) Bus(%04x) "
+					  "Dev(%04x) Func(%04x) Reg(%04x)\n",
+					  function, bit_width, pci_id->segment, pci_id->bus,
+					  pci_id->device, pci_id->function, pci_register));
 
-	switch (function) {
-	case ACPI_READ:
+	switch (function)
+	{
+		case ACPI_READ:
 
-		*value = 0;
-		status =
-		    acpi_os_read_pci_configuration(pci_id, pci_register, value,
-						   bit_width);
-		break;
+			*value = 0;
+			status =
+				acpi_os_read_pci_configuration(pci_id, pci_register, value,
+											   bit_width);
+			break;
 
-	case ACPI_WRITE:
+		case ACPI_WRITE:
 
-		status =
-		    acpi_os_write_pci_configuration(pci_id, pci_register,
-						    *value, bit_width);
-		break;
+			status =
+				acpi_os_write_pci_configuration(pci_id, pci_register,
+												*value, bit_width);
+			break;
 
-	default:
+		default:
 
-		status = AE_BAD_PARAMETER;
-		break;
+			status = AE_BAD_PARAMETER;
+			break;
 	}
 
 	return_ACPI_STATUS(status);
@@ -442,10 +461,10 @@ acpi_ex_pci_config_space_handler(u32 function,
 
 acpi_status
 acpi_ex_cmos_space_handler(u32 function,
-			   acpi_physical_address address,
-			   u32 bit_width,
-			   u64 *value,
-			   void *handler_context, void *region_context)
+						   acpi_physical_address address,
+						   u32 bit_width,
+						   u64 *value,
+						   void *handler_context, void *region_context)
 {
 	acpi_status status = AE_OK;
 
@@ -474,10 +493,10 @@ acpi_ex_cmos_space_handler(u32 function,
 
 acpi_status
 acpi_ex_pci_bar_space_handler(u32 function,
-			      acpi_physical_address address,
-			      u32 bit_width,
-			      u64 *value,
-			      void *handler_context, void *region_context)
+							  acpi_physical_address address,
+							  u32 bit_width,
+							  u64 *value,
+							  void *handler_context, void *region_context)
 {
 	acpi_status status = AE_OK;
 
@@ -506,10 +525,10 @@ acpi_ex_pci_bar_space_handler(u32 function,
 
 acpi_status
 acpi_ex_data_table_space_handler(u32 function,
-				 acpi_physical_address address,
-				 u32 bit_width,
-				 u64 *value,
-				 void *handler_context, void *region_context)
+								 acpi_physical_address address,
+								 u32 bit_width,
+								 u64 *value,
+								 void *handler_context, void *region_context)
 {
 	ACPI_FUNCTION_TRACE(ex_data_table_space_handler);
 
@@ -517,22 +536,23 @@ acpi_ex_data_table_space_handler(u32 function,
 	 * Perform the memory read or write. The bit_width was already
 	 * validated.
 	 */
-	switch (function) {
-	case ACPI_READ:
+	switch (function)
+	{
+		case ACPI_READ:
 
-		memcpy(ACPI_CAST_PTR(char, value),
-		       ACPI_PHYSADDR_TO_PTR(address), ACPI_DIV_8(bit_width));
-		break;
+			memcpy(ACPI_CAST_PTR(char, value),
+				   ACPI_PHYSADDR_TO_PTR(address), ACPI_DIV_8(bit_width));
+			break;
 
-	case ACPI_WRITE:
+		case ACPI_WRITE:
 
-		memcpy(ACPI_PHYSADDR_TO_PTR(address),
-		       ACPI_CAST_PTR(char, value), ACPI_DIV_8(bit_width));
-		break;
+			memcpy(ACPI_PHYSADDR_TO_PTR(address),
+				   ACPI_CAST_PTR(char, value), ACPI_DIV_8(bit_width));
+			break;
 
-	default:
+		default:
 
-		return_ACPI_STATUS(AE_BAD_PARAMETER);
+			return_ACPI_STATUS(AE_BAD_PARAMETER);
 	}
 
 	return_ACPI_STATUS(AE_OK);

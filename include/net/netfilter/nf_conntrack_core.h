@@ -21,7 +21,7 @@
    standalone connection tracking module, and the compatibility layer's use
    of connection tracking. */
 unsigned int nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
-			     struct sk_buff *skb);
+							 struct sk_buff *skb);
 
 int nf_conntrack_init_net(struct net *net);
 void nf_conntrack_cleanup_net(struct net *net);
@@ -40,22 +40,22 @@ void nf_conntrack_init_end(void);
 void nf_conntrack_cleanup_end(void);
 
 bool nf_ct_get_tuple(const struct sk_buff *skb, unsigned int nhoff,
-		     unsigned int dataoff, u_int16_t l3num, u_int8_t protonum,
-		     struct net *net,
-		     struct nf_conntrack_tuple *tuple,
-		     const struct nf_conntrack_l3proto *l3proto,
-		     const struct nf_conntrack_l4proto *l4proto);
+					 unsigned int dataoff, u_int16_t l3num, u_int8_t protonum,
+					 struct net *net,
+					 struct nf_conntrack_tuple *tuple,
+					 const struct nf_conntrack_l3proto *l3proto,
+					 const struct nf_conntrack_l4proto *l4proto);
 
 bool nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
-			const struct nf_conntrack_tuple *orig,
-			const struct nf_conntrack_l3proto *l3proto,
-			const struct nf_conntrack_l4proto *l4proto);
+						const struct nf_conntrack_tuple *orig,
+						const struct nf_conntrack_l3proto *l3proto,
+						const struct nf_conntrack_l4proto *l4proto);
 
 /* Find a connection corresponding to a tuple. */
 struct nf_conntrack_tuple_hash *
 nf_conntrack_find_get(struct net *net,
-		      const struct nf_conntrack_zone *zone,
-		      const struct nf_conntrack_tuple *tuple);
+					  const struct nf_conntrack_zone *zone,
+					  const struct nf_conntrack_tuple *tuple);
 
 int __nf_conntrack_confirm(struct sk_buff *skb);
 
@@ -65,19 +65,26 @@ static inline int nf_conntrack_confirm(struct sk_buff *skb)
 	struct nf_conn *ct = (struct nf_conn *)skb->nfct;
 	int ret = NF_ACCEPT;
 
-	if (ct && !nf_ct_is_untracked(ct)) {
+	if (ct && !nf_ct_is_untracked(ct))
+	{
 		if (!nf_ct_is_confirmed(ct))
+		{
 			ret = __nf_conntrack_confirm(skb);
+		}
+
 		if (likely(ret == NF_ACCEPT))
+		{
 			nf_ct_deliver_cached_events(ct);
+		}
 	}
+
 	return ret;
 }
 
 void
 print_tuple(struct seq_file *s, const struct nf_conntrack_tuple *tuple,
-            const struct nf_conntrack_l3proto *l3proto,
-            const struct nf_conntrack_l4proto *proto);
+			const struct nf_conntrack_l3proto *l3proto,
+			const struct nf_conntrack_l4proto *proto);
 
 #define CONNTRACK_LOCKS 1024
 

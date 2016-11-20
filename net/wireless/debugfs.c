@@ -14,57 +14,59 @@
 #include "debugfs.h"
 
 #define DEBUGFS_READONLY_FILE(name, buflen, fmt, value...)		\
-static ssize_t name## _read(struct file *file, char __user *userbuf,	\
-			    size_t count, loff_t *ppos)			\
-{									\
-	struct wiphy *wiphy= file->private_data;		\
-	char buf[buflen];						\
-	int res;							\
-									\
-	res = scnprintf(buf, buflen, fmt "\n", ##value);		\
-	return simple_read_from_buffer(userbuf, count, ppos, buf, res);	\
-}									\
-									\
-static const struct file_operations name## _ops = {			\
-	.read = name## _read,						\
-	.open = simple_open,						\
-	.llseek = generic_file_llseek,					\
-};
+	static ssize_t name## _read(struct file *file, char __user *userbuf,	\
+								size_t count, loff_t *ppos)			\
+	{									\
+		struct wiphy *wiphy= file->private_data;		\
+		char buf[buflen];						\
+		int res;							\
+		\
+		res = scnprintf(buf, buflen, fmt "\n", ##value);		\
+		return simple_read_from_buffer(userbuf, count, ppos, buf, res);	\
+	}									\
+	\
+	static const struct file_operations name## _ops = {			\
+		.read = name## _read,						\
+				.open = simple_open,						\
+						.llseek = generic_file_llseek,					\
+	};
 
 DEBUGFS_READONLY_FILE(rts_threshold, 20, "%d",
-		      wiphy->rts_threshold)
+					  wiphy->rts_threshold)
 DEBUGFS_READONLY_FILE(fragmentation_threshold, 20, "%d",
-		      wiphy->frag_threshold);
+					  wiphy->frag_threshold);
 DEBUGFS_READONLY_FILE(short_retry_limit, 20, "%d",
-		      wiphy->retry_short)
+					  wiphy->retry_short)
 DEBUGFS_READONLY_FILE(long_retry_limit, 20, "%d",
-		      wiphy->retry_long);
+					  wiphy->retry_long);
 
 static int ht_print_chan(struct ieee80211_channel *chan,
-			 char *buf, int buf_size, int offset)
+						 char *buf, int buf_size, int offset)
 {
 	if (WARN_ON(offset > buf_size))
+	{
 		return 0;
+	}
 
 	if (chan->flags & IEEE80211_CHAN_DISABLED)
 		return scnprintf(buf + offset,
-				 buf_size - offset,
-				 "%d Disabled\n",
-				 chan->center_freq);
+						 buf_size - offset,
+						 "%d Disabled\n",
+						 chan->center_freq);
 
 	return scnprintf(buf + offset,
-			 buf_size - offset,
-			 "%d HT40 %c%c\n",
-			 chan->center_freq,
-			 (chan->flags & IEEE80211_CHAN_NO_HT40MINUS) ?
-				' ' : '-',
-			 (chan->flags & IEEE80211_CHAN_NO_HT40PLUS) ?
-				' ' : '+');
+					 buf_size - offset,
+					 "%d HT40 %c%c\n",
+					 chan->center_freq,
+					 (chan->flags & IEEE80211_CHAN_NO_HT40MINUS) ?
+					 ' ' : '-',
+					 (chan->flags & IEEE80211_CHAN_NO_HT40PLUS) ?
+					 ' ' : '+');
 }
 
 static ssize_t ht40allow_map_read(struct file *file,
-				  char __user *user_buf,
-				  size_t count, loff_t *ppos)
+								  char __user *user_buf,
+								  size_t count, loff_t *ppos)
 {
 	struct wiphy *wiphy = file->private_data;
 	char *buf;
@@ -73,18 +75,26 @@ static ssize_t ht40allow_map_read(struct file *file,
 	struct ieee80211_supported_band *sband;
 
 	buf = kzalloc(buf_size, GFP_KERNEL);
+
 	if (!buf)
+	{
 		return -ENOMEM;
+	}
 
 	rtnl_lock();
 
-	for (band = 0; band < NUM_NL80211_BANDS; band++) {
+	for (band = 0; band < NUM_NL80211_BANDS; band++)
+	{
 		sband = wiphy->bands[band];
+
 		if (!sband)
+		{
 			continue;
+		}
+
 		for (i = 0; i < sband->n_channels; i++)
 			offset += ht_print_chan(&sband->channels[i],
-						buf, buf_size, offset);
+									buf, buf_size, offset);
 	}
 
 	rtnl_unlock();
@@ -96,7 +106,8 @@ static ssize_t ht40allow_map_read(struct file *file,
 	return r;
 }
 
-static const struct file_operations ht40allow_map_ops = {
+static const struct file_operations ht40allow_map_ops =
+{
 	.read = ht40allow_map_read,
 	.open = simple_open,
 	.llseek = default_llseek,

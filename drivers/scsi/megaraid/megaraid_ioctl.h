@@ -114,9 +114,10 @@
  * Note		: All LSI drivers understand only this packet. Any other
  *		: format sent by applications would be converted to this.
  */
-typedef struct uioc {
+typedef struct uioc
+{
 
-/* User Apps: */
+	/* User Apps: */
 
 	uint8_t			signature[EXT_IOCTL_SIGN_SZ];
 	uint16_t		mb_type;
@@ -129,8 +130,8 @@ typedef struct uioc {
 	int32_t			status;
 	uint8_t			reserved[128];
 
-/* Driver Data: */
-	void __user *		user_data;
+	/* Driver Data: */
+	void __user 		*user_data;
 	uint32_t		user_data_len;
 
 	/* 64bit alignment */
@@ -142,7 +143,7 @@ typedef struct uioc {
 	dma_addr_t		pthru32_h;
 
 	struct list_head	list;
-	void			(*done)(struct uioc*);
+	void			(*done)(struct uioc *);
 
 	caddr_t			buf_vaddr;
 	dma_addr_t		buf_paddr;
@@ -151,7 +152,7 @@ typedef struct uioc {
 
 	uint8_t			timedout;
 
-} __attribute__ ((aligned(1024),packed)) uioc_t;
+} __attribute__ ((aligned(1024), packed)) uioc_t;
 
 
 /**
@@ -172,7 +173,8 @@ typedef struct uioc {
  * NOTE: reduce the number of reserved bytes whenever new field are added, so
  * that total size of the structure remains 256 bytes.
  */
-typedef struct mraid_hba_info {
+typedef struct mraid_hba_info
+{
 
 	uint16_t	pci_vendor_id;
 	uint16_t	pci_device_id;
@@ -206,7 +208,8 @@ typedef struct mraid_hba_info {
  * @pcislot	: slot number
  * @uid		: unique id
  */
-typedef struct mcontroller {
+typedef struct mcontroller
+{
 
 	uint64_t	base;
 	uint8_t		irq;
@@ -232,7 +235,8 @@ typedef struct mcontroller {
  * @lock	: lock to synchronize access to the pool
  * @in_use	: If pool already in use, attach new block
  */
-typedef struct mm_dmapool {
+typedef struct mm_dmapool
+{
 	caddr_t		vaddr;
 	dma_addr_t	paddr;
 	uint32_t	buf_size;
@@ -264,9 +268,10 @@ typedef struct mm_dmapool {
  * @dma_pool_list	: array of dma pools
  */
 
-typedef struct mraid_mmadp {
+typedef struct mraid_mmadp
+{
 
-/* Filled by driver */
+	/* Filled by driver */
 
 	uint32_t		unique_id;
 	uint32_t		drvr_type;
@@ -278,7 +283,7 @@ typedef struct mraid_mmadp {
 
 	int(*issue_uioc)(unsigned long, uioc_t *, uint32_t);
 
-/* Maintained by common module */
+	/* Maintained by common module */
 	uint32_t		quiescent;
 
 	struct list_head	list;

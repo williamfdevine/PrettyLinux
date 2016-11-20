@@ -30,13 +30,16 @@
 
 /* Read a block of up to 32 regs  */
 int pcf50633_read_block(struct pcf50633 *pcf, u8 reg,
-					int nr_regs, u8 *data)
+						int nr_regs, u8 *data)
 {
 	int ret;
 
 	ret = regmap_raw_read(pcf->regmap, reg, data, nr_regs);
+
 	if (ret != 0)
+	{
 		return ret;
+	}
 
 	return nr_regs;
 }
@@ -44,7 +47,7 @@ EXPORT_SYMBOL_GPL(pcf50633_read_block);
 
 /* Write a block of up to 32 regs  */
 int pcf50633_write_block(struct pcf50633 *pcf , u8 reg,
-					int nr_regs, u8 *data)
+						 int nr_regs, u8 *data)
 {
 	return regmap_raw_write(pcf->regmap, reg, data, nr_regs);
 }
@@ -56,8 +59,11 @@ u8 pcf50633_reg_read(struct pcf50633 *pcf, u8 reg)
 	int ret;
 
 	ret = regmap_read(pcf->regmap, reg, &val);
+
 	if (ret < 0)
+	{
 		return -1;
+	}
 
 	return val;
 }
@@ -83,13 +89,14 @@ EXPORT_SYMBOL_GPL(pcf50633_reg_clear_bits);
 
 /* sysfs attributes */
 static ssize_t show_dump_regs(struct device *dev, struct device_attribute *attr,
-			    char *buf)
+							  char *buf)
 {
 	struct pcf50633 *pcf = dev_get_drvdata(dev);
 	u8 dump[16];
 	int n, n1, idx = 0;
 	char *buf1 = buf;
-	static u8 address_no_read[] = { /* must be ascending */
+	static u8 address_no_read[] =   /* must be ascending */
+	{
 		PCF50633_REG_INT1,
 		PCF50633_REG_INT2,
 		PCF50633_REG_INT3,
@@ -98,13 +105,18 @@ static ssize_t show_dump_regs(struct device *dev, struct device_attribute *attr,
 		0 /* terminator */
 	};
 
-	for (n = 0; n < 256; n += sizeof(dump)) {
+	for (n = 0; n < 256; n += sizeof(dump))
+	{
 		for (n1 = 0; n1 < sizeof(dump); n1++)
-			if (n == address_no_read[idx]) {
+			if (n == address_no_read[idx])
+			{
 				idx++;
 				dump[n1] = 0x00;
-			} else
+			}
+			else
+			{
 				dump[n1] = pcf50633_reg_read(pcf, n + n1);
+			}
 
 		buf1 += sprintf(buf1, "%*ph\n", (int)sizeof(dump), dump);
 	}
@@ -114,7 +126,7 @@ static ssize_t show_dump_regs(struct device *dev, struct device_attribute *attr,
 static DEVICE_ATTR(dump_regs, 0400, show_dump_regs, NULL);
 
 static ssize_t show_resume_reason(struct device *dev,
-				struct device_attribute *attr, char *buf)
+								  struct device_attribute *attr, char *buf)
 {
 	struct pcf50633 *pcf = dev_get_drvdata(dev);
 	int n;
@@ -130,25 +142,29 @@ static ssize_t show_resume_reason(struct device *dev,
 }
 static DEVICE_ATTR(resume_reason, 0400, show_resume_reason, NULL);
 
-static struct attribute *pcf_sysfs_entries[] = {
+static struct attribute *pcf_sysfs_entries[] =
+{
 	&dev_attr_dump_regs.attr,
 	&dev_attr_resume_reason.attr,
 	NULL,
 };
 
-static struct attribute_group pcf_attr_group = {
+static struct attribute_group pcf_attr_group =
+{
 	.name	= NULL,			/* put in device directory */
 	.attrs	= pcf_sysfs_entries,
 };
 
 static void
 pcf50633_client_dev_register(struct pcf50633 *pcf, const char *name,
-						struct platform_device **pdev)
+							 struct platform_device **pdev)
 {
 	int ret;
 
 	*pdev = platform_device_alloc(name, -1);
-	if (!*pdev) {
+
+	if (!*pdev)
+	{
 		dev_err(pcf->dev, "Falied to allocate %s\n", name);
 		return;
 	}
@@ -156,7 +172,9 @@ pcf50633_client_dev_register(struct pcf50633 *pcf, const char *name,
 	(*pdev)->dev.parent = pcf->dev;
 
 	ret = platform_device_add(*pdev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(pcf->dev, "Failed to register %s: %d\n", name, ret);
 		platform_device_put(*pdev);
 		*pdev = NULL;
@@ -183,13 +201,14 @@ static int pcf50633_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(pcf50633_pm, pcf50633_suspend, pcf50633_resume);
 
-static const struct regmap_config pcf50633_regmap_config = {
+static const struct regmap_config pcf50633_regmap_config =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 };
 
 static int pcf50633_probe(struct i2c_client *client,
-				const struct i2c_device_id *ids)
+						  const struct i2c_device_id *ids)
 {
 	struct pcf50633 *pcf;
 	struct platform_device *pdev;
@@ -197,14 +216,18 @@ static int pcf50633_probe(struct i2c_client *client,
 	int i, j, ret;
 	int version, variant;
 
-	if (!client->irq) {
+	if (!client->irq)
+	{
 		dev_err(&client->dev, "Missing IRQ\n");
 		return -ENOENT;
 	}
 
 	pcf = devm_kzalloc(&client->dev, sizeof(*pcf), GFP_KERNEL);
+
 	if (!pcf)
+	{
 		return -ENOMEM;
+	}
 
 	i2c_set_clientdata(client, pcf);
 	pcf->dev = &client->dev;
@@ -213,7 +236,9 @@ static int pcf50633_probe(struct i2c_client *client,
 	mutex_init(&pcf->lock);
 
 	pcf->regmap = devm_regmap_init_i2c(client, &pcf50633_regmap_config);
-	if (IS_ERR(pcf->regmap)) {
+
+	if (IS_ERR(pcf->regmap))
+	{
 		ret = PTR_ERR(pcf->regmap);
 		dev_err(pcf->dev, "Failed to allocate register map: %d\n", ret);
 		return ret;
@@ -221,14 +246,16 @@ static int pcf50633_probe(struct i2c_client *client,
 
 	version = pcf50633_reg_read(pcf, 0);
 	variant = pcf50633_reg_read(pcf, 1);
-	if (version < 0 || variant < 0) {
+
+	if (version < 0 || variant < 0)
+	{
 		dev_err(pcf->dev, "Unable to probe pcf50633\n");
 		ret = -ENODEV;
 		return ret;
 	}
 
 	dev_info(pcf->dev, "Probed device version %d variant %d\n",
-							version, variant);
+			 version, variant);
 
 	pcf50633_irq_init(pcf, client->irq);
 
@@ -240,37 +267,55 @@ static int pcf50633_probe(struct i2c_client *client,
 	pcf50633_client_dev_register(pcf, "pcf50633-backlight", &pcf->bl_pdev);
 
 
-	for (i = 0; i < PCF50633_NUM_REGULATORS; i++) {
+	for (i = 0; i < PCF50633_NUM_REGULATORS; i++)
+	{
 		pdev = platform_device_alloc("pcf50633-regulator", i);
+
 		if (!pdev)
+		{
 			return -ENOMEM;
+		}
 
 		pdev->dev.parent = pcf->dev;
 		ret = platform_device_add_data(pdev, &pdata->reg_init_data[i],
-					       sizeof(pdata->reg_init_data[i]));
+									   sizeof(pdata->reg_init_data[i]));
+
 		if (ret)
+		{
 			goto err;
+		}
 
 		ret = platform_device_add(pdev);
+
 		if (ret)
+		{
 			goto err;
+		}
 
 		pcf->regulator_pdev[i] = pdev;
 	}
 
 	ret = sysfs_create_group(&client->dev.kobj, &pcf_attr_group);
+
 	if (ret)
+	{
 		dev_warn(pcf->dev, "error creating sysfs entries\n");
+	}
 
 	if (pdata->probe_done)
+	{
 		pdata->probe_done(pcf);
+	}
 
 	return 0;
 
 err:
 	platform_device_put(pdev);
+
 	for (j = 0; j < i; j++)
+	{
 		platform_device_put(pcf->regulator_pdev[j]);
+	}
 
 	return ret;
 }
@@ -290,18 +335,22 @@ static int pcf50633_remove(struct i2c_client *client)
 	platform_device_unregister(pcf->bl_pdev);
 
 	for (i = 0; i < PCF50633_NUM_REGULATORS; i++)
+	{
 		platform_device_unregister(pcf->regulator_pdev[i]);
+	}
 
 	return 0;
 }
 
-static const struct i2c_device_id pcf50633_id_table[] = {
+static const struct i2c_device_id pcf50633_id_table[] =
+{
 	{"pcf50633", 0x73},
 	{/* end of list */}
 };
 MODULE_DEVICE_TABLE(i2c, pcf50633_id_table);
 
-static struct i2c_driver pcf50633_driver = {
+static struct i2c_driver pcf50633_driver =
+{
 	.driver = {
 		.name	= "pcf50633",
 		.pm	= &pcf50633_pm,

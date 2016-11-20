@@ -39,7 +39,8 @@
 #define I2C_V3_SELECT (0 << 5)
 #define I2C_V6_SELECT (1 << 5)
 
-struct max1586_data {
+struct max1586_data
+{
 	struct i2c_client *client;
 
 	/* min/max V3 voltage */
@@ -74,7 +75,7 @@ static int max1586_v3_get_voltage_sel(struct regulator_dev *rdev)
 }
 
 static int max1586_v3_set_voltage_sel(struct regulator_dev *rdev,
-				      unsigned selector)
+									  unsigned selector)
 {
 	struct max1586_data *max1586 = rdev_get_drvdata(rdev);
 	struct i2c_client *client = max1586->client;
@@ -82,12 +83,15 @@ static int max1586_v3_set_voltage_sel(struct regulator_dev *rdev,
 	u8 v3_prog;
 
 	dev_dbg(&client->dev, "changing voltage v3 to %dmv\n",
-		regulator_list_voltage_linear(rdev, selector) / 1000);
+			regulator_list_voltage_linear(rdev, selector) / 1000);
 
 	v3_prog = I2C_V3_SELECT | (u8) selector;
 	ret = i2c_smbus_write_byte(client, v3_prog);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	max1586->v3_curr_sel = selector;
 
@@ -102,7 +106,7 @@ static int max1586_v6_get_voltage_sel(struct regulator_dev *rdev)
 }
 
 static int max1586_v6_set_voltage_sel(struct regulator_dev *rdev,
-				      unsigned int selector)
+									  unsigned int selector)
 {
 	struct max1586_data *max1586 = rdev_get_drvdata(rdev);
 	struct i2c_client *client = max1586->client;
@@ -110,12 +114,15 @@ static int max1586_v6_set_voltage_sel(struct regulator_dev *rdev,
 	int ret;
 
 	dev_dbg(&client->dev, "changing voltage v6 to %dmv\n",
-		rdev->desc->volt_table[selector] / 1000);
+			rdev->desc->volt_table[selector] / 1000);
 
 	v6_prog = I2C_V6_SELECT | (u8) selector;
 	ret = i2c_smbus_write_byte(client, v6_prog);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	max1586->v6_curr_sel = selector;
 
@@ -126,20 +133,23 @@ static int max1586_v6_set_voltage_sel(struct regulator_dev *rdev,
  * The Maxim 1586 controls V3 and V6 voltages, but offers no way of reading back
  * the set up value.
  */
-static struct regulator_ops max1586_v3_ops = {
+static struct regulator_ops max1586_v3_ops =
+{
 	.get_voltage_sel = max1586_v3_get_voltage_sel,
 	.set_voltage_sel = max1586_v3_set_voltage_sel,
 	.list_voltage = regulator_list_voltage_linear,
 	.map_voltage = regulator_map_voltage_linear,
 };
 
-static struct regulator_ops max1586_v6_ops = {
+static struct regulator_ops max1586_v6_ops =
+{
 	.get_voltage_sel = max1586_v6_get_voltage_sel,
 	.set_voltage_sel = max1586_v6_set_voltage_sel,
 	.list_voltage = regulator_list_voltage_table,
 };
 
-static struct regulator_desc max1586_reg[] = {
+static struct regulator_desc max1586_reg[] =
+{
 	{
 		.name = "Output_V3",
 		.id = MAX1586_V3,
@@ -160,7 +170,7 @@ static struct regulator_desc max1586_reg[] = {
 };
 
 static int of_get_max1586_platform_data(struct device *dev,
-				 struct max1586_platform_data *pdata)
+										struct max1586_platform_data *pdata)
 {
 	struct max1586_subdev_data *sub;
 	struct of_regulator_match rmatch[ARRAY_SIZE(max1586_reg)] = { };
@@ -168,22 +178,28 @@ static int of_get_max1586_platform_data(struct device *dev,
 	int i, matched;
 
 	if (of_property_read_u32(np, "v3-gain",
-				 &pdata->v3_gain) < 0) {
+							 &pdata->v3_gain) < 0)
+	{
 		dev_err(dev, "%s has no 'v3-gain' property\n", np->full_name);
 		return -EINVAL;
 	}
 
 	np = of_get_child_by_name(np, "regulators");
-	if (!np) {
+
+	if (!np)
+	{
 		dev_err(dev, "missing 'regulators' subnode in DT\n");
 		return -EINVAL;
 	}
 
 	for (i = 0; i < ARRAY_SIZE(rmatch); i++)
+	{
 		rmatch[i].name = max1586_reg[i].name;
+	}
 
 	matched = of_regulator_match(dev, np, rmatch, ARRAY_SIZE(rmatch));
 	of_node_put(np);
+
 	/*
 	 * If matched is 0, ie. neither Output_V3 nor Output_V6 have been found,
 	 * return 0, which signals the normal situation where no subregulator is
@@ -192,17 +208,23 @@ static int of_get_max1586_platform_data(struct device *dev,
 	 * anyway.  If matched < 0, return the error.
 	 */
 	if (matched <= 0)
+	{
 		return matched;
+	}
 
 	pdata->subdevs = devm_kzalloc(dev, sizeof(struct max1586_subdev_data) *
-						matched, GFP_KERNEL);
+								  matched, GFP_KERNEL);
+
 	if (!pdata->subdevs)
+	{
 		return -ENOMEM;
+	}
 
 	pdata->num_subdevs = matched;
 	sub = pdata->subdevs;
 
-	for (i = 0; i < matched; i++) {
+	for (i = 0; i < matched; i++)
+	{
 		sub->id = i;
 		sub->name = rmatch[i].of_node->name;
 		sub->platform_data = rmatch[i].init_data;
@@ -212,14 +234,15 @@ static int of_get_max1586_platform_data(struct device *dev,
 	return 0;
 }
 
-static const struct of_device_id max1586_of_match[] = {
+static const struct of_device_id max1586_of_match[] =
+{
 	{ .compatible = "maxim,max1586", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, max1586_of_match);
 
 static int max1586_pmic_probe(struct i2c_client *client,
-					const struct i2c_device_id *i2c_id)
+							  const struct i2c_device_id *i2c_id)
 {
 	struct max1586_platform_data *pdata, pdata_of;
 	struct regulator_config config = { };
@@ -228,28 +251,42 @@ static int max1586_pmic_probe(struct i2c_client *client,
 	const struct of_device_id *match;
 
 	pdata = dev_get_platdata(&client->dev);
-	if (client->dev.of_node && !pdata) {
+
+	if (client->dev.of_node && !pdata)
+	{
 		match = of_match_device(of_match_ptr(max1586_of_match),
-					&client->dev);
-		if (!match) {
+								&client->dev);
+
+		if (!match)
+		{
 			dev_err(&client->dev, "Error: No device match found\n");
 			return -ENODEV;
 		}
+
 		ret = of_get_max1586_platform_data(&client->dev, &pdata_of);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		pdata = &pdata_of;
 	}
 
 	max1586 = devm_kzalloc(&client->dev, sizeof(struct max1586_data),
-			GFP_KERNEL);
+						   GFP_KERNEL);
+
 	if (!max1586)
+	{
 		return -ENOMEM;
+	}
 
 	max1586->client = client;
 
 	if (!pdata->v3_gain)
+	{
 		return -EINVAL;
+	}
 
 	max1586->min_uV = MAX1586_V3_MIN_UV / 1000 * pdata->v3_gain / 1000;
 	max1586->max_uV = MAX1586_V3_MAX_UV / 1000 * pdata->v3_gain / 1000;
@@ -258,22 +295,29 @@ static int max1586_pmic_probe(struct i2c_client *client,
 	max1586->v3_curr_sel = 24; /* 1.3V */
 	max1586->v6_curr_sel = 0;
 
-	for (i = 0; i < pdata->num_subdevs && i <= MAX1586_V6; i++) {
+	for (i = 0; i < pdata->num_subdevs && i <= MAX1586_V6; i++)
+	{
 		struct regulator_dev *rdev;
 
 		id = pdata->subdevs[i].id;
+
 		if (!pdata->subdevs[i].platform_data)
+		{
 			continue;
-		if (id < MAX1586_V3 || id > MAX1586_V6) {
+		}
+
+		if (id < MAX1586_V3 || id > MAX1586_V6)
+		{
 			dev_err(&client->dev, "invalid regulator id %d\n", id);
 			return -EINVAL;
 		}
 
-		if (id == MAX1586_V3) {
+		if (id == MAX1586_V3)
+		{
 			max1586_reg[id].min_uV = max1586->min_uV;
 			max1586_reg[id].uV_step =
-					(max1586->max_uV - max1586->min_uV) /
-					MAX1586_V3_MAX_VSEL;
+				(max1586->max_uV - max1586->min_uV) /
+				MAX1586_V3_MAX_VSEL;
 		}
 
 		config.dev = &client->dev;
@@ -281,10 +325,12 @@ static int max1586_pmic_probe(struct i2c_client *client,
 		config.driver_data = max1586;
 
 		rdev = devm_regulator_register(&client->dev,
-						  &max1586_reg[id], &config);
-		if (IS_ERR(rdev)) {
+									   &max1586_reg[id], &config);
+
+		if (IS_ERR(rdev))
+		{
 			dev_err(&client->dev, "failed to register %s\n",
-				max1586_reg[id].name);
+					max1586_reg[id].name);
 			return PTR_ERR(rdev);
 		}
 	}
@@ -294,13 +340,15 @@ static int max1586_pmic_probe(struct i2c_client *client,
 	return 0;
 }
 
-static const struct i2c_device_id max1586_id[] = {
+static const struct i2c_device_id max1586_id[] =
+{
 	{ "max1586", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, max1586_id);
 
-static struct i2c_driver max1586_pmic_driver = {
+static struct i2c_driver max1586_pmic_driver =
+{
 	.probe = max1586_pmic_probe,
 	.driver		= {
 		.name	= "max1586",

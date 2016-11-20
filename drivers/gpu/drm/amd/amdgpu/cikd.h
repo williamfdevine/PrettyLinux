@@ -206,8 +206,8 @@
 #define CP_PACKET0_GET_REG(h) ((h) & 0xFFFF)
 #define CP_PACKET3_GET_OPCODE(h) (((h) >> 8) & 0xFF)
 #define PACKET0(reg, n)	((PACKET_TYPE0 << 30) |				\
-			 ((reg) & 0xFFFF) |			\
-			 ((n) & 0x3FFF) << 16)
+						 ((reg) & 0xFFFF) |			\
+						 ((n) & 0x3FFF) << 16)
 #define CP_PACKET2			0x80000000
 #define		PACKET2_PAD_SHIFT		0
 #define		PACKET2_PAD_MASK		(0x3fffffff << 0)
@@ -215,8 +215,8 @@
 #define PACKET2(v)	(CP_PACKET2 | REG_SET(PACKET2_PAD, (v)))
 
 #define PACKET3(op, n)	((PACKET_TYPE3 << 30) |				\
-			 (((op) & 0xFF) << 8) |				\
-			 ((n) & 0x3FFF) << 16)
+						 (((op) & 0xFF) << 8) |				\
+						 ((n) & 0x3FFF) << 16)
 
 #define PACKET3_COMPUTE(op, n) (PACKET3(op, n) | 1 << 1)
 
@@ -252,24 +252,24 @@
 #define	PACKET3_DRAW_PREAMBLE				0x36
 #define	PACKET3_WRITE_DATA				0x37
 #define		WRITE_DATA_DST_SEL(x)                   ((x) << 8)
-		/* 0 - register
-		 * 1 - memory (sync - via GRBM)
-		 * 2 - gl2
-		 * 3 - gds
-		 * 4 - reserved
-		 * 5 - memory (async - direct)
-		 */
+/* 0 - register
+ * 1 - memory (sync - via GRBM)
+ * 2 - gl2
+ * 3 - gds
+ * 4 - reserved
+ * 5 - memory (async - direct)
+ */
 #define		WR_ONE_ADDR                             (1 << 16)
 #define		WR_CONFIRM                              (1 << 20)
 #define		WRITE_DATA_CACHE_POLICY(x)              ((x) << 25)
-		/* 0 - LRU
-		 * 1 - Stream
-		 */
+/* 0 - LRU
+ * 1 - Stream
+ */
 #define		WRITE_DATA_ENGINE_SEL(x)                ((x) << 30)
-		/* 0 - me
-		 * 1 - pfp
-		 * 2 - ce
-		 */
+/* 0 - me
+ * 1 - pfp
+ * 2 - ce
+ */
 #define	PACKET3_DRAW_INDEX_INDIRECT_MULTI		0x38
 #define	PACKET3_MEM_SEMAPHORE				0x39
 #              define PACKET3_SEM_USE_MAILBOX       (0x1 << 16)
@@ -280,34 +280,34 @@
 #define	PACKET3_COPY_DW					0x3B
 #define	PACKET3_WAIT_REG_MEM				0x3C
 #define		WAIT_REG_MEM_FUNCTION(x)                ((x) << 0)
-		/* 0 - always
-		 * 1 - <
-		 * 2 - <=
-		 * 3 - ==
-		 * 4 - !=
-		 * 5 - >=
-		 * 6 - >
-		 */
+/* 0 - always
+ * 1 - <
+ * 2 - <=
+ * 3 - ==
+ * 4 - !=
+ * 5 - >=
+ * 6 - >
+ */
 #define		WAIT_REG_MEM_MEM_SPACE(x)               ((x) << 4)
-		/* 0 - reg
-		 * 1 - mem
-		 */
+/* 0 - reg
+ * 1 - mem
+ */
 #define		WAIT_REG_MEM_OPERATION(x)               ((x) << 6)
-		/* 0 - wait_reg_mem
-		 * 1 - wr_wait_wr_reg
-		 */
+/* 0 - wait_reg_mem
+ * 1 - wr_wait_wr_reg
+ */
 #define		WAIT_REG_MEM_ENGINE(x)                  ((x) << 8)
-		/* 0 - me
-		 * 1 - pfp
-		 */
+/* 0 - me
+ * 1 - pfp
+ */
 #define	PACKET3_INDIRECT_BUFFER				0x3F
 #define		INDIRECT_BUFFER_TCL2_VOLATILE           (1 << 22)
 #define		INDIRECT_BUFFER_VALID                   (1 << 23)
 #define		INDIRECT_BUFFER_CACHE_POLICY(x)         ((x) << 28)
-		/* 0 - LRU
-		 * 1 - Stream
-		 * 2 - Bypass
-		 */
+/* 0 - LRU
+ * 1 - Stream
+ * 2 - Bypass
+ */
 #define	PACKET3_COPY_DATA				0x40
 #define	PACKET3_PFP_SYNC_ME				0x42
 #define	PACKET3_SURFACE_SYNC				0x43
@@ -338,14 +338,14 @@
 #define	PACKET3_EVENT_WRITE				0x46
 #define		EVENT_TYPE(x)                           ((x) << 0)
 #define		EVENT_INDEX(x)                          ((x) << 8)
-		/* 0 - any non-TS event
-		 * 1 - ZPASS_DONE, PIXEL_PIPE_STAT_*
-		 * 2 - SAMPLE_PIPELINESTAT
-		 * 3 - SAMPLE_STREAMOUTSTAT*
-		 * 4 - *S_PARTIAL_FLUSH
-		 * 5 - EOP events
-		 * 6 - EOS events
-		 */
+/* 0 - any non-TS event
+ * 1 - ZPASS_DONE, PIXEL_PIPE_STAT_*
+ * 2 - SAMPLE_PIPELINESTAT
+ * 3 - SAMPLE_STREAMOUTSTAT*
+ * 4 - *S_PARTIAL_FLUSH
+ * 5 - EOP events
+ * 6 - EOS events
+ */
 #define	PACKET3_EVENT_WRITE_EOP				0x47
 #define		EOP_TCL1_VOL_ACTION_EN                  (1 << 12)
 #define		EOP_TC_VOL_ACTION_EN                    (1 << 13) /* L2 */
@@ -354,26 +354,26 @@
 #define		EOP_TC_ACTION_EN                        (1 << 17) /* L2 */
 #define		EOP_TCL2_VOLATILE                       (1 << 24)
 #define		EOP_CACHE_POLICY(x)                     ((x) << 25)
-		/* 0 - LRU
-		 * 1 - Stream
-		 * 2 - Bypass
-		 */
+/* 0 - LRU
+ * 1 - Stream
+ * 2 - Bypass
+ */
 #define		DATA_SEL(x)                             ((x) << 29)
-		/* 0 - discard
-		 * 1 - send low 32bit data
-		 * 2 - send 64bit data
-		 * 3 - send 64bit GPU counter value
-		 * 4 - send 64bit sys counter value
-		 */
+/* 0 - discard
+ * 1 - send low 32bit data
+ * 2 - send 64bit data
+ * 3 - send 64bit GPU counter value
+ * 4 - send 64bit sys counter value
+ */
 #define		INT_SEL(x)                              ((x) << 24)
-		/* 0 - none
-		 * 1 - interrupt only (DATA_SEL = 0)
-		 * 2 - interrupt when data write is confirmed
-		 */
+/* 0 - none
+ * 1 - interrupt only (DATA_SEL = 0)
+ * 2 - interrupt when data write is confirmed
+ */
 #define		DST_SEL(x)                              ((x) << 16)
-		/* 0 - MC
-		 * 1 - TC/L2
-		 */
+/* 0 - MC
+ * 1 - TC/L2
+ */
 #define	PACKET3_EVENT_WRITE_EOS				0x48
 #define	PACKET3_RELEASE_MEM				0x49
 #define	PACKET3_PREAMBLE_CNTL				0x4A
@@ -390,55 +390,55 @@
  */
 /* CONTROL */
 #              define PACKET3_DMA_DATA_ENGINE(x)     ((x) << 0)
-		/* 0 - ME
-		 * 1 - PFP
-		 */
+/* 0 - ME
+ * 1 - PFP
+ */
 #              define PACKET3_DMA_DATA_SRC_CACHE_POLICY(x) ((x) << 13)
-		/* 0 - LRU
-		 * 1 - Stream
-		 * 2 - Bypass
-		 */
+/* 0 - LRU
+ * 1 - Stream
+ * 2 - Bypass
+ */
 #              define PACKET3_DMA_DATA_SRC_VOLATILE (1 << 15)
 #              define PACKET3_DMA_DATA_DST_SEL(x)  ((x) << 20)
-		/* 0 - DST_ADDR using DAS
-		 * 1 - GDS
-		 * 3 - DST_ADDR using L2
-		 */
+/* 0 - DST_ADDR using DAS
+ * 1 - GDS
+ * 3 - DST_ADDR using L2
+ */
 #              define PACKET3_DMA_DATA_DST_CACHE_POLICY(x) ((x) << 25)
-		/* 0 - LRU
-		 * 1 - Stream
-		 * 2 - Bypass
-		 */
+/* 0 - LRU
+ * 1 - Stream
+ * 2 - Bypass
+ */
 #              define PACKET3_DMA_DATA_DST_VOLATILE (1 << 27)
 #              define PACKET3_DMA_DATA_SRC_SEL(x)  ((x) << 29)
-		/* 0 - SRC_ADDR using SAS
-		 * 1 - GDS
-		 * 2 - DATA
-		 * 3 - SRC_ADDR using L2
-		 */
+/* 0 - SRC_ADDR using SAS
+ * 1 - GDS
+ * 2 - DATA
+ * 3 - SRC_ADDR using L2
+ */
 #              define PACKET3_DMA_DATA_CP_SYNC     (1 << 31)
 /* COMMAND */
 #              define PACKET3_DMA_DATA_DIS_WC      (1 << 21)
 #              define PACKET3_DMA_DATA_CMD_SRC_SWAP(x) ((x) << 22)
-		/* 0 - none
-		 * 1 - 8 in 16
-		 * 2 - 8 in 32
-		 * 3 - 8 in 64
-		 */
+/* 0 - none
+ * 1 - 8 in 16
+ * 2 - 8 in 32
+ * 3 - 8 in 64
+ */
 #              define PACKET3_DMA_DATA_CMD_DST_SWAP(x) ((x) << 24)
-		/* 0 - none
-		 * 1 - 8 in 16
-		 * 2 - 8 in 32
-		 * 3 - 8 in 64
-		 */
+/* 0 - none
+ * 1 - 8 in 16
+ * 2 - 8 in 32
+ * 3 - 8 in 64
+ */
 #              define PACKET3_DMA_DATA_CMD_SAS     (1 << 26)
-		/* 0 - memory
-		 * 1 - register
-		 */
+/* 0 - memory
+ * 1 - register
+ */
 #              define PACKET3_DMA_DATA_CMD_DAS     (1 << 27)
-		/* 0 - memory
-		 * 1 - register
-		 */
+/* 0 - memory
+ * 1 - register
+ */
 #              define PACKET3_DMA_DATA_CMD_SAIC    (1 << 28)
 #              define PACKET3_DMA_DATA_CMD_DAIC    (1 << 29)
 #              define PACKET3_DMA_DATA_CMD_RAW_WAIT  (1 << 30)
@@ -480,8 +480,8 @@
 #define SDMA_MAX_INSTANCE 2
 
 #define SDMA_PACKET(op, sub_op, e)	((((e) & 0xFFFF) << 16) |	\
-					 (((sub_op) & 0xFF) << 8) |	\
-					 (((op) & 0xFF) << 0))
+									 (((sub_op) & 0xFF) << 8) |	\
+									 (((op) & 0xFF) << 0))
 /* sDMA opcodes */
 #define	SDMA_OPCODE_NOP					  0
 #	define SDMA_NOP_COUNT(x)			  (((x) & 0x3FFF) << 16)
@@ -500,39 +500,39 @@
 #define	SDMA_OPCODE_TRAP				  6
 #define	SDMA_OPCODE_SEMAPHORE				  7
 #       define SDMA_SEMAPHORE_EXTRA_O                     (1 << 13)
-		/* 0 - increment
-		 * 1 - write 1
-		 */
+/* 0 - increment
+ * 1 - write 1
+ */
 #       define SDMA_SEMAPHORE_EXTRA_S                     (1 << 14)
-		/* 0 - wait
-		 * 1 - signal
-		 */
+/* 0 - wait
+ * 1 - signal
+ */
 #       define SDMA_SEMAPHORE_EXTRA_M                     (1 << 15)
-		/* mailbox */
+/* mailbox */
 #define	SDMA_OPCODE_POLL_REG_MEM			  8
 #       define SDMA_POLL_REG_MEM_EXTRA_OP(x)              ((x) << 10)
-		/* 0 - wait_reg_mem
-		 * 1 - wr_wait_wr_reg
-		 */
+/* 0 - wait_reg_mem
+ * 1 - wr_wait_wr_reg
+ */
 #       define SDMA_POLL_REG_MEM_EXTRA_FUNC(x)            ((x) << 12)
-		/* 0 - always
-		 * 1 - <
-		 * 2 - <=
-		 * 3 - ==
-		 * 4 - !=
-		 * 5 - >=
-		 * 6 - >
-		 */
+/* 0 - always
+ * 1 - <
+ * 2 - <=
+ * 3 - ==
+ * 4 - !=
+ * 5 - >=
+ * 6 - >
+ */
 #       define SDMA_POLL_REG_MEM_EXTRA_M                  (1 << 15)
-		/* 0 = register
-		 * 1 = memory
-		 */
+/* 0 = register
+ * 1 = memory
+ */
 #define	SDMA_OPCODE_COND_EXEC				  9
 #define	SDMA_OPCODE_CONSTANT_FILL			  11
 #       define SDMA_CONSTANT_FILL_EXTRA_SIZE(x)           ((x) << 14)
-		/* 0 = byte fill
-		 * 2 = DW fill
-		 */
+/* 0 = byte fill
+ * 2 = DW fill
+ */
 #define	SDMA_OPCODE_GENERATE_PTE_PDE			  12
 #define	SDMA_OPCODE_TIMESTAMP				  13
 #       define SDMA_TIMESTAMP_SUB_OPCODE_SET_LOCAL        0
@@ -540,7 +540,7 @@
 #       define SDMA_TIMESTAMP_SUB_OPCODE_GET_GLOBAL       2
 #define	SDMA_OPCODE_SRBM_WRITE				  14
 #       define SDMA_SRBM_WRITE_EXTRA_BYTE_ENABLE(x)       ((x) << 12)
-		/* byte mask */
+/* byte mask */
 
 #define VCE_CMD_NO_OP		0x00000000
 #define VCE_CMD_END		0x00000001
@@ -557,7 +557,8 @@
 #define KFD_CIK_SDMA_QUEUE_OFFSET	0x200
 
 /* valid for both DEFAULT_MTYPE and APE1_MTYPE */
-enum {
+enum
+{
 	MTYPE_CACHED = 0,
 	MTYPE_NONCACHED = 3
 };

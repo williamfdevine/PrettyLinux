@@ -84,7 +84,7 @@
  * table checksum is incorrect?
  */
 #ifndef ACPI_CHECKSUM_ABORT
-#define ACPI_CHECKSUM_ABORT             FALSE
+	#define ACPI_CHECKSUM_ABORT             FALSE
 #endif
 
 /*
@@ -103,7 +103,7 @@
  *      FACS table (Waking vectors and Global Lock)
  */
 #ifndef ACPI_REDUCED_HARDWARE
-#define ACPI_REDUCED_HARDWARE           FALSE
+	#define ACPI_REDUCED_HARDWARE           FALSE
 #endif
 
 /******************************************************************************

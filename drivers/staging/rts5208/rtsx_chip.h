@@ -45,19 +45,19 @@
 	/* HW may miss ERR/CMDNK signal when sampling INT status. */
 	#define MS_SAMPLE_INT_ERR
 	/*
-	 * HW DO NOT support Wait_INT function
-	 * during READ_BYTES transfer mode
-	 */
+	* HW DO NOT support Wait_INT function
+	* during READ_BYTES transfer mode
+	*/
 	#define READ_BYTES_WAIT_INT
 #endif
 
 #ifdef SUPPORT_MSXC
-#define XC_POWERCLASS
-#define SUPPORT_PCGL_1P18
+	#define XC_POWERCLASS
+	#define SUPPORT_PCGL_1P18
 #endif
 
 #ifndef LED_AUTO_BLINK
-#define REGULAR_BLINK
+	#define REGULAR_BLINK
 #endif
 
 #define LED_BLINK_SPEED		5
@@ -70,25 +70,25 @@
 #define TRACE_ITEM_CNT		64
 
 #ifndef STATUS_SUCCESS
-#define STATUS_SUCCESS		0
+	#define STATUS_SUCCESS		0
 #endif
 #ifndef STATUS_FAIL
-#define STATUS_FAIL		1
+	#define STATUS_FAIL		1
 #endif
 #ifndef STATUS_TIMEDOUT
-#define STATUS_TIMEDOUT		2
+	#define STATUS_TIMEDOUT		2
 #endif
 #ifndef STATUS_NOMEM
-#define STATUS_NOMEM		3
+	#define STATUS_NOMEM		3
 #endif
 #ifndef STATUS_READ_FAIL
-#define STATUS_READ_FAIL	4
+	#define STATUS_READ_FAIL	4
 #endif
 #ifndef STATUS_WRITE_FAIL
-#define STATUS_WRITE_FAIL	5
+	#define STATUS_WRITE_FAIL	5
 #endif
 #ifndef STATUS_ERROR
-#define STATUS_ERROR		10
+	#define STATUS_ERROR		10
 #endif
 
 #define PM_S1			1
@@ -135,7 +135,7 @@
 #define RTSX_FLIDX_DISCONNECTING	21  /* 0x00200000 disconnect in progress */
 
 #define ABORTING_OR_DISCONNECTING	((1UL << US_FLIDX_ABORTING) | \
-					 (1UL << US_FLIDX_DISCONNECTING))
+									 (1UL << US_FLIDX_DISCONNECTING))
 
 #define RTSX_FLIDX_RESETTING		22  /* 0x00400000 device reset in progress */
 #define RTSX_FLIDX_TIMED_OUT		23  /* 0x00800000 SCSI midlayer timed out  */
@@ -160,7 +160,7 @@
 #define UNIT_ATTENTION          0x06    /* unit attention condition occur   */
 #define DAT_PRTCT               0x07    /* read/write is desable            */
 #define BLNC_CHK                0x08    /* find blank/DOF in read           */
-					/* write to unblank area            */
+/* write to unblank area            */
 #define CPY_ABRT                0x0a    /* Copy/Compare/Copy&Verify illgal  */
 #define ABRT_CMD                0x0b    /* Target make the command in error */
 #define EQUAL                   0x0c    /* Search Data end with Equal       */
@@ -227,7 +227,8 @@
 #define ASCQ_LOAD_EJCT_ERR      0x00
 #define	ASCQ_WRITE_PROTECT	0x00
 
-struct sense_data_t {
+struct sense_data_t
+{
 	unsigned char   err_code;	/* error code */
 	/* bit7 : valid */
 	/*   (1 : SCSI2) */
@@ -345,15 +346,17 @@ struct sense_data_t {
 struct rtsx_chip;
 
 typedef int (*card_rw_func)(struct scsi_cmnd *srb, struct rtsx_chip *chip,
-			u32 sec_addr, u16 sec_cnt);
+							u32 sec_addr, u16 sec_cnt);
 
 /* Supported Clock */
 enum card_clock	{CLK_20 = 1, CLK_30, CLK_40, CLK_50, CLK_60,
-		 CLK_80, CLK_100, CLK_120, CLK_150, CLK_200};
+				 CLK_80, CLK_100, CLK_120, CLK_150, CLK_200
+				};
 
 enum RTSX_STAT	{RTSX_STAT_INIT, RTSX_STAT_IDLE, RTSX_STAT_RUN, RTSX_STAT_SS,
-		 RTSX_STAT_DELINK, RTSX_STAT_SUSPEND,
-		 RTSX_STAT_ABORT, RTSX_STAT_DISCONNECT};
+				 RTSX_STAT_DELINK, RTSX_STAT_SUSPEND,
+				 RTSX_STAT_ABORT, RTSX_STAT_DISCONNECT
+			   };
 enum IC_VER	{IC_VER_AB, IC_VER_C = 2, IC_VER_D = 3};
 
 #define MAX_RESET_CNT		3
@@ -361,7 +364,8 @@ enum IC_VER	{IC_VER_AB, IC_VER_C = 2, IC_VER_D = 3};
 /* For MS Card */
 #define MAX_DEFECTIVE_BLOCK     10
 
-struct zone_entry {
+struct zone_entry
+{
 	u16 *l2p_table;
 	u16 *free_table;
 	u16 defect_list[MAX_DEFECTIVE_BLOCK];  /* For MS card only */
@@ -441,11 +445,11 @@ struct zone_entry {
 
 #define CHK_MMC_HS(sd_card)		(CHK_MMC_52M(sd_card) && CHK_MMC_26M(sd_card))
 #define CLR_MMC_HS(sd_card)			\
-do {						\
-	CLR_MMC_DDR52(sd_card);			\
-	CLR_MMC_52M(sd_card);			\
-	CLR_MMC_26M(sd_card);			\
-} while (0)
+	do {						\
+		CLR_MMC_DDR52(sd_card);			\
+		CLR_MMC_52M(sd_card);			\
+		CLR_MMC_26M(sd_card);			\
+	} while (0)
 
 #define SD_SUPPORT_CLASS_TEN		0x01
 #define SD_SUPPORT_1V8			0x02
@@ -457,7 +461,8 @@ do {						\
 #define SD_CHK_1V8(sd_card)		((sd_card)->sd_setting & SD_SUPPORT_1V8)
 #define SD_CLR_1V8(sd_card)		((sd_card)->sd_setting &= ~SD_SUPPORT_1V8)
 
-struct sd_info {
+struct sd_info
+{
 	u16 sd_type;
 	u8 err_code;
 	u8 sd_data_buf_ready;
@@ -502,7 +507,8 @@ struct sd_info {
 	int need_retune;
 };
 
-struct xd_delay_write_tag {
+struct xd_delay_write_tag
+{
 	u32 old_phyblock;
 	u32 new_phyblock;
 	u32 logblock;
@@ -510,7 +516,8 @@ struct xd_delay_write_tag {
 	u8 delay_write_flag;
 };
 
-struct xd_info {
+struct xd_info
+{
 	u8 maker_code;
 	u8 device_code;
 	u8 block_shift;
@@ -551,7 +558,8 @@ struct xd_info {
 #define CHK_MS8BIT(ms_card)	(((ms_card)->ms_type & MS_8BIT))
 #define CHK_MS4BIT(ms_card)	(((ms_card)->ms_type & MS_4BIT))
 
-struct ms_delay_write_tag {
+struct ms_delay_write_tag
+{
 	u16 old_phyblock;
 	u16 new_phyblock;
 	u16 logblock;
@@ -559,7 +567,8 @@ struct ms_delay_write_tag {
 	u8 delay_write_flag;
 };
 
-struct ms_info {
+struct ms_info
+{
 	u16 ms_type;
 	u8 block_shift;
 	u8 page_off;
@@ -604,7 +613,8 @@ struct ms_info {
 #endif
 };
 
-struct spi_info {
+struct spi_info
+{
 	u8 use_clk;
 	u8 write_en;
 	u16 clk_div;
@@ -614,7 +624,8 @@ struct spi_info {
 };
 
 #ifdef _MSG_TRACE
-struct trace_msg_t {
+struct trace_msg_t
+{
 	u16 line;
 #define MSG_FUNC_LEN 64
 	char func[MSG_FUNC_LEN];
@@ -682,7 +693,8 @@ struct trace_msg_t {
 #define SET_SDIO_IGNORED(chip)		((chip)->sdio_func_exist |= SDIO_IGNORED)
 #define CLR_SDIO_IGNORED(chip)		((chip)->sdio_func_exist &= ~SDIO_IGNORED)
 
-struct rtsx_chip {
+struct rtsx_chip
+{
 	struct rtsx_dev	*rtsx;
 
 	u32		int_reg; /* Bus interrupt pending register */
@@ -922,12 +934,12 @@ static inline struct device *rtsx_dev(const struct rtsx_chip *chip)
 }
 
 #define rtsx_set_stat(chip, stat)				\
-do {								\
-	if ((stat) != RTSX_STAT_IDLE) {				\
-		(chip)->idle_counter = 0;			\
-	}							\
-	(chip)->rtsx_stat = (enum RTSX_STAT)(stat);		\
-} while (0)
+	do {								\
+		if ((stat) != RTSX_STAT_IDLE) {				\
+			(chip)->idle_counter = 0;			\
+		}							\
+		(chip)->rtsx_stat = (enum RTSX_STAT)(stat);		\
+	} while (0)
 #define rtsx_get_stat(chip)		((chip)->rtsx_stat)
 #define rtsx_chk_stat(chip, stat)	((chip)->rtsx_stat == (stat))
 
@@ -957,12 +969,12 @@ void rtsx_stop_cmd(struct rtsx_chip *chip, int card);
 int rtsx_write_register(struct rtsx_chip *chip, u16 addr, u8 mask, u8 data);
 int rtsx_read_register(struct rtsx_chip *chip, u16 addr, u8 *data);
 int rtsx_write_cfg_dw(struct rtsx_chip *chip,
-		u8 func_no, u16 addr, u32 mask, u32 val);
+					  u8 func_no, u16 addr, u32 mask, u32 val);
 int rtsx_read_cfg_dw(struct rtsx_chip *chip, u8 func_no, u16 addr, u32 *val);
 int rtsx_write_cfg_seq(struct rtsx_chip *chip,
-		u8 func, u16 addr, u8 *buf, int len);
+					   u8 func, u16 addr, u8 *buf, int len);
 int rtsx_read_cfg_seq(struct rtsx_chip *chip,
-		u8 func, u16 addr, u8 *buf, int len);
+					  u8 func, u16 addr, u8 *buf, int len);
 int rtsx_write_phy_register(struct rtsx_chip *chip, u8 addr, u16 val);
 int rtsx_read_phy_register(struct rtsx_chip *chip, u8 addr, u16 *val);
 int rtsx_read_efuse(struct rtsx_chip *chip, u8 addr, u8 *val);

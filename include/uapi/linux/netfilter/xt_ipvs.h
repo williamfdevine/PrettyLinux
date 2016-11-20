@@ -4,7 +4,8 @@
 #include <linux/types.h>
 #include <linux/netfilter.h>
 
-enum {
+enum
+{
 	XT_IPVS_IPVS_PROPERTY =	1 << 0, /* all other options imply this one */
 	XT_IPVS_PROTO =		1 << 1,
 	XT_IPVS_VADDR =		1 << 2,
@@ -16,7 +17,8 @@ enum {
 	XT_IPVS_ONCE_MASK =	XT_IPVS_MASK & ~XT_IPVS_IPVS_PROPERTY
 };
 
-struct xt_ipvs_mtinfo {
+struct xt_ipvs_mtinfo
+{
 	union nf_inet_addr	vaddr, vmask;
 	__be16			vport;
 	__u8			l4proto;

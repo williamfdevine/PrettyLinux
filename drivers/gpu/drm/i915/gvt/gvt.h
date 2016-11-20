@@ -29,12 +29,14 @@
 
 #define GVT_MAX_VGPU 8
 
-enum {
+enum
+{
 	INTEL_GVT_HYPERVISOR_XEN = 0,
 	INTEL_GVT_HYPERVISOR_KVM,
 };
 
-struct intel_gvt_host {
+struct intel_gvt_host
+{
 	bool initialized;
 	int hypervisor_type;
 	struct intel_gvt_mpt *mpt;
@@ -43,18 +45,21 @@ struct intel_gvt_host {
 extern struct intel_gvt_host intel_gvt_host;
 
 /* Describe per-platform limitations. */
-struct intel_gvt_device_info {
+struct intel_gvt_device_info
+{
 	u32 max_support_vgpus;
 	/* This data structure will grow bigger in GVT device model patches */
 };
 
-struct intel_vgpu {
+struct intel_vgpu
+{
 	struct intel_gvt *gvt;
 	int id;
 	unsigned long handle; /* vGPU handle used by hypervisor MPT modules */
 };
 
-struct intel_gvt {
+struct intel_gvt
+{
 	struct mutex lock;
 	bool initialized;
 

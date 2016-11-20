@@ -42,7 +42,8 @@
 
 #include "das08.h"
 
-static const struct das08_board_struct das08_isa_boards[] = {
+static const struct das08_board_struct das08_isa_boards[] =
+{
 	{
 		/* cio-das08.pdf */
 		.name		= "isa-das08",
@@ -166,24 +167,31 @@ static const struct das08_board_struct das08_isa_boards[] = {
 };
 
 static int das08_isa_attach(struct comedi_device *dev,
-			    struct comedi_devconfig *it)
+							struct comedi_devconfig *it)
 {
 	const struct das08_board_struct *board = dev->board_ptr;
 	struct das08_private_struct *devpriv;
 	int ret;
 
 	devpriv = comedi_alloc_devpriv(dev, sizeof(*devpriv));
+
 	if (!devpriv)
+	{
 		return -ENOMEM;
+	}
 
 	ret = comedi_request_region(dev, it->options[0], board->iosize);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return das08_common_attach(dev, dev->iobase);
 }
 
-static struct comedi_driver das08_isa_driver = {
+static struct comedi_driver das08_isa_driver =
+{
 	.driver_name	= "isa-das08",
 	.module		= THIS_MODULE,
 	.attach		= das08_isa_attach,

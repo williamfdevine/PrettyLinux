@@ -60,27 +60,36 @@ static int bc_set_next(ktime_t expires, struct clock_event_device *bc)
 	 * hrtimer_{start/cancel} functions call into tracing,
 	 * calls to these functions must be bound within RCU_NONIDLE.
 	 */
-	RCU_NONIDLE({
-			bc_moved = hrtimer_try_to_cancel(&bctimer) >= 0;
-			if (bc_moved)
-				hrtimer_start(&bctimer, expires,
-					      HRTIMER_MODE_ABS_PINNED);});
-	if (bc_moved) {
+	RCU_NONIDLE(
+	{
+		bc_moved = hrtimer_try_to_cancel(&bctimer) >= 0;
+
+		if (bc_moved)
+			hrtimer_start(&bctimer, expires,
+			HRTIMER_MODE_ABS_PINNED);
+	});
+
+	if (bc_moved)
+	{
 		/* Bind the "device" to the cpu */
 		bc->bound_on = smp_processor_id();
-	} else if (bc->bound_on == smp_processor_id()) {
+	}
+	else if (bc->bound_on == smp_processor_id())
+	{
 		hrtimer_set_expires(&bctimer, expires);
 	}
+
 	return 0;
 }
 
-static struct clock_event_device ce_broadcast_hrtimer = {
+static struct clock_event_device ce_broadcast_hrtimer =
+{
 	.name			= "bc_hrtimer",
 	.set_state_shutdown	= bc_shutdown,
 	.set_next_ktime		= bc_set_next,
 	.features		= CLOCK_EVT_FEAT_ONESHOT |
-				  CLOCK_EVT_FEAT_KTIME |
-				  CLOCK_EVT_FEAT_HRTIMER,
+	CLOCK_EVT_FEAT_KTIME |
+	CLOCK_EVT_FEAT_HRTIMER,
 	.rating			= 0,
 	.bound_on		= -1,
 	.min_delta_ns		= 1,
@@ -98,7 +107,9 @@ static enum hrtimer_restart bc_handler(struct hrtimer *t)
 
 	if (clockevent_state_oneshot(&ce_broadcast_hrtimer))
 		if (ce_broadcast_hrtimer.next_event.tv64 != KTIME_MAX)
+		{
 			return HRTIMER_RESTART;
+		}
 
 	return HRTIMER_NORESTART;
 }

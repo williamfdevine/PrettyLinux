@@ -45,7 +45,8 @@
 #define MAX_ULD_QSETS 16
 
 /* CPL message priority levels */
-enum {
+enum
+{
 	CPL_PRIORITY_DATA     = 0,  /* data messages */
 	CPL_PRIORITY_SETUP    = 1,  /* connection setup messages */
 	CPL_PRIORITY_TEARDOWN = 0,  /* connection teardown messages */
@@ -55,34 +56,36 @@ enum {
 };
 
 #define INIT_TP_WR(w, tid) do { \
-	(w)->wr.wr_hi = htonl(FW_WR_OP_V(FW_TP_WR) | \
-			      FW_WR_IMMDLEN_V(sizeof(*w) - sizeof(w->wr))); \
-	(w)->wr.wr_mid = htonl(FW_WR_LEN16_V(DIV_ROUND_UP(sizeof(*w), 16)) | \
-			       FW_WR_FLOWID_V(tid)); \
-	(w)->wr.wr_lo = cpu_to_be64(0); \
-} while (0)
+		(w)->wr.wr_hi = htonl(FW_WR_OP_V(FW_TP_WR) | \
+							  FW_WR_IMMDLEN_V(sizeof(*w) - sizeof(w->wr))); \
+		(w)->wr.wr_mid = htonl(FW_WR_LEN16_V(DIV_ROUND_UP(sizeof(*w), 16)) | \
+							   FW_WR_FLOWID_V(tid)); \
+		(w)->wr.wr_lo = cpu_to_be64(0); \
+	} while (0)
 
 #define INIT_TP_WR_CPL(w, cpl, tid) do { \
-	INIT_TP_WR(w, tid); \
-	OPCODE_TID(w) = htonl(MK_OPCODE_TID(cpl, tid)); \
-} while (0)
+		INIT_TP_WR(w, tid); \
+		OPCODE_TID(w) = htonl(MK_OPCODE_TID(cpl, tid)); \
+	} while (0)
 
 #define INIT_ULPTX_WR(w, wrlen, atomic, tid) do { \
-	(w)->wr.wr_hi = htonl(FW_WR_OP_V(FW_ULPTX_WR) | \
-			      FW_WR_ATOMIC_V(atomic)); \
-	(w)->wr.wr_mid = htonl(FW_WR_LEN16_V(DIV_ROUND_UP(wrlen, 16)) | \
-			       FW_WR_FLOWID_V(tid)); \
-	(w)->wr.wr_lo = cpu_to_be64(0); \
-} while (0)
+		(w)->wr.wr_hi = htonl(FW_WR_OP_V(FW_ULPTX_WR) | \
+							  FW_WR_ATOMIC_V(atomic)); \
+		(w)->wr.wr_mid = htonl(FW_WR_LEN16_V(DIV_ROUND_UP(wrlen, 16)) | \
+							   FW_WR_FLOWID_V(tid)); \
+		(w)->wr.wr_lo = cpu_to_be64(0); \
+	} while (0)
 
 /* Special asynchronous notification message */
 #define CXGB4_MSG_AN ((void *)1)
 
-struct serv_entry {
+struct serv_entry
+{
 	void *data;
 };
 
-union aopen_entry {
+union aopen_entry
+{
 	void *data;
 	union aopen_entry *next;
 };
@@ -91,7 +94,8 @@ union aopen_entry {
  * Holds the size, base address, free list start, etc of the TID, server TID,
  * and active-open TID tables.  The tables themselves are allocated dynamically.
  */
-struct tid_info {
+struct tid_info
+{
 	void **tid_tab;
 	unsigned int ntids;
 
@@ -144,10 +148,13 @@ static inline void *lookup_atid(const struct tid_info *t, unsigned int atid)
 static inline void *lookup_stid(const struct tid_info *t, unsigned int stid)
 {
 	/* Is it a server filter TID? */
-	if (t->nsftids && (stid >= t->sftid_base)) {
+	if (t->nsftids && (stid >= t->sftid_base))
+	{
 		stid -= t->sftid_base;
 		stid += t->nstids;
-	} else {
+	}
+	else
+	{
 		stid -= t->stid_base;
 	}
 
@@ -155,13 +162,18 @@ static inline void *lookup_stid(const struct tid_info *t, unsigned int stid)
 }
 
 static inline void cxgb4_insert_tid(struct tid_info *t, void *data,
-				    unsigned int tid)
+									unsigned int tid)
 {
 	t->tid_tab[tid] = data;
+
 	if (t->hash_base && (tid >= t->hash_base))
+	{
 		atomic_inc(&t->hash_tids_in_use);
+	}
 	else
+	{
 		atomic_inc(&t->tids_in_use);
+	}
 }
 
 int cxgb4_alloc_atid(struct tid_info *t, void *data);
@@ -174,24 +186,25 @@ void cxgb4_remove_tid(struct tid_info *t, unsigned int qid, unsigned int tid);
 struct in6_addr;
 
 int cxgb4_create_server(const struct net_device *dev, unsigned int stid,
-			__be32 sip, __be16 sport, __be16 vlan,
-			unsigned int queue);
+						__be32 sip, __be16 sport, __be16 vlan,
+						unsigned int queue);
 int cxgb4_create_server6(const struct net_device *dev, unsigned int stid,
-			 const struct in6_addr *sip, __be16 sport,
-			 unsigned int queue);
+						 const struct in6_addr *sip, __be16 sport,
+						 unsigned int queue);
 int cxgb4_remove_server(const struct net_device *dev, unsigned int stid,
-			unsigned int queue, bool ipv6);
+						unsigned int queue, bool ipv6);
 int cxgb4_create_server_filter(const struct net_device *dev, unsigned int stid,
-			       __be32 sip, __be16 sport, __be16 vlan,
-			       unsigned int queue,
-			       unsigned char port, unsigned char mask);
+							   __be32 sip, __be16 sport, __be16 vlan,
+							   unsigned int queue,
+							   unsigned char port, unsigned char mask);
 int cxgb4_remove_server_filter(const struct net_device *dev, unsigned int stid,
-			       unsigned int queue, bool ipv6);
+							   unsigned int queue, bool ipv6);
 
 /* Filter operation context to allow callers of cxgb4_set_filter() and
  * cxgb4_del_filter() to wait for an asynchronous completion.
  */
-struct filter_ctx {
+struct filter_ctx
+{
 	struct completion completion;	/* completion rendezvous */
 	void *closure;			/* caller's opaque information */
 	int result;			/* result of operation */
@@ -201,12 +214,12 @@ struct filter_ctx {
 struct ch_filter_specification;
 
 int __cxgb4_set_filter(struct net_device *dev, int filter_id,
-		       struct ch_filter_specification *fs,
-		       struct filter_ctx *ctx);
+					   struct ch_filter_specification *fs,
+					   struct filter_ctx *ctx);
 int __cxgb4_del_filter(struct net_device *dev, int filter_id,
-		       struct filter_ctx *ctx);
+					   struct filter_ctx *ctx);
 int cxgb4_set_filter(struct net_device *dev, int filter_id,
-		     struct ch_filter_specification *fs);
+					 struct ch_filter_specification *fs);
 int cxgb4_del_filter(struct net_device *dev, int filter_id);
 
 static inline void set_wr_txq(struct sk_buff *skb, int prio, int queue)
@@ -214,7 +227,8 @@ static inline void set_wr_txq(struct sk_buff *skb, int prio, int queue)
 	skb_set_queue_mapping(skb, (queue << 1) | prio);
 }
 
-enum cxgb4_uld {
+enum cxgb4_uld
+{
 	CXGB4_ULD_INIT,
 	CXGB4_ULD_RDMA,
 	CXGB4_ULD_ISCSI,
@@ -223,14 +237,16 @@ enum cxgb4_uld {
 	CXGB4_ULD_MAX
 };
 
-enum cxgb4_state {
+enum cxgb4_state
+{
 	CXGB4_STATE_UP,
 	CXGB4_STATE_START_RECOVERY,
 	CXGB4_STATE_DOWN,
 	CXGB4_STATE_DETACH
 };
 
-enum cxgb4_control {
+enum cxgb4_control
+{
 	CXGB4_CONTROL_DB_FULL,
 	CXGB4_CONTROL_DB_EMPTY,
 	CXGB4_CONTROL_DB_DROP,
@@ -243,12 +259,14 @@ struct pkt_gl;
 struct tp_tcp_stats;
 struct t4_lro_mgr;
 
-struct cxgb4_range {
+struct cxgb4_range
+{
 	unsigned int start;
 	unsigned int size;
 };
 
-struct cxgb4_virt_res {                      /* virtualized HW resources */
+struct cxgb4_virt_res                        /* virtualized HW resources */
+{
 	struct cxgb4_range ddp;
 	struct cxgb4_range iscsi;
 	struct cxgb4_range stag;
@@ -265,7 +283,8 @@ struct cxgb4_virt_res {                      /* virtualized HW resources */
 /*
  * Block of information the LLD provides to ULDs attaching to a device.
  */
-struct cxgb4_lld_info {
+struct cxgb4_lld_info
+{
 	struct pci_dev *pdev;                /* associated PCI device */
 	struct l2t_data *l2t;                /* L2 table */
 	struct tid_info *tids;               /* TID table */
@@ -277,8 +296,8 @@ struct cxgb4_lld_info {
 	unsigned short nrxq;                 /* # of Rx queues */
 	unsigned short ntxq;                 /* # of Tx queues */
 	unsigned short nciq;		     /* # of concentrator IQ */
-	unsigned char nchan:4;               /* # of channels */
-	unsigned char nports:4;              /* # of ports */
+	unsigned char nchan: 4;              /* # of channels */
+	unsigned char nports: 4;             /* # of ports */
 	unsigned char wr_cred;               /* WR 16-byte credits */
 	unsigned char adapter_type;          /* type of adapter */
 	unsigned char fw_api_ver;            /* FW API version */
@@ -289,17 +308,17 @@ struct cxgb4_lld_info {
 	unsigned short ucq_density;          /* # of user CQs/page */
 	unsigned short filt_mode;            /* filter optional components */
 	unsigned short tx_modq[NCHAN];       /* maps each tx channel to a */
-					     /* scheduler queue */
+	/* scheduler queue */
 	void __iomem *gts_reg;               /* address of GTS register */
 	void __iomem *db_reg;                /* address of kernel doorbell */
 	int dbfifo_int_thresh;		     /* doorbell fifo int threshold */
 	unsigned int sge_ingpadboundary;     /* SGE ingress padding boundary */
 	unsigned int sge_egrstatuspagesize;  /* SGE egress status page size */
 	unsigned int sge_pktshift;           /* Padding between CPL and */
-					     /*	packet data */
+	/*	packet data */
 	unsigned int pf;		     /* Physical Function we're using */
 	bool enable_fw_ofld_conn;            /* Enable connection through fw */
-					     /* WR */
+	/* WR */
 	unsigned int max_ordird_qp;          /* Max ORD/IRD depth per RDMA QP */
 	unsigned int max_ird_adapter;        /* Max IRD memory per adapter */
 	bool ulptx_memwrite_dsgl;            /* use of T5 DSGL allowed */
@@ -311,7 +330,8 @@ struct cxgb4_lld_info {
 	bool fr_nsmr_tpte_wr_support;	     /* FW supports FR_NSMR_TPTE_WR */
 };
 
-struct cxgb4_uld_info {
+struct cxgb4_uld_info
+{
 	const char *name;
 	void *handle;
 	unsigned int nrxq;
@@ -320,13 +340,13 @@ struct cxgb4_uld_info {
 	bool lro;
 	void *(*add)(const struct cxgb4_lld_info *p);
 	int (*rx_handler)(void *handle, const __be64 *rsp,
-			  const struct pkt_gl *gl);
+					  const struct pkt_gl *gl);
 	int (*state_change)(void *handle, enum cxgb4_state new_state);
 	int (*control)(void *handle, enum cxgb4_control control, ...);
 	int (*lro_rx_handler)(void *handle, const __be64 *rsp,
-			      const struct pkt_gl *gl,
-			      struct t4_lro_mgr *lro_mgr,
-			      struct napi_struct *napi);
+						  const struct pkt_gl *gl,
+						  struct t4_lro_mgr *lro_mgr,
+						  struct napi_struct *napi);
 	void (*lro_flush)(struct t4_lro_mgr *);
 };
 
@@ -339,18 +359,18 @@ unsigned int cxgb4_port_viid(const struct net_device *dev);
 unsigned int cxgb4_tp_smt_idx(enum chip_type chip, unsigned int viid);
 unsigned int cxgb4_port_idx(const struct net_device *dev);
 unsigned int cxgb4_best_mtu(const unsigned short *mtus, unsigned short mtu,
-			    unsigned int *idx);
+							unsigned int *idx);
 unsigned int cxgb4_best_aligned_mtu(const unsigned short *mtus,
-				    unsigned short header_size,
-				    unsigned short data_size_max,
-				    unsigned short data_size_align,
-				    unsigned int *mtu_idxp);
+									unsigned short header_size,
+									unsigned short data_size_max,
+									unsigned short data_size_align,
+									unsigned int *mtu_idxp);
 void cxgb4_get_tcp_stats(struct pci_dev *pdev, struct tp_tcp_stats *v4,
-			 struct tp_tcp_stats *v6);
+						 struct tp_tcp_stats *v6);
 void cxgb4_iscsi_init(struct net_device *dev, unsigned int tag_mask,
-		      const unsigned int *pgsz_order);
+					  const unsigned int *pgsz_order);
 struct sk_buff *cxgb4_pktgl_to_skb(const struct pkt_gl *gl,
-				   unsigned int skb_len, unsigned int pull_len);
+								   unsigned int skb_len, unsigned int pull_len);
 int cxgb4_sync_txq_pidx(struct net_device *dev, u16 qid, u16 pidx, u16 size);
 int cxgb4_flush_eq_cache(struct net_device *dev);
 int cxgb4_read_tpte(struct net_device *dev, u32 stag, __be32 *tpte);
@@ -358,10 +378,10 @@ u64 cxgb4_read_sge_timestamp(struct net_device *dev);
 
 enum cxgb4_bar2_qtype { CXGB4_BAR2_QTYPE_EGRESS, CXGB4_BAR2_QTYPE_INGRESS };
 int cxgb4_bar2_sge_qregs(struct net_device *dev,
-			 unsigned int qid,
-			 enum cxgb4_bar2_qtype qtype,
-			 int user,
-			 u64 *pbar2_qoffset,
-			 unsigned int *pbar2_qid);
+						 unsigned int qid,
+						 enum cxgb4_bar2_qtype qtype,
+						 int user,
+						 u64 *pbar2_qoffset,
+						 unsigned int *pbar2_qid);
 
 #endif  /* !__CXGB4_ULD_H */

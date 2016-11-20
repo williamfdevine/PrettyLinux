@@ -38,7 +38,7 @@
 #include "llite_internal.h"
 
 static int ll_readlink_internal(struct inode *inode,
-				struct ptlrpc_request **request, char **symname)
+								struct ptlrpc_request **request, char **symname)
 {
 	struct ll_inode_info *lli = ll_i2info(inode);
 	struct ll_sb_info *sbi = ll_i2sbi(inode);
@@ -48,7 +48,8 @@ static int ll_readlink_internal(struct inode *inode,
 
 	*request = NULL;
 
-	if (lli->lli_symlink_name) {
+	if (lli->lli_symlink_name)
+	{
 		int print_limit = min_t(int, PAGE_SIZE - 128, symlen);
 
 		*symname = lli->lli_symlink_name;
@@ -57,60 +58,75 @@ static int ll_readlink_internal(struct inode *inode,
 		 * printing just the last part of the symlink.
 		 */
 		CDEBUG(D_INODE, "using cached symlink %s%.*s, len = %d\n",
-		       print_limit < symlen ? "..." : "", print_limit,
-		       (*symname) + symlen - print_limit, symlen);
+			   print_limit < symlen ? "..." : "", print_limit,
+			   (*symname) + symlen - print_limit, symlen);
 		return 0;
 	}
 
 	op_data = ll_prep_md_op_data(NULL, inode, NULL, NULL, 0, symlen,
-				     LUSTRE_OPC_ANY, NULL);
+								 LUSTRE_OPC_ANY, NULL);
+
 	if (IS_ERR(op_data))
+	{
 		return PTR_ERR(op_data);
+	}
 
 	op_data->op_valid = OBD_MD_LINKNAME;
 	rc = md_getattr(sbi->ll_md_exp, op_data, request);
 	ll_finish_md_op_data(op_data);
-	if (rc) {
+
+	if (rc)
+	{
 		if (rc != -ENOENT)
 			CERROR("%s: inode "DFID": rc = %d\n",
-			       ll_get_fsname(inode->i_sb, NULL, 0),
-			       PFID(ll_inode2fid(inode)), rc);
+				   ll_get_fsname(inode->i_sb, NULL, 0),
+				   PFID(ll_inode2fid(inode)), rc);
+
 		goto failed;
 	}
 
 	body = req_capsule_server_get(&(*request)->rq_pill, &RMF_MDT_BODY);
-	if ((body->mbo_valid & OBD_MD_LINKNAME) == 0) {
+
+	if ((body->mbo_valid & OBD_MD_LINKNAME) == 0)
+	{
 		CERROR("OBD_MD_LINKNAME not set on reply\n");
 		rc = -EPROTO;
 		goto failed;
 	}
 
 	LASSERT(symlen != 0);
-	if (body->mbo_eadatasize != symlen) {
+
+	if (body->mbo_eadatasize != symlen)
+	{
 		CERROR("%s: inode "DFID": symlink length %d not expected %d\n",
-		       ll_get_fsname(inode->i_sb, NULL, 0),
-		       PFID(ll_inode2fid(inode)), body->mbo_eadatasize - 1,
-		       symlen - 1);
+			   ll_get_fsname(inode->i_sb, NULL, 0),
+			   PFID(ll_inode2fid(inode)), body->mbo_eadatasize - 1,
+			   symlen - 1);
 		rc = -EPROTO;
 		goto failed;
 	}
 
 	*symname = req_capsule_server_get(&(*request)->rq_pill, &RMF_MDT_MD);
+
 	if (!*symname ||
-	    strnlen(*symname, symlen) != symlen - 1) {
+		strnlen(*symname, symlen) != symlen - 1)
+	{
 		/* not full/NULL terminated */
 		CERROR("inode %lu: symlink not NULL terminated string of length %d\n",
-		       inode->i_ino, symlen - 1);
+			   inode->i_ino, symlen - 1);
 		rc = -EPROTO;
 		goto failed;
 	}
 
 	lli->lli_symlink_name = kzalloc(symlen, GFP_NOFS);
+
 	/* do not return an error if we cannot cache the symlink locally */
-	if (lli->lli_symlink_name) {
+	if (lli->lli_symlink_name)
+	{
 		memcpy(lli->lli_symlink_name, *symname, symlen);
 		*symname = lli->lli_symlink_name;
 	}
+
 	return 0;
 
 failed:
@@ -123,20 +139,25 @@ static void ll_put_link(void *p)
 }
 
 static const char *ll_get_link(struct dentry *dentry,
-			       struct inode *inode,
-			       struct delayed_call *done)
+							   struct inode *inode,
+							   struct delayed_call *done)
 {
 	struct ptlrpc_request *request = NULL;
 	int rc;
 	char *symname = NULL;
+
 	if (!dentry)
+	{
 		return ERR_PTR(-ECHILD);
+	}
 
 	CDEBUG(D_VFSTRACE, "VFS Op\n");
 	ll_inode_size_lock(inode);
 	rc = ll_readlink_internal(inode, &request, &symname);
 	ll_inode_size_unlock(inode);
-	if (rc) {
+
+	if (rc)
+	{
 		ptlrpc_req_finished(request);
 		return ERR_PTR(rc);
 	}
@@ -148,7 +169,8 @@ static const char *ll_get_link(struct dentry *dentry,
 	return symname;
 }
 
-const struct inode_operations ll_fast_symlink_inode_operations = {
+const struct inode_operations ll_fast_symlink_inode_operations =
+{
 	.readlink	= generic_readlink,
 	.setattr	= ll_setattr,
 	.get_link	= ll_get_link,

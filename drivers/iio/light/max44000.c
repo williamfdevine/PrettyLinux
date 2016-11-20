@@ -75,7 +75,8 @@
 
 #define MAX44000_ALSDATA_OVERFLOW	0x4000
 
-struct max44000_data {
+struct max44000_data
+{
 	struct mutex lock;
 	struct regmap *regmap;
 };
@@ -103,11 +104,12 @@ static const int max44000_alstim_shift[] = {0, 2, 4, 6};
 #define MAX44000_ALSTIM_SHIFT(alstim) (2 * (alstim))
 
 /* Available integration times with pretty manual alignment: */
-static const int max44000_int_time_avail_ns_array[] = {
-	   100000000,
-	    25000000,
-	     6250000,
-	     1562500,
+static const int max44000_int_time_avail_ns_array[] =
+{
+	100000000,
+	25000000,
+	6250000,
+	1562500,
 };
 static const char max44000_int_time_avail_str[] =
 	"0.100 "
@@ -116,27 +118,29 @@ static const char max44000_int_time_avail_str[] =
 	"0.001625";
 
 /* Available scales (internal to ulux) with pretty manual alignment: */
-static const int max44000_scale_avail_ulux_array[] = {
-	    31250,
-	   125000,
-	   500000,
-	  4000000,
+static const int max44000_scale_avail_ulux_array[] =
+{
+	31250,
+	125000,
+	500000,
+	4000000,
 };
 static const char max44000_scale_avail_str[] =
 	"0.03125 "
 	"0.125 "
 	"0.5 "
-	 "4";
+	"4";
 
 #define MAX44000_SCAN_INDEX_ALS 0
 #define MAX44000_SCAN_INDEX_PRX 1
 
-static const struct iio_chan_spec max44000_channels[] = {
+static const struct iio_chan_spec max44000_channels[] =
+{
 	{
 		.type = IIO_LIGHT,
 		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),
 		.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE) |
-					    BIT(IIO_CHAN_INFO_INT_TIME),
+		BIT(IIO_CHAN_INFO_INT_TIME),
 		.scan_index = MAX44000_SCAN_INDEX_ALS,
 		.scan_type = {
 			.sign		= 'u',
@@ -158,7 +162,7 @@ static const struct iio_chan_spec max44000_channels[] = {
 	{
 		.type = IIO_CURRENT,
 		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |
-				      BIT(IIO_CHAN_INFO_SCALE),
+		BIT(IIO_CHAN_INFO_SCALE),
 		.extend_name = "led",
 		.output = 1,
 		.scan_index = -1,
@@ -171,16 +175,20 @@ static int max44000_read_alstim(struct max44000_data *data)
 	int ret;
 
 	ret = regmap_read(data->regmap, MAX44000_REG_CFG_RX, &val);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return (val & MAX44000_CFG_RX_ALSTIM_MASK) >> MAX44000_CFG_RX_ALSTIM_SHIFT;
 }
 
 static int max44000_write_alstim(struct max44000_data *data, int val)
 {
 	return regmap_write_bits(data->regmap, MAX44000_REG_CFG_RX,
-				 MAX44000_CFG_RX_ALSTIM_MASK,
-				 val << MAX44000_CFG_RX_ALSTIM_SHIFT);
+							 MAX44000_CFG_RX_ALSTIM_MASK,
+							 val << MAX44000_CFG_RX_ALSTIM_SHIFT);
 }
 
 static int max44000_read_alspga(struct max44000_data *data)
@@ -189,16 +197,20 @@ static int max44000_read_alspga(struct max44000_data *data)
 	int ret;
 
 	ret = regmap_read(data->regmap, MAX44000_REG_CFG_RX, &val);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return (val & MAX44000_CFG_RX_ALSPGA_MASK) >> MAX44000_CFG_RX_ALSPGA_SHIFT;
 }
 
 static int max44000_write_alspga(struct max44000_data *data, int val)
 {
 	return regmap_write_bits(data->regmap, MAX44000_REG_CFG_RX,
-				 MAX44000_CFG_RX_ALSPGA_MASK,
-				 val << MAX44000_CFG_RX_ALSPGA_SHIFT);
+							 MAX44000_CFG_RX_ALSPGA_MASK,
+							 val << MAX44000_CFG_RX_ALSPGA_SHIFT);
 }
 
 static int max44000_read_alsval(struct max44000_data *data)
@@ -207,12 +219,19 @@ static int max44000_read_alsval(struct max44000_data *data)
 	int alstim, ret;
 
 	ret = regmap_bulk_read(data->regmap, MAX44000_REG_ALS_DATA_HI,
-			       &regval, sizeof(regval));
+						   &regval, sizeof(regval));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	alstim = ret = max44000_read_alstim(data);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	regval = be16_to_cpu(regval);
 
@@ -226,7 +245,9 @@ static int max44000_read_alsval(struct max44000_data *data)
 	 * The driver just returns the max representable value.
 	 */
 	if (regval & MAX44000_ALSDATA_OVERFLOW)
+	{
 		return 0x3FFF;
+	}
 
 	return regval << MAX44000_ALSTIM_SHIFT(alstim);
 }
@@ -235,11 +256,17 @@ static int max44000_write_led_current_raw(struct max44000_data *data, int val)
 {
 	/* Maybe we should clamp the value instead? */
 	if (val < 0 || val > MAX44000_LED_CURRENT_MAX)
+	{
 		return -ERANGE;
+	}
+
 	if (val >= 8)
+	{
 		val += 4;
+	}
+
 	return regmap_write_bits(data->regmap, MAX44000_REG_CFG_TX,
-				 MAX44000_LED_CURRENT_MASK, val);
+							 MAX44000_LED_CURRENT_MASK, val);
 }
 
 static int max44000_read_led_current_raw(struct max44000_data *data)
@@ -248,124 +275,158 @@ static int max44000_read_led_current_raw(struct max44000_data *data)
 	int ret;
 
 	ret = regmap_read(data->regmap, MAX44000_REG_CFG_TX, &regval);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	regval &= MAX44000_LED_CURRENT_MASK;
+
 	if (regval >= 8)
+	{
 		regval -= 4;
+	}
+
 	return regval;
 }
 
 static int max44000_read_raw(struct iio_dev *indio_dev,
-			     struct iio_chan_spec const *chan,
-			     int *val, int *val2, long mask)
+							 struct iio_chan_spec const *chan,
+							 int *val, int *val2, long mask)
 {
 	struct max44000_data *data = iio_priv(indio_dev);
 	int alstim, alspga;
 	unsigned int regval;
 	int ret;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		switch (chan->type) {
-		case IIO_LIGHT:
-			mutex_lock(&data->lock);
-			ret = max44000_read_alsval(data);
-			mutex_unlock(&data->lock);
-			if (ret < 0)
-				return ret;
-			*val = ret;
-			return IIO_VAL_INT;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			switch (chan->type)
+			{
+				case IIO_LIGHT:
+					mutex_lock(&data->lock);
+					ret = max44000_read_alsval(data);
+					mutex_unlock(&data->lock);
 
-		case IIO_PROXIMITY:
-			mutex_lock(&data->lock);
-			ret = regmap_read(data->regmap, MAX44000_REG_PRX_DATA, &regval);
-			mutex_unlock(&data->lock);
-			if (ret < 0)
-				return ret;
-			*val = regval;
-			return IIO_VAL_INT;
+					if (ret < 0)
+					{
+						return ret;
+					}
 
-		case IIO_CURRENT:
+					*val = ret;
+					return IIO_VAL_INT;
+
+				case IIO_PROXIMITY:
+					mutex_lock(&data->lock);
+					ret = regmap_read(data->regmap, MAX44000_REG_PRX_DATA, &regval);
+					mutex_unlock(&data->lock);
+
+					if (ret < 0)
+					{
+						return ret;
+					}
+
+					*val = regval;
+					return IIO_VAL_INT;
+
+				case IIO_CURRENT:
+					mutex_lock(&data->lock);
+					ret = max44000_read_led_current_raw(data);
+					mutex_unlock(&data->lock);
+
+					if (ret < 0)
+					{
+						return ret;
+					}
+
+					*val = ret;
+					return IIO_VAL_INT;
+
+				default:
+					return -EINVAL;
+			}
+
+		case IIO_CHAN_INFO_SCALE:
+			switch (chan->type)
+			{
+				case IIO_CURRENT:
+					/* Output register is in 10s of miliamps */
+					*val = 10;
+					return IIO_VAL_INT;
+
+				case IIO_LIGHT:
+					mutex_lock(&data->lock);
+					alspga = ret = max44000_read_alspga(data);
+					mutex_unlock(&data->lock);
+
+					if (ret < 0)
+					{
+						return ret;
+					}
+
+					/* Avoid negative shifts */
+					*val = (1 << MAX44000_ALSPGA_MAX_SHIFT);
+					*val2 = MAX44000_ALS_TO_LUX_DEFAULT_FRACTION_LOG2
+							+ MAX44000_ALSPGA_MAX_SHIFT
+							- max44000_alspga_shift[alspga];
+					return IIO_VAL_FRACTIONAL_LOG2;
+
+				default:
+					return -EINVAL;
+			}
+
+		case IIO_CHAN_INFO_INT_TIME:
 			mutex_lock(&data->lock);
-			ret = max44000_read_led_current_raw(data);
+			alstim = ret = max44000_read_alstim(data);
 			mutex_unlock(&data->lock);
+
 			if (ret < 0)
+			{
 				return ret;
-			*val = ret;
-			return IIO_VAL_INT;
+			}
+
+			*val = 0;
+			*val2 = max44000_int_time_avail_ns_array[alstim];
+			return IIO_VAL_INT_PLUS_NANO;
 
 		default:
 			return -EINVAL;
-		}
-
-	case IIO_CHAN_INFO_SCALE:
-		switch (chan->type) {
-		case IIO_CURRENT:
-			/* Output register is in 10s of miliamps */
-			*val = 10;
-			return IIO_VAL_INT;
-
-		case IIO_LIGHT:
-			mutex_lock(&data->lock);
-			alspga = ret = max44000_read_alspga(data);
-			mutex_unlock(&data->lock);
-			if (ret < 0)
-				return ret;
-
-			/* Avoid negative shifts */
-			*val = (1 << MAX44000_ALSPGA_MAX_SHIFT);
-			*val2 = MAX44000_ALS_TO_LUX_DEFAULT_FRACTION_LOG2
-					+ MAX44000_ALSPGA_MAX_SHIFT
-					- max44000_alspga_shift[alspga];
-			return IIO_VAL_FRACTIONAL_LOG2;
-
-		default:
-			return -EINVAL;
-		}
-
-	case IIO_CHAN_INFO_INT_TIME:
-		mutex_lock(&data->lock);
-		alstim = ret = max44000_read_alstim(data);
-		mutex_unlock(&data->lock);
-
-		if (ret < 0)
-			return ret;
-		*val = 0;
-		*val2 = max44000_int_time_avail_ns_array[alstim];
-		return IIO_VAL_INT_PLUS_NANO;
-
-	default:
-		return -EINVAL;
 	}
 }
 
 static int max44000_write_raw(struct iio_dev *indio_dev,
-			      struct iio_chan_spec const *chan,
-			      int val, int val2, long mask)
+							  struct iio_chan_spec const *chan,
+							  int val, int val2, long mask)
 {
 	struct max44000_data *data = iio_priv(indio_dev);
 	int ret;
 
-	if (mask == IIO_CHAN_INFO_RAW && chan->type == IIO_CURRENT) {
+	if (mask == IIO_CHAN_INFO_RAW && chan->type == IIO_CURRENT)
+	{
 		mutex_lock(&data->lock);
 		ret = max44000_write_led_current_raw(data, val);
 		mutex_unlock(&data->lock);
 		return ret;
-	} else if (mask == IIO_CHAN_INFO_INT_TIME && chan->type == IIO_LIGHT) {
+	}
+	else if (mask == IIO_CHAN_INFO_INT_TIME && chan->type == IIO_LIGHT)
+	{
 		s64 valns = val * NSEC_PER_SEC + val2;
 		int alstim = find_closest_descending(valns,
-				max44000_int_time_avail_ns_array,
-				ARRAY_SIZE(max44000_int_time_avail_ns_array));
+											 max44000_int_time_avail_ns_array,
+											 ARRAY_SIZE(max44000_int_time_avail_ns_array));
 		mutex_lock(&data->lock);
 		ret = max44000_write_alstim(data, alstim);
 		mutex_unlock(&data->lock);
 		return ret;
-	} else if (mask == IIO_CHAN_INFO_SCALE && chan->type == IIO_LIGHT) {
+	}
+	else if (mask == IIO_CHAN_INFO_SCALE && chan->type == IIO_LIGHT)
+	{
 		s64 valus = val * USEC_PER_SEC + val2;
 		int alspga = find_closest(valus,
-				max44000_scale_avail_ulux_array,
-				ARRAY_SIZE(max44000_scale_avail_ulux_array));
+								  max44000_scale_avail_ulux_array,
+								  ARRAY_SIZE(max44000_scale_avail_ulux_array));
 		mutex_lock(&data->lock);
 		ret = max44000_write_alspga(data, alspga);
 		mutex_unlock(&data->lock);
@@ -376,31 +437,40 @@ static int max44000_write_raw(struct iio_dev *indio_dev,
 }
 
 static int max44000_write_raw_get_fmt(struct iio_dev *indio_dev,
-				      struct iio_chan_spec const *chan,
-				      long mask)
+									  struct iio_chan_spec const *chan,
+									  long mask)
 {
 	if (mask == IIO_CHAN_INFO_INT_TIME && chan->type == IIO_LIGHT)
+	{
 		return IIO_VAL_INT_PLUS_NANO;
+	}
 	else if (mask == IIO_CHAN_INFO_SCALE && chan->type == IIO_LIGHT)
+	{
 		return IIO_VAL_INT_PLUS_MICRO;
+	}
 	else
+	{
 		return IIO_VAL_INT;
+	}
 }
 
 static IIO_CONST_ATTR(illuminance_integration_time_available, max44000_int_time_avail_str);
 static IIO_CONST_ATTR(illuminance_scale_available, max44000_scale_avail_str);
 
-static struct attribute *max44000_attributes[] = {
+static struct attribute *max44000_attributes[] =
+{
 	&iio_const_attr_illuminance_integration_time_available.dev_attr.attr,
 	&iio_const_attr_illuminance_scale_available.dev_attr.attr,
 	NULL
 };
 
-static const struct attribute_group max44000_attribute_group = {
+static const struct attribute_group max44000_attribute_group =
+{
 	.attrs = max44000_attributes,
 };
 
-static const struct iio_info max44000_info = {
+static const struct iio_info max44000_info =
+{
 	.driver_module		= THIS_MODULE,
 	.read_raw		= max44000_read_raw,
 	.write_raw		= max44000_write_raw,
@@ -410,60 +480,66 @@ static const struct iio_info max44000_info = {
 
 static bool max44000_readable_reg(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case MAX44000_REG_STATUS:
-	case MAX44000_REG_CFG_MAIN:
-	case MAX44000_REG_CFG_RX:
-	case MAX44000_REG_CFG_TX:
-	case MAX44000_REG_ALS_DATA_HI:
-	case MAX44000_REG_ALS_DATA_LO:
-	case MAX44000_REG_PRX_DATA:
-	case MAX44000_REG_ALS_UPTHR_HI:
-	case MAX44000_REG_ALS_UPTHR_LO:
-	case MAX44000_REG_ALS_LOTHR_HI:
-	case MAX44000_REG_ALS_LOTHR_LO:
-	case MAX44000_REG_PST:
-	case MAX44000_REG_PRX_IND:
-	case MAX44000_REG_PRX_THR:
-	case MAX44000_REG_TRIM_GAIN_GREEN:
-	case MAX44000_REG_TRIM_GAIN_IR:
-		return true;
-	default:
-		return false;
+	switch (reg)
+	{
+		case MAX44000_REG_STATUS:
+		case MAX44000_REG_CFG_MAIN:
+		case MAX44000_REG_CFG_RX:
+		case MAX44000_REG_CFG_TX:
+		case MAX44000_REG_ALS_DATA_HI:
+		case MAX44000_REG_ALS_DATA_LO:
+		case MAX44000_REG_PRX_DATA:
+		case MAX44000_REG_ALS_UPTHR_HI:
+		case MAX44000_REG_ALS_UPTHR_LO:
+		case MAX44000_REG_ALS_LOTHR_HI:
+		case MAX44000_REG_ALS_LOTHR_LO:
+		case MAX44000_REG_PST:
+		case MAX44000_REG_PRX_IND:
+		case MAX44000_REG_PRX_THR:
+		case MAX44000_REG_TRIM_GAIN_GREEN:
+		case MAX44000_REG_TRIM_GAIN_IR:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
 static bool max44000_writeable_reg(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case MAX44000_REG_CFG_MAIN:
-	case MAX44000_REG_CFG_RX:
-	case MAX44000_REG_CFG_TX:
-	case MAX44000_REG_ALS_UPTHR_HI:
-	case MAX44000_REG_ALS_UPTHR_LO:
-	case MAX44000_REG_ALS_LOTHR_HI:
-	case MAX44000_REG_ALS_LOTHR_LO:
-	case MAX44000_REG_PST:
-	case MAX44000_REG_PRX_IND:
-	case MAX44000_REG_PRX_THR:
-	case MAX44000_REG_TRIM_GAIN_GREEN:
-	case MAX44000_REG_TRIM_GAIN_IR:
-		return true;
-	default:
-		return false;
+	switch (reg)
+	{
+		case MAX44000_REG_CFG_MAIN:
+		case MAX44000_REG_CFG_RX:
+		case MAX44000_REG_CFG_TX:
+		case MAX44000_REG_ALS_UPTHR_HI:
+		case MAX44000_REG_ALS_UPTHR_LO:
+		case MAX44000_REG_ALS_LOTHR_HI:
+		case MAX44000_REG_ALS_LOTHR_LO:
+		case MAX44000_REG_PST:
+		case MAX44000_REG_PRX_IND:
+		case MAX44000_REG_PRX_THR:
+		case MAX44000_REG_TRIM_GAIN_GREEN:
+		case MAX44000_REG_TRIM_GAIN_IR:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
 static bool max44000_volatile_reg(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case MAX44000_REG_STATUS:
-	case MAX44000_REG_ALS_DATA_HI:
-	case MAX44000_REG_ALS_DATA_LO:
-	case MAX44000_REG_PRX_DATA:
-		return true;
-	default:
-		return false;
+	switch (reg)
+	{
+		case MAX44000_REG_STATUS:
+		case MAX44000_REG_ALS_DATA_HI:
+		case MAX44000_REG_ALS_DATA_LO:
+		case MAX44000_REG_PRX_DATA:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
@@ -472,7 +548,8 @@ static bool max44000_precious_reg(struct device *dev, unsigned int reg)
 	return reg == MAX44000_REG_STATUS;
 }
 
-static const struct regmap_config max44000_regmap_config = {
+static const struct regmap_config max44000_regmap_config =
+{
 	.reg_bits	= 8,
 	.val_bits	= 8,
 
@@ -497,22 +574,35 @@ static irqreturn_t max44000_trigger_handler(int irq, void *p)
 	int ret;
 
 	mutex_lock(&data->lock);
-	if (test_bit(MAX44000_SCAN_INDEX_ALS, indio_dev->active_scan_mask)) {
+
+	if (test_bit(MAX44000_SCAN_INDEX_ALS, indio_dev->active_scan_mask))
+	{
 		ret = max44000_read_alsval(data);
+
 		if (ret < 0)
+		{
 			goto out_unlock;
+		}
+
 		buf[index++] = ret;
 	}
-	if (test_bit(MAX44000_SCAN_INDEX_PRX, indio_dev->active_scan_mask)) {
+
+	if (test_bit(MAX44000_SCAN_INDEX_PRX, indio_dev->active_scan_mask))
+	{
 		ret = regmap_read(data->regmap, MAX44000_REG_PRX_DATA, &regval);
+
 		if (ret < 0)
+		{
 			goto out_unlock;
+		}
+
 		buf[index] = regval;
 	}
+
 	mutex_unlock(&data->lock);
 
 	iio_push_to_buffers_with_timestamp(indio_dev, buf,
-					   iio_get_time_ns(indio_dev));
+									   iio_get_time_ns(indio_dev));
 	iio_trigger_notify_done(indio_dev->trig);
 	return IRQ_HANDLED;
 
@@ -523,18 +613,24 @@ out_unlock:
 }
 
 static int max44000_probe(struct i2c_client *client,
-			  const struct i2c_device_id *id)
+						  const struct i2c_device_id *id)
 {
 	struct max44000_data *data;
 	struct iio_dev *indio_dev;
 	int ret, reg;
 
 	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*data));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
+
 	data = iio_priv(indio_dev);
 	data->regmap = devm_regmap_init_i2c(client, &max44000_regmap_config);
-	if (IS_ERR(data->regmap)) {
+
+	if (IS_ERR(data->regmap))
+	{
 		dev_err(&client->dev, "regmap_init failed!\n");
 		return PTR_ERR(data->regmap);
 	}
@@ -557,10 +653,12 @@ static int max44000_probe(struct i2c_client *client,
 
 	/* Reset ALS scaling bits */
 	ret = regmap_write(data->regmap, MAX44000_REG_CFG_RX,
-			   MAX44000_REG_CFG_RX_DEFAULT);
-	if (ret < 0) {
+					   MAX44000_REG_CFG_RX_DEFAULT);
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "failed to write default CFG_RX: %d\n",
-			ret);
+				ret);
 		return ret;
 	}
 
@@ -569,7 +667,9 @@ static int max44000_probe(struct i2c_client *client,
 	 * Set a middle value so that we get some sort of valid data by default.
 	 */
 	ret = max44000_write_led_current_raw(data, MAX44000_LED_CURRENT_DEFAULT);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "failed to write init config: %d\n", ret);
 		return ret;
 	}
@@ -577,20 +677,26 @@ static int max44000_probe(struct i2c_client *client,
 	/* Reset CFG bits to ALS_PRX mode which allows easy reading of both values. */
 	reg = MAX44000_CFG_TRIM | MAX44000_CFG_MODE_ALS_PRX;
 	ret = regmap_write(data->regmap, MAX44000_REG_CFG_MAIN, reg);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "failed to write init config: %d\n", ret);
 		return ret;
 	}
 
 	/* Read status at least once to clear any stale interrupt bits. */
 	ret = regmap_read(data->regmap, MAX44000_REG_STATUS, &reg);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "failed to read init status: %d\n", ret);
 		return ret;
 	}
 
 	ret = iio_triggered_buffer_setup(indio_dev, NULL, max44000_trigger_handler, NULL);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "iio triggered buffer setup failed\n");
 		return ret;
 	}
@@ -608,21 +714,24 @@ static int max44000_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id max44000_id[] = {
+static const struct i2c_device_id max44000_id[] =
+{
 	{"max44000", 0},
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, max44000_id);
 
 #ifdef CONFIG_ACPI
-static const struct acpi_device_id max44000_acpi_match[] = {
+static const struct acpi_device_id max44000_acpi_match[] =
+{
 	{"MAX44000", 0},
 	{ }
 };
 MODULE_DEVICE_TABLE(acpi, max44000_acpi_match);
 #endif
 
-static struct i2c_driver max44000_driver = {
+static struct i2c_driver max44000_driver =
+{
 	.driver = {
 		.name	= MAX44000_DRV_NAME,
 		.acpi_match_table = ACPI_PTR(max44000_acpi_match),

@@ -17,7 +17,8 @@
 #define DLM_PLOCK_VERSION_MINOR	2
 #define DLM_PLOCK_VERSION_PATCH	0
 
-enum {
+enum
+{
 	DLM_PLOCK_OP_LOCK = 1,
 	DLM_PLOCK_OP_UNLOCK,
 	DLM_PLOCK_OP_GET,
@@ -25,7 +26,8 @@ enum {
 
 #define DLM_PLOCK_FL_CLOSE 1
 
-struct dlm_plock_info {
+struct dlm_plock_info
+{
 	__u32 version[3];
 	__u8 optype;
 	__u8 ex;

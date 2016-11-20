@@ -44,7 +44,8 @@ static __u64 handle_base;
 #define HANDLE_INCR 7
 static spinlock_t handle_base_lock;
 
-static struct handle_bucket {
+static struct handle_bucket
+{
 	spinlock_t	lock;
 	struct list_head	head;
 } *handle_hash;
@@ -57,7 +58,7 @@ static struct handle_bucket {
  * global (per-node) hash-table.
  */
 void class_handle_hash(struct portals_handle *h,
-		       struct portals_handle_ops *ops)
+					   struct portals_handle_ops *ops)
 {
 	struct handle_bucket *bucket;
 
@@ -71,7 +72,8 @@ void class_handle_hash(struct portals_handle *h,
 	spin_lock(&handle_base_lock);
 	handle_base += HANDLE_INCR;
 
-	if (unlikely(handle_base == 0)) {
+	if (unlikely(handle_base == 0))
+	{
 		/*
 		 * Cookie of zero is "dangerous", because in many places it's
 		 * assumed that 0 means "unassigned" handle, not bound to any
@@ -80,6 +82,7 @@ void class_handle_hash(struct portals_handle *h,
 		CWARN("The universe has been exhausted: cookie wrap-around.\n");
 		handle_base += HANDLE_INCR;
 	}
+
 	h->h_cookie = handle_base;
 	spin_unlock(&handle_base_lock);
 
@@ -93,26 +96,30 @@ void class_handle_hash(struct portals_handle *h,
 	spin_unlock(&bucket->lock);
 
 	CDEBUG(D_INFO, "added object %p with handle %#llx to hash\n",
-	       h, h->h_cookie);
+		   h, h->h_cookie);
 }
 EXPORT_SYMBOL(class_handle_hash);
 
 static void class_handle_unhash_nolock(struct portals_handle *h)
 {
-	if (list_empty(&h->h_link)) {
+	if (list_empty(&h->h_link))
+	{
 		CERROR("removing an already-removed handle (%#llx)\n",
-		       h->h_cookie);
+			   h->h_cookie);
 		return;
 	}
 
 	CDEBUG(D_INFO, "removing object %p with handle %#llx from hash\n",
-	       h, h->h_cookie);
+		   h, h->h_cookie);
 
 	spin_lock(&h->h_lock);
-	if (h->h_in == 0) {
+
+	if (h->h_in == 0)
+	{
 		spin_unlock(&h->h_lock);
 		return;
 	}
+
 	h->h_in = 0;
 	spin_unlock(&h->h_lock);
 	list_del_rcu(&h->h_link);
@@ -144,15 +151,21 @@ void *class_handle2object(__u64 cookie, const void *owner)
 	bucket = handle_hash + (cookie & HANDLE_HASH_MASK);
 
 	rcu_read_lock();
-	list_for_each_entry_rcu(h, &bucket->head, h_link) {
+	list_for_each_entry_rcu(h, &bucket->head, h_link)
+	{
 		if (h->h_cookie != cookie || h->h_owner != owner)
+		{
 			continue;
+		}
 
 		spin_lock(&h->h_lock);
-		if (likely(h->h_in != 0)) {
+
+		if (likely(h->h_in != 0))
+		{
 			h->h_ops->hop_addref(h);
 			retval = h;
 		}
+
 		spin_unlock(&h->h_lock);
 		break;
 	}
@@ -171,9 +184,13 @@ void class_handle_free_cb(struct rcu_head *rcu)
 	ptr = (void *)(unsigned long)h->h_cookie;
 
 	if (h->h_ops->hop_free)
+	{
 		h->h_ops->hop_free(ptr, h->h_size);
+	}
 	else
+	{
 		kfree(ptr);
+	}
 }
 EXPORT_SYMBOL(class_handle_free_cb);
 
@@ -186,13 +203,18 @@ int class_handle_init(void)
 	LASSERT(!handle_hash);
 
 	handle_hash = libcfs_kvzalloc(sizeof(*bucket) * HANDLE_HASH_SIZE,
-				      GFP_NOFS);
+								  GFP_NOFS);
+
 	if (!handle_hash)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&handle_base_lock);
+
 	for (bucket = handle_hash + HANDLE_HASH_SIZE - 1; bucket >= handle_hash;
-	     bucket--) {
+		 bucket--)
+	{
 		INIT_LIST_HEAD(&bucket->head);
 		spin_lock_init(&bucket->lock);
 	}
@@ -213,13 +235,15 @@ static int cleanup_all_handles(void)
 	int rc;
 	int i;
 
-	for (rc = i = 0; i < HANDLE_HASH_SIZE; i++) {
+	for (rc = i = 0; i < HANDLE_HASH_SIZE; i++)
+	{
 		struct portals_handle *h;
 
 		spin_lock(&handle_hash[i].lock);
-		list_for_each_entry_rcu(h, &handle_hash[i].head, h_link) {
+		list_for_each_entry_rcu(h, &handle_hash[i].head, h_link)
+		{
 			CERROR("force clean handle %#llx addr %p ops %p\n",
-			       h->h_cookie, h, h->h_ops);
+				   h->h_cookie, h, h->h_ops);
 
 			class_handle_unhash_nolock(h);
 			rc++;
@@ -242,5 +266,7 @@ void class_handle_cleanup(void)
 	handle_hash = NULL;
 
 	if (count != 0)
+	{
 		CERROR("handle_count at cleanup: %d\n", count);
+	}
 }

@@ -46,7 +46,8 @@
 /*
  * FCP_CMND IU Payload.
  */
-struct fcp_cmnd {
+struct fcp_cmnd
+{
 	struct scsi_lun	fc_lun;		/* logical unit number */
 	__u8		fc_cmdref;	/* command reference number */
 	__u8		fc_pri_ta;	/* priority and task attribute */
@@ -58,7 +59,8 @@ struct fcp_cmnd {
 
 #define	FCP_CMND_LEN	32	/* expected length of structure */
 
-struct fcp_cmnd32 {
+struct fcp_cmnd32
+{
 	struct scsi_lun	fc_lun;		/* logical unit number */
 	__u8		fc_cmdref;	/* command reference number */
 	__u8		fc_pri_ta;	/* priority and task attribute */
@@ -104,7 +106,8 @@ struct fcp_cmnd32 {
 /*
  * FCP_TXRDY IU - transfer ready payload.
  */
-struct fcp_txrdy {
+struct fcp_txrdy
+{
 	__be32		ft_data_ro;	/* data relative offset */
 	__be32		ft_burst_len;	/* burst length */
 	__u8		_ft_resvd[4];	/* reserved */
@@ -131,7 +134,8 @@ struct fcp_txrdy {
  * From Table 23, the FCP_RSP_INFO can either be 4 bytes or 8 bytes, both
  * are valid length.
  */
-struct fcp_resp {
+struct fcp_resp
+{
 	__u8		_fr_resvd[8];	/* reserved */
 	__be16		fr_retry_delay;	/* retry delay timer */
 	__u8		fr_flags;	/* flags */
@@ -140,7 +144,8 @@ struct fcp_resp {
 
 #define	FCP_RESP_LEN	12	/* expected length of structure */
 
-struct fcp_resp_ext {
+struct fcp_resp_ext
+{
 	__be32		fr_resid;	/* Residual value */
 	__be32		fr_sns_len;	/* SCSI Sense length */
 	__be32		fr_rsp_len;	/* Response Info length */
@@ -153,16 +158,18 @@ struct fcp_resp_ext {
 
 #define FCP_RESP_EXT_LEN    12  /* expected length of the structure */
 
-struct fcp_resp_rsp_info {
-    __u8      _fr_resvd[3];       /* reserved */
-    __u8      rsp_code;           /* Response Info Code */
-    __u8      _fr_resvd2[4];      /* reserved */
+struct fcp_resp_rsp_info
+{
+	__u8      _fr_resvd[3];       /* reserved */
+	__u8      rsp_code;           /* Response Info Code */
+	__u8      _fr_resvd2[4];      /* reserved */
 };
 
 #define FCP_RESP_RSP_INFO_LEN4    4 /* without reserved field */
 #define FCP_RESP_RSP_INFO_LEN8    8 /* with reserved field */
 
-struct fcp_resp_with_ext {
+struct fcp_resp_with_ext
+{
 	struct fcp_resp resp;
 	struct fcp_resp_ext ext;
 };
@@ -184,7 +191,8 @@ struct fcp_resp_with_ext {
 /*
  * rsp_codes
  */
-enum fcp_resp_rsp_codes {
+enum fcp_resp_rsp_codes
+{
 	FCP_TMF_CMPL = 0,
 	FCP_DATA_LEN_INVALID = 1,
 	FCP_CMND_FIELDS_INVALID = 2,
@@ -197,7 +205,8 @@ enum fcp_resp_rsp_codes {
 /*
  * FCP SRR Link Service request - Sequence Retransmission Request.
  */
-struct fcp_srr {
+struct fcp_srr
+{
 	__u8		srr_op;		/* opcode ELS_SRR */
 	__u8		srr_resvd[3];	/* opcode / reserved - must be zero */
 	__be16		srr_ox_id;	/* OX_ID of failed command */

@@ -50,18 +50,22 @@ static inline int lcd_spi_write(struct spi_device *spi, u32 data)
 	/* clear ISR */
 	writel_relaxed(~SPI_IRQ_MASK, reg_base + SPU_IRQ_ISR);
 
-	switch (spi->bits_per_word) {
-	case 8:
-		writel_relaxed((u8)data, reg_base + LCD_SPU_SPI_TXDATA);
-		break;
-	case 16:
-		writel_relaxed((u16)data, reg_base + LCD_SPU_SPI_TXDATA);
-		break;
-	case 32:
-		writel_relaxed((u32)data, reg_base + LCD_SPU_SPI_TXDATA);
-		break;
-	default:
-		dev_err(&spi->dev, "Wrong spi bit length\n");
+	switch (spi->bits_per_word)
+	{
+		case 8:
+			writel_relaxed((u8)data, reg_base + LCD_SPU_SPI_TXDATA);
+			break;
+
+		case 16:
+			writel_relaxed((u16)data, reg_base + LCD_SPU_SPI_TXDATA);
+			break;
+
+		case 32:
+			writel_relaxed((u32)data, reg_base + LCD_SPU_SPI_TXDATA);
+			break;
+
+		default:
+			dev_err(&spi->dev, "Wrong spi bit length\n");
 	}
 
 	/* SPI start to send command */
@@ -71,10 +75,14 @@ static inline int lcd_spi_write(struct spi_device *spi, u32 data)
 	writel(tmp, reg_base + LCD_SPU_SPI_CTRL);
 
 	isr = readl_relaxed(reg_base + SPU_IRQ_ISR);
-	while (!(isr & SPI_IRQ_ENA_MASK)) {
+
+	while (!(isr & SPI_IRQ_ENA_MASK))
+	{
 		udelay(100);
 		isr = readl_relaxed(reg_base + SPU_IRQ_ISR);
-		if (!--timeout) {
+
+		if (!--timeout)
+		{
 			ret = -ETIMEDOUT;
 			dev_err(&spi->dev, "spi cmd send time out\n");
 			break;
@@ -98,9 +106,9 @@ static int lcd_spi_setup(struct spi_device *spi)
 	u32 tmp;
 
 	tmp = CFG_SCLKCNT(16) |
-		CFG_TXBITS(spi->bits_per_word) |
-		CFG_SPI_SEL(1) | CFG_SPI_ENA(1) |
-		CFG_SPI_3W4WB(1);
+		  CFG_TXBITS(spi->bits_per_word) |
+		  CFG_SPI_SEL(1) | CFG_SPI_ENA(1) |
+		  CFG_SPI_3W4WB(1);
 	writel(tmp, reg_base + LCD_SPU_SPI_CTRL);
 
 	/*
@@ -109,10 +117,12 @@ static int lcd_spi_setup(struct spi_device *spi)
 	 * especially on pxa910h
 	 */
 	tmp = readl_relaxed(reg_base + SPU_IOPAD_CONTROL);
+
 	if ((tmp & CFG_IOPADMODE_MASK) != IOPAD_DUMB18SPI)
 		writel_relaxed(IOPAD_DUMB18SPI |
-			(tmp & ~CFG_IOPADMODE_MASK),
-			reg_base + SPU_IOPAD_CONTROL);
+					   (tmp & ~CFG_IOPADMODE_MASK),
+					   reg_base + SPU_IOPAD_CONTROL);
+
 	udelay(20);
 	return 0;
 }
@@ -122,28 +132,46 @@ static int lcd_spi_one_transfer(struct spi_device *spi, struct spi_message *m)
 	struct spi_transfer *t;
 	int i;
 
-	list_for_each_entry(t, &m->transfers, transfer_list) {
-		switch (spi->bits_per_word) {
-		case 8:
-			for (i = 0; i < t->len; i++)
-				lcd_spi_write(spi, ((u8 *)t->tx_buf)[i]);
-			break;
-		case 16:
-			for (i = 0; i < t->len/2; i++)
-				lcd_spi_write(spi, ((u16 *)t->tx_buf)[i]);
-			break;
-		case 32:
-			for (i = 0; i < t->len/4; i++)
-				lcd_spi_write(spi, ((u32 *)t->tx_buf)[i]);
-			break;
-		default:
-			dev_err(&spi->dev, "Wrong spi bit length\n");
+	list_for_each_entry(t, &m->transfers, transfer_list)
+	{
+		switch (spi->bits_per_word)
+		{
+			case 8:
+				for (i = 0; i < t->len; i++)
+				{
+					lcd_spi_write(spi, ((u8 *)t->tx_buf)[i]);
+				}
+
+				break;
+
+			case 16:
+				for (i = 0; i < t->len / 2; i++)
+				{
+					lcd_spi_write(spi, ((u16 *)t->tx_buf)[i]);
+				}
+
+				break;
+
+			case 32:
+				for (i = 0; i < t->len / 4; i++)
+				{
+					lcd_spi_write(spi, ((u32 *)t->tx_buf)[i]);
+				}
+
+				break;
+
+			default:
+				dev_err(&spi->dev, "Wrong spi bit length\n");
 		}
 	}
 
 	m->status = 0;
+
 	if (m->complete)
+	{
 		m->complete(m->context);
+	}
+
 	return 0;
 }
 
@@ -154,10 +182,13 @@ int lcd_spi_register(struct mmphw_ctrl *ctrl)
 	int err;
 
 	master = spi_alloc_master(ctrl->dev, sizeof(void *));
-	if (!master) {
+
+	if (!master)
+	{
 		dev_err(ctrl->dev, "unable to allocate SPI master\n");
 		return -ENOMEM;
 	}
+
 	p_regbase = spi_master_get_devdata(master);
 	*p_regbase = ctrl->reg_base;
 
@@ -168,7 +199,9 @@ int lcd_spi_register(struct mmphw_ctrl *ctrl)
 	master->transfer = lcd_spi_one_transfer;
 
 	err = spi_register_master(master);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(ctrl->dev, "unable to register SPI master\n");
 		spi_master_put(master);
 		return err;

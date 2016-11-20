@@ -12,7 +12,8 @@
 #ifndef _KYRO_H
 #define _KYRO_H
 
-struct kyrofb_info {
+struct kyrofb_info
+{
 	void __iomem *regbase;
 
 	u32 palette[16];
@@ -67,20 +68,23 @@ extern u32 kyro_dev_overlay_offset(void);
  * The follow 3 structures are used to pass data from user space into the kernel
  * for the creation of overlay surfaces and setting the video mode.
  */
-typedef struct _OVERLAY_CREATE {
+typedef struct _OVERLAY_CREATE
+{
 	u32 ulWidth;
 	u32 ulHeight;
 	int bLinear;
 } overlay_create;
 
-typedef struct _OVERLAY_VIEWPORT_SET {
+typedef struct _OVERLAY_VIEWPORT_SET
+{
 	u32 xOrgin;
 	u32 yOrgin;
 	u32 xSize;
 	u32 ySize;
 } overlay_viewport_set;
 
-typedef struct _SET_VIDEO_MODE {
+typedef struct _SET_VIDEO_MODE
+{
 	u32 ulWidth;
 	u32 ulHeight;
 	u32 ulScan;

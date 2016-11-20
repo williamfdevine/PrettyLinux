@@ -31,7 +31,8 @@
 
 struct whc_dbg;
 
-struct whc {
+struct whc
+{
 	struct wusbhc wusbhc;
 	struct umc_dev *umc;
 
@@ -53,7 +54,7 @@ struct whc {
 	spinlock_t   lock;
 	struct mutex mutex;
 
-	void *            gen_cmd_buf;
+	void             *gen_cmd_buf;
 	dma_addr_t        gen_cmd_buf_dma;
 	wait_queue_head_t cmd_wq;
 
@@ -92,7 +93,8 @@ struct whc {
  * Queued URBs may require more TDs than are available in a qset so we
  * use a list of these "software TDs" (sTDs) to hold per-TD data.
  */
-struct whc_std {
+struct whc_std
+{
 	struct urb *urb;
 	size_t len;
 	int    ntds_remaining;
@@ -116,7 +118,8 @@ struct whc_std {
  * @is_async: the URB belongs to async sheduler or not.
  * @status: the status to be returned when calling wusbhc_giveback_urb.
  */
-struct whc_urb {
+struct whc_urb
+{
 	struct urb *urb;
 	struct whc_qset *qset;
 	struct work_struct dequeue_work;
@@ -133,7 +136,8 @@ static inline bool whc_std_last(struct whc_std *std)
 	return std->ntds_remaining <= 1;
 }
 
-enum whc_update {
+enum whc_update
+{
 	WHC_UPDATE_ADDED   = 0x01,
 	WHC_UPDATE_REMOVED = 0x02,
 	WHC_UPDATE_UPDATED = 0x04,
@@ -152,15 +156,15 @@ void whc_hw_error(struct whc *whc, const char *reason);
 int whc_wusbhc_start(struct wusbhc *wusbhc);
 void whc_wusbhc_stop(struct wusbhc *wusbhc, int delay);
 int whc_mmcie_add(struct wusbhc *wusbhc, u8 interval, u8 repeat_cnt,
-		  u8 handle, struct wuie_hdr *wuie);
+				  u8 handle, struct wuie_hdr *wuie);
 int whc_mmcie_rm(struct wusbhc *wusbhc, u8 handle);
 int whc_bwa_set(struct wusbhc *wusbhc, s8 stream_index, const struct uwb_mas_bm *mas_bm);
 int whc_dev_info_set(struct wusbhc *wusbhc, struct wusb_dev *wusb_dev);
 int whc_set_num_dnts(struct wusbhc *wusbhc, u8 interval, u8 slots);
 int whc_set_ptk(struct wusbhc *wusbhc, u8 port_idx, u32 tkid,
-		const void *ptk, size_t key_size);
+				const void *ptk, size_t key_size);
 int whc_set_gtk(struct wusbhc *wusbhc, u32 tkid,
-		const void *gtk, size_t key_size);
+				const void *gtk, size_t key_size);
 int whc_set_cluster_id(struct whc *whc, u8 bcid);
 
 /* int.c */
@@ -195,14 +199,14 @@ void qset_delete(struct whc *whc, struct whc_qset *qset);
 void qset_clear(struct whc *whc, struct whc_qset *qset);
 void qset_reset(struct whc *whc, struct whc_qset *qset);
 int qset_add_urb(struct whc *whc, struct whc_qset *qset, struct urb *urb,
-		 gfp_t mem_flags);
+				 gfp_t mem_flags);
 void qset_free_std(struct whc *whc, struct whc_std *std);
 void qset_remove_urb(struct whc *whc, struct whc_qset *qset,
-			    struct urb *urb, int status);
+					 struct urb *urb, int status);
 void process_halted_qtd(struct whc *whc, struct whc_qset *qset,
-			       struct whc_qtd *qtd);
+						struct whc_qtd *qtd);
 void process_inactive_qtd(struct whc *whc, struct whc_qset *qset,
-				 struct whc_qtd *qtd);
+						  struct whc_qtd *qtd);
 enum whc_update qset_add_qtds(struct whc *whc, struct whc_qset *qset);
 void qset_remove_complete(struct whc *whc, struct whc_qset *qset);
 void pzl_update(struct whc *whc, uint32_t wusbcmd);

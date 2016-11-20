@@ -20,10 +20,10 @@
 #include "mdp4_kms.h"
 
 void mdp4_set_irqmask(struct mdp_kms *mdp_kms, uint32_t irqmask,
-		uint32_t old_irqmask)
+					  uint32_t old_irqmask)
 {
 	mdp4_write(to_mdp4_kms(mdp_kms), REG_MDP4_INTR_CLEAR,
-		irqmask ^ (irqmask & old_irqmask));
+			   irqmask ^ (irqmask & old_irqmask));
 	mdp4_write(to_mdp4_kms(mdp_kms), REG_MDP4_INTR_ENABLE, irqmask);
 }
 
@@ -49,7 +49,7 @@ int mdp4_irq_postinstall(struct msm_kms *kms)
 
 	error_handler->irq = mdp4_irq_error_handler;
 	error_handler->irqmask = MDP4_IRQ_PRIMARY_INTF_UDERRUN |
-			MDP4_IRQ_EXTERNAL_INTF_UDERRUN;
+							 MDP4_IRQ_EXTERNAL_INTF_UDERRUN;
 
 	mdp_irq_register(mdp_kms, error_handler);
 
@@ -83,7 +83,9 @@ irqreturn_t mdp4_irq(struct msm_kms *kms)
 
 	for (id = 0; id < priv->num_crtcs; id++)
 		if (status & mdp4_crtc_vblank(priv->crtcs[id]))
+		{
 			drm_handle_vblank(dev, id);
+		}
 
 	return IRQ_HANDLED;
 }
@@ -94,7 +96,7 @@ int mdp4_enable_vblank(struct msm_kms *kms, struct drm_crtc *crtc)
 
 	mdp4_enable(mdp4_kms);
 	mdp_update_vblank_mask(to_mdp_kms(kms),
-			mdp4_crtc_vblank(crtc), true);
+						   mdp4_crtc_vblank(crtc), true);
 	mdp4_disable(mdp4_kms);
 
 	return 0;
@@ -106,6 +108,6 @@ void mdp4_disable_vblank(struct msm_kms *kms, struct drm_crtc *crtc)
 
 	mdp4_enable(mdp4_kms);
 	mdp_update_vblank_mask(to_mdp_kms(kms),
-			mdp4_crtc_vblank(crtc), false);
+						   mdp4_crtc_vblank(crtc), false);
 	mdp4_disable(mdp4_kms);
 }

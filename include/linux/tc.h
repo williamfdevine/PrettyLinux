@@ -47,7 +47,8 @@
 /*
  * Information obtained through the get_tcinfo() PROM call.
  */
-struct tcinfo {
+struct tcinfo
+{
 	s32		revision;	/* Hardware revision level. */
 	s32		clk_period;	/* Clock period in nanoseconds. */
 	s32		slot_size;	/* Slot size in megabytes. */
@@ -61,7 +62,8 @@ struct tcinfo {
 /*
  * TURBOchannel bus.
  */
-struct tc_bus {
+struct tc_bus
+{
 	struct list_head devices;	/* List of devices on this bus. */
 	struct resource	resource[2];	/* Address space routed to this bus. */
 
@@ -77,7 +79,8 @@ struct tc_bus {
 /*
  * TURBOchannel device.
  */
-struct tc_dev {
+struct tc_dev
+{
 	struct list_head node;		/* Node in list of all TC devices. */
 	struct tc_bus	*bus;		/* Bus this device is on. */
 	struct tc_driver *driver;	/* Which driver has allocated this
@@ -93,7 +96,8 @@ struct tc_dev {
 
 #define to_tc_dev(n) container_of(n, struct tc_dev, dev)
 
-struct tc_device_id {
+struct tc_device_id
+{
 	char		vendor[9];
 	char		name[9];
 };
@@ -101,7 +105,8 @@ struct tc_device_id {
 /*
  * TURBOchannel driver.
  */
-struct tc_driver {
+struct tc_driver
+{
 	struct list_head node;
 	const struct tc_device_id *id_table;
 	struct device_driver driver;

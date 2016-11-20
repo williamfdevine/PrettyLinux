@@ -42,7 +42,8 @@
 #include <linux/spinlock.h>
 #include <linux/reservation.h>
 
-struct ttm_backend_func {
+struct ttm_backend_func
+{
 	/**
 	 * struct ttm_backend_func member bind
 	 *
@@ -84,7 +85,8 @@ struct ttm_backend_func {
 #define TTM_PAGE_FLAG_DMA32           (1 << 7)
 #define TTM_PAGE_FLAG_SG              (1 << 8)
 
-enum ttm_caching_state {
+enum ttm_caching_state
+{
 	tt_uncached,
 	tt_wc,
 	tt_cached
@@ -111,7 +113,8 @@ enum ttm_caching_state {
  * memory.
  */
 
-struct ttm_tt {
+struct ttm_tt
+{
 	struct ttm_bo_device *bdev;
 	struct ttm_backend_func *func;
 	struct page *dummy_read_page;
@@ -122,7 +125,8 @@ struct ttm_tt {
 	struct ttm_bo_global *glob;
 	struct file *swap_storage;
 	enum ttm_caching_state caching_state;
-	enum {
+	enum
+	{
 		tt_bound,
 		tt_unbound,
 		tt_unpopulated,
@@ -140,7 +144,8 @@ struct ttm_tt {
  * status for a buffer object that isn't backed by fixed (VRAM / AGP)
  * memory.
  */
-struct ttm_dma_tt {
+struct ttm_dma_tt
+{
 	struct ttm_tt ttm;
 	dma_addr_t *dma_address;
 	struct list_head pages_list;
@@ -152,7 +157,8 @@ struct ttm_dma_tt {
 
 struct ttm_mem_type_manager;
 
-struct ttm_mem_type_manager_func {
+struct ttm_mem_type_manager_func
+{
 	/**
 	 * struct ttm_mem_type_manager member init
 	 *
@@ -205,9 +211,9 @@ struct ttm_mem_type_manager_func {
 	 * protect any data structures managing the space.
 	 */
 	int  (*get_node)(struct ttm_mem_type_manager *man,
-			 struct ttm_buffer_object *bo,
-			 const struct ttm_place *place,
-			 struct ttm_mem_reg *mem);
+					 struct ttm_buffer_object *bo,
+					 const struct ttm_place *place,
+					 struct ttm_mem_reg *mem);
 
 	/**
 	 * struct ttm_mem_type_manager member put_node
@@ -220,7 +226,7 @@ struct ttm_mem_type_manager_func {
 	 * be called from within atomic context.
 	 */
 	void (*put_node)(struct ttm_mem_type_manager *man,
-			 struct ttm_mem_reg *mem);
+					 struct ttm_mem_reg *mem);
 
 	/**
 	 * struct ttm_mem_type_manager member debug
@@ -267,7 +273,8 @@ struct ttm_mem_type_manager_func {
 
 
 
-struct ttm_mem_type_manager {
+struct ttm_mem_type_manager
+{
 	struct ttm_bo_device *bdev;
 
 	/*
@@ -320,7 +327,8 @@ struct ttm_mem_type_manager {
  * If set to NULL, a potentially slow memcpy() move is used.
  */
 
-struct ttm_bo_driver {
+struct ttm_bo_driver
+{
 	/**
 	 * ttm_tt_create
 	 *
@@ -335,9 +343,9 @@ struct ttm_bo_driver {
 	 * NULL: Out of memory.
 	 */
 	struct ttm_tt *(*ttm_tt_create)(struct ttm_bo_device *bdev,
-					unsigned long size,
-					uint32_t page_flags,
-					struct page *dummy_read_page);
+									unsigned long size,
+									uint32_t page_flags,
+									struct page *dummy_read_page);
 
 	/**
 	 * ttm_tt_populate
@@ -373,7 +381,7 @@ struct ttm_bo_driver {
 
 	int (*invalidate_caches) (struct ttm_bo_device *bdev, uint32_t flags);
 	int (*init_mem_type) (struct ttm_bo_device *bdev, uint32_t type,
-			      struct ttm_mem_type_manager *man);
+						  struct ttm_mem_type_manager *man);
 	/**
 	 * struct ttm_bo_driver member evict_flags:
 	 *
@@ -384,8 +392,8 @@ struct ttm_bo_driver {
 	 * finished, they'll end up in bo->mem.flags
 	 */
 
-	 void(*evict_flags) (struct ttm_buffer_object *bo,
-				struct ttm_placement *placement);
+	void(*evict_flags) (struct ttm_buffer_object *bo,
+						struct ttm_placement *placement);
 	/**
 	 * struct ttm_bo_driver member move:
 	 *
@@ -400,9 +408,9 @@ struct ttm_bo_driver {
 	 * Move a buffer between two memory regions.
 	 */
 	int (*move) (struct ttm_buffer_object *bo,
-		     bool evict, bool interruptible,
-		     bool no_wait_gpu,
-		     struct ttm_mem_reg *new_mem);
+				 bool evict, bool interruptible,
+				 bool no_wait_gpu,
+				 struct ttm_mem_reg *new_mem);
 
 	/**
 	 * struct ttm_bo_driver_member verify_access
@@ -417,12 +425,12 @@ struct ttm_bo_driver {
 	 * This function should return 0 if access is granted, -EPERM otherwise.
 	 */
 	int (*verify_access) (struct ttm_buffer_object *bo,
-			      struct file *filp);
+						  struct file *filp);
 
 	/* hook to notify driver about a driver move so it
 	 * can do tiling things */
 	void (*move_notify)(struct ttm_buffer_object *bo,
-			    struct ttm_mem_reg *new_mem);
+						struct ttm_mem_reg *new_mem);
 	/* notify the driver we are taking a fault on this BO
 	 * and have reserved it */
 	int (*fault_reserve_notify)(struct ttm_buffer_object *bo);
@@ -458,7 +466,8 @@ struct ttm_bo_driver {
  * struct ttm_bo_global_ref - Argument to initialize a struct ttm_bo_global.
  */
 
-struct ttm_bo_global_ref {
+struct ttm_bo_global_ref
+{
 	struct drm_global_reference ref;
 	struct ttm_mem_global *mem_glob;
 };
@@ -477,7 +486,8 @@ struct ttm_bo_global_ref {
  * @swap_lru: Lru list of buffer objects used for swapping.
  */
 
-struct ttm_bo_global {
+struct ttm_bo_global
+{
 
 	/**
 	 * Constant after init.
@@ -523,7 +533,8 @@ struct ttm_bo_global {
  *
  */
 
-struct ttm_bo_device {
+struct ttm_bo_device
+{
 
 	/*
 	 * Constant after bo device init / atomic.
@@ -590,11 +601,11 @@ ttm_flag_masked(uint32_t *old, uint32_t new, uint32_t mask)
  * NULL: Out of memory.
  */
 extern int ttm_tt_init(struct ttm_tt *ttm, struct ttm_bo_device *bdev,
-			unsigned long size, uint32_t page_flags,
-			struct page *dummy_read_page);
+					   unsigned long size, uint32_t page_flags,
+					   struct page *dummy_read_page);
 extern int ttm_dma_tt_init(struct ttm_dma_tt *ttm_dma, struct ttm_bo_device *bdev,
-			   unsigned long size, uint32_t page_flags,
-			   struct page *dummy_read_page);
+						   unsigned long size, uint32_t page_flags,
+						   struct page *dummy_read_page);
 
 /**
  * ttm_tt_fini
@@ -658,7 +669,7 @@ extern int ttm_tt_swapin(struct ttm_tt *ttm);
  */
 extern int ttm_tt_set_placement_caching(struct ttm_tt *ttm, uint32_t placement);
 extern int ttm_tt_swapout(struct ttm_tt *ttm,
-			  struct file *persistent_swap_storage);
+						  struct file *persistent_swap_storage);
 
 /**
  * ttm_tt_unpopulate - free pages from a ttm
@@ -683,7 +694,7 @@ extern void ttm_tt_unpopulate(struct ttm_tt *ttm);
  * false otherwise.
  */
 extern bool ttm_mem_reg_is_pci(struct ttm_bo_device *bdev,
-				   struct ttm_mem_reg *mem);
+							   struct ttm_mem_reg *mem);
 
 /**
  * ttm_bo_mem_space
@@ -705,15 +716,15 @@ extern bool ttm_mem_reg_is_pci(struct ttm_bo_device *bdev,
  * -ERESTARTSYS: An interruptible sleep was interrupted by a signal.
  */
 extern int ttm_bo_mem_space(struct ttm_buffer_object *bo,
-				struct ttm_placement *placement,
-				struct ttm_mem_reg *mem,
-				bool interruptible,
-				bool no_wait_gpu);
+							struct ttm_placement *placement,
+							struct ttm_mem_reg *mem,
+							bool interruptible,
+							bool no_wait_gpu);
 
 extern void ttm_bo_mem_put(struct ttm_buffer_object *bo,
-			   struct ttm_mem_reg *mem);
+						   struct ttm_mem_reg *mem);
 extern void ttm_bo_mem_put_locked(struct ttm_buffer_object *bo,
-				  struct ttm_mem_reg *mem);
+								  struct ttm_mem_reg *mem);
 
 extern void ttm_bo_global_release(struct drm_global_reference *ref);
 extern int ttm_bo_global_init(struct drm_global_reference *ref);
@@ -736,10 +747,10 @@ extern int ttm_bo_device_release(struct ttm_bo_device *bdev);
  * !0: Failure.
  */
 extern int ttm_bo_device_init(struct ttm_bo_device *bdev,
-			      struct ttm_bo_global *glob,
-			      struct ttm_bo_driver *driver,
-			      struct address_space *mapping,
-			      uint64_t file_page_offset, bool need_dma32);
+							  struct ttm_bo_global *glob,
+							  struct ttm_bo_driver *driver,
+							  struct address_space *mapping,
+							  uint64_t file_page_offset, bool need_dma32);
 
 /**
  * ttm_bo_unmap_virtual
@@ -760,7 +771,7 @@ extern void ttm_bo_unmap_virtual_locked(struct ttm_buffer_object *bo);
 extern int ttm_mem_io_reserve_vm(struct ttm_buffer_object *bo);
 extern void ttm_mem_io_free_vm(struct ttm_buffer_object *bo);
 extern int ttm_mem_io_lock(struct ttm_mem_type_manager *man,
-			   bool interruptible);
+						   bool interruptible);
 extern void ttm_mem_io_unlock(struct ttm_mem_type_manager *man);
 
 extern void ttm_bo_del_sub_from_lru(struct ttm_buffer_object *bo);
@@ -791,26 +802,38 @@ struct list_head *ttm_bo_default_swap_lru_tail(struct ttm_buffer_object *bo);
  * be returned if @use_ticket is set to true.
  */
 static inline int __ttm_bo_reserve(struct ttm_buffer_object *bo,
-				   bool interruptible, bool no_wait,
-				   struct ww_acquire_ctx *ticket)
+								   bool interruptible, bool no_wait,
+								   struct ww_acquire_ctx *ticket)
 {
 	int ret = 0;
 
-	if (no_wait) {
+	if (no_wait)
+	{
 		bool success;
+
 		if (WARN_ON(ticket))
+		{
 			return -EBUSY;
+		}
 
 		success = ww_mutex_trylock(&bo->resv->lock);
 		return success ? 0 : -EBUSY;
 	}
 
 	if (interruptible)
+	{
 		ret = ww_mutex_lock_interruptible(&bo->resv->lock, ticket);
+	}
 	else
+	{
 		ret = ww_mutex_lock(&bo->resv->lock, ticket);
+	}
+
 	if (ret == -EINTR)
+	{
 		return -ERESTARTSYS;
+	}
+
 	return ret;
 }
 
@@ -859,16 +882,19 @@ static inline int __ttm_bo_reserve(struct ttm_buffer_object *bo,
  * be returned if @use_ticket is set to true.
  */
 static inline int ttm_bo_reserve(struct ttm_buffer_object *bo,
-				 bool interruptible, bool no_wait,
-				 struct ww_acquire_ctx *ticket)
+								 bool interruptible, bool no_wait,
+								 struct ww_acquire_ctx *ticket)
 {
 	int ret;
 
 	WARN_ON(!atomic_read(&bo->kref.refcount));
 
 	ret = __ttm_bo_reserve(bo, interruptible, no_wait, ticket);
+
 	if (likely(ret == 0))
+	{
 		ttm_bo_del_sub_from_lru(bo);
+	}
 
 	return ret;
 }
@@ -884,8 +910,8 @@ static inline int ttm_bo_reserve(struct ttm_buffer_object *bo,
  * held by us, this function cannot deadlock any more.
  */
 static inline int ttm_bo_reserve_slowpath(struct ttm_buffer_object *bo,
-					  bool interruptible,
-					  struct ww_acquire_ctx *ticket)
+		bool interruptible,
+		struct ww_acquire_ctx *ticket)
 {
 	int ret = 0;
 
@@ -893,14 +919,20 @@ static inline int ttm_bo_reserve_slowpath(struct ttm_buffer_object *bo,
 
 	if (interruptible)
 		ret = ww_mutex_lock_slow_interruptible(&bo->resv->lock,
-						       ticket);
+											   ticket);
 	else
+	{
 		ww_mutex_lock_slow(&bo->resv->lock, ticket);
+	}
 
 	if (likely(ret == 0))
+	{
 		ttm_bo_del_sub_from_lru(bo);
+	}
 	else if (ret == -EINTR)
+	{
 		ret = -ERESTARTSYS;
+	}
 
 	return ret;
 }
@@ -926,11 +958,13 @@ static inline void __ttm_bo_unreserve(struct ttm_buffer_object *bo)
  */
 static inline void ttm_bo_unreserve(struct ttm_buffer_object *bo)
 {
-	if (!(bo->mem.placement & TTM_PL_FLAG_NO_EVICT)) {
+	if (!(bo->mem.placement & TTM_PL_FLAG_NO_EVICT))
+	{
 		spin_lock(&bo->glob->lru_lock);
 		ttm_bo_add_to_lru(bo);
 		spin_unlock(&bo->glob->lru_lock);
 	}
+
 	__ttm_bo_unreserve(bo);
 }
 
@@ -942,7 +976,7 @@ static inline void ttm_bo_unreserve(struct ttm_buffer_object *bo)
  * Unreserve a previous reservation of @bo made with @ticket.
  */
 static inline void ttm_bo_unreserve_ticket(struct ttm_buffer_object *bo,
-					   struct ww_acquire_ctx *t)
+		struct ww_acquire_ctx *t)
 {
 	ttm_bo_unreserve(bo);
 }
@@ -952,9 +986,9 @@ static inline void ttm_bo_unreserve_ticket(struct ttm_buffer_object *bo,
  */
 
 int ttm_mem_io_reserve(struct ttm_bo_device *bdev,
-		       struct ttm_mem_reg *mem);
+					   struct ttm_mem_reg *mem);
 void ttm_mem_io_free(struct ttm_bo_device *bdev,
-		     struct ttm_mem_reg *mem);
+					 struct ttm_mem_reg *mem);
 /**
  * ttm_bo_move_ttm
  *
@@ -974,8 +1008,8 @@ void ttm_mem_io_free(struct ttm_bo_device *bdev,
  */
 
 extern int ttm_bo_move_ttm(struct ttm_buffer_object *bo,
-			   bool interruptible, bool no_wait_gpu,
-			   struct ttm_mem_reg *new_mem);
+						   bool interruptible, bool no_wait_gpu,
+						   struct ttm_mem_reg *new_mem);
 
 /**
  * ttm_bo_move_memcpy
@@ -996,8 +1030,8 @@ extern int ttm_bo_move_ttm(struct ttm_buffer_object *bo,
  */
 
 extern int ttm_bo_move_memcpy(struct ttm_buffer_object *bo,
-			      bool interruptible, bool no_wait_gpu,
-			      struct ttm_mem_reg *new_mem);
+							  bool interruptible, bool no_wait_gpu,
+							  struct ttm_mem_reg *new_mem);
 
 /**
  * ttm_bo_free_old_node
@@ -1025,8 +1059,8 @@ extern void ttm_bo_free_old_node(struct ttm_buffer_object *bo);
  */
 
 extern int ttm_bo_move_accel_cleanup(struct ttm_buffer_object *bo,
-				     struct fence *fence, bool evict,
-				     struct ttm_mem_reg *new_mem);
+									 struct fence *fence, bool evict,
+									 struct ttm_mem_reg *new_mem);
 
 /**
  * ttm_bo_pipeline_move.
@@ -1040,8 +1074,8 @@ extern int ttm_bo_move_accel_cleanup(struct ttm_buffer_object *bo,
  * immediately or hang it on a temporary buffer object.
  */
 int ttm_bo_pipeline_move(struct ttm_buffer_object *bo,
-			 struct fence *fence, bool evict,
-			 struct ttm_mem_reg *new_mem);
+						 struct fence *fence, bool evict,
+						 struct ttm_mem_reg *new_mem);
 
 /**
  * ttm_io_prot
@@ -1074,9 +1108,9 @@ extern const struct ttm_mem_type_manager_func ttm_bo_manager_func;
  * bind and unbind memory backing a ttm_tt.
  */
 extern struct ttm_tt *ttm_agp_tt_create(struct ttm_bo_device *bdev,
-					struct agp_bridge_data *bridge,
-					unsigned long size, uint32_t page_flags,
-					struct page *dummy_read_page);
+										struct agp_bridge_data *bridge,
+										unsigned long size, uint32_t page_flags,
+										struct page *dummy_read_page);
 int ttm_agp_tt_populate(struct ttm_tt *ttm);
 void ttm_agp_tt_unpopulate(struct ttm_tt *ttm);
 #endif

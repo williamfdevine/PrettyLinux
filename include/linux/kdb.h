@@ -20,7 +20,8 @@
  */
 #define KDB_ENABLE_NO_ARGS_SHIFT 10
 
-typedef enum {
+typedef enum
+{
 	KDB_ENABLE_ALL = (1 << 0), /* Enable everything */
 	KDB_ENABLE_MEM_READ = (1 << 1),
 	KDB_ENABLE_MEM_WRITE = (1 << 2),
@@ -39,23 +40,23 @@ typedef enum {
 
 	KDB_ENABLE_ALL_NO_ARGS = KDB_ENABLE_ALL << KDB_ENABLE_NO_ARGS_SHIFT,
 	KDB_ENABLE_MEM_READ_NO_ARGS = KDB_ENABLE_MEM_READ
-				      << KDB_ENABLE_NO_ARGS_SHIFT,
+								  << KDB_ENABLE_NO_ARGS_SHIFT,
 	KDB_ENABLE_MEM_WRITE_NO_ARGS = KDB_ENABLE_MEM_WRITE
-				       << KDB_ENABLE_NO_ARGS_SHIFT,
+								   << KDB_ENABLE_NO_ARGS_SHIFT,
 	KDB_ENABLE_REG_READ_NO_ARGS = KDB_ENABLE_REG_READ
-				      << KDB_ENABLE_NO_ARGS_SHIFT,
+								  << KDB_ENABLE_NO_ARGS_SHIFT,
 	KDB_ENABLE_REG_WRITE_NO_ARGS = KDB_ENABLE_REG_WRITE
-				       << KDB_ENABLE_NO_ARGS_SHIFT,
+								   << KDB_ENABLE_NO_ARGS_SHIFT,
 	KDB_ENABLE_INSPECT_NO_ARGS = KDB_ENABLE_INSPECT
-				     << KDB_ENABLE_NO_ARGS_SHIFT,
+								 << KDB_ENABLE_NO_ARGS_SHIFT,
 	KDB_ENABLE_FLOW_CTRL_NO_ARGS = KDB_ENABLE_FLOW_CTRL
-				       << KDB_ENABLE_NO_ARGS_SHIFT,
+								   << KDB_ENABLE_NO_ARGS_SHIFT,
 	KDB_ENABLE_SIGNAL_NO_ARGS = KDB_ENABLE_SIGNAL
-				    << KDB_ENABLE_NO_ARGS_SHIFT,
+								<< KDB_ENABLE_NO_ARGS_SHIFT,
 	KDB_ENABLE_REBOOT_NO_ARGS = KDB_ENABLE_REBOOT
-				    << KDB_ENABLE_NO_ARGS_SHIFT,
+								<< KDB_ENABLE_NO_ARGS_SHIFT,
 	KDB_ENABLE_ALWAYS_SAFE_NO_ARGS = KDB_ENABLE_ALWAYS_SAFE
-					 << KDB_ENABLE_NO_ARGS_SHIFT,
+									 << KDB_ENABLE_NO_ARGS_SHIFT,
 	KDB_ENABLE_MASK_NO_ARGS = KDB_ENABLE_MASK << KDB_ENABLE_NO_ARGS_SHIFT,
 
 	KDB_REPEAT_NO_ARGS = 0x40000000, /* Repeat the command w/o arguments */
@@ -141,7 +142,8 @@ extern void kdb_restore_flags(void);
  * entry to the kernel debugger.
  */
 
-typedef enum {
+typedef enum
+{
 	KDB_REASON_ENTER = 1,	/* KDB_ENTER() trap/fault - regs valid */
 	KDB_REASON_ENTER_SLAVE,	/* KDB_ENTER_SLAVE() trap/fault - regs valid */
 	KDB_REASON_BREAK,	/* Breakpoint inst. - regs valid */
@@ -156,14 +158,15 @@ typedef enum {
 	KDB_REASON_SYSTEM_NMI,	/* In NMI due to SYSTEM cmd; regs valid */
 } kdb_reason_t;
 
-enum kdb_msgsrc {
+enum kdb_msgsrc
+{
 	KDB_MSGSRC_INTERNAL, /* direct call to kdb_printf() */
 	KDB_MSGSRC_PRINTK, /* trapped from printk() */
 };
 
 extern int kdb_trap_printk;
 extern __printf(2, 0) int vkdb_printf(enum kdb_msgsrc src, const char *fmt,
-				      va_list args);
+									  va_list args);
 extern __printf(1, 2) int kdb_printf(const char *, ...);
 typedef __printf(1, 2) int (*kdb_printf_t)(const char *, ...);
 
@@ -178,8 +181,12 @@ static inline
 int kdb_process_cpu(const struct task_struct *p)
 {
 	unsigned int cpu = task_cpu(p);
+
 	if (cpu > num_possible_cpus())
+	{
 		cpu = 0;
+	}
+
 	return cpu;
 }
 
@@ -197,19 +204,20 @@ static inline const char *kdb_walk_kallsyms(loff_t *pos)
 /* Dynamic kdb shell command registration */
 extern int kdb_register(char *, kdb_func_t, char *, char *, short);
 extern int kdb_register_flags(char *, kdb_func_t, char *, char *,
-			      short, kdb_cmdflags_t);
+							  short, kdb_cmdflags_t);
 extern int kdb_unregister(char *);
 #else /* ! CONFIG_KGDB_KDB */
 static inline __printf(1, 2) int kdb_printf(const char *fmt, ...) { return 0; }
 static inline void kdb_init(int level) {}
 static inline int kdb_register(char *cmd, kdb_func_t func, char *usage,
-			       char *help, short minlen) { return 0; }
+							   char *help, short minlen) { return 0; }
 static inline int kdb_register_flags(char *cmd, kdb_func_t func, char *usage,
-				     char *help, short minlen,
-				     kdb_cmdflags_t flags) { return 0; }
+									 char *help, short minlen,
+									 kdb_cmdflags_t flags) { return 0; }
 static inline int kdb_unregister(char *cmd) { return 0; }
 #endif	/* CONFIG_KGDB_KDB */
-enum {
+enum
+{
 	KDB_NOT_INITIALIZED,
 	KDB_INIT_EARLY,
 	KDB_INIT_FULL,

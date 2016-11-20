@@ -17,29 +17,34 @@ extern "C" {
 #include <stdbool.h>
 #endif
 
-struct file {
+struct file
+{
 	struct file *next;
 	struct file *parent;
 	const char *name;
 	int lineno;
 };
 
-typedef enum tristate {
+typedef enum tristate
+{
 	no, mod, yes
 } tristate;
 
-enum expr_type {
+enum expr_type
+{
 	E_NONE, E_OR, E_AND, E_NOT,
 	E_EQUAL, E_UNEQUAL, E_LTH, E_LEQ, E_GTH, E_GEQ,
 	E_LIST, E_SYMBOL, E_RANGE
 };
 
-union expr_data {
+union expr_data
+{
 	struct expr *expr;
 	struct symbol *sym;
 };
 
-struct expr {
+struct expr
+{
 	enum expr_type type;
 	union expr_data left, right;
 };
@@ -51,22 +56,26 @@ struct expr {
 #define expr_list_for_each_sym(l, e, s) \
 	for (e = (l); e && (s = e->right.sym); e = e->left.expr)
 
-struct expr_value {
+struct expr_value
+{
 	struct expr *expr;
 	tristate tri;
 };
 
-struct symbol_value {
+struct symbol_value
+{
 	void *val;
 	tristate tri;
 };
 
-enum symbol_type {
+enum symbol_type
+{
 	S_UNKNOWN, S_BOOLEAN, S_TRISTATE, S_INT, S_HEX, S_STRING, S_OTHER
 };
 
 /* enum values are used as index to symbol.def[] */
-enum {
+enum
+{
 	S_DEF_USER,		/* main user value */
 	S_DEF_AUTO,		/* values read from auto.conf */
 	S_DEF_DEF3,		/* Reserved for UI usage */
@@ -74,7 +83,8 @@ enum {
 	S_DEF_COUNT
 };
 
-struct symbol {
+struct symbol
+{
 	struct symbol *next;
 	char *name;
 	enum symbol_type type;
@@ -128,7 +138,8 @@ struct symbol {
  *         int "BAZ Value"
  *         range 1..255
  */
-enum prop_type {
+enum prop_type
+{
 	P_UNKNOWN,
 	P_PROMPT,   /* prompt "foo prompt" or "BAZ Value" */
 	P_COMMENT,  /* text associated with a comment */
@@ -141,7 +152,8 @@ enum prop_type {
 	P_SYMBOL,   /* where a symbol is defined */
 };
 
-struct property {
+struct property
+{
 	struct property *next;     /* next property - null if last */
 	struct symbol *sym;        /* the symbol for which the property is associated */
 	enum prop_type type;       /* type of property */
@@ -164,7 +176,8 @@ struct property {
 	for (st = sym->prop; st; st = st->next) \
 		if (st->text)
 
-struct menu {
+struct menu
+{
 	struct menu *next;
 	struct menu *parent;
 	struct menu *list;
@@ -182,7 +195,8 @@ struct menu {
 #define MENU_CHANGED		0x0001
 #define MENU_ROOT		0x0002
 
-struct jump_key {
+struct jump_key
+{
 	struct list_head entries;
 	size_t offset;
 	struct menu *target;

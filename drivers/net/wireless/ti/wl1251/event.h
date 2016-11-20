@@ -35,7 +35,8 @@
  * free.
  */
 
-enum {
+enum
+{
 	RESERVED1_EVENT_ID                       = BIT(0),
 	RESERVED2_EVENT_ID                       = BIT(1),
 	MEASUREMENT_START_EVENT_ID               = BIT(2),
@@ -73,7 +74,8 @@ enum {
 	EVENT_MBOX_ALL_EVENT_ID                  = 0x7fffffff,
 };
 
-struct event_debug_report {
+struct event_debug_report
+{
 	u8 debug_event_id;
 	u8 num_params;
 	u16 pad;
@@ -82,7 +84,8 @@ struct event_debug_report {
 	u32 report_3;
 } __packed;
 
-struct event_mailbox {
+struct event_mailbox
+{
 	u32 events_vector;
 	u32 events_mask;
 	u32 reserved_1;
@@ -112,7 +115,8 @@ struct event_mailbox {
 	u8 padding[19];
 } __packed;
 
-enum {
+enum
+{
 	EVENT_ENTER_POWER_SAVE_FAIL = 0,
 	EVENT_ENTER_POWER_SAVE_SUCCESS,
 	EVENT_EXIT_POWER_SAVE_FAIL,

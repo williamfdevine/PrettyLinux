@@ -13,7 +13,8 @@
 #include <linux/leds.h>
 #include <linux/netdevice.h>
 
-enum can_led_event {
+enum can_led_event
+{
 	CAN_LED_EVENT_OPEN,
 	CAN_LED_EVENT_STOP,
 	CAN_LED_EVENT_TX,
@@ -35,7 +36,7 @@ void __exit can_led_notifier_exit(void);
 #else
 
 static inline void can_led_event(struct net_device *netdev,
-				 enum can_led_event event)
+								 enum can_led_event event)
 {
 }
 static inline void devm_can_led_init(struct net_device *netdev)

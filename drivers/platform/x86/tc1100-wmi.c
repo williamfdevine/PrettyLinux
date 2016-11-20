@@ -47,13 +47,14 @@ MODULE_ALIAS("wmi:C364AC71-36DB-495A-8494-B439D472A505");
 
 static struct platform_device *tc1100_device;
 
-struct tc1100_data {
+struct tc1100_data
+{
 	u32 wireless;
 	u32 jogdial;
 };
 
 #ifdef CONFIG_PM
-static struct tc1100_data suspend_data;
+	static struct tc1100_data suspend_data;
 #endif
 
 /* --------------------------------------------------------------------------
@@ -68,34 +69,50 @@ static int get_state(u32 *out, u8 instance)
 	union acpi_object *obj;
 
 	if (!out)
+	{
 		return -EINVAL;
+	}
 
 	if (instance > 2)
+	{
 		return -ENODEV;
+	}
 
 	status = wmi_query_block(GUID, instance, &result);
+
 	if (ACPI_FAILURE(status))
+	{
 		return -ENODEV;
+	}
 
 	obj = (union acpi_object *) result.pointer;
-	if (obj && obj->type == ACPI_TYPE_INTEGER) {
+
+	if (obj && obj->type == ACPI_TYPE_INTEGER)
+	{
 		tmp = obj->integer.value;
-	} else {
+	}
+	else
+	{
 		tmp = 0;
 	}
 
 	if (result.length > 0)
+	{
 		kfree(result.pointer);
+	}
 
-	switch (instance) {
-	case TC1100_INSTANCE_WIRELESS:
-		*out = (tmp == 3) ? 1 : 0;
-		return 0;
-	case TC1100_INSTANCE_JOGDIAL:
-		*out = (tmp == 1) ? 0 : 1;
-		return 0;
-	default:
-		return -ENODEV;
+	switch (instance)
+	{
+		case TC1100_INSTANCE_WIRELESS:
+			*out = (tmp == 3) ? 1 : 0;
+			return 0;
+
+		case TC1100_INSTANCE_JOGDIAL:
+			*out = (tmp == 1) ? 0 : 1;
+			return 0;
+
+		default:
+			return -ENODEV;
 	}
 }
 
@@ -106,28 +123,38 @@ static int set_state(u32 *in, u8 instance)
 	struct acpi_buffer input;
 
 	if (!in)
+	{
 		return -EINVAL;
+	}
 
 	if (instance > 2)
+	{
 		return -ENODEV;
+	}
 
-	switch (instance) {
-	case TC1100_INSTANCE_WIRELESS:
-		value = (*in) ? 1 : 2;
-		break;
-	case TC1100_INSTANCE_JOGDIAL:
-		value = (*in) ? 0 : 1;
-		break;
-	default:
-		return -ENODEV;
+	switch (instance)
+	{
+		case TC1100_INSTANCE_WIRELESS:
+			value = (*in) ? 1 : 2;
+			break;
+
+		case TC1100_INSTANCE_JOGDIAL:
+			value = (*in) ? 0 : 1;
+			break;
+
+		default:
+			return -ENODEV;
 	}
 
 	input.length = sizeof(u32);
 	input.pointer = &value;
 
 	status = wmi_set_block(GUID, instance, &input);
+
 	if (ACPI_FAILURE(status))
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 }
@@ -140,40 +167,42 @@ static int set_state(u32 *in, u8 instance)
  * Read/ write bool sysfs macro
  */
 #define show_set_bool(value, instance) \
-static ssize_t \
-show_bool_##value(struct device *dev, struct device_attribute *attr, \
-	char *buf) \
-{ \
-	u32 result; \
-	acpi_status status = get_state(&result, instance); \
-	if (ACPI_SUCCESS(status)) \
-		return sprintf(buf, "%d\n", result); \
-	return sprintf(buf, "Read error\n"); \
-} \
-\
-static ssize_t \
-set_bool_##value(struct device *dev, struct device_attribute *attr, \
-	const char *buf, size_t count) \
-{ \
-	u32 tmp = simple_strtoul(buf, NULL, 10); \
-	acpi_status status = set_state(&tmp, instance); \
+	static ssize_t \
+	show_bool_##value(struct device *dev, struct device_attribute *attr, \
+					  char *buf) \
+	{ \
+		u32 result; \
+		acpi_status status = get_state(&result, instance); \
+		if (ACPI_SUCCESS(status)) \
+			return sprintf(buf, "%d\n", result); \
+		return sprintf(buf, "Read error\n"); \
+	} \
+	\
+	static ssize_t \
+	set_bool_##value(struct device *dev, struct device_attribute *attr, \
+					 const char *buf, size_t count) \
+	{ \
+		u32 tmp = simple_strtoul(buf, NULL, 10); \
+		acpi_status status = set_state(&tmp, instance); \
 		if (ACPI_FAILURE(status)) \
 			return -EINVAL; \
-	return count; \
-} \
-static DEVICE_ATTR(value, S_IRUGO | S_IWUSR, \
-	show_bool_##value, set_bool_##value);
+		return count; \
+	} \
+	static DEVICE_ATTR(value, S_IRUGO | S_IWUSR, \
+					   show_bool_##value, set_bool_##value);
 
 show_set_bool(wireless, TC1100_INSTANCE_WIRELESS);
 show_set_bool(jogdial, TC1100_INSTANCE_JOGDIAL);
 
-static struct attribute *tc1100_attributes[] = {
+static struct attribute *tc1100_attributes[] =
+{
 	&dev_attr_wireless.attr,
 	&dev_attr_jogdial.attr,
 	NULL
 };
 
-static struct attribute_group tc1100_attribute_group = {
+static struct attribute_group tc1100_attribute_group =
+{
 	.attrs	= tc1100_attributes,
 };
 
@@ -200,12 +229,18 @@ static int tc1100_suspend(struct device *dev)
 	int ret;
 
 	ret = get_state(&suspend_data.wireless, TC1100_INSTANCE_WIRELESS);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = get_state(&suspend_data.jogdial, TC1100_INSTANCE_JOGDIAL);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -215,17 +250,24 @@ static int tc1100_resume(struct device *dev)
 	int ret;
 
 	ret = set_state(&suspend_data.wireless, TC1100_INSTANCE_WIRELESS);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = set_state(&suspend_data.jogdial, TC1100_INSTANCE_JOGDIAL);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return 0;
 }
 
-static const struct dev_pm_ops tc1100_pm_ops = {
+static const struct dev_pm_ops tc1100_pm_ops =
+{
 	.suspend	= tc1100_suspend,
 	.resume		= tc1100_resume,
 	.freeze		= tc1100_suspend,
@@ -233,7 +275,8 @@ static const struct dev_pm_ops tc1100_pm_ops = {
 };
 #endif
 
-static struct platform_driver tc1100_driver = {
+static struct platform_driver tc1100_driver =
+{
 	.driver = {
 		.name = "tc1100-wmi",
 #ifdef CONFIG_PM
@@ -248,26 +291,37 @@ static int __init tc1100_init(void)
 	int error;
 
 	if (!wmi_has_guid(GUID))
+	{
 		return -ENODEV;
+	}
 
 	tc1100_device = platform_device_alloc("tc1100-wmi", -1);
+
 	if (!tc1100_device)
+	{
 		return -ENOMEM;
+	}
 
 	error = platform_device_add(tc1100_device);
+
 	if (error)
+	{
 		goto err_device_put;
+	}
 
 	error = platform_driver_probe(&tc1100_driver, tc1100_probe);
+
 	if (error)
+	{
 		goto err_device_del;
+	}
 
 	pr_info("HP Compaq TC1100 Tablet WMI Extras loaded\n");
 	return 0;
 
- err_device_del:
+err_device_del:
 	platform_device_del(tc1100_device);
- err_device_put:
+err_device_put:
 	platform_device_put(tc1100_device);
 	return error;
 }

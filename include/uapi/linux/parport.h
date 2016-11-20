@@ -34,7 +34,8 @@
 #define PARPORT_STATUS_BUSY       0x80
 
 /* Type classes for Plug-and-Play probe.  */
-typedef enum {
+typedef enum
+{
 	PARPORT_CLASS_LEGACY = 0,       /* Non-IEEE1284 device */
 	PARPORT_CLASS_PRINTER,
 	PARPORT_CLASS_MODEM,
@@ -61,7 +62,7 @@ typedef enum {
 #define PARPORT_MODE_DMA	(1<<5) /* Hardware can DMA. */
 #define PARPORT_MODE_SAFEININT	(1<<6) /* SPP registers accessible in IRQ. */
 
-/* IEEE1284 modes: 
+/* IEEE1284 modes:
    Nibble mode, byte mode, ECP, ECPRLE and EPP are their own
    'extensibility request' values.  Others are special.
    'Real' ECP modes must have the IEEE1284_MODE_ECP bit set.  */

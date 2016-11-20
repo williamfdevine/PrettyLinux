@@ -29,13 +29,15 @@ struct socket;
 struct iscsi_tcp_conn;
 
 /* Socket connection send helper */
-struct iscsi_sw_tcp_send {
+struct iscsi_sw_tcp_send
+{
 	struct iscsi_hdr	*hdr;
 	struct iscsi_segment	segment;
 	struct iscsi_segment	data_segment;
 };
 
-struct iscsi_sw_tcp_conn {
+struct iscsi_sw_tcp_conn
+{
 	struct socket		*sock;
 
 	struct iscsi_sw_tcp_send out;
@@ -55,14 +57,16 @@ struct iscsi_sw_tcp_conn {
 	ssize_t (*sendpage)(struct socket *, struct page *, int, size_t, int);
 };
 
-struct iscsi_sw_tcp_host {
+struct iscsi_sw_tcp_host
+{
 	struct iscsi_session	*session;
 };
 
-struct iscsi_sw_tcp_hdrbuf {
+struct iscsi_sw_tcp_hdrbuf
+{
 	struct iscsi_hdr	hdrbuf;
 	char			hdrextbuf[ISCSI_MAX_AHS_SIZE +
-		                                  ISCSI_DIGEST_SIZE];
+							  ISCSI_DIGEST_SIZE];
 };
 
 #endif /* ISCSI_SW_TCP_H */

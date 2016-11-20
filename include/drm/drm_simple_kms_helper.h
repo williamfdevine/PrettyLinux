@@ -16,7 +16,8 @@ struct drm_simple_display_pipe;
  * struct drm_simple_display_pipe_funcs - helper operations for a simple
  *                                        display pipeline
  */
-struct drm_simple_display_pipe_funcs {
+struct drm_simple_display_pipe_funcs
+{
 	/**
 	 * @enable:
 	 *
@@ -25,7 +26,7 @@ struct drm_simple_display_pipe_funcs {
 	 * This hook is optional.
 	 */
 	void (*enable)(struct drm_simple_display_pipe *pipe,
-		       struct drm_crtc_state *crtc_state);
+				   struct drm_crtc_state *crtc_state);
 	/**
 	 * @disable:
 	 *
@@ -53,8 +54,8 @@ struct drm_simple_display_pipe_funcs {
 	 * deadlock.
 	 */
 	int (*check)(struct drm_simple_display_pipe *pipe,
-		     struct drm_plane_state *plane_state,
-		     struct drm_crtc_state *crtc_state);
+				 struct drm_plane_state *plane_state,
+				 struct drm_crtc_state *crtc_state);
 	/**
 	 * @update:
 	 *
@@ -68,7 +69,7 @@ struct drm_simple_display_pipe_funcs {
 	 * the hardware lacks vblank support entirely.
 	 */
 	void (*update)(struct drm_simple_display_pipe *pipe,
-		       struct drm_plane_state *plane_state);
+				   struct drm_plane_state *plane_state);
 
 	/**
 	 * @prepare_fb:
@@ -78,7 +79,7 @@ struct drm_simple_display_pipe_funcs {
 	 * struct &drm_plane_helper_funcs for more details.
 	 */
 	int (*prepare_fb)(struct drm_simple_display_pipe *pipe,
-			  struct drm_plane_state *plane_state);
+					  struct drm_plane_state *plane_state);
 
 	/**
 	 * @cleanup_fb:
@@ -88,7 +89,7 @@ struct drm_simple_display_pipe_funcs {
 	 * struct &drm_plane_helper_funcs for more details.
 	 */
 	void (*cleanup_fb)(struct drm_simple_display_pipe *pipe,
-			   struct drm_plane_state *plane_state);
+					   struct drm_plane_state *plane_state);
 };
 
 /**
@@ -102,7 +103,8 @@ struct drm_simple_display_pipe_funcs {
  * Simple display pipeline with plane, crtc and encoder collapsed into one
  * entity. It should be initialized by calling drm_simple_display_pipe_init().
  */
-struct drm_simple_display_pipe {
+struct drm_simple_display_pipe
+{
 	struct drm_crtc crtc;
 	struct drm_plane plane;
 	struct drm_encoder encoder;
@@ -112,14 +114,14 @@ struct drm_simple_display_pipe {
 };
 
 int drm_simple_display_pipe_attach_bridge(struct drm_simple_display_pipe *pipe,
-					  struct drm_bridge *bridge);
+		struct drm_bridge *bridge);
 
 void drm_simple_display_pipe_detach_bridge(struct drm_simple_display_pipe *pipe);
 
 int drm_simple_display_pipe_init(struct drm_device *dev,
-			struct drm_simple_display_pipe *pipe,
-			const struct drm_simple_display_pipe_funcs *funcs,
-			const uint32_t *formats, unsigned int format_count,
-			struct drm_connector *connector);
+								 struct drm_simple_display_pipe *pipe,
+								 const struct drm_simple_display_pipe_funcs *funcs,
+								 const uint32_t *formats, unsigned int format_count,
+								 struct drm_connector *connector);
 
 #endif /* __LINUX_DRM_SIMPLE_KMS_HELPER_H */

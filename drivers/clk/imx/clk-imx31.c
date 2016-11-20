@@ -47,7 +47,8 @@ static const char *per_sel[] = { "per_div", "ipg", };
 static const char *csi_sel[] = { "upll", "spll", };
 static const char *fir_sel[] = { "mcu_main", "upll", "spll" };
 
-enum mx31_clks {
+enum mx31_clks
+{
 	dummy, ckih, ckil, mpll, spll, upll, mcu_main, hsp, ahb, nfc, ipg,
 	per_div, per, csi, fir, csi_div, usb_div_pre, usb_div_post, fir_div_pre,
 	fir_div_post, sdhc1_gate, sdhc2_gate, gpt_gate, epit1_gate, epit2_gate,
@@ -62,7 +63,8 @@ enum mx31_clks {
 static struct clk *clk[clk_max];
 static struct clk_onecell_data clk_data;
 
-static struct clk ** const uart_clks[] __initconst = {
+static struct clk **const uart_clks[] __initconst =
+{
 	&clk[ipg],
 	&clk[uart1_gate],
 	&clk[uart2_gate],
@@ -138,7 +140,7 @@ static void __init _mx31_clocks_init(unsigned long fref)
 	clk[gacc_gate] = imx_clk_gate2("gacc_gate", "per", base + MXC_CCM_CGR2, 6);
 	clk[emi_gate] = imx_clk_gate2("emi_gate", "ahb", base + MXC_CCM_CGR2, 8);
 	clk[rtic_gate] = imx_clk_gate2("rtic_gate", "ahb", base + MXC_CCM_CGR2, 10);
-	clk[firi_gate] = imx_clk_gate2("firi_gate", "upll", base+MXC_CCM_CGR2, 12);
+	clk[firi_gate] = imx_clk_gate2("firi_gate", "upll", base + MXC_CCM_CGR2, 12);
 
 	imx_check_clocks(clk, ARRAY_SIZE(clk));
 
@@ -150,7 +152,8 @@ static void __init _mx31_clocks_init(unsigned long fref)
 
 	np = of_find_compatible_node(NULL, NULL, "fsl,imx31-ccm");
 
-	if (np) {
+	if (np)
+	{
 		clk_data.clks = clk;
 		clk_data.clk_num = ARRAY_SIZE(clk);
 		of_clk_add_provider(np, of_clk_src_onecell_get, &clk_data);
@@ -229,11 +232,15 @@ int __init mx31_clocks_init_dt(void)
 	struct device_node *np;
 	u32 fref = 26000000; /* default */
 
-	for_each_compatible_node(np, NULL, "fixed-clock") {
+	for_each_compatible_node(np, NULL, "fixed-clock")
+	{
 		if (!of_device_is_compatible(np, "fsl,imx-osc26m"))
+		{
 			continue;
+		}
 
-		if (!of_property_read_u32(np, "clock-frequency", &fref)) {
+		if (!of_property_read_u32(np, "clock-frequency", &fref))
+		{
 			of_node_put(np);
 			break;
 		}

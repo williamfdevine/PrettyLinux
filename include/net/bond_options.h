@@ -20,7 +20,8 @@
  * BOND_OPTFLAG_IFDOWN - check if the bond device is down before setting
  * BOND_OPTFLAG_RAWVAL - the option parses the value itself
  */
-enum {
+enum
+{
 	BOND_OPTFLAG_NOSLAVES	= BIT(0),
 	BOND_OPTFLAG_IFDOWN	= BIT(1),
 	BOND_OPTFLAG_RAWVAL	= BIT(2)
@@ -30,14 +31,16 @@ enum {
  * BOND_VALFLAG_DEFAULT - mark the value as default
  * BOND_VALFLAG_(MIN|MAX) - mark the value as min/max
  */
-enum {
+enum
+{
 	BOND_VALFLAG_DEFAULT	= BIT(0),
 	BOND_VALFLAG_MIN	= BIT(1),
 	BOND_VALFLAG_MAX	= BIT(2)
 };
 
 /* Option IDs, their bit positions correspond to their IDs */
-enum {
+enum
+{
 	BOND_OPT_MODE,
 	BOND_OPT_PACKETS_PER_SLAVE,
 	BOND_OPT_XMIT_HASH,
@@ -76,7 +79,8 @@ enum {
  *   return the parse result
  * - if string == NULL -> parse value
  */
-struct bond_opt_value {
+struct bond_opt_value
+{
 	char *string;
 	u64 value;
 	u32 flags;
@@ -84,7 +88,8 @@ struct bond_opt_value {
 
 struct bonding;
 
-struct bond_option {
+struct bond_option
+{
 	int id;
 	const char *name;
 	const char *desc;
@@ -103,11 +108,11 @@ struct bond_option {
 };
 
 int __bond_opt_set(struct bonding *bond, unsigned int option,
-		   struct bond_opt_value *val);
+				   struct bond_opt_value *val);
 int bond_opt_tryset_rtnl(struct bonding *bond, unsigned int option, char *buf);
 
 const struct bond_opt_value *bond_opt_parse(const struct bond_option *opt,
-					    struct bond_opt_value *val);
+		struct bond_opt_value *val);
 const struct bond_option *bond_opt_get(unsigned int option);
 const struct bond_option *bond_opt_get_by_name(const char *name);
 const struct bond_opt_value *bond_opt_get_val(unsigned int option, u64 val);
@@ -117,14 +122,19 @@ const struct bond_opt_value *bond_opt_get_val(unsigned int option, u64 val);
  * When value is ULLONG_MAX then string will be used.
  */
 static inline void __bond_opt_init(struct bond_opt_value *optval,
-				   char *string, u64 value)
+								   char *string, u64 value)
 {
 	memset(optval, 0, sizeof(*optval));
 	optval->value = ULLONG_MAX;
+
 	if (value == ULLONG_MAX)
+	{
 		optval->string = string;
+	}
 	else
+	{
 		optval->value = value;
+	}
 }
 #define bond_opt_initval(optval, value) __bond_opt_init(optval, NULL, value)
 #define bond_opt_initstr(optval, str) __bond_opt_init(optval, str, ULLONG_MAX)

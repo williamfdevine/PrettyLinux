@@ -82,10 +82,10 @@
 
 /* Currently supported by the driver */
 #define CX25821_NORMS (\
-	V4L2_STD_NTSC_M |  V4L2_STD_NTSC_M_JP | V4L2_STD_NTSC_M_KR | \
-	V4L2_STD_PAL_BG |  V4L2_STD_PAL_DK    |  V4L2_STD_PAL_I    | \
-	V4L2_STD_PAL_M  |  V4L2_STD_PAL_N     |  V4L2_STD_PAL_H    | \
-	V4L2_STD_PAL_Nc)
+					   V4L2_STD_NTSC_M |  V4L2_STD_NTSC_M_JP | V4L2_STD_NTSC_M_KR | \
+					   V4L2_STD_PAL_BG |  V4L2_STD_PAL_DK    |  V4L2_STD_PAL_I    | \
+					   V4L2_STD_PAL_M  |  V4L2_STD_PAL_N     |  V4L2_STD_PAL_H    | \
+					   V4L2_STD_PAL_Nc)
 
 #define CX25821_BOARD_CONEXANT_ATHENA10 1
 #define MAX_VID_CHANNEL_NUM     12
@@ -98,7 +98,8 @@
 
 #define VID_CHANNEL_NUM 8
 
-struct cx25821_fmt {
+struct cx25821_fmt
+{
 	char *name;
 	u32 fourcc;		/* v4l2 format id */
 	int depth;
@@ -106,19 +107,22 @@ struct cx25821_fmt {
 	u32 cxformat;
 };
 
-struct cx25821_tvnorm {
+struct cx25821_tvnorm
+{
 	char *name;
 	v4l2_std_id id;
 	u32 cxiformat;
 	u32 cxoformat;
 };
 
-enum cx25821_src_sel_type {
+enum cx25821_src_sel_type
+{
 	CX25821_SRC_SEL_EXT_656_VIDEO = 0,
 	CX25821_SRC_SEL_PARALLEL_MPEG_VIDEO
 };
 
-struct cx25821_riscmem {
+struct cx25821_riscmem
+{
 	unsigned int   size;
 	__le32         *cpu;
 	__le32         *jmp;
@@ -126,7 +130,8 @@ struct cx25821_riscmem {
 };
 
 /* buffer for one video frame */
-struct cx25821_buffer {
+struct cx25821_buffer
+{
 	/* common v4l buffer stuff -- must be first */
 	struct vb2_v4l2_buffer vb;
 	struct list_head queue;
@@ -137,13 +142,15 @@ struct cx25821_buffer {
 	const struct cx25821_fmt *fmt;
 };
 
-enum port {
+enum port
+{
 	CX25821_UNDEFINED = 0,
 	CX25821_RAW,
 	CX25821_264
 };
 
-struct cx25821_board {
+struct cx25821_board
+{
 	const char *name;
 	enum port porta;
 	enum port portb;
@@ -152,7 +159,8 @@ struct cx25821_board {
 	u32 clk_freq;
 };
 
-struct cx25821_i2c {
+struct cx25821_i2c
+{
 	struct cx25821_dev *dev;
 
 	int nr;
@@ -171,7 +179,8 @@ struct cx25821_i2c {
 	u32 reg_wdata;
 };
 
-struct cx25821_dmaqueue {
+struct cx25821_dmaqueue
+{
 	struct list_head active;
 	u32 count;
 };
@@ -180,7 +189,8 @@ struct cx25821_dev;
 
 struct cx25821_channel;
 
-struct cx25821_video_out_data {
+struct cx25821_video_out_data
+{
 	struct cx25821_channel *chan;
 	int _line_size;
 	int _prog_cnt;
@@ -210,7 +220,8 @@ struct cx25821_video_out_data {
 	wait_queue_head_t waitq;
 };
 
-struct cx25821_channel {
+struct cx25821_channel
+{
 	unsigned id;
 	struct cx25821_dev *dev;
 
@@ -235,7 +246,8 @@ struct cx25821_channel {
 
 struct snd_card;
 
-struct cx25821_dev {
+struct cx25821_dev
+{
 	struct v4l2_device v4l2_dev;
 
 	/* pci stuff */
@@ -328,7 +340,8 @@ extern struct cx25821_board cx25821_boards[];
 #define VID_UPSTREAM_SRAM_CHANNEL_J     SRAM_CH10
 #define AUDIO_UPSTREAM_SRAM_CHANNEL_B   SRAM_CH11
 
-struct sram_channel {
+struct sram_channel
+{
 	char *name;
 	u32 i;
 	u32 cmds_start;
@@ -370,7 +383,7 @@ extern const struct sram_channel cx25821_sram_channels[];
 
 #define cx_andor(reg, mask, value) \
 	writel((readl(dev->lmmio+((reg)>>2)) & ~(mask)) |\
-	((value) & (mask)), dev->lmmio+((reg)>>2))
+		   ((value) & (mask)), dev->lmmio+((reg)>>2))
 
 #define cx_set(reg, bit)          cx_andor((reg), (bit), (bit))
 #define cx_clear(reg, bit)        cx_andor((reg), (bit), 0)
@@ -391,66 +404,66 @@ extern int cx25821_i2c_write(struct cx25821_i2c *bus, u16 reg_addr, int value);
 extern int cx25821_i2c_unregister(struct cx25821_i2c *bus);
 extern void cx25821_gpio_init(struct cx25821_dev *dev);
 extern void cx25821_set_gpiopin_direction(struct cx25821_dev *dev,
-					  int pin_number, int pin_logic_value);
+		int pin_number, int pin_logic_value);
 
 extern int medusa_video_init(struct cx25821_dev *dev);
 extern int medusa_set_videostandard(struct cx25821_dev *dev);
 extern void medusa_set_resolution(struct cx25821_dev *dev, int width,
-				  int decoder_select);
+								  int decoder_select);
 extern int medusa_set_brightness(struct cx25821_dev *dev, int brightness,
-				 int decoder);
+								 int decoder);
 extern int medusa_set_contrast(struct cx25821_dev *dev, int contrast,
-			       int decoder);
+							   int decoder);
 extern int medusa_set_hue(struct cx25821_dev *dev, int hue, int decoder);
 extern int medusa_set_saturation(struct cx25821_dev *dev, int saturation,
-				 int decoder);
+								 int decoder);
 
 extern int cx25821_sram_channel_setup(struct cx25821_dev *dev,
-				      const struct sram_channel *ch, unsigned int bpl,
-				      u32 risc);
+									  const struct sram_channel *ch, unsigned int bpl,
+									  u32 risc);
 
 extern int cx25821_riscmem_alloc(struct pci_dev *pci,
-				 struct cx25821_riscmem *risc,
-				 unsigned int size);
+								 struct cx25821_riscmem *risc,
+								 unsigned int size);
 extern int cx25821_risc_buffer(struct pci_dev *pci, struct cx25821_riscmem *risc,
-			       struct scatterlist *sglist,
-			       unsigned int top_offset,
-			       unsigned int bottom_offset,
-			       unsigned int bpl,
-			       unsigned int padding, unsigned int lines);
+							   struct scatterlist *sglist,
+							   unsigned int top_offset,
+							   unsigned int bottom_offset,
+							   unsigned int bpl,
+							   unsigned int padding, unsigned int lines);
 extern int cx25821_risc_databuffer_audio(struct pci_dev *pci,
-					 struct cx25821_riscmem *risc,
-					 struct scatterlist *sglist,
-					 unsigned int bpl,
-					 unsigned int lines, unsigned int lpi);
+		struct cx25821_riscmem *risc,
+		struct scatterlist *sglist,
+		unsigned int bpl,
+		unsigned int lines, unsigned int lpi);
 extern void cx25821_free_buffer(struct cx25821_dev *dev,
-				struct cx25821_buffer *buf);
+								struct cx25821_buffer *buf);
 extern void cx25821_sram_channel_dump(struct cx25821_dev *dev,
-				      const struct sram_channel *ch);
+									  const struct sram_channel *ch);
 extern void cx25821_sram_channel_dump_audio(struct cx25821_dev *dev,
-					    const struct sram_channel *ch);
+		const struct sram_channel *ch);
 
 extern struct cx25821_dev *cx25821_dev_get(struct pci_dev *pci);
 extern void cx25821_print_irqbits(char *name, char *tag, char **strings,
-				  int len, u32 bits, u32 mask);
+								  int len, u32 bits, u32 mask);
 extern void cx25821_dev_unregister(struct cx25821_dev *dev);
 extern int cx25821_sram_channel_setup_audio(struct cx25821_dev *dev,
-					    const struct sram_channel *ch,
-					    unsigned int bpl, u32 risc);
+		const struct sram_channel *ch,
+		unsigned int bpl, u32 risc);
 
 extern int cx25821_vidupstream_init(struct cx25821_channel *chan, int pixel_format);
 extern int cx25821_audio_upstream_init(struct cx25821_dev *dev,
-				       int channel_select);
+									   int channel_select);
 extern int cx25821_write_frame(struct cx25821_channel *chan,
-		const char __user *data, size_t count);
+							   const char __user *data, size_t count);
 extern void cx25821_free_mem_upstream(struct cx25821_channel *chan);
 extern void cx25821_free_mem_upstream_audio(struct cx25821_dev *dev);
 extern void cx25821_stop_upstream_video(struct cx25821_channel *chan);
 extern void cx25821_stop_upstream_audio(struct cx25821_dev *dev);
 extern int cx25821_sram_channel_setup_upstream(struct cx25821_dev *dev,
-					       const struct sram_channel *ch,
-					       unsigned int bpl, u32 risc);
+		const struct sram_channel *ch,
+		unsigned int bpl, u32 risc);
 extern void cx25821_set_pixel_format(struct cx25821_dev *dev, int channel,
-				     u32 format);
+									 u32 format);
 
 #endif

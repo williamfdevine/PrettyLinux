@@ -42,14 +42,15 @@
 /* Interrupt Status Register */
 #define ISR0_OFFSET 0x18
 
-struct sercos3_priv {
+struct sercos3_priv
+{
 	u32 ier0_cache;
 	spinlock_t ier0_cache_lock;
 };
 
 /* this function assumes ier0_cache_lock is locked! */
 static void sercos3_disable_interrupts(struct uio_info *info,
-				       struct sercos3_priv *priv)
+									   struct sercos3_priv *priv)
 {
 	void __iomem *ier0 = info->mem[3].internal_addr + IER0_OFFSET;
 
@@ -62,7 +63,7 @@ static void sercos3_disable_interrupts(struct uio_info *info,
 
 /* this function assumes ier0_cache_lock is locked! */
 static void sercos3_enable_interrupts(struct uio_info *info,
-				      struct sercos3_priv *priv)
+									  struct sercos3_priv *priv)
 {
 	void __iomem *ier0 = info->mem[3].internal_addr + IER0_OFFSET;
 
@@ -78,7 +79,9 @@ static irqreturn_t sercos3_handler(int irq, struct uio_info *info)
 	void __iomem *ier0 = info->mem[3].internal_addr + IER0_OFFSET;
 
 	if (!(ioread32(isr0) & ioread32(ier0)))
+	{
 		return IRQ_NONE;
+	}
 
 	spin_lock(&priv->ier0_cache_lock);
 	sercos3_disable_interrupts(info, priv);
@@ -92,62 +95,100 @@ static int sercos3_irqcontrol(struct uio_info *info, s32 irq_on)
 	struct sercos3_priv *priv = info->priv;
 
 	spin_lock_irq(&priv->ier0_cache_lock);
+
 	if (irq_on)
+	{
 		sercos3_enable_interrupts(info, priv);
+	}
 	else
+	{
 		sercos3_disable_interrupts(info, priv);
+	}
+
 	spin_unlock_irq(&priv->ier0_cache_lock);
 
 	return 0;
 }
 
 static int sercos3_setup_iomem(struct pci_dev *dev, struct uio_info *info,
-			       int n, int pci_bar)
+							   int n, int pci_bar)
 {
 	info->mem[n].addr = pci_resource_start(dev, pci_bar);
+
 	if (!info->mem[n].addr)
+	{
 		return -1;
+	}
+
 	info->mem[n].internal_addr = ioremap(pci_resource_start(dev, pci_bar),
-					     pci_resource_len(dev, pci_bar));
+										 pci_resource_len(dev, pci_bar));
+
 	if (!info->mem[n].internal_addr)
+	{
 		return -1;
+	}
+
 	info->mem[n].size = pci_resource_len(dev, pci_bar);
 	info->mem[n].memtype = UIO_MEM_PHYS;
 	return 0;
 }
 
 static int sercos3_pci_probe(struct pci_dev *dev,
-				       const struct pci_device_id *id)
+							 const struct pci_device_id *id)
 {
 	struct uio_info *info;
 	struct sercos3_priv *priv;
 	int i;
 
 	info = kzalloc(sizeof(struct uio_info), GFP_KERNEL);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
 
 	priv = kzalloc(sizeof(struct sercos3_priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		goto out_free;
+	}
 
 	if (pci_enable_device(dev))
+	{
 		goto out_free_priv;
+	}
 
 	if (pci_request_regions(dev, "sercos3"))
+	{
 		goto out_disable;
+	}
 
 	/* we only need PCI BAR's 0, 2, 3, 4, 5 */
 	if (sercos3_setup_iomem(dev, info, 0, 0))
+	{
 		goto out_unmap;
+	}
+
 	if (sercos3_setup_iomem(dev, info, 1, 2))
+	{
 		goto out_unmap;
+	}
+
 	if (sercos3_setup_iomem(dev, info, 2, 3))
+	{
 		goto out_unmap;
+	}
+
 	if (sercos3_setup_iomem(dev, info, 3, 4))
+	{
 		goto out_unmap;
+	}
+
 	if (sercos3_setup_iomem(dev, info, 4, 5))
+	{
 		goto out_unmap;
+	}
 
 	spin_lock_init(&priv->ier0_cache_lock);
 	info->priv = priv;
@@ -161,15 +202,22 @@ static int sercos3_pci_probe(struct pci_dev *dev,
 	pci_set_drvdata(dev, info);
 
 	if (uio_register_device(&dev->dev, info))
+	{
 		goto out_unmap;
+	}
 
 	return 0;
 
 out_unmap:
-	for (i = 0; i < 5; i++) {
+
+	for (i = 0; i < 5; i++)
+	{
 		if (info->mem[i].internal_addr)
+		{
 			iounmap(info->mem[i].internal_addr);
+		}
 	}
+
 	pci_release_regions(dev);
 out_disable:
 	pci_disable_device(dev);
@@ -188,15 +236,21 @@ static void sercos3_pci_remove(struct pci_dev *dev)
 	uio_unregister_device(info);
 	pci_release_regions(dev);
 	pci_disable_device(dev);
-	for (i = 0; i < 5; i++) {
+
+	for (i = 0; i < 5; i++)
+	{
 		if (info->mem[i].internal_addr)
+		{
 			iounmap(info->mem[i].internal_addr);
+		}
 	}
+
 	kfree(info->priv);
 	kfree(info);
 }
 
-static struct pci_device_id sercos3_pci_ids[] = {
+static struct pci_device_id sercos3_pci_ids[] =
+{
 	{
 		.vendor =       PCI_VENDOR_ID_PLX,
 		.device =       PCI_DEVICE_ID_PLX_9030,
@@ -218,7 +272,8 @@ static struct pci_device_id sercos3_pci_ids[] = {
 	{ 0, }
 };
 
-static struct pci_driver sercos3_pci_driver = {
+static struct pci_driver sercos3_pci_driver =
+{
 	.name = "sercos3",
 	.id_table = sercos3_pci_ids,
 	.probe = sercos3_pci_probe,

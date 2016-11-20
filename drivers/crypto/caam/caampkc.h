@@ -21,7 +21,8 @@
  * @e_sz        : length in bytes of RSA public exponent
  * @d_sz        : length in bytes of RSA private exponent
  */
-struct caam_rsa_key {
+struct caam_rsa_key
+{
 	u8 *n;
 	u8 *e;
 	u8 *d;
@@ -35,7 +36,8 @@ struct caam_rsa_key {
  * @key         : RSA key in DMA zone
  * @dev         : device structure
  */
-struct caam_rsa_ctx {
+struct caam_rsa_ctx
+{
 	struct caam_rsa_key key;
 	struct device *dev;
 };
@@ -50,13 +52,15 @@ struct caam_rsa_ctx {
  * @pdb           : specific RSA Protocol Data Block (PDB)
  * @hw_desc       : descriptor followed by link tables if any
  */
-struct rsa_edesc {
+struct rsa_edesc
+{
 	int src_nents;
 	int dst_nents;
 	int sec4_sg_bytes;
 	dma_addr_t sec4_sg_dma;
 	struct sec4_sg_entry *sec4_sg;
-	union {
+	union
+	{
 		struct rsa_pub_pdb pub;
 		struct rsa_priv_f1_pdb priv_f1;
 	} pdb;

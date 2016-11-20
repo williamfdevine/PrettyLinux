@@ -19,7 +19,8 @@
 #define _UIO_PRUSS_H_
 
 /* To configure the PRUSS INTC base offset for UIO driver */
-struct uio_pruss_pdata {
+struct uio_pruss_pdata
+{
 	u32		pintc_base;
 	struct gen_pool *sram_pool;
 };

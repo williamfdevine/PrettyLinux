@@ -7,10 +7,12 @@ struct arpt_mangle
 {
 	char src_devaddr[ARPT_DEV_ADDR_LEN_MAX];
 	char tgt_devaddr[ARPT_DEV_ADDR_LEN_MAX];
-	union {
+	union
+	{
 		struct in_addr src_ip;
 	} u_s;
-	union {
+	union
+	{
 		struct in_addr tgt_ip;
 	} u_t;
 	__u8 flags;

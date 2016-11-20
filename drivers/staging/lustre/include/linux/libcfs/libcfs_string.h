@@ -42,14 +42,15 @@
 /* libcfs_string.c */
 /* Convert a text string to a bitmask */
 int cfs_str2mask(const char *str, const char *(*bit2str)(int bit),
-		 int *oldmask, int minmask, int allmask);
+				 int *oldmask, int minmask, int allmask);
 /* trim leading and trailing space characters */
 char *cfs_firststr(char *str, size_t size);
 
 /**
  * Structure to represent NULL-less strings.
  */
-struct cfs_lstr {
+struct cfs_lstr
+{
 	char		*ls_str;
 	int		ls_len;
 };
@@ -57,7 +58,8 @@ struct cfs_lstr {
 /*
  * Structure to represent \<range_expr\> token of the syntax.
  */
-struct cfs_range_expr {
+struct cfs_range_expr
+{
 	/*
 	 * Link to cfs_expr_list::el_exprs.
 	 */
@@ -67,7 +69,8 @@ struct cfs_range_expr {
 	__u32		re_stride;
 };
 
-struct cfs_expr_list {
+struct cfs_expr_list
+{
 	struct list_head	el_link;
 	struct list_head	el_exprs;
 };
@@ -75,12 +78,12 @@ struct cfs_expr_list {
 char *cfs_trimwhite(char *str);
 int cfs_gettok(struct cfs_lstr *next, char delim, struct cfs_lstr *res);
 int cfs_str2num_check(char *str, int nob, unsigned *num,
-		      unsigned min, unsigned max);
+					  unsigned min, unsigned max);
 int cfs_expr_list_match(__u32 value, struct cfs_expr_list *expr_list);
 int cfs_expr_list_print(char *buffer, int count,
-			struct cfs_expr_list *expr_list);
+						struct cfs_expr_list *expr_list);
 int cfs_expr_list_values(struct cfs_expr_list *expr_list,
-			 int max, __u32 **values);
+						 int max, __u32 **values);
 static inline void
 cfs_expr_list_values_free(__u32 *values, int num)
 {
@@ -92,7 +95,7 @@ cfs_expr_list_values_free(__u32 *values, int num)
 
 void cfs_expr_list_free(struct cfs_expr_list *expr_list);
 int cfs_expr_list_parse(char *str, int len, unsigned min, unsigned max,
-			struct cfs_expr_list **elpp);
+						struct cfs_expr_list **elpp);
 void cfs_expr_list_free_list(struct list_head *list);
 
 #endif

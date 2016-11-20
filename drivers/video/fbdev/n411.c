@@ -46,22 +46,35 @@ static unsigned int nosplash;
 static unsigned char ctl;
 
 static void n411_set_ctl(struct hecubafb_par *par, unsigned char bit, unsigned
-							char state)
+						 char state)
 {
-	switch (bit) {
-	case HCB_CD_BIT:
-		if (state)
-			ctl &= ~(HCB_CD_BIT);
-		else
-			ctl |= HCB_CD_BIT;
-		break;
-	case HCB_DS_BIT:
-		if (state)
-			ctl &= ~(HCB_DS_BIT);
-		else
-			ctl |= HCB_DS_BIT;
-		break;
+	switch (bit)
+	{
+		case HCB_CD_BIT:
+			if (state)
+			{
+				ctl &= ~(HCB_CD_BIT);
+			}
+			else
+			{
+				ctl |= HCB_CD_BIT;
+			}
+
+			break;
+
+		case HCB_DS_BIT:
+			if (state)
+			{
+				ctl &= ~(HCB_DS_BIT);
+			}
+			else
+			{
+				ctl |= HCB_DS_BIT;
+			}
+
+			break;
 	}
+
 	outb(ctl, cio_addr);
 }
 
@@ -81,14 +94,24 @@ static void n411_wait_for_ack(struct hecubafb_par *par, int clear)
 	unsigned char tmp;
 
 	timeout = 500;
-	do {
+
+	do
+	{
 		tmp = n411_get_ctl(par);
+
 		if ((tmp & HCB_ACK_BIT) && (!clear))
+		{
 			return;
+		}
 		else if (!(tmp & HCB_ACK_BIT) && (clear))
+		{
 			return;
+		}
+
 		udelay(1);
-	} while (timeout--);
+	}
+	while (timeout--);
+
 	printk(KERN_ERR "timed out waiting for ack\n");
 }
 
@@ -109,7 +132,9 @@ static int n411_init_control(struct hecubafb_par *par)
 
 	/* check ACK is not lo */
 	tmp = n411_get_ctl(par);
-	if (tmp & HCB_ACK_BIT) {
+
+	if (tmp & HCB_ACK_BIT)
+	{
 		printk(KERN_ERR "Fail because ACK is already low\n");
 		return -ENXIO;
 	}
@@ -123,8 +148,11 @@ static int n411_init_board(struct hecubafb_par *par)
 	int retval;
 
 	retval = n411_init_control(par);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	par->send_command(par, APOLLO_INIT_DISPLAY);
 	par->send_data(par, 0x81);
@@ -133,7 +161,8 @@ static int n411_init_board(struct hecubafb_par *par)
 	udelay(1000);
 
 	/* if we were told to splash the screen, we just clear it */
-	if (!nosplash) {
+	if (!nosplash)
+	{
 		par->send_command(par, APOLLO_ERASE_DISPLAY);
 		par->send_data(par, splashval);
 	}
@@ -141,7 +170,8 @@ static int n411_init_board(struct hecubafb_par *par)
 	return 0;
 }
 
-static struct hecuba_board n411_board = {
+static struct hecuba_board n411_board =
+{
 	.owner			= THIS_MODULE,
 	.init			= n411_init_board,
 	.set_ctl		= n411_set_ctl,
@@ -153,7 +183,9 @@ static struct platform_device *n411_device;
 static int __init n411_init(void)
 {
 	int ret;
-	if (!dio_addr || !cio_addr || !c2io_addr) {
+
+	if (!dio_addr || !cio_addr || !c2io_addr)
+	{
 		printk(KERN_WARNING "no IO addresses supplied\n");
 		return -EINVAL;
 	}
@@ -162,19 +194,27 @@ static int __init n411_init(void)
 	request_module("hecubafb");
 
 	n411_device = platform_device_alloc("hecubafb", -1);
+
 	if (!n411_device)
+	{
 		return -ENOMEM;
+	}
 
 	ret = platform_device_add_data(n411_device, &n411_board,
-				       sizeof(n411_board));
+								   sizeof(n411_board));
+
 	if (ret)
+	{
 		goto put_plat_device;
+	}
 
 	/* this _add binds hecubafb to n411. hecubafb refcounts n411 */
 	ret = platform_device_add(n411_device);
 
 	if (ret)
+	{
 		goto put_plat_device;
+	}
 
 	return 0;
 

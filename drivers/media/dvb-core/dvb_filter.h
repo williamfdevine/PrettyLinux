@@ -27,7 +27,8 @@
 
 typedef int (dvb_filter_pes2ts_cb_t) (void *, unsigned char *);
 
-struct dvb_filter_pes2ts {
+struct dvb_filter_pes2ts
+{
 	unsigned char buf[188];
 	unsigned char cc;
 	dvb_filter_pes2ts_cb_t *cb;
@@ -35,10 +36,10 @@ struct dvb_filter_pes2ts {
 };
 
 void dvb_filter_pes2ts_init(struct dvb_filter_pes2ts *p2ts, unsigned short pid,
-			    dvb_filter_pes2ts_cb_t *cb, void *priv);
+							dvb_filter_pes2ts_cb_t *cb, void *priv);
 
 int dvb_filter_pes2ts(struct dvb_filter_pes2ts *p2ts, unsigned char *pes,
-		      int len, int payload_start);
+					  int len, int payload_start);
 
 
 #define PROG_STREAM_MAP  0xBC
@@ -128,10 +129,11 @@ int dvb_filter_pes2ts(struct dvb_filter_pes2ts *p2ts, unsigned char *pes,
 #define MMAX_PLENGTH (256*MAX_PLENGTH)
 
 #ifndef IPACKS
-#define IPACKS 2048
+	#define IPACKS 2048
 #endif
 
-struct ipack {
+struct ipack
+{
 	int size;
 	int found;
 	u8 *buf;
@@ -153,7 +155,8 @@ struct ipack {
 	int repack_subids;
 };
 
-struct dvb_video_info {
+struct dvb_video_info
+{
 	u32 horizontal_size;
 	u32 vertical_size;
 	u32 aspect_ratio;
@@ -172,7 +175,8 @@ struct dvb_video_info {
 #define SECOND_FIELD 1
 #define VIDEO_FRAME_PICTURE 0x03
 
-struct mpg_picture {
+struct mpg_picture
+{
 	int       channel;
 	struct dvb_video_info vinfo;
 	u32      *sequence_gop_header;
@@ -191,10 +195,10 @@ struct mpg_picture {
 	s8        matrix_change_flag;
 
 	u8        picture_header_parameter;
-  /* bit 0 - 2: bwd f code
-     bit 3    : fpb vector
-     bit 4 - 6: fwd f code
-     bit 7    : fpf vector */
+	/* bit 0 - 2: bwd f code
+	   bit 3    : fpb vector
+	   bit 4 - 6: fwd f code
+	   bit 7    : fpf vector */
 
 	int       mpeg1_flag;
 	int       progressive_sequence;
@@ -212,24 +216,25 @@ struct mpg_picture {
 	int       backward_bank;
 	int       compress;
 	s16       frame_centre_horizontal_offset[OFF_SIZE];
-		  /* [0-2] 1st field, [3] 2nd field */
+	/* [0-2] 1st field, [3] 2nd field */
 	s16       frame_centre_vertical_offset[OFF_SIZE];
-		  /* [0-2] 1st field, [3] 2nd field */
+	/* [0-2] 1st field, [3] 2nd field */
 	s16       temporal_reference[2];
-		  /* [0] 1st field, [1] 2nd field */
+	/* [0] 1st field, [1] 2nd field */
 
 	s8        picture_coding_type[2];
-		  /* [0] 1st field, [1] 2nd field */
+	/* [0] 1st field, [1] 2nd field */
 	s8        picture_structure[2];
-		  /* [0] 1st field, [1] 2nd field */
+	/* [0] 1st field, [1] 2nd field */
 	s8        picture_display_extension_flag[2];
-		  /* [0] 1st field, [1] 2nd field */
-		  /* picture_display_extenion() 0:no 1:exit*/
+	/* [0] 1st field, [1] 2nd field */
+	/* picture_display_extenion() 0:no 1:exit*/
 	s8        pts_flag[2];
-		  /* [0] 1st field, [1] 2nd field */
+	/* [0] 1st field, [1] 2nd field */
 };
 
-struct dvb_audio_info {
+struct dvb_audio_info
+{
 	int layer;
 	u32 bit_rate;
 	u32 frequency;

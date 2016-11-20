@@ -40,13 +40,19 @@ static int picolcd_set_contrast(struct lcd_device *ldev, int contrast)
 	unsigned long flags;
 
 	if (!report || report->maxfield != 1 || report->field[0]->report_count != 1)
+	{
 		return -ENODEV;
+	}
 
 	data->lcd_contrast = contrast & 0x0ff;
 	spin_lock_irqsave(&data->lock, flags);
 	hid_set_field(report->field[0], 0, data->lcd_contrast);
+
 	if (!(data->status & PICOLCD_FAILED))
+	{
 		hid_hw_request(data->hdev, report, HID_REQ_SET_REPORT);
+	}
+
 	spin_unlock_irqrestore(&data->lock, flags);
 	return 0;
 }
@@ -56,7 +62,8 @@ static int picolcd_check_lcd_fb(struct lcd_device *ldev, struct fb_info *fb)
 	return fb && fb == picolcd_fbinfo((struct picolcd_data *)lcd_get_data(ldev));
 }
 
-static struct lcd_ops picolcd_lcdops = {
+static struct lcd_ops picolcd_lcdops =
+{
 	.get_contrast   = picolcd_get_contrast,
 	.set_contrast   = picolcd_set_contrast,
 	.check_fb       = picolcd_check_lcd_fb,
@@ -68,18 +75,25 @@ int picolcd_init_lcd(struct picolcd_data *data, struct hid_report *report)
 	struct lcd_device *ldev;
 
 	if (!report)
+	{
 		return -ENODEV;
+	}
+
 	if (report->maxfield != 1 || report->field[0]->report_count != 1 ||
-			report->field[0]->report_size != 8) {
+		report->field[0]->report_size != 8)
+	{
 		dev_err(dev, "unsupported CONTRAST report");
 		return -EINVAL;
 	}
 
 	ldev = lcd_device_register(dev_name(dev), dev, data, &picolcd_lcdops);
-	if (IS_ERR(ldev)) {
+
+	if (IS_ERR(ldev))
+	{
 		dev_err(dev, "failed to register LCD\n");
 		return PTR_ERR(ldev);
 	}
+
 	ldev->props.max_contrast = 0x0ff;
 	data->lcd_contrast = 0xe5;
 	data->lcd = ldev;
@@ -98,7 +112,10 @@ void picolcd_exit_lcd(struct picolcd_data *data)
 int picolcd_resume_lcd(struct picolcd_data *data)
 {
 	if (!data->lcd)
+	{
 		return 0;
+	}
+
 	return picolcd_set_contrast(data->lcd, data->lcd_contrast);
 }
 

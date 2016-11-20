@@ -17,13 +17,15 @@
 #define PT_GNU_STACK    (PT_LOOS + 0x474e551)
 
 /* segment mappings for ELF FDPIC libraries/executables/interpreters */
-struct elf32_fdpic_loadseg {
+struct elf32_fdpic_loadseg
+{
 	Elf32_Addr	addr;		/* core address to which mapped */
 	Elf32_Addr	p_vaddr;	/* VMA recorded in file */
 	Elf32_Word	p_memsz;	/* allocation size recorded in file */
 };
 
-struct elf32_fdpic_loadmap {
+struct elf32_fdpic_loadmap
+{
 	Elf32_Half	version;	/* version of these structures, just in case... */
 	Elf32_Half	nsegs;		/* number of segments */
 	struct elf32_fdpic_loadseg segs[];

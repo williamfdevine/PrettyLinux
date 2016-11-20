@@ -20,12 +20,12 @@ int bcm_phy_write_exp(struct phy_device *phydev, u16 reg, u16 val);
 int bcm_phy_read_exp(struct phy_device *phydev, u16 reg);
 
 int bcm_phy_write_misc(struct phy_device *phydev,
-		       u16 reg, u16 chl, u16 value);
+					   u16 reg, u16 chl, u16 value);
 int bcm_phy_read_misc(struct phy_device *phydev,
-		      u16 reg, u16 chl);
+					  u16 reg, u16 chl);
 
 int bcm_phy_write_shadow(struct phy_device *phydev, u16 shadow,
-			 u16 val);
+						 u16 val);
 int bcm_phy_read_shadow(struct phy_device *phydev, u16 shadow);
 
 int bcm_phy_ack_intr(struct phy_device *phydev);

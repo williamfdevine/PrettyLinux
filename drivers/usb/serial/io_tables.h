@@ -14,7 +14,8 @@
 #ifndef IO_TABLES_H
 #define IO_TABLES_H
 
-static const struct usb_device_id edgeport_2port_id_table[] = {
+static const struct usb_device_id edgeport_2port_id_table[] =
+{
 	{ USB_DEVICE(USB_VENDOR_ID_ION, ION_DEVICE_ID_EDGEPORT_2) },
 	{ USB_DEVICE(USB_VENDOR_ID_ION, ION_DEVICE_ID_EDGEPORT_2I) },
 	{ USB_DEVICE(USB_VENDOR_ID_ION, ION_DEVICE_ID_EDGEPORT_421) },
@@ -23,7 +24,8 @@ static const struct usb_device_id edgeport_2port_id_table[] = {
 	{ }
 };
 
-static const struct usb_device_id edgeport_4port_id_table[] = {
+static const struct usb_device_id edgeport_4port_id_table[] =
+{
 	{ USB_DEVICE(USB_VENDOR_ID_ION, ION_DEVICE_ID_EDGEPORT_4) },
 	{ USB_DEVICE(USB_VENDOR_ID_ION, ION_DEVICE_ID_RAPIDPORT_4) },
 	{ USB_DEVICE(USB_VENDOR_ID_ION, ION_DEVICE_ID_EDGEPORT_4T) },
@@ -37,7 +39,8 @@ static const struct usb_device_id edgeport_4port_id_table[] = {
 	{ }
 };
 
-static const struct usb_device_id edgeport_8port_id_table[] = {
+static const struct usb_device_id edgeport_8port_id_table[] =
+{
 	{ USB_DEVICE(USB_VENDOR_ID_ION, ION_DEVICE_ID_EDGEPORT_8) },
 	{ USB_DEVICE(USB_VENDOR_ID_ION, ION_DEVICE_ID_EDGEPORT_16_DUAL_CPU) },
 	{ USB_DEVICE(USB_VENDOR_ID_ION, ION_DEVICE_ID_EDGEPORT_8I) },
@@ -47,7 +50,8 @@ static const struct usb_device_id edgeport_8port_id_table[] = {
 	{ }
 };
 
-static const struct usb_device_id Epic_port_id_table[] = {
+static const struct usb_device_id Epic_port_id_table[] =
+{
 	{ USB_DEVICE(USB_VENDOR_ID_NCR, NCR_DEVICE_ID_EPIC_0202) },
 	{ USB_DEVICE(USB_VENDOR_ID_NCR, NCR_DEVICE_ID_EPIC_0203) },
 	{ USB_DEVICE(USB_VENDOR_ID_NCR, NCR_DEVICE_ID_EPIC_0310) },
@@ -60,7 +64,8 @@ static const struct usb_device_id Epic_port_id_table[] = {
 };
 
 /* Devices that this driver supports */
-static const struct usb_device_id id_table_combined[] = {
+static const struct usb_device_id id_table_combined[] =
+{
 	{ USB_DEVICE(USB_VENDOR_ID_ION,	ION_DEVICE_ID_EDGEPORT_4) },
 	{ USB_DEVICE(USB_VENDOR_ID_ION,	ION_DEVICE_ID_RAPIDPORT_4) },
 	{ USB_DEVICE(USB_VENDOR_ID_ION,	ION_DEVICE_ID_EDGEPORT_4T) },
@@ -95,7 +100,8 @@ static const struct usb_device_id id_table_combined[] = {
 
 MODULE_DEVICE_TABLE(usb, id_table_combined);
 
-static struct usb_serial_driver edgeport_2port_device = {
+static struct usb_serial_driver edgeport_2port_device =
+{
 	.driver = {
 		.owner		= THIS_MODULE,
 		.name		= "edgeport_2",
@@ -127,7 +133,8 @@ static struct usb_serial_driver edgeport_2port_device = {
 	.write_bulk_callback	= edge_bulk_out_data_callback,
 };
 
-static struct usb_serial_driver edgeport_4port_device = {
+static struct usb_serial_driver edgeport_4port_device =
+{
 	.driver = {
 		.owner		= THIS_MODULE,
 		.name		= "edgeport_4",
@@ -159,7 +166,8 @@ static struct usb_serial_driver edgeport_4port_device = {
 	.write_bulk_callback	= edge_bulk_out_data_callback,
 };
 
-static struct usb_serial_driver edgeport_8port_device = {
+static struct usb_serial_driver edgeport_8port_device =
+{
 	.driver = {
 		.owner		= THIS_MODULE,
 		.name		= "edgeport_8",
@@ -191,7 +199,8 @@ static struct usb_serial_driver edgeport_8port_device = {
 	.write_bulk_callback	= edge_bulk_out_data_callback,
 };
 
-static struct usb_serial_driver epic_device = {
+static struct usb_serial_driver epic_device =
+{
 	.driver = {
 		.owner		= THIS_MODULE,
 		.name		= "epic",
@@ -223,7 +232,8 @@ static struct usb_serial_driver epic_device = {
 	.write_bulk_callback	= edge_bulk_out_data_callback,
 };
 
-static struct usb_serial_driver * const serial_drivers[] = {
+static struct usb_serial_driver *const serial_drivers[] =
+{
 	&edgeport_2port_device, &edgeport_4port_device,
 	&edgeport_8port_device, &epic_device, NULL
 };

@@ -39,7 +39,8 @@
 
 #define AD7298_CH_TEMP		9
 
-struct ad7298_state {
+struct ad7298_state
+{
 	struct spi_device		*spi;
 	struct regulator		*reg;
 	unsigned			ext_ref;
@@ -58,28 +59,29 @@ struct ad7298_state {
 #define AD7298_V_CHAN(index)						\
 	{								\
 		.type = IIO_VOLTAGE,					\
-		.indexed = 1,						\
-		.channel = index,					\
-		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
-		.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
-		.address = index,					\
-		.scan_index = index,					\
-		.scan_type = {						\
-			.sign = 'u',					\
-			.realbits = 12,					\
-			.storagebits = 16,				\
-			.endianness = IIO_BE,				\
-		},							\
+				.indexed = 1,						\
+						   .channel = index,					\
+									  .info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
+											  .info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
+													  .address = index,					\
+															  .scan_index = index,					\
+																	  .scan_type = {						\
+																										  .sign = 'u',					\
+																										  .realbits = 12,					\
+																										  .storagebits = 16,				\
+																										  .endianness = IIO_BE,				\
+																				   },							\
 	}
 
-static const struct iio_chan_spec ad7298_channels[] = {
+static const struct iio_chan_spec ad7298_channels[] =
+{
 	{
 		.type = IIO_TEMP,
 		.indexed = 1,
 		.channel = 0,
 		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |
-			BIT(IIO_CHAN_INFO_SCALE) |
-			BIT(IIO_CHAN_INFO_OFFSET),
+		BIT(IIO_CHAN_INFO_SCALE) |
+		BIT(IIO_CHAN_INFO_OFFSET),
 		.address = AD7298_CH_TEMP,
 		.scan_index = -1,
 		.scan_type = {
@@ -103,7 +105,7 @@ static const struct iio_chan_spec ad7298_channels[] = {
  * ad7298_update_scan_mode() setup the spi transfer buffer for the new scan mask
  **/
 static int ad7298_update_scan_mode(struct iio_dev *indio_dev,
-	const unsigned long *active_scan_mask)
+								   const unsigned long *active_scan_mask)
 {
 	struct ad7298_state *st = iio_priv(indio_dev);
 	int i, m;
@@ -117,7 +119,9 @@ static int ad7298_update_scan_mode(struct iio_dev *indio_dev,
 
 	for (i = 0, m = AD7298_CH(0); i < AD7298_MAX_CHAN; i++, m >>= 1)
 		if (test_bit(i, active_scan_mask))
+		{
 			command |= m;
+		}
 
 	st->tx_buf[0] = cpu_to_be16(command);
 
@@ -133,12 +137,14 @@ static int ad7298_update_scan_mode(struct iio_dev *indio_dev,
 	spi_message_add_tail(&st->ring_xfer[0], &st->ring_msg);
 	spi_message_add_tail(&st->ring_xfer[1], &st->ring_msg);
 
-	for (i = 0; i < scan_count; i++) {
+	for (i = 0; i < scan_count; i++)
+	{
 		st->ring_xfer[i + 2].rx_buf = &st->rx_buf[i];
 		st->ring_xfer[i + 2].len = 2;
 		st->ring_xfer[i + 2].cs_change = 1;
 		spi_message_add_tail(&st->ring_xfer[i + 2], &st->ring_msg);
 	}
+
 	/* make sure last transfer cs_change is not set */
 	st->ring_xfer[i + 1].cs_change = 0;
 
@@ -159,11 +165,14 @@ static irqreturn_t ad7298_trigger_handler(int irq, void *p)
 	int b_sent;
 
 	b_sent = spi_sync(st->spi, &st->ring_msg);
+
 	if (b_sent)
+	{
 		goto done;
+	}
 
 	iio_push_to_buffers_with_timestamp(indio_dev, st->rx_buf,
-		iio_get_time_ns(indio_dev));
+									   iio_get_time_ns(indio_dev));
 
 done:
 	iio_trigger_notify_done(indio_dev->trig);
@@ -175,11 +184,14 @@ static int ad7298_scan_direct(struct ad7298_state *st, unsigned ch)
 {
 	int ret;
 	st->tx_buf[0] = cpu_to_be16(AD7298_WRITE | st->ext_ref |
-				   (AD7298_CH(0) >> ch));
+								(AD7298_CH(0) >> ch));
 
 	ret = spi_sync(st->spi, &st->scan_single_msg);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return be16_to_cpu(st->rx_buf[0]);
 }
@@ -190,23 +202,32 @@ static int ad7298_scan_temp(struct ad7298_state *st, int *val)
 	__be16 buf;
 
 	buf = cpu_to_be16(AD7298_WRITE | AD7298_TSENSE |
-			  AD7298_TAVG | st->ext_ref);
+					  AD7298_TAVG | st->ext_ref);
 
 	ret = spi_write(st->spi, (u8 *)&buf, 2);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	buf = cpu_to_be16(0);
 
 	ret = spi_write(st->spi, (u8 *)&buf, 2);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	usleep_range(101, 1000); /* sleep > 100us */
 
 	ret = spi_read(st->spi, (u8 *)&buf, 2);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	*val = sign_extend32(be16_to_cpu(buf), 11);
 
@@ -217,67 +238,92 @@ static int ad7298_get_ref_voltage(struct ad7298_state *st)
 {
 	int vref;
 
-	if (st->ext_ref) {
+	if (st->ext_ref)
+	{
 		vref = regulator_get_voltage(st->reg);
+
 		if (vref < 0)
+		{
 			return vref;
+		}
 
 		return vref / 1000;
-	} else {
+	}
+	else
+	{
 		return AD7298_INTREF_mV;
 	}
 }
 
 static int ad7298_read_raw(struct iio_dev *indio_dev,
-			   struct iio_chan_spec const *chan,
-			   int *val,
-			   int *val2,
-			   long m)
+						   struct iio_chan_spec const *chan,
+						   int *val,
+						   int *val2,
+						   long m)
 {
 	int ret;
 	struct ad7298_state *st = iio_priv(indio_dev);
 
-	switch (m) {
-	case IIO_CHAN_INFO_RAW:
-		ret = iio_device_claim_direct_mode(indio_dev);
-		if (ret)
-			return ret;
+	switch (m)
+	{
+		case IIO_CHAN_INFO_RAW:
+			ret = iio_device_claim_direct_mode(indio_dev);
 
-		if (chan->address == AD7298_CH_TEMP)
-			ret = ad7298_scan_temp(st, val);
-		else
-			ret = ad7298_scan_direct(st, chan->address);
+			if (ret)
+			{
+				return ret;
+			}
 
-		iio_device_release_direct_mode(indio_dev);
+			if (chan->address == AD7298_CH_TEMP)
+			{
+				ret = ad7298_scan_temp(st, val);
+			}
+			else
+			{
+				ret = ad7298_scan_direct(st, chan->address);
+			}
 
-		if (ret < 0)
-			return ret;
+			iio_device_release_direct_mode(indio_dev);
 
-		if (chan->address != AD7298_CH_TEMP)
-			*val = ret & GENMASK(chan->scan_type.realbits - 1, 0);
+			if (ret < 0)
+			{
+				return ret;
+			}
 
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_SCALE:
-		switch (chan->type) {
-		case IIO_VOLTAGE:
-			*val = ad7298_get_ref_voltage(st);
-			*val2 = chan->scan_type.realbits;
-			return IIO_VAL_FRACTIONAL_LOG2;
-		case IIO_TEMP:
-			*val = ad7298_get_ref_voltage(st);
-			*val2 = 10;
-			return IIO_VAL_FRACTIONAL;
-		default:
-			return -EINVAL;
-		}
-	case IIO_CHAN_INFO_OFFSET:
-		*val = 1093 - 2732500 / ad7298_get_ref_voltage(st);
-		return IIO_VAL_INT;
+			if (chan->address != AD7298_CH_TEMP)
+			{
+				*val = ret & GENMASK(chan->scan_type.realbits - 1, 0);
+			}
+
+			return IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_SCALE:
+			switch (chan->type)
+			{
+				case IIO_VOLTAGE:
+					*val = ad7298_get_ref_voltage(st);
+					*val2 = chan->scan_type.realbits;
+					return IIO_VAL_FRACTIONAL_LOG2;
+
+				case IIO_TEMP:
+					*val = ad7298_get_ref_voltage(st);
+					*val2 = 10;
+					return IIO_VAL_FRACTIONAL;
+
+				default:
+					return -EINVAL;
+			}
+
+		case IIO_CHAN_INFO_OFFSET:
+			*val = 1093 - 2732500 / ad7298_get_ref_voltage(st);
+			return IIO_VAL_INT;
 	}
+
 	return -EINVAL;
 }
 
-static const struct iio_info ad7298_info = {
+static const struct iio_info ad7298_info =
+{
 	.read_raw = &ad7298_read_raw,
 	.update_scan_mode = ad7298_update_scan_mode,
 	.driver_module = THIS_MODULE,
@@ -291,22 +337,34 @@ static int ad7298_probe(struct spi_device *spi)
 	int ret;
 
 	indio_dev = devm_iio_device_alloc(&spi->dev, sizeof(*st));
+
 	if (indio_dev == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	st = iio_priv(indio_dev);
 
 	if (pdata && pdata->ext_ref)
+	{
 		st->ext_ref = AD7298_EXTREF;
+	}
 
-	if (st->ext_ref) {
+	if (st->ext_ref)
+	{
 		st->reg = devm_regulator_get(&spi->dev, "vref");
+
 		if (IS_ERR(st->reg))
+		{
 			return PTR_ERR(st->reg);
+		}
 
 		ret = regulator_enable(st->reg);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	spi_set_drvdata(spi, indio_dev);
@@ -338,21 +396,30 @@ static int ad7298_probe(struct spi_device *spi)
 	spi_message_add_tail(&st->scan_single_xfer[2], &st->scan_single_msg);
 
 	ret = iio_triggered_buffer_setup(indio_dev, NULL,
-			&ad7298_trigger_handler, NULL);
+									 &ad7298_trigger_handler, NULL);
+
 	if (ret)
+	{
 		goto error_disable_reg;
+	}
 
 	ret = iio_device_register(indio_dev);
+
 	if (ret)
+	{
 		goto error_cleanup_ring;
+	}
 
 	return 0;
 
 error_cleanup_ring:
 	iio_triggered_buffer_cleanup(indio_dev);
 error_disable_reg:
+
 	if (st->ext_ref)
+	{
 		regulator_disable(st->reg);
+	}
 
 	return ret;
 }
@@ -364,19 +431,24 @@ static int ad7298_remove(struct spi_device *spi)
 
 	iio_device_unregister(indio_dev);
 	iio_triggered_buffer_cleanup(indio_dev);
+
 	if (st->ext_ref)
+	{
 		regulator_disable(st->reg);
+	}
 
 	return 0;
 }
 
-static const struct spi_device_id ad7298_id[] = {
+static const struct spi_device_id ad7298_id[] =
+{
 	{"ad7298", 0},
 	{}
 };
 MODULE_DEVICE_TABLE(spi, ad7298_id);
 
-static struct spi_driver ad7298_driver = {
+static struct spi_driver ad7298_driver =
+{
 	.driver = {
 		.name	= "ad7298",
 	},

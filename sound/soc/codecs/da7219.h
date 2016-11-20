@@ -777,19 +777,22 @@
 #define DA7219_SYS_STAT_CHECK_RETRIES	6
 #define DA7219_SYS_STAT_CHECK_DELAY	50
 
-enum da7219_clk_src {
+enum da7219_clk_src
+{
 	DA7219_CLKSRC_MCLK = 0,
 	DA7219_CLKSRC_MCLK_SQR,
 };
 
-enum da7219_sys_clk {
+enum da7219_sys_clk
+{
 	DA7219_SYSCLK_MCLK = 0,
 	DA7219_SYSCLK_PLL,
 	DA7219_SYSCLK_PLL_SRM,
 };
 
 /* Regulators */
-enum da7219_supplies {
+enum da7219_supplies
+{
 	DA7219_SUPPLY_VDD = 0,
 	DA7219_SUPPLY_VDDMIC,
 	DA7219_SUPPLY_VDDIO,
@@ -799,7 +802,8 @@ enum da7219_supplies {
 struct da7219_aad_priv;
 
 /* Private data */
-struct da7219_priv {
+struct da7219_priv
+{
 	struct da7219_aad_priv *aad;
 	struct da7219_pdata *pdata;
 

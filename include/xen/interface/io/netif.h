@@ -285,26 +285,32 @@
  */
 #ifdef XEN_NETIF_DEFINE_TOEPLITZ
 static uint32_t xen_netif_toeplitz_hash(const uint8_t *key,
-					unsigned int keylen,
-					const uint8_t *buf, unsigned int buflen)
+										unsigned int keylen,
+										const uint8_t *buf, unsigned int buflen)
 {
 	unsigned int keyi, bufi;
 	uint64_t prefix = 0;
 	uint64_t hash = 0;
 
 	/* Pre-load prefix with the first 8 bytes of the key */
-	for (keyi = 0; keyi < 8; keyi++) {
+	for (keyi = 0; keyi < 8; keyi++)
+	{
 		prefix <<= 8;
 		prefix |= (keyi < keylen) ? key[keyi] : 0;
 	}
 
-	for (bufi = 0; bufi < buflen; bufi++) {
+	for (bufi = 0; bufi < buflen; bufi++)
+	{
 		uint8_t byte = buf[bufi];
 		unsigned int bit;
 
-		for (bit = 0; bit < 8; bit++) {
+		for (bit = 0; bit < 8; bit++)
+		{
 			if (byte & 0x80)
+			{
 				hash ^= prefix;
+			}
+
 			prefix <<= 1;
 			byte <<= 1;
 		}
@@ -340,7 +346,8 @@ static uint32_t xen_netif_toeplitz_hash(const uint8_t *key,
  * data[]: any data associated with the request (determined by type)
  */
 
-struct xen_netif_ctrl_request {
+struct xen_netif_ctrl_request
+{
 	uint16_t id;
 	uint16_t type;
 
@@ -376,7 +383,8 @@ struct xen_netif_ctrl_request {
  *       status)
  */
 
-struct xen_netif_ctrl_response {
+struct xen_netif_ctrl_response
+{
 	uint16_t id;
 	uint16_t type;
 	uint32_t status;
@@ -611,8 +619,8 @@ struct xen_netif_ctrl_response {
  */
 
 DEFINE_RING_TYPES(xen_netif_ctrl,
-		  struct xen_netif_ctrl_request,
-		  struct xen_netif_ctrl_response);
+				  struct xen_netif_ctrl_request,
+				  struct xen_netif_ctrl_response);
 
 /*
  * Guest transmit
@@ -832,7 +840,8 @@ DEFINE_RING_TYPES(xen_netif_ctrl,
 #define  XEN_NETTXF_extra_info     (1U<<_XEN_NETTXF_extra_info)
 
 #define XEN_NETIF_MAX_TX_SIZE 0xFFFF
-struct xen_netif_tx_request {
+struct xen_netif_tx_request
+{
 	grant_ref_t gref;
 	uint16_t offset;
 	uint16_t flags;
@@ -861,20 +870,25 @@ struct xen_netif_tx_request {
  * This structure needs to fit within both xen_netif_tx_request_t and
  * xen_netif_rx_response_t for compatibility.
  */
-struct xen_netif_extra_info {
+struct xen_netif_extra_info
+{
 	uint8_t type;
 	uint8_t flags;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			uint16_t size;
 			uint8_t type;
 			uint8_t pad;
 			uint16_t features;
 		} gso;
-		struct {
+		struct
+		{
 			uint8_t addr[6];
 		} mcast;
-		struct {
+		struct
+		{
 			uint8_t type;
 			uint8_t algorithm;
 			uint8_t value[4];
@@ -883,12 +897,14 @@ struct xen_netif_extra_info {
 	} u;
 };
 
-struct xen_netif_tx_response {
+struct xen_netif_tx_response
+{
 	uint16_t id;
 	int16_t status;
 };
 
-struct xen_netif_rx_request {
+struct xen_netif_rx_request
+{
 	uint16_t id;		/* Echoed in response message.        */
 	uint16_t pad;
 	grant_ref_t gref;
@@ -914,7 +930,8 @@ struct xen_netif_rx_request {
 #define _XEN_NETRXF_gso_prefix     (4)
 #define  XEN_NETRXF_gso_prefix     (1U<<_XEN_NETRXF_gso_prefix)
 
-struct xen_netif_rx_response {
+struct xen_netif_rx_response
+{
 	uint16_t id;
 	uint16_t offset;
 	uint16_t flags;
@@ -926,9 +943,9 @@ struct xen_netif_rx_response {
  */
 
 DEFINE_RING_TYPES(xen_netif_tx, struct xen_netif_tx_request,
-		  struct xen_netif_tx_response);
+				  struct xen_netif_tx_response);
 DEFINE_RING_TYPES(xen_netif_rx, struct xen_netif_rx_request,
-		  struct xen_netif_rx_response);
+				  struct xen_netif_rx_response);
 
 #define XEN_NETIF_RSP_DROPPED         -2
 #define XEN_NETIF_RSP_ERROR           -1

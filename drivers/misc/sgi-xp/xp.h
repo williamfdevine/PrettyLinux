@@ -16,35 +16,35 @@
 #include <linux/mutex.h>
 
 #if defined CONFIG_X86_UV || defined CONFIG_IA64_SGI_UV
-#include <asm/uv/uv.h>
-#define is_uv()		is_uv_system()
+	#include <asm/uv/uv.h>
+	#define is_uv()		is_uv_system()
 #endif
 
 #ifndef is_uv
-#define is_uv()		0
+	#define is_uv()		0
 #endif
 
 #if defined CONFIG_IA64
-#include <asm/sn/arch.h>	/* defines is_shub1() and is_shub2() */
-#define is_shub()	ia64_platform_is("sn2")
+	#include <asm/sn/arch.h>	/* defines is_shub1() and is_shub2() */
+	#define is_shub()	ia64_platform_is("sn2")
 #endif
 
 #ifndef is_shub1
-#define is_shub1()	0
+	#define is_shub1()	0
 #endif
 
 #ifndef is_shub2
-#define is_shub2()	0
+	#define is_shub2()	0
 #endif
 
 #ifndef is_shub
-#define is_shub()	0
+	#define is_shub()	0
 #endif
 
 #ifdef USE_DBUG_ON
-#define DBUG_ON(condition)	BUG_ON(condition)
+	#define DBUG_ON(condition)	BUG_ON(condition)
 #else
-#define DBUG_ON(condition)
+	#define DBUG_ON(condition)
 #endif
 
 /*
@@ -82,7 +82,7 @@
 #define XPC_MAX_NCHANNELS	2	/* max #of channels allowed */
 
 #if XPC_MAX_NCHANNELS > 8
-#error	XPC_MAX_NCHANNELS exceeds absolute MAXIMUM possible.
+	#error	XPC_MAX_NCHANNELS exceeds absolute MAXIMUM possible.
 #endif
 
 /*
@@ -95,8 +95,8 @@
 #define XPC_MSG_PAYLOAD_MAX_SIZE (XPC_MSG_MAX_SIZE - XPC_MSG_HDR_MAX_SIZE)
 
 #define XPC_MSG_SIZE(_payload_size) \
-				ALIGN(XPC_MSG_HDR_MAX_SIZE + (_payload_size), \
-				      is_uv() ? 64 : 128)
+	ALIGN(XPC_MSG_HDR_MAX_SIZE + (_payload_size), \
+		  is_uv() ? 64 : 128)
 
 
 /*
@@ -104,7 +104,8 @@
  * (It is important to add new value codes at the end just preceding
  * xpUnknownReason, which must have the highest numerical value.)
  */
-enum xp_retval {
+enum xp_retval
+{
 	xpSuccess = 0,
 
 	xpNotConnected,		/*  1: channel is not connected */
@@ -223,7 +224,7 @@ enum xp_retval {
  * is not connected.
  */
 typedef void (*xpc_channel_func) (enum xp_retval reason, short partid,
-				  int ch_number, void *data, void *key);
+								  int ch_number, void *data, void *key);
 
 /*
  * Define the callout function type used by XPC to notify the user of
@@ -248,7 +249,7 @@ typedef void (*xpc_channel_func) (enum xp_retval reason, short partid,
  *       and thus cannot block.
  */
 typedef void (*xpc_notify_func) (enum xp_retval reason, short partid,
-				 int ch_number, void *key);
+								 int ch_number, void *key);
 
 /*
  * The following is a registration entry. There is a global array of these,
@@ -264,7 +265,8 @@ typedef void (*xpc_notify_func) (enum xp_retval reason, short partid,
  * non-NULL 'func' field indicates that there is an active registration for
  * the channel.
  */
-struct xpc_registration {
+struct xpc_registration
+{
 	struct mutex mutex;
 	xpc_channel_func func;	/* function to call */
 	void *key;		/* pointer to user's key */
@@ -280,12 +282,13 @@ struct xpc_registration {
 #define XPC_WAIT	0	/* wait flag */
 #define XPC_NOWAIT	1	/* no wait flag */
 
-struct xpc_interface {
+struct xpc_interface
+{
 	void (*connect) (int);
 	void (*disconnect) (int);
 	enum xp_retval (*send) (short, int, u32, void *, u16);
 	enum xp_retval (*send_notify) (short, int, u32, void *, u16,
-					xpc_notify_func, void *);
+								   xpc_notify_func, void *);
 	void (*received) (short, int, void *);
 	enum xp_retval (*partid_to_nasids) (short, void *);
 };
@@ -293,32 +296,32 @@ struct xpc_interface {
 extern struct xpc_interface xpc_interface;
 
 extern void xpc_set_interface(void (*)(int),
-			      void (*)(int),
-			      enum xp_retval (*)(short, int, u32, void *, u16),
-			      enum xp_retval (*)(short, int, u32, void *, u16,
-						 xpc_notify_func, void *),
-			      void (*)(short, int, void *),
-			      enum xp_retval (*)(short, void *));
+							  void (*)(int),
+							  enum xp_retval (*)(short, int, u32, void *, u16),
+							  enum xp_retval (*)(short, int, u32, void *, u16,
+									  xpc_notify_func, void *),
+							  void (*)(short, int, void *),
+							  enum xp_retval (*)(short, void *));
 extern void xpc_clear_interface(void);
 
 extern enum xp_retval xpc_connect(int, xpc_channel_func, void *, u16,
-				   u16, u32, u32);
+								  u16, u32, u32);
 extern void xpc_disconnect(int);
 
 static inline enum xp_retval
 xpc_send(short partid, int ch_number, u32 flags, void *payload,
-	 u16 payload_size)
+		 u16 payload_size)
 {
 	return xpc_interface.send(partid, ch_number, flags, payload,
-				  payload_size);
+							  payload_size);
 }
 
 static inline enum xp_retval
 xpc_send_notify(short partid, int ch_number, u32 flags, void *payload,
-		u16 payload_size, xpc_notify_func func, void *key)
+				u16 payload_size, xpc_notify_func func, void *key)
 {
 	return xpc_interface.send_notify(partid, ch_number, flags, payload,
-					 payload_size, func, key);
+									 payload_size, func, key);
 }
 
 static inline void
@@ -340,7 +343,7 @@ extern u8 xp_region_size;
 extern unsigned long (*xp_pa) (void *);
 extern unsigned long (*xp_socket_pa) (unsigned long);
 extern enum xp_retval (*xp_remote_memcpy) (unsigned long, const unsigned long,
-		       size_t);
+		size_t);
 extern int (*xp_cpu_to_nasid) (int);
 extern enum xp_retval (*xp_expand_memprotect) (unsigned long, unsigned long);
 extern enum xp_retval (*xp_restrict_memprotect) (unsigned long, unsigned long);

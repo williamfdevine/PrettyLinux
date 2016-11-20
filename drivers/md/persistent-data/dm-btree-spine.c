@@ -16,27 +16,27 @@
 #define BTREE_CSUM_XOR 121107
 
 static int node_check(struct dm_block_validator *v,
-		      struct dm_block *b,
-		      size_t block_size);
+					  struct dm_block *b,
+					  size_t block_size);
 
 static void node_prepare_for_write(struct dm_block_validator *v,
-				   struct dm_block *b,
-				   size_t block_size)
+								   struct dm_block *b,
+								   size_t block_size)
 {
 	struct btree_node *n = dm_block_data(b);
 	struct node_header *h = &n->header;
 
 	h->blocknr = cpu_to_le64(dm_block_location(b));
 	h->csum = cpu_to_le32(dm_bm_checksum(&h->flags,
-					     block_size - sizeof(__le32),
-					     BTREE_CSUM_XOR));
+										 block_size - sizeof(__le32),
+										 BTREE_CSUM_XOR));
 
 	BUG_ON(node_check(v, b, 4096));
 }
 
 static int node_check(struct dm_block_validator *v,
-		      struct dm_block *b,
-		      size_t block_size)
+					  struct dm_block *b,
+					  size_t block_size)
 {
 	struct btree_node *n = dm_block_data(b);
 	struct node_header *h = &n->header;
@@ -44,30 +44,35 @@ static int node_check(struct dm_block_validator *v,
 	__le32 csum_disk;
 	uint32_t flags;
 
-	if (dm_block_location(b) != le64_to_cpu(h->blocknr)) {
+	if (dm_block_location(b) != le64_to_cpu(h->blocknr))
+	{
 		DMERR_LIMIT("node_check failed: blocknr %llu != wanted %llu",
-			    le64_to_cpu(h->blocknr), dm_block_location(b));
+					le64_to_cpu(h->blocknr), dm_block_location(b));
 		return -ENOTBLK;
 	}
 
 	csum_disk = cpu_to_le32(dm_bm_checksum(&h->flags,
-					       block_size - sizeof(__le32),
-					       BTREE_CSUM_XOR));
-	if (csum_disk != h->csum) {
+										   block_size - sizeof(__le32),
+										   BTREE_CSUM_XOR));
+
+	if (csum_disk != h->csum)
+	{
 		DMERR_LIMIT("node_check failed: csum %u != wanted %u",
-			    le32_to_cpu(csum_disk), le32_to_cpu(h->csum));
+					le32_to_cpu(csum_disk), le32_to_cpu(h->csum));
 		return -EILSEQ;
 	}
 
 	value_size = le32_to_cpu(h->value_size);
 
 	if (sizeof(struct node_header) +
-	    (sizeof(__le64) + value_size) * le32_to_cpu(h->max_entries) > block_size) {
+		(sizeof(__le64) + value_size) * le32_to_cpu(h->max_entries) > block_size)
+	{
 		DMERR_LIMIT("node_check failed: max_entries too large");
 		return -EILSEQ;
 	}
 
-	if (le32_to_cpu(h->nr_entries) > le32_to_cpu(h->max_entries)) {
+	if (le32_to_cpu(h->nr_entries) > le32_to_cpu(h->max_entries))
+	{
 		DMERR_LIMIT("node_check failed: too many entries");
 		return -EILSEQ;
 	}
@@ -76,7 +81,9 @@ static int node_check(struct dm_block_validator *v,
 	 * The node must be either INTERNAL or LEAF.
 	 */
 	flags = le32_to_cpu(h->flags);
-	if (!(flags & INTERNAL_NODE) && !(flags & LEAF_NODE)) {
+
+	if (!(flags & INTERNAL_NODE) && !(flags & LEAF_NODE))
+	{
 		DMERR_LIMIT("node_check failed: node is neither INTERNAL or LEAF");
 		return -EILSEQ;
 	}
@@ -84,7 +91,8 @@ static int node_check(struct dm_block_validator *v,
 	return 0;
 }
 
-struct dm_block_validator btree_node_validator = {
+struct dm_block_validator btree_node_validator =
+{
 	.name = "btree_node",
 	.prepare_for_write = node_prepare_for_write,
 	.check = node_check
@@ -93,21 +101,24 @@ struct dm_block_validator btree_node_validator = {
 /*----------------------------------------------------------------*/
 
 int bn_read_lock(struct dm_btree_info *info, dm_block_t b,
-		 struct dm_block **result)
+				 struct dm_block **result)
 {
 	return dm_tm_read_lock(info->tm, b, &btree_node_validator, result);
 }
 
 static int bn_shadow(struct dm_btree_info *info, dm_block_t orig,
-	      struct dm_btree_value_type *vt,
-	      struct dm_block **result)
+					 struct dm_btree_value_type *vt,
+					 struct dm_block **result)
 {
 	int r, inc;
 
 	r = dm_tm_shadow_block(info->tm, orig, &btree_node_validator,
-			       result, &inc);
+						   result, &inc);
+
 	if (!r && inc)
+	{
 		inc_children(info->tm, dm_block_data(*result), vt);
+	}
 
 	return r;
 }
@@ -136,7 +147,8 @@ int exit_ro_spine(struct ro_spine *s)
 {
 	int r = 0, i;
 
-	for (i = 0; i < s->count; i++) {
+	for (i = 0; i < s->count; i++)
+	{
 		unlock_block(s->info, s->nodes[i]);
 	}
 
@@ -147,15 +159,19 @@ int ro_step(struct ro_spine *s, dm_block_t new_child)
 {
 	int r;
 
-	if (s->count == 2) {
+	if (s->count == 2)
+	{
 		unlock_block(s->info, s->nodes[0]);
 		s->nodes[0] = s->nodes[1];
 		s->count--;
 	}
 
 	r = bn_read_lock(s->info, new_child, s->nodes + s->count);
+
 	if (!r)
+	{
 		s->count++;
+	}
 
 	return r;
 }
@@ -189,7 +205,8 @@ int exit_shadow_spine(struct shadow_spine *s)
 {
 	int r = 0, i;
 
-	for (i = 0; i < s->count; i++) {
+	for (i = 0; i < s->count; i++)
+	{
 		unlock_block(s->info, s->nodes[i]);
 	}
 
@@ -197,20 +214,25 @@ int exit_shadow_spine(struct shadow_spine *s)
 }
 
 int shadow_step(struct shadow_spine *s, dm_block_t b,
-		struct dm_btree_value_type *vt)
+				struct dm_btree_value_type *vt)
 {
 	int r;
 
-	if (s->count == 2) {
+	if (s->count == 2)
+	{
 		unlock_block(s->info, s->nodes[0]);
 		s->nodes[0] = s->nodes[1];
 		s->count--;
 	}
 
 	r = bn_shadow(s->info, b, vt, s->nodes + s->count);
-	if (!r) {
+
+	if (!r)
+	{
 		if (!s->count)
+		{
 			s->root = dm_block_location(s->nodes[0]);
+		}
 
 		s->count++;
 	}
@@ -270,7 +292,7 @@ static int le64_equal(void *context, const void *value1_le, const void *value2_l
 }
 
 void init_le64_type(struct dm_transaction_manager *tm,
-		    struct dm_btree_value_type *vt)
+					struct dm_btree_value_type *vt)
 {
 	vt->context = tm;
 	vt->size = sizeof(__le64);

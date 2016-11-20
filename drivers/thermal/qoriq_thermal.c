@@ -27,13 +27,15 @@
 /*
  * QorIQ TMU Registers
  */
-struct qoriq_tmu_site_regs {
+struct qoriq_tmu_site_regs
+{
 	u32 tritsr;		/* Immediate Temperature Site Register */
 	u32 tratsr;		/* Average Temperature Site Register */
 	u8 res0[0x8];
 };
 
-struct qoriq_tmu_regs {
+struct qoriq_tmu_regs
+{
 	u32 tmr;		/* Mode Register */
 #define TMR_DISABLE	0x0
 #define TMR_ME		0x80000000
@@ -72,7 +74,8 @@ struct qoriq_tmu_regs {
 /*
  * Thermal zone data
  */
-struct qoriq_tmu_data {
+struct qoriq_tmu_data
+{
 	struct thermal_zone_device *tz;
 	struct qoriq_tmu_regs __iomem *regs;
 	int sensor_id;
@@ -82,17 +85,25 @@ struct qoriq_tmu_data {
 static void tmu_write(struct qoriq_tmu_data *p, u32 val, void __iomem *addr)
 {
 	if (p->little_endian)
+	{
 		iowrite32(val, addr);
+	}
 	else
+	{
 		iowrite32be(val, addr);
+	}
 }
 
 static u32 tmu_read(struct qoriq_tmu_data *p, void __iomem *addr)
 {
 	if (p->little_endian)
+	{
 		return ioread32(addr);
+	}
 	else
+	{
 		return ioread32be(addr);
+	}
 }
 
 static int tmu_get_temp(void *p, int *temp)
@@ -113,25 +124,33 @@ static int qoriq_tmu_get_sensor_id(void)
 	struct device_node *np, *sensor_np;
 
 	np = of_find_node_by_name(NULL, "thermal-zones");
+
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	sensor_np = of_get_next_child(np, NULL);
 	ret = of_parse_phandle_with_args(sensor_np, "thermal-sensors",
-			"#thermal-sensor-cells",
-			0, &sensor_specs);
-	if (ret) {
+									 "#thermal-sensor-cells",
+									 0, &sensor_specs);
+
+	if (ret)
+	{
 		of_node_put(np);
 		of_node_put(sensor_np);
 		return ret;
 	}
 
-	if (sensor_specs.args_count >= 1) {
+	if (sensor_specs.args_count >= 1)
+	{
 		id = sensor_specs.args[0];
 		WARN(sensor_specs.args_count > 1,
-				"%s: too many cells in sensor specifier %d\n",
-				sensor_specs.np->name, sensor_specs.args_count);
-	} else {
+			 "%s: too many cells in sensor specifier %d\n",
+			 sensor_specs.np->name, sensor_specs.args_count);
+	}
+	else
+	{
 		id = 0;
 	}
 
@@ -149,7 +168,8 @@ static int qoriq_tmu_calibration(struct platform_device *pdev)
 	struct device_node *np = pdev->dev.of_node;
 	struct qoriq_tmu_data *data = platform_get_drvdata(pdev);
 
-	if (of_property_read_u32_array(np, "fsl,tmu-range", range, 4)) {
+	if (of_property_read_u32_array(np, "fsl,tmu-range", range, 4))
+	{
 		dev_err(&pdev->dev, "missing calibration range.\n");
 		return -ENODEV;
 	}
@@ -161,12 +181,15 @@ static int qoriq_tmu_calibration(struct platform_device *pdev)
 	tmu_write(data, range[3], &data->regs->ttr3cr);
 
 	calibration = of_get_property(np, "fsl,tmu-calibration", &len);
-	if (calibration == NULL || len % 8) {
+
+	if (calibration == NULL || len % 8)
+	{
 		dev_err(&pdev->dev, "invalid calibration data.\n");
 		return -ENODEV;
 	}
 
-	for (i = 0; i < len; i += 8, calibration += 2) {
+	for (i = 0; i < len; i += 8, calibration += 2)
+	{
 		val = of_read_number(calibration, 1);
 		tmu_write(data, val, &data->regs->ttcfgr);
 		val = of_read_number(calibration + 1, 1);
@@ -188,7 +211,8 @@ static void qoriq_tmu_init_device(struct qoriq_tmu_data *data)
 	tmu_write(data, TMR_DISABLE, &data->regs->tmr);
 }
 
-static struct thermal_zone_of_device_ops tmu_tz_ops = {
+static struct thermal_zone_of_device_ops tmu_tz_ops =
+{
 	.get_temp = tmu_get_temp,
 };
 
@@ -200,29 +224,37 @@ static int qoriq_tmu_probe(struct platform_device *pdev)
 	struct device_node *np = pdev->dev.of_node;
 	u32 site = 0;
 
-	if (!np) {
+	if (!np)
+	{
 		dev_err(&pdev->dev, "Device OF-Node is NULL");
 		return -ENODEV;
 	}
 
 	data = devm_kzalloc(&pdev->dev, sizeof(struct qoriq_tmu_data),
-			    GFP_KERNEL);
+						GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, data);
 
 	data->little_endian = of_property_read_bool(np, "little-endian");
 
 	data->sensor_id = qoriq_tmu_get_sensor_id();
-	if (data->sensor_id < 0) {
+
+	if (data->sensor_id < 0)
+	{
 		dev_err(&pdev->dev, "Failed to get sensor id\n");
 		ret = -ENODEV;
 		goto err_iomap;
 	}
 
 	data->regs = of_iomap(np, 0);
-	if (!data->regs) {
+
+	if (!data->regs)
+	{
 		dev_err(&pdev->dev, "Failed to get memory region\n");
 		ret = -ENODEV;
 		goto err_iomap;
@@ -231,15 +263,20 @@ static int qoriq_tmu_probe(struct platform_device *pdev)
 	qoriq_tmu_init_device(data);	/* TMU initialization */
 
 	ret = qoriq_tmu_calibration(pdev);	/* TMU calibration */
+
 	if (ret < 0)
+	{
 		goto err_tmu;
+	}
 
 	data->tz = thermal_zone_of_sensor_register(&pdev->dev, data->sensor_id,
-				data, &tmu_tz_ops);
-	if (IS_ERR(data->tz)) {
+			   data, &tmu_tz_ops);
+
+	if (IS_ERR(data->tz))
+	{
 		ret = PTR_ERR(data->tz);
 		dev_err(&pdev->dev,
-			"Failed to register thermal zone device %d\n", ret);
+				"Failed to register thermal zone device %d\n", ret);
 		goto err_tmu;
 	}
 
@@ -304,15 +341,17 @@ static int qoriq_tmu_resume(struct device *dev)
 #endif
 
 static SIMPLE_DEV_PM_OPS(qoriq_tmu_pm_ops,
-			 qoriq_tmu_suspend, qoriq_tmu_resume);
+						 qoriq_tmu_suspend, qoriq_tmu_resume);
 
-static const struct of_device_id qoriq_tmu_match[] = {
+static const struct of_device_id qoriq_tmu_match[] =
+{
 	{ .compatible = "fsl,qoriq-tmu", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, qoriq_tmu_match);
 
-static struct platform_driver qoriq_tmu = {
+static struct platform_driver qoriq_tmu =
+{
 	.driver	= {
 		.name		= "qoriq_thermal",
 		.pm		= &qoriq_tmu_pm_ops,

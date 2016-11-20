@@ -25,8 +25,10 @@ static int shmob_drm_backlight_update(struct backlight_device *bdev)
 	int brightness = bdev->props.brightness;
 
 	if (bdev->props.power != FB_BLANK_UNBLANK ||
-	    bdev->props.state & BL_CORE_SUSPENDED)
+		bdev->props.state & BL_CORE_SUSPENDED)
+	{
 		brightness = 0;
+	}
 
 	return bdata->set_brightness(brightness);
 }
@@ -40,7 +42,8 @@ static int shmob_drm_backlight_get_brightness(struct backlight_device *bdev)
 	return bdata->get_brightness();
 }
 
-static const struct backlight_ops shmob_drm_backlight_ops = {
+static const struct backlight_ops shmob_drm_backlight_ops =
+{
 	.options	= BL_CORE_SUSPENDRESUME,
 	.update_status	= shmob_drm_backlight_update,
 	.get_brightness	= shmob_drm_backlight_get_brightness,
@@ -49,10 +52,12 @@ static const struct backlight_ops shmob_drm_backlight_ops = {
 void shmob_drm_backlight_dpms(struct shmob_drm_connector *scon, int mode)
 {
 	if (scon->backlight == NULL)
+	{
 		return;
+	}
 
 	scon->backlight->props.power = mode == DRM_MODE_DPMS_ON
-				     ? FB_BLANK_UNBLANK : FB_BLANK_POWERDOWN;
+								   ? FB_BLANK_UNBLANK : FB_BLANK_POWERDOWN;
 	backlight_update_status(scon->backlight);
 }
 
@@ -65,13 +70,17 @@ int shmob_drm_backlight_init(struct shmob_drm_connector *scon)
 	struct backlight_device *backlight;
 
 	if (!bdata->max_brightness)
+	{
 		return 0;
+	}
 
 	backlight = backlight_device_register(bdata->name, dev->dev, scon,
-					      &shmob_drm_backlight_ops, NULL);
-	if (IS_ERR(backlight)) {
+										  &shmob_drm_backlight_ops, NULL);
+
+	if (IS_ERR(backlight))
+	{
 		dev_err(dev->dev, "unable to register backlight device: %ld\n",
-			PTR_ERR(backlight));
+				PTR_ERR(backlight));
 		return PTR_ERR(backlight);
 	}
 

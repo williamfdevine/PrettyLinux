@@ -23,7 +23,8 @@
 #include <linux/serial_core.h>
 
 #define BAUD_TABLE_LIMIT	((sizeof(icom_acfg_baud)/sizeof(int)) - 1)
-static int icom_acfg_baud[] = {
+static int icom_acfg_baud[] =
+{
 	300,
 	600,
 	900,
@@ -47,7 +48,8 @@ static int icom_acfg_baud[] = {
 	460800,
 };
 
-struct icom_regs {
+struct icom_regs
+{
 	u32 control;		/* Adapter Control Register     */
 	u32 interrupt;		/* Adapter Interrupt Register   */
 	u32 int_mask;		/* Adapter Interrupt Mask Reg   */
@@ -63,7 +65,8 @@ struct icom_regs {
 	u32 int_reg_2b;		/* Adapter non-masked 2         */
 };
 
-struct func_dram {
+struct func_dram
+{
 	u32 reserved[108];	/* 0-1B0   reserved by personality code */
 	u32 RcvStatusAddr;	/* 1B0-1B3 Status Address for Next rcv */
 	u8 RcvStnAddr;		/* 1B4     Receive Station Addr */
@@ -179,11 +182,13 @@ struct func_dram {
 #define NUM_RBUFFS 2
 #define RCV_BUFF_SZ 0x0200
 #define XMIT_BUFF_SZ 0x1000
-struct statusArea {
-    /**********************************************/
+struct statusArea
+{
+	/**********************************************/
 	/* Transmit Status Area                       */
-    /**********************************************/
-	struct xmit_status_area{
+	/**********************************************/
+	struct xmit_status_area
+	{
 		u32 leNext;	/* Next entry in Little Endian on Adapter */
 		u32 leNextASD;
 		u32 leBuffer;	/* Buffer for entry in LE for Adapter */
@@ -198,10 +203,11 @@ struct statusArea {
 #define SA_FLAGS_STAT_MASK      0x007F
 	} xmit[NUM_XBUFFS];
 
-    /**********************************************/
+	/**********************************************/
 	/* Receive Status Area                        */
-    /**********************************************/
-	struct {
+	/**********************************************/
+	struct
+	{
 		u32 leNext;	/* Next entry in Little Endian on Adapter */
 		u32 leNextASD;
 		u32 leBuffer;	/* Buffer for entry in LE for Adapter */
@@ -225,7 +231,8 @@ struct icom_adapter;
 #define ICOM_MAJOR       243
 #define ICOM_MINOR_START 0
 
-struct icom_port {
+struct icom_port
+{
 	struct uart_port uart_port;
 	u8 imbed_modem;
 #define ICOM_UNKNOWN		1
@@ -234,7 +241,7 @@ struct icom_port {
 	unsigned char cable_id;
 	unsigned char read_status_mask;
 	unsigned char ignore_status_mask;
-	void __iomem * int_reg;
+	void __iomem *int_reg;
 	struct icom_regs __iomem *global_reg;
 	struct func_dram __iomem *dram;
 	int port;
@@ -255,8 +262,9 @@ struct icom_port {
 	struct icom_adapter *adapter;
 };
 
-struct icom_adapter {
-	void __iomem * base_addr;
+struct icom_adapter
+{
+	void __iomem *base_addr;
 	unsigned long base_addr_pci;
 	struct pci_dev *pci_dev;
 	struct icom_port port_info[4];
@@ -276,12 +284,14 @@ struct icom_adapter {
 /* prototype */
 extern void iCom_sercons_init(void);
 
-struct lookup_proc_table {
+struct lookup_proc_table
+{
 	u32	__iomem *global_control_reg;
 	unsigned long	processor_id;
 };
 
-struct lookup_int_table {
+struct lookup_int_table
+{
 	u32	__iomem *global_int_mask;
 	unsigned long	processor_id;
 };

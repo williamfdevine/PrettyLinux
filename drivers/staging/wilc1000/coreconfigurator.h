@@ -19,11 +19,11 @@
 #define NUM_RSSI                5
 
 #ifdef MAC_802_11N
-#define NUM_11N_BASIC_SWITCHES  25
-#define NUM_11N_HUT_SWITCHES    47
+	#define NUM_11N_BASIC_SWITCHES  25
+	#define NUM_11N_HUT_SWITCHES    47
 #else
-#define NUM_11N_BASIC_SWITCHES  0
-#define NUM_11N_HUT_SWITCHES    0
+	#define NUM_11N_BASIC_SWITCHES  0
+	#define NUM_11N_HUT_SWITCHES    0
 #endif
 
 #define MAC_HDR_LEN             24
@@ -50,7 +50,8 @@
 #define MAKE_WORD16(lsb, msb) ((((u16)(msb) << 8) & 0xFF00) | (lsb))
 #define MAKE_WORD32(lsw, msw) ((((u32)(msw) << 16) & 0xFFFF0000) | (lsw))
 
-enum connect_status {
+enum connect_status
+{
 	SUCCESSFUL_STATUSCODE    = 0,
 	UNSPEC_FAIL              = 1,
 	UNSUP_CAP                = 10,
@@ -70,13 +71,15 @@ enum connect_status {
 	CONNECT_STS_FORCE_16_BIT = 0xFFFF
 };
 
-struct tstrRSSI {
+struct tstrRSSI
+{
 	u8 u8Full;
 	u8 u8Index;
 	s8 as8RSSI[NUM_RSSI];
 };
 
-struct network_info {
+struct network_info
+{
 	s8 rssi;
 	u16 cap_info;
 	u8 ssid[MAX_SSID_LEN];
@@ -97,7 +100,8 @@ struct network_info {
 	u64 tsf_hi;
 };
 
-struct connect_resp_info {
+struct connect_resp_info
+{
 	u16 capability;
 	u16 status;
 	u16 assoc_id;
@@ -105,7 +109,8 @@ struct connect_resp_info {
 	u16 ies_len;
 };
 
-struct connect_info {
+struct connect_info
+{
 	u8 bssid[6];
 	u8 *req_ies;
 	size_t req_ies_len;
@@ -114,20 +119,21 @@ struct connect_info {
 	u16 status;
 };
 
-struct disconnect_info {
+struct disconnect_info
+{
 	u16 reason;
 	u8 *ie;
 	size_t ie_len;
 };
 
 s32 wilc_parse_network_info(u8 *msg_buffer,
-			    struct network_info **ret_network_info);
+							struct network_info **ret_network_info);
 s32 wilc_parse_assoc_resp_info(u8 *buffer, u32 buffer_len,
-			       struct connect_resp_info **ret_connect_resp_info);
+							   struct connect_resp_info **ret_connect_resp_info);
 void wilc_scan_complete_received(struct wilc *wilc, u8 *pu8Buffer,
-				 u32 u32Length);
+								 u32 u32Length);
 void wilc_network_info_received(struct wilc *wilc, u8 *pu8Buffer,
-				u32 u32Length);
+								u32 u32Length);
 void wilc_gnrl_async_info_received(struct wilc *wilc, u8 *pu8Buffer,
-				   u32 u32Length);
+								   u32 u32Length);
 #endif

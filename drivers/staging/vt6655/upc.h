@@ -56,17 +56,17 @@
 	iowrite32((u32)(dwData), dwIOAddress)
 
 #define PCAvDelayByIO(uDelayUnit)				\
-do {								\
-	unsigned char byData;					\
-	unsigned long ii;					\
-								\
-	if (uDelayUnit <= 50) {					\
-		udelay(uDelayUnit);				\
-	} else {						\
-		for (ii = 0; ii < (uDelayUnit); ii++)		\
-			byData = inb(0x61);			\
-	}							\
-} while (0)
+	do {								\
+		unsigned char byData;					\
+		unsigned long ii;					\
+		\
+		if (uDelayUnit <= 50) {					\
+			udelay(uDelayUnit);				\
+		} else {						\
+			for (ii = 0; ii < (uDelayUnit); ii++)		\
+				byData = inb(0x61);			\
+		}							\
+	} while (0)
 
 /*---------------------  Export Classes  ----------------------------*/
 

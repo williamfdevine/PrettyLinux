@@ -18,11 +18,11 @@
 	do { if ((debug & level)) printk(args); } while (0)
 
 #define debug_dump(b, l, method) do {\
-	int i; \
-	for (i = 0; i < l; i++) \
-		method("%02x ", b[i]); \
-	method("\n"); \
-} while (0)
+		int i; \
+		for (i = 0; i < l; i++) \
+			method("%02x ", b[i]); \
+		method("\n"); \
+	} while (0)
 
 #define DEBSTATUS ""
 #else
@@ -34,7 +34,7 @@
 static int debug;
 module_param(debug, int, 0644);
 MODULE_PARM_DESC(debug, "set debugging level (1=info,ts=2,"
-		"ctrl=4,i2c=8,v8mem=16 (or-able))." DEBSTATUS);
+				 "ctrl=4,i2c=8,v8mem=16 (or-able))." DEBSTATUS);
 #undef DEBSTATUS
 
 #define deb_info(args...) dprintk(0x01, args)
@@ -72,32 +72,42 @@ static int flexcop_usb_readwrite_dw(struct flexcop_device *fc, u16 wRegOffsPCI, 
 	u8 request = read ? B2C2_USB_READ_REG : B2C2_USB_WRITE_REG;
 	u8 request_type = (read ? USB_DIR_IN : USB_DIR_OUT) | USB_TYPE_VENDOR;
 	u8 wAddress = B2C2_FLEX_PCIOFFSET_TO_INTERNALADDR(wRegOffsPCI) |
-		(read ? 0x80 : 0);
+				  (read ? 0x80 : 0);
 	int ret;
 
 	mutex_lock(&fc_usb->data_mutex);
+
 	if (!read)
+	{
 		memcpy(fc_usb->data, val, sizeof(*val));
+	}
 
 	ret = usb_control_msg(fc_usb->udev,
-			read ? B2C2_USB_CTRL_PIPE_IN : B2C2_USB_CTRL_PIPE_OUT,
-			request,
-			request_type, /* 0xc0 read or 0x40 write */
-			wAddress,
-			0,
-			fc_usb->data,
-			sizeof(u32),
-			B2C2_WAIT_FOR_OPERATION_RDW * HZ);
+						  read ? B2C2_USB_CTRL_PIPE_IN : B2C2_USB_CTRL_PIPE_OUT,
+						  request,
+						  request_type, /* 0xc0 read or 0x40 write */
+						  wAddress,
+						  0,
+						  fc_usb->data,
+						  sizeof(u32),
+						  B2C2_WAIT_FOR_OPERATION_RDW * HZ);
 
-	if (ret != sizeof(u32)) {
+	if (ret != sizeof(u32))
+	{
 		err("error while %s dword from %d (%d).", read ? "reading" :
-				"writing", wAddress, wRegOffsPCI);
+			"writing", wAddress, wRegOffsPCI);
+
 		if (ret >= 0)
+		{
 			ret = -EIO;
+		}
 	}
 
 	if (read && ret >= 0)
+	{
 		memcpy(val, fc_usb->data, sizeof(*val));
+	}
+
 	mutex_unlock(&fc_usb->data_mutex);
 
 	return ret;
@@ -106,63 +116,78 @@ static int flexcop_usb_readwrite_dw(struct flexcop_device *fc, u16 wRegOffsPCI, 
  * DKT 010817 - add support for V8 memory read/write and flash update
  */
 static int flexcop_usb_v8_memory_req(struct flexcop_usb *fc_usb,
-		flexcop_usb_request_t req, u8 page, u16 wAddress,
-		u8 *pbBuffer, u32 buflen)
+									 flexcop_usb_request_t req, u8 page, u16 wAddress,
+									 u8 *pbBuffer, u32 buflen)
 {
 	u8 request_type = USB_TYPE_VENDOR;
 	u16 wIndex;
 	int nWaitTime, pipe, ret;
 	wIndex = page << 8;
 
-	if (buflen > sizeof(fc_usb->data)) {
+	if (buflen > sizeof(fc_usb->data))
+	{
 		err("Buffer size bigger than max URB control message\n");
 		return -EIO;
 	}
 
-	switch (req) {
-	case B2C2_USB_READ_V8_MEM:
-		nWaitTime = B2C2_WAIT_FOR_OPERATION_V8READ;
-		request_type |= USB_DIR_IN;
-		pipe = B2C2_USB_CTRL_PIPE_IN;
-		break;
-	case B2C2_USB_WRITE_V8_MEM:
-		wIndex |= pbBuffer[0];
-		request_type |= USB_DIR_OUT;
-		nWaitTime = B2C2_WAIT_FOR_OPERATION_V8WRITE;
-		pipe = B2C2_USB_CTRL_PIPE_OUT;
-		break;
-	case B2C2_USB_FLASH_BLOCK:
-		request_type |= USB_DIR_OUT;
-		nWaitTime = B2C2_WAIT_FOR_OPERATION_V8FLASH;
-		pipe = B2C2_USB_CTRL_PIPE_OUT;
-		break;
-	default:
-		deb_info("unsupported request for v8_mem_req %x.\n", req);
-		return -EINVAL;
+	switch (req)
+	{
+		case B2C2_USB_READ_V8_MEM:
+			nWaitTime = B2C2_WAIT_FOR_OPERATION_V8READ;
+			request_type |= USB_DIR_IN;
+			pipe = B2C2_USB_CTRL_PIPE_IN;
+			break;
+
+		case B2C2_USB_WRITE_V8_MEM:
+			wIndex |= pbBuffer[0];
+			request_type |= USB_DIR_OUT;
+			nWaitTime = B2C2_WAIT_FOR_OPERATION_V8WRITE;
+			pipe = B2C2_USB_CTRL_PIPE_OUT;
+			break;
+
+		case B2C2_USB_FLASH_BLOCK:
+			request_type |= USB_DIR_OUT;
+			nWaitTime = B2C2_WAIT_FOR_OPERATION_V8FLASH;
+			pipe = B2C2_USB_CTRL_PIPE_OUT;
+			break;
+
+		default:
+			deb_info("unsupported request for v8_mem_req %x.\n", req);
+			return -EINVAL;
 	}
+
 	deb_v8("v8mem: %02x %02x %04x %04x, len: %d\n", request_type, req,
-			wAddress, wIndex, buflen);
+		   wAddress, wIndex, buflen);
 
 	mutex_lock(&fc_usb->data_mutex);
 
 	if ((request_type & USB_ENDPOINT_DIR_MASK) == USB_DIR_OUT)
+	{
 		memcpy(fc_usb->data, pbBuffer, buflen);
+	}
 
 	ret = usb_control_msg(fc_usb->udev, pipe,
-			req,
-			request_type,
-			wAddress,
-			wIndex,
-			fc_usb->data,
-			buflen,
-			nWaitTime * HZ);
-	if (ret != buflen)
-		ret = -EIO;
+						  req,
+						  request_type,
+						  wAddress,
+						  wIndex,
+						  fc_usb->data,
+						  buflen,
+						  nWaitTime * HZ);
 
-	if (ret >= 0) {
+	if (ret != buflen)
+	{
+		ret = -EIO;
+	}
+
+	if (ret >= 0)
+	{
 		ret = 0;
+
 		if ((request_type & USB_ENDPOINT_DIR_MASK) == USB_DIR_IN)
+		{
 			memcpy(pbBuffer, fc_usb->data, buflen);
+		}
 	}
 
 	mutex_unlock(&fc_usb->data_mutex);
@@ -176,92 +201,108 @@ static int flexcop_usb_v8_memory_req(struct flexcop_usb *fc_usb,
 	 ? buflen : (V8_MEMORY_PAGE_SIZE - (paddr & V8_MEMORY_PAGE_MASK)))
 
 static int flexcop_usb_memory_req(struct flexcop_usb *fc_usb,
-		flexcop_usb_request_t req, flexcop_usb_mem_page_t page_start,
-		u32 addr, int extended, u8 *buf, u32 len)
+								  flexcop_usb_request_t req, flexcop_usb_mem_page_t page_start,
+								  u32 addr, int extended, u8 *buf, u32 len)
 {
-	int i,ret = 0;
+	int i, ret = 0;
 	u16 wMax;
 	u32 pagechunk = 0;
 
-	switch(req) {
-	case B2C2_USB_READ_V8_MEM:
-		wMax = USB_MEM_READ_MAX;
-		break;
-	case B2C2_USB_WRITE_V8_MEM:
-		wMax = USB_MEM_WRITE_MAX;
-		break;
-	case B2C2_USB_FLASH_BLOCK:
-		wMax = USB_FLASH_MAX;
-		break;
-	default:
-		return -EINVAL;
-		break;
+	switch (req)
+	{
+		case B2C2_USB_READ_V8_MEM:
+			wMax = USB_MEM_READ_MAX;
+			break;
+
+		case B2C2_USB_WRITE_V8_MEM:
+			wMax = USB_MEM_WRITE_MAX;
+			break;
+
+		case B2C2_USB_FLASH_BLOCK:
+			wMax = USB_FLASH_MAX;
+			break;
+
+		default:
+			return -EINVAL;
+			break;
 	}
-	for (i = 0; i < len;) {
+
+	for (i = 0; i < len;)
+	{
 		pagechunk =
 			wMax < bytes_left_to_read_on_page(addr, len) ?
-				wMax :
-				bytes_left_to_read_on_page(addr, len);
+			wMax :
+			bytes_left_to_read_on_page(addr, len);
 		deb_info("%x\n",
-			(addr & V8_MEMORY_PAGE_MASK) |
-				(V8_MEMORY_EXTENDED*extended));
+				 (addr & V8_MEMORY_PAGE_MASK) |
+				 (V8_MEMORY_EXTENDED * extended));
 
 		ret = flexcop_usb_v8_memory_req(fc_usb, req,
-			page_start + (addr / V8_MEMORY_PAGE_SIZE),
-			(addr & V8_MEMORY_PAGE_MASK) |
-				(V8_MEMORY_EXTENDED*extended),
-			&buf[i], pagechunk);
+										page_start + (addr / V8_MEMORY_PAGE_SIZE),
+										(addr & V8_MEMORY_PAGE_MASK) |
+										(V8_MEMORY_EXTENDED * extended),
+										&buf[i], pagechunk);
 
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		addr += pagechunk;
 		len -= pagechunk;
 	}
+
 	return 0;
 }
 
 static int flexcop_usb_get_mac_addr(struct flexcop_device *fc, int extended)
 {
 	return flexcop_usb_memory_req(fc->bus_specific, B2C2_USB_READ_V8_MEM,
-		V8_MEMORY_PAGE_FLASH, 0x1f010, 1,
-		fc->dvb_adapter.proposed_mac, 6);
+								  V8_MEMORY_PAGE_FLASH, 0x1f010, 1,
+								  fc->dvb_adapter.proposed_mac, 6);
 }
 
 /* usb i2c stuff */
 static int flexcop_usb_i2c_req(struct flexcop_i2c_adapter *i2c,
-		flexcop_usb_request_t req, flexcop_usb_i2c_function_t func,
-		u8 chipaddr, u8 addr, u8 *buf, u8 buflen)
+							   flexcop_usb_request_t req, flexcop_usb_i2c_function_t func,
+							   u8 chipaddr, u8 addr, u8 *buf, u8 buflen)
 {
 	struct flexcop_usb *fc_usb = i2c->fc->bus_specific;
 	u16 wValue, wIndex;
 	int nWaitTime, pipe, ret;
 	u8 request_type = USB_TYPE_VENDOR;
 
-	if (buflen > sizeof(fc_usb->data)) {
+	if (buflen > sizeof(fc_usb->data))
+	{
 		err("Buffer size bigger than max URB control message\n");
 		return -EIO;
 	}
 
-	switch (func) {
-	case USB_FUNC_I2C_WRITE:
-	case USB_FUNC_I2C_MULTIWRITE:
-	case USB_FUNC_I2C_REPEATWRITE:
+	switch (func)
+	{
+		case USB_FUNC_I2C_WRITE:
+		case USB_FUNC_I2C_MULTIWRITE:
+		case USB_FUNC_I2C_REPEATWRITE:
+
 		/* DKT 020208 - add this to support special case of DiSEqC */
-	case USB_FUNC_I2C_CHECKWRITE:
-		pipe = B2C2_USB_CTRL_PIPE_OUT;
-		nWaitTime = 2;
-		request_type |= USB_DIR_OUT;
-		break;
-	case USB_FUNC_I2C_READ:
-	case USB_FUNC_I2C_REPEATREAD:
-		pipe = B2C2_USB_CTRL_PIPE_IN;
-		nWaitTime = 2;
-		request_type |= USB_DIR_IN;
-		break;
-	default:
-		deb_info("unsupported function for i2c_req %x\n", func);
-		return -EINVAL;
+		case USB_FUNC_I2C_CHECKWRITE:
+			pipe = B2C2_USB_CTRL_PIPE_OUT;
+			nWaitTime = 2;
+			request_type |= USB_DIR_OUT;
+			break;
+
+		case USB_FUNC_I2C_READ:
+		case USB_FUNC_I2C_REPEATREAD:
+			pipe = B2C2_USB_CTRL_PIPE_IN;
+			nWaitTime = 2;
+			request_type |= USB_DIR_IN;
+			break;
+
+		default:
+			deb_info("unsupported function for i2c_req %x\n", func);
+			return -EINVAL;
 	}
+
 	wValue = (func << 8) | (i2c->port << 4);
 	wIndex = (chipaddr << 8 ) | addr;
 
@@ -273,24 +314,32 @@ static int flexcop_usb_i2c_req(struct flexcop_i2c_adapter *i2c,
 	mutex_lock(&fc_usb->data_mutex);
 
 	if ((request_type & USB_ENDPOINT_DIR_MASK) == USB_DIR_OUT)
+	{
 		memcpy(fc_usb->data, buf, buflen);
+	}
 
 	ret = usb_control_msg(fc_usb->udev, pipe,
-			req,
-			request_type,
-			wValue,
-			wIndex,
-			fc_usb->data,
-			buflen,
-			nWaitTime * HZ);
+						  req,
+						  request_type,
+						  wValue,
+						  wIndex,
+						  fc_usb->data,
+						  buflen,
+						  nWaitTime * HZ);
 
 	if (ret != buflen)
+	{
 		ret = -EIO;
+	}
 
-	if (ret >= 0) {
+	if (ret >= 0)
+	{
 		ret = 0;
+
 		if ((request_type & USB_ENDPOINT_DIR_MASK) == USB_DIR_IN)
+		{
 			memcpy(buf, fc_usb->data, buflen);
+		}
 	}
 
 	mutex_unlock(&fc_usb->data_mutex);
@@ -301,7 +350,7 @@ static int flexcop_usb_i2c_req(struct flexcop_i2c_adapter *i2c,
 /* actual bus specific access functions,
    make sure prototype are/will be equal to pci */
 static flexcop_ibi_value flexcop_usb_read_ibi_reg(struct flexcop_device *fc,
-	flexcop_ibi_register reg)
+		flexcop_ibi_register reg)
 {
 	flexcop_ibi_value val;
 	val.raw = 0;
@@ -310,67 +359,82 @@ static flexcop_ibi_value flexcop_usb_read_ibi_reg(struct flexcop_device *fc,
 }
 
 static int flexcop_usb_write_ibi_reg(struct flexcop_device *fc,
-		flexcop_ibi_register reg, flexcop_ibi_value val)
+									 flexcop_ibi_register reg, flexcop_ibi_value val)
 {
 	return flexcop_usb_readwrite_dw(fc, reg, &val.raw, 0);
 }
 
 static int flexcop_usb_i2c_request(struct flexcop_i2c_adapter *i2c,
-		flexcop_access_op_t op, u8 chipaddr, u8 addr, u8 *buf, u16 len)
+								   flexcop_access_op_t op, u8 chipaddr, u8 addr, u8 *buf, u16 len)
 {
 	if (op == FC_READ)
 		return flexcop_usb_i2c_req(i2c, B2C2_USB_I2C_REQUEST,
-				USB_FUNC_I2C_READ, chipaddr, addr, buf, len);
+								   USB_FUNC_I2C_READ, chipaddr, addr, buf, len);
 	else
 		return flexcop_usb_i2c_req(i2c, B2C2_USB_I2C_REQUEST,
-				USB_FUNC_I2C_WRITE, chipaddr, addr, buf, len);
+								   USB_FUNC_I2C_WRITE, chipaddr, addr, buf, len);
 }
 
 static void flexcop_usb_process_frame(struct flexcop_usb *fc_usb,
-	u8 *buffer, int buffer_length)
+									  u8 *buffer, int buffer_length)
 {
 	u8 *b;
 	int l;
 
 	deb_ts("tmp_buffer_length=%d, buffer_length=%d\n",
-		fc_usb->tmp_buffer_length, buffer_length);
+		   fc_usb->tmp_buffer_length, buffer_length);
 
-	if (fc_usb->tmp_buffer_length > 0) {
-		memcpy(fc_usb->tmp_buffer+fc_usb->tmp_buffer_length, buffer,
-				buffer_length);
+	if (fc_usb->tmp_buffer_length > 0)
+	{
+		memcpy(fc_usb->tmp_buffer + fc_usb->tmp_buffer_length, buffer,
+			   buffer_length);
 		fc_usb->tmp_buffer_length += buffer_length;
 		b = fc_usb->tmp_buffer;
 		l = fc_usb->tmp_buffer_length;
-	} else {
-		b=buffer;
-		l=buffer_length;
+	}
+	else
+	{
+		b = buffer;
+		l = buffer_length;
 	}
 
-	while (l >= 190) {
-		if (*b == 0xff) {
-			switch (*(b+1) & 0x03) {
-			case 0x01: /* media packet */
-				if (*(b+2) == 0x47)
-					flexcop_pass_dmx_packets(
-							fc_usb->fc_dev, b+2, 1);
-				else
-					deb_ts("not ts packet %*ph\n", 4, b+2);
-				b += 190;
-				l -= 190;
-				break;
-			default:
-				deb_ts("wrong packet type\n");
-				l = 0;
-				break;
+	while (l >= 190)
+	{
+		if (*b == 0xff)
+		{
+			switch (*(b + 1) & 0x03)
+			{
+				case 0x01: /* media packet */
+					if (*(b + 2) == 0x47)
+						flexcop_pass_dmx_packets(
+							fc_usb->fc_dev, b + 2, 1);
+					else
+					{
+						deb_ts("not ts packet %*ph\n", 4, b + 2);
+					}
+
+					b += 190;
+					l -= 190;
+					break;
+
+				default:
+					deb_ts("wrong packet type\n");
+					l = 0;
+					break;
 			}
-		} else {
+		}
+		else
+		{
 			deb_ts("wrong header\n");
 			l = 0;
 		}
 	}
 
-	if (l>0)
+	if (l > 0)
+	{
 		memcpy(fc_usb->tmp_buffer, b, l);
+	}
+
 	fc_usb->tmp_buffer_length = l;
 }
 
@@ -381,26 +445,31 @@ static void flexcop_usb_urb_complete(struct urb *urb)
 
 	if (urb->actual_length > 0)
 		deb_ts("urb completed, bufsize: %d actlen; %d\n",
-			urb->transfer_buffer_length, urb->actual_length);
+			   urb->transfer_buffer_length, urb->actual_length);
 
-	for (i = 0; i < urb->number_of_packets; i++) {
-		if (urb->iso_frame_desc[i].status < 0) {
+	for (i = 0; i < urb->number_of_packets; i++)
+	{
+		if (urb->iso_frame_desc[i].status < 0)
+		{
 			err("iso frame descriptor %d has an error: %d\n", i,
 				urb->iso_frame_desc[i].status);
-		} else
-			if (urb->iso_frame_desc[i].actual_length > 0) {
-				deb_ts("passed %d bytes to the demux\n",
-					urb->iso_frame_desc[i].actual_length);
+		}
+		else if (urb->iso_frame_desc[i].actual_length > 0)
+		{
+			deb_ts("passed %d bytes to the demux\n",
+				   urb->iso_frame_desc[i].actual_length);
 
-				flexcop_usb_process_frame(fc_usb,
-					urb->transfer_buffer +
-						urb->iso_frame_desc[i].offset,
-					urb->iso_frame_desc[i].actual_length);
-			}
+			flexcop_usb_process_frame(fc_usb,
+									  urb->transfer_buffer +
+									  urb->iso_frame_desc[i].offset,
+									  urb->iso_frame_desc[i].actual_length);
+		}
+
 		urb->iso_frame_desc[i].status = 0;
 		urb->iso_frame_desc[i].actual_length = 0;
 	}
-	usb_submit_urb(urb,GFP_ATOMIC);
+
+	usb_submit_urb(urb, GFP_ATOMIC);
 }
 
 static int flexcop_usb_stream_control(struct flexcop_device *fc, int onoff)
@@ -412,55 +481,64 @@ static int flexcop_usb_stream_control(struct flexcop_device *fc, int onoff)
 static void flexcop_usb_transfer_exit(struct flexcop_usb *fc_usb)
 {
 	int i;
+
 	for (i = 0; i < B2C2_USB_NUM_ISO_URB; i++)
-		if (fc_usb->iso_urb[i] != NULL) {
-			deb_ts("unlinking/killing urb no. %d\n",i);
+		if (fc_usb->iso_urb[i] != NULL)
+		{
+			deb_ts("unlinking/killing urb no. %d\n", i);
 			usb_kill_urb(fc_usb->iso_urb[i]);
 			usb_free_urb(fc_usb->iso_urb[i]);
 		}
 
 	if (fc_usb->iso_buffer != NULL)
 		usb_free_coherent(fc_usb->udev,
-			fc_usb->buffer_size, fc_usb->iso_buffer,
-			fc_usb->dma_addr);
+						  fc_usb->buffer_size, fc_usb->iso_buffer,
+						  fc_usb->dma_addr);
 }
 
 static int flexcop_usb_transfer_init(struct flexcop_usb *fc_usb)
 {
 	u16 frame_size = le16_to_cpu(
-		fc_usb->uintf->cur_altsetting->endpoint[0].desc.wMaxPacketSize);
+						 fc_usb->uintf->cur_altsetting->endpoint[0].desc.wMaxPacketSize);
 	int bufsize = B2C2_USB_NUM_ISO_URB * B2C2_USB_FRAMES_PER_ISO *
-		frame_size, i, j, ret;
+				  frame_size, i, j, ret;
 	int buffer_offset = 0;
 
 	deb_ts("creating %d iso-urbs with %d frames "
-			"each of %d bytes size = %d.\n", B2C2_USB_NUM_ISO_URB,
-			B2C2_USB_FRAMES_PER_ISO, frame_size, bufsize);
+		   "each of %d bytes size = %d.\n", B2C2_USB_NUM_ISO_URB,
+		   B2C2_USB_FRAMES_PER_ISO, frame_size, bufsize);
 
 	fc_usb->iso_buffer = usb_alloc_coherent(fc_usb->udev,
-			bufsize, GFP_KERNEL, &fc_usb->dma_addr);
+											bufsize, GFP_KERNEL, &fc_usb->dma_addr);
+
 	if (fc_usb->iso_buffer == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	memset(fc_usb->iso_buffer, 0, bufsize);
 	fc_usb->buffer_size = bufsize;
 
 	/* creating iso urbs */
-	for (i = 0; i < B2C2_USB_NUM_ISO_URB; i++) {
+	for (i = 0; i < B2C2_USB_NUM_ISO_URB; i++)
+	{
 		fc_usb->iso_urb[i] = usb_alloc_urb(B2C2_USB_FRAMES_PER_ISO,
-			GFP_ATOMIC);
-		if (fc_usb->iso_urb[i] == NULL) {
+										   GFP_ATOMIC);
+
+		if (fc_usb->iso_urb[i] == NULL)
+		{
 			ret = -ENOMEM;
 			goto urb_error;
 		}
 	}
 
 	/* initialising and submitting iso urbs */
-	for (i = 0; i < B2C2_USB_NUM_ISO_URB; i++) {
+	for (i = 0; i < B2C2_USB_NUM_ISO_URB; i++)
+	{
 		int frame_offset = 0;
 		struct urb *urb = fc_usb->iso_urb[i];
 		deb_ts("initializing and submitting urb no. %d "
-			"(buf_offset: %d).\n", i, buffer_offset);
+			   "(buf_offset: %d).\n", i, buffer_offset);
 
 		urb->dev = fc_usb->udev;
 		urb->context = fc_usb;
@@ -473,25 +551,29 @@ static int flexcop_usb_transfer_init(struct flexcop_usb *fc_usb)
 		urb->transfer_buffer = fc_usb->iso_buffer + buffer_offset;
 
 		buffer_offset += frame_size * B2C2_USB_FRAMES_PER_ISO;
-		for (j = 0; j < B2C2_USB_FRAMES_PER_ISO; j++) {
+
+		for (j = 0; j < B2C2_USB_FRAMES_PER_ISO; j++)
+		{
 			deb_ts("urb no: %d, frame: %d, frame_offset: %d\n",
-					i, j, frame_offset);
+				   i, j, frame_offset);
 			urb->iso_frame_desc[j].offset = frame_offset;
 			urb->iso_frame_desc[j].length = frame_size;
 			frame_offset += frame_size;
 		}
 
-		if ((ret = usb_submit_urb(fc_usb->iso_urb[i],GFP_ATOMIC))) {
+		if ((ret = usb_submit_urb(fc_usb->iso_urb[i], GFP_ATOMIC)))
+		{
 			err("submitting urb %d failed with %d.", i, ret);
 			goto urb_error;
 		}
-		deb_ts("submitted urb no. %d.\n",i);
+
+		deb_ts("submitted urb no. %d.\n", i);
 	}
 
 	/* SRAM */
 	flexcop_sram_set_dest(fc_usb->fc_dev, FC_SRAM_DEST_MEDIA |
-			FC_SRAM_DEST_NET | FC_SRAM_DEST_CAO | FC_SRAM_DEST_CAI,
-			FC_SRAM_DEST_TARGET_WAN_USB);
+						  FC_SRAM_DEST_NET | FC_SRAM_DEST_CAO | FC_SRAM_DEST_CAI,
+						  FC_SRAM_DEST_TARGET_WAN_USB);
 	flexcop_wan_set_speed(fc_usb->fc_dev, FC_WAN_SPEED_8MBITS);
 	flexcop_sram_ctrl(fc_usb->fc_dev, 1, 1, 1);
 	return 0;
@@ -504,23 +586,29 @@ urb_error:
 static int flexcop_usb_init(struct flexcop_usb *fc_usb)
 {
 	/* use the alternate setting with the larges buffer */
-	usb_set_interface(fc_usb->udev,0,1);
-	switch (fc_usb->udev->speed) {
-	case USB_SPEED_LOW:
-		err("cannot handle USB speed because it is too slow.");
-		return -ENODEV;
-		break;
-	case USB_SPEED_FULL:
-		info("running at FULL speed.");
-		break;
-	case USB_SPEED_HIGH:
-		info("running at HIGH speed.");
-		break;
-	case USB_SPEED_UNKNOWN: /* fall through */
-	default:
-		err("cannot handle USB speed because it is unknown.");
-		return -ENODEV;
+	usb_set_interface(fc_usb->udev, 0, 1);
+
+	switch (fc_usb->udev->speed)
+	{
+		case USB_SPEED_LOW:
+			err("cannot handle USB speed because it is too slow.");
+			return -ENODEV;
+			break;
+
+		case USB_SPEED_FULL:
+			info("running at FULL speed.");
+			break;
+
+		case USB_SPEED_HIGH:
+			info("running at HIGH speed.");
+			break;
+
+		case USB_SPEED_UNKNOWN: /* fall through */
+		default:
+			err("cannot handle USB speed because it is unknown.");
+			return -ENODEV;
 	}
+
 	usb_set_intfdata(fc_usb->uintf, fc_usb);
 	return 0;
 }
@@ -531,14 +619,15 @@ static void flexcop_usb_exit(struct flexcop_usb *fc_usb)
 }
 
 static int flexcop_usb_probe(struct usb_interface *intf,
-		const struct usb_device_id *id)
+							 const struct usb_device_id *id)
 {
 	struct usb_device *udev = interface_to_usbdev(intf);
 	struct flexcop_usb *fc_usb = NULL;
 	struct flexcop_device *fc = NULL;
 	int ret;
 
-	if ((fc = flexcop_device_kmalloc(sizeof(struct flexcop_usb))) == NULL) {
+	if ((fc = flexcop_device_kmalloc(sizeof(struct flexcop_usb))) == NULL)
+	{
 		err("out of memory\n");
 		return -ENOMEM;
 	}
@@ -564,16 +653,23 @@ static int flexcop_usb_probe(struct usb_interface *intf,
 	/* bus specific part */
 	fc_usb->udev = udev;
 	fc_usb->uintf = intf;
+
 	if ((ret = flexcop_usb_init(fc_usb)) != 0)
+	{
 		goto err_kfree;
+	}
 
 	/* init flexcop */
 	if ((ret = flexcop_device_initialize(fc)) != 0)
+	{
 		goto err_usb_exit;
+	}
 
 	/* xfer init */
 	if ((ret = flexcop_usb_transfer_init(fc_usb)) != 0)
+	{
 		goto err_fc_exit;
+	}
 
 	info("%s successfully initialized and connected.", DRIVER_NAME);
 	return 0;
@@ -597,14 +693,16 @@ static void flexcop_usb_disconnect(struct usb_interface *intf)
 	info("%s successfully deinitialized and disconnected.", DRIVER_NAME);
 }
 
-static struct usb_device_id flexcop_usb_table [] = {
+static struct usb_device_id flexcop_usb_table [] =
+{
 	{ USB_DEVICE(0x0af7, 0x0101) },
 	{ }
 };
 MODULE_DEVICE_TABLE (usb, flexcop_usb_table);
 
 /* usb specific object needed to register this driver with the usb subsystem */
-static struct usb_driver flexcop_usb_driver = {
+static struct usb_driver flexcop_usb_driver =
+{
 	.name		= "b2c2_flexcop_usb",
 	.probe		= flexcop_usb_probe,
 	.disconnect = flexcop_usb_disconnect,

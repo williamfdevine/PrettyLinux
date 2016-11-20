@@ -25,9 +25,9 @@
 
 /* Checking helper functions */
 typedef int (*dbg_leaf_callback)(struct ubifs_info *c,
-				 struct ubifs_zbranch *zbr, void *priv);
+								 struct ubifs_zbranch *zbr, void *priv);
 typedef int (*dbg_znode_callback)(struct ubifs_info *c,
-				  struct ubifs_znode *znode, void *priv);
+								  struct ubifs_znode *znode, void *priv);
 
 /*
  * The UBIFS debugfs directory name pattern and maximum name length (3 for "ubi"
@@ -84,7 +84,8 @@ typedef int (*dbg_znode_callback)(struct ubifs_info *c,
  *                and UBIFS just starts returning -EROFS on all write
  *               operations)
  */
-struct ubifs_debug_info {
+struct ubifs_debug_info
+{
 	struct ubifs_zbranch old_zroot;
 	int old_zroot_level;
 	unsigned long long old_zroot_sqnum;
@@ -108,12 +109,12 @@ struct ubifs_debug_info {
 	long long saved_free;
 	int saved_idx_gc_cnt;
 
-	unsigned int chk_gen:1;
-	unsigned int chk_index:1;
-	unsigned int chk_orph:1;
-	unsigned int chk_lprops:1;
-	unsigned int chk_fs:1;
-	unsigned int tst_rcvry:1;
+	unsigned int chk_gen: 1;
+	unsigned int chk_index: 1;
+	unsigned int chk_orph: 1;
+	unsigned int chk_lprops: 1;
+	unsigned int chk_fs: 1;
+	unsigned int tst_rcvry: 1;
 
 	char dfs_dir_name[UBIFS_DFS_DIR_LEN + 1];
 	struct dentry *dfs_dir;
@@ -139,42 +140,43 @@ struct ubifs_debug_info {
  * @chk_fs: if UBIFS contents extra checks are enabled
  * @tst_rcvry: if UBIFS recovery testing mode enabled
  */
-struct ubifs_global_debug_info {
-	unsigned int chk_gen:1;
-	unsigned int chk_index:1;
-	unsigned int chk_orph:1;
-	unsigned int chk_lprops:1;
-	unsigned int chk_fs:1;
-	unsigned int tst_rcvry:1;
+struct ubifs_global_debug_info
+{
+	unsigned int chk_gen: 1;
+	unsigned int chk_index: 1;
+	unsigned int chk_orph: 1;
+	unsigned int chk_lprops: 1;
+	unsigned int chk_fs: 1;
+	unsigned int tst_rcvry: 1;
 };
 
 #define ubifs_assert(expr) do {                                                \
-	if (unlikely(!(expr))) {                                               \
-		pr_crit("UBIFS assert failed in %s at %u (pid %d)\n",          \
-		       __func__, __LINE__, current->pid);                      \
-		dump_stack();                                                  \
-	}                                                                      \
-} while (0)
+		if (unlikely(!(expr))) {                                               \
+			pr_crit("UBIFS assert failed in %s at %u (pid %d)\n",          \
+					__func__, __LINE__, current->pid);                      \
+			dump_stack();                                                  \
+		}                                                                      \
+	} while (0)
 
 #define ubifs_assert_cmt_locked(c) do {                                        \
-	if (unlikely(down_write_trylock(&(c)->commit_sem))) {                  \
-		up_write(&(c)->commit_sem);                                    \
-		pr_crit("commit lock is not locked!\n");                       \
-		ubifs_assert(0);                                               \
-	}                                                                      \
-} while (0)
+		if (unlikely(down_write_trylock(&(c)->commit_sem))) {                  \
+			up_write(&(c)->commit_sem);                                    \
+			pr_crit("commit lock is not locked!\n");                       \
+			ubifs_assert(0);                                               \
+		}                                                                      \
+	} while (0)
 
 #define ubifs_dbg_msg(type, fmt, ...) \
 	pr_debug("UBIFS DBG " type " (pid %d): " fmt "\n", current->pid,       \
-		 ##__VA_ARGS__)
+			 ##__VA_ARGS__)
 
 #define DBG_KEY_BUF_LEN 48
 #define ubifs_dbg_msg_key(type, key, fmt, ...) do {                            \
-	char __tmp_key_buf[DBG_KEY_BUF_LEN];                                   \
-	pr_debug("UBIFS DBG " type " (pid %d): " fmt "%s\n", current->pid,     \
-		 ##__VA_ARGS__,                                                \
-		 dbg_snprintf_key(c, key, __tmp_key_buf, DBG_KEY_BUF_LEN));    \
-} while (0)
+		char __tmp_key_buf[DBG_KEY_BUF_LEN];                                   \
+		pr_debug("UBIFS DBG " type " (pid %d): " fmt "%s\n", current->pid,     \
+				 ##__VA_ARGS__,                                                \
+				 dbg_snprintf_key(c, key, __tmp_key_buf, DBG_KEY_BUF_LEN));    \
+	} while (0)
 
 /* General messages */
 #define dbg_gen(fmt, ...)   ubifs_dbg_msg("gen", fmt, ##__VA_ARGS__)
@@ -248,33 +250,33 @@ const char *dbg_ntype(int type);
 const char *dbg_cstate(int cmt_state);
 const char *dbg_jhead(int jhead);
 const char *dbg_get_key_dump(const struct ubifs_info *c,
-			     const union ubifs_key *key);
+							 const union ubifs_key *key);
 const char *dbg_snprintf_key(const struct ubifs_info *c,
-			     const union ubifs_key *key, char *buffer, int len);
+							 const union ubifs_key *key, char *buffer, int len);
 void ubifs_dump_inode(struct ubifs_info *c, const struct inode *inode);
 void ubifs_dump_node(const struct ubifs_info *c, const void *node);
 void ubifs_dump_budget_req(const struct ubifs_budget_req *req);
 void ubifs_dump_lstats(const struct ubifs_lp_stats *lst);
 void ubifs_dump_budg(struct ubifs_info *c, const struct ubifs_budg_info *bi);
 void ubifs_dump_lprop(const struct ubifs_info *c,
-		      const struct ubifs_lprops *lp);
+					  const struct ubifs_lprops *lp);
 void ubifs_dump_lprops(struct ubifs_info *c);
 void ubifs_dump_lpt_info(struct ubifs_info *c);
 void ubifs_dump_leb(const struct ubifs_info *c, int lnum);
 void ubifs_dump_sleb(const struct ubifs_info *c,
-		     const struct ubifs_scan_leb *sleb, int offs);
+					 const struct ubifs_scan_leb *sleb, int offs);
 void ubifs_dump_znode(const struct ubifs_info *c,
-		      const struct ubifs_znode *znode);
+					  const struct ubifs_znode *znode);
 void ubifs_dump_heap(struct ubifs_info *c, struct ubifs_lpt_heap *heap,
-		     int cat);
+					 int cat);
 void ubifs_dump_pnode(struct ubifs_info *c, struct ubifs_pnode *pnode,
-		      struct ubifs_nnode *parent, int iip);
+					  struct ubifs_nnode *parent, int iip);
 void ubifs_dump_tnc(struct ubifs_info *c);
 void ubifs_dump_index(struct ubifs_info *c);
 void ubifs_dump_lpt_lebs(const struct ubifs_info *c);
 
 int dbg_walk_index(struct ubifs_info *c, dbg_leaf_callback leaf_cb,
-		   dbg_znode_callback znode_cb, void *priv);
+				   dbg_znode_callback znode_cb, void *priv);
 
 /* Checking functions */
 void dbg_save_space_info(struct ubifs_info *c);
@@ -292,16 +294,16 @@ int dbg_check_tnc(struct ubifs_info *c, int extra);
 int dbg_check_idx_size(struct ubifs_info *c, long long idx_size);
 int dbg_check_filesystem(struct ubifs_info *c);
 void dbg_check_heap(struct ubifs_info *c, struct ubifs_lpt_heap *heap, int cat,
-		    int add_pos);
+					int add_pos);
 int dbg_check_lpt_nodes(struct ubifs_info *c, struct ubifs_cnode *cnode,
-			int row, int col);
+						int row, int col);
 int dbg_check_inode_size(struct ubifs_info *c, const struct inode *inode,
-			 loff_t size);
+						 loff_t size);
 int dbg_check_data_nodes_order(struct ubifs_info *c, struct list_head *head);
 int dbg_check_nondata_nodes_order(struct ubifs_info *c, struct list_head *head);
 
 int dbg_leb_write(struct ubifs_info *c, int lnum, const void *buf, int offs,
-		  int len);
+				  int len);
 int dbg_leb_change(struct ubifs_info *c, int lnum, const void *buf, int len);
 int dbg_leb_unmap(struct ubifs_info *c, int lnum);
 int dbg_leb_map(struct ubifs_info *c, int lnum);

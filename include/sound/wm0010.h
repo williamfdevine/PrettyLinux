@@ -14,7 +14,8 @@
 #ifndef WM0010_PDATA_H
 #define WM0010_PDATA_H
 
-struct wm0010_pdata {
+struct wm0010_pdata
+{
 	int gpio_reset;
 
 	/* Set if there is an inverter between the GPIO controlling

@@ -38,7 +38,8 @@ struct vmw_ctx_binding_state;
 /*
  * enum vmw_ctx_binding_type - abstract resource to context binding types
  */
-enum vmw_ctx_binding_type {
+enum vmw_ctx_binding_type
+{
 	vmw_ctx_binding_shader,
 	vmw_ctx_binding_rt,
 	vmw_ctx_binding_tex,
@@ -65,7 +66,8 @@ enum vmw_ctx_binding_type {
  * @bt: Binding type.
  * @scrubbed: Whether the binding has been scrubbed from the context.
  */
-struct vmw_ctx_bindinfo {
+struct vmw_ctx_bindinfo
+{
 	struct list_head ctx_list;
 	struct list_head res_list;
 	struct vmw_resource *ctx;
@@ -80,7 +82,8 @@ struct vmw_ctx_bindinfo {
  * @bi: struct vmw_ctx_bindinfo we derive from.
  * @texture_stage: Device data used to reconstruct binding command.
  */
-struct vmw_ctx_bindinfo_tex {
+struct vmw_ctx_bindinfo_tex
+{
 	struct vmw_ctx_bindinfo bi;
 	uint32 texture_stage;
 };
@@ -91,7 +94,8 @@ struct vmw_ctx_bindinfo_tex {
  * @bi: struct vmw_ctx_bindinfo we derive from.
  * @shader_slot: Device data used to reconstruct binding command.
  */
-struct vmw_ctx_bindinfo_shader {
+struct vmw_ctx_bindinfo_shader
+{
 	struct vmw_ctx_bindinfo bi;
 	SVGA3dShaderType shader_slot;
 };
@@ -105,7 +109,8 @@ struct vmw_ctx_bindinfo_shader {
  * @size: Device data used to reconstruct binding command.
  * @slot: Device data used to reconstruct binding command.
  */
-struct vmw_ctx_bindinfo_cb {
+struct vmw_ctx_bindinfo_cb
+{
 	struct vmw_ctx_bindinfo bi;
 	SVGA3dShaderType shader_slot;
 	uint32 offset;
@@ -120,7 +125,8 @@ struct vmw_ctx_bindinfo_cb {
  * @shader_slot: Device data used to reconstruct binding command.
  * @slot: Device data used to reconstruct binding command.
  */
-struct vmw_ctx_bindinfo_view {
+struct vmw_ctx_bindinfo_view
+{
 	struct vmw_ctx_bindinfo bi;
 	SVGA3dShaderType shader_slot;
 	uint32 slot;
@@ -134,7 +140,8 @@ struct vmw_ctx_bindinfo_view {
  * @size: Device data used to reconstruct binding command.
  * @slot: Device data used to reconstruct binding command.
  */
-struct vmw_ctx_bindinfo_so {
+struct vmw_ctx_bindinfo_so
+{
 	struct vmw_ctx_bindinfo bi;
 	uint32 offset;
 	uint32 size;
@@ -149,7 +156,8 @@ struct vmw_ctx_bindinfo_so {
  * @stride: Device data used to reconstruct binding command.
  * @slot: Device data used to reconstruct binding command.
  */
-struct vmw_ctx_bindinfo_vb {
+struct vmw_ctx_bindinfo_vb
+{
 	struct vmw_ctx_bindinfo bi;
 	uint32 offset;
 	uint32 stride;
@@ -163,7 +171,8 @@ struct vmw_ctx_bindinfo_vb {
  * @offset: Device data used to reconstruct binding command.
  * @format: Device data used to reconstruct binding command.
  */
-struct vmw_ctx_bindinfo_ib {
+struct vmw_ctx_bindinfo_ib
+{
 	struct vmw_ctx_bindinfo bi;
 	uint32 offset;
 	uint32 format;
@@ -180,7 +189,8 @@ struct vmw_ctx_bindinfo_ib {
  * @dirty: Bitmap tracking per-binding type binding changes that have not
  * yet been emitted to the device.
  */
-struct vmw_dx_shader_bindings {
+struct vmw_dx_shader_bindings
+{
 	struct vmw_ctx_bindinfo_shader shader;
 	struct vmw_ctx_bindinfo_cb const_buffers[SVGA3D_DX_MAX_CONSTBUFFERS];
 	struct vmw_ctx_bindinfo_view shader_res[SVGA3D_DX_MAX_SRVIEWS];
@@ -189,11 +199,11 @@ struct vmw_dx_shader_bindings {
 };
 
 extern void vmw_binding_add(struct vmw_ctx_binding_state *cbs,
-			    const struct vmw_ctx_bindinfo *ci,
-			    u32 shader_slot, u32 slot);
+							const struct vmw_ctx_bindinfo *ci,
+							u32 shader_slot, u32 slot);
 extern void
 vmw_binding_state_commit(struct vmw_ctx_binding_state *to,
-			 struct vmw_ctx_binding_state *from);
+						 struct vmw_ctx_binding_state *from);
 extern void vmw_binding_res_list_kill(struct list_head *head);
 extern void vmw_binding_res_list_scrub(struct list_head *head);
 extern int vmw_binding_rebind_all(struct vmw_ctx_binding_state *cbs);

@@ -43,7 +43,8 @@ static int	vxfs_immed_readpage(struct file *, struct page *);
 /*
  * Address space operations for immed files and directories.
  */
-const struct address_space_operations vxfs_immed_aops = {
+const struct address_space_operations vxfs_immed_aops =
+{
 	.readpage =		vxfs_immed_readpage,
 };
 
@@ -72,10 +73,10 @@ vxfs_immed_readpage(struct file *fp, struct page *pp)
 	kaddr = kmap(pp);
 	memcpy(kaddr, vip->vii_immed.vi_immed + offset, PAGE_SIZE);
 	kunmap(pp);
-	
+
 	flush_dcache_page(pp);
 	SetPageUptodate(pp);
-        unlock_page(pp);
+	unlock_page(pp);
 
 	return 0;
 }

@@ -20,7 +20,8 @@
 
 #define STAT_HAVE_NSEC 1
 
-struct stat {
+struct stat
+{
 	unsigned long	st_dev;		/* Device.  */
 	unsigned long	st_ino;		/* File serial number.  */
 	unsigned int	st_mode;	/* File mode.  */
@@ -45,7 +46,8 @@ struct stat {
 
 /* This matches struct stat64 in glibc2.1. Only used for 32 bit. */
 #if __BITS_PER_LONG != 64 || defined(__ARCH_WANT_STAT64)
-struct stat64 {
+struct stat64
+{
 	unsigned long long st_dev;	/* Device.  */
 	unsigned long long st_ino;	/* File serial number.  */
 	unsigned int	st_mode;	/* File mode.  */

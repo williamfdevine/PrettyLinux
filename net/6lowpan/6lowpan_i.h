@@ -7,7 +7,7 @@
 
 /* caller need to be sure it's dev->type is ARPHRD_6LOWPAN */
 static inline bool lowpan_is_ll(const struct net_device *dev,
-				enum lowpan_lltypes lltype)
+								enum lowpan_lltypes lltype)
 {
 	return lowpan_dev(dev)->lltype == lltype;
 }

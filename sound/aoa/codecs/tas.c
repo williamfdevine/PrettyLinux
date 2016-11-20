@@ -81,13 +81,14 @@ MODULE_DESCRIPTION("tas codec driver for snd-aoa");
 #define PFX "snd-aoa-codec-tas: "
 
 
-struct tas {
+struct tas
+{
 	struct aoa_codec	codec;
 	struct i2c_client	*i2c;
-	u32			mute_l:1, mute_r:1 ,
-				controls_created:1 ,
-				drc_enabled:1,
-				hw_enabled:1;
+	u32			mute_l: 1, mute_r: 1 ,
+				controls_created: 1 ,
+				drc_enabled: 1,
+				hw_enabled: 1;
 	u8			cached_volume_l, cached_volume_r;
 	u8			mixer_l[3], mixer_r[3];
 	u8			bass, treble;
@@ -109,9 +110,13 @@ static struct tas *codec_to_tas(struct aoa_codec *codec)
 static inline int tas_write_reg(struct tas *tas, u8 reg, u8 len, u8 *data)
 {
 	if (len == 1)
+	{
 		return i2c_smbus_write_byte_data(tas->i2c, reg, *data);
+	}
 	else
+	{
 		return i2c_smbus_write_i2c_block_data(tas->i2c, reg, len, data);
+	}
 }
 
 static void tas3004_set_drc(struct tas *tas)
@@ -119,16 +124,29 @@ static void tas3004_set_drc(struct tas *tas)
 	unsigned char val[6];
 
 	if (tas->drc_enabled)
-		val[0] = 0x50; /* 3:1 above threshold */
+	{
+		val[0] = 0x50;    /* 3:1 above threshold */
+	}
 	else
-		val[0] = 0x51; /* disabled */
+	{
+		val[0] = 0x51;    /* disabled */
+	}
+
 	val[1] = 0x02; /* 1:1 below threshold */
+
 	if (tas->drc_range > 0xef)
+	{
 		val[2] = 0xef;
+	}
 	else if (tas->drc_range < 0)
+	{
 		val[2] = 0x00;
+	}
 	else
+	{
 		val[2] = tas->drc_range;
+	}
+
 	val[3] = 0xb0;
 	val[4] = 0x60;
 	val[5] = 0xa0;
@@ -161,11 +179,13 @@ static void tas_set_volume(struct tas *tas)
 	left = tas->cached_volume_l;
 	right = tas->cached_volume_r;
 
-	if (left > 177) left = 177;
-	if (right > 177) right = 177;
+	if (left > 177) { left = 177; }
 
-	if (tas->mute_l) left = 0;
-	if (tas->mute_r) right = 0;
+	if (right > 177) { right = 177; }
+
+	if (tas->mute_l) { left = 0; }
+
+	if (tas->mute_r) { right = 0; }
 
 	/* analysing the volume and mixer tables shows
 	 * that they are similar enough when we shift
@@ -174,13 +194,13 @@ static void tas_set_volume(struct tas *tas)
 	 * is 1, at a value of 0x07f17b (mixer table
 	 * value is 0x07f17a) */
 	tmp = tas_gaintable[left];
-	block[0] = tmp>>20;
-	block[1] = tmp>>12;
-	block[2] = tmp>>4;
+	block[0] = tmp >> 20;
+	block[1] = tmp >> 12;
+	block[2] = tmp >> 4;
 	tmp = tas_gaintable[right];
-	block[3] = tmp>>20;
-	block[4] = tmp>>12;
-	block[5] = tmp>>4;
+	block[3] = tmp >> 20;
+	block[4] = tmp >> 12;
+	block[5] = tmp >> 4;
 	tas_write_reg(tas, TAS_REG_VOL, 6, block);
 }
 
@@ -190,24 +210,32 @@ static void tas_set_mixer(struct tas *tas)
 	int tmp, i;
 	u8 val;
 
-	for (i=0;i<3;i++) {
+	for (i = 0; i < 3; i++)
+	{
 		val = tas->mixer_l[i];
-		if (val > 177) val = 177;
+
+		if (val > 177) { val = 177; }
+
 		tmp = tas_gaintable[val];
-		block[3*i+0] = tmp>>16;
-		block[3*i+1] = tmp>>8;
-		block[3*i+2] = tmp;
+		block[3 * i + 0] = tmp >> 16;
+		block[3 * i + 1] = tmp >> 8;
+		block[3 * i + 2] = tmp;
 	}
+
 	tas_write_reg(tas, TAS_REG_LMIX, 9, block);
 
-	for (i=0;i<3;i++) {
+	for (i = 0; i < 3; i++)
+	{
 		val = tas->mixer_r[i];
-		if (val > 177) val = 177;
+
+		if (val > 177) { val = 177; }
+
 		tmp = tas_gaintable[val];
-		block[3*i+0] = tmp>>16;
-		block[3*i+1] = tmp>>8;
-		block[3*i+2] = tmp;
+		block[3 * i + 0] = tmp >> 16;
+		block[3 * i + 1] = tmp >> 8;
+		block[3 * i + 2] = tmp;
 	}
+
 	tas_write_reg(tas, TAS_REG_RMIX, 9, block);
 }
 
@@ -218,12 +246,13 @@ static int tas_dev_register(struct snd_device *dev)
 	return 0;
 }
 
-static struct snd_device_ops ops = {
+static struct snd_device_ops ops =
+{
 	.dev_register = tas_dev_register,
 };
 
 static int tas_snd_vol_info(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_info *uinfo)
+							struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	uinfo->count = 2;
@@ -233,7 +262,7 @@ static int tas_snd_vol_info(struct snd_kcontrol *kcontrol,
 }
 
 static int tas_snd_vol_get(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
+						   struct snd_ctl_elem_value *ucontrol)
 {
 	struct tas *tas = snd_kcontrol_chip(kcontrol);
 
@@ -245,33 +274,45 @@ static int tas_snd_vol_get(struct snd_kcontrol *kcontrol,
 }
 
 static int tas_snd_vol_put(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
+						   struct snd_ctl_elem_value *ucontrol)
 {
 	struct tas *tas = snd_kcontrol_chip(kcontrol);
 
 	if (ucontrol->value.integer.value[0] < 0 ||
-	    ucontrol->value.integer.value[0] > 177)
+		ucontrol->value.integer.value[0] > 177)
+	{
 		return -EINVAL;
+	}
+
 	if (ucontrol->value.integer.value[1] < 0 ||
-	    ucontrol->value.integer.value[1] > 177)
+		ucontrol->value.integer.value[1] > 177)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&tas->mtx);
+
 	if (tas->cached_volume_l == ucontrol->value.integer.value[0]
-	 && tas->cached_volume_r == ucontrol->value.integer.value[1]) {
+		&& tas->cached_volume_r == ucontrol->value.integer.value[1])
+	{
 		mutex_unlock(&tas->mtx);
 		return 0;
 	}
 
 	tas->cached_volume_l = ucontrol->value.integer.value[0];
 	tas->cached_volume_r = ucontrol->value.integer.value[1];
+
 	if (tas->hw_enabled)
+	{
 		tas_set_volume(tas);
+	}
+
 	mutex_unlock(&tas->mtx);
 	return 1;
 }
 
-static struct snd_kcontrol_new volume_control = {
+static struct snd_kcontrol_new volume_control =
+{
 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name = "Master Playback Volume",
 	.access = SNDRV_CTL_ELEM_ACCESS_READWRITE,
@@ -283,7 +324,7 @@ static struct snd_kcontrol_new volume_control = {
 #define tas_snd_mute_info	snd_ctl_boolean_stereo_info
 
 static int tas_snd_mute_get(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
+							struct snd_ctl_elem_value *ucontrol)
 {
 	struct tas *tas = snd_kcontrol_chip(kcontrol);
 
@@ -295,26 +336,33 @@ static int tas_snd_mute_get(struct snd_kcontrol *kcontrol,
 }
 
 static int tas_snd_mute_put(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
+							struct snd_ctl_elem_value *ucontrol)
 {
 	struct tas *tas = snd_kcontrol_chip(kcontrol);
 
 	mutex_lock(&tas->mtx);
+
 	if (tas->mute_l == !ucontrol->value.integer.value[0]
-	 && tas->mute_r == !ucontrol->value.integer.value[1]) {
+		&& tas->mute_r == !ucontrol->value.integer.value[1])
+	{
 		mutex_unlock(&tas->mtx);
 		return 0;
 	}
 
 	tas->mute_l = !ucontrol->value.integer.value[0];
 	tas->mute_r = !ucontrol->value.integer.value[1];
+
 	if (tas->hw_enabled)
+	{
 		tas_set_volume(tas);
+	}
+
 	mutex_unlock(&tas->mtx);
 	return 1;
 }
 
-static struct snd_kcontrol_new mute_control = {
+static struct snd_kcontrol_new mute_control =
+{
 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name = "Master Playback Switch",
 	.access = SNDRV_CTL_ELEM_ACCESS_READWRITE,
@@ -324,7 +372,7 @@ static struct snd_kcontrol_new mute_control = {
 };
 
 static int tas_snd_mixer_info(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_info *uinfo)
+							  struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	uinfo->count = 2;
@@ -334,7 +382,7 @@ static int tas_snd_mixer_info(struct snd_kcontrol *kcontrol,
 }
 
 static int tas_snd_mixer_get(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
+							 struct snd_ctl_elem_value *ucontrol)
 {
 	struct tas *tas = snd_kcontrol_chip(kcontrol);
 	int idx = kcontrol->private_value;
@@ -348,14 +396,16 @@ static int tas_snd_mixer_get(struct snd_kcontrol *kcontrol,
 }
 
 static int tas_snd_mixer_put(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
+							 struct snd_ctl_elem_value *ucontrol)
 {
 	struct tas *tas = snd_kcontrol_chip(kcontrol);
 	int idx = kcontrol->private_value;
 
 	mutex_lock(&tas->mtx);
+
 	if (tas->mixer_l[idx] == ucontrol->value.integer.value[0]
-	 && tas->mixer_r[idx] == ucontrol->value.integer.value[1]) {
+		&& tas->mixer_r[idx] == ucontrol->value.integer.value[1])
+	{
 		mutex_unlock(&tas->mtx);
 		return 0;
 	}
@@ -364,27 +414,30 @@ static int tas_snd_mixer_put(struct snd_kcontrol *kcontrol,
 	tas->mixer_r[idx] = ucontrol->value.integer.value[1];
 
 	if (tas->hw_enabled)
+	{
 		tas_set_mixer(tas);
+	}
+
 	mutex_unlock(&tas->mtx);
 	return 1;
 }
 
 #define MIXER_CONTROL(n,descr,idx)			\
-static struct snd_kcontrol_new n##_control = {		\
-	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,		\
-	.name = descr " Playback Volume",		\
-	.access = SNDRV_CTL_ELEM_ACCESS_READWRITE,	\
-	.info = tas_snd_mixer_info,			\
-	.get = tas_snd_mixer_get,			\
-	.put = tas_snd_mixer_put,			\
-	.private_value = idx,				\
-}
+	static struct snd_kcontrol_new n##_control = {		\
+		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,		\
+				 .name = descr " Playback Volume",		\
+						 .access = SNDRV_CTL_ELEM_ACCESS_READWRITE,	\
+								   .info = tas_snd_mixer_info,			\
+										   .get = tas_snd_mixer_get,			\
+												   .put = tas_snd_mixer_put,			\
+														   .private_value = idx,				\
+	}
 
 MIXER_CONTROL(pcm1, "PCM", 0);
 MIXER_CONTROL(monitor, "Monitor", 2);
 
 static int tas_snd_drc_range_info(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_info *uinfo)
+								  struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	uinfo->count = 1;
@@ -394,7 +447,7 @@ static int tas_snd_drc_range_info(struct snd_kcontrol *kcontrol,
 }
 
 static int tas_snd_drc_range_get(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
+								 struct snd_ctl_elem_value *ucontrol)
 {
 	struct tas *tas = snd_kcontrol_chip(kcontrol);
 
@@ -405,28 +458,37 @@ static int tas_snd_drc_range_get(struct snd_kcontrol *kcontrol,
 }
 
 static int tas_snd_drc_range_put(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
+								 struct snd_ctl_elem_value *ucontrol)
 {
 	struct tas *tas = snd_kcontrol_chip(kcontrol);
 
 	if (ucontrol->value.integer.value[0] < 0 ||
-	    ucontrol->value.integer.value[0] > TAS3004_DRC_MAX)
+		ucontrol->value.integer.value[0] > TAS3004_DRC_MAX)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&tas->mtx);
-	if (tas->drc_range == ucontrol->value.integer.value[0]) {
+
+	if (tas->drc_range == ucontrol->value.integer.value[0])
+	{
 		mutex_unlock(&tas->mtx);
 		return 0;
 	}
 
 	tas->drc_range = ucontrol->value.integer.value[0];
+
 	if (tas->hw_enabled)
+	{
 		tas3004_set_drc(tas);
+	}
+
 	mutex_unlock(&tas->mtx);
 	return 1;
 }
 
-static struct snd_kcontrol_new drc_range_control = {
+static struct snd_kcontrol_new drc_range_control =
+{
 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name = "DRC Range",
 	.access = SNDRV_CTL_ELEM_ACCESS_READWRITE,
@@ -438,7 +500,7 @@ static struct snd_kcontrol_new drc_range_control = {
 #define tas_snd_drc_switch_info		snd_ctl_boolean_mono_info
 
 static int tas_snd_drc_switch_get(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
+								  struct snd_ctl_elem_value *ucontrol)
 {
 	struct tas *tas = snd_kcontrol_chip(kcontrol);
 
@@ -449,24 +511,31 @@ static int tas_snd_drc_switch_get(struct snd_kcontrol *kcontrol,
 }
 
 static int tas_snd_drc_switch_put(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
+								  struct snd_ctl_elem_value *ucontrol)
 {
 	struct tas *tas = snd_kcontrol_chip(kcontrol);
 
 	mutex_lock(&tas->mtx);
-	if (tas->drc_enabled == ucontrol->value.integer.value[0]) {
+
+	if (tas->drc_enabled == ucontrol->value.integer.value[0])
+	{
 		mutex_unlock(&tas->mtx);
 		return 0;
 	}
 
 	tas->drc_enabled = !!ucontrol->value.integer.value[0];
+
 	if (tas->hw_enabled)
+	{
 		tas3004_set_drc(tas);
+	}
+
 	mutex_unlock(&tas->mtx);
 	return 1;
 }
 
-static struct snd_kcontrol_new drc_switch_control = {
+static struct snd_kcontrol_new drc_switch_control =
+{
 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name = "DRC Range Switch",
 	.access = SNDRV_CTL_ELEM_ACCESS_READWRITE,
@@ -476,15 +545,15 @@ static struct snd_kcontrol_new drc_switch_control = {
 };
 
 static int tas_snd_capture_source_info(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_info *uinfo)
+									   struct snd_ctl_elem_info *uinfo)
 {
-	static const char * const texts[] = { "Line-In", "Microphone" };
+	static const char *const texts[] = { "Line-In", "Microphone" };
 
 	return snd_ctl_enum_info(uinfo, 1, 2, texts);
 }
 
 static int tas_snd_capture_source_get(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
+									  struct snd_ctl_elem_value *ucontrol)
 {
 	struct tas *tas = snd_kcontrol_chip(kcontrol);
 
@@ -495,13 +564,16 @@ static int tas_snd_capture_source_get(struct snd_kcontrol *kcontrol,
 }
 
 static int tas_snd_capture_source_put(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
+									  struct snd_ctl_elem_value *ucontrol)
 {
 	struct tas *tas = snd_kcontrol_chip(kcontrol);
 	int oldacr;
 
 	if (ucontrol->value.enumerated.item[0] > 1)
+	{
 		return -EINVAL;
+	}
+
 	mutex_lock(&tas->mtx);
 	oldacr = tas->acr;
 
@@ -511,20 +583,28 @@ static int tas_snd_capture_source_put(struct snd_kcontrol *kcontrol,
 	 * input A (line in) is selected.
 	 */
 	tas->acr &= ~(TAS_ACR_INPUT_B | TAS_ACR_B_MONAUREAL);
+
 	if (ucontrol->value.enumerated.item[0])
 		tas->acr |= TAS_ACR_INPUT_B | TAS_ACR_B_MONAUREAL |
-		      TAS_ACR_B_MON_SEL_RIGHT;
-	if (oldacr == tas->acr) {
+					TAS_ACR_B_MON_SEL_RIGHT;
+
+	if (oldacr == tas->acr)
+	{
 		mutex_unlock(&tas->mtx);
 		return 0;
 	}
+
 	if (tas->hw_enabled)
+	{
 		tas_write_reg(tas, TAS_REG_ACR, 1, &tas->acr);
+	}
+
 	mutex_unlock(&tas->mtx);
 	return 1;
 }
 
-static struct snd_kcontrol_new capture_source_control = {
+static struct snd_kcontrol_new capture_source_control =
+{
 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 	/* If we name this 'Input Source', it properly shows up in
 	 * alsamixer as a selection, * but it's shown under the
@@ -545,7 +625,7 @@ static struct snd_kcontrol_new capture_source_control = {
 };
 
 static int tas_snd_treble_info(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_info *uinfo)
+							   struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	uinfo->count = 1;
@@ -555,7 +635,7 @@ static int tas_snd_treble_info(struct snd_kcontrol *kcontrol,
 }
 
 static int tas_snd_treble_get(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
+							  struct snd_ctl_elem_value *ucontrol)
 {
 	struct tas *tas = snd_kcontrol_chip(kcontrol);
 
@@ -566,27 +646,37 @@ static int tas_snd_treble_get(struct snd_kcontrol *kcontrol,
 }
 
 static int tas_snd_treble_put(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
+							  struct snd_ctl_elem_value *ucontrol)
 {
 	struct tas *tas = snd_kcontrol_chip(kcontrol);
 
 	if (ucontrol->value.integer.value[0] < TAS3004_TREBLE_MIN ||
-	    ucontrol->value.integer.value[0] > TAS3004_TREBLE_MAX)
+		ucontrol->value.integer.value[0] > TAS3004_TREBLE_MAX)
+	{
 		return -EINVAL;
+	}
+
 	mutex_lock(&tas->mtx);
-	if (tas->treble == ucontrol->value.integer.value[0]) {
+
+	if (tas->treble == ucontrol->value.integer.value[0])
+	{
 		mutex_unlock(&tas->mtx);
 		return 0;
 	}
 
 	tas->treble = ucontrol->value.integer.value[0];
+
 	if (tas->hw_enabled)
+	{
 		tas_set_treble(tas);
+	}
+
 	mutex_unlock(&tas->mtx);
 	return 1;
 }
 
-static struct snd_kcontrol_new treble_control = {
+static struct snd_kcontrol_new treble_control =
+{
 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name = "Treble",
 	.access = SNDRV_CTL_ELEM_ACCESS_READWRITE,
@@ -596,7 +686,7 @@ static struct snd_kcontrol_new treble_control = {
 };
 
 static int tas_snd_bass_info(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_info *uinfo)
+							 struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	uinfo->count = 1;
@@ -606,7 +696,7 @@ static int tas_snd_bass_info(struct snd_kcontrol *kcontrol,
 }
 
 static int tas_snd_bass_get(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
+							struct snd_ctl_elem_value *ucontrol)
 {
 	struct tas *tas = snd_kcontrol_chip(kcontrol);
 
@@ -617,27 +707,37 @@ static int tas_snd_bass_get(struct snd_kcontrol *kcontrol,
 }
 
 static int tas_snd_bass_put(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
+							struct snd_ctl_elem_value *ucontrol)
 {
 	struct tas *tas = snd_kcontrol_chip(kcontrol);
 
 	if (ucontrol->value.integer.value[0] < TAS3004_BASS_MIN ||
-	    ucontrol->value.integer.value[0] > TAS3004_BASS_MAX)
+		ucontrol->value.integer.value[0] > TAS3004_BASS_MAX)
+	{
 		return -EINVAL;
+	}
+
 	mutex_lock(&tas->mtx);
-	if (tas->bass == ucontrol->value.integer.value[0]) {
+
+	if (tas->bass == ucontrol->value.integer.value[0])
+	{
 		mutex_unlock(&tas->mtx);
 		return 0;
 	}
 
 	tas->bass = ucontrol->value.integer.value[0];
+
 	if (tas->hw_enabled)
+	{
 		tas_set_bass(tas);
+	}
+
 	mutex_unlock(&tas->mtx);
 	return 1;
 }
 
-static struct snd_kcontrol_new bass_control = {
+static struct snd_kcontrol_new bass_control =
+{
 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name = "Bass",
 	.access = SNDRV_CTL_ELEM_ACCESS_READWRITE,
@@ -646,7 +746,8 @@ static struct snd_kcontrol_new bass_control = {
 	.put = tas_snd_bass_put,
 };
 
-static struct transfer_info tas_transfers[] = {
+static struct transfer_info tas_transfers[] =
+{
 	{
 		/* input */
 		.formats = SNDRV_PCM_FMTBIT_S16_BE | SNDRV_PCM_FMTBIT_S24_BE,
@@ -663,8 +764,8 @@ static struct transfer_info tas_transfers[] = {
 };
 
 static int tas_usable(struct codec_info_item *cii,
-		      struct transfer_info *ti,
-		      struct transfer_info *out)
+					  struct transfer_info *ti,
+					  struct transfer_info *out)
 {
 	return 1;
 }
@@ -684,16 +785,25 @@ static int tas_reset_init(struct tas *tas)
 	tas->codec.gpio->methods->all_amps_restore(tas->codec.gpio);
 
 	tmp = TAS_MCS_SCLK64 | TAS_MCS_SPORT_MODE_I2S | TAS_MCS_SPORT_WL_24BIT;
+
 	if (tas_write_reg(tas, TAS_REG_MCS, 1, &tmp))
+	{
 		goto outerr;
+	}
 
 	tas->acr |= TAS_ACR_ANALOG_PDOWN;
+
 	if (tas_write_reg(tas, TAS_REG_ACR, 1, &tas->acr))
+	{
 		goto outerr;
+	}
 
 	tmp = 0;
+
 	if (tas_write_reg(tas, TAS_REG_MCS2, 1, &tmp))
+	{
 		goto outerr;
+	}
 
 	tas3004_set_drc(tas);
 
@@ -704,11 +814,14 @@ static int tas_reset_init(struct tas *tas)
 	tas_set_bass(tas);
 
 	tas->acr &= ~TAS_ACR_ANALOG_PDOWN;
+
 	if (tas_write_reg(tas, TAS_REG_ACR, 1, &tas->acr))
+	{
 		goto outerr;
+	}
 
 	return 0;
- outerr:
+outerr:
 	return -ENODEV;
 }
 
@@ -716,26 +829,30 @@ static int tas_switch_clock(struct codec_info_item *cii, enum clock_switch clock
 {
 	struct tas *tas = cii->codec_data;
 
-	switch(clock) {
-	case CLOCK_SWITCH_PREPARE_SLAVE:
-		/* Clocks are going away, mute mute mute */
-		tas->codec.gpio->methods->all_amps_off(tas->codec.gpio);
-		tas->hw_enabled = 0;
-		break;
-	case CLOCK_SWITCH_SLAVE:
-		/* Clocks are back, re-init the codec */
-		mutex_lock(&tas->mtx);
-		tas_reset_init(tas);
-		tas_set_volume(tas);
-		tas_set_mixer(tas);
-		tas->hw_enabled = 1;
-		tas->codec.gpio->methods->all_amps_restore(tas->codec.gpio);
-		mutex_unlock(&tas->mtx);
-		break;
-	default:
-		/* doesn't happen as of now */
-		return -EINVAL;
+	switch (clock)
+	{
+		case CLOCK_SWITCH_PREPARE_SLAVE:
+			/* Clocks are going away, mute mute mute */
+			tas->codec.gpio->methods->all_amps_off(tas->codec.gpio);
+			tas->hw_enabled = 0;
+			break;
+
+		case CLOCK_SWITCH_SLAVE:
+			/* Clocks are back, re-init the codec */
+			mutex_lock(&tas->mtx);
+			tas_reset_init(tas);
+			tas_set_volume(tas);
+			tas_set_mixer(tas);
+			tas->hw_enabled = 1;
+			tas->codec.gpio->methods->all_amps_restore(tas->codec.gpio);
+			mutex_unlock(&tas->mtx);
+			break;
+
+		default:
+			/* doesn't happen as of now */
+			return -EINVAL;
 	}
+
 	return 0;
 }
 
@@ -779,7 +896,8 @@ static int _tas_resume(struct codec_info_item *cii)
 #define _tas_resume	NULL
 #endif /* CONFIG_PM */
 
-static struct codec_info tas_codec_info = {
+static struct codec_info tas_codec_info =
+{
 	.transfers = tas_transfers,
 	/* in theory, we can drive it at 512 too...
 	 * but so far the framework doesn't allow
@@ -799,69 +917,103 @@ static int tas_init_codec(struct aoa_codec *codec)
 	struct tas *tas = codec_to_tas(codec);
 	int err;
 
-	if (!tas->codec.gpio || !tas->codec.gpio->methods) {
+	if (!tas->codec.gpio || !tas->codec.gpio->methods)
+	{
 		printk(KERN_ERR PFX "gpios not assigned!!\n");
 		return -EINVAL;
 	}
 
 	mutex_lock(&tas->mtx);
-	if (tas_reset_init(tas)) {
+
+	if (tas_reset_init(tas))
+	{
 		printk(KERN_ERR PFX "tas failed to initialise\n");
 		mutex_unlock(&tas->mtx);
 		return -ENXIO;
 	}
+
 	tas->hw_enabled = 1;
 	mutex_unlock(&tas->mtx);
 
 	if (tas->codec.soundbus_dev->attach_codec(tas->codec.soundbus_dev,
-						   aoa_get_card(),
-						   &tas_codec_info, tas)) {
+			aoa_get_card(),
+			&tas_codec_info, tas))
+	{
 		printk(KERN_ERR PFX "error attaching tas to soundbus\n");
 		return -ENODEV;
 	}
 
-	if (aoa_snd_device_new(SNDRV_DEV_CODEC, tas, &ops)) {
+	if (aoa_snd_device_new(SNDRV_DEV_CODEC, tas, &ops))
+	{
 		printk(KERN_ERR PFX "failed to create tas snd device!\n");
 		return -ENODEV;
 	}
+
 	err = aoa_snd_ctl_add(snd_ctl_new1(&volume_control, tas));
+
 	if (err)
+	{
 		goto error;
+	}
 
 	err = aoa_snd_ctl_add(snd_ctl_new1(&mute_control, tas));
+
 	if (err)
+	{
 		goto error;
+	}
 
 	err = aoa_snd_ctl_add(snd_ctl_new1(&pcm1_control, tas));
+
 	if (err)
+	{
 		goto error;
+	}
 
 	err = aoa_snd_ctl_add(snd_ctl_new1(&monitor_control, tas));
+
 	if (err)
+	{
 		goto error;
+	}
 
 	err = aoa_snd_ctl_add(snd_ctl_new1(&capture_source_control, tas));
+
 	if (err)
+	{
 		goto error;
+	}
 
 	err = aoa_snd_ctl_add(snd_ctl_new1(&drc_range_control, tas));
+
 	if (err)
+	{
 		goto error;
+	}
 
 	err = aoa_snd_ctl_add(snd_ctl_new1(&drc_switch_control, tas));
+
 	if (err)
+	{
 		goto error;
+	}
 
 	err = aoa_snd_ctl_add(snd_ctl_new1(&treble_control, tas));
+
 	if (err)
+	{
 		goto error;
+	}
 
 	err = aoa_snd_ctl_add(snd_ctl_new1(&bass_control, tas));
+
 	if (err)
+	{
 		goto error;
+	}
 
 	return 0;
- error:
+error:
 	tas->codec.soundbus_dev->detach_codec(tas->codec.soundbus_dev, tas);
 	snd_device_free(aoa_get_card(), tas);
 	return err;
@@ -872,13 +1024,16 @@ static void tas_exit_codec(struct aoa_codec *codec)
 	struct tas *tas = codec_to_tas(codec);
 
 	if (!tas->codec.soundbus_dev)
+	{
 		return;
+	}
+
 	tas->codec.soundbus_dev->detach_codec(tas->codec.soundbus_dev, tas);
 }
 
 
 static int tas_i2c_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct device_node *node = client->dev.of_node;
 	struct tas *tas;
@@ -886,7 +1041,9 @@ static int tas_i2c_probe(struct i2c_client *client,
 	tas = kzalloc(sizeof(struct tas), GFP_KERNEL);
 
 	if (!tas)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&tas->mtx);
 	tas->i2c = client;
@@ -901,14 +1058,16 @@ static int tas_i2c_probe(struct i2c_client *client,
 	tas->codec.exit = tas_exit_codec;
 	tas->codec.node = of_node_get(node);
 
-	if (aoa_codec_register(&tas->codec)) {
+	if (aoa_codec_register(&tas->codec))
+	{
 		goto fail;
 	}
+
 	printk(KERN_DEBUG
-	       "snd-aoa-codec-tas: tas found, addr 0x%02x on %s\n",
-	       (unsigned int)client->addr, node->full_name);
+		   "snd-aoa-codec-tas: tas found, addr 0x%02x on %s\n",
+		   (unsigned int)client->addr, node->full_name);
 	return 0;
- fail:
+fail:
 	mutex_destroy(&tas->mtx);
 	kfree(tas);
 	return -EINVAL;
@@ -930,13 +1089,15 @@ static int tas_i2c_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id tas_i2c_id[] = {
+static const struct i2c_device_id tas_i2c_id[] =
+{
 	{ "MAC,tas3004", 0 },
 	{ }
 };
-MODULE_DEVICE_TABLE(i2c,tas_i2c_id);
+MODULE_DEVICE_TABLE(i2c, tas_i2c_id);
 
-static struct i2c_driver tas_driver = {
+static struct i2c_driver tas_driver =
+{
 	.driver = {
 		.name = "aoa_codec_tas",
 	},

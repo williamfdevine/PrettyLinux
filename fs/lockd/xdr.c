@@ -31,12 +31,20 @@ static inline __s32
 loff_t_to_s32(loff_t offset)
 {
 	__s32 res;
+
 	if (offset >= NLM_OFFSET_MAX)
+	{
 		res = NLM_OFFSET_MAX;
+	}
 	else if (offset <= -NLM_OFFSET_MAX)
+	{
 		res = -NLM_OFFSET_MAX;
+	}
 	else
+	{
 		res = offset;
+	}
+
 	return res;
 }
 
@@ -48,25 +56,26 @@ static __be32 *nlm_decode_cookie(__be32 *p, struct nlm_cookie *c)
 	unsigned int	len;
 
 	len = ntohl(*p++);
-	
-	if(len==0)
+
+	if (len == 0)
 	{
-		c->len=4;
+		c->len = 4;
 		memset(c->data, 0, 4);	/* hockeypux brain damage */
 	}
-	else if(len<=NLM_MAXCOOKIELEN)
+	else if (len <= NLM_MAXCOOKIELEN)
 	{
-		c->len=len;
+		c->len = len;
 		memcpy(c->data, p, len);
-		p+=XDR_QUADLEN(len);
+		p += XDR_QUADLEN(len);
 	}
-	else 
+	else
 	{
 		dprintk("lockd: bad cookie size %d (only cookies under "
-			"%d bytes are supported.)\n",
+				"%d bytes are supported.)\n",
 				len, NLM_MAXCOOKIELEN);
 		return NULL;
 	}
+
 	return p;
 }
 
@@ -75,7 +84,7 @@ nlm_encode_cookie(__be32 *p, struct nlm_cookie *c)
 {
 	*p++ = htonl(c->len);
 	memcpy(p, c->data, c->len);
-	p+=XDR_QUADLEN(c->len);
+	p += XDR_QUADLEN(c->len);
 	return p;
 }
 
@@ -84,11 +93,13 @@ nlm_decode_fh(__be32 *p, struct nfs_fh *f)
 {
 	unsigned int	len;
 
-	if ((len = ntohl(*p++)) != NFS2_FHSIZE) {
+	if ((len = ntohl(*p++)) != NFS2_FHSIZE)
+	{
 		dprintk("lockd: bad fhandle size %d (should be %d)\n",
-			len, NFS2_FHSIZE);
+				len, NFS2_FHSIZE);
 		return NULL;
 	}
+
 	f->size = NFS2_FHSIZE;
 	memset(f->data, 0, sizeof(f->data));
 	memcpy(f->data, p, NFS2_FHSIZE);
@@ -117,11 +128,14 @@ nlm_decode_lock(__be32 *p, struct nlm_lock *lock)
 	s32			start, len, end;
 
 	if (!(p = xdr_decode_string_inplace(p, &lock->caller,
-					    &lock->len,
-					    NLM_MAXSTRLEN))
-	 || !(p = nlm_decode_fh(p, &lock->fh))
-	 || !(p = nlm_decode_oh(p, &lock->oh)))
+										&lock->len,
+										NLM_MAXSTRLEN))
+		|| !(p = nlm_decode_fh(p, &lock->fh))
+		|| !(p = nlm_decode_oh(p, &lock->oh)))
+	{
 		return NULL;
+	}
+
 	lock->svid  = ntohl(*p++);
 
 	locks_init_lock(fl);
@@ -136,9 +150,14 @@ nlm_decode_lock(__be32 *p, struct nlm_lock *lock)
 	fl->fl_start = s32_to_loff_t(start);
 
 	if (len == 0 || end < 0)
+	{
 		fl->fl_end = OFFSET_MAX;
+	}
 	else
+	{
 		fl->fl_end = s32_to_loff_t(end);
+	}
+
 	return p;
 }
 
@@ -151,24 +170,35 @@ nlm_encode_testres(__be32 *p, struct nlm_res *resp)
 	s32		start, len;
 
 	if (!(p = nlm_encode_cookie(p, &resp->cookie)))
+	{
 		return NULL;
+	}
+
 	*p++ = resp->status;
 
-	if (resp->status == nlm_lck_denied) {
+	if (resp->status == nlm_lck_denied)
+	{
 		struct file_lock	*fl = &resp->lock.fl;
 
-		*p++ = (fl->fl_type == F_RDLCK)? xdr_zero : xdr_one;
+		*p++ = (fl->fl_type == F_RDLCK) ? xdr_zero : xdr_one;
 		*p++ = htonl(resp->lock.svid);
 
 		/* Encode owner handle. */
 		if (!(p = xdr_encode_netobj(p, &resp->lock.oh)))
+		{
 			return NULL;
+		}
 
 		start = loff_t_to_s32(fl->fl_start);
+
 		if (fl->fl_end == OFFSET_MAX)
+		{
 			len = 0;
+		}
 		else
+		{
 			len = loff_t_to_s32(fl->fl_end - fl->fl_start + 1);
+		}
 
 		*p++ = htonl(start);
 		*p++ = htonl(len);
@@ -187,13 +217,21 @@ nlmsvc_decode_testargs(struct svc_rqst *rqstp, __be32 *p, nlm_args *argp)
 	u32	exclusive;
 
 	if (!(p = nlm_decode_cookie(p, &argp->cookie)))
+	{
 		return 0;
+	}
 
 	exclusive = ntohl(*p++);
+
 	if (!(p = nlm_decode_lock(p, &argp->lock)))
+	{
 		return 0;
+	}
+
 	if (exclusive)
+	{
 		argp->lock.fl.fl_type = F_WRLCK;
+	}
 
 	return xdr_argsize_check(rqstp, p);
 }
@@ -202,7 +240,10 @@ int
 nlmsvc_encode_testres(struct svc_rqst *rqstp, __be32 *p, struct nlm_res *resp)
 {
 	if (!(p = nlm_encode_testres(p, resp)))
+	{
 		return 0;
+	}
+
 	return xdr_ressize_check(rqstp, p);
 }
 
@@ -212,13 +253,23 @@ nlmsvc_decode_lockargs(struct svc_rqst *rqstp, __be32 *p, nlm_args *argp)
 	u32	exclusive;
 
 	if (!(p = nlm_decode_cookie(p, &argp->cookie)))
+	{
 		return 0;
+	}
+
 	argp->block  = ntohl(*p++);
 	exclusive    = ntohl(*p++);
+
 	if (!(p = nlm_decode_lock(p, &argp->lock)))
+	{
 		return 0;
+	}
+
 	if (exclusive)
+	{
 		argp->lock.fl.fl_type = F_WRLCK;
+	}
+
 	argp->reclaim = ntohl(*p++);
 	argp->state   = ntohl(*p++);
 	argp->monitor = 1;		/* monitor client by default */
@@ -232,13 +283,23 @@ nlmsvc_decode_cancargs(struct svc_rqst *rqstp, __be32 *p, nlm_args *argp)
 	u32	exclusive;
 
 	if (!(p = nlm_decode_cookie(p, &argp->cookie)))
+	{
 		return 0;
+	}
+
 	argp->block = ntohl(*p++);
 	exclusive = ntohl(*p++);
+
 	if (!(p = nlm_decode_lock(p, &argp->lock)))
+	{
 		return 0;
+	}
+
 	if (exclusive)
+	{
 		argp->lock.fl.fl_type = F_WRLCK;
+	}
+
 	return xdr_argsize_check(rqstp, p);
 }
 
@@ -246,8 +307,11 @@ int
 nlmsvc_decode_unlockargs(struct svc_rqst *rqstp, __be32 *p, nlm_args *argp)
 {
 	if (!(p = nlm_decode_cookie(p, &argp->cookie))
-	 || !(p = nlm_decode_lock(p, &argp->lock)))
+		|| !(p = nlm_decode_lock(p, &argp->lock)))
+	{
 		return 0;
+	}
+
 	argp->lock.fl.fl_type = F_UNLCK;
 	return xdr_argsize_check(rqstp, p);
 }
@@ -263,11 +327,14 @@ nlmsvc_decode_shareargs(struct svc_rqst *rqstp, __be32 *p, nlm_args *argp)
 	lock->fl.fl_pid = (pid_t)lock->svid;
 
 	if (!(p = nlm_decode_cookie(p, &argp->cookie))
-	 || !(p = xdr_decode_string_inplace(p, &lock->caller,
-					    &lock->len, NLM_MAXSTRLEN))
-	 || !(p = nlm_decode_fh(p, &lock->fh))
-	 || !(p = nlm_decode_oh(p, &lock->oh)))
+		|| !(p = xdr_decode_string_inplace(p, &lock->caller,
+										   &lock->len, NLM_MAXSTRLEN))
+		|| !(p = nlm_decode_fh(p, &lock->fh))
+		|| !(p = nlm_decode_oh(p, &lock->oh)))
+	{
 		return 0;
+	}
+
 	argp->fsm_mode = ntohl(*p++);
 	argp->fsm_access = ntohl(*p++);
 	return xdr_argsize_check(rqstp, p);
@@ -277,7 +344,10 @@ int
 nlmsvc_encode_shareres(struct svc_rqst *rqstp, __be32 *p, struct nlm_res *resp)
 {
 	if (!(p = nlm_encode_cookie(p, &resp->cookie)))
+	{
 		return 0;
+	}
+
 	*p++ = resp->status;
 	*p++ = xdr_zero;		/* sequence argument */
 	return xdr_ressize_check(rqstp, p);
@@ -287,7 +357,10 @@ int
 nlmsvc_encode_res(struct svc_rqst *rqstp, __be32 *p, struct nlm_res *resp)
 {
 	if (!(p = nlm_encode_cookie(p, &resp->cookie)))
+	{
 		return 0;
+	}
+
 	*p++ = resp->status;
 	return xdr_ressize_check(rqstp, p);
 }
@@ -298,8 +371,11 @@ nlmsvc_decode_notify(struct svc_rqst *rqstp, __be32 *p, struct nlm_args *argp)
 	struct nlm_lock	*lock = &argp->lock;
 
 	if (!(p = xdr_decode_string_inplace(p, &lock->caller,
-					    &lock->len, NLM_MAXSTRLEN)))
+										&lock->len, NLM_MAXSTRLEN)))
+	{
 		return 0;
+	}
+
 	argp->state = ntohl(*p++);
 	return xdr_argsize_check(rqstp, p);
 }
@@ -308,7 +384,10 @@ int
 nlmsvc_decode_reboot(struct svc_rqst *rqstp, __be32 *p, struct nlm_reboot *argp)
 {
 	if (!(p = xdr_decode_string_inplace(p, &argp->mon, &argp->len, SM_MAXSTRLEN)))
+	{
 		return 0;
+	}
+
 	argp->state = ntohl(*p++);
 	memcpy(&argp->priv.data, p, sizeof(argp->priv.data));
 	p += XDR_QUADLEN(SM_PRIV_SIZE);
@@ -319,7 +398,10 @@ int
 nlmsvc_decode_res(struct svc_rqst *rqstp, __be32 *p, struct nlm_res *resp)
 {
 	if (!(p = nlm_decode_cookie(p, &resp->cookie)))
+	{
 		return 0;
+	}
+
 	resp->status = *p++;
 	return xdr_argsize_check(rqstp, p);
 }

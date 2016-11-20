@@ -38,7 +38,8 @@
 #define PUCAN_MSG_CAN_TX		0x1000
 
 /* uCAN command common header */
-struct __packed pucan_command {
+struct __packed pucan_command
+{
 	__le16	opcode_channel;
 	u16	args[3];
 };
@@ -49,7 +50,8 @@ struct __packed pucan_command {
 #define PUCAN_TSLOW_TSEG1(t)		((t) & 0x3f)
 #define PUCAN_TSLOW_BRP(b)		((b) & 0x3ff)
 
-struct __packed pucan_timing_slow {
+struct __packed pucan_timing_slow
+{
 	__le16	opcode_channel;
 
 	u8	ewl;		/* Error Warning limit */
@@ -66,7 +68,8 @@ struct __packed pucan_timing_slow {
 #define PUCAN_TFAST_TSEG1(t)		((t) & 0xf)
 #define PUCAN_TFAST_BRP(b)		((b) & 0x3ff)
 
-struct __packed pucan_timing_fast {
+struct __packed pucan_timing_fast
+{
 	__le16	opcode_channel;
 
 	u8	unused;
@@ -80,7 +83,8 @@ struct __packed pucan_timing_fast {
 /* uCAN FILTER_STD command fields */
 #define PUCAN_FLTSTD_ROW_IDX_BITS	6
 
-struct __packed pucan_filter_std {
+struct __packed pucan_filter_std
+{
 	__le16	opcode_channel;
 
 	__le16	idx;
@@ -91,7 +95,8 @@ struct __packed pucan_filter_std {
 #define PUCAN_WRERRCNT_TE		0x4000	/* Tx error cntr write Enable */
 #define PUCAN_WRERRCNT_RE		0x8000	/* Rx error cntr write Enable */
 
-struct __packed pucan_wr_err_cnt {
+struct __packed pucan_wr_err_cnt
+{
 	__le16	opcode_channel;
 
 	__le16	sel_mask;
@@ -106,7 +111,8 @@ struct __packed pucan_wr_err_cnt {
 #define PUCAN_OPTION_BUSLOAD		0x0002
 #define PUCAN_OPTION_CANDFDISO		0x0004
 
-struct __packed pucan_options {
+struct __packed pucan_options
+{
 	__le16	opcode_channel;
 
 	__le16	options;
@@ -114,7 +120,8 @@ struct __packed pucan_options {
 };
 
 /* uCAN received messages global format */
-struct __packed pucan_msg {
+struct __packed pucan_msg
+{
 	__le16	size;
 	__le16	type;
 	__le32	ts_low;
@@ -131,7 +138,8 @@ struct __packed pucan_msg {
 #define PUCAN_MSG_EXT_ID		0x02
 #define PUCAN_MSG_RTR			0x01
 
-struct __packed pucan_rx_msg {
+struct __packed pucan_rx_msg
+{
 	__le16	size;
 	__le16	type;
 	__le32	ts_low;
@@ -152,7 +160,8 @@ struct __packed pucan_rx_msg {
 #define PUCAN_ERMSG_OTHER_ERROR		3
 #define PUCAN_ERMSG_ERR_CNT_DEC		4
 
-struct __packed pucan_error_msg {
+struct __packed pucan_error_msg
+{
 	__le16	size;
 	__le16	type;
 	__le32	ts_low;
@@ -167,7 +176,8 @@ struct __packed pucan_error_msg {
 #define PUCAN_BUS_WARNING		0x40
 #define PUCAN_BUS_BUSOFF		0x80
 
-struct __packed pucan_status_msg {
+struct __packed pucan_status_msg
+{
 	__le16	size;
 	__le16	type;
 	__le32	ts_low;
@@ -179,7 +189,8 @@ struct __packed pucan_status_msg {
 /* uCAN transmitted message format */
 #define PUCAN_MSG_CHANNEL_DLC(c, d)	(((c) & 0xf) | ((d) << 4))
 
-struct __packed pucan_tx_msg {
+struct __packed pucan_tx_msg
+{
 	__le16	size;
 	__le16	type;
 	__le32	tag_low;
@@ -193,7 +204,7 @@ struct __packed pucan_tx_msg {
 
 /* build the cmd opcode_channel field with respect to the correct endianness */
 static inline __le16 pucan_cmd_opcode_channel(struct peak_usb_device *dev,
-					      int opcode)
+		int opcode)
 {
 	return cpu_to_le16(((dev->ctrl_idx) << 12) | ((opcode) & 0x3ff));
 }

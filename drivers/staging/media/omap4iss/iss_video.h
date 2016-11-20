@@ -42,7 +42,8 @@ struct v4l2_pix_format;
  * @bpp: Bits per pixel
  * @description: Human-readable format description
  */
-struct iss_format_info {
+struct iss_format_info
+{
 	u32 code;
 	u32 truncated;
 	u32 uncompressed;
@@ -52,13 +53,15 @@ struct iss_format_info {
 	const char *description;
 };
 
-enum iss_pipeline_stream_state {
+enum iss_pipeline_stream_state
+{
 	ISS_PIPELINE_STREAM_STOPPED = 0,
 	ISS_PIPELINE_STREAM_CONTINUOUS = 1,
 	ISS_PIPELINE_STREAM_SINGLESHOT = 2,
 };
 
-enum iss_pipeline_state {
+enum iss_pipeline_state
+{
 	/* The stream has been started on the input video node. */
 	ISS_PIPELINE_STREAM_INPUT = 1,
 	/* The stream has been started on the output video node. */
@@ -80,7 +83,8 @@ enum iss_pipeline_state {
  * @ent_enum: Entities in the pipeline
  * @error: A hardware error occurred during capture
  */
-struct iss_pipeline {
+struct iss_pipeline
+{
 	struct media_pipeline pipe;
 	spinlock_t lock;		/* Pipeline state and queue flags */
 	unsigned int state;
@@ -103,11 +107,11 @@ struct iss_pipeline {
 static inline int iss_pipeline_ready(struct iss_pipeline *pipe)
 {
 	return pipe->state == (ISS_PIPELINE_STREAM_INPUT |
-			       ISS_PIPELINE_STREAM_OUTPUT |
-			       ISS_PIPELINE_QUEUE_INPUT |
-			       ISS_PIPELINE_QUEUE_OUTPUT |
-			       ISS_PIPELINE_IDLE_INPUT |
-			       ISS_PIPELINE_IDLE_OUTPUT);
+						   ISS_PIPELINE_STREAM_OUTPUT |
+						   ISS_PIPELINE_QUEUE_INPUT |
+						   ISS_PIPELINE_QUEUE_OUTPUT |
+						   ISS_PIPELINE_IDLE_INPUT |
+						   ISS_PIPELINE_IDLE_OUTPUT);
 }
 
 /*
@@ -115,7 +119,8 @@ static inline int iss_pipeline_ready(struct iss_pipeline *pipe)
  * @buffer: ISS video buffer
  * @iss_addr: Physical address of the buffer.
  */
-struct iss_buffer {
+struct iss_buffer
+{
 	/* common v4l buffer stuff -- must be first */
 	struct vb2_v4l2_buffer	vb;
 	struct list_head	list;
@@ -124,7 +129,8 @@ struct iss_buffer {
 
 #define to_iss_buffer(buf)	container_of(buf, struct iss_buffer, vb)
 
-enum iss_video_dmaqueue_flags {
+enum iss_video_dmaqueue_flags
+{
 	/* Set if DMA queue becomes empty when ISS_PIPELINE_STREAM_CONTINUOUS */
 	ISS_VIDEO_DMAQUEUE_UNDERRUN = (1 << 0),
 	/* Set when queuing buffer to an empty DMA queue */
@@ -132,18 +138,20 @@ enum iss_video_dmaqueue_flags {
 };
 
 #define iss_video_dmaqueue_flags_clr(video)	\
-			({ (video)->dmaqueue_flags = 0; })
+	({ (video)->dmaqueue_flags = 0; })
 
 /*
  * struct iss_video_operations - ISS video operations
  * @queue:	Resume streaming when a buffer is queued. Called on VIDIOC_QBUF
  *		if there was no buffer previously queued.
  */
-struct iss_video_operations {
+struct iss_video_operations
+{
 	int (*queue)(struct iss_video *video, struct iss_buffer *buffer);
 };
 
-struct iss_video {
+struct iss_video
+{
 	struct video_device video;
 	enum v4l2_buf_type type;
 	struct media_pad pad;
@@ -176,7 +184,8 @@ struct iss_video {
 
 #define to_iss_video(vdev)	container_of(vdev, struct iss_video, video)
 
-struct iss_video_fh {
+struct iss_video_fh
+{
 	struct v4l2_fh vfh;
 	struct iss_video *video;
 	struct vb2_queue queue;
@@ -186,12 +195,12 @@ struct iss_video_fh {
 
 #define to_iss_video_fh(fh)	container_of(fh, struct iss_video_fh, vfh)
 #define iss_video_queue_to_iss_video_fh(q) \
-				container_of(q, struct iss_video_fh, queue)
+	container_of(q, struct iss_video_fh, queue)
 
 int omap4iss_video_init(struct iss_video *video, const char *name);
 void omap4iss_video_cleanup(struct iss_video *video);
 int omap4iss_video_register(struct iss_video *video,
-			    struct v4l2_device *vdev);
+							struct v4l2_device *vdev);
 void omap4iss_video_unregister(struct iss_video *video);
 struct iss_buffer *omap4iss_video_buffer_next(struct iss_video *video);
 void omap4iss_video_cancel_stream(struct iss_video *video);

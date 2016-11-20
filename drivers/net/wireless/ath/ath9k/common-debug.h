@@ -40,7 +40,8 @@
  * @rx_frags:  No. of rx-fragements received.
  * @rx_spectral: No of spectral packets received.
  */
-struct ath_rx_stats {
+struct ath_rx_stats
+{
 	u32 rx_pkts_all;
 	u32 rx_bytes_all;
 	u32 crc_err;
@@ -61,12 +62,12 @@ struct ath_rx_stats {
 };
 
 void ath9k_cmn_debug_modal_eeprom(struct dentry *debugfs_phy,
-				  struct ath_hw *ah);
+								  struct ath_hw *ah);
 void ath9k_cmn_debug_base_eeprom(struct dentry *debugfs_phy,
-				 struct ath_hw *ah);
+								 struct ath_hw *ah);
 void ath9k_cmn_debug_stat_rx(struct ath_rx_stats *rxstats,
-			     struct ath_rx_status *rs);
+							 struct ath_rx_status *rs);
 void ath9k_cmn_debug_recv(struct dentry *debugfs_phy,
-			  struct ath_rx_stats *rxstats);
+						  struct ath_rx_stats *rxstats);
 void ath9k_cmn_debug_phy_err(struct dentry *debugfs_phy,
-			     struct ath_rx_stats *rxstats);
+							 struct ath_rx_stats *rxstats);

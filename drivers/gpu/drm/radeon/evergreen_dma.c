@@ -39,7 +39,7 @@ u32 evergreen_gpu_check_soft_reset(struct radeon_device *rdev);
  * an interrupt if needed (evergreen-SI).
  */
 void evergreen_dma_fence_ring_emit(struct radeon_device *rdev,
-				   struct radeon_fence *fence)
+								   struct radeon_fence *fence)
 {
 	struct radeon_ring *ring = &rdev->ring[fence->ring];
 	u64 addr = rdev->fence_drv[fence->ring].gpu_addr;
@@ -65,14 +65,19 @@ void evergreen_dma_fence_ring_emit(struct radeon_device *rdev,
  * Schedule an IB in the DMA ring (evergreen).
  */
 void evergreen_dma_ring_ib_execute(struct radeon_device *rdev,
-				   struct radeon_ib *ib)
+								   struct radeon_ib *ib)
 {
 	struct radeon_ring *ring = &rdev->ring[ib->ring];
 
-	if (rdev->wb.enabled) {
+	if (rdev->wb.enabled)
+	{
 		u32 next_rptr = ring->wptr + 4;
+
 		while ((next_rptr & 7) != 5)
+		{
 			next_rptr++;
+		}
+
 		next_rptr += 3;
 		radeon_ring_write(ring, DMA_PACKET(DMA_PACKET_WRITE, 0, 1));
 		radeon_ring_write(ring, ring->next_rptr_gpu_addr & 0xfffffffc);
@@ -84,7 +89,10 @@ void evergreen_dma_ring_ib_execute(struct radeon_device *rdev,
 	 * Pad as necessary with NOPs.
 	 */
 	while ((ring->wptr & 7) != 5)
+	{
 		radeon_ring_write(ring, DMA_PACKET(DMA_PACKET_NOP, 0, 0));
+	}
+
 	radeon_ring_write(ring, DMA_PACKET(DMA_PACKET_INDIRECT_BUFFER, 0, 0));
 	radeon_ring_write(ring, (ib->gpu_addr & 0xFFFFFFE0));
 	radeon_ring_write(ring, (ib->length_dw << 12) | (upper_32_bits(ib->gpu_addr) & 0xFF));
@@ -105,10 +113,10 @@ void evergreen_dma_ring_ib_execute(struct radeon_device *rdev,
  * registered as the asic copy callback.
  */
 struct radeon_fence *evergreen_copy_dma(struct radeon_device *rdev,
-					uint64_t src_offset,
-					uint64_t dst_offset,
-					unsigned num_gpu_pages,
-					struct reservation_object *resv)
+										uint64_t src_offset,
+										uint64_t dst_offset,
+										unsigned num_gpu_pages,
+										struct reservation_object *resv)
 {
 	struct radeon_fence *fence;
 	struct radeon_sync sync;
@@ -123,7 +131,9 @@ struct radeon_fence *evergreen_copy_dma(struct radeon_device *rdev,
 	size_in_dw = (num_gpu_pages << RADEON_GPU_PAGE_SHIFT) / 4;
 	num_loops = DIV_ROUND_UP(size_in_dw, 0xfffff);
 	r = radeon_ring_lock(rdev, ring, num_loops * 5 + 11);
-	if (r) {
+
+	if (r)
+	{
 		DRM_ERROR("radeon: moving bo (%d).\n", r);
 		radeon_sync_free(rdev, &sync, NULL);
 		return ERR_PTR(r);
@@ -132,10 +142,15 @@ struct radeon_fence *evergreen_copy_dma(struct radeon_device *rdev,
 	radeon_sync_resv(rdev, &sync, resv, false);
 	radeon_sync_rings(rdev, &sync, ring->idx);
 
-	for (i = 0; i < num_loops; i++) {
+	for (i = 0; i < num_loops; i++)
+	{
 		cur_size_in_dw = size_in_dw;
+
 		if (cur_size_in_dw > 0xFFFFF)
+		{
 			cur_size_in_dw = 0xFFFFF;
+		}
+
 		size_in_dw -= cur_size_in_dw;
 		radeon_ring_write(ring, DMA_PACKET(DMA_PACKET_COPY, 0, cur_size_in_dw));
 		radeon_ring_write(ring, dst_offset & 0xfffffffc);
@@ -147,7 +162,9 @@ struct radeon_fence *evergreen_copy_dma(struct radeon_device *rdev,
 	}
 
 	r = radeon_fence_emit(rdev, &fence, ring->idx);
-	if (r) {
+
+	if (r)
+	{
 		radeon_ring_unlock_undo(rdev, ring);
 		radeon_sync_free(rdev, &sync, NULL);
 		return ERR_PTR(r);
@@ -172,10 +189,12 @@ bool evergreen_dma_is_lockup(struct radeon_device *rdev, struct radeon_ring *rin
 {
 	u32 reset_mask = evergreen_gpu_check_soft_reset(rdev);
 
-	if (!(reset_mask & RADEON_RESET_DMA)) {
+	if (!(reset_mask & RADEON_RESET_DMA))
+	{
 		radeon_ring_lockup_update(rdev, ring);
 		return false;
 	}
+
 	return radeon_ring_test_lockup(rdev, ring);
 }
 

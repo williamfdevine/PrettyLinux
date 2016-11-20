@@ -62,7 +62,8 @@
 #define PCI7X3X_DIO_REG		0x00
 #define PCI743X_DIO_REG		0x04
 
-enum apci1516_boardid {
+enum apci1516_boardid
+{
 	BOARD_PCI7230,
 	BOARD_PCI7233,
 	BOARD_PCI7234,
@@ -71,14 +72,16 @@ enum apci1516_boardid {
 	BOARD_PCI7434,
 };
 
-struct adl_pci7x3x_boardinfo {
+struct adl_pci7x3x_boardinfo
+{
 	const char *name;
 	int nsubdevs;
 	int di_nchan;
 	int do_nchan;
 };
 
-static const struct adl_pci7x3x_boardinfo adl_pci7x3x_boards[] = {
+static const struct adl_pci7x3x_boardinfo adl_pci7x3x_boards[] =
+{
 	[BOARD_PCI7230] = {
 		.name		= "adl_pci7230",
 		.nsubdevs	= 2,
@@ -114,16 +117,18 @@ static const struct adl_pci7x3x_boardinfo adl_pci7x3x_boards[] = {
 };
 
 static int adl_pci7x3x_do_insn_bits(struct comedi_device *dev,
-				    struct comedi_subdevice *s,
-				    struct comedi_insn *insn,
-				    unsigned int *data)
+									struct comedi_subdevice *s,
+									struct comedi_insn *insn,
+									unsigned int *data)
 {
 	unsigned long reg = (unsigned long)s->private;
 
-	if (comedi_dio_update_state(s, data)) {
+	if (comedi_dio_update_state(s, data))
+	{
 		unsigned int val = s->state;
 
-		if (s->n_chan == 16) {
+		if (s->n_chan == 16)
+		{
 			/*
 			 * It seems the PCI-7230 needs the 16-bit DO state
 			 * to be shifted left by 16 bits before being written
@@ -132,6 +137,7 @@ static int adl_pci7x3x_do_insn_bits(struct comedi_device *dev,
 			 */
 			val |= val << 16;
 		}
+
 		outl(val, dev->iobase + reg);
 	}
 
@@ -141,9 +147,9 @@ static int adl_pci7x3x_do_insn_bits(struct comedi_device *dev,
 }
 
 static int adl_pci7x3x_di_insn_bits(struct comedi_device *dev,
-				    struct comedi_subdevice *s,
-				    struct comedi_insn *insn,
-				    unsigned int *data)
+									struct comedi_subdevice *s,
+									struct comedi_insn *insn,
+									unsigned int *data)
 {
 	unsigned long reg = (unsigned long)s->private;
 
@@ -153,7 +159,7 @@ static int adl_pci7x3x_di_insn_bits(struct comedi_device *dev,
 }
 
 static int adl_pci7x3x_auto_attach(struct comedi_device *dev,
-				   unsigned long context)
+								   unsigned long context)
 {
 	struct pci_dev *pcidev = comedi_to_pci_dev(dev);
 	const struct adl_pci7x3x_boardinfo *board = NULL;
@@ -163,24 +169,38 @@ static int adl_pci7x3x_auto_attach(struct comedi_device *dev,
 	int ret;
 
 	if (context < ARRAY_SIZE(adl_pci7x3x_boards))
+	{
 		board = &adl_pci7x3x_boards[context];
+	}
+
 	if (!board)
+	{
 		return -ENODEV;
+	}
+
 	dev->board_ptr = board;
 	dev->board_name = board->name;
 
 	ret = comedi_pci_enable(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	dev->iobase = pci_resource_start(pcidev, 2);
 
 	ret = comedi_alloc_subdevices(dev, board->nsubdevs);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	subdev = 0;
 
-	if (board->di_nchan) {
+	if (board->di_nchan)
+	{
 		nchan = min(board->di_nchan, 32);
 
 		s = &dev->subdevices[subdev];
@@ -197,7 +217,9 @@ static int adl_pci7x3x_auto_attach(struct comedi_device *dev,
 		subdev++;
 
 		nchan = board->di_nchan - nchan;
-		if (nchan) {
+
+		if (nchan)
+		{
 			s = &dev->subdevices[subdev];
 			/* Isolated digital inputs 32 to 63 */
 			s->type		= COMEDI_SUBD_DI;
@@ -213,7 +235,8 @@ static int adl_pci7x3x_auto_attach(struct comedi_device *dev,
 		}
 	}
 
-	if (board->do_nchan) {
+	if (board->do_nchan)
+	{
 		nchan = min(board->do_nchan, 32);
 
 		s = &dev->subdevices[subdev];
@@ -230,7 +253,9 @@ static int adl_pci7x3x_auto_attach(struct comedi_device *dev,
 		subdev++;
 
 		nchan = board->do_nchan - nchan;
-		if (nchan) {
+
+		if (nchan)
+		{
 			s = &dev->subdevices[subdev];
 			/* Isolated digital outputs 32 to 63 */
 			s->type		= COMEDI_SUBD_DO;
@@ -249,7 +274,8 @@ static int adl_pci7x3x_auto_attach(struct comedi_device *dev,
 	return 0;
 }
 
-static struct comedi_driver adl_pci7x3x_driver = {
+static struct comedi_driver adl_pci7x3x_driver =
+{
 	.driver_name	= "adl_pci7x3x",
 	.module		= THIS_MODULE,
 	.auto_attach	= adl_pci7x3x_auto_attach,
@@ -257,13 +283,14 @@ static struct comedi_driver adl_pci7x3x_driver = {
 };
 
 static int adl_pci7x3x_pci_probe(struct pci_dev *dev,
-				 const struct pci_device_id *id)
+								 const struct pci_device_id *id)
 {
 	return comedi_pci_auto_config(dev, &adl_pci7x3x_driver,
-				      id->driver_data);
+								  id->driver_data);
 }
 
-static const struct pci_device_id adl_pci7x3x_pci_table[] = {
+static const struct pci_device_id adl_pci7x3x_pci_table[] =
+{
 	{ PCI_VDEVICE(ADLINK, 0x7230), BOARD_PCI7230 },
 	{ PCI_VDEVICE(ADLINK, 0x7233), BOARD_PCI7233 },
 	{ PCI_VDEVICE(ADLINK, 0x7234), BOARD_PCI7234 },
@@ -274,7 +301,8 @@ static const struct pci_device_id adl_pci7x3x_pci_table[] = {
 };
 MODULE_DEVICE_TABLE(pci, adl_pci7x3x_pci_table);
 
-static struct pci_driver adl_pci7x3x_pci_driver = {
+static struct pci_driver adl_pci7x3x_pci_driver =
+{
 	.name		= "adl_pci7x3x",
 	.id_table	= adl_pci7x3x_pci_table,
 	.probe		= adl_pci7x3x_pci_probe,

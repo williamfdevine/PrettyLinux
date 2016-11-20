@@ -9,7 +9,8 @@
 #include <linux/mod_devicetable.h>
 
 
-struct greybus_bundle_id {
+struct greybus_bundle_id
+{
 	__u16	match_flags;
 	__u32	vendor;
 	__u32	product;

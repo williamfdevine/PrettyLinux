@@ -25,22 +25,28 @@
 #include "dma.h"
 
 int samsung_asoc_dma_platform_register(struct device *dev, dma_filter_fn filter,
-				       const char *tx, const char *rx)
+									   const char *tx, const char *rx)
 {
 	unsigned int flags = SND_DMAENGINE_PCM_FLAG_COMPAT;
 	struct snd_dmaengine_pcm_config *pcm_conf;
 
 	pcm_conf = devm_kzalloc(dev, sizeof(*pcm_conf), GFP_KERNEL);
+
 	if (!pcm_conf)
+	{
 		return -ENOMEM;
+	}
 
 	pcm_conf->prepare_slave_config = snd_dmaengine_pcm_prepare_slave_config;
 	pcm_conf->compat_filter_fn = filter;
 
-	if (dev->of_node) {
+	if (dev->of_node)
+	{
 		pcm_conf->chan_names[SNDRV_PCM_STREAM_PLAYBACK] = tx;
 		pcm_conf->chan_names[SNDRV_PCM_STREAM_CAPTURE] = rx;
-	} else {
+	}
+	else
+	{
 		flags |= SND_DMAENGINE_PCM_FLAG_CUSTOM_CHANNEL_NAME;
 	}
 

@@ -20,7 +20,8 @@
 #ifndef __TDA665x_H
 #define __TDA665x_H
 
-struct tda665x_config {
+struct tda665x_config
+{
 	char name[128];
 
 	u8	addr;
@@ -34,14 +35,14 @@ struct tda665x_config {
 #if IS_REACHABLE(CONFIG_DVB_TDA665x)
 
 extern struct dvb_frontend *tda665x_attach(struct dvb_frontend *fe,
-					   const struct tda665x_config *config,
-					   struct i2c_adapter *i2c);
+		const struct tda665x_config *config,
+		struct i2c_adapter *i2c);
 
 #else
 
 static inline struct dvb_frontend *tda665x_attach(struct dvb_frontend *fe,
-						  const struct tda665x_config *config,
-						  struct i2c_adapter *i2c)
+		const struct tda665x_config *config,
+		struct i2c_adapter *i2c)
 {
 	printk(KERN_WARNING "%s: Driver disabled by Kconfig\n", __func__);
 	return NULL;

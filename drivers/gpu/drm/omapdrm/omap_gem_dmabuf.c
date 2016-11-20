@@ -26,8 +26,8 @@
  */
 
 static struct sg_table *omap_gem_map_dma_buf(
-		struct dma_buf_attachment *attachment,
-		enum dma_data_direction dir)
+	struct dma_buf_attachment *attachment,
+	enum dma_data_direction dir)
 {
 	struct drm_gem_object *obj = attachment->dmabuf->priv;
 	struct sg_table *sg;
@@ -35,19 +35,28 @@ static struct sg_table *omap_gem_map_dma_buf(
 	int ret;
 
 	sg = kzalloc(sizeof(*sg), GFP_KERNEL);
+
 	if (!sg)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	/* camera, etc, need physically contiguous.. but we need a
 	 * better way to know this..
 	 */
 	ret = omap_gem_get_paddr(obj, &paddr, true);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	ret = sg_alloc_table(sg, 1, GFP_KERNEL);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	sg_init_table(sg->sgl, 1);
 	sg_dma_len(sg->sgl) = obj->size;
@@ -64,7 +73,7 @@ out:
 }
 
 static void omap_gem_unmap_dma_buf(struct dma_buf_attachment *attachment,
-		struct sg_table *sg, enum dma_data_direction dir)
+								   struct sg_table *sg, enum dma_data_direction dir)
 {
 	struct drm_gem_object *obj = attachment->dmabuf->priv;
 	omap_gem_put_paddr(obj);
@@ -87,18 +96,21 @@ static int omap_gem_dmabuf_begin_cpu_access(struct dma_buf *buffer,
 {
 	struct drm_gem_object *obj = buffer->priv;
 	struct page **pages;
-	if (omap_gem_flags(obj) & OMAP_BO_TILED) {
+
+	if (omap_gem_flags(obj) & OMAP_BO_TILED)
+	{
 		/* TODO we would need to pin at least part of the buffer to
 		 * get de-tiled view.  For now just reject it.
 		 */
 		return -ENOMEM;
 	}
+
 	/* make sure we have the pages: */
 	return omap_gem_get_pages(obj, &pages, true);
 }
 
 static int omap_gem_dmabuf_end_cpu_access(struct dma_buf *buffer,
-					  enum dma_data_direction dir)
+		enum dma_data_direction dir)
 {
 	struct drm_gem_object *obj = buffer->priv;
 	omap_gem_put_pages(obj);
@@ -123,7 +135,7 @@ static void omap_gem_dmabuf_kunmap_atomic(struct dma_buf *buffer,
 }
 
 static void *omap_gem_dmabuf_kmap(struct dma_buf *buffer,
-		unsigned long page_num)
+								  unsigned long page_num)
 {
 	struct drm_gem_object *obj = buffer->priv;
 	struct page **pages;
@@ -133,7 +145,7 @@ static void *omap_gem_dmabuf_kmap(struct dma_buf *buffer,
 }
 
 static void omap_gem_dmabuf_kunmap(struct dma_buf *buffer,
-		unsigned long page_num, void *addr)
+								   unsigned long page_num, void *addr)
 {
 	struct drm_gem_object *obj = buffer->priv;
 	struct page **pages;
@@ -142,22 +154,28 @@ static void omap_gem_dmabuf_kunmap(struct dma_buf *buffer,
 }
 
 static int omap_gem_dmabuf_mmap(struct dma_buf *buffer,
-		struct vm_area_struct *vma)
+								struct vm_area_struct *vma)
 {
 	struct drm_gem_object *obj = buffer->priv;
 	int ret = 0;
 
 	if (WARN_ON(!obj->filp))
+	{
 		return -EINVAL;
+	}
 
 	ret = drm_gem_mmap_obj(obj, omap_gem_mmap_size(obj), vma);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return omap_gem_mmap_obj(obj, vma);
 }
 
-static struct dma_buf_ops omap_dmabuf_ops = {
+static struct dma_buf_ops omap_dmabuf_ops =
+{
 	.map_dma_buf = omap_gem_map_dma_buf,
 	.unmap_dma_buf = omap_gem_unmap_dma_buf,
 	.release = omap_gem_dmabuf_release,
@@ -171,7 +189,7 @@ static struct dma_buf_ops omap_dmabuf_ops = {
 };
 
 struct dma_buf *omap_gem_prime_export(struct drm_device *dev,
-		struct drm_gem_object *obj, int flags)
+									  struct drm_gem_object *obj, int flags)
 {
 	DEFINE_DMA_BUF_EXPORT_INFO(exp_info);
 
@@ -188,16 +206,19 @@ struct dma_buf *omap_gem_prime_export(struct drm_device *dev,
  */
 
 struct drm_gem_object *omap_gem_prime_import(struct drm_device *dev,
-					     struct dma_buf *dma_buf)
+		struct dma_buf *dma_buf)
 {
 	struct dma_buf_attachment *attach;
 	struct drm_gem_object *obj;
 	struct sg_table *sgt;
 	int ret;
 
-	if (dma_buf->ops == &omap_dmabuf_ops) {
+	if (dma_buf->ops == &omap_dmabuf_ops)
+	{
 		obj = dma_buf->priv;
-		if (obj->dev == dev) {
+
+		if (obj->dev == dev)
+		{
 			/*
 			 * Importing dmabuf exported from out own gem increases
 			 * refcount on gem itself instead of f_count of dmabuf.
@@ -208,19 +229,26 @@ struct drm_gem_object *omap_gem_prime_import(struct drm_device *dev,
 	}
 
 	attach = dma_buf_attach(dma_buf, dev->dev);
+
 	if (IS_ERR(attach))
+	{
 		return ERR_CAST(attach);
+	}
 
 	get_dma_buf(dma_buf);
 
 	sgt = dma_buf_map_attachment(attach, DMA_BIDIRECTIONAL);
-	if (IS_ERR(sgt)) {
+
+	if (IS_ERR(sgt))
+	{
 		ret = PTR_ERR(sgt);
 		goto fail_detach;
 	}
 
 	obj = omap_gem_new_dmabuf(dev, dma_buf->size, sgt);
-	if (IS_ERR(obj)) {
+
+	if (IS_ERR(obj))
+	{
 		ret = PTR_ERR(obj);
 		goto fail_unmap;
 	}

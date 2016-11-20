@@ -31,13 +31,13 @@ void xfs_debug(const struct xfs_mount *mp, const char *fmt, ...)
 #endif
 
 #define xfs_printk_ratelimited(func, dev, fmt, ...)		\
-do {									\
-	static DEFINE_RATELIMIT_STATE(_rs,				\
-				      DEFAULT_RATELIMIT_INTERVAL,	\
-				      DEFAULT_RATELIMIT_BURST);		\
-	if (__ratelimit(&_rs))						\
-		func(dev, fmt, ##__VA_ARGS__);			\
-} while (0)
+	do {									\
+		static DEFINE_RATELIMIT_STATE(_rs,				\
+									  DEFAULT_RATELIMIT_INTERVAL,	\
+									  DEFAULT_RATELIMIT_BURST);		\
+		if (__ratelimit(&_rs))						\
+			func(dev, fmt, ##__VA_ARGS__);			\
+	} while (0)
 
 #define xfs_emerg_ratelimited(dev, fmt, ...)				\
 	xfs_printk_ratelimited(xfs_emerg, dev, fmt, ##__VA_ARGS__)

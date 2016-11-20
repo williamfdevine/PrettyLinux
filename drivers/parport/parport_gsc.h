@@ -43,14 +43,14 @@
 #else
 static __inline__ unsigned char parport_readb( unsigned long port )
 {
-    udelay(DELAY_TIME);
-    return gsc_readb(port);
+	udelay(DELAY_TIME);
+	return gsc_readb(port);
 }
 
 static __inline__ void parport_writeb( unsigned char value, unsigned long port )
 {
-    gsc_writeb(value,port);
-    udelay(DELAY_TIME);
+	gsc_writeb(value, port);
+	udelay(DELAY_TIME);
 }
 #endif
 
@@ -62,7 +62,8 @@ static __inline__ void parport_writeb( unsigned char value, unsigned long port )
 #define STATUS(p)   ((p)->base    + 0x1)
 #define DATA(p)     ((p)->base    + 0x0)
 
-struct parport_gsc_private {
+struct parport_gsc_private
+{
 	/* Contents of CTR. */
 	unsigned char ctr;
 
@@ -95,7 +96,7 @@ static inline unsigned char parport_gsc_read_data(struct parport *p)
 	unsigned char val = parport_readb (DATA (p));
 #ifdef DEBUG_PARPORT
 	printk (KERN_DEBUG "parport_gsc_read_data(%p) = 0x%02x\n",
-		p, val);
+			p, val);
 #endif
 	return val;
 }
@@ -103,15 +104,15 @@ static inline unsigned char parport_gsc_read_data(struct parport *p)
 /* __parport_gsc_frob_control differs from parport_gsc_frob_control in that
  * it doesn't do any extra masking. */
 static inline unsigned char __parport_gsc_frob_control(struct parport *p,
-							unsigned char mask,
-							unsigned char val)
+		unsigned char mask,
+		unsigned char val)
 {
 	struct parport_gsc_private *priv = p->physport->private_data;
 	unsigned char ctr = priv->ctr;
 #ifdef DEBUG_PARPORT
 	printk (KERN_DEBUG
-		"__parport_gsc_frob_control(%02x,%02x): %02x -> %02x\n",
-		mask, val, ctr, ((ctr & ~mask) ^ val) & priv->ctr_writable);
+			"__parport_gsc_frob_control(%02x,%02x): %02x -> %02x\n",
+			mask, val, ctr, ((ctr & ~mask) ^ val) & priv->ctr_writable);
 #endif
 	ctr = (ctr & ~mask) ^ val;
 	ctr &= priv->ctr_writable; /* only write writable bits. */
@@ -131,17 +132,18 @@ static inline void parport_gsc_data_forward(struct parport *p)
 }
 
 static inline void parport_gsc_write_control(struct parport *p,
-						 unsigned char d)
+		unsigned char d)
 {
 	const unsigned char wm = (PARPORT_CONTROL_STROBE |
-				  PARPORT_CONTROL_AUTOFD |
-				  PARPORT_CONTROL_INIT |
-				  PARPORT_CONTROL_SELECT);
+							  PARPORT_CONTROL_AUTOFD |
+							  PARPORT_CONTROL_INIT |
+							  PARPORT_CONTROL_SELECT);
 
 	/* Take this out when drivers have adapted to newer interface. */
-	if (d & 0x20) {
+	if (d & 0x20)
+	{
 		printk (KERN_DEBUG "%s (%s): use data_reverse for this!\n",
-			p->name, p->cad->name);
+				p->name, p->cad->name);
 		parport_gsc_data_reverse (p);
 	}
 
@@ -151,31 +153,37 @@ static inline void parport_gsc_write_control(struct parport *p,
 static inline unsigned char parport_gsc_read_control(struct parport *p)
 {
 	const unsigned char rm = (PARPORT_CONTROL_STROBE |
-				  PARPORT_CONTROL_AUTOFD |
-				  PARPORT_CONTROL_INIT |
-				  PARPORT_CONTROL_SELECT);
+							  PARPORT_CONTROL_AUTOFD |
+							  PARPORT_CONTROL_INIT |
+							  PARPORT_CONTROL_SELECT);
 	const struct parport_gsc_private *priv = p->physport->private_data;
 	return priv->ctr & rm; /* Use soft copy */
 }
 
 static inline unsigned char parport_gsc_frob_control(struct parport *p,
-							unsigned char mask,
-							unsigned char val)
+		unsigned char mask,
+		unsigned char val)
 {
 	const unsigned char wm = (PARPORT_CONTROL_STROBE |
-				  PARPORT_CONTROL_AUTOFD |
-				  PARPORT_CONTROL_INIT |
-				  PARPORT_CONTROL_SELECT);
+							  PARPORT_CONTROL_AUTOFD |
+							  PARPORT_CONTROL_INIT |
+							  PARPORT_CONTROL_SELECT);
 
 	/* Take this out when drivers have adapted to newer interface. */
-	if (mask & 0x20) {
+	if (mask & 0x20)
+	{
 		printk (KERN_DEBUG "%s (%s): use data_%s for this!\n",
-			p->name, p->cad->name,
-			(val & 0x20) ? "reverse" : "forward");
+				p->name, p->cad->name,
+				(val & 0x20) ? "reverse" : "forward");
+
 		if (val & 0x20)
+		{
 			parport_gsc_data_reverse (p);
+		}
 		else
+		{
 			parport_gsc_data_forward (p);
+		}
 	}
 
 	/* Restrict mask and val to control lines. */
@@ -215,8 +223,8 @@ extern void parport_gsc_inc_use_count(void);
 extern void parport_gsc_dec_use_count(void);
 
 extern struct parport *parport_gsc_probe_port(unsigned long base,
-						unsigned long base_hi,
-						int irq, int dma,
-						struct parisc_device *padev);
+		unsigned long base_hi,
+		int irq, int dma,
+		struct parisc_device *padev);
 
 #endif	/* __DRIVERS_PARPORT_PARPORT_GSC_H */

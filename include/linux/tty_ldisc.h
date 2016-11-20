@@ -123,7 +123,8 @@
 /*
  * the semaphore definition
  */
-struct ld_semaphore {
+struct ld_semaphore
+{
 	long			count;
 	raw_spinlock_t		wait_lock;
 	unsigned int		wait_readers;
@@ -135,14 +136,14 @@ struct ld_semaphore {
 };
 
 extern void __init_ldsem(struct ld_semaphore *sem, const char *name,
-			 struct lock_class_key *key);
+						 struct lock_class_key *key);
 
 #define init_ldsem(sem)						\
-do {								\
-	static struct lock_class_key __key;			\
-								\
-	__init_ldsem((sem), #sem, &__key);			\
-} while (0)
+	do {								\
+		static struct lock_class_key __key;			\
+		\
+		__init_ldsem((sem), #sem, &__key);			\
+	} while (0)
 
 
 extern int ldsem_down_read(struct ld_semaphore *sem, long timeout);
@@ -154,18 +155,19 @@ extern void ldsem_up_write(struct ld_semaphore *sem);
 
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
 extern int ldsem_down_read_nested(struct ld_semaphore *sem, int subclass,
-				  long timeout);
+								  long timeout);
 extern int ldsem_down_write_nested(struct ld_semaphore *sem, int subclass,
-				   long timeout);
+								   long timeout);
 #else
 # define ldsem_down_read_nested(sem, subclass, timeout)		\
-		ldsem_down_read(sem, timeout)
+	ldsem_down_read(sem, timeout)
 # define ldsem_down_write_nested(sem, subclass, timeout)	\
-		ldsem_down_write(sem, timeout)
+	ldsem_down_write(sem, timeout)
 #endif
 
 
-struct tty_ldisc_ops {
+struct tty_ldisc_ops
+{
 	int	magic;
 	char	*name;
 	int	num;
@@ -178,34 +180,35 @@ struct tty_ldisc_ops {
 	void	(*close)(struct tty_struct *);
 	void	(*flush_buffer)(struct tty_struct *tty);
 	ssize_t	(*read)(struct tty_struct *tty, struct file *file,
-			unsigned char __user *buf, size_t nr);
+					unsigned char __user *buf, size_t nr);
 	ssize_t	(*write)(struct tty_struct *tty, struct file *file,
-			 const unsigned char *buf, size_t nr);
+					 const unsigned char *buf, size_t nr);
 	int	(*ioctl)(struct tty_struct *tty, struct file *file,
-			 unsigned int cmd, unsigned long arg);
+				 unsigned int cmd, unsigned long arg);
 	long	(*compat_ioctl)(struct tty_struct *tty, struct file *file,
-				unsigned int cmd, unsigned long arg);
+							unsigned int cmd, unsigned long arg);
 	void	(*set_termios)(struct tty_struct *tty, struct ktermios *old);
 	unsigned int (*poll)(struct tty_struct *, struct file *,
-			     struct poll_table_struct *);
+						 struct poll_table_struct *);
 	int	(*hangup)(struct tty_struct *tty);
 
 	/*
 	 * The following routines are called from below.
 	 */
 	void	(*receive_buf)(struct tty_struct *, const unsigned char *cp,
-			       char *fp, int count);
+						   char *fp, int count);
 	void	(*write_wakeup)(struct tty_struct *);
 	void	(*dcd_change)(struct tty_struct *, unsigned int);
 	int	(*receive_buf2)(struct tty_struct *, const unsigned char *cp,
-				char *fp, int count);
+						char *fp, int count);
 
 	struct  module *owner;
 
 	int refcount;
 };
 
-struct tty_ldisc {
+struct tty_ldisc
+{
 	struct tty_ldisc_ops *ops;
 	struct tty_struct *tty;
 };

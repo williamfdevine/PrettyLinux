@@ -41,7 +41,8 @@
 #ifndef _PM8001_DEFS_H_
 #define _PM8001_DEFS_H_
 
-enum chip_flavors {
+enum chip_flavors
+{
 	chip_8001,
 	chip_8008,
 	chip_8009,
@@ -55,21 +56,24 @@ enum chip_flavors {
 	chip_8072
 };
 
-enum phy_speed {
+enum phy_speed
+{
 	PHY_SPEED_15 = 0x01,
 	PHY_SPEED_30 = 0x02,
 	PHY_SPEED_60 = 0x04,
 	PHY_SPEED_120 = 0x08,
 };
 
-enum data_direction {
+enum data_direction
+{
 	DATA_DIR_NONE = 0x0,	/* NO TRANSFER */
 	DATA_DIR_IN = 0x01,	/* INBOUND */
 	DATA_DIR_OUT = 0x02,	/* OUTBOUND */
 	DATA_DIR_BYRECIPIENT = 0x04, /* UNSPECIFIED */
 };
 
-enum port_type {
+enum port_type
+{
 	PORT_TYPE_SAS = (1L << 1),
 	PORT_TYPE_SATA = (1L << 0),
 };
@@ -100,7 +104,8 @@ enum port_type {
 #define PI			(OB + PM8001_MAX_SPCV_OUTB_NUM)
 #define USI_MAX_MEMCNT		(PI + PM8001_MAX_SPCV_OUTB_NUM)
 #define PM8001_MAX_DMA_SG	SG_ALL
-enum memory_region_num {
+enum memory_region_num
+{
 	AAP1 = 0x0, /* application acceleration processor */
 	IOP,	    /* IO processor */
 	NVMD,	    /* NVM device */
@@ -112,7 +117,8 @@ enum memory_region_num {
 #define	PM8001_EVENT_LOG_SIZE	 (128 * 1024)
 
 /*error code*/
-enum mpi_err {
+enum mpi_err
+{
 	MPI_IO_STATUS_SUCCESS = 0x0,
 	MPI_IO_STATUS_BUSY = 0x01,
 	MPI_IO_STATUS_FAIL = 0x02,
@@ -121,13 +127,15 @@ enum mpi_err {
 /**
  * Phy Control constants
  */
-enum phy_control_type {
+enum phy_control_type
+{
 	PHY_LINK_RESET = 0x01,
 	PHY_HARD_RESET = 0x02,
 	PHY_NOTIFY_ENABLE_SPINUP = 0x10,
 };
 
-enum pm8001_hba_info_flags {
+enum pm8001_hba_info_flags
+{
 	PM8001F_INIT_TIME	= (1U << 0),
 	PM8001F_RUN_TIME	= (1U << 1),
 };

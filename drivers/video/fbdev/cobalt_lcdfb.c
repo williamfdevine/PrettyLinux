@@ -88,20 +88,29 @@ static int lcd_busy_wait(struct fb_info *info)
 	u8 val = 0;
 	int timeout = 10, retval = 0;
 
-	do {
+	do
+	{
 		val = lcd_read_control(info);
 		val &= LCD_BUSY;
+
 		if (val != LCD_BUSY)
+		{
 			break;
+		}
 
 		if (msleep_interruptible(1))
+		{
 			return -EINTR;
+		}
 
 		timeout--;
-	} while (timeout);
+	}
+	while (timeout);
 
 	if (val == LCD_BUSY)
+	{
 		retval = -EBUSY;
+	}
 
 	return retval;
 }
@@ -110,7 +119,8 @@ static void lcd_clear(struct fb_info *info)
 {
 	int i;
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		udelay(150);
 
 		lcd_write_control(info, LCD_PRERESET);
@@ -125,7 +135,8 @@ static void lcd_clear(struct fb_info *info)
 	lcd_write_control(info, LCD_RESET);
 }
 
-static struct fb_fix_screeninfo cobalt_lcdfb_fix = {
+static struct fb_fix_screeninfo cobalt_lcdfb_fix =
+{
 	.id		= "cobalt-lcd",
 	.type		= FB_TYPE_TEXT,
 	.type_aux	= FB_AUX_TEXT_MDA,
@@ -135,45 +146,68 @@ static struct fb_fix_screeninfo cobalt_lcdfb_fix = {
 };
 
 static ssize_t cobalt_lcdfb_read(struct fb_info *info, char __user *buf,
-				 size_t count, loff_t *ppos)
+								 size_t count, loff_t *ppos)
 {
 	char src[LCD_CHARS_MAX];
 	unsigned long pos;
 	int len, retval = 0;
 
 	pos = *ppos;
+
 	if (pos >= LCD_CHARS_MAX || count == 0)
+	{
 		return 0;
+	}
 
 	if (count > LCD_CHARS_MAX)
+	{
 		count = LCD_CHARS_MAX;
+	}
 
 	if (pos + count > LCD_CHARS_MAX)
+	{
 		count = LCD_CHARS_MAX - pos;
+	}
 
-	for (len = 0; len < count; len++) {
+	for (len = 0; len < count; len++)
+	{
 		retval = lcd_busy_wait(info);
+
 		if (retval < 0)
+		{
 			break;
+		}
 
 		lcd_write_control(info, LCD_TEXT_POS(pos));
 
 		retval = lcd_busy_wait(info);
+
 		if (retval < 0)
+		{
 			break;
+		}
 
 		src[len] = lcd_read_data(info);
+
 		if (pos == 0x0f)
+		{
 			pos = 0x40;
+		}
 		else
+		{
 			pos++;
+		}
 	}
 
 	if (retval < 0 && signal_pending(current))
+	{
 		return -ERESTARTSYS;
+	}
 
 	if (copy_to_user(buf, src, len))
+	{
 		return -EFAULT;
+	}
 
 	*ppos += len;
 
@@ -181,45 +215,68 @@ static ssize_t cobalt_lcdfb_read(struct fb_info *info, char __user *buf,
 }
 
 static ssize_t cobalt_lcdfb_write(struct fb_info *info, const char __user *buf,
-				  size_t count, loff_t *ppos)
+								  size_t count, loff_t *ppos)
 {
 	char dst[LCD_CHARS_MAX];
 	unsigned long pos;
 	int len, retval = 0;
 
 	pos = *ppos;
+
 	if (pos >= LCD_CHARS_MAX || count == 0)
+	{
 		return 0;
+	}
 
 	if (count > LCD_CHARS_MAX)
+	{
 		count = LCD_CHARS_MAX;
+	}
 
 	if (pos + count > LCD_CHARS_MAX)
+	{
 		count = LCD_CHARS_MAX - pos;
+	}
 
 	if (copy_from_user(dst, buf, count))
+	{
 		return -EFAULT;
+	}
 
-	for (len = 0; len < count; len++) {
+	for (len = 0; len < count; len++)
+	{
 		retval = lcd_busy_wait(info);
+
 		if (retval < 0)
+		{
 			break;
+		}
 
 		lcd_write_control(info, LCD_TEXT_POS(pos));
 
 		retval = lcd_busy_wait(info);
+
 		if (retval < 0)
+		{
 			break;
+		}
 
 		lcd_write_data(info, dst[len]);
+
 		if (pos == 0x0f)
+		{
 			pos = 0x40;
+		}
 		else
+		{
 			pos++;
+		}
 	}
 
 	if (retval < 0 && signal_pending(current))
+	{
 		return -ERESTARTSYS;
+	}
 
 	*ppos += len;
 
@@ -231,16 +288,21 @@ static int cobalt_lcdfb_blank(int blank_mode, struct fb_info *info)
 	int retval;
 
 	retval = lcd_busy_wait(info);
-	if (retval < 0)
-		return retval;
 
-	switch (blank_mode) {
-	case FB_BLANK_UNBLANK:
-		lcd_write_control(info, LCD_ON);
-		break;
-	default:
-		lcd_write_control(info, LCD_OFF);
-		break;
+	if (retval < 0)
+	{
+		return retval;
+	}
+
+	switch (blank_mode)
+	{
+		case FB_BLANK_UNBLANK:
+			lcd_write_control(info, LCD_ON);
+			break;
+
+		default:
+			lcd_write_control(info, LCD_OFF);
+			break;
 	}
 
 	return 0;
@@ -251,37 +313,53 @@ static int cobalt_lcdfb_cursor(struct fb_info *info, struct fb_cursor *cursor)
 	u32 x, y;
 	int retval;
 
-	switch (cursor->set) {
-	case FB_CUR_SETPOS:
-		x = cursor->image.dx;
-		y = cursor->image.dy;
-		if (x >= LCD_XRES_MAX || y >= LCD_YRES_MAX)
+	switch (cursor->set)
+	{
+		case FB_CUR_SETPOS:
+			x = cursor->image.dx;
+			y = cursor->image.dy;
+
+			if (x >= LCD_XRES_MAX || y >= LCD_YRES_MAX)
+			{
+				return -EINVAL;
+			}
+
+			retval = lcd_busy_wait(info);
+
+			if (retval < 0)
+			{
+				return retval;
+			}
+
+			lcd_write_control(info,
+							  LCD_TEXT_POS(info->fix.line_length * y + x));
+			break;
+
+		default:
 			return -EINVAL;
-
-		retval = lcd_busy_wait(info);
-		if (retval < 0)
-			return retval;
-
-		lcd_write_control(info,
-				  LCD_TEXT_POS(info->fix.line_length * y + x));
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	retval = lcd_busy_wait(info);
+
 	if (retval < 0)
+	{
 		return retval;
+	}
 
 	if (cursor->enable)
+	{
 		lcd_write_control(info, LCD_CURSOR_ON);
+	}
 	else
+	{
 		lcd_write_control(info, LCD_CURSOR_OFF);
+	}
 
 	return 0;
 }
 
-static struct fb_ops cobalt_lcd_fbops = {
+static struct fb_ops cobalt_lcd_fbops =
+{
 	.owner		= THIS_MODULE,
 	.fb_read	= cobalt_lcdfb_read,
 	.fb_write	= cobalt_lcdfb_write,
@@ -296,18 +374,23 @@ static int cobalt_lcdfb_probe(struct platform_device *dev)
 	int retval;
 
 	info = framebuffer_alloc(0, &dev->dev);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(dev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		framebuffer_release(info);
 		return -EBUSY;
 	}
 
 	info->screen_size = resource_size(res);
 	info->screen_base = devm_ioremap(&dev->dev, res->start,
-					 info->screen_size);
+									 info->screen_size);
 	info->fbops = &cobalt_lcd_fbops;
 	info->fix = cobalt_lcdfb_fix;
 	info->fix.smem_start = res->start;
@@ -317,7 +400,9 @@ static int cobalt_lcdfb_probe(struct platform_device *dev)
 	info->flags = FBINFO_DEFAULT;
 
 	retval = register_framebuffer(info);
-	if (retval < 0) {
+
+	if (retval < 0)
+	{
 		framebuffer_release(info);
 		return retval;
 	}
@@ -336,7 +421,9 @@ static int cobalt_lcdfb_remove(struct platform_device *dev)
 	struct fb_info *info;
 
 	info = platform_get_drvdata(dev);
-	if (info) {
+
+	if (info)
+	{
 		unregister_framebuffer(info);
 		framebuffer_release(info);
 	}
@@ -344,7 +431,8 @@ static int cobalt_lcdfb_remove(struct platform_device *dev)
 	return 0;
 }
 
-static struct platform_driver cobalt_lcdfb_driver = {
+static struct platform_driver cobalt_lcdfb_driver =
+{
 	.probe	= cobalt_lcdfb_probe,
 	.remove	= cobalt_lcdfb_remove,
 	.driver	= {

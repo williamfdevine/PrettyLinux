@@ -13,12 +13,14 @@
 
 /* Convert Sharp data to a scancode */
 static int img_ir_sharp_scancode(int len, u64 raw, u64 enabled_protocols,
-				 struct img_ir_scancode_req *request)
+								 struct img_ir_scancode_req *request)
 {
 	unsigned int addr, cmd, exp, chk;
 
 	if (len != 15)
+	{
 		return -EINVAL;
+	}
 
 	addr = (raw >>   0) & 0x1f;
 	cmd  = (raw >>   5) & 0xff;
@@ -27,10 +29,15 @@ static int img_ir_sharp_scancode(int len, u64 raw, u64 enabled_protocols,
 
 	/* validate data */
 	if (!exp)
+	{
 		return -EINVAL;
+	}
+
 	if (chk)
 		/* probably the second half of the message */
+	{
 		return -EINVAL;
+	}
 
 	request->protocol = RC_TYPE_SHARP;
 	request->scancode = addr << 8 | cmd;
@@ -39,7 +46,7 @@ static int img_ir_sharp_scancode(int len, u64 raw, u64 enabled_protocols,
 
 /* Convert Sharp scancode to Sharp data filter */
 static int img_ir_sharp_filter(const struct rc_scancode_filter *in,
-			       struct img_ir_filter *out, u64 protocols)
+							   struct img_ir_filter *out, u64 protocols)
 {
 	unsigned int addr, cmd, exp = 0, chk = 0;
 	unsigned int addr_m, cmd_m, exp_m = 0, chk_m = 0;
@@ -48,7 +55,9 @@ static int img_ir_sharp_filter(const struct rc_scancode_filter *in,
 	addr_m = (in->mask >> 8) & 0x1f;
 	cmd    = (in->data >> 0) & 0xff;
 	cmd_m  = (in->mask >> 0) & 0xff;
-	if (cmd_m) {
+
+	if (cmd_m)
+	{
 		/* if filtering commands, we can only match the first part */
 		exp   = 1;
 		exp_m = 1;
@@ -57,13 +66,13 @@ static int img_ir_sharp_filter(const struct rc_scancode_filter *in,
 	}
 
 	out->data = addr        |
-		    cmd   <<  5 |
-		    exp   << 13 |
-		    chk   << 14;
+				cmd   <<  5 |
+				exp   << 13 |
+				chk   << 14;
 	out->mask = addr_m      |
-		    cmd_m <<  5 |
-		    exp_m << 13 |
-		    chk_m << 14;
+				cmd_m <<  5 |
+				exp_m << 13 |
+				chk_m << 14;
 
 	return 0;
 }
@@ -72,7 +81,8 @@ static int img_ir_sharp_filter(const struct rc_scancode_filter *in,
  * Sharp decoder
  * See also http://www.sbprojects.com/knowledge/ir/sharp.php
  */
-struct img_ir_decoder img_ir_sharp = {
+struct img_ir_decoder img_ir_sharp =
+{
 	.type = RC_BIT_SHARP,
 	.control = {
 		.decoden = 0,

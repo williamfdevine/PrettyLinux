@@ -117,16 +117,16 @@
 # include "test-pthread-attr-setaffinity-np.c"
 #undef main
 
-# if 0
-/*
- * Disable libbabeltrace check for test-all, because the requested
- * library version is not released yet in most distributions. Will
- * reenable later.
- */
+#if 0
+	/*
+	* Disable libbabeltrace check for test-all, because the requested
+	* library version is not released yet in most distributions. Will
+	* reenable later.
+	*/
 
-#define main main_test_libbabeltrace
-# include "test-libbabeltrace.c"
-#undef main
+	#define main main_test_libbabeltrace
+	#include "test-libbabeltrace.c"
+	#undef main
 #endif
 
 #define main main_test_lzma

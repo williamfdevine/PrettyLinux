@@ -19,172 +19,172 @@
 #include <linux/timecounter.h>
 
 #if defined(CONFIG_M523x) || defined(CONFIG_M527x) || defined(CONFIG_M528x) || \
-    defined(CONFIG_M520x) || defined(CONFIG_M532x) || defined(CONFIG_ARM)
-/*
- *	Just figures, Motorola would have to change the offsets for
- *	registers in the same peripheral device on different models
- *	of the ColdFire!
- */
-#define FEC_IEVENT		0x004 /* Interrupt event reg */
-#define FEC_IMASK		0x008 /* Interrupt mask reg */
-#define FEC_R_DES_ACTIVE_0	0x010 /* Receive descriptor reg */
-#define FEC_X_DES_ACTIVE_0	0x014 /* Transmit descriptor reg */
-#define FEC_ECNTRL		0x024 /* Ethernet control reg */
-#define FEC_MII_DATA		0x040 /* MII manage frame reg */
-#define FEC_MII_SPEED		0x044 /* MII speed control reg */
-#define FEC_MIB_CTRLSTAT	0x064 /* MIB control/status reg */
-#define FEC_R_CNTRL		0x084 /* Receive control reg */
-#define FEC_X_CNTRL		0x0c4 /* Transmit Control reg */
-#define FEC_ADDR_LOW		0x0e4 /* Low 32bits MAC address */
-#define FEC_ADDR_HIGH		0x0e8 /* High 16bits MAC address */
-#define FEC_OPD			0x0ec /* Opcode + Pause duration */
-#define FEC_TXIC0		0x0f0 /* Tx Interrupt Coalescing for ring 0 */
-#define FEC_TXIC1		0x0f4 /* Tx Interrupt Coalescing for ring 1 */
-#define FEC_TXIC2		0x0f8 /* Tx Interrupt Coalescing for ring 2 */
-#define FEC_RXIC0		0x100 /* Rx Interrupt Coalescing for ring 0 */
-#define FEC_RXIC1		0x104 /* Rx Interrupt Coalescing for ring 1 */
-#define FEC_RXIC2		0x108 /* Rx Interrupt Coalescing for ring 2 */
-#define FEC_HASH_TABLE_HIGH	0x118 /* High 32bits hash table */
-#define FEC_HASH_TABLE_LOW	0x11c /* Low 32bits hash table */
-#define FEC_GRP_HASH_TABLE_HIGH	0x120 /* High 32bits hash table */
-#define FEC_GRP_HASH_TABLE_LOW	0x124 /* Low 32bits hash table */
-#define FEC_X_WMRK		0x144 /* FIFO transmit water mark */
-#define FEC_R_BOUND		0x14c /* FIFO receive bound reg */
-#define FEC_R_FSTART		0x150 /* FIFO receive start reg */
-#define FEC_R_DES_START_1	0x160 /* Receive descriptor ring 1 */
-#define FEC_X_DES_START_1	0x164 /* Transmit descriptor ring 1 */
-#define FEC_R_BUFF_SIZE_1	0x168 /* Maximum receive buff ring1 size */
-#define FEC_R_DES_START_2	0x16c /* Receive descriptor ring 2 */
-#define FEC_X_DES_START_2	0x170 /* Transmit descriptor ring 2 */
-#define FEC_R_BUFF_SIZE_2	0x174 /* Maximum receive buff ring2 size */
-#define FEC_R_DES_START_0	0x180 /* Receive descriptor ring */
-#define FEC_X_DES_START_0	0x184 /* Transmit descriptor ring */
-#define FEC_R_BUFF_SIZE_0	0x188 /* Maximum receive buff size */
-#define FEC_R_FIFO_RSFL		0x190 /* Receive FIFO section full threshold */
-#define FEC_R_FIFO_RSEM		0x194 /* Receive FIFO section empty threshold */
-#define FEC_R_FIFO_RAEM		0x198 /* Receive FIFO almost empty threshold */
-#define FEC_R_FIFO_RAFL		0x19c /* Receive FIFO almost full threshold */
-#define FEC_FTRL		0x1b0 /* Frame truncation receive length*/
-#define FEC_RACC		0x1c4 /* Receive Accelerator function */
-#define FEC_RCMR_1		0x1c8 /* Receive classification match ring 1 */
-#define FEC_RCMR_2		0x1cc /* Receive classification match ring 2 */
-#define FEC_DMA_CFG_1		0x1d8 /* DMA class configuration for ring 1 */
-#define FEC_DMA_CFG_2		0x1dc /* DMA class Configuration for ring 2 */
-#define FEC_R_DES_ACTIVE_1	0x1e0 /* Rx descriptor active for ring 1 */
-#define FEC_X_DES_ACTIVE_1	0x1e4 /* Tx descriptor active for ring 1 */
-#define FEC_R_DES_ACTIVE_2	0x1e8 /* Rx descriptor active for ring 2 */
-#define FEC_X_DES_ACTIVE_2	0x1ec /* Tx descriptor active for ring 2 */
-#define FEC_QOS_SCHEME		0x1f0 /* Set multi queues Qos scheme */
-#define FEC_MIIGSK_CFGR		0x300 /* MIIGSK Configuration reg */
-#define FEC_MIIGSK_ENR		0x308 /* MIIGSK Enable reg */
+	defined(CONFIG_M520x) || defined(CONFIG_M532x) || defined(CONFIG_ARM)
+	/*
+	*	Just figures, Motorola would have to change the offsets for
+	*	registers in the same peripheral device on different models
+	*	of the ColdFire!
+	*/
+	#define FEC_IEVENT		0x004 /* Interrupt event reg */
+	#define FEC_IMASK		0x008 /* Interrupt mask reg */
+	#define FEC_R_DES_ACTIVE_0	0x010 /* Receive descriptor reg */
+	#define FEC_X_DES_ACTIVE_0	0x014 /* Transmit descriptor reg */
+	#define FEC_ECNTRL		0x024 /* Ethernet control reg */
+	#define FEC_MII_DATA		0x040 /* MII manage frame reg */
+	#define FEC_MII_SPEED		0x044 /* MII speed control reg */
+	#define FEC_MIB_CTRLSTAT	0x064 /* MIB control/status reg */
+	#define FEC_R_CNTRL		0x084 /* Receive control reg */
+	#define FEC_X_CNTRL		0x0c4 /* Transmit Control reg */
+	#define FEC_ADDR_LOW		0x0e4 /* Low 32bits MAC address */
+	#define FEC_ADDR_HIGH		0x0e8 /* High 16bits MAC address */
+	#define FEC_OPD			0x0ec /* Opcode + Pause duration */
+	#define FEC_TXIC0		0x0f0 /* Tx Interrupt Coalescing for ring 0 */
+	#define FEC_TXIC1		0x0f4 /* Tx Interrupt Coalescing for ring 1 */
+	#define FEC_TXIC2		0x0f8 /* Tx Interrupt Coalescing for ring 2 */
+	#define FEC_RXIC0		0x100 /* Rx Interrupt Coalescing for ring 0 */
+	#define FEC_RXIC1		0x104 /* Rx Interrupt Coalescing for ring 1 */
+	#define FEC_RXIC2		0x108 /* Rx Interrupt Coalescing for ring 2 */
+	#define FEC_HASH_TABLE_HIGH	0x118 /* High 32bits hash table */
+	#define FEC_HASH_TABLE_LOW	0x11c /* Low 32bits hash table */
+	#define FEC_GRP_HASH_TABLE_HIGH	0x120 /* High 32bits hash table */
+	#define FEC_GRP_HASH_TABLE_LOW	0x124 /* Low 32bits hash table */
+	#define FEC_X_WMRK		0x144 /* FIFO transmit water mark */
+	#define FEC_R_BOUND		0x14c /* FIFO receive bound reg */
+	#define FEC_R_FSTART		0x150 /* FIFO receive start reg */
+	#define FEC_R_DES_START_1	0x160 /* Receive descriptor ring 1 */
+	#define FEC_X_DES_START_1	0x164 /* Transmit descriptor ring 1 */
+	#define FEC_R_BUFF_SIZE_1	0x168 /* Maximum receive buff ring1 size */
+	#define FEC_R_DES_START_2	0x16c /* Receive descriptor ring 2 */
+	#define FEC_X_DES_START_2	0x170 /* Transmit descriptor ring 2 */
+	#define FEC_R_BUFF_SIZE_2	0x174 /* Maximum receive buff ring2 size */
+	#define FEC_R_DES_START_0	0x180 /* Receive descriptor ring */
+	#define FEC_X_DES_START_0	0x184 /* Transmit descriptor ring */
+	#define FEC_R_BUFF_SIZE_0	0x188 /* Maximum receive buff size */
+	#define FEC_R_FIFO_RSFL		0x190 /* Receive FIFO section full threshold */
+	#define FEC_R_FIFO_RSEM		0x194 /* Receive FIFO section empty threshold */
+	#define FEC_R_FIFO_RAEM		0x198 /* Receive FIFO almost empty threshold */
+	#define FEC_R_FIFO_RAFL		0x19c /* Receive FIFO almost full threshold */
+	#define FEC_FTRL		0x1b0 /* Frame truncation receive length*/
+	#define FEC_RACC		0x1c4 /* Receive Accelerator function */
+	#define FEC_RCMR_1		0x1c8 /* Receive classification match ring 1 */
+	#define FEC_RCMR_2		0x1cc /* Receive classification match ring 2 */
+	#define FEC_DMA_CFG_1		0x1d8 /* DMA class configuration for ring 1 */
+	#define FEC_DMA_CFG_2		0x1dc /* DMA class Configuration for ring 2 */
+	#define FEC_R_DES_ACTIVE_1	0x1e0 /* Rx descriptor active for ring 1 */
+	#define FEC_X_DES_ACTIVE_1	0x1e4 /* Tx descriptor active for ring 1 */
+	#define FEC_R_DES_ACTIVE_2	0x1e8 /* Rx descriptor active for ring 2 */
+	#define FEC_X_DES_ACTIVE_2	0x1ec /* Tx descriptor active for ring 2 */
+	#define FEC_QOS_SCHEME		0x1f0 /* Set multi queues Qos scheme */
+	#define FEC_MIIGSK_CFGR		0x300 /* MIIGSK Configuration reg */
+	#define FEC_MIIGSK_ENR		0x308 /* MIIGSK Enable reg */
 
-#define BM_MIIGSK_CFGR_MII		0x00
-#define BM_MIIGSK_CFGR_RMII		0x01
-#define BM_MIIGSK_CFGR_FRCONT_10M	0x40
+	#define BM_MIIGSK_CFGR_MII		0x00
+	#define BM_MIIGSK_CFGR_RMII		0x01
+	#define BM_MIIGSK_CFGR_FRCONT_10M	0x40
 
-#define RMON_T_DROP		0x200 /* Count of frames not cntd correctly */
-#define RMON_T_PACKETS		0x204 /* RMON TX packet count */
-#define RMON_T_BC_PKT		0x208 /* RMON TX broadcast pkts */
-#define RMON_T_MC_PKT		0x20c /* RMON TX multicast pkts */
-#define RMON_T_CRC_ALIGN	0x210 /* RMON TX pkts with CRC align err */
-#define RMON_T_UNDERSIZE	0x214 /* RMON TX pkts < 64 bytes, good CRC */
-#define RMON_T_OVERSIZE		0x218 /* RMON TX pkts > MAX_FL bytes good CRC */
-#define RMON_T_FRAG		0x21c /* RMON TX pkts < 64 bytes, bad CRC */
-#define RMON_T_JAB		0x220 /* RMON TX pkts > MAX_FL bytes, bad CRC */
-#define RMON_T_COL		0x224 /* RMON TX collision count */
-#define RMON_T_P64		0x228 /* RMON TX 64 byte pkts */
-#define RMON_T_P65TO127		0x22c /* RMON TX 65 to 127 byte pkts */
-#define RMON_T_P128TO255	0x230 /* RMON TX 128 to 255 byte pkts */
-#define RMON_T_P256TO511	0x234 /* RMON TX 256 to 511 byte pkts */
-#define RMON_T_P512TO1023	0x238 /* RMON TX 512 to 1023 byte pkts */
-#define RMON_T_P1024TO2047	0x23c /* RMON TX 1024 to 2047 byte pkts */
-#define RMON_T_P_GTE2048	0x240 /* RMON TX pkts > 2048 bytes */
-#define RMON_T_OCTETS		0x244 /* RMON TX octets */
-#define IEEE_T_DROP		0x248 /* Count of frames not counted crtly */
-#define IEEE_T_FRAME_OK		0x24c /* Frames tx'd OK */
-#define IEEE_T_1COL		0x250 /* Frames tx'd with single collision */
-#define IEEE_T_MCOL		0x254 /* Frames tx'd with multiple collision */
-#define IEEE_T_DEF		0x258 /* Frames tx'd after deferral delay */
-#define IEEE_T_LCOL		0x25c /* Frames tx'd with late collision */
-#define IEEE_T_EXCOL		0x260 /* Frames tx'd with excesv collisions */
-#define IEEE_T_MACERR		0x264 /* Frames tx'd with TX FIFO underrun */
-#define IEEE_T_CSERR		0x268 /* Frames tx'd with carrier sense err */
-#define IEEE_T_SQE		0x26c /* Frames tx'd with SQE err */
-#define IEEE_T_FDXFC		0x270 /* Flow control pause frames tx'd */
-#define IEEE_T_OCTETS_OK	0x274 /* Octet count for frames tx'd w/o err */
-#define RMON_R_PACKETS		0x284 /* RMON RX packet count */
-#define RMON_R_BC_PKT		0x288 /* RMON RX broadcast pkts */
-#define RMON_R_MC_PKT		0x28c /* RMON RX multicast pkts */
-#define RMON_R_CRC_ALIGN	0x290 /* RMON RX pkts with CRC alignment err */
-#define RMON_R_UNDERSIZE	0x294 /* RMON RX pkts < 64 bytes, good CRC */
-#define RMON_R_OVERSIZE		0x298 /* RMON RX pkts > MAX_FL bytes good CRC */
-#define RMON_R_FRAG		0x29c /* RMON RX pkts < 64 bytes, bad CRC */
-#define RMON_R_JAB		0x2a0 /* RMON RX pkts > MAX_FL bytes, bad CRC */
-#define RMON_R_RESVD_O		0x2a4 /* Reserved */
-#define RMON_R_P64		0x2a8 /* RMON RX 64 byte pkts */
-#define RMON_R_P65TO127		0x2ac /* RMON RX 65 to 127 byte pkts */
-#define RMON_R_P128TO255	0x2b0 /* RMON RX 128 to 255 byte pkts */
-#define RMON_R_P256TO511	0x2b4 /* RMON RX 256 to 511 byte pkts */
-#define RMON_R_P512TO1023	0x2b8 /* RMON RX 512 to 1023 byte pkts */
-#define RMON_R_P1024TO2047	0x2bc /* RMON RX 1024 to 2047 byte pkts */
-#define RMON_R_P_GTE2048	0x2c0 /* RMON RX pkts > 2048 bytes */
-#define RMON_R_OCTETS		0x2c4 /* RMON RX octets */
-#define IEEE_R_DROP		0x2c8 /* Count frames not counted correctly */
-#define IEEE_R_FRAME_OK		0x2cc /* Frames rx'd OK */
-#define IEEE_R_CRC		0x2d0 /* Frames rx'd with CRC err */
-#define IEEE_R_ALIGN		0x2d4 /* Frames rx'd with alignment err */
-#define IEEE_R_MACERR		0x2d8 /* Receive FIFO overflow count */
-#define IEEE_R_FDXFC		0x2dc /* Flow control pause frames rx'd */
-#define IEEE_R_OCTETS_OK	0x2e0 /* Octet cnt for frames rx'd w/o err */
+	#define RMON_T_DROP		0x200 /* Count of frames not cntd correctly */
+	#define RMON_T_PACKETS		0x204 /* RMON TX packet count */
+	#define RMON_T_BC_PKT		0x208 /* RMON TX broadcast pkts */
+	#define RMON_T_MC_PKT		0x20c /* RMON TX multicast pkts */
+	#define RMON_T_CRC_ALIGN	0x210 /* RMON TX pkts with CRC align err */
+	#define RMON_T_UNDERSIZE	0x214 /* RMON TX pkts < 64 bytes, good CRC */
+	#define RMON_T_OVERSIZE		0x218 /* RMON TX pkts > MAX_FL bytes good CRC */
+	#define RMON_T_FRAG		0x21c /* RMON TX pkts < 64 bytes, bad CRC */
+	#define RMON_T_JAB		0x220 /* RMON TX pkts > MAX_FL bytes, bad CRC */
+	#define RMON_T_COL		0x224 /* RMON TX collision count */
+	#define RMON_T_P64		0x228 /* RMON TX 64 byte pkts */
+	#define RMON_T_P65TO127		0x22c /* RMON TX 65 to 127 byte pkts */
+	#define RMON_T_P128TO255	0x230 /* RMON TX 128 to 255 byte pkts */
+	#define RMON_T_P256TO511	0x234 /* RMON TX 256 to 511 byte pkts */
+	#define RMON_T_P512TO1023	0x238 /* RMON TX 512 to 1023 byte pkts */
+	#define RMON_T_P1024TO2047	0x23c /* RMON TX 1024 to 2047 byte pkts */
+	#define RMON_T_P_GTE2048	0x240 /* RMON TX pkts > 2048 bytes */
+	#define RMON_T_OCTETS		0x244 /* RMON TX octets */
+	#define IEEE_T_DROP		0x248 /* Count of frames not counted crtly */
+	#define IEEE_T_FRAME_OK		0x24c /* Frames tx'd OK */
+	#define IEEE_T_1COL		0x250 /* Frames tx'd with single collision */
+	#define IEEE_T_MCOL		0x254 /* Frames tx'd with multiple collision */
+	#define IEEE_T_DEF		0x258 /* Frames tx'd after deferral delay */
+	#define IEEE_T_LCOL		0x25c /* Frames tx'd with late collision */
+	#define IEEE_T_EXCOL		0x260 /* Frames tx'd with excesv collisions */
+	#define IEEE_T_MACERR		0x264 /* Frames tx'd with TX FIFO underrun */
+	#define IEEE_T_CSERR		0x268 /* Frames tx'd with carrier sense err */
+	#define IEEE_T_SQE		0x26c /* Frames tx'd with SQE err */
+	#define IEEE_T_FDXFC		0x270 /* Flow control pause frames tx'd */
+	#define IEEE_T_OCTETS_OK	0x274 /* Octet count for frames tx'd w/o err */
+	#define RMON_R_PACKETS		0x284 /* RMON RX packet count */
+	#define RMON_R_BC_PKT		0x288 /* RMON RX broadcast pkts */
+	#define RMON_R_MC_PKT		0x28c /* RMON RX multicast pkts */
+	#define RMON_R_CRC_ALIGN	0x290 /* RMON RX pkts with CRC alignment err */
+	#define RMON_R_UNDERSIZE	0x294 /* RMON RX pkts < 64 bytes, good CRC */
+	#define RMON_R_OVERSIZE		0x298 /* RMON RX pkts > MAX_FL bytes good CRC */
+	#define RMON_R_FRAG		0x29c /* RMON RX pkts < 64 bytes, bad CRC */
+	#define RMON_R_JAB		0x2a0 /* RMON RX pkts > MAX_FL bytes, bad CRC */
+	#define RMON_R_RESVD_O		0x2a4 /* Reserved */
+	#define RMON_R_P64		0x2a8 /* RMON RX 64 byte pkts */
+	#define RMON_R_P65TO127		0x2ac /* RMON RX 65 to 127 byte pkts */
+	#define RMON_R_P128TO255	0x2b0 /* RMON RX 128 to 255 byte pkts */
+	#define RMON_R_P256TO511	0x2b4 /* RMON RX 256 to 511 byte pkts */
+	#define RMON_R_P512TO1023	0x2b8 /* RMON RX 512 to 1023 byte pkts */
+	#define RMON_R_P1024TO2047	0x2bc /* RMON RX 1024 to 2047 byte pkts */
+	#define RMON_R_P_GTE2048	0x2c0 /* RMON RX pkts > 2048 bytes */
+	#define RMON_R_OCTETS		0x2c4 /* RMON RX octets */
+	#define IEEE_R_DROP		0x2c8 /* Count frames not counted correctly */
+	#define IEEE_R_FRAME_OK		0x2cc /* Frames rx'd OK */
+	#define IEEE_R_CRC		0x2d0 /* Frames rx'd with CRC err */
+	#define IEEE_R_ALIGN		0x2d4 /* Frames rx'd with alignment err */
+	#define IEEE_R_MACERR		0x2d8 /* Receive FIFO overflow count */
+	#define IEEE_R_FDXFC		0x2dc /* Flow control pause frames rx'd */
+	#define IEEE_R_OCTETS_OK	0x2e0 /* Octet cnt for frames rx'd w/o err */
 
 #else
 
-#define FEC_ECNTRL		0x000 /* Ethernet control reg */
-#define FEC_IEVENT		0x004 /* Interrupt even reg */
-#define FEC_IMASK		0x008 /* Interrupt mask reg */
-#define FEC_IVEC		0x00c /* Interrupt vec status reg */
-#define FEC_R_DES_ACTIVE_0	0x010 /* Receive descriptor reg */
-#define FEC_R_DES_ACTIVE_1	FEC_R_DES_ACTIVE_0
-#define FEC_R_DES_ACTIVE_2	FEC_R_DES_ACTIVE_0
-#define FEC_X_DES_ACTIVE_0	0x014 /* Transmit descriptor reg */
-#define FEC_X_DES_ACTIVE_1	FEC_X_DES_ACTIVE_0
-#define FEC_X_DES_ACTIVE_2	FEC_X_DES_ACTIVE_0
-#define FEC_MII_DATA		0x040 /* MII manage frame reg */
-#define FEC_MII_SPEED		0x044 /* MII speed control reg */
-#define FEC_R_BOUND		0x08c /* FIFO receive bound reg */
-#define FEC_R_FSTART		0x090 /* FIFO receive start reg */
-#define FEC_X_WMRK		0x0a4 /* FIFO transmit water mark */
-#define FEC_X_FSTART		0x0ac /* FIFO transmit start reg */
-#define FEC_R_CNTRL		0x104 /* Receive control reg */
-#define FEC_MAX_FRM_LEN		0x108 /* Maximum frame length reg */
-#define FEC_X_CNTRL		0x144 /* Transmit Control reg */
-#define FEC_ADDR_LOW		0x3c0 /* Low 32bits MAC address */
-#define FEC_ADDR_HIGH		0x3c4 /* High 16bits MAC address */
-#define FEC_GRP_HASH_TABLE_HIGH	0x3c8 /* High 32bits hash table */
-#define FEC_GRP_HASH_TABLE_LOW	0x3cc /* Low 32bits hash table */
-#define FEC_R_DES_START_0	0x3d0 /* Receive descriptor ring */
-#define FEC_R_DES_START_1	FEC_R_DES_START_0
-#define FEC_R_DES_START_2	FEC_R_DES_START_0
-#define FEC_X_DES_START_0	0x3d4 /* Transmit descriptor ring */
-#define FEC_X_DES_START_1	FEC_X_DES_START_0
-#define FEC_X_DES_START_2	FEC_X_DES_START_0
-#define FEC_R_BUFF_SIZE_0	0x3d8 /* Maximum receive buff size */
-#define FEC_R_BUFF_SIZE_1	FEC_R_BUFF_SIZE_0
-#define FEC_R_BUFF_SIZE_2	FEC_R_BUFF_SIZE_0
-#define FEC_FIFO_RAM		0x400 /* FIFO RAM buffer */
-/* Not existed in real chip
- * Just for pass build.
- */
-#define FEC_RCMR_1		0xfff
-#define FEC_RCMR_2		0xfff
-#define FEC_DMA_CFG_1		0xfff
-#define FEC_DMA_CFG_2		0xfff
-#define FEC_TXIC0		0xfff
-#define FEC_TXIC1		0xfff
-#define FEC_TXIC2		0xfff
-#define FEC_RXIC0		0xfff
-#define FEC_RXIC1		0xfff
-#define FEC_RXIC2		0xfff
+	#define FEC_ECNTRL		0x000 /* Ethernet control reg */
+	#define FEC_IEVENT		0x004 /* Interrupt even reg */
+	#define FEC_IMASK		0x008 /* Interrupt mask reg */
+	#define FEC_IVEC		0x00c /* Interrupt vec status reg */
+	#define FEC_R_DES_ACTIVE_0	0x010 /* Receive descriptor reg */
+	#define FEC_R_DES_ACTIVE_1	FEC_R_DES_ACTIVE_0
+	#define FEC_R_DES_ACTIVE_2	FEC_R_DES_ACTIVE_0
+	#define FEC_X_DES_ACTIVE_0	0x014 /* Transmit descriptor reg */
+	#define FEC_X_DES_ACTIVE_1	FEC_X_DES_ACTIVE_0
+	#define FEC_X_DES_ACTIVE_2	FEC_X_DES_ACTIVE_0
+	#define FEC_MII_DATA		0x040 /* MII manage frame reg */
+	#define FEC_MII_SPEED		0x044 /* MII speed control reg */
+	#define FEC_R_BOUND		0x08c /* FIFO receive bound reg */
+	#define FEC_R_FSTART		0x090 /* FIFO receive start reg */
+	#define FEC_X_WMRK		0x0a4 /* FIFO transmit water mark */
+	#define FEC_X_FSTART		0x0ac /* FIFO transmit start reg */
+	#define FEC_R_CNTRL		0x104 /* Receive control reg */
+	#define FEC_MAX_FRM_LEN		0x108 /* Maximum frame length reg */
+	#define FEC_X_CNTRL		0x144 /* Transmit Control reg */
+	#define FEC_ADDR_LOW		0x3c0 /* Low 32bits MAC address */
+	#define FEC_ADDR_HIGH		0x3c4 /* High 16bits MAC address */
+	#define FEC_GRP_HASH_TABLE_HIGH	0x3c8 /* High 32bits hash table */
+	#define FEC_GRP_HASH_TABLE_LOW	0x3cc /* Low 32bits hash table */
+	#define FEC_R_DES_START_0	0x3d0 /* Receive descriptor ring */
+	#define FEC_R_DES_START_1	FEC_R_DES_START_0
+	#define FEC_R_DES_START_2	FEC_R_DES_START_0
+	#define FEC_X_DES_START_0	0x3d4 /* Transmit descriptor ring */
+	#define FEC_X_DES_START_1	FEC_X_DES_START_0
+	#define FEC_X_DES_START_2	FEC_X_DES_START_0
+	#define FEC_R_BUFF_SIZE_0	0x3d8 /* Maximum receive buff size */
+	#define FEC_R_BUFF_SIZE_1	FEC_R_BUFF_SIZE_0
+	#define FEC_R_BUFF_SIZE_2	FEC_R_BUFF_SIZE_0
+	#define FEC_FIFO_RAM		0x400 /* FIFO RAM buffer */
+	/* Not existed in real chip
+	* Just for pass build.
+	*/
+	#define FEC_RCMR_1		0xfff
+	#define FEC_RCMR_2		0xfff
+	#define FEC_DMA_CFG_1		0xfff
+	#define FEC_DMA_CFG_2		0xfff
+	#define FEC_TXIC0		0xfff
+	#define FEC_TXIC1		0xfff
+	#define FEC_TXIC2		0xfff
+	#define FEC_RXIC0		0xfff
+	#define FEC_RXIC1		0xfff
+	#define FEC_RXIC2		0xfff
 #endif /* CONFIG_M5272 */
 
 
@@ -202,7 +202,8 @@
 #define __fec32 __le32
 #define __fec16 __le16
 
-struct bufdesc {
+struct bufdesc
+{
 	__fec16 cbd_datlen;	/* Data length */
 	__fec16 cbd_sc;		/* Control and status info */
 	__fec32 cbd_bufaddr;	/* Buffer address */
@@ -215,14 +216,16 @@ struct bufdesc {
 #define __fec32 __be32
 #define __fec16 __be16
 
-struct bufdesc {
+struct bufdesc
+{
 	__fec16	cbd_sc;		/* Control and status info */
 	__fec16	cbd_datlen;	/* Data length */
 	__fec32	cbd_bufaddr;	/* Buffer address */
 };
 #endif
 
-struct bufdesc_ex {
+struct bufdesc_ex
+{
 	struct bufdesc desc;
 	__fec32 cbd_esc;
 	__fec32 cbd_prot;
@@ -302,14 +305,14 @@ struct bufdesc_ex {
 #define FEC_ENET_MAX_RX_QS	3
 
 #define FEC_R_DES_START(X)	(((X) == 1) ? FEC_R_DES_START_1 : \
-				(((X) == 2) ? \
-					FEC_R_DES_START_2 : FEC_R_DES_START_0))
+							 (((X) == 2) ? \
+							  FEC_R_DES_START_2 : FEC_R_DES_START_0))
 #define FEC_X_DES_START(X)	(((X) == 1) ? FEC_X_DES_START_1 : \
-				(((X) == 2) ? \
-					FEC_X_DES_START_2 : FEC_X_DES_START_0))
+							 (((X) == 2) ? \
+							  FEC_X_DES_START_2 : FEC_X_DES_START_0))
 #define FEC_R_BUFF_SIZE(X)	(((X) == 1) ? FEC_R_BUFF_SIZE_1 : \
-				(((X) == 2) ? \
-					FEC_R_BUFF_SIZE_2 : FEC_R_BUFF_SIZE_0))
+							 (((X) == 2) ? \
+							  FEC_R_BUFF_SIZE_2 : FEC_R_BUFF_SIZE_0))
 
 #define FEC_DMA_CFG(X)		(((X) == 2) ? FEC_DMA_CFG_2 : FEC_DMA_CFG_1)
 
@@ -319,14 +322,14 @@ struct bufdesc_ex {
 #define IDLE_SLOPE_1		0x200 /* BW fraction: 0.5 */
 #define IDLE_SLOPE_2		0x200 /* BW fraction: 0.5 */
 #define IDLE_SLOPE(X)		(((X) == 1) ?				\
-				(IDLE_SLOPE_1 & IDLE_SLOPE_MASK) :	\
-				(IDLE_SLOPE_2 & IDLE_SLOPE_MASK))
+							 (IDLE_SLOPE_1 & IDLE_SLOPE_MASK) :	\
+							 (IDLE_SLOPE_2 & IDLE_SLOPE_MASK))
 #define RCMR_MATCHEN		(0x1 << 16)
 #define RCMR_CMP_CFG(v, n)	(((v) & 0x7) <<  (n << 2))
 #define RCMR_CMP_1		(RCMR_CMP_CFG(0, 0) | RCMR_CMP_CFG(1, 1) | \
-				RCMR_CMP_CFG(2, 2) | RCMR_CMP_CFG(3, 3))
+						 RCMR_CMP_CFG(2, 2) | RCMR_CMP_CFG(3, 3))
 #define RCMR_CMP_2		(RCMR_CMP_CFG(4, 0) | RCMR_CMP_CFG(5, 1) | \
-				RCMR_CMP_CFG(6, 2) | RCMR_CMP_CFG(7, 3))
+						 RCMR_CMP_CFG(6, 2) | RCMR_CMP_CFG(7, 3))
 #define RCMR_CMP(X)		(((X) == 1) ? RCMR_CMP_1 : RCMR_CMP_2)
 #define FEC_TX_BD_FTYPE(X)	(((X) & 0xf) << 20)
 
@@ -447,7 +450,8 @@ struct bufdesc_ex {
 /* Interrupt doesn't wake CPU from deep idle */
 #define FEC_QUIRK_ERR006687		(1 << 14)
 
-struct bufdesc_prop {
+struct bufdesc_prop
+{
 	int qid;
 	/* Address of Rx and Tx buffers */
 	struct bufdesc	*base;
@@ -460,7 +464,8 @@ struct bufdesc_prop {
 	unsigned char dsize_log2;
 };
 
-struct fec_enet_priv_tx_q {
+struct fec_enet_priv_tx_q
+{
 	struct bufdesc_prop bd;
 	unsigned char *tx_bounce[TX_RING_SIZE];
 	struct  sk_buff *tx_skbuff[TX_RING_SIZE];
@@ -473,7 +478,8 @@ struct fec_enet_priv_tx_q {
 	dma_addr_t tso_hdrs_dma;
 };
 
-struct fec_enet_priv_rx_q {
+struct fec_enet_priv_rx_q
+{
 	struct bufdesc_prop bd;
 	struct  sk_buff *rx_skbuff[RX_RING_SIZE];
 };
@@ -486,7 +492,8 @@ struct fec_enet_priv_rx_q {
  * empty and completely full conditions.  The empty/ready indicator in
  * the buffer descriptor determines the actual condition.
  */
-struct fec_enet_private {
+struct fec_enet_private
+{
 	/* Hardware registers of the FEC device */
 	void __iomem *hwp;
 

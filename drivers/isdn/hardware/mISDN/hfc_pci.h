@@ -182,12 +182,14 @@
 #define D_FIFO_SIZE  512
 #define D_FREG_MASK  0xF
 
-struct zt {
+struct zt
+{
 	__le16 z1;  /* Z1 pointer 16 Bit */
 	__le16 z2;  /* Z2 pointer 16 Bit */
 };
 
-struct dfifo {
+struct dfifo
+{
 	u_char data[D_FIFO_SIZE]; /* FIFO data space */
 	u_char fill1[0x20A0 - D_FIFO_SIZE]; /* reserved, do not use */
 	u_char f1, f2; /* f pointers */
@@ -197,19 +199,23 @@ struct dfifo {
 	u_char fill3[0x4000 - 0x2100]; /* align 16K */
 };
 
-struct bzfifo {
+struct bzfifo
+{
 	struct zt	za[MAX_B_FRAMES + 1]; /* only range 0x0..0x1F allowed */
 	u_char		f1, f2; /* f pointers */
 	u_char		fill[0x2100 - 0x2082]; /* alignment */
 };
 
 
-union fifo_area {
-	struct {
+union fifo_area
+{
+	struct
+	{
 		struct dfifo d_tx; /* D-send channel */
 		struct dfifo d_rx; /* D-receive channel */
 	} d_chan;
-	struct {
+	struct
+	{
 		u_char		fill1[0x200];
 		u_char		txdat_b1[B_FIFO_SIZE];
 		struct bzfifo	txbz_b1;

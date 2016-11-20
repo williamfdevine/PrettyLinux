@@ -65,26 +65,26 @@
 
 /*** Tekram dongle ***/
 #ifdef LIRC_SIR_TEKRAM
-/* stolen from kernel source */
-/* definitions for Tekram dongle */
-#define TEKRAM_115200 0x00
-#define TEKRAM_57600  0x01
-#define TEKRAM_38400  0x02
-#define TEKRAM_19200  0x03
-#define TEKRAM_9600   0x04
-#define TEKRAM_2400   0x08
+	/* stolen from kernel source */
+	/* definitions for Tekram dongle */
+	#define TEKRAM_115200 0x00
+	#define TEKRAM_57600  0x01
+	#define TEKRAM_38400  0x02
+	#define TEKRAM_19200  0x03
+	#define TEKRAM_9600   0x04
+	#define TEKRAM_2400   0x08
 
-#define TEKRAM_PW 0x10 /* Pulse select bit */
+	#define TEKRAM_PW 0x10 /* Pulse select bit */
 
-/* 10bit * 1s/115200bit in milliseconds = 87ms*/
-#define TIME_CONST (10000000ul/115200ul)
+	/* 10bit * 1s/115200bit in milliseconds = 87ms*/
+	#define TIME_CONST (10000000ul/115200ul)
 
 #endif
 
 #ifdef LIRC_SIR_ACTISYS_ACT200L
-static void init_act200(void);
+	static void init_act200(void);
 #elif defined(LIRC_SIR_ACTISYS_ACT220L)
-static void init_act220(void);
+	static void init_act220(void);
 #endif
 
 #define RBUF_LEN 1024
@@ -95,8 +95,8 @@ static void init_act220(void);
 #define PULSE '['
 
 #ifndef LIRC_SIR_TEKRAM
-/* 9bit * 1s/115200bit in milli seconds = 78.125ms*/
-#define TIME_CONST (9000000ul/115200ul)
+	/* 9bit * 1s/115200bit in milli seconds = 78.125ms*/
+	#define TIME_CONST (9000000ul/115200ul)
 #endif
 
 
@@ -104,24 +104,24 @@ static void init_act220(void);
 #define SIR_TIMEOUT	(HZ*5/100)
 
 #ifndef LIRC_ON_SA1100
-#ifndef LIRC_IRQ
-#define LIRC_IRQ 4
-#endif
-#ifndef LIRC_PORT
-/* for external dongles, default to com1 */
-#if defined(LIRC_SIR_ACTISYS_ACT200L)         || \
-	    defined(LIRC_SIR_ACTISYS_ACT220L) || \
-	    defined(LIRC_SIR_TEKRAM)
-#define LIRC_PORT 0x3f8
-#else
-/* onboard sir ports are typically com3 */
-#define LIRC_PORT 0x3e8
-#endif
-#endif
+	#ifndef LIRC_IRQ
+		#define LIRC_IRQ 4
+	#endif
+	#ifndef LIRC_PORT
+		/* for external dongles, default to com1 */
+		#if defined(LIRC_SIR_ACTISYS_ACT200L)         || \
+			defined(LIRC_SIR_ACTISYS_ACT220L) || \
+			defined(LIRC_SIR_TEKRAM)
+			#define LIRC_PORT 0x3f8
+		#else
+			/* onboard sir ports are typically com3 */
+			#define LIRC_PORT 0x3e8
+		#endif
+	#endif
 
-static int io = LIRC_PORT;
-static int irq = LIRC_IRQ;
-static int threshold = 3;
+	static int io = LIRC_PORT;
+	static int irq = LIRC_IRQ;
+	static int threshold = 3;
 #endif
 
 static DEFINE_SPINLOCK(timer_lock);
@@ -146,9 +146,9 @@ static bool debug;
 /* Communication with user-space */
 static unsigned int lirc_poll(struct file *file, poll_table *wait);
 static ssize_t lirc_read(struct file *file, char __user *buf, size_t count,
-			 loff_t *ppos);
+						 loff_t *ppos);
 static ssize_t lirc_write(struct file *file, const char __user *buf, size_t n,
-			  loff_t *pos);
+						  loff_t *pos);
 static long lirc_ioctl(struct file *filep, unsigned int cmd, unsigned long arg);
 static void add_read_queue(int flag, unsigned long val);
 static int init_chrdev(void);
@@ -174,17 +174,19 @@ static inline void soutp(int offset, int value)
 }
 
 #ifndef MAX_UDELAY_MS
-#define MAX_UDELAY_US 5000
+	#define MAX_UDELAY_US 5000
 #else
-#define MAX_UDELAY_US (MAX_UDELAY_MS*1000)
+	#define MAX_UDELAY_US (MAX_UDELAY_MS*1000)
 #endif
 
 static void safe_udelay(unsigned long usecs)
 {
-	while (usecs > MAX_UDELAY_US) {
+	while (usecs > MAX_UDELAY_US)
+	{
 		udelay(MAX_UDELAY_US);
 		usecs -= MAX_UDELAY_US;
 	}
+
 	udelay(usecs);
 }
 
@@ -193,77 +195,119 @@ static void safe_udelay(unsigned long usecs)
 static unsigned int lirc_poll(struct file *file, poll_table *wait)
 {
 	poll_wait(file, &lirc_read_queue, wait);
+
 	if (rx_head != rx_tail)
+	{
 		return POLLIN | POLLRDNORM;
+	}
+
 	return 0;
 }
 
 static ssize_t lirc_read(struct file *file, char __user *buf, size_t count,
-			 loff_t *ppos)
+						 loff_t *ppos)
 {
 	int n = 0;
 	int retval = 0;
 	DECLARE_WAITQUEUE(wait, current);
 
 	if (count % sizeof(int))
+	{
 		return -EINVAL;
+	}
 
 	add_wait_queue(&lirc_read_queue, &wait);
 	set_current_state(TASK_INTERRUPTIBLE);
-	while (n < count) {
-		if (rx_head != rx_tail) {
+
+	while (n < count)
+	{
+		if (rx_head != rx_tail)
+		{
 			if (copy_to_user(buf + n,
-					 rx_buf + rx_head,
-					 sizeof(int))) {
+							 rx_buf + rx_head,
+							 sizeof(int)))
+			{
 				retval = -EFAULT;
 				break;
 			}
+
 			rx_head = (rx_head + 1) & (RBUF_LEN - 1);
 			n += sizeof(int);
-		} else {
-			if (file->f_flags & O_NONBLOCK) {
+		}
+		else
+		{
+			if (file->f_flags & O_NONBLOCK)
+			{
 				retval = -EAGAIN;
 				break;
 			}
-			if (signal_pending(current)) {
+
+			if (signal_pending(current))
+			{
 				retval = -ERESTARTSYS;
 				break;
 			}
+
 			schedule();
 			set_current_state(TASK_INTERRUPTIBLE);
 		}
 	}
+
 	remove_wait_queue(&lirc_read_queue, &wait);
 	set_current_state(TASK_RUNNING);
 	return n ? n : retval;
 }
 static ssize_t lirc_write(struct file *file, const char __user *buf, size_t n,
-			  loff_t *pos)
+						  loff_t *pos)
 {
 	unsigned long flags;
 	int i, count;
 	int *tx_buf;
 
 	count = n / sizeof(int);
+
 	if (n % sizeof(int) || count % 2 == 0)
+	{
 		return -EINVAL;
+	}
+
 	tx_buf = memdup_user(buf, n);
+
 	if (IS_ERR(tx_buf))
+	{
 		return PTR_ERR(tx_buf);
+	}
+
 	i = 0;
 	local_irq_save(flags);
-	while (1) {
+
+	while (1)
+	{
 		if (i >= count)
+		{
 			break;
+		}
+
 		if (tx_buf[i])
+		{
 			send_pulse(tx_buf[i]);
+		}
+
 		i++;
+
 		if (i >= count)
+		{
 			break;
+		}
+
 		if (tx_buf[i])
+		{
 			send_space(tx_buf[i]);
+		}
+
 		i++;
 	}
+
 	local_irq_restore(flags);
 	kfree(tx_buf);
 	return count;
@@ -276,36 +320,54 @@ static long lirc_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
 	u32 value = 0;
 
 	if (cmd == LIRC_GET_FEATURES)
+	{
 		value = LIRC_CAN_SEND_PULSE | LIRC_CAN_REC_MODE2;
+	}
 	else if (cmd == LIRC_GET_SEND_MODE)
+	{
 		value = LIRC_MODE_PULSE;
+	}
 	else if (cmd == LIRC_GET_REC_MODE)
+	{
 		value = LIRC_MODE_MODE2;
+	}
 
-	switch (cmd) {
-	case LIRC_GET_FEATURES:
-	case LIRC_GET_SEND_MODE:
-	case LIRC_GET_REC_MODE:
-		retval = put_user(value, uptr);
-		break;
+	switch (cmd)
+	{
+		case LIRC_GET_FEATURES:
+		case LIRC_GET_SEND_MODE:
+		case LIRC_GET_REC_MODE:
+			retval = put_user(value, uptr);
+			break;
 
-	case LIRC_SET_SEND_MODE:
-	case LIRC_SET_REC_MODE:
-		retval = get_user(value, uptr);
-		break;
-	default:
-		retval = -ENOIOCTLCMD;
+		case LIRC_SET_SEND_MODE:
+		case LIRC_SET_REC_MODE:
+			retval = get_user(value, uptr);
+			break;
+
+		default:
+			retval = -ENOIOCTLCMD;
 
 	}
 
 	if (retval)
+	{
 		return retval;
-	if (cmd == LIRC_SET_REC_MODE) {
+	}
+
+	if (cmd == LIRC_SET_REC_MODE)
+	{
 		if (value != LIRC_MODE_MODE2)
+		{
 			retval = -ENOSYS;
-	} else if (cmd == LIRC_SET_SEND_MODE) {
+		}
+	}
+	else if (cmd == LIRC_SET_SEND_MODE)
+	{
 		if (value != LIRC_MODE_PULSE)
+		{
 			retval = -ENOSYS;
+		}
 	}
 
 	return retval;
@@ -324,27 +386,40 @@ static void add_read_queue(int flag, unsigned long val)
 	 * statistically, pulses are ~TIME_CONST/2 too long. we could
 	 * maybe make this more exact, but this is good enough
 	 */
-	if (flag) {
+	if (flag)
+	{
 		/* pulse */
-		if (newval > TIME_CONST/2)
-			newval -= TIME_CONST/2;
+		if (newval > TIME_CONST / 2)
+		{
+			newval -= TIME_CONST / 2;
+		}
 		else /* should not ever happen */
+		{
 			newval = 1;
+		}
+
 		newval |= PULSE_BIT;
-	} else {
-		newval += TIME_CONST/2;
 	}
+	else
+	{
+		newval += TIME_CONST / 2;
+	}
+
 	new_rx_tail = (rx_tail + 1) & (RBUF_LEN - 1);
-	if (new_rx_tail == rx_head) {
+
+	if (new_rx_tail == rx_head)
+	{
 		pr_debug("Buffer overrun.\n");
 		return;
 	}
+
 	rx_buf[rx_tail] = newval;
 	rx_tail = new_rx_tail;
 	wake_up_interruptible(&lirc_read_queue);
 }
 
-static const struct file_operations lirc_fops = {
+static const struct file_operations lirc_fops =
+{
 	.owner		= THIS_MODULE,
 	.read		= lirc_read,
 	.write		= lirc_write,
@@ -367,7 +442,8 @@ static void set_use_dec(void *data)
 {
 }
 
-static struct lirc_driver driver = {
+static struct lirc_driver driver =
+{
 	.name		= LIRC_DRIVER_NAME,
 	.minor		= -1,
 	.code_length	= 1,
@@ -387,10 +463,13 @@ static int init_chrdev(void)
 {
 	driver.dev = &lirc_sir_dev->dev;
 	driver.minor = lirc_register_driver(&driver);
-	if (driver.minor < 0) {
+
+	if (driver.minor < 0)
+	{
 		pr_err("init_chrdev() failed.\n");
 		return -EIO;
 	}
+
 	return 0;
 }
 
@@ -414,19 +493,22 @@ static void sir_timeout(unsigned long data)
 
 	/* avoid interference with interrupt */
 	spin_lock_irqsave(&timer_lock, flags);
-	if (last_value) {
+
+	if (last_value)
+	{
 		/* clear unread bits in UART and restart */
 		outb(UART_FCR_CLEAR_RCVR, io + UART_FCR);
 		/* determine 'virtual' pulse end: */
 		pulse_end = min_t(unsigned long,
-				  ktime_us_delta(last, last_intr_time),
-				  PULSE_MASK);
+						  ktime_us_delta(last, last_intr_time),
+						  PULSE_MASK);
 		dev_dbg(driver.dev, "timeout add %d for %lu usec\n",
-				    last_value, pulse_end);
+				last_value, pulse_end);
 		add_read_queue(last_value, pulse_end);
 		last_value = 0;
 		last = last_intr_time;
 	}
+
 	spin_unlock_irqrestore(&timer_lock, flags);
 }
 
@@ -439,84 +521,104 @@ static irqreturn_t sir_interrupt(int irq, void *dev_id)
 	unsigned long flags;
 	int iir, lsr;
 
-	while ((iir = inb(io + UART_IIR) & UART_IIR_ID)) {
-		switch (iir&UART_IIR_ID) { /* FIXME toto treba preriedit */
-		case UART_IIR_MSI:
-			(void) inb(io + UART_MSR);
-			break;
-		case UART_IIR_RLSI:
-			(void) inb(io + UART_LSR);
-			break;
-		case UART_IIR_THRI:
-#if 0
-			if (lsr & UART_LSR_THRE) /* FIFO is empty */
-				outb(data, io + UART_TX)
-#endif
-			break;
-		case UART_IIR_RDI:
-			/* avoid interference with timer */
-			spin_lock_irqsave(&timer_lock, flags);
-			do {
-				del_timer(&timerlist);
-				data = inb(io + UART_RX);
-				curr_time = ktime_get();
-				delt = min_t(unsigned long,
-					     ktime_us_delta(last, curr_time),
-					     PULSE_MASK);
-				deltintr = min_t(unsigned long,
-						 ktime_us_delta(last_intr_time,
-								curr_time),
-						 PULSE_MASK);
-				dev_dbg(driver.dev, "t %lu, d %d\n",
-						    deltintr, (int)data);
-				/*
-				 * if nothing came in last X cycles,
-				 * it was gap
-				 */
-				if (deltintr > TIME_CONST * threshold) {
-					if (last_value) {
-						dev_dbg(driver.dev, "GAP\n");
-						/* simulate signal change */
-						add_read_queue(last_value,
-							       delt -
-							       deltintr);
-						last_value = 0;
-						last = last_intr_time;
-						delt = deltintr;
-					}
-				}
-				data = 1;
-				if (data ^ last_value) {
-					/*
-					 * deltintr > 2*TIME_CONST, remember?
-					 * the other case is timeout
-					 */
-					add_read_queue(last_value,
-						       delt-TIME_CONST);
-					last_value = data;
-					last = curr_time;
-					last = ktime_sub_us(last,
-							    TIME_CONST);
-				}
-				last_intr_time = curr_time;
-				if (data) {
-					/*
-					 * start timer for end of
-					 * sequence detection
-					 */
-					timerlist.expires = jiffies +
-								SIR_TIMEOUT;
-					add_timer(&timerlist);
-				}
+	while ((iir = inb(io + UART_IIR) & UART_IIR_ID))
+	{
+		switch (iir & UART_IIR_ID) /* FIXME toto treba preriedit */
+		{
+			case UART_IIR_MSI:
+				(void) inb(io + UART_MSR);
+				break;
 
-				lsr = inb(io + UART_LSR);
-			} while (lsr & UART_LSR_DR); /* data ready */
-			spin_unlock_irqrestore(&timer_lock, flags);
-			break;
-		default:
-			break;
+			case UART_IIR_RLSI:
+				(void) inb(io + UART_LSR);
+				break;
+
+			case UART_IIR_THRI:
+#if 0
+				if (lsr & UART_LSR_THRE) /* FIFO is empty */
+					outb(data, io + UART_TX)
+#endif
+					break;
+
+			case UART_IIR_RDI:
+				/* avoid interference with timer */
+				spin_lock_irqsave(&timer_lock, flags);
+
+				do
+				{
+					del_timer(&timerlist);
+					data = inb(io + UART_RX);
+					curr_time = ktime_get();
+					delt = min_t(unsigned long,
+								 ktime_us_delta(last, curr_time),
+								 PULSE_MASK);
+					deltintr = min_t(unsigned long,
+									 ktime_us_delta(last_intr_time,
+													curr_time),
+									 PULSE_MASK);
+					dev_dbg(driver.dev, "t %lu, d %d\n",
+							deltintr, (int)data);
+
+					/*
+					 * if nothing came in last X cycles,
+					 * it was gap
+					 */
+					if (deltintr > TIME_CONST * threshold)
+					{
+						if (last_value)
+						{
+							dev_dbg(driver.dev, "GAP\n");
+							/* simulate signal change */
+							add_read_queue(last_value,
+										   delt -
+										   deltintr);
+							last_value = 0;
+							last = last_intr_time;
+							delt = deltintr;
+						}
+					}
+
+					data = 1;
+
+					if (data ^ last_value)
+					{
+						/*
+						 * deltintr > 2*TIME_CONST, remember?
+						 * the other case is timeout
+						 */
+						add_read_queue(last_value,
+									   delt - TIME_CONST);
+						last_value = data;
+						last = curr_time;
+						last = ktime_sub_us(last,
+											TIME_CONST);
+					}
+
+					last_intr_time = curr_time;
+
+					if (data)
+					{
+						/*
+						 * start timer for end of
+						 * sequence detection
+						 */
+						timerlist.expires = jiffies +
+											SIR_TIMEOUT;
+						add_timer(&timerlist);
+					}
+
+					lsr = inb(io + UART_LSR);
+				}
+				while (lsr & UART_LSR_DR);   /* data ready */
+
+				spin_unlock_irqrestore(&timer_lock, flags);
+				break;
+
+			default:
+				break;
 		}
 	}
+
 	return IRQ_RETVAL(IRQ_HANDLED);
 }
 
@@ -530,10 +632,14 @@ static void send_pulse(unsigned long len)
 	long bytes_out = len / TIME_CONST;
 
 	if (bytes_out == 0)
+	{
 		bytes_out++;
+	}
 
-	while (bytes_out--) {
+	while (bytes_out--)
+	{
 		outb(PULSE, io + UART_TX);
+
 		/* FIXME treba seriozne cakanie z char/serial.c */
 		while (!(inb(io + UART_LSR) & UART_LSR_THRE))
 			;
@@ -549,16 +655,16 @@ static int init_hardware(void)
 #if defined(LIRC_SIR_TEKRAM)
 	/* disable FIFO */
 	soutp(UART_FCR,
-	      UART_FCR_CLEAR_RCVR|
-	      UART_FCR_CLEAR_XMIT|
-	      UART_FCR_TRIGGER_1);
+		  UART_FCR_CLEAR_RCVR |
+		  UART_FCR_CLEAR_XMIT |
+		  UART_FCR_TRIGGER_1);
 
 	/* Set DLAB 0. */
 	soutp(UART_LCR, sinp(UART_LCR) & (~UART_LCR_DLAB));
 
 	/* First of all, disable all interrupts */
 	soutp(UART_IER, sinp(UART_IER) &
-	      (~(UART_IER_MSI|UART_IER_RLSI|UART_IER_THRI|UART_IER_RDI)));
+		  (~(UART_IER_MSI | UART_IER_RLSI | UART_IER_THRI | UART_IER_RDI)));
 
 	/* Set DLAB 1. */
 	soutp(UART_LCR, sinp(UART_LCR) | UART_LCR_DLAB);
@@ -571,27 +677,27 @@ static int init_hardware(void)
 	soutp(UART_LCR, sinp(UART_LCR) & (~UART_LCR_DLAB));
 
 	/* power supply */
-	soutp(UART_MCR, UART_MCR_RTS|UART_MCR_DTR|UART_MCR_OUT2);
-	safe_udelay(50*1000);
+	soutp(UART_MCR, UART_MCR_RTS | UART_MCR_DTR | UART_MCR_OUT2);
+	safe_udelay(50 * 1000);
 
 	/* -DTR low -> reset PIC */
-	soutp(UART_MCR, UART_MCR_RTS|UART_MCR_OUT2);
-	udelay(1*1000);
+	soutp(UART_MCR, UART_MCR_RTS | UART_MCR_OUT2);
+	udelay(1 * 1000);
 
-	soutp(UART_MCR, UART_MCR_RTS|UART_MCR_DTR|UART_MCR_OUT2);
+	soutp(UART_MCR, UART_MCR_RTS | UART_MCR_DTR | UART_MCR_OUT2);
 	udelay(100);
 
 
 	/* -RTS low -> send control byte */
-	soutp(UART_MCR, UART_MCR_DTR|UART_MCR_OUT2);
+	soutp(UART_MCR, UART_MCR_DTR | UART_MCR_OUT2);
 	udelay(7);
-	soutp(UART_TX, TEKRAM_115200|TEKRAM_PW);
+	soutp(UART_TX, TEKRAM_115200 | TEKRAM_PW);
 
 	/* one byte takes ~1042 usec to transmit at 9600,8N1 */
 	udelay(1500);
 
 	/* back to normal operation */
-	soutp(UART_MCR, UART_MCR_RTS|UART_MCR_DTR|UART_MCR_OUT2);
+	soutp(UART_MCR, UART_MCR_RTS | UART_MCR_DTR | UART_MCR_OUT2);
 	udelay(50);
 
 	udelay(1500);
@@ -609,7 +715,7 @@ static int init_hardware(void)
 	/* Set DLAB 0, 8 Bit */
 	soutp(UART_LCR, UART_LCR_WLEN8);
 	/* enable interrupts */
-	soutp(UART_IER, sinp(UART_IER)|UART_IER_RDI);
+	soutp(UART_IER, sinp(UART_IER) | UART_IER_RDI);
 #else
 	outb(0, io + UART_MCR);
 	outb(0, io + UART_IER);
@@ -625,7 +731,7 @@ static int init_hardware(void)
 	/* outb(UART_IER_RLSI|UART_IER_RDI|UART_IER_THRI, io + UART_IER); */
 	outb(UART_IER_RDI, io + UART_IER);
 	/* turn on UART */
-	outb(UART_MCR_DTR|UART_MCR_RTS|UART_MCR_OUT2, io + UART_MCR);
+	outb(UART_MCR_DTR | UART_MCR_RTS | UART_MCR_OUT2, io + UART_MCR);
 #ifdef LIRC_SIR_ACTISYS_ACT200L
 	init_act200();
 #elif defined(LIRC_SIR_ACTISYS_ACT220L)
@@ -655,17 +761,22 @@ static int init_port(void)
 	int retval;
 
 	/* get I/O port access and IRQ line */
-	if (request_region(io, 8, LIRC_DRIVER_NAME) == NULL) {
+	if (request_region(io, 8, LIRC_DRIVER_NAME) == NULL)
+	{
 		pr_err("i/o port 0x%.4x already in use.\n", io);
 		return -EBUSY;
 	}
+
 	retval = request_irq(irq, sir_interrupt, 0,
-			     LIRC_DRIVER_NAME, NULL);
-	if (retval < 0) {
+						 LIRC_DRIVER_NAME, NULL);
+
+	if (retval < 0)
+	{
 		release_region(io, 8);
 		pr_err("IRQ %d already in use.\n", irq);
 		return retval;
 	}
+
 	pr_info("I/O port 0x%.4x, IRQ %d.\n", io, irq);
 
 	setup_timer(&timerlist, sir_timeout, 0);
@@ -710,7 +821,7 @@ static void drop_port(void)
 /* Register 5: Receive Mode register */
 #define ACT200L_REG5    0x50
 #define ACT200L_RWIDL   0x01 /* fixed 1.6us pulse mode */
-    /*.. other various IRDA bit modes, and TV remote modes..*/
+/*.. other various IRDA bit modes, and TV remote modes..*/
 
 /* Register 6: Receive Sensitivity register #1 */
 #define ACT200L_REG6    0x60
@@ -747,7 +858,8 @@ static void drop_port(void)
 static void init_act200(void)
 {
 	int i;
-	__u8 control[] = {
+	__u8 control[] =
+	{
 		ACT200L_REG15,
 		ACT200L_REG13 | ACT200L_SHDW,
 		ACT200L_REG21 | ACT200L_EXCK | ACT200L_OSCL,
@@ -775,31 +887,38 @@ static void init_act200(void)
 	/* Set divisor to 12 => 9600 Baud */
 
 	/* power supply */
-	soutp(UART_MCR, UART_MCR_RTS|UART_MCR_DTR|UART_MCR_OUT2);
+	soutp(UART_MCR, UART_MCR_RTS | UART_MCR_DTR | UART_MCR_OUT2);
+
 	for (i = 0; i < 50; i++)
+	{
 		safe_udelay(1000);
+	}
 
-		/* Reset the dongle : set RTS low for 25 ms */
-	soutp(UART_MCR, UART_MCR_DTR|UART_MCR_OUT2);
+	/* Reset the dongle : set RTS low for 25 ms */
+	soutp(UART_MCR, UART_MCR_DTR | UART_MCR_OUT2);
+
 	for (i = 0; i < 25; i++)
+	{
 		udelay(1000);
+	}
 
-	soutp(UART_MCR, UART_MCR_RTS|UART_MCR_DTR|UART_MCR_OUT2);
+	soutp(UART_MCR, UART_MCR_RTS | UART_MCR_DTR | UART_MCR_OUT2);
 	udelay(100);
 
 	/* Clear DTR and set RTS to enter command mode */
-	soutp(UART_MCR, UART_MCR_RTS|UART_MCR_OUT2);
+	soutp(UART_MCR, UART_MCR_RTS | UART_MCR_OUT2);
 	udelay(7);
 
 	/* send out the control register settings for 115K 7N1 SIR operation */
-	for (i = 0; i < sizeof(control); i++) {
+	for (i = 0; i < sizeof(control); i++)
+	{
 		soutp(UART_TX, control[i]);
 		/* one byte takes ~1042 usec to transmit at 9600,8N1 */
 		udelay(1500);
 	}
 
 	/* back to normal operation */
-	soutp(UART_MCR, UART_MCR_RTS|UART_MCR_DTR|UART_MCR_OUT2);
+	soutp(UART_MCR, UART_MCR_RTS | UART_MCR_DTR | UART_MCR_OUT2);
 	udelay(50);
 
 	udelay(1500);
@@ -819,7 +938,7 @@ static void init_act200(void)
 	soutp(UART_LCR, UART_LCR_WLEN7);
 
 	/* enable interrupts */
-	soutp(UART_IER, sinp(UART_IER)|UART_IER_RDI);
+	soutp(UART_IER, sinp(UART_IER) | UART_IER_RDI);
 }
 #endif
 
@@ -834,7 +953,7 @@ void init_act220(void)
 	int i;
 
 	/* DLAB 1 */
-	soutp(UART_LCR, UART_LCR_DLAB|UART_LCR_WLEN7);
+	soutp(UART_LCR, UART_LCR_DLAB | UART_LCR_WLEN7);
 
 	/* 9600 baud */
 	soutp(UART_DLM, 0);
@@ -844,23 +963,24 @@ void init_act220(void)
 	soutp(UART_LCR, UART_LCR_WLEN7);
 
 	/* reset the dongle, set DTR low for 10us */
-	soutp(UART_MCR, UART_MCR_RTS|UART_MCR_OUT2);
+	soutp(UART_MCR, UART_MCR_RTS | UART_MCR_OUT2);
 	udelay(10);
 
 	/* back to normal (still 9600) */
-	soutp(UART_MCR, UART_MCR_DTR|UART_MCR_RTS|UART_MCR_OUT2);
+	soutp(UART_MCR, UART_MCR_DTR | UART_MCR_RTS | UART_MCR_OUT2);
 
 	/*
 	 * send RTS pulses until we reach 115200
 	 * i hope this is really the same for act220l/act220l+
 	 */
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 3; i++)
+	{
 		udelay(10);
 		/* set RTS low for 10 us */
-		soutp(UART_MCR, UART_MCR_DTR|UART_MCR_OUT2);
+		soutp(UART_MCR, UART_MCR_DTR | UART_MCR_OUT2);
 		udelay(10);
 		/* set RTS high for 10 us */
-		soutp(UART_MCR, UART_MCR_RTS|UART_MCR_DTR|UART_MCR_OUT2);
+		soutp(UART_MCR, UART_MCR_RTS | UART_MCR_DTR | UART_MCR_OUT2);
 	}
 
 	/* back to normal operation */
@@ -888,8 +1008,12 @@ static int init_lirc_sir(void)
 
 	init_waitqueue_head(&lirc_read_queue);
 	retval = init_port();
+
 	if (retval < 0)
+	{
 		return retval;
+	}
+
 	init_hardware();
 	pr_info("Installed.\n");
 	return 0;
@@ -905,7 +1029,8 @@ static int lirc_sir_remove(struct platform_device *dev)
 	return 0;
 }
 
-static struct platform_driver lirc_sir_driver = {
+static struct platform_driver lirc_sir_driver =
+{
 	.probe		= lirc_sir_probe,
 	.remove		= lirc_sir_remove,
 	.driver		= {
@@ -918,31 +1043,42 @@ static int __init lirc_sir_init(void)
 	int retval;
 
 	retval = platform_driver_register(&lirc_sir_driver);
-	if (retval) {
+
+	if (retval)
+	{
 		pr_err("Platform driver register failed!\n");
 		return -ENODEV;
 	}
 
 	lirc_sir_dev = platform_device_alloc("lirc_dev", 0);
-	if (!lirc_sir_dev) {
+
+	if (!lirc_sir_dev)
+	{
 		pr_err("Platform device alloc failed!\n");
 		retval = -ENOMEM;
 		goto pdev_alloc_fail;
 	}
 
 	retval = platform_device_add(lirc_sir_dev);
-	if (retval) {
+
+	if (retval)
+	{
 		pr_err("Platform device add failed!\n");
 		retval = -ENODEV;
 		goto pdev_add_fail;
 	}
 
 	retval = init_chrdev();
+
 	if (retval < 0)
+	{
 		goto fail;
+	}
 
 	retval = init_lirc_sir();
-	if (retval) {
+
+	if (retval)
+	{
 		drop_chrdev();
 		goto fail;
 	}
@@ -972,17 +1108,17 @@ module_init(lirc_sir_init);
 module_exit(lirc_sir_exit);
 
 #ifdef LIRC_SIR_TEKRAM
-MODULE_DESCRIPTION("Infrared receiver driver for Tekram Irmate 210");
-MODULE_AUTHOR("Christoph Bartelmus");
+	MODULE_DESCRIPTION("Infrared receiver driver for Tekram Irmate 210");
+	MODULE_AUTHOR("Christoph Bartelmus");
 #elif defined(LIRC_SIR_ACTISYS_ACT200L)
-MODULE_DESCRIPTION("LIRC driver for Actisys Act200L");
-MODULE_AUTHOR("Karl Bongers");
+	MODULE_DESCRIPTION("LIRC driver for Actisys Act200L");
+	MODULE_AUTHOR("Karl Bongers");
 #elif defined(LIRC_SIR_ACTISYS_ACT220L)
-MODULE_DESCRIPTION("LIRC driver for Actisys Act220L(+)");
-MODULE_AUTHOR("Jan Roemisch");
+	MODULE_DESCRIPTION("LIRC driver for Actisys Act220L(+)");
+	MODULE_AUTHOR("Jan Roemisch");
 #else
-MODULE_DESCRIPTION("Infrared receiver driver for SIR type serial ports");
-MODULE_AUTHOR("Milan Pikula");
+	MODULE_DESCRIPTION("Infrared receiver driver for SIR type serial ports");
+	MODULE_AUTHOR("Milan Pikula");
 #endif
 MODULE_LICENSE("GPL");
 

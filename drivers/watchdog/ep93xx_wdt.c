@@ -44,8 +44,8 @@ MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started");
 static unsigned int timeout = WDT_TIMEOUT;
 module_param(timeout, uint, 0);
 MODULE_PARM_DESC(timeout,
-	"Watchdog timeout in seconds. (1<=timeout<=3600, default="
-				__MODULE_STRING(WDT_TIMEOUT) ")");
+				 "Watchdog timeout in seconds. (1<=timeout<=3600, default="
+				 __MODULE_STRING(WDT_TIMEOUT) ")");
 
 static void __iomem *mmio_base;
 static struct timer_list timer;
@@ -60,7 +60,9 @@ static unsigned long next_heartbeat;
 static void ep93xx_wdt_timer_ping(unsigned long data)
 {
 	if (time_before(jiffies, next_heartbeat))
+	{
 		writel(0x5555, mmio_base + EP93XX_WATCHDOG);
+	}
 
 	/* Re-set the timer interval */
 	mod_timer(&timer, jiffies + WDT_INTERVAL);
@@ -92,21 +94,24 @@ static int ep93xx_wdt_keepalive(struct watchdog_device *wdd)
 	return 0;
 }
 
-static const struct watchdog_info ep93xx_wdt_ident = {
+static const struct watchdog_info ep93xx_wdt_ident =
+{
 	.options	= WDIOF_CARDRESET |
-			  WDIOF_MAGICCLOSE |
-			  WDIOF_KEEPALIVEPING,
+	WDIOF_MAGICCLOSE |
+	WDIOF_KEEPALIVEPING,
 	.identity	= "EP93xx Watchdog",
 };
 
-static struct watchdog_ops ep93xx_wdt_ops = {
+static struct watchdog_ops ep93xx_wdt_ops =
+{
 	.owner		= THIS_MODULE,
 	.start		= ep93xx_wdt_start,
 	.stop		= ep93xx_wdt_stop,
 	.ping		= ep93xx_wdt_keepalive,
 };
 
-static struct watchdog_device ep93xx_wdt_wdd = {
+static struct watchdog_device ep93xx_wdt_wdd =
+{
 	.info		= &ep93xx_wdt_ident,
 	.ops		= &ep93xx_wdt_ops,
 };
@@ -119,14 +124,18 @@ static int ep93xx_wdt_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	mmio_base = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(mmio_base))
-		return PTR_ERR(mmio_base);
 
-	if (timeout < 1 || timeout > 3600) {
+	if (IS_ERR(mmio_base))
+	{
+		return PTR_ERR(mmio_base);
+	}
+
+	if (timeout < 1 || timeout > 3600)
+	{
 		timeout = WDT_TIMEOUT;
 		dev_warn(&pdev->dev,
-			"timeout value must be 1<=x<=3600, using %d\n",
-			timeout);
+				 "timeout value must be 1<=x<=3600, using %d\n",
+				 timeout);
 	}
 
 	val = readl(mmio_base + EP93XX_WATCHDOG);
@@ -139,12 +148,15 @@ static int ep93xx_wdt_probe(struct platform_device *pdev)
 	setup_timer(&timer, ep93xx_wdt_timer_ping, 1);
 
 	err = watchdog_register_device(&ep93xx_wdt_wdd);
+
 	if (err)
+	{
 		return err;
+	}
 
 	dev_info(&pdev->dev,
-		"EP93XX watchdog, driver version " WDT_VERSION "%s\n",
-		(val & 0x08) ? " (nCS1 disable detected)" : "");
+			 "EP93XX watchdog, driver version " WDT_VERSION "%s\n",
+			 (val & 0x08) ? " (nCS1 disable detected)" : "");
 
 	return 0;
 }
@@ -155,7 +167,8 @@ static int ep93xx_wdt_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver ep93xx_wdt_driver = {
+static struct platform_driver ep93xx_wdt_driver =
+{
 	.driver		= {
 		.name	= "ep93xx-wdt",
 	},

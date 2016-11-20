@@ -114,7 +114,8 @@ int mt9m111_init_controls(struct sd *sd);
 int mt9m111_start(struct sd *sd);
 void mt9m111_disconnect(struct sd *sd);
 
-static const struct m5602_sensor mt9m111 = {
+static const struct m5602_sensor mt9m111 =
+{
 	.name = "MT9M111",
 
 	.i2c_slave_id = 0xba,

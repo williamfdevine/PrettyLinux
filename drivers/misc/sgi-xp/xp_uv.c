@@ -16,9 +16,9 @@
 #include <linux/device.h>
 #include <asm/uv/uv_hub.h>
 #if defined CONFIG_X86_64
-#include <asm/uv/bios.h>
+	#include <asm/uv/bios.h>
 #elif defined CONFIG_IA64_GENERIC || defined CONFIG_IA64_SGI_UV
-#include <asm/sn/sn_sal.h>
+	#include <asm/sn/sn_sal.h>
 #endif
 #include "../sgi-gru/grukservices.h"
 #include "xp.h"
@@ -43,7 +43,7 @@ xp_socket_pa_uv(unsigned long gpa)
 
 static enum xp_retval
 xp_remote_mmr_read(unsigned long dst_gpa, const unsigned long src_gpa,
-		   size_t len)
+				   size_t len)
 {
 	int ret;
 	unsigned long *dst_va = __va(uv_gpa_to_soc_phys_ram(dst_gpa));
@@ -52,30 +52,38 @@ xp_remote_mmr_read(unsigned long dst_gpa, const unsigned long src_gpa,
 	BUG_ON(len != 8);
 
 	ret = gru_read_gpa(dst_va, src_gpa);
+
 	if (ret == 0)
+	{
 		return xpSuccess;
+	}
 
 	dev_err(xp, "gru_read_gpa() failed, dst_gpa=0x%016lx src_gpa=0x%016lx "
-		"len=%ld\n", dst_gpa, src_gpa, len);
+	"len=%ld\n", dst_gpa, src_gpa, len);
 	return xpGruCopyError;
 }
 
 
 static enum xp_retval
 xp_remote_memcpy_uv(unsigned long dst_gpa, const unsigned long src_gpa,
-		    size_t len)
+					size_t len)
 {
 	int ret;
 
 	if (uv_gpa_in_mmr_space(src_gpa))
+	{
 		return xp_remote_mmr_read(dst_gpa, src_gpa, len);
+	}
 
 	ret = gru_copy_gpa(dst_gpa, src_gpa, len);
+
 	if (ret == 0)
+	{
 		return xpSuccess;
+	}
 
 	dev_err(xp, "gru_copy_gpa() failed, dst_gpa=0x%016lx src_gpa=0x%016lx "
-		"len=%ld\n", dst_gpa, src_gpa, len);
+	"len=%ld\n", dst_gpa, src_gpa, len);
 	return xpGruCopyError;
 }
 
@@ -93,9 +101,11 @@ xp_expand_memprotect_uv(unsigned long phys_addr, unsigned long size)
 
 #if defined CONFIG_X86_64
 	ret = uv_bios_change_memprotect(phys_addr, size, UV_MEMPROT_ALLOW_RW);
-	if (ret != BIOS_STATUS_SUCCESS) {
+
+	if (ret != BIOS_STATUS_SUCCESS)
+	{
 		dev_err(xp, "uv_bios_change_memprotect(,, "
-			"UV_MEMPROT_ALLOW_RW) failed, ret=%d\n", ret);
+		"UV_MEMPROT_ALLOW_RW) failed, ret=%d\n", ret);
 		return xpBiosError;
 	}
 
@@ -103,14 +113,17 @@ xp_expand_memprotect_uv(unsigned long phys_addr, unsigned long size)
 	u64 nasid_array;
 
 	ret = sn_change_memprotect(phys_addr, size, SN_MEMPROT_ACCESS_CLASS_1,
-				   &nasid_array);
-	if (ret != 0) {
+	&nasid_array);
+
+	if (ret != 0)
+	{
 		dev_err(xp, "sn_change_memprotect(,, "
-			"SN_MEMPROT_ACCESS_CLASS_1,) failed ret=%d\n", ret);
+		"SN_MEMPROT_ACCESS_CLASS_1,) failed ret=%d\n", ret);
 		return xpSalError;
 	}
+
 #else
-	#error not a supported configuration
+#error not a supported configuration
 #endif
 	return xpSuccess;
 }
@@ -122,10 +135,12 @@ xp_restrict_memprotect_uv(unsigned long phys_addr, unsigned long size)
 
 #if defined CONFIG_X86_64
 	ret = uv_bios_change_memprotect(phys_addr, size,
-					UV_MEMPROT_RESTRICT_ACCESS);
-	if (ret != BIOS_STATUS_SUCCESS) {
+	UV_MEMPROT_RESTRICT_ACCESS);
+
+	if (ret != BIOS_STATUS_SUCCESS)
+	{
 		dev_err(xp, "uv_bios_change_memprotect(,, "
-			"UV_MEMPROT_RESTRICT_ACCESS) failed, ret=%d\n", ret);
+		"UV_MEMPROT_RESTRICT_ACCESS) failed, ret=%d\n", ret);
 		return xpBiosError;
 	}
 
@@ -133,14 +148,17 @@ xp_restrict_memprotect_uv(unsigned long phys_addr, unsigned long size)
 	u64 nasid_array;
 
 	ret = sn_change_memprotect(phys_addr, size, SN_MEMPROT_ACCESS_CLASS_0,
-				   &nasid_array);
-	if (ret != 0) {
+	&nasid_array);
+
+	if (ret != 0)
+	{
 		dev_err(xp, "sn_change_memprotect(,, "
-			"SN_MEMPROT_ACCESS_CLASS_0,) failed ret=%d\n", ret);
+		"SN_MEMPROT_ACCESS_CLASS_0,) failed ret=%d\n", ret);
 		return xpSalError;
 	}
+
 #else
-	#error not a supported configuration
+#error not a supported configuration
 #endif
 	return xpSuccess;
 }

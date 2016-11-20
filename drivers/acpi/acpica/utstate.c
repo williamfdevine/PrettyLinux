@@ -61,7 +61,7 @@ ACPI_MODULE_NAME("utstate")
  ******************************************************************************/
 void
 acpi_ut_push_generic_state(union acpi_generic_state **list_head,
-			   union acpi_generic_state *state)
+						   union acpi_generic_state *state)
 {
 	ACPI_FUNCTION_ENTRY();
 
@@ -85,7 +85,7 @@ acpi_ut_push_generic_state(union acpi_generic_state **list_head,
  ******************************************************************************/
 
 union acpi_generic_state *acpi_ut_pop_generic_state(union acpi_generic_state
-						    **list_head)
+			**list_head)
 {
 	union acpi_generic_state *state;
 
@@ -94,7 +94,9 @@ union acpi_generic_state *acpi_ut_pop_generic_state(union acpi_generic_state
 	/* Remove the state object at the head of the list (stack) */
 
 	state = *list_head;
-	if (state) {
+
+	if (state)
+	{
 
 		/* Update the list head */
 
@@ -124,7 +126,9 @@ union acpi_generic_state *acpi_ut_create_generic_state(void)
 	ACPI_FUNCTION_ENTRY();
 
 	state = acpi_os_acquire_object(acpi_gbl_state_cache);
-	if (state) {
+
+	if (state)
+	{
 
 		/* Initialize */
 		state->common.descriptor_type = ACPI_DESC_TYPE_STATE;
@@ -155,7 +159,9 @@ struct acpi_thread_state *acpi_ut_create_thread_state(void)
 	/* Create the generic state object */
 
 	state = acpi_ut_create_generic_state();
-	if (!state) {
+
+	if (!state)
+	{
 		return (NULL);
 	}
 
@@ -166,7 +172,8 @@ struct acpi_thread_state *acpi_ut_create_thread_state(void)
 
 	/* Check for invalid thread ID - zero is very bad, it will break things */
 
-	if (!state->thread.thread_id) {
+	if (!state->thread.thread_id)
+	{
 		ACPI_ERROR((AE_INFO, "Invalid zero ID from AcpiOsGetThreadId"));
 		state->thread.thread_id = (acpi_thread_id) 1;
 	}
@@ -190,7 +197,7 @@ struct acpi_thread_state *acpi_ut_create_thread_state(void)
  ******************************************************************************/
 
 union acpi_generic_state *acpi_ut_create_update_state(union acpi_operand_object
-						      *object, u16 action)
+			*object, u16 action)
 {
 	union acpi_generic_state *state;
 
@@ -199,7 +206,9 @@ union acpi_generic_state *acpi_ut_create_update_state(union acpi_operand_object
 	/* Create the generic state object */
 
 	state = acpi_ut_create_generic_state();
-	if (!state) {
+
+	if (!state)
+	{
 		return (NULL);
 	}
 
@@ -225,8 +234,8 @@ union acpi_generic_state *acpi_ut_create_update_state(union acpi_operand_object
  ******************************************************************************/
 
 union acpi_generic_state *acpi_ut_create_pkg_state(void *internal_object,
-						   void *external_object,
-						   u16 index)
+			void *external_object,
+			u16 index)
 {
 	union acpi_generic_state *state;
 
@@ -235,7 +244,9 @@ union acpi_generic_state *acpi_ut_create_pkg_state(void *internal_object,
 	/* Create the generic state object */
 
 	state = acpi_ut_create_generic_state();
-	if (!state) {
+
+	if (!state)
+	{
 		return (NULL);
 	}
 
@@ -272,7 +283,9 @@ union acpi_generic_state *acpi_ut_create_control_state(void)
 	/* Create the generic state object */
 
 	state = acpi_ut_create_generic_state();
-	if (!state) {
+
+	if (!state)
+	{
 		return (NULL);
 	}
 
@@ -303,7 +316,8 @@ void acpi_ut_delete_generic_state(union acpi_generic_state *state)
 
 	/* Ignore null state */
 
-	if (state) {
+	if (state)
+	{
 		(void)acpi_os_release_object(acpi_gbl_state_cache, state);
 	}
 

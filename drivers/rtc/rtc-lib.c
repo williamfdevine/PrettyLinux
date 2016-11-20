@@ -14,11 +14,13 @@
 #include <linux/module.h>
 #include <linux/rtc.h>
 
-static const unsigned char rtc_days_in_month[] = {
+static const unsigned char rtc_days_in_month[] =
+{
 	31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
 };
 
-static const unsigned short rtc_ydays[2][13] = {
+static const unsigned short rtc_ydays[2][13] =
+{
 	/* Normal years */
 	{ 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365 },
 	/* Leap years */
@@ -41,7 +43,7 @@ EXPORT_SYMBOL(rtc_month_days);
  */
 int rtc_year_days(unsigned int day, unsigned int month, unsigned int year)
 {
-	return rtc_ydays[is_leap_year(year)][month] + day-1;
+	return rtc_ydays[is_leap_year(year)][month] + day - 1;
 }
 EXPORT_SYMBOL(rtc_year_days);
 
@@ -65,23 +67,32 @@ void rtc_time64_to_tm(time64_t time, struct rtc_time *tm)
 
 	year = 1970 + days / 365;
 	days -= (year - 1970) * 365
-		+ LEAPS_THRU_END_OF(year - 1)
-		- LEAPS_THRU_END_OF(1970 - 1);
-	if (days < 0) {
+			+ LEAPS_THRU_END_OF(year - 1)
+			- LEAPS_THRU_END_OF(1970 - 1);
+
+	if (days < 0)
+	{
 		year -= 1;
 		days += 365 + is_leap_year(year);
 	}
+
 	tm->tm_year = year - 1900;
 	tm->tm_yday = days + 1;
 
-	for (month = 0; month < 11; month++) {
+	for (month = 0; month < 11; month++)
+	{
 		int newdays;
 
 		newdays = days - rtc_month_days(month, year);
+
 		if (newdays < 0)
+		{
 			break;
+		}
+
 		days = newdays;
 	}
+
 	tm->tm_mon = month;
 	tm->tm_mday = days + 1;
 
@@ -106,7 +117,9 @@ int rtc_valid_tm(struct rtc_time *tm)
 		|| ((unsigned)tm->tm_hour) >= 24
 		|| ((unsigned)tm->tm_min) >= 60
 		|| ((unsigned)tm->tm_sec) >= 60)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -119,7 +132,7 @@ EXPORT_SYMBOL(rtc_valid_tm);
 time64_t rtc_tm_to_time64(struct rtc_time *tm)
 {
 	return mktime64(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
-			tm->tm_hour, tm->tm_min, tm->tm_sec);
+					tm->tm_hour, tm->tm_min, tm->tm_sec);
 }
 EXPORT_SYMBOL(rtc_tm_to_time64);
 
@@ -141,9 +154,13 @@ struct rtc_time rtc_ktime_to_tm(ktime_t kt)
 	struct rtc_time ret;
 
 	ts = ktime_to_timespec64(kt);
+
 	/* Round up any ns */
 	if (ts.tv_nsec)
+	{
 		ts.tv_sec++;
+	}
+
 	rtc_time64_to_tm(ts.tv_sec, &ret);
 	return ret;
 }

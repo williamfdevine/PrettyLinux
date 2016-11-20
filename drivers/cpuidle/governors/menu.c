@@ -118,7 +118,8 @@
  *
  */
 
-struct menu_device {
+struct menu_device
+{
 	int		last_state_idx;
 	int             needs_update;
 
@@ -150,18 +151,35 @@ static inline int which_bucket(unsigned int duration, unsigned long nr_iowaiters
 	 * E(duration)|iowait
 	 */
 	if (nr_iowaiters)
-		bucket = BUCKETS/2;
+	{
+		bucket = BUCKETS / 2;
+	}
 
 	if (duration < 10)
+	{
 		return bucket;
+	}
+
 	if (duration < 100)
+	{
 		return bucket + 1;
+	}
+
 	if (duration < 1000)
+	{
 		return bucket + 2;
+	}
+
 	if (duration < 10000)
+	{
 		return bucket + 3;
+	}
+
 	if (duration < 100000)
+	{
 		return bucket + 4;
+	}
+
 	return bucket + 5;
 }
 
@@ -210,33 +228,54 @@ again:
 	max = 0;
 	sum = 0;
 	divisor = 0;
-	for (i = 0; i < INTERVALS; i++) {
+
+	for (i = 0; i < INTERVALS; i++)
+	{
 		unsigned int value = data->intervals[i];
-		if (value <= thresh) {
+
+		if (value <= thresh)
+		{
 			sum += value;
 			divisor++;
+
 			if (value > max)
+			{
 				max = value;
+			}
 		}
 	}
+
 	if (divisor == INTERVALS)
+	{
 		avg = sum >> INTERVAL_SHIFT;
+	}
 	else
+	{
 		avg = div_u64(sum, divisor);
+	}
 
 	/* Then try to determine variance */
 	variance = 0;
-	for (i = 0; i < INTERVALS; i++) {
+
+	for (i = 0; i < INTERVALS; i++)
+	{
 		unsigned int value = data->intervals[i];
-		if (value <= thresh) {
+
+		if (value <= thresh)
+		{
 			int64_t diff = (int64_t)value - avg;
 			variance += diff * diff;
 		}
 	}
+
 	if (divisor == INTERVALS)
+	{
 		variance >>= INTERVAL_SHIFT;
+	}
 	else
+	{
 		do_div(variance, divisor);
+	}
 
 	/*
 	 * The typical interval is obtained when standard deviation is
@@ -250,9 +289,11 @@ again:
 	 *
 	 * Use this result only if there is no timer to wake us up sooner.
 	 */
-	if (likely(variance <= U64_MAX/36)) {
-		if ((((u64)avg*avg > variance*36) && (divisor * 4 >= INTERVALS * 3))
-							|| variance <= 400) {
+	if (likely(variance <= U64_MAX / 36))
+	{
+		if ((((u64)avg * avg > variance * 36) && (divisor * 4 >= INTERVALS * 3))
+			|| variance <= 400)
+		{
 			return avg;
 		}
 	}
@@ -267,7 +308,9 @@ again:
 	 * with sporadic activity with a bunch of short pauses.
 	 */
 	if ((divisor * 4) <= INTERVALS * 3)
+	{
 		return UINT_MAX;
+	}
 
 	thresh = max - 1;
 	goto again;
@@ -287,14 +330,17 @@ static int menu_select(struct cpuidle_driver *drv, struct cpuidle_device *dev)
 	unsigned int expected_interval;
 	unsigned long nr_iowaiters, cpu_load;
 
-	if (data->needs_update) {
+	if (data->needs_update)
+	{
 		menu_update(drv, dev);
 		data->needs_update = 0;
 	}
 
 	/* Special case when user has set very strict latency requirement */
 	if (unlikely(latency_req == 0))
+	{
 		return 0;
+	}
 
 	/* determine the expected residency time, round up */
 	data->next_timer_us = ktime_to_us(tick_nohz_get_sleep_length());
@@ -308,13 +354,14 @@ static int menu_select(struct cpuidle_driver *drv, struct cpuidle_device *dev)
 	 * Make sure to round up for half microseconds.
 	 */
 	data->predicted_us = DIV_ROUND_CLOSEST_ULL((uint64_t)data->next_timer_us *
-					 data->correction_factor[data->bucket],
-					 RESOLUTION * DECAY);
+						 data->correction_factor[data->bucket],
+						 RESOLUTION * DECAY);
 
 	expected_interval = get_typical_interval(data);
 	expected_interval = min(expected_interval, data->next_timer_us);
 
-	if (CPUIDLE_DRIVER_STATE_START > 0) {
+	if (CPUIDLE_DRIVER_STATE_START > 0)
+	{
 		struct cpuidle_state *s = &drv->states[CPUIDLE_DRIVER_STATE_START];
 		unsigned int polling_threshold;
 
@@ -324,13 +371,20 @@ static int menu_select(struct cpuidle_driver *drv, struct cpuidle_device *dev)
 		 * C1's exit latency exceeds the user configured limit.
 		 */
 		polling_threshold = max_t(unsigned int, 20, s->target_residency);
+
 		if (data->next_timer_us > polling_threshold &&
-		    latency_req > s->exit_latency && !s->disabled &&
-		    !dev->states_usage[CPUIDLE_DRIVER_STATE_START].disable)
+			latency_req > s->exit_latency && !s->disabled &&
+			!dev->states_usage[CPUIDLE_DRIVER_STATE_START].disable)
+		{
 			data->last_state_idx = CPUIDLE_DRIVER_STATE_START;
+		}
 		else
+		{
 			data->last_state_idx = CPUIDLE_DRIVER_STATE_START - 1;
-	} else {
+		}
+	}
+	else
+	{
 		data->last_state_idx = CPUIDLE_DRIVER_STATE_START;
 	}
 
@@ -344,23 +398,35 @@ static int menu_select(struct cpuidle_driver *drv, struct cpuidle_device *dev)
 	 * latency_req to determine the maximum exit latency.
 	 */
 	interactivity_req = data->predicted_us / performance_multiplier(nr_iowaiters, cpu_load);
+
 	if (latency_req > interactivity_req)
+	{
 		latency_req = interactivity_req;
+	}
 
 	/*
 	 * Find the idle state with the lowest power while satisfying
 	 * our constraints.
 	 */
-	for (i = data->last_state_idx + 1; i < drv->state_count; i++) {
+	for (i = data->last_state_idx + 1; i < drv->state_count; i++)
+	{
 		struct cpuidle_state *s = &drv->states[i];
 		struct cpuidle_state_usage *su = &dev->states_usage[i];
 
 		if (s->disabled || su->disable)
+		{
 			continue;
+		}
+
 		if (s->target_residency > data->predicted_us)
+		{
 			continue;
+		}
+
 		if (s->exit_latency > latency_req)
+		{
 			continue;
+		}
 
 		data->last_state_idx = i;
 	}
@@ -417,26 +483,36 @@ static void menu_update(struct cpuidle_driver *drv, struct cpuidle_device *dev)
 
 	/* Deduct exit latency */
 	if (measured_us > 2 * target->exit_latency)
+	{
 		measured_us -= target->exit_latency;
+	}
 	else
+	{
 		measured_us /= 2;
+	}
 
 	/* Make sure our coefficients do not exceed unity */
 	if (measured_us > data->next_timer_us)
+	{
 		measured_us = data->next_timer_us;
+	}
 
 	/* Update our correction ratio */
 	new_factor = data->correction_factor[data->bucket];
 	new_factor -= new_factor / DECAY;
 
 	if (data->next_timer_us > 0 && measured_us < MAX_INTERESTING)
+	{
 		new_factor += RESOLUTION * measured_us / data->next_timer_us;
+	}
 	else
 		/*
 		 * we were idle so long that we count it as a perfect
 		 * prediction
 		 */
+	{
 		new_factor += RESOLUTION;
+	}
 
 	/*
 	 * We don't want 0 as factor; we always want at least
@@ -445,14 +521,19 @@ static void menu_update(struct cpuidle_driver *drv, struct cpuidle_device *dev)
 	 * and the compiler can eliminate this test as long as DECAY > 1.
 	 */
 	if (DECAY == 1 && unlikely(new_factor == 0))
+	{
 		new_factor = 1;
+	}
 
 	data->correction_factor[data->bucket] = new_factor;
 
 	/* update the repeating-pattern data */
 	data->intervals[data->interval_ptr++] = measured_us;
+
 	if (data->interval_ptr >= INTERVALS)
+	{
 		data->interval_ptr = 0;
+	}
 }
 
 /**
@@ -461,7 +542,7 @@ static void menu_update(struct cpuidle_driver *drv, struct cpuidle_device *dev)
  * @dev: the CPU
  */
 static int menu_enable_device(struct cpuidle_driver *drv,
-				struct cpuidle_device *dev)
+							  struct cpuidle_device *dev)
 {
 	struct menu_device *data = &per_cpu(menu_devices, dev->cpu);
 	int i;
@@ -472,13 +553,16 @@ static int menu_enable_device(struct cpuidle_driver *drv,
 	 * if the correction factor is 0 (eg first time init or cpu hotplug
 	 * etc), we actually want to start out with a unity factor.
 	 */
-	for(i = 0; i < BUCKETS; i++)
+	for (i = 0; i < BUCKETS; i++)
+	{
 		data->correction_factor[i] = RESOLUTION * DECAY;
+	}
 
 	return 0;
 }
 
-static struct cpuidle_governor menu_governor = {
+static struct cpuidle_governor menu_governor =
+{
 	.name =		"menu",
 	.rating =	20,
 	.enable =	menu_enable_device,

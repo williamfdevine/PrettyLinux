@@ -24,10 +24,15 @@ void cxl_stop_trace(struct cxl *adapter)
 
 	/* Stop the slice traces */
 	spin_lock(&adapter->afu_list_lock);
-	for (slice = 0; slice < adapter->slices; slice++) {
+
+	for (slice = 0; slice < adapter->slices; slice++)
+	{
 		if (adapter->afu[slice])
+		{
 			cxl_p1n_write(adapter->afu[slice], CXL_PSL_SLICE_TRACE, 0x8000000000000000LL);
+		}
 	}
+
 	spin_unlock(&adapter->afu_list_lock);
 }
 
@@ -46,7 +51,7 @@ static int debugfs_io_u64_set(void *data, u64 val)
 DEFINE_SIMPLE_ATTRIBUTE(fops_io_x64, debugfs_io_u64_get, debugfs_io_u64_set, "0x%016llx\n");
 
 static struct dentry *debugfs_create_io_x64(const char *name, umode_t mode,
-					    struct dentry *parent, u64 __iomem *value)
+		struct dentry *parent, u64 __iomem *value)
 {
 	return debugfs_create_file(name, mode, parent, (void __force *)value, &fops_io_x64);
 }
@@ -70,18 +75,27 @@ int cxl_debugfs_adapter_add(struct cxl *adapter)
 	char buf[32];
 
 	if (!cxl_debugfs)
+	{
 		return -ENODEV;
+	}
 
 	snprintf(buf, 32, "card%i", adapter->adapter_num);
 	dir = debugfs_create_dir(buf, cxl_debugfs);
+
 	if (IS_ERR(dir))
+	{
 		return PTR_ERR(dir);
+	}
+
 	adapter->debugfs = dir;
 
 	debugfs_create_io_x64("err_ivte", S_IRUSR, dir, _cxl_p1_addr(adapter, CXL_PSL_ErrIVTE));
 
 	if (adapter->native->sl_ops->debugfs_add_adapter_sl_regs)
+	{
 		adapter->native->sl_ops->debugfs_add_adapter_sl_regs(adapter, dir);
+	}
+
 	return 0;
 }
 
@@ -104,12 +118,18 @@ int cxl_debugfs_afu_add(struct cxl_afu *afu)
 	char buf[32];
 
 	if (!afu->adapter->debugfs)
+	{
 		return -ENODEV;
+	}
 
 	snprintf(buf, 32, "psl%i.%i", afu->adapter->adapter_num, afu->slice);
 	dir = debugfs_create_dir(buf, afu->adapter->debugfs);
+
 	if (IS_ERR(dir))
+	{
 		return PTR_ERR(dir);
+	}
+
 	afu->debugfs = dir;
 
 	debugfs_create_io_x64("sr",         S_IRUSR, dir, _cxl_p1n_addr(afu, CXL_PSL_SR_An));
@@ -120,7 +140,9 @@ int cxl_debugfs_afu_add(struct cxl_afu *afu)
 	debugfs_create_io_x64("err_status", S_IRUSR, dir, _cxl_p2n_addr(afu, CXL_PSL_ErrStat_An));
 
 	if (afu->adapter->native->sl_ops->debugfs_add_afu_sl_regs)
+	{
 		afu->adapter->native->sl_ops->debugfs_add_afu_sl_regs(afu, dir);
+	}
 
 	return 0;
 }
@@ -135,11 +157,17 @@ int __init cxl_debugfs_init(void)
 	struct dentry *ent;
 
 	if (!cpu_has_feature(CPU_FTR_HVMODE))
+	{
 		return 0;
+	}
 
 	ent = debugfs_create_dir("cxl", NULL);
+
 	if (IS_ERR(ent))
+	{
 		return PTR_ERR(ent);
+	}
+
 	cxl_debugfs = ent;
 
 	return 0;

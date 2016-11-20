@@ -36,7 +36,8 @@
  * @flags:	GPIO configuration as specified by GPIOF_*
  * @label:	a literal description string of this GPIO
  */
-struct gpio {
+struct gpio
+{
 	unsigned	gpio;
 	unsigned long	flags;
 	const char	*label;
@@ -83,7 +84,7 @@ struct device;
 
 int devm_gpio_request(struct device *dev, unsigned gpio, const char *label);
 int devm_gpio_request_one(struct device *dev, unsigned gpio,
-			  unsigned long flags, const char *label);
+						  unsigned long flags, const char *label);
 void devm_gpio_free(struct device *dev, unsigned int gpio);
 
 #else /* ! CONFIG_GPIOLIB */
@@ -107,7 +108,7 @@ static inline int gpio_request(unsigned gpio, const char *label)
 }
 
 static inline int gpio_request_one(unsigned gpio,
-					unsigned long flags, const char *label)
+								   unsigned long flags, const char *label)
 {
 	return -ENOSYS;
 }
@@ -189,7 +190,7 @@ static inline int gpio_export(unsigned gpio, bool direction_may_change)
 }
 
 static inline int gpio_export_link(struct device *dev, const char *name,
-				unsigned gpio)
+								   unsigned gpio)
 {
 	/* GPIO can never have been exported */
 	WARN_ON(1);
@@ -210,14 +211,14 @@ static inline int gpio_to_irq(unsigned gpio)
 }
 
 static inline int gpiochip_lock_as_irq(struct gpio_chip *chip,
-				       unsigned int offset)
+									   unsigned int offset)
 {
 	WARN_ON(1);
 	return -EINVAL;
 }
 
 static inline void gpiochip_unlock_as_irq(struct gpio_chip *chip,
-					  unsigned int offset)
+		unsigned int offset)
 {
 	WARN_ON(1);
 }
@@ -231,8 +232,8 @@ static inline int irq_to_gpio(unsigned irq)
 
 static inline int
 gpiochip_add_pin_range(struct gpio_chip *chip, const char *pinctl_name,
-		       unsigned int gpio_offset, unsigned int pin_offset,
-		       unsigned int npins)
+					   unsigned int gpio_offset, unsigned int pin_offset,
+					   unsigned int npins)
 {
 	WARN_ON(1);
 	return -EINVAL;
@@ -240,8 +241,8 @@ gpiochip_add_pin_range(struct gpio_chip *chip, const char *pinctl_name,
 
 static inline int
 gpiochip_add_pingroup_range(struct gpio_chip *chip,
-			struct pinctrl_dev *pctldev,
-			unsigned int gpio_offset, const char *pin_group)
+							struct pinctrl_dev *pctldev,
+							unsigned int gpio_offset, const char *pin_group)
 {
 	WARN_ON(1);
 	return -EINVAL;
@@ -254,14 +255,14 @@ gpiochip_remove_pin_ranges(struct gpio_chip *chip)
 }
 
 static inline int devm_gpio_request(struct device *dev, unsigned gpio,
-				    const char *label)
+									const char *label)
 {
 	WARN_ON(1);
 	return -EINVAL;
 }
 
 static inline int devm_gpio_request_one(struct device *dev, unsigned gpio,
-					unsigned long flags, const char *label)
+										unsigned long flags, const char *label)
 {
 	WARN_ON(1);
 	return -EINVAL;

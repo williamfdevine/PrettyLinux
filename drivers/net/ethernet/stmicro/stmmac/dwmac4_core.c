@@ -28,22 +28,35 @@ static void dwmac4_core_init(struct mac_device_info *hw, int mtu)
 	value |= GMAC_CORE_INIT;
 
 	if (mtu > 1500)
+	{
 		value |= GMAC_CONFIG_2K;
-	if (mtu > 2000)
-		value |= GMAC_CONFIG_JE;
+	}
 
-	if (hw->ps) {
+	if (mtu > 2000)
+	{
+		value |= GMAC_CONFIG_JE;
+	}
+
+	if (hw->ps)
+	{
 		value |= GMAC_CONFIG_TE;
 
-		if (hw->ps == SPEED_1000) {
+		if (hw->ps == SPEED_1000)
+		{
 			value &= ~GMAC_CONFIG_PS;
-		} else {
+		}
+		else
+		{
 			value |= GMAC_CONFIG_PS;
 
 			if (hw->ps == SPEED_10)
+			{
 				value &= ~GMAC_CONFIG_FES;
+			}
 			else
+			{
 				value |= GMAC_CONFIG_FES;
+			}
 		}
 	}
 
@@ -51,10 +64,16 @@ static void dwmac4_core_init(struct mac_device_info *hw, int mtu)
 
 	/* Mask GMAC interrupts */
 	value = GMAC_INT_DEFAULT_MASK;
+
 	if (hw->pmt)
+	{
 		value |= GMAC_INT_PMT_EN;
+	}
+
 	if (hw->pcs)
+	{
 		value |= GMAC_PCS_IRQ_DEFAULT;
+	}
 
 	writel(value, ioaddr + GMAC_INT_EN);
 }
@@ -66,11 +85,12 @@ static void dwmac4_dump_regs(struct mac_device_info *hw)
 
 	pr_debug("\tDWMAC4 regs (base addr = 0x%p)\n", ioaddr);
 
-	for (i = 0; i < GMAC_REG_NUM; i++) {
+	for (i = 0; i < GMAC_REG_NUM; i++)
+	{
 		int offset = i * 4;
 
 		pr_debug("\tReg No. %d (offset 0x%x): 0x%08x\n", i,
-			 offset, readl(ioaddr + offset));
+				 offset, readl(ioaddr + offset));
 	}
 }
 
@@ -80,9 +100,13 @@ static int dwmac4_rx_ipc_enable(struct mac_device_info *hw)
 	u32 value = readl(ioaddr + GMAC_CONFIG);
 
 	if (hw->rx_csum)
+	{
 		value |= GMAC_CONFIG_IPC;
+	}
 	else
+	{
 		value &= ~GMAC_CONFIG_IPC;
+	}
 
 	writel(value, ioaddr + GMAC_CONFIG);
 
@@ -96,11 +120,14 @@ static void dwmac4_pmt(struct mac_device_info *hw, unsigned long mode)
 	void __iomem *ioaddr = hw->pcsr;
 	unsigned int pmt = 0;
 
-	if (mode & WAKE_MAGIC) {
+	if (mode & WAKE_MAGIC)
+	{
 		pr_debug("GMAC: WOL Magic frame\n");
 		pmt |= power_down | magic_pkt_en;
 	}
-	if (mode & WAKE_UCAST) {
+
+	if (mode & WAKE_UCAST)
+	{
 		pr_debug("GMAC: WOL on global unicast\n");
 		pmt |= power_down | global_unicast | wake_up_frame_en;
 	}
@@ -109,33 +136,36 @@ static void dwmac4_pmt(struct mac_device_info *hw, unsigned long mode)
 }
 
 static void dwmac4_set_umac_addr(struct mac_device_info *hw,
-				 unsigned char *addr, unsigned int reg_n)
+								 unsigned char *addr, unsigned int reg_n)
 {
 	void __iomem *ioaddr = hw->pcsr;
 
 	stmmac_dwmac4_set_mac_addr(ioaddr, addr, GMAC_ADDR_HIGH(reg_n),
-				   GMAC_ADDR_LOW(reg_n));
+							   GMAC_ADDR_LOW(reg_n));
 }
 
 static void dwmac4_get_umac_addr(struct mac_device_info *hw,
-				 unsigned char *addr, unsigned int reg_n)
+								 unsigned char *addr, unsigned int reg_n)
 {
 	void __iomem *ioaddr = hw->pcsr;
 
 	stmmac_dwmac4_get_mac_addr(ioaddr, addr, GMAC_ADDR_HIGH(reg_n),
-				   GMAC_ADDR_LOW(reg_n));
+							   GMAC_ADDR_LOW(reg_n));
 }
 
 static void dwmac4_set_filter(struct mac_device_info *hw,
-			      struct net_device *dev)
+							  struct net_device *dev)
 {
 	void __iomem *ioaddr = (void __iomem *)dev->base_addr;
 	unsigned int value = 0;
 
-	if (dev->flags & IFF_PROMISC) {
+	if (dev->flags & IFF_PROMISC)
+	{
 		value = GMAC_PACKET_FILTER_PR;
-	} else if ((dev->flags & IFF_ALLMULTI) ||
-			(netdev_mc_count(dev) > HASH_TABLE_SIZE)) {
+	}
+	else if ((dev->flags & IFF_ALLMULTI) ||
+			 (netdev_mc_count(dev) > HASH_TABLE_SIZE))
+	{
 		/* Pass all multi */
 		value = GMAC_PACKET_FILTER_PM;
 		/* Set the 64 bits of the HASH tab. To be updated if taller
@@ -143,7 +173,9 @@ static void dwmac4_set_filter(struct mac_device_info *hw,
 		 */
 		writel(0xffffffff, ioaddr + GMAC_HASH_TAB_0_31);
 		writel(0xffffffff, ioaddr + GMAC_HASH_TAB_32_63);
-	} else if (!netdev_mc_empty(dev)) {
+	}
+	else if (!netdev_mc_empty(dev))
+	{
 		u32 mc_filter[2];
 		struct netdev_hw_addr *ha;
 
@@ -151,7 +183,8 @@ static void dwmac4_set_filter(struct mac_device_info *hw,
 		value = GMAC_PACKET_FILTER_HMC;
 
 		memset(mc_filter, 0, sizeof(mc_filter));
-		netdev_for_each_mc_addr(ha, dev) {
+		netdev_for_each_mc_addr(ha, dev)
+		{
 			/* The upper 6 bits of the calculated CRC are used to
 			 * index the content of the Hash Table Reg 0 and 1.
 			 */
@@ -168,16 +201,20 @@ static void dwmac4_set_filter(struct mac_device_info *hw,
 	}
 
 	/* Handle multiple unicast addresses */
-	if (netdev_uc_count(dev) > GMAC_MAX_PERFECT_ADDRESSES) {
+	if (netdev_uc_count(dev) > GMAC_MAX_PERFECT_ADDRESSES)
+	{
 		/* Switch to promiscuous mode if more than 128 addrs
 		 * are required
 		 */
 		value |= GMAC_PACKET_FILTER_PR;
-	} else if (!netdev_uc_empty(dev)) {
+	}
+	else if (!netdev_uc_empty(dev))
+	{
 		int reg = 1;
 		struct netdev_hw_addr *ha;
 
-		netdev_for_each_uc_addr(ha, dev) {
+		netdev_for_each_uc_addr(ha, dev)
+		{
 			dwmac4_set_umac_addr(hw, ha->addr, reg);
 			reg++;
 		}
@@ -187,24 +224,29 @@ static void dwmac4_set_filter(struct mac_device_info *hw,
 }
 
 static void dwmac4_flow_ctrl(struct mac_device_info *hw, unsigned int duplex,
-			     unsigned int fc, unsigned int pause_time)
+							 unsigned int fc, unsigned int pause_time)
 {
 	void __iomem *ioaddr = hw->pcsr;
 	u32 channel = STMMAC_CHAN0;	/* FIXME */
 	unsigned int flow = 0;
 
 	pr_debug("GMAC Flow-Control:\n");
-	if (fc & FLOW_RX) {
+
+	if (fc & FLOW_RX)
+	{
 		pr_debug("\tReceive Flow-Control ON\n");
 		flow |= GMAC_RX_FLOW_CTRL_RFE;
 		writel(flow, ioaddr + GMAC_RX_FLOW_CTRL);
 	}
-	if (fc & FLOW_TX) {
+
+	if (fc & FLOW_TX)
+	{
 		pr_debug("\tTransmit Flow-Control ON\n");
 		flow |= GMAC_TX_FLOW_CTRL_TFE;
 		writel(flow, ioaddr + GMAC_QX_TX_FLOW_CTRL(channel));
 
-		if (duplex) {
+		if (duplex)
+		{
 			pr_debug("\tduplex mode: PAUSE %d\n", pause_time);
 			flow |= (pause_time << GMAC_TX_FLOW_CTRL_PT_SHIFT);
 			writel(flow, ioaddr + GMAC_QX_TX_FLOW_CTRL(channel));
@@ -213,7 +255,7 @@ static void dwmac4_flow_ctrl(struct mac_device_info *hw, unsigned int duplex,
 }
 
 static void dwmac4_ctrl_ane(void __iomem *ioaddr, bool ane, bool srgmi_ral,
-			    bool loopback)
+							bool loopback)
 {
 	dwmac_ctrl_ane(ioaddr, GMAC_PCS_BASE, ane, srgmi_ral, loopback);
 }
@@ -237,32 +279,42 @@ static void dwmac4_phystatus(void __iomem *ioaddr, struct stmmac_extra_stats *x)
 	x->irq_rgmii_n++;
 
 	/* Check the link status */
-	if (status & GMAC_PHYIF_CTRLSTATUS_LNKSTS) {
+	if (status & GMAC_PHYIF_CTRLSTATUS_LNKSTS)
+	{
 		int speed_value;
 
 		x->pcs_link = 1;
 
 		speed_value = ((status & GMAC_PHYIF_CTRLSTATUS_SPEED) >>
-			       GMAC_PHYIF_CTRLSTATUS_SPEED_SHIFT);
+					   GMAC_PHYIF_CTRLSTATUS_SPEED_SHIFT);
+
 		if (speed_value == GMAC_PHYIF_CTRLSTATUS_SPEED_125)
+		{
 			x->pcs_speed = SPEED_1000;
+		}
 		else if (speed_value == GMAC_PHYIF_CTRLSTATUS_SPEED_25)
+		{
 			x->pcs_speed = SPEED_100;
+		}
 		else
+		{
 			x->pcs_speed = SPEED_10;
+		}
 
 		x->pcs_duplex = (status & GMAC_PHYIF_CTRLSTATUS_LNKMOD_MASK);
 
 		pr_info("Link is Up - %d/%s\n", (int)x->pcs_speed,
-			x->pcs_duplex ? "Full" : "Half");
-	} else {
+				x->pcs_duplex ? "Full" : "Half");
+	}
+	else
+	{
 		x->pcs_link = 0;
 		pr_info("Link is Down\n");
 	}
 }
 
 static int dwmac4_irq_status(struct mac_device_info *hw,
-			     struct stmmac_extra_stats *x)
+							 struct stmmac_extra_stats *x)
 {
 	void __iomem *ioaddr = hw->pcsr;
 	u32 mtl_int_qx_status;
@@ -273,34 +325,50 @@ static int dwmac4_irq_status(struct mac_device_info *hw,
 
 	/* Not used events (e.g. MMC interrupts) are not handled. */
 	if ((intr_status & mmc_tx_irq))
+	{
 		x->mmc_tx_irq_n++;
+	}
+
 	if (unlikely(intr_status & mmc_rx_irq))
+	{
 		x->mmc_rx_irq_n++;
+	}
+
 	if (unlikely(intr_status & mmc_rx_csum_offload_irq))
+	{
 		x->mmc_rx_csum_offload_irq_n++;
+	}
+
 	/* Clear the PMT bits 5 and 6 by reading the PMT status reg */
-	if (unlikely(intr_status & pmt_irq)) {
+	if (unlikely(intr_status & pmt_irq))
+	{
 		readl(ioaddr + GMAC_PMT);
 		x->irq_receive_pmt_irq_n++;
 	}
 
 	mtl_int_qx_status = readl(ioaddr + MTL_INT_STATUS);
+
 	/* Check MTL Interrupt: Currently only one queue is used: Q0. */
-	if (mtl_int_qx_status & MTL_INT_Q0) {
+	if (mtl_int_qx_status & MTL_INT_Q0)
+	{
 		/* read Queue 0 Interrupt status */
 		u32 status = readl(ioaddr + MTL_CHAN_INT_CTRL(STMMAC_CHAN0));
 
-		if (status & MTL_RX_OVERFLOW_INT) {
+		if (status & MTL_RX_OVERFLOW_INT)
+		{
 			/*  clear Interrupt */
 			writel(status | MTL_RX_OVERFLOW_INT,
-			       ioaddr + MTL_CHAN_INT_CTRL(STMMAC_CHAN0));
+				   ioaddr + MTL_CHAN_INT_CTRL(STMMAC_CHAN0));
 			ret = CORE_IRQ_MTL_RX_OVERFLOW;
 		}
 	}
 
 	dwmac_pcs_isr(ioaddr, GMAC_PCS_BASE, intr_status, x);
+
 	if (intr_status & PCS_RGSMIIIS_IRQ)
+	{
 		dwmac4_phystatus(ioaddr, x);
+	}
 
 	return ret;
 }
@@ -313,83 +381,144 @@ static void dwmac4_debug(void __iomem *ioaddr, struct stmmac_extra_stats *x)
 	value = readl(ioaddr + MTL_CHAN_TX_DEBUG(STMMAC_CHAN0));
 
 	if (value & MTL_DEBUG_TXSTSFSTS)
+	{
 		x->mtl_tx_status_fifo_full++;
-	if (value & MTL_DEBUG_TXFSTS)
-		x->mtl_tx_fifo_not_empty++;
-	if (value & MTL_DEBUG_TWCSTS)
-		x->mmtl_fifo_ctrl++;
-	if (value & MTL_DEBUG_TRCSTS_MASK) {
-		u32 trcsts = (value & MTL_DEBUG_TRCSTS_MASK)
-			     >> MTL_DEBUG_TRCSTS_SHIFT;
-		if (trcsts == MTL_DEBUG_TRCSTS_WRITE)
-			x->mtl_tx_fifo_read_ctrl_write++;
-		else if (trcsts == MTL_DEBUG_TRCSTS_TXW)
-			x->mtl_tx_fifo_read_ctrl_wait++;
-		else if (trcsts == MTL_DEBUG_TRCSTS_READ)
-			x->mtl_tx_fifo_read_ctrl_read++;
-		else
-			x->mtl_tx_fifo_read_ctrl_idle++;
 	}
+
+	if (value & MTL_DEBUG_TXFSTS)
+	{
+		x->mtl_tx_fifo_not_empty++;
+	}
+
+	if (value & MTL_DEBUG_TWCSTS)
+	{
+		x->mmtl_fifo_ctrl++;
+	}
+
+	if (value & MTL_DEBUG_TRCSTS_MASK)
+	{
+		u32 trcsts = (value & MTL_DEBUG_TRCSTS_MASK)
+					 >> MTL_DEBUG_TRCSTS_SHIFT;
+
+		if (trcsts == MTL_DEBUG_TRCSTS_WRITE)
+		{
+			x->mtl_tx_fifo_read_ctrl_write++;
+		}
+		else if (trcsts == MTL_DEBUG_TRCSTS_TXW)
+		{
+			x->mtl_tx_fifo_read_ctrl_wait++;
+		}
+		else if (trcsts == MTL_DEBUG_TRCSTS_READ)
+		{
+			x->mtl_tx_fifo_read_ctrl_read++;
+		}
+		else
+		{
+			x->mtl_tx_fifo_read_ctrl_idle++;
+		}
+	}
+
 	if (value & MTL_DEBUG_TXPAUSED)
+	{
 		x->mac_tx_in_pause++;
+	}
 
 	value = readl(ioaddr + MTL_CHAN_RX_DEBUG(STMMAC_CHAN0));
 
-	if (value & MTL_DEBUG_RXFSTS_MASK) {
+	if (value & MTL_DEBUG_RXFSTS_MASK)
+	{
 		u32 rxfsts = (value & MTL_DEBUG_RXFSTS_MASK)
-			     >> MTL_DEBUG_RRCSTS_SHIFT;
+					 >> MTL_DEBUG_RRCSTS_SHIFT;
 
 		if (rxfsts == MTL_DEBUG_RXFSTS_FULL)
+		{
 			x->mtl_rx_fifo_fill_level_full++;
+		}
 		else if (rxfsts == MTL_DEBUG_RXFSTS_AT)
+		{
 			x->mtl_rx_fifo_fill_above_thresh++;
+		}
 		else if (rxfsts == MTL_DEBUG_RXFSTS_BT)
+		{
 			x->mtl_rx_fifo_fill_below_thresh++;
+		}
 		else
+		{
 			x->mtl_rx_fifo_fill_level_empty++;
+		}
 	}
-	if (value & MTL_DEBUG_RRCSTS_MASK) {
+
+	if (value & MTL_DEBUG_RRCSTS_MASK)
+	{
 		u32 rrcsts = (value & MTL_DEBUG_RRCSTS_MASK) >>
-			     MTL_DEBUG_RRCSTS_SHIFT;
+					 MTL_DEBUG_RRCSTS_SHIFT;
 
 		if (rrcsts == MTL_DEBUG_RRCSTS_FLUSH)
+		{
 			x->mtl_rx_fifo_read_ctrl_flush++;
+		}
 		else if (rrcsts == MTL_DEBUG_RRCSTS_RSTAT)
+		{
 			x->mtl_rx_fifo_read_ctrl_read_data++;
+		}
 		else if (rrcsts == MTL_DEBUG_RRCSTS_RDATA)
+		{
 			x->mtl_rx_fifo_read_ctrl_status++;
+		}
 		else
+		{
 			x->mtl_rx_fifo_read_ctrl_idle++;
+		}
 	}
+
 	if (value & MTL_DEBUG_RWCSTS)
+	{
 		x->mtl_rx_fifo_ctrl_active++;
+	}
 
 	/* GMAC debug */
 	value = readl(ioaddr + GMAC_DEBUG);
 
-	if (value & GMAC_DEBUG_TFCSTS_MASK) {
+	if (value & GMAC_DEBUG_TFCSTS_MASK)
+	{
 		u32 tfcsts = (value & GMAC_DEBUG_TFCSTS_MASK)
-			      >> GMAC_DEBUG_TFCSTS_SHIFT;
+					 >> GMAC_DEBUG_TFCSTS_SHIFT;
 
 		if (tfcsts == GMAC_DEBUG_TFCSTS_XFER)
+		{
 			x->mac_tx_frame_ctrl_xfer++;
+		}
 		else if (tfcsts == GMAC_DEBUG_TFCSTS_GEN_PAUSE)
+		{
 			x->mac_tx_frame_ctrl_pause++;
+		}
 		else if (tfcsts == GMAC_DEBUG_TFCSTS_WAIT)
+		{
 			x->mac_tx_frame_ctrl_wait++;
+		}
 		else
+		{
 			x->mac_tx_frame_ctrl_idle++;
+		}
 	}
+
 	if (value & GMAC_DEBUG_TPESTS)
+	{
 		x->mac_gmii_tx_proto_engine++;
+	}
+
 	if (value & GMAC_DEBUG_RFCFCSTS_MASK)
 		x->mac_rx_frame_ctrl_fifo = (value & GMAC_DEBUG_RFCFCSTS_MASK)
-					    >> GMAC_DEBUG_RFCFCSTS_SHIFT;
+									>> GMAC_DEBUG_RFCFCSTS_SHIFT;
+
 	if (value & GMAC_DEBUG_RPESTS)
+	{
 		x->mac_gmii_rx_proto_engine++;
+	}
 }
 
-static const struct stmmac_ops dwmac4_ops = {
+static const struct stmmac_ops dwmac4_ops =
+{
 	.core_init = dwmac4_core_init,
 	.rx_ipc = dwmac4_rx_ipc_enable,
 	.dump_regs = dwmac4_dump_regs,
@@ -406,14 +535,17 @@ static const struct stmmac_ops dwmac4_ops = {
 };
 
 struct mac_device_info *dwmac4_setup(void __iomem *ioaddr, int mcbins,
-				     int perfect_uc_entries, int *synopsys_id)
+									 int perfect_uc_entries, int *synopsys_id)
 {
 	struct mac_device_info *mac;
 	u32 hwid = readl(ioaddr + GMAC_VERSION);
 
 	mac = kzalloc(sizeof(const struct mac_device_info), GFP_KERNEL);
+
 	if (!mac)
+	{
 		return NULL;
+	}
 
 	mac->pcsr = ioaddr;
 	mac->multicast_filter_bins = mcbins;
@@ -421,7 +553,9 @@ struct mac_device_info *dwmac4_setup(void __iomem *ioaddr, int mcbins,
 	mac->mcast_bits_log2 = 0;
 
 	if (mac->multicast_filter_bins)
+	{
 		mac->mcast_bits_log2 = ilog2(mac->multicast_filter_bins);
+	}
 
 	mac->mac = &dwmac4_ops;
 
@@ -435,9 +569,13 @@ struct mac_device_info *dwmac4_setup(void __iomem *ioaddr, int mcbins,
 	*synopsys_id = stmmac_get_synopsys_id(hwid);
 
 	if (*synopsys_id > DWMAC_CORE_4_00)
+	{
 		mac->dma = &dwmac410_dma_ops;
+	}
 	else
+	{
 		mac->dma = &dwmac4_dma_ops;
+	}
 
 	return mac;
 }

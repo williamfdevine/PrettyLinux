@@ -9,7 +9,8 @@
  */
 
 #ifndef CONFIG_SQUASHFS_FILE_DIRECT
-struct squashfs_page_actor {
+struct squashfs_page_actor
+{
 	void	**page;
 	int	pages;
 	int	length;
@@ -17,12 +18,14 @@ struct squashfs_page_actor {
 };
 
 static inline struct squashfs_page_actor *squashfs_page_actor_init(void **page,
-	int pages, int length)
+		int pages, int length)
 {
 	struct squashfs_page_actor *actor = kmalloc(sizeof(*actor), GFP_KERNEL);
 
 	if (actor == NULL)
+	{
 		return NULL;
+	}
 
 	actor->length = length ? : pages * PAGE_SIZE;
 	actor->page = page;
@@ -40,7 +43,7 @@ static inline void *squashfs_first_page(struct squashfs_page_actor *actor)
 static inline void *squashfs_next_page(struct squashfs_page_actor *actor)
 {
 	return actor->next_page == actor->pages ? NULL :
-		actor->page[actor->next_page++];
+		   actor->page[actor->next_page++];
 }
 
 static inline void squashfs_finish_page(struct squashfs_page_actor *actor)
@@ -48,8 +51,10 @@ static inline void squashfs_finish_page(struct squashfs_page_actor *actor)
 	/* empty */
 }
 #else
-struct squashfs_page_actor {
-	union {
+struct squashfs_page_actor
+{
+	union
+	{
 		void		**buffer;
 		struct page	**page;
 	};
@@ -64,7 +69,7 @@ struct squashfs_page_actor {
 
 extern struct squashfs_page_actor *squashfs_page_actor_init(void **, int, int);
 extern struct squashfs_page_actor *squashfs_page_actor_init_special(struct page
-							 **, int, int);
+		**, int, int);
 static inline void *squashfs_first_page(struct squashfs_page_actor *actor)
 {
 	return actor->squashfs_first_page(actor);

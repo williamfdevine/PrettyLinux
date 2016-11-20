@@ -13,21 +13,21 @@
 #include <sys/wait.h>
 
 #define TEST(insn) \
-long double __attribute__((noinline)) insn(long flags) \
-{						\
-	long double out;			\
-	asm ("\n"				\
-	"	push	%1""\n"			\
-	"	popf""\n"			\
-	"	fldpi""\n"			\
-	"	fld1""\n"			\
-	"	" #insn " %%st(1), %%st" "\n"	\
-	"	ffree	%%st(1)" "\n"		\
-	: "=t" (out)				\
-	: "r" (flags)				\
-	);					\
-	return out;				\
-}
+	long double __attribute__((noinline)) insn(long flags) \
+	{						\
+		long double out;			\
+		asm ("\n"				\
+			 "	push	%1""\n"			\
+			 "	popf""\n"			\
+			 "	fldpi""\n"			\
+			 "	fld1""\n"			\
+			 "	" #insn " %%st(1), %%st" "\n"	\
+			 "	ffree	%%st(1)" "\n"		\
+			 : "=t" (out)				\
+			 : "r" (flags)				\
+			);					\
+		return out;				\
+	}
 
 TEST(fcmovb)
 TEST(fcmove)
@@ -38,7 +38,8 @@ TEST(fcmovne)
 TEST(fcmovnbe)
 TEST(fcmovnu)
 
-enum {
+enum
+{
 	CF = 1 << 0,
 	PF = 1 << 2,
 	ZF = 1 << 6,
@@ -84,10 +85,14 @@ int main(int argc, char **argv, char **envp)
 	err |= !(fcmovbe(PF) == 1.0); err |= !(fcmovnbe(PF) != 1.0);
 	err |= !(fcmovu(PF)  != 1.0); err |= !(fcmovnu(PF)  == 1.0);
 
-        if (!err)
-                printf("[OK]\tfcmovCC\n");
+	if (!err)
+	{
+		printf("[OK]\tfcmovCC\n");
+	}
 	else
+	{
 		printf("[FAIL]\tfcmovCC errors: %d\n", err);
+	}
 
 	return err;
 }

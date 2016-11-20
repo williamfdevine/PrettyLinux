@@ -13,7 +13,8 @@
 
 #include <linux/device.h>
 
-struct hsu_dma_slave {
+struct hsu_dma_slave
+{
 	struct device	*dma_dev;
 	int		chan_id;
 };

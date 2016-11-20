@@ -40,7 +40,8 @@
 #define PM8004_SUBTYPE		0x0c
 #define PM8909_SUBTYPE		0x0d
 
-static const struct of_device_id pmic_spmi_id_table[] = {
+static const struct of_device_id pmic_spmi_id_table[] =
+{
 	{ .compatible = "qcom,spmi-pmic", .data = (void *)COMMON_SUBTYPE },
 	{ .compatible = "qcom,pm8941",    .data = (void *)PM8941_SUBTYPE },
 	{ .compatible = "qcom,pm8841",    .data = (void *)PM8841_SUBTYPE },
@@ -65,35 +66,57 @@ static void pmic_spmi_show_revid(struct regmap *map, struct device *dev)
 	int ret, i;
 
 	ret = regmap_read(map, PMIC_TYPE, &type);
+
 	if (ret < 0)
+	{
 		return;
+	}
 
 	if (type != PMIC_TYPE_VALUE)
+	{
 		return;
+	}
 
 	ret = regmap_read(map, PMIC_SUBTYPE, &subtype);
-	if (ret < 0)
-		return;
 
-	for (i = 0; i < ARRAY_SIZE(pmic_spmi_id_table); i++) {
+	if (ret < 0)
+	{
+		return;
+	}
+
+	for (i = 0; i < ARRAY_SIZE(pmic_spmi_id_table); i++)
+	{
 		if (subtype == (unsigned long)pmic_spmi_id_table[i].data)
+		{
 			break;
+		}
 	}
 
 	if (i != ARRAY_SIZE(pmic_spmi_id_table))
+	{
 		name = pmic_spmi_id_table[i].compatible;
+	}
 
 	ret = regmap_read(map, PMIC_REV2, &rev2);
+
 	if (ret < 0)
+	{
 		return;
+	}
 
 	ret = regmap_read(map, PMIC_REV3, &minor);
+
 	if (ret < 0)
+	{
 		return;
+	}
 
 	ret = regmap_read(map, PMIC_REV4, &major);
+
 	if (ret < 0)
+	{
 		return;
+	}
 
 	/*
 	 * In early versions of PM8941 and PM8226, the major revision number
@@ -102,16 +125,21 @@ static void pmic_spmi_show_revid(struct regmap *map, struct device *dev)
 	 * version of PM8941 or PM8226.
 	 */
 	if ((subtype == PM8941_SUBTYPE || subtype == PM8226_SUBTYPE) &&
-	    major < 0x02)
+		major < 0x02)
+	{
 		major++;
+	}
 
 	if (subtype == PM8110_SUBTYPE)
+	{
 		minor = rev2;
+	}
 
 	dev_dbg(dev, "%x: %s v%d.%d\n", subtype, name, major, minor);
 }
 
-static const struct regmap_config spmi_regmap_config = {
+static const struct regmap_config spmi_regmap_config =
+{
 	.reg_bits	= 16,
 	.val_bits	= 8,
 	.max_register	= 0xffff,
@@ -124,12 +152,17 @@ static int pmic_spmi_probe(struct spmi_device *sdev)
 	struct regmap *regmap;
 
 	regmap = devm_regmap_init_spmi_ext(sdev, &spmi_regmap_config);
+
 	if (IS_ERR(regmap))
+	{
 		return PTR_ERR(regmap);
+	}
 
 	/* Only the first slave id for a PMIC contains this information */
 	if (sdev->usid % 2 == 0)
+	{
 		pmic_spmi_show_revid(regmap, &sdev->dev);
+	}
 
 	return of_platform_populate(root, NULL, NULL, &sdev->dev);
 }
@@ -141,7 +174,8 @@ static void pmic_spmi_remove(struct spmi_device *sdev)
 
 MODULE_DEVICE_TABLE(of, pmic_spmi_id_table);
 
-static struct spmi_driver pmic_spmi_driver = {
+static struct spmi_driver pmic_spmi_driver =
+{
 	.probe = pmic_spmi_probe,
 	.remove = pmic_spmi_remove,
 	.driver = {

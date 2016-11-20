@@ -34,30 +34,38 @@ static int output_select_apply(struct oxygen *chip)
 	struct dg *data = chip->model_data;
 
 	data->cs4245_shadow[CS4245_SIGNAL_SEL] &= ~CS4245_A_OUT_SEL_MASK;
-	if (data->output_sel == PLAYBACK_DST_HP) {
+
+	if (data->output_sel == PLAYBACK_DST_HP)
+	{
 		/* mute FP (aux output) amplifier, switch rear jack to CS4245 */
 		oxygen_set_bits8(chip, OXYGEN_GPIO_DATA, GPIO_HP_REAR);
-	} else if (data->output_sel == PLAYBACK_DST_HP_FP) {
+	}
+	else if (data->output_sel == PLAYBACK_DST_HP_FP)
+	{
 		/*
 		 * Unmute FP amplifier, switch rear jack to CS4361;
 		 * I2S channels 2,3,4 should be inactive.
 		 */
 		oxygen_clear_bits8(chip, OXYGEN_GPIO_DATA, GPIO_HP_REAR);
 		data->cs4245_shadow[CS4245_SIGNAL_SEL] |= CS4245_A_OUT_SEL_DAC;
-	} else {
+	}
+	else
+	{
 		/*
 		 * 2.0, 4.0, 5.1: switch to CS4361, mute FP amp.,
 		 * and change playback routing.
 		 */
 		oxygen_clear_bits8(chip, OXYGEN_GPIO_DATA, GPIO_HP_REAR);
 	}
+
 	return cs4245_write_spi(chip, CS4245_SIGNAL_SEL);
 }
 
 static int output_select_info(struct snd_kcontrol *ctl,
-			      struct snd_ctl_elem_info *info)
+							  struct snd_ctl_elem_info *info)
 {
-	static const char *const names[3] = {
+	static const char *const names[3] =
+	{
 		"Stereo Headphones",
 		"Stereo Headphones FP",
 		"Multichannel",
@@ -67,7 +75,7 @@ static int output_select_info(struct snd_kcontrol *ctl,
 }
 
 static int output_select_get(struct snd_kcontrol *ctl,
-			     struct snd_ctl_elem_value *value)
+							 struct snd_ctl_elem_value *value)
 {
 	struct oxygen *chip = ctl->private_data;
 	struct dg *data = chip->model_data;
@@ -79,7 +87,7 @@ static int output_select_get(struct snd_kcontrol *ctl,
 }
 
 static int output_select_put(struct snd_kcontrol *ctl,
-			     struct snd_ctl_elem_value *value)
+							 struct snd_ctl_elem_value *value)
 {
 	struct oxygen *chip = ctl->private_data;
 	struct dg *data = chip->model_data;
@@ -88,12 +96,15 @@ static int output_select_put(struct snd_kcontrol *ctl,
 	int ret;
 
 	mutex_lock(&chip->mutex);
-	if (data->output_sel != new) {
+
+	if (data->output_sel != new)
+	{
 		data->output_sel = new;
 		ret = output_select_apply(chip);
 		changed = ret >= 0 ? 1 : ret;
 		oxygen_update_dac_routing(chip);
 	}
+
 	mutex_unlock(&chip->mutex);
 
 	return changed;
@@ -102,7 +113,7 @@ static int output_select_put(struct snd_kcontrol *ctl,
 /* CS4245 Headphone Channels A&B Volume Control */
 
 static int hp_stereo_volume_info(struct snd_kcontrol *ctl,
-				struct snd_ctl_elem_info *info)
+								 struct snd_ctl_elem_info *info)
 {
 	info->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	info->count = 2;
@@ -112,7 +123,7 @@ static int hp_stereo_volume_info(struct snd_kcontrol *ctl,
 }
 
 static int hp_stereo_volume_get(struct snd_kcontrol *ctl,
-				struct snd_ctl_elem_value *val)
+								struct snd_ctl_elem_value *val)
 {
 	struct oxygen *chip = ctl->private_data;
 	struct dg *data = chip->model_data;
@@ -128,7 +139,7 @@ static int hp_stereo_volume_get(struct snd_kcontrol *ctl,
 }
 
 static int hp_stereo_volume_put(struct snd_kcontrol *ctl,
-				struct snd_ctl_elem_value *val)
+								struct snd_ctl_elem_value *val)
 {
 	struct oxygen *chip = ctl->private_data;
 	struct dg *data = chip->model_data;
@@ -138,18 +149,27 @@ static int hp_stereo_volume_put(struct snd_kcontrol *ctl,
 	long new2 = val->value.integer.value[1];
 
 	if ((new1 > 255) || (new1 < 0) || (new2 > 255) || (new2 < 0))
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&chip->mutex);
+
 	if ((data->cs4245_shadow[CS4245_DAC_A_CTRL] != ~new1) ||
-	    (data->cs4245_shadow[CS4245_DAC_B_CTRL] != ~new2)) {
+		(data->cs4245_shadow[CS4245_DAC_B_CTRL] != ~new2))
+	{
 		data->cs4245_shadow[CS4245_DAC_A_CTRL] = ~new1;
 		data->cs4245_shadow[CS4245_DAC_B_CTRL] = ~new2;
 		ret = cs4245_write_spi(chip, CS4245_DAC_A_CTRL);
+
 		if (ret >= 0)
+		{
 			ret = cs4245_write_spi(chip, CS4245_DAC_B_CTRL);
+		}
+
 		changed = ret >= 0 ? 1 : ret;
 	}
+
 	mutex_unlock(&chip->mutex);
 
 	return changed;
@@ -158,7 +178,7 @@ static int hp_stereo_volume_put(struct snd_kcontrol *ctl,
 /* Headphone Mute */
 
 static int hp_mute_get(struct snd_kcontrol *ctl,
-			struct snd_ctl_elem_value *val)
+					   struct snd_ctl_elem_value *val)
 {
 	struct oxygen *chip = ctl->private_data;
 	struct dg *data = chip->model_data;
@@ -171,7 +191,7 @@ static int hp_mute_get(struct snd_kcontrol *ctl,
 }
 
 static int hp_mute_put(struct snd_kcontrol *ctl,
-			struct snd_ctl_elem_value *val)
+					   struct snd_ctl_elem_value *val)
 {
 	struct oxygen *chip = ctl->private_data;
 	struct dg *data = chip->model_data;
@@ -179,7 +199,10 @@ static int hp_mute_put(struct snd_kcontrol *ctl,
 	int changed;
 
 	if (val->value.integer.value[0] > 1)
+	{
 		return -EINVAL;
+	}
+
 	mutex_lock(&chip->mutex);
 	data->cs4245_shadow[CS4245_DAC_CTRL_1] &= ~CS4245_MUTE_DAC;
 	data->cs4245_shadow[CS4245_DAC_CTRL_1] |=
@@ -200,13 +223,17 @@ static int input_volume_apply(struct oxygen *chip, char left, char right)
 	data->cs4245_shadow[CS4245_PGA_A_CTRL] = left;
 	data->cs4245_shadow[CS4245_PGA_B_CTRL] = right;
 	ret = cs4245_write_spi(chip, CS4245_PGA_A_CTRL);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return cs4245_write_spi(chip, CS4245_PGA_B_CTRL);
 }
 
 static int input_vol_info(struct snd_kcontrol *ctl,
-			  struct snd_ctl_elem_info *info)
+						  struct snd_ctl_elem_info *info)
 {
 	info->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	info->count = 2;
@@ -216,7 +243,7 @@ static int input_vol_info(struct snd_kcontrol *ctl,
 }
 
 static int input_vol_get(struct snd_kcontrol *ctl,
-			 struct snd_ctl_elem_value *value)
+						 struct snd_ctl_elem_value *value)
 {
 	struct oxygen *chip = ctl->private_data;
 	struct dg *data = chip->model_data;
@@ -230,7 +257,7 @@ static int input_vol_get(struct snd_kcontrol *ctl,
 }
 
 static int input_vol_put(struct snd_kcontrol *ctl,
-			 struct snd_ctl_elem_value *value)
+						 struct snd_ctl_elem_value *value)
 {
 	struct oxygen *chip = ctl->private_data;
 	struct dg *data = chip->model_data;
@@ -239,23 +266,32 @@ static int input_vol_put(struct snd_kcontrol *ctl,
 	int ret = 0;
 
 	if (value->value.integer.value[0] < 2 * -12 ||
-	    value->value.integer.value[0] > 2 * 12 ||
-	    value->value.integer.value[1] < 2 * -12 ||
-	    value->value.integer.value[1] > 2 * 12)
+		value->value.integer.value[0] > 2 * 12 ||
+		value->value.integer.value[1] < 2 * -12 ||
+		value->value.integer.value[1] > 2 * 12)
+	{
 		return -EINVAL;
+	}
+
 	mutex_lock(&chip->mutex);
 	changed = data->input_vol[idx][0] != value->value.integer.value[0] ||
-		  data->input_vol[idx][1] != value->value.integer.value[1];
-	if (changed) {
+			  data->input_vol[idx][1] != value->value.integer.value[1];
+
+	if (changed)
+	{
 		data->input_vol[idx][0] = value->value.integer.value[0];
 		data->input_vol[idx][1] = value->value.integer.value[1];
-		if (idx == data->input_sel) {
+
+		if (idx == data->input_sel)
+		{
 			ret = input_volume_apply(chip,
-				data->input_vol[idx][0],
-				data->input_vol[idx][1]);
+									 data->input_vol[idx][0],
+									 data->input_vol[idx][1]);
 		}
+
 		changed = ret >= 0 ? 1 : ret;
 	}
+
 	mutex_unlock(&chip->mutex);
 	return changed;
 }
@@ -267,19 +303,28 @@ static int input_source_apply(struct oxygen *chip)
 	struct dg *data = chip->model_data;
 
 	data->cs4245_shadow[CS4245_ANALOG_IN] &= ~CS4245_SEL_MASK;
+
 	if (data->input_sel == CAPTURE_SRC_FP_MIC)
+	{
 		data->cs4245_shadow[CS4245_ANALOG_IN] |= CS4245_SEL_INPUT_2;
+	}
 	else if (data->input_sel == CAPTURE_SRC_LINE)
+	{
 		data->cs4245_shadow[CS4245_ANALOG_IN] |= CS4245_SEL_INPUT_4;
+	}
 	else if (data->input_sel != CAPTURE_SRC_MIC)
+	{
 		data->cs4245_shadow[CS4245_ANALOG_IN] |= CS4245_SEL_INPUT_1;
+	}
+
 	return cs4245_write_spi(chip, CS4245_ANALOG_IN);
 }
 
 static int input_sel_info(struct snd_kcontrol *ctl,
-			  struct snd_ctl_elem_info *info)
+						  struct snd_ctl_elem_info *info)
 {
-	static const char *const names[4] = {
+	static const char *const names[4] =
+	{
 		"Mic", "Front Mic", "Line", "Aux"
 	};
 
@@ -287,7 +332,7 @@ static int input_sel_info(struct snd_kcontrol *ctl,
 }
 
 static int input_sel_get(struct snd_kcontrol *ctl,
-			 struct snd_ctl_elem_value *value)
+						 struct snd_ctl_elem_value *value)
 {
 	struct oxygen *chip = ctl->private_data;
 	struct dg *data = chip->model_data;
@@ -299,7 +344,7 @@ static int input_sel_get(struct snd_kcontrol *ctl,
 }
 
 static int input_sel_put(struct snd_kcontrol *ctl,
-			 struct snd_ctl_elem_value *value)
+						 struct snd_ctl_elem_value *value)
 {
 	struct oxygen *chip = ctl->private_data;
 	struct dg *data = chip->model_data;
@@ -307,20 +352,27 @@ static int input_sel_put(struct snd_kcontrol *ctl,
 	int ret;
 
 	if (value->value.enumerated.item[0] > 3)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&chip->mutex);
 	changed = value->value.enumerated.item[0] != data->input_sel;
-	if (changed) {
+
+	if (changed)
+	{
 		data->input_sel = value->value.enumerated.item[0];
 
 		ret = input_source_apply(chip);
+
 		if (ret >= 0)
 			ret = input_volume_apply(chip,
-				data->input_vol[data->input_sel][0],
-				data->input_vol[data->input_sel][1]);
+									 data->input_vol[data->input_sel][0],
+									 data->input_vol[data->input_sel][1]);
+
 		changed = ret >= 0 ? 1 : ret;
 	}
+
 	mutex_unlock(&chip->mutex);
 	return changed;
 }
@@ -353,31 +405,39 @@ static int hpf_put(struct snd_kcontrol *ctl, struct snd_ctl_elem_value *value)
 
 	mutex_lock(&chip->mutex);
 	reg = data->cs4245_shadow[CS4245_ADC_CTRL] & ~CS4245_HPF_FREEZE;
+
 	if (value->value.enumerated.item[0])
+	{
 		reg |= CS4245_HPF_FREEZE;
+	}
+
 	changed = reg != data->cs4245_shadow[CS4245_ADC_CTRL];
-	if (changed) {
+
+	if (changed)
+	{
 		data->cs4245_shadow[CS4245_ADC_CTRL] = reg;
 		cs4245_write_spi(chip, CS4245_ADC_CTRL);
 	}
+
 	mutex_unlock(&chip->mutex);
 	return changed;
 }
 
 #define INPUT_VOLUME(xname, index) { \
-	.iface = SNDRV_CTL_ELEM_IFACE_MIXER, \
-	.name = xname, \
-	.access = SNDRV_CTL_ELEM_ACCESS_READWRITE | \
-		  SNDRV_CTL_ELEM_ACCESS_TLV_READ, \
-	.info = input_vol_info, \
-	.get = input_vol_get, \
-	.put = input_vol_put, \
-	.tlv = { .p = pga_db_scale }, \
-	.private_value = index, \
-}
+		.iface = SNDRV_CTL_ELEM_IFACE_MIXER, \
+				 .name = xname, \
+						 .access = SNDRV_CTL_ELEM_ACCESS_READWRITE | \
+								   SNDRV_CTL_ELEM_ACCESS_TLV_READ, \
+								   .info = input_vol_info, \
+										   .get = input_vol_get, \
+												   .put = input_vol_put, \
+														   .tlv = { .p = pga_db_scale }, \
+																   .private_value = index, \
+	}
 static const DECLARE_TLV_DB_MINMAX(hp_db_scale, -12550, 0);
 static const DECLARE_TLV_DB_MINMAX(pga_db_scale, -1200, 1200);
-static const struct snd_kcontrol_new dg_controls[] = {
+static const struct snd_kcontrol_new dg_controls[] =
+{
 	{
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.name = "Analog Output Playback Enum",
@@ -389,7 +449,7 @@ static const struct snd_kcontrol_new dg_controls[] = {
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.name = "Headphone Playback Volume",
 		.access = SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			  SNDRV_CTL_ELEM_ACCESS_TLV_READ,
+		SNDRV_CTL_ELEM_ACCESS_TLV_READ,
 		.info = hp_stereo_volume_info,
 		.get = hp_stereo_volume_get,
 		.put = hp_stereo_volume_put,
@@ -426,7 +486,10 @@ static const struct snd_kcontrol_new dg_controls[] = {
 static int dg_control_filter(struct snd_kcontrol_new *template)
 {
 	if (!strncmp(template->name, "Master Playback ", 16))
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -439,17 +502,22 @@ static int dg_mixer_init(struct oxygen *chip)
 	input_source_apply(chip);
 	oxygen_update_dac_routing(chip);
 
-	for (i = 0; i < ARRAY_SIZE(dg_controls); ++i) {
+	for (i = 0; i < ARRAY_SIZE(dg_controls); ++i)
+	{
 		err = snd_ctl_add(chip->card,
-				  snd_ctl_new1(&dg_controls[i], chip));
+						  snd_ctl_new1(&dg_controls[i], chip));
+
 		if (err < 0)
+		{
 			return err;
+		}
 	}
 
 	return 0;
 }
 
-struct oxygen_model model_xonar_dg = {
+struct oxygen_model model_xonar_dg =
+{
 	.longname = "C-Media Oxygen HD Audio",
 	.chip = "CMI8786",
 	.init = dg_init,
@@ -464,9 +532,9 @@ struct oxygen_model model_xonar_dg = {
 	.dump_registers = dump_cs4245_registers,
 	.model_data_size = sizeof(struct dg),
 	.device_config = PLAYBACK_0_TO_I2S |
-			 PLAYBACK_1_TO_SPDIF |
-			 CAPTURE_0_FROM_I2S_1 |
-			 CAPTURE_1_FROM_SPDIF,
+	PLAYBACK_1_TO_SPDIF |
+	CAPTURE_0_FROM_I2S_1 |
+	CAPTURE_1_FROM_SPDIF,
 	.dac_channels_pcm = 6,
 	.dac_channels_mixer = 0,
 	.function_flags = OXYGEN_FUNCTION_SPI,

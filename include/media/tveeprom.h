@@ -16,7 +16,8 @@
  * @TVEEPROM_AUDPROC_MSP:	The audio processor is a MSPXXXX device
  * @TVEEPROM_AUDPROC_OTHER:	The audio processor is another device
  */
-enum tveeprom_audio_processor {
+enum tveeprom_audio_processor
+{
 	TVEEPROM_AUDPROC_NONE,
 	TVEEPROM_AUDPROC_INTERNAL,
 	TVEEPROM_AUDPROC_MSP,
@@ -66,7 +67,8 @@ enum tveeprom_audio_processor {
  *
  * @MAC_address:		MAC address for the network interface
  */
-struct tveeprom {
+struct tveeprom
+{
 	u32 has_radio;
 	u32 has_ir;
 	u32 has_MAC_address;
@@ -101,7 +103,7 @@ struct tveeprom {
  *			eeprom read from the Hauppauge device.
  */
 void tveeprom_hauppauge_analog(struct i2c_client *c, struct tveeprom *tvee,
-			       unsigned char *eeprom_data);
+							   unsigned char *eeprom_data);
 
 /**
  * tveeprom_read - Reads the contents of the eeprom found at the Hauppauge

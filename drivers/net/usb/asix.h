@@ -98,7 +98,7 @@
 #define AX88172_MEDIUM_TX		0x04
 #define AX88172_MEDIUM_FC		0x10
 #define AX88172_MEDIUM_DEFAULT \
-		( AX88172_MEDIUM_FD | AX88172_MEDIUM_TX | AX88172_MEDIUM_FC )
+	( AX88172_MEDIUM_FD | AX88172_MEDIUM_TX | AX88172_MEDIUM_FC )
 
 #define AX_MCAST_FILTER_SIZE		8
 #define AX_MAX_MCAST			64
@@ -169,7 +169,8 @@
 #define AX_EEPROM_LEN		0x200
 
 /* This structure cannot exceed sizeof(unsigned long [5]) AKA 20 bytes */
-struct asix_data {
+struct asix_data
+{
 	u8 multi_filter[AX_MCAST_FILTER_SIZE];
 	u8 mac_addr[ETH_ALEN];
 	u8 phymode;
@@ -177,14 +178,16 @@ struct asix_data {
 	u8 res;
 };
 
-struct asix_rx_fixup_info {
+struct asix_rx_fixup_info
+{
 	struct sk_buff *ax_skb;
 	u32 header;
 	u16 remaining;
 	bool split_head;
 };
 
-struct asix_common_private {
+struct asix_common_private
+{
 	void (*resume)(struct usbnet *dev);
 	void (*suspend)(struct usbnet *dev);
 	u16 presvd_phy_advertise;
@@ -198,20 +201,20 @@ extern const struct driver_info ax88172a_info;
 #define FLAG_EEPROM_MAC		(1UL << 0)  /* init device MAC from eeprom */
 
 int asix_read_cmd(struct usbnet *dev, u8 cmd, u16 value, u16 index,
-		  u16 size, void *data, int in_pm);
+				  u16 size, void *data, int in_pm);
 
 int asix_write_cmd(struct usbnet *dev, u8 cmd, u16 value, u16 index,
-		   u16 size, void *data, int in_pm);
+				   u16 size, void *data, int in_pm);
 
 void asix_write_cmd_async(struct usbnet *dev, u8 cmd, u16 value,
-			  u16 index, u16 size, void *data);
+						  u16 index, u16 size, void *data);
 
 int asix_rx_fixup_internal(struct usbnet *dev, struct sk_buff *skb,
-			   struct asix_rx_fixup_info *rx);
+						   struct asix_rx_fixup_info *rx);
 int asix_rx_fixup_common(struct usbnet *dev, struct sk_buff *skb);
 
 struct sk_buff *asix_tx_fixup(struct usbnet *dev, struct sk_buff *skb,
-			      gfp_t flags);
+							  gfp_t flags);
 
 int asix_set_sw_mii(struct usbnet *dev, int in_pm);
 int asix_set_hw_mii(struct usbnet *dev, int in_pm);
@@ -236,16 +239,16 @@ void asix_mdio_write(struct net_device *netdev, int phy_id, int loc, int val);
 
 int asix_mdio_read_nopm(struct net_device *netdev, int phy_id, int loc);
 void asix_mdio_write_nopm(struct net_device *netdev, int phy_id, int loc,
-			  int val);
+						  int val);
 
 void asix_get_wol(struct net_device *net, struct ethtool_wolinfo *wolinfo);
 int asix_set_wol(struct net_device *net, struct ethtool_wolinfo *wolinfo);
 
 int asix_get_eeprom_len(struct net_device *net);
 int asix_get_eeprom(struct net_device *net, struct ethtool_eeprom *eeprom,
-		    u8 *data);
+					u8 *data);
 int asix_set_eeprom(struct net_device *net, struct ethtool_eeprom *eeprom,
-		    u8 *data);
+					u8 *data);
 
 void asix_get_drvinfo(struct net_device *net, struct ethtool_drvinfo *info);
 

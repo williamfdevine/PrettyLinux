@@ -4,60 +4,65 @@
 #include <linux/types.h>
 #include <asm/byteorder.h>
 
-struct icmp6hdr {
+struct icmp6hdr
+{
 
 	__u8		icmp6_type;
 	__u8		icmp6_code;
 	__sum16		icmp6_cksum;
 
 
-	union {
+	union
+	{
 		__be32			un_data32[1];
 		__be16			un_data16[2];
 		__u8			un_data8[4];
 
-		struct icmpv6_echo {
+		struct icmpv6_echo
+		{
 			__be16		identifier;
 			__be16		sequence;
 		} u_echo;
 
-                struct icmpv6_nd_advt {
+		struct icmpv6_nd_advt
+		{
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-                        __u32		reserved:5,
-                        		override:1,
-                        		solicited:1,
-                        		router:1,
-					reserved2:24;
+			__u32		reserved: 5,
+						override: 1,
+							solicited: 1,
+							router: 1,
+							reserved2: 24;
 #elif defined(__BIG_ENDIAN_BITFIELD)
-                        __u32		router:1,
-					solicited:1,
-                        		override:1,
-                        		reserved:29;
+			__u32		router: 1,
+						solicited: 1,
+						override: 1,
+							reserved: 29;
 #else
 #error	"Please fix <asm/byteorder.h>"
-#endif						
-                } u_nd_advt;
+#endif
+			} u_nd_advt;
 
-                struct icmpv6_nd_ra {
+			struct icmpv6_nd_ra
+		{
 			__u8		hop_limit;
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-			__u8		reserved:3,
-					router_pref:2,
-					home_agent:1,
-					other:1,
-					managed:1;
+			__u8		reserved: 3,
+						router_pref: 2,
+						home_agent: 1,
+						other: 1,
+						managed: 1;
 
 #elif defined(__BIG_ENDIAN_BITFIELD)
-			__u8		managed:1,
-					other:1,
-					home_agent:1,
-					router_pref:2,
-					reserved:3;
+			__u8		managed: 1,
+						other: 1,
+						home_agent: 1,
+						router_pref: 2,
+						reserved: 3;
 #else
 #error	"Please fix <asm/byteorder.h>"
 #endif
 			__be16		rt_lifetime;
-                } u_nd_ra;
+		} u_nd_ra;
 
 	} icmp6_dataun;
 
@@ -146,7 +151,8 @@ struct icmp6hdr {
 #define ICMPV6_FILTER_BLOCKOTHERS	3
 #define ICMPV6_FILTER_PASSONLY		4
 
-struct icmp6_filter {
+struct icmp6_filter
+{
 	__u32		data[8];
 };
 

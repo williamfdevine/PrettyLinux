@@ -33,15 +33,20 @@ struct cpu_rmap *alloc_cpu_rmap(unsigned int size, gfp_t flags)
 
 	/* This is a silly number of objects, and we use u16 indices. */
 	if (size > 0xffff)
+	{
 		return NULL;
+	}
 
 	/* Offset of object pointer array from base structure */
 	obj_offset = ALIGN(offsetof(struct cpu_rmap, near[nr_cpu_ids]),
-			   sizeof(void *));
+					   sizeof(void *));
 
 	rmap = kzalloc(obj_offset + size * sizeof(rmap->obj[0]), flags);
+
 	if (!rmap)
+	{
 		return NULL;
+	}
 
 	kref_init(&rmap->refcount);
 	rmap->obj = (void **)((char *)rmap + obj_offset);
@@ -52,7 +57,8 @@ struct cpu_rmap *alloc_cpu_rmap(unsigned int size, gfp_t flags)
 	 * CPUs that are not present/online, since we definitely want
 	 * any newly-hotplugged CPUs to have some object assigned.
 	 */
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		rmap->near[cpu].index = cpu % size;
 		rmap->near[cpu].dist = CPU_RMAP_DIST_INF;
 	}
@@ -95,13 +101,15 @@ EXPORT_SYMBOL(cpu_rmap_put);
  * neighbours at the given distance.
  */
 static bool cpu_rmap_copy_neigh(struct cpu_rmap *rmap, unsigned int cpu,
-				const struct cpumask *mask, u16 dist)
+								const struct cpumask *mask, u16 dist)
 {
 	int neigh;
 
-	for_each_cpu(neigh, mask) {
+	for_each_cpu(neigh, mask)
+	{
 		if (rmap->near[cpu].dist > dist &&
-		    rmap->near[neigh].dist <= dist) {
+			rmap->near[neigh].dist <= dist)
+		{
 			rmap->near[cpu].index = rmap->near[neigh].index;
 			rmap->near[cpu].dist = dist;
 			return true;
@@ -118,10 +126,11 @@ static void debug_print_rmap(const struct cpu_rmap *rmap, const char *prefix)
 
 	pr_info("cpu_rmap %p, %s:\n", rmap, prefix);
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		index = rmap->near[cpu].index;
 		pr_info("cpu %d -> obj %u (distance %u)\n",
-			cpu, index, rmap->near[cpu].dist);
+				cpu, index, rmap->near[cpu].dist);
 	}
 }
 #else
@@ -156,19 +165,23 @@ EXPORT_SYMBOL(cpu_rmap_add);
  * @affinity: New CPU affinity of object
  */
 int cpu_rmap_update(struct cpu_rmap *rmap, u16 index,
-		    const struct cpumask *affinity)
+					const struct cpumask *affinity)
 {
 	cpumask_var_t update_mask;
 	unsigned int cpu;
 
 	if (unlikely(!zalloc_cpumask_var(&update_mask, GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
 
 	/* Invalidate distance for all CPUs for which this used to be
 	 * the nearest object.  Mark those CPUs for update.
 	 */
-	for_each_online_cpu(cpu) {
-		if (rmap->near[cpu].index == index) {
+	for_each_online_cpu(cpu)
+	{
+		if (rmap->near[cpu].index == index)
+		{
 			rmap->near[cpu].dist = CPU_RMAP_DIST_INF;
 			cpumask_set_cpu(cpu, update_mask);
 		}
@@ -179,26 +192,37 @@ int cpu_rmap_update(struct cpu_rmap *rmap, u16 index,
 	/* Set distance to 0 for all CPUs in the new affinity mask.
 	 * Mark all CPUs within their NUMA nodes for update.
 	 */
-	for_each_cpu(cpu, affinity) {
+	for_each_cpu(cpu, affinity)
+	{
 		rmap->near[cpu].index = index;
 		rmap->near[cpu].dist = 0;
 		cpumask_or(update_mask, update_mask,
-			   cpumask_of_node(cpu_to_node(cpu)));
+				   cpumask_of_node(cpu_to_node(cpu)));
 	}
 
 	debug_print_rmap(rmap, "after updating neighbours");
 
 	/* Update distances based on topology */
-	for_each_cpu(cpu, update_mask) {
+	for_each_cpu(cpu, update_mask)
+	{
 		if (cpu_rmap_copy_neigh(rmap, cpu,
-					topology_sibling_cpumask(cpu), 1))
+								topology_sibling_cpumask(cpu), 1))
+		{
 			continue;
+		}
+
 		if (cpu_rmap_copy_neigh(rmap, cpu,
-					topology_core_cpumask(cpu), 2))
+								topology_core_cpumask(cpu), 2))
+		{
 			continue;
+		}
+
 		if (cpu_rmap_copy_neigh(rmap, cpu,
-					cpumask_of_node(cpu_to_node(cpu)), 3))
+								cpumask_of_node(cpu_to_node(cpu)), 3))
+		{
 			continue;
+		}
+
 		/* We could continue into NUMA node distances, but for now
 		 * we give up.
 		 */
@@ -213,7 +237,8 @@ EXPORT_SYMBOL(cpu_rmap_update);
 
 /* Glue between IRQ affinity notifiers and CPU rmaps */
 
-struct irq_glue {
+struct irq_glue
+{
 	struct irq_affinity_notify notify;
 	struct cpu_rmap *rmap;
 	u16 index;
@@ -231,9 +256,12 @@ void free_irq_cpu_rmap(struct cpu_rmap *rmap)
 	u16 index;
 
 	if (!rmap)
+	{
 		return;
+	}
 
-	for (index = 0; index < rmap->used; index++) {
+	for (index = 0; index < rmap->used; index++)
+	{
 		glue = rmap->obj[index];
 		irq_set_affinity_notifier(glue->notify.irq, NULL);
 	}
@@ -257,8 +285,11 @@ irq_cpu_rmap_notify(struct irq_affinity_notify *notify, const cpumask_t *mask)
 	int rc;
 
 	rc = cpu_rmap_update(glue->rmap, glue->index, mask);
+
 	if (rc)
+	{
 		pr_warning("irq_cpu_rmap_notify: update failed: %d\n", rc);
+	}
 }
 
 /**
@@ -291,17 +322,23 @@ int irq_cpu_rmap_add(struct cpu_rmap *rmap, int irq)
 	int rc;
 
 	if (!glue)
+	{
 		return -ENOMEM;
+	}
+
 	glue->notify.notify = irq_cpu_rmap_notify;
 	glue->notify.release = irq_cpu_rmap_release;
 	glue->rmap = rmap;
 	cpu_rmap_get(rmap);
 	glue->index = cpu_rmap_add(rmap, glue);
 	rc = irq_set_affinity_notifier(irq, &glue->notify);
-	if (rc) {
+
+	if (rc)
+	{
 		cpu_rmap_put(glue->rmap);
 		kfree(glue);
 	}
+
 	return rc;
 }
 EXPORT_SYMBOL(irq_cpu_rmap_add);

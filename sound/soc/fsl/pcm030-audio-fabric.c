@@ -22,29 +22,32 @@
 
 #define DRV_NAME "pcm030-audio-fabric"
 
-struct pcm030_audio_data {
+struct pcm030_audio_data
+{
 	struct snd_soc_card *card;
 	struct platform_device *codec_device;
 };
 
-static struct snd_soc_dai_link pcm030_fabric_dai[] = {
+static struct snd_soc_dai_link pcm030_fabric_dai[] =
 {
-	.name = "AC97.0",
-	.stream_name = "AC97 Analog",
-	.codec_dai_name = "wm9712-hifi",
-	.cpu_dai_name = "mpc5200-psc-ac97.0",
-	.codec_name = "wm9712-codec",
-},
-{
-	.name = "AC97.1",
-	.stream_name = "AC97 IEC958",
-	.codec_dai_name = "wm9712-aux",
-	.cpu_dai_name = "mpc5200-psc-ac97.1",
-	.codec_name = "wm9712-codec",
-},
+	{
+		.name = "AC97.0",
+		.stream_name = "AC97 Analog",
+		.codec_dai_name = "wm9712-hifi",
+		.cpu_dai_name = "mpc5200-psc-ac97.0",
+		.codec_name = "wm9712-codec",
+	},
+	{
+		.name = "AC97.1",
+		.stream_name = "AC97 IEC958",
+		.codec_dai_name = "wm9712-aux",
+		.cpu_dai_name = "mpc5200-psc-ac97.1",
+		.codec_name = "wm9712-codec",
+	},
 };
 
-static struct snd_soc_card pcm030_card = {
+static struct snd_soc_card pcm030_card =
+{
 	.name = "pcm030",
 	.owner = THIS_MODULE,
 	.dai_link = pcm030_fabric_dai,
@@ -61,41 +64,62 @@ static int pcm030_fabric_probe(struct platform_device *op)
 	int i;
 
 	if (!of_machine_is_compatible("phytec,pcm030"))
+	{
 		return -ENODEV;
+	}
 
 	pdata = devm_kzalloc(&op->dev, sizeof(struct pcm030_audio_data),
-			     GFP_KERNEL);
+						 GFP_KERNEL);
+
 	if (!pdata)
+	{
 		return -ENOMEM;
+	}
 
 	card->dev = &op->dev;
 
 	pdata->card = card;
 
 	platform_np = of_parse_phandle(np, "asoc-platform", 0);
-	if (!platform_np) {
+
+	if (!platform_np)
+	{
 		dev_err(&op->dev, "ac97 not registered\n");
 		return -ENODEV;
 	}
 
 	for (i = 0; i < card->num_links; i++)
+	{
 		card->dai_link[i].platform_of_node = platform_np;
+	}
 
 	ret = request_module("snd-soc-wm9712");
+
 	if (ret)
+	{
 		dev_err(&op->dev, "request_module returned: %d\n", ret);
+	}
 
 	pdata->codec_device = platform_device_alloc("wm9712-codec", -1);
+
 	if (!pdata->codec_device)
+	{
 		dev_err(&op->dev, "platform_device_alloc() failed\n");
+	}
 
 	ret = platform_device_add(pdata->codec_device);
+
 	if (ret)
+	{
 		dev_err(&op->dev, "platform_device_add() failed: %d\n", ret);
+	}
 
 	ret = snd_soc_register_card(card);
+
 	if (ret)
+	{
 		dev_err(&op->dev, "snd_soc_register_card() failed: %d\n", ret);
+	}
 
 	platform_set_drvdata(op, pdata);
 
@@ -113,13 +137,15 @@ static int pcm030_fabric_remove(struct platform_device *op)
 	return ret;
 }
 
-static const struct of_device_id pcm030_audio_match[] = {
+static const struct of_device_id pcm030_audio_match[] =
+{
 	{ .compatible = "phytec,pcm030-audio-fabric", },
 	{}
 };
 MODULE_DEVICE_TABLE(of, pcm030_audio_match);
 
-static struct platform_driver pcm030_fabric_driver = {
+static struct platform_driver pcm030_fabric_driver =
+{
 	.probe		= pcm030_fabric_probe,
 	.remove		= pcm030_fabric_remove,
 	.driver		= {

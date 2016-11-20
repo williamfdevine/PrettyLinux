@@ -33,12 +33,13 @@ gm20b_gr_init_gpc_mmu(struct gf100_gr *gr)
 	u32 val;
 
 	/* Bypass MMU check for non-secure boot */
-	if (!device->secboot) {
+	if (!device->secboot)
+	{
 		nvkm_wr32(device, 0x100ce4, 0xffffffff);
 
 		if (nvkm_rd32(device, 0x100ce4) != 0xffffffff)
 			nvdev_warn(device,
-			  "cannot bypass secure boot - expect failure soon!\n");
+					   "cannot bypass secure boot - expect failure soon!\n");
 	}
 
 	val = nvkm_rd32(device, 0x100c80);
@@ -63,7 +64,8 @@ gm20b_gr_set_hww_esr_report_mask(struct gf100_gr *gr)
 }
 
 static const struct gf100_gr_func
-gm20b_gr = {
+	gm20b_gr =
+{
 	.init = gk20a_gr_init,
 	.init_gpc_mmu = gm20b_gr_init_gpc_mmu,
 	.init_rop_active_fbps = gk104_gr_init_rop_active_fbps,

@@ -21,7 +21,8 @@
 #include <linux/usb/hcd.h>
 #include <linux/wait.h>
 
-struct vhci_device {
+struct vhci_device
+{
 	struct usb_device *udev;
 
 	/*
@@ -54,7 +55,8 @@ struct vhci_device {
 };
 
 /* urb->hcpriv, use container_of() */
-struct vhci_priv {
+struct vhci_priv
+{
 	unsigned long seqnum;
 	struct list_head list;
 
@@ -62,7 +64,8 @@ struct vhci_priv {
 	struct urb *urb;
 };
 
-struct vhci_unlink {
+struct vhci_unlink
+{
 	/* seqnum of this request */
 	unsigned long seqnum;
 
@@ -74,26 +77,27 @@ struct vhci_unlink {
 
 /* Number of supported ports. Value has an upperbound of USB_MAXCHILDREN */
 #ifdef CONFIG_USBIP_VHCI_HC_PORTS
-#define VHCI_HC_PORTS CONFIG_USBIP_VHCI_HC_PORTS
+	#define VHCI_HC_PORTS CONFIG_USBIP_VHCI_HC_PORTS
 #else
-#define VHCI_HC_PORTS 8
+	#define VHCI_HC_PORTS 8
 #endif
 
 #ifdef CONFIG_USBIP_VHCI_NR_HCS
-#define VHCI_NR_HCS CONFIG_USBIP_VHCI_NR_HCS
+	#define VHCI_NR_HCS CONFIG_USBIP_VHCI_NR_HCS
 #else
-#define VHCI_NR_HCS 1
+	#define VHCI_NR_HCS 1
 #endif
 
 #define MAX_STATUS_NAME 16
 
 /* for usb_bus.hcpriv */
-struct vhci_hcd {
+struct vhci_hcd
+{
 	spinlock_t lock;
 
 	u32 port_status[VHCI_HC_PORTS];
 
-	unsigned resuming:1;
+	unsigned resuming: 1;
 	unsigned long re_timeout;
 
 	atomic_t seqnum;
@@ -157,7 +161,7 @@ static inline struct usb_hcd *vhci_to_hcd(struct vhci_hcd *vhci)
 static inline struct vhci_hcd *vdev_to_vhci(struct vhci_device *vdev)
 {
 	return container_of(
-			(void *)(vdev - vdev->rhport), struct vhci_hcd, vdev);
+			   (void *)(vdev - vdev->rhport), struct vhci_hcd, vdev);
 }
 
 #endif /* __USBIP_VHCI_H */

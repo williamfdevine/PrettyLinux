@@ -32,7 +32,7 @@
 #define DRBD_PORT_SCALE '1'
 
 /* startup { */
-  /* if you want more than 3.4 days, disable */
+/* if you want more than 3.4 days, disable */
 #define DRBD_WFC_TIMEOUT_MIN 0
 #define DRBD_WFC_TIMEOUT_MAX 300000
 #define DRBD_WFC_TIMEOUT_DEF 0
@@ -50,44 +50,44 @@
 /* }*/
 
 /* net { */
-  /* timeout, unit centi seconds
-   * more than one minute timeout is not useful */
+/* timeout, unit centi seconds
+ * more than one minute timeout is not useful */
 #define DRBD_TIMEOUT_MIN 1
 #define DRBD_TIMEOUT_MAX 600
 #define DRBD_TIMEOUT_DEF 60       /* 6 seconds */
 #define DRBD_TIMEOUT_SCALE '1'
 
- /* If backing disk takes longer than disk_timeout, mark the disk as failed */
+/* If backing disk takes longer than disk_timeout, mark the disk as failed */
 #define DRBD_DISK_TIMEOUT_MIN 0    /* 0 = disabled */
 #define DRBD_DISK_TIMEOUT_MAX 6000 /* 10 Minutes */
 #define DRBD_DISK_TIMEOUT_DEF 0    /* disabled */
 #define DRBD_DISK_TIMEOUT_SCALE '1'
 
-  /* active connection retries when C_WF_CONNECTION */
+/* active connection retries when C_WF_CONNECTION */
 #define DRBD_CONNECT_INT_MIN 1
 #define DRBD_CONNECT_INT_MAX 120
 #define DRBD_CONNECT_INT_DEF 10   /* seconds */
 #define DRBD_CONNECT_INT_SCALE '1'
 
-  /* keep-alive probes when idle */
+/* keep-alive probes when idle */
 #define DRBD_PING_INT_MIN 1
 #define DRBD_PING_INT_MAX 120
 #define DRBD_PING_INT_DEF 10
 #define DRBD_PING_INT_SCALE '1'
 
- /* timeout for the ping packets.*/
+/* timeout for the ping packets.*/
 #define DRBD_PING_TIMEO_MIN  1
 #define DRBD_PING_TIMEO_MAX  300
 #define DRBD_PING_TIMEO_DEF  5
 #define DRBD_PING_TIMEO_SCALE '1'
 
-  /* max number of write requests between write barriers */
+/* max number of write requests between write barriers */
 #define DRBD_MAX_EPOCH_SIZE_MIN 1
 #define DRBD_MAX_EPOCH_SIZE_MAX 20000
 #define DRBD_MAX_EPOCH_SIZE_DEF 2048
 #define DRBD_MAX_EPOCH_SIZE_SCALE '1'
 
-  /* I don't think that a tcp send buffer of more than 10M is useful */
+/* I don't think that a tcp send buffer of more than 10M is useful */
 #define DRBD_SNDBUF_SIZE_MIN  0
 #define DRBD_SNDBUF_SIZE_MAX  (10<<20)
 #define DRBD_SNDBUF_SIZE_DEF  0
@@ -98,20 +98,20 @@
 #define DRBD_RCVBUF_SIZE_DEF  0
 #define DRBD_RCVBUF_SIZE_SCALE '1'
 
-  /* @4k PageSize -> 128kB - 512MB */
+/* @4k PageSize -> 128kB - 512MB */
 #define DRBD_MAX_BUFFERS_MIN  32
 #define DRBD_MAX_BUFFERS_MAX  131072
 #define DRBD_MAX_BUFFERS_DEF  2048
 #define DRBD_MAX_BUFFERS_SCALE '1'
 
-  /* @4k PageSize -> 4kB - 512MB */
+/* @4k PageSize -> 4kB - 512MB */
 #define DRBD_UNPLUG_WATERMARK_MIN  1
 #define DRBD_UNPLUG_WATERMARK_MAX  131072
 #define DRBD_UNPLUG_WATERMARK_DEF (DRBD_MAX_BUFFERS_DEF/16)
 #define DRBD_UNPLUG_WATERMARK_SCALE '1'
 
-  /* 0 is disabled.
-   * 200 should be more than enough even for very short timeouts */
+/* 0 is disabled.
+ * 200 should be more than enough even for very short timeouts */
 #define DRBD_KO_COUNT_MIN  0
 #define DRBD_KO_COUNT_MAX  200
 #define DRBD_KO_COUNT_DEF  7
@@ -119,7 +119,7 @@
 /* } */
 
 /* syncer { */
-  /* FIXME allow rate to be zero? */
+/* FIXME allow rate to be zero? */
 #define DRBD_RESYNC_RATE_MIN 1
 /* channel bonding 10 GbE, or other hardware */
 #define DRBD_RESYNC_RATE_MAX (4 << 20)
@@ -127,9 +127,9 @@
 #define DRBD_RESYNC_RATE_SCALE 'k'  /* kilobytes */
 
 #define DRBD_AL_EXTENTS_MIN  67
-  /* we use u16 as "slot number", (u16)~0 is "FREE".
-   * If you use >= 292 kB on-disk ring buffer,
-   * this is the maximum you can use: */
+/* we use u16 as "slot number", (u16)~0 is "FREE".
+ * If you use >= 292 kB on-disk ring buffer,
+ * this is the maximum you can use: */
 #define DRBD_AL_EXTENTS_MAX  0xfffe
 #define DRBD_AL_EXTENTS_DEF  1237
 #define DRBD_AL_EXTENTS_SCALE '1'

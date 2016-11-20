@@ -24,7 +24,8 @@ static rx_handler_result_t hsr_handle_frame(struct sk_buff **pskb)
 	struct hsr_port *port;
 	u16 protocol;
 
-	if (!skb_mac_header_was_set(skb)) {
+	if (!skb_mac_header_was_set(skb))
+	{
 		WARN_ONCE(1, "%s: skb invalid", __func__);
 		return RX_HANDLER_PASS;
 	}
@@ -32,15 +33,19 @@ static rx_handler_result_t hsr_handle_frame(struct sk_buff **pskb)
 	rcu_read_lock(); /* hsr->node_db, hsr->ports */
 	port = hsr_port_get_rcu(skb->dev);
 
-	if (hsr_addr_is_self(port->hsr, eth_hdr(skb)->h_source)) {
+	if (hsr_addr_is_self(port->hsr, eth_hdr(skb)->h_source))
+	{
 		/* Directly kill frames sent by ourselves */
 		kfree_skb(skb);
 		goto finish_consume;
 	}
 
 	protocol = eth_hdr(skb)->h_proto;
+
 	if (protocol != htons(ETH_P_PRP) && protocol != htons(ETH_P_HSR))
+	{
 		goto finish_pass;
+	}
 
 	skb_push(skb, ETH_HLEN);
 
@@ -65,28 +70,33 @@ static int hsr_check_dev_ok(struct net_device *dev)
 {
 	/* Don't allow HSR on non-ethernet like devices */
 	if ((dev->flags & IFF_LOOPBACK) || (dev->type != ARPHRD_ETHER) ||
-	    (dev->addr_len != ETH_ALEN)) {
+		(dev->addr_len != ETH_ALEN))
+	{
 		netdev_info(dev, "Cannot use loopback or non-ethernet device as HSR slave.\n");
 		return -EINVAL;
 	}
 
 	/* Don't allow enslaving hsr devices */
-	if (is_hsr_master(dev)) {
+	if (is_hsr_master(dev))
+	{
 		netdev_info(dev, "Cannot create trees of HSR devices.\n");
 		return -EINVAL;
 	}
 
-	if (hsr_port_exists(dev)) {
+	if (hsr_port_exists(dev))
+	{
 		netdev_info(dev, "This device is already a HSR slave.\n");
 		return -EINVAL;
 	}
 
-	if (dev->priv_flags & IFF_802_1Q_VLAN) {
+	if (dev->priv_flags & IFF_802_1Q_VLAN)
+	{
 		netdev_info(dev, "HSR on top of VLAN is not yet supported in this driver.\n");
 		return -EINVAL;
 	}
 
-	if (dev->priv_flags & IFF_DONT_BRIDGE) {
+	if (dev->priv_flags & IFF_DONT_BRIDGE)
+	{
 		netdev_info(dev, "This device does not support bridging.\n");
 		return -EOPNOTSUPP;
 	}
@@ -106,8 +116,11 @@ static int hsr_portdev_setup(struct net_device *dev, struct hsr_port *port)
 
 	dev_hold(dev);
 	res = dev_set_promiscuity(dev, 1);
+
 	if (res)
+	{
 		goto fail_promiscuity;
+	}
 
 	/* FIXME:
 	 * What does net device "adjacency" mean? Should we do
@@ -115,8 +128,12 @@ static int hsr_portdev_setup(struct net_device *dev, struct hsr_port *port)
 	 */
 
 	res = netdev_rx_handler_register(dev, hsr_handle_frame, port);
+
 	if (res)
+	{
 		goto fail_rx_handler;
+	}
+
 	dev_disable_lro(dev);
 
 	return 0;
@@ -130,29 +147,43 @@ fail_promiscuity:
 }
 
 int hsr_add_port(struct hsr_priv *hsr, struct net_device *dev,
-		 enum hsr_port_type type)
+				 enum hsr_port_type type)
 {
 	struct hsr_port *port, *master;
 	int res;
 
-	if (type != HSR_PT_MASTER) {
+	if (type != HSR_PT_MASTER)
+	{
 		res = hsr_check_dev_ok(dev);
+
 		if (res)
+		{
 			return res;
+		}
 	}
 
 	port = hsr_port_get_hsr(hsr, type);
+
 	if (port != NULL)
-		return -EBUSY;	/* This port already exists */
+	{
+		return -EBUSY;    /* This port already exists */
+	}
 
 	port = kzalloc(sizeof(*port), GFP_KERNEL);
-	if (port == NULL)
-		return -ENOMEM;
 
-	if (type != HSR_PT_MASTER) {
+	if (port == NULL)
+	{
+		return -ENOMEM;
+	}
+
+	if (type != HSR_PT_MASTER)
+	{
 		res = hsr_portdev_setup(dev, port);
+
 		if (res)
+		{
 			goto fail_dev_setup;
+		}
 	}
 
 	port->hsr = hsr;
@@ -182,11 +213,14 @@ void hsr_del_port(struct hsr_port *port)
 	master = hsr_port_get_hsr(hsr, HSR_PT_MASTER);
 	list_del_rcu(&port->port_list);
 
-	if (port != master) {
-		if (master != NULL) {
+	if (port != master)
+	{
+		if (master != NULL)
+		{
 			netdev_update_features(master->dev);
 			dev_set_mtu(master->dev, hsr_get_max_mtu(hsr));
 		}
+
 		netdev_rx_handler_unregister(port->dev);
 		dev_set_promiscuity(port->dev, -1);
 	}
@@ -198,5 +232,7 @@ void hsr_del_port(struct hsr_port *port)
 	synchronize_rcu();
 
 	if (port != master)
+	{
 		dev_put(port->dev);
+	}
 }

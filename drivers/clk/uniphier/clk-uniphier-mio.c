@@ -28,42 +28,42 @@
 #define UNIPHIER_MIO_CLK_SD(_idx, ch)					\
 	{								\
 		.name = "sd" #ch "-sel",				\
-		.type = UNIPHIER_CLK_TYPE_MUX,				\
-		.idx = -1,						\
-		.data.mux = {						\
-			.parent_names = {				\
-				"sd-44m",				\
-				"sd-33m",				\
-				"sd-50m",				\
-				"sd-67m",				\
-				"sd-100m",				\
-				"sd-40m",				\
-				"sd-25m",				\
-				"sd-22m",				\
-			},						\
-			.num_parents = 8,				\
-			.reg = 0x30 + 0x200 * (ch),			\
-			.masks = {					\
-				0x00031000,				\
-				0x00031000,				\
-				0x00031000,				\
-				0x00031000,				\
-				0x00001300,				\
-				0x00001300,				\
-				0x00001300,				\
-				0x00001300,				\
-			},						\
-			.vals = {					\
-				0x00000000,				\
-				0x00010000,				\
-				0x00020000,				\
-				0x00030000,				\
-				0x00001000,				\
-				0x00001100,				\
-				0x00001200,				\
-				0x00001300,				\
-			},						\
-		},							\
+				.type = UNIPHIER_CLK_TYPE_MUX,				\
+						.idx = -1,						\
+							   .data.mux = {						\
+																   .parent_names = {				\
+																								   "sd-44m",				\
+																								   "sd-33m",				\
+																								   "sd-50m",				\
+																								   "sd-67m",				\
+																								   "sd-100m",				\
+																								   "sd-40m",				\
+																								   "sd-25m",				\
+																								   "sd-22m",				\
+																				   },						\
+																   .num_parents = 8,				\
+																   .reg = 0x30 + 0x200 * (ch),			\
+																   .masks = {					\
+																							   0x00031000,				\
+																							   0x00031000,				\
+																							   0x00031000,				\
+																							   0x00031000,				\
+																							   0x00001300,				\
+																							   0x00001300,				\
+																							   0x00001300,				\
+																							   0x00001300,				\
+																			},						\
+																   .vals = {					\
+																							   0x00000000,				\
+																							   0x00010000,				\
+																							   0x00020000,				\
+																							   0x00030000,				\
+																							   0x00001000,				\
+																							   0x00001100,				\
+																							   0x00001200,				\
+																							   0x00001300,				\
+																		   },						\
+										   },							\
 	},								\
 	UNIPHIER_CLK_GATE("sd" #ch, (_idx), "sd" #ch "-sel", 0x20 + 0x200 * (ch), 8)
 
@@ -76,7 +76,8 @@
 #define UNIPHIER_MIO_CLK_DMAC(idx)					\
 	UNIPHIER_CLK_GATE("miodmac", (idx), "stdmac", 0x20, 25)
 
-const struct uniphier_clk_data uniphier_sld3_mio_clk_data[] = {
+const struct uniphier_clk_data uniphier_sld3_mio_clk_data[] =
+{
 	UNIPHIER_MIO_CLK_SD_FIXED,
 	UNIPHIER_MIO_CLK_SD(0, 0),
 	UNIPHIER_MIO_CLK_SD(1, 1),
@@ -93,7 +94,8 @@ const struct uniphier_clk_data uniphier_sld3_mio_clk_data[] = {
 	{ /* sentinel */ }
 };
 
-const struct uniphier_clk_data uniphier_pro5_sd_clk_data[] = {
+const struct uniphier_clk_data uniphier_pro5_sd_clk_data[] =
+{
 	UNIPHIER_MIO_CLK_SD_FIXED,
 	UNIPHIER_MIO_CLK_SD(0, 0),
 	UNIPHIER_MIO_CLK_SD(1, 1),

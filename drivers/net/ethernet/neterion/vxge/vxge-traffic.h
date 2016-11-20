@@ -30,10 +30,10 @@
 #define VXGE_HW_HEADER_SNAP_SIZE	5
 #define VXGE_HW_HEADER_VLAN_SIZE	4
 #define VXGE_HW_MAC_HEADER_MAX_SIZE \
-			(ETH_HLEN + \
-			VXGE_HW_HEADER_802_2_SIZE + \
-			VXGE_HW_HEADER_VLAN_SIZE + \
-			VXGE_HW_HEADER_SNAP_SIZE)
+	(ETH_HLEN + \
+	 VXGE_HW_HEADER_802_2_SIZE + \
+	 VXGE_HW_HEADER_VLAN_SIZE + \
+	 VXGE_HW_HEADER_SNAP_SIZE)
 
 /* 32bit alignments */
 #define VXGE_HW_HEADER_ETHERNET_II_802_3_ALIGN		2
@@ -56,11 +56,11 @@ struct vxge_hw_ring_attr;
 struct vxge_hw_mempool;
 
 #ifndef TRUE
-#define TRUE 1
+	#define TRUE 1
 #endif
 
 #ifndef FALSE
-#define FALSE 0
+	#define FALSE 0
 #endif
 
 /*VXGE_HW_STATUS_H*/
@@ -89,7 +89,8 @@ struct vxge_hw_mempool;
  * See also: struct vxge_hw_uld_cbs{}, vxge_uld_link_up_f{},
  * vxge_uld_link_down_f{}.
  */
-enum vxge_hw_event {
+enum vxge_hw_event
+{
 	VXGE_HW_EVENT_UNKNOWN		= 0,
 	/* HW events */
 	VXGE_HW_EVENT_RESET_START	= VXGE_HW_EVENT_BASE + 1,
@@ -114,7 +115,8 @@ enum vxge_hw_event {
  * struct vxge_hw_mempool_dma - Represents DMA objects passed to the
 	caller.
  */
-struct vxge_hw_mempool_dma {
+struct vxge_hw_mempool_dma
+{
 	dma_addr_t			addr;
 	struct pci_dev *handle;
 	struct pci_dev *acc_handle;
@@ -136,14 +138,15 @@ struct vxge_hw_mempool_dma {
 /*
  * struct vxge_hw_mempool - Memory pool.
  */
-struct vxge_hw_mempool {
+struct vxge_hw_mempool
+{
 
 	void (*item_func_alloc)(
-	struct vxge_hw_mempool *mempoolh,
-	u32			memblock_index,
-	struct vxge_hw_mempool_dma	*dma_object,
-	u32			index,
-	u32			is_last);
+		struct vxge_hw_mempool *mempoolh,
+		u32			memblock_index,
+		struct vxge_hw_mempool_dma	*dma_object,
+		u32			index,
+		u32			is_last);
 
 	void		*userdata;
 	void		**memblocks_arr;
@@ -230,7 +233,8 @@ struct vxge_hw_mempool {
  * @uec_d: Utilization Event Count D.
  * Traffic Interrupt Controller Module interrupt configuration.
  */
-struct vxge_hw_tim_intr_config {
+struct vxge_hw_tim_intr_config
+{
 
 	u32				intr_enable;
 #define VXGE_HW_TIM_INTR_ENABLE				1
@@ -312,17 +316,17 @@ struct vxge_hw_tim_intr_config {
 
 #define	VXGE_HW_STATS_VPATH_PROG_EVENT_VNUM0_OFFSET	   (0x001d0 >> 3)
 #define	VXGE_HW_STATS_GET_VPATH_PROG_EVENT_VNUM0(bits) \
-						vxge_bVALn(bits, 0, 32)
+	vxge_bVALn(bits, 0, 32)
 
 #define	VXGE_HW_STATS_GET_VPATH_PROG_EVENT_VNUM1(bits) \
-						vxge_bVALn(bits, 32, 32)
+	vxge_bVALn(bits, 32, 32)
 
 #define	VXGE_HW_STATS_VPATH_PROG_EVENT_VNUM2_OFFSET	   (0x001d8 >> 3)
 #define	VXGE_HW_STATS_GET_VPATH_PROG_EVENT_VNUM2(bits) \
-						vxge_bVALn(bits, 0, 32)
+	vxge_bVALn(bits, 0, 32)
 
 #define	VXGE_HW_STATS_GET_VPATH_PROG_EVENT_VNUM3(bits) \
-						vxge_bVALn(bits, 32, 32)
+	vxge_bVALn(bits, 32, 32)
 
 /**
  * struct vxge_hw_xmac_aggr_stats - Per-Aggregator XMAC Statistics
@@ -381,20 +385,21 @@ struct vxge_hw_tim_intr_config {
  *
  * Per aggregator XMAC RX statistics.
  */
-struct vxge_hw_xmac_aggr_stats {
-/*0x000*/		u64	tx_frms;
-/*0x008*/		u64	tx_data_octets;
-/*0x010*/		u64	tx_mcast_frms;
-/*0x018*/		u64	tx_bcast_frms;
-/*0x020*/		u64	tx_discarded_frms;
-/*0x028*/		u64	tx_errored_frms;
-/*0x030*/		u64	rx_frms;
-/*0x038*/		u64	rx_data_octets;
-/*0x040*/		u64	rx_mcast_frms;
-/*0x048*/		u64	rx_bcast_frms;
-/*0x050*/		u64	rx_discarded_frms;
-/*0x058*/		u64	rx_errored_frms;
-/*0x060*/		u64	rx_unknown_slow_proto_frms;
+struct vxge_hw_xmac_aggr_stats
+{
+	/*0x000*/		u64	tx_frms;
+	/*0x008*/		u64	tx_data_octets;
+	/*0x010*/		u64	tx_mcast_frms;
+	/*0x018*/		u64	tx_bcast_frms;
+	/*0x020*/		u64	tx_discarded_frms;
+	/*0x028*/		u64	tx_errored_frms;
+	/*0x030*/		u64	rx_frms;
+	/*0x038*/		u64	rx_data_octets;
+	/*0x040*/		u64	rx_mcast_frms;
+	/*0x048*/		u64	rx_bcast_frms;
+	/*0x050*/		u64	rx_discarded_frms;
+	/*0x058*/		u64	rx_errored_frms;
+	/*0x060*/		u64	rx_unknown_slow_proto_frms;
 } __packed;
 
 /**
@@ -736,102 +741,103 @@ struct vxge_hw_xmac_aggr_stats {
  *
  * XMAC Port Statistics.
  */
-struct vxge_hw_xmac_port_stats {
-/*0x000*/		u64	tx_ttl_frms;
-/*0x008*/		u64	tx_ttl_octets;
-/*0x010*/		u64	tx_data_octets;
-/*0x018*/		u64	tx_mcast_frms;
-/*0x020*/		u64	tx_bcast_frms;
-/*0x028*/		u64	tx_ucast_frms;
-/*0x030*/		u64	tx_tagged_frms;
-/*0x038*/		u64	tx_vld_ip;
-/*0x040*/		u64	tx_vld_ip_octets;
-/*0x048*/		u64	tx_icmp;
-/*0x050*/		u64	tx_tcp;
-/*0x058*/		u64	tx_rst_tcp;
-/*0x060*/		u64	tx_udp;
-/*0x068*/		u32	tx_parse_error;
-/*0x06c*/		u32	tx_unknown_protocol;
-/*0x070*/		u64	tx_pause_ctrl_frms;
-/*0x078*/		u32	tx_marker_pdu_frms;
-/*0x07c*/		u32	tx_lacpdu_frms;
-/*0x080*/		u32	tx_drop_ip;
-/*0x084*/		u32	tx_marker_resp_pdu_frms;
-/*0x088*/		u32	tx_xgmii_char2_match;
-/*0x08c*/		u32	tx_xgmii_char1_match;
-/*0x090*/		u32	tx_xgmii_column2_match;
-/*0x094*/		u32	tx_xgmii_column1_match;
-/*0x098*/		u32	unused1;
-/*0x09c*/		u16	tx_any_err_frms;
-/*0x09e*/		u16	tx_drop_frms;
-/*0x0a0*/		u64	rx_ttl_frms;
-/*0x0a8*/		u64	rx_vld_frms;
-/*0x0b0*/		u64	rx_offload_frms;
-/*0x0b8*/		u64	rx_ttl_octets;
-/*0x0c0*/		u64	rx_data_octets;
-/*0x0c8*/		u64	rx_offload_octets;
-/*0x0d0*/		u64	rx_vld_mcast_frms;
-/*0x0d8*/		u64	rx_vld_bcast_frms;
-/*0x0e0*/		u64	rx_accepted_ucast_frms;
-/*0x0e8*/		u64	rx_accepted_nucast_frms;
-/*0x0f0*/		u64	rx_tagged_frms;
-/*0x0f8*/		u64	rx_long_frms;
-/*0x100*/		u64	rx_usized_frms;
-/*0x108*/		u64	rx_osized_frms;
-/*0x110*/		u64	rx_frag_frms;
-/*0x118*/		u64	rx_jabber_frms;
-/*0x120*/		u64	rx_ttl_64_frms;
-/*0x128*/		u64	rx_ttl_65_127_frms;
-/*0x130*/		u64	rx_ttl_128_255_frms;
-/*0x138*/		u64	rx_ttl_256_511_frms;
-/*0x140*/		u64	rx_ttl_512_1023_frms;
-/*0x148*/		u64	rx_ttl_1024_1518_frms;
-/*0x150*/		u64	rx_ttl_1519_4095_frms;
-/*0x158*/		u64	rx_ttl_4096_8191_frms;
-/*0x160*/		u64	rx_ttl_8192_max_frms;
-/*0x168*/		u64	rx_ttl_gt_max_frms;
-/*0x170*/		u64	rx_ip;
-/*0x178*/		u64	rx_accepted_ip;
-/*0x180*/		u64	rx_ip_octets;
-/*0x188*/		u64	rx_err_ip;
-/*0x190*/		u64	rx_icmp;
-/*0x198*/		u64	rx_tcp;
-/*0x1a0*/		u64	rx_udp;
-/*0x1a8*/		u64	rx_err_tcp;
-/*0x1b0*/		u64	rx_pause_count;
-/*0x1b8*/		u64	rx_pause_ctrl_frms;
-/*0x1c0*/		u64	rx_unsup_ctrl_frms;
-/*0x1c8*/		u64	rx_fcs_err_frms;
-/*0x1d0*/		u64	rx_in_rng_len_err_frms;
-/*0x1d8*/		u64	rx_out_rng_len_err_frms;
-/*0x1e0*/		u64	rx_drop_frms;
-/*0x1e8*/		u64	rx_discarded_frms;
-/*0x1f0*/		u64	rx_drop_ip;
-/*0x1f8*/		u64	rx_drop_udp;
-/*0x200*/		u32	rx_marker_pdu_frms;
-/*0x204*/		u32	rx_lacpdu_frms;
-/*0x208*/		u32	rx_unknown_pdu_frms;
-/*0x20c*/		u32	rx_marker_resp_pdu_frms;
-/*0x210*/		u32	rx_fcs_discard;
-/*0x214*/		u32	rx_illegal_pdu_frms;
-/*0x218*/		u32	rx_switch_discard;
-/*0x21c*/		u32	rx_len_discard;
-/*0x220*/		u32	rx_rpa_discard;
-/*0x224*/		u32	rx_l2_mgmt_discard;
-/*0x228*/		u32	rx_rts_discard;
-/*0x22c*/		u32	rx_trash_discard;
-/*0x230*/		u32	rx_buff_full_discard;
-/*0x234*/		u32	rx_red_discard;
-/*0x238*/		u32	rx_xgmii_ctrl_err_cnt;
-/*0x23c*/		u32	rx_xgmii_data_err_cnt;
-/*0x240*/		u32	rx_xgmii_char1_match;
-/*0x244*/		u32	rx_xgmii_err_sym;
-/*0x248*/		u32	rx_xgmii_column1_match;
-/*0x24c*/		u32	rx_xgmii_char2_match;
-/*0x250*/		u32	rx_local_fault;
-/*0x254*/		u32	rx_xgmii_column2_match;
-/*0x258*/		u32	rx_jettison;
-/*0x25c*/		u32	rx_remote_fault;
+struct vxge_hw_xmac_port_stats
+{
+	/*0x000*/		u64	tx_ttl_frms;
+	/*0x008*/		u64	tx_ttl_octets;
+	/*0x010*/		u64	tx_data_octets;
+	/*0x018*/		u64	tx_mcast_frms;
+	/*0x020*/		u64	tx_bcast_frms;
+	/*0x028*/		u64	tx_ucast_frms;
+	/*0x030*/		u64	tx_tagged_frms;
+	/*0x038*/		u64	tx_vld_ip;
+	/*0x040*/		u64	tx_vld_ip_octets;
+	/*0x048*/		u64	tx_icmp;
+	/*0x050*/		u64	tx_tcp;
+	/*0x058*/		u64	tx_rst_tcp;
+	/*0x060*/		u64	tx_udp;
+	/*0x068*/		u32	tx_parse_error;
+	/*0x06c*/		u32	tx_unknown_protocol;
+	/*0x070*/		u64	tx_pause_ctrl_frms;
+	/*0x078*/		u32	tx_marker_pdu_frms;
+	/*0x07c*/		u32	tx_lacpdu_frms;
+	/*0x080*/		u32	tx_drop_ip;
+	/*0x084*/		u32	tx_marker_resp_pdu_frms;
+	/*0x088*/		u32	tx_xgmii_char2_match;
+	/*0x08c*/		u32	tx_xgmii_char1_match;
+	/*0x090*/		u32	tx_xgmii_column2_match;
+	/*0x094*/		u32	tx_xgmii_column1_match;
+	/*0x098*/		u32	unused1;
+	/*0x09c*/		u16	tx_any_err_frms;
+	/*0x09e*/		u16	tx_drop_frms;
+	/*0x0a0*/		u64	rx_ttl_frms;
+	/*0x0a8*/		u64	rx_vld_frms;
+	/*0x0b0*/		u64	rx_offload_frms;
+	/*0x0b8*/		u64	rx_ttl_octets;
+	/*0x0c0*/		u64	rx_data_octets;
+	/*0x0c8*/		u64	rx_offload_octets;
+	/*0x0d0*/		u64	rx_vld_mcast_frms;
+	/*0x0d8*/		u64	rx_vld_bcast_frms;
+	/*0x0e0*/		u64	rx_accepted_ucast_frms;
+	/*0x0e8*/		u64	rx_accepted_nucast_frms;
+	/*0x0f0*/		u64	rx_tagged_frms;
+	/*0x0f8*/		u64	rx_long_frms;
+	/*0x100*/		u64	rx_usized_frms;
+	/*0x108*/		u64	rx_osized_frms;
+	/*0x110*/		u64	rx_frag_frms;
+	/*0x118*/		u64	rx_jabber_frms;
+	/*0x120*/		u64	rx_ttl_64_frms;
+	/*0x128*/		u64	rx_ttl_65_127_frms;
+	/*0x130*/		u64	rx_ttl_128_255_frms;
+	/*0x138*/		u64	rx_ttl_256_511_frms;
+	/*0x140*/		u64	rx_ttl_512_1023_frms;
+	/*0x148*/		u64	rx_ttl_1024_1518_frms;
+	/*0x150*/		u64	rx_ttl_1519_4095_frms;
+	/*0x158*/		u64	rx_ttl_4096_8191_frms;
+	/*0x160*/		u64	rx_ttl_8192_max_frms;
+	/*0x168*/		u64	rx_ttl_gt_max_frms;
+	/*0x170*/		u64	rx_ip;
+	/*0x178*/		u64	rx_accepted_ip;
+	/*0x180*/		u64	rx_ip_octets;
+	/*0x188*/		u64	rx_err_ip;
+	/*0x190*/		u64	rx_icmp;
+	/*0x198*/		u64	rx_tcp;
+	/*0x1a0*/		u64	rx_udp;
+	/*0x1a8*/		u64	rx_err_tcp;
+	/*0x1b0*/		u64	rx_pause_count;
+	/*0x1b8*/		u64	rx_pause_ctrl_frms;
+	/*0x1c0*/		u64	rx_unsup_ctrl_frms;
+	/*0x1c8*/		u64	rx_fcs_err_frms;
+	/*0x1d0*/		u64	rx_in_rng_len_err_frms;
+	/*0x1d8*/		u64	rx_out_rng_len_err_frms;
+	/*0x1e0*/		u64	rx_drop_frms;
+	/*0x1e8*/		u64	rx_discarded_frms;
+	/*0x1f0*/		u64	rx_drop_ip;
+	/*0x1f8*/		u64	rx_drop_udp;
+	/*0x200*/		u32	rx_marker_pdu_frms;
+	/*0x204*/		u32	rx_lacpdu_frms;
+	/*0x208*/		u32	rx_unknown_pdu_frms;
+	/*0x20c*/		u32	rx_marker_resp_pdu_frms;
+	/*0x210*/		u32	rx_fcs_discard;
+	/*0x214*/		u32	rx_illegal_pdu_frms;
+	/*0x218*/		u32	rx_switch_discard;
+	/*0x21c*/		u32	rx_len_discard;
+	/*0x220*/		u32	rx_rpa_discard;
+	/*0x224*/		u32	rx_l2_mgmt_discard;
+	/*0x228*/		u32	rx_rts_discard;
+	/*0x22c*/		u32	rx_trash_discard;
+	/*0x230*/		u32	rx_buff_full_discard;
+	/*0x234*/		u32	rx_red_discard;
+	/*0x238*/		u32	rx_xgmii_ctrl_err_cnt;
+	/*0x23c*/		u32	rx_xgmii_data_err_cnt;
+	/*0x240*/		u32	rx_xgmii_char1_match;
+	/*0x244*/		u32	rx_xgmii_err_sym;
+	/*0x248*/		u32	rx_xgmii_column1_match;
+	/*0x24c*/		u32	rx_xgmii_char2_match;
+	/*0x250*/		u32	rx_local_fault;
+	/*0x254*/		u32	rx_xgmii_column2_match;
+	/*0x258*/		u32	rx_jettison;
+	/*0x25c*/		u32	rx_remote_fault;
 } __packed;
 
 /**
@@ -887,7 +893,8 @@ struct vxge_hw_xmac_port_stats {
  *
  * XMAC Vpath TX Statistics.
  */
-struct vxge_hw_xmac_vpath_tx_stats {
+struct vxge_hw_xmac_vpath_tx_stats
+{
 	u64	tx_ttl_eth_frms;
 	u64	tx_ttl_eth_octets;
 	u64	tx_data_octets;
@@ -1037,7 +1044,8 @@ struct vxge_hw_xmac_vpath_tx_stats {
  *
  * XMAC Vpath RX Statistics.
  */
-struct vxge_hw_xmac_vpath_rx_stats {
+struct vxge_hw_xmac_vpath_rx_stats
+{
 	u64	rx_ttl_eth_frms;
 	u64	rx_vld_frms;
 	u64	rx_offload_frms;
@@ -1092,15 +1100,16 @@ struct vxge_hw_xmac_vpath_rx_stats {
  *
  * XMAC Statistics.
  */
-struct vxge_hw_xmac_stats {
+struct vxge_hw_xmac_stats
+{
 	struct vxge_hw_xmac_aggr_stats
-				aggr_stats[VXGE_HW_MAC_MAX_MAC_PORT_ID];
+		aggr_stats[VXGE_HW_MAC_MAX_MAC_PORT_ID];
 	struct vxge_hw_xmac_port_stats
-				port_stats[VXGE_HW_MAC_MAX_MAC_PORT_ID+1];
+		port_stats[VXGE_HW_MAC_MAX_MAC_PORT_ID + 1];
 	struct vxge_hw_xmac_vpath_tx_stats
-				vpath_tx_stats[VXGE_HW_MAX_VIRTUAL_PATHS];
+		vpath_tx_stats[VXGE_HW_MAX_VIRTUAL_PATHS];
 	struct vxge_hw_xmac_vpath_rx_stats
-				vpath_rx_stats[VXGE_HW_MAX_VIRTUAL_PATHS];
+		vpath_rx_stats[VXGE_HW_MAX_VIRTUAL_PATHS];
 };
 
 /**
@@ -1157,47 +1166,48 @@ struct vxge_hw_xmac_stats {
  *
  * Titan vpath hardware statistics.
  */
-struct vxge_hw_vpath_stats_hw_info {
-/*0x000*/	u32 ini_num_mwr_sent;
-/*0x004*/	u32 unused1;
-/*0x008*/	u32 ini_num_mrd_sent;
-/*0x00c*/	u32 unused2;
-/*0x010*/	u32 ini_num_cpl_rcvd;
-/*0x014*/	u32 unused3;
-/*0x018*/	u64 ini_num_mwr_byte_sent;
-/*0x020*/	u64 ini_num_cpl_byte_rcvd;
-/*0x028*/	u32 wrcrdtarb_xoff;
-/*0x02c*/	u32 unused4;
-/*0x030*/	u32 rdcrdtarb_xoff;
-/*0x034*/	u32 unused5;
-/*0x038*/	u32 vpath_genstats_count0;
-/*0x03c*/	u32 vpath_genstats_count1;
-/*0x040*/	u32 vpath_genstats_count2;
-/*0x044*/	u32 vpath_genstats_count3;
-/*0x048*/	u32 vpath_genstats_count4;
-/*0x04c*/	u32 unused6;
-/*0x050*/	u32 vpath_genstats_count5;
-/*0x054*/	u32 unused7;
-/*0x058*/	struct vxge_hw_xmac_vpath_tx_stats tx_stats;
-/*0x0e8*/	struct vxge_hw_xmac_vpath_rx_stats rx_stats;
-/*0x220*/	u64 unused9;
-/*0x228*/	u32 prog_event_vnum1;
-/*0x22c*/	u32 prog_event_vnum0;
-/*0x230*/	u32 prog_event_vnum3;
-/*0x234*/	u32 prog_event_vnum2;
-/*0x238*/	u16 rx_multi_cast_frame_discard;
-/*0x23a*/	u8 unused10[6];
-/*0x240*/	u32 rx_frm_transferred;
-/*0x244*/	u32 unused11;
-/*0x248*/	u16 rxd_returned;
-/*0x24a*/	u8 unused12[6];
-/*0x252*/	u16 rx_mpa_len_fail_frms;
-/*0x254*/	u16 rx_mpa_mrk_fail_frms;
-/*0x256*/	u16 rx_mpa_crc_fail_frms;
-/*0x258*/	u16 rx_permitted_frms;
-/*0x25c*/	u64 rx_vp_reset_discarded_frms;
-/*0x25e*/	u64 rx_wol_frms;
-/*0x260*/	u64 tx_vp_reset_discarded_frms;
+struct vxge_hw_vpath_stats_hw_info
+{
+	/*0x000*/	u32 ini_num_mwr_sent;
+	/*0x004*/	u32 unused1;
+	/*0x008*/	u32 ini_num_mrd_sent;
+	/*0x00c*/	u32 unused2;
+	/*0x010*/	u32 ini_num_cpl_rcvd;
+	/*0x014*/	u32 unused3;
+	/*0x018*/	u64 ini_num_mwr_byte_sent;
+	/*0x020*/	u64 ini_num_cpl_byte_rcvd;
+	/*0x028*/	u32 wrcrdtarb_xoff;
+	/*0x02c*/	u32 unused4;
+	/*0x030*/	u32 rdcrdtarb_xoff;
+	/*0x034*/	u32 unused5;
+	/*0x038*/	u32 vpath_genstats_count0;
+	/*0x03c*/	u32 vpath_genstats_count1;
+	/*0x040*/	u32 vpath_genstats_count2;
+	/*0x044*/	u32 vpath_genstats_count3;
+	/*0x048*/	u32 vpath_genstats_count4;
+	/*0x04c*/	u32 unused6;
+	/*0x050*/	u32 vpath_genstats_count5;
+	/*0x054*/	u32 unused7;
+	/*0x058*/	struct vxge_hw_xmac_vpath_tx_stats tx_stats;
+	/*0x0e8*/	struct vxge_hw_xmac_vpath_rx_stats rx_stats;
+	/*0x220*/	u64 unused9;
+	/*0x228*/	u32 prog_event_vnum1;
+	/*0x22c*/	u32 prog_event_vnum0;
+	/*0x230*/	u32 prog_event_vnum3;
+	/*0x234*/	u32 prog_event_vnum2;
+	/*0x238*/	u16 rx_multi_cast_frame_discard;
+	/*0x23a*/	u8 unused10[6];
+	/*0x240*/	u32 rx_frm_transferred;
+	/*0x244*/	u32 unused11;
+	/*0x248*/	u16 rxd_returned;
+	/*0x24a*/	u8 unused12[6];
+	/*0x252*/	u16 rx_mpa_len_fail_frms;
+	/*0x254*/	u16 rx_mpa_mrk_fail_frms;
+	/*0x256*/	u16 rx_mpa_crc_fail_frms;
+	/*0x258*/	u16 rx_permitted_frms;
+	/*0x25c*/	u64 rx_vp_reset_discarded_frms;
+	/*0x25e*/	u64 rx_wol_frms;
+	/*0x260*/	u64 tx_vp_reset_discarded_frms;
 } __packed;
 
 
@@ -1461,69 +1471,75 @@ struct vxge_hw_vpath_stats_hw_info {
  *
  * Titan mrpcim hardware statistics.
  */
-struct vxge_hw_device_stats_mrpcim_info {
-/*0x0000*/	u32	pic_ini_rd_drop;
-/*0x0004*/	u32	pic_ini_wr_drop;
-/*0x0008*/	struct {
-	/*0x0000*/	u32	pic_wrcrdtarb_ph_crdt_depleted;
-	/*0x0004*/	u32	unused1;
-		} pic_wrcrdtarb_ph_crdt_depleted_vplane[17];
-/*0x0090*/	struct {
-	/*0x0000*/	u32	pic_wrcrdtarb_pd_crdt_depleted;
-	/*0x0004*/	u32	unused2;
-		} pic_wrcrdtarb_pd_crdt_depleted_vplane[17];
-/*0x0118*/	struct {
-	/*0x0000*/	u32	pic_rdcrdtarb_nph_crdt_depleted;
-	/*0x0004*/	u32	unused3;
-		} pic_rdcrdtarb_nph_crdt_depleted_vplane[17];
-/*0x01a0*/	u32	pic_ini_rd_vpin_drop;
-/*0x01a4*/	u32	pic_ini_wr_vpin_drop;
-/*0x01a8*/	u32	pic_genstats_count0;
-/*0x01ac*/	u32	pic_genstats_count1;
-/*0x01b0*/	u32	pic_genstats_count2;
-/*0x01b4*/	u32	pic_genstats_count3;
-/*0x01b8*/	u32	pic_genstats_count4;
-/*0x01bc*/	u32	unused4;
-/*0x01c0*/	u32	pic_genstats_count5;
-/*0x01c4*/	u32	unused5;
-/*0x01c8*/	u32	pci_rstdrop_cpl;
-/*0x01cc*/	u32	pci_rstdrop_msg;
-/*0x01d0*/	u32	pci_rstdrop_client1;
-/*0x01d4*/	u32	pci_rstdrop_client0;
-/*0x01d8*/	u32	pci_rstdrop_client2;
-/*0x01dc*/	u32	unused6;
-/*0x01e0*/	struct {
-	/*0x0000*/	u16	unused7;
-	/*0x0002*/	u16	pci_depl_cplh;
-	/*0x0004*/	u16	pci_depl_nph;
-	/*0x0006*/	u16	pci_depl_ph;
-		} pci_depl_h_vplane[17];
-/*0x0268*/	struct {
-	/*0x0000*/	u16	unused8;
-	/*0x0002*/	u16	pci_depl_cpld;
-	/*0x0004*/	u16	pci_depl_npd;
-	/*0x0006*/	u16	pci_depl_pd;
-		} pci_depl_d_vplane[17];
-/*0x02f0*/	struct vxge_hw_xmac_port_stats xgmac_port[3];
-/*0x0a10*/	struct vxge_hw_xmac_aggr_stats xgmac_aggr[2];
-/*0x0ae0*/	u64	xgmac_global_prog_event_gnum0;
-/*0x0ae8*/	u64	xgmac_global_prog_event_gnum1;
-/*0x0af0*/	u64	unused7;
-/*0x0af8*/	u64	unused8;
-/*0x0b00*/	u64	unused9;
-/*0x0b08*/	u64	unused10;
-/*0x0b10*/	u32	unused11;
-/*0x0b14*/	u32	xgmac_tx_permitted_frms;
-/*0x0b18*/	u32	unused12;
-/*0x0b1c*/	u8	unused13;
-/*0x0b1d*/	u8	xgmac_port2_tx_any_frms;
-/*0x0b1e*/	u8	xgmac_port1_tx_any_frms;
-/*0x0b1f*/	u8	xgmac_port0_tx_any_frms;
-/*0x0b20*/	u32	unused14;
-/*0x0b24*/	u8	unused15;
-/*0x0b25*/	u8	xgmac_port2_rx_any_frms;
-/*0x0b26*/	u8	xgmac_port1_rx_any_frms;
-/*0x0b27*/	u8	xgmac_port0_rx_any_frms;
+struct vxge_hw_device_stats_mrpcim_info
+{
+	/*0x0000*/	u32	pic_ini_rd_drop;
+	/*0x0004*/	u32	pic_ini_wr_drop;
+	/*0x0008*/	struct
+	{
+		/*0x0000*/	u32	pic_wrcrdtarb_ph_crdt_depleted;
+		/*0x0004*/	u32	unused1;
+	} pic_wrcrdtarb_ph_crdt_depleted_vplane[17];
+	/*0x0090*/	struct
+	{
+		/*0x0000*/	u32	pic_wrcrdtarb_pd_crdt_depleted;
+		/*0x0004*/	u32	unused2;
+	} pic_wrcrdtarb_pd_crdt_depleted_vplane[17];
+	/*0x0118*/	struct
+	{
+		/*0x0000*/	u32	pic_rdcrdtarb_nph_crdt_depleted;
+		/*0x0004*/	u32	unused3;
+	} pic_rdcrdtarb_nph_crdt_depleted_vplane[17];
+	/*0x01a0*/	u32	pic_ini_rd_vpin_drop;
+	/*0x01a4*/	u32	pic_ini_wr_vpin_drop;
+	/*0x01a8*/	u32	pic_genstats_count0;
+	/*0x01ac*/	u32	pic_genstats_count1;
+	/*0x01b0*/	u32	pic_genstats_count2;
+	/*0x01b4*/	u32	pic_genstats_count3;
+	/*0x01b8*/	u32	pic_genstats_count4;
+	/*0x01bc*/	u32	unused4;
+	/*0x01c0*/	u32	pic_genstats_count5;
+	/*0x01c4*/	u32	unused5;
+	/*0x01c8*/	u32	pci_rstdrop_cpl;
+	/*0x01cc*/	u32	pci_rstdrop_msg;
+	/*0x01d0*/	u32	pci_rstdrop_client1;
+	/*0x01d4*/	u32	pci_rstdrop_client0;
+	/*0x01d8*/	u32	pci_rstdrop_client2;
+	/*0x01dc*/	u32	unused6;
+	/*0x01e0*/	struct
+	{
+		/*0x0000*/	u16	unused7;
+		/*0x0002*/	u16	pci_depl_cplh;
+		/*0x0004*/	u16	pci_depl_nph;
+		/*0x0006*/	u16	pci_depl_ph;
+	} pci_depl_h_vplane[17];
+	/*0x0268*/	struct
+	{
+		/*0x0000*/	u16	unused8;
+		/*0x0002*/	u16	pci_depl_cpld;
+		/*0x0004*/	u16	pci_depl_npd;
+		/*0x0006*/	u16	pci_depl_pd;
+	} pci_depl_d_vplane[17];
+	/*0x02f0*/	struct vxge_hw_xmac_port_stats xgmac_port[3];
+	/*0x0a10*/	struct vxge_hw_xmac_aggr_stats xgmac_aggr[2];
+	/*0x0ae0*/	u64	xgmac_global_prog_event_gnum0;
+	/*0x0ae8*/	u64	xgmac_global_prog_event_gnum1;
+	/*0x0af0*/	u64	unused7;
+	/*0x0af8*/	u64	unused8;
+	/*0x0b00*/	u64	unused9;
+	/*0x0b08*/	u64	unused10;
+	/*0x0b10*/	u32	unused11;
+	/*0x0b14*/	u32	xgmac_tx_permitted_frms;
+	/*0x0b18*/	u32	unused12;
+	/*0x0b1c*/	u8	unused13;
+	/*0x0b1d*/	u8	xgmac_port2_tx_any_frms;
+	/*0x0b1e*/	u8	xgmac_port1_tx_any_frms;
+	/*0x0b1f*/	u8	xgmac_port0_tx_any_frms;
+	/*0x0b20*/	u32	unused14;
+	/*0x0b24*/	u8	unused15;
+	/*0x0b25*/	u8	xgmac_port2_rx_any_frms;
+	/*0x0b26*/	u8	xgmac_port1_rx_any_frms;
+	/*0x0b27*/	u8	xgmac_port0_rx_any_frms;
 } __packed;
 
 /**
@@ -1533,7 +1549,8 @@ struct vxge_hw_device_stats_mrpcim_info {
  *
  * Titan hardware statistics.
  */
-struct vxge_hw_device_stats_hw_info {
+struct vxge_hw_device_stats_hw_info
+{
 	struct vxge_hw_vpath_stats_hw_info
 		*vpath_info[VXGE_HW_MAX_VIRTUAL_PATHS];
 	struct vxge_hw_vpath_stats_hw_info
@@ -1553,7 +1570,8 @@ struct vxge_hw_device_stats_hw_info {
  * See also: struct vxge_hw_vpath_stats_sw_fifo_info{},
  * struct vxge_hw_vpath_stats_sw_ring_info{},
  */
-struct vxge_hw_vpath_stats_sw_common_info {
+struct vxge_hw_vpath_stats_sw_common_info
+{
 	u32	full_cnt;
 	u32	usage_cnt;
 	u32	usage_max;
@@ -1576,7 +1594,8 @@ struct vxge_hw_vpath_stats_sw_common_info {
  * See also: struct vxge_hw_vpath_stats_sw_common_info{},
  * struct vxge_hw_vpath_stats_sw_ring_info{},
  */
-struct vxge_hw_vpath_stats_sw_fifo_info {
+struct vxge_hw_vpath_stats_sw_fifo_info
+{
 	struct vxge_hw_vpath_stats_sw_common_info common_stats;
 	u32 total_posts;
 	u32 total_buffers;
@@ -1597,7 +1616,8 @@ struct vxge_hw_vpath_stats_sw_fifo_info {
  * See also: struct vxge_hw_vpath_stats_sw_common_info{},
  * struct vxge_hw_vpath_stats_sw_fifo_info{},
  */
-struct vxge_hw_vpath_stats_sw_ring_info {
+struct vxge_hw_vpath_stats_sw_ring_info
+{
 	struct vxge_hw_vpath_stats_sw_common_info common_stats;
 	u32 rxd_t_code_err_cnt[VXGE_HW_DTR_MAX_T_CODE];
 
@@ -1623,7 +1643,8 @@ struct vxge_hw_vpath_stats_sw_ring_info {
  *
  * HW vpath error statistics
  */
-struct vxge_hw_vpath_stats_sw_err {
+struct vxge_hw_vpath_stats_sw_err
+{
 	u32	unknown_alarms;
 	u32	network_sustained_fault;
 	u32	network_sustained_ok;
@@ -1651,7 +1672,8 @@ struct vxge_hw_vpath_stats_sw_err {
  * HW vpath sw statistics
  * See also: struct vxge_hw_device_info{} }.
  */
-struct vxge_hw_vpath_stats_sw_info {
+struct vxge_hw_vpath_stats_sw_info
+{
 	u32    soft_reset_cnt;
 	struct vxge_hw_vpath_stats_sw_err	error_stats;
 	struct vxge_hw_vpath_stats_sw_ring_info	ring_stats;
@@ -1672,7 +1694,8 @@ struct vxge_hw_vpath_stats_sw_info {
  * @vpath_info: please see struct vxge_hw_vpath_stats_sw_info{}
  * HW per-device statistics.
  */
-struct vxge_hw_device_stats_sw_info {
+struct vxge_hw_device_stats_sw_info
+{
 	u32	not_traffic_intr_cnt;
 	u32	traffic_intr_cnt;
 	u32	total_intr_cnt;
@@ -1687,7 +1710,8 @@ struct vxge_hw_device_stats_sw_info {
  *
  * HW Device error stats
  */
-struct vxge_hw_device_stats_sw_err {
+struct vxge_hw_device_stats_sw_err
+{
 	u32     vpath_alarms;
 };
 
@@ -1712,7 +1736,8 @@ struct vxge_hw_device_stats_sw_err {
  * statistics are kept in separate structures under HW's fifo and ring
  * channels.
  */
-struct vxge_hw_device_stats {
+struct vxge_hw_device_stats
+{
 	/* handles */
 	struct __vxge_hw_device *devh;
 
@@ -1726,15 +1751,15 @@ struct vxge_hw_device_stats {
 };
 
 enum vxge_hw_status vxge_hw_device_hw_stats_enable(
-			struct __vxge_hw_device *devh);
+	struct __vxge_hw_device *devh);
 
 enum vxge_hw_status vxge_hw_device_stats_get(
-			struct __vxge_hw_device *devh,
-			struct vxge_hw_device_stats_hw_info *hw_stats);
+	struct __vxge_hw_device *devh,
+	struct vxge_hw_device_stats_hw_info *hw_stats);
 
 enum vxge_hw_status vxge_hw_driver_stats_get(
-			struct __vxge_hw_device *devh,
-			struct vxge_hw_device_stats_sw_info *sw_stats);
+	struct __vxge_hw_device *devh,
+	struct vxge_hw_device_stats_sw_info *sw_stats);
 
 enum vxge_hw_status vxge_hw_mrpcim_stats_enable(struct __vxge_hw_device *devh);
 
@@ -1750,7 +1775,7 @@ vxge_hw_mrpcim_stats_access(
 
 enum vxge_hw_status
 vxge_hw_device_xmac_stats_get(struct __vxge_hw_device *devh,
-			      struct vxge_hw_xmac_stats *xmac_stats);
+							  struct vxge_hw_xmac_stats *xmac_stats);
 
 /**
  * enum enum vxge_hw_mgmt_reg_type - Register types.
@@ -1765,7 +1790,8 @@ vxge_hw_device_xmac_stats_get(struct __vxge_hw_device *devh,
  *
  * Register type enumaration
  */
-enum vxge_hw_mgmt_reg_type {
+enum vxge_hw_mgmt_reg_type
+{
 	vxge_hw_mgmt_reg_type_legacy = 0,
 	vxge_hw_mgmt_reg_type_toc = 1,
 	vxge_hw_mgmt_reg_type_common = 2,
@@ -1777,17 +1803,17 @@ enum vxge_hw_mgmt_reg_type {
 
 enum vxge_hw_status
 vxge_hw_mgmt_reg_read(struct __vxge_hw_device *devh,
-		      enum vxge_hw_mgmt_reg_type type,
-		      u32 index,
-		      u32 offset,
-		      u64 *value);
+					  enum vxge_hw_mgmt_reg_type type,
+					  u32 index,
+					  u32 offset,
+					  u64 *value);
 
 enum vxge_hw_status
 vxge_hw_mgmt_reg_write(struct __vxge_hw_device *devh,
-		      enum vxge_hw_mgmt_reg_type type,
-		      u32 index,
-		      u32 offset,
-		      u64 value);
+					   enum vxge_hw_mgmt_reg_type type,
+					   u32 index,
+					   u32 offset,
+					   u64 value);
 
 /**
  * enum enum vxge_hw_rxd_state - Descriptor (RXD) state.
@@ -1801,7 +1827,8 @@ vxge_hw_mgmt_reg_write(struct __vxge_hw_device *devh,
  * Titan/HW descriptor states.
  *
  */
-enum vxge_hw_rxd_state {
+enum vxge_hw_rxd_state
+{
 	VXGE_HW_RXD_STATE_NONE		= 0,
 	VXGE_HW_RXD_STATE_AVAIL		= 1,
 	VXGE_HW_RXD_STATE_POSTED	= 2,
@@ -1840,7 +1867,8 @@ enum vxge_hw_rxd_state {
  * @rth_value: Receive Traffic Hashing(RTH) hash value. Produced by Titan
  *             hardware if RTH is enabled.
  */
-struct vxge_hw_ring_rxd_info {
+struct vxge_hw_ring_rxd_info
+{
 	u32	syn_flag;
 	u32	is_icmp;
 	u32	fast_path_eligible;
@@ -1888,7 +1916,8 @@ struct vxge_hw_ring_rxd_info {
  *
  * Transfer codes returned by adapter.
  */
-enum vxge_hw_ring_tcode {
+enum vxge_hw_ring_tcode
+{
 	VXGE_HW_RING_T_CODE_OK				= 0x0,
 	VXGE_HW_RING_T_CODE_L3_CKSUM_MISMATCH		= 0x1,
 	VXGE_HW_RING_T_CODE_L4_CKSUM_MISMATCH		= 0x2,
@@ -1953,7 +1982,8 @@ void vxge_hw_ring_rxd_free(
  *
  * Higher layer ethernet protocols and options.
  */
-enum vxge_hw_frame_proto {
+enum vxge_hw_frame_proto
+{
 	VXGE_HW_FRAME_PROTO_VLAN_TAGGED = 0x80,
 	VXGE_HW_FRAME_PROTO_IPV4		= 0x10,
 	VXGE_HW_FRAME_PROTO_IPV6		= 0x08,
@@ -1961,7 +1991,7 @@ enum vxge_hw_frame_proto {
 	VXGE_HW_FRAME_PROTO_TCP			= 0x02,
 	VXGE_HW_FRAME_PROTO_UDP			= 0x01,
 	VXGE_HW_FRAME_PROTO_TCP_OR_UDP	= (VXGE_HW_FRAME_PROTO_TCP | \
-						   VXGE_HW_FRAME_PROTO_UDP)
+									   VXGE_HW_FRAME_PROTO_UDP)
 };
 
 /**
@@ -1973,7 +2003,8 @@ enum vxge_hw_frame_proto {
  *
  * These gather codes are used to indicate the position of a TxD in a TxD list
  */
-enum vxge_hw_fifo_gather_code {
+enum vxge_hw_fifo_gather_code
+{
 	VXGE_HW_FIFO_GATHER_CODE_FIRST		= 0x2,
 	VXGE_HW_FIFO_GATHER_CODE_MIDDLE		= 0x0,
 	VXGE_HW_FIFO_GATHER_CODE_LAST		= 0x1,
@@ -1999,7 +2030,8 @@ enum vxge_hw_fifo_gather_code {
  *
  * These tcodes are returned in various API for TxD status
  */
-enum vxge_hw_fifo_tcode {
+enum vxge_hw_fifo_tcode
+{
 	VXGE_HW_FIFO_T_CODE_OK			= 0x0,
 	VXGE_HW_FIFO_T_CODE_PCI_READ_CORRUPT	= 0x1,
 	VXGE_HW_FIFO_T_CODE_PCI_READ_FAIL	= 0x2,
@@ -2015,18 +2047,18 @@ enum vxge_hw_status vxge_hw_fifo_txdl_reserve(
 	void **txdl_priv);
 
 void vxge_hw_fifo_txdl_buffer_set(
-			struct __vxge_hw_fifo *fifo_handle,
-			void *txdlh,
-			u32 frag_idx,
-			dma_addr_t dma_pointer,
-			u32 size);
+	struct __vxge_hw_fifo *fifo_handle,
+	void *txdlh,
+	u32 frag_idx,
+	dma_addr_t dma_pointer,
+	u32 size);
 
 void vxge_hw_fifo_txdl_post(
-			struct __vxge_hw_fifo *fifo_handle,
-			void *txdlh);
+	struct __vxge_hw_fifo *fifo_handle,
+	void *txdlh);
 
 u32 vxge_hw_fifo_free_txdl_count_get(
-			struct __vxge_hw_fifo *fifo_handle);
+	struct __vxge_hw_fifo *fifo_handle);
 
 enum vxge_hw_status vxge_hw_fifo_txdl_next_completed(
 	struct __vxge_hw_fifo *fifoh,
@@ -2069,7 +2101,8 @@ void vxge_hw_fifo_txdl_free(
  * to allocate additional per-descriptor space for its own (driver-specific)
  * purposes.
  */
-struct __vxge_hw_ring_rxd_priv {
+struct __vxge_hw_ring_rxd_priv
+{
 	dma_addr_t	dma_addr;
 	struct pci_dev *dma_handle;
 	ptrdiff_t	dma_offset;
@@ -2078,17 +2111,18 @@ struct __vxge_hw_ring_rxd_priv {
 #endif
 };
 
-struct vxge_hw_mempool_cbs {
+struct vxge_hw_mempool_cbs
+{
 	void (*item_func_alloc)(
-			struct vxge_hw_mempool *mempoolh,
-			u32			memblock_index,
-			struct vxge_hw_mempool_dma	*dma_object,
-			u32			index,
-			u32			is_last);
+		struct vxge_hw_mempool *mempoolh,
+		u32			memblock_index,
+		struct vxge_hw_mempool_dma	*dma_object,
+		u32			index,
+		u32			is_last);
 };
 
 #define VXGE_HW_VIRTUAL_PATH_HANDLE(vpath)				\
-		((struct __vxge_hw_vpath_handle *)(vpath)->vpath_handles.next)
+	((struct __vxge_hw_vpath_handle *)(vpath)->vpath_handles.next)
 
 enum vxge_hw_status
 __vxge_hw_vpath_rts_table_get(
@@ -2146,7 +2180,8 @@ void vxge_hw_vpath_dynamic_tti_rtimer_set(struct __vxge_hw_fifo *fifo);
 u32 vxge_hw_vpath_id(
 	struct __vxge_hw_vpath_handle *vpath_handle);
 
-enum vxge_hw_vpath_mac_addr_add_mode {
+enum vxge_hw_vpath_mac_addr_add_mode
+{
 	VXGE_HW_VPATH_MAC_ADDR_ADD_DUPLICATE = 0,
 	VXGE_HW_VPATH_MAC_ADDR_DISCARD_DUPLICATE = 1,
 	VXGE_HW_VPATH_MAC_ADDR_REPLACE_DUPLICATE = 2
@@ -2235,11 +2270,11 @@ enum vxge_hw_status vxge_hw_vpath_alarm_process(
 
 void
 vxge_hw_vpath_msix_set(struct __vxge_hw_vpath_handle *vpath_handle,
-		       int *tim_msix_id, int alarm_msix_id);
+					   int *tim_msix_id, int alarm_msix_id);
 
 void
 vxge_hw_vpath_msix_mask(struct __vxge_hw_vpath_handle *vpath_handle,
-			int msix_id);
+						int msix_id);
 
 void vxge_hw_vpath_msix_clear(struct __vxge_hw_vpath_handle *vp, int msix_id);
 
@@ -2247,13 +2282,13 @@ void vxge_hw_device_flush_io(struct __vxge_hw_device *devh);
 
 void
 vxge_hw_vpath_msix_unmask(struct __vxge_hw_vpath_handle *vpath_handle,
-			  int msix_id);
+						  int msix_id);
 
 enum vxge_hw_status vxge_hw_vpath_intr_enable(
-				struct __vxge_hw_vpath_handle *vpath_handle);
+	struct __vxge_hw_vpath_handle *vpath_handle);
 
 enum vxge_hw_status vxge_hw_vpath_intr_disable(
-				struct __vxge_hw_vpath_handle *vpath_handle);
+	struct __vxge_hw_vpath_handle *vpath_handle);
 
 void vxge_hw_vpath_inta_mask_tx_rx(
 	struct __vxge_hw_vpath_handle *vpath_handle);
@@ -2272,7 +2307,7 @@ vxge_hw_channel_msix_clear(struct __vxge_hw_channel *channelh, int msix_id);
 
 void
 vxge_hw_channel_dtr_try_complete(struct __vxge_hw_channel *channel,
-				 void **dtrh);
+								 void **dtrh);
 
 void
 vxge_hw_channel_dtr_complete(struct __vxge_hw_channel *channel);

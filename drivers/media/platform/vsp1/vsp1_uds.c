@@ -32,7 +32,7 @@
  */
 
 static inline void vsp1_uds_write(struct vsp1_uds *uds, struct vsp1_dl_list *dl,
-				  u32 reg, u32 data)
+								  u32 reg, u32 data)
 {
 	vsp1_dl_list_write(dl, reg + uds->entity.index * VI6_UDS_OFFSET, data);
 }
@@ -42,12 +42,12 @@ static inline void vsp1_uds_write(struct vsp1_uds *uds, struct vsp1_dl_list *dl,
  */
 
 void vsp1_uds_set_alpha(struct vsp1_entity *entity, struct vsp1_dl_list *dl,
-			unsigned int alpha)
+						unsigned int alpha)
 {
 	struct vsp1_uds *uds = to_uds(&entity->subdev);
 
 	vsp1_uds_write(uds, dl, VI6_UDS_ALPVAL,
-		       alpha << VI6_UDS_ALPVAL_VAL0_SHIFT);
+				   alpha << VI6_UDS_ALPVAL_VAL0_SHIFT);
 }
 
 /*
@@ -57,7 +57,8 @@ void vsp1_uds_set_alpha(struct vsp1_entity *entity, struct vsp1_dl_list *dl,
  */
 static unsigned int uds_output_size(unsigned int input, unsigned int ratio)
 {
-	if (ratio > 4096) {
+	if (ratio > 4096)
+	{
 		/* Down-scaling */
 		unsigned int mp;
 
@@ -65,7 +66,9 @@ static unsigned int uds_output_size(unsigned int input, unsigned int ratio)
 		mp = mp < 4 ? 1 : (mp < 8 ? 2 : 4);
 
 		return (input - 1) / mp * mp * 4096 / ratio + 1;
-	} else {
+	}
+	else
+	{
 		/* Up-scaling */
 		return (input - 1) * 4096 / ratio + 1;
 	}
@@ -78,7 +81,7 @@ static unsigned int uds_output_size(unsigned int input, unsigned int ratio)
  * @maximum: maximum output size (returned)
  */
 static void uds_output_limits(unsigned int input,
-			      unsigned int *minimum, unsigned int *maximum)
+							  unsigned int *minimum, unsigned int *maximum)
 {
 	*minimum = max(uds_output_size(input, UDS_MAX_FACTOR), UDS_MIN_SIZE);
 	*maximum = min(uds_output_size(input, UDS_MIN_FACTOR), UDS_MAX_SIZE);
@@ -90,7 +93,8 @@ static void uds_output_limits(unsigned int input,
  */
 static unsigned int uds_passband_width(unsigned int ratio)
 {
-	if (ratio >= 4096) {
+	if (ratio >= 4096)
+	{
 		/* Down-scaling */
 		unsigned int mp;
 
@@ -98,7 +102,9 @@ static unsigned int uds_passband_width(unsigned int ratio)
 		mp = mp < 4 ? 1 : (mp < 8 ? 2 : 4);
 
 		return 64 * 4096 * mp / ratio;
-	} else {
+	}
+	else
+	{
 		/* Up-scaling */
 		return 64;
 	}
@@ -115,21 +121,22 @@ static unsigned int uds_compute_ratio(unsigned int input, unsigned int output)
  */
 
 static int uds_enum_mbus_code(struct v4l2_subdev *subdev,
-			      struct v4l2_subdev_pad_config *cfg,
-			      struct v4l2_subdev_mbus_code_enum *code)
+							  struct v4l2_subdev_pad_config *cfg,
+							  struct v4l2_subdev_mbus_code_enum *code)
 {
-	static const unsigned int codes[] = {
+	static const unsigned int codes[] =
+	{
 		MEDIA_BUS_FMT_ARGB8888_1X32,
 		MEDIA_BUS_FMT_AYUV8_1X32,
 	};
 
 	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
-					  ARRAY_SIZE(codes));
+									  ARRAY_SIZE(codes));
 }
 
 static int uds_enum_frame_size(struct v4l2_subdev *subdev,
-			       struct v4l2_subdev_pad_config *cfg,
-			       struct v4l2_subdev_frame_size_enum *fse)
+							   struct v4l2_subdev_pad_config *cfg,
+							   struct v4l2_subdev_frame_size_enum *fse)
 {
 	struct vsp1_uds *uds = to_uds(subdev);
 	struct v4l2_subdev_pad_config *config;
@@ -137,29 +144,36 @@ static int uds_enum_frame_size(struct v4l2_subdev *subdev,
 	int ret = 0;
 
 	config = vsp1_entity_get_pad_config(&uds->entity, cfg, fse->which);
+
 	if (!config)
+	{
 		return -EINVAL;
+	}
 
 	format = vsp1_entity_get_pad_format(&uds->entity, config,
-					    UDS_PAD_SINK);
+										UDS_PAD_SINK);
 
 	mutex_lock(&uds->entity.lock);
 
-	if (fse->index || fse->code != format->code) {
+	if (fse->index || fse->code != format->code)
+	{
 		ret = -EINVAL;
 		goto done;
 	}
 
-	if (fse->pad == UDS_PAD_SINK) {
+	if (fse->pad == UDS_PAD_SINK)
+	{
 		fse->min_width = UDS_MIN_SIZE;
 		fse->max_width = UDS_MAX_SIZE;
 		fse->min_height = UDS_MIN_SIZE;
 		fse->max_height = UDS_MAX_SIZE;
-	} else {
+	}
+	else
+	{
 		uds_output_limits(format->width, &fse->min_width,
-				  &fse->max_width);
+						  &fse->max_width);
 		uds_output_limits(format->height, &fse->min_height,
-				  &fse->max_height);
+						  &fse->max_height);
 	}
 
 done:
@@ -168,35 +182,39 @@ done:
 }
 
 static void uds_try_format(struct vsp1_uds *uds,
-			   struct v4l2_subdev_pad_config *config,
-			   unsigned int pad, struct v4l2_mbus_framefmt *fmt)
+						   struct v4l2_subdev_pad_config *config,
+						   unsigned int pad, struct v4l2_mbus_framefmt *fmt)
 {
 	struct v4l2_mbus_framefmt *format;
 	unsigned int minimum;
 	unsigned int maximum;
 
-	switch (pad) {
-	case UDS_PAD_SINK:
-		/* Default to YUV if the requested format is not supported. */
-		if (fmt->code != MEDIA_BUS_FMT_ARGB8888_1X32 &&
-		    fmt->code != MEDIA_BUS_FMT_AYUV8_1X32)
-			fmt->code = MEDIA_BUS_FMT_AYUV8_1X32;
+	switch (pad)
+	{
+		case UDS_PAD_SINK:
 
-		fmt->width = clamp(fmt->width, UDS_MIN_SIZE, UDS_MAX_SIZE);
-		fmt->height = clamp(fmt->height, UDS_MIN_SIZE, UDS_MAX_SIZE);
-		break;
+			/* Default to YUV if the requested format is not supported. */
+			if (fmt->code != MEDIA_BUS_FMT_ARGB8888_1X32 &&
+				fmt->code != MEDIA_BUS_FMT_AYUV8_1X32)
+			{
+				fmt->code = MEDIA_BUS_FMT_AYUV8_1X32;
+			}
 
-	case UDS_PAD_SOURCE:
-		/* The UDS scales but can't perform format conversion. */
-		format = vsp1_entity_get_pad_format(&uds->entity, config,
-						    UDS_PAD_SINK);
-		fmt->code = format->code;
+			fmt->width = clamp(fmt->width, UDS_MIN_SIZE, UDS_MAX_SIZE);
+			fmt->height = clamp(fmt->height, UDS_MIN_SIZE, UDS_MAX_SIZE);
+			break;
 
-		uds_output_limits(format->width, &minimum, &maximum);
-		fmt->width = clamp(fmt->width, minimum, maximum);
-		uds_output_limits(format->height, &minimum, &maximum);
-		fmt->height = clamp(fmt->height, minimum, maximum);
-		break;
+		case UDS_PAD_SOURCE:
+			/* The UDS scales but can't perform format conversion. */
+			format = vsp1_entity_get_pad_format(&uds->entity, config,
+												UDS_PAD_SINK);
+			fmt->code = format->code;
+
+			uds_output_limits(format->width, &minimum, &maximum);
+			fmt->width = clamp(fmt->width, minimum, maximum);
+			uds_output_limits(format->height, &minimum, &maximum);
+			fmt->height = clamp(fmt->height, minimum, maximum);
+			break;
 	}
 
 	fmt->field = V4L2_FIELD_NONE;
@@ -204,8 +222,8 @@ static void uds_try_format(struct vsp1_uds *uds,
 }
 
 static int uds_set_format(struct v4l2_subdev *subdev,
-			  struct v4l2_subdev_pad_config *cfg,
-			  struct v4l2_subdev_format *fmt)
+						  struct v4l2_subdev_pad_config *cfg,
+						  struct v4l2_subdev_format *fmt)
 {
 	struct vsp1_uds *uds = to_uds(subdev);
 	struct v4l2_subdev_pad_config *config;
@@ -215,7 +233,9 @@ static int uds_set_format(struct v4l2_subdev *subdev,
 	mutex_lock(&uds->entity.lock);
 
 	config = vsp1_entity_get_pad_config(&uds->entity, cfg, fmt->which);
-	if (!config) {
+
+	if (!config)
+	{
 		ret = -EINVAL;
 		goto done;
 	}
@@ -225,10 +245,11 @@ static int uds_set_format(struct v4l2_subdev *subdev,
 	format = vsp1_entity_get_pad_format(&uds->entity, config, fmt->pad);
 	*format = fmt->format;
 
-	if (fmt->pad == UDS_PAD_SINK) {
+	if (fmt->pad == UDS_PAD_SINK)
+	{
 		/* Propagate the format to the source pad. */
 		format = vsp1_entity_get_pad_format(&uds->entity, config,
-						    UDS_PAD_SOURCE);
+											UDS_PAD_SOURCE);
 		*format = fmt->format;
 
 		uds_try_format(uds, config, UDS_PAD_SOURCE, format);
@@ -243,7 +264,8 @@ done:
  * V4L2 Subdevice Operations
  */
 
-static const struct v4l2_subdev_pad_ops uds_pad_ops = {
+static const struct v4l2_subdev_pad_ops uds_pad_ops =
+{
 	.init_cfg = vsp1_entity_init_cfg,
 	.enum_mbus_code = uds_enum_mbus_code,
 	.enum_frame_size = uds_enum_frame_size,
@@ -251,7 +273,8 @@ static const struct v4l2_subdev_pad_ops uds_pad_ops = {
 	.set_fmt = uds_set_format,
 };
 
-static const struct v4l2_subdev_ops uds_ops = {
+static const struct v4l2_subdev_ops uds_ops =
+{
 	.pad    = &uds_pad_ops,
 };
 
@@ -260,9 +283,9 @@ static const struct v4l2_subdev_ops uds_ops = {
  */
 
 static void uds_configure(struct vsp1_entity *entity,
-			  struct vsp1_pipeline *pipe,
-			  struct vsp1_dl_list *dl,
-			  enum vsp1_entity_params params)
+						  struct vsp1_pipeline *pipe,
+						  struct vsp1_dl_list *dl,
+						  enum vsp1_entity_params params)
 {
 	struct vsp1_uds *uds = to_uds(&entity->subdev);
 	const struct v4l2_mbus_framefmt *output;
@@ -271,22 +294,25 @@ static void uds_configure(struct vsp1_entity *entity,
 	unsigned int vscale;
 	bool multitap;
 
-	if (params == VSP1_ENTITY_PARAMS_PARTITION) {
+	if (params == VSP1_ENTITY_PARAMS_PARTITION)
+	{
 		const struct v4l2_rect *clip = &pipe->partition;
 
 		vsp1_uds_write(uds, dl, VI6_UDS_CLIP_SIZE,
-			       (clip->width << VI6_UDS_CLIP_SIZE_HSIZE_SHIFT) |
-			       (clip->height << VI6_UDS_CLIP_SIZE_VSIZE_SHIFT));
+					   (clip->width << VI6_UDS_CLIP_SIZE_HSIZE_SHIFT) |
+					   (clip->height << VI6_UDS_CLIP_SIZE_VSIZE_SHIFT));
 		return;
 	}
 
 	if (params != VSP1_ENTITY_PARAMS_INIT)
+	{
 		return;
+	}
 
 	input = vsp1_entity_get_pad_format(&uds->entity, uds->entity.config,
-					   UDS_PAD_SINK);
+									   UDS_PAD_SINK);
 	output = vsp1_entity_get_pad_format(&uds->entity, uds->entity.config,
-					    UDS_PAD_SOURCE);
+										UDS_PAD_SOURCE);
 
 	hscale = uds_compute_ratio(input->width, output->width);
 	vscale = uds_compute_ratio(input->height, output->height);
@@ -298,28 +324,32 @@ static void uds_configure(struct vsp1_entity *entity,
 	 * direction.
 	 */
 	if (uds->scale_alpha && (hscale >= 8192 || vscale >= 8192))
+	{
 		multitap = false;
+	}
 	else
+	{
 		multitap = true;
+	}
 
 	vsp1_uds_write(uds, dl, VI6_UDS_CTRL,
-		       (uds->scale_alpha ? VI6_UDS_CTRL_AON : 0) |
-		       (multitap ? VI6_UDS_CTRL_BC : 0));
+				   (uds->scale_alpha ? VI6_UDS_CTRL_AON : 0) |
+				   (multitap ? VI6_UDS_CTRL_BC : 0));
 
 	vsp1_uds_write(uds, dl, VI6_UDS_PASS_BWIDTH,
-		       (uds_passband_width(hscale)
-				<< VI6_UDS_PASS_BWIDTH_H_SHIFT) |
-		       (uds_passband_width(vscale)
-				<< VI6_UDS_PASS_BWIDTH_V_SHIFT));
+				   (uds_passband_width(hscale)
+					<< VI6_UDS_PASS_BWIDTH_H_SHIFT) |
+				   (uds_passband_width(vscale)
+					<< VI6_UDS_PASS_BWIDTH_V_SHIFT));
 
 	/* Set the scaling ratios. */
 	vsp1_uds_write(uds, dl, VI6_UDS_SCALE,
-		       (hscale << VI6_UDS_SCALE_HFRAC_SHIFT) |
-		       (vscale << VI6_UDS_SCALE_VFRAC_SHIFT));
+				   (hscale << VI6_UDS_SCALE_HFRAC_SHIFT) |
+				   (vscale << VI6_UDS_SCALE_VFRAC_SHIFT));
 }
 
 static unsigned int uds_max_width(struct vsp1_entity *entity,
-				  struct vsp1_pipeline *pipe)
+								  struct vsp1_pipeline *pipe)
 {
 	struct vsp1_uds *uds = to_uds(&entity->subdev);
 	const struct v4l2_mbus_framefmt *output;
@@ -327,22 +357,31 @@ static unsigned int uds_max_width(struct vsp1_entity *entity,
 	unsigned int hscale;
 
 	input = vsp1_entity_get_pad_format(&uds->entity, uds->entity.config,
-					   UDS_PAD_SINK);
+									   UDS_PAD_SINK);
 	output = vsp1_entity_get_pad_format(&uds->entity, uds->entity.config,
-					    UDS_PAD_SOURCE);
+										UDS_PAD_SOURCE);
 	hscale = output->width / input->width;
 
 	if (hscale <= 2)
+	{
 		return 256;
+	}
 	else if (hscale <= 4)
+	{
 		return 512;
+	}
 	else if (hscale <= 8)
+	{
 		return 1024;
+	}
 	else
+	{
 		return 2048;
+	}
 }
 
-static const struct vsp1_entity_operations uds_entity_ops = {
+static const struct vsp1_entity_operations uds_entity_ops =
+{
 	.configure = uds_configure,
 	.max_width = uds_max_width,
 };
@@ -358,8 +397,11 @@ struct vsp1_uds *vsp1_uds_create(struct vsp1_device *vsp1, unsigned int index)
 	int ret;
 
 	uds = devm_kzalloc(vsp1->dev, sizeof(*uds), GFP_KERNEL);
+
 	if (uds == NULL)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	uds->entity.ops = &uds_entity_ops;
 	uds->entity.type = VSP1_ENTITY_UDS;
@@ -367,9 +409,12 @@ struct vsp1_uds *vsp1_uds_create(struct vsp1_device *vsp1, unsigned int index)
 
 	sprintf(name, "uds.%u", index);
 	ret = vsp1_entity_init(vsp1, &uds->entity, name, 2, &uds_ops,
-			       MEDIA_ENT_F_PROC_VIDEO_SCALER);
+						   MEDIA_ENT_F_PROC_VIDEO_SCALER);
+
 	if (ret < 0)
+	{
 		return ERR_PTR(ret);
+	}
 
 	return uds;
 }

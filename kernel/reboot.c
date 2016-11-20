@@ -26,9 +26,9 @@ struct pid *cad_pid;
 EXPORT_SYMBOL(cad_pid);
 
 #if defined(CONFIG_ARM) || defined(CONFIG_UNICORE32)
-#define DEFAULT_REBOOT_MODE		= REBOOT_HARD
+	#define DEFAULT_REBOOT_MODE		= REBOOT_HARD
 #else
-#define DEFAULT_REBOOT_MODE
+	#define DEFAULT_REBOOT_MODE
 #endif
 enum reboot_mode reboot_mode DEFAULT_REBOOT_MODE;
 
@@ -194,7 +194,9 @@ void migrate_to_reboot_cpu(void)
 
 	/* Make certain the cpu I'm about to reboot on is online */
 	if (!cpu_online(cpu))
+	{
 		cpu = cpumask_first(cpu_online_mask);
+	}
 
 	/* Prevent races with other tasks migrating this task */
 	current->flags |= PF_NO_SETAFFINITY;
@@ -216,10 +218,16 @@ void kernel_restart(char *cmd)
 	kernel_restart_prepare(cmd);
 	migrate_to_reboot_cpu();
 	syscore_shutdown();
+
 	if (!cmd)
+	{
 		pr_emerg("Restarting system\n");
+	}
 	else
+	{
 		pr_emerg("Restarting system with command '%s'\n", cmd);
+	}
+
 	kmsg_dump(KMSG_DUMP_RESTART);
 	machine_restart(cmd);
 }
@@ -228,7 +236,7 @@ EXPORT_SYMBOL_GPL(kernel_restart);
 static void kernel_shutdown_prepare(enum system_states state)
 {
 	blocking_notifier_call_chain(&reboot_notifier_list,
-		(state == SYSTEM_HALT) ? SYS_HALT : SYS_POWER_OFF, NULL);
+								 (state == SYSTEM_HALT) ? SYS_HALT : SYS_POWER_OFF, NULL);
 	system_state = state;
 	usermodehelper_disable();
 	device_shutdown();
@@ -257,8 +265,12 @@ EXPORT_SYMBOL_GPL(kernel_halt);
 void kernel_power_off(void)
 {
 	kernel_shutdown_prepare(SYSTEM_POWER_OFF);
+
 	if (pm_power_off_prepare)
+	{
 		pm_power_off_prepare();
+	}
+
 	migrate_to_reboot_cpu();
 	syscore_shutdown();
 	pr_emerg("Power down\n");
@@ -278,7 +290,7 @@ static DEFINE_MUTEX(reboot_mutex);
  * reboot doesn't sync: do that yourself before calling this.
  */
 SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
-		void __user *, arg)
+				void __user *, arg)
 {
 	struct pid_namespace *pid_ns = task_active_pid_ns(current);
 	char buffer[256];
@@ -286,15 +298,19 @@ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
 
 	/* We only trust the superuser with rebooting the system. */
 	if (!ns_capable(pid_ns->user_ns, CAP_SYS_BOOT))
+	{
 		return -EPERM;
+	}
 
 	/* For safety, we require "magic" arguments. */
 	if (magic1 != LINUX_REBOOT_MAGIC1 ||
-			(magic2 != LINUX_REBOOT_MAGIC2 &&
-			magic2 != LINUX_REBOOT_MAGIC2A &&
-			magic2 != LINUX_REBOOT_MAGIC2B &&
-			magic2 != LINUX_REBOOT_MAGIC2C))
+		(magic2 != LINUX_REBOOT_MAGIC2 &&
+		 magic2 != LINUX_REBOOT_MAGIC2A &&
+		 magic2 != LINUX_REBOOT_MAGIC2B &&
+		 magic2 != LINUX_REBOOT_MAGIC2C))
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * If pid namespaces are enabled and the current task is in a child
@@ -302,66 +318,79 @@ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
 	 * call do_exit().
 	 */
 	ret = reboot_pid_ns(pid_ns, cmd);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Instead of trying to make the power_off code look like
 	 * halt when pm_power_off is not set do it the easy way.
 	 */
 	if ((cmd == LINUX_REBOOT_CMD_POWER_OFF) && !pm_power_off)
+	{
 		cmd = LINUX_REBOOT_CMD_HALT;
+	}
 
 	mutex_lock(&reboot_mutex);
-	switch (cmd) {
-	case LINUX_REBOOT_CMD_RESTART:
-		kernel_restart(NULL);
-		break;
 
-	case LINUX_REBOOT_CMD_CAD_ON:
-		C_A_D = 1;
-		break;
-
-	case LINUX_REBOOT_CMD_CAD_OFF:
-		C_A_D = 0;
-		break;
-
-	case LINUX_REBOOT_CMD_HALT:
-		kernel_halt();
-		do_exit(0);
-		panic("cannot halt");
-
-	case LINUX_REBOOT_CMD_POWER_OFF:
-		kernel_power_off();
-		do_exit(0);
-		break;
-
-	case LINUX_REBOOT_CMD_RESTART2:
-		ret = strncpy_from_user(&buffer[0], arg, sizeof(buffer) - 1);
-		if (ret < 0) {
-			ret = -EFAULT;
+	switch (cmd)
+	{
+		case LINUX_REBOOT_CMD_RESTART:
+			kernel_restart(NULL);
 			break;
-		}
-		buffer[sizeof(buffer) - 1] = '\0';
 
-		kernel_restart(buffer);
-		break;
+		case LINUX_REBOOT_CMD_CAD_ON:
+			C_A_D = 1;
+			break;
+
+		case LINUX_REBOOT_CMD_CAD_OFF:
+			C_A_D = 0;
+			break;
+
+		case LINUX_REBOOT_CMD_HALT:
+			kernel_halt();
+			do_exit(0);
+			panic("cannot halt");
+
+		case LINUX_REBOOT_CMD_POWER_OFF:
+			kernel_power_off();
+			do_exit(0);
+			break;
+
+		case LINUX_REBOOT_CMD_RESTART2:
+			ret = strncpy_from_user(&buffer[0], arg, sizeof(buffer) - 1);
+
+			if (ret < 0)
+			{
+				ret = -EFAULT;
+				break;
+			}
+
+			buffer[sizeof(buffer) - 1] = '\0';
+
+			kernel_restart(buffer);
+			break;
 
 #ifdef CONFIG_KEXEC_CORE
-	case LINUX_REBOOT_CMD_KEXEC:
-		ret = kernel_kexec();
-		break;
+
+		case LINUX_REBOOT_CMD_KEXEC:
+			ret = kernel_kexec();
+			break;
 #endif
 
 #ifdef CONFIG_HIBERNATION
-	case LINUX_REBOOT_CMD_SW_SUSPEND:
-		ret = hibernate();
-		break;
+
+		case LINUX_REBOOT_CMD_SW_SUSPEND:
+			ret = hibernate();
+			break;
 #endif
 
-	default:
-		ret = -EINVAL;
-		break;
+		default:
+			ret = -EINVAL;
+			break;
 	}
+
 	mutex_unlock(&reboot_mutex);
 	return ret;
 }
@@ -381,9 +410,13 @@ void ctrl_alt_del(void)
 	static DECLARE_WORK(cad_work, deferred_cad);
 
 	if (C_A_D)
+	{
 		schedule_work(&cad_work);
+	}
 	else
+	{
 		kill_cad_pid(SIGINT, 1);
+	}
 }
 
 char poweroff_cmd[POWEROFF_CMD_PATH_LEN] = "/sbin/poweroff";
@@ -392,17 +425,22 @@ static const char reboot_cmd[] = "/sbin/reboot";
 static int run_cmd(const char *cmd)
 {
 	char **argv;
-	static char *envp[] = {
+	static char *envp[] =
+	{
 		"HOME=/",
 		"PATH=/sbin:/bin:/usr/sbin:/usr/bin",
 		NULL
 	};
 	int ret;
 	argv = argv_split(GFP_KERNEL, cmd, NULL);
-	if (argv) {
+
+	if (argv)
+	{
 		ret = call_usermodehelper(argv[0], argv, envp, UMH_WAIT_EXEC);
 		argv_free(argv);
-	} else {
+	}
+	else
+	{
 		ret = -ENOMEM;
 	}
 
@@ -415,7 +453,8 @@ static int __orderly_reboot(void)
 
 	ret = run_cmd(reboot_cmd);
 
-	if (ret) {
+	if (ret)
+	{
 		pr_warn("Failed to start orderly reboot: forcing the issue\n");
 		emergency_sync();
 		kernel_restart(NULL);
@@ -430,7 +469,8 @@ static int __orderly_poweroff(bool force)
 
 	ret = run_cmd(poweroff_cmd);
 
-	if (ret && force) {
+	if (ret && force)
+	{
 		pr_warn("Failed to start orderly shutdown: forcing the issue\n");
 
 		/*
@@ -464,7 +504,10 @@ static DECLARE_WORK(poweroff_work, poweroff_work_func);
 void orderly_poweroff(bool force)
 {
 	if (force) /* do not override the pending "true" */
+	{
 		poweroff_force = true;
+	}
+
 	schedule_work(&poweroff_work);
 }
 EXPORT_SYMBOL_GPL(orderly_poweroff);
@@ -490,7 +533,8 @@ EXPORT_SYMBOL_GPL(orderly_reboot);
 
 static int __init reboot_setup(char *str)
 {
-	for (;;) {
+	for (;;)
+	{
 		/*
 		 * Having anything passed on the command line via
 		 * reboot= will cause us to disable DMI checking
@@ -498,60 +542,81 @@ static int __init reboot_setup(char *str)
 		 */
 		reboot_default = 0;
 
-		switch (*str) {
-		case 'w':
-			reboot_mode = REBOOT_WARM;
-			break;
-
-		case 'c':
-			reboot_mode = REBOOT_COLD;
-			break;
-
-		case 'h':
-			reboot_mode = REBOOT_HARD;
-			break;
-
-		case 's':
+		switch (*str)
 		{
-			int rc;
+			case 'w':
+				reboot_mode = REBOOT_WARM;
+				break;
 
-			if (isdigit(*(str+1))) {
-				rc = kstrtoint(str+1, 0, &reboot_cpu);
-				if (rc)
-					return rc;
-			} else if (str[1] == 'm' && str[2] == 'p' &&
-				   isdigit(*(str+3))) {
-				rc = kstrtoint(str+3, 0, &reboot_cpu);
-				if (rc)
-					return rc;
-			} else
-				reboot_mode = REBOOT_SOFT;
-			break;
-		}
-		case 'g':
-			reboot_mode = REBOOT_GPIO;
-			break;
+			case 'c':
+				reboot_mode = REBOOT_COLD;
+				break;
 
-		case 'b':
-		case 'a':
-		case 'k':
-		case 't':
-		case 'e':
-		case 'p':
-			reboot_type = *str;
-			break;
+			case 'h':
+				reboot_mode = REBOOT_HARD;
+				break;
 
-		case 'f':
-			reboot_force = 1;
-			break;
+			case 's':
+				{
+					int rc;
+
+					if (isdigit(*(str + 1)))
+					{
+						rc = kstrtoint(str + 1, 0, &reboot_cpu);
+
+						if (rc)
+						{
+							return rc;
+						}
+					}
+					else if (str[1] == 'm' && str[2] == 'p' &&
+							 isdigit(*(str + 3)))
+					{
+						rc = kstrtoint(str + 3, 0, &reboot_cpu);
+
+						if (rc)
+						{
+							return rc;
+						}
+					}
+					else
+					{
+						reboot_mode = REBOOT_SOFT;
+					}
+
+					break;
+				}
+
+			case 'g':
+				reboot_mode = REBOOT_GPIO;
+				break;
+
+			case 'b':
+			case 'a':
+			case 'k':
+			case 't':
+			case 'e':
+			case 'p':
+				reboot_type = *str;
+				break;
+
+			case 'f':
+				reboot_force = 1;
+				break;
 		}
 
 		str = strchr(str, ',');
+
 		if (str)
+		{
 			str++;
+		}
 		else
+		{
 			break;
+		}
 	}
+
 	return 1;
 }
 __setup("reboot=", reboot_setup);

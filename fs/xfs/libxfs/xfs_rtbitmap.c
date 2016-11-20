@@ -60,7 +60,8 @@ xfs_rtbuf_verify_write(
 	return;
 }
 
-const struct xfs_buf_ops xfs_rtbuf_ops = {
+const struct xfs_buf_ops xfs_rtbuf_ops =
+{
 	.name = "rtbuf",
 	.verify_read = xfs_rtbuf_verify_read,
 	.verify_write = xfs_rtbuf_verify_write,
@@ -87,18 +88,24 @@ xfs_rtbuf_get(
 	ip = issum ? mp->m_rsumip : mp->m_rbmip;
 
 	error = xfs_bmapi_read(ip, block, 1, &map, &nmap, XFS_DATA_FORK);
+
 	if (error)
+	{
 		return error;
+	}
 
 	ASSERT(map.br_startblock != NULLFSBLOCK);
 	error = xfs_trans_read_buf(mp, tp, mp->m_ddev_targp,
-				   XFS_FSB_TO_DADDR(mp, map.br_startblock),
-				   mp->m_bsize, 0, &bp, &xfs_rtbuf_ops);
+							   XFS_FSB_TO_DADDR(mp, map.br_startblock),
+							   mp->m_bsize, 0, &bp, &xfs_rtbuf_ops);
+
 	if (error)
+	{
 		return error;
+	}
 
 	xfs_trans_buf_set_type(tp, bp, issum ? XFS_BLFT_RTSUMMARY_BUF
-					     : XFS_BLFT_RTBITMAP_BUF);
+						   : XFS_BLFT_RTBITMAP_BUF);
 	*bpp = bp;
 	return 0;
 }
@@ -134,9 +141,12 @@ xfs_rtfind_back(
 	 */
 	block = XFS_BITTOBLOCK(mp, start);
 	error = xfs_rtbuf_get(mp, tp, block, 0, &bp);
-	if (error) {
+
+	if (error)
+	{
 		return error;
 	}
+
 	bufp = bp->b_addr;
 	/*
 	 * Get the first word's index & point to it.
@@ -150,23 +160,27 @@ xfs_rtfind_back(
 	 * then all-ones, else all-zeroes.
 	 */
 	want = (*b & ((xfs_rtword_t)1 << bit)) ? -1 : 0;
+
 	/*
 	 * If the starting position is not word-aligned, deal with the
 	 * partial word.
 	 */
-	if (bit < XFS_NBWORD - 1) {
+	if (bit < XFS_NBWORD - 1)
+	{
 		/*
 		 * Calculate first (leftmost) bit number to look at,
 		 * and mask for all the relevant bits in this word.
 		 */
 		firstbit = XFS_RTMAX((xfs_srtblock_t)(bit - len + 1), 0);
 		mask = (((xfs_rtword_t)1 << (bit - firstbit + 1)) - 1) <<
-			firstbit;
+			   firstbit;
+
 		/*
 		 * Calculate the difference between the value there
 		 * and what we're looking for.
 		 */
-		if ((wdiff = (*b ^ want) & mask)) {
+		if ((wdiff = (*b ^ want) & mask))
+		{
 			/*
 			 * Different.  Mark where we are and return.
 			 */
@@ -175,44 +189,57 @@ xfs_rtfind_back(
 			*rtblock = start - i + 1;
 			return 0;
 		}
+
 		i = bit - firstbit + 1;
+
 		/*
 		 * Go on to previous block if that's where the previous word is
 		 * and we need the previous word.
 		 */
-		if (--word == -1 && i < len) {
+		if (--word == -1 && i < len)
+		{
 			/*
 			 * If done with this block, get the previous one.
 			 */
 			xfs_trans_brelse(tp, bp);
 			error = xfs_rtbuf_get(mp, tp, --block, 0, &bp);
-			if (error) {
+
+			if (error)
+			{
 				return error;
 			}
+
 			bufp = bp->b_addr;
 			word = XFS_BLOCKWMASK(mp);
 			b = &bufp[word];
-		} else {
+		}
+		else
+		{
 			/*
 			 * Go on to the previous word in the buffer.
 			 */
 			b--;
 		}
-	} else {
+	}
+	else
+	{
 		/*
 		 * Starting on a word boundary, no partial word.
 		 */
 		i = 0;
 	}
+
 	/*
 	 * Loop over whole words in buffers.  When we use up one buffer
 	 * we move on to the previous one.
 	 */
-	while (len - i >= XFS_NBWORD) {
+	while (len - i >= XFS_NBWORD)
+	{
 		/*
 		 * Compute difference between actual and desired value.
 		 */
-		if ((wdiff = *b ^ want)) {
+		if ((wdiff = *b ^ want))
+		{
 			/*
 			 * Different, mark where we are and return.
 			 */
@@ -221,45 +248,57 @@ xfs_rtfind_back(
 			*rtblock = start - i + 1;
 			return 0;
 		}
+
 		i += XFS_NBWORD;
+
 		/*
 		 * Go on to previous block if that's where the previous word is
 		 * and we need the previous word.
 		 */
-		if (--word == -1 && i < len) {
+		if (--word == -1 && i < len)
+		{
 			/*
 			 * If done with this block, get the previous one.
 			 */
 			xfs_trans_brelse(tp, bp);
 			error = xfs_rtbuf_get(mp, tp, --block, 0, &bp);
-			if (error) {
+
+			if (error)
+			{
 				return error;
 			}
+
 			bufp = bp->b_addr;
 			word = XFS_BLOCKWMASK(mp);
 			b = &bufp[word];
-		} else {
+		}
+		else
+		{
 			/*
 			 * Go on to the previous word in the buffer.
 			 */
 			b--;
 		}
 	}
+
 	/*
 	 * If not ending on a word boundary, deal with the last
 	 * (partial) word.
 	 */
-	if (len - i) {
+	if (len - i)
+	{
 		/*
 		 * Calculate first (leftmost) bit number to look at,
 		 * and mask for all the relevant bits in this word.
 		 */
 		firstbit = XFS_NBWORD - (len - i);
 		mask = (((xfs_rtword_t)1 << (len - i)) - 1) << firstbit;
+
 		/*
 		 * Compute difference between actual and desired value.
 		 */
-		if ((wdiff = (*b ^ want) & mask)) {
+		if ((wdiff = (*b ^ want) & mask))
+		{
 			/*
 			 * Different, mark where we are and return.
 			 */
@@ -267,9 +306,13 @@ xfs_rtfind_back(
 			i += XFS_NBWORD - 1 - XFS_RTHIBIT(wdiff);
 			*rtblock = start - i + 1;
 			return 0;
-		} else
+		}
+		else
+		{
 			i = len;
+		}
 	}
+
 	/*
 	 * No match, return that we scanned the whole area.
 	 */
@@ -309,9 +352,12 @@ xfs_rtfind_forw(
 	 */
 	block = XFS_BITTOBLOCK(mp, start);
 	error = xfs_rtbuf_get(mp, tp, block, 0, &bp);
-	if (error) {
+
+	if (error)
+	{
 		return error;
 	}
+
 	bufp = bp->b_addr;
 	/*
 	 * Get the first word's index & point to it.
@@ -325,22 +371,26 @@ xfs_rtfind_forw(
 	 * then all-ones, else all-zeroes.
 	 */
 	want = (*b & ((xfs_rtword_t)1 << bit)) ? -1 : 0;
+
 	/*
 	 * If the starting position is not word-aligned, deal with the
 	 * partial word.
 	 */
-	if (bit) {
+	if (bit)
+	{
 		/*
 		 * Calculate last (rightmost) bit number to look at,
 		 * and mask for all the relevant bits in this word.
 		 */
 		lastbit = XFS_RTMIN(bit + len, XFS_NBWORD);
 		mask = (((xfs_rtword_t)1 << (lastbit - bit)) - 1) << bit;
+
 		/*
 		 * Calculate the difference between the value there
 		 * and what we're looking for.
 		 */
-		if ((wdiff = (*b ^ want) & mask)) {
+		if ((wdiff = (*b ^ want) & mask))
+		{
 			/*
 			 * Different.  Mark where we are and return.
 			 */
@@ -349,43 +399,56 @@ xfs_rtfind_forw(
 			*rtblock = start + i - 1;
 			return 0;
 		}
+
 		i = lastbit - bit;
+
 		/*
 		 * Go on to next block if that's where the next word is
 		 * and we need the next word.
 		 */
-		if (++word == XFS_BLOCKWSIZE(mp) && i < len) {
+		if (++word == XFS_BLOCKWSIZE(mp) && i < len)
+		{
 			/*
 			 * If done with this block, get the previous one.
 			 */
 			xfs_trans_brelse(tp, bp);
 			error = xfs_rtbuf_get(mp, tp, ++block, 0, &bp);
-			if (error) {
+
+			if (error)
+			{
 				return error;
 			}
+
 			b = bufp = bp->b_addr;
 			word = 0;
-		} else {
+		}
+		else
+		{
 			/*
 			 * Go on to the previous word in the buffer.
 			 */
 			b++;
 		}
-	} else {
+	}
+	else
+	{
 		/*
 		 * Starting on a word boundary, no partial word.
 		 */
 		i = 0;
 	}
+
 	/*
 	 * Loop over whole words in buffers.  When we use up one buffer
 	 * we move on to the next one.
 	 */
-	while (len - i >= XFS_NBWORD) {
+	while (len - i >= XFS_NBWORD)
+	{
 		/*
 		 * Compute difference between actual and desired value.
 		 */
-		if ((wdiff = *b ^ want)) {
+		if ((wdiff = *b ^ want))
+		{
 			/*
 			 * Different, mark where we are and return.
 			 */
@@ -394,42 +457,54 @@ xfs_rtfind_forw(
 			*rtblock = start + i - 1;
 			return 0;
 		}
+
 		i += XFS_NBWORD;
+
 		/*
 		 * Go on to next block if that's where the next word is
 		 * and we need the next word.
 		 */
-		if (++word == XFS_BLOCKWSIZE(mp) && i < len) {
+		if (++word == XFS_BLOCKWSIZE(mp) && i < len)
+		{
 			/*
 			 * If done with this block, get the next one.
 			 */
 			xfs_trans_brelse(tp, bp);
 			error = xfs_rtbuf_get(mp, tp, ++block, 0, &bp);
-			if (error) {
+
+			if (error)
+			{
 				return error;
 			}
+
 			b = bufp = bp->b_addr;
 			word = 0;
-		} else {
+		}
+		else
+		{
 			/*
 			 * Go on to the next word in the buffer.
 			 */
 			b++;
 		}
 	}
+
 	/*
 	 * If not ending on a word boundary, deal with the last
 	 * (partial) word.
 	 */
-	if ((lastbit = len - i)) {
+	if ((lastbit = len - i))
+	{
 		/*
 		 * Calculate mask for all the relevant bits in this word.
 		 */
 		mask = ((xfs_rtword_t)1 << lastbit) - 1;
+
 		/*
 		 * Compute difference between actual and desired value.
 		 */
-		if ((wdiff = (*b ^ want) & mask)) {
+		if ((wdiff = (*b ^ want) & mask))
+		{
 			/*
 			 * Different, mark where we are and return.
 			 */
@@ -437,9 +512,13 @@ xfs_rtfind_forw(
 			i += XFS_RTLOBIT(wdiff);
 			*rtblock = start + i - 1;
 			return 0;
-		} else
+		}
+		else
+		{
 			i = len;
+		}
 	}
+
 	/*
 	 * No match, return that we scanned the whole area.
 	 */
@@ -482,42 +561,59 @@ xfs_rtmodify_summary_int(
 	 * Compute the block number in the summary file.
 	 */
 	sb = XFS_SUMOFFSTOBLOCK(mp, so);
+
 	/*
 	 * If we have an old buffer, and the block number matches, use that.
 	 */
 	if (*rbpp && *rsb == sb)
+	{
 		bp = *rbpp;
+	}
 	/*
 	 * Otherwise we have to get the buffer.
 	 */
-	else {
+	else
+	{
 		/*
 		 * If there was an old one, get rid of it first.
 		 */
 		if (*rbpp)
+		{
 			xfs_trans_brelse(tp, *rbpp);
+		}
+
 		error = xfs_rtbuf_get(mp, tp, sb, 1, &bp);
-		if (error) {
+
+		if (error)
+		{
 			return error;
 		}
+
 		/*
 		 * Remember this buffer and block for the next call.
 		 */
 		*rbpp = bp;
 		*rsb = sb;
 	}
+
 	/*
 	 * Point to the summary information, modify/log it, and/or copy it out.
 	 */
 	sp = XFS_SUMPTR(mp, bp, so);
-	if (delta) {
+
+	if (delta)
+	{
 		uint first = (uint)((char *)sp - (char *)bp->b_addr);
 
 		*sp += delta;
 		xfs_trans_log_buf(tp, bp, first, first + sizeof(*sp) - 1);
 	}
+
 	if (sum)
+	{
 		*sum = *sp;
+	}
+
 	return 0;
 }
 
@@ -532,7 +628,7 @@ xfs_rtmodify_summary(
 	xfs_fsblock_t	*rsb)		/* in/out: summary block number */
 {
 	return xfs_rtmodify_summary_int(mp, tp, log, bbno,
-					delta, rbpp, rsb, NULL);
+									delta, rbpp, rsb, NULL);
 }
 
 /*
@@ -567,9 +663,12 @@ xfs_rtmodify_range(
 	 * Read the bitmap block, and point to its data.
 	 */
 	error = xfs_rtbuf_get(mp, tp, block, 0, &bp);
-	if (error) {
+
+	if (error)
+	{
 		return error;
 	}
+
 	bufp = bp->b_addr;
 	/*
 	 * Compute the starting word's address, and starting bit.
@@ -581,114 +680,150 @@ xfs_rtmodify_range(
 	 * 0 (allocated) => all zeroes; 1 (free) => all ones.
 	 */
 	val = -val;
+
 	/*
 	 * If not starting on a word boundary, deal with the first
 	 * (partial) word.
 	 */
-	if (bit) {
+	if (bit)
+	{
 		/*
 		 * Compute first bit not changed and mask of relevant bits.
 		 */
 		lastbit = XFS_RTMIN(bit + len, XFS_NBWORD);
 		mask = (((xfs_rtword_t)1 << (lastbit - bit)) - 1) << bit;
+
 		/*
 		 * Set/clear the active bits.
 		 */
 		if (val)
+		{
 			*b |= mask;
+		}
 		else
+		{
 			*b &= ~mask;
+		}
+
 		i = lastbit - bit;
+
 		/*
 		 * Go on to the next block if that's where the next word is
 		 * and we need the next word.
 		 */
-		if (++word == XFS_BLOCKWSIZE(mp) && i < len) {
+		if (++word == XFS_BLOCKWSIZE(mp) && i < len)
+		{
 			/*
 			 * Log the changed part of this block.
 			 * Get the next one.
 			 */
 			xfs_trans_log_buf(tp, bp,
-				(uint)((char *)first - (char *)bufp),
-				(uint)((char *)b - (char *)bufp));
+							  (uint)((char *)first - (char *)bufp),
+							  (uint)((char *)b - (char *)bufp));
 			error = xfs_rtbuf_get(mp, tp, ++block, 0, &bp);
-			if (error) {
+
+			if (error)
+			{
 				return error;
 			}
+
 			first = b = bufp = bp->b_addr;
 			word = 0;
-		} else {
+		}
+		else
+		{
 			/*
 			 * Go on to the next word in the buffer
 			 */
 			b++;
 		}
-	} else {
+	}
+	else
+	{
 		/*
 		 * Starting on a word boundary, no partial word.
 		 */
 		i = 0;
 	}
+
 	/*
 	 * Loop over whole words in buffers.  When we use up one buffer
 	 * we move on to the next one.
 	 */
-	while (len - i >= XFS_NBWORD) {
+	while (len - i >= XFS_NBWORD)
+	{
 		/*
 		 * Set the word value correctly.
 		 */
 		*b = val;
 		i += XFS_NBWORD;
+
 		/*
 		 * Go on to the next block if that's where the next word is
 		 * and we need the next word.
 		 */
-		if (++word == XFS_BLOCKWSIZE(mp) && i < len) {
+		if (++word == XFS_BLOCKWSIZE(mp) && i < len)
+		{
 			/*
 			 * Log the changed part of this block.
 			 * Get the next one.
 			 */
 			xfs_trans_log_buf(tp, bp,
-				(uint)((char *)first - (char *)bufp),
-				(uint)((char *)b - (char *)bufp));
+							  (uint)((char *)first - (char *)bufp),
+							  (uint)((char *)b - (char *)bufp));
 			error = xfs_rtbuf_get(mp, tp, ++block, 0, &bp);
-			if (error) {
+
+			if (error)
+			{
 				return error;
 			}
+
 			first = b = bufp = bp->b_addr;
 			word = 0;
-		} else {
+		}
+		else
+		{
 			/*
 			 * Go on to the next word in the buffer
 			 */
 			b++;
 		}
 	}
+
 	/*
 	 * If not ending on a word boundary, deal with the last
 	 * (partial) word.
 	 */
-	if ((lastbit = len - i)) {
+	if ((lastbit = len - i))
+	{
 		/*
 		 * Compute a mask of relevant bits.
 		 */
 		bit = 0;
 		mask = ((xfs_rtword_t)1 << lastbit) - 1;
+
 		/*
 		 * Set/clear the active bits.
 		 */
 		if (val)
+		{
 			*b |= mask;
+		}
 		else
+		{
 			*b &= ~mask;
+		}
+
 		b++;
 	}
+
 	/*
 	 * Log any remaining changed bytes.
 	 */
 	if (b > first)
 		xfs_trans_log_buf(tp, bp, (uint)((char *)first - (char *)bufp),
-			(uint)((char *)b - (char *)bufp - 1));
+						  (uint)((char *)b - (char *)bufp - 1));
+
 	return 0;
 }
 
@@ -715,56 +850,74 @@ xfs_rtfree_range(
 	 * Modify the bitmap to mark this extent freed.
 	 */
 	error = xfs_rtmodify_range(mp, tp, start, len, 1);
-	if (error) {
+
+	if (error)
+	{
 		return error;
 	}
+
 	/*
 	 * Assume we're freeing out of the middle of an allocated extent.
 	 * We need to find the beginning and end of the extent so we can
 	 * properly update the summary.
 	 */
 	error = xfs_rtfind_back(mp, tp, start, 0, &preblock);
-	if (error) {
+
+	if (error)
+	{
 		return error;
 	}
+
 	/*
 	 * Find the next allocated block (end of allocated extent).
 	 */
 	error = xfs_rtfind_forw(mp, tp, end, mp->m_sb.sb_rextents - 1,
-		&postblock);
+							&postblock);
+
 	if (error)
+	{
 		return error;
+	}
+
 	/*
 	 * If there are blocks not being freed at the front of the
 	 * old extent, add summary data for them to be allocated.
 	 */
-	if (preblock < start) {
+	if (preblock < start)
+	{
 		error = xfs_rtmodify_summary(mp, tp,
-			XFS_RTBLOCKLOG(start - preblock),
-			XFS_BITTOBLOCK(mp, preblock), -1, rbpp, rsb);
-		if (error) {
+									 XFS_RTBLOCKLOG(start - preblock),
+									 XFS_BITTOBLOCK(mp, preblock), -1, rbpp, rsb);
+
+		if (error)
+		{
 			return error;
 		}
 	}
+
 	/*
 	 * If there are blocks not being freed at the end of the
 	 * old extent, add summary data for them to be allocated.
 	 */
-	if (postblock > end) {
+	if (postblock > end)
+	{
 		error = xfs_rtmodify_summary(mp, tp,
-			XFS_RTBLOCKLOG(postblock - end),
-			XFS_BITTOBLOCK(mp, end + 1), -1, rbpp, rsb);
-		if (error) {
+									 XFS_RTBLOCKLOG(postblock - end),
+									 XFS_BITTOBLOCK(mp, end + 1), -1, rbpp, rsb);
+
+		if (error)
+		{
 			return error;
 		}
 	}
+
 	/*
 	 * Increment the summary information corresponding to the entire
 	 * (new) free extent.
 	 */
 	error = xfs_rtmodify_summary(mp, tp,
-		XFS_RTBLOCKLOG(postblock + 1 - preblock),
-		XFS_BITTOBLOCK(mp, preblock), 1, rbpp, rsb);
+								 XFS_RTBLOCKLOG(postblock + 1 - preblock),
+								 XFS_BITTOBLOCK(mp, preblock), 1, rbpp, rsb);
 	return error;
 }
 
@@ -802,9 +955,12 @@ xfs_rtcheck_range(
 	 * Read the bitmap block.
 	 */
 	error = xfs_rtbuf_get(mp, tp, block, 0, &bp);
-	if (error) {
+
+	if (error)
+	{
 		return error;
 	}
+
 	bufp = bp->b_addr;
 	/*
 	 * Compute the starting word's address, and starting bit.
@@ -816,11 +972,13 @@ xfs_rtcheck_range(
 	 * 0 (allocated) => all zero's; 1 (free) => all one's.
 	 */
 	val = -val;
+
 	/*
 	 * If not starting on a word boundary, deal with the first
 	 * (partial) word.
 	 */
-	if (bit) {
+	if (bit)
+	{
 		/*
 		 * Compute first bit not examined.
 		 */
@@ -829,10 +987,12 @@ xfs_rtcheck_range(
 		 * Mask of relevant bits.
 		 */
 		mask = (((xfs_rtword_t)1 << (lastbit - bit)) - 1) << bit;
+
 		/*
 		 * Compute difference between actual and desired value.
 		 */
-		if ((wdiff = (*b ^ val) & mask)) {
+		if ((wdiff = (*b ^ val) & mask))
+		{
 			/*
 			 * Different, compute first wrong bit and return.
 			 */
@@ -842,43 +1002,56 @@ xfs_rtcheck_range(
 			*stat = 0;
 			return 0;
 		}
+
 		i = lastbit - bit;
+
 		/*
 		 * Go on to next block if that's where the next word is
 		 * and we need the next word.
 		 */
-		if (++word == XFS_BLOCKWSIZE(mp) && i < len) {
+		if (++word == XFS_BLOCKWSIZE(mp) && i < len)
+		{
 			/*
 			 * If done with this block, get the next one.
 			 */
 			xfs_trans_brelse(tp, bp);
 			error = xfs_rtbuf_get(mp, tp, ++block, 0, &bp);
-			if (error) {
+
+			if (error)
+			{
 				return error;
 			}
+
 			b = bufp = bp->b_addr;
 			word = 0;
-		} else {
+		}
+		else
+		{
 			/*
 			 * Go on to the next word in the buffer.
 			 */
 			b++;
 		}
-	} else {
+	}
+	else
+	{
 		/*
 		 * Starting on a word boundary, no partial word.
 		 */
 		i = 0;
 	}
+
 	/*
 	 * Loop over whole words in buffers.  When we use up one buffer
 	 * we move on to the next one.
 	 */
-	while (len - i >= XFS_NBWORD) {
+	while (len - i >= XFS_NBWORD)
+	{
 		/*
 		 * Compute difference between actual and desired value.
 		 */
-		if ((wdiff = *b ^ val)) {
+		if ((wdiff = *b ^ val))
+		{
 			/*
 			 * Different, compute first wrong bit and return.
 			 */
@@ -888,42 +1061,54 @@ xfs_rtcheck_range(
 			*stat = 0;
 			return 0;
 		}
+
 		i += XFS_NBWORD;
+
 		/*
 		 * Go on to next block if that's where the next word is
 		 * and we need the next word.
 		 */
-		if (++word == XFS_BLOCKWSIZE(mp) && i < len) {
+		if (++word == XFS_BLOCKWSIZE(mp) && i < len)
+		{
 			/*
 			 * If done with this block, get the next one.
 			 */
 			xfs_trans_brelse(tp, bp);
 			error = xfs_rtbuf_get(mp, tp, ++block, 0, &bp);
-			if (error) {
+
+			if (error)
+			{
 				return error;
 			}
+
 			b = bufp = bp->b_addr;
 			word = 0;
-		} else {
+		}
+		else
+		{
 			/*
 			 * Go on to the next word in the buffer.
 			 */
 			b++;
 		}
 	}
+
 	/*
 	 * If not ending on a word boundary, deal with the last
 	 * (partial) word.
 	 */
-	if ((lastbit = len - i)) {
+	if ((lastbit = len - i))
+	{
 		/*
 		 * Mask of relevant bits.
 		 */
 		mask = ((xfs_rtword_t)1 << lastbit) - 1;
+
 		/*
 		 * Compute difference between actual and desired value.
 		 */
-		if ((wdiff = (*b ^ val) & mask)) {
+		if ((wdiff = (*b ^ val) & mask))
+		{
 			/*
 			 * Different, compute first wrong bit and return.
 			 */
@@ -932,9 +1117,13 @@ xfs_rtcheck_range(
 			*new = start + i;
 			*stat = 0;
 			return 0;
-		} else
+		}
+		else
+		{
 			i = len;
+		}
 	}
+
 	/*
 	 * Successful, return.
 	 */
@@ -960,8 +1149,12 @@ xfs_rtcheck_alloc_range(
 	int		error;
 
 	error = xfs_rtcheck_range(mp, tp, bno, len, 0, &new, &stat);
+
 	if (error)
+	{
 		return error;
+	}
+
 	ASSERT(stat);
 	return 0;
 }
@@ -989,31 +1182,43 @@ xfs_rtfree_extent(
 	ASSERT(xfs_isilocked(mp->m_rbmip, XFS_ILOCK_EXCL));
 
 	error = xfs_rtcheck_alloc_range(mp, tp, bno, len);
+
 	if (error)
+	{
 		return error;
+	}
 
 	/*
 	 * Free the range of realtime blocks.
 	 */
 	error = xfs_rtfree_range(mp, tp, bno, len, &sumbp, &sb);
-	if (error) {
+
+	if (error)
+	{
 		return error;
 	}
+
 	/*
 	 * Mark more blocks free in the superblock.
 	 */
 	xfs_trans_mod_sb(tp, XFS_TRANS_SB_FREXTENTS, (long)len);
+
 	/*
 	 * If we've now freed all the blocks, reset the file sequence
 	 * number to 0.
 	 */
 	if (tp->t_frextents_delta + mp->m_sb.sb_frextents ==
-	    mp->m_sb.sb_rextents) {
+		mp->m_sb.sb_rextents)
+	{
 		if (!(mp->m_rbmip->i_d.di_flags & XFS_DIFLAG_NEWRTBM))
+		{
 			mp->m_rbmip->i_d.di_flags |= XFS_DIFLAG_NEWRTBM;
+		}
+
 		*(__uint64_t *)&VFS_I(mp->m_rbmip)->i_atime = 0;
 		xfs_trans_log_inode(tp, mp->m_rbmip, XFS_ILOG_CORE);
 	}
+
 	return 0;
 }
 

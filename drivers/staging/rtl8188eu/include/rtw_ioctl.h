@@ -61,15 +61,17 @@
 #define DEBUG_OID(dbg, str)						\
 	if ((!dbg)) {							\
 		RT_TRACE(_module_rtl871x_ioctl_c_, _drv_info_,		\
-			 ("%s(%d): %s", __func__, __line__, str));	\
+				 ("%s(%d): %s", __func__, __line__, str));	\
 	}
 
-enum oid_type {
+enum oid_type
+{
 	QUERY_OID,
 	SET_OID
 };
 
-struct oid_par_priv {
+struct oid_par_priv
+{
 	void		*adapter_context;
 	NDIS_OID	oid;
 	void		*information_buf;
@@ -81,7 +83,8 @@ struct oid_par_priv {
 };
 
 #if defined(_RTW_MP_IOCTL_C_)
-static int oid_null_function(struct oid_par_priv *poid_par_priv) {
+static int oid_null_function(struct oid_par_priv *poid_par_priv)
+{
 	return NDIS_STATUS_SUCCESS;
 }
 #endif
@@ -89,12 +92,12 @@ static int oid_null_function(struct oid_par_priv *poid_par_priv) {
 extern struct iw_handler_def  rtw_handlers_def;
 
 int drv_query_info(struct  net_device *miniportadaptercontext, NDIS_OID oid,
-		   void *informationbuffer, u32 informationbufferlength,
-		   u32 *byteswritten, u32 *bytesneeded);
+				   void *informationbuffer, u32 informationbufferlength,
+				   u32 *byteswritten, u32 *bytesneeded);
 
 int drv_set_info(struct  net_device *MiniportAdapterContext,
-		 NDIS_OID oid, void *informationbuffer,
-		 u32 informationbufferlength, u32 *bytesread,
-		 u32 *bytesneeded);
+				 NDIS_OID oid, void *informationbuffer,
+				 u32 informationbufferlength, u32 *bytesread,
+				 u32 *bytesneeded);
 
 #endif /*  #ifndef __INC_CEINFO_ */

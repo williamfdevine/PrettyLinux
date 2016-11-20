@@ -19,9 +19,9 @@
 
 
 #ifdef CONFIG_B43_DEBUG
-# define B43_DEBUG	1
+	#define B43_DEBUG	1
 #else
-# define B43_DEBUG	0
+	#define B43_DEBUG	0
 #endif
 
 /* MMIO offsets */
@@ -222,7 +222,8 @@
 #define B43_GPIO_CONTROL		0x6c
 
 /* SHM Routing */
-enum {
+enum
+{
 	B43_SHM_UCODE,		/* Microcode memory */
 	B43_SHM_SHARED,		/* Shared memory */
 	B43_SHM_SCRATCH,	/* Scratch memory */
@@ -233,7 +234,7 @@ enum {
 #define B43_SHM_AUTOINC_R		0x0200	/* Auto-increment address on read */
 #define B43_SHM_AUTOINC_W		0x0100	/* Auto-increment address on write */
 #define B43_SHM_AUTOINC_RW		(B43_SHM_AUTOINC_R | \
-					 B43_SHM_AUTOINC_W)
+								 B43_SHM_AUTOINC_W)
 
 /* Misc SHM_SHARED offsets */
 #define B43_SHM_SH_WLCOREREV		0x0016	/* 802.11 core revision */
@@ -553,16 +554,16 @@ enum {
 
 #define B43_IRQ_ALL			0xFFFFFFFF
 #define B43_IRQ_MASKTEMPLATE		(B43_IRQ_TBTT_INDI | \
-					 B43_IRQ_ATIM_END | \
-					 B43_IRQ_PMQ | \
-					 B43_IRQ_MAC_TXERR | \
-					 B43_IRQ_PHY_TXERR | \
-					 B43_IRQ_DMA | \
-					 B43_IRQ_TXFIFO_FLUSH_OK | \
-					 B43_IRQ_NOISESAMPLE_OK | \
-					 B43_IRQ_UCODE_DEBUG | \
-					 B43_IRQ_RFKILL | \
-					 B43_IRQ_TX_OK)
+									 B43_IRQ_ATIM_END | \
+									 B43_IRQ_PMQ | \
+									 B43_IRQ_MAC_TXERR | \
+									 B43_IRQ_PHY_TXERR | \
+									 B43_IRQ_DMA | \
+									 B43_IRQ_TXFIFO_FLUSH_OK | \
+									 B43_IRQ_NOISESAMPLE_OK | \
+									 B43_IRQ_UCODE_DEBUG | \
+									 B43_IRQ_RFKILL | \
+									 B43_IRQ_TX_OK)
 
 /* The firmware register to fetch the debug-IRQ reason from. */
 #define B43_DEBUGIRQ_REASON_REG		63
@@ -616,7 +617,8 @@ enum {
 /* Max number of pairwise keys */
 #define B43_NR_PAIRWISE_KEYS		50
 /* Security algorithms. */
-enum {
+enum
+{
 	B43_SEC_ALGO_NONE = 0,	/* unencrypted, as of TX header. */
 	B43_SEC_ALGO_WEP40,
 	B43_SEC_ALGO_TKIP,
@@ -631,7 +633,8 @@ struct b43_dmaring;
 #define B43_FW_TYPE_UCODE	'u'
 #define B43_FW_TYPE_PCM		'p'
 #define B43_FW_TYPE_IV		'i'
-struct b43_fw_header {
+struct b43_fw_header
+{
 	/* File type */
 	u8 type;
 	/* File format version */
@@ -645,9 +648,11 @@ struct b43_fw_header {
 /* Initial Value file format */
 #define B43_IV_OFFSET_MASK	0x7FFF
 #define B43_IV_32BIT		0x8000
-struct b43_iv {
+struct b43_iv
+{
 	__be16 offset_size;
-	union {
+	union
+	{
 		__be16 d16;
 		__be32 d32;
 	} data __packed;
@@ -655,7 +660,8 @@ struct b43_iv {
 
 
 /* Data structures for DMA transmission, per 80211 core. */
-struct b43_dma {
+struct b43_dma
+{
 	struct b43_dmaring *tx_ring_AC_BK; /* Background */
 	struct b43_dmaring *tx_ring_AC_BE; /* Best Effort */
 	struct b43_dmaring *tx_ring_AC_VI; /* Video */
@@ -673,7 +679,8 @@ struct b43_pio_txqueue;
 struct b43_pio_rxqueue;
 
 /* Data structures for PIO transmission, per 80211 core. */
-struct b43_pio {
+struct b43_pio
+{
 	struct b43_pio_txqueue *tx_queue_AC_BK; /* Background */
 	struct b43_pio_txqueue *tx_queue_AC_BE; /* Best Effort */
 	struct b43_pio_txqueue *tx_queue_AC_VI; /* Video */
@@ -684,17 +691,20 @@ struct b43_pio {
 };
 
 /* Context information for a noise calculation (Link Quality). */
-struct b43_noise_calculation {
+struct b43_noise_calculation
+{
 	bool calculation_running;
 	u8 nr_samples;
 	s8 samples[8][4];
 };
 
-struct b43_stats {
+struct b43_stats
+{
 	u8 link_noise;
 };
 
-struct b43_key {
+struct b43_key
+{
 	/* If keyconf is NULL, this key is disabled.
 	 * keyconf is a cookie. Don't derefenrence it outside of the set_key
 	 * path, because b43 doesn't own it. */
@@ -705,7 +715,7 @@ struct b43_key {
 /* SHM offsets to the QOS data structures for the 4 different queues. */
 #define B43_QOS_QUEUE_NUM	4
 #define B43_QOS_PARAMS(queue)	(B43_SHM_SH_EDCFQ + \
-				 (B43_NR_QOSPARAMS * sizeof(u16) * (queue)))
+								 (B43_NR_QOSPARAMS * sizeof(u16) * (queue)))
 #define B43_QOS_BACKGROUND	B43_QOS_PARAMS(0)
 #define B43_QOS_BESTEFFORT	B43_QOS_PARAMS(1)
 #define B43_QOS_VIDEO		B43_QOS_PARAMS(2)
@@ -713,7 +723,8 @@ struct b43_key {
 
 /* QOS parameter hardware data structure offsets. */
 #define B43_NR_QOSPARAMS	16
-enum {
+enum
+{
 	B43_QOSPARAM_TXOP = 0,
 	B43_QOSPARAM_CWMIN,
 	B43_QOSPARAM_CWMAX,
@@ -725,7 +736,8 @@ enum {
 };
 
 /* QOS parameters for a queue. */
-struct b43_qos_params {
+struct b43_qos_params
+{
 	/* The QOS parameters */
 	struct ieee80211_tx_queue_params p;
 };
@@ -733,14 +745,16 @@ struct b43_qos_params {
 struct b43_wl;
 
 /* The type of the firmware file. */
-enum b43_firmware_file_type {
+enum b43_firmware_file_type
+{
 	B43_FWTYPE_PROPRIETARY,
 	B43_FWTYPE_OPENSOURCE,
 	B43_NR_FWTYPES,
 };
 
 /* Context data for fetching firmware. */
-struct b43_request_fw_context {
+struct b43_request_fw_context
+{
 	/* The device we are requesting the fw for. */
 	struct b43_wldev *dev;
 	/* a pointer to the firmware object */
@@ -757,7 +771,8 @@ struct b43_request_fw_context {
 };
 
 /* In-memory representation of a cached microcode file. */
-struct b43_firmware_file {
+struct b43_firmware_file
+{
 	const char *filename;
 	const struct firmware *data;
 	/* Type of the firmware file name. Note that this does only indicate
@@ -769,14 +784,16 @@ struct b43_firmware_file {
 	enum b43_firmware_file_type type;
 };
 
-enum b43_firmware_hdr_format {
+enum b43_firmware_hdr_format
+{
 	B43_FW_HDR_598,
 	B43_FW_HDR_410,
 	B43_FW_HDR_351,
 };
 
 /* Pointers to the firmware data and meta information about it. */
-struct b43_firmware {
+struct b43_firmware
+{
 	/* Microcode */
 	struct b43_firmware_file ucode;
 	/* PCM code */
@@ -803,7 +820,8 @@ struct b43_firmware {
 	bool pcm_request_failed;
 };
 
-enum b43_band {
+enum b43_band
+{
 	B43_BAND_2G = 0,
 	B43_BAND_5G_LO = 1,
 	B43_BAND_5G_MI = 2,
@@ -811,7 +829,8 @@ enum b43_band {
 };
 
 /* Device (802.11 core) initialization status. */
-enum {
+enum
+{
 	B43_STAT_UNINIT = 0,	/* Uninitialized. */
 	B43_STAT_INITIALIZED = 1,	/* Initialized, but not started, yet. */
 	B43_STAT_STARTED = 2,	/* Up and running. */
@@ -820,10 +839,11 @@ enum {
 #define b43_set_status(wldev, stat)	do {			\
 		atomic_set(&(wldev)->__init_status, (stat));	\
 		smp_wmb();					\
-					} while (0)
+	} while (0)
 
 /* Data structure for one wireless device (802.11 core) */
-struct b43_wldev {
+struct b43_wldev
+{
 	struct b43_bus_dev *dev;
 	struct b43_wl *wl;
 	/* a completion event structure needed if this call is asynchronous */
@@ -843,7 +863,8 @@ struct b43_wldev {
 	/* PHY/Radio device. */
 	struct b43_phy phy;
 
-	union {
+	union
+	{
 		/* DMA engines. */
 		struct b43_dma dma;
 		/* PIO engines. */
@@ -894,7 +915,8 @@ struct b43_wldev {
 };
 
 /* Data structure for the WLAN parts (802.11 cores) of the b43 chip. */
-struct b43_wl {
+struct b43_wl
+{
 	/* Pointer to the active wireless device on this chip */
 	struct b43_wldev *current_dev;
 	/* Pointer to the ieee80211 hardware data structure */
@@ -1012,12 +1034,12 @@ static inline int b43_device_is_enabled(struct b43_wldev *wldev)
 	return wldev->dev->device_is_enabled(wldev->dev);
 }
 static inline void b43_device_enable(struct b43_wldev *wldev,
-				     u32 core_specific_flags)
+									 u32 core_specific_flags)
 {
 	wldev->dev->device_enable(wldev->dev, core_specific_flags);
 }
 static inline void b43_device_disable(struct b43_wldev *wldev,
-				      u32 core_specific_flags)
+									  u32 core_specific_flags)
 {
 	wldev->dev->device_disable(wldev->dev, core_specific_flags);
 }
@@ -1037,13 +1059,17 @@ static inline void b43_write16f(struct b43_wldev *dev, u16 offset, u16 value)
 {
 	b43_write16(dev, offset, value);
 #if defined(CONFIG_BCM47XX_BCMA)
+
 	if (dev->dev->flush_writes)
+	{
 		b43_read16(dev, offset);
+	}
+
 #endif
 }
 
 static inline void b43_maskset16(struct b43_wldev *dev, u16 offset, u16 mask,
-				 u16 set)
+								 u16 set)
 {
 	b43_write16(dev, offset, (b43_read16(dev, offset) & mask) | set);
 }
@@ -1059,19 +1085,19 @@ static inline void b43_write32(struct b43_wldev *dev, u16 offset, u32 value)
 }
 
 static inline void b43_maskset32(struct b43_wldev *dev, u16 offset, u32 mask,
-				 u32 set)
+								 u32 set)
 {
 	b43_write32(dev, offset, (b43_read32(dev, offset) & mask) | set);
 }
 
 static inline void b43_block_read(struct b43_wldev *dev, void *buffer,
-				 size_t count, u16 offset, u8 reg_width)
+								  size_t count, u16 offset, u8 reg_width)
 {
 	dev->dev->block_read(dev->dev, buffer, count, offset, reg_width);
 }
 
 static inline void b43_block_write(struct b43_wldev *dev, const void *buffer,
-				   size_t count, u16 offset, u8 reg_width)
+								   size_t count, u16 offset, u8 reg_width)
 {
 	dev->dev->block_write(dev->dev, buffer, count, offset, reg_width);
 }

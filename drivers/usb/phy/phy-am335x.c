@@ -12,7 +12,8 @@
 #include "phy-am335x-control.h"
 #include "phy-generic.h"
 
-struct am335x_phy {
+struct am335x_phy
+{
 	struct usb_phy_generic usb_phy_gen;
 	struct phy_control *phy_ctrl;
 	int id;
@@ -41,15 +42,23 @@ static int am335x_phy_probe(struct platform_device *pdev)
 	int ret;
 
 	am_phy = devm_kzalloc(dev, sizeof(*am_phy), GFP_KERNEL);
+
 	if (!am_phy)
+	{
 		return -ENOMEM;
+	}
 
 	am_phy->phy_ctrl = am335x_get_phy_control(dev);
+
 	if (!am_phy->phy_ctrl)
+	{
 		return -EPROBE_DEFER;
+	}
 
 	am_phy->id = of_alias_get_id(pdev->dev.of_node, "phy");
-	if (am_phy->id < 0) {
+
+	if (am_phy->id < 0)
+	{
 		dev_err(&pdev->dev, "Missing PHY id: %d\n", am_phy->id);
 		return am_phy->id;
 	}
@@ -57,12 +66,19 @@ static int am335x_phy_probe(struct platform_device *pdev)
 	am_phy->dr_mode = of_usb_get_dr_mode_by_phy(pdev->dev.of_node, -1);
 
 	ret = usb_phy_gen_create_phy(dev, &am_phy->usb_phy_gen, NULL);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = usb_add_phy_dev(&am_phy->usb_phy_gen.phy);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	am_phy->usb_phy_gen.phy.init = am335x_init;
 	am_phy->usb_phy_gen.phy.shutdown = am335x_shutdown;
 
@@ -107,7 +123,9 @@ static int am335x_phy_suspend(struct device *dev)
 	 */
 
 	if (device_may_wakeup(dev))
+	{
 		phy_ctrl_wkup(am_phy->phy_ctrl, am_phy->id, true);
+	}
 
 	phy_ctrl_power(am_phy->phy_ctrl, am_phy->id, am_phy->dr_mode, false);
 
@@ -122,7 +140,9 @@ static int am335x_phy_resume(struct device *dev)
 	phy_ctrl_power(am_phy->phy_ctrl, am_phy->id, am_phy->dr_mode, true);
 
 	if (device_may_wakeup(dev))
+	{
 		phy_ctrl_wkup(am_phy->phy_ctrl, am_phy->id, false);
+	}
 
 	return 0;
 }
@@ -130,13 +150,15 @@ static int am335x_phy_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(am335x_pm_ops, am335x_phy_suspend, am335x_phy_resume);
 
-static const struct of_device_id am335x_phy_ids[] = {
+static const struct of_device_id am335x_phy_ids[] =
+{
 	{ .compatible = "ti,am335x-usb-phy" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, am335x_phy_ids);
 
-static struct platform_driver am335x_phy_driver = {
+static struct platform_driver am335x_phy_driver =
+{
 	.probe          = am335x_phy_probe,
 	.remove         = am335x_phy_remove,
 	.driver         = {

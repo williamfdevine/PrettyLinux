@@ -21,13 +21,15 @@
 #include <linux/errno.h>
 #include <linux/bcd.h>
 
-struct rtc_mem {
+struct rtc_mem
+{
 	unsigned int	loc;
 	unsigned int	nr;
 	unsigned char	*data;
 };
 
-struct pcf8583 {
+struct pcf8583
+{
 	struct rtc_device *rtc;
 	unsigned char ctrl;
 };
@@ -52,7 +54,8 @@ static struct i2c_driver pcf8583_driver;
 static int pcf8583_get_datetime(struct i2c_client *client, struct rtc_time *dt)
 {
 	unsigned char buf[8], addr[1] = { 1 };
-	struct i2c_msg msgs[2] = {
+	struct i2c_msg msgs[2] =
+	{
 		{
 			.addr = client->addr,
 			.flags = 0,
@@ -70,7 +73,9 @@ static int pcf8583_get_datetime(struct i2c_client *client, struct rtc_time *dt)
 	memset(buf, 0, sizeof(buf));
 
 	ret = i2c_transfer(client->adapter, msgs, 2);
-	if (ret == 2) {
+
+	if (ret == 2)
+	{
 		dt->tm_year = buf[4] >> 6;
 		dt->tm_wday = buf[5] >> 5;
 
@@ -99,15 +104,19 @@ static int pcf8583_set_datetime(struct i2c_client *client, struct rtc_time *dt, 
 	buf[4] = bin2bcd(dt->tm_min);
 	buf[5] = bin2bcd(dt->tm_hour);
 
-	if (datetoo) {
+	if (datetoo)
+	{
 		len = 8;
 		buf[6] = bin2bcd(dt->tm_mday) | (dt->tm_year << 6);
 		buf[7] = bin2bcd(dt->tm_mon + 1)  | (dt->tm_wday << 5);
 	}
 
 	ret = i2c_master_send(client, (char *)buf, len);
+
 	if (ret != len)
+	{
 		return -EIO;
+	}
 
 	buf[1] = get_ctrl(client);
 	ret = i2c_master_send(client, (char *)buf, 2);
@@ -135,7 +144,8 @@ static int pcf8583_set_ctrl(struct i2c_client *client, unsigned char *ctrl)
 static int pcf8583_read_mem(struct i2c_client *client, struct rtc_mem *mem)
 {
 	unsigned char addr[1];
-	struct i2c_msg msgs[2] = {
+	struct i2c_msg msgs[2] =
+	{
 		{
 			.addr = client->addr,
 			.flags = 0,
@@ -150,7 +160,9 @@ static int pcf8583_read_mem(struct i2c_client *client, struct rtc_mem *mem)
 	};
 
 	if (mem->loc < 8)
+	{
 		return -EINVAL;
+	}
 
 	addr[0] = mem->loc;
 
@@ -163,7 +175,9 @@ static int pcf8583_write_mem(struct i2c_client *client, struct rtc_mem *mem)
 	int ret;
 
 	if (mem->loc < 8 || mem->nr > 8)
+	{
 		return -EINVAL;
+	}
 
 	buf[0] = mem->loc;
 	memcpy(buf + 1, mem->data, mem->nr);
@@ -176,7 +190,8 @@ static int pcf8583_rtc_read_time(struct device *dev, struct rtc_time *tm)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	unsigned char ctrl, year[2];
-	struct rtc_mem mem = {
+	struct rtc_mem mem =
+	{
 		.loc = CMOS_YEAR,
 		.nr = sizeof(year),
 		.data = year
@@ -187,20 +202,27 @@ static int pcf8583_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	 * Ensure that the RTC is running.
 	 */
 	pcf8583_get_ctrl(client, &ctrl);
-	if (ctrl & (CTRL_STOP | CTRL_HOLD)) {
+
+	if (ctrl & (CTRL_STOP | CTRL_HOLD))
+	{
 		unsigned char new_ctrl = ctrl & ~(CTRL_STOP | CTRL_HOLD);
 
 		dev_warn(dev, "resetting control %02x -> %02x\n",
-			ctrl, new_ctrl);
+				 ctrl, new_ctrl);
 
 		err = pcf8583_set_ctrl(client, &new_ctrl);
+
 		if (err < 0)
+		{
 			return err;
+		}
 	}
 
 	if (pcf8583_get_datetime(client, tm) ||
-	    pcf8583_read_mem(client, &mem))
+		pcf8583_read_mem(client, &mem))
+	{
 		return -EIO;
+	}
 
 	real_year = year[0];
 
@@ -211,11 +233,14 @@ static int pcf8583_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	 * that we have to correct the CMOS version.
 	 */
 	year_offset = tm->tm_year - (real_year & 3);
+
 	if (year_offset < 0)
 		/*
 		 * RTC year wrapped.  Adjust it appropriately.
 		 */
+	{
 		year_offset += 4;
+	}
 
 	tm->tm_year = (real_year + year_offset + year[1] * 100) - 1900;
 
@@ -226,12 +251,14 @@ static int pcf8583_rtc_set_time(struct device *dev, struct rtc_time *tm)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	unsigned char year[2], chk;
-	struct rtc_mem cmos_year  = {
+	struct rtc_mem cmos_year  =
+	{
 		.loc = CMOS_YEAR,
 		.nr = sizeof(year),
 		.data = year
 	};
-	struct rtc_mem cmos_check = {
+	struct rtc_mem cmos_check =
+	{
 		.loc = CMOS_CHECKSUM,
 		.nr = 1,
 		.data = &chk
@@ -245,16 +272,25 @@ static int pcf8583_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	 */
 
 	ret = pcf8583_set_datetime(client, tm, 1);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = pcf8583_read_mem(client, &cmos_check);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = pcf8583_read_mem(client, &cmos_year);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	chk -= year[1] + year[0];
 
@@ -266,47 +302,57 @@ static int pcf8583_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	ret = pcf8583_write_mem(client, &cmos_year);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = pcf8583_write_mem(client, &cmos_check);
 
 	return ret;
 }
 
-static const struct rtc_class_ops pcf8583_rtc_ops = {
+static const struct rtc_class_ops pcf8583_rtc_ops =
+{
 	.read_time	= pcf8583_rtc_read_time,
 	.set_time	= pcf8583_rtc_set_time,
 };
 
 static int pcf8583_probe(struct i2c_client *client,
-				const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct pcf8583 *pcf8583;
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+	{
 		return -ENODEV;
+	}
 
 	pcf8583 = devm_kzalloc(&client->dev, sizeof(struct pcf8583),
-				GFP_KERNEL);
+						   GFP_KERNEL);
+
 	if (!pcf8583)
+	{
 		return -ENOMEM;
+	}
 
 	i2c_set_clientdata(client, pcf8583);
 
 	pcf8583->rtc = devm_rtc_device_register(&client->dev,
-				pcf8583_driver.driver.name,
-				&pcf8583_rtc_ops, THIS_MODULE);
+											pcf8583_driver.driver.name,
+											&pcf8583_rtc_ops, THIS_MODULE);
 
 	return PTR_ERR_OR_ZERO(pcf8583->rtc);
 }
 
-static const struct i2c_device_id pcf8583_id[] = {
+static const struct i2c_device_id pcf8583_id[] =
+{
 	{ "pcf8583", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, pcf8583_id);
 
-static struct i2c_driver pcf8583_driver = {
+static struct i2c_driver pcf8583_driver =
+{
 	.driver = {
 		.name	= "pcf8583",
 	},

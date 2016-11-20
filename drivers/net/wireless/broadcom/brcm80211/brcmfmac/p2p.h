@@ -28,7 +28,8 @@ struct brcmf_cfg80211_info;
  * @P2PAPI_BSSCFG_CONNECTION: maps to driver's P2P connection bsscfg.
  * @P2PAPI_BSSCFG_MAX: used for range checking.
  */
-enum p2p_bss_type {
+enum p2p_bss_type
+{
 	P2PAPI_BSSCFG_PRIMARY, /* maps to driver's primary bsscfg */
 	P2PAPI_BSSCFG_DEVICE, /* maps to driver's P2P device discovery bsscfg */
 	P2PAPI_BSSCFG_CONNECTION, /* maps to driver's P2P connection bsscfg */
@@ -41,7 +42,8 @@ enum p2p_bss_type {
  * @vif: virtual interface of this P2P bss.
  * @private_data: TBD
  */
-struct p2p_bss {
+struct p2p_bss
+{
 	struct brcmf_cfg80211_vif *vif;
 	void *private_data;
 };
@@ -63,7 +65,8 @@ struct p2p_bss {
  * @BRCMF_P2P_STATUS_WAITING_NEXT_ACT_FRAME: waiting for action frame response.
  * @BRCMF_P2P_STATUS_FINDING_COMMON_CHANNEL: search channel for AF active.
  */
-enum brcmf_p2p_status {
+enum brcmf_p2p_status
+{
 	BRCMF_P2P_STATUS_ENABLED,
 	BRCMF_P2P_STATUS_IF_ADD,
 	BRCMF_P2P_STATUS_IF_DEL,
@@ -92,7 +95,8 @@ enum brcmf_p2p_status {
  * @peer_listen_chan: remote peers listen channel.
  * @tx_dst_addr: mac address where tx af should be sent to.
  */
-struct afx_hdl {
+struct afx_hdl
+{
 	struct work_struct afx_work;
 	struct completion act_frm_scan;
 	bool is_active;
@@ -125,7 +129,8 @@ struct afx_hdl {
  * @block_gon_req_tx: drop tx go negotiation requets frame.
  * @p2pdev_dynamically: is p2p device if created by module param or supplicant.
  */
-struct brcmf_p2p_info {
+struct brcmf_p2p_info
+{
 	struct brcmf_cfg80211_info *cfg;
 	unsigned long status;
 	u8 dev_addr[ETH_ALEN];
@@ -149,37 +154,37 @@ struct brcmf_p2p_info {
 s32 brcmf_p2p_attach(struct brcmf_cfg80211_info *cfg, bool p2pdev_forced);
 void brcmf_p2p_detach(struct brcmf_p2p_info *p2p);
 struct wireless_dev *brcmf_p2p_add_vif(struct wiphy *wiphy, const char *name,
-				       unsigned char name_assign_type,
-				       enum nl80211_iftype type, u32 *flags,
-				       struct vif_params *params);
+									   unsigned char name_assign_type,
+									   enum nl80211_iftype type, u32 *flags,
+									   struct vif_params *params);
 int brcmf_p2p_del_vif(struct wiphy *wiphy, struct wireless_dev *wdev);
 int brcmf_p2p_ifchange(struct brcmf_cfg80211_info *cfg,
-		       enum brcmf_fil_p2p_if_types if_type);
+					   enum brcmf_fil_p2p_if_types if_type);
 void brcmf_p2p_ifp_removed(struct brcmf_if *ifp, bool rtnl_locked);
 int brcmf_p2p_start_device(struct wiphy *wiphy, struct wireless_dev *wdev);
 void brcmf_p2p_stop_device(struct wiphy *wiphy, struct wireless_dev *wdev);
 int brcmf_p2p_scan_prep(struct wiphy *wiphy,
-			struct cfg80211_scan_request *request,
-			struct brcmf_cfg80211_vif *vif);
+						struct cfg80211_scan_request *request,
+						struct brcmf_cfg80211_vif *vif);
 int brcmf_p2p_remain_on_channel(struct wiphy *wiphy, struct wireless_dev *wdev,
-				struct ieee80211_channel *channel,
-				unsigned int duration, u64 *cookie);
+								struct ieee80211_channel *channel,
+								unsigned int duration, u64 *cookie);
 int brcmf_p2p_notify_listen_complete(struct brcmf_if *ifp,
-				     const struct brcmf_event_msg *e,
-				     void *data);
+									 const struct brcmf_event_msg *e,
+									 void *data);
 void brcmf_p2p_cancel_remain_on_channel(struct brcmf_if *ifp);
 int brcmf_p2p_notify_action_frame_rx(struct brcmf_if *ifp,
-				     const struct brcmf_event_msg *e,
-				     void *data);
+									 const struct brcmf_event_msg *e,
+									 void *data);
 int brcmf_p2p_notify_action_tx_complete(struct brcmf_if *ifp,
-					const struct brcmf_event_msg *e,
-					void *data);
+										const struct brcmf_event_msg *e,
+										void *data);
 bool brcmf_p2p_send_action_frame(struct brcmf_cfg80211_info *cfg,
-				 struct net_device *ndev,
-				 struct brcmf_fil_af_params_le *af_params);
+								 struct net_device *ndev,
+								 struct brcmf_fil_af_params_le *af_params);
 bool brcmf_p2p_scan_finding_common_channel(struct brcmf_cfg80211_info *cfg,
-					   struct brcmf_bss_info_le *bi);
+		struct brcmf_bss_info_le *bi);
 s32 brcmf_p2p_notify_rx_mgmt_p2p_probereq(struct brcmf_if *ifp,
-					  const struct brcmf_event_msg *e,
-					  void *data);
+		const struct brcmf_event_msg *e,
+		void *data);
 #endif /* WL_CFGP2P_H_ */

@@ -36,7 +36,8 @@
 
 #define DRV_NAME "sam9x5-snd-wm8731"
 
-struct sam9x5_drvdata {
+struct sam9x5_drvdata
+{
 	int ssc_id;
 };
 
@@ -53,8 +54,10 @@ static int sam9x5_wm8731_init(struct snd_soc_pcm_runtime *rtd)
 
 	/* set the codec system clock for DAC and ADC */
 	ret = snd_soc_dai_set_sysclk(codec_dai, WM8731_SYSCLK_XTAL,
-				     MCLK_RATE, SND_SOC_CLOCK_IN);
-	if (ret < 0) {
+								 MCLK_RATE, SND_SOC_CLOCK_IN);
+
+	if (ret < 0)
+	{
 		dev_err(dev, "ASoC: Failed to set WM8731 SYSCLK: %d\n", ret);
 		return ret;
 	}
@@ -70,7 +73,8 @@ static int sam9x5_wm8731_init(struct snd_soc_pcm_runtime *rtd)
  *  |9| ---> CLK <--> | 8731 | <--R----- Line In Jack
  *  |1| <------------ |      | <--L--/
  */
-static const struct snd_soc_dapm_widget sam9x5_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget sam9x5_dapm_widgets[] =
+{
 	SND_SOC_DAPM_HP("Headphone Jack", NULL),
 	SND_SOC_DAPM_LINE("Line In Jack", NULL),
 };
@@ -84,7 +88,8 @@ static int sam9x5_wm8731_driver_probe(struct platform_device *pdev)
 	struct sam9x5_drvdata *priv;
 	int ret;
 
-	if (!np) {
+	if (!np)
+	{
 		dev_err(&pdev->dev, "No device node supplied\n");
 		return -EINVAL;
 	}
@@ -92,7 +97,9 @@ static int sam9x5_wm8731_driver_probe(struct platform_device *pdev)
 	card = devm_kzalloc(&pdev->dev, sizeof(*card), GFP_KERNEL);
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
 	dai = devm_kzalloc(&pdev->dev, sizeof(*dai), GFP_KERNEL);
-	if (!dai || !card || !priv) {
+
+	if (!dai || !card || !priv)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
@@ -110,22 +117,28 @@ static int sam9x5_wm8731_driver_probe(struct platform_device *pdev)
 	dai->codec_dai_name = "wm8731-hifi";
 	dai->init = sam9x5_wm8731_init;
 	dai->dai_fmt = SND_SOC_DAIFMT_DSP_A | SND_SOC_DAIFMT_NB_NF
-		| SND_SOC_DAIFMT_CBM_CFM;
+				   | SND_SOC_DAIFMT_CBM_CFM;
 
 	ret = snd_soc_of_parse_card_name(card, "atmel,model");
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "atmel,model node missing\n");
 		goto out;
 	}
 
 	ret = snd_soc_of_parse_audio_routing(card, "atmel,audio-routing");
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "atmel,audio-routing node missing\n");
 		goto out;
 	}
 
 	codec_np = of_parse_phandle(np, "atmel,audio-codec", 0);
-	if (!codec_np) {
+
+	if (!codec_np)
+	{
 		dev_err(&pdev->dev, "atmel,audio-codec node missing\n");
 		ret = -EINVAL;
 		goto out;
@@ -134,21 +147,26 @@ static int sam9x5_wm8731_driver_probe(struct platform_device *pdev)
 	dai->codec_of_node = codec_np;
 
 	cpu_np = of_parse_phandle(np, "atmel,ssc-controller", 0);
-	if (!cpu_np) {
+
+	if (!cpu_np)
+	{
 		dev_err(&pdev->dev, "atmel,ssc-controller node missing\n");
 		ret = -EINVAL;
 		goto out;
 	}
+
 	dai->cpu_of_node = cpu_np;
 	dai->platform_of_node = cpu_np;
 
 	priv->ssc_id = of_alias_get_id(cpu_np, "ssc");
 
 	ret = atmel_ssc_set_audio(priv->ssc_id);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		dev_err(&pdev->dev,
-			"ASoC: Failed to set SSC %d for audio: %d\n",
-			ret, priv->ssc_id);
+				"ASoC: Failed to set SSC %d for audio: %d\n",
+				ret, priv->ssc_id);
 		goto out;
 	}
 
@@ -156,9 +174,11 @@ static int sam9x5_wm8731_driver_probe(struct platform_device *pdev)
 	of_node_put(cpu_np);
 
 	ret = snd_soc_register_card(card);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev,
-			"ASoC: Platform device allocation failed\n");
+				"ASoC: Platform device allocation failed\n");
 		goto out_put_audio;
 	}
 
@@ -183,13 +203,15 @@ static int sam9x5_wm8731_driver_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id sam9x5_wm8731_of_match[] = {
+static const struct of_device_id sam9x5_wm8731_of_match[] =
+{
 	{ .compatible = "atmel,sam9x5-wm8731-audio", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, sam9x5_wm8731_of_match);
 
-static struct platform_driver sam9x5_wm8731_driver = {
+static struct platform_driver sam9x5_wm8731_driver =
+{
 	.driver = {
 		.name = DRV_NAME,
 		.of_match_table = of_match_ptr(sam9x5_wm8731_of_match),

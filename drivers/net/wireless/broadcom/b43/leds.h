@@ -13,7 +13,8 @@ struct b43_wldev;
 
 #define B43_LED_MAX_NAME_LEN	31
 
-struct b43_led {
+struct b43_led
+{
 	struct b43_wl *wl;
 	/* The LED class device */
 	struct led_classdev led_dev;
@@ -30,7 +31,8 @@ struct b43_led {
 	bool hw_state;
 };
 
-struct b43_leds {
+struct b43_leds
+{
 	struct b43_led led_tx;
 	struct b43_led led_rx;
 	struct b43_led led_radio;
@@ -45,7 +47,8 @@ struct b43_leds {
 #define B43_LED_BEHAVIOUR		0x7F
 #define B43_LED_ACTIVELOW		0x80
 /* LED behaviour values */
-enum b43_led_behaviour {
+enum b43_led_behaviour
+{
 	B43_LED_OFF,
 	B43_LED_ON,
 	B43_LED_ACTIVITY,
@@ -70,7 +73,8 @@ void b43_leds_stop(struct b43_wldev *dev);
 #else /* CONFIG_B43_LEDS */
 /* LED support disabled */
 
-struct b43_leds {
+struct b43_leds
+{
 	/* empty */
 };
 

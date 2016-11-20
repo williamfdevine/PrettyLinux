@@ -24,7 +24,7 @@ extern int mfc_debug_level;
 	do {							\
 		if (mfc_debug_level >= level)			\
 			printk(KERN_DEBUG "%s:%d: " fmt,	\
-				__func__, __LINE__, ##args);	\
+				   __func__, __LINE__, ##args);	\
 	} while (0)
 #else
 #define mfc_debug(level, fmt, args...)
@@ -36,13 +36,13 @@ extern int mfc_debug_level;
 #define mfc_err(fmt, args...)				\
 	do {						\
 		printk(KERN_ERR "%s:%d: " fmt,		\
-		       __func__, __LINE__, ##args);	\
+			   __func__, __LINE__, ##args);	\
 	} while (0)
 
 #define mfc_info(fmt, args...)				\
 	do {						\
 		printk(KERN_INFO "%s:%d: " fmt,		\
-		       __func__, __LINE__, ##args);	\
+			   __func__, __LINE__, ##args);	\
 	} while (0)
 
 #endif /* S5P_MFC_DEBUG_H_ */

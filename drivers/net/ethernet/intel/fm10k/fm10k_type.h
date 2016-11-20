@@ -378,7 +378,8 @@ struct fm10k_hw;
 #define FM10K_VFSYSTIME		0x00040
 #define FM10K_VFITR(_n)		((_n) + 0x00060)
 
-enum fm10k_int_source {
+enum fm10k_int_source
+{
 	fm10k_int_mailbox		= 0,
 	fm10k_int_pcie_fault		= 1,
 	fm10k_int_switch_up_down	= 2,
@@ -390,7 +391,8 @@ enum fm10k_int_source {
 };
 
 /* PCIe bus speeds */
-enum fm10k_bus_speed {
+enum fm10k_bus_speed
+{
 	fm10k_bus_speed_unknown	= 0,
 	fm10k_bus_speed_2500	= 2500,
 	fm10k_bus_speed_5000	= 5000,
@@ -399,7 +401,8 @@ enum fm10k_bus_speed {
 };
 
 /* PCIe bus widths */
-enum fm10k_bus_width {
+enum fm10k_bus_width
+{
 	fm10k_bus_width_unknown	= 0,
 	fm10k_bus_width_pcie_x1	= 1,
 	fm10k_bus_width_pcie_x2	= 2,
@@ -409,7 +412,8 @@ enum fm10k_bus_width {
 };
 
 /* PCIe payload sizes */
-enum fm10k_bus_payload {
+enum fm10k_bus_payload
+{
 	fm10k_bus_payload_unknown = 0,
 	fm10k_bus_payload_128	  = 1,
 	fm10k_bus_payload_256	  = 2,
@@ -418,20 +422,23 @@ enum fm10k_bus_payload {
 };
 
 /* Bus parameters */
-struct fm10k_bus_info {
+struct fm10k_bus_info
+{
 	enum fm10k_bus_speed speed;
 	enum fm10k_bus_width width;
 	enum fm10k_bus_payload payload;
 };
 
 /* Statistics related declarations */
-struct fm10k_hw_stat {
+struct fm10k_hw_stat
+{
 	u64 count;
 	u32 base_l;
 	u32 base_h;
 };
 
-struct fm10k_hw_stats_q {
+struct fm10k_hw_stats_q
+{
 	struct fm10k_hw_stat tx_bytes;
 	struct fm10k_hw_stat tx_packets;
 #define tx_stats_idx	tx_packets.base_h
@@ -441,7 +448,8 @@ struct fm10k_hw_stats_q {
 	struct fm10k_hw_stat rx_drops;
 };
 
-struct fm10k_hw_stats {
+struct fm10k_hw_stats
+{
 	struct fm10k_hw_stat	timeout;
 #define stats_idx	timeout.base_h
 	struct fm10k_hw_stat	ur;
@@ -455,7 +463,8 @@ struct fm10k_hw_stats {
 };
 
 /* Establish DGLORT feature priority */
-enum fm10k_dglortdec_idx {
+enum fm10k_dglortdec_idx
+{
 	fm10k_dglort_default	= 0,
 	fm10k_dglort_vf_rsvd0	= 1,
 	fm10k_dglort_vf_rss	= 2,
@@ -466,7 +475,8 @@ enum fm10k_dglortdec_idx {
 	fm10k_dglort_pf_rss	= 7
 };
 
-struct fm10k_dglort_cfg {
+struct fm10k_dglort_cfg
+{
 	u16 glort;	/* GLORT base */
 	u16 queue_b;	/* Base value for queue */
 	u8  vsi_b;	/* Base value for VSI */
@@ -479,7 +489,8 @@ struct fm10k_dglort_cfg {
 	u8  inner_rss;	/* Boolean value if inner header is used for RSS */
 };
 
-enum fm10k_pca_fault {
+enum fm10k_pca_fault
+{
 	PCA_NO_FAULT,
 	PCA_UNMAPPED_ADDR,
 	PCA_BAD_QACCESS_PF,
@@ -490,13 +501,15 @@ enum fm10k_pca_fault {
 	__PCA_MAX
 };
 
-enum fm10k_thi_fault {
+enum fm10k_thi_fault
+{
 	THI_NO_FAULT,
 	THI_MAL_DIS_Q_FAULT,
 	__THI_MAX
 };
 
-enum fm10k_fum_fault {
+enum fm10k_fum_fault
+{
 	FUM_NO_FAULT,
 	FUM_UNMAPPED_ADDR,
 	FUM_POISONED_TLP,
@@ -512,14 +525,16 @@ enum fm10k_fum_fault {
 	__FUM_MAX
 };
 
-struct fm10k_fault {
+struct fm10k_fault
+{
 	u64 address;	/* Address at the time fault was detected */
 	u32 specinfo;	/* Extra info on this fault (fault dependent) */
 	u8 type;	/* Fault value dependent on subunit */
 	u8 func;	/* Function number of the fault */
 };
 
-struct fm10k_mac_ops {
+struct fm10k_mac_ops
+{
 	/* basic bring-up and tear-down */
 	s32 (*reset_hw)(struct fm10k_hw *);
 	s32 (*init_hw)(struct fm10k_hw *);
@@ -531,7 +546,7 @@ struct fm10k_mac_ops {
 	s32 (*update_vlan)(struct fm10k_hw *, u32, u8, bool);
 	s32 (*read_mac_addr)(struct fm10k_hw *);
 	s32 (*update_uc_addr)(struct fm10k_hw *, u16, const u8 *,
-			      u16, bool, u8);
+						  u16, bool, u8);
 	s32 (*update_mc_addr)(struct fm10k_hw *, u16, const u8 *, u16, bool);
 	s32 (*update_xcast_mode)(struct fm10k_hw *, u16, u8);
 	void (*update_int_moderator)(struct fm10k_hw *);
@@ -539,19 +554,21 @@ struct fm10k_mac_ops {
 	void (*update_hw_stats)(struct fm10k_hw *, struct fm10k_hw_stats *);
 	void (*rebind_hw_stats)(struct fm10k_hw *, struct fm10k_hw_stats *);
 	s32 (*configure_dglort_map)(struct fm10k_hw *,
-				    struct fm10k_dglort_cfg *);
+								struct fm10k_dglort_cfg *);
 	void (*set_dma_mask)(struct fm10k_hw *, u64);
 	s32 (*get_fault)(struct fm10k_hw *, int, struct fm10k_fault *);
 };
 
-enum fm10k_mac_type {
+enum fm10k_mac_type
+{
 	fm10k_mac_unknown = 0,
 	fm10k_mac_pf,
 	fm10k_mac_vf,
 	fm10k_num_macs
 };
 
-struct fm10k_mac_info {
+struct fm10k_mac_info
+{
 	struct fm10k_mac_ops ops;
 	enum fm10k_mac_type type;
 	u8 addr[ETH_ALEN];
@@ -567,19 +584,22 @@ struct fm10k_mac_info {
 	u64 reset_while_pending;
 };
 
-struct fm10k_swapi_table_info {
+struct fm10k_swapi_table_info
+{
 	u32 used;
 	u32 avail;
 };
 
-struct fm10k_swapi_info {
+struct fm10k_swapi_info
+{
 	u32 status;
 	struct fm10k_swapi_table_info mac;
 	struct fm10k_swapi_table_info nexthop;
 	struct fm10k_swapi_table_info ffu;
 };
 
-enum fm10k_xcast_modes {
+enum fm10k_xcast_modes
+{
 	FM10K_XCAST_MODE_ALLMULTI	= 0,
 	FM10K_XCAST_MODE_MULTI		= 1,
 	FM10K_XCAST_MODE_PROMISC	= 2,
@@ -590,7 +610,8 @@ enum fm10k_xcast_modes {
 #define FM10K_VF_TC_MAX		100000	/* 100,000 Mb/s aka 100Gb/s */
 #define FM10K_VF_TC_MIN		1	/* 1 Mb/s is the slowest rate */
 
-struct fm10k_vf_info {
+struct fm10k_vf_info
+{
 	/* mbx must be first field in struct unless all default IOV message
 	 * handlers are redone as the assumption is that vf_info starts
 	 * at the same offset as the mailbox
@@ -622,40 +643,45 @@ struct fm10k_vf_info {
 	 FM10K_VF_FLAG_SET_MODE(FM10K_XCAST_MODE_MULTI) | \
 	 FM10K_VF_FLAG_SET_MODE(FM10K_XCAST_MODE_PROMISC))
 
-struct fm10k_iov_ops {
+struct fm10k_iov_ops
+{
 	/* IOV related bring-up and tear-down */
 	s32 (*assign_resources)(struct fm10k_hw *, u16, u16);
 	s32 (*configure_tc)(struct fm10k_hw *, u16, int);
 	s32 (*assign_int_moderator)(struct fm10k_hw *, u16);
 	s32 (*assign_default_mac_vlan)(struct fm10k_hw *,
-				       struct fm10k_vf_info *);
+								   struct fm10k_vf_info *);
 	s32 (*reset_resources)(struct fm10k_hw *,
-			       struct fm10k_vf_info *);
+						   struct fm10k_vf_info *);
 	s32 (*set_lport)(struct fm10k_hw *, struct fm10k_vf_info *, u16, u8);
 	void (*reset_lport)(struct fm10k_hw *, struct fm10k_vf_info *);
 	void (*update_stats)(struct fm10k_hw *, struct fm10k_hw_stats_q *, u16);
 };
 
-struct fm10k_iov_info {
+struct fm10k_iov_info
+{
 	struct fm10k_iov_ops ops;
 	u16 total_vfs;
 	u16 num_vfs;
 	u16 num_pools;
 };
 
-enum fm10k_devices {
+enum fm10k_devices
+{
 	fm10k_device_pf,
 	fm10k_device_vf,
 };
 
-struct fm10k_info {
+struct fm10k_info
+{
 	enum fm10k_mac_type		mac;
 	s32				(*get_invariants)(struct fm10k_hw *);
 	const struct fm10k_mac_ops	*mac_ops;
 	const struct fm10k_iov_ops	*iov_ops;
 };
 
-struct fm10k_hw {
+struct fm10k_hw
+{
 	u32 __iomem *hw_addr;
 	void *back;
 	struct fm10k_mac_info mac;
@@ -676,7 +702,8 @@ struct fm10k_hw {
 #define FM10K_REQ_RX_DESCRIPTOR_MULTIPLE	8
 
 /* Transmit Descriptor */
-struct fm10k_tx_desc {
+struct fm10k_tx_desc
+{
 	__le64 buffer_addr;	/* Address of the descriptor's data buffer */
 	__le16 buflen;		/* Length of data to be DMAed */
 	__le16 vlan;		/* VLAN_ID and VPRI to be inserted in FTAG */
@@ -686,7 +713,8 @@ struct fm10k_tx_desc {
 };
 
 /* Transmit Descriptor Cache Structure */
-struct fm10k_tx_desc_cache {
+struct fm10k_tx_desc_cache
+{
 	struct fm10k_tx_desc tx_desc[256];
 };
 
@@ -707,21 +735,25 @@ struct fm10k_tx_desc_cache {
 #define FM10K_TXD_WB_FIFO_SIZE	4
 
 /* Receive Descriptor - 32B */
-union fm10k_rx_desc {
-	struct {
+union fm10k_rx_desc
+{
+	struct
+	{
 		__le64 pkt_addr; /* Packet buffer address */
 		__le64 hdr_addr; /* Header buffer address */
 		__le64 reserved; /* Empty space, RSS hash */
 		__le64 timestamp;
 	} q; /* Read, Writeback, 64b quad-words */
-	struct {
+	struct
+	{
 		__le32 data; /* RSS and header data */
 		__le32 rss;  /* RSS Hash */
 		__le32 staterr;
 		__le32 vlan_len;
 		__le32 glort; /* sglort/dglort */
 	} d; /* Writeback, 32b double-words */
-	struct {
+	struct
+	{
 		__le16 pkt_info; /* RSS, Pkt type */
 		__le16 hdr_info; /* Splithdr, hdrlen, xC */
 		__le16 rss_lower;
@@ -736,7 +768,8 @@ union fm10k_rx_desc {
 };
 
 #define FM10K_RXD_RSSTYPE_MASK		0x000F
-enum fm10k_rdesc_rss_type {
+enum fm10k_rdesc_rss_type
+{
 	FM10K_RSSTYPE_NONE	= 0x0,
 	FM10K_RSSTYPE_IPV4_TCP	= 0x1,
 	FM10K_RSSTYPE_IPV4	= 0x2,
@@ -746,11 +779,12 @@ enum fm10k_rdesc_rss_type {
 	/* Reserved 0x6 */
 	FM10K_RSSTYPE_IPV4_UDP	= 0x7,
 	FM10K_RSSTYPE_IPV6_UDP	= 0x8
-	/* Reserved 0x9 - 0xF */
+							  /* Reserved 0x9 - 0xF */
 };
 
 #define FM10K_RXD_HDR_INFO_XC_MASK	0x0006
-enum fm10k_rxdesc_xc {
+enum fm10k_rxdesc_xc
+{
 	FM10K_XC_UNICAST	= 0x0,
 	FM10K_XC_MULTICAST	= 0x4,
 	FM10K_XC_BROADCAST	= 0x6
@@ -772,7 +806,8 @@ enum fm10k_rxdesc_xc {
 #define FM10K_RXD_ERR_SWITCH_READY	0x0008 /* Link transition mid-packet */
 #define FM10K_RXD_ERR_TOO_BIG		0x0010 /* Pkt too big for single buf */
 
-struct fm10k_ftag {
+struct fm10k_ftag
+{
 	__be16 swpri_type_user;
 	__be16 vlan;
 	__be16 sglort;

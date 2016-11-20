@@ -37,7 +37,8 @@
 #define DOWNLOAD_CTRL_OFFSET		(0x0000FF80)
 #define DOWNLOAD_CTRL_DATA_DWORDS	(32-6)
 
-struct download_cntl_t {
+struct download_cntl_t
+{
 	/* size of whole firmware file (including Cheksum), host init */
 	u32 image_size;
 	/* downloading flags */
@@ -157,17 +158,17 @@ struct download_cntl_t {
 #define ST90TDS_CONF_IRQ_RDY_ENABLE	(BIT(16)|BIT(17))
 
 int cw1200_data_read(struct cw1200_common *priv,
-		     void *buf, size_t buf_len);
+					 void *buf, size_t buf_len);
 int cw1200_data_write(struct cw1200_common *priv,
-		      const void *buf, size_t buf_len);
+					  const void *buf, size_t buf_len);
 
 int cw1200_reg_read(struct cw1200_common *priv, u16 addr,
-		    void *buf, size_t buf_len);
+					void *buf, size_t buf_len);
 int cw1200_reg_write(struct cw1200_common *priv, u16 addr,
-		     const void *buf, size_t buf_len);
+					 const void *buf, size_t buf_len);
 
 static inline int cw1200_reg_read_16(struct cw1200_common *priv,
-				     u16 addr, u16 *val)
+									 u16 addr, u16 *val)
 {
 	__le32 tmp;
 	int i;
@@ -177,14 +178,14 @@ static inline int cw1200_reg_read_16(struct cw1200_common *priv,
 }
 
 static inline int cw1200_reg_write_16(struct cw1200_common *priv,
-				      u16 addr, u16 val)
+									  u16 addr, u16 val)
 {
 	__le32 tmp = cpu_to_le32((u32)val);
 	return cw1200_reg_write(priv, addr, &tmp, sizeof(tmp));
 }
 
 static inline int cw1200_reg_read_32(struct cw1200_common *priv,
-				     u16 addr, u32 *val)
+									 u16 addr, u32 *val)
 {
 	__le32 tmp;
 	int i = cw1200_reg_read(priv, addr, &tmp, sizeof(tmp));
@@ -193,35 +194,35 @@ static inline int cw1200_reg_read_32(struct cw1200_common *priv,
 }
 
 static inline int cw1200_reg_write_32(struct cw1200_common *priv,
-				      u16 addr, u32 val)
+									  u16 addr, u32 val)
 {
 	__le32 tmp = cpu_to_le32(val);
 	return cw1200_reg_write(priv, addr, &tmp, sizeof(val));
 }
 
 int cw1200_indirect_read(struct cw1200_common *priv, u32 addr, void *buf,
-			 size_t buf_len, u32 prefetch, u16 port_addr);
+						 size_t buf_len, u32 prefetch, u16 port_addr);
 int cw1200_apb_write(struct cw1200_common *priv, u32 addr, const void *buf,
-		     size_t buf_len);
+					 size_t buf_len);
 
 static inline int cw1200_apb_read(struct cw1200_common *priv, u32 addr,
-				  void *buf, size_t buf_len)
+								  void *buf, size_t buf_len)
 {
 	return cw1200_indirect_read(priv, addr, buf, buf_len,
-				    ST90TDS_CONFIG_PRFETCH_BIT,
-				    ST90TDS_SRAM_DPORT_REG_ID);
+								ST90TDS_CONFIG_PRFETCH_BIT,
+								ST90TDS_SRAM_DPORT_REG_ID);
 }
 
 static inline int cw1200_ahb_read(struct cw1200_common *priv, u32 addr,
-				  void *buf, size_t buf_len)
+								  void *buf, size_t buf_len)
 {
 	return cw1200_indirect_read(priv, addr, buf, buf_len,
-				    ST90TDS_CONFIG_AHB_PRFETCH_BIT,
-				    ST90TDS_AHB_DPORT_REG_ID);
+								ST90TDS_CONFIG_AHB_PRFETCH_BIT,
+								ST90TDS_AHB_DPORT_REG_ID);
 }
 
 static inline int cw1200_apb_read_32(struct cw1200_common *priv,
-				     u32 addr, u32 *val)
+									 u32 addr, u32 *val)
 {
 	__le32 tmp;
 	int i = cw1200_apb_read(priv, addr, &tmp, sizeof(tmp));
@@ -230,13 +231,13 @@ static inline int cw1200_apb_read_32(struct cw1200_common *priv,
 }
 
 static inline int cw1200_apb_write_32(struct cw1200_common *priv,
-				      u32 addr, u32 val)
+									  u32 addr, u32 val)
 {
 	__le32 tmp = cpu_to_le32(val);
 	return cw1200_apb_write(priv, addr, &tmp, sizeof(val));
 }
 static inline int cw1200_ahb_read_32(struct cw1200_common *priv,
-				     u32 addr, u32 *val)
+									 u32 addr, u32 *val)
 {
 	__le32 tmp;
 	int i = cw1200_ahb_read(priv, addr, &tmp, sizeof(tmp));

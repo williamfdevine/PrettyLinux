@@ -876,25 +876,29 @@
 
 struct b43_wldev;
 
-enum b43_nphy_spur_avoid {
+enum b43_nphy_spur_avoid
+{
 	B43_SPUR_AVOID_DISABLE,
 	B43_SPUR_AVOID_AUTO,
 	B43_SPUR_AVOID_FORCE,
 };
 
-struct b43_chanspec {
+struct b43_chanspec
+{
 	u16 center_freq;
 	enum nl80211_channel_type channel_type;
 };
 
-struct b43_phy_n_iq_comp {
+struct b43_phy_n_iq_comp
+{
 	s16 a0;
 	s16 b0;
 	s16 a1;
 	s16 b1;
 };
 
-struct b43_phy_n_rssical_cache {
+struct b43_phy_n_rssical_cache
+{
 	u16 rssical_radio_regs_2G[2];
 	u16 rssical_phy_regs_2G[12];
 
@@ -902,7 +906,8 @@ struct b43_phy_n_rssical_cache {
 	u16 rssical_phy_regs_5G[12];
 };
 
-struct b43_phy_n_cal_cache {
+struct b43_phy_n_cal_cache
+{
 	u16 txcal_radio_regs_2G[8];
 	u16 txcal_coeffs_2G[8];
 	struct b43_phy_n_iq_comp rxcal_coeffs_2G;
@@ -912,7 +917,8 @@ struct b43_phy_n_cal_cache {
 	struct b43_phy_n_iq_comp rxcal_coeffs_5G;
 };
 
-struct b43_phy_n_txpwrindex {
+struct b43_phy_n_txpwrindex
+{
 	s8 index;
 	s8 index_internal;
 	s8 index_internal_save;
@@ -925,12 +931,14 @@ struct b43_phy_n_txpwrindex {
 	u16 locomp;
 };
 
-struct b43_phy_n_pwr_ctl_info {
+struct b43_phy_n_pwr_ctl_info
+{
 	u8 idle_tssi_2g;
 	u8 idle_tssi_5g;
 };
 
-struct b43_phy_n {
+struct b43_phy_n
+{
 	u8 antsel_type;
 	u8 cal_orig_pwr_idx[2];
 	u8 measure_hold;

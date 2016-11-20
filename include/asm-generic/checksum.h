@@ -31,7 +31,7 @@ extern __wsum csum_partial_copy(const void *src, void *dst, int len, __wsum sum)
  * better 64-bit) boundary
  */
 extern __wsum csum_partial_copy_from_user(const void __user *src, void *dst,
-					int len, __wsum sum, int *csum_err);
+		int len, __wsum sum, int *csum_err);
 
 #ifndef csum_partial_copy_nocheck
 #define csum_partial_copy_nocheck(src, dst, len, sum)	\
@@ -39,11 +39,11 @@ extern __wsum csum_partial_copy_from_user(const void __user *src, void *dst,
 #endif
 
 #ifndef ip_fast_csum
-/*
- * This is a version of ip_compute_csum() optimized for IP headers,
- * which always checksum on 4 octet boundaries.
- */
-extern __sum16 ip_fast_csum(const void *iph, unsigned int ihl);
+	/*
+	* This is a version of ip_compute_csum() optimized for IP headers,
+	* which always checksum on 4 octet boundaries.
+	*/
+	extern __sum16 ip_fast_csum(const void *iph, unsigned int ihl);
 #endif
 
 #ifndef csum_fold
@@ -66,13 +66,13 @@ static inline __sum16 csum_fold(__wsum csum)
  */
 extern __wsum
 csum_tcpudp_nofold(__be32 saddr, __be32 daddr, __u32 len,
-		   __u8 proto, __wsum sum);
+				   __u8 proto, __wsum sum);
 #endif
 
 #ifndef csum_tcpudp_magic
 static inline __sum16
 csum_tcpudp_magic(__be32 saddr, __be32 daddr, __u32 len,
-		  __u8 proto, __wsum sum)
+				  __u8 proto, __wsum sum)
 {
 	return csum_fold(csum_tcpudp_nofold(saddr, daddr, len, proto, sum));
 }

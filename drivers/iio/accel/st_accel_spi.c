@@ -25,16 +25,22 @@ static int st_accel_spi_probe(struct spi_device *spi)
 	int err;
 
 	indio_dev = devm_iio_device_alloc(&spi->dev, sizeof(*adata));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	adata = iio_priv(indio_dev);
 
 	st_sensors_spi_configure(indio_dev, spi, adata);
 
 	err = st_accel_common_probe(indio_dev);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -46,7 +52,8 @@ static int st_accel_spi_remove(struct spi_device *spi)
 	return 0;
 }
 
-static const struct spi_device_id st_accel_id_table[] = {
+static const struct spi_device_id st_accel_id_table[] =
+{
 	{ LSM303DLH_ACCEL_DEV_NAME },
 	{ LSM303DLHC_ACCEL_DEV_NAME },
 	{ LIS3DH_ACCEL_DEV_NAME },
@@ -64,7 +71,8 @@ static const struct spi_device_id st_accel_id_table[] = {
 };
 MODULE_DEVICE_TABLE(spi, st_accel_id_table);
 
-static struct spi_driver st_accel_driver = {
+static struct spi_driver st_accel_driver =
+{
 	.driver = {
 		.name = "st-accel-spi",
 	},

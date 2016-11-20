@@ -59,7 +59,8 @@ struct usb_interface *usbhid_find_interface(int minor);
  * from struct hid_device->driver_data
  */
 
-struct usbhid_device {
+struct usbhid_device
+{
 	struct hid_device *hid;						/* pointer to corresponding HID dev */
 
 	struct usb_interface *intf;                                     /* USB interface */

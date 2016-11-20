@@ -40,7 +40,8 @@
 #define PL061_GPIO_NR	8
 
 #ifdef CONFIG_PM
-struct pl061_context_save_regs {
+struct pl061_context_save_regs
+{
 	u8 gpio_data;
 	u8 gpio_dir;
 	u8 gpio_is;
@@ -50,7 +51,8 @@ struct pl061_context_save_regs {
 };
 #endif
 
-struct pl061_gpio {
+struct pl061_gpio
+{
 	spinlock_t		lock;
 
 	void __iomem		*base;
@@ -84,7 +86,7 @@ static int pl061_direction_input(struct gpio_chip *gc, unsigned offset)
 }
 
 static int pl061_direction_output(struct gpio_chip *gc, unsigned offset,
-		int value)
+								  int value)
 {
 	struct pl061_gpio *chip = gpiochip_get_data(gc);
 	unsigned long flags;
@@ -130,15 +132,17 @@ static int pl061_irq_type(struct irq_data *d, unsigned trigger)
 	u8 bit = BIT(offset);
 
 	if (offset < 0 || offset >= PL061_GPIO_NR)
+	{
 		return -EINVAL;
+	}
 
 	if ((trigger & (IRQ_TYPE_LEVEL_HIGH | IRQ_TYPE_LEVEL_LOW)) &&
-	    (trigger & (IRQ_TYPE_EDGE_RISING | IRQ_TYPE_EDGE_FALLING)))
+		(trigger & (IRQ_TYPE_EDGE_RISING | IRQ_TYPE_EDGE_FALLING)))
 	{
 		dev_err(gc->parent,
-			"trying to configure line %d for both level and edge "
-			"detection, choose one!\n",
-			offset);
+				"trying to configure line %d for both level and edge "
+				"detection, choose one!\n",
+				offset);
 		return -EINVAL;
 	}
 
@@ -149,54 +153,73 @@ static int pl061_irq_type(struct irq_data *d, unsigned trigger)
 	gpiois = readb(chip->base + GPIOIS);
 	gpioibe = readb(chip->base + GPIOIBE);
 
-	if (trigger & (IRQ_TYPE_LEVEL_HIGH | IRQ_TYPE_LEVEL_LOW)) {
+	if (trigger & (IRQ_TYPE_LEVEL_HIGH | IRQ_TYPE_LEVEL_LOW))
+	{
 		bool polarity = trigger & IRQ_TYPE_LEVEL_HIGH;
 
 		/* Disable edge detection */
 		gpioibe &= ~bit;
 		/* Enable level detection */
 		gpiois |= bit;
+
 		/* Select polarity */
 		if (polarity)
+		{
 			gpioiev |= bit;
+		}
 		else
+		{
 			gpioiev &= ~bit;
+		}
+
 		irq_set_handler_locked(d, handle_level_irq);
 		dev_dbg(gc->parent, "line %d: IRQ on %s level\n",
-			offset,
-			polarity ? "HIGH" : "LOW");
-	} else if ((trigger & IRQ_TYPE_EDGE_BOTH) == IRQ_TYPE_EDGE_BOTH) {
+				offset,
+				polarity ? "HIGH" : "LOW");
+	}
+	else if ((trigger & IRQ_TYPE_EDGE_BOTH) == IRQ_TYPE_EDGE_BOTH)
+	{
 		/* Disable level detection */
 		gpiois &= ~bit;
 		/* Select both edges, setting this makes GPIOEV be ignored */
 		gpioibe |= bit;
 		irq_set_handler_locked(d, handle_edge_irq);
 		dev_dbg(gc->parent, "line %d: IRQ on both edges\n", offset);
-	} else if ((trigger & IRQ_TYPE_EDGE_RISING) ||
-		   (trigger & IRQ_TYPE_EDGE_FALLING)) {
+	}
+	else if ((trigger & IRQ_TYPE_EDGE_RISING) ||
+			 (trigger & IRQ_TYPE_EDGE_FALLING))
+	{
 		bool rising = trigger & IRQ_TYPE_EDGE_RISING;
 
 		/* Disable level detection */
 		gpiois &= ~bit;
 		/* Clear detection on both edges */
 		gpioibe &= ~bit;
+
 		/* Select edge */
 		if (rising)
+		{
 			gpioiev |= bit;
+		}
 		else
+		{
 			gpioiev &= ~bit;
+		}
+
 		irq_set_handler_locked(d, handle_edge_irq);
 		dev_dbg(gc->parent, "line %d: IRQ on %s edge\n",
-			offset,
-			rising ? "RISING" : "FALLING");
-	} else {
+				offset,
+				rising ? "RISING" : "FALLING");
+	}
+	else
+	{
 		/* No trigger: disable everything */
 		gpiois &= ~bit;
 		gpioibe &= ~bit;
 		gpioiev &= ~bit;
 		irq_set_handler_locked(d, handle_bad_irq);
 		dev_warn(gc->parent, "no trigger selected for line %d\n",
-			 offset);
+				 offset);
 	}
 
 	writeb(gpiois, chip->base + GPIOIS);
@@ -219,10 +242,12 @@ static void pl061_irq_handler(struct irq_desc *desc)
 	chained_irq_enter(irqchip, desc);
 
 	pending = readb(chip->base + GPIOMIS);
-	if (pending) {
+
+	if (pending)
+	{
 		for_each_set_bit(offset, &pending, PL061_GPIO_NR)
-			generic_handle_irq(irq_find_mapping(gc->irqdomain,
-							    offset));
+		generic_handle_irq(irq_find_mapping(gc->irqdomain,
+											offset));
 	}
 
 	chained_irq_exit(irqchip, desc);
@@ -280,7 +305,8 @@ static int pl061_irq_set_wake(struct irq_data *d, unsigned int state)
 	return irq_set_irq_wake(gc->irq_parent, state);
 }
 
-static struct irq_chip pl061_irqchip = {
+static struct irq_chip pl061_irqchip =
+{
 	.name		= "pl061",
 	.irq_ack	= pl061_irq_ack,
 	.irq_mask	= pl061_irq_mask,
@@ -297,27 +323,40 @@ static int pl061_probe(struct amba_device *adev, const struct amba_id *id)
 	int ret, irq, i, irq_base;
 
 	chip = devm_kzalloc(dev, sizeof(*chip), GFP_KERNEL);
-	if (chip == NULL)
-		return -ENOMEM;
 
-	if (pdata) {
+	if (chip == NULL)
+	{
+		return -ENOMEM;
+	}
+
+	if (pdata)
+	{
 		chip->gc.base = pdata->gpio_base;
 		irq_base = pdata->irq_base;
-		if (irq_base <= 0) {
+
+		if (irq_base <= 0)
+		{
 			dev_err(&adev->dev, "invalid IRQ base in pdata\n");
 			return -ENODEV;
 		}
-	} else {
+	}
+	else
+	{
 		chip->gc.base = -1;
 		irq_base = 0;
 	}
 
 	chip->base = devm_ioremap_resource(dev, &adev->res);
+
 	if (IS_ERR(chip->base))
+	{
 		return PTR_ERR(chip->base);
+	}
 
 	spin_lock_init(&chip->lock);
-	if (of_property_read_bool(dev->of_node, "gpio-ranges")) {
+
+	if (of_property_read_bool(dev->of_node, "gpio-ranges"))
+	{
 		chip->gc.request = gpiochip_generic_request;
 		chip->gc.free = gpiochip_generic_free;
 	}
@@ -333,42 +372,54 @@ static int pl061_probe(struct amba_device *adev, const struct amba_id *id)
 	chip->gc.owner = THIS_MODULE;
 
 	ret = gpiochip_add_data(&chip->gc, chip);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/*
 	 * irq_chip support
 	 */
 	writeb(0, chip->base + GPIOIE); /* disable irqs */
 	irq = adev->irq[0];
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&adev->dev, "invalid IRQ\n");
 		return -ENODEV;
 	}
 
 	ret = gpiochip_irqchip_add(&chip->gc, &pl061_irqchip,
-				   irq_base, handle_bad_irq,
-				   IRQ_TYPE_NONE);
-	if (ret) {
+							   irq_base, handle_bad_irq,
+							   IRQ_TYPE_NONE);
+
+	if (ret)
+	{
 		dev_info(&adev->dev, "could not add irqchip\n");
 		return ret;
 	}
-	gpiochip_set_chained_irqchip(&chip->gc, &pl061_irqchip,
-				     irq, pl061_irq_handler);
 
-	for (i = 0; i < PL061_GPIO_NR; i++) {
-		if (pdata) {
+	gpiochip_set_chained_irqchip(&chip->gc, &pl061_irqchip,
+								 irq, pl061_irq_handler);
+
+	for (i = 0; i < PL061_GPIO_NR; i++)
+	{
+		if (pdata)
+		{
 			if (pdata->directions & (BIT(i)))
 				pl061_direction_output(&chip->gc, i,
-						pdata->values & (BIT(i)));
+									   pdata->values & (BIT(i)));
 			else
+			{
 				pl061_direction_input(&chip->gc, i);
+			}
 		}
 	}
 
 	amba_set_drvdata(adev, chip);
 	dev_info(&adev->dev, "PL061 GPIO chip @%pa registered\n",
-		 &adev->res.start);
+			 &adev->res.start);
 
 	return 0;
 }
@@ -386,7 +437,8 @@ static int pl061_suspend(struct device *dev)
 	chip->csave_regs.gpio_iev = readb(chip->base + GPIOIEV);
 	chip->csave_regs.gpio_ie = readb(chip->base + GPIOIE);
 
-	for (offset = 0; offset < PL061_GPIO_NR; offset++) {
+	for (offset = 0; offset < PL061_GPIO_NR; offset++)
+	{
 		if (chip->csave_regs.gpio_dir & (BIT(offset)))
 			chip->csave_regs.gpio_data |=
 				pl061_get_value(&chip->gc, offset) << offset;
@@ -400,13 +452,16 @@ static int pl061_resume(struct device *dev)
 	struct pl061_gpio *chip = dev_get_drvdata(dev);
 	int offset;
 
-	for (offset = 0; offset < PL061_GPIO_NR; offset++) {
+	for (offset = 0; offset < PL061_GPIO_NR; offset++)
+	{
 		if (chip->csave_regs.gpio_dir & (BIT(offset)))
 			pl061_direction_output(&chip->gc, offset,
-					chip->csave_regs.gpio_data &
-					(BIT(offset)));
+								   chip->csave_regs.gpio_data &
+								   (BIT(offset)));
 		else
+		{
 			pl061_direction_input(&chip->gc, offset);
+		}
 	}
 
 	writeb(chip->csave_regs.gpio_is, chip->base + GPIOIS);
@@ -417,7 +472,8 @@ static int pl061_resume(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops pl061_dev_pm_ops = {
+static const struct dev_pm_ops pl061_dev_pm_ops =
+{
 	.suspend = pl061_suspend,
 	.resume = pl061_resume,
 	.freeze = pl061_suspend,
@@ -425,7 +481,8 @@ static const struct dev_pm_ops pl061_dev_pm_ops = {
 };
 #endif
 
-static struct amba_id pl061_ids[] = {
+static struct amba_id pl061_ids[] =
+{
 	{
 		.id	= 0x00041061,
 		.mask	= 0x000fffff,
@@ -433,7 +490,8 @@ static struct amba_id pl061_ids[] = {
 	{ 0, 0 },
 };
 
-static struct amba_driver pl061_gpio_driver = {
+static struct amba_driver pl061_gpio_driver =
+{
 	.drv = {
 		.name	= "pl061_gpio",
 #ifdef CONFIG_PM

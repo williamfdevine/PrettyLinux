@@ -50,25 +50,35 @@ static void arc_emac_adjust_link(struct net_device *ndev)
 	struct phy_device *phy_dev = ndev->phydev;
 	unsigned int reg, state_changed = 0;
 
-	if (priv->link != phy_dev->link) {
+	if (priv->link != phy_dev->link)
+	{
 		priv->link = phy_dev->link;
 		state_changed = 1;
 	}
 
-	if (priv->speed != phy_dev->speed) {
+	if (priv->speed != phy_dev->speed)
+	{
 		priv->speed = phy_dev->speed;
 		state_changed = 1;
+
 		if (priv->set_mac_speed)
+		{
 			priv->set_mac_speed(priv, priv->speed);
+		}
 	}
 
-	if (priv->duplex != phy_dev->duplex) {
+	if (priv->duplex != phy_dev->duplex)
+	{
 		reg = arc_reg_get(priv, R_CTRL);
 
 		if (phy_dev->duplex == DUPLEX_FULL)
+		{
 			reg |= ENFL_MASK;
+		}
 		else
+		{
 			reg &= ~ENFL_MASK;
+		}
 
 		arc_reg_set(priv, R_CTRL, reg);
 		priv->duplex = phy_dev->duplex;
@@ -76,7 +86,9 @@ static void arc_emac_adjust_link(struct net_device *ndev)
 	}
 
 	if (state_changed)
+	{
 		phy_print_status(phy_dev);
+	}
 }
 
 /**
@@ -88,7 +100,7 @@ static void arc_emac_adjust_link(struct net_device *ndev)
  * Issue "ethtool -i ethX" under linux prompt to execute this function.
  */
 static void arc_emac_get_drvinfo(struct net_device *ndev,
-				 struct ethtool_drvinfo *info)
+								 struct ethtool_drvinfo *info)
 {
 	struct arc_emac_priv *priv = netdev_priv(ndev);
 
@@ -96,7 +108,8 @@ static void arc_emac_get_drvinfo(struct net_device *ndev,
 	strlcpy(info->version, priv->drv_version, sizeof(info->version));
 }
 
-static const struct ethtool_ops arc_emac_ethtool_ops = {
+static const struct ethtool_ops arc_emac_ethtool_ops =
+{
 	.get_drvinfo	= arc_emac_get_drvinfo,
 	.get_link	= ethtool_op_get_link,
 	.get_link_ksettings = phy_ethtool_get_link_ksettings,
@@ -115,7 +128,8 @@ static void arc_emac_tx_clean(struct net_device *ndev)
 	struct net_device_stats *stats = &ndev->stats;
 	unsigned int i;
 
-	for (i = 0; i < TX_BD_NUM; i++) {
+	for (i = 0; i < TX_BD_NUM; i++)
+	{
 		unsigned int *txbd_dirty = &priv->txbd_dirty;
 		struct arc_emac_bd *txbd = &priv->txbd[*txbd_dirty];
 		struct buffer_state *tx_buff = &priv->tx_buff[*txbd_dirty];
@@ -123,27 +137,38 @@ static void arc_emac_tx_clean(struct net_device *ndev)
 		unsigned int info = le32_to_cpu(txbd->info);
 
 		if ((info & FOR_EMAC) || !txbd->data || !skb)
+		{
 			break;
+		}
 
-		if (unlikely(info & (DROP | DEFR | LTCL | UFLO))) {
+		if (unlikely(info & (DROP | DEFR | LTCL | UFLO)))
+		{
 			stats->tx_errors++;
 			stats->tx_dropped++;
 
 			if (info & DEFR)
+			{
 				stats->tx_carrier_errors++;
+			}
 
 			if (info & LTCL)
+			{
 				stats->collisions++;
+			}
 
 			if (info & UFLO)
+			{
 				stats->tx_fifo_errors++;
-		} else if (likely(info & FIRST_OR_LAST_MASK)) {
+			}
+		}
+		else if (likely(info & FIRST_OR_LAST_MASK))
+		{
 			stats->tx_packets++;
 			stats->tx_bytes += skb->len;
 		}
 
 		dma_unmap_single(&ndev->dev, dma_unmap_addr(tx_buff, addr),
-				 dma_unmap_len(tx_buff, len), DMA_TO_DEVICE);
+						 dma_unmap_len(tx_buff, len), DMA_TO_DEVICE);
 
 		/* return the sk_buff to system */
 		dev_kfree_skb_irq(skb);
@@ -161,7 +186,9 @@ static void arc_emac_tx_clean(struct net_device *ndev)
 	smp_mb();
 
 	if (netif_queue_stopped(ndev) && arc_emac_tx_avail(priv))
+	{
 		netif_wake_queue(ndev);
+	}
 }
 
 /**
@@ -178,7 +205,8 @@ static int arc_emac_rx(struct net_device *ndev, int budget)
 	struct arc_emac_priv *priv = netdev_priv(ndev);
 	unsigned int work_done;
 
-	for (work_done = 0; work_done < budget; work_done++) {
+	for (work_done = 0; work_done < budget; work_done++)
+	{
 		unsigned int *last_rx_bd = &priv->last_rx_bd;
 		struct net_device_stats *stats = &ndev->stats;
 		struct buffer_state *rx_buff = &priv->rx_buff[*last_rx_bd];
@@ -188,7 +216,9 @@ static int arc_emac_rx(struct net_device *ndev, int budget)
 		dma_addr_t addr;
 
 		if (unlikely((info & OWN_MASK) == FOR_EMAC))
+		{
 			break;
+		}
 
 		/* Make a note that we saw a packet at this BD.
 		 * So next time, driver starts from this + 1
@@ -196,12 +226,15 @@ static int arc_emac_rx(struct net_device *ndev, int budget)
 		*last_rx_bd = (*last_rx_bd + 1) % RX_BD_NUM;
 
 		if (unlikely((info & FIRST_OR_LAST_MASK) !=
-			     FIRST_OR_LAST_MASK)) {
+					 FIRST_OR_LAST_MASK))
+		{
 			/* We pre-allocate buffers of MTU size so incoming
 			 * packets won't be split/chained.
 			 */
 			if (net_ratelimit())
+			{
 				netdev_err(ndev, "incomplete packet received\n");
+			}
 
 			/* Return ownership to EMAC */
 			rxbd->info = cpu_to_le32(FOR_EMAC | EMAC_BUFFER_SIZE);
@@ -219,12 +252,14 @@ static int arc_emac_rx(struct net_device *ndev, int budget)
 		skb->protocol = eth_type_trans(skb, ndev);
 
 		dma_unmap_single(&ndev->dev, dma_unmap_addr(rx_buff, addr),
-				 dma_unmap_len(rx_buff, len), DMA_FROM_DEVICE);
+						 dma_unmap_len(rx_buff, len), DMA_FROM_DEVICE);
 
 		/* Prepare the BD for next cycle */
 		rx_buff->skb = netdev_alloc_skb_ip_align(ndev,
-							 EMAC_BUFFER_SIZE);
-		if (unlikely(!rx_buff->skb)) {
+					   EMAC_BUFFER_SIZE);
+
+		if (unlikely(!rx_buff->skb))
+		{
 			stats->rx_errors++;
 			/* Because receive_skb is below, increment rx_dropped */
 			stats->rx_dropped++;
@@ -235,14 +270,20 @@ static int arc_emac_rx(struct net_device *ndev, int budget)
 		netif_receive_skb(skb);
 
 		addr = dma_map_single(&ndev->dev, (void *)rx_buff->skb->data,
-				      EMAC_BUFFER_SIZE, DMA_FROM_DEVICE);
-		if (dma_mapping_error(&ndev->dev, addr)) {
+							  EMAC_BUFFER_SIZE, DMA_FROM_DEVICE);
+
+		if (dma_mapping_error(&ndev->dev, addr))
+		{
 			if (net_ratelimit())
+			{
 				netdev_err(ndev, "cannot dma map\n");
+			}
+
 			dev_kfree_skb(rx_buff->skb);
 			stats->rx_errors++;
 			continue;
 		}
+
 		dma_unmap_addr_set(rx_buff, addr, addr);
 		dma_unmap_len_set(rx_buff, len, EMAC_BUFFER_SIZE);
 
@@ -274,7 +315,9 @@ static int arc_emac_poll(struct napi_struct *napi, int budget)
 	arc_emac_tx_clean(ndev);
 
 	work_done = arc_emac_rx(ndev, budget);
-	if (work_done < budget) {
+
+	if (work_done < budget)
+	{
 		napi_complete(napi);
 		arc_reg_or(priv, R_ENABLE, RXINT_MASK | TXINT_MASK);
 	}
@@ -305,34 +348,41 @@ static irqreturn_t arc_emac_intr(int irq, void *dev_instance)
 	/* Reset all flags except "MDIO complete" */
 	arc_reg_set(priv, R_STATUS, status);
 
-	if (status & (RXINT_MASK | TXINT_MASK)) {
-		if (likely(napi_schedule_prep(&priv->napi))) {
+	if (status & (RXINT_MASK | TXINT_MASK))
+	{
+		if (likely(napi_schedule_prep(&priv->napi)))
+		{
 			arc_reg_clr(priv, R_ENABLE, RXINT_MASK | TXINT_MASK);
 			__napi_schedule(&priv->napi);
 		}
 	}
 
-	if (status & ERR_MASK) {
+	if (status & ERR_MASK)
+	{
 		/* MSER/RXCR/RXFR/RXFL interrupt fires on corresponding
 		 * 8-bit error counter overrun.
 		 */
 
-		if (status & MSER_MASK) {
+		if (status & MSER_MASK)
+		{
 			stats->rx_missed_errors += 0x100;
 			stats->rx_errors += 0x100;
 		}
 
-		if (status & RXCR_MASK) {
+		if (status & RXCR_MASK)
+		{
 			stats->rx_crc_errors += 0x100;
 			stats->rx_errors += 0x100;
 		}
 
-		if (status & RXFR_MASK) {
+		if (status & RXFR_MASK)
+		{
 			stats->rx_frame_errors += 0x100;
 			stats->rx_errors += 0x100;
 		}
 
-		if (status & RXFL_MASK) {
+		if (status & RXFL_MASK)
+		{
 			stats->rx_over_errors += 0x100;
 			stats->rx_errors += 0x100;
 		}
@@ -374,24 +424,31 @@ static int arc_emac_open(struct net_device *ndev)
 	priv->last_rx_bd = 0;
 
 	/* Allocate and set buffers for Rx BD's */
-	for (i = 0; i < RX_BD_NUM; i++) {
+	for (i = 0; i < RX_BD_NUM; i++)
+	{
 		dma_addr_t addr;
 		unsigned int *last_rx_bd = &priv->last_rx_bd;
 		struct arc_emac_bd *rxbd = &priv->rxbd[*last_rx_bd];
 		struct buffer_state *rx_buff = &priv->rx_buff[*last_rx_bd];
 
 		rx_buff->skb = netdev_alloc_skb_ip_align(ndev,
-							 EMAC_BUFFER_SIZE);
+					   EMAC_BUFFER_SIZE);
+
 		if (unlikely(!rx_buff->skb))
+		{
 			return -ENOMEM;
+		}
 
 		addr = dma_map_single(&ndev->dev, (void *)rx_buff->skb->data,
-				      EMAC_BUFFER_SIZE, DMA_FROM_DEVICE);
-		if (dma_mapping_error(&ndev->dev, addr)) {
+							  EMAC_BUFFER_SIZE, DMA_FROM_DEVICE);
+
+		if (dma_mapping_error(&ndev->dev, addr))
+		{
 			netdev_err(ndev, "cannot dma map\n");
 			dev_kfree_skb(rx_buff->skb);
 			return -ENOMEM;
 		}
+
 		dma_unmap_addr_set(rx_buff, addr, addr);
 		dma_unmap_len_set(rx_buff, len, EMAC_BUFFER_SIZE);
 
@@ -425,9 +482,9 @@ static int arc_emac_open(struct net_device *ndev)
 
 	/* Set CONTROL */
 	arc_reg_set(priv, R_CTRL,
-		    (RX_BD_NUM << 24) |	/* RX BD table length */
-		    (TX_BD_NUM << 16) |	/* TX BD table length */
-		    TXRN_MASK | RXRN_MASK);
+				(RX_BD_NUM << 24) |	/* RX BD table length */
+				(TX_BD_NUM << 16) |	/* TX BD table length */
+				TXRN_MASK | RXRN_MASK);
 
 	napi_enable(&priv->napi);
 
@@ -452,20 +509,27 @@ static void arc_emac_set_rx_mode(struct net_device *ndev)
 {
 	struct arc_emac_priv *priv = netdev_priv(ndev);
 
-	if (ndev->flags & IFF_PROMISC) {
+	if (ndev->flags & IFF_PROMISC)
+	{
 		arc_reg_or(priv, R_CTRL, PROM_MASK);
-	} else {
+	}
+	else
+	{
 		arc_reg_clr(priv, R_CTRL, PROM_MASK);
 
-		if (ndev->flags & IFF_ALLMULTI) {
+		if (ndev->flags & IFF_ALLMULTI)
+		{
 			arc_reg_set(priv, R_LAFL, ~0);
 			arc_reg_set(priv, R_LAFH, ~0);
-		} else {
+		}
+		else
+		{
 			struct netdev_hw_addr *ha;
 			unsigned int filter[2] = { 0, 0 };
 			int bit;
 
-			netdev_for_each_mc_addr(ha, ndev) {
+			netdev_for_each_mc_addr(ha, ndev)
+			{
 				bit = ether_crc_le(ETH_ALEN, ha->addr) >> 26;
 				filter[bit >> 5] |= 1 << (bit & 31);
 			}
@@ -487,15 +551,17 @@ static void arc_free_tx_queue(struct net_device *ndev)
 	struct arc_emac_priv *priv = netdev_priv(ndev);
 	unsigned int i;
 
-	for (i = 0; i < TX_BD_NUM; i++) {
+	for (i = 0; i < TX_BD_NUM; i++)
+	{
 		struct arc_emac_bd *txbd = &priv->txbd[i];
 		struct buffer_state *tx_buff = &priv->tx_buff[i];
 
-		if (tx_buff->skb) {
+		if (tx_buff->skb)
+		{
 			dma_unmap_single(&ndev->dev,
-					 dma_unmap_addr(tx_buff, addr),
-					 dma_unmap_len(tx_buff, len),
-					 DMA_TO_DEVICE);
+							 dma_unmap_addr(tx_buff, addr),
+							 dma_unmap_len(tx_buff, len),
+							 DMA_TO_DEVICE);
 
 			/* return the sk_buff to system */
 			dev_kfree_skb_irq(tx_buff->skb);
@@ -518,15 +584,17 @@ static void arc_free_rx_queue(struct net_device *ndev)
 	struct arc_emac_priv *priv = netdev_priv(ndev);
 	unsigned int i;
 
-	for (i = 0; i < RX_BD_NUM; i++) {
+	for (i = 0; i < RX_BD_NUM; i++)
+	{
 		struct arc_emac_bd *rxbd = &priv->rxbd[i];
 		struct buffer_state *rx_buff = &priv->rx_buff[i];
 
-		if (rx_buff->skb) {
+		if (rx_buff->skb)
+		{
 			dma_unmap_single(&ndev->dev,
-					 dma_unmap_addr(rx_buff, addr),
-					 dma_unmap_len(rx_buff, len),
-					 DMA_FROM_DEVICE);
+							 dma_unmap_addr(rx_buff, addr),
+							 dma_unmap_len(rx_buff, len),
+							 DMA_FROM_DEVICE);
 
 			/* return the sk_buff to system */
 			dev_kfree_skb_irq(rx_buff->skb);
@@ -617,25 +685,30 @@ static int arc_emac_tx(struct sk_buff *skb, struct net_device *ndev)
 	dma_addr_t addr;
 
 	if (skb_padto(skb, ETH_ZLEN))
+	{
 		return NETDEV_TX_OK;
+	}
 
 	len = max_t(unsigned int, ETH_ZLEN, skb->len);
 
-	if (unlikely(!arc_emac_tx_avail(priv))) {
+	if (unlikely(!arc_emac_tx_avail(priv)))
+	{
 		netif_stop_queue(ndev);
 		netdev_err(ndev, "BUG! Tx Ring full when queue awake!\n");
 		return NETDEV_TX_BUSY;
 	}
 
 	addr = dma_map_single(&ndev->dev, (void *)skb->data, len,
-			      DMA_TO_DEVICE);
+						  DMA_TO_DEVICE);
 
-	if (unlikely(dma_mapping_error(&ndev->dev, addr))) {
+	if (unlikely(dma_mapping_error(&ndev->dev, addr)))
+	{
 		stats->tx_dropped++;
 		stats->tx_errors++;
 		dev_kfree_skb(skb);
 		return NETDEV_TX_OK;
 	}
+
 	dma_unmap_addr_set(&priv->tx_buff[*txbd_curr], addr, addr);
 	dma_unmap_len_set(&priv->tx_buff[*txbd_curr], len, len);
 
@@ -662,12 +735,16 @@ static int arc_emac_tx(struct sk_buff *skb, struct net_device *ndev)
 	 */
 	smp_mb();
 
-	if (!arc_emac_tx_avail(priv)) {
+	if (!arc_emac_tx_avail(priv))
+	{
 		netif_stop_queue(ndev);
 		/* Refresh tx_dirty */
 		smp_mb();
+
 		if (arc_emac_tx_avail(priv))
+		{
 			netif_start_queue(ndev);
+		}
 	}
 
 	arc_reg_set(priv, R_STATUS, TXPL_MASK);
@@ -703,10 +780,14 @@ static int arc_emac_set_address(struct net_device *ndev, void *p)
 	struct sockaddr *addr = p;
 
 	if (netif_running(ndev))
+	{
 		return -EBUSY;
+	}
 
 	if (!is_valid_ether_addr(addr->sa_data))
+	{
 		return -EADDRNOTAVAIL;
+	}
 
 	memcpy(ndev->dev_addr, addr->sa_data, ndev->addr_len);
 
@@ -715,7 +796,8 @@ static int arc_emac_set_address(struct net_device *ndev, void *p)
 	return 0;
 }
 
-static const struct net_device_ops arc_emac_netdev_ops = {
+static const struct net_device_ops arc_emac_netdev_ops =
+{
 	.ndo_open		= arc_emac_open,
 	.ndo_stop		= arc_emac_stop,
 	.ndo_start_xmit		= arc_emac_tx,
@@ -740,14 +822,18 @@ int arc_emac_probe(struct net_device *ndev, int interface)
 
 	/* Get PHY from device tree */
 	phy_node = of_parse_phandle(dev->of_node, "phy", 0);
-	if (!phy_node) {
+
+	if (!phy_node)
+	{
 		dev_err(dev, "failed to retrieve phy description from device tree\n");
 		return -ENODEV;
 	}
 
 	/* Get EMAC registers base address from device tree */
 	err = of_address_to_resource(dev->of_node, 0, &res_regs);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(dev, "failed to retrieve registers base from device tree\n");
 		err = -ENODEV;
 		goto out_put_node;
@@ -755,7 +841,9 @@ int arc_emac_probe(struct net_device *ndev, int interface)
 
 	/* Get IRQ from device tree */
 	irq = irq_of_parse_and_map(dev->of_node, 0);
-	if (!irq) {
+
+	if (!irq)
+	{
 		dev_err(dev, "failed to retrieve <irq> value from device tree\n");
 		err = -ENODEV;
 		goto out_put_node;
@@ -771,25 +859,33 @@ int arc_emac_probe(struct net_device *ndev, int interface)
 	priv->dev = dev;
 
 	priv->regs = devm_ioremap_resource(dev, &res_regs);
-	if (IS_ERR(priv->regs)) {
+
+	if (IS_ERR(priv->regs))
+	{
 		err = PTR_ERR(priv->regs);
 		goto out_put_node;
 	}
 
 	dev_dbg(dev, "Registers base address is 0x%p\n", priv->regs);
 
-	if (priv->clk) {
+	if (priv->clk)
+	{
 		err = clk_prepare_enable(priv->clk);
-		if (err) {
+
+		if (err)
+		{
 			dev_err(dev, "failed to enable clock\n");
 			goto out_put_node;
 		}
 
 		clock_frequency = clk_get_rate(priv->clk);
-	} else {
+	}
+	else
+	{
 		/* Get CPU clock frequency from device tree */
 		if (of_property_read_u32(dev->of_node, "clock-frequency",
-					 &clock_frequency)) {
+								 &clock_frequency))
+		{
 			dev_err(dev, "failed to retrieve <clock-frequency> from device tree\n");
 			err = -EINVAL;
 			goto out_put_node;
@@ -799,11 +895,13 @@ int arc_emac_probe(struct net_device *ndev, int interface)
 	id = arc_reg_get(priv, R_ID);
 
 	/* Check for EMAC revision 5 or 7, magic number */
-	if (!(id == 0x0005fd02 || id == 0x0007fd02)) {
+	if (!(id == 0x0005fd02 || id == 0x0007fd02))
+	{
 		dev_err(dev, "ARC EMAC not detected, id=0x%x\n", id);
 		err = -ENODEV;
 		goto out_clken;
 	}
+
 	dev_info(dev, "ARC EMAC detected with id: 0x%x\n", id);
 
 	/* Set poll rate so that it polls every 1 ms */
@@ -814,8 +912,10 @@ int arc_emac_probe(struct net_device *ndev, int interface)
 
 	/* Register interrupt handler for device */
 	err = devm_request_irq(dev, ndev->irq, arc_emac_intr, 0,
-			       ndev->name, ndev);
-	if (err) {
+						   ndev->name, ndev);
+
+	if (err)
+	{
 		dev_err(dev, "could not allocate IRQ\n");
 		goto out_clken;
 	}
@@ -824,18 +924,23 @@ int arc_emac_probe(struct net_device *ndev, int interface)
 	mac_addr = of_get_mac_address(dev->of_node);
 
 	if (mac_addr)
+	{
 		memcpy(ndev->dev_addr, mac_addr, ETH_ALEN);
+	}
 	else
+	{
 		eth_hw_addr_random(ndev);
+	}
 
 	arc_emac_set_address_internal(ndev);
 	dev_info(dev, "MAC address is now %pM\n", ndev->dev_addr);
 
 	/* Do 1 allocation instead of 2 separate ones for Rx and Tx BD rings */
 	priv->rxbd = dmam_alloc_coherent(dev, RX_RING_SZ + TX_RING_SZ,
-					 &priv->rxbd_dma, GFP_KERNEL);
+									 &priv->rxbd_dma, GFP_KERNEL);
 
-	if (!priv->rxbd) {
+	if (!priv->rxbd)
+	{
 		dev_err(dev, "failed to allocate data buffers\n");
 		err = -ENOMEM;
 		goto out_clken;
@@ -845,29 +950,35 @@ int arc_emac_probe(struct net_device *ndev, int interface)
 
 	priv->txbd_dma = priv->rxbd_dma + RX_RING_SZ;
 	dev_dbg(dev, "EMAC Device addr: Rx Ring [0x%x], Tx Ring[%x]\n",
-		(unsigned int)priv->rxbd_dma, (unsigned int)priv->txbd_dma);
+			(unsigned int)priv->rxbd_dma, (unsigned int)priv->txbd_dma);
 
 	err = arc_mdio_probe(priv);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(dev, "failed to probe MII bus\n");
 		goto out_clken;
 	}
 
 	phydev = of_phy_connect(ndev, phy_node, arc_emac_adjust_link, 0,
-				interface);
-	if (!phydev) {
+							interface);
+
+	if (!phydev)
+	{
 		dev_err(dev, "of_phy_connect() failed\n");
 		err = -ENODEV;
 		goto out_mdio;
 	}
 
 	dev_info(dev, "connected to %s phy with id 0x%x\n",
-		 phydev->drv->name, phydev->phy_id);
+			 phydev->drv->name, phydev->phy_id);
 
 	netif_napi_add(ndev, &priv->napi, arc_emac_poll, ARC_EMAC_NAPI_WEIGHT);
 
 	err = register_netdev(ndev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(dev, "failed to register network device\n");
 		goto out_netif_api;
 	}
@@ -881,8 +992,12 @@ out_netif_api:
 out_mdio:
 	arc_mdio_remove(priv);
 out_clken:
+
 	if (priv->clk)
+	{
 		clk_disable_unprepare(priv->clk);
+	}
+
 out_put_node:
 	of_node_put(phy_node);
 
@@ -900,7 +1015,9 @@ int arc_emac_remove(struct net_device *ndev)
 	netif_napi_del(&priv->napi);
 
 	if (!IS_ERR(priv->clk))
+	{
 		clk_disable_unprepare(priv->clk);
+	}
 
 	return 0;
 }

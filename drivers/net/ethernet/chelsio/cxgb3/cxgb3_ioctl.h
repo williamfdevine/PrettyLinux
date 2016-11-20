@@ -35,7 +35,8 @@
 /*
  * Ioctl commands specific to this driver.
  */
-enum {
+enum
+{
 	CHELSIO_GETMTUTAB 		= 1029,
 	CHELSIO_SETMTUTAB 		= 1030,
 	CHELSIO_SET_PM 			= 1032,
@@ -49,13 +50,15 @@ enum {
 	CHELSIO_GET_QSET_NUM		= 1048,
 };
 
-struct ch_reg {
+struct ch_reg
+{
 	uint32_t cmd;
 	uint32_t addr;
 	uint32_t val;
 };
 
-struct ch_cntxt {
+struct ch_cntxt
+{
 	uint32_t cmd;
 	uint32_t cntxt_type;
 	uint32_t cntxt_id;
@@ -65,7 +68,8 @@ struct ch_cntxt {
 /* context types */
 enum { CNTXT_TYPE_EGRESS, CNTXT_TYPE_FL, CNTXT_TYPE_RSP, CNTXT_TYPE_CQ };
 
-struct ch_desc {
+struct ch_desc
+{
 	uint32_t cmd;
 	uint32_t queue_num;
 	uint32_t idx;
@@ -73,7 +77,8 @@ struct ch_desc {
 	uint8_t data[128];
 };
 
-struct ch_mem_range {
+struct ch_mem_range
+{
 	uint32_t cmd;
 	uint32_t mem_id;
 	uint32_t addr;
@@ -82,7 +87,8 @@ struct ch_mem_range {
 	uint8_t buf[0];
 };
 
-struct ch_qset_params {
+struct ch_qset_params
+{
 	uint32_t cmd;
 	uint32_t qset_idx;
 	int32_t txq_size[3];
@@ -96,7 +102,8 @@ struct ch_qset_params {
 	int32_t  qnum;
 };
 
-struct ch_pktsched_params {
+struct ch_pktsched_params
+{
 	uint32_t cmd;
 	uint8_t sched;
 	uint8_t idx;
@@ -106,7 +113,7 @@ struct ch_pktsched_params {
 };
 
 #ifndef TCB_SIZE
-# define TCB_SIZE   128
+	#define TCB_SIZE   128
 #endif
 
 /* TCB size in 32-bit words */
@@ -114,13 +121,15 @@ struct ch_pktsched_params {
 
 enum { MEM_CM, MEM_PMRX, MEM_PMTX };	/* ch_mem_range.mem_id values */
 
-struct ch_mtus {
+struct ch_mtus
+{
 	uint32_t cmd;
 	uint32_t nmtus;
 	uint16_t mtus[NMTUS];
 };
 
-struct ch_pm {
+struct ch_pm
+{
 	uint32_t cmd;
 	uint32_t tx_pg_sz;
 	uint32_t tx_num_pg;
@@ -129,7 +138,8 @@ struct ch_pm {
 	uint32_t pm_total;
 };
 
-struct ch_tcam {
+struct ch_tcam
+{
 	uint32_t cmd;
 	uint32_t tcam_size;
 	uint32_t nservers;
@@ -137,19 +147,22 @@ struct ch_tcam {
 	uint32_t nfilters;
 };
 
-struct ch_tcb {
+struct ch_tcb
+{
 	uint32_t cmd;
 	uint32_t tcb_index;
 	uint32_t tcb_data[TCB_WORDS];
 };
 
-struct ch_tcam_word {
+struct ch_tcam_word
+{
 	uint32_t cmd;
 	uint32_t addr;
 	uint32_t buf[3];
 };
 
-struct ch_trace {
+struct ch_trace
+{
 	uint32_t cmd;
 	uint32_t sip;
 	uint32_t sip_mask;
@@ -159,17 +172,17 @@ struct ch_trace {
 	uint16_t sport_mask;
 	uint16_t dport;
 	uint16_t dport_mask;
-	uint32_t vlan:12;
-	uint32_t vlan_mask:12;
-	uint32_t intf:4;
-	uint32_t intf_mask:4;
+	uint32_t vlan: 12;
+	uint32_t vlan_mask: 12;
+	uint32_t intf: 4;
+	uint32_t intf_mask: 4;
 	uint8_t proto;
 	uint8_t proto_mask;
-	uint8_t invert_match:1;
-	uint8_t config_tx:1;
-	uint8_t config_rx:1;
-	uint8_t trace_tx:1;
-	uint8_t trace_rx:1;
+	uint8_t invert_match: 1;
+	uint8_t config_tx: 1;
+	uint8_t config_rx: 1;
+	uint8_t trace_tx: 1;
+	uint8_t trace_rx: 1;
 };
 
 #define SIOCCHIOCTL SIOCDEVPRIVATE

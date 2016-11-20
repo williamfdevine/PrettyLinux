@@ -9,7 +9,8 @@
  */
 
 /* Initialized Values for the Completion Processor. */
-static const struct cpu_reg cpu_reg_com = {
+static const struct cpu_reg cpu_reg_com =
+{
 	.mode = BNX2_COM_CPU_MODE,
 	.mode_value_halt = BNX2_COM_CPU_MODE_SOFT_HALT,
 	.mode_value_sstep = BNX2_COM_CPU_MODE_STEP_ENA,
@@ -25,7 +26,8 @@ static const struct cpu_reg cpu_reg_com = {
 };
 
 /* Initialized Values the Command Processor. */
-static const struct cpu_reg cpu_reg_cp = {
+static const struct cpu_reg cpu_reg_cp =
+{
 	.mode = BNX2_CP_CPU_MODE,
 	.mode_value_halt = BNX2_CP_CPU_MODE_SOFT_HALT,
 	.mode_value_sstep = BNX2_CP_CPU_MODE_STEP_ENA,
@@ -41,7 +43,8 @@ static const struct cpu_reg cpu_reg_cp = {
 };
 
 /* Initialized Values for the RX Processor. */
-static const struct cpu_reg cpu_reg_rxp = {
+static const struct cpu_reg cpu_reg_rxp =
+{
 	.mode = BNX2_RXP_CPU_MODE,
 	.mode_value_halt = BNX2_RXP_CPU_MODE_SOFT_HALT,
 	.mode_value_sstep = BNX2_RXP_CPU_MODE_STEP_ENA,
@@ -57,7 +60,8 @@ static const struct cpu_reg cpu_reg_rxp = {
 };
 
 /* Initialized Values for the TX Patch-up Processor. */
-static const struct cpu_reg cpu_reg_tpat = {
+static const struct cpu_reg cpu_reg_tpat =
+{
 	.mode = BNX2_TPAT_CPU_MODE,
 	.mode_value_halt = BNX2_TPAT_CPU_MODE_SOFT_HALT,
 	.mode_value_sstep = BNX2_TPAT_CPU_MODE_STEP_ENA,
@@ -73,7 +77,8 @@ static const struct cpu_reg cpu_reg_tpat = {
 };
 
 /* Initialized Values for the TX Processor. */
-static const struct cpu_reg cpu_reg_txp = {
+static const struct cpu_reg cpu_reg_txp =
+{
 	.mode = BNX2_TXP_CPU_MODE,
 	.mode_value_halt = BNX2_TXP_CPU_MODE_SOFT_HALT,
 	.mode_value_sstep = BNX2_TXP_CPU_MODE_STEP_ENA,

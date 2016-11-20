@@ -44,7 +44,8 @@
 #define GRE_PROTO_PPP		__cpu_to_be16(0x880b)
 #define GRE_PPTP_KEY_MASK	__cpu_to_be32(0xffff)
 
-struct ip_tunnel_parm {
+struct ip_tunnel_parm
+{
 	char			name[IFNAMSIZ];
 	int			link;
 	__be16			i_flags;
@@ -54,7 +55,8 @@ struct ip_tunnel_parm {
 	struct iphdr		iph;
 };
 
-enum {
+enum
+{
 	IFLA_IPTUN_UNSPEC,
 	IFLA_IPTUN_LINK,
 	IFLA_IPTUN_LOCAL,
@@ -79,7 +81,8 @@ enum {
 };
 #define IFLA_IPTUN_MAX	(__IFLA_IPTUN_MAX - 1)
 
-enum tunnel_encap_types {
+enum tunnel_encap_types
+{
 	TUNNEL_ENCAP_NONE,
 	TUNNEL_ENCAP_FOU,
 	TUNNEL_ENCAP_GUE,
@@ -92,7 +95,8 @@ enum tunnel_encap_types {
 /* SIT-mode i_flags */
 #define	SIT_ISATAP	0x0001
 
-struct ip_tunnel_prl {
+struct ip_tunnel_prl
+{
 	__be32			addr;
 	__u16			flags;
 	__u16			__reserved;
@@ -104,14 +108,16 @@ struct ip_tunnel_prl {
 /* PRL flags */
 #define	PRL_DEFAULT		0x0001
 
-struct ip_tunnel_6rd {
+struct ip_tunnel_6rd
+{
 	struct in6_addr		prefix;
 	__be32			relay_prefix;
 	__u16			prefixlen;
 	__u16			relay_prefixlen;
 };
 
-enum {
+enum
+{
 	IFLA_GRE_UNSPEC,
 	IFLA_GRE_LINK,
 	IFLA_GRE_IFLAGS,
@@ -140,7 +146,8 @@ enum {
 /* VTI-mode i_flags */
 #define VTI_ISVTI ((__force __be16)0x0001)
 
-enum {
+enum
+{
 	IFLA_VTI_UNSPEC,
 	IFLA_VTI_LINK,
 	IFLA_VTI_IKEY,

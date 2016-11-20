@@ -13,7 +13,8 @@ typedef int (*btree_keycmp)(const btree_key *, const btree_key *);
 #define NODE_HASH_SIZE  256
 
 /* A HFS BTree held in memory */
-struct hfs_btree {
+struct hfs_btree
+{
 	struct super_block *sb;
 	struct inode *inode;
 	btree_keycmp keycmp;
@@ -42,7 +43,8 @@ struct hfs_btree {
 };
 
 /* A HFS BTree node in memory */
-struct hfs_bnode {
+struct hfs_bnode
+{
 	struct hfs_btree *tree;
 
 	u32 prev;
@@ -66,7 +68,8 @@ struct hfs_bnode {
 #define HFS_BNODE_NEW		1
 #define HFS_BNODE_DELETED	2
 
-struct hfs_find_data {
+struct hfs_find_data
+{
 	btree_key *key;
 	btree_key *search_key;
 	struct hfs_btree *tree;
@@ -81,7 +84,7 @@ struct hfs_find_data {
 extern struct hfs_btree *hfs_btree_open(struct super_block *, u32, btree_keycmp);
 extern void hfs_btree_close(struct hfs_btree *);
 extern void hfs_btree_write(struct hfs_btree *);
-extern struct hfs_bnode * hfs_bmap_alloc(struct hfs_btree *);
+extern struct hfs_bnode *hfs_bmap_alloc(struct hfs_btree *);
 extern void hfs_bmap_free(struct hfs_bnode *node);
 
 /* bnode.c */
@@ -94,7 +97,7 @@ extern void hfs_bnode_write_u16(struct hfs_bnode *, int, u16);
 extern void hfs_bnode_write_u8(struct hfs_bnode *, int, u8);
 extern void hfs_bnode_clear(struct hfs_bnode *, int, int);
 extern void hfs_bnode_copy(struct hfs_bnode *, int,
-			   struct hfs_bnode *, int, int);
+						   struct hfs_bnode *, int, int);
 extern void hfs_bnode_move(struct hfs_bnode *, int, int, int);
 extern void hfs_bnode_dump(struct hfs_bnode *);
 extern void hfs_bnode_unlink(struct hfs_bnode *);
@@ -121,7 +124,8 @@ extern int hfs_brec_read(struct hfs_find_data *, void *, int);
 extern int hfs_brec_goto(struct hfs_find_data *, int);
 
 
-struct hfs_bnode_desc {
+struct hfs_bnode_desc
+{
 	__be32 next;		/* (V) Number of the next node at this level */
 	__be32 prev;		/* (V) Number of the prev node at this level */
 	u8 type;		/* (F) The type of node */
@@ -135,7 +139,8 @@ struct hfs_bnode_desc {
 #define HFS_NODE_MAP	0x02	/* Holds part of the bitmap of used nodes */
 #define HFS_NODE_LEAF	0xFF	/* A leaf (ndNHeight==1) node */
 
-struct hfs_btree_header_rec {
+struct hfs_btree_header_rec
+{
 	__be16 depth;		/* (V) The number of levels in this B-tree */
 	__be32 root;		/* (V) The node number of the root node */
 	__be32 leaf_count;	/* (V) The number of leaf records */

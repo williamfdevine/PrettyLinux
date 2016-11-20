@@ -35,7 +35,8 @@
  */
 
 /* main registers, BAR0 + 0x0000 */
-struct net2280_regs {
+struct net2280_regs
+{
 	/* offset 0x0000 */
 	u32		devinit;
 #define     LOCAL_CLOCK_FREQUENCY                               8
@@ -238,7 +239,8 @@ struct net2280_regs {
 } __attribute__ ((packed));
 
 /* usb control, BAR0 + 0x0080 */
-struct net2280_usb_regs {
+struct net2280_usb_regs
+{
 	/* offset 0x0080 */
 	u32		stdrsp;
 #define     STALL_UNSUPPORTED_REQUESTS                          31
@@ -302,7 +304,8 @@ struct net2280_usb_regs {
 } __attribute__ ((packed));
 
 /* pci control, BAR0 + 0x0100 */
-struct net2280_pci_regs {
+struct net2280_pci_regs
+{
 	/* offset 0x0100 */
 	u32		 pcimstctl;
 #define     PCI_ARBITER_PARK_SELECT                             13
@@ -332,7 +335,8 @@ struct net2280_pci_regs {
  * for channels 0..3.  see also struct net2280_dma:  descriptor
  * that can be loaded into some of these registers.
  */
-struct net2280_dma_regs {	/* [11.7] */
+struct net2280_dma_regs  	/* [11.7] */
+{
 	/* offset 0x0180, 0x01a0, 0x01c0, 0x01e0, */
 	u32		dmactl;
 #define     DMA_SCATTER_GATHER_DONE_INTERRUPT_ENABLE            25
@@ -372,7 +376,8 @@ struct net2280_dma_regs {	/* [11.7] */
 
 /* dedicated endpoint registers, BAR0 + 0x0200 */
 
-struct net2280_dep_regs {	/* [11.8] */
+struct net2280_dep_regs  	/* [11.8] */
+{
 	/* offset 0x0200, 0x0210, 0x220, 0x230, 0x240 */
 	u32		dep_cfg;
 	/* offset 0x0204, 0x0214, 0x224, 0x234, 0x244 */
@@ -384,7 +389,8 @@ struct net2280_dep_regs {	/* [11.8] */
  * like this, for ep0 then the configurable endpoints A..F
  * ep0 reserved for control; E and F have only 64 bytes of fifo
  */
-struct net2280_ep_regs {	/* [11.9] */
+struct net2280_ep_regs  	/* [11.9] */
+{
 	/* offset 0x0300, 0x0320, 0x0340, 0x0360, 0x0380, 0x03a0, 0x03c0 */
 	u32		ep_cfg;
 #define     ENDPOINT_BYTE_COUNT                                 16

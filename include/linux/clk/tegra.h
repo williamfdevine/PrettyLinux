@@ -40,7 +40,8 @@
  * resume:
  *	restore the clock settings when CPU exit low-power state
  */
-struct tegra_cpu_car_ops {
+struct tegra_cpu_car_ops
+{
 	void (*wait_for_reset)(u32 cpu);
 	void (*put_in_reset)(u32 cpu);
 	void (*out_of_reset)(u32 cpu);
@@ -58,7 +59,9 @@ extern struct tegra_cpu_car_ops *tegra_cpu_car_ops;
 static inline void tegra_wait_cpu_in_reset(u32 cpu)
 {
 	if (WARN_ON(!tegra_cpu_car_ops->wait_for_reset))
+	{
 		return;
+	}
 
 	tegra_cpu_car_ops->wait_for_reset(cpu);
 }
@@ -66,7 +69,9 @@ static inline void tegra_wait_cpu_in_reset(u32 cpu)
 static inline void tegra_put_cpu_in_reset(u32 cpu)
 {
 	if (WARN_ON(!tegra_cpu_car_ops->put_in_reset))
+	{
 		return;
+	}
 
 	tegra_cpu_car_ops->put_in_reset(cpu);
 }
@@ -74,7 +79,9 @@ static inline void tegra_put_cpu_in_reset(u32 cpu)
 static inline void tegra_cpu_out_of_reset(u32 cpu)
 {
 	if (WARN_ON(!tegra_cpu_car_ops->out_of_reset))
+	{
 		return;
+	}
 
 	tegra_cpu_car_ops->out_of_reset(cpu);
 }
@@ -82,7 +89,9 @@ static inline void tegra_cpu_out_of_reset(u32 cpu)
 static inline void tegra_enable_cpu_clock(u32 cpu)
 {
 	if (WARN_ON(!tegra_cpu_car_ops->enable_clock))
+	{
 		return;
+	}
 
 	tegra_cpu_car_ops->enable_clock(cpu);
 }
@@ -90,7 +99,9 @@ static inline void tegra_enable_cpu_clock(u32 cpu)
 static inline void tegra_disable_cpu_clock(u32 cpu)
 {
 	if (WARN_ON(!tegra_cpu_car_ops->disable_clock))
+	{
 		return;
+	}
 
 	tegra_cpu_car_ops->disable_clock(cpu);
 }
@@ -99,7 +110,9 @@ static inline void tegra_disable_cpu_clock(u32 cpu)
 static inline bool tegra_cpu_rail_off_ready(void)
 {
 	if (WARN_ON(!tegra_cpu_car_ops->rail_off_ready))
+	{
 		return false;
+	}
 
 	return tegra_cpu_car_ops->rail_off_ready();
 }
@@ -107,7 +120,9 @@ static inline bool tegra_cpu_rail_off_ready(void)
 static inline void tegra_cpu_clock_suspend(void)
 {
 	if (WARN_ON(!tegra_cpu_car_ops->suspend))
+	{
 		return;
+	}
 
 	tegra_cpu_car_ops->suspend();
 }
@@ -115,7 +130,9 @@ static inline void tegra_cpu_clock_suspend(void)
 static inline void tegra_cpu_clock_resume(void)
 {
 	if (WARN_ON(!tegra_cpu_car_ops->resume))
+	{
 		return;
+	}
 
 	tegra_cpu_car_ops->resume();
 }

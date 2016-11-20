@@ -35,17 +35,26 @@ gm107_devinit_disable(struct nvkm_devinit *init)
 	u64 disable = 0ULL;
 
 	if (r021c00 & 0x00000001)
+	{
 		disable |= (1ULL << NVKM_ENGINE_CE0);
+	}
+
 	if (r021c00 & 0x00000004)
+	{
 		disable |= (1ULL << NVKM_ENGINE_CE2);
+	}
+
 	if (r021c04 & 0x00000001)
+	{
 		disable |= (1ULL << NVKM_ENGINE_DISP);
+	}
 
 	return disable;
 }
 
 static const struct nvkm_devinit_func
-gm107_devinit = {
+	gm107_devinit =
+{
 	.preinit = gf100_devinit_preinit,
 	.init = nv50_devinit_init,
 	.post = nv04_devinit_post,
@@ -55,7 +64,7 @@ gm107_devinit = {
 
 int
 gm107_devinit_new(struct nvkm_device *device, int index,
-		struct nvkm_devinit **pinit)
+				  struct nvkm_devinit **pinit)
 {
 	return nv50_devinit_new_(&gm107_devinit, device, index, pinit);
 }

@@ -126,9 +126,9 @@
 #define CNIC_DISARM_CQE			0
 
 #define REG_RD(__hba, offset)				\
-		readl(__hba->regview + offset)
+	readl(__hba->regview + offset)
 #define REG_WR(__hba, offset, val)			\
-		writel(val, __hba->regview + offset)
+	writel(val, __hba->regview + offset)
 
 #ifdef CONFIG_32BIT
 #define GET_STATS_64(__hba, dst, field)				\
@@ -143,7 +143,7 @@
 	do {							\
 		if (spin_trylock(&__hba->stat_lock)) {		\
 			if (__hba->stats.field##_lo + len <	\
-			    __hba->stats.field##_lo)		\
+				__hba->stats.field##_lo)		\
 				__hba->stats.field##_hi++;	\
 			__hba->stats.field##_lo += len;		\
 			spin_unlock(&__hba->stat_lock);		\
@@ -154,7 +154,7 @@
 #define GET_STATS_64(__hba, dst, field)				\
 	do {							\
 		u64 val, *out;					\
-								\
+		\
 		val = __hba->bnx2i_stats.field;			\
 		out = (u64 *)&__hba->stats.field##_lo;		\
 		*out = cpu_to_le64(val);			\
@@ -192,7 +192,8 @@
  * following structure defines buffer info for generic pdus such as iSCSI Login,
  *	Logout and NOP
  */
-struct generic_pdu_resc {
+struct generic_pdu_resc
+{
 	char *req_buf;
 	dma_addr_t req_dma_addr;
 	u32 req_buf_size;
@@ -219,7 +220,8 @@ struct generic_pdu_resc {
  *
  * structure to track DMA'able memory allocated for command BD tables
  */
-struct bd_resc_page {
+struct bd_resc_page
+{
 	struct list_head link;
 	u32 max_ptrs;
 	u32 num_valid;
@@ -236,7 +238,8 @@ struct bd_resc_page {
  *
  * IO BD table
  */
-struct io_bdt {
+struct io_bdt
+{
 	struct iscsi_bd *bd_tbl;
 	dma_addr_t bd_tbl_dma;
 	u16 bd_valid;
@@ -254,7 +257,8 @@ struct io_bdt {
  * @bd_tbl_dma:         buffer descriptor (BD) table's dma address
  * @req:                bnx2i specific command request struct
  */
-struct bnx2i_cmd {
+struct bnx2i_cmd
+{
 	struct iscsi_hdr hdr;
 	struct bnx2i_conn *conn;
 	struct scsi_cmnd *scsi_cmd;
@@ -280,7 +284,8 @@ struct bnx2i_cmd {
  *
  * iSCSI connection structure
  */
-struct bnx2i_conn {
+struct bnx2i_conn
+{
 	struct iscsi_cls_conn *cls_conn;
 	struct bnx2i_hba *hba;
 	struct completion cmd_cleanup_cmpl;
@@ -319,7 +324,8 @@ struct bnx2i_conn {
  *
  * Per adapter iSCSI CID Queue
  */
-struct iscsi_cid_queue {
+struct iscsi_cid_queue
+{
 	void *cid_que_base;
 	u32 *cid_que;
 	u32 cid_q_prod_idx;
@@ -330,7 +336,8 @@ struct iscsi_cid_queue {
 };
 
 
-struct bnx2i_stats_info {
+struct bnx2i_stats_info
+{
 	u64 rx_pdus;
 	u64 rx_bytes;
 	u64 tx_pdus;
@@ -396,7 +403,8 @@ struct bnx2i_stats_info {
  *
  * Adapter Data Structure
  */
-struct bnx2i_hba {
+struct bnx2i_hba
+{
 	struct list_head link;
 	struct cnic_dev *cnic;
 	struct pci_dev *pcidev;
@@ -406,24 +414,24 @@ struct bnx2i_hba {
 
 	u32 age;
 	unsigned long cnic_dev_type;
-		#define BNX2I_NX2_DEV_5706		0x0
-		#define BNX2I_NX2_DEV_5708		0x1
-		#define BNX2I_NX2_DEV_5709		0x2
-		#define BNX2I_NX2_DEV_57710		0x3
+#define BNX2I_NX2_DEV_5706		0x0
+#define BNX2I_NX2_DEV_5708		0x1
+#define BNX2I_NX2_DEV_5709		0x2
+#define BNX2I_NX2_DEV_57710		0x3
 	u32 mail_queue_access;
-		#define BNX2I_MQ_KERNEL_MODE		0x0
-		#define BNX2I_MQ_KERNEL_BYPASS_MODE	0x1
-		#define BNX2I_MQ_BIN_MODE		0x2
+#define BNX2I_MQ_KERNEL_MODE		0x0
+#define BNX2I_MQ_KERNEL_BYPASS_MODE	0x1
+#define BNX2I_MQ_BIN_MODE		0x2
 	unsigned long  reg_with_cnic;
-		#define BNX2I_CNIC_REGISTERED		1
+#define BNX2I_CNIC_REGISTERED		1
 
 	unsigned long  adapter_state;
-		#define ADAPTER_STATE_UP		0
-		#define ADAPTER_STATE_GOING_DOWN	1
-		#define ADAPTER_STATE_LINK_DOWN		2
-		#define ADAPTER_STATE_INIT_FAILED	31
+#define ADAPTER_STATE_UP		0
+#define ADAPTER_STATE_GOING_DOWN	1
+#define ADAPTER_STATE_LINK_DOWN		2
+#define ADAPTER_STATE_INIT_FAILED	31
 	unsigned int mtu_supported;
-		#define BNX2I_MAX_MTU_SUPPORTED		9000
+#define BNX2I_MAX_MTU_SUPPORTED		9000
 
 	struct Scsi_Host *shost;
 
@@ -495,20 +503,24 @@ struct bnx2i_hba {
 /*
  * SQ/RQ/CQ generic structure definition
  */
-struct 	sqe {
+struct 	sqe
+{
 	u8 sqe_byte[BNX2I_SQ_WQE_SIZE];
 };
 
-struct 	rqe {
+struct 	rqe
+{
 	u8 rqe_byte[BNX2I_RQ_WQE_SIZE];
 };
 
-struct 	cqe {
+struct 	cqe
+{
 	u8 cqe_byte[BNX2I_CQE_SIZE];
 };
 
 
-enum {
+enum
+{
 #if defined(__LITTLE_ENDIAN)
 	CNIC_EVENT_COAL_INDEX	= 0x0,
 	CNIC_SEND_DOORBELL	= 0x4,
@@ -526,7 +538,8 @@ enum {
 /*
  * CQ DB
  */
-struct bnx2x_iscsi_cq_pend_cmpl {
+struct bnx2x_iscsi_cq_pend_cmpl
+{
 	/* CQ producer, updated by Ustorm */
 	u16 ustrom_prod;
 	/* CQ pending completion counter */
@@ -534,7 +547,8 @@ struct bnx2x_iscsi_cq_pend_cmpl {
 };
 
 
-struct bnx2i_5771x_cq_db {
+struct bnx2i_5771x_cq_db
+{
 	struct bnx2x_iscsi_cq_pend_cmpl qp_pend_cmpl[BNX2X_MAX_CQS];
 	/* CQ pending completion ITT array */
 	u16 itt[BNX2X_MAX_CQS];
@@ -544,13 +558,15 @@ struct bnx2i_5771x_cq_db {
 };
 
 
-struct bnx2i_5771x_sq_rq_db {
+struct bnx2i_5771x_sq_rq_db
+{
 	u16 prod_idx;
 	u8 reserved0[62]; /* Pad structure size to 64 bytes */
 };
 
 
-struct bnx2i_5771x_dbell_hdr {
+struct bnx2i_5771x_dbell_hdr
+{
 	u8 header;
 	/* 1 for rx doorbell, 0 for tx doorbell */
 #define B577XX_DOORBELL_HDR_RX				(0x1<<0)
@@ -566,7 +582,8 @@ struct bnx2i_5771x_dbell_hdr {
 #define B577XX_DOORBELL_HDR_CONN_TYPE_SHIFT		4
 };
 
-struct bnx2i_5771x_dbell {
+struct bnx2i_5771x_dbell
+{
 	struct bnx2i_5771x_dbell_hdr dbell;
 	u8 pad[3];
 
@@ -625,7 +642,8 @@ struct bnx2i_5771x_dbell {
  *	below holds queue memory, consumer/producer indexes and page table
  *	information
  */
-struct qp_info {
+struct qp_info
+{
 	void __iomem *ctx_base;
 #define DPM_TRIGER_TYPE			0x40
 
@@ -687,7 +705,8 @@ struct qp_info {
 /*
  * CID handles
  */
-struct ep_handles {
+struct ep_handles
+{
 	u32 fw_cid;
 	u32 drv_iscsi_cid;
 	u16 pg_cid;
@@ -695,7 +714,8 @@ struct ep_handles {
 };
 
 
-enum {
+enum
+{
 	EP_STATE_IDLE                   = 0x0,
 	EP_STATE_PG_OFLD_START          = 0x1,
 	EP_STATE_PG_OFLD_COMPL          = 0x2,
@@ -745,7 +765,8 @@ enum {
  *
  * Endpoint Structure - equivalent of tcp socket structure
  */
-struct bnx2i_endpoint {
+struct bnx2i_endpoint
+{
 	struct list_head link;
 	struct bnx2i_hba *hba;
 	struct bnx2i_conn *conn;
@@ -759,22 +780,24 @@ struct bnx2i_endpoint {
 
 	struct qp_info qp;
 	struct ep_handles ids;
-		#define ep_iscsi_cid	ids.drv_iscsi_cid
-		#define ep_cid		ids.fw_cid
-		#define ep_pg_cid	ids.pg_cid
+#define ep_iscsi_cid	ids.drv_iscsi_cid
+#define ep_cid		ids.fw_cid
+#define ep_pg_cid	ids.pg_cid
 	struct timer_list ofld_timer;
 	wait_queue_head_t ofld_wait;
 };
 
 
-struct bnx2i_work {
+struct bnx2i_work
+{
 	struct list_head list;
 	struct iscsi_session *session;
 	struct bnx2i_conn *bnx2i_conn;
 	struct cqe cqe;
 };
 
-struct bnx2i_percpu_s {
+struct bnx2i_percpu_s
+{
 	struct task_struct *iothread;
 	struct list_head work_list;
 	spinlock_t p_work_lock;
@@ -813,7 +836,7 @@ extern int bnx2i_get_stats(void *handle);
 extern struct bnx2i_hba *get_adapter_list_head(void);
 
 struct bnx2i_conn *bnx2i_get_conn_from_id(struct bnx2i_hba *hba,
-					  u16 iscsi_cid);
+		u16 iscsi_cid);
 
 int bnx2i_alloc_ep_pool(void);
 void bnx2i_release_ep_pool(void);
@@ -834,35 +857,35 @@ void bnx2i_drop_session(struct iscsi_cls_session *session);
 
 extern int bnx2i_send_fw_iscsi_init_msg(struct bnx2i_hba *hba);
 extern int bnx2i_send_iscsi_login(struct bnx2i_conn *conn,
-				  struct iscsi_task *mtask);
+								  struct iscsi_task *mtask);
 extern int bnx2i_send_iscsi_tmf(struct bnx2i_conn *conn,
-				  struct iscsi_task *mtask);
+								struct iscsi_task *mtask);
 extern int bnx2i_send_iscsi_text(struct bnx2i_conn *conn,
-				 struct iscsi_task *mtask);
+								 struct iscsi_task *mtask);
 extern int bnx2i_send_iscsi_scsicmd(struct bnx2i_conn *conn,
-				    struct bnx2i_cmd *cmnd);
+									struct bnx2i_cmd *cmnd);
 extern int bnx2i_send_iscsi_nopout(struct bnx2i_conn *conn,
-				   struct iscsi_task *mtask,
-				   char *datap, int data_len, int unsol);
+								   struct iscsi_task *mtask,
+								   char *datap, int data_len, int unsol);
 extern int bnx2i_send_iscsi_logout(struct bnx2i_conn *conn,
-				   struct iscsi_task *mtask);
+								   struct iscsi_task *mtask);
 extern void bnx2i_send_cmd_cleanup_req(struct bnx2i_hba *hba,
-				       struct bnx2i_cmd *cmd);
+									   struct bnx2i_cmd *cmd);
 extern int bnx2i_send_conn_ofld_req(struct bnx2i_hba *hba,
-				    struct bnx2i_endpoint *ep);
+									struct bnx2i_endpoint *ep);
 extern void bnx2i_update_iscsi_conn(struct iscsi_conn *conn);
 extern int bnx2i_send_conn_destroy(struct bnx2i_hba *hba,
-				   struct bnx2i_endpoint *ep);
+								   struct bnx2i_endpoint *ep);
 
 extern int bnx2i_alloc_qp_resc(struct bnx2i_hba *hba,
-			       struct bnx2i_endpoint *ep);
+							   struct bnx2i_endpoint *ep);
 extern void bnx2i_free_qp_resc(struct bnx2i_hba *hba,
-			       struct bnx2i_endpoint *ep);
+							   struct bnx2i_endpoint *ep);
 extern void bnx2i_ep_ofld_timer(unsigned long data);
 extern struct bnx2i_endpoint *bnx2i_find_ep_in_ofld_list(
-		struct bnx2i_hba *hba, u32 iscsi_cid);
+	struct bnx2i_hba *hba, u32 iscsi_cid);
 extern struct bnx2i_endpoint *bnx2i_find_ep_in_destroy_list(
-		struct bnx2i_hba *hba, u32 iscsi_cid);
+	struct bnx2i_hba *hba, u32 iscsi_cid);
 
 extern int bnx2i_map_ep_dbell_regs(struct bnx2i_endpoint *ep);
 extern int bnx2i_arm_cq_event_coalescing(struct bnx2i_endpoint *ep, u8 action);
@@ -877,6 +900,6 @@ extern void bnx2i_print_recv_state(struct bnx2i_conn *conn);
 
 extern int bnx2i_percpu_io_thread(void *arg);
 extern int bnx2i_process_scsi_cmd_resp(struct iscsi_session *session,
-				       struct bnx2i_conn *bnx2i_conn,
-				       struct cqe *cqe);
+									   struct bnx2i_conn *bnx2i_conn,
+									   struct cqe *cqe);
 #endif

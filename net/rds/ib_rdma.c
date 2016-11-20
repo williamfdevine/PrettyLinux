@@ -49,9 +49,12 @@ static struct rds_ib_device *rds_ib_get_device(__be32 ipaddr)
 	struct rds_ib_ipaddr *i_ipaddr;
 
 	rcu_read_lock();
-	list_for_each_entry_rcu(rds_ibdev, &rds_ib_devices, list) {
-		list_for_each_entry_rcu(i_ipaddr, &rds_ibdev->ipaddr_list, list) {
-			if (i_ipaddr->ipaddr == ipaddr) {
+	list_for_each_entry_rcu(rds_ibdev, &rds_ib_devices, list)
+	{
+		list_for_each_entry_rcu(i_ipaddr, &rds_ibdev->ipaddr_list, list)
+		{
+			if (i_ipaddr->ipaddr == ipaddr)
+			{
 				atomic_inc(&rds_ibdev->refcount);
 				rcu_read_unlock();
 				return rds_ibdev;
@@ -67,9 +70,12 @@ static int rds_ib_add_ipaddr(struct rds_ib_device *rds_ibdev, __be32 ipaddr)
 {
 	struct rds_ib_ipaddr *i_ipaddr;
 
-	i_ipaddr = kmalloc(sizeof *i_ipaddr, GFP_KERNEL);
+	i_ipaddr = kmalloc(sizeof * i_ipaddr, GFP_KERNEL);
+
 	if (!i_ipaddr)
+	{
 		return -ENOMEM;
+	}
 
 	i_ipaddr->ipaddr = ipaddr;
 
@@ -87,8 +93,10 @@ static void rds_ib_remove_ipaddr(struct rds_ib_device *rds_ibdev, __be32 ipaddr)
 
 
 	spin_lock_irq(&rds_ibdev->spinlock);
-	list_for_each_entry_rcu(i_ipaddr, &rds_ibdev->ipaddr_list, list) {
-		if (i_ipaddr->ipaddr == ipaddr) {
+	list_for_each_entry_rcu(i_ipaddr, &rds_ibdev->ipaddr_list, list)
+	{
+		if (i_ipaddr->ipaddr == ipaddr)
+		{
 			list_del_rcu(&i_ipaddr->list);
 			to_free = i_ipaddr;
 			break;
@@ -97,7 +105,9 @@ static void rds_ib_remove_ipaddr(struct rds_ib_device *rds_ibdev, __be32 ipaddr)
 	spin_unlock_irq(&rds_ibdev->spinlock);
 
 	if (to_free)
+	{
 		kfree_rcu(to_free, rcu);
+	}
 }
 
 int rds_ib_update_ipaddr(struct rds_ib_device *rds_ibdev, __be32 ipaddr)
@@ -105,14 +115,19 @@ int rds_ib_update_ipaddr(struct rds_ib_device *rds_ibdev, __be32 ipaddr)
 	struct rds_ib_device *rds_ibdev_old;
 
 	rds_ibdev_old = rds_ib_get_device(ipaddr);
-	if (!rds_ibdev_old)
-		return rds_ib_add_ipaddr(rds_ibdev, ipaddr);
 
-	if (rds_ibdev_old != rds_ibdev) {
+	if (!rds_ibdev_old)
+	{
+		return rds_ib_add_ipaddr(rds_ibdev, ipaddr);
+	}
+
+	if (rds_ibdev_old != rds_ibdev)
+	{
 		rds_ib_remove_ipaddr(rds_ibdev_old, ipaddr);
 		rds_ib_dev_put(rds_ibdev_old);
 		return rds_ib_add_ipaddr(rds_ibdev, ipaddr);
 	}
+
 	rds_ib_dev_put(rds_ibdev_old);
 
 	return 0;
@@ -168,7 +183,7 @@ void rds_ib_destroy_nodev_conns(void)
 	spin_unlock_irq(&ib_nodev_conns_lock);
 
 	list_for_each_entry_safe(ic, _ic, &tmp_list, ib_node)
-		rds_conn_destroy(ic->conn);
+	rds_conn_destroy(ic->conn);
 }
 
 void rds_ib_get_mr_info(struct rds_ib_device *rds_ibdev, struct rds_info_rdma_connection *iinfo)
@@ -189,12 +204,19 @@ struct rds_ib_mr *rds_ib_reuse_mr(struct rds_ib_mr_pool *pool)
 	flag = this_cpu_ptr(&clean_list_grace);
 	set_bit(CLEAN_LIST_BUSY_BIT, flag);
 	ret = llist_del_first(&pool->clean_list);
-	if (ret) {
+
+	if (ret)
+	{
 		ibmr = llist_entry(ret, struct rds_ib_mr, llnode);
+
 		if (pool->pool_type == RDS_IB_MR_8K_POOL)
+		{
 			rds_ib_stats_inc(s_ib_rdma_mr_8k_reused);
+		}
 		else
+		{
 			rds_ib_stats_inc(s_ib_rdma_mr_1m_reused);
+		}
 	}
 
 	clear_bit(CLEAN_LIST_BUSY_BIT, flag);
@@ -207,10 +229,14 @@ static inline void wait_clean_list_grace(void)
 	int cpu;
 	unsigned long *flag;
 
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		flag = &per_cpu(clean_list_grace, cpu);
+
 		while (test_bit(CLEAN_LIST_BUSY_BIT, flag))
+		{
 			cpu_relax();
+		}
 	}
 }
 
@@ -219,15 +245,17 @@ void rds_ib_sync_mr(void *trans_private, int direction)
 	struct rds_ib_mr *ibmr = trans_private;
 	struct rds_ib_device *rds_ibdev = ibmr->device;
 
-	switch (direction) {
-	case DMA_FROM_DEVICE:
-		ib_dma_sync_sg_for_cpu(rds_ibdev->dev, ibmr->sg,
-			ibmr->sg_dma_len, DMA_BIDIRECTIONAL);
-		break;
-	case DMA_TO_DEVICE:
-		ib_dma_sync_sg_for_device(rds_ibdev->dev, ibmr->sg,
-			ibmr->sg_dma_len, DMA_BIDIRECTIONAL);
-		break;
+	switch (direction)
+	{
+		case DMA_FROM_DEVICE:
+			ib_dma_sync_sg_for_cpu(rds_ibdev->dev, ibmr->sg,
+								   ibmr->sg_dma_len, DMA_BIDIRECTIONAL);
+			break;
+
+		case DMA_TO_DEVICE:
+			ib_dma_sync_sg_for_device(rds_ibdev->dev, ibmr->sg,
+									  ibmr->sg_dma_len, DMA_BIDIRECTIONAL);
+			break;
 	}
 }
 
@@ -235,18 +263,21 @@ void __rds_ib_teardown_mr(struct rds_ib_mr *ibmr)
 {
 	struct rds_ib_device *rds_ibdev = ibmr->device;
 
-	if (ibmr->sg_dma_len) {
+	if (ibmr->sg_dma_len)
+	{
 		ib_dma_unmap_sg(rds_ibdev->dev,
-				ibmr->sg, ibmr->sg_len,
-				DMA_BIDIRECTIONAL);
+						ibmr->sg, ibmr->sg_len,
+						DMA_BIDIRECTIONAL);
 		ibmr->sg_dma_len = 0;
 	}
 
 	/* Release the s/g list */
-	if (ibmr->sg_len) {
+	if (ibmr->sg_len)
+	{
 		unsigned int i;
 
-		for (i = 0; i < ibmr->sg_len; ++i) {
+		for (i = 0; i < ibmr->sg_len; ++i)
+		{
 			struct page *page = sg_page(&ibmr->sg[i]);
 
 			/* FIXME we need a way to tell a r/w MR
@@ -255,6 +286,7 @@ void __rds_ib_teardown_mr(struct rds_ib_mr *ibmr)
 			set_page_dirty(page);
 			put_page(page);
 		}
+
 		kfree(ibmr->sg);
 
 		ibmr->sg = NULL;
@@ -267,7 +299,9 @@ void rds_ib_teardown_mr(struct rds_ib_mr *ibmr)
 	unsigned int pinned = ibmr->sg_len;
 
 	__rds_ib_teardown_mr(ibmr);
-	if (pinned) {
+
+	if (pinned)
+	{
 		struct rds_ib_mr_pool *pool = ibmr->pool;
 
 		atomic_sub(pinned, &pool->free_pinned);
@@ -279,8 +313,11 @@ static inline unsigned int rds_ib_flush_goal(struct rds_ib_mr_pool *pool, int fr
 	unsigned int item_count;
 
 	item_count = atomic_read(&pool->item_count);
+
 	if (free_all)
+	{
 		return item_count;
+	}
 
 	return 0;
 }
@@ -289,7 +326,7 @@ static inline unsigned int rds_ib_flush_goal(struct rds_ib_mr_pool *pool, int fr
  * given an llist of mrs, put them all into the list_head for more processing
  */
 static unsigned int llist_append_to_list(struct llist_head *llist,
-					 struct list_head *list)
+		struct list_head *list)
 {
 	struct rds_ib_mr *ibmr;
 	struct llist_node *node;
@@ -297,13 +334,16 @@ static unsigned int llist_append_to_list(struct llist_head *llist,
 	unsigned int count = 0;
 
 	node = llist_del_all(llist);
-	while (node) {
+
+	while (node)
+	{
 		next = node->next;
 		ibmr = llist_entry(node, struct rds_ib_mr, llnode);
 		list_add_tail(&ibmr->unmap_list, list);
 		node = next;
 		count++;
 	}
+
 	return count;
 }
 
@@ -313,15 +353,16 @@ static unsigned int llist_append_to_list(struct llist_head *llist,
  * MR_CLUSTER_SIZE mrs that are ready for reuse.
  */
 static void list_to_llist_nodes(struct rds_ib_mr_pool *pool,
-				struct list_head *list,
-				struct llist_node **nodes_head,
-				struct llist_node **nodes_tail)
+								struct list_head *list,
+								struct llist_node **nodes_head,
+								struct llist_node **nodes_tail)
 {
 	struct rds_ib_mr *ibmr;
 	struct llist_node *cur = NULL;
 	struct llist_node **next = nodes_head;
 
-	list_for_each_entry(ibmr, list, unmap_list) {
+	list_for_each_entry(ibmr, list, unmap_list)
+	{
 		cur = &ibmr->llnode;
 		*next = cur;
 		next = &cur->next;
@@ -337,7 +378,7 @@ static void list_to_llist_nodes(struct rds_ib_mr_pool *pool,
  * to free as many MRs as needed to get back to this limit.
  */
 int rds_ib_flush_mr_pool(struct rds_ib_mr_pool *pool,
-			 int free_all, struct rds_ib_mr **ibmr_ret)
+						 int free_all, struct rds_ib_mr **ibmr_ret)
 {
 	struct rds_ib_mr *ibmr;
 	struct llist_node *clean_nodes;
@@ -347,39 +388,60 @@ int rds_ib_flush_mr_pool(struct rds_ib_mr_pool *pool,
 	unsigned int nfreed = 0, dirty_to_clean = 0, free_goal;
 
 	if (pool->pool_type == RDS_IB_MR_8K_POOL)
+	{
 		rds_ib_stats_inc(s_ib_rdma_mr_8k_pool_flush);
+	}
 	else
+	{
 		rds_ib_stats_inc(s_ib_rdma_mr_1m_pool_flush);
+	}
 
-	if (ibmr_ret) {
+	if (ibmr_ret)
+	{
 		DEFINE_WAIT(wait);
-		while (!mutex_trylock(&pool->flush_lock)) {
+
+		while (!mutex_trylock(&pool->flush_lock))
+		{
 			ibmr = rds_ib_reuse_mr(pool);
-			if (ibmr) {
+
+			if (ibmr)
+			{
 				*ibmr_ret = ibmr;
 				finish_wait(&pool->flush_wait, &wait);
 				goto out_nolock;
 			}
 
 			prepare_to_wait(&pool->flush_wait, &wait,
-					TASK_UNINTERRUPTIBLE);
+							TASK_UNINTERRUPTIBLE);
+
 			if (llist_empty(&pool->clean_list))
+			{
 				schedule();
+			}
 
 			ibmr = rds_ib_reuse_mr(pool);
-			if (ibmr) {
+
+			if (ibmr)
+			{
 				*ibmr_ret = ibmr;
 				finish_wait(&pool->flush_wait, &wait);
 				goto out_nolock;
 			}
 		}
-		finish_wait(&pool->flush_wait, &wait);
-	} else
-		mutex_lock(&pool->flush_lock);
 
-	if (ibmr_ret) {
+		finish_wait(&pool->flush_wait, &wait);
+	}
+	else
+	{
+		mutex_lock(&pool->flush_lock);
+	}
+
+	if (ibmr_ret)
+	{
 		ibmr = rds_ib_reuse_mr(pool);
-		if (ibmr) {
+
+		if (ibmr)
+		{
 			*ibmr_ret = ibmr;
 			goto out;
 		}
@@ -390,20 +452,30 @@ int rds_ib_flush_mr_pool(struct rds_ib_mr_pool *pool,
 	 */
 	dirty_to_clean = llist_append_to_list(&pool->drop_list, &unmap_list);
 	dirty_to_clean += llist_append_to_list(&pool->free_list, &unmap_list);
+
 	if (free_all)
+	{
 		llist_append_to_list(&pool->clean_list, &unmap_list);
+	}
 
 	free_goal = rds_ib_flush_goal(pool, free_all);
 
 	if (list_empty(&unmap_list))
+	{
 		goto out;
+	}
 
 	if (pool->use_fastreg)
+	{
 		rds_ib_unreg_frmr(&unmap_list, &nfreed, &unpinned, free_goal);
+	}
 	else
+	{
 		rds_ib_unreg_fmr(&unmap_list, &nfreed, &unpinned, free_goal);
+	}
 
-	if (!list_empty(&unmap_list)) {
+	if (!list_empty(&unmap_list))
+	{
 		/* we have to make sure that none of the things we're about
 		 * to put on the clean list would race with other cpus trying
 		 * to pull items off.  The llist would explode if we managed to
@@ -416,12 +488,17 @@ int rds_ib_flush_mr_pool(struct rds_ib_mr_pool *pool,
 		wait_clean_list_grace();
 
 		list_to_llist_nodes(pool, &unmap_list, &clean_nodes, &clean_tail);
+
 		if (ibmr_ret)
+		{
 			*ibmr_ret = llist_entry(clean_nodes, struct rds_ib_mr, llnode);
+		}
 
 		/* more than one entry in llist nodes */
 		if (clean_nodes->next)
+		{
 			llist_add_batch(clean_nodes->next, clean_tail, &pool->clean_list);
+		}
 
 	}
 
@@ -431,8 +508,12 @@ int rds_ib_flush_mr_pool(struct rds_ib_mr_pool *pool,
 
 out:
 	mutex_unlock(&pool->flush_lock);
+
 	if (waitqueue_active(&pool->flush_wait))
+	{
 		wake_up(&pool->flush_wait);
+	}
+
 out_nolock:
 	return 0;
 }
@@ -443,35 +524,56 @@ struct rds_ib_mr *rds_ib_try_reuse_ibmr(struct rds_ib_mr_pool *pool)
 	int iter = 0;
 
 	if (atomic_read(&pool->dirty_count) >= pool->max_items_soft / 10)
+	{
 		queue_delayed_work(rds_ib_mr_wq, &pool->flush_worker, 10);
+	}
 
-	while (1) {
+	while (1)
+	{
 		ibmr = rds_ib_reuse_mr(pool);
+
 		if (ibmr)
+		{
 			return ibmr;
+		}
 
 		if (atomic_inc_return(&pool->item_count) <= pool->max_items)
+		{
 			break;
+		}
 
 		atomic_dec(&pool->item_count);
 
-		if (++iter > 2) {
+		if (++iter > 2)
+		{
 			if (pool->pool_type == RDS_IB_MR_8K_POOL)
+			{
 				rds_ib_stats_inc(s_ib_rdma_mr_8k_pool_depleted);
+			}
 			else
+			{
 				rds_ib_stats_inc(s_ib_rdma_mr_1m_pool_depleted);
+			}
+
 			return ERR_PTR(-EAGAIN);
 		}
 
 		/* We do have some empty MRs. Flush them out. */
 		if (pool->pool_type == RDS_IB_MR_8K_POOL)
+		{
 			rds_ib_stats_inc(s_ib_rdma_mr_8k_pool_wait);
+		}
 		else
+		{
 			rds_ib_stats_inc(s_ib_rdma_mr_1m_pool_wait);
+		}
 
 		rds_ib_flush_mr_pool(pool, 0, &ibmr);
+
 		if (ibmr)
+		{
 			return ibmr;
+		}
 	}
 
 	return ibmr;
@@ -494,27 +596,37 @@ void rds_ib_free_mr(void *trans_private, int invalidate)
 
 	/* Return it to the pool's free list */
 	if (rds_ibdev->use_fastreg)
+	{
 		rds_ib_free_frmr_list(ibmr);
+	}
 	else
+	{
 		rds_ib_free_fmr_list(ibmr);
+	}
 
 	atomic_add(ibmr->sg_len, &pool->free_pinned);
 	atomic_inc(&pool->dirty_count);
 
 	/* If we've pinned too many pages, request a flush */
 	if (atomic_read(&pool->free_pinned) >= pool->max_free_pinned ||
-	    atomic_read(&pool->dirty_count) >= pool->max_items / 5)
+		atomic_read(&pool->dirty_count) >= pool->max_items / 5)
+	{
 		queue_delayed_work(rds_ib_mr_wq, &pool->flush_worker, 10);
+	}
 
-	if (invalidate) {
-		if (likely(!in_interrupt())) {
+	if (invalidate)
+	{
+		if (likely(!in_interrupt()))
+		{
 			rds_ib_flush_mr_pool(pool, 0, NULL);
-		} else {
+		}
+		else
+		{
 			/* We get here if the user created a MR marked
 			 * as use_once and invalidate at the same time.
 			 */
 			queue_delayed_work(rds_ib_mr_wq,
-					   &pool->flush_worker, 10);
+							   &pool->flush_worker, 10);
 		}
 	}
 
@@ -526,18 +638,23 @@ void rds_ib_flush_mrs(void)
 	struct rds_ib_device *rds_ibdev;
 
 	down_read(&rds_ib_devices_lock);
-	list_for_each_entry(rds_ibdev, &rds_ib_devices, list) {
+	list_for_each_entry(rds_ibdev, &rds_ib_devices, list)
+	{
 		if (rds_ibdev->mr_8k_pool)
+		{
 			rds_ib_flush_mr_pool(rds_ibdev->mr_8k_pool, 0, NULL);
+		}
 
 		if (rds_ibdev->mr_1m_pool)
+		{
 			rds_ib_flush_mr_pool(rds_ibdev->mr_1m_pool, 0, NULL);
+		}
 	}
 	up_read(&rds_ib_devices_lock);
 }
 
 void *rds_ib_get_mr(struct scatterlist *sg, unsigned long nents,
-		    struct rds_sock *rs, u32 *key_ret)
+					struct rds_sock *rs, u32 *key_ret)
 {
 	struct rds_ib_device *rds_ibdev;
 	struct rds_ib_mr *ibmr = NULL;
@@ -545,29 +662,44 @@ void *rds_ib_get_mr(struct scatterlist *sg, unsigned long nents,
 	int ret;
 
 	rds_ibdev = rds_ib_get_device(rs->rs_bound_addr);
-	if (!rds_ibdev) {
+
+	if (!rds_ibdev)
+	{
 		ret = -ENODEV;
 		goto out;
 	}
 
-	if (!rds_ibdev->mr_8k_pool || !rds_ibdev->mr_1m_pool) {
+	if (!rds_ibdev->mr_8k_pool || !rds_ibdev->mr_1m_pool)
+	{
 		ret = -ENODEV;
 		goto out;
 	}
 
 	if (rds_ibdev->use_fastreg)
+	{
 		ibmr = rds_ib_reg_frmr(rds_ibdev, ic, sg, nents, key_ret);
+	}
 	else
+	{
 		ibmr = rds_ib_reg_fmr(rds_ibdev, sg, nents, key_ret);
-	if (ibmr)
-		rds_ibdev = NULL;
+	}
 
- out:
+	if (ibmr)
+	{
+		rds_ibdev = NULL;
+	}
+
+out:
+
 	if (!ibmr)
+	{
 		pr_warn("RDS/IB: rds_ib_get_mr failed (errno=%d)\n", ret);
+	}
 
 	if (rds_ibdev)
+	{
 		rds_ib_dev_put(rds_ibdev);
+	}
 
 	return ibmr;
 }
@@ -582,13 +714,16 @@ void rds_ib_destroy_mr_pool(struct rds_ib_mr_pool *pool)
 }
 
 struct rds_ib_mr_pool *rds_ib_create_mr_pool(struct rds_ib_device *rds_ibdev,
-					     int pool_type)
+		int pool_type)
 {
 	struct rds_ib_mr_pool *pool;
 
 	pool = kzalloc(sizeof(*pool), GFP_KERNEL);
+
 	if (!pool)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	pool->pool_type = pool_type;
 	init_llist_head(&pool->free_list);
@@ -598,11 +733,14 @@ struct rds_ib_mr_pool *rds_ib_create_mr_pool(struct rds_ib_device *rds_ibdev,
 	init_waitqueue_head(&pool->flush_wait);
 	INIT_DELAYED_WORK(&pool->flush_worker, rds_ib_mr_pool_flush_worker);
 
-	if (pool_type == RDS_IB_MR_1M_POOL) {
+	if (pool_type == RDS_IB_MR_1M_POOL)
+	{
 		/* +1 allows for unaligned MRs */
 		pool->fmr_attr.max_pages = RDS_MR_1M_MSG_SIZE + 1;
 		pool->max_items = RDS_MR_1M_POOL_SIZE;
-	} else {
+	}
+	else
+	{
 		/* pool_type == RDS_IB_MR_8K_POOL */
 		pool->fmr_attr.max_pages = RDS_MR_8K_MSG_SIZE + 1;
 		pool->max_items = RDS_MR_8K_POOL_SIZE;
@@ -620,8 +758,12 @@ struct rds_ib_mr_pool *rds_ib_create_mr_pool(struct rds_ib_device *rds_ibdev,
 int rds_ib_mr_init(void)
 {
 	rds_ib_mr_wq = alloc_workqueue("rds_mr_flushd", WQ_MEM_RECLAIM, 0);
+
 	if (!rds_ib_mr_wq)
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 

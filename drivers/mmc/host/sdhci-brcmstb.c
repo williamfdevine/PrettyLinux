@@ -30,8 +30,12 @@ static int sdhci_brcmstb_suspend(struct device *dev)
 	int res;
 
 	res = sdhci_suspend_host(host);
+
 	if (res)
+	{
 		return res;
+	}
+
 	clk_disable_unprepare(pltfm_host->clk);
 	return res;
 }
@@ -43,24 +47,30 @@ static int sdhci_brcmstb_resume(struct device *dev)
 	int err;
 
 	err = clk_prepare_enable(pltfm_host->clk);
+
 	if (err)
+	{
 		return err;
+	}
+
 	return sdhci_resume_host(host);
 }
 
 #endif /* CONFIG_PM_SLEEP */
 
 static SIMPLE_DEV_PM_OPS(sdhci_brcmstb_pmops, sdhci_brcmstb_suspend,
-			sdhci_brcmstb_resume);
+						 sdhci_brcmstb_resume);
 
-static const struct sdhci_ops sdhci_brcmstb_ops = {
+static const struct sdhci_ops sdhci_brcmstb_ops =
+{
 	.set_clock = sdhci_set_clock,
 	.set_bus_width = sdhci_set_bus_width,
 	.reset = sdhci_reset,
 	.set_uhs_signaling = sdhci_set_uhs_signaling,
 };
 
-static struct sdhci_pltfm_data sdhci_brcmstb_pdata = {
+static struct sdhci_pltfm_data sdhci_brcmstb_pdata =
+{
 	.ops = &sdhci_brcmstb_ops,
 };
 
@@ -72,16 +82,24 @@ static int sdhci_brcmstb_probe(struct platform_device *pdev)
 	int res;
 
 	clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		dev_err(&pdev->dev, "Clock not found in Device Tree\n");
 		clk = NULL;
 	}
+
 	res = clk_prepare_enable(clk);
+
 	if (res)
+	{
 		return res;
+	}
 
 	host = sdhci_pltfm_init(pdev, &sdhci_brcmstb_pdata, 0);
-	if (IS_ERR(host)) {
+
+	if (IS_ERR(host))
+	{
 		res = PTR_ERR(host);
 		goto err_clk;
 	}
@@ -98,17 +116,24 @@ static int sdhci_brcmstb_probe(struct platform_device *pdev)
 	 * properties through mmc_of_parse().
 	 */
 	host->caps = sdhci_readl(host, SDHCI_CAPABILITIES);
+
 	if (of_device_is_compatible(pdev->dev.of_node, "brcm,bcm7425-sdhci"))
+	{
 		host->caps &= ~SDHCI_CAN_64BIT;
+	}
+
 	host->caps1 = sdhci_readl(host, SDHCI_CAPABILITIES_1);
 	host->caps1 &= ~(SDHCI_SUPPORT_SDR50 | SDHCI_SUPPORT_SDR104 |
-			SDHCI_SUPPORT_DDR50);
+					 SDHCI_SUPPORT_DDR50);
 	host->quirks |= SDHCI_QUIRK_MISSING_CAPS |
-		SDHCI_QUIRK_BROKEN_TIMEOUT_VAL;
+					SDHCI_QUIRK_BROKEN_TIMEOUT_VAL;
 
 	res = sdhci_add_host(host);
+
 	if (res)
+	{
 		goto err;
+	}
 
 	pltfm_host = sdhci_priv(host);
 	pltfm_host->clk = clk;
@@ -121,14 +146,16 @@ err_clk:
 	return res;
 }
 
-static const struct of_device_id sdhci_brcm_of_match[] = {
+static const struct of_device_id sdhci_brcm_of_match[] =
+{
 	{ .compatible = "brcm,bcm7425-sdhci" },
 	{ .compatible = "brcm,bcm7445-sdhci" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, sdhci_brcm_of_match);
 
-static struct platform_driver sdhci_brcmstb_driver = {
+static struct platform_driver sdhci_brcmstb_driver =
+{
 	.driver		= {
 		.name	= "sdhci-brcmstb",
 		.pm	= &sdhci_brcmstb_pmops,

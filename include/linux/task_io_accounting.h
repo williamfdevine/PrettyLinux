@@ -8,7 +8,8 @@
  * Blame Andrew Morton for all this.
  */
 
-struct task_io_accounting {
+struct task_io_accounting
+{
 #ifdef CONFIG_TASK_XACCT
 	/* bytes read */
 	u64 rchar;

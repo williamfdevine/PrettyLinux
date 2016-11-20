@@ -1,5 +1,5 @@
 #ifndef _LAPB_H
-#define _LAPB_H 
+#define _LAPB_H
 #include <linux/lapb.h>
 
 #define	LAPB_HEADER_LEN	20		/* LAPB over Ethernet + a bit more */
@@ -47,7 +47,8 @@
 #define	LAPB_ADDR_D	0x07
 
 /* Define Link State constants. */
-enum {
+enum
+{
 	LAPB_STATE_0,	/* Disconnected State		*/
 	LAPB_STATE_1,	/* Awaiting Connection State	*/
 	LAPB_STATE_2,	/* Awaiting Disconnection State	*/
@@ -67,7 +68,8 @@ enum {
 /*
  *	Information about the current frame.
  */
-struct lapb_frame {
+struct lapb_frame
+{
 	unsigned short		type;		/* Parsed type		*/
 	unsigned short		nr, ns;		/* N(R), N(S)		*/
 	unsigned char		cr;		/* Command/Response	*/
@@ -78,7 +80,8 @@ struct lapb_frame {
 /*
  *	The per LAPB connection control structure.
  */
-struct lapb_cb {
+struct lapb_cb
+{
 	struct list_head	node;
 	struct net_device	*dev;
 
@@ -150,9 +153,9 @@ int lapb_t1timer_running(struct lapb_cb *lapb);
 #define	LAPB_DEBUG	0
 
 #define lapb_dbg(level, fmt, ...)			\
-do {							\
-	if (level < LAPB_DEBUG)				\
-		pr_debug(fmt, ##__VA_ARGS__);		\
-} while (0)
+	do {							\
+		if (level < LAPB_DEBUG)				\
+			pr_debug(fmt, ##__VA_ARGS__);		\
+	} while (0)
 
 #endif

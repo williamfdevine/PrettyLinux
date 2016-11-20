@@ -41,7 +41,8 @@ struct bootcmdresp
 };
 
 /* USB card description structure*/
-struct if_usb_card {
+struct if_usb_card
+{
 	struct usb_device *udev;
 	uint32_t model;  /* MODEL_* */
 	struct urb *rx_urb, *tx_urb;
@@ -78,7 +79,8 @@ struct if_usb_card {
 };
 
 /* fwheader */
-struct fwheader {
+struct fwheader
+{
 	__le32 dnldcmd;
 	__le32 baseaddr;
 	__le32 datalength;
@@ -87,14 +89,16 @@ struct fwheader {
 
 #define FW_MAX_DATA_BLK_SIZE	600
 /* FWData */
-struct fwdata {
+struct fwdata
+{
 	struct fwheader hdr;
 	__le32 seqnum;
 	uint8_t data[0];
 };
 
 /* fwsyncheader */
-struct fwsyncheader {
+struct fwsyncheader
+{
 	__le32 cmd;
 	__le32 seqnum;
 };

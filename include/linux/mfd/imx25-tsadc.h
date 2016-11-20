@@ -4,7 +4,8 @@
 struct regmap;
 struct clk;
 
-struct mx25_tsadc {
+struct mx25_tsadc
+{
 	struct regmap *regs;
 	struct irq_domain *domain;
 	struct clk *clk;
@@ -50,7 +51,7 @@ struct mx25_tsadc {
 /* ADCQ_ITEM_* */
 #define _MX25_ADCQ_ITEM(item, x)	((x) << ((item) * 4))
 #define MX25_ADCQ_ITEM(item, x)		((item) >= 8 ? \
-		_MX25_ADCQ_ITEM((item) - 8, (x)) : _MX25_ADCQ_ITEM((item), (x)))
+									 _MX25_ADCQ_ITEM((item) - 8, (x)) : _MX25_ADCQ_ITEM((item), (x)))
 
 /* ADCQ_FIFO (TCQFIFO and GCQFIFO) */
 #define MX25_ADCQ_FIFO_DATA(x)		(((x) >> 4) & 0xfff)

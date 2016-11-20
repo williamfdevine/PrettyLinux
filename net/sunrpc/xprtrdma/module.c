@@ -11,7 +11,7 @@
 #include "xprt_rdma.h"
 
 #if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
-# define RPCDBG_FACILITY	RPCDBG_TRANS
+	#define RPCDBG_FACILITY	RPCDBG_TRANS
 #endif
 
 MODULE_AUTHOR("Open Grid Computing and Network Appliance, Inc.");
@@ -31,12 +31,18 @@ static int __init rpc_rdma_init(void)
 	int rc;
 
 	rc = svc_rdma_init();
+
 	if (rc)
+	{
 		goto out;
+	}
 
 	rc = xprt_rdma_init();
+
 	if (rc)
+	{
 		svc_rdma_cleanup();
+	}
 
 out:
 	return rc;

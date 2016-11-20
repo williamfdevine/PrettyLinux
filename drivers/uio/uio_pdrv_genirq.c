@@ -30,7 +30,8 @@
 
 #define DRIVER_NAME "uio_pdrv_genirq"
 
-struct uio_pdrv_genirq_platdata {
+struct uio_pdrv_genirq_platdata
+{
 	struct uio_info *uioinfo;
 	spinlock_t lock;
 	unsigned long flags;
@@ -38,7 +39,8 @@ struct uio_pdrv_genirq_platdata {
 };
 
 /* Bits in uio_pdrv_genirq_platdata.flags */
-enum {
+enum
+{
 	UIO_IRQ_DISABLED = 0,
 };
 
@@ -69,8 +71,12 @@ static irqreturn_t uio_pdrv_genirq_handler(int irq, struct uio_info *dev_info)
 	 */
 
 	spin_lock(&priv->lock);
+
 	if (!__test_and_set_bit(UIO_IRQ_DISABLED, &priv->flags))
+	{
 		disable_irq_nosync(irq);
+	}
+
 	spin_unlock(&priv->lock);
 
 	return IRQ_HANDLED;
@@ -90,13 +96,22 @@ static int uio_pdrv_genirq_irqcontrol(struct uio_info *dev_info, s32 irq_on)
 	 */
 
 	spin_lock_irqsave(&priv->lock, flags);
-	if (irq_on) {
+
+	if (irq_on)
+	{
 		if (__test_and_clear_bit(UIO_IRQ_DISABLED, &priv->flags))
+		{
 			enable_irq(dev_info->irq);
-	} else {
-		if (!__test_and_set_bit(UIO_IRQ_DISABLED, &priv->flags))
-			disable_irq_nosync(dev_info->irq);
+		}
 	}
+	else
+	{
+		if (!__test_and_set_bit(UIO_IRQ_DISABLED, &priv->flags))
+		{
+			disable_irq_nosync(dev_info->irq);
+		}
+	}
+
 	spin_unlock_irqrestore(&priv->lock, flags);
 
 	return 0;
@@ -110,32 +125,40 @@ static int uio_pdrv_genirq_probe(struct platform_device *pdev)
 	int ret = -EINVAL;
 	int i;
 
-	if (pdev->dev.of_node) {
+	if (pdev->dev.of_node)
+	{
 		/* alloc uioinfo for one device */
 		uioinfo = devm_kzalloc(&pdev->dev, sizeof(*uioinfo),
-				       GFP_KERNEL);
-		if (!uioinfo) {
+							   GFP_KERNEL);
+
+		if (!uioinfo)
+		{
 			dev_err(&pdev->dev, "unable to kmalloc\n");
 			return -ENOMEM;
 		}
+
 		uioinfo->name = pdev->dev.of_node->name;
 		uioinfo->version = "devicetree";
 		/* Multiple IRQs are not supported */
 	}
 
-	if (!uioinfo || !uioinfo->name || !uioinfo->version) {
+	if (!uioinfo || !uioinfo->name || !uioinfo->version)
+	{
 		dev_err(&pdev->dev, "missing platform_data\n");
 		return ret;
 	}
 
 	if (uioinfo->handler || uioinfo->irqcontrol ||
-	    uioinfo->irq_flags & IRQF_SHARED) {
+		uioinfo->irq_flags & IRQF_SHARED)
+	{
 		dev_err(&pdev->dev, "interrupt configuration error\n");
 		return ret;
 	}
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
-	if (!priv) {
+
+	if (!priv)
+	{
 		dev_err(&pdev->dev, "unable to kmalloc\n");
 		return -ENOMEM;
 	}
@@ -145,12 +168,17 @@ static int uio_pdrv_genirq_probe(struct platform_device *pdev)
 	priv->flags = 0; /* interrupt is enabled to begin with */
 	priv->pdev = pdev;
 
-	if (!uioinfo->irq) {
+	if (!uioinfo->irq)
+	{
 		ret = platform_get_irq(pdev, 0);
 		uioinfo->irq = ret;
+
 		if (ret == -ENXIO && pdev->dev.of_node)
+		{
 			uioinfo->irq = UIO_IRQ_NONE;
-		else if (ret < 0) {
+		}
+		else if (ret < 0)
+		{
 			dev_err(&pdev->dev, "failed to get IRQ\n");
 			return ret;
 		}
@@ -158,16 +186,20 @@ static int uio_pdrv_genirq_probe(struct platform_device *pdev)
 
 	uiomem = &uioinfo->mem[0];
 
-	for (i = 0; i < pdev->num_resources; ++i) {
+	for (i = 0; i < pdev->num_resources; ++i)
+	{
 		struct resource *r = &pdev->resource[i];
 
 		if (r->flags != IORESOURCE_MEM)
+		{
 			continue;
+		}
 
-		if (uiomem >= &uioinfo->mem[MAX_UIO_MAPS]) {
+		if (uiomem >= &uioinfo->mem[MAX_UIO_MAPS])
+		{
 			dev_warn(&pdev->dev, "device has more than "
-					__stringify(MAX_UIO_MAPS)
-					" I/O memory resources.\n");
+					 __stringify(MAX_UIO_MAPS)
+					 " I/O memory resources.\n");
 			break;
 		}
 
@@ -178,7 +210,8 @@ static int uio_pdrv_genirq_probe(struct platform_device *pdev)
 		++uiomem;
 	}
 
-	while (uiomem < &uioinfo->mem[MAX_UIO_MAPS]) {
+	while (uiomem < &uioinfo->mem[MAX_UIO_MAPS])
+	{
 		uiomem->size = 0;
 		++uiomem;
 	}
@@ -206,7 +239,9 @@ static int uio_pdrv_genirq_probe(struct platform_device *pdev)
 	pm_runtime_enable(&pdev->dev);
 
 	ret = uio_register_device(&pdev->dev, priv->uioinfo);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to register uio device\n");
 		pm_runtime_disable(&pdev->dev);
 		return ret;
@@ -246,13 +281,15 @@ static int uio_pdrv_genirq_runtime_nop(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops uio_pdrv_genirq_dev_pm_ops = {
+static const struct dev_pm_ops uio_pdrv_genirq_dev_pm_ops =
+{
 	.runtime_suspend = uio_pdrv_genirq_runtime_nop,
 	.runtime_resume = uio_pdrv_genirq_runtime_nop,
 };
 
 #ifdef CONFIG_OF
-static struct of_device_id uio_of_genirq_match[] = {
+static struct of_device_id uio_of_genirq_match[] =
+{
 	{ /* This is filled with module_parm */ },
 	{ /* Sentinel */ },
 };
@@ -261,7 +298,8 @@ module_param_string(of_id, uio_of_genirq_match[0].compatible, 128, 0);
 MODULE_PARM_DESC(of_id, "Openfirmware id of the device to be handled by uio");
 #endif
 
-static struct platform_driver uio_pdrv_genirq = {
+static struct platform_driver uio_pdrv_genirq =
+{
 	.probe = uio_pdrv_genirq_probe,
 	.remove = uio_pdrv_genirq_remove,
 	.driver = {

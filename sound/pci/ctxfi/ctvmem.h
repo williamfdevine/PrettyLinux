@@ -33,7 +33,8 @@
 #define CT_PAGE_MASK	(~(PAGE_SIZE - 1))
 #define CT_PAGE_ALIGN(addr)	ALIGN(addr, CT_PAGE_SIZE)
 
-struct ct_vm_block {
+struct ct_vm_block
+{
 	unsigned int addr;	/* starting logical addr of this block */
 	unsigned int size;	/* size of this device virtual mem block */
 	struct list_head list;
@@ -42,7 +43,8 @@ struct ct_vm_block {
 struct snd_pcm_substream;
 
 /* Virtual memory management object for card device */
-struct ct_vm {
+struct ct_vm
+{
 	struct snd_dma_buffer ptp[CT_PTP_NUM];	/* Device page table pages */
 	unsigned int size;		/* Available addr space in bytes */
 	struct list_head unused;	/* List of unused blocks */
@@ -51,7 +53,7 @@ struct ct_vm {
 
 	/* Map host addr (kmalloced/vmalloced) to device logical addr. */
 	struct ct_vm_block *(*map)(struct ct_vm *, struct snd_pcm_substream *,
-				   int size);
+							   int size);
 	/* Unmap device logical addr area. */
 	void (*unmap)(struct ct_vm *, struct ct_vm_block *block);
 	dma_addr_t (*get_ptp_phys)(struct ct_vm *vm, int index);

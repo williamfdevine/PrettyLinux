@@ -7,7 +7,8 @@
 #ifndef _VIDEOBUF_DVB_H_
 #define	_VIDEOBUF_DVB_H_
 
-struct videobuf_dvb {
+struct videobuf_dvb
+{
 	/* filling that the job of the driver */
 	char                       *name;
 	struct dvb_frontend        *frontend;
@@ -26,13 +27,15 @@ struct videobuf_dvb {
 	struct dvb_net             net;
 };
 
-struct videobuf_dvb_frontend {
+struct videobuf_dvb_frontend
+{
 	struct list_head felist;
 	int id;
 	struct videobuf_dvb dvb;
 };
 
-struct videobuf_dvb_frontends {
+struct videobuf_dvb_frontends
+{
 	struct list_head felist;
 	struct mutex lock;
 	struct dvb_adapter adapter;
@@ -41,18 +44,18 @@ struct videobuf_dvb_frontends {
 };
 
 int videobuf_dvb_register_bus(struct videobuf_dvb_frontends *f,
-			  struct module *module,
-			  void *adapter_priv,
-			  struct device *device,
-			  short *adapter_nr,
-			  int mfe_shared);
+							  struct module *module,
+							  void *adapter_priv,
+							  struct device *device,
+							  short *adapter_nr,
+							  int mfe_shared);
 
 void videobuf_dvb_unregister_bus(struct videobuf_dvb_frontends *f);
 
-struct videobuf_dvb_frontend * videobuf_dvb_alloc_frontend(struct videobuf_dvb_frontends *f, int id);
+struct videobuf_dvb_frontend *videobuf_dvb_alloc_frontend(struct videobuf_dvb_frontends *f, int id);
 void videobuf_dvb_dealloc_frontends(struct videobuf_dvb_frontends *f);
 
-struct videobuf_dvb_frontend * videobuf_dvb_get_frontend(struct videobuf_dvb_frontends *f, int id);
+struct videobuf_dvb_frontend *videobuf_dvb_get_frontend(struct videobuf_dvb_frontends *f, int id);
 int videobuf_dvb_find_frontend(struct videobuf_dvb_frontends *f, struct dvb_frontend *p);
 
 #endif			/* _VIDEOBUF_DVB_H_ */

@@ -54,134 +54,138 @@ static inline int ioctl_return(int __user *addr, int value)
 }
 
 
-    /*
-     *  Configuration
-     */
+/*
+ *  Configuration
+ */
 
 #undef HAS_8BIT_TABLES
 
 #if defined(CONFIG_DMASOUND_ATARI) || defined(CONFIG_DMASOUND_ATARI_MODULE) ||\
-    defined(CONFIG_DMASOUND_PAULA) || defined(CONFIG_DMASOUND_PAULA_MODULE) ||\
-    defined(CONFIG_DMASOUND_Q40) || defined(CONFIG_DMASOUND_Q40_MODULE)
-#define HAS_8BIT_TABLES
-#define MIN_BUFFERS	4
-#define MIN_BUFSIZE	(1<<12)	/* in bytes (- where does this come from ?) */
-#define MIN_FRAG_SIZE	8	/* not 100% sure about this */
-#define MAX_BUFSIZE	(1<<17)	/* Limit for Amiga is 128 kb */
-#define MAX_FRAG_SIZE	15	/* allow *4 for mono-8 => stereo-16 (for multi) */
+	defined(CONFIG_DMASOUND_PAULA) || defined(CONFIG_DMASOUND_PAULA_MODULE) ||\
+	defined(CONFIG_DMASOUND_Q40) || defined(CONFIG_DMASOUND_Q40_MODULE)
+	#define HAS_8BIT_TABLES
+	#define MIN_BUFFERS	4
+	#define MIN_BUFSIZE	(1<<12)	/* in bytes (- where does this come from ?) */
+	#define MIN_FRAG_SIZE	8	/* not 100% sure about this */
+	#define MAX_BUFSIZE	(1<<17)	/* Limit for Amiga is 128 kb */
+	#define MAX_FRAG_SIZE	15	/* allow *4 for mono-8 => stereo-16 (for multi) */
 
 #else /* is pmac and multi is off */
 
-#define MIN_BUFFERS	2
-#define MIN_BUFSIZE	(1<<8)	/* in bytes */
-#define MIN_FRAG_SIZE	8
-#define MAX_BUFSIZE	(1<<18)	/* this is somewhat arbitrary for pmac */
-#define MAX_FRAG_SIZE	16	/* need to allow *4 for mono-8 => stereo-16 */
+	#define MIN_BUFFERS	2
+	#define MIN_BUFSIZE	(1<<8)	/* in bytes */
+	#define MIN_FRAG_SIZE	8
+	#define MAX_BUFSIZE	(1<<18)	/* this is somewhat arbitrary for pmac */
+	#define MAX_FRAG_SIZE	16	/* need to allow *4 for mono-8 => stereo-16 */
 #endif
 
 #define DEFAULT_N_BUFFERS 4
 #define DEFAULT_BUFF_SIZE (1<<15)
 
-    /*
-     *  Initialization
-     */
+/*
+ *  Initialization
+ */
 
 extern int dmasound_init(void);
 #ifdef MODULE
-extern void dmasound_deinit(void);
+	extern void dmasound_deinit(void);
 #else
-#define dmasound_deinit()	do { } while (0)
+	#define dmasound_deinit()	do { } while (0)
 #endif
 
 /* description of the set-up applies to either hard or soft settings */
 
-typedef struct {
-    int format;		/* AFMT_* */
-    int stereo;		/* 0 = mono, 1 = stereo */
-    int size;		/* 8/16 bit*/
-    int speed;		/* speed */
+typedef struct
+{
+	int format;		/* AFMT_* */
+	int stereo;		/* 0 = mono, 1 = stereo */
+	int size;		/* 8/16 bit*/
+	int speed;		/* speed */
 } SETTINGS;
 
-    /*
-     *  Machine definitions
-     */
+/*
+ *  Machine definitions
+ */
 
-typedef struct {
-    const char *name;
-    const char *name2;
-    struct module *owner;
-    void *(*dma_alloc)(unsigned int, gfp_t);
-    void (*dma_free)(void *, unsigned int);
-    int (*irqinit)(void);
+typedef struct
+{
+	const char *name;
+	const char *name2;
+	struct module *owner;
+	void *(*dma_alloc)(unsigned int, gfp_t);
+	void (*dma_free)(void *, unsigned int);
+	int (*irqinit)(void);
 #ifdef MODULE
-    void (*irqcleanup)(void);
+	void (*irqcleanup)(void);
 #endif
-    void (*init)(void);
-    void (*silence)(void);
-    int (*setFormat)(int);
-    int (*setVolume)(int);
-    int (*setBass)(int);
-    int (*setTreble)(int);
-    int (*setGain)(int);
-    void (*play)(void);
-    void (*record)(void);		/* optional */
-    void (*mixer_init)(void);		/* optional */
-    int (*mixer_ioctl)(u_int, u_long);	/* optional */
-    int (*write_sq_setup)(void);	/* optional */
-    int (*read_sq_setup)(void);		/* optional */
-    int (*sq_open)(fmode_t);		/* optional */
-    int (*state_info)(char *, size_t);	/* optional */
-    void (*abort_read)(void);		/* optional */
-    int min_dsp_speed;
-    int max_dsp_speed;
-    int version ;
-    int hardware_afmts ;		/* OSS says we only return h'ware info */
-					/* when queried via SNDCTL_DSP_GETFMTS */
-    int capabilities ;		/* low-level reply to SNDCTL_DSP_GETCAPS */
-    SETTINGS default_hard ;	/* open() or init() should set something valid */
-    SETTINGS default_soft ;	/* you can make it look like old OSS, if you want to */
+	void (*init)(void);
+	void (*silence)(void);
+	int (*setFormat)(int);
+	int (*setVolume)(int);
+	int (*setBass)(int);
+	int (*setTreble)(int);
+	int (*setGain)(int);
+	void (*play)(void);
+	void (*record)(void);		/* optional */
+	void (*mixer_init)(void);		/* optional */
+	int (*mixer_ioctl)(u_int, u_long);	/* optional */
+	int (*write_sq_setup)(void);	/* optional */
+	int (*read_sq_setup)(void);		/* optional */
+	int (*sq_open)(fmode_t);		/* optional */
+	int (*state_info)(char *, size_t);	/* optional */
+	void (*abort_read)(void);		/* optional */
+	int min_dsp_speed;
+	int max_dsp_speed;
+	int version ;
+	int hardware_afmts ;		/* OSS says we only return h'ware info */
+	/* when queried via SNDCTL_DSP_GETFMTS */
+	int capabilities ;		/* low-level reply to SNDCTL_DSP_GETCAPS */
+	SETTINGS default_hard ;	/* open() or init() should set something valid */
+	SETTINGS default_soft ;	/* you can make it look like old OSS, if you want to */
 } MACHINE;
 
-    /*
-     *  Low level stuff
-     */
+/*
+ *  Low level stuff
+ */
 
-typedef struct {
-    ssize_t (*ct_ulaw)(const u_char __user *, size_t, u_char *, ssize_t *, ssize_t);
-    ssize_t (*ct_alaw)(const u_char __user *, size_t, u_char *, ssize_t *, ssize_t);
-    ssize_t (*ct_s8)(const u_char __user *, size_t, u_char *, ssize_t *, ssize_t);
-    ssize_t (*ct_u8)(const u_char __user *, size_t, u_char *, ssize_t *, ssize_t);
-    ssize_t (*ct_s16be)(const u_char __user *, size_t, u_char *, ssize_t *, ssize_t);
-    ssize_t (*ct_u16be)(const u_char __user *, size_t, u_char *, ssize_t *, ssize_t);
-    ssize_t (*ct_s16le)(const u_char __user *, size_t, u_char *, ssize_t *, ssize_t);
-    ssize_t (*ct_u16le)(const u_char __user *, size_t, u_char *, ssize_t *, ssize_t);
+typedef struct
+{
+	ssize_t (*ct_ulaw)(const u_char __user *, size_t, u_char *, ssize_t *, ssize_t);
+	ssize_t (*ct_alaw)(const u_char __user *, size_t, u_char *, ssize_t *, ssize_t);
+	ssize_t (*ct_s8)(const u_char __user *, size_t, u_char *, ssize_t *, ssize_t);
+	ssize_t (*ct_u8)(const u_char __user *, size_t, u_char *, ssize_t *, ssize_t);
+	ssize_t (*ct_s16be)(const u_char __user *, size_t, u_char *, ssize_t *, ssize_t);
+	ssize_t (*ct_u16be)(const u_char __user *, size_t, u_char *, ssize_t *, ssize_t);
+	ssize_t (*ct_s16le)(const u_char __user *, size_t, u_char *, ssize_t *, ssize_t);
+	ssize_t (*ct_u16le)(const u_char __user *, size_t, u_char *, ssize_t *, ssize_t);
 } TRANS;
 
-struct sound_settings {
-    MACHINE mach;	/* machine dependent things */
-    SETTINGS hard;	/* hardware settings */
-    SETTINGS soft;	/* software settings */
-    SETTINGS dsp;	/* /dev/dsp default settings */
-    TRANS *trans_write;	/* supported translations */
-    int volume_left;	/* volume (range is machine dependent) */
-    int volume_right;
-    int bass;		/* tone (range is machine dependent) */
-    int treble;
-    int gain;
-    int minDev;		/* minor device number currently open */
-    spinlock_t lock;
+struct sound_settings
+{
+	MACHINE mach;	/* machine dependent things */
+	SETTINGS hard;	/* hardware settings */
+	SETTINGS soft;	/* software settings */
+	SETTINGS dsp;	/* /dev/dsp default settings */
+	TRANS *trans_write;	/* supported translations */
+	int volume_left;	/* volume (range is machine dependent) */
+	int volume_right;
+	int bass;		/* tone (range is machine dependent) */
+	int treble;
+	int gain;
+	int minDev;		/* minor device number currently open */
+	spinlock_t lock;
 };
 
 extern struct sound_settings dmasound;
 
 #ifdef HAS_8BIT_TABLES
-extern char dmasound_ulaw2dma8[];
-extern char dmasound_alaw2dma8[];
+	extern char dmasound_ulaw2dma8[];
+	extern char dmasound_alaw2dma8[];
 #endif
 
-    /*
-     *  Mid level stuff
-     */
+/*
+ *  Mid level stuff
+ */
 
 static inline int dmasound_set_volume(int volume)
 {
@@ -204,39 +208,40 @@ static inline int dmasound_set_gain(int gain)
 }
 
 
-    /*
-     * Sound queue stuff, the heart of the driver
-     */
+/*
+ * Sound queue stuff, the heart of the driver
+ */
 
-struct sound_queue {
-    /* buffers allocated for this queue */
-    int numBufs;		/* real limits on what the user can have */
-    int bufSize;		/* in bytes */
-    char **buffers;
+struct sound_queue
+{
+	/* buffers allocated for this queue */
+	int numBufs;		/* real limits on what the user can have */
+	int bufSize;		/* in bytes */
+	char **buffers;
 
-    /* current parameters */
-    int locked ;		/* params cannot be modified when != 0 */
-    int user_frags ;		/* user requests this many */
-    int user_frag_size ;	/* of this size */
-    int max_count;		/* actual # fragments <= numBufs */
-    int block_size;		/* internal block size in bytes */
-    int max_active;		/* in-use fragments <= max_count */
+	/* current parameters */
+	int locked ;		/* params cannot be modified when != 0 */
+	int user_frags ;		/* user requests this many */
+	int user_frag_size ;	/* of this size */
+	int max_count;		/* actual # fragments <= numBufs */
+	int block_size;		/* internal block size in bytes */
+	int max_active;		/* in-use fragments <= max_count */
 
-    /* it shouldn't be necessary to declare any of these volatile */
-    int front, rear, count;
-    int rear_size;
-    /*
-     *	The use of the playing field depends on the hardware
-     *
-     *	Atari, PMac: The number of frames that are loaded/playing
-     *
-     *	Amiga: Bit 0 is set: a frame is loaded
-     *	       Bit 1 is set: a frame is playing
-     */
-    int active;
-    wait_queue_head_t action_queue, open_queue, sync_queue;
-    int non_blocking;
-    int busy, syncing, xruns, died;
+	/* it shouldn't be necessary to declare any of these volatile */
+	int front, rear, count;
+	int rear_size;
+	/*
+	 *	The use of the playing field depends on the hardware
+	 *
+	 *	Atari, PMac: The number of frames that are loaded/playing
+	 *
+	 *	Amiga: Bit 0 is set: a frame is loaded
+	 *	       Bit 1 is set: a frame is playing
+	 */
+	int active;
+	wait_queue_head_t action_queue, open_queue, sync_queue;
+	int non_blocking;
+	int busy, syncing, xruns, died;
 };
 
 #define WAKE_UP(queue)		(wake_up_interruptible(&queue))

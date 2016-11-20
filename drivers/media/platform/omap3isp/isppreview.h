@@ -40,7 +40,8 @@
 #define OMAP3ISP_PREV_BRIGHTNESS	(1 << 18)
 #define OMAP3ISP_PREV_FEATURES_END	(1 << 19)
 
-enum preview_input_entity {
+enum preview_input_entity
+{
 	PREVIEW_INPUT_NONE,
 	PREVIEW_INPUT_CCDC,
 	PREVIEW_INPUT_MEMORY,
@@ -50,7 +51,8 @@ enum preview_input_entity {
 #define PREVIEW_OUTPUT_MEMORY		(1 << 2)
 
 /* Configure byte layout of YUV image */
-enum preview_ycpos_mode {
+enum preview_ycpos_mode
+{
 	YCPOS_YCrYCb = 0,
 	YCPOS_YCbYCr = 1,
 	YCPOS_CbYCrY = 2,
@@ -77,7 +79,8 @@ enum preview_ycpos_mode {
  * @contrast: Contrast.
  * @brightness: Brightness.
  */
-struct prev_params {
+struct prev_params
+{
 	u32 busy;
 	u32 update;
 	u32 features;
@@ -120,7 +123,8 @@ struct prev_params {
  *
  * This structure is used to store the OMAP ISP Preview module Information.
  */
-struct isp_prev_device {
+struct isp_prev_device
+{
 	struct v4l2_subdev subdev;
 	struct media_pad pads[PREV_PADS_NUM];
 	struct v4l2_mbus_framefmt formats[PREV_PADS_NUM];
@@ -133,7 +137,8 @@ struct isp_prev_device {
 	struct isp_video video_in;
 	struct isp_video video_out;
 
-	struct {
+	struct
+	{
 		unsigned int cfa_order;
 		struct prev_params params[2];
 		u32 active;
@@ -151,7 +156,7 @@ int omap3isp_preview_init(struct isp_device *isp);
 void omap3isp_preview_cleanup(struct isp_device *isp);
 
 int omap3isp_preview_register_entities(struct isp_prev_device *prv,
-				       struct v4l2_device *vdev);
+									   struct v4l2_device *vdev);
 void omap3isp_preview_unregister_entities(struct isp_prev_device *prv);
 
 void omap3isp_preview_isr_frame_sync(struct isp_prev_device *prev);

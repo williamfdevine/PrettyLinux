@@ -45,7 +45,7 @@ nvkm_fb_tile_fini(struct nvkm_fb *fb, int region, struct nvkm_fb_tile *tile)
 
 void
 nvkm_fb_tile_init(struct nvkm_fb *fb, int region, u32 addr, u32 size,
-		  u32 pitch, u32 flags, struct nvkm_fb_tile *tile)
+				  u32 pitch, u32 flags, struct nvkm_fb_tile *tile)
 {
 	fb->func->tile.init(fb, region, addr, size, pitch, flags, tile);
 }
@@ -54,12 +54,20 @@ void
 nvkm_fb_tile_prog(struct nvkm_fb *fb, int region, struct nvkm_fb_tile *tile)
 {
 	struct nvkm_device *device = fb->subdev.device;
-	if (fb->func->tile.prog) {
+
+	if (fb->func->tile.prog)
+	{
 		fb->func->tile.prog(fb, region, tile);
+
 		if (device->gr)
+		{
 			nvkm_engine_tile(&device->gr->engine, region);
+		}
+
 		if (device->mpeg)
+		{
 			nvkm_engine_tile(device->mpeg, region);
+		}
 	}
 }
 
@@ -72,15 +80,21 @@ nvkm_fb_bios_memtype(struct nvkm_bios *bios)
 	struct nvbios_M0203E M0203E;
 	u8 ver, hdr;
 
-	if (nvbios_M0203Em(bios, ramcfg, &ver, &hdr, &M0203E)) {
-		switch (M0203E.type) {
-		case M0203E_TYPE_DDR2 : return NVKM_RAM_TYPE_DDR2;
-		case M0203E_TYPE_DDR3 : return NVKM_RAM_TYPE_DDR3;
-		case M0203E_TYPE_GDDR3: return NVKM_RAM_TYPE_GDDR3;
-		case M0203E_TYPE_GDDR5: return NVKM_RAM_TYPE_GDDR5;
-		default:
-			nvkm_warn(subdev, "M0203E type %02x\n", M0203E.type);
-			return NVKM_RAM_TYPE_UNKNOWN;
+	if (nvbios_M0203Em(bios, ramcfg, &ver, &hdr, &M0203E))
+	{
+		switch (M0203E.type)
+		{
+			case M0203E_TYPE_DDR2 : return NVKM_RAM_TYPE_DDR2;
+
+			case M0203E_TYPE_DDR3 : return NVKM_RAM_TYPE_DDR3;
+
+			case M0203E_TYPE_GDDR3: return NVKM_RAM_TYPE_GDDR3;
+
+			case M0203E_TYPE_GDDR5: return NVKM_RAM_TYPE_GDDR5;
+
+			default:
+				nvkm_warn(subdev, "M0203E type %02x\n", M0203E.type);
+				return NVKM_RAM_TYPE_UNKNOWN;
 		}
 	}
 
@@ -92,8 +106,11 @@ static void
 nvkm_fb_intr(struct nvkm_subdev *subdev)
 {
 	struct nvkm_fb *fb = nvkm_fb(subdev);
+
 	if (fb->func->intr)
+	{
 		fb->func->intr(fb);
+	}
 }
 
 static int
@@ -101,18 +118,25 @@ nvkm_fb_oneinit(struct nvkm_subdev *subdev)
 {
 	struct nvkm_fb *fb = nvkm_fb(subdev);
 
-	if (fb->func->ram_new) {
+	if (fb->func->ram_new)
+	{
 		int ret = fb->func->ram_new(fb, &fb->ram);
-		if (ret) {
+
+		if (ret)
+		{
 			nvkm_error(subdev, "vram setup failed, %d\n", ret);
 			return ret;
 		}
 	}
 
-	if (fb->func->oneinit) {
+	if (fb->func->oneinit)
+	{
 		int ret = fb->func->oneinit(fb);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
@@ -124,21 +148,36 @@ nvkm_fb_init(struct nvkm_subdev *subdev)
 	struct nvkm_fb *fb = nvkm_fb(subdev);
 	int ret, i;
 
-	if (fb->ram) {
+	if (fb->ram)
+	{
 		ret = nvkm_ram_init(fb->ram);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	for (i = 0; i < fb->tile.regions; i++)
+	{
 		fb->func->tile.prog(fb, i, &fb->tile.region[i]);
+	}
 
 	if (fb->func->init)
+	{
 		fb->func->init(fb);
+	}
+
 	if (fb->func->init_page)
+	{
 		fb->func->init_page(fb);
+	}
+
 	if (fb->func->init_unkn)
+	{
 		fb->func->init_unkn(fb);
+	}
+
 	return 0;
 }
 
@@ -152,17 +191,23 @@ nvkm_fb_dtor(struct nvkm_subdev *subdev)
 	nvkm_memory_del(&fb->mmu_rd);
 
 	for (i = 0; i < fb->tile.regions; i++)
+	{
 		fb->func->tile.fini(fb, i, &fb->tile.region[i]);
+	}
 
 	nvkm_ram_del(&fb->ram);
 
 	if (fb->func->dtor)
+	{
 		return fb->func->dtor(fb);
+	}
+
 	return fb;
 }
 
 static const struct nvkm_subdev_func
-nvkm_fb = {
+	nvkm_fb =
+{
 	.dtor = nvkm_fb_dtor,
 	.oneinit = nvkm_fb_oneinit,
 	.init = nvkm_fb_init,
@@ -171,7 +216,7 @@ nvkm_fb = {
 
 void
 nvkm_fb_ctor(const struct nvkm_fb_func *func, struct nvkm_device *device,
-	     int index, struct nvkm_fb *fb)
+			 int index, struct nvkm_fb *fb)
 {
 	nvkm_subdev_ctor(&nvkm_fb, device, index, &fb->subdev);
 	fb->func = func;
@@ -181,10 +226,13 @@ nvkm_fb_ctor(const struct nvkm_fb_func *func, struct nvkm_device *device,
 
 int
 nvkm_fb_new_(const struct nvkm_fb_func *func, struct nvkm_device *device,
-	     int index, struct nvkm_fb **pfb)
+			 int index, struct nvkm_fb **pfb)
 {
 	if (!(*pfb = kzalloc(sizeof(**pfb), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	nvkm_fb_ctor(func, device, index, *pfb);
 	return 0;
 }

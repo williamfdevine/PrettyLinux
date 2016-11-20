@@ -126,7 +126,8 @@ a minor burden.
     G.168 echo canceller descriptor. This defines the working state for a line
     echo canceller.
 */
-struct oslec_state {
+struct oslec_state
+{
 	int16_t tx;
 	int16_t rx;
 	int16_t clean;

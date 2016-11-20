@@ -38,26 +38,34 @@ gf100_devinit_pll_set(struct nvkm_devinit *init, u32 type, u32 freq)
 	int ret;
 
 	ret = nvbios_pll_parse(device->bios, type, &info);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = gt215_pll_calc(subdev, &info, freq, &N, &fN, &M, &P);
-	if (ret < 0)
-		return ret;
 
-	switch (info.type) {
-	case PLL_VPLL0:
-	case PLL_VPLL1:
-	case PLL_VPLL2:
-	case PLL_VPLL3:
-		nvkm_mask(device, info.reg + 0x0c, 0x00000000, 0x00000100);
-		nvkm_wr32(device, info.reg + 0x04, (P << 16) | (N << 8) | M);
-		nvkm_wr32(device, info.reg + 0x10, fN << 16);
-		break;
-	default:
-		nvkm_warn(subdev, "%08x/%dKhz unimplemented\n", type, freq);
-		ret = -EINVAL;
-		break;
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	switch (info.type)
+	{
+		case PLL_VPLL0:
+		case PLL_VPLL1:
+		case PLL_VPLL2:
+		case PLL_VPLL3:
+			nvkm_mask(device, info.reg + 0x0c, 0x00000000, 0x00000100);
+			nvkm_wr32(device, info.reg + 0x04, (P << 16) | (N << 8) | M);
+			nvkm_wr32(device, info.reg + 0x10, fN << 16);
+			break;
+
+		default:
+			nvkm_warn(subdev, "%08x/%dKhz unimplemented\n", type, freq);
+			ret = -EINVAL;
+			break;
 	}
 
 	return ret;
@@ -71,21 +79,35 @@ gf100_devinit_disable(struct nvkm_devinit *init)
 	u64 disable = 0ULL;
 
 	if (r022500 & 0x00000001)
+	{
 		disable |= (1ULL << NVKM_ENGINE_DISP);
+	}
 
-	if (r022500 & 0x00000002) {
+	if (r022500 & 0x00000002)
+	{
 		disable |= (1ULL << NVKM_ENGINE_MSPDEC);
 		disable |= (1ULL << NVKM_ENGINE_MSPPP);
 	}
 
 	if (r022500 & 0x00000004)
+	{
 		disable |= (1ULL << NVKM_ENGINE_MSVLD);
+	}
+
 	if (r022500 & 0x00000008)
+	{
 		disable |= (1ULL << NVKM_ENGINE_MSENC);
+	}
+
 	if (r022500 & 0x00000100)
+	{
 		disable |= (1ULL << NVKM_ENGINE_CE0);
+	}
+
 	if (r022500 & 0x00000200)
+	{
 		disable |= (1ULL << NVKM_ENGINE_CE1);
+	}
 
 	return disable;
 }
@@ -105,7 +127,8 @@ gf100_devinit_preinit(struct nvkm_devinit *base)
 }
 
 static const struct nvkm_devinit_func
-gf100_devinit = {
+	gf100_devinit =
+{
 	.preinit = gf100_devinit_preinit,
 	.init = nv50_devinit_init,
 	.post = nv04_devinit_post,
@@ -115,7 +138,7 @@ gf100_devinit = {
 
 int
 gf100_devinit_new(struct nvkm_device *device, int index,
-		struct nvkm_devinit **pinit)
+				  struct nvkm_devinit **pinit)
 {
 	return nv50_devinit_new_(&gf100_devinit, device, index, pinit);
 }

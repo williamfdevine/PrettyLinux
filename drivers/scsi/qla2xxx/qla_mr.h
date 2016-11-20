@@ -15,7 +15,8 @@
 /* FX00 specific definitions */
 
 #define FX00_COMMAND_TYPE_7	0x07	/* Command Type 7 entry for 7XXX */
-struct cmd_type_7_fx00 {
+struct cmd_type_7_fx00
+{
 	uint8_t entry_type;		/* Entry type. */
 	uint8_t entry_count;		/* Entry count. */
 	uint8_t sys_define;		/* System defined. */
@@ -51,7 +52,8 @@ struct cmd_type_7_fx00 {
 };
 
 #define	STATUS_TYPE_FX00	0x01		/* Status entry. */
-struct sts_entry_fx00 {
+struct sts_entry_fx00
+{
 	uint8_t entry_type;		/* Entry type. */
 	uint8_t entry_count;		/* Entry count. */
 	uint8_t sys_define;		/* System defined. */
@@ -79,7 +81,8 @@ struct sts_entry_fx00 {
 #define MAX_HANDLE_COUNT	15
 #define MULTI_STATUS_TYPE_FX00	0x0D
 
-struct multi_sts_entry_fx00 {
+struct multi_sts_entry_fx00
+{
 	uint8_t entry_type;		/* Entry type. */
 	uint8_t entry_count;		/* Entry count. */
 	uint8_t handle_count;
@@ -89,7 +92,8 @@ struct multi_sts_entry_fx00 {
 };
 
 #define TSK_MGMT_IOCB_TYPE_FX00		0x05
-struct tsk_mgmt_entry_fx00 {
+struct tsk_mgmt_entry_fx00
+{
 	uint8_t entry_type;		/* Entry type. */
 	uint8_t entry_count;		/* Entry count. */
 	uint8_t sys_define;
@@ -114,7 +118,8 @@ struct tsk_mgmt_entry_fx00 {
 
 
 #define	ABORT_IOCB_TYPE_FX00	0x08		/* Abort IOCB status. */
-struct abort_iocb_entry_fx00 {
+struct abort_iocb_entry_fx00
+{
 	uint8_t entry_type;		/* Entry type. */
 	uint8_t entry_count;		/* Entry count. */
 	uint8_t sys_define;		/* System defined. */
@@ -134,7 +139,8 @@ struct abort_iocb_entry_fx00 {
 };
 
 #define IOCTL_IOSB_TYPE_FX00	0x0C
-struct ioctl_iocb_entry_fx00 {
+struct ioctl_iocb_entry_fx00
+{
 	uint8_t entry_type;		/* Entry type. */
 	uint8_t entry_count;		/* Entry count. */
 	uint8_t sys_define;		/* System defined. */
@@ -159,7 +165,8 @@ struct ioctl_iocb_entry_fx00 {
 #define STATUS_CONT_TYPE_FX00 0x04
 
 #define FX00_IOCB_TYPE		0x0B
-struct fxdisc_entry_fx00 {
+struct fxdisc_entry_fx00
+{
 	uint8_t entry_type;		/* Entry type. */
 	uint8_t entry_count;		/* Entry count. */
 	uint8_t sys_define;		/* System Defined. */
@@ -187,7 +194,8 @@ struct fxdisc_entry_fx00 {
 	__le32 dataword_extra;
 };
 
-struct qlafx00_tgt_node_info {
+struct qlafx00_tgt_node_info
+{
 	uint8_t tgt_node_wwpn[WWN_SIZE];
 	uint8_t tgt_node_wwnn[WWN_SIZE];
 	uint32_t tgt_node_state;
@@ -205,7 +213,8 @@ struct qlafx00_tgt_node_info {
 #define QLAFX00_PORT_SPEED_4G	0x4
 #define QLAFX00_PORT_SPEED_8G	0x8
 #define QLAFX00_PORT_SPEED_10G	0xa
-struct port_info_data {
+struct port_info_data
+{
 	uint8_t         port_state;
 	uint8_t         port_type;
 	uint16_t        port_identifier;
@@ -257,7 +266,8 @@ struct port_info_data {
 #define MACHINE_LENGTH              64
 #define DOMNAME_LENGTH              64
 
-struct host_system_info {
+struct host_system_info
+{
 	uint32_t os_type;
 	char    sysname[SYSNAME_LENGTH];
 	char    nodename[NODENAME_LENGTH];
@@ -269,7 +279,8 @@ struct host_system_info {
 	uint32_t reserved[64];
 } __packed;
 
-struct register_host_info {
+struct register_host_info
+{
 	struct host_system_info     hsi;	/* host system info */
 	uint64_t        utc;			/* UTC (system time) */
 	uint32_t        reserved[64];		/* future additions */
@@ -279,7 +290,8 @@ struct register_host_info {
 #define QLAFX00_PORT_DATA_INFO (sizeof(struct port_info_data))
 #define QLAFX00_TGT_NODE_LIST_SIZE (sizeof(uint32_t) * 32)
 
-struct config_info_data {
+struct config_info_data
+{
 	uint8_t		model_num[16];
 	uint8_t		model_description[80];
 	uint8_t		reserved0[160];
@@ -361,18 +373,18 @@ struct config_info_data {
 
 #define QLAFX00_SET_HST_INTR(ha, value) \
 	WRT_REG_DWORD((ha)->cregbase + QLAFX00_HST_TO_HBA_REG, \
-	value)
+				  value)
 
 #define QLAFX00_CLR_HST_INTR(ha, value) \
 	WRT_REG_DWORD((ha)->cregbase + QLAFX00_HBA_TO_HOST_REG, \
-	~value)
+				  ~value)
 
 #define QLAFX00_RD_INTR_REG(ha) \
 	RD_REG_DWORD((ha)->cregbase + QLAFX00_HBA_TO_HOST_REG)
 
 #define QLAFX00_CLR_INTR_REG(ha, value) \
 	WRT_REG_DWORD((ha)->cregbase + QLAFX00_HBA_TO_HOST_REG, \
-	~value)
+				  ~value)
 
 #define QLAFX00_SET_HBA_SOC_REG(ha, off, val)\
 	WRT_REG_DWORD((ha)->cregbase + off, val)
@@ -388,13 +400,13 @@ struct config_info_data {
 
 #define QLAFX00_ENABLE_ICNTRL_REG(ha) \
 	WRT_REG_DWORD((ha)->cregbase + QLAFX00_HBA_ICNTRL_REG, \
-	(QLAFX00_GET_HBA_SOC_REG(ha, QLAFX00_HBA_ICNTRL_REG) | \
-	 QLAFX00_ICR_ENB_MASK))
+				  (QLAFX00_GET_HBA_SOC_REG(ha, QLAFX00_HBA_ICNTRL_REG) | \
+				   QLAFX00_ICR_ENB_MASK))
 
 #define QLAFX00_DISABLE_ICNTRL_REG(ha) \
 	WRT_REG_DWORD((ha)->cregbase + QLAFX00_HBA_ICNTRL_REG, \
-	(QLAFX00_GET_HBA_SOC_REG(ha, QLAFX00_HBA_ICNTRL_REG) & \
-	 QLAFX00_ICR_DIS_MASK))
+				  (QLAFX00_GET_HBA_SOC_REG(ha, QLAFX00_HBA_ICNTRL_REG) & \
+				   QLAFX00_ICR_DIS_MASK))
 
 #define QLAFX00_RD_REG(ha, off) \
 	RD_REG_DWORD((ha)->cregbase + off)
@@ -402,7 +414,8 @@ struct config_info_data {
 #define QLAFX00_WR_REG(ha, off, val) \
 	WRT_REG_DWORD((ha)->cregbase + off, val)
 
-struct qla_mt_iocb_rqst_fx00 {
+struct qla_mt_iocb_rqst_fx00
+{
 	__le32 reserved_0;
 
 	__le16 func_type;
@@ -423,7 +436,8 @@ struct qla_mt_iocb_rqst_fx00 {
 	__le16 reserved_3;
 };
 
-struct qla_mt_iocb_rsp_fx00 {
+struct qla_mt_iocb_rsp_fx00
+{
 	uint32_t reserved_1;
 
 	uint16_t func_type;
@@ -465,7 +479,8 @@ struct qla_mt_iocb_rsp_fx00 {
 
 #define FX00_DEF_RATOV	10
 
-struct mr_data_fx00 {
+struct mr_data_fx00
+{
 	uint8_t	symbolic_name[64];
 	uint8_t	serial_num[32];
 	uint8_t	hw_version[16];
@@ -505,7 +520,7 @@ struct mr_data_fx00 {
  * performs the calcualtions and returns temperature in Celsius
  */
 #define QLAFX00_GET_TEMPERATURE(ha) ((3153000 - (10000 * \
-	((QLAFX00_RD_REG(ha, QLAFX00_SOC_TEMP_REG) & 0x3FE) >> 1))) / 13825)
+									  ((QLAFX00_RD_REG(ha, QLAFX00_SOC_TEMP_REG) & 0x3FE) >> 1))) / 13825)
 
 
 #define QLAFX00_LOOP_DOWN_TIME		615     /* 600 */

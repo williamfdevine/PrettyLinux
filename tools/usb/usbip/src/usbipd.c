@@ -20,7 +20,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "../config.h"
+	#include "../config.h"
 #endif
 
 #define _GNU_SOURCE
@@ -36,7 +36,7 @@
 #include <netinet/in.h>
 
 #ifdef HAVE_LIBWRAP
-#include <tcpd.h>
+	#include <tcpd.h>
 #endif
 
 #include <getopt.h>
@@ -113,42 +113,57 @@ static int recv_request_import(int sockfd)
 	memset(&req, 0, sizeof(req));
 
 	rc = usbip_net_recv(sockfd, &req, sizeof(req));
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		dbg("usbip_net_recv failed: import request");
 		return -1;
 	}
+
 	PACK_OP_IMPORT_REQUEST(0, &req);
 
-	list_for_each(i, &driver->edev_list) {
+	list_for_each(i, &driver->edev_list)
+	{
 		edev = list_entry(i, struct usbip_exported_device, node);
-		if (!strncmp(req.busid, edev->udev.busid, SYSFS_BUS_ID_SIZE)) {
+
+		if (!strncmp(req.busid, edev->udev.busid, SYSFS_BUS_ID_SIZE))
+		{
 			info("found requested device: %s", req.busid);
 			found = 1;
 			break;
 		}
 	}
 
-	if (found) {
+	if (found)
+	{
 		/* should set TCP_NODELAY for usbip */
 		usbip_net_set_nodelay(sockfd);
 
 		/* export device needs a TCP/IP socket descriptor */
 		rc = usbip_export_device(edev, sockfd);
+
 		if (rc < 0)
+		{
 			error = 1;
-	} else {
+		}
+	}
+	else
+	{
 		info("requested device not found: %s", req.busid);
 		error = 1;
 	}
 
 	rc = usbip_net_send_op_common(sockfd, OP_REP_IMPORT,
-				      (!error ? ST_OK : ST_NA));
-	if (rc < 0) {
+								  (!error ? ST_OK : ST_NA));
+
+	if (rc < 0)
+	{
 		dbg("usbip_net_send_op_common failed: %#0x", OP_REP_IMPORT);
 		return -1;
 	}
 
-	if (error) {
+	if (error)
+	{
 		dbg("import request busid %s: failed", req.busid);
 		return -1;
 	}
@@ -157,7 +172,9 @@ static int recv_request_import(int sockfd)
 	usbip_net_pack_usb_device(1, &pdu_udev);
 
 	rc = usbip_net_send(sockfd, &pdu_udev, sizeof(pdu_udev));
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		dbg("usbip_net_send failed: devinfo");
 		return -1;
 	}
@@ -178,44 +195,56 @@ static int send_reply_devlist(int connfd)
 
 	reply.ndev = 0;
 	/* number of exported devices */
-	list_for_each(j, &driver->edev_list) {
+	list_for_each(j, &driver->edev_list)
+	{
 		reply.ndev += 1;
 	}
 	info("exportable devices: %d", reply.ndev);
 
 	rc = usbip_net_send_op_common(connfd, OP_REP_DEVLIST, ST_OK);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		dbg("usbip_net_send_op_common failed: %#0x", OP_REP_DEVLIST);
 		return -1;
 	}
+
 	PACK_OP_DEVLIST_REPLY(1, &reply);
 
 	rc = usbip_net_send(connfd, &reply, sizeof(reply));
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		dbg("usbip_net_send failed: %#0x", OP_REP_DEVLIST);
 		return -1;
 	}
 
-	list_for_each(j, &driver->edev_list) {
+	list_for_each(j, &driver->edev_list)
+	{
 		edev = list_entry(j, struct usbip_exported_device, node);
 		dump_usb_device(&edev->udev);
 		memcpy(&pdu_udev, &edev->udev, sizeof(pdu_udev));
 		usbip_net_pack_usb_device(1, &pdu_udev);
 
 		rc = usbip_net_send(connfd, &pdu_udev, sizeof(pdu_udev));
-		if (rc < 0) {
+
+		if (rc < 0)
+		{
 			dbg("usbip_net_send failed: pdu_udev");
 			return -1;
 		}
 
-		for (i = 0; i < edev->udev.bNumInterfaces; i++) {
+		for (i = 0; i < edev->udev.bNumInterfaces; i++)
+		{
 			dump_usb_interface(&edev->uinf[i]);
 			memcpy(&pdu_uinf, &edev->uinf[i], sizeof(pdu_uinf));
 			usbip_net_pack_usb_interface(1, &pdu_uinf);
 
 			rc = usbip_net_send(connfd, &pdu_uinf,
-					sizeof(pdu_uinf));
-			if (rc < 0) {
+								sizeof(pdu_uinf));
+
+			if (rc < 0)
+			{
 				err("usbip_net_send failed: pdu_uinf");
 				return -1;
 			}
@@ -233,13 +262,17 @@ static int recv_request_devlist(int connfd)
 	memset(&req, 0, sizeof(req));
 
 	rc = usbip_net_recv(connfd, &req, sizeof(req));
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		dbg("usbip_net_recv failed: devlist request");
 		return -1;
 	}
 
 	rc = send_reply_devlist(connfd);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		dbg("send_reply_devlist failed");
 		return -1;
 	}
@@ -253,36 +286,48 @@ static int recv_pdu(int connfd)
 	int ret;
 
 	ret = usbip_net_recv_op_common(connfd, &code);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dbg("could not receive opcode: %#0x", code);
 		return -1;
 	}
 
 	ret = usbip_refresh_device_list(driver);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dbg("could not refresh device list: %d", ret);
 		return -1;
 	}
 
 	info("received request: %#0x(%d)", code, connfd);
-	switch (code) {
-	case OP_REQ_DEVLIST:
-		ret = recv_request_devlist(connfd);
-		break;
-	case OP_REQ_IMPORT:
-		ret = recv_request_import(connfd);
-		break;
-	case OP_REQ_DEVINFO:
-	case OP_REQ_CRYPKEY:
-	default:
-		err("received an unknown opcode: %#0x", code);
-		ret = -1;
+
+	switch (code)
+	{
+		case OP_REQ_DEVLIST:
+			ret = recv_request_devlist(connfd);
+			break;
+
+		case OP_REQ_IMPORT:
+			ret = recv_request_import(connfd);
+			break;
+
+		case OP_REQ_DEVINFO:
+		case OP_REQ_CRYPKEY:
+		default:
+			err("received an unknown opcode: %#0x", code);
+			ret = -1;
 	}
 
 	if (ret == 0)
+	{
 		info("request %#0x(%d): complete", code, connfd);
+	}
 	else
+	{
 		info("request %#0x(%d): failed", code, connfd);
+	}
 
 	return ret;
 }
@@ -296,8 +341,11 @@ static int tcpd_auth(int connfd)
 	request_init(&request, RQ_DAEMON, PROGNAME, RQ_FILE, connfd, 0);
 	fromhost(&request);
 	rc = hosts_access(&request);
+
 	if (rc == 0)
+	{
 		return -1;
+	}
 
 	return 0;
 }
@@ -314,23 +362,31 @@ static int do_accept(int listenfd)
 	memset(&ss, 0, sizeof(ss));
 
 	connfd = accept(listenfd, (struct sockaddr *)&ss, &len);
-	if (connfd < 0) {
+
+	if (connfd < 0)
+	{
 		err("failed to accept connection");
 		return -1;
 	}
 
 	rc = getnameinfo((struct sockaddr *)&ss, len, host, sizeof(host),
-			 port, sizeof(port), NI_NUMERICHOST | NI_NUMERICSERV);
+					 port, sizeof(port), NI_NUMERICHOST | NI_NUMERICSERV);
+
 	if (rc)
+	{
 		err("getnameinfo: %s", gai_strerror(rc));
+	}
 
 #ifdef HAVE_LIBWRAP
 	rc = tcpd_auth(connfd);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		info("denied access from %s", host);
 		close(connfd);
 		return -1;
 	}
+
 #endif
 	info("connection from %s:%s", host, port);
 
@@ -343,20 +399,27 @@ int process_request(int listenfd)
 	int connfd;
 
 	connfd = do_accept(listenfd);
+
 	if (connfd < 0)
+	{
 		return -1;
+	}
+
 	childpid = fork();
-	if (childpid == 0) {
+
+	if (childpid == 0)
+	{
 		close(listenfd);
 		recv_pdu(connfd);
 		exit(0);
 	}
+
 	close(connfd);
 	return 0;
 }
 
 static void addrinfo_to_text(struct addrinfo *ai, char buf[],
-			     const size_t buf_size)
+							 const size_t buf_size)
 {
 	char hbuf[NI_MAXHOST];
 	char sbuf[NI_MAXSERV];
@@ -365,30 +428,36 @@ static void addrinfo_to_text(struct addrinfo *ai, char buf[],
 	buf[0] = '\0';
 
 	rc = getnameinfo(ai->ai_addr, ai->ai_addrlen, hbuf, sizeof(hbuf),
-			 sbuf, sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV);
+					 sbuf, sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV);
+
 	if (rc)
+	{
 		err("getnameinfo: %s", gai_strerror(rc));
+	}
 
 	snprintf(buf, buf_size, "%s:%s", hbuf, sbuf);
 }
 
 static int listen_all_addrinfo(struct addrinfo *ai_head, int sockfdlist[],
-			     int maxsockfd)
+							   int maxsockfd)
 {
 	struct addrinfo *ai;
 	int ret, nsockfd = 0;
 	const size_t ai_buf_size = NI_MAXHOST + NI_MAXSERV + 2;
 	char ai_buf[ai_buf_size];
 
-	for (ai = ai_head; ai && nsockfd < maxsockfd; ai = ai->ai_next) {
+	for (ai = ai_head; ai && nsockfd < maxsockfd; ai = ai->ai_next)
+	{
 		int sock;
 
 		addrinfo_to_text(ai, ai_buf, ai_buf_size);
 		dbg("opening %s", ai_buf);
 		sock = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
-		if (sock < 0) {
+
+		if (sock < 0)
+		{
 			err("socket: %s: %d (%s)",
-			    ai_buf, errno, strerror(errno));
+				ai_buf, errno, strerror(errno));
 			continue;
 		}
 
@@ -398,25 +467,30 @@ static int listen_all_addrinfo(struct addrinfo *ai_head, int sockfdlist[],
 		 * (see do_standalone_mode()) */
 		usbip_net_set_v6only(sock);
 
-		if (sock >= FD_SETSIZE) {
+		if (sock >= FD_SETSIZE)
+		{
 			err("FD_SETSIZE: %s: sock=%d, max=%d",
-			    ai_buf, sock, FD_SETSIZE);
+				ai_buf, sock, FD_SETSIZE);
 			close(sock);
 			continue;
 		}
 
 		ret = bind(sock, ai->ai_addr, ai->ai_addrlen);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			err("bind: %s: %d (%s)",
-			    ai_buf, errno, strerror(errno));
+				ai_buf, errno, strerror(errno));
 			close(sock);
 			continue;
 		}
 
 		ret = listen(sock, SOMAXCONN);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			err("listen: %s: %d (%s)",
-			    ai_buf, errno, strerror(errno));
+				ai_buf, errno, strerror(errno));
 			close(sock);
 			continue;
 		}
@@ -439,9 +513,11 @@ static struct addrinfo *do_getaddrinfo(char *host, int ai_family)
 	hints.ai_flags    = AI_PASSIVE;
 
 	rc = getaddrinfo(host, usbip_port_string, &hints, &ai_head);
-	if (rc) {
+
+	if (rc)
+	{
 		err("failed to get a network address %s: %s", usbip_port_string,
-		    gai_strerror(rc));
+			gai_strerror(rc));
 		return NULL;
 	}
 
@@ -470,16 +546,20 @@ static const char *pid_file;
 
 static void write_pid_file(void)
 {
-	if (pid_file) {
+	if (pid_file)
+	{
 		dbg("creating pid file %s", pid_file);
 		FILE *fp;
 
 		fp = fopen(pid_file, "w");
-		if (!fp) {
+
+		if (!fp)
+		{
 			err("pid_file: %s: %d (%s)",
-			    pid_file, errno, strerror(errno));
+				pid_file, errno, strerror(errno));
 			return;
 		}
+
 		fprintf(fp, "%d\n", getpid());
 		fclose(fp);
 	}
@@ -487,7 +567,8 @@ static void write_pid_file(void)
 
 static void remove_pid_file(void)
 {
-	if (pid_file) {
+	if (pid_file)
+	{
 		dbg("removing pid file %s", pid_file);
 		unlink(pid_file);
 	}
@@ -504,17 +585,23 @@ static int do_standalone_mode(int daemonize, int ipv4, int ipv6)
 	sigset_t sigmask;
 
 	if (usbip_driver_open(driver))
+	{
 		return -1;
+	}
 
-	if (daemonize) {
-		if (daemon(0, 0) < 0) {
+	if (daemonize)
+	{
+		if (daemon(0, 0) < 0)
+		{
 			err("daemonizing failed: %s", strerror(errno));
 			usbip_driver_close(driver);
 			return -1;
 		}
+
 		umask(0);
 		usbip_use_syslog = 1;
 	}
+
 	set_signal();
 	write_pid_file();
 
@@ -526,21 +613,32 @@ static int do_standalone_mode(int daemonize, int ipv4, int ipv6)
 	 * IPV6_V6ONLY on the IPv6 sockets.
 	 */
 	if (ipv4 && ipv6)
+	{
 		family = AF_UNSPEC;
+	}
 	else if (ipv4)
+	{
 		family = AF_INET;
+	}
 	else
+	{
 		family = AF_INET6;
+	}
 
 	ai_head = do_getaddrinfo(NULL, family);
-	if (!ai_head) {
+
+	if (!ai_head)
+	{
 		usbip_driver_close(driver);
 		return -1;
 	}
+
 	nsockfd = listen_all_addrinfo(ai_head, sockfdlist,
-		sizeof(sockfdlist) / sizeof(*sockfdlist));
+								  sizeof(sockfdlist) / sizeof(*sockfdlist));
 	freeaddrinfo(ai_head);
-	if (nsockfd <= 0) {
+
+	if (nsockfd <= 0)
+	{
 		err("failed to open a listening socket");
 		usbip_driver_close(driver);
 		return -1;
@@ -549,10 +647,13 @@ static int do_standalone_mode(int daemonize, int ipv4, int ipv6)
 	dbg("listening on %d address%s", nsockfd, (nsockfd == 1) ? "" : "es");
 
 	fds = calloc(nsockfd, sizeof(struct pollfd));
-	for (i = 0; i < nsockfd; i++) {
+
+	for (i = 0; i < nsockfd; i++)
+	{
 		fds[i].fd = sockfdlist[i];
 		fds[i].events = POLLIN;
 	}
+
 	timeout.tv_sec = MAIN_LOOP_TIMEOUT;
 	timeout.tv_nsec = 0;
 
@@ -561,22 +662,32 @@ static int do_standalone_mode(int daemonize, int ipv4, int ipv6)
 	sigdelset(&sigmask, SIGINT);
 
 	terminate = 0;
-	while (!terminate) {
+
+	while (!terminate)
+	{
 		int r;
 
 		r = ppoll(fds, nsockfd, &timeout, &sigmask);
-		if (r < 0) {
+
+		if (r < 0)
+		{
 			dbg("%s", strerror(errno));
 			terminate = 1;
-		} else if (r) {
-			for (i = 0; i < nsockfd; i++) {
-				if (fds[i].revents & POLLIN) {
+		}
+		else if (r)
+		{
+			for (i = 0; i < nsockfd; i++)
+			{
+				if (fds[i].revents & POLLIN)
+				{
 					dbg("read event on fd[%d]=%d",
-					    i, sockfdlist[i]);
+						i, sockfdlist[i]);
 					process_request(sockfdlist[i]);
 				}
 			}
-		} else {
+		}
+		else
+		{
 			dbg("heartbeat timeout on ppoll()");
 		}
 	}
@@ -590,7 +701,8 @@ static int do_standalone_mode(int daemonize, int ipv4, int ipv6)
 
 int main(int argc, char *argv[])
 {
-	static const struct option longopts[] = {
+	static const struct option longopts[] =
+	{
 		{ "ipv4",     no_argument,       NULL, '4' },
 		{ "ipv6",     no_argument,       NULL, '6' },
 		{ "daemon",   no_argument,       NULL, 'D' },
@@ -604,7 +716,8 @@ int main(int argc, char *argv[])
 		{ NULL,	      0,                 NULL,  0  }
 	};
 
-	enum {
+	enum
+	{
 		cmd_standalone_mode = 1,
 		cmd_help,
 		cmd_version
@@ -620,70 +733,93 @@ int main(int argc, char *argv[])
 	usbip_use_syslog = 0;
 
 	if (geteuid() != 0)
+	{
 		err("not running as root?");
+	}
 
 	cmd = cmd_standalone_mode;
 	driver = &host_driver;
-	for (;;) {
+
+	for (;;)
+	{
 		opt = getopt_long(argc, argv, "46DdeP::t:hv", longopts, NULL);
 
 		if (opt == -1)
+		{
 			break;
+		}
 
-		switch (opt) {
-		case '4':
-			ipv4 = 1;
-			break;
-		case '6':
-			ipv6 = 1;
-			break;
-		case 'D':
-			daemonize = 1;
-			break;
-		case 'd':
-			usbip_use_debug = 1;
-			break;
-		case 'h':
-			cmd = cmd_help;
-			break;
-		case 'P':
-			pid_file = optarg ? optarg : DEFAULT_PID_FILE;
-			break;
-		case 't':
-			usbip_setup_port_number(optarg);
-			break;
-		case 'v':
-			cmd = cmd_version;
-			break;
-		case 'e':
-			driver = &device_driver;
-			break;
-		case '?':
-			usbipd_help();
-		default:
-			goto err_out;
+		switch (opt)
+		{
+			case '4':
+				ipv4 = 1;
+				break;
+
+			case '6':
+				ipv6 = 1;
+				break;
+
+			case 'D':
+				daemonize = 1;
+				break;
+
+			case 'd':
+				usbip_use_debug = 1;
+				break;
+
+			case 'h':
+				cmd = cmd_help;
+				break;
+
+			case 'P':
+				pid_file = optarg ? optarg : DEFAULT_PID_FILE;
+				break;
+
+			case 't':
+				usbip_setup_port_number(optarg);
+				break;
+
+			case 'v':
+				cmd = cmd_version;
+				break;
+
+			case 'e':
+				driver = &device_driver;
+				break;
+
+			case '?':
+				usbipd_help();
+
+			default:
+				goto err_out;
 		}
 	}
 
 	if (!ipv4 && !ipv6)
+	{
 		ipv4 = ipv6 = 1;
+	}
 
-	switch (cmd) {
-	case cmd_standalone_mode:
-		rc = do_standalone_mode(daemonize, ipv4, ipv6);
-		remove_pid_file();
-		break;
-	case cmd_version:
-		printf(PROGNAME " (%s)\n", usbip_version_string);
-		rc = 0;
-		break;
-	case cmd_help:
-		usbipd_help();
-		rc = 0;
-		break;
-	default:
-		usbipd_help();
-		goto err_out;
+	switch (cmd)
+	{
+		case cmd_standalone_mode:
+			rc = do_standalone_mode(daemonize, ipv4, ipv6);
+			remove_pid_file();
+			break;
+
+		case cmd_version:
+			printf(PROGNAME " (%s)\n", usbip_version_string);
+			rc = 0;
+			break;
+
+		case cmd_help:
+			usbipd_help();
+			rc = 0;
+			break;
+
+		default:
+			usbipd_help();
+			goto err_out;
 	}
 
 err_out:

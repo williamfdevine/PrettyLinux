@@ -64,7 +64,8 @@
 #define nfp_is_br(_insn)				\
 	(((_insn) & OP_BR_BASE_MASK) == OP_BR_BASE)
 
-enum br_mask {
+enum br_mask
+{
 	BR_BEQ = 0x00,
 	BR_BNE = 0x01,
 	BR_BHS = 0x04,
@@ -73,12 +74,14 @@ enum br_mask {
 	BR_UNC = 0x18,
 };
 
-enum br_ev_pip {
+enum br_ev_pip
+{
 	BR_EV_PIP_UNCOND = 0,
 	BR_EV_PIP_COND = 1,
 };
 
-enum br_ctx_signal_state {
+enum br_ctx_signal_state
+{
 	BR_CSS_NONE = 2,
 };
 
@@ -107,13 +110,15 @@ enum br_ctx_signal_state {
 #define OP_IMMED_BASE	0x0f000000000ULL
 #define OP_IMMED_WR_AB	0x20000000000ULL
 
-enum immed_width {
+enum immed_width
+{
 	IMMED_WIDTH_ALL = 0,
 	IMMED_WIDTH_BYTE = 1,
 	IMMED_WIDTH_WORD = 2,
 };
 
-enum immed_shift {
+enum immed_shift
+{
 	IMMED_SHIFT_0B = 0,
 	IMMED_SHIFT_1B = 1,
 	IMMED_SHIFT_2B = 2,
@@ -131,13 +136,15 @@ enum immed_shift {
 #define OP_SHF_DST_AB	0x01000000000ULL
 #define OP_SHF_WR_AB	0x20000000000ULL
 
-enum shf_op {
+enum shf_op
+{
 	SHF_OP_NONE = 0,
 	SHF_OP_AND = 2,
 	SHF_OP_OR = 5,
 };
 
-enum shf_sc {
+enum shf_sc
+{
 	SHF_SC_R_ROT = 0,
 	SHF_SC_R_SHF = 1,
 	SHF_SC_L_SHF = 2,
@@ -153,7 +160,8 @@ enum shf_sc {
 #define OP_ALU_BASE	0x0a000000000ULL
 #define OP_ALU_WR_AB	0x20000000000ULL
 
-enum alu_op {
+enum alu_op
+{
 	ALU_OP_NONE	= 0x00,
 	ALU_OP_ADD	= 0x01,
 	ALU_OP_NEG	= 0x04,
@@ -165,7 +173,8 @@ enum alu_op {
 	ALU_OP_XOR	= 0x18,
 };
 
-enum alu_dst_ab {
+enum alu_dst_ab
+{
 	ALU_DST_A = 0,
 	ALU_DST_B = 1,
 };
@@ -191,12 +200,14 @@ enum alu_dst_ab {
 #define OP_CMD_TGT_CMD	 0x07f00000000ULL
 #define OP_CMD_MODE	0x1c0000000000ULL
 
-struct cmd_tgt_act {
+struct cmd_tgt_act
+{
 	u8 token;
 	u8 tgt_cmd;
 };
 
-enum cmd_tgt_map {
+enum cmd_tgt_map
+{
 	CMD_TGT_READ8,
 	CMD_TGT_WRITE8,
 	CMD_TGT_READ_LE,
@@ -204,13 +215,15 @@ enum cmd_tgt_map {
 	__CMD_TGT_MAP_SIZE,
 };
 
-enum cmd_mode {
+enum cmd_mode
+{
 	CMD_MODE_40b_AB	= 0,
 	CMD_MODE_40b_BA	= 1,
 	CMD_MODE_32b	= 4,
 };
 
-enum cmd_ctx_swap {
+enum cmd_ctx_swap
+{
 	CMD_CTX_SWAP = 0,
 	CMD_CTX_NO_SWAP = 3,
 };
@@ -221,7 +234,8 @@ enum cmd_ctx_swap {
 #define OP_LCSR_WRITE	0x00000200000ULL
 #define OP_LCSR_ADDR	0x001ffc00000ULL
 
-enum lcsr_wr_src {
+enum lcsr_wr_src
+{
 	LCSR_WR_AREG,
 	LCSR_WR_BREG,
 	LCSR_WR_IMM,

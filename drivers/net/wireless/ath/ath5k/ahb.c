@@ -44,8 +44,11 @@ ath5k_ahb_eeprom_read(struct ath_common *common, u32 off, u16 *data)
 	eeprom_end = ((void *) bcfg->config) + BOARD_CONFIG_BUFSZ;
 
 	eeprom += off;
+
 	if (eeprom > eeprom_end)
+	{
 		return false;
+	}
 
 	*data = *eeprom;
 	return true;
@@ -66,15 +69,20 @@ static int ath5k_ahb_eeprom_read_mac(struct ath5k_hw *ah, u8 *mac)
 	u8 *cfg_mac;
 
 	if (to_platform_device(ah->dev)->id == 0)
+	{
 		cfg_mac = bcfg->config->wlan0_mac;
+	}
 	else
+	{
 		cfg_mac = bcfg->config->wlan1_mac;
+	}
 
 	memcpy(mac, cfg_mac, ETH_ALEN);
 	return 0;
 }
 
-static const struct ath_bus_ops ath_ahb_bus_ops = {
+static const struct ath_bus_ops ath_ahb_bus_ops =
+{
 	.ath_bus_type = ATH_AHB,
 	.read_cachesize = ath5k_ahb_read_cachesize,
 	.eeprom_read = ath5k_ahb_eeprom_read,
@@ -93,28 +101,35 @@ static int ath_ahb_probe(struct platform_device *pdev)
 	int ret = 0;
 	u32 reg;
 
-	if (!dev_get_platdata(&pdev->dev)) {
+	if (!dev_get_platdata(&pdev->dev))
+	{
 		dev_err(&pdev->dev, "no platform data specified\n");
 		ret = -EINVAL;
 		goto err_out;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (res == NULL) {
+
+	if (res == NULL)
+	{
 		dev_err(&pdev->dev, "no memory resource found\n");
 		ret = -ENXIO;
 		goto err_out;
 	}
 
 	mem = ioremap_nocache(res->start, resource_size(res));
-	if (mem == NULL) {
+
+	if (mem == NULL)
+	{
 		dev_err(&pdev->dev, "ioremap failed\n");
 		ret = -ENOMEM;
 		goto err_out;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-	if (res == NULL) {
+
+	if (res == NULL)
+	{
 		dev_err(&pdev->dev, "no IRQ resource found\n");
 		ret = -ENXIO;
 		goto err_iounmap;
@@ -123,7 +138,9 @@ static int ath_ahb_probe(struct platform_device *pdev)
 	irq = res->start;
 
 	hw = ieee80211_alloc_hw(sizeof(struct ath5k_hw), &ath5k_hw_ops);
-	if (hw == NULL) {
+
+	if (hw == NULL)
+	{
 		dev_err(&pdev->dev, "no memory for ieee80211_hw\n");
 		ret = -ENOMEM;
 		goto err_iounmap;
@@ -136,7 +153,8 @@ static int ath_ahb_probe(struct platform_device *pdev)
 	ah->irq = irq;
 	ah->devid = bcfg->devid;
 
-	if (bcfg->devid >= AR5K_SREV_AR2315_R6) {
+	if (bcfg->devid >= AR5K_SREV_AR2315_R6)
+	{
 		/* Enable WMAC AHB arbitration */
 		reg = ioread32((void __iomem *) AR5K_AR2315_AHB_ARB_CTL);
 		reg |= AR5K_AR2315_AHB_ARB_CTL_WLAN;
@@ -146,14 +164,22 @@ static int ath_ahb_probe(struct platform_device *pdev)
 		reg = ioread32((void __iomem *) AR5K_AR2315_BYTESWAP);
 		reg |= AR5K_AR2315_BYTESWAP_WMAC;
 		iowrite32(reg, (void __iomem *) AR5K_AR2315_BYTESWAP);
-	} else {
+	}
+	else
+	{
 		/* Enable WMAC DMA access (assuming 5312 or 231x*/
 		/* TODO: check other platforms */
 		reg = ioread32((void __iomem *) AR5K_AR5312_ENABLE);
+
 		if (to_platform_device(ah->dev)->id == 0)
+		{
 			reg |= AR5K_AR5312_ENABLE_WLAN0;
+		}
 		else
+		{
 			reg |= AR5K_AR5312_ENABLE_WLAN1;
+		}
+
 		iowrite32(reg, (void __iomem *) AR5K_AR5312_ENABLE);
 
 		/*
@@ -162,15 +188,21 @@ static int ath_ahb_probe(struct platform_device *pdev)
 		 * driver for it
 		 */
 		if (to_platform_device(ah->dev)->id == 0 &&
-		    (bcfg->config->flags & (BD_WLAN0 | BD_WLAN1)) ==
-		     (BD_WLAN1 | BD_WLAN0))
+			(bcfg->config->flags & (BD_WLAN0 | BD_WLAN1)) ==
+			(BD_WLAN1 | BD_WLAN0))
+		{
 			ah->ah_capabilities.cap_needs_2GHz_ovr = true;
+		}
 		else
+		{
 			ah->ah_capabilities.cap_needs_2GHz_ovr = false;
+		}
 	}
 
 	ret = ath5k_init_ah(ah, &ath_ahb_bus_ops);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		dev_err(&pdev->dev, "failed to attach device, err=%d\n", ret);
 		ret = -ENODEV;
 		goto err_free_hw;
@@ -180,11 +212,11 @@ static int ath_ahb_probe(struct platform_device *pdev)
 
 	return 0;
 
- err_free_hw:
+err_free_hw:
 	ieee80211_free_hw(hw);
- err_iounmap:
-        iounmap(mem);
- err_out:
+err_iounmap:
+	iounmap(mem);
+err_out:
 	return ret;
 }
 
@@ -196,22 +228,33 @@ static int ath_ahb_remove(struct platform_device *pdev)
 	u32 reg;
 
 	if (!hw)
+	{
 		return 0;
+	}
 
 	ah = hw->priv;
 
-	if (bcfg->devid >= AR5K_SREV_AR2315_R6) {
+	if (bcfg->devid >= AR5K_SREV_AR2315_R6)
+	{
 		/* Disable WMAC AHB arbitration */
 		reg = ioread32((void __iomem *) AR5K_AR2315_AHB_ARB_CTL);
 		reg &= ~AR5K_AR2315_AHB_ARB_CTL_WLAN;
 		iowrite32(reg, (void __iomem *) AR5K_AR2315_AHB_ARB_CTL);
-	} else {
+	}
+	else
+	{
 		/*Stop DMA access */
 		reg = ioread32((void __iomem *) AR5K_AR5312_ENABLE);
+
 		if (to_platform_device(ah->dev)->id == 0)
+		{
 			reg &= ~AR5K_AR5312_ENABLE_WLAN0;
+		}
 		else
+		{
 			reg &= ~AR5K_AR5312_ENABLE_WLAN1;
+		}
+
 		iowrite32(reg, (void __iomem *) AR5K_AR5312_ENABLE);
 	}
 
@@ -222,7 +265,8 @@ static int ath_ahb_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver ath_ahb_driver = {
+static struct platform_driver ath_ahb_driver =
+{
 	.probe      = ath_ahb_probe,
 	.remove     = ath_ahb_remove,
 	.driver		= {

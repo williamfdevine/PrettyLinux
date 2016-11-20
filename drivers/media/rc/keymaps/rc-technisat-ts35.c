@@ -11,7 +11,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table technisat_ts35[] = {
+static struct rc_map_table technisat_ts35[] =
+{
 	{0x32, KEY_MUTE},
 	{0x07, KEY_MEDIA},
 	{0x1c, KEY_AB},
@@ -51,7 +52,8 @@ static struct rc_map_table technisat_ts35[] = {
 	{0x30, KEY_HELP},
 };
 
-static struct rc_map_list technisat_ts35_map = {
+static struct rc_map_list technisat_ts35_map =
+{
 	.map = {
 		.scan    = technisat_ts35,
 		.size    = ARRAY_SIZE(technisat_ts35),

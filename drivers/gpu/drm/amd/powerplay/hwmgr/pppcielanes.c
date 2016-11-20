@@ -31,7 +31,8 @@
  */
 
 /* For converting from number of lanes to lane bits.  */
-static const unsigned char pp_r600_encode_lanes[] = {
+static const unsigned char pp_r600_encode_lanes[] =
+{
 	0,          /*  0 Not Supported  */
 	1,          /*  1 Lane  */
 	2,          /*  2 Lanes  */

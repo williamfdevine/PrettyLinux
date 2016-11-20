@@ -11,7 +11,8 @@
 
 struct percpu_ida_cpu;
 
-struct percpu_ida {
+struct percpu_ida
+{
 	/*
 	 * number of tags available to be allocated, as passed to
 	 * percpu_ida_init()
@@ -33,7 +34,8 @@ struct percpu_ida {
 	 */
 	cpumask_t			cpus_have_tags;
 
-	struct {
+	struct
+	{
 		spinlock_t		lock;
 		/*
 		 * When we go to steal tags from another cpu (see steal_tags()),
@@ -67,16 +69,16 @@ void percpu_ida_free(struct percpu_ida *pool, unsigned tag);
 
 void percpu_ida_destroy(struct percpu_ida *pool);
 int __percpu_ida_init(struct percpu_ida *pool, unsigned long nr_tags,
-	unsigned long max_size, unsigned long batch_size);
+					  unsigned long max_size, unsigned long batch_size);
 static inline int percpu_ida_init(struct percpu_ida *pool, unsigned long nr_tags)
 {
 	return __percpu_ida_init(pool, nr_tags, IDA_DEFAULT_PCPU_SIZE,
-		IDA_DEFAULT_PCPU_BATCH_MOVE);
+							 IDA_DEFAULT_PCPU_BATCH_MOVE);
 }
 
 typedef int (*percpu_ida_cb)(unsigned, void *);
 int percpu_ida_for_each_free(struct percpu_ida *pool, percpu_ida_cb fn,
-	void *data);
+							 void *data);
 
 unsigned percpu_ida_free_tags(struct percpu_ida *pool, int cpu);
 #endif /* __PERCPU_IDA_H__ */

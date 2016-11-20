@@ -37,14 +37,14 @@
 #undef SISFB_USE_SPINLOCKS
 
 #ifdef SISFB_USE_SPINLOCKS
-#include <linux/spinlock.h>
-#define CRITBEGIN  spin_lock_irqsave(&ivideo->lockaccel, critflags);
-#define CRITEND	   spin_unlock_irqrestore(&ivideo->lockaccel, critflags);
-#define CRITFLAGS  unsigned long critflags;
+	#include <linux/spinlock.h>
+	#define CRITBEGIN  spin_lock_irqsave(&ivideo->lockaccel, critflags);
+	#define CRITEND	   spin_unlock_irqrestore(&ivideo->lockaccel, critflags);
+	#define CRITFLAGS  unsigned long critflags;
 #else
-#define CRITBEGIN
-#define CRITEND
-#define CRITFLAGS
+	#define CRITBEGIN
+	#define CRITEND
+	#define CRITFLAGS
 #endif
 
 /* Definitions for the SIS engine communication. */
@@ -152,12 +152,12 @@
 */
 
 #define SiS300Idle \
-  { \
-  	while((MMIO_IN16(ivideo->mmio_vbase, BR(16)+2) & 0xE000) != 0xE000){}; \
-  	while((MMIO_IN16(ivideo->mmio_vbase, BR(16)+2) & 0xE000) != 0xE000){}; \
-  	while((MMIO_IN16(ivideo->mmio_vbase, BR(16)+2) & 0xE000) != 0xE000){}; \
-  	CmdQueLen = MMIO_IN16(ivideo->mmio_vbase, 0x8240); \
-  }
+	{ \
+		while((MMIO_IN16(ivideo->mmio_vbase, BR(16)+2) & 0xE000) != 0xE000){}; \
+		while((MMIO_IN16(ivideo->mmio_vbase, BR(16)+2) & 0xE000) != 0xE000){}; \
+		while((MMIO_IN16(ivideo->mmio_vbase, BR(16)+2) & 0xE000) != 0xE000){}; \
+		CmdQueLen = MMIO_IN16(ivideo->mmio_vbase, 0x8240); \
+	}
 /* (do three times, because 2D engine seems quite unsure about whether or not it's idle) */
 
 #define SiS300SetupSRCBase(base) \
@@ -282,13 +282,13 @@
 */
 
 #define SiS310Idle \
-  { \
-  	while( (MMIO_IN16(ivideo->mmio_vbase, Q_STATUS+2) & 0x8000) != 0x8000){}; \
-  	while( (MMIO_IN16(ivideo->mmio_vbase, Q_STATUS+2) & 0x8000) != 0x8000){}; \
-	while( (MMIO_IN16(ivideo->mmio_vbase, Q_STATUS+2) & 0x8000) != 0x8000){}; \
-  	while( (MMIO_IN16(ivideo->mmio_vbase, Q_STATUS+2) & 0x8000) != 0x8000){}; \
-  	CmdQueLen = 0; \
-  }
+	{ \
+		while( (MMIO_IN16(ivideo->mmio_vbase, Q_STATUS+2) & 0x8000) != 0x8000){}; \
+		while( (MMIO_IN16(ivideo->mmio_vbase, Q_STATUS+2) & 0x8000) != 0x8000){}; \
+		while( (MMIO_IN16(ivideo->mmio_vbase, Q_STATUS+2) & 0x8000) != 0x8000){}; \
+		while( (MMIO_IN16(ivideo->mmio_vbase, Q_STATUS+2) & 0x8000) != 0x8000){}; \
+		CmdQueLen = 0; \
+	}
 
 #define SiS310SetupSRCBase(base) \
 	if(CmdQueLen <= 0) SiS310Idle;\

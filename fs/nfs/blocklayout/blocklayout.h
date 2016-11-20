@@ -55,33 +55,41 @@ struct pnfs_block_dev;
  */
 #define PNFS_BLOCK_UUID_LEN	128
 
-struct pnfs_block_volume {
+struct pnfs_block_volume
+{
 	enum pnfs_block_volume_type	type;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			int		len;
 			int		nr_sigs;
-			struct {
+			struct
+			{
 				u64		offset;
 				u32		sig_len;
 				u8		sig[PNFS_BLOCK_UUID_LEN];
 			} sigs[PNFS_BLOCK_MAX_UUIDS];
 		} simple;
-		struct {
+		struct
+		{
 			u64		start;
 			u64		len;
 			u32		volume;
 		} slice;
-		struct {
+		struct
+		{
 			u32		volumes_count;
 			u32		volumes[PNFS_BLOCK_MAX_DEVICES];
 		} concat;
-		struct {
+		struct
+		{
 			u64		chunk_size;
 			u32		volumes_count;
 			u32		volumes[PNFS_BLOCK_MAX_DEVICES];
 		} stripe;
-		struct {
+		struct
+		{
 			enum scsi_code_set		code_set;
 			enum scsi_designator_type	designator_type;
 			int				designator_len;
@@ -91,7 +99,8 @@ struct pnfs_block_volume {
 	};
 };
 
-struct pnfs_block_dev_map {
+struct pnfs_block_dev_map
+{
 	sector_t			start;
 	sector_t			len;
 
@@ -99,7 +108,8 @@ struct pnfs_block_dev_map {
 	struct block_device		*bdev;
 };
 
-struct pnfs_block_dev {
+struct pnfs_block_dev
+{
 	struct nfs4_deviceid_node	node;
 
 	u64				start;
@@ -116,12 +126,14 @@ struct pnfs_block_dev {
 	bool				pr_registered;
 
 	bool (*map)(struct pnfs_block_dev *dev, u64 offset,
-			struct pnfs_block_dev_map *map);
+				struct pnfs_block_dev_map *map);
 };
 
 /* sector_t fields are all in 512-byte sectors */
-struct pnfs_block_extent {
-	union {
+struct pnfs_block_extent
+{
+	union
+	{
 		struct rb_node	be_node;
 		struct list_head be_list;
 	};
@@ -135,7 +147,8 @@ struct pnfs_block_extent {
 	unsigned int	be_tag;
 };
 
-struct pnfs_block_layout {
+struct pnfs_block_layout
+{
 	struct pnfs_layout_hdr	bl_layout;
 	struct rb_root		bl_ext_rw;
 	struct rb_root		bl_ext_ro;
@@ -156,12 +169,14 @@ BLK_LSEG2EXT(struct pnfs_layout_segment *lseg)
 	return BLK_LO2EXT(lseg->pls_layout);
 }
 
-struct bl_pipe_msg {
+struct bl_pipe_msg
+{
 	struct rpc_pipe_msg msg;
 	wait_queue_head_t *bl_wq;
 };
 
-struct bl_msg_hdr {
+struct bl_msg_hdr
+{
 	u8  type;
 	u16 totallen; /* length of entire message, including hdr itself */
 };
@@ -179,19 +194,19 @@ void bl_free_deviceid_node(struct nfs4_deviceid_node *d);
 
 /* extent_tree.c */
 int ext_tree_insert(struct pnfs_block_layout *bl,
-		struct pnfs_block_extent *new);
+					struct pnfs_block_extent *new);
 int ext_tree_remove(struct pnfs_block_layout *bl, bool rw, sector_t start,
-		sector_t end);
+					sector_t end);
 int ext_tree_mark_written(struct pnfs_block_layout *bl, sector_t start,
-		sector_t len, u64 lwb);
+						  sector_t len, u64 lwb);
 bool ext_tree_lookup(struct pnfs_block_layout *bl, sector_t isect,
-		struct pnfs_block_extent *ret, bool rw);
+					 struct pnfs_block_extent *ret, bool rw);
 int ext_tree_prepare_commit(struct nfs4_layoutcommit_args *arg);
 void ext_tree_mark_committed(struct nfs4_layoutcommit_args *arg, int status);
 
 /* rpc_pipefs.c */
 dev_t bl_resolve_deviceid(struct nfs_server *server,
-		struct pnfs_block_volume *b, gfp_t gfp_mask);
+						  struct pnfs_block_volume *b, gfp_t gfp_mask);
 int __init bl_init_pipefs(void);
 void bl_cleanup_pipefs(void);
 

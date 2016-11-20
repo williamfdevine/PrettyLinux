@@ -87,20 +87,27 @@ DEFINE_MUTEX(drm_global_mutex);
 
 static int drm_open_helper(struct file *filp, struct drm_minor *minor);
 
-static int drm_setup(struct drm_device * dev)
+static int drm_setup(struct drm_device *dev)
 {
 	int ret;
 
 	if (dev->driver->firstopen &&
-	    drm_core_check_feature(dev, DRIVER_LEGACY)) {
+		drm_core_check_feature(dev, DRIVER_LEGACY))
+	{
 		ret = dev->driver->firstopen(dev);
+
 		if (ret != 0)
+		{
 			return ret;
+		}
 	}
 
 	ret = drm_legacy_dma_setup(dev);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 
 	DRM_DEBUG("\n");
@@ -128,24 +135,39 @@ int drm_open(struct inode *inode, struct file *filp)
 	int need_setup = 0;
 
 	minor = drm_minor_acquire(iminor(inode));
+
 	if (IS_ERR(minor))
+	{
 		return PTR_ERR(minor);
+	}
 
 	dev = minor->dev;
+
 	if (!dev->open_count++)
+	{
 		need_setup = 1;
+	}
 
 	/* share address_space across all char-devs of a single device */
 	filp->f_mapping = dev->anon_inode->i_mapping;
 
 	retcode = drm_open_helper(filp, minor);
+
 	if (retcode)
+	{
 		goto err_undo;
-	if (need_setup) {
-		retcode = drm_setup(dev);
-		if (retcode)
-			goto err_undo;
 	}
+
+	if (need_setup)
+	{
+		retcode = drm_setup(dev);
+
+		if (retcode)
+		{
+			goto err_undo;
+		}
+	}
+
 	return 0;
 
 err_undo:
@@ -185,17 +207,28 @@ static int drm_open_helper(struct file *filp, struct drm_minor *minor)
 	int ret;
 
 	if (filp->f_flags & O_EXCL)
-		return -EBUSY;	/* No exclusive opens */
+	{
+		return -EBUSY;    /* No exclusive opens */
+	}
+
 	if (!drm_cpu_valid())
+	{
 		return -EINVAL;
+	}
+
 	if (dev->switch_power_state != DRM_SWITCH_POWER_ON && dev->switch_power_state != DRM_SWITCH_POWER_DYNAMIC_OFF)
+	{
 		return -EINVAL;
+	}
 
 	DRM_DEBUG("pid = %d, minor = %d\n", task_pid_nr(current), minor->index);
 
 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	filp->private_data = priv;
 	priv->filp = filp;
@@ -218,21 +251,33 @@ static int drm_open_helper(struct file *filp, struct drm_minor *minor)
 	mutex_init(&priv->event_read_lock);
 
 	if (drm_core_check_feature(dev, DRIVER_GEM))
+	{
 		drm_gem_open(dev, priv);
-
-	if (drm_core_check_feature(dev, DRIVER_PRIME))
-		drm_prime_init_file_private(&priv->prime);
-
-	if (dev->driver->open) {
-		ret = dev->driver->open(dev, priv);
-		if (ret < 0)
-			goto out_prime_destroy;
 	}
 
-	if (drm_is_primary_client(priv)) {
+	if (drm_core_check_feature(dev, DRIVER_PRIME))
+	{
+		drm_prime_init_file_private(&priv->prime);
+	}
+
+	if (dev->driver->open)
+	{
+		ret = dev->driver->open(dev, priv);
+
+		if (ret < 0)
+		{
+			goto out_prime_destroy;
+		}
+	}
+
+	if (drm_is_primary_client(priv))
+	{
 		ret = drm_master_open(priv);
+
 		if (ret)
+		{
 			goto out_close;
+		}
 	}
 
 	mutex_lock(&dev->filelist_mutex);
@@ -240,35 +285,56 @@ static int drm_open_helper(struct file *filp, struct drm_minor *minor)
 	mutex_unlock(&dev->filelist_mutex);
 
 #ifdef __alpha__
+
 	/*
 	 * Default the hose
 	 */
-	if (!dev->hose) {
+	if (!dev->hose)
+	{
 		struct pci_dev *pci_dev;
 		pci_dev = pci_get_class(PCI_CLASS_DISPLAY_VGA << 8, NULL);
-		if (pci_dev) {
+
+		if (pci_dev)
+		{
 			dev->hose = pci_dev->sysdata;
 			pci_dev_put(pci_dev);
 		}
-		if (!dev->hose) {
+
+		if (!dev->hose)
+		{
 			struct pci_bus *b = list_entry(pci_root_buses.next,
-				struct pci_bus, node);
+										   struct pci_bus, node);
+
 			if (b)
+			{
 				dev->hose = b->sysdata;
+			}
 		}
 	}
+
 #endif
 
 	return 0;
 
 out_close:
+
 	if (dev->driver->postclose)
+	{
 		dev->driver->postclose(dev, priv);
+	}
+
 out_prime_destroy:
+
 	if (drm_core_check_feature(dev, DRIVER_PRIME))
+	{
 		drm_prime_destroy_file_private(&priv->prime);
+	}
+
 	if (drm_core_check_feature(dev, DRIVER_GEM))
+	{
 		drm_gem_release(dev, priv);
+	}
+
 	put_pid(priv->pid);
 	kfree(priv);
 	filp->private_data = NULL;
@@ -285,13 +351,15 @@ static void drm_events_release(struct drm_file *file_priv)
 
 	/* Unlink pending events */
 	list_for_each_entry_safe(e, et, &file_priv->pending_event_list,
-				 pending_link) {
+							 pending_link)
+	{
 		list_del(&e->pending_link);
 		e->file_priv = NULL;
 	}
 
 	/* Remove unconsumed events */
-	list_for_each_entry_safe(e, et, &file_priv->event_list, link) {
+	list_for_each_entry_safe(e, et, &file_priv->event_list, link)
+	{
 		list_del(&e->link);
 		kfree(e);
 	}
@@ -307,7 +375,9 @@ static void drm_events_release(struct drm_file *file_priv)
 static void drm_legacy_dev_reinit(struct drm_device *dev)
 {
 	if (dev->irq_enabled)
+	{
 		drm_irq_uninstall(dev);
+	}
 
 	mutex_lock(&dev->struct_mutex);
 
@@ -337,16 +407,21 @@ static void drm_legacy_dev_reinit(struct drm_device *dev)
  *
  * \sa drm_device
  */
-void drm_lastclose(struct drm_device * dev)
+void drm_lastclose(struct drm_device *dev)
 {
 	DRM_DEBUG("\n");
 
 	if (dev->driver->lastclose)
+	{
 		dev->driver->lastclose(dev);
+	}
+
 	DRM_DEBUG("driver lastclose completed\n");
 
 	if (drm_core_check_feature(dev, DRIVER_LEGACY))
+	{
 		drm_legacy_dev_reinit(dev);
+	}
 }
 
 /**
@@ -377,43 +452,58 @@ int drm_release(struct inode *inode, struct file *filp)
 	mutex_unlock(&dev->filelist_mutex);
 
 	if (dev->driver->preclose)
+	{
 		dev->driver->preclose(dev, file_priv);
+	}
 
 	/* ========================================================
 	 * Begin inline drm_release
 	 */
 
 	DRM_DEBUG("pid = %d, device = 0x%lx, open_count = %d\n",
-		  task_pid_nr(current),
-		  (long)old_encode_dev(file_priv->minor->kdev->devt),
-		  dev->open_count);
+			  task_pid_nr(current),
+			  (long)old_encode_dev(file_priv->minor->kdev->devt),
+			  dev->open_count);
 
 	if (drm_core_check_feature(dev, DRIVER_LEGACY))
+	{
 		drm_legacy_lock_release(dev, filp);
+	}
 
 	if (drm_core_check_feature(dev, DRIVER_HAVE_DMA))
+	{
 		drm_legacy_reclaim_buffers(dev, file_priv);
+	}
 
 	drm_events_release(file_priv);
 
-	if (drm_core_check_feature(dev, DRIVER_MODESET)) {
+	if (drm_core_check_feature(dev, DRIVER_MODESET))
+	{
 		drm_fb_release(file_priv);
 		drm_property_destroy_user_blobs(dev, file_priv);
 	}
 
 	if (drm_core_check_feature(dev, DRIVER_GEM))
+	{
 		drm_gem_release(dev, file_priv);
+	}
 
 	drm_legacy_ctxbitmap_flush(dev, file_priv);
 
 	if (drm_is_primary_client(file_priv))
+	{
 		drm_master_release(file_priv);
+	}
 
 	if (dev->driver->postclose)
+	{
 		dev->driver->postclose(dev, file_priv);
+	}
 
 	if (drm_core_check_feature(dev, DRIVER_PRIME))
+	{
 		drm_prime_destroy_file_private(&file_priv->prime);
+	}
 
 	WARN_ON(!list_empty(&file_priv->event_list));
 
@@ -424,11 +514,16 @@ int drm_release(struct inode *inode, struct file *filp)
 	 * End inline drm_release
 	 */
 
-	if (!--dev->open_count) {
+	if (!--dev->open_count)
+	{
 		drm_lastclose(dev);
+
 		if (drm_device_is_unplugged(dev))
+		{
 			drm_put_dev(dev);
+		}
 	}
+
 	mutex_unlock(&drm_global_mutex);
 
 	drm_minor_release(minor);
@@ -464,51 +559,73 @@ EXPORT_SYMBOL(drm_release);
  * negative error code on failure.
  */
 ssize_t drm_read(struct file *filp, char __user *buffer,
-		 size_t count, loff_t *offset)
+				 size_t count, loff_t *offset)
 {
 	struct drm_file *file_priv = filp->private_data;
 	struct drm_device *dev = file_priv->minor->dev;
 	ssize_t ret;
 
 	if (!access_ok(VERIFY_WRITE, buffer, count))
+	{
 		return -EFAULT;
+	}
 
 	ret = mutex_lock_interruptible(&file_priv->event_read_lock);
-	if (ret)
-		return ret;
 
-	for (;;) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	for (;;)
+	{
 		struct drm_pending_event *e = NULL;
 
 		spin_lock_irq(&dev->event_lock);
-		if (!list_empty(&file_priv->event_list)) {
+
+		if (!list_empty(&file_priv->event_list))
+		{
 			e = list_first_entry(&file_priv->event_list,
-					struct drm_pending_event, link);
+								 struct drm_pending_event, link);
 			file_priv->event_space += e->event->length;
 			list_del(&e->link);
 		}
+
 		spin_unlock_irq(&dev->event_lock);
 
-		if (e == NULL) {
+		if (e == NULL)
+		{
 			if (ret)
+			{
 				break;
+			}
 
-			if (filp->f_flags & O_NONBLOCK) {
+			if (filp->f_flags & O_NONBLOCK)
+			{
 				ret = -EAGAIN;
 				break;
 			}
 
 			mutex_unlock(&file_priv->event_read_lock);
 			ret = wait_event_interruptible(file_priv->event_wait,
-						       !list_empty(&file_priv->event_list));
+										   !list_empty(&file_priv->event_list));
+
 			if (ret >= 0)
+			{
 				ret = mutex_lock_interruptible(&file_priv->event_read_lock);
+			}
+
 			if (ret)
+			{
 				return ret;
-		} else {
+			}
+		}
+		else
+		{
 			unsigned length = e->event->length;
 
-			if (length > count - ret) {
+			if (length > count - ret)
+			{
 put_back_event:
 				spin_lock_irq(&dev->event_lock);
 				file_priv->event_space -= length;
@@ -517,9 +634,13 @@ put_back_event:
 				break;
 			}
 
-			if (copy_to_user(buffer + ret, e->event, length)) {
+			if (copy_to_user(buffer + ret, e->event, length))
+			{
 				if (ret == 0)
+				{
 					ret = -EFAULT;
+				}
+
 				goto put_back_event;
 			}
 
@@ -527,6 +648,7 @@ put_back_event:
 			kfree(e);
 		}
 	}
+
 	mutex_unlock(&file_priv->event_read_lock);
 
 	return ret;
@@ -557,7 +679,9 @@ unsigned int drm_poll(struct file *filp, struct poll_table_struct *wait)
 	poll_wait(filp, &file_priv->event_wait, wait);
 
 	if (!list_empty(&file_priv->event_list))
+	{
 		mask |= POLLIN | POLLRDNORM;
+	}
 
 	return mask;
 }
@@ -588,12 +712,14 @@ EXPORT_SYMBOL(drm_poll);
  * 0 on success or a negative error code on failure.
  */
 int drm_event_reserve_init_locked(struct drm_device *dev,
-				  struct drm_file *file_priv,
-				  struct drm_pending_event *p,
-				  struct drm_event *e)
+								  struct drm_file *file_priv,
+								  struct drm_pending_event *p,
+								  struct drm_event *e)
 {
 	if (file_priv->event_space < e->length)
+	{
 		return -ENOMEM;
+	}
 
 	file_priv->event_space -= e->length;
 
@@ -630,9 +756,9 @@ EXPORT_SYMBOL(drm_event_reserve_init_locked);
  * 0 on success or a negative error code on failure.
  */
 int drm_event_reserve_init(struct drm_device *dev,
-			   struct drm_file *file_priv,
-			   struct drm_pending_event *p,
-			   struct drm_event *e)
+						   struct drm_file *file_priv,
+						   struct drm_pending_event *p,
+						   struct drm_event *e)
 {
 	unsigned long flags;
 	int ret;
@@ -654,14 +780,17 @@ EXPORT_SYMBOL(drm_event_reserve_init);
  * and releases any allocated space.
  */
 void drm_event_cancel_free(struct drm_device *dev,
-			   struct drm_pending_event *p)
+						   struct drm_pending_event *p)
 {
 	unsigned long flags;
 	spin_lock_irqsave(&dev->event_lock, flags);
-	if (p->file_priv) {
+
+	if (p->file_priv)
+	{
 		p->file_priv->event_space += p->event->length;
 		list_del(&p->pending_link);
 	}
+
 	spin_unlock_irqrestore(&dev->event_lock, flags);
 	kfree(p);
 }
@@ -685,25 +814,28 @@ void drm_send_event_locked(struct drm_device *dev, struct drm_pending_event *e)
 {
 	assert_spin_locked(&dev->event_lock);
 
-	if (e->completion) {
+	if (e->completion)
+	{
 		/* ->completion might disappear as soon as it signalled. */
 		complete_all(e->completion);
 		e->completion = NULL;
 	}
 
-	if (e->fence) {
+	if (e->fence)
+	{
 		fence_signal(e->fence);
 		fence_put(e->fence);
 	}
 
-	if (!e->file_priv) {
+	if (!e->file_priv)
+	{
 		kfree(e);
 		return;
 	}
 
 	list_del(&e->pending_link);
 	list_add_tail(&e->link,
-		      &e->file_priv->event_list);
+				  &e->file_priv->event_list);
 	wake_up_interruptible(&e->file_priv->event_wait);
 }
 EXPORT_SYMBOL(drm_send_event_locked);

@@ -35,14 +35,21 @@ int dwmac_dma_reset(void __iomem *ioaddr)
 	value |= DMA_BUS_MODE_SFT_RESET;
 	writel(value, ioaddr + DMA_BUS_MODE);
 	limit = 10;
-	while (limit--) {
+
+	while (limit--)
+	{
 		if (!(readl(ioaddr + DMA_BUS_MODE) & DMA_BUS_MODE_SFT_RESET))
+		{
 			break;
+		}
+
 		mdelay(10);
 	}
 
 	if (limit < 0)
+	{
 		return -EBUSY;
+	}
 
 	return 0;
 }
@@ -97,29 +104,36 @@ static void show_tx_process_state(unsigned int status)
 	unsigned int state;
 	state = (status & DMA_STATUS_TS_MASK) >> DMA_STATUS_TS_SHIFT;
 
-	switch (state) {
-	case 0:
-		pr_debug("- TX (Stopped): Reset or Stop command\n");
-		break;
-	case 1:
-		pr_debug("- TX (Running):Fetching the Tx desc\n");
-		break;
-	case 2:
-		pr_debug("- TX (Running): Waiting for end of tx\n");
-		break;
-	case 3:
-		pr_debug("- TX (Running): Reading the data "
-		       "and queuing the data into the Tx buf\n");
-		break;
-	case 6:
-		pr_debug("- TX (Suspended): Tx Buff Underflow "
-		       "or an unavailable Transmit descriptor\n");
-		break;
-	case 7:
-		pr_debug("- TX (Running): Closing Tx descriptor\n");
-		break;
-	default:
-		break;
+	switch (state)
+	{
+		case 0:
+			pr_debug("- TX (Stopped): Reset or Stop command\n");
+			break;
+
+		case 1:
+			pr_debug("- TX (Running):Fetching the Tx desc\n");
+			break;
+
+		case 2:
+			pr_debug("- TX (Running): Waiting for end of tx\n");
+			break;
+
+		case 3:
+			pr_debug("- TX (Running): Reading the data "
+					 "and queuing the data into the Tx buf\n");
+			break;
+
+		case 6:
+			pr_debug("- TX (Suspended): Tx Buff Underflow "
+					 "or an unavailable Transmit descriptor\n");
+			break;
+
+		case 7:
+			pr_debug("- TX (Running): Closing Tx descriptor\n");
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -128,41 +142,50 @@ static void show_rx_process_state(unsigned int status)
 	unsigned int state;
 	state = (status & DMA_STATUS_RS_MASK) >> DMA_STATUS_RS_SHIFT;
 
-	switch (state) {
-	case 0:
-		pr_debug("- RX (Stopped): Reset or Stop command\n");
-		break;
-	case 1:
-		pr_debug("- RX (Running): Fetching the Rx desc\n");
-		break;
-	case 2:
-		pr_debug("- RX (Running):Checking for end of pkt\n");
-		break;
-	case 3:
-		pr_debug("- RX (Running): Waiting for Rx pkt\n");
-		break;
-	case 4:
-		pr_debug("- RX (Suspended): Unavailable Rx buf\n");
-		break;
-	case 5:
-		pr_debug("- RX (Running): Closing Rx descriptor\n");
-		break;
-	case 6:
-		pr_debug("- RX(Running): Flushing the current frame"
-		       " from the Rx buf\n");
-		break;
-	case 7:
-		pr_debug("- RX (Running): Queuing the Rx frame"
-		       " from the Rx buf into memory\n");
-		break;
-	default:
-		break;
+	switch (state)
+	{
+		case 0:
+			pr_debug("- RX (Stopped): Reset or Stop command\n");
+			break;
+
+		case 1:
+			pr_debug("- RX (Running): Fetching the Rx desc\n");
+			break;
+
+		case 2:
+			pr_debug("- RX (Running):Checking for end of pkt\n");
+			break;
+
+		case 3:
+			pr_debug("- RX (Running): Waiting for Rx pkt\n");
+			break;
+
+		case 4:
+			pr_debug("- RX (Suspended): Unavailable Rx buf\n");
+			break;
+
+		case 5:
+			pr_debug("- RX (Running): Closing Rx descriptor\n");
+			break;
+
+		case 6:
+			pr_debug("- RX(Running): Flushing the current frame"
+					 " from the Rx buf\n");
+			break;
+
+		case 7:
+			pr_debug("- RX (Running): Queuing the Rx frame"
+					 " from the Rx buf into memory\n");
+			break;
+
+		default:
+			break;
 	}
 }
 #endif
 
 int dwmac_dma_interrupt(void __iomem *ioaddr,
-			struct stmmac_extra_stats *x)
+						struct stmmac_extra_stats *x)
 {
 	int ret = 0;
 	/* read the status register (CSR5) */
@@ -174,57 +197,94 @@ int dwmac_dma_interrupt(void __iomem *ioaddr,
 	show_tx_process_state(intr_status);
 	show_rx_process_state(intr_status);
 #endif
+
 	/* ABNORMAL interrupts */
-	if (unlikely(intr_status & DMA_STATUS_AIS)) {
-		if (unlikely(intr_status & DMA_STATUS_UNF)) {
+	if (unlikely(intr_status & DMA_STATUS_AIS))
+	{
+		if (unlikely(intr_status & DMA_STATUS_UNF))
+		{
 			ret = tx_hard_error_bump_tc;
 			x->tx_undeflow_irq++;
 		}
+
 		if (unlikely(intr_status & DMA_STATUS_TJT))
+		{
 			x->tx_jabber_irq++;
+		}
 
 		if (unlikely(intr_status & DMA_STATUS_OVF))
+		{
 			x->rx_overflow_irq++;
+		}
 
 		if (unlikely(intr_status & DMA_STATUS_RU))
+		{
 			x->rx_buf_unav_irq++;
+		}
+
 		if (unlikely(intr_status & DMA_STATUS_RPS))
+		{
 			x->rx_process_stopped_irq++;
+		}
+
 		if (unlikely(intr_status & DMA_STATUS_RWT))
+		{
 			x->rx_watchdog_irq++;
+		}
+
 		if (unlikely(intr_status & DMA_STATUS_ETI))
+		{
 			x->tx_early_irq++;
-		if (unlikely(intr_status & DMA_STATUS_TPS)) {
+		}
+
+		if (unlikely(intr_status & DMA_STATUS_TPS))
+		{
 			x->tx_process_stopped_irq++;
 			ret = tx_hard_error;
 		}
-		if (unlikely(intr_status & DMA_STATUS_FBI)) {
+
+		if (unlikely(intr_status & DMA_STATUS_FBI))
+		{
 			x->fatal_bus_error_irq++;
 			ret = tx_hard_error;
 		}
 	}
+
 	/* TX/RX NORMAL interrupts */
-	if (likely(intr_status & DMA_STATUS_NIS)) {
+	if (likely(intr_status & DMA_STATUS_NIS))
+	{
 		x->normal_irq_n++;
-		if (likely(intr_status & DMA_STATUS_RI)) {
+
+		if (likely(intr_status & DMA_STATUS_RI))
+		{
 			u32 value = readl(ioaddr + DMA_INTR_ENA);
+
 			/* to schedule NAPI on real RIE event. */
-			if (likely(value & DMA_INTR_ENA_RIE)) {
+			if (likely(value & DMA_INTR_ENA_RIE))
+			{
 				x->rx_normal_irq_n++;
 				ret |= handle_rx;
 			}
 		}
-		if (likely(intr_status & DMA_STATUS_TI)) {
+
+		if (likely(intr_status & DMA_STATUS_TI))
+		{
 			x->tx_normal_irq_n++;
 			ret |= handle_tx;
 		}
+
 		if (unlikely(intr_status & DMA_STATUS_ERI))
+		{
 			x->rx_early_irq++;
+		}
 	}
+
 	/* Optional hardware blocks, interrupts should be disabled */
 	if (unlikely(intr_status &
-		     (DMA_STATUS_GPI | DMA_STATUS_GMI | DMA_STATUS_GLI)))
+				 (DMA_STATUS_GPI | DMA_STATUS_GMI | DMA_STATUS_GLI)))
+	{
 		pr_warn("%s: unexpected status %08x\n", __func__, intr_status);
+	}
 
 	/* Clear the interrupt by writing a logic 1 to the CSR5[15-0] */
 	writel((intr_status & 0x1ffff), ioaddr + DMA_STATUS);
@@ -237,11 +297,12 @@ void dwmac_dma_flush_tx_fifo(void __iomem *ioaddr)
 	u32 csr6 = readl(ioaddr + DMA_CONTROL);
 	writel((csr6 | DMA_CONTROL_FTF), ioaddr + DMA_CONTROL);
 
-	do {} while ((readl(ioaddr + DMA_CONTROL) & DMA_CONTROL_FTF));
+	do {}
+	while ((readl(ioaddr + DMA_CONTROL) & DMA_CONTROL_FTF));
 }
 
 void stmmac_set_mac_addr(void __iomem *ioaddr, u8 addr[6],
-			 unsigned int high, unsigned int low)
+						 unsigned int high, unsigned int low)
 {
 	unsigned long data;
 
@@ -261,15 +322,19 @@ void stmmac_set_mac(void __iomem *ioaddr, bool enable)
 	u32 value = readl(ioaddr + MAC_CTRL_REG);
 
 	if (enable)
+	{
 		value |= MAC_RNABLE_RX | MAC_ENABLE_TX;
+	}
 	else
+	{
 		value &= ~(MAC_ENABLE_TX | MAC_RNABLE_RX);
+	}
 
 	writel(value, ioaddr + MAC_CTRL_REG);
 }
 
 void stmmac_get_mac_addr(void __iomem *ioaddr, unsigned char *addr,
-			 unsigned int high, unsigned int low)
+						 unsigned int high, unsigned int low)
 {
 	unsigned int hi_addr, lo_addr;
 

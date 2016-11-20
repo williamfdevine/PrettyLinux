@@ -99,7 +99,8 @@
 #define JMP_FW			0
 #define JMP_BW			1
 
-enum xgene_cle_ptree_nodes {
+enum xgene_cle_ptree_nodes
+{
 	PKT_TYPE_NODE,
 	PKT_PROT_NODE,
 	RSS_IPV4_TCP_NODE,
@@ -108,7 +109,8 @@ enum xgene_cle_ptree_nodes {
 	MAX_NODES
 };
 
-enum xgene_cle_byte_store {
+enum xgene_cle_byte_store
+{
 	NO_BYTE,
 	FIRST_BYTE,
 	SECOND_BYTE,
@@ -116,7 +118,8 @@ enum xgene_cle_byte_store {
 };
 
 /* Preclassification operation types */
-enum xgene_cle_node_type {
+enum xgene_cle_node_type
+{
 	INV,
 	KN,
 	EWDN,
@@ -124,7 +127,8 @@ enum xgene_cle_node_type {
 };
 
 /* Preclassification operation types */
-enum xgene_cle_op_type {
+enum xgene_cle_op_type
+{
 	EQT,
 	NEQT,
 	LTEQT,
@@ -133,7 +137,8 @@ enum xgene_cle_op_type {
 	NAND
 };
 
-enum xgene_cle_parser {
+enum xgene_cle_parser
+{
 	PARSER0,
 	PARSER1,
 	PARSER2,
@@ -141,7 +146,8 @@ enum xgene_cle_parser {
 };
 
 #define XGENE_CLE_DRAM(type)	(((type) & 0xf) << 28)
-enum xgene_cle_dram_type {
+enum xgene_cle_dram_type
+{
 	PKT_RAM,
 	RSS_IDT,
 	RSS_IPV4_HASH_SKEY,
@@ -150,7 +156,8 @@ enum xgene_cle_dram_type {
 	DB_RAM
 };
 
-enum xgene_cle_cmd_type {
+enum xgene_cle_cmd_type
+{
 	CLE_CMD_WR = 1,
 	CLE_CMD_RD = 2,
 	CLE_CMD_AVL_ADD = 8,
@@ -158,23 +165,27 @@ enum xgene_cle_cmd_type {
 	CLE_CMD_AVL_SRCH = 32
 };
 
-enum xgene_cle_ipv4_rss_hashtype {
+enum xgene_cle_ipv4_rss_hashtype
+{
 	RSS_IPV4_8B,
 	RSS_IPV4_12B,
 };
 
-enum xgene_cle_prot_type {
+enum xgene_cle_prot_type
+{
 	XGENE_CLE_TCP,
 	XGENE_CLE_UDP,
 	XGENE_CLE_ESP,
 	XGENE_CLE_OTHER
 };
 
-enum xgene_cle_prot_version {
+enum xgene_cle_prot_version
+{
 	XGENE_CLE_IPV4,
 };
 
-enum xgene_cle_ptree_dbptrs {
+enum xgene_cle_ptree_dbptrs
+{
 	DB_RES_DROP,
 	DB_RES_DEF,
 	DB_RES_ACCEPT,
@@ -204,7 +215,8 @@ enum xgene_cle_ptree_dbptrs {
 #define IDT_NFPSEL1_POS		16
 #define IDT_NFPSEL1_LEN		4
 
-struct xgene_cle_ptree_branch {
+struct xgene_cle_ptree_branch
+{
 	bool valid;
 	u16 next_packet_pointer;
 	bool jump_bw;
@@ -216,7 +228,8 @@ struct xgene_cle_ptree_branch {
 	u16 mask;
 };
 
-struct xgene_cle_ptree_ewdn {
+struct xgene_cle_ptree_ewdn
+{
 	u8 node_type;
 	bool last_node;
 	bool hdr_len_store;
@@ -228,18 +241,21 @@ struct xgene_cle_ptree_ewdn {
 	struct xgene_cle_ptree_branch branch[6];
 };
 
-struct xgene_cle_ptree_key {
+struct xgene_cle_ptree_key
+{
 	u8 priority;
 	u16 result_pointer;
 };
 
-struct xgene_cle_ptree_kn {
+struct xgene_cle_ptree_kn
+{
 	u8 node_type;
 	u8 num_keys;
 	struct xgene_cle_ptree_key key[32];
 };
 
-struct xgene_cle_dbptr {
+struct xgene_cle_dbptr
+{
 	u8 split_boundary;
 	u8 mirror_nxtfpsel;
 	u8 mirror_fpsel;
@@ -274,7 +290,8 @@ struct xgene_cle_dbptr {
 	u8 fpsel_msb;
 };
 
-struct xgene_cle_ptree {
+struct xgene_cle_ptree
+{
 	struct xgene_cle_ptree_ewdn *dn;
 	struct xgene_cle_ptree_kn *kn;
 	struct xgene_cle_dbptr *dbptr;
@@ -286,7 +303,8 @@ struct xgene_cle_ptree {
 	u32 start_dbptr;
 };
 
-struct xgene_enet_cle {
+struct xgene_enet_cle
+{
 	void __iomem *base;
 	struct xgene_cle_ptree ptree;
 	enum xgene_cle_parser active_parser;

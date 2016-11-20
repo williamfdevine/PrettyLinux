@@ -33,7 +33,8 @@ struct drm_bridge;
 /**
  * struct drm_bridge_funcs - drm_bridge control functions
  */
-struct drm_bridge_funcs {
+struct drm_bridge_funcs
+{
 	/**
 	 * @attach:
 	 *
@@ -88,8 +89,8 @@ struct drm_bridge_funcs {
 	 * operation should be rejected.
 	 */
 	bool (*mode_fixup)(struct drm_bridge *bridge,
-			   const struct drm_display_mode *mode,
-			   struct drm_display_mode *adjusted_mode);
+					   const struct drm_display_mode *mode,
+					   struct drm_display_mode *adjusted_mode);
 	/**
 	 * @disable:
 	 *
@@ -134,8 +135,8 @@ struct drm_bridge_funcs {
 	 * clocks and timing signals) is off when this function is called.
 	 */
 	void (*mode_set)(struct drm_bridge *bridge,
-			 struct drm_display_mode *mode,
-			 struct drm_display_mode *adjusted_mode);
+					 struct drm_display_mode *mode,
+					 struct drm_display_mode *adjusted_mode);
 	/**
 	 * @pre_enable:
 	 *
@@ -185,7 +186,8 @@ struct drm_bridge_funcs {
  * @funcs: control functions
  * @driver_private: pointer to the bridge driver's internal context
  */
-struct drm_bridge {
+struct drm_bridge
+{
 	struct drm_device *dev;
 	struct drm_encoder *encoder;
 	struct drm_bridge *next;
@@ -205,13 +207,13 @@ int drm_bridge_attach(struct drm_device *dev, struct drm_bridge *bridge);
 void drm_bridge_detach(struct drm_bridge *bridge);
 
 bool drm_bridge_mode_fixup(struct drm_bridge *bridge,
-			const struct drm_display_mode *mode,
-			struct drm_display_mode *adjusted_mode);
+						   const struct drm_display_mode *mode,
+						   struct drm_display_mode *adjusted_mode);
 void drm_bridge_disable(struct drm_bridge *bridge);
 void drm_bridge_post_disable(struct drm_bridge *bridge);
 void drm_bridge_mode_set(struct drm_bridge *bridge,
-			struct drm_display_mode *mode,
-			struct drm_display_mode *adjusted_mode);
+						 struct drm_display_mode *mode,
+						 struct drm_display_mode *adjusted_mode);
 void drm_bridge_pre_enable(struct drm_bridge *bridge);
 void drm_bridge_enable(struct drm_bridge *bridge);
 

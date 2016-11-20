@@ -1,4 +1,4 @@
-/* 
+/*
  *  Transport specific attributes.
  *
  *  Copyright (c) 2003 Silicon Graphics, Inc.  All rights reserved.
@@ -26,7 +26,8 @@
 #include <scsi/scsi_host.h>
 #include <scsi/scsi_device.h>
 
-struct scsi_transport_template {
+struct scsi_transport_template
+{
 	/* the attribute containers */
 	struct transport_container host_attrs;
 	struct transport_container target_attrs;
@@ -90,14 +91,14 @@ struct scsi_transport_template {
  * is that you *must* call these only once.  The code assumes that the
  * initial values are the ones the transport specific code requires */
 static inline void
-scsi_transport_reserve_target(struct scsi_transport_template * t, int space)
+scsi_transport_reserve_target(struct scsi_transport_template *t, int space)
 {
 	BUG_ON(t->target_private_offset != 0);
 	t->target_private_offset = ALIGN(t->target_size, sizeof(void *));
 	t->target_size = t->target_private_offset + space;
 }
 static inline void
-scsi_transport_reserve_device(struct scsi_transport_template * t, int space)
+scsi_transport_reserve_device(struct scsi_transport_template *t, int space)
 {
 	BUG_ON(t->device_private_offset != 0);
 	t->device_private_offset = ALIGN(t->device_size, sizeof(void *));
@@ -108,7 +109,7 @@ scsi_transport_target_data(struct scsi_target *starget)
 {
 	struct Scsi_Host *shost = dev_to_shost(&starget->dev);
 	return (u8 *)starget->starget_data
-		+ shost->transportt->target_private_offset;
+		   + shost->transportt->target_private_offset;
 
 }
 static inline void *
@@ -116,7 +117,7 @@ scsi_transport_device_data(struct scsi_device *sdev)
 {
 	struct Scsi_Host *shost = sdev->host;
 	return (u8 *)sdev->sdev_data
-		+ shost->transportt->device_private_offset;
+		   + shost->transportt->device_private_offset;
 }
 
 #endif /* SCSI_TRANSPORT_H */

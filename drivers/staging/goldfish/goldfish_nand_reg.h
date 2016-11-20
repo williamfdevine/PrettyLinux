@@ -17,7 +17,8 @@
 #ifndef GOLDFISH_NAND_REG_H
 #define GOLDFISH_NAND_REG_H
 
-enum nand_cmd {
+enum nand_cmd
+{
 	/* Write device name for NAND_DEV to NAND_DATA (vaddr) */
 	NAND_CMD_GET_DEV_NAME,
 	NAND_CMD_READ,
@@ -31,14 +32,16 @@ enum nand_cmd {
 	NAND_CMD_ERASE_WITH_PARAMS
 };
 
-enum nand_dev_flags {
+enum nand_dev_flags
+{
 	NAND_DEV_FLAG_READ_ONLY = 0x00000001,
 	NAND_DEV_FLAG_CMD_PARAMS_CAP = 0x00000002,
 };
 
 #define NAND_VERSION_CURRENT (1)
 
-enum nand_reg {
+enum nand_reg
+{
 	/* Global */
 	NAND_VERSION        = 0x000,
 	NAND_NUM_DEV        = 0x004,
@@ -65,7 +68,8 @@ enum nand_reg {
 	NAND_CMD_PARAMS_ADDR_HIGH = 0x05c,
 };
 
-struct cmd_params {
+struct cmd_params
+{
 	u32 dev;
 	u32 addr_low;
 	u32 addr_high;

@@ -13,7 +13,8 @@
 #define __LINUX_MFD_S2MPA01_H
 
 /* S2MPA01 registers */
-enum s2mpa01_reg {
+enum s2mpa01_reg
+{
 	S2MPA01_REG_ID,
 	S2MPA01_REG_INT1,
 	S2MPA01_REG_INT2,
@@ -113,7 +114,8 @@ enum s2mpa01_reg {
 };
 
 /* S2MPA01 regulator ids */
-enum s2mpa01_regulators {
+enum s2mpa01_regulators
+{
 	S2MPA01_LDO1,
 	S2MPA01_LDO2,
 	S2MPA01_LDO3,

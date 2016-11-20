@@ -28,7 +28,8 @@ struct xfs_btree_cur;
 /* Move inodes in clusters of this size */
 #define	XFS_INODE_BIG_CLUSTER_SIZE	8192
 
-struct xfs_icluster {
+struct xfs_icluster
+{
 	bool		deleted;	/* record is deleted */
 	xfs_ino_t	first_ino;	/* first inode number */
 	uint64_t	alloc;		/* inode phys. allocation bitmap for
@@ -41,7 +42,10 @@ xfs_icluster_size_fsb(
 	struct xfs_mount	*mp)
 {
 	if (mp->m_sb.sb_blocksize >= mp->m_inode_cluster_size)
+	{
 		return 1;
+	}
+
 	return mp->m_inode_cluster_size >> mp->m_sb.sb_blocklog;
 }
 
@@ -143,30 +147,30 @@ int
 xfs_ialloc_pagi_init(
 	struct xfs_mount *mp,		/* file system mount structure */
 	struct xfs_trans *tp,		/* transaction pointer */
-        xfs_agnumber_t  agno);		/* allocation group number */
+	xfs_agnumber_t  agno);		/* allocation group number */
 
 /*
  * Lookup a record by ino in the btree given by cur.
  */
 int xfs_inobt_lookup(struct xfs_btree_cur *cur, xfs_agino_t ino,
-		xfs_lookup_t dir, int *stat);
+					 xfs_lookup_t dir, int *stat);
 
 /*
  * Get the data from the pointed-to record.
  */
 int xfs_inobt_get_rec(struct xfs_btree_cur *cur,
-		xfs_inobt_rec_incore_t *rec, int *stat);
+					  xfs_inobt_rec_incore_t *rec, int *stat);
 
 /*
  * Inode chunk initialisation routine
  */
 int xfs_ialloc_inode_init(struct xfs_mount *mp, struct xfs_trans *tp,
-			  struct list_head *buffer_list, int icount,
-			  xfs_agnumber_t agno, xfs_agblock_t agbno,
-			  xfs_agblock_t length, unsigned int gen);
+						  struct list_head *buffer_list, int icount,
+						  xfs_agnumber_t agno, xfs_agblock_t agbno,
+						  xfs_agblock_t length, unsigned int gen);
 
 int xfs_read_agi(struct xfs_mount *mp, struct xfs_trans *tp,
-		xfs_agnumber_t agno, struct xfs_buf **bpp);
+				 xfs_agnumber_t agno, struct xfs_buf **bpp);
 
 
 #endif	/* __XFS_IALLOC_H__ */

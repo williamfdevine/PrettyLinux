@@ -34,7 +34,8 @@ static struct mtd_info *map_absent_probe(struct map_info *map);
 static void map_absent_destroy (struct mtd_info *);
 
 
-static struct mtd_chip_driver map_absent_chipdrv = {
+static struct mtd_chip_driver map_absent_chipdrv =
+{
 	.probe		= map_absent_probe,
 	.destroy	= map_absent_destroy,
 	.name		= "map_absent",
@@ -46,7 +47,9 @@ static struct mtd_info *map_absent_probe(struct map_info *map)
 	struct mtd_info *mtd;
 
 	mtd = kzalloc(sizeof(*mtd), GFP_KERNEL);
-	if (!mtd) {
+
+	if (!mtd)
+	{
 		return NULL;
 	}
 

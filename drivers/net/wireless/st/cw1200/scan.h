@@ -21,7 +21,8 @@
 /* external */ struct ieee80211_hw;
 /* external */ struct work_struct;
 
-struct cw1200_scan {
+struct cw1200_scan
+{
 	struct semaphore lock;
 	struct work_struct work;
 	struct delayed_work timeout;
@@ -40,13 +41,13 @@ struct cw1200_scan {
 };
 
 int cw1200_hw_scan(struct ieee80211_hw *hw,
-		   struct ieee80211_vif *vif,
-		   struct ieee80211_scan_request *hw_req);
+				   struct ieee80211_vif *vif,
+				   struct ieee80211_scan_request *hw_req);
 void cw1200_scan_work(struct work_struct *work);
 void cw1200_scan_timeout(struct work_struct *work);
 void cw1200_clear_recent_scan_work(struct work_struct *work);
 void cw1200_scan_complete_cb(struct cw1200_common *priv,
-			     struct wsm_scan_complete *arg);
+							 struct wsm_scan_complete *arg);
 void cw1200_scan_failed_cb(struct cw1200_common *priv);
 
 /* ******************************************************************** */

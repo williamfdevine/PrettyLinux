@@ -48,11 +48,14 @@ static int viper_pcmcia_hw_init(struct soc_pcmcia_socket *skt)
 	skt->stat[SOC_STAT_RDY].name = "CF ready";
 
 	if (gpio_request(pdata->pwr_gpio, "CF power"))
+	{
 		goto err_request_pwr;
+	}
 
 	local_irq_save(flags);
 
-	if (gpio_direction_output(pdata->pwr_gpio, 0)) {
+	if (gpio_direction_output(pdata->pwr_gpio, 0))
+	{
 		local_irq_restore(flags);
 		goto err_dir;
 	}
@@ -79,14 +82,14 @@ static void viper_pcmcia_hw_shutdown(struct soc_pcmcia_socket *skt)
 }
 
 static void viper_pcmcia_socket_state(struct soc_pcmcia_socket *skt,
-				      struct pcmcia_state *state)
+									  struct pcmcia_state *state)
 {
 	state->vs_3v  = 1; /* Can only apply 3.3V */
 	state->vs_Xv  = 0;
 }
 
 static int viper_pcmcia_configure_socket(struct soc_pcmcia_socket *skt,
-					 const socket_state_t *state)
+		const socket_state_t *state)
 {
 	struct arcom_pcmcia_pdata *pdata = viper_get_pdata();
 
@@ -94,22 +97,26 @@ static int viper_pcmcia_configure_socket(struct soc_pcmcia_socket *skt,
 	pdata->reset(state->flags & SS_RESET);
 
 	/* Apply socket voltage */
-	switch (state->Vcc) {
-	case 0:
-		gpio_set_value(pdata->pwr_gpio, 0);
-		break;
-	case 33:
-		gpio_set_value(pdata->pwr_gpio, 1);
-		break;
-	default:
-		dev_err(&arcom_pcmcia_dev->dev, "Unsupported Vcc:%d\n", state->Vcc);
-		return -1;
+	switch (state->Vcc)
+	{
+		case 0:
+			gpio_set_value(pdata->pwr_gpio, 0);
+			break;
+
+		case 33:
+			gpio_set_value(pdata->pwr_gpio, 1);
+			break;
+
+		default:
+			dev_err(&arcom_pcmcia_dev->dev, "Unsupported Vcc:%d\n", state->Vcc);
+			return -1;
 	}
 
 	return 0;
 }
 
-static struct pcmcia_low_level viper_pcmcia_ops = {
+static struct pcmcia_low_level viper_pcmcia_ops =
+{
 	.owner          	= THIS_MODULE,
 	.hw_init        	= viper_pcmcia_hw_init,
 	.hw_shutdown		= viper_pcmcia_hw_shutdown,
@@ -126,27 +133,37 @@ static int viper_pcmcia_probe(struct platform_device *pdev)
 
 	/* I can't imagine more than one device, but you never know... */
 	if (arcom_pcmcia_dev)
+	{
 		return -EEXIST;
+	}
 
 	if (!pdev->dev.platform_data)
+	{
 		return -EINVAL;
+	}
 
 	viper_pcmcia_device = platform_device_alloc("pxa2xx-pcmcia", -1);
+
 	if (!viper_pcmcia_device)
+	{
 		return -ENOMEM;
+	}
 
 	arcom_pcmcia_dev = pdev;
 
 	viper_pcmcia_device->dev.parent = &pdev->dev;
 
 	ret = platform_device_add_data(viper_pcmcia_device,
-				       &viper_pcmcia_ops,
-				       sizeof(viper_pcmcia_ops));
+								   &viper_pcmcia_ops,
+								   sizeof(viper_pcmcia_ops));
 
 	if (!ret)
+	{
 		ret = platform_device_add(viper_pcmcia_device);
+	}
 
-	if (ret) {
+	if (ret)
+	{
 		platform_device_put(viper_pcmcia_device);
 		arcom_pcmcia_dev = NULL;
 	}
@@ -161,13 +178,15 @@ static int viper_pcmcia_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_device_id viper_pcmcia_id_table[] = {
+static struct platform_device_id viper_pcmcia_id_table[] =
+{
 	{ .name = "viper-pcmcia", },
 	{ .name = "zeus-pcmcia",  },
 	{ },
 };
 
-static struct platform_driver viper_pcmcia_driver = {
+static struct platform_driver viper_pcmcia_driver =
+{
 	.probe		= viper_pcmcia_probe,
 	.remove		= viper_pcmcia_remove,
 	.driver		= {

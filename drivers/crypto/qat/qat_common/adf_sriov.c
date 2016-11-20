@@ -65,21 +65,22 @@ static struct workqueue_struct *pf2vf_resp_wq;
 
 #define READ_CSR_ME2FUNCTION_MAP_A(pmisc_bar_addr, index)		\
 	ADF_CSR_RD(pmisc_bar_addr, ME2FUNCTION_MAP_A_OFFSET +		\
-		   ME2FUNCTION_MAP_REG_SIZE * index)
+			   ME2FUNCTION_MAP_REG_SIZE * index)
 
 #define WRITE_CSR_ME2FUNCTION_MAP_A(pmisc_bar_addr, index, value)	\
 	ADF_CSR_WR(pmisc_bar_addr, ME2FUNCTION_MAP_A_OFFSET +		\
-		   ME2FUNCTION_MAP_REG_SIZE * index, value)
+			   ME2FUNCTION_MAP_REG_SIZE * index, value)
 
 #define READ_CSR_ME2FUNCTION_MAP_B(pmisc_bar_addr, index)		\
 	ADF_CSR_RD(pmisc_bar_addr, ME2FUNCTION_MAP_B_OFFSET +		\
-		   ME2FUNCTION_MAP_REG_SIZE * index)
+			   ME2FUNCTION_MAP_REG_SIZE * index)
 
 #define WRITE_CSR_ME2FUNCTION_MAP_B(pmisc_bar_addr, index, value)	\
 	ADF_CSR_WR(pmisc_bar_addr, ME2FUNCTION_MAP_B_OFFSET +		\
-		   ME2FUNCTION_MAP_REG_SIZE * index, value)
+			   ME2FUNCTION_MAP_REG_SIZE * index, value)
 
-struct adf_pf2vf_resp {
+struct adf_pf2vf_resp
+{
 	struct work_struct pf2vf_resp_work;
 	struct adf_accel_vf_info *vf_info;
 };
@@ -99,8 +100,11 @@ static void adf_vf2pf_bh_handler(void *data)
 	struct adf_pf2vf_resp *pf2vf_resp;
 
 	pf2vf_resp = kzalloc(sizeof(*pf2vf_resp), GFP_ATOMIC);
+
 	if (!pf2vf_resp)
+	{
 		return;
+	}
 
 	pf2vf_resp->vf_info = vf_info;
 	INIT_WORK(&pf2vf_resp->pf2vf_resp_work, adf_iov_send_resp);
@@ -113,36 +117,39 @@ static int adf_enable_sriov(struct adf_accel_dev *accel_dev)
 	int totalvfs = pci_sriov_get_totalvfs(pdev);
 	struct adf_hw_device_data *hw_data = accel_dev->hw_device;
 	struct adf_bar *pmisc =
-			&GET_BARS(accel_dev)[hw_data->get_misc_bar_id(hw_data)];
+		&GET_BARS(accel_dev)[hw_data->get_misc_bar_id(hw_data)];
 	void __iomem *pmisc_addr = pmisc->virt_addr;
 	struct adf_accel_vf_info *vf_info;
 	int i;
 	u32 reg;
 
 	for (i = 0, vf_info = accel_dev->pf.vf_info; i < totalvfs;
-	     i++, vf_info++) {
+		 i++, vf_info++)
+	{
 		/* This ptr will be populated when VFs will be created */
 		vf_info->accel_dev = accel_dev;
 		vf_info->vf_nr = i;
 
 		tasklet_init(&vf_info->vf2pf_bh_tasklet,
-			     (void *)adf_vf2pf_bh_handler,
-			     (unsigned long)vf_info);
+					 (void *)adf_vf2pf_bh_handler,
+					 (unsigned long)vf_info);
 		mutex_init(&vf_info->pf2vf_lock);
 		ratelimit_state_init(&vf_info->vf2pf_ratelimit,
-				     DEFAULT_RATELIMIT_INTERVAL,
-				     DEFAULT_RATELIMIT_BURST);
+							 DEFAULT_RATELIMIT_INTERVAL,
+							 DEFAULT_RATELIMIT_BURST);
 	}
 
 	/* Set Valid bits in ME Thread to PCIe Function Mapping Group A */
-	for (i = 0; i < ME2FUNCTION_MAP_A_NUM_REGS; i++) {
+	for (i = 0; i < ME2FUNCTION_MAP_A_NUM_REGS; i++)
+	{
 		reg = READ_CSR_ME2FUNCTION_MAP_A(pmisc_addr, i);
 		reg |= ME2FUNCTION_MAP_VALID;
 		WRITE_CSR_ME2FUNCTION_MAP_A(pmisc_addr, i, reg);
 	}
 
 	/* Set Valid bits in ME Thread to PCIe Function Mapping Group B */
-	for (i = 0; i < ME2FUNCTION_MAP_B_NUM_REGS; i++) {
+	for (i = 0; i < ME2FUNCTION_MAP_B_NUM_REGS; i++)
+	{
 		reg = READ_CSR_ME2FUNCTION_MAP_B(pmisc_addr, i);
 		reg |= ME2FUNCTION_MAP_VALID;
 		WRITE_CSR_ME2FUNCTION_MAP_B(pmisc_addr, i, reg);
@@ -172,7 +179,7 @@ void adf_disable_sriov(struct adf_accel_dev *accel_dev)
 {
 	struct adf_hw_device_data *hw_data = accel_dev->hw_device;
 	struct adf_bar *pmisc =
-			&GET_BARS(accel_dev)[hw_data->get_misc_bar_id(hw_data)];
+		&GET_BARS(accel_dev)[hw_data->get_misc_bar_id(hw_data)];
 	void __iomem *pmisc_addr = pmisc->virt_addr;
 	int totalvfs = pci_sriov_get_totalvfs(accel_to_pci_dev(accel_dev));
 	struct adf_accel_vf_info *vf;
@@ -180,7 +187,9 @@ void adf_disable_sriov(struct adf_accel_dev *accel_dev)
 	int i;
 
 	if (!accel_dev->pf.vf_info)
+	{
 		return;
+	}
 
 	adf_pf2vf_notify_restarting(accel_dev);
 
@@ -190,20 +199,23 @@ void adf_disable_sriov(struct adf_accel_dev *accel_dev)
 	adf_disable_vf2pf_interrupts(accel_dev, 0xFFFFFFFF);
 
 	/* Clear Valid bits in ME Thread to PCIe Function Mapping Group A */
-	for (i = 0; i < ME2FUNCTION_MAP_A_NUM_REGS; i++) {
+	for (i = 0; i < ME2FUNCTION_MAP_A_NUM_REGS; i++)
+	{
 		reg = READ_CSR_ME2FUNCTION_MAP_A(pmisc_addr, i);
 		reg &= ~ME2FUNCTION_MAP_VALID;
 		WRITE_CSR_ME2FUNCTION_MAP_A(pmisc_addr, i, reg);
 	}
 
 	/* Clear Valid bits in ME Thread to PCIe Function Mapping Group B */
-	for (i = 0; i < ME2FUNCTION_MAP_B_NUM_REGS; i++) {
+	for (i = 0; i < ME2FUNCTION_MAP_B_NUM_REGS; i++)
+	{
 		reg = READ_CSR_ME2FUNCTION_MAP_B(pmisc_addr, i);
 		reg &= ~ME2FUNCTION_MAP_VALID;
 		WRITE_CSR_ME2FUNCTION_MAP_B(pmisc_addr, i, reg);
 	}
 
-	for (i = 0, vf = accel_dev->pf.vf_info; i < totalvfs; i++, vf++) {
+	for (i = 0, vf = accel_dev->pf.vf_info; i < totalvfs; i++, vf++)
+	{
 		tasklet_disable(&vf->vf2pf_bh_tasklet);
 		tasklet_kill(&vf->vf2pf_bh_tasklet);
 		mutex_destroy(&vf->pf2vf_lock);
@@ -229,22 +241,28 @@ int adf_sriov_configure(struct pci_dev *pdev, int numvfs)
 	unsigned long val;
 	int ret;
 
-	if (!accel_dev) {
+	if (!accel_dev)
+	{
 		dev_err(&pdev->dev, "Failed to find accel_dev\n");
 		return -EFAULT;
 	}
 
 	if (!iommu_present(&pci_bus_type))
+	{
 		dev_warn(&pdev->dev, "IOMMU should be enabled for SR-IOV to work correctly\n");
+	}
 
-	if (accel_dev->pf.vf_info) {
+	if (accel_dev->pf.vf_info)
+	{
 		dev_info(&pdev->dev, "Already enabled for this device\n");
 		return -EINVAL;
 	}
 
-	if (adf_dev_started(accel_dev)) {
+	if (adf_dev_started(accel_dev))
+	{
 		if (adf_devmgr_in_reset(accel_dev) ||
-		    adf_dev_in_use(accel_dev)) {
+			adf_dev_in_use(accel_dev))
+		{
 			dev_err(&GET_DEV(accel_dev), "Device busy\n");
 			return -EBUSY;
 		}
@@ -254,36 +272,50 @@ int adf_sriov_configure(struct pci_dev *pdev, int numvfs)
 	}
 
 	if (adf_cfg_section_add(accel_dev, ADF_KERNEL_SEC))
+	{
 		return -EFAULT;
+	}
+
 	val = 0;
+
 	if (adf_cfg_add_key_value_param(accel_dev, ADF_KERNEL_SEC,
-					ADF_NUM_CY, (void *)&val, ADF_DEC))
+									ADF_NUM_CY, (void *)&val, ADF_DEC))
+	{
 		return -EFAULT;
+	}
 
 	set_bit(ADF_STATUS_CONFIGURED, &accel_dev->status);
 
 	/* Allocate memory for VF info structs */
 	accel_dev->pf.vf_info = kcalloc(totalvfs,
-					sizeof(struct adf_accel_vf_info),
-					GFP_KERNEL);
-	if (!accel_dev->pf.vf_info)
-		return -ENOMEM;
+									sizeof(struct adf_accel_vf_info),
+									GFP_KERNEL);
 
-	if (adf_dev_init(accel_dev)) {
+	if (!accel_dev->pf.vf_info)
+	{
+		return -ENOMEM;
+	}
+
+	if (adf_dev_init(accel_dev))
+	{
 		dev_err(&GET_DEV(accel_dev), "Failed to init qat_dev%d\n",
-			accel_dev->accel_id);
+				accel_dev->accel_id);
 		return -EFAULT;
 	}
 
-	if (adf_dev_start(accel_dev)) {
+	if (adf_dev_start(accel_dev))
+	{
 		dev_err(&GET_DEV(accel_dev), "Failed to start qat_dev%d\n",
-			accel_dev->accel_id);
+				accel_dev->accel_id);
 		return -EFAULT;
 	}
 
 	ret = adf_enable_sriov(accel_dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return numvfs;
 }
@@ -299,7 +331,8 @@ int __init adf_init_pf_wq(void)
 
 void adf_exit_pf_wq(void)
 {
-	if (pf2vf_resp_wq) {
+	if (pf2vf_resp_wq)
+	{
 		destroy_workqueue(pf2vf_resp_wq);
 		pf2vf_resp_wq = NULL;
 	}

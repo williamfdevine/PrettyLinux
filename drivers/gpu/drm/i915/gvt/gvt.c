@@ -28,7 +28,8 @@
 
 struct intel_gvt_host intel_gvt_host;
 
-static const char * const supported_hypervisors[] = {
+static const char *const supported_hypervisors[] =
+{
 	[INTEL_GVT_HYPERVISOR_XEN] = "XEN",
 	[INTEL_GVT_HYPERVISOR_KVM] = "KVM",
 };
@@ -48,35 +49,46 @@ static const char * const supported_hypervisors[] = {
 int intel_gvt_init_host(void)
 {
 	if (intel_gvt_host.initialized)
+	{
 		return 0;
+	}
 
 	/* Xen DOM U */
 	if (xen_domain() && !xen_initial_domain())
+	{
 		return -ENODEV;
+	}
 
 	/* Try to load MPT modules for hypervisors */
-	if (xen_initial_domain()) {
+	if (xen_initial_domain())
+	{
 		/* In Xen dom0 */
 		intel_gvt_host.mpt = try_then_request_module(
-				symbol_get(xengt_mpt), "xengt");
+								 symbol_get(xengt_mpt), "xengt");
 		intel_gvt_host.hypervisor_type = INTEL_GVT_HYPERVISOR_XEN;
-	} else {
+	}
+	else
+	{
 		/* not in Xen. Try KVMGT */
 		intel_gvt_host.mpt = try_then_request_module(
-				symbol_get(kvmgt_mpt), "kvm");
+								 symbol_get(kvmgt_mpt), "kvm");
 		intel_gvt_host.hypervisor_type = INTEL_GVT_HYPERVISOR_KVM;
 	}
 
 	/* Fail to load MPT modules - bail out */
 	if (!intel_gvt_host.mpt)
+	{
 		return -EINVAL;
+	}
 
 	/* Try to detect if we're running in host instead of VM. */
 	if (!intel_gvt_hypervisor_detect_host())
+	{
 		return -ENODEV;
+	}
 
 	gvt_dbg_core("Running with hypervisor %s in host mode\n",
-			supported_hypervisors[intel_gvt_host.hypervisor_type]);
+				 supported_hypervisors[intel_gvt_host.hypervisor_type]);
 
 	intel_gvt_host.initialized = true;
 	return 0;
@@ -85,7 +97,10 @@ int intel_gvt_init_host(void)
 static void init_device_info(struct intel_gvt *gvt)
 {
 	if (IS_BROADWELL(gvt->dev_priv))
+	{
 		gvt->device_info.max_support_vgpus = 8;
+	}
+
 	/* This function will grow large in GVT device model patches. */
 }
 
@@ -102,7 +117,9 @@ void intel_gvt_clean_device(struct drm_i915_private *dev_priv)
 	struct intel_gvt *gvt = &dev_priv->gvt;
 
 	if (WARN_ON(!gvt->initialized))
+	{
 		return;
+	}
 
 	/* Other de-initialization of GVT components will be introduced. */
 
@@ -123,15 +140,20 @@ void intel_gvt_clean_device(struct drm_i915_private *dev_priv)
 int intel_gvt_init_device(struct drm_i915_private *dev_priv)
 {
 	struct intel_gvt *gvt = &dev_priv->gvt;
+
 	/*
 	 * Cannot initialize GVT device without intel_gvt_host gets
 	 * initialized first.
 	 */
 	if (WARN_ON(!intel_gvt_host.initialized))
+	{
 		return -EINVAL;
+	}
 
 	if (WARN_ON(gvt->initialized))
+	{
 		return -EEXIST;
+	}
 
 	gvt_dbg_core("init gvt device\n");
 

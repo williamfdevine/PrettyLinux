@@ -19,8 +19,8 @@ libapi_print_fn_t __pr_info    = __base_pr;
 libapi_print_fn_t __pr_debug;
 
 void libapi_set_print(libapi_print_fn_t warn,
-		      libapi_print_fn_t info,
-		      libapi_print_fn_t debug)
+					  libapi_print_fn_t info,
+					  libapi_print_fn_t debug)
 {
 	__pr_warning = warn;
 	__pr_info    = info;

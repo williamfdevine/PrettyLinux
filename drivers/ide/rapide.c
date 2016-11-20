@@ -10,21 +10,24 @@
 
 #include <asm/ecard.h>
 
-static const struct ide_port_info rapide_port_info = {
+static const struct ide_port_info rapide_port_info =
+{
 	.host_flags		= IDE_HFLAG_MMIO | IDE_HFLAG_NO_DMA,
 	.chipset		= ide_generic,
 };
 
 static void rapide_setup_ports(struct ide_hw *hw, void __iomem *base,
-			       void __iomem *ctrl, unsigned int sz, int irq)
+							   void __iomem *ctrl, unsigned int sz, int irq)
 {
 	unsigned long port = (unsigned long)base;
 	int i;
 
-	for (i = 0; i <= 7; i++) {
+	for (i = 0; i <= 7; i++)
+	{
 		hw->io_ports_array[i] = port;
 		port += sz;
 	}
+
 	hw->io_ports.ctl_addr = (unsigned long)ctrl;
 	hw->irq = irq;
 }
@@ -37,11 +40,16 @@ static int rapide_probe(struct expansion_card *ec, const struct ecard_id *id)
 	struct ide_hw hw, *hws[] = { &hw };
 
 	ret = ecard_request_resources(ec);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	base = ecardm_iomap(ec, ECARD_RES_MEMC, 0, 0);
-	if (!base) {
+
+	if (!base)
+	{
 		ret = -ENOMEM;
 		goto release;
 	}
@@ -51,15 +59,18 @@ static int rapide_probe(struct expansion_card *ec, const struct ecard_id *id)
 	hw.dev = &ec->dev;
 
 	ret = ide_host_add(&rapide_port_info, hws, 1, &host);
+
 	if (ret)
+	{
 		goto release;
+	}
 
 	ecard_set_drvdata(ec, host);
 	goto out;
 
- release:
+release:
 	ecard_release_resources(ec);
- out:
+out:
 	return ret;
 }
 
@@ -74,12 +85,14 @@ static void rapide_remove(struct expansion_card *ec)
 	ecard_release_resources(ec);
 }
 
-static struct ecard_id rapide_ids[] = {
+static struct ecard_id rapide_ids[] =
+{
 	{ MANU_YELLOWSTONE, PROD_YELLOWSTONE_RAPIDE32 },
 	{ 0xffff, 0xffff }
 };
 
-static struct ecard_driver rapide_driver = {
+static struct ecard_driver rapide_driver =
+{
 	.probe		= rapide_probe,
 	.remove		= rapide_remove,
 	.id_table	= rapide_ids,

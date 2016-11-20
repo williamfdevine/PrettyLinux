@@ -71,14 +71,14 @@ static void SiSUSB_InitPtr(struct SiS_Private *SiS_Pr)
 
 static void
 SiS_SetReg(struct SiS_Private *SiS_Pr, unsigned long port,
-	   unsigned short index, unsigned short data)
+		   unsigned short index, unsigned short data)
 {
 	sisusb_setidxreg(SiS_Pr->sisusb, port, index, data);
 }
 
 static void
 SiS_SetRegByte(struct SiS_Private *SiS_Pr, unsigned long port,
-	       unsigned short data)
+			   unsigned short data)
 {
 	sisusb_setreg(SiS_Pr->sisusb, port, data);
 }
@@ -105,22 +105,22 @@ SiS_GetRegByte(struct SiS_Private *SiS_Pr, unsigned long port)
 
 static void
 SiS_SetRegANDOR(struct SiS_Private *SiS_Pr, unsigned long port,
-		unsigned short index, unsigned short DataAND,
-		unsigned short DataOR)
+				unsigned short index, unsigned short DataAND,
+				unsigned short DataOR)
 {
 	sisusb_setidxregandor(SiS_Pr->sisusb, port, index, DataAND, DataOR);
 }
 
 static void
 SiS_SetRegAND(struct SiS_Private *SiS_Pr, unsigned long port,
-	      unsigned short index, unsigned short DataAND)
+			  unsigned short index, unsigned short DataAND)
 {
 	sisusb_setidxregand(SiS_Pr->sisusb, port, index, DataAND);
 }
 
 static void
 SiS_SetRegOR(struct SiS_Private *SiS_Pr, unsigned long port,
-	     unsigned short index, unsigned short DataOR)
+			 unsigned short index, unsigned short DataOR)
 {
 	sisusb_setidxregor(SiS_Pr->sisusb, port, index, DataOR);
 }
@@ -251,26 +251,36 @@ static void SiS_ResetSegmentRegisters(struct SiS_Private *SiS_Pr)
 
 static int
 SiS_SearchModeID(struct SiS_Private *SiS_Pr, unsigned short *ModeNo,
-		 unsigned short *ModeIdIndex)
+				 unsigned short *ModeIdIndex)
 {
-	if ((*ModeNo) <= 0x13) {
+	if ((*ModeNo) <= 0x13)
+	{
 
 		if ((*ModeNo) != 0x03)
+		{
 			return 0;
+		}
 
 		(*ModeIdIndex) = 0;
 
-	} else {
+	}
+	else
+	{
 
-		for (*ModeIdIndex = 0;; (*ModeIdIndex)++) {
+		for (*ModeIdIndex = 0;; (*ModeIdIndex)++)
+		{
 
 			if (SiS_Pr->SiS_EModeIDTable[*ModeIdIndex].Ext_ModeID ==
-			    (*ModeNo))
+				(*ModeNo))
+			{
 				break;
+			}
 
 			if (SiS_Pr->SiS_EModeIDTable[*ModeIdIndex].Ext_ModeID ==
-			    0xFF)
+				0xFF)
+			{
 				return 0;
+			}
 		}
 
 	}
@@ -294,21 +304,28 @@ static void SiS_HandleCRT1(struct SiS_Private *SiS_Pr)
 
 static unsigned short
 SiS_GetColorDepth(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
-		  unsigned short ModeIdIndex)
+				  unsigned short ModeIdIndex)
 {
 	static const unsigned short ColorDepth[6] = { 1, 2, 4, 4, 6, 8 };
 	unsigned short modeflag;
 	short index;
 
-	if (ModeNo <= 0x13) {
+	if (ModeNo <= 0x13)
+	{
 		modeflag = SiS_Pr->SiS_SModeIDTable[ModeIdIndex].St_ModeFlag;
-	} else {
+	}
+	else
+	{
 		modeflag = SiS_Pr->SiS_EModeIDTable[ModeIdIndex].Ext_ModeFlag;
 	}
 
 	index = (modeflag & ModeTypeMask) - ModeEGA;
+
 	if (index < 0)
+	{
 		index = 0;
+	}
+
 	return ColorDepth[index];
 }
 
@@ -318,7 +335,7 @@ SiS_GetColorDepth(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 
 static unsigned short
 SiS_GetOffset(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
-	      unsigned short ModeIdIndex, unsigned short rrti)
+			  unsigned short ModeIdIndex, unsigned short rrti)
 {
 	unsigned short xres, temp, colordepth, infoflag;
 
@@ -330,12 +347,16 @@ SiS_GetOffset(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 	temp = xres / 16;
 
 	if (infoflag & InterlaceMode)
+	{
 		temp <<= 1;
+	}
 
 	temp *= colordepth;
 
 	if (xres % 16)
+	{
 		temp += (colordepth >> 1);
+	}
 
 	return temp;
 }
@@ -355,7 +376,8 @@ SiS_SetSeqRegs(struct SiS_Private *SiS_Pr, unsigned short StandTableIndex)
 	SRdata = SiS_Pr->SiS_StandTable[StandTableIndex].SR[0] | 0x20;
 	SiS_SetReg(SiS_Pr, SiS_Pr->SiS_P3c4, 0x01, SRdata);
 
-	for (i = 2; i <= 4; i++) {
+	for (i = 2; i <= 4; i++)
+	{
 		SRdata = SiS_Pr->SiS_StandTable[StandTableIndex].SR[i - 1];
 		SiS_SetReg(SiS_Pr, SiS_Pr->SiS_P3c4, i, SRdata);
 	}
@@ -385,7 +407,8 @@ SiS_SetCRTCRegs(struct SiS_Private *SiS_Pr, unsigned short StandTableIndex)
 
 	SiS_SetRegAND(SiS_Pr, SiS_Pr->SiS_P3d4, 0x11, 0x7f);
 
-	for (i = 0; i <= 0x18; i++) {
+	for (i = 0; i <= 0x18; i++)
+	{
 		CRTCdata = SiS_Pr->SiS_StandTable[StandTableIndex].CRTC[i];
 		SiS_SetReg(SiS_Pr, SiS_Pr->SiS_P3d4, i, CRTCdata);
 	}
@@ -401,12 +424,14 @@ SiS_SetATTRegs(struct SiS_Private *SiS_Pr, unsigned short StandTableIndex)
 	unsigned char ARdata;
 	unsigned short i;
 
-	for (i = 0; i <= 0x13; i++) {
+	for (i = 0; i <= 0x13; i++)
+	{
 		ARdata = SiS_Pr->SiS_StandTable[StandTableIndex].ATTR[i];
 		SiS_GetRegByte(SiS_Pr, SiS_Pr->SiS_P3da);
 		SiS_SetRegByte(SiS_Pr, SiS_Pr->SiS_P3c0, i);
 		SiS_SetRegByte(SiS_Pr, SiS_Pr->SiS_P3c0, ARdata);
 	}
+
 	SiS_GetRegByte(SiS_Pr, SiS_Pr->SiS_P3da);
 	SiS_SetRegByte(SiS_Pr, SiS_Pr->SiS_P3c0, 0x14);
 	SiS_SetRegByte(SiS_Pr, SiS_Pr->SiS_P3c0, 0x00);
@@ -426,12 +451,14 @@ SiS_SetGRCRegs(struct SiS_Private *SiS_Pr, unsigned short StandTableIndex)
 	unsigned char GRdata;
 	unsigned short i;
 
-	for (i = 0; i <= 0x08; i++) {
+	for (i = 0; i <= 0x08; i++)
+	{
 		GRdata = SiS_Pr->SiS_StandTable[StandTableIndex].GRC[i];
 		SiS_SetReg(SiS_Pr, SiS_Pr->SiS_P3ce, i, GRdata);
 	}
 
-	if (SiS_Pr->SiS_ModeType > ModeVGA) {
+	if (SiS_Pr->SiS_ModeType > ModeVGA)
+	{
 		/* 256 color disable */
 		SiS_SetRegAND(SiS_Pr, SiS_Pr->SiS_P3ce, 0x05, 0xBF);
 	}
@@ -445,7 +472,8 @@ static void SiS_ClearExt1Regs(struct SiS_Private *SiS_Pr, unsigned short ModeNo)
 {
 	int i;
 
-	for (i = 0x0A; i <= 0x0E; i++) {
+	for (i = 0x0A; i <= 0x0E; i++)
+	{
 		SiS_SetReg(SiS_Pr, SiS_Pr->SiS_P3c4, i, 0x00);
 	}
 
@@ -458,33 +486,46 @@ static void SiS_ClearExt1Regs(struct SiS_Private *SiS_Pr, unsigned short ModeNo)
 
 static unsigned short
 SiS_GetRatePtr(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
-	       unsigned short ModeIdIndex)
+			   unsigned short ModeIdIndex)
 {
 	unsigned short rrti, i, index, temp;
 
 	if (ModeNo <= 0x13)
+	{
 		return 0xFFFF;
+	}
 
 	index = SiS_GetReg(SiS_Pr, SiS_Pr->SiS_P3d4, 0x33) & 0x0F;
+
 	if (index > 0)
+	{
 		index--;
+	}
 
 	rrti = SiS_Pr->SiS_EModeIDTable[ModeIdIndex].REFindex;
 	ModeNo = SiS_Pr->SiS_RefIndex[rrti].ModeID;
 
 	i = 0;
-	do {
+
+	do
+	{
 		if (SiS_Pr->SiS_RefIndex[rrti + i].ModeID != ModeNo)
+		{
 			break;
+		}
 
 		temp =
-		    SiS_Pr->SiS_RefIndex[rrti + i].Ext_InfoFlag & ModeTypeMask;
+			SiS_Pr->SiS_RefIndex[rrti + i].Ext_InfoFlag & ModeTypeMask;
+
 		if (temp < SiS_Pr->SiS_ModeType)
+		{
 			break;
+		}
 
 		i++;
 		index--;
-	} while (index != 0xFFFF);
+	}
+	while (index != 0xFFFF);
 
 	i--;
 
@@ -509,7 +550,7 @@ static void SiS_SetCRT1Sync(struct SiS_Private *SiS_Pr, unsigned short rrti)
 
 static void
 SiS_SetCRT1CRTC(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
-		unsigned short ModeIdIndex, unsigned short rrti)
+				unsigned short ModeIdIndex, unsigned short rrti)
 {
 	unsigned char index;
 	unsigned short temp, i, j, modeflag;
@@ -520,33 +561,46 @@ SiS_SetCRT1CRTC(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 
 	index = SiS_Pr->SiS_RefIndex[rrti].Ext_CRT1CRTC;
 
-	for (i = 0, j = 0; i <= 7; i++, j++) {
+	for (i = 0, j = 0; i <= 7; i++, j++)
+	{
 		SiS_SetReg(SiS_Pr, SiS_Pr->SiS_P3d4, j,
-			   SiS_Pr->SiS_CRT1Table[index].CR[i]);
+				   SiS_Pr->SiS_CRT1Table[index].CR[i]);
 	}
-	for (j = 0x10; i <= 10; i++, j++) {
+
+	for (j = 0x10; i <= 10; i++, j++)
+	{
 		SiS_SetReg(SiS_Pr, SiS_Pr->SiS_P3d4, j,
-			   SiS_Pr->SiS_CRT1Table[index].CR[i]);
+				   SiS_Pr->SiS_CRT1Table[index].CR[i]);
 	}
-	for (j = 0x15; i <= 12; i++, j++) {
+
+	for (j = 0x15; i <= 12; i++, j++)
+	{
 		SiS_SetReg(SiS_Pr, SiS_Pr->SiS_P3d4, j,
-			   SiS_Pr->SiS_CRT1Table[index].CR[i]);
+				   SiS_Pr->SiS_CRT1Table[index].CR[i]);
 	}
-	for (j = 0x0A; i <= 15; i++, j++) {
+
+	for (j = 0x0A; i <= 15; i++, j++)
+	{
 		SiS_SetReg(SiS_Pr, SiS_Pr->SiS_P3c4, j,
-			   SiS_Pr->SiS_CRT1Table[index].CR[i]);
+				   SiS_Pr->SiS_CRT1Table[index].CR[i]);
 	}
 
 	temp = SiS_Pr->SiS_CRT1Table[index].CR[16] & 0xE0;
 	SiS_SetReg(SiS_Pr, SiS_Pr->SiS_P3c4, 0x0E, temp);
 
 	temp = ((SiS_Pr->SiS_CRT1Table[index].CR[16]) & 0x01) << 5;
+
 	if (modeflag & DoubleScanMode)
+	{
 		temp |= 0x80;
+	}
+
 	SiS_SetRegANDOR(SiS_Pr, SiS_Pr->SiS_P3d4, 0x09, 0x5F, temp);
 
 	if (SiS_Pr->SiS_ModeType > ModeVGA)
+	{
 		SiS_SetReg(SiS_Pr, SiS_Pr->SiS_P3d4, 0x14, 0x4F);
+	}
 }
 
 /*********************************************/
@@ -557,7 +611,7 @@ SiS_SetCRT1CRTC(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 
 static void
 SiS_SetCRT1Offset(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
-		  unsigned short ModeIdIndex, unsigned short rrti)
+				  unsigned short ModeIdIndex, unsigned short rrti)
 {
 	unsigned short du = SiS_GetOffset(SiS_Pr, ModeNo, ModeIdIndex, rrti);
 	unsigned short infoflag = SiS_Pr->SiS_RefIndex[rrti].Ext_InfoFlag;
@@ -569,12 +623,18 @@ SiS_SetCRT1Offset(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 	SiS_SetReg(SiS_Pr, SiS_Pr->SiS_P3d4, 0x13, (du & 0xFF));
 
 	if (infoflag & InterlaceMode)
+	{
 		du >>= 1;
+	}
 
 	du <<= 5;
 	temp = (du >> 8) & 0xff;
+
 	if (du & 0xff)
+	{
 		temp++;
+	}
+
 	temp++;
 	SiS_SetReg(SiS_Pr, SiS_Pr->SiS_P3c4, 0x10, temp);
 }
@@ -585,7 +645,7 @@ SiS_SetCRT1Offset(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 
 static void
 SiS_SetCRT1VCLK(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
-		unsigned short rrti)
+				unsigned short rrti)
 {
 	unsigned short index = SiS_Pr->SiS_RefIndex[rrti].Ext_CRTVCLK;
 	unsigned short clka = SiS_Pr->SiS_VCLKData[index].SR2B;
@@ -604,7 +664,7 @@ SiS_SetCRT1VCLK(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 
 static void
 SiS_SetCRT1FIFO_310(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
-		    unsigned short mi)
+					unsigned short mi)
 {
 	unsigned short modeflag = SiS_Pr->SiS_EModeIDTable[mi].Ext_ModeFlag;
 
@@ -615,9 +675,12 @@ SiS_SetCRT1FIFO_310(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 	SiS_SetRegAND(SiS_Pr, SiS_Pr->SiS_P3c4, 0x09, 0xF0);
 
 	if (ModeNo <= 0x13)
+	{
 		return;
+	}
 
-	if ((!(modeflag & DoubleScanMode)) || (!(modeflag & HalfDCLK))) {
+	if ((!(modeflag & DoubleScanMode)) || (!(modeflag & HalfDCLK)))
+	{
 		SiS_SetReg(SiS_Pr, SiS_Pr->SiS_P3c4, 0x08, 0x34);
 		SiS_SetRegOR(SiS_Pr, SiS_Pr->SiS_P3c4, 0x3D, 0x01);
 	}
@@ -629,43 +692,59 @@ SiS_SetCRT1FIFO_310(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 
 static void
 SiS_SetVCLKState(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
-		 unsigned short rrti)
+				 unsigned short rrti)
 {
 	unsigned short data = 0, VCLK = 0, index = 0;
 
-	if (ModeNo > 0x13) {
+	if (ModeNo > 0x13)
+	{
 		index = SiS_Pr->SiS_RefIndex[rrti].Ext_CRTVCLK;
 		VCLK = SiS_Pr->SiS_VCLKData[index].CLOCK;
 	}
 
 	if (VCLK >= 166)
+	{
 		data |= 0x0c;
+	}
+
 	SiS_SetRegANDOR(SiS_Pr, SiS_Pr->SiS_P3c4, 0x32, 0xf3, data);
 
 	if (VCLK >= 166)
+	{
 		SiS_SetRegAND(SiS_Pr, SiS_Pr->SiS_P3c4, 0x1f, 0xe7);
+	}
 
 	/* DAC speed */
 	data = 0x03;
+
 	if (VCLK >= 260)
+	{
 		data = 0x00;
+	}
 	else if (VCLK >= 160)
+	{
 		data = 0x01;
+	}
 	else if (VCLK >= 135)
+	{
 		data = 0x02;
+	}
 
 	SiS_SetRegANDOR(SiS_Pr, SiS_Pr->SiS_P3c4, 0x07, 0xF8, data);
 }
 
 static void
 SiS_SetCRT1ModeRegs(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
-		    unsigned short ModeIdIndex, unsigned short rrti)
+					unsigned short ModeIdIndex, unsigned short rrti)
 {
 	unsigned short data, infoflag = 0, modeflag;
 
 	if (ModeNo <= 0x13)
+	{
 		modeflag = SiS_Pr->SiS_SModeIDTable[ModeIdIndex].St_ModeFlag;
-	else {
+	}
+	else
+	{
 		modeflag = SiS_Pr->SiS_EModeIDTable[ModeIdIndex].Ext_ModeFlag;
 		infoflag = SiS_Pr->SiS_RefIndex[rrti].Ext_InfoFlag;
 	}
@@ -674,59 +753,87 @@ SiS_SetCRT1ModeRegs(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 	SiS_SetRegAND(SiS_Pr, SiS_Pr->SiS_P3c4, 0x1F, 0x3F);
 
 	data = 0;
-	if (ModeNo > 0x13) {
-		if (SiS_Pr->SiS_ModeType > ModeEGA) {
+
+	if (ModeNo > 0x13)
+	{
+		if (SiS_Pr->SiS_ModeType > ModeEGA)
+		{
 			data |= 0x02;
 			data |= ((SiS_Pr->SiS_ModeType - ModeVGA) << 2);
 		}
+
 		if (infoflag & InterlaceMode)
+		{
 			data |= 0x20;
+		}
 	}
+
 	SiS_SetRegANDOR(SiS_Pr, SiS_Pr->SiS_P3c4, 0x06, 0xC0, data);
 
 	data = 0;
-	if (infoflag & InterlaceMode) {
+
+	if (infoflag & InterlaceMode)
+	{
 		/* data = (Hsync / 8) - ((Htotal / 8) / 2) + 3 */
 		unsigned short hrs =
-		    (SiS_GetReg(SiS_Pr, SiS_Pr->SiS_P3d4, 0x04) |
-		     ((SiS_GetReg(SiS_Pr, SiS_Pr->SiS_P3c4, 0x0b) & 0xc0) << 2))
-		    - 3;
+			(SiS_GetReg(SiS_Pr, SiS_Pr->SiS_P3d4, 0x04) |
+			 ((SiS_GetReg(SiS_Pr, SiS_Pr->SiS_P3c4, 0x0b) & 0xc0) << 2))
+			- 3;
 		unsigned short hto =
-		    (SiS_GetReg(SiS_Pr, SiS_Pr->SiS_P3d4, 0x00) |
-		     ((SiS_GetReg(SiS_Pr, SiS_Pr->SiS_P3c4, 0x0b) & 0x03) << 8))
-		    + 5;
+			(SiS_GetReg(SiS_Pr, SiS_Pr->SiS_P3d4, 0x00) |
+			 ((SiS_GetReg(SiS_Pr, SiS_Pr->SiS_P3c4, 0x0b) & 0x03) << 8))
+			+ 5;
 		data = hrs - (hto >> 1) + 3;
 	}
+
 	SiS_SetReg(SiS_Pr, SiS_Pr->SiS_P3d4, 0x19, (data & 0xFF));
 	SiS_SetRegANDOR(SiS_Pr, SiS_Pr->SiS_P3d4, 0x1a, 0xFC, (data >> 8));
 
 	if (modeflag & HalfDCLK)
+	{
 		SiS_SetRegOR(SiS_Pr, SiS_Pr->SiS_P3c4, 0x01, 0x08);
+	}
 
 	data = 0;
+
 	if (modeflag & LineCompareOff)
+	{
 		data = 0x08;
+	}
+
 	SiS_SetRegANDOR(SiS_Pr, SiS_Pr->SiS_P3c4, 0x0F, 0xB7, data);
 
 	if ((SiS_Pr->SiS_ModeType == ModeEGA) && (ModeNo > 0x13))
+	{
 		SiS_SetRegOR(SiS_Pr, SiS_Pr->SiS_P3c4, 0x0F, 0x40);
+	}
 
 	SiS_SetRegAND(SiS_Pr, SiS_Pr->SiS_P3c4, 0x31, 0xfb);
 
 	data = 0x60;
-	if (SiS_Pr->SiS_ModeType != ModeText) {
+
+	if (SiS_Pr->SiS_ModeType != ModeText)
+	{
 		data ^= 0x60;
+
 		if (SiS_Pr->SiS_ModeType != ModeEGA)
+		{
 			data ^= 0xA0;
+		}
 	}
+
 	SiS_SetRegANDOR(SiS_Pr, SiS_Pr->SiS_P3c4, 0x21, 0x1F, data);
 
 	SiS_SetVCLKState(SiS_Pr, ModeNo, rrti);
 
 	if (SiS_GetReg(SiS_Pr, SiS_Pr->SiS_P3d4, 0x31) & 0x40)
+	{
 		SiS_SetReg(SiS_Pr, SiS_Pr->SiS_P3d4, 0x52, 0x2c);
+	}
 	else
+	{
 		SiS_SetReg(SiS_Pr, SiS_Pr->SiS_P3d4, 0x52, 0x6c);
+	}
 }
 
 /*********************************************/
@@ -735,27 +842,31 @@ SiS_SetCRT1ModeRegs(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 
 static void
 SiS_WriteDAC(struct SiS_Private *SiS_Pr, unsigned long DACData,
-	     unsigned short shiftflag, unsigned short dl, unsigned short ah,
-	     unsigned short al, unsigned short dh)
+			 unsigned short shiftflag, unsigned short dl, unsigned short ah,
+			 unsigned short al, unsigned short dh)
 {
 	unsigned short d1, d2, d3;
 
-	switch (dl) {
-	case 0:
-		d1 = dh;
-		d2 = ah;
-		d3 = al;
-		break;
-	case 1:
-		d1 = ah;
-		d2 = al;
-		d3 = dh;
-		break;
-	default:
-		d1 = al;
-		d2 = dh;
-		d3 = ah;
+	switch (dl)
+	{
+		case 0:
+			d1 = dh;
+			d2 = ah;
+			d3 = al;
+			break;
+
+		case 1:
+			d1 = ah;
+			d2 = al;
+			d3 = dh;
+			break;
+
+		default:
+			d1 = al;
+			d2 = dh;
+			d3 = ah;
 	}
+
 	SiS_SetRegByte(SiS_Pr, DACData, (d1 << shiftflag));
 	SiS_SetRegByte(SiS_Pr, DACData, (d2 << shiftflag));
 	SiS_SetRegByte(SiS_Pr, DACData, (d3 << shiftflag));
@@ -763,7 +874,7 @@ SiS_WriteDAC(struct SiS_Private *SiS_Pr, unsigned long DACData,
 
 static void
 SiS_LoadDAC(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
-	    unsigned short mi)
+			unsigned short mi)
 {
 	unsigned short data, data2, time, i, j, k, m, n, o;
 	unsigned short si, di, bx, sf;
@@ -771,20 +882,32 @@ SiS_LoadDAC(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 	const unsigned char *table = NULL;
 
 	if (ModeNo < 0x13)
+	{
 		data = SiS_Pr->SiS_SModeIDTable[mi].St_ModeFlag;
+	}
 	else
+	{
 		data = SiS_Pr->SiS_EModeIDTable[mi].Ext_ModeFlag;
+	}
 
 	data &= DACInfoFlag;
 
 	j = time = 64;
+
 	if (data == 0x00)
+	{
 		table = SiS_MDA_DAC;
+	}
 	else if (data == 0x08)
+	{
 		table = SiS_CGA_DAC;
+	}
 	else if (data == 0x10)
+	{
 		table = SiS_EGA_DAC;
-	else {
+	}
+	else
+	{
 		j = 16;
 		time = 256;
 		table = SiS_VGA_DAC;
@@ -797,44 +920,69 @@ SiS_LoadDAC(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 
 	SiS_SetRegByte(SiS_Pr, DACAddr, 0x00);
 
-	for (i = 0; i < j; i++) {
+	for (i = 0; i < j; i++)
+	{
 		data = table[i];
-		for (k = 0; k < 3; k++) {
+
+		for (k = 0; k < 3; k++)
+		{
 			data2 = 0;
+
 			if (data & 0x01)
+			{
 				data2 += 0x2A;
+			}
+
 			if (data & 0x02)
+			{
 				data2 += 0x15;
+			}
+
 			SiS_SetRegByte(SiS_Pr, DACData, (data2 << sf));
 			data >>= 2;
 		}
 	}
 
-	if (time == 256) {
-		for (i = 16; i < 32; i++) {
+	if (time == 256)
+	{
+		for (i = 16; i < 32; i++)
+		{
 			data = table[i] << sf;
+
 			for (k = 0; k < 3; k++)
+			{
 				SiS_SetRegByte(SiS_Pr, DACData, data);
+			}
 		}
+
 		si = 32;
-		for (m = 0; m < 9; m++) {
+
+		for (m = 0; m < 9; m++)
+		{
 			di = si;
 			bx = si + 4;
-			for (n = 0; n < 3; n++) {
-				for (o = 0; o < 5; o++) {
+
+			for (n = 0; n < 3; n++)
+			{
+				for (o = 0; o < 5; o++)
+				{
 					SiS_WriteDAC(SiS_Pr, DACData, sf, n,
-						     table[di], table[bx],
-						     table[si]);
+								 table[di], table[bx],
+								 table[si]);
 					si++;
 				}
+
 				si -= 2;
-				for (o = 0; o < 3; o++) {
+
+				for (o = 0; o < 3; o++)
+				{
 					SiS_WriteDAC(SiS_Pr, DACData, sf, n,
-						     table[di], table[si],
-						     table[bx]);
+								 table[di], table[si],
+								 table[bx]);
 					si--;
 				}
 			}
+
 			si += 5;
 		}
 	}
@@ -846,16 +994,20 @@ SiS_LoadDAC(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 
 static void
 SiS_SetCRT1Group(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
-		 unsigned short ModeIdIndex)
+				 unsigned short ModeIdIndex)
 {
 	unsigned short StandTableIndex, rrti;
 
 	SiS_Pr->SiS_CRT1Mode = ModeNo;
 
 	if (ModeNo <= 0x13)
+	{
 		StandTableIndex = 0;
+	}
 	else
+	{
 		StandTableIndex = 1;
+	}
 
 	SiS_ResetSegmentRegisters(SiS_Pr);
 	SiS_SetSeqRegs(SiS_Pr, StandTableIndex);
@@ -867,7 +1019,8 @@ SiS_SetCRT1Group(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
 
 	rrti = SiS_GetRatePtr(SiS_Pr, ModeNo, ModeIdIndex);
 
-	if (rrti != 0xFFFF) {
+	if (rrti != 0xFFFF)
+	{
 		SiS_SetCRT1Sync(SiS_Pr, rrti);
 		SiS_SetCRT1CRTC(SiS_Pr, ModeNo, ModeIdIndex, rrti);
 		SiS_SetCRT1Offset(SiS_Pr, ModeNo, ModeIdIndex, rrti);
@@ -897,7 +1050,9 @@ int SiSUSBSetMode(struct SiS_Private *SiS_Pr, unsigned short ModeNo)
 	SiS_GetSysFlags(SiS_Pr);
 
 	if (!(SiS_SearchModeID(SiS_Pr, &ModeNo, &ModeIdIndex)))
+	{
 		return 0;
+	}
 
 	SiS_SetReg(SiS_Pr, SiS_Pr->SiS_P3c4, 0x05, 0x86);
 
@@ -906,7 +1061,7 @@ int SiSUSBSetMode(struct SiS_Private *SiS_Pr, unsigned short ModeNo)
 	ModeNo &= 0x7f;
 
 	SiS_Pr->SiS_ModeType =
-	    SiS_Pr->SiS_EModeIDTable[ModeIdIndex].Ext_ModeFlag & ModeTypeMask;
+		SiS_Pr->SiS_EModeIDTable[ModeIdIndex].Ext_ModeFlag & ModeTypeMask;
 
 	SiS_Pr->SiS_SetFlag = LowModeTests;
 
@@ -931,26 +1086,35 @@ int SiSUSBSetVESAMode(struct SiS_Private *SiS_Pr, unsigned short VModeNo)
 
 	SiSUSB_InitPtr(SiS_Pr);
 
-	if (VModeNo == 0x03) {
+	if (VModeNo == 0x03)
+	{
 
 		ModeNo = 0x03;
 
-	} else {
+	}
+	else
+	{
 
 		i = 0;
-		do {
 
-			if (SiS_Pr->SiS_EModeIDTable[i].Ext_VESAID == VModeNo) {
+		do
+		{
+
+			if (SiS_Pr->SiS_EModeIDTable[i].Ext_VESAID == VModeNo)
+			{
 				ModeNo = SiS_Pr->SiS_EModeIDTable[i].Ext_ModeID;
 				break;
 			}
 
-		} while (SiS_Pr->SiS_EModeIDTable[i++].Ext_ModeID != 0xff);
+		}
+		while (SiS_Pr->SiS_EModeIDTable[i++].Ext_ModeID != 0xff);
 
 	}
 
 	if (!ModeNo)
+	{
 		return 0;
+	}
 
 	return SiSUSBSetMode(SiS_Pr, ModeNo);
 }

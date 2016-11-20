@@ -38,12 +38,14 @@
  * A.partial.real => Only the integer portion
  * A.partial.decimal => Only the fractional portion
  */
-typedef union _fInt {
-    int full;
-    struct _partial {
-        unsigned int decimal: SHIFT_AMOUNT; /*Needs to always be unsigned*/
-        int real: 32 - SHIFT_AMOUNT;
-    } partial;
+typedef union _fInt
+{
+	int full;
+	struct _partial
+	{
+unsigned int decimal: SHIFT_AMOUNT; /*Needs to always be unsigned*/
+		int real: 32 - SHIFT_AMOUNT;
+	} partial;
 } fInt;
 
 /* -------------------------------------------------------------------------------
@@ -52,12 +54,15 @@ typedef union _fInt {
  */
 static fInt ConvertToFraction(int);                       /* Use this to convert an INT to a FINT */
 static fInt Convert_ULONG_ToFraction(uint32_t);           /* Use this to convert an uint32_t to a FINT */
-static fInt GetScaledFraction(int, int);                  /* Use this to convert an INT to a FINT after scaling it by a factor */
-static int ConvertBackToInteger(fInt);                    /* Convert a FINT back to an INT that is scaled by 1000 (i.e. last 3 digits are the decimal digits) */
+static fInt GetScaledFraction(int,
+							  int);                  /* Use this to convert an INT to a FINT after scaling it by a factor */
+static int ConvertBackToInteger(
+	fInt);                    /* Convert a FINT back to an INT that is scaled by 1000 (i.e. last 3 digits are the decimal digits) */
 
 static fInt fNegate(fInt);                                /* Returns -1 * input fInt value */
 static fInt fAdd (fInt, fInt);                            /* Returns the sum of two fInt numbers */
-static fInt fSubtract (fInt A, fInt B);                   /* Returns A-B - Sometimes easier than Adding negative numbers */
+static fInt fSubtract (fInt A, fInt
+					   B);                   /* Returns A-B - Sometimes easier than Adding negative numbers */
 static fInt fMultiply (fInt, fInt);                       /* Returns the product of two fInt numbers */
 static fInt fDivide (fInt A, fInt B);                     /* Returns A/B */
 static fInt fGetSquare(fInt);                             /* Returns the square of a fInt number */
@@ -120,14 +125,18 @@ static fInt fExponential(fInt exponent)        /*Can be used to calculate e^expo
 	static const uint32_t k_array[11] = {55452, 27726, 13863, 6931, 4055, 2231, 1178, 606, 308, 155, 78};
 	static const uint32_t expk_array[11] = {2560000, 160000, 40000, 20000, 15000, 12500, 11250, 10625, 10313, 10156, 10078};
 
-	if (GreaterThan(fZERO, exponent)) {
+	if (GreaterThan(fZERO, exponent))
+	{
 		exponent = fNegate(exponent);
 		bNegated = true;
 	}
 
-	while (GreaterThan(exponent, lower_bound)) {
-		for (i = 0; i < 11; i++) {
-			if (GreaterThan(exponent, GetScaledFraction(k_array[i], 10000))) {
+	while (GreaterThan(exponent, lower_bound))
+	{
+		for (i = 0; i < 11; i++)
+		{
+			if (GreaterThan(exponent, GetScaledFraction(k_array[i], 10000)))
+			{
 				exponent = fSubtract(exponent, GetScaledFraction(k_array[i], 10000));
 				solution = fMultiply(solution, GetScaledFraction(expk_array[i], 10000));
 			}
@@ -139,7 +148,9 @@ static fInt fExponential(fInt exponent)        /*Can be used to calculate e^expo
 	solution = fMultiply(solution, error_term);
 
 	if (bNegated)
+	{
 		solution = fDivide(fPositiveOne, solution);
+	}
 
 	return solution;
 }
@@ -155,9 +166,12 @@ static fInt fNaturalLog(fInt value)
 	static const uint32_t k_array[10] = {160000, 40000, 20000, 15000, 12500, 11250, 10625, 10313, 10156, 10078};
 	static const uint32_t logk_array[10] = {27726, 13863, 6931, 4055, 2231, 1178, 606, 308, 155, 78};
 
-	while (GreaterThan(fAdd(value, fNegativeOne), upper_bound)) {
-		for (i = 0; i < 10; i++) {
-			if (GreaterThan(value, GetScaledFraction(k_array[i], 10000))) {
+	while (GreaterThan(fAdd(value, fNegativeOne), upper_bound))
+	{
+		for (i = 0; i < 10; i++)
+		{
+			if (GreaterThan(value, GetScaledFraction(k_array[i], 10000)))
+			{
 				value = fDivide(value, GetScaledFraction(k_array[i], 10000));
 				solution = fAdd(solution, GetScaledFraction(logk_array[i], 10000));
 			}
@@ -215,14 +229,19 @@ static fInt fDecodeLeakageID (uint32_t leakageID_fuse, fInt ln_max_div_min, fInt
 	return fLeakage;
 }
 
-static fInt ConvertToFraction(int X) /*Add all range checking here. Is it possible to make fInt a private declaration? */
+static fInt ConvertToFraction(int
+							  X) /*Add all range checking here. Is it possible to make fInt a private declaration? */
 {
 	fInt temp;
 
 	if (X <= MAX)
+	{
 		temp.full = (X << SHIFT_AMOUNT);
+	}
 	else
+	{
 		temp.full = 0;
+	}
 
 	return temp;
 }
@@ -238,9 +257,13 @@ static fInt Convert_ULONG_ToFraction(uint32_t X)
 	fInt temp;
 
 	if (X <= MAX)
+	{
 		temp.full = (X << SHIFT_AMOUNT);
+	}
 	else
+	{
 		temp.full = 0;
+	}
 
 	return temp;
 }
@@ -255,35 +278,45 @@ static fInt GetScaledFraction(int X, int factor)
 	factor_shifted = 0;
 	bNEGATED = false;
 
-	if (X < 0) {
-		X = -1*X;
+	if (X < 0)
+	{
+		X = -1 * X;
 		bNEGATED = true;
 	}
 
-	if (factor < 0) {
-		factor = -1*factor;
+	if (factor < 0)
+	{
+		factor = -1 * factor;
 		bNEGATED = !bNEGATED; /*If bNEGATED = true due to X < 0, this will cover the case of negative cancelling negative */
 	}
 
-	if ((X > MAX) || factor > MAX) {
-		if ((X/factor) <= MAX) {
-			while (X > MAX) {
+	if ((X > MAX) || factor > MAX)
+	{
+		if ((X / factor) <= MAX)
+		{
+			while (X > MAX)
+			{
 				X = X >> 1;
 				times_shifted++;
 			}
 
-			while (factor > MAX) {
+			while (factor > MAX)
+			{
 				factor = factor >> 1;
 				factor_shifted++;
 			}
-		} else {
+		}
+		else
+		{
 			fValue.full = 0;
 			return fValue;
 		}
 	}
 
 	if (factor == 1)
+	{
 		return ConvertToFraction(X);
+	}
 
 	fValue = fDivide(ConvertToFraction(X * uPow(-1, bNEGATED)), ConvertToFraction(factor));
 
@@ -316,17 +349,25 @@ static fInt fSubtract (fInt X, fInt Y)
 static bool Equal(fInt A, fInt B)
 {
 	if (A.full == B.full)
+	{
 		return true;
+	}
 	else
+	{
 		return false;
+	}
 }
 
 static bool GreaterThan(fInt A, fInt B)
 {
 	if (A.full > B.full)
+	{
 		return true;
+	}
 	else
+	{
 		return false;
+	}
 }
 
 static fInt fMultiply (fInt X, fInt Y) /* Uses 64-bit integers (int64_t) */
@@ -346,7 +387,8 @@ static fInt fMultiply (fInt X, fInt Y) /* Uses 64-bit integers (int64_t) */
 		return Product
 	}*/
 
-	tempProduct = ((int64_t)X.full) * ((int64_t)Y.full); /*Q(16,16)*Q(16,16) = Q(32, 32) - Might become a negative number! */
+	tempProduct = ((int64_t)X.full) * ((int64_t)
+									   Y.full); /*Q(16,16)*Q(16,16) = Q(32, 32) - Might become a negative number! */
 	tempProduct = tempProduct >> 16; /*Remove lagging 16 bits - Will lose some precision from decimal; */
 	Product.full = (int)tempProduct; /*The int64_t will lose the leading 16 bits that were part of the integer portion */
 
@@ -361,7 +403,9 @@ static fInt fDivide (fInt X, fInt Y)
 	fZERO = ConvertToFraction(0);
 
 	if (Equal(Y, fZERO))
+	{
 		return fZERO;
+	}
 
 	longlongX = (int64_t)X.full;
 	longlongY = (int64_t)Y.full;
@@ -374,22 +418,23 @@ static fInt fDivide (fInt X, fInt Y)
 	return fQuotient;
 }
 
-static int ConvertBackToInteger (fInt A) /*THIS is the function that will be used to check with the Golden settings table*/
+static int ConvertBackToInteger (fInt
+								 A) /*THIS is the function that will be used to check with the Golden settings table*/
 {
 	fInt fullNumber, scaledDecimal, scaledReal;
 
-	scaledReal.full = GetReal(A) * uPow(10, PRECISION-1); /* DOUBLE CHECK THISSSS!!! */
+	scaledReal.full = GetReal(A) * uPow(10, PRECISION - 1); /* DOUBLE CHECK THISSSS!!! */
 
 	scaledDecimal.full = uGetScaledDecimal(A);
 
-	fullNumber = fAdd(scaledDecimal,scaledReal);
+	fullNumber = fAdd(scaledDecimal, scaledReal);
 
 	return fullNumber.full;
 }
 
 static fInt fGetSquare(fInt A)
 {
-	return fMultiply(A,A);
+	return fMultiply(A, A);
 }
 
 /* x_new = x_old - (x_old^2 - C) / (2 * x_old) */
@@ -406,28 +451,41 @@ static fInt fSqrt(fInt num)
 	/* (0 > num) is the same as (num < 0), i.e., num is negative */
 
 	if (GreaterThan(fZERO, num) || Equal(fZERO, num))
+	{
 		return fZERO;
+	}
 
 	C = num;
 
 	if (num.partial.real > 3000)
+	{
 		seed = 60;
+	}
 	else if (num.partial.real > 1000)
+	{
 		seed = 30;
+	}
 	else if (num.partial.real > 100)
+	{
 		seed = 10;
+	}
 	else
+	{
 		seed = 2;
+	}
 
 	counter = 0;
 
 	if (Equal(num, fZERO)) /*Square Root of Zero is zero */
+	{
 		return fZERO;
+	}
 
 	twoShifted = ConvertToFraction(2);
 	x_new = ConvertToFraction(seed);
 
-	do {
+	do
+	{
 		counter++;
 
 		x_old.full = x_new.full;
@@ -443,9 +501,12 @@ static fInt fSqrt(fInt num)
 		error = ConvertBackToInteger(x_new) - ConvertBackToInteger(x_old);
 
 		if (counter > 20) /*20 is already way too many iterations. If we dont have an answer by then, we never will*/
+		{
 			return x_new;
+		}
 
-	} while (uAbs(error) > 0);
+	}
+	while (uAbs(error) > 0);
 
 	return (x_new);
 }
@@ -459,7 +520,8 @@ static void SolveQuadracticEqn(fInt A, fInt B, fInt C, fInt Roots[])
 	f_CONSTANT100 = ConvertToFraction(100);
 	f_CONSTANT10 = ConvertToFraction(10);
 
-	while(GreaterThan(A, f_CONSTANT100) || GreaterThan(B, f_CONSTANT100) || GreaterThan(C, f_CONSTANT100)) {
+	while (GreaterThan(A, f_CONSTANT100) || GreaterThan(B, f_CONSTANT100) || GreaterThan(C, f_CONSTANT100))
+	{
 		A = fDivide(A, f_CONSTANT10);
 		B = fDivide(B, f_CONSTANT10);
 		C = fDivide(C, f_CONSTANT10);
@@ -511,11 +573,12 @@ static int uGetScaledDecimal (fInt A) /*Converts the fractional portion to whole
 	int dec[PRECISION];
 	int i, scaledDecimal = 0, tmp = A.partial.decimal;
 
-	for (i = 0; i < PRECISION; i++) {
+	for (i = 0; i < PRECISION; i++)
+	{
 		dec[i] = tmp / (1 << SHIFT_AMOUNT);
-		tmp = tmp - ((1 << SHIFT_AMOUNT)*dec[i]);
+		tmp = tmp - ((1 << SHIFT_AMOUNT) * dec[i]);
 		tmp *= 10;
-		scaledDecimal = scaledDecimal + dec[i]*uPow(10, PRECISION - 1 -i);
+		scaledDecimal = scaledDecimal + dec[i] * uPow(10, PRECISION - 1 - i);
 	}
 
 	return scaledDecimal;
@@ -524,17 +587,25 @@ static int uGetScaledDecimal (fInt A) /*Converts the fractional portion to whole
 static int uPow(int base, int power)
 {
 	if (power == 0)
+	{
 		return 1;
+	}
 	else
-		return (base)*uPow(base, power - 1);
+	{
+		return (base) * uPow(base, power - 1);
+	}
 }
 
 static int uAbs(int X)
 {
 	if (X < 0)
+	{
 		return (X * -1);
+	}
 	else
+	{
 		return X;
+	}
 }
 
 static fInt fRoundUpByStepSize(fInt A, fInt fStepSize, bool error_term)
@@ -545,7 +616,9 @@ static fInt fRoundUpByStepSize(fInt A, fInt fStepSize, bool error_term)
 	solution.partial.decimal = 0; /*All fractional digits changes to 0 */
 
 	if (error_term)
-		solution.partial.real += 1; /*Error term of 1 added */
+	{
+		solution.partial.real += 1;    /*Error term of 1 added */
+	}
 
 	solution = fMultiply(solution, fStepSize);
 	solution = fAdd(solution, fStepSize);

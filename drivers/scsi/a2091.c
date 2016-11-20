@@ -17,7 +17,8 @@
 #include "a2091.h"
 
 
-struct a2091_hostdata {
+struct a2091_hostdata
+{
 	struct WD33C93_hostdata wh;
 	struct a2091_scsiregs *regs;
 };
@@ -30,7 +31,9 @@ static irqreturn_t a2091_intr(int irq, void *data)
 	unsigned long flags;
 
 	if (!(status & (ISTR_INT_F | ISTR_INT_P)) || !(status & ISTR_INTS))
+	{
 		return IRQ_NONE;
+	}
 
 	spin_lock_irqsave(instance->host_lock, flags);
 	wd33c93_intr(instance);
@@ -48,13 +51,15 @@ static int dma_setup(struct scsi_cmnd *cmd, int dir_in)
 	unsigned long addr = virt_to_bus(cmd->SCp.ptr);
 
 	/* don't allow DMA if the physical address is bad */
-	if (addr & A2091_XFER_MASK) {
+	if (addr & A2091_XFER_MASK)
+	{
 		wh->dma_bounce_len = (cmd->SCp.this_residual + 511) & ~0x1ff;
 		wh->dma_bounce_buffer = kmalloc(wh->dma_bounce_len,
-						GFP_KERNEL);
+										GFP_KERNEL);
 
 		/* can't allocate memory; use PIO */
-		if (!wh->dma_bounce_buffer) {
+		if (!wh->dma_bounce_buffer)
+		{
 			wh->dma_bounce_len = 0;
 			return 1;
 		}
@@ -63,7 +68,8 @@ static int dma_setup(struct scsi_cmnd *cmd, int dir_in)
 		addr = virt_to_bus(wh->dma_bounce_buffer);
 
 		/* the bounce buffer may not be in the first 16M of physmem */
-		if (addr & A2091_XFER_MASK) {
+		if (addr & A2091_XFER_MASK)
+		{
 			/* we could use chipmem... maybe later */
 			kfree(wh->dma_bounce_buffer);
 			wh->dma_bounce_buffer = NULL;
@@ -71,16 +77,19 @@ static int dma_setup(struct scsi_cmnd *cmd, int dir_in)
 			return 1;
 		}
 
-		if (!dir_in) {
+		if (!dir_in)
+		{
 			/* copy to bounce buffer for a write */
 			memcpy(wh->dma_bounce_buffer, cmd->SCp.ptr,
-			       cmd->SCp.this_residual);
+				   cmd->SCp.this_residual);
 		}
 	}
 
 	/* setup dma direction */
 	if (!dir_in)
+	{
 		cntr |= CNTR_DDIR;
+	}
 
 	/* remember direction */
 	wh->dma_dir = dir_in;
@@ -90,13 +99,17 @@ static int dma_setup(struct scsi_cmnd *cmd, int dir_in)
 	/* setup DMA *physical* address */
 	regs->ACR = addr;
 
-	if (dir_in) {
+	if (dir_in)
+	{
 		/* invalidate any cache */
 		cache_clear(addr, cmd->SCp.this_residual);
-	} else {
+	}
+	else
+	{
 		/* push any dirty cache */
 		cache_push(addr, cmd->SCp.this_residual);
 	}
+
 	/* start DMA */
 	regs->ST_DMA = 1;
 
@@ -105,7 +118,7 @@ static int dma_setup(struct scsi_cmnd *cmd, int dir_in)
 }
 
 static void dma_stop(struct Scsi_Host *instance, struct scsi_cmnd *SCpnt,
-		     int status)
+					 int status)
 {
 	struct a2091_hostdata *hdata = shost_priv(instance);
 	struct WD33C93_hostdata *wh = &hdata->wh;
@@ -115,14 +128,18 @@ static void dma_stop(struct Scsi_Host *instance, struct scsi_cmnd *SCpnt,
 	unsigned short cntr = CNTR_PDMD;
 
 	if (!wh->dma_dir)
+	{
 		cntr |= CNTR_DDIR;
+	}
 
 	/* disable SCSI interrupts */
 	regs->CNTR = cntr;
 
 	/* flush if we were reading */
-	if (wh->dma_dir) {
+	if (wh->dma_dir)
+	{
 		regs->FLUSH = 1;
+
 		while (!(regs->ISTR & ISTR_FE_FLG))
 			;
 	}
@@ -137,10 +154,12 @@ static void dma_stop(struct Scsi_Host *instance, struct scsi_cmnd *SCpnt,
 	regs->CNTR = CNTR_PDMD | CNTR_INTEN;
 
 	/* copy from a bounce buffer, if necessary */
-	if (status && wh->dma_bounce_buffer) {
+	if (status && wh->dma_bounce_buffer)
+	{
 		if (wh->dma_dir)
 			memcpy(SCpnt->SCp.ptr, wh->dma_bounce_buffer,
-			       SCpnt->SCp.this_residual);
+				   SCpnt->SCp.this_residual);
+
 		kfree(wh->dma_bounce_buffer);
 		wh->dma_bounce_buffer = NULL;
 		wh->dma_bounce_len = 0;
@@ -163,7 +182,8 @@ static int a2091_bus_reset(struct scsi_cmnd *cmd)
 	return SUCCESS;
 }
 
-static struct scsi_host_template a2091_scsi_template = {
+static struct scsi_host_template a2091_scsi_template =
+{
 	.module			= THIS_MODULE,
 	.name			= "Commodore A2091/A590 SCSI",
 	.show_info		= wd33c93_show_info,
@@ -189,11 +209,15 @@ static int a2091_probe(struct zorro_dev *z, const struct zorro_device_id *ent)
 	struct a2091_hostdata *hdata;
 
 	if (!request_mem_region(z->resource.start, 256, "wd33c93"))
+	{
 		return -EBUSY;
+	}
 
 	instance = scsi_host_alloc(&a2091_scsi_template,
-				   sizeof(struct a2091_hostdata));
-	if (!instance) {
+							   sizeof(struct a2091_hostdata));
+
+	if (!instance)
+	{
 		error = -ENOMEM;
 		goto fail_alloc;
 	}
@@ -215,15 +239,21 @@ static int a2091_probe(struct zorro_dev *z, const struct zorro_device_id *ent)
 
 	wd33c93_init(instance, wdregs, dma_setup, dma_stop, WD33C93_FS_8_10);
 	error = request_irq(IRQ_AMIGA_PORTS, a2091_intr, IRQF_SHARED,
-			    "A2091 SCSI", instance);
+						"A2091 SCSI", instance);
+
 	if (error)
+	{
 		goto fail_irq;
+	}
 
 	regs->CNTR = CNTR_PDMD | CNTR_INTEN;
 
 	error = scsi_add_host(instance, NULL);
+
 	if (error)
+	{
 		goto fail_host;
+	}
 
 	zorro_set_drvdata(z, instance);
 
@@ -251,14 +281,16 @@ static void a2091_remove(struct zorro_dev *z)
 	release_mem_region(z->resource.start, 256);
 }
 
-static struct zorro_device_id a2091_zorro_tbl[] = {
+static struct zorro_device_id a2091_zorro_tbl[] =
+{
 	{ ZORRO_PROD_CBM_A590_A2091_1 },
 	{ ZORRO_PROD_CBM_A590_A2091_2 },
 	{ 0 }
 };
 MODULE_DEVICE_TABLE(zorro, a2091_zorro_tbl);
 
-static struct zorro_driver a2091_driver = {
+static struct zorro_driver a2091_driver =
+{
 	.name		= "a2091",
 	.id_table	= a2091_zorro_tbl,
 	.probe		= a2091_probe,

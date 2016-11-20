@@ -18,7 +18,9 @@
 static inline void signalfd_notify(struct task_struct *tsk, int sig)
 {
 	if (unlikely(waitqueue_active(&tsk->sighand->signalfd_wqh)))
+	{
 		wake_up(&tsk->sighand->signalfd_wqh);
+	}
 }
 
 extern void signalfd_cleanup(struct sighand_struct *sighand);

@@ -37,14 +37,16 @@
 static int  empeg_startup(struct usb_serial *serial);
 static void empeg_init_termios(struct tty_struct *tty);
 
-static const struct usb_device_id id_table[] = {
+static const struct usb_device_id id_table[] =
+{
 	{ USB_DEVICE(EMPEG_VENDOR_ID, EMPEG_PRODUCT_ID) },
 	{ }					/* Terminating entry */
 };
 
 MODULE_DEVICE_TABLE(usb, id_table);
 
-static struct usb_serial_driver empeg_device = {
+static struct usb_serial_driver empeg_device =
+{
 	.driver = {
 		.owner =	THIS_MODULE,
 		.name =		"empeg",
@@ -58,7 +60,8 @@ static struct usb_serial_driver empeg_device = {
 	.init_termios =		empeg_init_termios,
 };
 
-static struct usb_serial_driver * const serial_drivers[] = {
+static struct usb_serial_driver *const serial_drivers[] =
+{
 	&empeg_device, NULL
 };
 
@@ -66,9 +69,10 @@ static int empeg_startup(struct usb_serial *serial)
 {
 	int r;
 
-	if (serial->dev->actconfig->desc.bConfigurationValue != 1) {
+	if (serial->dev->actconfig->desc.bConfigurationValue != 1)
+	{
 		dev_err(&serial->dev->dev, "active config #%d != 1 ??\n",
-			serial->dev->actconfig->desc.bConfigurationValue);
+				serial->dev->actconfig->desc.bConfigurationValue);
 		return -ENODEV;
 	}
 
@@ -92,32 +96,32 @@ static void empeg_init_termios(struct tty_struct *tty)
 	 * The default requirements for this device are:
 	 */
 	termios->c_iflag
-		&= ~(IGNBRK	/* disable ignore break */
-		| BRKINT	/* disable break causes interrupt */
-		| PARMRK	/* disable mark parity errors */
-		| ISTRIP	/* disable clear high bit of input characters */
-		| INLCR		/* disable translate NL to CR */
-		| IGNCR		/* disable ignore CR */
-		| ICRNL		/* disable translate CR to NL */
-		| IXON);	/* disable enable XON/XOFF flow control */
+	&= ~(IGNBRK	/* disable ignore break */
+		 | BRKINT	/* disable break causes interrupt */
+		 | PARMRK	/* disable mark parity errors */
+		 | ISTRIP	/* disable clear high bit of input characters */
+		 | INLCR		/* disable translate NL to CR */
+		 | IGNCR		/* disable ignore CR */
+		 | ICRNL		/* disable translate CR to NL */
+		 | IXON);	/* disable enable XON/XOFF flow control */
 
 	termios->c_oflag
-		&= ~OPOST;	/* disable postprocess output characters */
+	&= ~OPOST;	/* disable postprocess output characters */
 
 	termios->c_lflag
-		&= ~(ECHO	/* disable echo input characters */
-		| ECHONL	/* disable echo new line */
-		| ICANON	/* disable erase, kill, werase, and rprnt special characters */
-		| ISIG		/* disable interrupt, quit, and suspend special characters */
-		| IEXTEN);	/* disable non-POSIX special characters */
+	&= ~(ECHO	/* disable echo input characters */
+		 | ECHONL	/* disable echo new line */
+		 | ICANON	/* disable erase, kill, werase, and rprnt special characters */
+		 | ISIG		/* disable interrupt, quit, and suspend special characters */
+		 | IEXTEN);	/* disable non-POSIX special characters */
 
 	termios->c_cflag
-		&= ~(CSIZE	/* no size */
-		| PARENB	/* disable parity bit */
-		| CBAUD);	/* clear current baud rate */
+	&= ~(CSIZE	/* no size */
+		 | PARENB	/* disable parity bit */
+		 | CBAUD);	/* clear current baud rate */
 
 	termios->c_cflag
-		|= CS8;		/* character size 8 bits */
+	|= CS8;		/* character size 8 bits */
 
 	tty_encode_baud_rate(tty, 115200, 115200);
 }

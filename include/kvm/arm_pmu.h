@@ -25,13 +25,15 @@
 
 #ifdef CONFIG_KVM_ARM_PMU
 
-struct kvm_pmc {
+struct kvm_pmc
+{
 	u8 idx;	/* index into the pmu->pmc array */
 	struct perf_event *perf_event;
 	u64 bitmask;
 };
 
-struct kvm_pmu {
+struct kvm_pmu
+{
 	int irq_num;
 	struct kvm_pmc pmc[ARMV8_PMU_MAX_COUNTERS];
 	bool ready;
@@ -53,27 +55,28 @@ void kvm_pmu_sync_hwstate(struct kvm_vcpu *vcpu);
 void kvm_pmu_software_increment(struct kvm_vcpu *vcpu, u64 val);
 void kvm_pmu_handle_pmcr(struct kvm_vcpu *vcpu, u64 val);
 void kvm_pmu_set_counter_event_type(struct kvm_vcpu *vcpu, u64 data,
-				    u64 select_idx);
+									u64 select_idx);
 bool kvm_arm_support_pmu_v3(void);
 int kvm_arm_pmu_v3_set_attr(struct kvm_vcpu *vcpu,
-			    struct kvm_device_attr *attr);
+							struct kvm_device_attr *attr);
 int kvm_arm_pmu_v3_get_attr(struct kvm_vcpu *vcpu,
-			    struct kvm_device_attr *attr);
+							struct kvm_device_attr *attr);
 int kvm_arm_pmu_v3_has_attr(struct kvm_vcpu *vcpu,
-			    struct kvm_device_attr *attr);
+							struct kvm_device_attr *attr);
 #else
-struct kvm_pmu {
+struct kvm_pmu
+{
 };
 
 #define kvm_arm_pmu_v3_ready(v)		(false)
 #define kvm_arm_pmu_irq_initialized(v)	(false)
 static inline u64 kvm_pmu_get_counter_value(struct kvm_vcpu *vcpu,
-					    u64 select_idx)
+		u64 select_idx)
 {
 	return 0;
 }
 static inline void kvm_pmu_set_counter_value(struct kvm_vcpu *vcpu,
-					     u64 select_idx, u64 val) {}
+		u64 select_idx, u64 val) {}
 static inline u64 kvm_pmu_valid_counter_mask(struct kvm_vcpu *vcpu)
 {
 	return 0;
@@ -88,20 +91,20 @@ static inline void kvm_pmu_sync_hwstate(struct kvm_vcpu *vcpu) {}
 static inline void kvm_pmu_software_increment(struct kvm_vcpu *vcpu, u64 val) {}
 static inline void kvm_pmu_handle_pmcr(struct kvm_vcpu *vcpu, u64 val) {}
 static inline void kvm_pmu_set_counter_event_type(struct kvm_vcpu *vcpu,
-						  u64 data, u64 select_idx) {}
+		u64 data, u64 select_idx) {}
 static inline bool kvm_arm_support_pmu_v3(void) { return false; }
 static inline int kvm_arm_pmu_v3_set_attr(struct kvm_vcpu *vcpu,
-					  struct kvm_device_attr *attr)
+		struct kvm_device_attr *attr)
 {
 	return -ENXIO;
 }
 static inline int kvm_arm_pmu_v3_get_attr(struct kvm_vcpu *vcpu,
-					  struct kvm_device_attr *attr)
+		struct kvm_device_attr *attr)
 {
 	return -ENXIO;
 }
 static inline int kvm_arm_pmu_v3_has_attr(struct kvm_vcpu *vcpu,
-					  struct kvm_device_attr *attr)
+		struct kvm_device_attr *attr)
 {
 	return -ENXIO;
 }

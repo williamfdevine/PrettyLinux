@@ -4,9 +4,9 @@
  *
  *	Copyright (c) 2002 Martin Diehl
  *
- *	This program is free software; you can redistribute it and/or 
- *	modify it under the terms of the GNU General Public License as 
- *	published by the Free Software Foundation; either version 2 of 
+ *	This program is free software; you can redistribute it and/or
+ *	modify it under the terms of the GNU General Public License as
+ *	published by the Free Software Foundation; either version 2 of
  *	the License, or (at your option) any later version.
  *
  ********************************************************************/
@@ -22,7 +22,8 @@
 #define IRTTY_IOCGET     _IOR(IRTTY_IOC_MAGIC, 2, struct irtty_info)
 #define IRTTY_IOC_MAXNR   2
 
-struct sirtty_cb {
+struct sirtty_cb
+{
 	magic_t magic;
 
 	struct sir_dev *dev;

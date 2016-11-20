@@ -111,8 +111,10 @@ read_fifo_isac(void __iomem *adr, u_char *data, int size)
 	register int i;
 
 	ZORAN_WAIT_NOBUSY;
+
 	/* read data from ISAC */
-	for (i = 0; i < size; i++) {
+	for (i = 0; i < size; i++)
+	{
 		/* set address for ISAC fifo */
 		writel(WRITE_ADDR_ISAC | 0x1E, adr + 0x200);
 		ZORAN_WAIT_NOBUSY;
@@ -129,8 +131,10 @@ write_fifo_isac(void __iomem *adr, u_char *data, int size)
 	register int i;
 
 	ZORAN_WAIT_NOBUSY;
+
 	/* write data to ISAC */
-	for (i = 0; i < size; i++) {
+	for (i = 0; i < size; i++)
+	{
 		/* set address for ISAC fifo */
 		writel(WRITE_ADDR_ISAC | 0x1E, adr + 0x200);
 		ZORAN_WAIT_NOBUSY;
@@ -146,8 +150,10 @@ read_fifo_hscx(void __iomem *adr, int hscx, u_char *data, int size)
 	register int i;
 
 	ZORAN_WAIT_NOBUSY;
+
 	/* read data from HSCX */
-	for (i = 0; i < size; i++) {
+	for (i = 0; i < size; i++)
+	{
 		/* set address for HSCX fifo */
 		writel(WRITE_ADDR_HSCX | (hscx ? 0x5F : 0x1F), adr + 0x200);
 		ZORAN_WAIT_NOBUSY;
@@ -164,8 +170,10 @@ write_fifo_hscx(void __iomem *adr, int hscx, u_char *data, int size)
 	register int i;
 
 	ZORAN_WAIT_NOBUSY;
+
 	/* write data to HSCX */
-	for (i = 0; i < size; i++) {
+	for (i = 0; i < size; i++)
+	{
 		/* set address for HSCX fifo */
 		writel(WRITE_ADDR_HSCX | (hscx ? 0x5F : 0x1F), adr + 0x200);
 		ZORAN_WAIT_NOBUSY;
@@ -233,15 +241,25 @@ telespci_interrupt(int intno, void *dev_id)
 
 	spin_lock_irqsave(&cs->lock, flags);
 	hval = readhscx(cs->hw.teles0.membase, 1, HSCX_ISTA);
+
 	if (hval)
+	{
 		hscx_int_main(cs, hval);
+	}
+
 	ival = readisac(cs->hw.teles0.membase, ISAC_ISTA);
-	if ((hval | ival) == 0) {
+
+	if ((hval | ival) == 0)
+	{
 		spin_unlock_irqrestore(&cs->lock, flags);
 		return IRQ_NONE;
 	}
+
 	if (ival)
+	{
 		isac_interrupt(cs, ival);
+	}
+
 	/* Clear interrupt register for Zoran PCI controller */
 	writel(0x70000000, cs->hw.teles0.membase + 0x3C);
 
@@ -266,20 +284,25 @@ TelesPCI_card_msg(struct IsdnCardState *cs, int mt, void *arg)
 {
 	u_long flags;
 
-	switch (mt) {
-	case CARD_RESET:
-		return (0);
-	case CARD_RELEASE:
-		release_io_telespci(cs);
-		return (0);
-	case CARD_INIT:
-		spin_lock_irqsave(&cs->lock, flags);
-		inithscxisac(cs, 3);
-		spin_unlock_irqrestore(&cs->lock, flags);
-		return (0);
-	case CARD_TEST:
-		return (0);
+	switch (mt)
+	{
+		case CARD_RESET:
+			return (0);
+
+		case CARD_RELEASE:
+			release_io_telespci(cs);
+			return (0);
+
+		case CARD_INIT:
+			spin_lock_irqsave(&cs->lock, flags);
+			inithscxisac(cs, 3);
+			spin_unlock_irqrestore(&cs->lock, flags);
+			return (0);
+
+		case CARD_TEST:
+			return (0);
 	}
+
 	return (0);
 }
 
@@ -292,23 +315,35 @@ int setup_telespci(struct IsdnCard *card)
 
 	strcpy(tmp, telespci_revision);
 	printk(KERN_INFO "HiSax: Teles/PCI driver Rev. %s\n", HiSax_getrev(tmp));
-	if (cs->typ != ISDN_CTYPE_TELESPCI)
-		return (0);
 
-	if ((dev_tel = hisax_find_pci_device(PCI_VENDOR_ID_ZORAN, PCI_DEVICE_ID_ZORAN_36120, dev_tel))) {
+	if (cs->typ != ISDN_CTYPE_TELESPCI)
+	{
+		return (0);
+	}
+
+	if ((dev_tel = hisax_find_pci_device(PCI_VENDOR_ID_ZORAN, PCI_DEVICE_ID_ZORAN_36120, dev_tel)))
+	{
 		if (pci_enable_device(dev_tel))
+		{
 			return (0);
+		}
+
 		cs->irq = dev_tel->irq;
-		if (!cs->irq) {
+
+		if (!cs->irq)
+		{
 			printk(KERN_WARNING "Teles: No IRQ for PCI card found\n");
 			return (0);
 		}
+
 		cs->hw.teles0.membase = ioremap(pci_resource_start(dev_tel, 0),
-						PAGE_SIZE);
+										PAGE_SIZE);
 		printk(KERN_INFO "Found: Zoran, base-address: 0x%llx, irq: 0x%x\n",
-		       (unsigned long long)pci_resource_start(dev_tel, 0),
-		       dev_tel->irq);
-	} else {
+			   (unsigned long long)pci_resource_start(dev_tel, 0),
+			   dev_tel->irq);
+	}
+	else
+	{
 		printk(KERN_WARNING "TelesPCI: No PCI card found\n");
 		return (0);
 	}
@@ -323,9 +358,9 @@ int setup_telespci(struct IsdnCard *card)
 	/* writel(0x00800000, cs->hw.teles0.membase + 0x200); */
 
 	printk(KERN_INFO
-	       "HiSax: Teles PCI config irq:%d mem:%p\n",
-	       cs->irq,
-	       cs->hw.teles0.membase);
+		   "HiSax: Teles PCI config irq:%d mem:%p\n",
+		   cs->irq,
+		   cs->hw.teles0.membase);
 
 	setup_isac(cs);
 	cs->readisac = &ReadISAC;
@@ -339,11 +374,14 @@ int setup_telespci(struct IsdnCard *card)
 	cs->irq_func = &telespci_interrupt;
 	cs->irq_flags |= IRQF_SHARED;
 	ISACVersion(cs, "TelesPCI:");
-	if (HscxVersion(cs, "TelesPCI:")) {
+
+	if (HscxVersion(cs, "TelesPCI:"))
+	{
 		printk(KERN_WARNING
-		       "TelesPCI: wrong HSCX versions check IO/MEM addresses\n");
+			   "TelesPCI: wrong HSCX versions check IO/MEM addresses\n");
 		release_io_telespci(cs);
 		return (0);
 	}
+
 	return (1);
 }

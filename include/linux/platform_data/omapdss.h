@@ -10,7 +10,8 @@
 #ifndef __OMAPDSS_PDATA_H
 #define __OMAPDSS_PDATA_H
 
-enum omapdss_version {
+enum omapdss_version
+{
 	OMAPDSS_VER_UNKNOWN = 0,
 	OMAPDSS_VER_OMAP24xx,
 	OMAPDSS_VER_OMAP34xx_ES1,	/* OMAP3430 ES1.0, 2.0 */
@@ -26,7 +27,8 @@ enum omapdss_version {
 };
 
 /* Board specific data */
-struct omap_dss_board_info {
+struct omap_dss_board_info
+{
 	const char *default_display_name;
 	int (*dsi_enable_pads)(int dsi_id, unsigned int lane_mask);
 	void (*dsi_disable_pads)(int dsi_id, unsigned int lane_mask);

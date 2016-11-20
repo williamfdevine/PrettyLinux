@@ -28,7 +28,7 @@ static inline u32 sr(u64 v, u_char n)
 	return v >> n;
 }
 
-static inline u32 and(u32 v, u32 mask)
+static inline u32 and (u32 v, u32 mask)
 {
 	return v & mask;
 }
@@ -52,7 +52,7 @@ int crypto_poly1305_init(struct shash_desc *desc)
 EXPORT_SYMBOL_GPL(crypto_poly1305_init);
 
 int crypto_poly1305_setkey(struct crypto_shash *tfm,
-			   const u8 *key, unsigned int keylen)
+						   const u8 *key, unsigned int keylen)
 {
 	/* Poly1305 requires a unique key for each tag, which implies that
 	 * we can't set it on the tfm that gets accessed by multiple users
@@ -81,29 +81,34 @@ static void poly1305_setskey(struct poly1305_desc_ctx *dctx, const u8 *key)
 }
 
 unsigned int crypto_poly1305_setdesckey(struct poly1305_desc_ctx *dctx,
-					const u8 *src, unsigned int srclen)
+										const u8 *src, unsigned int srclen)
 {
-	if (!dctx->sset) {
-		if (!dctx->rset && srclen >= POLY1305_BLOCK_SIZE) {
+	if (!dctx->sset)
+	{
+		if (!dctx->rset && srclen >= POLY1305_BLOCK_SIZE)
+		{
 			poly1305_setrkey(dctx, src);
 			src += POLY1305_BLOCK_SIZE;
 			srclen -= POLY1305_BLOCK_SIZE;
 			dctx->rset = true;
 		}
-		if (srclen >= POLY1305_BLOCK_SIZE) {
+
+		if (srclen >= POLY1305_BLOCK_SIZE)
+		{
 			poly1305_setskey(dctx, src);
 			src += POLY1305_BLOCK_SIZE;
 			srclen -= POLY1305_BLOCK_SIZE;
 			dctx->sset = true;
 		}
 	}
+
 	return srclen;
 }
 EXPORT_SYMBOL_GPL(crypto_poly1305_setdesckey);
 
 static unsigned int poly1305_blocks(struct poly1305_desc_ctx *dctx,
-				    const u8 *src, unsigned int srclen,
-				    u32 hibit)
+									const u8 *src, unsigned int srclen,
+									u32 hibit)
 {
 	u32 r0, r1, r2, r3, r4;
 	u32 s1, s2, s3, s4;
@@ -111,7 +116,8 @@ static unsigned int poly1305_blocks(struct poly1305_desc_ctx *dctx,
 	u64 d0, d1, d2, d3, d4;
 	unsigned int datalen;
 
-	if (unlikely(!dctx->sset)) {
+	if (unlikely(!dctx->sset))
+	{
 		datalen = crypto_poly1305_setdesckey(dctx, src, srclen);
 		src += srclen - datalen;
 		srclen = datalen;
@@ -134,7 +140,8 @@ static unsigned int poly1305_blocks(struct poly1305_desc_ctx *dctx,
 	h3 = dctx->h[3];
 	h4 = dctx->h[4];
 
-	while (likely(srclen >= POLY1305_BLOCK_SIZE)) {
+	while (likely(srclen >= POLY1305_BLOCK_SIZE))
+	{
 
 		/* h += m[i] */
 		h0 += (le32_to_cpuvp(src +  0) >> 0) & 0x3ffffff;
@@ -145,22 +152,22 @@ static unsigned int poly1305_blocks(struct poly1305_desc_ctx *dctx,
 
 		/* h *= r */
 		d0 = mlt(h0, r0) + mlt(h1, s4) + mlt(h2, s3) +
-		     mlt(h3, s2) + mlt(h4, s1);
+			 mlt(h3, s2) + mlt(h4, s1);
 		d1 = mlt(h0, r1) + mlt(h1, r0) + mlt(h2, s4) +
-		     mlt(h3, s3) + mlt(h4, s2);
+			 mlt(h3, s3) + mlt(h4, s2);
 		d2 = mlt(h0, r2) + mlt(h1, r1) + mlt(h2, r0) +
-		     mlt(h3, s4) + mlt(h4, s3);
+			 mlt(h3, s4) + mlt(h4, s3);
 		d3 = mlt(h0, r3) + mlt(h1, r2) + mlt(h2, r1) +
-		     mlt(h3, r0) + mlt(h4, s4);
+			 mlt(h3, r0) + mlt(h4, s4);
 		d4 = mlt(h0, r4) + mlt(h1, r3) + mlt(h2, r2) +
-		     mlt(h3, r1) + mlt(h4, r0);
+			 mlt(h3, r1) + mlt(h4, r0);
 
 		/* (partial) h %= p */
-		d1 += sr(d0, 26);     h0 = and(d0, 0x3ffffff);
-		d2 += sr(d1, 26);     h1 = and(d1, 0x3ffffff);
-		d3 += sr(d2, 26);     h2 = and(d2, 0x3ffffff);
-		d4 += sr(d3, 26);     h3 = and(d3, 0x3ffffff);
-		h0 += sr(d4, 26) * 5; h4 = and(d4, 0x3ffffff);
+		d1 += sr(d0, 26);     h0 = and (d0, 0x3ffffff);
+		d2 += sr(d1, 26);     h1 = and (d1, 0x3ffffff);
+		d3 += sr(d2, 26);     h2 = and (d2, 0x3ffffff);
+		d4 += sr(d3, 26);     h3 = and (d3, 0x3ffffff);
+		h0 += sr(d4, 26) * 5; h4 = and (d4, 0x3ffffff);
 		h1 += h0 >> 26;       h0 = h0 & 0x3ffffff;
 
 		src += POLY1305_BLOCK_SIZE;
@@ -177,32 +184,36 @@ static unsigned int poly1305_blocks(struct poly1305_desc_ctx *dctx,
 }
 
 int crypto_poly1305_update(struct shash_desc *desc,
-			   const u8 *src, unsigned int srclen)
+						   const u8 *src, unsigned int srclen)
 {
 	struct poly1305_desc_ctx *dctx = shash_desc_ctx(desc);
 	unsigned int bytes;
 
-	if (unlikely(dctx->buflen)) {
+	if (unlikely(dctx->buflen))
+	{
 		bytes = min(srclen, POLY1305_BLOCK_SIZE - dctx->buflen);
 		memcpy(dctx->buf + dctx->buflen, src, bytes);
 		src += bytes;
 		srclen -= bytes;
 		dctx->buflen += bytes;
 
-		if (dctx->buflen == POLY1305_BLOCK_SIZE) {
+		if (dctx->buflen == POLY1305_BLOCK_SIZE)
+		{
 			poly1305_blocks(dctx, dctx->buf,
-					POLY1305_BLOCK_SIZE, 1 << 24);
+							POLY1305_BLOCK_SIZE, 1 << 24);
 			dctx->buflen = 0;
 		}
 	}
 
-	if (likely(srclen >= POLY1305_BLOCK_SIZE)) {
+	if (likely(srclen >= POLY1305_BLOCK_SIZE))
+	{
 		bytes = poly1305_blocks(dctx, src, srclen, 1 << 24);
 		src += srclen - bytes;
 		srclen = bytes;
 	}
 
-	if (unlikely(srclen)) {
+	if (unlikely(srclen))
+	{
 		dctx->buflen = srclen;
 		memcpy(dctx->buf, src, srclen);
 	}
@@ -221,12 +232,15 @@ int crypto_poly1305_final(struct shash_desc *desc, u8 *dst)
 	u64 f = 0;
 
 	if (unlikely(!dctx->sset))
+	{
 		return -ENOKEY;
+	}
 
-	if (unlikely(dctx->buflen)) {
+	if (unlikely(dctx->buflen))
+	{
 		dctx->buf[dctx->buflen++] = 1;
 		memset(dctx->buf + dctx->buflen, 0,
-		       POLY1305_BLOCK_SIZE - dctx->buflen);
+			   POLY1305_BLOCK_SIZE - dctx->buflen);
 		poly1305_blocks(dctx, dctx->buf, POLY1305_BLOCK_SIZE, 0);
 	}
 
@@ -280,7 +294,8 @@ int crypto_poly1305_final(struct shash_desc *desc, u8 *dst)
 }
 EXPORT_SYMBOL_GPL(crypto_poly1305_final);
 
-static struct shash_alg poly1305_alg = {
+static struct shash_alg poly1305_alg =
+{
 	.digestsize	= POLY1305_DIGEST_SIZE,
 	.init		= crypto_poly1305_init,
 	.update		= crypto_poly1305_update,

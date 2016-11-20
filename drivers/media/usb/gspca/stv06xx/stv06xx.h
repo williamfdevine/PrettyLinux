@@ -83,7 +83,8 @@
 #define LED_OFF				0
 
 /* STV06xx device descriptor */
-struct sd {
+struct sd
+{
 	struct gspca_dev gspca_dev;
 
 	/* A pointer to the currently connected sensor */
@@ -98,10 +99,10 @@ struct sd {
 
 	/* Bridge / Camera type */
 	u8 bridge;
-	#define BRIDGE_STV600 0
-	#define BRIDGE_STV602 1
-	#define BRIDGE_STV610 2
-	#define BRIDGE_ST6422 3 /* With integrated sensor */
+#define BRIDGE_STV600 0
+#define BRIDGE_STV602 1
+#define BRIDGE_STV610 2
+#define BRIDGE_ST6422 3 /* With integrated sensor */
 };
 
 int stv06xx_write_bridge(struct sd *sd, u16 address, u16 i2c_data);

@@ -53,7 +53,8 @@
 #define MC_EMEM_ADR_CFG 0x54
 #define MC_EMEM_ADR_CFG_EMEM_NUMDEV BIT(0)
 
-static const struct of_device_id tegra_mc_of_match[] = {
+static const struct of_device_id tegra_mc_of_match[] =
+{
 #ifdef CONFIG_ARCH_TEGRA_3x_SOC
 	{ .compatible = "nvidia,tegra30-mc", .data = &tegra30_mc_soc },
 #endif
@@ -89,7 +90,8 @@ static int tegra_mc_setup_latency_allowance(struct tegra_mc *mc)
 	writel(value, mc->regs + MC_EMEM_ARB_CFG);
 
 	/* write latency allowance defaults */
-	for (i = 0; i < mc->soc->num_clients; i++) {
+	for (i = 0; i < mc->soc->num_clients; i++)
+	{
 		const struct tegra_mc_la *la = &mc->soc->clients[i].la;
 		u32 value;
 
@@ -107,21 +109,26 @@ void tegra_mc_write_emem_configuration(struct tegra_mc *mc, unsigned long rate)
 	unsigned int i;
 	struct tegra_mc_timing *timing = NULL;
 
-	for (i = 0; i < mc->num_timings; i++) {
-		if (mc->timings[i].rate == rate) {
+	for (i = 0; i < mc->num_timings; i++)
+	{
+		if (mc->timings[i].rate == rate)
+		{
 			timing = &mc->timings[i];
 			break;
 		}
 	}
 
-	if (!timing) {
+	if (!timing)
+	{
 		dev_err(mc->dev, "no memory timing registered for rate %lu\n",
-			rate);
+				rate);
 		return;
 	}
 
 	for (i = 0; i < mc->soc->num_emem_regs; ++i)
+	{
 		mc_writel(mc, timing->emem_data[i], mc->soc->emem_regs[i]);
+	}
 }
 
 unsigned int tegra_mc_get_emem_device_count(struct tegra_mc *mc)
@@ -136,32 +143,39 @@ unsigned int tegra_mc_get_emem_device_count(struct tegra_mc *mc)
 }
 
 static int load_one_timing(struct tegra_mc *mc,
-			   struct tegra_mc_timing *timing,
-			   struct device_node *node)
+						   struct tegra_mc_timing *timing,
+						   struct device_node *node)
 {
 	int err;
 	u32 tmp;
 
 	err = of_property_read_u32(node, "clock-frequency", &tmp);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(mc->dev,
-			"timing %s: failed to read rate\n", node->name);
+				"timing %s: failed to read rate\n", node->name);
 		return err;
 	}
 
 	timing->rate = tmp;
 	timing->emem_data = devm_kcalloc(mc->dev, mc->soc->num_emem_regs,
-					 sizeof(u32), GFP_KERNEL);
+									 sizeof(u32), GFP_KERNEL);
+
 	if (!timing->emem_data)
+	{
 		return -ENOMEM;
+	}
 
 	err = of_property_read_u32_array(node, "nvidia,emem-configuration",
-					 timing->emem_data,
-					 mc->soc->num_emem_regs);
-	if (err) {
+									 timing->emem_data,
+									 mc->soc->num_emem_regs);
+
+	if (err)
+	{
 		dev_err(mc->dev,
-			"timing %s: failed to read EMEM configuration\n",
-			node->name);
+				"timing %s: failed to read EMEM configuration\n",
+				node->name);
 		return err;
 	}
 
@@ -176,17 +190,23 @@ static int load_timings(struct tegra_mc *mc, struct device_node *node)
 	int i = 0, err;
 
 	mc->timings = devm_kcalloc(mc->dev, child_count, sizeof(*timing),
-				   GFP_KERNEL);
+							   GFP_KERNEL);
+
 	if (!mc->timings)
+	{
 		return -ENOMEM;
+	}
 
 	mc->num_timings = child_count;
 
-	for_each_child_of_node(node, child) {
+	for_each_child_of_node(node, child)
+	{
 		timing = &mc->timings[i++];
 
 		err = load_one_timing(mc, timing, child);
-		if (err) {
+
+		if (err)
+		{
 			of_node_put(child);
 			return err;
 		}
@@ -205,28 +225,37 @@ static int tegra_mc_setup_timings(struct tegra_mc *mc)
 
 	mc->num_timings = 0;
 
-	for_each_child_of_node(mc->dev->of_node, node) {
+	for_each_child_of_node(mc->dev->of_node, node)
+	{
 		err = of_property_read_u32(node, "nvidia,ram-code",
-					   &node_ram_code);
+								   &node_ram_code);
+
 		if (err || (node_ram_code != ram_code))
+		{
 			continue;
+		}
 
 		err = load_timings(mc, node);
 		of_node_put(node);
+
 		if (err)
+		{
 			return err;
+		}
+
 		break;
 	}
 
 	if (mc->num_timings == 0)
 		dev_warn(mc->dev,
-			 "no memory timings for RAM code %u registered\n",
-			 ram_code);
+				 "no memory timings for RAM code %u registered\n",
+				 ram_code);
 
 	return 0;
 }
 
-static const char *const status_names[32] = {
+static const char *const status_names[32] =
+{
 	[ 1] = "External interrupt",
 	[ 6] = "EMEM address decode error",
 	[ 8] = "Security violation",
@@ -238,7 +267,8 @@ static const char *const status_names[32] = {
 	[16] = "MTS carveout violation",
 };
 
-static const char *const error_names[8] = {
+static const char *const error_names[8] =
+{
 	[2] = "EMEM decode error",
 	[3] = "TrustZone violation",
 	[4] = "Carveout violation",
@@ -255,8 +285,9 @@ static irqreturn_t tegra_mc_irq(int irq, void *data)
 	status = mc_readl(mc, MC_INTSTATUS);
 	mask = mc_readl(mc, MC_INTMASK);
 
-	for_each_set_bit(bit, &status, 32) {
-		const char *error = status_names[bit] ?: "unknown";
+	for_each_set_bit(bit, &status, 32)
+	{
+		const char *error = status_names[bit] ? : "unknown";
 		const char *client = "unknown", *desc;
 		const char *direction, *secure;
 		phys_addr_t addr = 0;
@@ -268,71 +299,97 @@ static irqreturn_t tegra_mc_irq(int irq, void *data)
 		value = mc_readl(mc, MC_ERR_STATUS);
 
 #ifdef CONFIG_PHYS_ADDR_T_64BIT
-		if (mc->soc->num_address_bits > 32) {
+
+		if (mc->soc->num_address_bits > 32)
+		{
 			addr = ((value >> MC_ERR_STATUS_ADR_HI_SHIFT) &
-				MC_ERR_STATUS_ADR_HI_MASK);
+					MC_ERR_STATUS_ADR_HI_MASK);
 			addr <<= 32;
 		}
+
 #endif
 
 		if (value & MC_ERR_STATUS_RW)
+		{
 			direction = "write";
+		}
 		else
+		{
 			direction = "read";
+		}
 
 		if (value & MC_ERR_STATUS_SECURITY)
+		{
 			secure = "secure ";
+		}
 		else
+		{
 			secure = "";
+		}
 
 		id = value & mc->soc->client_id_mask;
 
-		for (i = 0; i < mc->soc->num_clients; i++) {
-			if (mc->soc->clients[i].id == id) {
+		for (i = 0; i < mc->soc->num_clients; i++)
+		{
+			if (mc->soc->clients[i].id == id)
+			{
 				client = mc->soc->clients[i].name;
 				break;
 			}
 		}
 
 		type = (value & MC_ERR_STATUS_TYPE_MASK) >>
-		       MC_ERR_STATUS_TYPE_SHIFT;
+			   MC_ERR_STATUS_TYPE_SHIFT;
 		desc = error_names[type];
 
-		switch (value & MC_ERR_STATUS_TYPE_MASK) {
-		case MC_ERR_STATUS_TYPE_INVALID_SMMU_PAGE:
-			perm[0] = ' ';
-			perm[1] = '[';
+		switch (value & MC_ERR_STATUS_TYPE_MASK)
+		{
+			case MC_ERR_STATUS_TYPE_INVALID_SMMU_PAGE:
+				perm[0] = ' ';
+				perm[1] = '[';
 
-			if (value & MC_ERR_STATUS_READABLE)
-				perm[2] = 'R';
-			else
-				perm[2] = '-';
+				if (value & MC_ERR_STATUS_READABLE)
+				{
+					perm[2] = 'R';
+				}
+				else
+				{
+					perm[2] = '-';
+				}
 
-			if (value & MC_ERR_STATUS_WRITABLE)
-				perm[3] = 'W';
-			else
-				perm[3] = '-';
+				if (value & MC_ERR_STATUS_WRITABLE)
+				{
+					perm[3] = 'W';
+				}
+				else
+				{
+					perm[3] = '-';
+				}
 
-			if (value & MC_ERR_STATUS_NONSECURE)
-				perm[4] = '-';
-			else
-				perm[4] = 'S';
+				if (value & MC_ERR_STATUS_NONSECURE)
+				{
+					perm[4] = '-';
+				}
+				else
+				{
+					perm[4] = 'S';
+				}
 
-			perm[5] = ']';
-			perm[6] = '\0';
-			break;
+				perm[5] = ']';
+				perm[6] = '\0';
+				break;
 
-		default:
-			perm[0] = '\0';
-			break;
+			default:
+				perm[0] = '\0';
+				break;
 		}
 
 		value = mc_readl(mc, MC_ERR_ADR);
 		addr |= value;
 
 		dev_err_ratelimited(mc->dev, "%s: %s%s @%pa: %s (%s%s)\n",
-				    client, secure, direction, &addr, error,
-				    desc, perm);
+							client, secure, direction, &addr, error,
+							desc, perm);
 	}
 
 	/* clear interrupts */
@@ -350,12 +407,18 @@ static int tegra_mc_probe(struct platform_device *pdev)
 	int err;
 
 	match = of_match_node(tegra_mc_of_match, pdev->dev.of_node);
+
 	if (!match)
+	{
 		return -ENODEV;
+	}
 
 	mc = devm_kzalloc(&pdev->dev, sizeof(*mc), GFP_KERNEL);
+
 	if (!mc)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, mc);
 	mc->soc = match->data;
@@ -366,64 +429,81 @@ static int tegra_mc_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	mc->regs = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(mc->regs))
+	{
 		return PTR_ERR(mc->regs);
+	}
 
 	mc->clk = devm_clk_get(&pdev->dev, "mc");
-	if (IS_ERR(mc->clk)) {
+
+	if (IS_ERR(mc->clk))
+	{
 		dev_err(&pdev->dev, "failed to get MC clock: %ld\n",
-			PTR_ERR(mc->clk));
+				PTR_ERR(mc->clk));
 		return PTR_ERR(mc->clk);
 	}
 
 	err = tegra_mc_setup_latency_allowance(mc);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(&pdev->dev, "failed to setup latency allowance: %d\n",
-			err);
+				err);
 		return err;
 	}
 
 	err = tegra_mc_setup_timings(mc);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(&pdev->dev, "failed to setup timings: %d\n", err);
 		return err;
 	}
 
-	if (IS_ENABLED(CONFIG_TEGRA_IOMMU_SMMU)) {
+	if (IS_ENABLED(CONFIG_TEGRA_IOMMU_SMMU))
+	{
 		mc->smmu = tegra_smmu_probe(&pdev->dev, mc->soc->smmu, mc);
-		if (IS_ERR(mc->smmu)) {
+
+		if (IS_ERR(mc->smmu))
+		{
 			dev_err(&pdev->dev, "failed to probe SMMU: %ld\n",
-				PTR_ERR(mc->smmu));
+					PTR_ERR(mc->smmu));
 			return PTR_ERR(mc->smmu);
 		}
 	}
 
 	mc->irq = platform_get_irq(pdev, 0);
-	if (mc->irq < 0) {
+
+	if (mc->irq < 0)
+	{
 		dev_err(&pdev->dev, "interrupt not specified\n");
 		return mc->irq;
 	}
 
 	err = devm_request_irq(&pdev->dev, mc->irq, tegra_mc_irq, IRQF_SHARED,
-			       dev_name(&pdev->dev), mc);
-	if (err < 0) {
+						   dev_name(&pdev->dev), mc);
+
+	if (err < 0)
+	{
 		dev_err(&pdev->dev, "failed to request IRQ#%u: %d\n", mc->irq,
-			err);
+				err);
 		return err;
 	}
 
 	WARN(!mc->soc->client_id_mask, "Missing client ID mask for this SoC\n");
 
 	value = MC_INT_DECERR_MTS | MC_INT_SECERR_SEC | MC_INT_DECERR_VPR |
-		MC_INT_INVALID_APB_ASID_UPDATE | MC_INT_INVALID_SMMU_PAGE |
-		MC_INT_SECURITY_VIOLATION | MC_INT_DECERR_EMEM;
+			MC_INT_INVALID_APB_ASID_UPDATE | MC_INT_INVALID_SMMU_PAGE |
+			MC_INT_SECURITY_VIOLATION | MC_INT_DECERR_EMEM;
 
 	mc_writel(mc, value, MC_INTMASK);
 
 	return 0;
 }
 
-static struct platform_driver tegra_mc_driver = {
+static struct platform_driver tegra_mc_driver =
+{
 	.driver = {
 		.name = "tegra-mc",
 		.of_match_table = tegra_mc_of_match,

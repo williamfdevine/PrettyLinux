@@ -33,34 +33,36 @@
 #define FDO_PWM_MODE_STATIC  1
 #define FDO_PWM_MODE_STATIC_RPM 5
 
-enum amdgpu_td {
+enum amdgpu_td
+{
 	AMDGPU_TD_AUTO,
 	AMDGPU_TD_UP,
 	AMDGPU_TD_DOWN,
 };
 
-enum amdgpu_display_watermark {
+enum amdgpu_display_watermark
+{
 	AMDGPU_DISPLAY_WATERMARK_LOW = 0,
 	AMDGPU_DISPLAY_WATERMARK_HIGH = 1,
 };
 
 enum amdgpu_display_gap
 {
-    AMDGPU_PM_DISPLAY_GAP_VBLANK_OR_WM = 0,
-    AMDGPU_PM_DISPLAY_GAP_VBLANK       = 1,
-    AMDGPU_PM_DISPLAY_GAP_WATERMARK    = 2,
-    AMDGPU_PM_DISPLAY_GAP_IGNORE       = 3,
+	AMDGPU_PM_DISPLAY_GAP_VBLANK_OR_WM = 0,
+	AMDGPU_PM_DISPLAY_GAP_VBLANK       = 1,
+	AMDGPU_PM_DISPLAY_GAP_WATERMARK    = 2,
+	AMDGPU_PM_DISPLAY_GAP_IGNORE       = 3,
 };
 
 void amdgpu_dpm_print_class_info(u32 class, u32 class2);
 void amdgpu_dpm_print_cap_info(u32 caps);
 void amdgpu_dpm_print_ps_status(struct amdgpu_device *adev,
-				struct amdgpu_ps *rps);
+								struct amdgpu_ps *rps);
 u32 amdgpu_dpm_get_vblank_time(struct amdgpu_device *adev);
 u32 amdgpu_dpm_get_vrefresh(struct amdgpu_device *adev);
 bool amdgpu_is_uvd_state(u32 class, u32 class2);
 void amdgpu_calculate_u_and_p(u32 i, u32 r_c, u32 p_b,
-			      u32 *p, u32 *u);
+							  u32 *p, u32 *u);
 int amdgpu_calculate_at(u32 t, u32 h, u32 fh, u32 fl, u32 *tl, u32 *th);
 
 bool amdgpu_is_internal_thermal_sensor(enum amdgpu_int_thermal_type sensor);
@@ -73,13 +75,13 @@ void amdgpu_free_extended_power_table(struct amdgpu_device *adev);
 void amdgpu_add_thermal_controller(struct amdgpu_device *adev);
 
 enum amdgpu_pcie_gen amdgpu_get_pcie_gen_support(struct amdgpu_device *adev,
-						 u32 sys_mask,
-						 enum amdgpu_pcie_gen asic_gen,
-						 enum amdgpu_pcie_gen default_gen);
+		u32 sys_mask,
+		enum amdgpu_pcie_gen asic_gen,
+		enum amdgpu_pcie_gen default_gen);
 
 u16 amdgpu_get_pcie_lane_support(struct amdgpu_device *adev,
-				 u16 asic_lanes,
-				 u16 default_lanes);
+								 u16 asic_lanes,
+								 u16 default_lanes);
 u8 amdgpu_encode_pci_lane_width(u32 lanes);
 
 #endif

@@ -40,7 +40,8 @@
  * This function pointer and context can now be set up in at24_platform_data.
  */
 
-struct at24_platform_data {
+struct at24_platform_data
+{
 	u32		byte_len;		/* size (sum of all addr) */
 	u16		page_size;		/* for writes */
 	u8		flags;

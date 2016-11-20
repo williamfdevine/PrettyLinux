@@ -16,7 +16,8 @@
  * Bt431 cursor generator registers, 32-bit aligned.
  * Two twin Bt431 are used on the DECstation's PMAG-AA.
  */
-struct bt431_regs {
+struct bt431_regs
+{
 	volatile u16 addr_lo;
 	u16 pad0;
 	volatile u16 addr_hi;
@@ -165,8 +166,8 @@ static inline void bt431_write_cmap(struct bt431_regs *regs, int cr, u16 value)
 static inline void bt431_enable_cursor(struct bt431_regs *regs)
 {
 	bt431_write_reg(regs, BT431_REG_CMD,
-			BT431_CMD_CURS_ENABLE | BT431_CMD_OR_CURSORS
-			| BT431_CMD_4_1_MUX | BT431_CMD_THICK_1);
+					BT431_CMD_CURS_ENABLE | BT431_CMD_OR_CURSORS
+					| BT431_CMD_4_1_MUX | BT431_CMD_THICK_1);
 }
 
 static inline void bt431_erase_cursor(struct bt431_regs *regs)
@@ -200,8 +201,8 @@ static inline void bt431_position_cursor(struct bt431_regs *regs, u16 x, u16 y)
 }
 
 static inline void bt431_set_cursor(struct bt431_regs *regs,
-				    const char *data, const char *mask,
-				    u16 rop, u16 width, u16 height)
+									const char *data, const char *mask,
+									u16 rop, u16 width, u16 height)
 {
 	u16 x, y;
 	int i;
@@ -209,18 +210,28 @@ static inline void bt431_set_cursor(struct bt431_regs *regs,
 	i = 0;
 	width = DIV_ROUND_UP(width, 8);
 	bt431_select_reg(regs, BT431_REG_CRAM_BASE);
+
 	for (y = 0; y < BT431_CURSOR_SIZE; y++)
-		for (x = 0; x < BT431_CURSOR_SIZE / 8; x++) {
+		for (x = 0; x < BT431_CURSOR_SIZE / 8; x++)
+		{
 			u16 val = 0;
 
-			if (y < height && x < width) {
+			if (y < height && x < width)
+			{
 				val = mask[i];
+
 				if (rop == ROP_XOR)
+				{
 					val = (val << 8) | (val ^ data[i]);
+				}
 				else
+				{
 					val = (val << 8) | (val & data[i]);
+				}
+
 				i++;
 			}
+
 			bt431_write_cmap_inc(regs, val);
 		}
 }

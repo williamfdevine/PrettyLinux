@@ -46,17 +46,22 @@ scdrv_interrupt(int irq, void *subch_data)
 	spin_lock(&sd->sd_wlock);
 	status = ia64_sn_irtr_intr(sd->sd_nasid, sd->sd_subch);
 
-	if (status > 0) {
-		if (status & SAL_IROUTER_INTR_RECV) {
+	if (status > 0)
+	{
+		if (status & SAL_IROUTER_INTR_RECV)
+		{
 			wake_up(&sd->sd_rq);
 		}
-		if (status & SAL_IROUTER_INTR_XMIT) {
+
+		if (status & SAL_IROUTER_INTR_XMIT)
+		{
 			ia64_sn_irtr_intr_disable
-			    (sd->sd_nasid, sd->sd_subch,
-			     SAL_IROUTER_INTR_XMIT);
+			(sd->sd_nasid, sd->sd_subch,
+			 SAL_IROUTER_INTR_XMIT);
 			wake_up(&sd->sd_wq);
 		}
 	}
+
 	spin_unlock(&sd->sd_wlock);
 	spin_unlock_irqrestore(&sd->sd_rlock, flags);
 	return IRQ_HANDLED;
@@ -80,9 +85,11 @@ scdrv_open(struct inode *inode, struct file *file)
 
 	/* allocate memory for subchannel data */
 	sd = kzalloc(sizeof (struct subch_data_s), GFP_KERNEL);
-	if (sd == NULL) {
+
+	if (sd == NULL)
+	{
 		printk("%s: couldn't allocate subchannel data\n",
-		       __func__);
+			   __func__);
 		return -ENOMEM;
 	}
 
@@ -90,7 +97,8 @@ scdrv_open(struct inode *inode, struct file *file)
 	sd->sd_nasid = scd->scd_nasid;
 	sd->sd_subch = ia64_sn_irtr_open(scd->scd_nasid);
 
-	if (sd->sd_subch < 0) {
+	if (sd->sd_subch < 0)
+	{
 		kfree(sd);
 		printk("%s: couldn't allocate subchannel\n", __func__);
 		return -EBUSY;
@@ -108,14 +116,17 @@ scdrv_open(struct inode *inode, struct file *file)
 	/* hook this subchannel up to the system controller interrupt */
 	mutex_lock(&scdrv_mutex);
 	rv = request_irq(SGI_UART_VECTOR, scdrv_interrupt,
-			 IRQF_SHARED, SYSCTL_BASENAME, sd);
-	if (rv) {
+					 IRQF_SHARED, SYSCTL_BASENAME, sd);
+
+	if (rv)
+	{
 		ia64_sn_irtr_close(sd->sd_nasid, sd->sd_subch);
 		kfree(sd);
 		printk("%s: irq request failed (%d)\n", __func__, rv);
 		mutex_unlock(&scdrv_mutex);
 		return -EBUSY;
 	}
+
 	mutex_unlock(&scdrv_mutex);
 	return 0;
 }
@@ -164,15 +175,19 @@ scdrv_read(struct file *file, char __user *buf, size_t count, loff_t *f_pos)
 	struct subch_data_s *sd = (struct subch_data_s *) file->private_data;
 
 	/* try to get control of the read buffer */
-	if (down_trylock(&sd->sd_rbs)) {
+	if (down_trylock(&sd->sd_rbs))
+	{
 		/* somebody else has it now;
 		 * if we're non-blocking, then exit...
 		 */
-		if (file->f_flags & O_NONBLOCK) {
+		if (file->f_flags & O_NONBLOCK)
+		{
 			return -EAGAIN;
 		}
+
 		/* ...or if we want to block, then do so here */
-		if (down_interruptible(&sd->sd_rbs)) {
+		if (down_interruptible(&sd->sd_rbs))
+		{
 			/* something went wrong with wait */
 			return -ERESTARTSYS;
 		}
@@ -184,10 +199,12 @@ scdrv_read(struct file *file, char __user *buf, size_t count, loff_t *f_pos)
 	status = read_status_check(sd, &len);
 
 	/* if not, and we're blocking I/O, loop */
-	while (status < 0) {
+	while (status < 0)
+	{
 		DECLARE_WAITQUEUE(wait, current);
 
-		if (file->f_flags & O_NONBLOCK) {
+		if (file->f_flags & O_NONBLOCK)
+		{
 			spin_unlock_irqrestore(&sd->sd_rlock, flags);
 			up(&sd->sd_rbs);
 			return -EAGAIN;
@@ -201,7 +218,9 @@ scdrv_read(struct file *file, char __user *buf, size_t count, loff_t *f_pos)
 		schedule_timeout(msecs_to_jiffies(SCDRV_TIMEOUT));
 
 		remove_wait_queue(&sd->sd_rq, &wait);
-		if (signal_pending(current)) {
+
+		if (signal_pending(current))
+		{
 			/* wait was interrupted */
 			up(&sd->sd_rbs);
 			return -ERESTARTSYS;
@@ -210,19 +229,26 @@ scdrv_read(struct file *file, char __user *buf, size_t count, loff_t *f_pos)
 		spin_lock_irqsave(&sd->sd_rlock, flags);
 		status = read_status_check(sd, &len);
 	}
+
 	spin_unlock_irqrestore(&sd->sd_rlock, flags);
 
-	if (len > 0) {
+	if (len > 0)
+	{
 		/* we read something in the last read_status_check(); copy
 		 * it out to user space
 		 */
-		if (count < len) {
+		if (count < len)
+		{
 			pr_debug("%s: only accepting %d of %d bytes\n",
-				 __func__, (int) count, len);
+					 __func__, (int) count, len);
 		}
+
 		len = min((int) count, len);
+
 		if (copy_to_user(buf, sd->sd_rb, len))
+		{
 			len = -EFAULT;
+		}
 	}
 
 	/* release the read buffer and wake anyone who might be
@@ -249,29 +275,35 @@ write_status_check(struct subch_data_s *sd, int count)
 
 static ssize_t
 scdrv_write(struct file *file, const char __user *buf,
-	    size_t count, loff_t *f_pos)
+			size_t count, loff_t *f_pos)
 {
 	unsigned long flags;
 	int status;
 	struct subch_data_s *sd = (struct subch_data_s *) file->private_data;
 
 	/* try to get control of the write buffer */
-	if (down_trylock(&sd->sd_wbs)) {
+	if (down_trylock(&sd->sd_wbs))
+	{
 		/* somebody else has it now;
 		 * if we're non-blocking, then exit...
 		 */
-		if (file->f_flags & O_NONBLOCK) {
+		if (file->f_flags & O_NONBLOCK)
+		{
 			return -EAGAIN;
 		}
+
 		/* ...or if we want to block, then do so here */
-		if (down_interruptible(&sd->sd_wbs)) {
+		if (down_interruptible(&sd->sd_wbs))
+		{
 			/* something went wrong with wait */
 			return -ERESTARTSYS;
 		}
 	}
 
 	count = min((int) count, CHUNKSIZE);
-	if (copy_from_user(sd->sd_wb, buf, count)) {
+
+	if (copy_from_user(sd->sd_wb, buf, count))
+	{
 		up(&sd->sd_wbs);
 		return -EFAULT;
 	}
@@ -281,10 +313,12 @@ scdrv_write(struct file *file, const char __user *buf,
 	status = write_status_check(sd, count);
 
 	/* if we failed, and we want to block, then loop */
-	while (status <= 0) {
+	while (status <= 0)
+	{
 		DECLARE_WAITQUEUE(wait, current);
 
-		if (file->f_flags & O_NONBLOCK) {
+		if (file->f_flags & O_NONBLOCK)
+		{
 			spin_unlock(&sd->sd_wlock);
 			up(&sd->sd_wbs);
 			return -EAGAIN;
@@ -297,7 +331,9 @@ scdrv_write(struct file *file, const char __user *buf,
 		schedule_timeout(msecs_to_jiffies(SCDRV_TIMEOUT));
 
 		remove_wait_queue(&sd->sd_wq, &wait);
-		if (signal_pending(current)) {
+
+		if (signal_pending(current))
+		{
 			/* wait was interrupted */
 			up(&sd->sd_wbs);
 			return -ERESTARTSYS;
@@ -306,6 +342,7 @@ scdrv_write(struct file *file, const char __user *buf,
 		spin_lock_irqsave(&sd->sd_wlock, flags);
 		status = write_status_check(sd, count);
 	}
+
 	spin_unlock_irqrestore(&sd->sd_wlock, flags);
 
 	/* release the write buffer and wake anyone who's waiting for it */
@@ -314,10 +351,12 @@ scdrv_write(struct file *file, const char __user *buf,
 	/* return the number of characters accepted (should be the complete
 	 * "chunk" as requested)
 	 */
-	if ((status >= 0) && (status < count)) {
+	if ((status >= 0) && (status < count))
+	{
 		pr_debug("Didn't accept the full chunk; %d of %d\n",
-			 status, (int) count);
+				 status, (int) count);
 	}
+
 	return status;
 }
 
@@ -338,11 +377,15 @@ scdrv_poll(struct file *file, struct poll_table_struct *wait)
 	spin_unlock(&sd->sd_wlock);
 	spin_unlock_irqrestore(&sd->sd_rlock, flags);
 
-	if (status > 0) {
-		if (status & SAL_IROUTER_INTR_RECV) {
+	if (status > 0)
+	{
+		if (status & SAL_IROUTER_INTR_RECV)
+		{
 			mask |= POLLIN | POLLRDNORM;
 		}
-		if (status & SAL_IROUTER_INTR_XMIT) {
+
+		if (status & SAL_IROUTER_INTR_XMIT)
+		{
 			mask |= POLLOUT | POLLWRNORM;
 		}
 	}
@@ -350,7 +393,8 @@ scdrv_poll(struct file *file, struct poll_table_struct *wait)
 	return mask;
 }
 
-static const struct file_operations scdrv_fops = {
+static const struct file_operations scdrv_fops =
+{
 	.owner =	THIS_MODULE,
 	.read =		scdrv_read,
 	.write =	scdrv_write,
@@ -381,89 +425,104 @@ scdrv_init(void)
 	nasid_t event_nasid;
 
 	if (!ia64_platform_is("sn2"))
+	{
 		return -ENODEV;
+	}
 
 	event_nasid = ia64_sn_get_console_nasid();
 
 	snsc_class = class_create(THIS_MODULE, SYSCTL_BASENAME);
-	if (IS_ERR(snsc_class)) {
+
+	if (IS_ERR(snsc_class))
+	{
 		printk("%s: failed to allocate class\n", __func__);
 		return PTR_ERR(snsc_class);
 	}
 
 	if (alloc_chrdev_region(&first_dev, 0, num_cnodes,
-				SYSCTL_BASENAME) < 0) {
+							SYSCTL_BASENAME) < 0)
+	{
 		printk("%s: failed to register SN system controller device\n",
-		       __func__);
+			   __func__);
 		return -ENODEV;
 	}
 
-	for (cnode = 0; cnode < num_cnodes; cnode++) {
-			geoid = cnodeid_get_geoid(cnode);
-			devnamep = devname;
-			format_module_id(devnamep, geo_module(geoid),
-					 MODULE_FORMAT_BRIEF);
-			devnamep = devname + strlen(devname);
-			sprintf(devnamep, "^%d#%d", geo_slot(geoid),
+	for (cnode = 0; cnode < num_cnodes; cnode++)
+	{
+		geoid = cnodeid_get_geoid(cnode);
+		devnamep = devname;
+		format_module_id(devnamep, geo_module(geoid),
+						 MODULE_FORMAT_BRIEF);
+		devnamep = devname + strlen(devname);
+		sprintf(devnamep, "^%d#%d", geo_slot(geoid),
 				geo_slab(geoid));
 
-			/* allocate sysctl device data */
-			scd = kzalloc(sizeof (struct sysctl_data_s),
-				      GFP_KERNEL);
-			if (!scd) {
-				printk("%s: failed to allocate device info"
-				       "for %s/%s\n", __func__,
-				       SYSCTL_BASENAME, devname);
-				continue;
-			}
+		/* allocate sysctl device data */
+		scd = kzalloc(sizeof (struct sysctl_data_s),
+					  GFP_KERNEL);
 
-			/* initialize sysctl device data fields */
-			scd->scd_nasid = cnodeid_to_nasid(cnode);
-			if (!(salbuf = kmalloc(SCDRV_BUFSZ, GFP_KERNEL))) {
-				printk("%s: failed to allocate driver buffer"
-				       "(%s%s)\n", __func__,
-				       SYSCTL_BASENAME, devname);
-				kfree(scd);
-				continue;
-			}
+		if (!scd)
+		{
+			printk("%s: failed to allocate device info"
+				   "for %s/%s\n", __func__,
+				   SYSCTL_BASENAME, devname);
+			continue;
+		}
 
-			if (ia64_sn_irtr_init(scd->scd_nasid, salbuf,
-					      SCDRV_BUFSZ) < 0) {
-				printk
-				    ("%s: failed to initialize SAL for"
-				     " system controller communication"
-				     " (%s/%s): outdated PROM?\n",
-				     __func__, SYSCTL_BASENAME, devname);
-				kfree(scd);
-				kfree(salbuf);
-				continue;
-			}
+		/* initialize sysctl device data fields */
+		scd->scd_nasid = cnodeid_to_nasid(cnode);
 
-			dev = first_dev + cnode;
-			cdev_init(&scd->scd_cdev, &scdrv_fops);
-			if (cdev_add(&scd->scd_cdev, dev, 1)) {
-				printk("%s: failed to register system"
-				       " controller device (%s%s)\n",
-				       __func__, SYSCTL_BASENAME, devname);
-				kfree(scd);
-				kfree(salbuf);
-				continue;
-			}
+		if (!(salbuf = kmalloc(SCDRV_BUFSZ, GFP_KERNEL)))
+		{
+			printk("%s: failed to allocate driver buffer"
+				   "(%s%s)\n", __func__,
+				   SYSCTL_BASENAME, devname);
+			kfree(scd);
+			continue;
+		}
 
-			device_create(snsc_class, NULL, dev, NULL,
-				      "%s", devname);
+		if (ia64_sn_irtr_init(scd->scd_nasid, salbuf,
+							  SCDRV_BUFSZ) < 0)
+		{
+			printk
+			("%s: failed to initialize SAL for"
+			 " system controller communication"
+			 " (%s/%s): outdated PROM?\n",
+			 __func__, SYSCTL_BASENAME, devname);
+			kfree(scd);
+			kfree(salbuf);
+			continue;
+		}
 
-			ia64_sn_irtr_intr_enable(scd->scd_nasid,
-						 0 /*ignored */ ,
-						 SAL_IROUTER_INTR_RECV);
+		dev = first_dev + cnode;
+		cdev_init(&scd->scd_cdev, &scdrv_fops);
 
-                        /* on the console nasid, prepare to receive
-                         * system controller environmental events
-                         */
-                        if(scd->scd_nasid == event_nasid) {
-                                scdrv_event_init(scd);
-                        }
+		if (cdev_add(&scd->scd_cdev, dev, 1))
+		{
+			printk("%s: failed to register system"
+				   " controller device (%s%s)\n",
+				   __func__, SYSCTL_BASENAME, devname);
+			kfree(scd);
+			kfree(salbuf);
+			continue;
+		}
+
+		device_create(snsc_class, NULL, dev, NULL,
+					  "%s", devname);
+
+		ia64_sn_irtr_intr_enable(scd->scd_nasid,
+								 0 /*ignored */ ,
+								 SAL_IROUTER_INTR_RECV);
+
+		/* on the console nasid, prepare to receive
+		 * system controller environmental events
+		 */
+		if (scd->scd_nasid == event_nasid)
+		{
+			scdrv_event_init(scd);
+		}
 	}
+
 	return 0;
 }
 device_initcall(scdrv_init);

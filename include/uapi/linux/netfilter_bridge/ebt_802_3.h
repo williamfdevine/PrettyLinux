@@ -11,7 +11,7 @@
 
 /*
  * If frame has DSAP/SSAP value 0xaa you must check the SNAP type
- * to discover what kind of packet we're carrying. 
+ * to discover what kind of packet we're carrying.
  */
 #define CHECK_TYPE 0xaa
 
@@ -26,7 +26,8 @@
 #define EBT_802_3_MASK (EBT_802_3_SAP | EBT_802_3_TYPE | EBT_802_3)
 
 /* ui has one byte ctrl, ni has two */
-struct hdr_ui {
+struct hdr_ui
+{
 	__u8 dsap;
 	__u8 ssap;
 	__u8 ctrl;
@@ -34,7 +35,8 @@ struct hdr_ui {
 	__be16 type;
 };
 
-struct hdr_ni {
+struct hdr_ni
+{
 	__u8 dsap;
 	__u8 ssap;
 	__be16 ctrl;
@@ -42,18 +44,21 @@ struct hdr_ni {
 	__be16 type;
 };
 
-struct ebt_802_3_hdr {
+struct ebt_802_3_hdr
+{
 	__u8  daddr[ETH_ALEN];
 	__u8  saddr[ETH_ALEN];
 	__be16 len;
-	union {
+	union
+	{
 		struct hdr_ui ui;
 		struct hdr_ni ni;
 	} llc;
 };
 
 
-struct ebt_802_3_info {
+struct ebt_802_3_info
+{
 	__u8  sap;
 	__be16 type;
 	__u8  bitmask;

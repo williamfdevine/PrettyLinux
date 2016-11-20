@@ -29,7 +29,8 @@
 #include <linux/sched.h>
 #include <linux/slab.h>
 
-struct mc13783_pwrb {
+struct mc13783_pwrb
+{
 	struct input_dev *pwr;
 	struct mc13xxx *mc13783;
 #define MC13783_PWRB_B1_POL_INVERT	(1 << 0)
@@ -60,27 +61,40 @@ static irqreturn_t button_irq(int irq, void *_priv)
 	mc13xxx_irq_ack(priv->mc13783, irq);
 	mc13xxx_reg_read(priv->mc13783, MC13783_REG_INTERRUPT_SENSE_1, &val);
 
-	switch (irq) {
-	case MC13783_IRQ_ONOFD1:
-		val = val & MC13783_IRQSENSE1_ONOFD1S ? 1 : 0;
-		if (priv->flags & MC13783_PWRB_B1_POL_INVERT)
-			val ^= 1;
-		input_report_key(priv->pwr, priv->keymap[0], val);
-		break;
+	switch (irq)
+	{
+		case MC13783_IRQ_ONOFD1:
+			val = val & MC13783_IRQSENSE1_ONOFD1S ? 1 : 0;
 
-	case MC13783_IRQ_ONOFD2:
-		val = val & MC13783_IRQSENSE1_ONOFD2S ? 1 : 0;
-		if (priv->flags & MC13783_PWRB_B2_POL_INVERT)
-			val ^= 1;
-		input_report_key(priv->pwr, priv->keymap[1], val);
-		break;
+			if (priv->flags & MC13783_PWRB_B1_POL_INVERT)
+			{
+				val ^= 1;
+			}
 
-	case MC13783_IRQ_ONOFD3:
-		val = val & MC13783_IRQSENSE1_ONOFD3S ? 1 : 0;
-		if (priv->flags & MC13783_PWRB_B3_POL_INVERT)
-			val ^= 1;
-		input_report_key(priv->pwr, priv->keymap[2], val);
-		break;
+			input_report_key(priv->pwr, priv->keymap[0], val);
+			break;
+
+		case MC13783_IRQ_ONOFD2:
+			val = val & MC13783_IRQSENSE1_ONOFD2S ? 1 : 0;
+
+			if (priv->flags & MC13783_PWRB_B2_POL_INVERT)
+			{
+				val ^= 1;
+			}
+
+			input_report_key(priv->pwr, priv->keymap[1], val);
+			break;
+
+		case MC13783_IRQ_ONOFD3:
+			val = val & MC13783_IRQSENSE1_ONOFD3S ? 1 : 0;
+
+			if (priv->flags & MC13783_PWRB_B3_POL_INVERT)
+			{
+				val ^= 1;
+			}
+
+			input_report_key(priv->pwr, priv->keymap[2], val);
+			break;
 	}
 
 	input_sync(priv->pwr);
@@ -98,19 +112,25 @@ static int mc13783_pwrbutton_probe(struct platform_device *pdev)
 	int reg = 0;
 
 	pdata = dev_get_platdata(&pdev->dev);
-	if (!pdata) {
+
+	if (!pdata)
+	{
 		dev_err(&pdev->dev, "missing platform data\n");
 		return -ENODEV;
 	}
 
 	pwr = input_allocate_device();
-	if (!pwr) {
+
+	if (!pwr)
+	{
 		dev_dbg(&pdev->dev, "Can't allocate power button\n");
 		return -ENOMEM;
 	}
 
 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
-	if (!priv) {
+
+	if (!priv)
+	{
 		err = -ENOMEM;
 		dev_dbg(&pdev->dev, "Can't allocate power button\n");
 		goto free_input_dev;
@@ -125,58 +145,88 @@ static int mc13783_pwrbutton_probe(struct platform_device *pdev)
 
 	mc13xxx_lock(mc13783);
 
-	if (pdata->b1on_flags & MC13783_BUTTON_ENABLE) {
+	if (pdata->b1on_flags & MC13783_BUTTON_ENABLE)
+	{
 		priv->keymap[0] = pdata->b1on_key;
+
 		if (pdata->b1on_key != KEY_RESERVED)
+		{
 			__set_bit(pdata->b1on_key, pwr->keybit);
+		}
 
 		if (pdata->b1on_flags & MC13783_BUTTON_POL_INVERT)
+		{
 			priv->flags |= MC13783_PWRB_B1_POL_INVERT;
+		}
 
 		if (pdata->b1on_flags & MC13783_BUTTON_RESET_EN)
+		{
 			reg |= MC13783_POWER_CONTROL_2_ON1BRSTEN;
+		}
 
 		err = mc13xxx_irq_request(mc13783, MC13783_IRQ_ONOFD1,
-					  button_irq, "b1on", priv);
-		if (err) {
+								  button_irq, "b1on", priv);
+
+		if (err)
+		{
 			dev_dbg(&pdev->dev, "Can't request irq\n");
 			goto free_priv;
 		}
 	}
 
-	if (pdata->b2on_flags & MC13783_BUTTON_ENABLE) {
+	if (pdata->b2on_flags & MC13783_BUTTON_ENABLE)
+	{
 		priv->keymap[1] = pdata->b2on_key;
+
 		if (pdata->b2on_key != KEY_RESERVED)
+		{
 			__set_bit(pdata->b2on_key, pwr->keybit);
+		}
 
 		if (pdata->b2on_flags & MC13783_BUTTON_POL_INVERT)
+		{
 			priv->flags |= MC13783_PWRB_B2_POL_INVERT;
+		}
 
 		if (pdata->b2on_flags & MC13783_BUTTON_RESET_EN)
+		{
 			reg |= MC13783_POWER_CONTROL_2_ON2BRSTEN;
+		}
 
 		err = mc13xxx_irq_request(mc13783, MC13783_IRQ_ONOFD2,
-					  button_irq, "b2on", priv);
-		if (err) {
+								  button_irq, "b2on", priv);
+
+		if (err)
+		{
 			dev_dbg(&pdev->dev, "Can't request irq\n");
 			goto free_irq_b1;
 		}
 	}
 
-	if (pdata->b3on_flags & MC13783_BUTTON_ENABLE) {
+	if (pdata->b3on_flags & MC13783_BUTTON_ENABLE)
+	{
 		priv->keymap[2] = pdata->b3on_key;
+
 		if (pdata->b3on_key != KEY_RESERVED)
+		{
 			__set_bit(pdata->b3on_key, pwr->keybit);
+		}
 
 		if (pdata->b3on_flags & MC13783_BUTTON_POL_INVERT)
+		{
 			priv->flags |= MC13783_PWRB_B3_POL_INVERT;
+		}
 
 		if (pdata->b3on_flags & MC13783_BUTTON_RESET_EN)
+		{
 			reg |= MC13783_POWER_CONTROL_2_ON3BRSTEN;
+		}
 
 		err = mc13xxx_irq_request(mc13783, MC13783_IRQ_ONOFD3,
-					  button_irq, "b3on", priv);
-		if (err) {
+								  button_irq, "b3on", priv);
+
+		if (err)
+		{
 			dev_dbg(&pdev->dev, "Can't request irq: %d\n", err);
 			goto free_irq_b2;
 		}
@@ -196,7 +246,9 @@ static int mc13783_pwrbutton_probe(struct platform_device *pdev)
 	__set_bit(EV_KEY, pwr->evbit);
 
 	err = input_register_device(pwr);
-	if (err) {
+
+	if (err)
+	{
 		dev_dbg(&pdev->dev, "Can't register power button: %d\n", err);
 		goto free_irq;
 	}
@@ -209,15 +261,23 @@ free_irq:
 	mc13xxx_lock(mc13783);
 
 	if (pdata->b3on_flags & MC13783_BUTTON_ENABLE)
+	{
 		mc13xxx_irq_free(mc13783, MC13783_IRQ_ONOFD3, priv);
+	}
 
 free_irq_b2:
+
 	if (pdata->b2on_flags & MC13783_BUTTON_ENABLE)
+	{
 		mc13xxx_irq_free(mc13783, MC13783_IRQ_ONOFD2, priv);
+	}
 
 free_irq_b1:
+
 	if (pdata->b1on_flags & MC13783_BUTTON_ENABLE)
+	{
 		mc13xxx_irq_free(mc13783, MC13783_IRQ_ONOFD1, priv);
+	}
 
 free_priv:
 	mc13xxx_unlock(mc13783);
@@ -239,11 +299,19 @@ static int mc13783_pwrbutton_remove(struct platform_device *pdev)
 	mc13xxx_lock(priv->mc13783);
 
 	if (pdata->b3on_flags & MC13783_BUTTON_ENABLE)
+	{
 		mc13xxx_irq_free(priv->mc13783, MC13783_IRQ_ONOFD3, priv);
+	}
+
 	if (pdata->b2on_flags & MC13783_BUTTON_ENABLE)
+	{
 		mc13xxx_irq_free(priv->mc13783, MC13783_IRQ_ONOFD2, priv);
+	}
+
 	if (pdata->b1on_flags & MC13783_BUTTON_ENABLE)
+	{
 		mc13xxx_irq_free(priv->mc13783, MC13783_IRQ_ONOFD1, priv);
+	}
 
 	mc13xxx_unlock(priv->mc13783);
 
@@ -253,7 +321,8 @@ static int mc13783_pwrbutton_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver mc13783_pwrbutton_driver = {
+static struct platform_driver mc13783_pwrbutton_driver =
+{
 	.probe		= mc13783_pwrbutton_probe,
 	.remove		= mc13783_pwrbutton_remove,
 	.driver		= {

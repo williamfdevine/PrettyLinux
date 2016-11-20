@@ -32,14 +32,16 @@
 /* Number of monitored sensors should not greater than NUM_SENSORS */
 #define NUM_MONITORED_SENSORS	4
 
-struct ab8500_gpadc_cfg {
+struct ab8500_gpadc_cfg
+{
 	const struct abx500_res_to_temp *temp_tbl;
 	int tbl_sz;
 	int vcc;
 	int r_up;
 };
 
-struct ab8500_temp {
+struct ab8500_temp
+{
 	struct ab8500_gpadc *gpadc;
 	struct ab8500_btemp *btemp;
 	struct delayed_work power_off_work;
@@ -54,25 +56,32 @@ struct ab8500_temp {
  * and res_to_temp table is strictly sorted by falling resistance values.
  */
 static int ab8500_voltage_to_temp(struct ab8500_gpadc_cfg *cfg,
-		int v_ntc, int *temp)
+								  int v_ntc, int *temp)
 {
 	int r_ntc, i = 0, tbl_sz = cfg->tbl_sz;
 	const struct abx500_res_to_temp *tbl = cfg->temp_tbl;
 
 	if (cfg->vcc < 0 || v_ntc >= cfg->vcc)
+	{
 		return -EINVAL;
+	}
 
 	r_ntc = v_ntc * cfg->r_up / (cfg->vcc - v_ntc);
+
 	if (r_ntc > tbl[0].resist || r_ntc < tbl[tbl_sz - 1].resist)
+	{
 		return -EINVAL;
+	}
 
 	while (!(r_ntc <= tbl[i].resist && r_ntc > tbl[i + 1].resist) &&
-			i < tbl_sz - 2)
+		   i < tbl_sz - 2)
+	{
 		i++;
+	}
 
 	/* return milli-Celsius */
 	*temp = tbl[i].temp * 1000 + ((tbl[i + 1].temp - tbl[i].temp) * 1000 *
-		(r_ntc - tbl[i].resist)) / (tbl[i + 1].resist - tbl[i].resist);
+								  (r_ntc - tbl[i].resist)) / (tbl[i + 1].resist - tbl[i].resist);
 
 	return 0;
 }
@@ -82,18 +91,29 @@ static int ab8500_read_sensor(struct abx500_temp *data, u8 sensor, int *temp)
 	int voltage, ret;
 	struct ab8500_temp *ab8500_data = data->plat_data;
 
-	if (sensor == BAT_CTRL) {
+	if (sensor == BAT_CTRL)
+	{
 		*temp = ab8500_btemp_get_batctrl_temp(ab8500_data->btemp);
-	} else if (sensor == BTEMP_BALL) {
+	}
+	else if (sensor == BTEMP_BALL)
+	{
 		*temp = ab8500_btemp_get_temp(ab8500_data->btemp);
-	} else {
+	}
+	else
+	{
 		voltage = ab8500_gpadc_convert(ab8500_data->gpadc, sensor);
+
 		if (voltage < 0)
+		{
 			return voltage;
+		}
 
 		ret = ab8500_voltage_to_temp(&ab8500_data->cfg, voltage, temp);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
@@ -102,7 +122,7 @@ static int ab8500_read_sensor(struct abx500_temp *data, u8 sensor, int *temp)
 static void ab8500_thermal_power_off(struct work_struct *work)
 {
 	struct ab8500_temp *ab8500_data = container_of(work,
-				struct ab8500_temp, power_off_work.work);
+									  struct ab8500_temp, power_off_work.work);
 	struct abx500_temp *abx500_data = ab8500_data->abx500_data;
 
 	dev_warn(&abx500_data->pdev->dev, "Power off due to critical temp\n");
@@ -111,33 +131,38 @@ static void ab8500_thermal_power_off(struct work_struct *work)
 }
 
 static ssize_t ab8500_show_name(struct device *dev,
-		struct device_attribute *devattr, char *buf)
+								struct device_attribute *devattr, char *buf)
 {
 	return sprintf(buf, "ab8500\n");
 }
 
 static ssize_t ab8500_show_label(struct device *dev,
-		struct device_attribute *devattr, char *buf)
+								 struct device_attribute *devattr, char *buf)
 {
 	char *label;
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
 	int index = attr->index;
 
-	switch (index) {
-	case 1:
-		label = "ext_adc1";
-		break;
-	case 2:
-		label = "ext_adc2";
-		break;
-	case 3:
-		label = "bat_temp";
-		break;
-	case 4:
-		label = "bat_ctrl";
-		break;
-	default:
-		return -EINVAL;
+	switch (index)
+	{
+		case 1:
+			label = "ext_adc1";
+			break;
+
+		case 2:
+			label = "ext_adc2";
+			break;
+
+		case 3:
+			label = "bat_temp";
+			break;
+
+		case 4:
+			label = "bat_ctrl";
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return sprintf(buf, "%s\n", label);
@@ -148,10 +173,10 @@ static int ab8500_temp_irq_handler(int irq, struct abx500_temp *data)
 	struct ab8500_temp *ab8500_data = data->plat_data;
 
 	dev_warn(&data->pdev->dev, "Power off in %d s\n",
-		 DEFAULT_POWER_OFF_DELAY / HZ);
+			 DEFAULT_POWER_OFF_DELAY / HZ);
 
 	schedule_delayed_work(&ab8500_data->power_off_work,
-		DEFAULT_POWER_OFF_DELAY);
+						  DEFAULT_POWER_OFF_DELAY);
 	return 0;
 }
 
@@ -160,20 +185,29 @@ int abx500_hwmon_init(struct abx500_temp *data)
 	struct ab8500_temp *ab8500_data;
 
 	ab8500_data = devm_kzalloc(&data->pdev->dev, sizeof(*ab8500_data),
-		GFP_KERNEL);
+							   GFP_KERNEL);
+
 	if (!ab8500_data)
+	{
 		return -ENOMEM;
+	}
 
 	ab8500_data->gpadc = ab8500_gpadc_get("ab8500-gpadc.0");
+
 	if (IS_ERR(ab8500_data->gpadc))
+	{
 		return PTR_ERR(ab8500_data->gpadc);
+	}
 
 	ab8500_data->btemp = ab8500_btemp_get();
+
 	if (IS_ERR(ab8500_data->btemp))
+	{
 		return PTR_ERR(ab8500_data->btemp);
+	}
 
 	INIT_DELAYED_WORK(&ab8500_data->power_off_work,
-			  ab8500_thermal_power_off);
+					  ab8500_thermal_power_off);
 
 	ab8500_data->cfg.vcc = THERMAL_VCC;
 	ab8500_data->cfg.r_up = PULL_UP_RESISTOR;

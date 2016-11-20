@@ -35,7 +35,8 @@
 #define CLKGATE_SEPERATED_DISABLE		0x4
 #define CLKGATE_SEPERATED_STATUS		0x8
 
-struct clkgate_separated {
+struct clkgate_separated
+{
 	struct clk_hw	hw;
 	void __iomem	*enable;	/* enable register */
 	u8		bit_idx;	/* bits in enable/disable register */
@@ -50,13 +51,21 @@ static int clkgate_separated_enable(struct clk_hw *hw)
 	u32 reg;
 
 	sclk = container_of(hw, struct clkgate_separated, hw);
+
 	if (sclk->lock)
+	{
 		spin_lock_irqsave(sclk->lock, flags);
+	}
+
 	reg = BIT(sclk->bit_idx);
 	writel_relaxed(reg, sclk->enable);
 	readl_relaxed(sclk->enable + CLKGATE_SEPERATED_STATUS);
+
 	if (sclk->lock)
+	{
 		spin_unlock_irqrestore(sclk->lock, flags);
+	}
+
 	return 0;
 }
 
@@ -67,13 +76,20 @@ static void clkgate_separated_disable(struct clk_hw *hw)
 	u32 reg;
 
 	sclk = container_of(hw, struct clkgate_separated, hw);
+
 	if (sclk->lock)
+	{
 		spin_lock_irqsave(sclk->lock, flags);
+	}
+
 	reg = BIT(sclk->bit_idx);
 	writel_relaxed(reg, sclk->enable + CLKGATE_SEPERATED_DISABLE);
 	readl_relaxed(sclk->enable + CLKGATE_SEPERATED_STATUS);
+
 	if (sclk->lock)
+	{
 		spin_unlock_irqrestore(sclk->lock, flags);
+	}
 }
 
 static int clkgate_separated_is_enabled(struct clk_hw *hw)
@@ -88,24 +104,27 @@ static int clkgate_separated_is_enabled(struct clk_hw *hw)
 	return reg ? 1 : 0;
 }
 
-static struct clk_ops clkgate_separated_ops = {
+static struct clk_ops clkgate_separated_ops =
+{
 	.enable		= clkgate_separated_enable,
 	.disable	= clkgate_separated_disable,
 	.is_enabled	= clkgate_separated_is_enabled,
 };
 
 struct clk *hisi_register_clkgate_sep(struct device *dev, const char *name,
-				      const char *parent_name,
-				      unsigned long flags,
-				      void __iomem *reg, u8 bit_idx,
-				      u8 clk_gate_flags, spinlock_t *lock)
+									  const char *parent_name,
+									  unsigned long flags,
+									  void __iomem *reg, u8 bit_idx,
+									  u8 clk_gate_flags, spinlock_t *lock)
 {
 	struct clkgate_separated *sclk;
 	struct clk *clk;
 	struct clk_init_data init;
 
 	sclk = kzalloc(sizeof(*sclk), GFP_KERNEL);
-	if (!sclk) {
+
+	if (!sclk)
+	{
 		pr_err("%s: fail to allocate separated gated clk\n", __func__);
 		return ERR_PTR(-ENOMEM);
 	}
@@ -122,7 +141,11 @@ struct clk *hisi_register_clkgate_sep(struct device *dev, const char *name,
 	sclk->hw.init = &init;
 
 	clk = clk_register(dev, &sclk->hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(sclk);
+	}
+
 	return clk;
 }

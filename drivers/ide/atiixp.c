@@ -19,12 +19,14 @@
 #define ATIIXP_IDE_UDMA_CONTROL		0x54
 #define ATIIXP_IDE_UDMA_MODE		0x56
 
-struct atiixp_ide_timing {
+struct atiixp_ide_timing
+{
 	u8 command_width;
 	u8 recover_width;
 };
 
-static struct atiixp_ide_timing pio_timing[] = {
+static struct atiixp_ide_timing pio_timing[] =
+{
 	{ 0x05, 0x0d },
 	{ 0x04, 0x07 },
 	{ 0x03, 0x04 },
@@ -32,7 +34,8 @@ static struct atiixp_ide_timing pio_timing[] = {
 	{ 0x02, 0x00 },
 };
 
-static struct atiixp_ide_timing mdma_timing[] = {
+static struct atiixp_ide_timing mdma_timing[] =
+{
 	{ 0x07, 0x07 },
 	{ 0x02, 0x01 },
 	{ 0x02, 0x00 },
@@ -67,7 +70,7 @@ static void atiixp_set_pio_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 	pci_read_config_dword(dev, ATIIXP_IDE_PIO_TIMING, &pio_timing_data);
 	pio_timing_data &= ~(0xff << timing_shift);
 	pio_timing_data |= (pio_timing[pio].recover_width << timing_shift) |
-		 (pio_timing[pio].command_width << (timing_shift + 4));
+					   (pio_timing[pio].command_width << (timing_shift + 4));
 	pci_write_config_dword(dev, ATIIXP_IDE_PIO_TIMING, pio_timing_data);
 
 	spin_unlock_irqrestore(&atiixp_lock, flags);
@@ -96,20 +99,23 @@ static void atiixp_set_dma_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 
 	pci_read_config_word(dev, ATIIXP_IDE_UDMA_CONTROL, &udma_ctl);
 
-	if (speed >= XFER_UDMA_0) {
+	if (speed >= XFER_UDMA_0)
+	{
 		pci_read_config_word(dev, ATIIXP_IDE_UDMA_MODE, &tmp16);
 		tmp16 &= ~(0x07 << (drive->dn * 4));
 		tmp16 |= ((speed & 0x07) << (drive->dn * 4));
 		pci_write_config_word(dev, ATIIXP_IDE_UDMA_MODE, tmp16);
 
 		udma_ctl |= (1 << drive->dn);
-	} else if (speed >= XFER_MW_DMA_0) {
+	}
+	else if (speed >= XFER_MW_DMA_0)
+	{
 		u8 i = speed & 0x03;
 
 		pci_read_config_dword(dev, ATIIXP_IDE_MDMA_TIMING, &tmp32);
 		tmp32 &= ~(0xff << timing_shift);
 		tmp32 |= (mdma_timing[i].recover_width << timing_shift) |
-			 (mdma_timing[i].command_width << (timing_shift + 4));
+				 (mdma_timing[i].command_width << (timing_shift + 4));
 		pci_write_config_dword(dev, ATIIXP_IDE_MDMA_TIMING, tmp32);
 
 		udma_ctl &= ~(1 << drive->dn);
@@ -128,21 +134,27 @@ static u8 atiixp_cable_detect(ide_hwif_t *hwif)
 	pci_read_config_byte(pdev, ATIIXP_IDE_UDMA_MODE + ch, &udma_mode);
 
 	if ((udma_mode & 0x07) >= 0x04 || (udma_mode & 0x70) >= 0x40)
+	{
 		return ATA_CBL_PATA80;
+	}
 	else
+	{
 		return ATA_CBL_PATA40;
+	}
 }
 
-static const struct ide_port_ops atiixp_port_ops = {
+static const struct ide_port_ops atiixp_port_ops =
+{
 	.set_pio_mode		= atiixp_set_pio_mode,
 	.set_dma_mode		= atiixp_set_dma_mode,
 	.cable_detect		= atiixp_cable_detect,
 };
 
-static const struct ide_port_info atiixp_pci_info[] = {
+static const struct ide_port_info atiixp_pci_info[] =
+{
 	{	/* 0: IXP200/300/400/700 */
 		.name		= DRV_NAME,
-		.enablebits	= {{0x48,0x01,0x00}, {0x48,0x08,0x00}},
+		.enablebits	= {{0x48, 0x01, 0x00}, {0x48, 0x08, 0x00}},
 		.port_ops	= &atiixp_port_ops,
 		.pio_mask	= ATA_PIO4,
 		.mwdma_mask	= ATA_MWDMA2,
@@ -150,13 +162,13 @@ static const struct ide_port_info atiixp_pci_info[] = {
 	},
 	{	/* 1: IXP600 */
 		.name		= DRV_NAME,
-		.enablebits	= {{0x48,0x01,0x00}, {0x00,0x00,0x00}},
+		.enablebits	= {{0x48, 0x01, 0x00}, {0x00, 0x00, 0x00}},
 		.port_ops	= &atiixp_port_ops,
 		.host_flags	= IDE_HFLAG_SINGLE,
 		.pio_mask	= ATA_PIO4,
 		.mwdma_mask	= ATA_MWDMA2,
 		.udma_mask	= ATA_UDMA5,
- 	},
+	},
 };
 
 /**
@@ -173,7 +185,8 @@ static int atiixp_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 	return ide_pci_init_one(dev, &atiixp_pci_info[id->driver_data], NULL);
 }
 
-static const struct pci_device_id atiixp_pci_tbl[] = {
+static const struct pci_device_id atiixp_pci_tbl[] =
+{
 	{ PCI_VDEVICE(ATI, PCI_DEVICE_ID_ATI_IXP200_IDE), 0 },
 	{ PCI_VDEVICE(ATI, PCI_DEVICE_ID_ATI_IXP300_IDE), 0 },
 	{ PCI_VDEVICE(ATI, PCI_DEVICE_ID_ATI_IXP400_IDE), 0 },
@@ -184,7 +197,8 @@ static const struct pci_device_id atiixp_pci_tbl[] = {
 };
 MODULE_DEVICE_TABLE(pci, atiixp_pci_tbl);
 
-static struct pci_driver atiixp_pci_driver = {
+static struct pci_driver atiixp_pci_driver =
+{
 	.name		= "ATIIXP_IDE",
 	.id_table	= atiixp_pci_tbl,
 	.probe		= atiixp_init_one,

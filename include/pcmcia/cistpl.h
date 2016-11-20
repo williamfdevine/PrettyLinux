@@ -60,34 +60,39 @@ typedef unsigned char cisdata_t;
 #define CISTPL_ORG		0x46
 #define CISTPL_SPCL		0x90
 
-typedef struct cistpl_longlink_t {
-    u_int	addr;
+typedef struct cistpl_longlink_t
+{
+	u_int	addr;
 } cistpl_longlink_t;
 
-typedef struct cistpl_checksum_t {
-    u_short	addr;
-    u_short	len;
-    u_char	sum;
+typedef struct cistpl_checksum_t
+{
+	u_short	addr;
+	u_short	len;
+	u_char	sum;
 } cistpl_checksum_t;
 
 #define CISTPL_MAX_FUNCTIONS	8
 #define CISTPL_MFC_ATTR		0x00
 #define CISTPL_MFC_COMMON	0x01
 
-typedef struct cistpl_longlink_mfc_t {
-    u_char	nfn;
-    struct {
-	u_char	space;
-	u_int	addr;
-    } fn[CISTPL_MAX_FUNCTIONS];
+typedef struct cistpl_longlink_mfc_t
+{
+	u_char	nfn;
+	struct
+	{
+		u_char	space;
+		u_int	addr;
+	} fn[CISTPL_MAX_FUNCTIONS];
 } cistpl_longlink_mfc_t;
 
 #define CISTPL_MAX_ALTSTR_STRINGS	4
 
-typedef struct cistpl_altstr_t {
-    u_char	ns;
-    u_char	ofs[CISTPL_MAX_ALTSTR_STRINGS];
-    char	str[254];
+typedef struct cistpl_altstr_t
+{
+	u_char	ns;
+	u_char	ofs[CISTPL_MAX_ALTSTR_STRINGS];
+	char	str[254];
 } cistpl_altstr_t;
 
 #define CISTPL_DTYPE_NULL	0x00
@@ -103,45 +108,52 @@ typedef struct cistpl_altstr_t {
 
 #define CISTPL_MAX_DEVICES	4
 
-typedef struct cistpl_device_t {
-    u_char	ndev;
-    struct {
-	u_char 	type;
-	u_char	wp;
-	u_int	speed;
-	u_int	size;
-    } dev[CISTPL_MAX_DEVICES];
+typedef struct cistpl_device_t
+{
+	u_char	ndev;
+	struct
+	{
+		u_char 	type;
+		u_char	wp;
+		u_int	speed;
+		u_int	size;
+	} dev[CISTPL_MAX_DEVICES];
 } cistpl_device_t;
 
 #define CISTPL_DEVICE_MWAIT	0x01
 #define CISTPL_DEVICE_3VCC	0x02
 
-typedef struct cistpl_device_o_t {
-    u_char		flags;
-    cistpl_device_t	device;
+typedef struct cistpl_device_o_t
+{
+	u_char		flags;
+	cistpl_device_t	device;
 } cistpl_device_o_t;
 
 #define CISTPL_VERS_1_MAX_PROD_STRINGS	4
 
-typedef struct cistpl_vers_1_t {
-    u_char	major;
-    u_char	minor;
-    u_char	ns;
-    u_char	ofs[CISTPL_VERS_1_MAX_PROD_STRINGS];
-    char	str[254];
+typedef struct cistpl_vers_1_t
+{
+	u_char	major;
+	u_char	minor;
+	u_char	ns;
+	u_char	ofs[CISTPL_VERS_1_MAX_PROD_STRINGS];
+	char	str[254];
 } cistpl_vers_1_t;
 
-typedef struct cistpl_jedec_t {
-    u_char	nid;
-    struct {
-	u_char	mfr;
-	u_char	info;
-    } id[CISTPL_MAX_DEVICES];
+typedef struct cistpl_jedec_t
+{
+	u_char	nid;
+	struct
+	{
+		u_char	mfr;
+		u_char	info;
+	} id[CISTPL_MAX_DEVICES];
 } cistpl_jedec_t;
 
-typedef struct cistpl_manfid_t {
-    u_short	manf;
-    u_short	card;
+typedef struct cistpl_manfid_t
+{
+	u_short	manf;
+	u_short	card;
 } cistpl_manfid_t;
 
 #define CISTPL_FUNCID_MULTI	0x00
@@ -157,14 +169,16 @@ typedef struct cistpl_manfid_t {
 #define CISTPL_SYSINIT_POST	0x01
 #define CISTPL_SYSINIT_ROM	0x02
 
-typedef struct cistpl_funcid_t {
-    u_char	func;
-    u_char	sysinit;
+typedef struct cistpl_funcid_t
+{
+	u_char	func;
+	u_char	sysinit;
 } cistpl_funcid_t;
 
-typedef struct cistpl_funce_t {
-    u_char	type;
-    u_char	data[0];
+typedef struct cistpl_funce_t
+{
+	u_char	type;
+	u_char	data[0];
 } cistpl_funce_t;
 
 /*======================================================================
@@ -206,17 +220,19 @@ typedef struct cistpl_funce_t {
 #define CISTPL_SERIAL_UART_MSTOP	0x20
 #define CISTPL_SERIAL_UART_2STOP	0x40
 
-typedef struct cistpl_serial_t {
-    u_char	uart_type;
-    u_char	uart_cap_0;
-    u_char	uart_cap_1;
+typedef struct cistpl_serial_t
+{
+	u_char	uart_type;
+	u_char	uart_cap_0;
+	u_char	uart_cap_1;
 } cistpl_serial_t;
 
-typedef struct cistpl_modem_cap_t {
-    u_char	flow;
-    u_char	cmd_buf;
-    u_char	rcv_buf_0, rcv_buf_1, rcv_buf_2;
-    u_char	xmit_buf_0, xmit_buf_1, xmit_buf_2;
+typedef struct cistpl_modem_cap_t
+{
+	u_char	flow;
+	u_char	cmd_buf;
+	u_char	rcv_buf_0, rcv_buf_1, rcv_buf_2;
+	u_char	xmit_buf_0, xmit_buf_1, xmit_buf_2;
 } cistpl_modem_cap_t;
 
 #define CISTPL_SERIAL_MOD_103		0x01
@@ -247,33 +263,36 @@ typedef struct cistpl_modem_cap_t {
 #define CISTPL_SERIAL_CMD_V25A		0x20
 #define CISTPL_SERIAL_CMD_DMCL		0x40
 
-typedef struct cistpl_data_serv_t {
-    u_char	max_data_0;
-    u_char	max_data_1;
-    u_char	modulation_0;
-    u_char	modulation_1;
-    u_char	error_control;
-    u_char	compression;
-    u_char	cmd_protocol;
-    u_char	escape;
-    u_char	encrypt;
-    u_char	misc_features;
-    u_char	ccitt_code[0];
+typedef struct cistpl_data_serv_t
+{
+	u_char	max_data_0;
+	u_char	max_data_1;
+	u_char	modulation_0;
+	u_char	modulation_1;
+	u_char	error_control;
+	u_char	compression;
+	u_char	cmd_protocol;
+	u_char	escape;
+	u_char	encrypt;
+	u_char	misc_features;
+	u_char	ccitt_code[0];
 } cistpl_data_serv_t;
 
-typedef struct cistpl_fax_serv_t {
-    u_char	max_data_0;
-    u_char	max_data_1;
-    u_char	modulation;
-    u_char	encrypt;
-    u_char	features_0;
-    u_char	features_1;
-    u_char	ccitt_code[0];
+typedef struct cistpl_fax_serv_t
+{
+	u_char	max_data_0;
+	u_char	max_data_1;
+	u_char	modulation;
+	u_char	encrypt;
+	u_char	features_0;
+	u_char	features_1;
+	u_char	ccitt_code[0];
 } cistpl_fax_serv_t;
 
-typedef struct cistpl_voice_serv_t {
-    u_char	max_data_0;
-    u_char	max_data_1;
+typedef struct cistpl_voice_serv_t
+{
+	u_char	max_data_0;
+	u_char	max_data_1;
 } cistpl_voice_serv_t;
 
 /*======================================================================
@@ -297,12 +316,14 @@ typedef struct cistpl_voice_serv_t {
 #define CISTPL_LAN_TECH_ATM		0x06
 #define CISTPL_LAN_TECH_WIRELESS	0x07
 
-typedef struct cistpl_lan_tech_t {
-    u_char	tech;
+typedef struct cistpl_lan_tech_t
+{
+	u_char	tech;
 } cistpl_lan_tech_t;
 
-typedef struct cistpl_lan_speed_t {
-    u_int	speed;
+typedef struct cistpl_lan_speed_t
+{
+	u_int	speed;
 } cistpl_lan_speed_t;
 
 /* LAN media definitions */
@@ -317,17 +338,20 @@ typedef struct cistpl_lan_speed_t {
 #define CISTPL_LAN_MEDIA_DIFF_IR	0x09
 #define CISTPL_LAN_MEDIA_PTP_IR		0x0a
 
-typedef struct cistpl_lan_media_t {
-    u_char	media;
+typedef struct cistpl_lan_media_t
+{
+	u_char	media;
 } cistpl_lan_media_t;
 
-typedef struct cistpl_lan_node_id_t {
-    u_char	nb;
-    u_char	id[16];
+typedef struct cistpl_lan_node_id_t
+{
+	u_char	nb;
+	u_char	id[16];
 } cistpl_lan_node_id_t;
 
-typedef struct cistpl_lan_connector_t {
-    u_char	code;
+typedef struct cistpl_lan_connector_t
+{
+	u_char	code;
 } cistpl_lan_connector_t;
 
 /*======================================================================
@@ -338,8 +362,9 @@ typedef struct cistpl_lan_connector_t {
 
 #define CISTPL_IDE_INTERFACE		0x01
 
-typedef struct cistpl_ide_interface_t {
-    u_char	interface;
+typedef struct cistpl_ide_interface_t
+{
+	u_char	interface;
 } cistpl_ide_interface_t;
 
 /* First feature byte */
@@ -356,9 +381,10 @@ typedef struct cistpl_ide_interface_t {
 #define CISTPL_IDE_HAS_INDEX		0x20
 #define CISTPL_IDE_IOIS16		0x40
 
-typedef struct cistpl_ide_feature_t {
-    u_char	feature1;
-    u_char	feature2;
+typedef struct cistpl_ide_feature_t
+{
+	u_char	feature1;
+	u_char	feature2;
 } cistpl_ide_feature_t;
 
 #define CISTPL_FUNCE_IDE_IFACE		0x01
@@ -377,16 +403,18 @@ typedef struct cistpl_ide_feature_t {
 #define CISTPL_BAR_CACHEABLE	0x40
 #define CISTPL_BAR_1MEG_MAP	0x80
 
-typedef struct cistpl_bar_t {
-    u_char	attr;
-    u_int	size;
+typedef struct cistpl_bar_t
+{
+	u_char	attr;
+	u_int	size;
 } cistpl_bar_t;
 
-typedef struct cistpl_config_t {
-    u_char	last_idx;
-    u_int	base;
-    u_int	rmask[4];
-    u_char	subtuples;
+typedef struct cistpl_config_t
+{
+	u_char	last_idx;
+	u_int	base;
+	u_int	rmask[4];
+	u_char	subtuples;
 } cistpl_config_t;
 
 /* These are bits in the 'present' field, and indices in 'param' */
@@ -401,16 +429,18 @@ typedef struct cistpl_config_t {
 #define CISTPL_POWER_HIGHZ_OK	0x01
 #define CISTPL_POWER_HIGHZ_REQ	0x02
 
-typedef struct cistpl_power_t {
-    u_char	present;
-    u_char	flags;
-    u_int	param[7];
+typedef struct cistpl_power_t
+{
+	u_char	present;
+	u_char	flags;
+	u_int	param[7];
 } cistpl_power_t;
 
-typedef struct cistpl_timing_t {
-    u_int	wait, waitscale;
-    u_int	ready, rdyscale;
-    u_int	reserved, rsvscale;
+typedef struct cistpl_timing_t
+{
+	u_int	wait, waitscale;
+	u_int	ready, rdyscale;
+	u_int	reserved, rsvscale;
 } cistpl_timing_t;
 
 #define CISTPL_IO_LINES_MASK	0x1f
@@ -420,30 +450,35 @@ typedef struct cistpl_timing_t {
 
 #define CISTPL_IO_MAX_WIN	16
 
-typedef struct cistpl_io_t {
-    u_char	flags;
-    u_char	nwin;
-    struct {
-	u_int	base;
-	u_int	len;
-    } win[CISTPL_IO_MAX_WIN];
+typedef struct cistpl_io_t
+{
+	u_char	flags;
+	u_char	nwin;
+	struct
+	{
+		u_int	base;
+		u_int	len;
+	} win[CISTPL_IO_MAX_WIN];
 } cistpl_io_t;
 
-typedef struct cistpl_irq_t {
-    u_int	IRQInfo1;
-    u_int	IRQInfo2;
+typedef struct cistpl_irq_t
+{
+	u_int	IRQInfo1;
+	u_int	IRQInfo2;
 } cistpl_irq_t;
 
 #define CISTPL_MEM_MAX_WIN	8
 
-typedef struct cistpl_mem_t {
-    u_char	flags;
-    u_char	nwin;
-    struct {
-	u_int	len;
-	u_int	card_addr;
-	u_int	host_addr;
-    } win[CISTPL_MEM_MAX_WIN];
+typedef struct cistpl_mem_t
+{
+	u_char	flags;
+	u_char	nwin;
+	struct
+	{
+		u_int	len;
+		u_int	card_addr;
+		u_int	host_addr;
+	} win[CISTPL_MEM_MAX_WIN];
 } cistpl_mem_t;
 
 #define CISTPL_CFTABLE_DEFAULT		0x0001
@@ -455,16 +490,17 @@ typedef struct cistpl_mem_t {
 #define CISTPL_CFTABLE_READONLY		0x1000
 #define CISTPL_CFTABLE_PWRDOWN		0x2000
 
-typedef struct cistpl_cftable_entry_t {
-    u_char		index;
-    u_short		flags;
-    u_char		interface;
-    cistpl_power_t	vcc, vpp1, vpp2;
-    cistpl_timing_t	timing;
-    cistpl_io_t		io;
-    cistpl_irq_t	irq;
-    cistpl_mem_t	mem;
-    u_char		subtuples;
+typedef struct cistpl_cftable_entry_t
+{
+	u_char		index;
+	u_short		flags;
+	u_char		interface;
+	cistpl_power_t	vcc, vpp1, vpp2;
+	cistpl_timing_t	timing;
+	cistpl_io_t		io;
+	cistpl_irq_t	irq;
+	cistpl_mem_t	mem;
+	u_char		subtuples;
 } cistpl_cftable_entry_t;
 
 #define CISTPL_CFTABLE_MASTER		0x000100
@@ -477,52 +513,58 @@ typedef struct cistpl_cftable_entry_t {
 #define CISTPL_CFTABLE_BINARY_AUDIO	0x010000
 #define CISTPL_CFTABLE_PWM_AUDIO	0x020000
 
-typedef struct cistpl_cftable_entry_cb_t {
-    u_char		index;
-    u_int		flags;
-    cistpl_power_t	vcc, vpp1, vpp2;
-    u_char		io;
-    cistpl_irq_t	irq;
-    u_char		mem;
-    u_char		subtuples;
+typedef struct cistpl_cftable_entry_cb_t
+{
+	u_char		index;
+	u_int		flags;
+	cistpl_power_t	vcc, vpp1, vpp2;
+	u_char		io;
+	cistpl_irq_t	irq;
+	u_char		mem;
+	u_char		subtuples;
 } cistpl_cftable_entry_cb_t;
 
-typedef struct cistpl_device_geo_t {
-    u_char		ngeo;
-    struct {
-	u_char		buswidth;
-	u_int		erase_block;
-	u_int		read_block;
-	u_int		write_block;
-	u_int		partition;
-	u_int		interleave;
-    } geo[CISTPL_MAX_DEVICES];
+typedef struct cistpl_device_geo_t
+{
+	u_char		ngeo;
+	struct
+	{
+		u_char		buswidth;
+		u_int		erase_block;
+		u_int		read_block;
+		u_int		write_block;
+		u_int		partition;
+		u_int		interleave;
+	} geo[CISTPL_MAX_DEVICES];
 } cistpl_device_geo_t;
 
-typedef struct cistpl_vers_2_t {
-    u_char	vers;
-    u_char	comply;
-    u_short	dindex;
-    u_char	vspec8, vspec9;
-    u_char	nhdr;
-    u_char	vendor, info;
-    char	str[244];
+typedef struct cistpl_vers_2_t
+{
+	u_char	vers;
+	u_char	comply;
+	u_short	dindex;
+	u_char	vspec8, vspec9;
+	u_char	nhdr;
+	u_char	vendor, info;
+	char	str[244];
 } cistpl_vers_2_t;
 
-typedef struct cistpl_org_t {
-    u_char	data_org;
-    char	desc[30];
+typedef struct cistpl_org_t
+{
+	u_char	data_org;
+	char	desc[30];
 } cistpl_org_t;
 
 #define CISTPL_ORG_FS		0x00
 #define CISTPL_ORG_APPSPEC	0x01
 #define CISTPL_ORG_XIP		0x02
 
-typedef struct cistpl_format_t {
-    u_char	type;
-    u_char	edc;
-    u_int	offset;
-    u_int	length;
+typedef struct cistpl_format_t
+{
+	u_char	type;
+	u_char	edc;
+	u_int	offset;
+	u_int	length;
 } cistpl_format_t;
 
 #define CISTPL_FORMAT_DISK	0x00
@@ -533,39 +575,41 @@ typedef struct cistpl_format_t {
 #define CISTPL_EDC_CRC		0x02
 #define CISTPL_EDC_PCC		0x03
 
-typedef union cisparse_t {
-    cistpl_device_t		device;
-    cistpl_checksum_t		checksum;
-    cistpl_longlink_t		longlink;
-    cistpl_longlink_mfc_t	longlink_mfc;
-    cistpl_vers_1_t		version_1;
-    cistpl_altstr_t		altstr;
-    cistpl_jedec_t		jedec;
-    cistpl_manfid_t		manfid;
-    cistpl_funcid_t		funcid;
-    cistpl_funce_t		funce;
-    cistpl_bar_t		bar;
-    cistpl_config_t		config;
-    cistpl_cftable_entry_t	cftable_entry;
-    cistpl_cftable_entry_cb_t	cftable_entry_cb;
-    cistpl_device_geo_t		device_geo;
-    cistpl_vers_2_t		vers_2;
-    cistpl_org_t		org;
-    cistpl_format_t		format;
+typedef union cisparse_t
+{
+	cistpl_device_t		device;
+	cistpl_checksum_t		checksum;
+	cistpl_longlink_t		longlink;
+	cistpl_longlink_mfc_t	longlink_mfc;
+	cistpl_vers_1_t		version_1;
+	cistpl_altstr_t		altstr;
+	cistpl_jedec_t		jedec;
+	cistpl_manfid_t		manfid;
+	cistpl_funcid_t		funcid;
+	cistpl_funce_t		funce;
+	cistpl_bar_t		bar;
+	cistpl_config_t		config;
+	cistpl_cftable_entry_t	cftable_entry;
+	cistpl_cftable_entry_cb_t	cftable_entry_cb;
+	cistpl_device_geo_t		device_geo;
+	cistpl_vers_2_t		vers_2;
+	cistpl_org_t		org;
+	cistpl_format_t		format;
 } cisparse_t;
 
-typedef struct tuple_t {
-    u_int	Attributes;
-    cisdata_t 	DesiredTuple;
-    u_int	Flags;		/* internal use */
-    u_int	LinkOffset;	/* internal use */
-    u_int	CISOffset;	/* internal use */
-    cisdata_t	TupleCode;
-    cisdata_t	TupleLink;
-    cisdata_t	TupleOffset;
-    cisdata_t	TupleDataMax;
-    cisdata_t	TupleDataLen;
-    cisdata_t	*TupleData;
+typedef struct tuple_t
+{
+	u_int	Attributes;
+	cisdata_t 	DesiredTuple;
+	u_int	Flags;		/* internal use */
+	u_int	LinkOffset;	/* internal use */
+	u_int	CISOffset;	/* internal use */
+	cisdata_t	TupleCode;
+	cisdata_t	TupleLink;
+	cisdata_t	TupleOffset;
+	cisdata_t	TupleDataMax;
+	cisdata_t	TupleDataLen;
+	cisdata_t	*TupleData;
 } tuple_t;
 
 /* Special cisdata_t value */

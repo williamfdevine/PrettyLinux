@@ -71,7 +71,8 @@
  * @frequency:	Current output frequency
  * @i2c_client:	I2C client pointer
  */
-struct clk_si570 {
+struct clk_si570
+{
 	struct clk_hw hw;
 	struct regmap *regmap;
 	unsigned int div_offset;
@@ -85,7 +86,8 @@ struct clk_si570 {
 };
 #define to_clk_si570(_hw)	container_of(_hw, struct clk_si570, hw)
 
-enum clk_si570_variant {
+enum clk_si570_variant
+{
 	si57x,
 	si59x
 };
@@ -101,22 +103,28 @@ enum clk_si570_variant {
  * Retrieve clock dividers and multipliers from the HW.
  */
 static int si570_get_divs(struct clk_si570 *data, u64 *rfreq,
-		unsigned int *n1, unsigned int *hs_div)
+						  unsigned int *n1, unsigned int *hs_div)
 {
 	int err;
 	u8 reg[6];
 	u64 tmp;
 
 	err = regmap_bulk_read(data->regmap, SI570_REG_HS_N1 + data->div_offset,
-			reg, ARRAY_SIZE(reg));
+						   reg, ARRAY_SIZE(reg));
+
 	if (err)
+	{
 		return err;
+	}
 
 	*hs_div = ((reg[0] & HS_DIV_MASK) >> HS_DIV_SHIFT) + HS_DIV_OFFSET;
 	*n1 = ((reg[0] & N1_6_2_MASK) << 2) + ((reg[1] & N1_1_0_MASK) >> 6) + 1;
+
 	/* Handle invalid cases */
 	if (*n1 > 1)
+	{
 		*n1 &= ~1;
+	}
 
 	tmp = reg[1] & RFREQ_37_32_MASK;
 	tmp = (tmp << 8) + reg[2];
@@ -142,18 +150,26 @@ static int si570_get_defaults(struct clk_si570 *data, u64 fout)
 	regmap_write(data->regmap, SI570_REG_CONTROL, SI570_CNTRL_RECALL);
 
 	err = si570_get_divs(data, &data->rfreq, &data->n1, &data->hs_div);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/*
 	 * Accept optional precision loss to avoid arithmetic overflows.
 	 * Acceptable per Silicon Labs Application Note AN334.
 	 */
 	fdco = fout * data->n1 * data->hs_div;
+
 	if (fdco >= (1LL << 36))
+	{
 		data->fxtal = div64_u64(fdco << 24, data->rfreq >> 4);
+	}
 	else
+	{
 		data->fxtal = div64_u64(fdco << 28, data->rfreq);
+	}
 
 	data->frequency = fout;
 
@@ -170,14 +186,14 @@ static int si570_update_rfreq(struct clk_si570 *data)
 	u8 reg[5];
 
 	reg[0] = ((data->n1 - 1) << 6) |
-		((data->rfreq >> 32) & RFREQ_37_32_MASK);
+			 ((data->rfreq >> 32) & RFREQ_37_32_MASK);
 	reg[1] = (data->rfreq >> 24) & 0xff;
 	reg[2] = (data->rfreq >> 16) & 0xff;
 	reg[3] = (data->rfreq >> 8) & 0xff;
 	reg[4] = data->rfreq & 0xff;
 
 	return regmap_bulk_write(data->regmap, SI570_REG_N1_RFREQ0 +
-			data->div_offset, reg, ARRAY_SIZE(reg));
+							 data->div_offset, reg, ARRAY_SIZE(reg));
 }
 
 /**
@@ -193,41 +209,55 @@ static int si570_update_rfreq(struct clk_si570 *data)
  * (@out_rfreq) for a given target @frequency.
  */
 static int si570_calc_divs(unsigned long frequency, struct clk_si570 *data,
-		u64 *out_rfreq, unsigned int *out_n1, unsigned int *out_hs_div)
+						   u64 *out_rfreq, unsigned int *out_n1, unsigned int *out_hs_div)
 {
 	int i;
 	unsigned int n1, hs_div;
 	u64 fdco, best_fdco = ULLONG_MAX;
 	static const uint8_t si570_hs_div_values[] = { 11, 9, 7, 6, 5, 4 };
 
-	for (i = 0; i < ARRAY_SIZE(si570_hs_div_values); i++) {
+	for (i = 0; i < ARRAY_SIZE(si570_hs_div_values); i++)
+	{
 		hs_div = si570_hs_div_values[i];
 		/* Calculate lowest possible value for n1 */
 		n1 = div_u64(div_u64(FDCO_MIN, hs_div), frequency);
+
 		if (!n1 || (n1 & 1))
+		{
 			n1++;
-		while (n1 <= 128) {
+		}
+
+		while (n1 <= 128)
+		{
 			fdco = (u64)frequency * (u64)hs_div * (u64)n1;
+
 			if (fdco > FDCO_MAX)
+			{
 				break;
-			if (fdco >= FDCO_MIN && fdco < best_fdco) {
+			}
+
+			if (fdco >= FDCO_MIN && fdco < best_fdco)
+			{
 				*out_n1 = n1;
 				*out_hs_div = hs_div;
 				*out_rfreq = div64_u64(fdco << 28, data->fxtal);
 				best_fdco = fdco;
 			}
+
 			n1 += (n1 == 1 ? 1 : 2);
 		}
 	}
 
 	if (best_fdco == ULLONG_MAX)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
 static unsigned long si570_recalc_rate(struct clk_hw *hw,
-		unsigned long parent_rate)
+									   unsigned long parent_rate)
 {
 	int err;
 	u64 rfreq, rate;
@@ -235,7 +265,9 @@ static unsigned long si570_recalc_rate(struct clk_hw *hw,
 	struct clk_si570 *data = to_clk_si570(hw);
 
 	err = si570_get_divs(data, &rfreq, &n1, &hs_div);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&data->i2c_client->dev, "unable to recalc rate\n");
 		return data->frequency;
 	}
@@ -247,7 +279,7 @@ static unsigned long si570_recalc_rate(struct clk_hw *hw,
 }
 
 static long si570_round_rate(struct clk_hw *hw, unsigned long rate,
-		unsigned long *parent_rate)
+							 unsigned long *parent_rate)
 {
 	int err;
 	u64 rfreq;
@@ -255,18 +287,25 @@ static long si570_round_rate(struct clk_hw *hw, unsigned long rate,
 	struct clk_si570 *data = to_clk_si570(hw);
 
 	if (!rate)
+	{
 		return 0;
+	}
 
 	if (div64_u64(abs(rate - data->frequency) * 10000LL,
-				data->frequency) < 35) {
+				  data->frequency) < 35)
+	{
 		rfreq = div64_u64((data->rfreq * rate) +
-				div64_u64(data->frequency, 2), data->frequency);
+						  div64_u64(data->frequency, 2), data->frequency);
 		n1 = data->n1;
 		hs_div = data->hs_div;
 
-	} else {
+	}
+	else
+	{
 		err = si570_calc_divs(rate, data, &rfreq, &n1, &hs_div);
-		if (err) {
+
+		if (err)
+		{
 			dev_err(&data->i2c_client->dev,
 					"unable to round rate\n");
 			return 0;
@@ -289,9 +328,12 @@ static int si570_set_frequency(struct clk_si570 *data, unsigned long frequency)
 	int err;
 
 	err = si570_calc_divs(frequency, data, &data->rfreq, &data->n1,
-			&data->hs_div);
+						  &data->hs_div);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/*
 	 * The DCO reg should be accessed with a read-modify-write operation
@@ -299,8 +341,8 @@ static int si570_set_frequency(struct clk_si570 *data, unsigned long frequency)
 	 */
 	regmap_write(data->regmap, SI570_REG_FREEZE_DCO, SI570_FREEZE_DCO);
 	regmap_write(data->regmap, SI570_REG_HS_N1 + data->div_offset,
-			((data->hs_div - HS_DIV_OFFSET) << HS_DIV_SHIFT) |
-			(((data->n1 - 1) >> 2) & N1_6_2_MASK));
+				 ((data->hs_div - HS_DIV_OFFSET) << HS_DIV_SHIFT) |
+				 (((data->n1 - 1) >> 2) & N1_6_2_MASK));
 	si570_update_rfreq(data);
 	regmap_write(data->regmap, SI570_REG_FREEZE_DCO, 0);
 	regmap_write(data->regmap, SI570_REG_CONTROL, SI570_CNTRL_NEWFREQ);
@@ -320,7 +362,7 @@ static int si570_set_frequency(struct clk_si570 *data, unsigned long frequency)
  * Update output frequency for small frequency changes (< 3,500 ppm).
  */
 static int si570_set_frequency_small(struct clk_si570 *data,
-				     unsigned long frequency)
+									 unsigned long frequency)
 {
 	/*
 	 * This is a re-implementation of DIV_ROUND_CLOSEST
@@ -328,7 +370,7 @@ static int si570_set_frequency_small(struct clk_si570 *data,
 	 * insert EABI calls
 	 */
 	data->rfreq = div64_u64((data->rfreq * frequency) +
-			div_u64(data->frequency, 2), data->frequency);
+							div_u64(data->frequency, 2), data->frequency);
 	regmap_write(data->regmap, SI570_REG_CONTROL, SI570_CNTRL_FREEZE_M);
 	si570_update_rfreq(data);
 	regmap_write(data->regmap, SI570_REG_CONTROL, 0);
@@ -340,33 +382,41 @@ static int si570_set_frequency_small(struct clk_si570 *data,
 }
 
 static int si570_set_rate(struct clk_hw *hw, unsigned long rate,
-		unsigned long parent_rate)
+						  unsigned long parent_rate)
 {
 	struct clk_si570 *data = to_clk_si570(hw);
 	struct i2c_client *client = data->i2c_client;
 	int err;
 
-	if (rate < SI570_MIN_FREQ || rate > data->max_freq) {
+	if (rate < SI570_MIN_FREQ || rate > data->max_freq)
+	{
 		dev_err(&client->dev,
-			"requested frequency %lu Hz is out of range\n", rate);
+				"requested frequency %lu Hz is out of range\n", rate);
 		return -EINVAL;
 	}
 
 	if (div64_u64(abs(rate - data->frequency) * 10000LL,
-				data->frequency) < 35)
+				  data->frequency) < 35)
+	{
 		err = si570_set_frequency_small(data, rate);
+	}
 	else
+	{
 		err = si570_set_frequency(data, rate);
+	}
 
 	if (err)
+	{
 		return err;
+	}
 
 	data->frequency = rate;
 
 	return 0;
 }
 
-static const struct clk_ops si570_clk_ops = {
+static const struct clk_ops si570_clk_ops =
+{
 	.recalc_rate = si570_recalc_rate,
 	.round_rate = si570_round_rate,
 	.set_rate = si570_set_rate,
@@ -374,27 +424,32 @@ static const struct clk_ops si570_clk_ops = {
 
 static bool si570_regmap_is_volatile(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case SI570_REG_CONTROL:
-		return true;
-	default:
-		return false;
+	switch (reg)
+	{
+		case SI570_REG_CONTROL:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
 static bool si570_regmap_is_writeable(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case SI570_REG_HS_N1 ... (SI570_REG_RFREQ4 + SI570_DIV_OFFSET_7PPM):
-	case SI570_REG_CONTROL:
-	case SI570_REG_FREEZE_DCO:
-		return true;
-	default:
-		return false;
+	switch (reg)
+	{
+		case SI570_REG_HS_N1 ... (SI570_REG_RFREQ4 + SI570_DIV_OFFSET_7PPM):
+		case SI570_REG_CONTROL:
+		case SI570_REG_FREEZE_DCO:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
-static const struct regmap_config si570_regmap_config = {
+static const struct regmap_config si570_regmap_config =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 	.cache_type = REGCACHE_RBTREE,
@@ -404,7 +459,7 @@ static const struct regmap_config si570_regmap_config = {
 };
 
 static int si570_probe(struct i2c_client *client,
-		const struct i2c_device_id *id)
+					   const struct i2c_device_id *id)
 {
 	struct clk_si570 *data;
 	struct clk_init_data init;
@@ -413,8 +468,11 @@ static int si570_probe(struct i2c_client *client,
 	enum clk_si570_variant variant = id->driver_data;
 
 	data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	init.ops = &si570_clk_ops;
 	init.flags = 0;
@@ -422,62 +480,87 @@ static int si570_probe(struct i2c_client *client,
 	data->hw.init = &init;
 	data->i2c_client = client;
 
-	if (variant == si57x) {
+	if (variant == si57x)
+	{
 		err = of_property_read_u32(client->dev.of_node,
-				"temperature-stability", &stability);
-		if (err) {
+								   "temperature-stability", &stability);
+
+		if (err)
+		{
 			dev_err(&client->dev,
-				  "'temperature-stability' property missing\n");
+					"'temperature-stability' property missing\n");
 			return err;
 		}
+
 		/* adjust register offsets for 7ppm devices */
 		if (stability == 7)
+		{
 			data->div_offset = SI570_DIV_OFFSET_7PPM;
+		}
 
 		data->max_freq = SI570_MAX_FREQ;
-	} else {
+	}
+	else
+	{
 		data->max_freq = SI598_MAX_FREQ;
 	}
 
 	if (of_property_read_string(client->dev.of_node, "clock-output-names",
-			&init.name))
+								&init.name))
+	{
 		init.name = client->dev.of_node->name;
+	}
 
 	err = of_property_read_u32(client->dev.of_node, "factory-fout",
-			&factory_fout);
-	if (err) {
+							   &factory_fout);
+
+	if (err)
+	{
 		dev_err(&client->dev, "'factory-fout' property missing\n");
 		return err;
 	}
 
 	data->regmap = devm_regmap_init_i2c(client, &si570_regmap_config);
-	if (IS_ERR(data->regmap)) {
+
+	if (IS_ERR(data->regmap))
+	{
 		dev_err(&client->dev, "failed to allocate register map\n");
 		return PTR_ERR(data->regmap);
 	}
 
 	i2c_set_clientdata(client, data);
 	err = si570_get_defaults(data, factory_fout);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = devm_clk_hw_register(&client->dev, &data->hw);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&client->dev, "clock registration failed\n");
 		return err;
 	}
+
 	err = of_clk_add_hw_provider(client->dev.of_node, of_clk_hw_simple_get,
-				     &data->hw);
-	if (err) {
+								 &data->hw);
+
+	if (err)
+	{
 		dev_err(&client->dev, "unable to add clk provider\n");
 		return err;
 	}
 
 	/* Read the requested initial output frequency from device tree */
 	if (!of_property_read_u32(client->dev.of_node, "clock-frequency",
-				&initial_fout)) {
+							  &initial_fout))
+	{
 		err = clk_set_rate(data->hw.clk, initial_fout);
-		if (err) {
+
+		if (err)
+		{
 			of_clk_del_provider(client->dev.of_node);
 			return err;
 		}
@@ -485,7 +568,7 @@ static int si570_probe(struct i2c_client *client,
 
 	/* Display a message indicating that we've successfully registered */
 	dev_info(&client->dev, "registered, current frequency %llu Hz\n",
-			data->frequency);
+			 data->frequency);
 
 	return 0;
 }
@@ -496,7 +579,8 @@ static int si570_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id si570_id[] = {
+static const struct i2c_device_id si570_id[] =
+{
 	{ "si570", si57x },
 	{ "si571", si57x },
 	{ "si598", si59x },
@@ -505,7 +589,8 @@ static const struct i2c_device_id si570_id[] = {
 };
 MODULE_DEVICE_TABLE(i2c, si570_id);
 
-static const struct of_device_id clk_si570_of_match[] = {
+static const struct of_device_id clk_si570_of_match[] =
+{
 	{ .compatible = "silabs,si570" },
 	{ .compatible = "silabs,si571" },
 	{ .compatible = "silabs,si598" },
@@ -514,7 +599,8 @@ static const struct of_device_id clk_si570_of_match[] = {
 };
 MODULE_DEVICE_TABLE(of, clk_si570_of_match);
 
-static struct i2c_driver si570_driver = {
+static struct i2c_driver si570_driver =
+{
 	.driver = {
 		.name = "si570",
 		.of_match_table = clk_si570_of_match,

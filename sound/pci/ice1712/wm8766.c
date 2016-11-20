@@ -32,7 +32,10 @@
 static void snd_wm8766_write(struct snd_wm8766 *wm, u16 addr, u16 data)
 {
 	if (addr < WM8766_REG_COUNT)
+	{
 		wm->regs[addr] = data;
+	}
+
 	wm->ops.write(wm, addr, data);
 }
 
@@ -40,7 +43,8 @@ static void snd_wm8766_write(struct snd_wm8766 *wm, u16 addr, u16 data)
 
 static const DECLARE_TLV_DB_SCALE(wm8766_tlv, -12750, 50, 1);
 
-static struct snd_wm8766_ctl snd_wm8766_default_ctl[WM8766_CTL_COUNT] = {
+static struct snd_wm8766_ctl snd_wm8766_default_ctl[WM8766_CTL_COUNT] =
+{
 	[WM8766_CTL_CH1_VOL] = {
 		.name = "Channel 1 Playback Volume",
 		.type = SNDRV_CTL_ELEM_TYPE_INTEGER,
@@ -151,7 +155,8 @@ static struct snd_wm8766_ctl snd_wm8766_default_ctl[WM8766_CTL_COUNT] = {
 void snd_wm8766_init(struct snd_wm8766 *wm)
 {
 	int i;
-	static const u16 default_values[] = {
+	static const u16 default_values[] =
+	{
 		0x000, 0x100,
 		0x120, 0x000,
 		0x000, 0x100, 0x000, 0x100, 0x000,
@@ -162,9 +167,12 @@ void snd_wm8766_init(struct snd_wm8766 *wm)
 
 	snd_wm8766_write(wm, WM8766_REG_RESET, 0x00); /* reset */
 	udelay(10);
+
 	/* load defaults */
 	for (i = 0; i < ARRAY_SIZE(default_values); i++)
+	{
 		snd_wm8766_write(wm, i, default_values[i]);
+	}
 }
 
 void snd_wm8766_resume(struct snd_wm8766 *wm)
@@ -172,7 +180,9 @@ void snd_wm8766_resume(struct snd_wm8766 *wm)
 	int i;
 
 	for (i = 0; i < WM8766_REG_COUNT; i++)
+	{
 		snd_wm8766_write(wm, i, wm->regs[i]);
+	}
 }
 
 void snd_wm8766_set_if(struct snd_wm8766 *wm, u16 dac)
@@ -193,7 +203,7 @@ void snd_wm8766_volume_restore(struct snd_wm8766 *wm)
 /* mixer callbacks */
 
 static int snd_wm8766_volume_info(struct snd_kcontrol *kcontrol,
-				   struct snd_ctl_elem_info *uinfo)
+								  struct snd_ctl_elem_info *uinfo)
 {
 	struct snd_wm8766 *wm = snd_kcontrol_chip(kcontrol);
 	int n = kcontrol->private_value;
@@ -207,48 +217,65 @@ static int snd_wm8766_volume_info(struct snd_kcontrol *kcontrol,
 }
 
 static int snd_wm8766_enum_info(struct snd_kcontrol *kcontrol,
-				      struct snd_ctl_elem_info *uinfo)
+								struct snd_ctl_elem_info *uinfo)
 {
 	struct snd_wm8766 *wm = snd_kcontrol_chip(kcontrol);
 	int n = kcontrol->private_value;
 
 	return snd_ctl_enum_info(uinfo, 1, wm->ctl[n].max,
-						wm->ctl[n].enum_names);
+							 wm->ctl[n].enum_names);
 }
 
 static int snd_wm8766_ctl_get(struct snd_kcontrol *kcontrol,
-				  struct snd_ctl_elem_value *ucontrol)
+							  struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_wm8766 *wm = snd_kcontrol_chip(kcontrol);
 	int n = kcontrol->private_value;
 	u16 val1, val2;
 
 	if (wm->ctl[n].get)
+	{
 		wm->ctl[n].get(wm, &val1, &val2);
-	else {
+	}
+	else
+	{
 		val1 = wm->regs[wm->ctl[n].reg1] & wm->ctl[n].mask1;
 		val1 >>= __ffs(wm->ctl[n].mask1);
-		if (wm->ctl[n].flags & WM8766_FLAG_STEREO) {
+
+		if (wm->ctl[n].flags & WM8766_FLAG_STEREO)
+		{
 			val2 = wm->regs[wm->ctl[n].reg2] & wm->ctl[n].mask2;
 			val2 >>= __ffs(wm->ctl[n].mask2);
+
 			if (wm->ctl[n].flags & WM8766_FLAG_VOL_UPDATE)
+			{
 				val2 &= ~WM8766_VOL_UPDATE;
+			}
 		}
 	}
-	if (wm->ctl[n].flags & WM8766_FLAG_INVERT) {
+
+	if (wm->ctl[n].flags & WM8766_FLAG_INVERT)
+	{
 		val1 = wm->ctl[n].max - (val1 - wm->ctl[n].min);
+
 		if (wm->ctl[n].flags & WM8766_FLAG_STEREO)
+		{
 			val2 = wm->ctl[n].max - (val2 - wm->ctl[n].min);
+		}
 	}
+
 	ucontrol->value.integer.value[0] = val1;
+
 	if (wm->ctl[n].flags & WM8766_FLAG_STEREO)
+	{
 		ucontrol->value.integer.value[1] = val2;
+	}
 
 	return 0;
 }
 
 static int snd_wm8766_ctl_put(struct snd_kcontrol *kcontrol,
-				  struct snd_ctl_elem_value *ucontrol)
+							  struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_wm8766 *wm = snd_kcontrol_chip(kcontrol);
 	int n = kcontrol->private_value;
@@ -257,29 +284,44 @@ static int snd_wm8766_ctl_put(struct snd_kcontrol *kcontrol,
 	/* this also works for enum because value is an union */
 	regval1 = ucontrol->value.integer.value[0];
 	regval2 = ucontrol->value.integer.value[1];
-	if (wm->ctl[n].flags & WM8766_FLAG_INVERT) {
+
+	if (wm->ctl[n].flags & WM8766_FLAG_INVERT)
+	{
 		regval1 = wm->ctl[n].max - (regval1 - wm->ctl[n].min);
 		regval2 = wm->ctl[n].max - (regval2 - wm->ctl[n].min);
 	}
+
 	if (wm->ctl[n].set)
+	{
 		wm->ctl[n].set(wm, regval1, regval2);
-	else {
+	}
+	else
+	{
 		val = wm->regs[wm->ctl[n].reg1] & ~wm->ctl[n].mask1;
 		val |= regval1 << __ffs(wm->ctl[n].mask1);
+
 		/* both stereo controls in one register */
 		if (wm->ctl[n].flags & WM8766_FLAG_STEREO &&
-				wm->ctl[n].reg1 == wm->ctl[n].reg2) {
+			wm->ctl[n].reg1 == wm->ctl[n].reg2)
+		{
 			val &= ~wm->ctl[n].mask2;
 			val |= regval2 << __ffs(wm->ctl[n].mask2);
 		}
+
 		snd_wm8766_write(wm, wm->ctl[n].reg1, val);
+
 		/* stereo controls in different registers */
 		if (wm->ctl[n].flags & WM8766_FLAG_STEREO &&
-				wm->ctl[n].reg1 != wm->ctl[n].reg2) {
+			wm->ctl[n].reg1 != wm->ctl[n].reg2)
+		{
 			val = wm->regs[wm->ctl[n].reg2] & ~wm->ctl[n].mask2;
 			val |= regval2 << __ffs(wm->ctl[n].mask2);
+
 			if (wm->ctl[n].flags & WM8766_FLAG_VOL_UPDATE)
+			{
 				val |= WM8766_VOL_UPDATE;
+			}
+
 			snd_wm8766_write(wm, wm->ctl[n].reg2, val);
 		}
 	}
@@ -297,35 +339,54 @@ static int snd_wm8766_add_control(struct snd_wm8766 *wm, int num)
 	cont.private_value = num;
 	cont.name = wm->ctl[num].name;
 	cont.access = SNDRV_CTL_ELEM_ACCESS_READWRITE;
+
 	if (wm->ctl[num].flags & WM8766_FLAG_LIM ||
-	    wm->ctl[num].flags & WM8766_FLAG_ALC)
+		wm->ctl[num].flags & WM8766_FLAG_ALC)
+	{
 		cont.access |= SNDRV_CTL_ELEM_ACCESS_INACTIVE;
+	}
+
 	cont.tlv.p = NULL;
 	cont.get = snd_wm8766_ctl_get;
 	cont.put = snd_wm8766_ctl_put;
 
-	switch (wm->ctl[num].type) {
-	case SNDRV_CTL_ELEM_TYPE_INTEGER:
-		cont.info = snd_wm8766_volume_info;
-		cont.access |= SNDRV_CTL_ELEM_ACCESS_TLV_READ;
-		cont.tlv.p = wm->ctl[num].tlv;
-		break;
-	case SNDRV_CTL_ELEM_TYPE_BOOLEAN:
-		wm->ctl[num].max = 1;
-		if (wm->ctl[num].flags & WM8766_FLAG_STEREO)
-			cont.info = snd_ctl_boolean_stereo_info;
-		else
-			cont.info = snd_ctl_boolean_mono_info;
-		break;
-	case SNDRV_CTL_ELEM_TYPE_ENUMERATED:
-		cont.info = snd_wm8766_enum_info;
-		break;
-	default:
-		return -EINVAL;
+	switch (wm->ctl[num].type)
+	{
+		case SNDRV_CTL_ELEM_TYPE_INTEGER:
+			cont.info = snd_wm8766_volume_info;
+			cont.access |= SNDRV_CTL_ELEM_ACCESS_TLV_READ;
+			cont.tlv.p = wm->ctl[num].tlv;
+			break;
+
+		case SNDRV_CTL_ELEM_TYPE_BOOLEAN:
+			wm->ctl[num].max = 1;
+
+			if (wm->ctl[num].flags & WM8766_FLAG_STEREO)
+			{
+				cont.info = snd_ctl_boolean_stereo_info;
+			}
+			else
+			{
+				cont.info = snd_ctl_boolean_mono_info;
+			}
+
+			break;
+
+		case SNDRV_CTL_ELEM_TYPE_ENUMERATED:
+			cont.info = snd_wm8766_enum_info;
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	ctl = snd_ctl_new1(&cont, wm);
+
 	if (!ctl)
+	{
 		return -ENOMEM;
+	}
+
 	wm->ctl[num].kctl = ctl;
 
 	return snd_ctl_add(wm->card, ctl);
@@ -336,10 +397,14 @@ int snd_wm8766_build_controls(struct snd_wm8766 *wm)
 	int err, i;
 
 	for (i = 0; i < WM8766_CTL_COUNT; i++)
-		if (wm->ctl[i].name) {
+		if (wm->ctl[i].name)
+		{
 			err = snd_wm8766_add_control(wm, i);
+
 			if (err < 0)
+			{
 				return err;
+			}
 		}
 
 	return 0;

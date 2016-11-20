@@ -133,7 +133,8 @@ static u8 ulaw_to_alaw[256] =
 };
 
 /* alaw -> 4bit compression */
-static u8 alaw_to_4bit[256] = {
+static u8 alaw_to_4bit[256] =
+{
 	0x0e, 0x01, 0x0a, 0x05, 0x0f, 0x00, 0x0c, 0x03,
 	0x0d, 0x02, 0x08, 0x07, 0x0f, 0x00, 0x0b, 0x04,
 	0x0e, 0x01, 0x0a, 0x05, 0x0f, 0x00, 0x0c, 0x03,
@@ -169,13 +170,15 @@ static u8 alaw_to_4bit[256] = {
 };
 
 /* 4bit -> alaw decompression */
-static u8 _4bit_to_alaw[16] = {
+static u8 _4bit_to_alaw[16] =
+{
 	0x5d, 0x51, 0xd9, 0xd7, 0x5f, 0x53, 0xa3, 0x4b,
 	0x2a, 0x3a, 0x22, 0x2e, 0x26, 0x56, 0x20, 0x2c,
 };
 
 /* ulaw -> 4bit compression */
-static u8 ulaw_to_4bit[256] = {
+static u8 ulaw_to_4bit[256] =
+{
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -211,7 +214,8 @@ static u8 ulaw_to_4bit[256] = {
 };
 
 /* 4bit -> ulaw decompression */
-static u8 _4bit_to_ulaw[16] = {
+static u8 _4bit_to_ulaw[16] =
+{
 	0x11, 0x21, 0x31, 0x40, 0x4e, 0x5c, 0x68, 0x71,
 	0xfe, 0xef, 0xe7, 0xdb, 0xcd, 0xbf, 0xaf, 0x9f,
 };
@@ -228,10 +232,13 @@ l1oip_law_to_4bit(u8 *data, int len, u8 *result, u32 *state)
 	int ii, i = 0, o = 0;
 
 	if (!len)
+	{
 		return 0;
+	}
 
 	/* send saved byte and first input byte */
-	if (*state) {
+	if (*state)
+	{
 		*result++ = table_com[(((*state) << 8) & 0xff00) | (*data++)];
 		len--;
 		o++;
@@ -239,8 +246,9 @@ l1oip_law_to_4bit(u8 *data, int len, u8 *result, u32 *state)
 
 	ii = len >> 1;
 
-	while (i < ii) {
-		*result++ = table_com[(data[0]<<8) | (data[1])];
+	while (i < ii)
+	{
+		*result++ = table_com[(data[0] << 8) | (data[1])];
 		data += 2;
 		i++;
 		o++;
@@ -248,9 +256,13 @@ l1oip_law_to_4bit(u8 *data, int len, u8 *result, u32 *state)
 
 	/* if len has an odd number, we save byte for next call */
 	if (len & 1)
+	{
 		*state = 0x100 + *data;
+	}
 	else
+	{
 		*state = 0;
+	}
 
 	return o;
 }
@@ -265,7 +277,8 @@ l1oip_4bit_to_law(u8 *data, int len, u8 *result)
 	int i = 0;
 	u16 r;
 
-	while (i < len) {
+	while (i < len)
+	{
 		r = table_dec[*data++];
 		*result++ = r >> 8;
 		*result++ = r;
@@ -284,7 +297,8 @@ l1oip_alaw_to_ulaw(u8 *data, int len, u8 *result)
 {
 	int i = 0;
 
-	while (i < len) {
+	while (i < len)
+	{
 		*result++ = alaw_to_ulaw[*data++];
 		i++;
 	}
@@ -297,7 +311,8 @@ l1oip_ulaw_to_alaw(u8 *data, int len, u8 *result)
 {
 	int i = 0;
 
-	while (i < len) {
+	while (i < len)
+	{
 		*result++ = ulaw_to_alaw[*data++];
 		i++;
 	}
@@ -325,44 +340,69 @@ l1oip_4bit_alloc(int ulaw)
 
 	/* in case, it is called again */
 	if (table_dec)
+	{
 		return 0;
+	}
 
 	/* alloc conversion tables */
 	table_com = vzalloc(65536);
 	table_dec = vzalloc(512);
-	if (!table_com || !table_dec) {
+
+	if (!table_com || !table_dec)
+	{
 		l1oip_4bit_free();
 		return -ENOMEM;
 	}
+
 	/* generate compression table */
 	i1 = 0;
-	while (i1 < 256) {
+
+	while (i1 < 256)
+	{
 		if (ulaw)
+		{
 			c = ulaw_to_4bit[i1];
+		}
 		else
+		{
 			c = alaw_to_4bit[i1];
+		}
+
 		i2 = 0;
-		while (i2 < 256) {
+
+		while (i2 < 256)
+		{
 			table_com[(i1 << 8) | i2] |= (c << 4);
 			table_com[(i2 << 8) | i1] |= c;
 			i2++;
 		}
+
 		i1++;
 	}
 
 	/* generate decompression table */
 	i1 = 0;
-	while (i1 < 16) {
+
+	while (i1 < 16)
+	{
 		if (ulaw)
+		{
 			sample = _4bit_to_ulaw[i1];
+		}
 		else
+		{
 			sample = _4bit_to_alaw[i1];
+		}
+
 		i2 = 0;
-		while (i2 < 16) {
+
+		while (i2 < 16)
+		{
 			table_dec[(i1 << 4) | i2] |= (sample << 8);
 			table_dec[(i2 << 4) | i1] |= sample;
 			i2++;
 		}
+
 		i1++;
 	}
 

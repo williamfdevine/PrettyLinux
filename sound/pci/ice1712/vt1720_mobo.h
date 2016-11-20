@@ -22,13 +22,13 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  *
- */      
+ */
 
 #define VT1720_MOBO_DEVICE_DESC        "{Albatron,K8X800 Pro II},"\
-				       "{Chaintech,ZNF3-150},"\
-				       "{Chaintech,ZNF3-250},"\
-				       "{Chaintech,9CJS},"\
-				       "{Shuttle,SN25P},"
+	"{Chaintech,ZNF3-150},"\
+	"{Chaintech,ZNF3-250},"\
+	"{Chaintech,9CJS},"\
+	"{Shuttle,SN25P},"
 
 #define VT1720_SUBDEVICE_K8X800		0xf217052c
 #define VT1720_SUBDEVICE_ZNF3_150	0x0f2741f6

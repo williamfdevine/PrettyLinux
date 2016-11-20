@@ -47,7 +47,8 @@ dm_block_t dm_bm_nr_blocks(struct dm_block_manager *bm);
  * important to be consistent with your use of validators.  The only time
  * you can change validators is if you call dm_bm_write_lock_zero.
  */
-struct dm_block_validator {
+struct dm_block_validator
+{
 	const char *name;
 	void (*prepare_for_write)(struct dm_block_validator *v, struct dm_block *b, size_t block_size);
 
@@ -71,28 +72,28 @@ struct dm_block_validator {
  * written back to the disk sometime after dm_bm_unlock is called.
  */
 int dm_bm_read_lock(struct dm_block_manager *bm, dm_block_t b,
-		    struct dm_block_validator *v,
-		    struct dm_block **result);
+					struct dm_block_validator *v,
+					struct dm_block **result);
 
 int dm_bm_write_lock(struct dm_block_manager *bm, dm_block_t b,
-		     struct dm_block_validator *v,
-		     struct dm_block **result);
+					 struct dm_block_validator *v,
+					 struct dm_block **result);
 
 /*
  * The *_try_lock variants return -EWOULDBLOCK if the block isn't
  * available immediately.
  */
 int dm_bm_read_try_lock(struct dm_block_manager *bm, dm_block_t b,
-			struct dm_block_validator *v,
-			struct dm_block **result);
+						struct dm_block_validator *v,
+						struct dm_block **result);
 
 /*
  * Use dm_bm_write_lock_zero() when you know you're going to
  * overwrite the block completely.  It saves a disk read.
  */
 int dm_bm_write_lock_zero(struct dm_block_manager *bm, dm_block_t b,
-			  struct dm_block_validator *v,
-			  struct dm_block **result);
+						  struct dm_block_validator *v,
+						  struct dm_block **result);
 
 void dm_bm_unlock(struct dm_block *b);
 

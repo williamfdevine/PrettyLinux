@@ -55,13 +55,15 @@ static int register_balloon(struct device *dev);
 
 /* React to a change in the target key */
 static void watch_target(struct xenbus_watch *watch,
-			 const char **vec, unsigned int len)
+						 const char **vec, unsigned int len)
 {
 	unsigned long long new_target;
 	int err;
 
 	err = xenbus_scanf(XBT_NIL, "memory", "target", "%llu", &new_target);
-	if (err != 1) {
+
+	if (err != 1)
+	{
 		/* This is ok (for domain0 at least) - so just return */
 		return;
 	}
@@ -71,33 +73,40 @@ static void watch_target(struct xenbus_watch *watch,
 	 */
 	balloon_set_new_target(new_target >> (PAGE_SHIFT - 10));
 }
-static struct xenbus_watch target_watch = {
+static struct xenbus_watch target_watch =
+{
 	.node = "memory/target",
 	.callback = watch_target,
 };
 
 
 static int balloon_init_watcher(struct notifier_block *notifier,
-				unsigned long event,
-				void *data)
+								unsigned long event,
+								void *data)
 {
 	int err;
 
 	err = register_xenbus_watch(&target_watch);
+
 	if (err)
+	{
 		pr_err("Failed to set balloon watcher\n");
+	}
 
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block xenstore_notifier = {
+static struct notifier_block xenstore_notifier =
+{
 	.notifier_call = balloon_init_watcher,
 };
 
 static int __init balloon_init(void)
 {
 	if (!xen_domain())
+	{
 		return -ENODEV;
+	}
 
 	pr_info("Initialising balloon driver\n");
 
@@ -113,8 +122,8 @@ subsys_initcall(balloon_init);
 
 #define BALLOON_SHOW(name, format, args...)				\
 	static ssize_t show_##name(struct device *dev,			\
-				   struct device_attribute *attr,	\
-				   char *buf)				\
+							   struct device_attribute *attr,	\
+							   char *buf)				\
 	{								\
 		return sprintf(buf, format, ##args);			\
 	}								\
@@ -130,21 +139,23 @@ static DEVICE_ULONG_ATTR(retry_count, 0444, balloon_stats.retry_count);
 static DEVICE_ULONG_ATTR(max_retry_count, 0644, balloon_stats.max_retry_count);
 
 static ssize_t show_target_kb(struct device *dev, struct device_attribute *attr,
-			      char *buf)
+							  char *buf)
 {
 	return sprintf(buf, "%lu\n", PAGES2KB(balloon_stats.target_pages));
 }
 
 static ssize_t store_target_kb(struct device *dev,
-			       struct device_attribute *attr,
-			       const char *buf,
-			       size_t count)
+							   struct device_attribute *attr,
+							   const char *buf,
+							   size_t count)
 {
 	char *endchar;
 	unsigned long long target_bytes;
 
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
 
 	target_bytes = simple_strtoull(buf, &endchar, 0) * 1024;
 
@@ -154,27 +165,29 @@ static ssize_t store_target_kb(struct device *dev,
 }
 
 static DEVICE_ATTR(target_kb, S_IRUGO | S_IWUSR,
-		   show_target_kb, store_target_kb);
+				   show_target_kb, store_target_kb);
 
 
 static ssize_t show_target(struct device *dev, struct device_attribute *attr,
-			      char *buf)
+						   char *buf)
 {
 	return sprintf(buf, "%llu\n",
-		       (unsigned long long)balloon_stats.target_pages
-		       << PAGE_SHIFT);
+				   (unsigned long long)balloon_stats.target_pages
+				   << PAGE_SHIFT);
 }
 
 static ssize_t store_target(struct device *dev,
-			    struct device_attribute *attr,
-			    const char *buf,
-			    size_t count)
+							struct device_attribute *attr,
+							const char *buf,
+							size_t count)
 {
 	char *endchar;
 	unsigned long long target_bytes;
 
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
 
 	target_bytes = memparse(buf, &endchar);
 
@@ -184,10 +197,11 @@ static ssize_t store_target(struct device *dev,
 }
 
 static DEVICE_ATTR(target, S_IRUGO | S_IWUSR,
-		   show_target, store_target);
+				   show_target, store_target);
 
 
-static struct attribute *balloon_attrs[] = {
+static struct attribute *balloon_attrs[] =
+{
 	&dev_attr_target_kb.attr,
 	&dev_attr_target.attr,
 	&dev_attr_schedule_delay.attr.attr,
@@ -197,29 +211,34 @@ static struct attribute *balloon_attrs[] = {
 	NULL
 };
 
-static const struct attribute_group balloon_group = {
+static const struct attribute_group balloon_group =
+{
 	.attrs = balloon_attrs
 };
 
-static struct attribute *balloon_info_attrs[] = {
+static struct attribute *balloon_info_attrs[] =
+{
 	&dev_attr_current_kb.attr,
 	&dev_attr_low_kb.attr,
 	&dev_attr_high_kb.attr,
 	NULL
 };
 
-static const struct attribute_group balloon_info_group = {
+static const struct attribute_group balloon_info_group =
+{
 	.name = "info",
 	.attrs = balloon_info_attrs
 };
 
-static const struct attribute_group *balloon_groups[] = {
+static const struct attribute_group *balloon_groups[] =
+{
 	&balloon_group,
 	&balloon_info_group,
 	NULL
 };
 
-static struct bus_type balloon_subsys = {
+static struct bus_type balloon_subsys =
+{
 	.name = BALLOON_CLASS_NAME,
 	.dev_name = BALLOON_CLASS_NAME,
 };
@@ -229,15 +248,20 @@ static int register_balloon(struct device *dev)
 	int error;
 
 	error = subsys_system_register(&balloon_subsys, NULL);
+
 	if (error)
+	{
 		return error;
+	}
 
 	dev->id = 0;
 	dev->bus = &balloon_subsys;
 	dev->groups = balloon_groups;
 
 	error = device_register(dev);
-	if (error) {
+
+	if (error)
+	{
 		bus_unregister(&balloon_subsys);
 		return error;
 	}

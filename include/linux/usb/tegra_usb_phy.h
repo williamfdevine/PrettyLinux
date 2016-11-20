@@ -29,14 +29,16 @@
  *      and hsdiscon_level should be set for adequate signal quality
  */
 
-struct tegra_phy_soc_config {
+struct tegra_phy_soc_config
+{
 	bool utmi_pll_config_in_car_module;
 	bool has_hostpc;
 	bool requires_usbmode_setup;
 	bool requires_extra_tuning_parameters;
 };
 
-struct tegra_utmip_config {
+struct tegra_utmip_config
+{
 	u8 hssync_start_delay;
 	u8 elastic_limit;
 	u8 idle_wait_delay;
@@ -50,7 +52,8 @@ struct tegra_utmip_config {
 	u8 hsdiscon_level;
 };
 
-enum tegra_usb_phy_port_speed {
+enum tegra_usb_phy_port_speed
+{
 	TEGRA_USB_PHY_PORT_SPEED_FULL = 0,
 	TEGRA_USB_PHY_PORT_SPEED_LOW,
 	TEGRA_USB_PHY_PORT_SPEED_HIGH,
@@ -58,7 +61,8 @@ enum tegra_usb_phy_port_speed {
 
 struct tegra_xtal_freq;
 
-struct tegra_usb_phy {
+struct tegra_usb_phy
+{
 	int instance;
 	const struct tegra_xtal_freq *freq;
 	void __iomem *regs;
@@ -82,7 +86,7 @@ void tegra_usb_phy_preresume(struct usb_phy *phy);
 void tegra_usb_phy_postresume(struct usb_phy *phy);
 
 void tegra_ehci_phy_restore_start(struct usb_phy *phy,
-				 enum tegra_usb_phy_port_speed port_speed);
+								  enum tegra_usb_phy_port_speed port_speed);
 
 void tegra_ehci_phy_restore_end(struct usb_phy *phy);
 

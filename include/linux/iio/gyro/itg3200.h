@@ -101,12 +101,14 @@
  * @i2c:    actual i2c_client
  * @trig:   data ready trigger from itg3200 pin
  **/
-struct itg3200 {
+struct itg3200
+{
 	struct i2c_client	*i2c;
 	struct iio_trigger	*trig;
 };
 
-enum ITG3200_SCAN_INDEX {
+enum ITG3200_SCAN_INDEX
+{
 	ITG3200_SCAN_TEMP,
 	ITG3200_SCAN_GYRO_X,
 	ITG3200_SCAN_GYRO_Y,
@@ -115,10 +117,10 @@ enum ITG3200_SCAN_INDEX {
 };
 
 int itg3200_write_reg_8(struct iio_dev *indio_dev,
-		u8 reg_address, u8 val);
+						u8 reg_address, u8 val);
 
 int itg3200_read_reg_8(struct iio_dev *indio_dev,
-		u8 reg_address, u8 *val);
+					   u8 reg_address, u8 *val);
 
 
 #ifdef CONFIG_IIO_BUFFER

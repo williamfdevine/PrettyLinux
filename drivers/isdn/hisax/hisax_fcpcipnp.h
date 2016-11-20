@@ -4,13 +4,15 @@
 
 #define HSCX_BUFMAX	4096
 
-enum {
+enum
+{
 	AVM_FRITZ_PCI,
 	AVM_FRITZ_PNP,
 	AVM_FRITZ_PCIV2,
 };
 
-struct hdlc_stat_reg {
+struct hdlc_stat_reg
+{
 #ifdef __BIG_ENDIAN
 	u_char fill;
 	u_char mode;
@@ -24,13 +26,15 @@ struct hdlc_stat_reg {
 #endif
 } __attribute__((packed));
 
-struct fritz_bcs {
+struct fritz_bcs
+{
 	struct hisax_b_if b_if;
 	struct fritz_adapter *adapter;
 	int mode;
 	int channel;
 
-	union {
+	union
+	{
 		u_int ctrl;
 		struct hdlc_stat_reg sr;
 	} ctrl;
@@ -43,7 +47,8 @@ struct fritz_bcs {
 	struct sk_buff *tx_skb;     /* B-Channel transmit Buffer */
 };
 
-struct fritz_adapter {
+struct fritz_adapter
+{
 	int type;
 	spinlock_t hw_lock;
 	unsigned int io;

@@ -41,7 +41,8 @@
 static int		vxfs_readpage(struct file *, struct page *);
 static sector_t		vxfs_bmap(struct address_space *, sector_t);
 
-const struct address_space_operations vxfs_aops = {
+const struct address_space_operations vxfs_aops =
+{
 	.readpage =		vxfs_readpage,
 	.bmap =			vxfs_bmap,
 };
@@ -67,20 +68,24 @@ vxfs_put_page(struct page *pp)
 struct page *
 vxfs_get_page(struct address_space *mapping, u_long n)
 {
-	struct page *			pp;
+	struct page 			*pp;
 
 	pp = read_mapping_page(mapping, n, NULL);
 
-	if (!IS_ERR(pp)) {
+	if (!IS_ERR(pp))
+	{
 		kmap(pp);
+
 		/** if (!PageChecked(pp)) **/
-			/** vxfs_check_page(pp); **/
+		/** vxfs_check_page(pp); **/
 		if (PageError(pp))
+		{
 			goto fail;
+		}
 	}
-	
+
 	return (pp);
-		 
+
 fail:
 	vxfs_put_page(pp);
 	return ERR_PTR(-EIO);
@@ -111,7 +116,7 @@ vxfs_bread(struct inode *ip, int block)
 }
 
 /**
- * vxfs_get_block - locate buffer for given inode,block tuple 
+ * vxfs_get_block - locate buffer for given inode,block tuple
  * @ip:		inode
  * @iblock:	logical block
  * @bp:		buffer skeleton
@@ -127,12 +132,14 @@ vxfs_bread(struct inode *ip, int block)
  */
 static int
 vxfs_getblk(struct inode *ip, sector_t iblock,
-	    struct buffer_head *bp, int create)
+			struct buffer_head *bp, int create)
 {
 	daddr_t			pblock;
 
 	pblock = vxfs_bmap1(ip, iblock);
-	if (pblock != 0) {
+
+	if (pblock != 0)
+	{
 		map_bh(bp, ip->i_sb, pblock);
 		return 0;
 	}
@@ -160,7 +167,7 @@ vxfs_readpage(struct file *file, struct page *page)
 {
 	return block_read_full_page(page, vxfs_getblk);
 }
- 
+
 /**
  * vxfs_bmap - perform logical to physical block mapping
  * @mapping:	logical to physical mapping to use

@@ -60,7 +60,8 @@
  * floating signals.  (A weak pulldown would save power too, but many
  * drivers expect to see all-ones data as the no slave "response".)
  */
-struct spi_gpio_platform_data {
+struct spi_gpio_platform_data
+{
 	unsigned	sck;
 	unsigned long	mosi;
 	unsigned long	miso;

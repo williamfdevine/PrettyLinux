@@ -24,10 +24,11 @@
 #include <unistd.h>
 
 #ifndef ARRAY_SIZE
-#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
+	#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 #endif
 
-struct test_params {
+struct test_params
+{
 	int recv_family;
 	int send_family;
 	int protocol;
@@ -50,22 +51,26 @@ static struct sockaddr *new_any_sockaddr(int family, uint16_t port)
 	addr = malloc(sizeof(struct sockaddr_storage));
 	memset(addr, 0, sizeof(struct sockaddr_storage));
 
-	switch (family) {
-	case AF_INET:
-		addr4 = (struct sockaddr_in *)addr;
-		addr4->sin_family = AF_INET;
-		addr4->sin_addr.s_addr = htonl(INADDR_ANY);
-		addr4->sin_port = htons(port);
-		break;
-	case AF_INET6:
-		addr6 = (struct sockaddr_in6 *)addr;
-		addr6->sin6_family = AF_INET6;
-		addr6->sin6_addr = in6addr_any;
-		addr6->sin6_port = htons(port);
-		break;
-	default:
-		error(1, 0, "Unsupported family %d", family);
+	switch (family)
+	{
+		case AF_INET:
+			addr4 = (struct sockaddr_in *)addr;
+			addr4->sin_family = AF_INET;
+			addr4->sin_addr.s_addr = htonl(INADDR_ANY);
+			addr4->sin_port = htons(port);
+			break;
+
+		case AF_INET6:
+			addr6 = (struct sockaddr_in6 *)addr;
+			addr6->sin6_family = AF_INET6;
+			addr6->sin6_addr = in6addr_any;
+			addr6->sin6_port = htons(port);
+			break;
+
+		default:
+			error(1, 0, "Unsupported family %d", family);
 	}
+
 	return (struct sockaddr *)addr;
 }
 
@@ -75,18 +80,22 @@ static struct sockaddr *new_loopback_sockaddr(int family, uint16_t port)
 	struct sockaddr_in *addr4;
 	struct sockaddr_in6 *addr6;
 
-	switch (family) {
-	case AF_INET:
-		addr4 = (struct sockaddr_in *)addr;
-		addr4->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-		break;
-	case AF_INET6:
-		addr6 = (struct sockaddr_in6 *)addr;
-		addr6->sin6_addr = in6addr_loopback;
-		break;
-	default:
-		error(1, 0, "Unsupported family %d", family);
+	switch (family)
+	{
+		case AF_INET:
+			addr4 = (struct sockaddr_in *)addr;
+			addr4->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+			break;
+
+		case AF_INET6:
+			addr6 = (struct sockaddr_in6 *)addr;
+			addr6->sin6_addr = in6addr_loopback;
+			break;
+
+		default:
+			error(1, 0, "Unsupported family %d", family);
 	}
+
 	return addr;
 }
 
@@ -96,7 +105,8 @@ static void attach_ebpf(int fd, uint16_t mod)
 	static const char bpf_license[] = "GPL";
 
 	int bpf_fd;
-	const struct bpf_insn prog[] = {
+	const struct bpf_insn prog[] =
+	{
 		/* BPF_MOV64_REG(BPF_REG_6, BPF_REG_1) */
 		{ BPF_ALU64 | BPF_MOV | BPF_X, BPF_REG_6, BPF_REG_1, 0, 0 },
 		/* BPF_LD_ABS(BPF_W, 0) R0 = (uint32_t)skb[0] */
@@ -119,19 +129,25 @@ static void attach_ebpf(int fd, uint16_t mod)
 	attr.kern_version = 0;
 
 	bpf_fd = syscall(__NR_bpf, BPF_PROG_LOAD, &attr, sizeof(attr));
+
 	if (bpf_fd < 0)
+	{
 		error(1, errno, "ebpf error. log:\n%s\n", bpf_log_buf);
+	}
 
 	if (setsockopt(fd, SOL_SOCKET, SO_ATTACH_REUSEPORT_EBPF, &bpf_fd,
-			sizeof(bpf_fd)))
+				   sizeof(bpf_fd)))
+	{
 		error(1, errno, "failed to set SO_ATTACH_REUSEPORT_EBPF");
+	}
 
 	close(bpf_fd);
 }
 
 static void attach_cbpf(int fd, uint16_t mod)
 {
-	struct sock_filter code[] = {
+	struct sock_filter code[] =
+	{
 		/* A = (uint32_t)skb[0] */
 		{ BPF_LD  | BPF_W | BPF_ABS, 0, 0, 0 },
 		/* A = A % mod */
@@ -139,67 +155,93 @@ static void attach_cbpf(int fd, uint16_t mod)
 		/* return A */
 		{ BPF_RET | BPF_A, 0, 0, 0 },
 	};
-	struct sock_fprog p = {
+	struct sock_fprog p =
+	{
 		.len = ARRAY_SIZE(code),
 		.filter = code,
 	};
 
 	if (setsockopt(fd, SOL_SOCKET, SO_ATTACH_REUSEPORT_CBPF, &p, sizeof(p)))
+	{
 		error(1, errno, "failed to set SO_ATTACH_REUSEPORT_CBPF");
+	}
 }
 
 static void build_recv_group(const struct test_params p, int fd[], uint16_t mod,
-			     void (*attach_bpf)(int, uint16_t))
+							 void (*attach_bpf)(int, uint16_t))
 {
-	struct sockaddr * const addr =
+	struct sockaddr *const addr =
 		new_any_sockaddr(p.recv_family, p.recv_port);
 	int i, opt;
 
-	for (i = 0; i < p.recv_socks; ++i) {
+	for (i = 0; i < p.recv_socks; ++i)
+	{
 		fd[i] = socket(p.recv_family, p.protocol, 0);
+
 		if (fd[i] < 0)
+		{
 			error(1, errno, "failed to create recv %d", i);
+		}
 
 		opt = 1;
+
 		if (setsockopt(fd[i], SOL_SOCKET, SO_REUSEPORT, &opt,
-			       sizeof(opt)))
+					   sizeof(opt)))
+		{
 			error(1, errno, "failed to set SO_REUSEPORT on %d", i);
+		}
 
 		if (i == 0)
+		{
 			attach_bpf(fd[i], mod);
+		}
 
 		if (bind(fd[i], addr, sockaddr_size()))
+		{
 			error(1, errno, "failed to bind recv socket %d", i);
+		}
 
-		if (p.protocol == SOCK_STREAM) {
+		if (p.protocol == SOCK_STREAM)
+		{
 			opt = 4;
+
 			if (setsockopt(fd[i], SOL_TCP, TCP_FASTOPEN, &opt,
-				       sizeof(opt)))
+						   sizeof(opt)))
 				error(1, errno,
-				      "failed to set TCP_FASTOPEN on %d", i);
+					  "failed to set TCP_FASTOPEN on %d", i);
+
 			if (listen(fd[i], p.recv_socks * 10))
+			{
 				error(1, errno, "failed to listen on socket");
+			}
 		}
 	}
+
 	free(addr);
 }
 
 static void send_from(struct test_params p, uint16_t sport, char *buf,
-		      size_t len)
+					  size_t len)
 {
-	struct sockaddr * const saddr = new_any_sockaddr(p.send_family, sport);
-	struct sockaddr * const daddr =
+	struct sockaddr *const saddr = new_any_sockaddr(p.send_family, sport);
+	struct sockaddr *const daddr =
 		new_loopback_sockaddr(p.send_family, p.recv_port);
 	const int fd = socket(p.send_family, p.protocol, 0);
 
 	if (fd < 0)
+	{
 		error(1, errno, "failed to create send socket");
+	}
 
 	if (bind(fd, saddr, sockaddr_size()))
+	{
 		error(1, errno, "failed to bind send socket");
+	}
 
 	if (sendto(fd, buf, len, MSG_FASTOPEN, daddr, sockaddr_size()) < 0)
+	{
 		error(1, errno, "failed to send message");
+	}
 
 	close(fd);
 	free(saddr);
@@ -216,53 +258,82 @@ static void test_recv_order(const struct test_params p, int fd[], int mod)
 	uint32_t data, ndata;
 
 	epfd = epoll_create(1);
+
 	if (epfd < 0)
+	{
 		error(1, errno, "failed to create epoll");
-	for (i = 0; i < p.recv_socks; ++i) {
+	}
+
+	for (i = 0; i < p.recv_socks; ++i)
+	{
 		ev.events = EPOLLIN;
 		ev.data.fd = fd[i];
+
 		if (epoll_ctl(epfd, EPOLL_CTL_ADD, fd[i], &ev))
+		{
 			error(1, errno, "failed to register sock %d epoll", i);
+		}
 	}
 
 	memset(&msg, 0, sizeof(msg));
 	msg.msg_iov = &recv_io;
 	msg.msg_iovlen = 1;
 
-	for (data = 0; data < p.recv_socks * 2; ++data) {
+	for (data = 0; data < p.recv_socks * 2; ++data)
+	{
 		sport = p.send_port_min + data;
 		ndata = htonl(data);
 		memcpy(send_buf, &ndata, sizeof(ndata));
 		send_from(p, sport, send_buf, sizeof(ndata));
 
 		i = epoll_wait(epfd, &ev, 1, -1);
-		if (i < 0)
-			error(1, errno, "epoll wait failed");
 
-		if (p.protocol == SOCK_STREAM) {
+		if (i < 0)
+		{
+			error(1, errno, "epoll wait failed");
+		}
+
+		if (p.protocol == SOCK_STREAM)
+		{
 			conn = accept(ev.data.fd, NULL, NULL);
+
 			if (conn < 0)
+			{
 				error(1, errno, "error accepting");
+			}
+
 			i = recvmsg(conn, &msg, 0);
 			close(conn);
-		} else {
+		}
+		else
+		{
 			i = recvmsg(ev.data.fd, &msg, 0);
 		}
+
 		if (i < 0)
+		{
 			error(1, errno, "recvmsg error");
+		}
+
 		if (i != sizeof(ndata))
 			error(1, 0, "expected size %zd got %d",
-			      sizeof(ndata), i);
+				  sizeof(ndata), i);
 
 		for (i = 0; i < p.recv_socks; ++i)
 			if (ev.data.fd == fd[i])
+			{
 				break;
+			}
+
 		memcpy(&ndata, recv_buf, sizeof(ndata));
 		fprintf(stderr, "Socket %d: %d\n", i, ntohl(ndata));
 
 		expected = (sport % mod);
+
 		if (i != expected)
+		{
 			error(1, 0, "expected socket %d", expected);
+		}
 	}
 }
 
@@ -280,7 +351,9 @@ static void test_reuseport_ebpf(struct test_params p)
 	test_recv_order(p, fd, p.recv_socks / 2);
 
 	for (i = 0; i < p.recv_socks; ++i)
+	{
 		close(fd[i]);
+	}
 }
 
 static void test_reuseport_cbpf(struct test_params p)
@@ -297,47 +370,67 @@ static void test_reuseport_cbpf(struct test_params p)
 	test_recv_order(p, fd, p.recv_socks / 2);
 
 	for (i = 0; i < p.recv_socks; ++i)
+	{
 		close(fd[i]);
+	}
 }
 
 static void test_extra_filter(const struct test_params p)
 {
-	struct sockaddr * const addr =
+	struct sockaddr *const addr =
 		new_any_sockaddr(p.recv_family, p.recv_port);
 	int fd1, fd2, opt;
 
 	fprintf(stderr, "Testing too many filters...\n");
 	fd1 = socket(p.recv_family, p.protocol, 0);
+
 	if (fd1 < 0)
+	{
 		error(1, errno, "failed to create socket 1");
+	}
+
 	fd2 = socket(p.recv_family, p.protocol, 0);
+
 	if (fd2 < 0)
+	{
 		error(1, errno, "failed to create socket 2");
+	}
 
 	opt = 1;
+
 	if (setsockopt(fd1, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt)))
+	{
 		error(1, errno, "failed to set SO_REUSEPORT on socket 1");
+	}
+
 	if (setsockopt(fd2, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt)))
+	{
 		error(1, errno, "failed to set SO_REUSEPORT on socket 2");
+	}
 
 	attach_ebpf(fd1, 10);
 	attach_ebpf(fd2, 10);
 
 	if (bind(fd1, addr, sockaddr_size()))
+	{
 		error(1, errno, "failed to bind recv socket 1");
+	}
 
 	if (!bind(fd2, addr, sockaddr_size()) && errno != EADDRINUSE)
+	{
 		error(1, errno, "bind socket 2 should fail with EADDRINUSE");
+	}
 
 	free(addr);
 }
 
 static void test_filter_no_reuseport(const struct test_params p)
 {
-	struct sockaddr * const addr =
+	struct sockaddr *const addr =
 		new_any_sockaddr(p.recv_family, p.recv_port);
 	const char bpf_license[] = "GPL";
-	struct bpf_insn ecode[] = {
+	struct bpf_insn ecode[] =
+	{
 		{ BPF_ALU64 | BPF_MOV | BPF_K, BPF_REG_0, 0, 0, 10 },
 		{ BPF_JMP | BPF_EXIT, 0, 0, 0, 0 }
 	};
@@ -361,24 +454,39 @@ static void test_filter_no_reuseport(const struct test_params p)
 
 
 	bpf_fd = syscall(__NR_bpf, BPF_PROG_LOAD, &eprog, sizeof(eprog));
+
 	if (bpf_fd < 0)
+	{
 		error(1, errno, "ebpf error");
+	}
+
 	fd = socket(p.recv_family, p.protocol, 0);
+
 	if (fd < 0)
+	{
 		error(1, errno, "failed to create socket 1");
+	}
 
 	if (bind(fd, addr, sockaddr_size()))
+	{
 		error(1, errno, "failed to bind recv socket 1");
+	}
 
 	errno = 0;
+
 	if (!setsockopt(fd, SOL_SOCKET, SO_ATTACH_REUSEPORT_EBPF, &bpf_fd,
-			sizeof(bpf_fd)) || errno != EINVAL)
+					sizeof(bpf_fd)) || errno != EINVAL)
+	{
 		error(1, errno, "setsockopt should have returned EINVAL");
+	}
 
 	errno = 0;
+
 	if (!setsockopt(fd, SOL_SOCKET, SO_ATTACH_REUSEPORT_CBPF, &cprog,
-		       sizeof(cprog)) || errno != EINVAL)
+					sizeof(cprog)) || errno != EINVAL)
+	{
 		error(1, errno, "setsockopt should have returned EINVAL");
+	}
 
 	free(addr);
 }
@@ -389,15 +497,28 @@ static void test_filter_without_bind(void)
 
 	fprintf(stderr, "Testing filter add without bind...\n");
 	fd1 = socket(AF_INET, SOCK_DGRAM, 0);
+
 	if (fd1 < 0)
+	{
 		error(1, errno, "failed to create socket 1");
+	}
+
 	fd2 = socket(AF_INET, SOCK_DGRAM, 0);
+
 	if (fd2 < 0)
+	{
 		error(1, errno, "failed to create socket 2");
+	}
+
 	if (setsockopt(fd1, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt)))
+	{
 		error(1, errno, "failed to set SO_REUSEPORT on socket 1");
+	}
+
 	if (setsockopt(fd2, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt)))
+	{
 		error(1, errno, "failed to set SO_REUSEPORT on socket 2");
+	}
 
 	attach_ebpf(fd1, 10);
 	attach_cbpf(fd2, 10);
@@ -414,21 +535,34 @@ void enable_fastopen(void)
 	char buf[16];
 
 	if (fd < 0)
+	{
 		error(1, errno, "Unable to open tcp_fastopen sysctl");
+	}
+
 	if (read(fd, buf, sizeof(buf)) <= 0)
+	{
 		error(1, errno, "Unable to read tcp_fastopen sysctl");
+	}
+
 	val = atoi(buf);
 	close(fd);
 
-	if ((val & rw_mask) != rw_mask) {
+	if ((val & rw_mask) != rw_mask)
+	{
 		fd = open("/proc/sys/net/ipv4/tcp_fastopen", O_RDWR);
+
 		if (fd < 0)
 			error(1, errno,
-			      "Unable to open tcp_fastopen sysctl for writing");
+				  "Unable to open tcp_fastopen sysctl for writing");
+
 		val |= rw_mask;
 		size = snprintf(buf, 16, "%d", val);
+
 		if (write(fd, buf, size) <= 0)
+		{
 			error(1, errno, "Unable to write tcp_fastopen sysctl");
+		}
+
 		close(fd);
 	}
 }
@@ -439,176 +573,228 @@ int main(void)
 	/* NOTE: UDP socket lookups traverse a different code path when there
 	 * are > 10 sockets in a group.  Run the bpf test through both paths.
 	 */
-	test_reuseport_ebpf((struct test_params) {
+	test_reuseport_ebpf((struct test_params)
+	{
 		.recv_family = AF_INET,
-		.send_family = AF_INET,
-		.protocol = SOCK_DGRAM,
-		.recv_socks = 10,
-		.recv_port = 8000,
-		.send_port_min = 9000});
-	test_reuseport_ebpf((struct test_params) {
+		 .send_family = AF_INET,
+		  .protocol = SOCK_DGRAM,
+		   .recv_socks = 10,
+			.recv_port = 8000,
+			 .send_port_min = 9000
+	});
+	test_reuseport_ebpf((struct test_params)
+	{
 		.recv_family = AF_INET,
-		.send_family = AF_INET,
-		.protocol = SOCK_DGRAM,
-		.recv_socks = 20,
-		.recv_port = 8000,
-		.send_port_min = 9000});
-	test_reuseport_cbpf((struct test_params) {
+		 .send_family = AF_INET,
+		  .protocol = SOCK_DGRAM,
+		   .recv_socks = 20,
+			.recv_port = 8000,
+			 .send_port_min = 9000
+	});
+	test_reuseport_cbpf((struct test_params)
+	{
 		.recv_family = AF_INET,
-		.send_family = AF_INET,
-		.protocol = SOCK_DGRAM,
-		.recv_socks = 10,
-		.recv_port = 8001,
-		.send_port_min = 9020});
-	test_reuseport_cbpf((struct test_params) {
+		 .send_family = AF_INET,
+		  .protocol = SOCK_DGRAM,
+		   .recv_socks = 10,
+			.recv_port = 8001,
+			 .send_port_min = 9020
+	});
+	test_reuseport_cbpf((struct test_params)
+	{
 		.recv_family = AF_INET,
-		.send_family = AF_INET,
-		.protocol = SOCK_DGRAM,
-		.recv_socks = 20,
-		.recv_port = 8001,
-		.send_port_min = 9020});
-	test_extra_filter((struct test_params) {
+		 .send_family = AF_INET,
+		  .protocol = SOCK_DGRAM,
+		   .recv_socks = 20,
+			.recv_port = 8001,
+			 .send_port_min = 9020
+	});
+	test_extra_filter((struct test_params)
+	{
 		.recv_family = AF_INET,
-		.protocol = SOCK_DGRAM,
-		.recv_port = 8002});
-	test_filter_no_reuseport((struct test_params) {
+		 .protocol = SOCK_DGRAM,
+		  .recv_port = 8002
+	});
+	test_filter_no_reuseport((struct test_params)
+	{
 		.recv_family = AF_INET,
-		.protocol = SOCK_DGRAM,
-		.recv_port = 8008});
+		 .protocol = SOCK_DGRAM,
+		  .recv_port = 8008
+	});
 
 	fprintf(stderr, "---- IPv6 UDP ----\n");
-	test_reuseport_ebpf((struct test_params) {
+	test_reuseport_ebpf((struct test_params)
+	{
 		.recv_family = AF_INET6,
-		.send_family = AF_INET6,
-		.protocol = SOCK_DGRAM,
-		.recv_socks = 10,
-		.recv_port = 8003,
-		.send_port_min = 9040});
-	test_reuseport_ebpf((struct test_params) {
+		 .send_family = AF_INET6,
+		  .protocol = SOCK_DGRAM,
+		   .recv_socks = 10,
+			.recv_port = 8003,
+			 .send_port_min = 9040
+	});
+	test_reuseport_ebpf((struct test_params)
+	{
 		.recv_family = AF_INET6,
-		.send_family = AF_INET6,
-		.protocol = SOCK_DGRAM,
-		.recv_socks = 20,
-		.recv_port = 8003,
-		.send_port_min = 9040});
-	test_reuseport_cbpf((struct test_params) {
+		 .send_family = AF_INET6,
+		  .protocol = SOCK_DGRAM,
+		   .recv_socks = 20,
+			.recv_port = 8003,
+			 .send_port_min = 9040
+	});
+	test_reuseport_cbpf((struct test_params)
+	{
 		.recv_family = AF_INET6,
-		.send_family = AF_INET6,
-		.protocol = SOCK_DGRAM,
-		.recv_socks = 10,
-		.recv_port = 8004,
-		.send_port_min = 9060});
-	test_reuseport_cbpf((struct test_params) {
+		 .send_family = AF_INET6,
+		  .protocol = SOCK_DGRAM,
+		   .recv_socks = 10,
+			.recv_port = 8004,
+			 .send_port_min = 9060
+	});
+	test_reuseport_cbpf((struct test_params)
+	{
 		.recv_family = AF_INET6,
-		.send_family = AF_INET6,
-		.protocol = SOCK_DGRAM,
-		.recv_socks = 20,
-		.recv_port = 8004,
-		.send_port_min = 9060});
-	test_extra_filter((struct test_params) {
+		 .send_family = AF_INET6,
+		  .protocol = SOCK_DGRAM,
+		   .recv_socks = 20,
+			.recv_port = 8004,
+			 .send_port_min = 9060
+	});
+	test_extra_filter((struct test_params)
+	{
 		.recv_family = AF_INET6,
-		.protocol = SOCK_DGRAM,
-		.recv_port = 8005});
-	test_filter_no_reuseport((struct test_params) {
+		 .protocol = SOCK_DGRAM,
+		  .recv_port = 8005
+	});
+	test_filter_no_reuseport((struct test_params)
+	{
 		.recv_family = AF_INET6,
-		.protocol = SOCK_DGRAM,
-		.recv_port = 8009});
+		 .protocol = SOCK_DGRAM,
+		  .recv_port = 8009
+	});
 
 	fprintf(stderr, "---- IPv6 UDP w/ mapped IPv4 ----\n");
-	test_reuseport_ebpf((struct test_params) {
+	test_reuseport_ebpf((struct test_params)
+	{
 		.recv_family = AF_INET6,
-		.send_family = AF_INET,
-		.protocol = SOCK_DGRAM,
-		.recv_socks = 20,
-		.recv_port = 8006,
-		.send_port_min = 9080});
-	test_reuseport_ebpf((struct test_params) {
+		 .send_family = AF_INET,
+		  .protocol = SOCK_DGRAM,
+		   .recv_socks = 20,
+			.recv_port = 8006,
+			 .send_port_min = 9080
+	});
+	test_reuseport_ebpf((struct test_params)
+	{
 		.recv_family = AF_INET6,
-		.send_family = AF_INET,
-		.protocol = SOCK_DGRAM,
-		.recv_socks = 10,
-		.recv_port = 8006,
-		.send_port_min = 9080});
-	test_reuseport_cbpf((struct test_params) {
+		 .send_family = AF_INET,
+		  .protocol = SOCK_DGRAM,
+		   .recv_socks = 10,
+			.recv_port = 8006,
+			 .send_port_min = 9080
+	});
+	test_reuseport_cbpf((struct test_params)
+	{
 		.recv_family = AF_INET6,
-		.send_family = AF_INET,
-		.protocol = SOCK_DGRAM,
-		.recv_socks = 10,
-		.recv_port = 8007,
-		.send_port_min = 9100});
-	test_reuseport_cbpf((struct test_params) {
+		 .send_family = AF_INET,
+		  .protocol = SOCK_DGRAM,
+		   .recv_socks = 10,
+			.recv_port = 8007,
+			 .send_port_min = 9100
+	});
+	test_reuseport_cbpf((struct test_params)
+	{
 		.recv_family = AF_INET6,
-		.send_family = AF_INET,
-		.protocol = SOCK_DGRAM,
-		.recv_socks = 20,
-		.recv_port = 8007,
-		.send_port_min = 9100});
+		 .send_family = AF_INET,
+		  .protocol = SOCK_DGRAM,
+		   .recv_socks = 20,
+			.recv_port = 8007,
+			 .send_port_min = 9100
+	});
 
 	/* TCP fastopen is required for the TCP tests */
 	enable_fastopen();
 	fprintf(stderr, "---- IPv4 TCP ----\n");
-	test_reuseport_ebpf((struct test_params) {
+	test_reuseport_ebpf((struct test_params)
+	{
 		.recv_family = AF_INET,
-		.send_family = AF_INET,
-		.protocol = SOCK_STREAM,
-		.recv_socks = 10,
-		.recv_port = 8008,
-		.send_port_min = 9120});
-	test_reuseport_cbpf((struct test_params) {
+		 .send_family = AF_INET,
+		  .protocol = SOCK_STREAM,
+		   .recv_socks = 10,
+			.recv_port = 8008,
+			 .send_port_min = 9120
+	});
+	test_reuseport_cbpf((struct test_params)
+	{
 		.recv_family = AF_INET,
-		.send_family = AF_INET,
-		.protocol = SOCK_STREAM,
-		.recv_socks = 10,
-		.recv_port = 8009,
-		.send_port_min = 9160});
-	test_extra_filter((struct test_params) {
+		 .send_family = AF_INET,
+		  .protocol = SOCK_STREAM,
+		   .recv_socks = 10,
+			.recv_port = 8009,
+			 .send_port_min = 9160
+	});
+	test_extra_filter((struct test_params)
+	{
 		.recv_family = AF_INET,
-		.protocol = SOCK_STREAM,
-		.recv_port = 8010});
-	test_filter_no_reuseport((struct test_params) {
+		 .protocol = SOCK_STREAM,
+		  .recv_port = 8010
+	});
+	test_filter_no_reuseport((struct test_params)
+	{
 		.recv_family = AF_INET,
-		.protocol = SOCK_STREAM,
-		.recv_port = 8011});
+		 .protocol = SOCK_STREAM,
+		  .recv_port = 8011
+	});
 
 	fprintf(stderr, "---- IPv6 TCP ----\n");
-	test_reuseport_ebpf((struct test_params) {
+	test_reuseport_ebpf((struct test_params)
+	{
 		.recv_family = AF_INET6,
-		.send_family = AF_INET6,
-		.protocol = SOCK_STREAM,
-		.recv_socks = 10,
-		.recv_port = 8012,
-		.send_port_min = 9200});
-	test_reuseport_cbpf((struct test_params) {
+		 .send_family = AF_INET6,
+		  .protocol = SOCK_STREAM,
+		   .recv_socks = 10,
+			.recv_port = 8012,
+			 .send_port_min = 9200
+	});
+	test_reuseport_cbpf((struct test_params)
+	{
 		.recv_family = AF_INET6,
-		.send_family = AF_INET6,
-		.protocol = SOCK_STREAM,
-		.recv_socks = 10,
-		.recv_port = 8013,
-		.send_port_min = 9240});
-	test_extra_filter((struct test_params) {
+		 .send_family = AF_INET6,
+		  .protocol = SOCK_STREAM,
+		   .recv_socks = 10,
+			.recv_port = 8013,
+			 .send_port_min = 9240
+	});
+	test_extra_filter((struct test_params)
+	{
 		.recv_family = AF_INET6,
-		.protocol = SOCK_STREAM,
-		.recv_port = 8014});
-	test_filter_no_reuseport((struct test_params) {
+		 .protocol = SOCK_STREAM,
+		  .recv_port = 8014
+	});
+	test_filter_no_reuseport((struct test_params)
+	{
 		.recv_family = AF_INET6,
-		.protocol = SOCK_STREAM,
-		.recv_port = 8015});
+		 .protocol = SOCK_STREAM,
+		  .recv_port = 8015
+	});
 
 	fprintf(stderr, "---- IPv6 TCP w/ mapped IPv4 ----\n");
-	test_reuseport_ebpf((struct test_params) {
+	test_reuseport_ebpf((struct test_params)
+	{
 		.recv_family = AF_INET6,
-		.send_family = AF_INET,
-		.protocol = SOCK_STREAM,
-		.recv_socks = 10,
-		.recv_port = 8016,
-		.send_port_min = 9320});
-	test_reuseport_cbpf((struct test_params) {
+		 .send_family = AF_INET,
+		  .protocol = SOCK_STREAM,
+		   .recv_socks = 10,
+			.recv_port = 8016,
+			 .send_port_min = 9320
+	});
+	test_reuseport_cbpf((struct test_params)
+	{
 		.recv_family = AF_INET6,
-		.send_family = AF_INET,
-		.protocol = SOCK_STREAM,
-		.recv_socks = 10,
-		.recv_port = 8017,
-		.send_port_min = 9360});
+		 .send_family = AF_INET,
+		  .protocol = SOCK_STREAM,
+		   .recv_socks = 10,
+			.recv_port = 8017,
+			 .send_port_min = 9360
+	});
 
 	test_filter_without_bind();
 

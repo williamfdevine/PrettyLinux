@@ -59,7 +59,8 @@ static int watchdog = 5000;
  *	@data_ptr: The physical address of the data block to receive into
  *	@next_desc: The physical address of the next descriptor element.
  */
-struct rx_ring_desc {
+struct rx_ring_desc
+{
 	__le32	status;
 	__le32	length;
 	__le32	data_ptr;
@@ -73,7 +74,8 @@ struct rx_ring_desc {
  *	@data_ptr: The physical address of the data block to receive into
  *	@next_desc: The physical address of the next descriptor element.
  */
-struct tx_ring_desc {
+struct tx_ring_desc
+{
 	__le32	owner;
 	__le32	status;
 	__le32	data_ptr;
@@ -86,7 +88,8 @@ struct tx_ring_desc {
  *	@dma_ptr: The mapped DMA pointer of the buffer
  *	@length: The number of bytes mapped to dma_ptr
  */
-struct ks8695_skbuff {
+struct ks8695_skbuff
+{
 	struct sk_buff	*skb;
 	dma_addr_t	dma_ptr;
 	u32		length;
@@ -114,7 +117,8 @@ struct ks8695_skbuff {
  *	@KS8695_DTYPE_LAN: This device is a LAN interface
  *	@KS8695_DTYPE_HPNA: This device is an HPNA interface
  */
-enum ks8695_dtype {
+enum ks8695_dtype
+{
 	KS8695_DTYPE_WAN,
 	KS8695_DTYPE_LAN,
 	KS8695_DTYPE_HPNA,
@@ -154,7 +158,8 @@ enum ks8695_dtype {
  *      @rx_lock: A lock to protect Rx irq function
  *	@msg_enable: The flags for which messages to emit
  */
-struct ks8695_priv {
+struct ks8695_priv
+{
 	int in_suspend;
 	struct net_device *ndev;
 	struct device *dev;
@@ -225,13 +230,16 @@ ks8695_writereg(struct ks8695_priv *ksp, int reg, u32 value)
 static const char *
 ks8695_port_type(struct ks8695_priv *ksp)
 {
-	switch (ksp->dtype) {
-	case KS8695_DTYPE_LAN:
-		return "LAN";
-	case KS8695_DTYPE_WAN:
-		return "WAN";
-	case KS8695_DTYPE_HPNA:
-		return "HPNA";
+	switch (ksp->dtype)
+	{
+		case KS8695_DTYPE_LAN:
+			return "LAN";
+
+		case KS8695_DTYPE_WAN:
+			return "WAN";
+
+		case KS8695_DTYPE_HPNA:
+			return "HPNA";
 	}
 
 	return "UNKNOWN";
@@ -252,7 +260,7 @@ ks8695_update_mac(struct ks8695_priv *ksp)
 	u32 machigh, maclow;
 
 	maclow	= ((ndev->dev_addr[2] << 24) | (ndev->dev_addr[3] << 16) |
-		   (ndev->dev_addr[4] <<  8) | (ndev->dev_addr[5] <<  0));
+			   (ndev->dev_addr[4] <<  8) | (ndev->dev_addr[5] <<  0));
 	machigh = ((ndev->dev_addr[0] <<  8) | (ndev->dev_addr[1] <<  0));
 
 	ks8695_writereg(ksp, KS8695_MAL, maclow);
@@ -275,14 +283,18 @@ ks8695_refill_rxbuffers(struct ks8695_priv *ksp)
 	/* Run around the RX ring, filling in any missing sk_buff's */
 	int buff_n;
 
-	for (buff_n = 0; buff_n < MAX_RX_DESC; ++buff_n) {
-		if (!ksp->rx_buffers[buff_n].skb) {
+	for (buff_n = 0; buff_n < MAX_RX_DESC; ++buff_n)
+	{
+		if (!ksp->rx_buffers[buff_n].skb)
+		{
 			struct sk_buff *skb =
 				netdev_alloc_skb(ksp->ndev, MAX_RXBUF_SIZE);
 			dma_addr_t mapping;
 
 			ksp->rx_buffers[buff_n].skb = skb;
-			if (skb == NULL) {
+
+			if (skb == NULL)
+			{
 				/* Failed to allocate one, perhaps
 				 * we'll try again later.
 				 */
@@ -290,14 +302,17 @@ ks8695_refill_rxbuffers(struct ks8695_priv *ksp)
 			}
 
 			mapping = dma_map_single(ksp->dev, skb->data,
-						 MAX_RXBUF_SIZE,
-						 DMA_FROM_DEVICE);
-			if (unlikely(dma_mapping_error(ksp->dev, mapping))) {
+									 MAX_RXBUF_SIZE,
+									 DMA_FROM_DEVICE);
+
+			if (unlikely(dma_mapping_error(ksp->dev, mapping)))
+			{
 				/* Failed to DMA map this SKB, try later */
 				dev_kfree_skb_irq(skb);
 				ksp->rx_buffers[buff_n].skb = NULL;
 				break;
 			}
+
 			ksp->rx_buffers[buff_n].dma_ptr = mapping;
 			ksp->rx_buffers[buff_n].length = MAX_RXBUF_SIZE;
 
@@ -329,19 +344,20 @@ ks8695_refill_rxbuffers(struct ks8695_priv *ksp)
  */
 static void
 ks8695_init_partial_multicast(struct ks8695_priv *ksp,
-			      struct net_device *ndev)
+							  struct net_device *ndev)
 {
 	u32 low, high;
 	int i;
 	struct netdev_hw_addr *ha;
 
 	i = 0;
-	netdev_for_each_mc_addr(ha, ndev) {
+	netdev_for_each_mc_addr(ha, ndev)
+	{
 		/* Ran out of space in chip? */
 		BUG_ON(i == KS8695_NR_ADDRESSES);
 
 		low = (ha->addr[2] << 24) | (ha->addr[3] << 16) |
-		      (ha->addr[4] << 8) | (ha->addr[5]);
+			  (ha->addr[4] << 8) | (ha->addr[5]);
 		high = (ha->addr[0] << 8) | (ha->addr[1]);
 
 		ks8695_writereg(ksp, KS8695_AAL_(i), low);
@@ -350,7 +366,8 @@ ks8695_init_partial_multicast(struct ks8695_priv *ksp,
 	}
 
 	/* Clear the remaining Additional Station Addresses */
-	for (; i < KS8695_NR_ADDRESSES; i++) {
+	for (; i < KS8695_NR_ADDRESSES; i++)
+	{
 		ks8695_writereg(ksp, KS8695_AAL_(i), 0);
 		ks8695_writereg(ksp, KS8695_AAH_(i), 0);
 	}
@@ -374,9 +391,11 @@ ks8695_tx_irq(int irq, void *dev_id)
 	struct ks8695_priv *ksp = netdev_priv(ndev);
 	int buff_n;
 
-	for (buff_n = 0; buff_n < MAX_TX_DESC; ++buff_n) {
+	for (buff_n = 0; buff_n < MAX_TX_DESC; ++buff_n)
+	{
 		if (ksp->tx_buffers[buff_n].skb &&
-		    !(ksp->tx_ring[buff_n].owner & cpu_to_le32(TDES_OWN))) {
+			!(ksp->tx_ring[buff_n].owner & cpu_to_le32(TDES_OWN)))
+		{
 			rmb();
 			/* An SKB which is not owned by HW is present */
 			/* Update the stats for the net_device */
@@ -388,9 +407,9 @@ ks8695_tx_irq(int irq, void *dev_id)
 
 			/* Free the sk_buff */
 			dma_unmap_single(ksp->dev,
-					 ksp->tx_buffers[buff_n].dma_ptr,
-					 ksp->tx_buffers[buff_n].length,
-					 DMA_TO_DEVICE);
+							 ksp->tx_buffers[buff_n].dma_ptr,
+							 ksp->tx_buffers[buff_n].length,
+							 DMA_TO_DEVICE);
 			dev_kfree_skb_irq(ksp->tx_buffers[buff_n].skb);
 			ksp->tx_buffers[buff_n].skb = NULL;
 			ksp->tx_ring_used--;
@@ -437,7 +456,8 @@ ks8695_rx_irq(int irq, void *dev_id)
 
 	spin_lock(&ksp->rx_lock);
 
-	if (napi_schedule_prep(&ksp->napi)) {
+	if (napi_schedule_prep(&ksp->napi))
+	{
 		unsigned long status = readl(KS8695_IRQ_VA + KS8695_INTEN);
 		unsigned long mask_bit = 1 << ks8695_get_rx_enable_bit(ksp);
 		/*disable rx interrupt*/
@@ -465,76 +485,92 @@ static int ks8695_rx(struct ks8695_priv *ksp, int budget)
 	int received = 0;
 
 	buff_n = ksp->next_rx_desc_read;
+
 	while (received < budget
-			&& ksp->rx_buffers[buff_n].skb
-			&& (!(ksp->rx_ring[buff_n].status &
-					cpu_to_le32(RDES_OWN)))) {
-			rmb();
-			flags = le32_to_cpu(ksp->rx_ring[buff_n].status);
+		   && ksp->rx_buffers[buff_n].skb
+		   && (!(ksp->rx_ring[buff_n].status &
+				 cpu_to_le32(RDES_OWN))))
+	{
+		rmb();
+		flags = le32_to_cpu(ksp->rx_ring[buff_n].status);
 
-			/* Found an SKB which we own, this means we
-			 * received a packet
+		/* Found an SKB which we own, this means we
+		 * received a packet
+		 */
+		if ((flags & (RDES_FS | RDES_LS)) !=
+			(RDES_FS | RDES_LS))
+		{
+			/* This packet is not the first and
+			 * the last segment.  Therefore it is
+			 * a "spanning" packet and we can't
+			 * handle it
 			 */
-			if ((flags & (RDES_FS | RDES_LS)) !=
-			    (RDES_FS | RDES_LS)) {
-				/* This packet is not the first and
-				 * the last segment.  Therefore it is
-				 * a "spanning" packet and we can't
-				 * handle it
-				 */
-				goto rx_failure;
+			goto rx_failure;
+		}
+
+		if (flags & (RDES_ES | RDES_RE))
+		{
+			/* It's an error packet */
+			ndev->stats.rx_errors++;
+
+			if (flags & RDES_TL)
+			{
+				ndev->stats.rx_length_errors++;
 			}
 
-			if (flags & (RDES_ES | RDES_RE)) {
-				/* It's an error packet */
-				ndev->stats.rx_errors++;
-				if (flags & RDES_TL)
-					ndev->stats.rx_length_errors++;
-				if (flags & RDES_RF)
-					ndev->stats.rx_length_errors++;
-				if (flags & RDES_CE)
-					ndev->stats.rx_crc_errors++;
-				if (flags & RDES_RE)
-					ndev->stats.rx_missed_errors++;
-
-				goto rx_failure;
+			if (flags & RDES_RF)
+			{
+				ndev->stats.rx_length_errors++;
 			}
 
-			pktlen = flags & RDES_FLEN;
-			pktlen -= 4; /* Drop the CRC */
+			if (flags & RDES_CE)
+			{
+				ndev->stats.rx_crc_errors++;
+			}
 
-			/* Retrieve the sk_buff */
-			skb = ksp->rx_buffers[buff_n].skb;
+			if (flags & RDES_RE)
+			{
+				ndev->stats.rx_missed_errors++;
+			}
 
-			/* Clear it from the ring */
-			ksp->rx_buffers[buff_n].skb = NULL;
-			ksp->rx_ring[buff_n].data_ptr = 0;
+			goto rx_failure;
+		}
 
-			/* Unmap the SKB */
-			dma_unmap_single(ksp->dev,
-					 ksp->rx_buffers[buff_n].dma_ptr,
-					 ksp->rx_buffers[buff_n].length,
-					 DMA_FROM_DEVICE);
+		pktlen = flags & RDES_FLEN;
+		pktlen -= 4; /* Drop the CRC */
 
-			/* Relinquish the SKB to the network layer */
-			skb_put(skb, pktlen);
-			skb->protocol = eth_type_trans(skb, ndev);
-			netif_receive_skb(skb);
+		/* Retrieve the sk_buff */
+		skb = ksp->rx_buffers[buff_n].skb;
 
-			/* Record stats */
-			ndev->stats.rx_packets++;
-			ndev->stats.rx_bytes += pktlen;
-			goto rx_finished;
+		/* Clear it from the ring */
+		ksp->rx_buffers[buff_n].skb = NULL;
+		ksp->rx_ring[buff_n].data_ptr = 0;
+
+		/* Unmap the SKB */
+		dma_unmap_single(ksp->dev,
+						 ksp->rx_buffers[buff_n].dma_ptr,
+						 ksp->rx_buffers[buff_n].length,
+						 DMA_FROM_DEVICE);
+
+		/* Relinquish the SKB to the network layer */
+		skb_put(skb, pktlen);
+		skb->protocol = eth_type_trans(skb, ndev);
+		netif_receive_skb(skb);
+
+		/* Record stats */
+		ndev->stats.rx_packets++;
+		ndev->stats.rx_bytes += pktlen;
+		goto rx_finished;
 
 rx_failure:
-			/* This ring entry is an error, but we can
-			 * re-use the skb
-			 */
-			/* Give the ring entry back to the hardware */
-			ksp->rx_ring[buff_n].status = cpu_to_le32(RDES_OWN);
+		/* This ring entry is an error, but we can
+		 * re-use the skb
+		 */
+		/* Give the ring entry back to the hardware */
+		ksp->rx_ring[buff_n].status = cpu_to_le32(RDES_OWN);
 rx_finished:
-			received++;
-			buff_n = (buff_n + 1) & MAX_RX_DESC_MASK;
+		received++;
+		buff_n = (buff_n + 1) & MAX_RX_DESC_MASK;
 	}
 
 	/* And note which RX descriptor we last did */
@@ -568,7 +604,8 @@ static int ks8695_poll(struct napi_struct *napi, int budget)
 
 	work_done = ks8695_rx(ksp, budget);
 
-	if (work_done < budget) {
+	if (work_done < budget)
+	{
 		unsigned long flags;
 		spin_lock_irqsave(&ksp->rx_lock, flags);
 		__napi_complete(napi);
@@ -576,6 +613,7 @@ static int ks8695_poll(struct napi_struct *napi, int budget)
 		writel(isr | mask_bit, KS8695_IRQ_VA + KS8695_INTEN);
 		spin_unlock_irqrestore(&ksp->rx_lock, flags);
 	}
+
 	return work_done;
 }
 
@@ -595,19 +633,25 @@ ks8695_link_irq(int irq, void *dev_id)
 	u32 ctrl;
 
 	ctrl = readl(ksp->phyiface_regs + KS8695_WMC);
-	if (ctrl & WMC_WLS) {
+
+	if (ctrl & WMC_WLS)
+	{
 		netif_carrier_on(ndev);
+
 		if (netif_msg_link(ksp))
 			dev_info(ksp->dev,
-				 "%s: Link is now up (10%sMbps/%s-duplex)\n",
-				 ndev->name,
-				 (ctrl & WMC_WSS) ? "0" : "",
-				 (ctrl & WMC_WDS) ? "Full" : "Half");
-	} else {
+					 "%s: Link is now up (10%sMbps/%s-duplex)\n",
+					 ndev->name,
+					 (ctrl & WMC_WSS) ? "0" : "",
+					 (ctrl & WMC_WDS) ? "Full" : "Half");
+	}
+	else
+	{
 		netif_carrier_off(ndev);
+
 		if (netif_msg_link(ksp))
 			dev_info(ksp->dev, "%s: Link is now down.\n",
-				 ndev->name);
+					 ndev->name);
 	}
 
 	return IRQ_HANDLED;
@@ -629,15 +673,21 @@ ks8695_reset(struct ks8695_priv *ksp)
 	int reset_timeout = watchdog;
 	/* Issue the reset via the TX DMA control register */
 	ks8695_writereg(ksp, KS8695_DTXC, DTXC_TRST);
-	while (reset_timeout--) {
+
+	while (reset_timeout--)
+	{
 		if (!(ks8695_readreg(ksp, KS8695_DTXC) & DTXC_TRST))
+		{
 			break;
+		}
+
 		msleep(1);
 	}
 
-	if (reset_timeout < 0) {
+	if (reset_timeout < 0)
+	{
 		dev_crit(ksp->dev,
-			 "Timeout waiting for DMA engines to reset\n");
+				 "Timeout waiting for DMA engines to reset\n");
 		/* And blithely carry on */
 	}
 
@@ -677,12 +727,17 @@ ks8695_shutdown(struct ks8695_priv *ksp)
 	/* Release the IRQs */
 	free_irq(ksp->rx_irq, ksp->ndev);
 	free_irq(ksp->tx_irq, ksp->ndev);
+
 	if (ksp->link_irq != -1)
+	{
 		free_irq(ksp->link_irq, ksp->ndev);
+	}
 
 	/* Throw away any pending TX packets */
-	for (buff_n = 0; buff_n < MAX_TX_DESC; ++buff_n) {
-		if (ksp->tx_buffers[buff_n].skb) {
+	for (buff_n = 0; buff_n < MAX_TX_DESC; ++buff_n)
+	{
+		if (ksp->tx_buffers[buff_n].skb)
+		{
 			/* Remove this SKB from the TX ring */
 			ksp->tx_ring[buff_n].owner = 0;
 			ksp->tx_ring[buff_n].status = 0;
@@ -690,26 +745,28 @@ ks8695_shutdown(struct ks8695_priv *ksp)
 
 			/* Unmap and bin this SKB */
 			dma_unmap_single(ksp->dev,
-					 ksp->tx_buffers[buff_n].dma_ptr,
-					 ksp->tx_buffers[buff_n].length,
-					 DMA_TO_DEVICE);
+							 ksp->tx_buffers[buff_n].dma_ptr,
+							 ksp->tx_buffers[buff_n].length,
+							 DMA_TO_DEVICE);
 			dev_kfree_skb_irq(ksp->tx_buffers[buff_n].skb);
 			ksp->tx_buffers[buff_n].skb = NULL;
 		}
 	}
 
 	/* Purge the RX buffers */
-	for (buff_n = 0; buff_n < MAX_RX_DESC; ++buff_n) {
-		if (ksp->rx_buffers[buff_n].skb) {
+	for (buff_n = 0; buff_n < MAX_RX_DESC; ++buff_n)
+	{
+		if (ksp->rx_buffers[buff_n].skb)
+		{
 			/* Remove the SKB from the RX ring */
 			ksp->rx_ring[buff_n].status = 0;
 			ksp->rx_ring[buff_n].data_ptr = 0;
 
 			/* Unmap and bin the SKB */
 			dma_unmap_single(ksp->dev,
-					 ksp->rx_buffers[buff_n].dma_ptr,
-					 ksp->rx_buffers[buff_n].length,
-					 DMA_FROM_DEVICE);
+							 ksp->rx_buffers[buff_n].dma_ptr,
+							 ksp->rx_buffers[buff_n].length,
+							 DMA_FROM_DEVICE);
 			dev_kfree_skb_irq(ksp->rx_buffers[buff_n].skb);
 			ksp->rx_buffers[buff_n].skb = NULL;
 		}
@@ -728,13 +785,14 @@ ks8695_shutdown(struct ks8695_priv *ksp)
  */
 static int
 ks8695_setup_irq(int irq, const char *irq_name,
-		 irq_handler_t handler, struct net_device *ndev)
+				 irq_handler_t handler, struct net_device *ndev)
 {
 	int ret;
 
 	ret = request_irq(irq, handler, IRQF_SHARED, irq_name, ndev);
 
-	if (ret) {
+	if (ret)
+	{
 		dev_err(&ndev->dev, "failure to request IRQ %d\n", irq);
 		return ret;
 	}
@@ -764,18 +822,30 @@ ks8695_init_net(struct ks8695_priv *ksp)
 
 	/* Request the IRQs */
 	ret = ks8695_setup_irq(ksp->rx_irq, ksp->rx_irq_name,
-			       ks8695_rx_irq, ksp->ndev);
+						   ks8695_rx_irq, ksp->ndev);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = ks8695_setup_irq(ksp->tx_irq, ksp->tx_irq_name,
-			       ks8695_tx_irq, ksp->ndev);
+						   ks8695_tx_irq, ksp->ndev);
+
 	if (ret)
+	{
 		return ret;
-	if (ksp->link_irq != -1) {
+	}
+
+	if (ksp->link_irq != -1)
+	{
 		ret = ks8695_setup_irq(ksp->link_irq, ksp->link_irq_name,
-				       ks8695_link_irq, ksp->ndev);
+							   ks8695_link_irq, ksp->ndev);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	/* Set up the ring indices */
@@ -811,20 +881,25 @@ ks8695_release_device(struct ks8695_priv *ksp)
 {
 	/* Unmap the registers */
 	iounmap(ksp->io_regs);
+
 	if (ksp->phyiface_regs)
+	{
 		iounmap(ksp->phyiface_regs);
+	}
 
 	/* And release the request */
 	release_resource(ksp->regs_req);
 	kfree(ksp->regs_req);
-	if (ksp->phyiface_req) {
+
+	if (ksp->phyiface_req)
+	{
 		release_resource(ksp->phyiface_req);
 		kfree(ksp->phyiface_req);
 	}
 
 	/* Free the ring buffers */
 	dma_free_coherent(ksp->dev, RING_DMA_SIZE,
-			  ksp->ring_base, ksp->ring_base_dma);
+					  ksp->ring_base, ksp->ring_base_dma);
 }
 
 /* Ethtool support */
@@ -867,8 +942,8 @@ ks8695_wan_get_settings(struct net_device *ndev, struct ethtool_cmd *cmd)
 
 	/* All ports on the KS8695 support these... */
 	cmd->supported = (SUPPORTED_10baseT_Half | SUPPORTED_10baseT_Full |
-			  SUPPORTED_100baseT_Half | SUPPORTED_100baseT_Full |
-			  SUPPORTED_TP | SUPPORTED_MII);
+					  SUPPORTED_100baseT_Half | SUPPORTED_100baseT_Full |
+					  SUPPORTED_TP | SUPPORTED_MII);
 	cmd->transceiver = XCVR_INTERNAL;
 
 	cmd->advertising = ADVERTISED_TP | ADVERTISED_MII;
@@ -877,33 +952,53 @@ ks8695_wan_get_settings(struct net_device *ndev, struct ethtool_cmd *cmd)
 	cmd->phy_address = 0;
 
 	ctrl = readl(ksp->phyiface_regs + KS8695_WMC);
-	if ((ctrl & WMC_WAND) == 0) {
+
+	if ((ctrl & WMC_WAND) == 0)
+	{
 		/* auto-negotiation is enabled */
 		cmd->advertising |= ADVERTISED_Autoneg;
+
 		if (ctrl & WMC_WANA100F)
+		{
 			cmd->advertising |= ADVERTISED_100baseT_Full;
+		}
+
 		if (ctrl & WMC_WANA100H)
+		{
 			cmd->advertising |= ADVERTISED_100baseT_Half;
+		}
+
 		if (ctrl & WMC_WANA10F)
+		{
 			cmd->advertising |= ADVERTISED_10baseT_Full;
+		}
+
 		if (ctrl & WMC_WANA10H)
+		{
 			cmd->advertising |= ADVERTISED_10baseT_Half;
+		}
+
 		if (ctrl & WMC_WANAP)
+		{
 			cmd->advertising |= ADVERTISED_Pause;
+		}
+
 		cmd->autoneg = AUTONEG_ENABLE;
 
 		ethtool_cmd_speed_set(cmd,
-				      (ctrl & WMC_WSS) ? SPEED_100 : SPEED_10);
+							  (ctrl & WMC_WSS) ? SPEED_100 : SPEED_10);
 		cmd->duplex = (ctrl & WMC_WDS) ?
-			DUPLEX_FULL : DUPLEX_HALF;
-	} else {
+					  DUPLEX_FULL : DUPLEX_HALF;
+	}
+	else
+	{
 		/* auto-negotiation is disabled */
 		cmd->autoneg = AUTONEG_DISABLE;
 
 		ethtool_cmd_speed_set(cmd, ((ctrl & WMC_WANF100) ?
-					    SPEED_100 : SPEED_10));
+									SPEED_100 : SPEED_10));
 		cmd->duplex = (ctrl & WMC_WANFF) ?
-			DUPLEX_FULL : DUPLEX_HALF;
+					  DUPLEX_FULL : DUPLEX_HALF;
 	}
 
 	return 0;
@@ -921,41 +1016,72 @@ ks8695_wan_set_settings(struct net_device *ndev, struct ethtool_cmd *cmd)
 	u32 ctrl;
 
 	if ((cmd->speed != SPEED_10) && (cmd->speed != SPEED_100))
+	{
 		return -EINVAL;
-	if ((cmd->duplex != DUPLEX_HALF) && (cmd->duplex != DUPLEX_FULL))
-		return -EINVAL;
-	if (cmd->port != PORT_MII)
-		return -EINVAL;
-	if (cmd->transceiver != XCVR_INTERNAL)
-		return -EINVAL;
-	if ((cmd->autoneg != AUTONEG_DISABLE) &&
-	    (cmd->autoneg != AUTONEG_ENABLE))
-		return -EINVAL;
+	}
 
-	if (cmd->autoneg == AUTONEG_ENABLE) {
+	if ((cmd->duplex != DUPLEX_HALF) && (cmd->duplex != DUPLEX_FULL))
+	{
+		return -EINVAL;
+	}
+
+	if (cmd->port != PORT_MII)
+	{
+		return -EINVAL;
+	}
+
+	if (cmd->transceiver != XCVR_INTERNAL)
+	{
+		return -EINVAL;
+	}
+
+	if ((cmd->autoneg != AUTONEG_DISABLE) &&
+		(cmd->autoneg != AUTONEG_ENABLE))
+	{
+		return -EINVAL;
+	}
+
+	if (cmd->autoneg == AUTONEG_ENABLE)
+	{
 		if ((cmd->advertising & (ADVERTISED_10baseT_Half |
-				ADVERTISED_10baseT_Full |
-				ADVERTISED_100baseT_Half |
-				ADVERTISED_100baseT_Full)) == 0)
+								 ADVERTISED_10baseT_Full |
+								 ADVERTISED_100baseT_Half |
+								 ADVERTISED_100baseT_Full)) == 0)
+		{
 			return -EINVAL;
+		}
 
 		ctrl = readl(ksp->phyiface_regs + KS8695_WMC);
 
 		ctrl &= ~(WMC_WAND | WMC_WANA100F | WMC_WANA100H |
-			  WMC_WANA10F | WMC_WANA10H);
+				  WMC_WANA10F | WMC_WANA10H);
+
 		if (cmd->advertising & ADVERTISED_100baseT_Full)
+		{
 			ctrl |= WMC_WANA100F;
+		}
+
 		if (cmd->advertising & ADVERTISED_100baseT_Half)
+		{
 			ctrl |= WMC_WANA100H;
+		}
+
 		if (cmd->advertising & ADVERTISED_10baseT_Full)
+		{
 			ctrl |= WMC_WANA10F;
+		}
+
 		if (cmd->advertising & ADVERTISED_10baseT_Half)
+		{
 			ctrl |= WMC_WANA10H;
+		}
 
 		/* force a re-negotiation */
 		ctrl |= WMC_WANR;
 		writel(ctrl, ksp->phyiface_regs + KS8695_WMC);
-	} else {
+	}
+	else
+	{
 		ctrl = readl(ksp->phyiface_regs + KS8695_WMC);
 
 		/* disable auto-negotiation */
@@ -963,9 +1089,14 @@ ks8695_wan_set_settings(struct net_device *ndev, struct ethtool_cmd *cmd)
 		ctrl &= ~(WMC_WANF100 | WMC_WANFF);
 
 		if (cmd->speed == SPEED_100)
+		{
 			ctrl |= WMC_WANF100;
+		}
+
 		if (cmd->duplex == DUPLEX_FULL)
+		{
 			ctrl |= WMC_WANFF;
+		}
 
 		writel(ctrl, ksp->phyiface_regs + KS8695_WMC);
 	}
@@ -987,10 +1118,12 @@ ks8695_wan_nwayreset(struct net_device *ndev)
 
 	if ((ctrl & WMC_WAND) == 0)
 		writel(ctrl | WMC_WANR,
-		       ksp->phyiface_regs + KS8695_WMC);
+			   ksp->phyiface_regs + KS8695_WMC);
 	else
 		/* auto-negotiation not enabled */
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -1031,16 +1164,18 @@ ks8695_get_drvinfo(struct net_device *ndev, struct ethtool_drvinfo *info)
 	strlcpy(info->driver, MODULENAME, sizeof(info->driver));
 	strlcpy(info->version, MODULEVERSION, sizeof(info->version));
 	strlcpy(info->bus_info, dev_name(ndev->dev.parent),
-		sizeof(info->bus_info));
+			sizeof(info->bus_info));
 }
 
-static const struct ethtool_ops ks8695_ethtool_ops = {
+static const struct ethtool_ops ks8695_ethtool_ops =
+{
 	.get_msglevel	= ks8695_get_msglevel,
 	.set_msglevel	= ks8695_set_msglevel,
 	.get_drvinfo	= ks8695_get_drvinfo,
 };
 
-static const struct ethtool_ops ks8695_wan_ethtool_ops = {
+static const struct ethtool_ops ks8695_wan_ethtool_ops =
+{
 	.get_msglevel	= ks8695_get_msglevel,
 	.set_msglevel	= ks8695_set_msglevel,
 	.get_settings	= ks8695_wan_get_settings,
@@ -1065,14 +1200,16 @@ ks8695_set_mac(struct net_device *ndev, void *addr)
 	struct sockaddr *address = addr;
 
 	if (!is_valid_ether_addr(address->sa_data))
+	{
 		return -EADDRNOTAVAIL;
+	}
 
 	memcpy(ndev->dev_addr, address->sa_data, ndev->addr_len);
 
 	ks8695_update_mac(ksp);
 
 	dev_dbg(ksp->dev, "%s: Updated MAC address to %pM\n",
-		ndev->name, ndev->dev_addr);
+			ndev->name, ndev->dev_addr);
 
 	return 0;
 }
@@ -1092,23 +1229,31 @@ ks8695_set_multicast(struct net_device *ndev)
 
 	ctrl = ks8695_readreg(ksp, KS8695_DRXC);
 
-	if (ndev->flags & IFF_PROMISC) {
+	if (ndev->flags & IFF_PROMISC)
+	{
 		/* enable promiscuous mode */
 		ctrl |= DRXC_RA;
-	} else if (ndev->flags & ~IFF_PROMISC) {
+	}
+	else if (ndev->flags & ~IFF_PROMISC)
+	{
 		/* disable promiscuous mode */
 		ctrl &= ~DRXC_RA;
 	}
 
-	if (ndev->flags & IFF_ALLMULTI) {
+	if (ndev->flags & IFF_ALLMULTI)
+	{
 		/* enable all multicast mode */
 		ctrl |= DRXC_RM;
-	} else if (netdev_mc_count(ndev) > KS8695_NR_ADDRESSES) {
+	}
+	else if (netdev_mc_count(ndev) > KS8695_NR_ADDRESSES)
+	{
 		/* more specific multicast addresses than can be
 		 * handled in hardware
 		 */
 		ctrl |= DRXC_RM;
-	} else {
+	}
+	else
+	{
 		/* enable specific multicasts */
 		ctrl &= ~DRXC_RM;
 		ks8695_init_partial_multicast(ksp, ndev);
@@ -1165,7 +1310,8 @@ ks8695_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 
 	spin_lock_irq(&ksp->txq_lock);
 
-	if (ksp->tx_ring_used == MAX_TX_DESC) {
+	if (ksp->tx_ring_used == MAX_TX_DESC)
+	{
 		/* Somehow we got entered when we have no room */
 		spin_unlock_irq(&ksp->txq_lock);
 		return NETDEV_TX_BUSY;
@@ -1176,11 +1322,13 @@ ks8695_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 	BUG_ON(ksp->tx_buffers[buff_n].skb);
 
 	dmap = dma_map_single(ksp->dev, skb->data, skb->len, DMA_TO_DEVICE);
-	if (unlikely(dma_mapping_error(ksp->dev, dmap))) {
+
+	if (unlikely(dma_mapping_error(ksp->dev, dmap)))
+	{
 		/* Failed to DMA map this SKB, give it back for now */
 		spin_unlock_irq(&ksp->txq_lock);
 		dev_dbg(ksp->dev, "%s: Could not map DMA memory for "\
-			"transmission, trying later\n", ndev->name);
+				"transmission, trying later\n", ndev->name);
 		return NETDEV_TX_BUSY;
 	}
 
@@ -1194,7 +1342,7 @@ ks8695_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 		cpu_to_le32(ksp->tx_buffers[buff_n].dma_ptr);
 	ksp->tx_ring[buff_n].status =
 		cpu_to_le32(TDES_IC | TDES_FS | TDES_LS |
-			    (skb->len & TDES_TBS));
+					(skb->len & TDES_TBS));
 
 	wmb();
 
@@ -1202,7 +1350,9 @@ ks8695_start_xmit(struct sk_buff *skb, struct net_device *ndev)
 	ksp->tx_ring[buff_n].owner = cpu_to_le32(TDES_OWN);
 
 	if (++ksp->tx_ring_used == MAX_TX_DESC)
+	{
 		netif_stop_queue(ndev);
+	}
 
 	/* Kick the TX DMA in case it decided to go IDLE */
 	ks8695_writereg(ksp, KS8695_DTSC, 0);
@@ -1253,7 +1403,9 @@ ks8695_open(struct net_device *ndev)
 	ks8695_update_mac(ksp);
 
 	ret = ks8695_init_net(ksp);
-	if (ret) {
+
+	if (ret)
+	{
 		ks8695_shutdown(ksp);
 		return ret;
 	}
@@ -1308,7 +1460,7 @@ ks8695_init_wan_phy(struct ks8695_priv *ksp)
 
 	/* Support auto-negotiation */
 	ctrl = (WMC_WANAP | WMC_WANA100F | WMC_WANA100H |
-		WMC_WANA10F | WMC_WANA10H);
+			WMC_WANA10F | WMC_WANA10H);
 
 	/* LED0 = Activity , LED1 = Link */
 	ctrl |= (WLED0S_ACTIVITY | WLED1S_LINK);
@@ -1322,7 +1474,8 @@ ks8695_init_wan_phy(struct ks8695_priv *ksp)
 	writel(0, ksp->phyiface_regs + KS8695_PPS);
 }
 
-static const struct net_device_ops ks8695_netdev_ops = {
+static const struct net_device_ops ks8695_netdev_ops =
+{
 	.ndo_open		= ks8695_open,
 	.ndo_stop		= ks8695_stop,
 	.ndo_start_xmit		= ks8695_start_xmit,
@@ -1359,8 +1512,11 @@ ks8695_probe(struct platform_device *pdev)
 
 	/* Initialise a net_device */
 	ndev = alloc_etherdev(sizeof(struct ks8695_priv));
+
 	if (!ndev)
+	{
 		return -ENOMEM;
+	}
 
 	SET_NETDEV_DEV(ndev, &pdev->dev);
 
@@ -1381,17 +1537,19 @@ ks8695_probe(struct platform_device *pdev)
 	txirq_res = platform_get_resource(pdev, IORESOURCE_IRQ, 1);
 	linkirq_res = platform_get_resource(pdev, IORESOURCE_IRQ, 2);
 
-	if (!(regs_res && rxirq_res && txirq_res)) {
+	if (!(regs_res && rxirq_res && txirq_res))
+	{
 		dev_err(ksp->dev, "insufficient resources\n");
 		ret = -ENOENT;
 		goto failure;
 	}
 
 	ksp->regs_req = request_mem_region(regs_res->start,
-					   resource_size(regs_res),
-					   pdev->name);
+									   resource_size(regs_res),
+									   pdev->name);
 
-	if (!ksp->regs_req) {
+	if (!ksp->regs_req)
+	{
 		dev_err(ksp->dev, "cannot claim register space\n");
 		ret = -EIO;
 		goto failure;
@@ -1399,31 +1557,35 @@ ks8695_probe(struct platform_device *pdev)
 
 	ksp->io_regs = ioremap(regs_res->start, resource_size(regs_res));
 
-	if (!ksp->io_regs) {
+	if (!ksp->io_regs)
+	{
 		dev_err(ksp->dev, "failed to ioremap registers\n");
 		ret = -EINVAL;
 		goto failure;
 	}
 
-	if (phyiface_res) {
+	if (phyiface_res)
+	{
 		ksp->phyiface_req =
 			request_mem_region(phyiface_res->start,
-					   resource_size(phyiface_res),
-					   phyiface_res->name);
+							   resource_size(phyiface_res),
+							   phyiface_res->name);
 
-		if (!ksp->phyiface_req) {
+		if (!ksp->phyiface_req)
+		{
 			dev_err(ksp->dev,
-				"cannot claim switch register space\n");
+					"cannot claim switch register space\n");
 			ret = -EIO;
 			goto failure;
 		}
 
 		ksp->phyiface_regs = ioremap(phyiface_res->start,
-					     resource_size(phyiface_res));
+									 resource_size(phyiface_res));
 
-		if (!ksp->phyiface_regs) {
+		if (!ksp->phyiface_regs)
+		{
 			dev_err(ksp->dev,
-				"failed to ioremap switch registers\n");
+					"failed to ioremap switch registers\n");
 			ret = -EINVAL;
 			goto failure;
 		}
@@ -1435,7 +1597,7 @@ ks8695_probe(struct platform_device *pdev)
 	ksp->tx_irq_name = txirq_res->name ? txirq_res->name : "Ethernet TX";
 	ksp->link_irq = (linkirq_res ? linkirq_res->start : -1);
 	ksp->link_irq_name = (linkirq_res && linkirq_res->name) ?
-		linkirq_res->name : "Ethernet Link";
+						 linkirq_res->name : "Ethernet Link";
 
 	/* driver system setup */
 	ndev->netdev_ops = &ks8695_netdev_ops;
@@ -1457,14 +1619,18 @@ ks8695_probe(struct platform_device *pdev)
 	ndev->dev_addr[5] = maclow & 0xFF;
 
 	if (!is_valid_ether_addr(ndev->dev_addr))
+	{
 		inv_mac_addr = true;
+	}
 
 	/* In order to be efficient memory-wise, we allocate both
 	 * rings in one go.
 	 */
 	ksp->ring_base = dma_alloc_coherent(&pdev->dev, RING_DMA_SIZE,
-					    &ksp->ring_base_dma, GFP_KERNEL);
-	if (!ksp->ring_base) {
+										&ksp->ring_base_dma, GFP_KERNEL);
+
+	if (!ksp->ring_base)
+	{
 		ret = -ENOMEM;
 		goto failure;
 	}
@@ -1486,30 +1652,37 @@ ks8695_probe(struct platform_device *pdev)
 	memset(ksp->rx_ring, 0, RX_RING_DMA_SIZE);
 
 	/* Build the rings */
-	for (buff_n = 0; buff_n < MAX_TX_DESC; ++buff_n) {
+	for (buff_n = 0; buff_n < MAX_TX_DESC; ++buff_n)
+	{
 		ksp->tx_ring[buff_n].next_desc =
 			cpu_to_le32(ksp->tx_ring_dma +
-				    (sizeof(struct tx_ring_desc) *
-				     ((buff_n + 1) & MAX_TX_DESC_MASK)));
+						(sizeof(struct tx_ring_desc) *
+						 ((buff_n + 1) & MAX_TX_DESC_MASK)));
 	}
 
-	for (buff_n = 0; buff_n < MAX_RX_DESC; ++buff_n) {
+	for (buff_n = 0; buff_n < MAX_RX_DESC; ++buff_n)
+	{
 		ksp->rx_ring[buff_n].next_desc =
 			cpu_to_le32(ksp->rx_ring_dma +
-				    (sizeof(struct rx_ring_desc) *
-				     ((buff_n + 1) & MAX_RX_DESC_MASK)));
+						(sizeof(struct rx_ring_desc) *
+						 ((buff_n + 1) & MAX_RX_DESC_MASK)));
 	}
 
 	/* Initialise the port (physically) */
-	if (ksp->phyiface_regs && ksp->link_irq == -1) {
+	if (ksp->phyiface_regs && ksp->link_irq == -1)
+	{
 		ks8695_init_switch(ksp);
 		ksp->dtype = KS8695_DTYPE_LAN;
 		ndev->ethtool_ops = &ks8695_ethtool_ops;
-	} else if (ksp->phyiface_regs && ksp->link_irq != -1) {
+	}
+	else if (ksp->phyiface_regs && ksp->link_irq != -1)
+	{
 		ks8695_init_wan_phy(ksp);
 		ksp->dtype = KS8695_DTYPE_WAN;
 		ndev->ethtool_ops = &ks8695_wan_ethtool_ops;
-	} else {
+	}
+	else
+	{
 		/* No initialisation since HPNA does not have a PHY */
 		ksp->dtype = KS8695_DTYPE_HPNA;
 		ndev->ethtool_ops = &ks8695_ethtool_ops;
@@ -1519,13 +1692,17 @@ ks8695_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, ndev);
 	ret = register_netdev(ndev);
 
-	if (ret == 0) {
+	if (ret == 0)
+	{
 		if (inv_mac_addr)
 			dev_warn(ksp->dev, "%s: Invalid ethernet MAC address. Please set using ip\n",
-				 ndev->name);
+					 ndev->name);
+
 		dev_info(ksp->dev, "ks8695 ethernet (%s) MAC: %pM\n",
-			 ks8695_port_type(ksp), ndev->dev_addr);
-	} else {
+				 ks8695_port_type(ksp), ndev->dev_addr);
+	}
+	else
+	{
 		/* Report the failure to register the net_device */
 		dev_err(ksp->dev, "ks8695net: failed to register netdev.\n");
 		goto failure;
@@ -1557,7 +1734,8 @@ ks8695_drv_suspend(struct platform_device *pdev, pm_message_t state)
 
 	ksp->in_suspend = 1;
 
-	if (netif_running(ndev)) {
+	if (netif_running(ndev))
+	{
 		netif_device_detach(ndev);
 		ks8695_shutdown(ksp);
 	}
@@ -1578,7 +1756,8 @@ ks8695_drv_resume(struct platform_device *pdev)
 	struct net_device *ndev = platform_get_drvdata(pdev);
 	struct ks8695_priv *ksp = netdev_priv(ndev);
 
-	if (netif_running(ndev)) {
+	if (netif_running(ndev))
+	{
 		ks8695_reset(ksp);
 		ks8695_init_net(ksp);
 		ks8695_set_multicast(ndev);
@@ -1612,7 +1791,8 @@ ks8695_drv_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver ks8695_driver = {
+static struct platform_driver ks8695_driver =
+{
 	.driver = {
 		.name	= MODULENAME,
 	},

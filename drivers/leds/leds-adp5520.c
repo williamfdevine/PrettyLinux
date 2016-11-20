@@ -20,7 +20,8 @@
 #include <linux/mfd/adp5520.h>
 #include <linux/slab.h>
 
-struct adp5520_led {
+struct adp5520_led
+{
 	struct led_classdev	cdev;
 	struct device		*master;
 	int			id;
@@ -28,13 +29,13 @@ struct adp5520_led {
 };
 
 static int adp5520_led_set(struct led_classdev *led_cdev,
-			   enum led_brightness value)
+						   enum led_brightness value)
 {
 	struct adp5520_led *led;
 
 	led = container_of(led_cdev, struct adp5520_led, cdev);
 	return adp5520_write(led->master, ADP5520_LED1_CURRENT + led->id - 1,
-			 value >> 2);
+						 value >> 2);
 }
 
 static int adp5520_led_setup(struct adp5520_led *led)
@@ -43,32 +44,35 @@ static int adp5520_led_setup(struct adp5520_led *led)
 	int flags = led->flags;
 	int ret = 0;
 
-	switch (led->id) {
-	case FLAG_ID_ADP5520_LED1_ADP5501_LED0:
-		ret |= adp5520_set_bits(dev, ADP5520_LED_TIME,
-					(flags >> ADP5520_FLAG_OFFT_SHIFT) &
-					ADP5520_FLAG_OFFT_MASK);
-		ret |= adp5520_set_bits(dev, ADP5520_LED_CONTROL,
-					ADP5520_LED1_EN);
-		break;
-	case FLAG_ID_ADP5520_LED2_ADP5501_LED1:
-		ret |= adp5520_set_bits(dev,  ADP5520_LED_TIME,
-					((flags >> ADP5520_FLAG_OFFT_SHIFT) &
-					ADP5520_FLAG_OFFT_MASK) << 2);
-		ret |= adp5520_clr_bits(dev, ADP5520_LED_CONTROL,
-					 ADP5520_R3_MODE);
-		ret |= adp5520_set_bits(dev, ADP5520_LED_CONTROL,
-					ADP5520_LED2_EN);
-		break;
-	case FLAG_ID_ADP5520_LED3_ADP5501_LED2:
-		ret |= adp5520_set_bits(dev,  ADP5520_LED_TIME,
-					((flags >> ADP5520_FLAG_OFFT_SHIFT) &
-					ADP5520_FLAG_OFFT_MASK) << 4);
-		ret |= adp5520_clr_bits(dev, ADP5520_LED_CONTROL,
-					ADP5520_C3_MODE);
-		ret |= adp5520_set_bits(dev, ADP5520_LED_CONTROL,
-					ADP5520_LED3_EN);
-		break;
+	switch (led->id)
+	{
+		case FLAG_ID_ADP5520_LED1_ADP5501_LED0:
+			ret |= adp5520_set_bits(dev, ADP5520_LED_TIME,
+									(flags >> ADP5520_FLAG_OFFT_SHIFT) &
+									ADP5520_FLAG_OFFT_MASK);
+			ret |= adp5520_set_bits(dev, ADP5520_LED_CONTROL,
+									ADP5520_LED1_EN);
+			break;
+
+		case FLAG_ID_ADP5520_LED2_ADP5501_LED1:
+			ret |= adp5520_set_bits(dev,  ADP5520_LED_TIME,
+									((flags >> ADP5520_FLAG_OFFT_SHIFT) &
+									 ADP5520_FLAG_OFFT_MASK) << 2);
+			ret |= adp5520_clr_bits(dev, ADP5520_LED_CONTROL,
+									ADP5520_R3_MODE);
+			ret |= adp5520_set_bits(dev, ADP5520_LED_CONTROL,
+									ADP5520_LED2_EN);
+			break;
+
+		case FLAG_ID_ADP5520_LED3_ADP5501_LED2:
+			ret |= adp5520_set_bits(dev,  ADP5520_LED_TIME,
+									((flags >> ADP5520_FLAG_OFFT_SHIFT) &
+									 ADP5520_FLAG_OFFT_MASK) << 4);
+			ret |= adp5520_clr_bits(dev, ADP5520_LED_CONTROL,
+									ADP5520_C3_MODE);
+			ret |= adp5520_set_bits(dev, ADP5520_LED_CONTROL,
+									ADP5520_LED3_EN);
+			break;
 	}
 
 	return ret;
@@ -85,7 +89,7 @@ static int adp5520_led_prepare(struct platform_device *pdev)
 	ret |= adp5520_write(dev, ADP5520_LED3_CURRENT, 0);
 	ret |= adp5520_write(dev, ADP5520_LED_TIME, pdata->led_on_time << 6);
 	ret |= adp5520_write(dev, ADP5520_LED_FADE, FADE_VAL(pdata->fade_in,
-		 pdata->fade_out));
+						 pdata->fade_out));
 
 	return ret;
 }
@@ -97,29 +101,37 @@ static int adp5520_led_probe(struct platform_device *pdev)
 	struct led_info *cur_led;
 	int ret, i;
 
-	if (pdata == NULL) {
+	if (pdata == NULL)
+	{
 		dev_err(&pdev->dev, "missing platform data\n");
 		return -ENODEV;
 	}
 
-	if (pdata->num_leds > ADP5520_01_MAXLEDS) {
+	if (pdata->num_leds > ADP5520_01_MAXLEDS)
+	{
 		dev_err(&pdev->dev, "can't handle more than %d LEDS\n",
-				 ADP5520_01_MAXLEDS);
+				ADP5520_01_MAXLEDS);
 		return -EFAULT;
 	}
 
 	led = devm_kzalloc(&pdev->dev, sizeof(*led) * pdata->num_leds,
-				GFP_KERNEL);
+					   GFP_KERNEL);
+
 	if (!led)
+	{
 		return -ENOMEM;
+	}
 
 	ret = adp5520_led_prepare(pdev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to write\n");
 		return ret;
 	}
 
-	for (i = 0; i < pdata->num_leds; ++i) {
+	for (i = 0; i < pdata->num_leds; ++i)
+	{
 		cur_led = &pdata->leds[i];
 		led_dat = &led[i];
 
@@ -129,23 +141,31 @@ static int adp5520_led_probe(struct platform_device *pdev)
 		led_dat->cdev.brightness = LED_OFF;
 
 		if (cur_led->flags & ADP5520_FLAG_LED_MASK)
+		{
 			led_dat->flags = cur_led->flags;
+		}
 		else
+		{
 			led_dat->flags = i + 1;
+		}
 
 		led_dat->id = led_dat->flags & ADP5520_FLAG_LED_MASK;
 
 		led_dat->master = pdev->dev.parent;
 
 		ret = led_classdev_register(led_dat->master, &led_dat->cdev);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(&pdev->dev, "failed to register LED %d\n",
-				led_dat->id);
+					led_dat->id);
 			goto err;
 		}
 
 		ret = adp5520_led_setup(led_dat);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(&pdev->dev, "failed to write\n");
 			i++;
 			goto err;
@@ -156,9 +176,13 @@ static int adp5520_led_probe(struct platform_device *pdev)
 	return 0;
 
 err:
-	if (i > 0) {
+
+	if (i > 0)
+	{
 		for (i = i - 1; i >= 0; i--)
+		{
 			led_classdev_unregister(&led[i].cdev);
+		}
 	}
 
 	return ret;
@@ -173,16 +197,18 @@ static int adp5520_led_remove(struct platform_device *pdev)
 	led = platform_get_drvdata(pdev);
 
 	adp5520_clr_bits(led->master, ADP5520_LED_CONTROL,
-		 ADP5520_LED1_EN | ADP5520_LED2_EN | ADP5520_LED3_EN);
+					 ADP5520_LED1_EN | ADP5520_LED2_EN | ADP5520_LED3_EN);
 
-	for (i = 0; i < pdata->num_leds; i++) {
+	for (i = 0; i < pdata->num_leds; i++)
+	{
 		led_classdev_unregister(&led[i].cdev);
 	}
 
 	return 0;
 }
 
-static struct platform_driver adp5520_led_driver = {
+static struct platform_driver adp5520_led_driver =
+{
 	.driver	= {
 		.name	= "adp5520-led",
 	},

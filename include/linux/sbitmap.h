@@ -26,7 +26,8 @@
 /**
  * struct sbitmap_word - Word in a &struct sbitmap.
  */
-struct sbitmap_word {
+struct sbitmap_word
+{
 	/**
 	 * @word: The bitmap word itself.
 	 */
@@ -44,7 +45,8 @@ struct sbitmap_word {
  * A &struct sbitmap is spread over multiple cachelines to avoid ping-pong. This
  * trades off higher memory usage for better scalability.
  */
-struct sbitmap {
+struct sbitmap
+{
 	/**
 	 * @depth: Number of bits used in the whole bitmap.
 	 */
@@ -72,7 +74,8 @@ struct sbitmap {
 /**
  * struct sbq_wait_state - Wait queue in a &struct sbitmap_queue.
  */
-struct sbq_wait_state {
+struct sbq_wait_state
+{
 	/**
 	 * @wait_cnt: Number of frees remaining before we wake up.
 	 */
@@ -93,7 +96,8 @@ struct sbq_wait_state {
  * scalability wall when we run out of free bits and have to start putting tasks
  * to sleep.
  */
-struct sbitmap_queue {
+struct sbitmap_queue
+{
 	/**
 	 * @sb: Scalable bitmap.
 	 */
@@ -141,7 +145,7 @@ struct sbitmap_queue {
  * Return: Zero on success or negative errno on failure.
  */
 int sbitmap_init_node(struct sbitmap *sb, unsigned int depth, int shift,
-		      gfp_t flags, int node);
+					  gfp_t flags, int node);
 
 /**
  * sbitmap_free() - Free memory used by a &struct sbitmap.
@@ -204,26 +208,36 @@ typedef bool (*sb_for_each_fn)(struct sbitmap *, unsigned int, void *);
  * callback will hopefully get optimized away.
  */
 static inline void sbitmap_for_each_set(struct sbitmap *sb, sb_for_each_fn fn,
-					void *data)
+										void *data)
 {
 	unsigned int i;
 
-	for (i = 0; i < sb->map_nr; i++) {
+	for (i = 0; i < sb->map_nr; i++)
+	{
 		struct sbitmap_word *word = &sb->map[i];
 		unsigned int off, nr;
 
 		if (!word->word)
+		{
 			continue;
+		}
 
 		nr = 0;
 		off = i << sb->shift;
-		while (1) {
+
+		while (1)
+		{
 			nr = find_next_bit(&word->word, word->depth, nr);
+
 			if (nr >= word->depth)
+			{
 				break;
+			}
 
 			if (!fn(sb, off + nr, data))
+			{
 				return;
+			}
 
 			nr++;
 		}
@@ -234,7 +248,7 @@ static inline void sbitmap_for_each_set(struct sbitmap *sb, sb_for_each_fn fn,
 #define SB_NR_TO_BIT(sb, bitnr) ((bitnr) & ((1U << (sb)->shift) - 1U))
 
 static inline unsigned long *__sbitmap_word(struct sbitmap *sb,
-					    unsigned int bitnr)
+		unsigned int bitnr)
 {
 	return &sb->map[SB_NR_TO_INDEX(sb, bitnr)].word;
 }
@@ -271,7 +285,7 @@ unsigned int sbitmap_weight(const struct sbitmap *sb);
  * Return: Zero on success or negative errno on failure.
  */
 int sbitmap_queue_init_node(struct sbitmap_queue *sbq, unsigned int depth,
-			    int shift, bool round_robin, gfp_t flags, int node);
+							int shift, bool round_robin, gfp_t flags, int node);
 
 /**
  * sbitmap_queue_free() - Free memory used by a &struct sbitmap_queue.
@@ -315,7 +329,7 @@ int __sbitmap_queue_get(struct sbitmap_queue *sbq);
  * Return: Non-negative allocated bit number if successful, -1 otherwise.
  */
 static inline int sbitmap_queue_get(struct sbitmap_queue *sbq,
-				    unsigned int *cpu)
+									unsigned int *cpu)
 {
 	int nr;
 
@@ -333,7 +347,7 @@ static inline int sbitmap_queue_get(struct sbitmap_queue *sbq,
  * @cpu: CPU the bit was allocated on.
  */
 void sbitmap_queue_clear(struct sbitmap_queue *sbq, unsigned int nr,
-			 unsigned int cpu);
+						 unsigned int cpu);
 
 static inline int sbq_index_inc(int index)
 {
@@ -354,7 +368,7 @@ static inline void sbq_index_atomic_inc(atomic_t *index)
  * @wait_index: A counter per "user" of @sbq.
  */
 static inline struct sbq_wait_state *sbq_wait_ptr(struct sbitmap_queue *sbq,
-						  atomic_t *wait_index)
+		atomic_t *wait_index)
 {
 	struct sbq_wait_state *ws;
 

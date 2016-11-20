@@ -27,7 +27,8 @@
 
 #define KMI_BASE	(kmi->base)
 
-struct amba_kmi_port {
+struct amba_kmi_port
+{
 	struct serio		*io;
 	struct clk		*clk;
 	void __iomem		*base;
@@ -42,7 +43,8 @@ static irqreturn_t amba_kmi_int(int irq, void *dev_id)
 	unsigned int status = readb(KMIIR);
 	int handled = IRQ_NONE;
 
-	while (status & KMIIR_RXINTR) {
+	while (status & KMIIR_RXINTR)
+	{
 		serio_interrupt(kmi->io, readb(KMIDATA), 0);
 		status = readb(KMIIR);
 		handled = IRQ_HANDLED;
@@ -57,10 +59,14 @@ static int amba_kmi_write(struct serio *io, unsigned char val)
 	unsigned int timeleft = 10000; /* timeout in 100ms */
 
 	while ((readb(KMISTAT) & KMISTAT_TXEMPTY) == 0 && --timeleft)
+	{
 		udelay(10);
+	}
 
 	if (timeleft)
+	{
 		writeb(val, KMIDATA);
+	}
 
 	return timeleft ? 0 : SERIO_TIMEOUT;
 }
@@ -72,16 +78,21 @@ static int amba_kmi_open(struct serio *io)
 	int ret;
 
 	ret = clk_prepare_enable(kmi->clk);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	divisor = clk_get_rate(kmi->clk) / 8000000 - 1;
 	writeb(divisor, KMICLKDIV);
 	writeb(KMICR_EN, KMICR);
 
 	ret = request_irq(kmi->irq, amba_kmi_int, IRQF_SHARED, "kmi-pl050",
-			  kmi);
-	if (ret) {
+					  kmi);
+
+	if (ret)
+	{
 		printk(KERN_ERR "kmi: failed to claim IRQ%d\n", kmi->irq);
 		writeb(0, KMICR);
 		goto clk_disable;
@@ -91,9 +102,9 @@ static int amba_kmi_open(struct serio *io)
 
 	return 0;
 
- clk_disable:
+clk_disable:
 	clk_disable_unprepare(kmi->clk);
- out:
+out:
 	return ret;
 }
 
@@ -108,19 +119,24 @@ static void amba_kmi_close(struct serio *io)
 }
 
 static int amba_kmi_probe(struct amba_device *dev,
-	const struct amba_id *id)
+						  const struct amba_id *id)
 {
 	struct amba_kmi_port *kmi;
 	struct serio *io;
 	int ret;
 
 	ret = amba_request_regions(dev, NULL);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	kmi = kzalloc(sizeof(struct amba_kmi_port), GFP_KERNEL);
 	io = kzalloc(sizeof(struct serio), GFP_KERNEL);
-	if (!kmi || !io) {
+
+	if (!kmi || !io)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
@@ -137,13 +153,17 @@ static int amba_kmi_probe(struct amba_device *dev,
 
 	kmi->io		= io;
 	kmi->base	= ioremap(dev->res.start, resource_size(&dev->res));
-	if (!kmi->base) {
+
+	if (!kmi->base)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
 
 	kmi->clk = clk_get(&dev->dev, "KMIREFCLK");
-	if (IS_ERR(kmi->clk)) {
+
+	if (IS_ERR(kmi->clk))
+	{
 		ret = PTR_ERR(kmi->clk);
 		goto unmap;
 	}
@@ -154,9 +174,9 @@ static int amba_kmi_probe(struct amba_device *dev,
 	serio_register_port(kmi->io);
 	return 0;
 
- unmap:
+unmap:
 	iounmap(kmi->base);
- out:
+out:
 	kfree(kmi);
 	kfree(io);
 	amba_release_regions(dev);
@@ -187,7 +207,8 @@ static int __maybe_unused amba_kmi_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(amba_kmi_dev_pm_ops, NULL, amba_kmi_resume);
 
-static struct amba_id amba_kmi_idtable[] = {
+static struct amba_id amba_kmi_idtable[] =
+{
 	{
 		.id	= 0x00041050,
 		.mask	= 0x000fffff,
@@ -197,7 +218,8 @@ static struct amba_id amba_kmi_idtable[] = {
 
 MODULE_DEVICE_TABLE(amba, amba_kmi_idtable);
 
-static struct amba_driver ambakmi_driver = {
+static struct amba_driver ambakmi_driver =
+{
 	.drv		= {
 		.name	= "kmi-pl050",
 		.owner	= THIS_MODULE,

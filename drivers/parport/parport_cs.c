@@ -4,7 +4,7 @@
 
     (specifically, for the Quatech SPP-100 EPP card: other cards will
     probably require driver tweaks)
-    
+
     parport_cs.c 1.29 2002/10/11 06:57:41
 
     The contents of this file are subject to the Mozilla Public
@@ -31,7 +31,7 @@
     and other provisions required by the GPL.  If you do not delete
     the provisions above, a recipient may use your version of this
     file under either the MPL or the GPL.
-    
+
 ======================================================================*/
 
 #include <linux/kernel.h>
@@ -70,10 +70,11 @@ INT_MODULE_PARM(epp_mode, 1);
 
 #define FORCE_EPP_MODE	0x08
 
-typedef struct parport_info_t {
+typedef struct parport_info_t
+{
 	struct pcmcia_device	*p_dev;
-    int			ndev;
-    struct parport	*port;
+	int			ndev;
+	struct parport	*port;
 } parport_info_t;
 
 static void parport_detach(struct pcmcia_device *p_dev);
@@ -82,28 +83,30 @@ static void parport_cs_release(struct pcmcia_device *);
 
 static int parport_probe(struct pcmcia_device *link)
 {
-    parport_info_t *info;
+	parport_info_t *info;
 
-    dev_dbg(&link->dev, "parport_attach()\n");
+	dev_dbg(&link->dev, "parport_attach()\n");
 
-    /* Create new parport device */
-    info = kzalloc(sizeof(*info), GFP_KERNEL);
-    if (!info) return -ENOMEM;
-    link->priv = info;
-    info->p_dev = link;
+	/* Create new parport device */
+	info = kzalloc(sizeof(*info), GFP_KERNEL);
 
-    link->config_flags |= CONF_ENABLE_IRQ | CONF_AUTO_SET_IO;
+	if (!info) { return -ENOMEM; }
 
-    return parport_config(link);
+	link->priv = info;
+	info->p_dev = link;
+
+	link->config_flags |= CONF_ENABLE_IRQ | CONF_AUTO_SET_IO;
+
+	return parport_config(link);
 } /* parport_attach */
 
 static void parport_detach(struct pcmcia_device *link)
 {
-    dev_dbg(&link->dev, "parport_detach\n");
+	dev_dbg(&link->dev, "parport_detach\n");
 
-    parport_cs_release(link);
+	parport_cs_release(link);
 
-    kfree(link->priv);
+	kfree(link->priv);
 } /* parport_detach */
 
 static int parport_config_check(struct pcmcia_device *p_dev, void *priv_data)
@@ -118,48 +121,65 @@ static int parport_config_check(struct pcmcia_device *p_dev, void *priv_data)
 
 static int parport_config(struct pcmcia_device *link)
 {
-    parport_info_t *info = link->priv;
-    struct parport *p;
-    int ret;
+	parport_info_t *info = link->priv;
+	struct parport *p;
+	int ret;
 
-    dev_dbg(&link->dev, "parport_config\n");
+	dev_dbg(&link->dev, "parport_config\n");
 
-    if (epp_mode)
-	    link->config_index |= FORCE_EPP_MODE;
+	if (epp_mode)
+	{
+		link->config_index |= FORCE_EPP_MODE;
+	}
 
-    ret = pcmcia_loop_config(link, parport_config_check, NULL);
-    if (ret)
-	    goto failed;
+	ret = pcmcia_loop_config(link, parport_config_check, NULL);
 
-    if (!link->irq)
-	    goto failed;
-    ret = pcmcia_enable_device(link);
-    if (ret)
-	    goto failed;
+	if (ret)
+	{
+		goto failed;
+	}
 
-    p = parport_pc_probe_port(link->resource[0]->start,
-			      link->resource[1]->start,
-			      link->irq, PARPORT_DMA_NONE,
-			      &link->dev, IRQF_SHARED);
-    if (p == NULL) {
-	printk(KERN_NOTICE "parport_cs: parport_pc_probe_port() at "
-	       "0x%3x, irq %u failed\n",
-	       (unsigned int) link->resource[0]->start,
-	       link->irq);
-	goto failed;
-    }
+	if (!link->irq)
+	{
+		goto failed;
+	}
 
-    p->modes |= PARPORT_MODE_PCSPP;
-    if (epp_mode)
-	p->modes |= PARPORT_MODE_TRISTATE | PARPORT_MODE_EPP;
-    info->ndev = 1;
-    info->port = p;
+	ret = pcmcia_enable_device(link);
 
-    return 0;
+	if (ret)
+	{
+		goto failed;
+	}
+
+	p = parport_pc_probe_port(link->resource[0]->start,
+							  link->resource[1]->start,
+							  link->irq, PARPORT_DMA_NONE,
+							  &link->dev, IRQF_SHARED);
+
+	if (p == NULL)
+	{
+		printk(KERN_NOTICE "parport_cs: parport_pc_probe_port() at "
+			   "0x%3x, irq %u failed\n",
+			   (unsigned int) link->resource[0]->start,
+			   link->irq);
+		goto failed;
+	}
+
+	p->modes |= PARPORT_MODE_PCSPP;
+
+	if (epp_mode)
+	{
+		p->modes |= PARPORT_MODE_TRISTATE | PARPORT_MODE_EPP;
+	}
+
+	info->ndev = 1;
+	info->port = p;
+
+	return 0;
 
 failed:
-    parport_cs_release(link);
-    return -ENODEV;
+	parport_cs_release(link);
+	return -ENODEV;
 } /* parport_config */
 
 static void parport_cs_release(struct pcmcia_device *link)
@@ -168,25 +188,29 @@ static void parport_cs_release(struct pcmcia_device *link)
 
 	dev_dbg(&link->dev, "parport_release\n");
 
-	if (info->ndev) {
+	if (info->ndev)
+	{
 		struct parport *p = info->port;
 		parport_pc_unregister_port(p);
 	}
+
 	info->ndev = 0;
 
 	pcmcia_disable_device(link);
 } /* parport_cs_release */
 
 
-static const struct pcmcia_device_id parport_ids[] = {
+static const struct pcmcia_device_id parport_ids[] =
+{
 	PCMCIA_DEVICE_FUNC_ID(3),
-	PCMCIA_MFC_DEVICE_PROD_ID12(1,"Elan","Serial+Parallel Port: SP230",0x3beb8cf2,0xdb9e58bc),
+	PCMCIA_MFC_DEVICE_PROD_ID12(1, "Elan", "Serial+Parallel Port: SP230", 0x3beb8cf2, 0xdb9e58bc),
 	PCMCIA_DEVICE_MANF_CARD(0x0137, 0x0003),
 	PCMCIA_DEVICE_NULL
 };
 MODULE_DEVICE_TABLE(pcmcia, parport_ids);
 
-static struct pcmcia_driver parport_cs_driver = {
+static struct pcmcia_driver parport_cs_driver =
+{
 	.owner		= THIS_MODULE,
 	.name		= "parport_cs",
 	.probe		= parport_probe,

@@ -12,7 +12,8 @@
 /*
  * NFSv4 delegation
  */
-struct nfs_delegation {
+struct nfs_delegation
+{
 	struct list_head super_list;
 	struct rpc_cred *cred;
 	struct inode *inode;
@@ -25,7 +26,8 @@ struct nfs_delegation {
 	struct rcu_head rcu;
 };
 
-enum {
+enum
+{
 	NFS_DELEGATION_NEED_RECLAIM = 0,
 	NFS_DELEGATION_RETURN,
 	NFS_DELEGATION_RETURN_IF_CLOSED,
@@ -58,7 +60,8 @@ void nfs_reap_expired_delegations(struct nfs_client *clp);
 
 /* NFSv4 delegation-related procedures */
 int nfs4_proc_delegreturn(struct inode *inode, struct rpc_cred *cred, const nfs4_stateid *stateid, int issync);
-int nfs4_open_delegation_recall(struct nfs_open_context *ctx, struct nfs4_state *state, const nfs4_stateid *stateid, fmode_t type);
+int nfs4_open_delegation_recall(struct nfs_open_context *ctx, struct nfs4_state *state, const nfs4_stateid *stateid,
+								fmode_t type);
 int nfs4_lock_delegation_recall(struct file_lock *fl, struct nfs4_state *state, const nfs4_stateid *stateid);
 bool nfs4_copy_delegation_stateid(struct inode *inode, fmode_t flags, nfs4_stateid *dst, struct rpc_cred **cred);
 
@@ -74,7 +77,7 @@ void nfs_inode_find_delegation_state_and_recover(struct inode *inode,
 static inline int nfs_have_delegated_attributes(struct inode *inode)
 {
 	return NFS_PROTO(inode)->have_delegation(inode, FMODE_READ) &&
-		!(NFS_I(inode)->cache_validity & NFS_INO_REVAL_FORCED);
+		   !(NFS_I(inode)->cache_validity & NFS_INO_REVAL_FORCED);
 }
 
 #endif

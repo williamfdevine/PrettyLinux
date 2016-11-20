@@ -44,18 +44,26 @@ kmem_flags_convert(xfs_km_flags_t flags)
 {
 	gfp_t	lflags;
 
-	BUG_ON(flags & ~(KM_SLEEP|KM_NOSLEEP|KM_NOFS|KM_MAYFAIL|KM_ZERO));
+	BUG_ON(flags & ~(KM_SLEEP | KM_NOSLEEP | KM_NOFS | KM_MAYFAIL | KM_ZERO));
 
-	if (flags & KM_NOSLEEP) {
+	if (flags & KM_NOSLEEP)
+	{
 		lflags = GFP_ATOMIC | __GFP_NOWARN;
-	} else {
+	}
+	else
+	{
 		lflags = GFP_KERNEL | __GFP_NOWARN;
+
 		if ((current->flags & PF_FSTRANS) || (flags & KM_NOFS))
+		{
 			lflags &= ~__GFP_FS;
+		}
 	}
 
 	if (flags & KM_ZERO)
+	{
 		lflags |= __GFP_ZERO;
+	}
 
 	return lflags;
 }
@@ -97,7 +105,7 @@ kmem_zone_init(int size, char *zone_name)
 
 static inline kmem_zone_t *
 kmem_zone_init_flags(int size, char *zone_name, unsigned long flags,
-		     void (*construct)(void *))
+					 void (*construct)(void *))
 {
 	return kmem_cache_create(zone_name, size, 0, flags, construct);
 }
@@ -112,7 +120,9 @@ static inline void
 kmem_zone_destroy(kmem_zone_t *zone)
 {
 	if (zone)
+	{
 		kmem_cache_destroy(zone);
+	}
 }
 
 extern void *kmem_zone_alloc(kmem_zone_t *, xfs_km_flags_t);

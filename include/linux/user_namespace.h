@@ -9,9 +9,11 @@
 
 #define UID_GID_MAP_MAX_EXTENTS 5
 
-struct uid_gid_map {	/* 64 bytes -- 1 cache line */
+struct uid_gid_map  	/* 64 bytes -- 1 cache line */
+{
 	u32 nr_extents;
-	struct uid_gid_extent {
+	struct uid_gid_extent
+	{
 		u32 first;
 		u32 lower_first;
 		u32 count;
@@ -24,7 +26,8 @@ struct uid_gid_map {	/* 64 bytes -- 1 cache line */
 
 struct ucounts;
 
-enum ucount_type {
+enum ucount_type
+{
 	UCOUNT_USER_NAMESPACES,
 	UCOUNT_PID_NAMESPACES,
 	UCOUNT_UTS_NAMESPACES,
@@ -35,7 +38,8 @@ enum ucount_type {
 	UCOUNT_COUNTS,
 };
 
-struct user_namespace {
+struct user_namespace
+{
 	struct uid_gid_map	uid_map;
 	struct uid_gid_map	gid_map;
 	struct uid_gid_map	projid_map;
@@ -61,7 +65,8 @@ struct user_namespace {
 	int ucount_max[UCOUNT_COUNTS];
 };
 
-struct ucounts {
+struct ucounts
+{
 	struct hlist_node node;
 	struct user_namespace *ns;
 	kuid_t uid;
@@ -81,7 +86,10 @@ void dec_ucount(struct ucounts *ucounts, enum ucount_type type);
 static inline struct user_namespace *get_user_ns(struct user_namespace *ns)
 {
 	if (ns)
+	{
 		atomic_inc(&ns->count);
+	}
+
 	return ns;
 }
 
@@ -92,7 +100,9 @@ extern void __put_user_ns(struct user_namespace *ns);
 static inline void put_user_ns(struct user_namespace *ns)
 {
 	if (ns && atomic_dec_and_test(&ns->count))
+	{
 		__put_user_ns(ns);
+	}
 }
 
 struct seq_operations;
@@ -121,10 +131,13 @@ static inline int create_user_ns(struct cred *new)
 }
 
 static inline int unshare_userns(unsigned long unshare_flags,
-				 struct cred **new_cred)
+								 struct cred **new_cred)
 {
 	if (unshare_flags & CLONE_NEWUSER)
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 

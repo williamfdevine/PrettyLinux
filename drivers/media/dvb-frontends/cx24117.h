@@ -24,7 +24,8 @@
 
 #include <linux/dvb/frontend.h>
 
-struct cx24117_config {
+struct cx24117_config
+{
 	/* the demodulator's i2c address */
 	u8 demod_address;
 };

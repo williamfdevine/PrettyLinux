@@ -28,23 +28,25 @@ struct scsi_driver;
  */
 #define MAX_COMMAND_SIZE 16
 #if (MAX_COMMAND_SIZE > BLK_MAX_CDB)
-# error MAX_COMMAND_SIZE can not be bigger than BLK_MAX_CDB
+	# error MAX_COMMAND_SIZE can not be bigger than BLK_MAX_CDB
 #endif
 
-struct scsi_data_buffer {
+struct scsi_data_buffer
+{
 	struct sg_table table;
 	unsigned length;
 	int resid;
 };
 
 /* embedded in scsi_cmnd */
-struct scsi_pointer {
+struct scsi_pointer
+{
 	char *ptr;		/* data pointer */
 	int this_residual;	/* left in this buffer */
 	struct scatterlist *buffer;	/* which buffer */
 	int buffers_residual;	/* how many buffers left */
 
-        dma_addr_t dma_handle;
+	dma_addr_t dma_handle;
 
 	volatile int Status;
 	volatile int Message;
@@ -56,7 +58,8 @@ struct scsi_pointer {
 /* for scmd->flags */
 #define SCMD_TAGGED		(1 << 0)
 
-struct scsi_cmnd {
+struct scsi_cmnd
+{
 	struct scsi_device *device;
 	struct list_head list;  /* scsi_cmnd participates in queue lists */
 	struct list_head eh_entry; /* entry for the host eh_cmd_q */
@@ -103,7 +106,7 @@ struct scsi_cmnd {
 
 	unsigned transfersize;	/* How much we are guaranteed to
 				   transfer with each SCSI transfer
-				   (ie, between disconnect / 
+				   (ie, between disconnect /
 				   reconnects.   Probably == sector
 				   size */
 
@@ -112,17 +115,17 @@ struct scsi_cmnd {
 
 #define SCSI_SENSE_BUFFERSIZE 	96
 	unsigned char *sense_buffer;
-				/* obtained by REQUEST SENSE when
-				 * CHECK CONDITION is received on original
-				 * command (auto-sense) */
+	/* obtained by REQUEST SENSE when
+	 * CHECK CONDITION is received on original
+	 * command (auto-sense) */
 
 	/* Low-level done function - can be used by low-level driver to point
 	 *        to completion function.  Not used by mid/upper level code. */
 	void (*scsi_done) (struct scsi_cmnd *);
 
 	/*
-	 * The following fields can be written to by the host specific code. 
-	 * Everything else should be left alone. 
+	 * The following fields can be written to by the host specific code.
+	 * Everything else should be left alone.
 	 */
 	struct scsi_pointer SCp;	/* Scratchpad used by some host adapters */
 
@@ -160,7 +163,7 @@ extern void scsi_put_command(struct scsi_cmnd *);
 extern void scsi_finish_command(struct scsi_cmnd *cmd);
 
 extern void *scsi_kmap_atomic_sg(struct scatterlist *sg, int sg_count,
-				 size_t *offset, size_t *len);
+								 size_t *offset, size_t *len);
 extern void scsi_kunmap_atomic_sg(void *virt);
 
 extern int scsi_init_io(struct scsi_cmnd *cmd);
@@ -199,13 +202,13 @@ static inline int scsi_get_resid(struct scsi_cmnd *cmd)
 static inline int scsi_bidi_cmnd(struct scsi_cmnd *cmd)
 {
 	return blk_bidi_rq(cmd->request) &&
-		(cmd->request->next_rq->special != NULL);
+		   (cmd->request->next_rq->special != NULL);
 }
 
 static inline struct scsi_data_buffer *scsi_in(struct scsi_cmnd *cmd)
 {
 	return scsi_bidi_cmnd(cmd) ?
-		cmd->request->next_rq->special : &cmd->sdb;
+		   cmd->request->next_rq->special : &cmd->sdb;
 }
 
 static inline struct scsi_data_buffer *scsi_out(struct scsi_cmnd *cmd)
@@ -214,24 +217,25 @@ static inline struct scsi_data_buffer *scsi_out(struct scsi_cmnd *cmd)
 }
 
 static inline int scsi_sg_copy_from_buffer(struct scsi_cmnd *cmd,
-					   void *buf, int buflen)
+		void *buf, int buflen)
 {
 	return sg_copy_from_buffer(scsi_sglist(cmd), scsi_sg_count(cmd),
-				   buf, buflen);
+							   buf, buflen);
 }
 
 static inline int scsi_sg_copy_to_buffer(struct scsi_cmnd *cmd,
-					 void *buf, int buflen)
+		void *buf, int buflen)
 {
 	return sg_copy_to_buffer(scsi_sglist(cmd), scsi_sg_count(cmd),
-				 buf, buflen);
+							 buf, buflen);
 }
 
 /*
  * The operations below are hints that tell the controller driver how
  * to handle I/Os with DIF or similar types of protection information.
  */
-enum scsi_prot_operations {
+enum scsi_prot_operations
+{
 	/* Normal I/O */
 	SCSI_PROT_NORMAL = 0,
 
@@ -258,7 +262,8 @@ static inline unsigned char scsi_get_prot_op(struct scsi_cmnd *scmd)
 	return scmd->prot_op;
 }
 
-enum scsi_prot_flags {
+enum scsi_prot_flags
+{
 	SCSI_PROT_TRANSFER_PI		= 1 << 0,
 	SCSI_PROT_GUARD_CHECK		= 1 << 1,
 	SCSI_PROT_REF_CHECK		= 1 << 2,
@@ -272,7 +277,8 @@ enum scsi_prot_flags {
  * must be know target type so it can verify the protection
  * information passed along with the I/O.
  */
-enum scsi_prot_target_type {
+enum scsi_prot_target_type
+{
 	SCSI_PROT_DIF_TYPE0 = 0,
 	SCSI_PROT_DIF_TYPE1,
 	SCSI_PROT_DIF_TYPE2,
@@ -302,7 +308,7 @@ static inline unsigned int scsi_prot_interval(struct scsi_cmnd *scmd)
 static inline u32 scsi_prot_ref_tag(struct scsi_cmnd *scmd)
 {
 	return blk_rq_pos(scmd->request) >>
-		(ilog2(scsi_prot_interval(scmd)) - 9) & 0xffffffff;
+		   (ilog2(scsi_prot_interval(scmd)) - 9) & 0xffffffff;
 }
 
 static inline unsigned scsi_prot_sg_count(struct scsi_cmnd *cmd)
@@ -344,7 +350,9 @@ static inline unsigned scsi_transfer_length(struct scsi_cmnd *scmd)
 	unsigned int prot_interval = scsi_prot_interval(scmd);
 
 	if (scmd->prot_flags & SCSI_PROT_TRANSFER_PI)
+	{
 		xfer_len += (xfer_len >> ilog2(prot_interval)) * 8;
+	}
 
 	return xfer_len;
 }

@@ -14,7 +14,8 @@
 #include "hns_dsaf_xgmac.h"
 #include "hns_dsaf_reg.h"
 
-static const struct mac_stats_string g_xgmac_stats_string[] = {
+static const struct mac_stats_string g_xgmac_stats_string[] =
+{
 	{"xgmac_tx_bad_pkts_minto64", MAC_STATS_FIELD_OFF(tx_fragment_err)},
 	{"xgmac_tx_good_pkts_minto64", MAC_STATS_FIELD_OFF(tx_undersize)},
 	{"xgmac_tx_total_pkts_minto64",	MAC_STATS_FIELD_OFF(tx_under_min_pkts)},
@@ -25,8 +26,10 @@ static const struct mac_stats_string g_xgmac_stats_string[] = {
 	{"xgmac_tx_pkts_512to1023", MAC_STATS_FIELD_OFF(tx_512to1023)},
 	{"xgmac_tx_pkts_1024to1518", MAC_STATS_FIELD_OFF(tx_1024to1518)},
 	{"xgmac_tx_pkts_1519tomax", MAC_STATS_FIELD_OFF(tx_1519tomax)},
-	{"xgmac_tx_good_pkts_1519tomax",
-		MAC_STATS_FIELD_OFF(tx_1519tomax_good)},
+	{
+		"xgmac_tx_good_pkts_1519tomax",
+		MAC_STATS_FIELD_OFF(tx_1519tomax_good)
+	},
 	{"xgmac_tx_good_pkts_untralmax", MAC_STATS_FIELD_OFF(tx_oversize)},
 	{"xgmac_tx_bad_pkts_untralmax", MAC_STATS_FIELD_OFF(tx_jabber_err)},
 	{"xgmac_tx_good_pkts_all", MAC_STATS_FIELD_OFF(tx_good_pkts)},
@@ -123,14 +126,21 @@ static void hns_xgmac_enable(void *mac_drv, enum mac_commom_mode mode)
 	mdelay(10);
 
 	/*enable XGE rX/tX */
-	if (mode == MAC_COMM_MODE_TX) {
+	if (mode == MAC_COMM_MODE_TX)
+	{
 		hns_xgmac_tx_enable(drv, 1);
-	} else if (mode == MAC_COMM_MODE_RX) {
+	}
+	else if (mode == MAC_COMM_MODE_RX)
+	{
 		hns_xgmac_rx_enable(drv, 1);
-	} else if (mode == MAC_COMM_MODE_RX_AND_TX) {
+	}
+	else if (mode == MAC_COMM_MODE_RX_AND_TX)
+	{
 		hns_xgmac_tx_enable(drv, 1);
 		hns_xgmac_rx_enable(drv, 1);
-	} else {
+	}
+	else
+	{
 		dev_err(drv->dev, "error mac mode:%d\n", mode);
 	}
 }
@@ -147,11 +157,16 @@ static void hns_xgmac_disable(void *mac_drv, enum mac_commom_mode mode)
 		= (struct dsaf_device *)dev_get_drvdata(drv->dev);
 	u32 port = drv->mac_id;
 
-	if (mode == MAC_COMM_MODE_TX) {
+	if (mode == MAC_COMM_MODE_TX)
+	{
 		hns_xgmac_tx_enable(drv, 0);
-	} else if (mode == MAC_COMM_MODE_RX) {
+	}
+	else if (mode == MAC_COMM_MODE_RX)
+	{
 		hns_xgmac_rx_enable(drv, 0);
-	} else if (mode == MAC_COMM_MODE_RX_AND_TX) {
+	}
+	else if (mode == MAC_COMM_MODE_RX_AND_TX)
+	{
 		hns_xgmac_tx_enable(drv, 0);
 		hns_xgmac_rx_enable(drv, 0);
 	}
@@ -168,7 +183,7 @@ static void hns_xgmac_disable(void *mac_drv, enum mac_commom_mode mode)
  *return status
  */
 static void hns_xgmac_pma_fec_enable(struct mac_driver *drv, u32 tx_value,
-				     u32 rx_value)
+									 u32 rx_value)
 {
 	u32 origin = dsaf_read_dev(drv, XGMAC_PMA_FEC_CONTROL_REG);
 
@@ -247,7 +262,7 @@ static void hns_xgmac_set_pausefrm_mac_addr(void *mac_drv, char *mac_addr)
 
 	u32 high_val = mac_addr[1] | (mac_addr[0] << 8);
 	u32 low_val = mac_addr[5] | (mac_addr[4] << 8)
-		| (mac_addr[3] << 16) | (mac_addr[2] << 24);
+				  | (mac_addr[3] << 16) | (mac_addr[2] << 24);
 	dsaf_write_dev(drv, XGMAC_MAC_PAUSE_LOCAL_MAC_L_REG, low_val);
 	dsaf_write_dev(drv, XGMAC_MAC_PAUSE_LOCAL_MAC_H_REG, high_val);
 }
@@ -262,7 +277,7 @@ static void hns_xgmac_set_rx_ignore_pause_frames(void *mac_drv, u32 enable)
 	struct mac_driver *drv = (struct mac_driver *)mac_drv;
 
 	dsaf_set_dev_bit(drv, XGMAC_MAC_PAUSE_CTRL_REG,
-			 XGMAC_PAUSE_CTL_RX_B, !!enable);
+					 XGMAC_PAUSE_CTL_RX_B, !!enable);
 }
 
 /**
@@ -275,11 +290,13 @@ static void hns_xgmac_set_tx_auto_pause_frames(void *mac_drv, u16 enable)
 	struct mac_driver *drv = (struct mac_driver *)mac_drv;
 
 	dsaf_set_dev_bit(drv, XGMAC_MAC_PAUSE_CTRL_REG,
-			 XGMAC_PAUSE_CTL_TX_B, !!enable);
+					 XGMAC_PAUSE_CTL_TX_B, !!enable);
 
 	/*if enable is not zero ,set tx pause time */
 	if (enable)
+	{
 		dsaf_write_dev(drv, XGMAC_MAC_PAUSE_TIME_REG, enable);
+	}
 }
 
 /**
@@ -447,9 +464,9 @@ static void hns_xgmac_get_info(void *mac_drv, struct mac_info *mac_info)
 
 	port_mode = dsaf_read_dev(drv, XGMAC_PORT_MODE_REG);
 	mac_info->port_en = dsaf_get_field(port_mode, XGMAC_PORT_MODE_TX_M,
-					   XGMAC_PORT_MODE_TX_S) &&
-				dsaf_get_field(port_mode, XGMAC_PORT_MODE_RX_M,
-					       XGMAC_PORT_MODE_RX_S);
+									   XGMAC_PORT_MODE_TX_S) &&
+						dsaf_get_field(port_mode, XGMAC_PORT_MODE_RX_M,
+									   XGMAC_PORT_MODE_RX_S);
 	mac_info->duplex = 1;
 	mac_info->speed = MAC_SPEED_10000;
 
@@ -727,7 +744,9 @@ static void hns_xgmac_get_regs(void *mac_drv, void *data)
 
 	/* mark end of mac regs */
 	for (i = 208; i < 214; i++)
+	{
 		regs[i] = 0xaaaaaaaa;
+	}
 }
 
 /**
@@ -744,9 +763,10 @@ static void hns_xgmac_get_stats(void *mac_drv, u64 *data)
 
 	hw_stats = &drv->mac_cb->hw_stats;
 
-	for (i = 0; i < ARRAY_SIZE(g_xgmac_stats_string); i++) {
+	for (i = 0; i < ARRAY_SIZE(g_xgmac_stats_string); i++)
+	{
 		buf[i] = DSAF_STATS_READ(hw_stats,
-			g_xgmac_stats_string[i].offset);
+								 g_xgmac_stats_string[i].offset);
 	}
 }
 
@@ -761,9 +781,12 @@ static void hns_xgmac_get_strings(u32 stringset, u8 *data)
 	u32 i;
 
 	if (stringset != ETH_SS_STATS)
+	{
 		return;
+	}
 
-	for (i = 0; i < ARRAY_SIZE(g_xgmac_stats_string); i++) {
+	for (i = 0; i < ARRAY_SIZE(g_xgmac_stats_string); i++)
+	{
 		snprintf(buff, ETH_GSTRING_LEN, g_xgmac_stats_string[i].desc);
 		buff = buff + ETH_GSTRING_LEN;
 	}
@@ -777,7 +800,9 @@ static void hns_xgmac_get_strings(u32 stringset, u8 *data)
 static int hns_xgmac_get_sset_count(int stringset)
 {
 	if (stringset == ETH_SS_STATS)
+	{
 		return ARRAY_SIZE(g_xgmac_stats_string);
+	}
 
 	return 0;
 }
@@ -796,8 +821,11 @@ void *hns_xgmac_config(struct hns_mac_cb *mac_cb, struct mac_params *mac_param)
 	struct mac_driver *mac_drv;
 
 	mac_drv = devm_kzalloc(mac_cb->dev, sizeof(*mac_drv), GFP_KERNEL);
+
 	if (!mac_drv)
+	{
 		return NULL;
+	}
 
 	mac_drv->mac_init = hns_xgmac_init;
 	mac_drv->mac_enable = hns_xgmac_enable;

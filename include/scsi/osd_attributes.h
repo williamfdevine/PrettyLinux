@@ -14,7 +14,8 @@
 #define ATTR_DEF(pg, id, l) ATTR_SET(pg, id, l, NULL)
 
 /* osd-r10 4.7.3 Attributes pages */
-enum {
+enum
+{
 	OSD_APAGE_OBJECT_FIRST		= 0x0,
 	OSD_APAGE_OBJECT_DIRECTORY	= 0,
 	OSD_APAGE_OBJECT_INFORMATION	= 1,
@@ -60,7 +61,8 @@ enum {
 };
 
 /* subcategories of attr pages within each range above */
-enum {
+enum
+{
 	OSD_APAGE_STD_FIRST		= 0x0,
 	OSD_APAGE_STD_DIRECTORY		= 0,
 	OSD_APAGE_STD_INFORMATION	= 1,
@@ -86,22 +88,26 @@ enum {
 	OSD_APAGE_VENDOR_SPECIFIC_LAST	= 0x2FFFFFFF,
 };
 
-enum {
+enum
+{
 	OSD_ATTR_PAGE_IDENTIFICATION = 0, /* in all pages 40 bytes */
 };
 
-struct page_identification {
+struct page_identification
+{
 	u8 vendor_identification[8];
 	u8 page_identification[32];
 }  __packed;
 
-struct osd_attr_page_header {
+struct osd_attr_page_header
+{
 	__be32 page_number;
 	__be32 page_length;
 } __packed;
 
 /* 7.1.2.8 Root Information attributes page (OSD_APAGE_ROOT_INFORMATION) */
-enum {
+enum
+{
 	OSD_ATTR_RI_OSD_SYSTEM_ID            = 0x3,   /* 20       */
 	OSD_ATTR_RI_VENDOR_IDENTIFICATION    = 0x4,   /* 8        */
 	OSD_ATTR_RI_PRODUCT_IDENTIFICATION   = 0x5,   /* 16       */
@@ -139,7 +145,8 @@ enum {
 /* 7.1.2.9 Partition Information attributes page
  * (OSD_APAGE_PARTITION_INFORMATION)
  */
-enum {
+enum
+{
 	OSD_ATTR_PI_PARTITION_ID            = 0x1,     /* 8        */
 	OSD_ATTR_PI_USERNAME                = 0x9,     /* variable */
 	OSD_ATTR_PI_USED_CAPACITY           = 0x81,    /* 8        */
@@ -158,7 +165,8 @@ enum {
 /* 7.1.2.10 Collection Information attributes page
  * (OSD_APAGE_COLLECTION_INFORMATION)
  */
-enum {
+enum
+{
 	OSD_ATTR_CI_PARTITION_ID           = 0x1,       /* 8        */
 	OSD_ATTR_CI_COLLECTION_OBJECT_ID   = 0x2,       /* 8        */
 	OSD_ATTR_CI_USERNAME               = 0x9,       /* variable */
@@ -170,7 +178,8 @@ enum {
 /* 7.1.2.11 User Object Information attributes page
  * (OSD_APAGE_OBJECT_INFORMATION)
  */
-enum {
+enum
+{
 	OSD_ATTR_OI_PARTITION_ID         = 0x1,       /* 8        */
 	OSD_ATTR_OI_OBJECT_ID            = 0x2,       /* 8        */
 	OSD_ATTR_OI_USERNAME             = 0x9,       /* variable */
@@ -182,7 +191,8 @@ enum {
 /* Object Information attributes page does not have a get_page structure */
 
 /* 7.1.2.12 Root Quotas attributes page (OSD_APAGE_ROOT_QUOTAS) */
-enum {
+enum
+{
 	OSD_ATTR_RQ_DEFAULT_MAXIMUM_USER_OBJECT_LENGTH     = 0x1,      /* 8  */
 	OSD_ATTR_RQ_PARTITION_CAPACITY_QUOTA               = 0x10001,  /* 8  */
 	OSD_ATTR_RQ_PARTITION_OBJECT_COUNT                 = 0x10002,  /* 8  */
@@ -190,7 +200,8 @@ enum {
 	OSD_ATTR_RQ_PARTITION_COUNT                        = 0x20002,  /* 8  */
 };
 
-struct Root_Quotas_attributes_page {
+struct Root_Quotas_attributes_page
+{
 	struct osd_attr_page_header hdr; /* id=R+2, size=0x24 */
 	__be64 default_maximum_user_object_length;
 	__be64 partition_capacity_quota;
@@ -200,14 +211,16 @@ struct Root_Quotas_attributes_page {
 }  __packed;
 
 /* 7.1.2.13 Partition Quotas attributes page (OSD_APAGE_PARTITION_QUOTAS)*/
-enum {
+enum
+{
 	OSD_ATTR_PQ_DEFAULT_MAXIMUM_USER_OBJECT_LENGTH  = 0x1,        /* 8 */
 	OSD_ATTR_PQ_CAPACITY_QUOTA                      = 0x10001,    /* 8 */
 	OSD_ATTR_PQ_OBJECT_COUNT                        = 0x10002,    /* 8 */
 	OSD_ATTR_PQ_COLLECTIONS_PER_USER_OBJECT         = 0x10081,    /* 4 */
 };
 
-struct Partition_Quotas_attributes_page {
+struct Partition_Quotas_attributes_page
+{
 	struct osd_attr_page_header hdr; /* id=P+2, size=0x1C */
 	__be64 default_maximum_user_object_length;
 	__be64 capacity_quota;
@@ -216,23 +229,27 @@ struct Partition_Quotas_attributes_page {
 }  __packed;
 
 /* 7.1.2.14 User Object Quotas attributes page (OSD_APAGE_OBJECT_QUOTAS) */
-enum {
+enum
+{
 	OSD_ATTR_OQ_MAXIMUM_LENGTH  = 0x1,        /* 8 */
 };
 
-struct Object_Quotas_attributes_page {
+struct Object_Quotas_attributes_page
+{
 	struct osd_attr_page_header hdr; /* id=U+2, size=0x8 */
 	__be64 maximum_length;
 }  __packed;
 
 /* 7.1.2.15 Root Timestamps attributes page (OSD_APAGE_ROOT_TIMESTAMP) */
-enum {
+enum
+{
 	OSD_ATTR_RT_ATTRIBUTES_ACCESSED_TIME  = 0x2,        /* 6 */
 	OSD_ATTR_RT_ATTRIBUTES_MODIFIED_TIME  = 0x3,        /* 6 */
 	OSD_ATTR_RT_TIMESTAMP_BYPASS          = 0xFFFFFFFE, /* 1 */
 };
 
-struct root_timestamps_attributes_page {
+struct root_timestamps_attributes_page
+{
 	struct osd_attr_page_header hdr; /* id=R+3, size=0xD */
 	struct osd_timestamp attributes_accessed_time;
 	struct osd_timestamp attributes_modified_time;
@@ -242,7 +259,8 @@ struct root_timestamps_attributes_page {
 /* 7.1.2.16 Partition Timestamps attributes page
  * (OSD_APAGE_PARTITION_TIMESTAMP)
  */
-enum {
+enum
+{
 	OSD_ATTR_PT_CREATED_TIME              = 0x1,        /* 6 */
 	OSD_ATTR_PT_ATTRIBUTES_ACCESSED_TIME  = 0x2,        /* 6 */
 	OSD_ATTR_PT_ATTRIBUTES_MODIFIED_TIME  = 0x3,        /* 6 */
@@ -251,7 +269,8 @@ enum {
 	OSD_ATTR_PT_TIMESTAMP_BYPASS          = 0xFFFFFFFE, /* 1 */
 };
 
-struct partition_timestamps_attributes_page {
+struct partition_timestamps_attributes_page
+{
 	struct osd_attr_page_header hdr; /* id=P+3, size=0x1F */
 	struct osd_timestamp created_time;
 	struct osd_timestamp attributes_accessed_time;
@@ -264,7 +283,8 @@ struct partition_timestamps_attributes_page {
 /* 7.1.2.17/18 Collection/Object Timestamps attributes page
  * (OSD_APAGE_COLLECTION_TIMESTAMP/OSD_APAGE_OBJECT_TIMESTAMP)
  */
-enum {
+enum
+{
 	OSD_ATTR_OT_CREATED_TIME              = 0x1,        /* 6 */
 	OSD_ATTR_OT_ATTRIBUTES_ACCESSED_TIME  = 0x2,        /* 6 */
 	OSD_ATTR_OT_ATTRIBUTES_MODIFIED_TIME  = 0x3,        /* 6 */
@@ -273,7 +293,8 @@ enum {
 };
 
 /* same for collection */
-struct object_timestamps_attributes_page {
+struct object_timestamps_attributes_page
+{
 	struct osd_attr_page_header hdr; /* id=C+3/3, size=0x1E */
 	struct osd_timestamp created_time;
 	struct osd_timestamp attributes_accessed_time;
@@ -289,7 +310,8 @@ struct object_timestamps_attributes_page {
  * from the attribute's length
  * (See allowed_attributes_access of the struct osd_cap_object_descriptor)
  */
-struct attributes_access_attr {
+struct attributes_access_attr
+{
 	struct osd_attributes_list_attrid attr_list[0];
 } __packed;
 
@@ -297,7 +319,8 @@ struct attributes_access_attr {
 /* TBD */
 
 /* 7.1.2.20 Root Policy/Security attributes page (OSD_APAGE_ROOT_SECURITY) */
-enum {
+enum
+{
 	OSD_ATTR_RS_DEFAULT_SECURITY_METHOD           = 0x1,       /* 1      */
 	OSD_ATTR_RS_OLDEST_VALID_NONCE_LIMIT          = 0x2,       /* 6      */
 	OSD_ATTR_RS_NEWEST_VALID_NONCE_LIMIT          = 0x3,       /* 6      */
@@ -310,7 +333,8 @@ enum {
 	OSD_ATTR_RS_SUPPORTED_DH_GROUP_0              = 0x80000010,/* 1,(x16)*/
 };
 
-struct root_security_attributes_page {
+struct root_security_attributes_page
+{
 	struct osd_attr_page_header hdr; /* id=R+5, size=0x3F */
 	u8 default_security_method;
 	u8 partition_default_security_method;
@@ -319,8 +343,8 @@ struct root_security_attributes_page {
 	struct osd_timestamp oldest_valid_nonce_limit;
 	struct osd_timestamp newest_valid_nonce_limit;
 	struct osd_timestamp adjustable_clock;
-	u8 master_key_identifier[32-25];
-	u8 root_key_identifier[39-32];
+	u8 master_key_identifier[32 - 25];
+	u8 root_key_identifier[39 - 32];
 	u8 supported_integrity_algorithm[16];
 	u8 supported_dh_group[16];
 }  __packed;
@@ -328,7 +352,8 @@ struct root_security_attributes_page {
 /* 7.1.2.21 Partition Policy/Security attributes page
  * (OSD_APAGE_PARTITION_SECURITY)
  */
-enum {
+enum
+{
 	OSD_ATTR_PS_DEFAULT_SECURITY_METHOD        = 0x1,        /* 1      */
 	OSD_ATTR_PS_OLDEST_VALID_NONCE             = 0x2,        /* 6      */
 	OSD_ATTR_PS_NEWEST_VALID_NONCE             = 0x3,        /* 6      */
@@ -341,7 +366,8 @@ enum {
 	OSD_ATTR_PS_USER_OBJECT_POLICY_ACCESS_TAG  = 0x40000002, /* 4      */
 };
 
-struct partition_security_attributes_page {
+struct partition_security_attributes_page
+{
 	struct osd_attr_page_header hdr; /* id=p+5, size=0x8f */
 	u8 reserved[3];
 	u8 default_security_method;
@@ -360,11 +386,13 @@ struct partition_security_attributes_page {
 /* 7.1.2.22/23 Collection/Object Policy-Security attributes page
  * (OSD_APAGE_COLLECTION_SECURITY/OSD_APAGE_OBJECT_SECURITY)
  */
-enum {
+enum
+{
 	OSD_ATTR_OS_POLICY_ACCESS_TAG              = 0x40000001, /* 4      */
 };
 
-struct object_security_attributes_page {
+struct object_security_attributes_page
+{
 	struct osd_attr_page_header hdr; /* id=C+5/5, size=4 */
 	__be32 policy_access_tag;
 }  __packed;
@@ -372,7 +400,8 @@ struct object_security_attributes_page {
 /* OSD2r05: 7.1.3.31 Current Command attributes page
  * (OSD_APAGE_CURRENT_COMMAND)
  */
-enum {
+enum
+{
 	OSD_ATTR_CC_RESPONSE_INTEGRITY_CHECK_VALUE     = 0x1, /* 32  */
 	OSD_ATTR_CC_OBJECT_TYPE                        = 0x2, /* 1   */
 	OSD_ATTR_CC_PARTITION_ID                       = 0x3, /* 8   */
@@ -383,7 +412,8 @@ enum {
 
 /*TBD: osdv1_current_command_attributes_page */
 
-struct osdv2_current_command_attributes_page {
+struct osdv2_current_command_attributes_page
+{
 	struct osd_attr_page_header hdr;  /* id=0xFFFFFFFE, size=0x44 */
 	u8 response_integrity_check_value[OSD_CRYPTO_KEYID_SIZE];
 	u8 object_type;

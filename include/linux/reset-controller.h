@@ -14,7 +14,8 @@ struct reset_controller_dev;
  * @deassert: manually deassert the reset line, if supported
  * @status: return the status of the reset line, if supported
  */
-struct reset_control_ops {
+struct reset_control_ops
+{
 	int (*reset)(struct reset_controller_dev *rcdev, unsigned long id);
 	int (*assert)(struct reset_controller_dev *rcdev, unsigned long id);
 	int (*deassert)(struct reset_controller_dev *rcdev, unsigned long id);
@@ -38,7 +39,8 @@ struct of_phandle_args;
  *            device tree to id as given to the reset control ops
  * @nr_resets: number of reset controls in this reset controller device
  */
-struct reset_controller_dev {
+struct reset_controller_dev
+{
 	const struct reset_control_ops *ops;
 	struct module *owner;
 	struct list_head list;
@@ -46,7 +48,7 @@ struct reset_controller_dev {
 	struct device_node *of_node;
 	int of_reset_n_cells;
 	int (*of_xlate)(struct reset_controller_dev *rcdev,
-			const struct of_phandle_args *reset_spec);
+					const struct of_phandle_args *reset_spec);
 	unsigned int nr_resets;
 };
 
@@ -55,6 +57,6 @@ void reset_controller_unregister(struct reset_controller_dev *rcdev);
 
 struct device;
 int devm_reset_controller_register(struct device *dev,
-				   struct reset_controller_dev *rcdev);
+								   struct reset_controller_dev *rcdev);
 
 #endif

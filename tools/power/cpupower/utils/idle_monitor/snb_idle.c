@@ -25,9 +25,10 @@
 enum intel_snb_id { C7 = 0, PC2, PC7, SNB_CSTATE_COUNT, TSC = 0xFFFF };
 
 static int snb_get_count_percent(unsigned int self_id, double *percent,
-				 unsigned int cpu);
+								 unsigned int cpu);
 
-static cstate_t snb_cstates[SNB_CSTATE_COUNT] = {
+static cstate_t snb_cstates[SNB_CSTATE_COUNT] =
+{
 	{
 		.name			= "C7",
 		.desc			= N_("Processor Core C7"),
@@ -59,52 +60,63 @@ static unsigned long long *current_count[SNB_CSTATE_COUNT];
 static int *is_valid;
 
 static int snb_get_count(enum intel_snb_id id, unsigned long long *val,
-			unsigned int cpu)
+						 unsigned int cpu)
 {
 	int msr;
 
-	switch (id) {
-	case C7:
-		msr = MSR_CORE_C7_RESIDENCY;
-		break;
-	case PC2:
-		msr = MSR_PKG_C2_RESIDENCY;
-		break;
-	case PC7:
-		msr = MSR_PKG_C7_RESIDENCY;
-		break;
-	case TSC:
-		msr = MSR_TSC;
-		break;
-	default:
-		return -1;
+	switch (id)
+	{
+		case C7:
+			msr = MSR_CORE_C7_RESIDENCY;
+			break;
+
+		case PC2:
+			msr = MSR_PKG_C2_RESIDENCY;
+			break;
+
+		case PC7:
+			msr = MSR_PKG_C7_RESIDENCY;
+			break;
+
+		case TSC:
+			msr = MSR_TSC;
+			break;
+
+		default:
+			return -1;
 	};
+
 	if (read_msr(cpu, msr, val))
+	{
 		return -1;
+	}
+
 	return 0;
 }
 
 static int snb_get_count_percent(unsigned int id, double *percent,
-				 unsigned int cpu)
+								 unsigned int cpu)
 {
 	*percent = 0.0;
 
 	if (!is_valid[cpu])
+	{
 		return -1;
+	}
 
 	*percent = (100.0 *
-		(current_count[id][cpu] - previous_count[id][cpu])) /
-		(tsc_at_measure_end - tsc_at_measure_start);
+				(current_count[id][cpu] - previous_count[id][cpu])) /
+			   (tsc_at_measure_end - tsc_at_measure_start);
 
 	dprint("%s: previous: %llu - current: %llu - (%u)\n",
-		snb_cstates[id].name, previous_count[id][cpu],
-		current_count[id][cpu], cpu);
+		   snb_cstates[id].name, previous_count[id][cpu],
+		   current_count[id][cpu], cpu);
 
 	dprint("%s: tsc_diff: %llu - count_diff: %llu - percent: %2.f (%u)\n",
-	       snb_cstates[id].name,
-	       (unsigned long long) tsc_at_measure_end - tsc_at_measure_start,
-	       current_count[id][cpu] - previous_count[id][cpu],
-	       *percent, cpu);
+		   snb_cstates[id].name,
+		   (unsigned long long) tsc_at_measure_end - tsc_at_measure_start,
+		   current_count[id][cpu] - previous_count[id][cpu],
+		   *percent, cpu);
 
 	return 0;
 }
@@ -114,12 +126,15 @@ static int snb_start(void)
 	int num, cpu;
 	unsigned long long val;
 
-	for (num = 0; num < SNB_CSTATE_COUNT; num++) {
-		for (cpu = 0; cpu < cpu_count; cpu++) {
+	for (num = 0; num < SNB_CSTATE_COUNT; num++)
+	{
+		for (cpu = 0; cpu < cpu_count; cpu++)
+		{
 			snb_get_count(num, &val, cpu);
 			previous_count[num][cpu] = val;
 		}
 	}
+
 	snb_get_count(TSC, &tsc_at_measure_start, 0);
 	return 0;
 }
@@ -131,12 +146,15 @@ static int snb_stop(void)
 
 	snb_get_count(TSC, &tsc_at_measure_end, 0);
 
-	for (num = 0; num < SNB_CSTATE_COUNT; num++) {
-		for (cpu = 0; cpu < cpu_count; cpu++) {
+	for (num = 0; num < SNB_CSTATE_COUNT; num++)
+	{
+		for (cpu = 0; cpu < cpu_count; cpu++)
+		{
 			is_valid[cpu] = !snb_get_count(num, &val, cpu);
 			current_count[num][cpu] = val;
 		}
 	}
+
 	return 0;
 }
 
@@ -147,30 +165,37 @@ static struct cpuidle_monitor *snb_register(void)
 	int num;
 
 	if (cpupower_cpu_info.vendor != X86_VENDOR_INTEL
-	    || cpupower_cpu_info.family != 6)
+		|| cpupower_cpu_info.family != 6)
+	{
 		return NULL;
+	}
 
-	switch (cpupower_cpu_info.model) {
-	case 0x2A: /* SNB */
-	case 0x2D: /* SNB Xeon */
-	case 0x3A: /* IVB */
-	case 0x3E: /* IVB Xeon */
-	case 0x3C: /* HSW */
-	case 0x3F: /* HSW */
-	case 0x45: /* HSW */
-	case 0x46: /* HSW */
-		break;
-	default:
-		return NULL;
+	switch (cpupower_cpu_info.model)
+	{
+		case 0x2A: /* SNB */
+		case 0x2D: /* SNB Xeon */
+		case 0x3A: /* IVB */
+		case 0x3E: /* IVB Xeon */
+		case 0x3C: /* HSW */
+		case 0x3F: /* HSW */
+		case 0x45: /* HSW */
+		case 0x46: /* HSW */
+			break;
+
+		default:
+			return NULL;
 	}
 
 	is_valid = calloc(cpu_count, sizeof(int));
-	for (num = 0; num < SNB_CSTATE_COUNT; num++) {
+
+	for (num = 0; num < SNB_CSTATE_COUNT; num++)
+	{
 		previous_count[num] = calloc(cpu_count,
-					sizeof(unsigned long long));
+									 sizeof(unsigned long long));
 		current_count[num]  = calloc(cpu_count,
-					sizeof(unsigned long long));
+									 sizeof(unsigned long long));
 	}
+
 	intel_snb_monitor.name_len = strlen(intel_snb_monitor.name);
 	return &intel_snb_monitor;
 }
@@ -179,13 +204,16 @@ void snb_unregister(void)
 {
 	int num;
 	free(is_valid);
-	for (num = 0; num < SNB_CSTATE_COUNT; num++) {
+
+	for (num = 0; num < SNB_CSTATE_COUNT; num++)
+	{
 		free(previous_count[num]);
 		free(current_count[num]);
 	}
 }
 
-struct cpuidle_monitor intel_snb_monitor = {
+struct cpuidle_monitor intel_snb_monitor =
+{
 	.name			= "SandyBridge",
 	.hw_states		= snb_cstates,
 	.hw_states_num		= SNB_CSTATE_COUNT,

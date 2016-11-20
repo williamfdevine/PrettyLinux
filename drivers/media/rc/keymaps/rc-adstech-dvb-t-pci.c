@@ -15,7 +15,8 @@
 
 /* ADS Tech Instant TV DVB-T PCI Remote */
 
-static struct rc_map_table adstech_dvb_t_pci[] = {
+static struct rc_map_table adstech_dvb_t_pci[] =
+{
 	/* Keys 0 to 9 */
 	{ 0x4d, KEY_0 },
 	{ 0x57, KEY_1 },
@@ -64,7 +65,8 @@ static struct rc_map_table adstech_dvb_t_pci[] = {
 	{ 0x1c, KEY_VOLUMEDOWN },
 };
 
-static struct rc_map_list adstech_dvb_t_pci_map = {
+static struct rc_map_list adstech_dvb_t_pci_map =
+{
 	.map = {
 		.scan    = adstech_dvb_t_pci,
 		.size    = ARRAY_SIZE(adstech_dvb_t_pci),

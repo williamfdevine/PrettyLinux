@@ -16,7 +16,7 @@
 int touchkit_ps2_detect(struct psmouse *psmouse, bool set_properties);
 #else
 static inline int touchkit_ps2_detect(struct psmouse *psmouse,
-				      bool set_properties)
+									  bool set_properties)
 {
 	return -ENOSYS;
 }

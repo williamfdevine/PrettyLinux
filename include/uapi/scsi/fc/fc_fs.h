@@ -30,7 +30,8 @@
 /*
  * Frame header
  */
-struct fc_frame_header {
+struct fc_frame_header
+{
 	__u8          fh_r_ctl;	/* routing control */
 	__u8          fh_d_id[3];	/* Destination ID */
 
@@ -60,10 +61,11 @@ struct fc_frame_header {
 /*
  * fh_r_ctl - Routing control definitions.
  */
-    /*
-     * FC-4 device_data.
-     */
-enum fc_rctl {
+/*
+ * FC-4 device_data.
+ */
+enum fc_rctl
+{
 	FC_RCTL_DD_UNCAT = 0x00,	/* uncategorized information */
 	FC_RCTL_DD_SOL_DATA = 0x01,	/* solicited data */
 	FC_RCTL_DD_UNSOL_CTL = 0x02,	/* unsolicited control */
@@ -111,46 +113,47 @@ enum fc_rctl {
 	FC_RCTL_LCR = 0xc7,	/* link credit reset */
 	FC_RCTL_END = 0xc9,	/* end */
 };
-				    /* incomplete list of definitions */
+/* incomplete list of definitions */
 
 /*
  * R_CTL names initializer.
  * Please keep this matching the above definitions.
  */
 #define FC_RCTL_NAMES_INIT { \
-	[FC_RCTL_DD_UNCAT] =		"uncat",			\
-	[FC_RCTL_DD_SOL_DATA] =		"sol data",			\
-	[FC_RCTL_DD_UNSOL_CTL] =	"unsol ctl",			\
-	[FC_RCTL_DD_SOL_CTL] =		"sol ctl/reply",		\
-	[FC_RCTL_DD_UNSOL_DATA] =	"unsol data",			\
-	[FC_RCTL_DD_DATA_DESC] =	"data desc",			\
-	[FC_RCTL_DD_UNSOL_CMD] =	"unsol cmd",			\
-	[FC_RCTL_DD_CMD_STATUS] =	"cmd status",			\
-	[FC_RCTL_ELS_REQ] =		"ELS req",			\
-	[FC_RCTL_ELS_REP] =		"ELS rep",			\
-	[FC_RCTL_ELS4_REQ] =		"FC-4 ELS req",			\
-	[FC_RCTL_ELS4_REP] =		"FC-4 ELS rep",			\
-	[FC_RCTL_BA_NOP] =		"BLS NOP",			\
-	[FC_RCTL_BA_ABTS] =		"BLS abort",			\
-	[FC_RCTL_BA_RMC] =		"BLS remove connection",	\
-	[FC_RCTL_BA_ACC] =		"BLS accept",			\
-	[FC_RCTL_BA_RJT] =		"BLS reject",			\
-	[FC_RCTL_BA_PRMT] =		"BLS dedicated connection preempted", \
-	[FC_RCTL_ACK_1] =		"LC ACK_1",			\
-	[FC_RCTL_ACK_0] =		"LC ACK_0",			\
-	[FC_RCTL_P_RJT] =		"LC port reject",		\
-	[FC_RCTL_F_RJT] =		"LC fabric reject",		\
-	[FC_RCTL_P_BSY] =		"LC port busy",			\
-	[FC_RCTL_F_BSY] =		"LC fabric busy to data frame",	\
-	[FC_RCTL_F_BSYL] =		"LC fabric busy to link control frame",\
-	[FC_RCTL_LCR] =			"LC link credit reset",		\
-	[FC_RCTL_END] =			"LC end",			\
-}
+		[FC_RCTL_DD_UNCAT] =		"uncat",			\
+									[FC_RCTL_DD_SOL_DATA] =		"sol data",			\
+											[FC_RCTL_DD_UNSOL_CTL] =	"unsol ctl",			\
+													[FC_RCTL_DD_SOL_CTL] =		"sol ctl/reply",		\
+															[FC_RCTL_DD_UNSOL_DATA] =	"unsol data",			\
+																	[FC_RCTL_DD_DATA_DESC] =	"data desc",			\
+																			[FC_RCTL_DD_UNSOL_CMD] =	"unsol cmd",			\
+																					[FC_RCTL_DD_CMD_STATUS] =	"cmd status",			\
+																							[FC_RCTL_ELS_REQ] =		"ELS req",			\
+																									[FC_RCTL_ELS_REP] =		"ELS rep",			\
+																											[FC_RCTL_ELS4_REQ] =		"FC-4 ELS req",			\
+																													[FC_RCTL_ELS4_REP] =		"FC-4 ELS rep",			\
+																															[FC_RCTL_BA_NOP] =		"BLS NOP",			\
+																																	[FC_RCTL_BA_ABTS] =		"BLS abort",			\
+																																			[FC_RCTL_BA_RMC] =		"BLS remove connection",	\
+																																					[FC_RCTL_BA_ACC] =		"BLS accept",			\
+																																							[FC_RCTL_BA_RJT] =		"BLS reject",			\
+																																									[FC_RCTL_BA_PRMT] =		"BLS dedicated connection preempted", \
+																																											[FC_RCTL_ACK_1] =		"LC ACK_1",			\
+																																													[FC_RCTL_ACK_0] =		"LC ACK_0",			\
+																																															[FC_RCTL_P_RJT] =		"LC port reject",		\
+																																																	[FC_RCTL_F_RJT] =		"LC fabric reject",		\
+																																																			[FC_RCTL_P_BSY] =		"LC port busy",			\
+																																																					[FC_RCTL_F_BSY] =		"LC fabric busy to data frame",	\
+																																																							[FC_RCTL_F_BSYL] =		"LC fabric busy to link control frame",\
+																																																									[FC_RCTL_LCR] =			"LC link credit reset",		\
+																																																											[FC_RCTL_END] =			"LC end",			\
+	}
 
 /*
  * Well-known fabric addresses.
  */
-enum fc_well_known_fid {
+enum fc_well_known_fid
+{
 	FC_FID_NONE =           0x000000,       /* No destination */
 	FC_FID_BCAST =		0xffffff,	/* broadcast */
 	FC_FID_FLOGI =		0xfffffe,	/* fabric login */
@@ -183,7 +186,8 @@ enum fc_well_known_fid {
 /*
  * fh_type codes
  */
-enum fc_fh_type {
+enum fc_fh_type
+{
 	FC_TYPE_BLS =	0x00,	/* basic link service */
 	FC_TYPE_ELS =	0x01,	/* extended link service */
 	FC_TYPE_IP =	0x05,	/* IP over FC, RFC 4338 */
@@ -197,13 +201,13 @@ enum fc_fh_type {
  * Please keep this matching the above definitions.
  */
 #define FC_TYPE_NAMES_INIT {				\
-	[FC_TYPE_BLS] =		"BLS",			\
-	[FC_TYPE_ELS] =		"ELS",			\
-	[FC_TYPE_IP] =		"IP",			\
-	[FC_TYPE_FCP] =		"FCP",			\
-	[FC_TYPE_CT] =		"CT",			\
-	[FC_TYPE_ILS] =		"ILS",			\
-}
+		[FC_TYPE_BLS] =		"BLS",			\
+							[FC_TYPE_ELS] =		"ELS",			\
+												[FC_TYPE_IP] =		"IP",			\
+														[FC_TYPE_FCP] =		"FCP",			\
+																[FC_TYPE_CT] =		"CT",			\
+																		[FC_TYPE_ILS] =		"ILS",			\
+	}
 
 /*
  * Exchange IDs.
@@ -243,7 +247,8 @@ enum fc_fh_type {
 /*
  * BA_ACC payload.
  */
-struct fc_ba_acc {
+struct fc_ba_acc
+{
 	__u8		ba_seq_id_val;	/* SEQ_ID validity */
 #define FC_BA_SEQ_ID_VAL 0x80
 	__u8		ba_seq_id;	/* SEQ_ID of seq last deliverable */
@@ -257,7 +262,8 @@ struct fc_ba_acc {
 /*
  * BA_RJT: Basic Reject payload.
  */
-struct fc_ba_rjt {
+struct fc_ba_rjt
+{
 	__u8		br_resvd;	/* reserved */
 	__u8		br_reason;	/* reason code */
 	__u8		br_explan;	/* reason explanation */
@@ -268,7 +274,8 @@ struct fc_ba_rjt {
  * BA_RJT reason codes.
  * From FS-2.
  */
-enum fc_ba_rjt_reason {
+enum fc_ba_rjt_reason
+{
 	FC_BA_RJT_NONE =	0,	/* in software this means no reject */
 	FC_BA_RJT_INVL_CMD =	0x01,	/* invalid command code */
 	FC_BA_RJT_LOG_ERR =	0x03,	/* logical error */
@@ -281,7 +288,8 @@ enum fc_ba_rjt_reason {
 /*
  * BA_RJT reason code explanations.
  */
-enum fc_ba_rjt_explan {
+enum fc_ba_rjt_explan
+{
 	FC_BA_RJT_EXP_NONE =	0x00,	/* no additional expanation */
 	FC_BA_RJT_INV_XID =	0x03,	/* invalid OX_ID-RX_ID combination */
 	FC_BA_RJT_ABT =		0x05,	/* sequence aborted, no seq info */
@@ -290,7 +298,8 @@ enum fc_ba_rjt_explan {
 /*
  * P_RJT or F_RJT: Port Reject or Fabric Reject parameter field.
  */
-struct fc_pf_rjt {
+struct fc_pf_rjt
+{
 	__u8		rj_action;	/* reserved */
 	__u8		rj_reason;	/* reason code */
 	__u8		rj_resvd;	/* reserved */
@@ -300,7 +309,8 @@ struct fc_pf_rjt {
 /*
  * P_RJT and F_RJT reject reason codes.
  */
-enum fc_pf_rjt_reason {
+enum fc_pf_rjt_reason
+{
 	FC_RJT_NONE =		0,	/* non-reject (reserved by standard) */
 	FC_RJT_INVL_DID =	0x01,	/* invalid destination ID */
 	FC_RJT_INVL_SID =	0x02,	/* invalid source ID */

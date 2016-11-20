@@ -22,12 +22,13 @@
 #include "util.h"
 
 #if defined(__x86_64__)
-#include <asm/syscalls_64.c>
-const int syscalltbl_native_max_id = SYSCALLTBL_x86_64_MAX_ID;
-static const char **syscalltbl_native = syscalltbl_x86_64;
+	#include <asm/syscalls_64.c>
+	const int syscalltbl_native_max_id = SYSCALLTBL_x86_64_MAX_ID;
+	static const char **syscalltbl_native = syscalltbl_x86_64;
 #endif
 
-struct syscall {
+struct syscall
+{
 	int id;
 	const char *name;
 };
@@ -54,14 +55,21 @@ static int syscalltbl__init_native(struct syscalltbl *tbl)
 
 	for (i = 0; i <= syscalltbl_native_max_id; ++i)
 		if (syscalltbl_native[i])
+		{
 			++nr_entries;
+		}
 
 	entries = tbl->syscalls.entries = malloc(sizeof(struct syscall) * nr_entries);
-	if (tbl->syscalls.entries == NULL)
-		return -1;
 
-	for (i = 0, j = 0; i <= syscalltbl_native_max_id; ++i) {
-		if (syscalltbl_native[i]) {
+	if (tbl->syscalls.entries == NULL)
+	{
+		return -1;
+	}
+
+	for (i = 0, j = 0; i <= syscalltbl_native_max_id; ++i)
+	{
+		if (syscalltbl_native[i])
+		{
 			entries[j].name = syscalltbl_native[i];
 			entries[j].id = i;
 			++j;
@@ -76,12 +84,16 @@ static int syscalltbl__init_native(struct syscalltbl *tbl)
 struct syscalltbl *syscalltbl__new(void)
 {
 	struct syscalltbl *tbl = malloc(sizeof(*tbl));
-	if (tbl) {
-		if (syscalltbl__init_native(tbl)) {
+
+	if (tbl)
+	{
+		if (syscalltbl__init_native(tbl))
+		{
 			free(tbl);
 			return NULL;
 		}
 	}
+
 	return tbl;
 }
 
@@ -93,14 +105,14 @@ void syscalltbl__delete(struct syscalltbl *tbl)
 
 const char *syscalltbl__name(const struct syscalltbl *tbl __maybe_unused, int id)
 {
-	return id <= syscalltbl_native_max_id ? syscalltbl_native[id]: NULL;
+	return id <= syscalltbl_native_max_id ? syscalltbl_native[id] : NULL;
 }
 
 int syscalltbl__id(struct syscalltbl *tbl, const char *name)
 {
 	struct syscall *sc = bsearch(name, tbl->syscalls.entries,
-				     tbl->syscalls.nr_entries, sizeof(*sc),
-				     syscallcmpname);
+								 tbl->syscalls.nr_entries, sizeof(*sc),
+								 syscallcmpname);
 
 	return sc ? sc->id : -1;
 }
@@ -112,8 +124,12 @@ int syscalltbl__id(struct syscalltbl *tbl, const char *name)
 struct syscalltbl *syscalltbl__new(void)
 {
 	struct syscalltbl *tbl = malloc(sizeof(*tbl));
+
 	if (tbl)
+	{
 		tbl->audit_machine = audit_detect_machine();
+	}
+
 	return tbl;
 }
 

@@ -26,7 +26,8 @@
 #include "gss_rpc_xdr.h"
 #include "../netns.h"
 
-struct gssp_upcall_data {
+struct gssp_upcall_data
+{
 	struct xdr_netobj in_handle;
 	struct gssp_in_token in_token;
 	struct xdr_netobj out_handle;
@@ -39,7 +40,7 @@ struct gssp_upcall_data {
 };
 
 int gssp_accept_sec_context_upcall(struct net *net,
-				struct gssp_upcall_data *data);
+								   struct gssp_upcall_data *data);
 void gssp_free_upcall_data(struct gssp_upcall_data *data);
 
 void init_gssp_clnt(struct sunrpc_net *);

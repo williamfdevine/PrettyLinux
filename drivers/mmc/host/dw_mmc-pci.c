@@ -25,10 +25,11 @@
 #define SYNOPSYS_DW_MCI_DEVICE_ID 0x1107
 /* Defining the Capabilities */
 #define DW_MCI_CAPABILITIES (MMC_CAP_4_BIT_DATA | MMC_CAP_MMC_HIGHSPEED |\
-				MMC_CAP_SD_HIGHSPEED | MMC_CAP_8_BIT_DATA |\
-				MMC_CAP_SDIO_IRQ)
+							 MMC_CAP_SD_HIGHSPEED | MMC_CAP_8_BIT_DATA |\
+							 MMC_CAP_SDIO_IRQ)
 
-static struct dw_mci_board pci_board_data = {
+static struct dw_mci_board pci_board_data =
+{
 	.num_slots			= 1,
 	.caps				= DW_MCI_CAPABILITIES,
 	.bus_hz				= 33 * 1000 * 1000,
@@ -37,18 +38,24 @@ static struct dw_mci_board pci_board_data = {
 };
 
 static int dw_mci_pci_probe(struct pci_dev *pdev,
-			    const struct pci_device_id *entries)
+							const struct pci_device_id *entries)
 {
 	struct dw_mci *host;
 	int ret;
 
 	ret = pcim_enable_device(pdev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	host = devm_kzalloc(&pdev->dev, sizeof(struct dw_mci), GFP_KERNEL);
+
 	if (!host)
+	{
 		return -ENOMEM;
+	}
 
 	host->irq = pdev->irq;
 	host->irq_flags = IRQF_SHARED;
@@ -56,16 +63,22 @@ static int dw_mci_pci_probe(struct pci_dev *pdev,
 	host->pdata = &pci_board_data;
 
 	ret = pcim_iomap_regions(pdev, 1 << PCI_BAR_NO, pci_name(pdev));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	host->regs = pcim_iomap_table(pdev)[PCI_BAR_NO];
 
 	pci_set_master(pdev);
 
 	ret = dw_mci_probe(host);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	pci_set_drvdata(pdev, host);
 
@@ -99,13 +112,15 @@ static int dw_mci_pci_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(dw_mci_pci_pmops, dw_mci_pci_suspend, dw_mci_pci_resume);
 
-static const struct pci_device_id dw_mci_pci_id[] = {
+static const struct pci_device_id dw_mci_pci_id[] =
+{
 	{ PCI_DEVICE(SYNOPSYS_DW_MCI_VENDOR_ID, SYNOPSYS_DW_MCI_DEVICE_ID) },
 	{}
 };
 MODULE_DEVICE_TABLE(pci, dw_mci_pci_id);
 
-static struct pci_driver dw_mci_pci_driver = {
+static struct pci_driver dw_mci_pci_driver =
+{
 	.name		= "dw_mmc_pci",
 	.id_table	= dw_mci_pci_id,
 	.probe		= dw_mci_pci_probe,

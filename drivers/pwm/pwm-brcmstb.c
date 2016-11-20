@@ -60,7 +60,8 @@
 
 #define PWM_ON_PERIOD_MAX	0xff
 
-struct brcmstb_pwm {
+struct brcmstb_pwm
+{
 	void __iomem *base;
 	spinlock_t lock;
 	struct clk *clk;
@@ -68,21 +69,29 @@ struct brcmstb_pwm {
 };
 
 static inline u32 brcmstb_pwm_readl(struct brcmstb_pwm *p,
-				    unsigned int offset)
+									unsigned int offset)
 {
 	if (IS_ENABLED(CONFIG_MIPS) && IS_ENABLED(CONFIG_CPU_BIG_ENDIAN))
+	{
 		return __raw_readl(p->base + offset);
+	}
 	else
+	{
 		return readl_relaxed(p->base + offset);
+	}
 }
 
 static inline void brcmstb_pwm_writel(struct brcmstb_pwm *p, u32 value,
-				      unsigned int offset)
+									  unsigned int offset)
 {
 	if (IS_ENABLED(CONFIG_MIPS) && IS_ENABLED(CONFIG_CPU_BIG_ENDIAN))
+	{
 		__raw_writel(value, p->base + offset);
+	}
 	else
+	{
 		writel_relaxed(value, p->base + offset);
+	}
 }
 
 static inline struct brcmstb_pwm *to_brcmstb_pwm(struct pwm_chip *chip)
@@ -104,7 +113,7 @@ static inline struct brcmstb_pwm *to_brcmstb_pwm(struct pwm_chip *chip)
  * "on" time, so this translates directly into our HW programming here.
  */
 static int brcmstb_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
-			      int duty_ns, int period_ns)
+							  int duty_ns, int period_ns)
 {
 	struct brcmstb_pwm *p = to_brcmstb_pwm(chip);
 	unsigned long pc, dc, cword = CONST_VAR_F_MAX;
@@ -116,13 +125,15 @@ static int brcmstb_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 	 * the period value by 1 to make it shorter than the "on" time and
 	 * produce a flat 100% duty cycle signal, and max out the "on" time
 	 */
-	if (duty_ns == period_ns) {
+	if (duty_ns == period_ns)
+	{
 		dc = PWM_ON_PERIOD_MAX;
 		pc = PWM_ON_PERIOD_MAX - 1;
 		goto done;
 	}
 
-	while (1) {
+	while (1)
+	{
 		u64 rate, tmp;
 
 		/*
@@ -145,11 +156,15 @@ static int brcmstb_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 		 * so do not reject dc == 0 right away
 		 */
 		if (pc == PWM_PERIOD_MIN || (dc < PWM_ON_MIN && duty_ns))
+		{
 			return -EINVAL;
+		}
 
 		/* We converged on a calculation */
 		if (pc <= PWM_ON_PERIOD_MAX && dc <= PWM_ON_PERIOD_MAX)
+		{
 			break;
+		}
 
 		/*
 		 * The cword needs to be a power of 2 for the variable
@@ -164,7 +179,9 @@ static int brcmstb_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 		 * for them
 		 */
 		if (cword < CONST_VAR_F_MIN)
+		{
 			return -EINVAL;
+		}
 	}
 
 done:
@@ -191,7 +208,7 @@ done:
 }
 
 static inline void brcmstb_pwm_enable_set(struct brcmstb_pwm *p,
-					  unsigned int channel, bool enable)
+		unsigned int channel, bool enable)
 {
 	unsigned int shift = channel * CTRL_CHAN_OFFS;
 	u32 value;
@@ -199,10 +216,13 @@ static inline void brcmstb_pwm_enable_set(struct brcmstb_pwm *p,
 	spin_lock(&p->lock);
 	value = brcmstb_pwm_readl(p, PWM_CTRL);
 
-	if (enable) {
+	if (enable)
+	{
 		value &= ~(CTRL_OEB << shift);
 		value |= (CTRL_START | CTRL_OPENDRAIN) << shift;
-	} else {
+	}
+	else
+	{
 		value &= ~((CTRL_START | CTRL_OPENDRAIN) << shift);
 		value |= CTRL_OEB << shift;
 	}
@@ -227,14 +247,16 @@ static void brcmstb_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
 	brcmstb_pwm_enable_set(p, pwm->hwpwm, false);
 }
 
-static const struct pwm_ops brcmstb_pwm_ops = {
+static const struct pwm_ops brcmstb_pwm_ops =
+{
 	.config = brcmstb_pwm_config,
 	.enable = brcmstb_pwm_enable,
 	.disable = brcmstb_pwm_disable,
 	.owner = THIS_MODULE,
 };
 
-static const struct of_device_id brcmstb_pwm_of_match[] = {
+static const struct of_device_id brcmstb_pwm_of_match[] =
+{
 	{ .compatible = "brcm,bcm7038-pwm", },
 	{ /* sentinel */ }
 };
@@ -247,19 +269,26 @@ static int brcmstb_pwm_probe(struct platform_device *pdev)
 	int ret;
 
 	p = devm_kzalloc(&pdev->dev, sizeof(*p), GFP_KERNEL);
+
 	if (!p)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&p->lock);
 
 	p->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(p->clk)) {
+
+	if (IS_ERR(p->clk))
+	{
 		dev_err(&pdev->dev, "failed to obtain clock\n");
 		return PTR_ERR(p->clk);
 	}
 
 	ret = clk_prepare_enable(p->clk);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "failed to enable clock: %d\n", ret);
 		return ret;
 	}
@@ -274,13 +303,17 @@ static int brcmstb_pwm_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	p->base = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(p->base)) {
+
+	if (IS_ERR(p->base))
+	{
 		ret = PTR_ERR(p->base);
 		goto out_clk;
 	}
 
 	ret = pwmchip_add(&p->chip);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to add PWM chip: %d\n", ret);
 		goto out_clk;
 	}
@@ -324,9 +357,10 @@ static int brcmstb_pwm_resume(struct device *dev)
 #endif
 
 static SIMPLE_DEV_PM_OPS(brcmstb_pwm_pm_ops, brcmstb_pwm_suspend,
-			 brcmstb_pwm_resume);
+						 brcmstb_pwm_resume);
 
-static struct platform_driver brcmstb_pwm_driver = {
+static struct platform_driver brcmstb_pwm_driver =
+{
 	.probe = brcmstb_pwm_probe,
 	.remove = brcmstb_pwm_remove,
 	.driver = {

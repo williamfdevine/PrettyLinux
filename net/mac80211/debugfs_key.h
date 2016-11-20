@@ -10,7 +10,7 @@ void ieee80211_debugfs_key_add_mgmt_default(
 void ieee80211_debugfs_key_remove_mgmt_default(
 	struct ieee80211_sub_if_data *sdata);
 void ieee80211_debugfs_key_sta_del(struct ieee80211_key *key,
-				   struct sta_info *sta);
+								   struct sta_info *sta);
 #else
 static inline void ieee80211_debugfs_key_add(struct ieee80211_key *key)
 {}
@@ -26,7 +26,7 @@ static inline void ieee80211_debugfs_key_remove_mgmt_default(
 	struct ieee80211_sub_if_data *sdata)
 {}
 static inline void ieee80211_debugfs_key_sta_del(struct ieee80211_key *key,
-						 struct sta_info *sta)
+		struct sta_info *sta)
 {}
 #endif
 

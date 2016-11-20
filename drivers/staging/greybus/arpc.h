@@ -54,7 +54,8 @@
 
 /* APBridgeA RPC (ARPC) */
 
-enum arpc_result {
+enum arpc_result
+{
 	ARPC_SUCCESS		= 0x00,
 	ARPC_NO_MEMORY		= 0x01,
 	ARPC_INVALID		= 0x02,
@@ -62,14 +63,16 @@ enum arpc_result {
 	ARPC_UNKNOWN_ERROR	= 0xff,
 };
 
-struct arpc_request_message {
+struct arpc_request_message
+{
 	__le16	id;		/* RPC unique id */
 	__le16	size;		/* Size in bytes of header + payload */
 	__u8	type;		/* RPC type */
 	__u8	data[0];	/* ARPC data */
 } __packed;
 
-struct arpc_response_message {
+struct arpc_response_message
+{
 	__le16	id;		/* RPC unique id */
 	__u8	result;		/* Result of RPC */
 } __packed;
@@ -82,25 +85,30 @@ struct arpc_response_message {
 #define ARPC_TYPE_CPORT_FLUSH			0x04
 #define ARPC_TYPE_CPORT_SHUTDOWN		0x05
 
-struct arpc_cport_connected_req {
+struct arpc_cport_connected_req
+{
 	__le16 cport_id;
 } __packed;
 
-struct arpc_cport_quiesce_req {
+struct arpc_cport_quiesce_req
+{
 	__le16 cport_id;
 	__le16 peer_space;
 	__le16 timeout;
 } __packed;
 
-struct arpc_cport_clear_req {
+struct arpc_cport_clear_req
+{
 	__le16 cport_id;
 } __packed;
 
-struct arpc_cport_flush_req {
+struct arpc_cport_flush_req
+{
 	__le16 cport_id;
 } __packed;
 
-struct arpc_cport_shutdown_req {
+struct arpc_cport_shutdown_req
+{
 	__le16 cport_id;
 	__le16 timeout;
 	__u8 phase;

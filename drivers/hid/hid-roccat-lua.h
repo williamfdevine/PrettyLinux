@@ -14,15 +14,18 @@
 
 #include <linux/types.h>
 
-enum {
+enum
+{
 	LUA_SIZE_CONTROL = 8,
 };
 
-enum lua_commands {
+enum lua_commands
+{
 	LUA_COMMAND_CONTROL = 3,
 };
 
-struct lua_device {
+struct lua_device
+{
 	struct mutex lua_lock;
 };
 

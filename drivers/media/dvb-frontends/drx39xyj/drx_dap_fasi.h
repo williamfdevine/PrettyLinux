@@ -84,12 +84,12 @@
 
 /* set default */
 #if !defined(DRXDAPFASI_LONG_ADDR_ALLOWED)
-#define  DRXDAPFASI_LONG_ADDR_ALLOWED 1
+	#define  DRXDAPFASI_LONG_ADDR_ALLOWED 1
 #endif
 
 /* set default */
 #if !defined(DRXDAPFASI_SHORT_ADDR_ALLOWED)
-#define  DRXDAPFASI_SHORT_ADDR_ALLOWED 1
+	#define  DRXDAPFASI_SHORT_ADDR_ALLOWED 1
 #endif
 
 /* check */
@@ -124,7 +124,7 @@
 */
 /* set default */
 #ifndef DRXDAP_SINGLE_MASTER
-#define DRXDAP_SINGLE_MASTER 0
+	#define DRXDAP_SINGLE_MASTER 0
 #endif
 
 /********************************************
@@ -177,59 +177,59 @@
 
 /* set default */
 #if !defined(DRXDAP_MAX_WCHUNKSIZE)
-#define  DRXDAP_MAX_WCHUNKSIZE 254
+	#define  DRXDAP_MAX_WCHUNKSIZE 254
 #endif
 
 /* check */
 #if ((DRXDAPFASI_LONG_ADDR_ALLOWED == 0) && (DRXDAPFASI_SHORT_ADDR_ALLOWED == 1))
-#if DRXDAP_SINGLE_MASTER
-#define  DRXDAP_MAX_WCHUNKSIZE_MIN 3
+	#if DRXDAP_SINGLE_MASTER
+		#define  DRXDAP_MAX_WCHUNKSIZE_MIN 3
+	#else
+		#define  DRXDAP_MAX_WCHUNKSIZE_MIN 5
+	#endif
 #else
-#define  DRXDAP_MAX_WCHUNKSIZE_MIN 5
-#endif
-#else
-#if DRXDAP_SINGLE_MASTER
-#define  DRXDAP_MAX_WCHUNKSIZE_MIN 5
-#else
-#define  DRXDAP_MAX_WCHUNKSIZE_MIN 7
-#endif
+	#if DRXDAP_SINGLE_MASTER
+		#define  DRXDAP_MAX_WCHUNKSIZE_MIN 5
+	#else
+		#define  DRXDAP_MAX_WCHUNKSIZE_MIN 7
+	#endif
 #endif
 
 #if  DRXDAP_MAX_WCHUNKSIZE <  DRXDAP_MAX_WCHUNKSIZE_MIN
-#if ((DRXDAPFASI_LONG_ADDR_ALLOWED == 0) && (DRXDAPFASI_SHORT_ADDR_ALLOWED == 1))
-#if DRXDAP_SINGLE_MASTER
-#error  DRXDAP_MAX_WCHUNKSIZE must be at least 3 in single master mode
-*;				/* illegal statement to force compiler error */
-#else
-#error  DRXDAP_MAX_WCHUNKSIZE must be at least 5 in multi master mode
-*;				/* illegal statement to force compiler error */
-#endif
-#else
-#if DRXDAP_SINGLE_MASTER
-#error  DRXDAP_MAX_WCHUNKSIZE must be at least 5 in single master mode
-*;				/* illegal statement to force compiler error */
-#else
-#error  DRXDAP_MAX_WCHUNKSIZE must be at least 7 in multi master mode
-*;				/* illegal statement to force compiler error */
-#endif
-#endif
+	#if ((DRXDAPFASI_LONG_ADDR_ALLOWED == 0) && (DRXDAPFASI_SHORT_ADDR_ALLOWED == 1))
+		#if DRXDAP_SINGLE_MASTER
+			#error  DRXDAP_MAX_WCHUNKSIZE must be at least 3 in single master mode
+			*;				/* illegal statement to force compiler error */
+		#else
+			#error  DRXDAP_MAX_WCHUNKSIZE must be at least 5 in multi master mode
+			*;				/* illegal statement to force compiler error */
+		#endif
+	#else
+		#if DRXDAP_SINGLE_MASTER
+			#error  DRXDAP_MAX_WCHUNKSIZE must be at least 5 in single master mode
+			*;				/* illegal statement to force compiler error */
+		#else
+			#error  DRXDAP_MAX_WCHUNKSIZE must be at least 7 in multi master mode
+			*;				/* illegal statement to force compiler error */
+		#endif
+	#endif
 #endif
 
 /* set default */
 #if !defined(DRXDAP_MAX_RCHUNKSIZE)
-#define  DRXDAP_MAX_RCHUNKSIZE 254
+	#define  DRXDAP_MAX_RCHUNKSIZE 254
 #endif
 
 /* check */
 #if  DRXDAP_MAX_RCHUNKSIZE < 2
-#error  DRXDAP_MAX_RCHUNKSIZE must be at least 2
-*;				/* illegal statement to force compiler error */
+	#error  DRXDAP_MAX_RCHUNKSIZE must be at least 2
+	*;				/* illegal statement to force compiler error */
 #endif
 
 /* check */
 #if  DRXDAP_MAX_RCHUNKSIZE & 1
-#error  DRXDAP_MAX_RCHUNKSIZE must be even
-*;				/* illegal statement to force compiler error */
+	#error  DRXDAP_MAX_RCHUNKSIZE must be even
+	*;				/* illegal statement to force compiler error */
 #endif
 
 /*-------- Public API functions ----------------------------------------------*/

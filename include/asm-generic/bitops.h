@@ -21,7 +21,7 @@
 #include <asm-generic/bitops/find.h>
 
 #ifndef _LINUX_BITOPS_H
-#error only <linux/bitops.h> can be included directly
+	#error only <linux/bitops.h> can be included directly
 #endif
 
 #include <asm-generic/bitops/sched.h>

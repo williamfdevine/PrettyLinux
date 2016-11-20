@@ -20,7 +20,8 @@
 #include <linux/mm.h>
 
 /* statistics for svc_pool structures */
-struct svc_pool_stats {
+struct svc_pool_stats
+{
 	atomic_long_t	packets;
 	unsigned long	sockets_queued;
 	atomic_long_t	threads_woken;
@@ -37,7 +38,8 @@ struct svc_pool_stats {
  * have one pool per NUMA node.  This optimisation reduces cross-
  * node traffic on multi-node NUMA NFS servers.
  */
-struct svc_pool {
+struct svc_pool
+{
 	unsigned int		sp_id;	    	/* pool id; also node id on NUMA */
 	spinlock_t		sp_lock;	/* protects all fields */
 	struct list_head	sp_sockets;	/* pending sockets */
@@ -51,7 +53,8 @@ struct svc_pool {
 
 struct svc_serv;
 
-struct svc_serv_ops {
+struct svc_serv_ops
+{
 	/* Callback to use when last thread exits. */
 	void		(*svo_shutdown)(struct svc_serv *, struct net *);
 
@@ -78,9 +81,10 @@ struct svc_serv_ops {
  *
  * We currently do not support more than one RPC program per daemon.
  */
-struct svc_serv {
-	struct svc_program *	sv_program;	/* RPC program */
-	struct svc_stat *	sv_stats;	/* RPC statistics */
+struct svc_serv
+{
+	struct svc_program 	*sv_program;	/* RPC program */
+	struct svc_stat 	*sv_stats;	/* RPC statistics */
 	spinlock_t		sv_lock;
 	unsigned int		sv_nrthreads;	/* # of server threads */
 	unsigned int		sv_maxconn;	/* max connections allowed or
@@ -95,10 +99,10 @@ struct svc_serv {
 	int			sv_tmpcnt;	/* count of temporary sockets */
 	struct timer_list	sv_temptimer;	/* timer for aging temporary sockets */
 
-	char *			sv_name;	/* service name */
+	char 			*sv_name;	/* service name */
 
 	unsigned int		sv_nrpools;	/* number of thread pools */
-	struct svc_pool *	sv_pools;	/* array of thread pools */
+	struct svc_pool 	*sv_pools;	/* array of thread pools */
 	struct svc_serv_ops	*sv_ops;	/* server operations */
 #if defined(CONFIG_SUNRPC_BACKCHANNEL)
 	struct list_head	sv_cb_list;	/* queue for callback requests
@@ -177,14 +181,14 @@ extern u32 svc_max_payload(const struct svc_rqst *rqstp);
  * if the request is not page-aligned.  So add another '1'.
  */
 #define RPCSVC_MAXPAGES		((RPCSVC_MAXPAYLOAD+PAGE_SIZE-1)/PAGE_SIZE \
-				+ 2 + 1)
+							 + 2 + 1)
 
 static inline u32 svc_getnl(struct kvec *iov)
 {
 	__be32 val, *vp;
 	vp = iov->iov_base;
 	val = *vp++;
-	iov->iov_base = (void*)vp;
+	iov->iov_base = (void *)vp;
 	iov->iov_len -= sizeof(__be32);
 	return ntohl(val);
 }
@@ -201,7 +205,7 @@ static inline __be32 svc_getu32(struct kvec *iov)
 	__be32 val, *vp;
 	vp = iov->iov_base;
 	val = *vp++;
-	iov->iov_base = (void*)vp;
+	iov->iov_base = (void *)vp;
 	iov->iov_len -= sizeof(__be32);
 	return val;
 }
@@ -224,10 +228,11 @@ static inline void svc_putu32(struct kvec *iov, __be32 val)
  * The context of a single thread, including the request currently being
  * processed.
  */
-struct svc_rqst {
+struct svc_rqst
+{
 	struct list_head	rq_all;		/* all threads list */
 	struct rcu_head		rq_rcu_head;	/* for RCU deferred kfree */
-	struct svc_xprt *	rq_xprt;	/* transport ptr */
+	struct svc_xprt 	*rq_xprt;	/* transport ptr */
 
 	struct sockaddr_storage	rq_addr;	/* peer address */
 	size_t			rq_addrlen;
@@ -235,18 +240,18 @@ struct svc_rqst {
 						 *  - reply from here */
 	size_t			rq_daddrlen;
 
-	struct svc_serv *	rq_server;	/* RPC service definition */
-	struct svc_pool *	rq_pool;	/* thread pool */
-	struct svc_procedure *	rq_procinfo;	/* procedure info */
-	struct auth_ops *	rq_authop;	/* authentication flavour */
+	struct svc_serv 	*rq_server;	/* RPC service definition */
+	struct svc_pool 	*rq_pool;	/* thread pool */
+	struct svc_procedure 	*rq_procinfo;	/* procedure info */
+	struct auth_ops 	*rq_authop;	/* authentication flavour */
 	struct svc_cred		rq_cred;	/* auth info */
-	void *			rq_xprt_ctxt;	/* transport specific context ptr */
-	struct svc_deferred_req*rq_deferred;	/* deferred request we are replaying */
+	void 			*rq_xprt_ctxt;	/* transport specific context ptr */
+	struct svc_deferred_req *rq_deferred;	/* deferred request we are replaying */
 
 	size_t			rq_xprt_hlen;	/* xprt header len */
 	struct xdr_buf		rq_arg;
 	struct xdr_buf		rq_res;
-	struct page *		rq_pages[RPCSVC_MAXPAGES];
+	struct page 		*rq_pages[RPCSVC_MAXPAGES];
 	struct page *		*rq_respages;	/* points into rq_pages */
 	struct page *		*rq_next_page; /* next reply page to use */
 	struct page *		*rq_page_end;  /* one past the last page */
@@ -271,9 +276,9 @@ struct svc_rqst {
 #define	RQ_DATA		(7)			/* request has data */
 	unsigned long		rq_flags;	/* flags field */
 
-	void *			rq_argp;	/* decoded arguments */
-	void *			rq_resp;	/* xdr'd results */
-	void *			rq_auth_data;	/* flavor-specific data */
+	void 			*rq_argp;	/* decoded arguments */
+	void 			*rq_resp;	/* xdr'd results */
+	void 			*rq_auth_data;	/* flavor-specific data */
 	int			rq_auth_slack;	/* extra space xdr code
 						 * should leave in head
 						 * for krb5i, krb5p.
@@ -282,13 +287,13 @@ struct svc_rqst {
 						 * reserved for this request
 						 */
 
-	struct cache_req	rq_chandle;	/* handle passed to caches for 
-						 * request delaying 
+	struct cache_req	rq_chandle;	/* handle passed to caches for
+						 * request delaying
 						 */
 	/* Catering to nfsd */
-	struct auth_domain *	rq_client;	/* RPC peer info */
-	struct auth_domain *	rq_gssclient;	/* "gss/"-style peer info */
-	struct svc_cacherep *	rq_cacherep;	/* cache info */
+	struct auth_domain 	*rq_client;	/* RPC peer info */
+	struct auth_domain 	*rq_gssclient;	/* "gss/"-style peer info */
+	struct svc_cacherep 	*rq_cacherep;	/* cache info */
 	struct task_struct	*rq_task;	/* service thread */
 	spinlock_t		rq_lock;	/* per-request lock */
 };
@@ -336,33 +341,37 @@ xdr_argsize_check(struct svc_rqst *rqstp, __be32 *p)
 {
 	char *cp = (char *)p;
 	struct kvec *vec = &rqstp->rq_arg.head[0];
-	return cp >= (char*)vec->iov_base
-		&& cp <= (char*)vec->iov_base + vec->iov_len;
+	return cp >= (char *)vec->iov_base
+		   && cp <= (char *)vec->iov_base + vec->iov_len;
 }
 
 static inline int
 xdr_ressize_check(struct svc_rqst *rqstp, __be32 *p)
 {
 	struct kvec *vec = &rqstp->rq_res.head[0];
-	char *cp = (char*)p;
+	char *cp = (char *)p;
 
-	vec->iov_len = cp - (char*)vec->iov_base;
+	vec->iov_len = cp - (char *)vec->iov_base;
 
 	return vec->iov_len <= PAGE_SIZE;
 }
 
 static inline void svc_free_res_pages(struct svc_rqst *rqstp)
 {
-	while (rqstp->rq_next_page != rqstp->rq_respages) {
+	while (rqstp->rq_next_page != rqstp->rq_respages)
+	{
 		struct page **pp = --rqstp->rq_next_page;
-		if (*pp) {
+
+		if (*pp)
+		{
 			put_page(*pp);
 			*pp = NULL;
 		}
 	}
 }
 
-struct svc_deferred_req {
+struct svc_deferred_req
+{
 	u32			prot;	/* protocol (UDP or TCP) */
 	struct svc_xprt		*xprt;
 	struct sockaddr_storage	addr;	/* where reply must go */
@@ -378,35 +387,37 @@ struct svc_deferred_req {
 /*
  * List of RPC programs on the same transport endpoint
  */
-struct svc_program {
-	struct svc_program *	pg_next;	/* other programs (same xprt) */
+struct svc_program
+{
+	struct svc_program 	*pg_next;	/* other programs (same xprt) */
 	u32			pg_prog;	/* program number */
 	unsigned int		pg_lovers;	/* lowest version */
 	unsigned int		pg_hivers;	/* highest version */
 	unsigned int		pg_nvers;	/* number of versions */
-	struct svc_version **	pg_vers;	/* version array */
-	char *			pg_name;	/* service name */
-	char *			pg_class;	/* class name: services sharing authentication */
-	struct svc_stat *	pg_stats;	/* rpc statistics */
+	struct svc_version 	**pg_vers;	/* version array */
+	char 			*pg_name;	/* service name */
+	char 			*pg_class;	/* class name: services sharing authentication */
+	struct svc_stat 	*pg_stats;	/* rpc statistics */
 	int			(*pg_authenticate)(struct svc_rqst *);
 };
 
 /*
  * RPC program version
  */
-struct svc_version {
+struct svc_version
+{
 	u32			vs_vers;	/* version number */
 	u32			vs_nproc;	/* number of procedures */
-	struct svc_procedure *	vs_proc;	/* per-procedure info */
+	struct svc_procedure 	*vs_proc;	/* per-procedure info */
 	u32			vs_xdrsize;	/* xdrsize needed for this version */
 
 	unsigned int		vs_hidden : 1,	/* Don't register with portmapper.
 						 * Only used for nfsacl so far. */
-				vs_rpcb_optnl:1;/* Don't care the result of register.
+				   vs_rpcb_optnl: 1;/* Don't care the result of register.
 						 * Only used for nfsv4. */
 
 	/* Override dispatch function (e.g. when caching replies).
-	 * A return value of 0 means drop the request. 
+	 * A return value of 0 means drop the request.
 	 * vs_dispatch == NULL means use default dispatcher.
 	 */
 	int			(*vs_dispatch)(struct svc_rqst *, __be32 *);
@@ -416,7 +427,8 @@ struct svc_version {
  * RPC procedure info
  */
 typedef __be32	(*svc_procfunc)(struct svc_rqst *, void *argp, void *resp);
-struct svc_procedure {
+struct svc_procedure
+{
 	svc_procfunc		pc_func;	/* process the request */
 	kxdrproc_t		pc_decode;	/* XDR decode args */
 	kxdrproc_t		pc_encode;	/* XDR encode result */
@@ -431,7 +443,8 @@ struct svc_procedure {
 /*
  * Mode for mapping cpus to pools.
  */
-enum {
+enum
+{
 	SVC_POOL_AUTO = -1,	/* choose one of the others */
 	SVC_POOL_GLOBAL,	/* no mapping, just a single global pool
 				 * (legacy & UP mode) */
@@ -439,7 +452,8 @@ enum {
 	SVC_POOL_PERNODE	/* one pool per numa node */
 };
 
-struct svc_pool_map {
+struct svc_pool_map
+{
 	int count;			/* How many svc_servs use us */
 	int mode;			/* Note: int not enum to avoid
 					 * warnings about "enumeration value
@@ -458,31 +472,31 @@ int svc_rpcb_setup(struct svc_serv *serv, struct net *net);
 void svc_rpcb_cleanup(struct svc_serv *serv, struct net *net);
 int svc_bind(struct svc_serv *serv, struct net *net);
 struct svc_serv *svc_create(struct svc_program *, unsigned int,
-			    struct svc_serv_ops *);
+							struct svc_serv_ops *);
 struct svc_rqst *svc_rqst_alloc(struct svc_serv *serv,
-					struct svc_pool *pool, int node);
+								struct svc_pool *pool, int node);
 struct svc_rqst *svc_prepare_thread(struct svc_serv *serv,
-					struct svc_pool *pool, int node);
+									struct svc_pool *pool, int node);
 void		   svc_rqst_free(struct svc_rqst *);
 void		   svc_exit_thread(struct svc_rqst *);
 unsigned int	   svc_pool_map_get(void);
 void		   svc_pool_map_put(void);
-struct svc_serv *  svc_create_pooled(struct svc_program *, unsigned int,
-			struct svc_serv_ops *);
+struct svc_serv   *svc_create_pooled(struct svc_program *, unsigned int,
+									 struct svc_serv_ops *);
 int		   svc_set_num_threads(struct svc_serv *, struct svc_pool *, int);
 int		   svc_pool_stats_open(struct svc_serv *serv, struct file *file);
 void		   svc_destroy(struct svc_serv *);
 void		   svc_shutdown_net(struct svc_serv *, struct net *);
 int		   svc_process(struct svc_rqst *);
 int		   bc_svc_process(struct svc_serv *, struct rpc_rqst *,
-			struct svc_rqst *);
+						  struct svc_rqst *);
 int		   svc_register(const struct svc_serv *, struct net *, const int,
-				const unsigned short, const unsigned short);
+						const unsigned short, const unsigned short);
 
 void		   svc_wake_up(struct svc_serv *);
 void		   svc_reserve(struct svc_rqst *rqstp, int space);
-struct svc_pool *  svc_pool_for_cpu(struct svc_serv *serv, int cpu);
-char *		   svc_print_addr(struct svc_rqst *, char *, size_t);
+struct svc_pool   *svc_pool_for_cpu(struct svc_serv *serv, int cpu);
+char 		   *svc_print_addr(struct svc_rqst *, char *, size_t);
 
 #define	RPC_MAX_ADDRBUFLEN	(63U)
 

@@ -33,7 +33,7 @@ static bool ingress_cl_offload(u32 classid)
 }
 
 static unsigned long ingress_bind_filter(struct Qdisc *sch,
-					 unsigned long parent, u32 classid)
+		unsigned long parent, u32 classid)
 {
 	return ingress_get(sch, classid);
 }
@@ -47,7 +47,7 @@ static void ingress_walk(struct Qdisc *sch, struct qdisc_walker *walker)
 }
 
 static struct tcf_proto __rcu **ingress_find_tcf(struct Qdisc *sch,
-						 unsigned long cl)
+		unsigned long cl)
 {
 	struct net_device *dev = qdisc_dev(sch);
 
@@ -75,8 +75,11 @@ static int ingress_dump(struct Qdisc *sch, struct sk_buff *skb)
 	struct nlattr *nest;
 
 	nest = nla_nest_start(skb, TCA_OPTIONS);
+
 	if (nest == NULL)
+	{
 		goto nla_put_failure;
+	}
 
 	return nla_nest_end(skb, nest);
 
@@ -85,7 +88,8 @@ nla_put_failure:
 	return -1;
 }
 
-static const struct Qdisc_class_ops ingress_class_ops = {
+static const struct Qdisc_class_ops ingress_class_ops =
+{
 	.leaf		=	ingress_leaf,
 	.get		=	ingress_get,
 	.put		=	ingress_put,
@@ -96,7 +100,8 @@ static const struct Qdisc_class_ops ingress_class_ops = {
 	.unbind_tcf	=	ingress_put,
 };
 
-static struct Qdisc_ops ingress_qdisc_ops __read_mostly = {
+static struct Qdisc_ops ingress_qdisc_ops __read_mostly =
+{
 	.cl_ops		=	&ingress_class_ops,
 	.id		=	"ingress",
 	.init		=	ingress_init,
@@ -107,12 +112,14 @@ static struct Qdisc_ops ingress_qdisc_ops __read_mostly = {
 
 static unsigned long clsact_get(struct Qdisc *sch, u32 classid)
 {
-	switch (TC_H_MIN(classid)) {
-	case TC_H_MIN(TC_H_MIN_INGRESS):
-	case TC_H_MIN(TC_H_MIN_EGRESS):
-		return TC_H_MIN(classid);
-	default:
-		return 0;
+	switch (TC_H_MIN(classid))
+	{
+		case TC_H_MIN(TC_H_MIN_INGRESS):
+		case TC_H_MIN(TC_H_MIN_EGRESS):
+			return TC_H_MIN(classid);
+
+		default:
+			return 0;
 	}
 }
 
@@ -122,23 +129,26 @@ static bool clsact_cl_offload(u32 classid)
 }
 
 static unsigned long clsact_bind_filter(struct Qdisc *sch,
-					unsigned long parent, u32 classid)
+										unsigned long parent, u32 classid)
 {
 	return clsact_get(sch, classid);
 }
 
 static struct tcf_proto __rcu **clsact_find_tcf(struct Qdisc *sch,
-						unsigned long cl)
+		unsigned long cl)
 {
 	struct net_device *dev = qdisc_dev(sch);
 
-	switch (cl) {
-	case TC_H_MIN(TC_H_MIN_INGRESS):
-		return &dev->ingress_cl_list;
-	case TC_H_MIN(TC_H_MIN_EGRESS):
-		return &dev->egress_cl_list;
-	default:
-		return NULL;
+	switch (cl)
+	{
+		case TC_H_MIN(TC_H_MIN_INGRESS):
+			return &dev->ingress_cl_list;
+
+		case TC_H_MIN(TC_H_MIN_EGRESS):
+			return &dev->egress_cl_list;
+
+		default:
+			return NULL;
 	}
 }
 
@@ -163,7 +173,8 @@ static void clsact_destroy(struct Qdisc *sch)
 	net_dec_egress_queue();
 }
 
-static const struct Qdisc_class_ops clsact_class_ops = {
+static const struct Qdisc_class_ops clsact_class_ops =
+{
 	.leaf		=	ingress_leaf,
 	.get		=	clsact_get,
 	.put		=	ingress_put,
@@ -174,7 +185,8 @@ static const struct Qdisc_class_ops clsact_class_ops = {
 	.unbind_tcf	=	ingress_put,
 };
 
-static struct Qdisc_ops clsact_qdisc_ops __read_mostly = {
+static struct Qdisc_ops clsact_qdisc_ops __read_mostly =
+{
 	.cl_ops		=	&clsact_class_ops,
 	.id		=	"clsact",
 	.init		=	clsact_init,
@@ -188,10 +200,15 @@ static int __init ingress_module_init(void)
 	int ret;
 
 	ret = register_qdisc(&ingress_qdisc_ops);
-	if (!ret) {
+
+	if (!ret)
+	{
 		ret = register_qdisc(&clsact_qdisc_ops);
+
 		if (ret)
+		{
 			unregister_qdisc(&ingress_qdisc_ops);
+		}
 	}
 
 	return ret;

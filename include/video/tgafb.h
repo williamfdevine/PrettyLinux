@@ -2,7 +2,7 @@
  *  linux/drivers/video/tgafb.h -- DEC 21030 TGA frame buffer device
  *
  *  	Copyright (C) 1999,2000 Martin Lucina, Tom Zerucha
- *  
+ *
  *  $Id: tgafb.h,v 1.4.2.3 2000/04/04 06:44:56 mato Exp $
  *
  *  This file is subject to the terms and conditions of the GNU General Public
@@ -65,7 +65,7 @@
 #define	TGA_CMD_STAT_REG		0x01f8
 
 
-/* 
+/*
  * Useful defines for managing the registers
  */
 
@@ -195,7 +195,8 @@
  * The framebuffer driver private data.
  */
 
-struct tga_par {
+struct tga_par
+{
 	/* PCI/TC device.  */
 	struct device *dev;
 
@@ -227,13 +228,13 @@ struct tga_par {
 static inline void
 TGA_WRITE_REG(struct tga_par *par, u32 v, u32 r)
 {
-	writel(v, par->tga_regs_base +r);
+	writel(v, par->tga_regs_base + r);
 }
 
 static inline u32
 TGA_READ_REG(struct tga_par *par, u32 r)
 {
-	return readl(par->tga_regs_base +r);
+	return readl(par->tga_regs_base + r);
 }
 
 static inline void
@@ -246,10 +247,10 @@ BT485_WRITE(struct tga_par *par, u8 v, u8 r)
 static inline void
 BT463_LOAD_ADDR(struct tga_par *par, u16 a)
 {
-	TGA_WRITE_REG(par, BT463_ADDR_LO<<2, TGA_RAMDAC_SETUP_REG);
-	TGA_WRITE_REG(par, (BT463_ADDR_LO<<10) | (a & 0xff), TGA_RAMDAC_REG);
-	TGA_WRITE_REG(par, BT463_ADDR_HI<<2, TGA_RAMDAC_SETUP_REG);
-	TGA_WRITE_REG(par, (BT463_ADDR_HI<<10) | (a >> 8), TGA_RAMDAC_REG);
+	TGA_WRITE_REG(par, BT463_ADDR_LO << 2, TGA_RAMDAC_SETUP_REG);
+	TGA_WRITE_REG(par, (BT463_ADDR_LO << 10) | (a & 0xff), TGA_RAMDAC_REG);
+	TGA_WRITE_REG(par, BT463_ADDR_HI << 2, TGA_RAMDAC_SETUP_REG);
+	TGA_WRITE_REG(par, (BT463_ADDR_HI << 10) | (a >> 8), TGA_RAMDAC_REG);
 }
 
 static inline void

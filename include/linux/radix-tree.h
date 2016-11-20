@@ -8,12 +8,12 @@
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -59,7 +59,7 @@
 static inline bool radix_tree_is_internal_node(void *ptr)
 {
 	return ((unsigned long)ptr & RADIX_TREE_ENTRY_MASK) ==
-				RADIX_TREE_INTERNAL_NODE;
+		   RADIX_TREE_INTERNAL_NODE;
 }
 
 /*** radix-tree API starts here ***/
@@ -67,7 +67,7 @@ static inline bool radix_tree_is_internal_node(void *ptr)
 #define RADIX_TREE_MAX_TAGS 3
 
 #ifndef RADIX_TREE_MAP_SHIFT
-#define RADIX_TREE_MAP_SHIFT	(CONFIG_BASE_SMALL ? 4 : 6)
+	#define RADIX_TREE_MAP_SHIFT	(CONFIG_BASE_SMALL ? 4 : 6)
 #endif
 
 #define RADIX_TREE_MAP_SIZE	(1UL << RADIX_TREE_MAP_SHIFT)
@@ -78,18 +78,21 @@ static inline bool radix_tree_is_internal_node(void *ptr)
 
 #define RADIX_TREE_INDEX_BITS  (8 /* CHAR_BIT */ * sizeof(unsigned long))
 #define RADIX_TREE_MAX_PATH (DIV_ROUND_UP(RADIX_TREE_INDEX_BITS, \
-					  RADIX_TREE_MAP_SHIFT))
+							 RADIX_TREE_MAP_SHIFT))
 
 /* Internally used bits of node->count */
 #define RADIX_TREE_COUNT_SHIFT	(RADIX_TREE_MAP_SHIFT + 1)
 #define RADIX_TREE_COUNT_MASK	((1UL << RADIX_TREE_COUNT_SHIFT) - 1)
 
-struct radix_tree_node {
+struct radix_tree_node
+{
 	unsigned char	shift;	/* Bits remaining in each slot */
 	unsigned char	offset;	/* Slot offset in parent */
 	unsigned int	count;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			/* Used when ascending tree */
 			struct radix_tree_node *parent;
 			/* For tree user */
@@ -105,24 +108,25 @@ struct radix_tree_node {
 };
 
 /* root tags are stored in gfp_mask, shifted by __GFP_BITS_SHIFT */
-struct radix_tree_root {
+struct radix_tree_root
+{
 	gfp_t			gfp_mask;
 	struct radix_tree_node	__rcu *rnode;
 };
 
 #define RADIX_TREE_INIT(mask)	{					\
-	.gfp_mask = (mask),						\
-	.rnode = NULL,							\
-}
+		.gfp_mask = (mask),						\
+					.rnode = NULL,							\
+	}
 
 #define RADIX_TREE(name, mask) \
 	struct radix_tree_root name = RADIX_TREE_INIT(mask)
 
 #define INIT_RADIX_TREE(root, mask)					\
-do {									\
-	(root)->gfp_mask = (mask);					\
-	(root)->rnode = NULL;						\
-} while (0)
+	do {									\
+		(root)->gfp_mask = (mask);					\
+		(root)->rnode = NULL;						\
+	} while (0)
 
 static inline bool radix_tree_empty(struct radix_tree_root *root)
 {
@@ -210,7 +214,7 @@ static inline void *radix_tree_deref_slot(void **pslot)
  * must hold the tree lock to prevent parallel updates.
  */
 static inline void *radix_tree_deref_slot_protected(void **pslot,
-							spinlock_t *treelock)
+		spinlock_t *treelock)
 {
 	return rcu_dereference_protected(*pslot, lockdep_is_held(treelock));
 }
@@ -263,50 +267,50 @@ static inline void radix_tree_replace_slot(void **pslot, void *item)
 }
 
 int __radix_tree_create(struct radix_tree_root *root, unsigned long index,
-			unsigned order, struct radix_tree_node **nodep,
-			void ***slotp);
+						unsigned order, struct radix_tree_node **nodep,
+						void ***slotp);
 int __radix_tree_insert(struct radix_tree_root *, unsigned long index,
-			unsigned order, void *);
+						unsigned order, void *);
 static inline int radix_tree_insert(struct radix_tree_root *root,
-			unsigned long index, void *entry)
+									unsigned long index, void *entry)
 {
 	return __radix_tree_insert(root, index, 0, entry);
 }
 void *__radix_tree_lookup(struct radix_tree_root *root, unsigned long index,
-			  struct radix_tree_node **nodep, void ***slotp);
+						  struct radix_tree_node **nodep, void ***slotp);
 void *radix_tree_lookup(struct radix_tree_root *, unsigned long);
 void **radix_tree_lookup_slot(struct radix_tree_root *, unsigned long);
 bool __radix_tree_delete_node(struct radix_tree_root *root,
-			      struct radix_tree_node *node);
+							  struct radix_tree_node *node);
 void *radix_tree_delete_item(struct radix_tree_root *, unsigned long, void *);
 void *radix_tree_delete(struct radix_tree_root *, unsigned long);
 void radix_tree_clear_tags(struct radix_tree_root *root,
-			   struct radix_tree_node *node,
-			   void **slot);
+						   struct radix_tree_node *node,
+						   void **slot);
 unsigned int radix_tree_gang_lookup(struct radix_tree_root *root,
-			void **results, unsigned long first_index,
-			unsigned int max_items);
+									void **results, unsigned long first_index,
+									unsigned int max_items);
 unsigned int radix_tree_gang_lookup_slot(struct radix_tree_root *root,
-			void ***results, unsigned long *indices,
-			unsigned long first_index, unsigned int max_items);
+		void ***results, unsigned long *indices,
+		unsigned long first_index, unsigned int max_items);
 int radix_tree_preload(gfp_t gfp_mask);
 int radix_tree_maybe_preload(gfp_t gfp_mask);
 int radix_tree_maybe_preload_order(gfp_t gfp_mask, int order);
 void radix_tree_init(void);
 void *radix_tree_tag_set(struct radix_tree_root *root,
-			unsigned long index, unsigned int tag);
+						 unsigned long index, unsigned int tag);
 void *radix_tree_tag_clear(struct radix_tree_root *root,
-			unsigned long index, unsigned int tag);
+						   unsigned long index, unsigned int tag);
 int radix_tree_tag_get(struct radix_tree_root *root,
-			unsigned long index, unsigned int tag);
+					   unsigned long index, unsigned int tag);
 unsigned int
 radix_tree_gang_lookup_tag(struct radix_tree_root *root, void **results,
-		unsigned long first_index, unsigned int max_items,
-		unsigned int tag);
+						   unsigned long first_index, unsigned int max_items,
+						   unsigned int tag);
 unsigned int
 radix_tree_gang_lookup_tag_slot(struct radix_tree_root *root, void ***results,
-		unsigned long first_index, unsigned int max_items,
-		unsigned int tag);
+								unsigned long first_index, unsigned int max_items,
+								unsigned int tag);
 unsigned long radix_tree_range_tag_if_tagged(struct radix_tree_root *root,
 		unsigned long *first_indexp, unsigned long last_index,
 		unsigned long nr_to_tag,
@@ -334,7 +338,8 @@ static inline void radix_tree_preload_end(void)
  * iteration radix_tree_iter also holds the slots' bit-mask for one chosen
  * radix tree tag.
  */
-struct radix_tree_iter {
+struct radix_tree_iter
+{
 	unsigned long	index;
 	unsigned long	next_index;
 	unsigned long	tags;
@@ -393,7 +398,7 @@ radix_tree_iter_init(struct radix_tree_iter *iter, unsigned long start)
  * its end (next_index), and constructs a bit mask for tagged iterating (tags).
  */
 void **radix_tree_next_chunk(struct radix_tree_root *root,
-			     struct radix_tree_iter *iter, unsigned flags);
+							 struct radix_tree_iter *iter, unsigned flags);
 
 /**
  * radix_tree_iter_retry - retry this chunk of the iteration
@@ -473,59 +478,83 @@ static inline struct radix_tree_node *entry_to_node(void *ptr)
 static __always_inline void **
 radix_tree_next_slot(void **slot, struct radix_tree_iter *iter, unsigned flags)
 {
-	if (flags & RADIX_TREE_ITER_TAGGED) {
+	if (flags & RADIX_TREE_ITER_TAGGED)
+	{
 		void *canon = slot;
 
 		iter->tags >>= 1;
+
 		if (unlikely(!iter->tags))
+		{
 			return NULL;
+		}
+
 		while (IS_ENABLED(CONFIG_RADIX_TREE_MULTIORDER) &&
-					radix_tree_is_internal_node(slot[1])) {
-			if (entry_to_node(slot[1]) == canon) {
+			   radix_tree_is_internal_node(slot[1]))
+		{
+			if (entry_to_node(slot[1]) == canon)
+			{
 				iter->tags >>= 1;
 				iter->index = __radix_tree_iter_add(iter, 1);
 				slot++;
 				continue;
 			}
+
 			iter->next_index = __radix_tree_iter_add(iter, 1);
 			return NULL;
 		}
-		if (likely(iter->tags & 1ul)) {
+
+		if (likely(iter->tags & 1ul))
+		{
 			iter->index = __radix_tree_iter_add(iter, 1);
 			return slot + 1;
 		}
-		if (!(flags & RADIX_TREE_ITER_CONTIG)) {
+
+		if (!(flags & RADIX_TREE_ITER_CONTIG))
+		{
 			unsigned offset = __ffs(iter->tags);
 
 			iter->tags >>= offset;
 			iter->index = __radix_tree_iter_add(iter, offset + 1);
 			return slot + offset + 1;
 		}
-	} else {
+	}
+	else
+	{
 		long count = radix_tree_chunk_size(iter);
 		void *canon = slot;
 
-		while (--count > 0) {
+		while (--count > 0)
+		{
 			slot++;
 			iter->index = __radix_tree_iter_add(iter, 1);
 
 			if (IS_ENABLED(CONFIG_RADIX_TREE_MULTIORDER) &&
-			    radix_tree_is_internal_node(*slot)) {
+				radix_tree_is_internal_node(*slot))
+			{
 				if (entry_to_node(*slot) == canon)
+				{
 					continue;
+				}
+
 				iter->next_index = iter->index;
 				break;
 			}
 
 			if (likely(*slot))
+			{
 				return slot;
-			if (flags & RADIX_TREE_ITER_CONTIG) {
+			}
+
+			if (flags & RADIX_TREE_ITER_CONTIG)
+			{
 				/* forbid switching to the next chunk */
 				iter->next_index = 0;
 				break;
 			}
 		}
 	}
+
 	return NULL;
 }
 
@@ -541,8 +570,8 @@ radix_tree_next_slot(void **slot, struct radix_tree_iter *iter, unsigned flags)
  */
 #define radix_tree_for_each_slot(slot, root, iter, start)		\
 	for (slot = radix_tree_iter_init(iter, start) ;			\
-	     slot || (slot = radix_tree_next_chunk(root, iter, 0)) ;	\
-	     slot = radix_tree_next_slot(slot, iter, 0))
+		 slot || (slot = radix_tree_next_chunk(root, iter, 0)) ;	\
+		 slot = radix_tree_next_slot(slot, iter, 0))
 
 /**
  * radix_tree_for_each_contig - iterate over contiguous slots
@@ -556,10 +585,10 @@ radix_tree_next_slot(void **slot, struct radix_tree_iter *iter, unsigned flags)
  */
 #define radix_tree_for_each_contig(slot, root, iter, start)		\
 	for (slot = radix_tree_iter_init(iter, start) ;			\
-	     slot || (slot = radix_tree_next_chunk(root, iter,		\
-				RADIX_TREE_ITER_CONTIG)) ;		\
-	     slot = radix_tree_next_slot(slot, iter,			\
-				RADIX_TREE_ITER_CONTIG))
+		 slot || (slot = radix_tree_next_chunk(root, iter,		\
+						 RADIX_TREE_ITER_CONTIG)) ;		\
+		 slot = radix_tree_next_slot(slot, iter,			\
+									 RADIX_TREE_ITER_CONTIG))
 
 /**
  * radix_tree_for_each_tagged - iterate over tagged slots
@@ -574,9 +603,9 @@ radix_tree_next_slot(void **slot, struct radix_tree_iter *iter, unsigned flags)
  */
 #define radix_tree_for_each_tagged(slot, root, iter, start, tag)	\
 	for (slot = radix_tree_iter_init(iter, start) ;			\
-	     slot || (slot = radix_tree_next_chunk(root, iter,		\
-			      RADIX_TREE_ITER_TAGGED | tag)) ;		\
-	     slot = radix_tree_next_slot(slot, iter,			\
-				RADIX_TREE_ITER_TAGGED))
+		 slot || (slot = radix_tree_next_chunk(root, iter,		\
+						 RADIX_TREE_ITER_TAGGED | tag)) ;		\
+		 slot = radix_tree_next_slot(slot, iter,			\
+									 RADIX_TREE_ITER_TAGGED))
 
 #endif /* _LINUX_RADIX_TREE_H */

@@ -96,8 +96,8 @@ typedef __uint16_t	xfs_qwarncnt_t;
  * quota will be not be switched off as long as that inode lock is held.
  */
 #define XFS_IS_QUOTA_ON(mp)	((mp)->m_qflags & (XFS_UQUOTA_ACTIVE | \
-						   XFS_GQUOTA_ACTIVE | \
-						   XFS_PQUOTA_ACTIVE))
+							 XFS_GQUOTA_ACTIVE | \
+							 XFS_PQUOTA_ACTIVE))
 #define XFS_IS_UQUOTA_ON(mp)	((mp)->m_qflags & XFS_UQUOTA_ACTIVE)
 #define XFS_IS_GQUOTA_ON(mp)	((mp)->m_qflags & XFS_GQUOTA_ACTIVE)
 #define XFS_IS_PQUOTA_ON(mp)	((mp)->m_qflags & XFS_PQUOTA_ACTIVE)
@@ -150,11 +150,11 @@ typedef __uint16_t	xfs_qwarncnt_t;
 
 
 #define XFS_QMOPT_QUOTALL	\
-		(XFS_QMOPT_UQUOTA | XFS_QMOPT_PQUOTA | XFS_QMOPT_GQUOTA)
+	(XFS_QMOPT_UQUOTA | XFS_QMOPT_PQUOTA | XFS_QMOPT_GQUOTA)
 #define XFS_QMOPT_RESBLK_MASK	(XFS_QMOPT_RES_REGBLKS | XFS_QMOPT_RES_RTBLKS)
 
 extern int xfs_dqcheck(struct xfs_mount *mp, xfs_disk_dquot_t *ddq,
-		       xfs_dqid_t id, uint type, uint flags, const char *str);
+					   xfs_dqid_t id, uint type, uint flags, const char *str);
 extern int xfs_calc_dquots_per_chunk(unsigned int nbblks);
 
 #endif	/* __XFS_QUOTA_H__ */

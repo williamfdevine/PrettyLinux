@@ -26,9 +26,9 @@
 /****************************************************************************/
 
 #ifdef CONFIG_MTD_ROM
-#define MAP_NAME "rom"
+	#define MAP_NAME "rom"
 #else
-#define MAP_NAME "ram"
+	#define MAP_NAME "ram"
 #endif
 
 /*
@@ -37,7 +37,8 @@
  */
 extern struct map_info uclinux_ram_map;
 
-struct map_info uclinux_ram_map = {
+struct map_info uclinux_ram_map =
+{
 	.name = MAP_NAME,
 	.size = 0,
 };
@@ -49,7 +50,8 @@ static struct mtd_info *uclinux_ram_mtdinfo;
 
 /****************************************************************************/
 
-static struct mtd_partition uclinux_romfs[] = {
+static struct mtd_partition uclinux_romfs[] =
+{
 	{ .name = "ROMfs" }
 };
 
@@ -58,14 +60,18 @@ static struct mtd_partition uclinux_romfs[] = {
 /****************************************************************************/
 
 static int uclinux_point(struct mtd_info *mtd, loff_t from, size_t len,
-	size_t *retlen, void **virt, resource_size_t *phys)
+						 size_t *retlen, void **virt, resource_size_t *phys)
 {
 	struct map_info *map = mtd->priv;
 	*virt = map->virt + from;
+
 	if (phys)
+	{
 		*phys = map->phys + from;
+	}
+
 	*retlen = len;
-	return(0);
+	return (0);
 }
 
 /****************************************************************************/
@@ -78,16 +84,23 @@ static int __init uclinux_mtd_init(void)
 	mapp = &uclinux_ram_map;
 
 	if (physaddr == -1)
+	{
 		mapp->phys = (resource_size_t)__bss_stop;
+	}
 	else
+	{
 		mapp->phys = physaddr;
+	}
 
 	if (!mapp->size)
+	{
 		mapp->size = PAGE_ALIGN(ntohl(*((unsigned long *)(mapp->phys + 8))));
+	}
+
 	mapp->bankwidth = 4;
 
 	printk("uclinux[mtd]: probe address=0x%x size=0x%x\n",
-	       	(int) mapp->phys, (int) mapp->size);
+		   (int) mapp->phys, (int) mapp->size);
 
 	/*
 	 * The filesystem is guaranteed to be in direct mapped memory. It is
@@ -97,17 +110,20 @@ static int __init uclinux_mtd_init(void)
 	 */
 	mapp->virt = phys_to_virt(mapp->phys);
 
-	if (mapp->virt == 0) {
+	if (mapp->virt == 0)
+	{
 		printk("uclinux[mtd]: no virtual mapping?\n");
-		return(-EIO);
+		return (-EIO);
 	}
 
 	simple_map_init(mapp);
 
 	mtd = do_map_probe("map_" MAP_NAME, mapp);
-	if (!mtd) {
+
+	if (!mtd)
+	{
 		printk("uclinux[mtd]: failed to find a mapping?\n");
-		return(-ENXIO);
+		return (-ENXIO);
 	}
 
 	mtd->owner = THIS_MODULE;
@@ -117,7 +133,7 @@ static int __init uclinux_mtd_init(void)
 	uclinux_ram_mtdinfo = mtd;
 	mtd_device_register(mtd, uclinux_romfs, NUM_PARTITIONS);
 
-	return(0);
+	return (0);
 }
 device_initcall(uclinux_mtd_init);
 

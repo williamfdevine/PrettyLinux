@@ -57,8 +57,11 @@ list_lru_from_memcg_idx(struct list_lru_node *nlru, int idx)
 	 * (see memcg_update_list_lru_node).
 	 */
 	lockdep_assert_held(&nlru->lock);
+
 	if (nlru->memcg_lrus && idx >= 0)
+	{
 		return nlru->memcg_lrus->lru[idx];
+	}
 
 	return &nlru->lru;
 }
@@ -68,7 +71,10 @@ static __always_inline struct mem_cgroup *mem_cgroup_from_kmem(void *ptr)
 	struct page *page;
 
 	if (!memcg_kmem_enabled())
+	{
 		return NULL;
+	}
+
 	page = virt_to_head_page(ptr);
 	return page->mem_cgroup;
 }
@@ -79,11 +85,16 @@ list_lru_from_kmem(struct list_lru_node *nlru, void *ptr)
 	struct mem_cgroup *memcg;
 
 	if (!nlru->memcg_lrus)
+	{
 		return &nlru->lru;
+	}
 
 	memcg = mem_cgroup_from_kmem(ptr);
+
 	if (!memcg)
+	{
 		return &nlru->lru;
+	}
 
 	return list_lru_from_memcg_idx(nlru, memcg_cache_id(memcg));
 }
@@ -113,13 +124,16 @@ bool list_lru_add(struct list_lru *lru, struct list_head *item)
 	struct list_lru_one *l;
 
 	spin_lock(&nlru->lock);
-	if (list_empty(item)) {
+
+	if (list_empty(item))
+	{
 		l = list_lru_from_kmem(nlru, item);
 		list_add_tail(item, &l->list);
 		l->nr_items++;
 		spin_unlock(&nlru->lock);
 		return true;
 	}
+
 	spin_unlock(&nlru->lock);
 	return false;
 }
@@ -132,13 +146,16 @@ bool list_lru_del(struct list_lru *lru, struct list_head *item)
 	struct list_lru_one *l;
 
 	spin_lock(&nlru->lock);
-	if (!list_empty(item)) {
+
+	if (!list_empty(item))
+	{
 		l = list_lru_from_kmem(nlru, item);
 		list_del_init(item);
 		l->nr_items--;
 		spin_unlock(&nlru->lock);
 		return true;
 	}
+
 	spin_unlock(&nlru->lock);
 	return false;
 }
@@ -152,7 +169,7 @@ void list_lru_isolate(struct list_lru_one *list, struct list_head *item)
 EXPORT_SYMBOL_GPL(list_lru_isolate);
 
 void list_lru_isolate_move(struct list_lru_one *list, struct list_head *item,
-			   struct list_head *head)
+						   struct list_head *head)
 {
 	list_move(item, head);
 	list->nr_items--;
@@ -160,7 +177,7 @@ void list_lru_isolate_move(struct list_lru_one *list, struct list_head *item,
 EXPORT_SYMBOL_GPL(list_lru_isolate_move);
 
 static unsigned long __list_lru_count_one(struct list_lru *lru,
-					  int nid, int memcg_idx)
+		int nid, int memcg_idx)
 {
 	struct list_lru_node *nlru = &lru->node[nid];
 	struct list_lru_one *l;
@@ -175,7 +192,7 @@ static unsigned long __list_lru_count_one(struct list_lru *lru,
 }
 
 unsigned long list_lru_count_one(struct list_lru *lru,
-				 int nid, struct mem_cgroup *memcg)
+								 int nid, struct mem_cgroup *memcg)
 {
 	return __list_lru_count_one(lru, nid, memcg_cache_id(memcg));
 }
@@ -187,18 +204,21 @@ unsigned long list_lru_count_node(struct list_lru *lru, int nid)
 	int memcg_idx;
 
 	count += __list_lru_count_one(lru, nid, -1);
-	if (list_lru_memcg_aware(lru)) {
+
+	if (list_lru_memcg_aware(lru))
+	{
 		for_each_memcg_cache_index(memcg_idx)
-			count += __list_lru_count_one(lru, nid, memcg_idx);
+		count += __list_lru_count_one(lru, nid, memcg_idx);
 	}
+
 	return count;
 }
 EXPORT_SYMBOL_GPL(list_lru_count_node);
 
 static unsigned long
 __list_lru_walk_one(struct list_lru *lru, int nid, int memcg_idx,
-		    list_lru_walk_cb isolate, void *cb_arg,
-		    unsigned long *nr_to_walk)
+					list_lru_walk_cb isolate, void *cb_arg,
+					unsigned long *nr_to_walk)
 {
 
 	struct list_lru_node *nlru = &lru->node[nid];
@@ -209,7 +229,8 @@ __list_lru_walk_one(struct list_lru *lru, int nid, int memcg_idx,
 	spin_lock(&nlru->lock);
 	l = list_lru_from_memcg_idx(nlru, memcg_idx);
 restart:
-	list_for_each_safe(item, n, &l->list) {
+	list_for_each_safe(item, n, &l->list)
+	{
 		enum lru_status ret;
 
 		/*
@@ -217,37 +238,51 @@ restart:
 		 * get stuck on large numbesr of LRU_RETRY items
 		 */
 		if (!*nr_to_walk)
+		{
 			break;
+		}
+
 		--*nr_to_walk;
 
 		ret = isolate(item, l, &nlru->lock, cb_arg);
-		switch (ret) {
-		case LRU_REMOVED_RETRY:
-			assert_spin_locked(&nlru->lock);
-		case LRU_REMOVED:
-			isolated++;
-			/*
-			 * If the lru lock has been dropped, our list
-			 * traversal is now invalid and so we have to
-			 * restart from scratch.
-			 */
-			if (ret == LRU_REMOVED_RETRY)
+
+		switch (ret)
+		{
+			case LRU_REMOVED_RETRY:
+				assert_spin_locked(&nlru->lock);
+
+			case LRU_REMOVED:
+				isolated++;
+
+				/*
+				 * If the lru lock has been dropped, our list
+				 * traversal is now invalid and so we have to
+				 * restart from scratch.
+				 */
+				if (ret == LRU_REMOVED_RETRY)
+				{
+					goto restart;
+				}
+
+				break;
+
+			case LRU_ROTATE:
+				list_move_tail(item, &l->list);
+				break;
+
+			case LRU_SKIP:
+				break;
+
+			case LRU_RETRY:
+				/*
+				 * The lru lock has been dropped, our list traversal is
+				 * now invalid and so we have to restart from scratch.
+				 */
+				assert_spin_locked(&nlru->lock);
 				goto restart;
-			break;
-		case LRU_ROTATE:
-			list_move_tail(item, &l->list);
-			break;
-		case LRU_SKIP:
-			break;
-		case LRU_RETRY:
-			/*
-			 * The lru lock has been dropped, our list traversal is
-			 * now invalid and so we have to restart from scratch.
-			 */
-			assert_spin_locked(&nlru->lock);
-			goto restart;
-		default:
-			BUG();
+
+			default:
+				BUG();
 		}
 	}
 
@@ -257,31 +292,38 @@ restart:
 
 unsigned long
 list_lru_walk_one(struct list_lru *lru, int nid, struct mem_cgroup *memcg,
-		  list_lru_walk_cb isolate, void *cb_arg,
-		  unsigned long *nr_to_walk)
+				  list_lru_walk_cb isolate, void *cb_arg,
+				  unsigned long *nr_to_walk)
 {
 	return __list_lru_walk_one(lru, nid, memcg_cache_id(memcg),
-				   isolate, cb_arg, nr_to_walk);
+							   isolate, cb_arg, nr_to_walk);
 }
 EXPORT_SYMBOL_GPL(list_lru_walk_one);
 
 unsigned long list_lru_walk_node(struct list_lru *lru, int nid,
-				 list_lru_walk_cb isolate, void *cb_arg,
-				 unsigned long *nr_to_walk)
+								 list_lru_walk_cb isolate, void *cb_arg,
+								 unsigned long *nr_to_walk)
 {
 	long isolated = 0;
 	int memcg_idx;
 
 	isolated += __list_lru_walk_one(lru, nid, -1, isolate, cb_arg,
-					nr_to_walk);
-	if (*nr_to_walk > 0 && list_lru_memcg_aware(lru)) {
-		for_each_memcg_cache_index(memcg_idx) {
+									nr_to_walk);
+
+	if (*nr_to_walk > 0 && list_lru_memcg_aware(lru))
+	{
+		for_each_memcg_cache_index(memcg_idx)
+		{
 			isolated += __list_lru_walk_one(lru, nid, memcg_idx,
-						isolate, cb_arg, nr_to_walk);
+											isolate, cb_arg, nr_to_walk);
+
 			if (*nr_to_walk <= 0)
+			{
 				break;
+			}
 		}
 	}
+
 	return isolated;
 }
 EXPORT_SYMBOL_GPL(list_lru_walk_node);
@@ -294,29 +336,36 @@ static void init_one_lru(struct list_lru_one *l)
 
 #if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
 static void __memcg_destroy_list_lru_node(struct list_lru_memcg *memcg_lrus,
-					  int begin, int end)
+		int begin, int end)
 {
 	int i;
 
 	for (i = begin; i < end; i++)
+	{
 		kfree(memcg_lrus->lru[i]);
+	}
 }
 
 static int __memcg_init_list_lru_node(struct list_lru_memcg *memcg_lrus,
-				      int begin, int end)
+									  int begin, int end)
 {
 	int i;
 
-	for (i = begin; i < end; i++) {
+	for (i = begin; i < end; i++)
+	{
 		struct list_lru_one *l;
 
 		l = kmalloc(sizeof(struct list_lru_one), GFP_KERNEL);
+
 		if (!l)
+		{
 			goto fail;
+		}
 
 		init_one_lru(l);
 		memcg_lrus->lru[i] = l;
 	}
+
 	return 0;
 fail:
 	__memcg_destroy_list_lru_node(memcg_lrus, begin, i - 1);
@@ -328,10 +377,14 @@ static int memcg_init_list_lru_node(struct list_lru_node *nlru)
 	int size = memcg_nr_cache_ids;
 
 	nlru->memcg_lrus = kmalloc(size * sizeof(void *), GFP_KERNEL);
-	if (!nlru->memcg_lrus)
-		return -ENOMEM;
 
-	if (__memcg_init_list_lru_node(nlru->memcg_lrus, 0, size)) {
+	if (!nlru->memcg_lrus)
+	{
+		return -ENOMEM;
+	}
+
+	if (__memcg_init_list_lru_node(nlru->memcg_lrus, 0, size))
+	{
 		kfree(nlru->memcg_lrus);
 		return -ENOMEM;
 	}
@@ -346,7 +399,7 @@ static void memcg_destroy_list_lru_node(struct list_lru_node *nlru)
 }
 
 static int memcg_update_list_lru_node(struct list_lru_node *nlru,
-				      int old_size, int new_size)
+									  int old_size, int new_size)
 {
 	struct list_lru_memcg *old, *new;
 
@@ -354,10 +407,14 @@ static int memcg_update_list_lru_node(struct list_lru_node *nlru,
 
 	old = nlru->memcg_lrus;
 	new = kmalloc(new_size * sizeof(void *), GFP_KERNEL);
-	if (!new)
-		return -ENOMEM;
 
-	if (__memcg_init_list_lru_node(new, old_size, new_size)) {
+	if (!new)
+	{
+		return -ENOMEM;
+	}
+
+	if (__memcg_init_list_lru_node(new, old_size, new_size))
+	{
 		kfree(new);
 		return -ENOMEM;
 	}
@@ -380,7 +437,7 @@ static int memcg_update_list_lru_node(struct list_lru_node *nlru,
 }
 
 static void memcg_cancel_update_list_lru_node(struct list_lru_node *nlru,
-					      int old_size, int new_size)
+		int old_size, int new_size)
 {
 	/* do not bother shrinking the array back to the old size, because we
 	 * cannot handle allocation failures here */
@@ -392,19 +449,30 @@ static int memcg_init_list_lru(struct list_lru *lru, bool memcg_aware)
 	int i;
 
 	if (!memcg_aware)
+	{
 		return 0;
+	}
 
-	for_each_node(i) {
+	for_each_node(i)
+	{
 		if (memcg_init_list_lru_node(&lru->node[i]))
+		{
 			goto fail;
+		}
 	}
 	return 0;
 fail:
-	for (i = i - 1; i >= 0; i--) {
+
+	for (i = i - 1; i >= 0; i--)
+	{
 		if (!lru->node[i].memcg_lrus)
+		{
 			continue;
+		}
+
 		memcg_destroy_list_lru_node(&lru->node[i]);
 	}
+
 	return -ENOMEM;
 }
 
@@ -413,48 +481,62 @@ static void memcg_destroy_list_lru(struct list_lru *lru)
 	int i;
 
 	if (!list_lru_memcg_aware(lru))
+	{
 		return;
+	}
 
 	for_each_node(i)
-		memcg_destroy_list_lru_node(&lru->node[i]);
+	memcg_destroy_list_lru_node(&lru->node[i]);
 }
 
 static int memcg_update_list_lru(struct list_lru *lru,
-				 int old_size, int new_size)
+								 int old_size, int new_size)
 {
 	int i;
 
 	if (!list_lru_memcg_aware(lru))
+	{
 		return 0;
+	}
 
-	for_each_node(i) {
+	for_each_node(i)
+	{
 		if (memcg_update_list_lru_node(&lru->node[i],
-					       old_size, new_size))
+									   old_size, new_size))
+		{
 			goto fail;
+		}
 	}
 	return 0;
 fail:
-	for (i = i - 1; i >= 0; i--) {
+
+	for (i = i - 1; i >= 0; i--)
+	{
 		if (!lru->node[i].memcg_lrus)
+		{
 			continue;
+		}
 
 		memcg_cancel_update_list_lru_node(&lru->node[i],
-						  old_size, new_size);
+										  old_size, new_size);
 	}
+
 	return -ENOMEM;
 }
 
 static void memcg_cancel_update_list_lru(struct list_lru *lru,
-					 int old_size, int new_size)
+		int old_size, int new_size)
 {
 	int i;
 
 	if (!list_lru_memcg_aware(lru))
+	{
 		return;
+	}
 
 	for_each_node(i)
-		memcg_cancel_update_list_lru_node(&lru->node[i],
-						  old_size, new_size);
+	memcg_cancel_update_list_lru_node(&lru->node[i],
+									  old_size, new_size);
 }
 
 int memcg_update_all_list_lrus(int new_size)
@@ -464,22 +546,26 @@ int memcg_update_all_list_lrus(int new_size)
 	int old_size = memcg_nr_cache_ids;
 
 	mutex_lock(&list_lrus_mutex);
-	list_for_each_entry(lru, &list_lrus, list) {
+	list_for_each_entry(lru, &list_lrus, list)
+	{
 		ret = memcg_update_list_lru(lru, old_size, new_size);
+
 		if (ret)
+		{
 			goto fail;
+		}
 	}
 out:
 	mutex_unlock(&list_lrus_mutex);
 	return ret;
 fail:
 	list_for_each_entry_continue_reverse(lru, &list_lrus, list)
-		memcg_cancel_update_list_lru(lru, old_size, new_size);
+	memcg_cancel_update_list_lru(lru, old_size, new_size);
 	goto out;
 }
 
 static void memcg_drain_list_lru_node(struct list_lru_node *nlru,
-				      int src_idx, int dst_idx)
+									  int src_idx, int dst_idx)
 {
 	struct list_lru_one *src, *dst;
 
@@ -500,15 +586,17 @@ static void memcg_drain_list_lru_node(struct list_lru_node *nlru,
 }
 
 static void memcg_drain_list_lru(struct list_lru *lru,
-				 int src_idx, int dst_idx)
+								 int src_idx, int dst_idx)
 {
 	int i;
 
 	if (!list_lru_memcg_aware(lru))
+	{
 		return;
+	}
 
 	for_each_node(i)
-		memcg_drain_list_lru_node(&lru->node[i], src_idx, dst_idx);
+	memcg_drain_list_lru_node(&lru->node[i], src_idx, dst_idx);
 }
 
 void memcg_drain_all_list_lrus(int src_idx, int dst_idx)
@@ -517,7 +605,7 @@ void memcg_drain_all_list_lrus(int src_idx, int dst_idx)
 
 	mutex_lock(&list_lrus_mutex);
 	list_for_each_entry(lru, &list_lrus, list)
-		memcg_drain_list_lru(lru, src_idx, dst_idx);
+	memcg_drain_list_lru(lru, src_idx, dst_idx);
 	mutex_unlock(&list_lrus_mutex);
 }
 #else
@@ -532,7 +620,7 @@ static void memcg_destroy_list_lru(struct list_lru *lru)
 #endif /* CONFIG_MEMCG && !CONFIG_SLOB */
 
 int __list_lru_init(struct list_lru *lru, bool memcg_aware,
-		    struct lock_class_key *key)
+					struct lock_class_key *key)
 {
 	int i;
 	size_t size = sizeof(*lru->node) * nr_node_ids;
@@ -541,18 +629,28 @@ int __list_lru_init(struct list_lru *lru, bool memcg_aware,
 	memcg_get_cache_ids();
 
 	lru->node = kzalloc(size, GFP_KERNEL);
-	if (!lru->node)
-		goto out;
 
-	for_each_node(i) {
+	if (!lru->node)
+	{
+		goto out;
+	}
+
+	for_each_node(i)
+	{
 		spin_lock_init(&lru->node[i].lock);
+
 		if (key)
+		{
 			lockdep_set_class(&lru->node[i].lock, key);
+		}
+
 		init_one_lru(&lru->node[i].lru);
 	}
 
 	err = memcg_init_list_lru(lru, memcg_aware);
-	if (err) {
+
+	if (err)
+	{
 		kfree(lru->node);
 		/* Do this so a list_lru_destroy() doesn't crash: */
 		lru->node = NULL;
@@ -570,7 +668,9 @@ void list_lru_destroy(struct list_lru *lru)
 {
 	/* Already destroyed or not yet initialized? */
 	if (!lru->node)
+	{
 		return;
+	}
 
 	memcg_get_cache_ids();
 

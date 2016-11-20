@@ -36,7 +36,8 @@
  * Name server Requests.
  * Note:  this is an incomplete list, some unused requests are omitted.
  */
-enum fc_ns_req {
+enum fc_ns_req
+{
 	FC_NS_GA_NXT =	0x0100,		/* get all next */
 	FC_NS_GI_A =	0x0101,		/* get identifiers - scope */
 	FC_NS_GPN_ID =	0x0112,		/* get port name by ID */
@@ -58,7 +59,8 @@ enum fc_ns_req {
 /*
  * Port type values.
  */
-enum fc_ns_pt {
+enum fc_ns_pt
+{
 	FC_NS_UNID_PORT = 0x00,	/* unidentified */
 	FC_NS_N_PORT =	0x01,	/* N port */
 	FC_NS_NL_PORT =	0x02,	/* NL port */
@@ -73,14 +75,16 @@ enum fc_ns_pt {
 /*
  * Port type object.
  */
-struct fc_ns_pt_obj {
+struct fc_ns_pt_obj
+{
 	__u8		pt_type;
 };
 
 /*
  * Port ID object
  */
-struct fc_ns_fid {
+struct fc_ns_fid
+{
 	__u8		fp_flags;	/* flags for responses only */
 	__u8		fp_fid[3];
 };
@@ -96,21 +100,24 @@ struct fc_ns_fid {
 #define	FC_NS_TYPES	256	/* number of possible FC-4 types */
 #define	FC_NS_BPW	32	/* bits per word in bitmap */
 
-struct fc_ns_fts {
+struct fc_ns_fts
+{
 	__be32	ff_type_map[FC_NS_TYPES / FC_NS_BPW]; /* bitmap of FC-4 types */
 };
 
 /*
  * FC4-features object.
  */
-struct fc_ns_ff	{
+struct fc_ns_ff
+{
 	__be32	fd_feat[FC_NS_TYPES * 4 / FC_NS_BPW]; /* 4-bits per FC-type */
 };
 
 /*
  * GID_PT request.
  */
-struct fc_ns_gid_pt {
+struct fc_ns_gid_pt
+{
 	__u8		fn_pt_type;
 	__u8		fn_domain_id_scope;
 	__u8		fn_area_id_scope;
@@ -120,7 +127,8 @@ struct fc_ns_gid_pt {
 /*
  * GID_FT or GPN_FT request.
  */
-struct fc_ns_gid_ft {
+struct fc_ns_gid_ft
+{
 	__u8		fn_resvd;
 	__u8		fn_domain_id_scope;
 	__u8		fn_area_id_scope;
@@ -130,7 +138,8 @@ struct fc_ns_gid_ft {
 /*
  * GPN_FT response.
  */
-struct fc_gpn_ft_resp {
+struct fc_gpn_ft_resp
+{
 	__u8		fp_flags;	/* see fp_flags definitions above */
 	__u8		fp_fid[3];	/* port ID */
 	__be32		fp_resvd;
@@ -140,14 +149,16 @@ struct fc_gpn_ft_resp {
 /*
  * GID_PN request
  */
-struct fc_ns_gid_pn {
+struct fc_ns_gid_pn
+{
 	__be64     fn_wwpn;    /* port name */
 };
 
 /*
  * GID_PN response or GSPN_ID request
  */
-struct fc_gid_pn_resp {
+struct fc_gid_pn_resp
+{
 	__u8      fp_resvd;
 	__u8      fp_fid[3];     /* port ID */
 };
@@ -155,7 +166,8 @@ struct fc_gid_pn_resp {
 /*
  * GSPN_ID response
  */
-struct fc_gspn_resp {
+struct fc_gspn_resp
+{
 	__u8	fp_name_len;
 	char	fp_name[];
 };
@@ -163,7 +175,8 @@ struct fc_gspn_resp {
 /*
  * RFT_ID request - register FC-4 types for ID.
  */
-struct fc_ns_rft_id {
+struct fc_ns_rft_id
+{
 	struct fc_ns_fid fr_fid;	/* port ID object */
 	struct fc_ns_fts fr_fts;	/* FC-4 types object */
 };
@@ -172,7 +185,8 @@ struct fc_ns_rft_id {
  * RPN_ID request - register port name for ID.
  * RNN_ID request - register node name for ID.
  */
-struct fc_ns_rn_id {
+struct fc_ns_rn_id
+{
 	struct fc_ns_fid fr_fid;	/* port ID object */
 	__be64		fr_wwn;		/* node name or port name */
 } __attribute__((__packed__));
@@ -180,7 +194,8 @@ struct fc_ns_rn_id {
 /*
  * RSNN_NN request - register symbolic node name
  */
-struct fc_ns_rsnn {
+struct fc_ns_rsnn
+{
 	__be64		fr_wwn;		/* node name */
 	__u8		fr_name_len;
 	char		fr_name[];
@@ -189,7 +204,8 @@ struct fc_ns_rsnn {
 /*
  * RSPN_ID request - register symbolic port name
  */
-struct fc_ns_rspn {
+struct fc_ns_rspn
+{
 	struct fc_ns_fid fr_fid;	/* port ID object */
 	__u8		fr_name_len;
 	char		fr_name[];
@@ -198,7 +214,8 @@ struct fc_ns_rspn {
 /*
  * RFF_ID request - register FC-4 Features for ID.
  */
-struct fc_ns_rff_id {
+struct fc_ns_rff_id
+{
 	struct fc_ns_fid fr_fid;	/* port ID object */
 	__u8		fr_resvd[2];
 	__u8		fr_feat;	/* FC-4 Feature bits */

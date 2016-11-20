@@ -50,9 +50,10 @@
 #define STTIMER_SLOTTIMEMASK   (~(STTIMER_SLOTTIME - 1))
 #define STTIMER_NSLOTS	       (1 << 7)
 #define STTIMER_SLOT(t)	       (&stt_data.stt_hash[(((t) >> STTIMER_MINPOLL) & \
-						    (STTIMER_NSLOTS - 1))])
+								(STTIMER_NSLOTS - 1))])
 
-static struct st_timer_data {
+static struct st_timer_data
+{
 	spinlock_t	  stt_lock;
 	unsigned long	  stt_prev_slot; /* start time of the slot processed
 					  * previously */
@@ -76,12 +77,15 @@ stt_add_timer(struct stt_timer *timer)
 	LASSERT(timer->stt_expires > ktime_get_real_seconds());
 
 	/* a simple insertion sort */
-	list_for_each_prev(pos, STTIMER_SLOT(timer->stt_expires)) {
+	list_for_each_prev(pos, STTIMER_SLOT(timer->stt_expires))
+	{
 		struct stt_timer *old = list_entry(pos, struct stt_timer,
-						   stt_list);
+										   stt_list);
 
 		if (timer->stt_expires >= old->stt_expires)
+		{
 			break;
+		}
 	}
 	list_add(&timer->stt_list, pos);
 
@@ -107,7 +111,8 @@ stt_del_timer(struct stt_timer *timer)
 	LASSERT(stt_data.stt_nthreads > 0);
 	LASSERT(!stt_data.stt_shuttingdown);
 
-	if (!list_empty(&timer->stt_list)) {
+	if (!list_empty(&timer->stt_list))
+	{
 		ret = 1;
 		list_del_init(&timer->stt_list);
 	}
@@ -123,11 +128,14 @@ stt_expire_list(struct list_head *slot, time64_t now)
 	int expired = 0;
 	struct stt_timer *timer;
 
-	while (!list_empty(slot)) {
+	while (!list_empty(slot))
+	{
 		timer = list_entry(slot->next, struct stt_timer, stt_list);
 
 		if (timer->stt_expires > now)
+		{
 			break;
+		}
 
 		list_del_init(&timer->stt_list);
 		spin_unlock(&stt_data.stt_lock);
@@ -153,7 +161,8 @@ stt_check_timers(unsigned long *last)
 
 	spin_lock(&stt_data.stt_lock);
 
-	while (cfs_time_aftereq(this_slot, *last)) {
+	while (cfs_time_aftereq(this_slot, *last))
+	{
 		expired += stt_expire_list(STTIMER_SLOT(this_slot), now);
 		this_slot = cfs_time_sub(this_slot, STTIMER_SLOTTIME);
 	}
@@ -170,12 +179,13 @@ stt_timer_main(void *arg)
 
 	cfs_block_allsigs();
 
-	while (!stt_data.stt_shuttingdown) {
+	while (!stt_data.stt_shuttingdown)
+	{
 		stt_check_timers(&stt_data.stt_prev_slot);
 
 		rc = wait_event_timeout(stt_data.stt_waitq,
-					stt_data.stt_shuttingdown,
-					cfs_time_seconds(STTIMER_SLOTTIME));
+								stt_data.stt_shuttingdown,
+								cfs_time_seconds(STTIMER_SLOTTIME));
 	}
 
 	spin_lock(&stt_data.stt_lock);
@@ -192,8 +202,11 @@ stt_start_timer_thread(void)
 	LASSERT(!stt_data.stt_shuttingdown);
 
 	task = kthread_run(stt_timer_main, NULL, "st_timer");
+
 	if (IS_ERR(task))
+	{
 		return PTR_ERR(task);
+	}
 
 	spin_lock(&stt_data.stt_lock);
 	stt_data.stt_nthreads++;
@@ -211,14 +224,20 @@ stt_startup(void)
 	stt_data.stt_prev_slot = ktime_get_real_seconds() & STTIMER_SLOTTIMEMASK;
 
 	spin_lock_init(&stt_data.stt_lock);
+
 	for (i = 0; i < STTIMER_NSLOTS; i++)
+	{
 		INIT_LIST_HEAD(&stt_data.stt_hash[i]);
+	}
 
 	stt_data.stt_nthreads = 0;
 	init_waitqueue_head(&stt_data.stt_waitq);
 	rc = stt_start_timer_thread();
+
 	if (rc)
+	{
 		CERROR("Can't spawn timer thread: %d\n", rc);
+	}
 
 	return rc;
 }
@@ -231,14 +250,16 @@ stt_shutdown(void)
 	spin_lock(&stt_data.stt_lock);
 
 	for (i = 0; i < STTIMER_NSLOTS; i++)
+	{
 		LASSERT(list_empty(&stt_data.stt_hash[i]));
+	}
 
 	stt_data.stt_shuttingdown = 1;
 
 	wake_up(&stt_data.stt_waitq);
 	lst_wait_until(!stt_data.stt_nthreads, stt_data.stt_lock,
-		       "waiting for %d threads to terminate\n",
-		       stt_data.stt_nthreads);
+				   "waiting for %d threads to terminate\n",
+				   stt_data.stt_nthreads);
 
 	spin_unlock(&stt_data.stt_lock);
 }

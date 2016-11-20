@@ -5,14 +5,15 @@
 
 #define E(a, b, c, d) \
 	{.ip6 = { \
-		htonl(a), htonl(b), \
-		htonl(c), htonl(d), \
-	} }
+			  htonl(a), htonl(b), \
+			  htonl(c), htonl(d), \
+				} }
 
 /* This table works for both IPv4 and IPv6;
  * just use prefixlen_netmask_map[prefixlength].ip.
  */
-const union nf_inet_addr ip_set_netmask_map[] = {
+const union nf_inet_addr ip_set_netmask_map[] =
+{
 	E(0x00000000, 0x00000000, 0x00000000, 0x00000000),
 	E(0x80000000, 0x00000000, 0x00000000, 0x00000000),
 	E(0xC0000000, 0x00000000, 0x00000000, 0x00000000),
@@ -148,13 +149,14 @@ EXPORT_SYMBOL_GPL(ip_set_netmask_map);
 #undef  E
 #define E(a, b, c, d)					\
 	{.ip6 = { (__force __be32)a, (__force __be32)b,	\
-		  (__force __be32)c, (__force __be32)d,	\
-	} }
+			  (__force __be32)c, (__force __be32)d,	\
+				} }
 
 /* This table works for both IPv4 and IPv6;
  * just use prefixlen_hostmask_map[prefixlength].ip.
  */
-const union nf_inet_addr ip_set_hostmask_map[] = {
+const union nf_inet_addr ip_set_hostmask_map[] =
+{
 	E(0x00000000, 0x00000000, 0x00000000, 0x00000000),
 	E(0x80000000, 0x00000000, 0x00000000, 0x00000000),
 	E(0xC0000000, 0x00000000, 0x00000000, 0x00000000),
@@ -294,15 +296,22 @@ ip_set_range_to_cidr(u32 from, u32 to, u8 *cidr)
 	u32 last;
 	u8 i;
 
-	for (i = 1; i < 32; i++) {
+	for (i = 1; i < 32; i++)
+	{
 		if ((from & ip_set_hostmask(i)) != from)
+		{
 			continue;
+		}
+
 		last = from | ~ip_set_hostmask(i);
-		if (!after(last, to)) {
+
+		if (!after(last, to))
+		{
 			*cidr = i;
 			return last;
 		}
 	}
+
 	*cidr = 32;
 	return from;
 }

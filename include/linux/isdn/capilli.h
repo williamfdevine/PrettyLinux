@@ -1,9 +1,9 @@
 /* $Id: capilli.h,v 1.1.2.2 2004/01/16 21:09:27 keil Exp $
- * 
+ *
  * Kernel CAPI 2.0 Driver Interface for Linux
- * 
+ *
  * Copyright 1999 by Carsten Paeth <calle@calle.de>
- * 
+ *
  * This software may be used and distributed according to the terms
  * of the GNU General Public License, incorporated herein by reference.
  *
@@ -17,18 +17,21 @@
 #include <linux/capi.h>
 #include <linux/kernelcapi.h>
 
-typedef struct capiloaddatapart {
+typedef struct capiloaddatapart
+{
 	int user;		/* data in userspace ? */
 	int len;
 	unsigned char *data;
 } capiloaddatapart;
 
-typedef struct capiloaddata {
+typedef struct capiloaddata
+{
 	capiloaddatapart firmware;
 	capiloaddatapart configuration;
 } capiloaddata;
 
-typedef struct capicardparams {
+typedef struct capicardparams
+{
 	unsigned int port;
 	unsigned irq;
 	int cardtype;
@@ -36,7 +39,8 @@ typedef struct capicardparams {
 	unsigned int membase;
 } capicardparams;
 
-struct capi_ctr {
+struct capi_ctr
+{
 	/* filled in before calling attach_capi_ctr */
 	struct module *owner;
 	void *driverdata;			/* driver specific */
@@ -45,10 +49,10 @@ struct capi_ctr {
 	int (*load_firmware)(struct capi_ctr *, capiloaddata *);
 	void (*reset_ctr)(struct capi_ctr *);
 	void (*register_appl)(struct capi_ctr *, u16 appl,
-			      capi_register_params *);
+						  capi_register_params *);
 	void (*release_appl)(struct capi_ctr *, u16 appl);
 	u16  (*send_message)(struct capi_ctr *, struct sk_buff *skb);
-	
+
 	char *(*procinfo)(struct capi_ctr *);
 	const struct file_operations *proc_fops;
 
@@ -72,29 +76,30 @@ struct capi_ctr {
 	wait_queue_head_t state_wait_queue;
 
 	struct proc_dir_entry *procent;
-        char procfn[128];
+	char procfn[128];
 };
 
 int attach_capi_ctr(struct capi_ctr *);
 int detach_capi_ctr(struct capi_ctr *);
 
-void capi_ctr_ready(struct capi_ctr * card);
-void capi_ctr_down(struct capi_ctr * card);
-void capi_ctr_suspend_output(struct capi_ctr * card);
-void capi_ctr_resume_output(struct capi_ctr * card);
-void capi_ctr_handle_message(struct capi_ctr * card, u16 appl, struct sk_buff *skb);
+void capi_ctr_ready(struct capi_ctr *card);
+void capi_ctr_down(struct capi_ctr *card);
+void capi_ctr_suspend_output(struct capi_ctr *card);
+void capi_ctr_resume_output(struct capi_ctr *card);
+void capi_ctr_handle_message(struct capi_ctr *card, u16 appl, struct sk_buff *skb);
 
 // ---------------------------------------------------------------------------
 // needed for AVM capi drivers
 
-struct capi_driver {
+struct capi_driver
+{
 	char name[32];				/* driver name */
 	char revision[32];
 
 	int (*add_card)(struct capi_driver *driver, capicardparams *data);
 
 	/* management information for kcapi */
-	struct list_head list; 
+	struct list_head list;
 };
 
 void register_capi_driver(struct capi_driver *driver);

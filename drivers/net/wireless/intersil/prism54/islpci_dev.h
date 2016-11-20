@@ -34,7 +34,8 @@
 
 /* some states might not be superflous and may be removed when
    design is finalized (hvr) */
-typedef enum {
+typedef enum
+{
 	PRV_STATE_OFF = 0,	/* this means hw_unavailable is != 0 */
 	PRV_STATE_PREBOOT,	/* we are in a pre-boot state (empty RAM) */
 	PRV_STATE_BOOT,		/* boot state (fw upload, run fw) */
@@ -46,19 +47,22 @@ typedef enum {
 } islpci_state_t;
 
 /* ACL using MAC address */
-struct mac_entry {
-   struct list_head _list;
-   char addr[ETH_ALEN];
+struct mac_entry
+{
+	struct list_head _list;
+	char addr[ETH_ALEN];
 };
 
-struct islpci_acl {
-   enum { MAC_POLICY_OPEN=0, MAC_POLICY_ACCEPT=1, MAC_POLICY_REJECT=2 } policy;
-   struct list_head mac_list;  /* a list of mac_entry */
-   int size;   /* size of queue */
-   struct mutex lock;   /* accessed in ioctls and trap_work */
+struct islpci_acl
+{
+	enum { MAC_POLICY_OPEN = 0, MAC_POLICY_ACCEPT = 1, MAC_POLICY_REJECT = 2 } policy;
+	struct list_head mac_list;  /* a list of mac_entry */
+	int size;   /* size of queue */
+	struct mutex lock;   /* accessed in ioctls and trap_work */
 };
 
-struct islpci_membuf {
+struct islpci_membuf
+{
 	int size;                   /* size of memory */
 	void *mem;                  /* address of memory as seen by CPU */
 	dma_addr_t pci_addr;        /* address of memory as seen by device */
@@ -66,7 +70,8 @@ struct islpci_membuf {
 
 #define MAX_BSS_WPA_IE_COUNT 64
 #define MAX_WPA_IE_LEN 64
-struct islpci_bss_wpa_ie {
+struct islpci_bss_wpa_ie
+{
 	struct list_head list;
 	unsigned long last_update;
 	u8 bssid[ETH_ALEN];
@@ -75,16 +80,17 @@ struct islpci_bss_wpa_ie {
 
 };
 
-typedef struct {
+typedef struct
+{
 	spinlock_t slock;	/* generic spinlock; */
 
 	u32 priv_oid;
 
 	/* our mib cache */
 	u32 iw_mode;
-        struct rw_semaphore mib_sem;
+	struct rw_semaphore mib_sem;
 	void **mib;
-	char nickname[IW_ESSID_MAX_SIZE+1];
+	char nickname[IW_ESSID_MAX_SIZE + 1];
 
 	/* Take care of the wireless stats */
 	struct work_struct stats_work;
@@ -204,7 +210,7 @@ static inline void
 islpci_trigger(islpci_private *priv)
 {
 	isl38xx_trigger_device(islpci_get_state(priv) == PRV_STATE_SLEEP,
-			       priv->device_base);
+						   priv->device_base);
 }
 
 int islpci_free_memory(islpci_private *);

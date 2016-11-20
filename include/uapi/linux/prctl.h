@@ -130,7 +130,8 @@
  * output for a task. This mostly done in a
  * sake of checkpoint/restore functionality.
  */
-struct prctl_mm_map {
+struct prctl_mm_map
+{
 	__u64	start_code;		/* code section bounds */
 	__u64	end_code;
 	__u64	start_data;		/* data section bounds */

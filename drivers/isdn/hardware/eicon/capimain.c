@@ -43,12 +43,18 @@ static char *getrev(const char *revision)
 {
 	char *rev;
 	char *p;
-	if ((p = strchr(revision, ':'))) {
+
+	if ((p = strchr(revision, ':')))
+	{
 		rev = p + 2;
 		p = strchr(rev, '$');
 		*--p = 0;
-	} else
+	}
+	else
+	{
 		rev = "1.0";
+	}
+
 	return rev;
 
 }
@@ -57,12 +63,15 @@ static char *getrev(const char *revision)
  * alloc a message buffer
  */
 diva_os_message_buffer_s *diva_os_alloc_message_buffer(unsigned long size,
-						       void **data_buf)
+		void **data_buf)
 {
 	diva_os_message_buffer_s *dmb = alloc_skb(size, GFP_ATOMIC);
-	if (dmb) {
+
+	if (dmb)
+	{
 		*data_buf = skb_put(dmb, size);
 	}
+
 	return (dmb);
 }
 
@@ -95,7 +104,8 @@ static int diva_ctl_proc_open(struct inode *inode, struct file *file)
 	return single_open(file, diva_ctl_proc_show, NULL);
 }
 
-static const struct file_operations diva_ctl_proc_fops = {
+static const struct file_operations diva_ctl_proc_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= diva_ctl_proc_open,
 	.read		= seq_read,
@@ -124,17 +134,18 @@ static int __init divacapi_init(void)
 	int ret = 0;
 
 	sprintf(DRIVERRELEASE_CAPI, "%d.%d%s", DRRELMAJOR, DRRELMINOR,
-		DRRELEXTRA);
+			DRRELEXTRA);
 
 	printk(KERN_INFO "%s\n", DRIVERNAME);
 	printk(KERN_INFO "%s: Rel:%s  Rev:", DRIVERLNAME, DRIVERRELEASE_CAPI);
 	strcpy(tmprev, main_revision);
 	printk("%s  Build: %s(%s)\n", getrev(tmprev),
-	       diva_capi_common_code_build, DIVA_BUILD);
+		   diva_capi_common_code_build, DIVA_BUILD);
 
-	if (!(init_capifunc())) {
+	if (!(init_capifunc()))
+	{
 		printk(KERN_ERR "%s: failed init capi_driver.\n",
-		       DRIVERLNAME);
+			   DRIVERLNAME);
 		ret = -EIO;
 	}
 

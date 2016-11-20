@@ -42,12 +42,12 @@
 #define NISTC_INTA_ACK_G0_TC_ERR	BIT(6)
 #define NISTC_INTA_ACK_G0_GATE_ERR	BIT(5)
 #define NISTC_INTA_ACK_AI_ALL		(NISTC_INTA_ACK_AI_ERR |	\
-					 NISTC_INTA_ACK_AI_STOP |	\
-					 NISTC_INTA_ACK_AI_START |	\
-					 NISTC_INTA_ACK_AI_START2 |	\
-					 NISTC_INTA_ACK_AI_START1 |	\
-					 NISTC_INTA_ACK_AI_SC_TC |	\
-					 NISTC_INTA_ACK_AI_SC_TC_ERR)
+									 NISTC_INTA_ACK_AI_STOP |	\
+									 NISTC_INTA_ACK_AI_START |	\
+									 NISTC_INTA_ACK_AI_START2 |	\
+									 NISTC_INTA_ACK_AI_START1 |	\
+									 NISTC_INTA_ACK_AI_SC_TC |	\
+									 NISTC_INTA_ACK_AI_SC_TC_ERR)
 
 #define NISTC_INTB_ACK_REG		3
 #define NISTC_INTB_ACK_G1_GATE		BIT(15)
@@ -66,14 +66,14 @@
 #define NISTC_INTB_ACK_G1_TC_ERR	BIT(2)
 #define NISTC_INTB_ACK_G1_GATE_ERR	BIT(1)
 #define NISTC_INTB_ACK_AO_ALL		(NISTC_INTB_ACK_AO_ERR |	\
-					 NISTC_INTB_ACK_AO_STOP |	\
-					 NISTC_INTB_ACK_AO_START |	\
-					 NISTC_INTB_ACK_AO_UPDATE |	\
-					 NISTC_INTB_ACK_AO_START1 |	\
-					 NISTC_INTB_ACK_AO_BC_TC |	\
-					 NISTC_INTB_ACK_AO_UC_TC |	\
-					 NISTC_INTB_ACK_AO_BC_TC_ERR |	\
-					 NISTC_INTB_ACK_AO_BC_TC_TRIG_ERR)
+									 NISTC_INTB_ACK_AO_STOP |	\
+									 NISTC_INTB_ACK_AO_START |	\
+									 NISTC_INTB_ACK_AO_UPDATE |	\
+									 NISTC_INTB_ACK_AO_START1 |	\
+									 NISTC_INTB_ACK_AO_BC_TC |	\
+									 NISTC_INTB_ACK_AO_UC_TC |	\
+									 NISTC_INTB_ACK_AO_BC_TC_ERR |	\
+									 NISTC_INTB_ACK_AO_BC_TC_TRIG_ERR)
 
 #define NISTC_AI_CMD2_REG		4
 #define NISTC_AI_CMD2_END_ON_SC_TC	BIT(15)
@@ -377,12 +377,12 @@
 #define NISTC_INTA_ENA_AI_START1	BIT(1)
 #define NISTC_INTA_ENA_AI_SC_TC		BIT(0)
 #define NISTC_INTA_ENA_AI_MASK		(NISTC_INTA_ENA_AI_FIFO |	\
-					 NISTC_INTA_ENA_AI_ERR |	\
-					 NISTC_INTA_ENA_AI_STOP |	\
-					 NISTC_INTA_ENA_AI_START |	\
-					 NISTC_INTA_ENA_AI_START2 |	\
-					 NISTC_INTA_ENA_AI_START1 |	\
-					 NISTC_INTA_ENA_AI_SC_TC)
+									 NISTC_INTA_ENA_AI_ERR |	\
+									 NISTC_INTA_ENA_AI_STOP |	\
+									 NISTC_INTA_ENA_AI_START |	\
+									 NISTC_INTA_ENA_AI_START2 |	\
+									 NISTC_INTA_ENA_AI_START1 |	\
+									 NISTC_INTA_ENA_AI_SC_TC)
 
 #define NISTC_INTB_ENA_REG		75
 #define NISTC_INTB2_ENA_REG		76
@@ -481,9 +481,9 @@
 #define NISTC_AI_STATUS1_OVERFLOW	BIT(10)
 #define NISTC_AI_STATUS1_SC_TC_ERR	BIT(9)
 #define NISTC_AI_STATUS1_OVER		(NISTC_AI_STATUS1_OVERRUN |	\
-					 NISTC_AI_STATUS1_OVERFLOW)
+									 NISTC_AI_STATUS1_OVERFLOW)
 #define NISTC_AI_STATUS1_ERR		(NISTC_AI_STATUS1_OVER |	\
-					 NISTC_AI_STATUS1_SC_TC_ERR)
+									 NISTC_AI_STATUS1_SC_TC_ERR)
 #define NISTC_AI_STATUS1_START2		BIT(8)
 #define NISTC_AI_STATUS1_START1		BIT(7)
 #define NISTC_AI_STATUS1_SC_TC		BIT(6)
@@ -785,8 +785,8 @@
 #define NI_M_CLK_FOUT2_PLL_SRC_MASK	NI_M_CLK_FOUT2_PLL_SRC(0x1f)
 #define NI_M_MAX_RTSI_CHAN		7
 #define NI_M_CLK_FOUT2_PLL_SRC_RTSI(x)	(((x) == NI_M_MAX_RTSI_CHAN)	\
-					 ? NI_M_CLK_FOUT2_PLL_SRC(0x1b)	\
-					 : NI_M_CLK_FOUT2_PLL_SRC(0xb + (x)))
+		? NI_M_CLK_FOUT2_PLL_SRC(0x1b)	\
+		: NI_M_CLK_FOUT2_PLL_SRC(0xb + (x)))
 #define NI_M_CLK_FOUT2_PLL_SRC_STAR	NI_M_CLK_FOUT2_PLL_SRC(0x14)
 #define NI_M_CLK_FOUT2_PLL_SRC_PXI10	NI_M_CLK_FOUT2_PLL_SRC(0x1d)
 #define NI_M_PLL_CTRL_REG		0x1c6
@@ -823,9 +823,9 @@
 #define NI_M_CFG_BYPASS_AI_CAL_POS(x)	(((x) & 0x7) << 7)
 #define NI_M_CFG_BYPASS_AI_CAL_POS_MASK	NI_M_CFG_BYPASS_AI_CAL_POS(7)
 #define NI_M_CFG_BYPASS_AI_CAL_MASK	(NI_M_CFG_BYPASS_AI_CAL_POS_MASK | \
-					 NI_M_CFG_BYPASS_AI_CAL_NEG_MASK | \
-					 NI_M_CFG_BYPASS_AI_MODE_MUX_MASK | \
-					 NI_M_CFG_BYPASS_AO_CAL_MASK)
+									 NI_M_CFG_BYPASS_AI_CAL_NEG_MASK | \
+									 NI_M_CFG_BYPASS_AI_MODE_MUX_MASK | \
+									 NI_M_CFG_BYPASS_AO_CAL_MASK)
 #define NI_M_CFG_BYPASS_AI_BANK(x)	(((x) & 0xf) << 3)
 #define NI_M_CFG_BYPASS_AI_BANK_MASK	NI_M_CFG_BYPASS_AI_BANK(0xf)
 #define NI_M_CFG_BYPASS_AI_CHAN(x)	(((x) & 0x7) << 0)
@@ -837,14 +837,14 @@
 #define NI_M_CDIO_STATUS_CDI_OVERFLOW	BIT(20)
 #define NI_M_CDIO_STATUS_CDI_OVERRUN	BIT(19)
 #define NI_M_CDIO_STATUS_CDI_ERROR	(NI_M_CDIO_STATUS_CDI_OVERFLOW | \
-					 NI_M_CDIO_STATUS_CDI_OVERRUN)
+									 NI_M_CDIO_STATUS_CDI_OVERRUN)
 #define NI_M_CDIO_STATUS_CDI_FIFO_REQ	BIT(18)
 #define NI_M_CDIO_STATUS_CDI_FIFO_FULL	BIT(17)
 #define NI_M_CDIO_STATUS_CDI_FIFO_EMPTY	BIT(16)
 #define NI_M_CDIO_STATUS_CDO_UNDERFLOW	BIT(4)
 #define NI_M_CDIO_STATUS_CDO_OVERRUN	BIT(3)
 #define NI_M_CDIO_STATUS_CDO_ERROR	(NI_M_CDIO_STATUS_CDO_UNDERFLOW | \
-					 NI_M_CDIO_STATUS_CDO_OVERRUN)
+									 NI_M_CDIO_STATUS_CDO_OVERRUN)
 #define NI_M_CDIO_STATUS_CDO_FIFO_REQ	BIT(2)
 #define NI_M_CDIO_STATUS_CDO_FIFO_FULL	BIT(1)
 #define NI_M_CDIO_STATUS_CDO_FIFO_EMPTY	BIT(0)
@@ -904,7 +904,8 @@
 #define NI_M_AO_REF_ATTENUATION_REG(x)	(0x264 + (x))
 #define NI_M_AO_REF_ATTENUATION_X5	BIT(0)
 
-enum {
+enum
+{
 	ai_gain_16 = 0,
 	ai_gain_8,
 	ai_gain_14,
@@ -915,7 +916,8 @@ enum {
 	ai_gain_6143
 };
 
-enum caldac_enum {
+enum caldac_enum
+{
 	caldac_none = 0,
 	mb88341,
 	dac8800,
@@ -926,7 +928,8 @@ enum caldac_enum {
 	ad8804_debug
 };
 
-enum ni_reg_type {
+enum ni_reg_type
+{
 	ni_reg_normal = 0x0,
 	ni_reg_611x = 0x1,
 	ni_reg_6711 = 0x2,
@@ -940,7 +943,8 @@ enum ni_reg_type {
 	ni_reg_6143 = 0x20
 };
 
-struct ni_board_struct {
+struct ni_board_struct
+{
 	const char *name;
 	int device_id;
 	int isapnp_id;
@@ -949,7 +953,7 @@ struct ni_board_struct {
 	unsigned int ai_maxdata;
 
 	int ai_fifo_depth;
-	unsigned int alwaysdither:1;
+	unsigned int alwaysdither: 1;
 	int gainlkup;
 	int ai_speed;
 
@@ -960,8 +964,8 @@ struct ni_board_struct {
 	unsigned int ao_speed;
 
 	int reg_type;
-	unsigned int has_8255:1;
-	unsigned int has_32dio_chan:1;
+	unsigned int has_8255: 1;
+	unsigned int has_32dio_chan: 1;
 
 	enum caldac_enum caldac[3];
 };
@@ -974,7 +978,8 @@ struct ni_board_struct {
 
 #define M_SERIES_EEPROM_SIZE		1024
 
-struct ni_private {
+struct ni_private
+{
 	unsigned short dio_output;
 	unsigned short dio_control;
 	int aimode;
@@ -1043,16 +1048,16 @@ struct ni_private {
 	struct mite_ring *gpct_mite_ring[NUM_GPCT];
 
 	/* ni_pcimio board type flags (based on the boardinfo reg_type) */
-	unsigned int is_m_series:1;
-	unsigned int is_6xxx:1;
-	unsigned int is_611x:1;
-	unsigned int is_6143:1;
-	unsigned int is_622x:1;
-	unsigned int is_625x:1;
-	unsigned int is_628x:1;
-	unsigned int is_67xx:1;
-	unsigned int is_6711:1;
-	unsigned int is_6713:1;
+	unsigned int is_m_series: 1;
+	unsigned int is_6xxx: 1;
+	unsigned int is_611x: 1;
+	unsigned int is_6143: 1;
+	unsigned int is_622x: 1;
+	unsigned int is_625x: 1;
+	unsigned int is_628x: 1;
+	unsigned int is_67xx: 1;
+	unsigned int is_6711: 1;
+	unsigned int is_6713: 1;
 };
 
 static const struct comedi_lrange range_ni_E_ao_ext;

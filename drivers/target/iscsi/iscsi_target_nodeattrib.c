@@ -54,21 +54,24 @@ int iscsit_na_dataout_timeout(
 {
 	struct iscsi_node_attrib *a = &acl->node_attrib;
 
-	if (dataout_timeout > NA_DATAOUT_TIMEOUT_MAX) {
+	if (dataout_timeout > NA_DATAOUT_TIMEOUT_MAX)
+	{
 		pr_err("Requested DataOut Timeout %u larger than"
-			" maximum %u\n", dataout_timeout,
-			NA_DATAOUT_TIMEOUT_MAX);
+			   " maximum %u\n", dataout_timeout,
+			   NA_DATAOUT_TIMEOUT_MAX);
 		return -EINVAL;
-	} else if (dataout_timeout < NA_DATAOUT_TIMEOUT_MIX) {
+	}
+	else if (dataout_timeout < NA_DATAOUT_TIMEOUT_MIX)
+	{
 		pr_err("Requested DataOut Timeout %u smaller than"
-			" minimum %u\n", dataout_timeout,
-			NA_DATAOUT_TIMEOUT_MIX);
+			   " minimum %u\n", dataout_timeout,
+			   NA_DATAOUT_TIMEOUT_MIX);
 		return -EINVAL;
 	}
 
 	a->dataout_timeout = dataout_timeout;
 	pr_debug("Set DataOut Timeout to %u for Initiator Node"
-		" %s\n", a->dataout_timeout, iscsit_na_get_initiatorname(acl));
+			 " %s\n", a->dataout_timeout, iscsit_na_get_initiatorname(acl));
 
 	return 0;
 }
@@ -79,22 +82,25 @@ int iscsit_na_dataout_timeout_retries(
 {
 	struct iscsi_node_attrib *a = &acl->node_attrib;
 
-	if (dataout_timeout_retries > NA_DATAOUT_TIMEOUT_RETRIES_MAX) {
+	if (dataout_timeout_retries > NA_DATAOUT_TIMEOUT_RETRIES_MAX)
+	{
 		pr_err("Requested DataOut Timeout Retries %u larger"
-			" than maximum %u", dataout_timeout_retries,
-				NA_DATAOUT_TIMEOUT_RETRIES_MAX);
+			   " than maximum %u", dataout_timeout_retries,
+			   NA_DATAOUT_TIMEOUT_RETRIES_MAX);
 		return -EINVAL;
-	} else if (dataout_timeout_retries < NA_DATAOUT_TIMEOUT_RETRIES_MIN) {
+	}
+	else if (dataout_timeout_retries < NA_DATAOUT_TIMEOUT_RETRIES_MIN)
+	{
 		pr_err("Requested DataOut Timeout Retries %u smaller"
-			" than minimum %u", dataout_timeout_retries,
-				NA_DATAOUT_TIMEOUT_RETRIES_MIN);
+			   " than minimum %u", dataout_timeout_retries,
+			   NA_DATAOUT_TIMEOUT_RETRIES_MIN);
 		return -EINVAL;
 	}
 
 	a->dataout_timeout_retries = dataout_timeout_retries;
 	pr_debug("Set DataOut Timeout Retries to %u for"
-		" Initiator Node %s\n", a->dataout_timeout_retries,
-		iscsit_na_get_initiatorname(acl));
+			 " Initiator Node %s\n", a->dataout_timeout_retries,
+			 iscsit_na_get_initiatorname(acl));
 
 	return 0;
 }
@@ -110,37 +116,47 @@ int iscsit_na_nopin_timeout(
 	struct se_session *se_sess;
 	u32 orig_nopin_timeout = a->nopin_timeout;
 
-	if (nopin_timeout > NA_NOPIN_TIMEOUT_MAX) {
+	if (nopin_timeout > NA_NOPIN_TIMEOUT_MAX)
+	{
 		pr_err("Requested NopIn Timeout %u larger than maximum"
-			" %u\n", nopin_timeout, NA_NOPIN_TIMEOUT_MAX);
+			   " %u\n", nopin_timeout, NA_NOPIN_TIMEOUT_MAX);
 		return -EINVAL;
-	} else if ((nopin_timeout < NA_NOPIN_TIMEOUT_MIN) &&
-		   (nopin_timeout != 0)) {
+	}
+	else if ((nopin_timeout < NA_NOPIN_TIMEOUT_MIN) &&
+			 (nopin_timeout != 0))
+	{
 		pr_err("Requested NopIn Timeout %u smaller than"
-			" minimum %u and not 0\n", nopin_timeout,
-			NA_NOPIN_TIMEOUT_MIN);
+			   " minimum %u and not 0\n", nopin_timeout,
+			   NA_NOPIN_TIMEOUT_MIN);
 		return -EINVAL;
 	}
 
 	a->nopin_timeout = nopin_timeout;
 	pr_debug("Set NopIn Timeout to %u for Initiator"
-		" Node %s\n", a->nopin_timeout,
-		iscsit_na_get_initiatorname(acl));
+			 " Node %s\n", a->nopin_timeout,
+			 iscsit_na_get_initiatorname(acl));
+
 	/*
 	 * Reenable disabled nopin_timeout timer for all iSCSI connections.
 	 */
-	if (!orig_nopin_timeout) {
+	if (!orig_nopin_timeout)
+	{
 		spin_lock_bh(&se_nacl->nacl_sess_lock);
 		se_sess = se_nacl->nacl_sess;
-		if (se_sess) {
+
+		if (se_sess)
+		{
 			sess = se_sess->fabric_sess_ptr;
 
 			spin_lock(&sess->conn_lock);
 			list_for_each_entry(conn, &sess->sess_conn_list,
-					conn_list) {
+								conn_list)
+			{
 				if (conn->conn_state !=
-						TARG_CONN_STATE_LOGGED_IN)
+					TARG_CONN_STATE_LOGGED_IN)
+				{
 					continue;
+				}
 
 				spin_lock(&conn->nopin_timer_lock);
 				__iscsit_start_nopin_timer(conn);
@@ -148,6 +164,7 @@ int iscsit_na_nopin_timeout(
 			}
 			spin_unlock(&sess->conn_lock);
 		}
+
 		spin_unlock_bh(&se_nacl->nacl_sess_lock);
 	}
 
@@ -160,22 +177,25 @@ int iscsit_na_nopin_response_timeout(
 {
 	struct iscsi_node_attrib *a = &acl->node_attrib;
 
-	if (nopin_response_timeout > NA_NOPIN_RESPONSE_TIMEOUT_MAX) {
+	if (nopin_response_timeout > NA_NOPIN_RESPONSE_TIMEOUT_MAX)
+	{
 		pr_err("Requested NopIn Response Timeout %u larger"
-			" than maximum %u\n", nopin_response_timeout,
-				NA_NOPIN_RESPONSE_TIMEOUT_MAX);
+			   " than maximum %u\n", nopin_response_timeout,
+			   NA_NOPIN_RESPONSE_TIMEOUT_MAX);
 		return -EINVAL;
-	} else if (nopin_response_timeout < NA_NOPIN_RESPONSE_TIMEOUT_MIN) {
+	}
+	else if (nopin_response_timeout < NA_NOPIN_RESPONSE_TIMEOUT_MIN)
+	{
 		pr_err("Requested NopIn Response Timeout %u smaller"
-			" than minimum %u\n", nopin_response_timeout,
-				NA_NOPIN_RESPONSE_TIMEOUT_MIN);
+			   " than minimum %u\n", nopin_response_timeout,
+			   NA_NOPIN_RESPONSE_TIMEOUT_MIN);
 		return -EINVAL;
 	}
 
 	a->nopin_response_timeout = nopin_response_timeout;
 	pr_debug("Set NopIn Response Timeout to %u for"
-		" Initiator Node %s\n", a->nopin_timeout,
-		iscsit_na_get_initiatorname(acl));
+			 " Initiator Node %s\n", a->nopin_timeout,
+			 iscsit_na_get_initiatorname(acl));
 
 	return 0;
 }
@@ -186,16 +206,17 @@ int iscsit_na_random_datain_pdu_offsets(
 {
 	struct iscsi_node_attrib *a = &acl->node_attrib;
 
-	if (random_datain_pdu_offsets != 0 && random_datain_pdu_offsets != 1) {
+	if (random_datain_pdu_offsets != 0 && random_datain_pdu_offsets != 1)
+	{
 		pr_err("Requested Random DataIN PDU Offsets: %u not"
-			" 0 or 1\n", random_datain_pdu_offsets);
+			   " 0 or 1\n", random_datain_pdu_offsets);
 		return -EINVAL;
 	}
 
 	a->random_datain_pdu_offsets = random_datain_pdu_offsets;
 	pr_debug("Set Random DataIN PDU Offsets to %u for"
-		" Initiator Node %s\n", a->random_datain_pdu_offsets,
-		iscsit_na_get_initiatorname(acl));
+			 " Initiator Node %s\n", a->random_datain_pdu_offsets,
+			 iscsit_na_get_initiatorname(acl));
 
 	return 0;
 }
@@ -206,16 +227,17 @@ int iscsit_na_random_datain_seq_offsets(
 {
 	struct iscsi_node_attrib *a = &acl->node_attrib;
 
-	if (random_datain_seq_offsets != 0 && random_datain_seq_offsets != 1) {
+	if (random_datain_seq_offsets != 0 && random_datain_seq_offsets != 1)
+	{
 		pr_err("Requested Random DataIN Sequence Offsets: %u"
-			" not 0 or 1\n", random_datain_seq_offsets);
+			   " not 0 or 1\n", random_datain_seq_offsets);
 		return -EINVAL;
 	}
 
 	a->random_datain_seq_offsets = random_datain_seq_offsets;
 	pr_debug("Set Random DataIN Sequence Offsets to %u for"
-		" Initiator Node %s\n", a->random_datain_seq_offsets,
-		iscsit_na_get_initiatorname(acl));
+			 " Initiator Node %s\n", a->random_datain_seq_offsets,
+			 iscsit_na_get_initiatorname(acl));
 
 	return 0;
 }
@@ -226,16 +248,17 @@ int iscsit_na_random_r2t_offsets(
 {
 	struct iscsi_node_attrib *a = &acl->node_attrib;
 
-	if (random_r2t_offsets != 0 && random_r2t_offsets != 1) {
+	if (random_r2t_offsets != 0 && random_r2t_offsets != 1)
+	{
 		pr_err("Requested Random R2T Offsets: %u not"
-			" 0 or 1\n", random_r2t_offsets);
+			   " 0 or 1\n", random_r2t_offsets);
 		return -EINVAL;
 	}
 
 	a->random_r2t_offsets = random_r2t_offsets;
 	pr_debug("Set Random R2T Offsets to %u for"
-		" Initiator Node %s\n", a->random_r2t_offsets,
-		iscsit_na_get_initiatorname(acl));
+			 " Initiator Node %s\n", a->random_r2t_offsets,
+			 iscsit_na_get_initiatorname(acl));
 
 	return 0;
 }
@@ -246,16 +269,17 @@ int iscsit_na_default_erl(
 {
 	struct iscsi_node_attrib *a = &acl->node_attrib;
 
-	if (default_erl != 0 && default_erl != 1 && default_erl != 2) {
+	if (default_erl != 0 && default_erl != 1 && default_erl != 2)
+	{
 		pr_err("Requested default ERL: %u not 0, 1, or 2\n",
-				default_erl);
+			   default_erl);
 		return -EINVAL;
 	}
 
 	a->default_erl = default_erl;
 	pr_debug("Set use ERL0 flag to %u for Initiator"
-		" Node %s\n", a->default_erl,
-		iscsit_na_get_initiatorname(acl));
+			 " Node %s\n", a->default_erl,
+			 iscsit_na_get_initiatorname(acl));
 
 	return 0;
 }

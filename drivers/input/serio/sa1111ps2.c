@@ -43,7 +43,8 @@
 #define PS2STAT_KBD	0x0002
 #define PS2STAT_KBC	0x0001
 
-struct ps2if {
+struct ps2if
+{
 	struct serio		*io;
 	struct sa1111_dev	*dev;
 	void __iomem		*base;
@@ -65,24 +66,30 @@ static irqreturn_t ps2_rxint(int irq, void *dev_id)
 	unsigned int scancode, flag, status;
 
 	status = sa1111_readl(ps2if->base + PS2STAT);
-	while (status & PS2STAT_RXF) {
+
+	while (status & PS2STAT_RXF)
+	{
 		if (status & PS2STAT_STP)
+		{
 			sa1111_writel(PS2STAT_STP, ps2if->base + PS2STAT);
+		}
 
 		flag = (status & PS2STAT_STP ? SERIO_FRAME : 0) |
-		       (status & PS2STAT_RXP ? 0 : SERIO_PARITY);
+			   (status & PS2STAT_RXP ? 0 : SERIO_PARITY);
 
 		scancode = sa1111_readl(ps2if->base + PS2DATA) & 0xff;
 
 		if (hweight8(scancode) & 1)
+		{
 			flag ^= SERIO_PARITY;
+		}
 
 		serio_interrupt(ps2if->io, scancode, flag);
 
 		status = sa1111_readl(ps2if->base + PS2STAT);
-        }
+	}
 
-        return IRQ_HANDLED;
+	return IRQ_HANDLED;
 }
 
 /*
@@ -95,13 +102,18 @@ static irqreturn_t ps2_txint(int irq, void *dev_id)
 
 	spin_lock(&ps2if->lock);
 	status = sa1111_readl(ps2if->base + PS2STAT);
-	if (ps2if->head == ps2if->tail) {
+
+	if (ps2if->head == ps2if->tail)
+	{
 		disable_irq_nosync(irq);
 		/* done */
-	} else if (status & PS2STAT_TXE) {
+	}
+	else if (status & PS2STAT_TXE)
+	{
 		sa1111_writel(ps2if->buf[ps2if->tail], ps2if->base + PS2DATA);
 		ps2if->tail = (ps2if->tail + 1) & (sizeof(ps2if->buf) - 1);
 	}
+
 	spin_unlock(&ps2if->lock);
 
 	return IRQ_HANDLED;
@@ -122,13 +134,21 @@ static int ps2_write(struct serio *io, unsigned char val)
 	/*
 	 * If the TX register is empty, we can go straight out.
 	 */
-	if (sa1111_readl(ps2if->base + PS2STAT) & PS2STAT_TXE) {
+	if (sa1111_readl(ps2if->base + PS2STAT) & PS2STAT_TXE)
+	{
 		sa1111_writel(val, ps2if->base + PS2DATA);
-	} else {
+	}
+	else
+	{
 		if (ps2if->head == ps2if->tail)
+		{
 			enable_irq(ps2if->dev->irq[1]);
+		}
+
 		head = (ps2if->head + 1) & (sizeof(ps2if->buf) - 1);
-		if (head != ps2if->tail) {
+
+		if (head != ps2if->tail)
+		{
 			ps2if->buf[ps2if->head] = val;
 			ps2if->head = head;
 		}
@@ -144,23 +164,30 @@ static int ps2_open(struct serio *io)
 	int ret;
 
 	ret = sa1111_enable_device(ps2if->dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = request_irq(ps2if->dev->irq[0], ps2_rxint, 0,
-			  SA1111_DRIVER_NAME(ps2if->dev), ps2if);
-	if (ret) {
+					  SA1111_DRIVER_NAME(ps2if->dev), ps2if);
+
+	if (ret)
+	{
 		printk(KERN_ERR "sa1111ps2: could not allocate IRQ%d: %d\n",
-			ps2if->dev->irq[0], ret);
+			   ps2if->dev->irq[0], ret);
 		sa1111_disable_device(ps2if->dev);
 		return ret;
 	}
 
 	ret = request_irq(ps2if->dev->irq[1], ps2_txint, 0,
-			  SA1111_DRIVER_NAME(ps2if->dev), ps2if);
-	if (ret) {
+					  SA1111_DRIVER_NAME(ps2if->dev), ps2if);
+
+	if (ret)
+	{
 		printk(KERN_ERR "sa1111ps2: could not allocate IRQ%d: %d\n",
-			ps2if->dev->irq[1], ret);
+			   ps2if->dev->irq[1], ret);
 		free_irq(ps2if->dev->irq[0], ps2if);
 		sa1111_disable_device(ps2if->dev);
 		return ret;
@@ -197,14 +224,17 @@ static void ps2_clear_input(struct ps2if *ps2if)
 {
 	int maxread = 100;
 
-	while (maxread--) {
+	while (maxread--)
+	{
 		if ((sa1111_readl(ps2if->base + PS2DATA) & 0xff) == 0xff)
+		{
 			break;
+		}
 	}
 }
 
 static unsigned int ps2_test_one(struct ps2if *ps2if,
-					   unsigned int mask)
+								 unsigned int mask)
 {
 	unsigned int val;
 
@@ -226,19 +256,25 @@ static int ps2_test(struct ps2if *ps2if)
 	int ret = 0;
 
 	stat = ps2_test_one(ps2if, PS2CR_FKC);
-	if (stat != PS2STAT_KBD) {
+
+	if (stat != PS2STAT_KBD)
+	{
 		printk("PS/2 interface test failed[1]: %02x\n", stat);
 		ret = -ENODEV;
 	}
 
 	stat = ps2_test_one(ps2if, 0);
-	if (stat != (PS2STAT_KBC | PS2STAT_KBD)) {
+
+	if (stat != (PS2STAT_KBC | PS2STAT_KBD))
+	{
 		printk("PS/2 interface test failed[2]: %02x\n", stat);
 		ret = -ENODEV;
 	}
 
 	stat = ps2_test_one(ps2if, PS2CR_FKD);
-	if (stat != PS2STAT_KBC) {
+
+	if (stat != PS2STAT_KBC)
+	{
 		printk("PS/2 interface test failed[3]: %02x\n", stat);
 		ret = -ENODEV;
 	}
@@ -259,7 +295,9 @@ static int ps2_probe(struct sa1111_dev *dev)
 
 	ps2if = kzalloc(sizeof(struct ps2if), GFP_KERNEL);
 	serio = kzalloc(sizeof(struct serio), GFP_KERNEL);
-	if (!ps2if || !serio) {
+
+	if (!ps2if || !serio)
+	{
 		ret = -ENOMEM;
 		goto free;
 	}
@@ -283,8 +321,9 @@ static int ps2_probe(struct sa1111_dev *dev)
 	 * Request the physical region for this PS2 port.
 	 */
 	if (!request_mem_region(dev->res.start,
-				dev->res.end - dev->res.start + 1,
-				SA1111_DRIVER_NAME(dev))) {
+							dev->res.end - dev->res.start + 1,
+							SA1111_DRIVER_NAME(dev)))
+	{
 		ret = -EBUSY;
 		goto free;
 	}
@@ -309,8 +348,11 @@ static int ps2_probe(struct sa1111_dev *dev)
 	 * Test the keyboard interface.
 	 */
 	ret = ps2_test(ps2if);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/*
 	 * Flush any pending input.
@@ -321,10 +363,10 @@ static int ps2_probe(struct sa1111_dev *dev)
 	serio_register_port(ps2if->io);
 	return 0;
 
- out:
+out:
 	sa1111_disable_device(ps2if->dev);
 	release_mem_region(dev->res.start, resource_size(&dev->res));
- free:
+free:
 	sa1111_set_drvdata(dev, NULL);
 	kfree(ps2if);
 	kfree(serio);
@@ -350,7 +392,8 @@ static int ps2_remove(struct sa1111_dev *dev)
 /*
  * Our device driver structure
  */
-static struct sa1111_driver ps2_driver = {
+static struct sa1111_driver ps2_driver =
+{
 	.drv = {
 		.name	= "sa1111-ps2",
 		.owner	= THIS_MODULE,

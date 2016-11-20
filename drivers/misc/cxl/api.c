@@ -26,11 +26,16 @@ struct cxl_context *cxl_dev_context_init(struct pci_dev *dev)
 	int rc;
 
 	afu = cxl_pci_to_afu(dev);
+
 	if (IS_ERR(afu))
+	{
 		return ERR_CAST(afu);
+	}
 
 	ctx = cxl_context_alloc();
-	if (IS_ERR(ctx)) {
+
+	if (IS_ERR(ctx))
+	{
 		rc = PTR_ERR(ctx);
 		goto err_dev;
 	}
@@ -44,16 +49,22 @@ struct cxl_context *cxl_dev_context_init(struct pci_dev *dev)
 	 * address space as that can invalidate unrelated users:
 	 */
 	mapping = kmalloc(sizeof(struct address_space), GFP_KERNEL);
-	if (!mapping) {
+
+	if (!mapping)
+	{
 		rc = -ENOMEM;
 		goto err_ctx;
 	}
+
 	address_space_init_once(mapping);
 
 	/* Make it a slave context.  We can promote it later? */
 	rc = cxl_context_init(ctx, afu, false, mapping);
+
 	if (rc)
+	{
 		goto err_mapping;
+	}
 
 	return ctx;
 
@@ -75,7 +86,9 @@ EXPORT_SYMBOL_GPL(cxl_get_context);
 int cxl_release_context(struct cxl_context *ctx)
 {
 	if (ctx->status >= STARTED)
+	{
 		return -EBUSY;
+	}
 
 	cxl_context_free(ctx);
 
@@ -88,28 +101,39 @@ static irq_hw_number_t cxl_find_afu_irq(struct cxl_context *ctx, int num)
 	__u16 range;
 	int r;
 
-	for (r = 0; r < CXL_IRQ_RANGES; r++) {
+	for (r = 0; r < CXL_IRQ_RANGES; r++)
+	{
 		range = ctx->irqs.range[r];
-		if (num < range) {
+
+		if (num < range)
+		{
 			return ctx->irqs.offset[r] + num;
 		}
+
 		num -= range;
 	}
+
 	return 0;
 }
 
 int _cxl_next_msi_hwirq(struct pci_dev *pdev, struct cxl_context **ctx, int *afu_irq)
 {
-	if (*ctx == NULL || *afu_irq == 0) {
+	if (*ctx == NULL || *afu_irq == 0)
+	{
 		*afu_irq = 1;
 		*ctx = cxl_get_context(pdev);
-	} else {
+	}
+	else
+	{
 		(*afu_irq)++;
-		if (*afu_irq > cxl_get_max_irqs_per_process(pdev)) {
+
+		if (*afu_irq > cxl_get_max_irqs_per_process(pdev))
+		{
 			*ctx = list_next_entry(*ctx, extra_irq_contexts);
 			*afu_irq = 1;
 		}
 	}
+
 	return cxl_find_afu_irq(*ctx, *afu_irq);
 }
 /* Exported via cxl_base */
@@ -117,7 +141,9 @@ int _cxl_next_msi_hwirq(struct pci_dev *pdev, struct cxl_context **ctx, int *afu
 int cxl_set_priv(struct cxl_context *ctx, void *priv)
 {
 	if (!ctx)
+	{
 		return -EINVAL;
+	}
 
 	ctx->priv = priv;
 
@@ -128,7 +154,9 @@ EXPORT_SYMBOL_GPL(cxl_set_priv);
 void *cxl_get_priv(struct cxl_context *ctx)
 {
 	if (!ctx)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	return ctx->priv;
 }
@@ -140,24 +168,37 @@ int cxl_allocate_afu_irqs(struct cxl_context *ctx, int num)
 	irq_hw_number_t hwirq;
 
 	if (num == 0)
+	{
 		num = ctx->afu->pp_irqs;
-	res = afu_allocate_irqs(ctx, num);
-	if (res)
-		return res;
+	}
 
-	if (!cpu_has_feature(CPU_FTR_HVMODE)) {
+	res = afu_allocate_irqs(ctx, num);
+
+	if (res)
+	{
+		return res;
+	}
+
+	if (!cpu_has_feature(CPU_FTR_HVMODE))
+	{
 		/* In a guest, the PSL interrupt is not multiplexed. It was
 		 * allocated above, and we need to set its handler
 		 */
 		hwirq = cxl_find_afu_irq(ctx, 0);
+
 		if (hwirq)
+		{
 			cxl_map_irq(ctx->afu->adapter, hwirq, cxl_ops->psl_interrupt, ctx, "psl");
+		}
 	}
 
-	if (ctx->status == STARTED) {
+	if (ctx->status == STARTED)
+	{
 		if (cxl_ops->update_ivtes)
+		{
 			cxl_ops->update_ivtes(ctx);
-		else WARN(1, "BUG: cxl_allocate_afu_irqs must be called prior to starting the context on this platform\n");
+		}
+		else { WARN(1, "BUG: cxl_allocate_afu_irqs must be called prior to starting the context on this platform\n"); }
 	}
 
 	return res;
@@ -169,21 +210,28 @@ void cxl_free_afu_irqs(struct cxl_context *ctx)
 	irq_hw_number_t hwirq;
 	unsigned int virq;
 
-	if (!cpu_has_feature(CPU_FTR_HVMODE)) {
+	if (!cpu_has_feature(CPU_FTR_HVMODE))
+	{
 		hwirq = cxl_find_afu_irq(ctx, 0);
-		if (hwirq) {
+
+		if (hwirq)
+		{
 			virq = irq_find_mapping(NULL, hwirq);
+
 			if (virq)
+			{
 				cxl_unmap_irq(virq, ctx);
+			}
 		}
 	}
+
 	afu_irq_name_free(ctx);
 	cxl_ops->release_irq_ranges(&ctx->irqs, ctx->afu->adapter);
 }
 EXPORT_SYMBOL_GPL(cxl_free_afu_irqs);
 
 int cxl_map_afu_irq(struct cxl_context *ctx, int num,
-		    irq_handler_t handler, void *cookie, char *name)
+					irq_handler_t handler, void *cookie, char *name)
 {
 	irq_hw_number_t hwirq;
 
@@ -191,8 +239,11 @@ int cxl_map_afu_irq(struct cxl_context *ctx, int num,
 	 * Find interrupt we are to register.
 	 */
 	hwirq = cxl_find_afu_irq(ctx, num);
+
 	if (!hwirq)
+	{
 		return -ENOENT;
+	}
 
 	return cxl_map_irq(ctx->afu->adapter, hwirq, handler, cookie, name);
 }
@@ -204,12 +255,18 @@ void cxl_unmap_afu_irq(struct cxl_context *ctx, int num, void *cookie)
 	unsigned int virq;
 
 	hwirq = cxl_find_afu_irq(ctx, num);
+
 	if (!hwirq)
+	{
 		return;
+	}
 
 	virq = irq_find_mapping(NULL, hwirq);
+
 	if (virq)
+	{
 		cxl_unmap_irq(virq, cookie);
+	}
 }
 EXPORT_SYMBOL_GPL(cxl_unmap_afu_irq);
 
@@ -218,7 +275,7 @@ EXPORT_SYMBOL_GPL(cxl_unmap_afu_irq);
  * Code here similar to afu_ioctl_start_work().
  */
 int cxl_start_context(struct cxl_context *ctx, u64 wed,
-		      struct task_struct *task)
+					  struct task_struct *task)
 {
 	int rc = 0;
 	bool kernel = true;
@@ -226,18 +283,25 @@ int cxl_start_context(struct cxl_context *ctx, u64 wed,
 	pr_devel("%s: pe: %i\n", __func__, ctx->pe);
 
 	mutex_lock(&ctx->status_mutex);
+
 	if (ctx->status == STARTED)
-		goto out; /* already started */
+	{
+		goto out;    /* already started */
+	}
 
 	/*
 	 * Increment the mapped context count for adapter. This also checks
 	 * if adapter_context_lock is taken.
 	 */
 	rc = cxl_adapter_context_get(ctx->afu->adapter);
-	if (rc)
-		goto out;
 
-	if (task) {
+	if (rc)
+	{
+		goto out;
+	}
+
+	if (task)
+	{
 		ctx->pid = get_task_pid(task, PIDTYPE_PID);
 		ctx->glpid = get_task_pid(task->group_leader, PIDTYPE_PID);
 		kernel = false;
@@ -246,7 +310,8 @@ int cxl_start_context(struct cxl_context *ctx, u64 wed,
 
 	cxl_ctx_get();
 
-	if ((rc = cxl_ops->attach_process(ctx, kernel, wed, 0))) {
+	if ((rc = cxl_ops->attach_process(ctx, kernel, wed, 0)))
+	{
 		put_pid(ctx->glpid);
 		put_pid(ctx->pid);
 		ctx->glpid = ctx->pid = NULL;
@@ -283,7 +348,8 @@ EXPORT_SYMBOL_GPL(cxl_set_master);
 
 int cxl_set_translation_mode(struct cxl_context *ctx, bool real_mode)
 {
-	if (ctx->status == STARTED) {
+	if (ctx->status == STARTED)
+	{
 		/*
 		 * We could potentially update the PE and issue an update LLCMD
 		 * to support this, but it doesn't seem to have a good use case
@@ -326,7 +392,7 @@ unsigned int cxl_fd_poll(struct file *file, struct poll_table_struct *poll)
 }
 EXPORT_SYMBOL_GPL(cxl_fd_poll);
 ssize_t cxl_fd_read(struct file *file, char __user *buf, size_t count,
-			loff_t *off)
+					loff_t *off)
 {
 	return afu_read(file, buf, count, off);
 }
@@ -336,7 +402,7 @@ EXPORT_SYMBOL_GPL(cxl_fd_read);
 
 /* Get a struct file and fd for a context and attach the ops */
 struct file *cxl_get_fd(struct cxl_context *ctx, struct file_operations *fops,
-			int *fd)
+						int *fd)
 {
 	struct file *file;
 	int rc, flags, fdtmp;
@@ -345,14 +411,19 @@ struct file *cxl_get_fd(struct cxl_context *ctx, struct file_operations *fops,
 
 	/* This code is similar to anon_inode_getfd() */
 	rc = get_unused_fd_flags(flags);
+
 	if (rc < 0)
+	{
 		return ERR_PTR(rc);
+	}
+
 	fdtmp = rc;
 
 	/*
 	 * Patch the file ops.  Needs to be careful that this is rentrant safe.
 	 */
-	if (fops) {
+	if (fops)
+	{
 		PATCH_FOPS(open);
 		PATCH_FOPS(poll);
 		PATCH_FOPS(read);
@@ -360,12 +431,18 @@ struct file *cxl_get_fd(struct cxl_context *ctx, struct file_operations *fops,
 		PATCH_FOPS(unlocked_ioctl);
 		PATCH_FOPS(compat_ioctl);
 		PATCH_FOPS(mmap);
-	} else /* use default ops */
+	}
+	else   /* use default ops */
+	{
 		fops = (struct file_operations *)&afu_fops;
+	}
 
 	file = anon_inode_getfile("cxl", fops, ctx, flags);
+
 	if (IS_ERR(file))
+	{
 		goto err_fd;
+	}
 
 	file->f_mapping = ctx->mapping;
 
@@ -385,7 +462,7 @@ struct cxl_context *cxl_fops_get_context(struct file *file)
 EXPORT_SYMBOL_GPL(cxl_fops_get_context);
 
 void cxl_set_driver_ops(struct cxl_context *ctx,
-			struct cxl_afu_driver_ops *ops)
+						struct cxl_afu_driver_ops *ops)
 {
 	WARN_ON(!ops->fetch_event || !ops->event_delivered);
 	atomic_set(&ctx->afu_driver_events, 0);
@@ -394,7 +471,7 @@ void cxl_set_driver_ops(struct cxl_context *ctx,
 EXPORT_SYMBOL_GPL(cxl_set_driver_ops);
 
 void cxl_context_events_pending(struct cxl_context *ctx,
-				unsigned int new_events)
+								unsigned int new_events)
 {
 	atomic_add(new_events, &ctx->afu_driver_events);
 	wake_up_all(&ctx->wq);
@@ -402,24 +479,32 @@ void cxl_context_events_pending(struct cxl_context *ctx,
 EXPORT_SYMBOL_GPL(cxl_context_events_pending);
 
 int cxl_start_work(struct cxl_context *ctx,
-		   struct cxl_ioctl_start_work *work)
+				   struct cxl_ioctl_start_work *work)
 {
 	int rc;
 
 	/* code taken from afu_ioctl_start_work */
 	if (!(work->flags & CXL_START_WORK_NUM_IRQS))
+	{
 		work->num_interrupts = ctx->afu->pp_irqs;
+	}
 	else if ((work->num_interrupts < ctx->afu->pp_irqs) ||
-		 (work->num_interrupts > ctx->afu->irqs_max)) {
+			 (work->num_interrupts > ctx->afu->irqs_max))
+	{
 		return -EINVAL;
 	}
 
 	rc = afu_register_irqs(ctx, work->num_interrupts);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = cxl_start_context(ctx, work->work_element_descriptor, current);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		afu_release_irqs(ctx, ctx);
 		return rc;
 	}
@@ -431,10 +516,12 @@ EXPORT_SYMBOL_GPL(cxl_start_work);
 void __iomem *cxl_psa_map(struct cxl_context *ctx)
 {
 	if (ctx->status != STARTED)
+	{
 		return NULL;
+	}
 
 	pr_devel("%s: psn_phys%llx size:%llx\n",
-		__func__, ctx->psn_phys, ctx->psn_size);
+			 __func__, ctx->psn_phys, ctx->psn_size);
 	return ioremap(ctx->psn_phys, ctx->psn_size);
 }
 EXPORT_SYMBOL_GPL(cxl_psa_map);
@@ -451,15 +538,18 @@ int cxl_afu_reset(struct cxl_context *ctx)
 	int rc;
 
 	rc = cxl_ops->afu_reset(afu);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	return cxl_ops->afu_check_and_enable(afu);
 }
 EXPORT_SYMBOL_GPL(cxl_afu_reset);
 
 void cxl_perst_reloads_same_image(struct cxl_afu *afu,
-				  bool perst_reloads_same_image)
+								  bool perst_reloads_same_image)
 {
 	afu->adapter->perst_same_image = perst_reloads_same_image;
 }
@@ -468,8 +558,11 @@ EXPORT_SYMBOL_GPL(cxl_perst_reloads_same_image);
 ssize_t cxl_read_adapter_vpd(struct pci_dev *dev, void *buf, size_t count)
 {
 	struct cxl_afu *afu = cxl_pci_to_afu(dev);
+
 	if (IS_ERR(afu))
+	{
 		return -ENODEV;
+	}
 
 	return cxl_ops->read_adapter_vpd(afu->adapter, buf, count);
 }
@@ -478,11 +571,16 @@ EXPORT_SYMBOL_GPL(cxl_read_adapter_vpd);
 int cxl_set_max_irqs_per_process(struct pci_dev *dev, int irqs)
 {
 	struct cxl_afu *afu = cxl_pci_to_afu(dev);
+
 	if (IS_ERR(afu))
+	{
 		return -ENODEV;
+	}
 
 	if (irqs > afu->adapter->user_irqs)
+	{
 		return -EINVAL;
+	}
 
 	/* Limit user_irqs to prevent the user increasing this via sysfs */
 	afu->adapter->user_irqs = irqs;
@@ -495,8 +593,11 @@ EXPORT_SYMBOL_GPL(cxl_set_max_irqs_per_process);
 int cxl_get_max_irqs_per_process(struct pci_dev *dev)
 {
 	struct cxl_afu *afu = cxl_pci_to_afu(dev);
+
 	if (IS_ERR(afu))
+	{
 		return -ENODEV;
+	}
 
 	return afu->irqs_max;
 }
@@ -521,30 +622,43 @@ int _cxl_cx4_setup_msi_irqs(struct pci_dev *pdev, int nvec, int type)
 	int rc;
 
 	ctx = default_ctx = cxl_get_context(pdev);
+
 	if (WARN_ON(!default_ctx))
+	{
 		return -ENODEV;
+	}
 
 	remaining = nvec;
-	while (remaining > 0) {
+
+	while (remaining > 0)
+	{
 		rc = cxl_allocate_afu_irqs(ctx, min(remaining, ctx->afu->irqs_max));
-		if (rc) {
+
+		if (rc)
+		{
 			pr_warn("%s: Failed to find enough free MSIs\n", pci_name(pdev));
 			return rc;
 		}
+
 		remaining -= ctx->afu->irqs_max;
 
-		if (ctx != default_ctx && default_ctx->status == STARTED) {
+		if (ctx != default_ctx && default_ctx->status == STARTED)
+		{
 			WARN_ON(cxl_start_context(ctx,
-				be64_to_cpu(default_ctx->elem->common.wed),
-				NULL));
+									  be64_to_cpu(default_ctx->elem->common.wed),
+									  NULL));
 		}
 
-		if (remaining > 0) {
+		if (remaining > 0)
+		{
 			new_ctx = cxl_dev_context_init(pdev);
-			if (!new_ctx) {
+
+			if (!new_ctx)
+			{
 				pr_warn("%s: Failed to allocate enough contexts for MSIs\n", pci_name(pdev));
 				return -ENOSPC;
 			}
+
 			list_add(&new_ctx->extra_irq_contexts, &ctx->extra_irq_contexts);
 			ctx = new_ctx;
 		}
@@ -559,11 +673,15 @@ void _cxl_cx4_teardown_msi_irqs(struct pci_dev *pdev)
 	struct cxl_context *ctx, *pos, *tmp;
 
 	ctx = cxl_get_context(pdev);
+
 	if (WARN_ON(!ctx))
+	{
 		return;
+	}
 
 	cxl_free_afu_irqs(ctx);
-	list_for_each_entry_safe(pos, tmp, &ctx->extra_irq_contexts, extra_irq_contexts) {
+	list_for_each_entry_safe(pos, tmp, &ctx->extra_irq_contexts, extra_irq_contexts)
+	{
 		cxl_stop_context(pos);
 		cxl_free_afu_irqs(pos);
 		list_del(&pos->extra_irq_contexts);

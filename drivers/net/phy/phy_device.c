@@ -68,7 +68,8 @@ static void phy_mdio_device_remove(struct mdio_device *mdiodev)
 	phy_device_remove(phydev);
 }
 
-enum genphy_driver {
+enum genphy_driver
+{
 	GENPHY_DRV_1G,
 	GENPHY_DRV_10G,
 	GENPHY_DRV_MAX
@@ -87,7 +88,9 @@ static bool mdio_bus_phy_may_suspend(struct phy_device *phydev)
 	struct net_device *netdev = phydev->attached_dev;
 
 	if (!drv || !phydrv->suspend)
+	{
 		return false;
+	}
 
 	/* PHY not attached? May suspend if the PHY has not already been
 	 * suspended as part of a prior call to phy_disconnect() ->
@@ -95,20 +98,26 @@ static bool mdio_bus_phy_may_suspend(struct phy_device *phydev)
 	 * MDIO bus driver and clock gated at this point.
 	 */
 	if (!netdev)
+	{
 		return !phydev->suspended;
+	}
 
 	/* Don't suspend PHY if the attached netdev parent may wakeup.
 	 * The parent may point to a PCI device, as in tg3 driver.
 	 */
 	if (netdev->dev.parent && device_may_wakeup(netdev->dev.parent))
+	{
 		return false;
+	}
 
 	/* Also don't suspend PHY if the netdev itself may wakeup. This
 	 * is the case for devices w/o underlaying pwr. mgmt. aware bus,
 	 * e.g. SoC devices.
 	 */
 	if (device_may_wakeup(&netdev->dev))
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -123,10 +132,14 @@ static int mdio_bus_phy_suspend(struct device *dev)
 	 * lead to a deadlock.
 	 */
 	if (phydev->attached_dev && phydev->adjust_link)
+	{
 		phy_stop_machine(phydev);
+	}
 
 	if (!mdio_bus_phy_may_suspend(phydev))
+	{
 		return 0;
+	}
 
 	return phy_suspend(phydev);
 }
@@ -137,15 +150,23 @@ static int mdio_bus_phy_resume(struct device *dev)
 	int ret;
 
 	if (!mdio_bus_phy_may_suspend(phydev))
+	{
 		goto no_resume;
+	}
 
 	ret = phy_resume(phydev);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 no_resume:
+
 	if (phydev->attached_dev && phydev->adjust_link)
+	{
 		phy_start_machine(phydev);
+	}
 
 	return 0;
 }
@@ -157,11 +178,16 @@ static int mdio_bus_phy_restore(struct device *dev)
 	int ret;
 
 	if (!netdev)
+	{
 		return 0;
+	}
 
 	ret = phy_init_hw(phydev);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* The PHY needs to renegotiate. */
 	phydev->link = 0;
@@ -172,7 +198,8 @@ static int mdio_bus_phy_restore(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops mdio_bus_phy_pm_ops = {
+static const struct dev_pm_ops mdio_bus_phy_pm_ops =
+{
 	.suspend = mdio_bus_phy_suspend,
 	.resume = mdio_bus_phy_resume,
 	.freeze = mdio_bus_phy_suspend,
@@ -198,12 +225,14 @@ static const struct dev_pm_ops mdio_bus_phy_pm_ops = {
  * @run: The actual code to be run when a matching PHY is found
  */
 int phy_register_fixup(const char *bus_id, u32 phy_uid, u32 phy_uid_mask,
-		       int (*run)(struct phy_device *))
+					   int (*run)(struct phy_device *))
 {
 	struct phy_fixup *fixup = kzalloc(sizeof(*fixup), GFP_KERNEL);
 
 	if (!fixup)
+	{
 		return -ENOMEM;
+	}
 
 	strlcpy(fixup->bus_id, bus_id, sizeof(fixup->bus_id));
 	fixup->phy_uid = phy_uid;
@@ -220,7 +249,7 @@ EXPORT_SYMBOL(phy_register_fixup);
 
 /* Registers a fixup to be run on any PHY with the UID in phy_uid */
 int phy_register_fixup_for_uid(u32 phy_uid, u32 phy_uid_mask,
-			       int (*run)(struct phy_device *))
+							   int (*run)(struct phy_device *))
 {
 	return phy_register_fixup(PHY_ANY_ID, phy_uid, phy_uid_mask, run);
 }
@@ -228,7 +257,7 @@ EXPORT_SYMBOL(phy_register_fixup_for_uid);
 
 /* Registers a fixup to be run on the PHY with id string bus_id */
 int phy_register_fixup_for_id(const char *bus_id,
-			      int (*run)(struct phy_device *))
+							  int (*run)(struct phy_device *))
 {
 	return phy_register_fixup(bus_id, PHY_ANY_UID, 0xffffffff, run);
 }
@@ -241,12 +270,16 @@ static int phy_needs_fixup(struct phy_device *phydev, struct phy_fixup *fixup)
 {
 	if (strcmp(fixup->bus_id, phydev_name(phydev)) != 0)
 		if (strcmp(fixup->bus_id, PHY_ANY_ID) != 0)
+		{
 			return 0;
+		}
 
 	if ((fixup->phy_uid & fixup->phy_uid_mask) !=
-	    (phydev->phy_id & fixup->phy_uid_mask))
+		(phydev->phy_id & fixup->phy_uid_mask))
 		if (fixup->phy_uid != PHY_ANY_UID)
+		{
 			return 0;
+		}
 
 	return 1;
 }
@@ -257,14 +290,18 @@ static int phy_scan_fixups(struct phy_device *phydev)
 	struct phy_fixup *fixup;
 
 	mutex_lock(&phy_fixup_lock);
-	list_for_each_entry(fixup, &phy_fixup_list, list) {
-		if (phy_needs_fixup(phydev, fixup)) {
+	list_for_each_entry(fixup, &phy_fixup_list, list)
+	{
+		if (phy_needs_fixup(phydev, fixup))
+		{
 			int err = fixup->run(phydev);
 
-			if (err < 0) {
+			if (err < 0)
+			{
 				mutex_unlock(&phy_fixup_lock);
 				return err;
 			}
+
 			phydev->has_fixups = true;
 		}
 	}
@@ -281,39 +318,55 @@ static int phy_bus_match(struct device *dev, struct device_driver *drv)
 	int i;
 
 	if (!(phydrv->mdiodrv.flags & MDIO_DEVICE_IS_PHY))
+	{
 		return 0;
+	}
 
 	if (phydrv->match_phy_device)
+	{
 		return phydrv->match_phy_device(phydev);
+	}
 
-	if (phydev->is_c45) {
-		for (i = 1; i < num_ids; i++) {
+	if (phydev->is_c45)
+	{
+		for (i = 1; i < num_ids; i++)
+		{
 			if (!(phydev->c45_ids.devices_in_package & (1 << i)))
+			{
 				continue;
+			}
 
 			if ((phydrv->phy_id & phydrv->phy_id_mask) ==
-			    (phydev->c45_ids.device_ids[i] &
-			     phydrv->phy_id_mask))
+				(phydev->c45_ids.device_ids[i] &
+				 phydrv->phy_id_mask))
+			{
 				return 1;
+			}
 		}
+
 		return 0;
-	} else {
+	}
+	else
+	{
 		return (phydrv->phy_id & phydrv->phy_id_mask) ==
-			(phydev->phy_id & phydrv->phy_id_mask);
+			   (phydev->phy_id & phydrv->phy_id_mask);
 	}
 }
 
 struct phy_device *phy_device_create(struct mii_bus *bus, int addr, int phy_id,
-				     bool is_c45,
-				     struct phy_c45_device_ids *c45_ids)
+									 bool is_c45,
+									 struct phy_c45_device_ids *c45_ids)
 {
 	struct phy_device *dev;
 	struct mdio_device *mdiodev;
 
 	/* We allocate the device, and initialize the default values */
 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+
 	if (!dev)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	mdiodev = &dev->mdio;
 	mdiodev->dev.release = phy_device_release;
@@ -338,8 +391,12 @@ struct phy_device *phy_device_create(struct mii_bus *bus, int addr, int phy_id,
 
 	dev->is_c45 = is_c45;
 	dev->phy_id = phy_id;
+
 	if (c45_ids)
+	{
 		dev->c45_ids = *c45_ids;
+	}
+
 	dev->irq = bus->irq[addr];
 	dev_set_name(&mdiodev->dev, PHY_ID_FMT, bus->id, addr);
 
@@ -379,20 +436,28 @@ EXPORT_SYMBOL(phy_device_create);
  * Returns: 0 on success, -EIO on failure.
  */
 static int get_phy_c45_devs_in_pkg(struct mii_bus *bus, int addr, int dev_addr,
-				   u32 *devices_in_package)
+								   u32 *devices_in_package)
 {
 	int phy_reg, reg_addr;
 
 	reg_addr = MII_ADDR_C45 | dev_addr << 16 | MDIO_DEVS2;
 	phy_reg = mdiobus_read(bus, addr, reg_addr);
+
 	if (phy_reg < 0)
+	{
 		return -EIO;
+	}
+
 	*devices_in_package = (phy_reg & 0xffff) << 16;
 
 	reg_addr = MII_ADDR_C45 | dev_addr << 16 | MDIO_DEVS1;
 	phy_reg = mdiobus_read(bus, addr, reg_addr);
+
 	if (phy_reg < 0)
+	{
 		return -EIO;
+	}
+
 	*devices_in_package |= (phy_reg & 0xffff);
 
 	return 0;
@@ -412,7 +477,8 @@ static int get_phy_c45_devs_in_pkg(struct mii_bus *bus, int addr, int dev_addr,
  *
  */
 static int get_phy_c45_ids(struct mii_bus *bus, int addr, u32 *phy_id,
-			   struct phy_c45_device_ids *c45_ids) {
+						   struct phy_c45_device_ids *c45_ids)
+{
 	int phy_reg;
 	int i, reg_addr;
 	const int num_ids = ARRAY_SIZE(c45_ids->device_ids);
@@ -421,47 +487,71 @@ static int get_phy_c45_ids(struct mii_bus *bus, int addr, u32 *phy_id,
 	/* Find first non-zero Devices In package. Device zero is reserved
 	 * for 802.3 c45 complied PHYs, so don't probe it at first.
 	 */
-	for (i = 1; i < num_ids && *devs == 0; i++) {
+	for (i = 1; i < num_ids && *devs == 0; i++)
+	{
 		phy_reg = get_phy_c45_devs_in_pkg(bus, addr, i, devs);
-		if (phy_reg < 0)
-			return -EIO;
 
-		if ((*devs & 0x1fffffff) == 0x1fffffff) {
+		if (phy_reg < 0)
+		{
+			return -EIO;
+		}
+
+		if ((*devs & 0x1fffffff) == 0x1fffffff)
+		{
 			/*  If mostly Fs, there is no device there,
 			 *  then let's continue to probe more, as some
 			 *  10G PHYs have zero Devices In package,
 			 *  e.g. Cortina CS4315/CS4340 PHY.
 			 */
 			phy_reg = get_phy_c45_devs_in_pkg(bus, addr, 0, devs);
+
 			if (phy_reg < 0)
+			{
 				return -EIO;
+			}
+
 			/* no device there, let's get out of here */
-			if ((*devs & 0x1fffffff) == 0x1fffffff) {
+			if ((*devs & 0x1fffffff) == 0x1fffffff)
+			{
 				*phy_id = 0xffffffff;
 				return 0;
-			} else {
+			}
+			else
+			{
 				break;
 			}
 		}
 	}
 
 	/* Now probe Device Identifiers for each device present. */
-	for (i = 1; i < num_ids; i++) {
+	for (i = 1; i < num_ids; i++)
+	{
 		if (!(c45_ids->devices_in_package & (1 << i)))
+		{
 			continue;
+		}
 
 		reg_addr = MII_ADDR_C45 | i << 16 | MII_PHYSID1;
 		phy_reg = mdiobus_read(bus, addr, reg_addr);
+
 		if (phy_reg < 0)
+		{
 			return -EIO;
+		}
+
 		c45_ids->device_ids[i] = (phy_reg & 0xffff) << 16;
 
 		reg_addr = MII_ADDR_C45 | i << 16 | MII_PHYSID2;
 		phy_reg = mdiobus_read(bus, addr, reg_addr);
+
 		if (phy_reg < 0)
+		{
 			return -EIO;
+		}
+
 		c45_ids->device_ids[i] |= (phy_reg & 0xffff);
 	}
+
 	*phy_id = 0;
 	return 0;
 }
@@ -483,24 +573,32 @@ static int get_phy_c45_ids(struct mii_bus *bus, int addr, u32 *phy_id,
  *
  */
 static int get_phy_id(struct mii_bus *bus, int addr, u32 *phy_id,
-		      bool is_c45, struct phy_c45_device_ids *c45_ids)
+					  bool is_c45, struct phy_c45_device_ids *c45_ids)
 {
 	int phy_reg;
 
 	if (is_c45)
+	{
 		return get_phy_c45_ids(bus, addr, phy_id, c45_ids);
+	}
 
 	/* Grab the bits from PHYIR1, and put them in the upper half */
 	phy_reg = mdiobus_read(bus, addr, MII_PHYSID1);
+
 	if (phy_reg < 0)
+	{
 		return -EIO;
+	}
 
 	*phy_id = (phy_reg & 0xffff) << 16;
 
 	/* Grab the bits from PHYIR2, and put them in the lower half */
 	phy_reg = mdiobus_read(bus, addr, MII_PHYSID2);
+
 	if (phy_reg < 0)
+	{
 		return -EIO;
+	}
 
 	*phy_id |= (phy_reg & 0xffff);
 
@@ -524,12 +622,17 @@ struct phy_device *get_phy_device(struct mii_bus *bus, int addr, bool is_c45)
 	int r;
 
 	r = get_phy_id(bus, addr, &phy_id, is_c45, &c45_ids);
+
 	if (r)
+	{
 		return ERR_PTR(r);
+	}
 
 	/* If the phy_id is mostly Fs, there is no device there */
 	if ((phy_id & 0x1fffffff) == 0x1fffffff)
+	{
 		return ERR_PTR(-ENODEV);
+	}
 
 	return phy_device_create(bus, addr, phy_id, is_c45, &c45_ids);
 }
@@ -551,9 +654,13 @@ phy_interface_show(struct device *dev, struct device_attribute *attr, char *buf)
 	const char *mode = NULL;
 
 	if (phy_is_internal(phydev))
+	{
 		mode = "internal";
+	}
 	else
+	{
 		mode = phy_modes(phydev->interface);
+	}
 
 	return sprintf(buf, "%s\n", mode);
 }
@@ -561,7 +668,7 @@ static DEVICE_ATTR_RO(phy_interface);
 
 static ssize_t
 phy_has_fixups_show(struct device *dev, struct device_attribute *attr,
-		    char *buf)
+					char *buf)
 {
 	struct phy_device *phydev = to_phy_device(dev);
 
@@ -569,7 +676,8 @@ phy_has_fixups_show(struct device *dev, struct device_attribute *attr,
 }
 static DEVICE_ATTR_RO(phy_has_fixups);
 
-static struct attribute *phy_dev_attrs[] = {
+static struct attribute *phy_dev_attrs[] =
+{
 	&dev_attr_phy_id.attr,
 	&dev_attr_phy_interface.attr,
 	&dev_attr_phy_has_fixups.attr,
@@ -586,12 +694,17 @@ int phy_device_register(struct phy_device *phydev)
 	int err;
 
 	err = mdiobus_register_device(&phydev->mdio);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* Run all of the fixups for this PHY */
 	err = phy_scan_fixups(phydev);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("PHY %d failed to initialize\n", phydev->mdio.addr);
 		goto out;
 	}
@@ -599,14 +712,16 @@ int phy_device_register(struct phy_device *phydev)
 	phydev->mdio.dev.groups = phy_dev_groups;
 
 	err = device_add(&phydev->mdio.dev);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("PHY %d failed to add\n", phydev->mdio.addr);
 		goto out;
 	}
 
 	return 0;
 
- out:
+out:
 	mdiobus_unregister_device(&phydev->mdio);
 	return err;
 }
@@ -636,11 +751,16 @@ struct phy_device *phy_find_first(struct mii_bus *bus)
 	struct phy_device *phydev;
 	int addr;
 
-	for (addr = 0; addr < PHY_MAX_ADDR; addr++) {
+	for (addr = 0; addr < PHY_MAX_ADDR; addr++)
+	{
 		phydev = mdiobus_get_phy(bus, addr);
+
 		if (phydev)
+		{
 			return phydev;
+		}
 	}
+
 	return NULL;
 }
 EXPORT_SYMBOL(phy_find_first);
@@ -658,7 +778,7 @@ EXPORT_SYMBOL(phy_find_first);
  *   this function.
  */
 static void phy_prepare_link(struct phy_device *phydev,
-			     void (*handler)(struct net_device *))
+							 void (*handler)(struct net_device *))
 {
 	phydev->adjust_link = handler;
 }
@@ -671,19 +791,25 @@ static void phy_prepare_link(struct phy_device *phydev,
  * @interface: PHY device's interface
  */
 int phy_connect_direct(struct net_device *dev, struct phy_device *phydev,
-		       void (*handler)(struct net_device *),
-		       phy_interface_t interface)
+					   void (*handler)(struct net_device *),
+					   phy_interface_t interface)
 {
 	int rc;
 
 	rc = phy_attach_direct(dev, phydev, phydev->dev_flags, interface);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	phy_prepare_link(phydev, handler);
 	phy_start_machine(phydev);
+
 	if (phydev->irq > 0)
+	{
 		phy_start_interrupts(phydev);
+	}
 
 	return 0;
 }
@@ -705,8 +831,8 @@ EXPORT_SYMBOL(phy_connect_direct);
  *   the desired functionality.
  */
 struct phy_device *phy_connect(struct net_device *dev, const char *bus_id,
-			       void (*handler)(struct net_device *),
-			       phy_interface_t interface)
+							   void (*handler)(struct net_device *),
+							   phy_interface_t interface)
 {
 	struct phy_device *phydev;
 	struct device *d;
@@ -716,16 +842,22 @@ struct phy_device *phy_connect(struct net_device *dev, const char *bus_id,
 	 * PHY with the requested name
 	 */
 	d = bus_find_device_by_name(&mdio_bus_type, NULL, bus_id);
-	if (!d) {
+
+	if (!d)
+	{
 		pr_err("PHY %s not found\n", bus_id);
 		return ERR_PTR(-ENODEV);
 	}
+
 	phydev = to_phy_device(d);
 
 	rc = phy_connect_direct(dev, phydev, handler, interface);
 	put_device(d);
+
 	if (rc)
+	{
 		return ERR_PTR(rc);
+	}
 
 	return phydev;
 }
@@ -739,7 +871,9 @@ EXPORT_SYMBOL(phy_connect);
 void phy_disconnect(struct phy_device *phydev)
 {
 	if (phydev->irq > 0)
+	{
 		phy_stop_interrupts(phydev);
+	}
 
 	phy_stop_machine(phydev);
 
@@ -773,14 +907,22 @@ static int phy_poll_reset(struct phy_device *phydev)
 	unsigned int retries = 12;
 	int ret;
 
-	do {
+	do
+	{
 		msleep(50);
 		ret = phy_read(phydev, MII_BMCR);
+
 		if (ret < 0)
+		{
 			return ret;
-	} while (ret & BMCR_RESET && --retries);
+		}
+	}
+	while (ret & BMCR_RESET && --retries);
+
 	if (ret & BMCR_RESET)
+	{
 		return -ETIMEDOUT;
+	}
 
 	/* Some chips (smsc911x) may still need up to another 1ms after the
 	 * BMCR_RESET bit is cleared before they are usable.
@@ -794,19 +936,30 @@ int phy_init_hw(struct phy_device *phydev)
 	int ret = 0;
 
 	if (!phydev->drv || !phydev->drv->config_init)
+	{
 		return 0;
+	}
 
 	if (phydev->drv->soft_reset)
+	{
 		ret = phydev->drv->soft_reset(phydev);
+	}
 	else
+	{
 		ret = genphy_soft_reset(phydev);
+	}
 
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = phy_scan_fixups(phydev);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return phydev->drv->config_init(phydev);
 }
@@ -821,16 +974,19 @@ EXPORT_SYMBOL(phy_attached_info);
 #define ATTACHED_FMT "attached PHY driver [%s] (mii_bus:phy_addr=%s, irq=%d)"
 void phy_attached_print(struct phy_device *phydev, const char *fmt, ...)
 {
-	if (!fmt) {
+	if (!fmt)
+	{
 		dev_info(&phydev->mdio.dev, ATTACHED_FMT "\n",
-			 phydev->drv->name, phydev_name(phydev),
-			 phydev->irq);
-	} else {
+				 phydev->drv->name, phydev_name(phydev),
+				 phydev->irq);
+	}
+	else
+	{
 		va_list ap;
 
 		dev_info(&phydev->mdio.dev, ATTACHED_FMT,
-			 phydev->drv->name, phydev_name(phydev),
-			 phydev->irq);
+				 phydev->drv->name, phydev_name(phydev),
+				 phydev->irq);
 
 		va_start(ap, fmt);
 		vprintk(fmt, ap);
@@ -855,13 +1011,14 @@ EXPORT_SYMBOL(phy_attached_print);
  *     This function takes a reference on the phy device.
  */
 int phy_attach_direct(struct net_device *dev, struct phy_device *phydev,
-		      u32 flags, phy_interface_t interface)
+					  u32 flags, phy_interface_t interface)
 {
 	struct mii_bus *bus = phydev->mdio.bus;
 	struct device *d = &phydev->mdio.dev;
 	int err;
 
-	if (!try_module_get(bus->owner)) {
+	if (!try_module_get(bus->owner))
+	{
 		dev_err(&dev->dev, "failed to get the bus module\n");
 		return -EIO;
 	}
@@ -871,7 +1028,8 @@ int phy_attach_direct(struct net_device *dev, struct phy_device *phydev,
 	/* Assume that if there is no driver, that it doesn't
 	 * exist, and we should use the genphy driver.
 	 */
-	if (!d->driver) {
+	if (!d->driver)
+	{
 		if (phydev->is_c45)
 			d->driver =
 				&genphy_driver[GENPHY_DRV_10G].mdiodrv.driver;
@@ -880,14 +1038,20 @@ int phy_attach_direct(struct net_device *dev, struct phy_device *phydev,
 				&genphy_driver[GENPHY_DRV_1G].mdiodrv.driver;
 
 		err = d->driver->probe(d);
+
 		if (err >= 0)
+		{
 			err = device_bind_driver(d);
+		}
 
 		if (err)
+		{
 			goto error;
+		}
 	}
 
-	if (phydev->attached_dev) {
+	if (phydev->attached_dev)
+	{
 		dev_err(&dev->dev, "PHY already attached\n");
 		err = -EBUSY;
 		goto error;
@@ -912,10 +1076,15 @@ int phy_attach_direct(struct net_device *dev, struct phy_device *phydev,
 	 * (dev_flags and interface)
 	 */
 	err = phy_init_hw(phydev);
+
 	if (err)
+	{
 		phy_detach(phydev);
+	}
 	else
+	{
 		phy_resume(phydev);
+	}
 
 	return err;
 
@@ -936,7 +1105,7 @@ EXPORT_SYMBOL(phy_attach_direct);
  *     string is passed instead of a pointer to a struct phy_device.
  */
 struct phy_device *phy_attach(struct net_device *dev, const char *bus_id,
-			      phy_interface_t interface)
+							  phy_interface_t interface)
 {
 	struct bus_type *bus = &mdio_bus_type;
 	struct phy_device *phydev;
@@ -947,16 +1116,22 @@ struct phy_device *phy_attach(struct net_device *dev, const char *bus_id,
 	 * PHY with the requested name
 	 */
 	d = bus_find_device_by_name(bus, NULL, bus_id);
-	if (!d) {
+
+	if (!d)
+	{
 		pr_err("PHY %s not found\n", bus_id);
 		return ERR_PTR(-ENODEV);
 	}
+
 	phydev = to_phy_device(d);
 
 	rc = phy_attach_direct(dev, phydev, phydev->dev_flags, interface);
 	put_device(d);
+
 	if (rc)
+	{
 		return ERR_PTR(rc);
+	}
 
 	return phydev;
 }
@@ -983,9 +1158,11 @@ void phy_detach(struct phy_device *phydev)
 	 * from the generic driver so that there's a chance a
 	 * real driver could be loaded
 	 */
-	for (i = 0; i < ARRAY_SIZE(genphy_driver); i++) {
+	for (i = 0; i < ARRAY_SIZE(genphy_driver); i++)
+	{
 		if (phydev->mdio.dev.driver ==
-		    &genphy_driver[i].mdiodrv.driver) {
+			&genphy_driver[i].mdiodrv.driver)
+		{
 			device_release_driver(&phydev->mdio.dev);
 			break;
 		}
@@ -1010,14 +1187,21 @@ int phy_suspend(struct phy_device *phydev)
 
 	/* If the device has WOL enabled, we cannot suspend the PHY */
 	phy_ethtool_get_wol(phydev, &wol);
+
 	if (wol.wolopts)
+	{
 		return -EBUSY;
+	}
 
 	if (phydrv->suspend)
+	{
 		ret = phydrv->suspend(phydev);
+	}
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	phydev->suspended = true;
 
@@ -1031,10 +1215,14 @@ int phy_resume(struct phy_device *phydev)
 	int ret = 0;
 
 	if (phydrv->resume)
+	{
 		ret = phydrv->resume(phydev);
+	}
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	phydev->suspended = false;
 
@@ -1065,52 +1253,73 @@ static int genphy_config_advert(struct phy_device *phydev)
 
 	/* Setup standard advertisement */
 	adv = phy_read(phydev, MII_ADVERTISE);
+
 	if (adv < 0)
+	{
 		return adv;
+	}
 
 	oldadv = adv;
 	adv &= ~(ADVERTISE_ALL | ADVERTISE_100BASE4 | ADVERTISE_PAUSE_CAP |
-		 ADVERTISE_PAUSE_ASYM);
+			 ADVERTISE_PAUSE_ASYM);
 	adv |= ethtool_adv_to_mii_adv_t(advertise);
 
-	if (adv != oldadv) {
+	if (adv != oldadv)
+	{
 		err = phy_write(phydev, MII_ADVERTISE, adv);
 
 		if (err < 0)
+		{
 			return err;
+		}
+
 		changed = 1;
 	}
 
 	bmsr = phy_read(phydev, MII_BMSR);
+
 	if (bmsr < 0)
+	{
 		return bmsr;
+	}
 
 	/* Per 802.3-2008, Section 22.2.4.2.16 Extended status all
 	 * 1000Mbits/sec capable PHYs shall have the BMSR_ESTATEN bit set to a
 	 * logical 1.
 	 */
 	if (!(bmsr & BMSR_ESTATEN))
+	{
 		return changed;
+	}
 
 	/* Configure gigabit if it's supported */
 	adv = phy_read(phydev, MII_CTRL1000);
+
 	if (adv < 0)
+	{
 		return adv;
+	}
 
 	oldadv = adv;
 	adv &= ~(ADVERTISE_1000FULL | ADVERTISE_1000HALF);
 
 	if (phydev->supported & (SUPPORTED_1000baseT_Half |
-				 SUPPORTED_1000baseT_Full)) {
+							 SUPPORTED_1000baseT_Full))
+	{
 		adv |= ethtool_adv_to_mii_ctrl1000_t(advertise);
 	}
 
 	if (adv != oldadv)
+	{
 		changed = 1;
+	}
 
 	err = phy_write(phydev, MII_CTRL1000, adv);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return changed;
 }
@@ -1132,12 +1341,18 @@ int genphy_setup_forced(struct phy_device *phydev)
 	phydev->asym_pause = 0;
 
 	if (SPEED_1000 == phydev->speed)
+	{
 		ctl |= BMCR_SPEED1000;
+	}
 	else if (SPEED_100 == phydev->speed)
+	{
 		ctl |= BMCR_SPEED100;
+	}
 
 	if (DUPLEX_FULL == phydev->duplex)
+	{
 		ctl |= BMCR_FULLDPLX;
+	}
 
 	return phy_write(phydev, MII_BMCR, ctl);
 }
@@ -1152,7 +1367,9 @@ int genphy_restart_aneg(struct phy_device *phydev)
 	int ctl = phy_read(phydev, MII_BMCR);
 
 	if (ctl < 0)
+	{
 		return ctl;
+	}
 
 	ctl |= BMCR_ANENABLE | BMCR_ANRESTART;
 
@@ -1176,29 +1393,42 @@ int genphy_config_aneg(struct phy_device *phydev)
 	int result;
 
 	if (AUTONEG_ENABLE != phydev->autoneg)
+	{
 		return genphy_setup_forced(phydev);
+	}
 
 	result = genphy_config_advert(phydev);
+
 	if (result < 0) /* error */
+	{
 		return result;
-	if (result == 0) {
+	}
+
+	if (result == 0)
+	{
 		/* Advertisement hasn't changed, but maybe aneg was never on to
 		 * begin with?  Or maybe phy was isolated?
 		 */
 		int ctl = phy_read(phydev, MII_BMCR);
 
 		if (ctl < 0)
+		{
 			return ctl;
+		}
 
 		if (!(ctl & BMCR_ANENABLE) || (ctl & BMCR_ISOLATE))
-			result = 1; /* do restart aneg */
+		{
+			result = 1;    /* do restart aneg */
+		}
 	}
 
 	/* Only restart aneg if we are advertising something different
 	 * than we were before.
 	 */
 	if (result > 0)
+	{
 		result = genphy_restart_aneg(phydev);
+	}
 
 	return result;
 }
@@ -1239,18 +1469,28 @@ int genphy_update_link(struct phy_device *phydev)
 
 	/* Do a fake read */
 	status = phy_read(phydev, MII_BMSR);
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	/* Read link and autonegotiation status */
 	status = phy_read(phydev, MII_BMSR);
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	if ((status & BMSR_LSTATUS) == 0)
+	{
 		phydev->link = 0;
+	}
 	else
+	{
 		phydev->link = 1;
+	}
 
 	return 0;
 }
@@ -1276,21 +1516,32 @@ int genphy_read_status(struct phy_device *phydev)
 
 	/* Update the link, but return if there was an error */
 	err = genphy_update_link(phydev);
+
 	if (err)
+	{
 		return err;
+	}
 
 	phydev->lp_advertising = 0;
 
-	if (AUTONEG_ENABLE == phydev->autoneg) {
+	if (AUTONEG_ENABLE == phydev->autoneg)
+	{
 		if (phydev->supported & (SUPPORTED_1000baseT_Half
-					| SUPPORTED_1000baseT_Full)) {
+								 | SUPPORTED_1000baseT_Full))
+		{
 			lpagb = phy_read(phydev, MII_STAT1000);
+
 			if (lpagb < 0)
+			{
 				return lpagb;
+			}
 
 			adv = phy_read(phydev, MII_CTRL1000);
+
 			if (adv < 0)
+			{
 				return adv;
+			}
 
 			phydev->lp_advertising =
 				mii_stat1000_to_ethtool_lpa_t(lpagb);
@@ -1298,14 +1549,20 @@ int genphy_read_status(struct phy_device *phydev)
 		}
 
 		lpa = phy_read(phydev, MII_LPA);
+
 		if (lpa < 0)
+		{
 			return lpa;
+		}
 
 		phydev->lp_advertising |= mii_lpa_to_ethtool_lpa_t(lpa);
 
 		adv = phy_read(phydev, MII_ADVERTISE);
+
 		if (adv < 0)
+		{
 			return adv;
+		}
 
 		common_adv = lpa & adv;
 
@@ -1314,41 +1571,65 @@ int genphy_read_status(struct phy_device *phydev)
 		phydev->pause = 0;
 		phydev->asym_pause = 0;
 
-		if (common_adv_gb & (LPA_1000FULL | LPA_1000HALF)) {
+		if (common_adv_gb & (LPA_1000FULL | LPA_1000HALF))
+		{
 			phydev->speed = SPEED_1000;
 
 			if (common_adv_gb & LPA_1000FULL)
+			{
 				phydev->duplex = DUPLEX_FULL;
-		} else if (common_adv & (LPA_100FULL | LPA_100HALF)) {
+			}
+		}
+		else if (common_adv & (LPA_100FULL | LPA_100HALF))
+		{
 			phydev->speed = SPEED_100;
 
 			if (common_adv & LPA_100FULL)
+			{
 				phydev->duplex = DUPLEX_FULL;
-		} else
-			if (common_adv & LPA_10FULL)
-				phydev->duplex = DUPLEX_FULL;
+			}
+		}
+		else if (common_adv & LPA_10FULL)
+		{
+			phydev->duplex = DUPLEX_FULL;
+		}
 
-		if (phydev->duplex == DUPLEX_FULL) {
+		if (phydev->duplex == DUPLEX_FULL)
+		{
 			phydev->pause = lpa & LPA_PAUSE_CAP ? 1 : 0;
 			phydev->asym_pause = lpa & LPA_PAUSE_ASYM ? 1 : 0;
 		}
-	} else {
+	}
+	else
+	{
 		int bmcr = phy_read(phydev, MII_BMCR);
 
 		if (bmcr < 0)
+		{
 			return bmcr;
+		}
 
 		if (bmcr & BMCR_FULLDPLX)
+		{
 			phydev->duplex = DUPLEX_FULL;
+		}
 		else
+		{
 			phydev->duplex = DUPLEX_HALF;
+		}
 
 		if (bmcr & BMCR_SPEED1000)
+		{
 			phydev->speed = SPEED_1000;
+		}
 		else if (bmcr & BMCR_SPEED100)
+		{
 			phydev->speed = SPEED_100;
+		}
 		else
+		{
 			phydev->speed = SPEED_10;
+		}
 
 		phydev->pause = 0;
 		phydev->asym_pause = 0;
@@ -1369,17 +1650,23 @@ static int gen10g_read_status(struct phy_device *phydev)
 	phydev->speed = SPEED_10000;
 	phydev->duplex = DUPLEX_FULL;
 
-	for (devad = 0; mmd_mask; devad++, mmd_mask = mmd_mask >> 1) {
+	for (devad = 0; mmd_mask; devad++, mmd_mask = mmd_mask >> 1)
+	{
 		if (!(mmd_mask & 1))
+		{
 			continue;
+		}
 
 		/* Read twice because link state is latched and a
 		 * read moves the current state into the register
 		 */
 		phy_read_mmd(phydev, devad, MDIO_STAT1);
 		reg = phy_read_mmd(phydev, devad, MDIO_STAT1);
+
 		if (reg < 0 || !(reg & MDIO_STAT1_LSTATUS))
+		{
 			phydev->link = 0;
+		}
 	}
 
 	return 0;
@@ -1399,8 +1686,11 @@ int genphy_soft_reset(struct phy_device *phydev)
 	int ret;
 
 	ret = phy_write(phydev, MII_BMCR, BMCR_RESET);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return phy_poll_reset(phydev);
 }
@@ -1412,35 +1702,60 @@ int genphy_config_init(struct phy_device *phydev)
 	u32 features;
 
 	features = (SUPPORTED_TP | SUPPORTED_MII
-			| SUPPORTED_AUI | SUPPORTED_FIBRE |
-			SUPPORTED_BNC | SUPPORTED_Pause | SUPPORTED_Asym_Pause);
+				| SUPPORTED_AUI | SUPPORTED_FIBRE |
+				SUPPORTED_BNC | SUPPORTED_Pause | SUPPORTED_Asym_Pause);
 
 	/* Do we support autonegotiation? */
 	val = phy_read(phydev, MII_BMSR);
+
 	if (val < 0)
+	{
 		return val;
+	}
 
 	if (val & BMSR_ANEGCAPABLE)
+	{
 		features |= SUPPORTED_Autoneg;
+	}
 
 	if (val & BMSR_100FULL)
+	{
 		features |= SUPPORTED_100baseT_Full;
-	if (val & BMSR_100HALF)
-		features |= SUPPORTED_100baseT_Half;
-	if (val & BMSR_10FULL)
-		features |= SUPPORTED_10baseT_Full;
-	if (val & BMSR_10HALF)
-		features |= SUPPORTED_10baseT_Half;
+	}
 
-	if (val & BMSR_ESTATEN) {
+	if (val & BMSR_100HALF)
+	{
+		features |= SUPPORTED_100baseT_Half;
+	}
+
+	if (val & BMSR_10FULL)
+	{
+		features |= SUPPORTED_10baseT_Full;
+	}
+
+	if (val & BMSR_10HALF)
+	{
+		features |= SUPPORTED_10baseT_Half;
+	}
+
+	if (val & BMSR_ESTATEN)
+	{
 		val = phy_read(phydev, MII_ESTATUS);
+
 		if (val < 0)
+		{
 			return val;
+		}
 
 		if (val & ESTATUS_1000_TFULL)
+		{
 			features |= SUPPORTED_1000baseT_Full;
+		}
+
 		if (val & ESTATUS_1000_THALF)
+		{
 			features |= SUPPORTED_1000baseT_Half;
+		}
 	}
 
 	phydev->supported &= features;
@@ -1513,17 +1828,21 @@ static int __set_phy_supported(struct phy_device *phydev, u32 max_speed)
 	 */
 	phydev->supported &= PHY_DEFAULT_FEATURES;
 
-	switch (max_speed) {
-	default:
-		return -ENOTSUPP;
-	case SPEED_1000:
-		phydev->supported |= PHY_1000BT_FEATURES;
+	switch (max_speed)
+	{
+		default:
+			return -ENOTSUPP;
+
+		case SPEED_1000:
+			phydev->supported |= PHY_1000BT_FEATURES;
+
 		/* fall through */
-	case SPEED_100:
-		phydev->supported |= PHY_100BT_FEATURES;
+		case SPEED_100:
+			phydev->supported |= PHY_100BT_FEATURES;
+
 		/* fall through */
-	case SPEED_10:
-		phydev->supported |= PHY_10BT_FEATURES;
+		case SPEED_10:
+			phydev->supported |= PHY_10BT_FEATURES;
 	}
 
 	return 0;
@@ -1534,8 +1853,11 @@ int phy_set_max_speed(struct phy_device *phydev, u32 max_speed)
 	int err;
 
 	err = __set_phy_supported(phydev, max_speed);
+
 	if (err)
+	{
 		return err;
+	}
 
 	phydev->advertising = phydev->supported;
 
@@ -1549,13 +1871,19 @@ static void of_set_phy_supported(struct phy_device *phydev)
 	u32 max_speed;
 
 	if (!IS_ENABLED(CONFIG_OF_MDIO))
+	{
 		return;
+	}
 
 	if (!node)
+	{
 		return;
+	}
 
 	if (!of_property_read_u32(node, "max-speed", &max_speed))
+	{
 		__set_phy_supported(phydev, max_speed);
+	}
 }
 
 /**
@@ -1579,11 +1907,15 @@ static int phy_probe(struct device *dev)
 	 * but the interrupt is still a valid one
 	 */
 	if (!(phydrv->flags & PHY_HAS_INTERRUPT) &&
-	    phy_interrupt_is_valid(phydev))
+		phy_interrupt_is_valid(phydev))
+	{
 		phydev->irq = PHY_POLL;
+	}
 
 	if (phydrv->flags & PHY_IS_INTERNAL)
+	{
 		phydev->is_internal = true;
+	}
 
 	mutex_lock(&phydev->lock);
 
@@ -1599,7 +1931,9 @@ static int phy_probe(struct device *dev)
 	phydev->state = PHY_READY;
 
 	if (phydev->drv->probe)
+	{
 		err = phydev->drv->probe(phydev);
+	}
 
 	mutex_unlock(&phydev->lock);
 
@@ -1615,7 +1949,10 @@ static int phy_remove(struct device *dev)
 	mutex_unlock(&phydev->lock);
 
 	if (phydev->drv->remove)
+	{
 		phydev->drv->remove(phydev);
+	}
+
 	phydev->drv = NULL;
 
 	return 0;
@@ -1638,9 +1975,11 @@ int phy_driver_register(struct phy_driver *new_driver, struct module *owner)
 	new_driver->mdiodrv.driver.owner = owner;
 
 	retval = driver_register(&new_driver->mdiodrv.driver);
-	if (retval) {
+
+	if (retval)
+	{
 		pr_err("%s: Error %d in registering driver\n",
-		       new_driver->name, retval);
+			   new_driver->name, retval);
 
 		return retval;
 	}
@@ -1652,18 +1991,25 @@ int phy_driver_register(struct phy_driver *new_driver, struct module *owner)
 EXPORT_SYMBOL(phy_driver_register);
 
 int phy_drivers_register(struct phy_driver *new_driver, int n,
-			 struct module *owner)
+						 struct module *owner)
 {
 	int i, ret = 0;
 
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < n; i++)
+	{
 		ret = phy_driver_register(new_driver + i, owner);
-		if (ret) {
+
+		if (ret)
+		{
 			while (i-- > 0)
+			{
 				phy_driver_unregister(new_driver + i);
+			}
+
 			break;
 		}
 	}
+
 	return ret;
 }
 EXPORT_SYMBOL(phy_drivers_register);
@@ -1679,50 +2025,60 @@ void phy_drivers_unregister(struct phy_driver *drv, int n)
 	int i;
 
 	for (i = 0; i < n; i++)
+	{
 		phy_driver_unregister(drv + i);
+	}
 }
 EXPORT_SYMBOL(phy_drivers_unregister);
 
-static struct phy_driver genphy_driver[] = {
+static struct phy_driver genphy_driver[] =
 {
-	.phy_id		= 0xffffffff,
-	.phy_id_mask	= 0xffffffff,
-	.name		= "Generic PHY",
-	.soft_reset	= genphy_soft_reset,
-	.config_init	= genphy_config_init,
-	.features	= PHY_GBIT_FEATURES | SUPPORTED_MII |
-			  SUPPORTED_AUI | SUPPORTED_FIBRE |
-			  SUPPORTED_BNC,
-	.config_aneg	= genphy_config_aneg,
-	.aneg_done	= genphy_aneg_done,
-	.read_status	= genphy_read_status,
-	.suspend	= genphy_suspend,
-	.resume		= genphy_resume,
-}, {
-	.phy_id         = 0xffffffff,
-	.phy_id_mask    = 0xffffffff,
-	.name           = "Generic 10G PHY",
-	.soft_reset	= gen10g_soft_reset,
-	.config_init    = gen10g_config_init,
-	.features       = 0,
-	.config_aneg    = gen10g_config_aneg,
-	.read_status    = gen10g_read_status,
-	.suspend        = gen10g_suspend,
-	.resume         = gen10g_resume,
-} };
+	{
+		.phy_id		= 0xffffffff,
+		.phy_id_mask	= 0xffffffff,
+		.name		= "Generic PHY",
+		.soft_reset	= genphy_soft_reset,
+		.config_init	= genphy_config_init,
+		.features	= PHY_GBIT_FEATURES | SUPPORTED_MII |
+		SUPPORTED_AUI | SUPPORTED_FIBRE |
+		SUPPORTED_BNC,
+		.config_aneg	= genphy_config_aneg,
+		.aneg_done	= genphy_aneg_done,
+		.read_status	= genphy_read_status,
+		.suspend	= genphy_suspend,
+		.resume		= genphy_resume,
+	}, {
+		.phy_id         = 0xffffffff,
+		.phy_id_mask    = 0xffffffff,
+		.name           = "Generic 10G PHY",
+		.soft_reset	= gen10g_soft_reset,
+		.config_init    = gen10g_config_init,
+		.features       = 0,
+		.config_aneg    = gen10g_config_aneg,
+		.read_status    = gen10g_read_status,
+		.suspend        = gen10g_suspend,
+		.resume         = gen10g_resume,
+	}
+};
 
 static int __init phy_init(void)
 {
 	int rc;
 
 	rc = mdio_bus_init();
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = phy_drivers_register(genphy_driver,
-				  ARRAY_SIZE(genphy_driver), THIS_MODULE);
+							  ARRAY_SIZE(genphy_driver), THIS_MODULE);
+
 	if (rc)
+	{
 		mdio_bus_exit();
+	}
 
 	return rc;
 }
@@ -1730,7 +2086,7 @@ static int __init phy_init(void)
 static void __exit phy_exit(void)
 {
 	phy_drivers_unregister(genphy_driver,
-			       ARRAY_SIZE(genphy_driver));
+						   ARRAY_SIZE(genphy_driver));
 	mdio_bus_exit();
 }
 

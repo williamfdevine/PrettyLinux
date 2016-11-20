@@ -142,116 +142,116 @@
 #define MASK(x) (BIT(x) - 1)
 
 #define MUX(_name, _parents, _offset,	\
-			    _clk_num, _gate_flags, _clk_id)	\
-	TEGRA_INIT_DATA_TABLE(_name, NULL, NULL, _parents, _offset,\
-			30, MASK(2), 0, 0, 8, 1, TEGRA_DIVIDER_ROUND_UP, \
-			_clk_num,  _gate_flags, _clk_id, _parents##_idx, 0,\
-			NULL)
+			_clk_num, _gate_flags, _clk_id)	\
+TEGRA_INIT_DATA_TABLE(_name, NULL, NULL, _parents, _offset,\
+					  30, MASK(2), 0, 0, 8, 1, TEGRA_DIVIDER_ROUND_UP, \
+					  _clk_num,  _gate_flags, _clk_id, _parents##_idx, 0,\
+					  NULL)
 
 #define MUX_FLAGS(_name, _parents, _offset,\
-			    _clk_num, _gate_flags, _clk_id, flags)\
-	TEGRA_INIT_DATA_TABLE(_name, NULL, NULL, _parents, _offset,\
-			30, MASK(2), 0, 0, 8, 1, TEGRA_DIVIDER_ROUND_UP,\
-			_clk_num, _gate_flags, _clk_id, _parents##_idx, flags,\
-			NULL)
+				  _clk_num, _gate_flags, _clk_id, flags)\
+TEGRA_INIT_DATA_TABLE(_name, NULL, NULL, _parents, _offset,\
+					  30, MASK(2), 0, 0, 8, 1, TEGRA_DIVIDER_ROUND_UP,\
+					  _clk_num, _gate_flags, _clk_id, _parents##_idx, flags,\
+					  NULL)
 
 #define MUX8(_name, _parents, _offset, \
-			     _clk_num, _gate_flags, _clk_id)	\
-	TEGRA_INIT_DATA_TABLE(_name, NULL, NULL, _parents, _offset,\
-			29, MASK(3), 0, 0, 8, 1, TEGRA_DIVIDER_ROUND_UP,\
-			_clk_num, _gate_flags, _clk_id, _parents##_idx, 0,\
-			NULL)
+			 _clk_num, _gate_flags, _clk_id)	\
+TEGRA_INIT_DATA_TABLE(_name, NULL, NULL, _parents, _offset,\
+					  29, MASK(3), 0, 0, 8, 1, TEGRA_DIVIDER_ROUND_UP,\
+					  _clk_num, _gate_flags, _clk_id, _parents##_idx, 0,\
+					  NULL)
 
 #define MUX8_NOGATE_LOCK(_name, _parents, _offset, _clk_id, _lock)	\
 	TEGRA_INIT_DATA_TABLE(_name, NULL, NULL, _parents, _offset,	\
-			      29, MASK(3), 0, 0, 8, 1, TEGRA_DIVIDER_ROUND_UP,\
-			      0, TEGRA_PERIPH_NO_GATE, _clk_id,\
-			      _parents##_idx, 0, _lock)
+						  29, MASK(3), 0, 0, 8, 1, TEGRA_DIVIDER_ROUND_UP,\
+						  0, TEGRA_PERIPH_NO_GATE, _clk_id,\
+						  _parents##_idx, 0, _lock)
 
 #define INT(_name, _parents, _offset,	\
-			    _clk_num, _gate_flags, _clk_id)	\
-	TEGRA_INIT_DATA_TABLE(_name, NULL, NULL, _parents, _offset,\
-			30, MASK(2), 0, 0, 8, 1, TEGRA_DIVIDER_INT| \
-			TEGRA_DIVIDER_ROUND_UP, _clk_num, _gate_flags,\
-			_clk_id, _parents##_idx, 0, NULL)
+			_clk_num, _gate_flags, _clk_id)	\
+TEGRA_INIT_DATA_TABLE(_name, NULL, NULL, _parents, _offset,\
+					  30, MASK(2), 0, 0, 8, 1, TEGRA_DIVIDER_INT| \
+					  TEGRA_DIVIDER_ROUND_UP, _clk_num, _gate_flags,\
+					  _clk_id, _parents##_idx, 0, NULL)
 
 #define INT_FLAGS(_name, _parents, _offset,\
-			    _clk_num, _gate_flags, _clk_id, flags)\
-	TEGRA_INIT_DATA_TABLE(_name, NULL, NULL, _parents, _offset,\
-			30, MASK(2), 0, 0, 8, 1, TEGRA_DIVIDER_INT| \
-			TEGRA_DIVIDER_ROUND_UP, _clk_num,  _gate_flags,\
-			_clk_id, _parents##_idx, flags, NULL)
+				  _clk_num, _gate_flags, _clk_id, flags)\
+TEGRA_INIT_DATA_TABLE(_name, NULL, NULL, _parents, _offset,\
+					  30, MASK(2), 0, 0, 8, 1, TEGRA_DIVIDER_INT| \
+					  TEGRA_DIVIDER_ROUND_UP, _clk_num,  _gate_flags,\
+					  _clk_id, _parents##_idx, flags, NULL)
 
 #define INT8(_name, _parents, _offset,\
-			    _clk_num, _gate_flags, _clk_id)	\
-	TEGRA_INIT_DATA_TABLE(_name, NULL, NULL, _parents, _offset,\
-			29, MASK(3), 0, 0, 8, 1, TEGRA_DIVIDER_INT| \
-			TEGRA_DIVIDER_ROUND_UP, _clk_num, _gate_flags,\
-			_clk_id, _parents##_idx, 0, NULL)
+			 _clk_num, _gate_flags, _clk_id)	\
+TEGRA_INIT_DATA_TABLE(_name, NULL, NULL, _parents, _offset,\
+					  29, MASK(3), 0, 0, 8, 1, TEGRA_DIVIDER_INT| \
+					  TEGRA_DIVIDER_ROUND_UP, _clk_num, _gate_flags,\
+					  _clk_id, _parents##_idx, 0, NULL)
 
 #define UART(_name, _parents, _offset,\
-			     _clk_num, _clk_id)			\
-	TEGRA_INIT_DATA_TABLE(_name, NULL, NULL, _parents, _offset,\
-			30, MASK(2), 0, 0, 16, 1, TEGRA_DIVIDER_UART| \
-			TEGRA_DIVIDER_ROUND_UP, _clk_num, 0, _clk_id,\
-			_parents##_idx, 0, NULL)
+			 _clk_num, _clk_id)			\
+TEGRA_INIT_DATA_TABLE(_name, NULL, NULL, _parents, _offset,\
+					  30, MASK(2), 0, 0, 16, 1, TEGRA_DIVIDER_UART| \
+					  TEGRA_DIVIDER_ROUND_UP, _clk_num, 0, _clk_id,\
+					  _parents##_idx, 0, NULL)
 
 #define UART8(_name, _parents, _offset,\
-			     _clk_num, _clk_id)			\
-	TEGRA_INIT_DATA_TABLE(_name, NULL, NULL, _parents, _offset,\
-			29, MASK(3), 0, 0, 16, 1, TEGRA_DIVIDER_UART| \
-			TEGRA_DIVIDER_ROUND_UP, _clk_num, 0, _clk_id,\
-			_parents##_idx, 0, NULL)
+			  _clk_num, _clk_id)			\
+TEGRA_INIT_DATA_TABLE(_name, NULL, NULL, _parents, _offset,\
+					  29, MASK(3), 0, 0, 16, 1, TEGRA_DIVIDER_UART| \
+					  TEGRA_DIVIDER_ROUND_UP, _clk_num, 0, _clk_id,\
+					  _parents##_idx, 0, NULL)
 
 #define I2C(_name, _parents, _offset,\
-			     _clk_num, _clk_id)			\
-	TEGRA_INIT_DATA_TABLE(_name, NULL, NULL, _parents, _offset,\
-			30, MASK(2), 0, 0, 16, 0, TEGRA_DIVIDER_ROUND_UP,\
-			_clk_num, 0, _clk_id, _parents##_idx, 0, NULL)
+			_clk_num, _clk_id)			\
+TEGRA_INIT_DATA_TABLE(_name, NULL, NULL, _parents, _offset,\
+					  30, MASK(2), 0, 0, 16, 0, TEGRA_DIVIDER_ROUND_UP,\
+					  _clk_num, 0, _clk_id, _parents##_idx, 0, NULL)
 
 #define XUSB(_name, _parents, _offset, \
-			     _clk_num, _gate_flags, _clk_id)	 \
-	TEGRA_INIT_DATA_TABLE(_name, NULL, NULL, _parents, _offset, \
-			29, MASK(3), 0, 0, 8, 1, TEGRA_DIVIDER_INT| \
-			TEGRA_DIVIDER_ROUND_UP, _clk_num, _gate_flags,\
-			_clk_id, _parents##_idx, 0, NULL)
+			 _clk_num, _gate_flags, _clk_id)	 \
+TEGRA_INIT_DATA_TABLE(_name, NULL, NULL, _parents, _offset, \
+					  29, MASK(3), 0, 0, 8, 1, TEGRA_DIVIDER_INT| \
+					  TEGRA_DIVIDER_ROUND_UP, _clk_num, _gate_flags,\
+					  _clk_id, _parents##_idx, 0, NULL)
 
 #define AUDIO(_name, _offset,  _clk_num,\
-				 _gate_flags, _clk_id)		\
-	TEGRA_INIT_DATA_TABLE(_name, NULL, NULL, mux_d_audio_clk,	\
-			_offset, 16, 0xE01F, 0, 0, 8, 1,		\
-			TEGRA_DIVIDER_ROUND_UP, _clk_num, _gate_flags,	\
-			_clk_id, mux_d_audio_clk_idx, 0, NULL)
+			  _gate_flags, _clk_id)		\
+TEGRA_INIT_DATA_TABLE(_name, NULL, NULL, mux_d_audio_clk,	\
+					  _offset, 16, 0xE01F, 0, 0, 8, 1,		\
+					  TEGRA_DIVIDER_ROUND_UP, _clk_num, _gate_flags,	\
+					  _clk_id, mux_d_audio_clk_idx, 0, NULL)
 
 #define NODIV(_name, _parents, _offset, \
-			      _mux_shift, _mux_mask, _clk_num, \
-			      _gate_flags, _clk_id, _lock)		\
-	TEGRA_INIT_DATA_TABLE(_name, NULL, NULL, _parents, _offset,\
-			_mux_shift, _mux_mask, 0, 0, 0, 0, 0,\
-			_clk_num, (_gate_flags) | TEGRA_PERIPH_NO_DIV,\
-			_clk_id, _parents##_idx, 0, _lock)
+			  _mux_shift, _mux_mask, _clk_num, \
+			  _gate_flags, _clk_id, _lock)		\
+TEGRA_INIT_DATA_TABLE(_name, NULL, NULL, _parents, _offset,\
+					  _mux_shift, _mux_mask, 0, 0, 0, 0, 0,\
+					  _clk_num, (_gate_flags) | TEGRA_PERIPH_NO_DIV,\
+					  _clk_id, _parents##_idx, 0, _lock)
 
 #define GATE(_name, _parent_name,	\
-			     _clk_num, _gate_flags,  _clk_id, _flags)	\
-	{								\
-		.name = _name,						\
-		.clk_id = _clk_id,					\
-		.p.parent_name = _parent_name,				\
-		.periph = TEGRA_CLK_PERIPH(0, 0, 0, 0, 0, 0, 0,		\
-				_clk_num, _gate_flags, NULL, NULL),	\
-		.flags = _flags						\
-	}
+			 _clk_num, _gate_flags,  _clk_id, _flags)	\
+{								\
+	.name = _name,						\
+			.clk_id = _clk_id,					\
+					  .p.parent_name = _parent_name,				\
+									   .periph = TEGRA_CLK_PERIPH(0, 0, 0, 0, 0, 0, 0,		\
+											   _clk_num, _gate_flags, NULL, NULL),	\
+											   .flags = _flags						\
+}
 
 #define DIV8(_name, _parent_name, _offset, _clk_id, _flags)		\
 	{								\
 		.name = _name,						\
-		.clk_id = _clk_id,					\
-		.p.parent_name = _parent_name,				\
-		.periph = TEGRA_CLK_PERIPH(0, 0, 0, 0, 8, 1,		\
-				TEGRA_DIVIDER_ROUND_UP, 0, 0,		\
-				NULL, NULL),				\
-		.offset = _offset,					\
-		.flags = _flags,					\
+				.clk_id = _clk_id,					\
+						  .p.parent_name = _parent_name,				\
+										   .periph = TEGRA_CLK_PERIPH(0, 0, 0, 0, 8, 1,		\
+												   TEGRA_DIVIDER_ROUND_UP, 0, 0,		\
+												   NULL, NULL),				\
+												   .offset = _offset,					\
+														   .flags = _flags,					\
 	}
 
 #define PLLP_BASE 0xa0
@@ -271,9 +271,9 @@ static DEFINE_SPINLOCK(sor0_lock);
 static DEFINE_SPINLOCK(sor1_lock);
 
 #define MUX_I2S_SPDIF(_id)						\
-static const char *mux_pllaout0_##_id##_2x_pllp_clkm[] = { "pll_a_out0", \
-							   #_id, "pll_p",\
-							   "clk_m"};
+	static const char *mux_pllaout0_##_id##_2x_pllp_clkm[] = { "pll_a_out0", \
+															   #_id, "pll_p",\
+															   "clk_m"};
 MUX_I2S_SPDIF(audio0)
 MUX_I2S_SPDIF(audio1)
 MUX_I2S_SPDIF(audio2)
@@ -288,7 +288,8 @@ MUX_I2S_SPDIF(audio)
 #define mux_pllaout0_audio4_2x_pllp_clkm_idx NULL
 #define mux_pllaout0_audio_2x_pllp_clkm_idx NULL
 
-static const char *mux_pllp_pllc_pllm_clkm[] = {
+static const char *mux_pllp_pllc_pllm_clkm[] =
+{
 	"pll_p", "pll_c", "pll_m", "clk_m"
 };
 #define mux_pllp_pllc_pllm_clkm_idx NULL
@@ -296,154 +297,191 @@ static const char *mux_pllp_pllc_pllm_clkm[] = {
 static const char *mux_pllp_pllc_pllm[] = { "pll_p", "pll_c", "pll_m" };
 #define mux_pllp_pllc_pllm_idx NULL
 
-static const char *mux_pllp_pllc_clk32_clkm[] = {
+static const char *mux_pllp_pllc_clk32_clkm[] =
+{
 	"pll_p", "pll_c", "clk_32k", "clk_m"
 };
 #define mux_pllp_pllc_clk32_clkm_idx NULL
 
-static const char *mux_plla_pllc_pllp_clkm[] = {
+static const char *mux_plla_pllc_pllp_clkm[] =
+{
 	"pll_a_out0", "pll_c", "pll_p", "clk_m"
 };
 #define mux_plla_pllc_pllp_clkm_idx mux_pllp_pllc_pllm_clkm_idx
 
-static const char *mux_pllp_pllc2_c_c3_pllm_clkm[] = {
+static const char *mux_pllp_pllc2_c_c3_pllm_clkm[] =
+{
 	"pll_p", "pll_c2", "pll_c", "pll_c3", "pll_m", "clk_m"
 };
-static u32 mux_pllp_pllc2_c_c3_pllm_clkm_idx[] = {
+static u32 mux_pllp_pllc2_c_c3_pllm_clkm_idx[] =
+{
 	[0] = 0, [1] = 1, [2] = 2, [3] = 3, [4] = 4, [5] = 6,
 };
 
-static const char *mux_pllp_clkm[] = {
+static const char *mux_pllp_clkm[] =
+{
 	"pll_p", "clk_m"
 };
-static u32 mux_pllp_clkm_idx[] = {
+static u32 mux_pllp_clkm_idx[] =
+{
 	[0] = 0, [1] = 3,
 };
 
-static const char *mux_pllp_clkm_2[] = {
+static const char *mux_pllp_clkm_2[] =
+{
 	"pll_p", "clk_m"
 };
-static u32 mux_pllp_clkm_2_idx[] = {
+static u32 mux_pllp_clkm_2_idx[] =
+{
 	[0] = 2, [1] = 6,
 };
 
-static const char *mux_pllc2_c_c3_pllp_plla1_clkm[] = {
+static const char *mux_pllc2_c_c3_pllp_plla1_clkm[] =
+{
 	"pll_c2", "pll_c", "pll_c3", "pll_p", "pll_a1", "clk_m"
 };
-static u32 mux_pllc2_c_c3_pllp_plla1_clkm_idx[] = {
+static u32 mux_pllc2_c_c3_pllp_plla1_clkm_idx[] =
+{
 	[0] = 1, [1] = 2, [2] = 3, [3] = 4, [4] = 6, [5] = 7,
 };
 
 static const char *
-mux_pllc4_out1_pllc_pllc4_out2_pllp_clkm_plla_pllc4_out0[] = {
+mux_pllc4_out1_pllc_pllc4_out2_pllp_clkm_plla_pllc4_out0[] =
+{
 	"pll_c4_out1", "pll_c", "pll_c4_out2", "pll_p", "clk_m",
 	"pll_a_out0", "pll_c4_out0"
 };
-static u32 mux_pllc4_out1_pllc_pllc4_out2_pllp_clkm_plla_pllc4_out0_idx[] = {
+static u32 mux_pllc4_out1_pllc_pllc4_out2_pllp_clkm_plla_pllc4_out0_idx[] =
+{
 	[0] = 0, [1] = 2, [2] = 3, [3] = 4, [4] = 5, [5] = 6, [6] = 7,
 };
 
-static const char *mux_pllc_pllp_plla[] = {
+static const char *mux_pllc_pllp_plla[] =
+{
 	"pll_c", "pll_p", "pll_a_out0"
 };
-static u32 mux_pllc_pllp_plla_idx[] = {
+static u32 mux_pllc_pllp_plla_idx[] =
+{
 	[0] = 1, [1] = 2, [2] = 3,
 };
 
-static const char *mux_clkm_pllc_pllp_plla[] = {
+static const char *mux_clkm_pllc_pllp_plla[] =
+{
 	"clk_m", "pll_c", "pll_p", "pll_a_out0"
 };
 #define mux_clkm_pllc_pllp_plla_idx NULL
 
-static const char *mux_pllc_pllp_plla1_pllc2_c3_clkm[] = {
+static const char *mux_pllc_pllp_plla1_pllc2_c3_clkm[] =
+{
 	"pll_c", "pll_p", "pll_a1", "pll_c2", "pll_c3", "clk_m"
 };
-static u32 mux_pllc_pllp_plla1_pllc2_c3_clkm_idx[] = {
+static u32 mux_pllc_pllp_plla1_pllc2_c3_clkm_idx[] =
+{
 	[0] = 1, [1] = 2, [2] = 3, [3] = 4, [4] = 5, [5] = 6,
 };
 
-static const char *mux_pllc2_c_c3_pllp_clkm_plla1_pllc4[] = {
+static const char *mux_pllc2_c_c3_pllp_clkm_plla1_pllc4[] =
+{
 	"pll_c2", "pll_c", "pll_c3", "pll_p", "clk_m", "pll_a1", "pll_c4_out0",
 };
-static u32 mux_pllc2_c_c3_pllp_clkm_plla1_pllc4_idx[] = {
+static u32 mux_pllc2_c_c3_pllp_clkm_plla1_pllc4_idx[] =
+{
 	[0] = 1, [1] = 2, [2] = 3, [3] = 4, [4] = 5, [5] = 6, [6] = 7,
 };
 
-static const char *mux_pllc_pllp_plla1_pllc2_c3_clkm_pllc4[] = {
+static const char *mux_pllc_pllp_plla1_pllc2_c3_clkm_pllc4[] =
+{
 	"pll_c", "pll_p", "pll_a1", "pll_c2", "pll_c3", "clk_m", "pll_c4_out0",
 };
 #define mux_pllc_pllp_plla1_pllc2_c3_clkm_pllc4_idx \
 	mux_pllc2_c_c3_pllp_clkm_plla1_pllc4_idx
 
 static const char *
-mux_plla_pllc4_out0_pllc_pllc4_out1_pllp_pllc4_out2_clkm[] = {
+mux_plla_pllc4_out0_pllc_pllc4_out1_pllp_pllc4_out2_clkm[] =
+{
 	"pll_a_out0", "pll_c4_out0", "pll_c", "pll_c4_out1", "pll_p",
 	"pll_c4_out2", "clk_m"
 };
 #define mux_plla_pllc4_out0_pllc_pllc4_out1_pllp_pllc4_out2_clkm_idx NULL
 
-static const char *mux_pllm_pllc2_c_c3_pllp_plla[] = {
+static const char *mux_pllm_pllc2_c_c3_pllp_plla[] =
+{
 	"pll_m", "pll_c2", "pll_c", "pll_c3", "pll_p", "pll_a_out0"
 };
 #define mux_pllm_pllc2_c_c3_pllp_plla_idx mux_pllp_pllc2_c_c3_pllm_clkm_idx
 
-static const char *mux_pllp_pllm_plld_plla_pllc_plld2_clkm[] = {
+static const char *mux_pllp_pllm_plld_plla_pllc_plld2_clkm[] =
+{
 	"pll_p", "pll_m", "pll_d_out0", "pll_a_out0", "pll_c",
 	"pll_d2_out0", "clk_m"
 };
 #define mux_pllp_pllm_plld_plla_pllc_plld2_clkm_idx NULL
 
-static const char *mux_pllm_pllc_pllp_plla[] = {
+static const char *mux_pllm_pllc_pllp_plla[] =
+{
 	"pll_m", "pll_c", "pll_p", "pll_a_out0"
 };
 #define mux_pllm_pllc_pllp_plla_idx mux_pllp_pllc_pllm_clkm_idx
 
-static const char *mux_pllp_pllc_clkm[] = {
+static const char *mux_pllp_pllc_clkm[] =
+{
 	"pll_p", "pll_c", "clk_m"
 };
-static u32 mux_pllp_pllc_clkm_idx[] = {
+static u32 mux_pllp_pllc_clkm_idx[] =
+{
 	[0] = 0, [1] = 1, [2] = 3,
 };
 
-static const char *mux_pllp_pllc_clkm_1[] = {
+static const char *mux_pllp_pllc_clkm_1[] =
+{
 	"pll_p", "pll_c", "clk_m"
 };
-static u32 mux_pllp_pllc_clkm_1_idx[] = {
+static u32 mux_pllp_pllc_clkm_1_idx[] =
+{
 	[0] = 0, [1] = 2, [2] = 5,
 };
 
-static const char *mux_pllp_pllc_plla_clkm[] = {
+static const char *mux_pllp_pllc_plla_clkm[] =
+{
 	"pll_p", "pll_c", "pll_a_out0", "clk_m"
 };
-static u32 mux_pllp_pllc_plla_clkm_idx[] = {
+static u32 mux_pllp_pllc_plla_clkm_idx[] =
+{
 	[0] = 0, [1] = 2, [2] = 4, [3] = 6,
 };
 
-static const char *mux_pllp_pllc_pllc4_out0_pllc4_out1_clkm_pllc4_out2[] = {
+static const char *mux_pllp_pllc_pllc4_out0_pllc4_out1_clkm_pllc4_out2[] =
+{
 	"pll_p", "pll_c", "pll_c4_out0", "pll_c4_out1", "clk_m", "pll_c4_out2"
 };
-static u32 mux_pllp_pllc_pllc4_out0_pllc4_out1_clkm_pllc4_out2_idx[] = {
+static u32 mux_pllp_pllc_pllc4_out0_pllc4_out1_clkm_pllc4_out2_idx[] =
+{
 	[0] = 0, [1] = 2, [2] = 3, [3] = 5, [4] = 6, [5] = 7,
 };
 
 static const char *
-mux_pllp_pllc_pllc_out1_pllc4_out2_pllc4_out1_clkm_pllc4_out0[] = {
+mux_pllp_pllc_pllc_out1_pllc4_out2_pllc4_out1_clkm_pllc4_out0[] =
+{
 	"pll_p", "pll_c_out1", "pll_c", "pll_c4_out2", "pll_c4_out1",
 	"clk_m", "pll_c4_out0"
 };
 static u32
-mux_pllp_pllc_pllc_out1_pllc4_out2_pllc4_out1_clkm_pllc4_out0_idx[] = {
+mux_pllp_pllc_pllc_out1_pllc4_out2_pllc4_out1_clkm_pllc4_out0_idx[] =
+{
 	[0] = 0, [1] = 1, [2] = 2, [3] = 4, [4] = 5, [5] = 6, [6] = 7,
 };
 
-static const char *mux_pllp_pllc4_out2_pllc4_out1_clkm_pllc4_out0[] = {
+static const char *mux_pllp_pllc4_out2_pllc4_out1_clkm_pllc4_out0[] =
+{
 	"pll_p", "pll_c4_out2", "pll_c4_out1", "clk_m", "pll_c4_out0"
 };
-static u32 mux_pllp_pllc4_out2_pllc4_out1_clkm_pllc4_out0_idx[] = {
+static u32 mux_pllp_pllc4_out2_pllc4_out1_clkm_pllc4_out0_idx[] =
+{
 	[0] = 0, [1] = 3, [2] = 4, [3] = 6, [4] = 7,
 };
 
-static const char *mux_pllp_clkm_pllc4_out2_out1_out0_lj[] = {
+static const char *mux_pllp_clkm_pllc4_out2_out1_out0_lj[] =
+{
 	"pll_p",
 	"pll_c4_out2", "pll_c4_out0",	/* LJ input */
 	"pll_c4_out2", "pll_c4_out1",
@@ -452,149 +490,185 @@ static const char *mux_pllp_clkm_pllc4_out2_out1_out0_lj[] = {
 };
 #define mux_pllp_clkm_pllc4_out2_out1_out0_lj_idx NULL
 
-static const char *mux_pllp_pllc2_c_c3_clkm[] = {
+static const char *mux_pllp_pllc2_c_c3_clkm[] =
+{
 	"pll_p", "pll_c2", "pll_c", "pll_c3", "clk_m"
 };
-static u32 mux_pllp_pllc2_c_c3_clkm_idx[] = {
+static u32 mux_pllp_pllc2_c_c3_clkm_idx[] =
+{
 	[0] = 0, [1] = 1, [2] = 2, [3] = 3, [4] = 6,
 };
 
-static const char *mux_pllp_clkm_clk32_plle[] = {
+static const char *mux_pllp_clkm_clk32_plle[] =
+{
 	"pll_p", "clk_m", "clk_32k", "pll_e"
 };
-static u32 mux_pllp_clkm_clk32_plle_idx[] = {
+static u32 mux_pllp_clkm_clk32_plle_idx[] =
+{
 	[0] = 0, [1] = 2, [2] = 4, [3] = 6,
 };
 
-static const char *mux_pllp_pllp_out3_clkm_clk32k_plla[] = {
+static const char *mux_pllp_pllp_out3_clkm_clk32k_plla[] =
+{
 	"pll_p", "pll_p_out3", "clk_m", "clk_32k", "pll_a_out0"
 };
 #define mux_pllp_pllp_out3_clkm_clk32k_plla_idx NULL
 
-static const char *mux_pllp_out3_clkm_pllp_pllc4[] = {
+static const char *mux_pllp_out3_clkm_pllp_pllc4[] =
+{
 	"pll_p_out3", "clk_m", "pll_p", "pll_c4_out0", "pll_c4_out1",
 	"pll_c4_out2"
 };
-static u32 mux_pllp_out3_clkm_pllp_pllc4_idx[] = {
+static u32 mux_pllp_out3_clkm_pllp_pllc4_idx[] =
+{
 	[0] = 0, [1] = 3, [2] = 4, [3] = 5, [4] = 6, [5] = 7,
 };
 
-static const char *mux_clkm_pllp_pllre[] = {
+static const char *mux_clkm_pllp_pllre[] =
+{
 	"clk_m", "pll_p_out_xusb", "pll_re_out"
 };
-static u32 mux_clkm_pllp_pllre_idx[] = {
+static u32 mux_clkm_pllp_pllre_idx[] =
+{
 	[0] = 0, [1] = 1, [2] = 5,
 };
 
-static const char *mux_pllp_pllc_clkm_clk32[] = {
+static const char *mux_pllp_pllc_clkm_clk32[] =
+{
 	"pll_p", "pll_c", "clk_m", "clk_32k"
 };
 #define mux_pllp_pllc_clkm_clk32_idx NULL
 
-static const char *mux_plla_clk32_pllp_clkm_plle[] = {
+static const char *mux_plla_clk32_pllp_clkm_plle[] =
+{
 	"pll_a_out0", "clk_32k", "pll_p", "clk_m", "pll_e_out0"
 };
 #define mux_plla_clk32_pllp_clkm_plle_idx NULL
 
-static const char *mux_clkm_pllp_pllc_pllre[] = {
+static const char *mux_clkm_pllp_pllc_pllre[] =
+{
 	"clk_m", "pll_p", "pll_c", "pll_re_out"
 };
-static u32 mux_clkm_pllp_pllc_pllre_idx[] = {
+static u32 mux_clkm_pllp_pllc_pllre_idx[] =
+{
 	[0] = 0, [1] = 1, [2] = 3, [3] = 5,
 };
 
-static const char *mux_clkm_48M_pllp_480M[] = {
+static const char *mux_clkm_48M_pllp_480M[] =
+{
 	"clk_m", "pll_u_48M", "pll_p", "pll_u_480M"
 };
-static u32 mux_clkm_48M_pllp_480M_idx[] = {
+static u32 mux_clkm_48M_pllp_480M_idx[] =
+{
 	[0] = 0, [1] = 2, [2] = 4, [3] = 6,
 };
 
-static const char *mux_clkm_pllre_clk32_480M[] = {
+static const char *mux_clkm_pllre_clk32_480M[] =
+{
 	"clk_m", "pll_re_out", "clk_32k", "pll_u_480M"
 };
 #define mux_clkm_pllre_clk32_480M_idx NULL
 
-static const char *mux_clkm_pllre_clk32_480M_pllc_ref[] = {
+static const char *mux_clkm_pllre_clk32_480M_pllc_ref[] =
+{
 	"clk_m", "pll_re_out", "clk_32k", "pll_u_480M", "pll_c", "pll_ref"
 };
-static u32 mux_clkm_pllre_clk32_480M_pllc_ref_idx[] = {
+static u32 mux_clkm_pllre_clk32_480M_pllc_ref_idx[] =
+{
 	[0] = 0, [1] = 1, [2] = 3, [3] = 3, [4] = 4, [5] = 7,
 };
 
-static const char *mux_pllp_out3_pllp_pllc_clkm[] = {
+static const char *mux_pllp_out3_pllp_pllc_clkm[] =
+{
 	"pll_p_out3", "pll_p", "pll_c", "clk_m"
 };
-static u32 mux_pllp_out3_pllp_pllc_clkm_idx[] = {
+static u32 mux_pllp_out3_pllp_pllc_clkm_idx[] =
+{
 	[0] = 0, [1] = 1, [2] = 2, [3] = 6,
 };
 
-static const char *mux_ss_div2_60M[] = {
+static const char *mux_ss_div2_60M[] =
+{
 	"xusb_ss_div2", "pll_u_60M"
 };
 #define mux_ss_div2_60M_idx NULL
 
-static const char *mux_ss_div2_60M_ss[] = {
+static const char *mux_ss_div2_60M_ss[] =
+{
 	"xusb_ss_div2", "pll_u_60M", "xusb_ss_src"
 };
 #define mux_ss_div2_60M_ss_idx NULL
 
-static const char *mux_ss_clkm[] = {
+static const char *mux_ss_clkm[] =
+{
 	"xusb_ss_src", "clk_m"
 };
 #define mux_ss_clkm_idx NULL
 
-static const char *mux_d_audio_clk[] = {
+static const char *mux_d_audio_clk[] =
+{
 	"pll_a_out0", "pll_p", "clk_m", "spdif_in_sync", "i2s0_sync",
 	"i2s1_sync", "i2s2_sync", "i2s3_sync", "i2s4_sync", "vimclk_sync",
 };
-static u32 mux_d_audio_clk_idx[] = {
+static u32 mux_d_audio_clk_idx[] =
+{
 	[0] = 0, [1] = 0x8000, [2] = 0xc000, [3] = 0xE000, [4] = 0xE001,
 	[5] = 0xE002, [6] = 0xE003, [7] = 0xE004, [8] = 0xE005, [9] = 0xE007,
 };
 
-static const char *mux_pllp_plld_pllc_clkm[] = {
+static const char *mux_pllp_plld_pllc_clkm[] =
+{
 	"pll_p", "pll_d_out0", "pll_c", "clk_m"
 };
 #define mux_pllp_plld_pllc_clkm_idx NULL
-static const char *mux_pllm_pllc_pllp_plla_clkm_pllc4[] = {
+static const char *mux_pllm_pllc_pllp_plla_clkm_pllc4[] =
+{
 	"pll_m", "pll_c", "pll_p", "pll_a_out0", "clk_m", "pll_c4",
 };
-static u32 mux_pllm_pllc_pllp_plla_clkm_pllc4_idx[] = {
+static u32 mux_pllm_pllc_pllp_plla_clkm_pllc4_idx[] =
+{
 	[0] = 0, [1] = 1, [2] = 3, [3] = 3, [4] = 6, [5] = 7,
 };
 
-static const char *mux_pllp_clkm1[] = {
+static const char *mux_pllp_clkm1[] =
+{
 	"pll_p", "clk_m",
 };
 #define mux_pllp_clkm1_idx NULL
 
-static const char *mux_pllp3_pllc_clkm[] = {
+static const char *mux_pllp3_pllc_clkm[] =
+{
 	"pll_p_out3", "pll_c", "pll_c2", "clk_m",
 };
 #define mux_pllp3_pllc_clkm_idx NULL
 
-static const char *mux_pllm_pllc_pllp_plla_pllc2_c3_clkm[] = {
+static const char *mux_pllm_pllc_pllp_plla_pllc2_c3_clkm[] =
+{
 	"pll_m", "pll_c", "pll_p", "pll_a", "pll_c2", "pll_c3", "clk_m"
 };
 #define mux_pllm_pllc_pllp_plla_pllc2_c3_clkm_idx NULL
 
-static const char *mux_pllm_pllc2_c_c3_pllp_plla_pllc4[] = {
+static const char *mux_pllm_pllc2_c_c3_pllp_plla_pllc4[] =
+{
 	"pll_m", "pll_c2", "pll_c", "pll_c3", "pll_p", "pll_a_out0", "pll_c4",
 };
-static u32 mux_pllm_pllc2_c_c3_pllp_plla_pllc4_idx[] = {
+static u32 mux_pllm_pllc2_c_c3_pllp_plla_pllc4_idx[] =
+{
 	[0] = 0, [1] = 1, [2] = 2, [3] = 3, [4] = 4, [5] = 6, [6] = 7,
 };
 
 /* SOR1 mux'es */
-static const char *mux_pllp_plld_plld2_clkm[] = {
+static const char *mux_pllp_plld_plld2_clkm[] =
+{
 	"pll_p", "pll_d_out0", "pll_d2_out0", "clk_m"
 };
-static u32 mux_pllp_plld_plld2_clkm_idx[] = {
+static u32 mux_pllp_plld_plld2_clkm_idx[] =
+{
 	[0] = 0, [1] = 2, [2] = 5, [3] = 6
 };
 
-static const char *mux_sor_safe_sor1_brick_sor1_src[] = {
+static const char *mux_sor_safe_sor1_brick_sor1_src[] =
+{
 	/*
 	 * Bit 0 of the mux selects sor1_brick, irrespective of bit 1, so the
 	 * sor1_brick parent appears twice in the list below. This is merely
@@ -606,20 +680,24 @@ static const char *mux_sor_safe_sor1_brick_sor1_src[] = {
 };
 #define mux_sor_safe_sor1_brick_sor1_src_idx NULL
 
-static const char *mux_pllp_pllre_clkm[] = {
+static const char *mux_pllp_pllre_clkm[] =
+{
 	"pll_p", "pll_re_out1", "clk_m"
 };
 
-static u32 mux_pllp_pllre_clkm_idx[] = {
+static u32 mux_pllp_pllre_clkm_idx[] =
+{
 	[0] = 0, [1] = 2, [2] = 3,
 };
 
-static const char *mux_clkm_plldp_sor0lvds[] = {
+static const char *mux_clkm_plldp_sor0lvds[] =
+{
 	"clk_m", "pll_dp", "sor0_lvds",
 };
 #define mux_clkm_plldp_sor0lvds_idx NULL
 
-static struct tegra_periph_init_data periph_clks[] = {
+static struct tegra_periph_init_data periph_clks[] =
+{
 	AUDIO("d_audio", CLK_SOURCE_D_AUDIO, 106, TEGRA_PERIPH_ON_APB, tegra_clk_d_audio),
 	AUDIO("dam0", CLK_SOURCE_DAM0, 108, TEGRA_PERIPH_ON_APB, tegra_clk_dam0),
 	AUDIO("dam1", CLK_SOURCE_DAM1, 109, TEGRA_PERIPH_ON_APB, tegra_clk_dam1),
@@ -790,7 +868,8 @@ static struct tegra_periph_init_data periph_clks[] = {
 	MUX8("maud", mux_pllp_pllp_out3_clkm_clk32k_plla, CLK_SOURCE_MAUD, 202, TEGRA_PERIPH_ON_APB | TEGRA_PERIPH_NO_RESET, tegra_clk_maud),
 };
 
-static struct tegra_periph_init_data gate_clks[] = {
+static struct tegra_periph_init_data gate_clks[] =
+{
 	GATE("rtc", "clk_32k", 4, TEGRA_PERIPH_ON_APB | TEGRA_PERIPH_NO_RESET, tegra_clk_rtc, 0),
 	GATE("timer", "clk_m", 5, 0, tegra_clk_timer, CLK_IS_CRITICAL),
 	GATE("isp", "clk_m", 23, 0, tegra_clk_isp, 0),
@@ -832,11 +911,13 @@ static struct tegra_periph_init_data gate_clks[] = {
 	GATE("apb2ape", "clk_m", 107, 0, tegra_clk_apb2ape, 0),
 };
 
-static struct tegra_periph_init_data div_clks[] = {
+static struct tegra_periph_init_data div_clks[] =
+{
 	DIV8("usb2_hsic_trk", "osc", CLK_SOURCE_USB2_HSIC_TRK, tegra_clk_usb2_hsic_trk, 0),
 };
 
-struct pll_out_data {
+struct pll_out_data
+{
 	char *div_name;
 	char *pll_out_name;
 	u32 offset;
@@ -850,17 +931,18 @@ struct pll_out_data {
 #define PLL_OUT(_num, _offset, _div_shift, _div_flags, _rst_shift, _id) \
 	{\
 		.div_name = "pll_p_out" #_num "_div",\
-		.pll_out_name = "pll_p_out" #_num,\
-		.offset = _offset,\
-		.div_shift = _div_shift,\
-		.div_flags = _div_flags | TEGRA_DIVIDER_FIXED |\
-					TEGRA_DIVIDER_ROUND_UP,\
-		.rst_shift = _rst_shift,\
-		.clk_id = tegra_clk_ ## _id,\
-		.lock = &_offset ##_lock,\
+					.pll_out_name = "pll_p_out" #_num,\
+									.offset = _offset,\
+											  .div_shift = _div_shift,\
+													  .div_flags = _div_flags | TEGRA_DIVIDER_FIXED |\
+															  TEGRA_DIVIDER_ROUND_UP,\
+															  .rst_shift = _rst_shift,\
+																	  .clk_id = tegra_clk_ ## _id,\
+																			  .lock = &_offset ##_lock,\
 	}
 
-static struct pll_out_data pllp_out_clks[] = {
+static struct pll_out_data pllp_out_clks[] =
+{
 	PLL_OUT(1, PLLP_OUTA, 8, 0, 0, pll_p_out1),
 	PLL_OUT(2, PLLP_OUTA, 24, 0, 16, pll_p_out2),
 	PLL_OUT(2, PLLP_OUTA, 24, TEGRA_DIVIDER_INT, 16, pll_p_out2_int),
@@ -870,127 +952,150 @@ static struct pll_out_data pllp_out_clks[] = {
 };
 
 static void __init periph_clk_init(void __iomem *clk_base,
-				struct tegra_clk *tegra_clks)
+								   struct tegra_clk *tegra_clks)
 {
 	int i;
 	struct clk *clk;
 	struct clk **dt_clk;
 
-	for (i = 0; i < ARRAY_SIZE(periph_clks); i++) {
+	for (i = 0; i < ARRAY_SIZE(periph_clks); i++)
+	{
 		const struct tegra_clk_periph_regs *bank;
 		struct tegra_periph_init_data *data;
 
 		data = periph_clks + i;
 
 		dt_clk = tegra_lookup_dt_id(data->clk_id, tegra_clks);
+
 		if (!dt_clk)
+		{
 			continue;
+		}
 
 		bank = get_reg_bank(data->periph.gate.clk_num);
+
 		if (!bank)
+		{
 			continue;
+		}
 
 		data->periph.gate.regs = bank;
 		clk = tegra_clk_register_periph(data->name,
-			data->p.parent_names, data->num_parents,
-			&data->periph, clk_base, data->offset,
-			data->flags);
+										data->p.parent_names, data->num_parents,
+										&data->periph, clk_base, data->offset,
+										data->flags);
 		*dt_clk = clk;
 	}
 }
 
 static void __init gate_clk_init(void __iomem *clk_base,
-				struct tegra_clk *tegra_clks)
+								 struct tegra_clk *tegra_clks)
 {
 	int i;
 	struct clk *clk;
 	struct clk **dt_clk;
 
-	for (i = 0; i < ARRAY_SIZE(gate_clks); i++) {
+	for (i = 0; i < ARRAY_SIZE(gate_clks); i++)
+	{
 		struct tegra_periph_init_data *data;
 
 		data = gate_clks + i;
 
 		dt_clk = tegra_lookup_dt_id(data->clk_id, tegra_clks);
+
 		if (!dt_clk)
+		{
 			continue;
+		}
 
 		clk = tegra_clk_register_periph_gate(data->name,
-				data->p.parent_name, data->periph.gate.flags,
-				clk_base, data->flags,
-				data->periph.gate.clk_num,
-				periph_clk_enb_refcnt);
+											 data->p.parent_name, data->periph.gate.flags,
+											 clk_base, data->flags,
+											 data->periph.gate.clk_num,
+											 periph_clk_enb_refcnt);
 		*dt_clk = clk;
 	}
 }
 
 static void __init div_clk_init(void __iomem *clk_base,
-				struct tegra_clk *tegra_clks)
+								struct tegra_clk *tegra_clks)
 {
 	int i;
 	struct clk *clk;
 	struct clk **dt_clk;
 
-	for (i = 0; i < ARRAY_SIZE(div_clks); i++) {
+	for (i = 0; i < ARRAY_SIZE(div_clks); i++)
+	{
 		struct tegra_periph_init_data *data;
 
 		data = div_clks + i;
 
 		dt_clk = tegra_lookup_dt_id(data->clk_id, tegra_clks);
+
 		if (!dt_clk)
+		{
 			continue;
+		}
 
 		clk = tegra_clk_register_divider(data->name,
-				data->p.parent_name, clk_base + data->offset,
-				data->flags, data->periph.divider.flags,
-				data->periph.divider.shift,
-				data->periph.divider.width,
-				data->periph.divider.frac_width,
-				data->periph.divider.lock);
+										 data->p.parent_name, clk_base + data->offset,
+										 data->flags, data->periph.divider.flags,
+										 data->periph.divider.shift,
+										 data->periph.divider.width,
+										 data->periph.divider.frac_width,
+										 data->periph.divider.lock);
 		*dt_clk = clk;
 	}
 }
 
 static void __init init_pllp(void __iomem *clk_base, void __iomem *pmc_base,
-				struct tegra_clk *tegra_clks,
-				struct tegra_clk_pll_params *pll_params)
+							 struct tegra_clk *tegra_clks,
+							 struct tegra_clk_pll_params *pll_params)
 {
 	struct clk *clk;
 	struct clk **dt_clk;
 	int i;
 
 	dt_clk = tegra_lookup_dt_id(tegra_clk_pll_p, tegra_clks);
-	if (dt_clk) {
+
+	if (dt_clk)
+	{
 		/* PLLP */
 		clk = tegra_clk_register_pll("pll_p", "pll_ref", clk_base,
-					pmc_base, 0, pll_params, NULL);
+									 pmc_base, 0, pll_params, NULL);
 		clk_register_clkdev(clk, "pll_p", NULL);
 		*dt_clk = clk;
 	}
 
-	for (i = 0; i < ARRAY_SIZE(pllp_out_clks); i++) {
+	for (i = 0; i < ARRAY_SIZE(pllp_out_clks); i++)
+	{
 		struct pll_out_data *data;
 
 		data = pllp_out_clks + i;
 
 		dt_clk = tegra_lookup_dt_id(data->clk_id, tegra_clks);
+
 		if (!dt_clk)
+		{
 			continue;
+		}
 
 		clk = tegra_clk_register_divider(data->div_name, "pll_p",
-				clk_base + data->offset, 0, data->div_flags,
-				data->div_shift, 8, 1, data->lock);
+										 clk_base + data->offset, 0, data->div_flags,
+										 data->div_shift, 8, 1, data->lock);
 		clk = tegra_clk_register_pll_out(data->pll_out_name,
-				data->div_name, clk_base + data->offset,
-				data->rst_shift + 1, data->rst_shift,
-				CLK_IGNORE_UNUSED | CLK_SET_RATE_PARENT, 0,
-				data->lock);
+										 data->div_name, clk_base + data->offset,
+										 data->rst_shift + 1, data->rst_shift,
+										 CLK_IGNORE_UNUSED | CLK_SET_RATE_PARENT, 0,
+										 data->lock);
 		*dt_clk = clk;
 	}
 
 	dt_clk = tegra_lookup_dt_id(tegra_clk_pll_p_out_cpu,
-			tegra_clks);
-	if (dt_clk) {
+								tegra_clks);
+
+	if (dt_clk)
+	{
 		/*
 		 * Tegra210 has control on enabling/disabling PLLP branches to
 		 * CPU, register a gate clock "pll_p_out_cpu" for this gating
@@ -999,44 +1104,50 @@ static void __init init_pllp(void __iomem *clk_base, void __iomem *pmc_base,
 		 * CPU can be disabled automatically.
 		 */
 		clk = tegra_clk_register_divider("pll_p_out4_div",
-				"pll_p_out_cpu", clk_base + PLLP_OUTB, 0, 0, 24,
-				8, 1, &PLLP_OUTB_lock);
+										 "pll_p_out_cpu", clk_base + PLLP_OUTB, 0, 0, 24,
+										 8, 1, &PLLP_OUTB_lock);
 
 		dt_clk = tegra_lookup_dt_id(tegra_clk_pll_p_out4_cpu, tegra_clks);
-		if (dt_clk) {
+
+		if (dt_clk)
+		{
 			clk = tegra_clk_register_pll_out("pll_p_out4",
-					"pll_p_out4_div", clk_base + PLLP_OUTB,
-					17, 16, CLK_IGNORE_UNUSED |
-					CLK_SET_RATE_PARENT, 0,
-					&PLLP_OUTB_lock);
+											 "pll_p_out4_div", clk_base + PLLP_OUTB,
+											 17, 16, CLK_IGNORE_UNUSED |
+											 CLK_SET_RATE_PARENT, 0,
+											 &PLLP_OUTB_lock);
 			*dt_clk = clk;
 		}
 	}
 
 	dt_clk = tegra_lookup_dt_id(tegra_clk_pll_p_out_hsio, tegra_clks);
-	if (dt_clk) {
+
+	if (dt_clk)
+	{
 		/* PLLP_OUT_HSIO */
 		clk = clk_register_gate(NULL, "pll_p_out_hsio", "pll_p",
-				CLK_SET_RATE_PARENT | CLK_IGNORE_UNUSED,
-				clk_base + PLLP_MISC1, 29, 0, NULL);
+								CLK_SET_RATE_PARENT | CLK_IGNORE_UNUSED,
+								clk_base + PLLP_MISC1, 29, 0, NULL);
 		*dt_clk = clk;
 	}
 
 	dt_clk = tegra_lookup_dt_id(tegra_clk_pll_p_out_xusb, tegra_clks);
-	if (dt_clk) {
+
+	if (dt_clk)
+	{
 		/* PLLP_OUT_XUSB */
 		clk = clk_register_gate(NULL, "pll_p_out_xusb",
-				"pll_p_out_hsio", CLK_SET_RATE_PARENT |
-				CLK_IGNORE_UNUSED, clk_base + PLLP_MISC1, 28, 0,
-				NULL);
+								"pll_p_out_hsio", CLK_SET_RATE_PARENT |
+								CLK_IGNORE_UNUSED, clk_base + PLLP_MISC1, 28, 0,
+								NULL);
 		clk_register_clkdev(clk, "pll_p_out_xusb", NULL);
 		*dt_clk = clk;
 	}
 }
 
 void __init tegra_periph_clk_init(void __iomem *clk_base,
-			void __iomem *pmc_base, struct tegra_clk *tegra_clks,
-			struct tegra_clk_pll_params *pll_params)
+								  void __iomem *pmc_base, struct tegra_clk *tegra_clks,
+								  struct tegra_clk_pll_params *pll_params)
 {
 	init_pllp(clk_base, pmc_base, tegra_clks, pll_params);
 	periph_clk_init(clk_base, tegra_clks);

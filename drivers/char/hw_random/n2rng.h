@@ -34,37 +34,39 @@
 #ifndef __ASSEMBLY__
 extern unsigned long sun4v_rng_get_diag_ctl(void);
 extern unsigned long sun4v_rng_ctl_read_v1(unsigned long ctl_regs_ra,
-					   unsigned long *state,
-					   unsigned long *tick_delta);
+		unsigned long *state,
+		unsigned long *tick_delta);
 extern unsigned long sun4v_rng_ctl_read_v2(unsigned long ctl_regs_ra,
-					   unsigned long unit,
-					   unsigned long *state,
-					   unsigned long *tick_delta,
-					   unsigned long *watchdog,
-					   unsigned long *write_status);
+		unsigned long unit,
+		unsigned long *state,
+		unsigned long *tick_delta,
+		unsigned long *watchdog,
+		unsigned long *write_status);
 extern unsigned long sun4v_rng_ctl_write_v1(unsigned long ctl_regs_ra,
-					    unsigned long state,
-					    unsigned long write_timeout,
-					    unsigned long *tick_delta);
+		unsigned long state,
+		unsigned long write_timeout,
+		unsigned long *tick_delta);
 extern unsigned long sun4v_rng_ctl_write_v2(unsigned long ctl_regs_ra,
-					    unsigned long state,
-					    unsigned long write_timeout,
-					    unsigned long unit);
+		unsigned long state,
+		unsigned long write_timeout,
+		unsigned long unit);
 extern unsigned long sun4v_rng_data_read_diag_v1(unsigned long data_ra,
-						 unsigned long len,
-						 unsigned long *tick_delta);
+		unsigned long len,
+		unsigned long *tick_delta);
 extern unsigned long sun4v_rng_data_read_diag_v2(unsigned long data_ra,
-						 unsigned long len,
-						 unsigned long unit,
-						 unsigned long *tick_delta);
+		unsigned long len,
+		unsigned long unit,
+		unsigned long *tick_delta);
 extern unsigned long sun4v_rng_data_read(unsigned long data_ra,
-					 unsigned long *tick_delta);
+		unsigned long *tick_delta);
 
-struct n2rng_unit {
+struct n2rng_unit
+{
 	u64			control[HV_RNG_NUM_CONTROL];
 };
 
-struct n2rng {
+struct n2rng
+{
 	struct platform_device	*op;
 
 	unsigned long		flags;

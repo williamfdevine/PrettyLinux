@@ -20,14 +20,16 @@
 #include <linux/ethtool.h>
 #include "xgene_enet_main.h"
 
-struct xgene_gstrings_stats {
+struct xgene_gstrings_stats
+{
 	char name[ETH_GSTRING_LEN];
 	int offset;
 };
 
 #define XGENE_STAT(m) { #m, offsetof(struct xgene_enet_pdata, stats.m) }
 
-static const struct xgene_gstrings_stats gstrings_stats[] = {
+static const struct xgene_gstrings_stats gstrings_stats[] =
+{
 	XGENE_STAT(rx_packets),
 	XGENE_STAT(tx_packets),
 	XGENE_STAT(rx_bytes),
@@ -43,7 +45,7 @@ static const struct xgene_gstrings_stats gstrings_stats[] = {
 #define XGENE_STATS_LEN		ARRAY_SIZE(gstrings_stats)
 
 static void xgene_get_drvinfo(struct net_device *ndev,
-			      struct ethtool_drvinfo *info)
+							  struct ethtool_drvinfo *info)
 {
 	struct xgene_enet_pdata *pdata = netdev_priv(ndev);
 	struct platform_device *pdev = pdata->pdev;
@@ -55,27 +57,35 @@ static void xgene_get_drvinfo(struct net_device *ndev,
 }
 
 static int xgene_get_link_ksettings(struct net_device *ndev,
-				    struct ethtool_link_ksettings *cmd)
+									struct ethtool_link_ksettings *cmd)
 {
 	struct xgene_enet_pdata *pdata = netdev_priv(ndev);
 	struct phy_device *phydev = ndev->phydev;
 	u32 supported;
 
-	if (pdata->phy_mode == PHY_INTERFACE_MODE_RGMII) {
+	if (pdata->phy_mode == PHY_INTERFACE_MODE_RGMII)
+	{
 		if (phydev == NULL)
+		{
 			return -ENODEV;
+		}
 
 		return phy_ethtool_ksettings_get(phydev, cmd);
-	} else if (pdata->phy_mode == PHY_INTERFACE_MODE_SGMII) {
-		if (pdata->mdio_driver) {
+	}
+	else if (pdata->phy_mode == PHY_INTERFACE_MODE_SGMII)
+	{
+		if (pdata->mdio_driver)
+		{
 			if (!phydev)
+			{
 				return -ENODEV;
+			}
 
 			return phy_ethtool_ksettings_get(phydev, cmd);
 		}
 
 		supported = SUPPORTED_1000baseT_Full | SUPPORTED_Autoneg |
-			SUPPORTED_MII;
+					SUPPORTED_MII;
 		ethtool_convert_legacy_u32_to_link_mode(
 			cmd->link_modes.supported,
 			supported);
@@ -87,7 +97,9 @@ static int xgene_get_link_ksettings(struct net_device *ndev,
 		cmd->base.duplex = DUPLEX_FULL;
 		cmd->base.port = PORT_MII;
 		cmd->base.autoneg = AUTONEG_ENABLE;
-	} else {
+	}
+	else
+	{
 		supported = SUPPORTED_10000baseT_Full | SUPPORTED_FIBRE;
 		ethtool_convert_legacy_u32_to_link_mode(
 			cmd->link_modes.supported,
@@ -106,22 +118,29 @@ static int xgene_get_link_ksettings(struct net_device *ndev,
 }
 
 static int xgene_set_link_ksettings(struct net_device *ndev,
-				    const struct ethtool_link_ksettings *cmd)
+									const struct ethtool_link_ksettings *cmd)
 {
 	struct xgene_enet_pdata *pdata = netdev_priv(ndev);
 	struct phy_device *phydev = ndev->phydev;
 
-	if (pdata->phy_mode == PHY_INTERFACE_MODE_RGMII) {
+	if (pdata->phy_mode == PHY_INTERFACE_MODE_RGMII)
+	{
 		if (!phydev)
+		{
 			return -ENODEV;
+		}
 
 		return phy_ethtool_ksettings_set(phydev, cmd);
 	}
 
-	if (pdata->phy_mode == PHY_INTERFACE_MODE_SGMII) {
-		if (pdata->mdio_driver) {
+	if (pdata->phy_mode == PHY_INTERFACE_MODE_SGMII)
+	{
+		if (pdata->mdio_driver)
+		{
 			if (!phydev)
+			{
 				return -ENODEV;
+			}
 
 			return phy_ethtool_ksettings_set(phydev, cmd);
 		}
@@ -136,9 +155,12 @@ static void xgene_get_strings(struct net_device *ndev, u32 stringset, u8 *data)
 	u8 *p = data;
 
 	if (stringset != ETH_SS_STATS)
+	{
 		return;
+	}
 
-	for (i = 0; i < XGENE_STATS_LEN; i++) {
+	for (i = 0; i < XGENE_STATS_LEN; i++)
+	{
 		memcpy(p, gstrings_stats[i].name, ETH_GSTRING_LEN);
 		p += ETH_GSTRING_LEN;
 	}
@@ -147,23 +169,28 @@ static void xgene_get_strings(struct net_device *ndev, u32 stringset, u8 *data)
 static int xgene_get_sset_count(struct net_device *ndev, int sset)
 {
 	if (sset != ETH_SS_STATS)
+	{
 		return -EINVAL;
+	}
 
 	return XGENE_STATS_LEN;
 }
 
 static void xgene_get_ethtool_stats(struct net_device *ndev,
-				    struct ethtool_stats *dummy,
-				    u64 *data)
+									struct ethtool_stats *dummy,
+									u64 *data)
 {
 	void *pdata = netdev_priv(ndev);
 	int i;
 
 	for (i = 0; i < XGENE_STATS_LEN; i++)
+	{
 		*data++ = *(u64 *)(pdata + gstrings_stats[i].offset);
+	}
 }
 
-static const struct ethtool_ops xgene_ethtool_ops = {
+static const struct ethtool_ops xgene_ethtool_ops =
+{
 	.get_drvinfo = xgene_get_drvinfo,
 	.get_link = ethtool_op_get_link,
 	.get_strings = xgene_get_strings,

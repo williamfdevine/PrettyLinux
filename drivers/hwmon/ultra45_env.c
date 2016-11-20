@@ -57,7 +57,8 @@ MODULE_VERSION(DRV_MODULE_VERSION);
 #define IREG_VMEM1		0x12
 #define IREG_PSU_TEMP		0x13
 
-struct env {
+struct env
+{
 	void __iomem	*regs;
 	spinlock_t	lock;
 
@@ -94,7 +95,7 @@ static void env_write(struct env *p, u8 ireg, u8 val)
 #define FAN_DATA_VALID(x)	((x) && (x) != FAN_PERIOD_INVALID)
 
 static ssize_t show_fan_speed(struct device *dev, struct device_attribute *attr,
-			      char *buf)
+							  char *buf)
 {
 	int fan_nr = to_sensor_dev_attr(attr)->index;
 	struct env *p = dev_get_drvdata(dev);
@@ -103,16 +104,21 @@ static ssize_t show_fan_speed(struct device *dev, struct device_attribute *attr,
 
 	val = env_read(p, IREG_FAN0 + fan_nr);
 	period = (int) val << 8;
+
 	if (FAN_DATA_VALID(period))
+	{
 		rpm = FAN_PERIOD_TO_RPM(period);
+	}
 	else
+	{
 		rpm = 0;
+	}
 
 	return sprintf(buf, "%d\n", rpm);
 }
 
 static ssize_t set_fan_speed(struct device *dev, struct device_attribute *attr,
-			     const char *buf, size_t count)
+							 const char *buf, size_t count)
 {
 	int fan_nr = to_sensor_dev_attr(attr)->index;
 	unsigned long rpm;
@@ -122,11 +128,16 @@ static ssize_t set_fan_speed(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtoul(buf, 10, &rpm);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (!rpm)
+	{
 		return -EINVAL;
+	}
 
 	period = FAN_RPM_TO_PERIOD(rpm);
 	val = period >> 8;
@@ -136,7 +147,7 @@ static ssize_t set_fan_speed(struct device *dev, struct device_attribute *attr,
 }
 
 static ssize_t show_fan_fault(struct device *dev, struct device_attribute *attr,
-			      char *buf)
+							  char *buf)
 {
 	int fan_nr = to_sensor_dev_attr(attr)->index;
 	struct env *p = dev_get_drvdata(dev);
@@ -145,10 +156,10 @@ static ssize_t show_fan_fault(struct device *dev, struct device_attribute *attr,
 }
 
 #define fan(index)							\
-static SENSOR_DEVICE_ATTR(fan##index##_speed, S_IRUGO | S_IWUSR,	\
-		show_fan_speed, set_fan_speed, index);			\
-static SENSOR_DEVICE_ATTR(fan##index##_fault, S_IRUGO,			\
-		show_fan_fault, NULL, index)
+	static SENSOR_DEVICE_ATTR(fan##index##_speed, S_IRUGO | S_IWUSR,	\
+							  show_fan_speed, set_fan_speed, index);			\
+	static SENSOR_DEVICE_ATTR(fan##index##_fault, S_IRUGO,			\
+							  show_fan_fault, NULL, index)
 
 fan(0);
 fan(1);
@@ -159,7 +170,7 @@ fan(4);
 static SENSOR_DEVICE_ATTR(psu_fan_fault, S_IRUGO, show_fan_fault, NULL, 6);
 
 static ssize_t show_temp(struct device *dev, struct device_attribute *attr,
-			 char *buf)
+						 char *buf)
 {
 	int temp_nr = to_sensor_dev_attr(attr)->index;
 	struct env *p = dev_get_drvdata(dev);
@@ -180,7 +191,7 @@ static SENSOR_DEVICE_ATTR(front_panel_temp, S_IRUGO, show_temp, NULL, 7);
 static SENSOR_DEVICE_ATTR(psu_temp, S_IRUGO, show_temp, NULL, 13);
 
 static ssize_t show_stat_bit(struct device *dev, struct device_attribute *attr,
-			     char *buf)
+							 char *buf)
 {
 	int index = to_sensor_dev_attr(attr)->index;
 	struct env *p = dev_get_drvdata(dev);
@@ -194,10 +205,10 @@ static SENSOR_DEVICE_ATTR(fan_failure, S_IRUGO, show_stat_bit, NULL, 0);
 static SENSOR_DEVICE_ATTR(env_bus_busy, S_IRUGO, show_stat_bit, NULL, 1);
 static SENSOR_DEVICE_ATTR(env_data_stale, S_IRUGO, show_stat_bit, NULL, 2);
 static SENSOR_DEVICE_ATTR(tpm_self_test_passed, S_IRUGO, show_stat_bit, NULL,
-			  3);
+						  3);
 
 static ssize_t show_fwver(struct device *dev, struct device_attribute *attr,
-			  char *buf)
+						  char *buf)
 {
 	struct env *p = dev_get_drvdata(dev);
 	u8 val;
@@ -209,14 +220,15 @@ static ssize_t show_fwver(struct device *dev, struct device_attribute *attr,
 static SENSOR_DEVICE_ATTR(firmware_version, S_IRUGO, show_fwver, NULL, 0);
 
 static ssize_t show_name(struct device *dev, struct device_attribute *attr,
-			 char *buf)
+						 char *buf)
 {
 	return sprintf(buf, "ultra45\n");
 }
 
 static SENSOR_DEVICE_ATTR(name, S_IRUGO, show_name, NULL, 0);
 
-static struct attribute *env_attributes[] = {
+static struct attribute *env_attributes[] =
+{
 	&sensor_dev_attr_fan0_speed.dev_attr.attr,
 	&sensor_dev_attr_fan0_fault.dev_attr.attr,
 	&sensor_dev_attr_fan1_speed.dev_attr.attr,
@@ -246,7 +258,8 @@ static struct attribute *env_attributes[] = {
 	NULL,
 };
 
-static const struct attribute_group env_group = {
+static const struct attribute_group env_group =
+{
 	.attrs = env_attributes,
 };
 
@@ -256,20 +269,30 @@ static int env_probe(struct platform_device *op)
 	int err = -ENOMEM;
 
 	if (!p)
+	{
 		goto out;
+	}
 
 	spin_lock_init(&p->lock);
 
 	p->regs = of_ioremap(&op->resource[0], 0, REG_SIZE, "pic16f747");
+
 	if (!p->regs)
+	{
 		goto out;
+	}
 
 	err = sysfs_create_group(&op->dev.kobj, &env_group);
+
 	if (err)
+	{
 		goto out_iounmap;
+	}
 
 	p->hwmon_dev = hwmon_device_register(&op->dev);
-	if (IS_ERR(p->hwmon_dev)) {
+
+	if (IS_ERR(p->hwmon_dev))
+	{
 		err = PTR_ERR(p->hwmon_dev);
 		goto out_sysfs_remove_group;
 	}
@@ -293,7 +316,8 @@ static int env_remove(struct platform_device *op)
 {
 	struct env *p = platform_get_drvdata(op);
 
-	if (p) {
+	if (p)
+	{
 		sysfs_remove_group(&op->dev.kobj, &env_group);
 		hwmon_device_unregister(p->hwmon_dev);
 		of_iounmap(&op->resource[0], p->regs, REG_SIZE);
@@ -302,7 +326,8 @@ static int env_remove(struct platform_device *op)
 	return 0;
 }
 
-static const struct of_device_id env_match[] = {
+static const struct of_device_id env_match[] =
+{
 	{
 		.name = "env-monitor",
 		.compatible = "SUNW,ebus-pic16f747-env",
@@ -311,7 +336,8 @@ static const struct of_device_id env_match[] = {
 };
 MODULE_DEVICE_TABLE(of, env_match);
 
-static struct platform_driver env_driver = {
+static struct platform_driver env_driver =
+{
 	.driver = {
 		.name = "ultra45_env",
 		.of_match_table = env_match,

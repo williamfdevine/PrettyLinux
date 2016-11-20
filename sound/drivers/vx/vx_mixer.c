@@ -33,10 +33,14 @@
 static void vx_write_codec_reg(struct vx_core *chip, int codec, unsigned int data)
 {
 	if (snd_BUG_ON(!chip->ops->write_codec))
+	{
 		return;
+	}
 
 	if (chip->chip_status & VX_STAT_IS_STALE)
+	{
 		return;
+	}
 
 	mutex_lock(&chip->lock);
 	chip->ops->write_codec(chip, codec, data);
@@ -46,25 +50,30 @@ static void vx_write_codec_reg(struct vx_core *chip, int codec, unsigned int dat
 /*
  * Data type used to access the Codec
  */
-union vx_codec_data {
+union vx_codec_data
+{
 	u32 l;
 #ifdef SNDRV_BIG_ENDIAN
-	struct w {
+	struct w
+	{
 		u16 h;
 		u16 l;
 	} w;
-	struct b {
+	struct b
+	{
 		u8 hh;
 		u8 mh;
 		u8 ml;
 		u8 ll;
 	} b;
 #else /* LITTLE_ENDIAN */
-	struct w {
+	struct w
+	{
 		u16 l;
 		u16 h;
 	} w;
-	struct b {
+	struct b
+	{
 		u8 ll;
 		u8 ml;
 		u8 mh;
@@ -106,10 +115,13 @@ static void vx_set_analog_output_level(struct vx_core *chip, int codec, int left
 	left  = chip->hw->output_level_max - left;
 	right = chip->hw->output_level_max - right;
 
-	if (chip->ops->akm_write) {
+	if (chip->ops->akm_write)
+	{
 		chip->ops->akm_write(chip, XX_CODEC_LEVEL_LEFT_REGISTER, left);
 		chip->ops->akm_write(chip, XX_CODEC_LEVEL_RIGHT_REGISTER, right);
-	} else {
+	}
+	else
+	{
 		/* convert to attenuation level: 0 = 0dB (max), 0xe3 = -113.5 dB (min) */
 		vx_set_codec_reg(chip, codec, XX_CODEC_LEVEL_LEFT_REGISTER, left);
 		vx_set_codec_reg(chip, codec, XX_CODEC_LEVEL_RIGHT_REGISTER, right);
@@ -128,12 +140,16 @@ static void vx_set_analog_output_level(struct vx_core *chip, int codec, int left
 void vx_toggle_dac_mute(struct vx_core *chip, int mute)
 {
 	unsigned int i;
-	for (i = 0; i < chip->hw->num_codecs; i++) {
+
+	for (i = 0; i < chip->hw->num_codecs; i++)
+	{
 		if (chip->ops->akm_write)
-			chip->ops->akm_write(chip, XX_CODEC_DAC_CONTROL_REGISTER, mute); /* XXX */
+		{
+			chip->ops->akm_write(chip, XX_CODEC_DAC_CONTROL_REGISTER, mute);    /* XXX */
+		}
 		else
 			vx_set_codec_reg(chip, i, XX_CODEC_DAC_CONTROL_REGISTER,
-					 mute ? DAC_ATTEN_MAX : DAC_ATTEN_MIN);
+							 mute ? DAC_ATTEN_MAX : DAC_ATTEN_MIN);
 	}
 }
 
@@ -148,9 +164,11 @@ void vx_reset_codec(struct vx_core *chip, int cold_reset)
 	chip->ops->reset_codec(chip);
 
 	/* AKM codecs should be initialized in reset_codec callback */
-	if (! chip->ops->akm_write) {
+	if (! chip->ops->akm_write)
+	{
 		/* initialize old codecs */
-		for (i = 0; i < chip->hw->num_codecs; i++) {
+		for (i = 0; i < chip->hw->num_codecs; i++)
+		{
 			/* DAC control register (change level when zero crossing + mute) */
 			vx_set_codec_reg(chip, i, XX_CODEC_DAC_CONTROL_REGISTER, DAC_ATTEN_MAX);
 			/* ADC control register */
@@ -163,7 +181,8 @@ void vx_reset_codec(struct vx_core *chip, int cold_reset)
 	}
 
 	/* mute analog output */
-	for (i = 0; i < chip->hw->num_codecs; i++) {
+	for (i = 0; i < chip->hw->num_codecs; i++)
+	{
 		chip->output_level[i][0] = 0;
 		chip->output_level[i][1] = 0;
 		vx_set_analog_output_level(chip, i, 0, 0);
@@ -177,7 +196,9 @@ void vx_reset_codec(struct vx_core *chip, int cold_reset)
 static void vx_change_audio_source(struct vx_core *chip, int src)
 {
 	if (chip->chip_status & VX_STAT_IS_STALE)
+	{
 		return;
+	}
 
 	mutex_lock(&chip->lock);
 	chip->ops->change_audio_source(chip, src);
@@ -192,8 +213,11 @@ static void vx_change_audio_source(struct vx_core *chip, int src)
 int vx_sync_audio_source(struct vx_core *chip)
 {
 	if (chip->audio_source_target == chip->audio_source ||
-	    chip->pcm_running)
+		chip->pcm_running)
+	{
 		return 0;
+	}
+
 	vx_change_audio_source(chip, chip->audio_source_target);
 	chip->audio_source = chip->audio_source_target;
 	return 1;
@@ -203,7 +227,8 @@ int vx_sync_audio_source(struct vx_core *chip)
 /*
  * audio level, mute, monitoring
  */
-struct vx_audio_level {
+struct vx_audio_level
+{
 	unsigned int has_level: 1;
 	unsigned int has_monitor_level: 1;
 	unsigned int has_mute: 1;
@@ -215,59 +240,87 @@ struct vx_audio_level {
 };
 
 static int vx_adjust_audio_level(struct vx_core *chip, int audio, int capture,
-				 struct vx_audio_level *info)
+								 struct vx_audio_level *info)
 {
 	struct vx_rmh rmh;
 
 	if (chip->chip_status & VX_STAT_IS_STALE)
+	{
 		return -EBUSY;
+	}
 
-        vx_init_rmh(&rmh, CMD_AUDIO_LEVEL_ADJUST);
+	vx_init_rmh(&rmh, CMD_AUDIO_LEVEL_ADJUST);
+
 	if (capture)
+	{
 		rmh.Cmd[0] |= COMMAND_RECORD_MASK;
+	}
+
 	/* Add Audio IO mask */
 	rmh.Cmd[1] = 1 << audio;
 	rmh.Cmd[2] = 0;
-	if (info->has_level) {
+
+	if (info->has_level)
+	{
 		rmh.Cmd[0] |=  VALID_AUDIO_IO_DIGITAL_LEVEL;
 		rmh.Cmd[2] |= info->level;
-        }
-	if (info->has_monitor_level) {
+	}
+
+	if (info->has_monitor_level)
+	{
 		rmh.Cmd[0] |=  VALID_AUDIO_IO_MONITORING_LEVEL;
 		rmh.Cmd[2] |= ((unsigned int)info->monitor_level << 10);
-        }
-	if (info->has_mute) { 
-		rmh.Cmd[0] |= VALID_AUDIO_IO_MUTE_LEVEL;
-		if (info->mute)
-			rmh.Cmd[2] |= AUDIO_IO_HAS_MUTE_LEVEL;
 	}
-	if (info->has_monitor_mute) {
-		/* validate flag for M2 at least to unmute it */ 
+
+	if (info->has_mute)
+	{
+		rmh.Cmd[0] |= VALID_AUDIO_IO_MUTE_LEVEL;
+
+		if (info->mute)
+		{
+			rmh.Cmd[2] |= AUDIO_IO_HAS_MUTE_LEVEL;
+		}
+	}
+
+	if (info->has_monitor_mute)
+	{
+		/* validate flag for M2 at least to unmute it */
 		rmh.Cmd[0] |=  VALID_AUDIO_IO_MUTE_MONITORING_1 | VALID_AUDIO_IO_MUTE_MONITORING_2;
+
 		if (info->monitor_mute)
+		{
 			rmh.Cmd[2] |= AUDIO_IO_HAS_MUTE_MONITORING_1;
+		}
 	}
 
 	return vx_send_msg(chip, &rmh);
 }
 
-    
+
 #if 0 // not used
 static int vx_read_audio_level(struct vx_core *chip, int audio, int capture,
-			       struct vx_audio_level *info)
+							   struct vx_audio_level *info)
 {
 	int err;
 	struct vx_rmh rmh;
 
 	memset(info, 0, sizeof(*info));
-        vx_init_rmh(&rmh, CMD_GET_AUDIO_LEVELS);
+	vx_init_rmh(&rmh, CMD_GET_AUDIO_LEVELS);
+
 	if (capture)
+	{
 		rmh.Cmd[0] |= COMMAND_RECORD_MASK;
+	}
+
 	/* Add Audio IO mask */
 	rmh.Cmd[1] = 1 << audio;
 	err = vx_send_msg(chip, &rmh);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	info.level = rmh.Stat[0] & MASK_DSP_WORD_LEVEL;
 	info.monitor_level = (rmh.Stat[0] >> 10) & MASK_DSP_WORD_LEVEL;
 	info.mute = (rmh.Stat[i] & AUDIO_IO_HAS_MUTE_LEVEL) ? 1 : 0;
@@ -336,14 +389,19 @@ static void vx_reset_audio_levels(struct vx_core *chip)
 	memset(chip->audio_monitor, 0, sizeof(chip->audio_monitor));
 	memset(chip->audio_monitor_active, 0, sizeof(chip->audio_monitor_active));
 
-	for (c = 0; c < 2; c++) {
-		for (i = 0; i < chip->hw->num_ins * 2; i++) {
+	for (c = 0; c < 2; c++)
+	{
+		for (i = 0; i < chip->hw->num_ins * 2; i++)
+		{
 			memset(&info, 0, sizeof(info));
-			if (c == 0) {
+
+			if (c == 0)
+			{
 				info.has_monitor_level = 1;
 				info.has_mute = 1;
 				info.has_monitor_mute = 1;
 			}
+
 			info.has_level = 1;
 			info.level = CVAL_0DB; /* default: 0dB */
 			vx_adjust_audio_level(chip, i, c, &info);
@@ -360,7 +418,8 @@ static void vx_reset_audio_levels(struct vx_core *chip)
 
 #define VU_METER_CHANNELS	2
 
-struct vx_vu_meter {
+struct vx_vu_meter
+{
 	int saturated;
 	int vu_level;
 	int peak_level;
@@ -378,30 +437,45 @@ static int vx_get_audio_vu_meter(struct vx_core *chip, int audio, int capture, s
 	int i, err;
 
 	if (chip->chip_status & VX_STAT_IS_STALE)
+	{
 		return -EBUSY;
+	}
 
 	vx_init_rmh(&rmh, CMD_AUDIO_VU_PIC_METER);
 	rmh.LgStat += 2 * VU_METER_CHANNELS;
+
 	if (capture)
+	{
 		rmh.Cmd[0] |= COMMAND_RECORD_MASK;
-    
-        /* Add Audio IO mask */
+	}
+
+	/* Add Audio IO mask */
 	rmh.Cmd[1] = 0;
+
 	for (i = 0; i < VU_METER_CHANNELS; i++)
+	{
 		rmh.Cmd[1] |= 1 << (audio + i);
+	}
+
 	err = vx_send_msg(chip, &rmh);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	/* Read response */
-	for (i = 0; i < 2 * VU_METER_CHANNELS; i +=2) {
+	for (i = 0; i < 2 * VU_METER_CHANNELS; i += 2)
+	{
 		info->saturated = (rmh.Stat[0] & (1 << (audio + i))) ? 1 : 0;
 		info->vu_level = rmh.Stat[i + 1];
 		info->peak_level = rmh.Stat[i + 2];
 		info++;
 	}
+
 	return 0;
 }
-   
+
 
 /*
  * control API entries
@@ -440,25 +514,33 @@ static int vx_output_level_put(struct snd_kcontrol *kcontrol, struct snd_ctl_ele
 	vmax = chip->hw->output_level_max;
 	val[0] = ucontrol->value.integer.value[0];
 	val[1] = ucontrol->value.integer.value[1];
+
 	if (val[0] > vmax || val[1] > vmax)
+	{
 		return -EINVAL;
+	}
+
 	mutex_lock(&chip->mixer_mutex);
+
 	if (val[0] != chip->output_level[codec][0] ||
-	    val[1] != chip->output_level[codec][1]) {
+		val[1] != chip->output_level[codec][1])
+	{
 		vx_set_analog_output_level(chip, codec, val[0], val[1]);
 		chip->output_level[codec][0] = val[0];
 		chip->output_level[codec][1] = val[1];
 		mutex_unlock(&chip->mixer_mutex);
 		return 1;
 	}
+
 	mutex_unlock(&chip->mixer_mutex);
 	return 0;
 }
 
-static struct snd_kcontrol_new vx_control_output_level = {
+static struct snd_kcontrol_new vx_control_output_level =
+{
 	.iface =	SNDRV_CTL_ELEM_IFACE_MIXER,
 	.access =	(SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			 SNDRV_CTL_ELEM_ACCESS_TLV_READ),
+	SNDRV_CTL_ELEM_ACCESS_TLV_READ),
 	.name =		"Master Playback Volume",
 	.info =		vx_output_level_info,
 	.get =		vx_output_level_get,
@@ -471,18 +553,24 @@ static struct snd_kcontrol_new vx_control_output_level = {
  */
 static int vx_audio_src_info(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_info *uinfo)
 {
-	static const char * const texts_mic[3] = {
+	static const char *const texts_mic[3] =
+	{
 		"Digital", "Line", "Mic"
 	};
-	static const char * const texts_vx2[2] = {
+	static const char *const texts_vx2[2] =
+	{
 		"Digital", "Analog"
 	};
 	struct vx_core *chip = snd_kcontrol_chip(kcontrol);
 
 	if (chip->type >= VX_TYPE_VXPOCKET)
+	{
 		return snd_ctl_enum_info(uinfo, 1, 3, texts_mic);
+	}
 	else
+	{
 		return snd_ctl_enum_info(uinfo, 1, 2, texts_vx2);
+	}
 }
 
 static int vx_audio_src_get(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol)
@@ -496,25 +584,37 @@ static int vx_audio_src_put(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_v
 {
 	struct vx_core *chip = snd_kcontrol_chip(kcontrol);
 
-	if (chip->type >= VX_TYPE_VXPOCKET) {
+	if (chip->type >= VX_TYPE_VXPOCKET)
+	{
 		if (ucontrol->value.enumerated.item[0] > 2)
+		{
 			return -EINVAL;
-	} else {
-		if (ucontrol->value.enumerated.item[0] > 1)
-			return -EINVAL;
+		}
 	}
+	else
+	{
+		if (ucontrol->value.enumerated.item[0] > 1)
+		{
+			return -EINVAL;
+		}
+	}
+
 	mutex_lock(&chip->mixer_mutex);
-	if (chip->audio_source_target != ucontrol->value.enumerated.item[0]) {
+
+	if (chip->audio_source_target != ucontrol->value.enumerated.item[0])
+	{
 		chip->audio_source_target = ucontrol->value.enumerated.item[0];
 		vx_sync_audio_source(chip);
 		mutex_unlock(&chip->mixer_mutex);
 		return 1;
 	}
+
 	mutex_unlock(&chip->mixer_mutex);
 	return 0;
 }
 
-static struct snd_kcontrol_new vx_control_audio_src = {
+static struct snd_kcontrol_new vx_control_audio_src =
+{
 	.iface =	SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name =		"Capture Source",
 	.info =		vx_audio_src_info,
@@ -527,7 +627,8 @@ static struct snd_kcontrol_new vx_control_audio_src = {
  */
 static int vx_clock_mode_info(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_info *uinfo)
 {
-	static const char * const texts[3] = {
+	static const char *const texts[3] =
+	{
 		"Auto", "Internal", "External"
 	};
 
@@ -546,19 +647,26 @@ static int vx_clock_mode_put(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_
 	struct vx_core *chip = snd_kcontrol_chip(kcontrol);
 
 	if (ucontrol->value.enumerated.item[0] > 2)
+	{
 		return -EINVAL;
+	}
+
 	mutex_lock(&chip->mixer_mutex);
-	if (chip->clock_mode != ucontrol->value.enumerated.item[0]) {
+
+	if (chip->clock_mode != ucontrol->value.enumerated.item[0])
+	{
 		chip->clock_mode = ucontrol->value.enumerated.item[0];
 		vx_set_clock(chip, chip->freq);
 		mutex_unlock(&chip->mixer_mutex);
 		return 1;
 	}
+
 	mutex_unlock(&chip->mixer_mutex);
 	return 0;
 }
 
-static struct snd_kcontrol_new vx_control_clock_mode = {
+static struct snd_kcontrol_new vx_control_clock_mode =
+{
 	.iface =	SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name =		"Clock Mode",
 	.info =		vx_clock_mode_info,
@@ -586,7 +694,7 @@ static int vx_audio_gain_get(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_
 
 	mutex_lock(&chip->mixer_mutex);
 	ucontrol->value.integer.value[0] = chip->audio_gain[capture][audio];
-	ucontrol->value.integer.value[1] = chip->audio_gain[capture][audio+1];
+	ucontrol->value.integer.value[1] = chip->audio_gain[capture][audio + 1];
 	mutex_unlock(&chip->mixer_mutex);
 	return 0;
 }
@@ -600,16 +708,23 @@ static int vx_audio_gain_put(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_
 
 	val[0] = ucontrol->value.integer.value[0];
 	val[1] = ucontrol->value.integer.value[1];
+
 	if (val[0] > CVAL_MAX || val[1] > CVAL_MAX)
+	{
 		return -EINVAL;
+	}
+
 	mutex_lock(&chip->mixer_mutex);
+
 	if (val[0] != chip->audio_gain[capture][audio] ||
-	    val[1] != chip->audio_gain[capture][audio+1]) {
+		val[1] != chip->audio_gain[capture][audio + 1])
+	{
 		vx_set_audio_gain(chip, audio, capture, val[0]);
-		vx_set_audio_gain(chip, audio+1, capture, val[1]);
+		vx_set_audio_gain(chip, audio + 1, capture, val[1]);
 		mutex_unlock(&chip->mixer_mutex);
 		return 1;
 	}
+
 	mutex_unlock(&chip->mixer_mutex);
 	return 0;
 }
@@ -621,7 +736,7 @@ static int vx_audio_monitor_get(struct snd_kcontrol *kcontrol, struct snd_ctl_el
 
 	mutex_lock(&chip->mixer_mutex);
 	ucontrol->value.integer.value[0] = chip->audio_monitor[audio];
-	ucontrol->value.integer.value[1] = chip->audio_monitor[audio+1];
+	ucontrol->value.integer.value[1] = chip->audio_monitor[audio + 1];
 	mutex_unlock(&chip->mixer_mutex);
 	return 0;
 }
@@ -634,19 +749,25 @@ static int vx_audio_monitor_put(struct snd_kcontrol *kcontrol, struct snd_ctl_el
 
 	val[0] = ucontrol->value.integer.value[0];
 	val[1] = ucontrol->value.integer.value[1];
+
 	if (val[0] > CVAL_MAX || val[1] > CVAL_MAX)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&chip->mixer_mutex);
+
 	if (val[0] != chip->audio_monitor[audio] ||
-	    val[1] != chip->audio_monitor[audio+1]) {
+		val[1] != chip->audio_monitor[audio + 1])
+	{
 		vx_set_monitor_level(chip, audio, val[0],
-				     chip->audio_monitor_active[audio]);
-		vx_set_monitor_level(chip, audio+1, val[1],
-				     chip->audio_monitor_active[audio+1]);
+							 chip->audio_monitor_active[audio]);
+		vx_set_monitor_level(chip, audio + 1, val[1],
+							 chip->audio_monitor_active[audio + 1]);
 		mutex_unlock(&chip->mixer_mutex);
 		return 1;
 	}
+
 	mutex_unlock(&chip->mixer_mutex);
 	return 0;
 }
@@ -660,7 +781,7 @@ static int vx_audio_sw_get(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_va
 
 	mutex_lock(&chip->mixer_mutex);
 	ucontrol->value.integer.value[0] = chip->audio_active[audio];
-	ucontrol->value.integer.value[1] = chip->audio_active[audio+1];
+	ucontrol->value.integer.value[1] = chip->audio_active[audio + 1];
 	mutex_unlock(&chip->mixer_mutex);
 	return 0;
 }
@@ -671,15 +792,18 @@ static int vx_audio_sw_put(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_va
 	int audio = kcontrol->private_value & 0xff;
 
 	mutex_lock(&chip->mixer_mutex);
+
 	if (ucontrol->value.integer.value[0] != chip->audio_active[audio] ||
-	    ucontrol->value.integer.value[1] != chip->audio_active[audio+1]) {
+		ucontrol->value.integer.value[1] != chip->audio_active[audio + 1])
+	{
 		vx_set_audio_switch(chip, audio,
-				    !!ucontrol->value.integer.value[0]);
-		vx_set_audio_switch(chip, audio+1,
-				    !!ucontrol->value.integer.value[1]);
+							!!ucontrol->value.integer.value[0]);
+		vx_set_audio_switch(chip, audio + 1,
+							!!ucontrol->value.integer.value[1]);
 		mutex_unlock(&chip->mixer_mutex);
 		return 1;
 	}
+
 	mutex_unlock(&chip->mixer_mutex);
 	return 0;
 }
@@ -691,7 +815,7 @@ static int vx_monitor_sw_get(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_
 
 	mutex_lock(&chip->mixer_mutex);
 	ucontrol->value.integer.value[0] = chip->audio_monitor_active[audio];
-	ucontrol->value.integer.value[1] = chip->audio_monitor_active[audio+1];
+	ucontrol->value.integer.value[1] = chip->audio_monitor_active[audio + 1];
 	mutex_unlock(&chip->mixer_mutex);
 	return 0;
 }
@@ -702,49 +826,56 @@ static int vx_monitor_sw_put(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_
 	int audio = kcontrol->private_value & 0xff;
 
 	mutex_lock(&chip->mixer_mutex);
+
 	if (ucontrol->value.integer.value[0] != chip->audio_monitor_active[audio] ||
-	    ucontrol->value.integer.value[1] != chip->audio_monitor_active[audio+1]) {
+		ucontrol->value.integer.value[1] != chip->audio_monitor_active[audio + 1])
+	{
 		vx_set_monitor_level(chip, audio, chip->audio_monitor[audio],
-				     !!ucontrol->value.integer.value[0]);
-		vx_set_monitor_level(chip, audio+1, chip->audio_monitor[audio+1],
-				     !!ucontrol->value.integer.value[1]);
+							 !!ucontrol->value.integer.value[0]);
+		vx_set_monitor_level(chip, audio + 1, chip->audio_monitor[audio + 1],
+							 !!ucontrol->value.integer.value[1]);
 		mutex_unlock(&chip->mixer_mutex);
 		return 1;
 	}
+
 	mutex_unlock(&chip->mixer_mutex);
 	return 0;
 }
 
 static const DECLARE_TLV_DB_SCALE(db_scale_audio_gain, -10975, 25, 0);
 
-static struct snd_kcontrol_new vx_control_audio_gain = {
+static struct snd_kcontrol_new vx_control_audio_gain =
+{
 	.iface =	SNDRV_CTL_ELEM_IFACE_MIXER,
 	.access =	(SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			 SNDRV_CTL_ELEM_ACCESS_TLV_READ),
+	SNDRV_CTL_ELEM_ACCESS_TLV_READ),
 	/* name will be filled later */
 	.info =         vx_audio_gain_info,
 	.get =          vx_audio_gain_get,
 	.put =          vx_audio_gain_put,
 	.tlv = { .p = db_scale_audio_gain },
 };
-static struct snd_kcontrol_new vx_control_output_switch = {
+static struct snd_kcontrol_new vx_control_output_switch =
+{
 	.iface =	SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name =         "PCM Playback Switch",
 	.info =         vx_audio_sw_info,
 	.get =          vx_audio_sw_get,
 	.put =          vx_audio_sw_put
 };
-static struct snd_kcontrol_new vx_control_monitor_gain = {
+static struct snd_kcontrol_new vx_control_monitor_gain =
+{
 	.iface =	SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name =         "Monitoring Volume",
 	.access =	(SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			 SNDRV_CTL_ELEM_ACCESS_TLV_READ),
+	SNDRV_CTL_ELEM_ACCESS_TLV_READ),
 	.info =         vx_audio_gain_info,	/* shared */
 	.get =          vx_audio_monitor_get,
 	.put =          vx_audio_monitor_put,
 	.tlv = { .p = db_scale_audio_gain },
 };
-static struct snd_kcontrol_new vx_control_monitor_switch = {
+static struct snd_kcontrol_new vx_control_monitor_switch =
+{
 	.iface =	SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name =         "Monitoring Switch",
 	.info =         vx_audio_sw_info,	/* shared */
@@ -773,7 +904,7 @@ static int vx_iec958_get(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_valu
 	ucontrol->value.iec958.status[2] = (chip->uer_bits >> 16) & 0xff;
 	ucontrol->value.iec958.status[3] = (chip->uer_bits >> 24) & 0xff;
 	mutex_unlock(&chip->mixer_mutex);
-        return 0;
+	return 0;
 }
 
 static int vx_iec958_mask_get(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol)
@@ -782,7 +913,7 @@ static int vx_iec958_mask_get(struct snd_kcontrol *kcontrol, struct snd_ctl_elem
 	ucontrol->value.iec958.status[1] = 0xff;
 	ucontrol->value.iec958.status[2] = 0xff;
 	ucontrol->value.iec958.status[3] = 0xff;
-        return 0;
+	return 0;
 }
 
 static int vx_iec958_put(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol)
@@ -791,31 +922,36 @@ static int vx_iec958_put(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_valu
 	unsigned int val;
 
 	val = (ucontrol->value.iec958.status[0] << 0) |
-	      (ucontrol->value.iec958.status[1] << 8) |
-	      (ucontrol->value.iec958.status[2] << 16) |
-	      (ucontrol->value.iec958.status[3] << 24);
+		  (ucontrol->value.iec958.status[1] << 8) |
+		  (ucontrol->value.iec958.status[2] << 16) |
+		  (ucontrol->value.iec958.status[3] << 24);
 	mutex_lock(&chip->mixer_mutex);
-	if (chip->uer_bits != val) {
+
+	if (chip->uer_bits != val)
+	{
 		chip->uer_bits = val;
 		vx_set_iec958_status(chip, val);
 		mutex_unlock(&chip->mixer_mutex);
 		return 1;
 	}
+
 	mutex_unlock(&chip->mixer_mutex);
 	return 0;
 }
 
-static struct snd_kcontrol_new vx_control_iec958_mask = {
+static struct snd_kcontrol_new vx_control_iec958_mask =
+{
 	.access =	SNDRV_CTL_ELEM_ACCESS_READ,
 	.iface =	SNDRV_CTL_ELEM_IFACE_PCM,
-	.name =		SNDRV_CTL_NAME_IEC958("",PLAYBACK,MASK),
+	.name =		SNDRV_CTL_NAME_IEC958("", PLAYBACK, MASK),
 	.info =		vx_iec958_info,	/* shared */
 	.get =		vx_iec958_mask_get,
 };
 
-static struct snd_kcontrol_new vx_control_iec958 = {
+static struct snd_kcontrol_new vx_control_iec958 =
+{
 	.iface =	SNDRV_CTL_ELEM_IFACE_PCM,
-	.name =         SNDRV_CTL_NAME_IEC958("",PLAYBACK,DEFAULT),
+	.name =         SNDRV_CTL_NAME_IEC958("", PLAYBACK, DEFAULT),
 	.info =         vx_iec958_info,
 	.get =          vx_iec958_get,
 	.put =          vx_iec958_put
@@ -878,7 +1014,8 @@ static int vx_saturation_get(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_
 	return 0;
 }
 
-static struct snd_kcontrol_new vx_control_vu_meter = {
+static struct snd_kcontrol_new vx_control_vu_meter =
+{
 	.iface =	SNDRV_CTL_ELEM_IFACE_MIXER,
 	.access =	SNDRV_CTL_ELEM_ACCESS_READ | SNDRV_CTL_ELEM_ACCESS_VOLATILE,
 	/* name will be filled later */
@@ -886,7 +1023,8 @@ static struct snd_kcontrol_new vx_control_vu_meter = {
 	.get =		vx_vu_meter_get,
 };
 
-static struct snd_kcontrol_new vx_control_peak_meter = {
+static struct snd_kcontrol_new vx_control_peak_meter =
+{
 	.iface =	SNDRV_CTL_ELEM_IFACE_MIXER,
 	.access =	SNDRV_CTL_ELEM_ACCESS_READ | SNDRV_CTL_ELEM_ACCESS_VOLATILE,
 	/* name will be filled later */
@@ -894,7 +1032,8 @@ static struct snd_kcontrol_new vx_control_peak_meter = {
 	.get =		vx_peak_meter_get,
 };
 
-static struct snd_kcontrol_new vx_control_saturation = {
+static struct snd_kcontrol_new vx_control_saturation =
+{
 	.iface =	SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name =		"Input Saturation",
 	.access =	SNDRV_CTL_ELEM_ACCESS_READ | SNDRV_CTL_ELEM_ACCESS_VOLATILE,
@@ -919,87 +1058,141 @@ int snd_vx_mixer_new(struct vx_core *chip)
 	strcpy(card->mixername, card->driver);
 
 	/* output level controls */
-	for (i = 0; i < chip->hw->num_outs; i++) {
+	for (i = 0; i < chip->hw->num_outs; i++)
+	{
 		temp = vx_control_output_level;
 		temp.index = i;
 		temp.tlv.p = chip->hw->output_level_db_scale;
+
 		if ((err = snd_ctl_add(card, snd_ctl_new1(&temp, chip))) < 0)
+		{
 			return err;
+		}
 	}
 
 	/* PCM volumes, switches, monitoring */
-	for (i = 0; i < chip->hw->num_outs; i++) {
+	for (i = 0; i < chip->hw->num_outs; i++)
+	{
 		int val = i * 2;
 		temp = vx_control_audio_gain;
 		temp.index = i;
 		temp.name = "PCM Playback Volume";
 		temp.private_value = val;
+
 		if ((err = snd_ctl_add(card, snd_ctl_new1(&temp, chip))) < 0)
+		{
 			return err;
+		}
+
 		temp = vx_control_output_switch;
 		temp.index = i;
 		temp.private_value = val;
+
 		if ((err = snd_ctl_add(card, snd_ctl_new1(&temp, chip))) < 0)
+		{
 			return err;
+		}
+
 		temp = vx_control_monitor_gain;
 		temp.index = i;
 		temp.private_value = val;
+
 		if ((err = snd_ctl_add(card, snd_ctl_new1(&temp, chip))) < 0)
+		{
 			return err;
+		}
+
 		temp = vx_control_monitor_switch;
 		temp.index = i;
 		temp.private_value = val;
+
 		if ((err = snd_ctl_add(card, snd_ctl_new1(&temp, chip))) < 0)
+		{
 			return err;
+		}
 	}
-	for (i = 0; i < chip->hw->num_outs; i++) {
+
+	for (i = 0; i < chip->hw->num_outs; i++)
+	{
 		temp = vx_control_audio_gain;
 		temp.index = i;
 		temp.name = "PCM Capture Volume";
 		temp.private_value = (i * 2) | (1 << 8);
+
 		if ((err = snd_ctl_add(card, snd_ctl_new1(&temp, chip))) < 0)
+		{
 			return err;
+		}
 	}
 
 	/* Audio source */
 	if ((err = snd_ctl_add(card, snd_ctl_new1(&vx_control_audio_src, chip))) < 0)
+	{
 		return err;
+	}
+
 	/* clock mode */
 	if ((err = snd_ctl_add(card, snd_ctl_new1(&vx_control_clock_mode, chip))) < 0)
+	{
 		return err;
+	}
+
 	/* IEC958 controls */
 	if ((err = snd_ctl_add(card, snd_ctl_new1(&vx_control_iec958_mask, chip))) < 0)
+	{
 		return err;
+	}
+
 	if ((err = snd_ctl_add(card, snd_ctl_new1(&vx_control_iec958, chip))) < 0)
+	{
 		return err;
+	}
+
 	/* VU, peak, saturation meters */
-	for (c = 0; c < 2; c++) {
+	for (c = 0; c < 2; c++)
+	{
 		static char *dir[2] = { "Output", "Input" };
-		for (i = 0; i < chip->hw->num_ins; i++) {
+
+		for (i = 0; i < chip->hw->num_ins; i++)
+		{
 			int val = (i * 2) | (c << 8);
-			if (c == 1) {
+
+			if (c == 1)
+			{
 				temp = vx_control_saturation;
 				temp.index = i;
 				temp.private_value = val;
+
 				if ((err = snd_ctl_add(card, snd_ctl_new1(&temp, chip))) < 0)
+				{
 					return err;
+				}
 			}
+
 			sprintf(name, "%s VU Meter", dir[c]);
 			temp = vx_control_vu_meter;
 			temp.index = i;
 			temp.name = name;
 			temp.private_value = val;
+
 			if ((err = snd_ctl_add(card, snd_ctl_new1(&temp, chip))) < 0)
+			{
 				return err;
+			}
+
 			sprintf(name, "%s Peak Meter", dir[c]);
 			temp = vx_control_peak_meter;
 			temp.index = i;
 			temp.name = name;
 			temp.private_value = val;
+
 			if ((err = snd_ctl_add(card, snd_ctl_new1(&temp, chip))) < 0)
+			{
 				return err;
+			}
 		}
 	}
+
 	vx_reset_audio_levels(chip);
 	return 0;
 }

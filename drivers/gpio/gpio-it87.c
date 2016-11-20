@@ -65,7 +65,8 @@
  *	switches on a subset of lines, whereas the others keep the
  *	same status all time.
  */
-struct it87_gpio {
+struct it87_gpio
+{
 	struct gpio_chip chip;
 	spinlock_t lock;
 	u16 io_base;
@@ -75,7 +76,8 @@ struct it87_gpio {
 	u8 simple_size;
 };
 
-static struct it87_gpio it87_gpio_chip = {
+static struct it87_gpio it87_gpio_chip =
+{
 	.lock = __SPIN_LOCK_UNLOCKED(it87_gpio_chip.lock),
 };
 
@@ -87,7 +89,9 @@ static inline int superio_enter(void)
 	 * Try to reserve REG and REG + 1 for exclusive access.
 	 */
 	if (!request_muxed_region(REG, 2, KBUILD_MODNAME))
+	{
 		return -EBUSY;
+	}
 
 	outb(0x87, REG);
 	outb(0x01, REG);
@@ -146,7 +150,9 @@ static inline void superio_set_mask(int mask, int reg)
 	u8 new_val = curr_val | mask;
 
 	if (curr_val != new_val)
+	{
 		superio_outb(new_val, reg);
+	}
 }
 
 static inline void superio_clear_mask(int mask, int reg)
@@ -155,7 +161,9 @@ static inline void superio_clear_mask(int mask, int reg)
 	u8 new_val = curr_val & ~mask;
 
 	if (curr_val != new_val)
+	{
 		superio_outb(new_val, reg);
+	}
 }
 
 static int it87_gpio_request(struct gpio_chip *chip, unsigned gpio_num)
@@ -170,14 +178,19 @@ static int it87_gpio_request(struct gpio_chip *chip, unsigned gpio_num)
 	spin_lock(&it87_gpio->lock);
 
 	rc = superio_enter();
+
 	if (rc)
+	{
 		goto exit;
+	}
 
 	/* not all the IT87xx chips support Simple I/O and not all of
 	 * them allow all the lines to be set/unset to Simple I/O.
 	 */
 	if (group < it87_gpio->simple_size)
+	{
 		superio_set_mask(mask, group + it87_gpio->simple_base);
+	}
 
 	/* clear output enable, setting the pin to input, as all the
 	 * newly-exported GPIO interfaces are set to input.
@@ -215,8 +228,11 @@ static int it87_gpio_direction_in(struct gpio_chip *chip, unsigned gpio_num)
 	spin_lock(&it87_gpio->lock);
 
 	rc = superio_enter();
+
 	if (rc)
+	{
 		goto exit;
+	}
 
 	/* clear the output enable bit */
 	superio_clear_mask(mask, group + it87_gpio->output_base);
@@ -229,7 +245,7 @@ exit:
 }
 
 static void it87_gpio_set(struct gpio_chip *chip,
-			  unsigned gpio_num, int val)
+						  unsigned gpio_num, int val)
 {
 	u8 mask, curr_vals;
 	u16 reg;
@@ -239,14 +255,19 @@ static void it87_gpio_set(struct gpio_chip *chip,
 	reg = (gpio_num / 8) + it87_gpio->io_base;
 
 	curr_vals = inb(reg);
+
 	if (val)
+	{
 		outb(curr_vals | mask, reg);
+	}
 	else
+	{
 		outb(curr_vals & ~mask, reg);
+	}
 }
 
 static int it87_gpio_direction_out(struct gpio_chip *chip,
-				   unsigned gpio_num, int val)
+								   unsigned gpio_num, int val)
 {
 	u8 mask, group;
 	int rc = 0;
@@ -258,8 +279,11 @@ static int it87_gpio_direction_out(struct gpio_chip *chip,
 	spin_lock(&it87_gpio->lock);
 
 	rc = superio_enter();
+
 	if (rc)
+	{
 		goto exit;
+	}
 
 	/* set the output enable bit */
 	superio_set_mask(mask, group + it87_gpio->output_base);
@@ -273,7 +297,8 @@ exit:
 	return rc;
 }
 
-static const struct gpio_chip it87_template_chip = {
+static const struct gpio_chip it87_template_chip =
+{
 	.label			= KBUILD_MODNAME,
 	.owner			= THIS_MODULE,
 	.request		= it87_gpio_request,
@@ -294,8 +319,11 @@ static int __init it87_gpio_init(void)
 	struct it87_gpio *it87_gpio = &it87_gpio_chip;
 
 	rc = superio_enter();
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	chip_type = superio_inw(CHIPID);
 	chip_rev  = superio_inb(CHIPREV) & 0x0f;
@@ -303,43 +331,51 @@ static int __init it87_gpio_init(void)
 
 	it87_gpio->chip = it87_template_chip;
 
-	switch (chip_type) {
-	case IT8620_ID:
-	case IT8628_ID:
-		gpio_ba_reg = 0x62;
-		it87_gpio->io_size = 11;
-		it87_gpio->output_base = 0xc8;
-		it87_gpio->simple_size = 0;
-		it87_gpio->chip.ngpio = 64;
-		break;
-	case IT8728_ID:
-	case IT8732_ID:
-		gpio_ba_reg = 0x62;
-		it87_gpio->io_size = 8;
-		it87_gpio->output_base = 0xc8;
-		it87_gpio->simple_base = 0xc0;
-		it87_gpio->simple_size = 5;
-		it87_gpio->chip.ngpio = 64;
-		break;
-	case IT8761_ID:
-		gpio_ba_reg = 0x60;
-		it87_gpio->io_size = 4;
-		it87_gpio->output_base = 0xf0;
-		it87_gpio->simple_size = 0;
-		it87_gpio->chip.ngpio = 16;
-		break;
-	case NO_DEV_ID:
-		pr_err("no device\n");
-		return -ENODEV;
-	default:
-		pr_err("Unknown Chip found, Chip %04x Revision %x\n",
-		       chip_type, chip_rev);
-		return -ENODEV;
+	switch (chip_type)
+	{
+		case IT8620_ID:
+		case IT8628_ID:
+			gpio_ba_reg = 0x62;
+			it87_gpio->io_size = 11;
+			it87_gpio->output_base = 0xc8;
+			it87_gpio->simple_size = 0;
+			it87_gpio->chip.ngpio = 64;
+			break;
+
+		case IT8728_ID:
+		case IT8732_ID:
+			gpio_ba_reg = 0x62;
+			it87_gpio->io_size = 8;
+			it87_gpio->output_base = 0xc8;
+			it87_gpio->simple_base = 0xc0;
+			it87_gpio->simple_size = 5;
+			it87_gpio->chip.ngpio = 64;
+			break;
+
+		case IT8761_ID:
+			gpio_ba_reg = 0x60;
+			it87_gpio->io_size = 4;
+			it87_gpio->output_base = 0xf0;
+			it87_gpio->simple_size = 0;
+			it87_gpio->chip.ngpio = 16;
+			break;
+
+		case NO_DEV_ID:
+			pr_err("no device\n");
+			return -ENODEV;
+
+		default:
+			pr_err("Unknown Chip found, Chip %04x Revision %x\n",
+				   chip_type, chip_rev);
+			return -ENODEV;
 	}
 
 	rc = superio_enter();
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	superio_select(GPIO);
 
@@ -349,12 +385,14 @@ static int __init it87_gpio_init(void)
 	superio_exit();
 
 	pr_info("Found Chip IT%04x rev %x. %u GPIO lines starting at %04xh\n",
-		chip_type, chip_rev, it87_gpio->chip.ngpio,
-		it87_gpio->io_base);
+			chip_type, chip_rev, it87_gpio->chip.ngpio,
+			it87_gpio->io_base);
 
 	if (!request_region(it87_gpio->io_base, it87_gpio->io_size,
-							KBUILD_MODNAME))
+						KBUILD_MODNAME))
+	{
 		return -EBUSY;
+	}
 
 	/* Set up aliases for the GPIO connection.
 	 *
@@ -367,27 +405,32 @@ static int __init it87_gpio_init(void)
 	 * to which GPIO pin we're referring to.
 	 */
 	labels = kcalloc(it87_gpio->chip.ngpio, sizeof("it87_gpXY"),
-								GFP_KERNEL);
+					 GFP_KERNEL);
 	labels_table = kcalloc(it87_gpio->chip.ngpio, sizeof(const char *),
-								GFP_KERNEL);
+						   GFP_KERNEL);
 
-	if (!labels || !labels_table) {
+	if (!labels || !labels_table)
+	{
 		rc = -ENOMEM;
 		goto labels_free;
 	}
 
-	for (i = 0; i < it87_gpio->chip.ngpio; i++) {
+	for (i = 0; i < it87_gpio->chip.ngpio; i++)
+	{
 		char *label = &labels[i * sizeof("it87_gpXY")];
 
-		sprintf(label, "it87_gp%u%u", 1+(i/8), i%8);
+		sprintf(label, "it87_gp%u%u", 1 + (i / 8), i % 8);
 		labels_table[i] = label;
 	}
 
-	it87_gpio->chip.names = (const char *const*)labels_table;
+	it87_gpio->chip.names = (const char *const *)labels_table;
 
 	rc = gpiochip_add_data(&it87_gpio->chip, it87_gpio);
+
 	if (rc)
+	{
 		goto labels_free;
+	}
 
 	return 0;
 

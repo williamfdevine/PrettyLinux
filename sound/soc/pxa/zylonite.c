@@ -38,7 +38,8 @@ static struct clk *pout;
 
 static struct snd_soc_card zylonite;
 
-static const struct snd_soc_dapm_widget zylonite_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget zylonite_dapm_widgets[] =
+{
 	SND_SOC_DAPM_HP("Headphone", NULL),
 	SND_SOC_DAPM_MIC("Headset Microphone", NULL),
 	SND_SOC_DAPM_MIC("Handset Microphone", NULL),
@@ -47,7 +48,8 @@ static const struct snd_soc_dapm_widget zylonite_dapm_widgets[] = {
 };
 
 /* Currently supported audio map */
-static const struct snd_soc_dapm_route audio_map[] = {
+static const struct snd_soc_dapm_route audio_map[] =
+{
 
 	/* Headphone output connected to HPL/HPR */
 	{ "Headphone", NULL,  "HPL" },
@@ -73,13 +75,13 @@ static int zylonite_wm9713_init(struct snd_soc_pcm_runtime *rtd)
 {
 	if (clk_pout)
 		snd_soc_dai_set_pll(rtd->codec_dai, 0, 0,
-				    clk_get_rate(pout), 0);
+							clk_get_rate(pout), 0);
 
 	return 0;
 }
 
 static int zylonite_voice_hw_params(struct snd_pcm_substream *substream,
-				    struct snd_pcm_hw_params *params)
+									struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
@@ -95,101 +97,121 @@ static int zylonite_voice_hw_params(struct snd_pcm_substream *substream,
 	 * In most applications the voice DAC will be used for telephony
 	 * data so multiples of 8kHz will be the common case.
 	 */
-	switch (rate) {
-	case 8000:
-		wm9713_div = 12;
-		break;
-	case 16000:
-		wm9713_div = 6;
-		break;
-	case 48000:
-		wm9713_div = 2;
-		break;
-	default:
-		/* Don't support OSS emulation */
-		return -EINVAL;
+	switch (rate)
+	{
+		case 8000:
+			wm9713_div = 12;
+			break;
+
+		case 16000:
+			wm9713_div = 6;
+			break;
+
+		case 48000:
+			wm9713_div = 2;
+			break;
+
+		default:
+			/* Don't support OSS emulation */
+			return -EINVAL;
 	}
 
 	/* Add 1 to the width for the leading clock cycle */
 	pll_out = rate * (width + 1) * 8;
 
 	ret = snd_soc_dai_set_sysclk(cpu_dai, PXA_SSP_CLK_AUDIO, 0, 1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = snd_soc_dai_set_pll(cpu_dai, 0, 0, 0, pll_out);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	if (clk_pout)
 		ret = snd_soc_dai_set_clkdiv(codec_dai, WM9713_PCMCLK_PLL_DIV,
-					     WM9713_PCMDIV(wm9713_div));
+									 WM9713_PCMDIV(wm9713_div));
 	else
 		ret = snd_soc_dai_set_clkdiv(codec_dai, WM9713_PCMCLK_DIV,
-					     WM9713_PCMDIV(wm9713_div));
+									 WM9713_PCMDIV(wm9713_div));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
 
-static struct snd_soc_ops zylonite_voice_ops = {
+static struct snd_soc_ops zylonite_voice_ops =
+{
 	.hw_params = zylonite_voice_hw_params,
 };
 
-static struct snd_soc_dai_link zylonite_dai[] = {
+static struct snd_soc_dai_link zylonite_dai[] =
 {
-	.name = "AC97",
-	.stream_name = "AC97 HiFi",
-	.codec_name = "wm9713-codec",
-	.platform_name = "pxa-pcm-audio",
-	.cpu_dai_name = "pxa2xx-ac97",
-	.codec_dai_name = "wm9713-hifi",
-	.init = zylonite_wm9713_init,
-},
-{
-	.name = "AC97 Aux",
-	.stream_name = "AC97 Aux",
-	.codec_name = "wm9713-codec",
-	.platform_name = "pxa-pcm-audio",
-	.cpu_dai_name = "pxa2xx-ac97-aux",
-	.codec_dai_name = "wm9713-aux",
-},
-{
-	.name = "WM9713 Voice",
-	.stream_name = "WM9713 Voice",
-	.codec_name = "wm9713-codec",
-	.platform_name = "pxa-pcm-audio",
-	.cpu_dai_name = "pxa-ssp-dai.2",
-	.codec_dai_name = "wm9713-voice",
-	.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
-		   SND_SOC_DAIFMT_CBS_CFS,
-	.ops = &zylonite_voice_ops,
-},
+	{
+		.name = "AC97",
+		.stream_name = "AC97 HiFi",
+		.codec_name = "wm9713-codec",
+		.platform_name = "pxa-pcm-audio",
+		.cpu_dai_name = "pxa2xx-ac97",
+		.codec_dai_name = "wm9713-hifi",
+		.init = zylonite_wm9713_init,
+	},
+	{
+		.name = "AC97 Aux",
+		.stream_name = "AC97 Aux",
+		.codec_name = "wm9713-codec",
+		.platform_name = "pxa-pcm-audio",
+		.cpu_dai_name = "pxa2xx-ac97-aux",
+		.codec_dai_name = "wm9713-aux",
+	},
+	{
+		.name = "WM9713 Voice",
+		.stream_name = "WM9713 Voice",
+		.codec_name = "wm9713-codec",
+		.platform_name = "pxa-pcm-audio",
+		.cpu_dai_name = "pxa-ssp-dai.2",
+		.codec_dai_name = "wm9713-voice",
+		.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
+		SND_SOC_DAIFMT_CBS_CFS,
+		.ops = &zylonite_voice_ops,
+	},
 };
 
 static int zylonite_probe(struct snd_soc_card *card)
 {
 	int ret;
 
-	if (clk_pout) {
+	if (clk_pout)
+	{
 		pout = clk_get(NULL, "CLK_POUT");
-		if (IS_ERR(pout)) {
+
+		if (IS_ERR(pout))
+		{
 			dev_err(card->dev, "Unable to obtain CLK_POUT: %ld\n",
-				PTR_ERR(pout));
+					PTR_ERR(pout));
 			return PTR_ERR(pout);
 		}
 
 		ret = clk_enable(pout);
-		if (ret != 0) {
+
+		if (ret != 0)
+		{
 			dev_err(card->dev, "Unable to enable CLK_POUT: %d\n",
-				ret);
+					ret);
 			clk_put(pout);
 			return ret;
 		}
 
 		dev_dbg(card->dev, "MCLK enabled at %luHz\n",
-			clk_get_rate(pout));
+				clk_get_rate(pout));
 	}
 
 	return 0;
@@ -197,7 +219,8 @@ static int zylonite_probe(struct snd_soc_card *card)
 
 static int zylonite_remove(struct snd_soc_card *card)
 {
-	if (clk_pout) {
+	if (clk_pout)
+	{
 		clk_disable(pout);
 		clk_put(pout);
 	}
@@ -208,7 +231,9 @@ static int zylonite_remove(struct snd_soc_card *card)
 static int zylonite_suspend_post(struct snd_soc_card *card)
 {
 	if (clk_pout)
+	{
 		clk_disable(pout);
+	}
 
 	return 0;
 }
@@ -217,17 +242,20 @@ static int zylonite_resume_pre(struct snd_soc_card *card)
 {
 	int ret = 0;
 
-	if (clk_pout) {
+	if (clk_pout)
+	{
 		ret = clk_enable(pout);
+
 		if (ret != 0)
 			dev_err(card->dev, "Unable to enable CLK_POUT: %d\n",
-				ret);
+					ret);
 	}
 
 	return ret;
 }
 
-static struct snd_soc_card zylonite = {
+static struct snd_soc_card zylonite =
+{
 	.name = "Zylonite",
 	.owner = THIS_MODULE,
 	.probe = &zylonite_probe,
@@ -250,14 +278,20 @@ static int __init zylonite_init(void)
 	int ret;
 
 	zylonite_snd_ac97_device = platform_device_alloc("soc-audio", -1);
+
 	if (!zylonite_snd_ac97_device)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(zylonite_snd_ac97_device, &zylonite);
 
 	ret = platform_device_add(zylonite_snd_ac97_device);
+
 	if (ret != 0)
+	{
 		platform_device_put(zylonite_snd_ac97_device);
+	}
 
 	return ret;
 }

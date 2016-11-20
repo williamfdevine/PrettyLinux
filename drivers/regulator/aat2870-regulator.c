@@ -29,7 +29,8 @@
 #include <linux/regulator/machine.h>
 #include <linux/mfd/aat2870.h>
 
-struct aat2870_regulator {
+struct aat2870_regulator
+{
 	struct aat2870_data *aat2870;
 	struct regulator_desc desc;
 
@@ -43,13 +44,13 @@ struct aat2870_regulator {
 };
 
 static int aat2870_ldo_set_voltage_sel(struct regulator_dev *rdev,
-				       unsigned selector)
+									   unsigned selector)
 {
 	struct aat2870_regulator *ri = rdev_get_drvdata(rdev);
 	struct aat2870_data *aat2870 = ri->aat2870;
 
 	return aat2870->update(aat2870, ri->voltage_addr, ri->voltage_mask,
-			       selector << ri->voltage_shift);
+						   selector << ri->voltage_shift);
 }
 
 static int aat2870_ldo_get_voltage_sel(struct regulator_dev *rdev)
@@ -60,8 +61,11 @@ static int aat2870_ldo_get_voltage_sel(struct regulator_dev *rdev)
 	int ret;
 
 	ret = aat2870->read(aat2870, ri->voltage_addr, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return (val & ri->voltage_mask) >> ri->voltage_shift;
 }
@@ -72,7 +76,7 @@ static int aat2870_ldo_enable(struct regulator_dev *rdev)
 	struct aat2870_data *aat2870 = ri->aat2870;
 
 	return aat2870->update(aat2870, ri->enable_addr, ri->enable_mask,
-			       ri->enable_mask);
+						   ri->enable_mask);
 }
 
 static int aat2870_ldo_disable(struct regulator_dev *rdev)
@@ -91,13 +95,17 @@ static int aat2870_ldo_is_enabled(struct regulator_dev *rdev)
 	int ret;
 
 	ret = aat2870->read(aat2870, ri->enable_addr, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return val & ri->enable_mask ? 1 : 0;
 }
 
-static struct regulator_ops aat2870_ldo_ops = {
+static struct regulator_ops aat2870_ldo_ops =
+{
 	.list_voltage = regulator_list_voltage_table,
 	.map_voltage = regulator_map_voltage_ascend,
 	.set_voltage_sel = aat2870_ldo_set_voltage_sel,
@@ -107,7 +115,8 @@ static struct regulator_ops aat2870_ldo_ops = {
 	.is_enabled = aat2870_ldo_is_enabled,
 };
 
-static const unsigned int aat2870_ldo_voltages[] = {
+static const unsigned int aat2870_ldo_voltages[] =
+{
 	1200000, 1300000, 1500000, 1600000,
 	1800000, 2000000, 2200000, 2500000,
 	2600000, 2700000, 2800000, 2900000,
@@ -117,17 +126,18 @@ static const unsigned int aat2870_ldo_voltages[] = {
 #define AAT2870_LDO(ids)				\
 	{						\
 		.desc = {				\
-			.name = #ids,			\
-			.id = AAT2870_ID_##ids,		\
-			.n_voltages = ARRAY_SIZE(aat2870_ldo_voltages),	\
-			.volt_table = aat2870_ldo_voltages, \
-			.ops = &aat2870_ldo_ops,	\
-			.type = REGULATOR_VOLTAGE,	\
-			.owner = THIS_MODULE,		\
-		},					\
+								.name = #ids,			\
+								.id = AAT2870_ID_##ids,		\
+								.n_voltages = ARRAY_SIZE(aat2870_ldo_voltages),	\
+								.volt_table = aat2870_ldo_voltages, \
+								.ops = &aat2870_ldo_ops,	\
+								.type = REGULATOR_VOLTAGE,	\
+								.owner = THIS_MODULE,		\
+				},					\
 	}
 
-static struct aat2870_regulator aat2870_regulators[] = {
+static struct aat2870_regulator aat2870_regulators[] =
+{
 	AAT2870_LDO(LDOA),
 	AAT2870_LDO(LDOB),
 	AAT2870_LDO(LDOC),
@@ -139,21 +149,27 @@ static struct aat2870_regulator *aat2870_get_regulator(int id)
 	struct aat2870_regulator *ri = NULL;
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(aat2870_regulators); i++) {
+	for (i = 0; i < ARRAY_SIZE(aat2870_regulators); i++)
+	{
 		ri = &aat2870_regulators[i];
+
 		if (ri->desc.id == id)
+		{
 			break;
+		}
 	}
 
 	if (i == ARRAY_SIZE(aat2870_regulators))
+	{
 		return NULL;
+	}
 
 	ri->enable_addr = AAT2870_LDO_EN;
 	ri->enable_shift = id - AAT2870_ID_LDOA;
 	ri->enable_mask = 0x1 << ri->enable_shift;
 
 	ri->voltage_addr = (id - AAT2870_ID_LDOA) / 2 ?
-			   AAT2870_LDO_CD : AAT2870_LDO_AB;
+					   AAT2870_LDO_CD : AAT2870_LDO_AB;
 	ri->voltage_shift = (id - AAT2870_ID_LDOA) % 2 ? 0 : 4;
 	ri->voltage_mask = 0xF << ri->voltage_shift;
 
@@ -167,10 +183,13 @@ static int aat2870_regulator_probe(struct platform_device *pdev)
 	struct regulator_dev *rdev;
 
 	ri = aat2870_get_regulator(pdev->id);
-	if (!ri) {
+
+	if (!ri)
+	{
 		dev_err(&pdev->dev, "Invalid device ID, %d\n", pdev->id);
 		return -EINVAL;
 	}
+
 	ri->aat2870 = dev_get_drvdata(pdev->dev.parent);
 
 	config.dev = &pdev->dev;
@@ -178,17 +197,21 @@ static int aat2870_regulator_probe(struct platform_device *pdev)
 	config.init_data = dev_get_platdata(&pdev->dev);
 
 	rdev = devm_regulator_register(&pdev->dev, &ri->desc, &config);
-	if (IS_ERR(rdev)) {
+
+	if (IS_ERR(rdev))
+	{
 		dev_err(&pdev->dev, "Failed to register regulator %s\n",
-			ri->desc.name);
+				ri->desc.name);
 		return PTR_ERR(rdev);
 	}
+
 	platform_set_drvdata(pdev, rdev);
 
 	return 0;
 }
 
-static struct platform_driver aat2870_regulator_driver = {
+static struct platform_driver aat2870_regulator_driver =
+{
 	.driver = {
 		.name	= "aat2870-regulator",
 	},

@@ -29,7 +29,8 @@
  * should be a good default behavior for most cases, but yet there still
  * might be times when you wish to do something different.
  */
-struct omap_kms_platform_data {
+struct omap_kms_platform_data
+{
 	/* overlays to use as CRTCs: */
 	int ovl_cnt;
 	const int *ovl_ids;
@@ -45,7 +46,8 @@ struct omap_kms_platform_data {
 	const char **dev_names;
 };
 
-struct omap_drm_platform_data {
+struct omap_drm_platform_data
+{
 	uint32_t omaprev;
 	struct omap_kms_platform_data *kms_pdata;
 };

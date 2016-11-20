@@ -35,7 +35,8 @@
  * a certain cooling device on a certain trip point
  * in a certain thermal zone
  */
-struct thermal_instance {
+struct thermal_instance
+{
 	int id;
 	char name[THERMAL_NAME_LENGTH];
 	struct thermal_zone_device *tz;
@@ -113,7 +114,7 @@ static inline int of_thermal_get_ntrips(struct thermal_zone_device *tz)
 	return 0;
 }
 static inline bool of_thermal_is_trip_valid(struct thermal_zone_device *tz,
-					    int trip)
+		int trip)
 {
 	return false;
 }

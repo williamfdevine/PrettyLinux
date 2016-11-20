@@ -18,7 +18,8 @@ static int orig_fgconsole, orig_kmsg;
 
 static DEFINE_MUTEX(vt_switch_mutex);
 
-struct pm_vt_switch {
+struct pm_vt_switch
+{
 	struct list_head head;
 	struct device *dev;
 	bool required;
@@ -47,8 +48,10 @@ void pm_vt_switch_required(struct device *dev, bool required)
 	struct pm_vt_switch *entry, *tmp;
 
 	mutex_lock(&vt_switch_mutex);
-	list_for_each_entry(tmp, &pm_vt_switch_list, head) {
-		if (tmp->dev == dev) {
+	list_for_each_entry(tmp, &pm_vt_switch_list, head)
+	{
+		if (tmp->dev == dev)
+		{
 			/* already registered, update requirement */
 			tmp->required = required;
 			goto out;
@@ -56,8 +59,11 @@ void pm_vt_switch_required(struct device *dev, bool required)
 	}
 
 	entry = kmalloc(sizeof(*entry), GFP_KERNEL);
+
 	if (!entry)
+	{
 		goto out;
+	}
 
 	entry->required = required;
 	entry->dev = dev;
@@ -79,8 +85,10 @@ void pm_vt_switch_unregister(struct device *dev)
 	struct pm_vt_switch *tmp;
 
 	mutex_lock(&vt_switch_mutex);
-	list_for_each_entry(tmp, &pm_vt_switch_list, head) {
-		if (tmp->dev == dev) {
+	list_for_each_entry(tmp, &pm_vt_switch_list, head)
+	{
+		if (tmp->dev == dev)
+		{
 			list_del(&tmp->head);
 			kfree(tmp);
 			break;
@@ -109,15 +117,23 @@ static bool pm_vt_switch(void)
 	bool ret = true;
 
 	mutex_lock(&vt_switch_mutex);
+
 	if (list_empty(&pm_vt_switch_list))
+	{
 		goto out;
+	}
 
 	if (!console_suspend_enabled)
+	{
 		goto out;
+	}
 
-	list_for_each_entry(entry, &pm_vt_switch_list, head) {
+	list_for_each_entry(entry, &pm_vt_switch_list, head)
+	{
 		if (entry->required)
+		{
 			goto out;
+		}
 	}
 
 	ret = false;
@@ -129,11 +145,16 @@ out:
 void pm_prepare_console(void)
 {
 	if (!pm_vt_switch())
+	{
 		return;
+	}
 
 	orig_fgconsole = vt_move_to_console(SUSPEND_CONSOLE, 1);
+
 	if (orig_fgconsole < 0)
+	{
 		return;
+	}
 
 	orig_kmsg = vt_kmsg_redirect(SUSPEND_CONSOLE);
 	return;
@@ -142,9 +163,12 @@ void pm_prepare_console(void)
 void pm_restore_console(void)
 {
 	if (!pm_vt_switch())
+	{
 		return;
+	}
 
-	if (orig_fgconsole >= 0) {
+	if (orig_fgconsole >= 0)
+	{
 		vt_move_to_console(orig_fgconsole, 0);
 		vt_kmsg_redirect(orig_kmsg);
 	}

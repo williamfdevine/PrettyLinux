@@ -12,7 +12,8 @@
 #ifndef MIDIBUF_H
 #define MIDIBUF_H
 
-struct midi_buffer {
+struct midi_buffer
+{
 	unsigned char *buf;
 	int size;
 	int split;
@@ -27,9 +28,9 @@ extern void line6_midibuf_destroy(struct midi_buffer *mb);
 extern int line6_midibuf_ignore(struct midi_buffer *mb, int length);
 extern int line6_midibuf_init(struct midi_buffer *mb, int size, int split);
 extern int line6_midibuf_read(struct midi_buffer *mb, unsigned char *data,
-			      int length);
+							  int length);
 extern void line6_midibuf_reset(struct midi_buffer *mb);
 extern int line6_midibuf_write(struct midi_buffer *mb, unsigned char *data,
-			       int length);
+							   int length);
 
 #endif

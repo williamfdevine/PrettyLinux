@@ -5,7 +5,8 @@
  *
  * It's OK if the min/max values are zero.
  */
-struct ad7877_platform_data {
+struct ad7877_platform_data
+{
 	u16	model;			/* 7877 */
 	u16	vref_delay_usecs;	/* 0 for external vref; etc */
 	u16	x_plate_ohms;

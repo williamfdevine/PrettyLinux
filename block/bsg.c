@@ -32,7 +32,8 @@
 #define BSG_DESCRIPTION	"Block layer SCSI generic (bsg) driver"
 #define BSG_VERSION	"0.4"
 
-struct bsg_device {
+struct bsg_device
+{
 	struct request_queue *queue;
 	spinlock_t lock;
 	struct list_head busy_list;
@@ -48,7 +49,8 @@ struct bsg_device {
 	unsigned long flags;
 };
 
-enum {
+enum
+{
 	BSG_F_BLOCK		= 1,
 };
 
@@ -58,9 +60,9 @@ enum {
 #undef BSG_DEBUG
 
 #ifdef BSG_DEBUG
-#define dprintk(fmt, args...) printk(KERN_ERR "%s: " fmt, __func__, ##args)
+	#define dprintk(fmt, args...) printk(KERN_ERR "%s: " fmt, __func__, ##args)
 #else
-#define dprintk(fmt, args...)
+	#define dprintk(fmt, args...)
 #endif
 
 static DEFINE_MUTEX(bsg_mutex);
@@ -77,7 +79,8 @@ static struct kmem_cache *bsg_cmd_cachep;
 /*
  * our internal command type
  */
-struct bsg_command {
+struct bsg_command
+{
 	struct bsg_device *bd;
 	struct list_head list;
 	struct request *rq;
@@ -109,13 +112,17 @@ static struct bsg_command *bsg_alloc_command(struct bsg_device *bd)
 	spin_lock_irq(&bd->lock);
 
 	if (bd->queued_cmds >= bd->max_queue)
+	{
 		goto out;
+	}
 
 	bd->queued_cmds++;
 	spin_unlock_irq(&bd->lock);
 
 	bc = kmem_cache_zalloc(bsg_cmd_cachep, GFP_KERNEL);
-	if (unlikely(!bc)) {
+
+	if (unlikely(!bc))
+	{
 		spin_lock_irq(&bd->lock);
 		bd->queued_cmds--;
 		bc = ERR_PTR(-ENOMEM);
@@ -137,24 +144,36 @@ static inline struct hlist_head *bsg_dev_idx_hash(int index)
 }
 
 static int blk_fill_sgv4_hdr_rq(struct request_queue *q, struct request *rq,
-				struct sg_io_v4 *hdr, struct bsg_device *bd,
-				fmode_t has_write_perm)
+								struct sg_io_v4 *hdr, struct bsg_device *bd,
+								fmode_t has_write_perm)
 {
-	if (hdr->request_len > BLK_MAX_CDB) {
+	if (hdr->request_len > BLK_MAX_CDB)
+	{
 		rq->cmd = kzalloc(hdr->request_len, GFP_KERNEL);
+
 		if (!rq->cmd)
+		{
 			return -ENOMEM;
+		}
 	}
 
 	if (copy_from_user(rq->cmd, (void __user *)(unsigned long)hdr->request,
-			   hdr->request_len))
+					   hdr->request_len))
+	{
 		return -EFAULT;
+	}
 
-	if (hdr->subprotocol == BSG_SUB_PROTOCOL_SCSI_CMD) {
+	if (hdr->subprotocol == BSG_SUB_PROTOCOL_SCSI_CMD)
+	{
 		if (blk_verify_command(rq->cmd, has_write_perm))
+		{
 			return -EPERM;
-	} else if (!capable(CAP_SYS_RAWIO))
+		}
+	}
+	else if (!capable(CAP_SYS_RAWIO))
+	{
 		return -EPERM;
+	}
 
 	/*
 	 * fill in request structure
@@ -162,12 +181,21 @@ static int blk_fill_sgv4_hdr_rq(struct request_queue *q, struct request *rq,
 	rq->cmd_len = hdr->request_len;
 
 	rq->timeout = msecs_to_jiffies(hdr->timeout);
+
 	if (!rq->timeout)
+	{
 		rq->timeout = q->sg_timeout;
+	}
+
 	if (!rq->timeout)
+	{
 		rq->timeout = BLK_DEFAULT_SG_TIMEOUT;
+	}
+
 	if (rq->timeout < BLK_MIN_SG_TIMEOUT)
+	{
 		rq->timeout = BLK_MIN_SG_TIMEOUT;
+	}
 
 	return 0;
 }
@@ -181,20 +209,27 @@ bsg_validate_sgv4_hdr(struct request_queue *q, struct sg_io_v4 *hdr, int *rw)
 	int ret = 0;
 
 	if (hdr->guard != 'Q')
+	{
 		return -EINVAL;
+	}
 
-	switch (hdr->protocol) {
-	case BSG_PROTOCOL_SCSI:
-		switch (hdr->subprotocol) {
-		case BSG_SUB_PROTOCOL_SCSI_CMD:
-		case BSG_SUB_PROTOCOL_SCSI_TRANSPORT:
+	switch (hdr->protocol)
+	{
+		case BSG_PROTOCOL_SCSI:
+			switch (hdr->subprotocol)
+			{
+				case BSG_SUB_PROTOCOL_SCSI_CMD:
+				case BSG_SUB_PROTOCOL_SCSI_TRANSPORT:
+					break;
+
+				default:
+					ret = -EINVAL;
+			}
+
 			break;
+
 		default:
 			ret = -EINVAL;
-		}
-		break;
-	default:
-		ret = -EINVAL;
 	}
 
 	*rw = hdr->dout_xfer_len ? WRITE : READ;
@@ -206,7 +241,7 @@ bsg_validate_sgv4_hdr(struct request_queue *q, struct sg_io_v4 *hdr, int *rw)
  */
 static struct request *
 bsg_map_hdr(struct bsg_device *bd, struct sg_io_v4 *hdr, fmode_t has_write_perm,
-	    u8 *sense)
+			u8 *sense)
 {
 	struct request_queue *q = bd->queue;
 	struct request *rq, *next_rq = NULL;
@@ -220,64 +255,94 @@ bsg_map_hdr(struct bsg_device *bd, struct sg_io_v4 *hdr, fmode_t has_write_perm,
 	 * longer use this request_queue. Return no such address.
 	 */
 	if (!bcd->class_dev)
+	{
 		return ERR_PTR(-ENXIO);
+	}
 
 	dprintk("map hdr %llx/%u %llx/%u\n", (unsigned long long) hdr->dout_xferp,
-		hdr->dout_xfer_len, (unsigned long long) hdr->din_xferp,
-		hdr->din_xfer_len);
+			hdr->dout_xfer_len, (unsigned long long) hdr->din_xferp,
+			hdr->din_xfer_len);
 
 	ret = bsg_validate_sgv4_hdr(q, hdr, &rw);
+
 	if (ret)
+	{
 		return ERR_PTR(ret);
+	}
 
 	/*
 	 * map scatter-gather elements separately and string them to request
 	 */
 	rq = blk_get_request(q, rw, GFP_KERNEL);
+
 	if (IS_ERR(rq))
+	{
 		return rq;
+	}
+
 	blk_rq_set_block_pc(rq);
 
 	ret = blk_fill_sgv4_hdr_rq(q, rq, hdr, bd, has_write_perm);
-	if (ret)
-		goto out;
 
-	if (rw == WRITE && hdr->din_xfer_len) {
-		if (!test_bit(QUEUE_FLAG_BIDI, &q->queue_flags)) {
+	if (ret)
+	{
+		goto out;
+	}
+
+	if (rw == WRITE && hdr->din_xfer_len)
+	{
+		if (!test_bit(QUEUE_FLAG_BIDI, &q->queue_flags))
+		{
 			ret = -EOPNOTSUPP;
 			goto out;
 		}
 
 		next_rq = blk_get_request(q, READ, GFP_KERNEL);
-		if (IS_ERR(next_rq)) {
+
+		if (IS_ERR(next_rq))
+		{
 			ret = PTR_ERR(next_rq);
 			next_rq = NULL;
 			goto out;
 		}
+
 		rq->next_rq = next_rq;
 		next_rq->cmd_type = rq->cmd_type;
 
 		dxferp = (void __user *)(unsigned long)hdr->din_xferp;
 		ret =  blk_rq_map_user(q, next_rq, NULL, dxferp,
-				       hdr->din_xfer_len, GFP_KERNEL);
+							   hdr->din_xfer_len, GFP_KERNEL);
+
 		if (ret)
+		{
 			goto out;
+		}
 	}
 
-	if (hdr->dout_xfer_len) {
+	if (hdr->dout_xfer_len)
+	{
 		dxfer_len = hdr->dout_xfer_len;
 		dxferp = (void __user *)(unsigned long)hdr->dout_xferp;
-	} else if (hdr->din_xfer_len) {
+	}
+	else if (hdr->din_xfer_len)
+	{
 		dxfer_len = hdr->din_xfer_len;
 		dxferp = (void __user *)(unsigned long)hdr->din_xferp;
-	} else
+	}
+	else
+	{
 		dxfer_len = 0;
+	}
 
-	if (dxfer_len) {
+	if (dxfer_len)
+	{
 		ret = blk_rq_map_user(q, rq, NULL, dxferp, dxfer_len,
-				      GFP_KERNEL);
+							  GFP_KERNEL);
+
 		if (ret)
+		{
 			goto out;
+		}
 	}
 
 	rq->sense = sense;
@@ -285,13 +350,20 @@ bsg_map_hdr(struct bsg_device *bd, struct sg_io_v4 *hdr, fmode_t has_write_perm,
 
 	return rq;
 out:
+
 	if (rq->cmd != rq->__cmd)
+	{
 		kfree(rq->cmd);
+	}
+
 	blk_put_request(rq);
-	if (next_rq) {
+
+	if (next_rq)
+	{
 		blk_rq_unmap_user(next_rq->bio);
 		blk_put_request(next_rq);
 	}
+
 	return ERR_PTR(ret);
 }
 
@@ -306,7 +378,7 @@ static void bsg_rq_end_io(struct request *rq, int uptodate)
 	unsigned long flags;
 
 	dprintk("%s: finished rq %p bc %p, bio %p stat %d\n",
-		bd->name, rq, bc, bc->bio, uptodate);
+			bd->name, rq, bc, bc->bio, uptodate);
 
 	bc->hdr.duration = jiffies_to_msecs(jiffies - bc->hdr.duration);
 
@@ -323,7 +395,7 @@ static void bsg_rq_end_io(struct request *rq, int uptodate)
  * layer for io
  */
 static void bsg_add_command(struct bsg_device *bd, struct request_queue *q,
-			    struct bsg_command *bc, struct request *rq)
+							struct bsg_command *bc, struct request *rq)
 {
 	int at_head = (0 == (bc->hdr.flags & BSG_FLAG_Q_AT_TAIL));
 
@@ -332,8 +404,12 @@ static void bsg_add_command(struct bsg_device *bd, struct request_queue *q,
 	 */
 	bc->rq = rq;
 	bc->bio = rq->bio;
+
 	if (rq->next_rq)
+	{
 		bc->bidi_bio = rq->next_rq->bio;
+	}
+
 	bc->hdr.duration = jiffies;
 	spin_lock_irq(&bd->lock);
 	list_add_tail(&bc->list, &bd->busy_list);
@@ -350,11 +426,14 @@ static struct bsg_command *bsg_next_done_cmd(struct bsg_device *bd)
 	struct bsg_command *bc = NULL;
 
 	spin_lock_irq(&bd->lock);
-	if (bd->done_cmds) {
+
+	if (bd->done_cmds)
+	{
 		bc = list_first_entry(&bd->done_list, struct bsg_command, list);
 		list_del(&bc->list);
 		bd->done_cmds--;
 	}
+
 	spin_unlock_irq(&bd->lock);
 
 	return bc;
@@ -368,22 +447,30 @@ static struct bsg_command *bsg_get_done_cmd(struct bsg_device *bd)
 	struct bsg_command *bc;
 	int ret;
 
-	do {
+	do
+	{
 		bc = bsg_next_done_cmd(bd);
-		if (bc)
-			break;
 
-		if (!test_bit(BSG_F_BLOCK, &bd->flags)) {
+		if (bc)
+		{
+			break;
+		}
+
+		if (!test_bit(BSG_F_BLOCK, &bd->flags))
+		{
 			bc = ERR_PTR(-EAGAIN);
 			break;
 		}
 
 		ret = wait_event_interruptible(bd->wq_done, bd->done_cmds);
-		if (ret) {
+
+		if (ret)
+		{
 			bc = ERR_PTR(-ERESTARTSYS);
 			break;
 		}
-	} while (1);
+	}
+	while (1);
 
 	dprintk("%s: returning done %p\n", bd->name, bc);
 
@@ -391,7 +478,7 @@ static struct bsg_command *bsg_get_done_cmd(struct bsg_device *bd)
 }
 
 static int blk_complete_sgv4_hdr_rq(struct request *rq, struct sg_io_v4 *hdr,
-				    struct bio *bio, struct bio *bidi_bio)
+									struct bio *bio, struct bio *bidi_bio)
 {
 	int ret = 0;
 
@@ -403,31 +490,47 @@ static int blk_complete_sgv4_hdr_rq(struct request *rq, struct sg_io_v4 *hdr,
 	hdr->transport_status = host_byte(rq->errors);
 	hdr->driver_status = driver_byte(rq->errors);
 	hdr->info = 0;
+
 	if (hdr->device_status || hdr->transport_status || hdr->driver_status)
+	{
 		hdr->info |= SG_INFO_CHECK;
-	hdr->response_len = 0;
-
-	if (rq->sense_len && hdr->response) {
-		int len = min_t(unsigned int, hdr->max_response_len,
-					rq->sense_len);
-
-		ret = copy_to_user((void __user *)(unsigned long)hdr->response,
-				   rq->sense, len);
-		if (!ret)
-			hdr->response_len = len;
-		else
-			ret = -EFAULT;
 	}
 
-	if (rq->next_rq) {
+	hdr->response_len = 0;
+
+	if (rq->sense_len && hdr->response)
+	{
+		int len = min_t(unsigned int, hdr->max_response_len,
+						rq->sense_len);
+
+		ret = copy_to_user((void __user *)(unsigned long)hdr->response,
+						   rq->sense, len);
+
+		if (!ret)
+		{
+			hdr->response_len = len;
+		}
+		else
+		{
+			ret = -EFAULT;
+		}
+	}
+
+	if (rq->next_rq)
+	{
 		hdr->dout_resid = rq->resid_len;
 		hdr->din_resid = rq->next_rq->resid_len;
 		blk_rq_unmap_user(bidi_bio);
 		blk_put_request(rq->next_rq);
-	} else if (rq_data_dir(rq) == READ)
+	}
+	else if (rq_data_dir(rq) == READ)
+	{
 		hdr->din_resid = rq->resid_len;
+	}
 	else
+	{
 		hdr->dout_resid = rq->resid_len;
+	}
 
 	/*
 	 * If the request generated a negative error number, return it
@@ -436,11 +539,17 @@ static int blk_complete_sgv4_hdr_rq(struct request *rq, struct sg_io_v4 *hdr,
 	 * processed above.
 	 */
 	if (!ret && rq->errors < 0)
+	{
 		ret = rq->errors;
+	}
 
 	blk_rq_unmap_user(bio);
+
 	if (rq->cmd != rq->__cmd)
+	{
 		kfree(rq->cmd);
+	}
+
 	blk_put_request(rq);
 
 	return ret;
@@ -451,7 +560,8 @@ static bool bsg_complete(struct bsg_device *bd)
 	bool ret = false;
 	bool spin;
 
-	do {
+	do
+	{
 		spin_lock_irq(&bd->lock);
 
 		BUG_ON(bd->done_cmds > bd->queued_cmds);
@@ -460,12 +570,15 @@ static bool bsg_complete(struct bsg_device *bd)
 		 * All commands consumed.
 		 */
 		if (bd->done_cmds == bd->queued_cmds)
+		{
 			ret = true;
+		}
 
 		spin = !test_bit(BSG_F_BLOCK, &bd->flags);
 
 		spin_unlock_irq(&bd->lock);
-	} while (!ret && spin);
+	}
+	while (!ret && spin);
 
 	return ret;
 }
@@ -486,44 +599,62 @@ static int bsg_complete_all_commands(struct bsg_device *bd)
 	 * discard done commands
 	 */
 	ret = 0;
-	do {
+
+	do
+	{
 		spin_lock_irq(&bd->lock);
-		if (!bd->queued_cmds) {
+
+		if (!bd->queued_cmds)
+		{
 			spin_unlock_irq(&bd->lock);
 			break;
 		}
+
 		spin_unlock_irq(&bd->lock);
 
 		bc = bsg_get_done_cmd(bd);
+
 		if (IS_ERR(bc))
+		{
 			break;
+		}
 
 		tret = blk_complete_sgv4_hdr_rq(bc->rq, &bc->hdr, bc->bio,
-						bc->bidi_bio);
+										bc->bidi_bio);
+
 		if (!ret)
+		{
 			ret = tret;
+		}
 
 		bsg_free_command(bc);
-	} while (1);
+	}
+	while (1);
 
 	return ret;
 }
 
 static int
 __bsg_read(char __user *buf, size_t count, struct bsg_device *bd,
-	   const struct iovec *iov, ssize_t *bytes_read)
+		   const struct iovec *iov, ssize_t *bytes_read)
 {
 	struct bsg_command *bc;
 	int nr_commands, ret;
 
 	if (count % sizeof(struct sg_io_v4))
+	{
 		return -EINVAL;
+	}
 
 	ret = 0;
 	nr_commands = count / sizeof(struct sg_io_v4);
-	while (nr_commands) {
+
+	while (nr_commands)
+	{
 		bc = bsg_get_done_cmd(bd);
-		if (IS_ERR(bc)) {
+
+		if (IS_ERR(bc))
+		{
 			ret = PTR_ERR(bc);
 			break;
 		}
@@ -534,15 +665,19 @@ __bsg_read(char __user *buf, size_t count, struct bsg_device *bd,
 		 * bsg_complete_work() cannot do that for us
 		 */
 		ret = blk_complete_sgv4_hdr_rq(bc->rq, &bc->hdr, bc->bio,
-					       bc->bidi_bio);
+									   bc->bidi_bio);
 
 		if (copy_to_user(buf, &bc->hdr, sizeof(bc->hdr)))
+		{
 			ret = -EFAULT;
+		}
 
 		bsg_free_command(bc);
 
 		if (ret)
+		{
 			break;
+		}
 
 		buf += sizeof(struct sg_io_v4);
 		*bytes_read += sizeof(struct sg_io_v4);
@@ -555,9 +690,13 @@ __bsg_read(char __user *buf, size_t count, struct bsg_device *bd,
 static inline void bsg_set_block(struct bsg_device *bd, struct file *file)
 {
 	if (file->f_flags & O_NONBLOCK)
+	{
 		clear_bit(BSG_F_BLOCK, &bd->flags);
+	}
 	else
+	{
 		set_bit(BSG_F_BLOCK, &bd->flags);
+	}
 }
 
 /*
@@ -566,7 +705,9 @@ static inline void bsg_set_block(struct bsg_device *bd, struct file *file)
 static inline int err_block_err(int ret)
 {
 	if (ret && ret != -ENOSPC && ret != -ENODATA && ret != -EAGAIN)
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -587,37 +728,46 @@ bsg_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
 	*ppos = bytes_read;
 
 	if (!bytes_read || err_block_err(ret))
+	{
 		bytes_read = ret;
+	}
 
 	return bytes_read;
 }
 
 static int __bsg_write(struct bsg_device *bd, const char __user *buf,
-		       size_t count, ssize_t *bytes_written,
-		       fmode_t has_write_perm)
+					   size_t count, ssize_t *bytes_written,
+					   fmode_t has_write_perm)
 {
 	struct bsg_command *bc;
 	struct request *rq;
 	int ret, nr_commands;
 
 	if (count % sizeof(struct sg_io_v4))
+	{
 		return -EINVAL;
+	}
 
 	nr_commands = count / sizeof(struct sg_io_v4);
 	rq = NULL;
 	bc = NULL;
 	ret = 0;
-	while (nr_commands) {
+
+	while (nr_commands)
+	{
 		struct request_queue *q = bd->queue;
 
 		bc = bsg_alloc_command(bd);
-		if (IS_ERR(bc)) {
+
+		if (IS_ERR(bc))
+		{
 			ret = PTR_ERR(bc);
 			bc = NULL;
 			break;
 		}
 
-		if (copy_from_user(&bc->hdr, buf, sizeof(bc->hdr))) {
+		if (copy_from_user(&bc->hdr, buf, sizeof(bc->hdr)))
+		{
 			ret = -EFAULT;
 			break;
 		}
@@ -626,7 +776,9 @@ static int __bsg_write(struct bsg_device *bd, const char __user *buf,
 		 * get a request, fill in the blanks, and add to request queue
 		 */
 		rq = bsg_map_hdr(bd, &bc->hdr, has_write_perm, bc->sense);
-		if (IS_ERR(rq)) {
+
+		if (IS_ERR(rq))
+		{
 			ret = PTR_ERR(rq);
 			rq = NULL;
 			break;
@@ -641,7 +793,9 @@ static int __bsg_write(struct bsg_device *bd, const char __user *buf,
 	}
 
 	if (bc)
+	{
 		bsg_free_command(bc);
+	}
 
 	return ret;
 }
@@ -659,7 +813,7 @@ bsg_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
 
 	bytes_written = 0;
 	ret = __bsg_write(bd, buf, count, &bytes_written,
-			  file->f_mode & FMODE_WRITE);
+					  file->f_mode & FMODE_WRITE);
 
 	*ppos = bytes_written;
 
@@ -667,7 +821,9 @@ bsg_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
 	 * return bytes written on non-fatal errors
 	 */
 	if (!bytes_written || err_block_err(ret))
+	{
 		bytes_written = ret;
+	}
 
 	dprintk("%s: returning %Zd\n", bd->name, bytes_written);
 	return bytes_written;
@@ -678,8 +834,11 @@ static struct bsg_device *bsg_alloc_device(void)
 	struct bsg_device *bd;
 
 	bd = kzalloc(sizeof(struct bsg_device), GFP_KERNEL);
+
 	if (unlikely(!bd))
+	{
 		return NULL;
+	}
 
 	spin_lock_init(&bd->lock);
 
@@ -701,7 +860,9 @@ static void bsg_kref_release_function(struct kref *kref)
 	struct device *parent = bcd->parent;
 
 	if (bcd->release)
+	{
 		bcd->release(bcd->parent);
+	}
 
 	put_device(parent);
 }
@@ -714,7 +875,9 @@ static int bsg_put_device(struct bsg_device *bd)
 	mutex_lock(&bsg_mutex);
 
 	do_free = atomic_dec_and_test(&bd->ref_count);
-	if (!do_free) {
+
+	if (!do_free)
+	{
 		mutex_unlock(&bsg_mutex);
 		goto out;
 	}
@@ -739,24 +902,33 @@ static int bsg_put_device(struct bsg_device *bd)
 	kfree(bd);
 out:
 	kref_put(&q->bsg_dev.ref, bsg_kref_release_function);
+
 	if (do_free)
+	{
 		blk_put_queue(q);
+	}
+
 	return ret;
 }
 
 static struct bsg_device *bsg_add_device(struct inode *inode,
-					 struct request_queue *rq,
-					 struct file *file)
+		struct request_queue *rq,
+		struct file *file)
 {
 	struct bsg_device *bd;
 #ifdef BSG_DEBUG
 	unsigned char buf[32];
 #endif
+
 	if (!blk_get_queue(rq))
+	{
 		return ERR_PTR(-ENXIO);
+	}
 
 	bd = bsg_alloc_device();
-	if (!bd) {
+
+	if (!bd)
+	{
 		blk_put_queue(rq);
 		return ERR_PTR(-ENOMEM);
 	}
@@ -771,7 +943,7 @@ static struct bsg_device *bsg_add_device(struct inode *inode,
 
 	strncpy(bd->name, dev_name(rq->bsg_dev.class_dev), sizeof(bd->name) - 1);
 	dprintk("bound to <%s>, max queue %d\n",
-		format_dev_t(buf, inode->i_rdev), bd->max_queue);
+			format_dev_t(buf, inode->i_rdev), bd->max_queue);
 
 	mutex_unlock(&bsg_mutex);
 	return bd;
@@ -783,8 +955,10 @@ static struct bsg_device *__bsg_get_device(int minor, struct request_queue *q)
 
 	mutex_lock(&bsg_mutex);
 
-	hlist_for_each_entry(bd, bsg_dev_idx_hash(minor), dev_list) {
-		if (bd->queue == q) {
+	hlist_for_each_entry(bd, bsg_dev_idx_hash(minor), dev_list)
+	{
+		if (bd->queue == q)
+		{
 			atomic_inc(&bd->ref_count);
 			goto found;
 		}
@@ -805,20 +979,32 @@ static struct bsg_device *bsg_get_device(struct inode *inode, struct file *file)
 	 */
 	mutex_lock(&bsg_mutex);
 	bcd = idr_find(&bsg_minor_idr, iminor(inode));
+
 	if (bcd)
+	{
 		kref_get(&bcd->ref);
+	}
+
 	mutex_unlock(&bsg_mutex);
 
 	if (!bcd)
+	{
 		return ERR_PTR(-ENODEV);
+	}
 
 	bd = __bsg_get_device(iminor(inode), bcd->queue);
+
 	if (bd)
+	{
 		return bd;
+	}
 
 	bd = bsg_add_device(inode, bcd->queue, file);
+
 	if (IS_ERR(bd))
+	{
 		kref_put(&bcd->ref, bsg_kref_release_function);
+	}
 
 	return bd;
 }
@@ -830,7 +1016,9 @@ static int bsg_open(struct inode *inode, struct file *file)
 	bd = bsg_get_device(inode, file);
 
 	if (IS_ERR(bd))
+	{
 		return PTR_ERR(bd);
+	}
 
 	file->private_data = bd;
 	return 0;
@@ -853,10 +1041,17 @@ static unsigned int bsg_poll(struct file *file, poll_table *wait)
 	poll_wait(file, &bd->wq_free, wait);
 
 	spin_lock_irq(&bd->lock);
+
 	if (!list_empty(&bd->done_list))
+	{
 		mask |= POLLIN | POLLRDNORM;
+	}
+
 	if (bd->queued_cmds < bd->max_queue)
+	{
 		mask |= POLLOUT;
+	}
+
 	spin_unlock_irq(&bd->lock);
 
 	return mask;
@@ -868,81 +1063,104 @@ static long bsg_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	int __user *uarg = (int __user *) arg;
 	int ret;
 
-	switch (cmd) {
+	switch (cmd)
+	{
 		/*
 		 * our own ioctls
 		 */
-	case SG_GET_COMMAND_Q:
-		return put_user(bd->max_queue, uarg);
-	case SG_SET_COMMAND_Q: {
-		int queue;
+		case SG_GET_COMMAND_Q:
+			return put_user(bd->max_queue, uarg);
 
-		if (get_user(queue, uarg))
-			return -EFAULT;
-		if (queue < 1)
-			return -EINVAL;
+		case SG_SET_COMMAND_Q:
+			{
+				int queue;
 
-		spin_lock_irq(&bd->lock);
-		bd->max_queue = queue;
-		spin_unlock_irq(&bd->lock);
-		return 0;
-	}
+				if (get_user(queue, uarg))
+				{
+					return -EFAULT;
+				}
 
-	/*
-	 * SCSI/sg ioctls
-	 */
-	case SG_GET_VERSION_NUM:
-	case SCSI_IOCTL_GET_IDLUN:
-	case SCSI_IOCTL_GET_BUS_NUMBER:
-	case SG_SET_TIMEOUT:
-	case SG_GET_TIMEOUT:
-	case SG_GET_RESERVED_SIZE:
-	case SG_SET_RESERVED_SIZE:
-	case SG_EMULATED_HOST:
-	case SCSI_IOCTL_SEND_COMMAND: {
-		void __user *uarg = (void __user *) arg;
-		return scsi_cmd_ioctl(bd->queue, NULL, file->f_mode, cmd, uarg);
-	}
-	case SG_IO: {
-		struct request *rq;
-		struct bio *bio, *bidi_bio = NULL;
-		struct sg_io_v4 hdr;
-		int at_head;
-		u8 sense[SCSI_SENSE_BUFFERSIZE];
+				if (queue < 1)
+				{
+					return -EINVAL;
+				}
 
-		if (copy_from_user(&hdr, uarg, sizeof(hdr)))
-			return -EFAULT;
+				spin_lock_irq(&bd->lock);
+				bd->max_queue = queue;
+				spin_unlock_irq(&bd->lock);
+				return 0;
+			}
 
-		rq = bsg_map_hdr(bd, &hdr, file->f_mode & FMODE_WRITE, sense);
-		if (IS_ERR(rq))
-			return PTR_ERR(rq);
+		/*
+		 * SCSI/sg ioctls
+		 */
+		case SG_GET_VERSION_NUM:
+		case SCSI_IOCTL_GET_IDLUN:
+		case SCSI_IOCTL_GET_BUS_NUMBER:
+		case SG_SET_TIMEOUT:
+		case SG_GET_TIMEOUT:
+		case SG_GET_RESERVED_SIZE:
+		case SG_SET_RESERVED_SIZE:
+		case SG_EMULATED_HOST:
+		case SCSI_IOCTL_SEND_COMMAND:
+			{
+				void __user *uarg = (void __user *) arg;
+				return scsi_cmd_ioctl(bd->queue, NULL, file->f_mode, cmd, uarg);
+			}
 
-		bio = rq->bio;
-		if (rq->next_rq)
-			bidi_bio = rq->next_rq->bio;
+		case SG_IO:
+			{
+				struct request *rq;
+				struct bio *bio, *bidi_bio = NULL;
+				struct sg_io_v4 hdr;
+				int at_head;
+				u8 sense[SCSI_SENSE_BUFFERSIZE];
 
-		at_head = (0 == (hdr.flags & BSG_FLAG_Q_AT_TAIL));
-		blk_execute_rq(bd->queue, NULL, rq, at_head);
-		ret = blk_complete_sgv4_hdr_rq(rq, &hdr, bio, bidi_bio);
+				if (copy_from_user(&hdr, uarg, sizeof(hdr)))
+				{
+					return -EFAULT;
+				}
 
-		if (copy_to_user(uarg, &hdr, sizeof(hdr)))
-			return -EFAULT;
+				rq = bsg_map_hdr(bd, &hdr, file->f_mode & FMODE_WRITE, sense);
 
-		return ret;
-	}
-	/*
-	 * block device ioctls
-	 */
-	default:
+				if (IS_ERR(rq))
+				{
+					return PTR_ERR(rq);
+				}
+
+				bio = rq->bio;
+
+				if (rq->next_rq)
+				{
+					bidi_bio = rq->next_rq->bio;
+				}
+
+				at_head = (0 == (hdr.flags & BSG_FLAG_Q_AT_TAIL));
+				blk_execute_rq(bd->queue, NULL, rq, at_head);
+				ret = blk_complete_sgv4_hdr_rq(rq, &hdr, bio, bidi_bio);
+
+				if (copy_to_user(uarg, &hdr, sizeof(hdr)))
+				{
+					return -EFAULT;
+				}
+
+				return ret;
+			}
+
+		/*
+		 * block device ioctls
+		 */
+		default:
 #if 0
-		return ioctl_by_bdev(bd->bdev, cmd, arg);
+			return ioctl_by_bdev(bd->bdev, cmd, arg);
 #else
-		return -ENOTTY;
+			return -ENOTTY;
 #endif
 	}
 }
 
-static const struct file_operations bsg_fops = {
+static const struct file_operations bsg_fops =
+{
 	.read		=	bsg_read,
 	.write		=	bsg_write,
 	.poll		=	bsg_poll,
@@ -958,12 +1176,18 @@ void bsg_unregister_queue(struct request_queue *q)
 	struct bsg_class_device *bcd = &q->bsg_dev;
 
 	if (!bcd->class_dev)
+	{
 		return;
+	}
 
 	mutex_lock(&bsg_mutex);
 	idr_remove(&bsg_minor_idr, bcd->minor);
+
 	if (q->kobj.sd)
+	{
 		sysfs_remove_link(&q->kobj, "bsg");
+	}
+
 	device_unregister(bcd->class_dev);
 	bcd->class_dev = NULL;
 	kref_put(&bcd->ref, bsg_kref_release_function);
@@ -972,7 +1196,7 @@ void bsg_unregister_queue(struct request_queue *q)
 EXPORT_SYMBOL_GPL(bsg_unregister_queue);
 
 int bsg_register_queue(struct request_queue *q, struct device *parent,
-		       const char *name, void (*release)(struct device *))
+					   const char *name, void (*release)(struct device *))
 {
 	struct bsg_class_device *bcd;
 	dev_t dev;
@@ -981,15 +1205,21 @@ int bsg_register_queue(struct request_queue *q, struct device *parent,
 	const char *devname;
 
 	if (name)
+	{
 		devname = name;
+	}
 	else
+	{
 		devname = dev_name(parent);
+	}
 
 	/*
 	 * we need a proper transport to send commands, not a stacked device
 	 */
 	if (!queue_is_rq_based(q))
+	{
 		return 0;
+	}
 
 	bcd = &q->bsg_dev;
 	memset(bcd, 0, sizeof(*bcd));
@@ -997,11 +1227,15 @@ int bsg_register_queue(struct request_queue *q, struct device *parent,
 	mutex_lock(&bsg_mutex);
 
 	ret = idr_alloc(&bsg_minor_idr, bcd, 0, BSG_MAX_DEVS, GFP_KERNEL);
-	if (ret < 0) {
-		if (ret == -ENOSPC) {
+
+	if (ret < 0)
+	{
+		if (ret == -ENOSPC)
+		{
 			printk(KERN_ERR "bsg: too many bsg devices\n");
 			ret = -EINVAL;
 		}
+
 		goto unlock;
 	}
 
@@ -1012,16 +1246,23 @@ int bsg_register_queue(struct request_queue *q, struct device *parent,
 	kref_init(&bcd->ref);
 	dev = MKDEV(bsg_major, bcd->minor);
 	class_dev = device_create(bsg_class, parent, dev, NULL, "%s", devname);
-	if (IS_ERR(class_dev)) {
+
+	if (IS_ERR(class_dev))
+	{
 		ret = PTR_ERR(class_dev);
 		goto put_dev;
 	}
+
 	bcd->class_dev = class_dev;
 
-	if (q->kobj.sd) {
+	if (q->kobj.sd)
+	{
 		ret = sysfs_create_link(&q->kobj, &bcd->class_dev->kobj, "bsg");
+
 		if (ret)
+		{
 			goto unregister_class_dev;
+		}
 	}
 
 	mutex_unlock(&bsg_mutex);
@@ -1051,35 +1292,48 @@ static int __init bsg_init(void)
 	dev_t devid;
 
 	bsg_cmd_cachep = kmem_cache_create("bsg_cmd",
-				sizeof(struct bsg_command), 0, 0, NULL);
-	if (!bsg_cmd_cachep) {
+									   sizeof(struct bsg_command), 0, 0, NULL);
+
+	if (!bsg_cmd_cachep)
+	{
 		printk(KERN_ERR "bsg: failed creating slab cache\n");
 		return -ENOMEM;
 	}
 
 	for (i = 0; i < BSG_LIST_ARRAY_SIZE; i++)
+	{
 		INIT_HLIST_HEAD(&bsg_device_list[i]);
+	}
 
 	bsg_class = class_create(THIS_MODULE, "bsg");
-	if (IS_ERR(bsg_class)) {
+
+	if (IS_ERR(bsg_class))
+	{
 		ret = PTR_ERR(bsg_class);
 		goto destroy_kmemcache;
 	}
+
 	bsg_class->devnode = bsg_devnode;
 
 	ret = alloc_chrdev_region(&devid, 0, BSG_MAX_DEVS, "bsg");
+
 	if (ret)
+	{
 		goto destroy_bsg_class;
+	}
 
 	bsg_major = MAJOR(devid);
 
 	cdev_init(&bsg_cdev, &bsg_fops);
 	ret = cdev_add(&bsg_cdev, MKDEV(bsg_major, 0), BSG_MAX_DEVS);
+
 	if (ret)
+	{
 		goto unregister_chrdev;
+	}
 
 	printk(KERN_INFO BSG_DESCRIPTION " version " BSG_VERSION
-	       " loaded (major %d)\n", bsg_major);
+		   " loaded (major %d)\n", bsg_major);
 	return 0;
 unregister_chrdev:
 	unregister_chrdev_region(MKDEV(bsg_major, 0), BSG_MAX_DEVS);

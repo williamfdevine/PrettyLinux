@@ -32,23 +32,23 @@
 #include <tools/le_byteshift.h>
 
 #ifndef EM_ARCOMPACT
-#define EM_ARCOMPACT	93
+	#define EM_ARCOMPACT	93
 #endif
 
 #ifndef EM_XTENSA
-#define EM_XTENSA	94
+	#define EM_XTENSA	94
 #endif
 
 #ifndef EM_AARCH64
-#define EM_AARCH64	183
+	#define EM_AARCH64	183
 #endif
 
 #ifndef EM_MICROBLAZE
-#define EM_MICROBLAZE	189
+	#define EM_MICROBLAZE	189
 #endif
 
 #ifndef EM_ARCV2
-#define EM_ARCV2	195
+	#define EM_ARCV2	195
 #endif
 
 static int fd_map;	/* File descriptor for file being modified. */
@@ -58,7 +58,8 @@ static struct stat sb;	/* Remember .st_size, etc. */
 static jmp_buf jmpenv;	/* setjmp/longjmp per-file error escape */
 
 /* setjmp() return values */
-enum {
+enum
+{
 	SJ_SETJMP = 0,  /* hardwired first return */
 	SJ_FAIL,
 	SJ_SUCCEED
@@ -69,7 +70,10 @@ static void
 cleanup(void)
 {
 	if (!mmap_failed)
+	{
 		munmap(ehdr_curr, sb.st_size);
+	}
+
 	close(fd_map);
 }
 
@@ -91,21 +95,29 @@ static void *mmap_file(char const *fname)
 	void *addr;
 
 	fd_map = open(fname, O_RDWR);
-	if (fd_map < 0 || fstat(fd_map, &sb) < 0) {
+
+	if (fd_map < 0 || fstat(fd_map, &sb) < 0)
+	{
 		perror(fname);
 		fail_file();
 	}
-	if (!S_ISREG(sb.st_mode)) {
+
+	if (!S_ISREG(sb.st_mode))
+	{
 		fprintf(stderr, "not a regular file: %s\n", fname);
 		fail_file();
 	}
-	addr = mmap(0, sb.st_size, PROT_READ|PROT_WRITE, MAP_SHARED,
-		    fd_map, 0);
-	if (addr == MAP_FAILED) {
+
+	addr = mmap(0, sb.st_size, PROT_READ | PROT_WRITE, MAP_SHARED,
+				fd_map, 0);
+
+	if (addr == MAP_FAILED)
+	{
 		mmap_failed = 1;
 		fprintf(stderr, "Could not mmap file: %s\n", fname);
 		fail_file();
 	}
+
 	return addr;
 }
 
@@ -182,13 +194,19 @@ static inline int is_shndx_special(unsigned int i)
 
 /* Accessor for sym->st_shndx, hides ugliness of "64k sections" */
 static inline unsigned int get_secindex(unsigned int shndx,
-					unsigned int sym_offs,
-					const Elf32_Word *symtab_shndx_start)
+										unsigned int sym_offs,
+										const Elf32_Word *symtab_shndx_start)
 {
 	if (is_shndx_special(shndx))
+	{
 		return SPECIAL(shndx);
+	}
+
 	if (shndx != SHN_XINDEX)
+	{
 		return shndx;
+	}
+
 	return r(&symtab_shndx_start[sym_offs]);
 }
 
@@ -203,9 +221,15 @@ static int compare_relative_table(const void *a, const void *b)
 	int32_t bv = (int32_t)r(b);
 
 	if (av < bv)
+	{
 		return -1;
+	}
+
 	if (av > bv)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -214,7 +238,9 @@ static void x86_sort_relative_table(char *extab_image, int image_size)
 	int i;
 
 	i = 0;
-	while (i < image_size) {
+
+	while (i < image_size)
+	{
 		uint32_t *loc = (uint32_t *)(extab_image + i);
 
 		w(r(loc) + i, loc);
@@ -227,7 +253,9 @@ static void x86_sort_relative_table(char *extab_image, int image_size)
 	qsort(extab_image, image_size / 12, 12, compare_relative_table);
 
 	i = 0;
-	while (i < image_size) {
+
+	while (i < image_size)
+	{
 		uint32_t *loc = (uint32_t *)(extab_image + i);
 
 		w(r(loc) - i, loc);
@@ -247,7 +275,9 @@ static void sort_relative_table(char *extab_image, int image_size)
 	 * being relative to the start of the section.
 	 */
 	i = 0;
-	while (i < image_size) {
+
+	while (i < image_size)
+	{
 		uint32_t *loc = (uint32_t *)(extab_image + i);
 		w(r(loc) + i, loc);
 		i += 4;
@@ -257,7 +287,9 @@ static void sort_relative_table(char *extab_image, int image_size)
 
 	/* Now denormalize. */
 	i = 0;
-	while (i < image_size) {
+
+	while (i < image_size)
+	{
 		uint32_t *loc = (uint32_t *)(extab_image + i);
 		w(r(loc) - i, loc);
 		i += 4;
@@ -271,88 +303,107 @@ do_file(char const *const fname)
 	Elf32_Ehdr *ehdr = mmap_file(fname);
 
 	ehdr_curr = ehdr;
-	switch (ehdr->e_ident[EI_DATA]) {
-	default:
-		fprintf(stderr, "unrecognized ELF data encoding %d: %s\n",
-			ehdr->e_ident[EI_DATA], fname);
-		fail_file();
-		break;
-	case ELFDATA2LSB:
-		r = rle;
-		r2 = r2le;
-		r8 = r8le;
-		w = wle;
-		w2 = w2le;
-		w8 = w8le;
-		break;
-	case ELFDATA2MSB:
-		r = rbe;
-		r2 = r2be;
-		r8 = r8be;
-		w = wbe;
-		w2 = w2be;
-		w8 = w8be;
-		break;
+
+	switch (ehdr->e_ident[EI_DATA])
+	{
+		default:
+			fprintf(stderr, "unrecognized ELF data encoding %d: %s\n",
+					ehdr->e_ident[EI_DATA], fname);
+			fail_file();
+			break;
+
+		case ELFDATA2LSB:
+			r = rle;
+			r2 = r2le;
+			r8 = r8le;
+			w = wle;
+			w2 = w2le;
+			w8 = w8le;
+			break;
+
+		case ELFDATA2MSB:
+			r = rbe;
+			r2 = r2be;
+			r8 = r8be;
+			w = wbe;
+			w2 = w2be;
+			w8 = w8be;
+			break;
 	}  /* end switch */
+
 	if (memcmp(ELFMAG, ehdr->e_ident, SELFMAG) != 0
-	||  (r2(&ehdr->e_type) != ET_EXEC && r2(&ehdr->e_type) != ET_DYN)
-	||  ehdr->e_ident[EI_VERSION] != EV_CURRENT) {
+		||  (r2(&ehdr->e_type) != ET_EXEC && r2(&ehdr->e_type) != ET_DYN)
+		||  ehdr->e_ident[EI_VERSION] != EV_CURRENT)
+	{
 		fprintf(stderr, "unrecognized ET_EXEC/ET_DYN file %s\n", fname);
 		fail_file();
 	}
 
 	custom_sort = NULL;
-	switch (r2(&ehdr->e_machine)) {
-	default:
-		fprintf(stderr, "unrecognized e_machine %d %s\n",
-			r2(&ehdr->e_machine), fname);
-		fail_file();
-		break;
-	case EM_386:
-	case EM_X86_64:
-		custom_sort = x86_sort_relative_table;
-		break;
 
-	case EM_S390:
-	case EM_AARCH64:
-	case EM_PARISC:
-		custom_sort = sort_relative_table;
-		break;
-	case EM_ARCOMPACT:
-	case EM_ARCV2:
-	case EM_ARM:
-	case EM_MICROBLAZE:
-	case EM_MIPS:
-	case EM_XTENSA:
-		break;
+	switch (r2(&ehdr->e_machine))
+	{
+		default:
+			fprintf(stderr, "unrecognized e_machine %d %s\n",
+					r2(&ehdr->e_machine), fname);
+			fail_file();
+			break;
+
+		case EM_386:
+		case EM_X86_64:
+			custom_sort = x86_sort_relative_table;
+			break;
+
+		case EM_S390:
+		case EM_AARCH64:
+		case EM_PARISC:
+			custom_sort = sort_relative_table;
+			break;
+
+		case EM_ARCOMPACT:
+		case EM_ARCV2:
+		case EM_ARM:
+		case EM_MICROBLAZE:
+		case EM_MIPS:
+		case EM_XTENSA:
+			break;
 	}  /* end switch */
 
-	switch (ehdr->e_ident[EI_CLASS]) {
-	default:
-		fprintf(stderr, "unrecognized ELF class %d %s\n",
-			ehdr->e_ident[EI_CLASS], fname);
-		fail_file();
-		break;
-	case ELFCLASS32:
-		if (r2(&ehdr->e_ehsize) != sizeof(Elf32_Ehdr)
-		||  r2(&ehdr->e_shentsize) != sizeof(Elf32_Shdr)) {
-			fprintf(stderr,
-				"unrecognized ET_EXEC/ET_DYN file: %s\n", fname);
+	switch (ehdr->e_ident[EI_CLASS])
+	{
+		default:
+			fprintf(stderr, "unrecognized ELF class %d %s\n",
+					ehdr->e_ident[EI_CLASS], fname);
 			fail_file();
-		}
-		do32(ehdr, fname, custom_sort);
-		break;
-	case ELFCLASS64: {
-		Elf64_Ehdr *const ghdr = (Elf64_Ehdr *)ehdr;
-		if (r2(&ghdr->e_ehsize) != sizeof(Elf64_Ehdr)
-		||  r2(&ghdr->e_shentsize) != sizeof(Elf64_Shdr)) {
-			fprintf(stderr,
-				"unrecognized ET_EXEC/ET_DYN file: %s\n", fname);
-			fail_file();
-		}
-		do64(ghdr, fname, custom_sort);
-		break;
-	}
+			break;
+
+		case ELFCLASS32:
+			if (r2(&ehdr->e_ehsize) != sizeof(Elf32_Ehdr)
+				||  r2(&ehdr->e_shentsize) != sizeof(Elf32_Shdr))
+			{
+				fprintf(stderr,
+						"unrecognized ET_EXEC/ET_DYN file: %s\n", fname);
+				fail_file();
+			}
+
+			do32(ehdr, fname, custom_sort);
+			break;
+
+		case ELFCLASS64:
+			{
+				Elf64_Ehdr *const ghdr = (Elf64_Ehdr *)ehdr;
+
+				if (r2(&ghdr->e_ehsize) != sizeof(Elf64_Ehdr)
+					||  r2(&ghdr->e_shentsize) != sizeof(Elf64_Shdr))
+				{
+					fprintf(stderr,
+							"unrecognized ET_EXEC/ET_DYN file: %s\n", fname);
+					fail_file();
+				}
+
+				do64(ghdr, fname, custom_sort);
+				break;
+			}
 	}  /* end switch */
 
 	cleanup();
@@ -364,35 +415,42 @@ main(int argc, char *argv[])
 	int n_error = 0;  /* gcc-4.3.0 false positive complaint */
 	int i;
 
-	if (argc < 2) {
+	if (argc < 2)
+	{
 		fprintf(stderr, "usage: sortextable vmlinux...\n");
 		return 0;
 	}
 
 	/* Process each file in turn, allowing deep failure. */
-	for (i = 1; i < argc; i++) {
+	for (i = 1; i < argc; i++)
+	{
 		char *file = argv[i];
 		int const sjval = setjmp(jmpenv);
 
-		switch (sjval) {
-		default:
-			fprintf(stderr, "internal error: %s\n", file);
-			exit(1);
-			break;
-		case SJ_SETJMP:    /* normal sequence */
-			/* Avoid problems if early cleanup() */
-			fd_map = -1;
-			ehdr_curr = NULL;
-			mmap_failed = 1;
-			do_file(file);
-			break;
-		case SJ_FAIL:    /* error in do_file or below */
-			++n_error;
-			break;
-		case SJ_SUCCEED:    /* premature success */
-			/* do nothing */
-			break;
+		switch (sjval)
+		{
+			default:
+				fprintf(stderr, "internal error: %s\n", file);
+				exit(1);
+				break;
+
+			case SJ_SETJMP:    /* normal sequence */
+				/* Avoid problems if early cleanup() */
+				fd_map = -1;
+				ehdr_curr = NULL;
+				mmap_failed = 1;
+				do_file(file);
+				break;
+
+			case SJ_FAIL:    /* error in do_file or below */
+				++n_error;
+				break;
+
+			case SJ_SUCCEED:    /* premature success */
+				/* do nothing */
+				break;
 		}  /* end switch */
 	}
+
 	return !!n_error;
 }

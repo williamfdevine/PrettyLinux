@@ -48,7 +48,8 @@
 #define __ICP_QAT_FW_LOADER_HANDLE_H__
 #include "icp_qat_uclo.h"
 
-struct icp_qat_fw_loader_ae_data {
+struct icp_qat_fw_loader_ae_data
+{
 	unsigned int state;
 	unsigned int ustore_size;
 	unsigned int free_addr;
@@ -56,7 +57,8 @@ struct icp_qat_fw_loader_ae_data {
 	unsigned int live_ctx_mask;
 };
 
-struct icp_qat_fw_loader_hal_handle {
+struct icp_qat_fw_loader_hal_handle
+{
 	struct icp_qat_fw_loader_ae_data aes[ICP_QAT_UCLO_MAX_AE];
 	unsigned int ae_mask;
 	unsigned int slice_mask;
@@ -66,7 +68,8 @@ struct icp_qat_fw_loader_hal_handle {
 	unsigned int max_ustore;
 };
 
-struct icp_qat_fw_loader_handle {
+struct icp_qat_fw_loader_handle
+{
 	struct icp_qat_fw_loader_hal_handle *hal_handle;
 	struct pci_dev *pci_dev;
 	void *obj_handle;
@@ -79,7 +82,8 @@ struct icp_qat_fw_loader_handle {
 	void __iomem *hal_ep_csr_addr_v;
 };
 
-struct icp_firml_dram_desc {
+struct icp_firml_dram_desc
+{
 	void __iomem *dram_base_addr;
 	void *dram_base_addr_v;
 	dma_addr_t dram_bus_addr;

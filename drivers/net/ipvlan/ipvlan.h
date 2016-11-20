@@ -43,14 +43,16 @@
 
 #define IPVLAN_QBACKLOG_LIMIT	1000
 
-typedef enum {
+typedef enum
+{
 	IPVL_IPV6 = 0,
 	IPVL_ICMPV6,
 	IPVL_IPV4,
 	IPVL_ARP,
 } ipvl_hdr_type;
 
-struct ipvl_pcpu_stats {
+struct ipvl_pcpu_stats
+{
 	u64			rx_pkts;
 	u64			rx_bytes;
 	u64			rx_mcast;
@@ -63,7 +65,8 @@ struct ipvl_pcpu_stats {
 
 struct ipvl_port;
 
-struct ipvl_dev {
+struct ipvl_dev
+{
 	struct net_device	*dev;
 	struct list_head	pnode;
 	struct ipvl_port	*port;
@@ -76,9 +79,11 @@ struct ipvl_dev {
 	u16			mtu_adj;
 };
 
-struct ipvl_addr {
+struct ipvl_addr
+{
 	struct ipvl_dev		*master; /* Back pointer to master */
-	union {
+	union
+	{
 		struct in6_addr	ip6;	 /* IPv6 address on logical interface */
 		struct in_addr	ip4;	 /* IPv4 address on logical interface */
 	} ipu;
@@ -90,7 +95,8 @@ struct ipvl_addr {
 	struct rcu_head		rcu;
 };
 
-struct ipvl_port {
+struct ipvl_port
+{
 	struct net_device	*dev;
 	struct hlist_head	hlhead[IPVLAN_HASH_SIZE];
 	struct list_head	ipvlans;
@@ -123,11 +129,11 @@ void ipvlan_process_multicast(struct work_struct *work);
 int ipvlan_queue_xmit(struct sk_buff *skb, struct net_device *dev);
 void ipvlan_ht_addr_add(struct ipvl_dev *ipvlan, struct ipvl_addr *addr);
 struct ipvl_addr *ipvlan_find_addr(const struct ipvl_dev *ipvlan,
-				   const void *iaddr, bool is_v6);
+								   const void *iaddr, bool is_v6);
 bool ipvlan_addr_busy(struct ipvl_port *port, void *iaddr, bool is_v6);
 void ipvlan_ht_addr_del(struct ipvl_addr *addr);
 struct sk_buff *ipvlan_l3_rcv(struct net_device *dev, struct sk_buff *skb,
-			      u16 proto);
+							  u16 proto);
 unsigned int ipvlan_nf_input(void *priv, struct sk_buff *skb,
-			     const struct nf_hook_state *state);
+							 const struct nf_hook_state *state);
 #endif /* __IPVLAN_H */

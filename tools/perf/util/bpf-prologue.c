@@ -21,7 +21,8 @@
 #define JMP_TO_SUCCESS_CODE	-2
 #define JMP_TO_USER_CODE	-3
 
-struct bpf_insn_pos {
+struct bpf_insn_pos
+{
 	struct bpf_insn *begin;
 	struct bpf_insn *end;
 	struct bpf_insn *pos;
@@ -37,9 +38,12 @@ static int
 append_insn(struct bpf_insn new_insn, struct bpf_insn_pos *pos)
 {
 	if (!pos->pos)
+	{
 		return -BPF_LOADER_ERRNO__PROLOGUE2BIG;
+	}
 
-	if (pos->pos + 1 >= pos->end) {
+	if (pos->pos + 1 >= pos->end)
+	{
 		pr_err("bpf prologue: prologue too long\n");
 		pos->pos = NULL;
 		return -BPF_LOADER_ERRNO__PROLOGUE2BIG;
@@ -53,7 +57,10 @@ static int
 check_pos(struct bpf_insn_pos *pos)
 {
 	if (!pos->pos || pos->pos >= pos->end)
+	{
 		return -BPF_LOADER_ERRNO__PROLOGUE2BIG;
+	}
+
 	return 0;
 }
 
@@ -68,15 +75,17 @@ check_pos(struct bpf_insn_pos *pos)
  */
 static int
 gen_ldx_reg_from_ctx(struct bpf_insn_pos *pos, int ctx_reg,
-		     const char *reg, int target_reg)
+					 const char *reg, int target_reg)
 {
 	int offset = regs_query_register_offset(reg);
 
-	if (offset < 0) {
+	if (offset < 0)
+	{
 		pr_err("bpf: prologue: failed to get register %s\n",
-		       reg);
+			   reg);
 		return offset;
 	}
+
 	ins(BPF_LDX_MEM(BPF_DW, target_reg, ctx_reg, offset), pos);
 
 	return check_pos(pos);
@@ -98,23 +107,30 @@ gen_ldx_reg_from_ctx(struct bpf_insn_pos *pos, int ctx_reg,
  */
 static int
 gen_read_mem(struct bpf_insn_pos *pos,
-	     int src_base_addr_reg,
-	     int dst_addr_reg,
-	     long offset)
+			 int src_base_addr_reg,
+			 int dst_addr_reg,
+			 long offset)
 {
 	/* mov arg3, src_base_addr_reg */
 	if (src_base_addr_reg != BPF_REG_ARG3)
+	{
 		ins(BPF_MOV64_REG(BPF_REG_ARG3, src_base_addr_reg), pos);
+	}
+
 	/* add arg3, #offset */
 	if (offset)
+	{
 		ins(BPF_ALU64_IMM(BPF_ADD, BPF_REG_ARG3, offset), pos);
+	}
 
 	/* mov arg2, #reg_size */
 	ins(BPF_ALU64_IMM(BPF_MOV, BPF_REG_ARG2, BPF_REG_SIZE), pos);
 
 	/* mov arg1, dst_addr_reg */
 	if (dst_addr_reg != BPF_REG_ARG1)
+	{
 		ins(BPF_MOV64_REG(BPF_REG_ARG1, dst_addr_reg), pos);
+	}
 
 	/* Call probe_read  */
 	ins(BPF_EMIT_CALL(BPF_FUNC_probe_read), pos);
@@ -124,7 +140,7 @@ gen_read_mem(struct bpf_insn_pos *pos,
 	 * error processing code.
 	 */
 	ins(BPF_JMP_IMM(BPF_JNE, BPF_REG_0, 0, JMP_TO_ERROR_CODE),
-	    pos);
+		pos);
 
 	return check_pos(pos);
 }
@@ -138,15 +154,19 @@ gen_read_mem(struct bpf_insn_pos *pos,
  */
 static int
 gen_prologue_fastpath(struct bpf_insn_pos *pos,
-		      struct probe_trace_arg *args, int nargs)
+					  struct probe_trace_arg *args, int nargs)
 {
 	int i, err = 0;
 
-	for (i = 0; i < nargs; i++) {
+	for (i = 0; i < nargs; i++)
+	{
 		err = gen_ldx_reg_from_ctx(pos, BPF_REG_1, args[i].value,
-					   BPF_PROLOGUE_START_ARG_REG + i);
+								   BPF_PROLOGUE_START_ARG_REG + i);
+
 		if (err)
+		{
 			goto errout;
+		}
 	}
 
 	return check_pos(pos);
@@ -197,25 +217,28 @@ errout:
  */
 static int
 gen_prologue_slowpath(struct bpf_insn_pos *pos,
-		      struct probe_trace_arg *args, int nargs)
+					  struct probe_trace_arg *args, int nargs)
 {
 	int err, i;
 
-	for (i = 0; i < nargs; i++) {
+	for (i = 0; i < nargs; i++)
+	{
 		struct probe_trace_arg *arg = &args[i];
 		const char *reg = arg->value;
 		struct probe_trace_arg_ref *ref = NULL;
 		int stack_offset = (i + 1) * -8;
 
 		pr_debug("prologue: fetch arg %d, base reg is %s\n",
-			 i, reg);
+				 i, reg);
 
 		/* value of base register is stored into ARG3 */
 		err = gen_ldx_reg_from_ctx(pos, BPF_REG_CTX, reg,
-					   BPF_REG_ARG3);
-		if (err) {
+								   BPF_REG_ARG3);
+
+		if (err)
+		{
 			pr_err("prologue: failed to get offset of register %s\n",
-			       reg);
+				   reg);
 			goto errout;
 		}
 
@@ -231,20 +254,25 @@ gen_prologue_slowpath(struct bpf_insn_pos *pos,
 		 * register here.
 		 */
 		ins(BPF_STX_MEM(BPF_DW, BPF_REG_FP, BPF_REG_ARG3,
-				stack_offset), pos);
+						stack_offset), pos);
 
 		ref = arg->ref;
-		while (ref) {
+
+		while (ref)
+		{
 			pr_debug("prologue: arg %d: offset %ld\n",
-				 i, ref->offset);
+					 i, ref->offset);
 			err = gen_read_mem(pos, BPF_REG_3, BPF_REG_7,
-					   ref->offset);
-			if (err) {
+							   ref->offset);
+
+			if (err)
+			{
 				pr_err("prologue: failed to generate probe_read function call\n");
 				goto errout;
 			}
 
 			ref = ref->next;
+
 			/*
 			 * Load previous result into ARG3. Use
 			 * BPF_REG_FP instead of r7 because verifier
@@ -252,14 +280,14 @@ gen_prologue_slowpath(struct bpf_insn_pos *pos,
 			 */
 			if (ref)
 				ins(BPF_LDX_MEM(BPF_DW, BPF_REG_ARG3,
-						BPF_REG_FP, stack_offset), pos);
+								BPF_REG_FP, stack_offset), pos);
 		}
 	}
 
 	/* Final pass: read to registers */
 	for (i = 0; i < nargs; i++)
 		ins(BPF_LDX_MEM(BPF_DW, BPF_PROLOGUE_START_ARG_REG + i,
-				BPF_REG_FP, -BPF_REG_SIZE * (i + 1)), pos);
+						BPF_REG_FP, -BPF_REG_SIZE * (i + 1)), pos);
 
 	ins(BPF_JMP_IMM(BPF_JA, BPF_REG_0, 0, JMP_TO_SUCCESS_CODE), pos);
 
@@ -270,47 +298,61 @@ errout:
 
 static int
 prologue_relocate(struct bpf_insn_pos *pos, struct bpf_insn *error_code,
-		  struct bpf_insn *success_code, struct bpf_insn *user_code)
+				  struct bpf_insn *success_code, struct bpf_insn *user_code)
 {
 	struct bpf_insn *insn;
 
 	if (check_pos(pos))
+	{
 		return -BPF_LOADER_ERRNO__PROLOGUE2BIG;
+	}
 
-	for (insn = pos->begin; insn < pos->pos; insn++) {
+	for (insn = pos->begin; insn < pos->pos; insn++)
+	{
 		struct bpf_insn *target;
 		u8 class = BPF_CLASS(insn->code);
 		u8 opcode;
 
 		if (class != BPF_JMP)
+		{
 			continue;
-		opcode = BPF_OP(insn->code);
-		if (opcode == BPF_CALL)
-			continue;
+		}
 
-		switch (insn->off) {
-		case JMP_TO_ERROR_CODE:
-			target = error_code;
-			break;
-		case JMP_TO_SUCCESS_CODE:
-			target = success_code;
-			break;
-		case JMP_TO_USER_CODE:
-			target = user_code;
-			break;
-		default:
-			pr_err("bpf prologue: internal error: relocation failed\n");
-			return -BPF_LOADER_ERRNO__PROLOGUE;
+		opcode = BPF_OP(insn->code);
+
+		if (opcode == BPF_CALL)
+		{
+			continue;
+		}
+
+		switch (insn->off)
+		{
+			case JMP_TO_ERROR_CODE:
+				target = error_code;
+				break;
+
+			case JMP_TO_SUCCESS_CODE:
+				target = success_code;
+				break;
+
+			case JMP_TO_USER_CODE:
+				target = user_code;
+				break;
+
+			default:
+				pr_err("bpf prologue: internal error: relocation failed\n");
+				return -BPF_LOADER_ERRNO__PROLOGUE;
 		}
 
 		insn->off = target - (insn + 1);
 	}
+
 	return 0;
 }
 
 int bpf__gen_prologue(struct probe_trace_arg *args, int nargs,
-		      struct bpf_insn *new_prog, size_t *new_cnt,
-		      size_t cnt_space)
+					  struct bpf_insn *new_prog, size_t *new_cnt,
+					  size_t cnt_space)
 {
 	struct bpf_insn *success_code = NULL;
 	struct bpf_insn *error_code = NULL;
@@ -320,44 +362,55 @@ int bpf__gen_prologue(struct probe_trace_arg *args, int nargs,
 	int err = 0, i;
 
 	if (!new_prog || !new_cnt)
+	{
 		return -EINVAL;
+	}
 
 	if (cnt_space > BPF_MAXINSNS)
+	{
 		cnt_space = BPF_MAXINSNS;
+	}
 
 	pos.begin = new_prog;
 	pos.end = new_prog + cnt_space;
 	pos.pos = new_prog;
 
-	if (!nargs) {
+	if (!nargs)
+	{
 		ins(BPF_ALU64_IMM(BPF_MOV, BPF_PROLOGUE_FETCH_RESULT_REG, 0),
-		    &pos);
+			&pos);
 
 		if (check_pos(&pos))
+		{
 			goto errout;
+		}
 
 		*new_cnt = pos_get_cnt(&pos);
 		return 0;
 	}
 
-	if (nargs > BPF_PROLOGUE_MAX_ARGS) {
+	if (nargs > BPF_PROLOGUE_MAX_ARGS)
+	{
 		pr_warning("bpf: prologue: %d arguments are dropped\n",
-			   nargs - BPF_PROLOGUE_MAX_ARGS);
+				   nargs - BPF_PROLOGUE_MAX_ARGS);
 		nargs = BPF_PROLOGUE_MAX_ARGS;
 	}
 
 	/* First pass: validation */
-	for (i = 0; i < nargs; i++) {
+	for (i = 0; i < nargs; i++)
+	{
 		struct probe_trace_arg_ref *ref = args[i].ref;
 
-		if (args[i].value[0] == '@') {
+		if (args[i].value[0] == '@')
+		{
 			/* TODO: fetch global variable */
 			pr_err("bpf: prologue: global %s%+ld not support\n",
-				args[i].value, ref ? ref->offset : 0);
+				   args[i].value, ref ? ref->offset : 0);
 			return -ENOTSUP;
 		}
 
-		while (ref) {
+		while (ref)
+		{
 			/* fastpath is true if all args has ref == NULL */
 			fastpath = false;
 
@@ -370,33 +423,47 @@ int bpf__gen_prologue(struct probe_trace_arg *args, int nargs,
 #ifdef __LP64__
 #define OFFSET_MAX	((1LL << 31) - 1)
 #define OFFSET_MIN	((1LL << 31) * -1)
+
 			if (ref->offset > OFFSET_MAX ||
-					ref->offset < OFFSET_MIN) {
+				ref->offset < OFFSET_MIN)
+			{
 				pr_err("bpf: prologue: offset out of bound: %ld\n",
-				       ref->offset);
+					   ref->offset);
 				return -BPF_LOADER_ERRNO__PROLOGUEOOB;
 			}
+
 #endif
 			ref = ref->next;
 		}
 	}
+
 	pr_debug("prologue: pass validation\n");
 
-	if (fastpath) {
+	if (fastpath)
+	{
 		/* If all variables are registers... */
 		pr_debug("prologue: fast path\n");
 		err = gen_prologue_fastpath(&pos, args, nargs);
+
 		if (err)
+		{
 			goto errout;
-	} else {
+		}
+	}
+	else
+	{
 		pr_debug("prologue: slow path\n");
 
 		/* Initialization: move ctx to a callee saved register. */
 		ins(BPF_MOV64_REG(BPF_REG_CTX, BPF_REG_ARG1), &pos);
 
 		err = gen_prologue_slowpath(&pos, args, nargs);
+
 		if (err)
+		{
 			goto errout;
+		}
+
 		/*
 		 * start of ERROR_CODE (only slow pass needs error code)
 		 *   mov r2 <- 1  // r2 is error number
@@ -408,15 +475,16 @@ int bpf__gen_prologue(struct probe_trace_arg *args, int nargs,
 		 */
 		error_code = pos.pos;
 		ins(BPF_ALU64_IMM(BPF_MOV, BPF_PROLOGUE_FETCH_RESULT_REG, 1),
-		    &pos);
+			&pos);
 
 		for (i = 0; i < nargs; i++)
 			ins(BPF_ALU64_IMM(BPF_MOV,
-					  BPF_PROLOGUE_START_ARG_REG + i,
-					  0),
-			    &pos);
-		ins(BPF_JMP_IMM(BPF_JA, BPF_REG_0, 0, JMP_TO_USER_CODE),
+							  BPF_PROLOGUE_START_ARG_REG + i,
+							  0),
 				&pos);
+
+		ins(BPF_JMP_IMM(BPF_JA, BPF_REG_0, 0, JMP_TO_USER_CODE),
+			&pos);
 	}
 
 	/*
@@ -432,21 +500,29 @@ int bpf__gen_prologue(struct probe_trace_arg *args, int nargs,
 	 *   Restore ctx to r1
 	 */
 	user_code = pos.pos;
-	if (!fastpath) {
+
+	if (!fastpath)
+	{
 		/*
 		 * Only slow path needs restoring of ctx. In fast path,
 		 * register are loaded directly from r1.
 		 */
 		ins(BPF_MOV64_REG(BPF_REG_ARG1, BPF_REG_CTX), &pos);
 		err = prologue_relocate(&pos, error_code, success_code,
-					user_code);
+								user_code);
+
 		if (err)
+		{
 			goto errout;
+		}
 	}
 
 	err = check_pos(&pos);
+
 	if (err)
+	{
 		goto errout;
+	}
 
 	*new_cnt = pos_get_cnt(&pos);
 	return 0;

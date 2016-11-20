@@ -28,12 +28,14 @@
 
 void
 nv20_fb_tile_init(struct nvkm_fb *fb, int i, u32 addr, u32 size, u32 pitch,
-		  u32 flags, struct nvkm_fb_tile *tile)
+				  u32 flags, struct nvkm_fb_tile *tile)
 {
 	tile->addr  = 0x00000001 | addr;
 	tile->limit = max(1u, addr + size) - 1;
 	tile->pitch = pitch;
-	if (flags & 4) {
+
+	if (flags & 4)
+	{
 		fb->func->tile.comp(fb, i, size, flags, tile);
 		tile->addr |= 2;
 	}
@@ -41,13 +43,16 @@ nv20_fb_tile_init(struct nvkm_fb *fb, int i, u32 addr, u32 size, u32 pitch,
 
 static void
 nv20_fb_tile_comp(struct nvkm_fb *fb, int i, u32 size, u32 flags,
-		  struct nvkm_fb_tile *tile)
+				  struct nvkm_fb_tile *tile)
 {
 	u32 tiles = DIV_ROUND_UP(size, 0x40);
 	u32 tags  = round_up(tiles / fb->ram->parts, 0x40);
-	if (!nvkm_mm_head(&fb->ram->tags, 0, 1, tags, tags, 1, &tile->tag)) {
-		if (!(flags & 2)) tile->zcomp = 0x00000000; /* Z16 */
-		else              tile->zcomp = 0x04000000; /* Z24S8 */
+
+	if (!nvkm_mm_head(&fb->ram->tags, 0, 1, tags, tags, 1, &tile->tag))
+	{
+		if (!(flags & 2)) { tile->zcomp = 0x00000000; } /* Z16 */
+		else { tile->zcomp = 0x04000000; } /* Z24S8 */
+
 		tile->zcomp |= tile->tag->offset;
 		tile->zcomp |= 0x80000000; /* enable */
 #ifdef __BIG_ENDIAN
@@ -78,7 +83,8 @@ nv20_fb_tile_prog(struct nvkm_fb *fb, int i, struct nvkm_fb_tile *tile)
 }
 
 static const struct nvkm_fb_func
-nv20_fb = {
+	nv20_fb =
+{
 	.tile.regions = 8,
 	.tile.init = nv20_fb_tile_init,
 	.tile.comp = nv20_fb_tile_comp,

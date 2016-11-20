@@ -27,8 +27,8 @@ MODULE_DESCRIPTION("Shared library for Atheros wireless LAN cards.");
 MODULE_LICENSE("Dual BSD/GPL");
 
 struct sk_buff *ath_rxbuf_alloc(struct ath_common *common,
-				u32 len,
-				gfp_t gfp_mask)
+								u32 len,
+								gfp_t gfp_mask)
 {
 	struct sk_buff *skb;
 	u32 off;
@@ -47,11 +47,18 @@ struct sk_buff *ath_rxbuf_alloc(struct ath_common *common,
 	 * kernel... and that is actually what is observed on some
 	 * systems :( */
 	skb = __dev_alloc_skb(len + common->cachelsz - 1, gfp_mask);
-	if (skb != NULL) {
+
+	if (skb != NULL)
+	{
 		off = ((unsigned long) skb->data) % common->cachelsz;
+
 		if (off != 0)
+		{
 			skb_reserve(skb, common->cachelsz - off);
-	} else {
+		}
+	}
+	else
+	{
 		pr_err("skbuff alloc of size %u failed\n", len);
 		return NULL;
 	}
@@ -63,13 +70,13 @@ EXPORT_SYMBOL(ath_rxbuf_alloc);
 bool ath_is_mybeacon(struct ath_common *common, struct ieee80211_hdr *hdr)
 {
 	return ieee80211_is_beacon(hdr->frame_control) &&
-		!is_zero_ether_addr(common->curbssid) &&
-		ether_addr_equal_64bits(hdr->addr3, common->curbssid);
+		   !is_zero_ether_addr(common->curbssid) &&
+		   ether_addr_equal_64bits(hdr->addr3, common->curbssid);
 }
 EXPORT_SYMBOL(ath_is_mybeacon);
 
-void ath_printk(const char *level, const struct ath_common* common,
-		const char *fmt, ...)
+void ath_printk(const char *level, const struct ath_common *common,
+				const char *fmt, ...)
 {
 	struct va_format vaf;
 	va_list args;
@@ -79,11 +86,14 @@ void ath_printk(const char *level, const struct ath_common* common,
 	vaf.fmt = fmt;
 	vaf.va = &args;
 
-	if (common && common->hw && common->hw->wiphy) {
+	if (common && common->hw && common->hw->wiphy)
+	{
 		printk("%sath: %s: %pV",
-		       level, wiphy_name(common->hw->wiphy), &vaf);
+			   level, wiphy_name(common->hw->wiphy), &vaf);
 		trace_ath_log(common->hw->wiphy, &vaf);
-	} else {
+	}
+	else
+	{
 		printk("%sath: %pV", level, &vaf);
 	}
 

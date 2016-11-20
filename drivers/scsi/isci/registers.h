@@ -88,9 +88,9 @@
 #define SCU_VIIT_IPPT_STP_INITIATOR (0x04 << SCU_VIIT_ENTRY_IPPTMODE_SHIFT)
 #define SCU_VIIT_IPPT_INITIATOR	    \
 	(\
-		SCU_VIIT_IPPT_SSP_INITIATOR  \
-		| SCU_VIIT_IPPT_SMP_INITIATOR  \
-		| SCU_VIIT_IPPT_STP_INITIATOR  \
+	 SCU_VIIT_IPPT_SSP_INITIATOR  \
+	 | SCU_VIIT_IPPT_SMP_INITIATOR  \
+	 | SCU_VIIT_IPPT_STP_INITIATOR  \
 	)
 
 #define SCU_VIIT_STATUS_RNC_VALID      (0x01 << SCU_VIIT_ENTRY_STATUS_SHIFT)
@@ -98,9 +98,9 @@
 #define SCU_VIIT_STATUS_RNI_VALID      (0x04 << SCU_VIIT_ENTRY_STATUS_SHIFT)
 #define SCU_VIIT_STATUS_ALL_VALID      \
 	(\
-		SCU_VIIT_STATUS_RNC_VALID	\
-		| SCU_VIIT_STATUS_ADDRESS_VALID	  \
-		| SCU_VIIT_STATUS_RNI_VALID	  \
+	 SCU_VIIT_STATUS_RNC_VALID	\
+	 | SCU_VIIT_STATUS_ADDRESS_VALID	  \
+	 | SCU_VIIT_STATUS_RNI_VALID	  \
 	)
 
 #define SCU_VIIT_IPPT_SMP_TARGET    (0x10 << SCU_VIIT_ENTRY_IPPTMODE_SHIFT)
@@ -110,7 +110,8 @@
  *
  *
  */
-struct scu_viit_entry {
+struct scu_viit_entry
+{
 	/**
 	 * This must be encoded as to the type of initiator that is being constructed
 	 * for this port.
@@ -166,7 +167,8 @@ struct scu_viit_entry {
  *
  *
  */
-struct scu_iit_entry {
+struct scu_iit_entry
+{
 	u32 status;
 	u32 remote_initiator_sas_address_hi;
 	u32 remote_initiator_sas_address_lo;
@@ -348,26 +350,26 @@ struct scu_iit_entry {
 
 #define SMU_DCC_GET_MAX_PEG(value) \
 	(\
-		((value) & SMU_DEVICE_CONTEXT_CAPACITY_MAX_PEG_MASK) \
-		>> SMU_DEVICE_CONTEXT_CAPACITY_MAX_LP_SHIFT \
+	 ((value) & SMU_DEVICE_CONTEXT_CAPACITY_MAX_PEG_MASK) \
+	 >> SMU_DEVICE_CONTEXT_CAPACITY_MAX_LP_SHIFT \
 	)
 
 #define SMU_DCC_GET_MAX_LP(value) \
 	(\
-		((value) & SMU_DEVICE_CONTEXT_CAPACITY_MAX_LP_MASK) \
-		>> SMU_DEVICE_CONTEXT_CAPACITY_MAX_LP_SHIFT \
+	 ((value) & SMU_DEVICE_CONTEXT_CAPACITY_MAX_LP_MASK) \
+	 >> SMU_DEVICE_CONTEXT_CAPACITY_MAX_LP_SHIFT \
 	)
 
 #define SMU_DCC_GET_MAX_TC(value) \
 	(\
-		((value) & SMU_DEVICE_CONTEXT_CAPACITY_MAX_TC_MASK) \
-		>> SMU_DEVICE_CONTEXT_CAPACITY_MAX_TC_SHIFT \
+	 ((value) & SMU_DEVICE_CONTEXT_CAPACITY_MAX_TC_MASK) \
+	 >> SMU_DEVICE_CONTEXT_CAPACITY_MAX_TC_SHIFT \
 	)
 
 #define SMU_DCC_GET_MAX_RNC(value) \
 	(\
-		((value) & SMU_DEVICE_CONTEXT_CAPACITY_MAX_RNC_MASK) \
-		>> SMU_DEVICE_CONTEXT_CAPACITY_MAX_RNC_SHIFT \
+	 ((value) & SMU_DEVICE_CONTEXT_CAPACITY_MAX_RNC_MASK) \
+	 >> SMU_DEVICE_CONTEXT_CAPACITY_MAX_RNC_SHIFT \
 	)
 
 /* ***************************************************************************** */
@@ -414,8 +416,8 @@ struct scu_iit_entry {
 
 #define SCU_RAM_INIT_COMPLETED \
 	(\
-		SMU_SMUCSR_CONTEXT_RAM_INIT_COMPLETED \
-		| SMU_SMUCSR_SCHEDULER_RAM_INIT_COMPLETED \
+	 SMU_SMUCSR_CONTEXT_RAM_INIT_COMPLETED \
+	 | SMU_SMUCSR_SCHEDULER_RAM_INIT_COMPLETED \
 	)
 
 /* -------------------------------------------------------------------------- */
@@ -442,16 +444,16 @@ struct scu_iit_entry {
 
 #define SMU_RESET_PEG_PROTOCOL_ENGINES(peg) \
 	(\
-		SMU_RESET_PROTOCOL_ENGINE(peg, 0) \
-		| SMU_RESET_PROTOCOL_ENGINE(peg, 1) \
-		| SMU_RESET_PROTOCOL_ENGINE(peg, 2) \
-		| SMU_RESET_PROTOCOL_ENGINE(peg, 3) \
+	 SMU_RESET_PROTOCOL_ENGINE(peg, 0) \
+	 | SMU_RESET_PROTOCOL_ENGINE(peg, 1) \
+	 | SMU_RESET_PROTOCOL_ENGINE(peg, 2) \
+	 | SMU_RESET_PROTOCOL_ENGINE(peg, 3) \
 	)
 
 #define SMU_RESET_ALL_PROTOCOL_ENGINES() \
 	(\
-		SMU_RESET_PEG_PROTOCOL_ENGINES(0) \
-		| SMU_RESET_PEG_PROTOCOL_ENGINES(1) \
+	 SMU_RESET_PEG_PROTOCOL_ENGINES(0) \
+	 | SMU_RESET_PEG_PROTOCOL_ENGINES(1) \
 	)
 
 #define SMU_SOFTRESET_CONTROL_RESET_WIDE_PORT_PEG0_LP0_SHIFT  (16)
@@ -478,16 +480,16 @@ struct scu_iit_entry {
  * engine group that you would also reset all of the protocol engines */
 #define SMU_RESET_PROTOCOL_ENGINE_GROUP(peg) \
 	(\
-		(1 << ((peg) + 20)) \
-		| SMU_RESET_WIDE_PORT_QUEUE(peg, 0) \
-		| SMU_RESET_WIDE_PORT_QUEUE(peg, 1) \
-		| SMU_RESET_PEG_PROTOCOL_ENGINES(peg) \
+	 (1 << ((peg) + 20)) \
+	 | SMU_RESET_WIDE_PORT_QUEUE(peg, 0) \
+	 | SMU_RESET_WIDE_PORT_QUEUE(peg, 1) \
+	 | SMU_RESET_PEG_PROTOCOL_ENGINES(peg) \
 	)
 
 #define SMU_RESET_ALL_PROTOCOL_ENGINE_GROUPS() \
 	(\
-		SMU_RESET_PROTOCOL_ENGINE_GROUP(0) \
-		| SMU_RESET_PROTOCOL_ENGINE_GROUP(1) \
+	 SMU_RESET_PROTOCOL_ENGINE_GROUP(0) \
+	 | SMU_RESET_PROTOCOL_ENGINE_GROUP(1) \
 	)
 
 #define SMU_RESET_SCU()  (0xFFFFFFFF)
@@ -956,68 +958,69 @@ struct scu_iit_entry {
  *
  *
  */
-struct smu_registers {
-/* 0x0000 PCP */
+struct smu_registers
+{
+	/* 0x0000 PCP */
 	u32 post_context_port;
-/* 0x0004 AMR */
+	/* 0x0004 AMR */
 	u32 address_modifier;
 	u32 reserved_08;
 	u32 reserved_0C;
-/* 0x0010 ISR */
+	/* 0x0010 ISR */
 	u32 interrupt_status;
-/* 0x0014 IMR */
+	/* 0x0014 IMR */
 	u32 interrupt_mask;
-/* 0x0018 ICC */
+	/* 0x0018 ICC */
 	u32 interrupt_coalesce_control;
 	u32 reserved_1C;
-/* 0x0020 HTTLBAR */
+	/* 0x0020 HTTLBAR */
 	u32 host_task_table_lower;
-/* 0x0024 HTTUBAR */
+	/* 0x0024 HTTUBAR */
 	u32 host_task_table_upper;
-/* 0x0028 TCR */
+	/* 0x0028 TCR */
 	u32 task_context_range;
 	u32 reserved_2C;
-/* 0x0030 CQLBAR */
+	/* 0x0030 CQLBAR */
 	u32 completion_queue_lower;
-/* 0x0034 CQUBAR */
+	/* 0x0034 CQUBAR */
 	u32 completion_queue_upper;
 	u32 reserved_38;
 	u32 reserved_3C;
-/* 0x0040 CQPR */
+	/* 0x0040 CQPR */
 	u32 completion_queue_put;
-/* 0x0044 CQGR */
+	/* 0x0044 CQGR */
 	u32 completion_queue_get;
-/* 0x0048 CQC */
+	/* 0x0048 CQC */
 	u32 completion_queue_control;
 	u32 reserved_4C;
 	u32 reserved_5x[4];
 	u32 reserved_6x[4];
 	u32 reserved_7x[4];
-/*
- * Accessable to FN#0 only
- * 0x0080 RNCLBAR */
+	/*
+	 * Accessable to FN#0 only
+	 * 0x0080 RNCLBAR */
 	u32 remote_node_context_lower;
-/* 0x0084 RNCUBAR */
+	/* 0x0084 RNCUBAR */
 	u32 remote_node_context_upper;
 	u32 reserved_88;
 	u32 reserved_8C;
-/* 0x0090 DCC */
+	/* 0x0090 DCC */
 	u32 device_context_capacity;
-/* 0x0094 DFC */
+	/* 0x0094 DFC */
 	u32 device_function_capacity;
-/* 0x0098 SMUCSR */
+	/* 0x0098 SMUCSR */
 	u32 control_status;
-/* 0x009C SCUSRCR */
+	/* 0x009C SCUSRCR */
 	u32 soft_reset_control;
-/* 0x00A0 SMAW */
+	/* 0x00A0 SMAW */
 	u32 mmr_address_window;
-/* 0x00A4 SMDW */
+	/* 0x00A4 SMDW */
 	u32 mmr_data_window;
-/* 0x00A8 CGUCR */
+	/* 0x00A8 CGUCR */
 	u32 clock_gating_control;
-/* 0x00AC CGUPC */
+	/* 0x00AC CGUPC */
 	u32 clock_gating_performance;
-/* A whole bunch of reserved space */
+	/* A whole bunch of reserved space */
 	u32 reserved_Bx[4];
 	u32 reserved_Cx[4];
 	u32 reserved_Dx[4];
@@ -1026,11 +1029,11 @@ struct smu_registers {
 	u32 reserved_1xx[64];
 	u32 reserved_2xx[64];
 	u32 reserved_3xx[64];
-/*
- * Accessable to FN#0 only
- * 0x0400 TCA */
+	/*
+	 * Accessable to FN#0 only
+	 * 0x0400 TCA */
 	u32 task_context_assignment[256];
-/* MSI-X registers not included */
+	/* MSI-X registers not included */
 };
 
 /*
@@ -1053,28 +1056,29 @@ struct smu_registers {
  *
  *
  */
-struct scu_sdma_registers {
-/* 0x0000 PUFATLHAR */
+struct scu_sdma_registers
+{
+	/* 0x0000 PUFATLHAR */
 	u32 uf_address_table_lower;
-/* 0x0004 PUFATUHAR */
+	/* 0x0004 PUFATUHAR */
 	u32 uf_address_table_upper;
-/* 0x0008 UFLHBAR */
+	/* 0x0008 UFLHBAR */
 	u32 uf_header_base_address_lower;
-/* 0x000C UFUHBAR */
+	/* 0x000C UFUHBAR */
 	u32 uf_header_base_address_upper;
-/* 0x0010 UFQC */
+	/* 0x0010 UFQC */
 	u32 unsolicited_frame_queue_control;
-/* 0x0014 UFQPP */
+	/* 0x0014 UFQPP */
 	u32 unsolicited_frame_put_pointer;
-/* 0x0018 UFQGP */
+	/* 0x0018 UFQGP */
 	u32 unsolicited_frame_get_pointer;
-/* 0x001C PDMACR */
+	/* 0x001C PDMACR */
 	u32 pdma_configuration;
-/* Reserved until offset 0x80 */
+	/* Reserved until offset 0x80 */
 	u32 reserved_0020_007C[0x18];
-/* 0x0080 CDMACR */
+	/* 0x0080 CDMACR */
 	u32 cdma_configuration;
-/* Remainder SDMA register space */
+	/* Remainder SDMA register space */
 	u32 reserved_0084_0400[0xDF];
 
 };
@@ -1124,7 +1128,8 @@ struct scu_sdma_registers {
  *
  *
  */
-struct scu_transport_layer_registers {
+struct scu_transport_layer_registers
+{
 	/* 0x0000 TLCR */
 	u32 control;
 	/* 0x0004 TLADTR */
@@ -1260,145 +1265,146 @@ struct scu_transport_layer_registers {
  *
  *
  */
-struct scu_link_layer_registers {
-/* 0x0000 SAS_SPDTOV */
+struct scu_link_layer_registers
+{
+	/* 0x0000 SAS_SPDTOV */
 	u32 speed_negotiation_timers;
-/* 0x0004 SAS_LLSTA */
+	/* 0x0004 SAS_LLSTA */
 	u32 link_layer_status;
-/* 0x0008 SATA_PSELTOV */
+	/* 0x0008 SATA_PSELTOV */
 	u32 port_selector_timeout;
 	u32 reserved0C;
-/* 0x0010 SAS_TIMETOV */
+	/* 0x0010 SAS_TIMETOV */
 	u32 timeout_unit_value;
-/* 0x0014 SAS_RCDTOV */
+	/* 0x0014 SAS_RCDTOV */
 	u32 rcd_timeout;
-/* 0x0018 SAS_LNKTOV */
+	/* 0x0018 SAS_LNKTOV */
 	u32 link_timer_timeouts;
-/* 0x001C SAS_PHYTOV */
+	/* 0x001C SAS_PHYTOV */
 	u32 sas_phy_timeouts;
-/* 0x0020 SAS_AFERCNT */
+	/* 0x0020 SAS_AFERCNT */
 	u32 received_address_frame_error_counter;
-/* 0x0024 SAS_WERCNT */
+	/* 0x0024 SAS_WERCNT */
 	u32 invalid_dword_counter;
-/* 0x0028 SAS_TIID */
+	/* 0x0028 SAS_TIID */
 	u32 transmit_identification;
-/* 0x002C SAS_TIDNH */
+	/* 0x002C SAS_TIDNH */
 	u32 sas_device_name_high;
-/* 0x0030 SAS_TIDNL */
+	/* 0x0030 SAS_TIDNL */
 	u32 sas_device_name_low;
-/* 0x0034 SAS_TISSAH */
+	/* 0x0034 SAS_TISSAH */
 	u32 source_sas_address_high;
-/* 0x0038 SAS_TISSAL */
+	/* 0x0038 SAS_TISSAL */
 	u32 source_sas_address_low;
-/* 0x003C SAS_TIPID */
+	/* 0x003C SAS_TIPID */
 	u32 identify_frame_phy_id;
-/* 0x0040 SAS_TIRES2 */
+	/* 0x0040 SAS_TIRES2 */
 	u32 identify_frame_reserved;
-/* 0x0044 SAS_ADRSTA */
+	/* 0x0044 SAS_ADRSTA */
 	u32 received_address_frame;
-/* 0x0048 SAS_MAWTTOV */
+	/* 0x0048 SAS_MAWTTOV */
 	u32 maximum_arbitration_wait_timer_timeout;
-/* 0x004C SAS_PTxC */
+	/* 0x004C SAS_PTxC */
 	u32 transmit_primitive;
-/* 0x0050 SAS_RORES */
+	/* 0x0050 SAS_RORES */
 	u32 error_counter_event_notification_control;
-/* 0x0054 SAS_FRPLDFIL */
+	/* 0x0054 SAS_FRPLDFIL */
 	u32 frxq_payload_fill_threshold;
-/* 0x0058 SAS_LLHANG_TOT */
+	/* 0x0058 SAS_LLHANG_TOT */
 	u32 link_layer_hang_detection_timeout;
 	u32 reserved_5C;
-/* 0x0060 SAS_RFCNT */
+	/* 0x0060 SAS_RFCNT */
 	u32 received_frame_count;
-/* 0x0064 SAS_TFCNT */
+	/* 0x0064 SAS_TFCNT */
 	u32 transmit_frame_count;
-/* 0x0068 SAS_RFDCNT */
+	/* 0x0068 SAS_RFDCNT */
 	u32 received_dword_count;
-/* 0x006C SAS_TFDCNT */
+	/* 0x006C SAS_TFDCNT */
 	u32 transmit_dword_count;
-/* 0x0070 SAS_LERCNT */
+	/* 0x0070 SAS_LERCNT */
 	u32 loss_of_sync_error_count;
-/* 0x0074 SAS_RDISERRCNT */
+	/* 0x0074 SAS_RDISERRCNT */
 	u32 running_disparity_error_count;
-/* 0x0078 SAS_CRERCNT */
+	/* 0x0078 SAS_CRERCNT */
 	u32 received_frame_crc_error_count;
-/* 0x007C STPCTL */
+	/* 0x007C STPCTL */
 	u32 stp_control;
-/* 0x0080 SAS_PCFG */
+	/* 0x0080 SAS_PCFG */
 	u32 phy_configuration;
-/* 0x0084 SAS_CLKSM */
+	/* 0x0084 SAS_CLKSM */
 	u32 clock_skew_management;
-/* 0x0088 SAS_TXCOMWAKE */
+	/* 0x0088 SAS_TXCOMWAKE */
 	u32 transmit_comwake_signal;
-/* 0x008C SAS_TXCOMINIT */
+	/* 0x008C SAS_TXCOMINIT */
 	u32 transmit_cominit_signal;
-/* 0x0090 SAS_TXCOMSAS */
+	/* 0x0090 SAS_TXCOMSAS */
 	u32 transmit_comsas_signal;
-/* 0x0094 SAS_COMINIT */
+	/* 0x0094 SAS_COMINIT */
 	u32 cominit_control;
-/* 0x0098 SAS_COMWAKE */
+	/* 0x0098 SAS_COMWAKE */
 	u32 comwake_control;
-/* 0x009C SAS_COMSAS */
+	/* 0x009C SAS_COMSAS */
 	u32 comsas_control;
-/* 0x00A0 SAS_SFERCNT */
+	/* 0x00A0 SAS_SFERCNT */
 	u32 received_short_frame_count;
-/* 0x00A4 SAS_CDFERCNT */
+	/* 0x00A4 SAS_CDFERCNT */
 	u32 received_frame_without_credit_count;
-/* 0x00A8 SAS_DNFERCNT */
+	/* 0x00A8 SAS_DNFERCNT */
 	u32 received_frame_after_done_count;
-/* 0x00AC SAS_PRSTERCNT */
+	/* 0x00AC SAS_PRSTERCNT */
 	u32 phy_reset_problem_count;
-/* 0x00B0 SAS_CNTCTL */
+	/* 0x00B0 SAS_CNTCTL */
 	u32 counter_control;
-/* 0x00B4 SAS_SSPTOV */
+	/* 0x00B4 SAS_SSPTOV */
 	u32 ssp_timer_timeout_values;
-/* 0x00B8 FTCTL */
+	/* 0x00B8 FTCTL */
 	u32 ftx_control;
-/* 0x00BC FRCTL */
+	/* 0x00BC FRCTL */
 	u32 frx_control;
-/* 0x00C0 FTWMRK */
+	/* 0x00C0 FTWMRK */
 	u32 ftx_watermark;
-/* 0x00C4 ENSPINUP */
+	/* 0x00C4 ENSPINUP */
 	u32 notify_enable_spinup_control;
-/* 0x00C8 SAS_TRNTOV */
+	/* 0x00C8 SAS_TRNTOV */
 	u32 sas_training_sequence_timer_values;
-/* 0x00CC SAS_PHYCAP */
+	/* 0x00CC SAS_PHYCAP */
 	u32 phy_capabilities;
-/* 0x00D0 SAS_PHYCTL */
+	/* 0x00D0 SAS_PHYCTL */
 	u32 phy_control;
 	u32 reserved_d4;
-/* 0x00D8 LLCTL */
+	/* 0x00D8 LLCTL */
 	u32 link_layer_control;
-/* 0x00DC AFE_XCVRCR */
+	/* 0x00DC AFE_XCVRCR */
 	u32 afe_xcvr_control;
-/* 0x00E0 AFE_LUTCR */
+	/* 0x00E0 AFE_LUTCR */
 	u32 afe_lookup_table_control;
-/* 0x00E4 PSZGCR */
+	/* 0x00E4 PSZGCR */
 	u32 phy_source_zone_group_control;
-/* 0x00E8 SAS_RECPHYCAP */
+	/* 0x00E8 SAS_RECPHYCAP */
 	u32 receive_phycap;
 	u32 reserved_ec;
-/* 0x00F0 SNAFERXRSTCTL */
+	/* 0x00F0 SNAFERXRSTCTL */
 	u32 speed_negotiation_afe_rx_reset_control;
-/* 0x00F4 SAS_SSIPMCTL */
+	/* 0x00F4 SAS_SSIPMCTL */
 	u32 power_management_control;
-/* 0x00F8 SAS_PSPREQ_PRIM */
+	/* 0x00F8 SAS_PSPREQ_PRIM */
 	u32 sas_pm_partial_request_primitive;
-/* 0x00FC SAS_PSSREQ_PRIM */
+	/* 0x00FC SAS_PSSREQ_PRIM */
 	u32 sas_pm_slumber_request_primitive;
-/* 0x0100 SAS_PPSACK_PRIM */
+	/* 0x0100 SAS_PPSACK_PRIM */
 	u32 sas_pm_ack_primitive_register;
-/* 0x0104 SAS_PSNAK_PRIM */
+	/* 0x0104 SAS_PSNAK_PRIM */
 	u32 sas_pm_nak_primitive_register;
-/* 0x0108 SAS_SSIPMTOV */
+	/* 0x0108 SAS_SSIPMTOV */
 	u32 sas_primitive_timeout;
 	u32 reserved_10c;
-/* 0x0110 - 0x011C PLAPRDCTRLxREG */
+	/* 0x0110 - 0x011C PLAPRDCTRLxREG */
 	u32 pla_product_control[4];
-/* 0x0120 PLAPRDSUMREG */
+	/* 0x0120 PLAPRDSUMREG */
 	u32 pla_product_sum;
-/* 0x0124 PLACONTROLREG */
+	/* 0x0124 PLACONTROLREG */
 	u32 pla_control;
-/* Remainder of memory space 896 bytes */
+	/* Remainder of memory space 896 bytes */
 	u32 reserved_0128_037f[0x96];
 
 };
@@ -1429,26 +1435,27 @@ struct scu_link_layer_registers {
  *
  *
  */
-struct scu_sgpio_registers {
-/* 0x0000 SGPIO_SGICR */
+struct scu_sgpio_registers
+{
+	/* 0x0000 SGPIO_SGICR */
 	u32 interface_control;
-/* 0x0004 SGPIO_SGPBR */
+	/* 0x0004 SGPIO_SGPBR */
 	u32 blink_rate;
-/* 0x0008 SGPIO_SGSDLR */
+	/* 0x0008 SGPIO_SGSDLR */
 	u32 start_drive_lower;
-/* 0x000C SGPIO_SGSDUR */
+	/* 0x000C SGPIO_SGSDUR */
 	u32 start_drive_upper;
-/* 0x0010 SGPIO_SGSIDLR */
+	/* 0x0010 SGPIO_SGSIDLR */
 	u32 serial_input_lower;
-/* 0x0014 SGPIO_SGSIDUR */
+	/* 0x0014 SGPIO_SGSIDUR */
 	u32 serial_input_upper;
-/* 0x0018 SGPIO_SGVSCR */
+	/* 0x0018 SGPIO_SGVSCR */
 	u32 vendor_specific_code;
-/* 0x001C Reserved */
+	/* 0x001C Reserved */
 	u32 reserved_001c;
-/* 0x0020 SGPIO_SGODSR */
+	/* 0x0020 SGPIO_SGODSR */
 	u32 output_data_select[8];
-/* Remainder of memory space 256 bytes */
+	/* Remainder of memory space 256 bytes */
 	u32 reserved_1444_14ff[0x30];
 
 };
@@ -1460,7 +1467,8 @@ struct scu_sgpio_registers {
  * ***************************************************************************** */
 #define     SCU_VIIT_BASE     0x1c00
 
-struct scu_viit_registers {
+struct scu_viit_registers
+{
 	u32 registers[256];
 };
 
@@ -1495,7 +1503,8 @@ struct scu_viit_registers {
  *
  *
  */
-struct scu_port_task_scheduler_registers {
+struct scu_port_task_scheduler_registers
+{
 	u32 control;
 	u32 status;
 };
@@ -1506,36 +1515,37 @@ struct scu_port_task_scheduler_registers {
  *
  *
  */
-struct scu_port_task_scheduler_group_registers {
-/* 0x0000 PTSGCR */
+struct scu_port_task_scheduler_group_registers
+{
+	/* 0x0000 PTSGCR */
 	u32 control;
-/* 0x0004 RTCR */
+	/* 0x0004 RTCR */
 	u32 real_time_clock;
-/* 0x0008 RTCCR */
+	/* 0x0008 RTCCR */
 	u32 real_time_clock_control;
-/* 0x000C */
+	/* 0x000C */
 	u32 reserved_0C;
-/*
- * 0x0010 PTS0CR
- * 0x0014 PTS0SR
- * 0x0018 PTS1CR
- * 0x001C PTS1SR
- * 0x0020 PTS2CR
- * 0x0024 PTS2SR
- * 0x0028 PTS3CR
- * 0x002C PTS3SR */
+	/*
+	 * 0x0010 PTS0CR
+	 * 0x0014 PTS0SR
+	 * 0x0018 PTS1CR
+	 * 0x001C PTS1SR
+	 * 0x0020 PTS2CR
+	 * 0x0024 PTS2SR
+	 * 0x0028 PTS3CR
+	 * 0x002C PTS3SR */
 	struct scu_port_task_scheduler_registers port[4];
-/*
- * 0x0030 PCSPE0CR
- * 0x0034 PCSPE1CR
- * 0x0038 PCSPE2CR
- * 0x003C PCSPE3CR */
+	/*
+	 * 0x0030 PCSPE0CR
+	 * 0x0034 PCSPE1CR
+	 * 0x0038 PCSPE2CR
+	 * 0x003C PCSPE3CR */
 	u32 protocol_engine[4];
-/* 0x0040 ETMTSCCR */
+	/* 0x0040 ETMTSCCR */
 	u32 tc_scanning_interval_control;
-/* 0x0044 ETMRNSCCR */
+	/* 0x0044 ETMRNSCCR */
 	u32 rnc_scanning_interval_control;
-/* Remainder of memory space 128 bytes */
+	/* Remainder of memory space 128 bytes */
 	u32 reserved_1048_107f[0x0E];
 
 };
@@ -1553,7 +1563,8 @@ struct scu_port_task_scheduler_group_registers {
  * AFE 1 is at offset 0x0900
  * AFE 2 is at offset 0x0a00
  * AFE 3 is at offset 0x0b00 */
-struct scu_afe_transceiver {
+struct scu_afe_transceiver
+{
 	/* 0x0000 AFE_XCVR_CTRL0 */
 	u32 afe_xcvr_control0;
 	/* 0x0004 AFE_XCVR_CTRL1 */
@@ -1626,7 +1637,8 @@ struct scu_afe_transceiver {
  *
  */
 /* Uaoa AFE registers */
-struct scu_afe_registers {
+struct scu_afe_registers
+{
 	/* 0Xe000 AFE_BIAS_CTRL */
 	u32 afe_bias_control;
 	u32 reserved_0004;
@@ -1719,12 +1731,14 @@ struct scu_afe_registers {
 	u32 reserved_0c00_0ffc[0x0100];
 };
 
-struct scu_protocol_engine_group_registers {
+struct scu_protocol_engine_group_registers
+{
 	u32 table[0xE0];
 };
 
 
-struct scu_viit_iit {
+struct scu_viit_iit
+{
 	u32 table[256];
 };
 
@@ -1734,7 +1748,8 @@ struct scu_viit_iit {
  *
  *
  */
-struct scu_zone_partition_table {
+struct scu_zone_partition_table
+{
 	u32 table[2048];
 };
 
@@ -1744,7 +1759,8 @@ struct scu_zone_partition_table {
  *
  *
  */
-struct scu_completion_ram {
+struct scu_completion_ram
+{
 	u32 ram[128];
 };
 
@@ -1754,7 +1770,8 @@ struct scu_completion_ram {
  *
  *
  */
-struct scu_frame_buffer_ram {
+struct scu_frame_buffer_ram
+{
 	u32 ram[128];
 };
 
@@ -1765,7 +1782,8 @@ struct scu_frame_buffer_ram {
  *
  *
  */
-struct scu_scratch_ram {
+struct scu_scratch_ram
+{
 	u32 ram[scu_scratch_ram_SIZE_IN_DWORDS];
 };
 
@@ -1774,7 +1792,8 @@ struct scu_scratch_ram {
  *
  *
  */
-struct noa_protocol_engine_partition {
+struct noa_protocol_engine_partition
+{
 	u32 reserved[64];
 };
 
@@ -1783,7 +1802,8 @@ struct noa_protocol_engine_partition {
  *
  *
  */
-struct noa_hub_partition {
+struct noa_hub_partition
+{
 	u32 reserved[64];
 };
 
@@ -1792,7 +1812,8 @@ struct noa_hub_partition {
  *
  *
  */
-struct noa_host_interface_partition {
+struct noa_host_interface_partition
+{
 	u32 reserved[64];
 };
 
@@ -1803,7 +1824,8 @@ struct noa_host_interface_partition {
  *
  *
  */
-struct transport_link_layer_pair {
+struct transport_link_layer_pair
+{
 	struct scu_transport_layer_registers tl;
 	struct scu_link_layer_registers ll;
 };
@@ -1815,7 +1837,8 @@ struct transport_link_layer_pair {
  *
  *
  */
-struct scu_peg_registers {
+struct scu_peg_registers
+{
 	struct transport_link_layer_pair pe[4];
 	struct scu_port_task_scheduler_group_registers ptsg;
 	struct scu_protocol_engine_group_registers peg;
@@ -1833,7 +1856,8 @@ struct scu_peg_registers {
  *
  *
  */
-struct scu_registers {
+struct scu_registers
+{
 	/* 0x0000 - PEG 0 */
 	struct scu_peg_registers peg0;
 

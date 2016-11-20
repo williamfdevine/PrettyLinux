@@ -29,7 +29,8 @@
 
 static struct snd_soc_jack broadwell_headset;
 /* Headset jack detection DAPM pins */
-static struct snd_soc_jack_pin broadwell_headset_pins[] = {
+static struct snd_soc_jack_pin broadwell_headset_pins[] =
+{
 	{
 		.pin = "Mic Jack",
 		.mask = SND_JACK_MICROPHONE,
@@ -40,12 +41,14 @@ static struct snd_soc_jack_pin broadwell_headset_pins[] = {
 	},
 };
 
-static const struct snd_kcontrol_new broadwell_controls[] = {
+static const struct snd_kcontrol_new broadwell_controls[] =
+{
 	SOC_DAPM_PIN_SWITCH("Speaker"),
 	SOC_DAPM_PIN_SWITCH("Headphone Jack"),
 };
 
-static const struct snd_soc_dapm_widget broadwell_widgets[] = {
+static const struct snd_soc_dapm_widget broadwell_widgets[] =
+{
 	SND_SOC_DAPM_HP("Headphone Jack", NULL),
 	SND_SOC_DAPM_SPK("Speaker", NULL),
 	SND_SOC_DAPM_MIC("Mic Jack", NULL),
@@ -54,7 +57,8 @@ static const struct snd_soc_dapm_widget broadwell_widgets[] = {
 	SND_SOC_DAPM_LINE("Line Jack", NULL),
 };
 
-static const struct snd_soc_dapm_route broadwell_rt286_map[] = {
+static const struct snd_soc_dapm_route broadwell_rt286_map[] =
+{
 
 	/* speaker */
 	{"Speaker", NULL, "SPOR"},
@@ -81,10 +85,13 @@ static int broadwell_rt286_codec_init(struct snd_soc_pcm_runtime *rtd)
 	struct snd_soc_codec *codec = rtd->codec;
 	int ret = 0;
 	ret = snd_soc_card_jack_new(rtd->card, "Headset",
-		SND_JACK_HEADSET | SND_JACK_BTN_0, &broadwell_headset,
-		broadwell_headset_pins, ARRAY_SIZE(broadwell_headset_pins));
+								SND_JACK_HEADSET | SND_JACK_BTN_0, &broadwell_headset,
+								broadwell_headset_pins, ARRAY_SIZE(broadwell_headset_pins));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	rt286_mic_detect(codec, &broadwell_headset);
 	return 0;
@@ -92,12 +99,12 @@ static int broadwell_rt286_codec_init(struct snd_soc_pcm_runtime *rtd)
 
 
 static int broadwell_ssp0_fixup(struct snd_soc_pcm_runtime *rtd,
-			struct snd_pcm_hw_params *params)
+								struct snd_pcm_hw_params *params)
 {
 	struct snd_interval *rate = hw_param_interval(params,
-			SNDRV_PCM_HW_PARAM_RATE);
+								SNDRV_PCM_HW_PARAM_RATE);
 	struct snd_interval *channels = hw_param_interval(params,
-						SNDRV_PCM_HW_PARAM_CHANNELS);
+									SNDRV_PCM_HW_PARAM_CHANNELS);
 
 	/* The ADSP will covert the FE rate to 48k, stereo */
 	rate->min = rate->max = 48000;
@@ -109,16 +116,17 @@ static int broadwell_ssp0_fixup(struct snd_soc_pcm_runtime *rtd,
 }
 
 static int broadwell_rt286_hw_params(struct snd_pcm_substream *substream,
-	struct snd_pcm_hw_params *params)
+									 struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
 	int ret;
 
 	ret = snd_soc_dai_set_sysclk(codec_dai, RT286_SCLK_S_PLL, 24000000,
-		SND_SOC_CLOCK_IN);
+								 SND_SOC_CLOCK_IN);
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		dev_err(rtd->dev, "can't set codec sysclk configuration\n");
 		return ret;
 	}
@@ -126,7 +134,8 @@ static int broadwell_rt286_hw_params(struct snd_pcm_substream *substream,
 	return ret;
 }
 
-static struct snd_soc_ops broadwell_rt286_ops = {
+static struct snd_soc_ops broadwell_rt286_ops =
+{
 	.hw_params = broadwell_rt286_hw_params,
 };
 
@@ -138,9 +147,11 @@ static int broadwell_rtd_init(struct snd_soc_pcm_runtime *rtd)
 
 	/* Set ADSP SSP port settings */
 	ret = sst_hsw_device_set_config(broadwell, SST_HSW_DEVICE_SSP_0,
-		SST_HSW_DEVICE_MCLK_FREQ_24_MHZ,
-		SST_HSW_DEVICE_CLOCK_MASTER, 9);
-	if (ret < 0) {
+									SST_HSW_DEVICE_MCLK_FREQ_24_MHZ,
+									SST_HSW_DEVICE_CLOCK_MASTER, 9);
+
+	if (ret < 0)
+	{
 		dev_err(rtd->dev, "error: failed to set device config\n");
 		return ret;
 	}
@@ -149,7 +160,8 @@ static int broadwell_rtd_init(struct snd_soc_pcm_runtime *rtd)
 }
 
 /* broadwell digital audio interface glue - connects codec <--> CPU */
-static struct snd_soc_dai_link broadwell_rt286_dais[] = {
+static struct snd_soc_dai_link broadwell_rt286_dais[] =
+{
 	/* Front End DAI links */
 	{
 		.name = "System PCM",
@@ -209,7 +221,7 @@ static struct snd_soc_dai_link broadwell_rt286_dais[] = {
 		.codec_dai_name = "rt286-aif1",
 		.init = broadwell_rt286_codec_init,
 		.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
-			SND_SOC_DAIFMT_CBS_CFS,
+		SND_SOC_DAIFMT_CBS_CFS,
 		.ignore_suspend = 1,
 		.ignore_pmdown_time = 1,
 		.be_hw_params_fixup = broadwell_ssp0_fixup,
@@ -219,11 +231,14 @@ static struct snd_soc_dai_link broadwell_rt286_dais[] = {
 	},
 };
 
-static int broadwell_suspend(struct snd_soc_card *card){
+static int broadwell_suspend(struct snd_soc_card *card)
+{
 	struct snd_soc_codec *codec;
 
-	list_for_each_entry(codec, &card->codec_dev_list, card_list) {
-		if (!strcmp(codec->component.name, "i2c-INT343A:00")) {
+	list_for_each_entry(codec, &card->codec_dev_list, card_list)
+	{
+		if (!strcmp(codec->component.name, "i2c-INT343A:00"))
+		{
 			dev_dbg(codec->dev, "disabling jack detect before going to suspend.\n");
 			rt286_mic_detect(codec, NULL);
 			break;
@@ -232,11 +247,14 @@ static int broadwell_suspend(struct snd_soc_card *card){
 	return 0;
 }
 
-static int broadwell_resume(struct snd_soc_card *card){
+static int broadwell_resume(struct snd_soc_card *card)
+{
 	struct snd_soc_codec *codec;
 
-	list_for_each_entry(codec, &card->codec_dev_list, card_list) {
-		if (!strcmp(codec->component.name, "i2c-INT343A:00")) {
+	list_for_each_entry(codec, &card->codec_dev_list, card_list)
+	{
+		if (!strcmp(codec->component.name, "i2c-INT343A:00"))
+		{
 			dev_dbg(codec->dev, "enabling jack detect for resume.\n");
 			rt286_mic_detect(codec, &broadwell_headset);
 			break;
@@ -246,7 +264,8 @@ static int broadwell_resume(struct snd_soc_card *card){
 }
 
 /* broadwell audio machine driver for WPT + RT286S */
-static struct snd_soc_card broadwell_rt286 = {
+static struct snd_soc_card broadwell_rt286 =
+{
 	.name = "broadwell-rt286",
 	.owner = THIS_MODULE,
 	.dai_link = broadwell_rt286_dais,
@@ -269,7 +288,8 @@ static int broadwell_audio_probe(struct platform_device *pdev)
 	return devm_snd_soc_register_card(&pdev->dev, &broadwell_rt286);
 }
 
-static struct platform_driver broadwell_audio = {
+static struct platform_driver broadwell_audio =
+{
 	.probe = broadwell_audio_probe,
 	.driver = {
 		.name = "broadwell-audio",

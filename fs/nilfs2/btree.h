@@ -35,7 +35,8 @@
  * @bp_newreq: ptr alloc request for new ptr
  * @bp_op: rebalance operation
  */
-struct nilfs_btree_path {
+struct nilfs_btree_path
+{
 	struct buffer_head *bp_bh;
 	struct buffer_head *bp_sib_bh;
 	int bp_index;
@@ -43,7 +44,7 @@ struct nilfs_btree_path {
 	union nilfs_bmap_ptr_req bp_newreq;
 	struct nilfs_btnode_chkey_ctxt bp_ctxt;
 	void (*bp_op)(struct nilfs_bmap *, struct nilfs_btree_path *,
-		      int, __u64 *, __u64 *);
+				  int, __u64 *, __u64 *);
 };
 
 #define NILFS_BTREE_ROOT_SIZE		NILFS_BMAP_SIZE
@@ -54,7 +55,7 @@ struct nilfs_btree_path {
 #define NILFS_BTREE_NODE_EXTRA_PAD_SIZE	(sizeof(__le64))
 #define NILFS_BTREE_NODE_NCHILDREN_MAX(nodesize)			\
 	(((nodesize) - sizeof(struct nilfs_btree_node) -		\
-		NILFS_BTREE_NODE_EXTRA_PAD_SIZE) /			\
+	  NILFS_BTREE_NODE_EXTRA_PAD_SIZE) /			\
 	 (sizeof(__le64 /* dkey */) + sizeof(__le64 /* dptr */)))
 #define NILFS_BTREE_NODE_NCHILDREN_MIN(nodesize)			\
 	((NILFS_BTREE_NODE_NCHILDREN_MAX(nodesize) - 1) / 2 + 1)
@@ -65,7 +66,7 @@ extern struct kmem_cache *nilfs_btree_path_cache;
 
 int nilfs_btree_init(struct nilfs_bmap *);
 int nilfs_btree_convert_and_insert(struct nilfs_bmap *, __u64, __u64,
-				   const __u64 *, const __u64 *, int);
+								   const __u64 *, const __u64 *, int);
 void nilfs_btree_init_gc(struct nilfs_bmap *);
 
 int nilfs_btree_broken_node_block(struct buffer_head *bh);

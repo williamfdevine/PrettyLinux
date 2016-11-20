@@ -8,7 +8,8 @@
 #include "perf.h"
 #include "util/debug.h"
 
-struct cpu_map {
+struct cpu_map
+{
 	atomic_t refcnt;
 	int nr;
 	int map[];
@@ -34,7 +35,10 @@ void cpu_map__put(struct cpu_map *map);
 static inline int cpu_map__socket(struct cpu_map *sock, int s)
 {
 	if (!sock || s > sock->nr || s < 0)
+	{
 		return 0;
+	}
+
 	return sock->map[s];
 }
 
@@ -65,8 +69,8 @@ int cpu__max_cpu(void);
 int cpu__get_node(int cpu);
 
 int cpu_map__build_map(struct cpu_map *cpus, struct cpu_map **res,
-		       int (*f)(struct cpu_map *map, int cpu, void *data),
-		       void *data);
+					   int (*f)(struct cpu_map *map, int cpu, void *data),
+					   void *data);
 
 int cpu_map__cpu(struct cpu_map *cpus, int idx);
 bool cpu_map__has(struct cpu_map *cpus, int cpu);

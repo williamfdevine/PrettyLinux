@@ -82,14 +82,16 @@
 #define ALIGNMENT_OF_UCC_SLOW_PRAM	64
 
 /* UCC Slow Channel Protocol Mode */
-enum ucc_slow_channel_protocol_mode {
+enum ucc_slow_channel_protocol_mode
+{
 	UCC_SLOW_CHANNEL_PROTOCOL_MODE_QMC = 0x00000002,
 	UCC_SLOW_CHANNEL_PROTOCOL_MODE_UART = 0x00000004,
 	UCC_SLOW_CHANNEL_PROTOCOL_MODE_BISYNC = 0x00000008,
 };
 
 /* UCC Slow Transparent Transmit CRC (TCRC) */
-enum ucc_slow_transparent_tcrc {
+enum ucc_slow_transparent_tcrc
+{
 	/* 16-bit CCITT CRC (HDLC).  (X16 + X12 + X5 + 1) */
 	UCC_SLOW_TRANSPARENT_TCRC_CCITT_CRC16 = 0x00000000,
 	/* CRC16 (BISYNC).  (X16 + X15 + X2 + 1) */
@@ -99,7 +101,8 @@ enum ucc_slow_transparent_tcrc {
 };
 
 /* UCC Slow oversampling rate for transmitter (TDCR) */
-enum ucc_slow_tx_oversampling_rate {
+enum ucc_slow_tx_oversampling_rate
+{
 	/* 1x clock mode */
 	UCC_SLOW_OVERSAMPLING_RATE_TX_TDCR_1 = 0x00000000,
 	/* 8x clock mode */
@@ -112,7 +115,8 @@ enum ucc_slow_tx_oversampling_rate {
 
 /* UCC Slow Oversampling rate for receiver (RDCR)
 */
-enum ucc_slow_rx_oversampling_rate {
+enum ucc_slow_rx_oversampling_rate
+{
 	/* 1x clock mode */
 	UCC_SLOW_OVERSAMPLING_RATE_RX_RDCR_1 = 0x00000000,
 	/* 8x clock mode */
@@ -125,28 +129,32 @@ enum ucc_slow_rx_oversampling_rate {
 
 /* UCC Slow Transmitter encoding method (TENC)
 */
-enum ucc_slow_tx_encoding_method {
+enum ucc_slow_tx_encoding_method
+{
 	UCC_SLOW_TRANSMITTER_ENCODING_METHOD_TENC_NRZ = 0x00000000,
 	UCC_SLOW_TRANSMITTER_ENCODING_METHOD_TENC_NRZI = 0x00000100
 };
 
 /* UCC Slow Receiver decoding method (RENC)
 */
-enum ucc_slow_rx_decoding_method {
+enum ucc_slow_rx_decoding_method
+{
 	UCC_SLOW_RECEIVER_DECODING_METHOD_RENC_NRZ = 0x00000000,
 	UCC_SLOW_RECEIVER_DECODING_METHOD_RENC_NRZI = 0x00000800
 };
 
 /* UCC Slow Diagnostic mode (DIAG)
 */
-enum ucc_slow_diag_mode {
+enum ucc_slow_diag_mode
+{
 	UCC_SLOW_DIAG_MODE_NORMAL = 0x00000000,
 	UCC_SLOW_DIAG_MODE_LOOPBACK = 0x00000040,
 	UCC_SLOW_DIAG_MODE_ECHO = 0x00000080,
 	UCC_SLOW_DIAG_MODE_LOOPBACK_ECHO = 0x000000c0
 };
 
-struct ucc_slow_info {
+struct ucc_slow_info
+{
 	int ucc_num;
 	int protocol;			/* QE_CR_PROTOCOL_xxx */
 	enum qe_clock rx_clock;
@@ -185,7 +193,8 @@ struct ucc_slow_info {
 	enum ucc_slow_rx_decoding_method renc;
 };
 
-struct ucc_slow_private {
+struct ucc_slow_private
+{
 	struct ucc_slow_info *us_info;
 	struct ucc_slow __iomem *us_regs; /* Ptr to memory map of UCC regs */
 	struct ucc_slow_pram *us_pram;	/* a pointer to the parameter RAM */
@@ -224,14 +233,14 @@ struct ucc_slow_private {
  * us_info  - (In) pointer to the slow UCC info structure.
  * uccs_ret - (Out) pointer to the slow UCC structure.
  */
-int ucc_slow_init(struct ucc_slow_info * us_info, struct ucc_slow_private ** uccs_ret);
+int ucc_slow_init(struct ucc_slow_info *us_info, struct ucc_slow_private **uccs_ret);
 
 /* ucc_slow_free
  * Frees all resources for slow UCC.
  *
  * uccs - (In) pointer to the slow UCC structure.
  */
-void ucc_slow_free(struct ucc_slow_private * uccs);
+void ucc_slow_free(struct ucc_slow_private *uccs);
 
 /* ucc_slow_enable
  * Enables a fast UCC port.
@@ -240,7 +249,7 @@ void ucc_slow_free(struct ucc_slow_private * uccs);
  * uccs - (In) pointer to the slow UCC structure.
  * mode - (In) TX, RX, or both.
  */
-void ucc_slow_enable(struct ucc_slow_private * uccs, enum comm_dir mode);
+void ucc_slow_enable(struct ucc_slow_private *uccs, enum comm_dir mode);
 
 /* ucc_slow_disable
  * Disables a fast UCC port.
@@ -249,21 +258,21 @@ void ucc_slow_enable(struct ucc_slow_private * uccs, enum comm_dir mode);
  * uccs - (In) pointer to the slow UCC structure.
  * mode - (In) TX, RX, or both.
  */
-void ucc_slow_disable(struct ucc_slow_private * uccs, enum comm_dir mode);
+void ucc_slow_disable(struct ucc_slow_private *uccs, enum comm_dir mode);
 
 /* ucc_slow_graceful_stop_tx
  * Smoothly stops transmission on a specified slow UCC.
  *
  * uccs - (In) pointer to the slow UCC structure.
  */
-void ucc_slow_graceful_stop_tx(struct ucc_slow_private * uccs);
+void ucc_slow_graceful_stop_tx(struct ucc_slow_private *uccs);
 
 /* ucc_slow_stop_tx
  * Stops transmission on a specified slow UCC.
  *
  * uccs - (In) pointer to the slow UCC structure.
  */
-void ucc_slow_stop_tx(struct ucc_slow_private * uccs);
+void ucc_slow_stop_tx(struct ucc_slow_private *uccs);
 
 /* ucc_slow_restart_tx
  * Restarts transmitting on a specified slow UCC.

@@ -81,20 +81,20 @@
 #define ICP_QAT_CSS_FWSK_EXPONENT_LEN   4
 #define ICP_QAT_CSS_FWSK_PAD_LEN        252
 #define ICP_QAT_CSS_FWSK_PUB_LEN   (ICP_QAT_CSS_FWSK_MODULUS_LEN + \
-				    ICP_QAT_CSS_FWSK_EXPONENT_LEN + \
-				    ICP_QAT_CSS_FWSK_PAD_LEN)
+									ICP_QAT_CSS_FWSK_EXPONENT_LEN + \
+									ICP_QAT_CSS_FWSK_PAD_LEN)
 #define ICP_QAT_CSS_SIGNATURE_LEN   256
 #define ICP_QAT_CSS_AE_IMG_LEN     (sizeof(struct icp_qat_simg_ae_mode) + \
-				    ICP_QAT_SIMG_AE_INIT_SEQ_LEN +         \
-				    ICP_QAT_SIMG_AE_INSTS_LEN)
+									ICP_QAT_SIMG_AE_INIT_SEQ_LEN +         \
+									ICP_QAT_SIMG_AE_INSTS_LEN)
 #define ICP_QAT_CSS_AE_SIMG_LEN    (sizeof(struct icp_qat_css_hdr) + \
-				    ICP_QAT_CSS_FWSK_PUB_LEN + \
-				    ICP_QAT_CSS_SIGNATURE_LEN + \
-				    ICP_QAT_CSS_AE_IMG_LEN)
+									ICP_QAT_CSS_FWSK_PUB_LEN + \
+									ICP_QAT_CSS_SIGNATURE_LEN + \
+									ICP_QAT_CSS_AE_IMG_LEN)
 #define ICP_QAT_AE_IMG_OFFSET	   (sizeof(struct icp_qat_css_hdr) + \
-				    ICP_QAT_CSS_FWSK_MODULUS_LEN + \
-				    ICP_QAT_CSS_FWSK_EXPONENT_LEN + \
-				    ICP_QAT_CSS_SIGNATURE_LEN)
+									ICP_QAT_CSS_FWSK_MODULUS_LEN + \
+									ICP_QAT_CSS_FWSK_EXPONENT_LEN + \
+									ICP_QAT_CSS_SIGNATURE_LEN)
 #define ICP_QAT_CSS_MAX_IMAGE_LEN   0x40000
 
 #define ICP_QAT_CTX_MODE(ae_mode) ((ae_mode) & 0xf)
@@ -105,13 +105,15 @@
 #define ICP_QAT_LOC_MEM0_MODE(ae_mode) (((ae_mode) >> 0x8) & 0x1)
 #define ICP_QAT_LOC_MEM1_MODE(ae_mode) (((ae_mode) >> 0x9) & 0x1)
 
-enum icp_qat_uof_mem_region {
+enum icp_qat_uof_mem_region
+{
 	ICP_QAT_UOF_SRAM_REGION = 0x0,
 	ICP_QAT_UOF_LMEM_REGION = 0x3,
 	ICP_QAT_UOF_UMEM_REGION = 0x5
 };
 
-enum icp_qat_uof_regtype {
+enum icp_qat_uof_regtype
+{
 	ICP_NO_DEST	= 0,
 	ICP_GPA_REL	= 1,
 	ICP_GPA_ABS	= 2,
@@ -135,23 +137,27 @@ enum icp_qat_uof_regtype {
 	ICP_NEIGH_REL	= 31,
 };
 
-enum icp_qat_css_fwtype {
+enum icp_qat_css_fwtype
+{
 	CSS_AE_FIRMWARE = 0,
 	CSS_MMP_FIRMWARE = 1
 };
 
-struct icp_qat_uclo_page {
+struct icp_qat_uclo_page
+{
 	struct icp_qat_uclo_encap_page *encap_page;
 	struct icp_qat_uclo_region *region;
 	unsigned int flags;
 };
 
-struct icp_qat_uclo_region {
+struct icp_qat_uclo_region
+{
 	struct icp_qat_uclo_page *loaded;
 	struct icp_qat_uclo_page *page;
 };
 
-struct icp_qat_uclo_aeslice {
+struct icp_qat_uclo_aeslice
+{
 	struct icp_qat_uclo_region *region;
 	struct icp_qat_uclo_page *page;
 	struct icp_qat_uclo_page *cur_page[ICP_QAT_UCLO_MAX_CTX];
@@ -160,26 +166,30 @@ struct icp_qat_uclo_aeslice {
 	unsigned int new_uaddr[ICP_QAT_UCLO_MAX_CTX];
 };
 
-struct icp_qat_uclo_aedata {
+struct icp_qat_uclo_aedata
+{
 	unsigned int slice_num;
 	unsigned int eff_ustore_size;
 	struct icp_qat_uclo_aeslice ae_slices[ICP_QAT_UCLO_MAX_CTX];
 };
 
-struct icp_qat_uof_encap_obj {
+struct icp_qat_uof_encap_obj
+{
 	char *beg_uof;
 	struct icp_qat_uof_objhdr *obj_hdr;
 	struct icp_qat_uof_chunkhdr *chunk_hdr;
 	struct icp_qat_uof_varmem_seg *var_mem_seg;
 };
 
-struct icp_qat_uclo_encap_uwblock {
+struct icp_qat_uclo_encap_uwblock
+{
 	unsigned int start_addr;
 	unsigned int words_num;
 	uint64_t micro_words;
 };
 
-struct icp_qat_uclo_encap_page {
+struct icp_qat_uclo_encap_page
+{
 	unsigned int def_page;
 	unsigned int page_region;
 	unsigned int beg_addr_v;
@@ -189,7 +199,8 @@ struct icp_qat_uclo_encap_page {
 	struct icp_qat_uclo_encap_uwblock *uwblock;
 };
 
-struct icp_qat_uclo_encapme {
+struct icp_qat_uclo_encapme
+{
 	struct icp_qat_uof_image *img_ptr;
 	struct icp_qat_uclo_encap_page *page;
 	unsigned int ae_reg_num;
@@ -201,24 +212,28 @@ struct icp_qat_uclo_encapme {
 	unsigned int uwords_num;
 };
 
-struct icp_qat_uclo_init_mem_table {
+struct icp_qat_uclo_init_mem_table
+{
 	unsigned int entry_num;
 	struct icp_qat_uof_initmem *init_mem;
 };
 
-struct icp_qat_uclo_objhdr {
+struct icp_qat_uclo_objhdr
+{
 	char *file_buff;
 	unsigned int checksum;
 	unsigned int size;
 };
 
-struct icp_qat_uof_strtable {
+struct icp_qat_uof_strtable
+{
 	unsigned int table_len;
 	unsigned int reserved;
 	uint64_t strings;
 };
 
-struct icp_qat_uclo_objhandle {
+struct icp_qat_uclo_objhandle
+{
 	unsigned int prod_type;
 	unsigned int prod_rev;
 	struct icp_qat_uclo_objhdr *obj_hdr;
@@ -238,14 +253,16 @@ struct icp_qat_uclo_objhandle {
 	uint64_t *uword_buf;
 };
 
-struct icp_qat_uof_uword_block {
+struct icp_qat_uof_uword_block
+{
 	unsigned int start_addr;
 	unsigned int words_num;
 	unsigned int uword_offset;
 	unsigned int reserved;
 };
 
-struct icp_qat_uof_filehdr {
+struct icp_qat_uof_filehdr
+{
 	unsigned short file_id;
 	unsigned short reserved1;
 	char min_ver;
@@ -255,14 +272,16 @@ struct icp_qat_uof_filehdr {
 	unsigned short num_chunks;
 };
 
-struct icp_qat_uof_filechunkhdr {
+struct icp_qat_uof_filechunkhdr
+{
 	char chunk_id[ICP_QAT_UOF_OBJID_LEN];
 	unsigned int checksum;
 	unsigned int offset;
 	unsigned int size;
 };
 
-struct icp_qat_uof_objhdr {
+struct icp_qat_uof_objhdr
+{
 	unsigned int ac_dev_type;
 	unsigned short min_cpu_ver;
 	unsigned short max_cpu_ver;
@@ -272,18 +291,21 @@ struct icp_qat_uof_objhdr {
 	unsigned int reserved2;
 };
 
-struct icp_qat_uof_chunkhdr {
+struct icp_qat_uof_chunkhdr
+{
 	char chunk_id[ICP_QAT_UOF_OBJID_LEN];
 	unsigned int offset;
 	unsigned int size;
 };
 
-struct icp_qat_uof_memvar_attr {
+struct icp_qat_uof_memvar_attr
+{
 	unsigned int offset_in_byte;
 	unsigned int value;
 };
 
-struct icp_qat_uof_initmem {
+struct icp_qat_uof_initmem
+{
 	unsigned int sym_name;
 	char region;
 	char scope;
@@ -293,7 +315,8 @@ struct icp_qat_uof_initmem {
 	unsigned int val_attr_num;
 };
 
-struct icp_qat_uof_init_regsym {
+struct icp_qat_uof_init_regsym
+{
 	unsigned int sym_name;
 	char init_type;
 	char value_type;
@@ -303,7 +326,8 @@ struct icp_qat_uof_init_regsym {
 	unsigned int value;
 };
 
-struct icp_qat_uof_varmem_seg {
+struct icp_qat_uof_varmem_seg
+{
 	unsigned int sram_base;
 	unsigned int sram_size;
 	unsigned int sram_alignment;
@@ -318,14 +342,16 @@ struct icp_qat_uof_varmem_seg {
 	unsigned int scratch_alignment;
 };
 
-struct icp_qat_uof_gtid {
+struct icp_qat_uof_gtid
+{
 	char tool_id[ICP_QAT_UOF_OBJID_LEN];
 	int tool_ver;
 	unsigned int reserved1;
 	unsigned int reserved2;
 };
 
-struct icp_qat_uof_sbreak {
+struct icp_qat_uof_sbreak
+{
 	unsigned int page_num;
 	unsigned int virt_uaddr;
 	unsigned char sbreak_type;
@@ -335,7 +361,8 @@ struct icp_qat_uof_sbreak {
 	unsigned int reg_addr;
 };
 
-struct icp_qat_uof_code_page {
+struct icp_qat_uof_code_page
+{
 	unsigned int page_region;
 	unsigned int page_num;
 	unsigned char def_page;
@@ -350,7 +377,8 @@ struct icp_qat_uof_code_page {
 	unsigned int code_area_offset;
 };
 
-struct icp_qat_uof_image {
+struct icp_qat_uof_image
+{
 	unsigned int img_name;
 	unsigned int ae_assigned;
 	unsigned int ctx_assigned;
@@ -373,11 +401,13 @@ struct icp_qat_uof_image {
 	unsigned int app_metadata;
 };
 
-struct icp_qat_uof_objtable {
+struct icp_qat_uof_objtable
+{
 	unsigned int entry_num;
 };
 
-struct icp_qat_uof_ae_reg {
+struct icp_qat_uof_ae_reg
+{
 	unsigned int name;
 	unsigned int vis_name;
 	unsigned short type;
@@ -390,12 +420,14 @@ struct icp_qat_uof_ae_reg {
 	unsigned int xo_id;
 };
 
-struct icp_qat_uof_code_area {
+struct icp_qat_uof_code_area
+{
 	unsigned int micro_words_num;
 	unsigned int uword_block_tab;
 };
 
-struct icp_qat_uof_batch_init {
+struct icp_qat_uof_batch_init
+{
 	unsigned int ae;
 	unsigned int addr;
 	unsigned int *value;
@@ -403,7 +435,8 @@ struct icp_qat_uof_batch_init {
 	struct icp_qat_uof_batch_init *next;
 };
 
-struct icp_qat_suof_img_hdr {
+struct icp_qat_suof_img_hdr
+{
 	char          *simg_buf;
 	unsigned long simg_len;
 	char          *css_header;
@@ -418,12 +451,14 @@ struct icp_qat_suof_img_hdr {
 	unsigned long appmeta_data;
 };
 
-struct icp_qat_suof_img_tbl {
+struct icp_qat_suof_img_tbl
+{
 	unsigned int num_simgs;
 	struct icp_qat_suof_img_hdr *simg_hdr;
 };
 
-struct icp_qat_suof_handle {
+struct icp_qat_suof_handle
+{
 	unsigned int  file_id;
 	unsigned int  check_sum;
 	char          min_ver;
@@ -436,7 +471,8 @@ struct icp_qat_suof_handle {
 	struct icp_qat_suof_img_tbl img_table;
 };
 
-struct icp_qat_fw_auth_desc {
+struct icp_qat_fw_auth_desc
+{
 	unsigned int   img_len;
 	unsigned int   reserved;
 	unsigned int   css_hdr_high;
@@ -455,13 +491,15 @@ struct icp_qat_fw_auth_desc {
 	unsigned int   img_ae_insts_low;
 };
 
-struct icp_qat_auth_chunk {
+struct icp_qat_auth_chunk
+{
 	struct icp_qat_fw_auth_desc fw_auth_desc;
 	u64 chunk_size;
 	u64 chunk_bus_addr;
 };
 
-struct icp_qat_css_hdr {
+struct icp_qat_css_hdr
+{
 	unsigned int module_type;
 	unsigned int header_len;
 	unsigned int header_ver;
@@ -476,7 +514,8 @@ struct icp_qat_css_hdr {
 	unsigned int reserved[21];
 };
 
-struct icp_qat_simg_ae_mode {
+struct icp_qat_simg_ae_mode
+{
 	unsigned int     file_id;
 	unsigned short   maj_ver;
 	unsigned short   min_ver;
@@ -499,7 +538,8 @@ struct icp_qat_simg_ae_mode {
 	char             appmeta_data[256];
 };
 
-struct icp_qat_suof_filehdr {
+struct icp_qat_suof_filehdr
+{
 	unsigned int     file_id;
 	unsigned int     check_sum;
 	char             min_ver;
@@ -510,18 +550,21 @@ struct icp_qat_suof_filehdr {
 	unsigned short   num_chunks;
 };
 
-struct icp_qat_suof_chunk_hdr {
+struct icp_qat_suof_chunk_hdr
+{
 	char chunk_id[ICP_QAT_SUOF_OBJ_ID_LEN];
 	u64 offset;
 	u64 size;
 };
 
-struct icp_qat_suof_strtable {
+struct icp_qat_suof_strtable
+{
 	unsigned int tab_length;
 	unsigned int strings;
 };
 
-struct icp_qat_suof_objhdr {
+struct icp_qat_suof_objhdr
+{
 	unsigned int img_length;
 	unsigned int reserved;
 };

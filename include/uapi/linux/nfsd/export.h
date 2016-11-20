@@ -1,6 +1,6 @@
 /*
  * include/linux/nfsd/export.h
- * 
+ *
  * Public declarations for NFS exports. The definitions for the
  * syscall interface are in nfsctl.h
  *
@@ -57,8 +57,8 @@
 
 /* The flags that may vary depending on security flavor: */
 #define NFSEXP_SECINFO_FLAGS	(NFSEXP_READONLY | NFSEXP_ROOTSQUASH \
-					| NFSEXP_ALLSQUASH \
-					| NFSEXP_INSECURE_PORT)
+								 | NFSEXP_ALLSQUASH \
+								 | NFSEXP_INSECURE_PORT)
 
 
 #endif /* _UAPINFSD_EXPORT_H */

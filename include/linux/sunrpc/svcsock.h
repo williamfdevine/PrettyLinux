@@ -15,10 +15,11 @@
 /*
  * RPC server socket.
  */
-struct svc_sock {
+struct svc_sock
+{
 	struct svc_xprt		sk_xprt;
-	struct socket *		sk_sock;	/* berkeley socket layer */
-	struct sock *		sk_sk;		/* INET layer */
+	struct socket 		*sk_sock;	/* berkeley socket layer */
+	struct sock 		*sk_sk;		/* INET layer */
 
 	/* We keep the old state_change and data_ready CB's here */
 	void			(*sk_ostate)(struct sock *);
@@ -35,7 +36,7 @@ struct svc_sock {
 	 * received so far in the fragments making up this rpc: */
 	u32			sk_datalen;
 
-	struct page *		sk_pages[RPCSVC_MAXPAGES];	/* received data */
+	struct page 		*sk_pages[RPCSVC_MAXPAGES];	/* received data */
 };
 
 static inline u32 svc_sock_reclen(struct svc_sock *svsk)

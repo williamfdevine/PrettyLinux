@@ -15,7 +15,8 @@
 
 /* DViCO FUSION HDTV MCE remote */
 
-static struct rc_map_table fusionhdtv_mce[] = {
+static struct rc_map_table fusionhdtv_mce[] =
+{
 
 	{ 0x0b, KEY_1 },
 	{ 0x17, KEY_2 },
@@ -73,7 +74,8 @@ static struct rc_map_table fusionhdtv_mce[] = {
 	{ 0x4e, KEY_POWER },
 };
 
-static struct rc_map_list fusionhdtv_mce_map = {
+static struct rc_map_list fusionhdtv_mce_map =
+{
 	.map = {
 		.scan    = fusionhdtv_mce,
 		.size    = ARRAY_SIZE(fusionhdtv_mce),

@@ -50,7 +50,8 @@ static DECLARE_WAIT_QUEUE_HEAD(xb_waitq);
 
 static irqreturn_t wake_waiting(int irq, void *unused)
 {
-	if (unlikely(xenstored_ready == 0)) {
+	if (unlikely(xenstored_ready == 0))
+	{
 		xenstored_ready = 1;
 		schedule_work(&probe_work);
 	}
@@ -65,22 +66,30 @@ static int check_indexes(XENSTORE_RING_IDX cons, XENSTORE_RING_IDX prod)
 }
 
 static void *get_output_chunk(XENSTORE_RING_IDX cons,
-			      XENSTORE_RING_IDX prod,
-			      char *buf, uint32_t *len)
+							  XENSTORE_RING_IDX prod,
+							  char *buf, uint32_t *len)
 {
 	*len = XENSTORE_RING_SIZE - MASK_XENSTORE_IDX(prod);
+
 	if ((XENSTORE_RING_SIZE - (prod - cons)) < *len)
+	{
 		*len = XENSTORE_RING_SIZE - (prod - cons);
+	}
+
 	return buf + MASK_XENSTORE_IDX(prod);
 }
 
 static const void *get_input_chunk(XENSTORE_RING_IDX cons,
-				   XENSTORE_RING_IDX prod,
-				   const char *buf, uint32_t *len)
+								   XENSTORE_RING_IDX prod,
+								   const char *buf, uint32_t *len)
 {
 	*len = XENSTORE_RING_SIZE - MASK_XENSTORE_IDX(cons);
+
 	if ((prod - cons) < *len)
+	{
 		*len = prod - cons;
+	}
+
 	return buf + MASK_XENSTORE_IDX(cons);
 }
 
@@ -97,30 +106,42 @@ int xb_write(const void *data, unsigned len)
 	XENSTORE_RING_IDX cons, prod;
 	int rc;
 
-	while (len != 0) {
+	while (len != 0)
+	{
 		void *dst;
 		unsigned int avail;
 
 		rc = wait_event_interruptible(
-			xb_waitq,
-			(intf->req_prod - intf->req_cons) !=
-			XENSTORE_RING_SIZE);
+				 xb_waitq,
+				 (intf->req_prod - intf->req_cons) !=
+				 XENSTORE_RING_SIZE);
+
 		if (rc < 0)
+		{
 			return rc;
+		}
 
 		/* Read indexes, then verify. */
 		cons = intf->req_cons;
 		prod = intf->req_prod;
-		if (!check_indexes(cons, prod)) {
+
+		if (!check_indexes(cons, prod))
+		{
 			intf->req_cons = intf->req_prod = 0;
 			return -EIO;
 		}
 
 		dst = get_output_chunk(cons, prod, intf->req, &avail);
+
 		if (avail == 0)
+		{
 			continue;
+		}
+
 		if (avail > len)
+		{
 			avail = len;
+		}
 
 		/* Must write data /after/ reading the consumer index. */
 		virt_mb();
@@ -157,27 +178,39 @@ int xb_read(void *data, unsigned len)
 	XENSTORE_RING_IDX cons, prod;
 	int rc;
 
-	while (len != 0) {
+	while (len != 0)
+	{
 		unsigned int avail;
 		const char *src;
 
 		rc = xb_wait_for_data_to_read();
+
 		if (rc < 0)
+		{
 			return rc;
+		}
 
 		/* Read indexes, then verify. */
 		cons = intf->rsp_cons;
 		prod = intf->rsp_prod;
-		if (!check_indexes(cons, prod)) {
+
+		if (!check_indexes(cons, prod))
+		{
 			intf->rsp_cons = intf->rsp_prod = 0;
 			return -EIO;
 		}
 
 		src = get_input_chunk(cons, prod, intf->rsp, &avail);
+
 		if (avail == 0)
+		{
 			continue;
+		}
+
 		if (avail > len)
+		{
 			avail = len;
+		}
 
 		/* Must read data /after/ reading the producer index. */
 		virt_rmb();
@@ -208,24 +241,33 @@ int xb_init_comms(void)
 
 	if (intf->req_prod != intf->req_cons)
 		pr_err("request ring is not quiescent (%08x:%08x)!\n",
-		       intf->req_cons, intf->req_prod);
+			   intf->req_cons, intf->req_prod);
 
-	if (intf->rsp_prod != intf->rsp_cons) {
+	if (intf->rsp_prod != intf->rsp_cons)
+	{
 		pr_warn("response ring is not quiescent (%08x:%08x): fixing up\n",
-			intf->rsp_cons, intf->rsp_prod);
+				intf->rsp_cons, intf->rsp_prod);
+
 		/* breaks kdump */
 		if (!reset_devices)
+		{
 			intf->rsp_cons = intf->rsp_prod;
+		}
 	}
 
-	if (xenbus_irq) {
+	if (xenbus_irq)
+	{
 		/* Already have an irq; assume we're resuming */
 		rebind_evtchn_irq(xen_store_evtchn, xenbus_irq);
-	} else {
+	}
+	else
+	{
 		int err;
 		err = bind_evtchn_to_irqhandler(xen_store_evtchn, wake_waiting,
-						0, "xenbus", &xb_waitq);
-		if (err < 0) {
+										0, "xenbus", &xb_waitq);
+
+		if (err < 0)
+		{
 			pr_err("request irq failed %i\n", err);
 			return err;
 		}

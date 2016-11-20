@@ -11,7 +11,8 @@
 struct ctl_table_header;
 struct nf_conntrack_ecache;
 
-struct nf_proto_net {
+struct nf_proto_net
+{
 #ifdef CONFIG_SYSCTL
 	struct ctl_table_header *ctl_table_header;
 	struct ctl_table        *ctl_table;
@@ -19,12 +20,14 @@ struct nf_proto_net {
 	unsigned int		users;
 };
 
-struct nf_generic_net {
+struct nf_generic_net
+{
 	struct nf_proto_net pn;
 	unsigned int timeout;
 };
 
-struct nf_tcp_net {
+struct nf_tcp_net
+{
 	struct nf_proto_net pn;
 	unsigned int timeouts[TCP_CONNTRACK_TIMEOUT_MAX];
 	unsigned int tcp_loose;
@@ -32,23 +35,27 @@ struct nf_tcp_net {
 	unsigned int tcp_max_retrans;
 };
 
-enum udp_conntrack {
+enum udp_conntrack
+{
 	UDP_CT_UNREPLIED,
 	UDP_CT_REPLIED,
 	UDP_CT_MAX
 };
 
-struct nf_udp_net {
+struct nf_udp_net
+{
 	struct nf_proto_net pn;
 	unsigned int timeouts[UDP_CT_MAX];
 };
 
-struct nf_icmp_net {
+struct nf_icmp_net
+{
 	struct nf_proto_net pn;
 	unsigned int timeout;
 };
 
-struct nf_ip_net {
+struct nf_ip_net
+{
 	struct nf_generic_net   generic;
 	struct nf_tcp_net	tcp;
 	struct nf_udp_net	udp;
@@ -56,13 +63,15 @@ struct nf_ip_net {
 	struct nf_icmp_net	icmpv6;
 };
 
-struct ct_pcpu {
+struct ct_pcpu
+{
 	spinlock_t		lock;
 	struct hlist_nulls_head unconfirmed;
 	struct hlist_nulls_head dying;
 };
 
-struct netns_ct {
+struct netns_ct
+{
 	atomic_t		count;
 	unsigned int		expect_count;
 #ifdef CONFIG_NF_CONNTRACK_EVENTS

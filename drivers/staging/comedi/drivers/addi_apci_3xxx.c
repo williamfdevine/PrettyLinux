@@ -31,7 +31,8 @@
 #define CONV_UNIT_US		BIT(1)
 #define CONV_UNIT_MS		BIT(2)
 
-static const struct comedi_lrange apci3xxx_ai_range = {
+static const struct comedi_lrange apci3xxx_ai_range =
+{
 	8, {
 		BIP_RANGE(10),
 		BIP_RANGE(5),
@@ -44,14 +45,16 @@ static const struct comedi_lrange apci3xxx_ai_range = {
 	}
 };
 
-static const struct comedi_lrange apci3xxx_ao_range = {
+static const struct comedi_lrange apci3xxx_ao_range =
+{
 	2, {
 		BIP_RANGE(10),
 		UNI_RANGE(10)
 	}
 };
 
-enum apci3xxx_boardid {
+enum apci3xxx_boardid
+{
 	BOARD_APCI3000_16,
 	BOARD_APCI3000_8,
 	BOARD_APCI3000_4,
@@ -79,20 +82,22 @@ enum apci3xxx_boardid {
 	BOARD_APCI3500,
 };
 
-struct apci3xxx_boardinfo {
+struct apci3xxx_boardinfo
+{
 	const char *name;
 	int ai_subdev_flags;
 	int ai_n_chan;
 	unsigned int ai_maxdata;
 	unsigned char ai_conv_units;
 	unsigned int ai_min_acq_ns;
-	unsigned int has_ao:1;
-	unsigned int has_dig_in:1;
-	unsigned int has_dig_out:1;
-	unsigned int has_ttl_io:1;
+	unsigned int has_ao: 1;
+	unsigned int has_dig_in: 1;
+	unsigned int has_dig_out: 1;
+	unsigned int has_ttl_io: 1;
 };
 
-static const struct apci3xxx_boardinfo apci3xxx_boardtypes[] = {
+static const struct apci3xxx_boardinfo apci3xxx_boardtypes[] =
+{
 	[BOARD_APCI3000_16] = {
 		.name			= "apci3000-16",
 		.ai_subdev_flags	= SDF_COMMON | SDF_GROUND | SDF_DIFF,
@@ -307,7 +312,7 @@ static const struct apci3xxx_boardinfo apci3xxx_boardtypes[] = {
 		.ai_n_chan		= 4,
 		.ai_maxdata		= 0xffff,
 		.ai_conv_units		= CONV_UNIT_MS | CONV_UNIT_US |
-					  CONV_UNIT_NS,
+		CONV_UNIT_NS,
 		.ai_min_acq_ns		= 2500,
 		.has_dig_in		= 1,
 		.has_dig_out		= 1,
@@ -349,7 +354,8 @@ static const struct apci3xxx_boardinfo apci3xxx_boardtypes[] = {
 	},
 };
 
-struct apci3xxx_private {
+struct apci3xxx_private
+{
 	unsigned int ai_timer;
 	unsigned char ai_time_base;
 };
@@ -363,7 +369,9 @@ static irqreturn_t apci3xxx_irq_handler(int irq, void *d)
 
 	/* Test if interrupt occur */
 	status = readl(dev->mmio + 16);
-	if ((status & 0x2) == 0x2) {
+
+	if ((status & 0x2) == 0x2)
+	{
 		/* Reset the interrupt */
 		writel(status, dev->mmio + 16);
 
@@ -375,13 +383,16 @@ static irqreturn_t apci3xxx_irq_handler(int irq, void *d)
 
 		return IRQ_HANDLED;
 	}
+
 	return IRQ_NONE;
 }
 
 static int apci3xxx_ai_started(struct comedi_device *dev)
 {
 	if ((readl(dev->mmio + 8) & 0x80000) == 0x80000)
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -395,7 +406,9 @@ static int apci3xxx_ai_setup(struct comedi_device *dev, unsigned int chanspec)
 	unsigned int val;
 
 	if (apci3xxx_ai_started(dev))
+	{
 		return -EBUSY;
+	}
 
 	/* Clear the FIFO */
 	writel(0x10000, dev->mmio + 12);
@@ -409,7 +422,7 @@ static int apci3xxx_ai_setup(struct comedi_device *dev, unsigned int chanspec)
 
 	/* Make the configuration */
 	val = (range & 3) | ((range >> 2) << 6) |
-	      ((aref == AREF_DIFF) << 7);
+		  ((aref == AREF_DIFF) << 7);
 	writel(val, dev->mmio + 0);
 
 	/* Channel selection */
@@ -426,38 +439,49 @@ static int apci3xxx_ai_setup(struct comedi_device *dev, unsigned int chanspec)
 }
 
 static int apci3xxx_ai_eoc(struct comedi_device *dev,
-			   struct comedi_subdevice *s,
-			   struct comedi_insn *insn,
-			   unsigned long context)
+						   struct comedi_subdevice *s,
+						   struct comedi_insn *insn,
+						   unsigned long context)
 {
 	unsigned int status;
 
 	status = readl(dev->mmio + 20);
+
 	if (status & 0x1)
+	{
 		return 0;
+	}
+
 	return -EBUSY;
 }
 
 static int apci3xxx_ai_insn_read(struct comedi_device *dev,
-				 struct comedi_subdevice *s,
-				 struct comedi_insn *insn,
-				 unsigned int *data)
+								 struct comedi_subdevice *s,
+								 struct comedi_insn *insn,
+								 unsigned int *data)
 {
 	int ret;
 	int i;
 
 	ret = apci3xxx_ai_setup(dev, insn->chanspec);
-	if (ret)
-		return ret;
 
-	for (i = 0; i < insn->n; i++) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	for (i = 0; i < insn->n; i++)
+	{
 		/* Start the conversion */
 		writel(0x80000, dev->mmio + 8);
 
 		/* Wait the EOS */
 		ret = comedi_timeout(dev, s, insn, apci3xxx_ai_eoc, 0);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		/* Read the analog value */
 		data[i] = readl(dev->mmio + 28);
@@ -467,7 +491,7 @@ static int apci3xxx_ai_insn_read(struct comedi_device *dev,
 }
 
 static int apci3xxx_ai_ns_to_timer(struct comedi_device *dev,
-				   unsigned int *ns, unsigned int flags)
+								   unsigned int *ns, unsigned int flags)
 {
 	const struct apci3xxx_boardinfo *board = dev->board_ptr;
 	struct apci3xxx_private *devpriv = dev->private;
@@ -476,49 +500,60 @@ static int apci3xxx_ai_ns_to_timer(struct comedi_device *dev,
 	int time_base;
 
 	/* time_base: 0 = ns, 1 = us, 2 = ms */
-	for (time_base = 0; time_base < 3; time_base++) {
+	for (time_base = 0; time_base < 3; time_base++)
+	{
 		/* skip unsupported time bases */
 		if (!(board->ai_conv_units & (1 << time_base)))
+		{
 			continue;
-
-		switch (time_base) {
-		case 0:
-			base = 1;
-			break;
-		case 1:
-			base = 1000;
-			break;
-		case 2:
-			base = 1000000;
-			break;
 		}
 
-		switch (flags & CMDF_ROUND_MASK) {
-		case CMDF_ROUND_NEAREST:
-		default:
-			timer = DIV_ROUND_CLOSEST(*ns, base);
-			break;
-		case CMDF_ROUND_DOWN:
-			timer = *ns / base;
-			break;
-		case CMDF_ROUND_UP:
-			timer = (*ns + base - 1) / base;
-			break;
+		switch (time_base)
+		{
+			case 0:
+				base = 1;
+				break;
+
+			case 1:
+				base = 1000;
+				break;
+
+			case 2:
+				base = 1000000;
+				break;
 		}
 
-		if (timer < 0x10000) {
+		switch (flags & CMDF_ROUND_MASK)
+		{
+			case CMDF_ROUND_NEAREST:
+			default:
+				timer = DIV_ROUND_CLOSEST(*ns, base);
+				break;
+
+			case CMDF_ROUND_DOWN:
+				timer = *ns / base;
+				break;
+
+			case CMDF_ROUND_UP:
+				timer = (*ns + base - 1) / base;
+				break;
+		}
+
+		if (timer < 0x10000)
+		{
 			devpriv->ai_time_base = time_base;
 			devpriv->ai_timer = timer;
 			*ns = timer * time_base;
 			return 0;
 		}
 	}
+
 	return -EINVAL;
 }
 
 static int apci3xxx_ai_cmdtest(struct comedi_device *dev,
-			       struct comedi_subdevice *s,
-			       struct comedi_cmd *cmd)
+							   struct comedi_subdevice *s,
+							   struct comedi_cmd *cmd)
 {
 	const struct apci3xxx_boardinfo *board = dev->board_ptr;
 	int err = 0;
@@ -533,7 +568,9 @@ static int apci3xxx_ai_cmdtest(struct comedi_device *dev,
 	err |= comedi_check_trigger_src(&cmd->stop_src, TRIG_COUNT | TRIG_NONE);
 
 	if (err)
+	{
 		return 1;
+	}
 
 	/* Step 2a : make sure trigger sources are unique */
 
@@ -542,24 +579,32 @@ static int apci3xxx_ai_cmdtest(struct comedi_device *dev,
 	/* Step 2b : and mutually compatible */
 
 	if (err)
+	{
 		return 2;
+	}
 
 	/* Step 3: check if arguments are trivially valid */
 
 	err |= comedi_check_trigger_arg_is(&cmd->start_arg, 0);
 	err |= comedi_check_trigger_arg_is(&cmd->scan_begin_arg, 0);
 	err |= comedi_check_trigger_arg_min(&cmd->convert_arg,
-					    board->ai_min_acq_ns);
+										board->ai_min_acq_ns);
 	err |= comedi_check_trigger_arg_is(&cmd->scan_end_arg,
-					   cmd->chanlist_len);
+									   cmd->chanlist_len);
 
 	if (cmd->stop_src == TRIG_COUNT)
+	{
 		err |= comedi_check_trigger_arg_min(&cmd->stop_arg, 1);
+	}
 	else	/* TRIG_NONE */
+	{
 		err |= comedi_check_trigger_arg_is(&cmd->stop_arg, 0);
+	}
 
 	if (err)
+	{
 		return 3;
+	}
 
 	/* step 4: fix up any arguments */
 
@@ -568,21 +613,26 @@ static int apci3xxx_ai_cmdtest(struct comedi_device *dev,
 	err |= comedi_check_trigger_arg_is(&cmd->convert_arg, arg);
 
 	if (err)
+	{
 		return 4;
+	}
 
 	return 0;
 }
 
 static int apci3xxx_ai_cmd(struct comedi_device *dev,
-			   struct comedi_subdevice *s)
+						   struct comedi_subdevice *s)
 {
 	struct apci3xxx_private *devpriv = dev->private;
 	struct comedi_cmd *cmd = &s->async->cmd;
 	int ret;
 
 	ret = apci3xxx_ai_setup(dev, cmd->chanlist[0]);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Set the convert timing unit */
 	writel(devpriv->ai_time_base, dev->mmio + 36);
@@ -597,35 +647,40 @@ static int apci3xxx_ai_cmd(struct comedi_device *dev,
 }
 
 static int apci3xxx_ai_cancel(struct comedi_device *dev,
-			      struct comedi_subdevice *s)
+							  struct comedi_subdevice *s)
 {
 	return 0;
 }
 
 static int apci3xxx_ao_eoc(struct comedi_device *dev,
-			   struct comedi_subdevice *s,
-			   struct comedi_insn *insn,
-			   unsigned long context)
+						   struct comedi_subdevice *s,
+						   struct comedi_insn *insn,
+						   unsigned long context)
 {
 	unsigned int status;
 
 	status = readl(dev->mmio + 96);
+
 	if (status & 0x100)
+	{
 		return 0;
+	}
+
 	return -EBUSY;
 }
 
 static int apci3xxx_ao_insn_write(struct comedi_device *dev,
-				  struct comedi_subdevice *s,
-				  struct comedi_insn *insn,
-				  unsigned int *data)
+								  struct comedi_subdevice *s,
+								  struct comedi_insn *insn,
+								  unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	unsigned int range = CR_RANGE(insn->chanspec);
 	int ret;
 	int i;
 
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		unsigned int val = data[i];
 
 		/* Set the range selection */
@@ -636,8 +691,11 @@ static int apci3xxx_ao_insn_write(struct comedi_device *dev,
 
 		/* Wait the end of transfer */
 		ret = comedi_timeout(dev, s, insn, apci3xxx_ao_eoc, 0);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		s->readback[chan] = val;
 	}
@@ -646,9 +704,9 @@ static int apci3xxx_ao_insn_write(struct comedi_device *dev,
 }
 
 static int apci3xxx_di_insn_bits(struct comedi_device *dev,
-				 struct comedi_subdevice *s,
-				 struct comedi_insn *insn,
-				 unsigned int *data)
+								 struct comedi_subdevice *s,
+								 struct comedi_insn *insn,
+								 unsigned int *data)
 {
 	data[1] = inl(dev->iobase + 32) & 0xf;
 
@@ -656,14 +714,16 @@ static int apci3xxx_di_insn_bits(struct comedi_device *dev,
 }
 
 static int apci3xxx_do_insn_bits(struct comedi_device *dev,
-				 struct comedi_subdevice *s,
-				 struct comedi_insn *insn,
-				 unsigned int *data)
+								 struct comedi_subdevice *s,
+								 struct comedi_insn *insn,
+								 unsigned int *data)
 {
 	s->state = inl(dev->iobase + 48) & 0xf;
 
 	if (comedi_dio_update_state(s, data))
+	{
 		outl(s->state, dev->iobase + 48);
+	}
 
 	data[1] = s->state;
 
@@ -671,9 +731,9 @@ static int apci3xxx_do_insn_bits(struct comedi_device *dev,
 }
 
 static int apci3xxx_dio_insn_config(struct comedi_device *dev,
-				    struct comedi_subdevice *s,
-				    struct comedi_insn *insn,
-				    unsigned int *data)
+									struct comedi_subdevice *s,
+									struct comedi_insn *insn,
+									unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	unsigned int mask = 0;
@@ -684,18 +744,24 @@ static int apci3xxx_dio_insn_config(struct comedi_device *dev,
 	 * Port 1 (channels 8-15) are always outputs
 	 * Port 2 (channels 16-23) are programmable i/o
 	 */
-	if (data[0] != INSN_CONFIG_DIO_QUERY) {
+	if (data[0] != INSN_CONFIG_DIO_QUERY)
+	{
 		/* ignore all other instructions for ports 0 and 1 */
 		if (chan < 16)
+		{
 			return -EINVAL;
+		}
 
 		/* changing any channel in port 2 changes the entire port */
 		mask = 0xff0000;
 	}
 
 	ret = comedi_dio_insn_config(dev, s, insn, data, mask);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* update port 2 configuration */
 	outl((s->io_bits >> 24) & 0xff, dev->iobase + 224);
@@ -704,27 +770,39 @@ static int apci3xxx_dio_insn_config(struct comedi_device *dev,
 }
 
 static int apci3xxx_dio_insn_bits(struct comedi_device *dev,
-				  struct comedi_subdevice *s,
-				  struct comedi_insn *insn,
-				  unsigned int *data)
+								  struct comedi_subdevice *s,
+								  struct comedi_insn *insn,
+								  unsigned int *data)
 {
 	unsigned int mask;
 	unsigned int val;
 
 	mask = comedi_dio_update_state(s, data);
-	if (mask) {
+
+	if (mask)
+	{
 		if (mask & 0xff)
+		{
 			outl(s->state & 0xff, dev->iobase + 80);
+		}
+
 		if (mask & 0xff0000)
+		{
 			outl((s->state >> 16) & 0xff, dev->iobase + 112);
+		}
 	}
 
 	val = inl(dev->iobase + 80);
 	val |= (inl(dev->iobase + 64) << 8);
+
 	if (s->io_bits & 0xff0000)
+	{
 		val |= (inl(dev->iobase + 112) << 16);
+	}
 	else
+	{
 		val |= (inl(dev->iobase + 96) << 16);
+	}
 
 	data[1] = val;
 
@@ -751,7 +829,9 @@ static int apci3xxx_reset(struct comedi_device *dev)
 
 	/* Clear the FIFO */
 	for (i = 0; i < 16; i++)
+	{
 		val = readl(dev->mmio + 28);
+	}
 
 	/* Enable the interrupt */
 	enable_irq(dev->irq);
@@ -760,7 +840,7 @@ static int apci3xxx_reset(struct comedi_device *dev)
 }
 
 static int apci3xxx_auto_attach(struct comedi_device *dev,
-				unsigned long context)
+								unsigned long context)
 {
 	struct pci_dev *pcidev = comedi_to_pci_dev(dev);
 	const struct apci3xxx_boardinfo *board = NULL;
@@ -771,41 +851,61 @@ static int apci3xxx_auto_attach(struct comedi_device *dev,
 	int ret;
 
 	if (context < ARRAY_SIZE(apci3xxx_boardtypes))
+	{
 		board = &apci3xxx_boardtypes[context];
+	}
+
 	if (!board)
+	{
 		return -ENODEV;
+	}
+
 	dev->board_ptr = board;
 	dev->board_name = board->name;
 
 	devpriv = comedi_alloc_devpriv(dev, sizeof(*devpriv));
+
 	if (!devpriv)
+	{
 		return -ENOMEM;
+	}
 
 	ret = comedi_pci_enable(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	dev->iobase = pci_resource_start(pcidev, 2);
 	dev->mmio = pci_ioremap_bar(pcidev, 3);
 
-	if (pcidev->irq > 0) {
+	if (pcidev->irq > 0)
+	{
 		ret = request_irq(pcidev->irq, apci3xxx_irq_handler,
-				  IRQF_SHARED, dev->board_name, dev);
+						  IRQF_SHARED, dev->board_name, dev);
+
 		if (ret == 0)
+		{
 			dev->irq = pcidev->irq;
+		}
 	}
 
 	n_subdevices = (board->ai_n_chan ? 0 : 1) + board->has_ao +
-		       board->has_dig_in + board->has_dig_out +
-		       board->has_ttl_io;
+				   board->has_dig_in + board->has_dig_out +
+				   board->has_ttl_io;
 	ret = comedi_alloc_subdevices(dev, n_subdevices);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	subdev = 0;
 
 	/* Analog Input subdevice */
-	if (board->ai_n_chan) {
+	if (board->ai_n_chan)
+	{
 		s = &dev->subdevices[subdev];
 		s->type		= COMEDI_SUBD_AI;
 		s->subdev_flags	= SDF_READABLE | board->ai_subdev_flags;
@@ -813,7 +913,9 @@ static int apci3xxx_auto_attach(struct comedi_device *dev,
 		s->maxdata	= board->ai_maxdata;
 		s->range_table	= &apci3xxx_ai_range;
 		s->insn_read	= apci3xxx_ai_insn_read;
-		if (dev->irq) {
+
+		if (dev->irq)
+		{
 			/*
 			 * FIXME: The hardware supports multiple scan modes
 			 * but the original addi-data driver only supported
@@ -844,7 +946,8 @@ static int apci3xxx_auto_attach(struct comedi_device *dev,
 	}
 
 	/* Analog Output subdevice */
-	if (board->has_ao) {
+	if (board->has_ao)
+	{
 		s = &dev->subdevices[subdev];
 		s->type		= COMEDI_SUBD_AO;
 		s->subdev_flags	= SDF_WRITABLE | SDF_GROUND | SDF_COMMON;
@@ -854,14 +957,18 @@ static int apci3xxx_auto_attach(struct comedi_device *dev,
 		s->insn_write	= apci3xxx_ao_insn_write;
 
 		ret = comedi_alloc_subdev_readback(s);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		subdev++;
 	}
 
 	/* Digital Input subdevice */
-	if (board->has_dig_in) {
+	if (board->has_dig_in)
+	{
 		s = &dev->subdevices[subdev];
 		s->type		= COMEDI_SUBD_DI;
 		s->subdev_flags	= SDF_READABLE;
@@ -874,7 +981,8 @@ static int apci3xxx_auto_attach(struct comedi_device *dev,
 	}
 
 	/* Digital Output subdevice */
-	if (board->has_dig_out) {
+	if (board->has_dig_out)
+	{
 		s = &dev->subdevices[subdev];
 		s->type		= COMEDI_SUBD_DO;
 		s->subdev_flags	= SDF_WRITABLE;
@@ -887,7 +995,8 @@ static int apci3xxx_auto_attach(struct comedi_device *dev,
 	}
 
 	/* TTL Digital I/O subdevice */
-	if (board->has_ttl_io) {
+	if (board->has_ttl_io)
+	{
 		s = &dev->subdevices[subdev];
 		s->type		= COMEDI_SUBD_DIO;
 		s->subdev_flags	= SDF_READABLE | SDF_WRITABLE;
@@ -908,11 +1017,15 @@ static int apci3xxx_auto_attach(struct comedi_device *dev,
 static void apci3xxx_detach(struct comedi_device *dev)
 {
 	if (dev->iobase)
+	{
 		apci3xxx_reset(dev);
+	}
+
 	comedi_pci_detach(dev);
 }
 
-static struct comedi_driver apci3xxx_driver = {
+static struct comedi_driver apci3xxx_driver =
+{
 	.driver_name	= "addi_apci_3xxx",
 	.module		= THIS_MODULE,
 	.auto_attach	= apci3xxx_auto_attach,
@@ -920,12 +1033,13 @@ static struct comedi_driver apci3xxx_driver = {
 };
 
 static int apci3xxx_pci_probe(struct pci_dev *dev,
-			      const struct pci_device_id *id)
+							  const struct pci_device_id *id)
 {
 	return comedi_pci_auto_config(dev, &apci3xxx_driver, id->driver_data);
 }
 
-static const struct pci_device_id apci3xxx_pci_table[] = {
+static const struct pci_device_id apci3xxx_pci_table[] =
+{
 	{ PCI_VDEVICE(ADDIDATA, 0x3010), BOARD_APCI3000_16 },
 	{ PCI_VDEVICE(ADDIDATA, 0x300f), BOARD_APCI3000_8 },
 	{ PCI_VDEVICE(ADDIDATA, 0x300e), BOARD_APCI3000_4 },
@@ -955,7 +1069,8 @@ static const struct pci_device_id apci3xxx_pci_table[] = {
 };
 MODULE_DEVICE_TABLE(pci, apci3xxx_pci_table);
 
-static struct pci_driver apci3xxx_pci_driver = {
+static struct pci_driver apci3xxx_pci_driver =
+{
 	.name		= "addi_apci_3xxx",
 	.id_table	= apci3xxx_pci_table,
 	.probe		= apci3xxx_pci_probe,

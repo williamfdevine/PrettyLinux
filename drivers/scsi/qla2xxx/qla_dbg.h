@@ -11,7 +11,8 @@
  * Firmware Dump structure definition
  */
 
-struct qla2300_fw_dump {
+struct qla2300_fw_dump
+{
 	uint16_t hccr;
 	uint16_t pbiu_reg[8];
 	uint16_t risc_host_reg[8];
@@ -35,7 +36,8 @@ struct qla2300_fw_dump {
 	uint16_t data_ram[1];
 };
 
-struct qla2100_fw_dump {
+struct qla2100_fw_dump
+{
 	uint16_t hccr;
 	uint16_t pbiu_reg[8];
 	uint16_t mailbox_reg[32];
@@ -55,7 +57,8 @@ struct qla2100_fw_dump {
 	uint16_t risc_ram[0xf000];
 };
 
-struct qla24xx_fw_dump {
+struct qla24xx_fw_dump
+{
 	uint32_t host_status;
 	uint32_t host_reg[32];
 	uint32_t shadow_reg[7];
@@ -87,7 +90,8 @@ struct qla24xx_fw_dump {
 	uint32_t ext_mem[1];
 };
 
-struct qla25xx_fw_dump {
+struct qla25xx_fw_dump
+{
 	uint32_t host_status;
 	uint32_t host_risc_reg[32];
 	uint32_t pcie_regs[4];
@@ -126,7 +130,8 @@ struct qla25xx_fw_dump {
 	uint32_t ext_mem[1];
 };
 
-struct qla81xx_fw_dump {
+struct qla81xx_fw_dump
+{
 	uint32_t host_status;
 	uint32_t host_risc_reg[32];
 	uint32_t pcie_regs[4];
@@ -165,7 +170,8 @@ struct qla81xx_fw_dump {
 	uint32_t ext_mem[1];
 };
 
-struct qla83xx_fw_dump {
+struct qla83xx_fw_dump
+{
 	uint32_t host_status;
 	uint32_t host_risc_reg[48];
 	uint32_t pcie_regs[4];
@@ -222,7 +228,8 @@ struct qla83xx_fw_dump {
 #define FCE_SIZE		((FCE_BYTES_PER_BUFFER) * (FCE_NUM_BUFFERS))
 #define fce_calc_size(b)	((FCE_BYTES_PER_BUFFER) * (b))
 
-struct qla2xxx_fce_chain {
+struct qla2xxx_fce_chain
+{
 	uint32_t type;
 	uint32_t chain_size;
 
@@ -232,7 +239,8 @@ struct qla2xxx_fce_chain {
 	uint32_t eregs[8];
 };
 
-struct qla2xxx_mq_chain {
+struct qla2xxx_mq_chain
+{
 	uint32_t type;
 	uint32_t chain_size;
 
@@ -240,7 +248,8 @@ struct qla2xxx_mq_chain {
 	uint32_t qregs[4 * QLA_MQ_SIZE];
 };
 
-struct qla2xxx_mqueue_header {
+struct qla2xxx_mqueue_header
+{
 	uint32_t queue;
 #define TYPE_REQUEST_QUEUE	0x1
 #define TYPE_RESPONSE_QUEUE	0x2
@@ -249,7 +258,8 @@ struct qla2xxx_mqueue_header {
 	uint32_t size;
 };
 
-struct qla2xxx_mqueue_chain {
+struct qla2xxx_mqueue_chain
+{
 	uint32_t type;
 	uint32_t chain_size;
 };
@@ -260,7 +270,8 @@ struct qla2xxx_mqueue_chain {
 #define DUMP_CHAIN_QUEUE	0x7FFFFAF2
 #define DUMP_CHAIN_LAST		0x80000000
 
-struct qla2xxx_fw_dump {
+struct qla2xxx_fw_dump
+{
 	uint8_t signature[4];
 	uint32_t version;
 
@@ -285,7 +296,8 @@ struct qla2xxx_fw_dump {
 
 	uint32_t header_size;
 
-	union {
+	union
+	{
 		struct qla2100_fw_dump isp21;
 		struct qla2300_fw_dump isp23;
 		struct qla24xx_fw_dump isp24;
@@ -350,9 +362,9 @@ ql_log_pci(uint32_t, struct pci_dev *pdev, int32_t, const char *fmt, ...);
 #define ql_dbg_tgt_tmr	0x00001000 /* Target mode task management */
 
 extern int qla27xx_dump_mpi_ram(struct qla_hw_data *, uint32_t, uint32_t *,
-	uint32_t, void **);
+								uint32_t, void **);
 extern int qla24xx_dump_ram(struct qla_hw_data *, uint32_t, uint32_t *,
-	uint32_t, void **);
+							uint32_t, void **);
 extern void qla24xx_pause_risc(struct device_reg_24xx __iomem *,
-	struct qla_hw_data *);
+							   struct qla_hw_data *);
 extern int qla24xx_soft_reset(struct qla_hw_data *);

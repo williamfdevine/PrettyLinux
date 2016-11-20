@@ -57,7 +57,7 @@ static void
 csio_get_flbuf_size(struct csio_hw *hw, struct csio_sge *sge, uint32_t reg)
 {
 	sge->sge_fl_buf_size[reg] = csio_rd_reg32(hw, SGE_FL_BUFFER_SIZE0_A +
-							reg * sizeof(uint32_t));
+								reg * sizeof(uint32_t));
 }
 
 /* Free list buffer size */
@@ -83,10 +83,11 @@ csio_wr_ring_fldb(struct csio_hw *hw, struct csio_q *flq)
 	 * number of bytes in the freelist queue. This translates to atleast
 	 * 8 freelist buffer pointers (since each pointer is 8 bytes).
 	 */
-	if (flq->inc_idx >= 8) {
+	if (flq->inc_idx >= 8)
+	{
 		csio_wr_reg32(hw, DBPRIO_F | QID_V(flq->un.fl.flid) |
-				  PIDX_T5_V(flq->inc_idx / 8) | DBTYPE_F,
-				  MYPF_REG(SGE_PF_KDOORBELL_A));
+					  PIDX_T5_V(flq->inc_idx / 8) | DBTYPE_F,
+					  MYPF_REG(SGE_PF_KDOORBELL_A));
 		flq->inc_idx &= 7;
 	}
 }
@@ -96,9 +97,9 @@ static void
 csio_wr_sge_intr_enable(struct csio_hw *hw, uint16_t iqid)
 {
 	csio_wr_reg32(hw, CIDXINC_V(0)		|
-			  INGRESSQID_V(iqid)	|
-			  TIMERREG_V(X_TIMERREG_RESTART_COUNTER),
-			  MYPF_REG(SGE_PF_GTS_A));
+				  INGRESSQID_V(iqid)	|
+				  TIMERREG_V(X_TIMERREG_RESTART_COUNTER),
+				  MYPF_REG(SGE_PF_GTS_A));
 }
 
 /*
@@ -121,11 +122,14 @@ csio_wr_fill_fl(struct csio_hw *hw, struct csio_q *flq)
 	int sreg = flq->un.fl.sreg;
 	int n = flq->credits;
 
-	while (n--) {
+	while (n--)
+	{
 		buf->len = sge->sge_fl_buf_size[sreg];
 		buf->vaddr = pci_alloc_consistent(hw->pdev, buf->len,
-						  &buf->paddr);
-		if (!buf->vaddr) {
+										  &buf->paddr);
+
+		if (!buf->vaddr)
+		{
 			csio_err(hw, "Could only fill %d buffers!\n", n + 1);
 			return -ENOMEM;
 		}
@@ -152,8 +156,11 @@ csio_wr_update_fl(struct csio_hw *hw, struct csio_q *flq, uint16_t n)
 
 	flq->inc_idx += n;
 	flq->pidx += n;
+
 	if (unlikely(flq->pidx >= flq->credits))
+	{
 		flq->pidx -= (uint16_t)flq->credits;
+	}
 
 	CSIO_INC_STATS(flq, n_flq_refill);
 }
@@ -183,8 +190,8 @@ csio_wr_update_fl(struct csio_hw *hw, struct csio_q *flq, uint16_t n)
  */
 int
 csio_wr_alloc_q(struct csio_hw *hw, uint32_t qsize, uint32_t wrsize,
-		uint16_t type, void *owner, uint32_t nflb, int sreg,
-		iq_handler_t iq_intx_handler)
+				uint16_t type, void *owner, uint32_t nflb, int sreg,
+				iq_handler_t iq_intx_handler)
 {
 	struct csio_wrm *wrm = csio_hw_to_wrm(hw);
 	struct csio_q	*q, *flq;
@@ -193,50 +200,59 @@ csio_wr_alloc_q(struct csio_hw *hw, uint32_t qsize, uint32_t wrsize,
 	uint32_t	qsz;
 	int flq_idx;
 
-	if (free_idx >= wrm->num_q) {
+	if (free_idx >= wrm->num_q)
+	{
 		csio_err(hw, "No more free queues.\n");
 		return -1;
 	}
 
-	switch (type) {
-	case CSIO_EGRESS:
-		qsz = ALIGN(qsize, CSIO_QCREDIT_SZ) + csio_wr_qstat_pgsz(hw);
-		break;
-	case CSIO_INGRESS:
-		switch (wrsize) {
-		case 16:
-		case 32:
-		case 64:
-		case 128:
+	switch (type)
+	{
+		case CSIO_EGRESS:
+			qsz = ALIGN(qsize, CSIO_QCREDIT_SZ) + csio_wr_qstat_pgsz(hw);
 			break;
+
+		case CSIO_INGRESS:
+			switch (wrsize)
+			{
+				case 16:
+				case 32:
+				case 64:
+				case 128:
+					break;
+
+				default:
+					csio_err(hw, "Invalid Ingress queue WR size:%d\n",
+							 wrsize);
+					return -1;
+			}
+
+			/*
+			 * Number of elements must be a multiple of 16
+			 * So this includes status page size
+			 */
+			qsz = ALIGN(qsize / wrsize, 16) * wrsize;
+
+			break;
+
+		case CSIO_FREELIST:
+			qsz = ALIGN(qsize / wrsize, 8) * wrsize + csio_wr_qstat_pgsz(hw);
+			break;
+
 		default:
-			csio_err(hw, "Invalid Ingress queue WR size:%d\n",
-				    wrsize);
+			csio_err(hw, "Invalid queue type: 0x%x\n", type);
 			return -1;
-		}
-
-		/*
-		 * Number of elements must be a multiple of 16
-		 * So this includes status page size
-		 */
-		qsz = ALIGN(qsize/wrsize, 16) * wrsize;
-
-		break;
-	case CSIO_FREELIST:
-		qsz = ALIGN(qsize/wrsize, 8) * wrsize + csio_wr_qstat_pgsz(hw);
-		break;
-	default:
-		csio_err(hw, "Invalid queue type: 0x%x\n", type);
-		return -1;
 	}
 
 	q = wrm->q_arr[free_idx];
 
 	q->vstart = pci_zalloc_consistent(hw->pdev, qsz, &q->pstart);
-	if (!q->vstart) {
+
+	if (!q->vstart)
+	{
 		csio_err(hw,
-			 "Failed to allocate DMA memory for "
-			 "queue at id: %d size: %d\n", free_idx, qsize);
+				 "Failed to allocate DMA memory for "
+				 "queue at id: %d size: %d\n", free_idx, qsize);
 		return -1;
 	}
 
@@ -248,7 +264,8 @@ csio_wr_alloc_q(struct csio_hw *hw, uint32_t qsize, uint32_t wrsize,
 
 	wrm->free_qidx++;
 
-	if (type == CSIO_INGRESS) {
+	if (type == CSIO_INGRESS)
+	{
 		/* Since queue area is set to zero */
 		q->un.iq.genbit	= 1;
 
@@ -258,17 +275,20 @@ csio_wr_alloc_q(struct csio_hw *hw, uint32_t qsize, uint32_t wrsize,
 		 */
 		q->credits	= (qsz - q->wr_sz) / q->wr_sz;
 		q->vwrap	= (void *)((uintptr_t)(q->vstart) + qsz
-							- q->wr_sz);
+							   - q->wr_sz);
 
 		/* Allocate memory for FL if requested */
-		if (nflb > 0) {
+		if (nflb > 0)
+		{
 			flq_idx = csio_wr_alloc_q(hw, nflb * sizeof(__be64),
-						  sizeof(__be64), CSIO_FREELIST,
-						  owner, 0, sreg, NULL);
-			if (flq_idx == -1) {
+									  sizeof(__be64), CSIO_FREELIST,
+									  owner, 0, sreg, NULL);
+
+			if (flq_idx == -1)
+			{
 				csio_err(hw,
-					 "Failed to allocate FL queue"
-					 " for IQ idx:%d\n", free_idx);
+						 "Failed to allocate FL queue"
+						 " for IQ idx:%d\n", free_idx);
 				return -1;
 			}
 
@@ -277,12 +297,14 @@ csio_wr_alloc_q(struct csio_hw *hw, uint32_t qsize, uint32_t wrsize,
 
 			flq = wrm->q_arr[q->un.iq.flq_idx];
 			flq->un.fl.bufs = kzalloc(flq->credits *
-						  sizeof(struct csio_dma_buf),
-						  GFP_KERNEL);
-			if (!flq->un.fl.bufs) {
+									  sizeof(struct csio_dma_buf),
+									  GFP_KERNEL);
+
+			if (!flq->un.fl.bufs)
+			{
 				csio_err(hw,
-					 "Failed to allocate FL queue bufs"
-					 " for IQ idx:%d\n", free_idx);
+						 "Failed to allocate FL queue bufs"
+						 " for IQ idx:%d\n", free_idx);
 				return -1;
 			}
 
@@ -292,7 +314,9 @@ csio_wr_alloc_q(struct csio_hw *hw, uint32_t qsize, uint32_t wrsize,
 
 			/* Fill up the free list buffers */
 			if (csio_wr_fill_fl(hw, flq))
+			{
 				return -1;
+			}
 
 			/*
 			 * Make sure in a FLQ, atleast 1 credit (8 FL buffers)
@@ -300,7 +324,9 @@ csio_wr_alloc_q(struct csio_hw *hw, uint32_t qsize, uint32_t wrsize,
 			 * FLQ is empty.
 			 */
 			flq->pidx = flq->inc_idx = flq->credits - 8;
-		} else {
+		}
+		else
+		{
 			q->un.iq.flq_idx = -1;
 		}
 
@@ -309,15 +335,19 @@ csio_wr_alloc_q(struct csio_hw *hw, uint32_t qsize, uint32_t wrsize,
 
 		csio_q_iqid(hw, ret_idx) = CSIO_MAX_QID;
 
-	} else if (type == CSIO_EGRESS) {
+	}
+	else if (type == CSIO_EGRESS)
+	{
 		q->credits = (qsz - csio_wr_qstat_pgsz(hw)) / CSIO_QCREDIT_SZ;
 		q->vwrap   = (void *)((uintptr_t)(q->vstart) + qsz
-						- csio_wr_qstat_pgsz(hw));
+							  - csio_wr_qstat_pgsz(hw));
 		csio_q_eqid(hw, ret_idx) = CSIO_MAX_QID;
-	} else { /* Freelist */
+	}
+	else     /* Freelist */
+	{
 		q->credits = (qsz - csio_wr_qstat_pgsz(hw)) / sizeof(__be64);
 		q->vwrap   = (void *)((uintptr_t)(q->vstart) + qsz
-						- csio_wr_qstat_pgsz(hw));
+							  - csio_wr_qstat_pgsz(hw));
 		csio_q_flid(hw, ret_idx) = CSIO_MAX_QID;
 	}
 
@@ -344,7 +374,8 @@ csio_wr_iq_create_rsp(struct csio_hw *hw, struct csio_mb *mbp, int iq_idx)
 
 	csio_mb_iq_alloc_write_rsp(hw, mbp, &retval, &iqp);
 
-	if (retval != FW_SUCCESS) {
+	if (retval != FW_SUCCESS)
+	{
 		csio_err(hw, "IQ cmd returned 0x%x!\n", retval);
 		mempool_free(mbp, hw->mb_mempool);
 		return -EINVAL;
@@ -359,14 +390,16 @@ csio_wr_iq_create_rsp(struct csio_hw *hw, struct csio_mb *mbp, int iq_idx)
 	iq_id = iqp.iqid - hw->wrm.fw_iq_start;
 
 	/* Set the iq-id to iq map table. */
-	if (iq_id >= CSIO_MAX_IQ) {
+	if (iq_id >= CSIO_MAX_IQ)
+	{
 		csio_err(hw,
-			 "Exceeding MAX_IQ(%d) supported!"
-			 " iqid:%d rel_iqid:%d FW iq_start:%d\n",
-			 CSIO_MAX_IQ, iq_id, iqp.iqid, hw->wrm.fw_iq_start);
+				 "Exceeding MAX_IQ(%d) supported!"
+				 " iqid:%d rel_iqid:%d FW iq_start:%d\n",
+				 CSIO_MAX_IQ, iq_id, iqp.iqid, hw->wrm.fw_iq_start);
 		mempool_free(mbp, hw->mb_mempool);
 		return -EINVAL;
 	}
+
 	csio_q_set_intr_map(hw, iq_idx, iq_id);
 
 	/*
@@ -380,7 +413,9 @@ csio_wr_iq_create_rsp(struct csio_hw *hw, struct csio_mb *mbp, int iq_idx)
 	csio_wr_sge_intr_enable(hw, iqp.physiqid);
 
 	flq_idx = csio_q_iq_flq_idx(hw, iq_idx);
-	if (flq_idx != -1) {
+
+	if (flq_idx != -1)
+	{
 		struct csio_q *flq = hw->wrm.q_arr[flq_idx];
 
 		csio_q_flid(hw, flq_idx) = iqp.fl0id;
@@ -412,8 +447,8 @@ csio_wr_iq_create_rsp(struct csio_hw *hw, struct csio_mb *mbp, int iq_idx)
  */
 int
 csio_wr_iq_create(struct csio_hw *hw, void *priv, int iq_idx,
-		  uint32_t vec, uint8_t portid, bool async,
-		  void (*cbfn) (struct csio_hw *, struct csio_mb *))
+				  uint32_t vec, uint8_t portid, bool async,
+				  void (*cbfn) (struct csio_hw *, struct csio_mb *))
 {
 	struct csio_mb  *mbp;
 	struct csio_iq_params iqp;
@@ -423,29 +458,40 @@ csio_wr_iq_create(struct csio_hw *hw, void *priv, int iq_idx,
 	csio_q_portid(hw, iq_idx) = portid;
 
 	mbp = mempool_alloc(hw->mb_mempool, GFP_ATOMIC);
-	if (!mbp) {
+
+	if (!mbp)
+	{
 		csio_err(hw, "IQ command out of memory!\n");
 		return -ENOMEM;
 	}
 
-	switch (hw->intr_mode) {
-	case CSIO_IM_INTX:
-	case CSIO_IM_MSI:
-		/* For interrupt forwarding queue only */
-		if (hw->intr_iq_idx == iq_idx)
-			iqp.iqandst	= X_INTERRUPTDESTINATION_PCIE;
-		else
-			iqp.iqandst	= X_INTERRUPTDESTINATION_IQ;
-		iqp.iqandstindex	=
-			csio_q_physiqid(hw, hw->intr_iq_idx);
-		break;
-	case CSIO_IM_MSIX:
-		iqp.iqandst		= X_INTERRUPTDESTINATION_PCIE;
-		iqp.iqandstindex	= (uint16_t)vec;
-		break;
-	case CSIO_IM_NONE:
-		mempool_free(mbp, hw->mb_mempool);
-		return -EINVAL;
+	switch (hw->intr_mode)
+	{
+		case CSIO_IM_INTX:
+		case CSIO_IM_MSI:
+
+			/* For interrupt forwarding queue only */
+			if (hw->intr_iq_idx == iq_idx)
+			{
+				iqp.iqandst	= X_INTERRUPTDESTINATION_PCIE;
+			}
+			else
+			{
+				iqp.iqandst	= X_INTERRUPTDESTINATION_IQ;
+			}
+
+			iqp.iqandstindex	=
+				csio_q_physiqid(hw, hw->intr_iq_idx);
+			break;
+
+		case CSIO_IM_MSIX:
+			iqp.iqandst		= X_INTERRUPTDESTINATION_PCIE;
+			iqp.iqandstindex	= (uint16_t)vec;
+			break;
+
+		case CSIO_IM_NONE:
+			mempool_free(mbp, hw->mb_mempool);
+			return -EINVAL;
 	}
 
 	/* Pass in the ingress queue cmd parameters */
@@ -455,31 +501,43 @@ csio_wr_iq_create(struct csio_hw *hw, void *priv, int iq_idx,
 	iqp.viid		= 0;
 	iqp.type		= FW_IQ_TYPE_FL_INT_CAP;
 	iqp.iqasynch		= async;
+
 	if (csio_intr_coalesce_cnt)
+	{
 		iqp.iqanus	= X_UPDATESCHEDULING_COUNTER_OPTTIMER;
+	}
 	else
+	{
 		iqp.iqanus	= X_UPDATESCHEDULING_TIMER;
+	}
+
 	iqp.iqanud		= X_UPDATEDELIVERY_INTERRUPT;
 	iqp.iqpciech		= portid;
 	iqp.iqintcntthresh	= (uint8_t)csio_sge_thresh_reg;
 
-	switch (csio_q_wr_sz(hw, iq_idx)) {
-	case 16:
-		iqp.iqesize = 0; break;
-	case 32:
-		iqp.iqesize = 1; break;
-	case 64:
-		iqp.iqesize = 2; break;
-	case 128:
-		iqp.iqesize = 3; break;
+	switch (csio_q_wr_sz(hw, iq_idx))
+	{
+		case 16:
+			iqp.iqesize = 0; break;
+
+		case 32:
+			iqp.iqesize = 1; break;
+
+		case 64:
+			iqp.iqesize = 2; break;
+
+		case 128:
+			iqp.iqesize = 3; break;
 	}
 
 	iqp.iqsize		= csio_q_size(hw, iq_idx) /
-						csio_q_wr_sz(hw, iq_idx);
+					  csio_q_wr_sz(hw, iq_idx);
 	iqp.iqaddr		= csio_q_pstart(hw, iq_idx);
 
 	flq_idx = csio_q_iq_flq_idx(hw, iq_idx);
-	if (flq_idx != -1) {
+
+	if (flq_idx != -1)
+	{
 		struct csio_q *flq = hw->wrm.q_arr[flq_idx];
 
 		iqp.fl0paden	= 1;
@@ -492,14 +550,17 @@ csio_wr_iq_create(struct csio_hw *hw, void *priv, int iq_idx,
 
 	csio_mb_iq_alloc_write(hw, mbp, priv, CSIO_MB_DEFAULT_TMO, &iqp, cbfn);
 
-	if (csio_mb_issue(hw, mbp)) {
+	if (csio_mb_issue(hw, mbp))
+	{
 		csio_err(hw, "Issue of IQ cmd failed!\n");
 		mempool_free(mbp, hw->mb_mempool);
 		return -EINVAL;
 	}
 
 	if (cbfn != NULL)
+	{
 		return 0;
+	}
 
 	return csio_wr_iq_create_rsp(hw, mbp, iq_idx);
 }
@@ -522,7 +583,8 @@ csio_wr_eq_cfg_rsp(struct csio_hw *hw, struct csio_mb *mbp, int eq_idx)
 
 	csio_mb_eq_ofld_alloc_write_rsp(hw, mbp, &retval, &eqp);
 
-	if (retval != FW_SUCCESS) {
+	if (retval != FW_SUCCESS)
+	{
 		csio_err(hw, "EQ OFLD cmd returned 0x%x!\n", retval);
 		mempool_free(mbp, hw->mb_mempool);
 		return -EINVAL;
@@ -551,8 +613,8 @@ csio_wr_eq_cfg_rsp(struct csio_hw *hw, struct csio_mb *mbp, int eq_idx)
  */
 int
 csio_wr_eq_create(struct csio_hw *hw, void *priv, int eq_idx,
-		  int iq_idx, uint8_t portid,
-		  void (*cbfn) (struct csio_hw *, struct csio_mb *))
+				  int iq_idx, uint8_t portid,
+				  void (*cbfn) (struct csio_hw *, struct csio_mb *))
 {
 	struct csio_mb  *mbp;
 	struct csio_eq_params eqp;
@@ -560,7 +622,9 @@ csio_wr_eq_create(struct csio_hw *hw, void *priv, int eq_idx,
 	memset(&eqp, 0, sizeof(struct csio_eq_params));
 
 	mbp = mempool_alloc(hw->mb_mempool, GFP_ATOMIC);
-	if (!mbp) {
+
+	if (!mbp)
+	{
 		csio_err(hw, "EQ command out of memory!\n");
 		return -ENOMEM;
 	}
@@ -578,16 +642,19 @@ csio_wr_eq_create(struct csio_hw *hw, void *priv, int eq_idx,
 	eqp.eqaddr		= csio_q_pstart(hw, eq_idx);
 
 	csio_mb_eq_ofld_alloc_write(hw, mbp, priv, CSIO_MB_DEFAULT_TMO,
-				    &eqp, cbfn);
+								&eqp, cbfn);
 
-	if (csio_mb_issue(hw, mbp)) {
+	if (csio_mb_issue(hw, mbp))
+	{
 		csio_err(hw, "Issue of EQ OFLD cmd failed!\n");
 		mempool_free(mbp, hw->mb_mempool);
 		return -EINVAL;
 	}
 
 	if (cbfn != NULL)
+	{
 		return 0;
+	}
 
 	return csio_wr_eq_cfg_rsp(hw, mbp, eq_idx);
 }
@@ -607,7 +674,9 @@ csio_wr_iq_destroy_rsp(struct csio_hw *hw, struct csio_mb *mbp, int iq_idx)
 	int rv = 0;
 
 	if (retval != FW_SUCCESS)
+	{
 		rv = -EINVAL;
+	}
 
 	mempool_free(mbp, hw->mb_mempool);
 
@@ -626,7 +695,7 @@ csio_wr_iq_destroy_rsp(struct csio_hw *hw, struct csio_mb *mbp, int iq_idx)
  */
 static int
 csio_wr_iq_destroy(struct csio_hw *hw, void *priv, int iq_idx,
-		   void (*cbfn)(struct csio_hw *, struct csio_mb *))
+				   void (*cbfn)(struct csio_hw *, struct csio_mb *))
 {
 	int rv = 0;
 	struct csio_mb  *mbp;
@@ -636,8 +705,11 @@ csio_wr_iq_destroy(struct csio_hw *hw, void *priv, int iq_idx,
 	memset(&iqp, 0, sizeof(struct csio_iq_params));
 
 	mbp = mempool_alloc(hw->mb_mempool, GFP_ATOMIC);
+
 	if (!mbp)
+	{
 		return -ENOMEM;
+	}
 
 	iqp.pfn		= hw->pfn;
 	iqp.vfn		= 0;
@@ -645,23 +717,32 @@ csio_wr_iq_destroy(struct csio_hw *hw, void *priv, int iq_idx,
 	iqp.type	= FW_IQ_TYPE_FL_INT_CAP;
 
 	flq_idx = csio_q_iq_flq_idx(hw, iq_idx);
+
 	if (flq_idx != -1)
+	{
 		iqp.fl0id = csio_q_flid(hw, flq_idx);
+	}
 	else
+	{
 		iqp.fl0id = 0xFFFF;
+	}
 
 	iqp.fl1id = 0xFFFF;
 
 	csio_mb_iq_free(hw, mbp, priv, CSIO_MB_DEFAULT_TMO, &iqp, cbfn);
 
 	rv = csio_mb_issue(hw, mbp);
-	if (rv != 0) {
+
+	if (rv != 0)
+	{
 		mempool_free(mbp, hw->mb_mempool);
 		return rv;
 	}
 
 	if (cbfn != NULL)
+	{
 		return 0;
+	}
 
 	return csio_wr_iq_destroy_rsp(hw, mbp, iq_idx);
 }
@@ -681,7 +762,9 @@ csio_wr_eq_destroy_rsp(struct csio_hw *hw, struct csio_mb *mbp, int eq_idx)
 	int rv = 0;
 
 	if (retval != FW_SUCCESS)
+	{
 		rv = -EINVAL;
+	}
 
 	mempool_free(mbp, hw->mb_mempool);
 
@@ -700,7 +783,7 @@ csio_wr_eq_destroy_rsp(struct csio_hw *hw, struct csio_mb *mbp, int eq_idx)
  */
 static int
 csio_wr_eq_destroy(struct csio_hw *hw, void *priv, int eq_idx,
-		   void (*cbfn) (struct csio_hw *, struct csio_mb *))
+				   void (*cbfn) (struct csio_hw *, struct csio_mb *))
 {
 	int rv = 0;
 	struct csio_mb  *mbp;
@@ -709,8 +792,11 @@ csio_wr_eq_destroy(struct csio_hw *hw, void *priv, int eq_idx,
 	memset(&eqp, 0, sizeof(struct csio_eq_params));
 
 	mbp = mempool_alloc(hw->mb_mempool, GFP_ATOMIC);
+
 	if (!mbp)
+	{
 		return -ENOMEM;
+	}
 
 	eqp.pfn		= hw->pfn;
 	eqp.vfn		= 0;
@@ -719,13 +805,17 @@ csio_wr_eq_destroy(struct csio_hw *hw, void *priv, int eq_idx,
 	csio_mb_eq_ofld_free(hw, mbp, priv, CSIO_MB_DEFAULT_TMO, &eqp, cbfn);
 
 	rv = csio_mb_issue(hw, mbp);
-	if (rv != 0) {
+
+	if (rv != 0)
+	{
 		mempool_free(mbp, hw->mb_mempool);
 		return rv;
 	}
 
 	if (cbfn != NULL)
+	{
 		return 0;
+	}
 
 	return csio_wr_eq_destroy_rsp(hw, mbp, eq_idx);
 }
@@ -766,13 +856,14 @@ csio_wr_cleanup_iq_ftr(struct csio_hw *hw, int qidx)
 	/* set to 1 since we are just about zero out genbit */
 	q->un.iq.genbit = 1;
 
-	for (i = 0; i < q->credits; i++) {
+	for (i = 0; i < q->credits; i++)
+	{
 		/* Get the WR */
 		wr = (void *)((uintptr_t)q->vstart +
-					   (i * q->wr_sz));
+					  (i * q->wr_sz));
 		/* Get the footer */
 		ftr = (struct csio_iqwr_footer *)((uintptr_t)wr +
-					  (q->wr_sz - sizeof(*ftr)));
+										  (q->wr_sz - sizeof(*ftr)));
 		/* Zero out footer */
 		memset(ftr, 0, sizeof(*ftr));
 	}
@@ -786,47 +877,68 @@ csio_wr_destroy_queues(struct csio_hw *hw, bool cmd)
 	struct csio_wrm *wrm = csio_hw_to_wrm(hw);
 	int rv;
 
-	for (i = 0; i < wrm->free_qidx; i++) {
+	for (i = 0; i < wrm->free_qidx; i++)
+	{
 		q = wrm->q_arr[i];
 
-		switch (q->type) {
-		case CSIO_EGRESS:
-			if (csio_q_eqid(hw, i) != CSIO_MAX_QID) {
-				csio_wr_cleanup_eq_stpg(hw, i);
-				if (!cmd) {
+		switch (q->type)
+		{
+			case CSIO_EGRESS:
+				if (csio_q_eqid(hw, i) != CSIO_MAX_QID)
+				{
+					csio_wr_cleanup_eq_stpg(hw, i);
+
+					if (!cmd)
+					{
+						csio_q_eqid(hw, i) = CSIO_MAX_QID;
+						continue;
+					}
+
+					rv = csio_wr_eq_destroy(hw, NULL, i, NULL);
+
+					if ((rv == -EBUSY) || (rv == -ETIMEDOUT))
+					{
+						cmd = false;
+					}
+
 					csio_q_eqid(hw, i) = CSIO_MAX_QID;
-					continue;
 				}
 
-				rv = csio_wr_eq_destroy(hw, NULL, i, NULL);
-				if ((rv == -EBUSY) || (rv == -ETIMEDOUT))
-					cmd = false;
+			case CSIO_INGRESS:
+				if (csio_q_iqid(hw, i) != CSIO_MAX_QID)
+				{
+					csio_wr_cleanup_iq_ftr(hw, i);
 
-				csio_q_eqid(hw, i) = CSIO_MAX_QID;
-			}
-		case CSIO_INGRESS:
-			if (csio_q_iqid(hw, i) != CSIO_MAX_QID) {
-				csio_wr_cleanup_iq_ftr(hw, i);
-				if (!cmd) {
+					if (!cmd)
+					{
+						csio_q_iqid(hw, i) = CSIO_MAX_QID;
+						flq_idx = csio_q_iq_flq_idx(hw, i);
+
+						if (flq_idx != -1)
+							csio_q_flid(hw, flq_idx) =
+								CSIO_MAX_QID;
+
+						continue;
+					}
+
+					rv = csio_wr_iq_destroy(hw, NULL, i, NULL);
+
+					if ((rv == -EBUSY) || (rv == -ETIMEDOUT))
+					{
+						cmd = false;
+					}
+
 					csio_q_iqid(hw, i) = CSIO_MAX_QID;
 					flq_idx = csio_q_iq_flq_idx(hw, i);
+
 					if (flq_idx != -1)
-						csio_q_flid(hw, flq_idx) =
-								CSIO_MAX_QID;
-					continue;
+					{
+						csio_q_flid(hw, flq_idx) = CSIO_MAX_QID;
+					}
 				}
 
-				rv = csio_wr_iq_destroy(hw, NULL, i, NULL);
-				if ((rv == -EBUSY) || (rv == -ETIMEDOUT))
-					cmd = false;
-
-				csio_q_iqid(hw, i) = CSIO_MAX_QID;
-				flq_idx = csio_q_iq_flq_idx(hw, i);
-				if (flq_idx != -1)
-					csio_q_flid(hw, flq_idx) = CSIO_MAX_QID;
-			}
-		default:
-			break;
+			default:
+				break;
 		}
 	}
 
@@ -855,12 +967,12 @@ csio_wr_destroy_queues(struct csio_hw *hw, bool cmd)
  */
 int
 csio_wr_get(struct csio_hw *hw, int qidx, uint32_t size,
-	    struct csio_wr_pair *wrp)
+			struct csio_wr_pair *wrp)
 {
 	struct csio_wrm *wrm = csio_hw_to_wrm(hw);
 	struct csio_q *q = wrm->q_arr[qidx];
 	void *cwr = (void *)((uintptr_t)(q->vstart) +
-						(q->pidx * CSIO_QCREDIT_SZ));
+						 (q->pidx * CSIO_QCREDIT_SZ));
 	struct csio_qstatus_page *stp = (struct csio_qstatus_page *)q->vwrap;
 	uint16_t cidx = q->cidx = ntohs(stp->cidx);
 	uint16_t pidx = q->pidx;
@@ -873,11 +985,16 @@ csio_wr_get(struct csio_hw *hw, int qidx, uint32_t size,
 	CSIO_DB_ASSERT(cidx <= q->credits);
 
 	/* Calculate credits */
-	if (pidx > cidx) {
+	if (pidx > cidx)
+	{
 		credits = q->credits - (pidx - cidx) - 1;
-	} else if (cidx > pidx) {
+	}
+	else if (cidx > pidx)
+	{
 		credits = cidx - pidx - 1;
-	} else {
+	}
+	else
+	{
 		/* cidx == pidx, empty queue */
 		credits = q->credits;
 		CSIO_INC_STATS(q, n_qempty);
@@ -887,7 +1004,8 @@ csio_wr_get(struct csio_hw *hw, int qidx, uint32_t size,
 	 * Check if we have enough credits.
 	 * credits = 1 implies queue is full.
 	 */
-	if (!credits || (req_credits > credits)) {
+	if (!credits || (req_credits > credits))
+	{
 		CSIO_INC_STATS(q, n_qfull);
 		return -EBUSY;
 	}
@@ -900,16 +1018,19 @@ csio_wr_get(struct csio_hw *hw, int qidx, uint32_t size,
 	 * of queue and return it in the second addr/len. Set pidx
 	 * accordingly.
 	 */
-	if (unlikely(((uintptr_t)cwr + req_sz) > (uintptr_t)(q->vwrap))) {
+	if (unlikely(((uintptr_t)cwr + req_sz) > (uintptr_t)(q->vwrap)))
+	{
 		wrp->addr1 = cwr;
 		wrp->size1 = (uint32_t)((uintptr_t)q->vwrap - (uintptr_t)cwr);
 		wrp->addr2 = q->vstart;
 		wrp->size2 = req_sz - wrp->size1;
 		q->pidx	= (uint16_t)(ALIGN(wrp->size2, CSIO_QCREDIT_SZ) /
-							CSIO_QCREDIT_SZ);
+							 CSIO_QCREDIT_SZ);
 		CSIO_INC_STATS(q, n_qwrap);
 		CSIO_INC_STATS(q, n_eq_wr_split);
-	} else {
+	}
+	else
+	{
 		wrp->addr1 = cwr;
 		wrp->size1 = req_sz;
 		wrp->addr2 = NULL;
@@ -917,7 +1038,8 @@ csio_wr_get(struct csio_hw *hw, int qidx, uint32_t size,
 		q->pidx	+= (uint16_t)req_credits;
 
 		/* We are the end of queue, roll back pidx to top of queue */
-		if (unlikely(q->pidx == q->credits)) {
+		if (unlikely(q->pidx == q->credits))
+		{
 			q->pidx = 0;
 			CSIO_INC_STATS(q, n_qwrap);
 		}
@@ -943,19 +1065,20 @@ csio_wr_get(struct csio_hw *hw, int qidx, uint32_t size,
  */
 void
 csio_wr_copy_to_wrp(void *data_buf, struct csio_wr_pair *wrp,
-		   uint32_t wr_off, uint32_t data_len)
+					uint32_t wr_off, uint32_t data_len)
 {
 	uint32_t nbytes;
 
 	/* Number of space available in buffer addr1 of WRP */
 	nbytes = ((wrp->size1 - wr_off) >= data_len) ?
-					data_len : (wrp->size1 - wr_off);
+			 data_len : (wrp->size1 - wr_off);
 
 	memcpy((uint8_t *) wrp->addr1 + wr_off, data_buf, nbytes);
 	data_len -= nbytes;
 
 	/* Write the remaining data from the begining of circular buffer */
-	if (data_len) {
+	if (data_len)
+	{
 		CSIO_DB_ASSERT(data_len <= wrp->size2);
 		CSIO_DB_ASSERT(wrp->addr2 != NULL);
 		memcpy(wrp->addr2, (uint8_t *) data_buf + nbytes, data_len);
@@ -983,8 +1106,8 @@ csio_wr_issue(struct csio_hw *hw, int qidx, bool prio)
 	wmb();
 	/* Ring SGE Doorbell writing q->pidx into it */
 	csio_wr_reg32(hw, DBPRIO_V(prio) | QID_V(q->un.eq.physeqid) |
-			  PIDX_T5_V(q->inc_idx) | DBTYPE_F,
-			  MYPF_REG(SGE_PF_KDOORBELL_A));
+				  PIDX_T5_V(q->inc_idx) | DBTYPE_F,
+				  MYPF_REG(SGE_PF_KDOORBELL_A));
 	q->inc_idx = 0;
 
 	return 0;
@@ -994,11 +1117,17 @@ static inline uint32_t
 csio_wr_avail_qcredits(struct csio_q *q)
 {
 	if (q->pidx > q->cidx)
+	{
 		return q->pidx - q->cidx;
+	}
 	else if (q->cidx > q->pidx)
+	{
 		return q->credits - (q->cidx - q->pidx);
+	}
 	else
-		return 0;	/* cidx == pidx, empty queue */
+	{
+		return 0;    /* cidx == pidx, empty queue */
+	}
 }
 
 /*
@@ -1016,7 +1145,9 @@ static inline void
 csio_wr_inval_flq_buf(struct csio_hw *hw, struct csio_q *flq)
 {
 	flq->cidx++;
-	if (flq->cidx == flq->credits) {
+
+	if (flq->cidx == flq->credits)
+	{
 		flq->cidx = 0;
 		CSIO_INC_STATS(flq, n_qwrap);
 	}
@@ -1034,11 +1165,11 @@ csio_wr_inval_flq_buf(struct csio_hw *hw, struct csio_q *flq)
  */
 static inline void
 csio_wr_process_fl(struct csio_hw *hw, struct csio_q *q,
-		   void *wr, uint32_t len_to_qid,
-		   void (*iq_handler)(struct csio_hw *, void *,
-				      uint32_t, struct csio_fl_dma_buf *,
-				      void *),
-		   void *priv)
+				   void *wr, uint32_t len_to_qid,
+				   void (*iq_handler)(struct csio_hw *, void *,
+									  uint32_t, struct csio_fl_dma_buf *,
+									  void *),
+				   void *priv)
 {
 	struct csio_wrm *wrm = csio_hw_to_wrm(hw);
 	struct csio_sge *sge = &wrm->sge;
@@ -1052,11 +1183,14 @@ csio_wr_process_fl(struct csio_hw *hw, struct csio_q *q,
 
 	len = len_to_qid;
 
-	if (len & IQWRF_NEWBUF) {
-		if (flq->un.fl.offset > 0) {
+	if (len & IQWRF_NEWBUF)
+	{
+		if (flq->un.fl.offset > 0)
+		{
 			csio_wr_inval_flq_buf(hw, flq);
 			flq->un.fl.offset = 0;
 		}
+
 		len = IQWRF_LEN_GET(len);
 	}
 
@@ -1065,7 +1199,8 @@ csio_wr_process_fl(struct csio_hw *hw, struct csio_q *q,
 	flb.totlen = len;
 
 	/* Consume all freelist buffers used for len bytes */
-	for (n = 0, fbuf = flb.flbufs; ; n++, fbuf++) {
+	for (n = 0, fbuf = flb.flbufs; ; n++, fbuf++)
+	{
 		buf = &flq->un.fl.bufs[flq->cidx];
 		bufsz = csio_wr_fl_bufsz(sge, buf);
 
@@ -1077,20 +1212,28 @@ csio_wr_process_fl(struct csio_hw *hw, struct csio_q *q,
 		fbuf->len	= lastlen;
 
 		len -= lastlen;
+
 		if (!len)
+		{
 			break;
+		}
+
 		csio_wr_inval_flq_buf(hw, flq);
 	}
 
 	flb.defer_free = flq->un.fl.packen ? 0 : 1;
 
 	iq_handler(hw, wr, q->wr_sz - sizeof(struct csio_iqwr_footer),
-		   &flb, priv);
+			   &flb, priv);
 
 	if (flq->un.fl.packen)
+	{
 		flq->un.fl.offset += ALIGN(lastlen, sge->csio_fl_align);
+	}
 	else
+	{
 		csio_wr_inval_flq_buf(hw, flq);
+	}
 
 }
 
@@ -1121,10 +1264,10 @@ csio_is_new_iqwr(struct csio_q *q, struct csio_iqwr_footer *ftr)
  */
 int
 csio_wr_process_iq(struct csio_hw *hw, struct csio_q *q,
-		   void (*iq_handler)(struct csio_hw *, void *,
-				      uint32_t, struct csio_fl_dma_buf *,
-				      void *),
-		   void *priv)
+				   void (*iq_handler)(struct csio_hw *, void *,
+									  uint32_t, struct csio_fl_dma_buf *,
+									  void *),
+				   void *priv)
 {
 	struct csio_wrm *wrm = csio_hw_to_wrm(hw);
 	void *wr = (void *)((uintptr_t)q->vstart + (q->cidx * q->wr_sz));
@@ -1132,62 +1275,71 @@ csio_wr_process_iq(struct csio_hw *hw, struct csio_q *q,
 	uint32_t wr_type, fw_qid, qid;
 	struct csio_q *q_completed;
 	struct csio_q *flq = csio_iq_has_fl(q) ?
-					wrm->q_arr[q->un.iq.flq_idx] : NULL;
+						 wrm->q_arr[q->un.iq.flq_idx] : NULL;
 	int rv = 0;
 
 	/* Get the footer */
 	ftr = (struct csio_iqwr_footer *)((uintptr_t)wr +
-					  (q->wr_sz - sizeof(*ftr)));
+									  (q->wr_sz - sizeof(*ftr)));
 
 	/*
 	 * When q wrapped around last time, driver should have inverted
 	 * ic.genbit as well.
 	 */
-	while (csio_is_new_iqwr(q, ftr)) {
+	while (csio_is_new_iqwr(q, ftr))
+	{
 
 		CSIO_DB_ASSERT(((uintptr_t)wr + q->wr_sz) <=
-						(uintptr_t)q->vwrap);
+					   (uintptr_t)q->vwrap);
 		rmb();
 		wr_type = IQWRF_TYPE_GET(ftr->u.type_gen);
 
-		switch (wr_type) {
-		case X_RSPD_TYPE_CPL:
-			/* Subtract footer from WR len */
-			iq_handler(hw, wr, q->wr_sz - sizeof(*ftr), NULL, priv);
-			break;
-		case X_RSPD_TYPE_FLBUF:
-			csio_wr_process_fl(hw, q, wr,
-					   ntohl(ftr->pldbuflen_qid),
-					   iq_handler, priv);
-			break;
-		case X_RSPD_TYPE_INTR:
-			fw_qid = ntohl(ftr->pldbuflen_qid);
-			qid = fw_qid - wrm->fw_iq_start;
-			q_completed = hw->wrm.intr_map[qid];
+		switch (wr_type)
+		{
+			case X_RSPD_TYPE_CPL:
+				/* Subtract footer from WR len */
+				iq_handler(hw, wr, q->wr_sz - sizeof(*ftr), NULL, priv);
+				break;
 
-			if (unlikely(qid ==
-					csio_q_physiqid(hw, hw->intr_iq_idx))) {
-				/*
-				 * We are already in the Forward Interrupt
-				 * Interrupt Queue Service! Do-not service
-				 * again!
-				 *
-				 */
-			} else {
-				CSIO_DB_ASSERT(q_completed);
-				CSIO_DB_ASSERT(
-					q_completed->un.iq.iq_intx_handler);
+			case X_RSPD_TYPE_FLBUF:
+				csio_wr_process_fl(hw, q, wr,
+								   ntohl(ftr->pldbuflen_qid),
+								   iq_handler, priv);
+				break;
 
-				/* Call the queue handler. */
-				q_completed->un.iq.iq_intx_handler(hw, NULL,
-						0, NULL, (void *)q_completed);
-			}
-			break;
-		default:
-			csio_warn(hw, "Unknown resp type 0x%x received\n",
-				 wr_type);
-			CSIO_INC_STATS(q, n_rsp_unknown);
-			break;
+			case X_RSPD_TYPE_INTR:
+				fw_qid = ntohl(ftr->pldbuflen_qid);
+				qid = fw_qid - wrm->fw_iq_start;
+				q_completed = hw->wrm.intr_map[qid];
+
+				if (unlikely(qid ==
+							 csio_q_physiqid(hw, hw->intr_iq_idx)))
+				{
+					/*
+					 * We are already in the Forward Interrupt
+					 * Interrupt Queue Service! Do-not service
+					 * again!
+					 *
+					 */
+				}
+				else
+				{
+					CSIO_DB_ASSERT(q_completed);
+					CSIO_DB_ASSERT(
+						q_completed->un.iq.iq_intx_handler);
+
+					/* Call the queue handler. */
+					q_completed->un.iq.iq_intx_handler(hw, NULL,
+													   0, NULL, (void *)q_completed);
+				}
+
+				break;
+
+			default:
+				csio_warn(hw, "Unknown resp type 0x%x received\n",
+						  wr_type);
+				CSIO_INC_STATS(q, n_rsp_unknown);
+				break;
 		}
 
 		/*
@@ -1195,7 +1347,8 @@ csio_wr_process_iq(struct csio_hw *hw, struct csio_q *q,
 		 * there should always be complete WRs towards the end of
 		 * queue.
 		 */
-		if (((uintptr_t)wr + q->wr_sz) == (uintptr_t)q->vwrap) {
+		if (((uintptr_t)wr + q->wr_sz) == (uintptr_t)q->vwrap)
+		{
 
 			/* Roll over to start of queue */
 			q->cidx = 0;
@@ -1205,14 +1358,16 @@ csio_wr_process_iq(struct csio_hw *hw, struct csio_q *q,
 			q->un.iq.genbit ^= 0x1;
 
 			CSIO_INC_STATS(q, n_qwrap);
-		} else {
+		}
+		else
+		{
 			q->cidx++;
 			wr	= (void *)((uintptr_t)(q->vstart) +
-					   (q->cidx * q->wr_sz));
+						   (q->cidx * q->wr_sz));
 		}
 
 		ftr = (struct csio_iqwr_footer *)((uintptr_t)wr +
-						  (q->wr_sz - sizeof(*ftr)));
+										  (q->wr_sz - sizeof(*ftr)));
 		q->inc_idx++;
 
 	} /* while (q->un.iq.genbit == hdr->genbit) */
@@ -1221,16 +1376,20 @@ csio_wr_process_iq(struct csio_hw *hw, struct csio_q *q,
 	 * We need to re-arm SGE interrupts in case we got a stray interrupt,
 	 * especially in msix mode. With INTx, this may be a common occurence.
 	 */
-	if (unlikely(!q->inc_idx)) {
+	if (unlikely(!q->inc_idx))
+	{
 		CSIO_INC_STATS(q, n_stray_comp);
 		rv = -EINVAL;
 		goto restart;
 	}
 
 	/* Replenish free list buffers if pending falls below low water mark */
-	if (flq) {
+	if (flq)
+	{
 		uint32_t avail  = csio_wr_avail_qcredits(flq);
-		if (avail <= 16) {
+
+		if (avail <= 16)
+		{
 			/* Make sure in FLQ, atleast 1 credit (8 FL buffers)
 			 * remains unpopulated otherwise HW thinks
 			 * FLQ is empty.
@@ -1243,9 +1402,9 @@ csio_wr_process_iq(struct csio_hw *hw, struct csio_q *q,
 restart:
 	/* Now inform SGE about our incremental index value */
 	csio_wr_reg32(hw, CIDXINC_V(q->inc_idx)		|
-			  INGRESSQID_V(q->un.iq.physiqid)	|
-			  TIMERREG_V(csio_sge_timer_reg),
-			  MYPF_REG(SGE_PF_GTS_A));
+				  INGRESSQID_V(q->un.iq.physiqid)	|
+				  TIMERREG_V(csio_sge_timer_reg),
+				  MYPF_REG(SGE_PF_GTS_A));
 	q->stats.n_tot_rsps += q->inc_idx;
 
 	q->inc_idx = 0;
@@ -1255,10 +1414,10 @@ restart:
 
 int
 csio_wr_process_iq_idx(struct csio_hw *hw, int qidx,
-		   void (*iq_handler)(struct csio_hw *, void *,
-				      uint32_t, struct csio_fl_dma_buf *,
-				      void *),
-		   void *priv)
+					   void (*iq_handler)(struct csio_hw *, void *,
+							   uint32_t, struct csio_fl_dma_buf *,
+							   void *),
+					   void *priv)
 {
 	struct csio_wrm *wrm	= csio_hw_to_wrm(hw);
 	struct csio_q	*iq	= wrm->q_arr[qidx];
@@ -1271,15 +1430,22 @@ csio_closest_timer(struct csio_sge *s, int time)
 {
 	int i, delta, match = 0, min_delta = INT_MAX;
 
-	for (i = 0; i < ARRAY_SIZE(s->timer_val); i++) {
+	for (i = 0; i < ARRAY_SIZE(s->timer_val); i++)
+	{
 		delta = time - s->timer_val[i];
+
 		if (delta < 0)
+		{
 			delta = -delta;
-		if (delta < min_delta) {
+		}
+
+		if (delta < min_delta)
+		{
 			min_delta = delta;
 			match = i;
 		}
 	}
+
 	return match;
 }
 
@@ -1288,15 +1454,22 @@ csio_closest_thresh(struct csio_sge *s, int cnt)
 {
 	int i, delta, match = 0, min_delta = INT_MAX;
 
-	for (i = 0; i < ARRAY_SIZE(s->counter_val); i++) {
+	for (i = 0; i < ARRAY_SIZE(s->counter_val); i++)
+	{
 		delta = cnt - s->counter_val[i];
+
 		if (delta < 0)
+		{
 			delta = -delta;
-		if (delta < min_delta) {
+		}
+
+		if (delta < min_delta)
+		{
 			min_delta = delta;
 			match = i;
 		}
 	}
+
 	return match;
 }
 
@@ -1311,19 +1484,19 @@ csio_wr_fixup_host_params(struct csio_hw *hw)
 	uint32_t stat_len = clsz > 64 ? 128 : 64;
 
 	csio_wr_reg32(hw, HOSTPAGESIZEPF0_V(s_hps) | HOSTPAGESIZEPF1_V(s_hps) |
-		      HOSTPAGESIZEPF2_V(s_hps) | HOSTPAGESIZEPF3_V(s_hps) |
-		      HOSTPAGESIZEPF4_V(s_hps) | HOSTPAGESIZEPF5_V(s_hps) |
-		      HOSTPAGESIZEPF6_V(s_hps) | HOSTPAGESIZEPF7_V(s_hps),
-		      SGE_HOST_PAGE_SIZE_A);
+				  HOSTPAGESIZEPF2_V(s_hps) | HOSTPAGESIZEPF3_V(s_hps) |
+				  HOSTPAGESIZEPF4_V(s_hps) | HOSTPAGESIZEPF5_V(s_hps) |
+				  HOSTPAGESIZEPF6_V(s_hps) | HOSTPAGESIZEPF7_V(s_hps),
+				  SGE_HOST_PAGE_SIZE_A);
 
 	sge->csio_fl_align = clsz < 32 ? 32 : clsz;
 	ingpad = ilog2(sge->csio_fl_align) - 5;
 
 	csio_set_reg_field(hw, SGE_CONTROL_A,
-			   INGPADBOUNDARY_V(INGPADBOUNDARY_M) |
-			   EGRSTATUSPAGESIZE_F,
-			   INGPADBOUNDARY_V(ingpad) |
-			   EGRSTATUSPAGESIZE_V(stat_len != 64));
+					   INGPADBOUNDARY_V(INGPADBOUNDARY_M) |
+					   EGRSTATUSPAGESIZE_F,
+					   INGPADBOUNDARY_V(ingpad) |
+					   EGRSTATUSPAGESIZE_V(stat_len != 64));
 
 	/* FL BUFFER SIZE#0 is Page size i,e already aligned to cache line */
 	csio_wr_reg32(hw, PAGE_SIZE, SGE_FL_BUFFER_SIZE0_A);
@@ -1332,26 +1505,27 @@ csio_wr_fixup_host_params(struct csio_hw *hw)
 	 * If using hard params, the following will get set correctly
 	 * in csio_wr_set_sge().
 	 */
-	if (hw->flags & CSIO_HWF_USING_SOFT_PARAMS) {
+	if (hw->flags & CSIO_HWF_USING_SOFT_PARAMS)
+	{
 		csio_wr_reg32(hw,
-			(csio_rd_reg32(hw, SGE_FL_BUFFER_SIZE2_A) +
-			sge->csio_fl_align - 1) & ~(sge->csio_fl_align - 1),
-			SGE_FL_BUFFER_SIZE2_A);
+					  (csio_rd_reg32(hw, SGE_FL_BUFFER_SIZE2_A) +
+					   sge->csio_fl_align - 1) & ~(sge->csio_fl_align - 1),
+					  SGE_FL_BUFFER_SIZE2_A);
 		csio_wr_reg32(hw,
-			(csio_rd_reg32(hw, SGE_FL_BUFFER_SIZE3_A) +
-			sge->csio_fl_align - 1) & ~(sge->csio_fl_align - 1),
-			SGE_FL_BUFFER_SIZE3_A);
+					  (csio_rd_reg32(hw, SGE_FL_BUFFER_SIZE3_A) +
+					   sge->csio_fl_align - 1) & ~(sge->csio_fl_align - 1),
+					  SGE_FL_BUFFER_SIZE3_A);
 	}
 
 	csio_wr_reg32(hw, HPZ0_V(PAGE_SHIFT - 12), ULP_RX_TDDP_PSZ_A);
 
 	/* default value of rx_dma_offset of the NIC driver */
 	csio_set_reg_field(hw, SGE_CONTROL_A,
-			   PKTSHIFT_V(PKTSHIFT_M),
-			   PKTSHIFT_V(CSIO_SGE_RX_DMA_OFFSET));
+					   PKTSHIFT_V(PKTSHIFT_M),
+					   PKTSHIFT_V(CSIO_SGE_RX_DMA_OFFSET));
 
 	csio_hw_tp_wr_bits_indirect(hw, TP_INGRESS_CONFIG_A,
-				    CSUM_HAS_PSEUDO_HDR_F, 0);
+								CSUM_HAS_PSEUDO_HDR_F, 0);
 }
 
 static void
@@ -1361,7 +1535,9 @@ csio_init_intr_coalesce_parms(struct csio_hw *hw)
 	struct csio_sge *sge = &wrm->sge;
 
 	csio_sge_thresh_reg = csio_closest_thresh(sge, csio_intr_coalesce_cnt);
-	if (csio_intr_coalesce_cnt) {
+
+	if (csio_intr_coalesce_cnt)
+	{
 		csio_sge_thresh_reg = 0;
 		csio_sge_timer_reg = X_TIMERREG_RESTART_COUNTER;
 		return;
@@ -1390,44 +1566,54 @@ csio_wr_get_sge(struct csio_hw *hw)
 
 	ingpad = INGPADBOUNDARY_G(sge->sge_control);
 
-	switch (ingpad) {
-	case X_INGPCIEBOUNDARY_32B:
-		sge->csio_fl_align = 32; break;
-	case X_INGPCIEBOUNDARY_64B:
-		sge->csio_fl_align = 64; break;
-	case X_INGPCIEBOUNDARY_128B:
-		sge->csio_fl_align = 128; break;
-	case X_INGPCIEBOUNDARY_256B:
-		sge->csio_fl_align = 256; break;
-	case X_INGPCIEBOUNDARY_512B:
-		sge->csio_fl_align = 512; break;
-	case X_INGPCIEBOUNDARY_1024B:
-		sge->csio_fl_align = 1024; break;
-	case X_INGPCIEBOUNDARY_2048B:
-		sge->csio_fl_align = 2048; break;
-	case X_INGPCIEBOUNDARY_4096B:
-		sge->csio_fl_align = 4096; break;
+	switch (ingpad)
+	{
+		case X_INGPCIEBOUNDARY_32B:
+			sge->csio_fl_align = 32; break;
+
+		case X_INGPCIEBOUNDARY_64B:
+			sge->csio_fl_align = 64; break;
+
+		case X_INGPCIEBOUNDARY_128B:
+			sge->csio_fl_align = 128; break;
+
+		case X_INGPCIEBOUNDARY_256B:
+			sge->csio_fl_align = 256; break;
+
+		case X_INGPCIEBOUNDARY_512B:
+			sge->csio_fl_align = 512; break;
+
+		case X_INGPCIEBOUNDARY_1024B:
+			sge->csio_fl_align = 1024; break;
+
+		case X_INGPCIEBOUNDARY_2048B:
+			sge->csio_fl_align = 2048; break;
+
+		case X_INGPCIEBOUNDARY_4096B:
+			sge->csio_fl_align = 4096; break;
 	}
 
 	for (i = 0; i < CSIO_SGE_FL_SIZE_REGS; i++)
+	{
 		csio_get_flbuf_size(hw, sge, i);
+	}
 
 	timer_value_0_and_1 = csio_rd_reg32(hw, SGE_TIMER_VALUE_0_AND_1_A);
 	timer_value_2_and_3 = csio_rd_reg32(hw, SGE_TIMER_VALUE_2_AND_3_A);
 	timer_value_4_and_5 = csio_rd_reg32(hw, SGE_TIMER_VALUE_4_AND_5_A);
 
 	sge->timer_val[0] = (uint16_t)csio_core_ticks_to_us(hw,
-					TIMERVALUE0_G(timer_value_0_and_1));
+						TIMERVALUE0_G(timer_value_0_and_1));
 	sge->timer_val[1] = (uint16_t)csio_core_ticks_to_us(hw,
-					TIMERVALUE1_G(timer_value_0_and_1));
+						TIMERVALUE1_G(timer_value_0_and_1));
 	sge->timer_val[2] = (uint16_t)csio_core_ticks_to_us(hw,
-					TIMERVALUE2_G(timer_value_2_and_3));
+						TIMERVALUE2_G(timer_value_2_and_3));
 	sge->timer_val[3] = (uint16_t)csio_core_ticks_to_us(hw,
-					TIMERVALUE3_G(timer_value_2_and_3));
+						TIMERVALUE3_G(timer_value_2_and_3));
 	sge->timer_val[4] = (uint16_t)csio_core_ticks_to_us(hw,
-					TIMERVALUE4_G(timer_value_4_and_5));
+						TIMERVALUE4_G(timer_value_4_and_5));
 	sge->timer_val[5] = (uint16_t)csio_core_ticks_to_us(hw,
-					TIMERVALUE5_G(timer_value_4_and_5));
+						TIMERVALUE5_G(timer_value_4_and_5));
 
 	ingress_rx_threshold = csio_rd_reg32(hw, SGE_INGRESS_RX_THRESHOLD_A);
 	sge->counter_val[0] = THRESHOLD_0_G(ingress_rx_threshold);
@@ -1467,22 +1653,22 @@ csio_wr_set_sge(struct csio_hw *hw)
 	 * and generate an interrupt when this occurs so we can recover.
 	 */
 	csio_set_reg_field(hw, SGE_DBFIFO_STATUS_A,
-			   LP_INT_THRESH_T5_V(LP_INT_THRESH_T5_M),
-			   LP_INT_THRESH_T5_V(CSIO_SGE_DBFIFO_INT_THRESH));
+					   LP_INT_THRESH_T5_V(LP_INT_THRESH_T5_M),
+					   LP_INT_THRESH_T5_V(CSIO_SGE_DBFIFO_INT_THRESH));
 	csio_set_reg_field(hw, SGE_DBFIFO_STATUS2_A,
-			   HP_INT_THRESH_T5_V(LP_INT_THRESH_T5_M),
-			   HP_INT_THRESH_T5_V(CSIO_SGE_DBFIFO_INT_THRESH));
+					   HP_INT_THRESH_T5_V(LP_INT_THRESH_T5_M),
+					   HP_INT_THRESH_T5_V(CSIO_SGE_DBFIFO_INT_THRESH));
 
 	csio_set_reg_field(hw, SGE_DOORBELL_CONTROL_A, ENABLE_DROP_F,
-			   ENABLE_DROP_F);
+					   ENABLE_DROP_F);
 
 	/* SGE_FL_BUFFER_SIZE0 is set up by csio_wr_fixup_host_params(). */
 
 	CSIO_SET_FLBUF_SIZE(hw, 1, CSIO_SGE_FLBUF_SIZE1);
 	csio_wr_reg32(hw, (CSIO_SGE_FLBUF_SIZE2 + sge->csio_fl_align - 1)
-		      & ~(sge->csio_fl_align - 1), SGE_FL_BUFFER_SIZE2_A);
+				  & ~(sge->csio_fl_align - 1), SGE_FL_BUFFER_SIZE2_A);
 	csio_wr_reg32(hw, (CSIO_SGE_FLBUF_SIZE3 + sge->csio_fl_align - 1)
-		      & ~(sge->csio_fl_align - 1), SGE_FL_BUFFER_SIZE3_A);
+				  & ~(sge->csio_fl_align - 1), SGE_FL_BUFFER_SIZE3_A);
 	CSIO_SET_FLBUF_SIZE(hw, 4, CSIO_SGE_FLBUF_SIZE4);
 	CSIO_SET_FLBUF_SIZE(hw, 5, CSIO_SGE_FLBUF_SIZE5);
 	CSIO_SET_FLBUF_SIZE(hw, 6, CSIO_SGE_FLBUF_SIZE6);
@@ -1490,7 +1676,9 @@ csio_wr_set_sge(struct csio_hw *hw)
 	CSIO_SET_FLBUF_SIZE(hw, 8, CSIO_SGE_FLBUF_SIZE8);
 
 	for (i = 0; i < CSIO_SGE_FL_SIZE_REGS; i++)
+	{
 		csio_get_flbuf_size(hw, sge, i);
+	}
 
 	/* Initialize interrupt coalescing attributes */
 	sge->timer_val[0] = CSIO_SGE_TIMER_VAL_0;
@@ -1506,25 +1694,25 @@ csio_wr_set_sge(struct csio_hw *hw)
 	sge->counter_val[3] = CSIO_SGE_INT_CNT_VAL_3;
 
 	csio_wr_reg32(hw, THRESHOLD_0_V(sge->counter_val[0]) |
-		      THRESHOLD_1_V(sge->counter_val[1]) |
-		      THRESHOLD_2_V(sge->counter_val[2]) |
-		      THRESHOLD_3_V(sge->counter_val[3]),
-		      SGE_INGRESS_RX_THRESHOLD_A);
+				  THRESHOLD_1_V(sge->counter_val[1]) |
+				  THRESHOLD_2_V(sge->counter_val[2]) |
+				  THRESHOLD_3_V(sge->counter_val[3]),
+				  SGE_INGRESS_RX_THRESHOLD_A);
 
 	csio_wr_reg32(hw,
-		   TIMERVALUE0_V(csio_us_to_core_ticks(hw, sge->timer_val[0])) |
-		   TIMERVALUE1_V(csio_us_to_core_ticks(hw, sge->timer_val[1])),
-		   SGE_TIMER_VALUE_0_AND_1_A);
+				  TIMERVALUE0_V(csio_us_to_core_ticks(hw, sge->timer_val[0])) |
+				  TIMERVALUE1_V(csio_us_to_core_ticks(hw, sge->timer_val[1])),
+				  SGE_TIMER_VALUE_0_AND_1_A);
 
 	csio_wr_reg32(hw,
-		   TIMERVALUE2_V(csio_us_to_core_ticks(hw, sge->timer_val[2])) |
-		   TIMERVALUE3_V(csio_us_to_core_ticks(hw, sge->timer_val[3])),
-		   SGE_TIMER_VALUE_2_AND_3_A);
+				  TIMERVALUE2_V(csio_us_to_core_ticks(hw, sge->timer_val[2])) |
+				  TIMERVALUE3_V(csio_us_to_core_ticks(hw, sge->timer_val[3])),
+				  SGE_TIMER_VALUE_2_AND_3_A);
 
 	csio_wr_reg32(hw,
-		   TIMERVALUE4_V(csio_us_to_core_ticks(hw, sge->timer_val[4])) |
-		   TIMERVALUE5_V(csio_us_to_core_ticks(hw, sge->timer_val[5])),
-		   SGE_TIMER_VALUE_4_AND_5_A);
+				  TIMERVALUE4_V(csio_us_to_core_ticks(hw, sge->timer_val[4])) |
+				  TIMERVALUE5_V(csio_us_to_core_ticks(hw, sge->timer_val[5])),
+				  SGE_TIMER_VALUE_4_AND_5_A);
 
 	csio_init_intr_coalesce_parms(hw);
 }
@@ -1548,16 +1736,26 @@ csio_wr_sge_init(struct csio_hw *hw)
 	 * ship of the card, state and whether to use config file or not, have
 	 * already been decided.
 	 */
-	if (csio_is_hw_master(hw)) {
+	if (csio_is_hw_master(hw))
+	{
 		if (hw->fw_state != CSIO_DEV_STATE_INIT)
+		{
 			csio_wr_fixup_host_params(hw);
+		}
 
 		if (hw->flags & CSIO_HWF_USING_SOFT_PARAMS)
+		{
 			csio_wr_get_sge(hw);
+		}
 		else
+		{
 			csio_wr_set_sge(hw);
-	} else
+		}
+	}
+	else
+	{
 		csio_wr_get_sge(hw);
+	}
 }
 
 /*
@@ -1572,23 +1770,34 @@ csio_wrm_init(struct csio_wrm *wrm, struct csio_hw *hw)
 {
 	int i;
 
-	if (!wrm->num_q) {
+	if (!wrm->num_q)
+	{
 		csio_err(hw, "Num queues is not set\n");
 		return -EINVAL;
 	}
 
 	wrm->q_arr = kzalloc(sizeof(struct csio_q *) * wrm->num_q, GFP_KERNEL);
-	if (!wrm->q_arr)
-		goto err;
 
-	for (i = 0; i < wrm->num_q; i++) {
+	if (!wrm->q_arr)
+	{
+		goto err;
+	}
+
+	for (i = 0; i < wrm->num_q; i++)
+	{
 		wrm->q_arr[i] = kzalloc(sizeof(struct csio_q), GFP_KERNEL);
-		if (!wrm->q_arr[i]) {
+
+		if (!wrm->q_arr[i])
+		{
 			while (--i >= 0)
+			{
 				kfree(wrm->q_arr[i]);
+			}
+
 			goto err_free_arr;
 		}
 	}
+
 	wrm->free_qidx	= 0;
 
 	return 0;
@@ -1616,26 +1825,40 @@ csio_wrm_exit(struct csio_wrm *wrm, struct csio_hw *hw)
 	struct csio_q *q;
 	struct csio_dma_buf *buf;
 
-	for (i = 0; i < wrm->num_q; i++) {
+	for (i = 0; i < wrm->num_q; i++)
+	{
 		q = wrm->q_arr[i];
 
-		if (wrm->free_qidx && (i < wrm->free_qidx)) {
-			if (q->type == CSIO_FREELIST) {
+		if (wrm->free_qidx && (i < wrm->free_qidx))
+		{
+			if (q->type == CSIO_FREELIST)
+			{
 				if (!q->un.fl.bufs)
+				{
 					continue;
-				for (j = 0; j < q->credits; j++) {
-					buf = &q->un.fl.bufs[j];
-					if (!buf->vaddr)
-						continue;
-					pci_free_consistent(hw->pdev, buf->len,
-							    buf->vaddr,
-							    buf->paddr);
 				}
+
+				for (j = 0; j < q->credits; j++)
+				{
+					buf = &q->un.fl.bufs[j];
+
+					if (!buf->vaddr)
+					{
+						continue;
+					}
+
+					pci_free_consistent(hw->pdev, buf->len,
+										buf->vaddr,
+										buf->paddr);
+				}
+
 				kfree(q->un.fl.bufs);
 			}
+
 			pci_free_consistent(hw->pdev, q->size,
-					    q->vstart, q->pstart);
+								q->vstart, q->pstart);
 		}
+
 		kfree(q);
 	}
 

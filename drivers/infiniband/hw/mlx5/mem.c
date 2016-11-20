@@ -43,7 +43,7 @@
  * @order: log2 of the number of compound pages
  */
 void mlx5_ib_cont_pages(struct ib_umem *umem, u64 addr, int *count, int *shift,
-			int *ncont, int *order)
+						int *ncont, int *order)
 {
 	unsigned long tmp;
 	unsigned long m;
@@ -59,12 +59,16 @@ void mlx5_ib_cont_pages(struct ib_umem *umem, u64 addr, int *count, int *shift,
 	unsigned long page_shift = ilog2(umem->page_size);
 
 	/* With ODP we must always match OS page size. */
-	if (umem->odp_data) {
+	if (umem->odp_data)
+	{
 		*count = ib_umem_page_count(umem);
 		*shift = PAGE_SHIFT;
 		*ncont = *count;
+
 		if (order)
+		{
 			*order = ilog2(roundup_pow_of_two(*count));
+		}
 
 		return;
 	}
@@ -75,19 +79,26 @@ void mlx5_ib_cont_pages(struct ib_umem *umem, u64 addr, int *count, int *shift,
 	skip = 1 << m;
 	mask = skip - 1;
 	i = 0;
-	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry) {
+	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry)
+	{
 		len = sg_dma_len(sg) >> page_shift;
 		pfn = sg_dma_address(sg) >> page_shift;
-		for (k = 0; k < len; k++) {
-			if (!(i & mask)) {
+
+		for (k = 0; k < len; k++)
+		{
+			if (!(i & mask))
+			{
 				tmp = (unsigned long)pfn;
 				m = min_t(unsigned long, m, find_first_bit(&tmp, BITS_PER_LONG));
 				skip = 1 << m;
 				mask = skip - 1;
 				base = pfn;
 				p = 0;
-			} else {
-				if (base + p != pfn) {
+			}
+			else
+			{
+				if (base + p != pfn)
+				{
 					tmp = (unsigned long)p;
 					m = find_first_bit(&tmp, BITS_PER_LONG);
 					skip = 1 << m;
@@ -96,26 +107,35 @@ void mlx5_ib_cont_pages(struct ib_umem *umem, u64 addr, int *count, int *shift,
 					p = 0;
 				}
 			}
+
 			p++;
 			i++;
 		}
 	}
 
-	if (i) {
+	if (i)
+	{
 		m = min_t(unsigned long, ilog2(roundup_pow_of_two(i)), m);
 
 		if (order)
+		{
 			*order = ilog2(roundup_pow_of_two(i) >> m);
+		}
 
 		*ncont = DIV_ROUND_UP(i, (1 << m));
-	} else {
+	}
+	else
+	{
 		m  = 0;
 
 		if (order)
+		{
 			*order = 0;
+		}
 
 		*ncont = 0;
 	}
+
 	*shift = page_shift + m;
 	*count = i;
 }
@@ -126,9 +146,14 @@ static u64 umem_dma_to_mtt(dma_addr_t umem_dma)
 	u64 mtt_entry = umem_dma & ODP_DMA_ADDR_MASK;
 
 	if (umem_dma & ODP_READ_ALLOWED_BIT)
+	{
 		mtt_entry |= MLX5_IB_MTT_READ;
+	}
+
 	if (umem_dma & ODP_WRITE_ALLOWED_BIT)
+	{
 		mtt_entry |= MLX5_IB_MTT_WRITE;
+	}
 
 	return mtt_entry;
 }
@@ -148,8 +173,8 @@ static u64 umem_dma_to_mtt(dma_addr_t umem_dma)
 		  use enum mlx5_ib_mtt_access_flags for this.
  */
 void __mlx5_ib_populate_pas(struct mlx5_ib_dev *dev, struct ib_umem *umem,
-			    int page_shift, size_t offset, size_t num_pages,
-			    __be64 *pas, int access_flags)
+							int page_shift, size_t offset, size_t num_pages,
+							__be64 *pas, int access_flags)
 {
 	unsigned long umem_page_shift = ilog2(umem->page_size);
 	int shift = page_shift - umem_page_shift;
@@ -163,45 +188,55 @@ void __mlx5_ib_populate_pas(struct mlx5_ib_dev *dev, struct ib_umem *umem,
 #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
 	const bool odp = umem->odp_data != NULL;
 
-	if (odp) {
+	if (odp)
+	{
 		WARN_ON(shift != 0);
 		WARN_ON(access_flags != (MLX5_IB_MTT_READ | MLX5_IB_MTT_WRITE));
 
-		for (i = 0; i < num_pages; ++i) {
+		for (i = 0; i < num_pages; ++i)
+		{
 			dma_addr_t pa = umem->odp_data->dma_list[offset + i];
 
 			pas[i] = cpu_to_be64(umem_dma_to_mtt(pa));
 		}
+
 		return;
 	}
+
 #endif
 
 	i = 0;
-	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry) {
+	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry)
+	{
 		len = sg_dma_len(sg) >> umem_page_shift;
 		base = sg_dma_address(sg);
-		for (k = 0; k < len; k++) {
-			if (!(i & mask)) {
+
+		for (k = 0; k < len; k++)
+		{
+			if (!(i & mask))
+			{
 				cur = base + (k << umem_page_shift);
 				cur |= access_flags;
 
 				pas[i >> shift] = cpu_to_be64(cur);
 				mlx5_ib_dbg(dev, "pas[%d] 0x%llx\n",
-					    i >> shift, be64_to_cpu(pas[i >> shift]));
-			}  else
+							i >> shift, be64_to_cpu(pas[i >> shift]));
+			}
+			else
 				mlx5_ib_dbg(dev, "=====> 0x%llx\n",
-					    base + (k << umem_page_shift));
+							base + (k << umem_page_shift));
+
 			i++;
 		}
 	}
 }
 
 void mlx5_ib_populate_pas(struct mlx5_ib_dev *dev, struct ib_umem *umem,
-			  int page_shift, __be64 *pas, int access_flags)
+						  int page_shift, __be64 *pas, int access_flags)
 {
 	return __mlx5_ib_populate_pas(dev, umem, page_shift, 0,
-				      ib_umem_num_pages(umem), pas,
-				      access_flags);
+								  ib_umem_num_pages(umem), pas,
+								  access_flags);
 }
 int mlx5_ib_get_buf_offset(u64 addr, int page_shift, u32 *offset)
 {
@@ -218,7 +253,9 @@ int mlx5_ib_get_buf_offset(u64 addr, int page_shift, u32 *offset)
 	off_mask = off_size - 1;
 
 	if (buf_off & off_mask)
+	{
 		return -EINVAL;
+	}
 
 	*offset = buf_off >> ilog2(off_size);
 	return 0;

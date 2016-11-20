@@ -50,10 +50,14 @@ acpi_read_fast(void *data, u32 offset, u32 length, struct nvkm_bios *bios)
 	u32 start = offset & ~0x00000fff;
 	u32 fetch = limit - start;
 
-	if (nvbios_extend(bios, limit) >= 0) {
+	if (nvbios_extend(bios, limit) >= 0)
+	{
 		int ret = nouveau_acpi_get_bios_chunk(bios->data, start, fetch);
+
 		if (ret == fetch)
+		{
 			return fetch;
+		}
 	}
 
 	return 0;
@@ -71,13 +75,19 @@ acpi_read_slow(void *data, u32 offset, u32 length, struct nvkm_bios *bios)
 	u32 start = offset & ~0xfff;
 	u32 fetch = 0;
 
-	if (nvbios_extend(bios, limit) >= 0) {
-		while (start + fetch < limit) {
+	if (nvbios_extend(bios, limit) >= 0)
+	{
+		while (start + fetch < limit)
+		{
 			int ret = nouveau_acpi_get_bios_chunk(bios->data,
-							      start + fetch,
-							      0x1000);
+												  start + fetch,
+												  0x1000);
+
 			if (ret != 0x1000)
+			{
 				break;
+			}
+
 			fetch += 0x1000;
 		}
 	}
@@ -89,12 +99,16 @@ static void *
 acpi_init(struct nvkm_bios *bios, const char *name)
 {
 	if (!nouveau_acpi_rom_supported(bios->subdev.device->dev))
+	{
 		return ERR_PTR(-ENODEV);
+	}
+
 	return NULL;
 }
 
 const struct nvbios_source
-nvbios_acpi_fast = {
+	nvbios_acpi_fast =
+{
 	.name = "ACPI",
 	.init = acpi_init,
 	.read = acpi_read_fast,
@@ -102,7 +116,8 @@ nvbios_acpi_fast = {
 };
 
 const struct nvbios_source
-nvbios_acpi_slow = {
+	nvbios_acpi_slow =
+{
 	.name = "ACPI",
 	.init = acpi_init,
 	.read = acpi_read_slow,

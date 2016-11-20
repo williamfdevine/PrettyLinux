@@ -64,7 +64,7 @@ int drm_legacy_getsareactx(struct drm_device *d, void *v, struct drm_file *f);
 #define DRM_MAP_HASH_OFFSET 0x10000000
 
 int drm_legacy_getmap_ioctl(struct drm_device *dev, void *data,
-			    struct drm_file *file_priv);
+							struct drm_file *file_priv);
 int drm_legacy_addmap_ioctl(struct drm_device *d, void *v, struct drm_file *f);
 int drm_legacy_rmmap_ioctl(struct drm_device *d, void *v, struct drm_file *f);
 int drm_legacy_addbufs(struct drm_device *d, void *v, struct drm_file *f);
@@ -80,7 +80,8 @@ void drm_legacy_vma_flush(struct drm_device *d);
  * AGP Support
  */
 
-struct drm_agp_mem {
+struct drm_agp_mem
+{
 	unsigned long handle;
 	struct agp_memory *memory;
 	unsigned long bound;
@@ -97,15 +98,15 @@ void drm_legacy_lock_release(struct drm_device *dev, struct file *filp);
 int drm_legacy_dma_setup(struct drm_device *dev);
 void drm_legacy_dma_takedown(struct drm_device *dev);
 void drm_legacy_free_buffer(struct drm_device *dev,
-			    struct drm_buf * buf);
+							struct drm_buf *buf);
 void drm_legacy_reclaim_buffers(struct drm_device *dev,
-				struct drm_file *filp);
+								struct drm_file *filp);
 
 /* Scatter Gather Support */
 void drm_legacy_sg_cleanup(struct drm_device *dev);
 int drm_legacy_sg_alloc(struct drm_device *dev, void *data,
-			struct drm_file *file_priv);
+						struct drm_file *file_priv);
 int drm_legacy_sg_free(struct drm_device *dev, void *data,
-		       struct drm_file *file_priv);
+					   struct drm_file *file_priv);
 
 #endif /* __DRM_LEGACY_H__ */

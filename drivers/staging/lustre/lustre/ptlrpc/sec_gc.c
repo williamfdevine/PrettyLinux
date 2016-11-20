@@ -75,7 +75,9 @@ void sptlrpc_gc_add_sec(struct ptlrpc_sec *sec)
 void sptlrpc_gc_del_sec(struct ptlrpc_sec *sec)
 {
 	if (list_empty(&sec->ps_gc_list))
+	{
 		return;
+	}
 
 	might_sleep();
 
@@ -101,16 +103,17 @@ static void sec_process_ctx_list(void)
 
 	spin_lock(&sec_gc_ctx_list_lock);
 
-	while (!list_empty(&sec_gc_ctx_list)) {
+	while (!list_empty(&sec_gc_ctx_list))
+	{
 		ctx = list_entry(sec_gc_ctx_list.next,
-				 struct ptlrpc_cli_ctx, cc_gc_chain);
+						 struct ptlrpc_cli_ctx, cc_gc_chain);
 		list_del_init(&ctx->cc_gc_chain);
 		spin_unlock(&sec_gc_ctx_list_lock);
 
 		LASSERT(ctx->cc_sec);
 		LASSERT(atomic_read(&ctx->cc_refcount) == 1);
 		CDEBUG(D_SEC, "gc pick up ctx %p(%u->%s)\n",
-		       ctx, ctx->cc_vcred.vc_uid, sec2target_str(ctx->cc_sec));
+			   ctx, ctx->cc_vcred.vc_uid, sec2target_str(ctx->cc_sec));
 		sptlrpc_cli_ctx_put(ctx, 1);
 
 		spin_lock(&sec_gc_ctx_list_lock);
@@ -123,16 +126,19 @@ static void sec_do_gc(struct ptlrpc_sec *sec)
 {
 	LASSERT(sec->ps_policy->sp_cops->gc_ctx);
 
-	if (unlikely(sec->ps_gc_next == 0)) {
+	if (unlikely(sec->ps_gc_next == 0))
+	{
 		CDEBUG(D_SEC, "sec %p(%s) has 0 gc time\n",
-		       sec, sec->ps_policy->sp_name);
+			   sec, sec->ps_policy->sp_name);
 		return;
 	}
 
 	CDEBUG(D_SEC, "check on sec %p(%s)\n", sec, sec->ps_policy->sp_name);
 
 	if (sec->ps_gc_next > ktime_get_real_seconds())
+	{
 		return;
+	}
 
 	sec->ps_policy->sp_cops->gc_ctx(sec);
 	sec->ps_gc_next = ktime_get_real_seconds() + sec->ps_gc_interval;
@@ -149,7 +155,8 @@ static int sec_gc_main(void *arg)
 	thread_set_flags(thread, SVC_RUNNING);
 	wake_up(&thread->t_ctl_waitq);
 
-	while (1) {
+	while (1)
+	{
 		struct ptlrpc_sec *sec;
 
 		thread_clear_flags(thread, SVC_SIGNAL);
@@ -163,11 +170,13 @@ again:
 		 * according to each sec's expiry time
 		 */
 		mutex_lock(&sec_gc_mutex);
-		list_for_each_entry(sec, &sec_gc_list, ps_gc_list) {
+		list_for_each_entry(sec, &sec_gc_list, ps_gc_list)
+		{
 			/* if someone is waiting to be deleted, let it
 			 * proceed as soon as possible.
 			 */
-			if (atomic_read(&sec_gc_wait_del)) {
+			if (atomic_read(&sec_gc_wait_del))
+			{
 				CDEBUG(D_SEC, "deletion pending, start over\n");
 				mutex_unlock(&sec_gc_mutex);
 				goto again;
@@ -181,14 +190,16 @@ again:
 		sec_process_ctx_list();
 
 		lwi = LWI_TIMEOUT(msecs_to_jiffies(SEC_GC_INTERVAL * MSEC_PER_SEC),
-				  NULL, NULL);
+						  NULL, NULL);
 		l_wait_event(thread->t_ctl_waitq,
-			     thread_is_stopping(thread) ||
-			     thread_is_signal(thread),
-			     &lwi);
+					 thread_is_stopping(thread) ||
+					 thread_is_signal(thread),
+					 &lwi);
 
 		if (thread_test_and_clear_flags(thread, SVC_STOPPING))
+		{
 			break;
+		}
 	}
 
 	thread_set_flags(thread, SVC_STOPPED);
@@ -210,13 +221,15 @@ int sptlrpc_gc_init(void)
 	init_waitqueue_head(&sec_gc_thread.t_ctl_waitq);
 
 	task = kthread_run(sec_gc_main, &sec_gc_thread, "sptlrpc_gc");
-	if (IS_ERR(task)) {
+
+	if (IS_ERR(task))
+	{
 		CERROR("can't start gc thread: %ld\n", PTR_ERR(task));
 		return PTR_ERR(task);
 	}
 
 	l_wait_event(sec_gc_thread.t_ctl_waitq,
-		     thread_is_running(&sec_gc_thread), &lwi);
+				 thread_is_running(&sec_gc_thread), &lwi);
 	return 0;
 }
 
@@ -228,5 +241,5 @@ void sptlrpc_gc_fini(void)
 	wake_up(&sec_gc_thread.t_ctl_waitq);
 
 	l_wait_event(sec_gc_thread.t_ctl_waitq,
-		     thread_is_stopped(&sec_gc_thread), &lwi);
+				 thread_is_stopped(&sec_gc_thread), &lwi);
 }

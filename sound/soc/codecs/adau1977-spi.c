@@ -34,7 +34,9 @@ static int adau1977_spi_probe(struct spi_device *spi)
 	struct regmap_config config;
 
 	if (!id)
+	{
 		return -EINVAL;
+	}
 
 	config = adau1977_regmap_config;
 	config.val_bits = 8;
@@ -42,8 +44,8 @@ static int adau1977_spi_probe(struct spi_device *spi)
 	config.read_flag_mask = 0x1;
 
 	return adau1977_probe(&spi->dev,
-		devm_regmap_init_spi(spi, &config),
-		id->driver_data, adau1977_spi_switch_mode);
+						  devm_regmap_init_spi(spi, &config),
+						  id->driver_data, adau1977_spi_switch_mode);
 }
 
 static int adau1977_spi_remove(struct spi_device *spi)
@@ -52,7 +54,8 @@ static int adau1977_spi_remove(struct spi_device *spi)
 	return 0;
 }
 
-static const struct spi_device_id adau1977_spi_ids[] = {
+static const struct spi_device_id adau1977_spi_ids[] =
+{
 	{ "adau1977", ADAU1977 },
 	{ "adau1978", ADAU1978 },
 	{ "adau1979", ADAU1978 },
@@ -60,7 +63,8 @@ static const struct spi_device_id adau1977_spi_ids[] = {
 };
 MODULE_DEVICE_TABLE(spi, adau1977_spi_ids);
 
-static struct spi_driver adau1977_spi_driver = {
+static struct spi_driver adau1977_spi_driver =
+{
 	.driver = {
 		.name = "adau1977",
 	},

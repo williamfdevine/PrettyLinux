@@ -31,7 +31,8 @@
 
 /* Structure describing a HSI packet descriptor. */
 #pragma pack(1) /* Byte alignment. */
-struct cfhsi_desc {
+struct cfhsi_desc
+{
 	u8 header;
 	u8 offset;
 	u16 cffrm_len[CFHSI_MAX_PKTS];
@@ -80,19 +81,20 @@ struct cfhsi_desc {
 #define CFHSI_FLUSH_FIFO			6
 
 #ifndef CFHSI_INACTIVITY_TOUT
-#define CFHSI_INACTIVITY_TOUT			(1 * HZ)
+	#define CFHSI_INACTIVITY_TOUT			(1 * HZ)
 #endif /* CFHSI_INACTIVITY_TOUT */
 
 #ifndef CFHSI_WAKE_TOUT
-#define CFHSI_WAKE_TOUT			(3 * HZ)
+	#define CFHSI_WAKE_TOUT			(3 * HZ)
 #endif /* CFHSI_WAKE_TOUT */
 
 #ifndef CFHSI_MAX_RX_RETRIES
-#define CFHSI_MAX_RX_RETRIES		(10 * HZ)
+	#define CFHSI_MAX_RX_RETRIES		(10 * HZ)
 #endif
 
 /* Structure implemented by the CAIF HSI driver. */
-struct cfhsi_cb_ops {
+struct cfhsi_cb_ops
+{
 	void (*tx_done_cb) (struct cfhsi_cb_ops *drv);
 	void (*rx_done_cb) (struct cfhsi_cb_ops *drv);
 	void (*wake_up_cb) (struct cfhsi_cb_ops *drv);
@@ -100,7 +102,8 @@ struct cfhsi_cb_ops {
 };
 
 /* Structure implemented by HSI device. */
-struct cfhsi_ops {
+struct cfhsi_ops
+{
 	int (*cfhsi_up) (struct cfhsi_ops *dev);
 	int (*cfhsi_down) (struct cfhsi_ops *dev);
 	int (*cfhsi_tx) (u8 *ptr, int len, struct cfhsi_ops *dev);
@@ -114,7 +117,8 @@ struct cfhsi_ops {
 };
 
 /* Structure holds status of received CAIF frames processing */
-struct cfhsi_rx_state {
+struct cfhsi_rx_state
+{
 	int state;
 	int nfrms;
 	int pld_len;
@@ -123,7 +127,8 @@ struct cfhsi_rx_state {
 };
 
 /* Priority mapping */
-enum {
+enum
+{
 	CFHSI_PRIO_CTL = 0,
 	CFHSI_PRIO_VI,
 	CFHSI_PRIO_VO,
@@ -131,7 +136,8 @@ enum {
 	CFHSI_PRIO_LAST,
 };
 
-struct cfhsi_config {
+struct cfhsi_config
+{
 	u32 inactivity_timeout;
 	u32 aggregation_timeout;
 	u32 head_align;
@@ -141,7 +147,8 @@ struct cfhsi_config {
 };
 
 /* Structure implemented by CAIF HSI drivers. */
-struct cfhsi {
+struct cfhsi
+{
 	struct caif_dev_common cfdev;
 	struct net_device *ndev;
 	struct platform_device *pdev;
@@ -184,7 +191,8 @@ extern struct platform_driver cfhsi_driver;
  * When using RT Netlink to create, destroy or configure a CAIF HSI interface,
  * enum ifla_caif_hsi is used to specify the configuration attributes.
  */
-enum ifla_caif_hsi {
+enum ifla_caif_hsi
+{
 	__IFLA_CAIF_HSI_UNSPEC,
 	__IFLA_CAIF_HSI_INACTIVITY_TOUT,
 	__IFLA_CAIF_HSI_AGGREGATION_TOUT,

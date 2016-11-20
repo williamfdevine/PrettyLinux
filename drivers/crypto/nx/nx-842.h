@@ -95,7 +95,9 @@
 static inline unsigned long nx842_get_pa(void *addr)
 {
 	if (!is_vmalloc_addr(addr))
+	{
 		return __pa(addr);
+	}
 
 	return page_to_phys(vmalloc_to_page(addr)) + offset_in_page(addr);
 }
@@ -124,14 +126,16 @@ static inline unsigned long nx842_get_pa(void *addr)
  * however the driver can return failure or suffer reduced performance
  * if any constraint is not met.
  */
-struct nx842_constraints {
+struct nx842_constraints
+{
 	int alignment;
 	int multiple;
 	int minimum;
 	int maximum;
 };
 
-struct nx842_driver {
+struct nx842_driver
+{
 	char *name;
 	struct module *owner;
 	size_t workmem_size;
@@ -139,20 +143,22 @@ struct nx842_driver {
 	struct nx842_constraints *constraints;
 
 	int (*compress)(const unsigned char *in, unsigned int in_len,
-			unsigned char *out, unsigned int *out_len,
-			void *wrkmem);
+					unsigned char *out, unsigned int *out_len,
+					void *wrkmem);
 	int (*decompress)(const unsigned char *in, unsigned int in_len,
-			  unsigned char *out, unsigned int *out_len,
-			  void *wrkmem);
+					  unsigned char *out, unsigned int *out_len,
+					  void *wrkmem);
 };
 
-struct nx842_crypto_header_group {
+struct nx842_crypto_header_group
+{
 	__be16 padding;			/* unused bytes at start of group */
 	__be32 compressed_length;	/* compressed bytes in group */
 	__be32 uncompressed_length;	/* bytes after decompression */
 } __packed;
 
-struct nx842_crypto_header {
+struct nx842_crypto_header
+{
 	__be16 magic;		/* NX842_CRYPTO_MAGIC */
 	__be16 ignore;		/* decompressed end bytes to ignore */
 	u8 groups;		/* total groups in this header */
@@ -161,7 +167,8 @@ struct nx842_crypto_header {
 
 #define NX842_CRYPTO_GROUP_MAX	(0x20)
 
-struct nx842_crypto_ctx {
+struct nx842_crypto_ctx
+{
 	spinlock_t lock;
 
 	u8 *wmem;
@@ -176,10 +183,10 @@ struct nx842_crypto_ctx {
 int nx842_crypto_init(struct crypto_tfm *tfm, struct nx842_driver *driver);
 void nx842_crypto_exit(struct crypto_tfm *tfm);
 int nx842_crypto_compress(struct crypto_tfm *tfm,
-			  const u8 *src, unsigned int slen,
-			  u8 *dst, unsigned int *dlen);
+						  const u8 *src, unsigned int slen,
+						  u8 *dst, unsigned int *dlen);
 int nx842_crypto_decompress(struct crypto_tfm *tfm,
-			    const u8 *src, unsigned int slen,
-			    u8 *dst, unsigned int *dlen);
+							const u8 *src, unsigned int slen,
+							u8 *dst, unsigned int *dlen);
 
 #endif /* __NX_842_H__ */

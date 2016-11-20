@@ -50,7 +50,8 @@
 /* Bits in the Day register */
 #define RTC_BATT_FLAG		0x80
 
-struct rtc_plat_data {
+struct rtc_plat_data
+{
 	void __iomem *ioaddr_nvram;
 	void __iomem *ioaddr_rtc;
 	size_t size_nvram;
@@ -93,7 +94,10 @@ static int ds1742_rtc_read_time(struct device *dev, struct rtc_time *tm)
 
 	/* give enough time to update RTC in case of continuous read */
 	if (pdata->last_jiffies == jiffies)
+	{
 		msleep(1);
+	}
+
 	pdata->last_jiffies = jiffies;
 	writeb(RTC_READ, ioaddr + RTC_CONTROL);
 	second = readb(ioaddr + RTC_SECONDS) & RTC_SECONDS_MASK;
@@ -117,14 +121,15 @@ static int ds1742_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	return rtc_valid_tm(tm);
 }
 
-static const struct rtc_class_ops ds1742_rtc_ops = {
+static const struct rtc_class_ops ds1742_rtc_ops =
+{
 	.read_time	= ds1742_rtc_read_time,
 	.set_time	= ds1742_rtc_set_time,
 };
 
 static ssize_t ds1742_nvram_read(struct file *filp, struct kobject *kobj,
-				 struct bin_attribute *bin_attr,
-				 char *buf, loff_t pos, size_t size)
+								 struct bin_attribute *bin_attr,
+								 char *buf, loff_t pos, size_t size)
 {
 	struct device *dev = container_of(kobj, struct device, kobj);
 	struct platform_device *pdev = to_platform_device(dev);
@@ -133,13 +138,16 @@ static ssize_t ds1742_nvram_read(struct file *filp, struct kobject *kobj,
 	ssize_t count;
 
 	for (count = 0; count < size; count++)
+	{
 		*buf++ = readb(ioaddr + pos++);
+	}
+
 	return count;
 }
 
 static ssize_t ds1742_nvram_write(struct file *filp, struct kobject *kobj,
-				  struct bin_attribute *bin_attr,
-				  char *buf, loff_t pos, size_t size)
+								  struct bin_attribute *bin_attr,
+								  char *buf, loff_t pos, size_t size)
 {
 	struct device *dev = container_of(kobj, struct device, kobj);
 	struct platform_device *pdev = to_platform_device(dev);
@@ -148,7 +156,10 @@ static ssize_t ds1742_nvram_write(struct file *filp, struct kobject *kobj,
 	ssize_t count;
 
 	for (count = 0; count < size; count++)
+	{
 		writeb(*buf++, ioaddr + pos++);
+	}
+
 	return count;
 }
 
@@ -162,13 +173,19 @@ static int ds1742_rtc_probe(struct platform_device *pdev)
 	int ret = 0;
 
 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+
 	if (!pdata)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	ioaddr = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(ioaddr))
+	{
 		return PTR_ERR(ioaddr);
+	}
 
 	pdata->ioaddr_nvram = ioaddr;
 	pdata->size_nvram = resource_size(res) - RTC_SIZE;
@@ -184,27 +201,36 @@ static int ds1742_rtc_probe(struct platform_device *pdev)
 	/* turn RTC on if it was not on */
 	ioaddr = pdata->ioaddr_rtc;
 	sec = readb(ioaddr + RTC_SECONDS);
-	if (sec & RTC_STOP) {
+
+	if (sec & RTC_STOP)
+	{
 		sec &= RTC_SECONDS_MASK;
 		cen = readb(ioaddr + RTC_CENTURY) & RTC_CENTURY_MASK;
 		writeb(RTC_WRITE, ioaddr + RTC_CONTROL);
 		writeb(sec, ioaddr + RTC_SECONDS);
 		writeb(cen & RTC_CENTURY_MASK, ioaddr + RTC_CONTROL);
 	}
+
 	if (!(readb(ioaddr + RTC_DAY) & RTC_BATT_FLAG))
+	{
 		dev_warn(&pdev->dev, "voltage-low detected.\n");
+	}
 
 	pdata->last_jiffies = jiffies;
 	platform_set_drvdata(pdev, pdata);
 	rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
-				  &ds1742_rtc_ops, THIS_MODULE);
+								   &ds1742_rtc_ops, THIS_MODULE);
+
 	if (IS_ERR(rtc))
+	{
 		return PTR_ERR(rtc);
+	}
 
 	ret = sysfs_create_bin_file(&pdev->dev.kobj, &pdata->nvram_attr);
+
 	if (ret)
 		dev_err(&pdev->dev, "Unable to create sysfs entry: %s\n",
-			pdata->nvram_attr.attr.name);
+				pdata->nvram_attr.attr.name);
 
 	return 0;
 }
@@ -217,13 +243,15 @@ static int ds1742_rtc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id __maybe_unused ds1742_rtc_of_match[] = {
+static const struct of_device_id __maybe_unused ds1742_rtc_of_match[] =
+{
 	{ .compatible = "maxim,ds1742", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, ds1742_rtc_of_match);
 
-static struct platform_driver ds1742_rtc_driver = {
+static struct platform_driver ds1742_rtc_driver =
+{
 	.probe		= ds1742_rtc_probe,
 	.remove		= ds1742_rtc_remove,
 	.driver		= {

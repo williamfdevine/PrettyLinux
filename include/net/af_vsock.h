@@ -30,7 +30,8 @@
 #define vsock_sk(__sk)    ((struct vsock_sock *)__sk)
 #define sk_vsock(__vsk)   (&(__vsk)->sk)
 
-struct vsock_sock {
+struct vsock_sock
+{
 	/* sk must be the first member. */
 	struct sock sk;
 	struct sockaddr_vm local_addr;
@@ -77,24 +78,27 @@ s64 vsock_stream_has_data(struct vsock_sock *vsk);
 s64 vsock_stream_has_space(struct vsock_sock *vsk);
 void vsock_pending_work(struct work_struct *work);
 struct sock *__vsock_create(struct net *net,
-			    struct socket *sock,
-			    struct sock *parent,
-			    gfp_t priority, unsigned short type, int kern);
+							struct socket *sock,
+							struct sock *parent,
+							gfp_t priority, unsigned short type, int kern);
 
 /**** TRANSPORT ****/
 
-struct vsock_transport_recv_notify_data {
+struct vsock_transport_recv_notify_data
+{
 	u64 data1; /* Transport-defined. */
 	u64 data2; /* Transport-defined. */
 	bool notify_on_block;
 };
 
-struct vsock_transport_send_notify_data {
+struct vsock_transport_send_notify_data
+{
 	u64 data1; /* Transport-defined. */
 	u64 data2; /* Transport-defined. */
 };
 
-struct vsock_transport {
+struct vsock_transport
+{
 	/* Initialize/tear-down socket. */
 	int (*init)(struct vsock_sock *, struct vsock_sock *);
 	void (*destruct)(struct vsock_sock *);
@@ -106,17 +110,17 @@ struct vsock_transport {
 	/* DGRAM. */
 	int (*dgram_bind)(struct vsock_sock *, struct sockaddr_vm *);
 	int (*dgram_dequeue)(struct vsock_sock *vsk, struct msghdr *msg,
-			     size_t len, int flags);
+						 size_t len, int flags);
 	int (*dgram_enqueue)(struct vsock_sock *, struct sockaddr_vm *,
-			     struct msghdr *, size_t len);
+						 struct msghdr *, size_t len);
 	bool (*dgram_allow)(u32 cid, u32 port);
 
 	/* STREAM. */
 	/* TODO: stream_bind() */
 	ssize_t (*stream_dequeue)(struct vsock_sock *, struct msghdr *,
-				  size_t len, int flags);
+							  size_t len, int flags);
 	ssize_t (*stream_enqueue)(struct vsock_sock *, struct msghdr *,
-				  size_t len);
+							  size_t len);
 	s64 (*stream_has_data)(struct vsock_sock *);
 	s64 (*stream_has_space)(struct vsock_sock *);
 	u64 (*stream_rcvhiwat)(struct vsock_sock *);
@@ -127,21 +131,21 @@ struct vsock_transport {
 	int (*notify_poll_in)(struct vsock_sock *, size_t, bool *);
 	int (*notify_poll_out)(struct vsock_sock *, size_t, bool *);
 	int (*notify_recv_init)(struct vsock_sock *, size_t,
-		struct vsock_transport_recv_notify_data *);
+							struct vsock_transport_recv_notify_data *);
 	int (*notify_recv_pre_block)(struct vsock_sock *, size_t,
-		struct vsock_transport_recv_notify_data *);
+								 struct vsock_transport_recv_notify_data *);
 	int (*notify_recv_pre_dequeue)(struct vsock_sock *, size_t,
-		struct vsock_transport_recv_notify_data *);
+								   struct vsock_transport_recv_notify_data *);
 	int (*notify_recv_post_dequeue)(struct vsock_sock *, size_t,
-		ssize_t, bool, struct vsock_transport_recv_notify_data *);
+									ssize_t, bool, struct vsock_transport_recv_notify_data *);
 	int (*notify_send_init)(struct vsock_sock *,
-		struct vsock_transport_send_notify_data *);
+							struct vsock_transport_send_notify_data *);
 	int (*notify_send_pre_block)(struct vsock_sock *,
-		struct vsock_transport_send_notify_data *);
+								 struct vsock_transport_send_notify_data *);
 	int (*notify_send_pre_enqueue)(struct vsock_sock *,
-		struct vsock_transport_send_notify_data *);
+								   struct vsock_transport_send_notify_data *);
 	int (*notify_send_post_enqueue)(struct vsock_sock *, ssize_t,
-		struct vsock_transport_send_notify_data *);
+									struct vsock_transport_send_notify_data *);
 
 	/* Shutdown. */
 	int (*shutdown)(struct vsock_sock *, int);
@@ -181,7 +185,7 @@ void vsock_remove_bound(struct vsock_sock *vsk);
 void vsock_remove_connected(struct vsock_sock *vsk);
 struct sock *vsock_find_bound_socket(struct sockaddr_vm *addr);
 struct sock *vsock_find_connected_socket(struct sockaddr_vm *src,
-					 struct sockaddr_vm *dst);
+		struct sockaddr_vm *dst);
 void vsock_remove_sock(struct vsock_sock *vsk);
 void vsock_for_each_connected_socket(void (*fn)(struct sock *sk));
 

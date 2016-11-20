@@ -76,18 +76,24 @@ static int sock_fanout_open(uint16_t typeflags, int num_packets)
 	int fd, val;
 
 	fd = socket(PF_PACKET, SOCK_DGRAM, htons(ETH_P_IP));
-	if (fd < 0) {
+
+	if (fd < 0)
+	{
 		perror("socket packet");
 		exit(1);
 	}
 
 	/* fanout group ID is always 0: tests whether old groups are deleted */
 	val = ((int) typeflags) << 16;
-	if (setsockopt(fd, SOL_PACKET, PACKET_FANOUT, &val, sizeof(val))) {
-		if (close(fd)) {
+
+	if (setsockopt(fd, SOL_PACKET, PACKET_FANOUT, &val, sizeof(val)))
+	{
+		if (close(fd))
+		{
 			perror("close packet");
 			exit(1);
 		}
+
 		return -1;
 	}
 
@@ -98,7 +104,8 @@ static int sock_fanout_open(uint16_t typeflags, int num_packets)
 static void sock_fanout_set_ebpf(int fd)
 {
 	const int len_off = __builtin_offsetof(struct __sk_buff, len);
-	struct bpf_insn prog[] = {
+	struct bpf_insn prog[] =
+	{
 		{ BPF_ALU64 | BPF_MOV | BPF_X,   6, 1, 0, 0 },
 		{ BPF_LDX   | BPF_W   | BPF_MEM, 0, 6, len_off, 0 },
 		{ BPF_JMP   | BPF_JGE | BPF_K,   0, 0, 1, DATA_LEN },
@@ -119,22 +126,26 @@ static void sock_fanout_set_ebpf(int fd)
 	attr.insn_cnt = sizeof(prog) / sizeof(prog[0]);
 	attr.license = (unsigned long) "GPL";
 	attr.log_buf = (unsigned long) log_buf,
-	attr.log_size = sizeof(log_buf),
-	attr.log_level = 1,
+		 attr.log_size = sizeof(log_buf),
+			  attr.log_level = 1,
 
-	pfd = syscall(__NR_bpf, BPF_PROG_LOAD, &attr, sizeof(attr));
-	if (pfd < 0) {
+				   pfd = syscall(__NR_bpf, BPF_PROG_LOAD, &attr, sizeof(attr));
+
+	if (pfd < 0)
+	{
 		perror("bpf");
 		fprintf(stderr, "bpf verifier:\n%s\n", log_buf);
 		exit(1);
 	}
 
-	if (setsockopt(fd, SOL_PACKET, PACKET_FANOUT_DATA, &pfd, sizeof(pfd))) {
+	if (setsockopt(fd, SOL_PACKET, PACKET_FANOUT_DATA, &pfd, sizeof(pfd)))
+	{
 		perror("fanout data ebpf");
 		exit(1);
 	}
 
-	if (close(pfd)) {
+	if (close(pfd))
+	{
 		perror("close ebpf");
 		exit(1);
 	}
@@ -142,7 +153,8 @@ static void sock_fanout_set_ebpf(int fd)
 
 static char *sock_fanout_open_ring(int fd)
 {
-	struct tpacket_req req = {
+	struct tpacket_req req =
+	{
 		.tp_block_size = getpagesize(),
 		.tp_frame_size = getpagesize(),
 		.tp_block_nr   = RING_NUM_FRAMES,
@@ -152,19 +164,24 @@ static char *sock_fanout_open_ring(int fd)
 	int val = TPACKET_V2;
 
 	if (setsockopt(fd, SOL_PACKET, PACKET_VERSION, (void *) &val,
-		       sizeof(val))) {
+				   sizeof(val)))
+	{
 		perror("packetsock ring setsockopt version");
 		exit(1);
 	}
+
 	if (setsockopt(fd, SOL_PACKET, PACKET_RX_RING, (void *) &req,
-		       sizeof(req))) {
+				   sizeof(req)))
+	{
 		perror("packetsock ring setsockopt");
 		exit(1);
 	}
 
 	ring = mmap(0, req.tp_block_size * req.tp_block_nr,
-		    PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-	if (ring == MAP_FAILED) {
+				PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+
+	if (ring == MAP_FAILED)
+	{
 		perror("packetsock ring mmap");
 		exit(1);
 	}
@@ -177,7 +194,8 @@ static int sock_fanout_read_ring(int fd, void *ring)
 	struct tpacket2_hdr *header = ring;
 	int count = 0;
 
-	while (count < RING_NUM_FRAMES && header->tp_status & TP_STATUS_USER) {
+	while (count < RING_NUM_FRAMES && header->tp_status & TP_STATUS_USER)
+	{
 		count++;
 		header = ring + (count * getpagesize());
 	}
@@ -196,7 +214,8 @@ static int sock_fanout_read(int fds[], char *rings[], const int expect[])
 			ret[0], ret[1], expect[0], expect[1]);
 
 	if ((!(ret[0] == expect[0] && ret[1] == expect[1])) &&
-	    (!(ret[0] == expect[1] && ret[1] == expect[0]))) {
+		(!(ret[0] == expect[1] && ret[1] == expect[0])))
+	{
 		fprintf(stderr, "ERROR: incorrect queue lengths\n");
 		return 1;
 	}
@@ -210,7 +229,8 @@ static void test_control_single(void)
 	fprintf(stderr, "test: control single socket\n");
 
 	if (sock_fanout_open(PACKET_FANOUT_ROLLOVER |
-			       PACKET_FANOUT_FLAG_ROLLOVER, 0) != -1) {
+						 PACKET_FANOUT_FLAG_ROLLOVER, 0) != -1)
+	{
 		fprintf(stderr, "ERROR: opened socket with dual rollover\n");
 		exit(1);
 	}
@@ -224,37 +244,50 @@ static void test_control_group(void)
 	fprintf(stderr, "test: control multiple sockets\n");
 
 	fds[0] = sock_fanout_open(PACKET_FANOUT_HASH, 20);
-	if (fds[0] == -1) {
+
+	if (fds[0] == -1)
+	{
 		fprintf(stderr, "ERROR: failed to open HASH socket\n");
 		exit(1);
 	}
+
 	if (sock_fanout_open(PACKET_FANOUT_HASH |
-			       PACKET_FANOUT_FLAG_DEFRAG, 10) != -1) {
+						 PACKET_FANOUT_FLAG_DEFRAG, 10) != -1)
+	{
 		fprintf(stderr, "ERROR: joined group with wrong flag defrag\n");
 		exit(1);
 	}
+
 	if (sock_fanout_open(PACKET_FANOUT_HASH |
-			       PACKET_FANOUT_FLAG_ROLLOVER, 10) != -1) {
+						 PACKET_FANOUT_FLAG_ROLLOVER, 10) != -1)
+	{
 		fprintf(stderr, "ERROR: joined group with wrong flag ro\n");
 		exit(1);
 	}
-	if (sock_fanout_open(PACKET_FANOUT_CPU, 10) != -1) {
+
+	if (sock_fanout_open(PACKET_FANOUT_CPU, 10) != -1)
+	{
 		fprintf(stderr, "ERROR: joined group with wrong mode\n");
 		exit(1);
 	}
+
 	fds[1] = sock_fanout_open(PACKET_FANOUT_HASH, 20);
-	if (fds[1] == -1) {
+
+	if (fds[1] == -1)
+	{
 		fprintf(stderr, "ERROR: failed to join group\n");
 		exit(1);
 	}
-	if (close(fds[1]) || close(fds[0])) {
+
+	if (close(fds[1]) || close(fds[0]))
+	{
 		fprintf(stderr, "ERROR: closing sockets\n");
 		exit(1);
 	}
 }
 
 static int test_datapath(uint16_t typeflags, int port_off,
-			 const int expect1[], const int expect2[])
+						 const int expect1[], const int expect2[])
 {
 	const int expect0[] = { 0, 0 };
 	char *rings[2];
@@ -265,14 +298,21 @@ static int test_datapath(uint16_t typeflags, int port_off,
 
 	fds[0] = sock_fanout_open(typeflags, 20);
 	fds[1] = sock_fanout_open(typeflags, 20);
-	if (fds[0] == -1 || fds[1] == -1) {
+
+	if (fds[0] == -1 || fds[1] == -1)
+	{
 		fprintf(stderr, "ERROR: failed open\n");
 		exit(1);
 	}
+
 	if (type == PACKET_FANOUT_CBPF)
+	{
 		sock_setfilter(fds[0], SOL_PACKET, PACKET_FANOUT_DATA);
+	}
 	else if (type == PACKET_FANOUT_EBPF)
+	{
 		sock_fanout_set_ebpf(fds[0]);
+	}
 
 	rings[0] = sock_fanout_open_ring(fds[0]);
 	rings[1] = sock_fanout_open_ring(fds[1]);
@@ -291,13 +331,16 @@ static int test_datapath(uint16_t typeflags, int port_off,
 	ret |= sock_fanout_read(fds, rings, expect2);
 
 	if (munmap(rings[1], RING_NUM_FRAMES * getpagesize()) ||
-	    munmap(rings[0], RING_NUM_FRAMES * getpagesize())) {
+		munmap(rings[0], RING_NUM_FRAMES * getpagesize()))
+	{
 		fprintf(stderr, "close rings\n");
 		exit(1);
 	}
+
 	if (close(fds_udp[1][1]) || close(fds_udp[1][0]) ||
-	    close(fds_udp[0][1]) || close(fds_udp[0][0]) ||
-	    close(fds[1]) || close(fds[0])) {
+		close(fds_udp[0][1]) || close(fds_udp[0][0]) ||
+		close(fds[1]) || close(fds[0]))
+	{
 		fprintf(stderr, "close datapath\n");
 		exit(1);
 	}
@@ -311,11 +354,15 @@ static int set_cpuaffinity(int cpuid)
 
 	CPU_ZERO(&mask);
 	CPU_SET(cpuid, &mask);
-	if (sched_setaffinity(0, sizeof(mask), &mask)) {
-		if (errno != EINVAL) {
+
+	if (sched_setaffinity(0, sizeof(mask), &mask))
+	{
+		if (errno != EINVAL)
+		{
 			fprintf(stderr, "setaffinity %d\n", cpuid);
 			exit(1);
 		}
+
 		return 1;
 	}
 
@@ -338,35 +385,40 @@ int main(int argc, char **argv)
 
 	/* find a set of ports that do not collide onto the same socket */
 	ret = test_datapath(PACKET_FANOUT_HASH, port_off,
-			    expect_hash[0], expect_hash[1]);
-	while (ret && tries--) {
+						expect_hash[0], expect_hash[1]);
+
+	while (ret && tries--)
+	{
 		fprintf(stderr, "info: trying alternate ports (%d)\n", tries);
 		ret = test_datapath(PACKET_FANOUT_HASH, ++port_off,
-				    expect_hash[0], expect_hash[1]);
+							expect_hash[0], expect_hash[1]);
 	}
 
 	ret |= test_datapath(PACKET_FANOUT_HASH | PACKET_FANOUT_FLAG_ROLLOVER,
-			     port_off, expect_hash_rb[0], expect_hash_rb[1]);
+						 port_off, expect_hash_rb[0], expect_hash_rb[1]);
 	ret |= test_datapath(PACKET_FANOUT_LB,
-			     port_off, expect_lb[0], expect_lb[1]);
+						 port_off, expect_lb[0], expect_lb[1]);
 	ret |= test_datapath(PACKET_FANOUT_ROLLOVER,
-			     port_off, expect_rb[0], expect_rb[1]);
+						 port_off, expect_rb[0], expect_rb[1]);
 
 	ret |= test_datapath(PACKET_FANOUT_CBPF,
-			     port_off, expect_bpf[0], expect_bpf[1]);
+						 port_off, expect_bpf[0], expect_bpf[1]);
 	ret |= test_datapath(PACKET_FANOUT_EBPF,
-			     port_off, expect_bpf[0], expect_bpf[1]);
+						 port_off, expect_bpf[0], expect_bpf[1]);
 
 	set_cpuaffinity(0);
 	ret |= test_datapath(PACKET_FANOUT_CPU, port_off,
-			     expect_cpu0[0], expect_cpu0[1]);
+						 expect_cpu0[0], expect_cpu0[1]);
+
 	if (!set_cpuaffinity(1))
 		/* TODO: test that choice alternates with previous */
 		ret |= test_datapath(PACKET_FANOUT_CPU, port_off,
-				     expect_cpu1[0], expect_cpu1[1]);
+							 expect_cpu1[0], expect_cpu1[1]);
 
 	if (ret)
+	{
 		return 1;
+	}
 
 	printf("OK. All tests passed\n");
 	return 0;

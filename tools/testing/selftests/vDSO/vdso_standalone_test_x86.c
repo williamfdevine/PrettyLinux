@@ -24,11 +24,18 @@ extern void vdso_init_from_auxv(void *auxv);
 int strcmp(const char *a, const char *b)
 {
 	/* This implementation is buggy: it never returns -1. */
-	while (*a || *b) {
+	while (*a || *b)
+	{
 		if (*a != *b)
+		{
 			return 1;
+		}
+
 		if (*a == 0 || *b == 0)
+		{
 			return 1;
+		}
+
 		a++;
 		b++;
 	}
@@ -42,13 +49,13 @@ static inline long x86_syscall3(long nr, long a0, long a1, long a2)
 	long ret;
 #ifdef __x86_64__
 	asm volatile ("syscall" : "=a" (ret) : "a" (nr),
-		      "D" (a0), "S" (a1), "d" (a2) :
-		      "cc", "memory", "rcx",
-		      "r8", "r9", "r10", "r11" );
+				  "D" (a0), "S" (a1), "d" (a2) :
+				  "cc", "memory", "rcx",
+				  "r8", "r9", "r10", "r11" );
 #else
 	asm volatile ("int $0x80" : "=a" (ret) : "a" (nr),
-		      "b" (a0), "c" (a1), "d" (a2) :
-		      "cc", "memory" );
+				  "b" (a0), "c" (a1), "d" (a2) :
+				  "cc", "memory" );
 #endif
 	return ret;
 }
@@ -65,7 +72,8 @@ static inline void linux_exit(int code)
 
 void to_base10(char *lastdig, time_t n)
 {
-	while (n) {
+	while (n)
+	{
 		*lastdig = (n % 10) + '0';
 		n /= 10;
 		lastdig--;
@@ -75,33 +83,42 @@ void to_base10(char *lastdig, time_t n)
 __attribute__((externally_visible)) void c_main(void **stack)
 {
 	/* Parse the stack */
-	long argc = (long)*stack;
+	long argc = (long) * stack;
 	stack += argc + 2;
 
 	/* Now we're pointing at the environment.  Skip it. */
-	while(*stack)
+	while (*stack)
+	{
 		stack++;
+	}
+
 	stack++;
 
 	/* Now we're pointing at auxv.  Initialize the vDSO parser. */
 	vdso_init_from_auxv((void *)stack);
 
 	/* Find gettimeofday. */
-	typedef long (*gtod_t)(struct timeval *tv, struct timezone *tz);
+	typedef long (*gtod_t)(struct timeval * tv, struct timezone * tz);
 	gtod_t gtod = (gtod_t)vdso_sym("LINUX_2.6", "__vdso_gettimeofday");
 
 	if (!gtod)
+	{
 		linux_exit(1);
+	}
 
 	struct timeval tv;
+
 	long ret = gtod(&tv, 0);
 
-	if (ret == 0) {
+	if (ret == 0)
+	{
 		char buf[] = "The time is                     .000000\n";
 		to_base10(buf + 31, tv.tv_sec);
 		to_base10(buf + 38, tv.tv_usec);
 		linux_write(1, buf, sizeof(buf) - 1);
-	} else {
+	}
+	else
+	{
 		linux_exit(ret);
 	}
 
@@ -125,4 +142,4 @@ asm (
 	"call c_main\n\t"
 	"int $3"
 #endif
-	);
+);

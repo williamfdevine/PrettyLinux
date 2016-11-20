@@ -36,7 +36,8 @@
 /*-------------------------------------------------------------------------*/
 USB_GADGET_COMPOSITE_OPTIONS();
 
-static struct usb_device_descriptor device_desc = {
+static struct usb_device_descriptor device_desc =
+{
 	.bLength =		sizeof device_desc,
 	.bDescriptorType =	USB_DT_DEVICE,
 
@@ -61,19 +62,22 @@ static struct usb_device_descriptor device_desc = {
 static const struct usb_descriptor_header *otg_desc[2];
 
 /* string IDs are assigned dynamically */
-static struct usb_string strings_dev[] = {
+static struct usb_string strings_dev[] =
+{
 	[USB_GADGET_MANUFACTURER_IDX].s = "",
 	[USB_GADGET_PRODUCT_IDX].s = DRIVER_DESC,
 	[USB_GADGET_SERIAL_IDX].s = "",
 	{  } /* end of list */
 };
 
-static struct usb_gadget_strings stringtab_dev = {
+static struct usb_gadget_strings stringtab_dev =
+{
 	.language	= 0x0409,	/* en-us */
 	.strings	= strings_dev,
 };
 
-static struct usb_gadget_strings *dev_strings[] = {
+static struct usb_gadget_strings *dev_strings[] =
+{
 	&stringtab_dev,
 	NULL,
 };
@@ -83,15 +87,15 @@ static struct usb_gadget_strings *dev_strings[] = {
 static struct fsg_module_parameters fsg_mod_data = { .stall = 1 };
 #ifdef CONFIG_USB_GADGET_DEBUG_FILES
 
-static unsigned int fsg_num_buffers = CONFIG_USB_GADGET_STORAGE_NUM_BUFFERS;
+	static unsigned int fsg_num_buffers = CONFIG_USB_GADGET_STORAGE_NUM_BUFFERS;
 
 #else
 
-/*
- * Number of buffers we will use.
- * 2 is usually enough for good buffering pipeline
- */
-#define fsg_num_buffers	CONFIG_USB_GADGET_STORAGE_NUM_BUFFERS
+	/*
+	* Number of buffers we will use.
+	* 2 is usually enough for good buffering pipeline
+	*/
+	#define fsg_num_buffers	CONFIG_USB_GADGET_STORAGE_NUM_BUFFERS
 
 #endif /* CONFIG_USB_GADGET_DEBUG_FILES */
 
@@ -112,7 +116,8 @@ static int acm_ms_do_config(struct usb_configuration *c)
 	struct fsg_opts *opts;
 	int	status;
 
-	if (gadget_is_otg(c->cdev->gadget)) {
+	if (gadget_is_otg(c->cdev->gadget))
+	{
 		c->descriptors = otg_desc;
 		c->bmAttributes |= USB_CONFIG_ATT_WAKEUP;
 	}
@@ -120,22 +125,33 @@ static int acm_ms_do_config(struct usb_configuration *c)
 	opts = fsg_opts_from_func_inst(fi_msg);
 
 	f_acm = usb_get_function(f_acm_inst);
+
 	if (IS_ERR(f_acm))
+	{
 		return PTR_ERR(f_acm);
+	}
 
 	f_msg = usb_get_function(fi_msg);
-	if (IS_ERR(f_msg)) {
+
+	if (IS_ERR(f_msg))
+	{
 		status = PTR_ERR(f_msg);
 		goto put_acm;
 	}
 
 	status = usb_add_function(c, f_acm);
+
 	if (status < 0)
+	{
 		goto put_msg;
+	}
 
 	status = usb_add_function(c, f_msg);
+
 	if (status)
+	{
 		goto remove_acm;
+	}
 
 	return 0;
 remove_acm:
@@ -147,7 +163,8 @@ put_acm:
 	return status;
 }
 
-static struct usb_configuration acm_ms_config_driver = {
+static struct usb_configuration acm_ms_config_driver =
+{
 	.label			= DRIVER_DESC,
 	.bConfigurationValue	= 1,
 	/* .iConfiguration = DYNAMIC */
@@ -164,11 +181,16 @@ static int acm_ms_bind(struct usb_composite_dev *cdev)
 	int			status;
 
 	f_acm_inst = usb_get_function_instance("acm");
+
 	if (IS_ERR(f_acm_inst))
+	{
 		return PTR_ERR(f_acm_inst);
+	}
 
 	fi_msg = usb_get_function_instance("mass_storage");
-	if (IS_ERR(fi_msg)) {
+
+	if (IS_ERR(fi_msg))
+	{
 		status = PTR_ERR(fi_msg);
 		goto fail_get_msg;
 	}
@@ -179,36 +201,54 @@ static int acm_ms_bind(struct usb_composite_dev *cdev)
 
 	opts->no_configfs = true;
 	status = fsg_common_set_num_buffers(opts->common, fsg_num_buffers);
+
 	if (status)
+	{
 		goto fail;
+	}
 
 	status = fsg_common_set_cdev(opts->common, cdev, config.can_stall);
+
 	if (status)
+	{
 		goto fail_set_cdev;
+	}
 
 	fsg_common_set_sysfs(opts->common, true);
 	status = fsg_common_create_luns(opts->common, &config);
+
 	if (status)
+	{
 		goto fail_set_cdev;
+	}
 
 	fsg_common_set_inquiry_string(opts->common, config.vendor_name,
-				      config.product_name);
+								  config.product_name);
 	/*
 	 * Allocate string descriptor numbers ... note that string
 	 * contents can be overridden by the composite_dev glue.
 	 */
 	status = usb_string_ids_tab(cdev, strings_dev);
+
 	if (status < 0)
+	{
 		goto fail_string_ids;
+	}
+
 	device_desc.iManufacturer = strings_dev[USB_GADGET_MANUFACTURER_IDX].id;
 	device_desc.iProduct = strings_dev[USB_GADGET_PRODUCT_IDX].id;
 
-	if (gadget_is_otg(gadget) && !otg_desc[0]) {
+	if (gadget_is_otg(gadget) && !otg_desc[0])
+	{
 		struct usb_descriptor_header *usb_desc;
 
 		usb_desc = usb_otg_descriptor_alloc(gadget);
+
 		if (!usb_desc)
+		{
 			goto fail_string_ids;
+		}
+
 		usb_otg_descriptor_init(gadget, usb_desc);
 		otg_desc[0] = usb_desc;
 		otg_desc[1] = NULL;
@@ -216,12 +256,15 @@ static int acm_ms_bind(struct usb_composite_dev *cdev)
 
 	/* register our configuration */
 	status = usb_add_config(cdev, &acm_ms_config_driver, acm_ms_do_config);
+
 	if (status < 0)
+	{
 		goto fail_otg_desc;
+	}
 
 	usb_composite_overwrite_options(cdev, &coverwrite);
 	dev_info(&gadget->dev, "%s, version: " DRIVER_VERSION "\n",
-			DRIVER_DESC);
+			 DRIVER_DESC);
 	return 0;
 
 	/* error recovery */
@@ -251,7 +294,8 @@ static int acm_ms_unbind(struct usb_composite_dev *cdev)
 	return 0;
 }
 
-static struct usb_composite_driver acm_ms_driver = {
+static struct usb_composite_driver acm_ms_driver =
+{
 	.name		= "g_acm_ms",
 	.dev		= &device_desc,
 	.max_speed	= USB_SPEED_SUPER,

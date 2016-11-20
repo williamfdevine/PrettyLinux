@@ -44,32 +44,43 @@ static int xfrm4_beet_output(struct xfrm_state *x, struct sk_buff *skb)
 
 	hdrlen = 0;
 	optlen = XFRM_MODE_SKB_CB(skb)->optlen;
+
 	if (unlikely(optlen))
+	{
 		hdrlen += IPV4_BEET_PHMAXLEN - (optlen & 4);
+	}
 
 	skb_set_network_header(skb, -x->props.header_len -
-				    hdrlen + (XFRM_MODE_SKB_CB(skb)->ihl - sizeof(*top_iph)));
+						   hdrlen + (XFRM_MODE_SKB_CB(skb)->ihl - sizeof(*top_iph)));
+
 	if (x->sel.family != AF_INET6)
+	{
 		skb->network_header += IPV4_BEET_PHMAXLEN;
+	}
+
 	skb->mac_header = skb->network_header +
-			  offsetof(struct iphdr, protocol);
+					  offsetof(struct iphdr, protocol);
 	skb->transport_header = skb->network_header + sizeof(*top_iph);
 
 	xfrm4_beet_make_header(skb);
 
 	ph = (struct ip_beet_phdr *)
-		__skb_pull(skb, XFRM_MODE_SKB_CB(skb)->ihl - hdrlen);
+		 __skb_pull(skb, XFRM_MODE_SKB_CB(skb)->ihl - hdrlen);
 
 	top_iph = ip_hdr(skb);
 
-	if (unlikely(optlen)) {
+	if (unlikely(optlen))
+	{
 		BUG_ON(optlen < 0);
 
 		ph->padlen = 4 - (optlen & 4);
 		ph->hdrlen = optlen / 8;
 		ph->nexthdr = top_iph->protocol;
+
 		if (ph->padlen)
+		{
 			memset(ph + 1, IPOPT_NOP, ph->padlen);
+		}
 
 		top_iph->protocol = IPPROTO_BEETPH;
 		top_iph->ihl = sizeof(struct iphdr) / 4;
@@ -87,24 +98,33 @@ static int xfrm4_beet_input(struct xfrm_state *x, struct sk_buff *skb)
 	int optlen = 0;
 	int err = -EINVAL;
 
-	if (unlikely(XFRM_MODE_SKB_CB(skb)->protocol == IPPROTO_BEETPH)) {
+	if (unlikely(XFRM_MODE_SKB_CB(skb)->protocol == IPPROTO_BEETPH))
+	{
 		struct ip_beet_phdr *ph;
 		int phlen;
 
 		if (!pskb_may_pull(skb, sizeof(*ph)))
+		{
 			goto out;
+		}
 
 		ph = (struct ip_beet_phdr *)skb->data;
 
 		phlen = sizeof(*ph) + ph->padlen;
 		optlen = ph->hdrlen * 8 + (IPV4_BEET_PHMAXLEN - phlen);
+
 		if (optlen < 0 || optlen & 3 || optlen > 250)
+		{
 			goto out;
+		}
 
 		XFRM_MODE_SKB_CB(skb)->protocol = ph->nexthdr;
 
 		if (!pskb_may_pull(skb, phlen))
+		{
 			goto out;
+		}
+
 		__skb_pull(skb, phlen);
 	}
 
@@ -127,7 +147,8 @@ out:
 	return err;
 }
 
-static struct xfrm_mode xfrm4_beet_mode = {
+static struct xfrm_mode xfrm4_beet_mode =
+{
 	.input2 = xfrm4_beet_input,
 	.input = xfrm_prepare_input,
 	.output2 = xfrm4_beet_output,

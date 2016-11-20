@@ -13,7 +13,7 @@
  */
 #define ATPORT_FIRST	1
 #define ATPORT_RESERVED	128
-#define ATPORT_LAST	254		/* 254 is only legal on localtalk */ 
+#define ATPORT_LAST	254		/* 254 is only legal on localtalk */
 #define ATADDR_ANYNET	(__u16)0
 #define ATADDR_ANYNODE	(__u8)0
 #define ATADDR_ANYPORT  (__u8)0
@@ -23,19 +23,22 @@
 
 #define SIOCATALKDIFADDR       (SIOCPROTOPRIVATE + 0)
 
-struct atalk_addr {
+struct atalk_addr
+{
 	__be16	s_net;
 	__u8	s_node;
 };
 
-struct sockaddr_at {
+struct sockaddr_at
+{
 	__kernel_sa_family_t sat_family;
 	__u8		  sat_port;
 	struct atalk_addr sat_addr;
 	char		  sat_zero[8];
 };
 
-struct atalk_netrange {
+struct atalk_netrange
+{
 	__u8	nr_phase;
 	__be16	nr_firstnet;
 	__be16	nr_lastnet;

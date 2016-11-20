@@ -48,7 +48,7 @@
  * device: The device to set as the target (CCSR_GUTS_DMUXCR_xxx)
  */
 static inline void guts_set_dmuxcr(struct ccsr_guts __iomem *guts,
-	unsigned int co, unsigned int ch, unsigned int device)
+								   unsigned int co, unsigned int ch, unsigned int device)
 {
 	unsigned int shift = 16 + (8 * (1 - co) + 2 * (3 - ch));
 
@@ -64,7 +64,8 @@ static phys_addr_t guts_phys;
  * This structure contains data for a single sound platform device on an
  * P1022 DS.  Some of the data is taken from the device tree.
  */
-struct machine_data {
+struct machine_data
+{
 	struct snd_soc_dai_link dai[2];
 	struct snd_soc_card card;
 	unsigned int dai_format;
@@ -91,25 +92,27 @@ static int p1022_ds_machine_probe(struct snd_soc_card *card)
 	struct ccsr_guts __iomem *guts;
 
 	guts = ioremap(guts_phys, sizeof(struct ccsr_guts));
-	if (!guts) {
+
+	if (!guts)
+	{
 		dev_err(card->dev, "could not map global utilities\n");
 		return -ENOMEM;
 	}
 
 	/* Enable SSI Tx signal */
 	clrsetbits_be32(&guts->pmuxcr, CCSR_GUTS_PMUXCR_UART0_I2C1_MASK,
-			CCSR_GUTS_PMUXCR_UART0_I2C1_UART0_SSI);
+					CCSR_GUTS_PMUXCR_UART0_I2C1_UART0_SSI);
 
 	/* Enable SSI Rx signal */
 	clrsetbits_be32(&guts->pmuxcr, CCSR_GUTS_PMUXCR_SSI_DMA_TDM_MASK,
-			CCSR_GUTS_PMUXCR_SSI_DMA_TDM_SSI);
+					CCSR_GUTS_PMUXCR_SSI_DMA_TDM_SSI);
 
 	/* Enable DMA Channel for SSI */
 	guts_set_dmuxcr(guts, mdata->dma_id[0], mdata->dma_channel_id[0],
-			CCSR_GUTS_DMUXCR_SSI);
+					CCSR_GUTS_DMUXCR_SSI);
 
 	guts_set_dmuxcr(guts, mdata->dma_id[1], mdata->dma_channel_id[1],
-			CCSR_GUTS_DMUXCR_SSI);
+					CCSR_GUTS_DMUXCR_SSI);
 
 	iounmap(guts);
 
@@ -133,7 +136,9 @@ static int p1022_ds_startup(struct snd_pcm_substream *substream)
 
 	/* Tell the codec driver what the serial protocol is. */
 	ret = snd_soc_dai_set_fmt(rtd->codec_dai, mdata->dai_format);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "could not set codec driver audio format\n");
 		return ret;
 	}
@@ -143,8 +148,10 @@ static int p1022_ds_startup(struct snd_pcm_substream *substream)
 	 * a slave or master.
 	 */
 	ret = snd_soc_dai_set_sysclk(rtd->codec_dai, 0, mdata->clk_frequency,
-				     mdata->codec_clk_direction);
-	if (ret < 0) {
+								 mdata->codec_clk_direction);
+
+	if (ret < 0)
+	{
 		dev_err(dev, "could not set codec driver clock params\n");
 		return ret;
 	}
@@ -165,7 +172,9 @@ static int p1022_ds_machine_remove(struct snd_soc_card *card)
 	struct ccsr_guts __iomem *guts;
 
 	guts = ioremap(guts_phys, sizeof(struct ccsr_guts));
-	if (!guts) {
+
+	if (!guts)
+	{
 		dev_err(card->dev, "could not map global utilities\n");
 		return -ENOMEM;
 	}
@@ -184,7 +193,8 @@ static int p1022_ds_machine_remove(struct snd_soc_card *card)
 /**
  * p1022_ds_ops: ASoC machine driver operations
  */
-static struct snd_soc_ops p1022_ds_ops = {
+static struct snd_soc_ops p1022_ds_ops =
+{
 	.startup = p1022_ds_startup,
 };
 
@@ -209,13 +219,17 @@ static int p1022_ds_probe(struct platform_device *pdev)
 
 	/* Find the codec node for this SSI. */
 	codec_np = of_parse_phandle(np, "codec-handle", 0);
-	if (!codec_np) {
+
+	if (!codec_np)
+	{
 		dev_err(dev, "could not find codec node\n");
 		return -EINVAL;
 	}
 
 	mdata = kzalloc(sizeof(struct machine_data), GFP_KERNEL);
-	if (!mdata) {
+
+	if (!mdata)
+	{
 		ret = -ENOMEM;
 		goto error_put;
 	}
@@ -238,24 +252,30 @@ static int p1022_ds_probe(struct platform_device *pdev)
 
 	/* Get the device ID */
 	iprop = of_get_property(np, "cell-index", NULL);
-	if (!iprop) {
+
+	if (!iprop)
+	{
 		dev_err(&pdev->dev, "cell-index property not found\n");
 		ret = -EINVAL;
 		goto error;
 	}
+
 	mdata->ssi_id = be32_to_cpup(iprop);
 
 	/* Get the serial format and clock direction. */
 	sprop = of_get_property(np, "fsl,mode", NULL);
-	if (!sprop) {
+
+	if (!sprop)
+	{
 		dev_err(&pdev->dev, "fsl,mode property not found\n");
 		ret = -EINVAL;
 		goto error;
 	}
 
-	if (strcasecmp(sprop, "i2s-slave") == 0) {
+	if (strcasecmp(sprop, "i2s-slave") == 0)
+	{
 		mdata->dai_format = SND_SOC_DAIFMT_NB_NF |
-			SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_CBM_CFM;
+							SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_CBM_CFM;
 		mdata->codec_clk_direction = SND_SOC_CLOCK_OUT;
 		mdata->cpu_clk_direction = SND_SOC_CLOCK_IN;
 
@@ -264,56 +284,76 @@ static int p1022_ds_probe(struct platform_device *pdev)
 		 * the codec driver.
 		 */
 		iprop = of_get_property(codec_np, "clock-frequency", NULL);
-		if (!iprop || !*iprop) {
+
+		if (!iprop || !*iprop)
+		{
 			dev_err(&pdev->dev, "codec bus-frequency "
-				"property is missing or invalid\n");
+					"property is missing or invalid\n");
 			ret = -EINVAL;
 			goto error;
 		}
+
 		mdata->clk_frequency = be32_to_cpup(iprop);
-	} else if (strcasecmp(sprop, "i2s-master") == 0) {
+	}
+	else if (strcasecmp(sprop, "i2s-master") == 0)
+	{
 		mdata->dai_format = SND_SOC_DAIFMT_NB_NF |
-			SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_CBS_CFS;
+							SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_CBS_CFS;
 		mdata->codec_clk_direction = SND_SOC_CLOCK_IN;
 		mdata->cpu_clk_direction = SND_SOC_CLOCK_OUT;
-	} else if (strcasecmp(sprop, "lj-slave") == 0) {
+	}
+	else if (strcasecmp(sprop, "lj-slave") == 0)
+	{
 		mdata->dai_format = SND_SOC_DAIFMT_NB_NF |
-			SND_SOC_DAIFMT_LEFT_J | SND_SOC_DAIFMT_CBM_CFM;
+							SND_SOC_DAIFMT_LEFT_J | SND_SOC_DAIFMT_CBM_CFM;
 		mdata->codec_clk_direction = SND_SOC_CLOCK_OUT;
 		mdata->cpu_clk_direction = SND_SOC_CLOCK_IN;
-	} else if (strcasecmp(sprop, "lj-master") == 0) {
+	}
+	else if (strcasecmp(sprop, "lj-master") == 0)
+	{
 		mdata->dai_format = SND_SOC_DAIFMT_NB_NF |
-			SND_SOC_DAIFMT_LEFT_J | SND_SOC_DAIFMT_CBS_CFS;
+							SND_SOC_DAIFMT_LEFT_J | SND_SOC_DAIFMT_CBS_CFS;
 		mdata->codec_clk_direction = SND_SOC_CLOCK_IN;
 		mdata->cpu_clk_direction = SND_SOC_CLOCK_OUT;
-	} else if (strcasecmp(sprop, "rj-slave") == 0) {
+	}
+	else if (strcasecmp(sprop, "rj-slave") == 0)
+	{
 		mdata->dai_format = SND_SOC_DAIFMT_NB_NF |
-			SND_SOC_DAIFMT_RIGHT_J | SND_SOC_DAIFMT_CBM_CFM;
+							SND_SOC_DAIFMT_RIGHT_J | SND_SOC_DAIFMT_CBM_CFM;
 		mdata->codec_clk_direction = SND_SOC_CLOCK_OUT;
 		mdata->cpu_clk_direction = SND_SOC_CLOCK_IN;
-	} else if (strcasecmp(sprop, "rj-master") == 0) {
+	}
+	else if (strcasecmp(sprop, "rj-master") == 0)
+	{
 		mdata->dai_format = SND_SOC_DAIFMT_NB_NF |
-			SND_SOC_DAIFMT_RIGHT_J | SND_SOC_DAIFMT_CBS_CFS;
+							SND_SOC_DAIFMT_RIGHT_J | SND_SOC_DAIFMT_CBS_CFS;
 		mdata->codec_clk_direction = SND_SOC_CLOCK_IN;
 		mdata->cpu_clk_direction = SND_SOC_CLOCK_OUT;
-	} else if (strcasecmp(sprop, "ac97-slave") == 0) {
+	}
+	else if (strcasecmp(sprop, "ac97-slave") == 0)
+	{
 		mdata->dai_format = SND_SOC_DAIFMT_NB_NF |
-			SND_SOC_DAIFMT_AC97 | SND_SOC_DAIFMT_CBM_CFM;
+							SND_SOC_DAIFMT_AC97 | SND_SOC_DAIFMT_CBM_CFM;
 		mdata->codec_clk_direction = SND_SOC_CLOCK_OUT;
 		mdata->cpu_clk_direction = SND_SOC_CLOCK_IN;
-	} else if (strcasecmp(sprop, "ac97-master") == 0) {
+	}
+	else if (strcasecmp(sprop, "ac97-master") == 0)
+	{
 		mdata->dai_format = SND_SOC_DAIFMT_NB_NF |
-			SND_SOC_DAIFMT_AC97 | SND_SOC_DAIFMT_CBS_CFS;
+							SND_SOC_DAIFMT_AC97 | SND_SOC_DAIFMT_CBS_CFS;
 		mdata->codec_clk_direction = SND_SOC_CLOCK_IN;
 		mdata->cpu_clk_direction = SND_SOC_CLOCK_OUT;
-	} else {
+	}
+	else
+	{
 		dev_err(&pdev->dev,
-			"unrecognized fsl,mode property '%s'\n", sprop);
+				"unrecognized fsl,mode property '%s'\n", sprop);
 		ret = -EINVAL;
 		goto error;
 	}
 
-	if (!mdata->clk_frequency) {
+	if (!mdata->clk_frequency)
+	{
 		dev_err(&pdev->dev, "unknown clock frequency\n");
 		ret = -EINVAL;
 		goto error;
@@ -322,9 +362,11 @@ static int p1022_ds_probe(struct platform_device *pdev)
 	/* Find the playback DMA channel to use. */
 	mdata->dai[0].platform_name = mdata->platform_name[0];
 	ret = fsl_asoc_get_dma_channel(np, "fsl,playback-dma", &mdata->dai[0],
-				       &mdata->dma_channel_id[0],
-				       &mdata->dma_id[0]);
-	if (ret) {
+								   &mdata->dma_channel_id[0],
+								   &mdata->dma_id[0]);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "missing/invalid playback DMA phandle\n");
 		goto error;
 	}
@@ -332,9 +374,11 @@ static int p1022_ds_probe(struct platform_device *pdev)
 	/* Find the capture DMA channel to use. */
 	mdata->dai[1].platform_name = mdata->platform_name[1];
 	ret = fsl_asoc_get_dma_channel(np, "fsl,capture-dma", &mdata->dai[1],
-				       &mdata->dma_channel_id[1],
-				       &mdata->dma_id[1]);
-	if (ret) {
+								   &mdata->dma_channel_id[1],
+								   &mdata->dma_id[1]);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "missing/invalid capture DMA phandle\n");
 		goto error;
 	}
@@ -355,7 +399,9 @@ static int p1022_ds_probe(struct platform_device *pdev)
 
 	/* Register with ASoC */
 	ret = snd_soc_register_card(&mdata->card);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "could not register card\n");
 		goto error;
 	}
@@ -388,7 +434,8 @@ static int p1022_ds_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver p1022_ds_driver = {
+static struct platform_driver p1022_ds_driver =
+{
 	.probe = p1022_ds_probe,
 	.remove = p1022_ds_remove,
 	.driver = {
@@ -412,11 +459,14 @@ static int __init p1022_ds_init(void)
 
 	/* Get the physical address of the global utilities registers */
 	guts_np = of_find_compatible_node(NULL, NULL, "fsl,p1022-guts");
-	if (of_address_to_resource(guts_np, 0, &res)) {
+
+	if (of_address_to_resource(guts_np, 0, &res))
+	{
 		pr_err("snd-soc-p1022ds: missing/invalid global utils node\n");
 		of_node_put(guts_np);
 		return -EINVAL;
 	}
+
 	guts_phys = res.start;
 	of_node_put(guts_np);
 

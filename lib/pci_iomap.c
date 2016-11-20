@@ -25,24 +25,37 @@
  * the complete BAR from offset to the end, pass %0 here.
  * */
 void __iomem *pci_iomap_range(struct pci_dev *dev,
-			      int bar,
-			      unsigned long offset,
-			      unsigned long maxlen)
+							  int bar,
+							  unsigned long offset,
+							  unsigned long maxlen)
 {
 	resource_size_t start = pci_resource_start(dev, bar);
 	resource_size_t len = pci_resource_len(dev, bar);
 	unsigned long flags = pci_resource_flags(dev, bar);
 
 	if (len <= offset || !start)
+	{
 		return NULL;
+	}
+
 	len -= offset;
 	start += offset;
+
 	if (maxlen && len > maxlen)
+	{
 		len = maxlen;
+	}
+
 	if (flags & IORESOURCE_IO)
+	{
 		return __pci_ioport_map(dev, start, len);
+	}
+
 	if (flags & IORESOURCE_MEM)
+	{
 		return ioremap(start, len);
+	}
+
 	/* What? */
 	return NULL;
 }
@@ -65,9 +78,9 @@ EXPORT_SYMBOL(pci_iomap_range);
  * the complete BAR from offset to the end, pass %0 here.
  * */
 void __iomem *pci_iomap_wc_range(struct pci_dev *dev,
-				 int bar,
-				 unsigned long offset,
-				 unsigned long maxlen)
+								 int bar,
+								 unsigned long offset,
+								 unsigned long maxlen)
 {
 	resource_size_t start = pci_resource_start(dev, bar);
 	resource_size_t len = pci_resource_len(dev, bar);
@@ -75,18 +88,27 @@ void __iomem *pci_iomap_wc_range(struct pci_dev *dev,
 
 
 	if (flags & IORESOURCE_IO)
+	{
 		return NULL;
+	}
 
 	if (len <= offset || !start)
+	{
 		return NULL;
+	}
 
 	len -= offset;
 	start += offset;
+
 	if (maxlen && len > maxlen)
+	{
 		len = maxlen;
+	}
 
 	if (flags & IORESOURCE_MEM)
+	{
 		return ioremap_wc(start, len);
+	}
 
 	/* What? */
 	return NULL;

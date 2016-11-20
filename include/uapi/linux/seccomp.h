@@ -44,7 +44,8 @@
  * @args: up to 6 system call arguments always stored as 64-bit values
  *        regardless of the architecture.
  */
-struct seccomp_data {
+struct seccomp_data
+{
 	int nr;
 	__u32 arch;
 	__u64 instruction_pointer;

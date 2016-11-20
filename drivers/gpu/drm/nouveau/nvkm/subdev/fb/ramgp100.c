@@ -49,24 +49,34 @@ gp100_ram_init(struct nvkm_ram *ram)
 	 * the init tables.
 	 */
 	data = nvbios_rammapTe(bios, &ver, &hdr, &cnt, &len, &snr, &ssz);
+
 	if (!data || hdr < 0x15)
+	{
 		return -EINVAL;
+	}
 
 	cnt  = nvbios_rd08(bios, data + 0x14); /* guess at count */
 	data = nvbios_rd32(bios, data + 0x10); /* guess u32... */
-	if (cnt) {
+
+	if (cnt)
+	{
 		u32 save = nvkm_rd32(device, 0x9a065c) & 0x000000f0;
-		for (i = 0; i < cnt; i++, data += 4) {
-			if (i != save >> 4) {
+
+		for (i = 0; i < cnt; i++, data += 4)
+		{
+			if (i != save >> 4)
+			{
 				nvkm_mask(device, 0x9a065c, 0x000000f0, i << 4);
-				nvbios_exec(&(struct nvbios_init) {
-						.subdev = subdev,
-						.bios = bios,
-						.offset = nvbios_rd32(bios, data),
-						.execute = 1,
-					    });
+				nvbios_exec(&(struct nvbios_init)
+				{
+					.subdev = subdev,
+					 .bios = bios,
+					  .offset = nvbios_rd32(bios, data),
+					   .execute = 1,
+				});
 			}
 		}
+
 		nvkm_mask(device, 0x9a065c, 0x000000f0, save);
 	}
 
@@ -77,7 +87,8 @@ gp100_ram_init(struct nvkm_ram *ram)
 }
 
 static const struct nvkm_ram_func
-gp100_ram_func = {
+	gp100_ram_func =
+{
 	.init = gp100_ram_init,
 	.get = gf100_ram_get,
 	.put = gf100_ram_put,
@@ -100,46 +111,70 @@ gp100_ram_new(struct nvkm_fb *fb, struct nvkm_ram **pram)
 
 	nvkm_debug(subdev, "022438: %08x\n", fbpa_num);
 	nvkm_debug(subdev, "021c14: %08x\n", fbio_opt);
-	for (fbpa = 0; fbpa < fbpa_num; fbpa++) {
-		if (!(fbio_opt & (1 << fbpa))) {
+
+	for (fbpa = 0; fbpa < fbpa_num; fbpa++)
+	{
+		if (!(fbio_opt & (1 << fbpa)))
+		{
 			part = nvkm_rd32(device, 0x90020c + (fbpa * 0x4000));
 			nvkm_debug(subdev, "fbpa %02x: %lld MiB\n", fbpa, part);
 			part = part << 20;
-			if (part != comm) {
+
+			if (part != comm)
+			{
 				if (comm != ~0ULL)
+				{
 					mixed = true;
+				}
+
 				comm = min(comm, part);
 			}
+
 			size = size + part;
 		}
 	}
 
 	ret = nvkm_ram_new_(&gp100_ram_func, fb, type, size, 0, &ram);
 	*pram = ram;
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	nvkm_mm_fini(&ram->vram);
 
-	if (mixed) {
+	if (mixed)
+	{
 		ret = nvkm_mm_init(&ram->vram, rsvd_head >> NVKM_RAM_MM_SHIFT,
-				   ((comm * fbpa_num) - rsvd_head) >>
-				   NVKM_RAM_MM_SHIFT, 1);
+						   ((comm * fbpa_num) - rsvd_head) >>
+						   NVKM_RAM_MM_SHIFT, 1);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		ret = nvkm_mm_init(&ram->vram, (0x1000000000ULL + comm) >>
-				   NVKM_RAM_MM_SHIFT,
-				   (size - (comm * fbpa_num) - rsvd_tail) >>
-				   NVKM_RAM_MM_SHIFT, 1);
+						   NVKM_RAM_MM_SHIFT,
+						   (size - (comm * fbpa_num) - rsvd_tail) >>
+						   NVKM_RAM_MM_SHIFT, 1);
+
 		if (ret)
+		{
 			return ret;
-	} else {
+		}
+	}
+	else
+	{
 		ret = nvkm_mm_init(&ram->vram, rsvd_head >> NVKM_RAM_MM_SHIFT,
-				   (size - rsvd_head - rsvd_tail) >>
-				   NVKM_RAM_MM_SHIFT, 1);
+						   (size - rsvd_head - rsvd_tail) >>
+						   NVKM_RAM_MM_SHIFT, 1);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return 0;

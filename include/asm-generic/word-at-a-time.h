@@ -6,7 +6,8 @@
 
 #ifdef __BIG_ENDIAN
 
-struct word_at_a_time {
+struct word_at_a_time
+{
 	const unsigned long high_bits, low_bits;
 };
 
@@ -25,15 +26,27 @@ static inline long find_zero(unsigned long mask)
 {
 	long byte = 0;
 #ifdef CONFIG_64BIT
+
 	if (mask >> 32)
+	{
 		mask >>= 32;
+	}
 	else
+	{
 		byte = 4;
+	}
+
 #endif
+
 	if (mask >> 16)
+	{
 		mask >>= 16;
+	}
 	else
+	{
 		byte += 2;
+	}
+
 	return (mask >> 8) ? byte : byte + 1;
 }
 
@@ -45,7 +58,7 @@ static inline bool has_zero(unsigned long val, unsigned long *data, const struct
 }
 
 #ifndef zero_bytemask
-#define zero_bytemask(mask) (~1ul << __fls(mask))
+	#define zero_bytemask(mask) (~1ul << __fls(mask))
 #endif
 
 #else
@@ -56,7 +69,8 @@ static inline bool has_zero(unsigned long val, unsigned long *data, const struct
  * bit count instruction, that might be better than the multiply
  * and shift, for example.
  */
-struct word_at_a_time {
+struct word_at_a_time
+{
 	const unsigned long one_bits, high_bits;
 };
 
@@ -72,7 +86,7 @@ struct word_at_a_time {
  */
 static inline long count_masked_bytes(unsigned long mask)
 {
-	return mask*0x0001020304050608ul >> 56;
+	return mask * 0x0001020304050608ul >> 56;
 }
 
 #else	/* 32-bit case */
@@ -81,7 +95,7 @@ static inline long count_masked_bytes(unsigned long mask)
 static inline long count_masked_bytes(long mask)
 {
 	/* (000000 0000ff 00ffff ffffff) -> ( 1 1 2 3 ) */
-	long a = (0x0ff0001+mask) >> 23;
+	long a = (0x0ff0001 + mask) >> 23;
 	/* Fix the 1 for 00 case */
 	return a & mask;
 }

@@ -26,7 +26,8 @@
 
 #include "io-pgtable.h"
 
-struct mtk_iommu_suspend_reg {
+struct mtk_iommu_suspend_reg
+{
 	u32				standard_axi_mode;
 	u32				dcm_dis;
 	u32				ctrl_reg;
@@ -34,7 +35,8 @@ struct mtk_iommu_suspend_reg {
 	u32				int_main_control;
 };
 
-struct mtk_iommu_client_priv {
+struct mtk_iommu_client_priv
+{
 	struct list_head		client;
 	unsigned int			mtk_m4u_id;
 	struct device			*m4udev;
@@ -42,7 +44,8 @@ struct mtk_iommu_client_priv {
 
 struct mtk_iommu_domain;
 
-struct mtk_iommu_data {
+struct mtk_iommu_data
+{
 	void __iomem			*base;
 	int				irq;
 	struct device			*dev;

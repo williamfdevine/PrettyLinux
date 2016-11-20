@@ -12,7 +12,8 @@ extern unsigned int nf_ct_expect_hsize;
 extern unsigned int nf_ct_expect_max;
 extern struct hlist_head *nf_ct_expect_hash;
 
-struct nf_conntrack_expect {
+struct nf_conntrack_expect
+{
 	/* Conntrack expectation list member */
 	struct hlist_node lnode;
 
@@ -25,7 +26,7 @@ struct nf_conntrack_expect {
 
 	/* Function to call after setup and insertion */
 	void (*expectfn)(struct nf_conn *new,
-			 struct nf_conntrack_expect *this);
+					 struct nf_conntrack_expect *this);
 
 	/* Helper to assign to new connection */
 	struct nf_conntrack_helper *helper;
@@ -64,7 +65,8 @@ static inline struct net *nf_ct_exp_net(struct nf_conntrack_expect *exp)
 
 #define NF_CT_EXP_POLICY_NAME_LEN	16
 
-struct nf_conntrack_expect_policy {
+struct nf_conntrack_expect_policy
+{
 	unsigned int	max_expected;
 	unsigned int	timeout;
 	char		name[NF_CT_EXP_POLICY_NAME_LEN];
@@ -80,21 +82,21 @@ void nf_conntrack_expect_fini(void);
 
 struct nf_conntrack_expect *
 __nf_ct_expect_find(struct net *net,
-		    const struct nf_conntrack_zone *zone,
-		    const struct nf_conntrack_tuple *tuple);
+					const struct nf_conntrack_zone *zone,
+					const struct nf_conntrack_tuple *tuple);
 
 struct nf_conntrack_expect *
 nf_ct_expect_find_get(struct net *net,
-		      const struct nf_conntrack_zone *zone,
-		      const struct nf_conntrack_tuple *tuple);
+					  const struct nf_conntrack_zone *zone,
+					  const struct nf_conntrack_tuple *tuple);
 
 struct nf_conntrack_expect *
 nf_ct_find_expectation(struct net *net,
-		       const struct nf_conntrack_zone *zone,
-		       const struct nf_conntrack_tuple *tuple);
+					   const struct nf_conntrack_zone *zone,
+					   const struct nf_conntrack_tuple *tuple);
 
 void nf_ct_unlink_expect_report(struct nf_conntrack_expect *exp,
-				u32 portid, int report);
+								u32 portid, int report);
 static inline void nf_ct_unlink_expect(struct nf_conntrack_expect *exp)
 {
 	nf_ct_unlink_expect_report(exp, 0, 0);
@@ -107,12 +109,12 @@ void nf_ct_unexpect_related(struct nf_conntrack_expect *exp);
    nf_ct_expect_related.  You will have to call put afterwards. */
 struct nf_conntrack_expect *nf_ct_expect_alloc(struct nf_conn *me);
 void nf_ct_expect_init(struct nf_conntrack_expect *, unsigned int, u_int8_t,
-		       const union nf_inet_addr *,
-		       const union nf_inet_addr *,
-		       u_int8_t, const __be16 *, const __be16 *);
+					   const union nf_inet_addr *,
+					   const union nf_inet_addr *,
+					   u_int8_t, const __be16 *, const __be16 *);
 void nf_ct_expect_put(struct nf_conntrack_expect *exp);
-int nf_ct_expect_related_report(struct nf_conntrack_expect *expect, 
-				u32 portid, int report);
+int nf_ct_expect_related_report(struct nf_conntrack_expect *expect,
+								u32 portid, int report);
 static inline int nf_ct_expect_related(struct nf_conntrack_expect *expect)
 {
 	return nf_ct_expect_related_report(expect, 0, 0);

@@ -104,10 +104,10 @@
 #define ERRCONFIG_VPBOUNDINTEN_V2	BIT(22)
 
 #define ERRCONFIG_STATUS_V1_MASK	(ERRCONFIG_VPBOUNDINTST_V1 | \
-					ERRCONFIG_MCUACCUMINTST | \
-					ERRCONFIG_MCUVALIDINTST | \
-					ERRCONFIG_MCUBOUNDINTST | \
-					ERRCONFIG_MCUDISACKINTST)
+									 ERRCONFIG_MCUACCUMINTST | \
+									 ERRCONFIG_MCUVALIDINTST | \
+									 ERRCONFIG_MCUBOUNDINTST | \
+									 ERRCONFIG_MCUDISACKINTST)
 /* IRQSTATUS */
 #define IRQSTATUS_MCUACCUMINT		BIT(3)
 #define IRQSTATUS_MCVALIDINT		BIT(2)
@@ -143,7 +143,8 @@
 #define OMAP3430_SR_ERRWEIGHT		0x04
 #define OMAP3430_SR_ERRMAXLIMIT		0x02
 
-struct omap_sr {
+struct omap_sr
+{
 	char				*name;
 	struct list_head		node;
 	struct platform_device		*pdev;
@@ -180,13 +181,13 @@ struct omap_sr {
  *
  * Copied from omap_test_timeout */
 #define sr_test_cond_timeout(cond, timeout, index)		\
-({								\
-	for (index = 0; index < timeout; index++) {		\
-		if (cond)					\
-			break;					\
-		udelay(1);					\
-	}							\
-})
+	({								\
+		for (index = 0; index < timeout; index++) {		\
+			if (cond)					\
+				break;					\
+			udelay(1);					\
+		}							\
+	})
 
 /**
  * struct omap_sr_pmic_data - Strucutre to be populated by pmic code to pass
@@ -194,7 +195,8 @@ struct omap_sr {
  *
  * @sr_pmic_init:	API to initialize smartreflex on the PMIC side.
  */
-struct omap_sr_pmic_data {
+struct omap_sr_pmic_data
+{
 	void (*sr_pmic_init) (void);
 };
 
@@ -203,7 +205,8 @@ struct omap_sr_pmic_data {
  *
  * @sensor_voltdm_name:       Name of voltdomain of SR instance
  */
-struct omap_smartreflex_dev_attr {
+struct omap_smartreflex_dev_attr
+{
 	const char      *sensor_voltdm_name;
 };
 
@@ -231,7 +234,8 @@ struct omap_smartreflex_dev_attr {
  *			Can be used by the SR driver to take any class
  *			based decisions.
  */
-struct omap_sr_class_data {
+struct omap_sr_class_data
+{
 	int (*enable)(struct omap_sr *sr);
 	int (*disable)(struct omap_sr *sr, int is_volt_reset);
 	int (*configure)(struct omap_sr *sr);
@@ -248,7 +252,8 @@ struct omap_sr_class_data {
  * @errminlimit:  The value of the ERRMINLIMIT bitfield for this n-target
  * @volt_nominal: microvolts DC that the VDD is initially programmed to
  */
-struct omap_sr_nvalue_table {
+struct omap_sr_nvalue_table
+{
 	u32 efuse_offs;
 	u32 nvalue;
 	u32 errminlimit;
@@ -274,7 +279,8 @@ struct omap_sr_nvalue_table {
  *			corresponding to them.
  * @voltdm:		Pointer to the voltage domain associated with the SR
  */
-struct omap_sr_data {
+struct omap_sr_data
+{
 	const char			*name;
 	int				ip_type;
 	u32				senp_mod;
@@ -311,8 +317,8 @@ int sr_register_class(struct omap_sr_class_data *class_data);
 static inline void omap_sr_enable(struct voltagedomain *voltdm) {}
 static inline void omap_sr_disable(struct voltagedomain *voltdm) {}
 static inline void omap_sr_disable_reset_volt(
-		struct voltagedomain *voltdm) {}
+	struct voltagedomain *voltdm) {}
 static inline void omap_sr_register_pmic(
-		struct omap_sr_pmic_data *pmic_data) {}
+	struct omap_sr_pmic_data *pmic_data) {}
 #endif
 #endif

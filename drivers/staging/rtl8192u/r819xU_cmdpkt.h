@@ -19,19 +19,20 @@
 /*------------------------------Define structure----------------------------*/
 /* Define different command packet structure. */
 /* 1. RX side: TX feedback packet. */
-typedef struct tag_cmd_pkt_tx_feedback {
+typedef struct tag_cmd_pkt_tx_feedback
+{
 	/* DWORD 0 */
 	u8	element_id;			/* Command packet type. */
 	u8	length;				/* Command packet length. */
 	/* Change tx feedback info field. */
 	/*------TX Feedback Info Field */
-	u8	TID:4;
-	u8	fail_reason:3;
-	u8	tok:1;				/* Transmit ok. */
-	u8	reserve1:4;
-	u8	pkt_type:2;
-	u8	bandwidth:1;
-	u8	qos_pkt:1;
+	u8	TID: 4;
+	u8	fail_reason: 3;
+	u8	tok: 1;				/* Transmit ok. */
+	u8	reserve1: 4;
+	u8	pkt_type: 2;
+	u8	bandwidth: 1;
+	u8	qos_pkt: 1;
 
 	/* DWORD 1 */
 	u8	reserve2;
@@ -56,7 +57,8 @@ typedef struct tag_cmd_pkt_tx_feedback {
 
 /* 2. RX side: Interrupt status packet. It includes Beacon State,
  * Beacon Timer Interrupt and other useful informations in MAC ISR Reg. */
-typedef struct tag_cmd_pkt_interrupt_status {
+typedef struct tag_cmd_pkt_interrupt_status
+{
 	u8	element_id;			/* Command packet type. */
 	u8	length;				/* Command packet length. */
 	u16	reserve;
@@ -65,18 +67,19 @@ typedef struct tag_cmd_pkt_interrupt_status {
 
 
 /* 3. TX side: Set configuration packet. */
-typedef struct tag_cmd_pkt_set_configuration {
+typedef struct tag_cmd_pkt_set_configuration
+{
 	u8	element_id;			/* Command packet type. */
 	u8	length;				/* Command packet length. */
 	u16	reserve1;
 	/* Configuration info. */
-	u8	cfg_reserve1:3;
-	u8	cfg_size:2;
-	u8	cfg_type:2;
-	u8	cfg_action:1;
+	u8	cfg_reserve1: 3;
+	u8	cfg_size: 2;
+	u8	cfg_type: 2;
+	u8	cfg_action: 1;
 	u8	cfg_reserve2;
-	u8	cfg_page:4;
-	u8	cfg_reserve3:4;
+	u8	cfg_page: 4;
+	u8	cfg_reserve3: 4;
 	u8	cfg_offset;
 	u32	value;
 	u32	mask;
@@ -87,7 +90,8 @@ typedef struct tag_cmd_pkt_set_configuration {
 #define		cmpk_query_cfg_t	cmpk_set_cfg_t
 
 /* 5. Multi packet feedback status. */
-typedef struct tag_tx_stats_feedback {
+typedef struct tag_tx_stats_feedback
+{
 	/* For endian transfer --> Driver will not the same as
 	   firmware structure. */
 	/* DW 0 */
@@ -128,7 +132,8 @@ typedef struct tag_tx_stats_feedback {
 
 /* 6. Debug feedback message. */
 /* Define RX debug message  */
-typedef struct tag_rx_debug_message_feedback {
+typedef struct tag_rx_debug_message_feedback
+{
 	/* For endian transfer --> for driver */
 	/* DW 0 */
 	u16	reserve1;
@@ -141,7 +146,8 @@ typedef struct tag_rx_debug_message_feedback {
 } cmpk_rx_dbginfo_t;
 
 /* Define transmit rate history. For big endian format. */
-typedef struct tag_tx_rate_history {
+typedef struct tag_tx_rate_history
+{
 	/* For endian transfer --> for driver */
 	/* DW 0 */
 	u8	element_id;			/* Command packet type */
@@ -163,7 +169,8 @@ typedef struct tag_tx_rate_history {
 
 } __packed cmpk_tx_rahis_t;
 
-typedef enum tag_command_packet_directories {
+typedef enum tag_command_packet_directories
+{
 	RX_TX_FEEDBACK			= 0,
 	RX_INTERRUPT_STATUS		= 1,
 	TX_SET_CONFIG			= 2,
@@ -175,7 +182,8 @@ typedef enum tag_command_packet_directories {
 	RX_CMD_ELE_MAX
 } cmpk_element_e;
 
-typedef enum _rt_status {
+typedef enum _rt_status
+{
 	RT_STATUS_SUCCESS,
 	RT_STATUS_FAILURE,
 	RT_STATUS_PENDING,
@@ -183,9 +191,9 @@ typedef enum _rt_status {
 } rt_status, *prt_status;
 
 u32 cmpk_message_handle_rx(struct net_device *dev,
-			   struct ieee80211_rx_stats *pstats);
+						   struct ieee80211_rx_stats *pstats);
 rt_status SendTxCommandPacket(struct net_device *dev,
-			      void *pData, u32 DataLen);
+							  void *pData, u32 DataLen);
 
 
 #endif

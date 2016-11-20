@@ -66,7 +66,8 @@
 #define TPU_CHANNEL_OFFSET	0x10
 #define TPU_CHANNEL_SIZE	0x40
 
-enum tpu_pin_state {
+enum tpu_pin_state
+{
 	TPU_PIN_INACTIVE,		/* Pin is driven inactive */
 	TPU_PIN_PWM,			/* Pin is driven by PWM */
 	TPU_PIN_ACTIVE,			/* Pin is driven active */
@@ -74,7 +75,8 @@ enum tpu_pin_state {
 
 struct tpu_device;
 
-struct tpu_pwm_device {
+struct tpu_pwm_device
+{
 	bool timer_on;			/* Whether the timer is running */
 
 	struct tpu_device *tpu;
@@ -86,7 +88,8 @@ struct tpu_pwm_device {
 	u16 duty;
 };
 
-struct tpu_device {
+struct tpu_device
+{
 	struct platform_device *pdev;
 	struct pwm_chip chip;
 	spinlock_t lock;
@@ -100,35 +103,38 @@ struct tpu_device {
 static void tpu_pwm_write(struct tpu_pwm_device *pwm, int reg_nr, u16 value)
 {
 	void __iomem *base = pwm->tpu->base + TPU_CHANNEL_OFFSET
-			   + pwm->channel * TPU_CHANNEL_SIZE;
+						 + pwm->channel * TPU_CHANNEL_SIZE;
 
 	iowrite16(value, base + reg_nr);
 }
 
 static void tpu_pwm_set_pin(struct tpu_pwm_device *pwm,
-			    enum tpu_pin_state state)
+							enum tpu_pin_state state)
 {
-	static const char * const states[] = { "inactive", "PWM", "active" };
+	static const char *const states[] = { "inactive", "PWM", "active" };
 
 	dev_dbg(&pwm->tpu->pdev->dev, "%u: configuring pin as %s\n",
-		pwm->channel, states[state]);
+			pwm->channel, states[state]);
 
-	switch (state) {
-	case TPU_PIN_INACTIVE:
-		tpu_pwm_write(pwm, TPU_TIORn,
-			      pwm->polarity == PWM_POLARITY_INVERSED ?
-			      TPU_TIOR_IOA_1 : TPU_TIOR_IOA_0);
-		break;
-	case TPU_PIN_PWM:
-		tpu_pwm_write(pwm, TPU_TIORn,
-			      pwm->polarity == PWM_POLARITY_INVERSED ?
-			      TPU_TIOR_IOA_0_SET : TPU_TIOR_IOA_1_CLR);
-		break;
-	case TPU_PIN_ACTIVE:
-		tpu_pwm_write(pwm, TPU_TIORn,
-			      pwm->polarity == PWM_POLARITY_INVERSED ?
-			      TPU_TIOR_IOA_0 : TPU_TIOR_IOA_1);
-		break;
+	switch (state)
+	{
+		case TPU_PIN_INACTIVE:
+			tpu_pwm_write(pwm, TPU_TIORn,
+						  pwm->polarity == PWM_POLARITY_INVERSED ?
+						  TPU_TIOR_IOA_1 : TPU_TIOR_IOA_0);
+			break;
+
+		case TPU_PIN_PWM:
+			tpu_pwm_write(pwm, TPU_TIORn,
+						  pwm->polarity == PWM_POLARITY_INVERSED ?
+						  TPU_TIOR_IOA_0_SET : TPU_TIOR_IOA_1_CLR);
+			break;
+
+		case TPU_PIN_ACTIVE:
+			tpu_pwm_write(pwm, TPU_TIORn,
+						  pwm->polarity == PWM_POLARITY_INVERSED ?
+						  TPU_TIOR_IOA_0 : TPU_TIOR_IOA_1);
+			break;
 	}
 }
 
@@ -141,9 +147,13 @@ static void tpu_pwm_start_stop(struct tpu_pwm_device *pwm, int start)
 	value = ioread16(pwm->tpu->base + TPU_TSTR);
 
 	if (start)
+	{
 		value |= 1 << pwm->channel;
+	}
 	else
+	{
 		value &= ~(1 << pwm->channel);
+	}
 
 	iowrite16(value, pwm->tpu->base + TPU_TSTR);
 	spin_unlock_irqrestore(&pwm->tpu->lock, flags);
@@ -153,14 +163,18 @@ static int tpu_pwm_timer_start(struct tpu_pwm_device *pwm)
 {
 	int ret;
 
-	if (!pwm->timer_on) {
+	if (!pwm->timer_on)
+	{
 		/* Wake up device and enable clock. */
 		pm_runtime_get_sync(&pwm->tpu->pdev->dev);
 		ret = clk_prepare_enable(pwm->tpu->clk);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(&pwm->tpu->pdev->dev, "cannot enable clock\n");
 			return ret;
 		}
+
 		pwm->timer_on = true;
 	}
 
@@ -181,14 +195,14 @@ static int tpu_pwm_timer_start(struct tpu_pwm_device *pwm)
 	 * - PWM mode
 	 */
 	tpu_pwm_write(pwm, TPU_TCRn, TPU_TCR_CCLR_TGRB | TPU_TCR_CKEG_RISING |
-		      pwm->prescaler);
+				  pwm->prescaler);
 	tpu_pwm_write(pwm, TPU_TMDRn, TPU_TMDR_MD_PWM);
 	tpu_pwm_set_pin(pwm, TPU_PIN_PWM);
 	tpu_pwm_write(pwm, TPU_TGRAn, pwm->duty);
 	tpu_pwm_write(pwm, TPU_TGRBn, pwm->period);
 
 	dev_dbg(&pwm->tpu->pdev->dev, "%u: TGRA 0x%04x TGRB 0x%04x\n",
-		pwm->channel, pwm->duty, pwm->period);
+			pwm->channel, pwm->duty, pwm->period);
 
 	/* Start the channel. */
 	tpu_pwm_start_stop(pwm, true);
@@ -199,7 +213,9 @@ static int tpu_pwm_timer_start(struct tpu_pwm_device *pwm)
 static void tpu_pwm_timer_stop(struct tpu_pwm_device *pwm)
 {
 	if (!pwm->timer_on)
+	{
 		return;
+	}
 
 	/* Disable channel. */
 	tpu_pwm_start_stop(pwm, false);
@@ -221,11 +237,16 @@ static int tpu_pwm_request(struct pwm_chip *chip, struct pwm_device *_pwm)
 	struct tpu_pwm_device *pwm;
 
 	if (_pwm->hwpwm >= TPU_CHANNEL_MAX)
+	{
 		return -EINVAL;
+	}
 
 	pwm = kzalloc(sizeof(*pwm), GFP_KERNEL);
+
 	if (pwm == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	pwm->tpu = tpu;
 	pwm->channel = _pwm->hwpwm;
@@ -250,7 +271,7 @@ static void tpu_pwm_free(struct pwm_chip *chip, struct pwm_device *_pwm)
 }
 
 static int tpu_pwm_config(struct pwm_chip *chip, struct pwm_device *_pwm,
-			  int duty_ns, int period_ns)
+						  int duty_ns, int period_ns)
 {
 	static const unsigned int prescalers[] = { 1, 4, 16, 64 };
 	struct tpu_pwm_device *pwm = pwm_get_chip_data(_pwm);
@@ -268,33 +289,46 @@ static int tpu_pwm_config(struct pwm_chip *chip, struct pwm_device *_pwm,
 	 */
 	clk_rate = clk_get_rate(tpu->clk);
 
-	for (prescaler = 0; prescaler < ARRAY_SIZE(prescalers); ++prescaler) {
+	for (prescaler = 0; prescaler < ARRAY_SIZE(prescalers); ++prescaler)
+	{
 		period = clk_rate / prescalers[prescaler]
-		       / (NSEC_PER_SEC / period_ns);
+				 / (NSEC_PER_SEC / period_ns);
+
 		if (period <= 0xffff)
+		{
 			break;
+		}
 	}
 
-	if (prescaler == ARRAY_SIZE(prescalers) || period == 0) {
+	if (prescaler == ARRAY_SIZE(prescalers) || period == 0)
+	{
 		dev_err(&tpu->pdev->dev, "clock rate mismatch\n");
 		return -ENOTSUPP;
 	}
 
-	if (duty_ns) {
+	if (duty_ns)
+	{
 		duty = clk_rate / prescalers[prescaler]
-		     / (NSEC_PER_SEC / duty_ns);
+			   / (NSEC_PER_SEC / duty_ns);
+
 		if (duty > period)
+		{
 			return -EINVAL;
-	} else {
+		}
+	}
+	else
+	{
 		duty = 0;
 	}
 
 	dev_dbg(&tpu->pdev->dev,
-		"rate %u, prescaler %u, period %u, duty %u\n",
-		clk_rate, prescalers[prescaler], period, duty);
+			"rate %u, prescaler %u, period %u, duty %u\n",
+			clk_rate, prescalers[prescaler], period, duty);
 
 	if (pwm->prescaler == prescaler && pwm->period == period)
+	{
 		duty_only = true;
+	}
 
 	pwm->prescaler = prescaler;
 	pwm->period = period;
@@ -302,9 +336,12 @@ static int tpu_pwm_config(struct pwm_chip *chip, struct pwm_device *_pwm,
 
 	/* If the channel is disabled we're done. */
 	if (!pwm_is_enabled(_pwm))
+	{
 		return 0;
+	}
 
-	if (duty_only && pwm->timer_on) {
+	if (duty_only && pwm->timer_on)
+	{
 		/*
 		 * If only the duty cycle changed and the timer is already
 		 * running, there's no need to reconfigure it completely, Just
@@ -312,15 +349,21 @@ static int tpu_pwm_config(struct pwm_chip *chip, struct pwm_device *_pwm,
 		 */
 		tpu_pwm_write(pwm, TPU_TGRAn, pwm->duty);
 		dev_dbg(&tpu->pdev->dev, "%u: TGRA 0x%04x\n", pwm->channel,
-			pwm->duty);
-	} else {
+				pwm->duty);
+	}
+	else
+	{
 		/* Otherwise perform a full reconfiguration. */
 		ret = tpu_pwm_timer_start(pwm);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
-	if (duty == 0 || duty == period) {
+	if (duty == 0 || duty == period)
+	{
 		/*
 		 * To avoid running the timer when not strictly required, handle
 		 * 0% and 100% duty cycles as fixed levels and stop the timer.
@@ -333,7 +376,7 @@ static int tpu_pwm_config(struct pwm_chip *chip, struct pwm_device *_pwm,
 }
 
 static int tpu_pwm_set_polarity(struct pwm_chip *chip, struct pwm_device *_pwm,
-				enum pwm_polarity polarity)
+								enum pwm_polarity polarity)
 {
 	struct tpu_pwm_device *pwm = pwm_get_chip_data(_pwm);
 
@@ -348,16 +391,20 @@ static int tpu_pwm_enable(struct pwm_chip *chip, struct pwm_device *_pwm)
 	int ret;
 
 	ret = tpu_pwm_timer_start(pwm);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/*
 	 * To avoid running the timer when not strictly required, handle 0% and
 	 * 100% duty cycles as fixed levels and stop the timer.
 	 */
-	if (pwm->duty == 0 || pwm->duty == pwm->period) {
+	if (pwm->duty == 0 || pwm->duty == pwm->period)
+	{
 		tpu_pwm_set_pin(pwm, pwm->duty ?
-				TPU_PIN_ACTIVE : TPU_PIN_INACTIVE);
+						TPU_PIN_ACTIVE : TPU_PIN_INACTIVE);
 		tpu_pwm_timer_stop(pwm);
 	}
 
@@ -374,7 +421,8 @@ static void tpu_pwm_disable(struct pwm_chip *chip, struct pwm_device *_pwm)
 	tpu_pwm_timer_stop(pwm);
 }
 
-static const struct pwm_ops tpu_pwm_ops = {
+static const struct pwm_ops tpu_pwm_ops =
+{
 	.request = tpu_pwm_request,
 	.free = tpu_pwm_free,
 	.config = tpu_pwm_config,
@@ -395,8 +443,11 @@ static int tpu_probe(struct platform_device *pdev)
 	int ret;
 
 	tpu = devm_kzalloc(&pdev->dev, sizeof(*tpu), GFP_KERNEL);
+
 	if (tpu == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&tpu->lock);
 	tpu->pdev = pdev;
@@ -404,11 +455,16 @@ static int tpu_probe(struct platform_device *pdev)
 	/* Map memory, get clock and pin control. */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	tpu->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(tpu->base))
+	{
 		return PTR_ERR(tpu->base);
+	}
 
 	tpu->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(tpu->clk)) {
+
+	if (IS_ERR(tpu->clk))
+	{
 		dev_err(&pdev->dev, "cannot get clock\n");
 		return PTR_ERR(tpu->clk);
 	}
@@ -424,7 +480,9 @@ static int tpu_probe(struct platform_device *pdev)
 	tpu->chip.npwm = TPU_CHANNEL_MAX;
 
 	ret = pwmchip_add(&tpu->chip);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "failed to register PWM chip\n");
 		return ret;
 	}
@@ -442,8 +500,11 @@ static int tpu_remove(struct platform_device *pdev)
 	int ret;
 
 	ret = pwmchip_remove(&tpu->chip);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	pm_runtime_disable(&pdev->dev);
 
@@ -451,7 +512,8 @@ static int tpu_remove(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id tpu_of_table[] = {
+static const struct of_device_id tpu_of_table[] =
+{
 	{ .compatible = "renesas,tpu-r8a73a4", },
 	{ .compatible = "renesas,tpu-r8a7740", },
 	{ .compatible = "renesas,tpu-r8a7790", },
@@ -463,7 +525,8 @@ static const struct of_device_id tpu_of_table[] = {
 MODULE_DEVICE_TABLE(of, tpu_of_table);
 #endif
 
-static struct platform_driver tpu_driver = {
+static struct platform_driver tpu_driver =
+{
 	.probe		= tpu_probe,
 	.remove		= tpu_remove,
 	.driver		= {

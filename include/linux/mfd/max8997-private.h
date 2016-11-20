@@ -28,7 +28,8 @@
 
 #define MAX8997_REG_INVALID	(0xff)
 
-enum max8997_pmic_reg {
+enum max8997_pmic_reg
+{
 	MAX8997_REG_PMIC_ID0	= 0x00,
 	MAX8997_REG_PMIC_ID1	= 0x01,
 	MAX8997_REG_INTSRC	= 0x02,
@@ -174,7 +175,8 @@ enum max8997_pmic_reg {
 	MAX8997_REG_PMIC_END	= 0x9b,
 };
 
-enum max8997_muic_reg {
+enum max8997_muic_reg
+{
 	MAX8997_MUIC_REG_ID		= 0x0,
 	MAX8997_MUIC_REG_INT1		= 0x1,
 	MAX8997_MUIC_REG_INT2		= 0x2,
@@ -226,13 +228,13 @@ enum max8997_muic_reg {
 #define COMP_SW_MASK		(COMP2SW_MASK | COMN1SW_MASK)
 
 #define CONTROL1_SW_USB			((1 << COMP2SW_SHIFT) \
-						| (1 << COMN1SW_SHIFT))
+								 | (1 << COMN1SW_SHIFT))
 #define CONTROL1_SW_AUDIO		((2 << COMP2SW_SHIFT) \
-						| (2 << COMN1SW_SHIFT))
+								 | (2 << COMN1SW_SHIFT))
 #define CONTROL1_SW_UART		((3 << COMP2SW_SHIFT) \
-						| (3 << COMN1SW_SHIFT))
+								 | (3 << COMN1SW_SHIFT))
 #define CONTROL1_SW_OPEN		((0 << COMP2SW_SHIFT) \
-						| (0 << COMN1SW_SHIFT))
+								 | (0 << COMN1SW_SHIFT))
 
 #define CONTROL2_LOWPWR_SHIFT		(0)
 #define CONTROL2_ADCEN_SHIFT		(1)
@@ -258,7 +260,8 @@ enum max8997_muic_reg {
 #define CONTROL3_BTLDSET_MASK		(0x3 << CONTROL3_BTLDSET_SHIFT)
 #define CONTROL3_ADCDBSET_MASK		(0x3 << CONTROL3_ADCDBSET_SHIFT)
 
-enum max8997_haptic_reg {
+enum max8997_haptic_reg
+{
 	MAX8997_HAPTIC_REG_GENERAL	= 0x00,
 	MAX8997_HAPTIC_REG_CONF1	= 0x01,
 	MAX8997_HAPTIC_REG_CONF2	= 0x02,
@@ -281,7 +284,8 @@ enum max8997_haptic_reg {
 };
 
 /* slave addr = 0x0c: using "2nd part" of rev4 datasheet */
-enum max8997_rtc_reg {
+enum max8997_rtc_reg
+{
 	MAX8997_RTC_CTRLMASK		= 0x02,
 	MAX8997_RTC_CTRL		= 0x03,
 	MAX8997_RTC_UPDATE1		= 0x04,
@@ -311,7 +315,8 @@ enum max8997_rtc_reg {
 	MAX8997_RTC_ALARM2_DAY_OF_MONTH	= 0x24,
 };
 
-enum max8997_irq_source {
+enum max8997_irq_source
+{
 	PMIC_INT1 = 0,
 	PMIC_INT2,
 	PMIC_INT3,
@@ -331,7 +336,8 @@ enum max8997_irq_source {
 	MAX8997_IRQ_GROUP_NR,
 };
 
-enum max8997_irq {
+enum max8997_irq
+{
 	MAX8997_PMICIRQ_PWRONR,
 	MAX8997_PMICIRQ_PWRONF,
 	MAX8997_PMICIRQ_PWRON1SEC,
@@ -378,7 +384,8 @@ enum max8997_irq {
 };
 
 #define MAX8997_NUM_GPIO	12
-struct max8997_dev {
+struct max8997_dev
+{
 	struct device *dev;
 	struct max8997_platform_data *pdata;
 	struct i2c_client *i2c; /* 0xcc / PMIC, Battery Control, and FLASH */
@@ -399,12 +406,13 @@ struct max8997_dev {
 
 	/* For hibernation */
 	u8 reg_dump[MAX8997_REG_PMIC_END + MAX8997_MUIC_REG_END +
-		MAX8997_HAPTIC_REG_END];
+				MAX8997_HAPTIC_REG_END];
 
 	bool gpio_status[MAX8997_NUM_GPIO];
 };
 
-enum max8997_types {
+enum max8997_types
+{
 	TYPE_MAX8997,
 	TYPE_MAX8966,
 };
@@ -415,10 +423,10 @@ extern int max8997_irq_resume(struct max8997_dev *max8997);
 
 extern int max8997_read_reg(struct i2c_client *i2c, u8 reg, u8 *dest);
 extern int max8997_bulk_read(struct i2c_client *i2c, u8 reg, int count,
-				u8 *buf);
+							 u8 *buf);
 extern int max8997_write_reg(struct i2c_client *i2c, u8 reg, u8 value);
 extern int max8997_bulk_write(struct i2c_client *i2c, u8 reg, int count,
-				u8 *buf);
+							  u8 *buf);
 extern int max8997_update_reg(struct i2c_client *i2c, u8 reg, u8 val, u8 mask);
 
 #define MAX8997_GPIO_INT_BOTH	(0x3 << 4)

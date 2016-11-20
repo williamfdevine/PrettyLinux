@@ -327,10 +327,10 @@
 #define AR5K_ISR_QTRIG		0x08000000	/* QCU scheduling trigger [5211+] */
 
 #define	AR5K_ISR_BITS_FROM_SISRS	(AR5K_ISR_TXOK | AR5K_ISR_TXDESC |\
-					AR5K_ISR_TXERR | AR5K_ISR_TXEOL |\
-					AR5K_ISR_TXURN | AR5K_ISR_HIUERR |\
-					AR5K_ISR_BCNMISC | AR5K_ISR_QCBRORN |\
-					AR5K_ISR_QCBRURN | AR5K_ISR_QTRIG)
+									 AR5K_ISR_TXERR | AR5K_ISR_TXEOL |\
+									 AR5K_ISR_TXURN | AR5K_ISR_HIUERR |\
+									 AR5K_ISR_BCNMISC | AR5K_ISR_QCBRORN |\
+									 AR5K_ISR_QCBRURN | AR5K_ISR_QTRIG)
 
 /*
  * Secondary status registers [5211+] (0 - 4)
@@ -922,7 +922,7 @@
 #define AR5K_PCICFG_LEDSLOW		0x00800000	/* Slowest led blink rate [5211+] */
 #define AR5K_PCICFG_LEDSTATE				\
 	(AR5K_PCICFG_LED | AR5K_PCICFG_LEDMODE |	\
-	AR5K_PCICFG_LEDBLINK | AR5K_PCICFG_LEDSLOW)
+	 AR5K_PCICFG_LEDBLINK | AR5K_PCICFG_LEDSLOW)
 #define	AR5K_PCICFG_SLEEP_CLOCK_RATE	0x03000000	/* Sleep clock rate */
 #define	AR5K_PCICFG_SLEEP_CLOCK_RATE_S	24
 
@@ -1073,7 +1073,7 @@
 #define AR5K_EEPROM_DATA_5211	0x6004
 #define AR5K_EEPROM_DATA_5210	0x6800
 #define	AR5K_EEPROM_DATA	(ah->ah_version == AR5K_AR5210 ? \
-				AR5K_EEPROM_DATA_5210 : AR5K_EEPROM_DATA_5211)
+							 AR5K_EEPROM_DATA_5210 : AR5K_EEPROM_DATA_5211)
 
 /*
  * EEPROM command register
@@ -1089,7 +1089,7 @@
 #define AR5K_EEPROM_STAT_5210	0x6c00			/* Register Address [5210] */
 #define AR5K_EEPROM_STAT_5211	0x600c			/* Register Address [5211+] */
 #define	AR5K_EEPROM_STATUS	(ah->ah_version == AR5K_AR5210 ? \
-				AR5K_EEPROM_STAT_5210 : AR5K_EEPROM_STAT_5211)
+							 AR5K_EEPROM_STAT_5210 : AR5K_EEPROM_STAT_5211)
 #define AR5K_EEPROM_STAT_RDERR	0x00000001	/* EEPROM read failed */
 #define AR5K_EEPROM_STAT_RDDONE	0x00000002	/* EEPROM read successful */
 #define AR5K_EEPROM_STAT_WRERR	0x00000004	/* EEPROM write failed */
@@ -1149,7 +1149,7 @@
 #define AR5K_STA_ID1_PCF_5211		0x00100000	/* Enable PCF on [5211+] */
 #define AR5K_STA_ID1_PCF_5210		0x00200000	/* Enable PCF on [5210]*/
 #define	AR5K_STA_ID1_PCF		(ah->ah_version == AR5K_AR5210 ? \
-					AR5K_STA_ID1_PCF_5210 : AR5K_STA_ID1_PCF_5211)
+								 AR5K_STA_ID1_PCF_5210 : AR5K_STA_ID1_PCF_5211)
 #define AR5K_STA_ID1_DEFAULT_ANTENNA	0x00200000	/* Use default antenna */
 #define AR5K_STA_ID1_DESC_ANTENNA	0x00400000	/* Update antenna from descriptor */
 #define AR5K_STA_ID1_RTS_DEF_ANTENNA	0x00800000	/* Use default antenna for RTS */
@@ -1163,9 +1163,9 @@
 #define AR5K_STA_ID1_KEYSRCH_MCAST	0x80000000	/* Do key cache search for mcast frames */
 
 #define	AR5K_STA_ID1_ANTENNA_SETTINGS	(AR5K_STA_ID1_DEFAULT_ANTENNA | \
-					AR5K_STA_ID1_DESC_ANTENNA | \
-					AR5K_STA_ID1_RTS_DEF_ANTENNA | \
-					AR5K_STA_ID1_SELFGEN_DEF_ANT)
+		AR5K_STA_ID1_DESC_ANTENNA | \
+		AR5K_STA_ID1_RTS_DEF_ANTENNA | \
+		AR5K_STA_ID1_SELFGEN_DEF_ANT)
 
 /*
  * First BSSID register (MAC address, lower 32bits)
@@ -1205,7 +1205,7 @@
 #define AR5K_RSSI_THR_BMISS_5211	0x0000ff00	/* Mask for Beacon Missed threshold [5211+] */
 #define AR5K_RSSI_THR_BMISS_5211_S	8
 #define	AR5K_RSSI_THR_BMISS		(ah->ah_version == AR5K_AR5210 ? \
-					AR5K_RSSI_THR_BMISS_5210 : AR5K_RSSI_THR_BMISS_5211)
+								 AR5K_RSSI_THR_BMISS_5210 : AR5K_RSSI_THR_BMISS_5211)
 #define	AR5K_RSSI_THR_BMISS_S		8
 
 /*
@@ -1239,7 +1239,7 @@
 #define AR5K_USEC_5210			0x8020			/* Register Address [5210] */
 #define AR5K_USEC_5211			0x801c			/* Register Address [5211+] */
 #define AR5K_USEC			(ah->ah_version == AR5K_AR5210 ? \
-					AR5K_USEC_5210 : AR5K_USEC_5211)
+							 AR5K_USEC_5210 : AR5K_USEC_5211)
 #define AR5K_USEC_1			0x0000007f	/* clock cycles for 1us */
 #define AR5K_USEC_1_S			0
 #define AR5K_USEC_32			0x00003f80	/* clock cycles for 1us while on 32MHz clock */
@@ -1259,7 +1259,7 @@
 #define AR5K_BEACON_5210	0x8024			/*Register Address [5210] */
 #define AR5K_BEACON_5211	0x8020			/*Register Address [5211+] */
 #define AR5K_BEACON		(ah->ah_version == AR5K_AR5210 ? \
-				AR5K_BEACON_5210 : AR5K_BEACON_5211)
+						 AR5K_BEACON_5210 : AR5K_BEACON_5211)
 #define AR5K_BEACON_PERIOD	0x0000ffff	/* Mask for beacon period */
 #define AR5K_BEACON_PERIOD_S	0
 #define AR5K_BEACON_TIM		0x007f0000	/* Mask for TIM offset */
@@ -1273,7 +1273,7 @@
 #define AR5K_CFP_PERIOD_5210	0x8028
 #define AR5K_CFP_PERIOD_5211	0x8024
 #define AR5K_CFP_PERIOD		(ah->ah_version == AR5K_AR5210 ? \
-				AR5K_CFP_PERIOD_5210 : AR5K_CFP_PERIOD_5211)
+							 AR5K_CFP_PERIOD_5210 : AR5K_CFP_PERIOD_5211)
 
 /*
  * Next beacon time register
@@ -1281,7 +1281,7 @@
 #define AR5K_TIMER0_5210	0x802c
 #define AR5K_TIMER0_5211	0x8028
 #define AR5K_TIMER0		(ah->ah_version == AR5K_AR5210 ? \
-				AR5K_TIMER0_5210 : AR5K_TIMER0_5211)
+						 AR5K_TIMER0_5210 : AR5K_TIMER0_5211)
 
 /*
  * Next DMA beacon alert register
@@ -1289,7 +1289,7 @@
 #define AR5K_TIMER1_5210	0x8030
 #define AR5K_TIMER1_5211	0x802c
 #define AR5K_TIMER1		(ah->ah_version == AR5K_AR5210 ? \
-				AR5K_TIMER1_5210 : AR5K_TIMER1_5211)
+						 AR5K_TIMER1_5210 : AR5K_TIMER1_5211)
 
 /*
  * Next software beacon alert register
@@ -1297,7 +1297,7 @@
 #define AR5K_TIMER2_5210	0x8034
 #define AR5K_TIMER2_5211	0x8030
 #define AR5K_TIMER2		(ah->ah_version == AR5K_AR5210 ? \
-				AR5K_TIMER2_5210 : AR5K_TIMER2_5211)
+						 AR5K_TIMER2_5210 : AR5K_TIMER2_5211)
 
 /*
  * Next ATIM window time register
@@ -1305,7 +1305,7 @@
 #define AR5K_TIMER3_5210	0x8038
 #define AR5K_TIMER3_5211	0x8034
 #define AR5K_TIMER3		(ah->ah_version == AR5K_AR5210 ? \
-				AR5K_TIMER3_5210 : AR5K_TIMER3_5211)
+						 AR5K_TIMER3_5210 : AR5K_TIMER3_5211)
 
 
 /*
@@ -1334,7 +1334,7 @@
 #define AR5K_CFP_DUR_5210	0x8048
 #define AR5K_CFP_DUR_5211	0x8038
 #define AR5K_CFP_DUR		(ah->ah_version == AR5K_AR5210 ? \
-				AR5K_CFP_DUR_5210 : AR5K_CFP_DUR_5211)
+							 AR5K_CFP_DUR_5210 : AR5K_CFP_DUR_5211)
 
 /*
  * Receive filter register
@@ -1342,7 +1342,7 @@
 #define AR5K_RX_FILTER_5210	0x804c			/* Register Address [5210] */
 #define AR5K_RX_FILTER_5211	0x803c			/* Register Address [5211+] */
 #define AR5K_RX_FILTER		(ah->ah_version == AR5K_AR5210 ? \
-				AR5K_RX_FILTER_5210 : AR5K_RX_FILTER_5211)
+							 AR5K_RX_FILTER_5210 : AR5K_RX_FILTER_5211)
 #define	AR5K_RX_FILTER_UCAST	0x00000001	/* Don't filter unicast frames */
 #define	AR5K_RX_FILTER_MCAST	0x00000002	/* Don't filter multicast frames */
 #define	AR5K_RX_FILTER_BCAST	0x00000004	/* Don't filter broadcast frames */
@@ -1357,10 +1357,10 @@
 #define AR5K_RX_FILTER_RADARERR_5211	0x00000080	/* [5211] */
 #define AR5K_RX_FILTER_PHYERR  \
 	((ah->ah_version == AR5K_AR5211 ? \
-	AR5K_RX_FILTER_PHYERR_5211 : AR5K_RX_FILTER_PHYERR_5212))
+	  AR5K_RX_FILTER_PHYERR_5211 : AR5K_RX_FILTER_PHYERR_5212))
 #define        AR5K_RX_FILTER_RADARERR \
 	((ah->ah_version == AR5K_AR5211 ? \
-	AR5K_RX_FILTER_RADARERR_5211 : AR5K_RX_FILTER_RADARERR_5212))
+	  AR5K_RX_FILTER_RADARERR_5211 : AR5K_RX_FILTER_RADARERR_5212))
 
 /*
  * Multicast filter register (lower 32 bits)
@@ -1368,7 +1368,7 @@
 #define AR5K_MCAST_FILTER0_5210	0x8050
 #define AR5K_MCAST_FILTER0_5211	0x8040
 #define AR5K_MCAST_FILTER0	(ah->ah_version == AR5K_AR5210 ? \
-				AR5K_MCAST_FILTER0_5210 : AR5K_MCAST_FILTER0_5211)
+							 AR5K_MCAST_FILTER0_5210 : AR5K_MCAST_FILTER0_5211)
 
 /*
  * Multicast filter register (higher 16 bits)
@@ -1376,7 +1376,7 @@
 #define AR5K_MCAST_FILTER1_5210	0x8054
 #define AR5K_MCAST_FILTER1_5211	0x8044
 #define AR5K_MCAST_FILTER1	(ah->ah_version == AR5K_AR5210 ? \
-				AR5K_MCAST_FILTER1_5210 : AR5K_MCAST_FILTER1_5211)
+							 AR5K_MCAST_FILTER1_5210 : AR5K_MCAST_FILTER1_5211)
 
 
 /*
@@ -1408,7 +1408,7 @@
 #define AR5K_DIAG_SW_5210		0x8068			/* Register Address [5210] */
 #define AR5K_DIAG_SW_5211		0x8048			/* Register Address [5211+] */
 #define AR5K_DIAG_SW			(ah->ah_version == AR5K_AR5210 ? \
-					AR5K_DIAG_SW_5210 : AR5K_DIAG_SW_5211)
+								 AR5K_DIAG_SW_5210 : AR5K_DIAG_SW_5211)
 #define AR5K_DIAG_SW_DIS_WEP_ACK	0x00000001	/* Disable ACKs if WEP key is invalid */
 #define AR5K_DIAG_SW_DIS_ACK		0x00000002	/* Disable ACKs */
 #define AR5K_DIAG_SW_DIS_CTS		0x00000004	/* Disable CTSs */
@@ -1418,23 +1418,23 @@
 #define AR5K_DIAG_SW_DIS_RX_5210	0x00000040	/* Disable receive */
 #define AR5K_DIAG_SW_DIS_RX_5211	0x00000020
 #define	AR5K_DIAG_SW_DIS_RX		(ah->ah_version == AR5K_AR5210 ? \
-					AR5K_DIAG_SW_DIS_RX_5210 : AR5K_DIAG_SW_DIS_RX_5211)
+								 AR5K_DIAG_SW_DIS_RX_5210 : AR5K_DIAG_SW_DIS_RX_5211)
 #define AR5K_DIAG_SW_LOOP_BACK_5210	0x00000080	/* TX Data Loopback (i guess it goes with DIS_TX) [5210] */
 #define AR5K_DIAG_SW_LOOP_BACK_5211	0x00000040
 #define AR5K_DIAG_SW_LOOP_BACK		(ah->ah_version == AR5K_AR5210 ? \
-					AR5K_DIAG_SW_LOOP_BACK_5210 : AR5K_DIAG_SW_LOOP_BACK_5211)
+									 AR5K_DIAG_SW_LOOP_BACK_5210 : AR5K_DIAG_SW_LOOP_BACK_5211)
 #define AR5K_DIAG_SW_CORR_FCS_5210	0x00000100	/* Generate invalid TX FCS */
 #define AR5K_DIAG_SW_CORR_FCS_5211	0x00000080
 #define AR5K_DIAG_SW_CORR_FCS		(ah->ah_version == AR5K_AR5210 ? \
-					AR5K_DIAG_SW_CORR_FCS_5210 : AR5K_DIAG_SW_CORR_FCS_5211)
+									 AR5K_DIAG_SW_CORR_FCS_5210 : AR5K_DIAG_SW_CORR_FCS_5211)
 #define AR5K_DIAG_SW_CHAN_INFO_5210	0x00000200	/* Add 56 bytes of channel info before the frame data in the RX buffer */
 #define AR5K_DIAG_SW_CHAN_INFO_5211	0x00000100
 #define AR5K_DIAG_SW_CHAN_INFO		(ah->ah_version == AR5K_AR5210 ? \
-					AR5K_DIAG_SW_CHAN_INFO_5210 : AR5K_DIAG_SW_CHAN_INFO_5211)
+									 AR5K_DIAG_SW_CHAN_INFO_5210 : AR5K_DIAG_SW_CHAN_INFO_5211)
 #define AR5K_DIAG_SW_EN_SCRAM_SEED_5210	0x00000400	/* Enable fixed scrambler seed */
 #define AR5K_DIAG_SW_EN_SCRAM_SEED_5211	0x00000200
 #define AR5K_DIAG_SW_EN_SCRAM_SEED	(ah->ah_version == AR5K_AR5210 ? \
-					AR5K_DIAG_SW_EN_SCRAM_SEED_5210 : AR5K_DIAG_SW_EN_SCRAM_SEED_5211)
+									 AR5K_DIAG_SW_EN_SCRAM_SEED_5210 : AR5K_DIAG_SW_EN_SCRAM_SEED_5211)
 #define AR5K_DIAG_SW_ECO_ENABLE		0x00000400	/* [5211+] */
 #define AR5K_DIAG_SW_SCVRAM_SEED	0x0003f800	/* [5210] */
 #define AR5K_DIAG_SW_SCRAM_SEED_M	0x0001fc00	/* Scrambler seed mask */
@@ -1443,7 +1443,7 @@
 #define AR5K_DIAG_SW_FRAME_NV0_5210	0x00080000
 #define AR5K_DIAG_SW_FRAME_NV0_5211	0x00020000	/* Accept frames of non-zero protocol number */
 #define	AR5K_DIAG_SW_FRAME_NV0		(ah->ah_version == AR5K_AR5210 ? \
-					AR5K_DIAG_SW_FRAME_NV0_5210 : AR5K_DIAG_SW_FRAME_NV0_5211)
+									 AR5K_DIAG_SW_FRAME_NV0_5210 : AR5K_DIAG_SW_FRAME_NV0_5211)
 #define AR5K_DIAG_SW_OBSPT_M		0x000c0000	/* Observation point select (?) */
 #define AR5K_DIAG_SW_OBSPT_S		18
 #define AR5K_DIAG_SW_RX_CLEAR_HIGH	0x00100000	/* Ignore carrier sense */
@@ -1457,7 +1457,7 @@
 #define AR5K_TSF_L32_5210	0x806c
 #define AR5K_TSF_L32_5211	0x804c
 #define	AR5K_TSF_L32		(ah->ah_version == AR5K_AR5210 ? \
-				AR5K_TSF_L32_5210 : AR5K_TSF_L32_5211)
+							 AR5K_TSF_L32_5210 : AR5K_TSF_L32_5211)
 
 /*
  * TSF (clock) register (higher 32 bits)
@@ -1465,7 +1465,7 @@
 #define AR5K_TSF_U32_5210	0x8070
 #define AR5K_TSF_U32_5211	0x8050
 #define	AR5K_TSF_U32		(ah->ah_version == AR5K_AR5210 ? \
-				AR5K_TSF_U32_5210 : AR5K_TSF_U32_5211)
+							 AR5K_TSF_U32_5210 : AR5K_TSF_U32_5211)
 
 /*
  * Last beacon timestamp register (Read Only)
@@ -1526,7 +1526,7 @@
 #define AR5K_NAV_5210		0x808c
 #define AR5K_NAV_5211		0x8084
 #define	AR5K_NAV		(ah->ah_version == AR5K_AR5210 ? \
-				AR5K_NAV_5210 : AR5K_NAV_5211)
+						 AR5K_NAV_5210 : AR5K_NAV_5211)
 
 /*
  * MIB counters:
@@ -1541,7 +1541,7 @@
 #define AR5K_RTS_OK_5210	0x8090
 #define AR5K_RTS_OK_5211	0x8088
 #define	AR5K_RTS_OK		(ah->ah_version == AR5K_AR5210 ? \
-				AR5K_RTS_OK_5210 : AR5K_RTS_OK_5211)
+						 AR5K_RTS_OK_5210 : AR5K_RTS_OK_5211)
 
 /*
  * RTS failure (MIB counter)
@@ -1549,7 +1549,7 @@
 #define AR5K_RTS_FAIL_5210	0x8094
 #define AR5K_RTS_FAIL_5211	0x808c
 #define	AR5K_RTS_FAIL		(ah->ah_version == AR5K_AR5210 ? \
-				AR5K_RTS_FAIL_5210 : AR5K_RTS_FAIL_5211)
+							 AR5K_RTS_FAIL_5210 : AR5K_RTS_FAIL_5211)
 
 /*
  * ACK failure (MIB counter)
@@ -1557,7 +1557,7 @@
 #define AR5K_ACK_FAIL_5210	0x8098
 #define AR5K_ACK_FAIL_5211	0x8090
 #define	AR5K_ACK_FAIL		(ah->ah_version == AR5K_AR5210 ? \
-				AR5K_ACK_FAIL_5210 : AR5K_ACK_FAIL_5211)
+							 AR5K_ACK_FAIL_5210 : AR5K_ACK_FAIL_5211)
 
 /*
  * FCS failure (MIB counter)
@@ -1565,7 +1565,7 @@
 #define AR5K_FCS_FAIL_5210	0x809c
 #define AR5K_FCS_FAIL_5211	0x8094
 #define	AR5K_FCS_FAIL		(ah->ah_version == AR5K_AR5210 ? \
-				AR5K_FCS_FAIL_5210 : AR5K_FCS_FAIL_5211)
+							 AR5K_FCS_FAIL_5210 : AR5K_FCS_FAIL_5211)
 
 /*
  * Beacon count register
@@ -1573,7 +1573,7 @@
 #define AR5K_BEACON_CNT_5210	0x80a0
 #define AR5K_BEACON_CNT_5211	0x8098
 #define	AR5K_BEACON_CNT		(ah->ah_version == AR5K_AR5210 ? \
-				AR5K_BEACON_CNT_5210 : AR5K_BEACON_CNT_5211)
+							 AR5K_BEACON_CNT_5210 : AR5K_BEACON_CNT_5211)
 
 
 /*===5212 Specific PCU registers===*/
@@ -2087,12 +2087,12 @@
 #define	AR5K_PHY_PLL_40MHZ_5212		0x000000aa
 #define	AR5K_PHY_PLL_40MHZ_5413		0x00000004
 #define	AR5K_PHY_PLL_40MHZ		(ah->ah_version == AR5K_AR5211 ? \
-					AR5K_PHY_PLL_40MHZ_5211 : AR5K_PHY_PLL_40MHZ_5212)
+								 AR5K_PHY_PLL_40MHZ_5211 : AR5K_PHY_PLL_40MHZ_5212)
 /* 44MHz -> 2.4GHz band */
 #define	AR5K_PHY_PLL_44MHZ_5211		0x00000019
 #define	AR5K_PHY_PLL_44MHZ_5212		0x000000ab
 #define	AR5K_PHY_PLL_44MHZ		(ah->ah_version == AR5K_AR5211 ? \
-					AR5K_PHY_PLL_44MHZ_5211 : AR5K_PHY_PLL_44MHZ_5212)
+								 AR5K_PHY_PLL_44MHZ_5211 : AR5K_PHY_PLL_44MHZ_5212)
 
 #define AR5K_PHY_PLL_RF5111		0x00000000
 #define AR5K_PHY_PLL_RF5112		0x00000040
@@ -2114,18 +2114,18 @@
 #define AR5K_RF_BUFFER_CONTROL_2	0x98cc	/* Bank 7 on 5111 */
 
 #define AR5K_RF_BUFFER_CONTROL_3	0x98d0	/* Bank 2 on 5112 */
-						/* Channel set on 5111 */
-						/* Used to read radio revision*/
+/* Channel set on 5111 */
+/* Used to read radio revision*/
 
 #define AR5K_RF_BUFFER_CONTROL_4	0x98d4  /* RF Stage register on 5110 */
-						/* Bank 0,1,2,6 on 5111 */
-						/* Bank 1 on 5112 */
-						/* Used during activation on 5111 */
+/* Bank 0,1,2,6 on 5111 */
+/* Bank 1 on 5112 */
+/* Used during activation on 5111 */
 
 #define AR5K_RF_BUFFER_CONTROL_5	0x98d8	/* Bank 3 on 5111 */
-						/* Used during activation on 5111 */
-						/* Channel on 5112 */
-						/* Bank 6 on 5112 */
+/* Used during activation on 5111 */
+/* Channel on 5112 */
+/* Bank 6 on 5112 */
 
 #define AR5K_RF_BUFFER_CONTROL_6	0x98dc	/* Bank 3 on 5112 */
 
@@ -2258,7 +2258,7 @@
 #define	AR5K_PHY_FRAME_CTL_5210		0x9804
 #define	AR5K_PHY_FRAME_CTL_5211		0x9944
 #define	AR5K_PHY_FRAME_CTL		(ah->ah_version == AR5K_AR5210 ? \
-					AR5K_PHY_FRAME_CTL_5210 : AR5K_PHY_FRAME_CTL_5211)
+								 AR5K_PHY_FRAME_CTL_5210 : AR5K_PHY_FRAME_CTL_5211)
 /*---[5111+]---*/
 #define	AR5K_PHY_FRAME_CTL_WIN_LEN	0x00000003	/* Force window length (?) */
 #define	AR5K_PHY_FRAME_CTL_WIN_LEN_S	0
@@ -2275,12 +2275,12 @@
 #define	AR5K_PHY_FRAME_CTL_SERVICE_ERR	0x20000000
 #define	AR5K_PHY_FRAME_CTL_TXURN_ERR	0x40000000	/* TX underrun */
 #define AR5K_PHY_FRAME_CTL_INI	\
-			(AR5K_PHY_FRAME_CTL_SERVICE_ERR | \
-			 AR5K_PHY_FRAME_CTL_TXURN_ERR | \
-			 AR5K_PHY_FRAME_CTL_ILLLEN_ERR | \
-			 AR5K_PHY_FRAME_CTL_ILLRATE_ERR | \
-			 AR5K_PHY_FRAME_CTL_PARITY_ERR | \
-			 AR5K_PHY_FRAME_CTL_TIMING_ERR)
+	(AR5K_PHY_FRAME_CTL_SERVICE_ERR | \
+	 AR5K_PHY_FRAME_CTL_TXURN_ERR | \
+	 AR5K_PHY_FRAME_CTL_ILLLEN_ERR | \
+	 AR5K_PHY_FRAME_CTL_ILLRATE_ERR | \
+	 AR5K_PHY_FRAME_CTL_PARITY_ERR | \
+	 AR5K_PHY_FRAME_CTL_TIMING_ERR)
 
 /*
  * PHY Tx Power adjustment register [5212A+]

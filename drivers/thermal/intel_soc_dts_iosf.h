@@ -21,7 +21,8 @@
 /* DTS0 and DTS 1 */
 #define SOC_MAX_DTS_SENSORS	2
 
-enum intel_soc_dts_interrupt_type {
+enum intel_soc_dts_interrupt_type
+{
 	INTEL_SOC_DTS_INTERRUPT_NONE,
 	INTEL_SOC_DTS_INTERRUPT_APIC,
 	INTEL_SOC_DTS_INTERRUPT_MSI,
@@ -31,7 +32,8 @@ enum intel_soc_dts_interrupt_type {
 
 struct intel_soc_dts_sensors;
 
-struct intel_soc_dts_sensor_entry {
+struct intel_soc_dts_sensor_entry
+{
 	int id;
 	u32 temp_mask;
 	u32 temp_shift;
@@ -43,7 +45,8 @@ struct intel_soc_dts_sensor_entry {
 	struct intel_soc_dts_sensors *sensors;
 };
 
-struct intel_soc_dts_sensors {
+struct intel_soc_dts_sensors
+{
 	u32 tj_max;
 	spinlock_t intr_notify_lock;
 	struct mutex dts_update_lock;
@@ -56,7 +59,7 @@ struct intel_soc_dts_sensors *intel_soc_dts_iosf_init(
 	int read_only_trip_count);
 void intel_soc_dts_iosf_exit(struct intel_soc_dts_sensors *sensors);
 void intel_soc_dts_iosf_interrupt_handler(
-				struct intel_soc_dts_sensors *sensors);
+	struct intel_soc_dts_sensors *sensors);
 int intel_soc_dts_iosf_add_read_only_critical_trip(
 	struct intel_soc_dts_sensors *sensors, int critical_offset);
 #endif

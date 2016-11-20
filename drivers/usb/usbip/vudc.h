@@ -34,68 +34,78 @@
 
 #define GADGET_NAME "usbip-vudc"
 
-struct vep {
+struct vep
+{
 	struct usb_ep ep;
-	unsigned type:2; /* type, as USB_ENDPOINT_XFER_* */
+	unsigned type: 2; /* type, as USB_ENDPOINT_XFER_* */
 	char name[8];	/* space for ep name */
 
 	const struct usb_endpoint_descriptor *desc;
 	struct usb_gadget *gadget;
 	struct list_head req_queue; /* Request queue */
-	unsigned halted:1;
-	unsigned wedged:1;
-	unsigned already_seen:1;
-	unsigned setup_stage:1;
+	unsigned halted: 1;
+	unsigned wedged: 1;
+	unsigned already_seen: 1;
+	unsigned setup_stage: 1;
 };
 
-struct vrequest {
+struct vrequest
+{
 	struct usb_request req;
 	struct vudc *udc;
 	struct list_head req_entry; /* Request queue */
 };
 
-struct urbp {
+struct urbp
+{
 	struct urb *urb;
 	struct vep *ep;
 	struct list_head urb_entry; /* urb queue */
 	unsigned long seqnum;
-	unsigned type:2; /* for tx, since ep type can change after */
-	unsigned new:1;
+	unsigned type: 2; /* for tx, since ep type can change after */
+	unsigned new: 1;
 };
 
-struct v_unlink {
+struct v_unlink
+{
 	unsigned long seqnum;
 	__u32 status;
 };
 
-enum tx_type {
+enum tx_type
+{
 	TX_UNLINK,
 	TX_SUBMIT,
 };
 
-struct tx_item {
+struct tx_item
+{
 	struct list_head tx_entry;
 	enum tx_type type;
-	union {
+	union
+	{
 		struct urbp *s;
 		struct v_unlink *u;
 	};
 };
 
-enum tr_state {
+enum tr_state
+{
 	VUDC_TR_RUNNING,
 	VUDC_TR_IDLE,
 	VUDC_TR_STOPPED,
 };
 
-struct transfer_timer {
+struct transfer_timer
+{
 	struct timer_list timer;
 	enum tr_state state;
 	unsigned long frame_start;
 	int frame_limit;
 };
 
-struct vudc {
+struct vudc
+{
 	struct usb_gadget gadget;
 	struct usb_gadget_driver *driver;
 	struct platform_device *pdev;
@@ -117,12 +127,13 @@ struct vudc {
 	int address;
 	u16 devstatus;
 
-	unsigned pullup:1;
-	unsigned connected:1;
-	unsigned desc_cached:1;
+	unsigned pullup: 1;
+	unsigned connected: 1;
+	unsigned desc_cached: 1;
 };
 
-struct vudc_device {
+struct vudc_device
+{
 	struct platform_device *pdev;
 	struct list_head dev_entry;
 };

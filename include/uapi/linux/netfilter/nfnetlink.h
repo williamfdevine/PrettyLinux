@@ -3,7 +3,8 @@
 #include <linux/types.h>
 #include <linux/netfilter/nfnetlink_compat.h>
 
-enum nfnetlink_groups {
+enum nfnetlink_groups
+{
 	NFNLGRP_NONE,
 #define NFNLGRP_NONE			NFNLGRP_NONE
 	NFNLGRP_CONNTRACK_NEW,
@@ -30,7 +31,8 @@ enum nfnetlink_groups {
 
 /* General form of address family dependent message.
  */
-struct nfgenmsg {
+struct nfgenmsg
+{
 	__u8  nfgen_family;		/* AF_xxx */
 	__u8  version;		/* nfnetlink version */
 	__be16    res_id;		/* resource id */

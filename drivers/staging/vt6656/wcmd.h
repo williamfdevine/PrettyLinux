@@ -29,7 +29,8 @@
 #include "device.h"
 
 /* Command code */
-enum vnt_cmd {
+enum vnt_cmd
+{
 	WLAN_CMD_INIT_MAC80211,
 	WLAN_CMD_SETPOWER,
 	WLAN_CMD_TBTT_WAKEUP,
@@ -40,7 +41,8 @@ enum vnt_cmd {
 #define CMD_Q_SIZE              32
 
 /* Command state */
-enum vnt_cmd_state {
+enum vnt_cmd_state
+{
 	WLAN_CMD_INIT_MAC80211_START,
 	WLAN_CMD_SETPOWER_START,
 	WLAN_CMD_TBTT_WAKEUP_START,

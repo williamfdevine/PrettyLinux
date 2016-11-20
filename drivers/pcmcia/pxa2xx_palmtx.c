@@ -19,10 +19,11 @@
 #include <mach/palmtx.h>
 #include "soc_common.h"
 
-static struct gpio palmtx_pcmcia_gpios[] = {
+static struct gpio palmtx_pcmcia_gpios[] =
+{
 	{ GPIO_NR_PALMTX_PCMCIA_POWER1,	GPIOF_INIT_LOW,	"PCMCIA Power 1" },
 	{ GPIO_NR_PALMTX_PCMCIA_POWER2,	GPIOF_INIT_LOW,	"PCMCIA Power 2" },
-	{ GPIO_NR_PALMTX_PCMCIA_RESET,	GPIOF_INIT_HIGH,"PCMCIA Reset" },
+	{ GPIO_NR_PALMTX_PCMCIA_RESET,	GPIOF_INIT_HIGH, "PCMCIA Reset" },
 };
 
 static int palmtx_pcmcia_hw_init(struct soc_pcmcia_socket *skt)
@@ -30,7 +31,7 @@ static int palmtx_pcmcia_hw_init(struct soc_pcmcia_socket *skt)
 	int ret;
 
 	ret = gpio_request_array(palmtx_pcmcia_gpios,
-				ARRAY_SIZE(palmtx_pcmcia_gpios));
+							 ARRAY_SIZE(palmtx_pcmcia_gpios));
 
 	skt->stat[SOC_STAT_RDY].gpio = GPIO_NR_PALMTX_PCMCIA_READY;
 	skt->stat[SOC_STAT_RDY].name = "PCMCIA Ready";
@@ -44,7 +45,7 @@ static void palmtx_pcmcia_hw_shutdown(struct soc_pcmcia_socket *skt)
 }
 
 static void palmtx_pcmcia_socket_state(struct soc_pcmcia_socket *skt,
-					struct pcmcia_state *state)
+									   struct pcmcia_state *state)
 {
 	state->detect = 1; /* always inserted */
 	state->vs_3v  = 1;
@@ -53,17 +54,18 @@ static void palmtx_pcmcia_socket_state(struct soc_pcmcia_socket *skt,
 
 static int
 palmtx_pcmcia_configure_socket(struct soc_pcmcia_socket *skt,
-				const socket_state_t *state)
+							   const socket_state_t *state)
 {
 	gpio_set_value(GPIO_NR_PALMTX_PCMCIA_POWER1, 1);
 	gpio_set_value(GPIO_NR_PALMTX_PCMCIA_POWER2, 1);
 	gpio_set_value(GPIO_NR_PALMTX_PCMCIA_RESET,
-			!!(state->flags & SS_RESET));
+				   !!(state->flags & SS_RESET));
 
 	return 0;
 }
 
-static struct pcmcia_low_level palmtx_pcmcia_ops = {
+static struct pcmcia_low_level palmtx_pcmcia_ops =
+{
 	.owner			= THIS_MODULE,
 
 	.first			= 0,
@@ -83,20 +85,29 @@ static int __init palmtx_pcmcia_init(void)
 	int ret;
 
 	if (!machine_is_palmtx())
+	{
 		return -ENODEV;
+	}
 
 	palmtx_pcmcia_device = platform_device_alloc("pxa2xx-pcmcia", -1);
+
 	if (!palmtx_pcmcia_device)
+	{
 		return -ENOMEM;
+	}
 
 	ret = platform_device_add_data(palmtx_pcmcia_device, &palmtx_pcmcia_ops,
-					sizeof(palmtx_pcmcia_ops));
+								   sizeof(palmtx_pcmcia_ops));
 
 	if (!ret)
+	{
 		ret = platform_device_add(palmtx_pcmcia_device);
+	}
 
 	if (ret)
+	{
 		platform_device_put(palmtx_pcmcia_device);
+	}
 
 	return ret;
 }

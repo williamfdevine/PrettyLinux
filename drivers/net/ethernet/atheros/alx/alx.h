@@ -43,13 +43,15 @@
 
 #define ALX_WATCHDOG_TIME   (5 * HZ)
 
-struct alx_buffer {
+struct alx_buffer
+{
 	struct sk_buff *skb;
 	DEFINE_DMA_UNMAP_ADDR(dma);
 	DEFINE_DMA_UNMAP_LEN(size);
 };
 
-struct alx_rx_queue {
+struct alx_rx_queue
+{
 	struct alx_rrd *rrd;
 	dma_addr_t rrd_dma;
 
@@ -63,7 +65,8 @@ struct alx_rx_queue {
 };
 #define ALX_RX_ALLOC_THRESH	32
 
-struct alx_tx_queue {
+struct alx_tx_queue
+{
 	struct alx_txd *tpd;
 	dma_addr_t tpd_dma;
 	struct alx_buffer *bufs;
@@ -72,14 +75,16 @@ struct alx_tx_queue {
 
 #define ALX_DEFAULT_TX_WORK 128
 
-enum alx_device_quirks {
+enum alx_device_quirks
+{
 	ALX_DEV_QUIRK_MSI_INTX_DISABLE_BUG = BIT(0),
 };
 
 #define ALX_FLAG_USING_MSIX	BIT(0)
 #define ALX_FLAG_USING_MSI	BIT(1)
 
-struct alx_priv {
+struct alx_priv
+{
 	struct net_device *dev;
 
 	struct alx_hw hw;
@@ -90,7 +95,8 @@ struct alx_priv {
 	char irq_lbl[IFNAMSIZ + 8];
 
 	/* all descriptor memory */
-	struct {
+	struct
+	{
 		dma_addr_t dma;
 		void *virt;
 		unsigned int size;

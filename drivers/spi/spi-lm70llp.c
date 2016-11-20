@@ -76,7 +76,8 @@
 
 /*-------------------------------------------------------------------------*/
 
-struct spi_lm70llp {
+struct spi_lm70llp
+{
 	struct spi_bitbang	bitbang;
 	struct parport		*port;
 	struct pardevice	*pd;
@@ -144,9 +145,13 @@ static inline void setsck(struct spi_device *s, int is_on)
 	struct spi_lm70llp *pp = spidev_to_pp(s);
 
 	if (is_on)
+	{
 		clkHigh(pp);
+	}
 	else
+	{
 		clkLow(pp);
+	}
 }
 
 static inline void setmosi(struct spi_device *s, int is_on)
@@ -180,9 +185,13 @@ static void lm70_chipselect(struct spi_device *spi, int value)
 	struct spi_lm70llp *pp = spidev_to_pp(spi);
 
 	if (value)
+	{
 		assertCS(pp);
+	}
 	else
+	{
 		deassertCS(pp);
+	}
 }
 
 /*
@@ -201,7 +210,8 @@ static void spi_lm70llp_attach(struct parport *p)
 	int			status;
 	struct pardev_cb	lm70llp_cb;
 
-	if (lm70llp) {
+	if (lm70llp)
+	{
 		pr_warn("spi_lm70llp instance already loaded. Aborting.\n");
 		return;
 	}
@@ -210,11 +220,14 @@ static void spi_lm70llp_attach(struct parport *p)
 	 * the lm70 driver could verify it, reading the manf ID.
 	 */
 
-	master = spi_alloc_master(p->physport->dev, sizeof *pp);
-	if (!master) {
+	master = spi_alloc_master(p->physport->dev, sizeof * pp);
+
+	if (!master)
+	{
 		status = -ENOMEM;
 		goto out_fail;
 	}
+
 	pp = spi_master_get_devdata(master);
 
 	/*
@@ -234,23 +247,30 @@ static void spi_lm70llp_attach(struct parport *p)
 	lm70llp_cb.flags = PARPORT_FLAG_EXCL;
 	pd = parport_register_dev_model(p, DRVNAME, &lm70llp_cb, 0);
 
-	if (!pd) {
+	if (!pd)
+	{
 		status = -ENOMEM;
 		goto out_free_master;
 	}
+
 	pp->pd = pd;
 
 	status = parport_claim(pd);
+
 	if (status < 0)
+	{
 		goto out_parport_unreg;
+	}
 
 	/*
 	 * Start SPI ...
 	 */
 	status = spi_bitbang_start(&pp->bitbang);
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		dev_warn(&pd->dev, "spi_bitbang_start failed with status %d\n",
-			 status);
+				 status);
 		goto out_off_and_release;
 	}
 
@@ -273,14 +293,17 @@ static void spi_lm70llp_attach(struct parport *p)
 	 */
 	pp->info.controller_data = pp;
 	pp->spidev_lm70 = spi_new_device(pp->bitbang.master, &pp->info);
+
 	if (pp->spidev_lm70)
 		dev_dbg(&pp->spidev_lm70->dev, "spidev_lm70 at %s\n",
-			dev_name(&pp->spidev_lm70->dev));
-	else {
+				dev_name(&pp->spidev_lm70->dev));
+	else
+	{
 		dev_warn(&pd->dev, "spi_new_device failed\n");
 		status = -ENODEV;
 		goto out_bitbang_stop;
 	}
+
 	pp->spidev_lm70->bits_per_word = 8;
 
 	lm70llp = pp;
@@ -306,7 +329,9 @@ static void spi_lm70llp_detach(struct parport *p)
 	struct spi_lm70llp		*pp;
 
 	if (!lm70llp || lm70llp->port != p)
+	{
 		return;
+	}
 
 	pp = lm70llp;
 	spi_bitbang_stop(&pp->bitbang);
@@ -322,7 +347,8 @@ static void spi_lm70llp_detach(struct parport *p)
 	lm70llp = NULL;
 }
 
-static struct parport_driver spi_lm70llp_drv = {
+static struct parport_driver spi_lm70llp_drv =
+{
 	.name =		DRVNAME,
 	.match_port =	spi_lm70llp_attach,
 	.detach =	spi_lm70llp_detach,

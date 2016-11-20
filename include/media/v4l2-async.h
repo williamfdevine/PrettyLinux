@@ -36,7 +36,8 @@ struct v4l2_async_notifier;
  * This enum is used by the asyncrhronous sub-device logic to define the
  * algorithm that will be used to match an asynchronous device.
  */
-enum v4l2_async_match_type {
+enum v4l2_async_match_type
+{
 	V4L2_ASYNC_MATCH_CUSTOM,
 	V4L2_ASYNC_MATCH_DEVNAME,
 	V4L2_ASYNC_MATCH_I2C,
@@ -51,22 +52,28 @@ enum v4l2_async_match_type {
  * @list:	used to link struct v4l2_async_subdev objects, waiting to be
  *		probed, to a notifier->waiting list
  */
-struct v4l2_async_subdev {
+struct v4l2_async_subdev
+{
 	enum v4l2_async_match_type match_type;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			const struct device_node *node;
 		} of;
-		struct {
+		struct
+		{
 			const char *name;
 		} device_name;
-		struct {
+		struct
+		{
 			int adapter_id;
 			unsigned short address;
 		} i2c;
-		struct {
+		struct
+		{
 			bool (*match)(struct device *,
-				      struct v4l2_async_subdev *);
+						  struct v4l2_async_subdev *);
 			void *priv;
 		} custom;
 	} match;
@@ -88,7 +95,8 @@ struct v4l2_async_subdev {
  * @complete:	all subdevices have been probed successfully
  * @unbind:	a subdevice is leaving
  */
-struct v4l2_async_notifier {
+struct v4l2_async_notifier
+{
 	unsigned int num_subdevs;
 	struct v4l2_async_subdev **subdevs;
 	struct v4l2_device *v4l2_dev;
@@ -96,12 +104,12 @@ struct v4l2_async_notifier {
 	struct list_head done;
 	struct list_head list;
 	int (*bound)(struct v4l2_async_notifier *notifier,
-		     struct v4l2_subdev *subdev,
-		     struct v4l2_async_subdev *asd);
+				 struct v4l2_subdev *subdev,
+				 struct v4l2_async_subdev *asd);
 	int (*complete)(struct v4l2_async_notifier *notifier);
 	void (*unbind)(struct v4l2_async_notifier *notifier,
-		       struct v4l2_subdev *subdev,
-		       struct v4l2_async_subdev *asd);
+				   struct v4l2_subdev *subdev,
+				   struct v4l2_async_subdev *asd);
 };
 
 /**
@@ -111,7 +119,7 @@ struct v4l2_async_notifier {
  * @notifier: pointer to &struct v4l2_async_notifier
  */
 int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-				 struct v4l2_async_notifier *notifier);
+								 struct v4l2_async_notifier *notifier);
 
 /**
  * v4l2_async_notifier_unregister - unregisters a subdevice asynchronous notifier

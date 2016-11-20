@@ -22,7 +22,7 @@ static int lbs_add_mesh(struct lbs_private *priv);
  */
 
 static int lbs_mesh_access(struct lbs_private *priv, uint16_t cmd_action,
-		    struct cmd_ds_mesh_access *cmd)
+						   struct cmd_ds_mesh_access *cmd)
 {
 	int ret;
 
@@ -41,8 +41,8 @@ static int lbs_mesh_access(struct lbs_private *priv, uint16_t cmd_action,
 }
 
 static int __lbs_mesh_config_send(struct lbs_private *priv,
-				  struct cmd_ds_mesh_config *cmd,
-				  uint16_t action, uint16_t type)
+								  struct cmd_ds_mesh_config *cmd,
+								  uint16_t action, uint16_t type)
 {
 	int ret;
 	u16 command = CMD_MESH_CONFIG_OLD;
@@ -55,7 +55,7 @@ static int __lbs_mesh_config_send(struct lbs_private *priv,
 	 */
 	if (priv->mesh_tlv == TLV_TYPE_MESH_ID)
 		command = CMD_MESH_CONFIG |
-			  (MESH_IFACE_ID << MESH_IFACE_BIT_OFFSET);
+				  (MESH_IFACE_ID << MESH_IFACE_BIT_OFFSET);
 
 	cmd->hdr.command = cpu_to_le16(command);
 	cmd->hdr.size = cpu_to_le16(sizeof(struct cmd_ds_mesh_config));
@@ -71,13 +71,15 @@ static int __lbs_mesh_config_send(struct lbs_private *priv,
 }
 
 static int lbs_mesh_config_send(struct lbs_private *priv,
-			 struct cmd_ds_mesh_config *cmd,
-			 uint16_t action, uint16_t type)
+								struct cmd_ds_mesh_config *cmd,
+								uint16_t action, uint16_t type)
 {
 	int ret;
 
 	if (!(priv->fwcapinfo & FW_CAPINFO_PERSISTENT_CONFIG))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	ret = __lbs_mesh_config_send(priv, cmd, action, type);
 	return ret;
@@ -89,7 +91,7 @@ static int lbs_mesh_config_send(struct lbs_private *priv,
  * lbs_mesh_config_send.
  */
 static int lbs_mesh_config(struct lbs_private *priv, uint16_t action,
-		uint16_t chan)
+						   uint16_t chan)
 {
 	struct cmd_ds_mesh_config cmd;
 	struct mrvl_meshie *ie;
@@ -98,32 +100,36 @@ static int lbs_mesh_config(struct lbs_private *priv, uint16_t action,
 	cmd.channel = cpu_to_le16(chan);
 	ie = (struct mrvl_meshie *)cmd.data;
 
-	switch (action) {
-	case CMD_ACT_MESH_CONFIG_START:
-		ie->id = WLAN_EID_VENDOR_SPECIFIC;
-		ie->val.oui[0] = 0x00;
-		ie->val.oui[1] = 0x50;
-		ie->val.oui[2] = 0x43;
-		ie->val.type = MARVELL_MESH_IE_TYPE;
-		ie->val.subtype = MARVELL_MESH_IE_SUBTYPE;
-		ie->val.version = MARVELL_MESH_IE_VERSION;
-		ie->val.active_protocol_id = MARVELL_MESH_PROTO_ID_HWMP;
-		ie->val.active_metric_id = MARVELL_MESH_METRIC_ID;
-		ie->val.mesh_capability = MARVELL_MESH_CAPABILITY;
-		ie->val.mesh_id_len = priv->mesh_ssid_len;
-		memcpy(ie->val.mesh_id, priv->mesh_ssid, priv->mesh_ssid_len);
-		ie->len = sizeof(struct mrvl_meshie_val) -
-			IEEE80211_MAX_SSID_LEN + priv->mesh_ssid_len;
-		cmd.length = cpu_to_le16(sizeof(struct mrvl_meshie_val));
-		break;
-	case CMD_ACT_MESH_CONFIG_STOP:
-		break;
-	default:
-		return -1;
+	switch (action)
+	{
+		case CMD_ACT_MESH_CONFIG_START:
+			ie->id = WLAN_EID_VENDOR_SPECIFIC;
+			ie->val.oui[0] = 0x00;
+			ie->val.oui[1] = 0x50;
+			ie->val.oui[2] = 0x43;
+			ie->val.type = MARVELL_MESH_IE_TYPE;
+			ie->val.subtype = MARVELL_MESH_IE_SUBTYPE;
+			ie->val.version = MARVELL_MESH_IE_VERSION;
+			ie->val.active_protocol_id = MARVELL_MESH_PROTO_ID_HWMP;
+			ie->val.active_metric_id = MARVELL_MESH_METRIC_ID;
+			ie->val.mesh_capability = MARVELL_MESH_CAPABILITY;
+			ie->val.mesh_id_len = priv->mesh_ssid_len;
+			memcpy(ie->val.mesh_id, priv->mesh_ssid, priv->mesh_ssid_len);
+			ie->len = sizeof(struct mrvl_meshie_val) -
+					  IEEE80211_MAX_SSID_LEN + priv->mesh_ssid_len;
+			cmd.length = cpu_to_le16(sizeof(struct mrvl_meshie_val));
+			break;
+
+		case CMD_ACT_MESH_CONFIG_STOP:
+			break;
+
+		default:
+			return -1;
 	}
+
 	lbs_deb_cmd("mesh config action %d type %x channel %d SSID %*pE\n",
-		    action, priv->mesh_tlv, chan, priv->mesh_ssid_len,
-		    priv->mesh_ssid);
+				action, priv->mesh_tlv, chan, priv->mesh_ssid_len,
+				priv->mesh_ssid);
 
 	return __lbs_mesh_config_send(priv, &cmd, action, priv->mesh_tlv);
 }
@@ -136,7 +142,7 @@ int lbs_mesh_set_channel(struct lbs_private *priv, u8 channel)
 
 static uint16_t lbs_mesh_get_channel(struct lbs_private *priv)
 {
-	return priv->mesh_channel ?: 1;
+	return priv->mesh_channel ? : 1;
 }
 
 /***************************************************************************
@@ -154,7 +160,7 @@ static uint16_t lbs_mesh_get_channel(struct lbs_private *priv)
  * @buf: buffer where data will be returned
  */
 static ssize_t lbs_anycast_get(struct device *dev,
-		struct device_attribute *attr, char * buf)
+							   struct device_attribute *attr, char *buf)
 {
 	struct lbs_private *priv = to_net_dev(dev)->ml_priv;
 	struct cmd_ds_mesh_access mesh_access;
@@ -163,8 +169,11 @@ static ssize_t lbs_anycast_get(struct device *dev,
 	memset(&mesh_access, 0, sizeof(mesh_access));
 
 	ret = lbs_mesh_access(priv, CMD_ACT_MESH_GET_ANYCAST, &mesh_access);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return snprintf(buf, 12, "0x%X\n", le32_to_cpu(mesh_access.data[0]));
 }
@@ -177,7 +186,7 @@ static ssize_t lbs_anycast_get(struct device *dev,
  * @count: size of buffer
  */
 static ssize_t lbs_anycast_set(struct device *dev,
-		struct device_attribute *attr, const char * buf, size_t count)
+							   struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct lbs_private *priv = to_net_dev(dev)->ml_priv;
 	struct cmd_ds_mesh_access mesh_access;
@@ -189,8 +198,11 @@ static ssize_t lbs_anycast_set(struct device *dev,
 	mesh_access.data[0] = cpu_to_le32(datum);
 
 	ret = lbs_mesh_access(priv, CMD_ACT_MESH_SET_ANYCAST, &mesh_access);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return strlen(buf);
 }
@@ -202,7 +214,7 @@ static ssize_t lbs_anycast_set(struct device *dev,
  * @buf: buffer where data will be returned
  */
 static ssize_t lbs_prb_rsp_limit_get(struct device *dev,
-		struct device_attribute *attr, char *buf)
+									 struct device_attribute *attr, char *buf)
 {
 	struct lbs_private *priv = to_net_dev(dev)->ml_priv;
 	struct cmd_ds_mesh_access mesh_access;
@@ -213,9 +225,12 @@ static ssize_t lbs_prb_rsp_limit_get(struct device *dev,
 	mesh_access.data[0] = cpu_to_le32(CMD_ACT_GET);
 
 	ret = lbs_mesh_access(priv, CMD_ACT_MESH_SET_GET_PRB_RSP_LIMIT,
-			&mesh_access);
+						  &mesh_access);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	retry_limit = le32_to_cpu(mesh_access.data[1]);
 	return snprintf(buf, 10, "%d\n", retry_limit);
@@ -229,7 +244,7 @@ static ssize_t lbs_prb_rsp_limit_get(struct device *dev,
  * @count: size of buffer
  */
 static ssize_t lbs_prb_rsp_limit_set(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t count)
+									 struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct lbs_private *priv = to_net_dev(dev)->ml_priv;
 	struct cmd_ds_mesh_access mesh_access;
@@ -240,16 +255,24 @@ static ssize_t lbs_prb_rsp_limit_set(struct device *dev,
 	mesh_access.data[0] = cpu_to_le32(CMD_ACT_SET);
 
 	if (!kstrtoul(buf, 10, &retry_limit))
+	{
 		return -ENOTSUPP;
+	}
+
 	if (retry_limit > 15)
+	{
 		return -ENOTSUPP;
+	}
 
 	mesh_access.data[1] = cpu_to_le32(retry_limit);
 
 	ret = lbs_mesh_access(priv, CMD_ACT_MESH_SET_GET_PRB_RSP_LIMIT,
-			&mesh_access);
+						  &mesh_access);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return strlen(buf);
 }
@@ -261,7 +284,7 @@ static ssize_t lbs_prb_rsp_limit_set(struct device *dev,
  * @buf: buffer where data will be returned
  */
 static ssize_t lbs_mesh_get(struct device *dev,
-		struct device_attribute *attr, char * buf)
+							struct device_attribute *attr, char *buf)
 {
 	struct lbs_private *priv = to_net_dev(dev)->ml_priv;
 	return snprintf(buf, 5, "0x%X\n", !!priv->mesh_dev);
@@ -275,20 +298,27 @@ static ssize_t lbs_mesh_get(struct device *dev,
  * @count: size of buffer
  */
 static ssize_t lbs_mesh_set(struct device *dev,
-		struct device_attribute *attr, const char * buf, size_t count)
+							struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct lbs_private *priv = to_net_dev(dev)->ml_priv;
 	int enable;
 
 	sscanf(buf, "%x", &enable);
 	enable = !!enable;
+
 	if (enable == !!priv->mesh_dev)
+	{
 		return count;
+	}
 
 	if (enable)
+	{
 		lbs_add_mesh(priv);
+	}
 	else
+	{
 		lbs_remove_mesh(priv);
+	}
 
 	return count;
 }
@@ -310,15 +340,17 @@ static DEVICE_ATTR(anycast_mask, 0644, lbs_anycast_get, lbs_anycast_set);
  * through sysfs (/sys/class/net/mshX/prb_rsp_limit)
  */
 static DEVICE_ATTR(prb_rsp_limit, 0644, lbs_prb_rsp_limit_get,
-		lbs_prb_rsp_limit_set);
+				   lbs_prb_rsp_limit_set);
 
-static struct attribute *lbs_mesh_sysfs_entries[] = {
+static struct attribute *lbs_mesh_sysfs_entries[] =
+{
 	&dev_attr_anycast_mask.attr,
 	&dev_attr_prb_rsp_limit.attr,
 	NULL,
 };
 
-static const struct attribute_group lbs_mesh_attr_group = {
+static const struct attribute_group lbs_mesh_attr_group =
+{
 	.attrs = lbs_mesh_sysfs_entries,
 };
 
@@ -328,7 +360,7 @@ static const struct attribute_group lbs_mesh_attr_group = {
  */
 
 static int mesh_get_default_parameters(struct device *dev,
-				       struct mrvl_mesh_defaults *defs)
+									   struct mrvl_mesh_defaults *defs)
 {
 	struct lbs_private *priv = to_net_dev(dev)->ml_priv;
 	struct cmd_ds_mesh_config cmd;
@@ -336,10 +368,12 @@ static int mesh_get_default_parameters(struct device *dev,
 
 	memset(&cmd, 0, sizeof(struct cmd_ds_mesh_config));
 	ret = lbs_mesh_config_send(priv, &cmd, CMD_ACT_MESH_CONFIG_GET,
-				   CMD_TYPE_MESH_GET_DEFAULTS);
+							   CMD_TYPE_MESH_GET_DEFAULTS);
 
 	if (ret)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	memcpy(defs, &cmd.data[0], sizeof(struct mrvl_mesh_defaults));
 
@@ -353,7 +387,7 @@ static int mesh_get_default_parameters(struct device *dev,
  * @buf: buffer where data will be returned
  */
 static ssize_t bootflag_get(struct device *dev,
-			    struct device_attribute *attr, char *buf)
+							struct device_attribute *attr, char *buf)
 {
 	struct mrvl_mesh_defaults defs;
 	int ret;
@@ -361,7 +395,9 @@ static ssize_t bootflag_get(struct device *dev,
 	ret = mesh_get_default_parameters(dev, &defs);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	return snprintf(buf, 12, "%d\n", le32_to_cpu(defs.bootflag));
 }
@@ -374,7 +410,7 @@ static ssize_t bootflag_get(struct device *dev,
  * @count: size of buffer
  */
 static ssize_t bootflag_set(struct device *dev, struct device_attribute *attr,
-			    const char *buf, size_t count)
+							const char *buf, size_t count)
 {
 	struct lbs_private *priv = to_net_dev(dev)->ml_priv;
 	struct cmd_ds_mesh_config cmd;
@@ -383,15 +419,21 @@ static ssize_t bootflag_set(struct device *dev, struct device_attribute *attr,
 
 	memset(&cmd, 0, sizeof(cmd));
 	ret = sscanf(buf, "%d", &datum);
+
 	if ((ret != 1) || (datum > 1))
+	{
 		return -EINVAL;
+	}
 
 	*((__le32 *)&cmd.data[0]) = cpu_to_le32(!!datum);
 	cmd.length = cpu_to_le16(sizeof(uint32_t));
 	ret = lbs_mesh_config_send(priv, &cmd, CMD_ACT_MESH_CONFIG_SET,
-				   CMD_TYPE_MESH_SET_BOOTFLAG);
+							   CMD_TYPE_MESH_SET_BOOTFLAG);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return strlen(buf);
 }
@@ -403,7 +445,7 @@ static ssize_t bootflag_set(struct device *dev, struct device_attribute *attr,
  * @buf: buffer where data will be returned
  */
 static ssize_t boottime_get(struct device *dev,
-			    struct device_attribute *attr, char *buf)
+							struct device_attribute *attr, char *buf)
 {
 	struct mrvl_mesh_defaults defs;
 	int ret;
@@ -411,7 +453,9 @@ static ssize_t boottime_get(struct device *dev,
 	ret = mesh_get_default_parameters(dev, &defs);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	return snprintf(buf, 12, "%d\n", defs.boottime);
 }
@@ -424,7 +468,7 @@ static ssize_t boottime_get(struct device *dev,
  * @count: size of buffer
  */
 static ssize_t boottime_set(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t count)
+							struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct lbs_private *priv = to_net_dev(dev)->ml_priv;
 	struct cmd_ds_mesh_config cmd;
@@ -433,8 +477,11 @@ static ssize_t boottime_set(struct device *dev,
 
 	memset(&cmd, 0, sizeof(cmd));
 	ret = sscanf(buf, "%d", &datum);
+
 	if ((ret != 1) || (datum > 255))
+	{
 		return -EINVAL;
+	}
 
 	/* A too small boot time will result in the device booting into
 	 * standalone (no-host) mode before the host can take control of it,
@@ -448,9 +495,12 @@ static ssize_t boottime_set(struct device *dev,
 	cmd.data[0] = datum;
 	cmd.length = cpu_to_le16(sizeof(uint8_t));
 	ret = lbs_mesh_config_send(priv, &cmd, CMD_ACT_MESH_CONFIG_SET,
-				   CMD_TYPE_MESH_SET_BOOTTIME);
+							   CMD_TYPE_MESH_SET_BOOTTIME);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return strlen(buf);
 }
@@ -462,7 +512,7 @@ static ssize_t boottime_set(struct device *dev,
  * @buf: buffer where data will be returned
  */
 static ssize_t channel_get(struct device *dev,
-			   struct device_attribute *attr, char *buf)
+						   struct device_attribute *attr, char *buf)
 {
 	struct mrvl_mesh_defaults defs;
 	int ret;
@@ -470,7 +520,9 @@ static ssize_t channel_get(struct device *dev,
 	ret = mesh_get_default_parameters(dev, &defs);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	return snprintf(buf, 12, "%d\n", le16_to_cpu(defs.channel));
 }
@@ -483,7 +535,7 @@ static ssize_t channel_get(struct device *dev,
  * @count: size of buffer
  */
 static ssize_t channel_set(struct device *dev, struct device_attribute *attr,
-			   const char *buf, size_t count)
+						   const char *buf, size_t count)
 {
 	struct lbs_private *priv = to_net_dev(dev)->ml_priv;
 	struct cmd_ds_mesh_config cmd;
@@ -492,15 +544,21 @@ static ssize_t channel_set(struct device *dev, struct device_attribute *attr,
 
 	memset(&cmd, 0, sizeof(cmd));
 	ret = sscanf(buf, "%d", &datum);
+
 	if (ret != 1 || datum < 1 || datum > 11)
+	{
 		return -EINVAL;
+	}
 
 	*((__le16 *)&cmd.data[0]) = cpu_to_le16(datum);
 	cmd.length = cpu_to_le16(sizeof(uint16_t));
 	ret = lbs_mesh_config_send(priv, &cmd, CMD_ACT_MESH_CONFIG_SET,
-				   CMD_TYPE_MESH_SET_DEF_CHANNEL);
+							   CMD_TYPE_MESH_SET_DEF_CHANNEL);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return strlen(buf);
 }
@@ -512,7 +570,7 @@ static ssize_t channel_set(struct device *dev, struct device_attribute *attr,
  * @buf: buffer where data will be returned
  */
 static ssize_t mesh_id_get(struct device *dev, struct device_attribute *attr,
-			   char *buf)
+						   char *buf)
 {
 	struct mrvl_mesh_defaults defs;
 	int ret;
@@ -520,9 +578,12 @@ static ssize_t mesh_id_get(struct device *dev, struct device_attribute *attr,
 	ret = mesh_get_default_parameters(dev, &defs);
 
 	if (ret)
+	{
 		return ret;
+	}
 
-	if (defs.meshie.val.mesh_id_len > IEEE80211_MAX_SSID_LEN) {
+	if (defs.meshie.val.mesh_id_len > IEEE80211_MAX_SSID_LEN)
+	{
 		dev_err(dev, "inconsistent mesh ID length\n");
 		defs.meshie.val.mesh_id_len = IEEE80211_MAX_SSID_LEN;
 	}
@@ -542,7 +603,7 @@ static ssize_t mesh_id_get(struct device *dev, struct device_attribute *attr,
  * @count: size of buffer
  */
 static ssize_t mesh_id_set(struct device *dev, struct device_attribute *attr,
-			   const char *buf, size_t count)
+						   const char *buf, size_t count)
 {
 	struct cmd_ds_mesh_config cmd;
 	struct mrvl_mesh_defaults defs;
@@ -552,7 +613,9 @@ static ssize_t mesh_id_set(struct device *dev, struct device_attribute *attr,
 	int ret;
 
 	if (count < 2 || count > IEEE80211_MAX_SSID_LEN + 1)
+	{
 		return -EINVAL;
+	}
 
 	memset(&cmd, 0, sizeof(struct cmd_ds_mesh_config));
 	ie = (struct mrvl_meshie *) &cmd.data[0];
@@ -573,9 +636,12 @@ static ssize_t mesh_id_set(struct device *dev, struct device_attribute *attr,
 	ie->len = sizeof(struct mrvl_meshie_val) - IEEE80211_MAX_SSID_LEN + len;
 
 	ret = lbs_mesh_config_send(priv, &cmd, CMD_ACT_MESH_CONFIG_SET,
-				   CMD_TYPE_MESH_SET_MESH_IE);
+							   CMD_TYPE_MESH_SET_MESH_IE);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return strlen(buf);
 }
@@ -587,7 +653,7 @@ static ssize_t mesh_id_set(struct device *dev, struct device_attribute *attr,
  * @buf: buffer where data will be returned
  */
 static ssize_t protocol_id_get(struct device *dev,
-			       struct device_attribute *attr, char *buf)
+							   struct device_attribute *attr, char *buf)
 {
 	struct mrvl_mesh_defaults defs;
 	int ret;
@@ -595,7 +661,9 @@ static ssize_t protocol_id_get(struct device *dev,
 	ret = mesh_get_default_parameters(dev, &defs);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	return snprintf(buf, 5, "%d\n", defs.meshie.val.active_protocol_id);
 }
@@ -608,7 +676,7 @@ static ssize_t protocol_id_get(struct device *dev,
  * @count: size of buffer
  */
 static ssize_t protocol_id_set(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t count)
+							   struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct cmd_ds_mesh_config cmd;
 	struct mrvl_mesh_defaults defs;
@@ -619,8 +687,11 @@ static ssize_t protocol_id_set(struct device *dev,
 
 	memset(&cmd, 0, sizeof(cmd));
 	ret = sscanf(buf, "%d", &datum);
+
 	if ((ret != 1) || (datum > 255))
+	{
 		return -EINVAL;
+	}
 
 	/* fetch all other Information Element parameters */
 	ret = mesh_get_default_parameters(dev, &defs);
@@ -634,9 +705,12 @@ static ssize_t protocol_id_set(struct device *dev,
 	ie->val.active_protocol_id = datum;
 
 	ret = lbs_mesh_config_send(priv, &cmd, CMD_ACT_MESH_CONFIG_SET,
-				   CMD_TYPE_MESH_SET_MESH_IE);
+							   CMD_TYPE_MESH_SET_MESH_IE);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return strlen(buf);
 }
@@ -648,7 +722,7 @@ static ssize_t protocol_id_set(struct device *dev,
  * @buf: buffer where data will be returned
  */
 static ssize_t metric_id_get(struct device *dev,
-		struct device_attribute *attr, char *buf)
+							 struct device_attribute *attr, char *buf)
 {
 	struct mrvl_mesh_defaults defs;
 	int ret;
@@ -656,7 +730,9 @@ static ssize_t metric_id_get(struct device *dev,
 	ret = mesh_get_default_parameters(dev, &defs);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	return snprintf(buf, 5, "%d\n", defs.meshie.val.active_metric_id);
 }
@@ -669,7 +745,7 @@ static ssize_t metric_id_get(struct device *dev,
  * @count: size of buffer
  */
 static ssize_t metric_id_set(struct device *dev, struct device_attribute *attr,
-			     const char *buf, size_t count)
+							 const char *buf, size_t count)
 {
 	struct cmd_ds_mesh_config cmd;
 	struct mrvl_mesh_defaults defs;
@@ -680,8 +756,11 @@ static ssize_t metric_id_set(struct device *dev, struct device_attribute *attr,
 
 	memset(&cmd, 0, sizeof(cmd));
 	ret = sscanf(buf, "%d", &datum);
+
 	if ((ret != 1) || (datum > 255))
+	{
 		return -EINVAL;
+	}
 
 	/* fetch all other Information Element parameters */
 	ret = mesh_get_default_parameters(dev, &defs);
@@ -695,9 +774,12 @@ static ssize_t metric_id_set(struct device *dev, struct device_attribute *attr,
 	ie->val.active_metric_id = datum;
 
 	ret = lbs_mesh_config_send(priv, &cmd, CMD_ACT_MESH_CONFIG_SET,
-				   CMD_TYPE_MESH_SET_MESH_IE);
+							   CMD_TYPE_MESH_SET_MESH_IE);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return strlen(buf);
 }
@@ -709,7 +791,7 @@ static ssize_t metric_id_set(struct device *dev, struct device_attribute *attr,
  * @buf: buffer where data will be returned
  */
 static ssize_t capability_get(struct device *dev,
-		struct device_attribute *attr, char *buf)
+							  struct device_attribute *attr, char *buf)
 {
 	struct mrvl_mesh_defaults defs;
 	int ret;
@@ -717,7 +799,9 @@ static ssize_t capability_get(struct device *dev,
 	ret = mesh_get_default_parameters(dev, &defs);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	return snprintf(buf, 5, "%d\n", defs.meshie.val.mesh_capability);
 }
@@ -730,7 +814,7 @@ static ssize_t capability_get(struct device *dev,
  * @count: size of buffer
  */
 static ssize_t capability_set(struct device *dev, struct device_attribute *attr,
-			      const char *buf, size_t count)
+							  const char *buf, size_t count)
 {
 	struct cmd_ds_mesh_config cmd;
 	struct mrvl_mesh_defaults defs;
@@ -741,8 +825,11 @@ static ssize_t capability_set(struct device *dev, struct device_attribute *attr,
 
 	memset(&cmd, 0, sizeof(cmd));
 	ret = sscanf(buf, "%d", &datum);
+
 	if ((ret != 1) || (datum > 255))
+	{
 		return -EINVAL;
+	}
 
 	/* fetch all other Information Element parameters */
 	ret = mesh_get_default_parameters(dev, &defs);
@@ -756,9 +843,12 @@ static ssize_t capability_set(struct device *dev, struct device_attribute *attr,
 	ie->val.mesh_capability = datum;
 
 	ret = lbs_mesh_config_send(priv, &cmd, CMD_ACT_MESH_CONFIG_SET,
-				   CMD_TYPE_MESH_SET_MESH_IE);
+							   CMD_TYPE_MESH_SET_MESH_IE);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return strlen(buf);
 }
@@ -772,19 +862,22 @@ static DEVICE_ATTR(protocol_id, 0644, protocol_id_get, protocol_id_set);
 static DEVICE_ATTR(metric_id, 0644, metric_id_get, metric_id_set);
 static DEVICE_ATTR(capability, 0644, capability_get, capability_set);
 
-static struct attribute *boot_opts_attrs[] = {
+static struct attribute *boot_opts_attrs[] =
+{
 	&dev_attr_bootflag.attr,
 	&dev_attr_boottime.attr,
 	&dev_attr_channel.attr,
 	NULL
 };
 
-static const struct attribute_group boot_opts_group = {
+static const struct attribute_group boot_opts_group =
+{
 	.name = "boot_options",
 	.attrs = boot_opts_attrs,
 };
 
-static struct attribute *mesh_ie_attrs[] = {
+static struct attribute *mesh_ie_attrs[] =
+{
 	&dev_attr_mesh_id.attr,
 	&dev_attr_protocol_id.attr,
 	&dev_attr_metric_id.attr,
@@ -792,7 +885,8 @@ static struct attribute *mesh_ie_attrs[] = {
 	NULL
 };
 
-static const struct attribute_group mesh_ie_group = {
+static const struct attribute_group mesh_ie_group =
+{
 	.name = "mesh_ie",
 	.attrs = mesh_ie_attrs,
 };
@@ -830,7 +924,8 @@ int lbs_init_mesh(struct lbs_private *priv)
 	/* 5.110.22 have mesh command with 0xa3 command id */
 	/* 10.0.0.p0 FW brings in mesh config command with different id */
 	/* Check FW version MSB and initialize mesh_fw_ver */
-	if (MRVL_FW_MAJOR_REV(priv->fwrelease) == MRVL_FW_V5) {
+	if (MRVL_FW_MAJOR_REV(priv->fwrelease) == MRVL_FW_V5)
+	{
 		/* Enable mesh, if supported, and work out which TLV it uses.
 		   0x100 + 291 is an unofficial value used in 5.110.20.pXX
 		   0x100 + 37 is the official value used in 5.110.21.pXX
@@ -845,26 +940,36 @@ int lbs_init_mesh(struct lbs_private *priv)
 		   useful */
 
 		priv->mesh_tlv = TLV_TYPE_OLD_MESH_ID;
-		if (lbs_mesh_config(priv, CMD_ACT_MESH_CONFIG_START, 1)) {
+
+		if (lbs_mesh_config(priv, CMD_ACT_MESH_CONFIG_START, 1))
+		{
 			priv->mesh_tlv = TLV_TYPE_MESH_ID;
+
 			if (lbs_mesh_config(priv, CMD_ACT_MESH_CONFIG_START, 1))
+			{
 				priv->mesh_tlv = 0;
+			}
 		}
-	} else
-	if ((MRVL_FW_MAJOR_REV(priv->fwrelease) >= MRVL_FW_V10) &&
-		(priv->fwcapinfo & MESH_CAPINFO_ENABLE_MASK)) {
+	}
+	else if ((MRVL_FW_MAJOR_REV(priv->fwrelease) >= MRVL_FW_V10) &&
+			 (priv->fwcapinfo & MESH_CAPINFO_ENABLE_MASK))
+	{
 		/* 10.0.0.pXX new firmwares should succeed with TLV
 		 * 0x100+37; Do not invoke command with old TLV.
 		 */
 		priv->mesh_tlv = TLV_TYPE_MESH_ID;
+
 		if (lbs_mesh_config(priv, CMD_ACT_MESH_CONFIG_START, 1))
+		{
 			priv->mesh_tlv = 0;
+		}
 	}
 
 	/* Stop meshing until interface is brought up */
 	lbs_mesh_config(priv, CMD_ACT_MESH_CONFIG_STOP, 1);
 
-	if (priv->mesh_tlv) {
+	if (priv->mesh_tlv)
+	{
 		sprintf(priv->mesh_ssid, "mesh");
 		priv->mesh_ssid_len = 4;
 		ret = 1;
@@ -879,7 +984,9 @@ void lbs_start_mesh(struct lbs_private *priv)
 	lbs_add_mesh(priv);
 
 	if (device_create_file(&priv->dev->dev, &dev_attr_lbs_mesh))
+	{
 		netdev_err(priv->dev, "cannot register lbs_mesh attribute\n");
+	}
 }
 
 int lbs_deinit_mesh(struct lbs_private *priv)
@@ -889,7 +996,8 @@ int lbs_deinit_mesh(struct lbs_private *priv)
 
 	lbs_deb_enter(LBS_DEB_MESH);
 
-	if (priv->mesh_tlv) {
+	if (priv->mesh_tlv)
+	{
 		device_remove_file(&dev->dev, &dev_attr_lbs_mesh);
 		ret = 1;
 	}
@@ -911,7 +1019,7 @@ static int lbs_mesh_stop(struct net_device *dev)
 
 	lbs_deb_enter(LBS_DEB_MESH);
 	lbs_mesh_config(priv, CMD_ACT_MESH_CONFIG_STOP,
-		lbs_mesh_get_channel(priv));
+					lbs_mesh_get_channel(priv));
 
 	spin_lock_irq(&priv->driver_lock);
 
@@ -921,8 +1029,11 @@ static int lbs_mesh_stop(struct net_device *dev)
 	spin_unlock_irq(&priv->driver_lock);
 
 	lbs_update_mcast(priv);
+
 	if (!lbs_iface_active(priv))
+	{
 		lbs_stop_iface(priv);
+	}
 
 	lbs_deb_leave(LBS_DEB_MESH);
 	return 0;
@@ -940,15 +1051,21 @@ static int lbs_mesh_dev_open(struct net_device *dev)
 	int ret = 0;
 
 	lbs_deb_enter(LBS_DEB_NET);
-	if (!priv->iface_running) {
+
+	if (!priv->iface_running)
+	{
 		ret = lbs_start_iface(priv);
+
 		if (ret)
+		{
 			goto out;
+		}
 	}
 
 	spin_lock_irq(&priv->driver_lock);
 
-	if (priv->wdev->iftype == NL80211_IFTYPE_MONITOR) {
+	if (priv->wdev->iftype == NL80211_IFTYPE_MONITOR)
+	{
 		ret = -EBUSY;
 		spin_unlock_irq(&priv->driver_lock);
 		goto out;
@@ -957,19 +1074,22 @@ static int lbs_mesh_dev_open(struct net_device *dev)
 	netif_carrier_on(dev);
 
 	if (!priv->tx_pending_len)
+	{
 		netif_wake_queue(dev);
+	}
 
 	spin_unlock_irq(&priv->driver_lock);
 
 	ret = lbs_mesh_config(priv, CMD_ACT_MESH_CONFIG_START,
-		lbs_mesh_get_channel(priv));
+						  lbs_mesh_get_channel(priv));
 
 out:
 	lbs_deb_leave_args(LBS_DEB_NET, "ret %d", ret);
 	return ret;
 }
 
-static const struct net_device_ops mesh_netdev_ops = {
+static const struct net_device_ops mesh_netdev_ops =
+{
 	.ndo_open		= lbs_mesh_dev_open,
 	.ndo_stop 		= lbs_mesh_stop,
 	.ndo_start_xmit		= lbs_hard_start_xmit,
@@ -993,14 +1113,18 @@ static int lbs_add_mesh(struct lbs_private *priv)
 
 	/* Allocate a virtual mesh device */
 	mesh_wdev = kzalloc(sizeof(struct wireless_dev), GFP_KERNEL);
-	if (!mesh_wdev) {
+
+	if (!mesh_wdev)
+	{
 		lbs_deb_mesh("init mshX wireless device failed\n");
 		ret = -ENOMEM;
 		goto done;
 	}
 
 	mesh_dev = alloc_netdev(0, "msh%d", NET_NAME_UNKNOWN, ether_setup);
-	if (!mesh_dev) {
+
+	if (!mesh_dev)
+	{
 		lbs_deb_mesh("init mshX device failed\n");
 		ret = -ENOMEM;
 		goto err_free_wdev;
@@ -1023,14 +1147,19 @@ static int lbs_add_mesh(struct lbs_private *priv)
 	mesh_dev->flags |= IFF_BROADCAST | IFF_MULTICAST;
 	/* Register virtual mesh interface */
 	ret = register_netdev(mesh_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("cannot register mshX virtual interface\n");
 		goto err_free_netdev;
 	}
 
 	ret = sysfs_create_group(&(mesh_dev->dev.kobj), &lbs_mesh_attr_group);
+
 	if (ret)
+	{
 		goto err_unregister;
+	}
 
 	lbs_persist_config_init(mesh_dev);
 
@@ -1057,8 +1186,11 @@ void lbs_remove_mesh(struct lbs_private *priv)
 	struct net_device *mesh_dev;
 
 	mesh_dev = priv->mesh_dev;
+
 	if (!mesh_dev)
+	{
 		return;
+	}
 
 	lbs_deb_enter(LBS_DEB_MESH);
 	netif_stop_queue(mesh_dev);
@@ -1077,29 +1209,43 @@ void lbs_remove_mesh(struct lbs_private *priv)
  * Sending and receiving
  */
 struct net_device *lbs_mesh_set_dev(struct lbs_private *priv,
-	struct net_device *dev, struct rxpd *rxpd)
+									struct net_device *dev, struct rxpd *rxpd)
 {
-	if (priv->mesh_dev) {
-		if (priv->mesh_tlv == TLV_TYPE_OLD_MESH_ID) {
+	if (priv->mesh_dev)
+	{
+		if (priv->mesh_tlv == TLV_TYPE_OLD_MESH_ID)
+		{
 			if (rxpd->rx_control & RxPD_MESH_FRAME)
+			{
 				dev = priv->mesh_dev;
-		} else if (priv->mesh_tlv == TLV_TYPE_MESH_ID) {
+			}
+		}
+		else if (priv->mesh_tlv == TLV_TYPE_MESH_ID)
+		{
 			if (rxpd->u.bss.bss_num == MESH_IFACE_ID)
+			{
 				dev = priv->mesh_dev;
+			}
 		}
 	}
+
 	return dev;
 }
 
 
 void lbs_mesh_set_txpd(struct lbs_private *priv,
-	struct net_device *dev, struct txpd *txpd)
+					   struct net_device *dev, struct txpd *txpd)
 {
-	if (dev == priv->mesh_dev) {
+	if (dev == priv->mesh_dev)
+	{
 		if (priv->mesh_tlv == TLV_TYPE_OLD_MESH_ID)
+		{
 			txpd->tx_control |= cpu_to_le32(TxPD_MESH_FRAME);
+		}
 		else if (priv->mesh_tlv == TLV_TYPE_MESH_ID)
+		{
 			txpd->u.bss.bss_num = MESH_IFACE_ID;
+		}
 	}
 }
 
@@ -1108,19 +1254,20 @@ void lbs_mesh_set_txpd(struct lbs_private *priv,
  * Ethtool related
  */
 
-static const char * const mesh_stat_strings[] = {
-			"drop_duplicate_bcast",
-			"drop_ttl_zero",
-			"drop_no_fwd_route",
-			"drop_no_buffers",
-			"fwded_unicast_cnt",
-			"fwded_bcast_cnt",
-			"drop_blind_table",
-			"tx_failed_cnt"
+static const char *const mesh_stat_strings[] =
+{
+	"drop_duplicate_bcast",
+	"drop_ttl_zero",
+	"drop_no_fwd_route",
+	"drop_no_buffers",
+	"fwded_unicast_cnt",
+	"fwded_bcast_cnt",
+	"drop_blind_table",
+	"tx_failed_cnt"
 };
 
 void lbs_mesh_ethtool_get_stats(struct net_device *dev,
-	struct ethtool_stats *stats, uint64_t *data)
+								struct ethtool_stats *stats, uint64_t *data)
 {
 	struct lbs_private *priv = dev->ml_priv;
 	struct cmd_ds_mesh_access mesh_access;
@@ -1131,8 +1278,9 @@ void lbs_mesh_ethtool_get_stats(struct net_device *dev,
 	/* Get Mesh Statistics */
 	ret = lbs_mesh_access(priv, CMD_ACT_MESH_GET_STATS, &mesh_access);
 
-	if (ret) {
-		memset(data, 0, MESH_STATS_NUM*(sizeof(uint64_t)));
+	if (ret)
+	{
+		memset(data, 0, MESH_STATS_NUM * (sizeof(uint64_t)));
 		return;
 	}
 
@@ -1162,26 +1310,32 @@ int lbs_mesh_ethtool_get_sset_count(struct net_device *dev, int sset)
 	struct lbs_private *priv = dev->ml_priv;
 
 	if (sset == ETH_SS_STATS && dev == priv->mesh_dev)
+	{
 		return MESH_STATS_NUM;
+	}
 
 	return -EOPNOTSUPP;
 }
 
 void lbs_mesh_ethtool_get_strings(struct net_device *dev,
-	uint32_t stringset, uint8_t *s)
+								  uint32_t stringset, uint8_t *s)
 {
 	int i;
 
 	lbs_deb_enter(LBS_DEB_ETHTOOL);
 
-	switch (stringset) {
-	case ETH_SS_STATS:
-		for (i = 0; i < MESH_STATS_NUM; i++) {
-			memcpy(s + i * ETH_GSTRING_LEN,
-					mesh_stat_strings[i],
-					ETH_GSTRING_LEN);
-		}
-		break;
+	switch (stringset)
+	{
+		case ETH_SS_STATS:
+			for (i = 0; i < MESH_STATS_NUM; i++)
+			{
+				memcpy(s + i * ETH_GSTRING_LEN,
+					   mesh_stat_strings[i],
+					   ETH_GSTRING_LEN);
+			}
+
+			break;
 	}
+
 	lbs_deb_enter(LBS_DEB_ETHTOOL);
 }

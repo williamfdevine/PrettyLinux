@@ -1,5 +1,5 @@
 /*
- * Device driver for the SYMBIOS/LSILOGIC 53C8XX and 53C1010 family 
+ * Device driver for the SYMBIOS/LSILOGIC 53C8XX and 53C1010 family
  * of PCI-SCSI IO processors.
  *
  * Copyright (C) 1999-2001  Gerard Roudier <groudier@free.fr>
@@ -7,7 +7,7 @@
  * This driver is derived from the Linux sym53c8xx driver.
  * Copyright (C) 1998-2000  Gerard Roudier
  *
- * The sym53c8xx driver is derived from the ncr53c8xx driver that had been 
+ * The sym53c8xx driver is derived from the ncr53c8xx driver that had been
  * a port of the FreeBSD ncr driver to Linux-1.2.13.
  *
  * The original ncr driver has been written for 386bsd and FreeBSD by
@@ -45,26 +45,26 @@
 /*
  *  Generic driver options.
  *
- *  They may be defined in platform specific headers, if they 
+ *  They may be defined in platform specific headers, if they
  *  are useful.
  *
  *    SYM_OPT_HANDLE_DEVICE_QUEUEING
- *        When this option is set, the driver will use a queue per 
+ *        When this option is set, the driver will use a queue per
  *        device and handle QUEUE FULL status requeuing internally.
  *
  *    SYM_OPT_LIMIT_COMMAND_REORDERING
- *        When this option is set, the driver tries to limit tagged 
+ *        When this option is set, the driver tries to limit tagged
  *        command reordering to some reasonable value.
  *        (set for Linux)
  */
 #if 0
-#define SYM_OPT_HANDLE_DEVICE_QUEUEING
-#define SYM_OPT_LIMIT_COMMAND_REORDERING
+	#define SYM_OPT_HANDLE_DEVICE_QUEUEING
+	#define SYM_OPT_LIMIT_COMMAND_REORDERING
 #endif
 
 /*
  *  Active debugging tags and verbosity.
- *  Both DEBUG_FLAGS and sym_verbose can be redefined 
+ *  Both DEBUG_FLAGS and sym_verbose can be redefined
  *  by the platform specific code to something else.
  */
 #define DEBUG_ALLOC	(0x0001)
@@ -81,11 +81,11 @@
 #define DEBUG_POINTER	(0x0800)
 
 #ifndef DEBUG_FLAGS
-#define DEBUG_FLAGS	(0x0000)
+	#define DEBUG_FLAGS	(0x0000)
 #endif
 
 #ifndef sym_verbose
-#define sym_verbose	(np->verbose)
+	#define sym_verbose	(np->verbose)
 #endif
 
 /*
@@ -93,20 +93,20 @@
  */
 #ifndef assert
 #define	assert(expression) { \
-	if (!(expression)) { \
-		(void)panic( \
-			"assertion \"%s\" failed: file \"%s\", line %d\n", \
-			#expression, \
-			__FILE__, __LINE__); \
-	} \
-}
+		if (!(expression)) { \
+			(void)panic( \
+						 "assertion \"%s\" failed: file \"%s\", line %d\n", \
+						 #expression, \
+						 __FILE__, __LINE__); \
+		} \
+	}
 #endif
 
 /*
  *  Number of tasks per device we want to handle.
  */
 #if	SYM_CONF_MAX_TAG_ORDER > 8
-#error	"more than 256 tags per logical unit not allowed."
+	#error	"more than 256 tags per logical unit not allowed."
 #endif
 #define	SYM_CONF_MAX_TASK	(1<<SYM_CONF_MAX_TAG_ORDER)
 
@@ -114,11 +114,11 @@
  *  Donnot use more tasks that we can handle.
  */
 #ifndef	SYM_CONF_MAX_TAG
-#define	SYM_CONF_MAX_TAG	SYM_CONF_MAX_TASK
+	#define	SYM_CONF_MAX_TAG	SYM_CONF_MAX_TASK
 #endif
 #if	SYM_CONF_MAX_TAG > SYM_CONF_MAX_TASK
-#undef	SYM_CONF_MAX_TAG
-#define	SYM_CONF_MAX_TAG	SYM_CONF_MAX_TASK
+	#undef	SYM_CONF_MAX_TAG
+	#define	SYM_CONF_MAX_TAG	SYM_CONF_MAX_TASK
 #endif
 
 /*
@@ -130,18 +130,18 @@
  *  Number of SCSI targets.
  */
 #if	SYM_CONF_MAX_TARGET > 16
-#error	"more than 16 targets not allowed."
+	#error	"more than 16 targets not allowed."
 #endif
 
 /*
  *  Number of logical units per target.
  */
 #if	SYM_CONF_MAX_LUN > 64
-#error	"more than 64 logical units per target not allowed."
+	#error	"more than 64 logical units per target not allowed."
 #endif
 
 /*
- *    Asynchronous pre-scaler (ns). Shall be 40 for 
+ *    Asynchronous pre-scaler (ns). Shall be 40 for
  *    the SCSI timings to be compliant.
  */
 #define	SYM_CONF_MIN_ASYNC (40)
@@ -168,21 +168,21 @@
 /*
  *  Number of entries in the START and DONE queues.
  *
- *  We limit to 1 PAGE in order to succeed allocation of 
+ *  We limit to 1 PAGE in order to succeed allocation of
  *  these queues. Each entry is 8 bytes long (2 DWORDS).
  */
 #ifdef	SYM_CONF_MAX_START
-#define	SYM_CONF_MAX_QUEUE (SYM_CONF_MAX_START+2)
+	#define	SYM_CONF_MAX_QUEUE (SYM_CONF_MAX_START+2)
 #else
-#define	SYM_CONF_MAX_QUEUE (7*SYM_CONF_MAX_TASK+2)
-#define	SYM_CONF_MAX_START (SYM_CONF_MAX_QUEUE-2)
+	#define	SYM_CONF_MAX_QUEUE (7*SYM_CONF_MAX_TASK+2)
+	#define	SYM_CONF_MAX_START (SYM_CONF_MAX_QUEUE-2)
 #endif
 
 #if	SYM_CONF_MAX_QUEUE > SYM_MEM_CLUSTER_SIZE/8
-#undef	SYM_CONF_MAX_QUEUE
-#define	SYM_CONF_MAX_QUEUE (SYM_MEM_CLUSTER_SIZE/8)
-#undef	SYM_CONF_MAX_START
-#define	SYM_CONF_MAX_START (SYM_CONF_MAX_QUEUE-2)
+	#undef	SYM_CONF_MAX_QUEUE
+	#define	SYM_CONF_MAX_QUEUE (SYM_MEM_CLUSTER_SIZE/8)
+	#undef	SYM_CONF_MAX_START
+	#define	SYM_CONF_MAX_START (SYM_CONF_MAX_QUEUE-2)
 #endif
 
 /*
@@ -275,10 +275,10 @@
 #define	SIR_DATA_OVERRUN	(21)
 #define	SIR_BAD_PHASE		(22)
 #if	SYM_CONF_DMA_ADDRESSING_MODE == 2
-#define	SIR_DMAP_DIRTY		(23)
-#define	SIR_MAX			(23)
+	#define	SIR_DMAP_DIRTY		(23)
+	#define	SIR_MAX			(23)
 #else
-#define	SIR_MAX			(22)
+	#define	SIR_MAX			(22)
 #endif
 
 /*
@@ -300,7 +300,7 @@
 #define NS_PPR		(3)
 
 /*
- *  A CCB hashed table is used to retrieve CCB address 
+ *  A CCB hashed table is used to retrieve CCB address
  *  from DSA value.
  */
 #define CCB_HASH_SHIFT		8
@@ -314,13 +314,13 @@
 #endif
 
 #if	SYM_CONF_DMA_ADDRESSING_MODE == 2
-/*
- *  We may want to use segment registers for 64 bit DMA.
- *  16 segments registers -> up to 64 GB addressable.
- */
-#define SYM_DMAP_SHIFT	(4)
-#define SYM_DMAP_SIZE	(1u<<SYM_DMAP_SHIFT)
-#define SYM_DMAP_MASK	(SYM_DMAP_SIZE-1)
+	/*
+	*  We may want to use segment registers for 64 bit DMA.
+	*  16 segments registers -> up to 64 GB addressable.
+	*/
+	#define SYM_DMAP_SHIFT	(4)
+	#define SYM_DMAP_SIZE	(1u<<SYM_DMAP_SHIFT)
+	#define SYM_DMAP_MASK	(SYM_DMAP_SIZE-1)
 #endif
 
 /*
@@ -346,55 +346,58 @@
 /*
  *  Gather negotiable parameters value
  */
-struct sym_trans {
+struct sym_trans
+{
 	u8 period;
 	u8 offset;
-	unsigned int width:1;
-	unsigned int iu:1;
-	unsigned int dt:1;
-	unsigned int qas:1;
-	unsigned int check_nego:1;
-	unsigned int renego:2;
+	unsigned int width: 1;
+	unsigned int iu: 1;
+	unsigned int dt: 1;
+	unsigned int qas: 1;
+	unsigned int check_nego: 1;
+	unsigned int renego: 2;
 };
 
 /*
  *  Global TCB HEADER.
  *
  *  Due to lack of indirect addressing on earlier NCR chips,
- *  this substructure is copied from the TCB to a global 
+ *  this substructure is copied from the TCB to a global
  *  address after selection.
- *  For SYMBIOS chips that support LOAD/STORE this copy is 
+ *  For SYMBIOS chips that support LOAD/STORE this copy is
  *  not needed and thus not performed.
  */
-struct sym_tcbh {
+struct sym_tcbh
+{
 	/*
 	 *  Scripts bus addresses of LUN table accessed from scripts.
-	 *  LUN #0 is a special case, since multi-lun devices are rare, 
-	 *  and we we want to speed-up the general case and not waste 
+	 *  LUN #0 is a special case, since multi-lun devices are rare,
+	 *  and we we want to speed-up the general case and not waste
 	 *  resources.
 	 */
 	u32	luntbl_sa;	/* bus address of this table	*/
 	u32	lun0_sa;	/* bus address of LCB #0	*/
 	/*
 	 *  Actual SYNC/WIDE IO registers value for this target.
-	 *  'sval', 'wval' and 'uval' are read from SCRIPTS and 
+	 *  'sval', 'wval' and 'uval' are read from SCRIPTS and
 	 *  so have alignment constraints.
 	 */
-/*0*/	u_char	uval;		/* -> SCNTL4 register		*/
-/*1*/	u_char	sval;		/* -> SXFER  io register	*/
-/*2*/	u_char	filler1;
-/*3*/	u_char	wval;		/* -> SCNTL3 io register	*/
+	/*0*/	u_char	uval;		/* -> SCNTL4 register		*/
+	/*1*/	u_char	sval;		/* -> SXFER  io register	*/
+	/*2*/	u_char	filler1;
+	/*3*/	u_char	wval;		/* -> SCNTL3 io register	*/
 };
 
 /*
  *  Target Control Block
  */
-struct sym_tcb {
+struct sym_tcb
+{
 	/*
 	 *  TCB header.
 	 *  Assumed at offset 0.
 	 */
-/*0*/	struct sym_tcbh head;
+	/*0*/	struct sym_tcbh head;
 
 	/*
 	 *  LUN table used by the SCRIPTS processor.
@@ -428,7 +431,7 @@ struct sym_tcb {
 	 * Keep track of the CCB used for the negotiation in order
 	 * to ensure that only 1 negotiation is queued at a time.
 	 */
-	struct sym_ccb *  nego_cp;	/* CCB used for the nego		*/
+	struct sym_ccb   *nego_cp;	/* CCB used for the nego		*/
 
 	/*
 	 *  Set when we want to reset the device.
@@ -450,22 +453,23 @@ struct sym_tcb {
  *  Global LCB HEADER.
  *
  *  Due to lack of indirect addressing on earlier NCR chips,
- *  this substructure is copied from the LCB to a global 
+ *  this substructure is copied from the LCB to a global
  *  address after selection.
- *  For SYMBIOS chips that support LOAD/STORE this copy is 
+ *  For SYMBIOS chips that support LOAD/STORE this copy is
  *  not needed and thus not performed.
  */
-struct sym_lcbh {
+struct sym_lcbh
+{
 	/*
 	 *  SCRIPTS address jumped by SCRIPTS on reselection.
-	 *  For not probed logical units, this address points to 
-	 *  SCRIPTS that deal with bad LU handling (must be at 
+	 *  For not probed logical units, this address points to
+	 *  SCRIPTS that deal with bad LU handling (must be at
 	 *  offset zero of the LCB for that reason).
 	 */
-/*0*/	u32	resel_sa;
+	/*0*/	u32	resel_sa;
 
 	/*
-	 *  Task (bus address of a CCB) read from SCRIPTS that points 
+	 *  Task (bus address of a CCB) read from SCRIPTS that points
 	 *  to the unique ITL nexus allowed to be disconnected.
 	 */
 	u32	itl_task_sa;
@@ -479,16 +483,17 @@ struct sym_lcbh {
 /*
  *  Logical Unit Control Block
  */
-struct sym_lcb {
+struct sym_lcb
+{
 	/*
 	 *  TCB header.
 	 *  Assumed at offset 0.
 	 */
-/*0*/	struct sym_lcbh head;
+	/*0*/	struct sym_lcbh head;
 
 	/*
-	 *  Task table read from SCRIPTS that contains pointers to 
-	 *  ITLQ nexuses. The bus address read from SCRIPTS is 
+	 *  Task table read from SCRIPTS that contains pointers to
+	 *  ITLQ nexuses. The bus address read from SCRIPTS is
 	 *  inside the header.
 	 */
 	u32	*itlq_tbl;	/* Kernel virtual address	*/
@@ -515,7 +520,7 @@ struct sym_lcb {
 
 #ifdef SYM_OPT_HANDLE_DEVICE_QUEUEING
 	/*
-	 *  Optionnaly the driver can handle device queueing, 
+	 *  Optionnaly the driver can handle device queueing,
 	 *  and requeues internally command to redo.
 	 */
 	SYM_QUEHEAD waiting_ccbq;
@@ -529,7 +534,7 @@ struct sym_lcb {
 
 #ifdef SYM_OPT_LIMIT_COMMAND_REORDERING
 	/*
-	 *  Optionally the driver can try to prevent SCSI 
+	 *  Optionally the driver can try to prevent SCSI
 	 *  IOs from being reordered too much.
 	 */
 	u_char		tags_si;	/* Current index to tags sum	*/
@@ -551,10 +556,11 @@ struct sym_lcb {
 
 /*
  *  Action from SCRIPTS on a task.
- *  Is part of the CCB, but is also used separately to plug 
+ *  Is part of the CCB, but is also used separately to plug
  *  error handling action to perform from SCRIPTS.
  */
-struct sym_actscr {
+struct sym_actscr
+{
 	u32	start;		/* Jumped by SCRIPTS after selection	*/
 	u32	restart;	/* Jumped by SCRIPTS on relection	*/
 };
@@ -562,19 +568,20 @@ struct sym_actscr {
 /*
  *  Phase mismatch context.
  *
- *  It is part of the CCB and is used as parameters for the 
- *  DATA pointer. We need two contexts to handle correctly the 
+ *  It is part of the CCB and is used as parameters for the
+ *  DATA pointer. We need two contexts to handle correctly the
  *  SAVED DATA POINTER.
  */
-struct sym_pmc {
+struct sym_pmc
+{
 	struct	sym_tblmove sg;	/* Updated interrupted SG block	*/
 	u32	ret;		/* SCRIPT return address	*/
 };
 
 /*
  *  LUN control block lookup.
- *  We use a direct pointer for LUN #0, and a table of 
- *  pointers which is only allocated for devices that support 
+ *  We use a direct pointer for LUN #0, and a table of
+ *  pointers which is only allocated for devices that support
  *  LUN(s) > 0.
  */
 #if SYM_CONF_MAX_LUN <= 1
@@ -587,8 +594,8 @@ struct sym_pmc {
 /*
  *  Status are used by the host and the script processor.
  *
- *  The last four bytes (status[4]) are copied to the 
- *  scratchb register (declared as scr0..scr3) just after the 
+ *  The last four bytes (status[4]) are copied to the
+ *  scratchb register (declared as scr0..scr3) just after the
  *  select/reselect, and copied back just after disconnecting.
  *  Inside the script the XX_REG are used.
  */
@@ -624,36 +631,37 @@ struct sym_pmc {
 #define HF_EXT_ERR	(1u<<5)
 #define HF_DATA_IN	(1u<<6)
 #ifdef SYM_CONF_IARB_SUPPORT
-#define HF_HINT_IARB	(1u<<7)
+	#define HF_HINT_IARB	(1u<<7)
 #endif
 
 /*
  *  More host flags
  */
 #if	SYM_CONF_DMA_ADDRESSING_MODE == 2
-#define	HX_DMAP_DIRTY	(1u<<7)
+	#define	HX_DMAP_DIRTY	(1u<<7)
 #endif
 
 /*
  *  Global CCB HEADER.
  *
  *  Due to lack of indirect addressing on earlier NCR chips,
- *  this substructure is copied from the ccb to a global 
- *  address after selection (or reselection) and copied back 
+ *  this substructure is copied from the ccb to a global
+ *  address after selection (or reselection) and copied back
  *  before disconnect.
- *  For SYMBIOS chips that support LOAD/STORE this copy is 
+ *  For SYMBIOS chips that support LOAD/STORE this copy is
  *  not needed and thus not performed.
  */
 
-struct sym_ccbh {
+struct sym_ccbh
+{
 	/*
 	 *  Start and restart SCRIPTS addresses (must be at 0).
 	 */
-/*0*/	struct sym_actscr go;
+	/*0*/	struct sym_actscr go;
 
 	/*
 	 *  SCRIPTS jump address that deal with data pointers.
-	 *  'savep' points to the position in the script responsible 
+	 *  'savep' points to the position in the script responsible
 	 *  for the actual transfer of data.
 	 *  It's written on reception of a SAVE_DATA_POINTER message.
 	 */
@@ -669,8 +677,8 @@ struct sym_ccbh {
 /*
  *  GET/SET the value of the data pointer used by SCRIPTS.
  *
- *  We must distinguish between the LOAD/STORE-based SCRIPTS 
- *  that use directly the header in the CCB, and the NCR-GENERIC 
+ *  We must distinguish between the LOAD/STORE-based SCRIPTS
+ *  that use directly the header in the CCB, and the NCR-GENERIC
  *  SCRIPTS that use the copy of the header in the HCB.
  */
 #if	SYM_CONF_GENERIC_SUPPORT
@@ -683,7 +691,7 @@ struct sym_ccbh {
 	} while (0)
 #define sym_get_script_dp(np, cp) 				\
 	scr_to_cpu((np->features & FE_LDSTR) ?			\
-		cp->phys.head.lastp : np->ccb_head.lastp)
+			   cp->phys.head.lastp : np->ccb_head.lastp)
 #else
 #define sym_set_script_dp(np, cp, dp)				\
 	do {							\
@@ -696,21 +704,22 @@ struct sym_ccbh {
 /*
  *  Data Structure Block
  *
- *  During execution of a ccb by the script processor, the 
- *  DSA (data structure address) register points to this 
+ *  During execution of a ccb by the script processor, the
+ *  DSA (data structure address) register points to this
  *  substructure of the ccb.
  */
-struct sym_dsb {
+struct sym_dsb
+{
 	/*
 	 *  CCB header.
 	 *  Also assumed at offset 0 of the sym_ccb structure.
 	 */
-/*0*/	struct sym_ccbh head;
+	/*0*/	struct sym_ccbh head;
 
 	/*
 	 *  Phase mismatch contexts.
 	 *  We need two to handle correctly the SAVED DATA POINTER.
-	 *  MUST BOTH BE AT OFFSET < 256, due to using 8 bit arithmetic 
+	 *  MUST BOTH BE AT OFFSET < 256, due to using 8 bit arithmetic
 	 *  for address calculation from SCRIPTS.
 	 */
 	struct sym_pmc pm0;
@@ -731,9 +740,10 @@ struct sym_dsb {
 /*
  *  Our Command Control Block
  */
-struct sym_ccb {
+struct sym_ccb
+{
 	/*
-	 *  This is the data structure which is pointed by the DSA 
+	 *  This is the data structure which is pointed by the DSA
 	 *  register when it is executed by the script processor.
 	 *  It must be the first entry.
 	 */
@@ -759,7 +769,7 @@ struct sym_ccb {
 	/*
 	 *  Message areas.
 	 *  We prepare a message to be sent after selection.
-	 *  We may use a second one if the command is rescheduled 
+	 *  We may use a second one if the command is rescheduled
 	 *  due to CHECK_CONDITION or COMMAND TERMINATED.
 	 *  Contents are IDENTIFY and SIMPLE_TAG.
 	 *  While negotiating sync or wide transfer,
@@ -781,7 +791,7 @@ struct sym_ccb {
 	 */
 	u32	ccb_ba;		/* BUS address of this CCB	*/
 	u_short	tag;		/* Tag for this transfer	*/
-				/*  NO_TAG means no tag		*/
+	/*  NO_TAG means no tag		*/
 	u_char	target;
 	u_char	lun;
 	struct sym_ccb *link_ccbh;	/* Host adapter CCB hash chain	*/
@@ -807,11 +817,12 @@ typedef struct device *m_pool_ident_t;
 /*
  *  Host Control Block
  */
-struct sym_hcb {
+struct sym_hcb
+{
 	/*
 	 *  Global headers.
-	 *  Due to poorness of addressing capabilities, earlier 
-	 *  chips (810, 815, 825) copy part of the data structures 
+	 *  Due to poorness of addressing capabilities, earlier
+	 *  chips (810, 815, 825) copy part of the data structures
 	 *  (CCB, TCB and LCB) in fixed areas.
 	 */
 #if	SYM_CONF_GENERIC_SUPPORT
@@ -820,14 +831,14 @@ struct sym_hcb {
 	struct sym_lcbh	lcb_head;
 #endif
 	/*
-	 *  Idle task and invalid task actions and 
+	 *  Idle task and invalid task actions and
 	 *  their bus addresses.
 	 */
 	struct sym_actscr idletask, notask, bad_itl, bad_itlq;
 	u32 idletask_ba, notask_ba, bad_itl_ba, bad_itlq_ba;
 
 	/*
-	 *  Dummy lun table to protect us against target 
+	 *  Dummy lun table to protect us against target
 	 *  returning bad lun number on reselection.
 	 */
 	u32	*badluntbl;	/* Table physical address	*/
@@ -840,27 +851,27 @@ struct sym_hcb {
 
 	/*
 	 *  Bit 32-63 of the on-chip RAM bus address in LE format.
-	 *  The START_RAM64 script loads the MMRS and MMWS from this 
+	 *  The START_RAM64 script loads the MMRS and MMWS from this
 	 *  field.
 	 */
 	u32	scr_ram_seg;
 
 	/*
 	 *  Initial value of some IO register bits.
-	 *  These values are assumed to have been set by BIOS, and may 
+	 *  These values are assumed to have been set by BIOS, and may
 	 *  be used to probe adapter implementation differences.
 	 */
 	u_char	sv_scntl0, sv_scntl3, sv_dmode, sv_dcntl, sv_ctest3, sv_ctest4,
-		sv_ctest5, sv_gpcntl, sv_stest2, sv_stest4, sv_scntl4,
-		sv_stest1;
+			sv_ctest5, sv_gpcntl, sv_stest2, sv_stest4, sv_scntl4,
+			sv_stest1;
 
 	/*
-	 *  Actual initial value of IO register bits used by the 
-	 *  driver. They are loaded at initialisation according to  
+	 *  Actual initial value of IO register bits used by the
+	 *  driver. They are loaded at initialisation according to
 	 *  features that are to be enabled/disabled.
 	 */
-	u_char	rv_scntl0, rv_scntl3, rv_dmode, rv_dcntl, rv_ctest3, rv_ctest4, 
-		rv_ctest5, rv_stest2, rv_ccntl0, rv_ccntl1, rv_scntl4;
+	u_char	rv_scntl0, rv_scntl3, rv_dmode, rv_dcntl, rv_ctest3, rv_ctest4,
+			rv_ctest5, rv_stest2, rv_ccntl0, rv_ccntl1, rv_scntl4;
 
 	/*
 	 *  Target data.
@@ -868,7 +879,7 @@ struct sym_hcb {
 	struct sym_tcb	target[SYM_CONF_MAX_TARGET];
 
 	/*
-	 *  Target control block bus address array used by the SCRIPT 
+	 *  Target control block bus address array used by the SCRIPT
 	 *  on reselection.
 	 */
 	u32		*targtbl;
@@ -893,7 +904,7 @@ struct sym_hcb {
 	/*
 	 *  SCRIPTS virtual and physical bus addresses.
 	 *  'script'  is loaded in the on-chip RAM if present.
-	 *  'scripth' stays in main memory for all chips except the 
+	 *  'scripth' stays in main memory for all chips except the
 	 *  53C895A, 53C896 and 53C1010 that provide 8K on-chip RAM.
 	 */
 	u_char		*scripta0;	/* Copy of scripts A, B, Z	*/
@@ -907,7 +918,7 @@ struct sym_hcb {
 	u_short		scriptz_sz;
 
 	/*
-	 *  Bus addresses, setup and patch methods for 
+	 *  Bus addresses, setup and patch methods for
 	 *  the selected firmware.
 	 */
 	struct sym_fwa_ba fwa_bas;	/* Useful SCRIPTA bus addresses	*/
@@ -936,7 +947,7 @@ struct sym_hcb {
 	u32	pciclk_khz;	/* Estimated PCI clock  in KHz	*/
 	/*
 	 *  Start queue management.
-	 *  It is filled up by the host processor and accessed by the 
+	 *  It is filled up by the host processor and accessed by the
 	 *  SCRIPTS processor in order to start SCSI commands.
 	 */
 	volatile		/* Prevent code optimizations	*/
@@ -956,14 +967,14 @@ struct sym_hcb {
 
 	/*
 	 *  Miscellaneous buffers accessed by the scripts-processor.
-	 *  They shall be DWORD aligned, because they may be read or 
+	 *  They shall be DWORD aligned, because they may be read or
 	 *  written with a script command.
 	 */
 	u_char		msgout[8];	/* Buffer for MESSAGE OUT 	*/
 	u_char		msgin [8];	/* Buffer for MESSAGE IN	*/
 	u32		lastmsg;	/* Last SCSI message sent	*/
 	u32		scratch;	/* Scratch for SCSI receive	*/
-					/* Also used for cache test 	*/
+	/* Also used for cache test 	*/
 	/*
 	 *  Miscellaneous configuration and status parameters.
 	 */
@@ -975,13 +986,13 @@ struct sym_hcb {
 	 *  CCB lists and queue.
 	 */
 	struct sym_ccb **ccbh;			/* CCBs hashed by DSA value	*/
-					/* CCB_HASH_SIZE lists of CCBs	*/
+	/* CCB_HASH_SIZE lists of CCBs	*/
 	SYM_QUEHEAD	free_ccbq;	/* Queue of available CCBs	*/
 	SYM_QUEHEAD	busy_ccbq;	/* Queue of busy CCBs		*/
 
 	/*
 	 *  During error handling and/or recovery,
-	 *  active CCBs that are to be completed with 
+	 *  active CCBs that are to be completed with
 	 *  error or requeued are moved from the busy_ccbq
 	 *  to the comp_ccbq prior to completion.
 	 */
@@ -994,24 +1005,24 @@ struct sym_hcb {
 	/*
 	 *  IMMEDIATE ARBITRATION (IARB) control.
 	 *
-	 *  We keep track in 'last_cp' of the last CCB that has been 
-	 *  queued to the SCRIPTS processor and clear 'last_cp' when 
-	 *  this CCB completes. If last_cp is not zero at the moment 
-	 *  we queue a new CCB, we set a flag in 'last_cp' that is 
+	 *  We keep track in 'last_cp' of the last CCB that has been
+	 *  queued to the SCRIPTS processor and clear 'last_cp' when
+	 *  this CCB completes. If last_cp is not zero at the moment
+	 *  we queue a new CCB, we set a flag in 'last_cp' that is
 	 *  used by the SCRIPTS as a hint for setting IARB.
-	 *  We donnot set more than 'iarb_max' consecutive hints for 
+	 *  We donnot set more than 'iarb_max' consecutive hints for
 	 *  IARB in order to leave devices a chance to reselect.
 	 *  By the way, any non zero value of 'iarb_max' is unfair. :)
 	 */
 #ifdef SYM_CONF_IARB_SUPPORT
 	u_short		iarb_max;	/* Max. # consecutive IARB hints*/
 	u_short		iarb_count;	/* Actual # of these hints	*/
-	struct sym_ccb *	last_cp;
+	struct sym_ccb 	*last_cp;
 #endif
 
 	/*
 	 *  Command abort handling.
-	 *  We need to synchronize tightly with the SCRIPTS 
+	 *  We need to synchronize tightly with the SCRIPTS
 	 *  processor in order to handle things correctly.
 	 */
 	u_char		abrt_msg[4];	/* Message to send buffer	*/
@@ -1032,11 +1043,11 @@ struct sym_hcb {
 };
 
 #if SYM_CONF_DMA_ADDRESSING_MODE == 0
-#define use_dac(np)	0
-#define set_dac(np)	do { } while (0)
+	#define use_dac(np)	0
+	#define set_dac(np)	do { } while (0)
 #else
-#define use_dac(np)	(np)->use_dac
-#define set_dac(np)	(np)->use_dac = 1
+	#define use_dac(np)	(np)->use_dac
+	#define set_dac(np)	(np)->use_dac = 1
 #endif
 
 #define HCB_BA(np, lbl)	(np->hcb_ba + offsetof(struct sym_hcb, lbl))
@@ -1045,7 +1056,7 @@ struct sym_hcb {
 /*
  *  FIRMWARES (sym_fw.c)
  */
-struct sym_fw * sym_find_firmware(struct sym_chip *chip);
+struct sym_fw *sym_find_firmware(struct sym_chip *chip);
 void sym_fw_bind_script(struct sym_hcb *np, u32 *start, int len);
 
 /*
@@ -1056,9 +1067,9 @@ void sym_print_xerr(struct scsi_cmnd *cmd, int x_status);
 int sym_reset_scsi_bus(struct sym_hcb *np, int enab_int);
 struct sym_chip *sym_lookup_chip_table(u_short device_id, u_char revision);
 #ifdef SYM_OPT_HANDLE_DEVICE_QUEUEING
-void sym_start_next_ccbs(struct sym_hcb *np, struct sym_lcb *lp, int maxn);
+	void sym_start_next_ccbs(struct sym_hcb *np, struct sym_lcb *lp, int maxn);
 #else
-void sym_put_start_queue(struct sym_hcb *np, struct sym_ccb *cp);
+	void sym_put_start_queue(struct sym_hcb *np, struct sym_ccb *cp);
 #endif
 void sym_start_up(struct Scsi_Host *, int reason);
 irqreturn_t sym_interrupt(struct Scsi_Host *);
@@ -1076,7 +1087,7 @@ int sym_hcb_attach(struct Scsi_Host *shost, struct sym_fw *fw, struct sym_nvram 
 /*
  *  Build a scatter/gather entry.
  *
- *  For 64 bit systems, we use the 8 upper bits of the size field 
+ *  For 64 bit systems, we use the 8 upper bits of the size field
  *  to provide bus address bits 32-39 to the SCRIPTS processor.
  *  This allows the 895A, 896, 1010 to address up to 1 TB of memory.
  */
@@ -1084,31 +1095,34 @@ int sym_hcb_attach(struct Scsi_Host *shost, struct sym_fw *fw, struct sym_nvram 
 #if   SYM_CONF_DMA_ADDRESSING_MODE == 0
 #define DMA_DAC_MASK	DMA_BIT_MASK(32)
 #define sym_build_sge(np, data, badd, len)	\
-do {						\
-	(data)->addr = cpu_to_scr(badd);	\
-	(data)->size = cpu_to_scr(len);		\
-} while (0)
+	do {						\
+		(data)->addr = cpu_to_scr(badd);	\
+		(data)->size = cpu_to_scr(len);		\
+	} while (0)
 #elif SYM_CONF_DMA_ADDRESSING_MODE == 1
 #define DMA_DAC_MASK	DMA_BIT_MASK(40)
 #define sym_build_sge(np, data, badd, len)				\
-do {									\
-	(data)->addr = cpu_to_scr(badd);				\
-	(data)->size = cpu_to_scr((((badd) >> 8) & 0xff000000) + len);	\
-} while (0)
+	do {									\
+		(data)->addr = cpu_to_scr(badd);				\
+		(data)->size = cpu_to_scr((((badd) >> 8) & 0xff000000) + len);	\
+	} while (0)
 #elif SYM_CONF_DMA_ADDRESSING_MODE == 2
 #define DMA_DAC_MASK	DMA_BIT_MASK(64)
 int sym_lookup_dmap(struct sym_hcb *np, u32 h, int s);
 static inline void
 sym_build_sge(struct sym_hcb *np, struct sym_tblmove *data, u64 badd, int len)
 {
-	u32 h = (badd>>32);
-	int s = (h&SYM_DMAP_MASK);
+	u32 h = (badd >> 32);
+	int s = (h & SYM_DMAP_MASK);
 
 	if (h != np->dmap_bah[s])
+	{
 		goto bad;
+	}
+
 good:
 	(data)->addr = cpu_to_scr(badd);
-	(data)->size = cpu_to_scr((s<<24) + len);
+	(data)->size = cpu_to_scr((s << 24) + len);
 	return;
 bad:
 	s = sym_lookup_dmap(np, h, s);
@@ -1130,7 +1144,8 @@ bad:
 /*
  *  Link between free memory chunks of a given size.
  */
-typedef struct sym_m_link {
+typedef struct sym_m_link
+{
 	struct sym_m_link *next;
 } *m_link_p;
 
@@ -1138,7 +1153,8 @@ typedef struct sym_m_link {
  *  Virtual to bus physical translation for a given cluster.
  *  Such a structure is only useful with DMA abstraction.
  */
-typedef struct sym_m_vtob {	/* Virtual to Bus address translation */
+typedef struct sym_m_vtob  	/* Virtual to Bus address translation */
+{
 	struct sym_m_vtob *next;
 	void *vaddr;		/* Virtual address */
 	dma_addr_t baddr;	/* Bus physical address */
@@ -1155,14 +1171,15 @@ typedef struct sym_m_vtob {	/* Virtual to Bus address translation */
  *  Memory pool of a given kind.
  *  Ideally, we want to use:
  *  1) 1 pool for memory we donnot need to involve in DMA.
- *  2) The same pool for controllers that require same DMA 
+ *  2) The same pool for controllers that require same DMA
  *     constraints and features.
- *     The OS specific m_pool_id_t thing and the sym_m_pool_match() 
+ *     The OS specific m_pool_id_t thing and the sym_m_pool_match()
  *     method are expected to tell the driver about.
  */
-typedef struct sym_m_pool {
+typedef struct sym_m_pool
+{
 	m_pool_ident_t	dev_dmat;	/* Identifies the pool (see above) */
-	void * (*get_mem_cluster)(struct sym_m_pool *);
+	void *(*get_mem_cluster)(struct sym_m_pool *);
 #ifdef	SYM_MEM_FREE_UNUSED
 	void (*free_mem_cluster)(struct sym_m_pool *, void *);
 #endif
@@ -1175,7 +1192,7 @@ typedef struct sym_m_pool {
 } *m_pool_p;
 
 /*
- *  Alloc, free and translate addresses to bus physical 
+ *  Alloc, free and translate addresses to bus physical
  *  for DMAable memory.
  */
 void *__sym_calloc_dma(m_pool_ident_t dev_dmat, int size, char *name);
@@ -1184,20 +1201,20 @@ dma_addr_t __vtobus(m_pool_ident_t dev_dmat, void *m);
 
 /*
  * Verbs used by the driver code for DMAable memory handling.
- * The _uvptv_ macro avoids a nasty warning about pointer to volatile 
+ * The _uvptv_ macro avoids a nasty warning about pointer to volatile
  * being discarded.
  */
 #define _uvptv_(p) ((void *)((u_long)(p)))
 
 #define _sym_calloc_dma(np, l, n)	__sym_calloc_dma(np->bus_dmat, l, n)
 #define _sym_mfree_dma(np, p, l, n)	\
-			__sym_mfree_dma(np->bus_dmat, _uvptv_(p), l, n)
+	__sym_mfree_dma(np->bus_dmat, _uvptv_(p), l, n)
 #define sym_calloc_dma(l, n)		_sym_calloc_dma(np, l, n)
 #define sym_mfree_dma(p, l, n)		_sym_mfree_dma(np, p, l, n)
 #define vtobus(p)			__vtobus(np->bus_dmat, _uvptv_(p))
 
 /*
- *  We have to provide the driver memory allocator with methods for 
+ *  We have to provide the driver memory allocator with methods for
  *  it to maintain virtual to bus physical address translations.
  */
 
@@ -1209,18 +1226,21 @@ static inline void *sym_m_get_dma_mem_cluster(m_pool_p mp, m_vtob_p vbp)
 	dma_addr_t baddr = 0;
 
 	vaddr = dma_alloc_coherent(mp->dev_dmat, SYM_MEM_CLUSTER_SIZE, &baddr,
-			GFP_ATOMIC);
-	if (vaddr) {
+							   GFP_ATOMIC);
+
+	if (vaddr)
+	{
 		vbp->vaddr = vaddr;
 		vbp->baddr = baddr;
 	}
+
 	return vaddr;
 }
 
 static inline void sym_m_free_dma_mem_cluster(m_pool_p mp, m_vtob_p vbp)
 {
 	dma_free_coherent(mp->dev_dmat, SYM_MEM_CLUSTER_SIZE, vbp->vaddr,
-			vbp->baddr);
+					  vbp->baddr);
 }
 
 #endif /* SYM_HIPD_H */

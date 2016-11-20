@@ -38,11 +38,14 @@ static inline char *num_to_str(unsigned long num, char *buf, int len)
 	/* put digits in buffer from back to front */
 	buf += len - 1;
 	*buf = 0;
-	do {
+
+	do
+	{
 		digit = num % 10;
 		*(--buf) = digit + '0';
 		num /= 10;
-	} while (num > 0);
+	}
+	while (num > 0);
 
 	return buf;
 }
@@ -62,7 +65,7 @@ static int print_k_value(const char *s, unsigned long num, unsigned long units)
 	print(s);
 
 	temp = num;
-	temp = (temp * units)/1024;
+	temp = (temp * units) / 1024;
 	num = temp;
 	ccode = print_num(num);
 	print("\n");
@@ -80,15 +83,18 @@ void _start(void)
 	print("1..1\n");
 
 	ccode = sysinfo(&info);
-	if (ccode < 0) {
+
+	if (ccode < 0)
+	{
 		print("not ok 1 get runtime memory use\n");
 		print("# could not get sysinfo\n");
 		_exit(ccode);
 	}
+
 	/* ignore cache complexities for now */
 	used = info.totalram - info.freeram - info.bufferram;
 	print_k_value("ok 1 get runtime memory use # size = ", used,
-		info.mem_unit);
+				  info.mem_unit);
 
 	print("# System runtime memory report (units in Kilobytes):\n");
 	print_k_value("#   Total:  ", info.totalram, info.mem_unit);

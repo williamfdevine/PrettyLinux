@@ -22,7 +22,8 @@
 #include <net/act_api.h>
 #include <net/netlink.h>
 
-struct tcf_police {
+struct tcf_police
+{
 	struct tc_action	common;
 	int			tcfp_result;
 	u32			tcfp_ewma_rate;
@@ -43,7 +44,8 @@ struct tcf_police {
 #define POL_TAB_MASK     15
 
 /* old policer structure from before tc actions */
-struct tc_police_compat {
+struct tc_police_compat
+{
 	u32			index;
 	int			action;
 	u32			limit;
@@ -59,15 +61,16 @@ static int police_net_id;
 static struct tc_action_ops act_police_ops;
 
 static int tcf_act_police_walker(struct net *net, struct sk_buff *skb,
-				 struct netlink_callback *cb, int type,
-				 const struct tc_action_ops *ops)
+								 struct netlink_callback *cb, int type,
+								 const struct tc_action_ops *ops)
 {
 	struct tc_action_net *tn = net_generic(net, police_net_id);
 
 	return tcf_generic_walker(tn, skb, cb, type, ops);
 }
 
-static const struct nla_policy police_policy[TCA_POLICE_MAX + 1] = {
+static const struct nla_policy police_policy[TCA_POLICE_MAX + 1] =
+{
 	[TCA_POLICE_RATE]	= { .len = TC_RTAB_SIZE },
 	[TCA_POLICE_PEAKRATE]	= { .len = TC_RTAB_SIZE },
 	[TCA_POLICE_AVRATE]	= { .type = NLA_U32 },
@@ -75,8 +78,8 @@ static const struct nla_policy police_policy[TCA_POLICE_MAX + 1] = {
 };
 
 static int tcf_act_police_init(struct net *net, struct nlattr *nla,
-			       struct nlattr *est, struct tc_action **a,
-			       int ovr, int bind)
+							   struct nlattr *est, struct tc_action **a,
+							   int ovr, int bind)
 {
 	int ret = 0, err;
 	struct nlattr *tb[TCA_POLICE_MAX + 1];
@@ -88,105 +91,169 @@ static int tcf_act_police_init(struct net *net, struct nlattr *nla,
 	int size;
 
 	if (nla == NULL)
+	{
 		return -EINVAL;
+	}
 
 	err = nla_parse_nested(tb, TCA_POLICE_MAX, nla, police_policy);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	if (tb[TCA_POLICE_TBF] == NULL)
+	{
 		return -EINVAL;
+	}
+
 	size = nla_len(tb[TCA_POLICE_TBF]);
+
 	if (size != sizeof(*parm) && size != sizeof(struct tc_police_compat))
+	{
 		return -EINVAL;
+	}
 
 	parm = nla_data(tb[TCA_POLICE_TBF]);
 	exists = tcf_hash_check(tn, parm->index, a, bind);
-	if (exists && bind)
-		return 0;
 
-	if (!exists) {
+	if (exists && bind)
+	{
+		return 0;
+	}
+
+	if (!exists)
+	{
 		ret = tcf_hash_create(tn, parm->index, NULL, a,
-				      &act_police_ops, bind, false);
+							  &act_police_ops, bind, false);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		ret = ACT_P_CREATED;
-	} else {
+	}
+	else
+	{
 		tcf_hash_release(*a, bind);
+
 		if (!ovr)
+		{
 			return -EEXIST;
+		}
 	}
 
 	police = to_police(*a);
-	if (parm->rate.rate) {
+
+	if (parm->rate.rate)
+	{
 		err = -ENOMEM;
 		R_tab = qdisc_get_rtab(&parm->rate, tb[TCA_POLICE_RATE]);
-		if (R_tab == NULL)
-			goto failure;
 
-		if (parm->peakrate.rate) {
+		if (R_tab == NULL)
+		{
+			goto failure;
+		}
+
+		if (parm->peakrate.rate)
+		{
 			P_tab = qdisc_get_rtab(&parm->peakrate,
-					       tb[TCA_POLICE_PEAKRATE]);
+								   tb[TCA_POLICE_PEAKRATE]);
+
 			if (P_tab == NULL)
+			{
 				goto failure;
+			}
 		}
 	}
 
 	spin_lock_bh(&police->tcf_lock);
-	if (est) {
+
+	if (est)
+	{
 		err = gen_replace_estimator(&police->tcf_bstats, NULL,
-					    &police->tcf_rate_est,
-					    &police->tcf_lock,
-					    NULL, est);
+									&police->tcf_rate_est,
+									&police->tcf_lock,
+									NULL, est);
+
 		if (err)
+		{
 			goto failure_unlock;
-	} else if (tb[TCA_POLICE_AVRATE] &&
-		   (ret == ACT_P_CREATED ||
-		    !gen_estimator_active(&police->tcf_bstats,
-					  &police->tcf_rate_est))) {
+		}
+	}
+	else if (tb[TCA_POLICE_AVRATE] &&
+			 (ret == ACT_P_CREATED ||
+			  !gen_estimator_active(&police->tcf_bstats,
+									&police->tcf_rate_est)))
+	{
 		err = -EINVAL;
 		goto failure_unlock;
 	}
 
 	/* No failure allowed after this point */
 	police->tcfp_mtu = parm->mtu;
-	if (police->tcfp_mtu == 0) {
+
+	if (police->tcfp_mtu == 0)
+	{
 		police->tcfp_mtu = ~0;
+
 		if (R_tab)
+		{
 			police->tcfp_mtu = 255 << R_tab->rate.cell_log;
+		}
 	}
-	if (R_tab) {
+
+	if (R_tab)
+	{
 		police->rate_present = true;
 		psched_ratecfg_precompute(&police->rate, &R_tab->rate, 0);
 		qdisc_put_rtab(R_tab);
-	} else {
+	}
+	else
+	{
 		police->rate_present = false;
 	}
-	if (P_tab) {
+
+	if (P_tab)
+	{
 		police->peak_present = true;
 		psched_ratecfg_precompute(&police->peak, &P_tab->rate, 0);
 		qdisc_put_rtab(P_tab);
-	} else {
+	}
+	else
+	{
 		police->peak_present = false;
 	}
 
 	if (tb[TCA_POLICE_RESULT])
+	{
 		police->tcfp_result = nla_get_u32(tb[TCA_POLICE_RESULT]);
+	}
+
 	police->tcfp_burst = PSCHED_TICKS2NS(parm->burst);
 	police->tcfp_toks = police->tcfp_burst;
-	if (police->peak_present) {
+
+	if (police->peak_present)
+	{
 		police->tcfp_mtu_ptoks = (s64) psched_l2t_ns(&police->peak,
-							     police->tcfp_mtu);
+								 police->tcfp_mtu);
 		police->tcfp_ptoks = police->tcfp_mtu_ptoks;
 	}
+
 	police->tcf_action = parm->action;
 
 	if (tb[TCA_POLICE_AVRATE])
+	{
 		police->tcfp_ewma_rate = nla_get_u32(tb[TCA_POLICE_AVRATE]);
+	}
 
 	spin_unlock_bh(&police->tcf_lock);
+
 	if (ret != ACT_P_CREATED)
+	{
 		return ret;
+	}
 
 	police->tcfp_t_c = ktime_get_ns();
 	tcf_hash_insert(tn, *a);
@@ -198,13 +265,17 @@ failure_unlock:
 failure:
 	qdisc_put_rtab(P_tab);
 	qdisc_put_rtab(R_tab);
+
 	if (ret == ACT_P_CREATED)
+	{
 		tcf_hash_cleanup(*a, est);
+	}
+
 	return err;
 }
 
 static int tcf_act_police(struct sk_buff *skb, const struct tc_action *a,
-			  struct tcf_result *res)
+						  struct tcf_result *res)
 {
 	struct tcf_police *police = to_police(a);
 	s64 now;
@@ -217,58 +288,87 @@ static int tcf_act_police(struct sk_buff *skb, const struct tc_action *a,
 	tcf_lastuse_update(&police->tcf_tm);
 
 	if (police->tcfp_ewma_rate &&
-	    police->tcf_rate_est.bps >= police->tcfp_ewma_rate) {
+		police->tcf_rate_est.bps >= police->tcfp_ewma_rate)
+	{
 		police->tcf_qstats.overlimits++;
+
 		if (police->tcf_action == TC_ACT_SHOT)
+		{
 			police->tcf_qstats.drops++;
+		}
+
 		spin_unlock(&police->tcf_lock);
 		return police->tcf_action;
 	}
 
-	if (qdisc_pkt_len(skb) <= police->tcfp_mtu) {
-		if (!police->rate_present) {
+	if (qdisc_pkt_len(skb) <= police->tcfp_mtu)
+	{
+		if (!police->rate_present)
+		{
 			spin_unlock(&police->tcf_lock);
 			return police->tcfp_result;
 		}
 
 		now = ktime_get_ns();
 		toks = min_t(s64, now - police->tcfp_t_c,
-			     police->tcfp_burst);
-		if (police->peak_present) {
+					 police->tcfp_burst);
+
+		if (police->peak_present)
+		{
 			ptoks = toks + police->tcfp_ptoks;
+
 			if (ptoks > police->tcfp_mtu_ptoks)
+			{
 				ptoks = police->tcfp_mtu_ptoks;
+			}
+
 			ptoks -= (s64) psched_l2t_ns(&police->peak,
-						     qdisc_pkt_len(skb));
+										 qdisc_pkt_len(skb));
 		}
+
 		toks += police->tcfp_toks;
+
 		if (toks > police->tcfp_burst)
+		{
 			toks = police->tcfp_burst;
+		}
+
 		toks -= (s64) psched_l2t_ns(&police->rate, qdisc_pkt_len(skb));
-		if ((toks|ptoks) >= 0) {
+
+		if ((toks | ptoks) >= 0)
+		{
 			police->tcfp_t_c = now;
 			police->tcfp_toks = toks;
 			police->tcfp_ptoks = ptoks;
+
 			if (police->tcfp_result == TC_ACT_SHOT)
+			{
 				police->tcf_qstats.drops++;
+			}
+
 			spin_unlock(&police->tcf_lock);
 			return police->tcfp_result;
 		}
 	}
 
 	police->tcf_qstats.overlimits++;
+
 	if (police->tcf_action == TC_ACT_SHOT)
+	{
 		police->tcf_qstats.drops++;
+	}
+
 	spin_unlock(&police->tcf_lock);
 	return police->tcf_action;
 }
 
 static int tcf_act_police_dump(struct sk_buff *skb, struct tc_action *a,
-			       int bind, int ref)
+							   int bind, int ref)
 {
 	unsigned char *b = skb_tail_pointer(skb);
 	struct tcf_police *police = to_police(a);
-	struct tc_police opt = {
+	struct tc_police opt =
+	{
 		.index = police->tcf_index,
 		.action = police->tcf_action,
 		.mtu = police->tcfp_mtu,
@@ -279,24 +379,41 @@ static int tcf_act_police_dump(struct sk_buff *skb, struct tc_action *a,
 	struct tcf_t t;
 
 	if (police->rate_present)
+	{
 		psched_ratecfg_getrate(&opt.rate, &police->rate);
+	}
+
 	if (police->peak_present)
+	{
 		psched_ratecfg_getrate(&opt.peakrate, &police->peak);
+	}
+
 	if (nla_put(skb, TCA_POLICE_TBF, sizeof(opt), &opt))
+	{
 		goto nla_put_failure;
+	}
+
 	if (police->tcfp_result &&
-	    nla_put_u32(skb, TCA_POLICE_RESULT, police->tcfp_result))
+		nla_put_u32(skb, TCA_POLICE_RESULT, police->tcfp_result))
+	{
 		goto nla_put_failure;
+	}
+
 	if (police->tcfp_ewma_rate &&
-	    nla_put_u32(skb, TCA_POLICE_AVRATE, police->tcfp_ewma_rate))
+		nla_put_u32(skb, TCA_POLICE_AVRATE, police->tcfp_ewma_rate))
+	{
 		goto nla_put_failure;
+	}
 
 	t.install = jiffies_to_clock_t(jiffies - police->tcf_tm.install);
 	t.lastuse = jiffies_to_clock_t(jiffies - police->tcf_tm.lastuse);
 	t.firstuse = jiffies_to_clock_t(jiffies - police->tcf_tm.firstuse);
 	t.expires = jiffies_to_clock_t(police->tcf_tm.expires);
+
 	if (nla_put_64bit(skb, TCA_POLICE_TM, sizeof(t), &t, TCA_POLICE_PAD))
+	{
 		goto nla_put_failure;
+	}
 
 	return skb->len;
 
@@ -316,7 +433,8 @@ MODULE_AUTHOR("Alexey Kuznetsov");
 MODULE_DESCRIPTION("Policing actions");
 MODULE_LICENSE("GPL");
 
-static struct tc_action_ops act_police_ops = {
+static struct tc_action_ops act_police_ops =
+{
 	.kind		=	"police",
 	.type		=	TCA_ID_POLICE,
 	.owner		=	THIS_MODULE,
@@ -342,7 +460,8 @@ static void __net_exit police_exit_net(struct net *net)
 	tc_action_net_exit(tn);
 }
 
-static struct pernet_operations police_net_ops = {
+static struct pernet_operations police_net_ops =
+{
 	.init = police_init_net,
 	.exit = police_exit_net,
 	.id   = &police_net_id,

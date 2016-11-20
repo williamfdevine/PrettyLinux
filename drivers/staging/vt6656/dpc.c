@@ -34,7 +34,7 @@
 #include "rf.h"
 
 int vnt_rx_data(struct vnt_private *priv, struct vnt_rcb *ptr_rcb,
-		unsigned long bytes_received)
+				unsigned long bytes_received)
 {
 	struct ieee80211_hw *hw = priv->hw;
 	struct ieee80211_supported_band *sband;
@@ -62,12 +62,14 @@ int vnt_rx_data(struct vnt_private *priv, struct vnt_rcb *ptr_rcb,
 	frame_size = wbk_status >> 16;
 	frame_size += 4;
 
-	if (bytes_received != frame_size) {
+	if (bytes_received != frame_size)
+	{
 		dev_dbg(&priv->usb->dev, "------- WRONG Length 1\n");
 		return false;
 	}
 
-	if ((bytes_received > 2372) || (bytes_received <= 40)) {
+	if ((bytes_received > 2372) || (bytes_received <= 40))
+	{
 		/* Frame Size error drop this packet.*/
 		dev_dbg(&priv->usb->dev, "------ WRONG Length 2\n");
 		return false;
@@ -86,45 +88,55 @@ int vnt_rx_data(struct vnt_private *priv, struct vnt_rcb *ptr_rcb,
 
 	/*Fix hardware bug => PLCP_Length error */
 	if (((bytes_received - (*pay_load_len)) > 27) ||
-	    ((bytes_received - (*pay_load_len)) < 24) ||
-	    (bytes_received < (*pay_load_len))) {
+		((bytes_received - (*pay_load_len)) < 24) ||
+		(bytes_received < (*pay_load_len)))
+	{
 		dev_dbg(&priv->usb->dev, "Wrong PLCP Length %x\n",
-			*pay_load_len);
+				*pay_load_len);
 		return false;
 	}
 
 	sband = hw->wiphy->bands[hw->conf.chandef.chan->band];
 
-	for (r = RATE_1M; r < MAX_RATE; r++) {
+	for (r = RATE_1M; r < MAX_RATE; r++)
+	{
 		if (*rx_rate == rate[r])
+		{
 			break;
+		}
 	}
 
 	priv->rx_rate = r;
 
-	for (ii = 0; ii < sband->n_bitrates; ii++) {
-		if (sband->bitrates[ii].hw_value == r) {
+	for (ii = 0; ii < sband->n_bitrates; ii++)
+	{
+		if (sband->bitrates[ii].hw_value == r)
+		{
 			rate_idx = ii;
-				break;
+			break;
 		}
 	}
 
-	if (ii == sband->n_bitrates) {
+	if (ii == sband->n_bitrates)
+	{
 		dev_dbg(&priv->usb->dev, "Wrong RxRate %x\n", *rx_rate);
 		return false;
 	}
 
 	pay_load_with_padding = ((*pay_load_len / 4) +
-		((*pay_load_len % 4) ? 1 : 0)) * 4;
+							 ((*pay_load_len % 4) ? 1 : 0)) * 4;
 
 	tsf_time = (__le64 *)(skb_data + 8 + pay_load_with_padding);
 
 	priv->tsf_time = le64_to_cpu(*tsf_time);
 
-	if (priv->bb_type == BB_TYPE_11G) {
+	if (priv->bb_type == BB_TYPE_11G)
+	{
 		sq_3 = skb_data + 8 + pay_load_with_padding + 12;
 		sq = sq_3;
-	} else {
+	}
+	else
+	{
 		sq = skb_data + 8 + pay_load_with_padding + 8;
 		sq_3 = sq;
 	}
@@ -133,8 +145,11 @@ int vnt_rx_data(struct vnt_private *priv, struct vnt_rcb *ptr_rcb,
 	rssi = skb_data + 8 + pay_load_with_padding + 10;
 
 	rsr = skb_data + 8 + pay_load_with_padding + 11;
+
 	if (*rsr & (RSR_IVLDTYP | RSR_IVLDLEN))
+	{
 		return false;
+	}
 
 	frame_size = *pay_load_len;
 
@@ -155,19 +170,24 @@ int vnt_rx_data(struct vnt_private *priv, struct vnt_rcb *ptr_rcb,
 	rx_status.freq = hw->conf.chandef.chan->center_freq;
 
 	if (!(*rsr & RSR_CRCOK))
+	{
 		rx_status.flag |= RX_FLAG_FAILED_FCS_CRC;
+	}
 
 	hdr = (struct ieee80211_hdr *)(skb->data);
 	fc = hdr->frame_control;
 
 	rx_status.rate_idx = rate_idx;
 
-	if (ieee80211_has_protected(fc)) {
-		if (priv->local_id > REV_ID_VT3253_A1) {
+	if (ieee80211_has_protected(fc))
+	{
+		if (priv->local_id > REV_ID_VT3253_A1)
+		{
 			rx_status.flag |= RX_FLAG_DECRYPTED;
 
 			/* Drop packet */
-			if (!(*new_rsr & NEWRSR_DECRYPTOK)) {
+			if (!(*new_rsr & NEWRSR_DECRYPTOK))
+			{
 				dev_kfree_skb(skb);
 				return true;
 			}

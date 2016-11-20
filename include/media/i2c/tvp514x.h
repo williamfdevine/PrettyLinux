@@ -46,7 +46,8 @@
  * enum tvp514x_input - enum for different decoder input pin
  *		configuration.
  */
-enum tvp514x_input {
+enum tvp514x_input
+{
 	/*
 	 * CVBS input selection
 	 */
@@ -87,7 +88,8 @@ enum tvp514x_input {
  *			supported.
  *
  */
-enum tvp514x_output {
+enum tvp514x_output
+{
 	OUTPUT_10BIT_422_EMBEDDED_SYNC = 0,
 	OUTPUT_20BIT_422_SEPERATE_SYNC,
 	OUTPUT_10BIT_422_SEPERATE_SYNC = 3,
@@ -100,7 +102,8 @@ enum tvp514x_output {
  * @hs_polarity: HSYNC Polarity configuration for current interface.
  * @vs_polarity: VSYNC Polarity configuration for current interface.
  */
-struct tvp514x_platform_data {
+struct tvp514x_platform_data
+{
 	/* Interface control params */
 	bool clk_polarity;
 	bool hs_polarity;

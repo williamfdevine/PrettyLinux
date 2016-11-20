@@ -23,7 +23,8 @@
  * part of a resistor ladder turning a 4.0V-5.25V level on VBUS into a
  * value the GPIO detects as active.  Some systems will use comparators.
  */
-struct gpio_vbus_mach_info {
+struct gpio_vbus_mach_info
+{
 	int gpio_vbus;
 	int gpio_pullup;
 	bool gpio_vbus_inverted;

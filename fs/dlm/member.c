@@ -22,17 +22,22 @@
 int dlm_slots_version(struct dlm_header *h)
 {
 	if ((h->h_version & 0x0000FFFF) < DLM_HEADER_SLOTS)
+	{
 		return 0;
+	}
+
 	return 1;
 }
 
 void dlm_slot_save(struct dlm_ls *ls, struct dlm_rcom *rc,
-		   struct dlm_member *memb)
+				   struct dlm_member *memb)
 {
 	struct rcom_config *rf = (struct rcom_config *)rc->rc_buf;
 
 	if (!dlm_slots_version(&rc->rc_header))
+	{
 		return;
+	}
 
 	memb->slot = le16_to_cpu(rf->rf_our_slot);
 	memb->generation = le32_to_cpu(rf->rf_generation);
@@ -48,10 +53,15 @@ void dlm_slots_copy_out(struct dlm_ls *ls, struct dlm_rcom *rc)
 
 	/* ls_slots array is sparse, but not rcom_slots */
 
-	for (i = 0; i < ls->ls_slots_size; i++) {
+	for (i = 0; i < ls->ls_slots_size; i++)
+	{
 		slot = &ls->ls_slots[i];
+
 		if (!slot->nodeid)
+		{
 			continue;
+		}
+
 		ro->ro_nodeid = cpu_to_le32(slot->nodeid);
 		ro->ro_slot = cpu_to_le16(slot->slot);
 		ro++;
@@ -61,8 +71,8 @@ void dlm_slots_copy_out(struct dlm_ls *ls, struct dlm_rcom *rc)
 #define SLOT_DEBUG_LINE 128
 
 static void log_slots(struct dlm_ls *ls, uint32_t gen, int num_slots,
-		      struct rcom_slot *ro0, struct dlm_slot *array,
-		      int array_size)
+					  struct rcom_slot *ro0, struct dlm_slot *array,
+					  int array_size)
 {
 	char line[SLOT_DEBUG_LINE];
 	int len = SLOT_DEBUG_LINE - 1;
@@ -71,23 +81,38 @@ static void log_slots(struct dlm_ls *ls, uint32_t gen, int num_slots,
 
 	memset(line, 0, sizeof(line));
 
-	if (array) {
-		for (i = 0; i < array_size; i++) {
+	if (array)
+	{
+		for (i = 0; i < array_size; i++)
+		{
 			if (!array[i].nodeid)
+			{
 				continue;
+			}
 
 			ret = snprintf(line + pos, len - pos, " %d:%d",
-				       array[i].slot, array[i].nodeid);
+						   array[i].slot, array[i].nodeid);
+
 			if (ret >= len - pos)
+			{
 				break;
+			}
+
 			pos += ret;
 		}
-	} else if (ro0) {
-		for (i = 0; i < num_slots; i++) {
+	}
+	else if (ro0)
+	{
+		for (i = 0; i < num_slots; i++)
+		{
 			ret = snprintf(line + pos, len - pos, " %d:%d",
-				       ro0[i].ro_slot, ro0[i].ro_nodeid);
+						   ro0[i].ro_slot, ro0[i].ro_nodeid);
+
 			if (ret >= len - pos)
+			{
 				break;
+			}
+
 			pos += ret;
 		}
 	}
@@ -106,52 +131,71 @@ int dlm_slots_copy_in(struct dlm_ls *ls)
 	uint32_t gen;
 
 	if (!dlm_slots_version(&rc->rc_header))
+	{
 		return -1;
+	}
 
 	gen = le32_to_cpu(rf->rf_generation);
-	if (gen <= ls->ls_generation) {
+
+	if (gen <= ls->ls_generation)
+	{
 		log_error(ls, "dlm_slots_copy_in gen %u old %u",
-			  gen, ls->ls_generation);
+				  gen, ls->ls_generation);
 	}
+
 	ls->ls_generation = gen;
 
 	num_slots = le16_to_cpu(rf->rf_num_slots);
+
 	if (!num_slots)
+	{
 		return -1;
+	}
 
 	ro0 = (struct rcom_slot *)(rc->rc_buf + sizeof(struct rcom_config));
 
-	for (i = 0, ro = ro0; i < num_slots; i++, ro++) {
+	for (i = 0, ro = ro0; i < num_slots; i++, ro++)
+	{
 		ro->ro_nodeid = le32_to_cpu(ro->ro_nodeid);
 		ro->ro_slot = le16_to_cpu(ro->ro_slot);
 	}
 
 	log_slots(ls, gen, num_slots, ro0, NULL, 0);
 
-	list_for_each_entry(memb, &ls->ls_nodes, list) {
-		for (i = 0, ro = ro0; i < num_slots; i++, ro++) {
+	list_for_each_entry(memb, &ls->ls_nodes, list)
+	{
+		for (i = 0, ro = ro0; i < num_slots; i++, ro++)
+		{
 			if (ro->ro_nodeid != memb->nodeid)
+			{
 				continue;
+			}
+
 			memb->slot = ro->ro_slot;
 			memb->slot_prev = memb->slot;
 			break;
 		}
 
-		if (memb->nodeid == our_nodeid) {
-			if (ls->ls_slot && ls->ls_slot != memb->slot) {
+		if (memb->nodeid == our_nodeid)
+		{
+			if (ls->ls_slot && ls->ls_slot != memb->slot)
+			{
 				log_error(ls, "dlm_slots_copy_in our slot "
-					  "changed %d %d", ls->ls_slot,
-					  memb->slot);
+						  "changed %d %d", ls->ls_slot,
+						  memb->slot);
 				return -1;
 			}
 
 			if (!ls->ls_slot)
+			{
 				ls->ls_slot = memb->slot;
+			}
 		}
 
-		if (!memb->slot) {
+		if (!memb->slot)
+		{
 			log_error(ls, "dlm_slots_copy_in nodeid %d no slot",
-				   memb->nodeid);
+					  memb->nodeid);
 			return -1;
 		}
 	}
@@ -164,7 +208,7 @@ int dlm_slots_copy_in(struct dlm_ls *ls)
    assign slots or set ls_num_slots here */
 
 int dlm_slots_assign(struct dlm_ls *ls, int *num_slots, int *slots_size,
-		     struct dlm_slot **slots_out, uint32_t *gen_out)
+					 struct dlm_slot **slots_out, uint32_t *gen_out)
 {
 	struct dlm_member *memb;
 	struct dlm_slot *array;
@@ -177,60 +221,80 @@ int dlm_slots_assign(struct dlm_ls *ls, int *num_slots, int *slots_size,
 
 	/* our own memb struct will have slot -1 gen 0 */
 
-	list_for_each_entry(memb, &ls->ls_nodes, list) {
-		if (memb->nodeid == our_nodeid) {
+	list_for_each_entry(memb, &ls->ls_nodes, list)
+	{
+		if (memb->nodeid == our_nodeid)
+		{
 			memb->slot = ls->ls_slot;
 			memb->generation = ls->ls_generation;
 			break;
 		}
 	}
 
-	list_for_each_entry(memb, &ls->ls_nodes, list) {
+	list_for_each_entry(memb, &ls->ls_nodes, list)
+	{
 		if (memb->generation > gen)
+		{
 			gen = memb->generation;
+		}
 
 		/* node doesn't support slots */
 
 		if (memb->slot == -1)
+		{
 			return -1;
+		}
 
 		/* node needs a slot assigned */
 
 		if (!memb->slot)
+		{
 			need++;
+		}
 
 		/* node has a slot assigned */
 
 		num++;
 
 		if (!max || max < memb->slot)
+		{
 			max = memb->slot;
+		}
 
 		/* sanity check, once slot is assigned it shouldn't change */
 
-		if (memb->slot_prev && memb->slot && memb->slot_prev != memb->slot) {
+		if (memb->slot_prev && memb->slot && memb->slot_prev != memb->slot)
+		{
 			log_error(ls, "nodeid %d slot changed %d %d",
-				  memb->nodeid, memb->slot_prev, memb->slot);
+					  memb->nodeid, memb->slot_prev, memb->slot);
 			return -1;
 		}
+
 		memb->slot_prev = memb->slot;
 	}
 
 	array_size = max + need;
 
 	array = kzalloc(array_size * sizeof(struct dlm_slot), GFP_NOFS);
+
 	if (!array)
+	{
 		return -ENOMEM;
+	}
 
 	num = 0;
 
 	/* fill in slots (offsets) that are used */
 
-	list_for_each_entry(memb, &ls->ls_nodes, list) {
+	list_for_each_entry(memb, &ls->ls_nodes, list)
+	{
 		if (!memb->slot)
+		{
 			continue;
+		}
 
-		if (memb->slot > array_size) {
+		if (memb->slot > array_size)
+		{
 			log_error(ls, "invalid slot number %d", memb->slot);
 			kfree(array);
 			return -1;
@@ -243,13 +307,19 @@ int dlm_slots_assign(struct dlm_ls *ls, int *num_slots, int *slots_size,
 
 	/* assign new slots from unused offsets */
 
-	list_for_each_entry(memb, &ls->ls_nodes, list) {
+	list_for_each_entry(memb, &ls->ls_nodes, list)
+	{
 		if (memb->slot)
+		{
 			continue;
+		}
 
-		for (i = 0; i < array_size; i++) {
+		for (i = 0; i < array_size; i++)
+		{
 			if (array[i].nodeid)
+			{
 				continue;
+			}
 
 			memb->slot = i + 1;
 			memb->slot_prev = memb->slot;
@@ -258,11 +328,15 @@ int dlm_slots_assign(struct dlm_ls *ls, int *num_slots, int *slots_size,
 			num++;
 
 			if (!ls->ls_slot && memb->nodeid == our_nodeid)
+			{
 				ls->ls_slot = memb->slot;
+			}
+
 			break;
 		}
 
-		if (!memb->slot) {
+		if (!memb->slot)
+		{
 			log_error(ls, "no free slot found");
 			kfree(array);
 			return -1;
@@ -274,11 +348,12 @@ int dlm_slots_assign(struct dlm_ls *ls, int *num_slots, int *slots_size,
 	log_slots(ls, gen, num, NULL, array, array_size);
 
 	max_slots = (dlm_config.ci_buffer_size - sizeof(struct dlm_rcom) -
-		     sizeof(struct rcom_config)) / sizeof(struct rcom_slot);
+				 sizeof(struct rcom_config)) / sizeof(struct rcom_slot);
 
-	if (num > max_slots) {
+	if (num > max_slots)
+	{
 		log_error(ls, "num_slots %d exceeds max_slots %d",
-			  num, max_slots);
+				  num, max_slots);
 		kfree(array);
 		return -1;
 	}
@@ -297,15 +372,22 @@ static void add_ordered_member(struct dlm_ls *ls, struct dlm_member *new)
 	struct list_head *newlist = &new->list;
 	struct list_head *head = &ls->ls_nodes;
 
-	list_for_each(tmp, head) {
+	list_for_each(tmp, head)
+	{
 		memb = list_entry(tmp, struct dlm_member, list);
+
 		if (new->nodeid < memb->nodeid)
+		{
 			break;
+		}
 	}
 
 	if (!memb)
+	{
 		list_add_tail(newlist, head);
-	else {
+	}
+	else
+	{
 		/* FIXME: can use list macro here */
 		newlist->prev = tmp->prev;
 		newlist->next = tmp;
@@ -320,11 +402,16 @@ static int dlm_add_member(struct dlm_ls *ls, struct dlm_config_node *node)
 	int error;
 
 	memb = kzalloc(sizeof(struct dlm_member), GFP_NOFS);
+
 	if (!memb)
+	{
 		return -ENOMEM;
+	}
 
 	error = dlm_lowcomms_connect_node(node->nodeid);
-	if (error < 0) {
+
+	if (error < 0)
+	{
 		kfree(memb);
 		return error;
 	}
@@ -341,9 +428,12 @@ static struct dlm_member *find_memb(struct list_head *head, int nodeid)
 {
 	struct dlm_member *memb;
 
-	list_for_each_entry(memb, head, list) {
+	list_for_each_entry(memb, head, list)
+	{
 		if (memb->nodeid == nodeid)
+		{
 			return memb;
+		}
 	}
 	return NULL;
 }
@@ -351,14 +441,20 @@ static struct dlm_member *find_memb(struct list_head *head, int nodeid)
 int dlm_is_member(struct dlm_ls *ls, int nodeid)
 {
 	if (find_memb(&ls->ls_nodes, nodeid))
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
 int dlm_is_removed(struct dlm_ls *ls, int nodeid)
 {
 	if (find_memb(&ls->ls_nodes_gone, nodeid))
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -366,7 +462,8 @@ static void clear_memb_list(struct list_head *head)
 {
 	struct dlm_member *memb;
 
-	while (!list_empty(head)) {
+	while (!list_empty(head))
+	{
 		memb = list_entry(head->next, struct dlm_member, list);
 		list_del(&memb->list);
 		kfree(memb);
@@ -392,14 +489,18 @@ static void make_member_array(struct dlm_ls *ls)
 	kfree(ls->ls_node_array);
 	ls->ls_node_array = NULL;
 
-	list_for_each_entry(memb, &ls->ls_nodes, list) {
+	list_for_each_entry(memb, &ls->ls_nodes, list)
+	{
 		if (memb->weight)
+		{
 			total += memb->weight;
+		}
 	}
 
 	/* all nodes revert to weight of 1 if all have weight 0 */
 
-	if (!total) {
+	if (!total)
+	{
 		total = ls->ls_num_nodes;
 		all_zero = 1;
 	}
@@ -407,22 +508,34 @@ static void make_member_array(struct dlm_ls *ls)
 	ls->ls_total_weight = total;
 
 	array = kmalloc(sizeof(int) * total, GFP_NOFS);
-	if (!array)
-		return;
 
-	list_for_each_entry(memb, &ls->ls_nodes, list) {
+	if (!array)
+	{
+		return;
+	}
+
+	list_for_each_entry(memb, &ls->ls_nodes, list)
+	{
 		if (!all_zero && !memb->weight)
+		{
 			continue;
+		}
 
 		if (all_zero)
+		{
 			w = 1;
+		}
 		else
+		{
 			w = memb->weight;
+		}
 
 		DLM_ASSERT(x < total, printk("total %d x %d\n", total, x););
 
 		for (i = 0; i < w; i++)
+		{
 			array[x++] = memb->nodeid;
+		}
 	}
 
 	ls->ls_node_array = array;
@@ -435,24 +548,37 @@ static int ping_members(struct dlm_ls *ls)
 	struct dlm_member *memb;
 	int error = 0;
 
-	list_for_each_entry(memb, &ls->ls_nodes, list) {
+	list_for_each_entry(memb, &ls->ls_nodes, list)
+	{
 		error = dlm_recovery_stopped(ls);
+
 		if (error)
+		{
 			break;
+		}
+
 		error = dlm_rcom_status(ls, memb->nodeid, 0);
+
 		if (error)
+		{
 			break;
+		}
 	}
+
 	if (error)
 		log_rinfo(ls, "ping_members aborted %d last nodeid %d",
-			  error, ls->ls_recover_nodeid);
+				  error, ls->ls_recover_nodeid);
+
 	return error;
 }
 
 static void dlm_lsop_recover_prep(struct dlm_ls *ls)
 {
 	if (!ls->ls_ops || !ls->ls_ops->recover_prep)
+	{
 		return;
+	}
+
 	ls->ls_ops->recover_prep(ls->ls_ops_arg);
 }
 
@@ -463,7 +589,9 @@ static void dlm_lsop_recover_slot(struct dlm_ls *ls, struct dlm_member *memb)
 	int error;
 
 	if (!ls->ls_ops || !ls->ls_ops->recover_slot)
+	{
 		return;
+	}
 
 	/* if there is no comms connection with this node
 	   or the present comms connection is newer
@@ -474,7 +602,9 @@ static void dlm_lsop_recover_slot(struct dlm_ls *ls, struct dlm_member *memb)
 	error = dlm_comm_seq(memb->nodeid, &seq);
 
 	if (!error && seq == memb->comm_seq)
+	{
 		return;
+	}
 
 	slot.nodeid = memb->nodeid;
 	slot.slot = memb->slot;
@@ -489,40 +619,52 @@ void dlm_lsop_recover_done(struct dlm_ls *ls)
 	int i, num;
 
 	if (!ls->ls_ops || !ls->ls_ops->recover_done)
+	{
 		return;
+	}
 
 	num = ls->ls_num_nodes;
 
 	slots = kzalloc(num * sizeof(struct dlm_slot), GFP_KERNEL);
+
 	if (!slots)
+	{
 		return;
+	}
 
 	i = 0;
-	list_for_each_entry(memb, &ls->ls_nodes, list) {
-		if (i == num) {
+	list_for_each_entry(memb, &ls->ls_nodes, list)
+	{
+		if (i == num)
+		{
 			log_error(ls, "dlm_lsop_recover_done bad num %d", num);
 			goto out;
 		}
+
 		slots[i].nodeid = memb->nodeid;
 		slots[i].slot = memb->slot;
 		i++;
 	}
 
 	ls->ls_ops->recover_done(ls->ls_ops_arg, slots, num,
-				 ls->ls_slot, ls->ls_generation);
- out:
+							 ls->ls_slot, ls->ls_generation);
+out:
 	kfree(slots);
 }
 
 static struct dlm_config_node *find_config_node(struct dlm_recover *rv,
-						int nodeid)
+		int nodeid)
 {
 	int i;
 
-	for (i = 0; i < rv->nodes_count; i++) {
+	for (i = 0; i < rv->nodes_count; i++)
+	{
 		if (rv->nodes[i].nodeid == nodeid)
+		{
 			return &rv->nodes[i];
+		}
 	}
+
 	return NULL;
 }
 
@@ -535,24 +677,32 @@ int dlm_recover_members(struct dlm_ls *ls, struct dlm_recover *rv, int *neg_out)
 	/* previously removed members that we've not finished removing need to
 	   count as a negative change so the "neg" recovery steps will happen */
 
-	list_for_each_entry(memb, &ls->ls_nodes_gone, list) {
+	list_for_each_entry(memb, &ls->ls_nodes_gone, list)
+	{
 		log_rinfo(ls, "prev removed member %d", memb->nodeid);
 		neg++;
 	}
 
 	/* move departed members from ls_nodes to ls_nodes_gone */
 
-	list_for_each_entry_safe(memb, safe, &ls->ls_nodes, list) {
+	list_for_each_entry_safe(memb, safe, &ls->ls_nodes, list)
+	{
 		node = find_config_node(rv, memb->nodeid);
-		if (node && !node->new)
-			continue;
 
-		if (!node) {
+		if (node && !node->new)
+		{
+			continue;
+		}
+
+		if (!node)
+		{
 			log_rinfo(ls, "remove member %d", memb->nodeid);
-		} else {
+		}
+		else
+		{
 			/* removed and re-added */
 			log_rinfo(ls, "remove member %d comm_seq %u %u",
-				  memb->nodeid, memb->comm_seq, node->comm_seq);
+					  memb->nodeid, memb->comm_seq, node->comm_seq);
 		}
 
 		neg++;
@@ -563,17 +713,25 @@ int dlm_recover_members(struct dlm_ls *ls, struct dlm_recover *rv, int *neg_out)
 
 	/* add new members to ls_nodes */
 
-	for (i = 0; i < rv->nodes_count; i++) {
+	for (i = 0; i < rv->nodes_count; i++)
+	{
 		node = &rv->nodes[i];
+
 		if (dlm_is_member(ls, node->nodeid))
+		{
 			continue;
+		}
+
 		dlm_add_member(ls, node);
 		log_rinfo(ls, "add member %d", node->nodeid);
 	}
 
-	list_for_each_entry(memb, &ls->ls_nodes, list) {
+	list_for_each_entry(memb, &ls->ls_nodes, list)
+	{
 		if (low == -1 || memb->nodeid < low)
+		{
 			low = memb->nodeid;
+		}
 	}
 	ls->ls_low_nodeid = low;
 
@@ -581,7 +739,9 @@ int dlm_recover_members(struct dlm_ls *ls, struct dlm_recover *rv, int *neg_out)
 	*neg_out = neg;
 
 	error = ping_members(ls);
-	if (!error || error == -EPROTO) {
+
+	if (!error || error == -EPROTO)
+	{
 		/* new_lockspace() may be waiting to know if the config
 		   is good or bad */
 		ls->ls_members_result = error;
@@ -639,11 +799,12 @@ int dlm_ls_stop(struct dlm_ls *ls)
 	 *    when recovery is complete.
 	 */
 
-	if (new) {
+	if (new)
+	{
 		set_bit(LSFL_RECOVER_DOWN, &ls->ls_flags);
 		wake_up_process(ls->ls_recoverd_task);
 		wait_event(ls->ls_recover_lock_wait,
-			   test_bit(LSFL_RECOVER_LOCK, &ls->ls_flags));
+				   test_bit(LSFL_RECOVER_LOCK, &ls->ls_flags));
 	}
 
 	/*
@@ -665,7 +826,9 @@ int dlm_ls_stop(struct dlm_ls *ls)
 	dlm_recoverd_resume(ls);
 
 	if (!ls->ls_recover_begin)
+	{
 		ls->ls_recover_begin = jiffies;
+	}
 
 	dlm_lsop_recover_prep(ls);
 	return 0;
@@ -678,18 +841,25 @@ int dlm_ls_start(struct dlm_ls *ls)
 	int error, count;
 
 	rv = kzalloc(sizeof(struct dlm_recover), GFP_NOFS);
+
 	if (!rv)
+	{
 		return -ENOMEM;
+	}
 
 	error = dlm_config_nodes(ls->ls_name, &nodes, &count);
+
 	if (error < 0)
+	{
 		goto fail;
+	}
 
 	spin_lock(&ls->ls_recover_lock);
 
 	/* the lockspace needs to be stopped before it can be started */
 
-	if (!dlm_locking_stopped(ls)) {
+	if (!dlm_locking_stopped(ls))
+	{
 		spin_unlock(&ls->ls_recover_lock);
 		log_error(ls, "start ignored: lockspace running");
 		error = -EINVAL;
@@ -703,9 +873,10 @@ int dlm_ls_start(struct dlm_ls *ls)
 	ls->ls_recover_args = rv;
 	spin_unlock(&ls->ls_recover_lock);
 
-	if (rv_old) {
+	if (rv_old)
+	{
 		log_error(ls, "unused recovery %llx %d",
-			  (unsigned long long)rv_old->seq, rv_old->nodes_count);
+				  (unsigned long long)rv_old->seq, rv_old->nodes_count);
 		kfree(rv_old->nodes);
 		kfree(rv_old);
 	}
@@ -714,7 +885,7 @@ int dlm_ls_start(struct dlm_ls *ls)
 	wake_up_process(ls->ls_recoverd_task);
 	return 0;
 
- fail:
+fail:
 	kfree(rv);
 	kfree(nodes);
 	return error;

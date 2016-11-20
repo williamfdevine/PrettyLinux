@@ -26,7 +26,8 @@
 #include <linux/usb.h>
 #include <linux/usb/usbnet.h>
 
-enum cx82310_cmd {
+enum cx82310_cmd
+{
 	CMD_START		= 0x84,	/* no effect? */
 	CMD_STOP		= 0x85,	/* no effect? */
 	CMD_GET_STATUS		= 0x90,	/* returns nothing? */
@@ -35,7 +36,8 @@ enum cx82310_cmd {
 	CMD_ETHERNET_MODE	= 0x99,	/* unknown, needed during init */
 };
 
-enum cx82310_status {
+enum cx82310_status
+{
 	STATUS_UNDEFINED,
 	STATUS_SUCCESS,
 	STATUS_ERROR,
@@ -59,69 +61,93 @@ enum cx82310_status {
  *  - optionally read some data from the reply
  */
 static int cx82310_cmd(struct usbnet *dev, enum cx82310_cmd cmd, bool reply,
-		       u8 *wdata, int wlen, u8 *rdata, int rlen)
+					   u8 *wdata, int wlen, u8 *rdata, int rlen)
 {
 	int actual_len, retries, ret;
 	struct usb_device *udev = dev->udev;
 	u8 *buf = kzalloc(CMD_PACKET_SIZE, GFP_KERNEL);
 
 	if (!buf)
+	{
 		return -ENOMEM;
+	}
 
 	/* create command packet */
 	buf[0] = cmd;
+
 	if (wdata)
+	{
 		memcpy(buf + 4, wdata, min_t(int, wlen, CMD_PACKET_SIZE - 4));
+	}
 
 	/* send command packet */
 	ret = usb_bulk_msg(udev, usb_sndbulkpipe(udev, CMD_EP), buf,
-			   CMD_PACKET_SIZE, &actual_len, CMD_TIMEOUT);
-	if (ret < 0) {
+					   CMD_PACKET_SIZE, &actual_len, CMD_TIMEOUT);
+
+	if (ret < 0)
+	{
 		if (cmd != CMD_GET_LINK_STATUS)
 			dev_err(&dev->udev->dev, "send command %#x: error %d\n",
-				cmd, ret);
+					cmd, ret);
+
 		goto end;
 	}
 
-	if (reply) {
+	if (reply)
+	{
 		/* wait for reply, retry if it's empty */
-		for (retries = 0; retries < CMD_REPLY_RETRY; retries++) {
+		for (retries = 0; retries < CMD_REPLY_RETRY; retries++)
+		{
 			ret = usb_bulk_msg(udev, usb_rcvbulkpipe(udev, CMD_EP),
-					   buf, CMD_PACKET_SIZE, &actual_len,
-					   CMD_TIMEOUT);
-			if (ret < 0) {
+							   buf, CMD_PACKET_SIZE, &actual_len,
+							   CMD_TIMEOUT);
+
+			if (ret < 0)
+			{
 				if (cmd != CMD_GET_LINK_STATUS)
 					dev_err(&dev->udev->dev,
-						"reply receive error %d\n",
-						ret);
+							"reply receive error %d\n",
+							ret);
+
 				goto end;
 			}
+
 			if (actual_len > 0)
+			{
 				break;
+			}
 		}
-		if (actual_len == 0) {
+
+		if (actual_len == 0)
+		{
 			dev_err(&dev->udev->dev, "no reply to command %#x\n",
-				cmd);
+					cmd);
 			ret = -EIO;
 			goto end;
 		}
-		if (buf[0] != cmd) {
+
+		if (buf[0] != cmd)
+		{
 			dev_err(&dev->udev->dev,
-				"got reply to command %#x, expected: %#x\n",
-				buf[0], cmd);
+					"got reply to command %#x, expected: %#x\n",
+					buf[0], cmd);
 			ret = -EIO;
 			goto end;
 		}
-		if (buf[1] != STATUS_SUCCESS) {
+
+		if (buf[1] != STATUS_SUCCESS)
+		{
 			dev_err(&dev->udev->dev, "command %#x failed: %#x\n",
-				cmd, buf[1]);
+					cmd, buf[1]);
 			ret = -EIO;
 			goto end;
 		}
+
 		if (rdata)
 			memcpy(rdata, buf + 4,
-			       min_t(int, rlen, CMD_PACKET_SIZE - 4));
+				   min_t(int, rlen, CMD_PACKET_SIZE - 4));
 	}
+
 end:
 	kfree(buf);
 	return ret;
@@ -141,14 +167,18 @@ static int cx82310_bind(struct usbnet *dev, struct usb_interface *intf)
 
 	/* avoid ADSL modems - continue only if iProduct is "USB NET CARD" */
 	if (usb_string(udev, udev->descriptor.iProduct, buf, sizeof(buf)) > 0
-	    && strcmp(buf, "USB NET CARD")) {
+		&& strcmp(buf, "USB NET CARD"))
+	{
 		dev_info(&udev->dev, "ignoring: probably an ADSL modem\n");
 		return -ENODEV;
 	}
 
 	ret = usbnet_get_endpoints(dev, intf);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/*
 	 * this must not include ethernet header as the device can send partial
@@ -161,43 +191,60 @@ static int cx82310_bind(struct usbnet *dev, struct usb_interface *intf)
 	dev->rx_urb_size = 4096;
 
 	dev->partial_data = (unsigned long) kmalloc(dev->hard_mtu, GFP_KERNEL);
+
 	if (!dev->partial_data)
+	{
 		return -ENOMEM;
+	}
 
 	/* wait for firmware to become ready (indicated by the link being up) */
-	while (--timeout) {
+	while (--timeout)
+	{
 		ret = cx82310_cmd(dev, CMD_GET_LINK_STATUS, true, NULL, 0,
-				  link, sizeof(link));
+						  link, sizeof(link));
+
 		/* the command can time out during boot - it's not an error */
 		if (!ret && link[0] == 1 && link[2] == 1)
+		{
 			break;
+		}
+
 		msleep(500);
 	}
-	if (!timeout) {
+
+	if (!timeout)
+	{
 		dev_err(&udev->dev, "firmware not ready in time\n");
 		return -ETIMEDOUT;
 	}
 
 	/* enable ethernet mode (?) */
 	ret = cx82310_cmd(dev, CMD_ETHERNET_MODE, true, "\x01", 1, NULL, 0);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&udev->dev, "unable to enable ethernet mode: %d\n",
-			ret);
+				ret);
 		goto err;
 	}
 
 	/* get the MAC address */
 	ret = cx82310_cmd(dev, CMD_GET_MAC_ADDR, true, NULL, 0,
-			  dev->net->dev_addr, ETH_ALEN);
-	if (ret) {
+					  dev->net->dev_addr, ETH_ALEN);
+
+	if (ret)
+	{
 		dev_err(&udev->dev, "unable to read MAC address: %d\n", ret);
 		goto err;
 	}
 
 	/* start (does not seem to have any effect?) */
 	ret = cx82310_cmd(dev, CMD_START, false, NULL, 0, NULL, 0);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	return 0;
 err:
@@ -227,54 +274,70 @@ static int cx82310_rx_fixup(struct usbnet *dev, struct sk_buff *skb)
 	 * If the last skb ended with an incomplete packet, this skb contains
 	 * end of that packet at the beginning.
 	 */
-	if (dev->partial_rem) {
+	if (dev->partial_rem)
+	{
 		len = dev->partial_len + dev->partial_rem;
 		skb2 = alloc_skb(len, GFP_ATOMIC);
+
 		if (!skb2)
+		{
 			return 0;
+		}
+
 		skb_put(skb2, len);
 		memcpy(skb2->data, (void *)dev->partial_data,
-		       dev->partial_len);
+			   dev->partial_len);
 		memcpy(skb2->data + dev->partial_len, skb->data,
-		       dev->partial_rem);
+			   dev->partial_rem);
 		usbnet_skb_return(dev, skb2);
 		skb_pull(skb, (dev->partial_rem + 1) & ~1);
 		dev->partial_rem = 0;
+
 		if (skb->len < 2)
+		{
 			return 1;
+		}
 	}
 
 	/* a skb can contain multiple packets */
-	while (skb->len > 1) {
+	while (skb->len > 1)
+	{
 		/* first two bytes are packet length */
 		len = skb->data[0] | (skb->data[1] << 8);
 		skb_pull(skb, 2);
 
 		/* if last packet in the skb, let usbnet to process it */
-		if (len == skb->len || len + 1 == skb->len) {
+		if (len == skb->len || len + 1 == skb->len)
+		{
 			skb_trim(skb, len);
 			break;
 		}
 
-		if (len > CX82310_MTU) {
+		if (len > CX82310_MTU)
+		{
 			dev_err(&dev->udev->dev, "RX packet too long: %d B\n",
-				len);
+					len);
 			return 0;
 		}
 
 		/* incomplete packet, save it for the next skb */
-		if (len > skb->len) {
+		if (len > skb->len)
+		{
 			dev->partial_len = skb->len;
 			dev->partial_rem = len - skb->len;
 			memcpy((void *)dev->partial_data, skb->data,
-			       dev->partial_len);
+				   dev->partial_len);
 			skb_pull(skb, skb->len);
 			break;
 		}
 
 		skb2 = alloc_skb(len, GFP_ATOMIC);
+
 		if (!skb2)
+		{
 			return 0;
+		}
+
 		skb_put(skb2, len);
 		memcpy(skb2->data, skb->data, len);
 		/* process the packet */
@@ -289,17 +352,22 @@ static int cx82310_rx_fixup(struct usbnet *dev, struct sk_buff *skb)
 
 /* TX is easy, just add 2 bytes of length at the beginning */
 static struct sk_buff *cx82310_tx_fixup(struct usbnet *dev, struct sk_buff *skb,
-				       gfp_t flags)
+										gfp_t flags)
 {
 	int len = skb->len;
 
-	if (skb_headroom(skb) < 2) {
+	if (skb_headroom(skb) < 2)
+	{
 		struct sk_buff *skb2 = skb_copy_expand(skb, 2, 0, flags);
 		dev_kfree_skb_any(skb);
 		skb = skb2;
+
 		if (!skb)
+		{
 			return NULL;
+		}
 	}
+
 	skb_push(skb, 2);
 
 	skb->data[0] = len;
@@ -309,7 +377,8 @@ static struct sk_buff *cx82310_tx_fixup(struct usbnet *dev, struct sk_buff *skb,
 }
 
 
-static const struct driver_info	cx82310_info = {
+static const struct driver_info	cx82310_info =
+{
 	.description	= "Conexant CX82310 USB ethernet",
 	.flags		= FLAG_ETHER,
 	.bind		= cx82310_bind,
@@ -320,14 +389,15 @@ static const struct driver_info	cx82310_info = {
 
 #define USB_DEVICE_CLASS(vend, prod, cl, sc, pr) \
 	.match_flags = USB_DEVICE_ID_MATCH_DEVICE | \
-		       USB_DEVICE_ID_MATCH_DEV_INFO, \
-	.idVendor = (vend), \
-	.idProduct = (prod), \
-	.bDeviceClass = (cl), \
-	.bDeviceSubClass = (sc), \
-	.bDeviceProtocol = (pr)
+				   USB_DEVICE_ID_MATCH_DEV_INFO, \
+				   .idVendor = (vend), \
+							   .idProduct = (prod), \
+											.bDeviceClass = (cl), \
+													.bDeviceSubClass = (sc), \
+															.bDeviceProtocol = (pr)
 
-static const struct usb_device_id products[] = {
+static const struct usb_device_id products[] =
+{
 	{
 		USB_DEVICE_CLASS(0x0572, 0xcb01, 0xff, 0, 0),
 		.driver_info = (unsigned long) &cx82310_info
@@ -336,7 +406,8 @@ static const struct usb_device_id products[] = {
 };
 MODULE_DEVICE_TABLE(usb, products);
 
-static struct usb_driver cx82310_driver = {
+static struct usb_driver cx82310_driver =
+{
 	.name		= "cx82310_eth",
 	.id_table	= products,
 	.probe		= usbnet_probe,

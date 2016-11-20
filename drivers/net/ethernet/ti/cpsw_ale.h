@@ -15,7 +15,8 @@
 #ifndef __TI_CPSW_ALE_H__
 #define __TI_CPSW_ALE_H__
 
-struct cpsw_ale_params {
+struct cpsw_ale_params
+{
 	struct device		*dev;
 	void __iomem		*ale_regs;
 	unsigned long		ale_ageout;	/* in secs */
@@ -23,14 +24,16 @@ struct cpsw_ale_params {
 	unsigned long		ale_ports;
 };
 
-struct cpsw_ale {
+struct cpsw_ale
+{
 	struct cpsw_ale_params	params;
 	struct timer_list	timer;
 	unsigned long		ageout;
 	int			allmulti;
 };
 
-enum cpsw_ale_control {
+enum cpsw_ale_control
+{
 	/* global */
 	ALE_ENABLE,
 	ALE_CLEAR,
@@ -59,7 +62,8 @@ enum cpsw_ale_control {
 	ALE_NUM_CONTROLS,
 };
 
-enum cpsw_ale_port_state {
+enum cpsw_ale_port_state
+{
 	ALE_PORT_STATE_DISABLE	= 0x00,
 	ALE_PORT_STATE_BLOCK	= 0x01,
 	ALE_PORT_STATE_LEARN	= 0x02,
@@ -92,21 +96,21 @@ void cpsw_ale_stop(struct cpsw_ale *ale);
 
 int cpsw_ale_flush_multicast(struct cpsw_ale *ale, int port_mask, int vid);
 int cpsw_ale_add_ucast(struct cpsw_ale *ale, u8 *addr, int port,
-		       int flags, u16 vid);
+					   int flags, u16 vid);
 int cpsw_ale_del_ucast(struct cpsw_ale *ale, u8 *addr, int port,
-		       int flags, u16 vid);
+					   int flags, u16 vid);
 int cpsw_ale_add_mcast(struct cpsw_ale *ale, u8 *addr, int port_mask,
-		       int flags, u16 vid, int mcast_state);
+					   int flags, u16 vid, int mcast_state);
 int cpsw_ale_del_mcast(struct cpsw_ale *ale, u8 *addr, int port_mask,
-		       int flags, u16 vid);
+					   int flags, u16 vid);
 int cpsw_ale_add_vlan(struct cpsw_ale *ale, u16 vid, int port, int untag,
-			int reg_mcast, int unreg_mcast);
+					  int reg_mcast, int unreg_mcast);
 int cpsw_ale_del_vlan(struct cpsw_ale *ale, u16 vid, int port);
 void cpsw_ale_set_allmulti(struct cpsw_ale *ale, int allmulti);
 
 int cpsw_ale_control_get(struct cpsw_ale *ale, int port, int control);
 int cpsw_ale_control_set(struct cpsw_ale *ale, int port,
-			 int control, int value);
+						 int control, int value);
 void cpsw_ale_dump(struct cpsw_ale *ale, u32 *data);
 
 #endif

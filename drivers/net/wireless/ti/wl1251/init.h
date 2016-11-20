@@ -24,7 +24,8 @@
 
 #include "wl1251.h"
 
-enum {
+enum
+{
 	/* best effort/legacy */
 	AC_BE = 0,
 

@@ -34,7 +34,8 @@ typedef int ion_user_handle_t;
  *				 is used to identify the heaps, so only 32
  *				 total heap types are supported
  */
-enum ion_heap_type {
+enum ion_heap_type
+{
 	ION_HEAP_TYPE_SYSTEM,
 	ION_HEAP_TYPE_SYSTEM_CONTIG,
 	ION_HEAP_TYPE_CARVEOUT,
@@ -84,7 +85,8 @@ enum ion_heap_type {
  *
  * Provided by userspace as an argument to the ioctl
  */
-struct ion_allocation_data {
+struct ion_allocation_data
+{
 	size_t len;
 	size_t align;
 	unsigned int heap_id_mask;
@@ -102,7 +104,8 @@ struct ion_allocation_data {
  * descriptor to share or map in the fd field.  For ION_IOC_IMPORT, userspace
  * provides the file descriptor and the kernel returns the handle.
  */
-struct ion_fd_data {
+struct ion_fd_data
+{
 	ion_user_handle_t handle;
 	int fd;
 };
@@ -111,7 +114,8 @@ struct ion_fd_data {
  * struct ion_handle_data - a handle passed to/from the kernel
  * @handle:	a handle
  */
-struct ion_handle_data {
+struct ion_handle_data
+{
 	ion_user_handle_t handle;
 };
 
@@ -123,7 +127,8 @@ struct ion_handle_data {
  *
  * This works just like the regular cmd and arg fields of an ioctl.
  */
-struct ion_custom_data {
+struct ion_custom_data
+{
 	unsigned int cmd;
 	unsigned long arg;
 };
@@ -136,7 +141,8 @@ struct ion_custom_data {
  * @type - heap type
  * @heap_id - heap id for the heap
  */
-struct ion_heap_data {
+struct ion_heap_data
+{
 	char name[MAX_HEAP_NAME];
 	__u32 type;
 	__u32 heap_id;
@@ -150,7 +156,8 @@ struct ion_heap_data {
  * @cnt - total number of heaps to be copied
  * @heaps - buffer to copy heap data
  */
-struct ion_heap_query {
+struct ion_heap_query
+{
 	__u32 cnt; /* Total number of heaps to be copied */
 	__u32 reserved0; /* align to 64bits */
 	__u64 heaps; /* buffer to be populated */
@@ -167,7 +174,7 @@ struct ion_heap_query {
  * populated with the opaque handle for the allocation.
  */
 #define ION_IOC_ALLOC		_IOWR(ION_IOC_MAGIC, 0, \
-				      struct ion_allocation_data)
+								  struct ion_allocation_data)
 
 /**
  * DOC: ION_IOC_FREE - free memory
@@ -231,6 +238,6 @@ struct ion_heap_query {
  * available Ion heaps.
  */
 #define ION_IOC_HEAP_QUERY     _IOWR(ION_IOC_MAGIC, 8, \
-					struct ion_heap_query)
+									 struct ion_heap_query)
 
 #endif /* _UAPI_LINUX_ION_H */

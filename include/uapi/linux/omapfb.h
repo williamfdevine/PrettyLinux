@@ -88,7 +88,8 @@
 #define OMAPFB_MEM_IDX_ENABLED	0x80
 #define OMAPFB_MEM_IDX_MASK	0x7f
 
-enum omapfb_color_format {
+enum omapfb_color_format
+{
 	OMAPFB_COLOR_RGB565 = 0,
 	OMAPFB_COLOR_YUV422,
 	OMAPFB_COLOR_YUV420,
@@ -107,7 +108,8 @@ enum omapfb_color_format {
 	OMAPFB_COLOR_RGBX32,
 };
 
-struct omapfb_update_window {
+struct omapfb_update_window
+{
 	__u32 x, y;
 	__u32 width, height;
 	__u32 format;
@@ -116,24 +118,28 @@ struct omapfb_update_window {
 	__u32 reserved[8];
 };
 
-struct omapfb_update_window_old {
+struct omapfb_update_window_old
+{
 	__u32 x, y;
 	__u32 width, height;
 	__u32 format;
 };
 
-enum omapfb_plane {
+enum omapfb_plane
+{
 	OMAPFB_PLANE_GFX = 0,
 	OMAPFB_PLANE_VID1,
 	OMAPFB_PLANE_VID2,
 };
 
-enum omapfb_channel_out {
+enum omapfb_channel_out
+{
 	OMAPFB_CHANNEL_OUT_LCD = 0,
 	OMAPFB_CHANNEL_OUT_DIGIT,
 };
 
-struct omapfb_plane_info {
+struct omapfb_plane_info
+{
 	__u32 pos_x;
 	__u32 pos_y;
 	__u8  enabled;
@@ -145,38 +151,44 @@ struct omapfb_plane_info {
 	__u32 reserved2[12];
 };
 
-struct omapfb_mem_info {
+struct omapfb_mem_info
+{
 	__u32 size;
 	__u8  type;
 	__u8  reserved[3];
 };
 
-struct omapfb_caps {
+struct omapfb_caps
+{
 	__u32 ctrl;
 	__u32 plane_color;
 	__u32 wnd_color;
 };
 
-enum omapfb_color_key_type {
+enum omapfb_color_key_type
+{
 	OMAPFB_COLOR_KEY_DISABLED = 0,
 	OMAPFB_COLOR_KEY_GFX_DST,
 	OMAPFB_COLOR_KEY_VID_SRC,
 };
 
-struct omapfb_color_key {
+struct omapfb_color_key
+{
 	__u8  channel_out;
 	__u32 background;
 	__u32 trans_key;
 	__u8  key_type;
 };
 
-enum omapfb_update_mode {
+enum omapfb_update_mode
+{
 	OMAPFB_UPDATE_DISABLED = 0,
 	OMAPFB_AUTO_UPDATE,
 	OMAPFB_MANUAL_UPDATE
 };
 
-struct omapfb_memory_read {
+struct omapfb_memory_read
+{
 	__u16 x;
 	__u16 y;
 	__u16 w;
@@ -185,7 +197,8 @@ struct omapfb_memory_read {
 	void __user *buffer;
 };
 
-struct omapfb_ovl_colormode {
+struct omapfb_ovl_colormode
+{
 	__u8 overlay_idx;
 	__u8 mode_idx;
 	__u32 bits_per_pixel;
@@ -196,21 +209,24 @@ struct omapfb_ovl_colormode {
 	struct fb_bitfield transp;
 };
 
-struct omapfb_vram_info {
+struct omapfb_vram_info
+{
 	__u32 total;
 	__u32 free;
 	__u32 largest_free_block;
 	__u32 reserved[5];
 };
 
-struct omapfb_tearsync_info {
+struct omapfb_tearsync_info
+{
 	__u8 enabled;
 	__u8 reserved1[3];
 	__u16 line;
 	__u16 reserved2;
 };
 
-struct omapfb_display_info {
+struct omapfb_display_info
+{
 	__u16 xres;
 	__u16 yres;
 	__u32 width;	/* phys width of the display in micrometers */

@@ -31,7 +31,7 @@ static void whc_hw_reset(struct whc *whc)
 {
 	le_writel(WUSBCMD_WHCRESET, whc->base + WUSBCMD);
 	whci_wait_for(&whc->umc->dev, whc->base + WUSBCMD, WUSBCMD_WHCRESET, 0,
-		      100, "reset");
+				  100, "reset");
 }
 
 static void whc_hw_init_di_buf(struct whc *whc)
@@ -40,7 +40,9 @@ static void whc_hw_init_di_buf(struct whc *whc)
 
 	/* Disable all entries in the Device Information buffer. */
 	for (d = 0; d < whc->n_devices; d++)
+	{
 		whc->di_buf[d].addr_sec_info = WHC_DI_DISABLE;
+	}
 
 	le_writeq(whc->di_buf_dma, whc->base + WUSBDEVICEINFOADDR);
 }
@@ -66,10 +68,13 @@ int whc_init(struct whc *whc)
 	init_waitqueue_head(&whc->async_list_wq);
 	init_waitqueue_head(&whc->periodic_list_wq);
 	whc->workqueue = alloc_ordered_workqueue(dev_name(&whc->umc->dev), 0);
-	if (whc->workqueue == NULL) {
+
+	if (whc->workqueue == NULL)
+	{
 		ret = -ENOMEM;
 		goto error;
 	}
+
 	INIT_WORK(&whc->dn_work, whc_dn_work);
 
 	INIT_WORK(&whc->async_work, scan_async_work);
@@ -77,21 +82,30 @@ int whc_init(struct whc *whc)
 	INIT_LIST_HEAD(&whc->async_removed_list);
 
 	INIT_WORK(&whc->periodic_work, scan_periodic_work);
+
 	for (i = 0; i < 5; i++)
+	{
 		INIT_LIST_HEAD(&whc->periodic_list[i]);
+	}
+
 	INIT_LIST_HEAD(&whc->periodic_removed_list);
 
 	/* Map HC registers. */
 	start = whc->umc->resource.start;
 	len   = whc->umc->resource.end - start + 1;
-	if (!request_mem_region(start, len, "whci-hc")) {
+
+	if (!request_mem_region(start, len, "whci-hc"))
+	{
 		dev_err(&whc->umc->dev, "can't request HC region\n");
 		ret = -EBUSY;
 		goto error;
 	}
+
 	whc->base_phys = start;
 	whc->base = ioremap(start, len);
-	if (!whc->base) {
+
+	if (!whc->base)
+	{
 		dev_err(&whc->umc->dev, "ioremap\n");
 		ret = -ENOMEM;
 		goto error;
@@ -106,49 +120,66 @@ int whc_init(struct whc *whc)
 	whc->n_mmc_ies = WHCSPARAMS_TO_N_MMC_IES(whcsparams);
 
 	dev_dbg(&whc->umc->dev, "N_DEVICES = %d, N_KEYS = %d, N_MMC_IES = %d\n",
-		whc->n_devices, whc->n_keys, whc->n_mmc_ies);
+			whc->n_devices, whc->n_keys, whc->n_mmc_ies);
 
 	whc->qset_pool = dma_pool_create("qset", &whc->umc->dev,
-					 sizeof(struct whc_qset), 64, 0);
-	if (whc->qset_pool == NULL) {
+									 sizeof(struct whc_qset), 64, 0);
+
+	if (whc->qset_pool == NULL)
+	{
 		ret = -ENOMEM;
 		goto error;
 	}
 
 	ret = asl_init(whc);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
+
 	ret = pzl_init(whc);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
 
 	/* Allocate and initialize a buffer for generic commands, the
 	   Device Information buffer, and the Device Notification
 	   buffer. */
 
 	whc->gen_cmd_buf = dma_alloc_coherent(&whc->umc->dev, WHC_GEN_CMD_DATA_LEN,
-					      &whc->gen_cmd_buf_dma, GFP_KERNEL);
-	if (whc->gen_cmd_buf == NULL) {
+										  &whc->gen_cmd_buf_dma, GFP_KERNEL);
+
+	if (whc->gen_cmd_buf == NULL)
+	{
 		ret = -ENOMEM;
 		goto error;
 	}
 
 	whc->dn_buf = dma_alloc_coherent(&whc->umc->dev,
-					 sizeof(struct dn_buf_entry) * WHC_N_DN_ENTRIES,
-					 &whc->dn_buf_dma, GFP_KERNEL);
-	if (!whc->dn_buf) {
+									 sizeof(struct dn_buf_entry) * WHC_N_DN_ENTRIES,
+									 &whc->dn_buf_dma, GFP_KERNEL);
+
+	if (!whc->dn_buf)
+	{
 		ret = -ENOMEM;
 		goto error;
 	}
+
 	whc_hw_init_dn_buf(whc);
 
 	whc->di_buf = dma_alloc_coherent(&whc->umc->dev,
-					 sizeof(struct di_buf_entry) * whc->n_devices,
-					 &whc->di_buf_dma, GFP_KERNEL);
-	if (!whc->di_buf) {
+									 sizeof(struct di_buf_entry) * whc->n_devices,
+									 &whc->di_buf_dma, GFP_KERNEL);
+
+	if (!whc->di_buf)
+	{
 		ret = -ENOMEM;
 		goto error;
 	}
+
 	whc_hw_init_di_buf(whc);
 
 	return 0;
@@ -164,13 +195,15 @@ void whc_clean_up(struct whc *whc)
 
 	if (whc->di_buf)
 		dma_free_coherent(&whc->umc->dev, sizeof(struct di_buf_entry) * whc->n_devices,
-				  whc->di_buf, whc->di_buf_dma);
+						  whc->di_buf, whc->di_buf_dma);
+
 	if (whc->dn_buf)
 		dma_free_coherent(&whc->umc->dev, sizeof(struct dn_buf_entry) * WHC_N_DN_ENTRIES,
-				  whc->dn_buf, whc->dn_buf_dma);
+						  whc->dn_buf, whc->dn_buf_dma);
+
 	if (whc->gen_cmd_buf)
 		dma_free_coherent(&whc->umc->dev, WHC_GEN_CMD_DATA_LEN,
-				  whc->gen_cmd_buf, whc->gen_cmd_buf_dma);
+						  whc->gen_cmd_buf, whc->gen_cmd_buf_dma);
 
 	pzl_clean_up(whc);
 	asl_clean_up(whc);
@@ -178,11 +211,19 @@ void whc_clean_up(struct whc *whc)
 	dma_pool_destroy(whc->qset_pool);
 
 	len   = resource_size(&whc->umc->resource);
+
 	if (whc->base)
+	{
 		iounmap(whc->base);
+	}
+
 	if (whc->base_phys)
+	{
 		release_mem_region(whc->base_phys, len);
+	}
 
 	if (whc->workqueue)
+	{
 		destroy_workqueue(whc->workqueue);
+	}
 }

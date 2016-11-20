@@ -46,7 +46,8 @@
 
 #define DRV_NAME "tegra-snd-wm8903"
 
-struct tegra_wm8903 {
+struct tegra_wm8903
+{
 	int gpio_spkr_en;
 	int gpio_hp_det;
 	int gpio_hp_mute;
@@ -56,7 +57,7 @@ struct tegra_wm8903 {
 };
 
 static int tegra_wm8903_hw_params(struct snd_pcm_substream *substream,
-					struct snd_pcm_hw_params *params)
+								  struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
@@ -66,29 +67,39 @@ static int tegra_wm8903_hw_params(struct snd_pcm_substream *substream,
 	int err;
 
 	srate = params_rate(params);
-	switch (srate) {
-	case 64000:
-	case 88200:
-	case 96000:
-		mclk = 128 * srate;
-		break;
-	default:
-		mclk = 256 * srate;
-		break;
+
+	switch (srate)
+	{
+		case 64000:
+		case 88200:
+		case 96000:
+			mclk = 128 * srate;
+			break;
+
+		default:
+			mclk = 256 * srate;
+			break;
 	}
+
 	/* FIXME: Codec only requires >= 3MHz if OSR==0 */
 	while (mclk < 6000000)
+	{
 		mclk *= 2;
+	}
 
 	err = tegra_asoc_utils_set_rate(&machine->util_data, srate, mclk);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(card->dev, "Can't configure clocks\n");
 		return err;
 	}
 
 	err = snd_soc_dai_set_sysclk(codec_dai, 0, mclk,
-					SND_SOC_CLOCK_IN);
-	if (err < 0) {
+								 SND_SOC_CLOCK_IN);
+
+	if (err < 0)
+	{
 		dev_err(card->dev, "codec_dai clock not set\n");
 		return err;
 	}
@@ -96,20 +107,23 @@ static int tegra_wm8903_hw_params(struct snd_pcm_substream *substream,
 	return 0;
 }
 
-static struct snd_soc_ops tegra_wm8903_ops = {
+static struct snd_soc_ops tegra_wm8903_ops =
+{
 	.hw_params = tegra_wm8903_hw_params,
 };
 
 static struct snd_soc_jack tegra_wm8903_hp_jack;
 
-static struct snd_soc_jack_pin tegra_wm8903_hp_jack_pins[] = {
+static struct snd_soc_jack_pin tegra_wm8903_hp_jack_pins[] =
+{
 	{
 		.pin = "Headphone Jack",
 		.mask = SND_JACK_HEADPHONE,
 	},
 };
 
-static struct snd_soc_jack_gpio tegra_wm8903_hp_jack_gpio = {
+static struct snd_soc_jack_gpio tegra_wm8903_hp_jack_gpio =
+{
 	.name = "headphone detect",
 	.report = SND_JACK_HEADPHONE,
 	.debounce_time = 150,
@@ -118,7 +132,8 @@ static struct snd_soc_jack_gpio tegra_wm8903_hp_jack_gpio = {
 
 static struct snd_soc_jack tegra_wm8903_mic_jack;
 
-static struct snd_soc_jack_pin tegra_wm8903_mic_jack_pins[] = {
+static struct snd_soc_jack_pin tegra_wm8903_mic_jack_pins[] =
+{
 	{
 		.pin = "Mic Jack",
 		.mask = SND_JACK_MICROPHONE,
@@ -126,44 +141,50 @@ static struct snd_soc_jack_pin tegra_wm8903_mic_jack_pins[] = {
 };
 
 static int tegra_wm8903_event_int_spk(struct snd_soc_dapm_widget *w,
-					struct snd_kcontrol *k, int event)
+									  struct snd_kcontrol *k, int event)
 {
 	struct snd_soc_dapm_context *dapm = w->dapm;
 	struct snd_soc_card *card = dapm->card;
 	struct tegra_wm8903 *machine = snd_soc_card_get_drvdata(card);
 
 	if (!gpio_is_valid(machine->gpio_spkr_en))
+	{
 		return 0;
+	}
 
 	gpio_set_value_cansleep(machine->gpio_spkr_en,
-				SND_SOC_DAPM_EVENT_ON(event));
+							SND_SOC_DAPM_EVENT_ON(event));
 
 	return 0;
 }
 
 static int tegra_wm8903_event_hp(struct snd_soc_dapm_widget *w,
-					struct snd_kcontrol *k, int event)
+								 struct snd_kcontrol *k, int event)
 {
 	struct snd_soc_dapm_context *dapm = w->dapm;
 	struct snd_soc_card *card = dapm->card;
 	struct tegra_wm8903 *machine = snd_soc_card_get_drvdata(card);
 
 	if (!gpio_is_valid(machine->gpio_hp_mute))
+	{
 		return 0;
+	}
 
 	gpio_set_value_cansleep(machine->gpio_hp_mute,
-				!SND_SOC_DAPM_EVENT_ON(event));
+							!SND_SOC_DAPM_EVENT_ON(event));
 
 	return 0;
 }
 
-static const struct snd_soc_dapm_widget tegra_wm8903_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget tegra_wm8903_dapm_widgets[] =
+{
 	SND_SOC_DAPM_SPK("Int Spk", tegra_wm8903_event_int_spk),
 	SND_SOC_DAPM_HP("Headphone Jack", tegra_wm8903_event_hp),
 	SND_SOC_DAPM_MIC("Mic Jack", NULL),
 };
 
-static const struct snd_kcontrol_new tegra_wm8903_controls[] = {
+static const struct snd_kcontrol_new tegra_wm8903_controls[] =
+{
 	SOC_DAPM_PIN_SWITCH("Int Spk"),
 };
 
@@ -174,23 +195,24 @@ static int tegra_wm8903_init(struct snd_soc_pcm_runtime *rtd)
 	struct snd_soc_card *card = rtd->card;
 	struct tegra_wm8903 *machine = snd_soc_card_get_drvdata(card);
 
-	if (gpio_is_valid(machine->gpio_hp_det)) {
+	if (gpio_is_valid(machine->gpio_hp_det))
+	{
 		tegra_wm8903_hp_jack_gpio.gpio = machine->gpio_hp_det;
 		snd_soc_card_jack_new(rtd->card, "Headphone Jack",
-				      SND_JACK_HEADPHONE, &tegra_wm8903_hp_jack,
-				      tegra_wm8903_hp_jack_pins,
-				      ARRAY_SIZE(tegra_wm8903_hp_jack_pins));
+							  SND_JACK_HEADPHONE, &tegra_wm8903_hp_jack,
+							  tegra_wm8903_hp_jack_pins,
+							  ARRAY_SIZE(tegra_wm8903_hp_jack_pins));
 		snd_soc_jack_add_gpios(&tegra_wm8903_hp_jack,
-					1,
-					&tegra_wm8903_hp_jack_gpio);
+							   1,
+							   &tegra_wm8903_hp_jack_gpio);
 	}
 
 	snd_soc_card_jack_new(rtd->card, "Mic Jack", SND_JACK_MICROPHONE,
-			      &tegra_wm8903_mic_jack,
-			      tegra_wm8903_mic_jack_pins,
-			      ARRAY_SIZE(tegra_wm8903_mic_jack_pins));
+						  &tegra_wm8903_mic_jack,
+						  tegra_wm8903_mic_jack_pins,
+						  ARRAY_SIZE(tegra_wm8903_mic_jack_pins));
 	wm8903_mic_detect(codec, &tegra_wm8903_mic_jack, SND_JACK_MICROPHONE,
-				0);
+					  0);
 
 	snd_soc_dapm_force_enable_pin(&card->dapm, "MICBIAS");
 
@@ -205,9 +227,10 @@ static int tegra_wm8903_remove(struct snd_soc_card *card)
 	struct snd_soc_codec *codec = codec_dai->codec;
 	struct tegra_wm8903 *machine = snd_soc_card_get_drvdata(card);
 
-	if (gpio_is_valid(machine->gpio_hp_det)) {
+	if (gpio_is_valid(machine->gpio_hp_det))
+	{
 		snd_soc_jack_free_gpios(&tegra_wm8903_hp_jack, 1,
-					&tegra_wm8903_hp_jack_gpio);
+								&tegra_wm8903_hp_jack_gpio);
 	}
 
 	wm8903_mic_detect(codec, NULL, 0, 0);
@@ -215,18 +238,20 @@ static int tegra_wm8903_remove(struct snd_soc_card *card)
 	return 0;
 }
 
-static struct snd_soc_dai_link tegra_wm8903_dai = {
+static struct snd_soc_dai_link tegra_wm8903_dai =
+{
 	.name = "WM8903",
 	.stream_name = "WM8903 PCM",
 	.codec_dai_name = "wm8903-hifi",
 	.init = tegra_wm8903_init,
 	.ops = &tegra_wm8903_ops,
 	.dai_fmt = SND_SOC_DAIFMT_I2S |
-		   SND_SOC_DAIFMT_NB_NF |
-		   SND_SOC_DAIFMT_CBS_CFS,
+	SND_SOC_DAIFMT_NB_NF |
+	SND_SOC_DAIFMT_CBS_CFS,
 };
 
-static struct snd_soc_card snd_soc_tegra_wm8903 = {
+static struct snd_soc_card snd_soc_tegra_wm8903 =
+{
 	.name = "tegra-wm8903",
 	.owner = THIS_MODULE,
 	.dai_link = &tegra_wm8903_dai,
@@ -247,8 +272,10 @@ static int tegra_wm8903_driver_probe(struct platform_device *pdev)
 	int ret;
 
 	machine = devm_kzalloc(&pdev->dev, sizeof(struct tegra_wm8903),
-			       GFP_KERNEL);
-	if (!machine) {
+						   GFP_KERNEL);
+
+	if (!machine)
+	{
 		dev_err(&pdev->dev, "Can't allocate tegra_wm8903 struct\n");
 		return -ENOMEM;
 	}
@@ -258,87 +285,128 @@ static int tegra_wm8903_driver_probe(struct platform_device *pdev)
 	snd_soc_card_set_drvdata(card, machine);
 
 	machine->gpio_spkr_en = of_get_named_gpio(np, "nvidia,spkr-en-gpios",
-						  0);
+							0);
+
 	if (machine->gpio_spkr_en == -EPROBE_DEFER)
+	{
 		return -EPROBE_DEFER;
-	if (gpio_is_valid(machine->gpio_spkr_en)) {
+	}
+
+	if (gpio_is_valid(machine->gpio_spkr_en))
+	{
 		ret = devm_gpio_request_one(&pdev->dev, machine->gpio_spkr_en,
-					    GPIOF_OUT_INIT_LOW, "spkr_en");
-		if (ret) {
+									GPIOF_OUT_INIT_LOW, "spkr_en");
+
+		if (ret)
+		{
 			dev_err(card->dev, "cannot get spkr_en gpio\n");
 			return ret;
 		}
 	}
 
 	machine->gpio_hp_mute = of_get_named_gpio(np, "nvidia,hp-mute-gpios",
-						  0);
+							0);
+
 	if (machine->gpio_hp_mute == -EPROBE_DEFER)
+	{
 		return -EPROBE_DEFER;
-	if (gpio_is_valid(machine->gpio_hp_mute)) {
+	}
+
+	if (gpio_is_valid(machine->gpio_hp_mute))
+	{
 		ret = devm_gpio_request_one(&pdev->dev, machine->gpio_hp_mute,
-					    GPIOF_OUT_INIT_HIGH, "hp_mute");
-		if (ret) {
+									GPIOF_OUT_INIT_HIGH, "hp_mute");
+
+		if (ret)
+		{
 			dev_err(card->dev, "cannot get hp_mute gpio\n");
 			return ret;
 		}
 	}
 
 	machine->gpio_hp_det = of_get_named_gpio(np, "nvidia,hp-det-gpios", 0);
+
 	if (machine->gpio_hp_det == -EPROBE_DEFER)
+	{
 		return -EPROBE_DEFER;
+	}
 
 	machine->gpio_int_mic_en = of_get_named_gpio(np,
-						"nvidia,int-mic-en-gpios", 0);
+							   "nvidia,int-mic-en-gpios", 0);
+
 	if (machine->gpio_int_mic_en == -EPROBE_DEFER)
+	{
 		return -EPROBE_DEFER;
-	if (gpio_is_valid(machine->gpio_int_mic_en)) {
+	}
+
+	if (gpio_is_valid(machine->gpio_int_mic_en))
+	{
 		/* Disable int mic; enable signal is active-high */
 		ret = devm_gpio_request_one(&pdev->dev,
-					    machine->gpio_int_mic_en,
-					    GPIOF_OUT_INIT_LOW, "int_mic_en");
-		if (ret) {
+									machine->gpio_int_mic_en,
+									GPIOF_OUT_INIT_LOW, "int_mic_en");
+
+		if (ret)
+		{
 			dev_err(card->dev, "cannot get int_mic_en gpio\n");
 			return ret;
 		}
 	}
 
 	machine->gpio_ext_mic_en = of_get_named_gpio(np,
-						"nvidia,ext-mic-en-gpios", 0);
+							   "nvidia,ext-mic-en-gpios", 0);
+
 	if (machine->gpio_ext_mic_en == -EPROBE_DEFER)
+	{
 		return -EPROBE_DEFER;
-	if (gpio_is_valid(machine->gpio_ext_mic_en)) {
+	}
+
+	if (gpio_is_valid(machine->gpio_ext_mic_en))
+	{
 		/* Enable ext mic; enable signal is active-low */
 		ret = devm_gpio_request_one(&pdev->dev,
-					    machine->gpio_ext_mic_en,
-					    GPIOF_OUT_INIT_LOW, "ext_mic_en");
-		if (ret) {
+									machine->gpio_ext_mic_en,
+									GPIOF_OUT_INIT_LOW, "ext_mic_en");
+
+		if (ret)
+		{
 			dev_err(card->dev, "cannot get ext_mic_en gpio\n");
 			return ret;
 		}
 	}
 
 	ret = snd_soc_of_parse_card_name(card, "nvidia,model");
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	ret = snd_soc_of_parse_audio_routing(card, "nvidia,audio-routing");
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	tegra_wm8903_dai.codec_of_node = of_parse_phandle(np,
-						"nvidia,audio-codec", 0);
-	if (!tegra_wm8903_dai.codec_of_node) {
+									 "nvidia,audio-codec", 0);
+
+	if (!tegra_wm8903_dai.codec_of_node)
+	{
 		dev_err(&pdev->dev,
-			"Property 'nvidia,audio-codec' missing or invalid\n");
+				"Property 'nvidia,audio-codec' missing or invalid\n");
 		ret = -EINVAL;
 		goto err;
 	}
 
 	tegra_wm8903_dai.cpu_of_node = of_parse_phandle(np,
-			"nvidia,i2s-controller", 0);
-	if (!tegra_wm8903_dai.cpu_of_node) {
+								   "nvidia,i2s-controller", 0);
+
+	if (!tegra_wm8903_dai.cpu_of_node)
+	{
 		dev_err(&pdev->dev,
-			"Property 'nvidia,i2s-controller' missing or invalid\n");
+				"Property 'nvidia,i2s-controller' missing or invalid\n");
 		ret = -EINVAL;
 		goto err;
 	}
@@ -346,13 +414,18 @@ static int tegra_wm8903_driver_probe(struct platform_device *pdev)
 	tegra_wm8903_dai.platform_of_node = tegra_wm8903_dai.cpu_of_node;
 
 	ret = tegra_asoc_utils_init(&machine->util_data, &pdev->dev);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	ret = snd_soc_register_card(card);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "snd_soc_register_card failed (%d)\n",
-			ret);
+				ret);
 		goto err_fini_utils;
 	}
 
@@ -376,12 +449,14 @@ static int tegra_wm8903_driver_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id tegra_wm8903_of_match[] = {
+static const struct of_device_id tegra_wm8903_of_match[] =
+{
 	{ .compatible = "nvidia,tegra-audio-wm8903", },
 	{},
 };
 
-static struct platform_driver tegra_wm8903_driver = {
+static struct platform_driver tegra_wm8903_driver =
+{
 	.driver = {
 		.name = DRV_NAME,
 		.pm = &snd_soc_pm_ops,

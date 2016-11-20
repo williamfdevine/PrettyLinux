@@ -118,7 +118,7 @@ extern char obd_jobid_var[];
 #define INITIAL_CONNECT_TIMEOUT max(CONNECTION_SWITCH_MIN, obd_timeout / 20)
 /* The max delay between connects is SWITCH_MAX + SWITCH_INC + INITIAL */
 #define RECONNECT_DELAY_MAX (CONNECTION_SWITCH_MAX + CONNECTION_SWITCH_INC + \
-			     INITIAL_CONNECT_TIMEOUT)
+							 INITIAL_CONNECT_TIMEOUT)
 /* The min time a target should wait for clients to reconnect in recovery */
 #define OBD_RECOVERY_TIME_MIN    (2 * RECONNECT_DELAY_MAX)
 #define OBD_IR_FACTOR_MIN	 1
@@ -503,34 +503,34 @@ extern char obd_jobid_var[];
 #define OBD_FAILED			      CFS_FAILED
 
 #ifdef CONFIG_DEBUG_SLAB
-#define POISON(ptr, c, s) do {} while (0)
-#define POISON_PTR(ptr)  ((void)0)
+	#define POISON(ptr, c, s) do {} while (0)
+	#define POISON_PTR(ptr)  ((void)0)
 #else
-#define POISON(ptr, c, s) memset(ptr, c, s)
-#define POISON_PTR(ptr)  (ptr) = (void *)0xdeadbeef
+	#define POISON(ptr, c, s) memset(ptr, c, s)
+	#define POISON_PTR(ptr)  (ptr) = (void *)0xdeadbeef
 #endif
 
 #ifdef POISON_BULK
 #define POISON_PAGE(page, val) do {		  \
-	memset(kmap(page), val, PAGE_SIZE); \
-	kunmap(page);				  \
-} while (0)
+		memset(kmap(page), val, PAGE_SIZE); \
+		kunmap(page);				  \
+	} while (0)
 #else
 #define POISON_PAGE(page, val) do { } while (0)
 #endif
 
 #define OBD_FREE_RCU(ptr, size, handle)					      \
-do {									      \
-	struct portals_handle *__h = (handle);				      \
-									      \
-	__h->h_cookie = (unsigned long)(ptr);				      \
-	__h->h_size = (size);						      \
-	call_rcu(&__h->h_rcu, class_handle_free_cb);			      \
-	POISON_PTR(ptr);						      \
-} while (0)
+	do {									      \
+		struct portals_handle *__h = (handle);				      \
+		\
+		__h->h_cookie = (unsigned long)(ptr);				      \
+		__h->h_size = (size);						      \
+		call_rcu(&__h->h_rcu, class_handle_free_cb);			      \
+		POISON_PTR(ptr);						      \
+	} while (0)
 
 #define KEY_IS(str)					\
 	(keylen >= (sizeof(str) - 1) &&			\
-	memcmp(key, str, (sizeof(str) - 1)) == 0)
+	 memcmp(key, str, (sizeof(str) - 1)) == 0)
 
 #endif

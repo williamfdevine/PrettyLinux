@@ -37,7 +37,8 @@
 
 #include "rds.h"
 
-struct rds_page_remainder {
+struct rds_page_remainder
+{
 	struct page	*r_page;
 	unsigned long	r_offset;
 };
@@ -54,20 +55,25 @@ DEFINE_PER_CPU_SHARED_ALIGNED(struct rds_page_remainder, rds_page_remainders);
  * the flush_dcache_page() in get_user_pages() would probably be enough).
  */
 int rds_page_copy_user(struct page *page, unsigned long offset,
-		       void __user *ptr, unsigned long bytes,
-		       int to_user)
+					   void __user *ptr, unsigned long bytes,
+					   int to_user)
 {
 	unsigned long ret;
 	void *addr;
 
 	addr = kmap(page);
-	if (to_user) {
+
+	if (to_user)
+	{
 		rds_stats_add(s_copy_to_user, bytes);
 		ret = copy_to_user(ptr, addr + offset, bytes);
-	} else {
+	}
+	else
+	{
 		rds_stats_add(s_copy_from_user, bytes);
 		ret = copy_from_user(addr + offset, ptr, bytes);
 	}
+
 	kunmap(page);
 
 	return ret ? -EFAULT : 0;
@@ -95,7 +101,7 @@ EXPORT_SYMBOL_GPL(rds_page_copy_user);
  * reference until they are done with the region.
  */
 int rds_page_remainder_alloc(struct scatterlist *scat, unsigned long bytes,
-			     gfp_t gfp)
+							 gfp_t gfp)
 {
 	struct rds_page_remainder *rem;
 	unsigned long flags;
@@ -105,41 +111,55 @@ int rds_page_remainder_alloc(struct scatterlist *scat, unsigned long bytes,
 	gfp |= __GFP_HIGHMEM;
 
 	/* jump straight to allocation if we're trying for a huge page */
-	if (bytes >= PAGE_SIZE) {
+	if (bytes >= PAGE_SIZE)
+	{
 		page = alloc_page(gfp);
-		if (!page) {
+
+		if (!page)
+		{
 			ret = -ENOMEM;
-		} else {
+		}
+		else
+		{
 			sg_set_page(scat, page, PAGE_SIZE, 0);
 			ret = 0;
 		}
+
 		goto out;
 	}
 
 	rem = &per_cpu(rds_page_remainders, get_cpu());
 	local_irq_save(flags);
 
-	while (1) {
+	while (1)
+	{
 		/* avoid a tiny region getting stuck by tossing it */
-		if (rem->r_page && bytes > (PAGE_SIZE - rem->r_offset)) {
+		if (rem->r_page && bytes > (PAGE_SIZE - rem->r_offset))
+		{
 			rds_stats_inc(s_page_remainder_miss);
 			__free_page(rem->r_page);
 			rem->r_page = NULL;
 		}
 
 		/* hand out a fragment from the cached page */
-		if (rem->r_page && bytes <= (PAGE_SIZE - rem->r_offset)) {
+		if (rem->r_page && bytes <= (PAGE_SIZE - rem->r_offset))
+		{
 			sg_set_page(scat, rem->r_page, bytes, rem->r_offset);
 			get_page(sg_page(scat));
 
 			if (rem->r_offset != 0)
+			{
 				rds_stats_inc(s_page_remainder_hit);
+			}
 
 			rem->r_offset += ALIGN(bytes, 8);
-			if (rem->r_offset >= PAGE_SIZE) {
+
+			if (rem->r_offset >= PAGE_SIZE)
+			{
 				__free_page(rem->r_page);
 				rem->r_page = NULL;
 			}
+
 			ret = 0;
 			break;
 		}
@@ -153,13 +173,15 @@ int rds_page_remainder_alloc(struct scatterlist *scat, unsigned long bytes,
 		rem = &per_cpu(rds_page_remainders, get_cpu());
 		local_irq_save(flags);
 
-		if (!page) {
+		if (!page)
+		{
 			ret = -ENOMEM;
 			break;
 		}
 
 		/* did someone race to fill the remainder before us? */
-		if (rem->r_page) {
+		if (rem->r_page)
+		{
 			__free_page(page);
 			continue;
 		}
@@ -173,8 +195,8 @@ int rds_page_remainder_alloc(struct scatterlist *scat, unsigned long bytes,
 	put_cpu();
 out:
 	rdsdebug("bytes %lu ret %d %p %u %u\n", bytes, ret,
-		 ret ? NULL : sg_page(scat), ret ? 0 : scat->offset,
-		 ret ? 0 : scat->length);
+			 ret ? NULL : sg_page(scat), ret ? 0 : scat->offset,
+			 ret ? 0 : scat->length);
 	return ret;
 }
 EXPORT_SYMBOL_GPL(rds_page_remainder_alloc);
@@ -183,14 +205,18 @@ void rds_page_exit(void)
 {
 	unsigned int cpu;
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		struct rds_page_remainder *rem;
 
 		rem = &per_cpu(rds_page_remainders, cpu);
 		rdsdebug("cpu %u\n", cpu);
 
 		if (rem->r_page)
+		{
 			__free_page(rem->r_page);
+		}
+
 		rem->r_page = NULL;
 	}
 }

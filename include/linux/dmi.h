@@ -7,7 +7,8 @@
 
 /* enum dmi_field is in mod_devicetable.h */
 
-enum dmi_device_type {
+enum dmi_device_type
+{
 	DMI_DEV_TYPE_ANY = 0,
 	DMI_DEV_TYPE_OTHER,
 	DMI_DEV_TYPE_UNKNOWN,
@@ -25,7 +26,8 @@ enum dmi_device_type {
 	DMI_DEV_TYPE_DEV_SLOT = -4,
 };
 
-enum dmi_entry_type {
+enum dmi_entry_type
+{
 	DMI_ENTRY_BIOS = 0,
 	DMI_ENTRY_SYSTEM,
 	DMI_ENTRY_BASEBOARD,
@@ -72,13 +74,15 @@ enum dmi_entry_type {
 	DMI_ENTRY_END_OF_TABLE = 127,
 };
 
-struct dmi_header {
+struct dmi_header
+{
 	u8 type;
 	u8 length;
 	u16 handle;
 } __packed;
 
-struct dmi_device {
+struct dmi_device
+{
 	struct list_head list;
 	int type;
 	const char *name;
@@ -87,7 +91,8 @@ struct dmi_device {
 
 #ifdef CONFIG_DMI
 
-struct dmi_dev_onboard {
+struct dmi_dev_onboard
+{
 	struct dmi_device dev;
 	int instance;
 	int segment;
@@ -98,9 +103,9 @@ struct dmi_dev_onboard {
 extern struct kobject *dmi_kobj;
 extern int dmi_check_system(const struct dmi_system_id *list);
 const struct dmi_system_id *dmi_first_match(const struct dmi_system_id *list);
-extern const char * dmi_get_system_info(int field);
-extern const struct dmi_device * dmi_find_device(int type, const char *name,
-	const struct dmi_device *from);
+extern const char *dmi_get_system_info(int field);
+extern const struct dmi_device *dmi_find_device(int type, const char *name,
+		const struct dmi_device *from);
 extern void dmi_scan_machine(void);
 extern void dmi_memdev_walk(void);
 extern void dmi_set_dump_stack_arch_desc(void);
@@ -109,40 +114,49 @@ extern int dmi_name_in_vendors(const char *str);
 extern int dmi_name_in_serial(const char *str);
 extern int dmi_available;
 extern int dmi_walk(void (*decode)(const struct dmi_header *, void *),
-	void *private_data);
+					void *private_data);
 extern bool dmi_match(enum dmi_field f, const char *str);
 extern void dmi_memdev_name(u16 handle, const char **bank, const char **device);
 
 #else
 
 static inline int dmi_check_system(const struct dmi_system_id *list) { return 0; }
-static inline const char * dmi_get_system_info(int field) { return NULL; }
-static inline const struct dmi_device * dmi_find_device(int type, const char *name,
-	const struct dmi_device *from) { return NULL; }
+static inline const char *dmi_get_system_info(int field) { return NULL; }
+static inline const struct dmi_device *dmi_find_device(int type, const char *name,
+		const struct dmi_device *from) { return NULL; }
 static inline void dmi_scan_machine(void) { return; }
 static inline void dmi_memdev_walk(void) { }
 static inline void dmi_set_dump_stack_arch_desc(void) { }
 static inline bool dmi_get_date(int field, int *yearp, int *monthp, int *dayp)
 {
 	if (yearp)
+	{
 		*yearp = 0;
+	}
+
 	if (monthp)
+	{
 		*monthp = 0;
+	}
+
 	if (dayp)
+	{
 		*dayp = 0;
+	}
+
 	return false;
 }
 static inline int dmi_name_in_vendors(const char *s) { return 0; }
 static inline int dmi_name_in_serial(const char *s) { return 0; }
 #define dmi_available 0
 static inline int dmi_walk(void (*decode)(const struct dmi_header *, void *),
-	void *private_data) { return -1; }
+						   void *private_data) { return -1; }
 static inline bool dmi_match(enum dmi_field f, const char *str)
-	{ return false; }
+{ return false; }
 static inline void dmi_memdev_name(u16 handle, const char **bank,
-		const char **device) { }
+								   const char **device) { }
 static inline const struct dmi_system_id *
-	dmi_first_match(const struct dmi_system_id *list) { return NULL; }
+dmi_first_match(const struct dmi_system_id *list) { return NULL; }
 
 #endif
 

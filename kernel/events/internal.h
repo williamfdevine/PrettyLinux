@@ -8,7 +8,8 @@
 
 #define RING_BUFFER_WRITABLE		0x01
 
-struct ring_buffer {
+struct ring_buffer
+{
 	atomic_t			refcount;
 	struct rcu_head			rcu_head;
 #ifdef CONFIG_PERF_USE_VMALLOC
@@ -68,16 +69,20 @@ static inline void rb_free_rcu(struct rcu_head *rcu_head)
 static inline void rb_toggle_paused(struct ring_buffer *rb, bool pause)
 {
 	if (!pause && rb->nr_pages)
+	{
 		rb->paused = 0;
+	}
 	else
+	{
 		rb->paused = 1;
+	}
 }
 
 extern struct ring_buffer *
 rb_alloc(int nr_pages, long watermark, int cpu, int flags);
 extern void perf_event_wakeup(struct perf_event *event);
 extern int rb_alloc_aux(struct ring_buffer *rb, struct perf_event *event,
-			pgoff_t pgoff, int nr_pages, long watermark, int flags);
+						pgoff_t pgoff, int nr_pages, long watermark, int flags);
 extern void rb_free_aux(struct ring_buffer *rb);
 extern struct ring_buffer *ring_buffer_get(struct perf_event *event);
 extern void ring_buffer_put(struct ring_buffer *rb);
@@ -88,7 +93,7 @@ static inline bool rb_has_aux(struct ring_buffer *rb)
 }
 
 void perf_event_aux_event(struct perf_event *event, unsigned long head,
-			  unsigned long size, u64 flags);
+						  unsigned long size, u64 flags);
 
 extern struct page *
 perf_mmap_to_page(struct ring_buffer *rb, unsigned long pgoff);
@@ -124,45 +129,45 @@ static inline unsigned long perf_aux_size(struct ring_buffer *rb)
 }
 
 #define __DEFINE_OUTPUT_COPY_BODY(advance_buf, memcpy_func, ...)	\
-{									\
-	unsigned long size, written;					\
-									\
-	do {								\
-		size    = min(handle->size, len);			\
-		written = memcpy_func(__VA_ARGS__);			\
-		written = size - written;				\
-									\
-		len -= written;						\
-		handle->addr += written;				\
-		if (advance_buf)					\
-			buf += written;					\
-		handle->size -= written;				\
-		if (!handle->size) {					\
-			struct ring_buffer *rb = handle->rb;		\
-									\
-			handle->page++;					\
-			handle->page &= rb->nr_pages - 1;		\
-			handle->addr = rb->data_pages[handle->page];	\
-			handle->size = PAGE_SIZE << page_order(rb);	\
-		}							\
-	} while (len && written == size);				\
-									\
-	return len;							\
-}
+	{									\
+		unsigned long size, written;					\
+		\
+		do {								\
+			size    = min(handle->size, len);			\
+			written = memcpy_func(__VA_ARGS__);			\
+			written = size - written;				\
+			\
+			len -= written;						\
+			handle->addr += written;				\
+			if (advance_buf)					\
+				buf += written;					\
+			handle->size -= written;				\
+			if (!handle->size) {					\
+				struct ring_buffer *rb = handle->rb;		\
+				\
+				handle->page++;					\
+				handle->page &= rb->nr_pages - 1;		\
+				handle->addr = rb->data_pages[handle->page];	\
+				handle->size = PAGE_SIZE << page_order(rb);	\
+			}							\
+		} while (len && written == size);				\
+		\
+		return len;							\
+	}
 
 #define DEFINE_OUTPUT_COPY(func_name, memcpy_func)			\
-static inline unsigned long						\
-func_name(struct perf_output_handle *handle,				\
-	  const void *buf, unsigned long len)				\
-__DEFINE_OUTPUT_COPY_BODY(true, memcpy_func, handle->addr, buf, size)
+	static inline unsigned long						\
+	func_name(struct perf_output_handle *handle,				\
+			  const void *buf, unsigned long len)				\
+	__DEFINE_OUTPUT_COPY_BODY(true, memcpy_func, handle->addr, buf, size)
 
 static inline unsigned long
 __output_custom(struct perf_output_handle *handle, perf_copy_f copy_func,
-		const void *buf, unsigned long len)
+				const void *buf, unsigned long len)
 {
 	unsigned long orig_len = len;
 	__DEFINE_OUTPUT_COPY_BODY(false, copy_func, handle->addr, buf,
-				  orig_len - len, size)
+							  orig_len - len, size)
 }
 
 static inline unsigned long
@@ -209,16 +214,26 @@ static inline int get_recursion_context(int *recursion)
 	int rctx;
 
 	if (in_nmi())
+	{
 		rctx = 3;
+	}
 	else if (in_irq())
+	{
 		rctx = 2;
+	}
 	else if (in_softirq())
+	{
 		rctx = 1;
+	}
 	else
+	{
 		rctx = 0;
+	}
 
 	if (recursion[rctx])
+	{
 		return -1;
+	}
 
 	recursion[rctx]++;
 	barrier();

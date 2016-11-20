@@ -16,11 +16,17 @@ struct group_info *groups_alloc(int gidsetsize)
 	unsigned int len;
 
 	len = sizeof(struct group_info) + sizeof(kgid_t) * gidsetsize;
-	gi = kmalloc(len, GFP_KERNEL_ACCOUNT|__GFP_NOWARN|__GFP_NORETRY);
+	gi = kmalloc(len, GFP_KERNEL_ACCOUNT | __GFP_NOWARN | __GFP_NORETRY);
+
 	if (!gi)
-		gi = __vmalloc(len, GFP_KERNEL_ACCOUNT|__GFP_HIGHMEM, PAGE_KERNEL);
+	{
+		gi = __vmalloc(len, GFP_KERNEL_ACCOUNT | __GFP_HIGHMEM, PAGE_KERNEL);
+	}
+
 	if (!gi)
+	{
 		return NULL;
+	}
 
 	atomic_set(&gi->usage, 1);
 	gi->ngroups = gidsetsize;
@@ -38,41 +44,54 @@ EXPORT_SYMBOL(groups_free);
 
 /* export the group_info to a user-space array */
 static int groups_to_user(gid_t __user *grouplist,
-			  const struct group_info *group_info)
+						  const struct group_info *group_info)
 {
 	struct user_namespace *user_ns = current_user_ns();
 	int i;
 	unsigned int count = group_info->ngroups;
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		gid_t gid;
 		gid = from_kgid_munged(user_ns, group_info->gid[i]);
-		if (put_user(gid, grouplist+i))
+
+		if (put_user(gid, grouplist + i))
+		{
 			return -EFAULT;
+		}
 	}
+
 	return 0;
 }
 
 /* fill a group_info from a user-space array - it must be allocated already */
 static int groups_from_user(struct group_info *group_info,
-    gid_t __user *grouplist)
+							gid_t __user *grouplist)
 {
 	struct user_namespace *user_ns = current_user_ns();
 	int i;
 	unsigned int count = group_info->ngroups;
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		gid_t gid;
 		kgid_t kgid;
-		if (get_user(gid, grouplist+i))
+
+		if (get_user(gid, grouplist + i))
+		{
 			return -EFAULT;
+		}
 
 		kgid = make_kgid(user_ns, gid);
+
 		if (!gid_valid(kgid))
+		{
 			return -EINVAL;
+		}
 
 		group_info->gid[i] = kgid;
 	}
+
 	return 0;
 }
 
@@ -84,22 +103,29 @@ static void groups_sort(struct group_info *group_info)
 
 	for (stride = 1; stride < gidsetsize; stride = 3 * stride + 1)
 		; /* nothing */
+
 	stride /= 3;
 
-	while (stride) {
+	while (stride)
+	{
 		max = gidsetsize - stride;
-		for (base = 0; base < max; base++) {
+
+		for (base = 0; base < max; base++)
+		{
 			int left = base;
 			int right = left + stride;
 			kgid_t tmp = group_info->gid[right];
 
-			while (left >= 0 && gid_gt(group_info->gid[left], tmp)) {
+			while (left >= 0 && gid_gt(group_info->gid[left], tmp))
+			{
 				group_info->gid[right] = group_info->gid[left];
 				right = left;
 				left -= stride;
 			}
+
 			group_info->gid[right] = tmp;
 		}
+
 		stride /= 3;
 	}
 }
@@ -110,19 +136,31 @@ int groups_search(const struct group_info *group_info, kgid_t grp)
 	unsigned int left, right;
 
 	if (!group_info)
+	{
 		return 0;
+	}
 
 	left = 0;
 	right = group_info->ngroups;
-	while (left < right) {
-		unsigned int mid = (left+right)/2;
+
+	while (left < right)
+	{
+		unsigned int mid = (left + right) / 2;
+
 		if (gid_gt(grp, group_info->gid[mid]))
+		{
 			left = mid + 1;
+		}
 		else if (gid_lt(grp, group_info->gid[mid]))
+		{
 			right = mid;
+		}
 		else
+		{
 			return 1;
+		}
 	}
+
 	return 0;
 }
 
@@ -153,8 +191,11 @@ int set_current_groups(struct group_info *group_info)
 	struct cred *new;
 
 	new = prepare_creds();
+
 	if (!new)
+	{
 		return -ENOMEM;
+	}
 
 	set_groups(new, group_info);
 	return commit_creds(new);
@@ -168,20 +209,28 @@ SYSCALL_DEFINE2(getgroups, int, gidsetsize, gid_t __user *, grouplist)
 	int i;
 
 	if (gidsetsize < 0)
+	{
 		return -EINVAL;
+	}
 
 	/* no need to grab task_lock here; it cannot change */
 	i = cred->group_info->ngroups;
-	if (gidsetsize) {
-		if (i > gidsetsize) {
+
+	if (gidsetsize)
+	{
+		if (i > gidsetsize)
+		{
 			i = -EINVAL;
 			goto out;
 		}
-		if (groups_to_user(grouplist, cred->group_info)) {
+
+		if (groups_to_user(grouplist, cred->group_info))
+		{
 			i = -EFAULT;
 			goto out;
 		}
 	}
+
 out:
 	return i;
 }
@@ -191,7 +240,7 @@ bool may_setgroups(void)
 	struct user_namespace *user_ns = current_user_ns();
 
 	return ns_capable(user_ns, CAP_SETGID) &&
-		userns_may_setgroups(user_ns);
+		   userns_may_setgroups(user_ns);
 }
 
 /*
@@ -205,15 +254,26 @@ SYSCALL_DEFINE2(setgroups, int, gidsetsize, gid_t __user *, grouplist)
 	int retval;
 
 	if (!may_setgroups())
+	{
 		return -EPERM;
+	}
+
 	if ((unsigned)gidsetsize > NGROUPS_MAX)
+	{
 		return -EINVAL;
+	}
 
 	group_info = groups_alloc(gidsetsize);
+
 	if (!group_info)
+	{
 		return -ENOMEM;
+	}
+
 	retval = groups_from_user(group_info, grouplist);
-	if (retval) {
+
+	if (retval)
+	{
 		put_group_info(group_info);
 		return retval;
 	}
@@ -233,7 +293,10 @@ int in_group_p(kgid_t grp)
 	int retval = 1;
 
 	if (!gid_eq(grp, cred->fsgid))
+	{
 		retval = groups_search(cred->group_info, grp);
+	}
+
 	return retval;
 }
 
@@ -245,7 +308,10 @@ int in_egroup_p(kgid_t grp)
 	int retval = 1;
 
 	if (!gid_eq(grp, cred->egid))
+	{
 		retval = groups_search(cred->group_info, grp);
+	}
+
 	return retval;
 }
 

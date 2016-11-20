@@ -153,7 +153,8 @@
 #define HAWAII_SMC_UCODE_START       0x20000
 #define HAWAII_SMC_UCODE_SIZE        0x1FDEC
 
-struct common_firmware_header {
+struct common_firmware_header
+{
 	uint32_t size_bytes; /* size of the entire header+image(s) in bytes */
 	uint32_t header_size_bytes; /* size of just the header in bytes */
 	uint16_t header_version_major; /* header version */
@@ -167,20 +168,23 @@ struct common_firmware_header {
 };
 
 /* version_major=1, version_minor=0 */
-struct mc_firmware_header_v1_0 {
+struct mc_firmware_header_v1_0
+{
 	struct common_firmware_header header;
 	uint32_t io_debug_size_bytes; /* size of debug array in dwords */
 	uint32_t io_debug_array_offset_bytes; /* payload offset from the start of the header */
 };
 
 /* version_major=1, version_minor=0 */
-struct smc_firmware_header_v1_0 {
+struct smc_firmware_header_v1_0
+{
 	struct common_firmware_header header;
 	uint32_t ucode_start_addr;
 };
 
 /* version_major=1, version_minor=0 */
-struct gfx_firmware_header_v1_0 {
+struct gfx_firmware_header_v1_0
+{
 	struct common_firmware_header header;
 	uint32_t ucode_feature_version;
 	uint32_t jt_offset; /* jt location */
@@ -188,7 +192,8 @@ struct gfx_firmware_header_v1_0 {
 };
 
 /* version_major=1, version_minor=0 */
-struct rlc_firmware_header_v1_0 {
+struct rlc_firmware_header_v1_0
+{
 	struct common_firmware_header header;
 	uint32_t ucode_feature_version;
 	uint32_t save_and_restore_offset;
@@ -198,7 +203,8 @@ struct rlc_firmware_header_v1_0 {
 };
 
 /* version_major=1, version_minor=0 */
-struct sdma_firmware_header_v1_0 {
+struct sdma_firmware_header_v1_0
+{
 	struct common_firmware_header header;
 	uint32_t ucode_feature_version;
 	uint32_t ucode_change_version;
@@ -207,7 +213,8 @@ struct sdma_firmware_header_v1_0 {
 };
 
 /* header is fixed size */
-union radeon_firmware_header {
+union radeon_firmware_header
+{
 	struct common_firmware_header common;
 	struct mc_firmware_header_v1_0 mc;
 	struct smc_firmware_header_v1_0 smc;

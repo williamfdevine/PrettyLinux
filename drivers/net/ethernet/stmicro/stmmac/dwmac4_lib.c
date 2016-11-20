@@ -23,14 +23,21 @@ int dwmac4_dma_reset(void __iomem *ioaddr)
 	value |= DMA_BUS_MODE_SFT_RESET;
 	writel(value, ioaddr + DMA_BUS_MODE);
 	limit = 10;
-	while (limit--) {
+
+	while (limit--)
+	{
 		if (!(readl(ioaddr + DMA_BUS_MODE) & DMA_BUS_MODE_SFT_RESET))
+		{
 			break;
+		}
+
 		mdelay(10);
 	}
 
 	if (limit < 0)
+	{
 		return -EBUSY;
+	}
 
 	return 0;
 }
@@ -107,13 +114,13 @@ void dwmac4_set_rx_ring_len(void __iomem *ioaddr, u32 len)
 void dwmac4_enable_dma_irq(void __iomem *ioaddr)
 {
 	writel(DMA_CHAN_INTR_DEFAULT_MASK, ioaddr +
-	       DMA_CHAN_INTR_ENA(STMMAC_CHAN0));
+		   DMA_CHAN_INTR_ENA(STMMAC_CHAN0));
 }
 
 void dwmac410_enable_dma_irq(void __iomem *ioaddr)
 {
 	writel(DMA_CHAN_INTR_DEFAULT_MASK_4_10,
-	       ioaddr + DMA_CHAN_INTR_ENA(STMMAC_CHAN0));
+		   ioaddr + DMA_CHAN_INTR_ENA(STMMAC_CHAN0));
 }
 
 void dwmac4_disable_dma_irq(void __iomem *ioaddr)
@@ -122,63 +129,90 @@ void dwmac4_disable_dma_irq(void __iomem *ioaddr)
 }
 
 int dwmac4_dma_interrupt(void __iomem *ioaddr,
-			 struct stmmac_extra_stats *x)
+						 struct stmmac_extra_stats *x)
 {
 	int ret = 0;
 
 	u32 intr_status = readl(ioaddr + DMA_CHAN_STATUS(0));
 
 	/* ABNORMAL interrupts */
-	if (unlikely(intr_status & DMA_CHAN_STATUS_AIS)) {
+	if (unlikely(intr_status & DMA_CHAN_STATUS_AIS))
+	{
 		if (unlikely(intr_status & DMA_CHAN_STATUS_RBU))
+		{
 			x->rx_buf_unav_irq++;
+		}
+
 		if (unlikely(intr_status & DMA_CHAN_STATUS_RPS))
+		{
 			x->rx_process_stopped_irq++;
+		}
+
 		if (unlikely(intr_status & DMA_CHAN_STATUS_RWT))
+		{
 			x->rx_watchdog_irq++;
+		}
+
 		if (unlikely(intr_status & DMA_CHAN_STATUS_ETI))
+		{
 			x->tx_early_irq++;
-		if (unlikely(intr_status & DMA_CHAN_STATUS_TPS)) {
+		}
+
+		if (unlikely(intr_status & DMA_CHAN_STATUS_TPS))
+		{
 			x->tx_process_stopped_irq++;
 			ret = tx_hard_error;
 		}
-		if (unlikely(intr_status & DMA_CHAN_STATUS_FBE)) {
+
+		if (unlikely(intr_status & DMA_CHAN_STATUS_FBE))
+		{
 			x->fatal_bus_error_irq++;
 			ret = tx_hard_error;
 		}
 	}
+
 	/* TX/RX NORMAL interrupts */
-	if (likely(intr_status & DMA_CHAN_STATUS_NIS)) {
+	if (likely(intr_status & DMA_CHAN_STATUS_NIS))
+	{
 		x->normal_irq_n++;
-		if (likely(intr_status & DMA_CHAN_STATUS_RI)) {
+
+		if (likely(intr_status & DMA_CHAN_STATUS_RI))
+		{
 			u32 value;
 
 			value = readl(ioaddr + DMA_CHAN_INTR_ENA(STMMAC_CHAN0));
+
 			/* to schedule NAPI on real RIE event. */
-			if (likely(value & DMA_CHAN_INTR_ENA_RIE)) {
+			if (likely(value & DMA_CHAN_INTR_ENA_RIE))
+			{
 				x->rx_normal_irq_n++;
 				ret |= handle_rx;
 			}
 		}
-		if (likely(intr_status & DMA_CHAN_STATUS_TI)) {
+
+		if (likely(intr_status & DMA_CHAN_STATUS_TI))
+		{
 			x->tx_normal_irq_n++;
 			ret |= handle_tx;
 		}
+
 		if (unlikely(intr_status & DMA_CHAN_STATUS_ERI))
+		{
 			x->rx_early_irq++;
+		}
 	}
 
 	/* Clear the interrupt by writing a logic 1 to the chanX interrupt
 	 * status [21-0] expect reserved bits [5-3]
 	 */
 	writel((intr_status & 0x3fffc7),
-	       ioaddr + DMA_CHAN_STATUS(STMMAC_CHAN0));
+		   ioaddr + DMA_CHAN_STATUS(STMMAC_CHAN0));
 
 	return ret;
 }
 
 void stmmac_dwmac4_set_mac_addr(void __iomem *ioaddr, u8 addr[6],
-				unsigned int high, unsigned int low)
+								unsigned int high, unsigned int low)
 {
 	unsigned long data;
 
@@ -199,15 +233,19 @@ void stmmac_dwmac4_set_mac(void __iomem *ioaddr, bool enable)
 	u32 value = readl(ioaddr + GMAC_CONFIG);
 
 	if (enable)
+	{
 		value |= GMAC_CONFIG_RE | GMAC_CONFIG_TE;
+	}
 	else
+	{
 		value &= ~(GMAC_CONFIG_TE | GMAC_CONFIG_RE);
+	}
 
 	writel(value, ioaddr + GMAC_CONFIG);
 }
 
 void stmmac_dwmac4_get_mac_addr(void __iomem *ioaddr, unsigned char *addr,
-				unsigned int high, unsigned int low)
+								unsigned int high, unsigned int low)
 {
 	unsigned int hi_addr, lo_addr;
 

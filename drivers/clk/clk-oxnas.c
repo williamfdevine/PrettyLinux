@@ -26,7 +26,8 @@
 #include <linux/mfd/syscon.h>
 
 /* Standard regmap gate clocks */
-struct clk_oxnas {
+struct clk_oxnas
+{
 	struct clk_hw hw;
 	signed char bit;
 	struct regmap *regmap;
@@ -49,8 +50,11 @@ static int oxnas_clk_is_enabled(struct clk_hw *hw)
 	unsigned int val;
 
 	ret = regmap_read(std->regmap, CLK_STAT_REGOFFSET, &val);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return val & BIT(std->bit);
 }
@@ -71,32 +75,36 @@ static void oxnas_clk_disable(struct clk_hw *hw)
 	regmap_write(std->regmap, CLK_CLR_REGOFFSET, BIT(std->bit));
 }
 
-static const struct clk_ops oxnas_clk_ops = {
+static const struct clk_ops oxnas_clk_ops =
+{
 	.enable = oxnas_clk_enable,
 	.disable = oxnas_clk_disable,
 	.is_enabled = oxnas_clk_is_enabled,
 };
 
-static const char *const oxnas_clk_parents[] = {
+static const char *const oxnas_clk_parents[] =
+{
 	"oscillator",
 };
 
-static const char *const eth_parents[] = {
+static const char *const eth_parents[] =
+{
 	"gmacclk",
 };
 
 #define DECLARE_STD_CLKP(__clk, __parent)			\
-static const struct clk_init_data clk_##__clk##_init = {	\
-	.name = __stringify(__clk),				\
-	.ops = &oxnas_clk_ops,					\
-	.parent_names = __parent,				\
-	.num_parents = ARRAY_SIZE(__parent),			\
-}
+	static const struct clk_init_data clk_##__clk##_init = {	\
+		.name = __stringify(__clk),				\
+				.ops = &oxnas_clk_ops,					\
+					   .parent_names = __parent,				\
+									   .num_parents = ARRAY_SIZE(__parent),			\
+	}
 
 #define DECLARE_STD_CLK(__clk) DECLARE_STD_CLKP(__clk, oxnas_clk_parents)
 
 /* Hardware Bit - Clock association */
-struct clk_oxnas_init_data {
+struct clk_oxnas_init_data
+{
 	unsigned long bit;
 	const struct clk_init_data *clk_init;
 };
@@ -113,7 +121,8 @@ DECLARE_STD_CLK(pciea);
 DECLARE_STD_CLK(nand);
 
 /* Table index is clock indice */
-static const struct clk_oxnas_init_data clk_oxnas_init[] = {
+static const struct clk_oxnas_init_data clk_oxnas_init[] =
+{
 	[0] = {0, &clk_leon_init},
 	[1] = {1, &clk_dma_sgdma_init},
 	[2] = {2, &clk_cipher_init},
@@ -126,7 +135,8 @@ static const struct clk_oxnas_init_data clk_oxnas_init[] = {
 	[8] = {9, &clk_nand_init},
 };
 
-struct clk_oxnas_data {
+struct clk_oxnas_data
+{
 	struct clk_oxnas clk_oxnas[ARRAY_SIZE(clk_oxnas_init)];
 	struct clk_onecell_data onecell_data[ARRAY_SIZE(clk_oxnas_init)];
 	struct clk *clks[ARRAY_SIZE(clk_oxnas_init)];
@@ -140,16 +150,22 @@ static int oxnas_stdclk_probe(struct platform_device *pdev)
 	int i;
 
 	clk_oxnas = devm_kzalloc(&pdev->dev, sizeof(*clk_oxnas), GFP_KERNEL);
+
 	if (!clk_oxnas)
+	{
 		return -ENOMEM;
+	}
 
 	regmap = syscon_node_to_regmap(of_get_parent(np));
-	if (IS_ERR(regmap)) {
+
+	if (IS_ERR(regmap))
+	{
 		dev_err(&pdev->dev, "failed to have parent regmap\n");
 		return PTR_ERR(regmap);
 	}
 
-	for (i = 0; i < ARRAY_SIZE(clk_oxnas_init); i++) {
+	for (i = 0; i < ARRAY_SIZE(clk_oxnas_init); i++)
+	{
 		struct clk_oxnas *_clk;
 
 		_clk = &clk_oxnas->clk_oxnas[i];
@@ -159,23 +175,28 @@ static int oxnas_stdclk_probe(struct platform_device *pdev)
 
 		clk_oxnas->clks[i] =
 			devm_clk_register(&pdev->dev, &_clk->hw);
+
 		if (WARN_ON(IS_ERR(clk_oxnas->clks[i])))
+		{
 			return PTR_ERR(clk_oxnas->clks[i]);
+		}
 	}
 
 	clk_oxnas->onecell_data->clks = clk_oxnas->clks;
 	clk_oxnas->onecell_data->clk_num = ARRAY_SIZE(clk_oxnas_init);
 
 	return of_clk_add_provider(np, of_clk_src_onecell_get,
-				   clk_oxnas->onecell_data);
+							   clk_oxnas->onecell_data);
 }
 
-static const struct of_device_id oxnas_stdclk_dt_ids[] = {
+static const struct of_device_id oxnas_stdclk_dt_ids[] =
+{
 	{ .compatible = "oxsemi,ox810se-stdclk" },
 	{ }
 };
 
-static struct platform_driver oxnas_stdclk_driver = {
+static struct platform_driver oxnas_stdclk_driver =
+{
 	.probe = oxnas_stdclk_probe,
 	.driver	= {
 		.name = "oxnas-stdclk",

@@ -23,15 +23,15 @@
 
 /* show configuration fields */
 #define zorro_config_attr(name, field, format_string)			\
-static ssize_t								\
-show_##name(struct device *dev, struct device_attribute *attr, char *buf)				\
-{									\
-	struct zorro_dev *z;						\
-									\
-	z = to_zorro_dev(dev);						\
-	return sprintf(buf, format_string, z->field);			\
-}									\
-static DEVICE_ATTR(name, S_IRUGO, show_##name, NULL);
+	static ssize_t								\
+	show_##name(struct device *dev, struct device_attribute *attr, char *buf)				\
+	{									\
+		struct zorro_dev *z;						\
+		\
+		z = to_zorro_dev(dev);						\
+		return sprintf(buf, format_string, z->field);			\
+	}									\
+	static DEVICE_ATTR(name, S_IRUGO, show_##name, NULL);
 
 zorro_config_attr(id, id, "0x%08x\n");
 zorro_config_attr(type, rom.er_Type, "0x%02x\n");
@@ -54,16 +54,16 @@ static ssize_t zorro_show_resource(struct device *dev, struct device_attribute *
 	struct zorro_dev *z = to_zorro_dev(dev);
 
 	return sprintf(buf, "0x%08lx 0x%08lx 0x%08lx\n",
-		       (unsigned long)zorro_resource_start(z),
-		       (unsigned long)zorro_resource_end(z),
-		       zorro_resource_flags(z));
+				   (unsigned long)zorro_resource_start(z),
+				   (unsigned long)zorro_resource_end(z),
+				   zorro_resource_flags(z));
 }
 
 static DEVICE_ATTR(resource, S_IRUGO, zorro_show_resource, NULL);
 
 static ssize_t zorro_read_config(struct file *filp, struct kobject *kobj,
-				 struct bin_attribute *bin_attr,
-				 char *buf, loff_t off, size_t count)
+								 struct bin_attribute *bin_attr,
+								 char *buf, loff_t off, size_t count)
 {
 	struct zorro_dev *z = to_zorro_dev(kobj_to_dev(kobj));
 	struct ConfigDev cd;
@@ -79,7 +79,8 @@ static ssize_t zorro_read_config(struct file *filp, struct kobject *kobj,
 	return memory_read_from_buffer(buf, count, &off, &cd, sizeof(cd));
 }
 
-static struct bin_attribute zorro_config_attr = {
+static struct bin_attribute zorro_config_attr =
+{
 	.attr =	{
 		.name = "config",
 		.mode = S_IRUGO,
@@ -89,7 +90,7 @@ static struct bin_attribute zorro_config_attr = {
 };
 
 static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
-			     char *buf)
+							 char *buf)
 {
 	struct zorro_dev *z = to_zorro_dev(dev);
 
@@ -105,14 +106,16 @@ int zorro_create_sysfs_dev_files(struct zorro_dev *z)
 
 	/* current configuration's attributes */
 	if ((error = device_create_file(dev, &dev_attr_id)) ||
-	    (error = device_create_file(dev, &dev_attr_type)) ||
-	    (error = device_create_file(dev, &dev_attr_serial)) ||
-	    (error = device_create_file(dev, &dev_attr_slotaddr)) ||
-	    (error = device_create_file(dev, &dev_attr_slotsize)) ||
-	    (error = device_create_file(dev, &dev_attr_resource)) ||
-	    (error = device_create_file(dev, &dev_attr_modalias)) ||
-	    (error = sysfs_create_bin_file(&dev->kobj, &zorro_config_attr)))
+		(error = device_create_file(dev, &dev_attr_type)) ||
+		(error = device_create_file(dev, &dev_attr_serial)) ||
+		(error = device_create_file(dev, &dev_attr_slotaddr)) ||
+		(error = device_create_file(dev, &dev_attr_slotsize)) ||
+		(error = device_create_file(dev, &dev_attr_resource)) ||
+		(error = device_create_file(dev, &dev_attr_modalias)) ||
+		(error = sysfs_create_bin_file(&dev->kobj, &zorro_config_attr)))
+	{
 		return error;
+	}
 
 	return 0;
 }

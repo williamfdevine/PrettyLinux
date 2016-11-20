@@ -37,7 +37,7 @@ module_param(nowayout, bool, 0);
 
 MODULE_PARM_DESC(timeout, "Default watchdog timeout (in seconds)");
 MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default="
-			__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 static void __iomem *sirfsoc_wdt_base(struct watchdog_device *wdd)
 {
@@ -53,7 +53,7 @@ static unsigned int sirfsoc_wdt_gettimeleft(struct watchdog_device *wdd)
 	wdt_base = sirfsoc_wdt_base(wdd);
 	counter = readl(wdt_base + SIRFSOC_TIMER_COUNTER_LO);
 	match = readl(wdt_base +
-		SIRFSOC_TIMER_MATCH_0 + (SIRFSOC_TIMER_WDT_INDEX << 2));
+				  SIRFSOC_TIMER_MATCH_0 + (SIRFSOC_TIMER_WDT_INDEX << 2));
 
 	time_left = match - counter;
 
@@ -77,7 +77,7 @@ static int sirfsoc_wdt_updatetimeout(struct watchdog_device *wdd)
 	counter += timeout_ticks;
 
 	writel(counter, wdt_base +
-		SIRFSOC_TIMER_MATCH_0 + (SIRFSOC_TIMER_WDT_INDEX << 2));
+		   SIRFSOC_TIMER_MATCH_0 + (SIRFSOC_TIMER_WDT_INDEX << 2));
 
 	return 0;
 }
@@ -92,8 +92,8 @@ static int sirfsoc_wdt_enable(struct watchdog_device *wdd)
 	 * then WD-Reset doesn't get generated at all.
 	 */
 	writel(readl(wdt_base + SIRFSOC_TIMER_INT_EN)
-		| (1 << SIRFSOC_TIMER_WDT_INDEX),
-		wdt_base + SIRFSOC_TIMER_INT_EN);
+		   | (1 << SIRFSOC_TIMER_WDT_INDEX),
+		   wdt_base + SIRFSOC_TIMER_INT_EN);
 	writel(1, wdt_base + SIRFSOC_TIMER_WATCHDOG_EN);
 
 	return 0;
@@ -105,8 +105,8 @@ static int sirfsoc_wdt_disable(struct watchdog_device *wdd)
 
 	writel(0, wdt_base + SIRFSOC_TIMER_WATCHDOG_EN);
 	writel(readl(wdt_base + SIRFSOC_TIMER_INT_EN)
-		& (~(1 << SIRFSOC_TIMER_WDT_INDEX)),
-		wdt_base + SIRFSOC_TIMER_INT_EN);
+		   & (~(1 << SIRFSOC_TIMER_WDT_INDEX)),
+		   wdt_base + SIRFSOC_TIMER_INT_EN);
 
 	return 0;
 }
@@ -121,13 +121,15 @@ static int sirfsoc_wdt_settimeout(struct watchdog_device *wdd, unsigned int to)
 
 #define OPTIONS (WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING | WDIOF_MAGICCLOSE)
 
-static const struct watchdog_info sirfsoc_wdt_ident = {
+static const struct watchdog_info sirfsoc_wdt_ident =
+{
 	.options          =     OPTIONS,
 	.firmware_version =	0,
 	.identity         =	"SiRFSOC Watchdog",
 };
 
-static struct watchdog_ops sirfsoc_wdt_ops = {
+static struct watchdog_ops sirfsoc_wdt_ops =
+{
 	.owner = THIS_MODULE,
 	.start = sirfsoc_wdt_enable,
 	.stop = sirfsoc_wdt_disable,
@@ -136,7 +138,8 @@ static struct watchdog_ops sirfsoc_wdt_ops = {
 	.set_timeout = sirfsoc_wdt_settimeout,
 };
 
-static struct watchdog_device sirfsoc_wdd = {
+static struct watchdog_device sirfsoc_wdd =
+{
 	.info = &sirfsoc_wdt_ident,
 	.ops = &sirfsoc_wdt_ops,
 	.timeout = SIRFSOC_WDT_DEFAULT_TIMEOUT,
@@ -152,8 +155,11 @@ static int sirfsoc_wdt_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(base))
+	{
 		return PTR_ERR(base);
+	}
 
 	watchdog_set_drvdata(&sirfsoc_wdd, (__force void *)base);
 
@@ -162,8 +168,11 @@ static int sirfsoc_wdt_probe(struct platform_device *pdev)
 	sirfsoc_wdd.parent = &pdev->dev;
 
 	ret = watchdog_register_device(&sirfsoc_wdd);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	platform_set_drvdata(pdev, &sirfsoc_wdd);
 
@@ -205,15 +214,17 @@ static int sirfsoc_wdt_resume(struct device *dev)
 #endif
 
 static SIMPLE_DEV_PM_OPS(sirfsoc_wdt_pm_ops,
-		sirfsoc_wdt_suspend, sirfsoc_wdt_resume);
+						 sirfsoc_wdt_suspend, sirfsoc_wdt_resume);
 
-static const struct of_device_id sirfsoc_wdt_of_match[] = {
+static const struct of_device_id sirfsoc_wdt_of_match[] =
+{
 	{ .compatible = "sirf,prima2-tick"},
 	{},
 };
 MODULE_DEVICE_TABLE(of, sirfsoc_wdt_of_match);
 
-static struct platform_driver sirfsoc_wdt_driver = {
+static struct platform_driver sirfsoc_wdt_driver =
+{
 	.driver = {
 		.name = "sirfsoc-wdt",
 		.pm = &sirfsoc_wdt_pm_ops,

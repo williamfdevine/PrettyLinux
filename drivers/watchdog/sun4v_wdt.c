@@ -31,12 +31,12 @@
 static unsigned int timeout;
 module_param(timeout, uint, 0);
 MODULE_PARM_DESC(timeout, "Watchdog timeout in seconds (default="
-	__MODULE_STRING(WDT_TIMEOUT) ")");
+				 __MODULE_STRING(WDT_TIMEOUT) ")");
 
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, S_IRUGO);
 MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default="
-	__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 static int sun4v_wdt_stop(struct watchdog_device *wdd)
 {
@@ -55,29 +55,34 @@ static int sun4v_wdt_ping(struct watchdog_device *wdd)
 	 * watchdog resolution in milliseconds.
 	 */
 	hverr = sun4v_mach_set_watchdog(wdd->timeout * 1000, NULL);
+
 	if (hverr == HV_EINVAL)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
 static int sun4v_wdt_set_timeout(struct watchdog_device *wdd,
-				 unsigned int timeout)
+								 unsigned int timeout)
 {
 	wdd->timeout = timeout;
 
 	return 0;
 }
 
-static const struct watchdog_info sun4v_wdt_ident = {
+static const struct watchdog_info sun4v_wdt_ident =
+{
 	.options =	WDIOF_SETTIMEOUT |
-			WDIOF_MAGICCLOSE |
-			WDIOF_KEEPALIVEPING,
+	WDIOF_MAGICCLOSE |
+	WDIOF_KEEPALIVEPING,
 	.identity =	"sun4v hypervisor watchdog",
 	.firmware_version = 0,
 };
 
-static struct watchdog_ops sun4v_wdt_ops = {
+static struct watchdog_ops sun4v_wdt_ops =
+{
 	.owner =	THIS_MODULE,
 	.start =	sun4v_wdt_ping,
 	.stop =		sun4v_wdt_stop,
@@ -85,7 +90,8 @@ static struct watchdog_ops sun4v_wdt_ops = {
 	.set_timeout =	sun4v_wdt_set_timeout,
 };
 
-static struct watchdog_device wdd = {
+static struct watchdog_device wdd =
+{
 	.info = &sun4v_wdt_ident,
 	.ops = &sun4v_wdt_ops,
 	.min_timeout = WDT_MIN_TIMEOUT,
@@ -112,38 +118,54 @@ static int __init sun4v_wdt_init(void)
 	 */
 
 	handle = mdesc_grab();
+
 	if (!handle)
+	{
 		return -ENODEV;
+	}
 
 	node = mdesc_node_by_name(handle, MDESC_NODE_NULL, "platform");
 	err = -ENODEV;
+
 	if (node == MDESC_NODE_NULL)
+	{
 		goto out_release;
+	}
 
 	/*
 	 * This is a safe way to validate if we are on the right
 	 * platform.
 	 */
 	if (sun4v_hvapi_register(HV_GRP_CORE, major, &minor))
+	{
 		goto out_hv_unreg;
+	}
 
 	/* Allow value of watchdog-resolution up to 1s (default) */
 	value = mdesc_get_property(handle, node, "watchdog-resolution", NULL);
 	err = -EINVAL;
-	if (value) {
+
+	if (value)
+	{
 		if (*value == 0 ||
-		    *value > WDT_DEFAULT_RESOLUTION_MS)
+			*value > WDT_DEFAULT_RESOLUTION_MS)
+		{
 			goto out_hv_unreg;
+		}
 	}
 
 	value = mdesc_get_property(handle, node, "watchdog-max-timeout", NULL);
-	if (value) {
+
+	if (value)
+	{
 		/*
 		 * If the property value (in ms) is smaller than
 		 * min_timeout, return -EINVAL.
 		 */
 		if (*value < wdd.min_timeout * 1000)
+		{
 			goto out_hv_unreg;
+		}
 
 		/*
 		 * If the property value is smaller than
@@ -151,7 +173,9 @@ static int __init sun4v_wdt_init(void)
 		 * the value of the property in seconds.
 		 */
 		if (*value < wdd.max_timeout * 1000)
+		{
 			wdd.max_timeout = *value  / 1000;
+		}
 	}
 
 	watchdog_init_timeout(&wdd, timeout, NULL);
@@ -159,11 +183,14 @@ static int __init sun4v_wdt_init(void)
 	watchdog_set_nowayout(&wdd, nowayout);
 
 	err = watchdog_register_device(&wdd);
+
 	if (err)
+	{
 		goto out_hv_unreg;
+	}
 
 	pr_info("initialized (timeout=%ds, nowayout=%d)\n",
-		 wdd.timeout, nowayout);
+			wdd.timeout, nowayout);
 
 	mdesc_release(handle);
 

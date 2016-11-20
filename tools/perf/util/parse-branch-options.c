@@ -9,12 +9,14 @@
 
 #define BRANCH_END { .name = NULL }
 
-struct branch_mode {
+struct branch_mode
+{
 	const char *name;
 	int mode;
 };
 
-static const struct branch_mode branch_modes[] = {
+static const struct branch_mode branch_modes[] =
+{
 	BRANCH_OPT("u", PERF_SAMPLE_BRANCH_USER),
 	BRANCH_OPT("k", PERF_SAMPLE_BRANCH_KERNEL),
 	BRANCH_OPT("hv", PERF_SAMPLE_BRANCH_HV),
@@ -45,50 +47,72 @@ parse_branch_stack(const struct option *opt, const char *str, int unset)
 	int ret = -1;
 
 	if (unset)
+	{
 		return 0;
+	}
 
 	/*
 	 * cannot set it twice, -b + --branch-filter for instance
 	 */
 	if (*mode)
+	{
 		return -1;
+	}
 
 	/* str may be NULL in case no arg is passed to -b */
-	if (str) {
+	if (str)
+	{
 		/* because str is read-only */
 		s = os = strdup(str);
+
 		if (!s)
+		{
 			return -1;
+		}
 
-		for (;;) {
+		for (;;)
+		{
 			p = strchr(s, ',');
-			if (p)
-				*p = '\0';
 
-			for (br = branch_modes; br->name; br++) {
-				if (!strcasecmp(s, br->name))
-					break;
+			if (p)
+			{
+				*p = '\0';
 			}
-			if (!br->name) {
+
+			for (br = branch_modes; br->name; br++)
+			{
+				if (!strcasecmp(s, br->name))
+				{
+					break;
+				}
+			}
+
+			if (!br->name)
+			{
 				ui__warning("unknown branch filter %s,"
-					    " check man page\n", s);
+							" check man page\n", s);
 				goto error;
 			}
 
 			*mode |= br->mode;
 
 			if (!p)
+			{
 				break;
+			}
 
 			s = p + 1;
 		}
 	}
+
 	ret = 0;
 
 	/* default to any branch */
-	if ((*mode & ~ONLY_PLM) == 0) {
+	if ((*mode & ~ONLY_PLM) == 0)
+	{
 		*mode = PERF_SAMPLE_BRANCH_ANY;
 	}
+
 error:
 	free(os);
 	return ret;

@@ -38,11 +38,17 @@ retry:
 	local_irq_save(flags);
 	cpu = smp_processor_id();
 	old = atomic_cmpxchg(&dump_lock, -1, cpu);
-	if (old == -1) {
+
+	if (old == -1)
+	{
 		was_locked = 0;
-	} else if (old == cpu) {
+	}
+	else if (old == cpu)
+	{
 		was_locked = 1;
-	} else {
+	}
+	else
+	{
 		local_irq_restore(flags);
 		cpu_relax();
 		goto retry;
@@ -51,7 +57,9 @@ retry:
 	__dump_stack();
 
 	if (!was_locked)
+	{
 		atomic_set(&dump_lock, -1);
+	}
 
 	local_irq_restore(flags);
 }

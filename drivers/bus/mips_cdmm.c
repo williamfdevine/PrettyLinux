@@ -44,14 +44,18 @@ static phys_addr_t mips_cdmm_default_base;
 
 static const struct mips_cdmm_device_id *
 mips_cdmm_lookup(const struct mips_cdmm_device_id *table,
-		 struct mips_cdmm_device *dev)
+				 struct mips_cdmm_device *dev)
 {
 	int ret = 0;
 
-	for (; table->type; ++table) {
+	for (; table->type; ++table)
+	{
 		ret = (dev->type == table->type);
+
 		if (ret)
+		{
 			break;
+		}
 	}
 
 	return ret ? table : NULL;
@@ -71,16 +75,25 @@ static int mips_cdmm_uevent(struct device *dev, struct kobj_uevent_env *env)
 	int retval = 0;
 
 	retval = add_uevent_var(env, "CDMM_CPU=%u", cdev->cpu);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	retval = add_uevent_var(env, "CDMM_TYPE=0x%02x", cdev->type);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	retval = add_uevent_var(env, "CDMM_REV=%u", cdev->rev);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	retval = add_uevent_var(env, "MODALIAS=mipscdmm:t%02X", cdev->type);
 	return retval;
@@ -89,24 +102,25 @@ static int mips_cdmm_uevent(struct device *dev, struct kobj_uevent_env *env)
 /* Device attributes */
 
 #define CDMM_ATTR(name, fmt, arg...)					\
-static ssize_t name##_show(struct device *_dev,				\
-			   struct device_attribute *attr, char *buf)	\
-{									\
-	struct mips_cdmm_device *dev = to_mips_cdmm_device(_dev);	\
-	return sprintf(buf, fmt, arg);					\
-}									\
-static DEVICE_ATTR_RO(name);
+	static ssize_t name##_show(struct device *_dev,				\
+							   struct device_attribute *attr, char *buf)	\
+	{									\
+		struct mips_cdmm_device *dev = to_mips_cdmm_device(_dev);	\
+		return sprintf(buf, fmt, arg);					\
+	}									\
+	static DEVICE_ATTR_RO(name);
 
 CDMM_ATTR(cpu, "%u\n", dev->cpu);
 CDMM_ATTR(type, "0x%02x\n", dev->type);
 CDMM_ATTR(revision, "%u\n", dev->rev);
 CDMM_ATTR(modalias, "mipscdmm:t%02X\n", dev->type);
 CDMM_ATTR(resource, "\t%016llx\t%016llx\t%016lx\n",
-	  (unsigned long long)dev->res.start,
-	  (unsigned long long)dev->res.end,
-	  dev->res.flags);
+		  (unsigned long long)dev->res.start,
+		  (unsigned long long)dev->res.end,
+		  dev->res.flags);
 
-static struct attribute *mips_cdmm_dev_attrs[] = {
+static struct attribute *mips_cdmm_dev_attrs[] =
+{
 	&dev_attr_cpu.attr,
 	&dev_attr_type.attr,
 	&dev_attr_revision.attr,
@@ -116,7 +130,8 @@ static struct attribute *mips_cdmm_dev_attrs[] = {
 };
 ATTRIBUTE_GROUPS(mips_cdmm_dev);
 
-struct bus_type mips_cdmm_bustype = {
+struct bus_type mips_cdmm_bustype =
+{
 	.name		= "cdmm",
 	.dev_groups	= mips_cdmm_dev_groups,
 	.match		= mips_cdmm_match,
@@ -139,7 +154,8 @@ EXPORT_SYMBOL_GPL(mips_cdmm_bustype);
  * @fn:		CDMM driver callback function to call for the device.
  * @dev:	CDMM device to pass to @fn.
  */
-struct mips_cdmm_work_dev {
+struct mips_cdmm_work_dev
+{
 	void			*fn;
 	struct mips_cdmm_device *dev;
 };
@@ -188,18 +204,18 @@ static long mips_cdmm_int_work(void *data)
  * result.
  */
 #define BUILD_PERCPU_HELPER(_ret, _name)				\
-static _ret mips_cdmm_##_name(struct device *dev)			\
-{									\
-	struct mips_cdmm_device *cdev = to_mips_cdmm_device(dev);	\
-	struct mips_cdmm_driver *cdrv = to_mips_cdmm_driver(dev->driver); \
-	struct mips_cdmm_work_dev work = {				\
-		.fn	= cdrv->_name,					\
-		.dev	= cdev,						\
-	};								\
-									\
-	_BUILD_RET_##_ret work_on_cpu(cdev->cpu,			\
-				      mips_cdmm_##_ret##_work, &work);	\
-}
+	static _ret mips_cdmm_##_name(struct device *dev)			\
+	{									\
+		struct mips_cdmm_device *cdev = to_mips_cdmm_device(dev);	\
+		struct mips_cdmm_driver *cdrv = to_mips_cdmm_driver(dev->driver); \
+		struct mips_cdmm_work_dev work = {				\
+			.fn	= cdrv->_name,					\
+				  .dev	= cdev,						\
+		};								\
+		\
+		_BUILD_RET_##_ret work_on_cpu(cdev->cpu,			\
+									  mips_cdmm_##_ret##_work, &work);	\
+	}
 
 /* Driver callback functions */
 BUILD_PERCPU_HELPER(int, probe)     /* int mips_cdmm_probe(struct device) */
@@ -223,11 +239,19 @@ int mips_cdmm_driver_register(struct mips_cdmm_driver *drv)
 	drv->drv.bus = &mips_cdmm_bustype;
 
 	if (drv->probe)
+	{
 		drv->drv.probe = mips_cdmm_probe;
+	}
+
 	if (drv->remove)
+	{
 		drv->drv.remove = mips_cdmm_remove;
+	}
+
 	if (drv->shutdown)
+	{
 		drv->drv.shutdown = mips_cdmm_shutdown;
+	}
 
 	return driver_register(&drv->drv);
 }
@@ -259,7 +283,8 @@ EXPORT_SYMBOL_GPL(mips_cdmm_driver_unregister);
  *			coming back online), in which case it should be
  *			reconfigured each time.
  */
-struct mips_cdmm_bus {
+struct mips_cdmm_bus
+{
 	phys_addr_t	 phys;
 	void __iomem	*regs;
 	unsigned int	 drbs;
@@ -291,25 +316,38 @@ static struct mips_cdmm_bus *mips_cdmm_get_bus(void)
 	unsigned int cpu;
 
 	if (!cpu_has_cdmm)
+	{
 		return ERR_PTR(-ENODEV);
+	}
 
 	cpu = smp_processor_id();
+
 	/* Avoid early use of per-cpu primitives before initialised */
 	if (cpu == 0)
+	{
 		return &mips_cdmm_boot_bus;
+	}
 
 	/* Get bus pointer */
 	bus_p = per_cpu_ptr(&mips_cdmm_buses, cpu);
 	local_irq_save(flags);
 	bus = *bus_p;
+
 	/* Attempt allocation if NULL */
-	if (unlikely(!bus)) {
+	if (unlikely(!bus))
+	{
 		bus = kzalloc(sizeof(*bus), GFP_ATOMIC);
+
 		if (unlikely(!bus))
+		{
 			bus = ERR_PTR(-ENOMEM);
+		}
 		else
+		{
 			*bus_p = bus;
+		}
 	}
+
 	local_irq_restore(flags);
 	return bus;
 }
@@ -325,10 +363,12 @@ static phys_addr_t mips_cdmm_cur_base(void)
 	unsigned long cdmmbase = read_c0_cdmmbase();
 
 	if (!(cdmmbase & MIPS_CDMMBASE_EN))
+	{
 		return 0;
+	}
 
 	return (cdmmbase >> MIPS_CDMMBASE_ADDR_SHIFT)
-		<< MIPS_CDMMBASE_ADDR_START;
+		   << MIPS_CDMMBASE_ADDR_START;
 }
 
 /**
@@ -359,34 +399,53 @@ static int mips_cdmm_setup(struct mips_cdmm_bus *bus)
 	int ret = 0;
 
 	if (IS_ERR(bus))
+	{
 		return PTR_ERR(bus);
+	}
 
 	local_irq_save(flags);
+
 	/* Don't set up bus a second time unless marked offline */
-	if (bus->offline) {
+	if (bus->offline)
+	{
 		/* If CDMM region is still set up, nothing to do */
 		if (bus->phys == mips_cdmm_cur_base())
+		{
 			goto out;
+		}
+
 		/*
 		 * The CDMM region isn't set up as expected, so it needs
 		 * reconfiguring, but then we can stop checking it.
 		 */
 		bus->offline = false;
-	} else if (bus->phys > 1) {
+	}
+	else if (bus->phys > 1)
+	{
 		goto out;
 	}
 
 	/* If the CDMM region is already configured, inherit that setup */
 	if (!bus->phys)
+	{
 		bus->phys = mips_cdmm_cur_base();
+	}
+
 	/* Otherwise, ask platform code for suggestions */
 	if (!bus->phys)
+	{
 		bus->phys = mips_cdmm_phys_base();
+	}
+
 	/* Otherwise, copy what other CPUs have done */
 	if (!bus->phys)
+	{
 		bus->phys = mips_cdmm_default_base;
+	}
+
 	/* Otherwise, complain once */
-	if (!bus->phys) {
+	if (!bus->phys)
+	{
 		bus->phys = 1;
 		/*
 		 * If you hit this, either your bootloader needs to set up the
@@ -394,31 +453,34 @@ static int mips_cdmm_setup(struct mips_cdmm_bus *bus)
 		 * mips_cdmm_phys_base() for your platform (see asm/cdmm.h).
 		 */
 		pr_err("cdmm%u: Failed to choose a physical base\n",
-		       smp_processor_id());
+			   smp_processor_id());
 	}
+
 	/* Already complained? */
-	if (bus->phys == 1) {
+	if (bus->phys == 1)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
+
 	/* Record our success for other CPUs to copy */
 	mips_cdmm_default_base = bus->phys;
 
 	pr_debug("cdmm%u: Enabling CDMM region at %pa\n",
-		 smp_processor_id(), &bus->phys);
+			 smp_processor_id(), &bus->phys);
 
 	/* Enable CDMM */
 	cdmmbase = read_c0_cdmmbase();
 	cdmmbase &= (1ul << MIPS_CDMMBASE_ADDR_SHIFT) - 1;
 	cdmmbase |= (bus->phys >> MIPS_CDMMBASE_ADDR_START)
-			<< MIPS_CDMMBASE_ADDR_SHIFT;
+				<< MIPS_CDMMBASE_ADDR_SHIFT;
 	cdmmbase |= MIPS_CDMMBASE_EN;
 	write_c0_cdmmbase(cdmmbase);
 	tlbw_use_hazard();
 
 	bus->regs = (void __iomem *)CKSEG1ADDR(bus->phys);
 	bus->drbs = 1 + ((cdmmbase & MIPS_CDMMBASE_SIZE) >>
-			 MIPS_CDMMBASE_SIZE_SHIFT);
+					 MIPS_CDMMBASE_SIZE_SHIFT);
 	bus->drbs_reserved = !!(cdmmbase & MIPS_CDMMBASE_CI);
 
 out:
@@ -452,23 +514,33 @@ void __iomem *mips_cdmm_early_probe(unsigned int dev_type)
 	int err;
 
 	if (WARN_ON(!dev_type))
+	{
 		return IOMEM_ERR_PTR(-ENODEV);
+	}
 
 	bus = mips_cdmm_get_bus();
 	err = mips_cdmm_setup(bus);
+
 	if (err)
+	{
 		return IOMEM_ERR_PTR(err);
+	}
 
 	/* Skip the first block if it's reserved for more registers */
 	drb = bus->drbs_reserved;
 	cdmm = bus->regs;
 
 	/* Look for a specific device type */
-	for (; drb < bus->drbs; drb += size + 1) {
+	for (; drb < bus->drbs; drb += size + 1)
+	{
 		acsr = __raw_readl(cdmm + drb * CDMM_DRB_SIZE);
 		type = (acsr & CDMM_ACSR_DEVTYPE) >> CDMM_ACSR_DEVTYPE_SHIFT;
+
 		if (type == dev_type)
+		{
 			return cdmm + drb * CDMM_DRB_SIZE;
+		}
+
 		size = (acsr & CDMM_ACSR_DEVSIZE) >> CDMM_ACSR_DEVSIZE_SHIFT;
 	}
 
@@ -511,28 +583,35 @@ static void mips_cdmm_bus_discover(struct mips_cdmm_bus *bus)
 	/* Discover devices */
 	bus->discovered = true;
 	pr_info("cdmm%u discovery (%u blocks)\n", cpu, bus->drbs);
-	for (; drb < bus->drbs; drb += size + 1) {
+
+	for (; drb < bus->drbs; drb += size + 1)
+	{
 		acsr = __raw_readl(cdmm + drb * CDMM_DRB_SIZE);
 		type = (acsr & CDMM_ACSR_DEVTYPE) >> CDMM_ACSR_DEVTYPE_SHIFT;
 		size = (acsr & CDMM_ACSR_DEVSIZE) >> CDMM_ACSR_DEVSIZE_SHIFT;
 		rev  = (acsr & CDMM_ACSR_DEVREV)  >> CDMM_ACSR_DEVREV_SHIFT;
 
 		if (!type)
+		{
 			continue;
+		}
 
 		pr_info("cdmm%u-%u: @%u (%#x..%#x), type 0x%02x, rev %u\n",
-			cpu, id, drb, drb * CDMM_DRB_SIZE,
-			(drb + size + 1) * CDMM_DRB_SIZE - 1,
-			type, rev);
+				cpu, id, drb, drb * CDMM_DRB_SIZE,
+				(drb + size + 1) * CDMM_DRB_SIZE - 1,
+				type, rev);
 
 		dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+
 		if (!dev)
+		{
 			break;
+		}
 
 		dev->cpu = cpu;
 		dev->res.start = bus->phys + drb * CDMM_DRB_SIZE;
 		dev->res.end = bus->phys +
-				(drb + size + 1) * CDMM_DRB_SIZE - 1;
+					   (drb + size + 1) * CDMM_DRB_SIZE - 1;
 		dev->res.flags = IORESOURCE_MEM;
 		dev->type = type;
 		dev->rev = rev;
@@ -544,7 +623,9 @@ static void mips_cdmm_bus_discover(struct mips_cdmm_bus *bus)
 		dev_set_name(&dev->dev, "cdmm%u-%u", cpu, id);
 		++id;
 		ret = device_register(&dev->dev);
-		if (ret) {
+
+		if (ret)
+		{
 			put_device(&dev->dev);
 			kfree(dev);
 		}
@@ -576,20 +657,20 @@ static void mips_cdmm_bus_discover(struct mips_cdmm_bus *bus)
  * It is expected to already be called from the appropriate CPU.
  */
 #define BUILD_PERDEV_HELPER(_name)					\
-static int mips_cdmm_##_name##_helper(struct device *dev, void *data)	\
-{									\
-	struct mips_cdmm_device *cdev = to_mips_cdmm_device(dev);	\
-	struct mips_cdmm_driver *cdrv;					\
-	unsigned int cpu = *(unsigned int *)data;			\
-									\
-	if (cdev->cpu != cpu || !dev->driver)				\
-		return 0;						\
-									\
-	cdrv = to_mips_cdmm_driver(dev->driver);			\
-	if (!cdrv->_name)						\
-		return 0;						\
-	return cdrv->_name(cdev);					\
-}
+	static int mips_cdmm_##_name##_helper(struct device *dev, void *data)	\
+	{									\
+		struct mips_cdmm_device *cdev = to_mips_cdmm_device(dev);	\
+		struct mips_cdmm_driver *cdrv;					\
+		unsigned int cpu = *(unsigned int *)data;			\
+		\
+		if (cdev->cpu != cpu || !dev->driver)				\
+			return 0;						\
+		\
+		cdrv = to_mips_cdmm_driver(dev->driver);			\
+		if (!cdrv->_name)						\
+			return 0;						\
+		return cdrv->_name(cdev);					\
+	}
 
 /* bus_for_each_dev callback helper functions */
 BUILD_PERDEV_HELPER(cpu_down)       /* int mips_cdmm_cpu_down_helper(...) */
@@ -610,15 +691,18 @@ static int mips_cdmm_cpu_down_prep(unsigned int cpu)
 
 	/* Inform all the devices on the bus */
 	ret = bus_for_each_dev(&mips_cdmm_bustype, NULL, &cpu,
-			       mips_cdmm_cpu_down_helper);
+						   mips_cdmm_cpu_down_helper);
 
 	/*
 	 * While bus is offline, each use of it should reconfigure it just in
 	 * case it is first use when coming back online again.
 	 */
 	bus = mips_cdmm_get_bus();
+
 	if (!IS_ERR(bus))
+	{
 		bus->offline = true;
+	}
 
 	return ret;
 }
@@ -642,18 +726,23 @@ static int mips_cdmm_cpu_online(unsigned int cpu)
 
 	bus = mips_cdmm_get_bus();
 	ret = mips_cdmm_setup(bus);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Bus now set up, so we can drop the offline flag if still set */
 	bus->offline = false;
 
 	if (!bus->discovered)
+	{
 		mips_cdmm_bus_discover(bus);
+	}
 	else
 		/* Inform all the devices on the bus */
 		ret = bus_for_each_dev(&mips_cdmm_bustype, NULL, &cpu,
-				       mips_cdmm_cpu_up_helper);
+							   mips_cdmm_cpu_up_helper);
 
 	return ret;
 }
@@ -670,14 +759,20 @@ static int __init mips_cdmm_init(void)
 
 	/* Register the bus */
 	ret = bus_register(&mips_cdmm_bustype);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* We want to be notified about new CPUs */
 	ret = cpuhp_setup_state(CPUHP_AP_ONLINE_DYN, "bus/cdmm:online",
-				mips_cdmm_cpu_online, mips_cdmm_cpu_down_prep);
+							mips_cdmm_cpu_online, mips_cdmm_cpu_down_prep);
+
 	if (ret < 0)
+	{
 		pr_warn("cdmm: Failed to register CPU notifier\n");
+	}
 
 	return ret;
 }

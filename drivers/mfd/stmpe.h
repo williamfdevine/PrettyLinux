@@ -18,13 +18,13 @@ extern const struct dev_pm_ops stmpe_dev_pm_ops;
 
 #ifdef STMPE_DUMP_BYTES
 static inline void stmpe_dump_bytes(const char *str, const void *buf,
-				    size_t len)
+									size_t len)
 {
 	print_hex_dump_bytes(str, DUMP_PREFIX_OFFSET, buf, len);
 }
 #else
 static inline void stmpe_dump_bytes(const char *str, const void *buf,
-				    size_t len)
+									size_t len)
 {
 }
 #endif
@@ -37,7 +37,8 @@ static inline void stmpe_dump_bytes(const char *str, const void *buf,
  * @block:	block id; used for identification with platform data and for
  *		enable and altfunc callbacks
  */
-struct stmpe_variant_block {
+struct stmpe_variant_block
+{
 	const struct mfd_cell	*cell;
 	int			irq;
 	enum stmpe_block	block;
@@ -60,7 +61,8 @@ struct stmpe_variant_block {
  *		 specific block
  * @enable_autosleep: callback to configure autosleep with specified timeout
  */
-struct stmpe_variant_info {
+struct stmpe_variant_info
+{
 	const char *name;
 	u16 id_val;
 	u16 id_mask;
@@ -84,7 +86,8 @@ struct stmpe_variant_info {
  * @write_block: write block or multiple bytes
  * @init: client init routine, called during probe
  */
-struct stmpe_client_info {
+struct stmpe_client_info
+{
 	void *data;
 	int irq;
 	void *client;
@@ -93,7 +96,7 @@ struct stmpe_client_info {
 	int (*write_byte)(struct stmpe *stmpe, u8 reg, u8 val);
 	int (*read_block)(struct stmpe *stmpe, u8 reg, u8 len, u8 *values);
 	int (*write_block)(struct stmpe *stmpe, u8 reg, u8 len,
-			const u8 *values);
+					   const u8 *values);
 	void (*init)(struct stmpe *stmpe);
 };
 

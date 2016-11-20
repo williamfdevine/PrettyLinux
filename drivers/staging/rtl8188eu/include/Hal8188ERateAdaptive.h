@@ -60,15 +60,15 @@ u8 ODM_RA_GetDecisionRate_8188E(struct odm_dm_struct *dm_odm, u8 MacID);
 
 u8 ODM_RA_GetHwPwrStatus_8188E(struct odm_dm_struct *dm_odm, u8 MacID);
 void ODM_RA_UpdateRateInfo_8188E(struct odm_dm_struct *dm_odm, u8 MacID,
-				 u8 RateID, u32 RateMask,
-				 u8 SGIEnable);
+								 u8 RateID, u32 RateMask,
+								 u8 SGIEnable);
 
 void ODM_RA_SetRSSI_8188E(struct odm_dm_struct *dm_odm, u8 macid,
-			  u8 rssi);
+						  u8 rssi);
 
 void ODM_RA_TxRPT2Handle_8188E(struct odm_dm_struct *dm_odm,
-			       u8 *txrpt_buf, u16 txrpt_len,
-			       u32 validentry0, u32 validentry1);
+							   u8 *txrpt_buf, u16 txrpt_len,
+							   u32 validentry0, u32 validentry1);
 
 void ODM_RA_Set_TxRPT_Time(struct odm_dm_struct *dm_odm, u16 minRptTime);
 

@@ -20,7 +20,8 @@
 #include <cpufreq.h>
 #include <loongson1.h>
 
-struct ls1x_cpufreq {
+struct ls1x_cpufreq
+{
 	struct device *dev;
 	struct clk *clk;	/* CPU clk */
 	struct clk *mux_clk;	/* MUX of CPU clk */
@@ -33,20 +34,23 @@ struct ls1x_cpufreq {
 static struct ls1x_cpufreq *cpufreq;
 
 static int ls1x_cpufreq_notifier(struct notifier_block *nb,
-				 unsigned long val, void *data)
+								 unsigned long val, void *data)
 {
 	if (val == CPUFREQ_POSTCHANGE)
+	{
 		current_cpu_data.udelay_val = loops_per_jiffy;
+	}
 
 	return NOTIFY_OK;
 }
 
-static struct notifier_block ls1x_cpufreq_notifier_block = {
+static struct notifier_block ls1x_cpufreq_notifier_block =
+{
 	.notifier_call = ls1x_cpufreq_notifier
 };
 
 static int ls1x_cpufreq_target(struct cpufreq_policy *policy,
-			       unsigned int index)
+							   unsigned int index)
 {
 	struct device *cpu_dev = get_cpu_device(policy->cpu);
 	unsigned int old_freq, new_freq;
@@ -65,9 +69,9 @@ static int ls1x_cpufreq_target(struct cpufreq_policy *policy,
 
 	clk_set_parent(policy->clk, cpufreq->osc_clk);
 	__raw_writel(__raw_readl(LS1X_CLK_PLL_DIV) | RST_CPU_EN | RST_CPU,
-		     LS1X_CLK_PLL_DIV);
+				 LS1X_CLK_PLL_DIV);
 	__raw_writel(__raw_readl(LS1X_CLK_PLL_DIV) & ~(RST_CPU_EN | RST_CPU),
-		     LS1X_CLK_PLL_DIV);
+				 LS1X_CLK_PLL_DIV);
 	clk_set_rate(cpufreq->mux_clk, new_freq * 1000);
 	clk_set_parent(policy->clk, cpufreq->mux_clk);
 	dev_dbg(cpu_dev, "%u KHz --> %u KHz\n", old_freq, new_freq);
@@ -86,25 +90,39 @@ static int ls1x_cpufreq_init(struct cpufreq_policy *policy)
 
 	steps = 1 << DIV_CPU_WIDTH;
 	freq_tbl = kcalloc(steps, sizeof(*freq_tbl), GFP_KERNEL);
-	if (!freq_tbl)
-		return -ENOMEM;
 
-	for (i = 0; i < (steps - 1); i++) {
-		freq = pll_freq / (i + 1);
-		if ((freq < cpufreq->min_freq) || (freq > cpufreq->max_freq))
-			freq_tbl[i].frequency = CPUFREQ_ENTRY_INVALID;
-		else
-			freq_tbl[i].frequency = freq;
-		dev_dbg(cpu_dev,
-			"cpufreq table: index %d: frequency %d\n", i,
-			freq_tbl[i].frequency);
+	if (!freq_tbl)
+	{
+		return -ENOMEM;
 	}
+
+	for (i = 0; i < (steps - 1); i++)
+	{
+		freq = pll_freq / (i + 1);
+
+		if ((freq < cpufreq->min_freq) || (freq > cpufreq->max_freq))
+		{
+			freq_tbl[i].frequency = CPUFREQ_ENTRY_INVALID;
+		}
+		else
+		{
+			freq_tbl[i].frequency = freq;
+		}
+
+		dev_dbg(cpu_dev,
+				"cpufreq table: index %d: frequency %d\n", i,
+				freq_tbl[i].frequency);
+	}
+
 	freq_tbl[i].frequency = CPUFREQ_TABLE_END;
 
 	policy->clk = cpufreq->clk;
 	ret = cpufreq_generic_init(policy, freq_tbl, 0);
+
 	if (ret)
+	{
 		kfree(freq_tbl);
+	}
 
 	return ret;
 }
@@ -115,7 +133,8 @@ static int ls1x_cpufreq_exit(struct cpufreq_policy *policy)
 	return 0;
 }
 
-static struct cpufreq_driver ls1x_cpufreq_driver = {
+static struct cpufreq_driver ls1x_cpufreq_driver =
+{
 	.name		= "cpufreq-ls1x",
 	.flags		= CPUFREQ_STICKY | CPUFREQ_NEED_INITIAL_FREQ_CHECK,
 	.verify		= cpufreq_generic_frequency_table_verify,
@@ -129,7 +148,7 @@ static struct cpufreq_driver ls1x_cpufreq_driver = {
 static int ls1x_cpufreq_remove(struct platform_device *pdev)
 {
 	cpufreq_unregister_notifier(&ls1x_cpufreq_notifier_block,
-				    CPUFREQ_TRANSITION_NOTIFIER);
+								CPUFREQ_TRANSITION_NOTIFIER);
 	cpufreq_unregister_driver(&ls1x_cpufreq_driver);
 
 	return 0;
@@ -141,73 +160,93 @@ static int ls1x_cpufreq_probe(struct platform_device *pdev)
 	struct clk *clk;
 	int ret;
 
-	if (!pdata || !pdata->clk_name || !pdata->osc_clk_name) {
+	if (!pdata || !pdata->clk_name || !pdata->osc_clk_name)
+	{
 		dev_err(&pdev->dev, "platform data missing\n");
 		return -EINVAL;
 	}
 
 	cpufreq =
-	    devm_kzalloc(&pdev->dev, sizeof(struct ls1x_cpufreq), GFP_KERNEL);
+		devm_kzalloc(&pdev->dev, sizeof(struct ls1x_cpufreq), GFP_KERNEL);
+
 	if (!cpufreq)
+	{
 		return -ENOMEM;
+	}
 
 	cpufreq->dev = &pdev->dev;
 
 	clk = devm_clk_get(&pdev->dev, pdata->clk_name);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		dev_err(&pdev->dev, "unable to get %s clock\n",
-			pdata->clk_name);
+				pdata->clk_name);
 		return PTR_ERR(clk);
 	}
+
 	cpufreq->clk = clk;
 
 	clk = clk_get_parent(clk);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		dev_err(&pdev->dev, "unable to get parent of %s clock\n",
-			__clk_get_name(cpufreq->clk));
+				__clk_get_name(cpufreq->clk));
 		return PTR_ERR(clk);
 	}
+
 	cpufreq->mux_clk = clk;
 
 	clk = clk_get_parent(clk);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		dev_err(&pdev->dev, "unable to get parent of %s clock\n",
-			__clk_get_name(cpufreq->mux_clk));
+				__clk_get_name(cpufreq->mux_clk));
 		return PTR_ERR(clk);
 	}
+
 	cpufreq->pll_clk = clk;
 
 	clk = devm_clk_get(&pdev->dev, pdata->osc_clk_name);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		dev_err(&pdev->dev, "unable to get %s clock\n",
-			pdata->osc_clk_name);
+				pdata->osc_clk_name);
 		return PTR_ERR(clk);
 	}
+
 	cpufreq->osc_clk = clk;
 
 	cpufreq->max_freq = pdata->max_freq;
 	cpufreq->min_freq = pdata->min_freq;
 
 	ret = cpufreq_register_driver(&ls1x_cpufreq_driver);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev,
-			"failed to register CPUFreq driver: %d\n", ret);
+				"failed to register CPUFreq driver: %d\n", ret);
 		return ret;
 	}
 
 	ret = cpufreq_register_notifier(&ls1x_cpufreq_notifier_block,
-					CPUFREQ_TRANSITION_NOTIFIER);
+									CPUFREQ_TRANSITION_NOTIFIER);
 
-	if (ret) {
+	if (ret)
+	{
 		dev_err(&pdev->dev,
-			"failed to register CPUFreq notifier: %d\n",ret);
+				"failed to register CPUFreq notifier: %d\n", ret);
 		cpufreq_unregister_driver(&ls1x_cpufreq_driver);
 	}
 
 	return ret;
 }
 
-static struct platform_driver ls1x_cpufreq_platdrv = {
+static struct platform_driver ls1x_cpufreq_platdrv =
+{
 	.probe	= ls1x_cpufreq_probe,
 	.remove	= ls1x_cpufreq_remove,
 	.driver	= {

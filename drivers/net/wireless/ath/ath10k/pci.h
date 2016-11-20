@@ -35,7 +35,8 @@
  */
 #define DIAG_TRANSFER_LIMIT 2048
 
-struct bmi_xfer {
+struct bmi_xfer
+{
 	bool tx_done;
 	bool rx_done;
 	bool wait_for_resp;
@@ -53,7 +54,8 @@ struct bmi_xfer {
  * facilitate Host access). In particular, Host software is
  * required to initialize pipe_cfg_addr and svc_to_pipe_map.
  */
-struct pcie_state {
+struct pcie_state
+{
 	/* Pipe configuration Target address */
 	/* NB: ce_pipe_config[CE_COUNT] */
 	u32 pipe_cfg_addr;
@@ -100,7 +102,8 @@ struct pcie_state {
  *
  * NOTE: Structure is shared between Host software and Target firmware!
  */
-struct ce_pipe_config {
+struct ce_pipe_config
+{
 	__le32 pipenum;
 	__le32 pipedir;
 	__le32 nentries;
@@ -127,14 +130,16 @@ struct ce_pipe_config {
 #define PIPEDIR_INOUT   3  /* bidirectional */
 
 /* Establish a mapping between a service/direction and a pipe. */
-struct service_to_pipe {
+struct service_to_pipe
+{
 	__le32 service_id;
 	__le32 pipedir;
 	__le32 pipenum;
 };
 
 /* Per-pipe state. */
-struct ath10k_pci_pipe {
+struct ath10k_pci_pipe
+{
 	/* Handle of underlying Copy Engine */
 	struct ath10k_ce_pipe *ce_hdl;
 
@@ -150,24 +155,28 @@ struct ath10k_pci_pipe {
 	spinlock_t pipe_lock;
 };
 
-struct ath10k_pci_supp_chip {
+struct ath10k_pci_supp_chip
+{
 	u32 dev_id;
 	u32 rev_id;
 };
 
-struct ath10k_bus_ops {
+struct ath10k_bus_ops
+{
 	u32 (*read32)(struct ath10k *ar, u32 offset);
 	void (*write32)(struct ath10k *ar, u32 offset, u32 value);
 	int (*get_num_banks)(struct ath10k *ar);
 };
 
-enum ath10k_pci_irq_mode {
+enum ath10k_pci_irq_mode
+{
 	ATH10K_PCI_IRQ_AUTO = 0,
 	ATH10K_PCI_IRQ_LEGACY = 1,
 	ATH10K_PCI_IRQ_MSI = 2,
 };
 
-struct ath10k_pci {
+struct ath10k_pci
+{
 	struct pci_dev *pdev;
 	struct device *dev;
 	struct ath10k *ar;
@@ -272,19 +281,19 @@ u32 ath10k_pci_soc_read32(struct ath10k *ar, u32 addr);
 u32 ath10k_pci_reg_read32(struct ath10k *ar, u32 addr);
 
 int ath10k_pci_hif_tx_sg(struct ath10k *ar, u8 pipe_id,
-			 struct ath10k_hif_sg_item *items, int n_items);
+						 struct ath10k_hif_sg_item *items, int n_items);
 int ath10k_pci_hif_diag_read(struct ath10k *ar, u32 address, void *buf,
-			     size_t buf_len);
+							 size_t buf_len);
 int ath10k_pci_diag_write_mem(struct ath10k *ar, u32 address,
-			      const void *data, int nbytes);
+							  const void *data, int nbytes);
 int ath10k_pci_hif_exchange_bmi_msg(struct ath10k *ar, void *req, u32 req_len,
-				    void *resp, u32 *resp_len);
+									void *resp, u32 *resp_len);
 int ath10k_pci_hif_map_service_to_pipe(struct ath10k *ar, u16 service_id,
-				       u8 *ul_pipe, u8 *dl_pipe);
+									   u8 *ul_pipe, u8 *dl_pipe);
 void ath10k_pci_hif_get_default_pipe(struct ath10k *ar, u8 *ul_pipe,
-				     u8 *dl_pipe);
+									 u8 *dl_pipe);
 void ath10k_pci_hif_send_complete_check(struct ath10k *ar, u8 pipe,
-					int force);
+										int force);
 u16 ath10k_pci_hif_get_free_queue_number(struct ath10k *ar, u8 pipe);
 void ath10k_pci_hif_power_down(struct ath10k *ar);
 int ath10k_pci_alloc_pipes(struct ath10k *ar);

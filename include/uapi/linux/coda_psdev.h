@@ -8,7 +8,8 @@
 
 
 /* messages between coda filesystem in kernel and Venus */
-struct upc_req {
+struct upc_req
+{
 	struct list_head    uc_chain;
 	caddr_t	            uc_data;
 	u_short	            uc_flags;

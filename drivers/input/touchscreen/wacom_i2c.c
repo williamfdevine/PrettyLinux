@@ -28,14 +28,16 @@
 #define WACOM_CMD_THROW1	0x00
 #define WACOM_QUERY_SIZE	19
 
-struct wacom_features {
+struct wacom_features
+{
 	int x_max;
 	int y_max;
 	int pressure_max;
 	char fw_version;
 };
 
-struct wacom_i2c {
+struct wacom_i2c
+{
 	struct i2c_client *client;
 	struct input_dev *input;
 	u8 data[WACOM_QUERY_SIZE];
@@ -44,14 +46,16 @@ struct wacom_i2c {
 };
 
 static int wacom_query_device(struct i2c_client *client,
-			      struct wacom_features *features)
+							  struct wacom_features *features)
 {
 	int ret;
 	u8 cmd1[] = { WACOM_CMD_QUERY0, WACOM_CMD_QUERY1,
-			WACOM_CMD_QUERY2, WACOM_CMD_QUERY3 };
+				  WACOM_CMD_QUERY2, WACOM_CMD_QUERY3
+				};
 	u8 cmd2[] = { WACOM_CMD_THROW0, WACOM_CMD_THROW1 };
 	u8 data[WACOM_QUERY_SIZE];
-	struct i2c_msg msgs[] = {
+	struct i2c_msg msgs[] =
+	{
 		{
 			.addr = client->addr,
 			.flags = 0,
@@ -73,10 +77,16 @@ static int wacom_query_device(struct i2c_client *client,
 	};
 
 	ret = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	if (ret != ARRAY_SIZE(msgs))
+	{
 		return -EIO;
+	}
 
 	features->x_max = get_unaligned_le16(&data[3]);
 	features->y_max = get_unaligned_le16(&data[5]);
@@ -84,9 +94,9 @@ static int wacom_query_device(struct i2c_client *client,
 	features->fw_version = get_unaligned_le16(&data[13]);
 
 	dev_dbg(&client->dev,
-		"x_max:%d, y_max:%d, pressure:%d, fw:%d\n",
-		features->x_max, features->y_max,
-		features->pressure_max, features->fw_version);
+			"x_max:%d, y_max:%d, pressure:%d, fw:%d\n",
+			features->x_max, features->y_max,
+			features->pressure_max, features->fw_version);
 
 	return 0;
 }
@@ -101,9 +111,12 @@ static irqreturn_t wacom_i2c_irq(int irq, void *dev_id)
 	int error;
 
 	error = i2c_master_recv(wac_i2c->client,
-				wac_i2c->data, sizeof(wac_i2c->data));
+							wac_i2c->data, sizeof(wac_i2c->data));
+
 	if (error < 0)
+	{
 		goto out;
+	}
 
 	tsw = data[3] & 0x01;
 	ers = data[3] & 0x04;
@@ -115,7 +128,7 @@ static irqreturn_t wacom_i2c_irq(int irq, void *dev_id)
 
 	if (!wac_i2c->prox)
 		wac_i2c->tool = (data[3] & 0x0c) ?
-			BTN_TOOL_RUBBER : BTN_TOOL_PEN;
+						BTN_TOOL_RUBBER : BTN_TOOL_PEN;
 
 	wac_i2c->prox = data[3] & 0x20;
 
@@ -151,25 +164,31 @@ static void wacom_i2c_close(struct input_dev *dev)
 }
 
 static int wacom_i2c_probe(struct i2c_client *client,
-				     const struct i2c_device_id *id)
+						   const struct i2c_device_id *id)
 {
 	struct wacom_i2c *wac_i2c;
 	struct input_dev *input;
 	struct wacom_features features = { 0 };
 	int error;
 
-	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+	{
 		dev_err(&client->dev, "i2c_check_functionality error\n");
 		return -EIO;
 	}
 
 	error = wacom_query_device(client, &features);
+
 	if (error)
+	{
 		return error;
+	}
 
 	wac_i2c = kzalloc(sizeof(*wac_i2c), GFP_KERNEL);
 	input = input_allocate_device();
-	if (!wac_i2c || !input) {
+
+	if (!wac_i2c || !input)
+	{
 		error = -ENOMEM;
 		goto err_free_mem;
 	}
@@ -196,16 +215,18 @@ static int wacom_i2c_probe(struct i2c_client *client,
 	input_set_abs_params(input, ABS_X, 0, features.x_max, 0, 0);
 	input_set_abs_params(input, ABS_Y, 0, features.y_max, 0, 0);
 	input_set_abs_params(input, ABS_PRESSURE,
-			     0, features.pressure_max, 0, 0);
+						 0, features.pressure_max, 0, 0);
 
 	input_set_drvdata(input, wac_i2c);
 
 	error = request_threaded_irq(client->irq, NULL, wacom_i2c_irq,
-				     IRQF_TRIGGER_LOW | IRQF_ONESHOT,
-				     "wacom_i2c", wac_i2c);
-	if (error) {
+								 IRQF_TRIGGER_LOW | IRQF_ONESHOT,
+								 "wacom_i2c", wac_i2c);
+
+	if (error)
+	{
 		dev_err(&client->dev,
-			"Failed to enable IRQ, error: %d\n", error);
+				"Failed to enable IRQ, error: %d\n", error);
 		goto err_free_mem;
 	}
 
@@ -213,9 +234,11 @@ static int wacom_i2c_probe(struct i2c_client *client,
 	disable_irq(client->irq);
 
 	error = input_register_device(wac_i2c->input);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&client->dev,
-			"Failed to register input device, error: %d\n", error);
+				"Failed to register input device, error: %d\n", error);
 		goto err_free_irq;
 	}
 
@@ -262,13 +285,15 @@ static int __maybe_unused wacom_i2c_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(wacom_i2c_pm, wacom_i2c_suspend, wacom_i2c_resume);
 
-static const struct i2c_device_id wacom_i2c_id[] = {
+static const struct i2c_device_id wacom_i2c_id[] =
+{
 	{ "WAC_I2C_EMR", 0 },
 	{ },
 };
 MODULE_DEVICE_TABLE(i2c, wacom_i2c_id);
 
-static struct i2c_driver wacom_i2c_driver = {
+static struct i2c_driver wacom_i2c_driver =
+{
 	.driver	= {
 		.name	= "wacom_i2c",
 		.pm	= &wacom_i2c_pm,

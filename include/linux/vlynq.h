@@ -26,12 +26,14 @@ struct module;
 
 #define VLYNQ_NUM_IRQS 32
 
-struct vlynq_mapping {
+struct vlynq_mapping
+{
 	u32 size;
 	u32 offset;
 };
 
-enum vlynq_divisor {
+enum vlynq_divisor
+{
 	vlynq_div_auto = 0,
 	vlynq_ldiv1,
 	vlynq_ldiv2,
@@ -52,14 +54,16 @@ enum vlynq_divisor {
 	vlynq_div_external
 };
 
-struct vlynq_device_id {
+struct vlynq_device_id
+{
 	u32 id;
 	enum vlynq_divisor divisor;
 	unsigned long driver_data;
 };
 
 struct vlynq_regs;
-struct vlynq_device {
+struct vlynq_device
+{
 	u32 id, dev_id;
 	int local_irq;
 	int remote_irq;
@@ -74,7 +78,8 @@ struct vlynq_device {
 	struct device dev;
 };
 
-struct vlynq_driver {
+struct vlynq_driver
+{
 	char *name;
 	struct vlynq_device_id *id_table;
 	int (*probe)(struct vlynq_device *dev, struct vlynq_device_id *id);
@@ -82,7 +87,8 @@ struct vlynq_driver {
 	struct device_driver driver;
 };
 
-struct plat_vlynq_ops {
+struct plat_vlynq_ops
+{
 	int (*on)(struct vlynq_device *dev);
 	void (*off)(struct vlynq_device *dev);
 };
@@ -100,7 +106,7 @@ static inline struct vlynq_device *to_vlynq_device(struct device *device)
 extern struct bus_type vlynq_bus_type;
 
 extern int __vlynq_register_driver(struct vlynq_driver *driver,
-				   struct module *owner);
+								   struct module *owner);
 
 static inline int vlynq_register_driver(struct vlynq_driver *driver)
 {
@@ -135,8 +141,11 @@ static inline u32 vlynq_mem_len(struct vlynq_device *dev)
 static inline int vlynq_virq_to_irq(struct vlynq_device *dev, int virq)
 {
 	int irq = dev->irq_start + virq;
+
 	if ((irq < dev->irq_start) || (irq > dev->irq_end))
+	{
 		return -EINVAL;
+	}
 
 	return irq;
 }
@@ -144,7 +153,9 @@ static inline int vlynq_virq_to_irq(struct vlynq_device *dev, int virq)
 static inline int vlynq_irq_to_virq(struct vlynq_device *dev, int irq)
 {
 	if ((irq < dev->irq_start) || (irq > dev->irq_end))
+	{
 		return -EINVAL;
+	}
 
 	return irq - dev->irq_start;
 }
@@ -153,9 +164,9 @@ extern void vlynq_unregister_driver(struct vlynq_driver *driver);
 extern int vlynq_enable_device(struct vlynq_device *dev);
 extern void vlynq_disable_device(struct vlynq_device *dev);
 extern int vlynq_set_local_mapping(struct vlynq_device *dev, u32 tx_offset,
-				   struct vlynq_mapping *mapping);
+								   struct vlynq_mapping *mapping);
 extern int vlynq_set_remote_mapping(struct vlynq_device *dev, u32 tx_offset,
-				    struct vlynq_mapping *mapping);
+									struct vlynq_mapping *mapping);
 extern int vlynq_set_local_irq(struct vlynq_device *dev, int virq);
 extern int vlynq_set_remote_irq(struct vlynq_device *dev, int virq);
 

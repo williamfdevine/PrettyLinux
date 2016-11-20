@@ -3,12 +3,14 @@
 
 #include <linux/types.h>
 
-enum {
+enum
+{
 	CONNSECMARK_SAVE = 1,
 	CONNSECMARK_RESTORE,
 };
 
-struct xt_connsecmark_target_info {
+struct xt_connsecmark_target_info
+{
 	__u8 mode;
 };
 

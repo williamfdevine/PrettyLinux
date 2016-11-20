@@ -13,22 +13,22 @@ extern void trace_benchmark_unreg(void);
 
 TRACE_EVENT_FN(benchmark_event,
 
-	TP_PROTO(const char *str),
+			   TP_PROTO(const char *str),
 
-	TP_ARGS(str),
+			   TP_ARGS(str),
 
-	TP_STRUCT__entry(
-		__array(	char,	str,	BENCHMARK_EVENT_STRLEN	)
-	),
+			   TP_STRUCT__entry(
+				   __array(	char,	str,	BENCHMARK_EVENT_STRLEN	)
+			   ),
 
-	TP_fast_assign(
-		memcpy(__entry->str, str, BENCHMARK_EVENT_STRLEN);
-	),
+			   TP_fast_assign(
+				   memcpy(__entry->str, str, BENCHMARK_EVENT_STRLEN);
+			   ),
 
-	TP_printk("%s", __entry->str),
+			   TP_printk("%s", __entry->str),
 
-	trace_benchmark_reg, trace_benchmark_unreg
-);
+			   trace_benchmark_reg, trace_benchmark_unreg
+			  );
 
 #endif /* _TRACE_BENCHMARK_H */
 

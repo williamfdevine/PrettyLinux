@@ -37,14 +37,19 @@ static struct dentry *root_folder;
 void brcms_debugfs_init(void)
 {
 	root_folder = debugfs_create_dir(KBUILD_MODNAME, NULL);
+
 	if (IS_ERR(root_folder))
+	{
 		root_folder = NULL;
+	}
 }
 
 void brcms_debugfs_exit(void)
 {
 	if (!root_folder)
+	{
 		return;
+	}
 
 	debugfs_remove_recursive(root_folder);
 	root_folder = NULL;
@@ -53,17 +58,21 @@ void brcms_debugfs_exit(void)
 int brcms_debugfs_attach(struct brcms_pub *drvr)
 {
 	if (!root_folder)
+	{
 		return -ENODEV;
+	}
 
 	drvr->dbgfs_dir = debugfs_create_dir(
-		 dev_name(&drvr->wlc->hw->d11core->dev), root_folder);
+						  dev_name(&drvr->wlc->hw->d11core->dev), root_folder);
 	return PTR_ERR_OR_ZERO(drvr->dbgfs_dir);
 }
 
 void brcms_debugfs_detach(struct brcms_pub *drvr)
 {
 	if (!IS_ERR_OR_NULL(drvr->dbgfs_dir))
+	{
 		debugfs_remove_recursive(drvr->dbgfs_dir);
+	}
 }
 
 struct dentry *brcms_debugfs_get_devdir(struct brcms_pub *drvr)
@@ -81,27 +90,27 @@ int brcms_debugfs_hardware_read(struct seq_file *s, void *data)
 	char boardrev[BRCMU_BOARDREV_LEN];
 
 	seq_printf(s, "chipnum 0x%x\n"
-		   "chiprev 0x%x\n"
-		   "chippackage 0x%x\n"
-		   "corerev 0x%x\n"
-		   "boardid 0x%x\n"
-		   "boardvendor 0x%x\n"
-		   "boardrev %s\n"
-		   "boardflags 0x%x\n"
-		   "boardflags2 0x%x\n"
-		   "ucoderev 0x%x\n"
-		   "radiorev 0x%x\n"
-		   "phytype 0x%x\n"
-		   "phyrev 0x%x\n"
-		   "anarev 0x%x\n"
-		   "nvramrev %d\n",
-		   bus->chipinfo.id, bus->chipinfo.rev, bus->chipinfo.pkg,
-		   core->id.rev, bus->boardinfo.type, bus->boardinfo.vendor,
-		   brcmu_boardrev_str(hw->boardrev, boardrev),
-		   drvr->wlc->hw->boardflags, drvr->wlc->hw->boardflags2,
-		   drvr->wlc->ucode_rev, hw->band->radiorev,
-		   hw->band->phytype, hw->band->phyrev, hw->band->pi->ana_rev,
-		   hw->sromrev);
+			   "chiprev 0x%x\n"
+			   "chippackage 0x%x\n"
+			   "corerev 0x%x\n"
+			   "boardid 0x%x\n"
+			   "boardvendor 0x%x\n"
+			   "boardrev %s\n"
+			   "boardflags 0x%x\n"
+			   "boardflags2 0x%x\n"
+			   "ucoderev 0x%x\n"
+			   "radiorev 0x%x\n"
+			   "phytype 0x%x\n"
+			   "phyrev 0x%x\n"
+			   "anarev 0x%x\n"
+			   "nvramrev %d\n",
+			   bus->chipinfo.id, bus->chipinfo.rev, bus->chipinfo.pkg,
+			   core->id.rev, bus->boardinfo.type, bus->boardinfo.vendor,
+			   brcmu_boardrev_str(hw->boardrev, boardrev),
+			   drvr->wlc->hw->boardflags, drvr->wlc->hw->boardflags2,
+			   drvr->wlc->ucode_rev, hw->band->radiorev,
+			   hw->band->phytype, hw->band->phyrev, hw->band->pi->ana_rev,
+			   hw->sromrev);
 	return 0;
 }
 
@@ -123,8 +132,12 @@ static int brcms_debugfs_macstat_read(struct seq_file *s, void *data)
 	seq_printf(s, "txdnlfrm: %d\n", stats.txdnlfrm);
 	seq_printf(s, "txbcnfrm: %d\n", stats.txbcnfrm);
 	seq_printf(s, "txfunfl[8]:");
+
 	for (i = 0; i < ARRAY_SIZE(stats.txfunfl); i++)
+	{
 		seq_printf(s, " %d", stats.txfunfl[i]);
+	}
+
 	seq_printf(s, "\ntxtplunfl: %d\n", stats.txtplunfl);
 	seq_printf(s, "txphyerr: %d\n", stats.txphyerr);
 	seq_printf(s, "pktengrxducast: %d\n", stats.pktengrxducast);
@@ -176,7 +189,8 @@ static int brcms_debugfs_macstat_read(struct seq_file *s, void *data)
 	return 0;
 }
 
-struct brcms_debugfs_entry {
+struct brcms_debugfs_entry
+{
 	int (*read)(struct seq_file *seq, void *data);
 	struct brcms_pub *drvr;
 };
@@ -188,7 +202,8 @@ static int brcms_debugfs_entry_open(struct inode *inode, struct file *f)
 	return single_open(f, entry->read, entry->drvr);
 }
 
-static const struct file_operations brcms_debugfs_def_ops = {
+static const struct file_operations brcms_debugfs_def_ops =
+{
 	.owner = THIS_MODULE,
 	.open = brcms_debugfs_entry_open,
 	.release = single_release,
@@ -198,24 +213,29 @@ static const struct file_operations brcms_debugfs_def_ops = {
 
 static int
 brcms_debugfs_add_entry(struct brcms_pub *drvr, const char *fn,
-			int (*read_fn)(struct seq_file *seq, void *data))
+						int (*read_fn)(struct seq_file *seq, void *data))
 {
 	struct device *dev = &drvr->wlc->hw->d11core->dev;
 	struct dentry *dentry =  drvr->dbgfs_dir;
 	struct brcms_debugfs_entry *entry;
 
 	if (IS_ERR_OR_NULL(dentry))
+	{
 		return -ENOENT;
+	}
 
 	entry = devm_kzalloc(dev, sizeof(*entry), GFP_KERNEL);
+
 	if (!entry)
+	{
 		return -ENOMEM;
+	}
 
 	entry->read = read_fn;
 	entry->drvr = drvr;
 
 	dentry = debugfs_create_file(fn, S_IRUGO, dentry, entry,
-				     &brcms_debugfs_def_ops);
+								 &brcms_debugfs_def_ops);
 
 	return PTR_ERR_OR_ZERO(dentry);
 }
@@ -223,26 +243,28 @@ brcms_debugfs_add_entry(struct brcms_pub *drvr, const char *fn,
 void brcms_debugfs_create_files(struct brcms_pub *drvr)
 {
 	if (IS_ERR_OR_NULL(drvr->dbgfs_dir))
+	{
 		return;
+	}
 
 	brcms_debugfs_add_entry(drvr, "hardware", brcms_debugfs_hardware_read);
 	brcms_debugfs_add_entry(drvr, "macstat", brcms_debugfs_macstat_read);
 }
 
 #define __brcms_fn(fn)						\
-void __brcms_ ##fn(struct device *dev, const char *fmt, ...)	\
-{								\
-	struct va_format vaf = {				\
-		.fmt = fmt,					\
-	};							\
-	va_list args;						\
-								\
-	va_start(args, fmt);					\
-	vaf.va = &args;						\
-	dev_ ##fn(dev, "%pV", &vaf);				\
-	trace_brcms_ ##fn(&vaf);				\
-	va_end(args);						\
-}
+	void __brcms_ ##fn(struct device *dev, const char *fmt, ...)	\
+	{								\
+		struct va_format vaf = {				\
+			.fmt = fmt,					\
+		};							\
+		va_list args;						\
+		\
+		va_start(args, fmt);					\
+		vaf.va = &args;						\
+		dev_ ##fn(dev, "%pV", &vaf);				\
+		trace_brcms_ ##fn(&vaf);				\
+		va_end(args);						\
+	}
 
 __brcms_fn(info)
 __brcms_fn(warn)
@@ -251,9 +273,10 @@ __brcms_fn(crit)
 
 #if defined(CONFIG_BRCMDBG) || defined(CONFIG_BRCM_TRACING)
 void __brcms_dbg(struct device *dev, u32 level, const char *func,
-		 const char *fmt, ...)
+				 const char *fmt, ...)
 {
-	struct va_format vaf = {
+	struct va_format vaf =
+	{
 		.fmt = fmt,
 	};
 	va_list args;
@@ -261,8 +284,12 @@ void __brcms_dbg(struct device *dev, u32 level, const char *func,
 	va_start(args, fmt);
 	vaf.va = &args;
 #ifdef CONFIG_BRCMDBG
+
 	if ((brcm_msg_level & level) && net_ratelimit())
+	{
 		dev_err(dev, "%s %pV", func, &vaf);
+	}
+
 #endif
 	trace_brcms_dbg(level, func, &vaf);
 	va_end(args);

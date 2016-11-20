@@ -34,7 +34,8 @@
 
 /*#define GO7007_HPI_DEBUG*/
 
-enum hpi_address {
+enum hpi_address
+{
 	HPI_ADDR_VIDEO_BUFFER = 0xe4,
 	HPI_ADDR_INIT_BUFFER = 0xea,
 	HPI_ADDR_INTR_RET_VALUE = 0xee,
@@ -44,7 +45,8 @@ enum hpi_address {
 	HPI_ADDR_INTR_WR_INDEX = 0xf8,
 };
 
-enum gpio_command {
+enum gpio_command
+{
 	GPIO_COMMAND_RESET = 0x00, /* 000b */
 	GPIO_COMMAND_REQ1  = 0x04, /* 001b */
 	GPIO_COMMAND_WRITE = 0x20, /* 010b */
@@ -55,7 +57,8 @@ enum gpio_command {
 	GPIO_COMMAND_ADDR  = 0xA4, /* 111b */
 };
 
-struct saa7134_go7007 {
+struct saa7134_go7007
+{
 	struct v4l2_subdev sd;
 	struct saa7134_dev *dev;
 	u8 *top;
@@ -69,14 +72,15 @@ static inline struct saa7134_go7007 *to_state(struct v4l2_subdev *sd)
 	return container_of(sd, struct saa7134_go7007, sd);
 }
 
-static const struct go7007_board_info board_voyager = {
+static const struct go7007_board_info board_voyager =
+{
 	.flags		 = 0,
 	.sensor_flags	 = GO7007_SENSOR_656 |
-				GO7007_SENSOR_VALID_ENABLE |
-				GO7007_SENSOR_TV |
-				GO7007_SENSOR_VBI,
+	GO7007_SENSOR_VALID_ENABLE |
+	GO7007_SENSOR_TV |
+	GO7007_SENSOR_VBI,
 	.audio_flags	= GO7007_AUDIO_I2S_MODE_1 |
-				GO7007_AUDIO_WORD_16,
+	GO7007_AUDIO_WORD_16,
 	.audio_rate	 = 48000,
 	.audio_bclk_div	 = 8,
 	.audio_main_div	 = 2,
@@ -169,19 +173,23 @@ static int saa7134_go7007_interface_reset(struct go7007 *go)
 	saa_writeb(SAA7134_GPIO_GPSTATUS2, GPIO_COMMAND_REQ1);
 	saa_writeb(SAA7134_GPIO_GPSTATUS2, GPIO_COMMAND_REQ2);
 
-	do {
+	do
+	{
 		saa_clearb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
 		saa_setb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
 		saa_readb(SAA7134_GPIO_GPSTATUS2);
 		/*pr_info("gpio is %08x\n", saa_readl(SAA7134_GPIO_GPSTATUS0 >> 2)); */
-	} while (--count > 0);
+	}
+	while (--count > 0);
 
 	/* Wait for an interrupt to indicate successful hardware reset */
 	if (go7007_read_interrupt(go, &intr_val, &intr_data) < 0 ||
-			(intr_val & ~0x1) != 0x55aa) {
+		(intr_val & ~0x1) != 0x55aa)
+	{
 		pr_err("saa7134-go7007: unable to reset the GO7007\n");
 		return -1;
 	}
+
 	return 0;
 }
 
@@ -196,17 +204,25 @@ static int saa7134_go7007_write_interrupt(struct go7007 *go, int addr, int data)
 	pr_debug("saa7134-go7007: WriteInterrupt: %04x %04x\n", addr, data);
 #endif
 
-	for (i = 0; i < 100; ++i) {
+	for (i = 0; i < 100; ++i)
+	{
 		gpio_read(dev, HPI_ADDR_INTR_STATUS, &status_reg);
+
 		if (!(status_reg & 0x0010))
+		{
 			break;
+		}
+
 		msleep(10);
 	}
-	if (i == 100) {
+
+	if (i == 100)
+	{
 		pr_err("saa7134-go7007: device is hung, status reg = 0x%04x\n",
-			status_reg);
+			   status_reg);
 		return -1;
 	}
+
 	gpio_write(dev, HPI_ADDR_INTR_WR_PARAM, data);
 	gpio_write(dev, HPI_ADDR_INTR_WR_INDEX, addr);
 
@@ -224,30 +240,37 @@ static int saa7134_go7007_read_interrupt(struct go7007 *go)
 	gpio_read(dev, HPI_ADDR_INTR_RET_DATA, &go->interrupt_data);
 #ifdef GO7007_HPI_DEBUG
 	pr_debug("saa7134-go7007: ReadInterrupt: %04x %04x\n",
-			go->interrupt_value, go->interrupt_data);
+			 go->interrupt_value, go->interrupt_data);
 #endif
 	return 0;
 }
 
 static void saa7134_go7007_irq_ts_done(struct saa7134_dev *dev,
-						unsigned long status)
+									   unsigned long status)
 {
 	struct go7007 *go = video_get_drvdata(dev->empress_dev);
 	struct saa7134_go7007 *saa = go->hpi_context;
 
 	if (!vb2_is_streaming(&go->vidq))
+	{
 		return;
+	}
+
 	if (0 != (status & 0x000f0000))
 		pr_debug("saa7134-go7007: irq: lost %ld\n",
-				(status >> 16) & 0x0f);
-	if (status & 0x100000) {
+				 (status >> 16) & 0x0f);
+
+	if (status & 0x100000)
+	{
 		dma_sync_single_for_cpu(&dev->pci->dev,
-					saa->bottom_dma, PAGE_SIZE, DMA_FROM_DEVICE);
+								saa->bottom_dma, PAGE_SIZE, DMA_FROM_DEVICE);
 		go7007_parse_video_stream(go, saa->bottom, PAGE_SIZE);
 		saa_writel(SAA7134_RS_BA2(5), saa->bottom_dma);
-	} else {
+	}
+	else
+	{
 		dma_sync_single_for_cpu(&dev->pci->dev,
-					saa->top_dma, PAGE_SIZE, DMA_FROM_DEVICE);
+								saa->top_dma, PAGE_SIZE, DMA_FROM_DEVICE);
 		go7007_parse_video_stream(go, saa->top, PAGE_SIZE);
 		saa_writel(SAA7134_RS_BA1(5), saa->top_dma);
 	}
@@ -259,15 +282,21 @@ static int saa7134_go7007_stream_start(struct go7007 *go)
 	struct saa7134_dev *dev = saa->dev;
 
 	saa->top_dma = dma_map_page(&dev->pci->dev, virt_to_page(saa->top),
-			0, PAGE_SIZE, DMA_FROM_DEVICE);
+								0, PAGE_SIZE, DMA_FROM_DEVICE);
+
 	if (dma_mapping_error(&dev->pci->dev, saa->top_dma))
+	{
 		return -ENOMEM;
+	}
+
 	saa->bottom_dma = dma_map_page(&dev->pci->dev,
-			virt_to_page(saa->bottom),
-			0, PAGE_SIZE, DMA_FROM_DEVICE);
-	if (dma_mapping_error(&dev->pci->dev, saa->bottom_dma)) {
+								   virt_to_page(saa->bottom),
+								   0, PAGE_SIZE, DMA_FROM_DEVICE);
+
+	if (dma_mapping_error(&dev->pci->dev, saa->bottom_dma))
+	{
 		dma_unmap_page(&dev->pci->dev, saa->top_dma, PAGE_SIZE,
-				DMA_FROM_DEVICE);
+					   DMA_FROM_DEVICE);
 		return -ENOMEM;
 	}
 
@@ -306,7 +335,7 @@ static int saa7134_go7007_stream_start(struct go7007 *go)
 
 	/* Enable DMA IRQ */
 	saa_setl(SAA7134_IRQ1,
-			SAA7134_IRQ1_INTE_RA2_1 | SAA7134_IRQ1_INTE_RA2_0);
+			 SAA7134_IRQ1_INTE_RA2_1 | SAA7134_IRQ1_INTE_RA2_0);
 
 	return 0;
 }
@@ -317,25 +346,31 @@ static int saa7134_go7007_stream_stop(struct go7007 *go)
 	struct saa7134_dev *dev;
 
 	if (!saa)
+	{
 		return -EINVAL;
+	}
+
 	dev = saa->dev;
+
 	if (!dev)
+	{
 		return -EINVAL;
+	}
 
 	/* Shut down TS FIFO */
 	saa_clearl(SAA7134_MAIN_CTRL, SAA7134_MAIN_CTRL_TE5);
 
 	/* Disable DMA IRQ */
 	saa_clearl(SAA7134_IRQ1,
-			SAA7134_IRQ1_INTE_RA2_1 | SAA7134_IRQ1_INTE_RA2_0);
+			   SAA7134_IRQ1_INTE_RA2_1 | SAA7134_IRQ1_INTE_RA2_0);
 
 	/* Disable TS interface */
 	saa_clearb(SAA7134_TS_PARALLEL, 0x80);
 
 	dma_unmap_page(&dev->pci->dev, saa->top_dma, PAGE_SIZE,
-			DMA_FROM_DEVICE);
+				   DMA_FROM_DEVICE);
 	dma_unmap_page(&dev->pci->dev, saa->bottom_dma, PAGE_SIZE,
-			DMA_FROM_DEVICE);
+				   DMA_FROM_DEVICE);
 
 	return 0;
 }
@@ -351,34 +386,46 @@ static int saa7134_go7007_send_firmware(struct go7007 *go, u8 *data, int len)
 	pr_debug("saa7134-go7007: DownloadBuffer sending %d bytes\n", len);
 #endif
 
-	while (len > 0) {
+	while (len > 0)
+	{
 		i = len > 64 ? 64 : len;
 		saa_writeb(SAA7134_GPIO_GPMODE0, 0xff);
 		saa_writeb(SAA7134_GPIO_GPSTATUS0, HPI_ADDR_INIT_BUFFER);
 		saa_writeb(SAA7134_GPIO_GPSTATUS2, GPIO_COMMAND_ADDR);
 		saa_writeb(SAA7134_GPIO_GPSTATUS2, GPIO_COMMAND_IDLE);
-		while (i-- > 0) {
+
+		while (i-- > 0)
+		{
 			saa_writeb(SAA7134_GPIO_GPSTATUS0, *data);
 			saa_writeb(SAA7134_GPIO_GPSTATUS2, GPIO_COMMAND_WRITE);
 			saa_writeb(SAA7134_GPIO_GPSTATUS2, GPIO_COMMAND_IDLE);
 			++data;
 			--len;
 		}
-		for (i = 0; i < 100; ++i) {
+
+		for (i = 0; i < 100; ++i)
+		{
 			gpio_read(dev, HPI_ADDR_INTR_STATUS, &status_reg);
+
 			if (!(status_reg & 0x0002))
+			{
 				break;
+			}
 		}
-		if (i == 100) {
+
+		if (i == 100)
+		{
 			pr_err("saa7134-go7007: device is hung, status reg = 0x%04x\n",
-			       status_reg);
+				   status_reg);
 			return -1;
 		}
 	}
+
 	return 0;
 }
 
-static const struct go7007_hpi_ops saa7134_go7007_hpi_ops = {
+static const struct go7007_hpi_ops saa7134_go7007_hpi_ops =
+{
 	.interface_reset	= saa7134_go7007_interface_reset,
 	.write_interrupt	= saa7134_go7007_write_interrupt,
 	.read_interrupt		= saa7134_go7007_read_interrupt,
@@ -402,11 +449,13 @@ static int saa7134_go7007_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
 #endif
 }
 
-static const struct v4l2_subdev_video_ops saa7134_go7007_video_ops = {
+static const struct v4l2_subdev_video_ops saa7134_go7007_video_ops =
+{
 	.s_std = saa7134_go7007_s_std,
 };
 
-static const struct v4l2_subdev_ops saa7134_go7007_sd_ops = {
+static const struct v4l2_subdev_ops saa7134_go7007_sd_ops =
+{
 	.video = &saa7134_go7007_video_ops,
 };
 
@@ -424,11 +473,16 @@ static int saa7134_go7007_init(struct saa7134_dev *dev)
 	pr_debug("saa7134-go7007: probing new SAA713X board\n");
 
 	go = go7007_alloc(&board_voyager, &dev->pci->dev);
+
 	if (go == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	saa = kzalloc(sizeof(struct saa7134_go7007), GFP_KERNEL);
-	if (saa == NULL) {
+
+	if (saa == NULL)
+	{
 		kfree(go);
 		return -ENOMEM;
 	}
@@ -448,25 +502,38 @@ static int saa7134_go7007_init(struct saa7134_dev *dev)
 
 	/* Allocate a couple pages for receiving the compressed stream */
 	saa->top = (u8 *)get_zeroed_page(GFP_KERNEL);
+
 	if (!saa->top)
+	{
 		goto allocfail;
+	}
+
 	saa->bottom = (u8 *)get_zeroed_page(GFP_KERNEL);
+
 	if (!saa->bottom)
+	{
 		goto allocfail;
+	}
 
 	/* Boot the GO7007 */
 	if (go7007_boot_encoder(go, go->board_info->flags &
-					GO7007_BOARD_USE_ONBOARD_I2C) < 0)
+							GO7007_BOARD_USE_ONBOARD_I2C) < 0)
+	{
 		goto allocfail;
+	}
 
 	/* Do any final GO7007 initialization, then register the
 	 * V4L2 and ALSA interfaces */
 	if (go7007_register_encoder(go, go->board_info->num_i2c_devs) < 0)
+	{
 		goto allocfail;
+	}
 
 	/* Register the subdevice interface with the go7007 device */
 	if (v4l2_device_register_subdev(&go->v4l2_dev, sd) < 0)
+	{
 		pr_info("saa7134-go7007: register subdev failed\n");
+	}
 
 	dev->empress_dev = &go->vdev;
 
@@ -474,10 +541,17 @@ static int saa7134_go7007_init(struct saa7134_dev *dev)
 	return 0;
 
 allocfail:
+
 	if (saa->top)
+	{
 		free_page((unsigned long)saa->top);
+	}
+
 	if (saa->bottom)
+	{
 		free_page((unsigned long)saa->bottom);
+	}
+
 	kfree(saa);
 	kfree(go);
 	return -ENOMEM;
@@ -489,11 +563,16 @@ static int saa7134_go7007_fini(struct saa7134_dev *dev)
 	struct saa7134_go7007 *saa;
 
 	if (NULL == dev->empress_dev)
+	{
 		return 0;
+	}
 
 	go = video_get_drvdata(dev->empress_dev);
+
 	if (go->audio_enabled)
+	{
 		go7007_snd_remove(go);
+	}
 
 	saa = go->hpi_context;
 	go->status = STATUS_SHUTDOWN;
@@ -509,7 +588,8 @@ static int saa7134_go7007_fini(struct saa7134_dev *dev)
 	return 0;
 }
 
-static struct saa7134_mpeg_ops saa7134_go7007_ops = {
+static struct saa7134_mpeg_ops saa7134_go7007_ops =
+{
 	.type          = SAA7134_MPEG_GO7007,
 	.init          = saa7134_go7007_init,
 	.fini          = saa7134_go7007_fini,

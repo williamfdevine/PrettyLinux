@@ -28,7 +28,8 @@
 #include <linux/of.h>
 #include <linux/regulator/of_regulator.h>
 
-static const struct regmap_range da9063_ad_readable_ranges[] = {
+static const struct regmap_range da9063_ad_readable_ranges[] =
+{
 	{
 		.range_min = DA9063_REG_PAGE_CON,
 		.range_max = DA9063_AD_REG_SECOND_D,
@@ -47,7 +48,8 @@ static const struct regmap_range da9063_ad_readable_ranges[] = {
 	},
 };
 
-static const struct regmap_range da9063_ad_writeable_ranges[] = {
+static const struct regmap_range da9063_ad_writeable_ranges[] =
+{
 	{
 		.range_min = DA9063_REG_PAGE_CON,
 		.range_max = DA9063_REG_PAGE_CON,
@@ -72,7 +74,8 @@ static const struct regmap_range da9063_ad_writeable_ranges[] = {
 	},
 };
 
-static const struct regmap_range da9063_ad_volatile_ranges[] = {
+static const struct regmap_range da9063_ad_volatile_ranges[] =
+{
 	{
 		.range_min = DA9063_REG_PAGE_CON,
 		.range_max = DA9063_REG_EVENT_D,
@@ -103,22 +106,26 @@ static const struct regmap_range da9063_ad_volatile_ranges[] = {
 	},
 };
 
-static const struct regmap_access_table da9063_ad_readable_table = {
+static const struct regmap_access_table da9063_ad_readable_table =
+{
 	.yes_ranges = da9063_ad_readable_ranges,
 	.n_yes_ranges = ARRAY_SIZE(da9063_ad_readable_ranges),
 };
 
-static const struct regmap_access_table da9063_ad_writeable_table = {
+static const struct regmap_access_table da9063_ad_writeable_table =
+{
 	.yes_ranges = da9063_ad_writeable_ranges,
 	.n_yes_ranges = ARRAY_SIZE(da9063_ad_writeable_ranges),
 };
 
-static const struct regmap_access_table da9063_ad_volatile_table = {
+static const struct regmap_access_table da9063_ad_volatile_table =
+{
 	.yes_ranges = da9063_ad_volatile_ranges,
 	.n_yes_ranges = ARRAY_SIZE(da9063_ad_volatile_ranges),
 };
 
-static const struct regmap_range da9063_bb_readable_ranges[] = {
+static const struct regmap_range da9063_bb_readable_ranges[] =
+{
 	{
 		.range_min = DA9063_REG_PAGE_CON,
 		.range_max = DA9063_BB_REG_SECOND_D,
@@ -137,7 +144,8 @@ static const struct regmap_range da9063_bb_readable_ranges[] = {
 	},
 };
 
-static const struct regmap_range da9063_bb_writeable_ranges[] = {
+static const struct regmap_range da9063_bb_writeable_ranges[] =
+{
 	{
 		.range_min = DA9063_REG_PAGE_CON,
 		.range_max = DA9063_REG_PAGE_CON,
@@ -162,7 +170,8 @@ static const struct regmap_range da9063_bb_writeable_ranges[] = {
 	},
 };
 
-static const struct regmap_range da9063_bb_volatile_ranges[] = {
+static const struct regmap_range da9063_bb_volatile_ranges[] =
+{
 	{
 		.range_min = DA9063_REG_PAGE_CON,
 		.range_max = DA9063_REG_EVENT_D,
@@ -193,22 +202,26 @@ static const struct regmap_range da9063_bb_volatile_ranges[] = {
 	},
 };
 
-static const struct regmap_access_table da9063_bb_readable_table = {
+static const struct regmap_access_table da9063_bb_readable_table =
+{
 	.yes_ranges = da9063_bb_readable_ranges,
 	.n_yes_ranges = ARRAY_SIZE(da9063_bb_readable_ranges),
 };
 
-static const struct regmap_access_table da9063_bb_writeable_table = {
+static const struct regmap_access_table da9063_bb_writeable_table =
+{
 	.yes_ranges = da9063_bb_writeable_ranges,
 	.n_yes_ranges = ARRAY_SIZE(da9063_bb_writeable_ranges),
 };
 
-static const struct regmap_access_table da9063_bb_volatile_table = {
+static const struct regmap_access_table da9063_bb_volatile_table =
+{
 	.yes_ranges = da9063_bb_volatile_ranges,
 	.n_yes_ranges = ARRAY_SIZE(da9063_bb_volatile_ranges),
 };
 
-static const struct regmap_range_cfg da9063_range_cfg[] = {
+static const struct regmap_range_cfg da9063_range_cfg[] =
+{
 	{
 		.range_min = DA9063_REG_PAGE_CON,
 		.range_max = DA9063_REG_CHIP_VARIANT,
@@ -220,7 +233,8 @@ static const struct regmap_range_cfg da9063_range_cfg[] = {
 	}
 };
 
-static struct regmap_config da9063_regmap_config = {
+static struct regmap_config da9063_regmap_config =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 	.ranges = da9063_range_cfg,
@@ -230,40 +244,49 @@ static struct regmap_config da9063_regmap_config = {
 	.cache_type = REGCACHE_RBTREE,
 };
 
-static const struct of_device_id da9063_dt_ids[] = {
+static const struct of_device_id da9063_dt_ids[] =
+{
 	{ .compatible = "dlg,da9063", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, da9063_dt_ids);
 static int da9063_i2c_probe(struct i2c_client *i2c,
-	const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	struct da9063 *da9063;
 	int ret;
 
 	da9063 = devm_kzalloc(&i2c->dev, sizeof(struct da9063), GFP_KERNEL);
+
 	if (da9063 == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	i2c_set_clientdata(i2c, da9063);
 	da9063->dev = &i2c->dev;
 	da9063->chip_irq = i2c->irq;
 
-	if (da9063->variant_code == PMIC_DA9063_AD) {
+	if (da9063->variant_code == PMIC_DA9063_AD)
+	{
 		da9063_regmap_config.rd_table = &da9063_ad_readable_table;
 		da9063_regmap_config.wr_table = &da9063_ad_writeable_table;
 		da9063_regmap_config.volatile_table = &da9063_ad_volatile_table;
-	} else {
+	}
+	else
+	{
 		da9063_regmap_config.rd_table = &da9063_bb_readable_table;
 		da9063_regmap_config.wr_table = &da9063_bb_writeable_table;
 		da9063_regmap_config.volatile_table = &da9063_bb_volatile_table;
 	}
 
 	da9063->regmap = devm_regmap_init_i2c(i2c, &da9063_regmap_config);
-	if (IS_ERR(da9063->regmap)) {
+
+	if (IS_ERR(da9063->regmap))
+	{
 		ret = PTR_ERR(da9063->regmap);
 		dev_err(da9063->dev, "Failed to allocate register map: %d\n",
-			ret);
+				ret);
 		return ret;
 	}
 
@@ -279,13 +302,15 @@ static int da9063_i2c_remove(struct i2c_client *i2c)
 	return 0;
 }
 
-static const struct i2c_device_id da9063_i2c_id[] = {
+static const struct i2c_device_id da9063_i2c_id[] =
+{
 	{"da9063", PMIC_DA9063},
 	{},
 };
 MODULE_DEVICE_TABLE(i2c, da9063_i2c_id);
 
-static struct i2c_driver da9063_i2c_driver = {
+static struct i2c_driver da9063_i2c_driver =
+{
 	.driver = {
 		.name = "da9063",
 		.of_match_table = of_match_ptr(da9063_dt_ids),

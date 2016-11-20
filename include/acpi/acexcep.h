@@ -71,7 +71,8 @@
  * Exception info table. The "Description" field is used only by the
  * ACPICA help application (acpihelp).
  */
-struct acpi_exception_info {
+struct acpi_exception_info
+{
 	char *name;
 
 #ifdef ACPI_HELP_APP
@@ -80,9 +81,9 @@ struct acpi_exception_info {
 };
 
 #ifdef ACPI_HELP_APP
-#define EXCEP_TXT(name,description)     {name, description}
+	#define EXCEP_TXT(name,description)     {name, description}
 #else
-#define EXCEP_TXT(name,description)     {name}
+	#define EXCEP_TXT(name,description)     {name}
 #endif
 
 /*
@@ -225,7 +226,8 @@ struct acpi_exception_info {
  * String versions of the exception codes above
  * These strings must match the corresponding defines exactly
  */
-static const struct acpi_exception_info acpi_gbl_exception_names_env[] = {
+static const struct acpi_exception_info acpi_gbl_exception_names_env[] =
+{
 	EXCEP_TXT("AE_OK", "No error"),
 	EXCEP_TXT("AE_ERROR", "Unspecified error"),
 	EXCEP_TXT("AE_NO_ACPI_TABLES", "ACPI tables could not be found"),
@@ -245,128 +247,132 @@ static const struct acpi_exception_info acpi_gbl_exception_names_env[] = {
 	EXCEP_TXT("AE_LIMIT", "A predefined limit was exceeded"),
 	EXCEP_TXT("AE_TIME", "A time limit or timeout expired"),
 	EXCEP_TXT("AE_ACQUIRE_DEADLOCK",
-		  "Internal error, attempt was made to acquire a mutex in improper order"),
+	"Internal error, attempt was made to acquire a mutex in improper order"),
 	EXCEP_TXT("AE_RELEASE_DEADLOCK",
-		  "Internal error, attempt was made to release a mutex in improper order"),
+	"Internal error, attempt was made to release a mutex in improper order"),
 	EXCEP_TXT("AE_NOT_ACQUIRED",
-		  "An attempt to release a mutex or Global Lock without a previous acquire"),
+	"An attempt to release a mutex or Global Lock without a previous acquire"),
 	EXCEP_TXT("AE_ALREADY_ACQUIRED",
-		  "Internal error, attempt was made to acquire a mutex twice"),
+	"Internal error, attempt was made to acquire a mutex twice"),
 	EXCEP_TXT("AE_NO_HARDWARE_RESPONSE",
-		  "Hardware did not respond after an I/O operation"),
+	"Hardware did not respond after an I/O operation"),
 	EXCEP_TXT("AE_NO_GLOBAL_LOCK", "There is no FACS Global Lock"),
 	EXCEP_TXT("AE_ABORT_METHOD", "A control method was aborted"),
 	EXCEP_TXT("AE_SAME_HANDLER",
-		  "Attempt was made to install the same handler that is already installed"),
+	"Attempt was made to install the same handler that is already installed"),
 	EXCEP_TXT("AE_NO_HANDLER",
-		  "A handler for the operation is not installed"),
+	"A handler for the operation is not installed"),
 	EXCEP_TXT("AE_OWNER_ID_LIMIT",
-		  "There are no more Owner IDs available for ACPI tables or control methods"),
+	"There are no more Owner IDs available for ACPI tables or control methods"),
 	EXCEP_TXT("AE_NOT_CONFIGURED",
-		  "The interface is not part of the current subsystem configuration"),
+	"The interface is not part of the current subsystem configuration"),
 	EXCEP_TXT("AE_ACCESS", "Permission denied for the requested operation"),
 	EXCEP_TXT("AE_IO_ERROR", "An I/O error occurred")
 };
 
-static const struct acpi_exception_info acpi_gbl_exception_names_pgm[] = {
+static const struct acpi_exception_info acpi_gbl_exception_names_pgm[] =
+{
 	EXCEP_TXT(NULL, NULL),
 	EXCEP_TXT("AE_BAD_PARAMETER", "A parameter is out of range or invalid"),
 	EXCEP_TXT("AE_BAD_CHARACTER",
-		  "An invalid character was found in a name"),
+	"An invalid character was found in a name"),
 	EXCEP_TXT("AE_BAD_PATHNAME",
-		  "An invalid character was found in a pathname"),
+	"An invalid character was found in a pathname"),
 	EXCEP_TXT("AE_BAD_DATA",
-		  "A package or buffer contained incorrect data"),
+	"A package or buffer contained incorrect data"),
 	EXCEP_TXT("AE_BAD_HEX_CONSTANT", "Invalid character in a Hex constant"),
 	EXCEP_TXT("AE_BAD_OCTAL_CONSTANT",
-		  "Invalid character in an Octal constant"),
+	"Invalid character in an Octal constant"),
 	EXCEP_TXT("AE_BAD_DECIMAL_CONSTANT",
-		  "Invalid character in a Decimal constant"),
+	"Invalid character in a Decimal constant"),
 	EXCEP_TXT("AE_MISSING_ARGUMENTS",
-		  "Too few arguments were passed to a control method"),
+	"Too few arguments were passed to a control method"),
 	EXCEP_TXT("AE_BAD_ADDRESS", "An illegal null I/O address")
 };
 
-static const struct acpi_exception_info acpi_gbl_exception_names_tbl[] = {
+static const struct acpi_exception_info acpi_gbl_exception_names_tbl[] =
+{
 	EXCEP_TXT(NULL, NULL),
 	EXCEP_TXT("AE_BAD_SIGNATURE", "An ACPI table has an invalid signature"),
 	EXCEP_TXT("AE_BAD_HEADER", "Invalid field in an ACPI table header"),
 	EXCEP_TXT("AE_BAD_CHECKSUM", "An ACPI table checksum is not correct"),
 	EXCEP_TXT("AE_BAD_VALUE", "An invalid value was found in a table"),
 	EXCEP_TXT("AE_INVALID_TABLE_LENGTH",
-		  "The FADT or FACS has improper length")
+	"The FADT or FACS has improper length")
 };
 
-static const struct acpi_exception_info acpi_gbl_exception_names_aml[] = {
+static const struct acpi_exception_info acpi_gbl_exception_names_aml[] =
+{
 	EXCEP_TXT(NULL, NULL),
 	EXCEP_TXT("AE_AML_BAD_OPCODE", "Invalid AML opcode encountered"),
 	EXCEP_TXT("AE_AML_NO_OPERAND", "A required operand is missing"),
 	EXCEP_TXT("AE_AML_OPERAND_TYPE",
-		  "An operand of an incorrect type was encountered"),
+	"An operand of an incorrect type was encountered"),
 	EXCEP_TXT("AE_AML_OPERAND_VALUE",
-		  "The operand had an inappropriate or invalid value"),
+	"The operand had an inappropriate or invalid value"),
 	EXCEP_TXT("AE_AML_UNINITIALIZED_LOCAL",
-		  "Method tried to use an uninitialized local variable"),
+	"Method tried to use an uninitialized local variable"),
 	EXCEP_TXT("AE_AML_UNINITIALIZED_ARG",
-		  "Method tried to use an uninitialized argument"),
+	"Method tried to use an uninitialized argument"),
 	EXCEP_TXT("AE_AML_UNINITIALIZED_ELEMENT",
-		  "Method tried to use an empty package element"),
+	"Method tried to use an empty package element"),
 	EXCEP_TXT("AE_AML_NUMERIC_OVERFLOW",
-		  "Overflow during BCD conversion or other"),
+	"Overflow during BCD conversion or other"),
 	EXCEP_TXT("AE_AML_REGION_LIMIT",
-		  "Tried to access beyond the end of an Operation Region"),
+	"Tried to access beyond the end of an Operation Region"),
 	EXCEP_TXT("AE_AML_BUFFER_LIMIT",
-		  "Tried to access beyond the end of a buffer"),
+	"Tried to access beyond the end of a buffer"),
 	EXCEP_TXT("AE_AML_PACKAGE_LIMIT",
-		  "Tried to access beyond the end of a package"),
+	"Tried to access beyond the end of a package"),
 	EXCEP_TXT("AE_AML_DIVIDE_BY_ZERO",
-		  "During execution of AML Divide operator"),
+	"During execution of AML Divide operator"),
 	EXCEP_TXT("AE_AML_BAD_NAME",
-		  "An ACPI name contains invalid character(s)"),
+	"An ACPI name contains invalid character(s)"),
 	EXCEP_TXT("AE_AML_NAME_NOT_FOUND",
-		  "Could not resolve a named reference"),
+	"Could not resolve a named reference"),
 	EXCEP_TXT("AE_AML_INTERNAL", "An internal error within the interprete"),
 	EXCEP_TXT("AE_AML_INVALID_SPACE_ID",
-		  "An Operation Region SpaceID is invalid"),
+	"An Operation Region SpaceID is invalid"),
 	EXCEP_TXT("AE_AML_STRING_LIMIT",
-		  "String is longer than 200 characters"),
+	"String is longer than 200 characters"),
 	EXCEP_TXT("AE_AML_NO_RETURN_VALUE",
-		  "A method did not return a required value"),
+	"A method did not return a required value"),
 	EXCEP_TXT("AE_AML_METHOD_LIMIT",
-		  "A control method reached the maximum reentrancy limit of 255"),
+	"A control method reached the maximum reentrancy limit of 255"),
 	EXCEP_TXT("AE_AML_NOT_OWNER",
-		  "A thread tried to release a mutex that it does not own"),
+	"A thread tried to release a mutex that it does not own"),
 	EXCEP_TXT("AE_AML_MUTEX_ORDER", "Mutex SyncLevel release mismatch"),
 	EXCEP_TXT("AE_AML_MUTEX_NOT_ACQUIRED",
-		  "Attempt to release a mutex that was not previously acquired"),
+	"Attempt to release a mutex that was not previously acquired"),
 	EXCEP_TXT("AE_AML_INVALID_RESOURCE_TYPE",
-		  "Invalid resource type in resource list"),
+	"Invalid resource type in resource list"),
 	EXCEP_TXT("AE_AML_INVALID_INDEX",
-		  "Invalid Argx or Localx (x too large)"),
+	"Invalid Argx or Localx (x too large)"),
 	EXCEP_TXT("AE_AML_REGISTER_LIMIT",
-		  "Bank value or Index value beyond range of register"),
+	"Bank value or Index value beyond range of register"),
 	EXCEP_TXT("AE_AML_NO_WHILE", "Break or Continue without a While"),
 	EXCEP_TXT("AE_AML_ALIGNMENT",
-		  "Non-aligned memory transfer on platform that does not support this"),
+	"Non-aligned memory transfer on platform that does not support this"),
 	EXCEP_TXT("AE_AML_NO_RESOURCE_END_TAG",
-		  "No End Tag in a resource list"),
+	"No End Tag in a resource list"),
 	EXCEP_TXT("AE_AML_BAD_RESOURCE_VALUE",
-		  "Invalid value of a resource element"),
+	"Invalid value of a resource element"),
 	EXCEP_TXT("AE_AML_CIRCULAR_REFERENCE",
-		  "Two references refer to each other"),
+	"Two references refer to each other"),
 	EXCEP_TXT("AE_AML_BAD_RESOURCE_LENGTH",
-		  "The length of a Resource Descriptor in the AML is incorrect"),
+	"The length of a Resource Descriptor in the AML is incorrect"),
 	EXCEP_TXT("AE_AML_ILLEGAL_ADDRESS",
-		  "A memory, I/O, or PCI configuration address is invalid"),
+	"A memory, I/O, or PCI configuration address is invalid"),
 	EXCEP_TXT("AE_AML_INFINITE_LOOP",
-		  "An apparent infinite AML While loop, method was aborted"),
+	"An apparent infinite AML While loop, method was aborted"),
 	EXCEP_TXT("AE_AML_UNINITIALIZED_NODE",
-		  "A namespace node is uninitialized or unresolved"),
+	"A namespace node is uninitialized or unresolved"),
 	EXCEP_TXT("AE_AML_TARGET_TYPE",
-		  "A target operand of an incorrect type was encountered")
+	"A target operand of an incorrect type was encountered")
 };
 
-static const struct acpi_exception_info acpi_gbl_exception_names_ctrl[] = {
+static const struct acpi_exception_info acpi_gbl_exception_names_ctrl[] =
+{
 	EXCEP_TXT(NULL, NULL),
 	EXCEP_TXT("AE_CTRL_RETURN_VALUE", "A Method returned a value"),
 	EXCEP_TXT("AE_CTRL_PENDING", "Method is calling another method"),

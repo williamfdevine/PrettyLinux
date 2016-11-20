@@ -48,7 +48,7 @@ static int debug;
 module_param(debug, int, 0644);
 
 static int vpbe_set_osd_display_params(struct vpbe_display *disp_dev,
-			struct vpbe_layer *layer);
+									   struct vpbe_layer *layer);
 
 static int venc_is_second_field(struct vpbe_display *disp_dev)
 {
@@ -57,22 +57,27 @@ static int venc_is_second_field(struct vpbe_display *disp_dev)
 	int val;
 
 	ret = v4l2_subdev_call(vpbe_dev->venc,
-			       core,
-			       ioctl,
-			       VENC_GET_FLD,
-			       &val);
-	if (ret < 0) {
+						   core,
+						   ioctl,
+						   VENC_GET_FLD,
+						   &val);
+
+	if (ret < 0)
+	{
 		v4l2_err(&vpbe_dev->v4l2_dev,
-			 "Error in getting Field ID 0\n");
+				 "Error in getting Field ID 0\n");
 	}
+
 	return val;
 }
 
 static void vpbe_isr_even_field(struct vpbe_display *disp_obj,
-				struct vpbe_layer *layer)
+								struct vpbe_layer *layer)
 {
 	if (layer->cur_frm == layer->next_frm)
+	{
 		return;
+	}
 
 	layer->cur_frm->vb.vb2_buf.timestamp = ktime_get_ns();
 	vb2_buffer_done(&layer->cur_frm->vb.vb2_buf, VB2_BUF_STATE_DONE);
@@ -81,17 +86,20 @@ static void vpbe_isr_even_field(struct vpbe_display *disp_obj,
 }
 
 static void vpbe_isr_odd_field(struct vpbe_display *disp_obj,
-				struct vpbe_layer *layer)
+							   struct vpbe_layer *layer)
 {
 	struct osd_state *osd_device = disp_obj->osd_device;
 	unsigned long addr;
 
 	spin_lock(&disp_obj->dma_queue_lock);
+
 	if (list_empty(&layer->dma_queue) ||
-		(layer->cur_frm != layer->next_frm)) {
+		(layer->cur_frm != layer->next_frm))
+	{
 		spin_unlock(&disp_obj->dma_queue_lock);
 		return;
 	}
+
 	/*
 	 * one field is displayed configure
 	 * the next frame if it is available
@@ -99,7 +107,7 @@ static void vpbe_isr_odd_field(struct vpbe_display *disp_obj,
 	 * Get next from the buffer queue
 	 */
 	layer->next_frm = list_entry(layer->dma_queue.next,
-			  struct  vpbe_disp_buffer, list);
+								 struct  vpbe_disp_buffer, list);
 	/* Remove that from the buffer queue */
 	list_del(&layer->next_frm->list);
 	spin_unlock(&disp_obj->dma_queue_lock);
@@ -107,9 +115,9 @@ static void vpbe_isr_odd_field(struct vpbe_display *disp_obj,
 	layer->next_frm->vb.vb2_buf.state = VB2_BUF_STATE_ACTIVE;
 	addr = vb2_dma_contig_plane_dma_addr(&layer->next_frm->vb.vb2_buf, 0);
 	osd_device->ops.start_layer(osd_device,
-			layer->layer_info.id,
-			addr,
-			disp_obj->cbcr_ofst);
+								layer->layer_info.id,
+								addr,
+								disp_obj->cbcr_ofst);
 }
 
 /* interrupt service routine */
@@ -123,14 +131,21 @@ static irqreturn_t venc_isr(int irq, void *arg)
 	int i;
 
 	if ((NULL == arg) || (NULL == disp_dev->dev[0]))
+	{
 		return IRQ_HANDLED;
+	}
 
 	if (venc_is_second_field(disp_dev))
+	{
 		event |= VENC_SECOND_FIELD;
+	}
 	else
+	{
 		event |= VENC_FIRST_FIELD;
+	}
 
-	if (event == (last_event & ~VENC_END_OF_FRAME)) {
+	if (event == (last_event & ~VENC_END_OF_FRAME))
+	{
 		/*
 		* If the display is non-interlaced, then we need to flag the
 		* end-of-frame event at every interrupt regardless of the
@@ -139,55 +154,77 @@ static irqreturn_t venc_isr(int irq, void *arg)
 		* from the previous interrupt.
 		*/
 		event |= VENC_END_OF_FRAME;
-	} else if (event == VENC_SECOND_FIELD) {
+	}
+	else if (event == VENC_SECOND_FIELD)
+	{
 		/* end-of-frame for interlaced display */
 		event |= VENC_END_OF_FRAME;
 	}
+
 	last_event = event;
 
-	for (i = 0; i < VPBE_DISPLAY_MAX_DEVICES; i++) {
+	for (i = 0; i < VPBE_DISPLAY_MAX_DEVICES; i++)
+	{
 		layer = disp_dev->dev[i];
 
 		if (!vb2_start_streaming_called(&layer->buffer_queue))
+		{
 			continue;
+		}
 
-		if (layer->layer_first_int) {
+		if (layer->layer_first_int)
+		{
 			layer->layer_first_int = 0;
 			continue;
 		}
+
 		/* Check the field format */
 		if ((V4L2_FIELD_NONE == layer->pix_fmt.field) &&
-			(event & VENC_END_OF_FRAME)) {
+			(event & VENC_END_OF_FRAME))
+		{
 			/* Progressive mode */
 
 			vpbe_isr_even_field(disp_dev, layer);
 			vpbe_isr_odd_field(disp_dev, layer);
-		} else {
-		/* Interlaced mode */
+		}
+		else
+		{
+			/* Interlaced mode */
 
 			layer->field_id ^= 1;
+
 			if (event & VENC_FIRST_FIELD)
+			{
 				fid = 0;
+			}
 			else
+			{
 				fid = 1;
+			}
 
 			/*
 			* If field id does not match with store
 			* field id
 			*/
-			if (fid != layer->field_id) {
+			if (fid != layer->field_id)
+			{
 				/* Make them in sync */
 				layer->field_id = fid;
 				continue;
 			}
+
 			/*
 			* device field id and local field id are
 			* in sync. If this is even field
 			*/
 			if (0 == fid)
+			{
 				vpbe_isr_even_field(disp_dev, layer);
+			}
 			else  /* odd field */
+			{
 				vpbe_isr_odd_field(disp_dev, layer);
+			}
 		}
 	}
 
@@ -208,18 +245,24 @@ static int vpbe_buffer_prepare(struct vb2_buffer *vb)
 	unsigned long addr;
 
 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
-				"vpbe_buffer_prepare\n");
+			 "vpbe_buffer_prepare\n");
 
 	vb2_set_plane_payload(vb, 0, layer->pix_fmt.sizeimage);
-	if (vb2_get_plane_payload(vb, 0) > vb2_plane_size(vb, 0))
-		return -EINVAL;
 
-	addr = vb2_dma_contig_plane_dma_addr(vb, 0);
-	if (!IS_ALIGNED(addr, 8)) {
-		v4l2_err(&vpbe_dev->v4l2_dev,
-			 "buffer_prepare:offset is not aligned to 32 bytes\n");
+	if (vb2_get_plane_payload(vb, 0) > vb2_plane_size(vb, 0))
+	{
 		return -EINVAL;
 	}
+
+	addr = vb2_dma_contig_plane_dma_addr(vb, 0);
+
+	if (!IS_ALIGNED(addr, 8))
+	{
+		v4l2_err(&vpbe_dev->v4l2_dev,
+				 "buffer_prepare:offset is not aligned to 32 bytes\n");
+		return -EINVAL;
+	}
+
 	return 0;
 }
 
@@ -229,8 +272,8 @@ static int vpbe_buffer_prepare(struct vb2_buffer *vb)
  */
 static int
 vpbe_buffer_queue_setup(struct vb2_queue *vq,
-			unsigned int *nbuffers, unsigned int *nplanes,
-			unsigned int sizes[], struct device *alloc_devs[])
+						unsigned int *nbuffers, unsigned int *nplanes,
+						unsigned int sizes[], struct device *alloc_devs[])
 
 {
 	/* Get the file handle object and layer object */
@@ -241,10 +284,14 @@ vpbe_buffer_queue_setup(struct vb2_queue *vq,
 
 	/* Store number of buffers allocated in numbuffer member */
 	if (vq->num_buffers + *nbuffers < VPBE_DEFAULT_NUM_BUFS)
+	{
 		*nbuffers = VPBE_DEFAULT_NUM_BUFS - vq->num_buffers;
+	}
 
 	if (*nplanes)
+	{
 		return sizes[0] < layer->pix_fmt.sizeimage ? -EINVAL : 0;
+	}
 
 	*nplanes = 1;
 	sizes[0] = layer->pix_fmt.sizeimage;
@@ -261,14 +308,14 @@ static void vpbe_buffer_queue(struct vb2_buffer *vb)
 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
 	/* Get the file handle object and layer object */
 	struct vpbe_disp_buffer *buf = container_of(vbuf,
-				struct vpbe_disp_buffer, vb);
+								   struct vpbe_disp_buffer, vb);
 	struct vpbe_layer *layer = vb2_get_drv_priv(vb->vb2_queue);
 	struct vpbe_display *disp = layer->disp_dev;
 	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
 	unsigned long flags;
 
 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
-			"vpbe_buffer_queue\n");
+			 "vpbe_buffer_queue\n");
 
 	/* add the buffer to the DMA queue */
 	spin_lock_irqsave(&disp->dma_queue_lock, flags);
@@ -282,11 +329,11 @@ static int vpbe_start_streaming(struct vb2_queue *vq, unsigned int count)
 	struct osd_state *osd_device = layer->disp_dev->osd_device;
 	int ret;
 
-	 osd_device->ops.disable_layer(osd_device, layer->layer_info.id);
+	osd_device->ops.disable_layer(osd_device, layer->layer_info.id);
 
 	/* Get the next frame from the buffer queue */
 	layer->next_frm = layer->cur_frm = list_entry(layer->dma_queue.next,
-				struct vpbe_disp_buffer, list);
+									   struct vpbe_disp_buffer, list);
 	/* Remove buffer from the buffer queue */
 	list_del(&layer->cur_frm->list);
 	/* Mark state of the current frame to active */
@@ -296,15 +343,18 @@ static int vpbe_start_streaming(struct vb2_queue *vq, unsigned int count)
 
 	/* Set parameters in OSD and VENC */
 	ret = vpbe_set_osd_display_params(layer->disp_dev, layer);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		struct vpbe_disp_buffer *buf, *tmp;
 
 		vb2_buffer_done(&layer->cur_frm->vb.vb2_buf,
-				VB2_BUF_STATE_QUEUED);
-		list_for_each_entry_safe(buf, tmp, &layer->dma_queue, list) {
+						VB2_BUF_STATE_QUEUED);
+		list_for_each_entry_safe(buf, tmp, &layer->dma_queue, list)
+		{
 			list_del(&buf->list);
 			vb2_buffer_done(&buf->vb.vb2_buf,
-					VB2_BUF_STATE_QUEUED);
+							VB2_BUF_STATE_QUEUED);
 		}
 
 		return ret;
@@ -327,35 +377,45 @@ static void vpbe_stop_streaming(struct vb2_queue *vq)
 	unsigned long flags;
 
 	if (!vb2_is_streaming(vq))
+	{
 		return;
+	}
 
 	osd_device->ops.disable_layer(osd_device, layer->layer_info.id);
 
 	/* release all active buffers */
 	spin_lock_irqsave(&disp->dma_queue_lock, flags);
-	if (layer->cur_frm == layer->next_frm) {
+
+	if (layer->cur_frm == layer->next_frm)
+	{
 		vb2_buffer_done(&layer->cur_frm->vb.vb2_buf,
-				VB2_BUF_STATE_ERROR);
-	} else {
+						VB2_BUF_STATE_ERROR);
+	}
+	else
+	{
 		if (layer->cur_frm != NULL)
 			vb2_buffer_done(&layer->cur_frm->vb.vb2_buf,
-					VB2_BUF_STATE_ERROR);
+							VB2_BUF_STATE_ERROR);
+
 		if (layer->next_frm != NULL)
 			vb2_buffer_done(&layer->next_frm->vb.vb2_buf,
-					VB2_BUF_STATE_ERROR);
+							VB2_BUF_STATE_ERROR);
 	}
 
-	while (!list_empty(&layer->dma_queue)) {
+	while (!list_empty(&layer->dma_queue))
+	{
 		layer->next_frm = list_entry(layer->dma_queue.next,
-						struct vpbe_disp_buffer, list);
+									 struct vpbe_disp_buffer, list);
 		list_del(&layer->next_frm->list);
 		vb2_buffer_done(&layer->next_frm->vb.vb2_buf,
-				VB2_BUF_STATE_ERROR);
+						VB2_BUF_STATE_ERROR);
 	}
+
 	spin_unlock_irqrestore(&disp->dma_queue_lock, flags);
 }
 
-static struct vb2_ops video_qops = {
+static struct vb2_ops video_qops =
+{
 	.queue_setup = vpbe_buffer_queue_setup,
 	.wait_prepare = vb2_ops_wait_prepare,
 	.wait_finish = vb2_ops_wait_finish,
@@ -366,20 +426,20 @@ static struct vb2_ops video_qops = {
 };
 
 static
-struct vpbe_layer*
+struct vpbe_layer *
 _vpbe_display_get_other_win_layer(struct vpbe_display *disp_dev,
-			struct vpbe_layer *layer)
+								  struct vpbe_layer *layer)
 {
 	enum vpbe_display_device_id thiswin, otherwin;
 	thiswin = layer->device_id;
 
 	otherwin = (thiswin == VPBE_DISPLAY_DEVICE_0) ?
-	VPBE_DISPLAY_DEVICE_1 : VPBE_DISPLAY_DEVICE_0;
+			   VPBE_DISPLAY_DEVICE_1 : VPBE_DISPLAY_DEVICE_0;
 	return disp_dev->dev[otherwin];
 }
 
 static int vpbe_set_osd_display_params(struct vpbe_display *disp_dev,
-			struct vpbe_layer *layer)
+									   struct vpbe_layer *layer)
 {
 	struct osd_layer_config *cfg  = &layer->layer_info.config;
 	struct osd_state *osd_device = disp_dev->osd_device;
@@ -390,40 +450,48 @@ static int vpbe_set_osd_display_params(struct vpbe_display *disp_dev,
 	addr = vb2_dma_contig_plane_dma_addr(&layer->cur_frm->vb.vb2_buf, 0);
 	/* Set address in the display registers */
 	osd_device->ops.start_layer(osd_device,
-				    layer->layer_info.id,
-				    addr,
-				    disp_dev->cbcr_ofst);
+								layer->layer_info.id,
+								addr,
+								disp_dev->cbcr_ofst);
 
 	ret = osd_device->ops.enable_layer(osd_device,
-				layer->layer_info.id, 0);
-	if (ret < 0) {
+									   layer->layer_info.id, 0);
+
+	if (ret < 0)
+	{
 		v4l2_err(&vpbe_dev->v4l2_dev,
-			"Error in enabling osd window layer 0\n");
+				 "Error in enabling osd window layer 0\n");
 		return -1;
 	}
 
 	/* Enable the window */
 	layer->layer_info.enable = 1;
-	if (cfg->pixfmt == PIXFMT_NV12) {
+
+	if (cfg->pixfmt == PIXFMT_NV12)
+	{
 		struct vpbe_layer *otherlayer =
 			_vpbe_display_get_other_win_layer(disp_dev, layer);
 
 		ret = osd_device->ops.enable_layer(osd_device,
-				otherlayer->layer_info.id, 1);
-		if (ret < 0) {
+										   otherlayer->layer_info.id, 1);
+
+		if (ret < 0)
+		{
 			v4l2_err(&vpbe_dev->v4l2_dev,
-				"Error in enabling osd window layer 1\n");
+					 "Error in enabling osd window layer 1\n");
 			return -1;
 		}
+
 		otherlayer->layer_info.enable = 1;
 	}
+
 	return 0;
 }
 
 static void
 vpbe_disp_calculate_scale_factor(struct vpbe_display *disp_dev,
-			struct vpbe_layer *layer,
-			int expected_xsize, int expected_ysize)
+								 struct vpbe_layer *layer,
+								 int expected_xsize, int expected_ysize)
 {
 	struct display_layer_info *layer_info = &layer->layer_info;
 	struct v4l2_pix_format *pixfmt = &layer->pix_fmt;
@@ -461,106 +529,161 @@ vpbe_disp_calculate_scale_factor(struct vpbe_display *disp_dev,
 	layer_info->h_exp = H_EXP_OFF;	/* no horizontal zoom */
 	layer_info->v_exp = V_EXP_OFF;	/* no horizontal zoom */
 
-	if (pixfmt->width < expected_xsize) {
+	if (pixfmt->width < expected_xsize)
+	{
 		h_scale = vpbe_dev->current_timings.xres / pixfmt->width;
+
 		if (h_scale < 2)
+		{
 			h_scale = 1;
+		}
 		else if (h_scale >= 4)
+		{
 			h_scale = 4;
+		}
 		else
+		{
 			h_scale = 2;
+		}
+
 		cfg->xsize *= h_scale;
-		if (cfg->xsize < expected_xsize) {
+
+		if (cfg->xsize < expected_xsize)
+		{
 			if ((standard_id & V4L2_STD_525_60) ||
-			(standard_id & V4L2_STD_625_50)) {
+				(standard_id & V4L2_STD_625_50))
+			{
 				calculated_xsize = (cfg->xsize *
-					VPBE_DISPLAY_H_EXP_RATIO_N) /
-					VPBE_DISPLAY_H_EXP_RATIO_D;
-				if (calculated_xsize <= expected_xsize) {
+									VPBE_DISPLAY_H_EXP_RATIO_N) /
+								   VPBE_DISPLAY_H_EXP_RATIO_D;
+
+				if (calculated_xsize <= expected_xsize)
+				{
 					h_exp = 1;
 					cfg->xsize = calculated_xsize;
 				}
 			}
 		}
+
 		if (h_scale == 2)
+		{
 			layer_info->h_zoom = ZOOM_X2;
+		}
 		else if (h_scale == 4)
+		{
 			layer_info->h_zoom = ZOOM_X4;
+		}
+
 		if (h_exp)
+		{
 			layer_info->h_exp = H_EXP_9_OVER_8;
-	} else {
+		}
+	}
+	else
+	{
 		/* no scaling, only cropping. Set display area to crop area */
 		cfg->xsize = expected_xsize;
 	}
 
-	if (pixfmt->height < expected_ysize) {
+	if (pixfmt->height < expected_ysize)
+	{
 		v_scale = expected_ysize / pixfmt->height;
+
 		if (v_scale < 2)
+		{
 			v_scale = 1;
+		}
 		else if (v_scale >= 4)
+		{
 			v_scale = 4;
+		}
 		else
+		{
 			v_scale = 2;
+		}
+
 		cfg->ysize *= v_scale;
-		if (cfg->ysize < expected_ysize) {
-			if ((standard_id & V4L2_STD_625_50)) {
+
+		if (cfg->ysize < expected_ysize)
+		{
+			if ((standard_id & V4L2_STD_625_50))
+			{
 				calculated_xsize = (cfg->ysize *
-					VPBE_DISPLAY_V_EXP_RATIO_N) /
-					VPBE_DISPLAY_V_EXP_RATIO_D;
-				if (calculated_xsize <= expected_ysize) {
+									VPBE_DISPLAY_V_EXP_RATIO_N) /
+								   VPBE_DISPLAY_V_EXP_RATIO_D;
+
+				if (calculated_xsize <= expected_ysize)
+				{
 					v_exp = 1;
 					cfg->ysize = calculated_xsize;
 				}
 			}
 		}
+
 		if (v_scale == 2)
+		{
 			layer_info->v_zoom = ZOOM_X2;
+		}
 		else if (v_scale == 4)
+		{
 			layer_info->v_zoom = ZOOM_X4;
+		}
+
 		if (v_exp)
+		{
 			layer_info->h_exp = V_EXP_6_OVER_5;
-	} else {
+		}
+	}
+	else
+	{
 		/* no scaling, only cropping. Set display area to crop area */
 		cfg->ysize = expected_ysize;
 	}
+
 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
-		"crop display xsize = %d, ysize = %d\n",
-		cfg->xsize, cfg->ysize);
+			 "crop display xsize = %d, ysize = %d\n",
+			 cfg->xsize, cfg->ysize);
 }
 
 static void vpbe_disp_adj_position(struct vpbe_display *disp_dev,
-			struct vpbe_layer *layer,
-			int top, int left)
+								   struct vpbe_layer *layer,
+								   int top, int left)
 {
 	struct osd_layer_config *cfg = &layer->layer_info.config;
 	struct vpbe_device *vpbe_dev = disp_dev->vpbe_dev;
 
 	cfg->xpos = min((unsigned int)left,
-			vpbe_dev->current_timings.xres - cfg->xsize);
+					vpbe_dev->current_timings.xres - cfg->xsize);
 	cfg->ypos = min((unsigned int)top,
-			vpbe_dev->current_timings.yres - cfg->ysize);
+					vpbe_dev->current_timings.yres - cfg->ysize);
 
 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
-		"new xpos = %d, ypos = %d\n",
-		cfg->xpos, cfg->ypos);
+			 "new xpos = %d, ypos = %d\n",
+			 cfg->xpos, cfg->ypos);
 }
 
 static void vpbe_disp_check_window_params(struct vpbe_display *disp_dev,
-			struct v4l2_rect *c)
+		struct v4l2_rect *c)
 {
 	struct vpbe_device *vpbe_dev = disp_dev->vpbe_dev;
 
 	if ((c->width == 0) ||
-	  ((c->width + c->left) > vpbe_dev->current_timings.xres))
+		((c->width + c->left) > vpbe_dev->current_timings.xres))
+	{
 		c->width = vpbe_dev->current_timings.xres - c->left;
+	}
 
 	if ((c->height == 0) || ((c->height + c->top) >
-	  vpbe_dev->current_timings.yres))
+							 vpbe_dev->current_timings.yres))
+	{
 		c->height = vpbe_dev->current_timings.yres - c->top;
+	}
 
 	/* window height must be even for interlaced display */
 	if (vpbe_dev->current_timings.interlaced)
+	{
 		c->height &= (~0x01);
+	}
 
 }
 
@@ -571,7 +694,7 @@ static void vpbe_disp_check_window_params(struct vpbe_display *disp_dev,
  * limits.
  */
 static int vpbe_try_format(struct vpbe_display *disp_dev,
-			struct v4l2_pix_format *pixfmt, int check)
+						   struct v4l2_pix_format *pixfmt, int check)
 {
 	struct vpbe_device *vpbe_dev = disp_dev->vpbe_dev;
 	int min_height = 1;
@@ -581,26 +704,39 @@ static int vpbe_try_format(struct vpbe_display *disp_dev,
 	int bpp;
 
 	if ((pixfmt->pixelformat != V4L2_PIX_FMT_UYVY) &&
-	    (pixfmt->pixelformat != V4L2_PIX_FMT_NV12))
+		(pixfmt->pixelformat != V4L2_PIX_FMT_NV12))
 		/* choose default as V4L2_PIX_FMT_UYVY */
+	{
 		pixfmt->pixelformat = V4L2_PIX_FMT_UYVY;
+	}
 
 	/* Check the field format */
 	if ((pixfmt->field != V4L2_FIELD_INTERLACED) &&
-		(pixfmt->field != V4L2_FIELD_NONE)) {
+		(pixfmt->field != V4L2_FIELD_NONE))
+	{
 		if (vpbe_dev->current_timings.interlaced)
+		{
 			pixfmt->field = V4L2_FIELD_INTERLACED;
+		}
 		else
+		{
 			pixfmt->field = V4L2_FIELD_NONE;
+		}
 	}
 
 	if (pixfmt->field == V4L2_FIELD_INTERLACED)
+	{
 		min_height = 2;
+	}
 
 	if (pixfmt->pixelformat == V4L2_PIX_FMT_NV12)
+	{
 		bpp = 1;
+	}
 	else
+	{
 		bpp = 2;
+	}
 
 	max_width = vpbe_dev->current_timings.xres;
 	max_height = vpbe_dev->current_timings.yres;
@@ -608,32 +744,38 @@ static int vpbe_try_format(struct vpbe_display *disp_dev,
 	min_width /= bpp;
 
 	if (!pixfmt->width || (pixfmt->width < min_width) ||
-		(pixfmt->width > max_width)) {
+		(pixfmt->width > max_width))
+	{
 		pixfmt->width = vpbe_dev->current_timings.xres;
 	}
 
 	if (!pixfmt->height || (pixfmt->height  < min_height) ||
-		(pixfmt->height  > max_height)) {
+		(pixfmt->height  > max_height))
+	{
 		pixfmt->height = vpbe_dev->current_timings.yres;
 	}
 
 	if (pixfmt->bytesperline < (pixfmt->width * bpp))
+	{
 		pixfmt->bytesperline = pixfmt->width * bpp;
+	}
 
 	/* Make the bytesperline 32 byte aligned */
 	pixfmt->bytesperline = ((pixfmt->width * bpp + 31) & ~31);
 
 	if (pixfmt->pixelformat == V4L2_PIX_FMT_NV12)
 		pixfmt->sizeimage = pixfmt->bytesperline * pixfmt->height +
-				(pixfmt->bytesperline * pixfmt->height >> 1);
+							(pixfmt->bytesperline * pixfmt->height >> 1);
 	else
+	{
 		pixfmt->sizeimage = pixfmt->bytesperline * pixfmt->height;
+	}
 
 	return 0;
 }
 
 static int vpbe_display_querycap(struct file *file, void  *priv,
-			       struct v4l2_capability *cap)
+								 struct v4l2_capability *cap)
 {
 	struct vpbe_layer *layer = video_drvdata(file);
 	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
@@ -641,16 +783,16 @@ static int vpbe_display_querycap(struct file *file, void  *priv,
 	cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
 	snprintf(cap->driver, sizeof(cap->driver), "%s",
-		dev_name(vpbe_dev->pdev));
+			 dev_name(vpbe_dev->pdev));
 	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
-		 dev_name(vpbe_dev->pdev));
+			 dev_name(vpbe_dev->pdev));
 	strlcpy(cap->card, vpbe_dev->cfg->module_name, sizeof(cap->card));
 
 	return 0;
 }
 
 static int vpbe_display_s_selection(struct file *file, void *priv,
-			     struct v4l2_selection *sel)
+									struct v4l2_selection *sel)
 {
 	struct vpbe_layer *layer = video_drvdata(file);
 	struct vpbe_display *disp_dev = layer->disp_dev;
@@ -661,46 +803,57 @@ static int vpbe_display_s_selection(struct file *file, void *priv,
 	int ret;
 
 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
-		"VIDIOC_S_SELECTION, layer id = %d\n", layer->device_id);
+			 "VIDIOC_S_SELECTION, layer id = %d\n", layer->device_id);
 
 	if (sel->type != V4L2_BUF_TYPE_VIDEO_OUTPUT ||
-	    sel->target != V4L2_SEL_TGT_CROP)
+		sel->target != V4L2_SEL_TGT_CROP)
+	{
 		return -EINVAL;
+	}
 
 	if (rect.top < 0)
+	{
 		rect.top = 0;
+	}
+
 	if (rect.left < 0)
+	{
 		rect.left = 0;
+	}
 
 	vpbe_disp_check_window_params(disp_dev, &rect);
 
 	osd_device->ops.get_layer_config(osd_device,
-			layer->layer_info.id, cfg);
+									 layer->layer_info.id, cfg);
 
 	vpbe_disp_calculate_scale_factor(disp_dev, layer,
-					rect.width,
-					rect.height);
+									 rect.width,
+									 rect.height);
 	vpbe_disp_adj_position(disp_dev, layer, rect.top,
-					rect.left);
+						   rect.left);
 	ret = osd_device->ops.set_layer_config(osd_device,
-				layer->layer_info.id, cfg);
-	if (ret < 0) {
+										   layer->layer_info.id, cfg);
+
+	if (ret < 0)
+	{
 		v4l2_err(&vpbe_dev->v4l2_dev,
-			"Error in set layer config:\n");
+				 "Error in set layer config:\n");
 		return -EINVAL;
 	}
 
 	/* apply zooming and h or v expansion */
 	osd_device->ops.set_zoom(osd_device,
-			layer->layer_info.id,
-			layer->layer_info.h_zoom,
-			layer->layer_info.v_zoom);
+							 layer->layer_info.id,
+							 layer->layer_info.h_zoom,
+							 layer->layer_info.v_zoom);
 	ret = osd_device->ops.set_vid_expansion(osd_device,
-			layer->layer_info.h_exp,
-			layer->layer_info.v_exp);
-	if (ret < 0) {
+											layer->layer_info.h_exp,
+											layer->layer_info.v_exp);
+
+	if (ret < 0)
+	{
 		v4l2_err(&vpbe_dev->v4l2_dev,
-		"Error in set vid expansion:\n");
+				 "Error in set vid expansion:\n");
 		return -EINVAL;
 	}
 
@@ -709,16 +862,20 @@ static int vpbe_display_s_selection(struct file *file, void *priv,
 		(layer->layer_info.h_exp != H_EXP_OFF) ||
 		(layer->layer_info.v_exp != V_EXP_OFF))
 		/* Enable expansion filter */
+	{
 		osd_device->ops.set_interpolation_filter(osd_device, 1);
+	}
 	else
+	{
 		osd_device->ops.set_interpolation_filter(osd_device, 0);
+	}
 
 	sel->r = rect;
 	return 0;
 }
 
 static int vpbe_display_g_selection(struct file *file, void *priv,
-				    struct v4l2_selection *sel)
+									struct v4l2_selection *sel)
 {
 	struct vpbe_layer *layer = video_drvdata(file);
 	struct osd_layer_config *cfg = &layer->layer_info.config;
@@ -727,37 +884,42 @@ static int vpbe_display_g_selection(struct file *file, void *priv,
 	struct v4l2_rect *rect = &sel->r;
 
 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
-			"VIDIOC_G_SELECTION, layer id = %d\n",
-			layer->device_id);
+			 "VIDIOC_G_SELECTION, layer id = %d\n",
+			 layer->device_id);
 
 	if (sel->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
+	{
 		return -EINVAL;
+	}
 
-	switch (sel->target) {
-	case V4L2_SEL_TGT_CROP:
-		osd_device->ops.get_layer_config(osd_device,
-						 layer->layer_info.id, cfg);
-		rect->top = cfg->ypos;
-		rect->left = cfg->xpos;
-		rect->width = cfg->xsize;
-		rect->height = cfg->ysize;
-		break;
-	case V4L2_SEL_TGT_CROP_DEFAULT:
-	case V4L2_SEL_TGT_CROP_BOUNDS:
-		rect->left = 0;
-		rect->top = 0;
-		rect->width = vpbe_dev->current_timings.xres;
-		rect->height = vpbe_dev->current_timings.yres;
-		break;
-	default:
-		return -EINVAL;
+	switch (sel->target)
+	{
+		case V4L2_SEL_TGT_CROP:
+			osd_device->ops.get_layer_config(osd_device,
+											 layer->layer_info.id, cfg);
+			rect->top = cfg->ypos;
+			rect->left = cfg->xpos;
+			rect->width = cfg->xsize;
+			rect->height = cfg->ysize;
+			break;
+
+		case V4L2_SEL_TGT_CROP_DEFAULT:
+		case V4L2_SEL_TGT_CROP_BOUNDS:
+			rect->left = 0;
+			rect->top = 0;
+			rect->width = vpbe_dev->current_timings.xres;
+			rect->height = vpbe_dev->current_timings.yres;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
 }
 
 static int vpbe_display_cropcap(struct file *file, void *priv,
-			      struct v4l2_cropcap *cropcap)
+								struct v4l2_cropcap *cropcap)
 {
 	struct vpbe_layer *layer = video_drvdata(file);
 	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
@@ -765,27 +927,31 @@ static int vpbe_display_cropcap(struct file *file, void *priv,
 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "VIDIOC_CROPCAP ioctl\n");
 
 	if (cropcap->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
+	{
 		return -EINVAL;
+	}
 
 	cropcap->pixelaspect = vpbe_dev->current_timings.aspect;
 	return 0;
 }
 
 static int vpbe_display_g_fmt(struct file *file, void *priv,
-				struct v4l2_format *fmt)
+							  struct v4l2_format *fmt)
 {
 	struct vpbe_layer *layer = video_drvdata(file);
 	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
 
 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
-			"VIDIOC_G_FMT, layer id = %d\n",
-			layer->device_id);
+			 "VIDIOC_G_FMT, layer id = %d\n",
+			 layer->device_id);
 
 	/* If buffer type is video output */
-	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != fmt->type) {
+	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != fmt->type)
+	{
 		v4l2_err(&vpbe_dev->v4l2_dev, "invalid type\n");
 		return -EINVAL;
 	}
+
 	/* Fill in the information about format */
 	fmt->fmt.pix = layer->pix_fmt;
 
@@ -793,16 +959,18 @@ static int vpbe_display_g_fmt(struct file *file, void *priv,
 }
 
 static int vpbe_display_enum_fmt(struct file *file, void  *priv,
-				   struct v4l2_fmtdesc *fmt)
+								 struct v4l2_fmtdesc *fmt)
 {
 	struct vpbe_layer *layer = video_drvdata(file);
 	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
 	unsigned int index = 0;
 
 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
-				"VIDIOC_ENUM_FMT, layer id = %d\n",
-				layer->device_id);
-	if (fmt->index > 1) {
+			 "VIDIOC_ENUM_FMT, layer id = %d\n",
+			 layer->device_id);
+
+	if (fmt->index > 1)
+	{
 		v4l2_err(&vpbe_dev->v4l2_dev, "Invalid format index\n");
 		return -EINVAL;
 	}
@@ -812,10 +980,14 @@ static int vpbe_display_enum_fmt(struct file *file, void  *priv,
 	memset(fmt, 0, sizeof(*fmt));
 	fmt->index = index;
 	fmt->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-	if (index == 0) {
+
+	if (index == 0)
+	{
 		strcpy(fmt->description, "YUV 4:2:2 - UYVY");
 		fmt->pixelformat = V4L2_PIX_FMT_UYVY;
-	} else {
+	}
+	else
+	{
 		strcpy(fmt->description, "Y/CbCr 4:2:0");
 		fmt->pixelformat = V4L2_PIX_FMT_NV12;
 	}
@@ -824,7 +996,7 @@ static int vpbe_display_enum_fmt(struct file *file, void  *priv,
 }
 
 static int vpbe_display_s_fmt(struct file *file, void *priv,
-				struct v4l2_format *fmt)
+							  struct v4l2_format *fmt)
 {
 	struct vpbe_layer *layer = video_drvdata(file);
 	struct vpbe_display *disp_dev = layer->disp_dev;
@@ -835,26 +1007,35 @@ static int vpbe_display_s_fmt(struct file *file, void *priv,
 	int ret;
 
 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
-			"VIDIOC_S_FMT, layer id = %d\n",
-			layer->device_id);
+			 "VIDIOC_S_FMT, layer id = %d\n",
+			 layer->device_id);
 
 	if (vb2_is_busy(&layer->buffer_queue))
+	{
 		return -EBUSY;
+	}
 
-	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != fmt->type) {
+	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != fmt->type)
+	{
 		v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "invalid type\n");
 		return -EINVAL;
 	}
+
 	/* Check for valid pixel format */
 	ret = vpbe_try_format(disp_dev, pixfmt, 1);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* YUV420 is requested, check availability of the
 	other video window */
 
 	layer->pix_fmt = *pixfmt;
-	if (pixfmt->pixelformat == V4L2_PIX_FMT_NV12) {
+
+	if (pixfmt->pixelformat == V4L2_PIX_FMT_NV12)
+	{
 		struct vpbe_layer *otherlayer;
 
 		otherlayer = _vpbe_display_get_other_win_layer(disp_dev, layer);
@@ -862,17 +1043,19 @@ static int vpbe_display_s_fmt(struct file *file, void *priv,
 		 * claim it, do not configure it
 		 */
 		ret = osd_device->ops.request_layer(osd_device,
-						    otherlayer->layer_info.id);
-		if (ret < 0) {
+											otherlayer->layer_info.id);
+
+		if (ret < 0)
+		{
 			v4l2_err(&vpbe_dev->v4l2_dev,
-				 "Display Manager failed to allocate layer\n");
+					 "Display Manager failed to allocate layer\n");
 			return -EBUSY;
 		}
 	}
 
 	/* Get osd layer config */
 	osd_device->ops.get_layer_config(osd_device,
-			layer->layer_info.id, cfg);
+									 layer->layer_info.id, cfg);
 	/* Store the pixel format in the layer object */
 	cfg->xsize = pixfmt->width;
 	cfg->ysize = pixfmt->height;
@@ -882,35 +1065,40 @@ static int vpbe_display_s_fmt(struct file *file, void *priv,
 	cfg->interlaced = vpbe_dev->current_timings.interlaced;
 
 	if (V4L2_PIX_FMT_UYVY == pixfmt->pixelformat)
+	{
 		cfg->pixfmt = PIXFMT_YCBCRI;
+	}
 
 	/* Change of the default pixel format for both video windows */
-	if (V4L2_PIX_FMT_NV12 == pixfmt->pixelformat) {
+	if (V4L2_PIX_FMT_NV12 == pixfmt->pixelformat)
+	{
 		struct vpbe_layer *otherlayer;
 		cfg->pixfmt = PIXFMT_NV12;
 		otherlayer = _vpbe_display_get_other_win_layer(disp_dev,
-								layer);
+					 layer);
 		otherlayer->layer_info.config.pixfmt = PIXFMT_NV12;
 	}
 
 	/* Set the layer config in the osd window */
 	ret = osd_device->ops.set_layer_config(osd_device,
-				layer->layer_info.id, cfg);
-	if (ret < 0) {
+										   layer->layer_info.id, cfg);
+
+	if (ret < 0)
+	{
 		v4l2_err(&vpbe_dev->v4l2_dev,
-				"Error in S_FMT params:\n");
+				 "Error in S_FMT params:\n");
 		return -EINVAL;
 	}
 
 	/* Readback and fill the local copy of current pix format */
 	osd_device->ops.get_layer_config(osd_device,
-			layer->layer_info.id, cfg);
+									 layer->layer_info.id, cfg);
 
 	return 0;
 }
 
 static int vpbe_display_try_fmt(struct file *file, void *priv,
-				  struct v4l2_format *fmt)
+								struct v4l2_format *fmt)
 {
 	struct vpbe_layer *layer = video_drvdata(file);
 	struct vpbe_display *disp_dev = layer->disp_dev;
@@ -919,7 +1107,8 @@ static int vpbe_display_try_fmt(struct file *file, void *priv,
 
 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "VIDIOC_TRY_FMT\n");
 
-	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != fmt->type) {
+	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != fmt->type)
+	{
 		v4l2_err(&vpbe_dev->v4l2_dev, "invalid type\n");
 		return -EINVAL;
 	}
@@ -936,7 +1125,7 @@ static int vpbe_display_try_fmt(struct file *file, void *priv,
  * 0 - success & -EINVAL on error
  */
 static int vpbe_display_s_std(struct file *file, void *priv,
-				v4l2_std_id std_id)
+							  v4l2_std_id std_id)
 {
 	struct vpbe_layer *layer = video_drvdata(file);
 	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
@@ -945,16 +1134,23 @@ static int vpbe_display_s_std(struct file *file, void *priv,
 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "VIDIOC_S_STD\n");
 
 	if (vb2_is_busy(&layer->buffer_queue))
+	{
 		return -EBUSY;
+	}
 
-	if (NULL != vpbe_dev->ops.s_std) {
+	if (NULL != vpbe_dev->ops.s_std)
+	{
 		ret = vpbe_dev->ops.s_std(vpbe_dev, std_id);
-		if (ret) {
+
+		if (ret)
+		{
 			v4l2_err(&vpbe_dev->v4l2_dev,
-			"Failed to set standard for sub devices\n");
+					 "Failed to set standard for sub devices\n");
 			return -EINVAL;
 		}
-	} else {
+	}
+	else
+	{
 		return -EINVAL;
 	}
 
@@ -968,7 +1164,7 @@ static int vpbe_display_s_std(struct file *file, void *priv,
  * -EINVAL on error
  */
 static int vpbe_display_g_std(struct file *file, void *priv,
-				v4l2_std_id *std_id)
+							  v4l2_std_id *std_id)
 {
 	struct vpbe_layer *layer = video_drvdata(file);
 	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
@@ -976,7 +1172,8 @@ static int vpbe_display_g_std(struct file *file, void *priv,
 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,	"VIDIOC_G_STD\n");
 
 	/* Get the standard from the current encoder */
-	if (vpbe_dev->current_timings.timings_type & VPBE_ENC_STD) {
+	if (vpbe_dev->current_timings.timings_type & VPBE_ENC_STD)
+	{
 		*std_id = vpbe_dev->current_timings.std_id;
 		return 0;
 	}
@@ -991,7 +1188,7 @@ static int vpbe_display_g_std(struct file *file, void *priv,
  * returns the status, -EINVAL if end of output list
  */
 static int vpbe_display_enum_output(struct file *file, void *priv,
-				    struct v4l2_output *output)
+									struct v4l2_output *output)
 {
 	struct vpbe_layer *layer = video_drvdata(file);
 	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
@@ -1002,12 +1199,16 @@ static int vpbe_display_enum_output(struct file *file, void *priv,
 	/* Enumerate outputs */
 
 	if (NULL == vpbe_dev->ops.enum_outputs)
+	{
 		return -EINVAL;
+	}
 
 	ret = vpbe_dev->ops.enum_outputs(vpbe_dev, output);
-	if (ret) {
+
+	if (ret)
+	{
 		v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
-			"Failed to enumerate outputs\n");
+				 "Failed to enumerate outputs\n");
 		return -EINVAL;
 	}
 
@@ -1019,7 +1220,7 @@ static int vpbe_display_enum_output(struct file *file, void *priv,
  * the output specified by the index
  */
 static int vpbe_display_s_output(struct file *file, void *priv,
-				unsigned int i)
+								 unsigned int i)
 {
 	struct vpbe_layer *layer = video_drvdata(file);
 	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
@@ -1028,15 +1229,21 @@ static int vpbe_display_s_output(struct file *file, void *priv,
 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,	"VIDIOC_S_OUTPUT\n");
 
 	if (vb2_is_busy(&layer->buffer_queue))
+	{
 		return -EBUSY;
+	}
 
 	if (NULL == vpbe_dev->ops.set_output)
+	{
 		return -EINVAL;
+	}
 
 	ret = vpbe_dev->ops.set_output(vpbe_dev, i);
-	if (ret) {
+
+	if (ret)
+	{
 		v4l2_err(&vpbe_dev->v4l2_dev,
-			"Failed to set output for sub devices\n");
+				 "Failed to set output for sub devices\n");
 		return -EINVAL;
 	}
 
@@ -1048,7 +1255,7 @@ static int vpbe_display_s_output(struct file *file, void *priv,
  * for a given by the index
  */
 static int vpbe_display_g_output(struct file *file, void *priv,
-				unsigned int *i)
+								 unsigned int *i)
 {
 	struct vpbe_layer *layer = video_drvdata(file);
 	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
@@ -1068,7 +1275,7 @@ static int vpbe_display_g_output(struct file *file, void *priv,
  */
 static int
 vpbe_display_enum_dv_timings(struct file *file, void *priv,
-			struct v4l2_enum_dv_timings *timings)
+							 struct v4l2_enum_dv_timings *timings)
 {
 	struct vpbe_layer *layer = video_drvdata(file);
 	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
@@ -1078,12 +1285,16 @@ vpbe_display_enum_dv_timings(struct file *file, void *priv,
 
 	/* Enumerate outputs */
 	if (NULL == vpbe_dev->ops.enum_dv_timings)
+	{
 		return -EINVAL;
+	}
 
 	ret = vpbe_dev->ops.enum_dv_timings(vpbe_dev, timings);
-	if (ret) {
+
+	if (ret)
+	{
 		v4l2_err(&vpbe_dev->v4l2_dev,
-			"Failed to enumerate dv timings info\n");
+				 "Failed to enumerate dv timings info\n");
 		return -EINVAL;
 	}
 
@@ -1098,7 +1309,7 @@ vpbe_display_enum_dv_timings(struct file *file, void *priv,
  */
 static int
 vpbe_display_s_dv_timings(struct file *file, void *priv,
-				struct v4l2_dv_timings *timings)
+						  struct v4l2_dv_timings *timings)
 {
 	struct vpbe_layer *layer = video_drvdata(file);
 	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
@@ -1107,16 +1318,22 @@ vpbe_display_s_dv_timings(struct file *file, void *priv,
 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev, "VIDIOC_S_DV_TIMINGS\n");
 
 	if (vb2_is_busy(&layer->buffer_queue))
+	{
 		return -EBUSY;
+	}
 
 	/* Set the given standard in the encoder */
 	if (!vpbe_dev->ops.s_dv_timings)
+	{
 		return -EINVAL;
+	}
 
 	ret = vpbe_dev->ops.s_dv_timings(vpbe_dev, timings);
-	if (ret) {
+
+	if (ret)
+	{
 		v4l2_err(&vpbe_dev->v4l2_dev,
-			"Failed to set the dv timings info\n");
+				 "Failed to set the dv timings info\n");
 		return -EINVAL;
 	}
 
@@ -1131,7 +1348,7 @@ vpbe_display_s_dv_timings(struct file *file, void *priv,
  */
 static int
 vpbe_display_g_dv_timings(struct file *file, void *priv,
-				struct v4l2_dv_timings *dv_timings)
+						  struct v4l2_dv_timings *dv_timings)
 {
 	struct vpbe_layer *layer = video_drvdata(file);
 	struct vpbe_device *vpbe_dev = layer->disp_dev->vpbe_dev;
@@ -1141,9 +1358,12 @@ vpbe_display_g_dv_timings(struct file *file, void *priv,
 	/* Get the given standard in the encoder */
 
 	if (vpbe_dev->current_timings.timings_type &
-				VPBE_ENC_DV_TIMINGS) {
+		VPBE_ENC_DV_TIMINGS)
+	{
 		*dv_timings = vpbe_dev->current_timings.dv_timings;
-	} else {
+	}
+	else
+	{
 		return -EINVAL;
 	}
 
@@ -1165,34 +1385,45 @@ static int vpbe_display_open(struct file *file)
 
 	/* creating context for file descriptor */
 	err = v4l2_fh_open(file);
-	if (err) {
+
+	if (err)
+	{
 		v4l2_err(&vpbe_dev->v4l2_dev, "v4l2_fh_open failed\n");
 		return err;
 	}
 
 	/* leaving if layer is already initialized */
 	if (!v4l2_fh_is_singular_file(file))
+	{
 		return err;
+	}
 
-	if (!layer->usrs) {
+	if (!layer->usrs)
+	{
 		if (mutex_lock_interruptible(&layer->opslock))
+		{
 			return -ERESTARTSYS;
+		}
+
 		/* First claim the layer for this device */
 		err = osd_device->ops.request_layer(osd_device,
-						layer->layer_info.id);
+											layer->layer_info.id);
 		mutex_unlock(&layer->opslock);
-		if (err < 0) {
+
+		if (err < 0)
+		{
 			/* Couldn't get layer */
 			v4l2_err(&vpbe_dev->v4l2_dev,
-				"Display Manager failed to allocate layer\n");
+					 "Display Manager failed to allocate layer\n");
 			v4l2_fh_release(file);
 			return -EINVAL;
 		}
 	}
+
 	/* Increment layer usrs counter */
 	layer->usrs++;
 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
-			"vpbe display device opened successfully\n");
+			 "vpbe display device opened successfully\n");
 	return 0;
 }
 
@@ -1214,24 +1445,28 @@ static int vpbe_display_release(struct file *file)
 	mutex_lock(&layer->opslock);
 
 	osd_device->ops.disable_layer(osd_device,
-			layer->layer_info.id);
+								  layer->layer_info.id);
 	/* Decrement layer usrs counter */
 	layer->usrs--;
+
 	/* If this file handle has initialize encoder device, reset it */
-	if (!layer->usrs) {
-		if (cfg->pixfmt == PIXFMT_NV12) {
+	if (!layer->usrs)
+	{
+		if (cfg->pixfmt == PIXFMT_NV12)
+		{
 			struct vpbe_layer *otherlayer;
 			otherlayer =
-			_vpbe_display_get_other_win_layer(disp_dev, layer);
+				_vpbe_display_get_other_win_layer(disp_dev, layer);
 			osd_device->ops.disable_layer(osd_device,
-					otherlayer->layer_info.id);
+										  otherlayer->layer_info.id);
 			osd_device->ops.release_layer(osd_device,
-					otherlayer->layer_info.id);
+										  otherlayer->layer_info.id);
 		}
+
 		osd_device->ops.disable_layer(osd_device,
-				layer->layer_info.id);
+									  layer->layer_info.id);
 		osd_device->ops.release_layer(osd_device,
-				layer->layer_info.id);
+									  layer->layer_info.id);
 	}
 
 	_vb2_fop_release(file, NULL);
@@ -1243,7 +1478,8 @@ static int vpbe_display_release(struct file *file)
 }
 
 /* vpbe capture ioctl operations */
-static const struct v4l2_ioctl_ops vpbe_ioctl_ops = {
+static const struct v4l2_ioctl_ops vpbe_ioctl_ops =
+{
 	.vidioc_querycap	 = vpbe_display_querycap,
 	.vidioc_g_fmt_vid_out    = vpbe_display_g_fmt,
 	.vidioc_enum_fmt_vid_out = vpbe_display_enum_fmt,
@@ -1275,7 +1511,8 @@ static const struct v4l2_ioctl_ops vpbe_ioctl_ops = {
 	.vidioc_enum_dv_timings	 = vpbe_display_enum_dv_timings,
 };
 
-static struct v4l2_file_operations vpbe_fops = {
+static struct v4l2_file_operations vpbe_fops =
+{
 	.owner = THIS_MODULE,
 	.open = vpbe_display_open,
 	.release = vpbe_display_release,
@@ -1290,16 +1527,20 @@ static int vpbe_device_get(struct device *dev, void *data)
 	struct vpbe_display *vpbe_disp  = data;
 
 	if (strcmp("vpbe_controller", pdev->name) == 0)
+	{
 		vpbe_disp->vpbe_dev = platform_get_drvdata(pdev);
+	}
 
 	if (strstr(pdev->name, "vpbe-osd") != NULL)
+	{
 		vpbe_disp->osd_device = platform_get_drvdata(pdev);
+	}
 
 	return 0;
 }
 
 static int init_vpbe_layer(int i, struct vpbe_display *disp_dev,
-			   struct platform_device *pdev)
+						   struct platform_device *pdev)
 {
 	struct vpbe_layer *vpbe_display_layer = NULL;
 	struct video_device *vbd = NULL;
@@ -1310,10 +1551,12 @@ static int init_vpbe_layer(int i, struct vpbe_display *disp_dev,
 		kzalloc(sizeof(struct vpbe_layer), GFP_KERNEL);
 
 	/* If memory allocation fails, return error */
-	if (!disp_dev->dev[i]) {
+	if (!disp_dev->dev[i])
+	{
 		printk(KERN_ERR "ran out of memory\n");
 		return  -ENOMEM;
 	}
+
 	spin_lock_init(&disp_dev->dev[i]->irqlock);
 	mutex_init(&disp_dev->dev[i]->opslock);
 
@@ -1330,14 +1573,16 @@ static int init_vpbe_layer(int i, struct vpbe_display *disp_dev,
 	vbd->vfl_dir	= VFL_DIR_TX;
 
 	if (disp_dev->vpbe_dev->current_timings.timings_type &
-			VPBE_ENC_STD)
+		VPBE_ENC_STD)
+	{
 		vbd->tvnorms = (V4L2_STD_525_60 | V4L2_STD_625_50);
+	}
 
 	snprintf(vbd->name, sizeof(vbd->name),
-			"DaVinci_VPBE Display_DRIVER_V%d.%d.%d",
-			(VPBE_DISPLAY_VERSION_CODE >> 16) & 0xff,
-			(VPBE_DISPLAY_VERSION_CODE >> 8) & 0xff,
-			(VPBE_DISPLAY_VERSION_CODE) & 0xff);
+			 "DaVinci_VPBE Display_DRIVER_V%d.%d.%d",
+			 (VPBE_DISPLAY_VERSION_CODE >> 16) & 0xff,
+			 (VPBE_DISPLAY_VERSION_CODE >> 8) & 0xff,
+			 (VPBE_DISPLAY_VERSION_CODE) & 0xff);
 
 	vpbe_display_layer->device_id = i;
 
@@ -1349,30 +1594,33 @@ static int init_vpbe_layer(int i, struct vpbe_display *disp_dev,
 }
 
 static int register_device(struct vpbe_layer *vpbe_display_layer,
-			   struct vpbe_display *disp_dev,
-			   struct platform_device *pdev)
+						   struct vpbe_display *disp_dev,
+						   struct platform_device *pdev)
 {
 	int err;
 
 	v4l2_info(&disp_dev->vpbe_dev->v4l2_dev,
-		  "Trying to register VPBE display device.\n");
+			  "Trying to register VPBE display device.\n");
 	v4l2_info(&disp_dev->vpbe_dev->v4l2_dev,
-		  "layer=%x,layer->video_dev=%x\n",
-		  (int)vpbe_display_layer,
-		  (int)&vpbe_display_layer->video_dev);
+			  "layer=%x,layer->video_dev=%x\n",
+			  (int)vpbe_display_layer,
+			  (int)&vpbe_display_layer->video_dev);
 
 	vpbe_display_layer->video_dev.queue = &vpbe_display_layer->buffer_queue;
 	err = video_register_device(&vpbe_display_layer->video_dev,
-				    VFL_TYPE_GRABBER,
-				    -1);
+								VFL_TYPE_GRABBER,
+								-1);
+
 	if (err)
+	{
 		return -ENODEV;
+	}
 
 	vpbe_display_layer->disp_dev = disp_dev;
 	/* set the driver data in platform device */
 	platform_set_drvdata(pdev, disp_dev);
 	video_set_drvdata(&vpbe_display_layer->video_dev,
-			  vpbe_display_layer);
+					  vpbe_display_layer);
 
 	return 0;
 }
@@ -1398,9 +1646,12 @@ static int vpbe_display_probe(struct platform_device *pdev)
 	printk(KERN_DEBUG "vpbe_display_probe\n");
 	/* Allocate memory for vpbe_display */
 	disp_dev = devm_kzalloc(&pdev->dev, sizeof(struct vpbe_display),
-				GFP_KERNEL);
+							GFP_KERNEL);
+
 	if (!disp_dev)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&disp_dev->dma_queue_lock);
 	/*
@@ -1408,31 +1659,42 @@ static int vpbe_display_probe(struct platform_device *pdev)
 	 * controller device and get the vpbe_dev object
 	 */
 	err = bus_for_each_dev(&platform_bus_type, NULL, disp_dev,
-			vpbe_device_get);
+						   vpbe_device_get);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	v4l2_dev = &disp_dev->vpbe_dev->v4l2_dev;
+
 	/* Initialize the vpbe display controller */
-	if (NULL != disp_dev->vpbe_dev->ops.initialize) {
+	if (NULL != disp_dev->vpbe_dev->ops.initialize)
+	{
 		err = disp_dev->vpbe_dev->ops.initialize(&pdev->dev,
-							 disp_dev->vpbe_dev);
-		if (err) {
+				disp_dev->vpbe_dev);
+
+		if (err)
+		{
 			v4l2_err(v4l2_dev, "Error initing vpbe\n");
 			err = -ENOMEM;
 			goto probe_out;
 		}
 	}
 
-	for (i = 0; i < VPBE_DISPLAY_MAX_DEVICES; i++) {
-		if (init_vpbe_layer(i, disp_dev, pdev)) {
+	for (i = 0; i < VPBE_DISPLAY_MAX_DEVICES; i++)
+	{
+		if (init_vpbe_layer(i, disp_dev, pdev))
+		{
 			err = -ENODEV;
 			goto probe_out;
 		}
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		v4l2_err(v4l2_dev, "Unable to get VENC interrupt resource\n");
 		err = -ENODEV;
 		goto probe_out;
@@ -1440,13 +1702,16 @@ static int vpbe_display_probe(struct platform_device *pdev)
 
 	irq = res->start;
 	err = devm_request_irq(&pdev->dev, irq, venc_isr, 0,
-			       VPBE_DISPLAY_DRIVER, disp_dev);
-	if (err) {
+						   VPBE_DISPLAY_DRIVER, disp_dev);
+
+	if (err)
+	{
 		v4l2_err(v4l2_dev, "VPBE IRQ request failed\n");
 		goto probe_out;
 	}
 
-	for (i = 0; i < VPBE_DISPLAY_MAX_DEVICES; i++) {
+	for (i = 0; i < VPBE_DISPLAY_MAX_DEVICES; i++)
+	{
 		/* initialize vb2 queue */
 		q = &disp_dev->dev[i]->buffer_queue;
 		memset(q, 0, sizeof(*q));
@@ -1461,32 +1726,39 @@ static int vpbe_display_probe(struct platform_device *pdev)
 		q->lock = &disp_dev->dev[i]->opslock;
 		q->dev = disp_dev->vpbe_dev->pdev;
 		err = vb2_queue_init(q);
-		if (err) {
+
+		if (err)
+		{
 			v4l2_err(v4l2_dev, "vb2_queue_init() failed\n");
 			goto probe_out;
 		}
 
 		INIT_LIST_HEAD(&disp_dev->dev[i]->dma_queue);
 
-		if (register_device(disp_dev->dev[i], disp_dev, pdev)) {
+		if (register_device(disp_dev->dev[i], disp_dev, pdev))
+		{
 			err = -ENODEV;
 			goto probe_out;
 		}
 	}
 
 	v4l2_dbg(1, debug, v4l2_dev,
-		 "Successfully completed the probing of vpbe v4l2 device\n");
+			 "Successfully completed the probing of vpbe v4l2 device\n");
 
 	return 0;
 
 probe_out:
-	for (k = 0; k < VPBE_DISPLAY_MAX_DEVICES; k++) {
+
+	for (k = 0; k < VPBE_DISPLAY_MAX_DEVICES; k++)
+	{
 		/* Unregister video device */
-		if (disp_dev->dev[k] != NULL) {
+		if (disp_dev->dev[k] != NULL)
+		{
 			video_unregister_device(&disp_dev->dev[k]->video_dev);
 			kfree(disp_dev->dev[k]);
 		}
 	}
+
 	return err;
 }
 
@@ -1505,16 +1777,22 @@ static int vpbe_display_remove(struct platform_device *pdev)
 
 	/* deinitialize the vpbe display controller */
 	if (NULL != vpbe_dev->ops.deinitialize)
+	{
 		vpbe_dev->ops.deinitialize(&pdev->dev, vpbe_dev);
+	}
+
 	/* un-register device */
-	for (i = 0; i < VPBE_DISPLAY_MAX_DEVICES; i++) {
+	for (i = 0; i < VPBE_DISPLAY_MAX_DEVICES; i++)
+	{
 		/* Get the pointer to the layer object */
 		vpbe_display_layer = disp_dev->dev[i];
 		/* Unregister video device */
 		video_unregister_device(&vpbe_display_layer->video_dev);
 
 	}
-	for (i = 0; i < VPBE_DISPLAY_MAX_DEVICES; i++) {
+
+	for (i = 0; i < VPBE_DISPLAY_MAX_DEVICES; i++)
+	{
 		kfree(disp_dev->dev[i]);
 		disp_dev->dev[i] = NULL;
 	}
@@ -1522,7 +1800,8 @@ static int vpbe_display_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver vpbe_display_driver = {
+static struct platform_driver vpbe_display_driver =
+{
 	.driver = {
 		.name = VPBE_DISPLAY_DRIVER,
 		.bus = &platform_bus_type,

@@ -27,7 +27,8 @@
  * @size:	size to read or write
  * @write:	1 to write, 0 to read
  */
-struct ion_test_rw_data {
+struct ion_test_rw_data
+{
 	__u64 ptr;
 	__u64 offset;
 	__u64 size;
@@ -44,7 +45,7 @@ struct ion_test_rw_data {
  * release the first fd.
  */
 #define ION_IOC_TEST_SET_FD \
-			_IO(ION_IOC_MAGIC, 0xf0)
+	_IO(ION_IOC_MAGIC, 0xf0)
 
 /**
  * DOC: ION_IOC_TEST_DMA_MAPPING - read or write memory from a handle as DMA
@@ -54,7 +55,7 @@ struct ion_test_rw_data {
  * expected to be used for debugging and testing, may not always be available.
  */
 #define ION_IOC_TEST_DMA_MAPPING \
-			_IOW(ION_IOC_MAGIC, 0xf1, struct ion_test_rw_data)
+	_IOW(ION_IOC_MAGIC, 0xf1, struct ion_test_rw_data)
 
 /**
  * DOC: ION_IOC_TEST_KERNEL_MAPPING - read or write memory from a handle
@@ -64,7 +65,7 @@ struct ion_test_rw_data {
  * used for debugging and testing, may not always be available.
  */
 #define ION_IOC_TEST_KERNEL_MAPPING \
-			_IOW(ION_IOC_MAGIC, 0xf2, struct ion_test_rw_data)
+	_IOW(ION_IOC_MAGIC, 0xf2, struct ion_test_rw_data)
 
 
 #endif /* _UAPI_LINUX_ION_H */

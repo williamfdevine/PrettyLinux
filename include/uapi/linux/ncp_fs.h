@@ -20,13 +20,15 @@
  * ioctl commands
  */
 
-struct ncp_ioctl_request {
+struct ncp_ioctl_request
+{
 	unsigned int function;
 	unsigned int size;
 	char __user *data;
 };
 
-struct ncp_fs_info {
+struct ncp_fs_info
+{
 	int version;
 	struct sockaddr_ipx addr;
 	__kernel_uid_t mounted_uid;
@@ -38,7 +40,8 @@ struct ncp_fs_info {
 	__le32 directory_id;
 };
 
-struct ncp_fs_info_v2 {
+struct ncp_fs_info_v2
+{
 	int version;
 	unsigned long mounted_uid;
 	unsigned int connection;
@@ -87,21 +90,21 @@ struct ncp_objectname_ioctl
 #define NCP_AUTH_NDS	0x32
 	int		auth_type;
 	size_t		object_name_len;
-	void __user *	object_name;	/* a userspace data, in most cases user name */
+	void __user 	*object_name;	/* a userspace data, in most cases user name */
 };
 
 struct ncp_privatedata_ioctl
 {
 	size_t		len;
-	void __user *	data;		/* ~1000 for NDS */
+	void __user 	*data;		/* ~1000 for NDS */
 };
 
 /* NLS charsets by ioctl */
 #define NCP_IOCSNAME_LEN 20
 struct ncp_nls_ioctl
 {
-	unsigned char codepage[NCP_IOCSNAME_LEN+1];
-	unsigned char iocharset[NCP_IOCSNAME_LEN+1];
+	unsigned char codepage[NCP_IOCSNAME_LEN + 1];
+	unsigned char iocharset[NCP_IOCSNAME_LEN + 1];
 };
 
 #define	NCP_IOC_NCPREQUEST		_IOR('n', 1, struct ncp_ioctl_request)

@@ -35,9 +35,9 @@
 
 /* Board specifics */
 #if defined(CONFIG_CPU_SUBTYPE_SH7722)
-# define SIU_MAX_VOLUME		0x1000
+	#define SIU_MAX_VOLUME		0x1000
 #else
-# define SIU_MAX_VOLUME		0x7fff
+	#define SIU_MAX_VOLUME		0x7fff
 #endif
 
 #define PRAM_SIZE	0x2000
@@ -60,21 +60,24 @@
  * available for input. Due to the lack of hardware to test it, SPDIF is left
  * disabled in this driver version
  */
-struct format_flag {
+struct format_flag
+{
 	u32	i2s;
 	u32	pcm;
 	u32	spdif;
 	u32	mask;
 };
 
-struct port_flag {
+struct port_flag
+{
 	struct format_flag	playback;
 	struct format_flag	capture;
 };
 
 struct siu_info *siu_i2s_data;
 
-static struct port_flag siu_flags[SIU_PORT_NUM] = {
+static struct port_flag siu_flags[SIU_PORT_NUM] =
+{
 	[SIU_PORT_A] = {
 		.playback = {
 			.i2s	= 0x50000000,
@@ -166,13 +169,17 @@ static void siu_dai_spbAselect(struct siu_port *port_info)
 
 	/* path A use */
 	if (!info->port_id)
-		idx = 1;		/* portA */
+	{
+		idx = 1;    /* portA */
+	}
 	else
-		idx = 2;		/* portB */
+	{
+		idx = 2;    /* portB */
+	}
 
 	ydef[0] = (fw->spbpar[idx].ab1a << 16) |
-		(fw->spbpar[idx].ab0a << 8) |
-		(fw->spbpar[idx].dir << 7) | 3;
+			  (fw->spbpar[idx].ab0a << 8) |
+			  (fw->spbpar[idx].dir << 7) | 3;
 	ydef[1] = fw->yram0[1];	/* 0x03000300 */
 	ydef[2] = (16 / 2) << 24;
 	ydef[3] = fw->yram0[3];	/* 0 */
@@ -191,12 +198,16 @@ static void siu_dai_spbBselect(struct siu_port *port_info)
 
 	/* path B use */
 	if (!info->port_id)
-		idx = 7;		/* portA */
+	{
+		idx = 7;    /* portA */
+	}
 	else
-		idx = 8;		/* portB */
+	{
+		idx = 8;    /* portB */
+	}
 
 	ydef[5] = (fw->spbpar[idx].ab1a << 16) |
-		(fw->spbpar[idx].ab0a << 8) | 1;
+			  (fw->spbpar[idx].ab0a << 8) | 1;
 	ydef[6] = fw->spbpar[idx].event;
 	port_info->stfifo |= fw->spbpar[idx].stfifo;
 	port_info->trdat |= fw->spbpar[idx].trdat;
@@ -211,17 +222,19 @@ static void siu_dai_open(struct siu_stream *siu_stream)
 	srctl = siu_read32(base + SIU_SRCTL);
 	ifctl = siu_read32(base + SIU_IFCTL);
 
-	switch (info->port_id) {
-	case SIU_PORT_A:
-		/* portA operates */
-		srctl |= 0x200;
-		ifctl &= ~0xc2;
-		break;
-	case SIU_PORT_B:
-		/* portB operates */
-		srctl |= 0x100;
-		ifctl &= ~0x31;
-		break;
+	switch (info->port_id)
+	{
+		case SIU_PORT_A:
+			/* portA operates */
+			srctl |= 0x200;
+			ifctl &= ~0xc2;
+			break;
+
+		case SIU_PORT_B:
+			/* portB operates */
+			srctl |= 0x100;
+			ifctl &= ~0x31;
+			break;
 	}
 
 	siu_write32(base + SIU_SRCTL, srctl);
@@ -241,13 +254,15 @@ static void siu_dai_pcmdatapack(struct siu_stream *siu_stream)
 
 	dpak = siu_read32(base + SIU_DPAK);
 
-	switch (info->port_id) {
-	case SIU_PORT_A:
-		dpak &= ~0xc0000000;
-		break;
-	case SIU_PORT_B:
-		dpak &= ~0x00c00000;
-		break;
+	switch (info->port_id)
+	{
+		case SIU_PORT_A:
+			dpak &= ~0xc0000000;
+			break;
+
+		case SIU_PORT_B:
+			dpak &= ~0x00c00000;
+			break;
 	}
 
 	siu_write32(base + SIU_DPAK, dpak);
@@ -266,33 +281,51 @@ static int siu_dai_spbstart(struct siu_port *port_info)
 	/* Load SPB Program in PRAM */
 	ptr = fw->pram0;
 	add = info->pram;
+
 	for (cnt = 0; cnt < PRAM0_SIZE; cnt++, add++, ptr++)
+	{
 		siu_write32(add, *ptr);
+	}
 
 	ptr = fw->pram1;
 	add = info->pram + (0x0100 / sizeof(u32));
+
 	for (cnt = 0; cnt < PRAM1_SIZE; cnt++, add++, ptr++)
+	{
 		siu_write32(add, *ptr);
+	}
 
 	/* XRAM initialization */
 	add = info->xram;
+
 	for (cnt = 0; cnt < XRAM0_SIZE + XRAM1_SIZE + XRAM2_SIZE; cnt++, add++)
+	{
 		siu_write32(add, 0);
+	}
 
 	/* YRAM variable area initialization */
 	add = info->yram;
+
 	for (cnt = 0; cnt < YRAM_DEF_SIZE; cnt++, add++)
+	{
 		siu_write32(add, ydef[cnt]);
+	}
 
 	/* YRAM FIR coefficient area initialization */
 	add = info->yram + (0x0200 / sizeof(u32));
+
 	for (cnt = 0; cnt < YRAM_FIR_SIZE; cnt++, add++)
+	{
 		siu_write32(add, fw->yram_fir_coeff[cnt]);
+	}
 
 	/* YRAM IIR coefficient area initialization */
 	add = info->yram + (0x0600 / sizeof(u32));
+
 	for (cnt = 0; cnt < YRAM_IIR_SIZE; cnt++, add++)
+	{
 		siu_write32(add, 0);
+	}
 
 	siu_write32(base + SIU_TRDAT, port_info->trdat);
 	port_info->trdat = 0x0;
@@ -304,11 +337,16 @@ static int siu_dai_spbstart(struct siu_port *port_info)
 	siu_write32(base + SIU_SBCTL, 0xc0000000);
 	/* Wait for program to halt */
 	cnt = 0x10000;
+
 	while (--cnt && siu_read32(base + SIU_SBCTL) != 0x80000000)
+	{
 		cpu_relax();
+	}
 
 	if (!cnt)
+	{
 		return -EBUSY;
+	}
 
 	/* SPB program start address setting */
 	siu_write32(base + SIU_SBPSET, 0x00400000);
@@ -333,7 +371,8 @@ static void siu_dai_spbstop(struct siu_port *port_info)
 /*		API functions		*/
 
 /* Playback and capture hardware properties are identical */
-static struct snd_pcm_hardware siu_dai_pcm_hw = {
+static struct snd_pcm_hardware siu_dai_pcm_hw =
+{
 	.info			= SNDRV_PCM_INFO_INTERLEAVED,
 	.formats		= SNDRV_PCM_FMTBIT_S16,
 	.rates			= SNDRV_PCM_RATE_8000_48000,
@@ -349,7 +388,7 @@ static struct snd_pcm_hardware siu_dai_pcm_hw = {
 };
 
 static int siu_dai_info_volume(struct snd_kcontrol *kctrl,
-			       struct snd_ctl_elem_info *uinfo)
+							   struct snd_ctl_elem_info *uinfo)
 {
 	struct siu_port *port_info = snd_kcontrol_chip(kctrl);
 
@@ -364,7 +403,7 @@ static int siu_dai_info_volume(struct snd_kcontrol *kctrl,
 }
 
 static int siu_dai_get_volume(struct snd_kcontrol *kctrl,
-			      struct snd_ctl_elem_value *ucontrol)
+							  struct snd_ctl_elem_value *ucontrol)
 {
 	struct siu_port *port_info = snd_kcontrol_chip(kctrl);
 	struct device *dev = port_info->pcm->card->dev;
@@ -372,30 +411,33 @@ static int siu_dai_get_volume(struct snd_kcontrol *kctrl,
 
 	dev_dbg(dev, "%s\n", __func__);
 
-	switch (kctrl->private_value) {
-	case VOLUME_PLAYBACK:
-		/* Playback is always on port 0 */
-		vol = port_info->playback.volume;
-		ucontrol->value.integer.value[0] = vol & 0xffff;
-		ucontrol->value.integer.value[1] = vol >> 16 & 0xffff;
-		break;
-	case VOLUME_CAPTURE:
-		/* Capture is always on port 1 */
-		vol = port_info->capture.volume;
-		ucontrol->value.integer.value[0] = vol & 0xffff;
-		ucontrol->value.integer.value[1] = vol >> 16 & 0xffff;
-		break;
-	default:
-		dev_err(dev, "%s() invalid private_value=%ld\n",
-			__func__, kctrl->private_value);
-		return -EINVAL;
+	switch (kctrl->private_value)
+	{
+		case VOLUME_PLAYBACK:
+			/* Playback is always on port 0 */
+			vol = port_info->playback.volume;
+			ucontrol->value.integer.value[0] = vol & 0xffff;
+			ucontrol->value.integer.value[1] = vol >> 16 & 0xffff;
+			break;
+
+		case VOLUME_CAPTURE:
+			/* Capture is always on port 1 */
+			vol = port_info->capture.volume;
+			ucontrol->value.integer.value[0] = vol & 0xffff;
+			ucontrol->value.integer.value[1] = vol >> 16 & 0xffff;
+			break;
+
+		default:
+			dev_err(dev, "%s() invalid private_value=%ld\n",
+					__func__, kctrl->private_value);
+			return -EINVAL;
 	}
 
 	return 0;
 }
 
 static int siu_dai_put_volume(struct snd_kcontrol *kctrl,
-			      struct snd_ctl_elem_value *ucontrol)
+							  struct snd_ctl_elem_value *ucontrol)
 {
 	struct siu_port *port_info = snd_kcontrol_chip(kctrl);
 	struct device *dev = port_info->pcm->card->dev;
@@ -407,41 +449,49 @@ static int siu_dai_put_volume(struct snd_kcontrol *kctrl,
 	dev_dbg(dev, "%s\n", __func__);
 
 	if (ucontrol->value.integer.value[0] < 0 ||
-	    ucontrol->value.integer.value[0] > SIU_MAX_VOLUME ||
-	    ucontrol->value.integer.value[1] < 0 ||
-	    ucontrol->value.integer.value[1] > SIU_MAX_VOLUME)
-		return -EINVAL;
-
-	new_vol = ucontrol->value.integer.value[0] |
-		ucontrol->value.integer.value[1] << 16;
-
-	/* See comment above - DSP firmware implementation */
-	switch (kctrl->private_value) {
-	case VOLUME_PLAYBACK:
-		/* Playback is always on port 0 */
-		cur_vol = port_info->playback.volume;
-		siu_write32(base + SIU_SBDVCA, new_vol);
-		port_info->playback.volume = new_vol;
-		break;
-	case VOLUME_CAPTURE:
-		/* Capture is always on port 1 */
-		cur_vol = port_info->capture.volume;
-		siu_write32(base + SIU_SBDVCB, new_vol);
-		port_info->capture.volume = new_vol;
-		break;
-	default:
-		dev_err(dev, "%s() invalid private_value=%ld\n",
-			__func__, kctrl->private_value);
+		ucontrol->value.integer.value[0] > SIU_MAX_VOLUME ||
+		ucontrol->value.integer.value[1] < 0 ||
+		ucontrol->value.integer.value[1] > SIU_MAX_VOLUME)
+	{
 		return -EINVAL;
 	}
 
+	new_vol = ucontrol->value.integer.value[0] |
+			  ucontrol->value.integer.value[1] << 16;
+
+	/* See comment above - DSP firmware implementation */
+	switch (kctrl->private_value)
+	{
+		case VOLUME_PLAYBACK:
+			/* Playback is always on port 0 */
+			cur_vol = port_info->playback.volume;
+			siu_write32(base + SIU_SBDVCA, new_vol);
+			port_info->playback.volume = new_vol;
+			break;
+
+		case VOLUME_CAPTURE:
+			/* Capture is always on port 1 */
+			cur_vol = port_info->capture.volume;
+			siu_write32(base + SIU_SBDVCB, new_vol);
+			port_info->capture.volume = new_vol;
+			break;
+
+		default:
+			dev_err(dev, "%s() invalid private_value=%ld\n",
+					__func__, kctrl->private_value);
+			return -EINVAL;
+	}
+
 	if (cur_vol != new_vol)
+	{
 		return 1;
+	}
 
 	return 0;
 }
 
-static struct snd_kcontrol_new playback_controls = {
+static struct snd_kcontrol_new playback_controls =
+{
 	.iface		= SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name		= "PCM Playback Volume",
 	.index		= 0,
@@ -451,7 +501,8 @@ static struct snd_kcontrol_new playback_controls = {
 	.private_value	= VOLUME_PLAYBACK,
 };
 
-static struct snd_kcontrol_new capture_controls = {
+static struct snd_kcontrol_new capture_controls =
+{
 	.iface		= SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name		= "PCM Capture Volume",
 	.index		= 0,
@@ -468,8 +519,11 @@ int siu_init_port(int port, struct siu_port **port_info, struct snd_card *card)
 	int ret;
 
 	*port_info = kzalloc(sizeof(**port_info), GFP_KERNEL);
+
 	if (!*port_info)
+	{
 		return -ENOMEM;
+	}
 
 	dev_dbg(dev, "%s: port #%d@%p\n", __func__, port, *port_info);
 
@@ -484,17 +538,19 @@ int siu_init_port(int port, struct siu_port **port_info, struct snd_card *card)
 	 */
 	kctrl = snd_ctl_new1(&playback_controls, *port_info);
 	ret = snd_ctl_add(card, kctrl);
+
 	if (ret < 0)
 		dev_err(dev,
-			"failed to add playback controls %p port=%d err=%d\n",
-			kctrl, port, ret);
+				"failed to add playback controls %p port=%d err=%d\n",
+				kctrl, port, ret);
 
 	kctrl = snd_ctl_new1(&capture_controls, *port_info);
 	ret = snd_ctl_add(card, kctrl);
+
 	if (ret < 0)
 		dev_err(dev,
-			"failed to add capture controls %p port=%d err=%d\n",
-			kctrl, port, ret);
+				"failed to add capture controls %p port=%d err=%d\n",
+				kctrl, port, ret);
 
 	return 0;
 }
@@ -505,7 +561,7 @@ void siu_free_port(struct siu_port *port_info)
 }
 
 static int siu_dai_startup(struct snd_pcm_substream *substream,
-			   struct snd_soc_dai *dai)
+						   struct snd_soc_dai *dai)
 {
 	struct siu_info *info = snd_soc_dai_get_drvdata(dai);
 	struct snd_pcm_runtime *rt = substream->runtime;
@@ -513,13 +569,16 @@ static int siu_dai_startup(struct snd_pcm_substream *substream,
 	int ret;
 
 	dev_dbg(substream->pcm->card->dev, "%s: port=%d@%p\n", __func__,
-		info->port_id, port_info);
+			info->port_id, port_info);
 
 	snd_soc_set_runtime_hwparams(substream, &siu_dai_pcm_hw);
 
 	ret = snd_pcm_hw_constraint_integer(rt, SNDRV_PCM_HW_PARAM_PERIODS);
+
 	if (unlikely(ret < 0))
+	{
 		return ret;
+	}
 
 	siu_dai_start(port_info);
 
@@ -527,24 +586,32 @@ static int siu_dai_startup(struct snd_pcm_substream *substream,
 }
 
 static void siu_dai_shutdown(struct snd_pcm_substream *substream,
-			     struct snd_soc_dai *dai)
+							 struct snd_soc_dai *dai)
 {
 	struct siu_info *info = snd_soc_dai_get_drvdata(dai);
 	struct siu_port	*port_info = siu_port_info(substream);
 
 	dev_dbg(substream->pcm->card->dev, "%s: port=%d@%p\n", __func__,
-		info->port_id, port_info);
+			info->port_id, port_info);
 
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
+	{
 		port_info->play_cap &= ~PLAYBACK_ENABLED;
+	}
 	else
+	{
 		port_info->play_cap &= ~CAPTURE_ENABLED;
+	}
 
 	/* Stop the siu if the other stream is not using it */
-	if (!port_info->play_cap) {
+	if (!port_info->play_cap)
+	{
 		/* during stmread or stmwrite ? */
 		if (WARN_ON(port_info->playback.rw_flg || port_info->capture.rw_flg))
+		{
 			return;
+		}
+
 		siu_dai_spbstop(port_info);
 		siu_dai_stop(port_info);
 	}
@@ -552,7 +619,7 @@ static void siu_dai_shutdown(struct snd_pcm_substream *substream,
 
 /* PCM part of siu_dai_playback_prepare() / siu_dai_capture_prepare() */
 static int siu_dai_prepare(struct snd_pcm_substream *substream,
-			   struct snd_soc_dai *dai)
+						   struct snd_soc_dai *dai)
 {
 	struct siu_info *info = snd_soc_dai_get_drvdata(dai);
 	struct snd_pcm_runtime *rt = substream->runtime;
@@ -561,19 +628,23 @@ static int siu_dai_prepare(struct snd_pcm_substream *substream,
 	int self, ret;
 
 	dev_dbg(substream->pcm->card->dev,
-		"%s: port %d, active streams %lx, %d channels\n",
-		__func__, info->port_id, port_info->play_cap, rt->channels);
+			"%s: port %d, active streams %lx, %d channels\n",
+			__func__, info->port_id, port_info->play_cap, rt->channels);
 
-	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
+	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
+	{
 		self = PLAYBACK_ENABLED;
 		siu_stream = &port_info->playback;
-	} else {
+	}
+	else
+	{
 		self = CAPTURE_ENABLED;
 		siu_stream = &port_info->capture;
 	}
 
 	/* Set up the siu if not already done */
-	if (!port_info->play_cap) {
+	if (!port_info->play_cap)
+	{
 		siu_stream->rw_flg = 0;	/* stream-data transfer flag */
 
 		siu_dai_spbAselect(port_info);
@@ -584,9 +655,14 @@ static int siu_dai_prepare(struct snd_pcm_substream *substream,
 		siu_dai_pcmdatapack(siu_stream);
 
 		ret = siu_dai_spbstart(port_info);
+
 		if (ret < 0)
+		{
 			goto fail;
-	} else {
+		}
+	}
+	else
+	{
 		ret = 0;
 	}
 
@@ -601,97 +677,118 @@ fail:
  * capture, however, the current API sets the bus format globally for a DAI.
  */
 static int siu_dai_set_fmt(struct snd_soc_dai *dai,
-			   unsigned int fmt)
+						   unsigned int fmt)
 {
 	struct siu_info *info = snd_soc_dai_get_drvdata(dai);
 	u32 __iomem *base = info->reg;
 	u32 ifctl;
 
 	dev_dbg(dai->dev, "%s: fmt 0x%x on port %d\n",
-		__func__, fmt, info->port_id);
+			__func__, fmt, info->port_id);
 
 	if (info->port_id < 0)
+	{
 		return -ENODEV;
+	}
 
 	/* Here select between I2S / PCM / SPDIF */
-	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
-	case SND_SOC_DAIFMT_I2S:
-		ifctl = siu_flags[info->port_id].playback.i2s |
-			siu_flags[info->port_id].capture.i2s;
-		break;
-	case SND_SOC_DAIFMT_LEFT_J:
-		ifctl = siu_flags[info->port_id].playback.pcm |
-			siu_flags[info->port_id].capture.pcm;
-		break;
-	/* SPDIF disabled - see comment at the top */
-	default:
-		return -EINVAL;
+	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK)
+	{
+		case SND_SOC_DAIFMT_I2S:
+			ifctl = siu_flags[info->port_id].playback.i2s |
+					siu_flags[info->port_id].capture.i2s;
+			break;
+
+		case SND_SOC_DAIFMT_LEFT_J:
+			ifctl = siu_flags[info->port_id].playback.pcm |
+					siu_flags[info->port_id].capture.pcm;
+			break;
+
+		/* SPDIF disabled - see comment at the top */
+		default:
+			return -EINVAL;
 	}
 
 	ifctl |= ~(siu_flags[info->port_id].playback.mask |
-		   siu_flags[info->port_id].capture.mask) &
-		siu_read32(base + SIU_IFCTL);
+			   siu_flags[info->port_id].capture.mask) &
+			 siu_read32(base + SIU_IFCTL);
 	siu_write32(base + SIU_IFCTL, ifctl);
 
 	return 0;
 }
 
 static int siu_dai_set_sysclk(struct snd_soc_dai *dai, int clk_id,
-			      unsigned int freq, int dir)
+							  unsigned int freq, int dir)
 {
 	struct clk *siu_clk, *parent_clk;
 	char *siu_name, *parent_name;
 	int ret;
 
 	if (dir != SND_SOC_CLOCK_IN)
-		return -EINVAL;
-
-	dev_dbg(dai->dev, "%s: using clock %d\n", __func__, clk_id);
-
-	switch (clk_id) {
-	case SIU_CLKA_PLL:
-		siu_name = "siua_clk";
-		parent_name = "pll_clk";
-		break;
-	case SIU_CLKA_EXT:
-		siu_name = "siua_clk";
-		parent_name = "siumcka_clk";
-		break;
-	case SIU_CLKB_PLL:
-		siu_name = "siub_clk";
-		parent_name = "pll_clk";
-		break;
-	case SIU_CLKB_EXT:
-		siu_name = "siub_clk";
-		parent_name = "siumckb_clk";
-		break;
-	default:
+	{
 		return -EINVAL;
 	}
 
+	dev_dbg(dai->dev, "%s: using clock %d\n", __func__, clk_id);
+
+	switch (clk_id)
+	{
+		case SIU_CLKA_PLL:
+			siu_name = "siua_clk";
+			parent_name = "pll_clk";
+			break;
+
+		case SIU_CLKA_EXT:
+			siu_name = "siua_clk";
+			parent_name = "siumcka_clk";
+			break;
+
+		case SIU_CLKB_PLL:
+			siu_name = "siub_clk";
+			parent_name = "pll_clk";
+			break;
+
+		case SIU_CLKB_EXT:
+			siu_name = "siub_clk";
+			parent_name = "siumckb_clk";
+			break;
+
+		default:
+			return -EINVAL;
+	}
+
 	siu_clk = clk_get(dai->dev, siu_name);
-	if (IS_ERR(siu_clk)) {
+
+	if (IS_ERR(siu_clk))
+	{
 		dev_err(dai->dev, "%s: cannot get a SIU clock: %ld\n", __func__,
-			PTR_ERR(siu_clk));
+				PTR_ERR(siu_clk));
 		return PTR_ERR(siu_clk);
 	}
 
 	parent_clk = clk_get(dai->dev, parent_name);
-	if (IS_ERR(parent_clk)) {
+
+	if (IS_ERR(parent_clk))
+	{
 		ret = PTR_ERR(parent_clk);
 		dev_err(dai->dev, "cannot get a SIU clock parent: %d\n", ret);
 		goto epclkget;
 	}
 
 	ret = clk_set_parent(siu_clk, parent_clk);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dai->dev, "cannot reparent the SIU clock: %d\n", ret);
 		goto eclksetp;
 	}
 
 	ret = clk_set_rate(siu_clk, freq);
+
 	if (ret < 0)
+	{
 		dev_err(dai->dev, "cannot set SIU clock rate: %d\n", ret);
+	}
 
 	/* TODO: when clkdev gets reference counting we'll move these to siu_dai_shutdown() */
 eclksetp:
@@ -702,7 +799,8 @@ epclkget:
 	return ret;
 }
 
-static const struct snd_soc_dai_ops siu_dai_ops = {
+static const struct snd_soc_dai_ops siu_dai_ops =
+{
 	.startup	= siu_dai_startup,
 	.shutdown	= siu_dai_shutdown,
 	.prepare	= siu_dai_prepare,
@@ -710,7 +808,8 @@ static const struct snd_soc_dai_ops siu_dai_ops = {
 	.set_fmt	= siu_dai_set_fmt,
 };
 
-static struct snd_soc_dai_driver siu_i2s_dai = {
+static struct snd_soc_dai_driver siu_i2s_dai =
+{
 	.name	= "siu-i2s-dai",
 	.playback = {
 		.channels_min = 2,
@@ -723,11 +822,12 @@ static struct snd_soc_dai_driver siu_i2s_dai = {
 		.channels_max = 2,
 		.formats = SNDRV_PCM_FMTBIT_S16,
 		.rates = SNDRV_PCM_RATE_8000_48000,
-	 },
+	},
 	.ops = &siu_dai_ops,
 };
 
-static const struct snd_soc_component_driver siu_i2s_component = {
+static const struct snd_soc_component_driver siu_i2s_component =
+{
 	.name		= "siu-i2s",
 };
 
@@ -739,14 +839,21 @@ static int siu_probe(struct platform_device *pdev)
 	int ret;
 
 	info = devm_kmalloc(&pdev->dev, sizeof(*info), GFP_KERNEL);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
+
 	siu_i2s_data = info;
 	info->dev = &pdev->dev;
 
 	ret = request_firmware(&fw_entry, "siu_spb.bin", &pdev->dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/*
 	 * Loaded firmware is "const" - read only, but we have to modify it in
@@ -757,43 +864,69 @@ static int siu_probe(struct platform_device *pdev)
 	release_firmware(fw_entry);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (!res)
+	{
 		return -ENODEV;
+	}
 
 	region = devm_request_mem_region(&pdev->dev, res->start,
-					 resource_size(res), pdev->name);
-	if (!region) {
+									 resource_size(res), pdev->name);
+
+	if (!region)
+	{
 		dev_err(&pdev->dev, "SIU region already claimed\n");
 		return -EBUSY;
 	}
 
 	info->pram = devm_ioremap(&pdev->dev, res->start, PRAM_SIZE);
+
 	if (!info->pram)
+	{
 		return -ENOMEM;
+	}
+
 	info->xram = devm_ioremap(&pdev->dev, res->start + XRAM_OFFSET,
-				  XRAM_SIZE);
+							  XRAM_SIZE);
+
 	if (!info->xram)
+	{
 		return -ENOMEM;
+	}
+
 	info->yram = devm_ioremap(&pdev->dev, res->start + YRAM_OFFSET,
-				  YRAM_SIZE);
+							  YRAM_SIZE);
+
 	if (!info->yram)
+	{
 		return -ENOMEM;
+	}
+
 	info->reg = devm_ioremap(&pdev->dev, res->start + REG_OFFSET,
-			    resource_size(res) - REG_OFFSET);
+							 resource_size(res) - REG_OFFSET);
+
 	if (!info->reg)
+	{
 		return -ENOMEM;
+	}
 
 	dev_set_drvdata(&pdev->dev, info);
 
 	/* register using ARRAY version so we can keep dai name */
 	ret = devm_snd_soc_register_component(&pdev->dev, &siu_i2s_component,
-					      &siu_i2s_dai, 1);
+										  &siu_i2s_dai, 1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = devm_snd_soc_register_platform(&pdev->dev, &siu_platform);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	pm_runtime_enable(&pdev->dev);
 
@@ -806,7 +939,8 @@ static int siu_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver siu_driver = {
+static struct platform_driver siu_driver =
+{
 	.driver 	= {
 		.name	= "siu-pcm-audio",
 	},

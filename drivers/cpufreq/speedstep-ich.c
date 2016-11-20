@@ -50,7 +50,8 @@ static u32 pmbase;
  *   There are only two frequency states for each processor. Values
  * are in kHz for the time being.
  */
-static struct cpufreq_frequency_table speedstep_freqs[] = {
+static struct cpufreq_frequency_table speedstep_freqs[] =
+{
 	{0, SPEEDSTEP_HIGH,	0},
 	{0, SPEEDSTEP_LOW,	0},
 	{0, 0,			CPUFREQ_TABLE_END},
@@ -65,17 +66,23 @@ static struct cpufreq_frequency_table speedstep_freqs[] = {
 static int speedstep_find_register(void)
 {
 	if (!speedstep_chipset_dev)
+	{
 		return -ENODEV;
+	}
 
 	/* get PMBASE */
 	pci_read_config_dword(speedstep_chipset_dev, 0x40, &pmbase);
-	if (!(pmbase & 0x01)) {
+
+	if (!(pmbase & 0x01))
+	{
 		pr_err("could not find speedstep register\n");
 		return -ENODEV;
 	}
 
 	pmbase &= 0xFFFFFFFE;
-	if (!pmbase) {
+
+	if (!pmbase)
+	{
 		pr_err("could not find speedstep register\n");
 		return -ENODEV;
 	}
@@ -98,7 +105,9 @@ static void speedstep_set_state(unsigned int state)
 	unsigned long flags;
 
 	if (state > 0x1)
+	{
 		return;
+	}
 
 	/* Disable IRQs */
 	local_irq_save(flags);
@@ -136,9 +145,11 @@ static void speedstep_set_state(unsigned int state)
 
 	if (state == (value & 0x1))
 		pr_debug("change to %u MHz succeeded\n",
-			speedstep_get_frequency(speedstep_processor) / 1000);
+				 speedstep_get_frequency(speedstep_processor) / 1000);
 	else
+	{
 		pr_err("change failed - I/O error\n");
+	}
 
 	return;
 }
@@ -160,10 +171,14 @@ static int speedstep_activate(void)
 	u16 value = 0;
 
 	if (!speedstep_chipset_dev)
+	{
 		return -EINVAL;
+	}
 
 	pci_read_config_word(speedstep_chipset_dev, 0x00A0, &value);
-	if (!(value & 0x08)) {
+
+	if (!(value & 0x08))
+	{
 		value |= 0x08;
 		pr_debug("activating SpeedStep (TM) registers\n");
 		pci_write_config_word(speedstep_chipset_dev, 0x00A0, value);
@@ -184,25 +199,33 @@ static int speedstep_activate(void)
 static unsigned int speedstep_detect_chipset(void)
 {
 	speedstep_chipset_dev = pci_get_subsys(PCI_VENDOR_ID_INTEL,
-			      PCI_DEVICE_ID_INTEL_82801DB_12,
-			      PCI_ANY_ID, PCI_ANY_ID,
-			      NULL);
+										   PCI_DEVICE_ID_INTEL_82801DB_12,
+										   PCI_ANY_ID, PCI_ANY_ID,
+										   NULL);
+
 	if (speedstep_chipset_dev)
-		return 4; /* 4-M */
+	{
+		return 4;    /* 4-M */
+	}
 
 	speedstep_chipset_dev = pci_get_subsys(PCI_VENDOR_ID_INTEL,
-			      PCI_DEVICE_ID_INTEL_82801CA_12,
-			      PCI_ANY_ID, PCI_ANY_ID,
-			      NULL);
+										   PCI_DEVICE_ID_INTEL_82801CA_12,
+										   PCI_ANY_ID, PCI_ANY_ID,
+										   NULL);
+
 	if (speedstep_chipset_dev)
-		return 3; /* 3-M */
+	{
+		return 3;    /* 3-M */
+	}
 
 
 	speedstep_chipset_dev = pci_get_subsys(PCI_VENDOR_ID_INTEL,
-			      PCI_DEVICE_ID_INTEL_82801BA_10,
-			      PCI_ANY_ID, PCI_ANY_ID,
-			      NULL);
-	if (speedstep_chipset_dev) {
+										   PCI_DEVICE_ID_INTEL_82801BA_10,
+										   PCI_ANY_ID, PCI_ANY_ID,
+										   NULL);
+
+	if (speedstep_chipset_dev)
+	{
 		/* speedstep.c causes lockups on Dell Inspirons 8000 and
 		 * 8100 which use a pretty old revision of the 82815
 		 * host bridge. Abort on these systems.
@@ -210,14 +233,17 @@ static unsigned int speedstep_detect_chipset(void)
 		static struct pci_dev *hostbridge;
 
 		hostbridge  = pci_get_subsys(PCI_VENDOR_ID_INTEL,
-			      PCI_DEVICE_ID_INTEL_82815_MC,
-			      PCI_ANY_ID, PCI_ANY_ID,
-			      NULL);
+									 PCI_DEVICE_ID_INTEL_82815_MC,
+									 PCI_ANY_ID, PCI_ANY_ID,
+									 NULL);
 
 		if (!hostbridge)
-			return 2; /* 2-M */
+		{
+			return 2;    /* 2-M */
+		}
 
-		if (hostbridge->revision < 5) {
+		if (hostbridge->revision < 5)
+		{
 			pr_debug("hostbridge does not support speedstep\n");
 			speedstep_chipset_dev = NULL;
 			pci_dev_put(hostbridge);
@@ -244,7 +270,9 @@ static unsigned int speedstep_get(unsigned int cpu)
 
 	/* You're supposed to ensure CPU is online. */
 	if (smp_call_function_single(cpu, get_freq_data, &speed, 1) != 0)
+	{
 		BUG();
+	}
 
 	pr_debug("detected %u kHz as current frequency\n", speed);
 	return speed;
@@ -264,13 +292,14 @@ static int speedstep_target(struct cpufreq_policy *policy, unsigned int index)
 	policy_cpu = cpumask_any_and(policy->cpus, cpu_online_mask);
 
 	smp_call_function_single(policy_cpu, _speedstep_set_state, &index,
-				 true);
+							 true);
 
 	return 0;
 }
 
 
-struct get_freqs {
+struct get_freqs
+{
 	struct cpufreq_policy *policy;
 	int ret;
 };
@@ -281,10 +310,10 @@ static void get_freqs_on_cpu(void *_get_freqs)
 
 	get_freqs->ret =
 		speedstep_get_freqs(speedstep_processor,
-			    &speedstep_freqs[SPEEDSTEP_LOW].frequency,
-			    &speedstep_freqs[SPEEDSTEP_HIGH].frequency,
-			    &get_freqs->policy->cpuinfo.transition_latency,
-			    &speedstep_set_state);
+							&speedstep_freqs[SPEEDSTEP_LOW].frequency,
+							&speedstep_freqs[SPEEDSTEP_HIGH].frequency,
+							&get_freqs->policy->cpuinfo.transition_latency,
+							&speedstep_set_state);
 }
 
 static int speedstep_cpu_init(struct cpufreq_policy *policy)
@@ -301,14 +330,18 @@ static int speedstep_cpu_init(struct cpufreq_policy *policy)
 	/* detect low and high frequency and transition latency */
 	gf.policy = policy;
 	smp_call_function_single(policy_cpu, get_freqs_on_cpu, &gf, 1);
+
 	if (gf.ret)
+	{
 		return gf.ret;
+	}
 
 	return cpufreq_table_validate_and_show(policy, speedstep_freqs);
 }
 
 
-static struct cpufreq_driver speedstep_driver = {
+static struct cpufreq_driver speedstep_driver =
+{
 	.name	= "speedstep-ich",
 	.verify	= cpufreq_generic_frequency_table_verify,
 	.target_index = speedstep_target,
@@ -317,15 +350,16 @@ static struct cpufreq_driver speedstep_driver = {
 	.attr	= cpufreq_generic_attr,
 };
 
-static const struct x86_cpu_id ss_smi_ids[] = {
+static const struct x86_cpu_id ss_smi_ids[] =
+{
 	{ X86_VENDOR_INTEL, 6, 0xb, },
 	{ X86_VENDOR_INTEL, 6, 0x8, },
 	{ X86_VENDOR_INTEL, 15, 2 },
 	{}
 };
 #if 0
-/* Autoload or not? Do not for now. */
-MODULE_DEVICE_TABLE(x86cpu, ss_smi_ids);
+	/* Autoload or not? Do not for now. */
+	MODULE_DEVICE_TABLE(x86cpu, ss_smi_ids);
 #endif
 
 /**
@@ -338,31 +372,39 @@ MODULE_DEVICE_TABLE(x86cpu, ss_smi_ids);
 static int __init speedstep_init(void)
 {
 	if (!x86_match_cpu(ss_smi_ids))
+	{
 		return -ENODEV;
+	}
 
 	/* detect processor */
 	speedstep_processor = speedstep_detect_processor();
-	if (!speedstep_processor) {
+
+	if (!speedstep_processor)
+	{
 		pr_debug("Intel(R) SpeedStep(TM) capable processor "
-				"not found\n");
+				 "not found\n");
 		return -ENODEV;
 	}
 
 	/* detect chipset */
-	if (!speedstep_detect_chipset()) {
+	if (!speedstep_detect_chipset())
+	{
 		pr_debug("Intel(R) SpeedStep(TM) for this chipset not "
-				"(yet) available.\n");
+				 "(yet) available.\n");
 		return -ENODEV;
 	}
 
 	/* activate speedstep support */
-	if (speedstep_activate()) {
+	if (speedstep_activate())
+	{
 		pci_dev_put(speedstep_chipset_dev);
 		return -EINVAL;
 	}
 
 	if (speedstep_find_register())
+	{
 		return -ENODEV;
+	}
 
 	return cpufreq_register_driver(&speedstep_driver);
 }
@@ -382,7 +424,7 @@ static void __exit speedstep_exit(void)
 
 MODULE_AUTHOR("Dave Jones, Dominik Brodowski <linux@brodo.de>");
 MODULE_DESCRIPTION("Speedstep driver for Intel mobile processors on chipsets "
-		"with ICH-M southbridges.");
+				   "with ICH-M southbridges.");
 MODULE_LICENSE("GPL");
 
 module_init(speedstep_init);

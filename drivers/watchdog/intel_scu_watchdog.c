@@ -61,18 +61,18 @@
 static int timer_margin = DEFAULT_SOFT_TO_HARD_MARGIN;
 module_param(timer_margin, int, 0);
 MODULE_PARM_DESC(timer_margin,
-		"Watchdog timer margin"
-		"Time between interrupt and resetting the system"
-		"The range is from 1 to 160"
-		"This is the time for all keep alives to arrive");
+				 "Watchdog timer margin"
+				 "Time between interrupt and resetting the system"
+				 "The range is from 1 to 160"
+				 "This is the time for all keep alives to arrive");
 
 static int timer_set = DEFAULT_TIME;
 module_param(timer_set, int, 0);
 MODULE_PARM_DESC(timer_set,
-		"Default Watchdog timer setting"
-		"Complete cycle time"
-		"The range is from 1 to 170"
-		"This is the time for all keep alives to arrive");
+				 "Default Watchdog timer setting"
+				 "Complete cycle time"
+				 "The range is from 1 to 170"
+				 "This is the time for all keep alives to arrive");
 
 /* After watchdog device is closed, check force_boot. If:
  * force_boot == 0, then force boot on next watchdog interrupt after close,
@@ -81,13 +81,13 @@ MODULE_PARM_DESC(timer_set,
 static int force_boot;
 module_param(force_boot, int, 0);
 MODULE_PARM_DESC(force_boot,
-		"A value of 1 means that the driver will reboot"
-		"the system immediately if the /dev/watchdog device is closed"
-		"A value of 0 means that when /dev/watchdog device is closed"
-		"the watchdog timer will be refreshed for one more interval"
-		"of length: timer_set. At the end of this interval, the"
-		"watchdog timer will reset the system."
-		);
+				 "A value of 1 means that the driver will reboot"
+				 "the system immediately if the /dev/watchdog device is closed"
+				 "A value of 0 means that when /dev/watchdog device is closed"
+				 "the watchdog timer will be refreshed for one more interval"
+				 "of length: timer_set. At the end of this interval, the"
+				 "watchdog timer will reset the system."
+				);
 
 /* there is only one device in the system now; this can be made into
  * an array in the future if we have more than one device */
@@ -97,13 +97,15 @@ static struct intel_scu_watchdog_dev watchdog_device;
 /* Forces restart, if force_reboot is set */
 static void watchdog_fire(void)
 {
-	if (force_boot) {
+	if (force_boot)
+	{
 		pr_crit("Initiating system reboot\n");
 		emergency_restart();
 		pr_crit("Reboot didn't ?????\n");
 	}
 
-	else {
+	else
+	{
 		pr_crit("Immediate Reboot Disabled\n");
 		pr_crit("System will reset when watchdog timer times out!\n");
 	}
@@ -112,11 +114,13 @@ static void watchdog_fire(void)
 static int check_timer_margin(int new_margin)
 {
 	if ((new_margin < MIN_TIME_CYCLE) ||
-	    (new_margin > MAX_TIME - timer_set)) {
+		(new_margin > MAX_TIME - timer_set))
+	{
 		pr_debug("value of new_margin %d is out of the range %d to %d\n",
-			 new_margin, MIN_TIME_CYCLE, MAX_TIME - timer_set);
+				 new_margin, MIN_TIME_CYCLE, MAX_TIME - timer_set);
 		return -EINVAL;
 	}
+
 	return 0;
 }
 
@@ -134,15 +138,17 @@ static int watchdog_set_ipc(int soft_threshold, int threshold)
 	ipc_wbuf[1] = threshold;
 
 	ipc_ret = intel_scu_ipc_command(
-			IPC_SET_WATCHDOG_TIMER,
-			0,
-			ipc_wbuf,
-			2,
-			NULL,
-			0);
+				  IPC_SET_WATCHDOG_TIMER,
+				  0,
+				  ipc_wbuf,
+				  2,
+				  NULL,
+				  0);
 
 	if (ipc_ret != 0)
+	{
 		pr_err("Error setting SCU watchdog timer: %x\n", ipc_ret);
+	}
 
 	return ipc_ret;
 };
@@ -160,10 +166,13 @@ static irqreturn_t watchdog_timer_interrupt(int irq, void *dev_id)
 	pr_debug("irq, int_status: %x\n", int_status);
 
 	if (int_status != 0)
+	{
 		return IRQ_NONE;
+	}
 
 	/* has the timer been started? If not, then this is spurious */
-	if (watchdog_device.timer_started == 0) {
+	if (watchdog_device.timer_started == 0)
+	{
 		pr_debug("spurious interrupt received\n");
 		return IRQ_HANDLED;
 	}
@@ -173,7 +182,7 @@ static irqreturn_t watchdog_timer_interrupt(int irq, void *dev_id)
 
 	/* set the timer to the threshold */
 	iowrite32(watchdog_device.threshold,
-		  watchdog_device.timer_load_count_addr);
+			  watchdog_device.timer_load_count_addr);
 
 	/* allow the timer to run */
 	iowrite32(0x00000003, watchdog_device.timer_control_addr);
@@ -192,7 +201,7 @@ static int intel_scu_keepalive(void)
 
 	/* set the timer to the soft_threshold */
 	iowrite32(watchdog_device.soft_threshold,
-		  watchdog_device.timer_load_count_addr);
+			  watchdog_device.timer_load_count_addr);
 
 	/* allow the timer to run */
 	iowrite32(0x00000003, watchdog_device.timer_control_addr);
@@ -221,14 +230,14 @@ static int intel_scu_set_heartbeat(u32 t)
 		* watchdog_device.timer_tbl_ptr->freq_hz;
 
 	pr_debug("set_heartbeat: timer freq is %d\n",
-		 watchdog_device.timer_tbl_ptr->freq_hz);
+			 watchdog_device.timer_tbl_ptr->freq_hz);
 	pr_debug("set_heartbeat: timer_set is %x (hex)\n",
-		 watchdog_device.timer_set);
+			 watchdog_device.timer_set);
 	pr_debug("set_hearbeat: timer_margin is %x (hex)\n", timer_margin);
 	pr_debug("set_heartbeat: threshold is %x (hex)\n",
-		 watchdog_device.threshold);
+			 watchdog_device.threshold);
 	pr_debug("set_heartbeat: soft_threshold is %x (hex)\n",
-		 watchdog_device.soft_threshold);
+			 watchdog_device.soft_threshold);
 
 	/* Adjust thresholds by FREQ_ADJUSTMENT factor, to make the */
 	/* watchdog timing come out right. */
@@ -242,9 +251,10 @@ static int intel_scu_set_heartbeat(u32 t)
 
 	/* send the threshold and soft_threshold via IPC to the processor */
 	ipc_ret = watchdog_set_ipc(watchdog_device.soft_threshold,
-				   watchdog_device.threshold);
+							   watchdog_device.threshold);
 
-	if (ipc_ret != 0) {
+	if (ipc_ret != 0)
+	{
 		/* Make sure the watchdog timer is stopped */
 		intel_scu_stop();
 		return ipc_ret;
@@ -256,12 +266,15 @@ static int intel_scu_set_heartbeat(u32 t)
 
 	retry_count = 0;
 	soft_value = watchdog_device.soft_threshold & 0xFFFF0000;
-	do {
+
+	do
+	{
 
 		/* Make sure timer is stopped */
 		intel_scu_stop();
 
-		if (MAX_RETRY < retry_count++) {
+		if (MAX_RETRY < retry_count++)
+		{
 			/* Unable to set timer value */
 			pr_err("Unable to set timer\n");
 			return -ENODEV;
@@ -269,7 +282,7 @@ static int intel_scu_set_heartbeat(u32 t)
 
 		/* set the timer to the soft threshold */
 		iowrite32(watchdog_device.soft_threshold,
-			watchdog_device.timer_load_count_addr);
+				  watchdog_device.timer_load_count_addr);
 
 		/* read count value before starting timer */
 		ioread32(watchdog_device.timer_load_count_addr);
@@ -282,7 +295,8 @@ static int intel_scu_set_heartbeat(u32 t)
 		hw_value = hw_value & 0xFFFF0000;
 
 
-	} while (soft_value != hw_value);
+	}
+	while (soft_value != hw_value);
 
 	watchdog_device.timer_started = 1;
 
@@ -298,11 +312,15 @@ static int intel_scu_open(struct inode *inode, struct file *file)
 
 	/* Set flag to indicate that watchdog device is open */
 	if (test_and_set_bit(0, &watchdog_device.driver_open))
+	{
 		return -EBUSY;
+	}
 
 	/* Check for reopen of driver. Reopens are not allowed */
 	if (watchdog_device.driver_closed)
+	{
 		return -EPERM;
+	}
 
 	return nonseekable_open(inode, file);
 }
@@ -318,12 +336,14 @@ static int intel_scu_release(struct inode *inode, struct file *file)
 	 * of that interval, the watchdog timer will reset the system.
 	 */
 
-	if (!test_and_clear_bit(0, &watchdog_device.driver_open)) {
+	if (!test_and_clear_bit(0, &watchdog_device.driver_open))
+	{
 		pr_debug("intel_scu_release, without open\n");
 		return -ENOTTY;
 	}
 
-	if (!watchdog_device.timer_started) {
+	if (!watchdog_device.timer_started)
+	{
 		/* Just close, since timer has not been started */
 		pr_debug("closed, without starting timer\n");
 		return 0;
@@ -345,65 +365,82 @@ static int intel_scu_release(struct inode *inode, struct file *file)
 }
 
 static ssize_t intel_scu_write(struct file *file,
-			      char const *data,
-			      size_t len,
-			      loff_t *ppos)
+							   char const *data,
+							   size_t len,
+							   loff_t *ppos)
 {
 
 	if (watchdog_device.timer_started)
 		/* Watchdog already started, keep it alive */
+	{
 		intel_scu_keepalive();
+	}
 	else
 		/* Start watchdog with timer value set by init */
+	{
 		intel_scu_set_heartbeat(watchdog_device.timer_set);
+	}
 
 	return len;
 }
 
 static long intel_scu_ioctl(struct file *file,
-			   unsigned int cmd,
-			   unsigned long arg)
+							unsigned int cmd,
+							unsigned long arg)
 {
 	void __user *argp = (void __user *)arg;
 	u32 __user *p = argp;
 	u32 new_margin;
 
 
-	static const struct watchdog_info ident = {
+	static const struct watchdog_info ident =
+	{
 		.options =          WDIOF_SETTIMEOUT
-				    | WDIOF_KEEPALIVEPING,
+		| WDIOF_KEEPALIVEPING,
 		.firmware_version = 0,  /* @todo Get from SCU via
 						 ipc_get_scu_fw_version()? */
 		.identity =         "Intel_SCU IOH Watchdog"  /* len < 32 */
 	};
 
-	switch (cmd) {
-	case WDIOC_GETSUPPORT:
-		return copy_to_user(argp,
-				    &ident,
-				    sizeof(ident)) ? -EFAULT : 0;
-	case WDIOC_GETSTATUS:
-	case WDIOC_GETBOOTSTATUS:
-		return put_user(0, p);
-	case WDIOC_KEEPALIVE:
-		intel_scu_keepalive();
+	switch (cmd)
+	{
+		case WDIOC_GETSUPPORT:
+			return copy_to_user(argp,
+								&ident,
+								sizeof(ident)) ? -EFAULT : 0;
 
-		return 0;
-	case WDIOC_SETTIMEOUT:
-		if (get_user(new_margin, p))
-			return -EFAULT;
+		case WDIOC_GETSTATUS:
+		case WDIOC_GETBOOTSTATUS:
+			return put_user(0, p);
 
-		if (check_timer_margin(new_margin))
-			return -EINVAL;
+		case WDIOC_KEEPALIVE:
+			intel_scu_keepalive();
 
-		if (intel_scu_set_heartbeat(new_margin))
-			return -EINVAL;
-		return 0;
-	case WDIOC_GETTIMEOUT:
-		return put_user(watchdog_device.soft_threshold, p);
+			return 0;
 
-	default:
-		return -ENOTTY;
+		case WDIOC_SETTIMEOUT:
+			if (get_user(new_margin, p))
+			{
+				return -EFAULT;
+			}
+
+			if (check_timer_margin(new_margin))
+			{
+				return -EINVAL;
+			}
+
+			if (intel_scu_set_heartbeat(new_margin))
+			{
+				return -EINVAL;
+			}
+
+			return 0;
+
+		case WDIOC_GETTIMEOUT:
+			return put_user(watchdog_device.soft_threshold, p);
+
+		default:
+			return -ENOTTY;
 	}
 }
 
@@ -411,19 +448,23 @@ static long intel_scu_ioctl(struct file *file,
  *      Notifier for system down
  */
 static int intel_scu_notify_sys(struct notifier_block *this,
-			       unsigned long code,
-			       void *another_unused)
+								unsigned long code,
+								void *another_unused)
 {
 	if (code == SYS_DOWN || code == SYS_HALT)
 		/* Turn off the watchdog timer. */
+	{
 		intel_scu_stop();
+	}
+
 	return NOTIFY_DONE;
 }
 
 /*
  *      Kernel Interfaces
  */
-static const struct file_operations intel_scu_fops = {
+static const struct file_operations intel_scu_fops =
+{
 	.owner          = THIS_MODULE,
 	.llseek         = no_llseek,
 	.write          = intel_scu_write,
@@ -444,44 +485,54 @@ static int __init intel_scu_watchdog_init(void)
 	 * If it isn't an intel MID device then it doesn't have this watchdog
 	 */
 	if (!intel_mid_identify_cpu())
+	{
 		return -ENODEV;
+	}
 
 	/* Check boot parameters to verify that their initial values */
 	/* are in range. */
 	/* Check value of timer_set boot parameter */
 	if ((timer_set < MIN_TIME_CYCLE) ||
-	    (timer_set > MAX_TIME - MIN_TIME_CYCLE)) {
+		(timer_set > MAX_TIME - MIN_TIME_CYCLE))
+	{
 		pr_err("value of timer_set %x (hex) is out of range from %x to %x (hex)\n",
-		       timer_set, MIN_TIME_CYCLE, MAX_TIME - MIN_TIME_CYCLE);
+			   timer_set, MIN_TIME_CYCLE, MAX_TIME - MIN_TIME_CYCLE);
 		return -EINVAL;
 	}
 
 	/* Check value of timer_margin boot parameter */
 	if (check_timer_margin(timer_margin))
+	{
 		return -EINVAL;
+	}
 
-	watchdog_device.timer_tbl_ptr = sfi_get_mtmr(sfi_mtimer_num-1);
+	watchdog_device.timer_tbl_ptr = sfi_get_mtmr(sfi_mtimer_num - 1);
 
-	if (watchdog_device.timer_tbl_ptr == NULL) {
+	if (watchdog_device.timer_tbl_ptr == NULL)
+	{
 		pr_debug("timer is not available\n");
 		return -ENODEV;
 	}
+
 	/* make sure the timer exists */
-	if (watchdog_device.timer_tbl_ptr->phys_addr == 0) {
+	if (watchdog_device.timer_tbl_ptr->phys_addr == 0)
+	{
 		pr_debug("timer %d does not have valid physical memory\n",
-			 sfi_mtimer_num);
+				 sfi_mtimer_num);
 		return -ENODEV;
 	}
 
-	if (watchdog_device.timer_tbl_ptr->irq == 0) {
+	if (watchdog_device.timer_tbl_ptr->irq == 0)
+	{
 		pr_debug("timer %d invalid irq\n", sfi_mtimer_num);
 		return -ENODEV;
 	}
 
 	tmp_addr = ioremap_nocache(watchdog_device.timer_tbl_ptr->phys_addr,
-			20);
+							   20);
 
-	if (tmp_addr == NULL) {
+	if (tmp_addr == NULL)
+	{
 		pr_debug("timer unable to ioremap\n");
 		return -ENOMEM;
 	}
@@ -506,7 +557,9 @@ static int __init intel_scu_watchdog_init(void)
 		intel_scu_notify_sys;
 
 	ret = register_reboot_notifier(&watchdog_device.intel_scu_notifier);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("cannot register notifier %d)\n", ret);
 		goto register_reboot_error;
 	}
@@ -516,25 +569,30 @@ static int __init intel_scu_watchdog_init(void)
 	watchdog_device.miscdev.fops = &intel_scu_fops;
 
 	ret = misc_register(&watchdog_device.miscdev);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("cannot register miscdev %d err =%d\n",
-		       WATCHDOG_MINOR, ret);
+			   WATCHDOG_MINOR, ret);
 		goto misc_register_error;
 	}
 
 	ret = request_irq((unsigned int)watchdog_device.timer_tbl_ptr->irq,
-		watchdog_timer_interrupt,
-		IRQF_SHARED, "watchdog",
-		&watchdog_device.timer_load_count_addr);
-	if (ret) {
+					  watchdog_timer_interrupt,
+					  IRQF_SHARED, "watchdog",
+					  &watchdog_device.timer_load_count_addr);
+
+	if (ret)
+	{
 		pr_err("error requesting irq %d\n", ret);
 		goto request_irq_error;
 	}
+
 	/* Make sure timer is disabled before returning */
 	intel_scu_stop();
 	return 0;
 
-/* error cleanup */
+	/* error cleanup */
 
 request_irq_error:
 	misc_deregister(&watchdog_device.miscdev);

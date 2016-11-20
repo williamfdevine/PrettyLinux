@@ -21,7 +21,8 @@
 
 #define CHIPCREGOFFS(field)	offsetof(struct chipcregs, field)
 
-struct chipcregs {
+struct chipcregs
+{
 	u32 chipid;		/* 0x0 */
 	u32 capabilities;
 	u32 corecontrol;	/* corerev >= 1 */

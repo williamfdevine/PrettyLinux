@@ -20,7 +20,8 @@
 #define TH_OUTPUT_PARM(name)			\
 	TH_OUTPUT_ ## name
 
-enum intel_th_output_parm {
+enum intel_th_output_parm
+{
 	/* output port type */
 	TH_OUTPUT_PARM(port),
 	/* generate NULL packet */
@@ -38,7 +39,8 @@ enum intel_th_output_parm {
 /*
  * Register offsets
  */
-enum {
+enum
+{
 	REG_GTH_GTHOPT0		= 0x00, /* Output ports 0..3 config */
 	REG_GTH_GTHOPT1		= 0x04, /* Output ports 4..7 config */
 	REG_GTH_SWDEST0		= 0x08, /* Switching destination masters 0..7 */

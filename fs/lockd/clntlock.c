@@ -31,11 +31,12 @@ static int			reclaimer(void *ptr);
 /*
  * This is the representation of a blocked client lock.
  */
-struct nlm_wait {
+struct nlm_wait
+{
 	struct list_head	b_list;		/* linked list */
 	wait_queue_head_t	b_wait;		/* where to wait on */
-	struct nlm_host *	b_host;
-	struct file_lock *	b_lock;		/* local file lock */
+	struct nlm_host 	*b_host;
+	struct file_lock 	*b_lock;		/* local file lock */
 	unsigned short		b_reclaim;	/* got to reclaim lock */
 	__be32			b_status;	/* grant callback status */
 };
@@ -57,17 +58,26 @@ struct nlm_host *nlmclnt_init(const struct nlmclnt_initdata *nlm_init)
 	int status;
 
 	status = lockd_up(nlm_init->net);
+
 	if (status < 0)
+	{
 		return ERR_PTR(status);
+	}
 
 	host = nlmclnt_lookup_host(nlm_init->address, nlm_init->addrlen,
-				   nlm_init->protocol, nlm_version,
-				   nlm_init->hostname, nlm_init->noresvport,
-				   nlm_init->net);
+							   nlm_init->protocol, nlm_version,
+							   nlm_init->hostname, nlm_init->noresvport,
+							   nlm_init->net);
+
 	if (host == NULL)
+	{
 		goto out_nohost;
+	}
+
 	if (host->h_rpcclnt == NULL && nlm_bind_host(host) == NULL)
+	{
 		goto out_nobind;
+	}
 
 	return host;
 out_nobind:
@@ -100,7 +110,9 @@ struct nlm_wait *nlmclnt_prepare_block(struct nlm_host *host, struct file_lock *
 	struct nlm_wait *block;
 
 	block = kmalloc(sizeof(*block), GFP_KERNEL);
-	if (block != NULL) {
+
+	if (block != NULL)
+	{
 		block->b_host = host;
 		block->b_lock = fl;
 		init_waitqueue_head(&block->b_wait);
@@ -110,13 +122,17 @@ struct nlm_wait *nlmclnt_prepare_block(struct nlm_host *host, struct file_lock *
 		list_add(&block->b_list, &nlm_blocked);
 		spin_unlock(&nlm_blocked_lock);
 	}
+
 	return block;
 }
 
 void nlmclnt_finish_block(struct nlm_wait *block)
 {
 	if (block == NULL)
+	{
 		return;
+	}
+
 	spin_lock(&nlm_blocked_lock);
 	list_del(&block->b_list);
 	spin_unlock(&nlm_blocked_lock);
@@ -134,24 +150,33 @@ int nlmclnt_block(struct nlm_wait *block, struct nlm_rqst *req, long timeout)
 	 * request it. Just say no!
 	 */
 	if (block == NULL)
+	{
 		return -EAGAIN;
+	}
 
 	/* Go to sleep waiting for GRANT callback. Some servers seem
 	 * to lose callbacks, however, so we're going to poll from
 	 * time to time just to make sure.
 	 *
-	 * For now, the retry frequency is pretty high; normally 
+	 * For now, the retry frequency is pretty high; normally
 	 * a 1 minute timeout would do. See the comment before
 	 * nlmclnt_lock for an explanation.
 	 */
 	ret = wait_event_interruptible_timeout(block->b_wait,
-			block->b_status != nlm_lck_blocked,
-			timeout);
+										   block->b_status != nlm_lck_blocked,
+										   timeout);
+
 	if (ret < 0)
+	{
 		return -ERESTARTSYS;
+	}
+
 	/* Reset the lock status after a server reboot so we resend */
 	if (block->b_status == nlm_lck_denied_grace_period)
+	{
 		block->b_status = nlm_lck_blocked;
+	}
+
 	req->a_res.status = block->b_status;
 	return 0;
 }
@@ -167,27 +192,43 @@ __be32 nlmclnt_grant(const struct sockaddr *addr, const struct nlm_lock *lock)
 	__be32 res = nlm_lck_denied;
 
 	/*
-	 * Look up blocked request based on arguments. 
+	 * Look up blocked request based on arguments.
 	 * Warning: must not use cookie to match it!
 	 */
 	spin_lock(&nlm_blocked_lock);
-	list_for_each_entry(block, &nlm_blocked, b_list) {
+	list_for_each_entry(block, &nlm_blocked, b_list)
+	{
 		struct file_lock *fl_blocked = block->b_lock;
 
 		if (fl_blocked->fl_start != fl->fl_start)
+		{
 			continue;
+		}
+
 		if (fl_blocked->fl_end != fl->fl_end)
+		{
 			continue;
+		}
+
 		/*
 		 * Careful! The NLM server will return the 32-bit "pid" that
 		 * we put on the wire: in this case the lockowner "pid".
 		 */
 		if (fl_blocked->fl_u.nfs_fl.owner->pid != lock->svid)
+		{
 			continue;
+		}
+
 		if (!rpc_cmp_addr(nlm_addr(block->b_host), addr))
+		{
 			continue;
-		if (nfs_compare_fh(NFS_FH(file_inode(fl_blocked->fl_file)) ,fh) != 0)
+		}
+
+		if (nfs_compare_fh(NFS_FH(file_inode(fl_blocked->fl_file)) , fh) != 0)
+		{
 			continue;
+		}
+
 		/* Alright, we found a lock. Set the return status
 		 * and wake up the caller
 		 */
@@ -213,13 +254,15 @@ nlmclnt_recovery(struct nlm_host *host)
 {
 	struct task_struct *task;
 
-	if (!host->h_reclaiming++) {
+	if (!host->h_reclaiming++)
+	{
 		nlm_get_host(host);
 		task = kthread_run(reclaimer, host, "%s-reclaim", host->h_name);
+
 		if (IS_ERR(task))
 			printk(KERN_ERR "lockd: unable to spawn reclaimer "
-				"thread. Locks for %s won't be reclaimed! "
-				"(%ld)\n", host->h_name, PTR_ERR(task));
+				   "thread. Locks for %s won't be reclaimed! "
+				   "(%ld)\n", host->h_name, PTR_ERR(task));
 	}
 }
 
@@ -234,10 +277,12 @@ reclaimer(void *ptr)
 	struct net *net = host->net;
 
 	req = kmalloc(sizeof(*req), GFP_KERNEL);
-	if (!req) {
+
+	if (!req)
+	{
 		printk(KERN_ERR "lockd: reclaimer unable to alloc memory."
-				" Locks for %s won't be reclaimed!\n",
-				host->h_name);
+			   " Locks for %s won't be reclaimed!\n",
+			   host->h_name);
 		return 0;
 	}
 
@@ -259,7 +304,8 @@ restart:
 
 	/* First, reclaim all locks that have been granted. */
 	list_splice_init(&host->h_granted, &host->h_reclaim);
-	list_for_each_entry_safe(fl, next, &host->h_reclaim, fl_u.nfs_fl.list) {
+	list_for_each_entry_safe(fl, next, &host->h_reclaim, fl_u.nfs_fl.list)
+	{
 		list_del_init(&fl->fl_u.nfs_fl.list);
 
 		/*
@@ -269,11 +315,19 @@ restart:
 		 * reclaimer thread is spawned for this host.
 		 */
 		if (signalled())
+		{
 			continue;
+		}
+
 		if (nlmclnt_reclaim(host, fl, req) != 0)
+		{
 			continue;
+		}
+
 		list_add_tail(&fl->fl_u.nfs_fl.list, &host->h_granted);
-		if (host->h_nsmstate != nsmstate) {
+
+		if (host->h_nsmstate != nsmstate)
+		{
 			/* Argh! The server rebooted again! */
 			goto restart;
 		}
@@ -285,8 +339,10 @@ restart:
 
 	/* Now, wake up all processes that sleep on a blocked lock */
 	spin_lock(&nlm_blocked_lock);
-	list_for_each_entry(block, &nlm_blocked, b_list) {
-		if (block->b_host == host) {
+	list_for_each_entry(block, &nlm_blocked, b_list)
+	{
+		if (block->b_host == host)
+		{
 			block->b_status = nlm_lck_denied_grace_period;
 			wake_up(&block->b_wait);
 		}

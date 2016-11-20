@@ -28,7 +28,8 @@ static void do_softint(struct work_struct *work)
 	u8 scpdr;
 	int touched = 0;
 
-	if (__raw_readb(PHDR) & PHDR_TS_PEN_DOWN) {
+	if (__raw_readb(PHDR) & PHDR_TS_PEN_DOWN)
+	{
 		scpdr = __raw_readb(SCPDR);
 		scpdr |= SCPDR_TS_SCAN_ENABLE;
 		scpdr &= ~SCPDR_TS_SCAN_Y;
@@ -53,11 +54,14 @@ static void do_softint(struct work_struct *work)
 		touched = __raw_readb(PHDR) & PHDR_TS_PEN_DOWN;
 	}
 
-	if (touched) {
+	if (touched)
+	{
 		input_report_key(hp680_ts_dev, BTN_TOUCH, 1);
 		input_report_abs(hp680_ts_dev, ABS_X, absx);
 		input_report_abs(hp680_ts_dev, ABS_Y, absy);
-	} else {
+	}
+	else
+	{
 		input_report_key(hp680_ts_dev, BTN_TOUCH, 0);
 	}
 
@@ -78,37 +82,44 @@ static int __init hp680_ts_init(void)
 	int err;
 
 	hp680_ts_dev = input_allocate_device();
+
 	if (!hp680_ts_dev)
+	{
 		return -ENOMEM;
+	}
 
 	hp680_ts_dev->evbit[0] = BIT_MASK(EV_ABS) | BIT_MASK(EV_KEY);
 	hp680_ts_dev->keybit[BIT_WORD(BTN_TOUCH)] = BIT_MASK(BTN_TOUCH);
 
 	input_set_abs_params(hp680_ts_dev, ABS_X,
-		HP680_TS_ABS_X_MIN, HP680_TS_ABS_X_MAX, 0, 0);
+						 HP680_TS_ABS_X_MIN, HP680_TS_ABS_X_MAX, 0, 0);
 	input_set_abs_params(hp680_ts_dev, ABS_Y,
-		HP680_TS_ABS_Y_MIN, HP680_TS_ABS_Y_MAX, 0, 0);
+						 HP680_TS_ABS_Y_MIN, HP680_TS_ABS_Y_MAX, 0, 0);
 
 	hp680_ts_dev->name = "HP Jornada touchscreen";
 	hp680_ts_dev->phys = "hp680_ts/input0";
 
 	if (request_irq(HP680_TS_IRQ, hp680_ts_interrupt,
-			0, MODNAME, NULL) < 0) {
+					0, MODNAME, NULL) < 0)
+	{
 		printk(KERN_ERR "hp680_touchscreen.c: Can't allocate irq %d\n",
-		       HP680_TS_IRQ);
+			   HP680_TS_IRQ);
 		err = -EBUSY;
 		goto fail1;
 	}
 
 	err = input_register_device(hp680_ts_dev);
+
 	if (err)
+	{
 		goto fail2;
+	}
 
 	return 0;
 
- fail2:	free_irq(HP680_TS_IRQ, NULL);
+fail2:	free_irq(HP680_TS_IRQ, NULL);
 	cancel_delayed_work_sync(&work);
- fail1:	input_free_device(hp680_ts_dev);
+fail1:	input_free_device(hp680_ts_dev);
 	return err;
 }
 

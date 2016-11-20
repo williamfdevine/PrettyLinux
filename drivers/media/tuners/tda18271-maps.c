@@ -20,20 +20,23 @@
 
 #include "tda18271-priv.h"
 
-struct tda18271_pll_map {
+struct tda18271_pll_map
+{
 	u32 lomax;
 	u8 pd; /* post div */
 	u8 d;  /*      div */
 };
 
-struct tda18271_map {
+struct tda18271_map
+{
 	u32 rfmax;
 	u8  val;
 };
 
 /*---------------------------------------------------------------------*/
 
-static struct tda18271_pll_map tda18271c1_main_pll[] = {
+static struct tda18271_pll_map tda18271c1_main_pll[] =
+{
 	{ .lomax =  32000, .pd = 0x5f, .d = 0xf0 },
 	{ .lomax =  35000, .pd = 0x5e, .d = 0xe0 },
 	{ .lomax =  37000, .pd = 0x5d, .d = 0xd0 },
@@ -77,7 +80,8 @@ static struct tda18271_pll_map tda18271c1_main_pll[] = {
 	{ .lomax =      0, .pd = 0x00, .d = 0x00 }, /* end */
 };
 
-static struct tda18271_pll_map tda18271c2_main_pll[] = {
+static struct tda18271_pll_map tda18271c2_main_pll[] =
+{
 	{ .lomax =  33125, .pd = 0x57, .d = 0xf0 },
 	{ .lomax =  35500, .pd = 0x56, .d = 0xe0 },
 	{ .lomax =  38188, .pd = 0x55, .d = 0xd0 },
@@ -121,7 +125,8 @@ static struct tda18271_pll_map tda18271c2_main_pll[] = {
 	{ .lomax =      0, .pd = 0x00, .d = 0x00 }, /* end */
 };
 
-static struct tda18271_pll_map tda18271c1_cal_pll[] = {
+static struct tda18271_pll_map tda18271c1_cal_pll[] =
+{
 	{ .lomax =   33000, .pd = 0xdd, .d = 0xd0 },
 	{ .lomax =   36000, .pd = 0xdc, .d = 0xc0 },
 	{ .lomax =   40000, .pd = 0xdb, .d = 0xb0 },
@@ -160,7 +165,8 @@ static struct tda18271_pll_map tda18271c1_cal_pll[] = {
 	{ .lomax =       0, .pd = 0x00, .d = 0x00 }, /* end */
 };
 
-static struct tda18271_pll_map tda18271c2_cal_pll[] = {
+static struct tda18271_pll_map tda18271c2_cal_pll[] =
+{
 	{ .lomax =   33813, .pd = 0xdd, .d = 0xd0 },
 	{ .lomax =   36625, .pd = 0xdc, .d = 0xc0 },
 	{ .lomax =   39938, .pd = 0xdb, .d = 0xb0 },
@@ -198,7 +204,8 @@ static struct tda18271_pll_map tda18271c2_cal_pll[] = {
 	{ .lomax =       0, .pd = 0x00, .d = 0x00 }, /* end */
 };
 
-static struct tda18271_map tda18271_bp_filter[] = {
+static struct tda18271_map tda18271_bp_filter[] =
+{
 	{ .rfmax =  62000, .val = 0x00 },
 	{ .rfmax =  84000, .val = 0x01 },
 	{ .rfmax = 100000, .val = 0x02 },
@@ -209,7 +216,8 @@ static struct tda18271_map tda18271_bp_filter[] = {
 	{ .rfmax =      0, .val = 0x00 }, /* end */
 };
 
-static struct tda18271_map tda18271c1_km[] = {
+static struct tda18271_map tda18271c1_km[] =
+{
 	{ .rfmax =  61100, .val = 0x74 },
 	{ .rfmax = 350000, .val = 0x40 },
 	{ .rfmax = 720000, .val = 0x30 },
@@ -217,7 +225,8 @@ static struct tda18271_map tda18271c1_km[] = {
 	{ .rfmax =      0, .val = 0x00 }, /* end */
 };
 
-static struct tda18271_map tda18271c2_km[] = {
+static struct tda18271_map tda18271c2_km[] =
+{
 	{ .rfmax =  47900, .val = 0x38 },
 	{ .rfmax =  61100, .val = 0x44 },
 	{ .rfmax = 350000, .val = 0x30 },
@@ -226,7 +235,8 @@ static struct tda18271_map tda18271c2_km[] = {
 	{ .rfmax =      0, .val = 0x00 }, /* end */
 };
 
-static struct tda18271_map tda18271_rf_band[] = {
+static struct tda18271_map tda18271_rf_band[] =
+{
 	{ .rfmax =  47900, .val = 0x00 },
 	{ .rfmax =  61100, .val = 0x01 },
 	{ .rfmax = 152600, .val = 0x02 },
@@ -237,7 +247,8 @@ static struct tda18271_map tda18271_rf_band[] = {
 	{ .rfmax =      0, .val = 0x00 }, /* end */
 };
 
-static struct tda18271_map tda18271_gain_taper[] = {
+static struct tda18271_map tda18271_gain_taper[] =
+{
 	{ .rfmax =  45400, .val = 0x1f },
 	{ .rfmax =  45800, .val = 0x1e },
 	{ .rfmax =  46200, .val = 0x1d },
@@ -326,7 +337,8 @@ static struct tda18271_map tda18271_gain_taper[] = {
 	{ .rfmax =      0, .val = 0x00 }, /* end */
 };
 
-static struct tda18271_map tda18271c1_rf_cal[] = {
+static struct tda18271_map tda18271c1_rf_cal[] =
+{
 	{ .rfmax = 41000, .val = 0x1e },
 	{ .rfmax = 43000, .val = 0x30 },
 	{ .rfmax = 45000, .val = 0x43 },
@@ -347,7 +359,8 @@ static struct tda18271_map tda18271c1_rf_cal[] = {
 	{ .rfmax =     0, .val = 0x00 }, /* end */
 };
 
-static struct tda18271_map tda18271c2_rf_cal[] = {
+static struct tda18271_map tda18271c2_rf_cal[] =
+{
 	{ .rfmax =  41000, .val = 0x0f },
 	{ .rfmax =  43000, .val = 0x1c },
 	{ .rfmax =  45000, .val = 0x2f },
@@ -788,7 +801,8 @@ static struct tda18271_map tda18271c2_rf_cal[] = {
 	{ .rfmax =      0, .val = 0x00 }, /* end */
 };
 
-static struct tda18271_map tda18271_ir_measure[] = {
+static struct tda18271_map tda18271_ir_measure[] =
+{
 	{ .rfmax =  30000, .val = 4 },
 	{ .rfmax = 200000, .val = 5 },
 	{ .rfmax = 600000, .val = 6 },
@@ -796,7 +810,8 @@ static struct tda18271_map tda18271_ir_measure[] = {
 	{ .rfmax =      0, .val = 0 }, /* end */
 };
 
-static struct tda18271_map tda18271_rf_cal_dc_over_dt[] = {
+static struct tda18271_map tda18271_rf_cal_dc_over_dt[] =
+{
 	{ .rfmax =  47900, .val = 0x00 },
 	{ .rfmax =  55000, .val = 0x00 },
 	{ .rfmax =  61100, .val = 0x0a },
@@ -903,13 +918,15 @@ static struct tda18271_map tda18271_rf_cal_dc_over_dt[] = {
 
 /*---------------------------------------------------------------------*/
 
-struct tda18271_thermo_map {
+struct tda18271_thermo_map
+{
 	u8 d;
 	u8 r0;
 	u8 r1;
 };
 
-static struct tda18271_thermo_map tda18271_thermometer[] = {
+static struct tda18271_thermo_map tda18271_thermometer[] =
+{
 	{ .d = 0x00, .r0 = 60, .r1 =  92 },
 	{ .d = 0x01, .r0 = 62, .r1 =  94 },
 	{ .d = 0x02, .r0 = 66, .r1 =  98 },
@@ -935,16 +952,24 @@ int tda18271_lookup_thermometer(struct dvb_frontend *fe)
 	unsigned char *regs = priv->tda18271_regs;
 	int val, i = 0;
 
-	while (tda18271_thermometer[i].d < (regs[R_TM] & 0x0f)) {
+	while (tda18271_thermometer[i].d < (regs[R_TM] & 0x0f))
+	{
 		if (tda18271_thermometer[i + 1].d == 0)
+		{
 			break;
+		}
+
 		i++;
 	}
 
 	if ((regs[R_TM] & 0x20) == 0x20)
+	{
 		val = tda18271_thermometer[i].r1;
+	}
 	else
+	{
 		val = tda18271_thermometer[i].r0;
+	}
 
 	tda_map("(%d) tm = %d\n", i, val);
 
@@ -953,13 +978,15 @@ int tda18271_lookup_thermometer(struct dvb_frontend *fe)
 
 /*---------------------------------------------------------------------*/
 
-struct tda18271_cid_target_map {
+struct tda18271_cid_target_map
+{
 	u32 rfmax;
 	u8  target;
 	u16 limit;
 };
 
-static struct tda18271_cid_target_map tda18271_cid_target[] = {
+static struct tda18271_cid_target_map tda18271_cid_target[] =
+{
 	{ .rfmax =  46000, .target = 0x04, .limit =  1800 },
 	{ .rfmax =  52200, .target = 0x0a, .limit =  1500 },
 	{ .rfmax =  70100, .target = 0x01, .limit =  4000 },
@@ -976,44 +1003,66 @@ static struct tda18271_cid_target_map tda18271_cid_target[] = {
 };
 
 int tda18271_lookup_cid_target(struct dvb_frontend *fe,
-			       u32 *freq, u8 *cid_target, u16 *count_limit)
+							   u32 *freq, u8 *cid_target, u16 *count_limit)
 {
 	struct tda18271_priv *priv = fe->tuner_priv;
 	int i = 0;
 
-	while ((tda18271_cid_target[i].rfmax * 1000) < *freq) {
+	while ((tda18271_cid_target[i].rfmax * 1000) < *freq)
+	{
 		if (tda18271_cid_target[i + 1].rfmax == 0)
+		{
 			break;
+		}
+
 		i++;
 	}
+
 	*cid_target  = tda18271_cid_target[i].target;
 	*count_limit = tda18271_cid_target[i].limit;
 
 	tda_map("(%d) cid_target = %02x, count_limit = %d\n", i,
-		tda18271_cid_target[i].target, tda18271_cid_target[i].limit);
+			tda18271_cid_target[i].target, tda18271_cid_target[i].limit);
 
 	return 0;
 }
 
 /*---------------------------------------------------------------------*/
 
-static struct tda18271_rf_tracking_filter_cal tda18271_rf_band_template[] = {
-	{ .rfmax =  47900, .rfband = 0x00,
-	  .rf1_def =  46000, .rf2_def =      0, .rf3_def =      0 },
-	{ .rfmax =  61100, .rfband = 0x01,
-	  .rf1_def =  52200, .rf2_def =      0, .rf3_def =      0 },
-	{ .rfmax = 152600, .rfband = 0x02,
-	  .rf1_def =  70100, .rf2_def = 136800, .rf3_def =      0 },
-	{ .rfmax = 164700, .rfband = 0x03,
-	  .rf1_def = 156700, .rf2_def =      0, .rf3_def =      0 },
-	{ .rfmax = 203500, .rfband = 0x04,
-	  .rf1_def = 186250, .rf2_def =      0, .rf3_def =      0 },
-	{ .rfmax = 457800, .rfband = 0x05,
-	  .rf1_def = 230000, .rf2_def = 345000, .rf3_def = 426000 },
-	{ .rfmax = 865000, .rfband = 0x06,
-	  .rf1_def = 489500, .rf2_def = 697500, .rf3_def = 842000 },
-	{ .rfmax =      0, .rfband = 0x00,
-	  .rf1_def =      0, .rf2_def =      0, .rf3_def =      0 }, /* end */
+static struct tda18271_rf_tracking_filter_cal tda18271_rf_band_template[] =
+{
+	{
+		.rfmax =  47900, .rfband = 0x00,
+		.rf1_def =  46000, .rf2_def =      0, .rf3_def =      0
+	},
+	{
+		.rfmax =  61100, .rfband = 0x01,
+		.rf1_def =  52200, .rf2_def =      0, .rf3_def =      0
+	},
+	{
+		.rfmax = 152600, .rfband = 0x02,
+		.rf1_def =  70100, .rf2_def = 136800, .rf3_def =      0
+	},
+	{
+		.rfmax = 164700, .rfband = 0x03,
+		.rf1_def = 156700, .rf2_def =      0, .rf3_def =      0
+	},
+	{
+		.rfmax = 203500, .rfband = 0x04,
+		.rf1_def = 186250, .rf2_def =      0, .rf3_def =      0
+	},
+	{
+		.rfmax = 457800, .rfband = 0x05,
+		.rf1_def = 230000, .rf2_def = 345000, .rf3_def = 426000
+	},
+	{
+		.rfmax = 865000, .rfband = 0x06,
+		.rf1_def = 489500, .rf2_def = 697500, .rf3_def = 842000
+	},
+	{
+		.rfmax =      0, .rfband = 0x00,
+		.rf1_def =      0, .rf2_def =      0, .rf3_def =      0
+	}, /* end */
 };
 
 int tda18271_lookup_rf_band(struct dvb_frontend *fe, u32 *freq, u8 *rf_band)
@@ -1022,24 +1071,32 @@ int tda18271_lookup_rf_band(struct dvb_frontend *fe, u32 *freq, u8 *rf_band)
 	struct tda18271_rf_tracking_filter_cal *map = priv->rf_cal_state;
 	int i = 0;
 
-	while ((map[i].rfmax * 1000) < *freq) {
+	while ((map[i].rfmax * 1000) < *freq)
+	{
 		if (tda18271_debug & DBG_ADV)
 			tda_map("(%d) rfmax = %d < freq = %d, "
-				"rf1_def = %d, rf2_def = %d, rf3_def = %d, "
-				"rf1 = %d, rf2 = %d, rf3 = %d, "
-				"rf_a1 = %d, rf_a2 = %d, "
-				"rf_b1 = %d, rf_b2 = %d\n",
-				i, map[i].rfmax * 1000, *freq,
-				map[i].rf1_def, map[i].rf2_def, map[i].rf3_def,
-				map[i].rf1, map[i].rf2, map[i].rf3,
-				map[i].rf_a1, map[i].rf_a2,
-				map[i].rf_b1, map[i].rf_b2);
+					"rf1_def = %d, rf2_def = %d, rf3_def = %d, "
+					"rf1 = %d, rf2 = %d, rf3 = %d, "
+					"rf_a1 = %d, rf_a2 = %d, "
+					"rf_b1 = %d, rf_b2 = %d\n",
+					i, map[i].rfmax * 1000, *freq,
+					map[i].rf1_def, map[i].rf2_def, map[i].rf3_def,
+					map[i].rf1, map[i].rf2, map[i].rf3,
+					map[i].rf_a1, map[i].rf_a2,
+					map[i].rf_b1, map[i].rf_b2);
+
 		if (map[i].rfmax == 0)
+		{
 			return -EINVAL;
+		}
+
 		i++;
 	}
+
 	if (rf_band)
+	{
 		*rf_band = map[i].rfband;
+	}
 
 	tda_map("(%d) rf_band = %02x\n", i, map[i].rfband);
 
@@ -1048,7 +1105,8 @@ int tda18271_lookup_rf_band(struct dvb_frontend *fe, u32 *freq, u8 *rf_band)
 
 /*---------------------------------------------------------------------*/
 
-struct tda18271_map_layout {
+struct tda18271_map_layout
+{
 	struct tda18271_pll_map *main_pll;
 	struct tda18271_pll_map *cal_pll;
 
@@ -1065,8 +1123,8 @@ struct tda18271_map_layout {
 /*---------------------------------------------------------------------*/
 
 int tda18271_lookup_pll_map(struct dvb_frontend *fe,
-			    enum tda18271_map_type map_type,
-			    u32 *freq, u8 *post_div, u8 *div)
+							enum tda18271_map_type map_type,
+							u32 *freq, u8 *post_div, u8 *div)
 {
 	struct tda18271_priv *priv = fe->tuner_priv;
 	struct tda18271_pll_map *map = NULL;
@@ -1076,48 +1134,56 @@ int tda18271_lookup_pll_map(struct dvb_frontend *fe,
 
 	BUG_ON(!priv->maps);
 
-	switch (map_type) {
-	case MAIN_PLL:
-		map = priv->maps->main_pll;
-		map_name = "main_pll";
-		break;
-	case CAL_PLL:
-		map = priv->maps->cal_pll;
-		map_name = "cal_pll";
-		break;
-	default:
-		/* we should never get here */
-		map_name = "undefined";
-		break;
+	switch (map_type)
+	{
+		case MAIN_PLL:
+			map = priv->maps->main_pll;
+			map_name = "main_pll";
+			break;
+
+		case CAL_PLL:
+			map = priv->maps->cal_pll;
+			map_name = "cal_pll";
+			break;
+
+		default:
+			/* we should never get here */
+			map_name = "undefined";
+			break;
 	}
 
-	if (!map) {
+	if (!map)
+	{
 		tda_warn("%s map is not set!\n", map_name);
 		ret = -EINVAL;
 		goto fail;
 	}
 
-	while ((map[i].lomax * 1000) < *freq) {
-		if (map[i + 1].lomax == 0) {
+	while ((map[i].lomax * 1000) < *freq)
+	{
+		if (map[i + 1].lomax == 0)
+		{
 			tda_map("%s: frequency (%d) out of range\n",
-				map_name, *freq);
+					map_name, *freq);
 			ret = -ERANGE;
 			break;
 		}
+
 		i++;
 	}
+
 	*post_div = map[i].pd;
 	*div      = map[i].d;
 
 	tda_map("(%d) %s: post div = 0x%02x, div = 0x%02x\n",
-		i, map_name, *post_div, *div);
+			i, map_name, *post_div, *div);
 fail:
 	return ret;
 }
 
 int tda18271_lookup_map(struct dvb_frontend *fe,
-			enum tda18271_map_type map_type,
-			u32 *freq, u8 *val)
+						enum tda18271_map_type map_type,
+						u32 *freq, u8 *val)
 {
 	struct tda18271_priv *priv = fe->tuner_priv;
 	struct tda18271_map *map = NULL;
@@ -1127,56 +1193,69 @@ int tda18271_lookup_map(struct dvb_frontend *fe,
 
 	BUG_ON(!priv->maps);
 
-	switch (map_type) {
-	case BP_FILTER:
-		map = priv->maps->bp_filter;
-		map_name = "bp_filter";
-		break;
-	case RF_CAL_KMCO:
-		map = priv->maps->rf_cal_kmco;
-		map_name = "km";
-		break;
-	case RF_BAND:
-		map = priv->maps->rf_band;
-		map_name = "rf_band";
-		break;
-	case GAIN_TAPER:
-		map = priv->maps->gain_taper;
-		map_name = "gain_taper";
-		break;
-	case RF_CAL:
-		map = priv->maps->rf_cal;
-		map_name = "rf_cal";
-		break;
-	case IR_MEASURE:
-		map = priv->maps->ir_measure;
-		map_name = "ir_measure";
-		break;
-	case RF_CAL_DC_OVER_DT:
-		map = priv->maps->rf_cal_dc_over_dt;
-		map_name = "rf_cal_dc_over_dt";
-		break;
-	default:
-		/* we should never get here */
-		map_name = "undefined";
-		break;
+	switch (map_type)
+	{
+		case BP_FILTER:
+			map = priv->maps->bp_filter;
+			map_name = "bp_filter";
+			break;
+
+		case RF_CAL_KMCO:
+			map = priv->maps->rf_cal_kmco;
+			map_name = "km";
+			break;
+
+		case RF_BAND:
+			map = priv->maps->rf_band;
+			map_name = "rf_band";
+			break;
+
+		case GAIN_TAPER:
+			map = priv->maps->gain_taper;
+			map_name = "gain_taper";
+			break;
+
+		case RF_CAL:
+			map = priv->maps->rf_cal;
+			map_name = "rf_cal";
+			break;
+
+		case IR_MEASURE:
+			map = priv->maps->ir_measure;
+			map_name = "ir_measure";
+			break;
+
+		case RF_CAL_DC_OVER_DT:
+			map = priv->maps->rf_cal_dc_over_dt;
+			map_name = "rf_cal_dc_over_dt";
+			break;
+
+		default:
+			/* we should never get here */
+			map_name = "undefined";
+			break;
 	}
 
-	if (!map) {
+	if (!map)
+	{
 		tda_warn("%s map is not set!\n", map_name);
 		ret = -EINVAL;
 		goto fail;
 	}
 
-	while ((map[i].rfmax * 1000) < *freq) {
-		if (map[i + 1].rfmax == 0) {
+	while ((map[i].rfmax * 1000) < *freq)
+	{
+		if (map[i + 1].rfmax == 0)
+		{
 			tda_map("%s: frequency (%d) out of range\n",
-				map_name, *freq);
+					map_name, *freq);
 			ret = -ERANGE;
 			break;
 		}
+
 		i++;
 	}
+
 	*val = map[i].val;
 
 	tda_map("(%d) %s: 0x%02x\n", i, map_name, *val);
@@ -1186,75 +1265,138 @@ fail:
 
 /*---------------------------------------------------------------------*/
 
-static struct tda18271_std_map tda18271c1_std_map = {
-	.fm_radio = { .if_freq = 1250, .fm_rfn = 1, .agc_mode = 3, .std = 0,
-		      .if_lvl = 0, .rfagc_top = 0x2c, }, /* EP3[4:0] 0x18 */
-	.atv_b    = { .if_freq = 6750, .fm_rfn = 0, .agc_mode = 1, .std = 6,
-		      .if_lvl = 0, .rfagc_top = 0x2c, }, /* EP3[4:0] 0x0e */
-	.atv_dk   = { .if_freq = 7750, .fm_rfn = 0, .agc_mode = 1, .std = 7,
-		      .if_lvl = 0, .rfagc_top = 0x2c, }, /* EP3[4:0] 0x0f */
-	.atv_gh   = { .if_freq = 7750, .fm_rfn = 0, .agc_mode = 1, .std = 7,
-		      .if_lvl = 0, .rfagc_top = 0x2c, }, /* EP3[4:0] 0x0f */
-	.atv_i    = { .if_freq = 7750, .fm_rfn = 0, .agc_mode = 1, .std = 7,
-		      .if_lvl = 0, .rfagc_top = 0x2c, }, /* EP3[4:0] 0x0f */
-	.atv_l    = { .if_freq = 7750, .fm_rfn = 0, .agc_mode = 1, .std = 7,
-		      .if_lvl = 0, .rfagc_top = 0x2c, }, /* EP3[4:0] 0x0f */
-	.atv_lc   = { .if_freq = 1250, .fm_rfn = 0, .agc_mode = 1, .std = 7,
-		      .if_lvl = 0, .rfagc_top = 0x2c, }, /* EP3[4:0] 0x0f */
-	.atv_mn   = { .if_freq = 5750, .fm_rfn = 0, .agc_mode = 1, .std = 5,
-		      .if_lvl = 0, .rfagc_top = 0x2c, }, /* EP3[4:0] 0x0d */
-	.atsc_6   = { .if_freq = 3250, .fm_rfn = 0, .agc_mode = 3, .std = 4,
-		      .if_lvl = 1, .rfagc_top = 0x37, }, /* EP3[4:0] 0x1c */
-	.dvbt_6   = { .if_freq = 3300, .fm_rfn = 0, .agc_mode = 3, .std = 4,
-		      .if_lvl = 1, .rfagc_top = 0x37, }, /* EP3[4:0] 0x1c */
-	.dvbt_7   = { .if_freq = 3800, .fm_rfn = 0, .agc_mode = 3, .std = 5,
-		      .if_lvl = 1, .rfagc_top = 0x37, }, /* EP3[4:0] 0x1d */
-	.dvbt_8   = { .if_freq = 4300, .fm_rfn = 0, .agc_mode = 3, .std = 6,
-		      .if_lvl = 1, .rfagc_top = 0x37, }, /* EP3[4:0] 0x1e */
-	.qam_6    = { .if_freq = 4000, .fm_rfn = 0, .agc_mode = 3, .std = 5,
-		      .if_lvl = 1, .rfagc_top = 0x37, }, /* EP3[4:0] 0x1d */
-	.qam_7    = { .if_freq = 4500, .fm_rfn = 0, .agc_mode = 3, .std = 6,
-		      .if_lvl = 1, .rfagc_top = 0x37, }, /* EP3[4:0] 0x1e */
-	.qam_8    = { .if_freq = 5000, .fm_rfn = 0, .agc_mode = 3, .std = 7,
-		      .if_lvl = 1, .rfagc_top = 0x37, }, /* EP3[4:0] 0x1f */
+static struct tda18271_std_map tda18271c1_std_map =
+{
+	.fm_radio = {
+		.if_freq = 1250, .fm_rfn = 1, .agc_mode = 3, .std = 0,
+		.if_lvl = 0, .rfagc_top = 0x2c,
+	}, /* EP3[4:0] 0x18 */
+	.atv_b    = {
+		.if_freq = 6750, .fm_rfn = 0, .agc_mode = 1, .std = 6,
+		.if_lvl = 0, .rfagc_top = 0x2c,
+	}, /* EP3[4:0] 0x0e */
+	.atv_dk   = {
+		.if_freq = 7750, .fm_rfn = 0, .agc_mode = 1, .std = 7,
+		.if_lvl = 0, .rfagc_top = 0x2c,
+	}, /* EP3[4:0] 0x0f */
+	.atv_gh   = {
+		.if_freq = 7750, .fm_rfn = 0, .agc_mode = 1, .std = 7,
+		.if_lvl = 0, .rfagc_top = 0x2c,
+	}, /* EP3[4:0] 0x0f */
+	.atv_i    = {
+		.if_freq = 7750, .fm_rfn = 0, .agc_mode = 1, .std = 7,
+		.if_lvl = 0, .rfagc_top = 0x2c,
+	}, /* EP3[4:0] 0x0f */
+	.atv_l    = {
+		.if_freq = 7750, .fm_rfn = 0, .agc_mode = 1, .std = 7,
+		.if_lvl = 0, .rfagc_top = 0x2c,
+	}, /* EP3[4:0] 0x0f */
+	.atv_lc   = {
+		.if_freq = 1250, .fm_rfn = 0, .agc_mode = 1, .std = 7,
+		.if_lvl = 0, .rfagc_top = 0x2c,
+	}, /* EP3[4:0] 0x0f */
+	.atv_mn   = {
+		.if_freq = 5750, .fm_rfn = 0, .agc_mode = 1, .std = 5,
+		.if_lvl = 0, .rfagc_top = 0x2c,
+	}, /* EP3[4:0] 0x0d */
+	.atsc_6   = {
+		.if_freq = 3250, .fm_rfn = 0, .agc_mode = 3, .std = 4,
+		.if_lvl = 1, .rfagc_top = 0x37,
+	}, /* EP3[4:0] 0x1c */
+	.dvbt_6   = {
+		.if_freq = 3300, .fm_rfn = 0, .agc_mode = 3, .std = 4,
+		.if_lvl = 1, .rfagc_top = 0x37,
+	}, /* EP3[4:0] 0x1c */
+	.dvbt_7   = {
+		.if_freq = 3800, .fm_rfn = 0, .agc_mode = 3, .std = 5,
+		.if_lvl = 1, .rfagc_top = 0x37,
+	}, /* EP3[4:0] 0x1d */
+	.dvbt_8   = {
+		.if_freq = 4300, .fm_rfn = 0, .agc_mode = 3, .std = 6,
+		.if_lvl = 1, .rfagc_top = 0x37,
+	}, /* EP3[4:0] 0x1e */
+	.qam_6    = {
+		.if_freq = 4000, .fm_rfn = 0, .agc_mode = 3, .std = 5,
+		.if_lvl = 1, .rfagc_top = 0x37,
+	}, /* EP3[4:0] 0x1d */
+	.qam_7    = {
+		.if_freq = 4500, .fm_rfn = 0, .agc_mode = 3, .std = 6,
+		.if_lvl = 1, .rfagc_top = 0x37,
+	}, /* EP3[4:0] 0x1e */
+	.qam_8    = {
+		.if_freq = 5000, .fm_rfn = 0, .agc_mode = 3, .std = 7,
+		.if_lvl = 1, .rfagc_top = 0x37,
+	}, /* EP3[4:0] 0x1f */
 };
 
-static struct tda18271_std_map tda18271c2_std_map = {
-	.fm_radio = { .if_freq = 1250, .fm_rfn = 1, .agc_mode = 3, .std = 0,
-		      .if_lvl = 0, .rfagc_top = 0x2c, }, /* EP3[4:0] 0x18 */
-	.atv_b    = { .if_freq = 6000, .fm_rfn = 0, .agc_mode = 1, .std = 5,
-		      .if_lvl = 0, .rfagc_top = 0x2c, }, /* EP3[4:0] 0x0d */
-	.atv_dk   = { .if_freq = 6900, .fm_rfn = 0, .agc_mode = 1, .std = 6,
-		      .if_lvl = 0, .rfagc_top = 0x2c, }, /* EP3[4:0] 0x0e */
-	.atv_gh   = { .if_freq = 7100, .fm_rfn = 0, .agc_mode = 1, .std = 6,
-		      .if_lvl = 0, .rfagc_top = 0x2c, }, /* EP3[4:0] 0x0e */
-	.atv_i    = { .if_freq = 7250, .fm_rfn = 0, .agc_mode = 1, .std = 6,
-		      .if_lvl = 0, .rfagc_top = 0x2c, }, /* EP3[4:0] 0x0e */
-	.atv_l    = { .if_freq = 6900, .fm_rfn = 0, .agc_mode = 1, .std = 6,
-		      .if_lvl = 0, .rfagc_top = 0x2c, }, /* EP3[4:0] 0x0e */
-	.atv_lc   = { .if_freq = 1250, .fm_rfn = 0, .agc_mode = 1, .std = 6,
-		      .if_lvl = 0, .rfagc_top = 0x2c, }, /* EP3[4:0] 0x0e */
-	.atv_mn   = { .if_freq = 5400, .fm_rfn = 0, .agc_mode = 1, .std = 4,
-		      .if_lvl = 0, .rfagc_top = 0x2c, }, /* EP3[4:0] 0x0c */
-	.atsc_6   = { .if_freq = 3250, .fm_rfn = 0, .agc_mode = 3, .std = 4,
-		      .if_lvl = 1, .rfagc_top = 0x37, }, /* EP3[4:0] 0x1c */
-	.dvbt_6   = { .if_freq = 3300, .fm_rfn = 0, .agc_mode = 3, .std = 4,
-		      .if_lvl = 1, .rfagc_top = 0x37, }, /* EP3[4:0] 0x1c */
-	.dvbt_7   = { .if_freq = 3500, .fm_rfn = 0, .agc_mode = 3, .std = 4,
-		      .if_lvl = 1, .rfagc_top = 0x37, }, /* EP3[4:0] 0x1c */
-	.dvbt_8   = { .if_freq = 4000, .fm_rfn = 0, .agc_mode = 3, .std = 5,
-		      .if_lvl = 1, .rfagc_top = 0x37, }, /* EP3[4:0] 0x1d */
-	.qam_6    = { .if_freq = 4000, .fm_rfn = 0, .agc_mode = 3, .std = 5,
-		      .if_lvl = 1, .rfagc_top = 0x37, }, /* EP3[4:0] 0x1d */
-	.qam_7    = { .if_freq = 4500, .fm_rfn = 0, .agc_mode = 3, .std = 6,
-		      .if_lvl = 1, .rfagc_top = 0x37, }, /* EP3[4:0] 0x1e */
-	.qam_8    = { .if_freq = 5000, .fm_rfn = 0, .agc_mode = 3, .std = 7,
-		      .if_lvl = 1, .rfagc_top = 0x37, }, /* EP3[4:0] 0x1f */
+static struct tda18271_std_map tda18271c2_std_map =
+{
+	.fm_radio = {
+		.if_freq = 1250, .fm_rfn = 1, .agc_mode = 3, .std = 0,
+		.if_lvl = 0, .rfagc_top = 0x2c,
+	}, /* EP3[4:0] 0x18 */
+	.atv_b    = {
+		.if_freq = 6000, .fm_rfn = 0, .agc_mode = 1, .std = 5,
+		.if_lvl = 0, .rfagc_top = 0x2c,
+	}, /* EP3[4:0] 0x0d */
+	.atv_dk   = {
+		.if_freq = 6900, .fm_rfn = 0, .agc_mode = 1, .std = 6,
+		.if_lvl = 0, .rfagc_top = 0x2c,
+	}, /* EP3[4:0] 0x0e */
+	.atv_gh   = {
+		.if_freq = 7100, .fm_rfn = 0, .agc_mode = 1, .std = 6,
+		.if_lvl = 0, .rfagc_top = 0x2c,
+	}, /* EP3[4:0] 0x0e */
+	.atv_i    = {
+		.if_freq = 7250, .fm_rfn = 0, .agc_mode = 1, .std = 6,
+		.if_lvl = 0, .rfagc_top = 0x2c,
+	}, /* EP3[4:0] 0x0e */
+	.atv_l    = {
+		.if_freq = 6900, .fm_rfn = 0, .agc_mode = 1, .std = 6,
+		.if_lvl = 0, .rfagc_top = 0x2c,
+	}, /* EP3[4:0] 0x0e */
+	.atv_lc   = {
+		.if_freq = 1250, .fm_rfn = 0, .agc_mode = 1, .std = 6,
+		.if_lvl = 0, .rfagc_top = 0x2c,
+	}, /* EP3[4:0] 0x0e */
+	.atv_mn   = {
+		.if_freq = 5400, .fm_rfn = 0, .agc_mode = 1, .std = 4,
+		.if_lvl = 0, .rfagc_top = 0x2c,
+	}, /* EP3[4:0] 0x0c */
+	.atsc_6   = {
+		.if_freq = 3250, .fm_rfn = 0, .agc_mode = 3, .std = 4,
+		.if_lvl = 1, .rfagc_top = 0x37,
+	}, /* EP3[4:0] 0x1c */
+	.dvbt_6   = {
+		.if_freq = 3300, .fm_rfn = 0, .agc_mode = 3, .std = 4,
+		.if_lvl = 1, .rfagc_top = 0x37,
+	}, /* EP3[4:0] 0x1c */
+	.dvbt_7   = {
+		.if_freq = 3500, .fm_rfn = 0, .agc_mode = 3, .std = 4,
+		.if_lvl = 1, .rfagc_top = 0x37,
+	}, /* EP3[4:0] 0x1c */
+	.dvbt_8   = {
+		.if_freq = 4000, .fm_rfn = 0, .agc_mode = 3, .std = 5,
+		.if_lvl = 1, .rfagc_top = 0x37,
+	}, /* EP3[4:0] 0x1d */
+	.qam_6    = {
+		.if_freq = 4000, .fm_rfn = 0, .agc_mode = 3, .std = 5,
+		.if_lvl = 1, .rfagc_top = 0x37,
+	}, /* EP3[4:0] 0x1d */
+	.qam_7    = {
+		.if_freq = 4500, .fm_rfn = 0, .agc_mode = 3, .std = 6,
+		.if_lvl = 1, .rfagc_top = 0x37,
+	}, /* EP3[4:0] 0x1e */
+	.qam_8    = {
+		.if_freq = 5000, .fm_rfn = 0, .agc_mode = 3, .std = 7,
+		.if_lvl = 1, .rfagc_top = 0x37,
+	}, /* EP3[4:0] 0x1f */
 };
 
 /*---------------------------------------------------------------------*/
 
-static struct tda18271_map_layout tda18271c1_map_layout = {
+static struct tda18271_map_layout tda18271c1_map_layout =
+{
 	.main_pll          = tda18271c1_main_pll,
 	.cal_pll           = tda18271c1_cal_pll,
 
@@ -1267,7 +1409,8 @@ static struct tda18271_map_layout tda18271c1_map_layout = {
 	.ir_measure        = tda18271_ir_measure,
 };
 
-static struct tda18271_map_layout tda18271c2_map_layout = {
+static struct tda18271_map_layout tda18271c2_map_layout =
+{
 	.main_pll          = tda18271c2_main_pll,
 	.cal_pll           = tda18271c2_cal_pll,
 
@@ -1287,21 +1430,25 @@ int tda18271_assign_map_layout(struct dvb_frontend *fe)
 	struct tda18271_priv *priv = fe->tuner_priv;
 	int ret = 0;
 
-	switch (priv->id) {
-	case TDA18271HDC1:
-		priv->maps = &tda18271c1_map_layout;
-		priv->std = tda18271c1_std_map;
-		break;
-	case TDA18271HDC2:
-		priv->maps = &tda18271c2_map_layout;
-		priv->std = tda18271c2_std_map;
-		break;
-	default:
-		ret = -EINVAL;
-		break;
+	switch (priv->id)
+	{
+		case TDA18271HDC1:
+			priv->maps = &tda18271c1_map_layout;
+			priv->std = tda18271c1_std_map;
+			break;
+
+		case TDA18271HDC2:
+			priv->maps = &tda18271c2_map_layout;
+			priv->std = tda18271c2_std_map;
+			break;
+
+		default:
+			ret = -EINVAL;
+			break;
 	}
+
 	memcpy(priv->rf_cal_state, &tda18271_rf_band_template,
-	       sizeof(tda18271_rf_band_template));
+		   sizeof(tda18271_rf_band_template));
 
 	return ret;
 }

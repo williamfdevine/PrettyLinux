@@ -107,7 +107,8 @@
 #define HW_ALMON		0x78
 #define HW_ALYEAR		0x7C
 
-struct asm9260_rtc_priv {
+struct asm9260_rtc_priv
+{
 	struct device		*dev;
 	void __iomem		*iobase;
 	struct rtc_device	*rtc;
@@ -122,7 +123,9 @@ static irqreturn_t asm9260_rtc_irq(int irq, void *dev_id)
 
 	mutex_lock(&priv->rtc->ops_lock);
 	isr = ioread32(priv->iobase + HW_CIIR);
-	if (!isr) {
+
+	if (!isr)
+	{
 		mutex_unlock(&priv->rtc->ops_lock);
 		return IRQ_NONE;
 	}
@@ -146,7 +149,8 @@ static int asm9260_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	ctime1 = ioread32(priv->iobase + HW_CTIME1);
 	ctime2 = ioread32(priv->iobase + HW_CTIME2);
 
-	if (ctime1 != ioread32(priv->iobase + HW_CTIME1)) {
+	if (ctime1 != ioread32(priv->iobase + HW_CTIME1))
+	{
 		/*
 		 * woops, counter flipped right now. Now we are safe
 		 * to reread.
@@ -237,7 +241,8 @@ static int asm9260_alarm_irq_enable(struct device *dev, unsigned int enabled)
 	return 0;
 }
 
-static const struct rtc_class_ops asm9260_rtc_ops = {
+static const struct rtc_class_ops asm9260_rtc_ops =
+{
 	.read_time		= asm9260_rtc_read_time,
 	.set_time		= asm9260_rtc_set_time,
 	.read_alarm		= asm9260_rtc_read_alarm,
@@ -254,33 +259,45 @@ static int asm9260_rtc_probe(struct platform_device *pdev)
 	u32 ccr;
 
 	priv = devm_kzalloc(dev, sizeof(struct asm9260_rtc_priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	priv->dev = &pdev->dev;
 	platform_set_drvdata(pdev, priv);
 
 	irq_alarm = platform_get_irq(pdev, 0);
-	if (irq_alarm < 0) {
+
+	if (irq_alarm < 0)
+	{
 		dev_err(dev, "No alarm IRQ resource defined\n");
 		return irq_alarm;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->iobase = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(priv->iobase))
+	{
 		return PTR_ERR(priv->iobase);
+	}
 
 	priv->clk = devm_clk_get(dev, "ahb");
 	ret = clk_prepare_enable(priv->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to enable clk!\n");
 		return ret;
 	}
 
 	ccr = ioread32(priv->iobase + HW_CCR);
+
 	/* if dev is not enabled, reset it */
-	if ((ccr & (BM_CLKEN | BM_CTCRST)) != BM_CLKEN) {
+	if ((ccr & (BM_CLKEN | BM_CTCRST)) != BM_CLKEN)
+	{
 		iowrite32(BM_CTCRST, priv->iobase + HW_CCR);
 		ccr = 0;
 	}
@@ -290,19 +307,23 @@ static int asm9260_rtc_probe(struct platform_device *pdev)
 	iowrite32(BM_AMR_OFF, priv->iobase + HW_AMR);
 
 	priv->rtc = devm_rtc_device_register(dev, dev_name(dev),
-					     &asm9260_rtc_ops, THIS_MODULE);
-	if (IS_ERR(priv->rtc)) {
+										 &asm9260_rtc_ops, THIS_MODULE);
+
+	if (IS_ERR(priv->rtc))
+	{
 		ret = PTR_ERR(priv->rtc);
 		dev_err(dev, "Failed to register RTC device: %d\n", ret);
 		goto err_return;
 	}
 
 	ret = devm_request_threaded_irq(dev, irq_alarm, NULL,
-					asm9260_rtc_irq, IRQF_ONESHOT,
-					dev_name(dev), priv);
-	if (ret < 0) {
+									asm9260_rtc_irq, IRQF_ONESHOT,
+									dev_name(dev), priv);
+
+	if (ret < 0)
+	{
 		dev_err(dev, "can't get irq %i, err %d\n",
-			irq_alarm, ret);
+				irq_alarm, ret);
 		goto err_return;
 	}
 
@@ -323,13 +344,15 @@ static int asm9260_rtc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id asm9260_dt_ids[] = {
+static const struct of_device_id asm9260_dt_ids[] =
+{
 	{ .compatible = "alphascale,asm9260-rtc", },
 	{}
 };
 MODULE_DEVICE_TABLE(of, asm9260_dt_ids);
 
-static struct platform_driver asm9260_rtc_driver = {
+static struct platform_driver asm9260_rtc_driver =
+{
 	.probe		= asm9260_rtc_probe,
 	.remove		= asm9260_rtc_remove,
 	.driver		= {

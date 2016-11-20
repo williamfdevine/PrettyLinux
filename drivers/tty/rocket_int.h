@@ -2,8 +2,8 @@
  * rocket_int.h --- internal header file for rocket.c
  *
  * Written by Theodore Ts'o, Copyright 1997.
- * Copyright 1997 Comtrol Corporation.  
- * 
+ * Copyright 1997 Comtrol Corporation.
+ *
  */
 
 /*
@@ -283,10 +283,10 @@ Channel Register Offsets - Indexed - Internal - Fixed
 #define AIOP_INTR_BIT_3		0x0008
 
 #define AIOP_INTR_BITS ( \
-	AIOP_INTR_BIT_0 \
-	| AIOP_INTR_BIT_1 \
-	| AIOP_INTR_BIT_2 \
-	| AIOP_INTR_BIT_3)
+						 AIOP_INTR_BIT_0 \
+						 | AIOP_INTR_BIT_1 \
+						 | AIOP_INTR_BIT_2 \
+						 | AIOP_INTR_BIT_3)
 
 #define UPCI_AIOP_INTR_BIT_0	0x0004
 #define UPCI_AIOP_INTR_BIT_1	0x0020
@@ -294,13 +294,14 @@ Channel Register Offsets - Indexed - Internal - Fixed
 #define UPCI_AIOP_INTR_BIT_3	0x0800
 
 #define UPCI_AIOP_INTR_BITS ( \
-	UPCI_AIOP_INTR_BIT_0 \
-	| UPCI_AIOP_INTR_BIT_1 \
-	| UPCI_AIOP_INTR_BIT_2 \
-	| UPCI_AIOP_INTR_BIT_3)
+							  UPCI_AIOP_INTR_BIT_0 \
+							  | UPCI_AIOP_INTR_BIT_1 \
+							  | UPCI_AIOP_INTR_BIT_2 \
+							  | UPCI_AIOP_INTR_BIT_3)
 
 /* Controller level information structure */
-typedef struct {
+typedef struct
+{
 	int CtlID;
 	int CtlNum;
 	int BusType;
@@ -327,7 +328,8 @@ typedef struct {
 typedef CONTROLLER_T CONTROLLER_t;
 
 /* Channel level information structure */
-typedef struct {
+typedef struct
+{
 	CONTROLLER_T *CtlP;
 	int AiopNum;
 	int ChanID;
@@ -379,10 +381,10 @@ Call:     sClrBreak(ChP)
           CHANNEL_T *ChP; Ptr to channel structure
 */
 #define sClrBreak(ChP) \
-do { \
-   (ChP)->TxControl[3] &= ~SETBREAK; \
-   out32((ChP)->IndexAddr,(ChP)->TxControl); \
-} while (0)
+	do { \
+		(ChP)->TxControl[3] &= ~SETBREAK; \
+		out32((ChP)->IndexAddr,(ChP)->TxControl); \
+	} while (0)
 
 /***************************************************************************
 Function: sClrDTR
@@ -391,10 +393,10 @@ Call:     sClrDTR(ChP)
           CHANNEL_T *ChP; Ptr to channel structure
 */
 #define sClrDTR(ChP) \
-do { \
-   (ChP)->TxControl[3] &= ~SET_DTR; \
-   out32((ChP)->IndexAddr,(ChP)->TxControl); \
-} while (0)
+	do { \
+		(ChP)->TxControl[3] &= ~SET_DTR; \
+		out32((ChP)->IndexAddr,(ChP)->TxControl); \
+	} while (0)
 
 /***************************************************************************
 Function: sClrRTS
@@ -403,11 +405,11 @@ Call:     sClrRTS(ChP)
           CHANNEL_T *ChP; Ptr to channel structure
 */
 #define sClrRTS(ChP) \
-do { \
-   if ((ChP)->rtsToggle) break; \
-   (ChP)->TxControl[3] &= ~SET_RTS; \
-   out32((ChP)->IndexAddr,(ChP)->TxControl); \
-} while (0)
+	do { \
+		if ((ChP)->rtsToggle) break; \
+		(ChP)->TxControl[3] &= ~SET_RTS; \
+		out32((ChP)->IndexAddr,(ChP)->TxControl); \
+	} while (0)
 
 /***************************************************************************
 Function: sClrTxXOFF
@@ -416,10 +418,10 @@ Call:     sClrTxXOFF(ChP)
           CHANNEL_T *ChP; Ptr to channel structure
 */
 #define sClrTxXOFF(ChP) \
-do { \
-   sOutB((ChP)->Cmd,TXOVERIDE | (Byte_t)(ChP)->ChanNum); \
-   sOutB((ChP)->Cmd,(Byte_t)(ChP)->ChanNum); \
-} while (0)
+	do { \
+		sOutB((ChP)->Cmd,TXOVERIDE | (Byte_t)(ChP)->ChanNum); \
+		sOutB((ChP)->Cmd,(Byte_t)(ChP)->ChanNum); \
+	} while (0)
 
 /***************************************************************************
 Function: sCtlNumToCtlPtr
@@ -447,16 +449,16 @@ Call:     sPCIControllerEOI(CtlP)
           CONTROLLER_T *CtlP; Ptr to controller structure
 */
 #define sPCIControllerEOI(CTLP) \
-do { \
-    if ((CTLP)->isUPCI) { \
-	Word_t w = sInW((CTLP)->PCIIO); \
-	sOutW((CTLP)->PCIIO, (w ^ PCI_INT_CTRL_AIOP)); \
-	sOutW((CTLP)->PCIIO, w); \
-    } \
-    else { \
-	sOutW((CTLP)->PCIIO, PCI_STROB); \
-    } \
-} while (0)
+	do { \
+		if ((CTLP)->isUPCI) { \
+			Word_t w = sInW((CTLP)->PCIIO); \
+			sOutW((CTLP)->PCIIO, (w ^ PCI_INT_CTRL_AIOP)); \
+			sOutW((CTLP)->PCIIO, w); \
+		} \
+		else { \
+			sOutW((CTLP)->PCIIO, PCI_STROB); \
+		} \
+	} while (0)
 
 /***************************************************************************
 Function: sDisAiop
@@ -466,10 +468,10 @@ Call:     sDisAiop(CltP)
           int AiopNum; Number of AIOP on controller
 */
 #define sDisAiop(CTLP,AIOPNUM) \
-do { \
-   (CTLP)->MReg3 &= sBitMapClrTbl[AIOPNUM]; \
-   sOutB((CTLP)->MReg3IO,(CTLP)->MReg3); \
-} while (0)
+	do { \
+		(CTLP)->MReg3 &= sBitMapClrTbl[AIOPNUM]; \
+		sOutB((CTLP)->MReg3IO,(CTLP)->MReg3); \
+	} while (0)
 
 /***************************************************************************
 Function: sDisCTSFlowCtl
@@ -478,10 +480,10 @@ Call:     sDisCTSFlowCtl(ChP)
           CHANNEL_T *ChP; Ptr to channel structure
 */
 #define sDisCTSFlowCtl(ChP) \
-do { \
-   (ChP)->TxControl[2] &= ~CTSFC_EN; \
-   out32((ChP)->IndexAddr,(ChP)->TxControl); \
-} while (0)
+	do { \
+		(ChP)->TxControl[2] &= ~CTSFC_EN; \
+		out32((ChP)->IndexAddr,(ChP)->TxControl); \
+	} while (0)
 
 /***************************************************************************
 Function: sDisIXANY
@@ -490,10 +492,10 @@ Call:     sDisIXANY(ChP)
           CHANNEL_T *ChP; Ptr to channel structure
 */
 #define sDisIXANY(ChP) \
-do { \
-   (ChP)->R[0x0e] = 0x86; \
-   out32((ChP)->IndexAddr,&(ChP)->R[0x0c]); \
-} while (0)
+	do { \
+		(ChP)->R[0x0e] = 0x86; \
+		out32((ChP)->IndexAddr,&(ChP)->R[0x0c]); \
+	} while (0)
 
 /***************************************************************************
 Function: DisParity
@@ -504,10 +506,10 @@ Comments: Function sSetParity() can be used in place of functions sEnParity(),
           sDisParity(), sSetOddParity(), and sSetEvenParity().
 */
 #define sDisParity(ChP) \
-do { \
-   (ChP)->TxControl[2] &= ~PARITY_EN; \
-   out32((ChP)->IndexAddr,(ChP)->TxControl); \
-} while (0)
+	do { \
+		(ChP)->TxControl[2] &= ~PARITY_EN; \
+		out32((ChP)->IndexAddr,(ChP)->TxControl); \
+	} while (0)
 
 /***************************************************************************
 Function: sDisRTSToggle
@@ -516,11 +518,11 @@ Call:     sDisRTSToggle(ChP)
           CHANNEL_T *ChP; Ptr to channel structure
 */
 #define sDisRTSToggle(ChP) \
-do { \
-   (ChP)->TxControl[2] &= ~RTSTOG_EN; \
-   out32((ChP)->IndexAddr,(ChP)->TxControl); \
-   (ChP)->rtsToggle = 0; \
-} while (0)
+	do { \
+		(ChP)->TxControl[2] &= ~RTSTOG_EN; \
+		out32((ChP)->IndexAddr,(ChP)->TxControl); \
+		(ChP)->rtsToggle = 0; \
+	} while (0)
 
 /***************************************************************************
 Function: sDisRxFIFO
@@ -529,10 +531,10 @@ Call:     sDisRxFIFO(ChP)
           CHANNEL_T *ChP; Ptr to channel structure
 */
 #define sDisRxFIFO(ChP) \
-do { \
-   (ChP)->R[0x32] = 0x0a; \
-   out32((ChP)->IndexAddr,&(ChP)->R[0x30]); \
-} while (0)
+	do { \
+		(ChP)->R[0x32] = 0x0a; \
+		out32((ChP)->IndexAddr,&(ChP)->R[0x30]); \
+	} while (0)
 
 /***************************************************************************
 Function: sDisRxStatusMode
@@ -556,10 +558,10 @@ Call:     sDisTransmit(ChP)
           and transmit shift register going completely empty.
 */
 #define sDisTransmit(ChP) \
-do { \
-   (ChP)->TxControl[3] &= ~TX_ENABLE; \
-   out32((ChP)->IndexAddr,(ChP)->TxControl); \
-} while (0)
+	do { \
+		(ChP)->TxControl[3] &= ~TX_ENABLE; \
+		out32((ChP)->IndexAddr,(ChP)->TxControl); \
+	} while (0)
 
 /***************************************************************************
 Function: sDisTxSoftFlowCtl
@@ -568,10 +570,10 @@ Call:     sDisTxSoftFlowCtl(ChP)
           CHANNEL_T *ChP; Ptr to channel structure
 */
 #define sDisTxSoftFlowCtl(ChP) \
-do { \
-   (ChP)->R[0x06] = 0x8a; \
-   out32((ChP)->IndexAddr,&(ChP)->R[0x04]); \
-} while (0)
+	do { \
+		(ChP)->R[0x06] = 0x8a; \
+		out32((ChP)->IndexAddr,&(ChP)->R[0x04]); \
+	} while (0)
 
 /***************************************************************************
 Function: sEnAiop
@@ -581,10 +583,10 @@ Call:     sEnAiop(CltP)
           int AiopNum; Number of AIOP on controller
 */
 #define sEnAiop(CTLP,AIOPNUM) \
-do { \
-   (CTLP)->MReg3 |= sBitMapSetTbl[AIOPNUM]; \
-   sOutB((CTLP)->MReg3IO,(CTLP)->MReg3); \
-} while (0)
+	do { \
+		(CTLP)->MReg3 |= sBitMapSetTbl[AIOPNUM]; \
+		sOutB((CTLP)->MReg3IO,(CTLP)->MReg3); \
+	} while (0)
 
 /***************************************************************************
 Function: sEnCTSFlowCtl
@@ -593,10 +595,10 @@ Call:     sEnCTSFlowCtl(ChP)
           CHANNEL_T *ChP; Ptr to channel structure
 */
 #define sEnCTSFlowCtl(ChP) \
-do { \
-   (ChP)->TxControl[2] |= CTSFC_EN; \
-   out32((ChP)->IndexAddr,(ChP)->TxControl); \
-} while (0)
+	do { \
+		(ChP)->TxControl[2] |= CTSFC_EN; \
+		out32((ChP)->IndexAddr,(ChP)->TxControl); \
+	} while (0)
 
 /***************************************************************************
 Function: sEnIXANY
@@ -605,10 +607,10 @@ Call:     sEnIXANY(ChP)
           CHANNEL_T *ChP; Ptr to channel structure
 */
 #define sEnIXANY(ChP) \
-do { \
-   (ChP)->R[0x0e] = 0x21; \
-   out32((ChP)->IndexAddr,&(ChP)->R[0x0c]); \
-} while (0)
+	do { \
+		(ChP)->R[0x0e] = 0x21; \
+		out32((ChP)->IndexAddr,&(ChP)->R[0x0c]); \
+	} while (0)
 
 /***************************************************************************
 Function: EnParity
@@ -622,10 +624,10 @@ Warnings: Before enabling parity odd or even parity should be chosen using
           functions sSetOddParity() or sSetEvenParity().
 */
 #define sEnParity(ChP) \
-do { \
-   (ChP)->TxControl[2] |= PARITY_EN; \
-   out32((ChP)->IndexAddr,(ChP)->TxControl); \
-} while (0)
+	do { \
+		(ChP)->TxControl[2] |= PARITY_EN; \
+		out32((ChP)->IndexAddr,(ChP)->TxControl); \
+	} while (0)
 
 /***************************************************************************
 Function: sEnRTSToggle
@@ -636,14 +638,14 @@ Comments: This function will disable RTS flow control and clear the RTS
           line to allow operation of RTS toggle.
 */
 #define sEnRTSToggle(ChP) \
-do { \
-   (ChP)->RxControl[2] &= ~RTSFC_EN; \
-   out32((ChP)->IndexAddr,(ChP)->RxControl); \
-   (ChP)->TxControl[2] |= RTSTOG_EN; \
-   (ChP)->TxControl[3] &= ~SET_RTS; \
-   out32((ChP)->IndexAddr,(ChP)->TxControl); \
-   (ChP)->rtsToggle = 1; \
-} while (0)
+	do { \
+		(ChP)->RxControl[2] &= ~RTSFC_EN; \
+		out32((ChP)->IndexAddr,(ChP)->RxControl); \
+		(ChP)->TxControl[2] |= RTSTOG_EN; \
+		(ChP)->TxControl[3] &= ~SET_RTS; \
+		out32((ChP)->IndexAddr,(ChP)->TxControl); \
+		(ChP)->rtsToggle = 1; \
+	} while (0)
 
 /***************************************************************************
 Function: sEnRxFIFO
@@ -652,10 +654,10 @@ Call:     sEnRxFIFO(ChP)
           CHANNEL_T *ChP; Ptr to channel structure
 */
 #define sEnRxFIFO(ChP) \
-do { \
-   (ChP)->R[0x32] = 0x08; \
-   out32((ChP)->IndexAddr,&(ChP)->R[0x30]); \
-} while (0)
+	do { \
+		(ChP)->R[0x32] = 0x08; \
+		out32((ChP)->IndexAddr,&(ChP)->R[0x30]); \
+	} while (0)
 
 /***************************************************************************
 Function: sEnRxProcessor
@@ -673,10 +675,10 @@ Warnings: This function must be called after valid microcode has been
           microcode has been downloaded.
 */
 #define sEnRxProcessor(ChP) \
-do { \
-   (ChP)->RxControl[2] |= RXPROC_EN; \
-   out32((ChP)->IndexAddr,(ChP)->RxControl); \
-} while (0)
+	do { \
+		(ChP)->RxControl[2] |= RXPROC_EN; \
+		out32((ChP)->IndexAddr,(ChP)->RxControl); \
+	} while (0)
 
 /***************************************************************************
 Function: sEnRxStatusMode
@@ -697,10 +699,10 @@ Call:     sEnTransmit(ChP)
           CHANNEL_T *ChP; Ptr to channel structure
 */
 #define sEnTransmit(ChP) \
-do { \
-   (ChP)->TxControl[3] |= TX_ENABLE; \
-   out32((ChP)->IndexAddr,(ChP)->TxControl); \
-} while (0)
+	do { \
+		(ChP)->TxControl[3] |= TX_ENABLE; \
+		out32((ChP)->IndexAddr,(ChP)->TxControl); \
+	} while (0)
 
 /***************************************************************************
 Function: sEnTxSoftFlowCtl
@@ -709,10 +711,10 @@ Call:     sEnTxSoftFlowCtl(ChP)
           CHANNEL_T *ChP; Ptr to channel structure
 */
 #define sEnTxSoftFlowCtl(ChP) \
-do { \
-   (ChP)->R[0x06] = 0xc5; \
-   out32((ChP)->IndexAddr,&(ChP)->R[0x04]); \
-} while (0)
+	do { \
+		(ChP)->R[0x06] = 0xc5; \
+		out32((ChP)->IndexAddr,&(ChP)->R[0x04]); \
+	} while (0)
 
 /***************************************************************************
 Function: sGetAiopIntStatus
@@ -812,10 +814,10 @@ Return:   Byte_t: The channel status low byte.  Can be any combination
  */
 #if 0
 #define sGetChanRI(ChP) ((ChP)->CtlP->AltChanRingIndicator ? \
-                          (sInB((ByteIO_t)((ChP)->ChanStat+8)) & DSR_ACT) : \
-                            (((ChP)->CtlP->boardType == ROCKET_TYPE_PC104) ? \
-                               (!(sInB((ChP)->CtlP->AiopIO[3]) & sBitMapSetTbl[(ChP)->ChanNum])) : \
-                             0))
+						 (sInB((ByteIO_t)((ChP)->ChanStat+8)) & DSR_ACT) : \
+						 (((ChP)->CtlP->boardType == ROCKET_TYPE_PC104) ? \
+						  (!(sInB((ChP)->CtlP->AiopIO[3]) & sBitMapSetTbl[(ChP)->ChanNum])) : \
+						  0))
 #endif
 
 /***************************************************************************
@@ -838,14 +840,14 @@ Call:     sPCIGetControllerIntStatus(CtlP)
           CONTROLLER_T *CtlP; Ptr to controller structure
 Return:   unsigned char: The controller interrupt status in the lower 4
                          bits and bit 4.  Bits 0 through 3 represent AIOP's 0
-                         through 3 respectively. Bit 4 is set if the int 
+                         through 3 respectively. Bit 4 is set if the int
 			 was generated from periodic. If a bit is set the
 			 AIOP is interrupting.
 */
 #define sPCIGetControllerIntStatus(CTLP) \
 	((CTLP)->isUPCI ? \
-	  (sInW((CTLP)->PCIIO2) & UPCI_AIOP_INTR_BITS) : \
-	  ((sInW((CTLP)->PCIIO) >> 8) & AIOP_INTR_BITS))
+	 (sInW((CTLP)->PCIIO2) & UPCI_AIOP_INTR_BITS) : \
+	 ((sInW((CTLP)->PCIIO) >> 8) & AIOP_INTR_BITS))
 
 /***************************************************************************
 
@@ -889,25 +891,25 @@ Comments: This function must be called once for every channel structure
 
 */
 #define sInitChanDefaults(ChP) \
-do { \
-   (ChP)->CtlP = NULLCTLPTR; \
-   (ChP)->AiopNum = NULLAIOP; \
-   (ChP)->ChanID = AIOPID_NULL; \
-   (ChP)->ChanNum = NULLCHAN; \
-} while (0)
+	do { \
+		(ChP)->CtlP = NULLCTLPTR; \
+		(ChP)->AiopNum = NULLAIOP; \
+		(ChP)->ChanID = AIOPID_NULL; \
+		(ChP)->ChanNum = NULLCHAN; \
+	} while (0)
 
 /***************************************************************************
 Function: sResetAiopByNum
 Purpose:  Reset the AIOP by number
 Call:     sResetAiopByNum(CTLP,AIOPNUM)
 	CONTROLLER_T CTLP; Ptr to controller structure
-	AIOPNUM; AIOP index 
+	AIOPNUM; AIOP index
 */
 #define sResetAiopByNum(CTLP,AIOPNUM) \
-do { \
-   sOutB((CTLP)->AiopIO[(AIOPNUM)]+_CMD_REG,RESET_ALL); \
-   sOutB((CTLP)->AiopIO[(AIOPNUM)]+_CMD_REG,0x0); \
-} while (0)
+	do { \
+		sOutB((CTLP)->AiopIO[(AIOPNUM)]+_CMD_REG,RESET_ALL); \
+		sOutB((CTLP)->AiopIO[(AIOPNUM)]+_CMD_REG,0x0); \
+	} while (0)
 
 /***************************************************************************
 Function: sSendBreak
@@ -916,10 +918,10 @@ Call:     sSendBreak(ChP)
           CHANNEL_T *ChP; Ptr to channel structure
 */
 #define sSendBreak(ChP) \
-do { \
-   (ChP)->TxControl[3] |= SETBREAK; \
-   out32((ChP)->IndexAddr,(ChP)->TxControl); \
-} while (0)
+	do { \
+		(ChP)->TxControl[3] |= SETBREAK; \
+		out32((ChP)->IndexAddr,(ChP)->TxControl); \
+	} while (0)
 
 /***************************************************************************
 Function: sSetBaud
@@ -929,11 +931,11 @@ Call:     sSetBaud(ChP,Divisor)
           Word_t Divisor; 16 bit baud rate divisor for channel
 */
 #define sSetBaud(ChP,DIVISOR) \
-do { \
-   (ChP)->BaudDiv[2] = (Byte_t)(DIVISOR); \
-   (ChP)->BaudDiv[3] = (Byte_t)((DIVISOR) >> 8); \
-   out32((ChP)->IndexAddr,(ChP)->BaudDiv); \
-} while (0)
+	do { \
+		(ChP)->BaudDiv[2] = (Byte_t)(DIVISOR); \
+		(ChP)->BaudDiv[3] = (Byte_t)((DIVISOR) >> 8); \
+		out32((ChP)->IndexAddr,(ChP)->BaudDiv); \
+	} while (0)
 
 /***************************************************************************
 Function: sSetData7
@@ -942,10 +944,10 @@ Call:     sSetData7(ChP)
           CHANNEL_T *ChP; Ptr to channel structure
 */
 #define sSetData7(ChP) \
-do { \
-   (ChP)->TxControl[2] &= ~DATA8BIT; \
-   out32((ChP)->IndexAddr,(ChP)->TxControl); \
-} while (0)
+	do { \
+		(ChP)->TxControl[2] &= ~DATA8BIT; \
+		out32((ChP)->IndexAddr,(ChP)->TxControl); \
+	} while (0)
 
 /***************************************************************************
 Function: sSetData8
@@ -954,10 +956,10 @@ Call:     sSetData8(ChP)
           CHANNEL_T *ChP; Ptr to channel structure
 */
 #define sSetData8(ChP) \
-do { \
-   (ChP)->TxControl[2] |= DATA8BIT; \
-   out32((ChP)->IndexAddr,(ChP)->TxControl); \
-} while (0)
+	do { \
+		(ChP)->TxControl[2] |= DATA8BIT; \
+		out32((ChP)->IndexAddr,(ChP)->TxControl); \
+	} while (0)
 
 /***************************************************************************
 Function: sSetDTR
@@ -966,10 +968,10 @@ Call:     sSetDTR(ChP)
           CHANNEL_T *ChP; Ptr to channel structure
 */
 #define sSetDTR(ChP) \
-do { \
-   (ChP)->TxControl[3] |= SET_DTR; \
-   out32((ChP)->IndexAddr,(ChP)->TxControl); \
-} while (0)
+	do { \
+		(ChP)->TxControl[3] |= SET_DTR; \
+		out32((ChP)->IndexAddr,(ChP)->TxControl); \
+	} while (0)
 
 /***************************************************************************
 Function: sSetEvenParity
@@ -983,10 +985,10 @@ Warnings: This function has no effect unless parity is enabled with function
           sEnParity().
 */
 #define sSetEvenParity(ChP) \
-do { \
-   (ChP)->TxControl[2] |= EVEN_PAR; \
-   out32((ChP)->IndexAddr,(ChP)->TxControl); \
-} while (0)
+	do { \
+		(ChP)->TxControl[2] |= EVEN_PAR; \
+		out32((ChP)->IndexAddr,(ChP)->TxControl); \
+	} while (0)
 
 /***************************************************************************
 Function: sSetOddParity
@@ -1000,10 +1002,10 @@ Warnings: This function has no effect unless parity is enabled with function
           sEnParity().
 */
 #define sSetOddParity(ChP) \
-do { \
-   (ChP)->TxControl[2] &= ~EVEN_PAR; \
-   out32((ChP)->IndexAddr,(ChP)->TxControl); \
-} while (0)
+	do { \
+		(ChP)->TxControl[2] &= ~EVEN_PAR; \
+		out32((ChP)->IndexAddr,(ChP)->TxControl); \
+	} while (0)
 
 /***************************************************************************
 Function: sSetRTS
@@ -1012,11 +1014,11 @@ Call:     sSetRTS(ChP)
           CHANNEL_T *ChP; Ptr to channel structure
 */
 #define sSetRTS(ChP) \
-do { \
-   if ((ChP)->rtsToggle) break; \
-   (ChP)->TxControl[3] |= SET_RTS; \
-   out32((ChP)->IndexAddr,(ChP)->TxControl); \
-} while (0)
+	do { \
+		if ((ChP)->rtsToggle) break; \
+		(ChP)->TxControl[3] |= SET_RTS; \
+		out32((ChP)->IndexAddr,(ChP)->TxControl); \
+	} while (0)
 
 /***************************************************************************
 Function: sSetRxTrigger
@@ -1038,11 +1040,11 @@ Comments: An interrupt will be generated when the trigger level is reached
 
 */
 #define sSetRxTrigger(ChP,LEVEL) \
-do { \
-   (ChP)->RxControl[2] &= ~TRIG_MASK; \
-   (ChP)->RxControl[2] |= LEVEL; \
-   out32((ChP)->IndexAddr,(ChP)->RxControl); \
-} while (0)
+	do { \
+		(ChP)->RxControl[2] &= ~TRIG_MASK; \
+		(ChP)->RxControl[2] |= LEVEL; \
+		out32((ChP)->IndexAddr,(ChP)->RxControl); \
+	} while (0)
 
 /***************************************************************************
 Function: sSetStop1
@@ -1051,10 +1053,10 @@ Call:     sSetStop1(ChP)
           CHANNEL_T *ChP; Ptr to channel structure
 */
 #define sSetStop1(ChP) \
-do { \
-   (ChP)->TxControl[2] &= ~STOP2; \
-   out32((ChP)->IndexAddr,(ChP)->TxControl); \
-} while (0)
+	do { \
+		(ChP)->TxControl[2] &= ~STOP2; \
+		out32((ChP)->IndexAddr,(ChP)->TxControl); \
+	} while (0)
 
 /***************************************************************************
 Function: sSetStop2
@@ -1063,10 +1065,10 @@ Call:     sSetStop2(ChP)
           CHANNEL_T *ChP; Ptr to channel structure
 */
 #define sSetStop2(ChP) \
-do { \
-   (ChP)->TxControl[2] |= STOP2; \
-   out32((ChP)->IndexAddr,(ChP)->TxControl); \
-} while (0)
+	do { \
+		(ChP)->TxControl[2] |= STOP2; \
+		out32((ChP)->IndexAddr,(ChP)->TxControl); \
+	} while (0)
 
 /***************************************************************************
 Function: sSetTxXOFFChar
@@ -1076,10 +1078,10 @@ Call:     sSetTxXOFFChar(ChP,Ch)
           Byte_t Ch; The value to set the Tx XOFF character to
 */
 #define sSetTxXOFFChar(ChP,CH) \
-do { \
-   (ChP)->R[0x07] = (CH); \
-   out32((ChP)->IndexAddr,&(ChP)->R[0x04]); \
-} while (0)
+	do { \
+		(ChP)->R[0x07] = (CH); \
+		out32((ChP)->IndexAddr,&(ChP)->R[0x04]); \
+	} while (0)
 
 /***************************************************************************
 Function: sSetTxXONChar
@@ -1089,10 +1091,10 @@ Call:     sSetTxXONChar(ChP,Ch)
           Byte_t Ch; The value to set the Tx XON character to
 */
 #define sSetTxXONChar(ChP,CH) \
-do { \
-   (ChP)->R[0x0b] = (CH); \
-   out32((ChP)->IndexAddr,&(ChP)->R[0x08]); \
-} while (0)
+	do { \
+		(ChP)->R[0x0b] = (CH); \
+		out32((ChP)->IndexAddr,&(ChP)->R[0x08]); \
+	} while (0)
 
 /***************************************************************************
 Function: sStartRxProcessor
@@ -1123,14 +1125,15 @@ Warnings: This function writes the data byte without checking to see if
  * This code is Copyright Theodore Ts'o, 1995-1997
  */
 
-struct r_port {
+struct r_port
+{
 	int magic;
 	struct tty_port port;
 	int line;
 	int flags;		/* Don't yet match the ASY_ flags!! */
-	unsigned int board:3;
-	unsigned int aiop:2;
-	unsigned int chan:3;
+	unsigned int board: 3;
+	unsigned int aiop: 2;
+	unsigned int chan: 3;
 	CONTROLLER_t *ctlp;
 	CHANNEL_t channel;
 	int intmask;
@@ -1168,16 +1171,16 @@ struct r_port {
 #define CUA_ROCKET_MAJOR	47
 
 #ifdef PCI_VENDOR_ID_RP
-#undef PCI_VENDOR_ID_RP
-#undef PCI_DEVICE_ID_RP8OCTA
-#undef PCI_DEVICE_ID_RP8INTF
-#undef PCI_DEVICE_ID_RP16INTF
-#undef PCI_DEVICE_ID_RP32INTF
-#undef PCI_DEVICE_ID_URP8OCTA
-#undef PCI_DEVICE_ID_URP8INTF
-#undef PCI_DEVICE_ID_URP16INTF
-#undef PCI_DEVICE_ID_CRP16INTF
-#undef PCI_DEVICE_ID_URP32INTF
+	#undef PCI_VENDOR_ID_RP
+	#undef PCI_DEVICE_ID_RP8OCTA
+	#undef PCI_DEVICE_ID_RP8INTF
+	#undef PCI_DEVICE_ID_RP16INTF
+	#undef PCI_DEVICE_ID_RP32INTF
+	#undef PCI_DEVICE_ID_URP8OCTA
+	#undef PCI_DEVICE_ID_URP8INTF
+	#undef PCI_DEVICE_ID_URP16INTF
+	#undef PCI_DEVICE_ID_CRP16INTF
+	#undef PCI_DEVICE_ID_URP32INTF
 #endif
 
 /*  Comtrol PCI Vendor ID */
@@ -1198,16 +1201,16 @@ struct r_port {
 #define PCI_DEVICE_ID_RP6M		0x000C	/* RocketModem 6 port                    */
 #define PCI_DEVICE_ID_RP4M		0x000D	/* RocketModem 4 port                    */
 #define PCI_DEVICE_ID_RP2_232           0x000E	/* Rocketport Plus 2 port RS232          */
-#define PCI_DEVICE_ID_RP2_422           0x000F	/* Rocketport Plus 2 port RS422          */ 
+#define PCI_DEVICE_ID_RP2_422           0x000F	/* Rocketport Plus 2 port RS422          */
 
 /* Universal PCI boards  */
-#define PCI_DEVICE_ID_URP32INTF		0x0801	/* Rocketport UPCI 32 port w/external I/F */ 
+#define PCI_DEVICE_ID_URP32INTF		0x0801	/* Rocketport UPCI 32 port w/external I/F */
 #define PCI_DEVICE_ID_URP8INTF		0x0802	/* Rocketport UPCI 8 port w/external I/F  */
 #define PCI_DEVICE_ID_URP16INTF		0x0803	/* Rocketport UPCI 16 port w/external I/F */
 #define PCI_DEVICE_ID_URP8OCTA		0x0805	/* Rocketport UPCI 8 port w/octa cable    */
 #define PCI_DEVICE_ID_UPCI_RM3_8PORT    0x080C	/* Rocketmodem III 8 port                 */
 #define PCI_DEVICE_ID_UPCI_RM3_4PORT    0x080D	/* Rocketmodem III 4 port                 */
 
-/* Compact PCI device */ 
+/* Compact PCI device */
 #define PCI_DEVICE_ID_CRP16INTF		0x0903	/* Rocketport Compact PCI 16 port w/external I/F */
 

@@ -40,31 +40,37 @@ static int echainiv_encrypt(struct aead_request *req)
 	int err;
 
 	if (req->cryptlen < ivsize)
+	{
 		return -EINVAL;
+	}
 
 	aead_request_set_tfm(subreq, ctx->child);
 
 	info = req->iv;
 
-	if (req->src != req->dst) {
+	if (req->src != req->dst)
+	{
 		SKCIPHER_REQUEST_ON_STACK(nreq, ctx->sknull);
 
 		skcipher_request_set_tfm(nreq, ctx->sknull);
 		skcipher_request_set_callback(nreq, req->base.flags,
-					      NULL, NULL);
+									  NULL, NULL);
 		skcipher_request_set_crypt(nreq, req->src, req->dst,
-					   req->assoclen + req->cryptlen,
-					   NULL);
+								   req->assoclen + req->cryptlen,
+								   NULL);
 
 		err = crypto_skcipher_encrypt(nreq);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	aead_request_set_callback(subreq, req->base.flags,
-				  req->base.complete, req->base.data);
+							  req->base.complete, req->base.data);
 	aead_request_set_crypt(subreq, req->dst, req->dst,
-			       req->cryptlen, info);
+						   req->cryptlen, info);
 	aead_request_set_ad(subreq, req->assoclen);
 
 	memcpy(&nseqno, info + ivsize - 8, 8);
@@ -73,7 +79,8 @@ static int echainiv_encrypt(struct aead_request *req)
 
 	scatterwalk_map_and_copy(info, req->dst, req->assoclen, ivsize, 1);
 
-	do {
+	do
+	{
 		u64 a;
 
 		memcpy(&a, ctx->salt + ivsize - 8, 8);
@@ -82,7 +89,8 @@ static int echainiv_encrypt(struct aead_request *req)
 		a *= seqno;
 
 		memcpy(info + ivsize - 8, &a, 8);
-	} while ((ivsize -= 8));
+	}
+	while ((ivsize -= 8));
 
 	return crypto_aead_encrypt(subreq);
 }
@@ -97,7 +105,9 @@ static int echainiv_decrypt(struct aead_request *req)
 	unsigned int ivsize = crypto_aead_ivsize(geniv);
 
 	if (req->cryptlen < ivsize)
+	{
 		return -EINVAL;
+	}
 
 	aead_request_set_tfm(subreq, ctx->child);
 
@@ -106,7 +116,7 @@ static int echainiv_decrypt(struct aead_request *req)
 
 	aead_request_set_callback(subreq, req->base.flags, compl, data);
 	aead_request_set_crypt(subreq, req->src, req->dst,
-			       req->cryptlen - ivsize, req->iv);
+						   req->cryptlen - ivsize, req->iv);
 	aead_request_set_ad(subreq, req->assoclen + ivsize);
 
 	scatterwalk_map_and_copy(req->iv, req->src, req->assoclen, ivsize, 0);
@@ -115,7 +125,7 @@ static int echainiv_decrypt(struct aead_request *req)
 }
 
 static int echainiv_aead_create(struct crypto_template *tmpl,
-				struct rtattr **tb)
+								struct rtattr **tb)
 {
 	struct aead_instance *inst;
 	struct crypto_aead_spawn *spawn;
@@ -125,14 +135,19 @@ static int echainiv_aead_create(struct crypto_template *tmpl,
 	inst = aead_geniv_alloc(tmpl, tb, 0, 0);
 
 	if (IS_ERR(inst))
+	{
 		return PTR_ERR(inst);
+	}
 
 	spawn = aead_instance_ctx(inst);
 	alg = crypto_spawn_aead_alg(spawn);
 
 	err = -EINVAL;
+
 	if (inst->alg.ivsize & (sizeof(u64) - 1) || !inst->alg.ivsize)
+	{
 		goto free_inst;
+	}
 
 	inst->alg.encrypt = echainiv_encrypt;
 	inst->alg.decrypt = echainiv_decrypt;
@@ -146,8 +161,11 @@ static int echainiv_aead_create(struct crypto_template *tmpl,
 	inst->free = aead_geniv_free;
 
 	err = aead_register_instance(tmpl, inst);
+
 	if (err)
+	{
 		goto free_inst;
+	}
 
 out:
 	return err;
@@ -162,7 +180,8 @@ static void echainiv_free(struct crypto_instance *inst)
 	aead_geniv_free(aead_instance(inst));
 }
 
-static struct crypto_template echainiv_tmpl = {
+static struct crypto_template echainiv_tmpl =
+{
 	.name = "echainiv",
 	.create = echainiv_aead_create,
 	.free = echainiv_free,

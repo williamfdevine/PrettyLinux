@@ -31,17 +31,18 @@
  * Size used to map GRU GSeg
  */
 #if defined(CONFIG_IA64)
-#define GRU_GSEG_PAGESIZE	(256 * 1024UL)
+	#define GRU_GSEG_PAGESIZE	(256 * 1024UL)
 #elif defined(CONFIG_X86_64)
-#define GRU_GSEG_PAGESIZE	(256 * 1024UL)		/* ZZZ 2MB ??? */
+	#define GRU_GSEG_PAGESIZE	(256 * 1024UL)		/* ZZZ 2MB ??? */
 #else
-#error "Unsupported architecture"
+	#error "Unsupported architecture"
 #endif
 
 /*
  * Structure for obtaining GRU resource information
  */
-struct gru_chiplet_info {
+struct gru_chiplet_info
+{
 	int	node;
 	int	chiplet;
 	int	blade;
@@ -56,7 +57,8 @@ struct gru_chiplet_info {
 /*
  * Statictics kept for each context.
  */
-struct gru_gseg_statistics {
+struct gru_gseg_statistics
+{
 	unsigned long	fmm_tlbmiss;
 	unsigned long	upm_tlbmiss;
 	unsigned long	tlbdropin;

@@ -79,13 +79,13 @@ xfs_bui_item_format(
 	struct xfs_log_iovec	*vecp = NULL;
 
 	ASSERT(atomic_read(&buip->bui_next_extent) ==
-			buip->bui_format.bui_nextents);
+		   buip->bui_format.bui_nextents);
 
 	buip->bui_format.bui_type = XFS_LI_BUI;
 	buip->bui_format.bui_size = 1;
 
 	xlog_copy_iovec(lv, &vecp, XLOG_REG_TYPE_BUI_FORMAT, &buip->bui_format,
-			xfs_bui_log_format_sizeof(buip->bui_format.bui_nextents));
+					xfs_bui_log_format_sizeof(buip->bui_format.bui_nextents));
 }
 
 /*
@@ -140,7 +140,9 @@ xfs_bui_item_unlock(
 	struct xfs_log_item	*lip)
 {
 	if (lip->li_flags & XFS_LI_ABORTED)
+	{
 		xfs_bui_item_free(BUI_ITEM(lip));
+	}
 }
 
 /*
@@ -172,7 +174,8 @@ xfs_bui_item_committing(
 /*
  * This is the ops vector shared by all bui log items.
  */
-static const struct xfs_item_ops xfs_bui_item_ops = {
+static const struct xfs_item_ops xfs_bui_item_ops =
+{
 	.iop_size	= xfs_bui_item_size,
 	.iop_format	= xfs_bui_item_format,
 	.iop_pin	= xfs_bui_item_pin,
@@ -215,7 +218,8 @@ void
 xfs_bui_release(
 	struct xfs_bui_log_item	*buip)
 {
-	if (atomic_dec_and_test(&buip->bui_refcount)) {
+	if (atomic_dec_and_test(&buip->bui_refcount))
+	{
 		xfs_trans_ail_remove(&buip->bui_item, SHUTDOWN_LOG_IO_ERROR);
 		xfs_bui_item_free(buip);
 	}
@@ -255,7 +259,7 @@ xfs_bud_item_format(
 	budp->bud_format.bud_size = 1;
 
 	xlog_copy_iovec(lv, &vecp, XLOG_REG_TYPE_BUD_FORMAT, &budp->bud_format,
-			sizeof(struct xfs_bud_log_format));
+					sizeof(struct xfs_bud_log_format));
 }
 
 /*
@@ -301,7 +305,8 @@ xfs_bud_item_unlock(
 {
 	struct xfs_bud_log_item	*budp = BUD_ITEM(lip);
 
-	if (lip->li_flags & XFS_LI_ABORTED) {
+	if (lip->li_flags & XFS_LI_ABORTED)
+	{
 		xfs_bui_release(budp->bud_buip);
 		kmem_zone_free(xfs_bud_zone, budp);
 	}
@@ -329,7 +334,7 @@ xfs_bud_item_committed(
 	xfs_bui_release(budp->bud_buip);
 	kmem_zone_free(xfs_bud_zone, budp);
 
-	return (xfs_lsn_t)-1;
+	return (xfs_lsn_t) - 1;
 }
 
 /*
@@ -349,7 +354,8 @@ xfs_bud_item_committing(
 /*
  * This is the ops vector shared by all bud log items.
  */
-static const struct xfs_item_ops xfs_bud_item_ops = {
+static const struct xfs_item_ops xfs_bud_item_ops =
+{
 	.iop_size	= xfs_bud_item_size,
 	.iop_format	= xfs_bud_item_format,
 	.iop_pin	= xfs_bud_item_pin,
@@ -406,7 +412,8 @@ xfs_bui_recover(
 	ASSERT(!test_bit(XFS_BUI_RECOVERED, &buip->bui_flags));
 
 	/* Only one mapping operation per BUI... */
-	if (buip->bui_format.bui_nextents != XFS_BUI_MAX_FAST_EXTENTS) {
+	if (buip->bui_format.bui_nextents != XFS_BUI_MAX_FAST_EXTENTS)
+	{
 		set_bit(XFS_BUI_RECOVERED, &buip->bui_flags);
 		xfs_bui_release(buip);
 		return -EIO;
@@ -418,25 +425,30 @@ xfs_bui_recover(
 	 */
 	bmap = &buip->bui_format.bui_extents[0];
 	startblock_fsb = XFS_BB_TO_FSB(mp,
-			   XFS_FSB_TO_DADDR(mp, bmap->me_startblock));
+								   XFS_FSB_TO_DADDR(mp, bmap->me_startblock));
 	inode_fsb = XFS_BB_TO_FSB(mp, XFS_FSB_TO_DADDR(mp,
-			XFS_INO_TO_FSB(mp, bmap->me_owner)));
-	switch (bmap->me_flags & XFS_BMAP_EXTENT_TYPE_MASK) {
-	case XFS_BMAP_MAP:
-	case XFS_BMAP_UNMAP:
-		op_ok = true;
-		break;
-	default:
-		op_ok = false;
-		break;
+							  XFS_INO_TO_FSB(mp, bmap->me_owner)));
+
+	switch (bmap->me_flags & XFS_BMAP_EXTENT_TYPE_MASK)
+	{
+		case XFS_BMAP_MAP:
+		case XFS_BMAP_UNMAP:
+			op_ok = true;
+			break;
+
+		default:
+			op_ok = false;
+			break;
 	}
+
 	if (!op_ok || startblock_fsb == 0 ||
-	    bmap->me_len == 0 ||
-	    inode_fsb == 0 ||
-	    startblock_fsb >= mp->m_sb.sb_dblocks ||
-	    bmap->me_len >= mp->m_sb.sb_agblocks ||
-	    inode_fsb >= mp->m_sb.sb_dblocks ||
-	    (bmap->me_flags & ~XFS_BMAP_EXTENT_FLAGS)) {
+		bmap->me_len == 0 ||
+		inode_fsb == 0 ||
+		startblock_fsb >= mp->m_sb.sb_dblocks ||
+		bmap->me_len >= mp->m_sb.sb_agblocks ||
+		inode_fsb >= mp->m_sb.sb_dblocks ||
+		(bmap->me_flags & ~XFS_BMAP_EXTENT_FLAGS))
+	{
 		/*
 		 * This will pull the BUI from the AIL and
 		 * free the memory associated with it.
@@ -447,47 +459,67 @@ xfs_bui_recover(
 	}
 
 	error = xfs_trans_alloc(mp, &M_RES(mp)->tr_itruncate, 0, 0, 0, &tp);
+
 	if (error)
+	{
 		return error;
+	}
+
 	budp = xfs_trans_get_bud(tp, buip);
 
 	/* Grab the inode. */
 	error = xfs_iget(mp, tp, bmap->me_owner, 0, XFS_ILOCK_EXCL, &ip);
+
 	if (error)
+	{
 		goto err_inode;
+	}
 
 	if (VFS_I(ip)->i_nlink == 0)
+	{
 		xfs_iflags_set(ip, XFS_IRECOVERY);
+	}
+
 	xfs_defer_init(&dfops, &firstfsb);
 
 	/* Process deferred bmap item. */
 	state = (bmap->me_flags & XFS_BMAP_EXTENT_UNWRITTEN) ?
 			XFS_EXT_UNWRITTEN : XFS_EXT_NORM;
 	whichfork = (bmap->me_flags & XFS_BMAP_EXTENT_ATTR_FORK) ?
-			XFS_ATTR_FORK : XFS_DATA_FORK;
+				XFS_ATTR_FORK : XFS_DATA_FORK;
 	bui_type = bmap->me_flags & XFS_BMAP_EXTENT_TYPE_MASK;
-	switch (bui_type) {
-	case XFS_BMAP_MAP:
-	case XFS_BMAP_UNMAP:
-		type = bui_type;
-		break;
-	default:
-		error = -EFSCORRUPTED;
-		goto err_dfops;
+
+	switch (bui_type)
+	{
+		case XFS_BMAP_MAP:
+		case XFS_BMAP_UNMAP:
+			type = bui_type;
+			break;
+
+		default:
+			error = -EFSCORRUPTED;
+			goto err_dfops;
 	}
+
 	xfs_trans_ijoin(tp, ip, 0);
 
 	error = xfs_trans_log_finish_bmap_update(tp, budp, &dfops, type,
 			ip, whichfork, bmap->me_startoff,
 			bmap->me_startblock, bmap->me_len,
 			state);
+
 	if (error)
+	{
 		goto err_dfops;
+	}
 
 	/* Finish transaction, free inodes. */
 	error = xfs_defer_finish(&tp, &dfops, NULL);
+
 	if (error)
+	{
 		goto err_dfops;
+	}
 
 	set_bit(XFS_BUI_RECOVERED, &buip->bui_flags);
 	error = xfs_trans_commit(tp);
@@ -500,9 +532,12 @@ err_dfops:
 	xfs_defer_cancel(&dfops);
 err_inode:
 	xfs_trans_cancel(tp);
-	if (ip) {
+
+	if (ip)
+	{
 		xfs_iunlock(ip, XFS_ILOCK_EXCL);
 		IRELE(ip);
 	}
+
 	return error;
 }

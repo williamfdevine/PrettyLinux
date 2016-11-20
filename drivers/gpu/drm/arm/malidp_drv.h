@@ -17,7 +17,8 @@
 #include <linux/wait.h>
 #include "malidp_hw.h"
 
-struct malidp_drm {
+struct malidp_drm
+{
 	struct malidp_hw_device *dev;
 	struct drm_fbdev_cma *fbdev;
 	struct list_head event_list;
@@ -28,13 +29,15 @@ struct malidp_drm {
 
 #define crtc_to_malidp_device(x) container_of(x, struct malidp_drm, crtc)
 
-struct malidp_plane {
+struct malidp_plane
+{
 	struct drm_plane base;
 	struct malidp_hw_device *hwdev;
 	const struct malidp_layer *layer;
 };
 
-struct malidp_plane_state {
+struct malidp_plane_state
+{
 	struct drm_plane_state base;
 
 	/* size of the required rotation memory if plane is rotated */

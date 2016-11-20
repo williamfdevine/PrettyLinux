@@ -35,7 +35,8 @@
 #include "channel.h"
 #include "rf.h"
 
-static struct ieee80211_rate vnt_rates_bg[] = {
+static struct ieee80211_rate vnt_rates_bg[] =
+{
 	{ .bitrate = 10,  .hw_value = RATE_1M },
 	{ .bitrate = 20,  .hw_value = RATE_2M },
 	{ .bitrate = 55,  .hw_value = RATE_5M },
@@ -50,7 +51,8 @@ static struct ieee80211_rate vnt_rates_bg[] = {
 	{ .bitrate = 540, .hw_value = RATE_54M },
 };
 
-static struct ieee80211_rate vnt_rates_a[] = {
+static struct ieee80211_rate vnt_rates_a[] =
+{
 	{ .bitrate = 60,  .hw_value = RATE_6M },
 	{ .bitrate = 90,  .hw_value = RATE_9M },
 	{ .bitrate = 120, .hw_value = RATE_12M },
@@ -61,7 +63,8 @@ static struct ieee80211_rate vnt_rates_a[] = {
 	{ .bitrate = 540, .hw_value = RATE_54M },
 };
 
-static struct ieee80211_channel vnt_channels_2ghz[] = {
+static struct ieee80211_channel vnt_channels_2ghz[] =
+{
 	{ .center_freq = 2412, .hw_value = 1 },
 	{ .center_freq = 2417, .hw_value = 2 },
 	{ .center_freq = 2422, .hw_value = 3 },
@@ -78,7 +81,8 @@ static struct ieee80211_channel vnt_channels_2ghz[] = {
 	{ .center_freq = 2484, .hw_value = 14 }
 };
 
-static struct ieee80211_channel vnt_channels_5ghz[] = {
+static struct ieee80211_channel vnt_channels_5ghz[] =
+{
 	{ .center_freq = 4915, .hw_value = 15 },
 	{ .center_freq = 4920, .hw_value = 16 },
 	{ .center_freq = 4925, .hw_value = 17 },
@@ -123,14 +127,16 @@ static struct ieee80211_channel vnt_channels_5ghz[] = {
 	{ .center_freq = 5825, .hw_value = 56 }
 };
 
-static struct ieee80211_supported_band vnt_supported_2ghz_band = {
+static struct ieee80211_supported_band vnt_supported_2ghz_band =
+{
 	.channels = vnt_channels_2ghz,
 	.n_channels = ARRAY_SIZE(vnt_channels_2ghz),
 	.bitrates = vnt_rates_bg,
 	.n_bitrates = ARRAY_SIZE(vnt_rates_bg),
 };
 
-static struct ieee80211_supported_band vnt_supported_5ghz_band = {
+static struct ieee80211_supported_band vnt_supported_5ghz_band =
+{
 	.channels = vnt_channels_5ghz,
 	.n_channels = ARRAY_SIZE(vnt_channels_5ghz),
 	.bitrates = vnt_rates_a,
@@ -142,33 +148,37 @@ void vnt_init_bands(struct vnt_private *priv)
 	struct ieee80211_channel *ch;
 	int i;
 
-	switch (priv->rf_type) {
-	case RF_AIROHA7230:
-	case RF_VT3342A0:
-	default:
-		ch = vnt_channels_5ghz;
+	switch (priv->rf_type)
+	{
+		case RF_AIROHA7230:
+		case RF_VT3342A0:
+		default:
+			ch = vnt_channels_5ghz;
 
-		for (i = 0; i < ARRAY_SIZE(vnt_channels_5ghz); i++) {
-			ch[i].max_power = VNT_RF_MAX_POWER;
-			ch[i].flags = IEEE80211_CHAN_NO_HT40;
-		}
+			for (i = 0; i < ARRAY_SIZE(vnt_channels_5ghz); i++)
+			{
+				ch[i].max_power = VNT_RF_MAX_POWER;
+				ch[i].flags = IEEE80211_CHAN_NO_HT40;
+			}
 
-		priv->hw->wiphy->bands[NL80211_BAND_5GHZ] =
-						&vnt_supported_5ghz_band;
-	/* fallthrough */
-	case RF_AL2230:
-	case RF_AL2230S:
-	case RF_VT3226:
-	case RF_VT3226D0:
-		ch = vnt_channels_2ghz;
+			priv->hw->wiphy->bands[NL80211_BAND_5GHZ] =
+				&vnt_supported_5ghz_band;
 
-		for (i = 0; i < ARRAY_SIZE(vnt_channels_2ghz); i++) {
-			ch[i].max_power = VNT_RF_MAX_POWER;
-			ch[i].flags = IEEE80211_CHAN_NO_HT40;
-		}
+		/* fallthrough */
+		case RF_AL2230:
+		case RF_AL2230S:
+		case RF_VT3226:
+		case RF_VT3226D0:
+			ch = vnt_channels_2ghz;
 
-		priv->hw->wiphy->bands[NL80211_BAND_2GHZ] =
-						&vnt_supported_2ghz_band;
-		break;
+			for (i = 0; i < ARRAY_SIZE(vnt_channels_2ghz); i++)
+			{
+				ch[i].max_power = VNT_RF_MAX_POWER;
+				ch[i].flags = IEEE80211_CHAN_NO_HT40;
+			}
+
+			priv->hw->wiphy->bands[NL80211_BAND_2GHZ] =
+				&vnt_supported_2ghz_band;
+			break;
 	}
 }

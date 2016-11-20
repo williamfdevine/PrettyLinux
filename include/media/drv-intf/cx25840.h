@@ -33,7 +33,8 @@
    due to the slow i2c bus speed. So it will speed up the boot process if
    you can avoid loading the fw as long as the video device isn't used. */
 
-enum cx25840_video_input {
+enum cx25840_video_input
+{
 	/* Composite video inputs In1-In8 */
 	CX25840_COMPOSITE1 = 1,
 	CX25840_COMPOSITE2,
@@ -88,7 +89,8 @@ enum cx25840_video_input {
 	CX25840_DIF_ON = 0x80000400,
 };
 
-enum cx25840_audio_input {
+enum cx25840_audio_input
+{
 	/* Audio inputs: serial or In4-In8 */
 	CX25840_AUDIO_SERIAL,
 	CX25840_AUDIO4 = 4,
@@ -98,7 +100,8 @@ enum cx25840_audio_input {
 	CX25840_AUDIO8,
 };
 
-enum cx25840_io_pin {
+enum cx25840_io_pin
+{
 	CX25840_PIN_DVALID_PRGM0 = 0,
 	CX25840_PIN_FIELD_PRGM1,
 	CX25840_PIN_HRESET_PRGM2,
@@ -114,7 +117,8 @@ enum cx25840_io_pin {
 	CX25840_PIN_CHIP_SEL_VIPCLK,	/* Output only */
 };
 
-enum cx25840_io_pad {
+enum cx25840_io_pad
+{
 	/* Output pads */
 	CX25840_PAD_DEFAULT = 0,
 	CX25840_PAD_ACTIVE,
@@ -144,13 +148,15 @@ enum cx25840_io_pad {
 	CX25840_PAD_GPI3,
 };
 
-enum cx25840_io_pin_strength {
+enum cx25840_io_pin_strength
+{
 	CX25840_PIN_DRIVE_MEDIUM = 0,
 	CX25840_PIN_DRIVE_SLOW,
 	CX25840_PIN_DRIVE_FAST,
 };
 
-enum cx23885_io_pin {
+enum cx23885_io_pin
+{
 	CX23885_PIN_IR_RX_GPIO19,
 	CX23885_PIN_IR_TX_GPIO20,
 	CX23885_PIN_I2S_SDAT_GPIO21,
@@ -159,7 +165,8 @@ enum cx23885_io_pin {
 	CX23885_PIN_IRQ_N_GPIO16,
 };
 
-enum cx23885_io_pad {
+enum cx23885_io_pad
+{
 	CX23885_PAD_IR_RX,
 	CX23885_PAD_GPIO19,
 	CX23885_PAD_IR_TX,
@@ -181,7 +188,8 @@ enum cx23885_io_pad {
    is to select the audio standard explicitly. Many thanks to Hauppauge for
    providing this information.
    This platform data only needs to be supplied by the ivtv driver. */
-struct cx25840_platform_data {
+struct cx25840_platform_data
+{
 	int pvr150_workaround;
 };
 

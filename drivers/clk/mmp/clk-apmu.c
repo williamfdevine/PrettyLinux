@@ -18,7 +18,8 @@
 #include "clk.h"
 
 #define to_clk_apmu(clk) (container_of(clk, struct clk_apmu, clk))
-struct clk_apmu {
+struct clk_apmu
+{
 	struct clk_hw   hw;
 	void __iomem    *base;
 	u32		rst_mask;
@@ -33,13 +34,17 @@ static int clk_apmu_enable(struct clk_hw *hw)
 	unsigned long flags = 0;
 
 	if (apmu->lock)
+	{
 		spin_lock_irqsave(apmu->lock, flags);
+	}
 
 	data = readl_relaxed(apmu->base) | apmu->enable_mask;
 	writel_relaxed(data, apmu->base);
 
 	if (apmu->lock)
+	{
 		spin_unlock_irqrestore(apmu->lock, flags);
+	}
 
 	return 0;
 }
@@ -51,30 +56,38 @@ static void clk_apmu_disable(struct clk_hw *hw)
 	unsigned long flags = 0;
 
 	if (apmu->lock)
+	{
 		spin_lock_irqsave(apmu->lock, flags);
+	}
 
 	data = readl_relaxed(apmu->base) & ~apmu->enable_mask;
 	writel_relaxed(data, apmu->base);
 
 	if (apmu->lock)
+	{
 		spin_unlock_irqrestore(apmu->lock, flags);
+	}
 }
 
-static struct clk_ops clk_apmu_ops = {
+static struct clk_ops clk_apmu_ops =
+{
 	.enable = clk_apmu_enable,
 	.disable = clk_apmu_disable,
 };
 
 struct clk *mmp_clk_register_apmu(const char *name, const char *parent_name,
-		void __iomem *base, u32 enable_mask, spinlock_t *lock)
+								  void __iomem *base, u32 enable_mask, spinlock_t *lock)
 {
 	struct clk_apmu *apmu;
 	struct clk *clk;
 	struct clk_init_data init;
 
 	apmu = kzalloc(sizeof(*apmu), GFP_KERNEL);
+
 	if (!apmu)
+	{
 		return NULL;
+	}
 
 	init.name = name;
 	init.ops = &clk_apmu_ops;
@@ -90,7 +103,9 @@ struct clk *mmp_clk_register_apmu(const char *name, const char *parent_name,
 	clk = clk_register(NULL, &apmu->hw);
 
 	if (IS_ERR(clk))
+	{
 		kfree(apmu);
+	}
 
 	return clk;
 }

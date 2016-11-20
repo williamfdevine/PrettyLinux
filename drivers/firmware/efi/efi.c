@@ -31,7 +31,8 @@
 
 #include <asm/early_ioremap.h>
 
-struct efi __read_mostly efi = {
+struct efi __read_mostly efi =
+{
 	.mps			= EFI_INVALID_TABLE_ADDR,
 	.acpi			= EFI_INVALID_TABLE_ADDR,
 	.acpi20			= EFI_INVALID_TABLE_ADDR,
@@ -66,16 +67,21 @@ bool efi_runtime_disabled(void)
 
 static int __init parse_efi_cmdline(char *str)
 {
-	if (!str) {
+	if (!str)
+	{
 		pr_warn("need at least one option\n");
 		return -EINVAL;
 	}
 
 	if (parse_option_str(str, "debug"))
+	{
 		set_bit(EFI_DBG, &efi.flags);
+	}
 
 	if (parse_option_str(str, "noruntime"))
+	{
 		disable_runtime = true;
+	}
 
 	return 0;
 }
@@ -88,56 +94,81 @@ struct kobject *efi_kobj;
  * the efivars driver
  */
 static ssize_t systab_show(struct kobject *kobj,
-			   struct kobj_attribute *attr, char *buf)
+						   struct kobj_attribute *attr, char *buf)
 {
 	char *str = buf;
 
 	if (!kobj || !buf)
+	{
 		return -EINVAL;
+	}
 
 	if (efi.mps != EFI_INVALID_TABLE_ADDR)
+	{
 		str += sprintf(str, "MPS=0x%lx\n", efi.mps);
+	}
+
 	if (efi.acpi20 != EFI_INVALID_TABLE_ADDR)
+	{
 		str += sprintf(str, "ACPI20=0x%lx\n", efi.acpi20);
+	}
+
 	if (efi.acpi != EFI_INVALID_TABLE_ADDR)
+	{
 		str += sprintf(str, "ACPI=0x%lx\n", efi.acpi);
+	}
+
 	/*
 	 * If both SMBIOS and SMBIOS3 entry points are implemented, the
 	 * SMBIOS3 entry point shall be preferred, so we list it first to
 	 * let applications stop parsing after the first match.
 	 */
 	if (efi.smbios3 != EFI_INVALID_TABLE_ADDR)
+	{
 		str += sprintf(str, "SMBIOS3=0x%lx\n", efi.smbios3);
+	}
+
 	if (efi.smbios != EFI_INVALID_TABLE_ADDR)
+	{
 		str += sprintf(str, "SMBIOS=0x%lx\n", efi.smbios);
+	}
+
 	if (efi.hcdp != EFI_INVALID_TABLE_ADDR)
+	{
 		str += sprintf(str, "HCDP=0x%lx\n", efi.hcdp);
+	}
+
 	if (efi.boot_info != EFI_INVALID_TABLE_ADDR)
+	{
 		str += sprintf(str, "BOOTINFO=0x%lx\n", efi.boot_info);
+	}
+
 	if (efi.uga != EFI_INVALID_TABLE_ADDR)
+	{
 		str += sprintf(str, "UGA=0x%lx\n", efi.uga);
+	}
 
 	return str - buf;
 }
 
 static struct kobj_attribute efi_attr_systab =
-			__ATTR(systab, 0400, systab_show, NULL);
+	__ATTR(systab, 0400, systab_show, NULL);
 
 #define EFI_FIELD(var) efi.var
 
 #define EFI_ATTR_SHOW(name) \
-static ssize_t name##_show(struct kobject *kobj, \
-				struct kobj_attribute *attr, char *buf) \
-{ \
-	return sprintf(buf, "0x%lx\n", EFI_FIELD(name)); \
-}
+	static ssize_t name##_show(struct kobject *kobj, \
+							   struct kobj_attribute *attr, char *buf) \
+	{ \
+		return sprintf(buf, "0x%lx\n", EFI_FIELD(name)); \
+	}
 
 EFI_ATTR_SHOW(fw_vendor);
 EFI_ATTR_SHOW(runtime);
 EFI_ATTR_SHOW(config_table);
 
 static ssize_t fw_platform_size_show(struct kobject *kobj,
-				     struct kobj_attribute *attr, char *buf)
+									 struct kobj_attribute *attr, char *buf)
 {
 	return sprintf(buf, "%d\n", efi_enabled(EFI_64BIT) ? 64 : 32);
 }
@@ -148,7 +179,8 @@ static struct kobj_attribute efi_attr_config_table = __ATTR_RO(config_table);
 static struct kobj_attribute efi_attr_fw_platform_size =
 	__ATTR_RO(fw_platform_size);
 
-static struct attribute *efi_subsys_attrs[] = {
+static struct attribute *efi_subsys_attrs[] =
+{
 	&efi_attr_systab.attr,
 	&efi_attr_fw_vendor.attr,
 	&efi_attr_runtime.attr,
@@ -158,24 +190,36 @@ static struct attribute *efi_subsys_attrs[] = {
 };
 
 static umode_t efi_attr_is_visible(struct kobject *kobj,
-				   struct attribute *attr, int n)
+								   struct attribute *attr, int n)
 {
-	if (attr == &efi_attr_fw_vendor.attr) {
+	if (attr == &efi_attr_fw_vendor.attr)
+	{
 		if (efi_enabled(EFI_PARAVIRT) ||
-				efi.fw_vendor == EFI_INVALID_TABLE_ADDR)
+			efi.fw_vendor == EFI_INVALID_TABLE_ADDR)
+		{
 			return 0;
-	} else if (attr == &efi_attr_runtime.attr) {
+		}
+	}
+	else if (attr == &efi_attr_runtime.attr)
+	{
 		if (efi.runtime == EFI_INVALID_TABLE_ADDR)
+		{
 			return 0;
-	} else if (attr == &efi_attr_config_table.attr) {
+		}
+	}
+	else if (attr == &efi_attr_config_table.attr)
+	{
 		if (efi.config_table == EFI_INVALID_TABLE_ADDR)
+		{
 			return 0;
+		}
 	}
 
 	return attr->mode;
 }
 
-static struct attribute_group efi_subsys_attr_group = {
+static struct attribute_group efi_subsys_attr_group =
+{
 	.attrs = efi_subsys_attrs,
 	.is_visible = efi_attr_is_visible,
 };
@@ -205,15 +249,20 @@ static char efivar_ssdt[EFIVAR_SSDT_NAME_MAX] __initdata;
 static int __init efivar_ssdt_setup(char *str)
 {
 	if (strlen(str) < sizeof(efivar_ssdt))
+	{
 		memcpy(efivar_ssdt, str, strlen(str));
+	}
 	else
+	{
 		pr_warn("efivar_ssdt: name too long: %s\n", str);
+	}
+
 	return 0;
 }
 __setup("efivar_ssdt=", efivar_ssdt_setup);
 
 static __init int efivar_ssdt_iter(efi_char16_t *name, efi_guid_t vendor,
-				   unsigned long name_size, void *data)
+								   unsigned long name_size, void *data)
 {
 	struct efivar_entry *entry;
 	struct list_head *list = data;
@@ -221,12 +270,18 @@ static __init int efivar_ssdt_iter(efi_char16_t *name, efi_guid_t vendor,
 	int limit = min_t(unsigned long, EFIVAR_SSDT_NAME_MAX, name_size);
 
 	ucs2_as_utf8(utf8_name, name, limit - 1);
+
 	if (strncmp(utf8_name, efivar_ssdt, limit) != 0)
+	{
 		return 0;
+	}
 
 	entry = kmalloc(sizeof(*entry), GFP_KERNEL);
+
 	if (!entry)
+	{
 		return 0;
+	}
 
 	memcpy(entry->var.VariableName, name, name_size);
 	memcpy(&entry->var.VendorGuid, &vendor, sizeof(efi_guid_t));
@@ -246,30 +301,40 @@ static __init int efivar_ssdt_load(void)
 
 	ret = efivar_init(efivar_ssdt_iter, &entries, true, &entries);
 
-	list_for_each_entry_safe(entry, aux, &entries, list) {
+	list_for_each_entry_safe(entry, aux, &entries, list)
+	{
 		pr_info("loading SSDT from variable %s-%pUl\n", efivar_ssdt,
-			&entry->var.VendorGuid);
+				&entry->var.VendorGuid);
 
 		list_del(&entry->list);
 
 		ret = efivar_entry_size(entry, &size);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_err("failed to get var size\n");
 			goto free_entry;
 		}
 
 		data = kmalloc(size, GFP_KERNEL);
+
 		if (!data)
+		{
 			goto free_entry;
+		}
 
 		ret = efivar_entry_get(entry, NULL, &size, data);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_err("failed to get var data\n");
 			goto free_data;
 		}
 
 		ret = acpi_load_table(data);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_err("failed to load table: %d\n", ret);
 			goto free_data;
 		}
@@ -299,36 +364,52 @@ static int __init efisubsys_init(void)
 	int error;
 
 	if (!efi_enabled(EFI_BOOT))
+	{
 		return 0;
+	}
 
 	/* We register the efi directory at /sys/firmware/efi */
 	efi_kobj = kobject_create_and_add("efi", firmware_kobj);
-	if (!efi_kobj) {
+
+	if (!efi_kobj)
+	{
 		pr_err("efi: Firmware registration failed.\n");
 		return -ENOMEM;
 	}
 
 	error = generic_ops_register();
+
 	if (error)
+	{
 		goto err_put;
+	}
 
 	if (efi_enabled(EFI_RUNTIME_SERVICES))
+	{
 		efivar_ssdt_load();
+	}
 
 	error = sysfs_create_group(efi_kobj, &efi_subsys_attr_group);
-	if (error) {
+
+	if (error)
+	{
 		pr_err("efi: Sysfs attribute export failed with error %d.\n",
-		       error);
+			   error);
 		goto err_unregister;
 	}
 
 	error = efi_runtime_map_init(efi_kobj);
+
 	if (error)
+	{
 		goto err_remove_group;
+	}
 
 	/* and the standard mountpoint for efivarfs */
 	error = sysfs_create_mount_point(efi_kobj, "efivars");
-	if (error) {
+
+	if (error)
+	{
 		pr_err("efivars: Subsystem registration failed.\n");
 		goto err_remove_group;
 	}
@@ -356,29 +437,35 @@ int __init efi_mem_desc_lookup(u64 phys_addr, efi_memory_desc_t *out_md)
 {
 	efi_memory_desc_t *md;
 
-	if (!efi_enabled(EFI_MEMMAP)) {
+	if (!efi_enabled(EFI_MEMMAP))
+	{
 		pr_err_once("EFI_MEMMAP is not enabled.\n");
 		return -EINVAL;
 	}
 
-	if (!out_md) {
+	if (!out_md)
+	{
 		pr_err_once("out_md is null.\n");
 		return -EINVAL;
-        }
+	}
 
-	for_each_efi_memory_desc(md) {
+	for_each_efi_memory_desc(md)
+	{
 		u64 size;
 		u64 end;
 
 		if (!(md->attribute & EFI_MEMORY_RUNTIME) &&
-		    md->type != EFI_BOOT_SERVICES_DATA &&
-		    md->type != EFI_RUNTIME_SERVICES_DATA) {
+			md->type != EFI_BOOT_SERVICES_DATA &&
+			md->type != EFI_RUNTIME_SERVICES_DATA)
+		{
 			continue;
 		}
 
 		size = md->num_pages << EFI_PAGE_SHIFT;
 		end = md->phys_addr + size;
-		if (phys_addr >= md->phys_addr && phys_addr < end) {
+
+		if (phys_addr >= md->phys_addr && phys_addr < end)
+		{
 			memcpy(out_md, md, sizeof(*out_md));
 			return 0;
 		}
@@ -414,7 +501,9 @@ void __init __weak efi_arch_mem_reserve(phys_addr_t addr, u64 size) {}
 void __init efi_mem_reserve(phys_addr_t addr, u64 size)
 {
 	if (!memblock_is_region_reserved(addr, size))
+	{
 		memblock_reserve(addr, size);
+	}
 
 	/*
 	 * Some architectures (x86) reserve all boot services ranges
@@ -426,7 +515,8 @@ void __init efi_mem_reserve(phys_addr_t addr, u64 size)
 	efi_arch_mem_reserve(addr, size);
 }
 
-static __initdata efi_config_table_type_t common_tables[] = {
+static __initdata efi_config_table_type_t common_tables[] =
+{
 	{ACPI_20_TABLE_GUID, "ACPI 2.0", &efi.acpi20},
 	{ACPI_TABLE_GUID, "ACPI", &efi.acpi},
 	{HCDP_TABLE_GUID, "HCDP", &efi.hcdp},
@@ -442,18 +532,23 @@ static __initdata efi_config_table_type_t common_tables[] = {
 };
 
 static __init int match_config_table(efi_guid_t *guid,
-				     unsigned long table,
-				     efi_config_table_type_t *table_types)
+									 unsigned long table,
+									 efi_config_table_type_t *table_types)
 {
 	int i;
 
-	if (table_types) {
-		for (i = 0; efi_guidcmp(table_types[i].guid, NULL_GUID); i++) {
-			if (!efi_guidcmp(*guid, table_types[i].guid)) {
+	if (table_types)
+	{
+		for (i = 0; efi_guidcmp(table_types[i].guid, NULL_GUID); i++)
+		{
+			if (!efi_guidcmp(*guid, table_types[i].guid))
+			{
 				*(table_types[i].ptr) = table;
+
 				if (table_types[i].name)
 					pr_cont(" %s=0x%lx ",
-						table_types[i].name, table);
+							table_types[i].name, table);
+
 				return 1;
 			}
 		}
@@ -463,55 +558,71 @@ static __init int match_config_table(efi_guid_t *guid,
 }
 
 int __init efi_config_parse_tables(void *config_tables, int count, int sz,
-				   efi_config_table_type_t *arch_tables)
+								   efi_config_table_type_t *arch_tables)
 {
 	void *tablep;
 	int i;
 
 	tablep = config_tables;
 	pr_info("");
-	for (i = 0; i < count; i++) {
+
+	for (i = 0; i < count; i++)
+	{
 		efi_guid_t guid;
 		unsigned long table;
 
-		if (efi_enabled(EFI_64BIT)) {
+		if (efi_enabled(EFI_64BIT))
+		{
 			u64 table64;
 			guid = ((efi_config_table_64_t *)tablep)->guid;
 			table64 = ((efi_config_table_64_t *)tablep)->table;
 			table = table64;
 #ifndef CONFIG_64BIT
-			if (table64 >> 32) {
+
+			if (table64 >> 32)
+			{
 				pr_cont("\n");
 				pr_err("Table located above 4GB, disabling EFI.\n");
 				return -EINVAL;
 			}
+
 #endif
-		} else {
+		}
+		else
+		{
 			guid = ((efi_config_table_32_t *)tablep)->guid;
 			table = ((efi_config_table_32_t *)tablep)->table;
 		}
 
 		if (!match_config_table(&guid, table, common_tables))
+		{
 			match_config_table(&guid, table, arch_tables);
+		}
 
 		tablep += sz;
 	}
+
 	pr_cont("\n");
 	set_bit(EFI_CONFIG_TABLES, &efi.flags);
 
 	/* Parse the EFI Properties table if it exists */
-	if (efi.properties_table != EFI_INVALID_TABLE_ADDR) {
+	if (efi.properties_table != EFI_INVALID_TABLE_ADDR)
+	{
 		efi_properties_table_t *tbl;
 
 		tbl = early_memremap(efi.properties_table, sizeof(*tbl));
-		if (tbl == NULL) {
+
+		if (tbl == NULL)
+		{
 			pr_err("Could not map Properties table!\n");
 			return -ENOMEM;
 		}
 
 		if (tbl->memory_protection_attribute &
-		    EFI_PROPERTIES_RUNTIME_MEMORY_PROTECTION_NON_EXECUTABLE_PE_DATA)
+			EFI_PROPERTIES_RUNTIME_MEMORY_PROTECTION_NON_EXECUTABLE_PE_DATA)
+		{
 			set_bit(EFI_NX_PE_DATA, &efi.flags);
+		}
 
 		early_memunmap(tbl, sizeof(*tbl));
 	}
@@ -525,22 +636,28 @@ int __init efi_config_init(efi_config_table_type_t *arch_tables)
 	int sz, ret;
 
 	if (efi_enabled(EFI_64BIT))
+	{
 		sz = sizeof(efi_config_table_64_t);
+	}
 	else
+	{
 		sz = sizeof(efi_config_table_32_t);
+	}
 
 	/*
 	 * Let's see what config tables the firmware passed to us.
 	 */
 	config_tables = early_memremap(efi.systab->tables,
-				       efi.systab->nr_tables * sz);
-	if (config_tables == NULL) {
+								   efi.systab->nr_tables * sz);
+
+	if (config_tables == NULL)
+	{
 		pr_err("Could not map Configuration table!\n");
 		return -ENOMEM;
 	}
 
 	ret = efi_config_parse_tables(config_tables, efi.systab->nr_tables, sz,
-				      arch_tables);
+								  arch_tables);
 
 	early_memunmap(config_tables, efi.systab->nr_tables * sz);
 	return ret;
@@ -552,7 +669,9 @@ static int __init efi_load_efivars(void)
 	struct platform_device *pdev;
 
 	if (!efi_enabled(EFI_RUNTIME_SERVICES))
+	{
 		return 0;
+	}
 
 	pdev = platform_device_register_simple("efivars", 0, NULL, 0);
 	return IS_ERR(pdev) ? PTR_ERR(pdev) : 0;
@@ -570,14 +689,16 @@ device_initcall(efi_load_efivars);
 		FIELD_SIZEOF(struct efi_fdt_params, field) \
 	}
 
-struct params {
+struct params
+{
 	const char name[32];
 	const char propname[32];
 	int offset;
 	int size;
 };
 
-static __initdata struct params fdt_params[] = {
+static __initdata struct params fdt_params[] =
+{
 	UEFI_PARAM("System Table", "linux,uefi-system-table", system_table),
 	UEFI_PARAM("MemMap Address", "linux,uefi-mmap-start", mmap),
 	UEFI_PARAM("MemMap Size", "linux,uefi-mmap-size", mmap_size),
@@ -585,7 +706,8 @@ static __initdata struct params fdt_params[] = {
 	UEFI_PARAM("MemMap Desc. Version", "linux,uefi-mmap-desc-ver", desc_ver)
 };
 
-static __initdata struct params xen_fdt_params[] = {
+static __initdata struct params xen_fdt_params[] =
+{
 	UEFI_PARAM("System Table", "xen,uefi-system-table", system_table),
 	UEFI_PARAM("MemMap Address", "xen,uefi-mmap-start", mmap),
 	UEFI_PARAM("MemMap Size", "xen,uefi-mmap-size", mmap_size),
@@ -595,33 +717,39 @@ static __initdata struct params xen_fdt_params[] = {
 
 #define EFI_FDT_PARAMS_SIZE	ARRAY_SIZE(fdt_params)
 
-static __initdata struct {
+static __initdata struct
+{
 	const char *uname;
 	const char *subnode;
 	struct params *params;
-} dt_params[] = {
+} dt_params[] =
+{
 	{ "hypervisor", "uefi", xen_fdt_params },
 	{ "chosen", NULL, fdt_params },
 };
 
-struct param_info {
+struct param_info
+{
 	int found;
 	void *params;
 	const char *missing;
 };
 
 static int __init __find_uefi_params(unsigned long node,
-				     struct param_info *info,
-				     struct params *params)
+									 struct param_info *info,
+									 struct params *params)
 {
 	const void *prop;
 	void *dest;
 	u64 val;
 	int i, len;
 
-	for (i = 0; i < EFI_FDT_PARAMS_SIZE; i++) {
+	for (i = 0; i < EFI_FDT_PARAMS_SIZE; i++)
+	{
 		prop = of_get_flat_dt_prop(node, params[i].propname, &len);
-		if (!prop) {
+
+		if (!prop)
+		{
 			info->missing = params[i].name;
 			return 0;
 		}
@@ -632,37 +760,46 @@ static int __init __find_uefi_params(unsigned long node,
 		val = of_read_number(prop, len / sizeof(u32));
 
 		if (params[i].size == sizeof(u32))
+		{
 			*(u32 *)dest = val;
+		}
 		else
+		{
 			*(u64 *)dest = val;
+		}
 
 		if (efi_enabled(EFI_DBG))
 			pr_info("  %s: 0x%0*llx\n", params[i].name,
-				params[i].size * 2, val);
+					params[i].size * 2, val);
 	}
 
 	return 1;
 }
 
 static int __init fdt_find_uefi_params(unsigned long node, const char *uname,
-				       int depth, void *data)
+									   int depth, void *data)
 {
 	struct param_info *info = data;
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(dt_params); i++) {
+	for (i = 0; i < ARRAY_SIZE(dt_params); i++)
+	{
 		const char *subnode = dt_params[i].subnode;
 
-		if (depth != 1 || strcmp(uname, dt_params[i].uname) != 0) {
+		if (depth != 1 || strcmp(uname, dt_params[i].uname) != 0)
+		{
 			info->missing = dt_params[i].params[0].name;
 			continue;
 		}
 
-		if (subnode) {
+		if (subnode)
+		{
 			int err = of_get_flat_dt_subnode_by_name(node, subnode);
 
 			if (err < 0)
+			{
 				return 0;
+			}
 
 			node = err;
 		}
@@ -684,17 +821,21 @@ int __init efi_get_fdt_params(struct efi_fdt_params *params)
 	info.params = params;
 
 	ret = of_scan_flat_dt(fdt_find_uefi_params, &info);
+
 	if (!info.found)
+	{
 		pr_info("UEFI not found.\n");
+	}
 	else if (!ret)
 		pr_err("Can't find '%s' in device tree!\n",
-		       info.missing);
+			   info.missing);
 
 	return ret;
 }
 #endif /* CONFIG_EFI_PARAMS_FROM_FDT */
 
-static __initdata char memory_type_name[][20] = {
+static __initdata char memory_type_name[][20] =
+{
 	"Reserved",
 	"Loader Code",
 	"Loader Data",
@@ -712,49 +853,57 @@ static __initdata char memory_type_name[][20] = {
 	"Persistent Memory",
 };
 
-char * __init efi_md_typeattr_format(char *buf, size_t size,
-				     const efi_memory_desc_t *md)
+char *__init efi_md_typeattr_format(char *buf, size_t size,
+									const efi_memory_desc_t *md)
 {
 	char *pos;
 	int type_len;
 	u64 attr;
 
 	pos = buf;
+
 	if (md->type >= ARRAY_SIZE(memory_type_name))
+	{
 		type_len = snprintf(pos, size, "[type=%u", md->type);
+	}
 	else
 		type_len = snprintf(pos, size, "[%-*s",
-				    (int)(sizeof(memory_type_name[0]) - 1),
-				    memory_type_name[md->type]);
+							(int)(sizeof(memory_type_name[0]) - 1),
+							memory_type_name[md->type]);
+
 	if (type_len >= size)
+	{
 		return buf;
+	}
 
 	pos += type_len;
 	size -= type_len;
 
 	attr = md->attribute;
+
 	if (attr & ~(EFI_MEMORY_UC | EFI_MEMORY_WC | EFI_MEMORY_WT |
-		     EFI_MEMORY_WB | EFI_MEMORY_UCE | EFI_MEMORY_RO |
-		     EFI_MEMORY_WP | EFI_MEMORY_RP | EFI_MEMORY_XP |
-		     EFI_MEMORY_NV |
-		     EFI_MEMORY_RUNTIME | EFI_MEMORY_MORE_RELIABLE))
+				 EFI_MEMORY_WB | EFI_MEMORY_UCE | EFI_MEMORY_RO |
+				 EFI_MEMORY_WP | EFI_MEMORY_RP | EFI_MEMORY_XP |
+				 EFI_MEMORY_NV |
+				 EFI_MEMORY_RUNTIME | EFI_MEMORY_MORE_RELIABLE))
 		snprintf(pos, size, "|attr=0x%016llx]",
-			 (unsigned long long)attr);
+				 (unsigned long long)attr);
 	else
 		snprintf(pos, size,
-			 "|%3s|%2s|%2s|%2s|%2s|%2s|%2s|%3s|%2s|%2s|%2s|%2s]",
-			 attr & EFI_MEMORY_RUNTIME ? "RUN" : "",
-			 attr & EFI_MEMORY_MORE_RELIABLE ? "MR" : "",
-			 attr & EFI_MEMORY_NV      ? "NV"  : "",
-			 attr & EFI_MEMORY_XP      ? "XP"  : "",
-			 attr & EFI_MEMORY_RP      ? "RP"  : "",
-			 attr & EFI_MEMORY_WP      ? "WP"  : "",
-			 attr & EFI_MEMORY_RO      ? "RO"  : "",
-			 attr & EFI_MEMORY_UCE     ? "UCE" : "",
-			 attr & EFI_MEMORY_WB      ? "WB"  : "",
-			 attr & EFI_MEMORY_WT      ? "WT"  : "",
-			 attr & EFI_MEMORY_WC      ? "WC"  : "",
-			 attr & EFI_MEMORY_UC      ? "UC"  : "");
+				 "|%3s|%2s|%2s|%2s|%2s|%2s|%2s|%3s|%2s|%2s|%2s|%2s]",
+				 attr & EFI_MEMORY_RUNTIME ? "RUN" : "",
+				 attr & EFI_MEMORY_MORE_RELIABLE ? "MR" : "",
+				 attr & EFI_MEMORY_NV      ? "NV"  : "",
+				 attr & EFI_MEMORY_XP      ? "XP"  : "",
+				 attr & EFI_MEMORY_RP      ? "RP"  : "",
+				 attr & EFI_MEMORY_WP      ? "WP"  : "",
+				 attr & EFI_MEMORY_RO      ? "RO"  : "",
+				 attr & EFI_MEMORY_UCE     ? "UCE" : "",
+				 attr & EFI_MEMORY_WB      ? "WB"  : "",
+				 attr & EFI_MEMORY_WT      ? "WT"  : "",
+				 attr & EFI_MEMORY_WC      ? "WC"  : "",
+				 attr & EFI_MEMORY_UC      ? "UC"  : "");
+
 	return buf;
 }
 
@@ -776,13 +925,18 @@ u64 __weak efi_mem_attributes(unsigned long phys_addr)
 	efi_memory_desc_t *md;
 
 	if (!efi_enabled(EFI_MEMMAP))
+	{
 		return 0;
+	}
 
-	for_each_efi_memory_desc(md) {
+	for_each_efi_memory_desc(md)
+	{
 		if ((md->phys_addr <= phys_addr) &&
-		    (phys_addr < (md->phys_addr +
-		    (md->num_pages << EFI_PAGE_SHIFT))))
+			(phys_addr < (md->phys_addr +
+						  (md->num_pages << EFI_PAGE_SHIFT))))
+		{
 			return md->attribute;
+		}
 	}
 	return 0;
 }
@@ -791,33 +945,42 @@ int efi_status_to_err(efi_status_t status)
 {
 	int err;
 
-	switch (status) {
-	case EFI_SUCCESS:
-		err = 0;
-		break;
-	case EFI_INVALID_PARAMETER:
-		err = -EINVAL;
-		break;
-	case EFI_OUT_OF_RESOURCES:
-		err = -ENOSPC;
-		break;
-	case EFI_DEVICE_ERROR:
-		err = -EIO;
-		break;
-	case EFI_WRITE_PROTECTED:
-		err = -EROFS;
-		break;
-	case EFI_SECURITY_VIOLATION:
-		err = -EACCES;
-		break;
-	case EFI_NOT_FOUND:
-		err = -ENOENT;
-		break;
-	case EFI_ABORTED:
-		err = -EINTR;
-		break;
-	default:
-		err = -EINVAL;
+	switch (status)
+	{
+		case EFI_SUCCESS:
+			err = 0;
+			break;
+
+		case EFI_INVALID_PARAMETER:
+			err = -EINVAL;
+			break;
+
+		case EFI_OUT_OF_RESOURCES:
+			err = -ENOSPC;
+			break;
+
+		case EFI_DEVICE_ERROR:
+			err = -EIO;
+			break;
+
+		case EFI_WRITE_PROTECTED:
+			err = -EROFS;
+			break;
+
+		case EFI_SECURITY_VIOLATION:
+			err = -EACCES;
+			break;
+
+		case EFI_NOT_FOUND:
+			err = -ENOENT;
+			break;
+
+		case EFI_ABORTED:
+			err = -EINTR;
+			break;
+
+		default:
+			err = -EINVAL;
 	}
 
 	return err;

@@ -5,7 +5,8 @@
 #include <linux/netlink.h>
 #include <uapi/rdma/rdma_netlink.h>
 
-struct ibnl_client_cbs {
+struct ibnl_client_cbs
+{
 	int (*dump)(struct sk_buff *skb, struct netlink_callback *nlcb);
 	struct module *module;
 };
@@ -22,7 +23,7 @@ void ibnl_cleanup(void);
  * Returns 0 on success or a negative error code.
  */
 int ibnl_add_client(int index, int nops,
-		    const struct ibnl_client_cbs cb_table[]);
+					const struct ibnl_client_cbs cb_table[]);
 
 /**
  * Remove a client from IB netlink.
@@ -43,7 +44,7 @@ int ibnl_remove_client(int index);
  * Returns the allocated buffer on success and NULL on failure.
  */
 void *ibnl_put_msg(struct sk_buff *skb, struct nlmsghdr **nlh, int seq,
-		   int len, int client, int op, int flags);
+				   int len, int client, int op, int flags);
 /**
  * Put a new attribute in a supplied skb.
  * @skb: The netlink skb.
@@ -54,7 +55,7 @@ void *ibnl_put_msg(struct sk_buff *skb, struct nlmsghdr **nlh, int seq,
  * Returns the 0 and a negative error code on failure.
  */
 int ibnl_put_attr(struct sk_buff *skb, struct nlmsghdr *nlh,
-		  int len, void *data, int type);
+				  int len, void *data, int type);
 
 /**
  * Send the supplied skb to a specific userspace PID.
@@ -64,7 +65,7 @@ int ibnl_put_attr(struct sk_buff *skb, struct nlmsghdr *nlh,
  * Returns 0 on success or a negative error code.
  */
 int ibnl_unicast(struct sk_buff *skb, struct nlmsghdr *nlh,
-			__u32 pid);
+				 __u32 pid);
 
 /**
  * Send the supplied skb to a netlink group.
@@ -75,7 +76,7 @@ int ibnl_unicast(struct sk_buff *skb, struct nlmsghdr *nlh,
  * Returns 0 on success or a negative error code.
  */
 int ibnl_multicast(struct sk_buff *skb, struct nlmsghdr *nlh,
-			unsigned int group, gfp_t flags);
+				   unsigned int group, gfp_t flags);
 
 /**
  * Check if there are any listeners to the netlink group

@@ -40,8 +40,12 @@ snd_util_memhdr_new(int memsize)
 	struct snd_util_memhdr *hdr;
 
 	hdr = kzalloc(sizeof(*hdr), GFP_KERNEL);
+
 	if (hdr == NULL)
+	{
 		return NULL;
+	}
+
 	hdr->size = memsize;
 	mutex_init(&hdr->block_mutex);
 	INIT_LIST_HEAD(&hdr->block);
@@ -57,12 +61,17 @@ void snd_util_memhdr_free(struct snd_util_memhdr *hdr)
 	struct list_head *p;
 
 	if (!hdr)
+	{
 		return;
+	}
+
 	/* release all blocks */
-	while ((p = hdr->block.next) != &hdr->block) {
+	while ((p = hdr->block.next) != &hdr->block)
+	{
 		list_del(p);
 		kfree(get_memblk(p));
 	}
+
 	kfree(hdr);
 }
 
@@ -77,25 +86,41 @@ __snd_util_mem_alloc(struct snd_util_memhdr *hdr, int size)
 	struct list_head *p;
 
 	if (snd_BUG_ON(!hdr || size <= 0))
+	{
 		return NULL;
+	}
 
 	/* word alignment */
 	units = size;
+
 	if (units & 1)
+	{
 		units++;
+	}
+
 	if (units > hdr->size)
+	{
 		return NULL;
+	}
 
 	/* look for empty block */
 	prev_offset = 0;
-	list_for_each(p, &hdr->block) {
+	list_for_each(p, &hdr->block)
+	{
 		blk = get_memblk(p);
+
 		if (blk->offset - prev_offset >= units)
+		{
 			goto __found;
+		}
+
 		prev_offset = blk->offset + blk->size;
 	}
+
 	if (hdr->size - prev_offset < units)
+	{
 		return NULL;
+	}
 
 __found:
 	return __snd_util_memblk_new(hdr, units, p->prev);
@@ -108,21 +133,28 @@ __found:
  */
 struct snd_util_memblk *
 __snd_util_memblk_new(struct snd_util_memhdr *hdr, unsigned int units,
-		      struct list_head *prev)
+					  struct list_head *prev)
 {
 	struct snd_util_memblk *blk;
 
 	blk = kmalloc(sizeof(struct snd_util_memblk) + hdr->block_extra_size,
-		      GFP_KERNEL);
+				  GFP_KERNEL);
+
 	if (blk == NULL)
+	{
 		return NULL;
+	}
 
 	if (prev == &hdr->block)
+	{
 		blk->offset = 0;
-	else {
+	}
+	else
+	{
 		struct snd_util_memblk *p = get_memblk(prev);
 		blk->offset = p->offset + p->size;
 	}
+
 	blk->size = units;
 	list_add(&blk->list, prev);
 	hdr->nblocks++;
@@ -164,7 +196,9 @@ __snd_util_mem_free(struct snd_util_memhdr *hdr, struct snd_util_memblk *blk)
 int snd_util_mem_free(struct snd_util_memhdr *hdr, struct snd_util_memblk *blk)
 {
 	if (snd_BUG_ON(!hdr || !blk))
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&hdr->block_mutex);
 	__snd_util_mem_free(hdr, blk);

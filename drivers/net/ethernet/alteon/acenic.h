@@ -27,7 +27,8 @@
  * modified to deal properly with readl/writel usage.
  */
 
-struct ace_regs {
+struct ace_regs
+{
 	u32	pad0[16];	/* PCI control registers */
 
 	u32	HostCtrl;	/* 0x40 */
@@ -158,7 +159,8 @@ struct ace_regs {
 };
 
 
-typedef struct {
+typedef struct
+{
 	u32 addrhi;
 	u32 addrlo;
 } aceaddr;
@@ -312,15 +314,16 @@ typedef struct {
 #define EVT_RING_ENTRIES	256
 #define EVT_RING_SIZE	(EVT_RING_ENTRIES * sizeof(struct event))
 
-struct event {
+struct event
+{
 #ifdef __LITTLE_ENDIAN_BITFIELD
-	u32	idx:12;
-	u32	code:12;
-	u32	evt:8;
+	u32	idx: 12;
+	u32	code: 12;
+	u32	evt: 8;
 #else
-	u32	evt:8;
-	u32	code:12;
-	u32	idx:12;
+	u32	evt: 8;
+	u32	code: 12;
+	u32	idx: 12;
 #endif
 	u32     pad;
 };
@@ -358,15 +361,16 @@ struct event {
 
 #define CMD_RING_ENTRIES	64
 
-struct cmd {
+struct cmd
+{
 #ifdef __LITTLE_ENDIAN_BITFIELD
-	u32	idx:12;
-	u32	code:12;
-	u32	evt:8;
+	u32	idx: 12;
+	u32	code: 12;
+	u32	evt: 8;
 #else
-	u32	evt:8;
-	u32	code:12;
-	u32	idx:12;
+	u32	evt: 8;
+	u32	code: 12;
+	u32	idx: 12;
 #endif
 };
 
@@ -448,14 +452,15 @@ struct cmd {
 #define TX_RING_SIZE		(MAX_TX_RING_ENTRIES * sizeof(struct tx_desc))
 #define TX_RING_BASE		0x3800
 
-struct tx_desc{
-        aceaddr	addr;
+struct tx_desc
+{
+	aceaddr	addr;
 	u32	flagsize;
 #if 0
-/*
- * This is in PCI shared mem and must be accessed with readl/writel
- * real layout is:
- */
+	/*
+	 * This is in PCI shared mem and must be accessed with readl/writel
+	 * real layout is:
+	 */
 #if __LITTLE_ENDIAN
 	u16	flags;
 	u16	size;
@@ -483,9 +488,10 @@ struct tx_desc{
 
 #define RX_RETURN_RING_ENTRIES	2048
 #define RX_RETURN_RING_SIZE	(RX_MAX_RETURN_RING_ENTRIES * \
-				 sizeof(struct rx_desc))
+							 sizeof(struct rx_desc))
 
-struct rx_desc{
+struct rx_desc
+{
 	aceaddr	addr;
 #ifdef __LITTLE_ENDIAN
 	u16	size;
@@ -523,7 +529,8 @@ struct rx_desc{
 /*
  * This struct is shared with the NIC firmware.
  */
-struct ring_ctrl {
+struct ring_ctrl
+{
 	aceaddr	rngptr;
 #ifdef __LITTLE_ENDIAN
 	u16	flags;
@@ -536,7 +543,8 @@ struct ring_ctrl {
 };
 
 
-struct ace_mac_stats {
+struct ace_mac_stats
+{
 	u32 excess_colls;
 	u32 coll_1;
 	u32 coll_2;
@@ -570,8 +578,10 @@ struct ace_mac_stats {
 };
 
 
-struct ace_info {
-	union {
+struct ace_info
+{
+	union
+	{
 		u32 stats[256];
 	} s;
 	struct ring_ctrl	evt_ctrl;
@@ -588,7 +598,8 @@ struct ace_info {
 };
 
 
-struct ring_info {
+struct ring_info
+{
 	struct sk_buff		*skb;
 	DEFINE_DMA_UNMAP_ADDR(mapping);
 };
@@ -599,7 +610,8 @@ struct ring_info {
  * much slower. Hmm... is it because struct does not fit to one cacheline?
  * So, split tx_ring_info.
  */
-struct tx_ring_info {
+struct tx_ring_info
+{
 	struct sk_buff		*skb;
 	DEFINE_DMA_UNMAP_ADDR(mapping);
 	DEFINE_DMA_UNMAP_LEN(maplen);
@@ -652,7 +664,7 @@ struct ace_private
 	 * RX elements
 	 */
 	unsigned long		std_refill_busy
-				__attribute__ ((aligned (SMP_CACHE_BYTES)));
+	__attribute__ ((aligned (SMP_CACHE_BYTES)));
 	unsigned long		mini_refill_busy, jumbo_refill_busy;
 	atomic_t		cur_rx_bufs;
 	atomic_t		cur_mini_bufs;
@@ -687,7 +699,7 @@ struct ace_private
 	const char		*name;
 #ifdef INDEX_DEBUG
 	spinlock_t		debug_lock
-				__attribute__ ((aligned (SMP_CACHE_BYTES)));
+	__attribute__ ((aligned (SMP_CACHE_BYTES)));
 	u32			last_tx, last_std_rx, last_mini_rx;
 #endif
 	int			pci_using_dac;
@@ -718,15 +730,17 @@ static inline void set_aceaddr(aceaddr *aa, dma_addr_t addr)
 
 
 static inline void ace_set_txprd(struct ace_regs __iomem *regs,
-				 struct ace_private *ap, u32 value)
+								 struct ace_private *ap, u32 value)
 {
 #ifdef INDEX_DEBUG
 	unsigned long flags;
 	spin_lock_irqsave(&ap->debug_lock, flags);
 	writel(value, &regs->TxPrd);
+
 	if (value == ap->last_tx)
 		printk(KERN_ERR "AceNIC RACE ALERT! writing identical value "
-		       "to tx producer (%i)\n", value);
+			   "to tx producer (%i)\n", value);
+
 	ap->last_tx = value;
 	spin_unlock_irqrestore(&ap->debug_lock, flags);
 #else
@@ -742,9 +756,13 @@ static inline void ace_mask_irq(struct net_device *dev)
 	struct ace_regs __iomem *regs = ap->regs;
 
 	if (ACE_IS_TIGON_I(ap))
+	{
 		writel(1, &regs->MaskInt);
+	}
 	else
+	{
 		writel(readl(&regs->HostCtrl) | MASK_INTS, &regs->HostCtrl);
+	}
 
 	ace_sync_irq(dev->irq);
 }
@@ -756,9 +774,13 @@ static inline void ace_unmask_irq(struct net_device *dev)
 	struct ace_regs __iomem *regs = ap->regs;
 
 	if (ACE_IS_TIGON_I(ap))
+	{
 		writel(0, &regs->MaskInt);
+	}
 	else
+	{
 		writel(readl(&regs->HostCtrl) & ~MASK_INTS, &regs->HostCtrl);
+	}
 }
 
 
@@ -773,7 +795,7 @@ static irqreturn_t ace_interrupt(int irq, void *dev_id);
 static int ace_load_firmware(struct net_device *dev);
 static int ace_open(struct net_device *dev);
 static netdev_tx_t ace_start_xmit(struct sk_buff *skb,
-				  struct net_device *dev);
+								  struct net_device *dev);
 static int ace_close(struct net_device *dev);
 static void ace_tasklet(unsigned long dev);
 static void ace_dump_trace(struct ace_private *ap);

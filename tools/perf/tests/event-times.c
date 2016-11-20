@@ -11,7 +11,8 @@
 static int attach__enable_on_exec(struct perf_evlist *evlist)
 {
 	struct perf_evsel *evsel = perf_evlist__last(evlist);
-	struct target target = {
+	struct target target =
+	{
 		.uid = UINT_MAX,
 	};
 	const char *argv[] = { "true", NULL, };
@@ -21,13 +22,17 @@ static int attach__enable_on_exec(struct perf_evlist *evlist)
 	pr_debug("attaching to spawned child, enable on exec\n");
 
 	err = perf_evlist__create_maps(evlist, &target);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		pr_debug("Not enough memory to create thread/cpu maps\n");
 		return err;
 	}
 
 	err = perf_evlist__prepare_workload(evlist, &target, argv, false, NULL);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		pr_debug("Couldn't run the workload!\n");
 		return err;
 	}
@@ -35,9 +40,11 @@ static int attach__enable_on_exec(struct perf_evlist *evlist)
 	evsel->attr.enable_on_exec = 1;
 
 	err = perf_evlist__open(evlist);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		pr_debug("perf_evlist__open: %s\n",
-			 str_error_r(errno, sbuf, sizeof(sbuf)));
+				 str_error_r(errno, sbuf, sizeof(sbuf)));
 		return err;
 	}
 
@@ -59,7 +66,9 @@ static int attach__current_disabled(struct perf_evlist *evlist)
 	pr_debug("attaching to current thread as disabled\n");
 
 	threads = thread_map__new(-1, getpid(), UINT_MAX);
-	if (threads == NULL) {
+
+	if (threads == NULL)
+	{
 		pr_debug("thread_map__new\n");
 		return -1;
 	}
@@ -67,7 +76,9 @@ static int attach__current_disabled(struct perf_evlist *evlist)
 	evsel->attr.disabled = 1;
 
 	err = perf_evsel__open_per_thread(evsel, threads);
-	if (err) {
+
+	if (err)
+	{
 		pr_debug("Failed to open event cpu-clock:u\n");
 		return err;
 	}
@@ -85,7 +96,9 @@ static int attach__current_enabled(struct perf_evlist *evlist)
 	pr_debug("attaching to current thread as enabled\n");
 
 	threads = thread_map__new(-1, getpid(), UINT_MAX);
-	if (threads == NULL) {
+
+	if (threads == NULL)
+	{
 		pr_debug("failed to call thread_map__new\n");
 		return -1;
 	}
@@ -112,7 +125,9 @@ static int attach__cpu_disabled(struct perf_evlist *evlist)
 	pr_debug("attaching to CPU 0 as enabled\n");
 
 	cpus = cpu_map__new("0");
-	if (cpus == NULL) {
+
+	if (cpus == NULL)
+	{
 		pr_debug("failed to call cpu_map__new\n");
 		return -1;
 	}
@@ -120,9 +135,13 @@ static int attach__cpu_disabled(struct perf_evlist *evlist)
 	evsel->attr.disabled = 1;
 
 	err = perf_evsel__open_per_cpu(evsel, cpus);
-	if (err) {
+
+	if (err)
+	{
 		if (err == -EACCES)
+		{
 			return TEST_SKIP;
+		}
 
 		pr_debug("Failed to open event cpu-clock:u\n");
 		return err;
@@ -141,21 +160,26 @@ static int attach__cpu_enabled(struct perf_evlist *evlist)
 	pr_debug("attaching to CPU 0 as enabled\n");
 
 	cpus = cpu_map__new("0");
-	if (cpus == NULL) {
+
+	if (cpus == NULL)
+	{
 		pr_debug("failed to call cpu_map__new\n");
 		return -1;
 	}
 
 	err = perf_evsel__open_per_cpu(evsel, cpus);
+
 	if (err == -EACCES)
+	{
 		return TEST_SKIP;
+	}
 
 	cpu_map__put(cpus);
 	return err ? TEST_FAIL : TEST_OK;
 }
 
 static int test_times(int (attach)(struct perf_evlist *),
-		      int (detach)(struct perf_evlist *))
+					  int (detach)(struct perf_evlist *))
 {
 	struct perf_counts_values count;
 	struct perf_evlist *evlist = NULL;
@@ -163,13 +187,17 @@ static int test_times(int (attach)(struct perf_evlist *),
 	int err = -1, i;
 
 	evlist = perf_evlist__new();
-	if (!evlist) {
+
+	if (!evlist)
+	{
 		pr_debug("failed to create event list\n");
 		goto out_err;
 	}
 
 	err = parse_events(evlist, "cpu-clock:u", NULL);
-	if (err) {
+
+	if (err)
+	{
 		pr_debug("failed to parse event cpu-clock:u\n");
 		goto out_err;
 	}
@@ -180,7 +208,9 @@ static int test_times(int (attach)(struct perf_evlist *),
 		PERF_FORMAT_TOTAL_TIME_RUNNING;
 
 	err = attach(evlist);
-	if (err == TEST_SKIP) {
+
+	if (err == TEST_SKIP)
+	{
 		pr_debug("  SKIP  : not enough rights\n");
 		return err;
 	}
@@ -196,8 +226,8 @@ static int test_times(int (attach)(struct perf_evlist *),
 	err = !(count.ena == count.run);
 
 	pr_debug("  %s: ena %" PRIu64", run %" PRIu64"\n",
-		 !err ? "OK    " : "FAILED",
-		 count.ena, count.run);
+			 !err ? "OK    " : "FAILED",
+			 count.ena, count.run);
 
 out_err:
 	perf_evlist__delete(evlist);

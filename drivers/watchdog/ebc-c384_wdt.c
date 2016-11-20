@@ -38,12 +38,12 @@
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default="
-	__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 static unsigned timeout;
 module_param(timeout, uint, 0);
 MODULE_PARM_DESC(timeout, "Watchdog timeout in seconds (default="
-	__MODULE_STRING(WATCHDOG_TIMEOUT) ")");
+				 __MODULE_STRING(WATCHDOG_TIMEOUT) ")");
 
 static int ebc_c384_wdt_start(struct watchdog_device *wdev)
 {
@@ -51,7 +51,9 @@ static int ebc_c384_wdt_start(struct watchdog_device *wdev)
 
 	/* resolution is in minutes for timeouts greater than 255 seconds */
 	if (t > 255)
+	{
 		t = DIV_ROUND_UP(t, 60);
+	}
 
 	outb(t, PET_ADDR);
 
@@ -68,13 +70,16 @@ static int ebc_c384_wdt_stop(struct watchdog_device *wdev)
 static int ebc_c384_wdt_set_timeout(struct watchdog_device *wdev, unsigned t)
 {
 	/* resolution is in minutes for timeouts greater than 255 seconds */
-	if (t > 255) {
+	if (t > 255)
+	{
 		/* round second resolution up to minute granularity */
 		wdev->timeout = roundup(t, 60);
 
 		/* set watchdog timer for minutes */
 		outb(0x00, CFG_ADDR);
-	} else {
+	}
+	else
+	{
 		wdev->timeout = t;
 
 		/* set watchdog timer for seconds */
@@ -84,13 +89,15 @@ static int ebc_c384_wdt_set_timeout(struct watchdog_device *wdev, unsigned t)
 	return 0;
 }
 
-static const struct watchdog_ops ebc_c384_wdt_ops = {
+static const struct watchdog_ops ebc_c384_wdt_ops =
+{
 	.start = ebc_c384_wdt_start,
 	.stop = ebc_c384_wdt_stop,
 	.set_timeout = ebc_c384_wdt_set_timeout
 };
 
-static const struct watchdog_info ebc_c384_wdt_info = {
+static const struct watchdog_info ebc_c384_wdt_info =
+{
 	.options = WDIOF_KEEPALIVEPING | WDIOF_MAGICCLOSE | WDIOF_SETTIMEOUT,
 	.identity = MODULE_NAME
 };
@@ -99,15 +106,19 @@ static int ebc_c384_wdt_probe(struct device *dev, unsigned int id)
 {
 	struct watchdog_device *wdd;
 
-	if (!devm_request_region(dev, BASE_ADDR, ADDR_EXTENT, dev_name(dev))) {
+	if (!devm_request_region(dev, BASE_ADDR, ADDR_EXTENT, dev_name(dev)))
+	{
 		dev_err(dev, "Unable to lock port addresses (0x%X-0x%X)\n",
-			BASE_ADDR, BASE_ADDR + ADDR_EXTENT);
+				BASE_ADDR, BASE_ADDR + ADDR_EXTENT);
 		return -EBUSY;
 	}
 
 	wdd = devm_kzalloc(dev, sizeof(*wdd), GFP_KERNEL);
+
 	if (!wdd)
+	{
 		return -ENOMEM;
+	}
 
 	wdd->info = &ebc_c384_wdt_info;
 	wdd->ops = &ebc_c384_wdt_ops;
@@ -119,7 +130,7 @@ static int ebc_c384_wdt_probe(struct device *dev, unsigned int id)
 
 	if (watchdog_init_timeout(wdd, timeout, dev))
 		dev_warn(dev, "Invalid timeout (%u seconds), using default (%u seconds)\n",
-			timeout, WATCHDOG_TIMEOUT);
+				 timeout, WATCHDOG_TIMEOUT);
 
 	dev_set_drvdata(dev, wdd);
 
@@ -135,7 +146,8 @@ static int ebc_c384_wdt_remove(struct device *dev, unsigned int id)
 	return 0;
 }
 
-static struct isa_driver ebc_c384_wdt_driver = {
+static struct isa_driver ebc_c384_wdt_driver =
+{
 	.probe = ebc_c384_wdt_probe,
 	.driver = {
 		.name = MODULE_NAME
@@ -146,7 +158,9 @@ static struct isa_driver ebc_c384_wdt_driver = {
 static int __init ebc_c384_wdt_init(void)
 {
 	if (!dmi_match(DMI_BOARD_NAME, "EBC-C384 SBC"))
+	{
 		return -ENODEV;
+	}
 
 	return isa_register_driver(&ebc_c384_wdt_driver, 1);
 }

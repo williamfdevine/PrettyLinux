@@ -34,24 +34,34 @@ g98_devinit_disable(struct nvkm_devinit *init)
 	u32 r00154c = nvkm_rd32(device, 0x00154c);
 	u64 disable = 0ULL;
 
-	if (!(r001540 & 0x40000000)) {
+	if (!(r001540 & 0x40000000))
+	{
 		disable |= (1ULL << NVKM_ENGINE_MSPDEC);
 		disable |= (1ULL << NVKM_ENGINE_MSVLD);
 		disable |= (1ULL << NVKM_ENGINE_MSPPP);
 	}
 
 	if (!(r00154c & 0x00000004))
+	{
 		disable |= (1ULL << NVKM_ENGINE_DISP);
+	}
+
 	if (!(r00154c & 0x00000020))
+	{
 		disable |= (1ULL << NVKM_ENGINE_MSVLD);
+	}
+
 	if (!(r00154c & 0x00000040))
+	{
 		disable |= (1ULL << NVKM_ENGINE_SEC);
+	}
 
 	return disable;
 }
 
 static const struct nvkm_devinit_func
-g98_devinit = {
+	g98_devinit =
+{
 	.preinit = nv50_devinit_preinit,
 	.init = nv50_devinit_init,
 	.post = nv04_devinit_post,
@@ -61,7 +71,7 @@ g98_devinit = {
 
 int
 g98_devinit_new(struct nvkm_device *device, int index,
-		struct nvkm_devinit **pinit)
+				struct nvkm_devinit **pinit)
 {
 	return nv50_devinit_new_(&g98_devinit, device, index, pinit);
 }

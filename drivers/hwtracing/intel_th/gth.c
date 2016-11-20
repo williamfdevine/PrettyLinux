@@ -37,7 +37,8 @@ struct gth_device;
  * @port_type:	one of GTH_* port type values
  * @master:	bitmap of masters configured for this output
  */
-struct gth_output {
+struct gth_output
+{
 	struct gth_device	*gth;
 	struct intel_th_output	*output;
 	unsigned int		index;
@@ -55,7 +56,8 @@ struct gth_output {
  * @master:		master/output port assignments
  * @gth_lock:		serializes accesses to GTH bits
  */
-struct gth_device {
+struct gth_device
+{
 	struct device		*dev;
 	void __iomem		*base;
 
@@ -67,7 +69,7 @@ struct gth_device {
 };
 
 static void gth_output_set(struct gth_device *gth, int port,
-			   unsigned int config)
+						   unsigned int config)
 {
 	unsigned long reg = port & 4 ? REG_GTH_GTHOPT1 : REG_GTH_GTHOPT0;
 	u32 val;
@@ -93,7 +95,7 @@ static unsigned int gth_output_get(struct gth_device *gth, int port)
 }
 
 static void gth_smcfreq_set(struct gth_device *gth, int port,
-			    unsigned int freq)
+							unsigned int freq)
 {
 	unsigned long reg = REG_GTH_SMCR0 + ((port / 2) * 4);
 	int shift = (port & 1) * 16;
@@ -122,7 +124,8 @@ static unsigned int gth_smcfreq_get(struct gth_device *gth, int port)
  * "masters" attribute group
  */
 
-struct master_attribute {
+struct master_attribute
+{
 	struct device_attribute	attr;
 	struct gth_device	*gth;
 	unsigned int		master;
@@ -135,21 +138,26 @@ gth_master_set(struct gth_device *gth, unsigned int master, int port)
 	unsigned int shift = (master & 0x7) * 4;
 	u32 val;
 
-	if (master >= 256) {
+	if (master >= 256)
+	{
 		reg = REG_GTH_GSWTDEST;
 		shift = 0;
 	}
 
 	val = ioread32(gth->base + reg);
 	val &= ~(0xf << shift);
+
 	if (port >= 0)
+	{
 		val |= (0x8 | port) << shift;
+	}
+
 	iowrite32(val, gth->base + reg);
 }
 
 static ssize_t master_attr_show(struct device *dev,
-				struct device_attribute *attr,
-				char *buf)
+								struct device_attribute *attr,
+								char *buf)
 {
 	struct master_attribute *ma =
 		container_of(attr, struct master_attribute, attr);
@@ -162,16 +170,20 @@ static ssize_t master_attr_show(struct device *dev,
 	spin_unlock(&gth->gth_lock);
 
 	if (port >= 0)
+	{
 		count = snprintf(buf, PAGE_SIZE, "%x\n", port);
+	}
 	else
+	{
 		count = snprintf(buf, PAGE_SIZE, "disabled\n");
+	}
 
 	return count;
 }
 
 static ssize_t master_attr_store(struct device *dev,
-				 struct device_attribute *attr,
-				 const char *buf, size_t count)
+								 struct device_attribute *attr,
+								 const char *buf, size_t count)
 {
 	struct master_attribute *ma =
 		container_of(attr, struct master_attribute, attr);
@@ -179,16 +191,22 @@ static ssize_t master_attr_store(struct device *dev,
 	int old_port, port;
 
 	if (kstrtoint(buf, 10, &port) < 0)
+	{
 		return -EINVAL;
+	}
 
 	if (port >= TH_POSSIBLE_OUTPUTS || port < -1)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock(&gth->gth_lock);
 
 	/* disconnect from the previous output port, if any */
 	old_port = gth->master[ma->master];
-	if (old_port >= 0) {
+
+	if (old_port >= 0)
+	{
 		gth->master[ma->master] = -1;
 		clear_bit(ma->master, gth->output[old_port].master);
 
@@ -197,13 +215,17 @@ static ssize_t master_attr_store(struct device *dev,
 		 * implies that runtime PM is on
 		 */
 		if (gth->output[old_port].output->active)
+		{
 			gth_master_set(gth, ma->master, -1);
+		}
 	}
 
 	/* connect to the new output port, if any */
-	if (port >= 0) {
+	if (port >= 0)
+	{
 		/* check if there's a driver for this port */
-		if (!gth->output[port].output) {
+		if (!gth->output[port].output)
+		{
 			count = -ENODEV;
 			goto unlock;
 		}
@@ -212,7 +234,9 @@ static ssize_t master_attr_store(struct device *dev,
 
 		/* if the port is active, program this setting, see above */
 		if (gth->output[port].output->active)
+		{
 			gth_master_set(gth, ma->master, port);
+		}
 	}
 
 	gth->master[ma->master] = port;
@@ -223,7 +247,8 @@ unlock:
 	return count;
 }
 
-struct output_attribute {
+struct output_attribute
+{
 	struct device_attribute attr;
 	struct gth_device	*gth;
 	unsigned int		port;
@@ -232,21 +257,23 @@ struct output_attribute {
 
 #define OUTPUT_PARM(_name, _mask, _r, _w, _what)			\
 	[TH_OUTPUT_PARM(_name)] = { .name = __stringify(_name),		\
-				    .get = gth_ ## _what ## _get,	\
-				    .set = gth_ ## _what ## _set,	\
-				    .mask = (_mask),			\
-				    .readable = (_r),			\
-				    .writable = (_w) }
+								.get = gth_ ## _what ## _get,	\
+								.set = gth_ ## _what ## _set,	\
+								.mask = (_mask),			\
+								.readable = (_r),			\
+								.writable = (_w) }
 
-static const struct output_parm {
+static const struct output_parm
+{
 	const char	*name;
 	unsigned int	(*get)(struct gth_device *gth, int port);
 	void		(*set)(struct gth_device *gth, int port,
-			       unsigned int val);
+					   unsigned int val);
 	unsigned int	mask;
 	unsigned int	readable : 1,
-			writable : 1;
-} output_parms[] = {
+				writable : 1;
+} output_parms[] =
+{
 	OUTPUT_PARM(port,	0x7,	1, 0, output),
 	OUTPUT_PARM(null,	BIT(3),	1, 1, output),
 	OUTPUT_PARM(drop,	BIT(4),	1, 1, output),
@@ -257,7 +284,7 @@ static const struct output_parm {
 
 static void
 gth_output_parm_set(struct gth_device *gth, int port, unsigned int parm,
-		    unsigned int val)
+					unsigned int val)
 {
 	unsigned int config = output_parms[parm].get(gth, port);
 	unsigned int mask = output_parms[parm].mask;
@@ -289,28 +316,37 @@ static int intel_th_gth_reset(struct gth_device *gth)
 	int port, i;
 
 	scratchpad = ioread32(gth->base + REG_GTH_SCRPD0);
+
 	if (scratchpad & SCRPD_DEBUGGER_IN_USE)
+	{
 		return -EBUSY;
+	}
 
 	/* Always save/restore STH and TU registers in S0ix entry/exit */
 	scratchpad |= SCRPD_STH_IS_ENABLED | SCRPD_TRIGGER_IS_ENABLED;
 	iowrite32(scratchpad, gth->base + REG_GTH_SCRPD0);
 
 	/* output ports */
-	for (port = 0; port < 8; port++) {
+	for (port = 0; port < 8; port++)
+	{
 		if (gth_output_parm_get(gth, port, TH_OUTPUT_PARM(port)) ==
-		    GTH_NONE)
+			GTH_NONE)
+		{
 			continue;
+		}
 
 		gth_output_set(gth, port, 0);
 		gth_smcfreq_set(gth, port, 16);
 	}
+
 	/* disable overrides */
 	iowrite32(0, gth->base + REG_GTH_DESTOVR);
 
 	/* masters swdest_0~31 and gswdest */
 	for (i = 0; i < 33; i++)
+	{
 		iowrite32(0, gth->base + REG_GTH_SWDEST0 + i * 4);
+	}
 
 	/* sources */
 	iowrite32(0, gth->base + REG_GTH_SCR);
@@ -324,8 +360,8 @@ static int intel_th_gth_reset(struct gth_device *gth)
  */
 
 static ssize_t output_attr_show(struct device *dev,
-				struct device_attribute *attr,
-				char *buf)
+								struct device_attribute *attr,
+								char *buf)
 {
 	struct output_attribute *oa =
 		container_of(attr, struct output_attribute, attr);
@@ -336,7 +372,7 @@ static ssize_t output_attr_show(struct device *dev,
 
 	spin_lock(&gth->gth_lock);
 	count = snprintf(buf, PAGE_SIZE, "%x\n",
-			 gth_output_parm_get(gth, oa->port, oa->parm));
+					 gth_output_parm_get(gth, oa->port, oa->parm));
 	spin_unlock(&gth->gth_lock);
 
 	pm_runtime_put(dev);
@@ -345,8 +381,8 @@ static ssize_t output_attr_show(struct device *dev,
 }
 
 static ssize_t output_attr_store(struct device *dev,
-				 struct device_attribute *attr,
-				 const char *buf, size_t count)
+								 struct device_attribute *attr,
+								 const char *buf, size_t count)
 {
 	struct output_attribute *oa =
 		container_of(attr, struct output_attribute, attr);
@@ -354,7 +390,9 @@ static ssize_t output_attr_store(struct device *dev,
 	unsigned int config;
 
 	if (kstrtouint(buf, 16, &config) < 0)
+	{
 		return -EINVAL;
+	}
 
 	pm_runtime_get_sync(dev);
 
@@ -374,22 +412,32 @@ static int intel_th_master_attributes(struct gth_device *gth)
 	int i, nattrs = TH_CONFIGURABLE_MASTERS + 2;
 
 	attrs = devm_kcalloc(gth->dev, nattrs, sizeof(void *), GFP_KERNEL);
+
 	if (!attrs)
+	{
 		return -ENOMEM;
+	}
 
 	master_attrs = devm_kcalloc(gth->dev, nattrs,
-				    sizeof(struct master_attribute),
-				    GFP_KERNEL);
-	if (!master_attrs)
-		return -ENOMEM;
+								sizeof(struct master_attribute),
+								GFP_KERNEL);
 
-	for (i = 0; i < TH_CONFIGURABLE_MASTERS + 1; i++) {
+	if (!master_attrs)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < TH_CONFIGURABLE_MASTERS + 1; i++)
+	{
 		char *name;
 
 		name = devm_kasprintf(gth->dev, GFP_KERNEL, "%d%s", i,
-				      i == TH_CONFIGURABLE_MASTERS ? "+" : "");
+							  i == TH_CONFIGURABLE_MASTERS ? "+" : "");
+
 		if (!name)
+		{
 			return -ENOMEM;
+		}
 
 		master_attrs[i].attr.attr.name = name;
 		master_attrs[i].attr.attr.mode = S_IRUGO | S_IWUSR;
@@ -418,33 +466,46 @@ static int intel_th_output_attributes(struct gth_device *gth)
 	int nattrs = nouts * nparms + 1;
 
 	attrs = devm_kcalloc(gth->dev, nattrs, sizeof(void *), GFP_KERNEL);
+
 	if (!attrs)
+	{
 		return -ENOMEM;
+	}
 
 	out_attrs = devm_kcalloc(gth->dev, nattrs,
-				 sizeof(struct output_attribute),
-				 GFP_KERNEL);
-	if (!out_attrs)
-		return -ENOMEM;
+							 sizeof(struct output_attribute),
+							 GFP_KERNEL);
 
-	for (i = 0; i < nouts; i++) {
-		for (j = 0; j < nparms; j++) {
+	if (!out_attrs)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < nouts; i++)
+	{
+		for (j = 0; j < nparms; j++)
+		{
 			unsigned int idx = i * nparms + j;
 			char *name;
 
 			name = devm_kasprintf(gth->dev, GFP_KERNEL, "%d_%s", i,
-					      output_parms[j].name);
+								  output_parms[j].name);
+
 			if (!name)
+			{
 				return -ENOMEM;
+			}
 
 			out_attrs[idx].attr.attr.name = name;
 
-			if (output_parms[j].readable) {
+			if (output_parms[j].readable)
+			{
 				out_attrs[idx].attr.attr.mode |= S_IRUGO;
 				out_attrs[idx].attr.show = output_attr_show;
 			}
 
-			if (output_parms[j].writable) {
+			if (output_parms[j].writable)
+			{
 				out_attrs[idx].attr.attr.mode |= S_IWUSR;
 				out_attrs[idx].attr.store = output_attr_store;
 			}
@@ -474,7 +535,7 @@ static int intel_th_output_attributes(struct gth_device *gth)
  * "pipeline empty" bit for corresponding output port.
  */
 static void intel_th_gth_disable(struct intel_th_device *thdev,
-				 struct intel_th_output *output)
+								 struct intel_th_output *output)
 {
 	struct gth_device *gth = dev_get_drvdata(&thdev->dev);
 	unsigned long count;
@@ -485,7 +546,8 @@ static void intel_th_gth_disable(struct intel_th_device *thdev,
 	output->active = false;
 
 	for_each_set_bit(master, gth->output[output->port].master,
-			 TH_CONFIGURABLE_MASTERS) {
+					 TH_CONFIGURABLE_MASTERS)
+	{
 		gth_master_set(gth, master, -1);
 	}
 	spin_unlock(&gth->gth_lock);
@@ -495,7 +557,8 @@ static void intel_th_gth_disable(struct intel_th_device *thdev,
 
 	/* wait on pipeline empty for the given port */
 	for (reg = 0, count = GTH_PLE_WAITLOOP_DEPTH;
-	     count && !(reg & BIT(output->port)); count--) {
+		 count && !(reg & BIT(output->port)); count--)
+	{
 		reg = ioread32(gth->base + REG_GTH_STAT);
 		cpu_relax();
 	}
@@ -505,7 +568,7 @@ static void intel_th_gth_disable(struct intel_th_device *thdev,
 
 	if (!count)
 		dev_dbg(&thdev->dev, "timeout waiting for GTH[%d] PLE\n",
-			output->port);
+				output->port);
 
 	reg = ioread32(gth->base + REG_GTH_SCRPD0);
 	reg &= ~output->scratchpad;
@@ -521,7 +584,7 @@ static void intel_th_gth_disable(struct intel_th_device *thdev,
  * enable tracing using force storeEn signal.
  */
 static void intel_th_gth_enable(struct intel_th_device *thdev,
-				struct intel_th_output *output)
+								struct intel_th_output *output)
 {
 	struct gth_device *gth = dev_get_drvdata(&thdev->dev);
 	u32 scr = 0xfc0000, scrpd;
@@ -529,12 +592,15 @@ static void intel_th_gth_enable(struct intel_th_device *thdev,
 
 	spin_lock(&gth->gth_lock);
 	for_each_set_bit(master, gth->output[output->port].master,
-			 TH_CONFIGURABLE_MASTERS + 1) {
+					 TH_CONFIGURABLE_MASTERS + 1)
+	{
 		gth_master_set(gth, master, output->port);
 	}
 
 	if (output->multiblock)
+	{
 		scr |= 0xff;
+	}
 
 	output->active = true;
 	spin_unlock(&gth->gth_lock);
@@ -559,20 +625,27 @@ static void intel_th_gth_enable(struct intel_th_device *thdev,
  * Return:	0 on success, -errno on error.
  */
 static int intel_th_gth_assign(struct intel_th_device *thdev,
-			       struct intel_th_device *othdev)
+							   struct intel_th_device *othdev)
 {
 	struct gth_device *gth = dev_get_drvdata(&thdev->dev);
 	int i, id;
 
 	if (othdev->type != INTEL_TH_OUTPUT)
+	{
 		return -EINVAL;
+	}
 
-	for (i = 0, id = 0; i < TH_POSSIBLE_OUTPUTS; i++) {
+	for (i = 0, id = 0; i < TH_POSSIBLE_OUTPUTS; i++)
+	{
 		if (gth->output[i].port_type != othdev->output.type)
+		{
 			continue;
+		}
 
 		if (othdev->id == -1 || othdev->id == id)
+		{
 			goto found;
+		}
 
 		id++;
 	}
@@ -595,7 +668,7 @@ found:
  * @othdev:	output device
  */
 static void intel_th_gth_unassign(struct intel_th_device *thdev,
-				  struct intel_th_device *othdev)
+								  struct intel_th_device *othdev)
 {
 	struct gth_device *gth = dev_get_drvdata(&thdev->dev);
 	int port = othdev->output.port;
@@ -618,13 +691,18 @@ intel_th_gth_set_output(struct intel_th_device *thdev, unsigned int master)
 	 * same register
 	 */
 	if (master > TH_CONFIGURABLE_MASTERS)
+	{
 		master = TH_CONFIGURABLE_MASTERS;
+	}
 
 	spin_lock(&gth->gth_lock);
-	if (gth->master[master] == -1) {
+
+	if (gth->master[master] == -1)
+	{
 		set_bit(master, gth->output[port].master);
 		gth->master[master] = port;
 	}
+
 	spin_unlock(&gth->gth_lock);
 
 	return 0;
@@ -639,29 +717,44 @@ static int intel_th_gth_probe(struct intel_th_device *thdev)
 	int i, ret;
 
 	res = intel_th_device_get_resource(thdev, IORESOURCE_MEM, 0);
+
 	if (!res)
+	{
 		return -ENODEV;
+	}
 
 	base = devm_ioremap(dev, res->start, resource_size(res));
+
 	if (!base)
+	{
 		return -ENOMEM;
+	}
 
 	gth = devm_kzalloc(dev, sizeof(*gth), GFP_KERNEL);
+
 	if (!gth)
+	{
 		return -ENOMEM;
+	}
 
 	gth->dev = dev;
 	gth->base = base;
 	spin_lock_init(&gth->gth_lock);
 
 	ret = intel_th_gth_reset(gth);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	for (i = 0; i < TH_CONFIGURABLE_MASTERS + 1; i++)
+	{
 		gth->master[i] = -1;
+	}
 
-	for (i = 0; i < TH_POSSIBLE_OUTPUTS; i++) {
+	for (i = 0; i < TH_POSSIBLE_OUTPUTS; i++)
+	{
 		gth->output[i].gth = gth;
 		gth->output[i].index = i;
 		gth->output[i].port_type =
@@ -669,11 +762,15 @@ static int intel_th_gth_probe(struct intel_th_device *thdev)
 	}
 
 	if (intel_th_output_attributes(gth) ||
-	    intel_th_master_attributes(gth)) {
+		intel_th_master_attributes(gth))
+	{
 		pr_warn("Can't initialize sysfs attributes\n");
 
 		if (gth->output_group.attrs)
+		{
 			sysfs_remove_group(&gth->dev->kobj, &gth->output_group);
+		}
+
 		return -ENOMEM;
 	}
 
@@ -690,7 +787,8 @@ static void intel_th_gth_remove(struct intel_th_device *thdev)
 	sysfs_remove_group(&gth->dev->kobj, &gth->master_group);
 }
 
-static struct intel_th_driver intel_th_gth_driver = {
+static struct intel_th_driver intel_th_gth_driver =
+{
 	.probe		= intel_th_gth_probe,
 	.remove		= intel_th_gth_remove,
 	.assign		= intel_th_gth_assign,
@@ -705,8 +803,8 @@ static struct intel_th_driver intel_th_gth_driver = {
 };
 
 module_driver(intel_th_gth_driver,
-	      intel_th_driver_register,
-	      intel_th_driver_unregister);
+			  intel_th_driver_register,
+			  intel_th_driver_unregister);
 
 MODULE_ALIAS("intel_th_switch");
 MODULE_LICENSE("GPL v2");

@@ -31,7 +31,8 @@
  * @fence:		fence with the fences in the sync_file
  * @cb:			fence callback information
  */
-struct sync_file {
+struct sync_file
+{
 	struct file		*file;
 	struct kref		kref;
 	char			name[32];

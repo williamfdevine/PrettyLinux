@@ -25,14 +25,18 @@ static int if_lock(struct cardstate *cs, int *arg)
 	gig_dbg(DEBUG_IF, "%u: if_lock (%d)", cs->minor_index, cmd);
 
 	if (cmd > 1)
+	{
 		return -EINVAL;
+	}
 
-	if (cmd < 0) {
+	if (cmd < 0)
+	{
 		*arg = cs->mstate == MS_LOCKED;
 		return 0;
 	}
 
-	if (!cmd && cs->mstate == MS_LOCKED && cs->connected) {
+	if (!cmd && cs->mstate == MS_LOCKED && cs->connected)
+	{
 		cs->ops->set_modem_ctrl(cs, 0, TIOCM_DTR | TIOCM_RTS);
 		cs->ops->baud_rate(cs, B115200);
 		cs->ops->set_line_ctrl(cs, CS8);
@@ -40,16 +44,20 @@ static int if_lock(struct cardstate *cs, int *arg)
 	}
 
 	cs->waiting = 1;
+
 	if (!gigaset_add_event(cs, &cs->at_state, EV_IF_LOCK,
-			       NULL, cmd, NULL)) {
+						   NULL, cmd, NULL))
+	{
 		cs->waiting = 0;
 		return -ENOMEM;
 	}
+
 	gigaset_schedule_event(cs);
 
 	wait_event(cs->waitqueue, !cs->waiting);
 
-	if (cs->cmd_result >= 0) {
+	if (cs->cmd_result >= 0)
+	{
 		*arg = cs->cmd_result;
 		return 0;
 	}
@@ -65,30 +73,39 @@ static int if_version(struct cardstate *cs, unsigned arg[4])
 
 	gig_dbg(DEBUG_IF, "%u: if_version (%d)", cs->minor_index, cmd);
 
-	switch (cmd) {
-	case GIGVER_DRIVER:
-		memcpy(arg, version, sizeof version);
-		return 0;
-	case GIGVER_COMPAT:
-		memcpy(arg, compat, sizeof compat);
-		return 0;
-	case GIGVER_FWBASE:
-		cs->waiting = 1;
-		if (!gigaset_add_event(cs, &cs->at_state, EV_IF_VER,
-				       NULL, 0, arg)) {
-			cs->waiting = 0;
-			return -ENOMEM;
-		}
-		gigaset_schedule_event(cs);
-
-		wait_event(cs->waitqueue, !cs->waiting);
-
-		if (cs->cmd_result >= 0)
+	switch (cmd)
+	{
+		case GIGVER_DRIVER:
+			memcpy(arg, version, sizeof version);
 			return 0;
 
-		return cs->cmd_result;
-	default:
-		return -EINVAL;
+		case GIGVER_COMPAT:
+			memcpy(arg, compat, sizeof compat);
+			return 0;
+
+		case GIGVER_FWBASE:
+			cs->waiting = 1;
+
+			if (!gigaset_add_event(cs, &cs->at_state, EV_IF_VER,
+								   NULL, 0, arg))
+			{
+				cs->waiting = 0;
+				return -ENOMEM;
+			}
+
+			gigaset_schedule_event(cs);
+
+			wait_event(cs->waitqueue, !cs->waiting);
+
+			if (cs->cmd_result >= 0)
+			{
+				return 0;
+			}
+
+			return cs->cmd_result;
+
+		default:
+			return -EINVAL;
 	}
 }
 
@@ -97,12 +114,17 @@ static int if_config(struct cardstate *cs, int *arg)
 	gig_dbg(DEBUG_IF, "%u: if_config (%d)", cs->minor_index, *arg);
 
 	if (*arg != 1)
+	{
 		return -EINVAL;
+	}
 
 	if (cs->mstate != MS_LOCKED)
+	{
 		return -EBUSY;
+	}
 
-	if (!cs->connected) {
+	if (!cs->connected)
+	{
 		pr_err("%s: not connected\n", __func__);
 		return -ENODEV;
 	}
@@ -118,21 +140,27 @@ static int if_open(struct tty_struct *tty, struct file *filp)
 	struct cardstate *cs;
 
 	gig_dbg(DEBUG_IF, "%d+%d: %s()",
-		tty->driver->minor_start, tty->index, __func__);
+			tty->driver->minor_start, tty->index, __func__);
 
 	cs = gigaset_get_cs_by_tty(tty);
-	if (!cs || !try_module_get(cs->driver->owner))
-		return -ENODEV;
 
-	if (mutex_lock_interruptible(&cs->mutex)) {
+	if (!cs || !try_module_get(cs->driver->owner))
+	{
+		return -ENODEV;
+	}
+
+	if (mutex_lock_interruptible(&cs->mutex))
+	{
 		module_put(cs->driver->owner);
 		return -ERESTARTSYS;
 	}
+
 	tty->driver_data = cs;
 
 	++cs->port.count;
 
-	if (cs->port.count == 1) {
+	if (cs->port.count == 1)
+	{
 		tty_port_tty_set(&cs->port, tty);
 		cs->port.low_latency = 1;
 	}
@@ -145,7 +173,8 @@ static void if_close(struct tty_struct *tty, struct file *filp)
 {
 	struct cardstate *cs = tty->driver_data;
 
-	if (!cs) { /* happens if we didn't find cs in open */
+	if (!cs)   /* happens if we didn't find cs in open */
+	{
 		gig_dbg(DEBUG_IF, "%s: no cardstate", __func__);
 		return;
 	}
@@ -155,11 +184,17 @@ static void if_close(struct tty_struct *tty, struct file *filp)
 	mutex_lock(&cs->mutex);
 
 	if (!cs->connected)
-		gig_dbg(DEBUG_IF, "not connected");	/* nothing to do */
+	{
+		gig_dbg(DEBUG_IF, "not connected");    /* nothing to do */
+	}
 	else if (!cs->port.count)
+	{
 		dev_warn(cs->dev, "%s: device not opened\n", __func__);
+	}
 	else if (!--cs->port.count)
+	{
 		tty_port_tty_set(&cs->port, NULL);
+	}
 
 	mutex_unlock(&cs->mutex);
 
@@ -167,7 +202,7 @@ static void if_close(struct tty_struct *tty, struct file *filp)
 }
 
 static int if_ioctl(struct tty_struct *tty,
-		    unsigned int cmd, unsigned long arg)
+					unsigned int cmd, unsigned long arg)
 {
 	struct cardstate *cs = tty->driver_data;
 	int retval = -ENODEV;
@@ -178,53 +213,86 @@ static int if_ioctl(struct tty_struct *tty,
 	gig_dbg(DEBUG_IF, "%u: %s(0x%x)", cs->minor_index, __func__, cmd);
 
 	if (mutex_lock_interruptible(&cs->mutex))
+	{
 		return -ERESTARTSYS;
+	}
 
-	if (!cs->connected) {
+	if (!cs->connected)
+	{
 		gig_dbg(DEBUG_IF, "not connected");
 		retval = -ENODEV;
-	} else {
+	}
+	else
+	{
 		retval = 0;
-		switch (cmd) {
-		case GIGASET_REDIR:
-			retval = get_user(int_arg, (int __user *) arg);
-			if (retval >= 0)
-				retval = if_lock(cs, &int_arg);
-			if (retval >= 0)
-				retval = put_user(int_arg, (int __user *) arg);
-			break;
-		case GIGASET_CONFIG:
-			retval = get_user(int_arg, (int __user *) arg);
-			if (retval >= 0)
-				retval = if_config(cs, &int_arg);
-			if (retval >= 0)
-				retval = put_user(int_arg, (int __user *) arg);
-			break;
-		case GIGASET_BRKCHARS:
-			retval = copy_from_user(&buf,
-						(const unsigned char __user *) arg, 6)
-				? -EFAULT : 0;
-			if (retval >= 0) {
-				gigaset_dbg_buffer(DEBUG_IF, "GIGASET_BRKCHARS",
-						   6, (const unsigned char *) arg);
-				retval = cs->ops->brkchars(cs, buf);
-			}
-			break;
-		case GIGASET_VERSION:
-			retval = copy_from_user(version,
-						(unsigned __user *) arg, sizeof version)
-				? -EFAULT : 0;
-			if (retval >= 0)
-				retval = if_version(cs, version);
-			if (retval >= 0)
-				retval = copy_to_user((unsigned __user *) arg,
-						      version, sizeof version)
-					? -EFAULT : 0;
-			break;
-		default:
-			gig_dbg(DEBUG_IF, "%s: arg not supported - 0x%04x",
-				__func__, cmd);
-			retval = -ENOIOCTLCMD;
+
+		switch (cmd)
+		{
+			case GIGASET_REDIR:
+				retval = get_user(int_arg, (int __user *) arg);
+
+				if (retval >= 0)
+				{
+					retval = if_lock(cs, &int_arg);
+				}
+
+				if (retval >= 0)
+				{
+					retval = put_user(int_arg, (int __user *) arg);
+				}
+
+				break;
+
+			case GIGASET_CONFIG:
+				retval = get_user(int_arg, (int __user *) arg);
+
+				if (retval >= 0)
+				{
+					retval = if_config(cs, &int_arg);
+				}
+
+				if (retval >= 0)
+				{
+					retval = put_user(int_arg, (int __user *) arg);
+				}
+
+				break;
+
+			case GIGASET_BRKCHARS:
+				retval = copy_from_user(&buf,
+										(const unsigned char __user *) arg, 6)
+						 ? -EFAULT : 0;
+
+				if (retval >= 0)
+				{
+					gigaset_dbg_buffer(DEBUG_IF, "GIGASET_BRKCHARS",
+									   6, (const unsigned char *) arg);
+					retval = cs->ops->brkchars(cs, buf);
+				}
+
+				break;
+
+			case GIGASET_VERSION:
+				retval = copy_from_user(version,
+										(unsigned __user *) arg, sizeof version)
+						 ? -EFAULT : 0;
+
+				if (retval >= 0)
+				{
+					retval = if_version(cs, version);
+				}
+
+				if (retval >= 0)
+					retval = copy_to_user((unsigned __user *) arg,
+										  version, sizeof version)
+							 ? -EFAULT : 0;
+
+				break;
+
+			default:
+				gig_dbg(DEBUG_IF, "%s: arg not supported - 0x%04x",
+						__func__, cmd);
+				retval = -ENOIOCTLCMD;
 		}
 	}
 
@@ -241,7 +309,9 @@ static int if_tiocmget(struct tty_struct *tty)
 	gig_dbg(DEBUG_IF, "%u: %s()", cs->minor_index, __func__);
 
 	if (mutex_lock_interruptible(&cs->mutex))
+	{
 		return -ERESTARTSYS;
+	}
 
 	retval = cs->control_state & (TIOCM_RTS | TIOCM_DTR);
 
@@ -251,22 +321,27 @@ static int if_tiocmget(struct tty_struct *tty)
 }
 
 static int if_tiocmset(struct tty_struct *tty,
-		       unsigned int set, unsigned int clear)
+					   unsigned int set, unsigned int clear)
 {
 	struct cardstate *cs = tty->driver_data;
 	int retval;
 	unsigned mc;
 
 	gig_dbg(DEBUG_IF, "%u: %s(0x%x, 0x%x)",
-		cs->minor_index, __func__, set, clear);
+			cs->minor_index, __func__, set, clear);
 
 	if (mutex_lock_interruptible(&cs->mutex))
+	{
 		return -ERESTARTSYS;
+	}
 
-	if (!cs->connected) {
+	if (!cs->connected)
+	{
 		gig_dbg(DEBUG_IF, "not connected");
 		retval = -ENODEV;
-	} else {
+	}
+	else
+	{
 		mc = (cs->control_state | set) & ~clear & (TIOCM_RTS | TIOCM_DTR);
 		retval = cs->ops->set_modem_ctrl(cs, cs->control_state, mc);
 		cs->control_state = mc;
@@ -286,26 +361,35 @@ static int if_write(struct tty_struct *tty, const unsigned char *buf, int count)
 	gig_dbg(DEBUG_IF, "%u: %s()", cs->minor_index, __func__);
 
 	if (mutex_lock_interruptible(&cs->mutex))
+	{
 		return -ERESTARTSYS;
+	}
 
-	if (!cs->connected) {
+	if (!cs->connected)
+	{
 		gig_dbg(DEBUG_IF, "not connected");
 		retval = -ENODEV;
 		goto done;
 	}
-	if (cs->mstate != MS_LOCKED) {
+
+	if (cs->mstate != MS_LOCKED)
+	{
 		dev_warn(cs->dev, "can't write to unlocked device\n");
 		retval = -EBUSY;
 		goto done;
 	}
-	if (count <= 0) {
+
+	if (count <= 0)
+	{
 		/* nothing to do */
 		retval = 0;
 		goto done;
 	}
 
 	cb = kmalloc(sizeof(struct cmdbuf_t) + count, GFP_KERNEL);
-	if (!cb) {
+
+	if (!cb)
+	{
 		dev_err(cs->dev, "%s: out of memory\n", __func__);
 		retval = -ENOMEM;
 		goto done;
@@ -330,16 +414,24 @@ static int if_write_room(struct tty_struct *tty)
 	gig_dbg(DEBUG_IF, "%u: %s()", cs->minor_index, __func__);
 
 	if (mutex_lock_interruptible(&cs->mutex))
+	{
 		return -ERESTARTSYS;
+	}
 
-	if (!cs->connected) {
+	if (!cs->connected)
+	{
 		gig_dbg(DEBUG_IF, "not connected");
 		retval = -ENODEV;
-	} else if (cs->mstate != MS_LOCKED) {
+	}
+	else if (cs->mstate != MS_LOCKED)
+	{
 		dev_warn(cs->dev, "can't write to unlocked device\n");
 		retval = -EBUSY;
-	} else
+	}
+	else
+	{
 		retval = cs->ops->write_room(cs);
+	}
 
 	mutex_unlock(&cs->mutex);
 
@@ -356,11 +448,17 @@ static int if_chars_in_buffer(struct tty_struct *tty)
 	mutex_lock(&cs->mutex);
 
 	if (!cs->connected)
+	{
 		gig_dbg(DEBUG_IF, "not connected");
+	}
 	else if (cs->mstate != MS_LOCKED)
+	{
 		dev_warn(cs->dev, "can't write to unlocked device\n");
+	}
 	else
+	{
 		retval = cs->ops->chars_in_buffer(cs);
+	}
 
 	mutex_unlock(&cs->mutex);
 
@@ -376,9 +474,13 @@ static void if_throttle(struct tty_struct *tty)
 	mutex_lock(&cs->mutex);
 
 	if (!cs->connected)
-		gig_dbg(DEBUG_IF, "not connected");	/* nothing to do */
+	{
+		gig_dbg(DEBUG_IF, "not connected");    /* nothing to do */
+	}
 	else
+	{
 		gig_dbg(DEBUG_IF, "%s: not implemented\n", __func__);
+	}
 
 	mutex_unlock(&cs->mutex);
 }
@@ -392,9 +494,13 @@ static void if_unthrottle(struct tty_struct *tty)
 	mutex_lock(&cs->mutex);
 
 	if (!cs->connected)
-		gig_dbg(DEBUG_IF, "not connected");	/* nothing to do */
+	{
+		gig_dbg(DEBUG_IF, "not connected");    /* nothing to do */
+	}
 	else
+	{
 		gig_dbg(DEBUG_IF, "%s: not implemented\n", __func__);
+	}
 
 	mutex_unlock(&cs->mutex);
 }
@@ -411,7 +517,8 @@ static void if_set_termios(struct tty_struct *tty, struct ktermios *old)
 
 	mutex_lock(&cs->mutex);
 
-	if (!cs->connected) {
+	if (!cs->connected)
+	{
 		gig_dbg(DEBUG_IF, "not connected");
 		goto out;
 	}
@@ -420,7 +527,7 @@ static void if_set_termios(struct tty_struct *tty, struct ktermios *old)
 	cflag = tty->termios.c_cflag;
 	old_cflag = old ? old->c_cflag : cflag;
 	gig_dbg(DEBUG_IF, "%u: iflag %x cflag %x old %x",
-		cs->minor_index, iflag, cflag, old_cflag);
+			cs->minor_index, iflag, cflag, old_cflag);
 
 	/* get a local copy of the current port settings */
 	control_state = cs->control_state;
@@ -433,21 +540,27 @@ static void if_set_termios(struct tty_struct *tty, struct ktermios *old)
 	 */
 
 	/* reassert DTR and (maybe) RTS on transition from B0 */
-	if ((old_cflag & CBAUD) == B0) {
+	if ((old_cflag & CBAUD) == B0)
+	{
 		new_state = control_state | TIOCM_DTR;
+
 		/* don't set RTS if using hardware flow control */
 		if (!(old_cflag & CRTSCTS))
+		{
 			new_state |= TIOCM_RTS;
+		}
+
 		gig_dbg(DEBUG_IF, "%u: from B0 - set DTR%s",
-			cs->minor_index,
-			(new_state & TIOCM_RTS) ? " only" : "/RTS");
+				cs->minor_index,
+				(new_state & TIOCM_RTS) ? " only" : "/RTS");
 		cs->ops->set_modem_ctrl(cs, control_state, new_state);
 		control_state = new_state;
 	}
 
 	cs->ops->baud_rate(cs, cflag & CBAUD);
 
-	if ((cflag & CBAUD) == B0) {
+	if ((cflag & CBAUD) == B0)
+	{
 		/* Drop RTS and DTR */
 		gig_dbg(DEBUG_IF, "%u: to B0 - drop DTR/RTS", cs->minor_index);
 		new_state = control_state & ~(TIOCM_DTR | TIOCM_RTS);
@@ -468,7 +581,8 @@ out:
 	mutex_unlock(&cs->mutex);
 }
 
-static const struct tty_operations if_ops = {
+static const struct tty_operations if_ops =
+{
 	.open =			if_open,
 	.close =		if_close,
 	.ioctl =		if_ioctl,
@@ -498,21 +612,28 @@ void gigaset_if_init(struct cardstate *cs)
 	struct gigaset_driver *drv;
 
 	drv = cs->driver;
+
 	if (!drv->have_tty)
+	{
 		return;
+	}
 
 	tasklet_init(&cs->if_wake_tasklet, if_wake, (unsigned long) cs);
 
 	mutex_lock(&cs->mutex);
 	cs->tty_dev = tty_port_register_device(&cs->port, drv->tty,
-			cs->minor_index, NULL);
+										   cs->minor_index, NULL);
 
 	if (!IS_ERR(cs->tty_dev))
+	{
 		dev_set_drvdata(cs->tty_dev, cs);
-	else {
+	}
+	else
+	{
 		pr_warning("could not register device to the tty subsystem\n");
 		cs->tty_dev = NULL;
 	}
+
 	mutex_unlock(&cs->mutex);
 }
 
@@ -521,8 +642,11 @@ void gigaset_if_free(struct cardstate *cs)
 	struct gigaset_driver *drv;
 
 	drv = cs->driver;
+
 	if (!drv->have_tty)
+	{
 		return;
+	}
 
 	tasklet_disable(&cs->if_wake_tasklet);
 	tasklet_kill(&cs->if_wake_tasklet);
@@ -540,7 +664,7 @@ void gigaset_if_free(struct cardstate *cs)
  * device must be sent to userspace through the ttyG* device.
  */
 void gigaset_if_receive(struct cardstate *cs,
-			unsigned char *buffer, size_t len)
+						unsigned char *buffer, size_t len)
 {
 	tty_insert_flip_string(&cs->port, buffer, len);
 	tty_flip_buffer_push(&cs->port);
@@ -555,7 +679,7 @@ EXPORT_SYMBOL_GPL(gigaset_if_receive);
  *	devname		Name of the device files (prefix without minor number)
  */
 void gigaset_if_initdriver(struct gigaset_driver *drv, const char *procname,
-			   const char *devname)
+						   const char *devname)
 {
 	int ret;
 	struct tty_driver *tty;
@@ -563,8 +687,11 @@ void gigaset_if_initdriver(struct gigaset_driver *drv, const char *procname,
 	drv->have_tty = 0;
 
 	drv->tty = tty = alloc_tty_driver(drv->minors);
+
 	if (tty == NULL)
+	{
 		goto enomem;
+	}
 
 	tty->type =		TTY_DRIVER_TYPE_SERIAL;
 	tty->subtype =		SERIAL_TYPE_NORMAL;
@@ -579,10 +706,13 @@ void gigaset_if_initdriver(struct gigaset_driver *drv, const char *procname,
 	tty_set_operations(tty, &if_ops);
 
 	ret = tty_register_driver(tty);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("error %d registering tty driver\n", ret);
 		goto error;
 	}
+
 	gig_dbg(DEBUG_IF, "tty driver initialized");
 	drv->have_tty = 1;
 	return;
@@ -590,14 +720,19 @@ void gigaset_if_initdriver(struct gigaset_driver *drv, const char *procname,
 enomem:
 	pr_err("out of memory\n");
 error:
+
 	if (drv->tty)
+	{
 		put_tty_driver(drv->tty);
+	}
 }
 
 void gigaset_if_freedriver(struct gigaset_driver *drv)
 {
 	if (!drv->have_tty)
+	{
 		return;
+	}
 
 	drv->have_tty = 0;
 	tty_unregister_driver(drv->tty);

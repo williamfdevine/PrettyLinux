@@ -34,7 +34,8 @@
 
 #define NDFC_MAX_CS    4
 
-struct ndfc_controller {
+struct ndfc_controller
+{
 	struct platform_device *ofdev;
 	void __iomem *ndfcbase;
 	struct nand_chip chip;
@@ -51,11 +52,17 @@ static void ndfc_select_chip(struct mtd_info *mtd, int chip)
 	struct ndfc_controller *ndfc = nand_get_controller_data(nchip);
 
 	ccr = in_be32(ndfc->ndfcbase + NDFC_CCR);
-	if (chip >= 0) {
+
+	if (chip >= 0)
+	{
 		ccr &= ~NDFC_CCR_BS_MASK;
 		ccr |= NDFC_CCR_BS(chip + ndfc->chip_select);
-	} else
+	}
+	else
+	{
 		ccr |= NDFC_CCR_RESET_CE;
+	}
+
 	out_be32(ndfc->ndfcbase + NDFC_CCR, ccr);
 }
 
@@ -65,12 +72,18 @@ static void ndfc_hwcontrol(struct mtd_info *mtd, int cmd, unsigned int ctrl)
 	struct ndfc_controller *ndfc = nand_get_controller_data(chip);
 
 	if (cmd == NAND_CMD_NONE)
+	{
 		return;
+	}
 
 	if (ctrl & NAND_CLE)
+	{
 		writel(cmd & 0xFF, ndfc->ndfcbase + NDFC_CMD);
+	}
 	else
+	{
 		writel(cmd & 0xFF, ndfc->ndfcbase + NDFC_ALE);
+	}
 }
 
 static int ndfc_ready(struct mtd_info *mtd)
@@ -94,7 +107,7 @@ static void ndfc_enable_hwecc(struct mtd_info *mtd, int mode)
 }
 
 static int ndfc_calculate_ecc(struct mtd_info *mtd,
-			      const u_char *dat, u_char *ecc_code)
+							  const u_char *dat, u_char *ecc_code)
 {
 	struct nand_chip *chip = mtd_to_nand(mtd);
 	struct ndfc_controller *ndfc = nand_get_controller_data(chip);
@@ -124,8 +137,10 @@ static void ndfc_read_buf(struct mtd_info *mtd, uint8_t *buf, int len)
 	struct ndfc_controller *ndfc = nand_get_controller_data(chip);
 	uint32_t *p = (uint32_t *) buf;
 
-	for(;len > 0; len -= 4)
+	for (; len > 0; len -= 4)
+	{
 		*p++ = in_be32(ndfc->ndfcbase + NDFC_DATA);
+	}
 }
 
 static void ndfc_write_buf(struct mtd_info *mtd, const uint8_t *buf, int len)
@@ -134,15 +149,17 @@ static void ndfc_write_buf(struct mtd_info *mtd, const uint8_t *buf, int len)
 	struct ndfc_controller *ndfc = nand_get_controller_data(chip);
 	uint32_t *p = (uint32_t *) buf;
 
-	for(;len > 0; len -= 4)
+	for (; len > 0; len -= 4)
+	{
 		out_be32(ndfc->ndfcbase + NDFC_DATA, *p++);
+	}
 }
 
 /*
  * Initialize chip structure
  */
 static int ndfc_chip_init(struct ndfc_controller *ndfc,
-			  struct device_node *node)
+						  struct device_node *node)
 {
 	struct device_node *flash_np;
 	struct nand_chip *chip = &ndfc->chip;
@@ -170,27 +187,40 @@ static int ndfc_chip_init(struct ndfc_controller *ndfc,
 	mtd->dev.parent = &ndfc->ofdev->dev;
 
 	flash_np = of_get_next_child(node, NULL);
+
 	if (!flash_np)
+	{
 		return -ENODEV;
+	}
+
 	nand_set_flash_node(chip, flash_np);
 
 	mtd->name = kasprintf(GFP_KERNEL, "%s.%s", dev_name(&ndfc->ofdev->dev),
-			      flash_np->name);
-	if (!mtd->name) {
+						  flash_np->name);
+
+	if (!mtd->name)
+	{
 		ret = -ENOMEM;
 		goto err;
 	}
 
 	ret = nand_scan(mtd, 1);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	ret = mtd_device_register(mtd, NULL, 0);
 
 err:
 	of_node_put(flash_np);
+
 	if (ret)
+	{
 		kfree(mtd->name);
+	}
+
 	return ret;
 }
 
@@ -204,13 +234,17 @@ static int ndfc_probe(struct platform_device *ofdev)
 
 	/* Read the reg property to get the chip select */
 	reg = of_get_property(ofdev->dev.of_node, "reg", &len);
-	if (reg == NULL || len != 12) {
+
+	if (reg == NULL || len != 12)
+	{
 		dev_err(&ofdev->dev, "unable read reg property (%d)\n", len);
 		return -ENOENT;
 	}
 
 	cs = be32_to_cpu(reg[0]);
-	if (cs >= NDFC_MAX_CS) {
+
+	if (cs >= NDFC_MAX_CS)
+	{
 		dev_err(&ofdev->dev, "invalid CS number (%d)\n", cs);
 		return -EINVAL;
 	}
@@ -223,7 +257,9 @@ static int ndfc_probe(struct platform_device *ofdev)
 	dev_set_drvdata(&ofdev->dev, ndfc);
 
 	ndfc->ndfcbase = of_iomap(ofdev->dev.of_node, 0);
-	if (!ndfc->ndfcbase) {
+
+	if (!ndfc->ndfcbase)
+	{
 		dev_err(&ofdev->dev, "failed to get memory\n");
 		return -EIO;
 	}
@@ -232,20 +268,27 @@ static int ndfc_probe(struct platform_device *ofdev)
 
 	/* It is ok if ccr does not exist - just default to 0 */
 	reg = of_get_property(ofdev->dev.of_node, "ccr", NULL);
+
 	if (reg)
+	{
 		ccr |= be32_to_cpup(reg);
+	}
 
 	out_be32(ndfc->ndfcbase + NDFC_CCR, ccr);
 
 	/* Set the bank settings if given */
 	reg = of_get_property(ofdev->dev.of_node, "bank-settings", NULL);
-	if (reg) {
+
+	if (reg)
+	{
 		int offset = NDFC_BCFG0 + (ndfc->chip_select << 2);
 		out_be32(ndfc->ndfcbase + offset, be32_to_cpup(reg));
 	}
 
 	err = ndfc_chip_init(ndfc, ofdev->dev.of_node);
-	if (err) {
+
+	if (err)
+	{
 		iounmap(ndfc->ndfcbase);
 		return err;
 	}
@@ -264,13 +307,15 @@ static int ndfc_remove(struct platform_device *ofdev)
 	return 0;
 }
 
-static const struct of_device_id ndfc_match[] = {
+static const struct of_device_id ndfc_match[] =
+{
 	{ .compatible = "ibm,ndfc", },
 	{}
 };
 MODULE_DEVICE_TABLE(of, ndfc_match);
 
-static struct platform_driver ndfc_driver = {
+static struct platform_driver ndfc_driver =
+{
 	.driver = {
 		.name = "ndfc",
 		.of_match_table = ndfc_match,

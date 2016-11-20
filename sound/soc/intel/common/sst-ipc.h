@@ -27,7 +27,8 @@
 
 #define IPC_MAX_MAILBOX_BYTES	256
 
-struct ipc_message {
+struct ipc_message
+{
 	struct list_head list;
 	u64 header;
 
@@ -46,7 +47,8 @@ struct ipc_message {
 
 struct sst_generic_ipc;
 
-struct sst_plat_ipc_ops {
+struct sst_plat_ipc_ops
+{
 	void (*tx_msg)(struct sst_generic_ipc *, struct ipc_message *);
 	void (*shim_dbg)(struct sst_generic_ipc *, const char *);
 	void (*tx_data_copy)(struct ipc_message *, char *, size_t);
@@ -55,7 +57,8 @@ struct sst_plat_ipc_ops {
 };
 
 /* SST generic IPC data */
-struct sst_generic_ipc {
+struct sst_generic_ipc
+{
 	struct device *dev;
 	struct sst_dsp *dsp;
 
@@ -76,16 +79,16 @@ struct sst_generic_ipc {
 };
 
 int sst_ipc_tx_message_wait(struct sst_generic_ipc *ipc, u64 header,
-	void *tx_data, size_t tx_bytes, void *rx_data, size_t rx_bytes);
+							void *tx_data, size_t tx_bytes, void *rx_data, size_t rx_bytes);
 
 int sst_ipc_tx_message_nowait(struct sst_generic_ipc *ipc, u64 header,
-	void *tx_data, size_t tx_bytes);
+							  void *tx_data, size_t tx_bytes);
 
 struct ipc_message *sst_ipc_reply_find_msg(struct sst_generic_ipc *ipc,
-	u64 header);
+		u64 header);
 
 void sst_ipc_tx_msg_reply_complete(struct sst_generic_ipc *ipc,
-	struct ipc_message *msg);
+								   struct ipc_message *msg);
 
 void sst_ipc_drop_all(struct sst_generic_ipc *ipc);
 int sst_ipc_init(struct sst_generic_ipc *ipc);

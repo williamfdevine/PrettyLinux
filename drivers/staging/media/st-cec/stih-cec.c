@@ -123,7 +123,8 @@
 #define CEC_TX_N_OF_BYTES_SENT                BIT(5)
 #define CEC_RX_OVERRUN                        BIT(6)
 
-struct stih_cec {
+struct stih_cec
+{
 	struct cec_adapter	*adap;
 	struct device		*dev;
 	struct clk		*clk;
@@ -136,7 +137,8 @@ static int stih_cec_adap_enable(struct cec_adapter *adap, bool enable)
 {
 	struct stih_cec *cec = adap->priv;
 
-	if (enable) {
+	if (enable)
+	{
 		/* The doc says (input TCLK_PERIOD * CEC_CLK_DIV) = 0.1ms */
 		unsigned long clk_freq = clk_get_rate(cec->clk);
 		u32 cec_clk_div = clk_freq / 10000;
@@ -145,22 +147,22 @@ static int stih_cec_adap_enable(struct cec_adapter *adap, bool enable)
 
 		/* Configuration of the durations activating a timeout */
 		writel(CEC_SBIT_TOUT_47MS | (CEC_DBIT_TOUT_28MS << 4),
-		       cec->regs + CEC_BIT_TOUT_THRESH);
+			   cec->regs + CEC_BIT_TOUT_THRESH);
 
 		/* Configuration of the smallest allowed duration for pulses */
 		writel(CEC_BIT_LPULSE_03MS | CEC_BIT_HPULSE_03MS,
-		       cec->regs + CEC_BIT_PULSE_THRESH);
+			   cec->regs + CEC_BIT_PULSE_THRESH);
 
 		/* Minimum received bit period threshold */
 		writel(BIT(5) | BIT(7), cec->regs + CEC_TX_CTRL);
 
 		/* Configuration of transceiver data arrays */
 		writel(CEC_TX_ARRAY_EN | CEC_RX_ARRAY_EN | CEC_TX_STOP_ON_NACK,
-		       cec->regs + CEC_DATA_ARRAY_CTRL);
+			   cec->regs + CEC_DATA_ARRAY_CTRL);
 
 		/* Configuration of the control bits for CEC Transceiver */
 		writel(CEC_IN_FILTER_EN | CEC_EN | CEC_RX_RESET_EN,
-		       cec->regs + CEC_CTRL);
+			   cec->regs + CEC_CTRL);
 
 		/* Clear logical addresses */
 		writel(0, cec->regs + CEC_ADDR_TABLE);
@@ -170,11 +172,13 @@ static int stih_cec_adap_enable(struct cec_adapter *adap, bool enable)
 
 		/* Enable the interrupts */
 		writel(CEC_TX_DONE_IRQ_EN | CEC_RX_DONE_IRQ_EN |
-		       CEC_RX_SOM_IRQ_EN | CEC_RX_EOM_IRQ_EN |
-		       CEC_ERROR_IRQ_EN,
-		       cec->regs + CEC_IRQ_CTRL);
+			   CEC_RX_SOM_IRQ_EN | CEC_RX_EOM_IRQ_EN |
+			   CEC_ERROR_IRQ_EN,
+			   cec->regs + CEC_IRQ_CTRL);
 
-	} else {
+	}
+	else
+	{
 		/* Clear logical addresses */
 		writel(0, cec->regs + CEC_ADDR_TABLE);
 
@@ -196,7 +200,9 @@ static int stih_cec_adap_log_addr(struct cec_adapter *adap, u8 logical_addr)
 	reg |= 1 << logical_addr;
 
 	if (logical_addr == CEC_LOG_ADDR_INVALID)
+	{
 		reg = 0;
+	}
 
 	writel(reg, cec->regs + CEC_ADDR_TABLE);
 
@@ -204,38 +210,43 @@ static int stih_cec_adap_log_addr(struct cec_adapter *adap, u8 logical_addr)
 }
 
 static int stih_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
-				  u32 signal_free_time, struct cec_msg *msg)
+								  u32 signal_free_time, struct cec_msg *msg)
 {
 	struct stih_cec *cec = adap->priv;
 	int i;
 
 	/* Copy message into registers */
 	for (i = 0; i < msg->len; i++)
+	{
 		writeb(msg->msg[i], cec->regs + CEC_TX_DATA_BASE + i);
+	}
 
 	/* Start transmission, configure hardware to add start and stop bits
 	 * Signal free time is handled by the hardware
 	 */
 	writel(CEC_TX_AUTO_SOM_EN | CEC_TX_AUTO_EOM_EN | CEC_TX_START |
-	       msg->len, cec->regs + CEC_TX_ARRAY_CTRL);
+		   msg->len, cec->regs + CEC_TX_ARRAY_CTRL);
 
 	return 0;
 }
 
 static void stih_tx_done(struct stih_cec *cec, u32 status)
 {
-	if (status & CEC_TX_ERROR) {
+	if (status & CEC_TX_ERROR)
+	{
 		cec_transmit_done(cec->adap, CEC_TX_STATUS_ERROR, 0, 0, 0, 1);
 		return;
 	}
 
-	if (status & CEC_TX_ARB_ERROR) {
+	if (status & CEC_TX_ARB_ERROR)
+	{
 		cec_transmit_done(cec->adap,
-				  CEC_TX_STATUS_ARB_LOST, 1, 0, 0, 0);
+						  CEC_TX_STATUS_ARB_LOST, 1, 0, 0, 0);
 		return;
 	}
 
-	if (!(status & CEC_TX_ACK_GET_STS)) {
+	if (!(status & CEC_TX_ACK_GET_STS))
+	{
 		cec_transmit_done(cec->adap, CEC_TX_STATUS_NACK, 0, 1, 0, 0);
 		return;
 	}
@@ -249,21 +260,31 @@ static void stih_rx_done(struct stih_cec *cec, u32 status)
 	u8 i;
 
 	if (status & CEC_RX_ERROR_MIN)
+	{
 		return;
+	}
 
 	if (status & CEC_RX_ERROR_MAX)
+	{
 		return;
+	}
 
 	msg.len = readl(cec->regs + CEC_DATA_ARRAY_STATUS) & 0x1f;
 
 	if (!msg.len)
+	{
 		return;
+	}
 
 	if (msg.len > 16)
+	{
 		msg.len = 16;
+	}
 
 	for (i = 0; i < msg.len; i++)
+	{
 		msg.msg[i] = readl(cec->regs + CEC_RX_DATA_BASE + i);
+	}
 
 	cec_received_msg(cec->adap, &msg);
 }
@@ -273,10 +294,14 @@ static irqreturn_t stih_cec_irq_handler_thread(int irq, void *priv)
 	struct stih_cec *cec = priv;
 
 	if (cec->irq_status & CEC_TX_DONE_STS)
+	{
 		stih_tx_done(cec, cec->irq_status);
+	}
 
 	if (cec->irq_status & CEC_RX_DONE_STS)
+	{
 		stih_rx_done(cec, cec->irq_status);
+	}
 
 	cec->irq_status = 0;
 
@@ -293,7 +318,8 @@ static irqreturn_t stih_cec_irq_handler(int irq, void *priv)
 	return IRQ_WAKE_THREAD;
 }
 
-static const struct cec_adap_ops sti_cec_adap_ops = {
+static const struct cec_adap_ops sti_cec_adap_ops =
+{
 	.adap_enable = stih_cec_adap_enable,
 	.adap_log_addr = stih_cec_adap_log_addr,
 	.adap_transmit = stih_cec_adap_transmit,
@@ -307,43 +333,62 @@ static int stih_cec_probe(struct platform_device *pdev)
 	int ret;
 
 	cec = devm_kzalloc(dev, sizeof(*cec), GFP_KERNEL);
+
 	if (!cec)
+	{
 		return -ENOMEM;
+	}
 
 	cec->dev = dev;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	cec->regs = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(cec->regs))
+	{
 		return PTR_ERR(cec->regs);
+	}
 
 	cec->irq = platform_get_irq(pdev, 0);
+
 	if (cec->irq < 0)
+	{
 		return cec->irq;
+	}
 
 	ret = devm_request_threaded_irq(dev, cec->irq, stih_cec_irq_handler,
-					stih_cec_irq_handler_thread, 0,
-					pdev->name, cec);
+									stih_cec_irq_handler_thread, 0,
+									pdev->name, cec);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	cec->clk = devm_clk_get(dev, "cec-clk");
-	if (IS_ERR(cec->clk)) {
+
+	if (IS_ERR(cec->clk))
+	{
 		dev_err(dev, "Cannot get cec clock\n");
 		return PTR_ERR(cec->clk);
 	}
 
 	cec->adap = cec_allocate_adapter(&sti_cec_adap_ops, cec,
-			CEC_NAME,
-			CEC_CAP_LOG_ADDRS | CEC_CAP_PASSTHROUGH |
-			CEC_CAP_PHYS_ADDR | CEC_CAP_TRANSMIT,
-			1, &pdev->dev);
+									 CEC_NAME,
+									 CEC_CAP_LOG_ADDRS | CEC_CAP_PASSTHROUGH |
+									 CEC_CAP_PHYS_ADDR | CEC_CAP_TRANSMIT,
+									 1, &pdev->dev);
 	ret = PTR_ERR_OR_ZERO(cec->adap);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = cec_register_adapter(cec->adap);
-	if (ret) {
+
+	if (ret)
+	{
 		cec_delete_adapter(cec->adap);
 		return ret;
 	}
@@ -357,14 +402,16 @@ static int stih_cec_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id stih_cec_match[] = {
+static const struct of_device_id stih_cec_match[] =
+{
 	{
 		.compatible	= "st,stih-cec",
 	},
 	{},
 };
 
-static struct platform_driver stih_cec_pdrv = {
+static struct platform_driver stih_cec_pdrv =
+{
 	.probe	= stih_cec_probe,
 	.remove = stih_cec_remove,
 	.driver = {

@@ -7,14 +7,15 @@
  * @lock_offset: offset to the ICST VCO locking register from the provided
  *	memory base
  */
-struct clk_icst_desc {
+struct clk_icst_desc
+{
 	const struct icst_params *params;
 	u32 vco_offset;
 	u32 lock_offset;
 };
 
 struct clk *icst_clk_register(struct device *dev,
-			      const struct clk_icst_desc *desc,
-			      const char *name,
-			      const char *parent_name,
-			      void __iomem *base);
+							  const struct clk_icst_desc *desc,
+							  const char *name,
+							  const char *parent_name,
+							  void __iomem *base);

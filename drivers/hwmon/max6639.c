@@ -73,13 +73,14 @@ static const unsigned short normal_i2c[] = { 0x2c, 0x2e, 0x2f, I2C_CLIENT_END };
 static const int rpm_ranges[] = { 2000, 4000, 8000, 16000 };
 
 #define FAN_FROM_REG(val, rpm_range)	((val) == 0 || (val) == 255 ? \
-				0 : (rpm_ranges[rpm_range] * 30) / (val))
+		0 : (rpm_ranges[rpm_range] * 30) / (val))
 #define TEMP_LIMIT_TO_REG(val)	clamp_val((val) / 1000, 0, 255)
 
 /*
  * Client data (each client gets its own)
  */
-struct max6639_data {
+struct max6639_data
+{
 	struct i2c_client *client;
 	struct mutex update_lock;
 	char valid;		/* !=0 if following fields are valid */
@@ -112,50 +113,64 @@ static struct max6639_data *max6639_update_device(struct device *dev)
 
 	mutex_lock(&data->update_lock);
 
-	if (time_after(jiffies, data->last_updated + 2 * HZ) || !data->valid) {
+	if (time_after(jiffies, data->last_updated + 2 * HZ) || !data->valid)
+	{
 		int res;
 
 		dev_dbg(&client->dev, "Starting max6639 update\n");
 
 		status_reg = i2c_smbus_read_byte_data(client,
-						      MAX6639_REG_STATUS);
-		if (status_reg < 0) {
+											  MAX6639_REG_STATUS);
+
+		if (status_reg < 0)
+		{
 			ret = ERR_PTR(status_reg);
 			goto abort;
 		}
 
 		data->status = status_reg;
 
-		for (i = 0; i < 2; i++) {
+		for (i = 0; i < 2; i++)
+		{
 			res = i2c_smbus_read_byte_data(client,
-					MAX6639_REG_FAN_CNT(i));
-			if (res < 0) {
+										   MAX6639_REG_FAN_CNT(i));
+
+			if (res < 0)
+			{
 				ret = ERR_PTR(res);
 				goto abort;
 			}
+
 			data->fan[i] = res;
 
 			res = i2c_smbus_read_byte_data(client,
-					MAX6639_REG_TEMP_EXT(i));
-			if (res < 0) {
+										   MAX6639_REG_TEMP_EXT(i));
+
+			if (res < 0)
+			{
 				ret = ERR_PTR(res);
 				goto abort;
 			}
+
 			data->temp[i] = res >> 5;
 			data->temp_fault[i] = res & 0x01;
 
 			res = i2c_smbus_read_byte_data(client,
-					MAX6639_REG_TEMP(i));
-			if (res < 0) {
+										   MAX6639_REG_TEMP(i));
+
+			if (res < 0)
+			{
 				ret = ERR_PTR(res);
 				goto abort;
 			}
+
 			data->temp[i] |= res << 3;
 		}
 
 		data->last_updated = jiffies;
 		data->valid = 1;
 	}
+
 abort:
 	mutex_unlock(&data->update_lock);
 
@@ -163,33 +178,37 @@ abort:
 }
 
 static ssize_t show_temp_input(struct device *dev,
-			       struct device_attribute *dev_attr, char *buf)
+							   struct device_attribute *dev_attr, char *buf)
 {
 	long temp;
 	struct max6639_data *data = max6639_update_device(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(dev_attr);
 
 	if (IS_ERR(data))
+	{
 		return PTR_ERR(data);
+	}
 
 	temp = data->temp[attr->index] * 125;
 	return sprintf(buf, "%ld\n", temp);
 }
 
 static ssize_t show_temp_fault(struct device *dev,
-			       struct device_attribute *dev_attr, char *buf)
+							   struct device_attribute *dev_attr, char *buf)
 {
 	struct max6639_data *data = max6639_update_device(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(dev_attr);
 
 	if (IS_ERR(data))
+	{
 		return PTR_ERR(data);
+	}
 
 	return sprintf(buf, "%d\n", data->temp_fault[attr->index]);
 }
 
 static ssize_t show_temp_max(struct device *dev,
-			     struct device_attribute *dev_attr, char *buf)
+							 struct device_attribute *dev_attr, char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(dev_attr);
 	struct max6639_data *data = dev_get_drvdata(dev);
@@ -198,8 +217,8 @@ static ssize_t show_temp_max(struct device *dev,
 }
 
 static ssize_t set_temp_max(struct device *dev,
-			    struct device_attribute *dev_attr,
-			    const char *buf, size_t count)
+							struct device_attribute *dev_attr,
+							const char *buf, size_t count)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(dev_attr);
 	struct max6639_data *data = dev_get_drvdata(dev);
@@ -208,20 +227,23 @@ static ssize_t set_temp_max(struct device *dev,
 	int res;
 
 	res = kstrtoul(buf, 10, &val);
+
 	if (res)
+	{
 		return res;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->temp_therm[attr->index] = TEMP_LIMIT_TO_REG(val);
 	i2c_smbus_write_byte_data(client,
-				  MAX6639_REG_THERM_LIMIT(attr->index),
-				  data->temp_therm[attr->index]);
+							  MAX6639_REG_THERM_LIMIT(attr->index),
+							  data->temp_therm[attr->index]);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 static ssize_t show_temp_crit(struct device *dev,
-			      struct device_attribute *dev_attr, char *buf)
+							  struct device_attribute *dev_attr, char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(dev_attr);
 	struct max6639_data *data = dev_get_drvdata(dev);
@@ -230,8 +252,8 @@ static ssize_t show_temp_crit(struct device *dev,
 }
 
 static ssize_t set_temp_crit(struct device *dev,
-			     struct device_attribute *dev_attr,
-			     const char *buf, size_t count)
+							 struct device_attribute *dev_attr,
+							 const char *buf, size_t count)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(dev_attr);
 	struct max6639_data *data = dev_get_drvdata(dev);
@@ -240,21 +262,24 @@ static ssize_t set_temp_crit(struct device *dev,
 	int res;
 
 	res = kstrtoul(buf, 10, &val);
+
 	if (res)
+	{
 		return res;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->temp_alert[attr->index] = TEMP_LIMIT_TO_REG(val);
 	i2c_smbus_write_byte_data(client,
-				  MAX6639_REG_ALERT_LIMIT(attr->index),
-				  data->temp_alert[attr->index]);
+							  MAX6639_REG_ALERT_LIMIT(attr->index),
+							  data->temp_alert[attr->index]);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 static ssize_t show_temp_emergency(struct device *dev,
-				   struct device_attribute *dev_attr,
-				   char *buf)
+								   struct device_attribute *dev_attr,
+								   char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(dev_attr);
 	struct max6639_data *data = dev_get_drvdata(dev);
@@ -263,8 +288,8 @@ static ssize_t show_temp_emergency(struct device *dev,
 }
 
 static ssize_t set_temp_emergency(struct device *dev,
-				  struct device_attribute *dev_attr,
-				  const char *buf, size_t count)
+								  struct device_attribute *dev_attr,
+								  const char *buf, size_t count)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(dev_attr);
 	struct max6639_data *data = dev_get_drvdata(dev);
@@ -273,20 +298,23 @@ static ssize_t set_temp_emergency(struct device *dev,
 	int res;
 
 	res = kstrtoul(buf, 10, &val);
+
 	if (res)
+	{
 		return res;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->temp_ot[attr->index] = TEMP_LIMIT_TO_REG(val);
 	i2c_smbus_write_byte_data(client,
-				  MAX6639_REG_OT_LIMIT(attr->index),
-				  data->temp_ot[attr->index]);
+							  MAX6639_REG_OT_LIMIT(attr->index),
+							  data->temp_ot[attr->index]);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 static ssize_t show_pwm(struct device *dev,
-			struct device_attribute *dev_attr, char *buf)
+						struct device_attribute *dev_attr, char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(dev_attr);
 	struct max6639_data *data = dev_get_drvdata(dev);
@@ -295,8 +323,8 @@ static ssize_t show_pwm(struct device *dev,
 }
 
 static ssize_t set_pwm(struct device *dev,
-		       struct device_attribute *dev_attr,
-		       const char *buf, size_t count)
+					   struct device_attribute *dev_attr,
+					   const char *buf, size_t count)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(dev_attr);
 	struct max6639_data *data = dev_get_drvdata(dev);
@@ -305,41 +333,48 @@ static ssize_t set_pwm(struct device *dev,
 	int res;
 
 	res = kstrtoul(buf, 10, &val);
+
 	if (res)
+	{
 		return res;
+	}
 
 	val = clamp_val(val, 0, 255);
 
 	mutex_lock(&data->update_lock);
 	data->pwm[attr->index] = (u8)(val * 120 / 255);
 	i2c_smbus_write_byte_data(client,
-				  MAX6639_REG_TARGTDUTY(attr->index),
-				  data->pwm[attr->index]);
+							  MAX6639_REG_TARGTDUTY(attr->index),
+							  data->pwm[attr->index]);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 static ssize_t show_fan_input(struct device *dev,
-			      struct device_attribute *dev_attr, char *buf)
+							  struct device_attribute *dev_attr, char *buf)
 {
 	struct max6639_data *data = max6639_update_device(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(dev_attr);
 
 	if (IS_ERR(data))
+	{
 		return PTR_ERR(data);
+	}
 
 	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan[attr->index],
-		       data->rpm_range));
+				   data->rpm_range));
 }
 
 static ssize_t show_alarm(struct device *dev,
-			  struct device_attribute *dev_attr, char *buf)
+						  struct device_attribute *dev_attr, char *buf)
 {
 	struct max6639_data *data = max6639_update_device(dev);
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(dev_attr);
 
 	if (IS_ERR(data))
+	{
 		return PTR_ERR(data);
+	}
 
 	return sprintf(buf, "%d\n", !!(data->status & (1 << attr->index)));
 }
@@ -349,17 +384,17 @@ static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp_input, NULL, 1);
 static SENSOR_DEVICE_ATTR(temp1_fault, S_IRUGO, show_temp_fault, NULL, 0);
 static SENSOR_DEVICE_ATTR(temp2_fault, S_IRUGO, show_temp_fault, NULL, 1);
 static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp_max,
-		set_temp_max, 0);
+						  set_temp_max, 0);
 static SENSOR_DEVICE_ATTR(temp2_max, S_IWUSR | S_IRUGO, show_temp_max,
-		set_temp_max, 1);
+						  set_temp_max, 1);
 static SENSOR_DEVICE_ATTR(temp1_crit, S_IWUSR | S_IRUGO, show_temp_crit,
-		set_temp_crit, 0);
+						  set_temp_crit, 0);
 static SENSOR_DEVICE_ATTR(temp2_crit, S_IWUSR | S_IRUGO, show_temp_crit,
-		set_temp_crit, 1);
+						  set_temp_crit, 1);
 static SENSOR_DEVICE_ATTR(temp1_emergency, S_IWUSR | S_IRUGO,
-		show_temp_emergency, set_temp_emergency, 0);
+						  show_temp_emergency, set_temp_emergency, 0);
 static SENSOR_DEVICE_ATTR(temp2_emergency, S_IWUSR | S_IRUGO,
-		show_temp_emergency, set_temp_emergency, 1);
+						  show_temp_emergency, set_temp_emergency, 1);
 static SENSOR_DEVICE_ATTR(pwm1, S_IWUSR | S_IRUGO, show_pwm, set_pwm, 0);
 static SENSOR_DEVICE_ATTR(pwm2, S_IWUSR | S_IRUGO, show_pwm, set_pwm, 1);
 static SENSOR_DEVICE_ATTR(fan1_input, S_IRUGO, show_fan_input, NULL, 0);
@@ -374,7 +409,8 @@ static SENSOR_DEVICE_ATTR(temp1_emergency_alarm, S_IRUGO, show_alarm, NULL, 5);
 static SENSOR_DEVICE_ATTR(temp2_emergency_alarm, S_IRUGO, show_alarm, NULL, 4);
 
 
-static struct attribute *max6639_attrs[] = {
+static struct attribute *max6639_attrs[] =
+{
 	&sensor_dev_attr_temp1_input.dev_attr.attr,
 	&sensor_dev_attr_temp2_input.dev_attr.attr,
 	&sensor_dev_attr_temp1_fault.dev_attr.attr,
@@ -409,16 +445,19 @@ static int rpm_range_to_reg(int range)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(rpm_ranges); i++) {
+	for (i = 0; i < ARRAY_SIZE(rpm_ranges); i++)
+	{
 		if (rpm_ranges[i] == range)
+		{
 			return i;
+		}
 	}
 
 	return 1; /* default: 4000 RPM */
 }
 
 static int max6639_init_client(struct i2c_client *client,
-			       struct max6639_data *data)
+							   struct max6639_data *data)
 {
 	struct max6639_platform_data *max6639_info =
 		dev_get_platdata(&client->dev);
@@ -428,107 +467,151 @@ static int max6639_init_client(struct i2c_client *client,
 
 	/* Reset chip to default values, see below for GCONFIG setup */
 	err = i2c_smbus_write_byte_data(client, MAX6639_REG_GCONFIG,
-				  MAX6639_GCONFIG_POR);
+									MAX6639_GCONFIG_POR);
+
 	if (err)
+	{
 		goto exit;
+	}
 
 	/* Fans pulse per revolution is 2 by default */
 	if (max6639_info && max6639_info->ppr > 0 &&
-			max6639_info->ppr < 5)
+		max6639_info->ppr < 5)
+	{
 		data->ppr = max6639_info->ppr;
+	}
 	else
+	{
 		data->ppr = 2;
+	}
+
 	data->ppr -= 1;
 
 	if (max6639_info)
+	{
 		rpm_range = rpm_range_to_reg(max6639_info->rpm_range);
+	}
+
 	data->rpm_range = rpm_range;
 
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 
 		/* Set Fan pulse per revolution */
 		err = i2c_smbus_write_byte_data(client,
-				MAX6639_REG_FAN_PPR(i),
-				data->ppr << 6);
+										MAX6639_REG_FAN_PPR(i),
+										data->ppr << 6);
+
 		if (err)
+		{
 			goto exit;
+		}
 
 		/* Fans config PWM, RPM */
 		err = i2c_smbus_write_byte_data(client,
-			MAX6639_REG_FAN_CONFIG1(i),
-			MAX6639_FAN_CONFIG1_PWM | rpm_range);
+										MAX6639_REG_FAN_CONFIG1(i),
+										MAX6639_FAN_CONFIG1_PWM | rpm_range);
+
 		if (err)
+		{
 			goto exit;
+		}
 
 		/* Fans PWM polarity high by default */
 		if (max6639_info && max6639_info->pwm_polarity == 0)
 			err = i2c_smbus_write_byte_data(client,
-				MAX6639_REG_FAN_CONFIG2a(i), 0x00);
+											MAX6639_REG_FAN_CONFIG2a(i), 0x00);
 		else
 			err = i2c_smbus_write_byte_data(client,
-				MAX6639_REG_FAN_CONFIG2a(i), 0x02);
+											MAX6639_REG_FAN_CONFIG2a(i), 0x02);
+
 		if (err)
+		{
 			goto exit;
+		}
 
 		/*
 		 * /THERM full speed enable,
 		 * PWM frequency 25kHz, see also GCONFIG below
 		 */
 		err = i2c_smbus_write_byte_data(client,
-			MAX6639_REG_FAN_CONFIG3(i),
-			MAX6639_FAN_CONFIG3_THERM_FULL_SPEED | 0x03);
+										MAX6639_REG_FAN_CONFIG3(i),
+										MAX6639_FAN_CONFIG3_THERM_FULL_SPEED | 0x03);
+
 		if (err)
+		{
 			goto exit;
+		}
 
 		/* Max. temp. 80C/90C/100C */
 		data->temp_therm[i] = 80;
 		data->temp_alert[i] = 90;
 		data->temp_ot[i] = 100;
 		err = i2c_smbus_write_byte_data(client,
-				MAX6639_REG_THERM_LIMIT(i),
-				data->temp_therm[i]);
+										MAX6639_REG_THERM_LIMIT(i),
+										data->temp_therm[i]);
+
 		if (err)
+		{
 			goto exit;
+		}
+
 		err = i2c_smbus_write_byte_data(client,
-				MAX6639_REG_ALERT_LIMIT(i),
-				data->temp_alert[i]);
+										MAX6639_REG_ALERT_LIMIT(i),
+										data->temp_alert[i]);
+
 		if (err)
+		{
 			goto exit;
+		}
+
 		err = i2c_smbus_write_byte_data(client,
-				MAX6639_REG_OT_LIMIT(i), data->temp_ot[i]);
+										MAX6639_REG_OT_LIMIT(i), data->temp_ot[i]);
+
 		if (err)
+		{
 			goto exit;
+		}
 
 		/* PWM 120/120 (i.e. 100%) */
 		data->pwm[i] = 120;
 		err = i2c_smbus_write_byte_data(client,
-				MAX6639_REG_TARGTDUTY(i), data->pwm[i]);
+										MAX6639_REG_TARGTDUTY(i), data->pwm[i]);
+
 		if (err)
+		{
 			goto exit;
+		}
 	}
+
 	/* Start monitoring */
 	err = i2c_smbus_write_byte_data(client, MAX6639_REG_GCONFIG,
-		MAX6639_GCONFIG_DISABLE_TIMEOUT | MAX6639_GCONFIG_CH2_LOCAL |
-		MAX6639_GCONFIG_PWM_FREQ_HI);
+									MAX6639_GCONFIG_DISABLE_TIMEOUT | MAX6639_GCONFIG_CH2_LOCAL |
+									MAX6639_GCONFIG_PWM_FREQ_HI);
 exit:
 	return err;
 }
 
 /* Return 0 if detection is successful, -ENODEV otherwise */
 static int max6639_detect(struct i2c_client *client,
-			  struct i2c_board_info *info)
+						  struct i2c_board_info *info)
 {
 	struct i2c_adapter *adapter = client->adapter;
 	int dev_id, manu_id;
 
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		return -ENODEV;
+	}
 
 	/* Actual detection via device and manufacturer ID */
 	dev_id = i2c_smbus_read_byte_data(client, MAX6639_REG_DEVID);
 	manu_id = i2c_smbus_read_byte_data(client, MAX6639_REG_MANUID);
+
 	if (dev_id != 0x58 || manu_id != 0x4D)
+	{
 		return -ENODEV;
+	}
 
 	strlcpy(info->type, "max6639", I2C_NAME_SIZE);
 
@@ -536,7 +619,7 @@ static int max6639_detect(struct i2c_client *client,
 }
 
 static int max6639_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct device *dev = &client->dev;
 	struct max6639_data *data;
@@ -544,20 +627,26 @@ static int max6639_probe(struct i2c_client *client,
 	int err;
 
 	data = devm_kzalloc(dev, sizeof(struct max6639_data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	data->client = client;
 	mutex_init(&data->update_lock);
 
 	/* Initialize the max6639 chip */
 	err = max6639_init_client(client, data);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
-							   data,
-							   max6639_groups);
+				data,
+				max6639_groups);
 	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
@@ -566,26 +655,33 @@ static int max6639_suspend(struct device *dev)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	int data = i2c_smbus_read_byte_data(client, MAX6639_REG_GCONFIG);
+
 	if (data < 0)
+	{
 		return data;
+	}
 
 	return i2c_smbus_write_byte_data(client,
-			MAX6639_REG_GCONFIG, data | MAX6639_GCONFIG_STANDBY);
+									 MAX6639_REG_GCONFIG, data | MAX6639_GCONFIG_STANDBY);
 }
 
 static int max6639_resume(struct device *dev)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	int data = i2c_smbus_read_byte_data(client, MAX6639_REG_GCONFIG);
+
 	if (data < 0)
+	{
 		return data;
+	}
 
 	return i2c_smbus_write_byte_data(client,
-			MAX6639_REG_GCONFIG, data & ~MAX6639_GCONFIG_STANDBY);
+									 MAX6639_REG_GCONFIG, data & ~MAX6639_GCONFIG_STANDBY);
 }
 #endif /* CONFIG_PM_SLEEP */
 
-static const struct i2c_device_id max6639_id[] = {
+static const struct i2c_device_id max6639_id[] =
+{
 	{"max6639", 0},
 	{ }
 };
@@ -594,12 +690,13 @@ MODULE_DEVICE_TABLE(i2c, max6639_id);
 
 static SIMPLE_DEV_PM_OPS(max6639_pm_ops, max6639_suspend, max6639_resume);
 
-static struct i2c_driver max6639_driver = {
+static struct i2c_driver max6639_driver =
+{
 	.class = I2C_CLASS_HWMON,
 	.driver = {
-		   .name = "max6639",
-		   .pm = &max6639_pm_ops,
-		   },
+		.name = "max6639",
+		.pm = &max6639_pm_ops,
+	},
 	.probe = max6639_probe,
 	.id_table = max6639_id,
 	.detect = max6639_detect,

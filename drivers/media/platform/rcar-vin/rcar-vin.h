@@ -29,7 +29,8 @@
 /* Address alignment mask for HW buffers */
 #define HW_BUFFER_MASK 0x7f
 
-enum chip_id {
+enum chip_id
+{
 	RCAR_H1,
 	RCAR_M1,
 	RCAR_GEN2,
@@ -41,7 +42,8 @@ enum chip_id {
  * STALLED  - No operation in progress have no buffers
  * STOPPING - Stopping operation
  */
-enum rvin_dma_state {
+enum rvin_dma_state
+{
 	STOPPED = 0,
 	RUNNING,
 	STALLED,
@@ -53,7 +55,8 @@ enum rvin_dma_state {
  * @width:	Width from source
  * @height:	Height from source
  */
-struct rvin_source_fmt {
+struct rvin_source_fmt
+{
 	u32 width;
 	u32 height;
 };
@@ -63,7 +66,8 @@ struct rvin_source_fmt {
  * @fourcc:	Pixelformat
  * @bpp:	Bytes per pixel
  */
-struct rvin_video_format {
+struct rvin_video_format
+{
 	u32 fourcc;
 	u8 bpp;
 };
@@ -75,7 +79,8 @@ struct rvin_video_format {
  * @code:	Media bus format from source
  * @mbus_cfg:	Media bus format from DT
  */
-struct rvin_graph_entity {
+struct rvin_graph_entity
+{
 	struct v4l2_async_subdev asd;
 	struct v4l2_subdev *subdev;
 
@@ -114,7 +119,8 @@ struct rvin_graph_entity {
  * @crop:		active cropping
  * @compose:		active composing
  */
-struct rvin_dev {
+struct rvin_dev
+{
 	struct device *dev;
 	void __iomem *base;
 	enum chip_id chip;
@@ -162,7 +168,7 @@ const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
 
 /* Cropping, composing and scaling */
 void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
-		    u32 width, u32 height);
+					u32 width, u32 height);
 void rvin_crop_scale_comp(struct rvin_dev *vin);
 
 #endif

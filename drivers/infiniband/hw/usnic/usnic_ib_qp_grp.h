@@ -45,7 +45,8 @@
 /*
  * The qp group struct represents all the hw resources needed to present a ib_qp
  */
-struct usnic_ib_qp_grp {
+struct usnic_ib_qp_grp
+{
 	struct ib_qp				ibqp;
 	enum ib_qp_state			state;
 	int					grp_id;
@@ -65,14 +66,18 @@ struct usnic_ib_qp_grp {
 	struct kobject				kobj;
 };
 
-struct usnic_ib_qp_grp_flow {
+struct usnic_ib_qp_grp_flow
+{
 	struct usnic_fwd_flow		*flow;
 	enum usnic_transport_type	trans_type;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			uint16_t	port_num;
 		} usnic_roce;
-		struct {
+		struct
+		{
 			struct socket	*sock;
 		} udp;
 	};
@@ -85,7 +90,8 @@ struct usnic_ib_qp_grp_flow {
 };
 
 static const struct
-usnic_vnic_res_spec min_transport_spec[USNIC_TRANSPORT_MAX] = {
+	usnic_vnic_res_spec min_transport_spec[USNIC_TRANSPORT_MAX] =
+{
 	{ /*USNIC_TRANSPORT_UNKNOWN*/
 		.resources = {
 			{.type = USNIC_VNIC_RES_TYPE_EOL,	.cnt = 0,},
@@ -114,16 +120,16 @@ int usnic_ib_qp_grp_dump_hdr(char *buf, int buf_sz);
 int usnic_ib_qp_grp_dump_rows(void *obj, char *buf, int buf_sz);
 struct usnic_ib_qp_grp *
 usnic_ib_qp_grp_create(struct usnic_fwd_dev *ufdev, struct usnic_ib_vf *vf,
-			struct usnic_ib_pd *pd,
-			struct usnic_vnic_res_spec *res_spec,
-			struct usnic_transport_spec *trans_spec);
+					   struct usnic_ib_pd *pd,
+					   struct usnic_vnic_res_spec *res_spec,
+					   struct usnic_transport_spec *trans_spec);
 void usnic_ib_qp_grp_destroy(struct usnic_ib_qp_grp *qp_grp);
 int usnic_ib_qp_grp_modify(struct usnic_ib_qp_grp *qp_grp,
-				enum ib_qp_state new_state,
-				void *data);
+						   enum ib_qp_state new_state,
+						   void *data);
 struct usnic_vnic_res_chunk
 *usnic_ib_qp_grp_get_chunk(struct usnic_ib_qp_grp *qp_grp,
-				enum usnic_vnic_res_type type);
+						   enum usnic_vnic_res_type type);
 static inline
 struct usnic_ib_qp_grp *to_uqp_grp(struct ib_qp *ibqp)
 {

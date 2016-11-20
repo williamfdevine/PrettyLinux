@@ -20,11 +20,14 @@ static int bmi160_spi_probe(struct spi_device *spi)
 	const struct spi_device_id *id = spi_get_device_id(spi);
 
 	regmap = devm_regmap_init_spi(spi, &bmi160_regmap_config);
-	if (IS_ERR(regmap)) {
+
+	if (IS_ERR(regmap))
+	{
 		dev_err(&spi->dev, "Failed to register spi regmap %d\n",
-			(int)PTR_ERR(regmap));
+				(int)PTR_ERR(regmap));
 		return PTR_ERR(regmap);
 	}
+
 	return bmi160_core_probe(&spi->dev, regmap, id->name, true);
 }
 
@@ -35,19 +38,22 @@ static int bmi160_spi_remove(struct spi_device *spi)
 	return 0;
 }
 
-static const struct spi_device_id bmi160_spi_id[] = {
+static const struct spi_device_id bmi160_spi_id[] =
+{
 	{"bmi160", 0},
 	{}
 };
 MODULE_DEVICE_TABLE(spi, bmi160_spi_id);
 
-static const struct acpi_device_id bmi160_acpi_match[] = {
+static const struct acpi_device_id bmi160_acpi_match[] =
+{
 	{"BMI0160", 0},
 	{ },
 };
 MODULE_DEVICE_TABLE(acpi, bmi160_acpi_match);
 
-static struct spi_driver bmi160_spi_driver = {
+static struct spi_driver bmi160_spi_driver =
+{
 	.probe		= bmi160_spi_probe,
 	.remove		= bmi160_spi_remove,
 	.id_table	= bmi160_spi_id,

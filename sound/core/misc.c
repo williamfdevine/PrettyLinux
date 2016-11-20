@@ -29,21 +29,22 @@
 
 #ifdef CONFIG_SND_DEBUG
 
-#ifdef CONFIG_SND_DEBUG_VERBOSE
-#define DEFAULT_DEBUG_LEVEL	2
-#else
-#define DEFAULT_DEBUG_LEVEL	1
-#endif
+	#ifdef CONFIG_SND_DEBUG_VERBOSE
+		#define DEFAULT_DEBUG_LEVEL	2
+	#else
+		#define DEFAULT_DEBUG_LEVEL	1
+	#endif
 
-static int debug = DEFAULT_DEBUG_LEVEL;
-module_param(debug, int, 0644);
-MODULE_PARM_DESC(debug, "Debug level (0 = disable)");
+	static int debug = DEFAULT_DEBUG_LEVEL;
+	module_param(debug, int, 0644);
+	MODULE_PARM_DESC(debug, "Debug level (0 = disable)");
 
 #endif /* CONFIG_SND_DEBUG */
 
 void release_and_free_resource(struct resource *res)
 {
-	if (res) {
+	if (res)
+	{
 		release_resource(res);
 		kfree(res);
 	}
@@ -56,15 +57,19 @@ EXPORT_SYMBOL(release_and_free_resource);
 static const char *sanity_file_name(const char *path)
 {
 	if (*path == '/')
+	{
 		return strrchr(path, '/') + 1;
+	}
 	else
+	{
 		return path;
+	}
 }
 #endif
 
 #if defined(CONFIG_SND_DEBUG) || defined(CONFIG_SND_VERBOSE_PRINTK)
 void __snd_printk(unsigned int level, const char *path, int line,
-		  const char *format, ...)
+				  const char *format, ...)
 {
 	va_list args;
 #ifdef CONFIG_SND_VERBOSE_PRINTK
@@ -74,8 +79,12 @@ void __snd_printk(unsigned int level, const char *path, int line,
 #endif
 
 #ifdef CONFIG_SND_DEBUG
+
 	if (debug < level)
+	{
 		return;
+	}
+
 #endif
 
 	va_start(args, format);
@@ -84,12 +93,18 @@ void __snd_printk(unsigned int level, const char *path, int line,
 	vaf.va = &args;
 
 	kern_level = printk_get_level(format);
-	if (kern_level) {
+
+	if (kern_level)
+	{
 		const char *end_of_header = printk_skip_level(format);
 		memcpy(verbose_fmt, format, end_of_header - format);
 		vaf.fmt = end_of_header;
-	} else if (level)
+	}
+	else if (level)
+	{
 		memcpy(verbose_fmt, KERN_DEBUG, sizeof(KERN_DEBUG) - 1);
+	}
+
 	printk(verbose_fmt, sanity_file_name(path), line, &vaf);
 
 #else
@@ -116,17 +131,24 @@ EXPORT_SYMBOL_GPL(__snd_printk);
  */
 const struct snd_pci_quirk *
 snd_pci_quirk_lookup_id(u16 vendor, u16 device,
-			const struct snd_pci_quirk *list)
+						const struct snd_pci_quirk *list)
 {
 	const struct snd_pci_quirk *q;
 
-	for (q = list; q->subvendor; q++) {
+	for (q = list; q->subvendor; q++)
+	{
 		if (q->subvendor != vendor)
+		{
 			continue;
+		}
+
 		if (!q->subdevice ||
-		    (device & q->subdevice_mask) == q->subdevice)
+			(device & q->subdevice_mask) == q->subdevice)
+		{
 			return q;
+		}
 	}
+
 	return NULL;
 }
 EXPORT_SYMBOL(snd_pci_quirk_lookup_id);
@@ -146,10 +168,13 @@ const struct snd_pci_quirk *
 snd_pci_quirk_lookup(struct pci_dev *pci, const struct snd_pci_quirk *list)
 {
 	if (!pci)
+	{
 		return NULL;
+	}
+
 	return snd_pci_quirk_lookup_id(pci->subsystem_vendor,
-				       pci->subsystem_device,
-				       list);
+								   pci->subsystem_device,
+								   list);
 }
 EXPORT_SYMBOL(snd_pci_quirk_lookup);
 #endif

@@ -48,8 +48,8 @@
 #include "vc4_regs.h"
 
 #define V3D_DRIVER_IRQS (V3D_INT_OUTOMEM | \
-			 V3D_INT_FLDONE | \
-			 V3D_INT_FRDONE)
+						 V3D_INT_FLDONE | \
+						 V3D_INT_FRDONE)
 
 DECLARE_WAIT_QUEUE_HEAD(render_wait);
 
@@ -62,7 +62,9 @@ vc4_overflow_mem_work(struct work_struct *work)
 	struct vc4_bo *bo;
 
 	bo = vc4_bo_create(dev, 256 * 1024, true);
-	if (IS_ERR(bo)) {
+
+	if (IS_ERR(bo))
+	{
 		DRM_ERROR("Couldn't allocate binner overflow mem\n");
 		return;
 	}
@@ -77,25 +79,35 @@ vc4_overflow_mem_work(struct work_struct *work)
 	 * ones that update the pointer, and our workqueue won't
 	 * reenter.
 	 */
-	if (vc4->overflow_mem) {
+	if (vc4->overflow_mem)
+	{
 		struct vc4_exec_info *current_exec;
 		unsigned long irqflags;
 
 		spin_lock_irqsave(&vc4->job_lock, irqflags);
 		current_exec = vc4_first_bin_job(vc4);
+
 		if (!current_exec)
+		{
 			current_exec = vc4_last_render_job(vc4);
-		if (current_exec) {
+		}
+
+		if (current_exec)
+		{
 			vc4->overflow_mem->seqno = current_exec->seqno;
 			list_add_tail(&vc4->overflow_mem->unref_head,
-				      &current_exec->unref_list);
+						  &current_exec->unref_list);
 			vc4->overflow_mem = NULL;
 		}
+
 		spin_unlock_irqrestore(&vc4->job_lock, irqflags);
 	}
 
 	if (vc4->overflow_mem)
+	{
 		drm_gem_object_unreference_unlocked(&vc4->overflow_mem->base.base);
+	}
+
 	vc4->overflow_mem = bo;
 
 	V3D_WRITE(V3D_BPOA, bo->base.paddr);
@@ -111,7 +123,9 @@ vc4_irq_finish_bin_job(struct drm_device *dev)
 	struct vc4_exec_info *exec = vc4_first_bin_job(vc4);
 
 	if (!exec)
+	{
 		return;
+	}
 
 	vc4_move_job_to_render(dev, exec);
 	vc4_submit_next_bin_job(dev);
@@ -124,7 +138,9 @@ vc4_cancel_bin_job(struct drm_device *dev)
 	struct vc4_exec_info *exec = vc4_first_bin_job(vc4);
 
 	if (!exec)
+	{
 		return;
+	}
 
 	list_move_tail(&exec->head, &vc4->bin_job_list);
 	vc4_submit_next_bin_job(dev);
@@ -137,7 +153,9 @@ vc4_irq_finish_render_job(struct drm_device *dev)
 	struct vc4_exec_info *exec = vc4_first_render_job(vc4);
 
 	if (!exec)
+	{
 		return;
+	}
 
 	vc4->finished_seqno++;
 	list_move_tail(&exec->head, &vc4->job_done_list);
@@ -165,21 +183,24 @@ vc4_irq(int irq, void *arg)
 	 */
 	V3D_WRITE(V3D_INTCTL, intctl);
 
-	if (intctl & V3D_INT_OUTOMEM) {
+	if (intctl & V3D_INT_OUTOMEM)
+	{
 		/* Disable OUTOMEM until the work is done. */
 		V3D_WRITE(V3D_INTDIS, V3D_INT_OUTOMEM);
 		schedule_work(&vc4->overflow_mem_work);
 		status = IRQ_HANDLED;
 	}
 
-	if (intctl & V3D_INT_FLDONE) {
+	if (intctl & V3D_INT_FLDONE)
+	{
 		spin_lock(&vc4->job_lock);
 		vc4_irq_finish_bin_job(dev);
 		spin_unlock(&vc4->job_lock);
 		status = IRQ_HANDLED;
 	}
 
-	if (intctl & V3D_INT_FRDONE) {
+	if (intctl & V3D_INT_FRDONE)
+	{
 		spin_lock(&vc4->job_lock);
 		vc4_irq_finish_render_job(dev);
 		spin_unlock(&vc4->job_lock);

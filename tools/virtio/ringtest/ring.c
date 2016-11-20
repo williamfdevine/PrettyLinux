@@ -17,8 +17,8 @@
  * Event - Peer requested event after writing this entry.
  */
 static inline bool need_event(unsigned short event,
-			      unsigned short next,
-			      unsigned short prev)
+							  unsigned short next,
+							  unsigned short prev)
 {
 	return (unsigned short)(next - event - 1) < (unsigned short)(next - prev);
 }
@@ -30,7 +30,8 @@ static inline bool need_event(unsigned short event,
  */
 #define DESC_HW 0x1
 
-struct desc {
+struct desc
+{
 	unsigned short flags;
 	unsigned short index;
 	unsigned len;
@@ -41,14 +42,16 @@ struct desc {
 #define HOST_GUEST_PADDING 0x80
 
 /* Mostly read */
-struct event {
+struct event
+{
 	unsigned short kick_index;
 	unsigned char reserved0[HOST_GUEST_PADDING - 2];
 	unsigned short call_index;
 	unsigned char reserved1[HOST_GUEST_PADDING - 2];
 };
 
-struct data {
+struct data
+{
 	void *buf; /* descriptor is writeable, we can't get buf from there */
 	void *data;
 } *data;
@@ -56,7 +59,8 @@ struct data {
 struct desc *ring;
 struct event *event;
 
-struct guest {
+struct guest
+{
 	unsigned avail_idx;
 	unsigned last_used_idx;
 	unsigned num_free;
@@ -64,7 +68,8 @@ struct guest {
 	unsigned char reserved[HOST_GUEST_PADDING - 12];
 } guest;
 
-struct host {
+struct host
+{
 	/* we do not need to track last avail index
 	 * unless we have more than one in flight.
 	 */
@@ -79,35 +84,48 @@ void alloc_ring(void)
 	int ret;
 	int i;
 
-	ret = posix_memalign((void **)&ring, 0x1000, ring_size * sizeof *ring);
-	if (ret) {
+	ret = posix_memalign((void **)&ring, 0x1000, ring_size * sizeof * ring);
+
+	if (ret)
+	{
 		perror("Unable to allocate ring buffer.\n");
 		exit(3);
 	}
-	event = malloc(sizeof *event);
-	if (!event) {
+
+	event = malloc(sizeof * event);
+
+	if (!event)
+	{
 		perror("Unable to allocate event buffer.\n");
 		exit(3);
 	}
-	memset(event, 0, sizeof *event);
+
+	memset(event, 0, sizeof * event);
 	guest.avail_idx = 0;
 	guest.kicked_avail_idx = -1;
 	guest.last_used_idx = 0;
 	host.used_idx = 0;
 	host.called_used_idx = -1;
-	for (i = 0; i < ring_size; ++i) {
-		struct desc desc = {
+
+	for (i = 0; i < ring_size; ++i)
+	{
+		struct desc desc =
+		{
 			.index = i,
 		};
 		ring[i] = desc;
 	}
+
 	guest.num_free = ring_size;
-	data = malloc(ring_size * sizeof *data);
-	if (!data) {
+	data = malloc(ring_size * sizeof * data);
+
+	if (!data)
+	{
 		perror("Unable to allocate data buffer.\n");
 		exit(3);
 	}
-	memset(data, 0, ring_size * sizeof *data);
+
+	memset(data, 0, ring_size * sizeof * data);
 }
 
 /* guest side */
@@ -116,7 +134,9 @@ int add_inbuf(unsigned len, void *buf, void *datap)
 	unsigned head, index;
 
 	if (!guest.num_free)
+	{
 		return -1;
+	}
 
 	guest.num_free--;
 	head = (ring_size - 1) & (guest.avail_idx++);
@@ -124,7 +144,7 @@ int add_inbuf(unsigned len, void *buf, void *datap)
 	/* Start with a write. On MESI architectures this helps
 	 * avoid a shared state with consumer that is polling this descriptor.
 	 */
-	ring[head].addr = (unsigned long)(void*)buf;
+	ring[head].addr = (unsigned long)(void *)buf;
 	ring[head].len = len;
 	/* read below might bypass write above. That is OK because it's just an
 	 * optimization. If this happens, we will get the cache line in a
@@ -149,7 +169,10 @@ void *get_buf(unsigned *lenp, void **bufp)
 	void *datap;
 
 	if (ring[head].flags & DESC_HW)
+	{
 		return NULL;
+	}
+
 	/* Barrier B (for pairing) */
 	smp_acquire();
 	*lenp = ring[head].len;
@@ -191,10 +214,13 @@ void kick_available(void)
 	/* Flush in previous flags write */
 	/* Barrier C (for pairing) */
 	smp_mb();
+
 	if (!need_event(event->kick_index,
-			guest.avail_idx,
-			guest.kicked_avail_idx))
+					guest.avail_idx,
+					guest.kicked_avail_idx))
+	{
 		return;
+	}
 
 	guest.kicked_avail_idx = guest.avail_idx;
 	kick();
@@ -228,7 +254,9 @@ bool use_buf(unsigned *lenp, void **bufp)
 	unsigned head = (ring_size - 1) & host.used_idx;
 
 	if (!(ring[head].flags & DESC_HW))
+	{
 		return false;
+	}
 
 	/* make sure length read below is not speculated */
 	/* Barrier A (for pairing) */
@@ -256,10 +284,13 @@ void call_used(void)
 	/* Flush in previous flags write */
 	/* Barrier D (for pairing) */
 	smp_mb();
+
 	if (!need_event(event->call_index,
-			host.used_idx,
-			host.called_used_idx))
+					host.used_idx,
+					host.called_used_idx))
+	{
 		return;
+	}
 
 	host.called_used_idx = host.used_idx;
 	call();

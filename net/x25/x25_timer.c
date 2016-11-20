@@ -88,7 +88,9 @@ unsigned long x25_display_timer(struct sock *sk)
 	struct x25_sock *x25 = x25_sk(sk);
 
 	if (!timer_pending(&x25->timer))
+	{
 		return 0;
+	}
 
 	return x25->timer.expires - jiffies;
 }
@@ -98,24 +100,31 @@ static void x25_heartbeat_expiry(unsigned long param)
 	struct sock *sk = (struct sock *)param;
 
 	bh_lock_sock(sk);
-	if (sock_owned_by_user(sk)) /* can currently only occur in state 3 */
-		goto restart_heartbeat;
 
-	switch (x25_sk(sk)->state) {
+	if (sock_owned_by_user(sk)) /* can currently only occur in state 3 */
+	{
+		goto restart_heartbeat;
+	}
+
+	switch (x25_sk(sk)->state)
+	{
 
 		case X25_STATE_0:
+
 			/*
 			 * Magic here: If we listen() and a new link dies
 			 * before it is accepted() it isn't 'dead' so doesn't
 			 * get removed.
 			 */
 			if (sock_flag(sk, SOCK_DESTROY) ||
-			    (sk->sk_state == TCP_LISTEN &&
-			     sock_flag(sk, SOCK_DEAD))) {
+				(sk->sk_state == TCP_LISTEN &&
+				 sock_flag(sk, SOCK_DEAD)))
+			{
 				bh_unlock_sock(sk);
 				x25_destroy_socket_from_timer(sk);
 				return;
 			}
+
 			break;
 
 		case X25_STATE_3:
@@ -125,6 +134,7 @@ static void x25_heartbeat_expiry(unsigned long param)
 			x25_check_rbuf(sk);
 			break;
 	}
+
 restart_heartbeat:
 	x25_start_heartbeat(sk);
 	bh_unlock_sock(sk);
@@ -134,17 +144,20 @@ restart_heartbeat:
  *	Timer has expired, it may have been T2, T21, T22, or T23. We can tell
  *	by the state machine state.
  */
-static inline void x25_do_timer_expiry(struct sock * sk)
+static inline void x25_do_timer_expiry(struct sock *sk)
 {
 	struct x25_sock *x25 = x25_sk(sk);
 
-	switch (x25->state) {
+	switch (x25->state)
+	{
 
 		case X25_STATE_3:	/* T2 */
-			if (x25->condition & X25_COND_ACK_PENDING) {
+			if (x25->condition & X25_COND_ACK_PENDING)
+			{
 				x25->condition &= ~X25_COND_ACK_PENDING;
 				x25_enquiry_response(sk);
 			}
+
 			break;
 
 		case X25_STATE_1:	/* T21 */
@@ -165,10 +178,18 @@ static void x25_timer_expiry(unsigned long param)
 	struct sock *sk = (struct sock *)param;
 
 	bh_lock_sock(sk);
-	if (sock_owned_by_user(sk)) { /* can currently only occur in state 3 */
+
+	if (sock_owned_by_user(sk))   /* can currently only occur in state 3 */
+	{
 		if (x25_sk(sk)->state == X25_STATE_3)
+		{
 			x25_start_t2timer(sk);
-	} else
+		}
+	}
+	else
+	{
 		x25_do_timer_expiry(sk);
+	}
+
 	bh_unlock_sock(sk);
 }

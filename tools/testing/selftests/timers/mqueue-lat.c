@@ -59,10 +59,13 @@ long long timespec_sub(struct timespec a, struct timespec b)
 struct timespec timespec_add(struct timespec ts, unsigned long long ns)
 {
 	ts.tv_nsec += ns;
-	while (ts.tv_nsec >= NSEC_PER_SEC) {
+
+	while (ts.tv_nsec >= NSEC_PER_SEC)
+	{
 		ts.tv_nsec -= NSEC_PER_SEC;
 		ts.tv_sec++;
 	}
+
 	return ts;
 }
 
@@ -75,17 +78,21 @@ int mqueue_lat_test(void)
 	int i, count, ret;
 
 	q = mq_open("/foo", O_CREAT | O_RDONLY, 0666, NULL);
-	if (q < 0) {
+
+	if (q < 0)
+	{
 		perror("mq_open");
 		return -1;
 	}
+
 	mq_getattr(q, &attr);
 
 
 	count = 100;
 	clock_gettime(CLOCK_MONOTONIC, &start);
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		char buf[attr.mq_msgsize];
 
 		clock_gettime(CLOCK_REALTIME, &now);
@@ -93,17 +100,22 @@ int mqueue_lat_test(void)
 		target = timespec_add(now, TARGET_TIMEOUT); /* 100ms */
 
 		ret = mq_timedreceive(q, buf, sizeof(buf), NULL, &target);
-		if (ret < 0 && errno != ETIMEDOUT) {
+
+		if (ret < 0 && errno != ETIMEDOUT)
+		{
 			perror("mq_timedreceive");
 			return -1;
 		}
 	}
+
 	clock_gettime(CLOCK_MONOTONIC, &end);
 
 	mq_close(q);
 
-	if ((timespec_sub(start, end)/count) > TARGET_TIMEOUT + UNRESONABLE_LATENCY)
+	if ((timespec_sub(start, end) / count) > TARGET_TIMEOUT + UNRESONABLE_LATENCY)
+	{
 		return -1;
+	}
 
 	return 0;
 }
@@ -115,10 +127,13 @@ int main(int argc, char **argv)
 	printf("Mqueue latency :                          ");
 
 	ret = mqueue_lat_test();
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		printf("[FAILED]\n");
 		return ksft_exit_fail();
 	}
+
 	printf("[OK]\n");
 	return ksft_exit_pass();
 }

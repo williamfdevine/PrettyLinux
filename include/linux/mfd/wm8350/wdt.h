@@ -21,7 +21,8 @@
 
 #define WM8350_IRQ_SYS_WDOG_TO			24
 
-struct wm8350_wdt {
+struct wm8350_wdt
+{
 	struct platform_device *pdev;
 };
 

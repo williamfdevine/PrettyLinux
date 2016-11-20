@@ -34,7 +34,8 @@ struct xfs_mount;
 struct xfs_trans;
 struct xfs_dquot;
 
-typedef struct xfs_inode {
+typedef struct xfs_inode
+{
 	/* Inode linking and identification information. */
 	struct xfs_mount	*i_mount;	/* fs mount struct ptr */
 	struct xfs_dquot	*i_udquot;	/* user dquot */
@@ -93,7 +94,10 @@ static inline struct inode *VFS_I(struct xfs_inode *ip)
 static inline xfs_fsize_t XFS_ISIZE(struct xfs_inode *ip)
 {
 	if (S_ISREG(VFS_I(ip)->i_mode))
+	{
 		return i_size_read(VFS_I(ip));
+	}
+
 	return ip->i_d.di_size;
 }
 
@@ -107,7 +111,10 @@ xfs_new_eof(struct xfs_inode *ip, xfs_fsize_t new_size)
 	xfs_fsize_t i_size = i_size_read(VFS_I(ip));
 
 	if (new_size > i_size || new_size < 0)
+	{
 		new_size = i_size;
+	}
+
 	return new_size > ip->i_d.di_size ? new_size : 0;
 }
 
@@ -159,8 +166,12 @@ xfs_iflags_test_and_clear(xfs_inode_t *ip, unsigned short flags)
 
 	spin_lock(&ip->i_flags_lock);
 	ret = ip->i_flags & flags;
+
 	if (ret)
+	{
 		ip->i_flags &= ~flags;
+	}
+
 	spin_unlock(&ip->i_flags_lock);
 	return ret;
 }
@@ -172,8 +183,12 @@ xfs_iflags_test_and_set(xfs_inode_t *ip, unsigned short flags)
 
 	spin_lock(&ip->i_flags_lock);
 	ret = ip->i_flags & flags;
+
 	if (!ret)
+	{
 		ip->i_flags |= flags;
+	}
+
 	spin_unlock(&ip->i_flags_lock);
 	return ret;
 }
@@ -191,7 +206,7 @@ xfs_get_projid(struct xfs_inode *ip)
 
 static inline void
 xfs_set_projid(struct xfs_inode *ip,
-		prid_t projid)
+			   prid_t projid)
 {
 	ip->i_d.di_projid_hi = (__uint16_t) (projid >> 16);
 	ip->i_d.di_projid_lo = (__uint16_t) (projid & 0xffff);
@@ -201,7 +216,9 @@ static inline prid_t
 xfs_get_initial_prid(struct xfs_inode *dp)
 {
 	if (dp->i_d.di_flags & XFS_DIFLAG_PROJINHERIT)
+	{
 		return xfs_get_projid(dp);
+	}
 
 	return XFS_PROJID_DEFAULT;
 }
@@ -256,7 +273,9 @@ static inline int xfs_iflock_nowait(struct xfs_inode *ip)
 static inline void xfs_iflock(struct xfs_inode *ip)
 {
 	if (!xfs_iflock_nowait(ip))
+	{
 		__xfs_iflock(ip);
+	}
 }
 
 static inline void xfs_ifunlock(struct xfs_inode *ip)
@@ -284,8 +303,8 @@ static inline int xfs_isiflocked(struct xfs_inode *ip)
 #define	XFS_MMAPLOCK_SHARED	(1<<5)
 
 #define XFS_LOCK_MASK		(XFS_IOLOCK_EXCL | XFS_IOLOCK_SHARED \
-				| XFS_ILOCK_EXCL | XFS_ILOCK_SHARED \
-				| XFS_MMAPLOCK_EXCL | XFS_MMAPLOCK_SHARED)
+							 | XFS_ILOCK_EXCL | XFS_ILOCK_SHARED \
+							 | XFS_MMAPLOCK_EXCL | XFS_MMAPLOCK_SHARED)
 
 #define XFS_LOCK_FLAGS \
 	{ XFS_IOLOCK_EXCL,	"IOLOCK_EXCL" }, \
@@ -344,7 +363,7 @@ static inline int xfs_isiflocked(struct xfs_inode *ip)
  * 5		PARENT subclass (not nestable)
  * 6		RTBITMAP subclass (not nestable)
  * 7		RTSUM subclass (not nestable)
- * 
+ *
  */
 #define XFS_IOLOCK_SHIFT		16
 #define XFS_IOLOCK_PARENT_VAL		4
@@ -368,15 +387,15 @@ static inline int xfs_isiflocked(struct xfs_inode *ip)
 #define	XFS_ILOCK_RTSUM			(XFS_ILOCK_RTSUM_VAL << XFS_ILOCK_SHIFT)
 
 #define XFS_LOCK_SUBCLASS_MASK	(XFS_IOLOCK_DEP_MASK | \
-				 XFS_MMAPLOCK_DEP_MASK | \
-				 XFS_ILOCK_DEP_MASK)
+								 XFS_MMAPLOCK_DEP_MASK | \
+								 XFS_ILOCK_DEP_MASK)
 
 #define XFS_IOLOCK_DEP(flags)	(((flags) & XFS_IOLOCK_DEP_MASK) \
-					>> XFS_IOLOCK_SHIFT)
+								 >> XFS_IOLOCK_SHIFT)
 #define XFS_MMAPLOCK_DEP(flags)	(((flags) & XFS_MMAPLOCK_DEP_MASK) \
-					>> XFS_MMAPLOCK_SHIFT)
+								 >> XFS_MMAPLOCK_SHIFT)
 #define XFS_ILOCK_DEP(flags)	(((flags) & XFS_ILOCK_DEP_MASK) \
-					>> XFS_ILOCK_SHIFT)
+								 >> XFS_ILOCK_SHIFT)
 
 /*
  * For multiple groups support: if S_ISGID bit is set in the parent
@@ -390,19 +409,19 @@ static inline int xfs_isiflocked(struct xfs_inode *ip)
 int		xfs_release(struct xfs_inode *ip);
 void		xfs_inactive(struct xfs_inode *ip);
 int		xfs_lookup(struct xfs_inode *dp, struct xfs_name *name,
-			   struct xfs_inode **ipp, struct xfs_name *ci_name);
+				   struct xfs_inode **ipp, struct xfs_name *ci_name);
 int		xfs_create(struct xfs_inode *dp, struct xfs_name *name,
-			   umode_t mode, xfs_dev_t rdev, struct xfs_inode **ipp);
+				   umode_t mode, xfs_dev_t rdev, struct xfs_inode **ipp);
 int		xfs_create_tmpfile(struct xfs_inode *dp, struct dentry *dentry,
-			   umode_t mode, struct xfs_inode **ipp);
+						   umode_t mode, struct xfs_inode **ipp);
 int		xfs_remove(struct xfs_inode *dp, struct xfs_name *name,
-			   struct xfs_inode *ip);
+				   struct xfs_inode *ip);
 int		xfs_link(struct xfs_inode *tdp, struct xfs_inode *sip,
-			 struct xfs_name *target_name);
+				 struct xfs_name *target_name);
 int		xfs_rename(struct xfs_inode *src_dp, struct xfs_name *src_name,
-			   struct xfs_inode *src_ip, struct xfs_inode *target_dp,
-			   struct xfs_name *target_name,
-			   struct xfs_inode *target_ip, unsigned int flags);
+				   struct xfs_inode *src_ip, struct xfs_inode *target_dp,
+				   struct xfs_name *target_name,
+				   struct xfs_inode *target_ip, unsigned int flags);
 
 void		xfs_ilock(xfs_inode_t *, uint);
 int		xfs_ilock_nowait(xfs_inode_t *, uint);
@@ -414,9 +433,9 @@ uint		xfs_ilock_attr_map_shared(struct xfs_inode *);
 
 uint		xfs_ip2xflags(struct xfs_inode *);
 int		xfs_ifree(struct xfs_trans *, xfs_inode_t *,
-			   struct xfs_defer_ops *);
+				  struct xfs_defer_ops *);
 int		xfs_itruncate_extents(struct xfs_trans **, struct xfs_inode *,
-				      int, xfs_fsize_t);
+							  int, xfs_fsize_t);
 void		xfs_iext_realloc(xfs_inode_t *, int, int);
 
 void		xfs_iunpin_wait(xfs_inode_t *);
@@ -429,11 +448,12 @@ xfs_extlen_t	xfs_get_extsz_hint(struct xfs_inode *ip);
 xfs_extlen_t	xfs_get_cowextsz_hint(struct xfs_inode *ip);
 
 int		xfs_dir_ialloc(struct xfs_trans **, struct xfs_inode *, umode_t,
-			       xfs_nlink_t, xfs_dev_t, prid_t, int,
-			       struct xfs_inode **, int *);
+					   xfs_nlink_t, xfs_dev_t, prid_t, int,
+					   struct xfs_inode **, int *);
 
 /* from xfs_file.c */
-enum xfs_prealloc_flags {
+enum xfs_prealloc_flags
+{
 	XFS_PREALLOC_SET	= (1 << 1),
 	XFS_PREALLOC_CLEAR	= (1 << 2),
 	XFS_PREALLOC_SYNC	= (1 << 3),
@@ -441,13 +461,13 @@ enum xfs_prealloc_flags {
 };
 
 int	xfs_update_prealloc_flags(struct xfs_inode *ip,
-				  enum xfs_prealloc_flags flags);
+							  enum xfs_prealloc_flags flags);
 int	xfs_zero_eof(struct xfs_inode *ip, xfs_off_t offset,
-		     xfs_fsize_t isize, bool *did_zeroing);
+				 xfs_fsize_t isize, bool *did_zeroing);
 int	xfs_zero_range(struct xfs_inode *ip, xfs_off_t pos, xfs_off_t count,
-		bool *did_zero);
+				   bool *did_zero);
 loff_t	__xfs_seek_hole_data(struct inode *inode, loff_t start,
-			     loff_t eof, int whence);
+							 loff_t eof, int whence);
 
 
 /* from xfs_iops.c */
@@ -476,17 +496,17 @@ static inline void xfs_setup_existing_inode(struct xfs_inode *ip)
 }
 
 #define IHOLD(ip) \
-do { \
-	ASSERT(atomic_read(&VFS_I(ip)->i_count) > 0) ; \
-	ihold(VFS_I(ip)); \
-	trace_xfs_ihold(ip, _THIS_IP_); \
-} while (0)
+	do { \
+		ASSERT(atomic_read(&VFS_I(ip)->i_count) > 0) ; \
+		ihold(VFS_I(ip)); \
+		trace_xfs_ihold(ip, _THIS_IP_); \
+	} while (0)
 
 #define IRELE(ip) \
-do { \
-	trace_xfs_irele(ip, _THIS_IP_); \
-	iput(VFS_I(ip)); \
-} while (0)
+	do { \
+		trace_xfs_irele(ip, _THIS_IP_); \
+		iput(VFS_I(ip)); \
+	} while (0)
 
 extern struct kmem_zone	*xfs_inode_zone;
 

@@ -116,7 +116,8 @@
 #define II20K_AI_CHANLIST_LEN		0x80
 
 /* the AO range is set by jumpers on the 20006M module */
-static const struct comedi_lrange ii20k_ao_ranges = {
+static const struct comedi_lrange ii20k_ao_ranges =
+{
 	3, {
 		BIP_RANGE(5),	/* Chan 0 - W1/W3 in   Chan 1 - W2/W4 in  */
 		UNI_RANGE(10),	/* Chan 0 - W1/W3 out  Chan 1 - W2/W4 in  */
@@ -124,7 +125,8 @@ static const struct comedi_lrange ii20k_ao_ranges = {
 	}
 };
 
-static const struct comedi_lrange ii20k_ai_ranges = {
+static const struct comedi_lrange ii20k_ai_ranges =
+{
 	4, {
 		BIP_RANGE(5),		/* gain 1 */
 		BIP_RANGE(0.5),		/* gain 10 */
@@ -134,21 +136,22 @@ static const struct comedi_lrange ii20k_ai_ranges = {
 };
 
 static void __iomem *ii20k_module_iobase(struct comedi_device *dev,
-					 struct comedi_subdevice *s)
+		struct comedi_subdevice *s)
 {
 	return dev->mmio + (s->index + 1) * II20K_MOD_OFFSET;
 }
 
 static int ii20k_ao_insn_write(struct comedi_device *dev,
-			       struct comedi_subdevice *s,
-			       struct comedi_insn *insn,
-			       unsigned int *data)
+							   struct comedi_subdevice *s,
+							   struct comedi_insn *insn,
+							   unsigned int *data)
 {
 	void __iomem *iobase = ii20k_module_iobase(dev, s);
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	int i;
 
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		unsigned int val = data[i];
 
 		s->readback[chan] = val;
@@ -165,22 +168,26 @@ static int ii20k_ao_insn_write(struct comedi_device *dev,
 }
 
 static int ii20k_ai_eoc(struct comedi_device *dev,
-			struct comedi_subdevice *s,
-			struct comedi_insn *insn,
-			unsigned long context)
+						struct comedi_subdevice *s,
+						struct comedi_insn *insn,
+						unsigned long context)
 {
 	void __iomem *iobase = ii20k_module_iobase(dev, s);
 	unsigned char status;
 
 	status = readb(iobase + II20K_AI_STATUS_REG);
+
 	if ((status & II20K_AI_STATUS_INT) == 0)
+	{
 		return 0;
+	}
+
 	return -EBUSY;
 }
 
 static void ii20k_ai_setup(struct comedi_device *dev,
-			   struct comedi_subdevice *s,
-			   unsigned int chanspec)
+						   struct comedi_subdevice *s,
+						   unsigned int chanspec)
 {
 	void __iomem *iobase = ii20k_module_iobase(dev, s);
 	unsigned int chan = CR_CHAN(chanspec);
@@ -206,9 +213,9 @@ static void ii20k_ai_setup(struct comedi_device *dev,
 
 	/* set the channel list byte */
 	val = II20K_AI_CHANLIST_ONBOARD_ONLY |
-	      II20K_AI_CHANLIST_MUX_ENA |
-	      II20K_AI_CHANLIST_GAIN(range) |
-	      II20K_AI_CHANLIST_CHAN(chan);
+		  II20K_AI_CHANLIST_MUX_ENA |
+		  II20K_AI_CHANLIST_GAIN(range) |
+		  II20K_AI_CHANLIST_CHAN(chan);
 	writeb(val, iobase + II20K_AI_CHANLIST_REG);
 
 	/* reset settling time counter and trigger delay counter */
@@ -219,9 +226,9 @@ static void ii20k_ai_setup(struct comedi_device *dev,
 }
 
 static int ii20k_ai_insn_read(struct comedi_device *dev,
-			      struct comedi_subdevice *s,
-			      struct comedi_insn *insn,
-			      unsigned int *data)
+							  struct comedi_subdevice *s,
+							  struct comedi_insn *insn,
+							  unsigned int *data)
 {
 	void __iomem *iobase = ii20k_module_iobase(dev, s);
 	int ret;
@@ -229,15 +236,19 @@ static int ii20k_ai_insn_read(struct comedi_device *dev,
 
 	ii20k_ai_setup(dev, s, insn->chanspec);
 
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		unsigned int val;
 
 		/* generate a software start convert signal */
 		readb(iobase + II20K_AI_PACER_RESET_REG);
 
 		ret = comedi_timeout(dev, s, insn, ii20k_ai_eoc, 0);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		val = readb(iobase + II20K_AI_LSB_REG);
 		val |= (readb(iobase + II20K_AI_MSB_REG) << 8);
@@ -250,55 +261,67 @@ static int ii20k_ai_insn_read(struct comedi_device *dev,
 }
 
 static void ii20k_dio_config(struct comedi_device *dev,
-			     struct comedi_subdevice *s)
+							 struct comedi_subdevice *s)
 {
 	unsigned char ctrl01 = 0;
 	unsigned char ctrl23 = 0;
 	unsigned char dir_ena = 0;
 
 	/* port 0 - channels 0-7 */
-	if (s->io_bits & 0x000000ff) {
+	if (s->io_bits & 0x000000ff)
+	{
 		/* output port */
 		ctrl01 &= ~II20K_CTRL01_DIO0_IN;
 		dir_ena &= ~II20K_BUF_DISAB_DIO0;
 		dir_ena |= II20K_DIR_DIO0_OUT;
-	} else {
+	}
+	else
+	{
 		/* input port */
 		ctrl01 |= II20K_CTRL01_DIO0_IN;
 		dir_ena &= ~II20K_DIR_DIO0_OUT;
 	}
 
 	/* port 1 - channels 8-15 */
-	if (s->io_bits & 0x0000ff00) {
+	if (s->io_bits & 0x0000ff00)
+	{
 		/* output port */
 		ctrl01 &= ~II20K_CTRL01_DIO1_IN;
 		dir_ena &= ~II20K_BUF_DISAB_DIO1;
 		dir_ena |= II20K_DIR_DIO1_OUT;
-	} else {
+	}
+	else
+	{
 		/* input port */
 		ctrl01 |= II20K_CTRL01_DIO1_IN;
 		dir_ena &= ~II20K_DIR_DIO1_OUT;
 	}
 
 	/* port 2 - channels 16-23 */
-	if (s->io_bits & 0x00ff0000) {
+	if (s->io_bits & 0x00ff0000)
+	{
 		/* output port */
 		ctrl23 &= ~II20K_CTRL23_DIO2_IN;
 		dir_ena &= ~II20K_BUF_DISAB_DIO2;
 		dir_ena |= II20K_DIR_DIO2_OUT;
-	} else {
+	}
+	else
+	{
 		/* input port */
 		ctrl23 |= II20K_CTRL23_DIO2_IN;
 		dir_ena &= ~II20K_DIR_DIO2_OUT;
 	}
 
 	/* port 3 - channels 24-31 */
-	if (s->io_bits & 0xff000000) {
+	if (s->io_bits & 0xff000000)
+	{
 		/* output port */
 		ctrl23 &= ~II20K_CTRL23_DIO3_IN;
 		dir_ena &= ~II20K_BUF_DISAB_DIO3;
 		dir_ena |= II20K_DIR_DIO3_OUT;
-	} else {
+	}
+	else
+	{
 		/* input port */
 		ctrl23 |= II20K_CTRL23_DIO3_IN;
 		dir_ena &= ~II20K_DIR_DIO3_OUT;
@@ -314,26 +337,37 @@ static void ii20k_dio_config(struct comedi_device *dev,
 }
 
 static int ii20k_dio_insn_config(struct comedi_device *dev,
-				 struct comedi_subdevice *s,
-				 struct comedi_insn *insn,
-				 unsigned int *data)
+								 struct comedi_subdevice *s,
+								 struct comedi_insn *insn,
+								 unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	unsigned int mask;
 	int ret;
 
 	if (chan < 8)
+	{
 		mask = 0x000000ff;
+	}
 	else if (chan < 16)
+	{
 		mask = 0x0000ff00;
+	}
 	else if (chan < 24)
+	{
 		mask = 0x00ff0000;
+	}
 	else
+	{
 		mask = 0xff000000;
+	}
 
 	ret = comedi_dio_insn_config(dev, s, insn, data, mask);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ii20k_dio_config(dev, s);
 
@@ -341,26 +375,31 @@ static int ii20k_dio_insn_config(struct comedi_device *dev,
 }
 
 static int ii20k_dio_insn_bits(struct comedi_device *dev,
-			       struct comedi_subdevice *s,
-			       struct comedi_insn *insn,
-			       unsigned int *data)
+							   struct comedi_subdevice *s,
+							   struct comedi_insn *insn,
+							   unsigned int *data)
 {
 	unsigned int mask;
 
 	mask = comedi_dio_update_state(s, data);
-	if (mask) {
+
+	if (mask)
+	{
 		if (mask & 0x000000ff)
 			writeb((s->state >> 0) & 0xff,
-			       dev->mmio + II20K_DIO0_REG);
+				   dev->mmio + II20K_DIO0_REG);
+
 		if (mask & 0x0000ff00)
 			writeb((s->state >> 8) & 0xff,
-			       dev->mmio + II20K_DIO1_REG);
+				   dev->mmio + II20K_DIO1_REG);
+
 		if (mask & 0x00ff0000)
 			writeb((s->state >> 16) & 0xff,
-			       dev->mmio + II20K_DIO2_REG);
+				   dev->mmio + II20K_DIO2_REG);
+
 		if (mask & 0xff000000)
 			writeb((s->state >> 24) & 0xff,
-			       dev->mmio + II20K_DIO3_REG);
+				   dev->mmio + II20K_DIO3_REG);
 	}
 
 	data[1] = readb(dev->mmio + II20K_DIO0_REG);
@@ -372,47 +411,55 @@ static int ii20k_dio_insn_bits(struct comedi_device *dev,
 }
 
 static int ii20k_init_module(struct comedi_device *dev,
-			     struct comedi_subdevice *s)
+							 struct comedi_subdevice *s)
 {
 	void __iomem *iobase = ii20k_module_iobase(dev, s);
 	unsigned char id;
 	int ret;
 
 	id = readb(iobase + II20K_ID_REG);
-	switch (id) {
-	case II20K_ID_PCI20006M_1:
-	case II20K_ID_PCI20006M_2:
-		/* Analog Output subdevice */
-		s->type		= COMEDI_SUBD_AO;
-		s->subdev_flags	= SDF_WRITABLE;
-		s->n_chan	= (id == II20K_ID_PCI20006M_2) ? 2 : 1;
-		s->maxdata	= 0xffff;
-		s->range_table	= &ii20k_ao_ranges;
-		s->insn_write	= ii20k_ao_insn_write;
 
-		ret = comedi_alloc_subdev_readback(s);
-		if (ret)
-			return ret;
-		break;
-	case II20K_ID_PCI20341M_1:
-		/* Analog Input subdevice */
-		s->type		= COMEDI_SUBD_AI;
-		s->subdev_flags	= SDF_READABLE | SDF_DIFF;
-		s->n_chan	= 4;
-		s->maxdata	= 0xffff;
-		s->range_table	= &ii20k_ai_ranges;
-		s->insn_read	= ii20k_ai_insn_read;
-		break;
-	default:
-		s->type = COMEDI_SUBD_UNUSED;
-		break;
+	switch (id)
+	{
+		case II20K_ID_PCI20006M_1:
+		case II20K_ID_PCI20006M_2:
+			/* Analog Output subdevice */
+			s->type		= COMEDI_SUBD_AO;
+			s->subdev_flags	= SDF_WRITABLE;
+			s->n_chan	= (id == II20K_ID_PCI20006M_2) ? 2 : 1;
+			s->maxdata	= 0xffff;
+			s->range_table	= &ii20k_ao_ranges;
+			s->insn_write	= ii20k_ao_insn_write;
+
+			ret = comedi_alloc_subdev_readback(s);
+
+			if (ret)
+			{
+				return ret;
+			}
+
+			break;
+
+		case II20K_ID_PCI20341M_1:
+			/* Analog Input subdevice */
+			s->type		= COMEDI_SUBD_AI;
+			s->subdev_flags	= SDF_READABLE | SDF_DIFF;
+			s->n_chan	= 4;
+			s->maxdata	= 0xffff;
+			s->range_table	= &ii20k_ai_ranges;
+			s->insn_read	= ii20k_ai_insn_read;
+			break;
+
+		default:
+			s->type = COMEDI_SUBD_UNUSED;
+			break;
 	}
 
 	return 0;
 }
 
 static int ii20k_attach(struct comedi_device *dev,
-			struct comedi_devconfig *it)
+						struct comedi_devconfig *it)
 {
 	struct comedi_subdevice *s;
 	unsigned int membase;
@@ -421,70 +468,107 @@ static int ii20k_attach(struct comedi_device *dev,
 	int ret;
 
 	membase = it->options[0];
-	if (!membase || (membase & ~(0x100000 - II20K_SIZE))) {
+
+	if (!membase || (membase & ~(0x100000 - II20K_SIZE)))
+	{
 		dev_warn(dev->class_dev,
-			 "%s: invalid memory address specified\n",
-			 dev->board_name);
+				 "%s: invalid memory address specified\n",
+				 dev->board_name);
 		return -EINVAL;
 	}
 
-	if (!request_mem_region(membase, II20K_SIZE, dev->board_name)) {
+	if (!request_mem_region(membase, II20K_SIZE, dev->board_name))
+	{
 		dev_warn(dev->class_dev, "%s: I/O mem conflict (%#x,%u)\n",
-			 dev->board_name, membase, II20K_SIZE);
+				 dev->board_name, membase, II20K_SIZE);
 		return -EIO;
 	}
+
 	dev->iobase = membase;	/* actually, a memory address */
 
 	dev->mmio = ioremap(membase, II20K_SIZE);
+
 	if (!dev->mmio)
+	{
 		return -ENOMEM;
+	}
 
 	id = readb(dev->mmio + II20K_ID_REG);
-	switch (id & II20K_ID_MASK) {
-	case II20K_ID_PCI20001C_1A:
-		has_dio = false;
-		break;
-	case II20K_ID_PCI20001C_2A:
-		has_dio = true;
-		break;
-	default:
-		return -ENODEV;
+
+	switch (id & II20K_ID_MASK)
+	{
+		case II20K_ID_PCI20001C_1A:
+			has_dio = false;
+			break;
+
+		case II20K_ID_PCI20001C_2A:
+			has_dio = true;
+			break;
+
+		default:
+			return -ENODEV;
 	}
 
 	ret = comedi_alloc_subdevices(dev, 4);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	s = &dev->subdevices[0];
-	if (id & II20K_ID_MOD1_EMPTY) {
+
+	if (id & II20K_ID_MOD1_EMPTY)
+	{
 		s->type = COMEDI_SUBD_UNUSED;
-	} else {
+	}
+	else
+	{
 		ret = ii20k_init_module(dev, s);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	s = &dev->subdevices[1];
-	if (id & II20K_ID_MOD2_EMPTY) {
+
+	if (id & II20K_ID_MOD2_EMPTY)
+	{
 		s->type = COMEDI_SUBD_UNUSED;
-	} else {
+	}
+	else
+	{
 		ret = ii20k_init_module(dev, s);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	s = &dev->subdevices[2];
-	if (id & II20K_ID_MOD3_EMPTY) {
+
+	if (id & II20K_ID_MOD3_EMPTY)
+	{
 		s->type = COMEDI_SUBD_UNUSED;
-	} else {
+	}
+	else
+	{
 		ret = ii20k_init_module(dev, s);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	/* Digital I/O subdevice */
 	s = &dev->subdevices[3];
-	if (has_dio) {
+
+	if (has_dio)
+	{
 		s->type		= COMEDI_SUBD_DIO;
 		s->subdev_flags	= SDF_READABLE | SDF_WRITABLE;
 		s->n_chan	= 32;
@@ -495,7 +579,9 @@ static int ii20k_attach(struct comedi_device *dev,
 
 		/* default all channels to input */
 		ii20k_dio_config(dev, s);
-	} else {
+	}
+	else
+	{
 		s->type = COMEDI_SUBD_UNUSED;
 	}
 
@@ -505,12 +591,18 @@ static int ii20k_attach(struct comedi_device *dev,
 static void ii20k_detach(struct comedi_device *dev)
 {
 	if (dev->mmio)
+	{
 		iounmap(dev->mmio);
+	}
+
 	if (dev->iobase)	/* actually, a memory address */
+	{
 		release_mem_region(dev->iobase, II20K_SIZE);
+	}
 }
 
-static struct comedi_driver ii20k_driver = {
+static struct comedi_driver ii20k_driver =
+{
 	.driver_name	= "ii_pci20kc",
 	.module		= THIS_MODULE,
 	.attach		= ii20k_attach,

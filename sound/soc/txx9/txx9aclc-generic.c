@@ -21,7 +21,8 @@
 #include <sound/soc.h>
 #include "txx9aclc.h"
 
-static struct snd_soc_dai_link txx9aclc_generic_dai = {
+static struct snd_soc_dai_link txx9aclc_generic_dai =
+{
 	.name = "AC97",
 	.stream_name = "AC97 HiFi",
 	.cpu_dai_name = "txx9aclc-ac97",
@@ -30,7 +31,8 @@ static struct snd_soc_dai_link txx9aclc_generic_dai = {
 	.codec_name	= "ac97-codec",
 };
 
-static struct snd_soc_card txx9aclc_generic_card = {
+static struct snd_soc_card txx9aclc_generic_card =
+{
 	.name		= "Generic TXx9 ACLC Audio",
 	.owner		= THIS_MODULE,
 	.dai_link	= &txx9aclc_generic_dai,
@@ -44,11 +46,17 @@ static int __init txx9aclc_generic_probe(struct platform_device *pdev)
 	int ret;
 
 	soc_pdev = platform_device_alloc("soc-audio", -1);
+
 	if (!soc_pdev)
+	{
 		return -ENOMEM;
+	}
+
 	platform_set_drvdata(soc_pdev, &txx9aclc_generic_card);
 	ret = platform_device_add(soc_pdev);
-	if (ret) {
+
+	if (ret)
+	{
 		platform_device_put(soc_pdev);
 		return ret;
 	}
@@ -62,7 +70,8 @@ static int __exit txx9aclc_generic_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver txx9aclc_generic_driver = {
+static struct platform_driver txx9aclc_generic_driver =
+{
 	.remove = __exit_p(txx9aclc_generic_remove),
 	.driver = {
 		.name = "txx9aclc-generic",
@@ -72,7 +81,7 @@ static struct platform_driver txx9aclc_generic_driver = {
 static int __init txx9aclc_generic_init(void)
 {
 	return platform_driver_probe(&txx9aclc_generic_driver,
-				     txx9aclc_generic_probe);
+								 txx9aclc_generic_probe);
 }
 
 static void __exit txx9aclc_generic_exit(void)

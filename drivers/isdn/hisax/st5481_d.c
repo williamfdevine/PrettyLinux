@@ -66,7 +66,9 @@ l1_go_f3(struct FsmInst *fi, int event, void *arg)
 	struct st5481_adapter *adapter = fi->userdata;
 
 	if (fi->state == ST_L1_F7)
+	{
 		ph_disconnect(adapter);
+	}
 
 	FsmChangeState(fi, ST_L1_F3);
 	D_L1L2(adapter, PH_DEACTIVATE | INDICATION, NULL);
@@ -78,7 +80,9 @@ l1_go_f6(struct FsmInst *fi, int event, void *arg)
 	struct st5481_adapter *adapter = fi->userdata;
 
 	if (fi->state == ST_L1_F7)
+	{
 		ph_disconnect(adapter);
+	}
 
 	FsmChangeState(fi, ST_L1_F6);
 }
@@ -100,7 +104,9 @@ l1_go_f8(struct FsmInst *fi, int event, void *arg)
 	struct st5481_adapter *adapter = fi->userdata;
 
 	if (fi->state == ST_L1_F7)
+	{
 		ph_disconnect(adapter);
+	}
 
 	FsmChangeState(fi, ST_L1_F8);
 }
@@ -168,7 +174,7 @@ static struct FsmNode L1FnList[] __initdata =
 };
 
 static __printf(2, 3)
-	void l1m_debug(struct FsmInst *fi, char *fmt, ...)
+void l1m_debug(struct FsmInst *fi, char *fmt, ...)
 {
 	va_list args;
 	char buf[256];
@@ -271,7 +277,7 @@ static char *strDoutEvent[] =
 };
 
 static __printf(2, 3)
-	void dout_debug(struct FsmInst *fi, char *fmt, ...)
+void dout_debug(struct FsmInst *fi, char *fmt, ...)
 {
 	va_list args;
 	char buf[256];
@@ -302,34 +308,44 @@ static void usb_d_out(struct st5481_adapter *adapter, int buf_nr)
 	struct usb_iso_packet_descriptor *desc;
 
 	if (d_out->fsm.state != ST_DOUT_NORMAL)
+	{
 		return;
+	}
 
-	if (test_and_set_bit(buf_nr, &d_out->busy)) {
+	if (test_and_set_bit(buf_nr, &d_out->busy))
+	{
 		DBG(2, "ep %d urb %d busy %#lx", EP_D_OUT, buf_nr, d_out->busy);
 		return;
 	}
+
 	urb = d_out->urb[buf_nr];
 
 	skb = d_out->tx_skb;
 
 	buf_size = NUM_ISO_PACKETS_D * SIZE_ISO_PACKETS_D_OUT;
 
-	if (skb) {
+	if (skb)
+	{
 		len = isdnhdlc_encode(&d_out->hdlc_state,
-				      skb->data, skb->len, &bytes_sent,
-				      urb->transfer_buffer, buf_size);
+							  skb->data, skb->len, &bytes_sent,
+							  urb->transfer_buffer, buf_size);
 		skb_pull(skb, bytes_sent);
-	} else {
+	}
+	else
+	{
 		// Send flags or idle
 		len = isdnhdlc_encode(&d_out->hdlc_state,
-				      NULL, 0, &bytes_sent,
-				      urb->transfer_buffer, buf_size);
+							  NULL, 0, &bytes_sent,
+							  urb->transfer_buffer, buf_size);
 	}
 
-	if (len < buf_size) {
+	if (len < buf_size)
+	{
 		FsmChangeState(&d_out->fsm, ST_DOUT_WAIT_FOR_UNDERRUN);
 	}
-	if (skb && !skb->len) {
+
+	if (skb && !skb->len)
+	{
 		d_out->tx_skb = NULL;
 		D_L1L2(adapter, PH_DATA | CONFIRM, NULL);
 		dev_kfree_skb_any(skb);
@@ -339,15 +355,22 @@ static void usb_d_out(struct st5481_adapter *adapter, int buf_nr)
 	urb->transfer_buffer_length = len;
 	num_packets = 0;
 	packet_offset = 0;
-	while (packet_offset < len) {
+
+	while (packet_offset < len)
+	{
 		desc = &urb->iso_frame_desc[num_packets];
 		desc->offset = packet_offset;
 		desc->length = SIZE_ISO_PACKETS_D_OUT;
+
 		if (len - packet_offset < desc->length)
+		{
 			desc->length = len - packet_offset;
+		}
+
 		num_packets++;
 		packet_offset += desc->length;
 	}
+
 	urb->number_of_packets = num_packets;
 
 	// Prepare the URB
@@ -358,7 +381,8 @@ static void usb_d_out(struct st5481_adapter *adapter, int buf_nr)
 
 	DBG_ISO_PACKET(0x20, urb);
 
-	if (usb_submit_urb(urb, GFP_KERNEL) < 0) {
+	if (usb_submit_urb(urb, GFP_KERNEL) < 0)
+	{
 		// There is another URB queued up
 		urb->transfer_flags = URB_ISO_ASAP;
 		SUBMIT_URB(urb, GFP_KERNEL);
@@ -383,20 +407,27 @@ static void usb_d_out_complete(struct urb *urb)
 	buf_nr = get_buf_nr(d_out->urb, urb);
 	test_and_clear_bit(buf_nr, &d_out->busy);
 
-	if (unlikely(urb->status < 0)) {
-		switch (urb->status) {
-		case -ENOENT:
-		case -ESHUTDOWN:
-		case -ECONNRESET:
-			DBG(1, "urb killed status %d", urb->status);
-			break;
-		default:
-			WARNING("urb status %d", urb->status);
-			if (d_out->busy == 0) {
-				st5481_usb_pipe_reset(adapter, EP_D_OUT | USB_DIR_OUT, fifo_reseted, adapter);
-			}
-			break;
+	if (unlikely(urb->status < 0))
+	{
+		switch (urb->status)
+		{
+			case -ENOENT:
+			case -ESHUTDOWN:
+			case -ECONNRESET:
+				DBG(1, "urb killed status %d", urb->status);
+				break;
+
+			default:
+				WARNING("urb status %d", urb->status);
+
+				if (d_out->busy == 0)
+				{
+					st5481_usb_pipe_reset(adapter, EP_D_OUT | USB_DIR_OUT, fifo_reseted, adapter);
+				}
+
+				break;
 		}
+
 		return; // Give up
 	}
 
@@ -421,30 +452,37 @@ static void dout_start_xmit(struct FsmInst *fsm, int event, void *arg)
 
 	isdnhdlc_out_init(&d_out->hdlc_state, HDLC_DCHANNEL | HDLC_BITREVERSE);
 
-	if (test_and_set_bit(buf_nr, &d_out->busy)) {
+	if (test_and_set_bit(buf_nr, &d_out->busy))
+	{
 		WARNING("ep %d urb %d busy %#lx", EP_D_OUT, buf_nr, d_out->busy);
 		return;
 	}
+
 	urb = d_out->urb[buf_nr];
 
 	DBG_SKB(0x10, skb);
 	len = isdnhdlc_encode(&d_out->hdlc_state,
-			      skb->data, skb->len, &bytes_sent,
-			      urb->transfer_buffer, 16);
+						  skb->data, skb->len, &bytes_sent,
+						  urb->transfer_buffer, 16);
 	skb_pull(skb, bytes_sent);
 
 	if (len < 16)
+	{
 		FsmChangeState(&d_out->fsm, ST_DOUT_SHORT_INIT);
+	}
 	else
+	{
 		FsmChangeState(&d_out->fsm, ST_DOUT_LONG_INIT);
+	}
 
-	if (skb->len == 0) {
+	if (skb->len == 0)
+	{
 		d_out->tx_skb = NULL;
 		D_L1L2(adapter, PH_DATA | CONFIRM, NULL);
 		dev_kfree_skb_any(skb);
 	}
 
-// Prepare the URB
+	// Prepare the URB
 	urb->transfer_buffer_length = len;
 
 	urb->iso_frame_desc[0].offset = 0;
@@ -518,9 +556,12 @@ static void dout_underrun(struct FsmInst *fsm, int event, void *arg)
 	struct st5481_adapter *adapter = fsm->userdata;
 	struct st5481_d_out *d_out = &adapter->d_out;
 
-	if (test_bit(0, &d_out->busy) || test_bit(1, &d_out->busy)) {
+	if (test_bit(0, &d_out->busy) || test_bit(1, &d_out->busy))
+	{
 		FsmChangeState(&d_out->fsm, ST_DOUT_WAIT_FOR_NOT_BUSY);
-	}  else {
+	}
+	else
+	{
 		dout_stop(fsm, event, arg);
 	}
 }
@@ -531,7 +572,9 @@ static void dout_check_busy(struct FsmInst *fsm, int event, void *arg)
 	struct st5481_d_out *d_out = &adapter->d_out;
 
 	if (!test_bit(0, &d_out->busy) && !test_bit(1, &d_out->busy))
+	{
 		dout_stop(fsm, event, arg);
+	}
 }
 
 static void dout_reseted(struct FsmInst *fsm, int event, void *arg)
@@ -540,9 +583,12 @@ static void dout_reseted(struct FsmInst *fsm, int event, void *arg)
 	struct st5481_d_out *d_out = &adapter->d_out;
 
 	FsmChangeState(&d_out->fsm, ST_DOUT_NONE);
+
 	// FIXME locking
 	if (d_out->tx_skb)
+	{
 		FsmEvent(&d_out->fsm, EV_DOUT_START_XMIT, NULL);
+	}
 }
 
 static void dout_complete(struct FsmInst *fsm, int event, void *arg)
@@ -589,22 +635,26 @@ void st5481_d_l2l1(struct hisax_if *hisax_d_if, int pr, void *arg)
 	struct st5481_adapter *adapter = hisax_d_if->priv;
 	struct sk_buff *skb = arg;
 
-	switch (pr) {
-	case PH_ACTIVATE | REQUEST:
-		FsmEvent(&adapter->l1m, EV_PH_ACTIVATE_REQ, NULL);
-		break;
-	case PH_DEACTIVATE | REQUEST:
-		FsmEvent(&adapter->l1m, EV_PH_DEACTIVATE_REQ, NULL);
-		break;
-	case PH_DATA | REQUEST:
-		DBG(2, "PH_DATA REQUEST len %d", skb->len);
-		BUG_ON(adapter->d_out.tx_skb);
-		adapter->d_out.tx_skb = skb;
-		FsmEvent(&adapter->d_out.fsm, EV_DOUT_START_XMIT, NULL);
-		break;
-	default:
-		WARNING("pr %#x\n", pr);
-		break;
+	switch (pr)
+	{
+		case PH_ACTIVATE | REQUEST:
+			FsmEvent(&adapter->l1m, EV_PH_ACTIVATE_REQ, NULL);
+			break;
+
+		case PH_DEACTIVATE | REQUEST:
+			FsmEvent(&adapter->l1m, EV_PH_DEACTIVATE_REQ, NULL);
+			break;
+
+		case PH_DATA | REQUEST:
+			DBG(2, "PH_DATA REQUEST len %d", skb->len);
+			BUG_ON(adapter->d_out.tx_skb);
+			adapter->d_out.tx_skb = skb;
+			FsmEvent(&adapter->d_out.fsm, EV_DOUT_START_XMIT, NULL);
+			break;
+
+		default:
+			WARNING("pr %#x\n", pr);
+			break;
 	}
 }
 
@@ -664,22 +714,28 @@ static int st5481_setup_d_out(struct st5481_adapter *adapter)
 	DBG(2, "");
 
 	intf = usb_ifnum_to_if(dev, 0);
+
 	if (intf)
+	{
 		altsetting = usb_altnum_to_altsetting(intf, 3);
+	}
+
 	if (!altsetting)
+	{
 		return -ENXIO;
+	}
 
 	// Allocate URBs and buffers for the D channel out
-	endpoint = &altsetting->endpoint[EP_D_OUT-1];
+	endpoint = &altsetting->endpoint[EP_D_OUT - 1];
 
 	DBG(2, "endpoint address=%02x,packet size=%d",
-	    endpoint->desc.bEndpointAddress, le16_to_cpu(endpoint->desc.wMaxPacketSize));
+		endpoint->desc.bEndpointAddress, le16_to_cpu(endpoint->desc.wMaxPacketSize));
 
 	return st5481_setup_isocpipes(d_out->urb, dev,
-				      usb_sndisocpipe(dev, endpoint->desc.bEndpointAddress),
-				      NUM_ISO_PACKETS_D, SIZE_ISO_PACKETS_D_OUT,
-				      NUM_ISO_PACKETS_D * SIZE_ISO_PACKETS_D_OUT,
-				      usb_d_out_complete, adapter);
+								  usb_sndisocpipe(dev, endpoint->desc.bEndpointAddress),
+								  NUM_ISO_PACKETS_D, SIZE_ISO_PACKETS_D_OUT,
+								  NUM_ISO_PACKETS_D * SIZE_ISO_PACKETS_D_OUT,
+								  usb_d_out_complete, adapter);
 }
 
 static void st5481_release_d_out(struct st5481_adapter *adapter)
@@ -698,8 +754,12 @@ int st5481_setup_d(struct st5481_adapter *adapter)
 	DBG(2, "");
 
 	retval = st5481_setup_d_out(adapter);
+
 	if (retval)
+	{
 		goto err;
+	}
+
 	adapter->d_in.bufsize = MAX_DFRAME_LEN_L1;
 	adapter->d_in.num_packets = NUM_ISO_PACKETS_D;
 	adapter->d_in.packet_size = SIZE_ISO_PACKETS_D_IN;
@@ -708,8 +768,11 @@ int st5481_setup_d(struct st5481_adapter *adapter)
 	adapter->d_in.adapter = adapter;
 	adapter->d_in.hisax_if = &adapter->hisax_d_if.ifc;
 	retval = st5481_setup_in(&adapter->d_in);
+
 	if (retval)
+	{
 		goto err_d_out;
+	}
 
 	adapter->l1m.fsm = &l1fsm;
 	adapter->l1m.state = ST_L1_F3;
@@ -753,16 +816,22 @@ int __init st5481_d_init(void)
 	l1fsm.strEvent = strL1Event;
 	l1fsm.strState = strL1State;
 	retval = FsmNew(&l1fsm, L1FnList, ARRAY_SIZE(L1FnList));
+
 	if (retval)
+	{
 		goto err;
+	}
 
 	dout_fsm.state_count = DOUT_STATE_COUNT;
 	dout_fsm.event_count = DOUT_EVENT_COUNT;
 	dout_fsm.strEvent = strDoutEvent;
 	dout_fsm.strState = strDoutState;
 	retval = FsmNew(&dout_fsm, DoutFnList, ARRAY_SIZE(DoutFnList));
+
 	if (retval)
+	{
 		goto err_l1;
+	}
 
 	return 0;
 

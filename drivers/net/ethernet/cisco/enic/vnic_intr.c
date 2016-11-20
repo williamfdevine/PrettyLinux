@@ -33,15 +33,17 @@ void vnic_intr_free(struct vnic_intr *intr)
 }
 
 int vnic_intr_alloc(struct vnic_dev *vdev, struct vnic_intr *intr,
-	unsigned int index)
+					unsigned int index)
 {
 	intr->index = index;
 	intr->vdev = vdev;
 
 	intr->ctrl = vnic_dev_get_res(vdev, RES_TYPE_INTR_CTRL, index);
-	if (!intr->ctrl) {
+
+	if (!intr->ctrl)
+	{
 		vdev_err(vdev, "Failed to hook INTR[%d].ctrl resource\n",
-			 index);
+				 index);
 		return -EINVAL;
 	}
 
@@ -49,7 +51,7 @@ int vnic_intr_alloc(struct vnic_dev *vdev, struct vnic_intr *intr,
 }
 
 void vnic_intr_init(struct vnic_intr *intr, u32 coalescing_timer,
-	unsigned int coalescing_type, unsigned int mask_on_assertion)
+					unsigned int coalescing_type, unsigned int mask_on_assertion)
 {
 	vnic_intr_coalescing_timer_set(intr, coalescing_timer);
 	iowrite32(coalescing_type, &intr->ctrl->coalescing_type);
@@ -58,10 +60,10 @@ void vnic_intr_init(struct vnic_intr *intr, u32 coalescing_timer,
 }
 
 void vnic_intr_coalescing_timer_set(struct vnic_intr *intr,
-	u32 coalescing_timer)
+									u32 coalescing_timer)
 {
 	iowrite32(vnic_dev_intr_coal_timer_usec_to_hw(intr->vdev,
-		coalescing_timer), &intr->ctrl->coalescing_timer);
+			  coalescing_timer), &intr->ctrl->coalescing_timer);
 }
 
 void vnic_intr_clean(struct vnic_intr *intr)

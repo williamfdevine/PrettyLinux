@@ -36,19 +36,27 @@ static int moxart_gpio_probe(struct platform_device *pdev)
 	int ret;
 
 	gc = devm_kzalloc(dev, sizeof(*gc), GFP_KERNEL);
+
 	if (!gc)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(base))
+	{
 		return PTR_ERR(base);
+	}
 
 	ret = bgpio_init(gc, dev, 4, base + GPIO_DATA_IN,
-			 base + GPIO_DATA_OUT, NULL,
-			 base + GPIO_PIN_DIRECTION, NULL,
-			 BGPIOF_READ_OUTPUT_REG_SET);
-	if (ret) {
+					 base + GPIO_DATA_OUT, NULL,
+					 base + GPIO_PIN_DIRECTION, NULL,
+					 BGPIOF_READ_OUTPUT_REG_SET);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "bgpio_init failed\n");
 		return ret;
 	}
@@ -60,21 +68,25 @@ static int moxart_gpio_probe(struct platform_device *pdev)
 	gc->owner = THIS_MODULE;
 
 	ret = devm_gpiochip_add_data(dev, gc, NULL);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "%s: gpiochip_add failed\n",
-			dev->of_node->full_name);
+				dev->of_node->full_name);
 		return ret;
 	}
 
 	return ret;
 }
 
-static const struct of_device_id moxart_gpio_match[] = {
+static const struct of_device_id moxart_gpio_match[] =
+{
 	{ .compatible = "moxa,moxart-gpio" },
 	{ }
 };
 
-static struct platform_driver moxart_gpio_driver = {
+static struct platform_driver moxart_gpio_driver =
+{
 	.driver	= {
 		.name		= "moxart-gpio",
 		.of_match_table	= moxart_gpio_match,

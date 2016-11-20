@@ -25,9 +25,12 @@ void ieee802154_wake_queue(struct ieee802154_hw *hw)
 	struct ieee802154_sub_if_data *sdata;
 
 	rcu_read_lock();
-	list_for_each_entry_rcu(sdata, &local->interfaces, list) {
+	list_for_each_entry_rcu(sdata, &local->interfaces, list)
+	{
 		if (!sdata->dev)
+		{
 			continue;
+		}
 
 		netif_wake_queue(sdata->dev);
 	}
@@ -41,9 +44,12 @@ void ieee802154_stop_queue(struct ieee802154_hw *hw)
 	struct ieee802154_sub_if_data *sdata;
 
 	rcu_read_lock();
-	list_for_each_entry_rcu(sdata, &local->interfaces, list) {
+	list_for_each_entry_rcu(sdata, &local->interfaces, list)
+	{
 		if (!sdata->dev)
+		{
 			continue;
+		}
 
 		netif_stop_queue(sdata->dev);
 	}
@@ -62,9 +68,10 @@ enum hrtimer_restart ieee802154_xmit_ifs_timer(struct hrtimer *timer)
 }
 
 void ieee802154_xmit_complete(struct ieee802154_hw *hw, struct sk_buff *skb,
-			      bool ifs_handling)
+							  bool ifs_handling)
 {
-	if (ifs_handling) {
+	if (ifs_handling)
+	{
 		struct ieee802154_local *local = hw_to_local(hw);
 		u8 max_sifs_size;
 
@@ -74,19 +81,23 @@ void ieee802154_xmit_complete(struct ieee802154_hw *hw, struct sk_buff *skb,
 		 */
 		if (hw->flags & IEEE802154_HW_TX_OMIT_CKSUM)
 			max_sifs_size = IEEE802154_MAX_SIFS_FRAME_SIZE -
-					IEEE802154_FCS_LEN;
+							IEEE802154_FCS_LEN;
 		else
+		{
 			max_sifs_size = IEEE802154_MAX_SIFS_FRAME_SIZE;
+		}
 
 		if (skb->len > max_sifs_size)
 			hrtimer_start(&local->ifs_timer,
-				      ktime_set(0, hw->phy->lifs_period * NSEC_PER_USEC),
-				      HRTIMER_MODE_REL);
+						  ktime_set(0, hw->phy->lifs_period * NSEC_PER_USEC),
+						  HRTIMER_MODE_REL);
 		else
 			hrtimer_start(&local->ifs_timer,
-				      ktime_set(0, hw->phy->sifs_period * NSEC_PER_USEC),
-				      HRTIMER_MODE_REL);
-	} else {
+						  ktime_set(0, hw->phy->sifs_period * NSEC_PER_USEC),
+						  HRTIMER_MODE_REL);
+	}
+	else
+	{
 		ieee802154_wake_queue(hw);
 	}
 

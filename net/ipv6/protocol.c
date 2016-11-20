@@ -32,7 +32,7 @@ EXPORT_SYMBOL(inet6_protos);
 int inet6_add_protocol(const struct inet6_protocol *prot, unsigned char protocol)
 {
 	return !cmpxchg((const struct inet6_protocol **)&inet6_protos[protocol],
-			NULL, prot) ? 0 : -1;
+					NULL, prot) ? 0 : -1;
 }
 EXPORT_SYMBOL(inet6_add_protocol);
 
@@ -41,7 +41,7 @@ int inet6_del_protocol(const struct inet6_protocol *prot, unsigned char protocol
 	int ret;
 
 	ret = (cmpxchg((const struct inet6_protocol **)&inet6_protos[protocol],
-		       prot, NULL) == prot) ? 0 : -1;
+				   prot, NULL) == prot) ? 0 : -1;
 
 	synchronize_net();
 
@@ -56,7 +56,7 @@ EXPORT_SYMBOL(inet6_offloads);
 int inet6_add_offload(const struct net_offload *prot, unsigned char protocol)
 {
 	return !cmpxchg((const struct net_offload **)&inet6_offloads[protocol],
-			NULL, prot) ? 0 : -1;
+					NULL, prot) ? 0 : -1;
 }
 EXPORT_SYMBOL(inet6_add_offload);
 
@@ -65,7 +65,7 @@ int inet6_del_offload(const struct net_offload *prot, unsigned char protocol)
 	int ret;
 
 	ret = (cmpxchg((const struct net_offload **)&inet6_offloads[protocol],
-		       prot, NULL) == prot) ? 0 : -1;
+				   prot, NULL) == prot) ? 0 : -1;
 
 	synchronize_net();
 

@@ -35,14 +35,16 @@
  * There is also a 4KByte mmio region on the card,
  * but its purpose has yet to be reverse-engineered.
  */
-static const u8 setup[] = {
+static const u8 setup[] =
+{
 	0x00, 0x05, 0xbe, 0x01, 0x20, 0x8f, 0x00, 0x00,
 	0xa4, 0x1f, 0xb3, 0x1b, 0x00, 0x00, 0x00, 0x80,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0xa4, 0x83, 0x02, 0x13,
 };
 
-static const struct ide_port_ops delkin_cb_port_ops = {
+static const struct ide_port_ops delkin_cb_port_ops =
+{
 	.quirkproc		= ide_undecoded_slave,
 };
 
@@ -54,18 +56,22 @@ static int delkin_cb_init_chipset(struct pci_dev *dev)
 	outb(0x02, base + 0x1e);	/* set nIEN to block interrupts */
 	inb(base + 0x17);		/* read status to clear interrupts */
 
-	for (i = 0; i < sizeof(setup); ++i) {
+	for (i = 0; i < sizeof(setup); ++i)
+	{
 		if (setup[i])
+		{
 			outb(setup[i], base + i);
+		}
 	}
 
 	return 0;
 }
 
-static const struct ide_port_info delkin_cb_port_info = {
+static const struct ide_port_info delkin_cb_port_info =
+{
 	.port_ops		= &delkin_cb_port_ops,
 	.host_flags		= IDE_HFLAG_IO_32BIT | IDE_HFLAG_UNMASK_IRQS |
-				  IDE_HFLAG_NO_DMA,
+	IDE_HFLAG_NO_DMA,
 	.irq_flags		= IRQF_SHARED,
 	.init_chipset		= delkin_cb_init_chipset,
 	.chipset		= ide_pci,
@@ -79,16 +85,22 @@ static int delkin_cb_probe(struct pci_dev *dev, const struct pci_device_id *id)
 	struct ide_hw hw, *hws[] = { &hw };
 
 	rc = pci_enable_device(dev);
-	if (rc) {
+
+	if (rc)
+	{
 		printk(KERN_ERR "delkin_cb: pci_enable_device failed (%d)\n", rc);
 		return rc;
 	}
+
 	rc = pci_request_regions(dev, "delkin_cb");
-	if (rc) {
+
+	if (rc)
+	{
 		printk(KERN_ERR "delkin_cb: pci_request_regions failed (%d)\n", rc);
 		pci_disable_device(dev);
 		return rc;
 	}
+
 	base = pci_resource_start(dev, 0);
 
 	delkin_cb_init_chipset(dev);
@@ -99,8 +111,11 @@ static int delkin_cb_probe(struct pci_dev *dev, const struct pci_device_id *id)
 	hw.dev = &dev->dev;
 
 	rc = ide_host_add(&delkin_cb_port_info, hws, 1, &host);
+
 	if (rc)
+	{
 		goto out_disable;
+	}
 
 	pci_set_drvdata(dev, host);
 
@@ -141,14 +156,19 @@ static int delkin_cb_resume(struct pci_dev *dev)
 	pci_set_power_state(dev, PCI_D0);
 
 	rc = pci_enable_device(dev);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	pci_restore_state(dev);
 	pci_set_master(dev);
 
 	if (host->init_chipset)
+	{
 		host->init_chipset(dev);
+	}
 
 	return 0;
 }
@@ -157,14 +177,16 @@ static int delkin_cb_resume(struct pci_dev *dev)
 #define delkin_cb_resume NULL
 #endif
 
-static struct pci_device_id delkin_cb_pci_tbl[] = {
+static struct pci_device_id delkin_cb_pci_tbl[] =
+{
 	{ 0x1145, 0xf021, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
 	{ 0x1145, 0xf024, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
 	{ 0, },
 };
 MODULE_DEVICE_TABLE(pci, delkin_cb_pci_tbl);
 
-static struct pci_driver delkin_cb_pci_driver = {
+static struct pci_driver delkin_cb_pci_driver =
+{
 	.name		= "Delkin-ASKA-Workbit Cardbus IDE",
 	.id_table	= delkin_cb_pci_tbl,
 	.probe		= delkin_cb_probe,

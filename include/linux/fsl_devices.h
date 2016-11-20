@@ -47,7 +47,8 @@
  *
  */
 
-enum fsl_usb2_controller_ver {
+enum fsl_usb2_controller_ver
+{
 	FSL_USB_VER_NONE = -1,
 	FSL_USB_VER_OLD = 0,
 	FSL_USB_VER_1_6 = 1,
@@ -56,14 +57,16 @@ enum fsl_usb2_controller_ver {
 	FSL_USB_VER_2_5 = 4,
 };
 
-enum fsl_usb2_operating_modes {
+enum fsl_usb2_operating_modes
+{
 	FSL_USB2_MPH_HOST,
 	FSL_USB2_DR_HOST,
 	FSL_USB2_DR_DEVICE,
 	FSL_USB2_DR_OTG,
 };
 
-enum fsl_usb2_phy_modes {
+enum fsl_usb2_phy_modes
+{
 	FSL_USB2_PHY_NONE,
 	FSL_USB2_PHY_ULPI,
 	FSL_USB2_PHY_UTMI,
@@ -75,7 +78,8 @@ enum fsl_usb2_phy_modes {
 struct clk;
 struct platform_device;
 
-struct fsl_usb2_platform_data {
+struct fsl_usb2_platform_data
+{
 	/* board specific information */
 	enum fsl_usb2_controller_ver	controller_ver;
 	enum fsl_usb2_operating_modes	operating_mode;
@@ -88,19 +92,19 @@ struct fsl_usb2_platform_data {
 	void __iomem	*regs;		/* ioremap'd register base */
 	struct clk	*clk;
 	unsigned	power_budget;	/* hcd->power_budget */
-	unsigned	big_endian_mmio:1;
-	unsigned	big_endian_desc:1;
-	unsigned	es:1;		/* need USBMODE:ES */
-	unsigned	le_setup_buf:1;
-	unsigned	have_sysif_regs:1;
-	unsigned	invert_drvvbus:1;
-	unsigned	invert_pwr_fault:1;
+	unsigned	big_endian_mmio: 1;
+	unsigned	big_endian_desc: 1;
+	unsigned	es: 1;		/* need USBMODE:ES */
+	unsigned	le_setup_buf: 1;
+	unsigned	have_sysif_regs: 1;
+	unsigned	invert_drvvbus: 1;
+	unsigned	invert_pwr_fault: 1;
 
-	unsigned	suspended:1;
-	unsigned	already_suspended:1;
-	unsigned        has_fsl_erratum_a007792:1;
-	unsigned        has_fsl_erratum_a005275:1;
-	unsigned        check_phy_clk_valid:1;
+	unsigned	suspended: 1;
+	unsigned	already_suspended: 1;
+	unsigned        has_fsl_erratum_a007792: 1;
+	unsigned        has_fsl_erratum_a005275: 1;
+	unsigned        check_phy_clk_valid: 1;
 
 	/* register save area for suspend/resume */
 	u32		pm_command;
@@ -123,7 +127,8 @@ struct fsl_usb2_platform_data {
 
 struct spi_device;
 
-struct fsl_spi_platform_data {
+struct fsl_spi_platform_data
+{
 	u32 	initial_spmode;	/* initial SPMODE value */
 	s16	bus_num;
 	unsigned int flags;
@@ -138,7 +143,8 @@ struct fsl_spi_platform_data {
 	u32	sysclk;
 };
 
-struct mpc8xx_pcmcia_ops {
+struct mpc8xx_pcmcia_ops
+{
 	void(*hw_ctrl)(int slot, int enable);
 	int(*voltage_set)(int slot, int vcc, int vpp);
 };

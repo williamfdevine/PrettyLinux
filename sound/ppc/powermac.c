@@ -59,71 +59,113 @@ static int snd_pmac_probe(struct platform_device *devptr)
 	int err;
 
 	err = snd_card_new(&devptr->dev, index, id, THIS_MODULE, 0, &card);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	if ((err = snd_pmac_new(card, &chip)) < 0)
-		goto __error;
-	card->private_data = chip;
-
-	switch (chip->model) {
-	case PMAC_BURGUNDY:
-		strcpy(card->driver, "PMac Burgundy");
-		strcpy(card->shortname, "PowerMac Burgundy");
-		sprintf(card->longname, "%s (Dev %d) Sub-frame %d",
-			card->shortname, chip->device_id, chip->subframe);
-		if ((err = snd_pmac_burgundy_init(chip)) < 0)
-			goto __error;
-		break;
-	case PMAC_DACA:
-		strcpy(card->driver, "PMac DACA");
-		strcpy(card->shortname, "PowerMac DACA");
-		sprintf(card->longname, "%s (Dev %d) Sub-frame %d",
-			card->shortname, chip->device_id, chip->subframe);
-		if ((err = snd_pmac_daca_init(chip)) < 0)
-			goto __error;
-		break;
-	case PMAC_TUMBLER:
-	case PMAC_SNAPPER:
-		name_ext = chip->model == PMAC_TUMBLER ? "Tumbler" : "Snapper";
-		sprintf(card->driver, "PMac %s", name_ext);
-		sprintf(card->shortname, "PowerMac %s", name_ext);
-		sprintf(card->longname, "%s (Dev %d) Sub-frame %d",
-			card->shortname, chip->device_id, chip->subframe);
-		if ( snd_pmac_tumbler_init(chip) < 0 || snd_pmac_tumbler_post_init() < 0)
-			goto __error;
-		break;
-	case PMAC_AWACS:
-	case PMAC_SCREAMER:
-		name_ext = chip->model == PMAC_SCREAMER ? "Screamer" : "AWACS";
-		sprintf(card->driver, "PMac %s", name_ext);
-		sprintf(card->shortname, "PowerMac %s", name_ext);
-		if (chip->is_pbook_3400)
-			name_ext = " [PB3400]";
-		else if (chip->is_pbook_G3)
-			name_ext = " [PBG3]";
-		else
-			name_ext = "";
-		sprintf(card->longname, "%s%s Rev %d",
-			card->shortname, name_ext, chip->revision);
-		if ((err = snd_pmac_awacs_init(chip)) < 0)
-			goto __error;
-		break;
-	default:
-		snd_printk(KERN_ERR "unsupported hardware %d\n", chip->model);
-		err = -EINVAL;
+	{
 		goto __error;
 	}
 
+	card->private_data = chip;
+
+	switch (chip->model)
+	{
+		case PMAC_BURGUNDY:
+			strcpy(card->driver, "PMac Burgundy");
+			strcpy(card->shortname, "PowerMac Burgundy");
+			sprintf(card->longname, "%s (Dev %d) Sub-frame %d",
+					card->shortname, chip->device_id, chip->subframe);
+
+			if ((err = snd_pmac_burgundy_init(chip)) < 0)
+			{
+				goto __error;
+			}
+
+			break;
+
+		case PMAC_DACA:
+			strcpy(card->driver, "PMac DACA");
+			strcpy(card->shortname, "PowerMac DACA");
+			sprintf(card->longname, "%s (Dev %d) Sub-frame %d",
+					card->shortname, chip->device_id, chip->subframe);
+
+			if ((err = snd_pmac_daca_init(chip)) < 0)
+			{
+				goto __error;
+			}
+
+			break;
+
+		case PMAC_TUMBLER:
+		case PMAC_SNAPPER:
+			name_ext = chip->model == PMAC_TUMBLER ? "Tumbler" : "Snapper";
+			sprintf(card->driver, "PMac %s", name_ext);
+			sprintf(card->shortname, "PowerMac %s", name_ext);
+			sprintf(card->longname, "%s (Dev %d) Sub-frame %d",
+					card->shortname, chip->device_id, chip->subframe);
+
+			if ( snd_pmac_tumbler_init(chip) < 0 || snd_pmac_tumbler_post_init() < 0)
+			{
+				goto __error;
+			}
+
+			break;
+
+		case PMAC_AWACS:
+		case PMAC_SCREAMER:
+			name_ext = chip->model == PMAC_SCREAMER ? "Screamer" : "AWACS";
+			sprintf(card->driver, "PMac %s", name_ext);
+			sprintf(card->shortname, "PowerMac %s", name_ext);
+
+			if (chip->is_pbook_3400)
+			{
+				name_ext = " [PB3400]";
+			}
+			else if (chip->is_pbook_G3)
+			{
+				name_ext = " [PBG3]";
+			}
+			else
+			{
+				name_ext = "";
+			}
+
+			sprintf(card->longname, "%s%s Rev %d",
+					card->shortname, name_ext, chip->revision);
+
+			if ((err = snd_pmac_awacs_init(chip)) < 0)
+			{
+				goto __error;
+			}
+
+			break;
+
+		default:
+			snd_printk(KERN_ERR "unsupported hardware %d\n", chip->model);
+			err = -EINVAL;
+			goto __error;
+	}
+
 	if ((err = snd_pmac_pcm_new(chip)) < 0)
+	{
 		goto __error;
+	}
 
 	chip->initialized = 1;
+
 	if (enable_beep)
+	{
 		snd_pmac_attach_beep(chip);
+	}
 
 	if ((err = snd_card_register(card)) < 0)
+	{
 		goto __error;
+	}
 
 	platform_set_drvdata(devptr, card);
 	return 0;
@@ -163,7 +205,8 @@ static SIMPLE_DEV_PM_OPS(snd_pmac_pm, snd_pmac_driver_suspend, snd_pmac_driver_r
 
 #define SND_PMAC_DRIVER		"snd_powermac"
 
-static struct platform_driver snd_pmac_driver = {
+static struct platform_driver snd_pmac_driver =
+{
 	.probe		= snd_pmac_probe,
 	.remove		= snd_pmac_remove,
 	.driver		= {
@@ -177,7 +220,10 @@ static int __init alsa_card_pmac_init(void)
 	int err;
 
 	if ((err = platform_driver_register(&snd_pmac_driver)) < 0)
+	{
 		return err;
+	}
+
 	device = platform_device_register_simple(SND_PMAC_DRIVER, -1, NULL, 0);
 	return 0;
 
@@ -186,7 +232,10 @@ static int __init alsa_card_pmac_init(void)
 static void __exit alsa_card_pmac_exit(void)
 {
 	if (!IS_ERR(device))
+	{
 		platform_device_unregister(device);
+	}
+
 	platform_driver_unregister(&snd_pmac_driver);
 }
 

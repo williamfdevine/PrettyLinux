@@ -8,7 +8,8 @@
 #include <scsi/scsi_cmnd.h>
 
 /* Descriptor for analyzed sense data */
-struct st_cmdstatus {
+struct st_cmdstatus
+{
 	int midlevel_result;
 	struct scsi_sense_hdr sense_hdr;
 	int have_sense;
@@ -23,7 +24,8 @@ struct st_cmdstatus {
 struct scsi_tape;
 
 /* scsi tape command */
-struct st_request {
+struct st_request
+{
 	unsigned char cmd[MAX_COMMAND_SIZE];
 	unsigned char sense[SCSI_SENSE_BUFFERSIZE];
 	int result;
@@ -33,7 +35,8 @@ struct st_request {
 };
 
 /* The tape buffer descriptor. */
-struct st_buffer {
+struct st_buffer
+{
 	unsigned char dma;	/* DMA-able buffer */
 	unsigned char cleared;  /* internal buffer cleared after open? */
 	unsigned short do_dio;  /* direct i/o set up? */
@@ -56,7 +59,8 @@ struct st_buffer {
 };
 
 /* The tape mode definition */
-struct st_modedef {
+struct st_modedef
+{
 	unsigned char defined;
 	unsigned char sysv;	/* SYS V semantics? */
 	unsigned char do_async_writes;
@@ -82,7 +86,8 @@ struct st_modedef {
 #define ST_MAX_TAPE_ENTRIES  (ST_MAX_TAPES << (ST_NBR_MODE_BITS + 1))
 
 /* The status related to each partition */
-struct st_partstat {
+struct st_partstat
+{
 	unsigned char rw;
 	unsigned char eof;
 	unsigned char at_sm;
@@ -93,7 +98,8 @@ struct st_partstat {
 };
 
 /* Tape statistics */
-struct scsi_tape_stats {
+struct scsi_tape_stats
+{
 	atomic64_t read_byte_cnt;  /* bytes read */
 	atomic64_t write_byte_cnt; /* bytes written */
 	atomic64_t in_flight;      /* Number of I/Os in flight */
@@ -116,7 +122,8 @@ struct scsi_tape_stats {
 #define ST_NBR_PARTITIONS 4
 
 /* The tape drive descriptor */
-struct scsi_tape {
+struct scsi_tape
+{
 	struct scsi_driver *driver;
 	struct scsi_device *device;
 	struct mutex lock;	/* For serialization */

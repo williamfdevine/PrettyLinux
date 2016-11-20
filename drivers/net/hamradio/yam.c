@@ -35,9 +35,9 @@
  *   0.6 F6FBB 25.08.98  Added 1200Bds format
  *   0.7 F6FBB 12.09.98  Added to the kernel configuration
  *   0.8 F6FBB 14.10.98  Fixed slottime/persistence timing bug
- *       OK1ZIA 2.09.01  Fixed "kfree_skb on hard IRQ" 
+ *       OK1ZIA 2.09.01  Fixed "kfree_skb on hard IRQ"
  *                       using dev_kfree_skb_any(). (important in 2.4 kernel)
- *   
+ *
  */
 
 /*****************************************************************************/
@@ -77,7 +77,7 @@
 
 static const char yam_drvname[] = "yam";
 static const char yam_drvinfo[] __initconst = KERN_INFO \
-	"YAM driver version 0.8 by F1OAT/F6FBB\n";
+		"YAM driver version 0.8 by F1OAT/F6FBB\n";
 
 /* --------------------------------------------------------------------- */
 
@@ -108,7 +108,8 @@ static const char yam_drvinfo[] __initconst = KERN_INFO \
 #define DEFAULT_SLOT	100			/* ms */
 #define DEFAULT_PERS	64			/* 0->255 */
 
-struct yam_port {
+struct yam_port
+{
 	int magic;
 	int bitrate;
 	int baudrate;
@@ -147,7 +148,8 @@ struct yam_port {
 	int rx_crcl, rx_crch;
 };
 
-struct yam_mcs {
+struct yam_mcs
+{
 	unsigned char bits[YAM_FPGA_SIZE];
 	int bitrate;
 	struct yam_mcs *next;
@@ -250,43 +252,47 @@ static DEFINE_TIMER(yam_timer, NULL, 0, 0);
 ************************************************************************/
 
 static const unsigned char chktabl[256] =
-{0x00, 0x89, 0x12, 0x9b, 0x24, 0xad, 0x36, 0xbf, 0x48, 0xc1, 0x5a, 0xd3, 0x6c, 0xe5, 0x7e,
- 0xf7, 0x81, 0x08, 0x93, 0x1a, 0xa5, 0x2c, 0xb7, 0x3e, 0xc9, 0x40, 0xdb, 0x52, 0xed, 0x64,
- 0xff, 0x76, 0x02, 0x8b, 0x10, 0x99, 0x26, 0xaf, 0x34, 0xbd, 0x4a, 0xc3, 0x58, 0xd1, 0x6e,
- 0xe7, 0x7c, 0xf5, 0x83, 0x0a, 0x91, 0x18, 0xa7, 0x2e, 0xb5, 0x3c, 0xcb, 0x42, 0xd9, 0x50,
- 0xef, 0x66, 0xfd, 0x74, 0x04, 0x8d, 0x16, 0x9f, 0x20, 0xa9, 0x32, 0xbb, 0x4c, 0xc5, 0x5e,
- 0xd7, 0x68, 0xe1, 0x7a, 0xf3, 0x85, 0x0c, 0x97, 0x1e, 0xa1, 0x28, 0xb3, 0x3a, 0xcd, 0x44,
- 0xdf, 0x56, 0xe9, 0x60, 0xfb, 0x72, 0x06, 0x8f, 0x14, 0x9d, 0x22, 0xab, 0x30, 0xb9, 0x4e,
- 0xc7, 0x5c, 0xd5, 0x6a, 0xe3, 0x78, 0xf1, 0x87, 0x0e, 0x95, 0x1c, 0xa3, 0x2a, 0xb1, 0x38,
- 0xcf, 0x46, 0xdd, 0x54, 0xeb, 0x62, 0xf9, 0x70, 0x08, 0x81, 0x1a, 0x93, 0x2c, 0xa5, 0x3e,
- 0xb7, 0x40, 0xc9, 0x52, 0xdb, 0x64, 0xed, 0x76, 0xff, 0x89, 0x00, 0x9b, 0x12, 0xad, 0x24,
- 0xbf, 0x36, 0xc1, 0x48, 0xd3, 0x5a, 0xe5, 0x6c, 0xf7, 0x7e, 0x0a, 0x83, 0x18, 0x91, 0x2e,
- 0xa7, 0x3c, 0xb5, 0x42, 0xcb, 0x50, 0xd9, 0x66, 0xef, 0x74, 0xfd, 0x8b, 0x02, 0x99, 0x10,
- 0xaf, 0x26, 0xbd, 0x34, 0xc3, 0x4a, 0xd1, 0x58, 0xe7, 0x6e, 0xf5, 0x7c, 0x0c, 0x85, 0x1e,
- 0x97, 0x28, 0xa1, 0x3a, 0xb3, 0x44, 0xcd, 0x56, 0xdf, 0x60, 0xe9, 0x72, 0xfb, 0x8d, 0x04,
- 0x9f, 0x16, 0xa9, 0x20, 0xbb, 0x32, 0xc5, 0x4c, 0xd7, 0x5e, 0xe1, 0x68, 0xf3, 0x7a, 0x0e,
- 0x87, 0x1c, 0x95, 0x2a, 0xa3, 0x38, 0xb1, 0x46, 0xcf, 0x54, 0xdd, 0x62, 0xeb, 0x70, 0xf9,
- 0x8f, 0x06, 0x9d, 0x14, 0xab, 0x22, 0xb9, 0x30, 0xc7, 0x4e, 0xd5, 0x5c, 0xe3, 0x6a, 0xf1,
- 0x78};
+{
+	0x00, 0x89, 0x12, 0x9b, 0x24, 0xad, 0x36, 0xbf, 0x48, 0xc1, 0x5a, 0xd3, 0x6c, 0xe5, 0x7e,
+	0xf7, 0x81, 0x08, 0x93, 0x1a, 0xa5, 0x2c, 0xb7, 0x3e, 0xc9, 0x40, 0xdb, 0x52, 0xed, 0x64,
+	0xff, 0x76, 0x02, 0x8b, 0x10, 0x99, 0x26, 0xaf, 0x34, 0xbd, 0x4a, 0xc3, 0x58, 0xd1, 0x6e,
+	0xe7, 0x7c, 0xf5, 0x83, 0x0a, 0x91, 0x18, 0xa7, 0x2e, 0xb5, 0x3c, 0xcb, 0x42, 0xd9, 0x50,
+	0xef, 0x66, 0xfd, 0x74, 0x04, 0x8d, 0x16, 0x9f, 0x20, 0xa9, 0x32, 0xbb, 0x4c, 0xc5, 0x5e,
+	0xd7, 0x68, 0xe1, 0x7a, 0xf3, 0x85, 0x0c, 0x97, 0x1e, 0xa1, 0x28, 0xb3, 0x3a, 0xcd, 0x44,
+	0xdf, 0x56, 0xe9, 0x60, 0xfb, 0x72, 0x06, 0x8f, 0x14, 0x9d, 0x22, 0xab, 0x30, 0xb9, 0x4e,
+	0xc7, 0x5c, 0xd5, 0x6a, 0xe3, 0x78, 0xf1, 0x87, 0x0e, 0x95, 0x1c, 0xa3, 0x2a, 0xb1, 0x38,
+	0xcf, 0x46, 0xdd, 0x54, 0xeb, 0x62, 0xf9, 0x70, 0x08, 0x81, 0x1a, 0x93, 0x2c, 0xa5, 0x3e,
+	0xb7, 0x40, 0xc9, 0x52, 0xdb, 0x64, 0xed, 0x76, 0xff, 0x89, 0x00, 0x9b, 0x12, 0xad, 0x24,
+	0xbf, 0x36, 0xc1, 0x48, 0xd3, 0x5a, 0xe5, 0x6c, 0xf7, 0x7e, 0x0a, 0x83, 0x18, 0x91, 0x2e,
+	0xa7, 0x3c, 0xb5, 0x42, 0xcb, 0x50, 0xd9, 0x66, 0xef, 0x74, 0xfd, 0x8b, 0x02, 0x99, 0x10,
+	0xaf, 0x26, 0xbd, 0x34, 0xc3, 0x4a, 0xd1, 0x58, 0xe7, 0x6e, 0xf5, 0x7c, 0x0c, 0x85, 0x1e,
+	0x97, 0x28, 0xa1, 0x3a, 0xb3, 0x44, 0xcd, 0x56, 0xdf, 0x60, 0xe9, 0x72, 0xfb, 0x8d, 0x04,
+	0x9f, 0x16, 0xa9, 0x20, 0xbb, 0x32, 0xc5, 0x4c, 0xd7, 0x5e, 0xe1, 0x68, 0xf3, 0x7a, 0x0e,
+	0x87, 0x1c, 0x95, 0x2a, 0xa3, 0x38, 0xb1, 0x46, 0xcf, 0x54, 0xdd, 0x62, 0xeb, 0x70, 0xf9,
+	0x8f, 0x06, 0x9d, 0x14, 0xab, 0x22, 0xb9, 0x30, 0xc7, 0x4e, 0xd5, 0x5c, 0xe3, 0x6a, 0xf1,
+	0x78
+};
 static const unsigned char chktabh[256] =
-{0x00, 0x11, 0x23, 0x32, 0x46, 0x57, 0x65, 0x74, 0x8c, 0x9d, 0xaf, 0xbe, 0xca, 0xdb, 0xe9,
- 0xf8, 0x10, 0x01, 0x33, 0x22, 0x56, 0x47, 0x75, 0x64, 0x9c, 0x8d, 0xbf, 0xae, 0xda, 0xcb,
- 0xf9, 0xe8, 0x21, 0x30, 0x02, 0x13, 0x67, 0x76, 0x44, 0x55, 0xad, 0xbc, 0x8e, 0x9f, 0xeb,
- 0xfa, 0xc8, 0xd9, 0x31, 0x20, 0x12, 0x03, 0x77, 0x66, 0x54, 0x45, 0xbd, 0xac, 0x9e, 0x8f,
- 0xfb, 0xea, 0xd8, 0xc9, 0x42, 0x53, 0x61, 0x70, 0x04, 0x15, 0x27, 0x36, 0xce, 0xdf, 0xed,
- 0xfc, 0x88, 0x99, 0xab, 0xba, 0x52, 0x43, 0x71, 0x60, 0x14, 0x05, 0x37, 0x26, 0xde, 0xcf,
- 0xfd, 0xec, 0x98, 0x89, 0xbb, 0xaa, 0x63, 0x72, 0x40, 0x51, 0x25, 0x34, 0x06, 0x17, 0xef,
- 0xfe, 0xcc, 0xdd, 0xa9, 0xb8, 0x8a, 0x9b, 0x73, 0x62, 0x50, 0x41, 0x35, 0x24, 0x16, 0x07,
- 0xff, 0xee, 0xdc, 0xcd, 0xb9, 0xa8, 0x9a, 0x8b, 0x84, 0x95, 0xa7, 0xb6, 0xc2, 0xd3, 0xe1,
- 0xf0, 0x08, 0x19, 0x2b, 0x3a, 0x4e, 0x5f, 0x6d, 0x7c, 0x94, 0x85, 0xb7, 0xa6, 0xd2, 0xc3,
- 0xf1, 0xe0, 0x18, 0x09, 0x3b, 0x2a, 0x5e, 0x4f, 0x7d, 0x6c, 0xa5, 0xb4, 0x86, 0x97, 0xe3,
- 0xf2, 0xc0, 0xd1, 0x29, 0x38, 0x0a, 0x1b, 0x6f, 0x7e, 0x4c, 0x5d, 0xb5, 0xa4, 0x96, 0x87,
- 0xf3, 0xe2, 0xd0, 0xc1, 0x39, 0x28, 0x1a, 0x0b, 0x7f, 0x6e, 0x5c, 0x4d, 0xc6, 0xd7, 0xe5,
- 0xf4, 0x80, 0x91, 0xa3, 0xb2, 0x4a, 0x5b, 0x69, 0x78, 0x0c, 0x1d, 0x2f, 0x3e, 0xd6, 0xc7,
- 0xf5, 0xe4, 0x90, 0x81, 0xb3, 0xa2, 0x5a, 0x4b, 0x79, 0x68, 0x1c, 0x0d, 0x3f, 0x2e, 0xe7,
- 0xf6, 0xc4, 0xd5, 0xa1, 0xb0, 0x82, 0x93, 0x6b, 0x7a, 0x48, 0x59, 0x2d, 0x3c, 0x0e, 0x1f,
- 0xf7, 0xe6, 0xd4, 0xc5, 0xb1, 0xa0, 0x92, 0x83, 0x7b, 0x6a, 0x58, 0x49, 0x3d, 0x2c, 0x1e,
- 0x0f};
+{
+	0x00, 0x11, 0x23, 0x32, 0x46, 0x57, 0x65, 0x74, 0x8c, 0x9d, 0xaf, 0xbe, 0xca, 0xdb, 0xe9,
+	0xf8, 0x10, 0x01, 0x33, 0x22, 0x56, 0x47, 0x75, 0x64, 0x9c, 0x8d, 0xbf, 0xae, 0xda, 0xcb,
+	0xf9, 0xe8, 0x21, 0x30, 0x02, 0x13, 0x67, 0x76, 0x44, 0x55, 0xad, 0xbc, 0x8e, 0x9f, 0xeb,
+	0xfa, 0xc8, 0xd9, 0x31, 0x20, 0x12, 0x03, 0x77, 0x66, 0x54, 0x45, 0xbd, 0xac, 0x9e, 0x8f,
+	0xfb, 0xea, 0xd8, 0xc9, 0x42, 0x53, 0x61, 0x70, 0x04, 0x15, 0x27, 0x36, 0xce, 0xdf, 0xed,
+	0xfc, 0x88, 0x99, 0xab, 0xba, 0x52, 0x43, 0x71, 0x60, 0x14, 0x05, 0x37, 0x26, 0xde, 0xcf,
+	0xfd, 0xec, 0x98, 0x89, 0xbb, 0xaa, 0x63, 0x72, 0x40, 0x51, 0x25, 0x34, 0x06, 0x17, 0xef,
+	0xfe, 0xcc, 0xdd, 0xa9, 0xb8, 0x8a, 0x9b, 0x73, 0x62, 0x50, 0x41, 0x35, 0x24, 0x16, 0x07,
+	0xff, 0xee, 0xdc, 0xcd, 0xb9, 0xa8, 0x9a, 0x8b, 0x84, 0x95, 0xa7, 0xb6, 0xc2, 0xd3, 0xe1,
+	0xf0, 0x08, 0x19, 0x2b, 0x3a, 0x4e, 0x5f, 0x6d, 0x7c, 0x94, 0x85, 0xb7, 0xa6, 0xd2, 0xc3,
+	0xf1, 0xe0, 0x18, 0x09, 0x3b, 0x2a, 0x5e, 0x4f, 0x7d, 0x6c, 0xa5, 0xb4, 0x86, 0x97, 0xe3,
+	0xf2, 0xc0, 0xd1, 0x29, 0x38, 0x0a, 0x1b, 0x6f, 0x7e, 0x4c, 0x5d, 0xb5, 0xa4, 0x96, 0x87,
+	0xf3, 0xe2, 0xd0, 0xc1, 0x39, 0x28, 0x1a, 0x0b, 0x7f, 0x6e, 0x5c, 0x4d, 0xc6, 0xd7, 0xe5,
+	0xf4, 0x80, 0x91, 0xa3, 0xb2, 0x4a, 0x5b, 0x69, 0x78, 0x0c, 0x1d, 0x2f, 0x3e, 0xd6, 0xc7,
+	0xf5, 0xe4, 0x90, 0x81, 0xb3, 0xa2, 0x5a, 0x4b, 0x79, 0x68, 0x1c, 0x0d, 0x3f, 0x2e, 0xe7,
+	0xf6, 0xc4, 0xd5, 0xa1, 0xb0, 0x82, 0x93, 0x6b, 0x7a, 0x48, 0x59, 0x2d, 0x3c, 0x0e, 0x1f,
+	0xf7, 0xe6, 0xd4, 0xc5, 0xb1, 0xa0, 0x92, 0x83, 0x7b, 0x6a, 0x58, 0x49, 0x3d, 0x2c, 0x1e,
+	0x0f
+};
 
 /*************************************************************************
 * FPGA functions
@@ -295,8 +301,11 @@ static const unsigned char chktabh[256] =
 static void delay(int ms)
 {
 	unsigned long timeout = jiffies + ((ms * HZ) / 1000);
+
 	while (time_before(jiffies, timeout))
+	{
 		cpu_relax();
+	}
 }
 
 /*
@@ -331,14 +340,18 @@ static int fpga_write(int iobase, unsigned char wrd)
 	int k;
 	unsigned long timeout = jiffies + HZ / 10;
 
-	for (k = 0; k < 8; k++) {
+	for (k = 0; k < 8; k++)
+	{
 		bit = (wrd & 0x80) ? (MCR_RTS | MCR_DTR) : MCR_DTR;
 		outb(bit | MCR_OUT1 | MCR_OUT2, MCR(iobase));
 		wrd <<= 1;
 		outb(0xfc, THR(iobase));
+
 		while ((inb(LSR(iobase)) & LSR_TSRE) == 0)
 			if (time_after(jiffies, timeout))
+			{
 				return -1;
+			}
 	}
 
 	return 0;
@@ -350,7 +363,7 @@ static int fpga_write(int iobase, unsigned char wrd)
  * predef should be YAM_9600 for loading predef 9600 mcs
  */
 static unsigned char *add_mcs(unsigned char *bits, int bitrate,
-			      unsigned int predef)
+							  unsigned int predef)
 {
 	const char *fw_name[2] = {FIRMWARE_9600, FIRMWARE_1200};
 	const struct firmware *fw;
@@ -358,58 +371,75 @@ static unsigned char *add_mcs(unsigned char *bits, int bitrate,
 	struct yam_mcs *p;
 	int err;
 
-	switch (predef) {
-	case 0:
-		fw = NULL;
-		break;
-	case YAM_1200:
-	case YAM_9600:
-		predef--;
-		pdev = platform_device_register_simple("yam", 0, NULL, 0);
-		if (IS_ERR(pdev)) {
-			printk(KERN_ERR "yam: Failed to register firmware\n");
+	switch (predef)
+	{
+		case 0:
+			fw = NULL;
+			break;
+
+		case YAM_1200:
+		case YAM_9600:
+			predef--;
+			pdev = platform_device_register_simple("yam", 0, NULL, 0);
+
+			if (IS_ERR(pdev))
+			{
+				printk(KERN_ERR "yam: Failed to register firmware\n");
+				return NULL;
+			}
+
+			err = request_firmware(&fw, fw_name[predef], &pdev->dev);
+			platform_device_unregister(pdev);
+
+			if (err)
+			{
+				printk(KERN_ERR "Failed to load firmware \"%s\"\n",
+					   fw_name[predef]);
+				return NULL;
+			}
+
+			if (fw->size != YAM_FPGA_SIZE)
+			{
+				printk(KERN_ERR "Bogus length %zu in firmware \"%s\"\n",
+					   fw->size, fw_name[predef]);
+				release_firmware(fw);
+				return NULL;
+			}
+
+			bits = (unsigned char *)fw->data;
+			break;
+
+		default:
+			printk(KERN_ERR "yam: Invalid predef number %u\n", predef);
 			return NULL;
-		}
-		err = request_firmware(&fw, fw_name[predef], &pdev->dev);
-		platform_device_unregister(pdev);
-		if (err) {
-			printk(KERN_ERR "Failed to load firmware \"%s\"\n",
-			       fw_name[predef]);
-			return NULL;
-		}
-		if (fw->size != YAM_FPGA_SIZE) {
-			printk(KERN_ERR "Bogus length %zu in firmware \"%s\"\n",
-			       fw->size, fw_name[predef]);
-			release_firmware(fw);
-			return NULL;
-		}
-		bits = (unsigned char *)fw->data;
-		break;
-	default:
-		printk(KERN_ERR "yam: Invalid predef number %u\n", predef);
-		return NULL;
 	}
 
 	/* If it already exists, replace the bit data */
 	p = yam_data;
-	while (p) {
-		if (p->bitrate == bitrate) {
+
+	while (p)
+	{
+		if (p->bitrate == bitrate)
+		{
 			memcpy(p->bits, bits, YAM_FPGA_SIZE);
 			goto out;
 		}
+
 		p = p->next;
 	}
 
 	/* Allocate a new mcs */
-	if ((p = kmalloc(sizeof(struct yam_mcs), GFP_KERNEL)) == NULL) {
+	if ((p = kmalloc(sizeof(struct yam_mcs), GFP_KERNEL)) == NULL)
+	{
 		release_firmware(fw);
 		return NULL;
 	}
+
 	memcpy(p->bits, bits, YAM_FPGA_SIZE);
 	p->bitrate = bitrate;
 	p->next = yam_data;
 	yam_data = p;
- out:
+out:
 	release_firmware(fw);
 	return p->bits;
 }
@@ -419,20 +449,27 @@ static unsigned char *get_mcs(int bitrate)
 	struct yam_mcs *p;
 
 	p = yam_data;
-	while (p) {
+
+	while (p)
+	{
 		if (p->bitrate == bitrate)
+		{
 			return p->bits;
+		}
+
 		p = p->next;
 	}
 
 	/* Load predefined mcs data */
-	switch (bitrate) {
-	case 1200:
-		/* setting predef as YAM_1200 for loading predef 1200 mcs */
-		return add_mcs(NULL, bitrate, YAM_1200);
-	default:
-		/* setting predef as YAM_9600 for loading predef 9600 mcs */
-		return add_mcs(NULL, bitrate, YAM_9600);
+	switch (bitrate)
+	{
+		case 1200:
+			/* setting predef as YAM_1200 for loading predef 1200 mcs */
+			return add_mcs(NULL, bitrate, YAM_1200);
+
+		default:
+			/* setting predef as YAM_9600 for loading predef 9600 mcs */
+			return add_mcs(NULL, bitrate, YAM_9600);
 	}
 }
 
@@ -447,12 +484,18 @@ static int fpga_download(int iobase, int bitrate)
 	unsigned char *pbits;
 
 	pbits = get_mcs(bitrate);
+
 	if (pbits == NULL)
+	{
 		return -1;
+	}
 
 	fpga_reset(iobase);
-	for (i = 0; i < YAM_FPGA_SIZE; i++) {
-		if (fpga_write(iobase, pbits[i])) {
+
+	for (i = 0; i < YAM_FPGA_SIZE; i++)
+	{
+		if (fpga_write(iobase, pbits[i]))
+		{
 			printk(KERN_ERR "yam: error in write cycle\n");
 			return -1;			/* write... */
 		}
@@ -469,7 +512,7 @@ static int fpga_download(int iobase, int bitrate)
 
 
 /************************************************************************
-* Serial port init 
+* Serial port init
 ************************************************************************/
 
 static void yam_set_uart(struct net_device *dev)
@@ -498,7 +541,8 @@ static void yam_set_uart(struct net_device *dev)
 
 /* --------------------------------------------------------------------- */
 
-enum uart {
+enum uart
+{
 	c_uart_unknown, c_uart_8250,
 	c_uart_16450, c_uart_16550, c_uart_16550A
 };
@@ -520,20 +564,30 @@ static enum uart yam_check_uart(unsigned int iobase)
 	b3 = inb(MSR(iobase)) & 0xf0;
 	outb(b1, MCR(iobase));		/* restore old values */
 	outb(b2, MSR(iobase));
+
 	if (b3 != 0x90)
+	{
 		return c_uart_unknown;
+	}
+
 	inb(RBR(iobase));
 	inb(RBR(iobase));
 	outb(0x01, FCR(iobase));	/* enable FIFOs */
 	u = uart_tab[(inb(IIR(iobase)) >> 6) & 3];
-	if (u == c_uart_16450) {
+
+	if (u == c_uart_16450)
+	{
 		outb(0x5a, SCR(iobase));
 		b1 = inb(SCR(iobase));
 		outb(0xa5, SCR(iobase));
 		b2 = inb(SCR(iobase));
+
 		if ((b1 != 0x5a) || (b2 != 0xa5))
+		{
 			u = c_uart_8250;
+		}
 	}
+
 	return u;
 }
 
@@ -542,17 +596,24 @@ static enum uart yam_check_uart(unsigned int iobase)
 ******************************************************************************/
 static inline void yam_rx_flag(struct net_device *dev, struct yam_port *yp)
 {
-	if (yp->dcd && yp->rx_len >= 3 && yp->rx_len < YAM_MAX_FRAME) {
+	if (yp->dcd && yp->rx_len >= 3 && yp->rx_len < YAM_MAX_FRAME)
+	{
 		int pkt_len = yp->rx_len - 2 + 1;	/* -CRC + kiss */
 		struct sk_buff *skb;
 
-		if ((yp->rx_crch & yp->rx_crcl) != 0xFF) {
+		if ((yp->rx_crch & yp->rx_crcl) != 0xFF)
+		{
 			/* Bad crc */
-		} else {
-			if (!(skb = dev_alloc_skb(pkt_len))) {
+		}
+		else
+		{
+			if (!(skb = dev_alloc_skb(pkt_len)))
+			{
 				printk(KERN_WARNING "%s: memory squeeze, dropping packet\n", dev->name);
 				++dev->stats.rx_dropped;
-			} else {
+			}
+			else
+			{
 				unsigned char *cp;
 				cp = skb_put(skb, pkt_len);
 				*cp++ = 0;		/* KISS kludge */
@@ -563,6 +624,7 @@ static inline void yam_rx_flag(struct net_device *dev, struct yam_port *yp)
 			}
 		}
 	}
+
 	yp->rx_len = 0;
 	yp->rx_crcl = 0x21;
 	yp->rx_crch = 0xf3;
@@ -570,7 +632,8 @@ static inline void yam_rx_flag(struct net_device *dev, struct yam_port *yp)
 
 static inline void yam_rx_byte(struct net_device *dev, struct yam_port *yp, unsigned char rxb)
 {
-	if (yp->rx_len < YAM_MAX_FRAME) {
+	if (yp->rx_len < YAM_MAX_FRAME)
+	{
 		unsigned char c = yp->rx_crcl;
 		yp->rx_crcl = (chktabl[c] ^ yp->rx_crch);
 		yp->rx_crch = (chktabh[c] ^ rxb);
@@ -593,12 +656,14 @@ static void ptt_off(struct net_device *dev)
 }
 
 static netdev_tx_t yam_send_packet(struct sk_buff *skb,
-					 struct net_device *dev)
+								   struct net_device *dev)
 {
 	struct yam_port *yp = netdev_priv(dev);
 
 	if (skb->protocol == htons(ETH_P_IP))
+	{
 		return ax25_ip_xmit(skb);
+	}
 
 	skb_queue_tail(&yp->send_queue, skb);
 	netif_trans_update(dev);
@@ -608,9 +673,14 @@ static netdev_tx_t yam_send_packet(struct sk_buff *skb,
 static void yam_start_tx(struct net_device *dev, struct yam_port *yp)
 {
 	if ((yp->tx_state == TX_TAIL) || (yp->txd == 0))
+	{
 		yp->tx_count = 1;
+	}
 	else
+	{
 		yp->tx_count = (yp->bitrate * yp->txd) / 8000;
+	}
+
 	yp->tx_state = TX_HEAD;
 	ptt_on(dev);
 }
@@ -620,29 +690,40 @@ static void yam_arbitrate(struct net_device *dev)
 	struct yam_port *yp = netdev_priv(dev);
 
 	if (yp->magic != YAM_MAGIC || yp->tx_state != TX_OFF ||
-	    skb_queue_empty(&yp->send_queue))
+		skb_queue_empty(&yp->send_queue))
+	{
 		return;
+	}
+
 	/* tx_state is TX_OFF and there is data to send */
 
-	if (yp->dupmode) {
+	if (yp->dupmode)
+	{
 		/* Full duplex mode, don't wait */
 		yam_start_tx(dev, yp);
 		return;
 	}
-	if (yp->dcd) {
+
+	if (yp->dcd)
+	{
 		/* DCD on, wait slotime ... */
 		yp->slotcnt = yp->slot / 10;
 		return;
 	}
+
 	/* Is slottime passed ? */
 	if ((--yp->slotcnt) > 0)
+	{
 		return;
+	}
 
 	yp->slotcnt = yp->slot / 10;
 
 	/* is random > persist ? */
 	if ((prandom_u32() % 256) > yp->pers)
+	{
 		return;
+	}
 
 	yam_start_tx(dev, yp);
 }
@@ -651,11 +732,16 @@ static void yam_dotimer(unsigned long dummy)
 {
 	int i;
 
-	for (i = 0; i < NR_PORTS; i++) {
+	for (i = 0; i < NR_PORTS; i++)
+	{
 		struct net_device *dev = yam_devs[i];
+
 		if (dev && netif_running(dev))
+		{
 			yam_arbitrate(dev);
+		}
 	}
+
 	yam_timer.expires = jiffies + HZ / 100;
 	add_timer(&yam_timer);
 }
@@ -665,74 +751,107 @@ static void yam_tx_byte(struct net_device *dev, struct yam_port *yp)
 	struct sk_buff *skb;
 	unsigned char b, temp;
 
-	switch (yp->tx_state) {
-	case TX_OFF:
-		break;
-	case TX_HEAD:
-		if (--yp->tx_count <= 0) {
-			if (!(skb = skb_dequeue(&yp->send_queue))) {
-				ptt_off(dev);
-				yp->tx_state = TX_OFF;
-				break;
-			}
-			yp->tx_state = TX_DATA;
-			if (skb->data[0] != 0) {
-/*                              do_kiss_params(s, skb->data, skb->len); */
+	switch (yp->tx_state)
+	{
+		case TX_OFF:
+			break;
+
+		case TX_HEAD:
+			if (--yp->tx_count <= 0)
+			{
+				if (!(skb = skb_dequeue(&yp->send_queue)))
+				{
+					ptt_off(dev);
+					yp->tx_state = TX_OFF;
+					break;
+				}
+
+				yp->tx_state = TX_DATA;
+
+				if (skb->data[0] != 0)
+				{
+					/*                              do_kiss_params(s, skb->data, skb->len); */
+					dev_kfree_skb_any(skb);
+					break;
+				}
+
+				yp->tx_len = skb->len - 1;	/* strip KISS byte */
+
+				if (yp->tx_len >= YAM_MAX_FRAME || yp->tx_len < 2)
+				{
+					dev_kfree_skb_any(skb);
+					break;
+				}
+
+				skb_copy_from_linear_data_offset(skb, 1,
+												 yp->tx_buf,
+												 yp->tx_len);
 				dev_kfree_skb_any(skb);
-				break;
+				yp->tx_count = 0;
+				yp->tx_crcl = 0x21;
+				yp->tx_crch = 0xf3;
+				yp->tx_state = TX_DATA;
 			}
-			yp->tx_len = skb->len - 1;	/* strip KISS byte */
-			if (yp->tx_len >= YAM_MAX_FRAME || yp->tx_len < 2) {
-        			dev_kfree_skb_any(skb);
-				break;
+
+			break;
+
+		case TX_DATA:
+			b = yp->tx_buf[yp->tx_count++];
+			outb(b, THR(dev->base_addr));
+			temp = yp->tx_crcl;
+			yp->tx_crcl = chktabl[temp] ^ yp->tx_crch;
+			yp->tx_crch = chktabh[temp] ^ b;
+
+			if (yp->tx_count >= yp->tx_len)
+			{
+				yp->tx_state = TX_CRC1;
 			}
-			skb_copy_from_linear_data_offset(skb, 1,
-							 yp->tx_buf,
-							 yp->tx_len);
-			dev_kfree_skb_any(skb);
-			yp->tx_count = 0;
-			yp->tx_crcl = 0x21;
-			yp->tx_crch = 0xf3;
-			yp->tx_state = TX_DATA;
-		}
-		break;
-	case TX_DATA:
-		b = yp->tx_buf[yp->tx_count++];
-		outb(b, THR(dev->base_addr));
-		temp = yp->tx_crcl;
-		yp->tx_crcl = chktabl[temp] ^ yp->tx_crch;
-		yp->tx_crch = chktabh[temp] ^ b;
-		if (yp->tx_count >= yp->tx_len) {
-			yp->tx_state = TX_CRC1;
-		}
-		break;
-	case TX_CRC1:
-		yp->tx_crch = chktabl[yp->tx_crcl] ^ yp->tx_crch;
-		yp->tx_crcl = chktabh[yp->tx_crcl] ^ chktabl[yp->tx_crch] ^ 0xff;
-		outb(yp->tx_crcl, THR(dev->base_addr));
-		yp->tx_state = TX_CRC2;
-		break;
-	case TX_CRC2:
-		outb(chktabh[yp->tx_crch] ^ 0xFF, THR(dev->base_addr));
-		if (skb_queue_empty(&yp->send_queue)) {
-			yp->tx_count = (yp->bitrate * yp->txtail) / 8000;
-			if (yp->dupmode == 2)
-				yp->tx_count += (yp->bitrate * yp->holdd) / 8;
-			if (yp->tx_count == 0)
+
+			break;
+
+		case TX_CRC1:
+			yp->tx_crch = chktabl[yp->tx_crcl] ^ yp->tx_crch;
+			yp->tx_crcl = chktabh[yp->tx_crcl] ^ chktabl[yp->tx_crch] ^ 0xff;
+			outb(yp->tx_crcl, THR(dev->base_addr));
+			yp->tx_state = TX_CRC2;
+			break;
+
+		case TX_CRC2:
+			outb(chktabh[yp->tx_crch] ^ 0xFF, THR(dev->base_addr));
+
+			if (skb_queue_empty(&yp->send_queue))
+			{
+				yp->tx_count = (yp->bitrate * yp->txtail) / 8000;
+
+				if (yp->dupmode == 2)
+				{
+					yp->tx_count += (yp->bitrate * yp->holdd) / 8;
+				}
+
+				if (yp->tx_count == 0)
+				{
+					yp->tx_count = 1;
+				}
+
+				yp->tx_state = TX_TAIL;
+			}
+			else
+			{
 				yp->tx_count = 1;
-			yp->tx_state = TX_TAIL;
-		} else {
-			yp->tx_count = 1;
-			yp->tx_state = TX_HEAD;
-		}
-		++dev->stats.tx_packets;
-		break;
-	case TX_TAIL:
-		if (--yp->tx_count <= 0) {
-			yp->tx_state = TX_OFF;
-			ptt_off(dev);
-		}
-		break;
+				yp->tx_state = TX_HEAD;
+			}
+
+			++dev->stats.tx_packets;
+			break;
+
+		case TX_TAIL:
+			if (--yp->tx_count <= 0)
+			{
+				yp->tx_state = TX_OFF;
+				ptt_off(dev);
+			}
+
+			break;
 	}
 }
 
@@ -749,14 +868,18 @@ static irqreturn_t yam_interrupt(int irq, void *dev_id)
 	int i;
 	int handled = 0;
 
-	for (i = 0; i < NR_PORTS; i++) {
+	for (i = 0; i < NR_PORTS; i++)
+	{
 		dev = yam_devs[i];
 		yp = netdev_priv(dev);
 
 		if (!netif_running(dev))
+		{
 			continue;
+		}
 
-		while ((iir = IIR_MASK & inb(IIR(dev->base_addr))) != IIR_NOPEND) {
+		while ((iir = IIR_MASK & inb(IIR(dev->base_addr))) != IIR_NOPEND)
+		{
 			unsigned char msr = inb(MSR(dev->base_addr));
 			unsigned char lsr = inb(LSR(dev->base_addr));
 			unsigned char rxb;
@@ -764,29 +887,42 @@ static irqreturn_t yam_interrupt(int irq, void *dev_id)
 			handled = 1;
 
 			if (lsr & LSR_OE)
+			{
 				++dev->stats.rx_fifo_errors;
+			}
 
 			yp->dcd = (msr & RX_DCD) ? 1 : 0;
 
-			if (--counter <= 0) {
+			if (--counter <= 0)
+			{
 				printk(KERN_ERR "%s: too many irq iir=%d\n",
-						dev->name, iir);
+					   dev->name, iir);
 				goto out;
 			}
-			if (msr & TX_RDY) {
+
+			if (msr & TX_RDY)
+			{
 				++yp->nb_mdint;
 				yam_tx_byte(dev, yp);
 			}
-			if (lsr & LSR_RXC) {
+
+			if (lsr & LSR_RXC)
+			{
 				++yp->nb_rxint;
 				rxb = inb(RBR(dev->base_addr));
+
 				if (msr & RX_FLAG)
+				{
 					yam_rx_flag(dev, yp);
+				}
 				else
+				{
 					yam_rx_byte(dev, yp, rxb);
+				}
 			}
 		}
 	}
+
 out:
 	return IRQ_RETVAL(handled);
 }
@@ -835,7 +971,8 @@ static int yam_seq_show(struct seq_file *seq, void *v)
 	return 0;
 }
 
-static const struct seq_operations yam_seqops = {
+static const struct seq_operations yam_seqops =
+{
 	.start = yam_seq_start,
 	.next = yam_seq_next,
 	.stop = yam_seq_stop,
@@ -847,7 +984,8 @@ static int yam_info_open(struct inode *inode, struct file *file)
 	return seq_open(file, &yam_seqops);
 }
 
-static const struct file_operations yam_info_fops = {
+static const struct file_operations yam_info_fops =
+{
 	.owner = THIS_MODULE,
 	.open = yam_info_open,
 	.read = seq_read,
@@ -865,33 +1003,45 @@ static int yam_open(struct net_device *dev)
 	struct yam_port *yp = netdev_priv(dev);
 	enum uart u;
 	int i;
-	int ret=0;
+	int ret = 0;
 
 	printk(KERN_INFO "Trying %s at iobase 0x%lx irq %u\n", dev->name, dev->base_addr, dev->irq);
 
 	if (!yp->bitrate)
-		return -ENXIO;
-	if (!dev->base_addr || dev->base_addr > 0x1000 - YAM_EXTENT ||
-		dev->irq < 2 || dev->irq > 15) {
+	{
 		return -ENXIO;
 	}
+
+	if (!dev->base_addr || dev->base_addr > 0x1000 - YAM_EXTENT ||
+		dev->irq < 2 || dev->irq > 15)
+	{
+		return -ENXIO;
+	}
+
 	if (!request_region(dev->base_addr, YAM_EXTENT, dev->name))
 	{
 		printk(KERN_ERR "%s: cannot 0x%lx busy\n", dev->name, dev->base_addr);
 		return -EACCES;
 	}
-	if ((u = yam_check_uart(dev->base_addr)) == c_uart_unknown) {
+
+	if ((u = yam_check_uart(dev->base_addr)) == c_uart_unknown)
+	{
 		printk(KERN_ERR "%s: cannot find uart type\n", dev->name);
 		ret = -EIO;
 		goto out_release_base;
 	}
-	if (fpga_download(dev->base_addr, yp->bitrate)) {
+
+	if (fpga_download(dev->base_addr, yp->bitrate))
+	{
 		printk(KERN_ERR "%s: cannot init FPGA\n", dev->name);
 		ret = -EIO;
 		goto out_release_base;
 	}
+
 	outb(0, IER(dev->base_addr));
-	if (request_irq(dev->irq, yam_interrupt, IRQF_SHARED, dev->name, dev)) {
+
+	if (request_irq(dev->irq, yam_interrupt, IRQF_SHARED, dev->name, dev))
+	{
 		printk(KERN_ERR "%s: irq %d busy\n", dev->name, dev->irq);
 		ret = -EBUSY;
 		goto out_release_base;
@@ -900,11 +1050,12 @@ static int yam_open(struct net_device *dev)
 	yam_set_uart(dev);
 
 	netif_start_queue(dev);
-	
+
 	yp->slotcnt = yp->slot / 10;
 
 	/* Reset overruns for all ports - FPGA programming makes overruns */
-	for (i = 0; i < NR_PORTS; i++) {
+	for (i = 0; i < NR_PORTS; i++)
+	{
 		struct net_device *yam_dev = yam_devs[i];
 
 		inb(LSR(yam_dev->base_addr));
@@ -928,7 +1079,9 @@ static int yam_close(struct net_device *dev)
 	struct yam_port *yp = netdev_priv(dev);
 
 	if (!dev)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * disable interrupts
@@ -936,11 +1089,14 @@ static int yam_close(struct net_device *dev)
 	outb(0, IER(dev->base_addr));
 	outb(1, MCR(dev->base_addr));
 	/* Remove IRQ handler if last */
-	free_irq(dev->irq,dev);
+	free_irq(dev->irq, dev);
 	release_region(dev->base_addr, YAM_EXTENT);
 	netif_stop_queue(dev);
+
 	while ((skb = skb_dequeue(&yp->send_queue)))
+	{
 		dev_kfree_skb(skb);
+	}
 
 	printk(KERN_INFO "%s: close yam at iobase 0x%lx irq %u\n",
 		   yam_drvname, dev->base_addr, dev->irq);
@@ -957,127 +1113,213 @@ static int yam_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 	int ioctl_cmd;
 
 	if (copy_from_user(&ioctl_cmd, ifr->ifr_data, sizeof(int)))
-		 return -EFAULT;
+	{
+		return -EFAULT;
+	}
 
 	if (yp->magic != YAM_MAGIC)
+	{
 		return -EINVAL;
+	}
 
 	if (!capable(CAP_NET_ADMIN))
+	{
 		return -EPERM;
+	}
 
 	if (cmd != SIOCDEVPRIVATE)
+	{
 		return -EINVAL;
+	}
 
-	switch (ioctl_cmd) {
+	switch (ioctl_cmd)
+	{
 
-	case SIOCYAMRESERVED:
-		return -EINVAL;			/* unused */
+		case SIOCYAMRESERVED:
+			return -EINVAL;			/* unused */
 
-	case SIOCYAMSMCS:
-		if (netif_running(dev))
-			return -EINVAL;		/* Cannot change this parameter when up */
-		if ((ym = kmalloc(sizeof(struct yamdrv_ioctl_mcs), GFP_KERNEL)) == NULL)
-			return -ENOBUFS;
-		if (copy_from_user(ym, ifr->ifr_data, sizeof(struct yamdrv_ioctl_mcs))) {
+		case SIOCYAMSMCS:
+			if (netif_running(dev))
+			{
+				return -EINVAL;    /* Cannot change this parameter when up */
+			}
+
+			if ((ym = kmalloc(sizeof(struct yamdrv_ioctl_mcs), GFP_KERNEL)) == NULL)
+			{
+				return -ENOBUFS;
+			}
+
+			if (copy_from_user(ym, ifr->ifr_data, sizeof(struct yamdrv_ioctl_mcs)))
+			{
+				kfree(ym);
+				return -EFAULT;
+			}
+
+			if (ym->bitrate > YAM_MAXBITRATE)
+			{
+				kfree(ym);
+				return -EINVAL;
+			}
+
+			/* setting predef as 0 for loading userdefined mcs data */
+			add_mcs(ym->bits, ym->bitrate, 0);
 			kfree(ym);
-			return -EFAULT;
-		}
-		if (ym->bitrate > YAM_MAXBITRATE) {
-			kfree(ym);
+			break;
+
+		case SIOCYAMSCFG:
+			if (!capable(CAP_SYS_RAWIO))
+			{
+				return -EPERM;
+			}
+
+			if (copy_from_user(&yi, ifr->ifr_data, sizeof(struct yamdrv_ioctl_cfg)))
+			{
+				return -EFAULT;
+			}
+
+			if ((yi.cfg.mask & YAM_IOBASE) && netif_running(dev))
+			{
+				return -EINVAL;    /* Cannot change this parameter when up */
+			}
+
+			if ((yi.cfg.mask & YAM_IRQ) && netif_running(dev))
+			{
+				return -EINVAL;    /* Cannot change this parameter when up */
+			}
+
+			if ((yi.cfg.mask & YAM_BITRATE) && netif_running(dev))
+			{
+				return -EINVAL;    /* Cannot change this parameter when up */
+			}
+
+			if ((yi.cfg.mask & YAM_BAUDRATE) && netif_running(dev))
+			{
+				return -EINVAL;    /* Cannot change this parameter when up */
+			}
+
+			if (yi.cfg.mask & YAM_IOBASE)
+			{
+				yp->iobase = yi.cfg.iobase;
+				dev->base_addr = yi.cfg.iobase;
+			}
+
+			if (yi.cfg.mask & YAM_IRQ)
+			{
+				if (yi.cfg.irq > 15)
+				{
+					return -EINVAL;
+				}
+
+				yp->irq = yi.cfg.irq;
+				dev->irq = yi.cfg.irq;
+			}
+
+			if (yi.cfg.mask & YAM_BITRATE)
+			{
+				if (yi.cfg.bitrate > YAM_MAXBITRATE)
+				{
+					return -EINVAL;
+				}
+
+				yp->bitrate = yi.cfg.bitrate;
+			}
+
+			if (yi.cfg.mask & YAM_BAUDRATE)
+			{
+				if (yi.cfg.baudrate > YAM_MAXBAUDRATE)
+				{
+					return -EINVAL;
+				}
+
+				yp->baudrate = yi.cfg.baudrate;
+			}
+
+			if (yi.cfg.mask & YAM_MODE)
+			{
+				if (yi.cfg.mode > YAM_MAXMODE)
+				{
+					return -EINVAL;
+				}
+
+				yp->dupmode = yi.cfg.mode;
+			}
+
+			if (yi.cfg.mask & YAM_HOLDDLY)
+			{
+				if (yi.cfg.holddly > YAM_MAXHOLDDLY)
+				{
+					return -EINVAL;
+				}
+
+				yp->holdd = yi.cfg.holddly;
+			}
+
+			if (yi.cfg.mask & YAM_TXDELAY)
+			{
+				if (yi.cfg.txdelay > YAM_MAXTXDELAY)
+				{
+					return -EINVAL;
+				}
+
+				yp->txd = yi.cfg.txdelay;
+			}
+
+			if (yi.cfg.mask & YAM_TXTAIL)
+			{
+				if (yi.cfg.txtail > YAM_MAXTXTAIL)
+				{
+					return -EINVAL;
+				}
+
+				yp->txtail = yi.cfg.txtail;
+			}
+
+			if (yi.cfg.mask & YAM_PERSIST)
+			{
+				if (yi.cfg.persist > YAM_MAXPERSIST)
+				{
+					return -EINVAL;
+				}
+
+				yp->pers = yi.cfg.persist;
+			}
+
+			if (yi.cfg.mask & YAM_SLOTTIME)
+			{
+				if (yi.cfg.slottime > YAM_MAXSLOTTIME)
+				{
+					return -EINVAL;
+				}
+
+				yp->slot = yi.cfg.slottime;
+				yp->slotcnt = yp->slot / 10;
+			}
+
+			break;
+
+		case SIOCYAMGCFG:
+			memset(&yi, 0, sizeof(yi));
+			yi.cfg.mask = 0xffffffff;
+			yi.cfg.iobase = yp->iobase;
+			yi.cfg.irq = yp->irq;
+			yi.cfg.bitrate = yp->bitrate;
+			yi.cfg.baudrate = yp->baudrate;
+			yi.cfg.mode = yp->dupmode;
+			yi.cfg.txdelay = yp->txd;
+			yi.cfg.holddly = yp->holdd;
+			yi.cfg.txtail = yp->txtail;
+			yi.cfg.persist = yp->pers;
+			yi.cfg.slottime = yp->slot;
+
+			if (copy_to_user(ifr->ifr_data, &yi, sizeof(struct yamdrv_ioctl_cfg)))
+			{
+				return -EFAULT;
+			}
+
+			break;
+
+		default:
 			return -EINVAL;
-		}
-		/* setting predef as 0 for loading userdefined mcs data */
-		add_mcs(ym->bits, ym->bitrate, 0);
-		kfree(ym);
-		break;
-
-	case SIOCYAMSCFG:
-		if (!capable(CAP_SYS_RAWIO))
-			return -EPERM;
-		if (copy_from_user(&yi, ifr->ifr_data, sizeof(struct yamdrv_ioctl_cfg)))
-			 return -EFAULT;
-
-		if ((yi.cfg.mask & YAM_IOBASE) && netif_running(dev))
-			return -EINVAL;		/* Cannot change this parameter when up */
-		if ((yi.cfg.mask & YAM_IRQ) && netif_running(dev))
-			return -EINVAL;		/* Cannot change this parameter when up */
-		if ((yi.cfg.mask & YAM_BITRATE) && netif_running(dev))
-			return -EINVAL;		/* Cannot change this parameter when up */
-		if ((yi.cfg.mask & YAM_BAUDRATE) && netif_running(dev))
-			return -EINVAL;		/* Cannot change this parameter when up */
-
-		if (yi.cfg.mask & YAM_IOBASE) {
-			yp->iobase = yi.cfg.iobase;
-			dev->base_addr = yi.cfg.iobase;
-		}
-		if (yi.cfg.mask & YAM_IRQ) {
-			if (yi.cfg.irq > 15)
-				return -EINVAL;
-			yp->irq = yi.cfg.irq;
-			dev->irq = yi.cfg.irq;
-		}
-		if (yi.cfg.mask & YAM_BITRATE) {
-			if (yi.cfg.bitrate > YAM_MAXBITRATE)
-				return -EINVAL;
-			yp->bitrate = yi.cfg.bitrate;
-		}
-		if (yi.cfg.mask & YAM_BAUDRATE) {
-			if (yi.cfg.baudrate > YAM_MAXBAUDRATE)
-				return -EINVAL;
-			yp->baudrate = yi.cfg.baudrate;
-		}
-		if (yi.cfg.mask & YAM_MODE) {
-			if (yi.cfg.mode > YAM_MAXMODE)
-				return -EINVAL;
-			yp->dupmode = yi.cfg.mode;
-		}
-		if (yi.cfg.mask & YAM_HOLDDLY) {
-			if (yi.cfg.holddly > YAM_MAXHOLDDLY)
-				return -EINVAL;
-			yp->holdd = yi.cfg.holddly;
-		}
-		if (yi.cfg.mask & YAM_TXDELAY) {
-			if (yi.cfg.txdelay > YAM_MAXTXDELAY)
-				return -EINVAL;
-			yp->txd = yi.cfg.txdelay;
-		}
-		if (yi.cfg.mask & YAM_TXTAIL) {
-			if (yi.cfg.txtail > YAM_MAXTXTAIL)
-				return -EINVAL;
-			yp->txtail = yi.cfg.txtail;
-		}
-		if (yi.cfg.mask & YAM_PERSIST) {
-			if (yi.cfg.persist > YAM_MAXPERSIST)
-				return -EINVAL;
-			yp->pers = yi.cfg.persist;
-		}
-		if (yi.cfg.mask & YAM_SLOTTIME) {
-			if (yi.cfg.slottime > YAM_MAXSLOTTIME)
-				return -EINVAL;
-			yp->slot = yi.cfg.slottime;
-			yp->slotcnt = yp->slot / 10;
-		}
-		break;
-
-	case SIOCYAMGCFG:
-		memset(&yi, 0, sizeof(yi));
-		yi.cfg.mask = 0xffffffff;
-		yi.cfg.iobase = yp->iobase;
-		yi.cfg.irq = yp->irq;
-		yi.cfg.bitrate = yp->bitrate;
-		yi.cfg.baudrate = yp->baudrate;
-		yi.cfg.mode = yp->dupmode;
-		yi.cfg.txdelay = yp->txd;
-		yi.cfg.holddly = yp->holdd;
-		yi.cfg.txtail = yp->txtail;
-		yi.cfg.persist = yp->pers;
-		yi.cfg.slottime = yp->slot;
-		if (copy_to_user(ifr->ifr_data, &yi, sizeof(struct yamdrv_ioctl_cfg)))
-			 return -EFAULT;
-		break;
-
-	default:
-		return -EINVAL;
 
 	}
 
@@ -1097,7 +1339,8 @@ static int yam_set_mac_address(struct net_device *dev, void *addr)
 
 /* --------------------------------------------------------------------- */
 
-static const struct net_device_ops yam_netdev_ops = {
+static const struct net_device_ops yam_netdev_ops =
+{
 	.ndo_open	     = yam_open,
 	.ndo_stop	     = yam_close,
 	.ndo_start_xmit      = yam_send_packet,
@@ -1146,22 +1389,28 @@ static int __init yam_init_driver(void)
 
 	printk(yam_drvinfo);
 
-	for (i = 0; i < NR_PORTS; i++) {
+	for (i = 0; i < NR_PORTS; i++)
+	{
 		sprintf(name, "yam%d", i);
-		
+
 		dev = alloc_netdev(sizeof(struct yam_port), name,
-				   NET_NAME_UNKNOWN, yam_setup);
-		if (!dev) {
+						   NET_NAME_UNKNOWN, yam_setup);
+
+		if (!dev)
+		{
 			pr_err("yam: cannot allocate net device\n");
 			err = -ENOMEM;
 			goto error;
 		}
-		
+
 		err = register_netdev(dev);
-		if (err) {
+
+		if (err)
+		{
 			printk(KERN_WARNING "yam: cannot register net device %s\n", dev->name);
 			goto error;
 		}
+
 		yam_devs[i] = dev;
 
 	}
@@ -1172,11 +1421,14 @@ static int __init yam_init_driver(void)
 
 	proc_create("yam", S_IRUGO, init_net.proc_net, &yam_info_fops);
 	return 0;
- error:
-	while (--i >= 0) {
+error:
+
+	while (--i >= 0)
+	{
 		unregister_netdev(yam_devs[i]);
 		free_netdev(yam_devs[i]);
 	}
+
 	return err;
 }
 
@@ -1188,15 +1440,20 @@ static void __exit yam_cleanup_driver(void)
 	int i;
 
 	del_timer_sync(&yam_timer);
-	for (i = 0; i < NR_PORTS; i++) {
+
+	for (i = 0; i < NR_PORTS; i++)
+	{
 		struct net_device *dev = yam_devs[i];
-		if (dev) {
+
+		if (dev)
+		{
 			unregister_netdev(dev);
 			free_netdev(dev);
 		}
 	}
 
-	while (yam_data) {
+	while (yam_data)
+	{
 		p = yam_data;
 		yam_data = yam_data->next;
 		kfree(p);

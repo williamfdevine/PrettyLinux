@@ -12,7 +12,8 @@
 
 #include <uapi/linux/iio/types.h>
 
-enum iio_event_info {
+enum iio_event_info
+{
 	IIO_EV_INFO_ENABLE,
 	IIO_EV_INFO_VALUE,
 	IIO_EV_INFO_HYSTERESIS,

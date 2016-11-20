@@ -16,7 +16,8 @@
 #define SM_MAXSTRLEN		1024
 #define SM_PRIV_SIZE		16
 
-struct nsm_private {
+struct nsm_private
+{
 	unsigned char		data[SM_PRIV_SIZE];
 };
 
@@ -34,8 +35,9 @@ struct svc_rqst;
 #define nlm_drop_reply		cpu_to_be32(30000)
 
 /* Lock info passed via NLM */
-struct nlm_lock {
-	char *			caller;
+struct nlm_lock
+{
+	char 			*caller;
 	unsigned int		len; 	/* length of "caller" */
 	struct nfs_fh		fh;
 	struct xdr_netobj	oh;
@@ -48,7 +50,7 @@ struct nlm_lock {
  *	FreeBSD uses 16, Apple Mac OS X 10.3 uses 20. Therefore we set it to
  *	32 bytes.
  */
- 
+
 struct nlm_cookie
 {
 	unsigned char data[NLM_MAXCOOKIELEN];
@@ -58,7 +60,8 @@ struct nlm_cookie
 /*
  * Generic lockd arguments for all but sm_notify
  */
-struct nlm_args {
+struct nlm_args
+{
 	struct nlm_cookie	cookie;
 	struct nlm_lock		lock;
 	u32			block;
@@ -74,7 +77,8 @@ typedef struct nlm_args nlm_args;
 /*
  * Generic lockd result
  */
-struct nlm_res {
+struct nlm_res
+{
 	struct nlm_cookie	cookie;
 	__be32			status;
 	struct nlm_lock		lock;
@@ -83,7 +87,8 @@ struct nlm_res {
 /*
  * statd callback when client has rebooted
  */
-struct nlm_reboot {
+struct nlm_reboot
+{
 	char			*mon;
 	unsigned int		len;
 	u32			state;

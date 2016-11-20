@@ -49,7 +49,8 @@
 
 #define MODULE_NAME	"acpi-ged"
 
-struct acpi_ged_event {
+struct acpi_ged_event
+{
 	struct list_head node;
 	struct device *dev;
 	unsigned int gsi;
@@ -63,14 +64,17 @@ static irqreturn_t acpi_ged_irq_handler(int irq, void *data)
 	acpi_status acpi_ret;
 
 	acpi_ret = acpi_execute_simple_method(event->handle, NULL, event->gsi);
+
 	if (ACPI_FAILURE(acpi_ret))
+	{
 		dev_err_once(event->dev, "IRQ method execution failed\n");
+	}
 
 	return IRQ_HANDLED;
 }
 
 static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
-					      void *context)
+		void *context)
 {
 	struct acpi_ged_event *event;
 	unsigned int irq;
@@ -84,20 +88,29 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
 	struct acpi_resource_extended_irq *pext = &ares->data.extended_irq;
 
 	if (ares->type == ACPI_RESOURCE_TYPE_END_TAG)
+	{
 		return AE_OK;
+	}
 
-	if (!acpi_dev_resource_interrupt(ares, 0, &r)) {
+	if (!acpi_dev_resource_interrupt(ares, 0, &r))
+	{
 		dev_err(dev, "unable to parse IRQ resource\n");
 		return AE_ERROR;
 	}
+
 	if (ares->type == ACPI_RESOURCE_TYPE_IRQ)
+	{
 		gsi = p->interrupts[0];
+	}
 	else
+	{
 		gsi = pext->interrupts[0];
+	}
 
 	irq = r.start;
 
-	if (ACPI_FAILURE(acpi_get_handle(handle, "_EVT", &evt_handle))) {
+	if (ACPI_FAILURE(acpi_get_handle(handle, "_EVT", &evt_handle)))
+	{
 		dev_err(dev, "cannot locate _EVT method\n");
 		return AE_ERROR;
 	}
@@ -105,8 +118,11 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
 	dev_info(dev, "GED listening GSI %u @ IRQ %u\n", gsi, irq);
 
 	event = devm_kzalloc(dev, sizeof(*event), GFP_KERNEL);
+
 	if (!event)
+	{
 		return AE_ERROR;
+	}
 
 	event->gsi = gsi;
 	event->dev = dev;
@@ -114,10 +130,13 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
 	event->handle = evt_handle;
 
 	if (r.flags & IORESOURCE_IRQ_SHAREABLE)
+	{
 		irqflags |= IRQF_SHARED;
+	}
 
 	if (devm_request_threaded_irq(dev, irq, NULL, acpi_ged_irq_handler,
-				      irqflags, "ACPI:Ged", event)) {
+								  irqflags, "ACPI:Ged", event))
+	{
 		dev_err(dev, "failed to setup event handler for irq %u\n", irq);
 		return AE_ERROR;
 	}
@@ -130,8 +149,10 @@ static int ged_probe(struct platform_device *pdev)
 	acpi_status acpi_ret;
 
 	acpi_ret = acpi_walk_resources(ACPI_HANDLE(&pdev->dev), "_CRS",
-				       acpi_ged_request_interrupt, &pdev->dev);
-	if (ACPI_FAILURE(acpi_ret)) {
+								   acpi_ged_request_interrupt, &pdev->dev);
+
+	if (ACPI_FAILURE(acpi_ret))
+	{
 		dev_err(&pdev->dev, "unable to parse the _CRS record\n");
 		return -EINVAL;
 	}
@@ -139,12 +160,14 @@ static int ged_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct acpi_device_id ged_acpi_ids[] = {
+static const struct acpi_device_id ged_acpi_ids[] =
+{
 	{"ACPI0013"},
 	{},
 };
 
-static struct platform_driver ged_driver = {
+static struct platform_driver ged_driver =
+{
 	.probe = ged_probe,
 	.driver = {
 		.name = MODULE_NAME,

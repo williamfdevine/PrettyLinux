@@ -10,7 +10,8 @@
 #define INET_DIAG_GETSOCK_MAX 24
 
 /* Socket identity */
-struct inet_diag_sockid {
+struct inet_diag_sockid
+{
 	__be16	idiag_sport;
 	__be16	idiag_dport;
 	__be32	idiag_src[4];
@@ -22,7 +23,8 @@ struct inet_diag_sockid {
 
 /* Request structure */
 
-struct inet_diag_req {
+struct inet_diag_req
+{
 	__u8	idiag_family;		/* Family of addresses. */
 	__u8	idiag_src_len;
 	__u8	idiag_dst_len;
@@ -34,7 +36,8 @@ struct inet_diag_req {
 	__u32	idiag_dbs;		/* Tables to dump (NI) */
 };
 
-struct inet_diag_req_v2 {
+struct inet_diag_req_v2
+{
 	__u8	sdiag_family;
 	__u8	sdiag_protocol;
 	__u8	idiag_ext;
@@ -43,7 +46,8 @@ struct inet_diag_req_v2 {
 	struct inet_diag_sockid id;
 };
 
-enum {
+enum
+{
 	INET_DIAG_REQ_NONE,
 	INET_DIAG_REQ_BYTECODE,
 };
@@ -55,14 +59,16 @@ enum {
  * to offset cc+"yes" or to offset cc+"no". "yes" is supposed to be
  * length of the command and its arguments.
  */
- 
-struct inet_diag_bc_op {
+
+struct inet_diag_bc_op
+{
 	unsigned char	code;
 	unsigned char	yes;
 	unsigned short	no;
 };
 
-enum {
+enum
+{
 	INET_DIAG_BC_NOP,
 	INET_DIAG_BC_JMP,
 	INET_DIAG_BC_S_GE,
@@ -76,21 +82,24 @@ enum {
 	INET_DIAG_BC_MARK_COND,
 };
 
-struct inet_diag_hostcond {
+struct inet_diag_hostcond
+{
 	__u8	family;
 	__u8	prefix_len;
 	int	port;
 	__be32	addr[0];
 };
 
-struct inet_diag_markcond {
+struct inet_diag_markcond
+{
 	__u32 mark;
 	__u32 mask;
 };
 
 /* Base info structure. It contains socket identity (addrs/ports/cookie)
  * and, alas, the information shown by netstat. */
-struct inet_diag_msg {
+struct inet_diag_msg
+{
 	__u8	idiag_family;
 	__u8	idiag_state;
 	__u8	idiag_timer;
@@ -107,7 +116,8 @@ struct inet_diag_msg {
 
 /* Extensions */
 
-enum {
+enum
+{
 	INET_DIAG_NONE,
 	INET_DIAG_MEMINFO,
 	INET_DIAG_INFO,
@@ -132,7 +142,8 @@ enum {
 
 /* INET_DIAG_MEM */
 
-struct inet_diag_meminfo {
+struct inet_diag_meminfo
+{
 	__u32	idiag_rmem;
 	__u32	idiag_wmem;
 	__u32	idiag_fmem;
@@ -141,7 +152,8 @@ struct inet_diag_meminfo {
 
 /* INET_DIAG_VEGASINFO */
 
-struct tcpvegas_info {
+struct tcpvegas_info
+{
 	__u32	tcpv_enabled;
 	__u32	tcpv_rttcnt;
 	__u32	tcpv_rtt;
@@ -150,7 +162,8 @@ struct tcpvegas_info {
 
 /* INET_DIAG_DCTCPINFO */
 
-struct tcp_dctcp_info {
+struct tcp_dctcp_info
+{
 	__u16	dctcp_enabled;
 	__u16	dctcp_ce_state;
 	__u32	dctcp_alpha;
@@ -160,7 +173,8 @@ struct tcp_dctcp_info {
 
 /* INET_DIAG_BBRINFO */
 
-struct tcp_bbr_info {
+struct tcp_bbr_info
+{
 	/* u64 bw: max-filtered BW (app throughput) estimate in Byte per sec: */
 	__u32	bbr_bw_lo;		/* lower 32 bits of bw */
 	__u32	bbr_bw_hi;		/* upper 32 bits of bw */
@@ -169,7 +183,8 @@ struct tcp_bbr_info {
 	__u32	bbr_cwnd_gain;		/* cwnd gain shifted left 8 bits */
 };
 
-union tcp_cc_info {
+union tcp_cc_info
+{
 	struct tcpvegas_info	vegas;
 	struct tcp_dctcp_info	dctcp;
 	struct tcp_bbr_info	bbr;

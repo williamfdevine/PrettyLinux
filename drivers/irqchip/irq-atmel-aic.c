@@ -69,9 +69,13 @@ aic_handle(struct pt_regs *regs)
 	irqstat = irq_reg_readl(gc, AT91_AIC_ISR);
 
 	if (!irqstat)
+	{
 		irq_reg_writel(gc, 0, AT91_AIC_EOICR);
+	}
 	else
+	{
 		handle_domain_irq(aic_domain, irqnr, regs);
+	}
 }
 
 static int aic_retrigger(struct irq_data *d)
@@ -94,8 +98,11 @@ static int aic_set_type(struct irq_data *d, unsigned type)
 
 	smr = irq_reg_readl(gc, AT91_AIC_SMR(d->hwirq));
 	ret = aic_common_set_type(d, type, &smr);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	irq_reg_writel(gc, smr, AT91_AIC_SMR(d->hwirq));
 
@@ -148,7 +155,9 @@ static void __init aic_hw_init(struct irq_domain *domain)
 	 * will not Lock out nIRQ
 	 */
 	for (i = 0; i < 8; i++)
+	{
 		irq_reg_writel(gc, 0, AT91_AIC_EOICR);
+	}
 
 	/*
 	 * Spurious Interrupt ID in Spurious Vector Register.
@@ -165,14 +174,16 @@ static void __init aic_hw_init(struct irq_domain *domain)
 	irq_reg_writel(gc, 0xffffffff, AT91_AIC_ICCR);
 
 	for (i = 0; i < 32; i++)
+	{
 		irq_reg_writel(gc, i, AT91_AIC_SVR(i));
+	}
 }
 
 static int aic_irq_domain_xlate(struct irq_domain *d,
-				struct device_node *ctrlr,
-				const u32 *intspec, unsigned int intsize,
-				irq_hw_number_t *out_hwirq,
-				unsigned int *out_type)
+								struct device_node *ctrlr,
+								const u32 *intspec, unsigned int intsize,
+								irq_hw_number_t *out_hwirq,
+								unsigned int *out_type)
 {
 	struct irq_domain_chip_generic *dgc = d->gc;
 	struct irq_chip_generic *gc;
@@ -182,16 +193,24 @@ static int aic_irq_domain_xlate(struct irq_domain *d,
 	int ret;
 
 	if (!dgc)
+	{
 		return -EINVAL;
+	}
 
 	ret = aic_common_irq_domain_xlate(d, ctrlr, intspec, intsize,
-					  out_hwirq, out_type);
+									  out_hwirq, out_type);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	idx = intspec[0] / dgc->irqs_per_chip;
+
 	if (idx >= dgc->num_chips)
+	{
 		return -EINVAL;
+	}
 
 	gc = dgc->gc[idx];
 
@@ -204,7 +223,8 @@ static int aic_irq_domain_xlate(struct irq_domain *d,
 	return ret;
 }
 
-static const struct irq_domain_ops aic_irq_ops = {
+static const struct irq_domain_ops aic_irq_ops =
+{
 	.map	= irq_map_generic_chip,
 	.xlate	= aic_irq_domain_xlate,
 };
@@ -225,7 +245,8 @@ static void __init at91sam9g45_aic_irq_fixup(struct device_node *root)
 	aic_common_rtt_irq_fixup(root);
 }
 
-static const struct of_device_id aic_irq_fixups[] __initconst = {
+static const struct of_device_id aic_irq_fixups[] __initconst =
+{
 	{ .compatible = "atmel,at91rm9200", .data = at91rm9200_aic_irq_fixup },
 	{ .compatible = "atmel,at91sam9g45", .data = at91sam9g45_aic_irq_fixup },
 	{ .compatible = "atmel,at91sam9n12", .data = at91rm9200_aic_irq_fixup },
@@ -239,18 +260,23 @@ static const struct of_device_id aic_irq_fixups[] __initconst = {
 };
 
 static int __init aic_of_init(struct device_node *node,
-			      struct device_node *parent)
+							  struct device_node *parent)
 {
 	struct irq_chip_generic *gc;
 	struct irq_domain *domain;
 
 	if (aic_domain)
+	{
 		return -EEXIST;
+	}
 
 	domain = aic_common_of_init(node, &aic_irq_ops, "atmel-aic",
-				    NR_AIC_IRQS, aic_irq_fixups);
+								NR_AIC_IRQS, aic_irq_fixups);
+
 	if (IS_ERR(domain))
+	{
 		return PTR_ERR(domain);
+	}
 
 	aic_domain = domain;
 	gc = irq_get_domain_generic_chip(domain, 0);

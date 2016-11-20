@@ -43,14 +43,16 @@
 #define MRFLD_FW_BSS_RESET_BIT 0
 
 extern const struct dev_pm_ops intel_sst_pm;
-enum sst_states {
+enum sst_states
+{
 	SST_FW_LOADING = 1,
 	SST_FW_RUNNING,
 	SST_RESET,
 	SST_SHUTDOWN,
 };
 
-enum sst_algo_ops {
+enum sst_algo_ops
+{
 	SST_SET_ALGO = 0,
 	SST_GET_ALGO = 1,
 };
@@ -61,7 +63,8 @@ enum sst_algo_ops {
 #define FW_NAME_SIZE		32
 
 /* stream states */
-enum sst_stream_states {
+enum sst_stream_states
+{
 	STREAM_UN_INIT	= 0,	/* Freed/Not used stream */
 	STREAM_RUNNING	= 1,	/* Running */
 	STREAM_PAUSED	= 2,	/* Paused stream */
@@ -70,7 +73,8 @@ enum sst_stream_states {
 	STREAM_RESET	= 5,	/* force reset on recovery */
 };
 
-enum sst_ram_type {
+enum sst_ram_type
+{
 	SST_IRAM	= 1,
 	SST_DRAM	= 2,
 	SST_DDR	= 5,
@@ -78,76 +82,88 @@ enum sst_ram_type {
 };
 
 /* SST shim registers to structure mapping */
-union interrupt_reg {
-	struct {
-		u64 done_interrupt:1;
-		u64 busy_interrupt:1;
-		u64 rsvd:62;
+union interrupt_reg
+{
+	struct
+	{
+		u64 done_interrupt: 1;
+		u64 busy_interrupt: 1;
+		u64 rsvd: 62;
 	} part;
 	u64 full;
 };
 
-union sst_pisr_reg {
-	struct {
-		u32 pssp0:1;
-		u32 pssp1:1;
-		u32 rsvd0:3;
-		u32 dmac:1;
-		u32 rsvd1:26;
+union sst_pisr_reg
+{
+	struct
+	{
+		u32 pssp0: 1;
+		u32 pssp1: 1;
+		u32 rsvd0: 3;
+		u32 dmac: 1;
+		u32 rsvd1: 26;
 	} part;
 	u32 full;
 };
 
-union sst_pimr_reg {
-	struct {
-		u32 ssp0:1;
-		u32 ssp1:1;
-		u32 rsvd0:3;
-		u32 dmac:1;
-		u32 rsvd1:10;
-		u32 ssp0_sc:1;
-		u32 ssp1_sc:1;
-		u32 rsvd2:3;
-		u32 dmac_sc:1;
-		u32 rsvd3:10;
+union sst_pimr_reg
+{
+	struct
+	{
+		u32 ssp0: 1;
+		u32 ssp1: 1;
+		u32 rsvd0: 3;
+		u32 dmac: 1;
+		u32 rsvd1: 10;
+		u32 ssp0_sc: 1;
+		u32 ssp1_sc: 1;
+		u32 rsvd2: 3;
+		u32 dmac_sc: 1;
+		u32 rsvd3: 10;
 	} part;
 	u32 full;
 };
 
-union config_status_reg_mrfld {
-	struct {
-		u64 lpe_reset:1;
-		u64 lpe_reset_vector:1;
-		u64 runstall:1;
-		u64 pwaitmode:1;
-		u64 clk_sel:3;
-		u64 rsvd2:1;
-		u64 sst_clk:3;
-		u64 xt_snoop:1;
-		u64 rsvd3:4;
-		u64 clk_sel1:6;
-		u64 clk_enable:3;
-		u64 rsvd4:6;
-		u64 slim0baseclk:1;
-		u64 rsvd:32;
+union config_status_reg_mrfld
+{
+	struct
+	{
+		u64 lpe_reset: 1;
+		u64 lpe_reset_vector: 1;
+		u64 runstall: 1;
+		u64 pwaitmode: 1;
+		u64 clk_sel: 3;
+		u64 rsvd2: 1;
+		u64 sst_clk: 3;
+		u64 xt_snoop: 1;
+		u64 rsvd3: 4;
+		u64 clk_sel1: 6;
+		u64 clk_enable: 3;
+		u64 rsvd4: 6;
+		u64 slim0baseclk: 1;
+		u64 rsvd: 32;
 	} part;
 	u64 full;
 };
 
-union interrupt_reg_mrfld {
-	struct {
-		u64 done_interrupt:1;
-		u64 busy_interrupt:1;
-		u64 rsvd:62;
+union interrupt_reg_mrfld
+{
+	struct
+	{
+		u64 done_interrupt: 1;
+		u64 busy_interrupt: 1;
+		u64 rsvd: 62;
 	} part;
 	u64 full;
 };
 
-union sst_imr_reg_mrfld {
-	struct {
-		u64 done_interrupt:1;
-		u64 busy_interrupt:1;
-		u64 rsvd:62;
+union sst_imr_reg_mrfld
+{
+	struct
+	{
+		u64 done_interrupt: 1;
+		u64 busy_interrupt: 1;
+		u64 rsvd: 62;
 	} part;
 	u64 full;
 };
@@ -165,7 +181,8 @@ union sst_imr_reg_mrfld {
  * @drv_id: str_id in mfld/ctp, = drv_id in mrfld
  * @node: list head node
  */
-struct sst_block {
+struct sst_block
+{
 	bool	condition;
 	int	ret_code;
 	void	*data;
@@ -192,7 +209,8 @@ struct sst_block {
  * @str_type : stream type
  * @src : stream source
  */
-struct stream_info {
+struct stream_info
+{
 	unsigned int		status;
 	unsigned int		prev;
 	unsigned int		ops;
@@ -228,7 +246,8 @@ struct stream_info {
  * @file_format : version of header format
  * @reserved : reserved fields
  */
-struct sst_fw_header {
+struct sst_fw_header
+{
 	unsigned char signature[FW_SIGNATURE_SIZE];
 	u32 file_size;
 	u32 modules;
@@ -245,7 +264,8 @@ struct sst_fw_header {
  * @type: block type
  * @entry_point: module netry point
  */
-struct fw_module_header {
+struct fw_module_header
+{
 	unsigned char signature[FW_SIGNATURE_SIZE];
 	u32 mod_size;
 	u32 blocks;
@@ -260,25 +280,29 @@ struct fw_module_header {
  * @size: size of block
  * @ram_offset: offset in ram
  */
-struct fw_block_info {
+struct fw_block_info
+{
 	enum sst_ram_type	type;
 	u32			size;
 	u32			ram_offset;
 	u32			rsvd;
 };
 
-struct sst_runtime_param {
+struct sst_runtime_param
+{
 	struct snd_sst_runtime_params param;
 };
 
-struct sst_sg_list {
+struct sst_sg_list
+{
 	struct scatterlist *src;
 	struct scatterlist *dst;
 	int list_len;
 	unsigned int sg_idx;
 };
 
-struct sst_memcpy_list {
+struct sst_memcpy_list
+{
 	struct list_head memcpylist;
 	void *dstn;
 	const void *src;
@@ -287,13 +311,15 @@ struct sst_memcpy_list {
 };
 
 /*Firmware Module Information*/
-enum sst_lib_dwnld_status {
+enum sst_lib_dwnld_status
+{
 	SST_LIB_NOT_FOUND = 0,
 	SST_LIB_FOUND,
 	SST_LIB_DOWNLOADED,
 };
 
-struct sst_module_info {
+struct sst_module_info
+{
 	const char *name; /*Library name*/
 	u32	id; /*Module ID*/
 	u32	entry_pt; /*Module entry point*/
@@ -306,18 +332,21 @@ struct sst_module_info {
  * Structure for managing the Library Region(1.5MB)
  * in DDR in Merrifield
  */
-struct sst_mem_mgr {
+struct sst_mem_mgr
+{
 	phys_addr_t current_base;
 	int avail;
 	unsigned int count;
 };
 
-struct sst_ipc_reg {
+struct sst_ipc_reg
+{
 	int ipcx;
 	int ipcd;
 };
 
-struct sst_shim_regs64 {
+struct sst_shim_regs64
+{
 	u64 csr;
 	u64 pisr;
 	u64 pimr;
@@ -337,7 +366,8 @@ struct sst_shim_regs64 {
 	u64 csr2;
 };
 
-struct sst_fw_save {
+struct sst_fw_save
+{
 	void *iram;
 	void *dram;
 	void *sram;
@@ -380,7 +410,8 @@ struct sst_fw_save {
  * @qos		: PM Qos struct
  * firmware_name : Firmware / Library name
  */
-struct intel_sst_drv {
+struct intel_sst_drv
+{
 	int			sst_state;
 	int			irq_num;
 	unsigned int		dev_id;
@@ -408,7 +439,7 @@ struct intel_sst_drv {
 	struct workqueue_struct *post_msg_wq;
 	unsigned int		tstamp;
 	/* str_id 0 is not used */
-	struct stream_info	streams[MAX_NUM_STREAMS+1];
+	struct stream_info	streams[MAX_NUM_STREAMS + 1];
 	spinlock_t		ipc_spin_lock;
 	spinlock_t              block_lock;
 	spinlock_t		rx_msg_lock;
@@ -442,7 +473,8 @@ struct intel_sst_drv {
 /* misc definitions */
 #define FW_DWNL_ID 0x01
 
-struct intel_sst_ops {
+struct intel_sst_ops
+{
 	irqreturn_t (*interrupt)(int, void *);
 	irqreturn_t (*irq_thread)(int, void *);
 	void (*clear_interrupt)(struct intel_sst_drv *ctx);
@@ -450,7 +482,7 @@ struct intel_sst_ops {
 	int (*reset)(struct intel_sst_drv *ctx);
 	void (*process_reply)(struct intel_sst_drv *ctx, struct ipc_post *msg);
 	int (*post_message)(struct intel_sst_drv *ctx,
-			struct ipc_post *msg, bool sync);
+						struct ipc_post *msg, bool sync);
 	void (*process_message)(struct ipc_post *msg);
 	void (*set_bypass)(bool set);
 	int (*save_dsp_context)(struct intel_sst_drv *sst);
@@ -465,18 +497,18 @@ int sst_drop_stream(struct intel_sst_drv *sst_drv_ctx, int id);
 int sst_free_stream(struct intel_sst_drv *sst_drv_ctx, int id);
 int sst_start_stream(struct intel_sst_drv *sst_drv_ctx, int str_id);
 int sst_send_byte_stream_mrfld(struct intel_sst_drv *ctx,
-			struct snd_sst_bytes_v2 *sbytes);
+							   struct snd_sst_bytes_v2 *sbytes);
 int sst_set_stream_param(int str_id, struct snd_sst_params *str_param);
 int sst_set_metadata(int str_id, char *params);
 int sst_get_stream(struct intel_sst_drv *sst_drv_ctx,
-		struct snd_sst_params *str_param);
+				   struct snd_sst_params *str_param);
 int sst_get_stream_allocated(struct intel_sst_drv *ctx,
-		struct snd_sst_params *str_param,
-		struct snd_sst_lib_download **lib_dnld);
+							 struct snd_sst_params *str_param,
+							 struct snd_sst_lib_download **lib_dnld);
 int sst_drain_stream(struct intel_sst_drv *sst_drv_ctx,
-		int str_id, bool partial_drain);
+					 int str_id, bool partial_drain);
 int sst_post_message_mrfld(struct intel_sst_drv *ctx,
-		struct ipc_post *msg, bool sync);
+						   struct ipc_post *msg, bool sync);
 void sst_process_reply_mrfld(struct intel_sst_drv *ctx, struct ipc_post *msg);
 int sst_start_mrfld(struct intel_sst_drv *ctx);
 int intel_sst_reset_dsp_mrfld(struct intel_sst_drv *ctx);
@@ -489,9 +521,9 @@ int sst_get_block_stream(struct intel_sst_drv *sst_drv_ctx);
 void sst_memcpy_free_resources(struct intel_sst_drv *ctx);
 
 int sst_wait_interruptible(struct intel_sst_drv *sst_drv_ctx,
-				struct sst_block *block);
+						   struct sst_block *block);
 int sst_wait_timeout(struct intel_sst_drv *sst_drv_ctx,
-			struct sst_block *block);
+					 struct sst_block *block);
 int sst_create_ipc_msg(struct ipc_post **arg, bool large);
 int free_stream_context(struct intel_sst_drv *ctx, unsigned int str_id);
 void sst_clean_stream(struct stream_info *stream);
@@ -504,34 +536,34 @@ int sst_get_sfreq(struct snd_sst_params *str_param);
 int sst_alloc_stream_mrfld(struct intel_sst_drv *sst_drv_ctx, void *params);
 void sst_restore_fw_context(void);
 struct sst_block *sst_create_block(struct intel_sst_drv *ctx,
-				u32 msg_id, u32 drv_id);
+								   u32 msg_id, u32 drv_id);
 int sst_create_block_and_ipc_msg(struct ipc_post **arg, bool large,
-		struct intel_sst_drv *sst_drv_ctx, struct sst_block **block,
-		u32 msg_id, u32 drv_id);
+								 struct intel_sst_drv *sst_drv_ctx, struct sst_block **block,
+								 u32 msg_id, u32 drv_id);
 int sst_free_block(struct intel_sst_drv *ctx, struct sst_block *freed);
 int sst_wake_up_block(struct intel_sst_drv *ctx, int result,
-		u32 drv_id, u32 ipc, void *data, u32 size);
+					  u32 drv_id, u32 ipc, void *data, u32 size);
 int sst_request_firmware_async(struct intel_sst_drv *ctx);
 int sst_driver_ops(struct intel_sst_drv *sst);
 struct sst_platform_info *sst_get_acpi_driver_data(const char *hid);
 void sst_firmware_load_cb(const struct firmware *fw, void *context);
 int sst_prepare_and_post_msg(struct intel_sst_drv *sst,
-		int task_id, int ipc_msg, int cmd_id, int pipe_id,
-		size_t mbox_data_len, const void *mbox_data, void **data,
-		bool large, bool fill_dsp, bool sync, bool response);
+							 int task_id, int ipc_msg, int cmd_id, int pipe_id,
+							 size_t mbox_data_len, const void *mbox_data, void **data,
+							 bool large, bool fill_dsp, bool sync, bool response);
 
 void sst_process_pending_msg(struct work_struct *work);
 int sst_assign_pvt_id(struct intel_sst_drv *sst_drv_ctx);
 void sst_init_stream(struct stream_info *stream,
-		int codec, int sst_id, int ops, u8 slot);
+					 int codec, int sst_id, int ops, u8 slot);
 int sst_validate_strid(struct intel_sst_drv *sst_drv_ctx, int str_id);
 struct stream_info *get_stream_info(struct intel_sst_drv *sst_drv_ctx,
-		int str_id);
+									int str_id);
 int get_stream_id_mrfld(struct intel_sst_drv *sst_drv_ctx,
-		u32 pipe_id);
+						u32 pipe_id);
 u32 relocate_imr_addr_mrfld(u32 base_addr);
 void sst_add_to_dispatch_list_and_post(struct intel_sst_drv *sst,
-					struct ipc_post *msg);
+									   struct ipc_post *msg);
 int sst_pm_runtime_put(struct intel_sst_drv *sst_drv);
 int sst_shim_write(void __iomem *addr, int offset, int value);
 u32 sst_shim_read(void __iomem *addr, int offset);
@@ -539,17 +571,17 @@ u64 sst_reg_read64(void __iomem *addr, int offset);
 int sst_shim_write64(void __iomem *addr, int offset, u64 value);
 u64 sst_shim_read64(void __iomem *addr, int offset);
 void sst_set_fw_state_locked(
-		struct intel_sst_drv *sst_drv_ctx, int sst_state);
+	struct intel_sst_drv *sst_drv_ctx, int sst_state);
 void sst_fill_header_mrfld(union ipc_header_mrfld *header,
-				int msg, int task_id, int large, int drv_id);
+						   int msg, int task_id, int large, int drv_id);
 void sst_fill_header_dsp(struct ipc_dsp_hdr *dsp, int msg,
-					int pipe_id, int len);
+						 int pipe_id, int len);
 
 int sst_register(struct device *);
 int sst_unregister(struct device *);
 
 int sst_alloc_drv_context(struct intel_sst_drv **ctx,
-		struct device *dev, unsigned int dev_id);
+						  struct device *dev, unsigned int dev_id);
 int sst_context_init(struct intel_sst_drv *ctx);
 void sst_context_cleanup(struct intel_sst_drv *ctx);
 void sst_configure_runtime_pm(struct intel_sst_drv *ctx);

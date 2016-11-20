@@ -19,12 +19,12 @@
 #include "nic.h"
 
 #define QT202X_REQUIRED_DEVS (MDIO_DEVS_PCS |		\
-			      MDIO_DEVS_PMAPMD |	\
-			      MDIO_DEVS_PHYXS)
+							  MDIO_DEVS_PMAPMD |	\
+							  MDIO_DEVS_PHYXS)
 
 #define QT202X_LOOPBACKS ((1 << LOOPBACK_PCS) |		\
-			  (1 << LOOPBACK_PMAPMD) |	\
-			  (1 << LOOPBACK_PHYXS_WS))
+						  (1 << LOOPBACK_PMAPMD) |	\
+						  (1 << LOOPBACK_PHYXS_WS))
 
 /****************************************************************************/
 /* Quake-specific MDIO registers */
@@ -56,7 +56,8 @@ void falcon_qt202x_set_led(struct efx_nic *p, int led, int mode)
 	efx_mdio_write(p, MDIO_MMD_PMAPMD, addr, mode);
 }
 
-struct qt202x_phy_data {
+struct qt202x_phy_data
+{
 	enum efx_phy_mode phy_mode;
 	bool bug17190_in_bad_state;
 	unsigned long bug17190_timer;
@@ -79,26 +80,39 @@ static int qt2025c_wait_heartbeat(struct efx_nic *efx)
 	int reg, old_counter = 0;
 
 	/* Wait for firmware heartbeat to start */
-	for (;;) {
+	for (;;)
+	{
 		int counter;
 		reg = efx_mdio_read(efx, MDIO_MMD_PCS, PCS_FW_HEARTBEAT_REG);
+
 		if (reg < 0)
+		{
 			return reg;
+		}
+
 		counter = ((reg >> PCS_FW_HEARTB_LBN) &
-			    ((1 << PCS_FW_HEARTB_WIDTH) - 1));
+				   ((1 << PCS_FW_HEARTB_WIDTH) - 1));
+
 		if (old_counter == 0)
+		{
 			old_counter = counter;
+		}
 		else if (counter != old_counter)
+		{
 			break;
-		if (time_after(jiffies, timeout)) {
+		}
+
+		if (time_after(jiffies, timeout))
+		{
 			/* Some cables have EEPROMs that conflict with the
 			 * PHY's on-board EEPROM so it cannot load firmware */
 			netif_err(efx, hw, efx->net_dev,
-				  "If an SFP+ direct attach cable is"
-				  " connected, please check that it complies"
-				  " with the SFP+ specification\n");
+					  "If an SFP+ direct attach cable is"
+					  " connected, please check that it complies"
+					  " with the SFP+ specification\n");
 			return -ETIMEDOUT;
 		}
+
 		msleep(QT2025C_HEARTB_WAIT);
 	}
 
@@ -111,16 +125,27 @@ static int qt2025c_wait_fw_status_good(struct efx_nic *efx)
 	int reg;
 
 	/* Wait for firmware status to look good */
-	for (;;) {
+	for (;;)
+	{
 		reg = efx_mdio_read(efx, MDIO_MMD_PCS, PCS_UC8051_STATUS_REG);
+
 		if (reg < 0)
+		{
 			return reg;
+		}
+
 		if ((reg &
-		     ((1 << PCS_UC_STATUS_WIDTH) - 1) << PCS_UC_STATUS_LBN) >=
-		    PCS_UC_STATUS_FW_SAVE)
+			 ((1 << PCS_UC_STATUS_WIDTH) - 1) << PCS_UC_STATUS_LBN) >=
+			PCS_UC_STATUS_FW_SAVE)
+		{
 			break;
+		}
+
 		if (time_after(jiffies, timeout))
+		{
 			return -ETIMEDOUT;
+		}
+
 		msleep(QT2025C_FWSTART_WAIT);
 	}
 
@@ -140,20 +165,29 @@ static int qt2025c_wait_reset(struct efx_nic *efx)
 	int rc;
 
 	rc = qt2025c_wait_heartbeat(efx);
+
 	if (rc != 0)
+	{
 		return rc;
+	}
 
 	rc = qt2025c_wait_fw_status_good(efx);
-	if (rc == -ETIMEDOUT) {
+
+	if (rc == -ETIMEDOUT)
+	{
 		/* Bug 17689: occasionally heartbeat starts but firmware status
 		 * code never progresses beyond 0x00.  Try again, once, after
 		 * restarting execution of the firmware image. */
 		netif_dbg(efx, hw, efx->net_dev,
-			  "bashing QT2025C microcontroller\n");
+				  "bashing QT2025C microcontroller\n");
 		qt2025c_restart_firmware(efx);
 		rc = qt2025c_wait_heartbeat(efx);
+
 		if (rc != 0)
+		{
 			return rc;
+		}
+
 		rc = qt2025c_wait_fw_status_good(efx);
 	}
 
@@ -168,16 +202,17 @@ static void qt2025c_firmware_id(struct efx_nic *efx)
 
 	for (i = 0; i < sizeof(firmware_id); i++)
 		firmware_id[i] = efx_mdio_read(efx, MDIO_MMD_PCS,
-					       PCS_FW_PRODUCT_CODE_1 + i);
+									   PCS_FW_PRODUCT_CODE_1 + i);
+
 	netif_info(efx, probe, efx->net_dev,
-		   "QT2025C firmware %xr%d v%d.%d.%d.%d [20%02d-%02d-%02d]\n",
-		   (firmware_id[0] << 8) | firmware_id[1], firmware_id[2],
-		   firmware_id[3] >> 4, firmware_id[3] & 0xf,
-		   firmware_id[4], firmware_id[5],
-		   firmware_id[6], firmware_id[7], firmware_id[8]);
+			   "QT2025C firmware %xr%d v%d.%d.%d.%d [20%02d-%02d-%02d]\n",
+			   (firmware_id[0] << 8) | firmware_id[1], firmware_id[2],
+			   firmware_id[3] >> 4, firmware_id[3] & 0xf,
+			   firmware_id[4], firmware_id[5],
+			   firmware_id[6], firmware_id[7], firmware_id[8]);
 	phy_data->firmware_ver = ((firmware_id[3] & 0xf0) << 20) |
-				 ((firmware_id[3] & 0x0f) << 16) |
-				 (firmware_id[4] << 8) | firmware_id[5];
+							 ((firmware_id[3] & 0x0f) << 16) |
+							 (firmware_id[4] << 8) | firmware_id[5];
 }
 
 static void qt2025c_bug17190_workaround(struct efx_nic *efx)
@@ -191,24 +226,27 @@ static void qt2025c_bug17190_workaround(struct efx_nic *efx)
 	 * recover it.
 	 */
 	if (efx->link_state.up ||
-	    !efx_mdio_links_ok(efx, MDIO_DEVS_PMAPMD | MDIO_DEVS_PHYXS)) {
+		!efx_mdio_links_ok(efx, MDIO_DEVS_PMAPMD | MDIO_DEVS_PHYXS))
+	{
 		phy_data->bug17190_in_bad_state = false;
 		return;
 	}
 
-	if (!phy_data->bug17190_in_bad_state) {
+	if (!phy_data->bug17190_in_bad_state)
+	{
 		phy_data->bug17190_in_bad_state = true;
 		phy_data->bug17190_timer = jiffies + BUG17190_INTERVAL;
 		return;
 	}
 
-	if (time_after_eq(jiffies, phy_data->bug17190_timer)) {
+	if (time_after_eq(jiffies, phy_data->bug17190_timer))
+	{
 		netif_dbg(efx, hw, efx->net_dev, "bashing QT2025C PMA/PMD\n");
 		efx_mdio_set_flag(efx, MDIO_MMD_PMAPMD, MDIO_CTRL1,
-				  MDIO_PMA_CTRL1_LOOPBACK, true);
+						  MDIO_PMA_CTRL1_LOOPBACK, true);
 		msleep(100);
 		efx_mdio_set_flag(efx, MDIO_MMD_PMAPMD, MDIO_CTRL1,
-				  MDIO_PMA_CTRL1_LOOPBACK, false);
+						  MDIO_PMA_CTRL1_LOOPBACK, false);
 		phy_data->bug17190_timer = jiffies + BUG17190_INTERVAL;
 	}
 }
@@ -224,7 +262,9 @@ static int qt2025c_select_phy_mode(struct efx_nic *efx)
 	 * Self-Configure mode.  Don't attempt any switching if we encounter
 	 * older firmware. */
 	if (phy_data->firmware_ver < 0x02000100)
+	{
 		return 0;
+	}
 
 	/* In general we will get optimal behaviour in "SFP+ Self-Configure"
 	 * mode; however, that powers down most of the PHY when no module is
@@ -234,39 +274,53 @@ static int qt2025c_select_phy_mode(struct efx_nic *efx)
 
 	/* Only change mode if really necessary */
 	reg = efx_mdio_read(efx, 1, 0xc319);
+
 	if ((reg & 0x0038) == phy_op_mode)
+	{
 		return 0;
+	}
+
 	netif_dbg(efx, hw, efx->net_dev, "Switching PHY to mode 0x%04x\n",
-		  phy_op_mode);
+			  phy_op_mode);
 
 	/* This sequence replicates the register writes configured in the boot
 	 * EEPROM (including the differences between board revisions), except
 	 * that the operating mode is changed, and the PHY is prevented from
 	 * unnecessarily reloading the main firmware image again. */
 	efx_mdio_write(efx, 1, 0xc300, 0x0000);
+
 	/* (Note: this portion of the boot EEPROM sequence, which bit-bashes 9
 	 * STOPs onto the firmware/module I2C bus to reset it, varies across
 	 * board revisions, as the bus is connected to different GPIO/LED
 	 * outputs on the PHY.) */
-	if (board->major == 0 && board->minor < 2) {
+	if (board->major == 0 && board->minor < 2)
+	{
 		efx_mdio_write(efx, 1, 0xc303, 0x4498);
-		for (i = 0; i < 9; i++) {
+
+		for (i = 0; i < 9; i++)
+		{
 			efx_mdio_write(efx, 1, 0xc303, 0x4488);
 			efx_mdio_write(efx, 1, 0xc303, 0x4480);
 			efx_mdio_write(efx, 1, 0xc303, 0x4490);
 			efx_mdio_write(efx, 1, 0xc303, 0x4498);
 		}
-	} else {
+	}
+	else
+	{
 		efx_mdio_write(efx, 1, 0xc303, 0x0920);
 		efx_mdio_write(efx, 1, 0xd008, 0x0004);
-		for (i = 0; i < 9; i++) {
+
+		for (i = 0; i < 9; i++)
+		{
 			efx_mdio_write(efx, 1, 0xc303, 0x0900);
 			efx_mdio_write(efx, 1, 0xd008, 0x0005);
 			efx_mdio_write(efx, 1, 0xc303, 0x0920);
 			efx_mdio_write(efx, 1, 0xd008, 0x0004);
 		}
+
 		efx_mdio_write(efx, 1, 0xc303, 0x4900);
 	}
+
 	efx_mdio_write(efx, 1, 0xc303, 0x4900);
 	efx_mdio_write(efx, 1, 0xc302, 0x0004);
 	efx_mdio_write(efx, 1, 0xc316, 0x0013);
@@ -287,7 +341,7 @@ static int qt2025c_select_phy_mode(struct efx_nic *efx)
 	/* PMA/PMD loopback sets RXIN to inverse polarity and the firmware
 	 * restart doesn't reset it. We need to do that ourselves. */
 	efx_mdio_set_flag(efx, 1, PMA_PMD_MODE_REG,
-			  1 << PMA_PMD_RXIN_SEL_LBN, false);
+					  1 << PMA_PMD_RXIN_SEL_LBN, false);
 	efx_mdio_write(efx, 1, 0xc300, 0x0002);
 	msleep(20);
 
@@ -296,10 +350,12 @@ static int qt2025c_select_phy_mode(struct efx_nic *efx)
 
 	/* Wait for the microcontroller to be ready again */
 	rc = qt2025c_wait_reset(efx);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		netif_err(efx, hw, efx->net_dev,
-			  "PHY microcontroller reset during mode switch "
-			  "timed out\n");
+				  "PHY microcontroller reset during mode switch "
+				  "timed out\n");
 		return rc;
 	}
 
@@ -310,21 +366,30 @@ static int qt202x_reset_phy(struct efx_nic *efx)
 {
 	int rc;
 
-	if (efx->phy_type == PHY_TYPE_QT2025C) {
+	if (efx->phy_type == PHY_TYPE_QT2025C)
+	{
 		/* Wait for the reset triggered by falcon_reset_hw()
 		 * to complete */
 		rc = qt2025c_wait_reset(efx);
+
 		if (rc < 0)
+		{
 			goto fail;
-	} else {
+		}
+	}
+	else
+	{
 		/* Reset the PHYXS MMD. This is documented as doing
 		 * a complete soft reset. */
 		rc = efx_mdio_reset_mmd(efx, MDIO_MMD_PHYXS,
-					QT2022C2_MAX_RESET_TIME /
-					QT2022C2_RESET_WAIT,
-					QT2022C2_RESET_WAIT);
+								QT2022C2_MAX_RESET_TIME /
+								QT2022C2_RESET_WAIT,
+								QT2022C2_RESET_WAIT);
+
 		if (rc < 0)
+		{
 			goto fail;
+		}
 	}
 
 	/* Wait 250ms for the PHY to complete bootup */
@@ -334,7 +399,7 @@ static int qt202x_reset_phy(struct efx_nic *efx)
 
 	return 0;
 
- fail:
+fail:
 	netif_err(efx, hw, efx->net_dev, "PHY reset timed out\n");
 	return rc;
 }
@@ -344,8 +409,12 @@ static int qt202x_phy_probe(struct efx_nic *efx)
 	struct qt202x_phy_data *phy_data;
 
 	phy_data = kzalloc(sizeof(struct qt202x_phy_data), GFP_KERNEL);
+
 	if (!phy_data)
+	{
 		return -ENOMEM;
+	}
+
 	efx->phy_data = phy_data;
 	phy_data->phy_mode = efx->phy_mode;
 	phy_data->bug17190_in_bad_state = false;
@@ -363,19 +432,23 @@ static int qt202x_phy_init(struct efx_nic *efx)
 	int rc;
 
 	rc = qt202x_reset_phy(efx);
-	if (rc) {
+
+	if (rc)
+	{
 		netif_err(efx, probe, efx->net_dev, "PHY init failed\n");
 		return rc;
 	}
 
 	devid = efx_mdio_read_id(efx, MDIO_MMD_PHYXS);
 	netif_info(efx, probe, efx->net_dev,
-		   "PHY ID reg %x (OUI %06x model %02x revision %x)\n",
-		   devid, efx_mdio_id_oui(devid), efx_mdio_id_model(devid),
-		   efx_mdio_id_rev(devid));
+			   "PHY ID reg %x (OUI %06x model %02x revision %x)\n",
+			   devid, efx_mdio_id_oui(devid), efx_mdio_id_model(devid),
+			   efx_mdio_id_rev(devid));
 
 	if (efx->phy_type == PHY_TYPE_QT2025C)
+	{
 		qt2025c_firmware_id(efx);
+	}
 
 	return 0;
 }
@@ -395,7 +468,9 @@ static bool qt202x_phy_poll(struct efx_nic *efx)
 	efx->link_state.fc = efx->wanted_fc;
 
 	if (efx->phy_type == PHY_TYPE_QT2025C)
+	{
 		qt2025c_bug17190_workaround(efx);
+	}
 
 	return efx->link_state.up != was_up;
 }
@@ -404,10 +479,14 @@ static int qt202x_phy_reconfigure(struct efx_nic *efx)
 {
 	struct qt202x_phy_data *phy_data = efx->phy_data;
 
-	if (efx->phy_type == PHY_TYPE_QT2025C) {
+	if (efx->phy_type == PHY_TYPE_QT2025C)
+	{
 		int rc = qt2025c_select_phy_mode(efx);
+
 		if (rc)
+		{
 			return rc;
+		}
 
 		/* There are several different register bits which can
 		 * disable TX (and save power) on direct-attach cables
@@ -421,11 +500,15 @@ static int qt202x_phy_reconfigure(struct efx_nic *efx)
 			efx->phy_mode & PHY_MODE_LOW_POWER ||
 			efx->loopback_mode == LOOPBACK_PCS ||
 			efx->loopback_mode == LOOPBACK_PMAPMD);
-	} else {
+	}
+	else
+	{
 		/* Reset the PHY when moving from tx off to tx on */
 		if (!(efx->phy_mode & PHY_MODE_TX_DISABLED) &&
-		    (phy_data->phy_mode & PHY_MODE_TX_DISABLED))
+			(phy_data->phy_mode & PHY_MODE_TX_DISABLED))
+		{
 			qt202x_reset_phy(efx);
+		}
 
 		efx_mdio_transmit_disable(efx);
 	}
@@ -450,7 +533,7 @@ static void qt202x_phy_remove(struct efx_nic *efx)
 }
 
 static int qt202x_phy_get_module_info(struct efx_nic *efx,
-				      struct ethtool_modinfo *modinfo)
+									  struct ethtool_modinfo *modinfo)
 {
 	modinfo->type = ETH_MODULE_SFF_8079;
 	modinfo->eeprom_len = ETH_MODULE_SFF_8079_LEN;
@@ -458,29 +541,38 @@ static int qt202x_phy_get_module_info(struct efx_nic *efx,
 }
 
 static int qt202x_phy_get_module_eeprom(struct efx_nic *efx,
-					struct ethtool_eeprom *ee, u8 *data)
+										struct ethtool_eeprom *ee, u8 *data)
 {
-	int mmd, reg_base, rc, i;		
+	int mmd, reg_base, rc, i;
 
-	if (efx->phy_type == PHY_TYPE_QT2025C) {
+	if (efx->phy_type == PHY_TYPE_QT2025C)
+	{
 		mmd = MDIO_MMD_PCS;
 		reg_base = 0xd000;
-	} else {
+	}
+	else
+	{
 		mmd = MDIO_MMD_PMAPMD;
 		reg_base = 0x8007;
 	}
 
-	for (i = 0; i < ee->len; i++) {
+	for (i = 0; i < ee->len; i++)
+	{
 		rc = efx_mdio_read(efx, mmd, reg_base + ee->offset + i);
+
 		if (rc < 0)
+		{
 			return rc;
+		}
+
 		data[i] = rc;
 	}
 
 	return 0;
 }
 
-const struct efx_phy_operations falcon_qt202x_phy_ops = {
+const struct efx_phy_operations falcon_qt202x_phy_ops =
+{
 	.probe		 = qt202x_phy_probe,
 	.init		 = qt202x_phy_init,
 	.reconfigure	 = qt202x_phy_reconfigure,

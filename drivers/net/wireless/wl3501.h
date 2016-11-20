@@ -11,7 +11,8 @@
  * bit[7-5] is block ID: 000
  * bit[4-0] is signal ID
 */
-enum wl3501_signals {
+enum wl3501_signals
+{
 	WL3501_SIG_ALARM,
 	WL3501_SIG_MD_CONFIRM,
 	WL3501_SIG_MD_IND,
@@ -35,11 +36,11 @@ enum wl3501_signals {
 	WL3501_SIG_SITE_CONFIRM,
 	WL3501_SIG_SAVE_CONFIRM,
 	WL3501_SIG_RFTEST_CONFIRM,
-/*
- * ID for input Signals of MLME block
- * bit[7-5] is block ID: 010
- * bit[4-0] is signal ID
- */
+	/*
+	 * ID for input Signals of MLME block
+	 * bit[7-5] is block ID: 010
+	 * bit[4-0] is signal ID
+	 */
 	WL3501_SIG_ASSOC_REQ = 0x20,
 	WL3501_SIG_AUTH_REQ,
 	WL3501_SIG_DEAUTH_REQ,
@@ -60,7 +61,8 @@ enum wl3501_signals {
 	WL3501_SIG_MM_IND,
 };
 
-enum wl3501_mib_attribs {
+enum wl3501_mib_attribs
+{
 	WL3501_MIB_ATTR_STATION_ID,
 	WL3501_MIB_ATTR_AUTH_ALGORITHMS,
 	WL3501_MIB_ATTR_AUTH_TYPE,
@@ -157,29 +159,34 @@ enum wl3501_mib_attribs {
 	WL3501_MIB_ATTR_ROUTING,
 };
 
-enum wl3501_net_type {
+enum wl3501_net_type
+{
 	WL3501_NET_TYPE_INFRA,
 	WL3501_NET_TYPE_ADHOC,
 	WL3501_NET_TYPE_ANY_BSS,
 };
 
-enum wl3501_scan_type {
+enum wl3501_scan_type
+{
 	WL3501_SCAN_TYPE_ACTIVE,
 	WL3501_SCAN_TYPE_PASSIVE,
 };
 
-enum wl3501_tx_result {
+enum wl3501_tx_result
+{
 	WL3501_TX_RESULT_SUCCESS,
 	WL3501_TX_RESULT_NO_BSS,
 	WL3501_TX_RESULT_RETRY_LIMIT,
 };
 
-enum wl3501_sys_type {
+enum wl3501_sys_type
+{
 	WL3501_SYS_TYPE_OPEN,
 	WL3501_SYS_TYPE_SHARE_KEY,
 };
 
-enum wl3501_status {
+enum wl3501_status
+{
 	WL3501_STATUS_SUCCESS,
 	WL3501_STATUS_INVALID,
 	WL3501_STATUS_TIMEOUT,
@@ -205,14 +212,16 @@ enum wl3501_status {
 
 #define IW_MGMT_RATE_LABEL_MANDATORY 128 /* MSB */
 
-enum iw_mgmt_rate_labels {
+enum iw_mgmt_rate_labels
+{
 	IW_MGMT_RATE_LABEL_1MBIT   = 2,
 	IW_MGMT_RATE_LABEL_2MBIT   = 4,
 	IW_MGMT_RATE_LABEL_5_5MBIT = 11,
 	IW_MGMT_RATE_LABEL_11MBIT  = 22,
 };
 
-enum iw_mgmt_info_element_ids {
+enum iw_mgmt_info_element_ids
+{
 	IW_MGMT_INFO_ELEMENT_SSID,		  /* Service Set Identity */
 	IW_MGMT_INFO_ELEMENT_SUPPORTED_RATES,
 	IW_MGMT_INFO_ELEMENT_FH_PARAMETER_SET,
@@ -226,14 +235,16 @@ enum iw_mgmt_info_element_ids {
 	/* 32-255 Reserved, unused */
 };
 
-struct iw_mgmt_info_element {
+struct iw_mgmt_info_element
+{
 	u8 id; /* one of enum iw_mgmt_info_element_ids,
 		  but sizeof(enum) > sizeof(u8) :-( */
 	u8 len;
 	u8 data[0];
 } __packed;
 
-struct iw_mgmt_essid_pset {
+struct iw_mgmt_essid_pset
+{
 	struct iw_mgmt_info_element el;
 	u8 			    essid[IW_ESSID_MAX_SIZE];
 } __packed;
@@ -241,20 +252,23 @@ struct iw_mgmt_essid_pset {
 /*
  * According to 802.11 Wireless Netowors, the definitive guide - O'Reilly
  * Pg 75
- */ 
+ */
 #define IW_DATA_RATE_MAX_LABELS 8
 
-struct iw_mgmt_data_rset {
+struct iw_mgmt_data_rset
+{
 	struct iw_mgmt_info_element el;
 	u8 			    data_rate_labels[IW_DATA_RATE_MAX_LABELS];
 } __packed;
 
-struct iw_mgmt_ds_pset {
+struct iw_mgmt_ds_pset
+{
 	struct iw_mgmt_info_element el;
 	u8 			    chan;
 } __packed;
 
-struct iw_mgmt_cf_pset {
+struct iw_mgmt_cf_pset
+{
 	struct iw_mgmt_info_element el;
 	u8 			    cfp_count;
 	u8 			    cfp_period;
@@ -262,12 +276,14 @@ struct iw_mgmt_cf_pset {
 	u16 			    cfp_dur_remaining;
 } __packed;
 
-struct iw_mgmt_ibss_pset {
+struct iw_mgmt_ibss_pset
+{
 	struct iw_mgmt_info_element el;
 	u16 			    atim_window;
 } __packed;
 
-struct wl3501_tx_hdr {
+struct wl3501_tx_hdr
+{
 	u16	tx_cnt;
 	u8	sync[16];
 	u16	sfd;
@@ -284,7 +300,8 @@ struct wl3501_tx_hdr {
 	u8	addr4[ETH_ALEN];
 };
 
-struct wl3501_rx_hdr {
+struct wl3501_rx_hdr
+{
 	u16	rx_next_blk;
 	u16	rc_next_frame_blk;
 	u8	rx_blk_ctrl;
@@ -305,7 +322,8 @@ struct wl3501_rx_hdr {
 	u8	addr4[ETH_ALEN];
 };
 
-struct wl3501_start_req {
+struct wl3501_start_req
+{
 	u16			    next_blk;
 	u8			    sig_id;
 	u8			    bss_type;
@@ -321,7 +339,8 @@ struct wl3501_start_req {
 	struct iw_mgmt_ibss_pset    ibss_pset;
 };
 
-struct wl3501_assoc_req {
+struct wl3501_assoc_req
+{
 	u16	next_blk;
 	u8	sig_id;
 	u8	reserved;
@@ -331,20 +350,23 @@ struct wl3501_assoc_req {
 	u8	mac_addr[ETH_ALEN];
 };
 
-struct wl3501_assoc_confirm {
+struct wl3501_assoc_confirm
+{
 	u16	next_blk;
 	u8	sig_id;
 	u8	reserved;
 	u16	status;
 };
 
-struct wl3501_assoc_ind {
+struct wl3501_assoc_ind
+{
 	u16	next_blk;
 	u8	sig_id;
 	u8	mac_addr[ETH_ALEN];
 };
 
-struct wl3501_auth_req {
+struct wl3501_auth_req
+{
 	u16	next_blk;
 	u8	sig_id;
 	u8	reserved;
@@ -353,7 +375,8 @@ struct wl3501_auth_req {
 	u8	mac_addr[ETH_ALEN];
 };
 
-struct wl3501_auth_confirm {
+struct wl3501_auth_confirm
+{
 	u16	next_blk;
 	u8	sig_id;
 	u8	reserved;
@@ -362,14 +385,16 @@ struct wl3501_auth_confirm {
 	u8	mac_addr[ETH_ALEN];
 };
 
-struct wl3501_get_req {
+struct wl3501_get_req
+{
 	u16	next_blk;
 	u8	sig_id;
 	u8	reserved;
 	u16	mib_attrib;
 };
 
-struct wl3501_get_confirm {
+struct wl3501_get_confirm
+{
 	u16	next_blk;
 	u8	sig_id;
 	u8	reserved;
@@ -378,7 +403,8 @@ struct wl3501_get_confirm {
 	u8	mib_value[100];
 };
 
-struct wl3501_join_req {
+struct wl3501_join_req
+{
 	u16			    next_blk;
 	u8			    sig_id;
 	u8			    reserved;
@@ -400,14 +426,16 @@ struct wl3501_join_req {
 	struct iw_mgmt_data_rset    bss_basic_rset;
 };
 
-struct wl3501_join_confirm {
+struct wl3501_join_confirm
+{
 	u16	next_blk;
 	u8	sig_id;
 	u8	reserved;
 	u16	status;
 };
 
-struct wl3501_pwr_mgmt_req {
+struct wl3501_pwr_mgmt_req
+{
 	u16	next_blk;
 	u8	sig_id;
 	u8	pwr_save;
@@ -415,14 +443,16 @@ struct wl3501_pwr_mgmt_req {
 	u8	receive_dtims;
 };
 
-struct wl3501_pwr_mgmt_confirm {
+struct wl3501_pwr_mgmt_confirm
+{
 	u16	next_blk;
 	u8	sig_id;
 	u8	reserved;
 	u16	status;
 };
 
-struct wl3501_scan_req {
+struct wl3501_scan_req
+{
 	u16			    next_blk;
 	u8			    sig_id;
 	u8			    bss_type;
@@ -435,7 +465,8 @@ struct wl3501_scan_req {
 	enum wl3501_scan_type	    scan_type;
 };
 
-struct wl3501_scan_confirm {
+struct wl3501_scan_confirm
+{
 	u16			    next_blk;
 	u8			    sig_id;
 	u8			    reserved;
@@ -455,14 +486,16 @@ struct wl3501_scan_confirm {
 	u8			    rssi;
 };
 
-struct wl3501_start_confirm {
+struct wl3501_start_confirm
+{
 	u16	next_blk;
 	u8	sig_id;
 	u8	reserved;
 	u16	status;
 };
 
-struct wl3501_md_req {
+struct wl3501_md_req
+{
 	u16	next_blk;
 	u8	sig_id;
 	u8	routing;
@@ -474,7 +507,8 @@ struct wl3501_md_req {
 	u8	saddr[ETH_ALEN];
 };
 
-struct wl3501_md_ind {
+struct wl3501_md_ind
+{
 	u16	next_blk;
 	u8	sig_id;
 	u8	routing;
@@ -487,7 +521,8 @@ struct wl3501_md_ind {
 	u8	saddr[ETH_ALEN];
 };
 
-struct wl3501_md_confirm {
+struct wl3501_md_confirm
+{
 	u16	next_blk;
 	u8	sig_id;
 	u8	reserved;
@@ -497,7 +532,8 @@ struct wl3501_md_confirm {
 	u8	service_class;
 };
 
-struct wl3501_resync_req {
+struct wl3501_resync_req
+{
 	u16	next_blk;
 	u8	sig_id;
 };
@@ -537,7 +573,8 @@ struct wl3501_resync_req {
 /* Refer IEEE 802.11 */
 /* Tx packet header, include PLCP and MPDU */
 /* Tx PLCP Header */
-struct wl3501_80211_tx_plcp_hdr {
+struct wl3501_80211_tx_plcp_hdr
+{
 	u8	sync[16];
 	u16	sfd;
 	u8	signal;
@@ -546,7 +583,8 @@ struct wl3501_80211_tx_plcp_hdr {
 	u16	crc16;
 } __packed;
 
-struct wl3501_80211_tx_hdr {
+struct wl3501_80211_tx_hdr
+{
 	struct wl3501_80211_tx_plcp_hdr	pclp_hdr;
 	struct ieee80211_hdr		mac_hdr;
 } __packed;
@@ -571,7 +609,8 @@ struct wl3501_80211_tx_hdr {
 
 */
 
-struct wl3501_card {
+struct wl3501_card
+{
 	int				base_addr;
 	u8				mac_addr[ETH_ALEN];
 	spinlock_t			lock;

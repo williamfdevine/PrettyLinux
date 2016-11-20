@@ -176,12 +176,12 @@
 #ifdef __BIG_ENDIAN_BITFIELD
 #define    CN6XXX_INPUT_CTL_MASK                    \
 	(CN6XXX_INPUT_CTL_DATA_ES_64B_SWAP      \
-	  | CN6XXX_INPUT_CTL_USE_CSR              \
-	  | CN6XXX_INPUT_CTL_GATHER_ES_64B_SWAP)
+	 | CN6XXX_INPUT_CTL_USE_CSR              \
+	 | CN6XXX_INPUT_CTL_GATHER_ES_64B_SWAP)
 #else
 #define    CN6XXX_INPUT_CTL_MASK                    \
 	(CN6XXX_INPUT_CTL_DATA_ES_64B_SWAP     \
-	  | CN6XXX_INPUT_CTL_USE_CSR)
+	 | CN6XXX_INPUT_CTL_USE_CSR)
 #endif
 
 /*############################ OUTPUT QUEUE #########################*/
@@ -395,7 +395,7 @@
 	(CN6XXX_INTR_DMA0_DATA | CN6XXX_INTR_DMA1_DATA)
 
 #define    CN6XXX_INTR_PKT_DATA                  (CN6XXX_INTR_PKT_TIME | \
-						  CN6XXX_INTR_PKT_COUNT)
+		CN6XXX_INTR_PKT_COUNT)
 
 /* Sum of interrupts for all PCI-Express Data Interrupts */
 #define    CN6XXX_INTR_PCIE_DATA                 \
@@ -410,35 +410,35 @@
 /* Sum of interrupts for error events */
 #define    CN6XXX_INTR_ERR                       \
 	(CN6XXX_INTR_BAR0_RW_TIMEOUT_ERR    \
-	   | CN6XXX_INTR_IO2BIG_ERR             \
-	   | CN6XXX_INTR_M0UPB0_ERR             \
-	   | CN6XXX_INTR_M0UPWI_ERR             \
-	   | CN6XXX_INTR_M0UNB0_ERR             \
-	   | CN6XXX_INTR_M0UNWI_ERR             \
-	   | CN6XXX_INTR_M1UPB0_ERR             \
-	   | CN6XXX_INTR_M1UPWI_ERR             \
-	   | CN6XXX_INTR_M1UPB0_ERR             \
-	   | CN6XXX_INTR_M1UNWI_ERR             \
-	   | CN6XXX_INTR_INSTR_DB_OF_ERR        \
-	   | CN6XXX_INTR_SLIST_DB_OF_ERR        \
-	   | CN6XXX_INTR_POUT_ERR               \
-	   | CN6XXX_INTR_PIN_BP_ERR             \
-	   | CN6XXX_INTR_PGL_ERR                \
-	   | CN6XXX_INTR_PDI_ERR                \
-	   | CN6XXX_INTR_POP_ERR                \
-	   | CN6XXX_INTR_PINS_ERR               \
-	   | CN6XXX_INTR_SPRT0_ERR              \
-	   | CN6XXX_INTR_SPRT1_ERR              \
-	   | CN6XXX_INTR_ILL_PAD_ERR)
+	 | CN6XXX_INTR_IO2BIG_ERR             \
+	 | CN6XXX_INTR_M0UPB0_ERR             \
+	 | CN6XXX_INTR_M0UPWI_ERR             \
+	 | CN6XXX_INTR_M0UNB0_ERR             \
+	 | CN6XXX_INTR_M0UNWI_ERR             \
+	 | CN6XXX_INTR_M1UPB0_ERR             \
+	 | CN6XXX_INTR_M1UPWI_ERR             \
+	 | CN6XXX_INTR_M1UPB0_ERR             \
+	 | CN6XXX_INTR_M1UNWI_ERR             \
+	 | CN6XXX_INTR_INSTR_DB_OF_ERR        \
+	 | CN6XXX_INTR_SLIST_DB_OF_ERR        \
+	 | CN6XXX_INTR_POUT_ERR               \
+	 | CN6XXX_INTR_PIN_BP_ERR             \
+	 | CN6XXX_INTR_PGL_ERR                \
+	 | CN6XXX_INTR_PDI_ERR                \
+	 | CN6XXX_INTR_POP_ERR                \
+	 | CN6XXX_INTR_PINS_ERR               \
+	 | CN6XXX_INTR_SPRT0_ERR              \
+	 | CN6XXX_INTR_SPRT1_ERR              \
+	 | CN6XXX_INTR_ILL_PAD_ERR)
 
 /* Programmed Mask for Interrupt Sum */
 #define    CN6XXX_INTR_MASK                      \
 	(CN6XXX_INTR_PCIE_DATA              \
-	   | CN6XXX_INTR_DMA0_FORCE             \
-	   | CN6XXX_INTR_DMA1_FORCE             \
-	   | CN6XXX_INTR_MIO                    \
-	   | CN6XXX_INTR_MAC                    \
-	   | CN6XXX_INTR_ERR)
+	 | CN6XXX_INTR_DMA0_FORCE             \
+	 | CN6XXX_INTR_DMA1_FORCE             \
+	 | CN6XXX_INTR_MIO                    \
+	 | CN6XXX_INTR_MAC                    \
+	 | CN6XXX_INTR_ERR)
 
 #define    CN6XXX_SLI_S2M_PORT0_CTL              0x3D80
 #define    CN6XXX_SLI_S2M_PORT1_CTL              0x3D90
@@ -458,8 +458,8 @@
 #define    CN6XXX_PCI_BAR1_OFFSET                  0x8
 
 #define    CN6XXX_BAR1_REG(idx, port) \
-		(CN6XXX_BAR1_INDEX_START + (port * CN6XXX_PEM_OFFSET) + \
-		(CN6XXX_PCI_BAR1_OFFSET * (idx)))
+	(CN6XXX_BAR1_INDEX_START + (port * CN6XXX_PEM_OFFSET) + \
+	 (CN6XXX_PCI_BAR1_OFFSET * (idx)))
 
 /*############################ DPI #########################*/
 

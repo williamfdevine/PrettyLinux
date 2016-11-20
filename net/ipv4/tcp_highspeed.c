@@ -12,10 +12,12 @@
 /* From AIMD tables from RFC 3649 appendix B,
  * with fixed-point MD scaled <<8.
  */
-static const struct hstcp_aimd_val {
+static const struct hstcp_aimd_val
+{
 	unsigned int cwnd;
 	unsigned int md;
-} hstcp_aimd_vals[] = {
+} hstcp_aimd_vals[] =
+{
 	{     38,  128, /*  0.50 */ },
 	{    118,  112, /*  0.44 */ },
 	{    221,  104, /*  0.41 */ },
@@ -92,7 +94,8 @@ static const struct hstcp_aimd_val {
 
 #define HSTCP_AIMD_MAX	ARRAY_SIZE(hstcp_aimd_vals)
 
-struct hstcp {
+struct hstcp
+{
 	u32	ai;
 };
 
@@ -105,7 +108,7 @@ static void hstcp_init(struct sock *sk)
 
 	/* Ensure the MD arithmetic works.  This is somewhat pedantic,
 	 * since I don't think we will see a cwnd this large. :) */
-	tp->snd_cwnd_clamp = min_t(u32, tp->snd_cwnd_clamp, 0xffffffff/128);
+	tp->snd_cwnd_clamp = min_t(u32, tp->snd_cwnd_clamp, 0xffffffff / 128);
 }
 
 static void hstcp_cong_avoid(struct sock *sk, u32 ack, u32 acked)
@@ -114,11 +117,16 @@ static void hstcp_cong_avoid(struct sock *sk, u32 ack, u32 acked)
 	struct hstcp *ca = inet_csk_ca(sk);
 
 	if (!tcp_is_cwnd_limited(sk))
+	{
 		return;
+	}
 
 	if (tcp_in_slow_start(tp))
+	{
 		tcp_slow_start(tp, acked);
-	else {
+	}
+	else
+	{
 		/* Update AIMD parameters.
 		 *
 		 * We want to guarantee that:
@@ -126,20 +134,30 @@ static void hstcp_cong_avoid(struct sock *sk, u32 ack, u32 acked)
 		 *     snd_cwnd <=
 		 *     hstcp_aimd_vals[ca->ai].cwnd
 		 */
-		if (tp->snd_cwnd > hstcp_aimd_vals[ca->ai].cwnd) {
+		if (tp->snd_cwnd > hstcp_aimd_vals[ca->ai].cwnd)
+		{
 			while (tp->snd_cwnd > hstcp_aimd_vals[ca->ai].cwnd &&
-			       ca->ai < HSTCP_AIMD_MAX - 1)
+				   ca->ai < HSTCP_AIMD_MAX - 1)
+			{
 				ca->ai++;
-		} else if (ca->ai && tp->snd_cwnd <= hstcp_aimd_vals[ca->ai-1].cwnd) {
-			while (ca->ai && tp->snd_cwnd <= hstcp_aimd_vals[ca->ai-1].cwnd)
+			}
+		}
+		else if (ca->ai && tp->snd_cwnd <= hstcp_aimd_vals[ca->ai - 1].cwnd)
+		{
+			while (ca->ai && tp->snd_cwnd <= hstcp_aimd_vals[ca->ai - 1].cwnd)
+			{
 				ca->ai--;
+			}
 		}
 
 		/* Do additive increase */
-		if (tp->snd_cwnd < tp->snd_cwnd_clamp) {
+		if (tp->snd_cwnd < tp->snd_cwnd_clamp)
+		{
 			/* cwnd = cwnd + a(w) / cwnd */
 			tp->snd_cwnd_cnt += ca->ai + 1;
-			if (tp->snd_cwnd_cnt >= tp->snd_cwnd) {
+
+			if (tp->snd_cwnd_cnt >= tp->snd_cwnd)
+			{
 				tp->snd_cwnd_cnt -= tp->snd_cwnd;
 				tp->snd_cwnd++;
 			}
@@ -157,7 +175,8 @@ static u32 hstcp_ssthresh(struct sock *sk)
 }
 
 
-static struct tcp_congestion_ops tcp_highspeed __read_mostly = {
+static struct tcp_congestion_ops tcp_highspeed __read_mostly =
+{
 	.init		= hstcp_init,
 	.ssthresh	= hstcp_ssthresh,
 	.cong_avoid	= hstcp_cong_avoid,

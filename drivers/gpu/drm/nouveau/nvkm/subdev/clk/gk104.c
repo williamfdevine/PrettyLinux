@@ -29,7 +29,8 @@
 #include <subdev/bios.h>
 #include <subdev/bios/pll.h>
 
-struct gk104_clk_info {
+struct gk104_clk_info
+{
 	u32 freq;
 	u32 ssel;
 	u32 mdiv;
@@ -38,7 +39,8 @@ struct gk104_clk_info {
 	u32 coef;
 };
 
-struct gk104_clk {
+struct gk104_clk
+{
 	struct nvkm_clk base;
 	struct gk104_clk_info eng[16];
 };
@@ -51,8 +53,12 @@ read_vco(struct gk104_clk *clk, u32 dsrc)
 {
 	struct nvkm_device *device = clk->base.subdev.device;
 	u32 ssrc = nvkm_rd32(device, dsrc);
+
 	if (!(ssrc & 0x00000100))
+	{
 		return read_pll(clk, 0x00e800);
+	}
+
 	return read_pll(clk, 0x00e820);
 }
 
@@ -69,34 +75,43 @@ read_pll(struct gk104_clk *clk, u32 pll)
 	u16 fN = 0xf000;
 
 	if (!(ctrl & 0x00000001))
-		return 0;
-
-	switch (pll) {
-	case 0x00e800:
-	case 0x00e820:
-		sclk = device->crystal;
-		P = 1;
-		break;
-	case 0x132000:
-		sclk = read_pll(clk, 0x132020);
-		P = (coef & 0x10000000) ? 2 : 1;
-		break;
-	case 0x132020:
-		sclk = read_div(clk, 0, 0x137320, 0x137330);
-		fN   = nvkm_rd32(device, pll + 0x10) >> 16;
-		break;
-	case 0x137000:
-	case 0x137020:
-	case 0x137040:
-	case 0x1370e0:
-		sclk = read_div(clk, (pll & 0xff) / 0x20, 0x137120, 0x137140);
-		break;
-	default:
+	{
 		return 0;
 	}
 
+	switch (pll)
+	{
+		case 0x00e800:
+		case 0x00e820:
+			sclk = device->crystal;
+			P = 1;
+			break;
+
+		case 0x132000:
+			sclk = read_pll(clk, 0x132020);
+			P = (coef & 0x10000000) ? 2 : 1;
+			break;
+
+		case 0x132020:
+			sclk = read_div(clk, 0, 0x137320, 0x137330);
+			fN   = nvkm_rd32(device, pll + 0x10) >> 16;
+			break;
+
+		case 0x137000:
+		case 0x137020:
+		case 0x137040:
+		case 0x1370e0:
+			sclk = read_div(clk, (pll & 0xff) / 0x20, 0x137120, 0x137140);
+			break;
+
+		default:
+			return 0;
+	}
+
 	if (P == 0)
+	{
 		P = 1;
+	}
 
 	sclk = (sclk * N) + (((u16)(fN + 4096) * sclk) >> 13);
 	return sclk / (M * P);
@@ -109,23 +124,31 @@ read_div(struct gk104_clk *clk, int doff, u32 dsrc, u32 dctl)
 	u32 ssrc = nvkm_rd32(device, dsrc + (doff * 4));
 	u32 sctl = nvkm_rd32(device, dctl + (doff * 4));
 
-	switch (ssrc & 0x00000003) {
-	case 0:
-		if ((ssrc & 0x00030000) != 0x00030000)
-			return device->crystal;
-		return 108000;
-	case 2:
-		return 100000;
-	case 3:
-		if (sctl & 0x80000000) {
-			u32 sclk = read_vco(clk, dsrc + (doff * 4));
-			u32 sdiv = (sctl & 0x0000003f) + 2;
-			return (sclk * 2) / sdiv;
-		}
+	switch (ssrc & 0x00000003)
+	{
+		case 0:
+			if ((ssrc & 0x00030000) != 0x00030000)
+			{
+				return device->crystal;
+			}
 
-		return read_vco(clk, dsrc + (doff * 4));
-	default:
-		return 0;
+			return 108000;
+
+		case 2:
+			return 100000;
+
+		case 3:
+			if (sctl & 0x80000000)
+			{
+				u32 sclk = read_vco(clk, dsrc + (doff * 4));
+				u32 sdiv = (sctl & 0x0000003f) + 2;
+				return (sclk * 2) / sdiv;
+			}
+
+			return read_vco(clk, dsrc + (doff * 4));
+
+		default:
+			return 0;
 	}
 }
 
@@ -133,11 +156,15 @@ static u32
 read_mem(struct gk104_clk *clk)
 {
 	struct nvkm_device *device = clk->base.subdev.device;
-	switch (nvkm_rd32(device, 0x1373f4) & 0x0000000f) {
-	case 1: return read_pll(clk, 0x132020);
-	case 2: return read_pll(clk, 0x132000);
-	default:
-		return 0;
+
+	switch (nvkm_rd32(device, 0x1373f4) & 0x0000000f)
+	{
+		case 1: return read_pll(clk, 0x132020);
+
+		case 2: return read_pll(clk, 0x132000);
+
+		default:
+			return 0;
 	}
 }
 
@@ -148,37 +175,61 @@ read_clk(struct gk104_clk *clk, int idx)
 	u32 sctl = nvkm_rd32(device, 0x137250 + (idx * 4));
 	u32 sclk, sdiv;
 
-	if (idx < 7) {
+	if (idx < 7)
+	{
 		u32 ssel = nvkm_rd32(device, 0x137100);
-		if (ssel & (1 << idx)) {
+
+		if (ssel & (1 << idx))
+		{
 			sclk = read_pll(clk, 0x137000 + (idx * 0x20));
 			sdiv = 1;
-		} else {
+		}
+		else
+		{
 			sclk = read_div(clk, idx, 0x137160, 0x1371d0);
 			sdiv = 0;
 		}
-	} else {
+	}
+	else
+	{
 		u32 ssrc = nvkm_rd32(device, 0x137160 + (idx * 0x04));
-		if ((ssrc & 0x00000003) == 0x00000003) {
+
+		if ((ssrc & 0x00000003) == 0x00000003)
+		{
 			sclk = read_div(clk, idx, 0x137160, 0x1371d0);
-			if (ssrc & 0x00000100) {
+
+			if (ssrc & 0x00000100)
+			{
 				if (ssrc & 0x40000000)
+				{
 					sclk = read_pll(clk, 0x1370e0);
+				}
+
 				sdiv = 1;
-			} else {
+			}
+			else
+			{
 				sdiv = 0;
 			}
-		} else {
+		}
+		else
+		{
 			sclk = read_div(clk, idx, 0x137160, 0x1371d0);
 			sdiv = 0;
 		}
 	}
 
-	if (sctl & 0x80000000) {
+	if (sctl & 0x80000000)
+	{
 		if (sdiv)
+		{
 			sdiv = ((sctl & 0x00003f00) >> 8) + 2;
+		}
 		else
+		{
 			sdiv = ((sctl & 0x0000003f) >> 0) + 2;
+		}
+
 		return (sclk * 2) / sdiv;
 	}
 
@@ -192,30 +243,41 @@ gk104_clk_read(struct nvkm_clk *base, enum nv_clk_src src)
 	struct nvkm_subdev *subdev = &clk->base.subdev;
 	struct nvkm_device *device = subdev->device;
 
-	switch (src) {
-	case nv_clk_src_crystal:
-		return device->crystal;
-	case nv_clk_src_href:
-		return 100000;
-	case nv_clk_src_mem:
-		return read_mem(clk);
-	case nv_clk_src_gpc:
-		return read_clk(clk, 0x00);
-	case nv_clk_src_rop:
-		return read_clk(clk, 0x01);
-	case nv_clk_src_hubk07:
-		return read_clk(clk, 0x02);
-	case nv_clk_src_hubk06:
-		return read_clk(clk, 0x07);
-	case nv_clk_src_hubk01:
-		return read_clk(clk, 0x08);
-	case nv_clk_src_pmu:
-		return read_clk(clk, 0x0c);
-	case nv_clk_src_vdec:
-		return read_clk(clk, 0x0e);
-	default:
-		nvkm_error(subdev, "invalid clock source %d\n", src);
-		return -EINVAL;
+	switch (src)
+	{
+		case nv_clk_src_crystal:
+			return device->crystal;
+
+		case nv_clk_src_href:
+			return 100000;
+
+		case nv_clk_src_mem:
+			return read_mem(clk);
+
+		case nv_clk_src_gpc:
+			return read_clk(clk, 0x00);
+
+		case nv_clk_src_rop:
+			return read_clk(clk, 0x01);
+
+		case nv_clk_src_hubk07:
+			return read_clk(clk, 0x02);
+
+		case nv_clk_src_hubk06:
+			return read_clk(clk, 0x07);
+
+		case nv_clk_src_hubk01:
+			return read_clk(clk, 0x08);
+
+		case nv_clk_src_pmu:
+			return read_clk(clk, 0x0c);
+
+		case nv_clk_src_vdec:
+			return read_clk(clk, 0x0e);
+
+		default:
+			nvkm_error(subdev, "invalid clock source %d\n", src);
+			return -EINVAL;
 	}
 }
 
@@ -223,8 +285,11 @@ static u32
 calc_div(struct gk104_clk *clk, int idx, u32 ref, u32 freq, u32 *ddiv)
 {
 	u32 div = min((ref * 2) / freq, (u32)65);
+
 	if (div < 2)
+	{
 		div = 2;
+	}
 
 	*ddiv = div - 2;
 	return (ref * 2) / div;
@@ -237,25 +302,37 @@ calc_src(struct gk104_clk *clk, int idx, u32 freq, u32 *dsrc, u32 *ddiv)
 
 	/* use one of the fixed frequencies if possible */
 	*ddiv = 0x00000000;
-	switch (freq) {
-	case  27000:
-	case 108000:
-		*dsrc = 0x00000000;
-		if (freq == 108000)
-			*dsrc |= 0x00030000;
-		return freq;
-	case 100000:
-		*dsrc = 0x00000002;
-		return freq;
-	default:
-		*dsrc = 0x00000003;
-		break;
+
+	switch (freq)
+	{
+		case  27000:
+		case 108000:
+			*dsrc = 0x00000000;
+
+			if (freq == 108000)
+			{
+				*dsrc |= 0x00030000;
+			}
+
+			return freq;
+
+		case 100000:
+			*dsrc = 0x00000002;
+			return freq;
+
+		default:
+			*dsrc = 0x00000003;
+			break;
 	}
 
 	/* otherwise, calculate the closest divider */
 	sclk = read_vco(clk, 0x137160 + (idx * 4));
+
 	if (idx < 7)
+	{
 		sclk = calc_div(clk, idx, sclk, freq, ddiv);
+	}
+
 	return sclk;
 }
 
@@ -268,16 +345,25 @@ calc_pll(struct gk104_clk *clk, int idx, u32 freq, u32 *coef)
 	int N, M, P, ret;
 
 	ret = nvbios_pll_parse(bios, 0x137000 + (idx * 0x20), &limits);
+
 	if (ret)
+	{
 		return 0;
+	}
 
 	limits.refclk = read_div(clk, idx, 0x137120, 0x137140);
+
 	if (!limits.refclk)
+	{
 		return 0;
+	}
 
 	ret = gt215_pll_calc(subdev, &limits, freq, &N, NULL, &M, &P);
+
 	if (ret <= 0)
+	{
 		return 0;
+	}
 
 	*coef = (P << 16) | (N << 8) | M;
 	return ret;
@@ -285,7 +371,7 @@ calc_pll(struct gk104_clk *clk, int idx, u32 freq, u32 *coef)
 
 static int
 calc_clk(struct gk104_clk *clk,
-	 struct nvkm_cstate *cstate, int idx, int dom)
+		 struct nvkm_cstate *cstate, int idx, int dom)
 {
 	struct gk104_clk_info *info = &clk->eng[idx];
 	u32 freq = cstate->domain[dom];
@@ -294,39 +380,57 @@ calc_clk(struct gk104_clk *clk,
 
 	/* invalid clock domain */
 	if (!freq)
+	{
 		return 0;
+	}
 
 	/* first possible path, using only dividers */
 	clk0 = calc_src(clk, idx, freq, &src0, &div0);
 	clk0 = calc_div(clk, idx, clk0, freq, &div1D);
 
 	/* see if we can get any closer using PLLs */
-	if (clk0 != freq && (0x0000ff87 & (1 << idx))) {
+	if (clk0 != freq && (0x0000ff87 & (1 << idx)))
+	{
 		if (idx <= 7)
+		{
 			clk1 = calc_pll(clk, idx, freq, &info->coef);
+		}
 		else
+		{
 			clk1 = cstate->domain[nv_clk_src_hubk06];
+		}
+
 		clk1 = calc_div(clk, idx, clk1, freq, &div1P);
 	}
 
 	/* select the method which gets closest to target freq */
-	if (abs((int)freq - clk0) <= abs((int)freq - clk1)) {
+	if (abs((int)freq - clk0) <= abs((int)freq - clk1))
+	{
 		info->dsrc = src0;
-		if (div0) {
+
+		if (div0)
+		{
 			info->ddiv |= 0x80000000;
 			info->ddiv |= div0;
 		}
-		if (div1D) {
+
+		if (div1D)
+		{
 			info->mdiv |= 0x80000000;
 			info->mdiv |= div1D;
 		}
+
 		info->ssel = 0;
 		info->freq = clk0;
-	} else {
-		if (div1P) {
+	}
+	else
+	{
+		if (div1P)
+		{
 			info->mdiv |= 0x80000000;
 			info->mdiv |= div1P << 8;
 		}
+
 		info->ssel = (1 << idx);
 		info->dsrc = 0x40000100;
 		info->freq = clk1;
@@ -342,13 +446,15 @@ gk104_clk_calc(struct nvkm_clk *base, struct nvkm_cstate *cstate)
 	int ret;
 
 	if ((ret = calc_clk(clk, cstate, 0x00, nv_clk_src_gpc)) ||
-	    (ret = calc_clk(clk, cstate, 0x01, nv_clk_src_rop)) ||
-	    (ret = calc_clk(clk, cstate, 0x02, nv_clk_src_hubk07)) ||
-	    (ret = calc_clk(clk, cstate, 0x07, nv_clk_src_hubk06)) ||
-	    (ret = calc_clk(clk, cstate, 0x08, nv_clk_src_hubk01)) ||
-	    (ret = calc_clk(clk, cstate, 0x0c, nv_clk_src_pmu)) ||
-	    (ret = calc_clk(clk, cstate, 0x0e, nv_clk_src_vdec)))
+		(ret = calc_clk(clk, cstate, 0x01, nv_clk_src_rop)) ||
+		(ret = calc_clk(clk, cstate, 0x02, nv_clk_src_hubk07)) ||
+		(ret = calc_clk(clk, cstate, 0x07, nv_clk_src_hubk06)) ||
+		(ret = calc_clk(clk, cstate, 0x08, nv_clk_src_hubk01)) ||
+		(ret = calc_clk(clk, cstate, 0x0c, nv_clk_src_pmu)) ||
+		(ret = calc_clk(clk, cstate, 0x0e, nv_clk_src_vdec)))
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -358,7 +464,9 @@ gk104_clk_prog_0(struct gk104_clk *clk, int idx)
 {
 	struct gk104_clk_info *info = &clk->eng[idx];
 	struct nvkm_device *device = clk->base.subdev.device;
-	if (!info->ssel) {
+
+	if (!info->ssel)
+	{
 		nvkm_mask(device, 0x1371d0 + (idx * 0x04), 0x8000003f, info->ddiv);
 		nvkm_wr32(device, 0x137160 + (idx * 0x04), info->dsrc);
 	}
@@ -370,9 +478,10 @@ gk104_clk_prog_1_0(struct gk104_clk *clk, int idx)
 	struct nvkm_device *device = clk->base.subdev.device;
 	nvkm_mask(device, 0x137100, (1 << idx), 0x00000000);
 	nvkm_msec(device, 2000,
-		if (!(nvkm_rd32(device, 0x137100) & (1 << idx)))
-			break;
-	);
+
+			  if (!(nvkm_rd32(device, 0x137100) & (1 << idx)))
+			  break;
+			 );
 }
 
 static void
@@ -390,16 +499,20 @@ gk104_clk_prog_2(struct gk104_clk *clk, int idx)
 	const u32 addr = 0x137000 + (idx * 0x20);
 	nvkm_mask(device, addr + 0x00, 0x00000004, 0x00000000);
 	nvkm_mask(device, addr + 0x00, 0x00000001, 0x00000000);
-	if (info->coef) {
+
+	if (info->coef)
+	{
 		nvkm_wr32(device, addr + 0x04, info->coef);
 		nvkm_mask(device, addr + 0x00, 0x00000001, 0x00000001);
 
 		/* Test PLL lock */
 		nvkm_mask(device, addr + 0x00, 0x00000010, 0x00000000);
 		nvkm_msec(device, 2000,
-			if (nvkm_rd32(device, addr + 0x00) & 0x00020000)
-				break;
-		);
+
+				  if (nvkm_rd32(device, addr + 0x00) & 0x00020000)
+				  break;
+				 );
+
 		nvkm_mask(device, addr + 0x00, 0x00000010, 0x00000010);
 
 		/* Enable sync mode */
@@ -412,10 +525,15 @@ gk104_clk_prog_3(struct gk104_clk *clk, int idx)
 {
 	struct gk104_clk_info *info = &clk->eng[idx];
 	struct nvkm_device *device = clk->base.subdev.device;
+
 	if (info->ssel)
+	{
 		nvkm_mask(device, 0x137250 + (idx * 0x04), 0x00003f00, info->mdiv);
+	}
 	else
+	{
 		nvkm_mask(device, 0x137250 + (idx * 0x04), 0x0000003f, info->mdiv);
+	}
 }
 
 static void
@@ -423,13 +541,16 @@ gk104_clk_prog_4_0(struct gk104_clk *clk, int idx)
 {
 	struct gk104_clk_info *info = &clk->eng[idx];
 	struct nvkm_device *device = clk->base.subdev.device;
-	if (info->ssel) {
+
+	if (info->ssel)
+	{
 		nvkm_mask(device, 0x137100, (1 << idx), info->ssel);
 		nvkm_msec(device, 2000,
-			u32 tmp = nvkm_rd32(device, 0x137100) & (1 << idx);
-			if (tmp == info->ssel)
-				break;
-		);
+				  u32 tmp = nvkm_rd32(device, 0x137100) & (1 << idx);
+
+				  if (tmp == info->ssel)
+				  break;
+				 );
 	}
 }
 
@@ -438,7 +559,9 @@ gk104_clk_prog_4_1(struct gk104_clk *clk, int idx)
 {
 	struct gk104_clk_info *info = &clk->eng[idx];
 	struct nvkm_device *device = clk->base.subdev.device;
-	if (info->ssel) {
+
+	if (info->ssel)
+	{
 		nvkm_mask(device, 0x137160 + (idx * 0x04), 0x40000000, 0x40000000);
 		nvkm_mask(device, 0x137160 + (idx * 0x04), 0x00000100, 0x00000100);
 	}
@@ -448,10 +571,12 @@ static int
 gk104_clk_prog(struct nvkm_clk *base)
 {
 	struct gk104_clk *clk = gk104_clk(base);
-	struct {
+	struct
+	{
 		u32 mask;
 		void (*exec)(struct gk104_clk *, int);
-	} stage[] = {
+	} stage[] =
+	{
 		{ 0x007f, gk104_clk_prog_0   }, /* div programming */
 		{ 0x007f, gk104_clk_prog_1_0 }, /* select div mode */
 		{ 0xff80, gk104_clk_prog_1_1 },
@@ -462,12 +587,20 @@ gk104_clk_prog(struct nvkm_clk *base)
 	};
 	int i, j;
 
-	for (i = 0; i < ARRAY_SIZE(stage); i++) {
-		for (j = 0; j < ARRAY_SIZE(clk->eng); j++) {
+	for (i = 0; i < ARRAY_SIZE(stage); i++)
+	{
+		for (j = 0; j < ARRAY_SIZE(clk->eng); j++)
+		{
 			if (!(stage[i].mask & (1 << j)))
+			{
 				continue;
+			}
+
 			if (!clk->eng[j].freq)
+			{
 				continue;
+			}
+
 			stage[i].exec(clk, j);
 		}
 	}
@@ -483,7 +616,8 @@ gk104_clk_tidy(struct nvkm_clk *base)
 }
 
 static const struct nvkm_clk_func
-gk104_clk = {
+	gk104_clk =
+{
 	.read = gk104_clk_read,
 	.calc = gk104_clk_calc,
 	.prog = gk104_clk_prog,
@@ -509,7 +643,10 @@ gk104_clk_new(struct nvkm_device *device, int index, struct nvkm_clk **pclk)
 	struct gk104_clk *clk;
 
 	if (!(clk = kzalloc(sizeof(*clk), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	*pclk = &clk->base;
 
 	return nvkm_clk_ctor(&gk104_clk, device, index, true, &clk->base);

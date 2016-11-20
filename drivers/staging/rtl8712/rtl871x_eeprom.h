@@ -47,7 +47,8 @@
 #define	EEPROM_CID_CLEVO		0x13
 #define	EEPROM_CID_WHQL			0xFE
 
-enum RT_CUSTOMER_ID {
+enum RT_CUSTOMER_ID
+{
 	RT_CID_DEFAULT = 0,
 	RT_CID_8187_ALPHA0 = 1,
 	RT_CID_8187_SERCOMM_PS = 2,
@@ -79,7 +80,8 @@ enum RT_CUSTOMER_ID {
 	RT_CID_819x_CLEVO = 28,
 };
 
-struct eeprom_priv {
+struct eeprom_priv
+{
 	u8 bautoload_fail_flag;
 	u8 bempty;
 	u8 sys_config;

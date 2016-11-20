@@ -41,11 +41,11 @@ int zap_all_every_this_many_mallocs = 1000;
 #include "mpx-mm.h"
 
 #ifndef __always_inline
-#define __always_inline inline __attribute__((always_inline)
+	#define __always_inline inline __attribute__((always_inline)
 #endif
 
 #ifndef TEST_DURATION_SECS
-#define TEST_DURATION_SECS 3
+	#define TEST_DURATION_SECS 3
 #endif
 
 void write_int_to(char *prefix, char *file, int int_to_write)
@@ -72,14 +72,14 @@ void write_pid_to(char *prefix, char *file)
 
 void trace_me(void)
 {
-/* tracing events dir */
+	/* tracing events dir */
 #define TED "/sys/kernel/debug/tracing/events/"
-/*
-	write_pid_to("common_pid=", TED "signal/filter");
-	write_pid_to("common_pid=", TED "exceptions/filter");
-	write_int_to("", TED "signal/enable", 1);
-	write_int_to("", TED "exceptions/enable", 1);
-*/
+	/*
+		write_pid_to("common_pid=", TED "signal/filter");
+		write_pid_to("common_pid=", TED "exceptions/filter");
+		write_int_to("", TED "signal/enable", 1);
+		write_int_to("", TED "exceptions/enable", 1);
+	*/
 	write_pid_to("", "/sys/kernel/debug/tracing/set_ftrace_pid");
 	write_int_to("", "/sys/kernel/debug/tracing/trace", 0);
 }
@@ -106,7 +106,7 @@ static void __test_failed(char *f, int l)
  * __cpuid() is from the Linux Kernel:
  */
 static inline void __cpuid(unsigned int *eax, unsigned int *ebx,
-		unsigned int *ecx, unsigned int *edx)
+						   unsigned int *ecx, unsigned int *edx)
 {
 	/* ecx is often an input as well as an output. */
 	asm volatile(
@@ -115,9 +115,9 @@ static inline void __cpuid(unsigned int *eax, unsigned int *ebx,
 		"mov %%ebx, %1;"
 		"pop %%ebx"
 		: "=a" (*eax),
-		  "=g" (*ebx),
-		  "=c" (*ecx),
-		  "=d" (*edx)
+		"=g" (*ebx),
+		"=c" (*ecx),
+		"=d" (*edx)
 		: "0" (*eax), "2" (*ecx));
 }
 
@@ -132,36 +132,40 @@ static inline void __cpuid(unsigned int *eax, unsigned int *ebx,
  * __cpuid() is from the Linux Kernel:
  */
 static inline void __cpuid(unsigned int *eax, unsigned int *ebx,
-		unsigned int *ecx, unsigned int *edx)
+						   unsigned int *ecx, unsigned int *edx)
 {
 	/* ecx is often an input as well as an output. */
 	asm volatile(
 		"cpuid;"
 		: "=a" (*eax),
-		  "=b" (*ebx),
-		  "=c" (*ecx),
-		  "=d" (*edx)
+		"=b" (*ebx),
+		"=c" (*ecx),
+		"=d" (*edx)
 		: "0" (*eax), "2" (*ecx));
 }
 
 #endif /* !__i386__ */
 
-struct xsave_hdr_struct {
+struct xsave_hdr_struct
+{
 	uint64_t xstate_bv;
 	uint64_t reserved1[2];
 	uint64_t reserved2[5];
 } __attribute__((packed));
 
-struct bndregs_struct {
+struct bndregs_struct
+{
 	uint64_t bndregs[8];
 } __attribute__((packed));
 
-struct bndcsr_struct {
+struct bndcsr_struct
+{
 	uint64_t cfg_reg_u;
 	uint64_t status_reg;
 } __attribute__((packed));
 
-struct xsave_struct {
+struct xsave_struct
+{
 	uint8_t fpu_sse[512];
 	struct xsave_hdr_struct xsave_hdr;
 	uint8_t ymm[256];
@@ -184,8 +188,8 @@ static __always_inline void xrstor_state(struct xsave_struct *fx, uint64_t mask)
 	uint32_t hmask = mask >> 32;
 
 	asm volatile(".byte " REX_PREFIX "0x0f,0xae,0x2f\n\t"
-		     : : "D" (fx), "m" (*fx), "a" (lmask), "d" (hmask)
-		     :   "memory");
+				 : : "D" (fx), "m" (*fx), "a" (lmask), "d" (hmask)
+				 :   "memory");
 }
 
 static __always_inline void xsave_state_1(void *_fx, uint64_t mask)
@@ -195,8 +199,8 @@ static __always_inline void xsave_state_1(void *_fx, uint64_t mask)
 	unsigned char *fx = _fx;
 
 	asm volatile(".byte " REX_PREFIX "0x0f,0xae,0x27\n\t"
-		     : : "D" (fx), "m" (*fx), "a" (lmask), "d" (hmask)
-		     :   "memory");
+				 : : "D" (fx), "m" (*fx), "a" (lmask), "d" (hmask)
+				 :   "memory");
 }
 
 static inline uint64_t xgetbv(uint32_t index)
@@ -204,8 +208,8 @@ static inline uint64_t xgetbv(uint32_t index)
 	uint32_t eax, edx;
 
 	asm volatile(".byte 0x0f,0x01,0xd0" /* xgetbv */
-		     : "=a" (eax), "=d" (edx)
-		     : "c" (index));
+				 : "=a" (eax), "=d" (edx)
+				 : "c" (index));
 	return eax + ((uint64_t)edx << 32);
 }
 
@@ -213,8 +217,8 @@ static uint64_t read_mpx_status_sig(ucontext_t *uctxt)
 {
 	memset(buffer, 0, sizeof(buffer));
 	memcpy(buffer,
-		(uint8_t *)uctxt->uc_mcontext.fpregs + XSAVE_OFFSET_IN_FPMEM,
-		sizeof(struct xsave_struct));
+		   (uint8_t *)uctxt->uc_mcontext.fpregs + XSAVE_OFFSET_IN_FPMEM,
+		   sizeof(struct xsave_struct));
 
 	return xsave_buf->bndcsr.status_reg;
 }
@@ -231,21 +235,26 @@ static uint8_t *get_next_inst_ip(uint8_t *addr)
 	uint8_t modrm;
 
 	/* determine the prefix. */
-	switch(*ip) {
-	case 0xf2:
-	case 0xf3:
-	case 0x66:
-		ip++;
-		break;
+	switch (*ip)
+	{
+		case 0xf2:
+		case 0xf3:
+		case 0x66:
+			ip++;
+			break;
 	}
 
 	/* look for rex prefix */
 	if ((*ip & 0x40) == 0x40)
+	{
 		ip++;
+	}
 
 	/* Make sure we have a MPX instruction. */
 	if (*ip++ != 0x0f)
+	{
 		return addr;
+	}
 
 	/* Skip the op code byte. */
 	ip++;
@@ -261,46 +270,61 @@ static uint8_t *get_next_inst_ip(uint8_t *addr)
 	base = 8;
 
 	/* Is it a mem mode? */
-	if (mod != 3) {
+	if (mod != 3)
+	{
 		/* look for scaled indexed addressing */
-		if (rm == 4) {
+		if (rm == 4)
+		{
 			/* SIB addressing */
 			sib = *ip++;
 			base = sib & 7;
-			switch (mod) {
-			case 0:
-				if (base == 5)
+
+			switch (mod)
+			{
+				case 0:
+					if (base == 5)
+					{
+						ip += 4;
+					}
+
+					break;
+
+				case 1:
+					ip++;
+					break;
+
+				case 2:
 					ip += 4;
-				break;
-
-			case 1:
-				ip++;
-				break;
-
-			case 2:
-				ip += 4;
-				break;
+					break;
 			}
 
-		} else {
+		}
+		else
+		{
 			/* MODRM addressing */
-			switch (mod) {
-			case 0:
-				/* DISP32 addressing, no base */
-				if (rm == 5)
+			switch (mod)
+			{
+				case 0:
+
+					/* DISP32 addressing, no base */
+					if (rm == 5)
+					{
+						ip += 4;
+					}
+
+					break;
+
+				case 1:
+					ip++;
+					break;
+
+				case 2:
 					ip += 4;
-				break;
-
-			case 1:
-				ip++;
-				break;
-
-			case 2:
-				ip += 4;
-				break;
+					break;
 			}
 		}
 	}
+
 	return ip;
 }
 
@@ -347,26 +371,34 @@ unsigned long shadow_map[NR_MPX_BOUNDS_REGISTERS];
  * since it is easily available, and we also check that *it* matches the real
  * registers.
  */
-void check_siginfo_vs_shadow(siginfo_t* si)
+void check_siginfo_vs_shadow(siginfo_t *si)
 {
 	int siginfo_ok = 1;
 	void *shadow_lower = (void *)(unsigned long)shadow_plb[expected_bnd_index][0];
 	void *shadow_upper = (void *)(unsigned long)shadow_plb[expected_bnd_index][1];
 
 	if ((expected_bnd_index < 0) ||
-	    (expected_bnd_index >= NR_MPX_BOUNDS_REGISTERS)) {
+		(expected_bnd_index >= NR_MPX_BOUNDS_REGISTERS))
+	{
 		fprintf(stderr, "ERROR: invalid expected_bnd_index: %d\n",
-			expected_bnd_index);
+				expected_bnd_index);
 		exit(6);
 	}
-	if (__si_bounds_lower(si) != shadow_lower)
-		siginfo_ok = 0;
-	if (__si_bounds_upper(si) != shadow_upper)
-		siginfo_ok = 0;
 
-	if (!siginfo_ok) {
+	if (__si_bounds_lower(si) != shadow_lower)
+	{
+		siginfo_ok = 0;
+	}
+
+	if (__si_bounds_upper(si) != shadow_upper)
+	{
+		siginfo_ok = 0;
+	}
+
+	if (!siginfo_ok)
+	{
 		fprintf(stderr, "ERROR: siginfo bounds do not match "
-			"shadow bounds for register %d\n", expected_bnd_index);
+				"shadow bounds for register %d\n", expected_bnd_index);
 		exit(7);
 	}
 }
@@ -383,7 +415,8 @@ void handler(int signum, siginfo_t *si, void *vucontext)
 	trapno = uctxt->uc_mcontext.gregs[REG_TRAPNO];
 	ip = uctxt->uc_mcontext.gregs[REG_IP_IDX];
 
-	if (trapno == 5) {
+	if (trapno == 5)
+	{
 		typeof(si->si_addr) *si_addr_ptr = &si->si_addr;
 		uint64_t status = read_mpx_status_sig(uctxt);
 		uint64_t br_reason =  status & 0x3;
@@ -395,11 +428,11 @@ void handler(int signum, siginfo_t *si, void *vucontext)
 #define SEGV_BNDERR     (__SI_FAULT|3)  /* failed address bound checks */
 
 		dprintf2("Saw a #BR! status 0x%jx at %016lx br_reason: %jx\n",
-				status, ip, br_reason);
+				 status, ip, br_reason);
 		dprintf2("si_signo: %d\n", si->si_signo);
 		dprintf2("  signum: %d\n", signum);
 		dprintf2("info->si_code == SEGV_BNDERR: %d\n",
-				(si->si_code == SEGV_BNDERR));
+				 (si->si_code == SEGV_BNDERR));
 		dprintf2("info->si_code: %d\n", si->si_code);
 		dprintf2("info->si_lower: %p\n", __si_bounds_lower(si));
 		dprintf2("info->si_upper: %p\n", __si_bounds_upper(si));
@@ -407,42 +440,53 @@ void handler(int signum, siginfo_t *si, void *vucontext)
 		check_siginfo_vs_shadow(si);
 
 		for (i = 0; i < 8; i++)
+		{
 			dprintf3("[%d]: %p\n", i, si_addr_ptr[i]);
-		switch (br_reason) {
-		case 0: /* traditional BR */
-			fprintf(stderr,
-				"Undefined status with bound exception:%jx\n",
-				 status);
-			exit(5);
-		case 1: /* #BR MPX bounds exception */
-			/* these are normal and we expect to see them */
-			dprintf1("bounds exception (normal): status 0x%jx at %p si_addr: %p\n",
-				status, (void *)ip, si->si_addr);
-			num_bnd_chk++;
-			uctxt->uc_mcontext.gregs[REG_IP_IDX] =
-				(greg_t)get_next_inst_ip((uint8_t *)ip);
-			break;
-		case 2:
-			fprintf(stderr, "#BR status == 2, missing bounds table,"
-					"kernel should have handled!!\n");
-			exit(4);
-			break;
-		default:
-			fprintf(stderr, "bound check error: status 0x%jx at %p\n",
-				status, (void *)ip);
-			num_bnd_chk++;
-			uctxt->uc_mcontext.gregs[REG_IP_IDX] =
-				(greg_t)get_next_inst_ip((uint8_t *)ip);
-			fprintf(stderr, "bound check error: si_addr %p\n", si->si_addr);
-			exit(3);
 		}
-	} else if (trapno == 14) {
+
+		switch (br_reason)
+		{
+			case 0: /* traditional BR */
+				fprintf(stderr,
+						"Undefined status with bound exception:%jx\n",
+						status);
+				exit(5);
+
+			case 1: /* #BR MPX bounds exception */
+				/* these are normal and we expect to see them */
+				dprintf1("bounds exception (normal): status 0x%jx at %p si_addr: %p\n",
+						 status, (void *)ip, si->si_addr);
+				num_bnd_chk++;
+				uctxt->uc_mcontext.gregs[REG_IP_IDX] =
+					(greg_t)get_next_inst_ip((uint8_t *)ip);
+				break;
+
+			case 2:
+				fprintf(stderr, "#BR status == 2, missing bounds table,"
+						"kernel should have handled!!\n");
+				exit(4);
+				break;
+
+			default:
+				fprintf(stderr, "bound check error: status 0x%jx at %p\n",
+						status, (void *)ip);
+				num_bnd_chk++;
+				uctxt->uc_mcontext.gregs[REG_IP_IDX] =
+					(greg_t)get_next_inst_ip((uint8_t *)ip);
+				fprintf(stderr, "bound check error: si_addr %p\n", si->si_addr);
+				exit(3);
+		}
+	}
+	else if (trapno == 14)
+	{
 		eprintf("ERROR: In signal handler, page fault, trapno = %d, ip = %016lx\n",
-			trapno, ip);
+				trapno, ip);
 		eprintf("si_addr %p\n", si->si_addr);
 		eprintf("REG_ERR: %lx\n", (unsigned long)uctxt->uc_mcontext.gregs[REG_ERR]);
 		test_failed();
-	} else {
+	}
+	else
+	{
 		eprintf("unexpected trap %d! at 0x%lx\n", trapno, ip);
 		eprintf("si_addr %p\n", si->si_addr);
 		eprintf("REG_ERR: %lx\n", (unsigned long)uctxt->uc_mcontext.gregs[REG_ERR]);
@@ -451,8 +495,8 @@ void handler(int signum, siginfo_t *si, void *vucontext)
 }
 
 static inline void cpuid_count(unsigned int op, int count,
-			       unsigned int *eax, unsigned int *ebx,
-			       unsigned int *ecx, unsigned int *edx)
+							   unsigned int *eax, unsigned int *ebx,
+							   unsigned int *ecx, unsigned int *edx)
 {
 	*eax = op;
 	*ecx = count;
@@ -464,7 +508,8 @@ static inline void cpuid_count(unsigned int op, int count,
 /*
  * List of XSAVE features Linux knows about:
  */
-enum xfeature_bit {
+enum xfeature_bit
+{
 	XSTATE_BIT_FP,
 	XSTATE_BIT_SSE,
 	XSTATE_BIT_YMM,
@@ -490,7 +535,7 @@ enum xfeature_bit {
 
 bool one_bit(unsigned int x, int bit)
 {
-	return !!(x & (1<<bit));
+	return !!(x & (1 << bit));
 }
 
 void print_state_component(int state_bit_nr, char *name)
@@ -509,9 +554,9 @@ void print_state_component(int state_bit_nr, char *name)
 	state_component_user = !one_bit(ecx, 0);
 	state_component_aligned = one_bit(ecx, 1);
 	printf("%8s: size: %d user: %d supervisor: %d aligned: %d\n",
-		name,
-		state_component_size,	    state_component_user,
-		state_component_supervisor, state_component_aligned);
+		   name,
+		   state_component_size,	    state_component_user,
+		   state_component_supervisor, state_component_aligned);
 
 }
 
@@ -526,12 +571,14 @@ bool check_mpx_support(void)
 	cpuid_count(1, 0, &eax, &ebx, &ecx, &edx);
 
 	/* We can't do much without XSAVE, so just make these assert()'s */
-	if (!one_bit(ecx, XSAVE_FEATURE_BIT)) {
+	if (!one_bit(ecx, XSAVE_FEATURE_BIT))
+	{
 		fprintf(stderr, "processor lacks XSAVE, can not run MPX tests\n");
 		exit(0);
 	}
 
-	if (!one_bit(ecx, OSXSAVE_FEATURE_BIT)) {
+	if (!one_bit(ecx, OSXSAVE_FEATURE_BIT))
+	{
 		fprintf(stderr, "processor lacks OSXSAVE, can not run MPX tests\n");
 		exit(0);
 	}
@@ -539,7 +586,9 @@ bool check_mpx_support(void)
 	/* CPUs not supporting the XSTATE CPUID leaf do not support MPX */
 	/* Is this redundant with the feature bit checks? */
 	cpuid_count(0, 0, &eax, &ebx, &ecx, &edx);
-	if (eax < XSTATE_CPUID) {
+
+	if (eax < XSTATE_CPUID)
+	{
 		fprintf(stderr, "processor lacks XSTATE CPUID leaf,"
 				" can not run MPX tests\n");
 		exit(0);
@@ -553,13 +602,15 @@ bool check_mpx_support(void)
 	printf("XSAVE OS supported state mask: 0x%jx\n", xgetbv(0));
 
 	/* Make sure that the MPX states are enabled in in XCR0 */
-	if ((eax & MPX_XSTATES) != MPX_XSTATES) {
+	if ((eax & MPX_XSTATES) != MPX_XSTATES)
+	{
 		fprintf(stderr, "processor lacks MPX XSTATE(s), can not run MPX tests\n");
 		exit(0);
 	}
 
 	/* Make sure the MPX states are supported by XSAVE* */
-	if ((xgetbv(0) & MPX_XSTATES) != MPX_XSTATES) {
+	if ((xgetbv(0) & MPX_XSTATES) != MPX_XSTATES)
+	{
 		fprintf(stderr, "MPX XSTATE(s) no enabled in XCR0, "
 				"can not run MPX tests\n");
 		exit(0);
@@ -583,14 +634,14 @@ void enable_mpx(void *l1base)
 
 	dprintf2("bf xrstor\n");
 	dprintf2("xsave cndcsr: status %jx, configu %jx\n",
-	       xsave_buf->bndcsr.status_reg, xsave_buf->bndcsr.cfg_reg_u);
+			 xsave_buf->bndcsr.status_reg, xsave_buf->bndcsr.cfg_reg_u);
 	xrstor_state(xsave_buf, 0x18);
 	dprintf2("after xrstor\n");
 
 	xsave_state_1(xsave_buf, 0x18);
 
 	dprintf1("xsave bndcsr: status %jx, configu %jx\n",
-	       xsave_buf->bndcsr.status_reg, xsave_buf->bndcsr.cfg_reg_u);
+			 xsave_buf->bndcsr.status_reg, xsave_buf->bndcsr.cfg_reg_u);
 }
 
 #include <sys/prctl.h>
@@ -608,12 +659,15 @@ void check_clear(void *ptr, unsigned long sz)
 {
 	unsigned long *i;
 
-	for (i = ptr; (void *)i < ptr + sz; i++) {
-		if (*i) {
+	for (i = ptr; (void *)i < ptr + sz; i++)
+	{
+		if (*i)
+		{
 			dprintf1("%p is NOT clear at %p\n", ptr, i);
 			assert(0);
 		}
 	}
+
 	dprintf1("%p is clear for %lx\n", ptr, sz);
 }
 
@@ -631,11 +685,16 @@ bool process_specific_init(void)
 	unsigned long pad = getpagesize();
 
 	size = 2UL << 30; /* 2GB */
+
 	if (sizeof(unsigned long) == 4)
-		size = 4UL << 20; /* 4MB */
+	{
+		size = 4UL << 20;    /* 4MB */
+	}
+
 	dprintf1("trying to allocate %ld MB bounds directory\n", (size >> 20));
 
-	if (USE_MALLOC_FOR_BOUNDS_DIR) {
+	if (USE_MALLOC_FOR_BOUNDS_DIR)
+	{
 		unsigned long _dir;
 
 		dir = malloc(size + pad);
@@ -644,42 +703,53 @@ bool process_specific_init(void)
 		_dir += 0xfffUL;
 		_dir &= ~0xfffUL;
 		dir = (void *)_dir;
-	} else {
+	}
+	else
+	{
 		/*
 		 * This makes debugging easier because the address
 		 * calculations are simpler:
 		 */
 		dir = mmap((void *)0x200000000000, size + pad,
-				PROT_READ|PROT_WRITE,
-				MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
-		if (dir == (void *)-1) {
+				   PROT_READ | PROT_WRITE,
+				   MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+
+		if (dir == (void *) - 1)
+		{
 			perror("unable to allocate bounds directory");
 			abort();
 		}
+
 		check_clear(dir, size);
 	}
+
 	bounds_dir_ptr = (void *)dir;
 	madvise(bounds_dir_ptr, size, MADV_NOHUGEPAGE);
 	bd_incore();
 	dprintf1("bounds directory: 0x%p -> 0x%p\n", bounds_dir_ptr,
-			(char *)bounds_dir_ptr + size);
+			 (char *)bounds_dir_ptr + size);
 	check_clear(dir, size);
 	enable_mpx(dir);
 	check_clear(dir, size);
-	if (prctl(43, 0, 0, 0, 0)) {
+
+	if (prctl(43, 0, 0, 0, 0))
+	{
 		printf("no MPX support\n");
 		abort();
 		return false;
 	}
+
 	return true;
 }
 
 bool process_specific_finish(void)
 {
-	if (prctl(44)) {
+	if (prctl(44))
+	{
 		printf("no MPX support\n");
 		return false;
 	}
+
 	return true;
 }
 
@@ -755,8 +825,8 @@ static __always_inline void xsave_state(void *_fx, uint64_t mask)
 	unsigned char *fx = _fx;
 
 	asm volatile(".byte " REX_PREFIX "0x0f,0xae,0x27\n\t"
-		     : : "D" (fx), "m" (*fx), "a" (lmask), "d" (hmask)
-		     :   "memory");
+				 : : "D" (fx), "m" (*fx), "a" (lmask), "d" (hmask)
+				 :   "memory");
 }
 
 static __always_inline void mpx_clear_bnd0(void)
@@ -766,8 +836,8 @@ static __always_inline void mpx_clear_bnd0(void)
 	/* F3 0F 1B /r BNDMK bnd, m64			*/
 	/* f3 0f 1b 04 11    bndmk  (%rcx,%rdx,1),%bnd0	*/
 	asm volatile(".byte 0xf3,0x0f,0x1b,0x04,0x11\n\t"
-		     : : "c" (ptr), "d" (size-1)
-		     :   "memory");
+				 : : "c" (ptr), "d" (size-1)
+				 :   "memory");
 }
 
 static __always_inline void mpx_make_bound_helper(unsigned long ptr,
@@ -776,8 +846,8 @@ static __always_inline void mpx_make_bound_helper(unsigned long ptr,
 	/* F3 0F 1B /r		BNDMK bnd, m64			*/
 	/* f3 0f 1b 04 11       bndmk  (%rcx,%rdx,1),%bnd0	*/
 	asm volatile(".byte 0xf3,0x0f,0x1b,0x04,0x11\n\t"
-		     : : "c" (ptr), "d" (size-1)
-		     :   "memory");
+				 : : "c" (ptr), "d" (size-1)
+				 :   "memory");
 }
 
 static __always_inline void mpx_check_lowerbound_helper(unsigned long ptr)
@@ -785,8 +855,8 @@ static __always_inline void mpx_check_lowerbound_helper(unsigned long ptr)
 	/* F3 0F 1A /r	NDCL bnd, r/m64			*/
 	/* f3 0f 1a 01	bndcl  (%rcx),%bnd0		*/
 	asm volatile(".byte 0xf3,0x0f,0x1a,0x01\n\t"
-		     : : "c" (ptr)
-		     :   "memory");
+				 : : "c" (ptr)
+				 :   "memory");
 }
 
 static __always_inline void mpx_check_upperbound_helper(unsigned long ptr)
@@ -794,8 +864,8 @@ static __always_inline void mpx_check_upperbound_helper(unsigned long ptr)
 	/* F2 0F 1A /r	BNDCU bnd, r/m64	*/
 	/* f2 0f 1a 01	bndcu  (%rcx),%bnd0	*/
 	asm volatile(".byte 0xf2,0x0f,0x1a,0x01\n\t"
-		     : : "c" (ptr)
-		     :   "memory");
+				 : : "c" (ptr)
+				 :   "memory");
 }
 
 static __always_inline void mpx_movbndreg_helper()
@@ -811,8 +881,8 @@ static __always_inline void mpx_movbnd2mem_helper(uint8_t *mem)
 	/* 66 0F 1B /r	BNDMOV bnd1/m128, bnd2	*/
 	/* 66 0f 1b 01	bndmov %bnd0,(%rcx)	*/
 	asm volatile(".byte 0x66,0x0f,0x1b,0x01\n\t"
-		     : : "c" (mem)
-		     :   "memory");
+				 : : "c" (mem)
+				 :   "memory");
 }
 
 static __always_inline void mpx_movbnd_from_mem_helper(uint8_t *mem)
@@ -820,8 +890,8 @@ static __always_inline void mpx_movbnd_from_mem_helper(uint8_t *mem)
 	/* 66 0F 1A /r	BNDMOV bnd1, bnd2/m128	*/
 	/* 66 0f 1a 01	bndmov (%rcx),%bnd0	*/
 	asm volatile(".byte 0x66,0x0f,0x1a,0x01\n\t"
-		     : : "c" (mem)
-		     :   "memory");
+				 : : "c" (mem)
+				 :   "memory");
 }
 
 static __always_inline void mpx_store_dsc_helper(unsigned long ptr_addr,
@@ -830,8 +900,8 @@ static __always_inline void mpx_store_dsc_helper(unsigned long ptr_addr,
 	/* 0F 1B /r	BNDSTX-Store Extended Bounds Using Address Translation	*/
 	/* 0f 1b 04 11	bndstx %bnd0,(%rcx,%rdx,1)				*/
 	asm volatile(".byte 0x0f,0x1b,0x04,0x11\n\t"
-		     : : "c" (ptr_addr), "d" (ptr_val)
-		     :   "memory");
+				 : : "c" (ptr_addr), "d" (ptr_val)
+				 :   "memory");
 }
 
 static __always_inline void mpx_load_dsc_helper(unsigned long ptr_addr,
@@ -840,8 +910,8 @@ static __always_inline void mpx_load_dsc_helper(unsigned long ptr_addr,
 	/* 0F 1A /r	BNDLDX-Load			*/
 	/*/ 0f 1a 04 11	bndldx (%rcx,%rdx,1),%bnd0	*/
 	asm volatile(".byte 0x0f,0x1a,0x04,0x11\n\t"
-		     : : "c" (ptr_addr), "d" (ptr_val)
-		     :   "memory");
+				 : : "c" (ptr_addr), "d" (ptr_val)
+				 :   "memory");
 }
 
 void __print_context(void *__print_xsave_buffer, int line)
@@ -851,20 +921,22 @@ void __print_context(void *__print_xsave_buffer, int line)
 
 	int i;
 	eprintf("%s()::%d\n", "print_context", line);
-	for (i = 0; i < 4; i++) {
+
+	for (i = 0; i < 4; i++)
+	{
 		eprintf("bound[%d]: 0x%016lx 0x%016lx(0x%016lx)\n", i,
-		       (unsigned long)bounds[i*2],
-		       ~(unsigned long)bounds[i*2+1],
-			(unsigned long)bounds[i*2+1]);
+				(unsigned long)bounds[i * 2],
+				~(unsigned long)bounds[i * 2 + 1],
+				(unsigned long)bounds[i * 2 + 1]);
 	}
 
 	eprintf("cpcfg: %jx  cpstatus: %jx\n", cfg[0], cfg[1]);
 }
 #define print_context(x) __print_context(x, __LINE__)
 #ifdef DEBUG
-#define dprint_context(x) print_context(x)
+	#define dprint_context(x) print_context(x)
 #else
-#define dprint_context(x) do{}while(0)
+	#define dprint_context(x) do{}while(0)
 #endif
 
 void init()
@@ -873,7 +945,8 @@ void init()
 
 	srand((unsigned int)time(NULL));
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		shadow_plb[i][0] = 0;
 		shadow_plb[i][1] = ~(unsigned long)0;
 	}
@@ -893,7 +966,7 @@ long int __mpx_random(int line)
 
 uint8_t *get_random_addr()
 {
-	uint8_t*addr = (uint8_t *)(unsigned long)(rand() % MAX_ADDR_TESTED);
+	uint8_t *addr = (uint8_t *)(unsigned long)(rand() % MAX_ADDR_TESTED);
 	return (addr - (unsigned long)addr % sizeof(uint8_t *));
 }
 
@@ -902,16 +975,20 @@ static inline bool compare_context(void *__xsave_buffer)
 	uint64_t *bounds = (uint64_t *)(__xsave_buffer + MPX_BOUNDS_OFFSET);
 
 	int i;
-	for (i = 0; i < 4; i++) {
+
+	for (i = 0; i < 4; i++)
+	{
 		dprintf3("shadow[%d]{%016lx/%016lx}\nbounds[%d]{%016lx/%016lx}\n",
-		       i, (unsigned long)shadow_plb[i][0], (unsigned long)shadow_plb[i][1],
-		       i, (unsigned long)bounds[i*2],     ~(unsigned long)bounds[i*2+1]);
-		if ((shadow_plb[i][0] != bounds[i*2]) ||
-		    (shadow_plb[i][1] != ~(unsigned long)bounds[i*2+1])) {
+				 i, (unsigned long)shadow_plb[i][0], (unsigned long)shadow_plb[i][1],
+				 i, (unsigned long)bounds[i * 2],     ~(unsigned long)bounds[i * 2 + 1]);
+
+		if ((shadow_plb[i][0] != bounds[i * 2]) ||
+			(shadow_plb[i][1] != ~(unsigned long)bounds[i * 2 + 1]))
+		{
 			eprintf("ERROR comparing shadow to real bound register %d\n", i);
 			eprintf("shadow{0x%016lx/0x%016lx}\nbounds{0x%016lx/0x%016lx}\n",
-			       (unsigned long)shadow_plb[i][0], (unsigned long)shadow_plb[i][1],
-			       (unsigned long)bounds[i*2], (unsigned long)bounds[i*2+1]);
+					(unsigned long)shadow_plb[i][0], (unsigned long)shadow_plb[i][1],
+					(unsigned long)bounds[i * 2], (unsigned long)bounds[i * 2 + 1]);
 			return false;
 		}
 	}
@@ -921,28 +998,38 @@ static inline bool compare_context(void *__xsave_buffer)
 
 void mkbnd_shadow(uint8_t *ptr, int index, long offset)
 {
-	uint64_t *lower = (uint64_t *)&(shadow_plb[index][0]);
-	uint64_t *upper = (uint64_t *)&(shadow_plb[index][1]);
+	uint64_t *lower = (uint64_t *) & (shadow_plb[index][0]);
+	uint64_t *upper = (uint64_t *) & (shadow_plb[index][1]);
 	*lower = (unsigned long)ptr;
 	*upper = (unsigned long)ptr + offset - 1;
 }
 
 void check_lowerbound_shadow(uint8_t *ptr, int index)
 {
-	uint64_t *lower = (uint64_t *)&(shadow_plb[index][0]);
+	uint64_t *lower = (uint64_t *) & (shadow_plb[index][0]);
+
 	if (*lower > (uint64_t)(unsigned long)ptr)
+	{
 		num_lower_brs++;
+	}
 	else
+	{
 		dprintf1("LowerBoundChk passed:%p\n", ptr);
+	}
 }
 
 void check_upperbound_shadow(uint8_t *ptr, int index)
 {
-	uint64_t upper = *(uint64_t *)&(shadow_plb[index][1]);
+	uint64_t upper = *(uint64_t *) & (shadow_plb[index][1]);
+
 	if (upper < (uint64_t)(unsigned long)ptr)
+	{
 		num_upper_brs++;
+	}
 	else
+	{
 		dprintf1("UpperBoundChk passed:%p\n", ptr);
+	}
 }
 
 __always_inline void movbndreg_shadow(int src, int dest)
@@ -953,18 +1040,18 @@ __always_inline void movbndreg_shadow(int src, int dest)
 
 __always_inline void movbnd2mem_shadow(int src, unsigned long *dest)
 {
-	unsigned long *lower = (unsigned long *)&(shadow_plb[src][0]);
-	unsigned long *upper = (unsigned long *)&(shadow_plb[src][1]);
+	unsigned long *lower = (unsigned long *) & (shadow_plb[src][0]);
+	unsigned long *upper = (unsigned long *) & (shadow_plb[src][1]);
 	*dest = *lower;
-	*(dest+1) = *upper;
+	*(dest + 1) = *upper;
 }
 
 __always_inline void movbnd_from_mem_shadow(unsigned long *src, int dest)
 {
-	unsigned long *lower = (unsigned long *)&(shadow_plb[dest][0]);
-	unsigned long *upper = (unsigned long *)&(shadow_plb[dest][1]);
+	unsigned long *lower = (unsigned long *) & (shadow_plb[dest][0]);
+	unsigned long *upper = (unsigned long *) & (shadow_plb[dest][1]);
 	*lower = *src;
-	*upper = *(src+1);
+	*upper = *(src + 1);
 }
 
 __always_inline void stdsc_shadow(int index, uint8_t *ptr, uint8_t *ptr_val)
@@ -973,7 +1060,7 @@ __always_inline void stdsc_shadow(int index, uint8_t *ptr, uint8_t *ptr_val)
 	shadow_map[1] = (unsigned long)shadow_plb[index][1];
 	shadow_map[2] = (unsigned long)ptr_val;
 	dprintf3("%s(%d, %p, %p) set shadow map[2]: %p\n", __func__,
-			index, ptr, ptr_val, ptr_val);
+			 index, ptr, ptr_val, ptr_val);
 	/*ptr ignored */
 }
 
@@ -983,16 +1070,20 @@ void lddsc_shadow(int index, uint8_t *ptr, uint8_t *ptr_val)
 	uint64_t upper = shadow_map[1];
 	uint8_t *value = (uint8_t *)shadow_map[2];
 
-	if (value != ptr_val) {
+	if (value != ptr_val)
+	{
 		dprintf2("%s(%d, %p, %p) init shadow bounds[%d] "
-			 "because %p != %p\n", __func__, index, ptr,
-			 ptr_val, index, value, ptr_val);
+				 "because %p != %p\n", __func__, index, ptr,
+				 ptr_val, index, value, ptr_val);
 		shadow_plb[index][0] = 0;
 		shadow_plb[index][1] = ~(unsigned long)0;
-	} else {
+	}
+	else
+	{
 		shadow_plb[index][0] = lower;
 		shadow_plb[index][1] = upper;
 	}
+
 	/* ptr ignored */
 }
 
@@ -1010,16 +1101,16 @@ static __always_inline void mpx_test_helper1(uint8_t *buf, uint8_t *ptr)
 {
 	/* these are hard-coded to check bnd0 */
 	expected_bnd_index = 0;
-	mpx_check_lowerbound_helper((unsigned long)(ptr-1));
-	mpx_check_upperbound_helper((unsigned long)(ptr+0x1800));
+	mpx_check_lowerbound_helper((unsigned long)(ptr - 1));
+	mpx_check_upperbound_helper((unsigned long)(ptr + 0x1800));
 	/* reset this since we do not expect any more bounds exceptions */
 	expected_bnd_index = -1;
 }
 
 static __always_inline void mpx_test_helper1_shadow(uint8_t *buf, uint8_t *ptr)
 {
-	check_lowerbound_shadow(ptr-1, 0);
-	check_upperbound_shadow(ptr+0x1800, 0);
+	check_lowerbound_shadow(ptr - 1, 0);
+	check_upperbound_shadow(ptr + 0x1800, 0);
 }
 
 static __always_inline void mpx_test_helper2(uint8_t *buf, uint8_t *ptr)
@@ -1027,7 +1118,7 @@ static __always_inline void mpx_test_helper2(uint8_t *buf, uint8_t *ptr)
 	mpx_make_bound_helper((unsigned long)ptr, 0x1800);
 	mpx_movbndreg_helper();
 	mpx_movbnd2mem_helper(buf);
-	mpx_make_bound_helper((unsigned long)(ptr+0x12), 0x1800);
+	mpx_make_bound_helper((unsigned long)(ptr + 0x12), 0x1800);
 }
 
 static __always_inline void mpx_test_helper2_shadow(uint8_t *buf, uint8_t *ptr)
@@ -1035,7 +1126,7 @@ static __always_inline void mpx_test_helper2_shadow(uint8_t *buf, uint8_t *ptr)
 	mkbnd_shadow(ptr, 0, 0x1800);
 	movbndreg_shadow(0, 2);
 	movbnd2mem_shadow(0, (unsigned long *)buf);
-	mkbnd_shadow(ptr+0x12, 0, 0x1800);
+	mkbnd_shadow(ptr + 0x12, 0, 0x1800);
 }
 
 static __always_inline void mpx_test_helper3(uint8_t *buf, uint8_t *ptr)
@@ -1051,13 +1142,13 @@ static __always_inline void mpx_test_helper3_shadow(uint8_t *buf, uint8_t *ptr)
 static __always_inline void mpx_test_helper4(uint8_t *buf, uint8_t *ptr)
 {
 	mpx_store_dsc_helper((unsigned long)buf, (unsigned long)ptr);
-	mpx_make_bound_helper((unsigned long)(ptr+0x12), 0x1800);
+	mpx_make_bound_helper((unsigned long)(ptr + 0x12), 0x1800);
 }
 
 static __always_inline void mpx_test_helper4_shadow(uint8_t *buf, uint8_t *ptr)
 {
 	stdsc_shadow(0, buf, ptr);
-	mkbnd_shadow(ptr+0x12, 0, 0x1800);
+	mkbnd_shadow(ptr + 0x12, 0, 0x1800);
 }
 
 static __always_inline void mpx_test_helper5(uint8_t *buf, uint8_t *ptr)
@@ -1082,40 +1173,49 @@ static __always_inline void mpx_test_helper5_shadow(uint8_t *buf, uint8_t *ptr)
  * helpers, or anywhere else beween the xrstor and xsave.
  */
 #define run_helper(helper_nr, buf, buf_shadow, ptr)	do {	\
-	xrstor_state(xsave_test_buf, flags);			\
-	mpx_test_helper##helper_nr(buf, ptr);			\
-	xsave_state(xsave_test_buf, flags);			\
-	mpx_test_helper##helper_nr##_shadow(buf_shadow, ptr);	\
-} while (0)
+		xrstor_state(xsave_test_buf, flags);			\
+		mpx_test_helper##helper_nr(buf, ptr);			\
+		xsave_state(xsave_test_buf, flags);			\
+		mpx_test_helper##helper_nr##_shadow(buf_shadow, ptr);	\
+	} while (0)
 
 static void run_helpers(int nr, uint8_t *buf, uint8_t *buf_shadow, uint8_t *ptr)
 {
 	uint64_t flags = 0x18;
 
 	dprint_context(xsave_test_buf);
-	switch (nr) {
-	case 0:
-		run_helper(0, buf, buf_shadow, ptr);
-		break;
-	case 1:
-		run_helper(1, buf, buf_shadow, ptr);
-		break;
-	case 2:
-		run_helper(2, buf, buf_shadow, ptr);
-		break;
-	case 3:
-		run_helper(3, buf, buf_shadow, ptr);
-		break;
-	case 4:
-		run_helper(4, buf, buf_shadow, ptr);
-		break;
-	case 5:
-		run_helper(5, buf, buf_shadow, ptr);
-		break;
-	default:
-		test_failed();
-		break;
+
+	switch (nr)
+	{
+		case 0:
+			run_helper(0, buf, buf_shadow, ptr);
+			break;
+
+		case 1:
+			run_helper(1, buf, buf_shadow, ptr);
+			break;
+
+		case 2:
+			run_helper(2, buf, buf_shadow, ptr);
+			break;
+
+		case 3:
+			run_helper(3, buf, buf_shadow, ptr);
+			break;
+
+		case 4:
+			run_helper(4, buf, buf_shadow, ptr);
+			break;
+
+		case 5:
+			run_helper(5, buf, buf_shadow, ptr);
+			break;
+
+		default:
+			test_failed();
+			break;
 	}
+
 	dprint_context(xsave_test_buf);
 }
 
@@ -1133,17 +1233,22 @@ long cover_buf_with_bt_entries(void *buf, long buf_len)
 	nr_to_fill = buf_len / (sizeof(unsigned long) * ratio);
 
 	if (!nr_to_fill)
+	{
 		dprintf3("%s() nr_to_fill: %ld\n", __func__, nr_to_fill);
+	}
 
 	/* Align the buffer to pointer size */
-	while (((unsigned long)buf) % sizeof(void *)) {
+	while (((unsigned long)buf) % sizeof(void *))
+	{
 		buf++;
 		buf_len--;
 	}
+
 	/* We are storing pointers, so make */
 	buf_len_in_ptrs = buf_len / sizeof(void *);
 
-	for (i = 0; i < nr_to_fill; i++) {
+	for (i = 0; i < nr_to_fill; i++)
+	{
 		long index = (mpx_random() % buf_len_in_ptrs);
 		void *ptr = buf + index * sizeof(unsigned long);
 		unsigned long ptr_addr = (unsigned long)ptr;
@@ -1159,19 +1264,20 @@ long cover_buf_with_bt_entries(void *buf, long buf_len)
 		 */
 		mpx_store_dsc_helper(ptr_addr, (unsigned long)ptr);
 		dprintf4("storing bound table entry for %lx (buf start @ %p)\n",
-				ptr_addr, buf);
+				 ptr_addr, buf);
 	}
+
 	return nr_to_fill;
 }
 
 unsigned long align_down(unsigned long alignme, unsigned long align_to)
 {
-	return alignme & ~(align_to-1);
+	return alignme & ~(align_to - 1);
 }
 
 unsigned long align_up(unsigned long alignme, unsigned long align_to)
 {
-	return (alignme + align_to - 1) & ~(align_to-1);
+	return (alignme + align_to - 1) & ~(align_to - 1);
 }
 
 /*
@@ -1190,11 +1296,11 @@ unsigned long align_up(unsigned long alignme, unsigned long align_to)
  * that.
  */
 #ifdef __i386__
-long alignment = 4096;
-long sz_alignment = 4096;
+	long alignment = 4096;
+	long sz_alignment = 4096;
 #else
-long alignment = 1 * MB;
-long sz_alignment = 1 * MB;
+	long alignment = 1 * MB;
+	long sz_alignment = 1 * MB;
 #endif
 void *mpx_mini_alloc(unsigned long sz)
 {
@@ -1206,17 +1312,26 @@ void *mpx_mini_alloc(unsigned long sz)
 	sz = align_up(sz, sz_alignment);
 
 	try_at = last + alignment;
-	while (1) {
-		ptr = mmap(try_at, sz, PROT_READ|PROT_WRITE,
-				MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
-		if (ptr == (void *)-1)
+
+	while (1)
+	{
+		ptr = mmap(try_at, sz, PROT_READ | PROT_WRITE,
+				   MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+
+		if (ptr == (void *) - 1)
+		{
 			return NULL;
+		}
+
 		if (ptr == try_at)
+		{
 			break;
+		}
 
 		munmap(ptr, sz);
 		try_at += alignment;
 #ifdef __i386__
+
 		/*
 		 * This isn't quite correct for 32-bit binaries
 		 * on 64-bit kernels since they can use the
@@ -1228,10 +1343,15 @@ void *mpx_mini_alloc(unsigned long sz)
 		if (try_at > (void *)0x0000800000000000)
 #endif
 			try_at = (void *)0x0;
+
 		if (!(++tries % 10000))
+		{
 			dprintf1("stuck in %s(), tries: %lld\n", __func__, tries);
+		}
+
 		continue;
 	}
+
 	last = ptr;
 	dprintf3("mpx_mini_alloc(0x%lx) returning: %p\n", sz, ptr);
 	return ptr;
@@ -1239,10 +1359,13 @@ void *mpx_mini_alloc(unsigned long sz)
 void mpx_mini_free(void *ptr, long sz)
 {
 	dprintf2("%s() ptr: %p\n", __func__, ptr);
-	if ((unsigned long)ptr > 0x100000000000) {
+
+	if ((unsigned long)ptr > 0x100000000000)
+	{
 		dprintf1("uh oh !!!!!!!!!!!!!!! pointer too high: %p\n", ptr);
 		test_failed();
 	}
+
 	sz = align_up(sz, sz_alignment);
 	dprintf3("%s() ptr: %p before munmap\n", __func__, ptr);
 	munmap(ptr, sz);
@@ -1250,7 +1373,8 @@ void mpx_mini_free(void *ptr, long sz)
 }
 
 #define NR_MALLOCS 100
-struct one_malloc {
+struct one_malloc
+{
 	char *ptr;
 	int nr_filled_btes;
 	unsigned long size;
@@ -1263,24 +1387,26 @@ void free_one_malloc(int index)
 	unsigned long mask;
 
 	if (!mallocs[index].ptr)
+	{
 		return;
+	}
 
 	mpx_mini_free(mallocs[index].ptr, mallocs[index].size);
 	dprintf4("freed[%d]:  %p\n", index, mallocs[index].ptr);
 
 	free_ptr = (unsigned long)mallocs[index].ptr;
-	mask = alignment-1;
+	mask = alignment - 1;
 	dprintf4("lowerbits: %lx / %lx mask: %lx\n", free_ptr,
-			(free_ptr & mask), mask);
+			 (free_ptr & mask), mask);
 	assert((free_ptr & mask) == 0);
 
 	mallocs[index].ptr = NULL;
 }
 
 #ifdef __i386__
-#define MPX_BOUNDS_TABLE_COVERS 4096
+	#define MPX_BOUNDS_TABLE_COVERS 4096
 #else
-#define MPX_BOUNDS_TABLE_COVERS (1 * MB)
+	#define MPX_BOUNDS_TABLE_COVERS (1 * MB)
 #endif
 void zap_everything(void)
 {
@@ -1290,19 +1416,26 @@ void zap_everything(void)
 
 	before_zap = inspect_me(bounds_dir_ptr);
 	dprintf1("zapping everything start: %ld\n", before_zap);
+
 	for (i = 0; i < NR_MALLOCS; i++)
+	{
 		free_one_malloc(i);
+	}
 
 	after_zap = inspect_me(bounds_dir_ptr);
 	dprintf1("zapping everything done: %ld\n", after_zap);
+
 	/*
 	 * We only guarantee to empty the thing out if our allocations are
 	 * exactly aligned on the boundaries of a boudns table.
 	 */
 	if ((alignment >= MPX_BOUNDS_TABLE_COVERS) &&
-	    (sz_alignment >= MPX_BOUNDS_TABLE_COVERS)) {
+		(sz_alignment >= MPX_BOUNDS_TABLE_COVERS))
+	{
 		if (after_zap != 0)
+		{
 			test_failed();
+		}
 
 		assert(after_zap == 0);
 	}
@@ -1317,23 +1450,34 @@ void do_one_malloc(void)
 
 	dprintf3("%s() enter\n", __func__);
 
-	if (ptr) {
+	if (ptr)
+	{
 		dprintf3("freeing one malloc at index: %d\n", rand_index);
 		free_one_malloc(rand_index);
-		if (mpx_random() % (NR_MALLOCS*3) == 3) {
+
+		if (mpx_random() % (NR_MALLOCS * 3) == 3)
+		{
 			int i;
 			dprintf3("zapping some more\n");
+
 			for (i = rand_index; i < NR_MALLOCS; i++)
+			{
 				free_one_malloc(i);
+			}
 		}
+
 		if ((mpx_random() % zap_all_every_this_many_mallocs) == 4)
+		{
 			zap_everything();
+		}
 	}
 
 	/* 1->~1M */
 	sz = (1 + mpx_random() % 1000) * 1000;
 	ptr = mpx_mini_alloc(sz);
-	if (!ptr) {
+
+	if (!ptr)
+	{
 		/*
 		 * If we are failing allocations, just assume we
 		 * are out of memory and zap everything.
@@ -1348,8 +1492,11 @@ void do_one_malloc(void)
 	mallocs[rand_index].ptr = ptr;
 	mallocs[rand_index].size = sz;
 out:
+
 	if ((++malloc_counter) % inspect_every_this_many_mallocs == 0)
+	{
 		inspect_me(bounds_dir_ptr);
+	}
 }
 
 void run_timed_test(void (*test_func)(void))
@@ -1361,15 +1508,21 @@ void run_timed_test(void (*test_func)(void))
 	time_t start;
 
 	time(&start);
-	while (!done) {
+
+	while (!done)
+	{
 		time(&now);
+
 		if ((now - start) > TEST_DURATION_SECS)
+		{
 			done = 1;
+		}
 
 		test_func();
 		iteration++;
 
-		if ((now - last_print > 1) || done) {
+		if ((now - last_print > 1) || done)
+		{
 			printf("iteration %ld complete, OK so far\n", iteration);
 			last_print = now;
 		}
@@ -1385,11 +1538,13 @@ void check_bounds_table_frees(void)
 }
 
 void insn_test_failed(int test_nr, int test_round, void *buf,
-		void *buf_shadow, void *ptr)
+					  void *buf_shadow, void *ptr)
 {
 	print_context(xsave_test_buf);
 	eprintf("ERROR: test %d round %d failed\n", test_nr, test_round);
-	while (test_nr == 5) {
+
+	while (test_nr == 5)
+	{
 		struct mpx_bt_entry *bte;
 		struct mpx_bounds_dir *bd = (void *)bounds_dir_ptr;
 		struct mpx_bd_entry *bde = mpx_vaddr_to_bd_entry(buf, bd);
@@ -1397,8 +1552,11 @@ void insn_test_failed(int test_nr, int test_round, void *buf,
 		printf("  bd: %p\n", bd);
 		printf("&bde: %p\n", bde);
 		printf("*bde: %lx\n", *(unsigned long *)bde);
+
 		if (!bd_entry_valid(bde))
+		{
 			break;
+		}
 
 		bte = mpx_vaddr_to_bt_entry(buf, bd);
 		printf(" te: %p\n", bte);
@@ -1408,6 +1566,7 @@ void insn_test_failed(int test_nr, int test_round, void *buf,
 		printf("bte[3]: %lx\n", bte->contents[3]);
 		break;
 	}
+
 	test_failed();
 }
 
@@ -1415,7 +1574,7 @@ void check_mpx_insns_and_tables(void)
 {
 	int successes = 0;
 	int failures  = 0;
-	int buf_size = (1024*1024);
+	int buf_size = (1024 * 1024);
 	unsigned long *buf = malloc(buf_size);
 	const int total_nr_tests = NR_MPX_TEST_FUNCTIONS * TEST_ROUNDS;
 	int i, j;
@@ -1423,16 +1582,21 @@ void check_mpx_insns_and_tables(void)
 	memset(buf, 0, buf_size);
 	memset(buf_shadow, 0, sizeof(buf_shadow));
 
-	for (i = 0; i < TEST_ROUNDS; i++) {
+	for (i = 0; i < TEST_ROUNDS; i++)
+	{
 		uint8_t *ptr = get_random_addr() + 8;
 
-		for (j = 0; j < NR_MPX_TEST_FUNCTIONS; j++) {
-			if (0 && j != 5) {
+		for (j = 0; j < NR_MPX_TEST_FUNCTIONS; j++)
+		{
+			if (0 && j != 5)
+			{
 				successes++;
 				continue;
 			}
+
 			dprintf2("starting test %d round %d\n", j, i);
 			dprint_context(xsave_test_buf);
+
 			/*
 			 * test5 loads an address from the bounds tables.
 			 * The load will only complete if 'ptr' matches
@@ -1441,16 +1605,22 @@ void check_mpx_insns_and_tables(void)
 			 * higher by only moving 'ptr' 1/10 times.
 			 */
 			if (random() % 10 <= 0)
+			{
 				ptr = get_random_addr() + 8;
+			}
+
 			dprintf3("random ptr{%p}\n", ptr);
 			dprint_context(xsave_test_buf);
 			run_helpers(j, (void *)buf, (void *)buf_shadow, ptr);
 			dprint_context(xsave_test_buf);
-			if (!compare_context(xsave_test_buf)) {
+
+			if (!compare_context(xsave_test_buf))
+			{
 				insn_test_failed(j, i, buf, buf_shadow, ptr);
 				failures++;
 				goto exit;
 			}
+
 			successes++;
 			dprint_context(xsave_test_buf);
 			dprintf2("finished test %d round %d\n", j, i);
@@ -1467,16 +1637,22 @@ exit:
 	dprintf1("    tests: %d\n", total_nr_tests);
 	dprintf1(" expected: %jd #BRs\n", num_upper_brs + num_lower_brs);
 	dprintf1("      saw: %d #BRs\n", br_count);
-	if (failures) {
+
+	if (failures)
+	{
 		eprintf("ERROR: non-zero number of failures\n");
 		exit(20);
 	}
-	if (successes != total_nr_tests) {
+
+	if (successes != total_nr_tests)
+	{
 		eprintf("ERROR: succeded fewer than number of tries (%d != %d)\n",
 				successes, total_nr_tests);
 		exit(21);
 	}
-	if (num_upper_brs + num_lower_brs != br_count) {
+
+	if (num_upper_brs + num_lower_brs != br_count)
+	{
 		eprintf("ERROR: unexpected number of #BRs: %jd %jd %d\n",
 				num_upper_brs, num_lower_brs, br_count);
 		eprintf("successes: %d\n", successes);
@@ -1504,29 +1680,41 @@ void exhaust_vaddr_space(void)
 #endif
 
 	dprintf1("%s() start\n", __func__);
+
 	/* do not start at 0, we aren't allowed to map there */
-	for (ptr = PAGE_SIZE; ptr < max_vaddr; ptr += skip) {
+	for (ptr = PAGE_SIZE; ptr < max_vaddr; ptr += skip)
+	{
 		void *ptr_ret;
 		int ret = madvise((void *)ptr, PAGE_SIZE, MADV_NORMAL);
 
-		if (!ret) {
+		if (!ret)
+		{
 			dprintf1("madvise() %lx ret: %d\n", ptr, ret);
 			continue;
 		}
-		ptr_ret = mmap((void *)ptr, PAGE_SIZE, PROT_READ|PROT_WRITE,
-				MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
-		if (ptr_ret != (void *)ptr) {
+
+		ptr_ret = mmap((void *)ptr, PAGE_SIZE, PROT_READ | PROT_WRITE,
+					   MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+
+		if (ptr_ret != (void *)ptr)
+		{
 			perror("mmap");
 			dprintf1("mmap(%lx) ret: %p\n", ptr, ptr_ret);
 			break;
 		}
+
 		if (!(ptr & 0xffffff))
+		{
 			dprintf1("mmap(%lx) ret: %p\n", ptr, ptr_ret);
+		}
 	}
-	for (ptr = PAGE_SIZE; ptr < max_vaddr; ptr += skip) {
+
+	for (ptr = PAGE_SIZE; ptr < max_vaddr; ptr += skip)
+	{
 		dprintf2("covering 0x%lx with bounds table entries\n", ptr);
 		cover_buf_with_bt_entries((void *)ptr, PAGE_SIZE);
 	}
+
 	dprintf1("%s() end\n", __func__);
 	printf("done with vaddr space fun\n");
 }
@@ -1556,28 +1744,52 @@ int main(int argc, char **argv)
 	trace_me();
 
 	xsave_state((void *)xsave_test_buf, 0x1f);
-	if (!compare_context(xsave_test_buf))
-		printf("Init failed\n");
 
-	for (i = 1; i < argc; i++) {
-		if (!strcmp(argv[i], "unmaptest"))
-			unmaptest = 1;
-		if (!strcmp(argv[i], "vaddrexhaust"))
-			vaddrexhaust = 1;
-		if (!strcmp(argv[i], "tabletest"))
-			tabletest = 1;
+	if (!compare_context(xsave_test_buf))
+	{
+		printf("Init failed\n");
 	}
-	if (!(unmaptest || vaddrexhaust || tabletest)) {
+
+	for (i = 1; i < argc; i++)
+	{
+		if (!strcmp(argv[i], "unmaptest"))
+		{
+			unmaptest = 1;
+		}
+
+		if (!strcmp(argv[i], "vaddrexhaust"))
+		{
+			vaddrexhaust = 1;
+		}
+
+		if (!strcmp(argv[i], "tabletest"))
+		{
+			tabletest = 1;
+		}
+	}
+
+	if (!(unmaptest || vaddrexhaust || tabletest))
+	{
 		unmaptest = 1;
 		/* vaddrexhaust = 1; */
 		tabletest = 1;
 	}
+
 	if (unmaptest)
+	{
 		check_bounds_table_frees();
+	}
+
 	if (tabletest)
+	{
 		mpx_table_test();
+	}
+
 	if (vaddrexhaust)
+	{
 		exhaust_vaddr_space();
+	}
+
 	printf("%s completed successfully\n", argv[0]);
 	exit(0);
 }

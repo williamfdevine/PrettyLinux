@@ -141,7 +141,8 @@
 #define AD7793_FLAG_HAS_GAIN		BIT(4)
 #define AD7793_FLAG_HAS_BUFFER		BIT(5)
 
-struct ad7793_chip_info {
+struct ad7793_chip_info
+{
 	unsigned int id;
 	const struct iio_chan_spec *channels;
 	unsigned int num_channels;
@@ -151,7 +152,8 @@ struct ad7793_chip_info {
 	const u16 *sample_freq_avail;
 };
 
-struct ad7793_state {
+struct ad7793_state
+{
 	const struct ad7793_chip_info	*chip_info;
 	struct regulator		*reg;
 	u16				int_vref_mv;
@@ -163,7 +165,8 @@ struct ad7793_state {
 
 };
 
-enum ad7793_supported_device_ids {
+enum ad7793_supported_device_ids
+{
 	ID_AD7785,
 	ID_AD7792,
 	ID_AD7793,
@@ -191,7 +194,7 @@ static int ad7793_set_channel(struct ad_sigma_delta *sd, unsigned int channel)
 }
 
 static int ad7793_set_mode(struct ad_sigma_delta *sd,
-			   enum ad_sigma_delta_mode mode)
+						   enum ad_sigma_delta_mode mode)
 {
 	struct ad7793_state *st = ad_sigma_delta_to_ad7793(sd);
 
@@ -201,7 +204,8 @@ static int ad7793_set_mode(struct ad_sigma_delta *sd,
 	return ad_sd_write_reg(&st->sd, AD7793_REG_MODE, 2, st->mode);
 }
 
-static const struct ad_sigma_delta_info ad7793_sigma_delta_info = {
+static const struct ad_sigma_delta_info ad7793_sigma_delta_info =
+{
 	.set_channel = ad7793_set_channel,
 	.set_mode = ad7793_set_mode,
 	.has_registers = true,
@@ -209,7 +213,8 @@ static const struct ad_sigma_delta_info ad7793_sigma_delta_info = {
 	.read_mask = BIT(6),
 };
 
-static const struct ad_sd_calib_data ad7793_calib_arr[6] = {
+static const struct ad_sd_calib_data ad7793_calib_arr[6] =
+{
 	{AD7793_MODE_CAL_INT_ZERO, AD7793_CH_AIN1P_AIN1M},
 	{AD7793_MODE_CAL_INT_FULL, AD7793_CH_AIN1P_AIN1M},
 	{AD7793_MODE_CAL_INT_ZERO, AD7793_CH_AIN2P_AIN2M},
@@ -221,40 +226,50 @@ static const struct ad_sd_calib_data ad7793_calib_arr[6] = {
 static int ad7793_calibrate_all(struct ad7793_state *st)
 {
 	return ad_sd_calibrate_all(&st->sd, ad7793_calib_arr,
-				   ARRAY_SIZE(ad7793_calib_arr));
+							   ARRAY_SIZE(ad7793_calib_arr));
 }
 
 static int ad7793_check_platform_data(struct ad7793_state *st,
-	const struct ad7793_platform_data *pdata)
+									  const struct ad7793_platform_data *pdata)
 {
 	if ((pdata->current_source_direction == AD7793_IEXEC1_IEXEC2_IOUT1 ||
-		pdata->current_source_direction == AD7793_IEXEC1_IEXEC2_IOUT2) &&
+		 pdata->current_source_direction == AD7793_IEXEC1_IEXEC2_IOUT2) &&
 		((pdata->exitation_current != AD7793_IX_10uA) &&
-		(pdata->exitation_current != AD7793_IX_210uA)))
+		 (pdata->exitation_current != AD7793_IX_210uA)))
+	{
 		return -EINVAL;
+	}
 
 	if (!(st->chip_info->flags & AD7793_FLAG_HAS_CLKSEL) &&
 		pdata->clock_src != AD7793_CLK_SRC_INT)
+	{
 		return -EINVAL;
+	}
 
 	if (!(st->chip_info->flags & AD7793_FLAG_HAS_REFSEL) &&
 		pdata->refsel != AD7793_REFSEL_REFIN1)
+	{
 		return -EINVAL;
+	}
 
 	if (!(st->chip_info->flags & AD7793_FLAG_HAS_VBIAS) &&
 		pdata->bias_voltage != AD7793_BIAS_VOLTAGE_DISABLED)
+	{
 		return -EINVAL;
+	}
 
 	if (!(st->chip_info->flags & AD7793_HAS_EXITATION_CURRENT) &&
 		pdata->exitation_current != AD7793_IX_DISABLED)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
 static int ad7793_setup(struct iio_dev *indio_dev,
-	const struct ad7793_platform_data *pdata,
-	unsigned int vref_mv)
+						const struct ad7793_platform_data *pdata,
+						unsigned int vref_mv)
 {
 	struct ad7793_state *st = iio_priv(indio_dev);
 	int i, ret = -1;
@@ -262,23 +277,34 @@ static int ad7793_setup(struct iio_dev *indio_dev,
 	u32 id;
 
 	ret = ad7793_check_platform_data(st, pdata);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* reset the serial interface */
 	ret = spi_write(st->sd.spi, (u8 *)&ret, sizeof(ret));
+
 	if (ret < 0)
+	{
 		goto out;
+	}
+
 	usleep_range(500, 2000); /* Wait for at least 500us */
 
 	/* write/read test for device presence */
 	ret = ad_sd_read_reg(&st->sd, AD7793_REG_ID, 1, &id);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	id &= AD7793_ID_MASK;
 
-	if (id != st->chip_info->id) {
+	if (id != st->chip_info->id)
+	{
 		dev_err(&st->sd.spi->dev, "device ID query failed\n");
 		goto out;
 	}
@@ -287,49 +313,85 @@ static int ad7793_setup(struct iio_dev *indio_dev,
 	st->conf = 0;
 
 	if (st->chip_info->flags & AD7793_FLAG_HAS_CLKSEL)
+	{
 		st->mode |= AD7793_MODE_CLKSRC(pdata->clock_src);
+	}
+
 	if (st->chip_info->flags & AD7793_FLAG_HAS_REFSEL)
+	{
 		st->conf |= AD7793_CONF_REFSEL(pdata->refsel);
+	}
+
 	if (st->chip_info->flags & AD7793_FLAG_HAS_VBIAS)
+	{
 		st->conf |= AD7793_CONF_VBIAS(pdata->bias_voltage);
+	}
+
 	if (pdata->buffered || !(st->chip_info->flags & AD7793_FLAG_HAS_BUFFER))
+	{
 		st->conf |= AD7793_CONF_BUF;
+	}
+
 	if (pdata->boost_enable &&
 		(st->chip_info->flags & AD7793_FLAG_HAS_VBIAS))
+	{
 		st->conf |= AD7793_CONF_BOOST;
+	}
+
 	if (pdata->burnout_current)
+	{
 		st->conf |= AD7793_CONF_BO_EN;
+	}
+
 	if (pdata->unipolar)
+	{
 		st->conf |= AD7793_CONF_UNIPOLAR;
+	}
 
 	if (!(st->chip_info->flags & AD7793_FLAG_HAS_GAIN))
+	{
 		st->conf |= AD7793_CONF_GAIN(7);
+	}
 
 	ret = ad7793_set_mode(&st->sd, AD_SD_MODE_IDLE);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	ret = ad7793_set_channel(&st->sd, 0);
-	if (ret)
-		goto out;
 
-	if (st->chip_info->flags & AD7793_HAS_EXITATION_CURRENT) {
+	if (ret)
+	{
+		goto out;
+	}
+
+	if (st->chip_info->flags & AD7793_HAS_EXITATION_CURRENT)
+	{
 		ret = ad_sd_write_reg(&st->sd, AD7793_REG_IO, 1,
-				pdata->exitation_current |
-				(pdata->current_source_direction << 2));
+							  pdata->exitation_current |
+							  (pdata->current_source_direction << 2));
+
 		if (ret)
+		{
 			goto out;
+		}
 	}
 
 	ret = ad7793_calibrate_all(st);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/* Populate available ADC input ranges */
-	for (i = 0; i < ARRAY_SIZE(st->scale_avail); i++) {
+	for (i = 0; i < ARRAY_SIZE(st->scale_avail); i++)
+	{
 		scale_uv = ((u64)vref_mv * 100000000)
-			>> (st->chip_info->channels[0].scan_type.realbits -
-			(!!(st->conf & AD7793_CONF_UNIPOLAR) ? 0 : 1));
+				   >> (st->chip_info->channels[0].scan_type.realbits -
+					   (!!(st->conf & AD7793_CONF_UNIPOLAR) ? 0 : 1));
 		scale_uv >>= i;
 
 		st->scale_avail[i][1] = do_div(scale_uv, 100000000) * 10;
@@ -343,26 +405,28 @@ out:
 }
 
 static const u16 ad7793_sample_freq_avail[16] = {0, 470, 242, 123, 62, 50, 39,
-					33, 19, 17, 16, 12, 10, 8, 6, 4};
+												 33, 19, 17, 16, 12, 10, 8, 6, 4
+												};
 
 static const u16 ad7797_sample_freq_avail[16] = {0, 0, 0, 123, 62, 50, 0,
-					33, 0, 17, 16, 12, 10, 8, 6, 4};
+												 33, 0, 17, 16, 12, 10, 8, 6, 4
+												};
 
 static ssize_t ad7793_read_frequency(struct device *dev,
-		struct device_attribute *attr,
-		char *buf)
+									 struct device_attribute *attr,
+									 char *buf)
 {
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
 	struct ad7793_state *st = iio_priv(indio_dev);
 
 	return sprintf(buf, "%d\n",
-	       st->chip_info->sample_freq_avail[AD7793_MODE_RATE(st->mode)]);
+				   st->chip_info->sample_freq_avail[AD7793_MODE_RATE(st->mode)]);
 }
 
 static ssize_t ad7793_write_frequency(struct device *dev,
-		struct device_attribute *attr,
-		const char *buf,
-		size_t len)
+									  struct device_attribute *attr,
+									  const char *buf,
+									  size_t len)
 {
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
 	struct ad7793_state *st = iio_priv(indio_dev);
@@ -370,21 +434,35 @@ static ssize_t ad7793_write_frequency(struct device *dev,
 	int i, ret;
 
 	ret = kstrtol(buf, 10, &lval);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (lval == 0)
+	{
 		return -EINVAL;
+	}
 
 	for (i = 0; i < 16; i++)
 		if (lval == st->chip_info->sample_freq_avail[i])
+		{
 			break;
+		}
+
 	if (i == 16)
+	{
 		return -EINVAL;
+	}
 
 	ret = iio_device_claim_direct_mode(indio_dev);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	st->mode &= ~AD7793_MODE_RATE(-1);
 	st->mode |= AD7793_MODE_RATE(i);
 	ad_sd_write_reg(&st->sd, AD7793_REG_MODE, sizeof(st->mode), st->mode);
@@ -394,17 +472,17 @@ static ssize_t ad7793_write_frequency(struct device *dev,
 }
 
 static IIO_DEV_ATTR_SAMP_FREQ(S_IWUSR | S_IRUGO,
-		ad7793_read_frequency,
-		ad7793_write_frequency);
+							  ad7793_read_frequency,
+							  ad7793_write_frequency);
 
 static IIO_CONST_ATTR_SAMP_FREQ_AVAIL(
 	"470 242 123 62 50 39 33 19 17 16 12 10 8 6 4");
 
 static IIO_CONST_ATTR_NAMED(sampling_frequency_available_ad7797,
-	sampling_frequency_available, "123 62 50 33 17 16 12 10 8 6 4");
+							sampling_frequency_available, "123 62 50 33 17 16 12 10 8 6 4");
 
 static ssize_t ad7793_show_scale_available(struct device *dev,
-			struct device_attribute *attr, char *buf)
+		struct device_attribute *attr, char *buf)
 {
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
 	struct ad7793_state *st = iio_priv(indio_dev);
@@ -412,7 +490,7 @@ static ssize_t ad7793_show_scale_available(struct device *dev,
 
 	for (i = 0; i < ARRAY_SIZE(st->scale_avail); i++)
 		len += sprintf(buf + len, "%d.%09u ", st->scale_avail[i][0],
-			       st->scale_avail[i][1]);
+					   st->scale_avail[i][1]);
 
 	len += sprintf(buf + len, "\n");
 
@@ -420,130 +498,161 @@ static ssize_t ad7793_show_scale_available(struct device *dev,
 }
 
 static IIO_DEVICE_ATTR_NAMED(in_m_in_scale_available,
-		in_voltage-voltage_scale_available, S_IRUGO,
-		ad7793_show_scale_available, NULL, 0);
+							 in_voltage - voltage_scale_available, S_IRUGO,
+							 ad7793_show_scale_available, NULL, 0);
 
-static struct attribute *ad7793_attributes[] = {
+static struct attribute *ad7793_attributes[] =
+{
 	&iio_dev_attr_sampling_frequency.dev_attr.attr,
 	&iio_const_attr_sampling_frequency_available.dev_attr.attr,
 	&iio_dev_attr_in_m_in_scale_available.dev_attr.attr,
 	NULL
 };
 
-static const struct attribute_group ad7793_attribute_group = {
+static const struct attribute_group ad7793_attribute_group =
+{
 	.attrs = ad7793_attributes,
 };
 
-static struct attribute *ad7797_attributes[] = {
+static struct attribute *ad7797_attributes[] =
+{
 	&iio_dev_attr_sampling_frequency.dev_attr.attr,
 	&iio_const_attr_sampling_frequency_available_ad7797.dev_attr.attr,
 	NULL
 };
 
-static const struct attribute_group ad7797_attribute_group = {
+static const struct attribute_group ad7797_attribute_group =
+{
 	.attrs = ad7797_attributes,
 };
 
 static int ad7793_read_raw(struct iio_dev *indio_dev,
-			   struct iio_chan_spec const *chan,
-			   int *val,
-			   int *val2,
-			   long m)
+						   struct iio_chan_spec const *chan,
+						   int *val,
+						   int *val2,
+						   long m)
 {
 	struct ad7793_state *st = iio_priv(indio_dev);
 	int ret;
 	unsigned long long scale_uv;
 	bool unipolar = !!(st->conf & AD7793_CONF_UNIPOLAR);
 
-	switch (m) {
-	case IIO_CHAN_INFO_RAW:
-		ret = ad_sigma_delta_single_conversion(indio_dev, chan, val);
-		if (ret < 0)
-			return ret;
+	switch (m)
+	{
+		case IIO_CHAN_INFO_RAW:
+			ret = ad_sigma_delta_single_conversion(indio_dev, chan, val);
 
-		return IIO_VAL_INT;
-
-	case IIO_CHAN_INFO_SCALE:
-		switch (chan->type) {
-		case IIO_VOLTAGE:
-			if (chan->differential) {
-				*val = st->
-					scale_avail[(st->conf >> 8) & 0x7][0];
-				*val2 = st->
-					scale_avail[(st->conf >> 8) & 0x7][1];
-				return IIO_VAL_INT_PLUS_NANO;
+			if (ret < 0)
+			{
+				return ret;
 			}
-			/* 1170mV / 2^23 * 6 */
-			scale_uv = (1170ULL * 1000000000ULL * 6ULL);
-			break;
-		case IIO_TEMP:
-				/* 1170mV / 0.81 mV/C / 2^23 */
-				scale_uv = 1444444444444444ULL;
-			break;
-		default:
-			return -EINVAL;
-		}
 
-		scale_uv >>= (chan->scan_type.realbits - (unipolar ? 0 : 1));
-		*val = 0;
-		*val2 = scale_uv;
-		return IIO_VAL_INT_PLUS_NANO;
-	case IIO_CHAN_INFO_OFFSET:
-		if (!unipolar)
-			*val = -(1 << (chan->scan_type.realbits - 1));
-		else
+			return IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_SCALE:
+			switch (chan->type)
+			{
+				case IIO_VOLTAGE:
+					if (chan->differential)
+					{
+						*val = st->
+							   scale_avail[(st->conf >> 8) & 0x7][0];
+						*val2 = st->
+								scale_avail[(st->conf >> 8) & 0x7][1];
+						return IIO_VAL_INT_PLUS_NANO;
+					}
+
+					/* 1170mV / 2^23 * 6 */
+					scale_uv = (1170ULL * 1000000000ULL * 6ULL);
+					break;
+
+				case IIO_TEMP:
+					/* 1170mV / 0.81 mV/C / 2^23 */
+					scale_uv = 1444444444444444ULL;
+					break;
+
+				default:
+					return -EINVAL;
+			}
+
+			scale_uv >>= (chan->scan_type.realbits - (unipolar ? 0 : 1));
 			*val = 0;
+			*val2 = scale_uv;
+			return IIO_VAL_INT_PLUS_NANO;
 
-		/* Kelvin to Celsius */
-		if (chan->type == IIO_TEMP) {
-			unsigned long long offset;
-			unsigned int shift;
+		case IIO_CHAN_INFO_OFFSET:
+			if (!unipolar)
+			{
+				*val = -(1 << (chan->scan_type.realbits - 1));
+			}
+			else
+			{
+				*val = 0;
+			}
 
-			shift = chan->scan_type.realbits - (unipolar ? 0 : 1);
-			offset = 273ULL << shift;
-			do_div(offset, 1444);
-			*val -= offset;
-		}
-		return IIO_VAL_INT;
+			/* Kelvin to Celsius */
+			if (chan->type == IIO_TEMP)
+			{
+				unsigned long long offset;
+				unsigned int shift;
+
+				shift = chan->scan_type.realbits - (unipolar ? 0 : 1);
+				offset = 273ULL << shift;
+				do_div(offset, 1444);
+				*val -= offset;
+			}
+
+			return IIO_VAL_INT;
 	}
+
 	return -EINVAL;
 }
 
 static int ad7793_write_raw(struct iio_dev *indio_dev,
-			       struct iio_chan_spec const *chan,
-			       int val,
-			       int val2,
-			       long mask)
+							struct iio_chan_spec const *chan,
+							int val,
+							int val2,
+							long mask)
 {
 	struct ad7793_state *st = iio_priv(indio_dev);
 	int ret, i;
 	unsigned int tmp;
 
 	ret = iio_device_claim_direct_mode(indio_dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
-	switch (mask) {
-	case IIO_CHAN_INFO_SCALE:
-		ret = -EINVAL;
-		for (i = 0; i < ARRAY_SIZE(st->scale_avail); i++)
-			if (val2 == st->scale_avail[i][1]) {
-				ret = 0;
-				tmp = st->conf;
-				st->conf &= ~AD7793_CONF_GAIN(-1);
-				st->conf |= AD7793_CONF_GAIN(i);
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_SCALE:
+			ret = -EINVAL;
 
-				if (tmp == st->conf)
+			for (i = 0; i < ARRAY_SIZE(st->scale_avail); i++)
+				if (val2 == st->scale_avail[i][1])
+				{
+					ret = 0;
+					tmp = st->conf;
+					st->conf &= ~AD7793_CONF_GAIN(-1);
+					st->conf |= AD7793_CONF_GAIN(i);
+
+					if (tmp == st->conf)
+					{
+						break;
+					}
+
+					ad_sd_write_reg(&st->sd, AD7793_REG_CONF,
+									sizeof(st->conf), st->conf);
+					ad7793_calibrate_all(st);
 					break;
+				}
 
-				ad_sd_write_reg(&st->sd, AD7793_REG_CONF,
-						sizeof(st->conf), st->conf);
-				ad7793_calibrate_all(st);
-				break;
-			}
-		break;
-	default:
-		ret = -EINVAL;
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
 
 	iio_device_release_direct_mode(indio_dev);
@@ -551,13 +660,14 @@ static int ad7793_write_raw(struct iio_dev *indio_dev,
 }
 
 static int ad7793_write_raw_get_fmt(struct iio_dev *indio_dev,
-			       struct iio_chan_spec const *chan,
-			       long mask)
+									struct iio_chan_spec const *chan,
+									long mask)
 {
 	return IIO_VAL_INT_PLUS_NANO;
 }
 
-static const struct iio_info ad7793_info = {
+static const struct iio_info ad7793_info =
+{
 	.read_raw = &ad7793_read_raw,
 	.write_raw = &ad7793_write_raw,
 	.write_raw_get_fmt = &ad7793_write_raw_get_fmt,
@@ -566,7 +676,8 @@ static const struct iio_info ad7793_info = {
 	.driver_module = THIS_MODULE,
 };
 
-static const struct iio_info ad7797_info = {
+static const struct iio_info ad7797_info =
+{
 	.read_raw = &ad7793_read_raw,
 	.write_raw = &ad7793_write_raw,
 	.write_raw_get_fmt = &ad7793_write_raw_get_fmt,
@@ -576,48 +687,48 @@ static const struct iio_info ad7797_info = {
 };
 
 #define DECLARE_AD7793_CHANNELS(_name, _b, _sb, _s) \
-const struct iio_chan_spec _name##_channels[] = { \
-	AD_SD_DIFF_CHANNEL(0, 0, 0, AD7793_CH_AIN1P_AIN1M, (_b), (_sb), (_s)), \
-	AD_SD_DIFF_CHANNEL(1, 1, 1, AD7793_CH_AIN2P_AIN2M, (_b), (_sb), (_s)), \
-	AD_SD_DIFF_CHANNEL(2, 2, 2, AD7793_CH_AIN3P_AIN3M, (_b), (_sb), (_s)), \
-	AD_SD_SHORTED_CHANNEL(3, 0, AD7793_CH_AIN1M_AIN1M, (_b), (_sb), (_s)), \
-	AD_SD_TEMP_CHANNEL(4, AD7793_CH_TEMP, (_b), (_sb), (_s)), \
-	AD_SD_SUPPLY_CHANNEL(5, 3, AD7793_CH_AVDD_MONITOR, (_b), (_sb), (_s)), \
-	IIO_CHAN_SOFT_TIMESTAMP(6), \
-}
+	const struct iio_chan_spec _name##_channels[] = { \
+		AD_SD_DIFF_CHANNEL(0, 0, 0, AD7793_CH_AIN1P_AIN1M, (_b), (_sb), (_s)), \
+		AD_SD_DIFF_CHANNEL(1, 1, 1, AD7793_CH_AIN2P_AIN2M, (_b), (_sb), (_s)), \
+		AD_SD_DIFF_CHANNEL(2, 2, 2, AD7793_CH_AIN3P_AIN3M, (_b), (_sb), (_s)), \
+		AD_SD_SHORTED_CHANNEL(3, 0, AD7793_CH_AIN1M_AIN1M, (_b), (_sb), (_s)), \
+		AD_SD_TEMP_CHANNEL(4, AD7793_CH_TEMP, (_b), (_sb), (_s)), \
+		AD_SD_SUPPLY_CHANNEL(5, 3, AD7793_CH_AVDD_MONITOR, (_b), (_sb), (_s)), \
+		IIO_CHAN_SOFT_TIMESTAMP(6), \
+	}
 
 #define DECLARE_AD7795_CHANNELS(_name, _b, _sb) \
-const struct iio_chan_spec _name##_channels[] = { \
-	AD_SD_DIFF_CHANNEL(0, 0, 0, AD7793_CH_AIN1P_AIN1M, (_b), (_sb), 0), \
-	AD_SD_DIFF_CHANNEL(1, 1, 1, AD7793_CH_AIN2P_AIN2M, (_b), (_sb), 0), \
-	AD_SD_DIFF_CHANNEL(2, 2, 2, AD7793_CH_AIN3P_AIN3M, (_b), (_sb), 0), \
-	AD_SD_DIFF_CHANNEL(3, 3, 3, AD7795_CH_AIN4P_AIN4M, (_b), (_sb), 0), \
-	AD_SD_DIFF_CHANNEL(4, 4, 4, AD7795_CH_AIN5P_AIN5M, (_b), (_sb), 0), \
-	AD_SD_DIFF_CHANNEL(5, 5, 5, AD7795_CH_AIN6P_AIN6M, (_b), (_sb), 0), \
-	AD_SD_SHORTED_CHANNEL(6, 0, AD7795_CH_AIN1M_AIN1M, (_b), (_sb), 0), \
-	AD_SD_TEMP_CHANNEL(7, AD7793_CH_TEMP, (_b), (_sb), 0), \
-	AD_SD_SUPPLY_CHANNEL(8, 3, AD7793_CH_AVDD_MONITOR, (_b), (_sb), 0), \
-	IIO_CHAN_SOFT_TIMESTAMP(9), \
-}
+	const struct iio_chan_spec _name##_channels[] = { \
+		AD_SD_DIFF_CHANNEL(0, 0, 0, AD7793_CH_AIN1P_AIN1M, (_b), (_sb), 0), \
+		AD_SD_DIFF_CHANNEL(1, 1, 1, AD7793_CH_AIN2P_AIN2M, (_b), (_sb), 0), \
+		AD_SD_DIFF_CHANNEL(2, 2, 2, AD7793_CH_AIN3P_AIN3M, (_b), (_sb), 0), \
+		AD_SD_DIFF_CHANNEL(3, 3, 3, AD7795_CH_AIN4P_AIN4M, (_b), (_sb), 0), \
+		AD_SD_DIFF_CHANNEL(4, 4, 4, AD7795_CH_AIN5P_AIN5M, (_b), (_sb), 0), \
+		AD_SD_DIFF_CHANNEL(5, 5, 5, AD7795_CH_AIN6P_AIN6M, (_b), (_sb), 0), \
+		AD_SD_SHORTED_CHANNEL(6, 0, AD7795_CH_AIN1M_AIN1M, (_b), (_sb), 0), \
+		AD_SD_TEMP_CHANNEL(7, AD7793_CH_TEMP, (_b), (_sb), 0), \
+		AD_SD_SUPPLY_CHANNEL(8, 3, AD7793_CH_AVDD_MONITOR, (_b), (_sb), 0), \
+		IIO_CHAN_SOFT_TIMESTAMP(9), \
+	}
 
 #define DECLARE_AD7797_CHANNELS(_name, _b, _sb) \
-const struct iio_chan_spec _name##_channels[] = { \
-	AD_SD_DIFF_CHANNEL(0, 0, 0, AD7793_CH_AIN1P_AIN1M, (_b), (_sb), 0), \
-	AD_SD_SHORTED_CHANNEL(1, 0, AD7793_CH_AIN1M_AIN1M, (_b), (_sb), 0), \
-	AD_SD_TEMP_CHANNEL(2, AD7793_CH_TEMP, (_b), (_sb), 0), \
-	AD_SD_SUPPLY_CHANNEL(3, 3, AD7793_CH_AVDD_MONITOR, (_b), (_sb), 0), \
-	IIO_CHAN_SOFT_TIMESTAMP(4), \
-}
+	const struct iio_chan_spec _name##_channels[] = { \
+		AD_SD_DIFF_CHANNEL(0, 0, 0, AD7793_CH_AIN1P_AIN1M, (_b), (_sb), 0), \
+		AD_SD_SHORTED_CHANNEL(1, 0, AD7793_CH_AIN1M_AIN1M, (_b), (_sb), 0), \
+		AD_SD_TEMP_CHANNEL(2, AD7793_CH_TEMP, (_b), (_sb), 0), \
+		AD_SD_SUPPLY_CHANNEL(3, 3, AD7793_CH_AVDD_MONITOR, (_b), (_sb), 0), \
+		IIO_CHAN_SOFT_TIMESTAMP(4), \
+	}
 
 #define DECLARE_AD7799_CHANNELS(_name, _b, _sb) \
-const struct iio_chan_spec _name##_channels[] = { \
-	AD_SD_DIFF_CHANNEL(0, 0, 0, AD7793_CH_AIN1P_AIN1M, (_b), (_sb), 0), \
-	AD_SD_DIFF_CHANNEL(1, 1, 1, AD7793_CH_AIN2P_AIN2M, (_b), (_sb), 0), \
-	AD_SD_DIFF_CHANNEL(2, 2, 2, AD7793_CH_AIN3P_AIN3M, (_b), (_sb), 0), \
-	AD_SD_SHORTED_CHANNEL(3, 0, AD7793_CH_AIN1M_AIN1M, (_b), (_sb), 0), \
-	AD_SD_SUPPLY_CHANNEL(4, 3, AD7793_CH_AVDD_MONITOR, (_b), (_sb), 0), \
-	IIO_CHAN_SOFT_TIMESTAMP(5), \
-}
+	const struct iio_chan_spec _name##_channels[] = { \
+		AD_SD_DIFF_CHANNEL(0, 0, 0, AD7793_CH_AIN1P_AIN1M, (_b), (_sb), 0), \
+		AD_SD_DIFF_CHANNEL(1, 1, 1, AD7793_CH_AIN2P_AIN2M, (_b), (_sb), 0), \
+		AD_SD_DIFF_CHANNEL(2, 2, 2, AD7793_CH_AIN3P_AIN3M, (_b), (_sb), 0), \
+		AD_SD_SHORTED_CHANNEL(3, 0, AD7793_CH_AIN1M_AIN1M, (_b), (_sb), 0), \
+		AD_SD_SUPPLY_CHANNEL(4, 3, AD7793_CH_AVDD_MONITOR, (_b), (_sb), 0), \
+		IIO_CHAN_SOFT_TIMESTAMP(5), \
+	}
 
 static DECLARE_AD7793_CHANNELS(ad7785, 20, 32, 4);
 static DECLARE_AD7793_CHANNELS(ad7792, 16, 32, 0);
@@ -629,7 +740,8 @@ static DECLARE_AD7797_CHANNELS(ad7797, 24, 32);
 static DECLARE_AD7799_CHANNELS(ad7798, 16, 16);
 static DECLARE_AD7799_CHANNELS(ad7799, 24, 32);
 
-static const struct ad7793_chip_info ad7793_chip_info_tbl[] = {
+static const struct ad7793_chip_info ad7793_chip_info_tbl[] =
+{
 	[ID_AD7785] = {
 		.id = AD7785_ID,
 		.channels = ad7785_channels,
@@ -637,11 +749,11 @@ static const struct ad7793_chip_info ad7793_chip_info_tbl[] = {
 		.iio_info = &ad7793_info,
 		.sample_freq_avail = ad7793_sample_freq_avail,
 		.flags = AD7793_FLAG_HAS_CLKSEL |
-			AD7793_FLAG_HAS_REFSEL |
-			AD7793_FLAG_HAS_VBIAS |
-			AD7793_HAS_EXITATION_CURRENT |
-			AD7793_FLAG_HAS_GAIN |
-			AD7793_FLAG_HAS_BUFFER,
+		AD7793_FLAG_HAS_REFSEL |
+		AD7793_FLAG_HAS_VBIAS |
+		AD7793_HAS_EXITATION_CURRENT |
+		AD7793_FLAG_HAS_GAIN |
+		AD7793_FLAG_HAS_BUFFER,
 	},
 	[ID_AD7792] = {
 		.id = AD7792_ID,
@@ -650,11 +762,11 @@ static const struct ad7793_chip_info ad7793_chip_info_tbl[] = {
 		.iio_info = &ad7793_info,
 		.sample_freq_avail = ad7793_sample_freq_avail,
 		.flags = AD7793_FLAG_HAS_CLKSEL |
-			AD7793_FLAG_HAS_REFSEL |
-			AD7793_FLAG_HAS_VBIAS |
-			AD7793_HAS_EXITATION_CURRENT |
-			AD7793_FLAG_HAS_GAIN |
-			AD7793_FLAG_HAS_BUFFER,
+		AD7793_FLAG_HAS_REFSEL |
+		AD7793_FLAG_HAS_VBIAS |
+		AD7793_HAS_EXITATION_CURRENT |
+		AD7793_FLAG_HAS_GAIN |
+		AD7793_FLAG_HAS_BUFFER,
 	},
 	[ID_AD7793] = {
 		.id = AD7793_ID,
@@ -663,11 +775,11 @@ static const struct ad7793_chip_info ad7793_chip_info_tbl[] = {
 		.iio_info = &ad7793_info,
 		.sample_freq_avail = ad7793_sample_freq_avail,
 		.flags = AD7793_FLAG_HAS_CLKSEL |
-			AD7793_FLAG_HAS_REFSEL |
-			AD7793_FLAG_HAS_VBIAS |
-			AD7793_HAS_EXITATION_CURRENT |
-			AD7793_FLAG_HAS_GAIN |
-			AD7793_FLAG_HAS_BUFFER,
+		AD7793_FLAG_HAS_REFSEL |
+		AD7793_FLAG_HAS_VBIAS |
+		AD7793_HAS_EXITATION_CURRENT |
+		AD7793_FLAG_HAS_GAIN |
+		AD7793_FLAG_HAS_BUFFER,
 	},
 	[ID_AD7794] = {
 		.id = AD7794_ID,
@@ -676,11 +788,11 @@ static const struct ad7793_chip_info ad7793_chip_info_tbl[] = {
 		.iio_info = &ad7793_info,
 		.sample_freq_avail = ad7793_sample_freq_avail,
 		.flags = AD7793_FLAG_HAS_CLKSEL |
-			AD7793_FLAG_HAS_REFSEL |
-			AD7793_FLAG_HAS_VBIAS |
-			AD7793_HAS_EXITATION_CURRENT |
-			AD7793_FLAG_HAS_GAIN |
-			AD7793_FLAG_HAS_BUFFER,
+		AD7793_FLAG_HAS_REFSEL |
+		AD7793_FLAG_HAS_VBIAS |
+		AD7793_HAS_EXITATION_CURRENT |
+		AD7793_FLAG_HAS_GAIN |
+		AD7793_FLAG_HAS_BUFFER,
 	},
 	[ID_AD7795] = {
 		.id = AD7795_ID,
@@ -689,11 +801,11 @@ static const struct ad7793_chip_info ad7793_chip_info_tbl[] = {
 		.iio_info = &ad7793_info,
 		.sample_freq_avail = ad7793_sample_freq_avail,
 		.flags = AD7793_FLAG_HAS_CLKSEL |
-			AD7793_FLAG_HAS_REFSEL |
-			AD7793_FLAG_HAS_VBIAS |
-			AD7793_HAS_EXITATION_CURRENT |
-			AD7793_FLAG_HAS_GAIN |
-			AD7793_FLAG_HAS_BUFFER,
+		AD7793_FLAG_HAS_REFSEL |
+		AD7793_FLAG_HAS_VBIAS |
+		AD7793_HAS_EXITATION_CURRENT |
+		AD7793_FLAG_HAS_GAIN |
+		AD7793_FLAG_HAS_BUFFER,
 	},
 	[ID_AD7796] = {
 		.id = AD7796_ID,
@@ -718,7 +830,7 @@ static const struct ad7793_chip_info ad7793_chip_info_tbl[] = {
 		.iio_info = &ad7793_info,
 		.sample_freq_avail = ad7793_sample_freq_avail,
 		.flags = AD7793_FLAG_HAS_GAIN |
-			AD7793_FLAG_HAS_BUFFER,
+		AD7793_FLAG_HAS_BUFFER,
 	},
 	[ID_AD7799] = {
 		.id = AD7799_ID,
@@ -727,7 +839,7 @@ static const struct ad7793_chip_info ad7793_chip_info_tbl[] = {
 		.iio_info = &ad7793_info,
 		.sample_freq_avail = ad7793_sample_freq_avail,
 		.flags = AD7793_FLAG_HAS_GAIN |
-			AD7793_FLAG_HAS_BUFFER,
+		AD7793_FLAG_HAS_BUFFER,
 	},
 };
 
@@ -738,41 +850,57 @@ static int ad7793_probe(struct spi_device *spi)
 	struct iio_dev *indio_dev;
 	int ret, vref_mv = 0;
 
-	if (!pdata) {
+	if (!pdata)
+	{
 		dev_err(&spi->dev, "no platform data?\n");
 		return -ENODEV;
 	}
 
-	if (!spi->irq) {
+	if (!spi->irq)
+	{
 		dev_err(&spi->dev, "no IRQ?\n");
 		return -ENODEV;
 	}
 
 	indio_dev = devm_iio_device_alloc(&spi->dev, sizeof(*st));
+
 	if (indio_dev == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	st = iio_priv(indio_dev);
 
 	ad_sd_init(&st->sd, indio_dev, spi, &ad7793_sigma_delta_info);
 
-	if (pdata->refsel != AD7793_REFSEL_INTERNAL) {
+	if (pdata->refsel != AD7793_REFSEL_INTERNAL)
+	{
 		st->reg = devm_regulator_get(&spi->dev, "refin");
+
 		if (IS_ERR(st->reg))
+		{
 			return PTR_ERR(st->reg);
+		}
 
 		ret = regulator_enable(st->reg);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		vref_mv = regulator_get_voltage(st->reg);
-		if (vref_mv < 0) {
+
+		if (vref_mv < 0)
+		{
 			ret = vref_mv;
 			goto error_disable_reg;
 		}
 
 		vref_mv /= 1000;
-	} else {
+	}
+	else
+	{
 		vref_mv = 1170; /* Build-in ref */
 	}
 
@@ -790,24 +918,36 @@ static int ad7793_probe(struct spi_device *spi)
 	indio_dev->info = st->chip_info->iio_info;
 
 	ret = ad_sd_setup_buffer_and_trigger(indio_dev);
+
 	if (ret)
+	{
 		goto error_disable_reg;
+	}
 
 	ret = ad7793_setup(indio_dev, pdata, vref_mv);
+
 	if (ret)
+	{
 		goto error_remove_trigger;
+	}
 
 	ret = iio_device_register(indio_dev);
+
 	if (ret)
+	{
 		goto error_remove_trigger;
+	}
 
 	return 0;
 
 error_remove_trigger:
 	ad_sd_cleanup_buffer_and_trigger(indio_dev);
 error_disable_reg:
+
 	if (pdata->refsel != AD7793_REFSEL_INTERNAL)
+	{
 		regulator_disable(st->reg);
+	}
 
 	return ret;
 }
@@ -822,12 +962,15 @@ static int ad7793_remove(struct spi_device *spi)
 	ad_sd_cleanup_buffer_and_trigger(indio_dev);
 
 	if (pdata->refsel != AD7793_REFSEL_INTERNAL)
+	{
 		regulator_disable(st->reg);
+	}
 
 	return 0;
 }
 
-static const struct spi_device_id ad7793_id[] = {
+static const struct spi_device_id ad7793_id[] =
+{
 	{"ad7785", ID_AD7785},
 	{"ad7792", ID_AD7792},
 	{"ad7793", ID_AD7793},
@@ -841,7 +984,8 @@ static const struct spi_device_id ad7793_id[] = {
 };
 MODULE_DEVICE_TABLE(spi, ad7793_id);
 
-static struct spi_driver ad7793_driver = {
+static struct spi_driver ad7793_driver =
+{
 	.driver = {
 		.name	= "ad7793",
 	},

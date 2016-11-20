@@ -28,7 +28,8 @@
 #include <linux/mtd/spi-nor.h>
 
 #define	MAX_CMD_SIZE		6
-struct m25p {
+struct m25p
+{
 	struct spi_device	*spi;
 	struct spi_nor		spi_nor;
 	u8			command[MAX_CMD_SIZE];
@@ -41,8 +42,11 @@ static int m25p80_read_reg(struct spi_nor *nor, u8 code, u8 *val, int len)
 	int ret;
 
 	ret = spi_write_then_read(spi, &code, 1, val, len);
+
 	if (ret < 0)
+	{
 		dev_err(&spi->dev, "error %d reading %x\n", ret, code);
+	}
 
 	return ret;
 }
@@ -67,14 +71,17 @@ static int m25p80_write_reg(struct spi_nor *nor, u8 opcode, u8 *buf, int len)
 	struct spi_device *spi = flash->spi;
 
 	flash->command[0] = opcode;
+
 	if (buf)
+	{
 		memcpy(&flash->command[1], buf, len);
+	}
 
 	return spi_write(spi, flash->command, len + 1);
 }
 
 static ssize_t m25p80_write(struct spi_nor *nor, loff_t to, size_t len,
-			    const u_char *buf)
+							const u_char *buf)
 {
 	struct m25p *flash = nor->priv;
 	struct spi_device *spi = flash->spi;
@@ -86,7 +93,9 @@ static ssize_t m25p80_write(struct spi_nor *nor, loff_t to, size_t len,
 	spi_message_init(&m);
 
 	if (nor->program_opcode == SPINOR_OP_AAI_WP && nor->sst_write_second)
+	{
 		cmd_sz = 1;
+	}
 
 	flash->command[0] = nor->program_opcode;
 	m25p_addr2cmd(nor, to, flash->command);
@@ -100,24 +109,34 @@ static ssize_t m25p80_write(struct spi_nor *nor, loff_t to, size_t len,
 	spi_message_add_tail(&t[1], &m);
 
 	ret = spi_sync(spi, &m);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = m.actual_length - cmd_sz;
+
 	if (ret < 0)
+	{
 		return -EIO;
+	}
+
 	return ret;
 }
 
 static inline unsigned int m25p80_rx_nbits(struct spi_nor *nor)
 {
-	switch (nor->flash_read) {
-	case SPI_NOR_DUAL:
-		return 2;
-	case SPI_NOR_QUAD:
-		return 4;
-	default:
-		return 0;
+	switch (nor->flash_read)
+	{
+		case SPI_NOR_DUAL:
+			return 2;
+
+		case SPI_NOR_QUAD:
+			return 4;
+
+		default:
+			return 0;
 	}
 }
 
@@ -126,7 +145,7 @@ static inline unsigned int m25p80_rx_nbits(struct spi_nor *nor)
  * may be any size provided it is within the physical boundaries.
  */
 static ssize_t m25p80_read(struct spi_nor *nor, loff_t from, size_t len,
-			   u_char *buf)
+						   u_char *buf)
 {
 	struct m25p *flash = nor->priv;
 	struct spi_device *spi = flash->spi;
@@ -138,7 +157,8 @@ static ssize_t m25p80_read(struct spi_nor *nor, loff_t from, size_t len,
 	/* convert the dummy cycles to the number of bytes */
 	dummy /= 8;
 
-	if (spi_flash_read_supported(spi)) {
+	if (spi_flash_read_supported(spi))
+	{
 		struct spi_flash_read_message msg;
 
 		memset(&msg, 0, sizeof(msg));
@@ -155,8 +175,12 @@ static ssize_t m25p80_read(struct spi_nor *nor, loff_t from, size_t len,
 		msg.data_nbits = m25p80_rx_nbits(nor);
 
 		ret = spi_flash_read(spi, &msg);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		return msg.retlen;
 	}
 
@@ -176,12 +200,19 @@ static ssize_t m25p80_read(struct spi_nor *nor, loff_t from, size_t len,
 	spi_message_add_tail(&t[1], &m);
 
 	ret = spi_sync(spi, &m);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = m.actual_length - m25p_cmdsz(nor) - dummy;
+
 	if (ret < 0)
+	{
 		return -EIO;
+	}
+
 	return ret;
 }
 
@@ -202,8 +233,11 @@ static int m25p_probe(struct spi_device *spi)
 	data = dev_get_platdata(&spi->dev);
 
 	flash = devm_kzalloc(&spi->dev, sizeof(*flash), GFP_KERNEL);
+
 	if (!flash)
+	{
 		return -ENOMEM;
+	}
 
 	nor = &flash->spi_nor;
 
@@ -221,12 +255,18 @@ static int m25p_probe(struct spi_device *spi)
 	flash->spi = spi;
 
 	if (spi->mode & SPI_RX_QUAD)
+	{
 		mode = SPI_NOR_QUAD;
+	}
 	else if (spi->mode & SPI_RX_DUAL)
+	{
 		mode = SPI_NOR_DUAL;
+	}
 
 	if (data && data->name)
+	{
 		nor->mtd.name = data->name;
+	}
 
 	/* For some (historical?) reason many platforms provide two different
 	 * names in flash_platform_data: "name" and "type". Quite often name is
@@ -234,18 +274,27 @@ static int m25p_probe(struct spi_device *spi)
 	 * If that's the case, respect "type" and ignore a "name".
 	 */
 	if (data && data->type)
+	{
 		flash_name = data->type;
+	}
 	else if (!strcmp(spi->modalias, "spi-nor"))
-		flash_name = NULL; /* auto-detect */
+	{
+		flash_name = NULL;    /* auto-detect */
+	}
 	else
+	{
 		flash_name = spi->modalias;
+	}
 
 	ret = spi_nor_scan(nor, flash_name, mode);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return mtd_device_register(&nor->mtd, data ? data->parts : NULL,
-				   data ? data->nr_parts : 0);
+							   data ? data->nr_parts : 0);
 }
 
 
@@ -269,7 +318,8 @@ static int m25p_remove(struct spi_device *spi)
  * Many flash names are kept here in this list (as well as in spi-nor.c) to
  * keep them available as module aliases for existing platforms.
  */
-static const struct spi_device_id m25p_ids[] = {
+static const struct spi_device_id m25p_ids[] =
+{
 	/*
 	 * Allow non-DT platform devices to bind to the "spi-nor" modalias, and
 	 * hack around the fact that the SPI core does not provide uevent
@@ -290,11 +340,11 @@ static const struct spi_device_id m25p_ids[] = {
 	{"at25df321a"},	{"at25df641"},	{"at26df081a"},
 	{"mr25h256"},
 	{"mx25l4005a"},	{"mx25l1606e"},	{"mx25l6405d"},	{"mx25l12805d"},
-	{"mx25l25635e"},{"mx66l51235l"},
+	{"mx25l25635e"}, {"mx66l51235l"},
 	{"n25q064"},	{"n25q128a11"},	{"n25q128a13"},	{"n25q512a"},
 	{"s25fl256s1"},	{"s25fl512s"},	{"s25sl12801"},	{"s25fl008k"},
 	{"s25fl064k"},
-	{"sst25vf040b"},{"sst25vf016b"},{"sst25vf032b"},{"sst25wf040"},
+	{"sst25vf040b"}, {"sst25vf016b"}, {"sst25vf032b"}, {"sst25wf040"},
 	{"m25p40"},	{"m25p80"},	{"m25p16"},	{"m25p32"},
 	{"m25p64"},	{"m25p128"},
 	{"w25x80"},	{"w25x32"},	{"w25q32"},	{"w25q32dw"},
@@ -309,7 +359,8 @@ static const struct spi_device_id m25p_ids[] = {
 };
 MODULE_DEVICE_TABLE(spi, m25p_ids);
 
-static const struct of_device_id m25p_of_table[] = {
+static const struct of_device_id m25p_of_table[] =
+{
 	/*
 	 * Generic compatibility for SPI NOR that can be identified by the
 	 * JEDEC READ ID opcode (0x9F). Use this, if possible.
@@ -319,7 +370,8 @@ static const struct of_device_id m25p_of_table[] = {
 };
 MODULE_DEVICE_TABLE(of, m25p_of_table);
 
-static struct spi_driver m25p80_driver = {
+static struct spi_driver m25p80_driver =
+{
 	.driver = {
 		.name	= "m25p80",
 		.of_match_table = m25p_of_table,

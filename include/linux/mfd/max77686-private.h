@@ -29,7 +29,8 @@
 #define MAX77686_REG_INVALID		(0xff)
 
 /* MAX77686 PMIC registers */
-enum max77686_pmic_reg {
+enum max77686_pmic_reg
+{
 	MAX77686_REG_DEVICE_ID		= 0x00,
 	MAX77686_REG_INTSRC		= 0x01,
 	MAX77686_REG_INT1		= 0x02,
@@ -151,7 +152,8 @@ enum max77686_pmic_reg {
 	MAX77686_REG_PMIC_END		= 0x80,
 };
 
-enum max77686_rtc_reg {
+enum max77686_rtc_reg
+{
 	MAX77686_RTC_INT			= 0x00,
 	MAX77686_RTC_INTM			= 0x01,
 	MAX77686_RTC_CONTROLM		= 0x02,
@@ -183,7 +185,8 @@ enum max77686_rtc_reg {
 };
 
 /* MAX77802 PMIC registers */
-enum max77802_pmic_reg {
+enum max77802_pmic_reg
+{
 	MAX77802_REG_DEVICE_ID		= 0x00,
 	MAX77802_REG_INTSRC		= 0x01,
 	MAX77802_REG_INT1		= 0x02,
@@ -351,7 +354,8 @@ enum max77802_pmic_reg {
 	MAX77802_REG_PMIC_END		= 0xB6,
 };
 
-enum max77802_rtc_reg {
+enum max77802_rtc_reg
+{
 	MAX77802_RTC_INT		= 0xC0,
 	MAX77802_RTC_INTM		= 0xC1,
 	MAX77802_RTC_CONTROLM		= 0xC2,
@@ -386,7 +390,8 @@ enum max77802_rtc_reg {
 	MAX77802_RTC_END		= 0xDF,
 };
 
-enum max77686_irq_source {
+enum max77686_irq_source
+{
 	PMIC_INT1 = 0,
 	PMIC_INT2,
 	RTC_INT,
@@ -394,7 +399,8 @@ enum max77686_irq_source {
 	MAX77686_IRQ_GROUP_NR,
 };
 
-enum max77686_irq {
+enum max77686_irq
+{
 	MAX77686_PMICIRQ_PWRONF,
 	MAX77686_PMICIRQ_PWRONR,
 	MAX77686_PMICIRQ_JIGONBF,
@@ -434,7 +440,8 @@ enum max77686_irq {
 #define MAX77686_RTCINT_RTC1S_MSK	BIT(4)
 #define MAX77686_RTCINT_WTSR_MSK	BIT(5)
 
-struct max77686_dev {
+struct max77686_dev
+{
 	struct device *dev;
 	struct i2c_client *i2c; /* 0xcc / PMIC, Battery Control, and FLASH */
 
@@ -449,7 +456,8 @@ struct max77686_dev {
 	int irq_masks_cache[MAX77686_IRQ_GROUP_NR];
 };
 
-enum max77686_types {
+enum max77686_types
+{
 	TYPE_MAX77686,
 	TYPE_MAX77802,
 };

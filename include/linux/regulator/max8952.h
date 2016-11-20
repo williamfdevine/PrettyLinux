@@ -24,14 +24,16 @@
 
 #include <linux/regulator/machine.h>
 
-enum {
+enum
+{
 	MAX8952_DVS_MODE0,
 	MAX8952_DVS_MODE1,
 	MAX8952_DVS_MODE2,
 	MAX8952_DVS_MODE3,
 };
 
-enum {
+enum
+{
 	MAX8952_DVS_770mV = 0,
 	MAX8952_DVS_780mV,
 	MAX8952_DVS_790mV,
@@ -98,13 +100,15 @@ enum {
 	MAX8952_DVS_1400mV,
 };
 
-enum {
+enum
+{
 	MAX8952_SYNC_FREQ_26MHZ, /* Default */
 	MAX8952_SYNC_FREQ_13MHZ,
 	MAX8952_SYNC_FREQ_19_2MHZ,
 };
 
-enum {
+enum
+{
 	MAX8952_RAMP_32mV_us = 0, /* Default */
 	MAX8952_RAMP_16mV_us,
 	MAX8952_RAMP_8mV_us,
@@ -117,7 +121,8 @@ enum {
 
 #define MAX8952_NUM_DVS_MODE	4
 
-struct max8952_platform_data {
+struct max8952_platform_data
+{
 	int gpio_vid0;
 	int gpio_vid1;
 	int gpio_en;

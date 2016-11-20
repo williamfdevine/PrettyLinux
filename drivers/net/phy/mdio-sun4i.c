@@ -31,7 +31,8 @@
 
 #define MDIO_TIMEOUT		(msecs_to_jiffies(100))
 
-struct sun4i_mdio_data {
+struct sun4i_mdio_data
+{
 	void __iomem		*membase;
 	struct regulator	*regulator;
 };
@@ -49,9 +50,14 @@ static int sun4i_mdio_read(struct mii_bus *bus, int mii_id, int regnum)
 
 	/* Wait read complete */
 	timeout_jiffies = jiffies + MDIO_TIMEOUT;
-	while (readl(data->membase + EMAC_MAC_MIND_REG) & 0x1) {
+
+	while (readl(data->membase + EMAC_MAC_MIND_REG) & 0x1)
+	{
 		if (time_is_before_jiffies(timeout_jiffies))
+		{
 			return -ETIMEDOUT;
+		}
+
 		msleep(1);
 	}
 
@@ -64,7 +70,7 @@ static int sun4i_mdio_read(struct mii_bus *bus, int mii_id, int regnum)
 }
 
 static int sun4i_mdio_write(struct mii_bus *bus, int mii_id, int regnum,
-			    u16 value)
+							u16 value)
 {
 	struct sun4i_mdio_data *data = bus->priv;
 	unsigned long timeout_jiffies;
@@ -76,9 +82,14 @@ static int sun4i_mdio_write(struct mii_bus *bus, int mii_id, int regnum,
 
 	/* Wait read complete */
 	timeout_jiffies = jiffies + MDIO_TIMEOUT;
-	while (readl(data->membase + EMAC_MAC_MIND_REG) & 0x1) {
+
+	while (readl(data->membase + EMAC_MAC_MIND_REG) & 0x1)
+	{
 		if (time_is_before_jiffies(timeout_jiffies))
+		{
 			return -ETIMEDOUT;
+		}
+
 		msleep(1);
 	}
 
@@ -99,8 +110,11 @@ static int sun4i_mdio_probe(struct platform_device *pdev)
 	int ret;
 
 	bus = mdiobus_alloc_size(sizeof(*data));
+
 	if (!bus)
+	{
 		return -ENOMEM;
+	}
 
 	bus->name = "sun4i_mii_bus";
 	bus->read = &sun4i_mdio_read;
@@ -111,35 +125,53 @@ static int sun4i_mdio_probe(struct platform_device *pdev)
 	data = bus->priv;
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	data->membase = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(data->membase)) {
+
+	if (IS_ERR(data->membase))
+	{
 		ret = PTR_ERR(data->membase);
 		goto err_out_free_mdiobus;
 	}
 
 	data->regulator = devm_regulator_get(&pdev->dev, "phy");
-	if (IS_ERR(data->regulator)) {
+
+	if (IS_ERR(data->regulator))
+	{
 		if (PTR_ERR(data->regulator) == -EPROBE_DEFER)
+		{
 			return -EPROBE_DEFER;
+		}
 
 		dev_info(&pdev->dev, "no regulator found\n");
 		data->regulator = NULL;
-	} else {
+	}
+	else
+	{
 		ret = regulator_enable(data->regulator);
+
 		if (ret)
+		{
 			goto err_out_free_mdiobus;
+		}
 	}
 
 	ret = of_mdiobus_register(bus, np);
+
 	if (ret < 0)
+	{
 		goto err_out_disable_regulator;
+	}
 
 	platform_set_drvdata(pdev, bus);
 
 	return 0;
 
 err_out_disable_regulator:
+
 	if (data->regulator)
+	{
 		regulator_disable(data->regulator);
+	}
+
 err_out_free_mdiobus:
 	mdiobus_free(bus);
 	return ret;
@@ -155,7 +187,8 @@ static int sun4i_mdio_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id sun4i_mdio_dt_ids[] = {
+static const struct of_device_id sun4i_mdio_dt_ids[] =
+{
 	{ .compatible = "allwinner,sun4i-a10-mdio" },
 
 	/* Deprecated */
@@ -164,7 +197,8 @@ static const struct of_device_id sun4i_mdio_dt_ids[] = {
 };
 MODULE_DEVICE_TABLE(of, sun4i_mdio_dt_ids);
 
-static struct platform_driver sun4i_mdio_driver = {
+static struct platform_driver sun4i_mdio_driver =
+{
 	.probe = sun4i_mdio_probe,
 	.remove = sun4i_mdio_remove,
 	.driver = {

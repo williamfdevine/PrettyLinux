@@ -16,49 +16,50 @@
 static int raid6_has_avx2(void)
 {
 	return boot_cpu_has(X86_FEATURE_AVX2) &&
-		boot_cpu_has(X86_FEATURE_AVX);
+		   boot_cpu_has(X86_FEATURE_AVX);
 }
 
 static void raid6_2data_recov_avx2(int disks, size_t bytes, int faila,
-		int failb, void **ptrs)
+								   int failb, void **ptrs)
 {
 	u8 *p, *q, *dp, *dq;
 	const u8 *pbmul;	/* P multiplier table for B data */
 	const u8 *qmul;		/* Q multiplier table (for both) */
 	const u8 x0f = 0x0f;
 
-	p = (u8 *)ptrs[disks-2];
-	q = (u8 *)ptrs[disks-1];
+	p = (u8 *)ptrs[disks - 2];
+	q = (u8 *)ptrs[disks - 1];
 
 	/* Compute syndrome with zero for the missing data pages
 	   Use the dead data pages as temporary storage for
 	   delta p and delta q */
 	dp = (u8 *)ptrs[faila];
 	ptrs[faila] = (void *)raid6_empty_zero_page;
-	ptrs[disks-2] = dp;
+	ptrs[disks - 2] = dp;
 	dq = (u8 *)ptrs[failb];
 	ptrs[failb] = (void *)raid6_empty_zero_page;
-	ptrs[disks-1] = dq;
+	ptrs[disks - 1] = dq;
 
 	raid6_call.gen_syndrome(disks, bytes, ptrs);
 
 	/* Restore pointer table */
 	ptrs[faila]   = dp;
 	ptrs[failb]   = dq;
-	ptrs[disks-2] = p;
-	ptrs[disks-1] = q;
+	ptrs[disks - 2] = p;
+	ptrs[disks - 1] = q;
 
 	/* Now, pick the proper data tables */
-	pbmul = raid6_vgfmul[raid6_gfexi[failb-faila]];
+	pbmul = raid6_vgfmul[raid6_gfexi[failb - faila]];
 	qmul  = raid6_vgfmul[raid6_gfinv[raid6_gfexp[faila] ^
-		raid6_gfexp[failb]]];
+									 raid6_gfexp[failb]]];
 
 	kernel_fpu_begin();
 
 	/* ymm0 = x0f[16] */
 	asm volatile("vpbroadcastb %0, %%ymm7" : : "m" (x0f));
 
-	while (bytes) {
+	while (bytes)
+	{
 #ifdef CONFIG_X86_64
 		asm volatile("vmovdqa %0, %%ymm1" : : "m" (q[0]));
 		asm volatile("vmovdqa %0, %%ymm9" : : "m" (q[32]));
@@ -190,26 +191,26 @@ static void raid6_2data_recov_avx2(int disks, size_t bytes, int faila,
 }
 
 static void raid6_datap_recov_avx2(int disks, size_t bytes, int faila,
-		void **ptrs)
+								   void **ptrs)
 {
 	u8 *p, *q, *dq;
 	const u8 *qmul;		/* Q multiplier table */
 	const u8 x0f = 0x0f;
 
-	p = (u8 *)ptrs[disks-2];
-	q = (u8 *)ptrs[disks-1];
+	p = (u8 *)ptrs[disks - 2];
+	q = (u8 *)ptrs[disks - 1];
 
 	/* Compute syndrome with zero for the missing data page
 	   Use the dead data page as temporary storage for delta q */
 	dq = (u8 *)ptrs[faila];
 	ptrs[faila] = (void *)raid6_empty_zero_page;
-	ptrs[disks-1] = dq;
+	ptrs[disks - 1] = dq;
 
 	raid6_call.gen_syndrome(disks, bytes, ptrs);
 
 	/* Restore pointer table */
 	ptrs[faila]   = dq;
-	ptrs[disks-1] = q;
+	ptrs[disks - 1] = q;
 
 	/* Now, pick the proper data tables */
 	qmul  = raid6_vgfmul[raid6_gfinv[raid6_gfexp[faila]]];
@@ -218,7 +219,8 @@ static void raid6_datap_recov_avx2(int disks, size_t bytes, int faila,
 
 	asm volatile("vpbroadcastb %0, %%ymm7" : : "m" (x0f));
 
-	while (bytes) {
+	while (bytes)
+	{
 #ifdef CONFIG_X86_64
 		asm volatile("vmovdqa %0, %%ymm3" : : "m" (dq[0]));
 		asm volatile("vmovdqa %0, %%ymm8" : : "m" (dq[32]));
@@ -306,7 +308,8 @@ static void raid6_datap_recov_avx2(int disks, size_t bytes, int faila,
 	kernel_fpu_end();
 }
 
-const struct raid6_recov_calls raid6_recov_avx2 = {
+const struct raid6_recov_calls raid6_recov_avx2 =
+{
 	.data2 = raid6_2data_recov_avx2,
 	.datap = raid6_datap_recov_avx2,
 	.valid = raid6_has_avx2,

@@ -30,9 +30,9 @@
 static int timeout = TS72XX_WDT_DEFAULT_TIMEOUT;
 module_param(timeout, int, 0);
 MODULE_PARM_DESC(timeout, "Watchdog timeout in seconds. "
-			  "(1 <= timeout <= 8, default="
-			  __MODULE_STRING(TS72XX_WDT_DEFAULT_TIMEOUT)
-			  ")");
+				 "(1 <= timeout <= 8, default="
+				 __MODULE_STRING(TS72XX_WDT_DEFAULT_TIMEOUT)
+				 ")");
 
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
@@ -47,7 +47,8 @@ MODULE_PARM_DESC(nowayout, "Disable watchdog shutdown on close");
  * @feed_reg: watchdog feed register
  * @pdev: back pointer to platform dev
  */
-struct ts72xx_wdt {
+struct ts72xx_wdt
+{
 	struct mutex	lock;
 	int		regval;
 
@@ -83,10 +84,12 @@ static struct platform_device *ts72xx_wdt_pdev;
  * We provide two functions that convert between these:
  * timeout_to_regval() and regval_to_timeout().
  */
-static const struct {
+static const struct
+{
 	int	timeout;
 	int	regval;
-} ts72xx_wdt_map[] = {
+} ts72xx_wdt_map[] =
+{
 	{ 1, 3 },
 	{ 2, 5 },
 	{ 4, 6 },
@@ -108,9 +111,12 @@ static int timeout_to_regval(int new_timeout)
 	/* first limit it to 1 - 8 seconds */
 	new_timeout = clamp_val(new_timeout, 1, 8);
 
-	for (i = 0; i < ARRAY_SIZE(ts72xx_wdt_map); i++) {
+	for (i = 0; i < ARRAY_SIZE(ts72xx_wdt_map); i++)
+	{
 		if (ts72xx_wdt_map[i].timeout >= new_timeout)
+		{
 			return ts72xx_wdt_map[i].regval;
+		}
 	}
 
 	return -EINVAL;
@@ -127,9 +133,12 @@ static int regval_to_timeout(int regval)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(ts72xx_wdt_map); i++) {
+	for (i = 0; i < ARRAY_SIZE(ts72xx_wdt_map); i++)
+	{
 		if (ts72xx_wdt_map[i].regval == regval)
+		{
 			return ts72xx_wdt_map[i].timeout;
+		}
 	}
 
 	return -EINVAL;
@@ -188,17 +197,22 @@ static int ts72xx_wdt_open(struct inode *inode, struct file *file)
 	 * value first.
 	 */
 	regval = timeout_to_regval(timeout);
-	if (regval < 0) {
+
+	if (regval < 0)
+	{
 		dev_err(&wdt->pdev->dev,
-			"failed to convert timeout (%d) to register value\n",
-			timeout);
+				"failed to convert timeout (%d) to register value\n",
+				timeout);
 		return regval;
 	}
 
 	if (mutex_lock_interruptible(&wdt->lock))
+	{
 		return -ERESTARTSYS;
+	}
 
-	if ((wdt->flags & TS72XX_WDT_BUSY_FLAG) != 0) {
+	if ((wdt->flags & TS72XX_WDT_BUSY_FLAG) != 0)
+	{
 		mutex_unlock(&wdt->lock);
 		return -EBUSY;
 	}
@@ -218,14 +232,19 @@ static int ts72xx_wdt_release(struct inode *inode, struct file *file)
 	struct ts72xx_wdt *wdt = file->private_data;
 
 	if (mutex_lock_interruptible(&wdt->lock))
+	{
 		return -ERESTARTSYS;
+	}
 
-	if ((wdt->flags & TS72XX_WDT_EXPECT_CLOSE_FLAG) != 0) {
+	if ((wdt->flags & TS72XX_WDT_EXPECT_CLOSE_FLAG) != 0)
+	{
 		ts72xx_wdt_stop(wdt);
-	} else {
+	}
+	else
+	{
 		dev_warn(&wdt->pdev->dev,
-			 "TS-72XX WDT device closed unexpectly. "
-			 "Watchdog timer will not stop!\n");
+				 "TS-72XX WDT device closed unexpectly. "
+				 "Watchdog timer will not stop!\n");
 		/*
 		 * Kick it one more time, to give userland some time
 		 * to recover (for example, respawning the kicker
@@ -241,17 +260,21 @@ static int ts72xx_wdt_release(struct inode *inode, struct file *file)
 }
 
 static ssize_t ts72xx_wdt_write(struct file *file,
-				const char __user *data,
-				size_t len,
-				loff_t *ppos)
+								const char __user *data,
+								size_t len,
+								loff_t *ppos)
 {
 	struct ts72xx_wdt *wdt = file->private_data;
 
 	if (!len)
+	{
 		return 0;
+	}
 
 	if (mutex_lock_interruptible(&wdt->lock))
+	{
 		return -ERESTARTSYS;
+	}
 
 	ts72xx_wdt_kick(wdt);
 
@@ -261,20 +284,25 @@ static ssize_t ts72xx_wdt_write(struct file *file,
 	 * This means that we know that the wdt timer can be
 	 * stopped after user closes the device.
 	 */
-	if (!nowayout) {
+	if (!nowayout)
+	{
 		int i;
 
-		for (i = 0; i < len; i++) {
+		for (i = 0; i < len; i++)
+		{
 			char c;
 
 			/* In case it was set long ago */
 			wdt->flags &= ~TS72XX_WDT_EXPECT_CLOSE_FLAG;
 
-			if (get_user(c, data + i)) {
+			if (get_user(c, data + i))
+			{
 				mutex_unlock(&wdt->lock);
 				return -EFAULT;
 			}
-			if (c == 'V') {
+
+			if (c == 'V')
+			{
 				wdt->flags |= TS72XX_WDT_EXPECT_CLOSE_FLAG;
 				break;
 			}
@@ -285,15 +313,16 @@ static ssize_t ts72xx_wdt_write(struct file *file,
 	return len;
 }
 
-static const struct watchdog_info winfo = {
+static const struct watchdog_info winfo =
+{
 	.options		= WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT |
-				  WDIOF_MAGICCLOSE,
+	WDIOF_MAGICCLOSE,
 	.firmware_version	= 1,
 	.identity		= "TS-72XX WDT",
 };
 
 static long ts72xx_wdt_ioctl(struct file *file, unsigned int cmd,
-			     unsigned long arg)
+							 unsigned long arg)
 {
 	struct ts72xx_wdt *wdt = file->private_data;
 	void __user *argp = (void __user *)arg;
@@ -301,78 +330,99 @@ static long ts72xx_wdt_ioctl(struct file *file, unsigned int cmd,
 	int error = 0;
 
 	if (mutex_lock_interruptible(&wdt->lock))
+	{
 		return -ERESTARTSYS;
-
-	switch (cmd) {
-	case WDIOC_GETSUPPORT:
-		if (copy_to_user(argp, &winfo, sizeof(winfo)))
-			error = -EFAULT;
-		break;
-
-	case WDIOC_GETSTATUS:
-	case WDIOC_GETBOOTSTATUS:
-		error = put_user(0, p);
-		break;
-
-	case WDIOC_KEEPALIVE:
-		ts72xx_wdt_kick(wdt);
-		break;
-
-	case WDIOC_SETOPTIONS: {
-		int options;
-
-		error = get_user(options, p);
-		if (error)
-			break;
-
-		error = -EINVAL;
-
-		if ((options & WDIOS_DISABLECARD) != 0) {
-			ts72xx_wdt_stop(wdt);
-			error = 0;
-		}
-		if ((options & WDIOS_ENABLECARD) != 0) {
-			ts72xx_wdt_start(wdt);
-			error = 0;
-		}
-
-		break;
 	}
 
-	case WDIOC_SETTIMEOUT: {
-		int new_timeout;
-		int regval;
+	switch (cmd)
+	{
+		case WDIOC_GETSUPPORT:
+			if (copy_to_user(argp, &winfo, sizeof(winfo)))
+			{
+				error = -EFAULT;
+			}
 
-		error = get_user(new_timeout, p);
-		if (error)
 			break;
 
-		regval = timeout_to_regval(new_timeout);
-		if (regval < 0) {
-			error = regval;
+		case WDIOC_GETSTATUS:
+		case WDIOC_GETBOOTSTATUS:
+			error = put_user(0, p);
 			break;
-		}
-		ts72xx_wdt_stop(wdt);
-		wdt->regval = regval;
-		ts72xx_wdt_start(wdt);
 
-		/*FALLTHROUGH*/
-	}
+		case WDIOC_KEEPALIVE:
+			ts72xx_wdt_kick(wdt);
+			break;
 
-	case WDIOC_GETTIMEOUT:
-		error = put_user(regval_to_timeout(wdt->regval), p);
-		break;
+		case WDIOC_SETOPTIONS:
+			{
+				int options;
 
-	default:
-		error = -ENOTTY;
-		break;
+				error = get_user(options, p);
+
+				if (error)
+				{
+					break;
+				}
+
+				error = -EINVAL;
+
+				if ((options & WDIOS_DISABLECARD) != 0)
+				{
+					ts72xx_wdt_stop(wdt);
+					error = 0;
+				}
+
+				if ((options & WDIOS_ENABLECARD) != 0)
+				{
+					ts72xx_wdt_start(wdt);
+					error = 0;
+				}
+
+				break;
+			}
+
+		case WDIOC_SETTIMEOUT:
+			{
+				int new_timeout;
+				int regval;
+
+				error = get_user(new_timeout, p);
+
+				if (error)
+				{
+					break;
+				}
+
+				regval = timeout_to_regval(new_timeout);
+
+				if (regval < 0)
+				{
+					error = regval;
+					break;
+				}
+
+				ts72xx_wdt_stop(wdt);
+				wdt->regval = regval;
+				ts72xx_wdt_start(wdt);
+
+				/*FALLTHROUGH*/
+			}
+
+		case WDIOC_GETTIMEOUT:
+			error = put_user(regval_to_timeout(wdt->regval), p);
+			break;
+
+		default:
+			error = -ENOTTY;
+			break;
 	}
 
 	mutex_unlock(&wdt->lock);
 	return error;
 }
 
-static const struct file_operations ts72xx_wdt_fops = {
+static const struct file_operations ts72xx_wdt_fops =
+{
 	.owner		= THIS_MODULE,
 	.llseek		= no_llseek,
 	.open		= ts72xx_wdt_open,
@@ -381,7 +431,8 @@ static const struct file_operations ts72xx_wdt_fops = {
 	.unlocked_ioctl	= ts72xx_wdt_ioctl,
 };
 
-static struct miscdevice ts72xx_wdt_miscdev = {
+static struct miscdevice ts72xx_wdt_miscdev =
+{
 	.minor		= WATCHDOG_MINOR,
 	.name		= "watchdog",
 	.fops		= &ts72xx_wdt_fops,
@@ -394,18 +445,27 @@ static int ts72xx_wdt_probe(struct platform_device *pdev)
 	int error = 0;
 
 	wdt = devm_kzalloc(&pdev->dev, sizeof(struct ts72xx_wdt), GFP_KERNEL);
+
 	if (!wdt)
+	{
 		return -ENOMEM;
+	}
 
 	r1 = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	wdt->control_reg = devm_ioremap_resource(&pdev->dev, r1);
+
 	if (IS_ERR(wdt->control_reg))
+	{
 		return PTR_ERR(wdt->control_reg);
+	}
 
 	r2 = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 	wdt->feed_reg = devm_ioremap_resource(&pdev->dev, r2);
+
 	if (IS_ERR(wdt->feed_reg))
+	{
 		return PTR_ERR(wdt->feed_reg);
+	}
 
 	platform_set_drvdata(pdev, wdt);
 	ts72xx_wdt_pdev = pdev;
@@ -416,7 +476,9 @@ static int ts72xx_wdt_probe(struct platform_device *pdev)
 	ts72xx_wdt_stop(wdt);
 
 	error = misc_register(&ts72xx_wdt_miscdev);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "failed to register miscdev\n");
 		return error;
 	}
@@ -432,7 +494,8 @@ static int ts72xx_wdt_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver ts72xx_wdt_driver = {
+static struct platform_driver ts72xx_wdt_driver =
+{
 	.probe		= ts72xx_wdt_probe,
 	.remove		= ts72xx_wdt_remove,
 	.driver		= {

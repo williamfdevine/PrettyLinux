@@ -14,7 +14,8 @@
 #define MIPI_DISPLAY_H
 
 /* MIPI DSI Processor-to-Peripheral transaction types */
-enum {
+enum
+{
 	MIPI_DSI_V_SYNC_START				= 0x01,
 	MIPI_DSI_V_SYNC_END				= 0x11,
 	MIPI_DSI_H_SYNC_START				= 0x21,
@@ -62,7 +63,8 @@ enum {
 };
 
 /* MIPI DSI Peripheral-to-Processor transaction types */
-enum {
+enum
+{
 	MIPI_DSI_RX_ACKNOWLEDGE_AND_ERROR_REPORT	= 0x02,
 	MIPI_DSI_RX_END_OF_TRANSMISSION			= 0x08,
 	MIPI_DSI_RX_GENERIC_SHORT_READ_RESPONSE_1BYTE	= 0x11,
@@ -74,7 +76,8 @@ enum {
 };
 
 /* MIPI DCS commands */
-enum {
+enum
+{
 	MIPI_DCS_NOP			= 0x00,
 	MIPI_DCS_SOFT_RESET		= 0x01,
 	MIPI_DCS_GET_DISPLAY_ID		= 0x04,

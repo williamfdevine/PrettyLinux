@@ -53,8 +53,10 @@
 #define BFI_ENET_RSS_RIT_MAX		64	/* entries */
 #define BFI_ENET_RSS_KEY_LEN		10	/* 32-bit words */
 
-union bfi_addr_be_u {
-	struct {
+union bfi_addr_be_u
+{
+	struct
+	{
 		u32	addr_hi;	/* Most Significant 32-bits */
 		u32	addr_lo;	/* Least Significant 32-Bits */
 	} __packed a32;
@@ -76,11 +78,12 @@ union bfi_addr_be_u {
 #define BFI_ENET_TXQ_WI_CF_TCP_CKSUM	BIT(1)
 #define BFI_ENET_TXQ_WI_CF_IP_CKSUM	BIT(0)
 
-struct bfi_enet_txq_wi_base {
+struct bfi_enet_txq_wi_base
+{
 	u8			reserved;
 	u8			num_vectors;	/* number of vectors present */
 	u16			opcode;
-			/* BFI_ENET_TXQ_WI_SEND or BFI_ENET_TXQ_WI_SEND_LSO */
+	/* BFI_ENET_TXQ_WI_SEND or BFI_ENET_TXQ_WI_SEND_LSO */
 	u16			flags;		/* OR of all the flags */
 	u16			l4_hdr_size_n_offset;
 	u16			vlan_tag;
@@ -88,21 +91,25 @@ struct bfi_enet_txq_wi_base {
 	u32			frame_length;	/* Only 24 LSB are valid */
 } __packed;
 
-struct bfi_enet_txq_wi_ext {
+struct bfi_enet_txq_wi_ext
+{
 	u16			reserved;
 	u16			opcode;		/* BFI_ENET_TXQ_WI_EXTENSION */
 	u32			reserved2[3];
 } __packed;
 
-struct bfi_enet_txq_wi_vector {			/* Tx Buffer Descriptor */
+struct bfi_enet_txq_wi_vector  			/* Tx Buffer Descriptor */
+{
 	u16			reserved;
 	u16			length;		/* Only 14 LSB are valid */
 	union bfi_addr_be_u	addr;
 } __packed;
 
 /*  TxQ Entry Structure  */
-struct bfi_enet_txq_entry {
-	union {
+struct bfi_enet_txq_entry
+{
+	union
+	{
 		struct bfi_enet_txq_wi_base	base;
 		struct bfi_enet_txq_wi_ext	ext;
 	} __packed wi;
@@ -113,10 +120,11 @@ struct bfi_enet_txq_entry {
 #define wi_ext_hdr	wi.ext
 
 #define BFI_ENET_TXQ_WI_L4_HDR_N_OFFSET(_hdr_size, _offset) \
-		(((_hdr_size) << 10) | ((_offset) & 0x3FF))
+	(((_hdr_size) << 10) | ((_offset) & 0x3FF))
 
 /*   R X   Q U E U E   D E F I N E S   */
-struct bfi_enet_rxq_entry {
+struct bfi_enet_rxq_entry
+{
 	union bfi_addr_be_u  rx_buffer;
 } __packed;
 
@@ -150,7 +158,8 @@ struct bfi_enet_rxq_entry {
 #define BFI_ENET_CQ_EF_LOCAL		BIT(20)
 
 /* CQ Entry Structure */
-struct bfi_enet_cq_entry {
+struct bfi_enet_cq_entry
+{
 	u32 flags;
 	u16	vlan_tag;
 	u16	length;
@@ -162,30 +171,35 @@ struct bfi_enet_cq_entry {
 } __packed;
 
 /*   E N E T   C O N T R O L   P A T H   C O M M A N D S   */
-struct bfi_enet_q {
+struct bfi_enet_q
+{
 	union bfi_addr_u	pg_tbl;
 	union bfi_addr_u	first_entry;
 	u16		pages;	/* # of pages */
 	u16		page_sz;
 } __packed;
 
-struct bfi_enet_txq {
+struct bfi_enet_txq
+{
 	struct bfi_enet_q	q;
 	u8			priority;
 	u8			rsvd[3];
 } __packed;
 
-struct bfi_enet_rxq {
+struct bfi_enet_rxq
+{
 	struct bfi_enet_q	q;
 	u16		rx_buffer_size;
 	u16		rsvd;
 } __packed;
 
-struct bfi_enet_cq {
+struct bfi_enet_cq
+{
 	struct bfi_enet_q	q;
 } __packed;
 
-struct bfi_enet_ib_cfg {
+struct bfi_enet_ib_cfg
+{
 	u8		int_pkt_dma;
 	u8		int_enabled;
 	u8		int_pkt_enabled;
@@ -198,9 +212,11 @@ struct bfi_enet_ib_cfg {
 	u8		rsvd1[3];
 } __packed;
 
-struct bfi_enet_ib {
+struct bfi_enet_ib
+{
 	union bfi_addr_u	index_addr;
-	union {
+	union
+	{
 		u16	msix_index;
 		u16	intx_bitmask;
 	} __packed intr;
@@ -208,7 +224,8 @@ struct bfi_enet_ib {
 } __packed;
 
 /* ENET command messages */
-enum bfi_enet_h2i_msgs {
+enum bfi_enet_h2i_msgs
+{
 	/* Rx Commands */
 	BFI_ENET_H2I_RX_CFG_SET_REQ = 1,
 	BFI_ENET_H2I_RX_CFG_CLR_REQ = 2,
@@ -253,7 +270,8 @@ enum bfi_enet_h2i_msgs {
 	BFI_ENET_H2I_MAX = 27,
 };
 
-enum bfi_enet_i2h_msgs {
+enum bfi_enet_i2h_msgs
+{
 	/* Rx Responses */
 	BFI_ENET_I2H_RX_CFG_SET_RSP =
 		BFA_I2HM(BFI_ENET_H2I_RX_CFG_SET_REQ),
@@ -334,7 +352,8 @@ enum bfi_enet_i2h_msgs {
 };
 
 /* The following error codes can be returned by the enet commands */
-enum bfi_enet_err {
+enum bfi_enet_err
+{
 	BFI_ENET_CMD_OK		= 0,
 	BFI_ENET_CMD_FAIL	= 1,
 	BFI_ENET_CMD_DUP_ENTRY	= 2,	/* !< Duplicate entry in CAM */
@@ -351,7 +370,8 @@ enum bfi_enet_err {
  *	BFI_ENET_H2I_RX_CFG_CLR_REQ
  *	BFI_ENET_H2I_TX_CFG_CLR_REQ
  */
-struct bfi_enet_req {
+struct bfi_enet_req
+{
 	struct bfi_msgq_mhdr mh;
 } __packed;
 
@@ -364,14 +384,16 @@ struct bfi_enet_req {
  *	BFI_ENET_H2I_RX_MAC_MCAST_FILTER_REQ
  *	BFI_ENET_H2I_PORT_ADMIN_UP_REQ	(enet_id must be zero)
  */
-struct bfi_enet_enable_req {
+struct bfi_enet_enable_req
+{
 	struct		bfi_msgq_mhdr mh;
 	u8		enable;		/* 1 = enable;  0 = disable */
 	u8		rsvd[3];
 } __packed;
 
 /* Generic Response */
-struct bfi_enet_rsp {
+struct bfi_enet_rsp
+{
 	struct bfi_msgq_mhdr mh;
 	u8		error;		/*!< if error see cmd_offset */
 	u8		rsvd;
@@ -383,14 +405,16 @@ struct bfi_enet_rsp {
 /* bfi_enet_attr_req is used by:
  *	BFI_ENET_H2I_GET_ATTR_REQ
  */
-struct bfi_enet_attr_req {
+struct bfi_enet_attr_req
+{
 	struct bfi_msgq_mhdr	mh;
 } __packed;
 
 /* bfi_enet_attr_rsp is used by:
  *	BFI_ENET_I2H_GET_ATTR_RSP
  */
-struct bfi_enet_attr_rsp {
+struct bfi_enet_attr_rsp
+{
 	struct bfi_msgq_mhdr mh;
 	u8		error;		/*!< if error see cmd_offset */
 	u8		rsvd;
@@ -405,13 +429,15 @@ struct bfi_enet_attr_rsp {
  * bfi_enet_tx_cfg is used by:
  *	BFI_ENET_H2I_TX_CFG_SET_REQ
  */
-enum bfi_enet_tx_vlan_mode {
+enum bfi_enet_tx_vlan_mode
+{
 	BFI_ENET_TX_VLAN_NOP	= 0,
 	BFI_ENET_TX_VLAN_INS	= 1,
 	BFI_ENET_TX_VLAN_WI	= 2,
 };
 
-struct bfi_enet_tx_cfg {
+struct bfi_enet_tx_cfg
+{
 	u8		vlan_mode;	/*!< processing mode */
 	u8		rsvd;
 	u16		vlan_id;
@@ -421,12 +447,14 @@ struct bfi_enet_tx_cfg {
 	u8		rsvd1[1];
 } __packed;
 
-struct bfi_enet_tx_cfg_req {
+struct bfi_enet_tx_cfg_req
+{
 	struct bfi_msgq_mhdr mh;
 	u8			num_queues;	/* # of Tx Queues */
 	u8			rsvd[3];
 
-	struct {
+	struct
+	{
 		struct bfi_enet_txq	q;
 		struct bfi_enet_ib	ib;
 	} __packed q_cfg[BFI_ENET_TXQ_PRIO_MAX];
@@ -436,12 +464,14 @@ struct bfi_enet_tx_cfg_req {
 	struct bfi_enet_tx_cfg	tx_cfg;
 };
 
-struct bfi_enet_tx_cfg_rsp {
+struct bfi_enet_tx_cfg_rsp
+{
 	struct		bfi_msgq_mhdr mh;
 	u8		error;
 	u8		hw_id;		/* For debugging */
 	u8		rsvd[2];
-	struct {
+	struct
+	{
 		u32	q_dbell;	/* PCI base address offset */
 		u32	i_dbell;	/* PCI base address offset */
 		u8	hw_qid;		/* For debugging */
@@ -454,14 +484,16 @@ struct bfi_enet_tx_cfg_rsp {
  * bfi_enet_rx_cfg is used by:
  *	BFI_ENET_H2I_RX_CFG_SET_REQ
  */
-enum bfi_enet_rxq_type {
+enum bfi_enet_rxq_type
+{
 	BFI_ENET_RXQ_SINGLE		= 1,
 	BFI_ENET_RXQ_LARGE_SMALL	= 2,
 	BFI_ENET_RXQ_HDS		= 3,
 	BFI_ENET_RXQ_HDS_OPT_BASED	= 4,
 };
 
-enum bfi_enet_hds_type {
+enum bfi_enet_hds_type
+{
 	BFI_ENET_HDS_FORCED	= 0x01,
 	BFI_ENET_HDS_IPV6_UDP	= 0x02,
 	BFI_ENET_HDS_IPV6_TCP	= 0x04,
@@ -469,12 +501,14 @@ enum bfi_enet_hds_type {
 	BFI_ENET_HDS_IPV4_UDP	= 0x10,
 };
 
-struct bfi_enet_rx_cfg {
+struct bfi_enet_rx_cfg
+{
 	u8		rxq_type;
 	u8		rsvd[1];
 	u16		frame_size;
 
-	struct {
+	struct
+	{
 		u8			max_header_size;
 		u8			force_offset;
 		u8			type;
@@ -492,12 +526,14 @@ struct bfi_enet_rx_cfg {
  * On the completion queue.  RxQ ID = even is for large/data buffer queues
  * and RxQ ID = odd is for small/header buffer queues.
  */
-struct bfi_enet_rx_cfg_req {
+struct bfi_enet_rx_cfg_req
+{
 	struct bfi_msgq_mhdr mh;
 	u8			num_queue_sets;	/* # of Rx Queue Sets */
 	u8			rsvd[3];
 
-	struct {
+	struct
+	{
 		struct bfi_enet_rxq	ql;	/* large/data/single buffers */
 		struct bfi_enet_rxq	qs;	/* small/header buffers */
 		struct bfi_enet_cq	cq;
@@ -509,12 +545,14 @@ struct bfi_enet_rx_cfg_req {
 	struct bfi_enet_rx_cfg	rx_cfg;
 } __packed;
 
-struct bfi_enet_rx_cfg_rsp {
+struct bfi_enet_rx_cfg_rsp
+{
 	struct bfi_msgq_mhdr mh;
 	u8		error;
 	u8		hw_id;	 /* For debugging */
 	u8		rsvd[2];
-	struct {
+	struct
+	{
 		u32	ql_dbell; /* PCI base address offset */
 		u32	qs_dbell; /* PCI base address offset */
 		u32	i_dbell;  /* PCI base address offset */
@@ -530,7 +568,8 @@ struct bfi_enet_rx_cfg_rsp {
  * bfi_enet_rit_req is used by:
  *	BFI_ENET_H2I_RIT_CFG_REQ
  */
-struct bfi_enet_rit_req {
+struct bfi_enet_rit_req
+{
 	struct	bfi_msgq_mhdr mh;
 	u16	size;			/* number of table-entries used */
 	u8	rsvd[2];
@@ -542,21 +581,24 @@ struct bfi_enet_rit_req {
  * bfi_enet_rss_cfg_req is used by:
  *	BFI_ENET_H2I_RSS_CFG_REQ
  */
-enum bfi_enet_rss_type {
+enum bfi_enet_rss_type
+{
 	BFI_ENET_RSS_IPV6	= 0x01,
 	BFI_ENET_RSS_IPV6_TCP	= 0x02,
 	BFI_ENET_RSS_IPV4	= 0x04,
 	BFI_ENET_RSS_IPV4_TCP	= 0x08
 };
 
-struct bfi_enet_rss_cfg {
+struct bfi_enet_rss_cfg
+{
 	u8	type;
 	u8	mask;
 	u8	rsvd[2];
 	u32	key[BFI_ENET_RSS_KEY_LEN];
 } __packed;
 
-struct bfi_enet_rss_cfg_req {
+struct bfi_enet_rss_cfg_req
+{
 	struct bfi_msgq_mhdr	mh;
 	struct bfi_enet_rss_cfg	cfg;
 } __packed;
@@ -569,14 +611,16 @@ struct bfi_enet_rss_cfg_req {
  *	BFI_ENET_H2I_MAC_UCAST_ADD_REQ
  *	BFI_ENET_H2I_MAC_UCAST_DEL_REQ
  */
-struct bfi_enet_ucast_req {
+struct bfi_enet_ucast_req
+{
 	struct bfi_msgq_mhdr	mh;
 	u8			mac_addr[ETH_ALEN];
 	u8			rsvd[2];
 } __packed;
 
 /* MAC Unicast + VLAN */
-struct bfi_enet_mac_n_vlan_req {
+struct bfi_enet_mac_n_vlan_req
+{
 	struct bfi_msgq_mhdr	mh;
 	u16			vlan_id;
 	u8			mac_addr[ETH_ALEN];
@@ -587,7 +631,8 @@ struct bfi_enet_mac_n_vlan_req {
  * bfi_enet_mac_mfilter_add_req is used by:
  *	BFI_ENET_H2I_MAC_MCAST_ADD_REQ
  */
-struct bfi_enet_mcast_add_req {
+struct bfi_enet_mcast_add_req
+{
 	struct bfi_msgq_mhdr	mh;
 	u8			mac_addr[ETH_ALEN];
 	u8			rsvd[2];
@@ -596,7 +641,8 @@ struct bfi_enet_mcast_add_req {
 /* bfi_enet_mac_mfilter_add_rsp is used by:
  *	BFI_ENET_I2H_MAC_MCAST_ADD_RSP
  */
-struct bfi_enet_mcast_add_rsp {
+struct bfi_enet_mcast_add_rsp
+{
 	struct bfi_msgq_mhdr	mh;
 	u8			error;
 	u8			rsvd;
@@ -608,7 +654,8 @@ struct bfi_enet_mcast_add_rsp {
 /* bfi_enet_mac_mfilter_del_req is used by:
  *	BFI_ENET_H2I_MAC_MCAST_DEL_REQ
  */
-struct bfi_enet_mcast_del_req {
+struct bfi_enet_mcast_del_req
+{
 	struct bfi_msgq_mhdr	mh;
 	u16			handle;
 	u8			rsvd[2];
@@ -619,7 +666,8 @@ struct bfi_enet_mcast_del_req {
  * bfi_enet_rx_vlan_req is used by:
  *	BFI_ENET_H2I_RX_VLAN_SET_REQ
  */
-struct bfi_enet_rx_vlan_req {
+struct bfi_enet_rx_vlan_req
+{
 	struct bfi_msgq_mhdr	mh;
 	u8			block_idx;
 	u8			rsvd[3];
@@ -631,7 +679,8 @@ struct bfi_enet_rx_vlan_req {
  * bfi_enet_set_pause_req is used by:
  *	BFI_ENET_H2I_SET_PAUSE_REQ
  */
-struct bfi_enet_set_pause_req {
+struct bfi_enet_set_pause_req
+{
 	struct bfi_msgq_mhdr	mh;
 	u8			rsvd[2];
 	u8			tx_pause;	/* 1 = enable;  0 = disable */
@@ -643,7 +692,8 @@ struct bfi_enet_set_pause_req {
  * bfi_enet_diag_lb_req is used by:
  *      BFI_ENET_H2I_DIAG_LOOPBACK
  */
-struct bfi_enet_diag_lb_req {
+struct bfi_enet_diag_lb_req
+{
 	struct bfi_msgq_mhdr	mh;
 	u8			rsvd[2];
 	u8			mode;		/* cable or Serdes */
@@ -651,7 +701,8 @@ struct bfi_enet_diag_lb_req {
 } __packed;
 
 /* enum for Loopback opmodes */
-enum {
+enum
+{
 	BFI_ENET_DIAG_LB_OPMODE_EXT = 0,
 	BFI_ENET_DIAG_LB_OPMODE_CBL = 1,
 };
@@ -662,7 +713,8 @@ enum {
  *    BFI_ENET_H2I_STATS_GET_REQ
  *    BFI_ENET_I2H_STATS_CLR_REQ
  */
-struct bfi_enet_stats_req {
+struct bfi_enet_stats_req
+{
 	struct bfi_msgq_mhdr	mh;
 	u16			stats_mask;
 	u8			rsvd[2];
@@ -681,7 +733,8 @@ struct bfi_enet_stats_req {
 #define BFI_ENET_STATS_ALL    0x1f
 
 /* TxF Frame Statistics */
-struct bfi_enet_stats_txf {
+struct bfi_enet_stats_txf
+{
 	u64 ucast_octets;
 	u64 ucast;
 	u64 ucast_vlan;
@@ -700,7 +753,8 @@ struct bfi_enet_stats_txf {
 } __packed;
 
 /* RxF Frame Statistics */
-struct bfi_enet_stats_rxf {
+struct bfi_enet_stats_rxf
+{
 	u64 ucast_octets;
 	u64 ucast;
 	u64 ucast_vlan;
@@ -716,7 +770,8 @@ struct bfi_enet_stats_rxf {
 } __packed;
 
 /* FC Tx Frame Statistics */
-struct bfi_enet_stats_fc_tx {
+struct bfi_enet_stats_fc_tx
+{
 	u64 txf_ucast_octets;
 	u64 txf_ucast;
 	u64 txf_ucast_vlan;
@@ -735,7 +790,8 @@ struct bfi_enet_stats_fc_tx {
 } __packed;
 
 /* FC Rx Frame Statistics */
-struct bfi_enet_stats_fc_rx {
+struct bfi_enet_stats_fc_rx
+{
 	u64 rxf_ucast_octets;
 	u64 rxf_ucast;
 	u64 rxf_ucast_vlan;
@@ -750,7 +806,8 @@ struct bfi_enet_stats_fc_rx {
 } __packed;
 
 /* RAD Frame Statistics */
-struct bfi_enet_stats_rad {
+struct bfi_enet_stats_rad
+{
 	u64 rx_frames;
 	u64 rx_octets;
 	u64 rx_vlan_frames;
@@ -771,7 +828,8 @@ struct bfi_enet_stats_rad {
 } __packed;
 
 /* BPC Tx Registers */
-struct bfi_enet_stats_bpc {
+struct bfi_enet_stats_bpc
+{
 	/* transmit stats */
 	u64 tx_pause[8];
 	u64 tx_zero_pause[8];	/*!< Pause cancellation */
@@ -786,7 +844,8 @@ struct bfi_enet_stats_bpc {
 } __packed;
 
 /* MAC Rx Statistics */
-struct bfi_enet_stats_mac {
+struct bfi_enet_stats_mac
+{
 	u64 stats_clr_cnt;	/* times this stats cleared */
 	u64 frame_64;		/* both rx and tx counter */
 	u64 frame_65_127;		/* both rx and tx counter */
@@ -841,7 +900,8 @@ struct bfi_enet_stats_mac {
 /* Complete statistics, DMAed from fw to host followed by
  * BFI_ENET_I2H_STATS_GET_RSP
  */
-struct bfi_enet_stats {
+struct bfi_enet_stats
+{
 	struct bfi_enet_stats_mac	mac_stats;
 	struct bfi_enet_stats_bpc	bpc_stats;
 	struct bfi_enet_stats_rad	rad_stats;

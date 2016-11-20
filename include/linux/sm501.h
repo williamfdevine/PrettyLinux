@@ -19,13 +19,13 @@
 */
 
 extern int sm501_unit_power(struct device *dev,
-			    unsigned int unit, unsigned int to);
+							unsigned int unit, unsigned int to);
 
 extern unsigned long sm501_set_clock(struct device *dev,
-				     int clksrc, unsigned long freq);
+									 int clksrc, unsigned long freq);
 
 extern unsigned long sm501_find_clock(struct device *dev,
-				      int clksrc, unsigned long req_freq);
+									  int clksrc, unsigned long req_freq);
 
 /* sm501_misc_control
  *
@@ -33,7 +33,7 @@ extern unsigned long sm501_find_clock(struct device *dev,
 */
 
 extern int sm501_misc_control(struct device *dev,
-			      unsigned long set, unsigned long clear);
+							  unsigned long set, unsigned long clear);
 
 /* sm501_modify_reg
  *
@@ -42,9 +42,9 @@ extern int sm501_misc_control(struct device *dev,
 */
 
 extern unsigned long sm501_modify_reg(struct device *dev,
-				      unsigned long reg,
-				      unsigned long set,
-				      unsigned long clear);
+									  unsigned long reg,
+									  unsigned long set,
+									  unsigned long clear);
 
 
 /* Platform data definitions */
@@ -58,14 +58,16 @@ extern unsigned long sm501_modify_reg(struct device *dev,
 #define SM501FB_FLAG_PANEL_INV_FPEN	(1<<6)
 #define SM501FB_FLAG_PANEL_INV_VBIASEN	(1<<7)
 
-struct sm501_platdata_fbsub {
+struct sm501_platdata_fbsub
+{
 	struct fb_videomode	*def_mode;
 	unsigned int		 def_bpp;
 	unsigned long		 max_mem;
 	unsigned int		 flags;
 };
 
-enum sm501_fb_routing {
+enum sm501_fb_routing
+{
 	SM501_FB_OWN		= 0,	/* CRT=>CRT, Panel=>Panel */
 	SM501_FB_CRT_PANEL	= 1,	/* Panel=>CRT, Panel=>Panel */
 };
@@ -79,7 +81,8 @@ enum sm501_fb_routing {
  * configuration data for the framebuffer driver
 */
 
-struct sm501_platdata_fb {
+struct sm501_platdata_fb
+{
 	enum sm501_fb_routing		 fb_route;
 	unsigned int			 flags;
 	struct sm501_platdata_fbsub	*fb_crt;
@@ -93,7 +96,8 @@ struct sm501_platdata_fb {
  * to register the i2c bus.
 */
 
-struct sm501_platdata_gpio_i2c {
+struct sm501_platdata_gpio_i2c
+{
 	unsigned int		bus_num;
 	unsigned int		pin_sda;
 	unsigned int		pin_scl;
@@ -107,7 +111,8 @@ struct sm501_platdata_gpio_i2c {
  * before the driver is loaded.
 */
 
-struct sm501_reg_init {
+struct sm501_reg_init
+{
 	unsigned long		set;
 	unsigned long		mask;
 };
@@ -125,7 +130,8 @@ struct sm501_reg_init {
 
 #define SM501_USE_ALL		(0xffffffff)
 
-struct sm501_initdata {
+struct sm501_initdata
+{
 	struct sm501_reg_init	gpio_low;
 	struct sm501_reg_init	gpio_high;
 	struct sm501_reg_init	misc_timing;
@@ -141,7 +147,8 @@ struct sm501_initdata {
  * default gpio settings
 */
 
-struct sm501_init_gpio {
+struct sm501_init_gpio
+{
 	struct sm501_reg_init	gpio_data_low;
 	struct sm501_reg_init	gpio_data_high;
 	struct sm501_reg_init	gpio_ddr_low;
@@ -158,7 +165,8 @@ struct sm501_init_gpio {
  *
 */
 
-struct sm501_platdata {
+struct sm501_platdata
+{
 	struct sm501_initdata		*init;
 	struct sm501_init_gpio		*init_gpiop;
 	struct sm501_platdata_fb	*fb;

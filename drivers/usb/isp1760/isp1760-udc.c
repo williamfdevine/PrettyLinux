@@ -26,7 +26,8 @@
 
 #define ISP1760_VBUS_POLL_INTERVAL	msecs_to_jiffies(500)
 
-struct isp1760_request {
+struct isp1760_request
+{
 	struct usb_request req;
 	struct list_head queue;
 	struct isp1760_ep *ep;
@@ -63,16 +64,21 @@ static inline void isp1760_udc_write(struct isp1760_udc *udc, u16 reg, u32 val)
  */
 
 static struct isp1760_ep *isp1760_udc_find_ep(struct isp1760_udc *udc,
-					      u16 index)
+		u16 index)
 {
 	unsigned int i;
 
 	if (index == 0)
+	{
 		return &udc->ep[0];
+	}
 
-	for (i = 1; i < ARRAY_SIZE(udc->ep); ++i) {
+	for (i = 1; i < ARRAY_SIZE(udc->ep); ++i)
+	{
 		if (udc->ep[i].addr == index)
+		{
 			return udc->ep[i].desc ? &udc->ep[i] : NULL;
+		}
 	}
 
 	return NULL;
@@ -81,8 +87,8 @@ static struct isp1760_ep *isp1760_udc_find_ep(struct isp1760_udc *udc,
 static void __isp1760_udc_select_ep(struct isp1760_ep *ep, int dir)
 {
 	isp1760_udc_write(ep->udc, DC_EPINDEX,
-			  DC_ENDPIDX(ep->addr & USB_ENDPOINT_NUMBER_MASK) |
-			  (dir == USB_DIR_IN ? DC_EPDIR : 0));
+					  DC_ENDPIDX(ep->addr & USB_ENDPOINT_NUMBER_MASK) |
+					  (dir == USB_DIR_IN ? DC_EPDIR : 0));
 }
 
 /**
@@ -112,7 +118,7 @@ static void isp1760_udc_ctrl_send_status(struct isp1760_ep *ep, int dir)
 	 * to select the OUT/IN endpoint for IN/OUT transfers.
 	 */
 	isp1760_udc_write(udc, DC_EPINDEX, DC_ENDPIDX(0) |
-			  (dir == USB_DIR_IN ? 0 : DC_EPDIR));
+					  (dir == USB_DIR_IN ? 0 : DC_EPDIR));
 	isp1760_udc_write(udc, DC_CTRLFUNC, DC_STATUS);
 
 	/*
@@ -124,14 +130,14 @@ static void isp1760_udc_ctrl_send_status(struct isp1760_ep *ep, int dir)
 
 /* Called without the UDC spinlock held. */
 static void isp1760_udc_request_complete(struct isp1760_ep *ep,
-					 struct isp1760_request *req,
-					 int status)
+		struct isp1760_request *req,
+		int status)
 {
 	struct isp1760_udc *udc = ep->udc;
 	unsigned long flags;
 
 	dev_dbg(ep->udc->isp->dev, "completing request %p with status %d\n",
-		req, status);
+			req, status);
 
 	req->ep = NULL;
 	req->req.status = status;
@@ -145,7 +151,9 @@ static void isp1760_udc_request_complete(struct isp1760_ep *ep,
 	 * opportunity to stall the control transfer if needed.
 	 */
 	if (status == 0 && ep->addr == 0 && udc->ep0_dir == USB_DIR_OUT)
+	{
 		isp1760_udc_ctrl_send_status(ep, USB_DIR_OUT);
+	}
 
 	spin_unlock_irqrestore(&udc->lock, flags);
 }
@@ -177,7 +185,7 @@ static void isp1760_udc_ctrl_send_stall(struct isp1760_ep *ep)
 
 /* Called with the UDC spinlock held. */
 static bool isp1760_udc_receive(struct isp1760_ep *ep,
-				struct isp1760_request *req)
+								struct isp1760_request *req)
 {
 	struct isp1760_udc *udc = ep->udc;
 	unsigned int len;
@@ -188,11 +196,12 @@ static bool isp1760_udc_receive(struct isp1760_ep *ep,
 	len = isp1760_udc_read(udc, DC_BUFLEN) & DC_DATACOUNT_MASK;
 
 	dev_dbg(udc->isp->dev, "%s: received %u bytes (%u/%u done)\n",
-		__func__, len, req->req.actual, req->req.length);
+			__func__, len, req->req.actual, req->req.length);
 
 	len = min(len, req->req.length - req->req.actual);
 
-	if (!len) {
+	if (!len)
+	{
 		/*
 		 * There's no data to be read from the FIFO, acknowledge the RX
 		 * interrupt by clearing the buffer.
@@ -212,9 +221,14 @@ static bool isp1760_udc_receive(struct isp1760_ep *ep,
 	 * the next packet might be removed from the FIFO.
 	 */
 	for (i = len; i > 2; i -= 4, ++buf)
+	{
 		*buf = le32_to_cpu(isp1760_udc_read(udc, DC_DATAPORT));
+	}
+
 	if (i > 0)
+	{
 		*(u16 *)buf = le16_to_cpu(readw(udc->regs + DC_DATAPORT));
+	}
 
 	req->req.actual += len;
 
@@ -224,9 +238,9 @@ static bool isp1760_udc_receive(struct isp1760_ep *ep,
 	 */
 
 	dev_dbg(udc->isp->dev,
-		"%s: req %p actual/length %u/%u maxpacket %u packet size %u\n",
-		__func__, req, req->req.actual, req->req.length, ep->maxpacket,
-		len);
+			"%s: req %p actual/length %u/%u maxpacket %u packet size %u\n",
+			__func__, req, req->req.actual, req->req.length, ep->maxpacket,
+			len);
 
 	ep->rx_pending = false;
 
@@ -234,7 +248,8 @@ static bool isp1760_udc_receive(struct isp1760_ep *ep,
 	 * Complete the request if all data has been received or if a short
 	 * packet has been received.
 	 */
-	if (req->req.actual == req->req.length || len < ep->maxpacket) {
+	if (req->req.actual == req->req.length || len < ep->maxpacket)
+	{
 		list_del(&req->queue);
 		return true;
 	}
@@ -243,23 +258,25 @@ static bool isp1760_udc_receive(struct isp1760_ep *ep,
 }
 
 static void isp1760_udc_transmit(struct isp1760_ep *ep,
-				 struct isp1760_request *req)
+								 struct isp1760_request *req)
 {
 	struct isp1760_udc *udc = ep->udc;
 	u32 *buf = req->req.buf + req->req.actual;
 	int i;
 
 	req->packet_size = min(req->req.length - req->req.actual,
-			       ep->maxpacket);
+						   ep->maxpacket);
 
 	dev_dbg(udc->isp->dev, "%s: transferring %u bytes (%u/%u done)\n",
-		__func__, req->packet_size, req->req.actual,
-		req->req.length);
+			__func__, req->packet_size, req->req.actual,
+			req->req.length);
 
 	__isp1760_udc_select_ep(ep, USB_DIR_IN);
 
 	if (req->packet_size)
+	{
 		isp1760_udc_write(udc, DC_BUFLEN, req->packet_size);
+	}
 
 	/*
 	 * Make sure not to write more than one extra byte, otherwise extra data
@@ -268,14 +285,24 @@ static void isp1760_udc_transmit(struct isp1760_ep *ep,
 	 * the FIFO for this kind of conditions, but doesn't seem to work.
 	 */
 	for (i = req->packet_size; i > 2; i -= 4, ++buf)
+	{
 		isp1760_udc_write(udc, DC_DATAPORT, cpu_to_le32(*buf));
+	}
+
 	if (i > 0)
+	{
 		writew(cpu_to_le16(*(u16 *)buf), udc->regs + DC_DATAPORT);
+	}
 
 	if (ep->addr == 0)
+	{
 		isp1760_udc_write(udc, DC_CTRLFUNC, DC_DSEN);
+	}
+
 	if (!req->packet_size)
+	{
 		isp1760_udc_write(udc, DC_CTRLFUNC, DC_VENDP);
+	}
 }
 
 static void isp1760_ep_rx_ready(struct isp1760_ep *ep)
@@ -286,36 +313,41 @@ static void isp1760_ep_rx_ready(struct isp1760_ep *ep)
 
 	spin_lock(&udc->lock);
 
-	if (ep->addr == 0 && udc->ep0_state != ISP1760_CTRL_DATA_OUT) {
+	if (ep->addr == 0 && udc->ep0_state != ISP1760_CTRL_DATA_OUT)
+	{
 		spin_unlock(&udc->lock);
 		dev_dbg(udc->isp->dev, "%s: invalid ep0 state %u\n", __func__,
-			udc->ep0_state);
+				udc->ep0_state);
 		return;
 	}
 
-	if (ep->addr != 0 && !ep->desc) {
+	if (ep->addr != 0 && !ep->desc)
+	{
 		spin_unlock(&udc->lock);
 		dev_dbg(udc->isp->dev, "%s: ep%02x is disabled\n", __func__,
-			ep->addr);
+				ep->addr);
 		return;
 	}
 
-	if (list_empty(&ep->queue)) {
+	if (list_empty(&ep->queue))
+	{
 		ep->rx_pending = true;
 		spin_unlock(&udc->lock);
 		dev_dbg(udc->isp->dev, "%s: ep%02x (%p) has no request queued\n",
-			__func__, ep->addr, ep);
+				__func__, ep->addr, ep);
 		return;
 	}
 
 	req = list_first_entry(&ep->queue, struct isp1760_request,
-			       queue);
+						   queue);
 	complete = isp1760_udc_receive(ep, req);
 
 	spin_unlock(&udc->lock);
 
 	if (complete)
+	{
 		isp1760_udc_request_complete(ep, req, 0);
+	}
 }
 
 static void isp1760_ep_tx_complete(struct isp1760_ep *ep)
@@ -327,20 +359,23 @@ static void isp1760_ep_tx_complete(struct isp1760_ep *ep)
 
 	spin_lock(&udc->lock);
 
-	if (ep->addr == 0 && udc->ep0_state != ISP1760_CTRL_DATA_IN) {
+	if (ep->addr == 0 && udc->ep0_state != ISP1760_CTRL_DATA_IN)
+	{
 		spin_unlock(&udc->lock);
 		dev_dbg(udc->isp->dev, "TX IRQ: invalid endpoint state %u\n",
-			udc->ep0_state);
+				udc->ep0_state);
 		return;
 	}
 
-	if (list_empty(&ep->queue)) {
+	if (list_empty(&ep->queue))
+	{
 		/*
 		 * This can happen for the control endpoint when the reply to
 		 * the GET_STATUS IN control request is sent directly by the
 		 * setup IRQ handler. Just proceed to the status stage.
 		 */
-		if (ep->addr == 0) {
+		if (ep->addr == 0)
+		{
 			isp1760_udc_ctrl_send_status(ep, USB_DIR_IN);
 			spin_unlock(&udc->lock);
 			return;
@@ -348,39 +383,44 @@ static void isp1760_ep_tx_complete(struct isp1760_ep *ep)
 
 		spin_unlock(&udc->lock);
 		dev_dbg(udc->isp->dev, "%s: ep%02x has no request queued\n",
-			__func__, ep->addr);
+				__func__, ep->addr);
 		return;
 	}
 
 	req = list_first_entry(&ep->queue, struct isp1760_request,
-			       queue);
+						   queue);
 	req->req.actual += req->packet_size;
 
 	need_zlp = req->req.actual == req->req.length &&
-		   !(req->req.length % ep->maxpacket) &&
-		   req->packet_size && req->req.zero;
+			   !(req->req.length % ep->maxpacket) &&
+			   req->packet_size && req->req.zero;
 
 	dev_dbg(udc->isp->dev,
-		"TX IRQ: req %p actual/length %u/%u maxpacket %u packet size %u zero %u need zlp %u\n",
-		 req, req->req.actual, req->req.length, ep->maxpacket,
-		 req->packet_size, req->req.zero, need_zlp);
+			"TX IRQ: req %p actual/length %u/%u maxpacket %u packet size %u zero %u need zlp %u\n",
+			req, req->req.actual, req->req.length, ep->maxpacket,
+			req->packet_size, req->req.zero, need_zlp);
 
 	/*
 	 * Complete the request if all data has been sent and we don't need to
 	 * transmit a zero length packet.
 	 */
-	if (req->req.actual == req->req.length && !need_zlp) {
+	if (req->req.actual == req->req.length && !need_zlp)
+	{
 		complete = req;
 		list_del(&req->queue);
 
 		if (ep->addr == 0)
+		{
 			isp1760_udc_ctrl_send_status(ep, USB_DIR_IN);
+		}
 
 		if (!list_empty(&ep->queue))
 			req = list_first_entry(&ep->queue,
-					       struct isp1760_request, queue);
+								   struct isp1760_request, queue);
 		else
+		{
 			req = NULL;
+		}
 	}
 
 	/*
@@ -390,12 +430,16 @@ static void isp1760_ep_tx_complete(struct isp1760_ep *ep)
 	 * started, but what about the next packet ?
 	 */
 	if (req)
+	{
 		isp1760_udc_transmit(ep, req);
+	}
 
 	spin_unlock(&udc->lock);
 
 	if (complete)
+	{
 		isp1760_udc_request_complete(ep, complete, 0);
+	}
 }
 
 static int __isp1760_udc_set_halt(struct isp1760_ep *ep, bool halt)
@@ -403,22 +447,26 @@ static int __isp1760_udc_set_halt(struct isp1760_ep *ep, bool halt)
 	struct isp1760_udc *udc = ep->udc;
 
 	dev_dbg(udc->isp->dev, "%s: %s halt on ep%02x\n", __func__,
-		halt ? "set" : "clear", ep->addr);
+			halt ? "set" : "clear", ep->addr);
 
-	if (ep->desc && usb_endpoint_xfer_isoc(ep->desc)) {
+	if (ep->desc && usb_endpoint_xfer_isoc(ep->desc))
+	{
 		dev_dbg(udc->isp->dev, "%s: ep%02x is isochronous\n", __func__,
-			ep->addr);
+				ep->addr);
 		return -EINVAL;
 	}
 
 	isp1760_udc_select_ep(ep);
 	isp1760_udc_write(udc, DC_CTRLFUNC, halt ? DC_STALL : 0);
 
-	if (ep->addr == 0) {
+	if (ep->addr == 0)
+	{
 		/* When halting the control endpoint, stall both IN and OUT. */
 		__isp1760_udc_select_ep(ep, USB_DIR_IN);
 		isp1760_udc_write(udc, DC_CTRLFUNC, halt ? DC_STALL : 0);
-	} else if (!halt) {
+	}
+	else if (!halt)
+	{
 		/* Reset the data PID by cycling the endpoint enable bit. */
 		u16 eptype = isp1760_udc_read(udc, DC_EPTYPE);
 
@@ -432,11 +480,12 @@ static int __isp1760_udc_set_halt(struct isp1760_ep *ep, bool halt)
 		 * TODO: Does the gadget framework require synchronizatino with
 		 * the TX IRQ handler ?
 		 */
-		if ((ep->addr & USB_DIR_IN) && !list_empty(&ep->queue)) {
+		if ((ep->addr & USB_DIR_IN) && !list_empty(&ep->queue))
+		{
 			struct isp1760_request *req;
 
 			req = list_first_entry(&ep->queue,
-					       struct isp1760_request, queue);
+								   struct isp1760_request, queue);
 			isp1760_udc_transmit(ep, req);
 		}
 	}
@@ -451,35 +500,45 @@ static int __isp1760_udc_set_halt(struct isp1760_ep *ep, bool halt)
  */
 
 static int isp1760_udc_get_status(struct isp1760_udc *udc,
-				  const struct usb_ctrlrequest *req)
+								  const struct usb_ctrlrequest *req)
 {
 	struct isp1760_ep *ep;
 	u16 status;
 
 	if (req->wLength != cpu_to_le16(2) || req->wValue != cpu_to_le16(0))
+	{
 		return -EINVAL;
+	}
 
-	switch (req->bRequestType) {
-	case USB_DIR_IN | USB_RECIP_DEVICE:
-		status = udc->devstatus;
-		break;
+	switch (req->bRequestType)
+	{
+		case USB_DIR_IN | USB_RECIP_DEVICE:
+			status = udc->devstatus;
+			break;
 
-	case USB_DIR_IN | USB_RECIP_INTERFACE:
-		status = 0;
-		break;
+		case USB_DIR_IN | USB_RECIP_INTERFACE:
+			status = 0;
+			break;
 
-	case USB_DIR_IN | USB_RECIP_ENDPOINT:
-		ep = isp1760_udc_find_ep(udc, le16_to_cpu(req->wIndex));
-		if (!ep)
+		case USB_DIR_IN | USB_RECIP_ENDPOINT:
+			ep = isp1760_udc_find_ep(udc, le16_to_cpu(req->wIndex));
+
+			if (!ep)
+			{
+				return -EINVAL;
+			}
+
+			status = 0;
+
+			if (ep->halted)
+			{
+				status |= 1 << USB_ENDPOINT_HALT;
+			}
+
+			break;
+
+		default:
 			return -EINVAL;
-
-		status = 0;
-		if (ep->halted)
-			status |= 1 << USB_ENDPOINT_HALT;
-		break;
-
-	default:
-		return -EINVAL;
 	}
 
 	isp1760_udc_write(udc, DC_EPINDEX, DC_ENDPIDX(0) | DC_EPDIR);
@@ -496,20 +555,22 @@ static int isp1760_udc_get_status(struct isp1760_udc *udc,
 
 static int isp1760_udc_set_address(struct isp1760_udc *udc, u16 addr)
 {
-	if (addr > 127) {
+	if (addr > 127)
+	{
 		dev_dbg(udc->isp->dev, "invalid device address %u\n", addr);
 		return -EINVAL;
 	}
 
 	if (udc->gadget.state != USB_STATE_DEFAULT &&
-	    udc->gadget.state != USB_STATE_ADDRESS) {
+		udc->gadget.state != USB_STATE_ADDRESS)
+	{
 		dev_dbg(udc->isp->dev, "can't set address in state %u\n",
-			udc->gadget.state);
+				udc->gadget.state);
 		return -EINVAL;
 	}
 
 	usb_gadget_set_state(&udc->gadget, addr ? USB_STATE_ADDRESS :
-			     USB_STATE_DEFAULT);
+						 USB_STATE_DEFAULT);
 
 	isp1760_udc_write(udc, DC_ADDRESS, DC_DEVEN | addr);
 
@@ -521,130 +582,164 @@ static int isp1760_udc_set_address(struct isp1760_udc *udc, u16 addr)
 }
 
 static bool isp1760_ep0_setup_standard(struct isp1760_udc *udc,
-				       struct usb_ctrlrequest *req)
+									   struct usb_ctrlrequest *req)
 {
 	bool stall;
 
-	switch (req->bRequest) {
-	case USB_REQ_GET_STATUS:
-		return isp1760_udc_get_status(udc, req);
+	switch (req->bRequest)
+	{
+		case USB_REQ_GET_STATUS:
+			return isp1760_udc_get_status(udc, req);
 
-	case USB_REQ_CLEAR_FEATURE:
-		switch (req->bRequestType) {
-		case USB_DIR_OUT | USB_RECIP_DEVICE: {
-			/* TODO: Handle remote wakeup feature. */
-			return true;
-		}
+		case USB_REQ_CLEAR_FEATURE:
+			switch (req->bRequestType)
+			{
+				case USB_DIR_OUT | USB_RECIP_DEVICE:
+					{
+						/* TODO: Handle remote wakeup feature. */
+						return true;
+					}
 
-		case USB_DIR_OUT | USB_RECIP_ENDPOINT: {
-			u16 index = le16_to_cpu(req->wIndex);
-			struct isp1760_ep *ep;
+				case USB_DIR_OUT | USB_RECIP_ENDPOINT:
+					{
+						u16 index = le16_to_cpu(req->wIndex);
+						struct isp1760_ep *ep;
 
-			if (req->wLength != cpu_to_le16(0) ||
-			    req->wValue != cpu_to_le16(USB_ENDPOINT_HALT))
+						if (req->wLength != cpu_to_le16(0) ||
+							req->wValue != cpu_to_le16(USB_ENDPOINT_HALT))
+						{
+							return true;
+						}
+
+						ep = isp1760_udc_find_ep(udc, index);
+
+						if (!ep)
+						{
+							return true;
+						}
+
+						spin_lock(&udc->lock);
+
+						/*
+						 * If the endpoint is wedged only the gadget can clear
+						 * the halt feature. Pretend success in that case, but
+						 * keep the endpoint halted.
+						 */
+						if (!ep->wedged)
+						{
+							stall = __isp1760_udc_set_halt(ep, false);
+						}
+						else
+						{
+							stall = false;
+						}
+
+						if (!stall)
+							isp1760_udc_ctrl_send_status(&udc->ep[0],
+														 USB_DIR_OUT);
+
+						spin_unlock(&udc->lock);
+						return stall;
+					}
+
+				default:
+					return true;
+			}
+
+			break;
+
+		case USB_REQ_SET_FEATURE:
+			switch (req->bRequestType)
+			{
+				case USB_DIR_OUT | USB_RECIP_DEVICE:
+					{
+						/* TODO: Handle remote wakeup and test mode features */
+						return true;
+					}
+
+				case USB_DIR_OUT | USB_RECIP_ENDPOINT:
+					{
+						u16 index = le16_to_cpu(req->wIndex);
+						struct isp1760_ep *ep;
+
+						if (req->wLength != cpu_to_le16(0) ||
+							req->wValue != cpu_to_le16(USB_ENDPOINT_HALT))
+						{
+							return true;
+						}
+
+						ep = isp1760_udc_find_ep(udc, index);
+
+						if (!ep)
+						{
+							return true;
+						}
+
+						spin_lock(&udc->lock);
+
+						stall = __isp1760_udc_set_halt(ep, true);
+
+						if (!stall)
+							isp1760_udc_ctrl_send_status(&udc->ep[0],
+														 USB_DIR_OUT);
+
+						spin_unlock(&udc->lock);
+						return stall;
+					}
+
+				default:
+					return true;
+			}
+
+			break;
+
+		case USB_REQ_SET_ADDRESS:
+			if (req->bRequestType != (USB_DIR_OUT | USB_RECIP_DEVICE))
+			{
 				return true;
+			}
 
-			ep = isp1760_udc_find_ep(udc, index);
-			if (!ep)
+			return isp1760_udc_set_address(udc, le16_to_cpu(req->wValue));
+
+		case USB_REQ_SET_CONFIGURATION:
+			if (req->bRequestType != (USB_DIR_OUT | USB_RECIP_DEVICE))
+			{
 				return true;
+			}
 
-			spin_lock(&udc->lock);
+			if (udc->gadget.state != USB_STATE_ADDRESS &&
+				udc->gadget.state != USB_STATE_CONFIGURED)
+			{
+				return true;
+			}
+
+			stall = udc->driver->setup(&udc->gadget, req) < 0;
+
+			if (stall)
+			{
+				return true;
+			}
+
+			usb_gadget_set_state(&udc->gadget, req->wValue ?
+								 USB_STATE_CONFIGURED : USB_STATE_ADDRESS);
 
 			/*
-			 * If the endpoint is wedged only the gadget can clear
-			 * the halt feature. Pretend success in that case, but
-			 * keep the endpoint halted.
+			 * SET_CONFIGURATION (and SET_INTERFACE) must reset the halt
+			 * feature on all endpoints. There is however no need to do so
+			 * explicitly here as the gadget driver will disable and
+			 * reenable endpoints, clearing the halt feature.
 			 */
-			if (!ep->wedged)
-				stall = __isp1760_udc_set_halt(ep, false);
-			else
-				stall = false;
-
-			if (!stall)
-				isp1760_udc_ctrl_send_status(&udc->ep[0],
-							     USB_DIR_OUT);
-
-			spin_unlock(&udc->lock);
-			return stall;
-		}
+			return false;
 
 		default:
-			return true;
-		}
-		break;
-
-	case USB_REQ_SET_FEATURE:
-		switch (req->bRequestType) {
-		case USB_DIR_OUT | USB_RECIP_DEVICE: {
-			/* TODO: Handle remote wakeup and test mode features */
-			return true;
-		}
-
-		case USB_DIR_OUT | USB_RECIP_ENDPOINT: {
-			u16 index = le16_to_cpu(req->wIndex);
-			struct isp1760_ep *ep;
-
-			if (req->wLength != cpu_to_le16(0) ||
-			    req->wValue != cpu_to_le16(USB_ENDPOINT_HALT))
-				return true;
-
-			ep = isp1760_udc_find_ep(udc, index);
-			if (!ep)
-				return true;
-
-			spin_lock(&udc->lock);
-
-			stall = __isp1760_udc_set_halt(ep, true);
-			if (!stall)
-				isp1760_udc_ctrl_send_status(&udc->ep[0],
-							     USB_DIR_OUT);
-
-			spin_unlock(&udc->lock);
-			return stall;
-		}
-
-		default:
-			return true;
-		}
-		break;
-
-	case USB_REQ_SET_ADDRESS:
-		if (req->bRequestType != (USB_DIR_OUT | USB_RECIP_DEVICE))
-			return true;
-
-		return isp1760_udc_set_address(udc, le16_to_cpu(req->wValue));
-
-	case USB_REQ_SET_CONFIGURATION:
-		if (req->bRequestType != (USB_DIR_OUT | USB_RECIP_DEVICE))
-			return true;
-
-		if (udc->gadget.state != USB_STATE_ADDRESS &&
-		    udc->gadget.state != USB_STATE_CONFIGURED)
-			return true;
-
-		stall = udc->driver->setup(&udc->gadget, req) < 0;
-		if (stall)
-			return true;
-
-		usb_gadget_set_state(&udc->gadget, req->wValue ?
-				     USB_STATE_CONFIGURED : USB_STATE_ADDRESS);
-
-		/*
-		 * SET_CONFIGURATION (and SET_INTERFACE) must reset the halt
-		 * feature on all endpoints. There is however no need to do so
-		 * explicitly here as the gadget driver will disable and
-		 * reenable endpoints, clearing the halt feature.
-		 */
-		return false;
-
-	default:
-		return udc->driver->setup(&udc->gadget, req) < 0;
+			return udc->driver->setup(&udc->gadget, req) < 0;
 	}
 }
 
 static void isp1760_ep0_setup(struct isp1760_udc *udc)
 {
-	union {
+	union
+	{
 		struct usb_ctrlrequest r;
 		u32 data[2];
 	} req;
@@ -656,11 +751,13 @@ static void isp1760_ep0_setup(struct isp1760_udc *udc)
 	isp1760_udc_write(udc, DC_EPINDEX, DC_EP0SETUP);
 
 	count = isp1760_udc_read(udc, DC_BUFLEN) & DC_DATACOUNT_MASK;
-	if (count != sizeof(req)) {
+
+	if (count != sizeof(req))
+	{
 		spin_unlock(&udc->lock);
 
 		dev_err(udc->isp->dev, "invalid length %u for setup packet\n",
-			count);
+				count);
 
 		isp1760_udc_ctrl_send_stall(&udc->ep[0]);
 		return;
@@ -669,7 +766,8 @@ static void isp1760_ep0_setup(struct isp1760_udc *udc)
 	req.data[0] = isp1760_udc_read(udc, DC_DATAPORT);
 	req.data[1] = isp1760_udc_read(udc, DC_DATAPORT);
 
-	if (udc->ep0_state != ISP1760_CTRL_SETUP) {
+	if (udc->ep0_state != ISP1760_CTRL_SETUP)
+	{
 		spin_unlock(&udc->lock);
 		dev_dbg(udc->isp->dev, "unexpected SETUP packet\n");
 		return;
@@ -677,11 +775,17 @@ static void isp1760_ep0_setup(struct isp1760_udc *udc)
 
 	/* Move to the data stage. */
 	if (!req.r.wLength)
+	{
 		udc->ep0_state = ISP1760_CTRL_STATUS;
+	}
 	else if (req.r.bRequestType & USB_DIR_IN)
+	{
 		udc->ep0_state = ISP1760_CTRL_DATA_IN;
+	}
 	else
+	{
 		udc->ep0_state = ISP1760_CTRL_DATA_OUT;
+	}
 
 	udc->ep0_dir = req.r.bRequestType & USB_DIR_IN;
 	udc->ep0_length = le16_to_cpu(req.r.wLength);
@@ -689,18 +793,24 @@ static void isp1760_ep0_setup(struct isp1760_udc *udc)
 	spin_unlock(&udc->lock);
 
 	dev_dbg(udc->isp->dev,
-		"%s: bRequestType 0x%02x bRequest 0x%02x wValue 0x%04x wIndex 0x%04x wLength 0x%04x\n",
-		__func__, req.r.bRequestType, req.r.bRequest,
-		le16_to_cpu(req.r.wValue), le16_to_cpu(req.r.wIndex),
-		le16_to_cpu(req.r.wLength));
+			"%s: bRequestType 0x%02x bRequest 0x%02x wValue 0x%04x wIndex 0x%04x wLength 0x%04x\n",
+			__func__, req.r.bRequestType, req.r.bRequest,
+			le16_to_cpu(req.r.wValue), le16_to_cpu(req.r.wIndex),
+			le16_to_cpu(req.r.wLength));
 
 	if ((req.r.bRequestType & USB_TYPE_MASK) == USB_TYPE_STANDARD)
+	{
 		stall = isp1760_ep0_setup_standard(udc, &req.r);
+	}
 	else
+	{
 		stall = udc->driver->setup(&udc->gadget, &req.r) < 0;
+	}
 
 	if (stall)
+	{
 		isp1760_udc_ctrl_send_stall(&udc->ep[0]);
+	}
 }
 
 /* -----------------------------------------------------------------------------
@@ -708,7 +818,7 @@ static void isp1760_ep0_setup(struct isp1760_udc *udc)
  */
 
 static int isp1760_ep_enable(struct usb_ep *ep,
-			     const struct usb_endpoint_descriptor *desc)
+							 const struct usb_endpoint_descriptor *desc)
 {
 	struct isp1760_ep *uep = ep_to_udc_ep(ep);
 	struct isp1760_udc *udc = uep->udc;
@@ -722,32 +832,37 @@ static int isp1760_ep_enable(struct usb_ep *ep,
 	 * manually.
 	 */
 	if (desc->bDescriptorType != USB_DT_ENDPOINT ||
-	    desc->bEndpointAddress == 0 ||
-	    desc->bEndpointAddress != uep->addr ||
-	    le16_to_cpu(desc->wMaxPacketSize) > ep->maxpacket) {
+		desc->bEndpointAddress == 0 ||
+		desc->bEndpointAddress != uep->addr ||
+		le16_to_cpu(desc->wMaxPacketSize) > ep->maxpacket)
+	{
 		dev_dbg(udc->isp->dev,
-			"%s: invalid descriptor type %u addr %02x ep addr %02x max packet size %u/%u\n",
-			__func__, desc->bDescriptorType,
-			desc->bEndpointAddress, uep->addr,
-			le16_to_cpu(desc->wMaxPacketSize), ep->maxpacket);
+				"%s: invalid descriptor type %u addr %02x ep addr %02x max packet size %u/%u\n",
+				__func__, desc->bDescriptorType,
+				desc->bEndpointAddress, uep->addr,
+				le16_to_cpu(desc->wMaxPacketSize), ep->maxpacket);
 		return -EINVAL;
 	}
 
-	switch (usb_endpoint_type(desc)) {
-	case USB_ENDPOINT_XFER_ISOC:
-		type = DC_ENDPTYP_ISOC;
-		break;
-	case USB_ENDPOINT_XFER_BULK:
-		type = DC_ENDPTYP_BULK;
-		break;
-	case USB_ENDPOINT_XFER_INT:
-		type = DC_ENDPTYP_INTERRUPT;
-		break;
-	case USB_ENDPOINT_XFER_CONTROL:
-	default:
-		dev_dbg(udc->isp->dev, "%s: control endpoints unsupported\n",
-			__func__);
-		return -EINVAL;
+	switch (usb_endpoint_type(desc))
+	{
+		case USB_ENDPOINT_XFER_ISOC:
+			type = DC_ENDPTYP_ISOC;
+			break;
+
+		case USB_ENDPOINT_XFER_BULK:
+			type = DC_ENDPTYP_BULK;
+			break;
+
+		case USB_ENDPOINT_XFER_INT:
+			type = DC_ENDPTYP_INTERRUPT;
+			break;
+
+		case USB_ENDPOINT_XFER_CONTROL:
+		default:
+			dev_dbg(udc->isp->dev, "%s: control endpoints unsupported\n",
+					__func__);
+			return -EINVAL;
 	}
 
 	spin_lock_irqsave(&udc->lock, flags);
@@ -780,7 +895,8 @@ static int isp1760_ep_disable(struct usb_ep *ep)
 
 	spin_lock_irqsave(&udc->lock, flags);
 
-	if (!uep->desc) {
+	if (!uep->desc)
+	{
 		dev_dbg(udc->isp->dev, "%s: endpoint not enabled\n", __func__);
 		spin_unlock_irqrestore(&udc->lock, flags);
 		return -EINVAL;
@@ -798,7 +914,8 @@ static int isp1760_ep_disable(struct usb_ep *ep)
 
 	spin_unlock_irqrestore(&udc->lock, flags);
 
-	list_for_each_entry_safe(req, nreq, &req_list, queue) {
+	list_for_each_entry_safe(req, nreq, &req_list, queue)
+	{
 		list_del(&req->queue);
 		isp1760_udc_request_complete(uep, req, -ESHUTDOWN);
 	}
@@ -807,13 +924,16 @@ static int isp1760_ep_disable(struct usb_ep *ep)
 }
 
 static struct usb_request *isp1760_ep_alloc_request(struct usb_ep *ep,
-						    gfp_t gfp_flags)
+		gfp_t gfp_flags)
 {
 	struct isp1760_request *req;
 
 	req = kzalloc(sizeof(*req), gfp_flags);
+
 	if (!req)
+	{
 		return NULL;
+	}
 
 	return &req->req;
 }
@@ -826,7 +946,7 @@ static void isp1760_ep_free_request(struct usb_ep *ep, struct usb_request *_req)
 }
 
 static int isp1760_ep_queue(struct usb_ep *ep, struct usb_request *_req,
-			    gfp_t gfp_flags)
+							gfp_t gfp_flags)
 {
 	struct isp1760_request *req = req_to_udc_req(_req);
 	struct isp1760_ep *uep = ep_to_udc_ep(ep);
@@ -841,69 +961,86 @@ static int isp1760_ep_queue(struct usb_ep *ep, struct usb_request *_req,
 	spin_lock_irqsave(&udc->lock, flags);
 
 	dev_dbg(udc->isp->dev,
-		"%s: req %p (%u bytes%s) ep %p(0x%02x)\n", __func__, _req,
-		_req->length, _req->zero ? " (zlp)" : "", uep, uep->addr);
+			"%s: req %p (%u bytes%s) ep %p(0x%02x)\n", __func__, _req,
+			_req->length, _req->zero ? " (zlp)" : "", uep, uep->addr);
 
 	req->ep = uep;
 
-	if (uep->addr == 0) {
+	if (uep->addr == 0)
+	{
 		if (_req->length != udc->ep0_length &&
-		    udc->ep0_state != ISP1760_CTRL_DATA_IN) {
+			udc->ep0_state != ISP1760_CTRL_DATA_IN)
+		{
 			dev_dbg(udc->isp->dev,
-				"%s: invalid length %u for req %p\n",
-				__func__, _req->length, req);
+					"%s: invalid length %u for req %p\n",
+					__func__, _req->length, req);
 			ret = -EINVAL;
 			goto done;
 		}
 
-		switch (udc->ep0_state) {
-		case ISP1760_CTRL_DATA_IN:
-			dev_dbg(udc->isp->dev, "%s: transmitting req %p\n",
-				__func__, req);
+		switch (udc->ep0_state)
+		{
+			case ISP1760_CTRL_DATA_IN:
+				dev_dbg(udc->isp->dev, "%s: transmitting req %p\n",
+						__func__, req);
 
-			list_add_tail(&req->queue, &uep->queue);
-			isp1760_udc_transmit(uep, req);
-			break;
+				list_add_tail(&req->queue, &uep->queue);
+				isp1760_udc_transmit(uep, req);
+				break;
 
-		case ISP1760_CTRL_DATA_OUT:
-			list_add_tail(&req->queue, &uep->queue);
-			__isp1760_udc_select_ep(uep, USB_DIR_OUT);
-			isp1760_udc_write(udc, DC_CTRLFUNC, DC_DSEN);
-			break;
+			case ISP1760_CTRL_DATA_OUT:
+				list_add_tail(&req->queue, &uep->queue);
+				__isp1760_udc_select_ep(uep, USB_DIR_OUT);
+				isp1760_udc_write(udc, DC_CTRLFUNC, DC_DSEN);
+				break;
 
-		case ISP1760_CTRL_STATUS:
-			complete = true;
-			break;
+			case ISP1760_CTRL_STATUS:
+				complete = true;
+				break;
 
-		default:
-			dev_dbg(udc->isp->dev, "%s: invalid ep0 state\n",
-				__func__);
-			ret = -EINVAL;
-			break;
+			default:
+				dev_dbg(udc->isp->dev, "%s: invalid ep0 state\n",
+						__func__);
+				ret = -EINVAL;
+				break;
 		}
-	} else if (uep->desc) {
+	}
+	else if (uep->desc)
+	{
 		bool empty = list_empty(&uep->queue);
 
 		list_add_tail(&req->queue, &uep->queue);
+
 		if ((uep->addr & USB_DIR_IN) && !uep->halted && empty)
+		{
 			isp1760_udc_transmit(uep, req);
+		}
 		else if (!(uep->addr & USB_DIR_IN) && uep->rx_pending)
+		{
 			complete = isp1760_udc_receive(uep, req);
-	} else {
+		}
+	}
+	else
+	{
 		dev_dbg(udc->isp->dev,
-			"%s: can't queue request to disabled ep%02x\n",
-			__func__, uep->addr);
+				"%s: can't queue request to disabled ep%02x\n",
+				__func__, uep->addr);
 		ret = -ESHUTDOWN;
 	}
 
 done:
+
 	if (ret < 0)
+	{
 		req->ep = NULL;
+	}
 
 	spin_unlock_irqrestore(&udc->lock, flags);
 
 	if (complete)
+	{
 		isp1760_udc_request_complete(uep, req, 0);
+	}
 
 	return ret;
 }
@@ -920,14 +1057,20 @@ static int isp1760_ep_dequeue(struct usb_ep *ep, struct usb_request *_req)
 	spin_lock_irqsave(&udc->lock, flags);
 
 	if (req->ep != uep)
+	{
 		req = NULL;
+	}
 	else
+	{
 		list_del(&req->queue);
+	}
 
 	spin_unlock_irqrestore(&udc->lock, flags);
 
 	if (!req)
+	{
 		return -EINVAL;
+	}
 
 	isp1760_udc_request_complete(uep, req, -ECONNRESET);
 	return 0;
@@ -938,7 +1081,8 @@ static int __isp1760_ep_set_halt(struct isp1760_ep *uep, bool stall, bool wedge)
 	struct isp1760_udc *udc = uep->udc;
 	int ret;
 
-	if (!uep->addr) {
+	if (!uep->addr)
+	{
 		/*
 		 * Halting the control endpoint is only valid as a delayed error
 		 * response to a SETUP packet. Make sure EP0 is in the right
@@ -946,32 +1090,40 @@ static int __isp1760_ep_set_halt(struct isp1760_ep *uep, bool stall, bool wedge)
 		 * condition.
 		 */
 		if (WARN_ON(udc->ep0_state == ISP1760_CTRL_SETUP || !stall ||
-			     wedge)) {
+					wedge))
+		{
 			return -EINVAL;
 		}
 	}
 
-	if (uep->addr && !uep->desc) {
+	if (uep->addr && !uep->desc)
+	{
 		dev_dbg(udc->isp->dev, "%s: ep%02x is disabled\n", __func__,
-			uep->addr);
+				uep->addr);
 		return -EINVAL;
 	}
 
-	if (uep->addr & USB_DIR_IN) {
+	if (uep->addr & USB_DIR_IN)
+	{
 		/* Refuse to halt IN endpoints with active transfers. */
-		if (!list_empty(&uep->queue)) {
+		if (!list_empty(&uep->queue))
+		{
 			dev_dbg(udc->isp->dev,
-				"%s: ep%02x has request pending\n", __func__,
-				uep->addr);
+					"%s: ep%02x has request pending\n", __func__,
+					uep->addr);
 			return -EAGAIN;
 		}
 	}
 
 	ret = __isp1760_udc_set_halt(uep, stall);
-	if (ret < 0)
-		return ret;
 
-	if (!uep->addr) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	if (!uep->addr)
+	{
 		/*
 		 * Stalling EP0 completes the control transaction, move back to
 		 * the SETUP state.
@@ -981,9 +1133,13 @@ static int __isp1760_ep_set_halt(struct isp1760_ep *uep, bool stall, bool wedge)
 	}
 
 	if (wedge)
+	{
 		uep->wedged = true;
+	}
 	else if (!stall)
+	{
 		uep->wedged = false;
+	}
 
 	return 0;
 }
@@ -995,7 +1151,7 @@ static int isp1760_ep_set_halt(struct usb_ep *ep, int value)
 	int ret;
 
 	dev_dbg(uep->udc->isp->dev, "%s: %s halt on ep%02x\n", __func__,
-		value ? "set" : "clear", uep->addr);
+			value ? "set" : "clear", uep->addr);
 
 	spin_lock_irqsave(&uep->udc->lock, flags);
 	ret = __isp1760_ep_set_halt(uep, value, false);
@@ -1011,7 +1167,7 @@ static int isp1760_ep_set_wedge(struct usb_ep *ep)
 	int ret;
 
 	dev_dbg(uep->udc->isp->dev, "%s: set wedge on ep%02x)\n", __func__,
-		uep->addr);
+			uep->addr);
 
 	spin_lock_irqsave(&uep->udc->lock, flags);
 	ret = __isp1760_ep_set_halt(uep, true, true);
@@ -1040,7 +1196,8 @@ static void isp1760_ep_fifo_flush(struct usb_ep *ep)
 	spin_unlock_irqrestore(&udc->lock, flags);
 }
 
-static const struct usb_ep_ops isp1760_ep_ops = {
+static const struct usb_ep_ops isp1760_ep_ops =
+{
 	.enable = isp1760_ep_enable,
 	.disable = isp1760_ep_disable,
 	.alloc_request = isp1760_ep_alloc_request,
@@ -1067,16 +1224,20 @@ static void isp1760_udc_connect(struct isp1760_udc *udc)
 static void isp1760_udc_disconnect(struct isp1760_udc *udc)
 {
 	if (udc->gadget.state < USB_STATE_POWERED)
+	{
 		return;
+	}
 
 	dev_dbg(udc->isp->dev, "Device disconnected in state %u\n",
-		 udc->gadget.state);
+			udc->gadget.state);
 
 	udc->gadget.speed = USB_SPEED_UNKNOWN;
 	usb_gadget_set_state(&udc->gadget, USB_STATE_ATTACHED);
 
 	if (udc->driver->disconnect)
+	{
 		udc->driver->disconnect(&udc->gadget);
+	}
 
 	del_timer(&udc->vbus_timer);
 
@@ -1095,16 +1256,18 @@ static void isp1760_udc_init_hw(struct isp1760_udc *udc)
 	 * configuration also generates an interrupt on the first NACK token.
 	 */
 	isp1760_udc_write(udc, DC_INTCONF, DC_CDBGMOD_ACK | DC_DDBGMODIN_ACK |
-			  DC_DDBGMODOUT_ACK_NYET);
+					  DC_DDBGMODOUT_ACK_NYET);
 
 	isp1760_udc_write(udc, DC_INTENABLE, DC_IEPRXTX(7) | DC_IEPRXTX(6) |
-			  DC_IEPRXTX(5) | DC_IEPRXTX(4) | DC_IEPRXTX(3) |
-			  DC_IEPRXTX(2) | DC_IEPRXTX(1) | DC_IEPRXTX(0) |
-			  DC_IEP0SETUP | DC_IEVBUS | DC_IERESM | DC_IESUSP |
-			  DC_IEHS_STA | DC_IEBRST);
+					  DC_IEPRXTX(5) | DC_IEPRXTX(4) | DC_IEPRXTX(3) |
+					  DC_IEPRXTX(2) | DC_IEPRXTX(1) | DC_IEPRXTX(0) |
+					  DC_IEP0SETUP | DC_IEVBUS | DC_IERESM | DC_IESUSP |
+					  DC_IEHS_STA | DC_IEBRST);
 
 	if (udc->connected)
+	{
 		isp1760_set_pullup(udc->isp, true);
+	}
 
 	isp1760_udc_write(udc, DC_ADDRESS, DC_DEVEN);
 }
@@ -1132,19 +1295,27 @@ static void isp1760_udc_reset(struct isp1760_udc *udc)
 static void isp1760_udc_suspend(struct isp1760_udc *udc)
 {
 	if (udc->gadget.state < USB_STATE_DEFAULT)
+	{
 		return;
+	}
 
 	if (udc->driver->suspend)
+	{
 		udc->driver->suspend(&udc->gadget);
+	}
 }
 
 static void isp1760_udc_resume(struct isp1760_udc *udc)
 {
 	if (udc->gadget.state < USB_STATE_DEFAULT)
+	{
 		return;
+	}
 
 	if (udc->driver->resume)
+	{
 		udc->driver->resume(&udc->gadget);
+	}
 }
 
 /* -----------------------------------------------------------------------------
@@ -1167,14 +1338,18 @@ static int isp1760_udc_wakeup(struct usb_gadget *gadget)
 }
 
 static int isp1760_udc_set_selfpowered(struct usb_gadget *gadget,
-				       int is_selfpowered)
+									   int is_selfpowered)
 {
 	struct isp1760_udc *udc = gadget_to_udc(gadget);
 
 	if (is_selfpowered)
+	{
 		udc->devstatus |= 1 << USB_DEVICE_SELF_POWERED;
+	}
 	else
+	{
 		udc->devstatus &= ~(1 << USB_DEVICE_SELF_POWERED);
+	}
 
 	return 0;
 }
@@ -1190,20 +1365,22 @@ static int isp1760_udc_pullup(struct usb_gadget *gadget, int is_on)
 }
 
 static int isp1760_udc_start(struct usb_gadget *gadget,
-			     struct usb_gadget_driver *driver)
+							 struct usb_gadget_driver *driver)
 {
 	struct isp1760_udc *udc = gadget_to_udc(gadget);
 	unsigned long flags;
 
 	/* The hardware doesn't support low speed. */
-	if (driver->max_speed < USB_SPEED_FULL) {
+	if (driver->max_speed < USB_SPEED_FULL)
+	{
 		dev_err(udc->isp->dev, "Invalid gadget driver\n");
 		return -EINVAL;
 	}
 
 	spin_lock_irqsave(&udc->lock, flags);
 
-	if (udc->driver) {
+	if (udc->driver)
+	{
 		dev_err(udc->isp->dev, "UDC already has a gadget driver\n");
 		spin_unlock_irqrestore(&udc->lock, flags);
 		return -EBUSY;
@@ -1214,7 +1391,7 @@ static int isp1760_udc_start(struct usb_gadget *gadget,
 	spin_unlock_irqrestore(&udc->lock, flags);
 
 	dev_dbg(udc->isp->dev, "starting UDC with driver %s\n",
-		driver->function);
+			driver->function);
 
 	udc->devstatus = 0;
 	udc->connected = true;
@@ -1227,7 +1404,7 @@ static int isp1760_udc_start(struct usb_gadget *gadget,
 	isp1760_udc_init_hw(udc);
 
 	dev_dbg(udc->isp->dev, "UDC started with driver %s\n",
-		driver->function);
+			driver->function);
 
 	return 0;
 }
@@ -1250,7 +1427,8 @@ static int isp1760_udc_stop(struct usb_gadget *gadget)
 	return 0;
 }
 
-static struct usb_gadget_ops isp1760_udc_ops = {
+static struct usb_gadget_ops isp1760_udc_ops =
+{
 	.get_frame = isp1760_udc_get_frame,
 	.wakeup = isp1760_udc_wakeup,
 	.set_selfpowered = isp1760_udc_set_selfpowered,
@@ -1270,10 +1448,11 @@ static irqreturn_t isp1760_udc_irq(int irq, void *dev)
 	u32 status;
 
 	status = isp1760_udc_read(udc, DC_INTERRUPT)
-	       & isp1760_udc_read(udc, DC_INTENABLE);
+			 & isp1760_udc_read(udc, DC_INTENABLE);
 	isp1760_udc_write(udc, DC_INTERRUPT, status);
 
-	if (status & DC_IEVBUS) {
+	if (status & DC_IEVBUS)
+	{
 		dev_dbg(udc->isp->dev, "%s(VBUS)\n", __func__);
 		/* The VBUS interrupt is only triggered when VBUS appears. */
 		spin_lock(&udc->lock);
@@ -1281,49 +1460,63 @@ static irqreturn_t isp1760_udc_irq(int irq, void *dev)
 		spin_unlock(&udc->lock);
 	}
 
-	if (status & DC_IEBRST) {
+	if (status & DC_IEBRST)
+	{
 		dev_dbg(udc->isp->dev, "%s(BRST)\n", __func__);
 
 		isp1760_udc_reset(udc);
 	}
 
-	for (i = 0; i <= 7; ++i) {
-		struct isp1760_ep *ep = &udc->ep[i*2];
+	for (i = 0; i <= 7; ++i)
+	{
+		struct isp1760_ep *ep = &udc->ep[i * 2];
 
-		if (status & DC_IEPTX(i)) {
+		if (status & DC_IEPTX(i))
+		{
 			dev_dbg(udc->isp->dev, "%s(EPTX%u)\n", __func__, i);
 			isp1760_ep_tx_complete(ep);
 		}
 
-		if (status & DC_IEPRX(i)) {
+		if (status & DC_IEPRX(i))
+		{
 			dev_dbg(udc->isp->dev, "%s(EPRX%u)\n", __func__, i);
 			isp1760_ep_rx_ready(i ? ep - 1 : ep);
 		}
 	}
 
-	if (status & DC_IEP0SETUP) {
+	if (status & DC_IEP0SETUP)
+	{
 		dev_dbg(udc->isp->dev, "%s(EP0SETUP)\n", __func__);
 
 		isp1760_ep0_setup(udc);
 	}
 
-	if (status & DC_IERESM) {
+	if (status & DC_IERESM)
+	{
 		dev_dbg(udc->isp->dev, "%s(RESM)\n", __func__);
 		isp1760_udc_resume(udc);
 	}
 
-	if (status & DC_IESUSP) {
+	if (status & DC_IESUSP)
+	{
 		dev_dbg(udc->isp->dev, "%s(SUSP)\n", __func__);
 
 		spin_lock(&udc->lock);
+
 		if (!(isp1760_udc_read(udc, DC_MODE) & DC_VBUSSTAT))
+		{
 			isp1760_udc_disconnect(udc);
+		}
 		else
+		{
 			isp1760_udc_suspend(udc);
+		}
+
 		spin_unlock(&udc->lock);
 	}
 
-	if (status & DC_IEHS_STA) {
+	if (status & DC_IEHS_STA)
+	{
 		dev_dbg(udc->isp->dev, "%s(HS_STA)\n", __func__);
 		udc->gadget.speed = USB_SPEED_HIGH;
 	}
@@ -1339,10 +1532,12 @@ static void isp1760_udc_vbus_poll(unsigned long data)
 	spin_lock_irqsave(&udc->lock, flags);
 
 	if (!(isp1760_udc_read(udc, DC_MODE) & DC_VBUSSTAT))
+	{
 		isp1760_udc_disconnect(udc);
+	}
 	else if (udc->gadget.state >= USB_STATE_POWERED)
 		mod_timer(&udc->vbus_timer,
-			  jiffies + ISP1760_VBUS_POLL_INTERVAL);
+				  jiffies + ISP1760_VBUS_POLL_INTERVAL);
 
 	spin_unlock_irqrestore(&udc->lock, flags);
 }
@@ -1357,7 +1552,8 @@ static void isp1760_udc_init_eps(struct isp1760_udc *udc)
 
 	INIT_LIST_HEAD(&udc->gadget.ep_list);
 
-	for (i = 0; i < ARRAY_SIZE(udc->ep); ++i) {
+	for (i = 0; i < ARRAY_SIZE(udc->ep); ++i)
+	{
 		struct isp1760_ep *ep = &udc->ep[i];
 		unsigned int ep_num = (i + 1) / 2;
 		bool is_in = !(i & 1);
@@ -1367,11 +1563,11 @@ static void isp1760_udc_init_eps(struct isp1760_udc *udc)
 		INIT_LIST_HEAD(&ep->queue);
 
 		ep->addr = (ep_num && is_in ? USB_DIR_IN : USB_DIR_OUT)
-			 | ep_num;
+				   | ep_num;
 		ep->desc = NULL;
 
 		sprintf(ep->name, "ep%u%s", ep_num,
-			ep_num ? (is_in ? "in" : "out") : "");
+				ep_num ? (is_in ? "in" : "out") : "");
 
 		ep->ep.ops = &isp1760_ep_ops;
 		ep->ep.name = ep->name;
@@ -1381,14 +1577,17 @@ static void isp1760_udc_init_eps(struct isp1760_udc *udc)
 		 * the control endpoint and 512 bytes for all other endpoints.
 		 * This fits in the 8kB FIFO without double-buffering.
 		 */
-		if (ep_num == 0) {
+		if (ep_num == 0)
+		{
 			usb_ep_set_maxpacket_limit(&ep->ep, 64);
 			ep->ep.caps.type_control = true;
 			ep->ep.caps.dir_in = true;
 			ep->ep.caps.dir_out = true;
 			ep->maxpacket = 64;
 			udc->gadget.ep0 = &ep->ep;
-		} else {
+		}
+		else
+		{
 			usb_ep_set_maxpacket_limit(&ep->ep, 512);
 			ep->ep.caps.type_iso = true;
 			ep->ep.caps.type_bulk = true;
@@ -1398,9 +1597,13 @@ static void isp1760_udc_init_eps(struct isp1760_udc *udc)
 		}
 
 		if (is_in)
+		{
 			ep->ep.caps.dir_in = true;
+		}
 		else
+		{
 			ep->ep.caps.dir_out = true;
+		}
 	}
 }
 
@@ -1419,14 +1622,16 @@ static int isp1760_udc_init(struct isp1760_udc *udc)
 	chipid = isp1760_udc_read(udc, DC_CHIPID);
 	scratch = isp1760_udc_read(udc, DC_SCRATCH);
 
-	if (scratch != 0xbabe) {
+	if (scratch != 0xbabe)
+	{
 		dev_err(udc->isp->dev,
-			"udc: scratch test failed (0x%04x/0x%08x)\n",
-			scratch, chipid);
+				"udc: scratch test failed (0x%04x/0x%08x)\n",
+				scratch, chipid);
 		return -ENODEV;
 	}
 
-	if (chipid != 0x00011582 && chipid != 0x00158210) {
+	if (chipid != 0x00011582 && chipid != 0x00158210)
+	{
 		dev_err(udc->isp->dev, "udc: invalid chip ID 0x%08x\n", chipid);
 		return -ENODEV;
 	}
@@ -1441,7 +1646,7 @@ static int isp1760_udc_init(struct isp1760_udc *udc)
 }
 
 int isp1760_udc_register(struct isp1760_device *isp, int irq,
-			 unsigned long irqflags)
+						 unsigned long irqflags)
 {
 	struct isp1760_udc *udc = &isp->udc;
 	const char *devname;
@@ -1453,23 +1658,32 @@ int isp1760_udc_register(struct isp1760_device *isp, int irq,
 
 	spin_lock_init(&udc->lock);
 	setup_timer(&udc->vbus_timer, isp1760_udc_vbus_poll,
-		    (unsigned long)udc);
+				(unsigned long)udc);
 
 	ret = isp1760_udc_init(udc);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	devname = dev_name(isp->dev);
 	udc->irqname = kmalloc(strlen(devname) + 7, GFP_KERNEL);
+
 	if (!udc->irqname)
+	{
 		return -ENOMEM;
+	}
 
 	sprintf(udc->irqname, "%s (udc)", devname);
 
 	ret = request_irq(irq, isp1760_udc_irq, IRQF_SHARED | irqflags,
-			  udc->irqname, udc);
+					  udc->irqname, udc);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
 
 	udc->irq = irq;
 
@@ -1486,14 +1700,21 @@ int isp1760_udc_register(struct isp1760_device *isp, int irq,
 	isp1760_udc_init_eps(udc);
 
 	ret = usb_add_gadget_udc(isp->dev, &udc->gadget);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
 
 	return 0;
 
 error:
+
 	if (udc->irq >= 0)
+	{
 		free_irq(udc->irq, udc);
+	}
+
 	kfree(udc->irqname);
 
 	return ret;
@@ -1504,7 +1725,9 @@ void isp1760_udc_unregister(struct isp1760_device *isp)
 	struct isp1760_udc *udc = &isp->udc;
 
 	if (!udc->isp)
+	{
 		return;
+	}
 
 	usb_del_gadget_udc(&udc->gadget);
 

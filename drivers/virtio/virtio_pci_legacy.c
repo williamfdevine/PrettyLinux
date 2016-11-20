@@ -48,31 +48,35 @@ static int vp_finalize_features(struct virtio_device *vdev)
 
 /* virtio config->get() implementation */
 static void vp_get(struct virtio_device *vdev, unsigned offset,
-		   void *buf, unsigned len)
+				   void *buf, unsigned len)
 {
 	struct virtio_pci_device *vp_dev = to_vp_device(vdev);
 	void __iomem *ioaddr = vp_dev->ioaddr +
-				VIRTIO_PCI_CONFIG(vp_dev) + offset;
+						   VIRTIO_PCI_CONFIG(vp_dev) + offset;
 	u8 *ptr = buf;
 	int i;
 
 	for (i = 0; i < len; i++)
+	{
 		ptr[i] = ioread8(ioaddr + i);
+	}
 }
 
 /* the config->set() implementation.  it's symmetric to the config->get()
  * implementation */
 static void vp_set(struct virtio_device *vdev, unsigned offset,
-		   const void *buf, unsigned len)
+				   const void *buf, unsigned len)
 {
 	struct virtio_pci_device *vp_dev = to_vp_device(vdev);
 	void __iomem *ioaddr = vp_dev->ioaddr +
-				VIRTIO_PCI_CONFIG(vp_dev) + offset;
+						   VIRTIO_PCI_CONFIG(vp_dev) + offset;
 	const u8 *ptr = buf;
 	int i;
 
 	for (i = 0; i < len; i++)
+	{
 		iowrite8(ptr[i], ioaddr + i);
+	}
 }
 
 /* config->{get,set}_status() implementations */
@@ -112,11 +116,11 @@ static u16 vp_config_vector(struct virtio_pci_device *vp_dev, u16 vector)
 }
 
 static struct virtqueue *setup_vq(struct virtio_pci_device *vp_dev,
-				  struct virtio_pci_vq_info *info,
-				  unsigned index,
-				  void (*callback)(struct virtqueue *vq),
-				  const char *name,
-				  u16 msix_vec)
+								  struct virtio_pci_vq_info *info,
+								  unsigned index,
+								  void (*callback)(struct virtqueue *vq),
+								  const char *name,
+								  u16 msix_vec)
 {
 	struct virtqueue *vq;
 	u16 num;
@@ -127,28 +131,37 @@ static struct virtqueue *setup_vq(struct virtio_pci_device *vp_dev,
 
 	/* Check if queue is either not available or already active. */
 	num = ioread16(vp_dev->ioaddr + VIRTIO_PCI_QUEUE_NUM);
+
 	if (!num || ioread32(vp_dev->ioaddr + VIRTIO_PCI_QUEUE_PFN))
+	{
 		return ERR_PTR(-ENOENT);
+	}
 
 	info->msix_vector = msix_vec;
 
 	/* create the vring */
 	vq = vring_create_virtqueue(index, num,
-				    VIRTIO_PCI_VRING_ALIGN, &vp_dev->vdev,
-				    true, false, vp_notify, callback, name);
+								VIRTIO_PCI_VRING_ALIGN, &vp_dev->vdev,
+								true, false, vp_notify, callback, name);
+
 	if (!vq)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	/* activate the queue */
 	iowrite32(virtqueue_get_desc_addr(vq) >> VIRTIO_PCI_QUEUE_ADDR_SHIFT,
-		  vp_dev->ioaddr + VIRTIO_PCI_QUEUE_PFN);
+			  vp_dev->ioaddr + VIRTIO_PCI_QUEUE_PFN);
 
 	vq->priv = (void __force *)vp_dev->ioaddr + VIRTIO_PCI_QUEUE_NOTIFY;
 
-	if (msix_vec != VIRTIO_MSI_NO_VECTOR) {
+	if (msix_vec != VIRTIO_MSI_NO_VECTOR)
+	{
 		iowrite16(msix_vec, vp_dev->ioaddr + VIRTIO_MSI_QUEUE_VECTOR);
 		msix_vec = ioread16(vp_dev->ioaddr + VIRTIO_MSI_QUEUE_VECTOR);
-		if (msix_vec == VIRTIO_MSI_NO_VECTOR) {
+
+		if (msix_vec == VIRTIO_MSI_NO_VECTOR)
+		{
 			err = -EBUSY;
 			goto out_deactivate;
 		}
@@ -169,9 +182,10 @@ static void del_vq(struct virtio_pci_vq_info *info)
 
 	iowrite16(vq->index, vp_dev->ioaddr + VIRTIO_PCI_QUEUE_SEL);
 
-	if (vp_dev->msix_enabled) {
+	if (vp_dev->msix_enabled)
+	{
 		iowrite16(VIRTIO_MSI_NO_VECTOR,
-			  vp_dev->ioaddr + VIRTIO_MSI_QUEUE_VECTOR);
+				  vp_dev->ioaddr + VIRTIO_MSI_QUEUE_VECTOR);
 		/* Flush the write out to device */
 		ioread8(vp_dev->ioaddr + VIRTIO_PCI_ISR);
 	}
@@ -182,7 +196,8 @@ static void del_vq(struct virtio_pci_vq_info *info)
 	vring_del_virtqueue(vq);
 }
 
-static const struct virtio_config_ops virtio_pci_config_ops = {
+static const struct virtio_config_ops virtio_pci_config_ops =
+{
 	.get		= vp_get,
 	.set		= vp_set,
 	.get_status	= vp_get_status,
@@ -204,37 +219,52 @@ int virtio_pci_legacy_probe(struct virtio_pci_device *vp_dev)
 
 	/* We only own devices >= 0x1000 and <= 0x103f: leave the rest. */
 	if (pci_dev->device < 0x1000 || pci_dev->device > 0x103f)
+	{
 		return -ENODEV;
+	}
 
-	if (pci_dev->revision != VIRTIO_PCI_ABI_VERSION) {
+	if (pci_dev->revision != VIRTIO_PCI_ABI_VERSION)
+	{
 		printk(KERN_ERR "virtio_pci: expected ABI version %d, got %d\n",
-		       VIRTIO_PCI_ABI_VERSION, pci_dev->revision);
+			   VIRTIO_PCI_ABI_VERSION, pci_dev->revision);
 		return -ENODEV;
 	}
 
 	rc = dma_set_mask(&pci_dev->dev, DMA_BIT_MASK(64));
-	if (rc) {
+
+	if (rc)
+	{
 		rc = dma_set_mask_and_coherent(&pci_dev->dev, DMA_BIT_MASK(32));
-	} else {
+	}
+	else
+	{
 		/*
 		 * The virtio ring base address is expressed as a 32-bit PFN,
 		 * with a page size of 1 << VIRTIO_PCI_QUEUE_ADDR_SHIFT.
 		 */
 		dma_set_coherent_mask(&pci_dev->dev,
-				DMA_BIT_MASK(32 + VIRTIO_PCI_QUEUE_ADDR_SHIFT));
+							  DMA_BIT_MASK(32 + VIRTIO_PCI_QUEUE_ADDR_SHIFT));
 	}
 
 	if (rc)
+	{
 		dev_warn(&pci_dev->dev, "Failed to enable 64-bit or 32-bit DMA.  Trying to continue, but this might not work.\n");
+	}
 
 	rc = pci_request_region(pci_dev, 0, "virtio-pci-legacy");
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = -ENOMEM;
 	vp_dev->ioaddr = pci_iomap(pci_dev, 0, 0);
+
 	if (!vp_dev->ioaddr)
+	{
 		goto err_iomap;
+	}
 
 	vp_dev->isr = vp_dev->ioaddr + VIRTIO_PCI_ISR;
 

@@ -18,11 +18,12 @@
 #define MODIFY_REG(instance, reg, var)				\
 	do {							\
 		if (REG_RD_INT(ser, instance, reg) !=		\
-		    REG_TYPE_CONV(int, reg_ser_##reg, var))	\
+			REG_TYPE_CONV(int, reg_ser_##reg, var))	\
 			REG_WR(ser, instance, reg, var);	\
 	} while (0)
 
-struct uart_cris_port {
+struct uart_cris_port
+{
 	struct uart_port port;
 
 	int initialized;
@@ -56,34 +57,49 @@ cris_console_write(struct console *co, const char *s, unsigned int count)
 	up = etraxfs_uart_ports[co->index];
 
 	if (!up)
+	{
 		return;
+	}
 
 	/* Switch to manual mode. */
 	tr_dma_en = old = REG_RD(ser, up->regi_ser, rw_tr_dma_en);
-	if (tr_dma_en.en == regk_ser_yes) {
+
+	if (tr_dma_en.en == regk_ser_yes)
+	{
 		tr_dma_en.en = regk_ser_no;
 		REG_WR(ser, up->regi_ser, rw_tr_dma_en, tr_dma_en);
 	}
 
 	/* Send data. */
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		/* LF -> CRLF */
-		if (s[i] == '\n') {
-			do {
+		if (s[i] == '\n')
+		{
+			do
+			{
 				stat = REG_RD(ser, up->regi_ser, r_stat_din);
-			} while (!stat.tr_rdy);
+			}
+			while (!stat.tr_rdy);
+
 			REG_WR_INT(ser, up->regi_ser, rw_dout, '\r');
 		}
+
 		/* Wait until transmitter is ready and send. */
-		do {
+		do
+		{
 			stat = REG_RD(ser, up->regi_ser, r_stat_din);
-		} while (!stat.tr_rdy);
+		}
+		while (!stat.tr_rdy);
+
 		REG_WR_INT(ser, up->regi_ser, rw_dout, s[i]);
 	}
 
 	/* Restore mode. */
 	if (tr_dma_en.en != old.en)
+	{
 		REG_WR(ser, up->regi_ser, rw_tr_dma_en, old);
+	}
 }
 
 static int __init
@@ -96,14 +112,20 @@ cris_console_setup(struct console *co, char *options)
 	int flow = 'n';
 
 	if (co->index < 0 || co->index >= UART_NR)
+	{
 		co->index = 0;
+	}
+
 	port = &etraxfs_uart_ports[co->index]->port;
 	console_port = port;
 
 	co->flags |= CON_CONSDEV;
 
 	if (options)
+	{
 		uart_parse_options(options, &baud, &parity, &bits, &flow);
+	}
+
 	console_baud = baud;
 	cris_serial_port_init(port, co->index);
 	uart_set_options(port, co, baud, parity, bits, flow);
@@ -111,7 +133,8 @@ cris_console_setup(struct console *co, char *options)
 	return 0;
 }
 
-static struct console cris_console = {
+static struct console cris_console =
+{
 	.name = "ttyS",
 	.write = cris_console_write,
 	.device = uart_console_device,
@@ -122,7 +145,8 @@ static struct console cris_console = {
 };
 #endif /* CONFIG_SERIAL_ETRAXFS_CONSOLE */
 
-static struct uart_driver etraxfs_uart_driver = {
+static struct uart_driver etraxfs_uart_driver =
+{
 	.owner = THIS_MODULE,
 	.driver_name = "serial",
 	.dev_name = "ttyS",
@@ -151,7 +175,7 @@ static inline int crisv32_serial_get_rts(struct uart_cris_port *up)
  *                                            0=0V    , 1=3.3V
  */
 static inline void crisv32_serial_set_rts(struct uart_cris_port *up,
-					  int set, int force)
+		int set, int force)
 {
 	void __iomem *regi_ser = up->regi_ser;
 
@@ -162,9 +186,14 @@ static inline void crisv32_serial_set_rts(struct uart_cris_port *up,
 	rec_ctrl = REG_RD(ser, regi_ser, rw_rec_ctrl);
 
 	if (set)
+	{
 		rec_ctrl.rts_n = regk_ser_active;
+	}
 	else
+	{
 		rec_ctrl.rts_n = regk_ser_inactive;
+	}
+
 	REG_WR(ser, regi_ser, rw_rec_ctrl, rec_ctrl);
 	local_irq_restore(flags);
 }
@@ -205,12 +234,15 @@ static void etraxfs_uart_send_xchar(struct uart_port *port, char ch)
 	 * taken.
 	 */
 	spin_lock_irqsave(&port->lock, flags);
-	do {
+
+	do
+	{
 		spin_unlock_irqrestore(&port->lock, flags);
 		spin_lock_irqsave(&port->lock, flags);
 		prev_tr_ctrl = tr_ctrl = REG_RD(ser, regi_ser, rw_tr_ctrl);
 		rstat = REG_RD(ser, regi_ser, r_stat_din);
-	} while (!rstat.tr_rdy);
+	}
+	while (!rstat.tr_rdy);
 
 	/*
 	 * Ack an interrupt if one was just issued for the previous character
@@ -238,7 +270,8 @@ static void etraxfs_uart_send_xchar(struct uart_port *port, char ch)
 	 * Clear any xoff state that *may* have been there to
 	 * inhibit transmission of the character.
 	 */
-	if (rstat.xoff_detect) {
+	if (rstat.xoff_detect)
+	{
 		reg_ser_rw_xoff_clr xoff_clr = { .clr = 1 };
 		reg_ser_rw_tr_dma_en tr_dma_en;
 
@@ -274,7 +307,9 @@ static void etraxfs_uart_start_tx(struct uart_port *port)
 
 	/* we have already done below if a write is ongoing */
 	if (up->write_ongoing)
+	{
 		return;
+	}
 
 	/* Signal that write is ongoing */
 	up->write_ongoing = 1;
@@ -386,10 +421,17 @@ static unsigned int etraxfs_uart_get_mctrl(struct uart_port *port)
 	unsigned int ret;
 
 	ret = 0;
+
 	if (crisv32_serial_get_rts(up))
+	{
 		ret |= TIOCM_RTS;
+	}
+
 	if (crisv32_serial_get_cts(up))
+	{
 		ret |= TIOCM_CTS;
+	}
+
 	return mctrl_gpio_get(up->gpios, &ret);
 }
 
@@ -414,7 +456,8 @@ static void etraxfs_uart_break_ctl(struct uart_port *port, int break_state)
 	tr_dma_en = REG_RD(ser, up->regi_ser, rw_tr_dma_en);
 	intr_mask = REG_RD(ser, up->regi_ser, rw_intr_mask);
 
-	if (break_state != 0) { /* Send break */
+	if (break_state != 0)   /* Send break */
+	{
 		/*
 		 * We need to disable DMA (if used) or tr_rdy interrupts if no
 		 * DMA.  No need to make this conditional on use of DMA;
@@ -430,13 +473,16 @@ static void etraxfs_uart_break_ctl(struct uart_port *port, int break_state)
 		 */
 		tr_ctrl.stop = 1;
 		tr_ctrl.txd = 0;
-	} else {
+	}
+	else
+	{
 		/* Re-enable the serial interrupt. */
 		intr_mask.tr_rdy = regk_ser_yes;
 
 		tr_ctrl.stop = 0;
 		tr_ctrl.txd = 1;
 	}
+
 	REG_WR(ser, up->regi_ser, rw_tr_ctrl, tr_ctrl);
 	REG_WR(ser, up->regi_ser, rw_tr_dma_en, tr_dma_en);
 	REG_WR(ser, up->regi_ser, rw_intr_mask, intr_mask);
@@ -454,7 +500,8 @@ transmit_chars_no_dma(struct uart_cris_port *up)
 	reg_ser_r_stat_din rstat;
 	reg_ser_rw_ack_intr ack_intr = { .tr_rdy = regk_ser_yes };
 
-	if (uart_circ_empty(xmit) || uart_tx_stopped(&up->port)) {
+	if (uart_circ_empty(xmit) || uart_tx_stopped(&up->port))
+	{
 		/* No more to send, so disable the interrupt. */
 		reg_ser_rw_intr_mask intr_mask;
 
@@ -469,20 +516,29 @@ transmit_chars_no_dma(struct uart_cris_port *up)
 	/* If the serport is fast, we send up to max_count bytes before
 	   exiting the loop.  */
 	max_count = 64;
-	do {
+
+	do
+	{
 		reg_ser_rw_dout dout = { .data = xmit->buf[xmit->tail] };
 
 		REG_WR(ser, regi_ser, rw_dout, dout);
 		REG_WR(ser, regi_ser, rw_ack_intr, ack_intr);
-		xmit->tail = (xmit->tail + 1) & (UART_XMIT_SIZE-1);
+		xmit->tail = (xmit->tail + 1) & (UART_XMIT_SIZE - 1);
 		up->port.icount.tx++;
+
 		if (xmit->head == xmit->tail)
+		{
 			break;
+		}
+
 		rstat = REG_RD(ser, regi_ser, r_stat_din);
-	} while ((--max_count > 0) && rstat.tr_rdy);
+	}
+	while ((--max_count > 0) && rstat.tr_rdy);
 
 	if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS)
+	{
 		uart_write_wakeup(&up->port);
+	}
 }
 
 static void receive_chars_no_dma(struct uart_cris_port *up)
@@ -499,7 +555,8 @@ static void receive_chars_no_dma(struct uart_cris_port *up)
 	icount = &up->port.icount;
 	port = &up->port.state->port;
 
-	do {
+	do
+	{
 		stat_din = REG_RD(ser, up->regi_ser, rs_stat_din);
 
 		flag = TTY_NORMAL;
@@ -507,19 +564,27 @@ static void receive_chars_no_dma(struct uart_cris_port *up)
 		REG_WR(ser, up->regi_ser, rw_ack_intr, ack_intr);
 		icount->rx++;
 
-		if (stat_din.framing_err | stat_din.par_err | stat_din.orun) {
+		if (stat_din.framing_err | stat_din.par_err | stat_din.orun)
+		{
 			if (stat_din.data == 0x00 &&
-			    stat_din.framing_err) {
+				stat_din.framing_err)
+			{
 				/* Most likely a break. */
 				flag = TTY_BREAK;
 				icount->brk++;
-			} else if (stat_din.par_err) {
+			}
+			else if (stat_din.par_err)
+			{
 				flag = TTY_PARITY;
 				icount->parity++;
-			} else if (stat_din.orun) {
+			}
+			else if (stat_din.orun)
+			{
 				flag = TTY_OVERRUN;
 				icount->overrun++;
-			} else if (stat_din.framing_err) {
+			}
+			else if (stat_din.framing_err)
+			{
 				flag = TTY_FRAME;
 				icount->frame++;
 			}
@@ -530,9 +595,14 @@ static void receive_chars_no_dma(struct uart_cris_port *up)
 		 * gracefully by keeping track of the unhandled character.
 		 */
 		if (!tty_insert_flip_char(port, stat_din.data, flag))
+		{
 			panic("%s: No tty buffer space", __func__);
+		}
+
 		rstat = REG_RD(ser, up->regi_ser, r_stat_din);
-	} while (rstat.dav && (max_count-- > 0));
+	}
+	while (rstat.dav && (max_count-- > 0));
+
 	spin_unlock(&up->port.lock);
 	tty_flip_buffer_push(port);
 	spin_lock(&up->port.lock);
@@ -549,25 +619,30 @@ ser_interrupt(int irq, void *dev_id)
 
 	regi_ser = up->regi_ser;
 
-	if (regi_ser) {
+	if (regi_ser)
+	{
 		reg_ser_r_masked_intr masked_intr;
 
 		masked_intr = REG_RD(ser, regi_ser, r_masked_intr);
+
 		/*
 		 * Check what interrupts are active before taking
 		 * actions. If DMA is used the interrupt shouldn't
 		 * be enabled.
 		 */
-		if (masked_intr.dav) {
+		if (masked_intr.dav)
+		{
 			receive_chars_no_dma(up);
 			handled = 1;
 		}
 
-		if (masked_intr.tr_rdy) {
+		if (masked_intr.tr_rdy)
+		{
 			transmit_chars_no_dma(up);
 			handled = 1;
 		}
 	}
+
 	spin_unlock(&up->port.lock);
 	return IRQ_RETVAL(handled);
 }
@@ -579,9 +654,11 @@ static int etraxfs_uart_get_poll_char(struct uart_port *port)
 	reg_ser_rw_ack_intr ack_intr = { 0 };
 	struct uart_cris_port *up = (struct uart_cris_port *)port;
 
-	do {
+	do
+	{
 		stat = REG_RD(ser, up->regi_ser, rs_stat_din);
-	} while (!stat.dav);
+	}
+	while (!stat.dav);
 
 	/* Ack the data_avail interrupt. */
 	ack_intr.dav = 1;
@@ -591,14 +668,17 @@ static int etraxfs_uart_get_poll_char(struct uart_port *port)
 }
 
 static void etraxfs_uart_put_poll_char(struct uart_port *port,
-					unsigned char c)
+									   unsigned char c)
 {
 	reg_ser_r_stat_din stat;
 	struct uart_cris_port *up = (struct uart_cris_port *)port;
 
-	do {
+	do
+	{
 		stat = REG_RD(ser, up->regi_ser, r_stat_din);
-	} while (!stat.tr_rdy);
+	}
+	while (!stat.tr_rdy);
+
 	REG_WR_INT(ser, up->regi_ser, rw_dout, c);
 }
 #endif /* CONFIG_CONSOLE_POLL */
@@ -612,8 +692,10 @@ static int etraxfs_uart_startup(struct uart_port *port)
 	ser_intr_mask.dav = regk_ser_yes;
 
 	if (request_irq(etraxfs_uart_ports[port->line]->irq, ser_interrupt,
-			0, DRV_NAME, etraxfs_uart_ports[port->line]))
+					0, DRV_NAME, etraxfs_uart_ports[port->line]))
+	{
 		panic("irq ser%d", port->line);
+	}
 
 	spin_lock_irqsave(&up->port.lock, flags);
 
@@ -637,7 +719,7 @@ static void etraxfs_uart_shutdown(struct uart_port *port)
 	etraxfs_uart_stop_rx(port);
 
 	free_irq(etraxfs_uart_ports[port->line]->irq,
-		 etraxfs_uart_ports[port->line]);
+			 etraxfs_uart_ports[port->line]);
 
 	etraxfs_uart_set_mctrl(&up->port, up->port.mctrl);
 
@@ -647,7 +729,7 @@ static void etraxfs_uart_shutdown(struct uart_port *port)
 
 static void
 etraxfs_uart_set_termios(struct uart_port *port, struct ktermios *termios,
-			 struct ktermios *old)
+						 struct ktermios *old)
 {
 	struct uart_cris_port *up = (struct uart_cris_port *)port;
 	unsigned long flags;
@@ -661,9 +743,11 @@ etraxfs_uart_set_termios(struct uart_port *port, struct ktermios *termios,
 	int baud;
 
 	if (old &&
-	    termios->c_cflag == old->c_cflag &&
-	    termios->c_iflag == old->c_iflag)
+		termios->c_cflag == old->c_cflag &&
+		termios->c_iflag == old->c_iflag)
+	{
 		return;
+	}
 
 	/* Tx: 8 bit, no/even parity, 1 stop bit, no cts. */
 	tx_ctrl.base_freq = regk_ser_f29_493;
@@ -705,50 +789,63 @@ etraxfs_uart_set_termios(struct uart_port *port, struct ktermios *termios,
 	 */
 	if ((port != console_port) || old)
 		baud = uart_get_baud_rate(port, termios, old, 0,
-					  port->uartclk / 8);
+								  port->uartclk / 8);
 	else
+	{
 		baud = console_baud;
+	}
 
 	tx_baud_div.div = 29493000 / (8 * baud);
 	/* Rx uses same as tx. */
 	rx_baud_div.div = tx_baud_div.div;
 	rx_ctrl.base_freq = tx_ctrl.base_freq;
 
-	if ((termios->c_cflag & CSIZE) == CS7) {
+	if ((termios->c_cflag & CSIZE) == CS7)
+	{
 		/* Set 7 bit mode. */
 		tx_ctrl.data_bits = regk_ser_bits7;
 		rx_ctrl.data_bits = regk_ser_bits7;
 	}
 
-	if (termios->c_cflag & CSTOPB) {
+	if (termios->c_cflag & CSTOPB)
+	{
 		/* Set 2 stop bit mode. */
 		tx_ctrl.stop_bits = regk_ser_bits2;
 	}
 
-	if (termios->c_cflag & PARENB) {
+	if (termios->c_cflag & PARENB)
+	{
 		/* Enable parity. */
 		tx_ctrl.par_en = regk_ser_yes;
 		rx_ctrl.par_en = regk_ser_yes;
 	}
 
-	if (termios->c_cflag & CMSPAR) {
-		if (termios->c_cflag & PARODD) {
+	if (termios->c_cflag & CMSPAR)
+	{
+		if (termios->c_cflag & PARODD)
+		{
 			/* Set mark parity if PARODD and CMSPAR. */
 			tx_ctrl.par = regk_ser_mark;
 			rx_ctrl.par = regk_ser_mark;
-		} else {
+		}
+		else
+		{
 			tx_ctrl.par = regk_ser_space;
 			rx_ctrl.par = regk_ser_space;
 		}
-	} else {
-		if (termios->c_cflag & PARODD) {
+	}
+	else
+	{
+		if (termios->c_cflag & PARODD)
+		{
 			/* Set odd parity. */
-		       tx_ctrl.par = regk_ser_odd;
-		       rx_ctrl.par = regk_ser_odd;
+			tx_ctrl.par = regk_ser_odd;
+			rx_ctrl.par = regk_ser_odd;
 		}
 	}
 
-	if (termios->c_cflag & CRTSCTS) {
+	if (termios->c_cflag & CRTSCTS)
+	{
 		/* Enable automatic CTS handling. */
 		tx_ctrl.auto_cts = regk_ser_yes;
 	}
@@ -763,7 +860,7 @@ etraxfs_uart_set_termios(struct uart_port *port, struct ktermios *termios,
 	REG_WR(ser, up->regi_ser, rw_tr_dma_en, tx_dma_en);
 
 	/* Actually write the control regs (if modified) to the hardware. */
-	uart_update_timeout(port, termios->c_cflag, port->uartclk/8);
+	uart_update_timeout(port, termios->c_cflag, port->uartclk / 8);
 	MODIFY_REG(up->regi_ser, rw_rec_baud_div, rx_baud_div);
 	MODIFY_REG(up->regi_ser, rw_rec_ctrl, rx_ctrl);
 
@@ -776,11 +873,15 @@ etraxfs_uart_set_termios(struct uart_port *port, struct ktermios *termios,
 	xoff = REG_RD(ser, up->regi_ser, rw_xoff);
 
 	if (up->port.state && up->port.state->port.tty &&
-	    (up->port.state->port.tty->termios.c_iflag & IXON)) {
+		(up->port.state->port.tty->termios.c_iflag & IXON))
+	{
 		xoff.chr = STOP_CHAR(up->port.state->port.tty);
 		xoff.automatic = regk_ser_yes;
-	} else
+	}
+	else
+	{
 		xoff.automatic = regk_ser_no;
+	}
 
 	MODIFY_REG(up->regi_ser, rw_xoff, xoff);
 
@@ -817,7 +918,8 @@ static void etraxfs_uart_config_port(struct uart_port *port, int flags)
 	up->port.type = PORT_CRIS;
 }
 
-static const struct uart_ops etraxfs_uart_pops = {
+static const struct uart_ops etraxfs_uart_pops =
+{
 	.tx_empty = etraxfs_uart_tx_empty,
 	.set_mctrl = etraxfs_uart_set_mctrl,
 	.get_mctrl = etraxfs_uart_get_mctrl,
@@ -844,7 +946,10 @@ static void cris_serial_port_init(struct uart_port *port, int line)
 	struct uart_cris_port *up = (struct uart_cris_port *)port;
 
 	if (up->initialized)
+	{
 		return;
+	}
+
 	up->initialized = 1;
 	port->line = line;
 	spin_lock_init(&port->lock);
@@ -873,30 +978,45 @@ static int etraxfs_uart_probe(struct platform_device *pdev)
 	int dev_id;
 
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	dev_id = of_alias_get_id(np, "serial");
+
 	if (dev_id < 0)
+	{
 		dev_id = 0;
+	}
 
 	if (dev_id >= UART_NR)
+	{
 		return -EINVAL;
+	}
 
 	if (etraxfs_uart_ports[dev_id])
+	{
 		return -EBUSY;
+	}
 
 	up = devm_kzalloc(&pdev->dev, sizeof(struct uart_cris_port),
-			  GFP_KERNEL);
+					  GFP_KERNEL);
+
 	if (!up)
+	{
 		return -ENOMEM;
+	}
 
 	up->irq = irq_of_parse_and_map(np, 0);
 	up->regi_ser = of_iomap(np, 0);
 	up->port.dev = &pdev->dev;
 
 	up->gpios = mctrl_gpio_init_noauto(&pdev->dev, 0);
+
 	if (IS_ERR(up->gpios))
+	{
 		return PTR_ERR(up->gpios);
+	}
 
 	cris_serial_port_init(&up->port, dev_id);
 
@@ -918,14 +1038,16 @@ static int etraxfs_uart_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id etraxfs_uart_dt_ids[] = {
+static const struct of_device_id etraxfs_uart_dt_ids[] =
+{
 	{ .compatible = "axis,etraxfs-uart" },
 	{ /* sentinel */ }
 };
 
 MODULE_DEVICE_TABLE(of, etraxfs_uart_dt_ids);
 
-static struct platform_driver etraxfs_uart_platform_driver = {
+static struct platform_driver etraxfs_uart_platform_driver =
+{
 	.driver = {
 		.name   = DRV_NAME,
 		.of_match_table	= of_match_ptr(etraxfs_uart_dt_ids),
@@ -939,12 +1061,18 @@ static int __init etraxfs_uart_init(void)
 	int ret;
 
 	ret = uart_register_driver(&etraxfs_uart_driver);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = platform_driver_register(&etraxfs_uart_platform_driver);
+
 	if (ret)
+	{
 		uart_unregister_driver(&etraxfs_uart_driver);
+	}
 
 	return ret;
 }

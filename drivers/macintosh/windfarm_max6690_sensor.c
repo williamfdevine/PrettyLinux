@@ -25,7 +25,8 @@
 #define MAX6690_INTERNAL_TEMP	0
 #define MAX6690_EXTERNAL_TEMP	1
 
-struct wf_6690_sensor {
+struct wf_6690_sensor
+{
 	struct i2c_client	*i2c;
 	struct wf_sensor	sens;
 };
@@ -38,12 +39,18 @@ static int wf_max6690_get(struct wf_sensor *sr, s32 *value)
 	s32 data;
 
 	if (max->i2c == NULL)
+	{
 		return -ENODEV;
+	}
 
 	/* chip gets initialized by firmware */
 	data = i2c_smbus_read_byte_data(max->i2c, MAX6690_EXTERNAL_TEMP);
+
 	if (data < 0)
+	{
 		return data;
+	}
+
 	*value = data << 16;
 	return 0;
 }
@@ -55,21 +62,24 @@ static void wf_max6690_release(struct wf_sensor *sr)
 	kfree(max);
 }
 
-static struct wf_sensor_ops wf_max6690_ops = {
+static struct wf_sensor_ops wf_max6690_ops =
+{
 	.get_value	= wf_max6690_get,
 	.release	= wf_max6690_release,
 	.owner		= THIS_MODULE,
 };
 
 static int wf_max6690_probe(struct i2c_client *client,
-			    const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	const char *name, *loc;
 	struct wf_6690_sensor *max;
 	int rc;
 
 	loc = of_get_property(client->dev.of_node, "hwsensor-location", NULL);
-	if (!loc) {
+
+	if (!loc)
+	{
 		dev_warn(&client->dev, "Missing hwsensor-location property!\n");
 		return -ENXIO;
 	}
@@ -79,18 +89,28 @@ static int wf_max6690_probe(struct i2c_client *client,
 	 * now as this is all we need for our control loops
 	 */
 	if (!strcmp(loc, "BACKSIDE") || !strcmp(loc, "SYS CTRLR AMBIENT"))
+	{
 		name = "backside-temp";
+	}
 	else if (!strcmp(loc, "NB Ambient"))
+	{
 		name = "north-bridge-temp";
+	}
 	else if (!strcmp(loc, "GPU Ambient"))
+	{
 		name = "gpu-temp";
+	}
 	else
+	{
 		return -ENXIO;
+	}
 
 	max = kzalloc(sizeof(struct wf_6690_sensor), GFP_KERNEL);
-	if (max == NULL) {
+
+	if (max == NULL)
+	{
 		printk(KERN_ERR "windfarm: Couldn't create MAX6690 sensor: "
-		       "no memory\n");
+			   "no memory\n");
 		return -ENOMEM;
 	}
 
@@ -100,8 +120,12 @@ static int wf_max6690_probe(struct i2c_client *client,
 	i2c_set_clientdata(client, max);
 
 	rc = wf_register_sensor(&max->sens);
+
 	if (rc)
+	{
 		kfree(max);
+	}
+
 	return rc;
 }
 
@@ -115,13 +139,15 @@ static int wf_max6690_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id wf_max6690_id[] = {
+static const struct i2c_device_id wf_max6690_id[] =
+{
 	{ "MAC,max6690", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, wf_max6690_id);
 
-static struct i2c_driver wf_max6690_driver = {
+static struct i2c_driver wf_max6690_driver =
+{
 	.driver = {
 		.name		= "wf_max6690",
 	},

@@ -27,7 +27,8 @@ struct vsp1_dl_body;
 #define CLU_PAD_SINK				0
 #define CLU_PAD_SOURCE				1
 
-struct vsp1_clu {
+struct vsp1_clu
+{
 	struct vsp1_entity entity;
 
 	struct v4l2_ctrl_handler ctrls;

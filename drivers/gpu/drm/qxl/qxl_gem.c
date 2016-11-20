@@ -43,26 +43,34 @@ void qxl_gem_object_free(struct drm_gem_object *gobj)
 }
 
 int qxl_gem_object_create(struct qxl_device *qdev, int size,
-			  int alignment, int initial_domain,
-			  bool discardable, bool kernel,
-			  struct qxl_surface *surf,
-			  struct drm_gem_object **obj)
+						  int alignment, int initial_domain,
+						  bool discardable, bool kernel,
+						  struct qxl_surface *surf,
+						  struct drm_gem_object **obj)
 {
 	struct qxl_bo *qbo;
 	int r;
 
 	*obj = NULL;
+
 	/* At least align on page size */
 	if (alignment < PAGE_SIZE)
+	{
 		alignment = PAGE_SIZE;
+	}
+
 	r = qxl_bo_create(qdev, size, kernel, false, initial_domain, surf, &qbo);
-	if (r) {
+
+	if (r)
+	{
 		if (r != -ERESTARTSYS)
 			DRM_ERROR(
-			"Failed to allocate GEM object (%d, %d, %u, %d)\n",
-				  size, initial_domain, alignment, r);
+				"Failed to allocate GEM object (%d, %d, %u, %d)\n",
+				size, initial_domain, alignment, r);
+
 		return r;
 	}
+
 	*obj = &qbo->gem_base;
 
 	mutex_lock(&qdev->gem.mutex);
@@ -73,12 +81,12 @@ int qxl_gem_object_create(struct qxl_device *qdev, int size,
 }
 
 int qxl_gem_object_create_with_handle(struct qxl_device *qdev,
-				      struct drm_file *file_priv,
-				      u32 domain,
-				      size_t size,
-				      struct qxl_surface *surf,
-				      struct qxl_bo **qobj,
-				      uint32_t *handle)
+									  struct drm_file *file_priv,
+									  u32 domain,
+									  size_t size,
+									  struct qxl_surface *surf,
+									  struct qxl_bo **qobj,
+									  uint32_t *handle)
 {
 	struct drm_gem_object *gobj;
 	int r;
@@ -87,14 +95,22 @@ int qxl_gem_object_create_with_handle(struct qxl_device *qdev,
 	BUG_ON(!handle);
 
 	r = qxl_gem_object_create(qdev, size, 0,
-				  domain,
-				  false, false, surf,
-				  &gobj);
+							  domain,
+							  false, false, surf,
+							  &gobj);
+
 	if (r)
+	{
 		return -ENOMEM;
+	}
+
 	r = drm_gem_handle_create(file_priv, gobj, handle);
+
 	if (r)
+	{
 		return r;
+	}
+
 	/* drop reference from allocate - handle holds it now */
 	*qobj = gem_to_qxl_bo(gobj);
 	drm_gem_object_unreference_unlocked(gobj);
@@ -107,7 +123,7 @@ int qxl_gem_object_open(struct drm_gem_object *obj, struct drm_file *file_priv)
 }
 
 void qxl_gem_object_close(struct drm_gem_object *obj,
-			  struct drm_file *file_priv)
+						  struct drm_file *file_priv)
 {
 }
 

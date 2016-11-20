@@ -34,7 +34,7 @@
 #define CODEC_CLOCK 	12000000
 
 static int am3517evm_hw_params(struct snd_pcm_substream *substream,
-	struct snd_pcm_hw_params *params)
+							   struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
@@ -42,25 +42,31 @@ static int am3517evm_hw_params(struct snd_pcm_substream *substream,
 
 	/* Set the codec system clock for DAC and ADC */
 	ret = snd_soc_dai_set_sysclk(codec_dai, 0,
-			CODEC_CLOCK, SND_SOC_CLOCK_IN);
+								 CODEC_CLOCK, SND_SOC_CLOCK_IN);
+
 	if (ret < 0)
+	{
 		printk(KERN_ERR "can't set codec system clock\n");
+	}
 
 	return ret;
 }
 
-static struct snd_soc_ops am3517evm_ops = {
+static struct snd_soc_ops am3517evm_ops =
+{
 	.hw_params = am3517evm_hw_params,
 };
 
 /* am3517evm machine dapm widgets */
-static const struct snd_soc_dapm_widget tlv320aic23_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget tlv320aic23_dapm_widgets[] =
+{
 	SND_SOC_DAPM_HP("Line Out", NULL),
 	SND_SOC_DAPM_LINE("Line In", NULL),
 	SND_SOC_DAPM_MIC("Mic In", NULL),
 };
 
-static const struct snd_soc_dapm_route audio_map[] = {
+static const struct snd_soc_dapm_route audio_map[] =
+{
 	/* Line Out connected to LLOUT, RLOUT */
 	{"Line Out", NULL, "LOUT"},
 	{"Line Out", NULL, "ROUT"},
@@ -72,7 +78,8 @@ static const struct snd_soc_dapm_route audio_map[] = {
 };
 
 /* Digital audio interface glue - connects codec <--> CPU */
-static struct snd_soc_dai_link am3517evm_dai = {
+static struct snd_soc_dai_link am3517evm_dai =
+{
 	.name = "TLV320AIC23",
 	.stream_name = "AIC23",
 	.cpu_dai_name = "omap-mcbsp.1",
@@ -80,12 +87,13 @@ static struct snd_soc_dai_link am3517evm_dai = {
 	.platform_name = "omap-mcbsp.1",
 	.codec_name = "tlv320aic23-codec.2-001a",
 	.dai_fmt = SND_SOC_DAIFMT_DSP_B | SND_SOC_DAIFMT_NB_NF |
-		   SND_SOC_DAIFMT_CBM_CFM,
+	SND_SOC_DAIFMT_CBM_CFM,
 	.ops = &am3517evm_ops,
 };
 
 /* Audio machine driver */
-static struct snd_soc_card snd_soc_am3517evm = {
+static struct snd_soc_card snd_soc_am3517evm =
+{
 	.name = "am3517evm",
 	.owner = THIS_MODULE,
 	.dai_link = &am3517evm_dai,
@@ -104,11 +112,16 @@ static int __init am3517evm_soc_init(void)
 	int ret;
 
 	if (!machine_is_omap3517evm())
+	{
 		return -ENODEV;
+	}
+
 	pr_info("OMAP3517 / AM3517 EVM SoC init\n");
 
 	am3517evm_snd_device = platform_device_alloc("soc-audio", -1);
-	if (!am3517evm_snd_device) {
+
+	if (!am3517evm_snd_device)
+	{
 		printk(KERN_ERR "Platform device allocation failed\n");
 		return -ENOMEM;
 	}
@@ -116,8 +129,11 @@ static int __init am3517evm_soc_init(void)
 	platform_set_drvdata(am3517evm_snd_device, &snd_soc_am3517evm);
 
 	ret = platform_device_add(am3517evm_snd_device);
+
 	if (ret)
+	{
 		goto err1;
+	}
 
 	return 0;
 

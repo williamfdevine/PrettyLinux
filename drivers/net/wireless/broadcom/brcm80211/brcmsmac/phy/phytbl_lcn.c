@@ -17,7 +17,8 @@
 #include <types.h>
 #include "phytbl_lcn.h"
 
-static const u32 dot11lcn_gain_tbl_rev0[] = {
+static const u32 dot11lcn_gain_tbl_rev0[] =
+{
 	0x00000000,
 	0x00000000,
 	0x00000000,
@@ -116,7 +117,8 @@ static const u32 dot11lcn_gain_tbl_rev0[] = {
 	0x00000000,
 };
 
-static const u32 dot11lcn_gain_tbl_rev1[] = {
+static const u32 dot11lcn_gain_tbl_rev1[] =
+{
 	0x00000000,
 	0x00000000,
 	0x00000000,
@@ -215,7 +217,8 @@ static const u32 dot11lcn_gain_tbl_rev1[] = {
 	0x00000000,
 };
 
-static const u16 dot11lcn_aux_gain_idx_tbl_rev0[] = {
+static const u16 dot11lcn_aux_gain_idx_tbl_rev0[] =
+{
 	0x0401,
 	0x0402,
 	0x0403,
@@ -256,7 +259,8 @@ static const u16 dot11lcn_aux_gain_idx_tbl_rev0[] = {
 	0x0000,
 };
 
-static const u32 dot11lcn_gain_idx_tbl_rev0[] = {
+static const u32 dot11lcn_gain_idx_tbl_rev0[] =
+{
 	0x00000000,
 	0x00000000,
 	0x10000000,
@@ -407,7 +411,8 @@ static const u32 dot11lcn_gain_idx_tbl_rev0[] = {
 	0x0000001c,
 };
 
-static const u16 dot11lcn_aux_gain_idx_tbl_2G[] = {
+static const u16 dot11lcn_aux_gain_idx_tbl_2G[] =
+{
 	0x0000,
 	0x0000,
 	0x0000,
@@ -448,7 +453,8 @@ static const u16 dot11lcn_aux_gain_idx_tbl_2G[] = {
 	0x0000
 };
 
-static const u8 dot11lcn_gain_val_tbl_2G[] = {
+static const u8 dot11lcn_gain_val_tbl_2G[] =
+{
 	0xfc,
 	0x02,
 	0x08,
@@ -519,7 +525,8 @@ static const u8 dot11lcn_gain_val_tbl_2G[] = {
 	0x00
 };
 
-static const u32 dot11lcn_gain_idx_tbl_2G[] = {
+static const u32 dot11lcn_gain_idx_tbl_2G[] =
+{
 	0x00000000,
 	0x00000000,
 	0x00000000,
@@ -674,7 +681,8 @@ static const u32 dot11lcn_gain_idx_tbl_2G[] = {
 	0x00000000
 };
 
-static const u32 dot11lcn_gain_tbl_2G[] = {
+static const u32 dot11lcn_gain_tbl_2G[] =
+{
 	0x00000000,
 	0x00000004,
 	0x00000008,
@@ -773,7 +781,8 @@ static const u32 dot11lcn_gain_tbl_2G[] = {
 	0x00000000
 };
 
-static const u32 dot11lcn_gain_tbl_extlna_2G[] = {
+static const u32 dot11lcn_gain_tbl_extlna_2G[] =
+{
 	0x00000000,
 	0x00000004,
 	0x00000008,
@@ -872,7 +881,8 @@ static const u32 dot11lcn_gain_tbl_extlna_2G[] = {
 	0x00000000
 };
 
-static const u16 dot11lcn_aux_gain_idx_tbl_extlna_2G[] = {
+static const u16 dot11lcn_aux_gain_idx_tbl_extlna_2G[] =
+{
 	0x0400,
 	0x0400,
 	0x0400,
@@ -913,7 +923,8 @@ static const u16 dot11lcn_aux_gain_idx_tbl_extlna_2G[] = {
 	0x0000
 };
 
-static const u8 dot11lcn_gain_val_tbl_extlna_2G[] = {
+static const u8 dot11lcn_gain_val_tbl_extlna_2G[] =
+{
 	0xfc,
 	0x02,
 	0x08,
@@ -984,7 +995,8 @@ static const u8 dot11lcn_gain_val_tbl_extlna_2G[] = {
 	0x00
 };
 
-static const u32 dot11lcn_gain_idx_tbl_extlna_2G[] = {
+static const u32 dot11lcn_gain_idx_tbl_extlna_2G[] =
+{
 	0x00000000,
 	0x00000040,
 	0x00000000,
@@ -1139,7 +1151,8 @@ static const u32 dot11lcn_gain_idx_tbl_extlna_2G[] = {
 	0x00000000
 };
 
-static const u32 dot11lcn_aux_gain_idx_tbl_5G[] = {
+static const u32 dot11lcn_aux_gain_idx_tbl_5G[] =
+{
 	0x0000,
 	0x0000,
 	0x0000,
@@ -1180,7 +1193,8 @@ static const u32 dot11lcn_aux_gain_idx_tbl_5G[] = {
 	0x0000
 };
 
-static const u32 dot11lcn_gain_val_tbl_5G[] = {
+static const u32 dot11lcn_gain_val_tbl_5G[] =
+{
 	0xf7,
 	0xfd,
 	0x00,
@@ -1251,7 +1265,8 @@ static const u32 dot11lcn_gain_val_tbl_5G[] = {
 	0x00
 };
 
-static const u32 dot11lcn_gain_idx_tbl_5G[] = {
+static const u32 dot11lcn_gain_idx_tbl_5G[] =
+{
 	0x00000000,
 	0x00000000,
 	0x00000000,
@@ -1406,7 +1421,8 @@ static const u32 dot11lcn_gain_idx_tbl_5G[] = {
 	0x00000000
 };
 
-static const u32 dot11lcn_gain_tbl_5G[] = {
+static const u32 dot11lcn_gain_tbl_5G[] =
+{
 	0x00000000,
 	0x00000040,
 	0x00000080,
@@ -1505,95 +1521,145 @@ static const u32 dot11lcn_gain_tbl_5G[] = {
 	0x00000000
 };
 
-const struct phytbl_info dot11lcnphytbl_rx_gain_info_rev0[] = {
-	{&dot11lcn_gain_tbl_rev0,
-	 ARRAY_SIZE(dot11lcn_gain_tbl_rev0), 18,
-	 0, 32}
+const struct phytbl_info dot11lcnphytbl_rx_gain_info_rev0[] =
+{
+	{
+		&dot11lcn_gain_tbl_rev0,
+		ARRAY_SIZE(dot11lcn_gain_tbl_rev0), 18,
+		0, 32
+	}
 	,
-	{&dot11lcn_aux_gain_idx_tbl_rev0,
-	 ARRAY_SIZE(dot11lcn_aux_gain_idx_tbl_rev0), 14, 0, 16}
+	{
+		&dot11lcn_aux_gain_idx_tbl_rev0,
+		ARRAY_SIZE(dot11lcn_aux_gain_idx_tbl_rev0), 14, 0, 16
+	}
 	,
-	{&dot11lcn_gain_idx_tbl_rev0,
-	 ARRAY_SIZE(dot11lcn_gain_idx_tbl_rev0), 13, 0, 32}
-	,
-};
-
-static const struct phytbl_info dot11lcnphytbl_rx_gain_info_rev1[] = {
-	{&dot11lcn_gain_tbl_rev1,
-	 ARRAY_SIZE(dot11lcn_gain_tbl_rev1), 18,
-	 0, 32}
-	,
-	{&dot11lcn_aux_gain_idx_tbl_rev0,
-	 ARRAY_SIZE(dot11lcn_aux_gain_idx_tbl_rev0), 14, 0, 16}
-	,
-	{&dot11lcn_gain_idx_tbl_rev0,
-	 ARRAY_SIZE(dot11lcn_gain_idx_tbl_rev0), 13, 0, 32}
+	{
+		&dot11lcn_gain_idx_tbl_rev0,
+		ARRAY_SIZE(dot11lcn_gain_idx_tbl_rev0), 13, 0, 32
+	}
 	,
 };
 
-const struct phytbl_info dot11lcnphytbl_rx_gain_info_2G_rev2[] = {
-	{&dot11lcn_gain_tbl_2G,
-	 ARRAY_SIZE(dot11lcn_gain_tbl_2G), 18, 0,
-	 32}
+static const struct phytbl_info dot11lcnphytbl_rx_gain_info_rev1[] =
+{
+	{
+		&dot11lcn_gain_tbl_rev1,
+		ARRAY_SIZE(dot11lcn_gain_tbl_rev1), 18,
+		0, 32
+	}
 	,
-	{&dot11lcn_aux_gain_idx_tbl_2G,
-	 ARRAY_SIZE(dot11lcn_aux_gain_idx_tbl_2G), 14, 0, 16}
+	{
+		&dot11lcn_aux_gain_idx_tbl_rev0,
+		ARRAY_SIZE(dot11lcn_aux_gain_idx_tbl_rev0), 14, 0, 16
+	}
 	,
-	{&dot11lcn_gain_idx_tbl_2G,
-	 ARRAY_SIZE(dot11lcn_gain_idx_tbl_2G),
-	 13, 0, 32}
+	{
+		&dot11lcn_gain_idx_tbl_rev0,
+		ARRAY_SIZE(dot11lcn_gain_idx_tbl_rev0), 13, 0, 32
+	}
 	,
-	{&dot11lcn_gain_val_tbl_2G,
-	 ARRAY_SIZE(dot11lcn_gain_val_tbl_2G),
-	 17, 0, 8}
 };
 
-const struct phytbl_info dot11lcnphytbl_rx_gain_info_5G_rev2[] = {
-	{&dot11lcn_gain_tbl_5G,
-	 ARRAY_SIZE(dot11lcn_gain_tbl_5G), 18, 0,
-	 32}
+const struct phytbl_info dot11lcnphytbl_rx_gain_info_2G_rev2[] =
+{
+	{
+		&dot11lcn_gain_tbl_2G,
+		ARRAY_SIZE(dot11lcn_gain_tbl_2G), 18, 0,
+		32
+	}
 	,
-	{&dot11lcn_aux_gain_idx_tbl_5G,
-	 ARRAY_SIZE(dot11lcn_aux_gain_idx_tbl_5G), 14, 0, 16}
+	{
+		&dot11lcn_aux_gain_idx_tbl_2G,
+		ARRAY_SIZE(dot11lcn_aux_gain_idx_tbl_2G), 14, 0, 16
+	}
 	,
-	{&dot11lcn_gain_idx_tbl_5G,
-	 ARRAY_SIZE(dot11lcn_gain_idx_tbl_5G),
-	 13, 0, 32}
+	{
+		&dot11lcn_gain_idx_tbl_2G,
+		ARRAY_SIZE(dot11lcn_gain_idx_tbl_2G),
+		13, 0, 32
+	}
 	,
-	{&dot11lcn_gain_val_tbl_5G,
-	 ARRAY_SIZE(dot11lcn_gain_val_tbl_5G),
-	 17, 0, 8}
+	{
+		&dot11lcn_gain_val_tbl_2G,
+		ARRAY_SIZE(dot11lcn_gain_val_tbl_2G),
+		17, 0, 8
+	}
 };
 
-const struct phytbl_info dot11lcnphytbl_rx_gain_info_extlna_2G_rev2[] = {
-	{&dot11lcn_gain_tbl_extlna_2G,
-	 ARRAY_SIZE(dot11lcn_gain_tbl_extlna_2G), 18, 0, 32}
+const struct phytbl_info dot11lcnphytbl_rx_gain_info_5G_rev2[] =
+{
+	{
+		&dot11lcn_gain_tbl_5G,
+		ARRAY_SIZE(dot11lcn_gain_tbl_5G), 18, 0,
+		32
+	}
 	,
-	{&dot11lcn_aux_gain_idx_tbl_extlna_2G,
-	 ARRAY_SIZE(dot11lcn_aux_gain_idx_tbl_extlna_2G), 14, 0, 16}
+	{
+		&dot11lcn_aux_gain_idx_tbl_5G,
+		ARRAY_SIZE(dot11lcn_aux_gain_idx_tbl_5G), 14, 0, 16
+	}
 	,
-	{&dot11lcn_gain_idx_tbl_extlna_2G,
-	 ARRAY_SIZE(dot11lcn_gain_idx_tbl_extlna_2G), 13, 0, 32}
+	{
+		&dot11lcn_gain_idx_tbl_5G,
+		ARRAY_SIZE(dot11lcn_gain_idx_tbl_5G),
+		13, 0, 32
+	}
 	,
-	{&dot11lcn_gain_val_tbl_extlna_2G,
-	 ARRAY_SIZE(dot11lcn_gain_val_tbl_extlna_2G), 17, 0, 8}
+	{
+		&dot11lcn_gain_val_tbl_5G,
+		ARRAY_SIZE(dot11lcn_gain_val_tbl_5G),
+		17, 0, 8
+	}
 };
 
-const struct phytbl_info dot11lcnphytbl_rx_gain_info_extlna_5G_rev2[] = {
-	{&dot11lcn_gain_tbl_5G,
-	 ARRAY_SIZE(dot11lcn_gain_tbl_5G), 18, 0,
-	 32}
+const struct phytbl_info dot11lcnphytbl_rx_gain_info_extlna_2G_rev2[] =
+{
+	{
+		&dot11lcn_gain_tbl_extlna_2G,
+		ARRAY_SIZE(dot11lcn_gain_tbl_extlna_2G), 18, 0, 32
+	}
 	,
-	{&dot11lcn_aux_gain_idx_tbl_5G,
-	 ARRAY_SIZE(dot11lcn_aux_gain_idx_tbl_5G), 14, 0, 16}
+	{
+		&dot11lcn_aux_gain_idx_tbl_extlna_2G,
+		ARRAY_SIZE(dot11lcn_aux_gain_idx_tbl_extlna_2G), 14, 0, 16
+	}
 	,
-	{&dot11lcn_gain_idx_tbl_5G,
-	 ARRAY_SIZE(dot11lcn_gain_idx_tbl_5G),
-	 13, 0, 32}
+	{
+		&dot11lcn_gain_idx_tbl_extlna_2G,
+		ARRAY_SIZE(dot11lcn_gain_idx_tbl_extlna_2G), 13, 0, 32
+	}
 	,
-	{&dot11lcn_gain_val_tbl_5G,
-	 ARRAY_SIZE(dot11lcn_gain_val_tbl_5G),
-	 17, 0, 8}
+	{
+		&dot11lcn_gain_val_tbl_extlna_2G,
+		ARRAY_SIZE(dot11lcn_gain_val_tbl_extlna_2G), 17, 0, 8
+	}
+};
+
+const struct phytbl_info dot11lcnphytbl_rx_gain_info_extlna_5G_rev2[] =
+{
+	{
+		&dot11lcn_gain_tbl_5G,
+		ARRAY_SIZE(dot11lcn_gain_tbl_5G), 18, 0,
+		32
+	}
+	,
+	{
+		&dot11lcn_aux_gain_idx_tbl_5G,
+		ARRAY_SIZE(dot11lcn_aux_gain_idx_tbl_5G), 14, 0, 16
+	}
+	,
+	{
+		&dot11lcn_gain_idx_tbl_5G,
+		ARRAY_SIZE(dot11lcn_gain_idx_tbl_5G),
+		13, 0, 32
+	}
+	,
+	{
+		&dot11lcn_gain_val_tbl_5G,
+		ARRAY_SIZE(dot11lcn_gain_val_tbl_5G),
+		17, 0, 8
+	}
 };
 
 const u32 dot11lcnphytbl_rx_gain_info_sz_rev0 =
@@ -1605,7 +1671,8 @@ const u32 dot11lcnphytbl_rx_gain_info_2G_rev2_sz =
 const u32 dot11lcnphytbl_rx_gain_info_5G_rev2_sz =
 	ARRAY_SIZE(dot11lcnphytbl_rx_gain_info_5G_rev2);
 
-static const u16 dot11lcn_min_sig_sq_tbl_rev0[] = {
+static const u16 dot11lcn_min_sig_sq_tbl_rev0[] =
+{
 	0x014d,
 	0x014d,
 	0x014d,
@@ -1672,7 +1739,8 @@ static const u16 dot11lcn_min_sig_sq_tbl_rev0[] = {
 	0x014d,
 };
 
-static const u16 dot11lcn_noise_scale_tbl_rev0[] = {
+static const u16 dot11lcn_noise_scale_tbl_rev0[] =
+{
 	0x0000,
 	0x0000,
 	0x0000,
@@ -1739,7 +1807,8 @@ static const u16 dot11lcn_noise_scale_tbl_rev0[] = {
 	0x0000,
 };
 
-static const u32 dot11lcn_fltr_ctrl_tbl_rev0[] = {
+static const u32 dot11lcn_fltr_ctrl_tbl_rev0[] =
+{
 	0x000141f8,
 	0x000021f8,
 	0x000021fb,
@@ -1752,7 +1821,8 @@ static const u32 dot11lcn_fltr_ctrl_tbl_rev0[] = {
 	0x0000024b,
 };
 
-static const u32 dot11lcn_ps_ctrl_tbl_rev0[] = {
+static const u32 dot11lcn_ps_ctrl_tbl_rev0[] =
+{
 	0x00100001,
 	0x00200010,
 	0x00300001,
@@ -1775,7 +1845,8 @@ static const u32 dot11lcn_ps_ctrl_tbl_rev0[] = {
 	0x00600f22,
 };
 
-static const u16 dot11lcn_sw_ctrl_tbl_4313_epa_rev0_combo[] = {
+static const u16 dot11lcn_sw_ctrl_tbl_4313_epa_rev0_combo[] =
+{
 	0x0007,
 	0x0005,
 	0x0006,
@@ -1843,7 +1914,8 @@ static const u16 dot11lcn_sw_ctrl_tbl_4313_epa_rev0_combo[] = {
 
 };
 
-static const u16 dot11lcn_sw_ctrl_tbl_4313_bt_epa_p250_rev0[] = {
+static const u16 dot11lcn_sw_ctrl_tbl_4313_bt_epa_p250_rev0[] =
+{
 	0x0007,
 	0x0005,
 	0x0002,
@@ -1910,7 +1982,8 @@ static const u16 dot11lcn_sw_ctrl_tbl_4313_bt_epa_p250_rev0[] = {
 	0x0002,
 };
 
-static const u16 dot11lcn_sw_ctrl_tbl_4313_epa_rev0[] = {
+static const u16 dot11lcn_sw_ctrl_tbl_4313_epa_rev0[] =
+{
 	0x0002,
 	0x0008,
 	0x0004,
@@ -1977,7 +2050,8 @@ static const u16 dot11lcn_sw_ctrl_tbl_4313_epa_rev0[] = {
 	0x0001,
 };
 
-static const u16 dot11lcn_sw_ctrl_tbl_4313_rev0[] = {
+static const u16 dot11lcn_sw_ctrl_tbl_4313_rev0[] =
+{
 	0x000a,
 	0x0009,
 	0x0006,
@@ -2044,7 +2118,8 @@ static const u16 dot11lcn_sw_ctrl_tbl_4313_rev0[] = {
 	0x0005,
 };
 
-static const u16 dot11lcn_sw_ctrl_tbl_4313_ipa_rev0_combo[] = {
+static const u16 dot11lcn_sw_ctrl_tbl_4313_ipa_rev0_combo[] =
+{
 	0x0005,
 	0x0006,
 	0x0009,
@@ -2111,7 +2186,8 @@ static const u16 dot11lcn_sw_ctrl_tbl_4313_ipa_rev0_combo[] = {
 	0x000a,
 };
 
-static const u16 dot11lcn_sw_ctrl_tbl_rev0[] = {
+static const u16 dot11lcn_sw_ctrl_tbl_rev0[] =
+{
 	0x0004,
 	0x0004,
 	0x0002,
@@ -2178,7 +2254,8 @@ static const u16 dot11lcn_sw_ctrl_tbl_rev0[] = {
 	0x0002,
 };
 
-static const u8 dot11lcn_nf_table_rev0[] = {
+static const u8 dot11lcn_nf_table_rev0[] =
+{
 	0x5f,
 	0x36,
 	0x29,
@@ -2197,7 +2274,8 @@ static const u8 dot11lcn_nf_table_rev0[] = {
 	0x1f,
 };
 
-static const u8 dot11lcn_gain_val_tbl_rev0[] = {
+static const u8 dot11lcn_gain_val_tbl_rev0[] =
+{
 	0x09,
 	0x0f,
 	0x14,
@@ -2260,7 +2338,8 @@ static const u8 dot11lcn_gain_val_tbl_rev0[] = {
 	0x00,
 };
 
-static const u8 dot11lcn_spur_tbl_rev0[] = {
+static const u8 dot11lcn_spur_tbl_rev0[] =
+{
 	0x01,
 	0x01,
 	0x01,
@@ -2391,7 +2470,8 @@ static const u8 dot11lcn_spur_tbl_rev0[] = {
 	0x01,
 };
 
-static const u16 dot11lcn_unsup_mcs_tbl_rev0[] = {
+static const u16 dot11lcn_unsup_mcs_tbl_rev0[] =
+{
 	0x001a,
 	0x0034,
 	0x004e,
@@ -2548,7 +2628,8 @@ static const u16 dot11lcn_unsup_mcs_tbl_rev0[] = {
 	0x06f6,
 };
 
-static const u16 dot11lcn_iq_local_tbl_rev0[] = {
+static const u16 dot11lcn_iq_local_tbl_rev0[] =
+{
 	0x0200,
 	0x0300,
 	0x0400,
@@ -2659,7 +2740,8 @@ static const u16 dot11lcn_iq_local_tbl_rev0[] = {
 	0x0000,
 };
 
-static const u32 dot11lcn_papd_compdelta_tbl_rev0[] = {
+static const u32 dot11lcn_papd_compdelta_tbl_rev0[] =
+{
 	0x00080000,
 	0x00080000,
 	0x00080000,
@@ -2822,75 +2904,109 @@ static const u32 dot11lcn_papd_compdelta_tbl_rev0[] = {
 	0x00080000,
 };
 
-const struct phytbl_info dot11lcnphytbl_info_rev0[] = {
-	{&dot11lcn_min_sig_sq_tbl_rev0,
-	 ARRAY_SIZE(dot11lcn_min_sig_sq_tbl_rev0), 2, 0, 16}
+const struct phytbl_info dot11lcnphytbl_info_rev0[] =
+{
+	{
+		&dot11lcn_min_sig_sq_tbl_rev0,
+		ARRAY_SIZE(dot11lcn_min_sig_sq_tbl_rev0), 2, 0, 16
+	}
 	,
-	{&dot11lcn_noise_scale_tbl_rev0,
-	 ARRAY_SIZE(dot11lcn_noise_scale_tbl_rev0), 1, 0, 16}
+	{
+		&dot11lcn_noise_scale_tbl_rev0,
+		ARRAY_SIZE(dot11lcn_noise_scale_tbl_rev0), 1, 0, 16
+	}
 	,
-	{&dot11lcn_fltr_ctrl_tbl_rev0,
-	 ARRAY_SIZE(dot11lcn_fltr_ctrl_tbl_rev0), 11, 0, 32}
+	{
+		&dot11lcn_fltr_ctrl_tbl_rev0,
+		ARRAY_SIZE(dot11lcn_fltr_ctrl_tbl_rev0), 11, 0, 32
+	}
 	,
-	{&dot11lcn_ps_ctrl_tbl_rev0,
-	 ARRAY_SIZE(dot11lcn_ps_ctrl_tbl_rev0), 12, 0, 32}
+	{
+		&dot11lcn_ps_ctrl_tbl_rev0,
+		ARRAY_SIZE(dot11lcn_ps_ctrl_tbl_rev0), 12, 0, 32
+	}
 	,
-	{&dot11lcn_gain_idx_tbl_rev0,
-	 ARRAY_SIZE(dot11lcn_gain_idx_tbl_rev0), 13, 0, 32}
+	{
+		&dot11lcn_gain_idx_tbl_rev0,
+		ARRAY_SIZE(dot11lcn_gain_idx_tbl_rev0), 13, 0, 32
+	}
 	,
-	{&dot11lcn_aux_gain_idx_tbl_rev0,
-	 ARRAY_SIZE(dot11lcn_aux_gain_idx_tbl_rev0), 14, 0, 16}
+	{
+		&dot11lcn_aux_gain_idx_tbl_rev0,
+		ARRAY_SIZE(dot11lcn_aux_gain_idx_tbl_rev0), 14, 0, 16
+	}
 	,
-	{&dot11lcn_sw_ctrl_tbl_rev0,
-	 ARRAY_SIZE(dot11lcn_sw_ctrl_tbl_rev0), 15, 0, 16}
+	{
+		&dot11lcn_sw_ctrl_tbl_rev0,
+		ARRAY_SIZE(dot11lcn_sw_ctrl_tbl_rev0), 15, 0, 16
+	}
 	,
-	{&dot11lcn_nf_table_rev0,
-	 ARRAY_SIZE(dot11lcn_nf_table_rev0), 16,
-	 0, 8}
+	{
+		&dot11lcn_nf_table_rev0,
+		ARRAY_SIZE(dot11lcn_nf_table_rev0), 16,
+		0, 8
+	}
 	,
-	{&dot11lcn_gain_val_tbl_rev0,
-	 ARRAY_SIZE(dot11lcn_gain_val_tbl_rev0), 17, 0, 8}
+	{
+		&dot11lcn_gain_val_tbl_rev0,
+		ARRAY_SIZE(dot11lcn_gain_val_tbl_rev0), 17, 0, 8
+	}
 	,
-	{&dot11lcn_gain_tbl_rev0,
-	 ARRAY_SIZE(dot11lcn_gain_tbl_rev0), 18,
-	 0, 32}
+	{
+		&dot11lcn_gain_tbl_rev0,
+		ARRAY_SIZE(dot11lcn_gain_tbl_rev0), 18,
+		0, 32
+	}
 	,
-	{&dot11lcn_spur_tbl_rev0,
-	 ARRAY_SIZE(dot11lcn_spur_tbl_rev0), 20,
-	 0, 8}
+	{
+		&dot11lcn_spur_tbl_rev0,
+		ARRAY_SIZE(dot11lcn_spur_tbl_rev0), 20,
+		0, 8
+	}
 	,
-	{&dot11lcn_unsup_mcs_tbl_rev0,
-	 ARRAY_SIZE(dot11lcn_unsup_mcs_tbl_rev0), 23, 0, 16}
+	{
+		&dot11lcn_unsup_mcs_tbl_rev0,
+		ARRAY_SIZE(dot11lcn_unsup_mcs_tbl_rev0), 23, 0, 16
+	}
 	,
-	{&dot11lcn_iq_local_tbl_rev0,
-	 ARRAY_SIZE(dot11lcn_iq_local_tbl_rev0), 0, 0, 16}
+	{
+		&dot11lcn_iq_local_tbl_rev0,
+		ARRAY_SIZE(dot11lcn_iq_local_tbl_rev0), 0, 0, 16
+	}
 	,
-	{&dot11lcn_papd_compdelta_tbl_rev0,
-	 ARRAY_SIZE(dot11lcn_papd_compdelta_tbl_rev0), 24, 0, 32}
+	{
+		&dot11lcn_papd_compdelta_tbl_rev0,
+		ARRAY_SIZE(dot11lcn_papd_compdelta_tbl_rev0), 24, 0, 32
+	}
 	,
 };
 
-const struct phytbl_info dot11lcn_sw_ctrl_tbl_info_4313 = {
+const struct phytbl_info dot11lcn_sw_ctrl_tbl_info_4313 =
+{
 	&dot11lcn_sw_ctrl_tbl_4313_rev0,
 	ARRAY_SIZE(dot11lcn_sw_ctrl_tbl_4313_rev0), 15, 0, 16
 };
 
-const struct phytbl_info dot11lcn_sw_ctrl_tbl_info_4313_bt_ipa = {
+const struct phytbl_info dot11lcn_sw_ctrl_tbl_info_4313_bt_ipa =
+{
 	&dot11lcn_sw_ctrl_tbl_4313_ipa_rev0_combo,
 	ARRAY_SIZE(dot11lcn_sw_ctrl_tbl_4313_ipa_rev0_combo), 15, 0, 16
 };
 
-const struct phytbl_info dot11lcn_sw_ctrl_tbl_info_4313_epa = {
+const struct phytbl_info dot11lcn_sw_ctrl_tbl_info_4313_epa =
+{
 	&dot11lcn_sw_ctrl_tbl_4313_epa_rev0,
 	ARRAY_SIZE(dot11lcn_sw_ctrl_tbl_4313_epa_rev0), 15, 0, 16
 };
 
-const struct phytbl_info dot11lcn_sw_ctrl_tbl_info_4313_bt_epa = {
+const struct phytbl_info dot11lcn_sw_ctrl_tbl_info_4313_bt_epa =
+{
 	&dot11lcn_sw_ctrl_tbl_4313_epa_rev0_combo,
 	ARRAY_SIZE(dot11lcn_sw_ctrl_tbl_4313_epa_rev0_combo), 15, 0, 16
 };
 
-const struct phytbl_info dot11lcn_sw_ctrl_tbl_info_4313_bt_epa_p250 = {
+const struct phytbl_info dot11lcn_sw_ctrl_tbl_info_4313_bt_epa_p250 =
+{
 	&dot11lcn_sw_ctrl_tbl_4313_bt_epa_p250_rev0,
 	ARRAY_SIZE(dot11lcn_sw_ctrl_tbl_4313_bt_epa_p250_rev0), 15, 0, 16
 };
@@ -2899,7 +3015,8 @@ const u32 dot11lcnphytbl_info_sz_rev0 =
 	ARRAY_SIZE(dot11lcnphytbl_info_rev0);
 
 const struct lcnphy_tx_gain_tbl_entry
-dot11lcnphy_2GHz_extPA_gaintable_rev0[128] = {
+	dot11lcnphy_2GHz_extPA_gaintable_rev0[128] =
+{
 	{3, 0, 31, 0, 72},
 	{3, 0, 31, 0, 70},
 	{3, 0, 31, 0, 68},
@@ -3030,7 +3147,8 @@ dot11lcnphy_2GHz_extPA_gaintable_rev0[128] = {
 	{3, 0, 1, 0, 57},
 };
 
-const struct lcnphy_tx_gain_tbl_entry dot11lcnphy_2GHz_gaintable_rev0[128] = {
+const struct lcnphy_tx_gain_tbl_entry dot11lcnphy_2GHz_gaintable_rev0[128] =
+{
 	{15, 0, 31, 0, 72},
 	{15, 0, 31, 0, 70},
 	{15, 0, 31, 0, 68},
@@ -3161,7 +3279,8 @@ const struct lcnphy_tx_gain_tbl_entry dot11lcnphy_2GHz_gaintable_rev0[128] = {
 	{3, 0, 3, 0, 34},
 };
 
-const struct lcnphy_tx_gain_tbl_entry dot11lcnphy_5GHz_gaintable_rev0[128] = {
+const struct lcnphy_tx_gain_tbl_entry dot11lcnphy_5GHz_gaintable_rev0[128] =
+{
 	{255, 255, 0xf0, 0, 152},
 	{255, 255, 0xf0, 0, 147},
 	{255, 255, 0xf0, 0, 143},

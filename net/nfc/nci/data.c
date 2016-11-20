@@ -36,14 +36,16 @@
 
 /* Complete data exchange transaction and forward skb to nfc core */
 void nci_data_exchange_complete(struct nci_dev *ndev, struct sk_buff *skb,
-				__u8 conn_id, int err)
+								__u8 conn_id, int err)
 {
 	struct nci_conn_info    *conn_info;
 	data_exchange_cb_t cb;
 	void *cb_context;
 
 	conn_info = nci_get_conn_info_by_conn_id(ndev, conn_id);
-	if (!conn_info) {
+
+	if (!conn_info)
+	{
 		kfree_skb(skb);
 		goto exit;
 	}
@@ -57,10 +59,13 @@ void nci_data_exchange_complete(struct nci_dev *ndev, struct sk_buff *skb,
 	del_timer_sync(&ndev->data_timer);
 	clear_bit(NCI_DATA_EXCHANGE_TO, &ndev->flags);
 
-	if (cb) {
+	if (cb)
+	{
 		/* forward skb to nfc core */
 		cb(cb_context, skb, err);
-	} else if (skb) {
+	}
+	else if (skb)
+	{
 		pr_err("no rx callback, dropping rx data...\n");
 
 		/* no waiting callback, free skb */
@@ -74,9 +79,9 @@ exit:
 /* ----------------- NCI TX Data ----------------- */
 
 static inline void nci_push_data_hdr(struct nci_dev *ndev,
-				     __u8 conn_id,
-				     struct sk_buff *skb,
-				     __u8 pbf)
+									 __u8 conn_id,
+									 struct sk_buff *skb,
+									 __u8 pbf)
 {
 	struct nci_data_hdr *hdr;
 	int plen = skb->len;
@@ -95,16 +100,20 @@ int nci_conn_max_data_pkt_payload_size(struct nci_dev *ndev, __u8 conn_id)
 	struct nci_conn_info *conn_info;
 
 	conn_info = nci_get_conn_info_by_conn_id(ndev, conn_id);
+
 	if (!conn_info)
+	{
 		return -EPROTO;
+	}
 
 	return conn_info->max_pkt_payload_len;
 }
 EXPORT_SYMBOL(nci_conn_max_data_pkt_payload_size);
 
 static int nci_queue_tx_data_frags(struct nci_dev *ndev,
-				   __u8 conn_id,
-				   struct sk_buff *skb) {
+								   __u8 conn_id,
+								   struct sk_buff *skb)
+{
 	struct nci_conn_info    *conn_info;
 	int total_len = skb->len;
 	unsigned char *data = skb->data;
@@ -117,24 +126,30 @@ static int nci_queue_tx_data_frags(struct nci_dev *ndev,
 	pr_debug("conn_id 0x%x, total_len %d\n", conn_id, total_len);
 
 	conn_info = nci_get_conn_info_by_conn_id(ndev, conn_id);
-	if (!conn_info) {
+
+	if (!conn_info)
+	{
 		rc = -EPROTO;
 		goto free_exit;
 	}
 
 	__skb_queue_head_init(&frags_q);
 
-	while (total_len) {
+	while (total_len)
+	{
 		frag_len =
 			min_t(int, total_len, conn_info->max_pkt_payload_len);
 
 		skb_frag = nci_skb_alloc(ndev,
-					 (NCI_DATA_HDR_SIZE + frag_len),
-					 GFP_KERNEL);
-		if (skb_frag == NULL) {
+								 (NCI_DATA_HDR_SIZE + frag_len),
+								 GFP_KERNEL);
+
+		if (skb_frag == NULL)
+		{
 			rc = -ENOMEM;
 			goto free_exit;
 		}
+
 		skb_reserve(skb_frag, NCI_DATA_HDR_SIZE);
 
 		/* first, copy the data */
@@ -142,8 +157,8 @@ static int nci_queue_tx_data_frags(struct nci_dev *ndev,
 
 		/* second, set the header */
 		nci_push_data_hdr(ndev, conn_id, skb_frag,
-				  ((total_len == frag_len) ?
-				   (NCI_PBF_LAST) : (NCI_PBF_CONT)));
+						  ((total_len == frag_len) ?
+						   (NCI_PBF_LAST) : (NCI_PBF_CONT)));
 
 		__skb_queue_tail(&frags_q, skb_frag);
 
@@ -151,14 +166,16 @@ static int nci_queue_tx_data_frags(struct nci_dev *ndev,
 		total_len -= frag_len;
 
 		pr_debug("frag_len %d, remaining total_len %d\n",
-			 frag_len, total_len);
+				 frag_len, total_len);
 	}
 
 	/* queue all fragments atomically */
 	spin_lock_irqsave(&ndev->tx_q.lock, flags);
 
 	while ((skb_frag = __skb_dequeue(&frags_q)) != NULL)
+	{
 		__skb_queue_tail(&ndev->tx_q, skb_frag);
+	}
 
 	spin_unlock_irqrestore(&ndev->tx_q.lock, flags);
 
@@ -168,8 +185,11 @@ static int nci_queue_tx_data_frags(struct nci_dev *ndev,
 	goto exit;
 
 free_exit:
+
 	while ((skb_frag = __skb_dequeue(&frags_q)) != NULL)
+	{
 		kfree_skb(skb_frag);
+	}
 
 exit:
 	return rc;
@@ -184,21 +204,28 @@ int nci_send_data(struct nci_dev *ndev, __u8 conn_id, struct sk_buff *skb)
 	pr_debug("conn_id 0x%x, plen %d\n", conn_id, skb->len);
 
 	conn_info = nci_get_conn_info_by_conn_id(ndev, conn_id);
-	if (!conn_info) {
+
+	if (!conn_info)
+	{
 		rc = -EPROTO;
 		goto free_exit;
 	}
 
 	/* check if the packet need to be fragmented */
-	if (skb->len <= conn_info->max_pkt_payload_len) {
+	if (skb->len <= conn_info->max_pkt_payload_len)
+	{
 		/* no need to fragment packet */
 		nci_push_data_hdr(ndev, conn_id, skb, NCI_PBF_LAST);
 
 		skb_queue_tail(&ndev->tx_q, skb);
-	} else {
+	}
+	else
+	{
 		/* fragment packet and queue the fragments */
 		rc = nci_queue_tx_data_frags(ndev, conn_id, skb);
-		if (rc) {
+
+		if (rc)
+		{
 			pr_err("failed to fragment tx data packet\n");
 			goto free_exit;
 		}
@@ -220,22 +247,25 @@ EXPORT_SYMBOL(nci_send_data);
 /* ----------------- NCI RX Data ----------------- */
 
 static void nci_add_rx_data_frag(struct nci_dev *ndev,
-				 struct sk_buff *skb,
-				 __u8 pbf, __u8 conn_id, __u8 status)
+								 struct sk_buff *skb,
+								 __u8 pbf, __u8 conn_id, __u8 status)
 {
 	int reassembly_len;
 	int err = 0;
 
-	if (status) {
+	if (status)
+	{
 		err = status;
 		goto exit;
 	}
 
-	if (ndev->rx_data_reassembly) {
+	if (ndev->rx_data_reassembly)
+	{
 		reassembly_len = ndev->rx_data_reassembly->len;
 
 		/* first, make enough room for the already accumulated data */
-		if (skb_cow_head(skb, reassembly_len)) {
+		if (skb_cow_head(skb, reassembly_len))
+		{
 			pr_err("error adding room for accumulated rx data\n");
 
 			kfree_skb(skb);
@@ -250,27 +280,35 @@ static void nci_add_rx_data_frag(struct nci_dev *ndev,
 
 		/* second, combine the two fragments */
 		memcpy(skb_push(skb, reassembly_len),
-		       ndev->rx_data_reassembly->data,
-		       reassembly_len);
+			   ndev->rx_data_reassembly->data,
+			   reassembly_len);
 
 		/* third, free old reassembly */
 		kfree_skb(ndev->rx_data_reassembly);
 		ndev->rx_data_reassembly = NULL;
 	}
 
-	if (pbf == NCI_PBF_CONT) {
+	if (pbf == NCI_PBF_CONT)
+	{
 		/* need to wait for next fragment, store skb and exit */
 		ndev->rx_data_reassembly = skb;
 		return;
 	}
 
 exit:
-	if (ndev->nfc_dev->rf_mode == NFC_RF_TARGET) {
+
+	if (ndev->nfc_dev->rf_mode == NFC_RF_TARGET)
+	{
 		/* Data received in Target mode, forward to nfc core */
 		err = nfc_tm_data_received(ndev->nfc_dev, skb);
+
 		if (err)
+		{
 			pr_err("unable to handle received data\n");
-	} else {
+		}
+	}
+	else
+	{
 		nci_data_exchange_complete(ndev, skb, conn_id, err);
 	}
 }
@@ -286,21 +324,25 @@ void nci_rx_data_packet(struct nci_dev *ndev, struct sk_buff *skb)
 	pr_debug("len %d\n", skb->len);
 
 	pr_debug("NCI RX: MT=data, PBF=%d, conn_id=%d, plen=%d\n",
-		 nci_pbf(skb->data),
-		 nci_conn_id(skb->data),
-		 nci_plen(skb->data));
+			 nci_pbf(skb->data),
+			 nci_conn_id(skb->data),
+			 nci_plen(skb->data));
 
 	conn_info = nci_get_conn_info_by_conn_id(ndev, nci_conn_id(skb->data));
+
 	if (!conn_info)
+	{
 		return;
+	}
 
 	/* strip the nci data header */
 	skb_pull(skb, NCI_DATA_HDR_SIZE);
 
 	if (ndev->target_active_prot == NFC_PROTO_MIFARE ||
-	    ndev->target_active_prot == NFC_PROTO_JEWEL ||
-	    ndev->target_active_prot == NFC_PROTO_FELICA ||
-	    ndev->target_active_prot == NFC_PROTO_ISO15693) {
+		ndev->target_active_prot == NFC_PROTO_JEWEL ||
+		ndev->target_active_prot == NFC_PROTO_FELICA ||
+		ndev->target_active_prot == NFC_PROTO_ISO15693)
+	{
 		/* frame I/F => remove the status byte */
 		pr_debug("frame I/F => remove the status byte\n");
 		status = skb->data[skb->len - 1];

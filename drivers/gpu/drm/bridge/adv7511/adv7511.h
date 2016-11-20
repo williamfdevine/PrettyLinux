@@ -194,19 +194,22 @@
 #define ADV7511_PACKET_GM(x)	    ADV7511_PACKET(5, x)
 #define ADV7511_PACKET_SPARE(x)	    ADV7511_PACKET(6, x)
 
-enum adv7511_input_clock {
+enum adv7511_input_clock
+{
 	ADV7511_INPUT_CLOCK_1X,
 	ADV7511_INPUT_CLOCK_2X,
 	ADV7511_INPUT_CLOCK_DDR,
 };
 
-enum adv7511_input_justification {
+enum adv7511_input_justification
+{
 	ADV7511_INPUT_JUSTIFICATION_EVENLY = 0,
 	ADV7511_INPUT_JUSTIFICATION_RIGHT = 1,
 	ADV7511_INPUT_JUSTIFICATION_LEFT = 2,
 };
 
-enum adv7511_input_sync_pulse {
+enum adv7511_input_sync_pulse
+{
 	ADV7511_INPUT_SYNC_PULSE_DE = 0,
 	ADV7511_INPUT_SYNC_PULSE_HSYNC = 1,
 	ADV7511_INPUT_SYNC_PULSE_VSYNC = 2,
@@ -228,7 +231,8 @@ enum adv7511_input_sync_pulse {
  * unchanged. This is used when the upstream graphics core already generates
  * the sync signals with the correct polarity.
  */
-enum adv7511_sync_polarity {
+enum adv7511_sync_polarity
+{
 	ADV7511_SYNC_POLARITY_PASSTHROUGH,
 	ADV7511_SYNC_POLARITY_LOW,
 	ADV7511_SYNC_POLARITY_HIGH,
@@ -247,7 +251,8 @@ enum adv7511_sync_polarity {
  * @vsync_polarity:		vsync input signal configuration
  * @hsync_polarity:		hsync input signal configuration
  */
-struct adv7511_link_config {
+struct adv7511_link_config
+{
 	unsigned int input_color_depth;
 	enum hdmi_colorspace input_colorspace;
 	enum adv7511_input_clock input_clock;
@@ -268,7 +273,8 @@ struct adv7511_link_config {
  * @ADV7511_CSC_SCALING_2: CSC results are scaled by a factor of two
  * @ADV7511_CSC_SCALING_4: CSC results are scalled by a factor of four
  */
-enum adv7511_csc_scaling {
+enum adv7511_csc_scaling
+{
 	ADV7511_CSC_SCALING_1 = 0,
 	ADV7511_CSC_SCALING_2 = 1,
 	ADV7511_CSC_SCALING_4 = 2,
@@ -282,7 +288,8 @@ enum adv7511_csc_scaling {
  * @hdmi_mode:			Whether to use HDMI or DVI output mode
  * @avi_infoframe:		HDMI infoframe
  */
-struct adv7511_video_config {
+struct adv7511_video_config
+{
 	bool csc_enable;
 	enum adv7511_csc_scaling csc_scaling_factor;
 	const uint16_t *csc_coefficents;
@@ -291,12 +298,14 @@ struct adv7511_video_config {
 	struct hdmi_avi_infoframe avi_infoframe;
 };
 
-enum adv7511_type {
+enum adv7511_type
+{
 	ADV7511,
 	ADV7533,
 };
 
-struct adv7511 {
+struct adv7511
+{
 	struct i2c_client *i2c_main;
 	struct i2c_client *i2c_edid;
 	struct i2c_client *i2c_cec;
@@ -356,7 +365,7 @@ static inline void adv7533_dsi_power_off(struct adv7511 *adv)
 }
 
 static inline void adv7533_mode_set(struct adv7511 *adv,
-				    struct drm_display_mode *mode)
+									struct drm_display_mode *mode)
 {
 }
 

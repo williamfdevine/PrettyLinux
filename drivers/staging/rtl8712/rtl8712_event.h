@@ -29,7 +29,8 @@
 void r8712_event_handle(struct _adapter *padapter, uint *peventbuf);
 void r8712_got_addbareq_event_callback(struct _adapter *adapter, u8 *pbuf);
 
-enum rtl8712_c2h_event {
+enum rtl8712_c2h_event
+{
 	GEN_EVT_CODE(_Read_MACREG) = 0,		/*0*/
 	GEN_EVT_CODE(_Read_BBREG),
 	GEN_EVT_CODE(_Read_RFREG),
@@ -63,7 +64,8 @@ enum rtl8712_c2h_event {
 
 #ifdef _RTL8712_CMD_C_
 
-static struct fwevent wlanevents[] = {
+static struct fwevent wlanevents[] =
+{
 	{0, NULL},	/*0*/
 	{0, NULL},
 	{0, NULL},
@@ -73,8 +75,10 @@ static struct fwevent wlanevents[] = {
 	{0, NULL},
 	{0, NULL},
 	{0, &r8712_survey_event_callback},		/*8*/
-	{sizeof(struct surveydone_event),
-		&r8712_surveydone_event_callback},	/*9*/
+	{
+		sizeof(struct surveydone_event),
+		&r8712_surveydone_event_callback
+	},	/*9*/
 
 	{0, &r8712_joinbss_event_callback},		/*10*/
 	{sizeof(struct stassoc_event), &r8712_stassoc_event_callback},

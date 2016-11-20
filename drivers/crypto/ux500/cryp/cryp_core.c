@@ -51,7 +51,8 @@ static struct stedma40_chan_cfg *engine_to_mem;
  * @device_list: A list of registered devices to choose from.
  * @device_allocation: A semaphore initialized with number of devices.
  */
-struct cryp_driver_data {
+struct cryp_driver_data
+{
 	struct klist device_list;
 	struct semaphore device_allocation;
 };
@@ -71,7 +72,8 @@ struct cryp_driver_data {
  * @dev_ctx: Device dependent context.
  * @device: Pointer to the device.
  */
-struct cryp_ctx {
+struct cryp_ctx
+{
 	struct cryp_config config;
 	u8 key[CRYP_MAX_KEY_SIZE];
 	u32 keylen;
@@ -158,19 +160,23 @@ static inline u8 swap_bits_in_byte(u8 b)
 }
 
 static inline void swap_words_in_key_and_bits_in_byte(const u8 *in,
-						      u8 *out, u32 len)
+		u8 *out, u32 len)
 {
 	unsigned int i = 0;
 	int j;
 	int index = 0;
 
 	j = len - BYTES_PER_WORD;
-	while (j >= 0) {
-		for (i = 0; i < BYTES_PER_WORD; i++) {
+
+	while (j >= 0)
+	{
+		for (i = 0; i < BYTES_PER_WORD; i++)
+		{
 			index = len - j - BYTES_PER_WORD + i;
 			out[j + i] =
 				swap_bits_in_byte(in[index]);
 		}
+
 		j -= BYTES_PER_WORD;
 	}
 }
@@ -182,7 +188,9 @@ static void add_session_id(struct cryp_ctx *ctx)
 	 * for the software context.
 	 */
 	if (unlikely(atomic_inc_and_test(&session_id)))
+	{
 		atomic_inc(&session_id);
+	}
 
 	ctx->session_id = atomic_read(&session_id);
 }
@@ -193,7 +201,8 @@ static irqreturn_t cryp_interrupt_handler(int irq, void *param)
 	int count;
 	struct cryp_device_data *device_data;
 
-	if (param == NULL) {
+	if (param == NULL)
+	{
 		BUG_ON(!param);
 		return IRQ_HANDLED;
 	}
@@ -203,32 +212,39 @@ static irqreturn_t cryp_interrupt_handler(int irq, void *param)
 
 	ctx = device_data->current_ctx;
 
-	if (ctx == NULL) {
+	if (ctx == NULL)
+	{
 		BUG_ON(!ctx);
 		return IRQ_HANDLED;
 	}
 
 	dev_dbg(ctx->device->dev, "[%s] (len: %d) %s, ", __func__, ctx->outlen,
-		cryp_pending_irq_src(device_data, CRYP_IRQ_SRC_OUTPUT_FIFO) ?
-		"out" : "in");
+			cryp_pending_irq_src(device_data, CRYP_IRQ_SRC_OUTPUT_FIFO) ?
+			"out" : "in");
 
 	if (cryp_pending_irq_src(device_data,
-				 CRYP_IRQ_SRC_OUTPUT_FIFO)) {
-		if (ctx->outlen / ctx->blocksize > 0) {
+							 CRYP_IRQ_SRC_OUTPUT_FIFO))
+	{
+		if (ctx->outlen / ctx->blocksize > 0)
+		{
 			count = ctx->blocksize / 4;
 
 			readsl(&device_data->base->dout, ctx->outdata, count);
 			ctx->outdata += count;
 			ctx->outlen -= count;
 
-			if (ctx->outlen == 0) {
+			if (ctx->outlen == 0)
+			{
 				cryp_disable_irq_src(device_data,
-						     CRYP_IRQ_SRC_OUTPUT_FIFO);
+									 CRYP_IRQ_SRC_OUTPUT_FIFO);
 			}
 		}
-	} else if (cryp_pending_irq_src(device_data,
-					CRYP_IRQ_SRC_INPUT_FIFO)) {
-		if (ctx->datalen / ctx->blocksize > 0) {
+	}
+	else if (cryp_pending_irq_src(device_data,
+								  CRYP_IRQ_SRC_INPUT_FIFO))
+	{
+		if (ctx->datalen / ctx->blocksize > 0)
+		{
 			count = ctx->blocksize / 4;
 
 			writesl(&device_data->base->din, ctx->indata, count);
@@ -238,13 +254,14 @@ static irqreturn_t cryp_interrupt_handler(int irq, void *param)
 
 			if (ctx->datalen == 0)
 				cryp_disable_irq_src(device_data,
-						   CRYP_IRQ_SRC_INPUT_FIFO);
+									 CRYP_IRQ_SRC_INPUT_FIFO);
 
-			if (ctx->config.algomode == CRYP_ALGO_AES_XTS) {
+			if (ctx->config.algomode == CRYP_ALGO_AES_XTS)
+			{
 				CRYP_PUT_BITS(&device_data->base->cr,
-					      CRYP_START_ENABLE,
-					      CRYP_CR_START_POS,
-					      CRYP_CR_START_MASK);
+							  CRYP_START_ENABLE,
+							  CRYP_CR_START_POS,
+							  CRYP_CR_START_MASK);
 
 				cryp_wait_until_done(device_data);
 			}
@@ -257,13 +274,13 @@ static irqreturn_t cryp_interrupt_handler(int irq, void *param)
 static int mode_is_aes(enum cryp_algo_mode mode)
 {
 	return	CRYP_ALGO_AES_ECB == mode ||
-		CRYP_ALGO_AES_CBC == mode ||
-		CRYP_ALGO_AES_CTR == mode ||
-		CRYP_ALGO_AES_XTS == mode;
+			CRYP_ALGO_AES_CBC == mode ||
+			CRYP_ALGO_AES_CTR == mode ||
+			CRYP_ALGO_AES_XTS == mode;
 }
 
 static int cfg_iv(struct cryp_device_data *device_data, u32 left, u32 right,
-		  enum cryp_init_vector_index index)
+				  enum cryp_init_vector_index index)
 {
 	struct cryp_init_vector_value vector_value;
 
@@ -273,8 +290,8 @@ static int cfg_iv(struct cryp_device_data *device_data, u32 left, u32 right,
 	vector_value.init_value_right = right;
 
 	return cryp_configure_init_vector(device_data,
-					  index,
-					  vector_value);
+									  index,
+									  vector_value);
 }
 
 static int cfg_ivs(struct cryp_device_data *device_data, struct cryp_ctx *ctx)
@@ -291,28 +308,36 @@ static int cfg_ivs(struct cryp_device_data *device_data, struct cryp_ctx *ctx)
 	 * someone provides an incorrect blocksize which would force calling
 	 * cfg_iv with i greater than 2 which is an error.
 	 */
-	if (num_of_regs > 2) {
+	if (num_of_regs > 2)
+	{
 		dev_err(device_data->dev, "[%s] Incorrect blocksize %d",
-			__func__, ctx->blocksize);
+				__func__, ctx->blocksize);
 		return -EINVAL;
 	}
 
 	for (i = 0; i < ctx->blocksize / 4; i++)
-		iv[i] = uint8p_to_uint32_be(ctx->iv + i*4);
-
-	for (i = 0; i < num_of_regs; i++) {
-		status = cfg_iv(device_data, iv[i*2], iv[i*2+1],
-				(enum cryp_init_vector_index) i);
-		if (status != 0)
-			return status;
+	{
+		iv[i] = uint8p_to_uint32_be(ctx->iv + i * 4);
 	}
+
+	for (i = 0; i < num_of_regs; i++)
+	{
+		status = cfg_iv(device_data, iv[i * 2], iv[i * 2 + 1],
+						(enum cryp_init_vector_index) i);
+
+		if (status != 0)
+		{
+			return status;
+		}
+	}
+
 	return status;
 }
 
 static int set_key(struct cryp_device_data *device_data,
-		   u32 left_key,
-		   u32 right_key,
-		   enum cryp_key_reg_index index)
+				   u32 left_key,
+				   u32 right_key,
+				   enum cryp_key_reg_index index)
 {
 	struct cryp_key_value key_value;
 	int cryp_error;
@@ -323,11 +348,12 @@ static int set_key(struct cryp_device_data *device_data,
 	key_value.key_value_right = right_key;
 
 	cryp_error = cryp_configure_key_values(device_data,
-					       index,
-					       key_value);
+										   index,
+										   key_value);
+
 	if (cryp_error != 0)
 		dev_err(device_data->dev, "[%s]: "
-			"cryp_configure_key_values() failed!", __func__);
+				"cryp_configure_key_values() failed!", __func__);
 
 	return cryp_error;
 }
@@ -341,86 +367,106 @@ static int cfg_keys(struct cryp_ctx *ctx)
 
 	dev_dbg(ctx->device->dev, "[%s]", __func__);
 
-	if (mode_is_aes(ctx->config.algomode)) {
+	if (mode_is_aes(ctx->config.algomode))
+	{
 		swap_words_in_key_and_bits_in_byte((u8 *)ctx->key,
-						   (u8 *)swapped_key,
-						   ctx->keylen);
-	} else {
+										   (u8 *)swapped_key,
+										   ctx->keylen);
+	}
+	else
+	{
 		for (i = 0; i < ctx->keylen / 4; i++)
-			swapped_key[i] = uint8p_to_uint32_be(ctx->key + i*4);
+		{
+			swapped_key[i] = uint8p_to_uint32_be(ctx->key + i * 4);
+		}
 	}
 
-	for (i = 0; i < num_of_regs; i++) {
+	for (i = 0; i < num_of_regs; i++)
+	{
 		cryp_error = set_key(ctx->device,
-				     *(((u32 *)swapped_key)+i*2),
-				     *(((u32 *)swapped_key)+i*2+1),
-				     (enum cryp_key_reg_index) i);
+							 *(((u32 *)swapped_key) + i * 2),
+							 *(((u32 *)swapped_key) + i * 2 + 1),
+							 (enum cryp_key_reg_index) i);
 
-		if (cryp_error != 0) {
+		if (cryp_error != 0)
+		{
 			dev_err(ctx->device->dev, "[%s]: set_key() failed!",
 					__func__);
 			return cryp_error;
 		}
 	}
+
 	return cryp_error;
 }
 
 static int cryp_setup_context(struct cryp_ctx *ctx,
-			      struct cryp_device_data *device_data)
+							  struct cryp_device_data *device_data)
 {
 	u32 control_register = CRYP_CR_DEFAULT;
 
-	switch (cryp_mode) {
-	case CRYP_MODE_INTERRUPT:
-		writel_relaxed(CRYP_IMSC_DEFAULT, &device_data->base->imsc);
-		break;
+	switch (cryp_mode)
+	{
+		case CRYP_MODE_INTERRUPT:
+			writel_relaxed(CRYP_IMSC_DEFAULT, &device_data->base->imsc);
+			break;
 
-	case CRYP_MODE_DMA:
-		writel_relaxed(CRYP_DMACR_DEFAULT, &device_data->base->dmacr);
-		break;
+		case CRYP_MODE_DMA:
+			writel_relaxed(CRYP_DMACR_DEFAULT, &device_data->base->dmacr);
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 
-	if (ctx->updated == 0) {
+	if (ctx->updated == 0)
+	{
 		cryp_flush_inoutfifo(device_data);
-		if (cfg_keys(ctx) != 0) {
+
+		if (cfg_keys(ctx) != 0)
+		{
 			dev_err(ctx->device->dev, "[%s]: cfg_keys failed!",
-				__func__);
+					__func__);
 			return -EINVAL;
 		}
 
 		if (ctx->iv &&
-		    CRYP_ALGO_AES_ECB != ctx->config.algomode &&
-		    CRYP_ALGO_DES_ECB != ctx->config.algomode &&
-		    CRYP_ALGO_TDES_ECB != ctx->config.algomode) {
+			CRYP_ALGO_AES_ECB != ctx->config.algomode &&
+			CRYP_ALGO_DES_ECB != ctx->config.algomode &&
+			CRYP_ALGO_TDES_ECB != ctx->config.algomode)
+		{
 			if (cfg_ivs(device_data, ctx) != 0)
+			{
 				return -EPERM;
+			}
 		}
 
 		cryp_set_configuration(device_data, &ctx->config,
-				       &control_register);
+							   &control_register);
 		add_session_id(ctx);
-	} else if (ctx->updated == 1 &&
-		   ctx->session_id != atomic_read(&session_id)) {
+	}
+	else if (ctx->updated == 1 &&
+			 ctx->session_id != atomic_read(&session_id))
+	{
 		cryp_flush_inoutfifo(device_data);
 		cryp_restore_device_context(device_data, &ctx->dev_ctx);
 
 		add_session_id(ctx);
 		control_register = ctx->dev_ctx.cr;
-	} else
+	}
+	else
+	{
 		control_register = ctx->dev_ctx.cr;
+	}
 
 	writel(control_register |
-	       (CRYP_CRYPEN_ENABLE << CRYP_CR_CRYPEN_POS),
-	       &device_data->base->cr);
+		   (CRYP_CRYPEN_ENABLE << CRYP_CR_CRYPEN_POS),
+		   &device_data->base->cr);
 
 	return 0;
 }
 
 static int cryp_get_device_data(struct cryp_ctx *ctx,
-				struct cryp_device_data **device_data)
+								struct cryp_device_data **device_data)
 {
 	int ret;
 	struct klist_iter device_iterator;
@@ -430,31 +476,43 @@ static int cryp_get_device_data(struct cryp_ctx *ctx,
 
 	/* Wait until a device is available */
 	ret = down_interruptible(&driver_data.device_allocation);
+
 	if (ret)
-		return ret;  /* Interrupted */
+	{
+		return ret;    /* Interrupted */
+	}
 
 	/* Select a device */
 	klist_iter_init(&driver_data.device_list, &device_iterator);
 
 	device_node = klist_next(&device_iterator);
-	while (device_node) {
+
+	while (device_node)
+	{
 		local_device_data = container_of(device_node,
-					   struct cryp_device_data, list_node);
+										 struct cryp_device_data, list_node);
 		spin_lock(&local_device_data->ctx_lock);
+
 		/* current_ctx allocates a device, NULL = unallocated */
-		if (local_device_data->current_ctx) {
+		if (local_device_data->current_ctx)
+		{
 			device_node = klist_next(&device_iterator);
-		} else {
+		}
+		else
+		{
 			local_device_data->current_ctx = ctx;
 			ctx->device = local_device_data;
 			spin_unlock(&local_device_data->ctx_lock);
 			break;
 		}
+
 		spin_unlock(&local_device_data->ctx_lock);
 	}
+
 	klist_iter_exit(&device_iterator);
 
-	if (!device_node) {
+	if (!device_node)
+	{
 		/**
 		 * No free device found.
 		 * Since we allocated a device with down_interruptible, this
@@ -472,15 +530,17 @@ static int cryp_get_device_data(struct cryp_ctx *ctx,
 }
 
 static void cryp_dma_setup_channel(struct cryp_device_data *device_data,
-				   struct device *dev)
+								   struct device *dev)
 {
-	struct dma_slave_config mem2cryp = {
+	struct dma_slave_config mem2cryp =
+	{
 		.direction = DMA_MEM_TO_DEV,
 		.dst_addr = device_data->phybase + CRYP_DMA_TX_FIFO,
 		.dst_addr_width = DMA_SLAVE_BUSWIDTH_2_BYTES,
 		.dst_maxburst = 4,
 	};
-	struct dma_slave_config cryp2mem = {
+	struct dma_slave_config cryp2mem =
+	{
 		.direction = DMA_DEV_TO_MEM,
 		.src_addr = device_data->phybase + CRYP_DMA_RX_FIFO,
 		.src_addr_width = DMA_SLAVE_BUSWIDTH_2_BYTES,
@@ -493,14 +553,14 @@ static void cryp_dma_setup_channel(struct cryp_device_data *device_data,
 	device_data->dma.cfg_mem2cryp = mem_to_engine;
 	device_data->dma.chan_mem2cryp =
 		dma_request_channel(device_data->dma.mask,
-				    stedma40_filter,
-				    device_data->dma.cfg_mem2cryp);
+							stedma40_filter,
+							device_data->dma.cfg_mem2cryp);
 
 	device_data->dma.cfg_cryp2mem = engine_to_mem;
 	device_data->dma.chan_cryp2mem =
 		dma_request_channel(device_data->dma.mask,
-				    stedma40_filter,
-				    device_data->dma.cfg_cryp2mem);
+							stedma40_filter,
+							device_data->dma.cfg_cryp2mem);
 
 	dmaengine_slave_config(device_data->dma.chan_mem2cryp, &mem2cryp);
 	dmaengine_slave_config(device_data->dma.chan_cryp2mem, &cryp2mem);
@@ -517,9 +577,9 @@ static void cryp_dma_out_callback(void *data)
 }
 
 static int cryp_set_dma_transfer(struct cryp_ctx *ctx,
-				 struct scatterlist *sg,
-				 int len,
-				 enum dma_data_direction direction)
+								 struct scatterlist *sg,
+								 int len,
+								 enum dma_data_direction direction)
 {
 	struct dma_async_tx_descriptor *desc;
 	struct dma_chan *channel = NULL;
@@ -527,70 +587,74 @@ static int cryp_set_dma_transfer(struct cryp_ctx *ctx,
 
 	dev_dbg(ctx->device->dev, "[%s]: ", __func__);
 
-	if (unlikely(!IS_ALIGNED((u32)sg, 4))) {
+	if (unlikely(!IS_ALIGNED((u32)sg, 4)))
+	{
 		dev_err(ctx->device->dev, "[%s]: Data in sg list isn't "
-			"aligned! Addr: 0x%08x", __func__, (u32)sg);
+				"aligned! Addr: 0x%08x", __func__, (u32)sg);
 		return -EFAULT;
 	}
 
-	switch (direction) {
-	case DMA_TO_DEVICE:
-		channel = ctx->device->dma.chan_mem2cryp;
-		ctx->device->dma.sg_src = sg;
-		ctx->device->dma.sg_src_len = dma_map_sg(channel->device->dev,
-						 ctx->device->dma.sg_src,
-						 ctx->device->dma.nents_src,
-						 direction);
+	switch (direction)
+	{
+		case DMA_TO_DEVICE:
+			channel = ctx->device->dma.chan_mem2cryp;
+			ctx->device->dma.sg_src = sg;
+			ctx->device->dma.sg_src_len = dma_map_sg(channel->device->dev,
+										  ctx->device->dma.sg_src,
+										  ctx->device->dma.nents_src,
+										  direction);
 
-		if (!ctx->device->dma.sg_src_len) {
-			dev_dbg(ctx->device->dev,
-				"[%s]: Could not map the sg list (TO_DEVICE)",
-				__func__);
+			if (!ctx->device->dma.sg_src_len)
+			{
+				dev_dbg(ctx->device->dev,
+						"[%s]: Could not map the sg list (TO_DEVICE)",
+						__func__);
+				return -EFAULT;
+			}
+
+			dev_dbg(ctx->device->dev, "[%s]: Setting up DMA for buffer "
+					"(TO_DEVICE)", __func__);
+
+			desc = dmaengine_prep_slave_sg(channel,
+										   ctx->device->dma.sg_src,
+										   ctx->device->dma.sg_src_len,
+										   direction, DMA_CTRL_ACK);
+			break;
+
+		case DMA_FROM_DEVICE:
+			channel = ctx->device->dma.chan_cryp2mem;
+			ctx->device->dma.sg_dst = sg;
+			ctx->device->dma.sg_dst_len = dma_map_sg(channel->device->dev,
+										  ctx->device->dma.sg_dst,
+										  ctx->device->dma.nents_dst,
+										  direction);
+
+			if (!ctx->device->dma.sg_dst_len)
+			{
+				dev_dbg(ctx->device->dev,
+						"[%s]: Could not map the sg list (FROM_DEVICE)",
+						__func__);
+				return -EFAULT;
+			}
+
+			dev_dbg(ctx->device->dev, "[%s]: Setting up DMA for buffer "
+					"(FROM_DEVICE)", __func__);
+
+			desc = dmaengine_prep_slave_sg(channel,
+										   ctx->device->dma.sg_dst,
+										   ctx->device->dma.sg_dst_len,
+										   direction,
+										   DMA_CTRL_ACK |
+										   DMA_PREP_INTERRUPT);
+
+			desc->callback = cryp_dma_out_callback;
+			desc->callback_param = ctx;
+			break;
+
+		default:
+			dev_dbg(ctx->device->dev, "[%s]: Invalid DMA direction",
+					__func__);
 			return -EFAULT;
-		}
-
-		dev_dbg(ctx->device->dev, "[%s]: Setting up DMA for buffer "
-			"(TO_DEVICE)", __func__);
-
-		desc = dmaengine_prep_slave_sg(channel,
-				ctx->device->dma.sg_src,
-				ctx->device->dma.sg_src_len,
-				direction, DMA_CTRL_ACK);
-		break;
-
-	case DMA_FROM_DEVICE:
-		channel = ctx->device->dma.chan_cryp2mem;
-		ctx->device->dma.sg_dst = sg;
-		ctx->device->dma.sg_dst_len = dma_map_sg(channel->device->dev,
-						 ctx->device->dma.sg_dst,
-						 ctx->device->dma.nents_dst,
-						 direction);
-
-		if (!ctx->device->dma.sg_dst_len) {
-			dev_dbg(ctx->device->dev,
-				"[%s]: Could not map the sg list (FROM_DEVICE)",
-				__func__);
-			return -EFAULT;
-		}
-
-		dev_dbg(ctx->device->dev, "[%s]: Setting up DMA for buffer "
-			"(FROM_DEVICE)", __func__);
-
-		desc = dmaengine_prep_slave_sg(channel,
-				ctx->device->dma.sg_dst,
-				ctx->device->dma.sg_dst_len,
-				direction,
-				DMA_CTRL_ACK |
-				DMA_PREP_INTERRUPT);
-
-		desc->callback = cryp_dma_out_callback;
-		desc->callback_param = ctx;
-		break;
-
-	default:
-		dev_dbg(ctx->device->dev, "[%s]: Invalid DMA direction",
-			__func__);
-		return -EFAULT;
 	}
 
 	cookie = dmaengine_submit(desc);
@@ -608,23 +672,24 @@ static void cryp_dma_done(struct cryp_ctx *ctx)
 	chan = ctx->device->dma.chan_mem2cryp;
 	dmaengine_terminate_all(chan);
 	dma_unmap_sg(chan->device->dev, ctx->device->dma.sg_src,
-		     ctx->device->dma.sg_src_len, DMA_TO_DEVICE);
+				 ctx->device->dma.sg_src_len, DMA_TO_DEVICE);
 
 	chan = ctx->device->dma.chan_cryp2mem;
 	dmaengine_terminate_all(chan);
 	dma_unmap_sg(chan->device->dev, ctx->device->dma.sg_dst,
-		     ctx->device->dma.sg_dst_len, DMA_FROM_DEVICE);
+				 ctx->device->dma.sg_dst_len, DMA_FROM_DEVICE);
 }
 
 static int cryp_dma_write(struct cryp_ctx *ctx, struct scatterlist *sg,
-			  int len)
+						  int len)
 {
 	int error = cryp_set_dma_transfer(ctx, sg, len, DMA_TO_DEVICE);
 	dev_dbg(ctx->device->dev, "[%s]: ", __func__);
 
-	if (error) {
+	if (error)
+	{
 		dev_dbg(ctx->device->dev, "[%s]: cryp_set_dma_transfer() "
-			"failed", __func__);
+				"failed", __func__);
 		return error;
 	}
 
@@ -634,9 +699,11 @@ static int cryp_dma_write(struct cryp_ctx *ctx, struct scatterlist *sg,
 static int cryp_dma_read(struct cryp_ctx *ctx, struct scatterlist *sg, int len)
 {
 	int error = cryp_set_dma_transfer(ctx, sg, len, DMA_FROM_DEVICE);
-	if (error) {
+
+	if (error)
+	{
 		dev_dbg(ctx->device->dev, "[%s]: cryp_set_dma_transfer() "
-			"failed", __func__);
+				"failed", __func__);
 		return error;
 	}
 
@@ -644,14 +711,15 @@ static int cryp_dma_read(struct cryp_ctx *ctx, struct scatterlist *sg, int len)
 }
 
 static void cryp_polling_mode(struct cryp_ctx *ctx,
-			      struct cryp_device_data *device_data)
+							  struct cryp_device_data *device_data)
 {
 	int len = ctx->blocksize / BYTES_PER_WORD;
 	int remaining_length = ctx->datalen;
 	u32 *indata = (u32 *)ctx->indata;
 	u32 *outdata = (u32 *)ctx->outdata;
 
-	while (remaining_length > 0) {
+	while (remaining_length > 0)
+	{
 		writesl(&device_data->base->din, indata, len);
 		indata += len;
 		remaining_length -= (len * BYTES_PER_WORD);
@@ -664,28 +732,35 @@ static void cryp_polling_mode(struct cryp_ctx *ctx,
 }
 
 static int cryp_disable_power(struct device *dev,
-			      struct cryp_device_data *device_data,
-			      bool save_device_context)
+							  struct cryp_device_data *device_data,
+							  bool save_device_context)
 {
 	int ret = 0;
 
 	dev_dbg(dev, "[%s]", __func__);
 
 	spin_lock(&device_data->power_state_spinlock);
+
 	if (!device_data->power_state)
+	{
 		goto out;
+	}
 
 	spin_lock(&device_data->ctx_lock);
-	if (save_device_context && device_data->current_ctx) {
+
+	if (save_device_context && device_data->current_ctx)
+	{
 		cryp_save_device_context(device_data,
-				&device_data->current_ctx->dev_ctx,
-				cryp_mode);
+								 &device_data->current_ctx->dev_ctx,
+								 cryp_mode);
 		device_data->restore_dev_ctx = true;
 	}
+
 	spin_unlock(&device_data->ctx_lock);
 
 	clk_disable(device_data->clk);
 	ret = regulator_disable(device_data->pwr_regulator);
+
 	if (ret)
 		dev_err(dev, "[%s]: "
 				"regulator_disable() failed!",
@@ -700,42 +775,54 @@ out:
 }
 
 static int cryp_enable_power(
-		struct device *dev,
-		struct cryp_device_data *device_data,
-		bool restore_device_context)
+	struct device *dev,
+	struct cryp_device_data *device_data,
+	bool restore_device_context)
 {
 	int ret = 0;
 
 	dev_dbg(dev, "[%s]", __func__);
 
 	spin_lock(&device_data->power_state_spinlock);
-	if (!device_data->power_state) {
+
+	if (!device_data->power_state)
+	{
 		ret = regulator_enable(device_data->pwr_regulator);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev, "[%s]: regulator_enable() failed!",
 					__func__);
 			goto out;
 		}
 
 		ret = clk_enable(device_data->clk);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev, "[%s]: clk_enable() failed!",
 					__func__);
 			regulator_disable(device_data->pwr_regulator);
 			goto out;
 		}
+
 		device_data->power_state = true;
 	}
 
-	if (device_data->restore_dev_ctx) {
+	if (device_data->restore_dev_ctx)
+	{
 		spin_lock(&device_data->ctx_lock);
-		if (restore_device_context && device_data->current_ctx) {
+
+		if (restore_device_context && device_data->current_ctx)
+		{
 			device_data->restore_dev_ctx = false;
 			cryp_restore_device_context(device_data,
-					&device_data->current_ctx->dev_ctx);
+										&device_data->current_ctx->dev_ctx);
 		}
+
 		spin_unlock(&device_data->ctx_lock);
 	}
+
 out:
 	spin_unlock(&device_data->power_state_spinlock);
 
@@ -743,7 +830,7 @@ out:
 }
 
 static int hw_crypt_noxts(struct cryp_ctx *ctx,
-			  struct cryp_device_data *device_data)
+						  struct cryp_device_data *device_data)
 {
 	int ret = 0;
 
@@ -756,20 +843,24 @@ static int hw_crypt_noxts(struct cryp_ctx *ctx,
 
 	ctx->outlen = ctx->datalen;
 
-	if (unlikely(!IS_ALIGNED((u32)indata, 4))) {
+	if (unlikely(!IS_ALIGNED((u32)indata, 4)))
+	{
 		pr_debug(DEV_DBG_NAME " [%s]: Data isn't aligned! Addr: "
-			 "0x%08x", __func__, (u32)indata);
+				 "0x%08x", __func__, (u32)indata);
 		return -EINVAL;
 	}
 
 	ret = cryp_setup_context(ctx, device_data);
 
 	if (ret)
+	{
 		goto out;
+	}
 
-	if (cryp_mode == CRYP_MODE_INTERRUPT) {
+	if (cryp_mode == CRYP_MODE_INTERRUPT)
+	{
 		cryp_enable_irq_src(device_data, CRYP_IRQ_SRC_INPUT_FIFO |
-				    CRYP_IRQ_SRC_OUTPUT_FIFO);
+							CRYP_IRQ_SRC_OUTPUT_FIFO);
 
 		/*
 		 * ctx->outlen is decremented in the cryp_interrupt_handler
@@ -777,9 +868,13 @@ static int hw_crypt_noxts(struct cryp_ctx *ctx,
 		 * that gcc didn't optimze away this variable.
 		 */
 		while (ctx->outlen > 0)
+		{
 			cpu_relax();
-	} else if (cryp_mode == CRYP_MODE_POLLING ||
-		   cryp_mode == CRYP_MODE_DMA) {
+		}
+	}
+	else if (cryp_mode == CRYP_MODE_POLLING ||
+			 cryp_mode == CRYP_MODE_DMA)
+	{
 		/*
 		 * The reason for having DMA in this if case is that if we are
 		 * running cryp_mode = 2, then we separate DMA routines for
@@ -789,9 +884,11 @@ static int hw_crypt_noxts(struct cryp_ctx *ctx,
 		 * benefits using it.
 		 */
 		cryp_polling_mode(ctx, device_data);
-	} else {
+	}
+	else
+	{
 		dev_err(ctx->device->dev, "[%s]: Invalid operation mode!",
-			__func__);
+				__func__);
 		ret = -EPERM;
 		goto out;
 	}
@@ -812,7 +909,8 @@ static int get_nents(struct scatterlist *sg, int nbytes)
 {
 	int nents = 0;
 
-	while (nbytes > 0) {
+	while (nbytes > 0)
+	{
 		nbytes -= sg->length;
 		sg = sg_next(sg);
 		nents++;
@@ -837,12 +935,18 @@ static int ablk_dma_crypt(struct ablkcipher_request *areq)
 	ctx->outlen = areq->nbytes;
 
 	ret = cryp_get_device_data(ctx, &device_data);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = cryp_setup_context(ctx, device_data);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/* We have the device now, so store the nents in the dma struct. */
 	ctx->device->dma.nents_src = get_nents(areq->src, ctx->datalen);
@@ -873,7 +977,9 @@ out:
 	up(&driver_data.device_allocation);
 
 	if (unlikely(bytes_written != bytes_read))
+	{
 		return -EPERM;
+	}
 
 	return 0;
 }
@@ -892,19 +998,24 @@ static int ablk_crypt(struct ablkcipher_request *areq)
 	pr_debug(DEV_DBG_NAME " [%s]", __func__);
 
 	ret = cryp_get_device_data(ctx, &device_data);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	ablkcipher_walk_init(&walk, areq->dst, areq->src, areq->nbytes);
 	ret = ablkcipher_walk_phys(areq, &walk);
 
-	if (ret) {
+	if (ret)
+	{
 		pr_err(DEV_DBG_NAME "[%s]: ablkcipher_walk_phys() failed!",
-			__func__);
+			   __func__);
 		goto out;
 	}
 
-	while ((nbytes = walk.nbytes) > 0) {
+	while ((nbytes = walk.nbytes) > 0)
+	{
 		ctx->iv = walk.iv;
 		src_paddr = (page_to_phys(walk.src.page) + walk.src.offset);
 		ctx->indata = phys_to_virt(src_paddr);
@@ -915,14 +1026,21 @@ static int ablk_crypt(struct ablkcipher_request *areq)
 		ctx->datalen = nbytes - (nbytes % ctx->blocksize);
 
 		ret = hw_crypt_noxts(ctx, device_data);
+
 		if (ret)
+		{
 			goto out;
+		}
 
 		nbytes -= ctx->datalen;
 		ret = ablkcipher_walk_done(areq, &walk, nbytes);
+
 		if (ret)
+		{
 			goto out;
+		}
 	}
+
 	ablkcipher_walk_complete(&walk);
 
 out:
@@ -942,30 +1060,31 @@ out:
 }
 
 static int aes_ablkcipher_setkey(struct crypto_ablkcipher *cipher,
-				 const u8 *key, unsigned int keylen)
+								 const u8 *key, unsigned int keylen)
 {
 	struct cryp_ctx *ctx = crypto_ablkcipher_ctx(cipher);
 	u32 *flags = &cipher->base.crt_flags;
 
 	pr_debug(DEV_DBG_NAME " [%s]", __func__);
 
-	switch (keylen) {
-	case AES_KEYSIZE_128:
-		ctx->config.keysize = CRYP_KEY_SIZE_128;
-		break;
+	switch (keylen)
+	{
+		case AES_KEYSIZE_128:
+			ctx->config.keysize = CRYP_KEY_SIZE_128;
+			break;
 
-	case AES_KEYSIZE_192:
-		ctx->config.keysize = CRYP_KEY_SIZE_192;
-		break;
+		case AES_KEYSIZE_192:
+			ctx->config.keysize = CRYP_KEY_SIZE_192;
+			break;
 
-	case AES_KEYSIZE_256:
-		ctx->config.keysize = CRYP_KEY_SIZE_256;
-		break;
+		case AES_KEYSIZE_256:
+			ctx->config.keysize = CRYP_KEY_SIZE_256;
+			break;
 
-	default:
-		pr_err(DEV_DBG_NAME "[%s]: Unknown keylen!", __func__);
-		*flags |= CRYPTO_TFM_RES_BAD_KEY_LEN;
-		return -EINVAL;
+		default:
+			pr_err(DEV_DBG_NAME "[%s]: Unknown keylen!", __func__);
+			*flags |= CRYPTO_TFM_RES_BAD_KEY_LEN;
+			return -EINVAL;
 	}
 
 	memcpy(ctx->key, key, keylen);
@@ -977,7 +1096,7 @@ static int aes_ablkcipher_setkey(struct crypto_ablkcipher *cipher,
 }
 
 static int des_ablkcipher_setkey(struct crypto_ablkcipher *cipher,
-				 const u8 *key, unsigned int keylen)
+								 const u8 *key, unsigned int keylen)
 {
 	struct cryp_ctx *ctx = crypto_ablkcipher_ctx(cipher);
 	u32 *flags = &cipher->base.crt_flags;
@@ -985,18 +1104,22 @@ static int des_ablkcipher_setkey(struct crypto_ablkcipher *cipher,
 	int ret;
 
 	pr_debug(DEV_DBG_NAME " [%s]", __func__);
-	if (keylen != DES_KEY_SIZE) {
+
+	if (keylen != DES_KEY_SIZE)
+	{
 		*flags |= CRYPTO_TFM_RES_BAD_KEY_LEN;
 		pr_debug(DEV_DBG_NAME " [%s]: CRYPTO_TFM_RES_BAD_KEY_LEN",
-				__func__);
+				 __func__);
 		return -EINVAL;
 	}
 
 	ret = des_ekey(tmp, key);
-	if (unlikely(ret == 0) && (*flags & CRYPTO_TFM_REQ_WEAK_KEY)) {
+
+	if (unlikely(ret == 0) && (*flags & CRYPTO_TFM_REQ_WEAK_KEY))
+	{
 		*flags |= CRYPTO_TFM_RES_WEAK_KEY;
 		pr_debug(DEV_DBG_NAME " [%s]: CRYPTO_TFM_REQ_WEAK_KEY",
-				__func__);
+				 __func__);
 		return -EINVAL;
 	}
 
@@ -1008,7 +1131,7 @@ static int des_ablkcipher_setkey(struct crypto_ablkcipher *cipher,
 }
 
 static int des3_ablkcipher_setkey(struct crypto_ablkcipher *cipher,
-				  const u8 *key, unsigned int keylen)
+								  const u8 *key, unsigned int keylen)
 {
 	struct cryp_ctx *ctx = crypto_ablkcipher_ctx(cipher);
 	u32 *flags = &cipher->base.crt_flags;
@@ -1017,28 +1140,35 @@ static int des3_ablkcipher_setkey(struct crypto_ablkcipher *cipher,
 	int i, ret;
 
 	pr_debug(DEV_DBG_NAME " [%s]", __func__);
-	if (keylen != DES3_EDE_KEY_SIZE) {
+
+	if (keylen != DES3_EDE_KEY_SIZE)
+	{
 		*flags |= CRYPTO_TFM_RES_BAD_KEY_LEN;
 		pr_debug(DEV_DBG_NAME " [%s]: CRYPTO_TFM_RES_BAD_KEY_LEN",
-				__func__);
+				 __func__);
 		return -EINVAL;
 	}
 
 	/* Checking key interdependency for weak key detection. */
 	if (unlikely(!((K[0] ^ K[2]) | (K[1] ^ K[3])) ||
-				!((K[2] ^ K[4]) | (K[3] ^ K[5]))) &&
-			(*flags & CRYPTO_TFM_REQ_WEAK_KEY)) {
+				 !((K[2] ^ K[4]) | (K[3] ^ K[5]))) &&
+		(*flags & CRYPTO_TFM_REQ_WEAK_KEY))
+	{
 		*flags |= CRYPTO_TFM_RES_WEAK_KEY;
 		pr_debug(DEV_DBG_NAME " [%s]: CRYPTO_TFM_REQ_WEAK_KEY",
-				__func__);
+				 __func__);
 		return -EINVAL;
 	}
-	for (i = 0; i < 3; i++) {
-		ret = des_ekey(tmp, key + i*DES_KEY_SIZE);
-		if (unlikely(ret == 0) && (*flags & CRYPTO_TFM_REQ_WEAK_KEY)) {
+
+	for (i = 0; i < 3; i++)
+	{
+		ret = des_ekey(tmp, key + i * DES_KEY_SIZE);
+
+		if (unlikely(ret == 0) && (*flags & CRYPTO_TFM_REQ_WEAK_KEY))
+		{
 			*flags |= CRYPTO_TFM_RES_WEAK_KEY;
 			pr_debug(DEV_DBG_NAME " [%s]: "
-					"CRYPTO_TFM_REQ_WEAK_KEY", __func__);
+					 "CRYPTO_TFM_REQ_WEAK_KEY", __func__);
 			return -EINVAL;
 		}
 	}
@@ -1062,7 +1192,9 @@ static int cryp_blk_encrypt(struct ablkcipher_request *areq)
 	/*
 	 * DMA does not work for DES due to a hw bug */
 	if (cryp_mode == CRYP_MODE_DMA && mode_is_aes(ctx->config.algomode))
+	{
 		return ablk_dma_crypt(areq);
+	}
 
 	/* For everything except DMA, we run the non DMA version. */
 	return ablk_crypt(areq);
@@ -1079,13 +1211,16 @@ static int cryp_blk_decrypt(struct ablkcipher_request *areq)
 
 	/* DMA does not work for DES due to a hw bug */
 	if (cryp_mode == CRYP_MODE_DMA && mode_is_aes(ctx->config.algomode))
+	{
 		return ablk_dma_crypt(areq);
+	}
 
 	/* For everything except DMA, we run the non DMA version. */
 	return ablk_crypt(areq);
 }
 
-struct cryp_algo_template {
+struct cryp_algo_template
+{
 	enum cryp_algo_mode algomode;
 	struct crypto_alg crypto;
 };
@@ -1095,8 +1230,8 @@ static int cryp_cra_init(struct crypto_tfm *tfm)
 	struct cryp_ctx *ctx = crypto_tfm_ctx(tfm);
 	struct crypto_alg *alg = tfm->__crt_alg;
 	struct cryp_algo_template *cryp_alg = container_of(alg,
-			struct cryp_algo_template,
-			crypto);
+										  struct cryp_algo_template,
+										  crypto);
 
 	ctx->config.algomode = cryp_alg->algomode;
 	ctx->blocksize = crypto_tfm_alg_blocksize(tfm);
@@ -1104,7 +1239,8 @@ static int cryp_cra_init(struct crypto_tfm *tfm)
 	return 0;
 }
 
-static struct cryp_algo_template cryp_algs[] = {
+static struct cryp_algo_template cryp_algs[] =
+{
 	{
 		.algomode = CRYP_ALGO_AES_ECB,
 		.crypto = {
@@ -1112,7 +1248,7 @@ static struct cryp_algo_template cryp_algs[] = {
 			.cra_driver_name = "aes-ux500",
 			.cra_priority =	300,
 			.cra_flags = CRYPTO_ALG_TYPE_ABLKCIPHER |
-					CRYPTO_ALG_ASYNC,
+			CRYPTO_ALG_ASYNC,
 			.cra_blocksize = AES_BLOCK_SIZE,
 			.cra_ctxsize = sizeof(struct cryp_ctx),
 			.cra_alignmask = 3,
@@ -1137,7 +1273,7 @@ static struct cryp_algo_template cryp_algs[] = {
 			.cra_driver_name = "ecb-aes-ux500",
 			.cra_priority = 300,
 			.cra_flags = CRYPTO_ALG_TYPE_ABLKCIPHER |
-					CRYPTO_ALG_ASYNC,
+			CRYPTO_ALG_ASYNC,
 			.cra_blocksize = AES_BLOCK_SIZE,
 			.cra_ctxsize = sizeof(struct cryp_ctx),
 			.cra_alignmask = 3,
@@ -1162,7 +1298,7 @@ static struct cryp_algo_template cryp_algs[] = {
 			.cra_driver_name = "cbc-aes-ux500",
 			.cra_priority = 300,
 			.cra_flags = CRYPTO_ALG_TYPE_ABLKCIPHER |
-					CRYPTO_ALG_ASYNC,
+			CRYPTO_ALG_ASYNC,
 			.cra_blocksize = AES_BLOCK_SIZE,
 			.cra_ctxsize = sizeof(struct cryp_ctx),
 			.cra_alignmask = 3,
@@ -1188,7 +1324,7 @@ static struct cryp_algo_template cryp_algs[] = {
 			.cra_driver_name = "ctr-aes-ux500",
 			.cra_priority = 300,
 			.cra_flags = CRYPTO_ALG_TYPE_ABLKCIPHER |
-						CRYPTO_ALG_ASYNC,
+			CRYPTO_ALG_ASYNC,
 			.cra_blocksize = AES_BLOCK_SIZE,
 			.cra_ctxsize = sizeof(struct cryp_ctx),
 			.cra_alignmask = 3,
@@ -1214,7 +1350,7 @@ static struct cryp_algo_template cryp_algs[] = {
 			.cra_driver_name = "des-ux500",
 			.cra_priority = 300,
 			.cra_flags = CRYPTO_ALG_TYPE_ABLKCIPHER |
-						CRYPTO_ALG_ASYNC,
+			CRYPTO_ALG_ASYNC,
 			.cra_blocksize = DES_BLOCK_SIZE,
 			.cra_ctxsize = sizeof(struct cryp_ctx),
 			.cra_alignmask = 3,
@@ -1240,7 +1376,7 @@ static struct cryp_algo_template cryp_algs[] = {
 			.cra_driver_name = "des3_ede-ux500",
 			.cra_priority = 300,
 			.cra_flags = CRYPTO_ALG_TYPE_ABLKCIPHER |
-						CRYPTO_ALG_ASYNC,
+			CRYPTO_ALG_ASYNC,
 			.cra_blocksize = DES3_EDE_BLOCK_SIZE,
 			.cra_ctxsize = sizeof(struct cryp_ctx),
 			.cra_alignmask = 3,
@@ -1265,7 +1401,7 @@ static struct cryp_algo_template cryp_algs[] = {
 			.cra_driver_name = "ecb-des-ux500",
 			.cra_priority = 300,
 			.cra_flags = CRYPTO_ALG_TYPE_ABLKCIPHER |
-					CRYPTO_ALG_ASYNC,
+			CRYPTO_ALG_ASYNC,
 			.cra_blocksize = DES_BLOCK_SIZE,
 			.cra_ctxsize = sizeof(struct cryp_ctx),
 			.cra_alignmask = 3,
@@ -1290,7 +1426,7 @@ static struct cryp_algo_template cryp_algs[] = {
 			.cra_driver_name = "ecb-des3_ede-ux500",
 			.cra_priority = 300,
 			.cra_flags = CRYPTO_ALG_TYPE_ABLKCIPHER |
-					CRYPTO_ALG_ASYNC,
+			CRYPTO_ALG_ASYNC,
 			.cra_blocksize = DES3_EDE_BLOCK_SIZE,
 			.cra_ctxsize = sizeof(struct cryp_ctx),
 			.cra_alignmask = 3,
@@ -1315,7 +1451,7 @@ static struct cryp_algo_template cryp_algs[] = {
 			.cra_driver_name = "cbc-des-ux500",
 			.cra_priority = 300,
 			.cra_flags = CRYPTO_ALG_TYPE_ABLKCIPHER |
-					CRYPTO_ALG_ASYNC,
+			CRYPTO_ALG_ASYNC,
 			.cra_blocksize = DES_BLOCK_SIZE,
 			.cra_ctxsize = sizeof(struct cryp_ctx),
 			.cra_alignmask = 3,
@@ -1340,7 +1476,7 @@ static struct cryp_algo_template cryp_algs[] = {
 			.cra_driver_name = "cbc-des3_ede-ux500",
 			.cra_priority = 300,
 			.cra_flags = CRYPTO_ALG_TYPE_ABLKCIPHER |
-					CRYPTO_ALG_ASYNC,
+			CRYPTO_ALG_ASYNC,
 			.cra_blocksize = DES3_EDE_BLOCK_SIZE,
 			.cra_ctxsize = sizeof(struct cryp_ctx),
 			.cra_alignmask = 3,
@@ -1372,19 +1508,27 @@ static int cryp_algs_register_all(void)
 
 	pr_debug("[%s]", __func__);
 
-	for (i = 0; i < ARRAY_SIZE(cryp_algs); i++) {
+	for (i = 0; i < ARRAY_SIZE(cryp_algs); i++)
+	{
 		ret = crypto_register_alg(&cryp_algs[i].crypto);
-		if (ret) {
+
+		if (ret)
+		{
 			count = i;
 			pr_err("[%s] alg registration failed",
-					cryp_algs[i].crypto.cra_driver_name);
+				   cryp_algs[i].crypto.cra_driver_name);
 			goto unreg;
 		}
 	}
+
 	return 0;
 unreg:
+
 	for (i = 0; i < count; i++)
+	{
 		crypto_unregister_alg(&cryp_algs[i].crypto);
+	}
+
 	return ret;
 }
 
@@ -1398,7 +1542,9 @@ static void cryp_algs_unregister_all(void)
 	pr_debug(DEV_DBG_NAME " [%s]", __func__);
 
 	for (i = 0; i < ARRAY_SIZE(cryp_algs); i++)
+	{
 		crypto_unregister_alg(&cryp_algs[i].crypto);
+	}
 }
 
 static int ux500_cryp_probe(struct platform_device *pdev)
@@ -1408,14 +1554,17 @@ static int ux500_cryp_probe(struct platform_device *pdev)
 	struct resource *res = NULL;
 	struct resource *res_irq = NULL;
 	struct cryp_device_data *device_data;
-	struct cryp_protection_config prot = {
+	struct cryp_protection_config prot =
+	{
 		.privilege_access = CRYP_STATE_ENABLE
 	};
 	struct device *dev = &pdev->dev;
 
 	dev_dbg(dev, "[%s]", __func__);
 	device_data = devm_kzalloc(dev, sizeof(*device_data), GFP_ATOMIC);
-	if (!device_data) {
+
+	if (!device_data)
+	{
 		dev_err(dev, "[%s]: kzalloc() failed!", __func__);
 		ret = -ENOMEM;
 		goto out;
@@ -1426,12 +1575,14 @@ static int ux500_cryp_probe(struct platform_device *pdev)
 
 	/* Grab the DMA configuration from platform data. */
 	mem_to_engine = &((struct cryp_platform_data *)
-			 dev->platform_data)->mem_to_engine;
+					  dev->platform_data)->mem_to_engine;
 	engine_to_mem = &((struct cryp_platform_data *)
-			 dev->platform_data)->engine_to_mem;
+					  dev->platform_data)->engine_to_mem;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(dev, "[%s]: platform_get_resource() failed",
 				__func__);
 		ret = -ENODEV;
@@ -1440,7 +1591,9 @@ static int ux500_cryp_probe(struct platform_device *pdev)
 
 	device_data->phybase = res->start;
 	device_data->base = devm_ioremap_resource(dev, res);
-	if (IS_ERR(device_data->base)) {
+
+	if (IS_ERR(device_data->base))
+	{
 		dev_err(dev, "[%s]: ioremap failed!", __func__);
 		ret = PTR_ERR(device_data->base);
 		goto out;
@@ -1451,7 +1604,9 @@ static int ux500_cryp_probe(struct platform_device *pdev)
 
 	/* Enable power for CRYP hardware block */
 	device_data->pwr_regulator = regulator_get(&pdev->dev, "v-ape");
-	if (IS_ERR(device_data->pwr_regulator)) {
+
+	if (IS_ERR(device_data->pwr_regulator))
+	{
 		dev_err(dev, "[%s]: could not get cryp regulator", __func__);
 		ret = PTR_ERR(device_data->pwr_regulator);
 		device_data->pwr_regulator = NULL;
@@ -1460,57 +1615,73 @@ static int ux500_cryp_probe(struct platform_device *pdev)
 
 	/* Enable the clk for CRYP hardware block */
 	device_data->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(device_data->clk)) {
+
+	if (IS_ERR(device_data->clk))
+	{
 		dev_err(dev, "[%s]: clk_get() failed!", __func__);
 		ret = PTR_ERR(device_data->clk);
 		goto out_regulator;
 	}
 
 	ret = clk_prepare(device_data->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "[%s]: clk_prepare() failed!", __func__);
 		goto out_regulator;
 	}
 
 	/* Enable device power (and clock) */
 	ret = cryp_enable_power(device_data->dev, device_data, false);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "[%s]: cryp_enable_power() failed!", __func__);
 		goto out_clk_unprepare;
 	}
 
 	cryp_error = cryp_check(device_data);
-	if (cryp_error != 0) {
+
+	if (cryp_error != 0)
+	{
 		dev_err(dev, "[%s]: cryp_init() failed!", __func__);
 		ret = -EINVAL;
 		goto out_power;
 	}
 
 	cryp_error = cryp_configure_protection(device_data, &prot);
-	if (cryp_error != 0) {
+
+	if (cryp_error != 0)
+	{
 		dev_err(dev, "[%s]: cryp_configure_protection() failed!",
-			__func__);
+				__func__);
 		ret = -EINVAL;
 		goto out_power;
 	}
 
 	res_irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-	if (!res_irq) {
+
+	if (!res_irq)
+	{
 		dev_err(dev, "[%s]: IORESOURCE_IRQ unavailable",
-			__func__);
+				__func__);
 		ret = -ENODEV;
 		goto out_power;
 	}
 
 	ret = devm_request_irq(&pdev->dev, res_irq->start,
-			       cryp_interrupt_handler, 0, "cryp1", device_data);
-	if (ret) {
+						   cryp_interrupt_handler, 0, "cryp1", device_data);
+
+	if (ret)
+	{
 		dev_err(dev, "[%s]: Unable to request IRQ", __func__);
 		goto out_power;
 	}
 
 	if (cryp_mode == CRYP_MODE_DMA)
+	{
 		cryp_dma_setup_channel(device_data, dev);
+	}
 
 	platform_set_drvdata(pdev, device_data);
 
@@ -1523,9 +1694,11 @@ static int ux500_cryp_probe(struct platform_device *pdev)
 	atomic_set(&session_id, 1);
 
 	ret = cryp_algs_register_all();
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "[%s]: cryp_algs_register_all() failed!",
-			__func__);
+				__func__);
 		goto out_power;
 	}
 
@@ -1552,20 +1725,26 @@ static int ux500_cryp_remove(struct platform_device *pdev)
 
 	dev_dbg(&pdev->dev, "[%s]", __func__);
 	device_data = platform_get_drvdata(pdev);
-	if (!device_data) {
+
+	if (!device_data)
+	{
 		dev_err(&pdev->dev, "[%s]: platform_get_drvdata() failed!",
-			__func__);
+				__func__);
 		return -ENOMEM;
 	}
 
 	/* Try to decrease the number of available devices. */
 	if (down_trylock(&driver_data.device_allocation))
+	{
 		return -EBUSY;
+	}
 
 	/* Check that the device is free */
 	spin_lock(&device_data->ctx_lock);
+
 	/* current_ctx allocates a device, NULL = unallocated */
-	if (device_data->current_ctx) {
+	if (device_data->current_ctx)
+	{
 		/* The device is busy */
 		spin_unlock(&device_data->ctx_lock);
 		/* Return the device to the pool. */
@@ -1577,15 +1756,19 @@ static int ux500_cryp_remove(struct platform_device *pdev)
 
 	/* Remove the device from the list */
 	if (klist_node_attached(&device_data->list_node))
+	{
 		klist_remove(&device_data->list_node);
+	}
 
 	/* If this was the last device, remove the services */
 	if (list_empty(&driver_data.device_list.k_list))
+	{
 		cryp_algs_unregister_all();
+	}
 
 	if (cryp_disable_power(&pdev->dev, device_data, false))
 		dev_err(&pdev->dev, "[%s]: cryp_disable_power() failed",
-			__func__);
+				__func__);
 
 	clk_unprepare(device_data->clk);
 	regulator_put(device_data->pwr_regulator);
@@ -1600,19 +1783,24 @@ static void ux500_cryp_shutdown(struct platform_device *pdev)
 	dev_dbg(&pdev->dev, "[%s]", __func__);
 
 	device_data = platform_get_drvdata(pdev);
-	if (!device_data) {
+
+	if (!device_data)
+	{
 		dev_err(&pdev->dev, "[%s]: platform_get_drvdata() failed!",
-			__func__);
+				__func__);
 		return;
 	}
 
 	/* Check that the device is free */
 	spin_lock(&device_data->ctx_lock);
+
 	/* current_ctx allocates a device, NULL = unallocated */
-	if (!device_data->current_ctx) {
+	if (!device_data->current_ctx)
+	{
 		if (down_trylock(&driver_data.device_allocation))
 			dev_dbg(&pdev->dev, "[%s]: Cryp still in use!"
-				"Shutting down anyway...", __func__);
+					"Shutting down anyway...", __func__);
+
 		/**
 		 * (Allocate the device)
 		 * Need to set this to non-null (dummy) value,
@@ -1620,19 +1808,24 @@ static void ux500_cryp_shutdown(struct platform_device *pdev)
 		 */
 		device_data->current_ctx++;
 	}
+
 	spin_unlock(&device_data->ctx_lock);
 
 	/* Remove the device from the list */
 	if (klist_node_attached(&device_data->list_node))
+	{
 		klist_remove(&device_data->list_node);
+	}
 
 	/* If this was the last device, remove the services */
 	if (list_empty(&driver_data.device_list.k_list))
+	{
 		cryp_algs_unregister_all();
+	}
 
 	if (cryp_disable_power(&pdev->dev, device_data, false))
 		dev_err(&pdev->dev, "[%s]: cryp_disable_power() failed",
-			__func__);
+				__func__);
 
 }
 
@@ -1649,33 +1842,51 @@ static int ux500_cryp_suspend(struct device *dev)
 
 	/* Handle state? */
 	device_data = platform_get_drvdata(pdev);
-	if (!device_data) {
+
+	if (!device_data)
+	{
 		dev_err(dev, "[%s]: platform_get_drvdata() failed!", __func__);
 		return -ENOMEM;
 	}
 
 	res_irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+
 	if (!res_irq)
+	{
 		dev_err(dev, "[%s]: IORESOURCE_IRQ, unavailable", __func__);
+	}
 	else
+	{
 		disable_irq(res_irq->start);
+	}
 
 	spin_lock(&device_data->ctx_lock);
+
 	if (!device_data->current_ctx)
+	{
 		device_data->current_ctx++;
+	}
+
 	spin_unlock(&device_data->ctx_lock);
 
-	if (device_data->current_ctx == ++temp_ctx) {
+	if (device_data->current_ctx == ++temp_ctx)
+	{
 		if (down_interruptible(&driver_data.device_allocation))
 			dev_dbg(dev, "[%s]: down_interruptible() failed",
-				__func__);
+					__func__);
+
 		ret = cryp_disable_power(dev, device_data, false);
 
-	} else
+	}
+	else
+	{
 		ret = cryp_disable_power(dev, device_data, true);
+	}
 
 	if (ret)
+	{
 		dev_err(dev, "[%s]: cryp_disable_power()", __func__);
+	}
 
 	return ret;
 }
@@ -1691,28 +1902,44 @@ static int ux500_cryp_resume(struct device *dev)
 	dev_dbg(dev, "[%s]", __func__);
 
 	device_data = platform_get_drvdata(pdev);
-	if (!device_data) {
+
+	if (!device_data)
+	{
 		dev_err(dev, "[%s]: platform_get_drvdata() failed!", __func__);
 		return -ENOMEM;
 	}
 
 	spin_lock(&device_data->ctx_lock);
+
 	if (device_data->current_ctx == ++temp_ctx)
+	{
 		device_data->current_ctx = NULL;
+	}
+
 	spin_unlock(&device_data->ctx_lock);
 
 
 	if (!device_data->current_ctx)
+	{
 		up(&driver_data.device_allocation);
+	}
 	else
+	{
 		ret = cryp_enable_power(dev, device_data, true);
+	}
 
 	if (ret)
+	{
 		dev_err(dev, "[%s]: cryp_enable_power() failed!", __func__);
-	else {
+	}
+	else
+	{
 		res_irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+
 		if (res_irq)
+		{
 			enable_irq(res_irq->start);
+		}
 	}
 
 	return ret;
@@ -1721,13 +1948,15 @@ static int ux500_cryp_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(ux500_cryp_pm, ux500_cryp_suspend, ux500_cryp_resume);
 
-static const struct of_device_id ux500_cryp_match[] = {
+static const struct of_device_id ux500_cryp_match[] =
+{
 	{ .compatible = "stericsson,ux500-cryp" },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, ux500_cryp_match);
 
-static struct platform_driver cryp_driver = {
+static struct platform_driver cryp_driver =
+{
 	.probe  = ux500_cryp_probe,
 	.remove = ux500_cryp_remove,
 	.shutdown = ux500_cryp_shutdown,

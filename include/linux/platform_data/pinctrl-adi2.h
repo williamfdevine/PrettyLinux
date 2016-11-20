@@ -27,7 +27,8 @@
  *               bits[1] of each PINT register.
  * @pint_map: GIOP bank mapping code in PINT device
  */
-struct adi_pinctrl_gpio_platform_data {
+struct adi_pinctrl_gpio_platform_data
+{
 	unsigned int port_gpio_base;
 	unsigned int port_pin_base;
 	unsigned int port_width;

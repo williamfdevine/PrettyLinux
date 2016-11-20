@@ -194,32 +194,32 @@ int hw_fillrect(struct lynx_accel *accel,
 				u32 color, u32 rop);
 
 int hw_copyarea(
-struct lynx_accel *accel,
-unsigned int sBase,  /* Address of source: offset in frame buffer */
-unsigned int sPitch, /* Pitch value of source surface in BYTE */
-unsigned int sx,
-unsigned int sy,     /* Starting coordinate of source surface */
-unsigned int dBase,  /* Address of destination: offset in frame buffer */
-unsigned int dPitch, /* Pitch value of destination surface in BYTE */
-unsigned int bpp,    /* Color depth of destination surface */
-unsigned int dx,
-unsigned int dy,     /* Starting coordinate of destination surface */
-unsigned int width,
-unsigned int height, /* width and height of rectangle in pixel value */
-unsigned int rop2);
+	struct lynx_accel *accel,
+	unsigned int sBase,  /* Address of source: offset in frame buffer */
+	unsigned int sPitch, /* Pitch value of source surface in BYTE */
+	unsigned int sx,
+	unsigned int sy,     /* Starting coordinate of source surface */
+	unsigned int dBase,  /* Address of destination: offset in frame buffer */
+	unsigned int dPitch, /* Pitch value of destination surface in BYTE */
+	unsigned int bpp,    /* Color depth of destination surface */
+	unsigned int dx,
+	unsigned int dy,     /* Starting coordinate of destination surface */
+	unsigned int width,
+	unsigned int height, /* width and height of rectangle in pixel value */
+	unsigned int rop2);
 
 int hw_imageblit(struct lynx_accel *accel,
-		 const char *pSrcbuf, /* pointer to start of source buffer in system memory */
-		 u32 srcDelta,          /* Pitch value (in bytes) of the source buffer, +ive means top down and -ive mean button up */
-		 u32 startBit, /* Mono data can start at any bit in a byte, this value should be 0 to 7 */
-		 u32 dBase,    /* Address of destination: offset in frame buffer */
-		 u32 dPitch,   /* Pitch value of destination surface in BYTE */
-		 u32 bytePerPixel,      /* Color depth of destination surface */
-		 u32 dx,
-		 u32 dy,       /* Starting coordinate of destination surface */
-		 u32 width,
-		 u32 height,   /* width and height of rectangle in pixel value */
-		 u32 fColor,   /* Foreground color (corresponding to a 1 in the monochrome data */
-		 u32 bColor,   /* Background color (corresponding to a 0 in the monochrome data */
-		 u32 rop2);
+				 const char *pSrcbuf, /* pointer to start of source buffer in system memory */
+				 u32 srcDelta,          /* Pitch value (in bytes) of the source buffer, +ive means top down and -ive mean button up */
+				 u32 startBit, /* Mono data can start at any bit in a byte, this value should be 0 to 7 */
+				 u32 dBase,    /* Address of destination: offset in frame buffer */
+				 u32 dPitch,   /* Pitch value of destination surface in BYTE */
+				 u32 bytePerPixel,      /* Color depth of destination surface */
+				 u32 dx,
+				 u32 dy,       /* Starting coordinate of destination surface */
+				 u32 width,
+				 u32 height,   /* width and height of rectangle in pixel value */
+				 u32 fColor,   /* Foreground color (corresponding to a 1 in the monochrome data */
+				 u32 bColor,   /* Background color (corresponding to a 0 in the monochrome data */
+				 u32 rop2);
 #endif

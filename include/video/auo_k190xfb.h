@@ -28,7 +28,8 @@
 /*
  * struct used by auok190x. board specific stuff comes from *board
  */
-struct auok190xfb_par {
+struct auok190xfb_par
+{
 	struct fb_info *info;
 	struct auok190x_board *board;
 
@@ -84,7 +85,8 @@ struct auok190xfb_par {
  * @quirks:		controller quirks to honor
  * @fps:		frames per second for defio
  */
-struct auok190x_board {
+struct auok190x_board
+{
 	int (*init)(struct auok190xfb_par *);
 	void (*cleanup)(struct auok190xfb_par *);
 	int (*wait_for_rdy)(struct auok190xfb_par *);

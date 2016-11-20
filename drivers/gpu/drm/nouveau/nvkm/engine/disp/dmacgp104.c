@@ -47,19 +47,21 @@ gp104_disp_dmac_init(struct nv50_disp_dmac *chan)
 
 	/* wait for it to go inactive */
 	if (nvkm_msec(device, 2000,
-		if (!(nvkm_rd32(device, 0x610490 + (chid * 0x10)) & 0x80000000))
-			break;
-	) < 0) {
-		nvkm_error(subdev, "ch %d init: %08x\n", chid,
-			   nvkm_rd32(device, 0x610490 + (chid * 0x10)));
-		return -EBUSY;
-	}
+				  if (!(nvkm_rd32(device, 0x610490 + (chid * 0x10)) & 0x80000000))
+					  break;
+					 ) < 0)
+		{
+			nvkm_error(subdev, "ch %d init: %08x\n", chid,
+					   nvkm_rd32(device, 0x610490 + (chid * 0x10)));
+			return -EBUSY;
+		}
 
 	return 0;
 }
 
 const struct nv50_disp_dmac_func
-gp104_disp_dmac_func = {
+	gp104_disp_dmac_func =
+{
 	.init = gp104_disp_dmac_init,
 	.fini = gf119_disp_dmac_fini,
 	.bind = gf119_disp_dmac_bind,

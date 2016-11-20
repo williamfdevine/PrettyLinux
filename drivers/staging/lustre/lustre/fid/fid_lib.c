@@ -59,31 +59,36 @@
  * FID_SEQ_START + 1 is for local file id generation.
  * FID_SEQ_START + 2 is for .lustre directory and its objects
  */
-const struct lu_seq_range LUSTRE_SEQ_SPACE_RANGE = {
+const struct lu_seq_range LUSTRE_SEQ_SPACE_RANGE =
+{
 	FID_SEQ_NORMAL,
 	(__u64)~0ULL
 };
 
 /* Zero range, used for init and other purposes. */
-const struct lu_seq_range LUSTRE_SEQ_ZERO_RANGE = {
+const struct lu_seq_range LUSTRE_SEQ_ZERO_RANGE =
+{
 	0,
 	0
 };
 
 /* Lustre Big Fs Lock fid. */
 const struct lu_fid LUSTRE_BFL_FID = { .f_seq = FID_SEQ_SPECIAL,
-				       .f_oid = FID_OID_SPECIAL_BFL,
-				       .f_ver = 0x0000000000000000 };
+		  .f_oid = FID_OID_SPECIAL_BFL,
+		   .f_ver = 0x0000000000000000
+};
 EXPORT_SYMBOL(LUSTRE_BFL_FID);
 
 /** Special fid for ".lustre" directory */
 const struct lu_fid LU_DOT_LUSTRE_FID = { .f_seq = FID_SEQ_DOT_LUSTRE,
-					  .f_oid = FID_OID_DOT_LUSTRE,
-					  .f_ver = 0x0000000000000000 };
+		  .f_oid = FID_OID_DOT_LUSTRE,
+		   .f_ver = 0x0000000000000000
+};
 EXPORT_SYMBOL(LU_DOT_LUSTRE_FID);
 
 /** Special fid for "fid" special object in .lustre */
 const struct lu_fid LU_OBF_FID = { .f_seq = FID_SEQ_DOT_LUSTRE,
-				   .f_oid = FID_OID_DOT_LUSTRE_OBF,
-				   .f_ver = 0x0000000000000000 };
+		  .f_oid = FID_OID_DOT_LUSTRE_OBF,
+		   .f_ver = 0x0000000000000000
+};
 EXPORT_SYMBOL(LU_OBF_FID);

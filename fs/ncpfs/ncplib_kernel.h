@@ -27,9 +27,9 @@
 #include <asm/string.h>
 
 #ifdef CONFIG_NCPFS_NLS
-#include <linux/nls.h>
+	#include <linux/nls.h>
 #else
-#include <linux/ctype.h>
+	#include <linux/ctype.h>
 #endif /* CONFIG_NCPFS_NLS */
 
 #define NCP_MIN_SYMLINK_SIZE	8
@@ -40,86 +40,89 @@
 
 int ncp_negotiate_buffersize(struct ncp_server *, int, int *);
 int ncp_negotiate_size_and_options(struct ncp_server *server, int size,
-  			  int options, int *ret_size, int *ret_options);
+								   int options, int *ret_size, int *ret_options);
 
-int ncp_get_volume_info_with_number(struct ncp_server* server, int n,
-				    struct ncp_volume_info *target);
+int ncp_get_volume_info_with_number(struct ncp_server *server, int n,
+									struct ncp_volume_info *target);
 
-int ncp_get_directory_info(struct ncp_server* server, __u8 dirhandle,
-			   struct ncp_volume_info* target);
+int ncp_get_directory_info(struct ncp_server *server, __u8 dirhandle,
+						   struct ncp_volume_info *target);
 
 int ncp_close_file(struct ncp_server *, const char *);
-static inline int ncp_read_bounce_size(__u32 size) {
+static inline int ncp_read_bounce_size(__u32 size)
+{
 	return sizeof(struct ncp_reply_header) + 2 + 2 + size + 8;
 };
-int ncp_read_bounce(struct ncp_server *, const char *, __u32, __u16, 
-		struct iov_iter *, int *, void *bounce, __u32 bouncelen);
-int ncp_read_kernel(struct ncp_server *, const char *, __u32, __u16, 
-		char *, int *);
+int ncp_read_bounce(struct ncp_server *, const char *, __u32, __u16,
+					struct iov_iter *, int *, void *bounce, __u32 bouncelen);
+int ncp_read_kernel(struct ncp_server *, const char *, __u32, __u16,
+					char *, int *);
 int ncp_write_kernel(struct ncp_server *, const char *, __u32, __u16,
-		const char *, int *);
+					 const char *, int *);
 
-static inline void ncp_inode_close(struct inode *inode) {
+static inline void ncp_inode_close(struct inode *inode)
+{
 	atomic_dec(&NCP_FINFO(inode)->opened);
 }
 
-void ncp_extract_file_info(const void* src, struct nw_info_struct* target);
+void ncp_extract_file_info(const void *src, struct nw_info_struct *target);
 int ncp_obtain_info(struct ncp_server *server, struct inode *, const char *,
-		struct nw_info_struct *target);
+					struct nw_info_struct *target);
 int ncp_obtain_nfs_info(struct ncp_server *server, struct nw_info_struct *target);
 int ncp_update_known_namespace(struct ncp_server *server, __u8 volume, int *ret_ns);
 int ncp_get_volume_root(struct ncp_server *server, const char *volname,
-			__u32 *volume, __le32 *dirent, __le32 *dosdirent);
+						__u32 *volume, __le32 *dirent, __le32 *dosdirent);
 int ncp_lookup_volume(struct ncp_server *, const char *, struct nw_info_struct *);
 int ncp_modify_file_or_subdir_dos_info(struct ncp_server *, struct inode *,
-	 __le32, const struct nw_modify_dos_info *info);
+									   __le32, const struct nw_modify_dos_info *info);
 int ncp_modify_file_or_subdir_dos_info_path(struct ncp_server *, struct inode *,
-	 const char* path, __le32, const struct nw_modify_dos_info *info);
+		const char *path, __le32, const struct nw_modify_dos_info *info);
 int ncp_modify_nfs_info(struct ncp_server *, __u8 volnum, __le32 dirent,
-			__u32 mode, __u32 rdev);
+						__u32 mode, __u32 rdev);
 
-int ncp_del_file_or_subdir2(struct ncp_server *, struct dentry*);
+int ncp_del_file_or_subdir2(struct ncp_server *, struct dentry *);
 int ncp_del_file_or_subdir(struct ncp_server *, struct inode *, const char *);
 int ncp_open_create_file_or_subdir(struct ncp_server *, struct inode *, const char *,
-				int, __le32, __le16, struct ncp_entry_info *);
+								   int, __le32, __le16, struct ncp_entry_info *);
 
 int ncp_initialize_search(struct ncp_server *, struct inode *,
-		      struct nw_search_sequence *target);
+						  struct nw_search_sequence *target);
 int ncp_search_for_fileset(struct ncp_server *server,
-			   struct nw_search_sequence *seq,
-			   int* more, int* cnt,
-			   char* buffer, size_t bufsize,
-			   char** rbuf, size_t* rsize);
+						   struct nw_search_sequence *seq,
+						   int *more, int *cnt,
+						   char *buffer, size_t bufsize,
+						   char **rbuf, size_t *rsize);
 
 int ncp_ren_or_mov_file_or_subdir(struct ncp_server *server,
-			      struct inode *, const char *, struct inode *, const char *);
+								  struct inode *, const char *, struct inode *, const char *);
 
 
 int
 ncp_LogPhysicalRecord(struct ncp_server *server,
-		      const char *file_id, __u8 locktype,
-		      __u32 offset, __u32 length, __u16 timeout);
+					  const char *file_id, __u8 locktype,
+					  __u32 offset, __u32 length, __u16 timeout);
 
 #ifdef CONFIG_NCPFS_IOCTL_LOCKING
 int
 ncp_ClearPhysicalRecord(struct ncp_server *server,
-			const char *file_id,
-			__u32 offset, __u32 length);
+						const char *file_id,
+						__u32 offset, __u32 length);
 #endif	/* CONFIG_NCPFS_IOCTL_LOCKING */
 
 int
 ncp_mount_subdir(struct ncp_server *, __u8, __u8, __le32,
-		 __u32* volume, __le32* dirent, __le32* dosdirent);
+				 __u32 *volume, __le32 *dirent, __le32 *dosdirent);
 int ncp_dirhandle_alloc(struct ncp_server *, __u8 vol, __le32 dirent, __u8 *dirhandle);
 int ncp_dirhandle_free(struct ncp_server *, __u8 dirhandle);
 
 int ncp_create_new(struct inode *dir, struct dentry *dentry,
-                          umode_t mode, dev_t rdev, __le32 attributes);
+				   umode_t mode, dev_t rdev, __le32 attributes);
 
-static inline int ncp_is_nfs_extras(struct ncp_server* server, unsigned int volnum) {
+static inline int ncp_is_nfs_extras(struct ncp_server *server, unsigned int volnum)
+{
 #ifdef CONFIG_NCPFS_NFS_NS
 	return (server->m.flags & NCP_MOUNT_NFS_EXTRAS) &&
-	       (server->name_space[volnum] == NW_NS_NFS);
+		   (server->name_space[volnum] == NW_NS_NFS);
 #else
 	return 0;
 #endif
@@ -156,11 +159,14 @@ int ncp__vol2io(unsigned char *, unsigned int *,
 
 
 static inline int ncp_strnicmp(const struct nls_table *t,
-		const unsigned char *s1, const unsigned char *s2, int len)
+							   const unsigned char *s1, const unsigned char *s2, int len)
 {
-	while (len--) {
+	while (len--)
+	{
 		if (tolower(*s1++) != tolower(*s2++))
+		{
 			return 1;
+		}
 	}
 
 	return 0;
@@ -173,18 +179,19 @@ static inline int ncp_strnicmp(const struct nls_table *t,
 #define NCP_TEST_AGE(server,dentry)	(NCP_GET_AGE(dentry) < NCP_MAX_AGE(server))
 
 static inline void
-ncp_age_dentry(struct ncp_server* server, struct dentry* dentry)
+ncp_age_dentry(struct ncp_server *server, struct dentry *dentry)
 {
 	dentry->d_time = jiffies - NCP_MAX_AGE(server);
 }
 
 static inline void
-ncp_new_dentry(struct dentry* dentry)
+ncp_new_dentry(struct dentry *dentry)
 {
 	dentry->d_time = jiffies;
 }
 
-struct ncp_cache_head {
+struct ncp_cache_head
+{
 	time_t		mtime;
 	unsigned long	time;	/* cache age */
 	unsigned long	end;	/* last valid fpos in cache */
@@ -192,18 +199,20 @@ struct ncp_cache_head {
 };
 
 #define NCP_DIRCACHE_SIZE	((int)(PAGE_SIZE/sizeof(struct dentry *)))
-union ncp_dir_cache {
+union ncp_dir_cache
+{
 	struct ncp_cache_head	head;
 	struct dentry		*dentry[NCP_DIRCACHE_SIZE];
 };
 
 #define NCP_FIRSTCACHE_SIZE	((int)((NCP_DIRCACHE_SIZE * \
-	sizeof(struct dentry *) - sizeof(struct ncp_cache_head)) / \
-	sizeof(struct dentry *)))
+									sizeof(struct dentry *) - sizeof(struct ncp_cache_head)) / \
+								   sizeof(struct dentry *)))
 
 #define NCP_DIRCACHE_START	(NCP_DIRCACHE_SIZE - NCP_FIRSTCACHE_SIZE)
 
-struct ncp_cache_control {
+struct ncp_cache_control
+{
 	struct	ncp_cache_head		head;
 	struct	page			*page;
 	union	ncp_dir_cache		*cache;

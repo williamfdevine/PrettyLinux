@@ -33,14 +33,15 @@
 #include "wl1251.h"
 
 #ifndef SDIO_VENDOR_ID_TI
-#define SDIO_VENDOR_ID_TI		0x104c
+	#define SDIO_VENDOR_ID_TI		0x104c
 #endif
 
 #ifndef SDIO_DEVICE_ID_TI_WL1251
-#define SDIO_DEVICE_ID_TI_WL1251	0x9066
+	#define SDIO_DEVICE_ID_TI_WL1251	0x9066
 #endif
 
-struct wl1251_sdio {
+struct wl1251_sdio
+{
 	struct sdio_func *func;
 	u32 elp_val;
 };
@@ -61,7 +62,8 @@ static void wl1251_sdio_interrupt(struct sdio_func *func)
 	ieee80211_queue_work(wl->hw, &wl->irq_work);
 }
 
-static const struct sdio_device_id wl1251_devices[] = {
+static const struct sdio_device_id wl1251_devices[] =
+{
 	{ SDIO_DEVICE(SDIO_VENDOR_ID_TI, SDIO_DEVICE_ID_TI_WL1251) },
 	{}
 };
@@ -69,28 +71,36 @@ MODULE_DEVICE_TABLE(sdio, wl1251_devices);
 
 
 static void wl1251_sdio_read(struct wl1251 *wl, int addr,
-			     void *buf, size_t len)
+							 void *buf, size_t len)
 {
 	int ret;
 	struct sdio_func *func = wl_to_func(wl);
 
 	sdio_claim_host(func);
 	ret = sdio_memcpy_fromio(func, buf, addr, len);
+
 	if (ret)
+	{
 		wl1251_error("sdio read failed (%d)", ret);
+	}
+
 	sdio_release_host(func);
 }
 
 static void wl1251_sdio_write(struct wl1251 *wl, int addr,
-			      void *buf, size_t len)
+							  void *buf, size_t len)
 {
 	int ret;
 	struct sdio_func *func = wl_to_func(wl);
 
 	sdio_claim_host(func);
 	ret = sdio_memcpy_toio(func, addr, buf, len);
+
 	if (ret)
+	{
 		wl1251_error("sdio write failed (%d)", ret);
+	}
+
 	sdio_release_host(func);
 }
 
@@ -111,7 +121,9 @@ static void wl1251_sdio_read_elp(struct wl1251 *wl, int addr, u32 *val)
 	sdio_release_host(func);
 
 	if (ret)
+	{
 		wl1251_error("sdio_readb failed (%d)", ret);
+	}
 }
 
 static void wl1251_sdio_write_elp(struct wl1251 *wl, int addr, u32 val)
@@ -125,9 +137,13 @@ static void wl1251_sdio_write_elp(struct wl1251 *wl, int addr, u32 val)
 	sdio_release_host(func);
 
 	if (ret)
+	{
 		wl1251_error("sdio_writeb failed (%d)", ret);
+	}
 	else
+	{
 		wl_sdio->elp_val = val;
+	}
 }
 
 static void wl1251_sdio_reset(struct wl1251 *wl)
@@ -177,18 +193,23 @@ static int wl1251_sdio_set_power(struct wl1251 *wl, bool enable)
 	struct sdio_func *func = wl_to_func(wl);
 	int ret;
 
-	if (enable) {
+	if (enable)
+	{
 		/*
 		 * Power is controlled by runtime PM, but we still call board
 		 * callback in case it wants to do any additional setup,
 		 * for example enabling clock buffer for the module.
 		 */
 		if (gpio_is_valid(wl->power_gpio))
+		{
 			gpio_set_value(wl->power_gpio, true);
+		}
 
 
 		ret = pm_runtime_get_sync(&func->dev);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			pm_runtime_put_sync(&func->dev);
 			goto out;
 		}
@@ -196,24 +217,32 @@ static int wl1251_sdio_set_power(struct wl1251 *wl, bool enable)
 		sdio_claim_host(func);
 		sdio_enable_func(func);
 		sdio_release_host(func);
-	} else {
+	}
+	else
+	{
 		sdio_claim_host(func);
 		sdio_disable_func(func);
 		sdio_release_host(func);
 
 		ret = pm_runtime_put_sync(&func->dev);
+
 		if (ret < 0)
+		{
 			goto out;
+		}
 
 		if (gpio_is_valid(wl->power_gpio))
+		{
 			gpio_set_value(wl->power_gpio, false);
+		}
 	}
 
 out:
 	return ret;
 }
 
-static struct wl1251_if_operations wl1251_sdio_ops = {
+static struct wl1251_if_operations wl1251_sdio_ops =
+{
 	.read = wl1251_sdio_read,
 	.write = wl1251_sdio_write,
 	.write_elp = wl1251_sdio_write_elp,
@@ -223,7 +252,7 @@ static struct wl1251_if_operations wl1251_sdio_ops = {
 };
 
 static int wl1251_sdio_probe(struct sdio_func *func,
-			     const struct sdio_device_id *id)
+							 const struct sdio_device_id *id)
 {
 	int ret;
 	struct wl1251 *wl;
@@ -232,21 +261,29 @@ static int wl1251_sdio_probe(struct sdio_func *func,
 	const struct wl1251_platform_data *wl1251_board_data;
 
 	hw = wl1251_alloc_hw();
+
 	if (IS_ERR(hw))
+	{
 		return PTR_ERR(hw);
+	}
 
 	wl = hw->priv;
 
 	wl_sdio = kzalloc(sizeof(*wl_sdio), GFP_KERNEL);
-	if (wl_sdio == NULL) {
+
+	if (wl_sdio == NULL)
+	{
 		ret = -ENOMEM;
 		goto out_free_hw;
 	}
 
 	sdio_claim_host(func);
 	ret = sdio_enable_func(func);
+
 	if (ret)
+	{
 		goto release;
+	}
 
 	sdio_set_block_size(func, 512);
 	sdio_release_host(func);
@@ -257,25 +294,33 @@ static int wl1251_sdio_probe(struct sdio_func *func,
 	wl->if_ops = &wl1251_sdio_ops;
 
 	wl1251_board_data = wl1251_get_platform_data();
-	if (!IS_ERR(wl1251_board_data)) {
+
+	if (!IS_ERR(wl1251_board_data))
+	{
 		wl->power_gpio = wl1251_board_data->power_gpio;
 		wl->irq = wl1251_board_data->irq;
 		wl->use_eeprom = wl1251_board_data->use_eeprom;
 	}
 
-	if (gpio_is_valid(wl->power_gpio)) {
+	if (gpio_is_valid(wl->power_gpio))
+	{
 		ret = devm_gpio_request(&func->dev, wl->power_gpio,
 								"wl1251 power");
-		if (ret) {
+
+		if (ret)
+		{
 			wl1251_error("Failed to request gpio: %d\n", ret);
 			goto disable;
 		}
 	}
 
-	if (wl->irq) {
+	if (wl->irq)
+	{
 		irq_set_status_flags(wl->irq, IRQ_NOAUTOEN);
 		ret = request_irq(wl->irq, wl1251_line_irq, 0, "wl1251", wl);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			wl1251_error("request_irq() failed: %d", ret);
 			goto disable;
 		}
@@ -286,7 +331,9 @@ static int wl1251_sdio_probe(struct sdio_func *func,
 		wl1251_sdio_ops.disable_irq = wl1251_disable_line_irq;
 
 		wl1251_info("using dedicated interrupt line");
-	} else {
+	}
+	else
+	{
 		wl1251_sdio_ops.enable_irq = wl1251_sdio_enable_irq;
 		wl1251_sdio_ops.disable_irq = wl1251_sdio_disable_irq;
 
@@ -294,8 +341,11 @@ static int wl1251_sdio_probe(struct sdio_func *func,
 	}
 
 	ret = wl1251_init_ieee80211(wl);
+
 	if (ret)
+	{
 		goto out_free_irq;
+	}
 
 	sdio_set_drvdata(func, wl);
 
@@ -305,8 +355,12 @@ static int wl1251_sdio_probe(struct sdio_func *func,
 	return ret;
 
 out_free_irq:
+
 	if (wl->irq)
+	{
 		free_irq(wl->irq, wl);
+	}
+
 disable:
 	sdio_claim_host(func);
 	sdio_disable_func(func);
@@ -327,7 +381,10 @@ static void wl1251_sdio_remove(struct sdio_func *func)
 	pm_runtime_get_noresume(&func->dev);
 
 	if (wl->irq)
+	{
 		free_irq(wl->irq, wl);
+	}
+
 	wl1251_free_hw(wl);
 	kfree(wl_sdio);
 
@@ -351,12 +408,14 @@ static int wl1251_resume(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops wl1251_sdio_pm_ops = {
+static const struct dev_pm_ops wl1251_sdio_pm_ops =
+{
 	.suspend        = wl1251_suspend,
 	.resume         = wl1251_resume,
 };
 
-static struct sdio_driver wl1251_sdio_driver = {
+static struct sdio_driver wl1251_sdio_driver =
+{
 	.name		= "wl1251_sdio",
 	.id_table	= wl1251_devices,
 	.probe		= wl1251_sdio_probe,
@@ -369,8 +428,12 @@ static int __init wl1251_sdio_init(void)
 	int err;
 
 	err = sdio_register_driver(&wl1251_sdio_driver);
+
 	if (err)
+	{
 		wl1251_error("failed to register sdio driver: %d", err);
+	}
+
 	return err;
 }
 

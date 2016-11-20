@@ -22,14 +22,15 @@ struct buffer_head;
 /*
  * adfs file system inode data in memory
  */
-struct adfs_inode_info {
+struct adfs_inode_info
+{
 	loff_t		mmu_private;
 	unsigned long	parent_id;	/* object id of parent		*/
 	__u32		loadaddr;	/* RISC OS load address		*/
 	__u32		execaddr;	/* RISC OS exec address		*/
 	unsigned int	filetype;	/* RISC OS file type		*/
 	unsigned int	attr;		/* RISC OS permissions		*/
-	unsigned int	stamped:1;	/* RISC OS file has date/time	*/
+	unsigned int	stamped: 1;	/* RISC OS file has date/time	*/
 	struct inode vfs_inode;
 };
 
@@ -42,10 +43,14 @@ struct adfs_dir_ops;
 /*
  * ADFS file system superblock data in memory
  */
-struct adfs_sb_info {
-	union { struct {
-		struct adfs_discmap *s_map;	/* bh list containing map */
-		const struct adfs_dir_ops *s_dir; /* directory operations */
+struct adfs_sb_info
+{
+	union
+	{
+		struct
+		{
+			struct adfs_discmap *s_map;	/* bh list containing map */
+			const struct adfs_dir_ops *s_dir; /* directory operations */
 		};
 		struct rcu_head rcu;	/* used only at shutdown time	 */
 	};
@@ -78,7 +83,8 @@ static inline struct adfs_inode_info *ADFS_I(struct inode *inode)
 /*
  * Directory handling
  */
-struct adfs_dir {
+struct adfs_dir
+{
 	struct super_block	*sb;
 
 	int			nr_buffers;
@@ -98,7 +104,8 @@ struct adfs_dir {
  * This is the overall maximum name length
  */
 #define ADFS_MAX_NAME_LEN	(256 + 4) /* +4 for ,xyz hex filetype suffix */
-struct object_info {
+struct object_info
+{
 	__u32		parent_id;		/* parent object id	*/
 	__u32		file_id;		/* object id		*/
 	__u32		loadaddr;		/* load address		*/
@@ -116,7 +123,9 @@ struct object_info {
 static inline int append_filetype_suffix(char *buf, __u16 filetype)
 {
 	if (filetype == 0xffff)	/* no explicit 12-bit file type was set */
+	{
 		return 0;
+	}
 
 	*buf++ = ',';
 	*buf++ = hex_asc_lo(filetype >> 8);
@@ -125,7 +134,8 @@ static inline int append_filetype_suffix(char *buf, __u16 filetype)
 	return 4;
 }
 
-struct adfs_dir_ops {
+struct adfs_dir_ops
+{
 	int	(*read)(struct super_block *sb, unsigned int id, unsigned int sz, struct adfs_dir *dir);
 	int	(*setpos)(struct adfs_dir *dir, unsigned int fpos);
 	int	(*getnext)(struct adfs_dir *dir, struct object_info *obj);
@@ -136,7 +146,8 @@ struct adfs_dir_ops {
 	void	(*free)(struct adfs_dir *dir);
 };
 
-struct adfs_discmap {
+struct adfs_discmap
+{
 	struct buffer_head	*dm_bh;
 	__u32			dm_startblk;
 	unsigned int		dm_startbit;
@@ -155,7 +166,7 @@ extern unsigned int adfs_map_free(struct super_block *sb);
 /* Misc */
 __printf(3, 4)
 void __adfs_error(struct super_block *sb, const char *function,
-		  const char *fmt, ...);
+				  const char *fmt, ...);
 #define adfs_error(sb, fmt...) __adfs_error(sb, __func__, fmt)
 
 /* super.c */
@@ -172,7 +183,7 @@ extern const struct adfs_dir_ops adfs_f_dir_ops;
 extern const struct adfs_dir_ops adfs_fplus_dir_ops;
 
 extern int adfs_dir_update(struct super_block *sb, struct object_info *obj,
-			   int wait);
+						   int wait);
 
 /* file.c */
 extern const struct inode_operations adfs_file_inode_operations;
@@ -181,9 +192,14 @@ extern const struct file_operations adfs_file_operations;
 static inline __u32 signed_asl(__u32 val, signed int shift)
 {
 	if (shift >= 0)
+	{
 		val <<= shift;
+	}
 	else
+	{
 		val >>= -shift;
+	}
+
 	return val;
 }
 
@@ -195,9 +211,10 @@ static inline __u32 signed_asl(__u32 val, signed int shift)
  */
 static inline int
 __adfs_block_map(struct super_block *sb, unsigned int object_id,
-		 unsigned int block)
+				 unsigned int block)
 {
-	if (object_id & 255) {
+	if (object_id & 255)
+	{
 		unsigned int off;
 
 		off = (object_id & 255) - 1;

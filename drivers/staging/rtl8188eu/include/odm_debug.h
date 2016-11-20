@@ -87,7 +87,7 @@
 
 #define ODM_RT_TRACE(pDM_Odm, comp, level, fmt)				\
 	if (((comp) & pDM_Odm->DebugComponents) &&			\
-	    (level <= pDM_Odm->DebugLevel)) {				\
+		(level <= pDM_Odm->DebugLevel)) {				\
 		pr_info("[ODM-8188E] ");				\
 		RT_PRINTK fmt;						\
 	}
@@ -96,7 +96,7 @@
 	if (!(expr)) {							\
 		pr_info("Assertion failed! %s at ......\n", #expr);	\
 		pr_info("      ......%s,%s,line=%d\n", __FILE__,	\
-			__func__, __LINE__);				\
+				__func__, __LINE__);				\
 		RT_PRINTK fmt;						\
 		ASSERT(false);						\
 	}

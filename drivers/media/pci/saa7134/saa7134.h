@@ -47,7 +47,7 @@
 #include <sound/core.h>
 #include <sound/pcm.h>
 #if IS_ENABLED(CONFIG_VIDEO_SAA7134_DVB)
-#include <media/videobuf2-dvb.h>
+	#include <media/videobuf2-dvb.h>
 #endif
 #include "tda8290.h"
 
@@ -56,7 +56,8 @@
 /* ----------------------------------------------------------- */
 /* enums                                                       */
 
-enum saa7134_tvaudio_mode {
+enum saa7134_tvaudio_mode
+{
 	TVAUDIO_FM_MONO       = 1,
 	TVAUDIO_FM_BG_STEREO  = 2,
 	TVAUDIO_FM_SAT_STEREO = 3,
@@ -65,21 +66,24 @@ enum saa7134_tvaudio_mode {
 	TVAUDIO_NICAM_FM      = 6,
 };
 
-enum saa7134_audio_in {
+enum saa7134_audio_in
+{
 	TV    = 1,
 	LINE1 = 2,
 	LINE2 = 3,
 	LINE2_LEFT,
 };
 
-enum saa7134_video_out {
+enum saa7134_video_out
+{
 	CCIR656 = 1,
 };
 
 /* ----------------------------------------------------------- */
 /* static data                                                 */
 
-struct saa7134_tvnorm {
+struct saa7134_tvnorm
+{
 	char          *name;
 	v4l2_std_id   id;
 
@@ -102,7 +106,8 @@ struct saa7134_tvnorm {
 	unsigned int  vbi_v_start_1;
 };
 
-struct saa7134_tvaudio {
+struct saa7134_tvaudio
+{
 	char         *name;
 	v4l2_std_id  std;
 	enum         saa7134_tvaudio_mode mode;
@@ -110,21 +115,23 @@ struct saa7134_tvaudio {
 	int          carr2;
 };
 
-struct saa7134_format {
+struct saa7134_format
+{
 	char           *name;
 	unsigned int   fourcc;
 	unsigned int   depth;
 	unsigned int   pm;
 	unsigned int   vshift;   /* vertical downsampling (for planar yuv) */
 	unsigned int   hshift;   /* horizontal downsampling (for planar yuv) */
-	unsigned int   bswap:1;
-	unsigned int   wswap:1;
-	unsigned int   yuv:1;
-	unsigned int   planar:1;
-	unsigned int   uvswap:1;
+	unsigned int   bswap: 1;
+	unsigned int   wswap: 1;
+	unsigned int   yuv: 1;
+	unsigned int   planar: 1;
+	unsigned int   uvswap: 1;
 };
 
-struct saa7134_card_ir {
+struct saa7134_card_ir
+{
 	struct rc_dev		*dev;
 
 	char                    name[32];
@@ -362,7 +369,8 @@ struct saa7134_card_ir {
 #define SET_CLOCK_INVERTED			(1 << 2)
 #define SET_VSYNC_OFF				(1 << 3)
 
-enum saa7134_input_types {
+enum saa7134_input_types
+{
 	SAA7134_NO_INPUT = 0,
 	SAA7134_INPUT_MUTE,
 	SAA7134_INPUT_RADIO,
@@ -380,26 +388,30 @@ enum saa7134_input_types {
 	SAA7134_INPUT_COMPOSITE_OVER_SVIDEO,
 };
 
-struct saa7134_input {
+struct saa7134_input
+{
 	enum saa7134_input_types type;
 	unsigned int             vmux;
 	enum saa7134_audio_in    amux;
 	unsigned int             gpio;
 };
 
-enum saa7134_mpeg_type {
+enum saa7134_mpeg_type
+{
 	SAA7134_MPEG_UNUSED,
 	SAA7134_MPEG_EMPRESS,
 	SAA7134_MPEG_DVB,
 	SAA7134_MPEG_GO7007,
 };
 
-enum saa7134_mpeg_ts_type {
+enum saa7134_mpeg_ts_type
+{
 	SAA7134_MPEG_TS_PARALLEL = 0,
 	SAA7134_MPEG_TS_SERIAL,
 };
 
-struct saa7134_board {
+struct saa7134_board
+{
 	char                    *name;
 	unsigned int            audio_clock;
 
@@ -425,7 +437,7 @@ struct saa7134_board {
 	enum saa7134_mpeg_type  mpeg;
 	enum saa7134_mpeg_ts_type ts_type;
 	unsigned int            vid_port_opts;
-	unsigned int            ts_force_val:1;
+	unsigned int            ts_force_val: 1;
 };
 
 #define card_has_radio(dev)   (SAA7134_NO_INPUT != saa7134_boards[dev->board].radio.type)
@@ -460,14 +472,16 @@ struct saa7134_dev;
 struct saa7134_dma;
 
 /* saa7134 page table */
-struct saa7134_pgtable {
+struct saa7134_pgtable
+{
 	unsigned int               size;
 	__le32                     *cpu;
 	dma_addr_t                 dma;
 };
 
 /* tvaudio thread status */
-struct saa7134_thread {
+struct saa7134_thread
+{
 	struct task_struct         *thread;
 	unsigned int               scan1;
 	unsigned int               scan2;
@@ -476,20 +490,22 @@ struct saa7134_thread {
 };
 
 /* buffer for one video/vbi/ts frame */
-struct saa7134_buf {
+struct saa7134_buf
+{
 	/* common v4l buffer stuff -- must be first */
 	struct vb2_v4l2_buffer vb2;
 
 	/* saa7134 specific */
 	unsigned int            top_seen;
 	int (*activate)(struct saa7134_dev *dev,
-			struct saa7134_buf *buf,
-			struct saa7134_buf *next);
+					struct saa7134_buf *buf,
+					struct saa7134_buf *next);
 
 	struct list_head	entry;
 };
 
-struct saa7134_dmaqueue {
+struct saa7134_dmaqueue
+{
 	struct saa7134_dev         *dev;
 	struct saa7134_buf         *curr;
 	struct list_head           queue;
@@ -500,7 +516,8 @@ struct saa7134_dmaqueue {
 };
 
 /* dmasound dsp status */
-struct saa7134_dmasound {
+struct saa7134_dmasound
+{
 	struct mutex               lock;
 	int                        minor_mixer;
 	int                        minor_dsp;
@@ -529,30 +546,33 @@ struct saa7134_dmasound {
 	unsigned int               dma_blk;
 	unsigned int               read_offset;
 	unsigned int               read_count;
-	void *			   priv_data;
+	void 			   *priv_data;
 	struct snd_pcm_substream   *substream;
 };
 
 /* ts/mpeg status */
-struct saa7134_ts {
+struct saa7134_ts
+{
 	/* TS capture */
 	int                        nr_packets;
 	int                        nr_bufs;
 };
 
 /* ts/mpeg ops */
-struct saa7134_mpeg_ops {
+struct saa7134_mpeg_ops
+{
 	enum saa7134_mpeg_type     type;
 	struct list_head           next;
 	int                        (*init)(struct saa7134_dev *dev);
 	int                        (*fini)(struct saa7134_dev *dev);
 	void                       (*signal_change)(struct saa7134_dev *dev);
 	void                       (*irq_ts_done)(struct saa7134_dev *dev,
-						  unsigned long status);
+			unsigned long status);
 };
 
 /* global device status */
-struct saa7134_dev {
+struct saa7134_dev
+{
 	struct list_head           devlist;
 	struct mutex               lock;
 	spinlock_t                 slock;
@@ -578,7 +598,7 @@ struct saa7134_dev {
 	char                       name[32];
 	int                        nr;
 	struct pci_dev             *pci;
-	unsigned char              pci_rev,pci_lat;
+	unsigned char              pci_rev, pci_lat;
 	__u32                      __iomem *lmmio;
 	__u8                       __iomem *bmmio;
 
@@ -689,7 +709,7 @@ struct saa7134_dev {
 	struct vb2_dvb_frontends frontends;
 	int (*original_demod_sleep)(struct dvb_frontend *fe);
 	int (*original_set_voltage)(struct dvb_frontend *fe,
-				    enum fe_sec_voltage voltage);
+								enum fe_sec_voltage voltage);
 	int (*original_set_high_voltage)(struct dvb_frontend *fe, long arg);
 #endif
 	void (*gate_ctrl)(struct saa7134_dev *dev, int open);
@@ -700,46 +720,46 @@ struct saa7134_dev {
 #define saa_readl(reg)             readl(dev->lmmio + (reg))
 #define saa_writel(reg,value)      writel((value), dev->lmmio + (reg));
 #define saa_andorl(reg,mask,value) \
-  writel((readl(dev->lmmio+(reg)) & ~(mask)) |\
-  ((value) & (mask)), dev->lmmio+(reg))
+	writel((readl(dev->lmmio+(reg)) & ~(mask)) |\
+		   ((value) & (mask)), dev->lmmio+(reg))
 #define saa_setl(reg,bit)          saa_andorl((reg),(bit),(bit))
 #define saa_clearl(reg,bit)        saa_andorl((reg),(bit),0)
 
 #define saa_readb(reg)             readb(dev->bmmio + (reg))
 #define saa_writeb(reg,value)      writeb((value), dev->bmmio + (reg));
 #define saa_andorb(reg,mask,value) \
-  writeb((readb(dev->bmmio+(reg)) & ~(mask)) |\
-  ((value) & (mask)), dev->bmmio+(reg))
+	writeb((readb(dev->bmmio+(reg)) & ~(mask)) |\
+		   ((value) & (mask)), dev->bmmio+(reg))
 #define saa_setb(reg,bit)          saa_andorb((reg),(bit),(bit))
 #define saa_clearb(reg,bit)        saa_andorb((reg),(bit),0)
 
 #define saa_wait(us) { udelay(us); }
 
 #define SAA7134_NORMS	(\
-		V4L2_STD_PAL    | V4L2_STD_PAL_N | \
-		V4L2_STD_PAL_Nc | V4L2_STD_SECAM | \
-		V4L2_STD_NTSC   | V4L2_STD_PAL_M | \
-		V4L2_STD_PAL_60)
+						 V4L2_STD_PAL    | V4L2_STD_PAL_N | \
+						 V4L2_STD_PAL_Nc | V4L2_STD_SECAM | \
+						 V4L2_STD_NTSC   | V4L2_STD_PAL_M | \
+						 V4L2_STD_PAL_60)
 
 #define GRP_EMPRESS (1)
 #define saa_call_all(dev, o, f, args...) do {				\
-	if (dev->gate_ctrl)						\
-		dev->gate_ctrl(dev, 1);					\
-	v4l2_device_call_all(&(dev)->v4l2_dev, 0, o, f , ##args);	\
-	if (dev->gate_ctrl)						\
-		dev->gate_ctrl(dev, 0);					\
-} while (0)
+		if (dev->gate_ctrl)						\
+			dev->gate_ctrl(dev, 1);					\
+		v4l2_device_call_all(&(dev)->v4l2_dev, 0, o, f , ##args);	\
+		if (dev->gate_ctrl)						\
+			dev->gate_ctrl(dev, 0);					\
+	} while (0)
 
 #define saa_call_empress(dev, o, f, args...) ({				\
-	long _rc;							\
-	if (dev->gate_ctrl)						\
-		dev->gate_ctrl(dev, 1);					\
-	_rc = v4l2_device_call_until_err(&(dev)->v4l2_dev,		\
-					 GRP_EMPRESS, o, f , ##args);	\
-	if (dev->gate_ctrl)						\
-		dev->gate_ctrl(dev, 0);					\
-	_rc;								\
-})
+		long _rc;							\
+		if (dev->gate_ctrl)						\
+			dev->gate_ctrl(dev, 1);					\
+		_rc = v4l2_device_call_until_err(&(dev)->v4l2_dev,		\
+										 GRP_EMPRESS, o, f , ##args);	\
+		if (dev->gate_ctrl)						\
+			dev->gate_ctrl(dev, 0);					\
+		_rc;								\
+	})
 
 static inline bool is_empress(struct file *file)
 {
@@ -764,8 +784,8 @@ void saa7134_set_gpio(struct saa7134_dev *dev, int bit_no, int value);
 
 int saa7134_pgtable_alloc(struct pci_dev *pci, struct saa7134_pgtable *pt);
 int  saa7134_pgtable_build(struct pci_dev *pci, struct saa7134_pgtable *pt,
-			   struct scatterlist *list, unsigned int length,
-			   unsigned int startpage);
+						   struct scatterlist *list, unsigned int length,
+						   unsigned int startpage);
 void saa7134_pgtable_free(struct pci_dev *pci, struct saa7134_pgtable *pt);
 
 int saa7134_buffer_count(unsigned int size, unsigned int count);
@@ -773,9 +793,9 @@ int saa7134_buffer_startpage(struct saa7134_buf *buf);
 unsigned long saa7134_buffer_base(struct saa7134_buf *buf);
 
 int saa7134_buffer_queue(struct saa7134_dev *dev, struct saa7134_dmaqueue *q,
-			 struct saa7134_buf *buf);
+						 struct saa7134_buf *buf);
 void saa7134_buffer_finish(struct saa7134_dev *dev, struct saa7134_dmaqueue *q,
-			   unsigned int state);
+						   unsigned int state);
 void saa7134_buffer_next(struct saa7134_dev *dev, struct saa7134_dmaqueue *q);
 void saa7134_buffer_timeout(unsigned long data);
 void saa7134_stop_streaming(struct saa7134_dev *dev, struct saa7134_dmaqueue *q);
@@ -790,7 +810,7 @@ extern int (*saa7134_dmasound_exit)(struct saa7134_dev *dev);
 /* saa7134-cards.c                                             */
 
 extern struct saa7134_board saa7134_boards[];
-extern const char * const saa7134_input_name[];
+extern const char *const saa7134_input_name[];
 extern const unsigned int saa7134_bcount;
 extern struct pci_device_id saa7134_pci_tbl[];
 
@@ -824,15 +844,15 @@ int saa7134_enum_input(struct file *file, void *priv, struct v4l2_input *i);
 int saa7134_g_input(struct file *file, void *priv, unsigned int *i);
 int saa7134_s_input(struct file *file, void *priv, unsigned int i);
 int saa7134_querycap(struct file *file, void  *priv,
-					struct v4l2_capability *cap);
+					 struct v4l2_capability *cap);
 int saa7134_g_tuner(struct file *file, void *priv,
 					struct v4l2_tuner *t);
 int saa7134_s_tuner(struct file *file, void *priv,
 					const struct v4l2_tuner *t);
 int saa7134_g_frequency(struct file *file, void *priv,
-					struct v4l2_frequency *f);
+						struct v4l2_frequency *f);
 int saa7134_s_frequency(struct file *file, void *priv,
-					const struct v4l2_frequency *f);
+						const struct v4l2_frequency *f);
 
 int saa7134_videoport_init(struct saa7134_dev *dev);
 void saa7134_set_tvnorm_hw(struct saa7134_dev *dev);
@@ -852,8 +872,8 @@ void saa7134_video_fini(struct saa7134_dev *dev);
 int saa7134_ts_buffer_init(struct vb2_buffer *vb2);
 int saa7134_ts_buffer_prepare(struct vb2_buffer *vb2);
 int saa7134_ts_queue_setup(struct vb2_queue *q,
-			   unsigned int *nbuffers, unsigned int *nplanes,
-			   unsigned int sizes[], struct device *alloc_devs[]);
+						   unsigned int *nbuffers, unsigned int *nplanes,
+						   unsigned int sizes[], struct device *alloc_devs[]);
 int saa7134_ts_start_streaming(struct vb2_queue *vq, unsigned int count);
 void saa7134_ts_stop_streaming(struct vb2_queue *vq);
 
@@ -889,7 +909,7 @@ int saa7134_tvaudio_rx2mode(u32 rx);
 
 void saa7134_tvaudio_setmute(struct saa7134_dev *dev);
 void saa7134_tvaudio_setinput(struct saa7134_dev *dev,
-			      struct saa7134_input *in);
+							  struct saa7134_input *in);
 void saa7134_tvaudio_setvolume(struct saa7134_dev *dev, int level);
 int saa7134_tvaudio_getstereo(struct saa7134_dev *dev);
 
@@ -917,17 +937,17 @@ void saa7134_irq_oss_done(struct saa7134_dev *dev, unsigned long status);
 /* saa7134-input.c                                             */
 
 #if defined(CONFIG_VIDEO_SAA7134_RC)
-int  saa7134_input_init1(struct saa7134_dev *dev);
-void saa7134_input_fini(struct saa7134_dev *dev);
-void saa7134_input_irq(struct saa7134_dev *dev);
-void saa7134_probe_i2c_ir(struct saa7134_dev *dev);
-int saa7134_ir_start(struct saa7134_dev *dev);
-void saa7134_ir_stop(struct saa7134_dev *dev);
+	int  saa7134_input_init1(struct saa7134_dev *dev);
+	void saa7134_input_fini(struct saa7134_dev *dev);
+	void saa7134_input_irq(struct saa7134_dev *dev);
+	void saa7134_probe_i2c_ir(struct saa7134_dev *dev);
+	int saa7134_ir_start(struct saa7134_dev *dev);
+	void saa7134_ir_stop(struct saa7134_dev *dev);
 #else
-#define saa7134_input_init1(dev)	((void)0)
-#define saa7134_input_fini(dev)		((void)0)
-#define saa7134_input_irq(dev)		((void)0)
-#define saa7134_probe_i2c_ir(dev)	((void)0)
-#define saa7134_ir_start(dev)		((void)0)
-#define saa7134_ir_stop(dev)		((void)0)
+	#define saa7134_input_init1(dev)	((void)0)
+	#define saa7134_input_fini(dev)		((void)0)
+	#define saa7134_input_irq(dev)		((void)0)
+	#define saa7134_probe_i2c_ir(dev)	((void)0)
+	#define saa7134_ir_start(dev)		((void)0)
+	#define saa7134_ir_stop(dev)		((void)0)
 #endif

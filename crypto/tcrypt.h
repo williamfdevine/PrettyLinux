@@ -17,17 +17,20 @@
 #ifndef _CRYPTO_TCRYPT_H
 #define _CRYPTO_TCRYPT_H
 
-struct cipher_speed_template {
+struct cipher_speed_template
+{
 	const char *key;
 	unsigned int klen;
 };
 
-struct aead_speed_template {
+struct aead_speed_template
+{
 	const char *key;
 	unsigned int klen;
 };
 
-struct hash_speed {
+struct hash_speed
+{
 	unsigned int blen;	/* buffer length */
 	unsigned int plen;	/* per-update length */
 	unsigned int klen;	/* key length */
@@ -38,11 +41,12 @@ struct hash_speed {
  */
 #define DES3_SPEED_VECTORS	1
 
-static struct cipher_speed_template des3_speed_template[] = {
+static struct cipher_speed_template des3_speed_template[] =
+{
 	{
 		.key	= "\x01\x23\x45\x67\x89\xab\xcd\xef"
-			  "\x55\x55\x55\x55\x55\x55\x55\x55"
-			  "\xfe\xdc\xba\x98\x76\x54\x32\x10",
+		"\x55\x55\x55\x55\x55\x55\x55\x55"
+		"\xfe\xdc\xba\x98\x76\x54\x32\x10",
 		.klen	= 24,
 	}
 };
@@ -73,7 +77,8 @@ static u8 aead_speed_template_36[] = {36, 0};
 /*
  * Digest speed tests
  */
-static struct hash_speed generic_hash_speed_template[] = {
+static struct hash_speed generic_hash_speed_template[] =
+{
 	{ .blen = 16,	.plen = 16, },
 	{ .blen = 64,	.plen = 16, },
 	{ .blen = 64,	.plen = 64, },
@@ -101,7 +106,8 @@ static struct hash_speed generic_hash_speed_template[] = {
 	{  .blen = 0,	.plen = 0, }
 };
 
-static struct hash_speed hash_speed_template_16[] = {
+static struct hash_speed hash_speed_template_16[] =
+{
 	{ .blen = 16,	.plen = 16,	.klen = 16, },
 	{ .blen = 64,	.plen = 16,	.klen = 16, },
 	{ .blen = 64,	.plen = 64,	.klen = 16, },
@@ -129,7 +135,8 @@ static struct hash_speed hash_speed_template_16[] = {
 	{  .blen = 0,	.plen = 0,	.klen = 0, }
 };
 
-static struct hash_speed poly1305_speed_template[] = {
+static struct hash_speed poly1305_speed_template[] =
+{
 	{ .blen = 96,	.plen = 16, },
 	{ .blen = 96,	.plen = 32, },
 	{ .blen = 96,	.plen = 96, },

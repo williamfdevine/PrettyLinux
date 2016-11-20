@@ -16,7 +16,8 @@
 #ifndef __INTEL_TH_STH_H__
 #define __INTEL_TH_STH_H__
 
-enum {
+enum
+{
 	REG_STH_STHCAP0		= 0x0000, /* capabilities pt1 */
 	REG_STH_STHCAP1		= 0x0004, /* capabilities pt2 */
 	REG_STH_TRIG		= 0x0008, /* TRIG packet payload */
@@ -26,7 +27,8 @@ enum {
 	REG_STH_GERR		= 0x0018, /* GERR packet payload */
 };
 
-struct intel_th_channel {
+struct intel_th_channel
+{
 	u64	Dn;
 	u64	DnM;
 	u64	DnTS;

@@ -4,7 +4,8 @@
 #include <linux/types.h>
 #include <linux/netfilter.h>
 
-enum {
+enum
+{
 	XT_RECENT_CHECK    = 1 << 0,
 	XT_RECENT_SET      = 1 << 1,
 	XT_RECENT_UPDATE   = 1 << 2,
@@ -22,9 +23,10 @@ enum {
 #define XT_RECENT_MODIFIERS (XT_RECENT_TTL|XT_RECENT_REAP)
 
 #define XT_RECENT_VALID_FLAGS (XT_RECENT_CHECK|XT_RECENT_SET|XT_RECENT_UPDATE|\
-			       XT_RECENT_REMOVE|XT_RECENT_TTL|XT_RECENT_REAP)
+							   XT_RECENT_REMOVE|XT_RECENT_TTL|XT_RECENT_REAP)
 
-struct xt_recent_mtinfo {
+struct xt_recent_mtinfo
+{
 	__u32 seconds;
 	__u32 hit_count;
 	__u8 check_set;
@@ -33,7 +35,8 @@ struct xt_recent_mtinfo {
 	__u8 side;
 };
 
-struct xt_recent_mtinfo_v1 {
+struct xt_recent_mtinfo_v1
+{
 	__u32 seconds;
 	__u32 hit_count;
 	__u8 check_set;

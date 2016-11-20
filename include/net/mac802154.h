@@ -40,7 +40,8 @@
  * @IEEE802154_AFILT_PANC_CHANGED: Indicates that the address filter will
  *	do frame address filtering as a pan coordinator.
  */
-enum ieee802154_hw_addr_filt_flags {
+enum ieee802154_hw_addr_filt_flags
+{
 	IEEE802154_AFILT_SADDR_CHANGED		= BIT(0),
 	IEEE802154_AFILT_IEEEADDR_CHANGED	= BIT(1),
 	IEEE802154_AFILT_PANID_CHANGED		= BIT(2),
@@ -59,7 +60,8 @@ enum ieee802154_hw_addr_filt_flags {
  *
  * @pan_coord: boolean if hardware filtering should be operate as coordinator.
  */
-struct ieee802154_hw_addr_filt {
+struct ieee802154_hw_addr_filt
+{
 	__le16	pan_id;
 	__le16	short_addr;
 	__le64	ieee_addr;
@@ -81,7 +83,8 @@ struct ieee802154_hw_addr_filt {
  *
  * @phy: This points to the &struct wpan_phy allocated for this 802.15.4 PHY.
  */
-struct ieee802154_hw {
+struct ieee802154_hw
+{
 	/* filled by the driver */
 	int	extra_tx_headroom;
 	u32	flags;
@@ -124,7 +127,8 @@ struct ieee802154_hw {
  * @IEEE802154_HW_RX_DROP_BAD_CKSUM: Indicates that receiver will not filter
  *	frames with bad checksum.
  */
-enum ieee802154_hw_flags {
+enum ieee802154_hw_flags
+{
 	IEEE802154_HW_TX_OMIT_CKSUM	= BIT(0),
 	IEEE802154_HW_LBT		= BIT(1),
 	IEEE802154_HW_CSMA_PARAMS	= BIT(2),
@@ -137,7 +141,7 @@ enum ieee802154_hw_flags {
 
 /* Indicates that receiver omits FCS and xmitter will add FCS on it's own. */
 #define IEEE802154_HW_OMIT_CKSUM	(IEEE802154_HW_TX_OMIT_CKSUM | \
-					 IEEE802154_HW_RX_OMIT_CKSUM)
+									 IEEE802154_HW_RX_OMIT_CKSUM)
 
 /* struct ieee802154_ops - callbacks from mac802154 to the driver
  *
@@ -214,31 +218,32 @@ enum ieee802154_hw_flags {
  * set_promiscuous_mode
  *	  Enables or disable promiscuous mode.
  */
-struct ieee802154_ops {
+struct ieee802154_ops
+{
 	struct module	*owner;
 	int		(*start)(struct ieee802154_hw *hw);
 	void		(*stop)(struct ieee802154_hw *hw);
 	int		(*xmit_sync)(struct ieee802154_hw *hw,
-				     struct sk_buff *skb);
+						 struct sk_buff *skb);
 	int		(*xmit_async)(struct ieee802154_hw *hw,
-				      struct sk_buff *skb);
+						  struct sk_buff *skb);
 	int		(*ed)(struct ieee802154_hw *hw, u8 *level);
 	int		(*set_channel)(struct ieee802154_hw *hw, u8 page,
-				       u8 channel);
+						   u8 channel);
 	int		(*set_hw_addr_filt)(struct ieee802154_hw *hw,
-					    struct ieee802154_hw_addr_filt *filt,
-					    unsigned long changed);
+								struct ieee802154_hw_addr_filt *filt,
+								unsigned long changed);
 	int		(*set_txpower)(struct ieee802154_hw *hw, s32 mbm);
 	int		(*set_lbt)(struct ieee802154_hw *hw, bool on);
 	int		(*set_cca_mode)(struct ieee802154_hw *hw,
-					const struct wpan_phy_cca *cca);
+							const struct wpan_phy_cca *cca);
 	int		(*set_cca_ed_level)(struct ieee802154_hw *hw, s32 mbm);
 	int		(*set_csma_params)(struct ieee802154_hw *hw,
-					   u8 min_be, u8 max_be, u8 retries);
+							   u8 min_be, u8 max_be, u8 retries);
 	int		(*set_frame_retries)(struct ieee802154_hw *hw,
-					     s8 retries);
+								 s8 retries);
 	int             (*set_promiscuous_mode)(struct ieee802154_hw *hw,
-						const bool on);
+											const bool on);
 };
 
 /**
@@ -251,9 +256,11 @@ static inline __le16 ieee802154_get_fc_from_skb(const struct sk_buff *skb)
 
 	/* check if we can fc at skb_mac_header of sk buffer */
 	if (WARN_ON(!skb_mac_header_was_set(skb) ||
-		    (skb_tail_pointer(skb) -
-		     skb_mac_header(skb)) < IEEE802154_FC_LEN))
+				(skb_tail_pointer(skb) -
+				 skb_mac_header(skb)) < IEEE802154_FC_LEN))
+	{
 		return cpu_to_le16(0);
+	}
 
 	memcpy(&fc, skb_mac_header(skb), IEEE802154_FC_LEN);
 	return fc;
@@ -265,24 +272,27 @@ static inline __le16 ieee802154_get_fc_from_skb(const struct sk_buff *skb)
  * @skb: skb where the destination pan pointer will be get from
  */
 static inline unsigned char *ieee802154_skb_dst_pan(__le16 fc,
-						    const struct sk_buff *skb)
+		const struct sk_buff *skb)
 {
 	unsigned char *dst_pan;
 
-	switch (ieee802154_daddr_mode(fc)) {
-	case cpu_to_le16(IEEE802154_FCTL_ADDR_NONE):
-		dst_pan = NULL;
-		break;
-	case cpu_to_le16(IEEE802154_FCTL_DADDR_SHORT):
-	case cpu_to_le16(IEEE802154_FCTL_DADDR_EXTENDED):
-		dst_pan = skb_mac_header(skb) +
-			  IEEE802154_FC_LEN +
-			  IEEE802154_SEQ_LEN;
-		break;
-	default:
-		WARN_ONCE(1, "invalid addr mode detected");
-		dst_pan = NULL;
-		break;
+	switch (ieee802154_daddr_mode(fc))
+	{
+		case cpu_to_le16(IEEE802154_FCTL_ADDR_NONE):
+			dst_pan = NULL;
+			break;
+
+		case cpu_to_le16(IEEE802154_FCTL_DADDR_SHORT):
+		case cpu_to_le16(IEEE802154_FCTL_DADDR_EXTENDED):
+			dst_pan = skb_mac_header(skb) +
+					  IEEE802154_FC_LEN +
+					  IEEE802154_SEQ_LEN;
+			break;
+
+		default:
+			WARN_ONCE(1, "invalid addr mode detected");
+			dst_pan = NULL;
+			break;
 	}
 
 	return dst_pan;
@@ -294,54 +304,64 @@ static inline unsigned char *ieee802154_skb_dst_pan(__le16 fc,
  * @skb: skb where the source pan pointer will be get from
  */
 static inline unsigned char *ieee802154_skb_src_pan(__le16 fc,
-						    const struct sk_buff *skb)
+		const struct sk_buff *skb)
 {
 	unsigned char *src_pan;
 
-	switch (ieee802154_saddr_mode(fc)) {
-	case cpu_to_le16(IEEE802154_FCTL_ADDR_NONE):
-		src_pan = NULL;
-		break;
-	case cpu_to_le16(IEEE802154_FCTL_SADDR_SHORT):
-	case cpu_to_le16(IEEE802154_FCTL_SADDR_EXTENDED):
-		/* if intra-pan and source addr mode is non none,
-		 * then source pan id is equal destination pan id.
-		 */
-		if (ieee802154_is_intra_pan(fc)) {
-			src_pan = ieee802154_skb_dst_pan(fc, skb);
-			break;
-		}
-
-		switch (ieee802154_daddr_mode(fc)) {
+	switch (ieee802154_saddr_mode(fc))
+	{
 		case cpu_to_le16(IEEE802154_FCTL_ADDR_NONE):
-			src_pan = skb_mac_header(skb) +
-				  IEEE802154_FC_LEN +
-				  IEEE802154_SEQ_LEN;
+			src_pan = NULL;
 			break;
-		case cpu_to_le16(IEEE802154_FCTL_DADDR_SHORT):
-			src_pan = skb_mac_header(skb) +
-				  IEEE802154_FC_LEN +
-				  IEEE802154_SEQ_LEN +
-				  IEEE802154_PAN_ID_LEN +
-				  IEEE802154_SHORT_ADDR_LEN;
+
+		case cpu_to_le16(IEEE802154_FCTL_SADDR_SHORT):
+		case cpu_to_le16(IEEE802154_FCTL_SADDR_EXTENDED):
+
+			/* if intra-pan and source addr mode is non none,
+			 * then source pan id is equal destination pan id.
+			 */
+			if (ieee802154_is_intra_pan(fc))
+			{
+				src_pan = ieee802154_skb_dst_pan(fc, skb);
+				break;
+			}
+
+			switch (ieee802154_daddr_mode(fc))
+			{
+				case cpu_to_le16(IEEE802154_FCTL_ADDR_NONE):
+					src_pan = skb_mac_header(skb) +
+							  IEEE802154_FC_LEN +
+							  IEEE802154_SEQ_LEN;
+					break;
+
+				case cpu_to_le16(IEEE802154_FCTL_DADDR_SHORT):
+					src_pan = skb_mac_header(skb) +
+							  IEEE802154_FC_LEN +
+							  IEEE802154_SEQ_LEN +
+							  IEEE802154_PAN_ID_LEN +
+							  IEEE802154_SHORT_ADDR_LEN;
+					break;
+
+				case cpu_to_le16(IEEE802154_FCTL_DADDR_EXTENDED):
+					src_pan = skb_mac_header(skb) +
+							  IEEE802154_FC_LEN +
+							  IEEE802154_SEQ_LEN +
+							  IEEE802154_PAN_ID_LEN +
+							  IEEE802154_EXTENDED_ADDR_LEN;
+					break;
+
+				default:
+					WARN_ONCE(1, "invalid addr mode detected");
+					src_pan = NULL;
+					break;
+			}
+
 			break;
-		case cpu_to_le16(IEEE802154_FCTL_DADDR_EXTENDED):
-			src_pan = skb_mac_header(skb) +
-				  IEEE802154_FC_LEN +
-				  IEEE802154_SEQ_LEN +
-				  IEEE802154_PAN_ID_LEN +
-				  IEEE802154_EXTENDED_ADDR_LEN;
-			break;
+
 		default:
 			WARN_ONCE(1, "invalid addr mode detected");
 			src_pan = NULL;
 			break;
-		}
-		break;
-	default:
-		WARN_ONCE(1, "invalid addr mode detected");
-		src_pan = NULL;
-		break;
 	}
 
 	return src_pan;
@@ -354,14 +374,16 @@ static inline unsigned char *ieee802154_skb_src_pan(__le16 fc,
  * @skb: skb where the source and destination pan should be get from
  */
 static inline bool ieee802154_skb_is_intra_pan_addressing(__le16 fc,
-							  const struct sk_buff *skb)
+		const struct sk_buff *skb)
 {
 	unsigned char *dst_pan = ieee802154_skb_dst_pan(fc, skb),
-		      *src_pan = ieee802154_skb_src_pan(fc, skb);
+				   *src_pan = ieee802154_skb_src_pan(fc, skb);
 
 	/* if one is NULL is no intra pan addressing */
 	if (!dst_pan || !src_pan)
+	{
 		return false;
+	}
 
 	return !memcmp(dst_pan, src_pan, IEEE802154_PAN_ID_LEN);
 }
@@ -468,7 +490,7 @@ void ieee802154_unregister_hw(struct ieee802154_hw *hw);
  * @lqi: link quality indicator
  */
 void ieee802154_rx_irqsafe(struct ieee802154_hw *hw, struct sk_buff *skb,
-			   u8 lqi);
+						   u8 lqi);
 /**
  * ieee802154_wake_queue - wake ieee802154 queue
  * @hw: pointer as obtained from ieee802154_alloc_hw().
@@ -493,6 +515,6 @@ void ieee802154_stop_queue(struct ieee802154_hw *hw);
  * @ifs_handling: indicate interframe space handling
  */
 void ieee802154_xmit_complete(struct ieee802154_hw *hw, struct sk_buff *skb,
-			      bool ifs_handling);
+							  bool ifs_handling);
 
 #endif /* NET_MAC802154_H */

@@ -80,8 +80,8 @@ enum chips { smm465, smm665, smm665c, smm764, smm766 };
 #define SMM665_ADC_MASK			0x03ff
 
 #define smm665_is_critical(lim)	((lim) & (SMM665_TRIGGER_RST \
-					| SMM665_TRIGGER_POWEROFF \
-					| SMM665_TRIGGER_SHUTDOWN))
+								 | SMM665_TRIGGER_POWEROFF \
+								 | SMM665_TRIGGER_SHUTDOWN))
 /*
  * Fault register bit definitions
  * Values are merged from status registers 1/2,
@@ -126,8 +126,8 @@ enum chips { smm465, smm665, smm665c, smm764, smm766 };
 
 /* Temp Sensor */
 #define SMM665_TEMP_ADC_TO_CELSIUS(adc) (((adc) <= 511) ?		   \
-					 ((int)(adc) * 1000 / 4) :	   \
-					 (((int)(adc) - 0x400) * 1000 / 4))
+		((int)(adc) * 1000 / 4) :	   \
+		(((int)(adc) - 0x400) * 1000 / 4))
 
 #define SMM665_NUM_ADC		11
 
@@ -137,7 +137,8 @@ enum chips { smm465, smm665, smm665c, smm764, smm766 };
 #define SMM665_ADC_WAIT_SMM665	70
 #define SMM665_ADC_WAIT_SMM766	185
 
-struct smm665_data {
+struct smm665_data
+{
 	enum chips type;
 	int conversion_time;		/* ADC conversion time */
 	struct i2c_client *client;
@@ -164,12 +165,20 @@ static int smm665_read16(struct i2c_client *client, int reg)
 	int rv, val;
 
 	rv = i2c_smbus_read_byte_data(client, reg);
+
 	if (rv < 0)
+	{
 		return rv;
+	}
+
 	val = rv << 8;
 	rv = i2c_smbus_read_byte_data(client, reg + 1);
+
 	if (rv < 0)
+	{
 		return rv;
+	}
+
 	val |= rv;
 	return val;
 }
@@ -197,14 +206,16 @@ static int smm665_read_adc(struct smm665_data *data, int adc)
 	 * Then do a two-byte read transaction.
 	 */
 	rv = i2c_smbus_read_byte_data(client, adc << 3);
-	if (rv != -ENXIO) {
+
+	if (rv != -ENXIO)
+	{
 		/*
 		 * We expect ENXIO to reflect NACK
 		 * (per Documentation/i2c/fault-codes).
 		 * Everything else is an error.
 		 */
 		dev_dbg(&client->dev,
-			"Unexpected return code %d when setting ADC index", rv);
+				"Unexpected return code %d when setting ADC index", rv);
 		return (rv < 0) ? rv : -EIO;
 	}
 
@@ -220,17 +231,22 @@ static int smm665_read_adc(struct smm665_data *data, int adc)
 	 * but that is not always supported.
 	 */
 	rv = i2c_smbus_read_word_swapped(client, 0);
-	if (rv < 0) {
+
+	if (rv < 0)
+	{
 		dev_dbg(&client->dev, "Failed to read ADC value: error %d", rv);
 		return rv;
 	}
+
 	/*
 	 * Validate/verify readback adc channel (in bit 11..14).
 	 */
 	radc = (rv >> 11) & 0x0f;
-	if (radc != adc) {
+
+	if (radc != adc)
+	{
 		dev_dbg(&client->dev, "Unexpected RADC: Expected %d got %d",
-			adc, radc);
+				adc, radc);
 		return -EIO;
 	}
 
@@ -245,31 +261,41 @@ static struct smm665_data *smm665_update_device(struct device *dev)
 
 	mutex_lock(&data->update_lock);
 
-	if (time_after(jiffies, data->last_updated + HZ) || !data->valid) {
+	if (time_after(jiffies, data->last_updated + HZ) || !data->valid)
+	{
 		int i, val;
 
 		/*
 		 * read status registers
 		 */
 		val = smm665_read16(client, SMM665_MISC8_STATUS1);
-		if (unlikely(val < 0)) {
+
+		if (unlikely(val < 0))
+		{
 			ret = ERR_PTR(val);
 			goto abort;
 		}
+
 		data->faults = val;
 
 		/* Read adc registers */
-		for (i = 0; i < SMM665_NUM_ADC; i++) {
+		for (i = 0; i < SMM665_NUM_ADC; i++)
+		{
 			val = smm665_read_adc(data, i);
-			if (unlikely(val < 0)) {
+
+			if (unlikely(val < 0))
+			{
 				ret = ERR_PTR(val);
 				goto abort;
 			}
+
 			data->adc[i] = val;
 		}
+
 		data->last_updated = jiffies;
 		data->valid = 1;
 	}
+
 abort:
 	mutex_unlock(&data->update_lock);
 	return ret;
@@ -280,34 +306,35 @@ static int smm665_convert(u16 adcval, int index)
 {
 	int val = 0;
 
-	switch (index) {
-	case SMM665_MISC16_ADC_DATA_12V:
-		val = SMM665_12VIN_ADC_TO_VOLTS(adcval & SMM665_ADC_MASK);
-		break;
+	switch (index)
+	{
+		case SMM665_MISC16_ADC_DATA_12V:
+			val = SMM665_12VIN_ADC_TO_VOLTS(adcval & SMM665_ADC_MASK);
+			break;
 
-	case SMM665_MISC16_ADC_DATA_VDD:
-	case SMM665_MISC16_ADC_DATA_A:
-	case SMM665_MISC16_ADC_DATA_B:
-	case SMM665_MISC16_ADC_DATA_C:
-	case SMM665_MISC16_ADC_DATA_D:
-	case SMM665_MISC16_ADC_DATA_E:
-	case SMM665_MISC16_ADC_DATA_F:
-		val = SMM665_VMON_ADC_TO_VOLTS(adcval & SMM665_ADC_MASK);
-		break;
+		case SMM665_MISC16_ADC_DATA_VDD:
+		case SMM665_MISC16_ADC_DATA_A:
+		case SMM665_MISC16_ADC_DATA_B:
+		case SMM665_MISC16_ADC_DATA_C:
+		case SMM665_MISC16_ADC_DATA_D:
+		case SMM665_MISC16_ADC_DATA_E:
+		case SMM665_MISC16_ADC_DATA_F:
+			val = SMM665_VMON_ADC_TO_VOLTS(adcval & SMM665_ADC_MASK);
+			break;
 
-	case SMM665_MISC16_ADC_DATA_AIN1:
-	case SMM665_MISC16_ADC_DATA_AIN2:
-		val = SMM665_AIN_ADC_TO_VOLTS(adcval & SMM665_ADC_MASK);
-		break;
+		case SMM665_MISC16_ADC_DATA_AIN1:
+		case SMM665_MISC16_ADC_DATA_AIN2:
+			val = SMM665_AIN_ADC_TO_VOLTS(adcval & SMM665_ADC_MASK);
+			break;
 
-	case SMM665_MISC16_ADC_DATA_INT_TEMP:
-		val = SMM665_TEMP_ADC_TO_CELSIUS(adcval & SMM665_ADC_MASK);
-		break;
+		case SMM665_MISC16_ADC_DATA_INT_TEMP:
+			val = SMM665_TEMP_ADC_TO_CELSIUS(adcval & SMM665_ADC_MASK);
+			break;
 
-	default:
-		/* If we get here, the developer messed up */
-		WARN_ON_ONCE(1);
-		break;
+		default:
+			/* If we get here, the developer messed up */
+			WARN_ON_ONCE(1);
+			break;
 	}
 
 	return val;
@@ -342,23 +369,27 @@ static int smm665_get_crit(struct device *dev, int index)
 }
 
 static ssize_t smm665_show_crit_alarm(struct device *dev,
-				      struct device_attribute *da, char *buf)
+									  struct device_attribute *da, char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
 	struct smm665_data *data = smm665_update_device(dev);
 	int val = 0;
 
 	if (IS_ERR(data))
+	{
 		return PTR_ERR(data);
+	}
 
 	if (data->faults & (1 << attr->index))
+	{
 		val = 1;
+	}
 
 	return snprintf(buf, PAGE_SIZE, "%d\n", val);
 }
 
 static ssize_t smm665_show_input(struct device *dev,
-				 struct device_attribute *da, char *buf)
+								 struct device_attribute *da, char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
 	struct smm665_data *data = smm665_update_device(dev);
@@ -366,20 +397,22 @@ static ssize_t smm665_show_input(struct device *dev,
 	int val;
 
 	if (IS_ERR(data))
+	{
 		return PTR_ERR(data);
+	}
 
 	val = smm665_convert(data->adc[adc], adc);
 	return snprintf(buf, PAGE_SIZE, "%d\n", val);
 }
 
 #define SMM665_SHOW(what) \
-static ssize_t smm665_show_##what(struct device *dev, \
-				    struct device_attribute *da, char *buf) \
-{ \
-	struct sensor_device_attribute *attr = to_sensor_dev_attr(da); \
-	const int val = smm665_get_##what(dev, attr->index); \
-	return snprintf(buf, PAGE_SIZE, "%d\n", val); \
-}
+	static ssize_t smm665_show_##what(struct device *dev, \
+									  struct device_attribute *da, char *buf) \
+	{ \
+		struct sensor_device_attribute *attr = to_sensor_dev_attr(da); \
+		const int val = smm665_get_##what(dev, attr->index); \
+		return snprintf(buf, PAGE_SIZE, "%d\n", val); \
+	}
 
 SMM665_SHOW(min);
 SMM665_SHOW(max);
@@ -394,7 +427,7 @@ SMM665_SHOW(crit);
 
 #define SMM665_ATTR(name, type, cmd_idx) \
 	static SENSOR_DEVICE_ATTR(name##_##type, S_IRUGO, \
-				  smm665_show_##type, NULL, cmd_idx)
+							  smm665_show_##type, NULL, cmd_idx)
 
 /* Construct a sensor_device_attribute structure for each register */
 
@@ -482,7 +515,8 @@ SMM665_ATTR(temp1, crit_alarm, SMM665_FAULT_TEMP);
  * Finally, construct an array of pointers to members of the above objects,
  * as required for sysfs_create_group()
  */
-static struct attribute *smm665_attrs[] = {
+static struct attribute *smm665_attrs[] =
+{
 	&sensor_dev_attr_in1_input.dev_attr.attr,
 	&sensor_dev_attr_in1_min.dev_attr.attr,
 	&sensor_dev_attr_in1_max.dev_attr.attr,
@@ -566,7 +600,7 @@ static struct attribute *smm665_attrs[] = {
 ATTRIBUTE_GROUPS(smm665);
 
 static int smm665_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	struct i2c_adapter *adapter = client->adapter;
 	struct smm665_data *data;
@@ -574,15 +608,22 @@ static int smm665_probe(struct i2c_client *client,
 	int i, ret;
 
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA
-				     | I2C_FUNC_SMBUS_WORD_DATA))
+								 | I2C_FUNC_SMBUS_WORD_DATA))
+	{
 		return -ENODEV;
+	}
 
 	if (i2c_smbus_read_byte_data(client, SMM665_ADOC_ENABLE) < 0)
+	{
 		return -ENODEV;
+	}
 
 	data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	i2c_set_clientdata(client, data);
 	mutex_init(&data->update_lock);
@@ -590,25 +631,33 @@ static int smm665_probe(struct i2c_client *client,
 	data->client = client;
 	data->type = id->driver_data;
 	data->cmdreg = i2c_new_dummy(adapter, (client->addr & ~SMM665_REGMASK)
-				     | SMM665_CMDREG_BASE);
-	if (!data->cmdreg)
-		return -ENOMEM;
+								 | SMM665_CMDREG_BASE);
 
-	switch (data->type) {
-	case smm465:
-	case smm665:
-		data->conversion_time = SMM665_ADC_WAIT_SMM665;
-		break;
-	case smm665c:
-	case smm764:
-	case smm766:
-		data->conversion_time = SMM665_ADC_WAIT_SMM766;
-		break;
+	if (!data->cmdreg)
+	{
+		return -ENOMEM;
+	}
+
+	switch (data->type)
+	{
+		case smm465:
+		case smm665:
+			data->conversion_time = SMM665_ADC_WAIT_SMM665;
+			break;
+
+		case smm665c:
+		case smm764:
+		case smm766:
+			data->conversion_time = SMM665_ADC_WAIT_SMM766;
+			break;
 	}
 
 	ret = -ENODEV;
+
 	if (i2c_smbus_read_byte_data(data->cmdreg, SMM665_MISC8_CMD_STS) < 0)
+	{
 		goto out_unregister;
+	}
 
 	/*
 	 * Read limits.
@@ -629,39 +678,67 @@ static int smm665_probe(struct i2c_client *client,
 	 * critical and alarm values are initialized, even if both registers are
 	 * configured as critical or non-critical.
 	 */
-	for (i = 0; i < SMM665_NUM_ADC; i++) {
+	for (i = 0; i < SMM665_NUM_ADC; i++)
+	{
 		int val;
 
 		val = smm665_read16(client, SMM665_LIMIT_BASE + i * 8);
+
 		if (unlikely(val < 0))
+		{
 			goto out_unregister;
+		}
+
 		data->critical_min_limit[i] = data->alarm_min_limit[i]
-		  = smm665_convert(val, i);
+									  = smm665_convert(val, i);
 		val = smm665_read16(client, SMM665_LIMIT_BASE + i * 8 + 2);
+
 		if (unlikely(val < 0))
+		{
 			goto out_unregister;
+		}
+
 		if (smm665_is_critical(val))
+		{
 			data->critical_min_limit[i] = smm665_convert(val, i);
+		}
 		else
+		{
 			data->alarm_min_limit[i] = smm665_convert(val, i);
+		}
+
 		val = smm665_read16(client, SMM665_LIMIT_BASE + i * 8 + 4);
+
 		if (unlikely(val < 0))
+		{
 			goto out_unregister;
+		}
+
 		data->critical_max_limit[i] = data->alarm_max_limit[i]
-		  = smm665_convert(val, i);
+									  = smm665_convert(val, i);
 		val = smm665_read16(client, SMM665_LIMIT_BASE + i * 8 + 6);
+
 		if (unlikely(val < 0))
+		{
 			goto out_unregister;
+		}
+
 		if (smm665_is_critical(val))
+		{
 			data->critical_max_limit[i] = smm665_convert(val, i);
+		}
 		else
+		{
 			data->alarm_max_limit[i] = smm665_convert(val, i);
+		}
 	}
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(&client->dev,
-							   client->name, data,
-							   smm665_groups);
-	if (IS_ERR(hwmon_dev)) {
+				client->name, data,
+				smm665_groups);
+
+	if (IS_ERR(hwmon_dev))
+	{
 		ret = PTR_ERR(hwmon_dev);
 		goto out_unregister;
 	}
@@ -681,7 +758,8 @@ static int smm665_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id smm665_id[] = {
+static const struct i2c_device_id smm665_id[] =
+{
 	{"smm465", smm465},
 	{"smm665", smm665},
 	{"smm665c", smm665c},
@@ -693,10 +771,11 @@ static const struct i2c_device_id smm665_id[] = {
 MODULE_DEVICE_TABLE(i2c, smm665_id);
 
 /* This is the driver that will be inserted */
-static struct i2c_driver smm665_driver = {
+static struct i2c_driver smm665_driver =
+{
 	.driver = {
-		   .name = "smm665",
-		   },
+		.name = "smm665",
+	},
 	.probe = smm665_probe,
 	.remove = smm665_remove,
 	.id_table = smm665_id,

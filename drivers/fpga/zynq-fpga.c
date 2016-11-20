@@ -87,7 +87,7 @@
 #define IXR_DMA_DONE_MASK		BIT(13)
 /* DMA and PCAP cmd done */
 #define IXR_D_P_DONE_MASK		BIT(12)
- /* FPGA programmed */
+/* FPGA programmed */
 #define IXR_PCFG_DONE_MASK		BIT(2)
 #define IXR_ERROR_FLAGS_MASK		0x00F0F860
 #define IXR_ALL_MASK			0xF8F7F87F
@@ -117,7 +117,8 @@
 /* Disable global resets */
 #define FPGA_RST_NONE_MASK		0x0
 
-struct zynq_fpga_priv {
+struct zynq_fpga_priv
+{
 	struct device *dev;
 	int irq;
 	struct clk *clk;
@@ -129,20 +130,20 @@ struct zynq_fpga_priv {
 };
 
 static inline void zynq_fpga_write(struct zynq_fpga_priv *priv, u32 offset,
-				   u32 val)
+								   u32 val)
 {
 	writel(val, priv->io_base + offset);
 }
 
 static inline u32 zynq_fpga_read(const struct zynq_fpga_priv *priv,
-				 u32 offset)
+								 u32 offset)
 {
 	return readl(priv->io_base + offset);
 }
 
 #define zynq_fpga_poll_timeout(priv, addr, val, cond, sleep_us, timeout_us) \
 	readl_poll_timeout(priv->io_base + addr, val, cond, sleep_us, \
-			   timeout_us)
+					   timeout_us)
 
 static void zynq_fpga_mask_irqs(struct zynq_fpga_priv *priv)
 {
@@ -150,7 +151,7 @@ static void zynq_fpga_mask_irqs(struct zynq_fpga_priv *priv)
 
 	intr_mask = zynq_fpga_read(priv, INT_MASK_OFFSET);
 	zynq_fpga_write(priv, INT_MASK_OFFSET,
-			intr_mask | IXR_DMA_DONE_MASK | IXR_ERROR_FLAGS_MASK);
+					intr_mask | IXR_DMA_DONE_MASK | IXR_ERROR_FLAGS_MASK);
 }
 
 static void zynq_fpga_unmask_irqs(struct zynq_fpga_priv *priv)
@@ -159,8 +160,8 @@ static void zynq_fpga_unmask_irqs(struct zynq_fpga_priv *priv)
 
 	intr_mask = zynq_fpga_read(priv, INT_MASK_OFFSET);
 	zynq_fpga_write(priv, INT_MASK_OFFSET,
-			intr_mask
-			& ~(IXR_D_P_DONE_MASK | IXR_ERROR_FLAGS_MASK));
+					intr_mask
+					& ~(IXR_D_P_DONE_MASK | IXR_ERROR_FLAGS_MASK));
 }
 
 static irqreturn_t zynq_fpga_isr(int irq, void *data)
@@ -176,7 +177,7 @@ static irqreturn_t zynq_fpga_isr(int irq, void *data)
 }
 
 static int zynq_fpga_ops_write_init(struct fpga_manager *mgr, u32 flags,
-				    const char *buf, size_t count)
+									const char *buf, size_t count)
 {
 	struct zynq_fpga_priv *priv;
 	u32 ctrl, status;
@@ -185,21 +186,25 @@ static int zynq_fpga_ops_write_init(struct fpga_manager *mgr, u32 flags,
 	priv = mgr->priv;
 
 	err = clk_enable(priv->clk);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* don't globally reset PL if we're doing partial reconfig */
-	if (!(flags & FPGA_MGR_PARTIAL_RECONFIG)) {
+	if (!(flags & FPGA_MGR_PARTIAL_RECONFIG))
+	{
 		/* assert AXI interface resets */
 		regmap_write(priv->slcr, SLCR_FPGA_RST_CTRL_OFFSET,
-			     FPGA_RST_ALL_MASK);
+					 FPGA_RST_ALL_MASK);
 
 		/* disable all level shifters */
 		regmap_write(priv->slcr, SLCR_LVL_SHFTR_EN_OFFSET,
-			     LVL_SHFTR_DISABLE_ALL_MASK);
+					 LVL_SHFTR_DISABLE_ALL_MASK);
 		/* enable level shifters from PS to PL */
 		regmap_write(priv->slcr, SLCR_LVL_SHFTR_EN_OFFSET,
-			     LVL_SHFTR_ENABLE_PS_TO_PL);
+					 LVL_SHFTR_ENABLE_PS_TO_PL);
 
 		/* create a rising edge on PCFG_INIT. PCFG_INIT follows
 		 * PCFG_PROG_B, so we need to poll it after setting PCFG_PROG_B
@@ -213,10 +218,12 @@ static int zynq_fpga_ops_write_init(struct fpga_manager *mgr, u32 flags,
 		zynq_fpga_write(priv, CTRL_OFFSET, ctrl);
 
 		err = zynq_fpga_poll_timeout(priv, STATUS_OFFSET, status,
-					     status & STATUS_PCFG_INIT_MASK,
-					     INIT_POLL_DELAY,
-					     INIT_POLL_TIMEOUT);
-		if (err) {
+									 status & STATUS_PCFG_INIT_MASK,
+									 INIT_POLL_DELAY,
+									 INIT_POLL_TIMEOUT);
+
+		if (err)
+		{
 			dev_err(priv->dev, "Timeout waiting for PCFG_INIT");
 			goto out_err;
 		}
@@ -227,10 +234,12 @@ static int zynq_fpga_ops_write_init(struct fpga_manager *mgr, u32 flags,
 		zynq_fpga_write(priv, CTRL_OFFSET, ctrl);
 
 		err = zynq_fpga_poll_timeout(priv, STATUS_OFFSET, status,
-					     !(status & STATUS_PCFG_INIT_MASK),
-					     INIT_POLL_DELAY,
-					     INIT_POLL_TIMEOUT);
-		if (err) {
+									 !(status & STATUS_PCFG_INIT_MASK),
+									 INIT_POLL_DELAY,
+									 INIT_POLL_TIMEOUT);
+
+		if (err)
+		{
 			dev_err(priv->dev, "Timeout waiting for !PCFG_INIT");
 			goto out_err;
 		}
@@ -241,10 +250,12 @@ static int zynq_fpga_ops_write_init(struct fpga_manager *mgr, u32 flags,
 		zynq_fpga_write(priv, CTRL_OFFSET, ctrl);
 
 		err = zynq_fpga_poll_timeout(priv, STATUS_OFFSET, status,
-					     status & STATUS_PCFG_INIT_MASK,
-					     INIT_POLL_DELAY,
-					     INIT_POLL_TIMEOUT);
-		if (err) {
+									 status & STATUS_PCFG_INIT_MASK,
+									 INIT_POLL_DELAY,
+									 INIT_POLL_TIMEOUT);
+
+		if (err)
+		{
 			dev_err(priv->dev, "Timeout waiting for PCFG_INIT");
 			goto out_err;
 		}
@@ -257,11 +268,13 @@ static int zynq_fpga_ops_write_init(struct fpga_manager *mgr, u32 flags,
 	 */
 	ctrl = zynq_fpga_read(priv, CTRL_OFFSET);
 	zynq_fpga_write(priv, CTRL_OFFSET,
-			(CTRL_PCAP_PR_MASK | CTRL_PCAP_MODE_MASK | ctrl));
+					(CTRL_PCAP_PR_MASK | CTRL_PCAP_MODE_MASK | ctrl));
 
 	/* check that we have room in the command queue */
 	status = zynq_fpga_read(priv, STATUS_OFFSET);
-	if (status & STATUS_DMA_Q_F) {
+
+	if (status & STATUS_DMA_Q_F)
+	{
 		dev_err(priv->dev, "DMA command queue full");
 		err = -EBUSY;
 		goto out_err;
@@ -282,7 +295,7 @@ out_err:
 }
 
 static int zynq_fpga_ops_write(struct fpga_manager *mgr,
-			       const char *buf, size_t count)
+							   const char *buf, size_t count)
 {
 	struct zynq_fpga_priv *priv;
 	int err;
@@ -296,15 +309,21 @@ static int zynq_fpga_ops_write(struct fpga_manager *mgr,
 	priv = mgr->priv;
 
 	kbuf = dma_alloc_coherent(priv->dev, count, &dma_addr, GFP_KERNEL);
+
 	if (!kbuf)
+	{
 		return -ENOMEM;
+	}
 
 	memcpy(kbuf, buf, count);
 
 	/* enable clock */
 	err = clk_enable(priv->clk);
+
 	if (err)
+	{
 		goto out_free;
+	}
 
 	zynq_fpga_write(priv, INT_STS_OFFSET, IXR_ALL_MASK);
 
@@ -330,7 +349,8 @@ static int zynq_fpga_ops_write(struct fpga_manager *mgr,
 	intr_status = zynq_fpga_read(priv, INT_STS_OFFSET);
 	zynq_fpga_write(priv, INT_STS_OFFSET, intr_status);
 
-	if (!((intr_status & IXR_D_P_DONE_MASK) == IXR_D_P_DONE_MASK)) {
+	if (!((intr_status & IXR_D_P_DONE_MASK) == IXR_D_P_DONE_MASK))
+	{
 		dev_err(priv->dev, "Error configuring FPGA");
 		err = -EFAULT;
 	}
@@ -350,28 +370,34 @@ static int zynq_fpga_ops_write_complete(struct fpga_manager *mgr, u32 flags)
 	u32 intr_status;
 
 	err = clk_enable(priv->clk);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = zynq_fpga_poll_timeout(priv, INT_STS_OFFSET, intr_status,
-				     intr_status & IXR_PCFG_DONE_MASK,
-				     INIT_POLL_DELAY,
-				     INIT_POLL_TIMEOUT);
+								 intr_status & IXR_PCFG_DONE_MASK,
+								 INIT_POLL_DELAY,
+								 INIT_POLL_TIMEOUT);
 
 	clk_disable(priv->clk);
 
 	if (err)
+	{
 		return err;
+	}
 
 	/* for the partial reconfig case we didn't touch the level shifters */
-	if (!(flags & FPGA_MGR_PARTIAL_RECONFIG)) {
+	if (!(flags & FPGA_MGR_PARTIAL_RECONFIG))
+	{
 		/* enable level shifters from PL to PS */
 		regmap_write(priv->slcr, SLCR_LVL_SHFTR_EN_OFFSET,
-			     LVL_SHFTR_ENABLE_PL_TO_PS);
+					 LVL_SHFTR_ENABLE_PL_TO_PS);
 
 		/* deassert AXI interface resets */
 		regmap_write(priv->slcr, SLCR_FPGA_RST_CTRL_OFFSET,
-			     FPGA_RST_NONE_MASK);
+					 FPGA_RST_NONE_MASK);
 	}
 
 	return 0;
@@ -386,19 +412,25 @@ static enum fpga_mgr_states zynq_fpga_ops_state(struct fpga_manager *mgr)
 	priv = mgr->priv;
 
 	err = clk_enable(priv->clk);
+
 	if (err)
+	{
 		return FPGA_MGR_STATE_UNKNOWN;
+	}
 
 	intr_status = zynq_fpga_read(priv, INT_STS_OFFSET);
 	clk_disable(priv->clk);
 
 	if (intr_status & IXR_PCFG_DONE_MASK)
+	{
 		return FPGA_MGR_STATE_OPERATING;
+	}
 
 	return FPGA_MGR_STATE_UNKNOWN;
 }
 
-static const struct fpga_manager_ops zynq_fpga_ops = {
+static const struct fpga_manager_ops zynq_fpga_ops =
+{
 	.state = zynq_fpga_ops_state,
 	.write_init = zynq_fpga_ops_write_init,
 	.write = zynq_fpga_ops_write,
@@ -413,19 +445,27 @@ static int zynq_fpga_probe(struct platform_device *pdev)
 	int err;
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	priv->dev = dev;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->io_base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(priv->io_base))
+	{
 		return PTR_ERR(priv->io_base);
+	}
 
 	priv->slcr = syscon_regmap_lookup_by_phandle(dev->of_node,
-		"syscon");
-	if (IS_ERR(priv->slcr)) {
+				 "syscon");
+
+	if (IS_ERR(priv->slcr))
+	{
 		dev_err(dev, "unable to get zynq-slcr regmap");
 		return PTR_ERR(priv->slcr);
 	}
@@ -433,26 +473,34 @@ static int zynq_fpga_probe(struct platform_device *pdev)
 	init_completion(&priv->dma_done);
 
 	priv->irq = platform_get_irq(pdev, 0);
-	if (priv->irq < 0) {
+
+	if (priv->irq < 0)
+	{
 		dev_err(dev, "No IRQ available");
 		return priv->irq;
 	}
 
 	err = devm_request_irq(dev, priv->irq, zynq_fpga_isr, 0,
-			       dev_name(dev), priv);
-	if (err) {
+						   dev_name(dev), priv);
+
+	if (err)
+	{
 		dev_err(dev, "unable to request IRQ");
 		return err;
 	}
 
 	priv->clk = devm_clk_get(dev, "ref_clk");
-	if (IS_ERR(priv->clk)) {
+
+	if (IS_ERR(priv->clk))
+	{
 		dev_err(dev, "input clock not found");
 		return PTR_ERR(priv->clk);
 	}
 
 	err = clk_prepare_enable(priv->clk);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(dev, "unable to enable clock");
 		return err;
 	}
@@ -463,8 +511,10 @@ static int zynq_fpga_probe(struct platform_device *pdev)
 	clk_disable(priv->clk);
 
 	err = fpga_mgr_register(dev, "Xilinx Zynq FPGA Manager",
-				&zynq_fpga_ops, priv);
-	if (err) {
+							&zynq_fpga_ops, priv);
+
+	if (err)
+	{
 		dev_err(dev, "unable to register FPGA manager");
 		clk_unprepare(priv->clk);
 		return err;
@@ -489,7 +539,8 @@ static int zynq_fpga_remove(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id zynq_fpga_of_match[] = {
+static const struct of_device_id zynq_fpga_of_match[] =
+{
 	{ .compatible = "xlnx,zynq-devcfg-1.0", },
 	{},
 };
@@ -497,7 +548,8 @@ static const struct of_device_id zynq_fpga_of_match[] = {
 MODULE_DEVICE_TABLE(of, zynq_fpga_of_match);
 #endif
 
-static struct platform_driver zynq_fpga_driver = {
+static struct platform_driver zynq_fpga_driver =
+{
 	.probe = zynq_fpga_probe,
 	.remove = zynq_fpga_remove,
 	.driver = {

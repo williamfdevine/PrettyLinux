@@ -56,14 +56,21 @@ static int edac_set_poll_msec(const char *val, struct kernel_param *kp)
 	int ret;
 
 	if (!val)
+	{
 		return -EINVAL;
+	}
 
 	ret = kstrtoul(val, 0, &l);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (l < 1000)
+	{
 		return -EINVAL;
+	}
 
 	*((unsigned long *)kp->arg) = l;
 
@@ -78,12 +85,12 @@ module_param(edac_mc_panic_on_ue, int, 0644);
 MODULE_PARM_DESC(edac_mc_panic_on_ue, "Panic on uncorrected error: 0=off 1=on");
 module_param(edac_mc_log_ue, int, 0644);
 MODULE_PARM_DESC(edac_mc_log_ue,
-		 "Log uncorrectable error to console: 0=off 1=on");
+				 "Log uncorrectable error to console: 0=off 1=on");
 module_param(edac_mc_log_ce, int, 0644);
 MODULE_PARM_DESC(edac_mc_log_ce,
-		 "Log correctable error to console: 0=off 1=on");
+				 "Log correctable error to console: 0=off 1=on");
 module_param_call(edac_mc_poll_msec, edac_set_poll_msec, param_get_int,
-		  &edac_mc_poll_msec, 0644);
+				  &edac_mc_poll_msec, 0644);
 MODULE_PARM_DESC(edac_mc_poll_msec, "Polling period in milliseconds");
 
 static struct device *mci_pdev;
@@ -91,7 +98,8 @@ static struct device *mci_pdev;
 /*
  * various constants for Memory Controllers
  */
-static const char * const mem_types[] = {
+static const char *const mem_types[] =
+{
 	[MEM_EMPTY] = "Empty",
 	[MEM_RESERVED] = "Reserved",
 	[MEM_UNKNOWN] = "Unknown",
@@ -113,7 +121,8 @@ static const char * const mem_types[] = {
 	[MEM_RDDR4] = "Registered-DDR4"
 };
 
-static const char * const dev_types[] = {
+static const char *const dev_types[] =
+{
 	[DEV_UNKNOWN] = "Unknown",
 	[DEV_X1] = "x1",
 	[DEV_X2] = "x2",
@@ -124,7 +133,8 @@ static const char * const dev_types[] = {
 	[DEV_X64] = "x64"
 };
 
-static const char * const edac_caps[] = {
+static const char *const edac_caps[] =
+{
 	[EDAC_UNKNOWN] = "Unknown",
 	[EDAC_NONE] = "None",
 	[EDAC_RESERVED] = "Reserved",
@@ -151,20 +161,21 @@ static const char * const edac_caps[] = {
 #define DEVICE_ATTR_LEGACY(_name, _mode, _show, _store) \
 	static struct device_attribute dev_attr_legacy_##_name = __ATTR(_name, _mode, _show, _store)
 
-struct dev_ch_attribute {
+struct dev_ch_attribute
+{
 	struct device_attribute attr;
 	int channel;
 };
 
 #define DEVICE_CHANNEL(_name, _mode, _show, _store, _var) \
 	static struct dev_ch_attribute dev_attr_legacy_##_name = \
-		{ __ATTR(_name, _mode, _show, _store), (_var) }
+	{ __ATTR(_name, _mode, _show, _store), (_var) }
 
 #define to_channel(k) (container_of(k, struct dev_ch_attribute, attr)->channel)
 
 /* Set of more default csrow<id> attribute show/store functions */
 static ssize_t csrow_ue_count_show(struct device *dev,
-				   struct device_attribute *mattr, char *data)
+								   struct device_attribute *mattr, char *data)
 {
 	struct csrow_info *csrow = to_csrow(dev);
 
@@ -172,7 +183,7 @@ static ssize_t csrow_ue_count_show(struct device *dev,
 }
 
 static ssize_t csrow_ce_count_show(struct device *dev,
-				   struct device_attribute *mattr, char *data)
+								   struct device_attribute *mattr, char *data)
 {
 	struct csrow_info *csrow = to_csrow(dev);
 
@@ -180,19 +191,22 @@ static ssize_t csrow_ce_count_show(struct device *dev,
 }
 
 static ssize_t csrow_size_show(struct device *dev,
-			       struct device_attribute *mattr, char *data)
+							   struct device_attribute *mattr, char *data)
 {
 	struct csrow_info *csrow = to_csrow(dev);
 	int i;
 	u32 nr_pages = 0;
 
 	for (i = 0; i < csrow->nr_channels; i++)
+	{
 		nr_pages += csrow->channels[i]->dimm->nr_pages;
+	}
+
 	return sprintf(data, "%u\n", PAGES_TO_MiB(nr_pages));
 }
 
 static ssize_t csrow_mem_type_show(struct device *dev,
-				   struct device_attribute *mattr, char *data)
+								   struct device_attribute *mattr, char *data)
 {
 	struct csrow_info *csrow = to_csrow(dev);
 
@@ -200,7 +214,7 @@ static ssize_t csrow_mem_type_show(struct device *dev,
 }
 
 static ssize_t csrow_dev_type_show(struct device *dev,
-				   struct device_attribute *mattr, char *data)
+								   struct device_attribute *mattr, char *data)
 {
 	struct csrow_info *csrow = to_csrow(dev);
 
@@ -208,8 +222,8 @@ static ssize_t csrow_dev_type_show(struct device *dev,
 }
 
 static ssize_t csrow_edac_mode_show(struct device *dev,
-				    struct device_attribute *mattr,
-				    char *data)
+									struct device_attribute *mattr,
+									char *data)
 {
 	struct csrow_info *csrow = to_csrow(dev);
 
@@ -218,8 +232,8 @@ static ssize_t csrow_edac_mode_show(struct device *dev,
 
 /* show/store functions for DIMM Label attributes */
 static ssize_t channel_dimm_label_show(struct device *dev,
-				       struct device_attribute *mattr,
-				       char *data)
+									   struct device_attribute *mattr,
+									   char *data)
 {
 	struct csrow_info *csrow = to_csrow(dev);
 	unsigned chan = to_channel(mattr);
@@ -227,15 +241,17 @@ static ssize_t channel_dimm_label_show(struct device *dev,
 
 	/* if field has not been initialized, there is nothing to send */
 	if (!rank->dimm->label[0])
+	{
 		return 0;
+	}
 
 	return snprintf(data, sizeof(rank->dimm->label) + 1, "%s\n",
-			rank->dimm->label);
+					rank->dimm->label);
 }
 
 static ssize_t channel_dimm_label_store(struct device *dev,
-					struct device_attribute *mattr,
-					const char *data, size_t count)
+										struct device_attribute *mattr,
+										const char *data, size_t count)
 {
 	struct csrow_info *csrow = to_csrow(dev);
 	unsigned chan = to_channel(mattr);
@@ -243,13 +259,19 @@ static ssize_t channel_dimm_label_store(struct device *dev,
 	size_t copy_count = count;
 
 	if (count == 0)
+	{
 		return -EINVAL;
+	}
 
 	if (data[count - 1] == '\0' || data[count - 1] == '\n')
+	{
 		copy_count -= 1;
+	}
 
 	if (copy_count == 0 || copy_count >= sizeof(rank->dimm->label))
+	{
 		return -EINVAL;
+	}
 
 	strncpy(rank->dimm->label, data, copy_count);
 	rank->dimm->label[copy_count] = '\0';
@@ -259,7 +281,7 @@ static ssize_t channel_dimm_label_store(struct device *dev,
 
 /* show function for dynamic chX_ce_count attribute */
 static ssize_t channel_ce_count_show(struct device *dev,
-				     struct device_attribute *mattr, char *data)
+									 struct device_attribute *mattr, char *data)
 {
 	struct csrow_info *csrow = to_csrow(dev);
 	unsigned chan = to_channel(mattr);
@@ -277,7 +299,8 @@ DEVICE_ATTR_LEGACY(ue_count, S_IRUGO, csrow_ue_count_show, NULL);
 DEVICE_ATTR_LEGACY(ce_count, S_IRUGO, csrow_ce_count_show, NULL);
 
 /* default attributes of the CSROW<id> object */
-static struct attribute *csrow_attrs[] = {
+static struct attribute *csrow_attrs[] =
+{
 	&dev_attr_legacy_dev_type.attr,
 	&dev_attr_legacy_mem_type.attr,
 	&dev_attr_legacy_edac_mode.attr,
@@ -287,11 +310,13 @@ static struct attribute *csrow_attrs[] = {
 	NULL,
 };
 
-static struct attribute_group csrow_attr_grp = {
+static struct attribute_group csrow_attr_grp =
+{
 	.attrs	= csrow_attrs,
 };
 
-static const struct attribute_group *csrow_attr_groups[] = {
+static const struct attribute_group *csrow_attr_groups[] =
+{
 	&csrow_attr_grp,
 	NULL
 };
@@ -304,7 +329,8 @@ static void csrow_attr_release(struct device *dev)
 	kfree(csrow);
 }
 
-static struct device_type csrow_attr_type = {
+static struct device_type csrow_attr_type =
+{
 	.groups		= csrow_attr_groups,
 	.release	= csrow_attr_release,
 };
@@ -314,24 +340,25 @@ static struct device_type csrow_attr_type = {
  *
  */
 DEVICE_CHANNEL(ch0_dimm_label, S_IRUGO | S_IWUSR,
-	channel_dimm_label_show, channel_dimm_label_store, 0);
+			   channel_dimm_label_show, channel_dimm_label_store, 0);
 DEVICE_CHANNEL(ch1_dimm_label, S_IRUGO | S_IWUSR,
-	channel_dimm_label_show, channel_dimm_label_store, 1);
+			   channel_dimm_label_show, channel_dimm_label_store, 1);
 DEVICE_CHANNEL(ch2_dimm_label, S_IRUGO | S_IWUSR,
-	channel_dimm_label_show, channel_dimm_label_store, 2);
+			   channel_dimm_label_show, channel_dimm_label_store, 2);
 DEVICE_CHANNEL(ch3_dimm_label, S_IRUGO | S_IWUSR,
-	channel_dimm_label_show, channel_dimm_label_store, 3);
+			   channel_dimm_label_show, channel_dimm_label_store, 3);
 DEVICE_CHANNEL(ch4_dimm_label, S_IRUGO | S_IWUSR,
-	channel_dimm_label_show, channel_dimm_label_store, 4);
+			   channel_dimm_label_show, channel_dimm_label_store, 4);
 DEVICE_CHANNEL(ch5_dimm_label, S_IRUGO | S_IWUSR,
-	channel_dimm_label_show, channel_dimm_label_store, 5);
+			   channel_dimm_label_show, channel_dimm_label_store, 5);
 DEVICE_CHANNEL(ch6_dimm_label, S_IRUGO | S_IWUSR,
-	channel_dimm_label_show, channel_dimm_label_store, 6);
+			   channel_dimm_label_show, channel_dimm_label_store, 6);
 DEVICE_CHANNEL(ch7_dimm_label, S_IRUGO | S_IWUSR,
-	channel_dimm_label_show, channel_dimm_label_store, 7);
+			   channel_dimm_label_show, channel_dimm_label_store, 7);
 
 /* Total possible dynamic DIMM Label attribute file table */
-static struct attribute *dynamic_csrow_dimm_attr[] = {
+static struct attribute *dynamic_csrow_dimm_attr[] =
+{
 	&dev_attr_legacy_ch0_dimm_label.attr.attr,
 	&dev_attr_legacy_ch1_dimm_label.attr.attr,
 	&dev_attr_legacy_ch2_dimm_label.attr.attr,
@@ -345,24 +372,25 @@ static struct attribute *dynamic_csrow_dimm_attr[] = {
 
 /* possible dynamic channel ce_count attribute files */
 DEVICE_CHANNEL(ch0_ce_count, S_IRUGO,
-		   channel_ce_count_show, NULL, 0);
+			   channel_ce_count_show, NULL, 0);
 DEVICE_CHANNEL(ch1_ce_count, S_IRUGO,
-		   channel_ce_count_show, NULL, 1);
+			   channel_ce_count_show, NULL, 1);
 DEVICE_CHANNEL(ch2_ce_count, S_IRUGO,
-		   channel_ce_count_show, NULL, 2);
+			   channel_ce_count_show, NULL, 2);
 DEVICE_CHANNEL(ch3_ce_count, S_IRUGO,
-		   channel_ce_count_show, NULL, 3);
+			   channel_ce_count_show, NULL, 3);
 DEVICE_CHANNEL(ch4_ce_count, S_IRUGO,
-		   channel_ce_count_show, NULL, 4);
+			   channel_ce_count_show, NULL, 4);
 DEVICE_CHANNEL(ch5_ce_count, S_IRUGO,
-		   channel_ce_count_show, NULL, 5);
+			   channel_ce_count_show, NULL, 5);
 DEVICE_CHANNEL(ch6_ce_count, S_IRUGO,
-		   channel_ce_count_show, NULL, 6);
+			   channel_ce_count_show, NULL, 6);
 DEVICE_CHANNEL(ch7_ce_count, S_IRUGO,
-		   channel_ce_count_show, NULL, 7);
+			   channel_ce_count_show, NULL, 7);
 
 /* Total possible dynamic ce_count attribute file table */
-static struct attribute *dynamic_csrow_ce_count_attr[] = {
+static struct attribute *dynamic_csrow_ce_count_attr[] =
+{
 	&dev_attr_legacy_ch0_ce_count.attr.attr,
 	&dev_attr_legacy_ch1_ce_count.attr.attr,
 	&dev_attr_legacy_ch2_ce_count.attr.attr,
@@ -375,38 +403,46 @@ static struct attribute *dynamic_csrow_ce_count_attr[] = {
 };
 
 static umode_t csrow_dev_is_visible(struct kobject *kobj,
-				    struct attribute *attr, int idx)
+									struct attribute *attr, int idx)
 {
 	struct device *dev = kobj_to_dev(kobj);
 	struct csrow_info *csrow = container_of(dev, struct csrow_info, dev);
 
 	if (idx >= csrow->nr_channels)
+	{
 		return 0;
+	}
 
-	if (idx >= ARRAY_SIZE(dynamic_csrow_ce_count_attr) - 1) {
+	if (idx >= ARRAY_SIZE(dynamic_csrow_ce_count_attr) - 1)
+	{
 		WARN_ONCE(1, "idx: %d\n", idx);
 		return 0;
 	}
 
 	/* Only expose populated DIMMs */
 	if (!csrow->channels[idx]->dimm->nr_pages)
+	{
 		return 0;
+	}
 
 	return attr->mode;
 }
 
 
-static const struct attribute_group csrow_dev_dimm_group = {
+static const struct attribute_group csrow_dev_dimm_group =
+{
 	.attrs = dynamic_csrow_dimm_attr,
 	.is_visible = csrow_dev_is_visible,
 };
 
-static const struct attribute_group csrow_dev_ce_count_group = {
+static const struct attribute_group csrow_dev_ce_count_group =
+{
 	.attrs = dynamic_csrow_ce_count_attr,
 	.is_visible = csrow_dev_is_visible,
 };
 
-static const struct attribute_group *csrow_dev_groups[] = {
+static const struct attribute_group *csrow_dev_groups[] =
+{
 	&csrow_dev_dimm_group,
 	&csrow_dev_ce_count_group,
 	NULL
@@ -417,14 +453,16 @@ static inline int nr_pages_per_csrow(struct csrow_info *csrow)
 	int chan, nr_pages = 0;
 
 	for (chan = 0; chan < csrow->nr_channels; chan++)
+	{
 		nr_pages += csrow->channels[chan]->dimm->nr_pages;
+	}
 
 	return nr_pages;
 }
 
 /* Create a CSROW object under specifed edac_mc_device */
 static int edac_create_csrow_object(struct mem_ctl_info *mci,
-				    struct csrow_info *csrow, int index)
+									struct csrow_info *csrow, int index)
 {
 	csrow->dev.type = &csrow_attr_type;
 	csrow->dev.bus = mci->bus;
@@ -436,7 +474,7 @@ static int edac_create_csrow_object(struct mem_ctl_info *mci,
 	dev_set_drvdata(&csrow->dev, csrow);
 
 	edac_dbg(0, "creating (virtual) csrow node %s\n",
-		 dev_name(&csrow->dev));
+			 dev_name(&csrow->dev));
 
 	return device_add(&csrow->dev);
 }
@@ -447,25 +485,39 @@ static int edac_create_csrow_objects(struct mem_ctl_info *mci)
 	int err, i;
 	struct csrow_info *csrow;
 
-	for (i = 0; i < mci->nr_csrows; i++) {
+	for (i = 0; i < mci->nr_csrows; i++)
+	{
 		csrow = mci->csrows[i];
+
 		if (!nr_pages_per_csrow(csrow))
+		{
 			continue;
+		}
+
 		err = edac_create_csrow_object(mci, mci->csrows[i], i);
-		if (err < 0) {
+
+		if (err < 0)
+		{
 			edac_dbg(1,
-				 "failure: create csrow objects for csrow %d\n",
-				 i);
+					 "failure: create csrow objects for csrow %d\n",
+					 i);
 			goto error;
 		}
 	}
+
 	return 0;
 
 error:
-	for (--i; i >= 0; i--) {
+
+	for (--i; i >= 0; i--)
+	{
 		csrow = mci->csrows[i];
+
 		if (!nr_pages_per_csrow(csrow))
+		{
 			continue;
+		}
+
 		put_device(&mci->csrows[i]->dev);
 	}
 
@@ -477,10 +529,15 @@ static void edac_delete_csrow_objects(struct mem_ctl_info *mci)
 	int i;
 	struct csrow_info *csrow;
 
-	for (i = mci->nr_csrows - 1; i >= 0; i--) {
+	for (i = mci->nr_csrows - 1; i >= 0; i--)
+	{
 		csrow = mci->csrows[i];
+
 		if (!nr_pages_per_csrow(csrow))
+		{
 			continue;
+		}
+
 		device_unregister(&mci->csrows[i]->dev);
 	}
 }
@@ -494,7 +551,7 @@ static void edac_delete_csrow_objects(struct mem_ctl_info *mci)
 
 /* show/store functions for DIMM Label attributes */
 static ssize_t dimmdev_location_show(struct device *dev,
-				     struct device_attribute *mattr, char *data)
+									 struct device_attribute *mattr, char *data)
 {
 	struct dimm_info *dimm = to_dimm(dev);
 
@@ -502,33 +559,41 @@ static ssize_t dimmdev_location_show(struct device *dev,
 }
 
 static ssize_t dimmdev_label_show(struct device *dev,
-				  struct device_attribute *mattr, char *data)
+								  struct device_attribute *mattr, char *data)
 {
 	struct dimm_info *dimm = to_dimm(dev);
 
 	/* if field has not been initialized, there is nothing to send */
 	if (!dimm->label[0])
+	{
 		return 0;
+	}
 
 	return snprintf(data, sizeof(dimm->label) + 1, "%s\n", dimm->label);
 }
 
 static ssize_t dimmdev_label_store(struct device *dev,
-				   struct device_attribute *mattr,
-				   const char *data,
-				   size_t count)
+								   struct device_attribute *mattr,
+								   const char *data,
+								   size_t count)
 {
 	struct dimm_info *dimm = to_dimm(dev);
 	size_t copy_count = count;
 
 	if (count == 0)
+	{
 		return -EINVAL;
+	}
 
 	if (data[count - 1] == '\0' || data[count - 1] == '\n')
+	{
 		copy_count -= 1;
+	}
 
 	if (copy_count == 0 || copy_count >= sizeof(dimm->label))
+	{
 		return -EINVAL;
+	}
 
 	strncpy(dimm->label, data, copy_count);
 	dimm->label[copy_count] = '\0';
@@ -537,7 +602,7 @@ static ssize_t dimmdev_label_store(struct device *dev,
 }
 
 static ssize_t dimmdev_size_show(struct device *dev,
-				 struct device_attribute *mattr, char *data)
+								 struct device_attribute *mattr, char *data)
 {
 	struct dimm_info *dimm = to_dimm(dev);
 
@@ -545,7 +610,7 @@ static ssize_t dimmdev_size_show(struct device *dev,
 }
 
 static ssize_t dimmdev_mem_type_show(struct device *dev,
-				     struct device_attribute *mattr, char *data)
+									 struct device_attribute *mattr, char *data)
 {
 	struct dimm_info *dimm = to_dimm(dev);
 
@@ -553,7 +618,7 @@ static ssize_t dimmdev_mem_type_show(struct device *dev,
 }
 
 static ssize_t dimmdev_dev_type_show(struct device *dev,
-				     struct device_attribute *mattr, char *data)
+									 struct device_attribute *mattr, char *data)
 {
 	struct dimm_info *dimm = to_dimm(dev);
 
@@ -561,8 +626,8 @@ static ssize_t dimmdev_dev_type_show(struct device *dev,
 }
 
 static ssize_t dimmdev_edac_mode_show(struct device *dev,
-				      struct device_attribute *mattr,
-				      char *data)
+									  struct device_attribute *mattr,
+									  char *data)
 {
 	struct dimm_info *dimm = to_dimm(dev);
 
@@ -571,7 +636,7 @@ static ssize_t dimmdev_edac_mode_show(struct device *dev,
 
 /* dimm/rank attribute files */
 static DEVICE_ATTR(dimm_label, S_IRUGO | S_IWUSR,
-		   dimmdev_label_show, dimmdev_label_store);
+				   dimmdev_label_show, dimmdev_label_store);
 static DEVICE_ATTR(dimm_location, S_IRUGO, dimmdev_location_show, NULL);
 static DEVICE_ATTR(size, S_IRUGO, dimmdev_size_show, NULL);
 static DEVICE_ATTR(dimm_mem_type, S_IRUGO, dimmdev_mem_type_show, NULL);
@@ -579,7 +644,8 @@ static DEVICE_ATTR(dimm_dev_type, S_IRUGO, dimmdev_dev_type_show, NULL);
 static DEVICE_ATTR(dimm_edac_mode, S_IRUGO, dimmdev_edac_mode_show, NULL);
 
 /* attributes of the dimm<id>/rank<id> object */
-static struct attribute *dimm_attrs[] = {
+static struct attribute *dimm_attrs[] =
+{
 	&dev_attr_dimm_label.attr,
 	&dev_attr_dimm_location.attr,
 	&dev_attr_size.attr,
@@ -589,11 +655,13 @@ static struct attribute *dimm_attrs[] = {
 	NULL,
 };
 
-static struct attribute_group dimm_attr_grp = {
+static struct attribute_group dimm_attr_grp =
+{
 	.attrs	= dimm_attrs,
 };
 
-static const struct attribute_group *dimm_attr_groups[] = {
+static const struct attribute_group *dimm_attr_groups[] =
+{
 	&dimm_attr_grp,
 	NULL
 };
@@ -606,15 +674,16 @@ static void dimm_attr_release(struct device *dev)
 	kfree(dimm);
 }
 
-static struct device_type dimm_attr_type = {
+static struct device_type dimm_attr_type =
+{
 	.groups		= dimm_attr_groups,
 	.release	= dimm_attr_release,
 };
 
 /* Create a DIMM object under specifed memory controller device */
 static int edac_create_dimm_object(struct mem_ctl_info *mci,
-				   struct dimm_info *dimm,
-				   int index)
+								   struct dimm_info *dimm,
+								   int index)
 {
 	int err;
 	dimm->mci = mci;
@@ -624,10 +693,16 @@ static int edac_create_dimm_object(struct mem_ctl_info *mci,
 	device_initialize(&dimm->dev);
 
 	dimm->dev.parent = &mci->dev;
+
 	if (mci->csbased)
+	{
 		dev_set_name(&dimm->dev, "rank%d", index);
+	}
 	else
+	{
 		dev_set_name(&dimm->dev, "dimm%d", index);
+	}
+
 	dev_set_drvdata(&dimm->dev, dimm);
 	pm_runtime_forbid(&mci->dev);
 
@@ -645,8 +720,8 @@ static int edac_create_dimm_object(struct mem_ctl_info *mci,
 #define to_mci(k) container_of(k, struct mem_ctl_info, dev)
 
 static ssize_t mci_reset_counters_store(struct device *dev,
-					struct device_attribute *mattr,
-					const char *data, size_t count)
+										struct device_attribute *mattr,
+										const char *data, size_t count)
 {
 	struct mem_ctl_info *mci = to_mci(dev);
 	int cnt, row, chan, i;
@@ -655,18 +730,23 @@ static ssize_t mci_reset_counters_store(struct device *dev,
 	mci->ue_noinfo_count = 0;
 	mci->ce_noinfo_count = 0;
 
-	for (row = 0; row < mci->nr_csrows; row++) {
+	for (row = 0; row < mci->nr_csrows; row++)
+	{
 		struct csrow_info *ri = mci->csrows[row];
 
 		ri->ue_count = 0;
 		ri->ce_count = 0;
 
 		for (chan = 0; chan < ri->nr_channels; chan++)
+		{
 			ri->channels[chan]->ce_count = 0;
+		}
 	}
 
 	cnt = 1;
-	for (i = 0; i < mci->n_layers; i++) {
+
+	for (i = 0; i < mci->n_layers; i++)
+	{
 		cnt *= mci->layers[i].size;
 		memset(mci->ce_per_layer[i], 0, cnt * sizeof(u32));
 		memset(mci->ue_per_layer[i], 0, cnt * sizeof(u32));
@@ -686,20 +766,24 @@ static ssize_t mci_reset_counters_store(struct device *dev,
  * the scrub rate.
  */
 static ssize_t mci_sdram_scrub_rate_store(struct device *dev,
-					  struct device_attribute *mattr,
-					  const char *data, size_t count)
+		struct device_attribute *mattr,
+		const char *data, size_t count)
 {
 	struct mem_ctl_info *mci = to_mci(dev);
 	unsigned long bandwidth = 0;
 	int new_bw = 0;
 
 	if (kstrtoul(data, 10, &bandwidth) < 0)
+	{
 		return -EINVAL;
+	}
 
 	new_bw = mci->set_sdram_scrub_rate(mci, bandwidth);
-	if (new_bw < 0) {
+
+	if (new_bw < 0)
+	{
 		edac_printk(KERN_WARNING, EDAC_MC,
-			    "Error setting scrub rate to: %lu\n", bandwidth);
+					"Error setting scrub rate to: %lu\n", bandwidth);
 		return -EINVAL;
 	}
 
@@ -710,14 +794,16 @@ static ssize_t mci_sdram_scrub_rate_store(struct device *dev,
  * ->get_sdram_scrub_rate() return value semantics same as above.
  */
 static ssize_t mci_sdram_scrub_rate_show(struct device *dev,
-					 struct device_attribute *mattr,
-					 char *data)
+		struct device_attribute *mattr,
+		char *data)
 {
 	struct mem_ctl_info *mci = to_mci(dev);
 	int bandwidth = 0;
 
 	bandwidth = mci->get_sdram_scrub_rate(mci);
-	if (bandwidth < 0) {
+
+	if (bandwidth < 0)
+	{
 		edac_printk(KERN_DEBUG, EDAC_MC, "Error reading scrub rate\n");
 		return bandwidth;
 	}
@@ -727,8 +813,8 @@ static ssize_t mci_sdram_scrub_rate_show(struct device *dev,
 
 /* default attribute files for the MCI object */
 static ssize_t mci_ue_count_show(struct device *dev,
-				 struct device_attribute *mattr,
-				 char *data)
+								 struct device_attribute *mattr,
+								 char *data)
 {
 	struct mem_ctl_info *mci = to_mci(dev);
 
@@ -736,8 +822,8 @@ static ssize_t mci_ue_count_show(struct device *dev,
 }
 
 static ssize_t mci_ce_count_show(struct device *dev,
-				 struct device_attribute *mattr,
-				 char *data)
+								 struct device_attribute *mattr,
+								 char *data)
 {
 	struct mem_ctl_info *mci = to_mci(dev);
 
@@ -745,8 +831,8 @@ static ssize_t mci_ce_count_show(struct device *dev,
 }
 
 static ssize_t mci_ce_noinfo_show(struct device *dev,
-				  struct device_attribute *mattr,
-				  char *data)
+								  struct device_attribute *mattr,
+								  char *data)
 {
 	struct mem_ctl_info *mci = to_mci(dev);
 
@@ -754,8 +840,8 @@ static ssize_t mci_ce_noinfo_show(struct device *dev,
 }
 
 static ssize_t mci_ue_noinfo_show(struct device *dev,
-				  struct device_attribute *mattr,
-				  char *data)
+								  struct device_attribute *mattr,
+								  char *data)
 {
 	struct mem_ctl_info *mci = to_mci(dev);
 
@@ -763,8 +849,8 @@ static ssize_t mci_ue_noinfo_show(struct device *dev,
 }
 
 static ssize_t mci_seconds_show(struct device *dev,
-				struct device_attribute *mattr,
-				char *data)
+								struct device_attribute *mattr,
+								char *data)
 {
 	struct mem_ctl_info *mci = to_mci(dev);
 
@@ -772,8 +858,8 @@ static ssize_t mci_seconds_show(struct device *dev,
 }
 
 static ssize_t mci_ctl_name_show(struct device *dev,
-				 struct device_attribute *mattr,
-				 char *data)
+								 struct device_attribute *mattr,
+								 char *data)
 {
 	struct mem_ctl_info *mci = to_mci(dev);
 
@@ -781,16 +867,18 @@ static ssize_t mci_ctl_name_show(struct device *dev,
 }
 
 static ssize_t mci_size_mb_show(struct device *dev,
-				struct device_attribute *mattr,
-				char *data)
+								struct device_attribute *mattr,
+								char *data)
 {
 	struct mem_ctl_info *mci = to_mci(dev);
 	int total_pages = 0, csrow_idx, j;
 
-	for (csrow_idx = 0; csrow_idx < mci->nr_csrows; csrow_idx++) {
+	for (csrow_idx = 0; csrow_idx < mci->nr_csrows; csrow_idx++)
+	{
 		struct csrow_info *csrow = mci->csrows[csrow_idx];
 
-		for (j = 0; j < csrow->nr_channels; j++) {
+		for (j = 0; j < csrow->nr_channels; j++)
+		{
 			struct dimm_info *dimm = csrow->channels[j]->dimm;
 
 			total_pages += dimm->nr_pages;
@@ -801,17 +889,18 @@ static ssize_t mci_size_mb_show(struct device *dev,
 }
 
 static ssize_t mci_max_location_show(struct device *dev,
-				     struct device_attribute *mattr,
-				     char *data)
+									 struct device_attribute *mattr,
+									 char *data)
 {
 	struct mem_ctl_info *mci = to_mci(dev);
 	int i;
 	char *p = data;
 
-	for (i = 0; i < mci->n_layers; i++) {
+	for (i = 0; i < mci->n_layers; i++)
+	{
 		p += sprintf(p, "%s %d ",
-			     edac_layer_name[mci->layers[i].type],
-			     mci->layers[i].size - 1);
+					 edac_layer_name[mci->layers[i].type],
+					 mci->layers[i].size - 1);
 	}
 
 	return p - data;
@@ -832,9 +921,10 @@ static DEVICE_ATTR(max_location, S_IRUGO, mci_max_location_show, NULL);
 
 /* memory scrubber attribute file */
 DEVICE_ATTR(sdram_scrub_rate, 0, mci_sdram_scrub_rate_show,
-	    mci_sdram_scrub_rate_store); /* umode set later in is_visible */
+			mci_sdram_scrub_rate_store); /* umode set later in is_visible */
 
-static struct attribute *mci_attrs[] = {
+static struct attribute *mci_attrs[] =
+{
 	&dev_attr_reset_counters.attr,
 	&dev_attr_mc_name.attr,
 	&dev_attr_size_mb.attr,
@@ -849,27 +939,38 @@ static struct attribute *mci_attrs[] = {
 };
 
 static umode_t mci_attr_is_visible(struct kobject *kobj,
-				   struct attribute *attr, int idx)
+								   struct attribute *attr, int idx)
 {
 	struct device *dev = kobj_to_dev(kobj);
 	struct mem_ctl_info *mci = to_mci(dev);
 	umode_t mode = 0;
 
 	if (attr != &dev_attr_sdram_scrub_rate.attr)
+	{
 		return attr->mode;
+	}
+
 	if (mci->get_sdram_scrub_rate)
+	{
 		mode |= S_IRUGO;
+	}
+
 	if (mci->set_sdram_scrub_rate)
+	{
 		mode |= S_IWUSR;
+	}
+
 	return mode;
 }
 
-static struct attribute_group mci_attr_grp = {
+static struct attribute_group mci_attr_grp =
+{
 	.attrs	= mci_attrs,
 	.is_visible = mci_attr_is_visible,
 };
 
-static const struct attribute_group *mci_attr_groups[] = {
+static const struct attribute_group *mci_attr_groups[] =
+{
 	&mci_attr_grp,
 	NULL
 };
@@ -882,7 +983,8 @@ static void mci_attr_release(struct device *dev)
 	kfree(mci);
 }
 
-static struct device_type mci_attr_type = {
+static struct device_type mci_attr_type =
+{
 	.groups		= mci_attr_groups,
 	.release	= mci_attr_release,
 };
@@ -896,7 +998,7 @@ static struct device_type mci_attr_type = {
  *	!0	Failure
  */
 int edac_create_sysfs_mci_device(struct mem_ctl_info *mci,
-				 const struct attribute_group **groups)
+								 const struct attribute_group **groups)
 {
 	char *name;
 	int i, err;
@@ -906,15 +1008,20 @@ int edac_create_sysfs_mci_device(struct mem_ctl_info *mci,
 	 * namespace conflicts at /sys/bus/edac.
 	 */
 	name = kasprintf(GFP_KERNEL, "mc%d", mci->mc_idx);
+
 	if (!name)
+	{
 		return -ENOMEM;
+	}
 
 	mci->bus->name = name;
 
 	edac_dbg(0, "creating bus %s\n", mci->bus->name);
 
 	err = bus_register(mci->bus);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		kfree(name);
 		return err;
 	}
@@ -932,7 +1039,9 @@ int edac_create_sysfs_mci_device(struct mem_ctl_info *mci,
 
 	edac_dbg(0, "creating device %s\n", dev_name(&mci->dev));
 	err = device_add(&mci->dev);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		edac_dbg(1, "failure: create device %s\n", dev_name(&mci->dev));
 		goto fail_unregister_bus;
 	}
@@ -940,25 +1049,36 @@ int edac_create_sysfs_mci_device(struct mem_ctl_info *mci,
 	/*
 	 * Create the dimm/rank devices
 	 */
-	for (i = 0; i < mci->tot_dimms; i++) {
+	for (i = 0; i < mci->tot_dimms; i++)
+	{
 		struct dimm_info *dimm = mci->dimms[i];
+
 		/* Only expose populated DIMMs */
 		if (!dimm->nr_pages)
+		{
 			continue;
+		}
 
 #ifdef CONFIG_EDAC_DEBUG
 		edac_dbg(1, "creating dimm%d, located at ", i);
-		if (edac_debug_level >= 1) {
+
+		if (edac_debug_level >= 1)
+		{
 			int lay;
+
 			for (lay = 0; lay < mci->n_layers; lay++)
 				printk(KERN_CONT "%s %d ",
-					edac_layer_name[mci->layers[lay].type],
-					dimm->location[lay]);
+					   edac_layer_name[mci->layers[lay].type],
+					   dimm->location[lay]);
+
 			printk(KERN_CONT "\n");
 		}
+
 #endif
 		err = edac_create_dimm_object(mci, dimm, i);
-		if (err) {
+
+		if (err)
+		{
 			edac_dbg(1, "failure: create dimm %d obj\n", i);
 			goto fail_unregister_dimm;
 		}
@@ -966,21 +1086,31 @@ int edac_create_sysfs_mci_device(struct mem_ctl_info *mci,
 
 #ifdef CONFIG_EDAC_LEGACY_SYSFS
 	err = edac_create_csrow_objects(mci);
+
 	if (err < 0)
+	{
 		goto fail_unregister_dimm;
+	}
+
 #endif
 
 	edac_create_debugfs_nodes(mci);
 	return 0;
 
 fail_unregister_dimm:
-	for (i--; i >= 0; i--) {
+
+	for (i--; i >= 0; i--)
+	{
 		struct dimm_info *dimm = mci->dimms[i];
+
 		if (!dimm->nr_pages)
+		{
 			continue;
+		}
 
 		device_unregister(&dimm->dev);
 	}
+
 	device_unregister(&mci->dev);
 fail_unregister_bus:
 	bus_unregister(mci->bus);
@@ -1005,10 +1135,15 @@ void edac_remove_sysfs_mci_device(struct mem_ctl_info *mci)
 	edac_delete_csrow_objects(mci);
 #endif
 
-	for (i = 0; i < mci->tot_dimms; i++) {
+	for (i = 0; i < mci->tot_dimms; i++)
+	{
 		struct dimm_info *dimm = mci->dimms[i];
+
 		if (dimm->nr_pages == 0)
+		{
 			continue;
+		}
+
 		edac_dbg(0, "removing device %s\n", dev_name(&dimm->dev));
 		device_unregister(&dimm->dev);
 	}
@@ -1036,7 +1171,8 @@ static void mc_attr_release(struct device *dev)
 	kfree(dev);
 }
 
-static struct device_type mc_attr_type = {
+static struct device_type mc_attr_type =
+{
 	.release	= mc_attr_release,
 };
 /*
@@ -1047,7 +1183,9 @@ int __init edac_mc_sysfs_init(void)
 	int err;
 
 	mci_pdev = kzalloc(sizeof(*mci_pdev), GFP_KERNEL);
-	if (!mci_pdev) {
+
+	if (!mci_pdev)
+	{
 		err = -ENOMEM;
 		goto out;
 	}
@@ -1058,16 +1196,19 @@ int __init edac_mc_sysfs_init(void)
 	dev_set_name(mci_pdev, "mc");
 
 	err = device_add(mci_pdev);
+
 	if (err < 0)
+	{
 		goto out_dev_free;
+	}
 
 	edac_dbg(0, "device %s created\n", dev_name(mci_pdev));
 
 	return 0;
 
- out_dev_free:
+out_dev_free:
 	kfree(mci_pdev);
- out:
+out:
 	return err;
 }
 

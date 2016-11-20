@@ -134,7 +134,8 @@
  *
  *
  */
-struct sci_remote_node_table {
+struct sci_remote_node_table
+{
 	/**
 	 * This field contains the array size in dwords
 	 */
@@ -165,8 +166,8 @@ struct sci_remote_node_table {
 	 */
 	u32 remote_node_groups[
 		SCU_STP_REMOTE_NODE_COUNT][
-		(SCI_MAX_REMOTE_DEVICES / (32 * SCU_STP_REMOTE_NODE_COUNT))
-		+ ((SCI_MAX_REMOTE_DEVICES % (32 * SCU_STP_REMOTE_NODE_COUNT)) != 0)];
+			(SCI_MAX_REMOTE_DEVICES / (32 * SCU_STP_REMOTE_NODE_COUNT))
+			+ ((SCI_MAX_REMOTE_DEVICES % (32 * SCU_STP_REMOTE_NODE_COUNT)) != 0)];
 
 };
 

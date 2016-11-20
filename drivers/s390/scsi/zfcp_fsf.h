@@ -170,7 +170,8 @@
 /* option */
 #define FSF_OPEN_LUN_SUPPRESS_BOXING		0x00000001
 
-struct fsf_queue_designator {
+struct fsf_queue_designator
+{
 	u8  cssid;
 	u8  chpid;
 	u8  hla;
@@ -178,7 +179,8 @@ struct fsf_queue_designator {
 	u32 res1;
 } __attribute__ ((packed));
 
-struct fsf_bit_error_payload {
+struct fsf_bit_error_payload
+{
 	u32 res1;
 	u32 link_failure_error_count;
 	u32 loss_of_sync_error_count;
@@ -195,7 +197,8 @@ struct fsf_bit_error_payload {
 	u32 current_transmit_b2b_credit;
 } __attribute__ ((packed));
 
-struct fsf_link_down_info {
+struct fsf_link_down_info
+{
 	u32 error_code;
 	u32 res1;
 	u8 res2[2];
@@ -207,7 +210,8 @@ struct fsf_link_down_info {
 	u8 vendor_specific_code;
 } __attribute__ ((packed));
 
-struct fsf_status_read_buffer {
+struct fsf_status_read_buffer
+{
 	u32 status_type;
 	u32 status_subtype;
 	u32 length;
@@ -218,31 +222,36 @@ struct fsf_status_read_buffer {
 	u32 class;
 	u64 fcp_lun;
 	u8  res3[24];
-	union {
+	union
+	{
 		u8  data[FSF_STATUS_READ_PAYLOAD_SIZE];
-		u32 word[FSF_STATUS_READ_PAYLOAD_SIZE/sizeof(u32)];
+		u32 word[FSF_STATUS_READ_PAYLOAD_SIZE / sizeof(u32)];
 		struct fsf_link_down_info link_down_info;
 		struct fsf_bit_error_payload bit_error;
 	} payload;
 } __attribute__ ((packed));
 
-struct fsf_qual_version_error {
+struct fsf_qual_version_error
+{
 	u32 fsf_version;
 	u32 res1[3];
 } __attribute__ ((packed));
 
-struct fsf_qual_sequence_error {
+struct fsf_qual_sequence_error
+{
 	u32 exp_req_seq_no;
 	u32 res1[3];
 } __attribute__ ((packed));
 
-struct fsf_qual_latency_info {
+struct fsf_qual_latency_info
+{
 	u32 channel_lat;
 	u32 fabric_lat;
 	u8 res1[8];
 } __attribute__ ((packed));
 
-union fsf_prot_status_qual {
+union fsf_prot_status_qual
+{
 	u32 word[FSF_PROT_STATUS_QUAL_SIZE / sizeof(u32)];
 	u64 doubleword[FSF_PROT_STATUS_QUAL_SIZE / sizeof(u64)];
 	struct fsf_qual_version_error   version_error;
@@ -251,7 +260,8 @@ union fsf_prot_status_qual {
 	struct fsf_qual_latency_info latency_info;
 } __attribute__ ((packed));
 
-struct fsf_qtcb_prefix {
+struct fsf_qtcb_prefix
+{
 	u64 req_id;
 	u32 qtcb_version;
 	u32 ulp_info;
@@ -262,7 +272,8 @@ struct fsf_qtcb_prefix {
 	u8  res1[20];
 } __attribute__ ((packed));
 
-struct fsf_statistics_info {
+struct fsf_statistics_info
+{
 	u64 input_req;
 	u64 output_req;
 	u64 control_req;
@@ -271,7 +282,8 @@ struct fsf_statistics_info {
 	u64 seconds_act;
 } __attribute__ ((packed));
 
-union fsf_status_qual {
+union fsf_status_qual
+{
 	u8  byte[FSF_STATUS_QUALIFIER_SIZE];
 	u16 halfword[FSF_STATUS_QUALIFIER_SIZE / sizeof (u16)];
 	u32 word[FSF_STATUS_QUALIFIER_SIZE / sizeof (u32)];
@@ -280,7 +292,8 @@ union fsf_status_qual {
 	struct fsf_link_down_info link_down_info;
 } __attribute__ ((packed));
 
-struct fsf_qtcb_header {
+struct fsf_qtcb_header
+{
 	u64 req_handle;
 	u32 fsf_command;
 	u32 res1;
@@ -300,7 +313,8 @@ struct fsf_qtcb_header {
 #define FSF_FCP_CMND_SIZE	288
 #define FSF_FCP_RSP_SIZE	128
 
-struct fsf_qtcb_bottom_io {
+struct fsf_qtcb_bottom_io
+{
 	u32 data_direction;
 	u32 service_class;
 	u8  res1;
@@ -316,7 +330,8 @@ struct fsf_qtcb_bottom_io {
 	u8  res3[64];
 } __attribute__ ((packed));
 
-struct fsf_qtcb_bottom_support {
+struct fsf_qtcb_bottom_support
+{
 	u32 operation_subtype;
 	u8  res1[13];
 	u8 d_id[3];
@@ -327,8 +342,8 @@ struct fsf_qtcb_bottom_support {
 	u32 service_class;
 	u8  res3[3];
 	u8  timeout;
-        u32 lun_access_info;
-        u8  res4[180];
+	u32 lun_access_info;
+	u8  res4[180];
 	u32 els1_length;
 	u32 els2_length;
 	u32 req_buf_length;
@@ -338,7 +353,8 @@ struct fsf_qtcb_bottom_support {
 
 #define ZFCP_FSF_TIMER_INT_MASK	0x3FFF
 
-struct fsf_qtcb_bottom_config {
+struct fsf_qtcb_bottom_config
+{
 	u32 lic_version;
 	u32 feature_selection;
 	u32 high_qtcb_version;
@@ -366,7 +382,8 @@ struct fsf_qtcb_bottom_config {
 	u8 res4[112];
 } __attribute__ ((packed));
 
-struct fsf_qtcb_bottom_port {
+struct fsf_qtcb_bottom_port
+{
 	u64 wwpn;
 	u32 fc_port_id;
 	u32 port_type;
@@ -402,21 +419,24 @@ struct fsf_qtcb_bottom_port {
 	u8 res2[253];
 } __attribute__ ((packed));
 
-union fsf_qtcb_bottom {
+union fsf_qtcb_bottom
+{
 	struct fsf_qtcb_bottom_io      io;
 	struct fsf_qtcb_bottom_support support;
 	struct fsf_qtcb_bottom_config  config;
 	struct fsf_qtcb_bottom_port port;
 };
 
-struct fsf_qtcb {
+struct fsf_qtcb
+{
 	struct fsf_qtcb_prefix prefix;
 	struct fsf_qtcb_header header;
 	union  fsf_qtcb_bottom bottom;
 	u8 log[FSF_QTCB_LOG_SIZE];
 } __attribute__ ((packed));
 
-struct zfcp_blk_drv_data {
+struct zfcp_blk_drv_data
+{
 #define ZFCP_BLK_DRV_DATA_MAGIC			0x1
 	u32 magic;
 #define ZFCP_BLK_LAT_VALID			0x1
@@ -438,7 +458,8 @@ struct zfcp_blk_drv_data {
  * @status: used to pass error status to calling function
  * @d_id: Destination ID of either open WKA port for CT or of D_ID for ELS
  */
-struct zfcp_fsf_ct_els {
+struct zfcp_fsf_ct_els
+{
 	struct scatterlist *req;
 	struct scatterlist *resp;
 	void (*handler)(void *);

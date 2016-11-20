@@ -41,11 +41,18 @@ __setup("irqaffinity=", irq_affinity_setup);
 static void __init init_irq_default_affinity(void)
 {
 #ifdef CONFIG_CPUMASK_OFFSTACK
+
 	if (!irq_default_affinity)
+	{
 		zalloc_cpumask_var(&irq_default_affinity, GFP_NOWAIT);
+	}
+
 #endif
+
 	if (cpumask_empty(irq_default_affinity))
+	{
 		cpumask_setall(irq_default_affinity);
+	}
 }
 #else
 static void __init init_irq_default_affinity(void)
@@ -57,23 +64,31 @@ static void __init init_irq_default_affinity(void)
 static int alloc_masks(struct irq_desc *desc, gfp_t gfp, int node)
 {
 	if (!zalloc_cpumask_var_node(&desc->irq_common_data.affinity,
-				     gfp, node))
+								 gfp, node))
+	{
 		return -ENOMEM;
+	}
 
 #ifdef CONFIG_GENERIC_PENDING_IRQ
-	if (!zalloc_cpumask_var_node(&desc->pending_mask, gfp, node)) {
+
+	if (!zalloc_cpumask_var_node(&desc->pending_mask, gfp, node))
+	{
 		free_cpumask_var(desc->irq_common_data.affinity);
 		return -ENOMEM;
 	}
+
 #endif
 	return 0;
 }
 
 static void desc_smp_init(struct irq_desc *desc, int node,
-			  const struct cpumask *affinity)
+						  const struct cpumask *affinity)
 {
 	if (!affinity)
+	{
 		affinity = irq_default_affinity;
+	}
+
 	cpumask_copy(desc->irq_common_data.affinity, affinity);
 
 #ifdef CONFIG_GENERIC_PENDING_IRQ
@@ -92,7 +107,7 @@ desc_smp_init(struct irq_desc *desc, int node, const struct cpumask *affinity) {
 #endif
 
 static void desc_set_defaults(unsigned int irq, struct irq_desc *desc, int node,
-			      const struct cpumask *affinity, struct module *owner)
+							  const struct cpumask *affinity, struct module *owner)
 {
 	int cpu;
 
@@ -112,7 +127,7 @@ static void desc_set_defaults(unsigned int irq, struct irq_desc *desc, int node,
 	desc->name = NULL;
 	desc->owner = owner;
 	for_each_possible_cpu(cpu)
-		*per_cpu_ptr(desc->kstat_irqs, cpu) = 0;
+	*per_cpu_ptr(desc->kstat_irqs, cpu) = 0;
 	desc_smp_init(desc, node, affinity);
 }
 
@@ -130,17 +145,18 @@ static void irq_kobj_release(struct kobject *kobj);
 static struct kobject *irq_kobj_base;
 
 #define IRQ_ATTR_RO(_name) \
-static struct kobj_attribute _name##_attr = __ATTR_RO(_name)
+	static struct kobj_attribute _name##_attr = __ATTR_RO(_name)
 
 static ssize_t per_cpu_count_show(struct kobject *kobj,
-				  struct kobj_attribute *attr, char *buf)
+								  struct kobj_attribute *attr, char *buf)
 {
 	struct irq_desc *desc = container_of(kobj, struct irq_desc, kobj);
 	int cpu, irq = desc->irq_data.irq;
 	ssize_t ret = 0;
 	char *p = "";
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		unsigned int c = kstat_irqs_cpu(irq, cpu);
 
 		ret += scnprintf(buf + ret, PAGE_SIZE - ret, "%s%u", p, c);
@@ -153,16 +169,19 @@ static ssize_t per_cpu_count_show(struct kobject *kobj,
 IRQ_ATTR_RO(per_cpu_count);
 
 static ssize_t chip_name_show(struct kobject *kobj,
-			      struct kobj_attribute *attr, char *buf)
+							  struct kobj_attribute *attr, char *buf)
 {
 	struct irq_desc *desc = container_of(kobj, struct irq_desc, kobj);
 	ssize_t ret = 0;
 
 	raw_spin_lock_irq(&desc->lock);
-	if (desc->irq_data.chip && desc->irq_data.chip->name) {
+
+	if (desc->irq_data.chip && desc->irq_data.chip->name)
+	{
 		ret = scnprintf(buf, PAGE_SIZE, "%s\n",
-				desc->irq_data.chip->name);
+						desc->irq_data.chip->name);
 	}
+
 	raw_spin_unlock_irq(&desc->lock);
 
 	return ret;
@@ -170,14 +189,18 @@ static ssize_t chip_name_show(struct kobject *kobj,
 IRQ_ATTR_RO(chip_name);
 
 static ssize_t hwirq_show(struct kobject *kobj,
-			  struct kobj_attribute *attr, char *buf)
+						  struct kobj_attribute *attr, char *buf)
 {
 	struct irq_desc *desc = container_of(kobj, struct irq_desc, kobj);
 	ssize_t ret = 0;
 
 	raw_spin_lock_irq(&desc->lock);
+
 	if (desc->irq_data.domain)
+	{
 		ret = sprintf(buf, "%d\n", (int)desc->irq_data.hwirq);
+	}
+
 	raw_spin_unlock_irq(&desc->lock);
 
 	return ret;
@@ -185,14 +208,14 @@ static ssize_t hwirq_show(struct kobject *kobj,
 IRQ_ATTR_RO(hwirq);
 
 static ssize_t type_show(struct kobject *kobj,
-			 struct kobj_attribute *attr, char *buf)
+						 struct kobj_attribute *attr, char *buf)
 {
 	struct irq_desc *desc = container_of(kobj, struct irq_desc, kobj);
 	ssize_t ret = 0;
 
 	raw_spin_lock_irq(&desc->lock);
 	ret = sprintf(buf, "%s\n",
-		      irqd_is_level_type(&desc->irq_data) ? "level" : "edge");
+				  irqd_is_level_type(&desc->irq_data) ? "level" : "edge");
 	raw_spin_unlock_irq(&desc->lock);
 
 	return ret;
@@ -201,14 +224,18 @@ static ssize_t type_show(struct kobject *kobj,
 IRQ_ATTR_RO(type);
 
 static ssize_t name_show(struct kobject *kobj,
-			 struct kobj_attribute *attr, char *buf)
+						 struct kobj_attribute *attr, char *buf)
 {
 	struct irq_desc *desc = container_of(kobj, struct irq_desc, kobj);
 	ssize_t ret = 0;
 
 	raw_spin_lock_irq(&desc->lock);
+
 	if (desc->name)
+	{
 		ret = scnprintf(buf, PAGE_SIZE, "%s\n", desc->name);
+	}
+
 	raw_spin_unlock_irq(&desc->lock);
 
 	return ret;
@@ -216,7 +243,7 @@ static ssize_t name_show(struct kobject *kobj,
 IRQ_ATTR_RO(name);
 
 static ssize_t actions_show(struct kobject *kobj,
-			    struct kobj_attribute *attr, char *buf)
+							struct kobj_attribute *attr, char *buf)
 {
 	struct irq_desc *desc = container_of(kobj, struct irq_desc, kobj);
 	struct irqaction *action;
@@ -224,21 +251,27 @@ static ssize_t actions_show(struct kobject *kobj,
 	char *p = "";
 
 	raw_spin_lock_irq(&desc->lock);
-	for (action = desc->action; action != NULL; action = action->next) {
+
+	for (action = desc->action; action != NULL; action = action->next)
+	{
 		ret += scnprintf(buf + ret, PAGE_SIZE - ret, "%s%s",
-				 p, action->name);
+						 p, action->name);
 		p = ",";
 	}
+
 	raw_spin_unlock_irq(&desc->lock);
 
 	if (ret)
+	{
 		ret += scnprintf(buf + ret, PAGE_SIZE - ret, "\n");
+	}
 
 	return ret;
 }
 IRQ_ATTR_RO(actions);
 
-static struct attribute *irq_attrs[] = {
+static struct attribute *irq_attrs[] =
+{
 	&per_cpu_count_attr.attr,
 	&chip_name_attr.attr,
 	&hwirq_attr.attr,
@@ -248,7 +281,8 @@ static struct attribute *irq_attrs[] = {
 	NULL
 };
 
-static struct kobj_type irq_kobj_type = {
+static struct kobj_type irq_kobj_type =
+{
 	.release	= irq_kobj_release,
 	.sysfs_ops	= &kobj_sysfs_ops,
 	.default_attrs	= irq_attrs,
@@ -256,13 +290,16 @@ static struct kobj_type irq_kobj_type = {
 
 static void irq_sysfs_add(int irq, struct irq_desc *desc)
 {
-	if (irq_kobj_base) {
+	if (irq_kobj_base)
+	{
 		/*
 		 * Continue even in case of failure as this is nothing
 		 * crucial.
 		 */
 		if (kobject_add(&desc->kobj, irq_kobj_base, "%d", irq))
+		{
 			pr_warn("Failed to add kobject for irq %d\n", irq);
+		}
 	}
 }
 
@@ -275,14 +312,16 @@ static int __init irq_sysfs_init(void)
 	irq_lock_sparse();
 
 	irq_kobj_base = kobject_create_and_add("irq", kernel_kobj);
-	if (!irq_kobj_base) {
+
+	if (!irq_kobj_base)
+	{
 		irq_unlock_sparse();
 		return -ENOMEM;
 	}
 
 	/* Add the already allocated interrupts */
 	for_each_irq_desc(irq, desc)
-		irq_sysfs_add(irq, desc);
+	irq_sysfs_add(irq, desc);
 	irq_unlock_sparse();
 
 	return 0;
@@ -291,7 +330,8 @@ postcore_initcall(irq_sysfs_init);
 
 #else /* !CONFIG_SYSFS */
 
-static struct kobj_type irq_kobj_type = {
+static struct kobj_type irq_kobj_type =
+{
 	.release	= irq_kobj_release,
 };
 
@@ -340,22 +380,31 @@ void irq_unlock_sparse(void)
 }
 
 static struct irq_desc *alloc_desc(int irq, int node, unsigned int flags,
-				   const struct cpumask *affinity,
-				   struct module *owner)
+								   const struct cpumask *affinity,
+								   struct module *owner)
 {
 	struct irq_desc *desc;
 	gfp_t gfp = GFP_KERNEL;
 
 	desc = kzalloc_node(sizeof(*desc), gfp, node);
+
 	if (!desc)
+	{
 		return NULL;
+	}
+
 	/* allocate based on nr_cpu_ids */
 	desc->kstat_irqs = alloc_percpu(unsigned int);
+
 	if (!desc->kstat_irqs)
+	{
 		goto err_desc;
+	}
 
 	if (alloc_masks(desc, gfp, node))
+	{
 		goto err_kstat;
+	}
 
 	raw_spin_lock_init(&desc->lock);
 	lockdep_set_class(&desc->lock, &irq_desc_lock_class);
@@ -419,7 +468,7 @@ static void free_desc(unsigned int irq)
 }
 
 static int alloc_descs(unsigned int start, unsigned int cnt, int node,
-		       const struct cpumask *affinity, struct module *owner)
+					   const struct cpumask *affinity, struct module *owner)
 {
 	const struct cpumask *mask = NULL;
 	struct irq_desc *desc;
@@ -427,35 +476,50 @@ static int alloc_descs(unsigned int start, unsigned int cnt, int node,
 	int i;
 
 	/* Validate affinity mask(s) */
-	if (affinity) {
-		for (i = 0, mask = affinity; i < cnt; i++, mask++) {
+	if (affinity)
+	{
+		for (i = 0, mask = affinity; i < cnt; i++, mask++)
+		{
 			if (cpumask_empty(mask))
+			{
 				return -EINVAL;
+			}
 		}
 	}
 
 	flags = affinity ? IRQD_AFFINITY_MANAGED : 0;
 	mask = NULL;
 
-	for (i = 0; i < cnt; i++) {
-		if (affinity) {
+	for (i = 0; i < cnt; i++)
+	{
+		if (affinity)
+		{
 			node = cpu_to_node(cpumask_first(affinity));
 			mask = affinity;
 			affinity++;
 		}
+
 		desc = alloc_desc(start + i, node, flags, mask, owner);
+
 		if (!desc)
+		{
 			goto err;
+		}
+
 		mutex_lock(&sparse_irq_lock);
 		irq_insert_desc(start + i, desc);
 		irq_sysfs_add(start + i, desc);
 		mutex_unlock(&sparse_irq_lock);
 	}
+
 	return start;
 
 err:
+
 	for (i--; i >= 0; i--)
+	{
 		free_desc(start + i);
+	}
 
 	mutex_lock(&sparse_irq_lock);
 	bitmap_clear(allocated_irqs, start, cnt);
@@ -466,7 +530,10 @@ err:
 static int irq_expand_nr_irqs(unsigned int nr)
 {
 	if (nr > IRQ_BITMAP_BITS)
+	{
 		return -ENOMEM;
+	}
+
 	nr_irqs = nr;
 	return 0;
 }
@@ -483,26 +550,35 @@ int __init early_irq_init(void)
 	printk(KERN_INFO "NR_IRQS:%d nr_irqs:%d %d\n", NR_IRQS, nr_irqs, initcnt);
 
 	if (WARN_ON(nr_irqs > IRQ_BITMAP_BITS))
+	{
 		nr_irqs = IRQ_BITMAP_BITS;
+	}
 
 	if (WARN_ON(initcnt > IRQ_BITMAP_BITS))
+	{
 		initcnt = IRQ_BITMAP_BITS;
+	}
 
 	if (initcnt > nr_irqs)
+	{
 		nr_irqs = initcnt;
+	}
 
-	for (i = 0; i < initcnt; i++) {
+	for (i = 0; i < initcnt; i++)
+	{
 		desc = alloc_desc(i, node, 0, NULL, NULL);
 		set_bit(i, allocated_irqs);
 		irq_insert_desc(i, desc);
 	}
+
 	return arch_early_irq_init();
 }
 
 #else /* !CONFIG_SPARSE_IRQ */
 
-struct irq_desc irq_desc[NR_IRQS] __cacheline_aligned_in_smp = {
-	[0 ... NR_IRQS-1] = {
+struct irq_desc irq_desc[NR_IRQS] __cacheline_aligned_in_smp =
+{
+	[0 ... NR_IRQS - 1] = {
 		.handle_irq	= handle_bad_irq,
 		.depth		= 1,
 		.lock		= __RAW_SPIN_LOCK_UNLOCKED(irq_desc->lock),
@@ -521,13 +597,15 @@ int __init early_irq_init(void)
 	desc = irq_desc;
 	count = ARRAY_SIZE(irq_desc);
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		desc[i].kstat_irqs = alloc_percpu(unsigned int);
 		alloc_masks(&desc[i], GFP_KERNEL, node);
 		raw_spin_lock_init(&desc[i].lock);
 		lockdep_set_class(&desc[i].lock, &irq_desc_lock_class);
 		desc_set_defaults(i, &desc[i], node, NULL, NULL);
 	}
+
 	return arch_early_irq_init();
 }
 
@@ -548,16 +626,18 @@ static void free_desc(unsigned int irq)
 }
 
 static inline int alloc_descs(unsigned int start, unsigned int cnt, int node,
-			      const struct cpumask *affinity,
-			      struct module *owner)
+							  const struct cpumask *affinity,
+							  struct module *owner)
 {
 	u32 i;
 
-	for (i = 0; i < cnt; i++) {
+	for (i = 0; i < cnt; i++)
+	{
 		struct irq_desc *desc = irq_to_desc(start + i);
 
 		desc->owner = owner;
 	}
+
 	return start;
 }
 
@@ -592,7 +672,10 @@ int generic_handle_irq(unsigned int irq)
 	struct irq_desc *desc = irq_to_desc(irq);
 
 	if (!desc)
+	{
 		return -EINVAL;
+	}
+
 	generic_handle_irq_desc(desc);
 	return 0;
 }
@@ -609,7 +692,7 @@ EXPORT_SYMBOL_GPL(generic_handle_irq);
  * Returns:	0 on success, or -EINVAL if conversion has failed
  */
 int __handle_domain_irq(struct irq_domain *domain, unsigned int hwirq,
-			bool lookup, struct pt_regs *regs)
+						bool lookup, struct pt_regs *regs)
 {
 	struct pt_regs *old_regs = set_irq_regs(regs);
 	unsigned int irq = hwirq;
@@ -618,18 +701,25 @@ int __handle_domain_irq(struct irq_domain *domain, unsigned int hwirq,
 	irq_enter();
 
 #ifdef CONFIG_IRQ_DOMAIN
+
 	if (lookup)
+	{
 		irq = irq_find_mapping(domain, hwirq);
+	}
+
 #endif
 
 	/*
 	 * Some hardware gives randomly wrong interrupts.  Rather
 	 * than crashing, do something sensible.
 	 */
-	if (unlikely(!irq || irq >= nr_irqs)) {
+	if (unlikely(!irq || irq >= nr_irqs))
+	{
 		ack_bad_irq(irq);
 		ret = -EINVAL;
-	} else {
+	}
+	else
+	{
 		generic_handle_irq(irq);
 	}
 
@@ -651,10 +741,14 @@ void irq_free_descs(unsigned int from, unsigned int cnt)
 	int i;
 
 	if (from >= nr_irqs || (from + cnt) > nr_irqs)
+	{
 		return;
+	}
 
 	for (i = 0; i < cnt; i++)
+	{
 		free_desc(from + i);
+	}
 
 	mutex_lock(&sparse_irq_lock);
 	bitmap_clear(allocated_irqs, from, cnt);
@@ -677,18 +771,26 @@ EXPORT_SYMBOL_GPL(irq_free_descs);
  */
 int __ref
 __irq_alloc_descs(int irq, unsigned int from, unsigned int cnt, int node,
-		  struct module *owner, const struct cpumask *affinity)
+				  struct module *owner, const struct cpumask *affinity)
 {
 	int start, ret;
 
 	if (!cnt)
+	{
 		return -EINVAL;
+	}
 
-	if (irq >= 0) {
+	if (irq >= 0)
+	{
 		if (from > irq)
+		{
 			return -EINVAL;
+		}
+
 		from = irq;
-	} else {
+	}
+	else
+	{
 		/*
 		 * For interrupts which are freely allocated the
 		 * architecture can force a lower bound to the @from
@@ -700,15 +802,22 @@ __irq_alloc_descs(int irq, unsigned int from, unsigned int cnt, int node,
 	mutex_lock(&sparse_irq_lock);
 
 	start = bitmap_find_next_zero_area(allocated_irqs, IRQ_BITMAP_BITS,
-					   from, cnt, 0);
+									   from, cnt, 0);
 	ret = -EEXIST;
-	if (irq >=0 && start != irq)
-		goto err;
 
-	if (start + cnt > nr_irqs) {
+	if (irq >= 0 && start != irq)
+	{
+		goto err;
+	}
+
+	if (start + cnt > nr_irqs)
+	{
 		ret = irq_expand_nr_irqs(start + cnt);
+
 		if (ret)
+		{
 			goto err;
+		}
 	}
 
 	bitmap_set(allocated_irqs, start, cnt);
@@ -734,20 +843,30 @@ unsigned int irq_alloc_hwirqs(int cnt, int node)
 	int i, irq = __irq_alloc_descs(-1, 0, cnt, node, NULL, NULL);
 
 	if (irq < 0)
+	{
 		return 0;
+	}
 
-	for (i = irq; cnt > 0; i++, cnt--) {
+	for (i = irq; cnt > 0; i++, cnt--)
+	{
 		if (arch_setup_hwirq(i, node))
+		{
 			goto err;
+		}
+
 		irq_clear_status_flags(i, _IRQ_NOREQUEST);
 	}
+
 	return irq;
 
 err:
-	for (i--; i >= irq; i--) {
+
+	for (i--; i >= irq; i--)
+	{
 		irq_set_status_flags(i, _IRQ_NOREQUEST | _IRQ_NOPROBE);
 		arch_teardown_hwirq(i);
 	}
+
 	irq_free_descs(irq, cnt);
 	return 0;
 }
@@ -763,10 +882,12 @@ void irq_free_hwirqs(unsigned int from, int cnt)
 {
 	int i, j;
 
-	for (i = from, j = cnt; j > 0; i++, j--) {
+	for (i = from, j = cnt; j > 0; i++, j--)
+	{
 		irq_set_status_flags(i, _IRQ_NOREQUEST | _IRQ_NOPROBE);
 		arch_teardown_hwirq(i);
 	}
+
 	irq_free_descs(from, cnt);
 }
 EXPORT_SYMBOL_GPL(irq_free_hwirqs);
@@ -785,55 +906,78 @@ unsigned int irq_get_next_irq(unsigned int offset)
 
 struct irq_desc *
 __irq_get_desc_lock(unsigned int irq, unsigned long *flags, bool bus,
-		    unsigned int check)
+					unsigned int check)
 {
 	struct irq_desc *desc = irq_to_desc(irq);
 
-	if (desc) {
-		if (check & _IRQ_DESC_CHECK) {
+	if (desc)
+	{
+		if (check & _IRQ_DESC_CHECK)
+		{
 			if ((check & _IRQ_DESC_PERCPU) &&
-			    !irq_settings_is_per_cpu_devid(desc))
+				!irq_settings_is_per_cpu_devid(desc))
+			{
 				return NULL;
+			}
 
 			if (!(check & _IRQ_DESC_PERCPU) &&
-			    irq_settings_is_per_cpu_devid(desc))
+				irq_settings_is_per_cpu_devid(desc))
+			{
 				return NULL;
+			}
 		}
 
 		if (bus)
+		{
 			chip_bus_lock(desc);
+		}
+
 		raw_spin_lock_irqsave(&desc->lock, *flags);
 	}
+
 	return desc;
 }
 
 void __irq_put_desc_unlock(struct irq_desc *desc, unsigned long flags, bool bus)
 {
 	raw_spin_unlock_irqrestore(&desc->lock, flags);
+
 	if (bus)
+	{
 		chip_bus_sync_unlock(desc);
+	}
 }
 
 int irq_set_percpu_devid_partition(unsigned int irq,
-				   const struct cpumask *affinity)
+								   const struct cpumask *affinity)
 {
 	struct irq_desc *desc = irq_to_desc(irq);
 
 	if (!desc)
+	{
 		return -EINVAL;
+	}
 
 	if (desc->percpu_enabled)
+	{
 		return -EINVAL;
+	}
 
 	desc->percpu_enabled = kzalloc(sizeof(*desc->percpu_enabled), GFP_KERNEL);
 
 	if (!desc->percpu_enabled)
+	{
 		return -ENOMEM;
+	}
 
 	if (affinity)
+	{
 		desc->percpu_affinity = affinity;
+	}
 	else
+	{
 		desc->percpu_affinity = cpu_possible_mask;
+	}
 
 	irq_set_percpu_devid_flags(irq);
 	return 0;
@@ -849,10 +993,14 @@ int irq_get_percpu_devid_partition(unsigned int irq, struct cpumask *affinity)
 	struct irq_desc *desc = irq_to_desc(irq);
 
 	if (!desc || !desc->percpu_enabled)
+	{
 		return -EINVAL;
+	}
 
 	if (affinity)
+	{
 		cpumask_copy(affinity, desc->percpu_affinity);
+	}
 
 	return 0;
 }
@@ -876,7 +1024,7 @@ unsigned int kstat_irqs_cpu(unsigned int irq, int cpu)
 	struct irq_desc *desc = irq_to_desc(irq);
 
 	return desc && desc->kstat_irqs ?
-			*per_cpu_ptr(desc->kstat_irqs, cpu) : 0;
+		   *per_cpu_ptr(desc->kstat_irqs, cpu) : 0;
 }
 
 /**
@@ -894,9 +1042,12 @@ unsigned int kstat_irqs(unsigned int irq)
 	unsigned int sum = 0;
 
 	if (!desc || !desc->kstat_irqs)
+	{
 		return 0;
+	}
+
 	for_each_possible_cpu(cpu)
-		sum += *per_cpu_ptr(desc->kstat_irqs, cpu);
+	sum += *per_cpu_ptr(desc->kstat_irqs, cpu);
 	return sum;
 }
 

@@ -27,7 +27,8 @@
 #include <linux/parport_pc.h>
 #include <linux/8250_pci.h>
 
-enum parport_pc_pci_cards {
+enum parport_pc_pci_cards
+{
 	titan_110l = 0,
 	titan_210l,
 	netmos_9xx5_combo,
@@ -69,10 +70,13 @@ enum parport_pc_pci_cards {
 };
 
 /* each element directly indexed from enum list, above */
-struct parport_pc_pci {
+struct parport_pc_pci
+{
 	int numports;
-	struct { /* BAR (base address registers) numbers in the config
-                    space header */
+	struct
+	{
+		/* BAR (base address registers) numbers in the config
+		                space header */
 		int lo;
 		int hi; /* -1 if not there, >6 for offset-method (max
                            BAR is 6) */
@@ -82,40 +86,49 @@ struct parport_pc_pci {
 	 * If it returns non-zero, no probing will take place and the
 	 * ports will not be used. */
 	int (*preinit_hook) (struct pci_dev *pdev, struct parport_pc_pci *card,
-				int autoirq, int autodma);
+						 int autoirq, int autodma);
 
 	/* If set, this is called after probing for ports.  If 'failed'
 	 * is non-zero we couldn't use any of the ports. */
 	void (*postinit_hook) (struct pci_dev *pdev,
-				struct parport_pc_pci *card, int failed);
+						   struct parport_pc_pci *card, int failed);
 };
 
 static int netmos_parallel_init(struct pci_dev *dev, struct parport_pc_pci *par,
-				int autoirq, int autodma)
+								int autoirq, int autodma)
 {
 	/* the rule described below doesn't hold for this device */
 	if (dev->device == PCI_DEVICE_ID_NETMOS_9835 &&
-			dev->subsystem_vendor == PCI_VENDOR_ID_IBM &&
-			dev->subsystem_device == 0x0299)
+		dev->subsystem_vendor == PCI_VENDOR_ID_IBM &&
+		dev->subsystem_device == 0x0299)
+	{
 		return -ENODEV;
+	}
 
-	if (dev->device == PCI_DEVICE_ID_NETMOS_9912) {
+	if (dev->device == PCI_DEVICE_ID_NETMOS_9912)
+	{
 		par->numports = 1;
-	} else {
+	}
+	else
+	{
 		/*
 		 * Netmos uses the subdevice ID to indicate the number of parallel
 		 * and serial ports.  The form is 0x00PS, where <P> is the number of
 		 * parallel ports and <S> is the number of serial ports.
 		 */
 		par->numports = (dev->subsystem_device & 0xf0) >> 4;
+
 		if (par->numports > ARRAY_SIZE(par->addr))
+		{
 			par->numports = ARRAY_SIZE(par->addr);
+		}
 	}
 
 	return 0;
 }
 
-static struct parport_pc_pci cards[] = {
+static struct parport_pc_pci cards[] =
+{
 	/* titan_110l */		{ 1, { { 3, -1 }, } },
 	/* titan_210l */		{ 1, { { 3, -1 }, } },
 	/* netmos_9xx5_combo */		{ 1, { { 2, -1 }, }, netmos_parallel_init },
@@ -159,83 +172,158 @@ static struct parport_pc_pci cards[] = {
 #define PCI_VENDOR_ID_SUNIX		0x1fd4
 #define PCI_DEVICE_ID_SUNIX_1999	0x1999
 
-static struct pci_device_id parport_serial_pci_tbl[] = {
+static struct pci_device_id parport_serial_pci_tbl[] =
+{
 	/* PCI cards */
-	{ PCI_VENDOR_ID_TITAN, PCI_DEVICE_ID_TITAN_110L,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, titan_110l },
-	{ PCI_VENDOR_ID_TITAN, PCI_DEVICE_ID_TITAN_210L,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, titan_210l },
-	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9735,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, netmos_9xx5_combo },
-	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9745,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, netmos_9xx5_combo },
-	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9835,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, netmos_9xx5_combo },
-	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9845,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, netmos_9xx5_combo },
-	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9855,
-	  0x1000, 0x0020, 0, 0, netmos_9855_2p },
-	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9855,
-	  0x1000, 0x0022, 0, 0, netmos_9855_2p },
-	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9855,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, netmos_9855 },
-	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9900,
-	  0xA000, 0x3011, 0, 0, netmos_9900 },
-	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9900,
-	  0xA000, 0x3012, 0, 0, netmos_9900 },
-	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9900,
-	  0xA000, 0x3020, 0, 0, netmos_9900_2p },
-	{ PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9912,
-	  0xA000, 0x2000, 0, 0, netmos_99xx_1p },
+	{
+		PCI_VENDOR_ID_TITAN, PCI_DEVICE_ID_TITAN_110L,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, titan_110l
+	},
+	{
+		PCI_VENDOR_ID_TITAN, PCI_DEVICE_ID_TITAN_210L,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, titan_210l
+	},
+	{
+		PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9735,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, netmos_9xx5_combo
+	},
+	{
+		PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9745,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, netmos_9xx5_combo
+	},
+	{
+		PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9835,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, netmos_9xx5_combo
+	},
+	{
+		PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9845,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, netmos_9xx5_combo
+	},
+	{
+		PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9855,
+		0x1000, 0x0020, 0, 0, netmos_9855_2p
+	},
+	{
+		PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9855,
+		0x1000, 0x0022, 0, 0, netmos_9855_2p
+	},
+	{
+		PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9855,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, netmos_9855
+	},
+	{
+		PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9900,
+		0xA000, 0x3011, 0, 0, netmos_9900
+	},
+	{
+		PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9900,
+		0xA000, 0x3012, 0, 0, netmos_9900
+	},
+	{
+		PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9900,
+		0xA000, 0x3020, 0, 0, netmos_9900_2p
+	},
+	{
+		PCI_VENDOR_ID_NETMOS, PCI_DEVICE_ID_NETMOS_9912,
+		0xA000, 0x2000, 0, 0, netmos_99xx_1p
+	},
 	/* PCI_VENDOR_ID_AVLAB/Intek21 has another bunch of cards ...*/
-	{ PCI_VENDOR_ID_AFAVLAB, 0x2110,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, avlab_1s1p },
-	{ PCI_VENDOR_ID_AFAVLAB, 0x2111,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, avlab_1s1p },
-	{ PCI_VENDOR_ID_AFAVLAB, 0x2112,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, avlab_1s1p },
-	{ PCI_VENDOR_ID_AFAVLAB, 0x2140,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, avlab_1s2p },
-	{ PCI_VENDOR_ID_AFAVLAB, 0x2141,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, avlab_1s2p },
-	{ PCI_VENDOR_ID_AFAVLAB, 0x2142,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, avlab_1s2p },
-	{ PCI_VENDOR_ID_AFAVLAB, 0x2160,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, avlab_2s1p },
-	{ PCI_VENDOR_ID_AFAVLAB, 0x2161,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, avlab_2s1p },
-	{ PCI_VENDOR_ID_AFAVLAB, 0x2162,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, avlab_2s1p },
-	{ PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_1S1P_10x_550,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_1s1p_10x },
-	{ PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_1S1P_10x_650,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_1s1p_10x },
-	{ PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_1S1P_10x_850,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_1s1p_10x },
-	{ PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_2S1P_10x_550,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_2s1p_10x },
-	{ PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_2S1P_10x_650,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_2s1p_10x },
-	{ PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_2S1P_10x_850,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_2s1p_10x },
-	{ PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_2P1S_20x_550,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_2p1s_20x },
-	{ PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_2P1S_20x_650,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_2p1s_20x },
-	{ PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_2P1S_20x_850,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_2p1s_20x },
-	{ PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_1S1P_20x_550,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_2s1p_20x },
-	{ PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_1S1P_20x_650,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_1s1p_20x },
-	{ PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_1S1P_20x_850,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_1s1p_20x },
-	{ PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_2S1P_20x_550,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_2s1p_20x },
-	{ PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_2S1P_20x_650,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_2s1p_20x },
-	{ PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_2S1P_20x_850,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_2s1p_20x },
+	{
+		PCI_VENDOR_ID_AFAVLAB, 0x2110,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, avlab_1s1p
+	},
+	{
+		PCI_VENDOR_ID_AFAVLAB, 0x2111,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, avlab_1s1p
+	},
+	{
+		PCI_VENDOR_ID_AFAVLAB, 0x2112,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, avlab_1s1p
+	},
+	{
+		PCI_VENDOR_ID_AFAVLAB, 0x2140,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, avlab_1s2p
+	},
+	{
+		PCI_VENDOR_ID_AFAVLAB, 0x2141,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, avlab_1s2p
+	},
+	{
+		PCI_VENDOR_ID_AFAVLAB, 0x2142,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, avlab_1s2p
+	},
+	{
+		PCI_VENDOR_ID_AFAVLAB, 0x2160,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, avlab_2s1p
+	},
+	{
+		PCI_VENDOR_ID_AFAVLAB, 0x2161,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, avlab_2s1p
+	},
+	{
+		PCI_VENDOR_ID_AFAVLAB, 0x2162,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, avlab_2s1p
+	},
+	{
+		PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_1S1P_10x_550,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_1s1p_10x
+	},
+	{
+		PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_1S1P_10x_650,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_1s1p_10x
+	},
+	{
+		PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_1S1P_10x_850,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_1s1p_10x
+	},
+	{
+		PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_2S1P_10x_550,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_2s1p_10x
+	},
+	{
+		PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_2S1P_10x_650,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_2s1p_10x
+	},
+	{
+		PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_2S1P_10x_850,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_2s1p_10x
+	},
+	{
+		PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_2P1S_20x_550,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_2p1s_20x
+	},
+	{
+		PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_2P1S_20x_650,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_2p1s_20x
+	},
+	{
+		PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_2P1S_20x_850,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_2p1s_20x
+	},
+	{
+		PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_1S1P_20x_550,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_2s1p_20x
+	},
+	{
+		PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_1S1P_20x_650,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_1s1p_20x
+	},
+	{
+		PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_1S1P_20x_850,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_1s1p_20x
+	},
+	{
+		PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_2S1P_20x_550,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_2s1p_20x
+	},
+	{
+		PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_2S1P_20x_650,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_2s1p_20x
+	},
+	{
+		PCI_VENDOR_ID_SIIG, PCI_DEVICE_ID_SIIG_2S1P_20x_850,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, siig_2s1p_20x
+	},
 	/* PCI_VENDOR_ID_TIMEDIA/SUNIX has many differing cards ...*/
 	{ 0x1409, 0x7168, 0x1409, 0x4078, 0, 0, timedia_4078a },
 	{ 0x1409, 0x7168, 0x1409, 0x4079, 0, 0, timedia_4079h },
@@ -266,12 +354,14 @@ static struct pci_device_id parport_serial_pci_tbl[] = {
 	 * '5079A but subdevice 0x102. That board reports 0x0708 as
 	 * its PCI Class.
 	 */
-	{ PCI_VENDOR_ID_SUNIX, PCI_DEVICE_ID_SUNIX_1999, PCI_VENDOR_ID_SUNIX,
-	  0x0102, 0, 0, sunix_2s1p },
+	{
+		PCI_VENDOR_ID_SUNIX, PCI_DEVICE_ID_SUNIX_1999, PCI_VENDOR_ID_SUNIX,
+		0x0102, 0, 0, sunix_2s1p
+	},
 
 	{ 0, } /* terminate list */
 };
-MODULE_DEVICE_TABLE(pci,parport_serial_pci_tbl);
+MODULE_DEVICE_TABLE(pci, parport_serial_pci_tbl);
 
 /*
  * This table describes the serial "geometry" of these boards.  Any
@@ -280,7 +370,8 @@ MODULE_DEVICE_TABLE(pci,parport_serial_pci_tbl);
  * Cards not tested are marked n/t
  * If you have one of these cards and it works for you, please tell me..
  */
-static struct pciserial_board pci_parport_serial_boards[] = {
+static struct pciserial_board pci_parport_serial_boards[] =
+{
 	[titan_110l] = {
 		.flags		= FL_BASE1 | FL_BASE_BARS,
 		.num_ports	= 1,
@@ -378,121 +469,121 @@ static struct pciserial_board pci_parport_serial_boards[] = {
 		.uart_offset	= 8,
 	},
 	[timedia_4078a] = {
-		.flags		= FL_BASE0|FL_BASE_BARS,
+		.flags		= FL_BASE0 | FL_BASE_BARS,
 		.num_ports	= 1,
 		.base_baud	= 921600,
 		.uart_offset	= 8,
 	},
 	[timedia_4079h] = {
-		.flags		= FL_BASE0|FL_BASE_BARS,
+		.flags		= FL_BASE0 | FL_BASE_BARS,
 		.num_ports	= 1,
 		.base_baud	= 921600,
 		.uart_offset	= 8,
 	},
 	[timedia_4085h] = {
-		.flags		= FL_BASE0|FL_BASE_BARS,
+		.flags		= FL_BASE0 | FL_BASE_BARS,
 		.num_ports	= 1,
 		.base_baud	= 921600,
 		.uart_offset	= 8,
 	},
 	[timedia_4088a] = {
-		.flags		= FL_BASE0|FL_BASE_BARS,
+		.flags		= FL_BASE0 | FL_BASE_BARS,
 		.num_ports	= 1,
 		.base_baud	= 921600,
 		.uart_offset	= 8,
 	},
 	[timedia_4089a] = {
-		.flags		= FL_BASE0|FL_BASE_BARS,
+		.flags		= FL_BASE0 | FL_BASE_BARS,
 		.num_ports	= 1,
 		.base_baud	= 921600,
 		.uart_offset	= 8,
 	},
 	[timedia_4095a] = {
-		.flags		= FL_BASE0|FL_BASE_BARS,
+		.flags		= FL_BASE0 | FL_BASE_BARS,
 		.num_ports	= 1,
 		.base_baud	= 921600,
 		.uart_offset	= 8,
 	},
 	[timedia_4096a] = {
-		.flags		= FL_BASE0|FL_BASE_BARS,
+		.flags		= FL_BASE0 | FL_BASE_BARS,
 		.num_ports	= 1,
 		.base_baud	= 921600,
 		.uart_offset	= 8,
 	},
 	[timedia_4078u] = {
-		.flags		= FL_BASE0|FL_BASE_BARS,
+		.flags		= FL_BASE0 | FL_BASE_BARS,
 		.num_ports	= 1,
 		.base_baud	= 921600,
 		.uart_offset	= 8,
 	},
 	[timedia_4079a] = {
-		.flags		= FL_BASE0|FL_BASE_BARS,
+		.flags		= FL_BASE0 | FL_BASE_BARS,
 		.num_ports	= 1,
 		.base_baud	= 921600,
 		.uart_offset	= 8,
 	},
 	[timedia_4085u] = {
-		.flags		= FL_BASE0|FL_BASE_BARS,
+		.flags		= FL_BASE0 | FL_BASE_BARS,
 		.num_ports	= 1,
 		.base_baud	= 921600,
 		.uart_offset	= 8,
 	},
 	[timedia_4079r] = {
-		.flags		= FL_BASE0|FL_BASE_BARS,
+		.flags		= FL_BASE0 | FL_BASE_BARS,
 		.num_ports	= 1,
 		.base_baud	= 921600,
 		.uart_offset	= 8,
 	},
 	[timedia_4079s] = {
-		.flags		= FL_BASE0|FL_BASE_BARS,
+		.flags		= FL_BASE0 | FL_BASE_BARS,
 		.num_ports	= 1,
 		.base_baud	= 921600,
 		.uart_offset	= 8,
 	},
 	[timedia_4079d] = {
-		.flags		= FL_BASE0|FL_BASE_BARS,
+		.flags		= FL_BASE0 | FL_BASE_BARS,
 		.num_ports	= 1,
 		.base_baud	= 921600,
 		.uart_offset	= 8,
 	},
 	[timedia_4079e] = {
-		.flags		= FL_BASE0|FL_BASE_BARS,
+		.flags		= FL_BASE0 | FL_BASE_BARS,
 		.num_ports	= 1,
 		.base_baud	= 921600,
 		.uart_offset	= 8,
 	},
 	[timedia_4079f] = {
-		.flags		= FL_BASE0|FL_BASE_BARS,
+		.flags		= FL_BASE0 | FL_BASE_BARS,
 		.num_ports	= 1,
 		.base_baud	= 921600,
 		.uart_offset	= 8,
 	},
 	[timedia_9079a] = {
-		.flags		= FL_BASE0|FL_BASE_BARS,
+		.flags		= FL_BASE0 | FL_BASE_BARS,
 		.num_ports	= 1,
 		.base_baud	= 921600,
 		.uart_offset	= 8,
 	},
 	[timedia_9079b] = {
-		.flags		= FL_BASE0|FL_BASE_BARS,
+		.flags		= FL_BASE0 | FL_BASE_BARS,
 		.num_ports	= 1,
 		.base_baud	= 921600,
 		.uart_offset	= 8,
 	},
 	[timedia_9079c] = {
-		.flags		= FL_BASE0|FL_BASE_BARS,
+		.flags		= FL_BASE0 | FL_BASE_BARS,
 		.num_ports	= 1,
 		.base_baud	= 921600,
 		.uart_offset	= 8,
 	},
 	[wch_ch353_1s1p] = {
-		.flags          = FL_BASE0|FL_BASE_BARS,
+		.flags          = FL_BASE0 | FL_BASE_BARS,
 		.num_ports      = 1,
 		.base_baud      = 115200,
 		.uart_offset    = 8,
 	},
 	[wch_ch353_2s1p] = {
-		.flags          = FL_BASE0|FL_BASE_BARS,
+		.flags          = FL_BASE0 | FL_BASE_BARS,
 		.num_ports      = 2,
 		.base_baud      = 115200,
 		.uart_offset    = 8,
@@ -505,14 +596,15 @@ static struct pciserial_board pci_parport_serial_boards[] = {
 		.first_offset   = 0xC0,
 	},
 	[sunix_2s1p] = {
-		.flags		= FL_BASE0|FL_BASE_BARS,
+		.flags		= FL_BASE0 | FL_BASE_BARS,
 		.num_ports	= 2,
 		.base_baud	= 921600,
 		.uart_offset	= 8,
 	},
 };
 
-struct parport_serial_private {
+struct parport_serial_private
+{
 	struct serial_private	*serial;
 	int num_par;
 	struct parport *port[PARPORT_MAX];
@@ -529,12 +621,16 @@ static int serial_register(struct pci_dev *dev, const struct pci_device_id *id)
 	board = &pci_parport_serial_boards[id->driver_data];
 
 	if (board->num_ports == 0)
+	{
 		return 0;
+	}
 
 	serial = pciserial_init_ports(dev, board);
 
 	if (IS_ERR(serial))
+	{
 		return PTR_ERR(serial);
+	}
 
 	priv->serial = serial;
 	return 0;
@@ -549,85 +645,117 @@ static int parport_register(struct pci_dev *dev, const struct pci_device_id *id)
 
 	priv->par = cards[id->driver_data];
 	card = &priv->par;
-	if (card->preinit_hook &&
-	    card->preinit_hook (dev, card, PARPORT_IRQ_NONE, PARPORT_DMA_NONE))
-		return -ENODEV;
 
-	for (n = 0; n < card->numports; n++) {
+	if (card->preinit_hook &&
+		card->preinit_hook (dev, card, PARPORT_IRQ_NONE, PARPORT_DMA_NONE))
+	{
+		return -ENODEV;
+	}
+
+	for (n = 0; n < card->numports; n++)
+	{
 		struct parport *port;
 		int lo = card->addr[n].lo;
 		int hi = card->addr[n].hi;
 		unsigned long io_lo, io_hi;
 		int irq;
 
-		if (priv->num_par == ARRAY_SIZE (priv->port)) {
+		if (priv->num_par == ARRAY_SIZE (priv->port))
+		{
 			printk (KERN_WARNING
-				"parport_serial: %s: only %zu parallel ports "
-				"supported (%d reported)\n", pci_name (dev),
-				ARRAY_SIZE(priv->port), card->numports);
+					"parport_serial: %s: only %zu parallel ports "
+					"supported (%d reported)\n", pci_name (dev),
+					ARRAY_SIZE(priv->port), card->numports);
 			break;
 		}
 
 		io_lo = pci_resource_start (dev, lo);
 		io_hi = 0;
+
 		if ((hi >= 0) && (hi <= 6))
+		{
 			io_hi = pci_resource_start (dev, hi);
+		}
 		else if (hi > 6)
-			io_lo += hi; /* Reinterpret the meaning of
+		{
+			io_lo += hi;
+		} /* Reinterpret the meaning of
+
                                         "hi" as an offset (see SYBA
                                         def.) */
 		/* TODO: test if sharing interrupts works */
 		irq = dev->irq;
-		if (irq == IRQ_NONE) {
+
+		if (irq == IRQ_NONE)
+		{
 			dev_dbg(&dev->dev,
-			"PCI parallel port detected: I/O at %#lx(%#lx)\n",
-				io_lo, io_hi);
+					"PCI parallel port detected: I/O at %#lx(%#lx)\n",
+					io_lo, io_hi);
 			irq = PARPORT_IRQ_NONE;
-		} else {
-			dev_dbg(&dev->dev,
-		"PCI parallel port detected: I/O at %#lx(%#lx), IRQ %d\n",
-				io_lo, io_hi, irq);
 		}
+		else
+		{
+			dev_dbg(&dev->dev,
+					"PCI parallel port detected: I/O at %#lx(%#lx), IRQ %d\n",
+					io_lo, io_hi, irq);
+		}
+
 		port = parport_pc_probe_port (io_lo, io_hi, irq,
-			      PARPORT_DMA_NONE, &dev->dev, IRQF_SHARED);
-		if (port) {
+									  PARPORT_DMA_NONE, &dev->dev, IRQF_SHARED);
+
+		if (port)
+		{
 			priv->port[priv->num_par++] = port;
 			success = 1;
 		}
 	}
 
 	if (card->postinit_hook)
+	{
 		card->postinit_hook (dev, card, !success);
+	}
 
 	return 0;
 }
 
 static int parport_serial_pci_probe(struct pci_dev *dev,
-				    const struct pci_device_id *id)
+									const struct pci_device_id *id)
 {
 	struct parport_serial_private *priv;
 	int err;
 
-	priv = kzalloc (sizeof *priv, GFP_KERNEL);
+	priv = kzalloc (sizeof * priv, GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
+
 	pci_set_drvdata (dev, priv);
 
 	err = pci_enable_device (dev);
-	if (err) {
+
+	if (err)
+	{
 		kfree (priv);
 		return err;
 	}
 
-	if (parport_register (dev, id)) {
+	if (parport_register (dev, id))
+	{
 		kfree (priv);
 		return -ENODEV;
 	}
 
-	if (serial_register (dev, id)) {
+	if (serial_register (dev, id))
+	{
 		int i;
+
 		for (i = 0; i < priv->num_par; i++)
+		{
 			parport_pc_unregister_port (priv->port[i]);
+		}
+
 		kfree (priv);
 		return -ENODEV;
 	}
@@ -642,11 +770,15 @@ static void parport_serial_pci_remove(struct pci_dev *dev)
 
 	// Serial ports
 	if (priv->serial)
+	{
 		pciserial_remove_ports(priv->serial);
+	}
 
 	// Parallel ports
 	for (i = 0; i < priv->num_par; i++)
+	{
 		parport_pc_unregister_port (priv->port[i]);
+	}
 
 	kfree (priv);
 	return;
@@ -658,7 +790,9 @@ static int parport_serial_pci_suspend(struct pci_dev *dev, pm_message_t state)
 	struct parport_serial_private *priv = pci_get_drvdata(dev);
 
 	if (priv->serial)
+	{
 		pciserial_suspend_ports(priv->serial);
+	}
 
 	/* FIXME: What about parport? */
 
@@ -679,14 +813,18 @@ static int parport_serial_pci_resume(struct pci_dev *dev)
 	 * The device may have been disabled.  Re-enable it.
 	 */
 	err = pci_enable_device(dev);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR "parport_serial: %s: error enabling "
-			"device for resume (%d)\n", pci_name(dev), err);
+			   "device for resume (%d)\n", pci_name(dev), err);
 		return err;
 	}
 
 	if (priv->serial)
+	{
 		pciserial_resume_ports(priv->serial);
+	}
 
 	/* FIXME: What about parport? */
 
@@ -694,7 +832,8 @@ static int parport_serial_pci_resume(struct pci_dev *dev)
 }
 #endif
 
-static struct pci_driver parport_serial_pci_driver = {
+static struct pci_driver parport_serial_pci_driver =
+{
 	.name		= "parport_serial",
 	.id_table	= parport_serial_pci_tbl,
 	.probe		= parport_serial_pci_probe,

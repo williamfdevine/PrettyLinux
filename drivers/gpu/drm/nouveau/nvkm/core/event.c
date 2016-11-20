@@ -26,11 +26,17 @@ void
 nvkm_event_put(struct nvkm_event *event, u32 types, int index)
 {
 	assert_spin_locked(&event->refs_lock);
-	while (types) {
+
+	while (types)
+	{
 		int type = __ffs(types); types &= ~(1 << type);
-		if (--event->refs[index * event->types_nr + type] == 0) {
+
+		if (--event->refs[index * event->types_nr + type] == 0)
+		{
 			if (event->func->fini)
+			{
 				event->func->fini(event, 1 << type, index);
+			}
 		}
 	}
 }
@@ -39,32 +45,44 @@ void
 nvkm_event_get(struct nvkm_event *event, u32 types, int index)
 {
 	assert_spin_locked(&event->refs_lock);
-	while (types) {
+
+	while (types)
+	{
 		int type = __ffs(types); types &= ~(1 << type);
-		if (++event->refs[index * event->types_nr + type] == 1) {
+
+		if (++event->refs[index * event->types_nr + type] == 1)
+		{
 			if (event->func->init)
+			{
 				event->func->init(event, 1 << type, index);
+			}
 		}
 	}
 }
 
 void
 nvkm_event_send(struct nvkm_event *event, u32 types, int index,
-		void *data, u32 size)
+				void *data, u32 size)
 {
 	struct nvkm_notify *notify;
 	unsigned long flags;
 
 	if (!event->refs || WARN_ON(index >= event->index_nr))
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&event->list_lock, flags);
-	list_for_each_entry(notify, &event->list, head) {
-		if (notify->index == index && (notify->types & types)) {
-			if (event->func->send) {
+	list_for_each_entry(notify, &event->list, head)
+	{
+		if (notify->index == index && (notify->types & types))
+		{
+			if (event->func->send)
+			{
 				event->func->send(data, size, notify);
 				continue;
 			}
+
 			nvkm_notify_send(notify, data, size);
 		}
 	}
@@ -74,7 +92,8 @@ nvkm_event_send(struct nvkm_event *event, u32 types, int index,
 void
 nvkm_event_fini(struct nvkm_event *event)
 {
-	if (event->refs) {
+	if (event->refs)
+	{
 		kfree(event->refs);
 		event->refs = NULL;
 	}
@@ -82,12 +101,15 @@ nvkm_event_fini(struct nvkm_event *event)
 
 int
 nvkm_event_init(const struct nvkm_event_func *func, int types_nr, int index_nr,
-		struct nvkm_event *event)
+				struct nvkm_event *event)
 {
 	event->refs = kzalloc(sizeof(*event->refs) * index_nr * types_nr,
-			      GFP_KERNEL);
+						  GFP_KERNEL);
+
 	if (!event->refs)
+	{
 		return -ENOMEM;
+	}
 
 	event->func = func;
 	event->types_nr = types_nr;

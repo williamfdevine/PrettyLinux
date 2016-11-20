@@ -159,9 +159,9 @@
 #define LPFC_BSG_DMP_MBX_WR_MBX 0x00000004
 #define LPFC_BSG_DMP_MBX_WR_BUF 0x00000008
 #define LPFC_BSG_DMP_MBX_ALL (LPFC_BSG_DMP_MBX_RD_MBX | \
-			      LPFC_BSG_DMP_MBX_RD_BUF | \
-			      LPFC_BSG_DMP_MBX_WR_MBX | \
-			      LPFC_BSG_DMP_MBX_WR_BUF)
+							  LPFC_BSG_DMP_MBX_RD_BUF | \
+							  LPFC_BSG_DMP_MBX_WR_MBX | \
+							  LPFC_BSG_DMP_MBX_WR_BUF)
 
 #define LPFC_MBX_DMP_ALL 0xffff
 #define LPFC_MBX_ALL_CMD 0xff
@@ -179,8 +179,8 @@
 #define LPFC_EXT_ACC_ALLOC 0x2
 #define LPFC_EXT_ACC_DRIVR 0x4
 #define LPFC_EXT_ACC_ALL   (LPFC_EXT_ACC_DRIVR | \
-			    LPFC_EXT_ACC_AVAIL | \
-			    LPFC_EXT_ACC_ALLOC)
+							LPFC_EXT_ACC_AVAIL | \
+							LPFC_EXT_ACC_ALLOC)
 
 #define IDIAG_EXTACC_EXMAP_INDX 0
 
@@ -188,7 +188,8 @@
 #define SIZE_U16 sizeof(uint16_t)
 #define SIZE_U32 sizeof(uint32_t)
 
-struct lpfc_debug {
+struct lpfc_debug
+{
 	char *i_private;
 	char op;
 #define LPFC_IDIAG_OP_RD 1
@@ -197,7 +198,8 @@ struct lpfc_debug {
 	int  len;
 };
 
-struct lpfc_debugfs_trc {
+struct lpfc_debugfs_trc
+{
 	char *fmt;
 	uint32_t data1;
 	uint32_t data2;
@@ -206,12 +208,14 @@ struct lpfc_debugfs_trc {
 	unsigned long jif;
 };
 
-struct lpfc_idiag_offset {
+struct lpfc_idiag_offset
+{
 	uint32_t last_rd;
 };
 
 #define LPFC_IDIAG_CMD_DATA_SIZE 8
-struct lpfc_idiag_cmd {
+struct lpfc_idiag_cmd
+{
 	uint32_t opcode;
 #define LPFC_IDIAG_CMD_PCICFG_RD 0x00000001
 #define LPFC_IDIAG_CMD_PCICFG_WR 0x00000002
@@ -246,7 +250,8 @@ struct lpfc_idiag_cmd {
 	uint32_t data[LPFC_IDIAG_CMD_DATA_SIZE];
 };
 
-struct lpfc_idiag {
+struct lpfc_idiag
+{
 	uint32_t active;
 	struct lpfc_idiag_cmd cmd;
 	struct lpfc_idiag_offset offset;
@@ -295,36 +300,54 @@ lpfc_debug_dump_qe(struct lpfc_queue *q, uint32_t idx)
 
 	/* sanity checks */
 	if (!q)
+	{
 		return;
+	}
+
 	if (idx >= q->entry_count)
+	{
 		return;
+	}
 
 	esize = q->entry_size;
 	qe_word_cnt = esize / sizeof(uint32_t);
 	pword = q->qe[idx].address;
 
 	len = 0;
-	len += snprintf(line_buf+len, LPFC_LBUF_SZ-len, "QE[%04d]: ", idx);
-	if (qe_word_cnt > 8)
-		printk(KERN_ERR "%s\n", line_buf);
+	len += snprintf(line_buf + len, LPFC_LBUF_SZ - len, "QE[%04d]: ", idx);
 
-	for (i = 0; i < qe_word_cnt; i++) {
-		if (!(i % 8)) {
+	if (qe_word_cnt > 8)
+	{
+		printk(KERN_ERR "%s\n", line_buf);
+	}
+
+	for (i = 0; i < qe_word_cnt; i++)
+	{
+		if (!(i % 8))
+		{
 			if (i != 0)
+			{
 				printk(KERN_ERR "%s\n", line_buf);
-			if (qe_word_cnt > 8) {
+			}
+
+			if (qe_word_cnt > 8)
+			{
 				len = 0;
 				memset(line_buf, 0, LPFC_LBUF_SZ);
-				len += snprintf(line_buf+len, LPFC_LBUF_SZ-len,
-						"%03d: ", i);
+				len += snprintf(line_buf + len, LPFC_LBUF_SZ - len,
+								"%03d: ", i);
 			}
 		}
-		len += snprintf(line_buf+len, LPFC_LBUF_SZ-len, "%08x ",
-				((uint32_t)*pword) & 0xffffffff);
+
+		len += snprintf(line_buf + len, LPFC_LBUF_SZ - len, "%08x ",
+						((uint32_t) * pword) & 0xffffffff);
 		pword++;
 	}
+
 	if (qe_word_cnt <= 8 || (i - 1) % 8)
+	{
 		printk(KERN_ERR "%s\n", line_buf);
+	}
 }
 
 /**
@@ -341,19 +364,25 @@ lpfc_debug_dump_q(struct lpfc_queue *q)
 
 	/* sanity check */
 	if (!q)
+	{
 		return;
+	}
 
 	dev_printk(KERN_ERR, &(((q->phba))->pcidev)->dev,
-		"%d: [qid:%d, type:%d, subtype:%d, "
-		"qe_size:%d, qe_count:%d, "
-		"host_index:%d, port_index:%d]\n",
-		(q->phba)->brd_no,
-		q->queue_id, q->type, q->subtype,
-		q->entry_size, q->entry_count,
-		q->host_index, q->hba_index);
+			   "%d: [qid:%d, type:%d, subtype:%d, "
+			   "qe_size:%d, qe_count:%d, "
+			   "host_index:%d, port_index:%d]\n",
+			   (q->phba)->brd_no,
+			   q->queue_id, q->type, q->subtype,
+			   q->entry_size, q->entry_count,
+			   q->host_index, q->hba_index);
 	entry_count = q->entry_count;
+
 	for (idx = 0; idx < entry_count; idx++)
+	{
 		lpfc_debug_dump_qe(q, idx);
+	}
+
 	printk(KERN_ERR "\n");
 }
 
@@ -370,10 +399,12 @@ lpfc_debug_dump_fcp_wq(struct lpfc_hba *phba, int fcp_wqidx)
 {
 	/* sanity check */
 	if (fcp_wqidx >= phba->cfg_fcp_io_channel)
+	{
 		return;
+	}
 
 	printk(KERN_ERR "FCP WQ: WQ[Idx:%d|Qid:%d]\n",
-		fcp_wqidx, phba->sli4_hba.fcp_wq[fcp_wqidx]->queue_id);
+		   fcp_wqidx, phba->sli4_hba.fcp_wq[fcp_wqidx]->queue_id);
 	lpfc_debug_dump_q(phba->sli4_hba.fcp_wq[fcp_wqidx]);
 }
 
@@ -392,23 +423,36 @@ lpfc_debug_dump_fcp_cq(struct lpfc_hba *phba, int fcp_wqidx)
 
 	/* sanity check */
 	if (fcp_wqidx >= phba->cfg_fcp_io_channel)
+	{
 		return;
+	}
 
 	fcp_cqid = phba->sli4_hba.fcp_wq[fcp_wqidx]->assoc_qid;
+
 	for (fcp_cqidx = 0; fcp_cqidx < phba->cfg_fcp_io_channel; fcp_cqidx++)
 		if (phba->sli4_hba.fcp_cq[fcp_cqidx]->queue_id == fcp_cqid)
+		{
 			break;
-	if (phba->intr_type == MSIX) {
+		}
+
+	if (phba->intr_type == MSIX)
+	{
 		if (fcp_cqidx >= phba->cfg_fcp_io_channel)
+		{
 			return;
-	} else {
+		}
+	}
+	else
+	{
 		if (fcp_cqidx > 0)
+		{
 			return;
+		}
 	}
 
 	printk(KERN_ERR "FCP CQ: WQ[Idx:%d|Qid%d]->CQ[Idx%d|Qid%d]:\n",
-		fcp_wqidx, phba->sli4_hba.fcp_wq[fcp_wqidx]->queue_id,
-		fcp_cqidx, fcp_cqid);
+		   fcp_wqidx, phba->sli4_hba.fcp_wq[fcp_wqidx]->queue_id,
+		   fcp_cqidx, fcp_cqid);
 	lpfc_debug_dump_q(phba->sli4_hba.fcp_cq[fcp_cqidx]);
 }
 
@@ -429,17 +473,31 @@ lpfc_debug_dump_hba_eq(struct lpfc_hba *phba, int fcp_wqidx)
 
 	/* sanity check */
 	if (fcp_wqidx >= phba->cfg_fcp_io_channel)
+	{
 		return;
+	}
+
 	fcp_cqid = phba->sli4_hba.fcp_wq[fcp_wqidx]->assoc_qid;
+
 	for (fcp_cqidx = 0; fcp_cqidx < phba->cfg_fcp_io_channel; fcp_cqidx++)
 		if (phba->sli4_hba.fcp_cq[fcp_cqidx]->queue_id == fcp_cqid)
+		{
 			break;
-	if (phba->intr_type == MSIX) {
+		}
+
+	if (phba->intr_type == MSIX)
+	{
 		if (fcp_cqidx >= phba->cfg_fcp_io_channel)
+		{
 			return;
-	} else {
+		}
+	}
+	else
+	{
 		if (fcp_cqidx > 0)
+		{
 			return;
+		}
 	}
 
 	fcp_eqidx = fcp_cqidx;
@@ -447,9 +505,9 @@ lpfc_debug_dump_hba_eq(struct lpfc_hba *phba, int fcp_wqidx)
 	qdesc = phba->sli4_hba.hba_eq[fcp_eqidx];
 
 	printk(KERN_ERR "FCP EQ: WQ[Idx:%d|Qid:%d]->CQ[Idx:%d|Qid:%d]->"
-		"EQ[Idx:%d|Qid:%d]\n",
-		fcp_wqidx, phba->sli4_hba.fcp_wq[fcp_wqidx]->queue_id,
-		fcp_cqidx, fcp_cqid, fcp_eqidx, fcp_eqid);
+		   "EQ[Idx:%d|Qid:%d]\n",
+		   fcp_wqidx, phba->sli4_hba.fcp_wq[fcp_wqidx]->queue_id,
+		   fcp_cqidx, fcp_cqid, fcp_eqidx, fcp_eqid);
 	lpfc_debug_dump_q(qdesc);
 }
 
@@ -463,7 +521,7 @@ static inline void
 lpfc_debug_dump_els_wq(struct lpfc_hba *phba)
 {
 	printk(KERN_ERR "ELS WQ: WQ[Qid:%d]:\n",
-		phba->sli4_hba.els_wq->queue_id);
+		   phba->sli4_hba.els_wq->queue_id);
 	lpfc_debug_dump_q(phba->sli4_hba.els_wq);
 }
 
@@ -477,7 +535,7 @@ static inline void
 lpfc_debug_dump_mbx_wq(struct lpfc_hba *phba)
 {
 	printk(KERN_ERR "MBX WQ: WQ[Qid:%d]\n",
-		phba->sli4_hba.mbx_wq->queue_id);
+		   phba->sli4_hba.mbx_wq->queue_id);
 	lpfc_debug_dump_q(phba->sli4_hba.mbx_wq);
 }
 
@@ -491,7 +549,7 @@ static inline void
 lpfc_debug_dump_dat_rq(struct lpfc_hba *phba)
 {
 	printk(KERN_ERR "DAT RQ: RQ[Qid:%d]\n",
-		phba->sli4_hba.dat_rq->queue_id);
+		   phba->sli4_hba.dat_rq->queue_id);
 	lpfc_debug_dump_q(phba->sli4_hba.dat_rq);
 }
 
@@ -505,7 +563,7 @@ static inline void
 lpfc_debug_dump_hdr_rq(struct lpfc_hba *phba)
 {
 	printk(KERN_ERR "HDR RQ: RQ[Qid:%d]\n",
-		phba->sli4_hba.hdr_rq->queue_id);
+		   phba->sli4_hba.hdr_rq->queue_id);
 	lpfc_debug_dump_q(phba->sli4_hba.hdr_rq);
 }
 
@@ -519,8 +577,8 @@ static inline void
 lpfc_debug_dump_els_cq(struct lpfc_hba *phba)
 {
 	printk(KERN_ERR "ELS CQ: WQ[Qid:%d]->CQ[Qid:%d]\n",
-		phba->sli4_hba.els_wq->queue_id,
-		phba->sli4_hba.els_cq->queue_id);
+		   phba->sli4_hba.els_wq->queue_id,
+		   phba->sli4_hba.els_cq->queue_id);
 	lpfc_debug_dump_q(phba->sli4_hba.els_cq);
 }
 
@@ -534,8 +592,8 @@ static inline void
 lpfc_debug_dump_mbx_cq(struct lpfc_hba *phba)
 {
 	printk(KERN_ERR "MBX CQ: WQ[Qid:%d]->CQ[Qid:%d]\n",
-		phba->sli4_hba.mbx_wq->queue_id,
-		phba->sli4_hba.mbx_cq->queue_id);
+		   phba->sli4_hba.mbx_wq->queue_id,
+		   phba->sli4_hba.mbx_cq->queue_id);
 	lpfc_debug_dump_q(phba->sli4_hba.mbx_cq);
 }
 
@@ -554,14 +612,19 @@ lpfc_debug_dump_wq_by_id(struct lpfc_hba *phba, int qid)
 
 	for (wq_idx = 0; wq_idx < phba->cfg_fcp_io_channel; wq_idx++)
 		if (phba->sli4_hba.fcp_wq[wq_idx]->queue_id == qid)
+		{
 			break;
-	if (wq_idx < phba->cfg_fcp_io_channel) {
+		}
+
+	if (wq_idx < phba->cfg_fcp_io_channel)
+	{
 		printk(KERN_ERR "FCP WQ[Idx:%d|Qid:%d]\n", wq_idx, qid);
 		lpfc_debug_dump_q(phba->sli4_hba.fcp_wq[wq_idx]);
 		return;
 	}
 
-	if (phba->sli4_hba.els_wq->queue_id == qid) {
+	if (phba->sli4_hba.els_wq->queue_id == qid)
+	{
 		printk(KERN_ERR "ELS WQ[Qid:%d]\n", qid);
 		lpfc_debug_dump_q(phba->sli4_hba.els_wq);
 	}
@@ -578,7 +641,8 @@ lpfc_debug_dump_wq_by_id(struct lpfc_hba *phba, int qid)
 static inline void
 lpfc_debug_dump_mq_by_id(struct lpfc_hba *phba, int qid)
 {
-	if (phba->sli4_hba.mbx_wq->queue_id == qid) {
+	if (phba->sli4_hba.mbx_wq->queue_id == qid)
+	{
 		printk(KERN_ERR "MBX WQ[Qid:%d]\n", qid);
 		lpfc_debug_dump_q(phba->sli4_hba.mbx_wq);
 	}
@@ -595,12 +659,15 @@ lpfc_debug_dump_mq_by_id(struct lpfc_hba *phba, int qid)
 static inline void
 lpfc_debug_dump_rq_by_id(struct lpfc_hba *phba, int qid)
 {
-	if (phba->sli4_hba.hdr_rq->queue_id == qid) {
+	if (phba->sli4_hba.hdr_rq->queue_id == qid)
+	{
 		printk(KERN_ERR "HDR RQ[Qid:%d]\n", qid);
 		lpfc_debug_dump_q(phba->sli4_hba.hdr_rq);
 		return;
 	}
-	if (phba->sli4_hba.dat_rq->queue_id == qid) {
+
+	if (phba->sli4_hba.dat_rq->queue_id == qid)
+	{
 		printk(KERN_ERR "DAT RQ[Qid:%d]\n", qid);
 		lpfc_debug_dump_q(phba->sli4_hba.dat_rq);
 	}
@@ -619,24 +686,31 @@ lpfc_debug_dump_cq_by_id(struct lpfc_hba *phba, int qid)
 {
 	int cq_idx = 0;
 
-	do {
+	do
+	{
 		if (phba->sli4_hba.fcp_cq[cq_idx]->queue_id == qid)
+		{
 			break;
-	} while (++cq_idx < phba->cfg_fcp_io_channel);
+		}
+	}
+	while (++cq_idx < phba->cfg_fcp_io_channel);
 
-	if (cq_idx < phba->cfg_fcp_io_channel) {
+	if (cq_idx < phba->cfg_fcp_io_channel)
+	{
 		printk(KERN_ERR "FCP CQ[Idx:%d|Qid:%d]\n", cq_idx, qid);
 		lpfc_debug_dump_q(phba->sli4_hba.fcp_cq[cq_idx]);
 		return;
 	}
 
-	if (phba->sli4_hba.els_cq->queue_id == qid) {
+	if (phba->sli4_hba.els_cq->queue_id == qid)
+	{
 		printk(KERN_ERR "ELS CQ[Qid:%d]\n", qid);
 		lpfc_debug_dump_q(phba->sli4_hba.els_cq);
 		return;
 	}
 
-	if (phba->sli4_hba.mbx_cq->queue_id == qid) {
+	if (phba->sli4_hba.mbx_cq->queue_id == qid)
+	{
 		printk(KERN_ERR "MBX CQ[Qid:%d]\n", qid);
 		lpfc_debug_dump_q(phba->sli4_hba.mbx_cq);
 	}
@@ -655,12 +729,16 @@ lpfc_debug_dump_eq_by_id(struct lpfc_hba *phba, int qid)
 {
 	int eq_idx;
 
-	for (eq_idx = 0; eq_idx < phba->cfg_fcp_io_channel; eq_idx++) {
+	for (eq_idx = 0; eq_idx < phba->cfg_fcp_io_channel; eq_idx++)
+	{
 		if (phba->sli4_hba.hba_eq[eq_idx]->queue_id == qid)
+		{
 			break;
+		}
 	}
 
-	if (eq_idx < phba->cfg_fcp_io_channel) {
+	if (eq_idx < phba->cfg_fcp_io_channel)
+	{
 		printk(KERN_ERR "FCP EQ[Idx:%d|Qid:%d]\n", eq_idx, qid);
 		lpfc_debug_dump_q(phba->sli4_hba.hba_eq[eq_idx]);
 		return;

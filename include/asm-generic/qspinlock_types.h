@@ -24,11 +24,12 @@
  * it if PARAVIRT is on.
  */
 #ifndef CONFIG_PARAVIRT
-#include <linux/types.h>
-#include <linux/atomic.h>
+	#include <linux/types.h>
+	#include <linux/atomic.h>
 #endif
 
-typedef struct qspinlock {
+typedef struct qspinlock
+{
 	atomic_t	val;
 } arch_spinlock_t;
 
@@ -54,16 +55,16 @@ typedef struct qspinlock {
  * 11-31: tail cpu (+1)
  */
 #define	_Q_SET_MASK(type)	(((1U << _Q_ ## type ## _BITS) - 1)\
-				      << _Q_ ## type ## _OFFSET)
+							 << _Q_ ## type ## _OFFSET)
 #define _Q_LOCKED_OFFSET	0
 #define _Q_LOCKED_BITS		8
 #define _Q_LOCKED_MASK		_Q_SET_MASK(LOCKED)
 
 #define _Q_PENDING_OFFSET	(_Q_LOCKED_OFFSET + _Q_LOCKED_BITS)
 #if CONFIG_NR_CPUS < (1U << 14)
-#define _Q_PENDING_BITS		8
+	#define _Q_PENDING_BITS		8
 #else
-#define _Q_PENDING_BITS		1
+	#define _Q_PENDING_BITS		1
 #endif
 #define _Q_PENDING_MASK		_Q_SET_MASK(PENDING)
 

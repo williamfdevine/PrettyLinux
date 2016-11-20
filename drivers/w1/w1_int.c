@@ -39,8 +39,8 @@ static int w1_enable_pullup = 1;
 module_param_named(enable_pullup, w1_enable_pullup, int, 0);
 
 static struct w1_master *w1_alloc_dev(u32 id, int slave_count, int slave_ttl,
-				       struct device_driver *driver,
-				       struct device *device)
+									  struct device_driver *driver,
+									  struct device *device)
 {
 	struct w1_master *dev;
 	int err;
@@ -49,9 +49,11 @@ static struct w1_master *w1_alloc_dev(u32 id, int slave_count, int slave_ttl,
 	 * We are in process context(kernel thread), so can sleep.
 	 */
 	dev = kzalloc(sizeof(struct w1_master) + sizeof(struct w1_bus_master), GFP_KERNEL);
-	if (!dev) {
+
+	if (!dev)
+	{
 		pr_err("Failed to allocate %zd bytes for new w1 device.\n",
-			sizeof(struct w1_master));
+			   sizeof(struct w1_master));
 		return NULL;
 	}
 
@@ -89,7 +91,9 @@ static struct w1_master *w1_alloc_dev(u32 id, int slave_count, int slave_ttl,
 	dev->seq = 1;
 
 	err = device_register(&dev->dev);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Failed to register master device. err=%d\n", err);
 		put_device(&dev->dev);
 		dev = NULL;
@@ -116,36 +120,46 @@ int w1_add_master_device(struct w1_bus_master *master)
 
 	/* validate minimum functionality */
 	if (!(master->touch_bit && master->reset_bus) &&
-	    !(master->write_bit && master->read_bit) &&
-	    !(master->write_byte && master->read_byte && master->reset_bus)) {
+		!(master->write_bit && master->read_bit) &&
+		!(master->write_byte && master->read_byte && master->reset_bus))
+	{
 		pr_err("w1_add_master_device: invalid function set\n");
-		return(-EINVAL);
+		return (-EINVAL);
 	}
 
 	/* Lock until the device is added (or not) to w1_masters. */
 	mutex_lock(&w1_mlock);
 	/* Search for the first available id (starting at 1). */
 	id = 0;
-	do {
+
+	do
+	{
 		++id;
 		found = 0;
-		list_for_each_entry(entry, &w1_masters, w1_master_entry) {
-			if (entry->id == id) {
+		list_for_each_entry(entry, &w1_masters, w1_master_entry)
+		{
+			if (entry->id == id)
+			{
 				found = 1;
 				break;
 			}
 		}
-	} while (found);
+	}
+	while (found);
 
 	dev = w1_alloc_dev(id, w1_max_slave_count, w1_max_slave_ttl,
-		&w1_master_driver, &w1_master_device);
-	if (!dev) {
+					   &w1_master_driver, &w1_master_device);
+
+	if (!dev)
+	{
 		mutex_unlock(&w1_mlock);
 		return -ENOMEM;
 	}
 
 	retval =  w1_create_master_attributes(dev);
-	if (retval) {
+
+	if (retval)
+	{
 		mutex_unlock(&w1_mlock);
 		goto err_out_free_dev;
 	}
@@ -155,11 +169,13 @@ int w1_add_master_device(struct w1_bus_master *master)
 	dev->initialized = 1;
 
 	dev->thread = kthread_run(&w1_process, dev, "%s", dev->name);
-	if (IS_ERR(dev->thread)) {
+
+	if (IS_ERR(dev->thread))
+	{
 		retval = PTR_ERR(dev->thread);
 		dev_err(&dev->dev,
-			 "Failed to create new kernel thread. err=%d\n",
-			 retval);
+				"Failed to create new kernel thread. err=%d\n",
+				retval);
 		mutex_unlock(&w1_mlock);
 		goto err_out_rm_attr;
 	}
@@ -201,7 +217,8 @@ void __w1_remove_master_device(struct w1_master *dev)
 
 	mutex_lock(&dev->mutex);
 	mutex_lock(&dev->list_mutex);
-	list_for_each_entry_safe(sl, sln, &dev->slist, w1_slave_entry) {
+	list_for_each_entry_safe(sl, sln, &dev->slist, w1_slave_entry)
+	{
 		mutex_unlock(&dev->list_mutex);
 		w1_slave_detach(sl);
 		mutex_lock(&dev->list_mutex);
@@ -211,16 +228,21 @@ void __w1_remove_master_device(struct w1_master *dev)
 	mutex_unlock(&dev->mutex);
 	atomic_dec(&dev->refcnt);
 
-	while (atomic_read(&dev->refcnt)) {
+	while (atomic_read(&dev->refcnt))
+	{
 		dev_info(&dev->dev, "Waiting for %s to become free: refcnt=%d.\n",
-				dev->name, atomic_read(&dev->refcnt));
+				 dev->name, atomic_read(&dev->refcnt));
 
 		if (msleep_interruptible(1000))
+		{
 			flush_signals(current);
+		}
+
 		mutex_lock(&dev->list_mutex);
 		w1_process_callbacks(dev);
 		mutex_unlock(&dev->list_mutex);
 	}
+
 	mutex_lock(&dev->list_mutex);
 	w1_process_callbacks(dev);
 	mutex_unlock(&dev->list_mutex);
@@ -241,17 +263,22 @@ void w1_remove_master_device(struct w1_bus_master *bm)
 {
 	struct w1_master *dev, *found = NULL;
 
-	list_for_each_entry(dev, &w1_masters, w1_master_entry) {
+	list_for_each_entry(dev, &w1_masters, w1_master_entry)
+	{
 		if (!dev->initialized)
+		{
 			continue;
+		}
 
-		if (dev->bus_master->data == bm->data) {
+		if (dev->bus_master->data == bm->data)
+		{
 			found = dev;
 			break;
 		}
 	}
 
-	if (!found) {
+	if (!found)
+	{
 		pr_err("Device doesn't exist.\n");
 		return;
 	}

@@ -31,7 +31,8 @@
 
 #include "brcmnand.h"
 
-struct bcm6368_nand_soc {
+struct bcm6368_nand_soc
+{
 	struct brcmnand_soc soc;
 	void __iomem *base;
 };
@@ -44,7 +45,8 @@ struct bcm6368_nand_soc {
 #define BCM6368_NAND_BASE_ADDR0	0x04
 #define BCM6368_NAND_BASE_ADDR1	0x0c
 
-enum {
+enum
+{
 	BCM6368_NP_READ		= BIT(0),
 	BCM6368_BLOCK_ERASE	= BIT(1),
 	BCM6368_COPY_BACK	= BIT(2),
@@ -58,11 +60,12 @@ enum {
 static bool bcm6368_nand_intc_ack(struct brcmnand_soc *soc)
 {
 	struct bcm6368_nand_soc *priv =
-			container_of(soc, struct bcm6368_nand_soc, soc);
+		container_of(soc, struct bcm6368_nand_soc, soc);
 	void __iomem *mmio = priv->base + BCM6368_NAND_INT;
 	u32 val = brcmnand_readl(mmio);
 
-	if (val & (BCM6368_CTRL_READY << BCM6368_NAND_STATUS_SHIFT)) {
+	if (val & (BCM6368_CTRL_READY << BCM6368_NAND_STATUS_SHIFT))
+	{
 		/* Ack interrupt */
 		val &= ~BCM6368_NAND_STATUS_MASK;
 		val |= BCM6368_CTRL_READY << BCM6368_NAND_STATUS_SHIFT;
@@ -76,7 +79,7 @@ static bool bcm6368_nand_intc_ack(struct brcmnand_soc *soc)
 static void bcm6368_nand_intc_set(struct brcmnand_soc *soc, bool en)
 {
 	struct bcm6368_nand_soc *priv =
-			container_of(soc, struct bcm6368_nand_soc, soc);
+		container_of(soc, struct bcm6368_nand_soc, soc);
 	void __iomem *mmio = priv->base + BCM6368_NAND_INT;
 	u32 val = brcmnand_readl(mmio);
 
@@ -84,9 +87,13 @@ static void bcm6368_nand_intc_set(struct brcmnand_soc *soc, bool en)
 	val &= ~BCM6368_NAND_STATUS_MASK;
 
 	if (en)
+	{
 		val |= BCM6368_CTRL_READY << BCM6368_NAND_ENABLE_SHIFT;
+	}
 	else
+	{
 		val &= ~(BCM6368_CTRL_READY << BCM6368_NAND_ENABLE_SHIFT);
+	}
 
 	brcmnand_writel(val, mmio);
 }
@@ -99,15 +106,22 @@ static int bcm6368_nand_probe(struct platform_device *pdev)
 	struct resource *res;
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
+
 	soc = &priv->soc;
 
 	res = platform_get_resource_byname(pdev,
-		IORESOURCE_MEM, "nand-int-base");
+									   IORESOURCE_MEM, "nand-int-base");
 	priv->base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(priv->base))
+	{
 		return PTR_ERR(priv->base);
+	}
 
 	soc->ctlrdy_ack = bcm6368_nand_intc_ack;
 	soc->ctlrdy_set_enabled = bcm6368_nand_intc_set;
@@ -115,18 +129,20 @@ static int bcm6368_nand_probe(struct platform_device *pdev)
 	/* Disable and ack all interrupts  */
 	brcmnand_writel(0, priv->base + BCM6368_NAND_INT);
 	brcmnand_writel(BCM6368_NAND_STATUS_MASK,
-			priv->base + BCM6368_NAND_INT);
+					priv->base + BCM6368_NAND_INT);
 
 	return brcmnand_probe(pdev, soc);
 }
 
-static const struct of_device_id bcm6368_nand_of_match[] = {
+static const struct of_device_id bcm6368_nand_of_match[] =
+{
 	{ .compatible = "brcm,nand-bcm6368" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, bcm6368_nand_of_match);
 
-static struct platform_driver bcm6368_nand_driver = {
+static struct platform_driver bcm6368_nand_driver =
+{
 	.probe			= bcm6368_nand_probe,
 	.remove			= brcmnand_remove,
 	.driver = {

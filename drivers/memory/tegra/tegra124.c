@@ -33,7 +33,8 @@
 #define MC_EMEM_ARB_MISC1			0xdc
 #define MC_EMEM_ARB_RING1_THROTTLE		0xe0
 
-static const unsigned long tegra124_mc_emem_regs[] = {
+static const unsigned long tegra124_mc_emem_regs[] =
+{
 	MC_EMEM_ARB_CFG,
 	MC_EMEM_ARB_OUTSTANDING_REQ,
 	MC_EMEM_ARB_TIMING_RCD,
@@ -55,7 +56,8 @@ static const unsigned long tegra124_mc_emem_regs[] = {
 	MC_EMEM_ARB_RING1_THROTTLE
 };
 
-static const struct tegra_mc_client tegra124_mc_clients[] = {
+static const struct tegra_mc_client tegra124_mc_clients[] =
+{
 	{
 		.id = 0x00,
 		.name = "ptcr",
@@ -973,7 +975,8 @@ static const struct tegra_mc_client tegra124_mc_clients[] = {
 	},
 };
 
-static const struct tegra_smmu_swgroup tegra124_swgroups[] = {
+static const struct tegra_smmu_swgroup tegra124_swgroups[] =
+{
 	{ .name = "dc",        .swgroup = TEGRA_SWGROUP_DC,        .reg = 0x240 },
 	{ .name = "dcb",       .swgroup = TEGRA_SWGROUP_DCB,       .reg = 0x244 },
 	{ .name = "afi",       .swgroup = TEGRA_SWGROUP_AFI,       .reg = 0x238 },
@@ -1000,7 +1003,8 @@ static const struct tegra_smmu_swgroup tegra124_swgroups[] = {
 };
 
 #ifdef CONFIG_ARCH_TEGRA_124_SOC
-static const struct tegra_smmu_soc tegra124_smmu_soc = {
+static const struct tegra_smmu_soc tegra124_smmu_soc =
+{
 	.clients = tegra124_mc_clients,
 	.num_clients = ARRAY_SIZE(tegra124_mc_clients),
 	.swgroups = tegra124_swgroups,
@@ -1011,7 +1015,8 @@ static const struct tegra_smmu_soc tegra124_smmu_soc = {
 	.num_asids = 128,
 };
 
-const struct tegra_mc_soc tegra124_mc_soc = {
+const struct tegra_mc_soc tegra124_mc_soc =
+{
 	.clients = tegra124_mc_clients,
 	.num_clients = ARRAY_SIZE(tegra124_mc_clients),
 	.num_address_bits = 34,
@@ -1024,7 +1029,8 @@ const struct tegra_mc_soc tegra124_mc_soc = {
 #endif /* CONFIG_ARCH_TEGRA_124_SOC */
 
 #ifdef CONFIG_ARCH_TEGRA_132_SOC
-static const struct tegra_smmu_soc tegra132_smmu_soc = {
+static const struct tegra_smmu_soc tegra132_smmu_soc =
+{
 	.clients = tegra124_mc_clients,
 	.num_clients = ARRAY_SIZE(tegra124_mc_clients),
 	.swgroups = tegra124_swgroups,
@@ -1035,7 +1041,8 @@ static const struct tegra_smmu_soc tegra132_smmu_soc = {
 	.num_asids = 128,
 };
 
-const struct tegra_mc_soc tegra132_mc_soc = {
+const struct tegra_mc_soc tegra132_mc_soc =
+{
 	.clients = tegra124_mc_clients,
 	.num_clients = ARRAY_SIZE(tegra124_mc_clients),
 	.num_address_bits = 34,

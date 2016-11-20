@@ -44,9 +44,14 @@ static int sysv_sync_fs(struct super_block *sb, int wait)
 	 * But if the filesystem was marked clean, keep it clean.
 	 */
 	old_time = fs32_to_cpu(sbi, *sbi->s_sb_time);
-	if (sbi->s_type == FSTYPE_SYSV4) {
+
+	if (sbi->s_type == FSTYPE_SYSV4)
+	{
 		if (*sbi->s_sb_state == cpu_to_fs32(sbi, 0x7c269d38 - old_time))
+		{
 			*sbi->s_sb_state = cpu_to_fs32(sbi, 0x7c269d38 - time);
+		}
+
 		*sbi->s_sb_time = cpu_to_fs32(sbi, time);
 		mark_buffer_dirty(sbi->s_bh2);
 	}
@@ -61,8 +66,12 @@ static int sysv_remount(struct super_block *sb, int *flags, char *data)
 	struct sysv_sb_info *sbi = SYSV_SB(sb);
 
 	sync_filesystem(sb);
+
 	if (sbi->s_forced_ro)
+	{
 		*flags |= MS_RDONLY;
+	}
+
 	return 0;
 }
 
@@ -70,16 +79,23 @@ static void sysv_put_super(struct super_block *sb)
 {
 	struct sysv_sb_info *sbi = SYSV_SB(sb);
 
-	if (!(sb->s_flags & MS_RDONLY)) {
+	if (!(sb->s_flags & MS_RDONLY))
+	{
 		/* XXX ext2 also updates the state here */
 		mark_buffer_dirty(sbi->s_bh1);
+
 		if (sbi->s_bh1 != sbi->s_bh2)
+		{
 			mark_buffer_dirty(sbi->s_bh2);
+		}
 	}
 
 	brelse(sbi->s_bh1);
+
 	if (sbi->s_bh1 != sbi->s_bh2)
+	{
 		brelse(sbi->s_bh2);
+	}
 
 	kfree(sbi);
 }
@@ -102,23 +118,28 @@ static int sysv_statfs(struct dentry *dentry, struct kstatfs *buf)
 	return 0;
 }
 
-/* 
+/*
  * NXI <-> N0XI for PDP, XIN <-> XIN0 for le32, NIX <-> 0NIX for be32
  */
 static inline void read3byte(struct sysv_sb_info *sbi,
-	unsigned char * from, unsigned char * to)
+							 unsigned char *from, unsigned char *to)
 {
-	if (sbi->s_bytesex == BYTESEX_PDP) {
+	if (sbi->s_bytesex == BYTESEX_PDP)
+	{
 		to[0] = from[0];
 		to[1] = 0;
 		to[2] = from[1];
 		to[3] = from[2];
-	} else if (sbi->s_bytesex == BYTESEX_LE) {
+	}
+	else if (sbi->s_bytesex == BYTESEX_LE)
+	{
 		to[0] = from[0];
 		to[1] = from[1];
 		to[2] = from[2];
 		to[3] = 0;
-	} else {
+	}
+	else
+	{
 		to[0] = 0;
 		to[1] = from[0];
 		to[2] = from[1];
@@ -127,24 +148,30 @@ static inline void read3byte(struct sysv_sb_info *sbi,
 }
 
 static inline void write3byte(struct sysv_sb_info *sbi,
-	unsigned char * from, unsigned char * to)
+							  unsigned char *from, unsigned char *to)
 {
-	if (sbi->s_bytesex == BYTESEX_PDP) {
+	if (sbi->s_bytesex == BYTESEX_PDP)
+	{
 		to[0] = from[0];
 		to[1] = from[2];
 		to[2] = from[3];
-	} else if (sbi->s_bytesex == BYTESEX_LE) {
+	}
+	else if (sbi->s_bytesex == BYTESEX_LE)
+	{
 		to[0] = from[0];
 		to[1] = from[1];
 		to[2] = from[2];
-	} else {
+	}
+	else
+	{
 		to[0] = from[1];
 		to[1] = from[2];
 		to[2] = from[3];
 	}
 }
 
-static const struct inode_operations sysv_symlink_inode_operations = {
+static const struct inode_operations sysv_symlink_inode_operations =
+{
 	.readlink	= generic_readlink,
 	.get_link	= page_get_link,
 	.getattr	= sysv_getattr,
@@ -152,49 +179,67 @@ static const struct inode_operations sysv_symlink_inode_operations = {
 
 void sysv_set_inode(struct inode *inode, dev_t rdev)
 {
-	if (S_ISREG(inode->i_mode)) {
+	if (S_ISREG(inode->i_mode))
+	{
 		inode->i_op = &sysv_file_inode_operations;
 		inode->i_fop = &sysv_file_operations;
 		inode->i_mapping->a_ops = &sysv_aops;
-	} else if (S_ISDIR(inode->i_mode)) {
+	}
+	else if (S_ISDIR(inode->i_mode))
+	{
 		inode->i_op = &sysv_dir_inode_operations;
 		inode->i_fop = &sysv_dir_operations;
 		inode->i_mapping->a_ops = &sysv_aops;
-	} else if (S_ISLNK(inode->i_mode)) {
+	}
+	else if (S_ISLNK(inode->i_mode))
+	{
 		inode->i_op = &sysv_symlink_inode_operations;
 		inode_nohighmem(inode);
 		inode->i_mapping->a_ops = &sysv_aops;
-	} else
+	}
+	else
+	{
 		init_special_inode(inode, inode->i_mode, rdev);
+	}
 }
 
 struct inode *sysv_iget(struct super_block *sb, unsigned int ino)
 {
-	struct sysv_sb_info * sbi = SYSV_SB(sb);
-	struct buffer_head * bh;
-	struct sysv_inode * raw_inode;
-	struct sysv_inode_info * si;
+	struct sysv_sb_info *sbi = SYSV_SB(sb);
+	struct buffer_head *bh;
+	struct sysv_inode *raw_inode;
+	struct sysv_inode_info *si;
 	struct inode *inode;
 	unsigned int block;
 
-	if (!ino || ino > sbi->s_ninodes) {
+	if (!ino || ino > sbi->s_ninodes)
+	{
 		printk("Bad inode number on dev %s: %d is out of range\n",
-		       sb->s_id, ino);
+			   sb->s_id, ino);
 		return ERR_PTR(-EIO);
 	}
 
 	inode = iget_locked(sb, ino);
+
 	if (!inode)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
+
 	if (!(inode->i_state & I_NEW))
+	{
 		return inode;
+	}
 
 	raw_inode = sysv_raw_inode(sb, ino, &bh);
-	if (!raw_inode) {
+
+	if (!raw_inode)
+	{
 		printk("Major problem: unable to read inode from dev %s\n",
-		       inode->i_sb->s_id);
+			   inode->i_sb->s_id);
 		goto bad_inode;
 	}
+
 	/* SystemV FS: kludge permissions if ino==SYSV_ROOT_INO ?? */
 	inode->i_mode = fs16_to_cpu(sbi, raw_inode->i_mode);
 	i_uid_write(inode, (uid_t)fs16_to_cpu(sbi, raw_inode->i_uid));
@@ -210,16 +255,22 @@ struct inode *sysv_iget(struct super_block *sb, unsigned int ino)
 	inode->i_blocks = 0;
 
 	si = SYSV_I(inode);
-	for (block = 0; block < 10+1+1+1; block++)
-		read3byte(sbi, &raw_inode->i_data[3*block],
-				(u8 *)&si->i_data[block]);
+
+	for (block = 0; block < 10 + 1 + 1 + 1; block++)
+		read3byte(sbi, &raw_inode->i_data[3 * block],
+				  (u8 *)&si->i_data[block]);
+
 	brelse(bh);
 	si->i_dir_start_lookup = 0;
+
 	if (S_ISCHR(inode->i_mode) || S_ISBLK(inode->i_mode))
 		sysv_set_inode(inode,
-			       old_decode_dev(fs32_to_cpu(sbi, si->i_data[0])));
+					   old_decode_dev(fs32_to_cpu(sbi, si->i_data[0])));
 	else
+	{
 		sysv_set_inode(inode, 0);
+	}
+
 	unlock_new_inode(inode);
 	return inode;
 
@@ -230,22 +281,27 @@ bad_inode:
 
 static int __sysv_write_inode(struct inode *inode, int wait)
 {
-	struct super_block * sb = inode->i_sb;
-	struct sysv_sb_info * sbi = SYSV_SB(sb);
-	struct buffer_head * bh;
-	struct sysv_inode * raw_inode;
-	struct sysv_inode_info * si;
+	struct super_block *sb = inode->i_sb;
+	struct sysv_sb_info *sbi = SYSV_SB(sb);
+	struct buffer_head *bh;
+	struct sysv_inode *raw_inode;
+	struct sysv_inode_info *si;
 	unsigned int ino, block;
 	int err = 0;
 
 	ino = inode->i_ino;
-	if (!ino || ino > sbi->s_ninodes) {
+
+	if (!ino || ino > sbi->s_ninodes)
+	{
 		printk("Bad inode number on dev %s: %d is out of range\n",
-		       inode->i_sb->s_id, ino);
+			   inode->i_sb->s_id, ino);
 		return -EIO;
 	}
+
 	raw_inode = sysv_raw_inode(sb, ino, &bh);
-	if (!raw_inode) {
+
+	if (!raw_inode)
+	{
 		printk("unable to read i-node block\n");
 		return -EIO;
 	}
@@ -260,20 +316,30 @@ static int __sysv_write_inode(struct inode *inode, int wait)
 	raw_inode->i_ctime = cpu_to_fs32(sbi, inode->i_ctime.tv_sec);
 
 	si = SYSV_I(inode);
+
 	if (S_ISCHR(inode->i_mode) || S_ISBLK(inode->i_mode))
+	{
 		si->i_data[0] = cpu_to_fs32(sbi, old_encode_dev(inode->i_rdev));
-	for (block = 0; block < 10+1+1+1; block++)
+	}
+
+	for (block = 0; block < 10 + 1 + 1 + 1; block++)
 		write3byte(sbi, (u8 *)&si->i_data[block],
-			&raw_inode->i_data[3*block]);
+				   &raw_inode->i_data[3 * block]);
+
 	mark_buffer_dirty(bh);
-	if (wait) {
-                sync_dirty_buffer(bh);
-                if (buffer_req(bh) && !buffer_uptodate(bh)) {
-                        printk ("IO error syncing sysv inode [%s:%08x]\n",
-                                sb->s_id, ino);
-                        err = -EIO;
-                }
-        }
+
+	if (wait)
+	{
+		sync_dirty_buffer(bh);
+
+		if (buffer_req(bh) && !buffer_uptodate(bh))
+		{
+			printk ("IO error syncing sysv inode [%s:%08x]\n",
+					sb->s_id, ino);
+			err = -EIO;
+		}
+	}
+
 	brelse(bh);
 	return 0;
 }
@@ -291,14 +357,20 @@ int sysv_sync_inode(struct inode *inode)
 static void sysv_evict_inode(struct inode *inode)
 {
 	truncate_inode_pages_final(&inode->i_data);
-	if (!inode->i_nlink) {
+
+	if (!inode->i_nlink)
+	{
 		inode->i_size = 0;
 		sysv_truncate(inode);
 	}
+
 	invalidate_inode_buffers(inode);
 	clear_inode(inode);
+
 	if (!inode->i_nlink)
+	{
 		sysv_free_inode(inode);
+	}
 }
 
 static struct kmem_cache *sysv_inode_cachep;
@@ -308,8 +380,12 @@ static struct inode *sysv_alloc_inode(struct super_block *sb)
 	struct sysv_inode_info *si;
 
 	si = kmem_cache_alloc(sysv_inode_cachep, GFP_KERNEL);
+
 	if (!si)
+	{
 		return NULL;
+	}
+
 	return &si->vfs_inode;
 }
 
@@ -331,7 +407,8 @@ static void init_once(void *p)
 	inode_init_once(&si->vfs_inode);
 }
 
-const struct super_operations sysv_sops = {
+const struct super_operations sysv_sops =
+{
 	.alloc_inode	= sysv_alloc_inode,
 	.destroy_inode	= sysv_destroy_inode,
 	.write_inode	= sysv_write_inode,
@@ -345,11 +422,15 @@ const struct super_operations sysv_sops = {
 int __init sysv_init_icache(void)
 {
 	sysv_inode_cachep = kmem_cache_create("sysv_inode_cache",
-			sizeof(struct sysv_inode_info), 0,
-			SLAB_RECLAIM_ACCOUNT|SLAB_MEM_SPREAD|SLAB_ACCOUNT,
-			init_once);
+										  sizeof(struct sysv_inode_info), 0,
+										  SLAB_RECLAIM_ACCOUNT | SLAB_MEM_SPREAD | SLAB_ACCOUNT,
+										  init_once);
+
 	if (!sysv_inode_cachep)
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 

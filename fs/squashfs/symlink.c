@@ -57,18 +57,21 @@ static int squashfs_symlink_readpage(struct file *file, struct page *page)
 	struct squashfs_cache_entry *entry;
 
 	TRACE("Entered squashfs_symlink_readpage, page index %ld, start block "
-			"%llx, offset %x\n", page->index, block, offset);
+		  "%llx, offset %x\n", page->index, block, offset);
 
 	/*
 	 * Skip index bytes into symlink metadata.
 	 */
-	if (index) {
+	if (index)
+	{
 		bytes = squashfs_read_metadata(sb, NULL, &block, &offset,
-								index);
-		if (bytes < 0) {
+									   index);
+
+		if (bytes < 0)
+		{
 			ERROR("Unable to read symlink [%llx:%x]\n",
-				squashfs_i(inode)->start,
-				squashfs_i(inode)->offset);
+				  squashfs_i(inode)->start,
+				  squashfs_i(inode)->offset);
 			goto error_out;
 		}
 	}
@@ -80,23 +83,32 @@ static int squashfs_symlink_readpage(struct file *file, struct page *page)
 	 * squashfs_cache_get routine.  As length bytes may overlap metadata
 	 * blocks, we may need to call squashfs_cache_get multiple times.
 	 */
-	for (bytes = 0; bytes < length; offset = 0, bytes += copied) {
+	for (bytes = 0; bytes < length; offset = 0, bytes += copied)
+	{
 		entry = squashfs_cache_get(sb, msblk->block_cache, block, 0);
-		if (entry->error) {
+
+		if (entry->error)
+		{
 			ERROR("Unable to read symlink [%llx:%x]\n",
-				squashfs_i(inode)->start,
-				squashfs_i(inode)->offset);
+				  squashfs_i(inode)->start,
+				  squashfs_i(inode)->offset);
 			squashfs_cache_put(entry);
 			goto error_out;
 		}
 
 		pageaddr = kmap_atomic(page);
 		copied = squashfs_copy_data(pageaddr + bytes, entry, offset,
-								length - bytes);
+									length - bytes);
+
 		if (copied == length - bytes)
+		{
 			memset(pageaddr + length, 0, PAGE_SIZE - length);
+		}
 		else
+		{
 			block = entry->next_index;
+		}
+
 		kunmap_atomic(pageaddr);
 		squashfs_cache_put(entry);
 	}
@@ -113,11 +125,13 @@ error_out:
 }
 
 
-const struct address_space_operations squashfs_symlink_aops = {
+const struct address_space_operations squashfs_symlink_aops =
+{
 	.readpage = squashfs_symlink_readpage
 };
 
-const struct inode_operations squashfs_symlink_inode_ops = {
+const struct inode_operations squashfs_symlink_inode_ops =
+{
 	.readlink = generic_readlink,
 	.get_link = page_get_link,
 	.listxattr = squashfs_listxattr

@@ -112,7 +112,7 @@
 #define PBC_STATIC_RATE_CONTROL_COUNT_MASK 0xffffull
 #define PBC_STATIC_RATE_CONTROL_COUNT_SMASK \
 	(PBC_STATIC_RATE_CONTROL_COUNT_MASK << \
-	PBC_STATIC_RATE_CONTROL_COUNT_SHIFT)
+	 PBC_STATIC_RATE_CONTROL_COUNT_SHIFT)
 
 #define PBC_INSERT_HCRC_SHIFT 26
 #define PBC_INSERT_HCRC_MASK 0x3ull
@@ -141,25 +141,25 @@
 #define CR_CREDIT_RETURN_DUE_TO_PBC_MASK 0x1ull
 #define CR_CREDIT_RETURN_DUE_TO_PBC_SMASK \
 	(CR_CREDIT_RETURN_DUE_TO_PBC_MASK << \
-	CR_CREDIT_RETURN_DUE_TO_PBC_SHIFT)
+	 CR_CREDIT_RETURN_DUE_TO_PBC_SHIFT)
 
 #define CR_CREDIT_RETURN_DUE_TO_THRESHOLD_SHIFT 13
 #define CR_CREDIT_RETURN_DUE_TO_THRESHOLD_MASK 0x1ull
 #define CR_CREDIT_RETURN_DUE_TO_THRESHOLD_SMASK \
 	(CR_CREDIT_RETURN_DUE_TO_THRESHOLD_MASK << \
-	CR_CREDIT_RETURN_DUE_TO_THRESHOLD_SHIFT)
+	 CR_CREDIT_RETURN_DUE_TO_THRESHOLD_SHIFT)
 
 #define CR_CREDIT_RETURN_DUE_TO_ERR_SHIFT 14
 #define CR_CREDIT_RETURN_DUE_TO_ERR_MASK 0x1ull
 #define CR_CREDIT_RETURN_DUE_TO_ERR_SMASK \
 	(CR_CREDIT_RETURN_DUE_TO_ERR_MASK << \
-	CR_CREDIT_RETURN_DUE_TO_ERR_SHIFT)
+	 CR_CREDIT_RETURN_DUE_TO_ERR_SHIFT)
 
 #define CR_CREDIT_RETURN_DUE_TO_FORCE_SHIFT 15
 #define CR_CREDIT_RETURN_DUE_TO_FORCE_MASK 0x1ull
 #define CR_CREDIT_RETURN_DUE_TO_FORCE_SMASK \
 	(CR_CREDIT_RETURN_DUE_TO_FORCE_MASK << \
-	CR_CREDIT_RETURN_DUE_TO_FORCE_SHIFT)
+	 CR_CREDIT_RETURN_DUE_TO_FORCE_SHIFT)
 
 /* interrupt source numbers */
 #define IS_GENERAL_ERR_START	  0
@@ -257,11 +257,11 @@
 #define EXTERNAL_DEVICE_REQ_TIMEOUT	BIT(13)
 
 #define FAILED_LNI (FAILED_LNI_POLLING | FAILED_LNI_DEBOUNCE \
-			| FAILED_LNI_ESTBCOMM | FAILED_LNI_OPTEQ \
-			| FAILED_LNI_VERIFY_CAP1 \
-			| FAILED_LNI_VERIFY_CAP2 \
-			| FAILED_LNI_CONFIGLT | HOST_HANDSHAKE_TIMEOUT \
-			| EXTERNAL_DEVICE_REQ_TIMEOUT)
+					| FAILED_LNI_ESTBCOMM | FAILED_LNI_OPTEQ \
+					| FAILED_LNI_VERIFY_CAP1 \
+					| FAILED_LNI_VERIFY_CAP2 \
+					| FAILED_LNI_CONFIGLT | HOST_HANDSHAKE_TIMEOUT \
+					| EXTERNAL_DEVICE_REQ_TIMEOUT)
 
 /* DC_DC8051_DBG_ERR_INFO_SET_BY_8051.HOST_MSG - host message flags */
 #define HOST_REQ_DONE		BIT(0)
@@ -515,7 +515,8 @@
 #define LDR_RECEIVED_HOST_OFFLINE_REQ  0xc
 
 /* verify capability fabric CRC size bits */
-enum {
+enum
+{
 	CAP_CRC_14B = (1 << 0), /* 14b CRC */
 	CAP_CRC_48B = (1 << 1), /* 48b CRC */
 	CAP_CRC_12B_16B_PER_LANE = (1 << 2) /* 12b-16b per lane CRC */
@@ -539,14 +540,15 @@ enum {
  * the following enum is (almost) a copy/paste of the definition
  * in the OPA spec, section 20.2.2.6.8 (PortInfo)
  */
-enum {
+enum
+{
 	PORT_LTP_CRC_MODE_NONE = 0,
 	PORT_LTP_CRC_MODE_14 = 1, /* 14-bit LTP CRC mode (optional) */
 	PORT_LTP_CRC_MODE_16 = 2, /* 16-bit LTP CRC mode */
 	PORT_LTP_CRC_MODE_48 = 4,
-		/* 48-bit overlapping LTP CRC mode (optional) */
+	/* 48-bit overlapping LTP CRC mode (optional) */
 	PORT_LTP_CRC_MODE_PER_LANE = 8
-		/* 12 to 16 bit per lane LTP CRC mode (optional) */
+								 /* 12 to 16 bit per lane LTP CRC mode (optional) */
 };
 
 /* timeouts */
@@ -567,7 +569,7 @@ enum {
  */
 #define DRIVER_MISC_MASK \
 	(~(MISC_ERR_STATUS_MISC_FW_AUTH_FAILED_ERR_SMASK \
-		| MISC_ERR_STATUS_MISC_KEY_MISMATCH_ERR_SMASK))
+	   | MISC_ERR_STATUS_MISC_KEY_MISMATCH_ERR_SMASK))
 
 /* valid values for the loopback module parameter */
 #define LOOPBACK_NONE	0	/* no loopback - default */
@@ -585,14 +587,14 @@ void write_csr(const struct hfi1_devdata *dd, u32 offset, u64 value);
  * Their spacing is not a PAGE_SIZE multiple.
  */
 static inline u64 read_kctxt_csr(const struct hfi1_devdata *dd, int ctxt,
-				 u32 offset0)
+								 u32 offset0)
 {
 	/* kernel per-context CSRs are separated by 0x100 */
 	return read_csr(dd, offset0 + (0x100 * ctxt));
 }
 
 static inline void write_kctxt_csr(struct hfi1_devdata *dd, int ctxt,
-				   u32 offset0, u64 value)
+								   u32 offset0, u64 value)
 {
 	/* kernel per-context CSRs are separated by 0x100 */
 	write_csr(dd, offset0 + (0x100 * ctxt), value);
@@ -620,14 +622,14 @@ static inline void __iomem *get_kctxt_csr_addr(
  * different processes without exposing other contexts' CSRs
  */
 static inline u64 read_uctxt_csr(const struct hfi1_devdata *dd, int ctxt,
-				 u32 offset0)
+								 u32 offset0)
 {
 	/* user per-context CSRs are separated by 0x1000 */
 	return read_csr(dd, offset0 + (0x1000 * ctxt));
 }
 
 static inline void write_uctxt_csr(struct hfi1_devdata *dd, int ctxt,
-				   u32 offset0, u64 value)
+								   u32 offset0, u64 value)
 {
 	/* user per-context CSRs are separated by 0x1000 */
 	write_csr(dd, offset0 + (0x1000 * ctxt), value);
@@ -647,9 +649,9 @@ extern uint platform_config_load;
 #define WRITE_SBUS_RECEIVER 0x21
 #define READ_SBUS_RECEIVER  0x22
 void sbus_request(struct hfi1_devdata *dd,
-		  u8 receiver_addr, u8 data_addr, u8 command, u32 data_in);
+				  u8 receiver_addr, u8 data_addr, u8 command, u32 data_in);
 int sbus_request_slow(struct hfi1_devdata *dd,
-		      u8 receiver_addr, u8 data_addr, u8 command, u32 data_in);
+					  u8 receiver_addr, u8 data_addr, u8 command, u32 data_in);
 void set_sbus_fast_mode(struct hfi1_devdata *dd);
 void clear_sbus_fast_mode(struct hfi1_devdata *dd);
 int hfi1_firmware_init(struct hfi1_devdata *dd);
@@ -684,7 +686,7 @@ void release_hw_mutex(struct hfi1_devdata *dd);
 int acquire_chip_resource(struct hfi1_devdata *dd, u32 resource, u32 mswait);
 void release_chip_resource(struct hfi1_devdata *dd, u32 resource);
 bool check_chip_resource(struct hfi1_devdata *dd, u32 resource,
-			 const char *func);
+						 const char *func);
 void init_chip_resources(struct hfi1_devdata *dd);
 void finish_chip_resources(struct hfi1_devdata *dd);
 
@@ -702,7 +704,7 @@ void read_misc_status(struct hfi1_devdata *dd, u8 *ver_a, u8 *ver_b);
 void read_guid(struct hfi1_devdata *dd);
 int wait_fm_ready(struct hfi1_devdata *dd, u32 mstimeout);
 void set_link_down_reason(struct hfi1_pportdata *ppd, u8 lcl_reason,
-			  u8 neigh_reason, u8 rem_reason);
+						  u8 neigh_reason, u8 rem_reason);
 int set_link_state(struct hfi1_pportdata *, u32 state);
 int port_ltp_to_cap(int port_ltp);
 void handle_verify_cap(struct work_struct *work);
@@ -723,7 +725,7 @@ int start_link(struct hfi1_pportdata *ppd);
 int bringup_serdes(struct hfi1_pportdata *ppd);
 void set_intr_state(struct hfi1_devdata *dd, u32 enable);
 void apply_link_downgrade_policy(struct hfi1_pportdata *ppd,
-				 int refresh_widths);
+								 int refresh_widths);
 void update_usrhead(struct hfi1_ctxtdata *, u32, u32, u32, u32, u32);
 int stop_drain_data_vls(struct hfi1_devdata *dd);
 int open_fill_data_vls(struct hfi1_devdata *dd);
@@ -763,7 +765,8 @@ u32 read_logical_state(struct hfi1_devdata *dd);
 void force_recv_intr(struct hfi1_ctxtdata *rcd);
 
 /* Per VL indexes */
-enum {
+enum
+{
 	C_VL_0 = 0,
 	C_VL_1,
 	C_VL_2,
@@ -787,7 +790,8 @@ static inline int idx_from_vl(int vl)
 }
 
 /* Per device counter indexes */
-enum {
+enum
+{
 	C_RCV_OVF = 0,
 	C_RX_TID_FULL,
 	C_RX_TID_INVALID,
@@ -864,7 +868,7 @@ enum {
 	C_SDMA_ERR_CNT,
 	C_SDMA_IDLE_INT_CNT,
 	C_SDMA_PROGRESS_INT_CNT,
-/* MISC_ERR_STATUS */
+	/* MISC_ERR_STATUS */
 	C_MISC_PLL_LOCK_FAIL_ERR,
 	C_MISC_MBIST_FAIL_ERR,
 	C_MISC_INVALID_EEP_CMD_ERR,
@@ -878,7 +882,7 @@ enum {
 	C_MISC_CSR_WRITE_BAD_ADDR_ERR,
 	C_MISC_CSR_READ_BAD_ADDR_ERR,
 	C_MISC_CSR_PARITY_ERR,
-/* CceErrStatus */
+	/* CceErrStatus */
 	/*
 	* A special counter that is the aggregate count
 	* of all the cce_err_status errors.  The remainder
@@ -926,7 +930,7 @@ enum {
 	C_CCE_CSR_WRITE_BAD_ADDR_ERR,
 	C_CCE_CSR_READ_BAD_ADDR_ERR,
 	C_CCE_CSR_PARITY_ERR,
-/* RcvErrStatus */
+	/* RcvErrStatus */
 	C_RX_CSR_PARITY_ERR,
 	C_RX_CSR_WRITE_BAD_ADDR_ERR,
 	C_RX_CSR_READ_BAD_ADDR_ERR,
@@ -991,7 +995,7 @@ enum {
 	C_RX_RCV_HDR_UNC_ERR,
 	C_RX_DC_INTF_PARITY_ERR,
 	C_RX_DMA_CSR_COR_ERR,
-/* SendPioErrStatus */
+	/* SendPioErrStatus */
 	C_PIO_PEC_SOP_HEAD_PARITY_ERR,
 	C_PIO_PCC_SOP_HEAD_PARITY_ERR,
 	C_PIO_LAST_RETURNED_CNT_PARITY_ERR,
@@ -1028,12 +1032,12 @@ enum {
 	C_PIO_CSR_PARITY_ERR,
 	C_PIO_WRITE_ADDR_PARITY_ERR,
 	C_PIO_WRITE_BAD_CTXT_ERR,
-/* SendDmaErrStatus */
+	/* SendDmaErrStatus */
 	C_SDMA_PCIE_REQ_TRACKING_COR_ERR,
 	C_SDMA_PCIE_REQ_TRACKING_UNC_ERR,
 	C_SDMA_CSR_PARITY_ERR,
 	C_SDMA_RPY_TAG_ERR,
-/* SendEgressErrStatus */
+	/* SendEgressErrStatus */
 	C_TX_READ_PIO_MEMORY_CSR_UNC_ERR,
 	C_TX_READ_SDMA_MEMORY_CSR_UNC_ERR,
 	C_TX_EGRESS_FIFO_COR_ERR,
@@ -1098,17 +1102,17 @@ enum {
 	C_TX_RESERVED_2,
 	C_TX_PKT_INTEGRITY_MEM_UNC_ERR,
 	C_TX_PKT_INTEGRITY_MEM_COR_ERR,
-/* SendErrStatus */
+	/* SendErrStatus */
 	C_SEND_CSR_WRITE_BAD_ADDR_ERR,
 	C_SEND_CSR_READ_BAD_ADD_ERR,
 	C_SEND_CSR_PARITY_ERR,
-/* SendCtxtErrStatus */
+	/* SendCtxtErrStatus */
 	C_PIO_WRITE_OUT_OF_BOUNDS_ERR,
 	C_PIO_WRITE_OVERFLOW_ERR,
 	C_PIO_WRITE_CROSSES_BOUNDARY_ERR,
 	C_PIO_DISALLOWED_PACKET_ERR,
 	C_PIO_INCONSISTENT_SOP_ERR,
-/*SendDmaEngErrStatus */
+	/*SendDmaEngErrStatus */
 	C_SDMA_HEADER_REQUEST_FIFO_COR_ERR,
 	C_SDMA_HEADER_STORAGE_COR_ERR,
 	C_SDMA_PACKET_TRACKING_COR_ERR,
@@ -1137,7 +1141,8 @@ enum {
 };
 
 /* Per port counter indexes */
-enum {
+enum
+{
 	C_TX_UNSUP_VL = 0,
 	C_TX_INVAL_LEN,
 	C_TX_MM_LEN_ERR,
@@ -1342,10 +1347,10 @@ u64 get_all_cpu_total(u64 __percpu *cntr);
 void hfi1_start_cleanup(struct hfi1_devdata *dd);
 void hfi1_clear_tids(struct hfi1_ctxtdata *rcd);
 struct ib_header *hfi1_get_msgheader(
-				struct hfi1_devdata *dd, __le32 *rhf_addr);
+	struct hfi1_devdata *dd, __le32 *rhf_addr);
 int hfi1_init_ctxt(struct send_context *sc);
 void hfi1_put_tid(struct hfi1_devdata *dd, u32 index,
-		  u32 type, unsigned long pa, u16 order);
+				  u32 type, unsigned long pa, u16 order);
 void hfi1_quiet_serdes(struct hfi1_pportdata *ppd);
 void hfi1_rcvctrl(struct hfi1_devdata *dd, unsigned int op, int ctxt);
 u32 hfi1_read_cntrs(struct hfi1_devdata *dd, char **namep, u64 **cntrp);
@@ -1365,7 +1370,8 @@ void hfi1_read_link_quality(struct hfi1_devdata *dd, u8 *link_quality);
  * Each entry is an interrupt source "type".  It is ordered by increasing
  * number.
  */
-struct is_table {
+struct is_table
+{
 	int start;	 /* interrupt source type start */
 	int end;	 /* interrupt source type end */
 	/* routine that returns the name of the interrupt source */

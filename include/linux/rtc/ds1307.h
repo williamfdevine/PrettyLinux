@@ -15,7 +15,8 @@
 #define DS1307_TRICKLE_CHARGER_NO_DIODE	0x04
 #define DS1307_TRICKLE_CHARGER_DIODE	0x08
 
-struct ds1307_platform_data {
+struct ds1307_platform_data
+{
 	u8 trickle_charger_setup;
 };
 

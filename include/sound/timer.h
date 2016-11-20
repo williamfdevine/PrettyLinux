@@ -52,7 +52,8 @@
 
 struct snd_timer;
 
-struct snd_timer_hardware {
+struct snd_timer_hardware
+{
 	/* -- must be filled with low-level driver */
 	unsigned int flags;		/* various flags */
 	unsigned long resolution;	/* average timer resolution for one tick in nsec */
@@ -60,16 +61,17 @@ struct snd_timer_hardware {
 	unsigned long resolution_max;	/* maximal resolution */
 	unsigned long ticks;		/* max timer ticks per interrupt */
 	/* -- low-level functions -- */
-	int (*open) (struct snd_timer * timer);
-	int (*close) (struct snd_timer * timer);
-	unsigned long (*c_resolution) (struct snd_timer * timer);
-	int (*start) (struct snd_timer * timer);
-	int (*stop) (struct snd_timer * timer);
-	int (*set_period) (struct snd_timer * timer, unsigned long period_num, unsigned long period_den);
-	int (*precise_resolution) (struct snd_timer * timer, unsigned long *num, unsigned long *den);
+	int (*open) (struct snd_timer *timer);
+	int (*close) (struct snd_timer *timer);
+	unsigned long (*c_resolution) (struct snd_timer *timer);
+	int (*start) (struct snd_timer *timer);
+	int (*stop) (struct snd_timer *timer);
+	int (*set_period) (struct snd_timer *timer, unsigned long period_num, unsigned long period_den);
+	int (*precise_resolution) (struct snd_timer *timer, unsigned long *num, unsigned long *den);
 };
 
-struct snd_timer {
+struct snd_timer
+{
 	int tmr_class;
 	struct snd_card *card;
 	struct module *module;
@@ -92,18 +94,19 @@ struct snd_timer {
 	struct tasklet_struct task_queue;
 };
 
-struct snd_timer_instance {
+struct snd_timer_instance
+{
 	struct snd_timer *timer;
 	char *owner;
 	unsigned int flags;
 	void *private_data;
 	void (*private_free) (struct snd_timer_instance *ti);
 	void (*callback) (struct snd_timer_instance *timeri,
-			  unsigned long ticks, unsigned long resolution);
-	void (*ccallback) (struct snd_timer_instance * timeri,
-			   int event,
-			   struct timespec * tstamp,
-			   unsigned long resolution);
+					  unsigned long ticks, unsigned long resolution);
+	void (*ccallback) (struct snd_timer_instance *timeri,
+					   int event,
+					   struct timespec *tstamp,
+					   unsigned long resolution);
 	void (*disconnect)(struct snd_timer_instance *timeri);
 	void *callback_data;
 	unsigned long ticks;		/* auto-load ticks when expired */

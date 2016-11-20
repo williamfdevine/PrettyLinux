@@ -16,7 +16,8 @@
 
 #include "friio.h"
 
-struct jdvbt90502_state {
+struct jdvbt90502_state
+{
 	struct i2c_adapter *i2c;
 	struct dvb_frontend frontend;
 	struct jdvbt90502_config config;
@@ -25,7 +26,7 @@ struct jdvbt90502_state {
 /* NOTE: TC90502 has 16bit register-address? */
 /* register 0x0100 is used for reading PLL status, so reg is u16 here */
 static int jdvbt90502_reg_read(struct jdvbt90502_state *state,
-			       const u16 reg, u8 *buf, const size_t count)
+							   const u16 reg, u8 *buf, const size_t count)
 {
 	int ret;
 	u8 wbuf[3];
@@ -46,16 +47,19 @@ static int jdvbt90502_reg_read(struct jdvbt90502_state *state,
 	msg[1].len = count;
 
 	ret = i2c_transfer(state->i2c, msg, 2);
-	if (ret != 2) {
+
+	if (ret != 2)
+	{
 		deb_fe(" reg read failed.\n");
 		return -EREMOTEIO;
 	}
+
 	return 0;
 }
 
 /* currently 16bit register-address is not used, so reg is u8 here */
 static int jdvbt90502_single_reg_write(struct jdvbt90502_state *state,
-				       const u8 reg, const u8 val)
+									   const u8 reg, const u8 val)
 {
 	struct i2c_msg msg;
 	u8 wbuf[2];
@@ -68,10 +72,12 @@ static int jdvbt90502_single_reg_write(struct jdvbt90502_state *state,
 	msg.buf = wbuf;
 	msg.len = sizeof(wbuf);
 
-	if (i2c_transfer(state->i2c, &msg, 1) != 1) {
+	if (i2c_transfer(state->i2c, &msg, 1) != 1)
+	{
 		deb_fe(" reg write failed.");
 		return -EREMOTEIO;
 	}
+
 	return 0;
 }
 
@@ -79,11 +85,16 @@ static int _jdvbt90502_write(struct dvb_frontend *fe, const u8 buf[], int len)
 {
 	struct jdvbt90502_state *state = fe->demodulator_priv;
 	int err, i;
-	for (i = 0; i < len - 1; i++) {
+
+	for (i = 0; i < len - 1; i++)
+	{
 		err = jdvbt90502_single_reg_write(state,
-						  buf[0] + i, buf[i + 1]);
+										  buf[0] + i, buf[i + 1]);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	return 0;
@@ -101,13 +112,19 @@ static int jdvbt90502_pll_read(struct jdvbt90502_state *state, u8 *result)
 	*result = 0;
 
 	ret = jdvbt90502_single_reg_write(state, JDVBT90502_2ND_I2C_REG,
-					  pll_addr_byte);
+									  pll_addr_byte);
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	ret = jdvbt90502_reg_read(state, 0x0100, result, 1);
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	deb_fe("PLL read val:%02x\n", *result);
 	return 0;
@@ -132,15 +149,19 @@ static int jdvbt90502_pll_set_freq(struct jdvbt90502_state *state, u32 freq)
 	u32 f;
 
 	deb_fe("%s: freq=%d, step=%d\n", __func__, freq,
-	       state->frontend.ops.info.frequency_stepsize);
+		   state->frontend.ops.info.frequency_stepsize);
 	/* freq -> oscilator frequency conversion. */
 	/* freq: 473,000,000 + n*6,000,000 [+ 142857 (center freq. shift)] */
 	f = freq / state->frontend.ops.info.frequency_stepsize;
 	/* add 399[1/7 MHZ] = 57MHz for the IF  */
 	f += 399;
+
 	/* add center frequency shift if necessary */
 	if (f % 7 == 0)
+	{
 		f++;
+	}
+
 	pll_freq_cmd[DEMOD_REDIRECT_REG] = JDVBT90502_2ND_I2C_REG; /* 0xFE */
 	pll_freq_cmd[ADDRESS_BYTE] = state->config.pll_address << 1;
 	pll_freq_cmd[DIVIDER_BYTE1] = (f >> 8) & 0x7F;
@@ -154,8 +175,11 @@ static int jdvbt90502_pll_set_freq(struct jdvbt90502_state *state, u32 freq)
 	msg[0].len = sizeof(pll_freq_cmd);
 
 	ret = i2c_transfer(state->i2c, &msg[0], 1);
+
 	if (ret != 1)
+	{
 		goto error;
+	}
 
 	udelay(50);
 
@@ -173,34 +197,56 @@ static int jdvbt90502_pll_set_freq(struct jdvbt90502_state *state, u32 freq)
 	msg[1].len = sizeof(pll_agc_cmd);
 
 	ret = i2c_transfer(state->i2c, &msg[1], 1);
+
 	if (ret != 1)
+	{
 		goto error;
+	}
 
 	/* I don't know what these cmds are for,  */
 	/* but the USB log on a windows box contains them */
 	ret = jdvbt90502_single_reg_write(state, 0x01, 0x40);
 	ret |= jdvbt90502_single_reg_write(state, 0x01, 0x00);
+
 	if (ret)
+	{
 		goto error;
+	}
+
 	udelay(100);
 
 	/* wait for the demod to be ready? */
 #define RETRY_COUNT 5
-	for (retry = 0; retry < RETRY_COUNT; retry++) {
+
+	for (retry = 0; retry < RETRY_COUNT; retry++)
+	{
 		ret = jdvbt90502_reg_read(state, 0x0096, &res1, 1);
+
 		if (ret)
+		{
 			goto error;
+		}
+
 		/* if (res1 != 0x00) goto error; */
 		ret = jdvbt90502_reg_read(state, 0x00B0, res2, sizeof(res2));
+
 		if (ret)
+		{
 			goto error;
+		}
+
 		if (res2[0] >= 0xA7)
+		{
 			break;
+		}
+
 		msleep(100);
 	}
-	if (retry >= RETRY_COUNT) {
+
+	if (retry >= RETRY_COUNT)
+	{
 		deb_fe("%s: FE does not get ready after freq setting.\n",
-		       __func__);
+			   __func__);
 		return -EREMOTEIO;
 	}
 
@@ -211,7 +257,7 @@ error:
 }
 
 static int jdvbt90502_read_status(struct dvb_frontend *fe,
-				  enum fe_status *state)
+								  enum fe_status *state)
 {
 	u8 result;
 	int ret;
@@ -219,24 +265,28 @@ static int jdvbt90502_read_status(struct dvb_frontend *fe,
 	*state = FE_HAS_SIGNAL;
 
 	ret = jdvbt90502_pll_read(fe->demodulator_priv, &result);
-	if (ret) {
+
+	if (ret)
+	{
 		deb_fe("%s:ret == %d\n", __func__, ret);
 		return -EREMOTEIO;
 	}
 
 	*state = FE_HAS_SIGNAL
-		| FE_HAS_CARRIER
-		| FE_HAS_VITERBI
-		| FE_HAS_SYNC;
+			 | FE_HAS_CARRIER
+			 | FE_HAS_VITERBI
+			 | FE_HAS_SYNC;
 
 	if (result & PLL_STATUS_LOCKED)
+	{
 		*state |= FE_HAS_LOCK;
+	}
 
 	return 0;
 }
 
 static int jdvbt90502_read_signal_strength(struct dvb_frontend *fe,
-					   u16 *strength)
+		u16 *strength)
 {
 	int ret;
 	u8 rbuf[37];
@@ -246,17 +296,21 @@ static int jdvbt90502_read_signal_strength(struct dvb_frontend *fe,
 	/* status register (incl. signal strength) : 0x89  */
 	/* TODO: read just the necessary registers [0x8B..0x8D]? */
 	ret = jdvbt90502_reg_read(fe->demodulator_priv, 0x0089,
-				  rbuf, sizeof(rbuf));
+							  rbuf, sizeof(rbuf));
 
-	if (ret) {
+	if (ret)
+	{
 		deb_fe("%s:ret == %d\n", __func__, ret);
 		return -EREMOTEIO;
 	}
 
 	/* signal_strength: rbuf[2-4] (24bit BE), use lower 16bit for now. */
 	*strength = (rbuf[3] << 8) + rbuf[4];
+
 	if (rbuf[2])
+	{
 		*strength = 0xffff;
+	}
 
 	return 0;
 }
@@ -264,22 +318,29 @@ static int jdvbt90502_read_signal_strength(struct dvb_frontend *fe,
 
 /* filter out un-supported properties to notify users */
 static int jdvbt90502_set_property(struct dvb_frontend *fe,
-				   struct dtv_property *tvp)
+								   struct dtv_property *tvp)
 {
 	int r = 0;
 
-	switch (tvp->cmd) {
-	case DTV_DELIVERY_SYSTEM:
-		if (tvp->u.data != SYS_ISDBT)
+	switch (tvp->cmd)
+	{
+		case DTV_DELIVERY_SYSTEM:
+			if (tvp->u.data != SYS_ISDBT)
+			{
+				r = -EINVAL;
+			}
+
+			break;
+
+		case DTV_CLEAR:
+		case DTV_TUNE:
+		case DTV_FREQUENCY:
+			break;
+
+		default:
 			r = -EINVAL;
-		break;
-	case DTV_CLEAR:
-	case DTV_TUNE:
-	case DTV_FREQUENCY:
-		break;
-	default:
-		r = -EINVAL;
 	}
+
 	return r;
 }
 
@@ -310,7 +371,9 @@ static int jdvbt90502_set_frontend(struct dvb_frontend *fe)
 	p->delivery_system = SYS_ISDBT;
 
 	ret = jdvbt90502_pll_set_freq(state, p->frequency);
-	if (ret) {
+
+	if (ret)
+	{
 		deb_fe("%s:ret == %d\n", __func__, ret);
 		return -EREMOTEIO;
 	}
@@ -323,7 +386,8 @@ static int jdvbt90502_set_frontend(struct dvb_frontend *fe)
  * (reg, val) commad list to initialize this module.
  *  captured on a Windows box.
  */
-static u8 init_code[][2] = {
+static u8 init_code[][2] =
+{
 	{0x01, 0x40},
 	{0x04, 0x38},
 	{0x05, 0x40},
@@ -377,12 +441,18 @@ static int jdvbt90502_init(struct dvb_frontend *fe)
 	msg.addr = state->config.demod_address;
 	msg.flags = 0;
 	msg.len = 2;
-	for (i = 0; i < init_code_len; i++) {
+
+	for (i = 0; i < init_code_len; i++)
+	{
 		msg.buf = init_code[i];
 		ret = i2c_transfer(state->i2c, &msg, 1);
+
 		if (ret != 1)
+		{
 			goto error;
+		}
 	}
+
 	fe->dtv_property_cache.delivery_system = SYS_ISDBT;
 	msleep(100);
 
@@ -411,8 +481,11 @@ struct dvb_frontend *jdvbt90502_attach(struct dvb_usb_device *d)
 
 	/* allocate memory for the internal state */
 	state = kzalloc(sizeof(struct jdvbt90502_state), GFP_KERNEL);
+
 	if (state == NULL)
+	{
 		goto error;
+	}
 
 	/* setup the state */
 	state->i2c = &d->i2c_adap;
@@ -423,7 +496,9 @@ struct dvb_frontend *jdvbt90502_attach(struct dvb_usb_device *d)
 	state->frontend.demodulator_priv = state;
 
 	if (jdvbt90502_init(&state->frontend) < 0)
+	{
 		goto error;
+	}
 
 	return &state->frontend;
 
@@ -432,7 +507,8 @@ error:
 	return NULL;
 }
 
-static struct dvb_frontend_ops jdvbt90502_ops = {
+static struct dvb_frontend_ops jdvbt90502_ops =
+{
 	.delsys = { SYS_ISDBT },
 	.info = {
 		.name			= "Comtech JDVBT90502 ISDB-T",
@@ -443,13 +519,13 @@ static struct dvb_frontend_ops jdvbt90502_ops = {
 
 		/* NOTE: this driver ignores all parameters but frequency. */
 		.caps = FE_CAN_INVERSION_AUTO |
-			FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
-			FE_CAN_FEC_4_5 | FE_CAN_FEC_5_6 | FE_CAN_FEC_6_7 |
-			FE_CAN_FEC_7_8 | FE_CAN_FEC_8_9 | FE_CAN_FEC_AUTO |
-			FE_CAN_QAM_16 | FE_CAN_QAM_64 | FE_CAN_QAM_AUTO |
-			FE_CAN_TRANSMISSION_MODE_AUTO |
-			FE_CAN_GUARD_INTERVAL_AUTO |
-			FE_CAN_HIERARCHY_AUTO,
+		FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
+		FE_CAN_FEC_4_5 | FE_CAN_FEC_5_6 | FE_CAN_FEC_6_7 |
+		FE_CAN_FEC_7_8 | FE_CAN_FEC_8_9 | FE_CAN_FEC_AUTO |
+		FE_CAN_QAM_16 | FE_CAN_QAM_64 | FE_CAN_QAM_AUTO |
+		FE_CAN_TRANSMISSION_MODE_AUTO |
+		FE_CAN_GUARD_INTERVAL_AUTO |
+		FE_CAN_HIERARCHY_AUTO,
 	},
 
 	.release = jdvbt90502_release,

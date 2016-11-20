@@ -30,14 +30,16 @@
 #define MUX_CLKOUT1	7
 #define DCLK_MAX_CLKS	(MUX_CLKOUT1 + 1)
 
-enum supported_socs {
+enum supported_socs
+{
 	S3C2410,
 	S3C2412,
 	S3C2440,
 	S3C2443,
 };
 
-struct s3c24xx_dclk_drv_data {
+struct s3c24xx_dclk_drv_data
+{
 	const char **clkout0_parent_names;
 	int clkout0_num_parents;
 	const char **clkout1_parent_names;
@@ -50,7 +52,8 @@ struct s3c24xx_dclk_drv_data {
  * Clock for output-parent selection in misccr
  */
 
-struct s3c24xx_clkout {
+struct s3c24xx_clkout
+{
 	struct clk_hw		hw;
 	u32			mask;
 	u8			shift;
@@ -69,7 +72,9 @@ static u8 s3c24xx_clkout_get_parent(struct clk_hw *hw)
 	val &= clkout->mask;
 
 	if (val >= num_parents)
+	{
 		return -EINVAL;
+	}
 
 	return val;
 }
@@ -79,12 +84,13 @@ static int s3c24xx_clkout_set_parent(struct clk_hw *hw, u8 index)
 	struct s3c24xx_clkout *clkout = to_s3c24xx_clkout(hw);
 
 	s3c2410_modify_misccr((clkout->mask << clkout->shift),
-			      (index << clkout->shift));
+						  (index << clkout->shift));
 
 	return 0;
 }
 
-static const struct clk_ops s3c24xx_clkout_ops = {
+static const struct clk_ops s3c24xx_clkout_ops =
+{
 	.get_parent = s3c24xx_clkout_get_parent,
 	.set_parent = s3c24xx_clkout_set_parent,
 	.determine_rate = __clk_mux_determine_rate,
@@ -100,8 +106,11 @@ static struct clk *s3c24xx_register_clkout(struct device *dev, const char *name,
 
 	/* allocate the clkout */
 	clkout = kzalloc(sizeof(*clkout), GFP_KERNEL);
+
 	if (!clkout)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init.name = name;
 	init.ops = &s3c24xx_clkout_ops;
@@ -122,7 +131,8 @@ static struct clk *s3c24xx_register_clkout(struct device *dev, const char *name,
  * dclk and clkout init
  */
 
-struct s3c24xx_dclk {
+struct s3c24xx_dclk
+{
 	struct device *dev;
 	void __iomem *base;
 	struct clk_onecell_data clk_data;
@@ -133,32 +143,40 @@ struct s3c24xx_dclk {
 };
 
 #define to_s3c24xx_dclk0(x) \
-		container_of(x, struct s3c24xx_dclk, dclk0_div_change_nb)
+	container_of(x, struct s3c24xx_dclk, dclk0_div_change_nb)
 
 #define to_s3c24xx_dclk1(x) \
-		container_of(x, struct s3c24xx_dclk, dclk1_div_change_nb)
+	container_of(x, struct s3c24xx_dclk, dclk1_div_change_nb)
 
 static const char *dclk_s3c2410_p[] = { "pclk", "uclk" };
 static const char *clkout0_s3c2410_p[] = { "mpll", "upll", "fclk", "hclk", "pclk",
-			     "gate_dclk0" };
+										   "gate_dclk0"
+										 };
 static const char *clkout1_s3c2410_p[] = { "mpll", "upll", "fclk", "hclk", "pclk",
-			     "gate_dclk1" };
+										   "gate_dclk1"
+										 };
 
 static const char *clkout0_s3c2412_p[] = { "mpll", "upll", "rtc_clkout",
-			     "hclk", "pclk", "gate_dclk0" };
+										   "hclk", "pclk", "gate_dclk0"
+										 };
 static const char *clkout1_s3c2412_p[] = { "xti", "upll", "fclk", "hclk", "pclk",
-			     "gate_dclk1" };
+										   "gate_dclk1"
+										 };
 
 static const char *clkout0_s3c2440_p[] = { "xti", "upll", "fclk", "hclk", "pclk",
-			     "gate_dclk0" };
+										   "gate_dclk0"
+										 };
 static const char *clkout1_s3c2440_p[] = { "mpll", "upll", "rtc_clkout",
-			     "hclk", "pclk", "gate_dclk1" };
+										   "hclk", "pclk", "gate_dclk1"
+										 };
 
 static const char *dclk_s3c2443_p[] = { "pclk", "epll" };
 static const char *clkout0_s3c2443_p[] = { "xti", "epll", "armclk", "hclk", "pclk",
-			     "gate_dclk0" };
+										   "gate_dclk0"
+										 };
 static const char *clkout1_s3c2443_p[] = { "dummy", "epll", "rtc_clkout",
-			     "hclk", "pclk", "gate_dclk1" };
+										   "hclk", "pclk", "gate_dclk1"
+										 };
 
 #define DCLKCON_DCLK_DIV_MASK		0xf
 #define DCLKCON_DCLK0_DIV_SHIFT		4
@@ -167,7 +185,7 @@ static const char *clkout1_s3c2443_p[] = { "dummy", "epll", "rtc_clkout",
 #define DCLKCON_DCLK1_CMP_SHIFT		24
 
 static void s3c24xx_dclk_update_cmp(struct s3c24xx_dclk *s3c24xx_dclk,
-				    int div_shift, int cmp_shift)
+									int div_shift, int cmp_shift)
 {
 	unsigned long flags = 0;
 	u32 dclk_con, div, cmp;
@@ -188,26 +206,28 @@ static void s3c24xx_dclk_update_cmp(struct s3c24xx_dclk *s3c24xx_dclk,
 }
 
 static int s3c24xx_dclk0_div_notify(struct notifier_block *nb,
-			       unsigned long event, void *data)
+									unsigned long event, void *data)
 {
 	struct s3c24xx_dclk *s3c24xx_dclk = to_s3c24xx_dclk0(nb);
 
-	if (event == POST_RATE_CHANGE) {
+	if (event == POST_RATE_CHANGE)
+	{
 		s3c24xx_dclk_update_cmp(s3c24xx_dclk,
-			DCLKCON_DCLK0_DIV_SHIFT, DCLKCON_DCLK0_CMP_SHIFT);
+								DCLKCON_DCLK0_DIV_SHIFT, DCLKCON_DCLK0_CMP_SHIFT);
 	}
 
 	return NOTIFY_DONE;
 }
 
 static int s3c24xx_dclk1_div_notify(struct notifier_block *nb,
-			       unsigned long event, void *data)
+									unsigned long event, void *data)
 {
 	struct s3c24xx_dclk *s3c24xx_dclk = to_s3c24xx_dclk1(nb);
 
-	if (event == POST_RATE_CHANGE) {
+	if (event == POST_RATE_CHANGE)
+	{
 		s3c24xx_dclk_update_cmp(s3c24xx_dclk,
-			DCLKCON_DCLK1_DIV_SHIFT, DCLKCON_DCLK1_CMP_SHIFT);
+								DCLKCON_DCLK1_DIV_SHIFT, DCLKCON_DCLK1_CMP_SHIFT);
 	}
 
 	return NOTIFY_DONE;
@@ -234,7 +254,7 @@ static int s3c24xx_dclk_resume(struct device *dev)
 #endif
 
 static SIMPLE_DEV_PM_OPS(s3c24xx_dclk_pm_ops,
-			 s3c24xx_dclk_suspend, s3c24xx_dclk_resume);
+						 s3c24xx_dclk_suspend, s3c24xx_dclk_resume);
 
 static int s3c24xx_dclk_probe(struct platform_device *pdev)
 {
@@ -245,112 +265,138 @@ static int s3c24xx_dclk_probe(struct platform_device *pdev)
 	int ret, i;
 
 	s3c24xx_dclk = devm_kzalloc(&pdev->dev, sizeof(*s3c24xx_dclk),
-				    GFP_KERNEL);
+								GFP_KERNEL);
+
 	if (!s3c24xx_dclk)
+	{
 		return -ENOMEM;
+	}
 
 	s3c24xx_dclk->dev = &pdev->dev;
 	platform_set_drvdata(pdev, s3c24xx_dclk);
 	spin_lock_init(&s3c24xx_dclk->dclk_lock);
 
 	clk_table = devm_kzalloc(&pdev->dev,
-				 sizeof(struct clk *) * DCLK_MAX_CLKS,
-				 GFP_KERNEL);
+							 sizeof(struct clk *) * DCLK_MAX_CLKS,
+							 GFP_KERNEL);
+
 	if (!clk_table)
+	{
 		return -ENOMEM;
+	}
 
 	s3c24xx_dclk->clk_data.clks = clk_table;
 	s3c24xx_dclk->clk_data.clk_num = DCLK_MAX_CLKS;
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	s3c24xx_dclk->base = devm_ioremap_resource(&pdev->dev, mem);
+
 	if (IS_ERR(s3c24xx_dclk->base))
+	{
 		return PTR_ERR(s3c24xx_dclk->base);
+	}
 
 	dclk_variant = (struct s3c24xx_dclk_drv_data *)
-				platform_get_device_id(pdev)->driver_data;
+				   platform_get_device_id(pdev)->driver_data;
 
 
 	clk_table[MUX_DCLK0] = clk_register_mux(&pdev->dev, "mux_dclk0",
-				dclk_variant->mux_parent_names,
-				dclk_variant->mux_num_parents, 0,
-				s3c24xx_dclk->base, 1, 1, 0,
-				&s3c24xx_dclk->dclk_lock);
+											dclk_variant->mux_parent_names,
+											dclk_variant->mux_num_parents, 0,
+											s3c24xx_dclk->base, 1, 1, 0,
+											&s3c24xx_dclk->dclk_lock);
 	clk_table[MUX_DCLK1] = clk_register_mux(&pdev->dev, "mux_dclk1",
-				dclk_variant->mux_parent_names,
-				dclk_variant->mux_num_parents, 0,
-				s3c24xx_dclk->base, 17, 1, 0,
-				&s3c24xx_dclk->dclk_lock);
+											dclk_variant->mux_parent_names,
+											dclk_variant->mux_num_parents, 0,
+											s3c24xx_dclk->base, 17, 1, 0,
+											&s3c24xx_dclk->dclk_lock);
 
 	clk_table[DIV_DCLK0] = clk_register_divider(&pdev->dev, "div_dclk0",
-				"mux_dclk0", 0, s3c24xx_dclk->base,
-				4, 4, 0, &s3c24xx_dclk->dclk_lock);
+						   "mux_dclk0", 0, s3c24xx_dclk->base,
+						   4, 4, 0, &s3c24xx_dclk->dclk_lock);
 	clk_table[DIV_DCLK1] = clk_register_divider(&pdev->dev, "div_dclk1",
-				"mux_dclk1", 0, s3c24xx_dclk->base,
-				20, 4, 0, &s3c24xx_dclk->dclk_lock);
+						   "mux_dclk1", 0, s3c24xx_dclk->base,
+						   20, 4, 0, &s3c24xx_dclk->dclk_lock);
 
 	clk_table[GATE_DCLK0] = clk_register_gate(&pdev->dev, "gate_dclk0",
-				"div_dclk0", CLK_SET_RATE_PARENT,
-				s3c24xx_dclk->base, 0, 0,
-				&s3c24xx_dclk->dclk_lock);
+							"div_dclk0", CLK_SET_RATE_PARENT,
+							s3c24xx_dclk->base, 0, 0,
+							&s3c24xx_dclk->dclk_lock);
 	clk_table[GATE_DCLK1] = clk_register_gate(&pdev->dev, "gate_dclk1",
-				"div_dclk1", CLK_SET_RATE_PARENT,
-				s3c24xx_dclk->base, 16, 0,
-				&s3c24xx_dclk->dclk_lock);
+							"div_dclk1", CLK_SET_RATE_PARENT,
+							s3c24xx_dclk->base, 16, 0,
+							&s3c24xx_dclk->dclk_lock);
 
 	clk_table[MUX_CLKOUT0] = s3c24xx_register_clkout(&pdev->dev,
-				"clkout0", dclk_variant->clkout0_parent_names,
-				dclk_variant->clkout0_num_parents, 4, 7);
+							 "clkout0", dclk_variant->clkout0_parent_names,
+							 dclk_variant->clkout0_num_parents, 4, 7);
 	clk_table[MUX_CLKOUT1] = s3c24xx_register_clkout(&pdev->dev,
-				"clkout1", dclk_variant->clkout1_parent_names,
-				dclk_variant->clkout1_num_parents, 8, 7);
+							 "clkout1", dclk_variant->clkout1_parent_names,
+							 dclk_variant->clkout1_num_parents, 8, 7);
 
 	for (i = 0; i < DCLK_MAX_CLKS; i++)
-		if (IS_ERR(clk_table[i])) {
+		if (IS_ERR(clk_table[i]))
+		{
 			dev_err(&pdev->dev, "clock %d failed to register\n", i);
 			ret = PTR_ERR(clk_table[i]);
 			goto err_clk_register;
 		}
 
 	ret = clk_register_clkdev(clk_table[MUX_DCLK0], "dclk0", NULL);
+
 	if (!ret)
+	{
 		ret = clk_register_clkdev(clk_table[MUX_DCLK1], "dclk1", NULL);
+	}
+
 	if (!ret)
 		ret = clk_register_clkdev(clk_table[MUX_CLKOUT0],
-					  "clkout0", NULL);
+								  "clkout0", NULL);
+
 	if (!ret)
 		ret = clk_register_clkdev(clk_table[MUX_CLKOUT1],
-					  "clkout1", NULL);
-	if (ret) {
+								  "clkout1", NULL);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to register aliases, %d\n", ret);
 		goto err_clk_register;
 	}
 
 	s3c24xx_dclk->dclk0_div_change_nb.notifier_call =
-						s3c24xx_dclk0_div_notify;
+		s3c24xx_dclk0_div_notify;
 
 	s3c24xx_dclk->dclk1_div_change_nb.notifier_call =
-						s3c24xx_dclk1_div_notify;
+		s3c24xx_dclk1_div_notify;
 
 	ret = clk_notifier_register(clk_table[DIV_DCLK0],
-				    &s3c24xx_dclk->dclk0_div_change_nb);
+								&s3c24xx_dclk->dclk0_div_change_nb);
+
 	if (ret)
+	{
 		goto err_clk_register;
+	}
 
 	ret = clk_notifier_register(clk_table[DIV_DCLK1],
-				    &s3c24xx_dclk->dclk1_div_change_nb);
+								&s3c24xx_dclk->dclk1_div_change_nb);
+
 	if (ret)
+	{
 		goto err_dclk_notify;
+	}
 
 	return 0;
 
 err_dclk_notify:
 	clk_notifier_unregister(clk_table[DIV_DCLK0],
-				&s3c24xx_dclk->dclk0_div_change_nb);
+							&s3c24xx_dclk->dclk0_div_change_nb);
 err_clk_register:
+
 	for (i = 0; i < DCLK_MAX_CLKS; i++)
 		if (clk_table[i] && !IS_ERR(clk_table[i]))
+		{
 			clk_unregister(clk_table[i]);
+		}
 
 	return ret;
 }
@@ -362,17 +408,20 @@ static int s3c24xx_dclk_remove(struct platform_device *pdev)
 	int i;
 
 	clk_notifier_unregister(clk_table[DIV_DCLK1],
-				&s3c24xx_dclk->dclk1_div_change_nb);
+							&s3c24xx_dclk->dclk1_div_change_nb);
 	clk_notifier_unregister(clk_table[DIV_DCLK0],
-				&s3c24xx_dclk->dclk0_div_change_nb);
+							&s3c24xx_dclk->dclk0_div_change_nb);
 
 	for (i = 0; i < DCLK_MAX_CLKS; i++)
+	{
 		clk_unregister(clk_table[i]);
+	}
 
 	return 0;
 }
 
-static struct s3c24xx_dclk_drv_data dclk_variants[] = {
+static struct s3c24xx_dclk_drv_data dclk_variants[] =
+{
 	[S3C2410] = {
 		.clkout0_parent_names = clkout0_s3c2410_p,
 		.clkout0_num_parents = ARRAY_SIZE(clkout0_s3c2410_p),
@@ -407,26 +456,28 @@ static struct s3c24xx_dclk_drv_data dclk_variants[] = {
 	},
 };
 
-static const struct platform_device_id s3c24xx_dclk_driver_ids[] = {
+static const struct platform_device_id s3c24xx_dclk_driver_ids[] =
+{
 	{
 		.name		= "s3c2410-dclk",
-		.driver_data	= (kernel_ulong_t)&dclk_variants[S3C2410],
+		.driver_data	= (kernel_ulong_t) &dclk_variants[S3C2410],
 	}, {
 		.name		= "s3c2412-dclk",
-		.driver_data	= (kernel_ulong_t)&dclk_variants[S3C2412],
+		.driver_data	= (kernel_ulong_t) &dclk_variants[S3C2412],
 	}, {
 		.name		= "s3c2440-dclk",
-		.driver_data	= (kernel_ulong_t)&dclk_variants[S3C2440],
+		.driver_data	= (kernel_ulong_t) &dclk_variants[S3C2440],
 	}, {
 		.name		= "s3c2443-dclk",
-		.driver_data	= (kernel_ulong_t)&dclk_variants[S3C2443],
+		.driver_data	= (kernel_ulong_t) &dclk_variants[S3C2443],
 	},
 	{ }
 };
 
 MODULE_DEVICE_TABLE(platform, s3c24xx_dclk_driver_ids);
 
-static struct platform_driver s3c24xx_dclk_driver = {
+static struct platform_driver s3c24xx_dclk_driver =
+{
 	.driver = {
 		.name			= "s3c24xx-dclk",
 		.pm			= &s3c24xx_dclk_pm_ops,

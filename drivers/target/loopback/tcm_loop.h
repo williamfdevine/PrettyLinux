@@ -2,7 +2,8 @@
 #define TL_WWN_ADDR_LEN			256
 #define TL_TPGS_PER_HBA			32
 
-struct tcm_loop_cmd {
+struct tcm_loop_cmd
+{
 	/* State of Linux/SCSI CDB+Data descriptor */
 	u32 sc_cmd_state;
 	/* Tagged command queueing */
@@ -16,12 +17,14 @@ struct tcm_loop_cmd {
 	unsigned char tl_sense_buf[TRANSPORT_SENSE_BUFFER];
 };
 
-struct tcm_loop_tmr {
+struct tcm_loop_tmr
+{
 	atomic_t tmr_complete;
 	wait_queue_head_t tl_tmr_wait;
 };
 
-struct tcm_loop_nexus {
+struct tcm_loop_nexus
+{
 	/*
 	 * Pointer to TCM session for I_T Nexus
 	 */
@@ -31,7 +34,8 @@ struct tcm_loop_nexus {
 #define TCM_TRANSPORT_ONLINE 0
 #define TCM_TRANSPORT_OFFLINE 1
 
-struct tcm_loop_tpg {
+struct tcm_loop_tpg
+{
 	unsigned short tl_tpgt;
 	unsigned short tl_transport_status;
 	enum target_prot_type tl_fabric_prot_type;
@@ -41,7 +45,8 @@ struct tcm_loop_tpg {
 	struct tcm_loop_nexus *tl_nexus;
 };
 
-struct tcm_loop_hba {
+struct tcm_loop_hba
+{
 	u8 tl_proto_id;
 	unsigned char tl_wwn_address[TL_WWN_ADDR_LEN];
 	struct se_hba_s *se_hba;

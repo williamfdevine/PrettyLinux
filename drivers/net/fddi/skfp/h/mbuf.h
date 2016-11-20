@@ -18,20 +18,21 @@
 #define M_SIZE	4504
 
 #ifndef MAX_MBUF
-#define MAX_MBUF	4
+	#define MAX_MBUF	4
 #endif
 
 #ifndef NO_STD_MBUF
-#define sm_next         m_next
-#define sm_off          m_off
-#define sm_len          m_len
-#define sm_data         m_data
-#define SMbuf           Mbuf
-#define mtod		smtod
-#define mtodoff		smtodoff
+	#define sm_next         m_next
+	#define sm_off          m_off
+	#define sm_len          m_len
+	#define sm_data         m_data
+	#define SMbuf           Mbuf
+	#define mtod		smtod
+	#define mtodoff		smtodoff
 #endif
 
-struct s_mbuf {
+struct s_mbuf
+{
 	struct s_mbuf	*sm_next ;		/* low level linked list */
 	short		sm_off ;			/* offset in m_data */
 	u_int		sm_len ;			/* len of data */

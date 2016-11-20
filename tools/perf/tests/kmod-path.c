@@ -5,30 +5,38 @@
 #include "debug.h"
 
 static int test(const char *path, bool alloc_name, bool alloc_ext,
-		bool kmod, bool comp, const char *name, const char *ext)
+				bool kmod, bool comp, const char *name, const char *ext)
 {
 	struct kmod_path m;
 
 	memset(&m, 0x0, sizeof(m));
 
 	TEST_ASSERT_VAL("kmod_path__parse",
-			!__kmod_path__parse(&m, path, alloc_name, alloc_ext));
+					!__kmod_path__parse(&m, path, alloc_name, alloc_ext));
 
 	pr_debug("%s - alloc name %d, alloc ext %d, kmod %d, comp %d, name '%s', ext '%s'\n",
-		 path, alloc_name, alloc_ext, m.kmod, m.comp, m.name, m.ext);
+			 path, alloc_name, alloc_ext, m.kmod, m.comp, m.name, m.ext);
 
 	TEST_ASSERT_VAL("wrong kmod", m.kmod == kmod);
 	TEST_ASSERT_VAL("wrong comp", m.comp == comp);
 
 	if (ext)
+	{
 		TEST_ASSERT_VAL("wrong ext", m.ext && !strcmp(ext, m.ext));
+	}
 	else
+	{
 		TEST_ASSERT_VAL("wrong ext", !m.ext);
+	}
 
 	if (name)
+	{
 		TEST_ASSERT_VAL("wrong name", m.name && !strcmp(name, m.name));
+	}
 	else
+	{
 		TEST_ASSERT_VAL("wrong name", !m.name);
+	}
 
 	free(m.name);
 	free(m.ext);
@@ -38,9 +46,9 @@ static int test(const char *path, bool alloc_name, bool alloc_ext,
 static int test_is_kernel_module(const char *path, int cpumode, bool expect)
 {
 	TEST_ASSERT_VAL("is_kernel_module",
-			(!!is_kernel_module(path, cpumode)) == (!!expect));
+					(!!is_kernel_module(path, cpumode)) == (!!expect));
 	pr_debug("%s (cpumode: %d) - is_kernel_module: %s\n",
-			path, cpumode, expect ? "true" : "false");
+			 path, cpumode, expect ? "true" : "false");
 	return 0;
 }
 
@@ -71,8 +79,8 @@ int test__kmod_path__parse(int subtest __maybe_unused)
 	M("/xxxx/xxxx/x.ko.gz", PERF_RECORD_MISC_USER, false);
 
 	/* path              alloc_name  alloc_ext  kmod   comp  name    ext */
-	T("/xxxx/xxxx/x.gz", true      , true     , false, true, "x.gz" ,"gz");
-	T("/xxxx/xxxx/x.gz", false     , true     , false, true, NULL   ,"gz");
+	T("/xxxx/xxxx/x.gz", true      , true     , false, true, "x.gz" , "gz");
+	T("/xxxx/xxxx/x.gz", false     , true     , false, true, NULL   , "gz");
 	T("/xxxx/xxxx/x.gz", true      , false    , false, true, "x.gz" , NULL);
 	T("/xxxx/xxxx/x.gz", false     , false    , false, true, NULL   , NULL);
 	M("/xxxx/xxxx/x.gz", PERF_RECORD_MISC_CPUMODE_UNKNOWN, false);

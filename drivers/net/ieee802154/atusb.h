@@ -18,12 +18,13 @@
 
 #define ATUSB_VENDOR_ID	0x20b7	/* Qi Hardware*/
 #define ATUSB_PRODUCT_ID 0x1540	/* 802.15.4, device 0 */
-				/*     -- -         - */
+/*     -- -         - */
 
 #define ATUSB_BUILD_SIZE 256	/* maximum build version/date message length */
 
 /* Commands to our device. Make sure this is synced with the firmware */
-enum atusb_requests {
+enum atusb_requests
+{
 	ATUSB_ID			= 0x00,	/* system status/control grp */
 	ATUSB_BUILD,
 	ATUSB_RESET,

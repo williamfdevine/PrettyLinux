@@ -23,7 +23,9 @@ int mxs_clk_wait(void __iomem *reg, u8 shift)
 
 	while (readl_relaxed(reg) & (1 << shift))
 		if (time_after(jiffies, timeout))
+		{
 			return -ETIMEDOUT;
+		}
 
 	return 0;
 }

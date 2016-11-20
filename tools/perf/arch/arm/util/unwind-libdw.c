@@ -9,10 +9,10 @@ bool libdw__arch_set_initial_registers(Dwfl_Thread *thread, void *arg)
 	Dwarf_Word dwarf_regs[PERF_REG_ARM_MAX];
 
 #define REG(r) ({						\
-	Dwarf_Word val = 0;					\
-	perf_reg_value(&val, user_regs, PERF_REG_ARM_##r);	\
-	val;							\
-})
+		Dwarf_Word val = 0;					\
+		perf_reg_value(&val, user_regs, PERF_REG_ARM_##r);	\
+		val;							\
+	})
 
 	dwarf_regs[0]  = REG(R0);
 	dwarf_regs[1]  = REG(R1);
@@ -32,5 +32,5 @@ bool libdw__arch_set_initial_registers(Dwfl_Thread *thread, void *arg)
 	dwarf_regs[15] = REG(PC);
 
 	return dwfl_thread_state_registers(thread, 0, PERF_REG_ARM_MAX,
-					   dwarf_regs);
+									   dwarf_regs);
 }

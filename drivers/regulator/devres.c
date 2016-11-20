@@ -19,7 +19,8 @@
 
 #include "internal.h"
 
-enum {
+enum
+{
 	NORMAL_GET,
 	EXCLUSIVE_GET,
 	OPTIONAL_GET,
@@ -31,32 +32,42 @@ static void devm_regulator_release(struct device *dev, void *res)
 }
 
 static struct regulator *_devm_regulator_get(struct device *dev, const char *id,
-					     int get_type)
+		int get_type)
 {
 	struct regulator **ptr, *regulator;
 
 	ptr = devres_alloc(devm_regulator_release, sizeof(*ptr), GFP_KERNEL);
-	if (!ptr)
-		return ERR_PTR(-ENOMEM);
 
-	switch (get_type) {
-	case NORMAL_GET:
-		regulator = regulator_get(dev, id);
-		break;
-	case EXCLUSIVE_GET:
-		regulator = regulator_get_exclusive(dev, id);
-		break;
-	case OPTIONAL_GET:
-		regulator = regulator_get_optional(dev, id);
-		break;
-	default:
-		regulator = ERR_PTR(-EINVAL);
+	if (!ptr)
+	{
+		return ERR_PTR(-ENOMEM);
 	}
 
-	if (!IS_ERR(regulator)) {
+	switch (get_type)
+	{
+		case NORMAL_GET:
+			regulator = regulator_get(dev, id);
+			break;
+
+		case EXCLUSIVE_GET:
+			regulator = regulator_get_exclusive(dev, id);
+			break;
+
+		case OPTIONAL_GET:
+			regulator = regulator_get_optional(dev, id);
+			break;
+
+		default:
+			regulator = ERR_PTR(-EINVAL);
+	}
+
+	if (!IS_ERR(regulator))
+	{
 		*ptr = regulator;
 		devres_add(dev, ptr);
-	} else {
+	}
+	else
+	{
 		devres_free(ptr);
 	}
 
@@ -88,7 +99,7 @@ EXPORT_SYMBOL_GPL(devm_regulator_get);
  * more information.
  */
 struct regulator *devm_regulator_get_exclusive(struct device *dev,
-					       const char *id)
+		const char *id)
 {
 	return _devm_regulator_get(dev, id, EXCLUSIVE_GET);
 }
@@ -104,7 +115,7 @@ EXPORT_SYMBOL_GPL(devm_regulator_get_exclusive);
  * regulator_get_optional() for more information.
  */
 struct regulator *devm_regulator_get_optional(struct device *dev,
-					      const char *id)
+		const char *id)
 {
 	return _devm_regulator_get(dev, id, OPTIONAL_GET);
 }
@@ -113,10 +124,13 @@ EXPORT_SYMBOL_GPL(devm_regulator_get_optional);
 static int devm_regulator_match(struct device *dev, void *res, void *data)
 {
 	struct regulator **r = res;
-	if (!r || !*r) {
+
+	if (!r || !*r)
+	{
 		WARN_ON(!r || !*r);
 		return 0;
 	}
+
 	return *r == data;
 }
 
@@ -133,9 +147,12 @@ void devm_regulator_put(struct regulator *regulator)
 	int rc;
 
 	rc = devres_release(regulator->dev, devm_regulator_release,
-			    devm_regulator_match, regulator);
+						devm_regulator_match, regulator);
+
 	if (rc != 0)
+	{
 		WARN_ON(rc);
+	}
 }
 EXPORT_SYMBOL_GPL(devm_regulator_put);
 
@@ -155,21 +172,26 @@ EXPORT_SYMBOL_GPL(devm_regulator_put);
  * allocated will be freed before returning to the caller.
  */
 int devm_regulator_bulk_get(struct device *dev, int num_consumers,
-			    struct regulator_bulk_data *consumers)
+							struct regulator_bulk_data *consumers)
 {
 	int i;
 	int ret;
 
 	for (i = 0; i < num_consumers; i++)
+	{
 		consumers[i].consumer = NULL;
+	}
 
-	for (i = 0; i < num_consumers; i++) {
+	for (i = 0; i < num_consumers; i++)
+	{
 		consumers[i].consumer = devm_regulator_get(dev,
-							   consumers[i].supply);
-		if (IS_ERR(consumers[i].consumer)) {
+								consumers[i].supply);
+
+		if (IS_ERR(consumers[i].consumer))
+		{
 			ret = PTR_ERR(consumers[i].consumer);
 			dev_err(dev, "Failed to get supply '%s': %d\n",
-				consumers[i].supply, ret);
+					consumers[i].supply, ret);
 			consumers[i].consumer = NULL;
 			goto err;
 		}
@@ -178,8 +200,11 @@ int devm_regulator_bulk_get(struct device *dev, int num_consumers,
 	return 0;
 
 err:
+
 	for (i = 0; i < num_consumers && consumers[i].consumer; i++)
+	{
 		devm_regulator_put(consumers[i].consumer);
+	}
 
 	return ret;
 }
@@ -201,21 +226,28 @@ static void devm_rdev_release(struct device *dev, void *res)
  * is unbound.
  */
 struct regulator_dev *devm_regulator_register(struct device *dev,
-				  const struct regulator_desc *regulator_desc,
-				  const struct regulator_config *config)
+		const struct regulator_desc *regulator_desc,
+		const struct regulator_config *config)
 {
 	struct regulator_dev **ptr, *rdev;
 
 	ptr = devres_alloc(devm_rdev_release, sizeof(*ptr),
-			   GFP_KERNEL);
+					   GFP_KERNEL);
+
 	if (!ptr)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	rdev = regulator_register(regulator_desc, config);
-	if (!IS_ERR(rdev)) {
+
+	if (!IS_ERR(rdev))
+	{
 		*ptr = rdev;
 		devres_add(dev, ptr);
-	} else {
+	}
+	else
+	{
 		devres_free(ptr);
 	}
 
@@ -226,10 +258,13 @@ EXPORT_SYMBOL_GPL(devm_regulator_register);
 static int devm_rdev_match(struct device *dev, void *res, void *data)
 {
 	struct regulator_dev **r = res;
-	if (!r || !*r) {
+
+	if (!r || !*r)
+	{
 		WARN_ON(!r || !*r);
 		return 0;
 	}
+
 	return *r == data;
 }
 
@@ -246,18 +281,22 @@ void devm_regulator_unregister(struct device *dev, struct regulator_dev *rdev)
 	int rc;
 
 	rc = devres_release(dev, devm_rdev_release, devm_rdev_match, rdev);
+
 	if (rc != 0)
+	{
 		WARN_ON(rc);
+	}
 }
 EXPORT_SYMBOL_GPL(devm_regulator_unregister);
 
-struct regulator_supply_alias_match {
+struct regulator_supply_alias_match
+{
 	struct device *dev;
 	const char *id;
 };
 
 static int devm_regulator_match_supply_alias(struct device *dev, void *res,
-					     void *data)
+		void *data)
 {
 	struct regulator_supply_alias_match *match = res;
 	struct regulator_supply_alias_match *target = data;
@@ -286,23 +325,28 @@ static void devm_regulator_destroy_supply_alias(struct device *dev, void *res)
  * device is unbound.
  */
 int devm_regulator_register_supply_alias(struct device *dev, const char *id,
-					 struct device *alias_dev,
-					 const char *alias_id)
+		struct device *alias_dev,
+		const char *alias_id)
 {
 	struct regulator_supply_alias_match *match;
 	int ret;
 
 	match = devres_alloc(devm_regulator_destroy_supply_alias,
-			   sizeof(struct regulator_supply_alias_match),
-			   GFP_KERNEL);
+						 sizeof(struct regulator_supply_alias_match),
+						 GFP_KERNEL);
+
 	if (!match)
+	{
 		return -ENOMEM;
+	}
 
 	match->dev = dev;
 	match->id = id;
 
 	ret = regulator_register_supply_alias(dev, id, alias_dev, alias_id);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		devres_free(match);
 		return ret;
 	}
@@ -334,9 +378,12 @@ void devm_regulator_unregister_supply_alias(struct device *dev, const char *id)
 	match.id = id;
 
 	rc = devres_release(dev, devm_regulator_destroy_supply_alias,
-			    devm_regulator_match_supply_alias, &match);
+						devm_regulator_match_supply_alias, &match);
+
 	if (rc != 0)
+	{
 		WARN_ON(rc);
+	}
 }
 EXPORT_SYMBOL_GPL(devm_regulator_unregister_supply_alias);
 
@@ -360,31 +407,37 @@ EXPORT_SYMBOL_GPL(devm_regulator_unregister_supply_alias);
  * will be removed before returning to the caller.
  */
 int devm_regulator_bulk_register_supply_alias(struct device *dev,
-					      const char *const *id,
-					      struct device *alias_dev,
-					      const char *const *alias_id,
-					      int num_id)
+		const char *const *id,
+		struct device *alias_dev,
+		const char *const *alias_id,
+		int num_id)
 {
 	int i;
 	int ret;
 
-	for (i = 0; i < num_id; ++i) {
+	for (i = 0; i < num_id; ++i)
+	{
 		ret = devm_regulator_register_supply_alias(dev, id[i],
-							   alias_dev,
-							   alias_id[i]);
+				alias_dev,
+				alias_id[i]);
+
 		if (ret < 0)
+		{
 			goto err;
+		}
 	}
 
 	return 0;
 
 err:
 	dev_err(dev,
-		"Failed to create supply alias %s,%s -> %s,%s\n",
-		id[i], dev_name(dev), alias_id[i], dev_name(alias_dev));
+			"Failed to create supply alias %s,%s -> %s,%s\n",
+			id[i], dev_name(dev), alias_id[i], dev_name(alias_dev));
 
 	while (--i >= 0)
+	{
 		devm_regulator_unregister_supply_alias(dev, id[i]);
+	}
 
 	return ret;
 }
@@ -404,23 +457,26 @@ EXPORT_SYMBOL_GPL(devm_regulator_bulk_register_supply_alias);
  * will ensure that the resource is freed.
  */
 void devm_regulator_bulk_unregister_supply_alias(struct device *dev,
-						 const char *const *id,
-						 int num_id)
+		const char *const *id,
+		int num_id)
 {
 	int i;
 
 	for (i = 0; i < num_id; ++i)
+	{
 		devm_regulator_unregister_supply_alias(dev, id[i]);
+	}
 }
 EXPORT_SYMBOL_GPL(devm_regulator_bulk_unregister_supply_alias);
 
-struct regulator_notifier_match {
+struct regulator_notifier_match
+{
 	struct regulator *regulator;
 	struct notifier_block *nb;
 };
 
 static int devm_regulator_match_notifier(struct device *dev, void *res,
-					 void *data)
+		void *data)
 {
 	struct regulator_notifier_match *match = res;
 	struct regulator_notifier_match *target = data;
@@ -446,22 +502,27 @@ static void devm_regulator_destroy_notifier(struct device *dev, void *res)
  * automatically be unregistered when the source device is unbound.
  */
 int devm_regulator_register_notifier(struct regulator *regulator,
-				     struct notifier_block *nb)
+									 struct notifier_block *nb)
 {
 	struct regulator_notifier_match *match;
 	int ret;
 
 	match = devres_alloc(devm_regulator_destroy_notifier,
-			     sizeof(struct regulator_notifier_match),
-			     GFP_KERNEL);
+						 sizeof(struct regulator_notifier_match),
+						 GFP_KERNEL);
+
 	if (!match)
+	{
 		return -ENOMEM;
+	}
 
 	match->regulator = regulator;
 	match->nb = nb;
 
 	ret = regulator_register_notifier(regulator, nb);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		devres_free(match);
 		return ret;
 	}
@@ -484,7 +545,7 @@ EXPORT_SYMBOL_GPL(devm_regulator_register_notifier);
  * management code will ensure that the resource is freed.
  */
 void devm_regulator_unregister_notifier(struct regulator *regulator,
-					struct notifier_block *nb)
+										struct notifier_block *nb)
 {
 	struct regulator_notifier_match match;
 	int rc;
@@ -493,8 +554,11 @@ void devm_regulator_unregister_notifier(struct regulator *regulator,
 	match.nb = nb;
 
 	rc = devres_release(regulator->dev, devm_regulator_destroy_notifier,
-			    devm_regulator_match_notifier, &match);
+						devm_regulator_match_notifier, &match);
+
 	if (rc != 0)
+	{
 		WARN_ON(rc);
+	}
 }
 EXPORT_SYMBOL_GPL(devm_regulator_unregister_notifier);

@@ -48,14 +48,19 @@ int dgnc_mgmt_open(struct inode *inode, struct file *file)
 	spin_lock_irqsave(&dgnc_global_lock, flags);
 
 	/* mgmt device */
-	if (minor < MAXMGMTDEVICES) {
+	if (minor < MAXMGMTDEVICES)
+	{
 		/* Only allow 1 open at a time on mgmt device */
-		if (dgnc_mgmt_in_use[minor]) {
+		if (dgnc_mgmt_in_use[minor])
+		{
 			spin_unlock_irqrestore(&dgnc_global_lock, flags);
 			return -EBUSY;
 		}
+
 		dgnc_mgmt_in_use[minor]++;
-	} else {
+	}
+	else
+	{
 		spin_unlock_irqrestore(&dgnc_global_lock, flags);
 		return -ENXIO;
 	}
@@ -78,10 +83,14 @@ int dgnc_mgmt_close(struct inode *inode, struct file *file)
 	spin_lock_irqsave(&dgnc_global_lock, flags);
 
 	/* mgmt device */
-	if (minor < MAXMGMTDEVICES) {
+	if (minor < MAXMGMTDEVICES)
+	{
 		if (dgnc_mgmt_in_use[minor])
+		{
 			dgnc_mgmt_in_use[minor] = 0;
+		}
 	}
+
 	spin_unlock_irqrestore(&dgnc_global_lock, flags);
 
 	return 0;
@@ -98,159 +107,207 @@ long dgnc_mgmt_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	unsigned long flags;
 	void __user *uarg = (void __user *)arg;
 
-	switch (cmd) {
-	case DIGI_GETDD:
+	switch (cmd)
 	{
-		/*
-		 * This returns the total number of boards
-		 * in the system, as well as driver version
-		 * and has space for a reserved entry
-		 */
-		struct digi_dinfo ddi;
+		case DIGI_GETDD:
+			{
+				/*
+				 * This returns the total number of boards
+				 * in the system, as well as driver version
+				 * and has space for a reserved entry
+				 */
+				struct digi_dinfo ddi;
 
-		spin_lock_irqsave(&dgnc_global_lock, flags);
+				spin_lock_irqsave(&dgnc_global_lock, flags);
 
-		memset(&ddi, 0, sizeof(ddi));
-		ddi.dinfo_nboards = dgnc_num_boards;
-		sprintf(ddi.dinfo_version, "%s", DG_PART);
+				memset(&ddi, 0, sizeof(ddi));
+				ddi.dinfo_nboards = dgnc_num_boards;
+				sprintf(ddi.dinfo_version, "%s", DG_PART);
 
-		spin_unlock_irqrestore(&dgnc_global_lock, flags);
+				spin_unlock_irqrestore(&dgnc_global_lock, flags);
 
-		if (copy_to_user(uarg, &ddi, sizeof(ddi)))
-			return -EFAULT;
+				if (copy_to_user(uarg, &ddi, sizeof(ddi)))
+				{
+					return -EFAULT;
+				}
 
-		break;
-	}
+				break;
+			}
 
-	case DIGI_GETBD:
-	{
-		int brd;
+		case DIGI_GETBD:
+			{
+				int brd;
 
-		struct digi_info di;
+				struct digi_info di;
 
-		if (copy_from_user(&brd, uarg, sizeof(int)))
-			return -EFAULT;
+				if (copy_from_user(&brd, uarg, sizeof(int)))
+				{
+					return -EFAULT;
+				}
 
-		if (brd < 0 || brd >= dgnc_num_boards)
-			return -ENODEV;
+				if (brd < 0 || brd >= dgnc_num_boards)
+				{
+					return -ENODEV;
+				}
 
-		memset(&di, 0, sizeof(di));
+				memset(&di, 0, sizeof(di));
 
-		di.info_bdnum = brd;
+				di.info_bdnum = brd;
 
-		spin_lock_irqsave(&dgnc_board[brd]->bd_lock, flags);
+				spin_lock_irqsave(&dgnc_board[brd]->bd_lock, flags);
 
-		di.info_bdtype = dgnc_board[brd]->dpatype;
-		di.info_bdstate = dgnc_board[brd]->dpastatus;
-		di.info_ioport = 0;
-		di.info_physaddr = (ulong)dgnc_board[brd]->membase;
-		di.info_physsize = (ulong)dgnc_board[brd]->membase
-			- dgnc_board[brd]->membase_end;
-		if (dgnc_board[brd]->state != BOARD_FAILED)
-			di.info_nports = dgnc_board[brd]->nasync;
-		else
-			di.info_nports = 0;
+				di.info_bdtype = dgnc_board[brd]->dpatype;
+				di.info_bdstate = dgnc_board[brd]->dpastatus;
+				di.info_ioport = 0;
+				di.info_physaddr = (ulong)dgnc_board[brd]->membase;
+				di.info_physsize = (ulong)dgnc_board[brd]->membase
+								   - dgnc_board[brd]->membase_end;
 
-		spin_unlock_irqrestore(&dgnc_board[brd]->bd_lock, flags);
+				if (dgnc_board[brd]->state != BOARD_FAILED)
+				{
+					di.info_nports = dgnc_board[brd]->nasync;
+				}
+				else
+				{
+					di.info_nports = 0;
+				}
 
-		if (copy_to_user(uarg, &di, sizeof(di)))
-			return -EFAULT;
+				spin_unlock_irqrestore(&dgnc_board[brd]->bd_lock, flags);
 
-		break;
-	}
+				if (copy_to_user(uarg, &di, sizeof(di)))
+				{
+					return -EFAULT;
+				}
 
-	case DIGI_GET_NI_INFO:
-	{
-		struct channel_t *ch;
-		struct ni_info ni;
-		unsigned char mstat = 0;
-		uint board = 0;
-		uint channel = 0;
+				break;
+			}
 
-		if (copy_from_user(&ni, uarg, sizeof(ni)))
-			return -EFAULT;
+		case DIGI_GET_NI_INFO:
+			{
+				struct channel_t *ch;
+				struct ni_info ni;
+				unsigned char mstat = 0;
+				uint board = 0;
+				uint channel = 0;
 
-		board = ni.board;
-		channel = ni.channel;
+				if (copy_from_user(&ni, uarg, sizeof(ni)))
+				{
+					return -EFAULT;
+				}
 
-		/* Verify boundaries on board */
-		if (board >= dgnc_num_boards)
-			return -ENODEV;
+				board = ni.board;
+				channel = ni.channel;
 
-		/* Verify boundaries on channel */
-		if (channel >= dgnc_board[board]->nasync)
-			return -ENODEV;
+				/* Verify boundaries on board */
+				if (board >= dgnc_num_boards)
+				{
+					return -ENODEV;
+				}
 
-		ch = dgnc_board[board]->channels[channel];
+				/* Verify boundaries on channel */
+				if (channel >= dgnc_board[board]->nasync)
+				{
+					return -ENODEV;
+				}
 
-		if (!ch || ch->magic != DGNC_CHANNEL_MAGIC)
-			return -ENODEV;
+				ch = dgnc_board[board]->channels[channel];
 
-		memset(&ni, 0, sizeof(ni));
-		ni.board = board;
-		ni.channel = channel;
+				if (!ch || ch->magic != DGNC_CHANNEL_MAGIC)
+				{
+					return -ENODEV;
+				}
 
-		spin_lock_irqsave(&ch->ch_lock, flags);
+				memset(&ni, 0, sizeof(ni));
+				ni.board = board;
+				ni.channel = channel;
 
-		mstat = ch->ch_mostat | ch->ch_mistat;
+				spin_lock_irqsave(&ch->ch_lock, flags);
 
-		if (mstat & UART_MCR_DTR) {
-			ni.mstat |= TIOCM_DTR;
-			ni.dtr = TIOCM_DTR;
-		}
-		if (mstat & UART_MCR_RTS) {
-			ni.mstat |= TIOCM_RTS;
-			ni.rts = TIOCM_RTS;
-		}
-		if (mstat & UART_MSR_CTS) {
-			ni.mstat |= TIOCM_CTS;
-			ni.cts = TIOCM_CTS;
-		}
-		if (mstat & UART_MSR_RI) {
-			ni.mstat |= TIOCM_RI;
-			ni.ri = TIOCM_RI;
-		}
-		if (mstat & UART_MSR_DCD) {
-			ni.mstat |= TIOCM_CD;
-			ni.dcd = TIOCM_CD;
-		}
-		if (mstat & UART_MSR_DSR)
-			ni.mstat |= TIOCM_DSR;
+				mstat = ch->ch_mostat | ch->ch_mistat;
 
-		ni.iflag = ch->ch_c_iflag;
-		ni.oflag = ch->ch_c_oflag;
-		ni.cflag = ch->ch_c_cflag;
-		ni.lflag = ch->ch_c_lflag;
+				if (mstat & UART_MCR_DTR)
+				{
+					ni.mstat |= TIOCM_DTR;
+					ni.dtr = TIOCM_DTR;
+				}
 
-		if (ch->ch_digi.digi_flags & CTSPACE ||
-		    ch->ch_c_cflag & CRTSCTS)
-			ni.hflow = 1;
-		else
-			ni.hflow = 0;
+				if (mstat & UART_MCR_RTS)
+				{
+					ni.mstat |= TIOCM_RTS;
+					ni.rts = TIOCM_RTS;
+				}
 
-		if ((ch->ch_flags & CH_STOPI) ||
-		    (ch->ch_flags & CH_FORCED_STOPI))
-			ni.recv_stopped = 1;
-		else
-			ni.recv_stopped = 0;
+				if (mstat & UART_MSR_CTS)
+				{
+					ni.mstat |= TIOCM_CTS;
+					ni.cts = TIOCM_CTS;
+				}
 
-		if ((ch->ch_flags & CH_STOP) || (ch->ch_flags & CH_FORCED_STOP))
-			ni.xmit_stopped = 1;
-		else
-			ni.xmit_stopped = 0;
+				if (mstat & UART_MSR_RI)
+				{
+					ni.mstat |= TIOCM_RI;
+					ni.ri = TIOCM_RI;
+				}
 
-		ni.curtx = ch->ch_txcount;
-		ni.currx = ch->ch_rxcount;
+				if (mstat & UART_MSR_DCD)
+				{
+					ni.mstat |= TIOCM_CD;
+					ni.dcd = TIOCM_CD;
+				}
 
-		ni.baud = ch->ch_old_baud;
+				if (mstat & UART_MSR_DSR)
+				{
+					ni.mstat |= TIOCM_DSR;
+				}
 
-		spin_unlock_irqrestore(&ch->ch_lock, flags);
+				ni.iflag = ch->ch_c_iflag;
+				ni.oflag = ch->ch_c_oflag;
+				ni.cflag = ch->ch_c_cflag;
+				ni.lflag = ch->ch_c_lflag;
 
-		if (copy_to_user(uarg, &ni, sizeof(ni)))
-			return -EFAULT;
+				if (ch->ch_digi.digi_flags & CTSPACE ||
+					ch->ch_c_cflag & CRTSCTS)
+				{
+					ni.hflow = 1;
+				}
+				else
+				{
+					ni.hflow = 0;
+				}
 
-		break;
-	}
+				if ((ch->ch_flags & CH_STOPI) ||
+					(ch->ch_flags & CH_FORCED_STOPI))
+				{
+					ni.recv_stopped = 1;
+				}
+				else
+				{
+					ni.recv_stopped = 0;
+				}
+
+				if ((ch->ch_flags & CH_STOP) || (ch->ch_flags & CH_FORCED_STOP))
+				{
+					ni.xmit_stopped = 1;
+				}
+				else
+				{
+					ni.xmit_stopped = 0;
+				}
+
+				ni.curtx = ch->ch_txcount;
+				ni.currx = ch->ch_rxcount;
+
+				ni.baud = ch->ch_old_baud;
+
+				spin_unlock_irqrestore(&ch->ch_lock, flags);
+
+				if (copy_to_user(uarg, &ni, sizeof(ni)))
+				{
+					return -EFAULT;
+				}
+
+				break;
+			}
 	}
 
 	return 0;

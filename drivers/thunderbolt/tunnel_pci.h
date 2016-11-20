@@ -9,7 +9,8 @@
 
 #include "tb.h"
 
-struct tb_pci_tunnel {
+struct tb_pci_tunnel
+{
 	struct tb *tb;
 	struct tb_port *up_port;
 	struct tb_port *down_port;
@@ -19,7 +20,7 @@ struct tb_pci_tunnel {
 };
 
 struct tb_pci_tunnel *tb_pci_alloc(struct tb *tb, struct tb_port *up,
-				   struct tb_port *down);
+								   struct tb_port *down);
 void tb_pci_free(struct tb_pci_tunnel *tunnel);
 int tb_pci_activate(struct tb_pci_tunnel *tunnel);
 int tb_pci_restart(struct tb_pci_tunnel *tunnel);

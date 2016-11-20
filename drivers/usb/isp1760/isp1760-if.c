@@ -22,7 +22,7 @@
 #include "isp1760-regs.h"
 
 #ifdef CONFIG_PCI
-#include <linux/pci.h>
+	#include <linux/pci.h>
 #endif
 
 #ifdef CONFIG_PCI
@@ -38,19 +38,24 @@ static int isp1761_pci_init(struct pci_dev *dev)
 	/* Grab the PLX PCI shared memory of the ISP 1761 we need  */
 	mem_start = pci_resource_start(dev, 3);
 	mem_length = pci_resource_len(dev, 3);
-	if (mem_length < 0xffff) {
+
+	if (mem_length < 0xffff)
+	{
 		printk(KERN_ERR "memory length for this resource is wrong\n");
 		return -ENOMEM;
 	}
 
-	if (!request_mem_region(mem_start, mem_length, "ISP-PCI")) {
+	if (!request_mem_region(mem_start, mem_length, "ISP-PCI"))
+	{
 		printk(KERN_ERR "host controller already in use\n");
 		return -EBUSY;
 	}
 
 	/* map available memory */
 	iobase = ioremap_nocache(mem_start, mem_length);
-	if (!iobase) {
+
+	if (!iobase)
+	{
 		printk(KERN_ERR "Error ioremap failed\n");
 		release_mem_region(mem_start, mem_length);
 		return -ENOMEM;
@@ -58,10 +63,15 @@ static int isp1761_pci_init(struct pci_dev *dev)
 
 	/* bad pci latencies can contribute to overruns */
 	pci_read_config_byte(dev, PCI_LATENCY_TIMER, &latency);
-	if (latency) {
+
+	if (latency)
+	{
 		pci_read_config_byte(dev, PCI_MAX_LAT, &limit);
+
 		if (limit && limit < latency)
+		{
 			pci_write_config_byte(dev, PCI_LATENCY_TIMER, limit);
+		}
 	}
 
 	/* Try to check whether we can access Scratch Register of
@@ -70,7 +80,9 @@ static int isp1761_pci_init(struct pci_dev *dev)
 	 */
 	retry_count = 20;
 	reg_data = 0;
-	while ((reg_data != 0xFACE) && retry_count) {
+
+	while ((reg_data != 0xFACE) && retry_count)
+	{
 		/*by default host is in 16bit mode, so
 		 * io operations at this stage must be 16 bit
 		 * */
@@ -86,7 +98,8 @@ static int isp1761_pci_init(struct pci_dev *dev)
 	/* Host Controller presence is detected by writing to scratch register
 	 * and reading back and checking the contents are same or not
 	 */
-	if (reg_data != 0xFACE) {
+	if (reg_data != 0xFACE)
+	{
 		dev_err(&dev->dev, "scratch register mismatch %x\n", reg_data);
 		return -ENOMEM;
 	}
@@ -95,13 +108,16 @@ static int isp1761_pci_init(struct pci_dev *dev)
 	mem_start = pci_resource_start(dev, 0);
 	mem_length = pci_resource_len(dev, 0);
 
-	if (!request_mem_region(mem_start, mem_length, "ISP1761 IO MEM")) {
+	if (!request_mem_region(mem_start, mem_length, "ISP1761 IO MEM"))
+	{
 		printk(KERN_ERR "request region #1\n");
 		return -EBUSY;
 	}
 
 	iobase = ioremap_nocache(mem_start, mem_length);
-	if (!iobase) {
+
+	if (!iobase)
+	{
 		printk(KERN_ERR "ioremap #1\n");
 		release_mem_region(mem_start, mem_length);
 		return -ENOMEM;
@@ -121,28 +137,38 @@ static int isp1761_pci_init(struct pci_dev *dev)
 }
 
 static int isp1761_pci_probe(struct pci_dev *dev,
-		const struct pci_device_id *id)
+							 const struct pci_device_id *id)
 {
 	unsigned int devflags = 0;
 	int ret;
 
 	if (!dev->irq)
+	{
 		return -ENODEV;
+	}
 
 	if (pci_enable_device(dev) < 0)
+	{
 		return -ENODEV;
+	}
 
 	ret = isp1761_pci_init(dev);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
 
 	pci_set_master(dev);
 
 	dev->dev.dma_mask = NULL;
 	ret = isp1760_register(&dev->resource[3], dev->irq, 0, &dev->dev,
-			       devflags);
+						   devflags);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
 
 	return 0;
 
@@ -163,7 +189,8 @@ static void isp1761_pci_shutdown(struct pci_dev *dev)
 	printk(KERN_ERR "ips1761_pci_shutdown\n");
 }
 
-static const struct pci_device_id isp1760_plx[] = {
+static const struct pci_device_id isp1760_plx[] =
+{
 	{
 		.class          = PCI_CLASS_BRIDGE_OTHER << 8,
 		.class_mask     = ~0,
@@ -176,7 +203,8 @@ static const struct pci_device_id isp1760_plx[] = {
 };
 MODULE_DEVICE_TABLE(pci, isp1760_plx);
 
-static struct pci_driver isp1761_pci_driver = {
+static struct pci_driver isp1761_pci_driver =
+{
 	.name =         "isp1760",
 	.id_table =     isp1760_plx,
 	.probe =        isp1761_pci_probe,
@@ -196,57 +224,96 @@ static int isp1760_plat_probe(struct platform_device *pdev)
 	mem_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 
 	irq_res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-	if (!irq_res) {
+
+	if (!irq_res)
+	{
 		pr_warning("isp1760: IRQ resource not available\n");
 		return -ENODEV;
 	}
+
 	irqflags = irq_res->flags & IRQF_TRIGGER_MASK;
 
-	if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node) {
+	if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node)
+	{
 		struct device_node *dp = pdev->dev.of_node;
 		u32 bus_width = 0;
 
 		if (of_device_is_compatible(dp, "nxp,usb-isp1761"))
+		{
 			devflags |= ISP1760_FLAG_ISP1761;
+		}
 
 		/* Some systems wire up only 16 of the 32 data lines */
 		of_property_read_u32(dp, "bus-width", &bus_width);
+
 		if (bus_width == 16)
+		{
 			devflags |= ISP1760_FLAG_BUS_WIDTH_16;
+		}
 
 		if (of_property_read_bool(dp, "port1-otg"))
+		{
 			devflags |= ISP1760_FLAG_OTG_EN;
+		}
 
 		if (of_property_read_bool(dp, "analog-oc"))
+		{
 			devflags |= ISP1760_FLAG_ANALOG_OC;
+		}
 
 		if (of_property_read_bool(dp, "dack-polarity"))
+		{
 			devflags |= ISP1760_FLAG_DACK_POL_HIGH;
+		}
 
 		if (of_property_read_bool(dp, "dreq-polarity"))
+		{
 			devflags |= ISP1760_FLAG_DREQ_POL_HIGH;
-	} else if (dev_get_platdata(&pdev->dev)) {
+		}
+	}
+	else if (dev_get_platdata(&pdev->dev))
+	{
 		struct isp1760_platform_data *pdata =
 			dev_get_platdata(&pdev->dev);
 
 		if (pdata->is_isp1761)
+		{
 			devflags |= ISP1760_FLAG_ISP1761;
+		}
+
 		if (pdata->bus_width_16)
+		{
 			devflags |= ISP1760_FLAG_BUS_WIDTH_16;
+		}
+
 		if (pdata->port1_otg)
+		{
 			devflags |= ISP1760_FLAG_OTG_EN;
+		}
+
 		if (pdata->analog_oc)
+		{
 			devflags |= ISP1760_FLAG_ANALOG_OC;
+		}
+
 		if (pdata->dack_polarity_high)
+		{
 			devflags |= ISP1760_FLAG_DACK_POL_HIGH;
+		}
+
 		if (pdata->dreq_polarity_high)
+		{
 			devflags |= ISP1760_FLAG_DREQ_POL_HIGH;
+		}
 	}
 
 	ret = isp1760_register(mem_res, irq_res->start, irqflags, &pdev->dev,
-			       devflags);
+						   devflags);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	pr_info("ISP1760 USB device initialised\n");
 	return 0;
@@ -260,7 +327,8 @@ static int isp1760_plat_remove(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id isp1760_of_match[] = {
+static const struct of_device_id isp1760_of_match[] =
+{
 	{ .compatible = "nxp,usb-isp1760", },
 	{ .compatible = "nxp,usb-isp1761", },
 	{ },
@@ -268,7 +336,8 @@ static const struct of_device_id isp1760_of_match[] = {
 MODULE_DEVICE_TABLE(of, isp1760_of_match);
 #endif
 
-static struct platform_driver isp1760_plat_driver = {
+static struct platform_driver isp1760_plat_driver =
+{
 	.probe	= isp1760_plat_probe,
 	.remove	= isp1760_plat_remove,
 	.driver	= {
@@ -284,16 +353,27 @@ static int __init isp1760_init(void)
 	isp1760_init_kmem_once();
 
 	ret = platform_driver_register(&isp1760_plat_driver);
+
 	if (!ret)
+	{
 		any_ret = 0;
+	}
+
 #ifdef CONFIG_PCI
 	ret = pci_register_driver(&isp1761_pci_driver);
+
 	if (!ret)
+	{
 		any_ret = 0;
+	}
+
 #endif
 
 	if (any_ret)
+	{
 		isp1760_deinit_kmem_cache();
+	}
+
 	return any_ret;
 }
 module_init(isp1760_init);

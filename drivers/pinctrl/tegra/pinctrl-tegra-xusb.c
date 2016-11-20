@@ -53,13 +53,15 @@
 #define XUSB_PADCTL_IOPHY_MISC_PAD_S0_CTL1_IDDQ_OVRD (1 << 1)
 #define XUSB_PADCTL_IOPHY_MISC_PAD_S0_CTL1_IDDQ (1 << 0)
 
-struct tegra_xusb_padctl_function {
+struct tegra_xusb_padctl_function
+{
 	const char *name;
-	const char * const *groups;
+	const char *const *groups;
 	unsigned int num_groups;
 };
 
-struct tegra_xusb_padctl_soc {
+struct tegra_xusb_padctl_soc
+{
 	const struct pinctrl_pin_desc *pins;
 	unsigned int num_pins;
 
@@ -70,7 +72,8 @@ struct tegra_xusb_padctl_soc {
 	unsigned int num_lanes;
 };
 
-struct tegra_xusb_padctl_lane {
+struct tegra_xusb_padctl_lane
+{
 	const char *name;
 
 	unsigned int offset;
@@ -82,7 +85,8 @@ struct tegra_xusb_padctl_lane {
 	unsigned int num_funcs;
 };
 
-struct tegra_xusb_padctl {
+struct tegra_xusb_padctl
+{
 	struct device *dev;
 	void __iomem *regs;
 	struct mutex lock;
@@ -99,13 +103,13 @@ struct tegra_xusb_padctl {
 };
 
 static inline void padctl_writel(struct tegra_xusb_padctl *padctl, u32 value,
-				 unsigned long offset)
+								 unsigned long offset)
 {
 	writel(value, padctl->regs + offset);
 }
 
 static inline u32 padctl_readl(struct tegra_xusb_padctl *padctl,
-			       unsigned long offset)
+							   unsigned long offset)
 {
 	return readl(padctl->regs + offset);
 }
@@ -118,7 +122,7 @@ static int tegra_xusb_padctl_get_groups_count(struct pinctrl_dev *pinctrl)
 }
 
 static const char *tegra_xusb_padctl_get_group_name(struct pinctrl_dev *pinctrl,
-						    unsigned int group)
+		unsigned int group)
 {
 	struct tegra_xusb_padctl *padctl = pinctrl_dev_get_drvdata(pinctrl);
 
@@ -126,9 +130,9 @@ static const char *tegra_xusb_padctl_get_group_name(struct pinctrl_dev *pinctrl,
 }
 
 static int tegra_xusb_padctl_get_group_pins(struct pinctrl_dev *pinctrl,
-					    unsigned group,
-					    const unsigned **pins,
-					    unsigned *num_pins)
+		unsigned group,
+		const unsigned **pins,
+		unsigned *num_pins)
 {
 	/*
 	 * For the tegra-xusb pad controller groups are synonomous
@@ -140,14 +144,17 @@ static int tegra_xusb_padctl_get_group_pins(struct pinctrl_dev *pinctrl,
 	return 0;
 }
 
-enum tegra_xusb_padctl_param {
+enum tegra_xusb_padctl_param
+{
 	TEGRA_XUSB_PADCTL_IDDQ,
 };
 
-static const struct tegra_xusb_padctl_property {
+static const struct tegra_xusb_padctl_property
+{
 	const char *name;
 	enum tegra_xusb_padctl_param param;
-} properties[] = {
+} properties[] =
+{
 	{ "nvidia,iddq", TEGRA_XUSB_PADCTL_IDDQ },
 };
 
@@ -156,10 +163,10 @@ static const struct tegra_xusb_padctl_property {
 #define TEGRA_XUSB_PADCTL_UNPACK_VALUE(config) ((config) & 0xffff)
 
 static int tegra_xusb_padctl_parse_subnode(struct tegra_xusb_padctl *padctl,
-					   struct device_node *np,
-					   struct pinctrl_map **maps,
-					   unsigned int *reserved_maps,
-					   unsigned int *num_maps)
+		struct device_node *np,
+		struct pinctrl_map **maps,
+		unsigned int *reserved_maps,
+		unsigned int *num_maps)
 {
 	unsigned int i, reserve = 0, num_configs = 0;
 	unsigned long config, *configs = NULL;
@@ -169,18 +176,27 @@ static int tegra_xusb_padctl_parse_subnode(struct tegra_xusb_padctl *padctl,
 	u32 value;
 
 	err = of_property_read_string(np, "nvidia,function", &function);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		if (err != -EINVAL)
+		{
 			return err;
+		}
 
 		function = NULL;
 	}
 
-	for (i = 0; i < ARRAY_SIZE(properties); i++) {
+	for (i = 0; i < ARRAY_SIZE(properties); i++)
+	{
 		err = of_property_read_u32(np, properties[i].name, &value);
-		if (err < 0) {
+
+		if (err < 0)
+		{
 			if (err == -EINVAL)
+			{
 				continue;
+			}
 
 			goto out;
 		}
@@ -188,44 +204,66 @@ static int tegra_xusb_padctl_parse_subnode(struct tegra_xusb_padctl *padctl,
 		config = TEGRA_XUSB_PADCTL_PACK(properties[i].param, value);
 
 		err = pinctrl_utils_add_config(padctl->pinctrl, &configs,
-					       &num_configs, config);
+									   &num_configs, config);
+
 		if (err < 0)
+		{
 			goto out;
+		}
 	}
 
 	if (function)
+	{
 		reserve++;
+	}
 
 	if (num_configs)
+	{
 		reserve++;
+	}
 
 	err = of_property_count_strings(np, "nvidia,lanes");
+
 	if (err < 0)
+	{
 		goto out;
+	}
 
 	reserve *= err;
 
 	err = pinctrl_utils_reserve_map(padctl->pinctrl, maps, reserved_maps,
-					num_maps, reserve);
-	if (err < 0)
-		goto out;
+									num_maps, reserve);
 
-	of_property_for_each_string(np, "nvidia,lanes", prop, group) {
-		if (function) {
+	if (err < 0)
+	{
+		goto out;
+	}
+
+	of_property_for_each_string(np, "nvidia,lanes", prop, group)
+	{
+		if (function)
+		{
 			err = pinctrl_utils_add_map_mux(padctl->pinctrl, maps,
-					reserved_maps, num_maps, group,
-					function);
+											reserved_maps, num_maps, group,
+											function);
+
 			if (err < 0)
+			{
 				goto out;
+			}
 		}
 
-		if (num_configs) {
+		if (num_configs)
+		{
 			err = pinctrl_utils_add_map_configs(padctl->pinctrl,
-					maps, reserved_maps, num_maps, group,
-					configs, num_configs,
-					PIN_MAP_TYPE_CONFIGS_GROUP);
+												maps, reserved_maps, num_maps, group,
+												configs, num_configs,
+												PIN_MAP_TYPE_CONFIGS_GROUP);
+
 			if (err < 0)
+			{
 				goto out;
+			}
 		}
 	}
 
@@ -237,9 +275,9 @@ out:
 }
 
 static int tegra_xusb_padctl_dt_node_to_map(struct pinctrl_dev *pinctrl,
-					    struct device_node *parent,
-					    struct pinctrl_map **maps,
-					    unsigned int *num_maps)
+		struct device_node *parent,
+		struct pinctrl_map **maps,
+		unsigned int *num_maps)
 {
 	struct tegra_xusb_padctl *padctl = pinctrl_dev_get_drvdata(pinctrl);
 	unsigned int reserved_maps = 0;
@@ -249,11 +287,14 @@ static int tegra_xusb_padctl_dt_node_to_map(struct pinctrl_dev *pinctrl,
 	*num_maps = 0;
 	*maps = NULL;
 
-	for_each_child_of_node(parent, np) {
+	for_each_child_of_node(parent, np)
+	{
 		err = tegra_xusb_padctl_parse_subnode(padctl, np, maps,
-						      &reserved_maps,
-						      num_maps);
-		if (err < 0) {
+											  &reserved_maps,
+											  num_maps);
+
+		if (err < 0)
+		{
 			of_node_put(np);
 			return err;
 		}
@@ -262,7 +303,8 @@ static int tegra_xusb_padctl_dt_node_to_map(struct pinctrl_dev *pinctrl,
 	return 0;
 }
 
-static const struct pinctrl_ops tegra_xusb_padctl_pinctrl_ops = {
+static const struct pinctrl_ops tegra_xusb_padctl_pinctrl_ops =
+{
 	.get_groups_count = tegra_xusb_padctl_get_groups_count,
 	.get_group_name = tegra_xusb_padctl_get_group_name,
 	.get_group_pins = tegra_xusb_padctl_get_group_pins,
@@ -279,7 +321,7 @@ static int tegra_xusb_padctl_get_functions_count(struct pinctrl_dev *pinctrl)
 
 static const char *
 tegra_xusb_padctl_get_function_name(struct pinctrl_dev *pinctrl,
-				    unsigned int function)
+									unsigned int function)
 {
 	struct tegra_xusb_padctl *padctl = pinctrl_dev_get_drvdata(pinctrl);
 
@@ -287,9 +329,9 @@ tegra_xusb_padctl_get_function_name(struct pinctrl_dev *pinctrl,
 }
 
 static int tegra_xusb_padctl_get_function_groups(struct pinctrl_dev *pinctrl,
-						 unsigned int function,
-						 const char * const **groups,
-						 unsigned * const num_groups)
+		unsigned int function,
+		const char *const **groups,
+		unsigned *const num_groups)
 {
 	struct tegra_xusb_padctl *padctl = pinctrl_dev_get_drvdata(pinctrl);
 
@@ -300,8 +342,8 @@ static int tegra_xusb_padctl_get_function_groups(struct pinctrl_dev *pinctrl,
 }
 
 static int tegra_xusb_padctl_pinmux_set(struct pinctrl_dev *pinctrl,
-					unsigned int function,
-					unsigned int group)
+										unsigned int function,
+										unsigned int group)
 {
 	struct tegra_xusb_padctl *padctl = pinctrl_dev_get_drvdata(pinctrl);
 	const struct tegra_xusb_padctl_lane *lane;
@@ -312,10 +354,14 @@ static int tegra_xusb_padctl_pinmux_set(struct pinctrl_dev *pinctrl,
 
 	for (i = 0; i < lane->num_funcs; i++)
 		if (lane->funcs[i] == function)
+		{
 			break;
+		}
 
 	if (i >= lane->num_funcs)
+	{
 		return -EINVAL;
+	}
 
 	value = padctl_readl(padctl, lane->offset);
 	value &= ~(lane->mask << lane->shift);
@@ -325,7 +371,8 @@ static int tegra_xusb_padctl_pinmux_set(struct pinctrl_dev *pinctrl,
 	return 0;
 }
 
-static const struct pinmux_ops tegra_xusb_padctl_pinmux_ops = {
+static const struct pinmux_ops tegra_xusb_padctl_pinmux_ops =
+{
 	.get_functions_count = tegra_xusb_padctl_get_functions_count,
 	.get_function_name = tegra_xusb_padctl_get_function_name,
 	.get_function_groups = tegra_xusb_padctl_get_function_groups,
@@ -333,8 +380,8 @@ static const struct pinmux_ops tegra_xusb_padctl_pinmux_ops = {
 };
 
 static int tegra_xusb_padctl_pinconf_group_get(struct pinctrl_dev *pinctrl,
-					       unsigned int group,
-					       unsigned long *config)
+		unsigned int group,
+		unsigned long *config)
 {
 	struct tegra_xusb_padctl *padctl = pinctrl_dev_get_drvdata(pinctrl);
 	const struct tegra_xusb_padctl_lane *lane;
@@ -344,35 +391,43 @@ static int tegra_xusb_padctl_pinconf_group_get(struct pinctrl_dev *pinctrl,
 	param = TEGRA_XUSB_PADCTL_UNPACK_PARAM(*config);
 	lane = &padctl->soc->lanes[group];
 
-	switch (param) {
-	case TEGRA_XUSB_PADCTL_IDDQ:
-		/* lanes with iddq == 0 don't support this parameter */
-		if (lane->iddq == 0)
-			return -EINVAL;
+	switch (param)
+	{
+		case TEGRA_XUSB_PADCTL_IDDQ:
 
-		value = padctl_readl(padctl, lane->offset);
+			/* lanes with iddq == 0 don't support this parameter */
+			if (lane->iddq == 0)
+			{
+				return -EINVAL;
+			}
 
-		if (value & BIT(lane->iddq))
-			value = 0;
-		else
-			value = 1;
+			value = padctl_readl(padctl, lane->offset);
 
-		*config = TEGRA_XUSB_PADCTL_PACK(param, value);
-		break;
+			if (value & BIT(lane->iddq))
+			{
+				value = 0;
+			}
+			else
+			{
+				value = 1;
+			}
 
-	default:
-		dev_err(padctl->dev, "invalid configuration parameter: %04x\n",
-			param);
-		return -ENOTSUPP;
+			*config = TEGRA_XUSB_PADCTL_PACK(param, value);
+			break;
+
+		default:
+			dev_err(padctl->dev, "invalid configuration parameter: %04x\n",
+					param);
+			return -ENOTSUPP;
 	}
 
 	return 0;
 }
 
 static int tegra_xusb_padctl_pinconf_group_set(struct pinctrl_dev *pinctrl,
-					       unsigned int group,
-					       unsigned long *configs,
-					       unsigned int num_configs)
+		unsigned int group,
+		unsigned long *configs,
+		unsigned int num_configs)
 {
 	struct tegra_xusb_padctl *padctl = pinctrl_dev_get_drvdata(pinctrl);
 	const struct tegra_xusb_padctl_lane *lane;
@@ -383,31 +438,40 @@ static int tegra_xusb_padctl_pinconf_group_set(struct pinctrl_dev *pinctrl,
 
 	lane = &padctl->soc->lanes[group];
 
-	for (i = 0; i < num_configs; i++) {
+	for (i = 0; i < num_configs; i++)
+	{
 		param = TEGRA_XUSB_PADCTL_UNPACK_PARAM(configs[i]);
 		value = TEGRA_XUSB_PADCTL_UNPACK_VALUE(configs[i]);
 
-		switch (param) {
-		case TEGRA_XUSB_PADCTL_IDDQ:
-			/* lanes with iddq == 0 don't support this parameter */
-			if (lane->iddq == 0)
-				return -EINVAL;
+		switch (param)
+		{
+			case TEGRA_XUSB_PADCTL_IDDQ:
 
-			regval = padctl_readl(padctl, lane->offset);
+				/* lanes with iddq == 0 don't support this parameter */
+				if (lane->iddq == 0)
+				{
+					return -EINVAL;
+				}
 
-			if (value)
-				regval &= ~BIT(lane->iddq);
-			else
-				regval |= BIT(lane->iddq);
+				regval = padctl_readl(padctl, lane->offset);
 
-			padctl_writel(padctl, regval, lane->offset);
-			break;
+				if (value)
+				{
+					regval &= ~BIT(lane->iddq);
+				}
+				else
+				{
+					regval |= BIT(lane->iddq);
+				}
 
-		default:
-			dev_err(padctl->dev,
-				"invalid configuration parameter: %04x\n",
-				param);
-			return -ENOTSUPP;
+				padctl_writel(padctl, regval, lane->offset);
+				break;
+
+			default:
+				dev_err(padctl->dev,
+						"invalid configuration parameter: %04x\n",
+						param);
+				return -ENOTSUPP;
 		}
 	}
 
@@ -418,41 +482,48 @@ static int tegra_xusb_padctl_pinconf_group_set(struct pinctrl_dev *pinctrl,
 static const char *strip_prefix(const char *s)
 {
 	const char *comma = strchr(s, ',');
+
 	if (!comma)
+	{
 		return s;
+	}
 
 	return comma + 1;
 }
 
 static void
 tegra_xusb_padctl_pinconf_group_dbg_show(struct pinctrl_dev *pinctrl,
-					 struct seq_file *s,
-					 unsigned int group)
+		struct seq_file *s,
+		unsigned int group)
 {
 	unsigned int i;
 
-	for (i = 0; i < ARRAY_SIZE(properties); i++) {
+	for (i = 0; i < ARRAY_SIZE(properties); i++)
+	{
 		unsigned long config, value;
 		int err;
 
 		config = TEGRA_XUSB_PADCTL_PACK(properties[i].param, 0);
 
 		err = tegra_xusb_padctl_pinconf_group_get(pinctrl, group,
-							  &config);
+				&config);
+
 		if (err < 0)
+		{
 			continue;
+		}
 
 		value = TEGRA_XUSB_PADCTL_UNPACK_VALUE(config);
 
 		seq_printf(s, "\n\t%s=%lu\n", strip_prefix(properties[i].name),
-			   value);
+				   value);
 	}
 }
 
 static void
 tegra_xusb_padctl_pinconf_config_dbg_show(struct pinctrl_dev *pinctrl,
-					  struct seq_file *s,
-					  unsigned long config)
+		struct seq_file *s,
+		unsigned long config)
 {
 	enum tegra_xusb_padctl_param param;
 	const char *name = "unknown";
@@ -462,8 +533,10 @@ tegra_xusb_padctl_pinconf_config_dbg_show(struct pinctrl_dev *pinctrl,
 	param = TEGRA_XUSB_PADCTL_UNPACK_PARAM(config);
 	value = TEGRA_XUSB_PADCTL_UNPACK_VALUE(config);
 
-	for (i = 0; i < ARRAY_SIZE(properties); i++) {
-		if (properties[i].param == param) {
+	for (i = 0; i < ARRAY_SIZE(properties); i++)
+	{
+		if (properties[i].param == param)
+		{
 			name = properties[i].name;
 			break;
 		}
@@ -473,7 +546,8 @@ tegra_xusb_padctl_pinconf_config_dbg_show(struct pinctrl_dev *pinctrl,
 }
 #endif
 
-static const struct pinconf_ops tegra_xusb_padctl_pinconf_ops = {
+static const struct pinconf_ops tegra_xusb_padctl_pinconf_ops =
+{
 	.pin_config_group_get = tegra_xusb_padctl_pinconf_group_get,
 	.pin_config_group_set = tegra_xusb_padctl_pinconf_group_set,
 #ifdef CONFIG_DEBUG_FS
@@ -489,7 +563,9 @@ static int tegra_xusb_padctl_enable(struct tegra_xusb_padctl *padctl)
 	mutex_lock(&padctl->lock);
 
 	if (padctl->enable++ > 0)
+	{
 		goto out;
+	}
 
 	value = padctl_readl(padctl, XUSB_PADCTL_ELPG_PROGRAM);
 	value &= ~XUSB_PADCTL_ELPG_PROGRAM_AUX_MUX_LP0_CLAMP_EN;
@@ -519,10 +595,14 @@ static int tegra_xusb_padctl_disable(struct tegra_xusb_padctl *padctl)
 	mutex_lock(&padctl->lock);
 
 	if (WARN_ON(padctl->enable == 0))
+	{
 		goto out;
+	}
 
 	if (--padctl->enable > 0)
+	{
 		goto out;
+	}
 
 	value = padctl_readl(padctl, XUSB_PADCTL_ELPG_PROGRAM);
 	value |= XUSB_PADCTL_ELPG_PROGRAM_AUX_MUX_LP0_VCORE_DOWN;
@@ -572,8 +652,8 @@ static int pcie_phy_power_on(struct phy *phy)
 
 	value = padctl_readl(padctl, XUSB_PADCTL_IOPHY_PLL_P0_CTL2);
 	value |= XUSB_PADCTL_IOPHY_PLL_P0_CTL2_REFCLKBUF_EN |
-		 XUSB_PADCTL_IOPHY_PLL_P0_CTL2_TXCLKREF_EN |
-		 XUSB_PADCTL_IOPHY_PLL_P0_CTL2_TXCLKREF_SEL;
+			 XUSB_PADCTL_IOPHY_PLL_P0_CTL2_TXCLKREF_EN |
+			 XUSB_PADCTL_IOPHY_PLL_P0_CTL2_TXCLKREF_SEL;
 	padctl_writel(padctl, value, XUSB_PADCTL_IOPHY_PLL_P0_CTL2);
 
 	value = padctl_readl(padctl, XUSB_PADCTL_IOPHY_PLL_P0_CTL1);
@@ -582,9 +662,12 @@ static int pcie_phy_power_on(struct phy *phy)
 
 	timeout = jiffies + msecs_to_jiffies(50);
 
-	while (time_before(jiffies, timeout)) {
+	while (time_before(jiffies, timeout))
+	{
 		value = padctl_readl(padctl, XUSB_PADCTL_IOPHY_PLL_P0_CTL1);
-		if (value & XUSB_PADCTL_IOPHY_PLL_P0_CTL1_PLL0_LOCKDET) {
+
+		if (value & XUSB_PADCTL_IOPHY_PLL_P0_CTL1_PLL0_LOCKDET)
+		{
 			err = 0;
 			break;
 		}
@@ -607,7 +690,8 @@ static int pcie_phy_power_off(struct phy *phy)
 	return 0;
 }
 
-static const struct phy_ops pcie_phy_ops = {
+static const struct phy_ops pcie_phy_ops =
+{
 	.init = tegra_xusb_phy_init,
 	.exit = tegra_xusb_phy_exit,
 	.power_on = pcie_phy_power_on,
@@ -642,9 +726,12 @@ static int sata_phy_power_on(struct phy *phy)
 
 	timeout = jiffies + msecs_to_jiffies(50);
 
-	while (time_before(jiffies, timeout)) {
+	while (time_before(jiffies, timeout))
+	{
 		value = padctl_readl(padctl, XUSB_PADCTL_IOPHY_PLL_S0_CTL1);
-		if (value & XUSB_PADCTL_IOPHY_PLL_S0_CTL1_PLL1_LOCKDET) {
+
+		if (value & XUSB_PADCTL_IOPHY_PLL_S0_CTL1_PLL1_LOCKDET)
+		{
 			err = 0;
 			break;
 		}
@@ -681,7 +768,8 @@ static int sata_phy_power_off(struct phy *phy)
 	return 0;
 }
 
-static const struct phy_ops sata_phy_ops = {
+static const struct phy_ops sata_phy_ops =
+{
 	.init = tegra_xusb_phy_init,
 	.exit = tegra_xusb_phy_exit,
 	.power_on = sata_phy_power_on,
@@ -690,16 +778,20 @@ static const struct phy_ops sata_phy_ops = {
 };
 
 static struct phy *tegra_xusb_padctl_xlate(struct device *dev,
-					   struct of_phandle_args *args)
+		struct of_phandle_args *args)
 {
 	struct tegra_xusb_padctl *padctl = dev_get_drvdata(dev);
 	unsigned int index = args->args[0];
 
 	if (args->args_count <= 0)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	if (index >= ARRAY_SIZE(padctl->phys))
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	return padctl->phys[index];
 }
@@ -717,7 +809,8 @@ static struct phy *tegra_xusb_padctl_xlate(struct device *dev,
 #define PIN_PCIE_4 10
 #define PIN_SATA_0 11
 
-static const struct pinctrl_pin_desc tegra124_pins[] = {
+static const struct pinctrl_pin_desc tegra124_pins[] =
+{
 	PINCTRL_PIN(PIN_OTG_0,  "otg-0"),
 	PINCTRL_PIN(PIN_OTG_1,  "otg-1"),
 	PINCTRL_PIN(PIN_OTG_2,  "otg-2"),
@@ -732,7 +825,8 @@ static const struct pinctrl_pin_desc tegra124_pins[] = {
 	PINCTRL_PIN(PIN_SATA_0, "sata-0"),
 };
 
-static const char * const tegra124_snps_groups[] = {
+static const char *const tegra124_snps_groups[] =
+{
 	"otg-0",
 	"otg-1",
 	"otg-2",
@@ -741,7 +835,8 @@ static const char * const tegra124_snps_groups[] = {
 	"hsic-1",
 };
 
-static const char * const tegra124_xusb_groups[] = {
+static const char *const tegra124_xusb_groups[] =
+{
 	"otg-0",
 	"otg-1",
 	"otg-2",
@@ -750,13 +845,15 @@ static const char * const tegra124_xusb_groups[] = {
 	"hsic-1",
 };
 
-static const char * const tegra124_uart_groups[] = {
+static const char *const tegra124_uart_groups[] =
+{
 	"otg-0",
 	"otg-1",
 	"otg-2",
 };
 
-static const char * const tegra124_pcie_groups[] = {
+static const char *const tegra124_pcie_groups[] =
+{
 	"pcie-0",
 	"pcie-1",
 	"pcie-2",
@@ -764,17 +861,20 @@ static const char * const tegra124_pcie_groups[] = {
 	"pcie-4",
 };
 
-static const char * const tegra124_usb3_groups[] = {
+static const char *const tegra124_usb3_groups[] =
+{
 	"pcie-0",
 	"pcie-1",
 	"sata-0",
 };
 
-static const char * const tegra124_sata_groups[] = {
+static const char *const tegra124_sata_groups[] =
+{
 	"sata-0",
 };
 
-static const char * const tegra124_rsvd_groups[] = {
+static const char *const tegra124_rsvd_groups[] =
+{
 	"otg-0",
 	"otg-1",
 	"otg-2",
@@ -789,11 +889,12 @@ static const char * const tegra124_rsvd_groups[] = {
 #define TEGRA124_FUNCTION(_name)					\
 	{								\
 		.name = #_name,						\
-		.num_groups = ARRAY_SIZE(tegra124_##_name##_groups),	\
-		.groups = tegra124_##_name##_groups,			\
+				.num_groups = ARRAY_SIZE(tegra124_##_name##_groups),	\
+							  .groups = tegra124_##_name##_groups,			\
 	}
 
-static struct tegra_xusb_padctl_function tegra124_functions[] = {
+static struct tegra_xusb_padctl_function tegra124_functions[] =
+{
 	TEGRA124_FUNCTION(snps),
 	TEGRA124_FUNCTION(xusb),
 	TEGRA124_FUNCTION(uart),
@@ -803,7 +904,8 @@ static struct tegra_xusb_padctl_function tegra124_functions[] = {
 	TEGRA124_FUNCTION(rsvd),
 };
 
-enum tegra124_function {
+enum tegra124_function
+{
 	TEGRA124_FUNC_SNPS,
 	TEGRA124_FUNC_XUSB,
 	TEGRA124_FUNC_UART,
@@ -813,19 +915,22 @@ enum tegra124_function {
 	TEGRA124_FUNC_RSVD,
 };
 
-static const unsigned int tegra124_otg_functions[] = {
+static const unsigned int tegra124_otg_functions[] =
+{
 	TEGRA124_FUNC_SNPS,
 	TEGRA124_FUNC_XUSB,
 	TEGRA124_FUNC_UART,
 	TEGRA124_FUNC_RSVD,
 };
 
-static const unsigned int tegra124_usb_functions[] = {
+static const unsigned int tegra124_usb_functions[] =
+{
 	TEGRA124_FUNC_SNPS,
 	TEGRA124_FUNC_XUSB,
 };
 
-static const unsigned int tegra124_pci_functions[] = {
+static const unsigned int tegra124_pci_functions[] =
+{
 	TEGRA124_FUNC_PCIE,
 	TEGRA124_FUNC_USB3,
 	TEGRA124_FUNC_SATA,
@@ -835,15 +940,16 @@ static const unsigned int tegra124_pci_functions[] = {
 #define TEGRA124_LANE(_name, _offset, _shift, _mask, _iddq, _funcs)	\
 	{								\
 		.name = _name,						\
-		.offset = _offset,					\
-		.shift = _shift,					\
-		.mask = _mask,						\
-		.iddq = _iddq,						\
-		.num_funcs = ARRAY_SIZE(tegra124_##_funcs##_functions),	\
-		.funcs = tegra124_##_funcs##_functions,			\
+				.offset = _offset,					\
+						  .shift = _shift,					\
+								   .mask = _mask,						\
+										   .iddq = _iddq,						\
+												   .num_funcs = ARRAY_SIZE(tegra124_##_funcs##_functions),	\
+														   .funcs = tegra124_##_funcs##_functions,			\
 	}
 
-static const struct tegra_xusb_padctl_lane tegra124_lanes[] = {
+static const struct tegra_xusb_padctl_lane tegra124_lanes[] =
+{
 	TEGRA124_LANE("otg-0",  0x004,  0, 0x3, 0, otg),
 	TEGRA124_LANE("otg-1",  0x004,  2, 0x3, 0, otg),
 	TEGRA124_LANE("otg-2",  0x004,  4, 0x3, 0, otg),
@@ -858,7 +964,8 @@ static const struct tegra_xusb_padctl_lane tegra124_lanes[] = {
 	TEGRA124_LANE("sata-0", 0x134, 26, 0x3, 6, pci),
 };
 
-static const struct tegra_xusb_padctl_soc tegra124_soc = {
+static const struct tegra_xusb_padctl_soc tegra124_soc =
+{
 	.num_pins = ARRAY_SIZE(tegra124_pins),
 	.pins = tegra124_pins,
 	.num_functions = ARRAY_SIZE(tegra124_functions),
@@ -867,7 +974,8 @@ static const struct tegra_xusb_padctl_soc tegra124_soc = {
 	.lanes = tegra124_lanes,
 };
 
-static const struct of_device_id tegra_xusb_padctl_of_match[] = {
+static const struct of_device_id tegra_xusb_padctl_of_match[] =
+{
 	{ .compatible = "nvidia,tegra124-xusb-padctl", .data = &tegra124_soc },
 	{ }
 };
@@ -882,8 +990,11 @@ int tegra_xusb_padctl_legacy_probe(struct platform_device *pdev)
 	int err;
 
 	padctl = devm_kzalloc(&pdev->dev, sizeof(*padctl), GFP_KERNEL);
+
 	if (!padctl)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, padctl);
 	mutex_init(&padctl->lock);
@@ -894,16 +1005,25 @@ int tegra_xusb_padctl_legacy_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	padctl->regs = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(padctl->regs))
+	{
 		return PTR_ERR(padctl->regs);
+	}
 
 	padctl->rst = devm_reset_control_get(&pdev->dev, NULL);
+
 	if (IS_ERR(padctl->rst))
+	{
 		return PTR_ERR(padctl->rst);
+	}
 
 	err = reset_control_deassert(padctl->rst);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	memset(&padctl->desc, 0, sizeof(padctl->desc));
 	padctl->desc.name = dev_name(padctl->dev);
@@ -915,15 +1035,19 @@ int tegra_xusb_padctl_legacy_probe(struct platform_device *pdev)
 	padctl->desc.owner = THIS_MODULE;
 
 	padctl->pinctrl = devm_pinctrl_register(&pdev->dev, &padctl->desc,
-						padctl);
-	if (IS_ERR(padctl->pinctrl)) {
+											padctl);
+
+	if (IS_ERR(padctl->pinctrl))
+	{
 		dev_err(&pdev->dev, "failed to register pincontrol\n");
 		err = PTR_ERR(padctl->pinctrl);
 		goto reset;
 	}
 
 	phy = devm_phy_create(&pdev->dev, NULL, &pcie_phy_ops);
-	if (IS_ERR(phy)) {
+
+	if (IS_ERR(phy))
+	{
 		err = PTR_ERR(phy);
 		goto reset;
 	}
@@ -932,7 +1056,9 @@ int tegra_xusb_padctl_legacy_probe(struct platform_device *pdev)
 	phy_set_drvdata(phy, padctl);
 
 	phy = devm_phy_create(&pdev->dev, NULL, &sata_phy_ops);
-	if (IS_ERR(phy)) {
+
+	if (IS_ERR(phy))
+	{
 		err = PTR_ERR(phy);
 		goto reset;
 	}
@@ -941,8 +1067,10 @@ int tegra_xusb_padctl_legacy_probe(struct platform_device *pdev)
 	phy_set_drvdata(phy, padctl);
 
 	padctl->provider = devm_of_phy_provider_register(&pdev->dev,
-							 tegra_xusb_padctl_xlate);
-	if (IS_ERR(padctl->provider)) {
+					   tegra_xusb_padctl_xlate);
+
+	if (IS_ERR(padctl->provider))
+	{
 		err = PTR_ERR(padctl->provider);
 		dev_err(&pdev->dev, "failed to register PHYs: %d\n", err);
 		goto reset;
@@ -962,8 +1090,11 @@ int tegra_xusb_padctl_legacy_remove(struct platform_device *pdev)
 	int err;
 
 	err = reset_control_assert(padctl->rst);
+
 	if (err < 0)
+	{
 		dev_err(&pdev->dev, "failed to assert reset: %d\n", err);
+	}
 
 	return err;
 }

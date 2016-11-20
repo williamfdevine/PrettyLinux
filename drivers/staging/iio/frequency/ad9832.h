@@ -74,7 +74,8 @@
  * @freq_data:		tuning word spi transmit buffer
  */
 
-struct ad9832_state {
+struct ad9832_state
+{
 	struct spi_device		*spi;
 	struct regulator		*reg;
 	unsigned long			mclk;
@@ -91,7 +92,8 @@ struct ad9832_state {
 	 * DMA (thus cache coherency maintenance) requires the
 	 * transfer buffers to live in their own cache lines.
 	 */
-	union {
+	union
+	{
 		__be16			freq_data[4]____cacheline_aligned;
 		__be16			phase_data[2];
 		__be16			data;
@@ -113,7 +115,8 @@ struct ad9832_state {
  * @phase3:		power up phase3 value [0..4095] correlates with 0..2PI
  */
 
-struct ad9832_platform_data {
+struct ad9832_platform_data
+{
 	unsigned long		mclk;
 	unsigned long		freq0;
 	unsigned long		freq1;

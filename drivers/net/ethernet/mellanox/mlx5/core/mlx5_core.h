@@ -48,29 +48,30 @@ extern int mlx5_core_debug_mask;
 
 #define mlx5_core_dbg(__dev, format, ...)				\
 	dev_dbg(&(__dev)->pdev->dev, "%s:%s:%d:(pid %d): " format,	\
-		 (__dev)->priv.name, __func__, __LINE__, current->pid,	\
-		 ##__VA_ARGS__)
+			(__dev)->priv.name, __func__, __LINE__, current->pid,	\
+			##__VA_ARGS__)
 
 #define mlx5_core_dbg_mask(__dev, mask, format, ...)			\
-do {									\
-	if ((mask) & mlx5_core_debug_mask)				\
-		mlx5_core_dbg(__dev, format, ##__VA_ARGS__);		\
-} while (0)
+	do {									\
+		if ((mask) & mlx5_core_debug_mask)				\
+			mlx5_core_dbg(__dev, format, ##__VA_ARGS__);		\
+	} while (0)
 
 #define mlx5_core_err(__dev, format, ...)				\
 	dev_err(&(__dev)->pdev->dev, "%s:%d:(pid %d): " format,	\
-		__func__, __LINE__, current->pid,	\
-	       ##__VA_ARGS__)
+			__func__, __LINE__, current->pid,	\
+			##__VA_ARGS__)
 
 #define mlx5_core_warn(__dev, format, ...)				\
 	dev_warn(&(__dev)->pdev->dev, "%s:%s:%d:(pid %d): " format,	\
-		(__dev)->priv.name, __func__, __LINE__, current->pid,	\
-		##__VA_ARGS__)
+			 (__dev)->priv.name, __func__, __LINE__, current->pid,	\
+			 ##__VA_ARGS__)
 
 #define mlx5_core_info(__dev, format, ...)				\
 	dev_info(&(__dev)->pdev->dev, format, ##__VA_ARGS__)
 
-enum {
+enum
+{
 	MLX5_CMD_DATA, /* print command payload only */
 	MLX5_CMD_TIME, /* print command execution time */
 };
@@ -80,7 +81,7 @@ int mlx5_query_board_id(struct mlx5_core_dev *dev);
 int mlx5_cmd_init_hca(struct mlx5_core_dev *dev);
 int mlx5_cmd_teardown_hca(struct mlx5_core_dev *dev);
 void mlx5_core_event(struct mlx5_core_dev *dev, enum mlx5_dev_event event,
-		     unsigned long param);
+					 unsigned long param);
 void mlx5_enter_error_state(struct mlx5_core_dev *dev);
 void mlx5_disable_device(struct mlx5_core_dev *dev);
 void mlx5_recover_device(struct mlx5_core_dev *dev);
@@ -128,8 +129,8 @@ static inline int mlx5_lag_is_lacp_owner(struct mlx5_core_dev *dev)
 	 * 3) LAG is managed by driver (currently the only option).
 	 */
 	return  MLX5_CAP_GEN(dev, vport_group_manager) &&
-		   (MLX5_CAP_GEN(dev, num_lag_ports) > 1) &&
-		    MLX5_CAP_GEN(dev, lag_master);
+			(MLX5_CAP_GEN(dev, num_lag_ports) > 1) &&
+			MLX5_CAP_GEN(dev, lag_master);
 }
 
 #endif /* __MLX5_CORE_H__ */

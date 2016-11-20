@@ -13,7 +13,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table em_terratec[] = {
+static struct rc_map_table em_terratec[] =
+{
 	{ 0x01, KEY_CHANNEL },
 	{ 0x02, KEY_SELECT },
 	{ 0x03, KEY_MUTE },
@@ -44,7 +45,8 @@ static struct rc_map_table em_terratec[] = {
 	{ 0x40, KEY_ZOOM },
 };
 
-static struct rc_map_list em_terratec_map = {
+static struct rc_map_list em_terratec_map =
+{
 	.map = {
 		.scan    = em_terratec,
 		.size    = ARRAY_SIZE(em_terratec),

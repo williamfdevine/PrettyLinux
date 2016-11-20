@@ -42,17 +42,23 @@ static void platform_bgmac_idm_write(struct bgmac *bgmac, u16 offset, u32 value)
 static bool platform_bgmac_clk_enabled(struct bgmac *bgmac)
 {
 	if ((bgmac_idm_read(bgmac, BCMA_IOCTL) &
-	     (BCMA_IOCTL_CLK | BCMA_IOCTL_FGC)) != BCMA_IOCTL_CLK)
+		 (BCMA_IOCTL_CLK | BCMA_IOCTL_FGC)) != BCMA_IOCTL_CLK)
+	{
 		return false;
+	}
+
 	if (bgmac_idm_read(bgmac, BCMA_RESET_CTL) & BCMA_RESET_CTL_RESET)
+	{
 		return false;
+	}
+
 	return true;
 }
 
 static void platform_bgmac_clk_enable(struct bgmac *bgmac, u32 flags)
 {
 	bgmac_idm_write(bgmac, BCMA_IOCTL,
-			(BCMA_IOCTL_CLK | BCMA_IOCTL_FGC | flags));
+					(BCMA_IOCTL_CLK | BCMA_IOCTL_FGC | flags));
 	bgmac_idm_read(bgmac, BCMA_IOCTL);
 
 	bgmac_idm_write(bgmac, BCMA_RESET_CTL, 0);
@@ -65,7 +71,7 @@ static void platform_bgmac_clk_enable(struct bgmac *bgmac, u32 flags)
 }
 
 static void platform_bgmac_cco_ctl_maskset(struct bgmac *bgmac, u32 offset,
-					   u32 mask, u32 set)
+		u32 mask, u32 set)
 {
 	/* This shouldn't be encountered */
 	WARN_ON(1);
@@ -80,7 +86,7 @@ static u32 platform_bgmac_get_bus_clock(struct bgmac *bgmac)
 }
 
 static void platform_bgmac_cmn_maskset32(struct bgmac *bgmac, u16 offset,
-					 u32 mask, u32 set)
+		u32 mask, u32 set)
 {
 	/* This shouldn't be encountered */
 	WARN_ON(1);
@@ -94,8 +100,11 @@ static int bgmac_probe(struct platform_device *pdev)
 	const u8 *mac_addr;
 
 	bgmac = devm_kzalloc(&pdev->dev, sizeof(*bgmac), GFP_KERNEL);
+
 	if (!bgmac)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, bgmac);
 
@@ -111,36 +120,53 @@ static int bgmac_probe(struct platform_device *pdev)
 	bgmac->dma_dev = &pdev->dev;
 
 	mac_addr = of_get_mac_address(np);
+
 	if (mac_addr)
+	{
 		ether_addr_copy(bgmac->mac_addr, mac_addr);
+	}
 	else
+	{
 		dev_warn(&pdev->dev, "MAC address not present in device tree\n");
+	}
 
 	bgmac->irq = platform_get_irq(pdev, 0);
-	if (bgmac->irq < 0) {
+
+	if (bgmac->irq < 0)
+	{
 		dev_err(&pdev->dev, "Unable to obtain IRQ\n");
 		return bgmac->irq;
 	}
 
 	regs = platform_get_resource_byname(pdev, IORESOURCE_MEM, "amac_base");
-	if (!regs) {
+
+	if (!regs)
+	{
 		dev_err(&pdev->dev, "Unable to obtain base resource\n");
 		return -EINVAL;
 	}
 
 	bgmac->plat.base = devm_ioremap_resource(&pdev->dev, regs);
+
 	if (IS_ERR(bgmac->plat.base))
+	{
 		return PTR_ERR(bgmac->plat.base);
+	}
 
 	regs = platform_get_resource_byname(pdev, IORESOURCE_MEM, "idm_base");
-	if (!regs) {
+
+	if (!regs)
+	{
 		dev_err(&pdev->dev, "Unable to obtain idm resource\n");
 		return -EINVAL;
 	}
 
 	bgmac->plat.idm_base = devm_ioremap_resource(&pdev->dev, regs);
+
 	if (IS_ERR(bgmac->plat.idm_base))
+	{
 		return PTR_ERR(bgmac->plat.idm_base);
+	}
 
 	bgmac->read = platform_bgmac_read;
 	bgmac->write = platform_bgmac_write;
@@ -164,7 +190,8 @@ static int bgmac_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id bgmac_of_enet_match[] = {
+static const struct of_device_id bgmac_of_enet_match[] =
+{
 	{.compatible = "brcm,amac",},
 	{.compatible = "brcm,nsp-amac",},
 	{},
@@ -172,7 +199,8 @@ static const struct of_device_id bgmac_of_enet_match[] = {
 
 MODULE_DEVICE_TABLE(of, bgmac_of_enet_match);
 
-static struct platform_driver bgmac_enet_driver = {
+static struct platform_driver bgmac_enet_driver =
+{
 	.driver = {
 		.name  = "bgmac-enet",
 		.of_match_table = bgmac_of_enet_match,

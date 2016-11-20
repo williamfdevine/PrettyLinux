@@ -744,7 +744,7 @@
 
 #define AR_SREV \
 	((AR_SREV_9100(ah)) ? 0x0600 : (AR_SREV_9340(ah) \
-					? 0x400c : 0x4020))
+									? 0x400c : 0x4020))
 
 #define AR_SREV_ID \
 	((AR_SREV_9100(ah)) ? 0x00000FFF : 0x000000FF)
@@ -823,7 +823,7 @@
 	 ((_ah)->hw_version.macVersion == AR_SREV_VERSION_5416_PCIE))
 #define AR_SREV_5416_22_OR_LATER(_ah) \
 	(((AR_SREV_5416(_ah)) && \
-	 ((_ah)->hw_version.macRev >= AR_SREV_REVISION_5416_22)) || \
+	  ((_ah)->hw_version.macRev >= AR_SREV_REVISION_5416_22)) || \
 	 ((_ah)->hw_version.macVersion >= AR_SREV_VERSION_9100))
 
 #define AR_SREV_9100(ah) \
@@ -870,13 +870,13 @@
 	  ((_ah)->hw_version.macRev >= AR_SREV_REVISION_9287_13)))
 
 #define AR_SREV_9271(_ah) \
-    (((_ah))->hw_version.macVersion == AR_SREV_VERSION_9271)
+	(((_ah))->hw_version.macVersion == AR_SREV_VERSION_9271)
 #define AR_SREV_9271_10(_ah) \
-    (AR_SREV_9271(_ah) && \
-     ((_ah)->hw_version.macRev == AR_SREV_REVISION_9271_10))
+	(AR_SREV_9271(_ah) && \
+	 ((_ah)->hw_version.macRev == AR_SREV_REVISION_9271_10))
 #define AR_SREV_9271_11(_ah) \
-    (AR_SREV_9271(_ah) && \
-     ((_ah)->hw_version.macRev == AR_SREV_REVISION_9271_11))
+	(AR_SREV_9271(_ah) && \
+	 ((_ah)->hw_version.macRev == AR_SREV_REVISION_9271_11))
 
 #define AR_SREV_9300(_ah) \
 	(((_ah)->hw_version.macVersion == AR_SREV_VERSION_9300))
@@ -929,8 +929,8 @@
 	 ((_ah)->hw_version.macRev >= AR_SREV_REVISION_9340_13))
 
 #define AR_SREV_9285E_20(_ah) \
-    (AR_SREV_9285_12_OR_LATER(_ah) && \
-     ((REG_READ(_ah, AR_AN_SYNTH9) & 0x7) == 0x1))
+	(AR_SREV_9285_12_OR_LATER(_ah) && \
+	 ((REG_READ(_ah, AR_AN_SYNTH9) & 0x7) == 0x1))
 
 #define AR_SREV_9462_20(_ah) \
 	(AR_SREV_9462(_ah) && \
@@ -965,10 +965,10 @@
 
 #define AR_SREV_9580(_ah) \
 	(((_ah)->hw_version.macVersion == AR_SREV_VERSION_9580) && \
-	((_ah)->hw_version.macRev >= AR_SREV_REVISION_9580_10))
+	 ((_ah)->hw_version.macRev >= AR_SREV_REVISION_9580_10))
 #define AR_SREV_9580_10(_ah) \
 	(((_ah)->hw_version.macVersion == AR_SREV_VERSION_9580) && \
-	((_ah)->hw_version.macRev == AR_SREV_REVISION_9580_10))
+	 ((_ah)->hw_version.macRev == AR_SREV_REVISION_9580_10))
 
 #define AR_SREV_9531(_ah) \
 	(((_ah)->hw_version.macVersion == AR_SREV_VERSION_9531))
@@ -993,7 +993,8 @@
 #define AR_SREV_9580_10_OR_LATER(_ah) \
 	(AR_SREV_9580(_ah))
 
-enum ath_usb_dev {
+enum ath_usb_dev
+{
 	AR9280_USB = 1, /* AR7010 + AR9280, UB94 */
 	AR9287_USB = 2, /* AR7010 + AR9287, UB95 */
 	STORAGE_DEVICE = 3,
@@ -1038,7 +1039,8 @@ enum ath_usb_dev {
 #define AR_INTR_SYNC_ENABLE_GPIO              0xFFFC0000
 #define AR_INTR_SYNC_ENABLE_GPIO_S            18
 
-enum {
+enum
+{
 	AR_INTR_SYNC_RTC_IRQ = 0x00000001,
 	AR_INTR_SYNC_MAC_IRQ = 0x00000002,
 	AR_INTR_SYNC_EEPROM_ILLEGAL_ACCESS = 0x00000004,
@@ -1061,14 +1063,14 @@ enum {
 
 
 	AR_INTR_SYNC_DEFAULT = (AR_INTR_SYNC_HOST1_FATAL |
-				AR_INTR_SYNC_HOST1_PERR |
-				AR_INTR_SYNC_RADM_CPL_EP |
-				AR_INTR_SYNC_RADM_CPL_DLLP_ABORT |
-				AR_INTR_SYNC_RADM_CPL_TLP_ABORT |
-				AR_INTR_SYNC_RADM_CPL_ECRC_ERR |
-				AR_INTR_SYNC_RADM_CPL_TIMEOUT |
-				AR_INTR_SYNC_LOCAL_TIMEOUT |
-				AR_INTR_SYNC_MAC_SLEEP_ACCESS),
+							AR_INTR_SYNC_HOST1_PERR |
+							AR_INTR_SYNC_RADM_CPL_EP |
+							AR_INTR_SYNC_RADM_CPL_DLLP_ABORT |
+							AR_INTR_SYNC_RADM_CPL_TLP_ABORT |
+							AR_INTR_SYNC_RADM_CPL_ECRC_ERR |
+							AR_INTR_SYNC_RADM_CPL_TIMEOUT |
+							AR_INTR_SYNC_LOCAL_TIMEOUT |
+							AR_INTR_SYNC_MAC_SLEEP_ACCESS),
 
 	AR9340_INTR_SYNC_LOCAL_TIMEOUT = 0x00000010,
 
@@ -1090,7 +1092,7 @@ enum {
 #define AR_INTR_ASYNC_CAUSE                      (AR_SREV_9340(ah) ? 0x4020 : 0x4038)
 #define AR_INTR_ASYNC_CAUSE_MCI			 0x00000080
 #define AR_INTR_ASYNC_USED			 (AR_INTR_MAC_IRQ | \
-						  AR_INTR_ASYNC_CAUSE_MCI)
+									  AR_INTR_ASYNC_CAUSE_MCI)
 
 /* Asynchronous Interrupt Enable Register */
 #define AR_INTR_ASYNC_ENABLE_MCI         0x00000080
@@ -1167,7 +1169,7 @@ enum {
 #define AR9300_GPIO_IN_VAL_S                     0
 
 #define AR_GPIO_OE_OUT                           (AR_SREV_9340(ah) ? 0x4030 : \
-						  (AR_SREV_9300_20_OR_LATER(ah) ? 0x4050 : 0x404c))
+		(AR_SREV_9300_20_OR_LATER(ah) ? 0x4050 : 0x404c))
 #define AR_GPIO_OE_OUT_DRV                       0x3
 #define AR_GPIO_OE_OUT_DRV_NO                    0x0
 #define AR_GPIO_OE_OUT_DRV_LOW                   0x1
@@ -1190,12 +1192,12 @@ enum {
 #define AR7010_GPIO_FUNCTION                     0x52028
 
 #define AR_GPIO_INTR_POL                         (AR_SREV_9340(ah) ? 0x4038 : \
-						  (AR_SREV_9300_20_OR_LATER(ah) ? 0x4058 : 0x4050))
+		(AR_SREV_9300_20_OR_LATER(ah) ? 0x4058 : 0x4050))
 #define AR_GPIO_INTR_POL_VAL                     0x0001FFFF
 #define AR_GPIO_INTR_POL_VAL_S                   0
 
 #define AR_GPIO_INPUT_EN_VAL                     (AR_SREV_9340(ah) ? 0x403c : \
-						  (AR_SREV_9300_20_OR_LATER(ah) ? 0x405c : 0x4054))
+		(AR_SREV_9300_20_OR_LATER(ah) ? 0x405c : 0x4054))
 #define AR_GPIO_INPUT_EN_VAL_BT_PRIORITY_DEF     0x00000004
 #define AR_GPIO_INPUT_EN_VAL_BT_PRIORITY_S       2
 #define AR_GPIO_INPUT_EN_VAL_BT_FREQUENCY_DEF    0x00000008
@@ -1214,14 +1216,14 @@ enum {
 #define AR_GPIO_JTAG_DISABLE                     0x00020000
 
 #define AR_GPIO_INPUT_MUX1                       (AR_SREV_9340(ah) ? 0x4040 : \
-						  (AR_SREV_9300_20_OR_LATER(ah) ? 0x4060 : 0x4058))
+		(AR_SREV_9300_20_OR_LATER(ah) ? 0x4060 : 0x4058))
 #define AR_GPIO_INPUT_MUX1_BT_ACTIVE             0x000f0000
 #define AR_GPIO_INPUT_MUX1_BT_ACTIVE_S           16
 #define AR_GPIO_INPUT_MUX1_BT_PRIORITY           0x00000f00
 #define AR_GPIO_INPUT_MUX1_BT_PRIORITY_S         8
 
 #define AR_GPIO_INPUT_MUX2                       (AR_SREV_9340(ah) ? 0x4044 : \
-						  (AR_SREV_9300_20_OR_LATER(ah) ? 0x4064 : 0x405c))
+		(AR_SREV_9300_20_OR_LATER(ah) ? 0x4064 : 0x405c))
 #define AR_GPIO_INPUT_MUX2_CLK25                 0x0000000f
 #define AR_GPIO_INPUT_MUX2_CLK25_S               0
 #define AR_GPIO_INPUT_MUX2_RFSILENT              0x000000f0
@@ -1230,17 +1232,17 @@ enum {
 #define AR_GPIO_INPUT_MUX2_RTC_RESET_S           8
 
 #define AR_GPIO_OUTPUT_MUX1                      (AR_SREV_9340(ah) ? 0x4048 : \
-						  (AR_SREV_9300_20_OR_LATER(ah) ? 0x4068 : 0x4060))
+		(AR_SREV_9300_20_OR_LATER(ah) ? 0x4068 : 0x4060))
 #define AR_GPIO_OUTPUT_MUX2                      (AR_SREV_9340(ah) ? 0x404c : \
-						  (AR_SREV_9300_20_OR_LATER(ah) ? 0x406c : 0x4064))
+		(AR_SREV_9300_20_OR_LATER(ah) ? 0x406c : 0x4064))
 #define AR_GPIO_OUTPUT_MUX3                      (AR_SREV_9340(ah) ? 0x4050 : \
-						  (AR_SREV_9300_20_OR_LATER(ah) ? 0x4070 : 0x4068))
+		(AR_SREV_9300_20_OR_LATER(ah) ? 0x4070 : 0x4068))
 
 #define AR_INPUT_STATE                           (AR_SREV_9340(ah) ? 0x4054 : \
-						  (AR_SREV_9300_20_OR_LATER(ah) ? 0x4074 : 0x406c))
+		(AR_SREV_9300_20_OR_LATER(ah) ? 0x4074 : 0x406c))
 
 #define AR_EEPROM_STATUS_DATA                    (AR_SREV_9340(ah) ? 0x40c8 : \
-						  (AR_SREV_9300_20_OR_LATER(ah) ? 0x4084 : 0x407c))
+		(AR_SREV_9300_20_OR_LATER(ah) ? 0x4084 : 0x407c))
 #define AR_EEPROM_STATUS_DATA_VAL                0x0000ffff
 #define AR_EEPROM_STATUS_DATA_VAL_S              0
 #define AR_EEPROM_STATUS_DATA_BUSY               0x00010000
@@ -1249,12 +1251,12 @@ enum {
 #define AR_EEPROM_STATUS_DATA_ABSENT_ACCESS      0x00080000
 
 #define AR_OBS                  (AR_SREV_9340(ah) ? 0x405c : \
-				 (AR_SREV_9300_20_OR_LATER(ah) ? 0x4088 : 0x4080))
+								 (AR_SREV_9300_20_OR_LATER(ah) ? 0x4088 : 0x4080))
 
 #define AR_GPIO_PDPU                             (AR_SREV_9300_20_OR_LATER(ah) ? 0x4090 : 0x4088)
 
 #define AR_PCIE_MSI                             (AR_SREV_9340(ah) ? 0x40d8 : \
-						 (AR_SREV_9300_20_OR_LATER(ah) ? 0x40a4 : 0x4094))
+		(AR_SREV_9300_20_OR_LATER(ah) ? 0x40a4 : 0x4094))
 #define AR_PCIE_MSI_ENABLE                       0x00000001
 
 #define AR_INTR_PRIO_SYNC_ENABLE  (AR_SREV_9340(ah) ? 0x4088 : 0x40c4)

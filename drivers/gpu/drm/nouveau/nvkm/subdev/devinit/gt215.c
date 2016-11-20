@@ -38,25 +38,33 @@ gt215_devinit_pll_set(struct nvkm_devinit *init, u32 type, u32 freq)
 	int ret;
 
 	ret = nvbios_pll_parse(device->bios, type, &info);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = gt215_pll_calc(subdev, &info, freq, &N, &fN, &M, &P);
-	if (ret < 0)
-		return ret;
 
-	switch (info.type) {
-	case PLL_VPLL0:
-	case PLL_VPLL1:
-		nvkm_wr32(device, info.reg + 0, 0x50000610);
-		nvkm_mask(device, info.reg + 4, 0x003fffff,
-						(P << 16) | (M << 8) | N);
-		nvkm_wr32(device, info.reg + 8, fN);
-		break;
-	default:
-		nvkm_warn(subdev, "%08x/%dKhz unimplemented\n", type, freq);
-		ret = -EINVAL;
-		break;
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	switch (info.type)
+	{
+		case PLL_VPLL0:
+		case PLL_VPLL1:
+			nvkm_wr32(device, info.reg + 0, 0x50000610);
+			nvkm_mask(device, info.reg + 4, 0x003fffff,
+					  (P << 16) | (M << 8) | N);
+			nvkm_wr32(device, info.reg + 8, fN);
+			break;
+
+		default:
+			nvkm_warn(subdev, "%08x/%dKhz unimplemented\n", type, freq);
+			ret = -EINVAL;
+			break;
 	}
 
 	return ret;
@@ -70,23 +78,33 @@ gt215_devinit_disable(struct nvkm_devinit *init)
 	u32 r00154c = nvkm_rd32(device, 0x00154c);
 	u64 disable = 0ULL;
 
-	if (!(r001540 & 0x40000000)) {
+	if (!(r001540 & 0x40000000))
+	{
 		disable |= (1ULL << NVKM_ENGINE_MSPDEC);
 		disable |= (1ULL << NVKM_ENGINE_MSPPP);
 	}
 
 	if (!(r00154c & 0x00000004))
+	{
 		disable |= (1ULL << NVKM_ENGINE_DISP);
+	}
+
 	if (!(r00154c & 0x00000020))
+	{
 		disable |= (1ULL << NVKM_ENGINE_MSVLD);
+	}
+
 	if (!(r00154c & 0x00000200))
+	{
 		disable |= (1ULL << NVKM_ENGINE_CE0);
+	}
 
 	return disable;
 }
 
 static u32
-gt215_devinit_mmio_part[] = {
+gt215_devinit_mmio_part[] =
+{
 	0x100720, 0x1008bc, 4,
 	0x100a20, 0x100adc, 4,
 	0x100d80, 0x100ddc, 4,
@@ -120,15 +138,25 @@ gt215_devinit_mmio(struct nvkm_devinit *base, u32 addr)
 	 * really, a new opcode should've been invented to handle these
 	 * requirements, but whatever, it's too late for that now.
 	 */
-	while (mmio[0]) {
-		if (addr >= mmio[0] && addr <= mmio[1]) {
+	while (mmio[0])
+	{
+		if (addr >= mmio[0] && addr <= mmio[1])
+		{
 			u32 part = (addr / mmio[2]) & 7;
+
 			if (!init->r001540)
+			{
 				init->r001540 = nvkm_rd32(device, 0x001540);
+			}
+
 			if (part >= hweight8((init->r001540 >> 16) & 0xff))
+			{
 				return ~0;
+			}
+
 			return addr;
 		}
+
 		mmio += 3;
 	}
 
@@ -136,7 +164,8 @@ gt215_devinit_mmio(struct nvkm_devinit *base, u32 addr)
 }
 
 static const struct nvkm_devinit_func
-gt215_devinit = {
+	gt215_devinit =
+{
 	.preinit = nv50_devinit_preinit,
 	.init = nv50_devinit_init,
 	.post = nv04_devinit_post,
@@ -147,7 +176,7 @@ gt215_devinit = {
 
 int
 gt215_devinit_new(struct nvkm_device *device, int index,
-		struct nvkm_devinit **pinit)
+				  struct nvkm_devinit **pinit)
 {
 	return nv50_devinit_new_(&gt215_devinit, device, index, pinit);
 }

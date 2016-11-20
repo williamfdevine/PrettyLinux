@@ -91,7 +91,8 @@
 /*
  * Intel MEI client information struct
  */
-struct mei_client {
+struct mei_client
+{
 	__u32 max_msg_length;
 	__u8 protocol_version;
 	__u8 reserved[3];
@@ -100,8 +101,10 @@ struct mei_client {
 /*
  * IOCTL Connect Client Data structure
  */
-struct mei_connect_client_data {
-	union {
+struct mei_connect_client_data
+{
+	union
+	{
 		uuid_le in_client_uuid;
 		struct mei_client out_client_properties;
 	};

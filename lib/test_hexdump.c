@@ -9,7 +9,8 @@
 #include <linux/random.h>
 #include <linux/string.h>
 
-static const unsigned char data_b[] = {
+static const unsigned char data_b[] =
+{
 	'\xbe', '\x32', '\xdb', '\x7b', '\x0a', '\x18', '\x93', '\xb2',	/* 00 - 07 */
 	'\x70', '\xba', '\xc4', '\x24', '\x7d', '\x83', '\x34', '\x9b',	/* 08 - 0f */
 	'\xa6', '\x9c', '\x31', '\xad', '\x9c', '\x0f', '\xac', '\xe9',	/* 10 - 17 */
@@ -18,26 +19,30 @@ static const unsigned char data_b[] = {
 
 static const unsigned char data_a[] = ".2.{....p..$}.4...1.....L...C...";
 
-static const char * const test_data_1_le[] __initconst = {
+static const char *const test_data_1_le[] __initconst =
+{
 	"be", "32", "db", "7b", "0a", "18", "93", "b2",
 	"70", "ba", "c4", "24", "7d", "83", "34", "9b",
 	"a6", "9c", "31", "ad", "9c", "0f", "ac", "e9",
 	"4c", "d1", "19", "99", "43", "b1", "af", "0c",
 };
 
-static const char * const test_data_2_le[] __initconst = {
+static const char *const test_data_2_le[] __initconst =
+{
 	"32be", "7bdb", "180a", "b293",
 	"ba70", "24c4", "837d", "9b34",
 	"9ca6", "ad31", "0f9c", "e9ac",
 	"d14c", "9919", "b143", "0caf",
 };
 
-static const char * const test_data_4_le[] __initconst = {
+static const char *const test_data_4_le[] __initconst =
+{
 	"7bdb32be", "b293180a", "24c4ba70", "9b34837d",
 	"ad319ca6", "e9ac0f9c", "9919d14c", "0cafb143",
 };
 
-static const char * const test_data_8_le[] __initconst = {
+static const char *const test_data_8_le[] __initconst =
+{
 	"b293180a7bdb32be", "9b34837d24c4ba70",
 	"e9ac0f9cad319ca6", "0cafb1439919d14c",
 };
@@ -48,36 +53,52 @@ static unsigned total_tests __initdata;
 static unsigned failed_tests __initdata;
 
 static void __init test_hexdump_prepare_test(size_t len, int rowsize,
-					     int groupsize, char *test,
-					     size_t testlen, bool ascii)
+		int groupsize, char *test,
+		size_t testlen, bool ascii)
 {
 	char *p;
-	const char * const *result;
+	const char *const *result;
 	size_t l = len;
 	int gs = groupsize, rs = rowsize;
 	unsigned int i;
 
 	if (rs != 16 && rs != 32)
+	{
 		rs = 16;
+	}
 
 	if (l > rs)
+	{
 		l = rs;
+	}
 
 	if (!is_power_of_2(gs) || gs > 8 || (len % gs != 0))
+	{
 		gs = 1;
+	}
 
 	if (gs == 8)
+	{
 		result = test_data_8_le;
+	}
 	else if (gs == 4)
+	{
 		result = test_data_4_le;
+	}
 	else if (gs == 2)
+	{
 		result = test_data_2_le;
+	}
 	else
+	{
 		result = test_data_1_le;
+	}
 
 	/* hex dump */
 	p = test;
-	for (i = 0; i < l / gs; i++) {
+
+	for (i = 0; i < l / gs; i++)
+	{
 		const char *q = *result++;
 		size_t amount = strlen(q);
 
@@ -86,14 +107,20 @@ static void __init test_hexdump_prepare_test(size_t len, int rowsize,
 
 		*p++ = ' ';
 	}
+
 	if (i)
+	{
 		p--;
+	}
 
 	/* ASCII part */
-	if (ascii) {
-		do {
+	if (ascii)
+	{
+		do
+		{
 			*p++ = ' ';
-		} while (p < test + rs * 2 + rs / gs + 1);
+		}
+		while (p < test + rs * 2 + rs / gs + 1);
 
 		strncpy(p, data_a, l);
 		p += l;
@@ -105,7 +132,7 @@ static void __init test_hexdump_prepare_test(size_t len, int rowsize,
 #define TEST_HEXDUMP_BUF_SIZE		(32 * 3 + 2 + 32 + 1)
 
 static void __init test_hexdump(size_t len, int rowsize, int groupsize,
-				bool ascii)
+								bool ascii)
 {
 	char test[TEST_HEXDUMP_BUF_SIZE];
 	char real[TEST_HEXDUMP_BUF_SIZE];
@@ -114,13 +141,14 @@ static void __init test_hexdump(size_t len, int rowsize, int groupsize,
 
 	memset(real, FILL_CHAR, sizeof(real));
 	hex_dump_to_buffer(data_b, len, rowsize, groupsize, real, sizeof(real),
-			   ascii);
+					   ascii);
 
 	memset(test, FILL_CHAR, sizeof(test));
 	test_hexdump_prepare_test(len, rowsize, groupsize, test, sizeof(test),
-				  ascii);
+							  ascii);
 
-	if (memcmp(test, real, TEST_HEXDUMP_BUF_SIZE)) {
+	if (memcmp(test, real, TEST_HEXDUMP_BUF_SIZE))
+	{
 		pr_err("Len: %zu row: %d group: %d\n", len, rowsize, groupsize);
 		pr_err("Result: '%s'\n", real);
 		pr_err("Expect: '%s'\n", test);
@@ -140,8 +168,8 @@ static void __init test_hexdump_set(int rowsize, bool ascii)
 }
 
 static void __init test_hexdump_overflow(size_t buflen, size_t len,
-					 int rowsize, int groupsize,
-					 bool ascii)
+		int rowsize, int groupsize,
+		bool ascii)
 {
 	char test[TEST_HEXDUMP_BUF_SIZE];
 	char buf[TEST_HEXDUMP_BUF_SIZE];
@@ -163,24 +191,32 @@ static void __init test_hexdump_overflow(size_t buflen, size_t len,
 	he = (gs * 2 /* hex */ + 1 /* space */) * len / gs - 1 /* no trailing space */;
 
 	if (ascii)
+	{
 		e = ae;
+	}
 	else
+	{
 		e = he;
+	}
 
 	f = min_t(int, e + 1, buflen);
-	if (buflen) {
+
+	if (buflen)
+	{
 		test_hexdump_prepare_test(len, rs, gs, test, sizeof(test), ascii);
 		test[f - 1] = '\0';
 	}
+
 	memset(test + f, FILL_CHAR, sizeof(test) - f);
 
 	a = r == e && !memcmp(test, buf, TEST_HEXDUMP_BUF_SIZE);
 
 	buf[sizeof(buf) - 1] = '\0';
 
-	if (!a) {
+	if (!a)
+	{
 		pr_err("Len: %zu buflen: %zu strlen: %zu\n",
-			len, buflen, strnlen(buf, sizeof(buf)));
+			   len, buflen, strnlen(buf, sizeof(buf)));
 		pr_err("Result: %d '%s'\n", r, buf);
 		pr_err("Expect: %d '%s'\n", e, test);
 		failed_tests++;
@@ -192,12 +228,14 @@ static void __init test_hexdump_overflow_set(size_t buflen, bool ascii)
 	unsigned int i = 0;
 	int rs = (get_random_int() % 2 + 1) * 16;
 
-	do {
+	do
+	{
 		int gs = 1 << i;
 		size_t len = get_random_int() % rs + gs;
 
 		test_hexdump_overflow(buflen, rounddown(len, gs), rs, gs, ascii);
-	} while (i++ < 3);
+	}
+	while (i++ < 3);
 }
 
 static int __init test_hexdump_init(void)
@@ -206,23 +244,37 @@ static int __init test_hexdump_init(void)
 	int rowsize;
 
 	rowsize = (get_random_int() % 2 + 1) * 16;
+
 	for (i = 0; i < 16; i++)
+	{
 		test_hexdump_set(rowsize, false);
+	}
 
 	rowsize = (get_random_int() % 2 + 1) * 16;
+
 	for (i = 0; i < 16; i++)
+	{
 		test_hexdump_set(rowsize, true);
+	}
 
 	for (i = 0; i <= TEST_HEXDUMP_BUF_SIZE; i++)
+	{
 		test_hexdump_overflow_set(i, false);
+	}
 
 	for (i = 0; i <= TEST_HEXDUMP_BUF_SIZE; i++)
+	{
 		test_hexdump_overflow_set(i, true);
+	}
 
 	if (failed_tests == 0)
+	{
 		pr_info("all %u tests passed\n", total_tests);
+	}
 	else
+	{
 		pr_err("failed %u out of %u tests\n", failed_tests, total_tests);
+	}
 
 	return failed_tests ? -EINVAL : 0;
 }

@@ -14,7 +14,8 @@
 
 #define TAG "usbmon"
 
-struct mon_bus {
+struct mon_bus
+{
 	struct list_head bus_link;
 	spinlock_t lock;
 	struct usb_bus *u_bus;
@@ -39,7 +40,8 @@ struct mon_bus {
 /*
  * An instance of a process which opened a file (but can fork later)
  */
-struct mon_reader {
+struct mon_reader
+{
 	struct list_head r_link;
 	struct mon_bus *m_bus;
 	void *r_data;		/* Use container_of instead? */

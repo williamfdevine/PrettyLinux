@@ -21,16 +21,24 @@ static void nft_inet_hook_ops_init(struct nf_hook_ops *ops, unsigned int n)
 	struct nft_af_info *afi;
 
 	if (n == 1)
+	{
 		afi = &nft_af_ipv4;
+	}
 	else
+	{
 		afi = &nft_af_ipv6;
+	}
 
 	ops->pf = afi->family;
+
 	if (afi->hooks[ops->hooknum])
+	{
 		ops->hook = afi->hooks[ops->hooknum];
+	}
 }
 
-static struct nft_af_info nft_af_inet __read_mostly = {
+static struct nft_af_info nft_af_inet __read_mostly =
+{
 	.family		= NFPROTO_INET,
 	.nhooks		= NF_INET_NUMHOOKS,
 	.owner		= THIS_MODULE,
@@ -41,12 +49,18 @@ static struct nft_af_info nft_af_inet __read_mostly = {
 static int __net_init nf_tables_inet_init_net(struct net *net)
 {
 	net->nft.inet = kmalloc(sizeof(struct nft_af_info), GFP_KERNEL);
+
 	if (net->nft.inet == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	memcpy(net->nft.inet, &nft_af_inet, sizeof(nft_af_inet));
 
 	if (nft_register_afinfo(net, net->nft.inet) < 0)
+	{
 		goto err;
+	}
 
 	return 0;
 
@@ -61,21 +75,23 @@ static void __net_exit nf_tables_inet_exit_net(struct net *net)
 	kfree(net->nft.inet);
 }
 
-static struct pernet_operations nf_tables_inet_net_ops = {
+static struct pernet_operations nf_tables_inet_net_ops =
+{
 	.init	= nf_tables_inet_init_net,
 	.exit	= nf_tables_inet_exit_net,
 };
 
-static const struct nf_chain_type filter_inet = {
+static const struct nf_chain_type filter_inet =
+{
 	.name		= "filter",
 	.type		= NFT_CHAIN_T_DEFAULT,
 	.family		= NFPROTO_INET,
 	.owner		= THIS_MODULE,
 	.hook_mask	= (1 << NF_INET_LOCAL_IN) |
-			  (1 << NF_INET_LOCAL_OUT) |
-			  (1 << NF_INET_FORWARD) |
-			  (1 << NF_INET_PRE_ROUTING) |
-			  (1 << NF_INET_POST_ROUTING),
+	(1 << NF_INET_LOCAL_OUT) |
+	(1 << NF_INET_FORWARD) |
+	(1 << NF_INET_PRE_ROUTING) |
+	(1 << NF_INET_POST_ROUTING),
 };
 
 static int __init nf_tables_inet_init(void)
@@ -83,12 +99,18 @@ static int __init nf_tables_inet_init(void)
 	int ret;
 
 	ret = nft_register_chain_type(&filter_inet);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = register_pernet_subsys(&nf_tables_inet_net_ops);
+
 	if (ret < 0)
+	{
 		nft_unregister_chain_type(&filter_inet);
+	}
 
 	return ret;
 }

@@ -15,23 +15,28 @@
 #ifndef RTL818X_H
 #define RTL818X_H
 
-struct rtl818x_csr {
+struct rtl818x_csr
+{
 
 	u8	MAC[6];
 	u8	reserved_0[2];
 
-	union {
+	union
+	{
 		__le32	MAR[2];  /* 0x8 */
 
-		struct{ /* rtl8187se */
+		struct  /* rtl8187se */
+		{
 			u8 rf_sw_config; /* 0x8 */
 			u8 reserved_01[3];
 			__le32 TMGDA; /* 0xc */
 		} __packed;
 	} __packed;
 
-	union { /*  0x10  */
-		struct {
+	union   /*  0x10  */
+	{
+		struct
+		{
 			u8	RX_FIFO_COUNT;
 			u8	reserved_1;
 			u8	TX_FIFO_COUNT;
@@ -45,12 +50,14 @@ struct rtl818x_csr {
 
 	__le32	TSFT[2];
 
-	union { /* 0x20 */
+	union   /* 0x20 */
+	{
 		__le32	TLPDA;
 		__le32  TVIDA; /* for 8187se */
 	} __packed;
 
-	union { /* 0x24 */
+	union   /* 0x24 */
+	{
 		__le32	TNPDA;
 		__le32  TVODA; /* for 8187se */
 	} __packed;
@@ -58,8 +65,10 @@ struct rtl818x_csr {
 	/* hi pri ring for all cards */
 	__le32	THPDA; /* 0x28 */
 
-	union { /* 0x2c */
-		struct {
+	union   /* 0x2c */
+	{
+		struct
+		{
 			u8 reserved_2a;
 			u8 EIFS_8187SE;
 		} __packed;
@@ -69,8 +78,10 @@ struct rtl818x_csr {
 
 	u8	BSSID[6]; /* 0x2e */
 
-	union { /* 0x34 */
-		struct {
+	union   /* 0x34 */
+	{
+		struct
+		{
 			u8 RESP_RATE;
 			u8 EIFS;
 		} __packed;
@@ -83,15 +94,17 @@ struct rtl818x_csr {
 #define RTL818X_CMD_RX_ENABLE		(1 << 3)
 #define RTL818X_CMD_RESET		(1 << 4)
 	u8	reserved_4[4]; /* 0x38 */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__le16	INT_MASK;
 			__le16	INT_STATUS;
 		} __packed;
 
 		__le32	INT_STATUS_SE; /* 0x3c */
 	} __packed;
-/* status bits for rtl8187 and rtl8180/8185 */
+	/* status bits for rtl8187 and rtl8180/8185 */
 #define RTL818X_INT_RX_OK		(1 <<  0)
 #define RTL818X_INT_RX_ERR		(1 <<  1)
 #define RTL818X_INT_TXL_OK		(1 <<  2)
@@ -108,7 +121,7 @@ struct rtl818x_csr {
 #define RTL818X_INT_BEACON		(1 << 13)
 #define RTL818X_INT_TIME_OUT		(1 << 14)
 #define RTL818X_INT_TX_FO		(1 << 15)
-/* status bits for rtl8187se */
+	/* status bits for rtl8187se */
 #define RTL818X_INT_SE_TIMER3		(1 <<  0)
 #define RTL818X_INT_SE_TIMER2		(1 <<  1)
 #define RTL818X_INT_SE_RQ0SOR		(1 <<  2)
@@ -289,14 +302,15 @@ struct rtl818x_csr {
 	u8	RETRY_CTR;
 	u8	reserved_19[3];
 	__le16	INT_MIG;
-/* RTL818X_R8187B_*: magic numbers from ioregisters */
+	/* RTL818X_R8187B_*: magic numbers from ioregisters */
 #define RTL818X_R8187B_B	0
 #define RTL818X_R8187B_D	1
 #define RTL818X_R8187B_E	2
 	__le32	RDSAR;
 	__le16	TID_AC_MAP;
 	u8	reserved_20[4];
-	union {
+	union
+	{
 		__le16	ANAPARAM3; /* 0xee */
 		u8	ANAPARAM3A; /* for rtl8187 */
 	};
@@ -308,20 +322,24 @@ struct rtl818x_csr {
 
 	__le32 AC_VO_PARAM; /* 0xf0 */
 
-	union { /* 0xf4 */
+	union   /* 0xf4 */
+	{
 		__le32 AC_VI_PARAM;
 		__le16 FEMR;
 	} __packed;
 
-	union{ /* 0xf8 */
+	union  /* 0xf8 */
+	{
 		__le32  AC_BE_PARAM; /* rtl8187se */
-		struct{
+		struct
+		{
 			u8      reserved_21[2];
 			__le16	TALLY_CNT; /* 0xfa */
 		} __packed;
 	} __packed;
 
-	union {
+	union
+	{
 		u8	TALLY_SEL; /* 0xfc */
 		__le32  AC_BK_PARAM;
 
@@ -349,7 +367,8 @@ struct rtl818x_csr {
 #define PI_DATA_REG	REG_ADDR2(0x360)
 #define SI_DATA_REG     REG_ADDR2(0x362)
 
-struct rtl818x_rf_ops {
+struct rtl818x_rf_ops
+{
 	char *name;
 	void (*init)(struct ieee80211_hw *);
 	void (*stop)(struct ieee80211_hw *);
@@ -369,7 +388,8 @@ struct rtl818x_rf_ops {
  * @RTL818X_TX_DESC_FLAG_LS: Last segment of the frame.
  * @RTL818X_TX_DESC_FLAG_FS: First segment of the frame.
  */
-enum rtl818x_tx_desc_flags {
+enum rtl818x_tx_desc_flags
+{
 	RTL818X_TX_DESC_FLAG_NO_ENC	= (1 << 15),
 	RTL818X_TX_DESC_FLAG_TX_OK	= (1 << 15),
 	RTL818X_TX_DESC_FLAG_SPLCP	= (1 << 16),
@@ -383,7 +403,8 @@ enum rtl818x_tx_desc_flags {
 	RTL818X_TX_DESC_FLAG_OWN	= (1 << 31)
 };
 
-enum rtl818x_rx_desc_flags {
+enum rtl818x_rx_desc_flags
+{
 	RTL818X_RX_DESC_FLAG_ICV_ERR	= (1 << 12),
 	RTL818X_RX_DESC_FLAG_CRC32_ERR	= (1 << 13),
 	RTL818X_RX_DESC_FLAG_PM		= (1 << 14),

@@ -38,38 +38,44 @@
  * the code would access offset ichx_regs[2(=GPIO_LVL)][1(=50/32)],
  * bit 18 (50%32).
  */
-enum GPIO_REG {
+enum GPIO_REG
+{
 	GPIO_USE_SEL = 0,
 	GPIO_IO_SEL,
 	GPIO_LVL,
 	GPO_BLINK
 };
 
-static const u8 ichx_regs[4][3] = {
+static const u8 ichx_regs[4][3] =
+{
 	{0x00, 0x30, 0x40},	/* USE_SEL[1-3] offsets */
 	{0x04, 0x34, 0x44},	/* IO_SEL[1-3] offsets */
 	{0x0c, 0x38, 0x48},	/* LVL[1-3] offsets */
 	{0x18, 0x18, 0x18},	/* BLINK offset */
 };
 
-static const u8 ichx_reglen[3] = {
+static const u8 ichx_reglen[3] =
+{
 	0x30, 0x10, 0x10,
 };
 
-static const u8 avoton_regs[4][3] = {
+static const u8 avoton_regs[4][3] =
+{
 	{0x00, 0x80, 0x00},
 	{0x04, 0x84, 0x00},
 	{0x08, 0x88, 0x00},
 };
 
-static const u8 avoton_reglen[3] = {
+static const u8 avoton_reglen[3] =
+{
 	0x10, 0x10, 0x00,
 };
 
 #define ICHX_WRITE(val, reg, base_res)	outl(val, (reg) + (base_res)->start)
 #define ICHX_READ(reg, base_res)	inl((reg) + (base_res)->start)
 
-struct ichx_desc {
+struct ichx_desc
+{
 	/* Max GPIO pins the chipset can have */
 	uint ngpio;
 
@@ -97,7 +103,8 @@ struct ichx_desc {
 	bool use_outlvl_cache;
 };
 
-static struct {
+static struct
+{
 	spinlock_t lock;
 	struct platform_device *dev;
 	struct gpio_chip chip;
@@ -112,7 +119,7 @@ static struct {
 static int modparam_gpiobase = -1;	/* dynamic */
 module_param_named(gpiobase, modparam_gpiobase, int, 0444);
 MODULE_PARM_DESC(gpiobase, "The GPIO number base. -1 means dynamic, "
-			   "which is the default.");
+				 "which is the default.");
 
 static int ichx_write_bit(int reg, unsigned nr, int val, int verify)
 {
@@ -125,24 +132,37 @@ static int ichx_write_bit(int reg, unsigned nr, int val, int verify)
 	spin_lock_irqsave(&ichx_priv.lock, flags);
 
 	if (reg == GPIO_LVL && ichx_priv.desc->use_outlvl_cache)
+	{
 		data = ichx_priv.outlvl_cache[reg_nr];
+	}
 	else
 		data = ICHX_READ(ichx_priv.desc->regs[reg][reg_nr],
-				 ichx_priv.gpio_base);
+						 ichx_priv.gpio_base);
 
 	if (val)
+	{
 		data |= 1 << bit;
+	}
 	else
+	{
 		data &= ~(1 << bit);
+	}
+
 	ICHX_WRITE(data, ichx_priv.desc->regs[reg][reg_nr],
-			 ichx_priv.gpio_base);
+			   ichx_priv.gpio_base);
+
 	if (reg == GPIO_LVL && ichx_priv.desc->use_outlvl_cache)
+	{
 		ichx_priv.outlvl_cache[reg_nr] = data;
+	}
 
 	tmp = ICHX_READ(ichx_priv.desc->regs[reg][reg_nr],
-			ichx_priv.gpio_base);
+					ichx_priv.gpio_base);
+
 	if (verify && data != tmp)
+	{
 		ret = -EPERM;
+	}
 
 	spin_unlock_irqrestore(&ichx_priv.lock, flags);
 
@@ -159,10 +179,12 @@ static int ichx_read_bit(int reg, unsigned nr)
 	spin_lock_irqsave(&ichx_priv.lock, flags);
 
 	data = ICHX_READ(ichx_priv.desc->regs[reg][reg_nr],
-			 ichx_priv.gpio_base);
+					 ichx_priv.gpio_base);
 
 	if (reg == GPIO_LVL && ichx_priv.desc->use_outlvl_cache)
+	{
 		data = ichx_priv.outlvl_cache[reg_nr] | data;
+	}
 
 	spin_unlock_irqrestore(&ichx_priv.lock, flags);
 
@@ -186,17 +208,21 @@ static int ichx_gpio_direction_input(struct gpio_chip *gpio, unsigned nr)
 	 * are output-only.
 	 */
 	if (ichx_write_bit(GPIO_IO_SEL, nr, 1, 1))
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
 static int ichx_gpio_direction_output(struct gpio_chip *gpio, unsigned nr,
-					int val)
+									  int val)
 {
 	/* Disable blink hardware which is available for GPIOs from 0 to 31. */
 	if (nr < 32 && ichx_priv.desc->have_blink)
+	{
 		ichx_write_bit(GPO_BLINK, nr, 0, 0);
+	}
 
 	/* Set GPIO output value. */
 	ichx_write_bit(GPIO_LVL, nr, val, 0);
@@ -206,7 +232,9 @@ static int ichx_gpio_direction_output(struct gpio_chip *gpio, unsigned nr,
 	 * are input-only.
 	 */
 	if (ichx_write_bit(GPIO_IO_SEL, nr, 0, 1))
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -225,9 +253,12 @@ static int ich6_gpio_get(struct gpio_chip *chip, unsigned nr)
 	 * GPI 0 - 15 need to be read from the power management registers on
 	 * a ICH6/3100 bridge.
 	 */
-	if (nr < 16) {
+	if (nr < 16)
+	{
 		if (!ichx_priv.pm_base)
+		{
 			return -ENXIO;
+		}
 
 		spin_lock_irqsave(&ichx_priv.lock, flags);
 
@@ -238,7 +269,9 @@ static int ich6_gpio_get(struct gpio_chip *chip, unsigned nr)
 		spin_unlock_irqrestore(&ichx_priv.lock, flags);
 
 		return (data >> 16) & (1 << nr) ? 1 : 0;
-	} else {
+	}
+	else
+	{
 		return ichx_gpio_get(chip, nr);
 	}
 }
@@ -246,7 +279,9 @@ static int ich6_gpio_get(struct gpio_chip *chip, unsigned nr)
 static int ichx_gpio_request(struct gpio_chip *chip, unsigned nr)
 {
 	if (!ichx_gpio_check_available(chip, nr))
+	{
 		return -ENXIO;
+	}
 
 	/*
 	 * Note we assume the BIOS properly set a bridge's USE value.  Some
@@ -255,7 +290,9 @@ static int ichx_gpio_request(struct gpio_chip *chip, unsigned nr)
 	 * If it can't be trusted, assume that the pin can be used as a GPIO.
 	 */
 	if (ichx_priv.desc->use_sel_ignore[nr / 32] & (1 << (nr & 0x1f)))
+	{
 		return 0;
+	}
 
 	return ichx_read_bit(GPIO_USE_SEL, nr) ? 0 : -ENODEV;
 }
@@ -269,7 +306,9 @@ static int ich6_gpio_request(struct gpio_chip *chip, unsigned nr)
 	 * additional info.
 	 */
 	if (nr == 16 || nr == 17)
+	{
 		nr -= 16;
+	}
 
 	return ichx_gpio_request(chip, nr);
 }
@@ -287,9 +326,9 @@ static void ichx_gpiolib_setup(struct gpio_chip *chip)
 
 	/* Allow chip-specific overrides of request()/get() */
 	chip->request = ichx_priv.desc->request ?
-		ichx_priv.desc->request : ichx_gpio_request;
+					ichx_priv.desc->request : ichx_gpio_request;
 	chip->get = ichx_priv.desc->get ?
-		ichx_priv.desc->get : ichx_gpio_get;
+				ichx_priv.desc->get : ichx_gpio_get;
 
 	chip->set = ichx_gpio_set;
 	chip->get_direction = ichx_gpio_get_direction;
@@ -302,7 +341,8 @@ static void ichx_gpiolib_setup(struct gpio_chip *chip)
 }
 
 /* ICH6-based, 631xesb-based */
-static struct ichx_desc ich6_desc = {
+static struct ichx_desc ich6_desc =
+{
 	/* Bridges using the ICH6 controller need fixups for GPIO 0 - 17 */
 	.request = ich6_gpio_request,
 	.get = ich6_gpio_get,
@@ -317,7 +357,8 @@ static struct ichx_desc ich6_desc = {
 };
 
 /* Intel 3100 */
-static struct ichx_desc i3100_desc = {
+static struct ichx_desc i3100_desc =
+{
 	/*
 	 * Bits 16,17, 20 of USE_SEL and bit 16 of USE_SEL2 always read 0 on
 	 * the Intel 3100.  See "Table 712. GPIO Summary Table" of 3100
@@ -338,7 +379,8 @@ static struct ichx_desc i3100_desc = {
 };
 
 /* ICH7 and ICH8-based */
-static struct ichx_desc ich7_desc = {
+static struct ichx_desc ich7_desc =
+{
 	.ngpio = 50,
 	.have_blink = true,
 	.regs = ichx_regs,
@@ -346,7 +388,8 @@ static struct ichx_desc ich7_desc = {
 };
 
 /* ICH9-based */
-static struct ichx_desc ich9_desc = {
+static struct ichx_desc ich9_desc =
+{
 	.ngpio = 61,
 	.have_blink = true,
 	.regs = ichx_regs,
@@ -354,13 +397,15 @@ static struct ichx_desc ich9_desc = {
 };
 
 /* ICH10-based - Consumer/corporate versions have different amount of GPIO */
-static struct ichx_desc ich10_cons_desc = {
+static struct ichx_desc ich10_cons_desc =
+{
 	.ngpio = 61,
 	.have_blink = true,
 	.regs = ichx_regs,
 	.reglen = ichx_reglen,
 };
-static struct ichx_desc ich10_corp_desc = {
+static struct ichx_desc ich10_corp_desc =
+{
 	.ngpio = 72,
 	.have_blink = true,
 	.regs = ichx_regs,
@@ -368,14 +413,16 @@ static struct ichx_desc ich10_corp_desc = {
 };
 
 /* Intel 5 series, 6 series, 3400 series, and C200 series */
-static struct ichx_desc intel5_desc = {
+static struct ichx_desc intel5_desc =
+{
 	.ngpio = 76,
 	.regs = ichx_regs,
 	.reglen = ichx_reglen,
 };
 
 /* Avoton */
-static struct ichx_desc avoton_desc = {
+static struct ichx_desc avoton_desc =
+{
 	/* Avoton has only 59 GPIOs, but we assume the first set of register
 	 * (Core) has 32 instead of 31 to keep gpio-ich compliance
 	 */
@@ -386,21 +433,30 @@ static struct ichx_desc avoton_desc = {
 };
 
 static int ichx_gpio_request_regions(struct device *dev,
-	struct resource *res_base, const char *name, u8 use_gpio)
+									 struct resource *res_base, const char *name, u8 use_gpio)
 {
 	int i;
 
 	if (!res_base || !res_base->start || !res_base->end)
+	{
 		return -ENODEV;
-
-	for (i = 0; i < ARRAY_SIZE(ichx_priv.desc->regs[0]); i++) {
-		if (!(use_gpio & (1 << i)))
-			continue;
-		if (!devm_request_region(dev,
-				res_base->start + ichx_priv.desc->regs[0][i],
-				ichx_priv.desc->reglen[i], name))
-			return -EBUSY;
 	}
+
+	for (i = 0; i < ARRAY_SIZE(ichx_priv.desc->regs[0]); i++)
+	{
+		if (!(use_gpio & (1 << i)))
+		{
+			continue;
+		}
+
+		if (!devm_request_region(dev,
+								 res_base->start + ichx_priv.desc->regs[0][i],
+								 ichx_priv.desc->reglen[i], name))
+		{
+			return -EBUSY;
+		}
+	}
+
 	return 0;
 }
 
@@ -411,46 +467,60 @@ static int ichx_gpio_probe(struct platform_device *pdev)
 	struct lpc_ich_info *ich_info = dev_get_platdata(&pdev->dev);
 
 	if (!ich_info)
+	{
 		return -ENODEV;
+	}
 
 	ichx_priv.dev = pdev;
 
-	switch (ich_info->gpio_version) {
-	case ICH_I3100_GPIO:
-		ichx_priv.desc = &i3100_desc;
-		break;
-	case ICH_V5_GPIO:
-		ichx_priv.desc = &intel5_desc;
-		break;
-	case ICH_V6_GPIO:
-		ichx_priv.desc = &ich6_desc;
-		break;
-	case ICH_V7_GPIO:
-		ichx_priv.desc = &ich7_desc;
-		break;
-	case ICH_V9_GPIO:
-		ichx_priv.desc = &ich9_desc;
-		break;
-	case ICH_V10CORP_GPIO:
-		ichx_priv.desc = &ich10_corp_desc;
-		break;
-	case ICH_V10CONS_GPIO:
-		ichx_priv.desc = &ich10_cons_desc;
-		break;
-	case AVOTON_GPIO:
-		ichx_priv.desc = &avoton_desc;
-		break;
-	default:
-		return -ENODEV;
+	switch (ich_info->gpio_version)
+	{
+		case ICH_I3100_GPIO:
+			ichx_priv.desc = &i3100_desc;
+			break;
+
+		case ICH_V5_GPIO:
+			ichx_priv.desc = &intel5_desc;
+			break;
+
+		case ICH_V6_GPIO:
+			ichx_priv.desc = &ich6_desc;
+			break;
+
+		case ICH_V7_GPIO:
+			ichx_priv.desc = &ich7_desc;
+			break;
+
+		case ICH_V9_GPIO:
+			ichx_priv.desc = &ich9_desc;
+			break;
+
+		case ICH_V10CORP_GPIO:
+			ichx_priv.desc = &ich10_corp_desc;
+			break;
+
+		case ICH_V10CONS_GPIO:
+			ichx_priv.desc = &ich10_cons_desc;
+			break;
+
+		case AVOTON_GPIO:
+			ichx_priv.desc = &avoton_desc;
+			break;
+
+		default:
+			return -ENODEV;
 	}
 
 	spin_lock_init(&ichx_priv.lock);
 	res_base = platform_get_resource(pdev, IORESOURCE_IO, ICH_RES_GPIO);
 	ichx_priv.use_gpio = ich_info->use_gpio;
 	err = ichx_gpio_request_regions(&pdev->dev, res_base, pdev->name,
-					ichx_priv.use_gpio);
+									ichx_priv.use_gpio);
+
 	if (err)
+	{
 		return err;
+	}
 
 	ichx_priv.gpio_base = res_base;
 
@@ -460,16 +530,21 @@ static int ichx_gpio_probe(struct platform_device *pdev)
 	 * 0 - 15 on some chipsets.
 	 */
 	if (!ichx_priv.desc->uses_gpe0)
+	{
 		goto init;
+	}
 
 	res_pm = platform_get_resource(pdev, IORESOURCE_IO, ICH_RES_GPE0);
-	if (!res_pm) {
+
+	if (!res_pm)
+	{
 		pr_warn("ACPI BAR is unavailable, GPI 0 - 15 unavailable\n");
 		goto init;
 	}
 
 	if (!devm_request_region(&pdev->dev, res_pm->start,
-			resource_size(res_pm), pdev->name)) {
+							 resource_size(res_pm), pdev->name))
+	{
 		pr_warn("ACPI BAR is busy, GPI 0 - 15 unavailable\n");
 		goto init;
 	}
@@ -479,13 +554,15 @@ static int ichx_gpio_probe(struct platform_device *pdev)
 init:
 	ichx_gpiolib_setup(&ichx_priv.chip);
 	err = gpiochip_add_data(&ichx_priv.chip, NULL);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Failed to register GPIOs\n");
 		return err;
 	}
 
 	pr_info("GPIO from %d to %d on %s\n", ichx_priv.chip.base,
-	       ichx_priv.chip.base + ichx_priv.chip.ngpio - 1, DRV_NAME);
+			ichx_priv.chip.base + ichx_priv.chip.ngpio - 1, DRV_NAME);
 
 	return 0;
 }
@@ -497,7 +574,8 @@ static int ichx_gpio_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver ichx_gpio_driver = {
+static struct platform_driver ichx_gpio_driver =
+{
 	.driver		= {
 		.name	= DRV_NAME,
 	},

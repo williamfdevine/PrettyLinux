@@ -31,14 +31,14 @@
  *	is os-specific and should be defined in osdef1st.h.
  */
 #ifndef DRV_BUF_FLUSH
-#define DRV_BUF_FLUSH(desc,flag)
-#define DDI_DMA_SYNC_FORCPU
-#define DDI_DMA_SYNC_FORDEV
+	#define DRV_BUF_FLUSH(desc,flag)
+	#define DDI_DMA_SYNC_FORCPU
+	#define DDI_DMA_SYNC_FORDEV
 #endif
 
-	/*
-	 * hardware modul dependent receive modes
-	 */
+/*
+ * hardware modul dependent receive modes
+ */
 #define	RX_ENABLE_PASS_SMT	21
 #define	RX_DISABLE_PASS_SMT	22
 #define	RX_ENABLE_PASS_NSA	23
@@ -51,16 +51,16 @@
 
 
 #ifndef	DMA_RD
-#define DMA_RD		1	/* memory -> hw */
+	#define DMA_RD		1	/* memory -> hw */
 #endif
 #ifndef DMA_WR
-#define DMA_WR		2	/* hw -> memory */
+	#define DMA_WR		2	/* hw -> memory */
 #endif
 #define SMT_BUF		0x80
 
-	/*
-	 * bits of the frame status byte
-	 */
+/*
+ * bits of the frame status byte
+ */
 #define EN_IRQ_EOF	0x02	/* get IRQ after end of frame transmission */
 #define	LOC_TX		0x04	/* send frame to the local SMT */
 #define LAST_FRAG	0x08	/* last TxD of the frame */
@@ -71,16 +71,16 @@
 
 
 #ifndef NULL
-#define NULL 		0
+	#define NULL 		0
 #endif
 
 #define C_INDIC		(1L<<25)
 #define A_INDIC		(1L<<26)
 #define	RD_FS_LOCAL	0x80
 
-	/*
-	 * DEBUG FLAGS
-	 */
+/*
+ * DEBUG FLAGS
+ */
 #define	DEBUG_SMTF	1
 #define	DEBUG_SMT	2
 #define	DEBUG_ECM	3
@@ -94,7 +94,8 @@
 #define	DB_HWM_TX	11
 #define DB_HWM_GEN	12
 
-struct s_mbuf_pool {
+struct s_mbuf_pool
+{
 #ifndef	MB_OUTSIDE_SMC
 	SMbuf		mb[MAX_MBUF] ;		/* mbuf pool */
 #endif
@@ -102,7 +103,8 @@ struct s_mbuf_pool {
 	SMbuf		*mb_free ;		/* free queue */
 } ;
 
-struct hwm_r {
+struct hwm_r
+{
 	/*
 	 * hardware modul specific receive variables
 	 */
@@ -110,7 +112,8 @@ struct hwm_r {
 	char			*mb_pos ;	/* SMbuf receive position */
 } ;
 
-struct hw_modul {
+struct hw_modul
+{
 	/*
 	 * All hardware modul specific variables
 	 */
@@ -154,7 +157,8 @@ struct hw_modul {
  */
 
 #ifdef	DEBUG
-struct os_debug {
+struct os_debug
+{
 	int	hwm_rx ;
 	int	hwm_tx ;
 	int	hwm_gen ;
@@ -162,23 +166,23 @@ struct os_debug {
 #endif
 
 #ifdef	DEBUG
-#ifdef	DEBUG_BRD
-#define	DB_P	smc->debug
-#else
-#define DB_P	debug
-#endif
+	#ifdef	DEBUG_BRD
+		#define	DB_P	smc->debug
+	#else
+		#define DB_P	debug
+	#endif
 
-#define DB_RX(a,b,c,lev) if (DB_P.d_os.hwm_rx >= (lev))	printf(a,b,c)
-#define DB_TX(a,b,c,lev) if (DB_P.d_os.hwm_tx >= (lev))	printf(a,b,c)
-#define DB_GEN(a,b,c,lev) if (DB_P.d_os.hwm_gen >= (lev)) printf(a,b,c)
+	#define DB_RX(a,b,c,lev) if (DB_P.d_os.hwm_rx >= (lev))	printf(a,b,c)
+	#define DB_TX(a,b,c,lev) if (DB_P.d_os.hwm_tx >= (lev))	printf(a,b,c)
+	#define DB_GEN(a,b,c,lev) if (DB_P.d_os.hwm_gen >= (lev)) printf(a,b,c)
 #else	/* DEBUG */
-#define DB_RX(a,b,c,lev)
-#define DB_TX(a,b,c,lev)
-#define DB_GEN(a,b,c,lev)
+	#define DB_RX(a,b,c,lev)
+	#define DB_TX(a,b,c,lev)
+	#define DB_GEN(a,b,c,lev)
 #endif	/* DEBUG */
 
 #ifndef	SK_BREAK
-#define	SK_BREAK()
+	#define	SK_BREAK()
 #endif
 
 
@@ -250,7 +254,7 @@ struct os_debug {
  *	END_MANUAL_ENTRY
  */
 #define	HWM_GET_CURR_TXD(smc,queue)	(struct s_smt_fp_txd volatile *)\
-					(smc)->hw.fp.tx_q[queue].tx_curr_put
+	(smc)->hw.fp.tx_q[queue].tx_curr_put
 
 /*
  *	BEGIN_MANUAL_ENTRY(HWM_GET_RX_FRAG_LEN)
@@ -267,7 +271,7 @@ struct os_debug {
  *	END_MANUAL_ENTRY
  */
 #define	HWM_GET_RX_FRAG_LEN(rxd)	((int)AIX_REVERSE((rxd)->rxd_rbctrl)& \
-				RD_LENGTH)
+									 RD_LENGTH)
 
 /*
  *	BEGIN_MANUAL_ENTRY(HWM_GET_RX_PHYS)
@@ -330,7 +334,7 @@ struct os_debug {
  *	END_MANUAL_ENTRY
  */
 #define	HWM_GET_CURR_RXD(smc)	(struct s_smt_fp_rxd volatile *)\
-				(smc)->hw.fp.rx_q[QUEUE_R1].rx_curr_put
+	(smc)->hw.fp.rx_q[QUEUE_R1].rx_curr_put
 
 /*
  *	BEGIN_MANUAL_ENTRY(HWM_RX_CHECK)
@@ -348,16 +352,16 @@ struct os_debug {
  */
 #ifndef HWM_NO_FLOW_CTL
 #define	HWM_RX_CHECK(smc,low_water) {\
-	if ((low_water) >= (smc)->hw.fp.rx_q[QUEUE_R1].rx_used) {\
-		mac_drv_fill_rxd(smc) ;\
-	}\
-}
+		if ((low_water) >= (smc)->hw.fp.rx_q[QUEUE_R1].rx_used) {\
+			mac_drv_fill_rxd(smc) ;\
+		}\
+	}
 #else
 #define	HWM_RX_CHECK(smc,low_water)		mac_drv_fill_rxd(smc)
 #endif
 
 #ifndef	HWM_EBASE
-#define	HWM_EBASE	500
+	#define	HWM_EBASE	500
 #endif
 
 #define	HWM_E0001	HWM_EBASE + 1

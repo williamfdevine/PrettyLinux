@@ -85,14 +85,16 @@
  */
 #define INA226_TOTAL_CONV_TIME_DEFAULT	2200
 
-static struct regmap_config ina2xx_regmap_config = {
+static struct regmap_config ina2xx_regmap_config =
+{
 	.reg_bits = 8,
 	.val_bits = 16,
 };
 
 enum ina2xx_ids { ina219, ina226 };
 
-struct ina2xx_config {
+struct ina2xx_config
+{
 	u16 config_default;
 	int calibration_factor;
 	int registers;
@@ -102,7 +104,8 @@ struct ina2xx_config {
 	int power_lsb;		/* uW */
 };
 
-struct ina2xx_data {
+struct ina2xx_data
+{
 	const struct ina2xx_config *config;
 
 	long rshunt;
@@ -112,7 +115,8 @@ struct ina2xx_data {
 	const struct attribute_group *groups[INA2XX_MAX_ATTRIBUTE_GROUPS];
 };
 
-static const struct ina2xx_config ina2xx_config[] = {
+static const struct ina2xx_config ina2xx_config[] =
+{
 	[ina219] = {
 		.config_default = INA219_CONFIG_DEFAULT,
 		.calibration_factor = 40960000,
@@ -161,9 +165,9 @@ static u16 ina226_interval_to_reg(int interval)
 	int avg, avg_bits;
 
 	avg = DIV_ROUND_CLOSEST(interval * 1000,
-				INA226_TOTAL_CONV_TIME_DEFAULT);
+							INA226_TOTAL_CONV_TIME_DEFAULT);
 	avg_bits = find_closest(avg, ina226_avg_tab,
-				ARRAY_SIZE(ina226_avg_tab));
+							ARRAY_SIZE(ina226_avg_tab));
 
 	return INA226_SHIFT_AVG(avg_bits);
 }
@@ -171,7 +175,7 @@ static u16 ina226_interval_to_reg(int interval)
 static int ina2xx_calibrate(struct ina2xx_data *data)
 {
 	u16 val = DIV_ROUND_CLOSEST(data->config->calibration_factor,
-				    data->rshunt);
+								data->rshunt);
 
 	return regmap_write(data->regmap, INA2XX_CALIBRATION, val);
 }
@@ -182,9 +186,12 @@ static int ina2xx_calibrate(struct ina2xx_data *data)
 static int ina2xx_init(struct ina2xx_data *data)
 {
 	int ret = regmap_write(data->regmap, INA2XX_CONFIG,
-			       data->config->config_default);
+						   data->config->config_default);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/*
 	 * Set current LSB to 1mA, shunt is in uOhms
@@ -200,11 +207,15 @@ static int ina2xx_read_reg(struct device *dev, int reg, unsigned int *regval)
 
 	dev_dbg(dev, "Starting register %d read\n", reg);
 
-	for (retry = 5; retry; retry--) {
+	for (retry = 5; retry; retry--)
+	{
 
 		ret = regmap_read(data->regmap, reg, regval);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		dev_dbg(dev, "read %d, val = 0x%04x\n", reg, *regval);
 
@@ -216,20 +227,29 @@ static int ina2xx_read_reg(struct device *dev, int reg, unsigned int *regval)
 		 * We do that extra read of the calibration register if there
 		 * is some hint of a chip reset.
 		 */
-		if (*regval == 0) {
+		if (*regval == 0)
+		{
 			unsigned int cal;
 
 			ret = regmap_read(data->regmap, INA2XX_CALIBRATION,
-					  &cal);
-			if (ret < 0)
-				return ret;
+							  &cal);
 
-			if (cal == 0) {
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			if (cal == 0)
+			{
 				dev_warn(dev, "chip not calibrated, reinitializing\n");
 
 				ret = ina2xx_init(data);
+
 				if (ret < 0)
+				{
 					return ret;
+				}
+
 				/*
 				 * Let's make sure the power and current
 				 * registers have been updated before trying
@@ -239,6 +259,7 @@ static int ina2xx_read_reg(struct device *dev, int reg, unsigned int *regval)
 				continue;
 			}
 		}
+
 		return 0;
 	}
 
@@ -252,43 +273,49 @@ static int ina2xx_read_reg(struct device *dev, int reg, unsigned int *regval)
 }
 
 static int ina2xx_get_value(struct ina2xx_data *data, u8 reg,
-			    unsigned int regval)
+							unsigned int regval)
 {
 	int val;
 
-	switch (reg) {
-	case INA2XX_SHUNT_VOLTAGE:
-		/* signed register */
-		val = DIV_ROUND_CLOSEST((s16)regval, data->config->shunt_div);
-		break;
-	case INA2XX_BUS_VOLTAGE:
-		val = (regval >> data->config->bus_voltage_shift)
-		  * data->config->bus_voltage_lsb;
-		val = DIV_ROUND_CLOSEST(val, 1000);
-		break;
-	case INA2XX_POWER:
-		val = regval * data->config->power_lsb;
-		break;
-	case INA2XX_CURRENT:
-		/* signed register, LSB=1mA (selected), in mA */
-		val = (s16)regval;
-		break;
-	case INA2XX_CALIBRATION:
-		val = DIV_ROUND_CLOSEST(data->config->calibration_factor,
-					regval);
-		break;
-	default:
-		/* programmer goofed */
-		WARN_ON_ONCE(1);
-		val = 0;
-		break;
+	switch (reg)
+	{
+		case INA2XX_SHUNT_VOLTAGE:
+			/* signed register */
+			val = DIV_ROUND_CLOSEST((s16)regval, data->config->shunt_div);
+			break;
+
+		case INA2XX_BUS_VOLTAGE:
+			val = (regval >> data->config->bus_voltage_shift)
+				  * data->config->bus_voltage_lsb;
+			val = DIV_ROUND_CLOSEST(val, 1000);
+			break;
+
+		case INA2XX_POWER:
+			val = regval * data->config->power_lsb;
+			break;
+
+		case INA2XX_CURRENT:
+			/* signed register, LSB=1mA (selected), in mA */
+			val = (s16)regval;
+			break;
+
+		case INA2XX_CALIBRATION:
+			val = DIV_ROUND_CLOSEST(data->config->calibration_factor,
+									regval);
+			break;
+
+		default:
+			/* programmer goofed */
+			WARN_ON_ONCE(1);
+			val = 0;
+			break;
 	}
 
 	return val;
 }
 
 static ssize_t ina2xx_show_value(struct device *dev,
-				 struct device_attribute *da, char *buf)
+								 struct device_attribute *da, char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
 	struct ina2xx_data *data = dev_get_drvdata(dev);
@@ -297,104 +324,126 @@ static ssize_t ina2xx_show_value(struct device *dev,
 	int err = ina2xx_read_reg(dev, attr->index, &regval);
 
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return snprintf(buf, PAGE_SIZE, "%d\n",
-			ina2xx_get_value(data, attr->index, regval));
+					ina2xx_get_value(data, attr->index, regval));
 }
 
 static ssize_t ina2xx_set_shunt(struct device *dev,
-				struct device_attribute *da,
-				const char *buf, size_t count)
+								struct device_attribute *da,
+								const char *buf, size_t count)
 {
 	unsigned long val;
 	int status;
 	struct ina2xx_data *data = dev_get_drvdata(dev);
 
 	status = kstrtoul(buf, 10, &val);
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	if (val == 0 ||
-	    /* Values greater than the calibration factor make no sense. */
-	    val > data->config->calibration_factor)
+		/* Values greater than the calibration factor make no sense. */
+		val > data->config->calibration_factor)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&data->config_lock);
 	data->rshunt = val;
 	status = ina2xx_calibrate(data);
 	mutex_unlock(&data->config_lock);
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	return count;
 }
 
 static ssize_t ina226_set_interval(struct device *dev,
-				   struct device_attribute *da,
-				   const char *buf, size_t count)
+								   struct device_attribute *da,
+								   const char *buf, size_t count)
 {
 	struct ina2xx_data *data = dev_get_drvdata(dev);
 	unsigned long val;
 	int status;
 
 	status = kstrtoul(buf, 10, &val);
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	if (val > INT_MAX || val == 0)
+	{
 		return -EINVAL;
+	}
 
 	status = regmap_update_bits(data->regmap, INA2XX_CONFIG,
-				    INA226_AVG_RD_MASK,
-				    ina226_interval_to_reg(val));
+								INA226_AVG_RD_MASK,
+								ina226_interval_to_reg(val));
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	return count;
 }
 
 static ssize_t ina226_show_interval(struct device *dev,
-				    struct device_attribute *da, char *buf)
+									struct device_attribute *da, char *buf)
 {
 	struct ina2xx_data *data = dev_get_drvdata(dev);
 	int status;
 	unsigned int regval;
 
 	status = regmap_read(data->regmap, INA2XX_CONFIG, &regval);
+
 	if (status)
+	{
 		return status;
+	}
 
 	return snprintf(buf, PAGE_SIZE, "%d\n", ina226_reg_to_interval(regval));
 }
 
 /* shunt voltage */
 static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, ina2xx_show_value, NULL,
-			  INA2XX_SHUNT_VOLTAGE);
+						  INA2XX_SHUNT_VOLTAGE);
 
 /* bus voltage */
 static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, ina2xx_show_value, NULL,
-			  INA2XX_BUS_VOLTAGE);
+						  INA2XX_BUS_VOLTAGE);
 
 /* calculated current */
 static SENSOR_DEVICE_ATTR(curr1_input, S_IRUGO, ina2xx_show_value, NULL,
-			  INA2XX_CURRENT);
+						  INA2XX_CURRENT);
 
 /* calculated power */
 static SENSOR_DEVICE_ATTR(power1_input, S_IRUGO, ina2xx_show_value, NULL,
-			  INA2XX_POWER);
+						  INA2XX_POWER);
 
 /* shunt resistance */
 static SENSOR_DEVICE_ATTR(shunt_resistor, S_IRUGO | S_IWUSR,
-			  ina2xx_show_value, ina2xx_set_shunt,
-			  INA2XX_CALIBRATION);
+						  ina2xx_show_value, ina2xx_set_shunt,
+						  INA2XX_CALIBRATION);
 
 /* update interval (ina226 only) */
 static SENSOR_DEVICE_ATTR(update_interval, S_IRUGO | S_IWUSR,
-			  ina226_show_interval, ina226_set_interval, 0);
+						  ina226_show_interval, ina226_set_interval, 0);
 
 /* pointers to created device attributes */
-static struct attribute *ina2xx_attrs[] = {
+static struct attribute *ina2xx_attrs[] =
+{
 	&sensor_dev_attr_in0_input.dev_attr.attr,
 	&sensor_dev_attr_in1_input.dev_attr.attr,
 	&sensor_dev_attr_curr1_input.dev_attr.attr,
@@ -403,21 +452,24 @@ static struct attribute *ina2xx_attrs[] = {
 	NULL,
 };
 
-static const struct attribute_group ina2xx_group = {
+static const struct attribute_group ina2xx_group =
+{
 	.attrs = ina2xx_attrs,
 };
 
-static struct attribute *ina226_attrs[] = {
+static struct attribute *ina226_attrs[] =
+{
 	&sensor_dev_attr_update_interval.dev_attr.attr,
 	NULL,
 };
 
-static const struct attribute_group ina226_group = {
+static const struct attribute_group ina226_group =
+{
 	.attrs = ina226_attrs,
 };
 
 static int ina2xx_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	struct device *dev = &client->dev;
 	struct ina2xx_data *data;
@@ -426,36 +478,50 @@ static int ina2xx_probe(struct i2c_client *client,
 	int ret, group = 0;
 
 	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	/* set the device type */
 	data->config = &ina2xx_config[id->driver_data];
 
-	if (of_property_read_u32(dev->of_node, "shunt-resistor", &val) < 0) {
+	if (of_property_read_u32(dev->of_node, "shunt-resistor", &val) < 0)
+	{
 		struct ina2xx_platform_data *pdata = dev_get_platdata(dev);
 
 		if (pdata)
+		{
 			val = pdata->shunt_uohms;
+		}
 		else
+		{
 			val = INA2XX_RSHUNT_DEFAULT;
+		}
 	}
 
 	if (val <= 0 || val > data->config->calibration_factor)
+	{
 		return -ENODEV;
+	}
 
 	data->rshunt = val;
 
 	ina2xx_regmap_config.max_register = data->config->registers;
 
 	data->regmap = devm_regmap_init_i2c(client, &ina2xx_regmap_config);
-	if (IS_ERR(data->regmap)) {
+
+	if (IS_ERR(data->regmap))
+	{
 		dev_err(dev, "failed to allocate register map\n");
 		return PTR_ERR(data->regmap);
 	}
 
 	ret = ina2xx_init(data);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "error configuring the device: %d\n", ret);
 		return -ENODEV;
 	}
@@ -463,21 +529,28 @@ static int ina2xx_probe(struct i2c_client *client,
 	mutex_init(&data->config_lock);
 
 	data->groups[group++] = &ina2xx_group;
+
 	if (id->driver_data == ina226)
+	{
 		data->groups[group++] = &ina226_group;
+	}
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
-							   data, data->groups);
+				data, data->groups);
+
 	if (IS_ERR(hwmon_dev))
+	{
 		return PTR_ERR(hwmon_dev);
+	}
 
 	dev_info(dev, "power monitor %s (Rshunt = %li uOhm)\n",
-		 id->name, data->rshunt);
+			 id->name, data->rshunt);
 
 	return 0;
 }
 
-static const struct i2c_device_id ina2xx_id[] = {
+static const struct i2c_device_id ina2xx_id[] =
+{
 	{ "ina219", ina219 },
 	{ "ina220", ina219 },
 	{ "ina226", ina226 },
@@ -487,7 +560,8 @@ static const struct i2c_device_id ina2xx_id[] = {
 };
 MODULE_DEVICE_TABLE(i2c, ina2xx_id);
 
-static struct i2c_driver ina2xx_driver = {
+static struct i2c_driver ina2xx_driver =
+{
 	.driver = {
 		.name	= "ina2xx",
 	},

@@ -167,7 +167,8 @@
  */
 
 /* NetLabel Unlabeled commands */
-enum {
+enum
+{
 	NLBL_UNLABEL_C_UNSPEC,
 	NLBL_UNLABEL_C_ACCEPT,
 	NLBL_UNLABEL_C_LIST,
@@ -181,7 +182,8 @@ enum {
 };
 
 /* NetLabel Unlabeled attributes */
-enum {
+enum
+{
 	NLBL_UNLABEL_A_UNSPEC,
 	NLBL_UNLABEL_A_ACPTFLG,
 	/* (NLA_U8)
@@ -221,23 +223,23 @@ int netlbl_unlabel_init(u32 size);
 
 /* Static/Fallback label management functions */
 int netlbl_unlhsh_add(struct net *net,
-		      const char *dev_name,
-		      const void *addr,
-		      const void *mask,
-		      u32 addr_len,
-		      u32 secid,
-		      struct netlbl_audit *audit_info);
+					  const char *dev_name,
+					  const void *addr,
+					  const void *mask,
+					  u32 addr_len,
+					  u32 secid,
+					  struct netlbl_audit *audit_info);
 int netlbl_unlhsh_remove(struct net *net,
-			 const char *dev_name,
-			 const void *addr,
-			 const void *mask,
-			 u32 addr_len,
-			 struct netlbl_audit *audit_info);
+						 const char *dev_name,
+						 const void *addr,
+						 const void *mask,
+						 u32 addr_len,
+						 struct netlbl_audit *audit_info);
 
 /* Process Unlabeled incoming network packets */
 int netlbl_unlabel_getattr(const struct sk_buff *skb,
-			   u16 family,
-			   struct netlbl_lsm_secattr *secattr);
+						   u16 family,
+						   struct netlbl_lsm_secattr *secattr);
 
 /* Set the default configuration to allow Unlabeled packets */
 int netlbl_unlabel_defconf(void);

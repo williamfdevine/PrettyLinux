@@ -6,7 +6,7 @@
 #ifdef _MSG_TRACE
 
 void _rtsx_trace(struct rtsx_chip *chip, const char *file, const char *func,
-		 int line)
+				 int line)
 {
 	struct trace_msg_t *msg = &chip->trace_msg[chip->msg_idx];
 
@@ -20,7 +20,10 @@ void _rtsx_trace(struct rtsx_chip *chip, const char *file, const char *func,
 	msg->valid = 1;
 
 	chip->msg_idx++;
+
 	if (chip->msg_idx >= TRACE_ITEM_CNT)
+	{
 		chip->msg_idx = 0;
+	}
 }
 #endif

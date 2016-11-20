@@ -71,26 +71,35 @@ static int rtl92cu_init_sw_vars(struct ieee80211_hw *hw)
 
 	/* for firmware buf */
 	rtlpriv->rtlhal.pfirmware = vzalloc(0x4000);
-	if (!rtlpriv->rtlhal.pfirmware) {
+
+	if (!rtlpriv->rtlhal.pfirmware)
+	{
 		RT_TRACE(rtlpriv, COMP_ERR, DBG_EMERG,
-			 "Can't alloc buffer for fw\n");
+				 "Can't alloc buffer for fw\n");
 		return 1;
 	}
+
 	if (IS_VENDOR_UMC_A_CUT(rtlpriv->rtlhal.version) &&
-	    !IS_92C_SERIAL(rtlpriv->rtlhal.version)) {
+		!IS_92C_SERIAL(rtlpriv->rtlhal.version))
+	{
 		fw_name = "rtlwifi/rtl8192cufw_A.bin";
-	} else if (IS_81XXC_VENDOR_UMC_B_CUT(rtlpriv->rtlhal.version)) {
+	}
+	else if (IS_81XXC_VENDOR_UMC_B_CUT(rtlpriv->rtlhal.version))
+	{
 		fw_name = "rtlwifi/rtl8192cufw_B.bin";
-	} else {
+	}
+	else
+	{
 		fw_name = "rtlwifi/rtl8192cufw_TMSC.bin";
 	}
+
 	/* provide name of alternative file */
 	rtlpriv->cfg->alt_fw_name = "rtlwifi/rtl8192cufw.bin";
 	pr_info("Loading firmware %s\n", fw_name);
 	rtlpriv->max_fw_size = 0x4000;
 	err = request_firmware_nowait(THIS_MODULE, 1,
-				      fw_name, rtlpriv->io.dev,
-				      GFP_KERNEL, hw, rtl_fw_cb);
+								  fw_name, rtlpriv->io.dev,
+								  GFP_KERNEL, hw, rtl_fw_cb);
 	return err;
 }
 
@@ -98,7 +107,8 @@ static void rtl92cu_deinit_sw_vars(struct ieee80211_hw *hw)
 {
 	struct rtl_priv *rtlpriv = rtl_priv(hw);
 
-	if (rtlpriv->rtlhal.pfirmware) {
+	if (rtlpriv->rtlhal.pfirmware)
+	{
 		vfree(rtlpriv->rtlhal.pfirmware);
 		rtlpriv->rtlhal.pfirmware = NULL;
 	}
@@ -110,7 +120,8 @@ static bool rtl92cu_get_btc_status(void)
 	return false;
 }
 
-static struct rtl_hal_ops rtl8192cu_hal_ops = {
+static struct rtl_hal_ops rtl8192cu_hal_ops =
+{
 	.init_sw_vars = rtl92cu_init_sw_vars,
 	.deinit_sw_vars = rtl92cu_deinit_sw_vars,
 	.read_chip_version = rtl92c_read_chip_version,
@@ -160,7 +171,8 @@ static struct rtl_hal_ops rtl8192cu_hal_ops = {
 	.get_btc_status = rtl92cu_get_btc_status,
 };
 
-static struct rtl_mod_params rtl92cu_mod_params = {
+static struct rtl_mod_params rtl92cu_mod_params =
+{
 	.sw_crypto = 0,
 	.debug = DBG_EMERG,
 };
@@ -170,7 +182,8 @@ module_param_named(debug, rtl92cu_mod_params.debug, int, 0444);
 MODULE_PARM_DESC(swenc, "Set to 1 for software crypto (default 0)\n");
 MODULE_PARM_DESC(debug, "Set debug level (0-5) (default 0)");
 
-static struct rtl_hal_usbint_cfg rtl92cu_interface_cfg = {
+static struct rtl_hal_usbint_cfg rtl92cu_interface_cfg =
+{
 	/* rx */
 	.in_ep_num = RTL92C_USB_BULK_IN_NUM,
 	.rx_urb_num = RTL92C_NUM_RX_URBS,
@@ -186,7 +199,8 @@ static struct rtl_hal_usbint_cfg rtl92cu_interface_cfg = {
 	.usb_mq_to_hwq = rtl8192cu_mq_to_hwq,
 };
 
-static struct rtl_hal_cfg rtl92cu_hal_cfg = {
+static struct rtl_hal_cfg rtl92cu_hal_cfg =
+{
 	.name = "rtl92c_usb",
 	.ops = &rtl8192cu_hal_ops,
 	.mod_params = &rtl92cu_mod_params,
@@ -278,7 +292,8 @@ static struct rtl_hal_cfg rtl92cu_hal_cfg = {
 #define USB_VENDER_ID_REALTEK		0x0bda
 
 /* 2010-10-19 DID_USB_V3.4 */
-static struct usb_device_id rtl8192c_usb_ids[] = {
+static struct usb_device_id rtl8192c_usb_ids[] =
+{
 
 	/*=== Realtek demoboard ===*/
 	/* Default ID */
@@ -392,12 +407,13 @@ static struct usb_device_id rtl8192c_usb_ids[] = {
 MODULE_DEVICE_TABLE(usb, rtl8192c_usb_ids);
 
 static int rtl8192cu_probe(struct usb_interface *intf,
-			   const struct usb_device_id *id)
+						   const struct usb_device_id *id)
 {
 	return rtl_usb_probe(intf, id, &rtl92cu_hal_cfg);
 }
 
-static struct usb_driver rtl8192cu_driver = {
+static struct usb_driver rtl8192cu_driver =
+{
 	.name = "rtl8192cu",
 	.probe = rtl8192cu_probe,
 	.disconnect = rtl_usb_disconnect,

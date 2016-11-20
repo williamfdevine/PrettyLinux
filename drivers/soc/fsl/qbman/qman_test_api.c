@@ -36,23 +36,24 @@
 #define NUM_ENQUEUES	10
 #define NUM_PARTIAL	4
 #define PORTAL_SDQCR	(QM_SDQCR_SOURCE_CHANNELS | \
-			QM_SDQCR_TYPE_PRIO_QOS | \
-			QM_SDQCR_TOKEN_SET(0x98) | \
-			QM_SDQCR_CHANNELS_DEDICATED | \
-			QM_SDQCR_CHANNELS_POOL(POOL_ID))
+						 QM_SDQCR_TYPE_PRIO_QOS | \
+						 QM_SDQCR_TOKEN_SET(0x98) | \
+						 QM_SDQCR_CHANNELS_DEDICATED | \
+						 QM_SDQCR_CHANNELS_POOL(POOL_ID))
 #define PORTAL_OPAQUE	((void *)0xf00dbeef)
 #define VDQCR_FLAGS	(QMAN_VOLATILE_FLAG_WAIT | QMAN_VOLATILE_FLAG_FINISH)
 
 static enum qman_cb_dqrr_result cb_dqrr(struct qman_portal *,
-					struct qman_fq *,
-					const struct qm_dqrr_entry *);
+										struct qman_fq *,
+										const struct qm_dqrr_entry *);
 static void cb_ern(struct qman_portal *, struct qman_fq *,
-		   const union qm_mr_entry *);
+				   const union qm_mr_entry *);
 static void cb_fqs(struct qman_portal *, struct qman_fq *,
-		   const union qm_mr_entry *);
+				   const union qm_mr_entry *);
 
 static struct qm_fd fd, fd_dq;
-static struct qman_fq fq_base = {
+static struct qman_fq fq_base =
+{
 	.cb.dqrr = cb_dqrr,
 	.cb.ern = cb_ern,
 	.cb.fqs = cb_fqs
@@ -76,8 +77,12 @@ static void fd_inc(struct qm_fd *fd)
 	enum qm_fd_format fmt;
 
 	t <<= 1;
+
 	if (z)
+	{
 		t |= 1;
+	}
+
 	qm_fd_addr_set64(fd, t);
 
 	fmt = qm_fd_get_format(fd);
@@ -94,17 +99,25 @@ static int fd_cmp(const struct qm_fd *a, const struct qm_fd *b)
 {
 	int r = (qm_fd_addr_get64(a) == qm_fd_addr_get64(b)) ? 0 : -1;
 
-	if (!r) {
+	if (!r)
+	{
 		enum qm_fd_format fmt_a, fmt_b;
 
 		fmt_a = qm_fd_get_format(a);
 		fmt_b = qm_fd_get_format(b);
 		r = fmt_a - fmt_b;
 	}
+
 	if (!r)
+	{
 		r = a->cfg - b->cfg;
+	}
+
 	if (!r)
+	{
 		r = a->cmd - b->cmd;
+	}
+
 	return r;
 }
 
@@ -114,11 +127,14 @@ static int do_enqueues(struct qman_fq *fq)
 	unsigned int loop;
 	int err = 0;
 
-	for (loop = 0; loop < NUM_ENQUEUES; loop++) {
-		if (qman_enqueue(fq, &fd)) {
+	for (loop = 0; loop < NUM_ENQUEUES; loop++)
+	{
+		if (qman_enqueue(fq, &fd))
+		{
 			pr_crit("qman_enqueue() failed\n");
 			err = -EIO;
 		}
+
 		fd_inc(&fd);
 	}
 
@@ -137,73 +153,111 @@ int qman_test_api(void)
 
 	/* Initialise (parked) FQ */
 	err = qman_create_fq(0, FQ_FLAGS, fq);
-	if (err) {
+
+	if (err)
+	{
 		pr_crit("qman_create_fq() failed\n");
 		goto failed;
 	}
+
 	err = qman_init_fq(fq, QMAN_INITFQ_FLAG_LOCAL, NULL);
-	if (err) {
+
+	if (err)
+	{
 		pr_crit("qman_init_fq() failed\n");
 		goto failed;
 	}
+
 	/* Do enqueues + VDQCR, twice. (Parked FQ) */
 	err = do_enqueues(fq);
+
 	if (err)
+	{
 		goto failed;
+	}
+
 	pr_info("VDQCR (till-empty);\n");
 	frmcnt = QM_VDQCR_NUMFRAMES_TILLEMPTY;
 	err = qman_volatile_dequeue(fq, VDQCR_FLAGS, frmcnt);
-	if (err) {
+
+	if (err)
+	{
 		pr_crit("qman_volatile_dequeue() failed\n");
 		goto failed;
 	}
+
 	err = do_enqueues(fq);
+
 	if (err)
+	{
 		goto failed;
+	}
+
 	pr_info("VDQCR (%d of %d);\n", NUM_PARTIAL, NUM_ENQUEUES);
 	frmcnt = QM_VDQCR_NUMFRAMES_SET(NUM_PARTIAL);
 	err = qman_volatile_dequeue(fq, VDQCR_FLAGS, frmcnt);
-	if (err) {
+
+	if (err)
+	{
 		pr_crit("qman_volatile_dequeue() failed\n");
 		goto failed;
 	}
+
 	pr_info("VDQCR (%d of %d);\n", NUM_ENQUEUES - NUM_PARTIAL,
-		NUM_ENQUEUES);
+			NUM_ENQUEUES);
 	frmcnt = QM_VDQCR_NUMFRAMES_SET(NUM_ENQUEUES - NUM_PARTIAL);
 	err = qman_volatile_dequeue(fq, VDQCR_FLAGS, frmcnt);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("qman_volatile_dequeue() failed\n");
 		goto failed;
 	}
 
 	err = do_enqueues(fq);
+
 	if (err)
+	{
 		goto failed;
+	}
+
 	pr_info("scheduled dequeue (till-empty)\n");
 	err = qman_schedule_fq(fq);
-	if (err) {
+
+	if (err)
+	{
 		pr_crit("qman_schedule_fq() failed\n");
 		goto failed;
 	}
+
 	wait_event(waitqueue, sdqcr_complete);
 
 	/* Retire and OOS the FQ */
 	err = qman_retire_fq(fq, &flags);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		pr_crit("qman_retire_fq() failed\n");
 		goto failed;
 	}
+
 	wait_event(waitqueue, retire_complete);
-	if (flags & QMAN_FQ_STATE_BLOCKOOS) {
+
+	if (flags & QMAN_FQ_STATE_BLOCKOOS)
+	{
 		err = -EIO;
 		pr_crit("leaking frames\n");
 		goto failed;
 	}
+
 	err = qman_oos_fq(fq);
-	if (err) {
+
+	if (err)
+	{
 		pr_crit("qman_oos_fq() failed\n");
 		goto failed;
 	}
+
 	qman_destroy_fq(fq);
 	pr_info("%s(): Finished\n", __func__);
 	return 0;
@@ -214,38 +268,45 @@ failed:
 }
 
 static enum qman_cb_dqrr_result cb_dqrr(struct qman_portal *p,
-					struct qman_fq *fq,
-					const struct qm_dqrr_entry *dq)
+										struct qman_fq *fq,
+										const struct qm_dqrr_entry *dq)
 {
-	if (WARN_ON(fd_cmp(&fd_dq, &dq->fd))) {
+	if (WARN_ON(fd_cmp(&fd_dq, &dq->fd)))
+	{
 		pr_err("BADNESS: dequeued frame doesn't match;\n");
 		return qman_cb_dqrr_consume;
 	}
+
 	fd_inc(&fd_dq);
-	if (!(dq->stat & QM_DQRR_STAT_UNSCHEDULED) && !fd_cmp(&fd_dq, &fd)) {
+
+	if (!(dq->stat & QM_DQRR_STAT_UNSCHEDULED) && !fd_cmp(&fd_dq, &fd))
+	{
 		sdqcr_complete = 1;
 		wake_up(&waitqueue);
 	}
+
 	return qman_cb_dqrr_consume;
 }
 
 static void cb_ern(struct qman_portal *p, struct qman_fq *fq,
-		   const union qm_mr_entry *msg)
+				   const union qm_mr_entry *msg)
 {
 	pr_crit("cb_ern() unimplemented");
 	WARN_ON(1);
 }
 
 static void cb_fqs(struct qman_portal *p, struct qman_fq *fq,
-		   const union qm_mr_entry *msg)
+				   const union qm_mr_entry *msg)
 {
 	u8 verb = (msg->verb & QM_MR_VERB_TYPE_MASK);
 
-	if ((verb != QM_MR_VERB_FQRN) && (verb != QM_MR_VERB_FQRNI)) {
+	if ((verb != QM_MR_VERB_FQRN) && (verb != QM_MR_VERB_FQRNI))
+	{
 		pr_crit("unexpected FQS message");
 		WARN_ON(1);
 		return;
 	}
+
 	pr_info("Retirement message received\n");
 	retire_complete = 1;
 	wake_up(&waitqueue);

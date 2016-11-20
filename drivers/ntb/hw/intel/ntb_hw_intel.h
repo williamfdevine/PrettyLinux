@@ -250,7 +250,8 @@
 
 struct intel_ntb_dev;
 
-struct intel_ntb_reg {
+struct intel_ntb_reg
+{
 	int (*poll_link)(struct intel_ntb_dev *ndev);
 	int (*link_is_up)(struct intel_ntb_dev *ndev);
 	u64 (*db_ioread)(void __iomem *mmio);
@@ -260,19 +261,22 @@ struct intel_ntb_reg {
 	int				mw_bar[];
 };
 
-struct intel_ntb_alt_reg {
+struct intel_ntb_alt_reg
+{
 	unsigned long			db_bell;
 	unsigned long			db_mask;
 	unsigned long			spad;
 };
 
-struct intel_ntb_xlat_reg {
+struct intel_ntb_xlat_reg
+{
 	unsigned long			bar0_base;
 	unsigned long			bar2_xlat;
 	unsigned long			bar2_limit;
 };
 
-struct intel_b2b_addr {
+struct intel_b2b_addr
+{
 	phys_addr_t			bar0_addr;
 	phys_addr_t			bar2_addr64;
 	phys_addr_t			bar4_addr64;
@@ -280,12 +284,14 @@ struct intel_b2b_addr {
 	phys_addr_t			bar5_addr32;
 };
 
-struct intel_ntb_vec {
+struct intel_ntb_vec
+{
 	struct intel_ntb_dev		*ndev;
 	int				num;
 };
 
-struct intel_ntb_dev {
+struct intel_ntb_dev
+{
 	struct ntb_dev			ntb;
 
 	/* offset of peer bar0 in b2b bar */
@@ -339,6 +345,6 @@ struct intel_ntb_dev {
 #define ndev_dev(ndev) (&ndev_pdev(ndev)->dev)
 #define ntb_ndev(__ntb) container_of(__ntb, struct intel_ntb_dev, ntb)
 #define hb_ndev(__work) container_of(__work, struct intel_ntb_dev, \
-				     hb_timer.work)
+									 hb_timer.work)
 
 #endif

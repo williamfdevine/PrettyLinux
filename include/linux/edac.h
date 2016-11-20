@@ -33,7 +33,8 @@ extern int edac_handler_set(void);
 extern void edac_atomic_assert_error(void);
 extern struct bus_type *edac_get_sysfs_subsys(void);
 
-enum {
+enum
+{
 	EDAC_REPORTING_ENABLED,
 	EDAC_REPORTING_DISABLED,
 	EDAC_REPORTING_FORCE
@@ -63,13 +64,16 @@ static inline void set_edac_report_status(int new)
 
 static inline void opstate_init(void)
 {
-	switch (edac_op_state) {
-	case EDAC_OPSTATE_POLL:
-	case EDAC_OPSTATE_NMI:
-		break;
-	default:
-		edac_op_state = EDAC_OPSTATE_POLL;
+	switch (edac_op_state)
+	{
+		case EDAC_OPSTATE_POLL:
+		case EDAC_OPSTATE_NMI:
+			break;
+
+		default:
+			edac_op_state = EDAC_OPSTATE_POLL;
 	}
+
 	return;
 }
 
@@ -98,7 +102,8 @@ static inline void opstate_init(void)
  *
  * Typical values are x4 and x8.
  */
-enum dev_type {
+enum dev_type
+{
 	DEV_UNKNOWN = 0,
 	DEV_X1,
 	DEV_X2,
@@ -131,7 +136,8 @@ enum dev_type {
  * @HW_EVENT_ERR_FATAL:		Fatal Error - Uncorrected error that could not
  *				be recovered.
  */
-enum hw_event_mc_err_type {
+enum hw_event_mc_err_type
+{
 	HW_EVENT_ERR_CORRECTED,
 	HW_EVENT_ERR_UNCORRECTED,
 	HW_EVENT_ERR_FATAL,
@@ -140,16 +146,20 @@ enum hw_event_mc_err_type {
 
 static inline char *mc_event_error_type(const unsigned int err_type)
 {
-	switch (err_type) {
-	case HW_EVENT_ERR_CORRECTED:
-		return "Corrected";
-	case HW_EVENT_ERR_UNCORRECTED:
-		return "Uncorrected";
-	case HW_EVENT_ERR_FATAL:
-		return "Fatal";
-	default:
-	case HW_EVENT_ERR_INFO:
-		return "Info";
+	switch (err_type)
+	{
+		case HW_EVENT_ERR_CORRECTED:
+			return "Corrected";
+
+		case HW_EVENT_ERR_UNCORRECTED:
+			return "Uncorrected";
+
+		case HW_EVENT_ERR_FATAL:
+			return "Fatal";
+
+		default:
+		case HW_EVENT_ERR_INFO:
+			return "Info";
 	}
 }
 
@@ -197,7 +207,8 @@ static inline char *mc_event_error_type(const unsigned int err_type)
  * @MEM_RDDR4:		Registered DDR4 RAM
  *			This is a variant of the DDR4 memories.
  */
-enum mem_type {
+enum mem_type
+{
 	MEM_EMPTY = 0,
 	MEM_RESERVED,
 	MEM_UNKNOWN,
@@ -253,7 +264,8 @@ enum mem_type {
  * @EDAC_S8ECD8ED:	Chipkill x8 devices
  * @EDAC_S16ECD16ED:	Chipkill x16 devices
  */
-enum edac_type {
+enum edac_type
+{
 	EDAC_UNKNOWN =	0,
 	EDAC_NONE,
 	EDAC_RESERVED,
@@ -289,7 +301,8 @@ enum edac_type {
  * @SCRUB_HW_PROG_SRC:		Progressive hardware scrub from an error
  * SCRUB_HW_TUNABLE:		Hardware scrub frequency is tunable
  */
-enum scrub_type {
+enum scrub_type
+{
 	SCRUB_UNKNOWN =	0,
 	SCRUB_NONE,
 	SCRUB_SW_PROG,
@@ -442,7 +455,8 @@ enum scrub_type {
  * This enum is used by the drivers to tell edac_mc_sysfs what name should
  * be used when describing a memory stick location.
  */
-enum edac_mc_layer_type {
+enum edac_mc_layer_type
+{
 	EDAC_MC_LAYER_BRANCH,
 	EDAC_MC_LAYER_CHANNEL,
 	EDAC_MC_LAYER_SLOT,
@@ -459,7 +473,8 @@ enum edac_mc_layer_type {
  *			compatibility mode is enabled. Otherwise, it is
  *			a channel
  */
-struct edac_mc_layer {
+struct edac_mc_layer
+{
 	enum edac_mc_layer_type	type;
 	unsigned		size;
 	bool			is_virt_csrow;
@@ -498,18 +513,18 @@ struct edac_mc_layer {
  * with would point to the developer that he's doing something wrong.
  */
 #define EDAC_DIMM_OFF(layers, nlayers, layer0, layer1, layer2) ({		\
-	int __i;							\
-	if ((nlayers) == 1)						\
-		__i = layer0;						\
-	else if ((nlayers) == 2)					\
-		__i = (layer1) + ((layers[1]).size * (layer0));		\
-	else if ((nlayers) == 3)					\
-		__i = (layer2) + ((layers[2]).size * ((layer1) +	\
-			    ((layers[1]).size * (layer0))));		\
-	else								\
-		__i = -EINVAL;						\
-	__i;								\
-})
+		int __i;							\
+		if ((nlayers) == 1)						\
+			__i = layer0;						\
+		else if ((nlayers) == 2)					\
+			__i = (layer1) + ((layers[1]).size * (layer0));		\
+		else if ((nlayers) == 3)					\
+			__i = (layer2) + ((layers[2]).size * ((layer1) +	\
+												  ((layers[1]).size * (layer0))));		\
+		else								\
+			__i = -EINVAL;						\
+		__i;								\
+	})
 
 /**
  * EDAC_DIMM_PTR - Macro responsible to get a pointer inside a pointer array
@@ -531,16 +546,17 @@ struct edac_mc_layer {
  *		and to return "&var[layer0][layer1][layer2]"
  */
 #define EDAC_DIMM_PTR(layers, var, nlayers, layer0, layer1, layer2) ({	\
-	typeof(*var) __p;						\
-	int ___i = EDAC_DIMM_OFF(layers, nlayers, layer0, layer1, layer2);	\
-	if (___i < 0)							\
-		__p = NULL;						\
-	else								\
-		__p = (var)[___i];					\
-	__p;								\
-})
+		typeof(*var) __p;						\
+		int ___i = EDAC_DIMM_OFF(layers, nlayers, layer0, layer1, layer2);	\
+		if (___i < 0)							\
+			__p = NULL;						\
+		else								\
+			__p = (var)[___i];					\
+		__p;								\
+	})
 
-struct dimm_info {
+struct dimm_info
+{
 	struct device dev;
 
 	char label[EDAC_MC_LABEL_LEN + 1];	/* DIMM label on motherboard */
@@ -575,7 +591,8 @@ struct dimm_info {
  *	  This is a bad assumption, but it makes this patch easier. Later
  *	  patches in this series will fix this issue.
  */
-struct rank_info {
+struct rank_info
+{
 	int chan_idx;
 	struct csrow_info *csrow;
 	struct dimm_info *dimm;
@@ -583,7 +600,8 @@ struct rank_info {
 	u32 ce_count;		/* Correctable Errors for this csrow */
 };
 
-struct csrow_info {
+struct csrow_info
+{
 	struct device dev;
 
 	/* Used only by edac_mc_find_csrow_by_page() */
@@ -607,7 +625,8 @@ struct csrow_info {
 /*
  * struct errcount_attribute - used to store the several error counts
  */
-struct errcount_attribute_data {
+struct errcount_attribute_data
+{
 	int n_layers;
 	int pos[EDAC_MAX_LAYERS];
 	int layer0, layer1, layer2;
@@ -631,7 +650,8 @@ struct errcount_attribute_data {
  * @enable_per_layer_report:	if false, the error affects all layers
  *				(typically, a memory controller error)
  */
-struct edac_raw_error_desc {
+struct edac_raw_error_desc
+{
 	/*
 	 * NOTE: everything before grain won't be cleaned by
 	 * edac_raw_error_desc_clean()
@@ -655,7 +675,8 @@ struct edac_raw_error_desc {
 
 /* MEMORY controller information structure
  */
-struct mem_ctl_info {
+struct mem_ctl_info
+{
 	struct device			dev;
 	struct bus_type			*bus;
 
@@ -680,25 +701,25 @@ struct mem_ctl_info {
 	   internal representation and configures whatever else needs
 	   to be configured.
 	 */
-	int (*set_sdram_scrub_rate) (struct mem_ctl_info * mci, u32 bw);
+	int (*set_sdram_scrub_rate) (struct mem_ctl_info *mci, u32 bw);
 
 	/* Get the current sdram memory scrub rate from the internal
 	   representation and converts it to the closest matching
 	   bandwidth in bytes/sec.
 	 */
-	int (*get_sdram_scrub_rate) (struct mem_ctl_info * mci);
+	int (*get_sdram_scrub_rate) (struct mem_ctl_info *mci);
 
 
 	/* pointer to edac checking routine */
-	void (*edac_check) (struct mem_ctl_info * mci);
+	void (*edac_check) (struct mem_ctl_info *mci);
 
 	/*
 	 * Remaps memory pages: controller pages to physical pages.
 	 * For most MC's, this will be NULL.
 	 */
 	/* FIXME - why not send the phys page to begin with? */
-	unsigned long (*ctl_page_to_phys) (struct mem_ctl_info * mci,
-					   unsigned long page);
+	unsigned long (*ctl_page_to_phys) (struct mem_ctl_info *mci,
+									   unsigned long page);
 	int mc_idx;
 	struct csrow_info **csrows;
 	unsigned nr_csrows, num_cschannel;

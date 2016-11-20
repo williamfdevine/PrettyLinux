@@ -80,7 +80,8 @@ set_idx_reg(struct net2280_regs __iomem *regs, u32 index, u32 value)
 /* [8.3] for scatter/gather i/o
  * use struct net2280_dma_regs bitfields
  */
-struct net2280_dma {
+struct net2280_dma
+{
 	__le32		dmacount;
 	__le32		dmaaddr;		/* the buffer */
 	__le32		dmadesc;		/* next dma descriptor */
@@ -91,7 +92,8 @@ struct net2280_dma {
 
 /* DRIVER DATA STRUCTURES and UTILITIES */
 
-struct net2280_ep {
+struct net2280_ep
+{
 	struct usb_ep				ep;
 	struct net2280_ep_regs __iomem *cfg;
 	struct net2280_ep_regs			__iomem *regs;
@@ -105,23 +107,23 @@ struct net2280_ep {
 	struct list_head			queue;
 	const struct usb_endpoint_descriptor	*desc;
 	unsigned				num : 8,
-						fifo_size : 12,
-						in_fifo_validate : 1,
-						out_overflow : 1,
-						stopped : 1,
-						wedged : 1,
-						is_in : 1,
-						is_iso : 1,
-						responded : 1;
+							fifo_size : 12,
+							in_fifo_validate : 1,
+							out_overflow : 1,
+							stopped : 1,
+							wedged : 1,
+							is_in : 1,
+							is_iso : 1,
+							responded : 1;
 };
 
 static inline void allow_status(struct net2280_ep *ep)
 {
 	/* ep0 only */
 	writel(BIT(CLEAR_CONTROL_STATUS_PHASE_HANDSHAKE) |
-		BIT(CLEAR_NAK_OUT_PACKETS) |
-		BIT(CLEAR_NAK_OUT_PACKETS_MODE),
-		&ep->regs->ep_rsp);
+		   BIT(CLEAR_NAK_OUT_PACKETS) |
+		   BIT(CLEAR_NAK_OUT_PACKETS_MODE),
+		   &ep->regs->ep_rsp);
 	ep->stopped = 1;
 }
 
@@ -140,32 +142,34 @@ static inline void allow_status_338x(struct net2280_ep *ep)
 	ep->responded = 0;
 }
 
-struct net2280_request {
+struct net2280_request
+{
 	struct usb_request		req;
 	struct net2280_dma		*td;
 	dma_addr_t			td_dma;
 	struct list_head		queue;
 	unsigned			mapped : 1,
-					valid : 1;
+						valid : 1;
 };
 
-struct net2280 {
+struct net2280
+{
 	/* each pci device provides one gadget, several endpoints */
 	struct usb_gadget		gadget;
 	spinlock_t			lock;
 	struct net2280_ep		ep[9];
 	struct usb_gadget_driver	*driver;
 	unsigned			enabled : 1,
-					protocol_stall : 1,
-					softconnect : 1,
-					got_irq : 1,
-					region:1,
-					u1_enable:1,
-					u2_enable:1,
-					ltm_enable:1,
-					wakeup_enable:1,
-					addressed_state:1,
-					bug7734_patched:1;
+						protocol_stall : 1,
+						softconnect : 1,
+						got_irq : 1,
+						region: 1,
+						u1_enable: 1,
+						u2_enable: 1,
+						ltm_enable: 1,
+						wakeup_enable: 1,
+						addressed_state: 1,
+						bug7734_patched: 1;
 	u16				chiprev;
 	int enhanced_mode;
 	int n_ep;
@@ -195,23 +199,23 @@ static inline void set_halt(struct net2280_ep *ep)
 {
 	/* ep0 and bulk/intr endpoints */
 	writel(BIT(CLEAR_CONTROL_STATUS_PHASE_HANDSHAKE) |
-		/* set NAK_OUT for erratum 0114 */
-		((ep->dev->chiprev == CHIPREV_1) << SET_NAK_OUT_PACKETS) |
-		BIT(SET_ENDPOINT_HALT),
-		&ep->regs->ep_rsp);
+		   /* set NAK_OUT for erratum 0114 */
+		   ((ep->dev->chiprev == CHIPREV_1) << SET_NAK_OUT_PACKETS) |
+		   BIT(SET_ENDPOINT_HALT),
+		   &ep->regs->ep_rsp);
 }
 
 static inline void clear_halt(struct net2280_ep *ep)
 {
 	/* ep0 and bulk/intr endpoints */
 	writel(BIT(CLEAR_ENDPOINT_HALT) |
-		BIT(CLEAR_ENDPOINT_TOGGLE) |
-		    /*
-		     * unless the gadget driver left a short packet in the
-		     * fifo, this reverses the erratum 0114 workaround.
-		     */
-		((ep->dev->chiprev == CHIPREV_1) << CLEAR_NAK_OUT_PACKETS),
-		&ep->regs->ep_rsp);
+		   BIT(CLEAR_ENDPOINT_TOGGLE) |
+		   /*
+		    * unless the gadget driver left a short packet in the
+		    * fifo, this reverses the erratum 0114 workaround.
+		    */
+		   ((ep->dev->chiprev == CHIPREV_1) << CLEAR_NAK_OUT_PACKETS),
+		   &ep->regs->ep_rsp);
 }
 
 /*
@@ -257,11 +261,11 @@ static inline void net2280_led_init(struct net2280 *dev)
 {
 	/* LED3 (green) is on during USB activity. note erratum 0113. */
 	writel(BIT(GPIO3_LED_SELECT) |
-		BIT(GPIO3_OUTPUT_ENABLE) |
-		BIT(GPIO2_OUTPUT_ENABLE) |
-		BIT(GPIO1_OUTPUT_ENABLE) |
-		BIT(GPIO0_OUTPUT_ENABLE),
-		&dev->regs->gpioctl);
+		   BIT(GPIO3_OUTPUT_ENABLE) |
+		   BIT(GPIO2_OUTPUT_ENABLE) |
+		   BIT(GPIO1_OUTPUT_ENABLE) |
+		   BIT(GPIO0_OUTPUT_ENABLE),
+		   &dev->regs->gpioctl);
 }
 
 /* indicate speed with bi-color LED 0/1 */
@@ -269,22 +273,28 @@ static inline
 void net2280_led_speed(struct net2280 *dev, enum usb_device_speed speed)
 {
 	u32	val = readl(&dev->regs->gpioctl);
-	switch (speed) {
-	case USB_SPEED_SUPER:		/* green + red */
-		val |= BIT(GPIO0_DATA) | BIT(GPIO1_DATA);
-		break;
-	case USB_SPEED_HIGH:		/* green */
-		val &= ~BIT(GPIO0_DATA);
-		val |= BIT(GPIO1_DATA);
-		break;
-	case USB_SPEED_FULL:		/* red */
-		val &= ~BIT(GPIO1_DATA);
-		val |= BIT(GPIO0_DATA);
-		break;
-	default:			/* (off/black) */
-		val &= ~(BIT(GPIO1_DATA) | BIT(GPIO0_DATA));
-		break;
+
+	switch (speed)
+	{
+		case USB_SPEED_SUPER:		/* green + red */
+			val |= BIT(GPIO0_DATA) | BIT(GPIO1_DATA);
+			break;
+
+		case USB_SPEED_HIGH:		/* green */
+			val &= ~BIT(GPIO0_DATA);
+			val |= BIT(GPIO1_DATA);
+			break;
+
+		case USB_SPEED_FULL:		/* red */
+			val &= ~BIT(GPIO1_DATA);
+			val |= BIT(GPIO0_DATA);
+			break;
+
+		default:			/* (off/black) */
+			val &= ~(BIT(GPIO1_DATA) | BIT(GPIO0_DATA));
+			break;
 	}
+
 	writel(val, &dev->regs->gpioctl);
 }
 
@@ -295,9 +305,14 @@ static inline void net2280_led_active(struct net2280 *dev, int is_active)
 
 	/* FIXME this LED never seems to turn on.*/
 	if (is_active)
+	{
 		val |= GPIO2_DATA;
+	}
 	else
+	{
 		val &= ~GPIO2_DATA;
+	}
+
 	writel(val, &dev->regs->gpioctl);
 }
 
@@ -305,7 +320,7 @@ static inline void net2280_led_shutdown(struct net2280 *dev)
 {
 	/* turn off all four GPIO*_DATA bits */
 	writel(readl(&dev->regs->gpioctl) & ~0x0f,
-			&dev->regs->gpioctl);
+		   &dev->regs->gpioctl);
 }
 
 #else
@@ -338,10 +353,13 @@ static inline void net2280_led_shutdown(struct net2280 *dev)
 static inline void set_fifo_bytecount(struct net2280_ep *ep, unsigned count)
 {
 	if (ep->dev->pdev->vendor == 0x17cc)
+	{
 		writeb(count, 2 + (u8 __iomem *) &ep->regs->ep_cfg);
-	else{
+	}
+	else
+	{
 		u32 tmp = readl(&ep->cfg->ep_cfg) &
-					(~(0x07 << EP_FIFO_BYTE_COUNT));
+				  (~(0x07 << EP_FIFO_BYTE_COUNT));
 		writel(tmp | (count << EP_FIFO_BYTE_COUNT), &ep->cfg->ep_cfg);
 	}
 }
@@ -359,8 +377,11 @@ static inline void stop_out_naking(struct net2280_ep *ep)
 	u32	tmp;
 
 	tmp = readl(&ep->regs->ep_stat);
+
 	if ((tmp & BIT(NAK_OUT_PACKETS)) != 0)
+	{
 		writel(BIT(CLEAR_NAK_OUT_PACKETS), &ep->regs->ep_rsp);
+	}
 }
 
 
@@ -368,25 +389,36 @@ static inline void set_max_speed(struct net2280_ep *ep, u32 max)
 {
 	u32 reg;
 	static const u32 ep_enhanced[9] = { 0x10, 0x60, 0x30, 0x80,
-					  0x50, 0x20, 0x70, 0x40, 0x90 };
+										0x50, 0x20, 0x70, 0x40, 0x90
+									  };
 
-	if (ep->dev->enhanced_mode) {
+	if (ep->dev->enhanced_mode)
+	{
 		reg = ep_enhanced[ep->num];
-		switch (ep->dev->gadget.speed) {
-		case USB_SPEED_SUPER:
-			reg += 2;
-			break;
-		case USB_SPEED_FULL:
-			reg += 1;
-			break;
-		case USB_SPEED_HIGH:
-		default:
-			break;
+
+		switch (ep->dev->gadget.speed)
+		{
+			case USB_SPEED_SUPER:
+				reg += 2;
+				break;
+
+			case USB_SPEED_FULL:
+				reg += 1;
+				break;
+
+			case USB_SPEED_HIGH:
+			default:
+				break;
 		}
-	} else {
+	}
+	else
+	{
 		reg = (ep->num + 1) * 0x10;
+
 		if (ep->dev->gadget.speed != USB_SPEED_HIGH)
+		{
 			reg += 1;
+		}
 	}
 
 	set_idx_reg(ep->dev->regs, reg, max);

@@ -26,7 +26,8 @@
 
 #define DRV_BASE				0xb00
 
-static const struct mtk_pin_spec_pupd_set_samereg mt8173_spec_pupd[] = {
+static const struct mtk_pin_spec_pupd_set_samereg mt8173_spec_pupd[] =
+{
 	MTK_PIN_PUPD_SPEC_SR(119, 0xe00, 2, 1, 0),  /* KROW0 */
 	MTK_PIN_PUPD_SPEC_SR(120, 0xe00, 6, 5, 4),  /* KROW1 */
 	MTK_PIN_PUPD_SPEC_SR(121, 0xe00, 10, 9, 8), /* KROW2 */
@@ -70,13 +71,14 @@ static const struct mtk_pin_spec_pupd_set_samereg mt8173_spec_pupd[] = {
 };
 
 static int mt8173_spec_pull_set(struct regmap *regmap, unsigned int pin,
-		unsigned char align, bool isup, unsigned int r1r0)
+								unsigned char align, bool isup, unsigned int r1r0)
 {
 	return mtk_pctrl_spec_pull_set_samereg(regmap, mt8173_spec_pupd,
-		ARRAY_SIZE(mt8173_spec_pupd), pin, align, isup, r1r0);
+										   ARRAY_SIZE(mt8173_spec_pupd), pin, align, isup, r1r0);
 }
 
-static const struct mtk_pin_ies_smt_set mt8173_smt_set[] = {
+static const struct mtk_pin_ies_smt_set mt8173_smt_set[] =
+{
 	MTK_PIN_IES_SMT_SPEC(0, 4, 0x930, 1),
 	MTK_PIN_IES_SMT_SPEC(5, 9, 0x930, 2),
 	MTK_PIN_IES_SMT_SPEC(10, 13, 0x930, 10),
@@ -129,7 +131,8 @@ static const struct mtk_pin_ies_smt_set mt8173_smt_set[] = {
 	MTK_PIN_IES_SMT_SPEC(133, 134, 0x910, 8)
 };
 
-static const struct mtk_pin_ies_smt_set mt8173_ies_set[] = {
+static const struct mtk_pin_ies_smt_set mt8173_ies_set[] =
+{
 	MTK_PIN_IES_SMT_SPEC(0, 4, 0x900, 1),
 	MTK_PIN_IES_SMT_SPEC(5, 9, 0x900, 2),
 	MTK_PIN_IES_SMT_SPEC(10, 13, 0x900, 10),
@@ -183,18 +186,20 @@ static const struct mtk_pin_ies_smt_set mt8173_ies_set[] = {
 };
 
 static int mt8173_ies_smt_set(struct regmap *regmap, unsigned int pin,
-		unsigned char align, int value, enum pin_config_param arg)
+							  unsigned char align, int value, enum pin_config_param arg)
 {
 	if (arg == PIN_CONFIG_INPUT_ENABLE)
 		return mtk_pconf_spec_set_ies_smt_range(regmap, mt8173_ies_set,
-			ARRAY_SIZE(mt8173_ies_set), pin, align, value);
+												ARRAY_SIZE(mt8173_ies_set), pin, align, value);
 	else if (arg == PIN_CONFIG_INPUT_SCHMITT_ENABLE)
 		return mtk_pconf_spec_set_ies_smt_range(regmap, mt8173_smt_set,
-			ARRAY_SIZE(mt8173_smt_set), pin, align, value);
+												ARRAY_SIZE(mt8173_smt_set), pin, align, value);
+
 	return -EINVAL;
 }
 
-static const struct mtk_drv_group_desc mt8173_drv_grp[] =  {
+static const struct mtk_drv_group_desc mt8173_drv_grp[] =
+{
 	/* 0E4E8SR 4/8/12/16 */
 	MTK_DRV_GRP(4, 16, 1, 2, 4),
 	/* 0E2E4SR  2/4/6/8 */
@@ -203,23 +208,24 @@ static const struct mtk_drv_group_desc mt8173_drv_grp[] =  {
 	MTK_DRV_GRP(2, 16, 0, 2, 2)
 };
 
-static const struct mtk_pin_drv_grp mt8173_pin_drv[] = {
-	MTK_PIN_DRV_GRP(0, DRV_BASE+0x20, 12, 0),
-	MTK_PIN_DRV_GRP(1, DRV_BASE+0x20, 12, 0),
-	MTK_PIN_DRV_GRP(2, DRV_BASE+0x20, 12, 0),
-	MTK_PIN_DRV_GRP(3, DRV_BASE+0x20, 12, 0),
-	MTK_PIN_DRV_GRP(4, DRV_BASE+0x20, 12, 0),
-	MTK_PIN_DRV_GRP(5, DRV_BASE+0x30, 0, 0),
-	MTK_PIN_DRV_GRP(6, DRV_BASE+0x30, 0, 0),
-	MTK_PIN_DRV_GRP(7, DRV_BASE+0x30, 0, 0),
-	MTK_PIN_DRV_GRP(8, DRV_BASE+0x30, 0, 0),
-	MTK_PIN_DRV_GRP(9, DRV_BASE+0x30, 0, 0),
-	MTK_PIN_DRV_GRP(10, DRV_BASE+0x30, 4, 1),
-	MTK_PIN_DRV_GRP(11, DRV_BASE+0x30, 4, 1),
-	MTK_PIN_DRV_GRP(12, DRV_BASE+0x30, 4, 1),
-	MTK_PIN_DRV_GRP(13, DRV_BASE+0x30, 4, 1),
-	MTK_PIN_DRV_GRP(14, DRV_BASE+0x40, 8, 1),
-	MTK_PIN_DRV_GRP(15, DRV_BASE+0x40, 8, 1),
+static const struct mtk_pin_drv_grp mt8173_pin_drv[] =
+{
+	MTK_PIN_DRV_GRP(0, DRV_BASE + 0x20, 12, 0),
+	MTK_PIN_DRV_GRP(1, DRV_BASE + 0x20, 12, 0),
+	MTK_PIN_DRV_GRP(2, DRV_BASE + 0x20, 12, 0),
+	MTK_PIN_DRV_GRP(3, DRV_BASE + 0x20, 12, 0),
+	MTK_PIN_DRV_GRP(4, DRV_BASE + 0x20, 12, 0),
+	MTK_PIN_DRV_GRP(5, DRV_BASE + 0x30, 0, 0),
+	MTK_PIN_DRV_GRP(6, DRV_BASE + 0x30, 0, 0),
+	MTK_PIN_DRV_GRP(7, DRV_BASE + 0x30, 0, 0),
+	MTK_PIN_DRV_GRP(8, DRV_BASE + 0x30, 0, 0),
+	MTK_PIN_DRV_GRP(9, DRV_BASE + 0x30, 0, 0),
+	MTK_PIN_DRV_GRP(10, DRV_BASE + 0x30, 4, 1),
+	MTK_PIN_DRV_GRP(11, DRV_BASE + 0x30, 4, 1),
+	MTK_PIN_DRV_GRP(12, DRV_BASE + 0x30, 4, 1),
+	MTK_PIN_DRV_GRP(13, DRV_BASE + 0x30, 4, 1),
+	MTK_PIN_DRV_GRP(14, DRV_BASE + 0x40, 8, 1),
+	MTK_PIN_DRV_GRP(15, DRV_BASE + 0x40, 8, 1),
 	MTK_PIN_DRV_GRP(16, DRV_BASE, 8, 1),
 	MTK_PIN_DRV_GRP(17, 0xce0, 8, 2),
 	MTK_PIN_DRV_GRP(22, 0xce0, 8, 2),
@@ -229,20 +235,20 @@ static const struct mtk_pin_drv_grp mt8173_pin_drv[] = {
 	MTK_PIN_DRV_GRP(26, 0xcc0, 8, 2),
 	MTK_PIN_DRV_GRP(27, 0xcd0, 8, 2),
 	MTK_PIN_DRV_GRP(28, 0xd70, 8, 2),
-	MTK_PIN_DRV_GRP(29, DRV_BASE+0x80, 12, 1),
-	MTK_PIN_DRV_GRP(30, DRV_BASE+0x80, 12, 1),
-	MTK_PIN_DRV_GRP(31, DRV_BASE+0x80, 12, 1),
-	MTK_PIN_DRV_GRP(32, DRV_BASE+0x80, 12, 1),
-	MTK_PIN_DRV_GRP(33, DRV_BASE+0x10, 12, 1),
-	MTK_PIN_DRV_GRP(34, DRV_BASE+0x10, 8, 1),
-	MTK_PIN_DRV_GRP(35, DRV_BASE+0x10, 8, 1),
-	MTK_PIN_DRV_GRP(36, DRV_BASE+0x10, 8, 1),
-	MTK_PIN_DRV_GRP(37, DRV_BASE+0x10, 4, 1),
-	MTK_PIN_DRV_GRP(38, DRV_BASE+0x10, 4, 1),
-	MTK_PIN_DRV_GRP(39, DRV_BASE+0x20, 0, 0),
-	MTK_PIN_DRV_GRP(40, DRV_BASE+0x20, 8, 0),
-	MTK_PIN_DRV_GRP(41, DRV_BASE+0x20, 8, 0),
-	MTK_PIN_DRV_GRP(42, DRV_BASE+0x50, 8, 1),
+	MTK_PIN_DRV_GRP(29, DRV_BASE + 0x80, 12, 1),
+	MTK_PIN_DRV_GRP(30, DRV_BASE + 0x80, 12, 1),
+	MTK_PIN_DRV_GRP(31, DRV_BASE + 0x80, 12, 1),
+	MTK_PIN_DRV_GRP(32, DRV_BASE + 0x80, 12, 1),
+	MTK_PIN_DRV_GRP(33, DRV_BASE + 0x10, 12, 1),
+	MTK_PIN_DRV_GRP(34, DRV_BASE + 0x10, 8, 1),
+	MTK_PIN_DRV_GRP(35, DRV_BASE + 0x10, 8, 1),
+	MTK_PIN_DRV_GRP(36, DRV_BASE + 0x10, 8, 1),
+	MTK_PIN_DRV_GRP(37, DRV_BASE + 0x10, 4, 1),
+	MTK_PIN_DRV_GRP(38, DRV_BASE + 0x10, 4, 1),
+	MTK_PIN_DRV_GRP(39, DRV_BASE + 0x20, 0, 0),
+	MTK_PIN_DRV_GRP(40, DRV_BASE + 0x20, 8, 0),
+	MTK_PIN_DRV_GRP(41, DRV_BASE + 0x20, 8, 0),
+	MTK_PIN_DRV_GRP(42, DRV_BASE + 0x50, 8, 1),
 	MTK_PIN_DRV_GRP(57, 0xc20, 8, 2),
 	MTK_PIN_DRV_GRP(58, 0xc20, 8, 2),
 	MTK_PIN_DRV_GRP(59, 0xc20, 8, 2),
@@ -255,72 +261,73 @@ static const struct mtk_pin_drv_grp mt8173_pin_drv[] = {
 	MTK_PIN_DRV_GRP(66, 0xc10, 8, 2),
 	MTK_PIN_DRV_GRP(67, 0xd10, 8, 2),
 	MTK_PIN_DRV_GRP(68, 0xd00, 8, 2),
-	MTK_PIN_DRV_GRP(69, DRV_BASE+0x80, 0, 1),
-	MTK_PIN_DRV_GRP(70, DRV_BASE+0x80, 0, 1),
-	MTK_PIN_DRV_GRP(71, DRV_BASE+0x80, 0, 1),
-	MTK_PIN_DRV_GRP(72, DRV_BASE+0x80, 0, 1),
+	MTK_PIN_DRV_GRP(69, DRV_BASE + 0x80, 0, 1),
+	MTK_PIN_DRV_GRP(70, DRV_BASE + 0x80, 0, 1),
+	MTK_PIN_DRV_GRP(71, DRV_BASE + 0x80, 0, 1),
+	MTK_PIN_DRV_GRP(72, DRV_BASE + 0x80, 0, 1),
 	MTK_PIN_DRV_GRP(73, 0xc60, 8, 2),
 	MTK_PIN_DRV_GRP(74, 0xc60, 8, 2),
 	MTK_PIN_DRV_GRP(75, 0xc60, 8, 2),
 	MTK_PIN_DRV_GRP(76, 0xc60, 8, 2),
 	MTK_PIN_DRV_GRP(77, 0xc40, 8, 2),
 	MTK_PIN_DRV_GRP(78, 0xc50, 8, 2),
-	MTK_PIN_DRV_GRP(79, DRV_BASE+0x70, 12, 1),
-	MTK_PIN_DRV_GRP(80, DRV_BASE+0x70, 12, 1),
-	MTK_PIN_DRV_GRP(81, DRV_BASE+0x70, 12, 1),
-	MTK_PIN_DRV_GRP(82, DRV_BASE+0x70, 12, 1),
+	MTK_PIN_DRV_GRP(79, DRV_BASE + 0x70, 12, 1),
+	MTK_PIN_DRV_GRP(80, DRV_BASE + 0x70, 12, 1),
+	MTK_PIN_DRV_GRP(81, DRV_BASE + 0x70, 12, 1),
+	MTK_PIN_DRV_GRP(82, DRV_BASE + 0x70, 12, 1),
 	MTK_PIN_DRV_GRP(83, DRV_BASE, 4, 1),
 	MTK_PIN_DRV_GRP(84, DRV_BASE, 0, 1),
 	MTK_PIN_DRV_GRP(85, DRV_BASE, 0, 1),
-	MTK_PIN_DRV_GRP(85, DRV_BASE+0x60, 8, 1),
-	MTK_PIN_DRV_GRP(86, DRV_BASE+0x60, 8, 1),
-	MTK_PIN_DRV_GRP(87, DRV_BASE+0x60, 8, 1),
-	MTK_PIN_DRV_GRP(88, DRV_BASE+0x60, 8, 1),
-	MTK_PIN_DRV_GRP(89, DRV_BASE+0x60, 8, 1),
-	MTK_PIN_DRV_GRP(90, DRV_BASE+0x60, 8, 1),
-	MTK_PIN_DRV_GRP(91, DRV_BASE+0x60, 8, 1),
-	MTK_PIN_DRV_GRP(92, DRV_BASE+0x60, 4, 0),
-	MTK_PIN_DRV_GRP(93, DRV_BASE+0x60, 0, 0),
-	MTK_PIN_DRV_GRP(94, DRV_BASE+0x60, 0, 0),
-	MTK_PIN_DRV_GRP(95, DRV_BASE+0x60, 0, 0),
-	MTK_PIN_DRV_GRP(96, DRV_BASE+0x80, 8, 1),
-	MTK_PIN_DRV_GRP(97, DRV_BASE+0x80, 8, 1),
-	MTK_PIN_DRV_GRP(98, DRV_BASE+0x80, 8, 1),
-	MTK_PIN_DRV_GRP(99, DRV_BASE+0x80, 8, 1),
+	MTK_PIN_DRV_GRP(85, DRV_BASE + 0x60, 8, 1),
+	MTK_PIN_DRV_GRP(86, DRV_BASE + 0x60, 8, 1),
+	MTK_PIN_DRV_GRP(87, DRV_BASE + 0x60, 8, 1),
+	MTK_PIN_DRV_GRP(88, DRV_BASE + 0x60, 8, 1),
+	MTK_PIN_DRV_GRP(89, DRV_BASE + 0x60, 8, 1),
+	MTK_PIN_DRV_GRP(90, DRV_BASE + 0x60, 8, 1),
+	MTK_PIN_DRV_GRP(91, DRV_BASE + 0x60, 8, 1),
+	MTK_PIN_DRV_GRP(92, DRV_BASE + 0x60, 4, 0),
+	MTK_PIN_DRV_GRP(93, DRV_BASE + 0x60, 0, 0),
+	MTK_PIN_DRV_GRP(94, DRV_BASE + 0x60, 0, 0),
+	MTK_PIN_DRV_GRP(95, DRV_BASE + 0x60, 0, 0),
+	MTK_PIN_DRV_GRP(96, DRV_BASE + 0x80, 8, 1),
+	MTK_PIN_DRV_GRP(97, DRV_BASE + 0x80, 8, 1),
+	MTK_PIN_DRV_GRP(98, DRV_BASE + 0x80, 8, 1),
+	MTK_PIN_DRV_GRP(99, DRV_BASE + 0x80, 8, 1),
 	MTK_PIN_DRV_GRP(100, 0xca0, 8, 2),
 	MTK_PIN_DRV_GRP(101, 0xca0, 8, 2),
 	MTK_PIN_DRV_GRP(102, 0xca0, 8, 2),
 	MTK_PIN_DRV_GRP(103, 0xca0, 8, 2),
 	MTK_PIN_DRV_GRP(104, 0xc80, 8, 2),
 	MTK_PIN_DRV_GRP(105, 0xc90, 8, 2),
-	MTK_PIN_DRV_GRP(108, DRV_BASE+0x50, 0, 1),
-	MTK_PIN_DRV_GRP(109, DRV_BASE+0x50, 0, 1),
-	MTK_PIN_DRV_GRP(110, DRV_BASE+0x50, 0, 1),
-	MTK_PIN_DRV_GRP(111, DRV_BASE+0x50, 0, 1),
-	MTK_PIN_DRV_GRP(112, DRV_BASE+0x50, 0, 1),
-	MTK_PIN_DRV_GRP(113, DRV_BASE+0x80, 4, 1),
-	MTK_PIN_DRV_GRP(114, DRV_BASE+0x80, 4, 1),
-	MTK_PIN_DRV_GRP(115, DRV_BASE+0x80, 4, 1),
-	MTK_PIN_DRV_GRP(116, DRV_BASE+0x80, 4, 1),
-	MTK_PIN_DRV_GRP(117, DRV_BASE+0x90, 0, 1),
-	MTK_PIN_DRV_GRP(118, DRV_BASE+0x90, 0, 1),
-	MTK_PIN_DRV_GRP(119, DRV_BASE+0x50, 4, 1),
-	MTK_PIN_DRV_GRP(120, DRV_BASE+0x50, 4, 1),
-	MTK_PIN_DRV_GRP(121, DRV_BASE+0x50, 4, 1),
-	MTK_PIN_DRV_GRP(122, DRV_BASE+0x50, 4, 1),
-	MTK_PIN_DRV_GRP(123, DRV_BASE+0x50, 4, 1),
-	MTK_PIN_DRV_GRP(124, DRV_BASE+0x50, 4, 1),
-	MTK_PIN_DRV_GRP(125, DRV_BASE+0x30, 12, 1),
-	MTK_PIN_DRV_GRP(126, DRV_BASE+0x30, 12, 1),
-	MTK_PIN_DRV_GRP(127, DRV_BASE+0x50, 8, 1),
-	MTK_PIN_DRV_GRP(128, DRV_BASE+0x40, 0, 1),
-	MTK_PIN_DRV_GRP(129, DRV_BASE+0x40, 0, 1),
-	MTK_PIN_DRV_GRP(130, DRV_BASE+0x40, 0, 1),
-	MTK_PIN_DRV_GRP(131, DRV_BASE+0x40, 0, 1),
-	MTK_PIN_DRV_GRP(132, DRV_BASE+0x40, 0, 1)
+	MTK_PIN_DRV_GRP(108, DRV_BASE + 0x50, 0, 1),
+	MTK_PIN_DRV_GRP(109, DRV_BASE + 0x50, 0, 1),
+	MTK_PIN_DRV_GRP(110, DRV_BASE + 0x50, 0, 1),
+	MTK_PIN_DRV_GRP(111, DRV_BASE + 0x50, 0, 1),
+	MTK_PIN_DRV_GRP(112, DRV_BASE + 0x50, 0, 1),
+	MTK_PIN_DRV_GRP(113, DRV_BASE + 0x80, 4, 1),
+	MTK_PIN_DRV_GRP(114, DRV_BASE + 0x80, 4, 1),
+	MTK_PIN_DRV_GRP(115, DRV_BASE + 0x80, 4, 1),
+	MTK_PIN_DRV_GRP(116, DRV_BASE + 0x80, 4, 1),
+	MTK_PIN_DRV_GRP(117, DRV_BASE + 0x90, 0, 1),
+	MTK_PIN_DRV_GRP(118, DRV_BASE + 0x90, 0, 1),
+	MTK_PIN_DRV_GRP(119, DRV_BASE + 0x50, 4, 1),
+	MTK_PIN_DRV_GRP(120, DRV_BASE + 0x50, 4, 1),
+	MTK_PIN_DRV_GRP(121, DRV_BASE + 0x50, 4, 1),
+	MTK_PIN_DRV_GRP(122, DRV_BASE + 0x50, 4, 1),
+	MTK_PIN_DRV_GRP(123, DRV_BASE + 0x50, 4, 1),
+	MTK_PIN_DRV_GRP(124, DRV_BASE + 0x50, 4, 1),
+	MTK_PIN_DRV_GRP(125, DRV_BASE + 0x30, 12, 1),
+	MTK_PIN_DRV_GRP(126, DRV_BASE + 0x30, 12, 1),
+	MTK_PIN_DRV_GRP(127, DRV_BASE + 0x50, 8, 1),
+	MTK_PIN_DRV_GRP(128, DRV_BASE + 0x40, 0, 1),
+	MTK_PIN_DRV_GRP(129, DRV_BASE + 0x40, 0, 1),
+	MTK_PIN_DRV_GRP(130, DRV_BASE + 0x40, 0, 1),
+	MTK_PIN_DRV_GRP(131, DRV_BASE + 0x40, 0, 1),
+	MTK_PIN_DRV_GRP(132, DRV_BASE + 0x40, 0, 1)
 };
 
-static const struct mtk_pinctrl_devdata mt8173_pinctrl_data = {
+static const struct mtk_pinctrl_devdata mt8173_pinctrl_data =
+{
 	.pins = mtk_pins_mt8173,
 	.npins = ARRAY_SIZE(mtk_pins_mt8173),
 	.grp_desc = mt8173_drv_grp,
@@ -372,14 +379,16 @@ static int mt8173_pinctrl_probe(struct platform_device *pdev)
 	return mtk_pctrl_init(pdev, &mt8173_pinctrl_data, NULL);
 }
 
-static const struct of_device_id mt8173_pctrl_match[] = {
+static const struct of_device_id mt8173_pctrl_match[] =
+{
 	{
 		.compatible = "mediatek,mt8173-pinctrl",
 	},
 	{ }
 };
 
-static struct platform_driver mtk_pinctrl_driver = {
+static struct platform_driver mtk_pinctrl_driver =
+{
 	.probe = mt8173_pinctrl_probe,
 	.driver = {
 		.name = "mediatek-mt8173-pinctrl",

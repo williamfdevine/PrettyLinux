@@ -28,7 +28,8 @@
 #include "cthardware.h"
 #include "ctresource.h"
 
-enum CTALSADEVS {		/* Types of alsa devices */
+enum CTALSADEVS  		/* Types of alsa devices */
+{
 	FRONT,
 	SURROUND,
 	CLFE,
@@ -38,12 +39,14 @@ enum CTALSADEVS {		/* Types of alsa devices */
 	NUM_CTALSADEVS		/* This should always be the last */
 };
 
-struct ct_atc_chip_sub_details {
+struct ct_atc_chip_sub_details
+{
 	u16 subsys;
 	const char *nm_model;
 };
 
-struct ct_atc_chip_details {
+struct ct_atc_chip_details
+{
 	u16 vendor;
 	u16 device;
 	const struct ct_atc_chip_sub_details *sub_details;
@@ -55,11 +58,12 @@ struct ct_timer;
 struct ct_timer_instance;
 
 /* alsa pcm stream descriptor */
-struct ct_atc_pcm {
+struct ct_atc_pcm
+{
 	struct snd_pcm_substream *substream;
 	void (*interrupt)(struct ct_atc_pcm *apcm);
 	struct ct_timer_instance *timer;
-	unsigned int started:1;
+	unsigned int started: 1;
 
 	/* Only mono and interleaved modes are supported now. */
 	struct ct_vm_block *vm_block;
@@ -74,7 +78,8 @@ struct ct_atc_pcm {
 };
 
 /* Chip resource management object */
-struct ct_atc {
+struct ct_atc
+{
 	struct pci_dev *pci;
 	struct snd_card *card;
 	unsigned int rsr; /* reference sample rate in Hz */
@@ -94,20 +99,20 @@ struct ct_atc {
 	struct mutex atc_mutex;
 
 	int (*pcm_playback_prepare)(struct ct_atc *atc,
-				    struct ct_atc_pcm *apcm);
+								struct ct_atc_pcm *apcm);
 	int (*pcm_playback_start)(struct ct_atc *atc, struct ct_atc_pcm *apcm);
 	int (*pcm_playback_stop)(struct ct_atc *atc, struct ct_atc_pcm *apcm);
 	int (*pcm_playback_position)(struct ct_atc *atc,
-				     struct ct_atc_pcm *apcm);
+								 struct ct_atc_pcm *apcm);
 	int (*spdif_passthru_playback_prepare)(struct ct_atc *atc,
-					       struct ct_atc_pcm *apcm);
+										   struct ct_atc_pcm *apcm);
 	int (*pcm_capture_prepare)(struct ct_atc *atc, struct ct_atc_pcm *apcm);
 	int (*pcm_capture_start)(struct ct_atc *atc, struct ct_atc_pcm *apcm);
 	int (*pcm_capture_stop)(struct ct_atc *atc, struct ct_atc_pcm *apcm);
 	int (*pcm_capture_position)(struct ct_atc *atc,
-				    struct ct_atc_pcm *apcm);
+								struct ct_atc_pcm *apcm);
 	int (*pcm_release_resources)(struct ct_atc *atc,
-				     struct ct_atc_pcm *apcm);
+								 struct ct_atc_pcm *apcm);
 	int (*select_line_in)(struct ct_atc *atc);
 	int (*select_mic_in)(struct ct_atc *atc);
 	int (*select_digit_io)(struct ct_atc *atc);
@@ -153,8 +158,8 @@ struct ct_atc {
 
 
 int ct_atc_create(struct snd_card *card, struct pci_dev *pci,
-		  unsigned int rsr, unsigned int msr, int chip_type,
-		  unsigned int subsysid, struct ct_atc **ratc);
+				  unsigned int rsr, unsigned int msr, int chip_type,
+				  unsigned int subsysid, struct ct_atc **ratc);
 int ct_atc_create_alsa_devs(struct ct_atc *atc);
 
 #endif /* CTATC_H */

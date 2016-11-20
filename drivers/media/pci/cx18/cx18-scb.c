@@ -75,48 +75,48 @@ void cx18_init_scb(struct cx18 *cx)
 	cx18_writel(cx, IRQ_EPU_TO_PPU_ACK, &cx->scb->epu2ppu_irq_ack);
 
 	cx18_writel(cx, SCB_OFFSET + offsetof(struct cx18_scb, apu2cpu_mb),
-			&cx->scb->apu2cpu_mb_offset);
+				&cx->scb->apu2cpu_mb_offset);
 	cx18_writel(cx, SCB_OFFSET + offsetof(struct cx18_scb, hpu2cpu_mb),
-			&cx->scb->hpu2cpu_mb_offset);
+				&cx->scb->hpu2cpu_mb_offset);
 	cx18_writel(cx, SCB_OFFSET + offsetof(struct cx18_scb, ppu2cpu_mb),
-			&cx->scb->ppu2cpu_mb_offset);
+				&cx->scb->ppu2cpu_mb_offset);
 	cx18_writel(cx, SCB_OFFSET + offsetof(struct cx18_scb, epu2cpu_mb),
-			&cx->scb->epu2cpu_mb_offset);
+				&cx->scb->epu2cpu_mb_offset);
 	cx18_writel(cx, SCB_OFFSET + offsetof(struct cx18_scb, cpu2apu_mb),
-			&cx->scb->cpu2apu_mb_offset);
+				&cx->scb->cpu2apu_mb_offset);
 	cx18_writel(cx, SCB_OFFSET + offsetof(struct cx18_scb, hpu2apu_mb),
-			&cx->scb->hpu2apu_mb_offset);
+				&cx->scb->hpu2apu_mb_offset);
 	cx18_writel(cx, SCB_OFFSET + offsetof(struct cx18_scb, ppu2apu_mb),
-			&cx->scb->ppu2apu_mb_offset);
+				&cx->scb->ppu2apu_mb_offset);
 	cx18_writel(cx, SCB_OFFSET + offsetof(struct cx18_scb, epu2apu_mb),
-			&cx->scb->epu2apu_mb_offset);
+				&cx->scb->epu2apu_mb_offset);
 	cx18_writel(cx, SCB_OFFSET + offsetof(struct cx18_scb, cpu2hpu_mb),
-			&cx->scb->cpu2hpu_mb_offset);
+				&cx->scb->cpu2hpu_mb_offset);
 	cx18_writel(cx, SCB_OFFSET + offsetof(struct cx18_scb, apu2hpu_mb),
-			&cx->scb->apu2hpu_mb_offset);
+				&cx->scb->apu2hpu_mb_offset);
 	cx18_writel(cx, SCB_OFFSET + offsetof(struct cx18_scb, ppu2hpu_mb),
-			&cx->scb->ppu2hpu_mb_offset);
+				&cx->scb->ppu2hpu_mb_offset);
 	cx18_writel(cx, SCB_OFFSET + offsetof(struct cx18_scb, epu2hpu_mb),
-			&cx->scb->epu2hpu_mb_offset);
+				&cx->scb->epu2hpu_mb_offset);
 	cx18_writel(cx, SCB_OFFSET + offsetof(struct cx18_scb, cpu2ppu_mb),
-			&cx->scb->cpu2ppu_mb_offset);
+				&cx->scb->cpu2ppu_mb_offset);
 	cx18_writel(cx, SCB_OFFSET + offsetof(struct cx18_scb, apu2ppu_mb),
-			&cx->scb->apu2ppu_mb_offset);
+				&cx->scb->apu2ppu_mb_offset);
 	cx18_writel(cx, SCB_OFFSET + offsetof(struct cx18_scb, hpu2ppu_mb),
-			&cx->scb->hpu2ppu_mb_offset);
+				&cx->scb->hpu2ppu_mb_offset);
 	cx18_writel(cx, SCB_OFFSET + offsetof(struct cx18_scb, epu2ppu_mb),
-			&cx->scb->epu2ppu_mb_offset);
+				&cx->scb->epu2ppu_mb_offset);
 	cx18_writel(cx, SCB_OFFSET + offsetof(struct cx18_scb, cpu2epu_mb),
-			&cx->scb->cpu2epu_mb_offset);
+				&cx->scb->cpu2epu_mb_offset);
 	cx18_writel(cx, SCB_OFFSET + offsetof(struct cx18_scb, apu2epu_mb),
-			&cx->scb->apu2epu_mb_offset);
+				&cx->scb->apu2epu_mb_offset);
 	cx18_writel(cx, SCB_OFFSET + offsetof(struct cx18_scb, hpu2epu_mb),
-			&cx->scb->hpu2epu_mb_offset);
+				&cx->scb->hpu2epu_mb_offset);
 	cx18_writel(cx, SCB_OFFSET + offsetof(struct cx18_scb, ppu2epu_mb),
-			&cx->scb->ppu2epu_mb_offset);
+				&cx->scb->ppu2epu_mb_offset);
 
 	cx18_writel(cx, SCB_OFFSET + offsetof(struct cx18_scb, cpu_state),
-			&cx->scb->ipc_offset);
+				&cx->scb->ipc_offset);
 
 	cx18_writel(cx, 1, &cx->scb->epu_state);
 }

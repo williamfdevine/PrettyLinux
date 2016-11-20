@@ -29,7 +29,8 @@
 
 #define RSXX_MAX_DATA 8
 
-struct rsxx_reg_access {
+struct rsxx_reg_access
+{
 	__u32 addr;
 	__u32 cnt;
 	__u32 stat;

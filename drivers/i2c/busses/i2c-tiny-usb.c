@@ -38,13 +38,13 @@
 static unsigned short delay = 10;
 module_param(delay, ushort, 0);
 MODULE_PARM_DESC(delay, "bit delay in microseconds "
-		 "(default is 10us for 100kHz max)");
+				 "(default is 10us for 100kHz max)");
 
 static int usb_read(struct i2c_adapter *adapter, int cmd,
-		    int value, int index, void *data, int len);
+					int value, int index, void *data, int len);
 
 static int usb_write(struct i2c_adapter *adapter, int cmd,
-		     int value, int index, void *data, int len);
+					 int value, int index, void *data, int len);
 
 /* ----- begin of i2c layer ---------------------------------------------- */
 
@@ -61,57 +61,73 @@ static int usb_xfer(struct i2c_adapter *adapter, struct i2c_msg *msgs, int num)
 	dev_dbg(&adapter->dev, "master xfer %d messages:\n", num);
 
 	pstatus = kmalloc(sizeof(*pstatus), GFP_KERNEL);
-	if (!pstatus)
-		return -ENOMEM;
 
-	for (i = 0 ; i < num ; i++) {
+	if (!pstatus)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0 ; i < num ; i++)
+	{
 		int cmd = CMD_I2C_IO;
 
 		if (i == 0)
+		{
 			cmd |= CMD_I2C_IO_BEGIN;
+		}
 
-		if (i == num-1)
+		if (i == num - 1)
+		{
 			cmd |= CMD_I2C_IO_END;
+		}
 
 		pmsg = &msgs[i];
 
 		dev_dbg(&adapter->dev,
-			"  %d: %s (flags %d) %d bytes to 0x%02x\n",
-			i, pmsg->flags & I2C_M_RD ? "read" : "write",
-			pmsg->flags, pmsg->len, pmsg->addr);
+				"  %d: %s (flags %d) %d bytes to 0x%02x\n",
+				i, pmsg->flags & I2C_M_RD ? "read" : "write",
+				pmsg->flags, pmsg->len, pmsg->addr);
 
 		/* and directly send the message */
-		if (pmsg->flags & I2C_M_RD) {
+		if (pmsg->flags & I2C_M_RD)
+		{
 			/* read data */
 			if (usb_read(adapter, cmd,
-				     pmsg->flags, pmsg->addr,
-				     pmsg->buf, pmsg->len) != pmsg->len) {
+						 pmsg->flags, pmsg->addr,
+						 pmsg->buf, pmsg->len) != pmsg->len)
+			{
 				dev_err(&adapter->dev,
-					"failure reading data\n");
+						"failure reading data\n");
 				ret = -EREMOTEIO;
 				goto out;
 			}
-		} else {
+		}
+		else
+		{
 			/* write data */
 			if (usb_write(adapter, cmd,
-				      pmsg->flags, pmsg->addr,
-				      pmsg->buf, pmsg->len) != pmsg->len) {
+						  pmsg->flags, pmsg->addr,
+						  pmsg->buf, pmsg->len) != pmsg->len)
+			{
 				dev_err(&adapter->dev,
-					"failure writing data\n");
+						"failure writing data\n");
 				ret = -EREMOTEIO;
 				goto out;
 			}
 		}
 
 		/* read status */
-		if (usb_read(adapter, CMD_GET_STATUS, 0, 0, pstatus, 1) != 1) {
+		if (usb_read(adapter, CMD_GET_STATUS, 0, 0, pstatus, 1) != 1)
+		{
 			dev_err(&adapter->dev, "failure reading status\n");
 			ret = -EREMOTEIO;
 			goto out;
 		}
 
 		dev_dbg(&adapter->dev, "  status = %d\n", *pstatus);
-		if (*pstatus == STATUS_ADDRESS_NAK) {
+
+		if (*pstatus == STATUS_ADDRESS_NAK)
+		{
 			ret = -EREMOTEIO;
 			goto out;
 		}
@@ -132,7 +148,8 @@ static u32 usb_func(struct i2c_adapter *adapter)
 
 	/* get functionality from adapter */
 	if (!pfunc || usb_read(adapter, CMD_GET_FUNC, 0, 0, pfunc,
-			       sizeof(*pfunc)) != sizeof(*pfunc)) {
+						   sizeof(*pfunc)) != sizeof(*pfunc))
+	{
 		dev_err(&adapter->dev, "failure reading functionality\n");
 		ret = 0;
 		goto out;
@@ -145,7 +162,8 @@ out:
 }
 
 /* This is the actual algorithm we define */
-static const struct i2c_algorithm usb_algorithm = {
+static const struct i2c_algorithm usb_algorithm =
+{
 	.master_xfer	= usb_xfer,
 	.functionality	= usb_func,
 };
@@ -159,7 +177,8 @@ static const struct i2c_algorithm usb_algorithm = {
  * Future Technology Devices International Ltd., later a pair was
  * bought from EZPrototypes
  */
-static const struct usb_device_id i2c_tiny_usb_table[] = {
+static const struct usb_device_id i2c_tiny_usb_table[] =
+{
 	{ USB_DEVICE(0x0403, 0xc631) },   /* FTDI */
 	{ USB_DEVICE(0x1c40, 0x0534) },   /* EZPrototypes */
 	{ }                               /* Terminating entry */
@@ -168,32 +187,33 @@ static const struct usb_device_id i2c_tiny_usb_table[] = {
 MODULE_DEVICE_TABLE(usb, i2c_tiny_usb_table);
 
 /* Structure to hold all of our device specific stuff */
-struct i2c_tiny_usb {
+struct i2c_tiny_usb
+{
 	struct usb_device *usb_dev; /* the usb device for this device */
 	struct usb_interface *interface; /* the interface for this device */
 	struct i2c_adapter adapter; /* i2c related things */
 };
 
 static int usb_read(struct i2c_adapter *adapter, int cmd,
-		    int value, int index, void *data, int len)
+					int value, int index, void *data, int len)
 {
 	struct i2c_tiny_usb *dev = (struct i2c_tiny_usb *)adapter->algo_data;
 
 	/* do control transfer */
 	return usb_control_msg(dev->usb_dev, usb_rcvctrlpipe(dev->usb_dev, 0),
-			       cmd, USB_TYPE_VENDOR | USB_RECIP_INTERFACE |
-			       USB_DIR_IN, value, index, data, len, 2000);
+						   cmd, USB_TYPE_VENDOR | USB_RECIP_INTERFACE |
+						   USB_DIR_IN, value, index, data, len, 2000);
 }
 
 static int usb_write(struct i2c_adapter *adapter, int cmd,
-		     int value, int index, void *data, int len)
+					 int value, int index, void *data, int len)
 {
 	struct i2c_tiny_usb *dev = (struct i2c_tiny_usb *)adapter->algo_data;
 
 	/* do control transfer */
 	return usb_control_msg(dev->usb_dev, usb_sndctrlpipe(dev->usb_dev, 0),
-			       cmd, USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
-			       value, index, data, len, 2000);
+						   cmd, USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
+						   value, index, data, len, 2000);
 }
 
 static void i2c_tiny_usb_free(struct i2c_tiny_usb *dev)
@@ -203,7 +223,7 @@ static void i2c_tiny_usb_free(struct i2c_tiny_usb *dev)
 }
 
 static int i2c_tiny_usb_probe(struct usb_interface *interface,
-			      const struct usb_device_id *id)
+							  const struct usb_device_id *id)
 {
 	struct i2c_tiny_usb *dev;
 	int retval = -ENOMEM;
@@ -213,7 +233,9 @@ static int i2c_tiny_usb_probe(struct usb_interface *interface,
 
 	/* allocate memory for our device state and initialize it */
 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
-	if (dev == NULL) {
+
+	if (dev == NULL)
+	{
 		dev_err(&interface->dev, "Out of memory\n");
 		goto error;
 	}
@@ -226,9 +248,9 @@ static int i2c_tiny_usb_probe(struct usb_interface *interface,
 
 	version = le16_to_cpu(dev->usb_dev->descriptor.bcdDevice);
 	dev_info(&interface->dev,
-		 "version %x.%02x found at bus %03d address %03d\n",
-		 version >> 8, version & 0xff,
-		 dev->usb_dev->bus->busnum, dev->usb_dev->devnum);
+			 "version %x.%02x found at bus %03d address %03d\n",
+			 version >> 8, version & 0xff,
+			 dev->usb_dev->bus->busnum, dev->usb_dev->devnum);
 
 	/* setup i2c adapter description */
 	dev->adapter.owner = THIS_MODULE;
@@ -236,12 +258,13 @@ static int i2c_tiny_usb_probe(struct usb_interface *interface,
 	dev->adapter.algo = &usb_algorithm;
 	dev->adapter.algo_data = dev;
 	snprintf(dev->adapter.name, sizeof(dev->adapter.name),
-		 "i2c-tiny-usb at bus %03d device %03d",
-		 dev->usb_dev->bus->busnum, dev->usb_dev->devnum);
+			 "i2c-tiny-usb at bus %03d device %03d",
+			 dev->usb_dev->bus->busnum, dev->usb_dev->devnum);
 
-	if (usb_write(&dev->adapter, CMD_SET_DELAY, delay, 0, NULL, 0) != 0) {
+	if (usb_write(&dev->adapter, CMD_SET_DELAY, delay, 0, NULL, 0) != 0)
+	{
 		dev_err(&dev->adapter.dev,
-			"failure setting delay to %dus\n", delay);
+				"failure setting delay to %dus\n", delay);
 		retval = -EIO;
 		goto error;
 	}
@@ -256,9 +279,12 @@ static int i2c_tiny_usb_probe(struct usb_interface *interface,
 
 	return 0;
 
- error:
+error:
+
 	if (dev)
+	{
 		i2c_tiny_usb_free(dev);
+	}
 
 	return retval;
 }
@@ -274,7 +300,8 @@ static void i2c_tiny_usb_disconnect(struct usb_interface *interface)
 	dev_dbg(&interface->dev, "disconnected\n");
 }
 
-static struct usb_driver i2c_tiny_usb_driver = {
+static struct usb_driver i2c_tiny_usb_driver =
+{
 	.name		= "i2c-tiny-usb",
 	.probe		= i2c_tiny_usb_probe,
 	.disconnect	= i2c_tiny_usb_disconnect,

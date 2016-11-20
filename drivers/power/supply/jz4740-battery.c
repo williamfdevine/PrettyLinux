@@ -30,7 +30,8 @@
 #include <linux/power/jz4740-battery.h>
 #include <linux/jz4740-adc.h>
 
-struct jz_battery {
+struct jz_battery
+{
 	struct jz_battery_platform_data *pdata;
 	struct platform_device *pdev;
 
@@ -80,17 +81,25 @@ static long jz_battery_read_voltage(struct jz_battery *battery)
 	battery->cell->enable(battery->pdev);
 
 	t = wait_for_completion_interruptible_timeout(&battery->read_completion,
-		HZ);
+			HZ);
 
-	if (t > 0) {
+	if (t > 0)
+	{
 		val = readw(battery->base) & 0xfff;
 
 		if (battery->pdata->info.voltage_max_design <= 2500000)
+		{
 			val = (val * 78125UL) >> 7UL;
+		}
 		else
+		{
 			val = ((val * 924375UL) >> 9UL) + 33000;
+		}
+
 		voltage = (long)val;
-	} else {
+	}
+	else
+	{
 		voltage = t ? t : -ETIMEDOUT;
 	}
 
@@ -113,60 +122,86 @@ static int jz_battery_get_capacity(struct power_supply *psy)
 	voltage = jz_battery_read_voltage(jz_battery);
 
 	if (voltage < 0)
+	{
 		return voltage;
+	}
 
 	voltage_span = info->voltage_max_design - info->voltage_min_design;
 	ret = ((voltage - info->voltage_min_design) * 100) / voltage_span;
 
 	if (ret > 100)
+	{
 		ret = 100;
+	}
 	else if (ret < 0)
+	{
 		ret = 0;
+	}
 
 	return ret;
 }
 
 static int jz_battery_get_property(struct power_supply *psy,
-	enum power_supply_property psp, union power_supply_propval *val)
+								   enum power_supply_property psp, union power_supply_propval *val)
 {
 	struct jz_battery *jz_battery = psy_to_jz_battery(psy);
 	struct power_supply_info *info = &jz_battery->pdata->info;
 	long voltage;
 
-	switch (psp) {
-	case POWER_SUPPLY_PROP_STATUS:
-		val->intval = jz_battery->status;
-		break;
-	case POWER_SUPPLY_PROP_TECHNOLOGY:
-		val->intval = jz_battery->pdata->info.technology;
-		break;
-	case POWER_SUPPLY_PROP_HEALTH:
-		voltage = jz_battery_read_voltage(jz_battery);
-		if (voltage < info->voltage_min_design)
-			val->intval = POWER_SUPPLY_HEALTH_DEAD;
-		else
-			val->intval = POWER_SUPPLY_HEALTH_GOOD;
-		break;
-	case POWER_SUPPLY_PROP_CAPACITY:
-		val->intval = jz_battery_get_capacity(psy);
-		break;
-	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
-		val->intval = jz_battery_read_voltage(jz_battery);
-		if (val->intval < 0)
-			return val->intval;
-		break;
-	case POWER_SUPPLY_PROP_VOLTAGE_MAX_DESIGN:
-		val->intval = info->voltage_max_design;
-		break;
-	case POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN:
-		val->intval = info->voltage_min_design;
-		break;
-	case POWER_SUPPLY_PROP_PRESENT:
-		val->intval = 1;
-		break;
-	default:
-		return -EINVAL;
+	switch (psp)
+	{
+		case POWER_SUPPLY_PROP_STATUS:
+			val->intval = jz_battery->status;
+			break;
+
+		case POWER_SUPPLY_PROP_TECHNOLOGY:
+			val->intval = jz_battery->pdata->info.technology;
+			break;
+
+		case POWER_SUPPLY_PROP_HEALTH:
+			voltage = jz_battery_read_voltage(jz_battery);
+
+			if (voltage < info->voltage_min_design)
+			{
+				val->intval = POWER_SUPPLY_HEALTH_DEAD;
+			}
+			else
+			{
+				val->intval = POWER_SUPPLY_HEALTH_GOOD;
+			}
+
+			break;
+
+		case POWER_SUPPLY_PROP_CAPACITY:
+			val->intval = jz_battery_get_capacity(psy);
+			break;
+
+		case POWER_SUPPLY_PROP_VOLTAGE_NOW:
+			val->intval = jz_battery_read_voltage(jz_battery);
+
+			if (val->intval < 0)
+			{
+				return val->intval;
+			}
+
+			break;
+
+		case POWER_SUPPLY_PROP_VOLTAGE_MAX_DESIGN:
+			val->intval = info->voltage_max_design;
+			break;
+
+		case POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN:
+			val->intval = info->voltage_min_design;
+			break;
+
+		case POWER_SUPPLY_PROP_PRESENT:
+			val->intval = 1;
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	return 0;
 }
 
@@ -193,31 +228,43 @@ static void jz_battery_update(struct jz_battery *jz_battery)
 	bool has_changed = false;
 	int is_charging;
 
-	if (gpio_is_valid(jz_battery->pdata->gpio_charge)) {
+	if (gpio_is_valid(jz_battery->pdata->gpio_charge))
+	{
 		is_charging = gpio_get_value(jz_battery->pdata->gpio_charge);
 		is_charging ^= jz_battery->pdata->gpio_charge_active_low;
-		if (is_charging)
-			status = POWER_SUPPLY_STATUS_CHARGING;
-		else
-			status = POWER_SUPPLY_STATUS_NOT_CHARGING;
 
-		if (status != jz_battery->status) {
+		if (is_charging)
+		{
+			status = POWER_SUPPLY_STATUS_CHARGING;
+		}
+		else
+		{
+			status = POWER_SUPPLY_STATUS_NOT_CHARGING;
+		}
+
+		if (status != jz_battery->status)
+		{
 			jz_battery->status = status;
 			has_changed = true;
 		}
 	}
 
 	voltage = jz_battery_read_voltage(jz_battery);
-	if (voltage >= 0 && abs(voltage - jz_battery->voltage) > 50000) {
+
+	if (voltage >= 0 && abs(voltage - jz_battery->voltage) > 50000)
+	{
 		jz_battery->voltage = voltage;
 		has_changed = true;
 	}
 
 	if (has_changed)
+	{
 		power_supply_changed(jz_battery->battery);
+	}
 }
 
-static enum power_supply_property jz_battery_properties[] = {
+static enum power_supply_property jz_battery_properties[] =
+{
 	POWER_SUPPLY_PROP_STATUS,
 	POWER_SUPPLY_PROP_TECHNOLOGY,
 	POWER_SUPPLY_PROP_HEALTH,
@@ -233,7 +280,7 @@ static void jz_battery_work(struct work_struct *work)
 	/* Too small interval will increase system workload */
 	const int interval = HZ * 30;
 	struct jz_battery *jz_battery = container_of(work, struct jz_battery,
-					    work.work);
+									work.work);
 
 	jz_battery_update(jz_battery);
 	schedule_delayed_work(&jz_battery->work, interval);
@@ -248,13 +295,16 @@ static int jz_battery_probe(struct platform_device *pdev)
 	struct power_supply_desc *battery_desc;
 	struct resource *mem;
 
-	if (!pdata) {
+	if (!pdata)
+	{
 		dev_err(&pdev->dev, "No platform_data supplied\n");
 		return -ENXIO;
 	}
 
 	jz_battery = devm_kzalloc(&pdev->dev, sizeof(*jz_battery), GFP_KERNEL);
-	if (!jz_battery) {
+
+	if (!jz_battery)
+	{
 		dev_err(&pdev->dev, "Failed to allocate driver structure\n");
 		return -ENOMEM;
 	}
@@ -262,7 +312,9 @@ static int jz_battery_probe(struct platform_device *pdev)
 	jz_battery->cell = mfd_get_cell(pdev);
 
 	jz_battery->irq = platform_get_irq(pdev, 0);
-	if (jz_battery->irq < 0) {
+
+	if (jz_battery->irq < 0)
+	{
 		dev_err(&pdev->dev, "Failed to get platform irq: %d\n", ret);
 		return jz_battery->irq;
 	}
@@ -270,8 +322,11 @@ static int jz_battery_probe(struct platform_device *pdev)
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 
 	jz_battery->base = devm_ioremap_resource(&pdev->dev, mem);
+
 	if (IS_ERR(jz_battery->base))
+	{
 		return PTR_ERR(jz_battery->base);
+	}
 
 	battery_desc = &jz_battery->battery_desc;
 	battery_desc->name = pdata->info.name;
@@ -280,7 +335,7 @@ static int jz_battery_probe(struct platform_device *pdev)
 	battery_desc->num_properties	= ARRAY_SIZE(jz_battery_properties);
 	battery_desc->get_property	= jz_battery_get_property;
 	battery_desc->external_power_changed =
-					jz_battery_external_power_changed;
+		jz_battery_external_power_changed;
 	battery_desc->use_for_apm	= 1;
 
 	psy_cfg.drv_data = jz_battery;
@@ -294,50 +349,68 @@ static int jz_battery_probe(struct platform_device *pdev)
 	INIT_DELAYED_WORK(&jz_battery->work, jz_battery_work);
 
 	ret = request_irq(jz_battery->irq, jz_battery_irq_handler, 0, pdev->name,
-			jz_battery);
-	if (ret) {
+					  jz_battery);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to request irq %d\n", ret);
 		return ret;
 	}
+
 	disable_irq(jz_battery->irq);
 
-	if (gpio_is_valid(pdata->gpio_charge)) {
+	if (gpio_is_valid(pdata->gpio_charge))
+	{
 		ret = gpio_request(pdata->gpio_charge, dev_name(&pdev->dev));
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(&pdev->dev, "charger state gpio request failed.\n");
 			goto err_free_irq;
 		}
+
 		ret = gpio_direction_input(pdata->gpio_charge);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(&pdev->dev, "charger state gpio set direction failed.\n");
 			goto err_free_gpio;
 		}
 
 		jz_battery->charge_irq = gpio_to_irq(pdata->gpio_charge);
 
-		if (jz_battery->charge_irq >= 0) {
+		if (jz_battery->charge_irq >= 0)
+		{
 			ret = request_irq(jz_battery->charge_irq,
-				    jz_battery_charge_irq,
-				    IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
-				    dev_name(&pdev->dev), jz_battery);
-			if (ret) {
+							  jz_battery_charge_irq,
+							  IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
+							  dev_name(&pdev->dev), jz_battery);
+
+			if (ret)
+			{
 				dev_err(&pdev->dev, "Failed to request charge irq: %d\n", ret);
 				goto err_free_gpio;
 			}
 		}
-	} else {
+	}
+	else
+	{
 		jz_battery->charge_irq = -1;
 	}
 
 	if (jz_battery->pdata->info.voltage_max_design <= 2500000)
 		jz4740_adc_set_config(pdev->dev.parent, JZ_ADC_CONFIG_BAT_MB,
-			JZ_ADC_CONFIG_BAT_MB);
+							  JZ_ADC_CONFIG_BAT_MB);
 	else
+	{
 		jz4740_adc_set_config(pdev->dev.parent, JZ_ADC_CONFIG_BAT_MB, 0);
+	}
 
 	jz_battery->battery = power_supply_register(&pdev->dev, battery_desc,
-							&psy_cfg);
-	if (IS_ERR(jz_battery->battery)) {
+						  &psy_cfg);
+
+	if (IS_ERR(jz_battery->battery))
+	{
 		dev_err(&pdev->dev, "power supply battery register failed.\n");
 		ret = PTR_ERR(jz_battery->battery);
 		goto err_free_charge_irq;
@@ -349,11 +422,19 @@ static int jz_battery_probe(struct platform_device *pdev)
 	return 0;
 
 err_free_charge_irq:
+
 	if (jz_battery->charge_irq >= 0)
+	{
 		free_irq(jz_battery->charge_irq, jz_battery);
+	}
+
 err_free_gpio:
+
 	if (gpio_is_valid(pdata->gpio_charge))
+	{
 		gpio_free(jz_battery->pdata->gpio_charge);
+	}
+
 err_free_irq:
 	free_irq(jz_battery->irq, jz_battery);
 	return ret;
@@ -365,9 +446,13 @@ static int jz_battery_remove(struct platform_device *pdev)
 
 	cancel_delayed_work_sync(&jz_battery->work);
 
-	if (gpio_is_valid(jz_battery->pdata->gpio_charge)) {
+	if (gpio_is_valid(jz_battery->pdata->gpio_charge))
+	{
 		if (jz_battery->charge_irq >= 0)
+		{
 			free_irq(jz_battery->charge_irq, jz_battery);
+		}
+
 		gpio_free(jz_battery->pdata->gpio_charge);
 	}
 
@@ -398,7 +483,8 @@ static int jz_battery_resume(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops jz_battery_pm_ops = {
+static const struct dev_pm_ops jz_battery_pm_ops =
+{
 	.suspend	= jz_battery_suspend,
 	.resume		= jz_battery_resume,
 };
@@ -408,7 +494,8 @@ static const struct dev_pm_ops jz_battery_pm_ops = {
 #define JZ_BATTERY_PM_OPS NULL
 #endif
 
-static struct platform_driver jz_battery_driver = {
+static struct platform_driver jz_battery_driver =
+{
 	.probe		= jz_battery_probe,
 	.remove		= jz_battery_remove,
 	.driver = {

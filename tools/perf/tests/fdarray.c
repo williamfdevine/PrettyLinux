@@ -9,7 +9,8 @@ static void fdarray__init_revents(struct fdarray *fda, short revents)
 
 	fda->nr = fda->nr_alloc;
 
-	for (fd = 0; fd < fda->nr; ++fd) {
+	for (fd = 0; fd < fda->nr; ++fd)
+	{
 		fda->entries[fd].fd	 = fda->nr - fd;
 		fda->entries[fd].revents = revents;
 	}
@@ -20,7 +21,9 @@ static int fdarray__fprintf_prefix(struct fdarray *fda, const char *prefix, FILE
 	int printed = 0;
 
 	if (!verbose)
+	{
 		return 0;
+	}
 
 	printed += fprintf(fp, "\n%s: ", prefix);
 	return printed + fdarray__fprintf(fda, fp);
@@ -31,24 +34,29 @@ int test__fdarray__filter(int subtest __maybe_unused)
 	int nr_fds, expected_fd[2], fd, err = TEST_FAIL;
 	struct fdarray *fda = fdarray__new(5, 5);
 
-	if (fda == NULL) {
+	if (fda == NULL)
+	{
 		pr_debug("\nfdarray__new() failed!");
 		goto out;
 	}
 
 	fdarray__init_revents(fda, POLLIN);
 	nr_fds = fdarray__filter(fda, POLLHUP, NULL, NULL);
-	if (nr_fds != fda->nr_alloc) {
+
+	if (nr_fds != fda->nr_alloc)
+	{
 		pr_debug("\nfdarray__filter()=%d != %d shouldn't have filtered anything",
-			 nr_fds, fda->nr_alloc);
+				 nr_fds, fda->nr_alloc);
 		goto out_delete;
 	}
 
 	fdarray__init_revents(fda, POLLHUP);
 	nr_fds = fdarray__filter(fda, POLLHUP, NULL, NULL);
-	if (nr_fds != 0) {
+
+	if (nr_fds != 0)
+	{
 		pr_debug("\nfdarray__filter()=%d != %d, should have filtered all fds",
-			 nr_fds, fda->nr_alloc);
+				 nr_fds, fda->nr_alloc);
 		goto out_delete;
 	}
 
@@ -60,14 +68,17 @@ int test__fdarray__filter(int subtest __maybe_unused)
 	fdarray__fprintf_prefix(fda, "before", stderr);
 	nr_fds = fdarray__filter(fda, POLLHUP, NULL, NULL);
 	fdarray__fprintf_prefix(fda, " after", stderr);
-	if (nr_fds != 1) {
+
+	if (nr_fds != 1)
+	{
 		pr_debug("\nfdarray__filter()=%d != 1, should have left just one event", nr_fds);
 		goto out_delete;
 	}
 
-	if (fda->entries[0].fd != expected_fd[0]) {
+	if (fda->entries[0].fd != expected_fd[0])
+	{
 		pr_debug("\nfda->entries[0].fd=%d != %d\n",
-			 fda->entries[0].fd, expected_fd[0]);
+				 fda->entries[0].fd, expected_fd[0]);
 		goto out_delete;
 	}
 
@@ -81,16 +92,20 @@ int test__fdarray__filter(int subtest __maybe_unused)
 	fdarray__fprintf_prefix(fda, "before", stderr);
 	nr_fds = fdarray__filter(fda, POLLHUP, NULL, NULL);
 	fdarray__fprintf_prefix(fda, " after", stderr);
-	if (nr_fds != 2) {
+
+	if (nr_fds != 2)
+	{
 		pr_debug("\nfdarray__filter()=%d != 2, should have left just two events",
-			 nr_fds);
+				 nr_fds);
 		goto out_delete;
 	}
 
-	for (fd = 0; fd < 2; ++fd) {
-		if (fda->entries[fd].fd != expected_fd[fd]) {
+	for (fd = 0; fd < 2; ++fd)
+	{
+		if (fda->entries[fd].fd != expected_fd[fd])
+		{
 			pr_debug("\nfda->entries[%d].fd=%d != %d\n", fd,
-				 fda->entries[fd].fd, expected_fd[fd]);
+					 fda->entries[fd].fd, expected_fd[fd]);
 			goto out_delete;
 		}
 	}
@@ -109,7 +124,8 @@ int test__fdarray__add(int subtest __maybe_unused)
 	int err = TEST_FAIL;
 	struct fdarray *fda = fdarray__new(2, 2);
 
-	if (fda == NULL) {
+	if (fda == NULL)
+	{
 		pr_debug("\nfdarray__new() failed!");
 		goto out;
 	}
@@ -117,24 +133,24 @@ int test__fdarray__add(int subtest __maybe_unused)
 #define FDA_CHECK(_idx, _fd, _revents)					   \
 	if (fda->entries[_idx].fd != _fd) {				   \
 		pr_debug("\n%d: fda->entries[%d](%d) != %d!",		   \
-			 __LINE__, _idx, fda->entries[1].fd, _fd);	   \
+				 __LINE__, _idx, fda->entries[1].fd, _fd);	   \
 		goto out_delete;					   \
 	}								   \
 	if (fda->entries[_idx].events != (_revents)) {			   \
 		pr_debug("\n%d: fda->entries[%d].revents(%d) != %d!",	   \
-			 __LINE__, _idx, fda->entries[_idx].fd, _revents); \
+				 __LINE__, _idx, fda->entries[_idx].fd, _revents); \
 		goto out_delete;					   \
 	}
 
 #define FDA_ADD(_idx, _fd, _revents, _nr)				   \
 	if (fdarray__add(fda, _fd, _revents) < 0) {			   \
 		pr_debug("\n%d: fdarray__add(fda, %d, %d) failed!",	   \
-			 __LINE__,_fd, _revents);			   \
+				 __LINE__,_fd, _revents);			   \
 		goto out_delete;					   \
 	}								   \
 	if (fda->nr != _nr) {						   \
 		pr_debug("\n%d: fdarray__add(fda, %d, %d)=%d != %d",	   \
-			 __LINE__,_fd, _revents, fda->nr, _nr);		   \
+				 __LINE__,_fd, _revents, fda->nr, _nr);		   \
 		goto out_delete;					   \
 	}								   \
 	FDA_CHECK(_idx, _fd, _revents)
@@ -146,7 +162,8 @@ int test__fdarray__add(int subtest __maybe_unused)
 
 	FDA_ADD(2, 35, POLLHUP, 3);
 
-	if (fda->entries == NULL) {
+	if (fda->entries == NULL)
+	{
 		pr_debug("\nfdarray__add(fda, 35, POLLHUP) should have allocated fda->pollfd!");
 		goto out_delete;
 	}

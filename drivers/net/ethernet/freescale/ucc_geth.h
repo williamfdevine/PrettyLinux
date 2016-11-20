@@ -40,7 +40,8 @@
 #define ENET_INIT_PARAM_MAX_ENTRIES_RX  9
 #define ENET_INIT_PARAM_MAX_ENTRIES_TX  8
 
-struct ucc_geth {
+struct ucc_geth
+{
 	struct ucc_fast uccf;
 	u8 res0[0x100 - sizeof(struct ucc_fast)];
 
@@ -161,23 +162,23 @@ struct ucc_geth {
 
 /* UCC GETH Event Register */
 #define UCCE_TXB   (UCC_GETH_UCCE_TXB7 | UCC_GETH_UCCE_TXB6 | \
-		    UCC_GETH_UCCE_TXB5 | UCC_GETH_UCCE_TXB4 | \
-		    UCC_GETH_UCCE_TXB3 | UCC_GETH_UCCE_TXB2 | \
-		    UCC_GETH_UCCE_TXB1 | UCC_GETH_UCCE_TXB0)
+					UCC_GETH_UCCE_TXB5 | UCC_GETH_UCCE_TXB4 | \
+					UCC_GETH_UCCE_TXB3 | UCC_GETH_UCCE_TXB2 | \
+					UCC_GETH_UCCE_TXB1 | UCC_GETH_UCCE_TXB0)
 
 #define UCCE_RXB   (UCC_GETH_UCCE_RXB7 | UCC_GETH_UCCE_RXB6 | \
-		    UCC_GETH_UCCE_RXB5 | UCC_GETH_UCCE_RXB4 | \
-		    UCC_GETH_UCCE_RXB3 | UCC_GETH_UCCE_RXB2 | \
-		    UCC_GETH_UCCE_RXB1 | UCC_GETH_UCCE_RXB0)
+					UCC_GETH_UCCE_RXB5 | UCC_GETH_UCCE_RXB4 | \
+					UCC_GETH_UCCE_RXB3 | UCC_GETH_UCCE_RXB2 | \
+					UCC_GETH_UCCE_RXB1 | UCC_GETH_UCCE_RXB0)
 
 #define UCCE_RXF   (UCC_GETH_UCCE_RXF7 | UCC_GETH_UCCE_RXF6 | \
-		    UCC_GETH_UCCE_RXF5 | UCC_GETH_UCCE_RXF4 | \
-		    UCC_GETH_UCCE_RXF3 | UCC_GETH_UCCE_RXF2 | \
-		    UCC_GETH_UCCE_RXF1 | UCC_GETH_UCCE_RXF0)
+					UCC_GETH_UCCE_RXF5 | UCC_GETH_UCCE_RXF4 | \
+					UCC_GETH_UCCE_RXF3 | UCC_GETH_UCCE_RXF2 | \
+					UCC_GETH_UCCE_RXF1 | UCC_GETH_UCCE_RXF0)
 
 #define UCCE_OTHER (UCC_GETH_UCCE_SCAR | UCC_GETH_UCCE_GRA | \
-		    UCC_GETH_UCCE_CBPR | UCC_GETH_UCCE_BSY | \
-		    UCC_GETH_UCCE_RXC  | UCC_GETH_UCCE_TXC | UCC_GETH_UCCE_TXE)
+					UCC_GETH_UCCE_CBPR | UCC_GETH_UCCE_BSY | \
+					UCC_GETH_UCCE_RXC  | UCC_GETH_UCCE_TXC | UCC_GETH_UCCE_TXE)
 
 #define UCCE_RX_EVENTS  (UCCE_RXF | UCC_GETH_UCCE_BSY)
 #define UCCE_TX_EVENTS	(UCCE_TXB | UCC_GETH_UCCE_TXE)
@@ -208,16 +209,16 @@ struct ucc_geth {
 #define TBICR_SPEED1_SET        0x0040
 
 #define TBIANA_SETTINGS ( \
-		TBIANA_ASYMMETRIC_PAUSE \
-		| TBIANA_SYMMETRIC_PAUSE \
-		| TBIANA_FULL_DUPLEX \
-		)
+						  TBIANA_ASYMMETRIC_PAUSE \
+						  | TBIANA_SYMMETRIC_PAUSE \
+						  | TBIANA_FULL_DUPLEX \
+						)
 #define TBICR_SETTINGS ( \
-		TBICR_PHY_RESET \
-		| TBICR_ANEG_ENABLE \
-		| TBICR_FULL_DUPLEX \
-		| TBICR_SPEED1_SET \
-		)
+						 TBICR_PHY_RESET \
+						 | TBICR_ANEG_ENABLE \
+						 | TBICR_FULL_DUPLEX \
+						 | TBICR_SPEED1_SET \
+					   )
 
 /* UCC GETH MACCFG1 (MAC Configuration 1 Register) */
 #define MACCFG1_FLOW_RX                         0x00000020	/* Flow Control
@@ -419,31 +420,37 @@ struct ucc_geth {
 /* UCC GETH UDSR (Data Synchronization Register) */
 #define UDSR_MAGIC                              0x067E
 
-struct ucc_geth_thread_data_tx {
+struct ucc_geth_thread_data_tx
+{
 	u8 res0[104];
 } __packed;
 
-struct ucc_geth_thread_data_rx {
+struct ucc_geth_thread_data_rx
+{
 	u8 res0[40];
 } __packed;
 
 /* Send Queue Queue-Descriptor */
-struct ucc_geth_send_queue_qd {
+struct ucc_geth_send_queue_qd
+{
 	u32 bd_ring_base;	/* pointer to BD ring base address */
 	u8 res0[0x8];
 	u32 last_bd_completed_address;/* initialize to last entry in BD ring */
 	u8 res1[0x30];
 } __packed;
 
-struct ucc_geth_send_queue_mem_region {
+struct ucc_geth_send_queue_mem_region
+{
 	struct ucc_geth_send_queue_qd sqqd[NUM_TX_QUEUES];
 } __packed;
 
-struct ucc_geth_thread_tx_pram {
+struct ucc_geth_thread_tx_pram
+{
 	u8 res0[64];
 } __packed;
 
-struct ucc_geth_thread_rx_pram {
+struct ucc_geth_thread_rx_pram
+{
 	u8 res0[128];
 } __packed;
 
@@ -451,7 +458,8 @@ struct ucc_geth_thread_rx_pram {
 #define THREAD_RX_PRAM_ADDITIONAL_FOR_EXTENDED_FILTERING_8      64
 #define THREAD_RX_PRAM_ADDITIONAL_FOR_EXTENDED_FILTERING_16     96
 
-struct ucc_geth_scheduler {
+struct ucc_geth_scheduler
+{
 	u16 cpucount0;		/* CPU packet counter */
 	u16 cpucount1;		/* CPU packet counter */
 	u16 cecount0;		/* QE packet counter */
@@ -482,12 +490,13 @@ struct ucc_geth_scheduler {
 	u8 extrabw;		/* Extra BandWidth register */
 	u8 oldwfqmask;		/* temporary variable handled by QE */
 	u8 weightfactor[NUM_TX_QUEUES];
-				      /**< weight factor for queues   */
+	/**< weight factor for queues   */
 	u32 minw;		/* temporary variable handled by QE */
 	u8 res1[0x70 - 0x64];
 } __packed;
 
-struct ucc_geth_tx_firmware_statistics_pram {
+struct ucc_geth_tx_firmware_statistics_pram
+{
 	u32 sicoltx;		/* single collision */
 	u32 mulcoltx;		/* multiple collision */
 	u32 latecoltxfr;	/* late collision */
@@ -509,7 +518,8 @@ struct ucc_geth_tx_firmware_statistics_pram {
 				   and MAXLength octets */
 } __packed;
 
-struct ucc_geth_rx_firmware_statistics_pram {
+struct ucc_geth_rx_firmware_statistics_pram
+{
 	u32 frrxfcser;		/* frames with crc error */
 	u32 fraligner;		/* frames with alignment error */
 	u32 inrangelenrxer;	/* in range length error */
@@ -543,7 +553,8 @@ struct ucc_geth_rx_firmware_statistics_pram {
 				   inserted */
 } __packed;
 
-struct ucc_geth_rx_interrupt_coalescing_entry {
+struct ucc_geth_rx_interrupt_coalescing_entry
+{
 	u32 interruptcoalescingmaxvalue;	/* interrupt coalescing max
 						   value */
 	u32 interruptcoalescingcounter;	/* interrupt coalescing counter,
@@ -551,23 +562,27 @@ struct ucc_geth_rx_interrupt_coalescing_entry {
 					   interruptcoalescingmaxvalue */
 } __packed;
 
-struct ucc_geth_rx_interrupt_coalescing_table {
+struct ucc_geth_rx_interrupt_coalescing_table
+{
 	struct ucc_geth_rx_interrupt_coalescing_entry coalescingentry[NUM_RX_QUEUES];
-				       /**< interrupt coalescing entry */
+	/**< interrupt coalescing entry */
 } __packed;
 
-struct ucc_geth_rx_prefetched_bds {
+struct ucc_geth_rx_prefetched_bds
+{
 	struct qe_bd bd[NUM_BDS_IN_PREFETCHED_BDS];	/* prefetched bd */
 } __packed;
 
-struct ucc_geth_rx_bd_queues_entry {
+struct ucc_geth_rx_bd_queues_entry
+{
 	u32 bdbaseptr;		/* BD base pointer */
 	u32 bdptr;		/* BD pointer */
 	u32 externalbdbaseptr;	/* external BD base pointer */
 	u32 externalbdptr;	/* external BD pointer */
 } __packed;
 
-struct ucc_geth_tx_global_pram {
+struct ucc_geth_tx_global_pram
+{
 	u16 temoder;
 	u8 res0[0x38 - 0x02];
 	u32 sqptr;		/* a base pointer to send queue memory region */
@@ -584,12 +599,14 @@ struct ucc_geth_tx_global_pram {
 } __packed;
 
 /* structure representing Extended Filtering Global Parameters in PRAM */
-struct ucc_geth_exf_global_pram {
+struct ucc_geth_exf_global_pram
+{
 	u32 l2pcdptr;		/* individual address filter, high */
 	u8 res0[0x10 - 0x04];
 } __packed;
 
-struct ucc_geth_rx_global_pram {
+struct ucc_geth_rx_global_pram
+{
 	u32 remoder;		/* ethernet mode reg. */
 	u32 rqptr;		/* base pointer to the Rx Queues Memory Region*/
 	u32 res0[0x1];
@@ -626,7 +643,8 @@ struct ucc_geth_rx_global_pram {
 #define GRACEFUL_STOP_ACKNOWLEDGE_RX            0x01
 
 /* structure representing InitEnet command */
-struct ucc_geth_init_pram {
+struct ucc_geth_init_pram
+{
 	u8 resinit1;
 	u8 resinit2;
 	u8 resinit3;
@@ -657,7 +675,8 @@ struct ucc_geth_init_pram {
 #define ENET_INIT_PARAM_MAGIC_RES_INIT5         0x0400
 
 /* structure representing 82xx Address Filtering Enet Address in PRAM */
-struct ucc_geth_82xx_enet_address {
+struct ucc_geth_82xx_enet_address
+{
 	u8 res1[0x2];
 	u16 h;			/* address (MSB) */
 	u16 m;			/* address */
@@ -665,7 +684,8 @@ struct ucc_geth_82xx_enet_address {
 } __packed;
 
 /* structure representing 82xx Address Filtering PRAM */
-struct ucc_geth_82xx_address_filtering_pram {
+struct ucc_geth_82xx_address_filtering_pram
+{
 	u32 iaddr_h;		/* individual address filter, high */
 	u32 iaddr_l;		/* individual address filter, low */
 	u32 gaddr_h;		/* group address filter, high */
@@ -677,7 +697,8 @@ struct ucc_geth_82xx_address_filtering_pram {
 
 /* GETH Tx firmware statistics structure, used when calling
    UCC_GETH_GetStatistics. */
-struct ucc_geth_tx_firmware_statistics {
+struct ucc_geth_tx_firmware_statistics
+{
 	u32 sicoltx;		/* single collision */
 	u32 mulcoltx;		/* multiple collision */
 	u32 latecoltxfr;	/* late collision */
@@ -701,7 +722,8 @@ struct ucc_geth_tx_firmware_statistics {
 
 /* GETH Rx firmware statistics structure, used when calling
    UCC_GETH_GetStatistics. */
-struct ucc_geth_rx_firmware_statistics {
+struct ucc_geth_rx_firmware_statistics
+{
 	u32 frrxfcser;		/* frames with crc error */
 	u32 fraligner;		/* frames with alignment error */
 	u32 inrangelenrxer;	/* in range length error */
@@ -737,7 +759,8 @@ struct ucc_geth_rx_firmware_statistics {
 
 /* GETH hardware statistics structure, used when calling
    UCC_GETH_GetStatistics. */
-struct ucc_geth_hardware_statistics {
+struct ucc_geth_hardware_statistics
+{
 	u32 tx64;		/* Total number of frames (including bad
 				   frames) transmitted that were exactly of the
 				   minimal length (64 for un tagged, 68 for
@@ -810,7 +833,7 @@ struct ucc_geth_hardware_statistics {
 #define T_UN       (((u32) TX_ERRORS_UN      ) << 16)
 #define T_CSL      (((u32) TX_ERRORS_CSL     ) << 16)
 #define T_ERRORS_REPORT  (T_DEF | T_EXDEF | T_LC | T_RL | T_RC_MASK \
-		| T_UN | T_CSL)	/* transmit errors to report */
+						  | T_UN | T_CSL)	/* transmit errors to report */
 
 /* Receive BD. These are in addition to values defined in uccf. */
 #define R_LG    0x00200000	/* Frame length violation.  */
@@ -826,7 +849,7 @@ struct ucc_geth_hardware_statistics {
 #define R_ERRORS_REPORT (R_CMR | R_M | R_BC | R_MC)	/* receive errors to
 							   report */
 #define R_ERRORS_FATAL  (R_LG  | R_NO | R_SH | R_CR | \
-		R_OV | R_IPCH)	/* receive errors to discard */
+						 R_OV | R_IPCH)	/* receive errors to discard */
 
 /* Alignments */
 #define UCC_GETH_RX_GLOBAL_PRAM_ALIGNMENT	256
@@ -903,14 +926,14 @@ struct ucc_geth_hardware_statistics {
 							   due to errata */
 /* Gigabit Ethernet (1000 Mbps) */
 #define UCC_GETH_URFS_GIGA_INIT                 4096/*2048*/	/* Rx virtual
-								   FIFO size */
+FIFO size */
 #define UCC_GETH_URFET_GIGA_INIT                2048/*1024*/	/* 1/2 urfs */
 #define UCC_GETH_URFSET_GIGA_INIT               3072/*1536*/	/* 3/4 urfs */
 #define UCC_GETH_UTFS_GIGA_INIT                 4096/*2048*/	/* Tx virtual
-								   FIFO size */
+FIFO size */
 #define UCC_GETH_UTFET_GIGA_INIT                2048/*1024*/	/* 1/2 utfs */
 #define UCC_GETH_UTFTT_GIGA_INIT                4096/*0x40*/	/* Tx virtual
-								   FIFO size */
+FIFO size */
 
 #define UCC_GETH_REMODER_INIT                   0	/* bits that must be
 							   set */
@@ -923,14 +946,16 @@ struct ucc_geth_hardware_statistics {
 #define UCC_GETH_MACCFG2_INIT                   (MACCFG2_RESERVED_1)
 
 /* Ethernet Address Type. */
-enum enet_addr_type {
+enum enet_addr_type
+{
 	ENET_ADDR_TYPE_INDIVIDUAL,
 	ENET_ADDR_TYPE_GROUP,
 	ENET_ADDR_TYPE_BROADCAST
 };
 
 /* UCC GETH 82xx Ethernet Address Recognition Location */
-enum ucc_geth_enet_address_recognition_location {
+enum ucc_geth_enet_address_recognition_location
+{
 	UCC_GETH_ENET_ADDRESS_RECOGNITION_LOCATION_STATION_ADDRESS,/* station
 								      address */
 	UCC_GETH_ENET_ADDRESS_RECOGNITION_LOCATION_PADDR_FIRST,	/* additional
@@ -955,18 +980,20 @@ enum ucc_geth_enet_address_recognition_location {
 };
 
 /* UCC GETH vlan operation tagged */
-enum ucc_geth_vlan_operation_tagged {
+enum ucc_geth_vlan_operation_tagged
+{
 	UCC_GETH_VLAN_OPERATION_TAGGED_NOP = 0x0,	/* Tagged - nop */
 	UCC_GETH_VLAN_OPERATION_TAGGED_REPLACE_VID_PORTION_OF_Q_TAG
-		= 0x1,	/* Tagged - replace vid portion of q tag */
+	= 0x1,	/* Tagged - replace vid portion of q tag */
 	UCC_GETH_VLAN_OPERATION_TAGGED_IF_VID0_REPLACE_VID_WITH_DEFAULT_VALUE
-		= 0x2,	/* Tagged - if vid0 replace vid with default value  */
+	= 0x2,	/* Tagged - if vid0 replace vid with default value  */
 	UCC_GETH_VLAN_OPERATION_TAGGED_EXTRACT_Q_TAG_FROM_FRAME
 		= 0x3	/* Tagged - extract q tag from frame */
 };
 
 /* UCC GETH vlan operation non-tagged */
-enum ucc_geth_vlan_operation_non_tagged {
+enum ucc_geth_vlan_operation_non_tagged
+{
 	UCC_GETH_VLAN_OPERATION_NON_TAGGED_NOP = 0x0,	/* Non tagged - nop */
 	UCC_GETH_VLAN_OPERATION_NON_TAGGED_Q_TAG_INSERT = 0x1	/* Non tagged -
 								   q tag insert
@@ -974,7 +1001,8 @@ enum ucc_geth_vlan_operation_non_tagged {
 };
 
 /* UCC GETH Rx Quality of Service Mode */
-enum ucc_geth_qos_mode {
+enum ucc_geth_qos_mode
+{
 	UCC_GETH_QOS_MODE_DEFAULT = 0x0,	/* default queue */
 	UCC_GETH_QOS_MODE_QUEUE_NUM_FROM_L2_CRITERIA = 0x1,	/* queue
 								   determined
@@ -988,7 +1016,8 @@ enum ucc_geth_qos_mode {
 
 /* UCC GETH Statistics Gathering Mode - These are bit flags, 'or' them together
    for combined functionality */
-enum ucc_geth_statistics_gathering_mode {
+enum ucc_geth_statistics_gathering_mode
+{
 	UCC_GETH_STATISTICS_GATHERING_MODE_NONE = 0x00000000,	/* No
 								   statistics
 								   gathering */
@@ -1012,7 +1041,8 @@ enum ucc_geth_statistics_gathering_mode {
 };
 
 /* UCC GETH Pad and CRC Mode - Note, Padding without CRC is not possible */
-enum ucc_geth_maccfg2_pad_and_crc_mode {
+enum ucc_geth_maccfg2_pad_and_crc_mode
+{
 	UCC_GETH_PAD_AND_CRC_MODE_NONE
 		= MACCFG2_PAD_AND_CRC_MODE_NONE,	/* Neither Padding
 							   short frames
@@ -1021,11 +1051,12 @@ enum ucc_geth_maccfg2_pad_and_crc_mode {
 		= MACCFG2_PAD_AND_CRC_MODE_CRC_ONLY,	/* Append
 							   CRC only */
 	UCC_GETH_PAD_AND_CRC_MODE_PAD_AND_CRC =
-	    MACCFG2_PAD_AND_CRC_MODE_PAD_AND_CRC
+		MACCFG2_PAD_AND_CRC_MODE_PAD_AND_CRC
 };
 
 /* UCC GETH upsmr Flow Control Mode */
-enum ucc_geth_flow_control_mode {
+enum ucc_geth_flow_control_mode
+{
 	UPSMR_AUTOMATIC_FLOW_CONTROL_MODE_NONE = 0x00000000,	/* No automatic
 								   flow control
 								 */
@@ -1035,7 +1066,8 @@ enum ucc_geth_flow_control_mode {
 };
 
 /* UCC GETH number of threads */
-enum ucc_geth_num_of_threads {
+enum ucc_geth_num_of_threads
+{
 	UCC_GETH_NUM_OF_THREADS_1 = 0x1,	/* 1 */
 	UCC_GETH_NUM_OF_THREADS_2 = 0x2,	/* 2 */
 	UCC_GETH_NUM_OF_THREADS_4 = 0x0,	/* 4 */
@@ -1044,13 +1076,15 @@ enum ucc_geth_num_of_threads {
 };
 
 /* UCC GETH number of station addresses */
-enum ucc_geth_num_of_station_addresses {
+enum ucc_geth_num_of_station_addresses
+{
 	UCC_GETH_NUM_OF_STATION_ADDRESSES_1,	/* 1 */
 	UCC_GETH_NUM_OF_STATION_ADDRESSES_5	/* 5 */
 };
 
 /* UCC GETH 82xx Ethernet Address Container */
-struct enet_addr_container {
+struct enet_addr_container
+{
 	u8 address[ETH_ALEN];	/* ethernet address */
 	enum ucc_geth_enet_address_recognition_location location;	/* location in
 								   82xx address
@@ -1062,7 +1096,8 @@ struct enet_addr_container {
 #define ENET_ADDR_CONT_ENTRY(ptr) list_entry(ptr, struct enet_addr_container, node)
 
 /* UCC GETH Termination Action Descriptor (TAD) structure. */
-struct ucc_geth_tad_params {
+struct ucc_geth_tad_params
+{
 	int rx_non_dynamic_extended_features_mode;
 	int reject_frame;
 	enum ucc_geth_vlan_operation_tagged vtag_op;
@@ -1073,7 +1108,8 @@ struct ucc_geth_tad_params {
 };
 
 /* GETH protocol initialization structure */
-struct ucc_geth_info {
+struct ucc_geth_info
+{
 	struct ucc_fast_info uf_info;
 	u8 numQueuesTx;
 	u8 numQueuesRx;
@@ -1138,7 +1174,7 @@ struct ucc_geth_info {
 	u16 bdRingLenRx[NUM_RX_QUEUES];
 	enum ucc_geth_num_of_station_addresses numStationAddresses;
 	enum qe_fltr_largest_external_tbl_lookup_key_size
-	    largestexternallookupkeysize;
+	largestexternallookupkeysize;
 	enum ucc_geth_statistics_gathering_mode statisticsMode;
 	enum ucc_geth_vlan_operation_tagged vlanOperationTagged;
 	enum ucc_geth_vlan_operation_non_tagged vlanOperationNonTagged;
@@ -1152,7 +1188,8 @@ struct ucc_geth_info {
 };
 
 /* structure representing UCC GETH */
-struct ucc_geth_private {
+struct ucc_geth_private
+{
 	struct ucc_geth_info *ug_info;
 	struct ucc_fast_private *uccf;
 	struct device *dev;
@@ -1229,10 +1266,10 @@ struct ucc_geth_private {
 
 void uec_set_ethtool_ops(struct net_device *netdev);
 int init_flow_control_params(u32 automatic_flow_control_mode,
-		int rx_flow_control_enable, int tx_flow_control_enable,
-		u16 pause_period, u16 extension_field,
-		u32 __iomem *upsmr_register, u32 __iomem *uempr_register,
-		u32 __iomem *maccfg1_register);
+							 int rx_flow_control_enable, int tx_flow_control_enable,
+							 u16 pause_period, u16 extension_field,
+							 u32 __iomem *upsmr_register, u32 __iomem *uempr_register,
+							 u32 __iomem *maccfg1_register);
 
 
 #endif				/* __UCC_GETH_H__ */

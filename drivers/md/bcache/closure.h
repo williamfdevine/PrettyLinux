@@ -103,11 +103,13 @@
 struct closure;
 typedef void (closure_fn) (struct closure *);
 
-struct closure_waitlist {
+struct closure_waitlist
+{
 	struct llist_head	list;
 };
 
-enum closure_state {
+enum closure_state
+{
 	/*
 	 * CLOSURE_WAITING: Set iff the closure is on a waitlist. Must be set by
 	 * the thread that owns the closure, and cleared by the thread that's
@@ -146,9 +148,12 @@ enum closure_state {
 #define CLOSURE_REMAINING_MASK		(CLOSURE_BITS_START - 1)
 #define CLOSURE_REMAINING_INITIALIZER	(1|CLOSURE_RUNNING)
 
-struct closure {
-	union {
-		struct {
+struct closure
+{
+	union
+	{
+		struct
+		{
 			struct workqueue_struct *wq;
 			struct task_struct	*task;
 			struct llist_node	list;
@@ -218,7 +223,9 @@ static inline void __closure_end_sleep(struct closure *cl)
 	__set_current_state(TASK_RUNNING);
 
 	if (atomic_read(&cl->remaining) & CLOSURE_SLEEPING)
+	{
 		atomic_sub(CLOSURE_SLEEPING, &cl->remaining);
+	}
 }
 
 static inline void __closure_start_sleep(struct closure *cl)
@@ -228,7 +235,9 @@ static inline void __closure_start_sleep(struct closure *cl)
 	set_current_state(TASK_UNINTERRUPTIBLE);
 
 	if (!(atomic_read(&cl->remaining) & CLOSURE_SLEEPING))
+	{
 		atomic_add(CLOSURE_SLEEPING, &cl->remaining);
+	}
 }
 
 static inline void closure_set_stopped(struct closure *cl)
@@ -237,7 +246,7 @@ static inline void closure_set_stopped(struct closure *cl)
 }
 
 static inline void set_closure_fn(struct closure *cl, closure_fn *fn,
-				  struct workqueue_struct *wq)
+								  struct workqueue_struct *wq)
 {
 	BUG_ON(object_is_on_stack(cl));
 	closure_set_ip(cl);
@@ -250,11 +259,16 @@ static inline void set_closure_fn(struct closure *cl, closure_fn *fn,
 static inline void closure_queue(struct closure *cl)
 {
 	struct workqueue_struct *wq = cl->wq;
-	if (wq) {
+
+	if (wq)
+	{
 		INIT_WORK(&cl->work, cl->work.func);
 		BUG_ON(!queue_work(wq, &cl->work));
-	} else
+	}
+	else
+	{
 		cl->fn(cl);
+	}
 }
 
 /**
@@ -264,7 +278,7 @@ static inline void closure_get(struct closure *cl)
 {
 #ifdef CONFIG_BCACHE_CLOSURES_DEBUG
 	BUG_ON((atomic_inc_return(&cl->remaining) &
-		CLOSURE_REMAINING_MASK) <= 1);
+			CLOSURE_REMAINING_MASK) <= 1);
 #else
 	atomic_inc(&cl->remaining);
 #endif
@@ -280,8 +294,11 @@ static inline void closure_init(struct closure *cl, struct closure *parent)
 {
 	memset(cl, 0, sizeof(struct closure));
 	cl->parent = parent;
+
 	if (parent)
+	{
 		closure_get(parent);
+	}
 
 	atomic_set(&cl->remaining, CLOSURE_REMAINING_INITIALIZER);
 
@@ -292,7 +309,7 @@ static inline void closure_init(struct closure *cl, struct closure *parent)
 static inline void closure_init_stack(struct closure *cl)
 {
 	memset(cl, 0, sizeof(struct closure));
-	atomic_set(&cl->remaining, CLOSURE_REMAINING_INITIALIZER|CLOSURE_STACK);
+	atomic_set(&cl->remaining, CLOSURE_REMAINING_INITIALIZER | CLOSURE_STACK);
 }
 
 /**
@@ -318,10 +335,10 @@ static inline void closure_wake_up(struct closure_waitlist *list)
  * has a ref on its own closure which continue_at() drops.
  */
 #define continue_at(_cl, _fn, _wq)					\
-do {									\
-	set_closure_fn(_cl, _fn, _wq);					\
-	closure_sub(_cl, CLOSURE_RUNNING + 1);				\
-} while (0)
+	do {									\
+		set_closure_fn(_cl, _fn, _wq);					\
+		closure_sub(_cl, CLOSURE_RUNNING + 1);				\
+	} while (0)
 
 /**
  * closure_return - finish execution of a closure
@@ -346,10 +363,10 @@ do {									\
  * continue_at_nobarrier().
  */
 #define continue_at_nobarrier(_cl, _fn, _wq)				\
-do {									\
-	set_closure_fn(_cl, _fn, _wq);					\
-	closure_queue(_cl);						\
-} while (0)
+	do {									\
+		set_closure_fn(_cl, _fn, _wq);					\
+		closure_queue(_cl);						\
+	} while (0)
 
 /**
  * closure_return - finish execution of a closure, with destructor
@@ -361,10 +378,10 @@ do {									\
  * freelist protected by @cl's parent.
  */
 #define closure_return_with_destructor(_cl, _destructor)		\
-do {									\
-	set_closure_fn(_cl, _destructor, NULL);				\
-	closure_sub(_cl, CLOSURE_RUNNING - CLOSURE_DESTRUCTOR + 1);	\
-} while (0)
+	do {									\
+		set_closure_fn(_cl, _destructor, NULL);				\
+		closure_sub(_cl, CLOSURE_RUNNING - CLOSURE_DESTRUCTOR + 1);	\
+	} while (0)
 
 /**
  * closure_call - execute @fn out of a new, uninitialized closure
@@ -374,8 +391,8 @@ do {									\
  * finish.
  */
 static inline void closure_call(struct closure *cl, closure_fn fn,
-				struct workqueue_struct *wq,
-				struct closure *parent)
+								struct workqueue_struct *wq,
+								struct closure *parent)
 {
 	closure_init(cl, parent);
 	continue_at_nobarrier(cl, fn, wq);

@@ -33,7 +33,8 @@
  * DRA752 CORE thermal sensor register offsets and bit-fields
  */
 static struct temp_sensor_registers
-dra752_core_temp_sensor_registers = {
+	dra752_core_temp_sensor_registers =
+{
 	.temp_sensor_ctrl = DRA752_TEMP_SENSOR_CORE_OFFSET,
 	.bgap_tempsoff_mask = DRA752_TEMP_SENSOR_TMPSOFF_MASK,
 	.bgap_eocz_mask = DRA752_TEMP_SENSOR_EOCZ_MASK,
@@ -69,7 +70,8 @@ dra752_core_temp_sensor_registers = {
  * DRA752 IVA thermal sensor register offsets and bit-fields
  */
 static struct temp_sensor_registers
-dra752_iva_temp_sensor_registers = {
+	dra752_iva_temp_sensor_registers =
+{
 	.temp_sensor_ctrl = DRA752_TEMP_SENSOR_IVA_OFFSET,
 	.bgap_tempsoff_mask = DRA752_TEMP_SENSOR_TMPSOFF_MASK,
 	.bgap_eocz_mask = DRA752_TEMP_SENSOR_EOCZ_MASK,
@@ -105,7 +107,8 @@ dra752_iva_temp_sensor_registers = {
  * DRA752 MPU thermal sensor register offsets and bit-fields
  */
 static struct temp_sensor_registers
-dra752_mpu_temp_sensor_registers = {
+	dra752_mpu_temp_sensor_registers =
+{
 	.temp_sensor_ctrl = DRA752_TEMP_SENSOR_MPU_OFFSET,
 	.bgap_tempsoff_mask = DRA752_TEMP_SENSOR_TMPSOFF_MASK,
 	.bgap_eocz_mask = DRA752_TEMP_SENSOR_EOCZ_MASK,
@@ -141,7 +144,8 @@ dra752_mpu_temp_sensor_registers = {
  * DRA752 DSPEVE thermal sensor register offsets and bit-fields
  */
 static struct temp_sensor_registers
-dra752_dspeve_temp_sensor_registers = {
+	dra752_dspeve_temp_sensor_registers =
+{
 	.temp_sensor_ctrl = DRA752_TEMP_SENSOR_DSPEVE_OFFSET,
 	.bgap_tempsoff_mask = DRA752_TEMP_SENSOR_TMPSOFF_MASK,
 	.bgap_eocz_mask = DRA752_TEMP_SENSOR_EOCZ_MASK,
@@ -177,7 +181,8 @@ dra752_dspeve_temp_sensor_registers = {
  * DRA752 GPU thermal sensor register offsets and bit-fields
  */
 static struct temp_sensor_registers
-dra752_gpu_temp_sensor_registers = {
+	dra752_gpu_temp_sensor_registers =
+{
 	.temp_sensor_ctrl = DRA752_TEMP_SENSOR_GPU_OFFSET,
 	.bgap_tempsoff_mask = DRA752_TEMP_SENSOR_TMPSOFF_MASK,
 	.bgap_eocz_mask = DRA752_TEMP_SENSOR_EOCZ_MASK,
@@ -210,7 +215,8 @@ dra752_gpu_temp_sensor_registers = {
 };
 
 /* Thresholds and limits for DRA752 MPU temperature sensor */
-static struct temp_sensor_data dra752_mpu_temp_sensor_data = {
+static struct temp_sensor_data dra752_mpu_temp_sensor_data =
+{
 	.tshut_hot = DRA752_MPU_TSHUT_HOT,
 	.tshut_cold = DRA752_MPU_TSHUT_COLD,
 	.t_hot = DRA752_MPU_T_HOT,
@@ -225,7 +231,8 @@ static struct temp_sensor_data dra752_mpu_temp_sensor_data = {
 };
 
 /* Thresholds and limits for DRA752 GPU temperature sensor */
-static struct temp_sensor_data dra752_gpu_temp_sensor_data = {
+static struct temp_sensor_data dra752_gpu_temp_sensor_data =
+{
 	.tshut_hot = DRA752_GPU_TSHUT_HOT,
 	.tshut_cold = DRA752_GPU_TSHUT_COLD,
 	.t_hot = DRA752_GPU_T_HOT,
@@ -240,7 +247,8 @@ static struct temp_sensor_data dra752_gpu_temp_sensor_data = {
 };
 
 /* Thresholds and limits for DRA752 CORE temperature sensor */
-static struct temp_sensor_data dra752_core_temp_sensor_data = {
+static struct temp_sensor_data dra752_core_temp_sensor_data =
+{
 	.tshut_hot = DRA752_CORE_TSHUT_HOT,
 	.tshut_cold = DRA752_CORE_TSHUT_COLD,
 	.t_hot = DRA752_CORE_T_HOT,
@@ -255,7 +263,8 @@ static struct temp_sensor_data dra752_core_temp_sensor_data = {
 };
 
 /* Thresholds and limits for DRA752 DSPEVE temperature sensor */
-static struct temp_sensor_data dra752_dspeve_temp_sensor_data = {
+static struct temp_sensor_data dra752_dspeve_temp_sensor_data =
+{
 	.tshut_hot = DRA752_DSPEVE_TSHUT_HOT,
 	.tshut_cold = DRA752_DSPEVE_TSHUT_COLD,
 	.t_hot = DRA752_DSPEVE_T_HOT,
@@ -270,7 +279,8 @@ static struct temp_sensor_data dra752_dspeve_temp_sensor_data = {
 };
 
 /* Thresholds and limits for DRA752 IVA temperature sensor */
-static struct temp_sensor_data dra752_iva_temp_sensor_data = {
+static struct temp_sensor_data dra752_iva_temp_sensor_data =
+{
 	.tshut_hot = DRA752_IVA_TSHUT_HOT,
 	.tshut_cold = DRA752_IVA_TSHUT_COLD,
 	.t_hot = DRA752_IVA_T_HOT,
@@ -289,7 +299,8 @@ static struct temp_sensor_data dra752_iva_temp_sensor_data = {
  * ADC code values from 540 to 945
  */
 static
-int dra752_adc_to_temp[DRA752_ADC_END_VALUE - DRA752_ADC_START_VALUE + 1] = {
+int dra752_adc_to_temp[DRA752_ADC_END_VALUE - DRA752_ADC_START_VALUE + 1] =
+{
 	/* Index 540 - 549 */
 	-40000, -40000, -40000, -40000, -39800, -39400, -39000, -38600, -38200,
 	-37800,
@@ -415,13 +426,14 @@ int dra752_adc_to_temp[DRA752_ADC_END_VALUE - DRA752_ADC_START_VALUE + 1] = {
 };
 
 /* DRA752 data */
-const struct ti_bandgap_data dra752_data = {
+const struct ti_bandgap_data dra752_data =
+{
 	.features = TI_BANDGAP_FEATURE_TSHUT_CONFIG |
-			TI_BANDGAP_FEATURE_FREEZE_BIT |
-			TI_BANDGAP_FEATURE_TALERT |
-			TI_BANDGAP_FEATURE_COUNTER_DELAY |
-			TI_BANDGAP_FEATURE_HISTORY_BUFFER |
-			TI_BANDGAP_FEATURE_ERRATA_814,
+	TI_BANDGAP_FEATURE_FREEZE_BIT |
+	TI_BANDGAP_FEATURE_TALERT |
+	TI_BANDGAP_FEATURE_COUNTER_DELAY |
+	TI_BANDGAP_FEATURE_HISTORY_BUFFER |
+	TI_BANDGAP_FEATURE_ERRATA_814,
 	.fclock_name = "l3instr_ts_gclk_div",
 	.div_ck_name = "l3instr_ts_gclk_div",
 	.conv_table = dra752_adc_to_temp,
@@ -431,51 +443,51 @@ const struct ti_bandgap_data dra752_data = {
 	.remove_sensor = ti_thermal_remove_sensor,
 	.sensors = {
 		{
-		.registers = &dra752_mpu_temp_sensor_registers,
-		.ts_data = &dra752_mpu_temp_sensor_data,
-		.domain = "cpu",
-		.register_cooling = ti_thermal_register_cpu_cooling,
-		.unregister_cooling = ti_thermal_unregister_cpu_cooling,
-		.slope = DRA752_GRADIENT_SLOPE,
-		.constant = DRA752_GRADIENT_CONST,
-		.slope_pcb = DRA752_GRADIENT_SLOPE_W_PCB,
-		.constant_pcb = DRA752_GRADIENT_CONST_W_PCB,
+			.registers = &dra752_mpu_temp_sensor_registers,
+			.ts_data = &dra752_mpu_temp_sensor_data,
+			.domain = "cpu",
+			.register_cooling = ti_thermal_register_cpu_cooling,
+			.unregister_cooling = ti_thermal_unregister_cpu_cooling,
+			.slope = DRA752_GRADIENT_SLOPE,
+			.constant = DRA752_GRADIENT_CONST,
+			.slope_pcb = DRA752_GRADIENT_SLOPE_W_PCB,
+			.constant_pcb = DRA752_GRADIENT_CONST_W_PCB,
 		},
 		{
-		.registers = &dra752_gpu_temp_sensor_registers,
-		.ts_data = &dra752_gpu_temp_sensor_data,
-		.domain = "gpu",
-		.slope = DRA752_GRADIENT_SLOPE,
-		.constant = DRA752_GRADIENT_CONST,
-		.slope_pcb = DRA752_GRADIENT_SLOPE_W_PCB,
-		.constant_pcb = DRA752_GRADIENT_CONST_W_PCB,
+			.registers = &dra752_gpu_temp_sensor_registers,
+			.ts_data = &dra752_gpu_temp_sensor_data,
+			.domain = "gpu",
+			.slope = DRA752_GRADIENT_SLOPE,
+			.constant = DRA752_GRADIENT_CONST,
+			.slope_pcb = DRA752_GRADIENT_SLOPE_W_PCB,
+			.constant_pcb = DRA752_GRADIENT_CONST_W_PCB,
 		},
 		{
-		.registers = &dra752_core_temp_sensor_registers,
-		.ts_data = &dra752_core_temp_sensor_data,
-		.domain = "core",
-		.slope = DRA752_GRADIENT_SLOPE,
-		.constant = DRA752_GRADIENT_CONST,
-		.slope_pcb = DRA752_GRADIENT_SLOPE_W_PCB,
-		.constant_pcb = DRA752_GRADIENT_CONST_W_PCB,
+			.registers = &dra752_core_temp_sensor_registers,
+			.ts_data = &dra752_core_temp_sensor_data,
+			.domain = "core",
+			.slope = DRA752_GRADIENT_SLOPE,
+			.constant = DRA752_GRADIENT_CONST,
+			.slope_pcb = DRA752_GRADIENT_SLOPE_W_PCB,
+			.constant_pcb = DRA752_GRADIENT_CONST_W_PCB,
 		},
 		{
-		.registers = &dra752_dspeve_temp_sensor_registers,
-		.ts_data = &dra752_dspeve_temp_sensor_data,
-		.domain = "dspeve",
-		.slope = DRA752_GRADIENT_SLOPE,
-		.constant = DRA752_GRADIENT_CONST,
-		.slope_pcb = DRA752_GRADIENT_SLOPE_W_PCB,
-		.constant_pcb = DRA752_GRADIENT_CONST_W_PCB,
+			.registers = &dra752_dspeve_temp_sensor_registers,
+			.ts_data = &dra752_dspeve_temp_sensor_data,
+			.domain = "dspeve",
+			.slope = DRA752_GRADIENT_SLOPE,
+			.constant = DRA752_GRADIENT_CONST,
+			.slope_pcb = DRA752_GRADIENT_SLOPE_W_PCB,
+			.constant_pcb = DRA752_GRADIENT_CONST_W_PCB,
 		},
 		{
-		.registers = &dra752_iva_temp_sensor_registers,
-		.ts_data = &dra752_iva_temp_sensor_data,
-		.domain = "iva",
-		.slope = DRA752_GRADIENT_SLOPE,
-		.constant = DRA752_GRADIENT_CONST,
-		.slope_pcb = DRA752_GRADIENT_SLOPE_W_PCB,
-		.constant_pcb = DRA752_GRADIENT_CONST_W_PCB,
+			.registers = &dra752_iva_temp_sensor_registers,
+			.ts_data = &dra752_iva_temp_sensor_data,
+			.domain = "iva",
+			.slope = DRA752_GRADIENT_SLOPE,
+			.constant = DRA752_GRADIENT_CONST,
+			.slope_pcb = DRA752_GRADIENT_SLOPE_W_PCB,
+			.constant_pcb = DRA752_GRADIENT_CONST_W_PCB,
 		},
 	},
 	.sensor_count = 5,

@@ -33,7 +33,8 @@
  */
 #define OSD_VER1_SUPPORT y
 
-enum osd_std_version {
+enum osd_std_version
+{
 	OSD_VER_NONE = 0,
 	OSD_VER1 = 1,
 	OSD_VER2 = 2,
@@ -46,7 +47,8 @@ enum osd_std_version {
  * a place to hang resources associated with a Linux
  * request Q and some default properties.
  */
-struct osd_dev {
+struct osd_dev
+{
 	struct scsi_device *scsi_device;
 	unsigned def_timeout;
 
@@ -56,7 +58,8 @@ struct osd_dev {
 };
 
 /* Unique Identification of an OSD device */
-struct osd_dev_info {
+struct osd_dev_info
+{
 	unsigned systemid_len;
 	u8 systemid[OSD_SYSTEMID_LEN];
 	unsigned osdname_len;
@@ -98,7 +101,7 @@ void osd_dev_fini(struct osd_dev *od);
  * sleep.
  */
 int osd_auto_detect_ver(struct osd_dev *od,
-	void *caps, struct osd_dev_info *odi);
+						void *caps, struct osd_dev_info *odi);
 
 static inline struct request_queue *osd_request_queue(struct osd_dev *od)
 {
@@ -123,9 +126,10 @@ static inline bool osd_dev_is_ver1(struct osd_dev *od)
 }
 
 struct osd_request;
-typedef void (osd_req_done_fn)(struct osd_request *or, void *private);
+typedef void (osd_req_done_fn)(struct osd_request * or , void *private);
 
-struct osd_request {
+struct osd_request
+{
 	struct osd_cdb cdb;
 	struct osd_data_out_integrity_info out_data_integ;
 	struct osd_data_in_integrity_info in_data_integ;
@@ -133,13 +137,15 @@ struct osd_request {
 	struct osd_dev *osd_dev;
 	struct request *request;
 
-	struct _osd_req_data_segment {
+	struct _osd_req_data_segment
+	{
 		void *buff;
 		unsigned alloc_size; /* 0 here means: don't call kfree */
 		unsigned total_bytes;
 	} cdb_cont, set_attr, enc_get_attr, get_attr;
 
-	struct _osd_io_info {
+	struct _osd_io_info
+	{
 		struct bio *bio;
 		u64 total_bytes;
 		u64 residual;
@@ -161,9 +167,9 @@ struct osd_request {
 	int req_errors;
 };
 
-static inline bool osd_req_is_ver1(struct osd_request *or)
+static inline bool osd_req_is_ver1(struct osd_request * or )
 {
-	return osd_dev_is_ver1(or->osd_dev);
+	return osd_dev_is_ver1( or ->osd_dev);
 }
 
 /*
@@ -211,7 +217,8 @@ static inline bool osd_req_is_ver1(struct osd_request *or)
  */
 struct osd_request *osd_start_request(struct osd_dev *od, gfp_t gfp);
 
-enum osd_req_options {
+enum osd_req_options
+{
 	OSD_REQ_FUA = 0x08,	/* Force Unit Access */
 	OSD_REQ_DPO = 0x10,	/* Disable Page Out */
 
@@ -232,8 +239,8 @@ enum osd_req_options {
  * buffers that will receive the returned attributes. Copy's @cap to cdb.
  * Sign the cdb/data with @cap_key.
  */
-int osd_finalize_request(struct osd_request *or,
-	u8 options, const void *cap, const u8 *cap_key);
+int osd_finalize_request(struct osd_request * or ,
+						 u8 options, const void *cap, const u8 *cap_key);
 
 /**
  * osd_execute_request - Execute the request synchronously through block-layer
@@ -242,7 +249,7 @@ int osd_finalize_request(struct osd_request *or,
  *
  * Calls blk_execute_rq to q the command and waits for completion.
  */
-int osd_execute_request(struct osd_request *or);
+int osd_execute_request(struct osd_request * or );
 
 /**
  * osd_execute_request_async - Execute the request without waitting.
@@ -255,8 +262,8 @@ int osd_execute_request(struct osd_request *or);
  * optionally calls @done with @private as parameter. @or->async_error will
  * have the return code
  */
-int osd_execute_request_async(struct osd_request *or,
-	osd_req_done_fn *done, void *private);
+int osd_execute_request_async(struct osd_request * or ,
+							  osd_req_done_fn *done, void *private);
 
 /**
  * osd_req_decode_sense_full - Decode sense information after execution.
@@ -286,7 +293,8 @@ int osd_execute_request_async(struct osd_request *or,
  * The categories are borrowed from the pnfs_osd_errno enum.
  * See comments for translated Linux codes returned by osd_req_decode_sense.
  */
-enum osd_err_priority {
+enum osd_err_priority
+{
 	OSD_ERR_PRI_NO_ERROR	= 0,
 	/* Recoverable, caller should clear_highpage() all pages */
 	OSD_ERR_PRI_CLEAR_PAGES = 1, /* -EFAULT */
@@ -299,16 +307,19 @@ enum osd_err_priority {
 	OSD_ERR_PRI_EIO		= 8, /* -EIO    */
 };
 
-struct osd_sense_info {
+struct osd_sense_info
+{
 	enum osd_err_priority osd_err_pri;
 
 	int key;		/* one of enum scsi_sense_keys */
 	int additional_code ;	/* enum osd_additional_sense_codes */
-	union { /* Sense specific information */
+	union   /* Sense specific information */
+	{
 		u16 sense_info;
 		u16 cdb_field_offset; 	/* scsi_invalid_field_in_cdb */
 	};
-	union { /* Command specific information */
+	union   /* Command specific information */
+	{
 		u64 command_info;
 	};
 
@@ -318,15 +329,15 @@ struct osd_sense_info {
 	struct osd_attr attr;
 };
 
-int osd_req_decode_sense_full(struct osd_request *or,
-	struct osd_sense_info *osi, bool silent,
-	struct osd_obj_id *bad_obj_list, int max_obj,
-	struct osd_attr *bad_attr_list, int max_attr);
+int osd_req_decode_sense_full(struct osd_request * or ,
+							  struct osd_sense_info *osi, bool silent,
+							  struct osd_obj_id *bad_obj_list, int max_obj,
+							  struct osd_attr *bad_attr_list, int max_attr);
 
-static inline int osd_req_decode_sense(struct osd_request *or,
-	struct osd_sense_info *osi)
+static inline int osd_req_decode_sense(struct osd_request * or ,
+									   struct osd_sense_info *osi)
 {
-	return osd_req_decode_sense_full(or, osi, false, NULL, 0, NULL, 0);
+	return osd_req_decode_sense_full( or , osi, false, NULL, 0, NULL, 0);
 }
 
 /**
@@ -336,7 +347,7 @@ static inline int osd_req_decode_sense(struct osd_request *or,
  *
  * Deallocate all osd_request resources (struct req's, BIOs, buffers, etc.)
  */
-void osd_end_request(struct osd_request *or);
+void osd_end_request(struct osd_request * or );
 
 /*
  * CDB Encoding
@@ -347,148 +358,148 @@ void osd_end_request(struct osd_request *or);
 /*
  * Device commands
  */
-void osd_req_set_master_seed_xchg(struct osd_request *or, ...);/* NI */
-void osd_req_set_master_key(struct osd_request *or, ...);/* NI */
+void osd_req_set_master_seed_xchg(struct osd_request * or , ...); /* NI */
+void osd_req_set_master_key(struct osd_request * or , ...); /* NI */
 
-void osd_req_format(struct osd_request *or, u64 tot_capacity);
+void osd_req_format(struct osd_request * or , u64 tot_capacity);
 
 /* list all partitions
  * @list header must be initialized to zero on first run.
  *
  * Call osd_is_obj_list_done() to find if we got the complete list.
  */
-int osd_req_list_dev_partitions(struct osd_request *or,
-	osd_id initial_id, struct osd_obj_id_list *list, unsigned nelem);
+int osd_req_list_dev_partitions(struct osd_request * or ,
+								osd_id initial_id, struct osd_obj_id_list *list, unsigned nelem);
 
-void osd_req_flush_obsd(struct osd_request *or,
-	enum osd_options_flush_scope_values);
+void osd_req_flush_obsd(struct osd_request * or ,
+						enum osd_options_flush_scope_values);
 
-void osd_req_perform_scsi_command(struct osd_request *or,
-	const u8 *cdb, ...);/* NI */
-void osd_req_task_management(struct osd_request *or, ...);/* NI */
+void osd_req_perform_scsi_command(struct osd_request * or ,
+								  const u8 *cdb, ...);/* NI */
+void osd_req_task_management(struct osd_request * or , ...); /* NI */
 
 /*
  * Partition commands
  */
-void osd_req_create_partition(struct osd_request *or, osd_id partition);
-void osd_req_remove_partition(struct osd_request *or, osd_id partition);
+void osd_req_create_partition(struct osd_request * or , osd_id partition);
+void osd_req_remove_partition(struct osd_request * or , osd_id partition);
 
-void osd_req_set_partition_key(struct osd_request *or,
-	osd_id partition, u8 new_key_id[OSD_CRYPTO_KEYID_SIZE],
-	u8 seed[OSD_CRYPTO_SEED_SIZE]);/* NI */
+void osd_req_set_partition_key(struct osd_request * or ,
+							   osd_id partition, u8 new_key_id[OSD_CRYPTO_KEYID_SIZE],
+							   u8 seed[OSD_CRYPTO_SEED_SIZE]);/* NI */
 
 /* list all collections in the partition
  * @list header must be init to zero on first run.
  *
  * Call osd_is_obj_list_done() to find if we got the complete list.
  */
-int osd_req_list_partition_collections(struct osd_request *or,
-	osd_id partition, osd_id initial_id, struct osd_obj_id_list *list,
-	unsigned nelem);
+int osd_req_list_partition_collections(struct osd_request * or ,
+									   osd_id partition, osd_id initial_id, struct osd_obj_id_list *list,
+									   unsigned nelem);
 
 /* list all objects in the partition
  * @list header must be init to zero on first run.
  *
  * Call osd_is_obj_list_done() to find if we got the complete list.
  */
-int osd_req_list_partition_objects(struct osd_request *or,
-	osd_id partition, osd_id initial_id, struct osd_obj_id_list *list,
-	unsigned nelem);
+int osd_req_list_partition_objects(struct osd_request * or ,
+								   osd_id partition, osd_id initial_id, struct osd_obj_id_list *list,
+								   unsigned nelem);
 
-void osd_req_flush_partition(struct osd_request *or,
-	osd_id partition, enum osd_options_flush_scope_values);
+void osd_req_flush_partition(struct osd_request * or ,
+							 osd_id partition, enum osd_options_flush_scope_values);
 
 /*
  * Collection commands
  */
-void osd_req_create_collection(struct osd_request *or,
-	const struct osd_obj_id *);/* NI */
-void osd_req_remove_collection(struct osd_request *or,
-	const struct osd_obj_id *);/* NI */
+void osd_req_create_collection(struct osd_request * or ,
+							   const struct osd_obj_id *);/* NI */
+void osd_req_remove_collection(struct osd_request * or ,
+							   const struct osd_obj_id *);/* NI */
 
 /* list all objects in the collection */
-int osd_req_list_collection_objects(struct osd_request *or,
-	const struct osd_obj_id *, osd_id initial_id,
-	struct osd_obj_id_list *list, unsigned nelem);
+int osd_req_list_collection_objects(struct osd_request * or ,
+									const struct osd_obj_id *, osd_id initial_id,
+									struct osd_obj_id_list *list, unsigned nelem);
 
 /* V2 only filtered list of objects in the collection */
-void osd_req_query(struct osd_request *or, ...);/* NI */
+void osd_req_query(struct osd_request * or , ...); /* NI */
 
-void osd_req_flush_collection(struct osd_request *or,
-	const struct osd_obj_id *, enum osd_options_flush_scope_values);
+void osd_req_flush_collection(struct osd_request * or ,
+							  const struct osd_obj_id *, enum osd_options_flush_scope_values);
 
-void osd_req_get_member_attrs(struct osd_request *or, ...);/* V2-only NI */
-void osd_req_set_member_attrs(struct osd_request *or, ...);/* V2-only NI */
+void osd_req_get_member_attrs(struct osd_request * or , ...); /* V2-only NI */
+void osd_req_set_member_attrs(struct osd_request * or , ...); /* V2-only NI */
 
 /*
  * Object commands
  */
-void osd_req_create_object(struct osd_request *or, struct osd_obj_id *);
-void osd_req_remove_object(struct osd_request *or, struct osd_obj_id *);
+void osd_req_create_object(struct osd_request * or , struct osd_obj_id *);
+void osd_req_remove_object(struct osd_request * or , struct osd_obj_id *);
 
-void osd_req_write(struct osd_request *or,
-	const struct osd_obj_id *obj, u64 offset, struct bio *bio, u64 len);
-int osd_req_write_kern(struct osd_request *or,
-	const struct osd_obj_id *obj, u64 offset, void *buff, u64 len);
-void osd_req_append(struct osd_request *or,
-	const struct osd_obj_id *, struct bio *data_out);/* NI */
-void osd_req_create_write(struct osd_request *or,
-	const struct osd_obj_id *, struct bio *data_out, u64 offset);/* NI */
-void osd_req_clear(struct osd_request *or,
-	const struct osd_obj_id *, u64 offset, u64 len);/* NI */
-void osd_req_punch(struct osd_request *or,
-	const struct osd_obj_id *, u64 offset, u64 len);/* V2-only NI */
+void osd_req_write(struct osd_request * or ,
+				   const struct osd_obj_id *obj, u64 offset, struct bio *bio, u64 len);
+int osd_req_write_kern(struct osd_request * or ,
+					   const struct osd_obj_id *obj, u64 offset, void *buff, u64 len);
+void osd_req_append(struct osd_request * or ,
+					const struct osd_obj_id *, struct bio *data_out);/* NI */
+void osd_req_create_write(struct osd_request * or ,
+						  const struct osd_obj_id *, struct bio *data_out, u64 offset);/* NI */
+void osd_req_clear(struct osd_request * or ,
+				   const struct osd_obj_id *, u64 offset, u64 len);/* NI */
+void osd_req_punch(struct osd_request * or ,
+				   const struct osd_obj_id *, u64 offset, u64 len);/* V2-only NI */
 
-void osd_req_flush_object(struct osd_request *or,
-	const struct osd_obj_id *, enum osd_options_flush_scope_values,
-	/*V2*/ u64 offset, /*V2*/ u64 len);
+void osd_req_flush_object(struct osd_request * or ,
+						  const struct osd_obj_id *, enum osd_options_flush_scope_values,
+						  /*V2*/ u64 offset, /*V2*/ u64 len);
 
-void osd_req_read(struct osd_request *or,
-	const struct osd_obj_id *obj, u64 offset, struct bio *bio, u64 len);
-int osd_req_read_kern(struct osd_request *or,
-	const struct osd_obj_id *obj, u64 offset, void *buff, u64 len);
+void osd_req_read(struct osd_request * or ,
+				  const struct osd_obj_id *obj, u64 offset, struct bio *bio, u64 len);
+int osd_req_read_kern(struct osd_request * or ,
+					  const struct osd_obj_id *obj, u64 offset, void *buff, u64 len);
 
 /* Scatter/Gather write/read commands */
-int osd_req_write_sg(struct osd_request *or,
-	const struct osd_obj_id *obj, struct bio *bio,
-	const struct osd_sg_entry *sglist, unsigned numentries);
-int osd_req_read_sg(struct osd_request *or,
-	const struct osd_obj_id *obj, struct bio *bio,
-	const struct osd_sg_entry *sglist, unsigned numentries);
-int osd_req_write_sg_kern(struct osd_request *or,
-	const struct osd_obj_id *obj, void **buff,
-	const struct osd_sg_entry *sglist, unsigned numentries);
-int osd_req_read_sg_kern(struct osd_request *or,
-	const struct osd_obj_id *obj, void **buff,
-	const struct osd_sg_entry *sglist, unsigned numentries);
+int osd_req_write_sg(struct osd_request * or ,
+					 const struct osd_obj_id *obj, struct bio *bio,
+					 const struct osd_sg_entry *sglist, unsigned numentries);
+int osd_req_read_sg(struct osd_request * or ,
+					const struct osd_obj_id *obj, struct bio *bio,
+					const struct osd_sg_entry *sglist, unsigned numentries);
+int osd_req_write_sg_kern(struct osd_request * or ,
+						  const struct osd_obj_id *obj, void **buff,
+						  const struct osd_sg_entry *sglist, unsigned numentries);
+int osd_req_read_sg_kern(struct osd_request * or ,
+						 const struct osd_obj_id *obj, void **buff,
+						 const struct osd_sg_entry *sglist, unsigned numentries);
 
 /*
  * Root/Partition/Collection/Object Attributes commands
  */
 
 /* get before set */
-void osd_req_get_attributes(struct osd_request *or, const struct osd_obj_id *);
+void osd_req_get_attributes(struct osd_request * or , const struct osd_obj_id *);
 
 /* set before get */
-void osd_req_set_attributes(struct osd_request *or, const struct osd_obj_id *);
+void osd_req_set_attributes(struct osd_request * or , const struct osd_obj_id *);
 
 /*
  * Attributes appended to most commands
  */
 
 /* Attributes List mode (or V2 CDB) */
-  /*
-   * TODO: In ver2 if at finalize time only one attr was set and no gets,
-   * then the Attributes CDB mode is used automatically to save IO.
-   */
+/*
+ * TODO: In ver2 if at finalize time only one attr was set and no gets,
+ * then the Attributes CDB mode is used automatically to save IO.
+ */
 
 /* set a list of attributes. */
-int osd_req_add_set_attr_list(struct osd_request *or,
-	const struct osd_attr *, unsigned nelem);
+int osd_req_add_set_attr_list(struct osd_request * or ,
+							  const struct osd_attr *, unsigned nelem);
 
 /* get a list of attributes */
-int osd_req_add_get_attr_list(struct osd_request *or,
-	const struct osd_attr *, unsigned nelem);
+int osd_req_add_get_attr_list(struct osd_request * or ,
+							  const struct osd_attr *, unsigned nelem);
 
 /*
  * Attributes list decoding
@@ -496,8 +507,8 @@ int osd_req_add_get_attr_list(struct osd_request *or,
  * It is called in a loop to decode the returned get_attr
  * (see osd_add_get_attr)
  */
-int osd_req_decode_get_attr_list(struct osd_request *or,
-	struct osd_attr *, int *nelem, void **iterator);
+int osd_req_decode_get_attr_list(struct osd_request * or ,
+								 struct osd_attr *, int *nelem, void **iterator);
 
 /* Attributes Page mode */
 
@@ -508,8 +519,8 @@ int osd_req_decode_get_attr_list(struct osd_request *or,
  * @attr_page_data shall stay valid until end of execution.
  * See osd_attributes.h for common page structures
  */
-int osd_req_add_get_attr_page(struct osd_request *or,
-	u32 page_id, void *attr_page_data, unsigned max_page_len,
-	const struct osd_attr *set_one);
+int osd_req_add_get_attr_page(struct osd_request * or ,
+							  u32 page_id, void *attr_page_data, unsigned max_page_len,
+							  const struct osd_attr *set_one);
 
 #endif /* __OSD_LIB_H__ */

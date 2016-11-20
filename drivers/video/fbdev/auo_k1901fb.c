@@ -87,7 +87,7 @@
  * res[3-0] to bits 5-2
  */
 #define AUOK1901_INIT_RESOLUTION(_res)	(((_res & (1 << 4)) << 6) \
-					 | ((_res & 0xf) << 2))
+		| ((_res & 0xf) << 2))
 
 /*
  * portrait / landscape orientation in AUOK1901_CMD_DMA_START
@@ -122,7 +122,7 @@ static void auok1901_init(struct auok190xfb_par *par)
 }
 
 static void auok1901_update_region(struct auok190xfb_par *par, int mode,
-						u16 y1, u16 y2)
+								   u16 y1, u16 y2)
 {
 	struct device *dev = par->info->device;
 	unsigned char *buf = (unsigned char *)par->info->screen_base;
@@ -139,7 +139,7 @@ static void auok1901_update_region(struct auok190xfb_par *par, int mode,
 	y2 &= 0xfffe;
 
 	dev_dbg(dev, "update (x,y,w,h,mode)=(%d,%d,%d,%d,%d)\n",
-		1, y1+1, xres, y2-y1, mode);
+			1, y1 + 1, xres, y2 - y1, mode);
 
 	/* K1901: first transfer the region data */
 	args[0] = AUOK1901_DMA_ROTATE90(par->rotation) | 1;
@@ -148,8 +148,8 @@ static void auok1901_update_region(struct auok190xfb_par *par, int mode,
 	args[3] = y2 - y1;
 	buf += y1 * line_length;
 	auok190x_send_cmdargs_pixels_nowait(par, AUOK1901_CMD_DMA_START, 4,
-					    args, ((y2 - y1) * line_length)/2,
-					    (u16 *) buf);
+										args, ((y2 - y1) * line_length) / 2,
+										(u16 *) buf);
 	auok190x_send_command_nowait(par, AUOK190X_CMD_DATA_STOP);
 
 	/* K1901: second tell the controller to update the region with mode */
@@ -169,20 +169,25 @@ static void auok1901_update_region(struct auok190xfb_par *par, int mode,
 }
 
 static void auok1901fb_dpy_update_pages(struct auok190xfb_par *par,
-						u16 y1, u16 y2)
+										u16 y1, u16 y2)
 {
 	int mode;
 
-	if (par->update_mode < 0) {
+	if (par->update_mode < 0)
+	{
 		mode = AUOK190X_UPDATE_MODE(1);
 		par->last_mode = -1;
-	} else {
+	}
+	else
+	{
 		mode = AUOK190X_UPDATE_MODE(par->update_mode);
 		par->last_mode = par->update_mode;
 	}
 
 	if (par->flash)
+	{
 		mode |= AUOK190X_UPDATE_NONFLASH;
+	}
 
 	auok1901_update_region(par, mode, y1, y2);
 }
@@ -196,16 +201,21 @@ static void auok1901fb_dpy_update(struct auok190xfb_par *par)
 	 */
 	par->board->wait_for_rdy(par);
 
-	if (par->update_mode < 0) {
+	if (par->update_mode < 0)
+	{
 		mode = AUOK190X_UPDATE_MODE(0);
 		par->last_mode = -1;
-	} else {
+	}
+	else
+	{
 		mode = AUOK190X_UPDATE_MODE(par->update_mode);
 		par->last_mode = par->update_mode;
 	}
 
 	if (par->flash)
+	{
 		mode |= AUOK190X_UPDATE_NONFLASH;
+	}
 
 	auok1901_update_region(par, mode, 0, par->info->var.yres);
 	par->update_cnt = 0;
@@ -223,8 +233,11 @@ static int auok1901fb_probe(struct platform_device *pdev)
 
 	/* pick up board specific routines */
 	board = pdev->dev.platform_data;
+
 	if (!board)
+	{
 		return -EINVAL;
+	}
 
 	/* fill temporary init struct for common init */
 	init.id = "auo_k1901fb";
@@ -242,7 +255,8 @@ static int auok1901fb_remove(struct platform_device *pdev)
 	return auok190x_common_remove(pdev);
 }
 
-static struct platform_driver auok1901fb_driver = {
+static struct platform_driver auok1901fb_driver =
+{
 	.probe	= auok1901fb_probe,
 	.remove = auok1901fb_remove,
 	.driver	= {

@@ -42,7 +42,8 @@
 #define	CAM_LUN_WILDCARD ((u_int)~0)
 
 /* CAM Status field values */
-typedef enum {
+typedef enum
+{
 	CAM_REQ_INPROG,		/* CCB request is in progress */
 	CAM_REQ_CMP,		/* CCB request completed without error */
 	CAM_REQ_ABORTED,	/* CCB request aborted by the host */
@@ -88,7 +89,8 @@ typedef enum {
 /*
  * Definitions for the asynchronous callback CCB fields.
  */
-typedef enum {
+typedef enum
+{
 	AC_GETDEV_CHANGED	= 0x800,/* Getdev info might have changed */
 	AC_INQ_CHANGED		= 0x400,/* Inquiry info might have changed */
 	AC_TRANSFER_NEG		= 0x200,/* New transfer settings in effect */
@@ -102,7 +104,8 @@ typedef enum {
 	AC_BUS_RESET		= 0x001 /* A SCSI bus reset occurred */
 } ac_code;
 
-typedef enum {
+typedef enum
+{
 	CAM_DIR_IN		= DMA_FROM_DEVICE,
 	CAM_DIR_OUT		= DMA_TO_DEVICE,
 	CAM_DIR_NONE		= DMA_NONE,

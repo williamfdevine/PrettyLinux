@@ -63,34 +63,37 @@ MODULE_FIRMWARE("ea/indigo_djx_dsp.fw");
 #define FW_361_LOADER		0
 #define FW_INDIGO_DJX_DSP	1
 
-static const struct firmware card_fw[] = {
+static const struct firmware card_fw[] =
+{
 	{0, "loader_dsp.fw"},
 	{0, "indigo_djx_dsp.fw"}
 };
 
-static const struct pci_device_id snd_echo_ids[] = {
+static const struct pci_device_id snd_echo_ids[] =
+{
 	{0x1057, 0x3410, 0xECC0, 0x00E0, 0, 0, 0},	/* Indigo DJx*/
 	{0,}
 };
 
-static struct snd_pcm_hardware pcm_hardware_skel = {
+static struct snd_pcm_hardware pcm_hardware_skel =
+{
 	.info = SNDRV_PCM_INFO_MMAP |
-		SNDRV_PCM_INFO_INTERLEAVED |
-		SNDRV_PCM_INFO_BLOCK_TRANSFER |
-		SNDRV_PCM_INFO_MMAP_VALID |
-		SNDRV_PCM_INFO_PAUSE |
-		SNDRV_PCM_INFO_SYNC_START,
+	SNDRV_PCM_INFO_INTERLEAVED |
+	SNDRV_PCM_INFO_BLOCK_TRANSFER |
+	SNDRV_PCM_INFO_MMAP_VALID |
+	SNDRV_PCM_INFO_PAUSE |
+	SNDRV_PCM_INFO_SYNC_START,
 	.formats =	SNDRV_PCM_FMTBIT_U8 |
-			SNDRV_PCM_FMTBIT_S16_LE |
-			SNDRV_PCM_FMTBIT_S24_3LE |
-			SNDRV_PCM_FMTBIT_S32_LE |
-			SNDRV_PCM_FMTBIT_S32_BE,
+	SNDRV_PCM_FMTBIT_S16_LE |
+	SNDRV_PCM_FMTBIT_S24_3LE |
+	SNDRV_PCM_FMTBIT_S32_LE |
+	SNDRV_PCM_FMTBIT_S32_BE,
 	.rates = 	SNDRV_PCM_RATE_32000 |
-			SNDRV_PCM_RATE_44100 |
-			SNDRV_PCM_RATE_48000 |
-			SNDRV_PCM_RATE_64000 |
-			SNDRV_PCM_RATE_88200 |
-			SNDRV_PCM_RATE_96000,
+	SNDRV_PCM_RATE_44100 |
+	SNDRV_PCM_RATE_48000 |
+	SNDRV_PCM_RATE_64000 |
+	SNDRV_PCM_RATE_88200 |
+	SNDRV_PCM_RATE_96000,
 	.rate_min = 32000,
 	.rate_max = 96000,
 	.channels_min = 1,

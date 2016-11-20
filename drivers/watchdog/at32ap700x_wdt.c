@@ -42,13 +42,13 @@
 static int timeout =  TIMEOUT_DEFAULT;
 module_param(timeout, int, 0);
 MODULE_PARM_DESC(timeout,
-		"Timeout value. Limited to be 1 or 2 seconds. (default="
-		__MODULE_STRING(TIMEOUT_DEFAULT) ")");
+				 "Timeout value. Limited to be 1 or 2 seconds. (default="
+				 __MODULE_STRING(TIMEOUT_DEFAULT) ")");
 
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default="
-		__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 /* Watchdog registers and write/read macro */
 #define WDT_CTRL		0x00
@@ -73,7 +73,8 @@ MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default="
 #define wdt_writel(dev, reg, value)			\
 	__raw_writel((value), (dev)->regs + WDT_##reg)
 
-struct wdt_at32ap700x {
+struct wdt_at32ap700x
+{
 	void __iomem		*regs;
 	spinlock_t		io_lock;
 	int			timeout;
@@ -109,11 +110,11 @@ static inline void at32_wdt_start(void)
 
 	spin_lock(&wdt->io_lock);
 	wdt_writel(wdt, CTRL, WDT_BIT(CTRL_EN)
-			| WDT_BF(CTRL_PSEL, psel)
-			| WDT_BF(CTRL_KEY, 0x55));
+			   | WDT_BF(CTRL_PSEL, psel)
+			   | WDT_BF(CTRL_KEY, 0x55));
 	wdt_writel(wdt, CTRL, WDT_BIT(CTRL_EN)
-			| WDT_BF(CTRL_PSEL, psel)
-			| WDT_BF(CTRL_KEY, 0xaa));
+			   | WDT_BF(CTRL_PSEL, psel)
+			   | WDT_BF(CTRL_KEY, 0xaa));
 	spin_unlock(&wdt->io_lock);
 }
 
@@ -133,7 +134,9 @@ static inline void at32_wdt_pat(void)
 static int at32_wdt_open(struct inode *inode, struct file *file)
 {
 	if (test_and_set_bit(1, &wdt->users))
+	{
 		return -EBUSY;
+	}
 
 	at32_wdt_start();
 	return nonseekable_open(inode, file);
@@ -144,13 +147,17 @@ static int at32_wdt_open(struct inode *inode, struct file *file)
  */
 static int at32_wdt_close(struct inode *inode, struct file *file)
 {
-	if (expect_release == 42) {
+	if (expect_release == 42)
+	{
 		at32_wdt_stop();
-	} else {
+	}
+	else
+	{
 		dev_dbg(wdt->miscdev.parent,
-			"unexpected close, not stopping watchdog!\n");
+				"unexpected close, not stopping watchdog!\n");
 		at32_wdt_pat();
 	}
+
 	clear_bit(1, &wdt->users);
 	expect_release = 0;
 	return 0;
@@ -166,7 +173,9 @@ static int at32_wdt_settimeout(int time)
 	 * 2 ^ 16 allowing up to 2 seconds timeout.
 	 */
 	if ((time < TIMEOUT_MIN) || (time > TIMEOUT_MAX))
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Set new watchdog time. It will be used when at32_wdt_start() is
@@ -186,90 +195,121 @@ static int at32_wdt_get_status(void)
 
 	rcause = wdt_readl(wdt, RCAUSE);
 
-	switch (rcause) {
-	case WDT_BIT(RCAUSE_EXT):
-		status = WDIOF_EXTERN1;
-		break;
-	case WDT_BIT(RCAUSE_WDT):
-		status = WDIOF_CARDRESET;
-		break;
-	case WDT_BIT(RCAUSE_POR):  /* fall through */
-	case WDT_BIT(RCAUSE_JTAG): /* fall through */
-	case WDT_BIT(RCAUSE_SERP): /* fall through */
-	default:
-		break;
+	switch (rcause)
+	{
+		case WDT_BIT(RCAUSE_EXT):
+			status = WDIOF_EXTERN1;
+			break;
+
+		case WDT_BIT(RCAUSE_WDT):
+			status = WDIOF_CARDRESET;
+			break;
+
+		case WDT_BIT(RCAUSE_POR):  /* fall through */
+		case WDT_BIT(RCAUSE_JTAG): /* fall through */
+		case WDT_BIT(RCAUSE_SERP): /* fall through */
+		default:
+			break;
 	}
 
 	return status;
 }
 
-static const struct watchdog_info at32_wdt_info = {
+static const struct watchdog_info at32_wdt_info =
+{
 	.identity	= "at32ap700x watchdog",
 	.options	= WDIOF_SETTIMEOUT |
-			  WDIOF_KEEPALIVEPING |
-			  WDIOF_MAGICCLOSE,
+	WDIOF_KEEPALIVEPING |
+	WDIOF_MAGICCLOSE,
 };
 
 /*
  * Handle commands from user-space.
  */
 static long at32_wdt_ioctl(struct file *file,
-				unsigned int cmd, unsigned long arg)
+						   unsigned int cmd, unsigned long arg)
 {
 	int ret = -ENOTTY;
 	int time;
 	void __user *argp = (void __user *)arg;
 	int __user *p = argp;
 
-	switch (cmd) {
-	case WDIOC_GETSUPPORT:
-		ret = copy_to_user(argp, &at32_wdt_info,
-				sizeof(at32_wdt_info)) ? -EFAULT : 0;
-		break;
-	case WDIOC_GETSTATUS:
-		ret = put_user(0, p);
-		break;
-	case WDIOC_GETBOOTSTATUS:
-		ret = put_user(wdt->boot_status, p);
-		break;
-	case WDIOC_SETOPTIONS:
-		ret = get_user(time, p);
-		if (ret)
+	switch (cmd)
+	{
+		case WDIOC_GETSUPPORT:
+			ret = copy_to_user(argp, &at32_wdt_info,
+							   sizeof(at32_wdt_info)) ? -EFAULT : 0;
 			break;
-		if (time & WDIOS_DISABLECARD)
-			at32_wdt_stop();
-		if (time & WDIOS_ENABLECARD)
+
+		case WDIOC_GETSTATUS:
+			ret = put_user(0, p);
+			break;
+
+		case WDIOC_GETBOOTSTATUS:
+			ret = put_user(wdt->boot_status, p);
+			break;
+
+		case WDIOC_SETOPTIONS:
+			ret = get_user(time, p);
+
+			if (ret)
+			{
+				break;
+			}
+
+			if (time & WDIOS_DISABLECARD)
+			{
+				at32_wdt_stop();
+			}
+
+			if (time & WDIOS_ENABLECARD)
+			{
+				at32_wdt_start();
+			}
+
+			ret = 0;
+			break;
+
+		case WDIOC_KEEPALIVE:
+			at32_wdt_pat();
+			ret = 0;
+			break;
+
+		case WDIOC_SETTIMEOUT:
+			ret = get_user(time, p);
+
+			if (ret)
+			{
+				break;
+			}
+
+			ret = at32_wdt_settimeout(time);
+
+			if (ret)
+			{
+				break;
+			}
+
+			/* Enable new time value */
 			at32_wdt_start();
-		ret = 0;
-		break;
-	case WDIOC_KEEPALIVE:
-		at32_wdt_pat();
-		ret = 0;
-		break;
-	case WDIOC_SETTIMEOUT:
-		ret = get_user(time, p);
-		if (ret)
-			break;
-		ret = at32_wdt_settimeout(time);
-		if (ret)
-			break;
-		/* Enable new time value */
-		at32_wdt_start();
+
 		/* fall through */
-	case WDIOC_GETTIMEOUT:
-		ret = put_user(wdt->timeout, p);
-		break;
+		case WDIOC_GETTIMEOUT:
+			ret = put_user(wdt->timeout, p);
+			break;
 	}
 
 	return ret;
 }
 
 static ssize_t at32_wdt_write(struct file *file, const char __user *data,
-				size_t len, loff_t *ppos)
+							  size_t len, loff_t *ppos)
 {
 	/* See if we got the magic character 'V' and reload the timer */
-	if (len) {
-		if (!nowayout) {
+	if (len)
+	{
+		if (!nowayout)
+		{
 			size_t i;
 
 			/*
@@ -282,21 +322,31 @@ static ssize_t at32_wdt_write(struct file *file, const char __user *data,
 			 * scan to see whether or not we got the magic
 			 * character
 			 */
-			for (i = 0; i != len; i++) {
+			for (i = 0; i != len; i++)
+			{
 				char c;
+
 				if (get_user(c, data + i))
+				{
 					return -EFAULT;
+				}
+
 				if (c == 'V')
+				{
 					expect_release = 42;
+				}
 			}
 		}
+
 		/* someone wrote to us, we should pat the watchdog */
 		at32_wdt_pat();
 	}
+
 	return len;
 }
 
-static const struct file_operations at32_wdt_fops = {
+static const struct file_operations at32_wdt_fops =
+{
 	.owner		= THIS_MODULE,
 	.llseek		= no_llseek,
 	.unlocked_ioctl	= at32_wdt_ioctl,
@@ -310,24 +360,32 @@ static int __init at32_wdt_probe(struct platform_device *pdev)
 	struct resource	*regs;
 	int ret;
 
-	if (wdt) {
+	if (wdt)
+	{
 		dev_dbg(&pdev->dev, "only 1 wdt instance supported.\n");
 		return -EBUSY;
 	}
 
 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!regs) {
+
+	if (!regs)
+	{
 		dev_dbg(&pdev->dev, "missing mmio resource\n");
 		return -ENXIO;
 	}
 
 	wdt = devm_kzalloc(&pdev->dev, sizeof(struct wdt_at32ap700x),
-			GFP_KERNEL);
+					   GFP_KERNEL);
+
 	if (!wdt)
+	{
 		return -ENOMEM;
+	}
 
 	wdt->regs = devm_ioremap(&pdev->dev, regs->start, resource_size(regs));
-	if (!wdt->regs) {
+
+	if (!wdt->regs)
+	{
 		ret = -ENOMEM;
 		dev_dbg(&pdev->dev, "could not map I/O memory\n");
 		goto err_free;
@@ -337,12 +395,15 @@ static int __init at32_wdt_probe(struct platform_device *pdev)
 	wdt->boot_status = at32_wdt_get_status();
 
 	/* Work-around for watchdog silicon errata. */
-	if (wdt->boot_status & WDIOF_CARDRESET) {
+	if (wdt->boot_status & WDIOF_CARDRESET)
+	{
 		dev_info(&pdev->dev, "CPU must be reset with external "
-				"reset or POR due to silicon errata.\n");
+				 "reset or POR due to silicon errata.\n");
 		ret = -EIO;
 		goto err_free;
-	} else {
+	}
+	else
+	{
 		wdt->users = 0;
 	}
 
@@ -353,22 +414,25 @@ static int __init at32_wdt_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, wdt);
 
-	if (at32_wdt_settimeout(timeout)) {
+	if (at32_wdt_settimeout(timeout))
+	{
 		at32_wdt_settimeout(TIMEOUT_DEFAULT);
 		dev_dbg(&pdev->dev,
-			"default timeout invalid, set to %d sec.\n",
-			TIMEOUT_DEFAULT);
+				"default timeout invalid, set to %d sec.\n",
+				TIMEOUT_DEFAULT);
 	}
 
 	ret = misc_register(&wdt->miscdev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_dbg(&pdev->dev, "failed to register wdt miscdev\n");
 		goto err_free;
 	}
 
 	dev_info(&pdev->dev,
-		"AT32AP700X WDT at 0x%p, timeout %d sec (nowayout=%d)\n",
-		wdt->regs, wdt->timeout, nowayout);
+			 "AT32AP700X WDT at 0x%p, timeout %d sec (nowayout=%d)\n",
+			 wdt->regs, wdt->timeout, nowayout);
 
 	return 0;
 
@@ -379,14 +443,18 @@ err_free:
 
 static int __exit at32_wdt_remove(struct platform_device *pdev)
 {
-	if (wdt && platform_get_drvdata(pdev) == wdt) {
+	if (wdt && platform_get_drvdata(pdev) == wdt)
+	{
 		/* Stop the timer before we leave */
 		if (!nowayout)
+		{
 			at32_wdt_stop();
+		}
 
 		misc_deregister(&wdt->miscdev);
 		wdt = NULL;
 	}
+
 	return 0;
 }
 
@@ -405,7 +473,10 @@ static int at32_wdt_suspend(struct platform_device *pdev, pm_message_t message)
 static int at32_wdt_resume(struct platform_device *pdev)
 {
 	if (wdt->users)
+	{
 		at32_wdt_start();
+	}
+
 	return 0;
 }
 #else
@@ -416,7 +487,8 @@ static int at32_wdt_resume(struct platform_device *pdev)
 /* work with hotplug and coldplug */
 MODULE_ALIAS("platform:at32_wdt");
 
-static struct platform_driver at32_wdt_driver = {
+static struct platform_driver at32_wdt_driver =
+{
 	.remove		= __exit_p(at32_wdt_remove),
 	.suspend	= at32_wdt_suspend,
 	.resume		= at32_wdt_resume,

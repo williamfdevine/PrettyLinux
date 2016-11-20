@@ -24,7 +24,8 @@
 
 #define ICS43432_FORMATS (SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S32)
 
-static struct snd_soc_dai_driver ics43432_dai = {
+static struct snd_soc_dai_driver ics43432_dai =
+{
 	.name = "ics43432-hifi",
 	.capture = {
 		.stream_name = "Capture",
@@ -37,13 +38,14 @@ static struct snd_soc_dai_driver ics43432_dai = {
 	},
 };
 
-static struct snd_soc_codec_driver ics43432_codec_driver = {
+static struct snd_soc_codec_driver ics43432_codec_driver =
+{
 };
 
 static int ics43432_probe(struct platform_device *pdev)
 {
 	return snd_soc_register_codec(&pdev->dev, &ics43432_codec_driver,
-			&ics43432_dai, 1);
+								  &ics43432_dai, 1);
 }
 
 static int ics43432_remove(struct platform_device *pdev)
@@ -53,14 +55,16 @@ static int ics43432_remove(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id ics43432_ids[] = {
+static const struct of_device_id ics43432_ids[] =
+{
 	{ .compatible = "invensense,ics43432", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, ics43432_ids);
 #endif
 
-static struct platform_driver ics43432_driver = {
+static struct platform_driver ics43432_driver =
+{
 	.driver = {
 		.name = "ics43432",
 		.of_match_table = of_match_ptr(ics43432_ids),

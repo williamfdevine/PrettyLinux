@@ -60,12 +60,15 @@ static void mpu_port(struct net_device *dev, int c, dma_addr_t x)
 
 	u32 v = (u32) (c) | (u32) (x);
 
-	if (lp->options & OPT_MPU_16BIT) {
+	if (lp->options & OPT_MPU_16BIT)
+	{
 		writew(v & 0xffff, lp->mpu_port);
 		wmb();  /* order writes to MPU port */
 		udelay(1);
 		writew(v >> 16, lp->mpu_port);
-	} else {
+	}
+	else
+	{
 		writel(v, lp->mpu_port);
 		wmb();  /* order writes to MPU port */
 		udelay(1);
@@ -88,20 +91,34 @@ static int sni_82596_probe(struct platform_device *dev)
 	ca = platform_get_resource(dev, IORESOURCE_MEM, 1);
 	options = platform_get_resource(dev, 0, 0);
 	idprom = platform_get_resource(dev, IORESOURCE_MEM, 2);
+
 	if (!res || !ca || !options || !idprom)
+	{
 		return -ENODEV;
+	}
+
 	mpu_addr = ioremap_nocache(res->start, 4);
+
 	if (!mpu_addr)
+	{
 		return -ENOMEM;
+	}
+
 	ca_addr = ioremap_nocache(ca->start, 4);
+
 	if (!ca_addr)
+	{
 		goto probe_failed_free_mpu;
+	}
 
 	printk(KERN_INFO "Found i82596 at 0x%x\n", res->start);
 
 	netdevice = alloc_etherdev(sizeof(struct i596_private));
+
 	if (!netdevice)
+	{
 		goto probe_failed_free_ca;
+	}
 
 	SET_NETDEV_DEV(netdevice, &dev->dev);
 	platform_set_drvdata (dev, netdevice);
@@ -110,8 +127,11 @@ static int sni_82596_probe(struct platform_device *dev)
 	netdevice->irq = platform_get_irq(dev, 0);
 
 	eth_addr = ioremap_nocache(idprom->start, 0x10);
+
 	if (!eth_addr)
+	{
 		goto probe_failed;
+	}
 
 	/* someone seems to like messed up stuff */
 	netdevice->dev_addr[0] = readb(eth_addr + 0x0b);
@@ -122,9 +142,10 @@ static int sni_82596_probe(struct platform_device *dev)
 	netdevice->dev_addr[5] = readb(eth_addr + 0x06);
 	iounmap(eth_addr);
 
-	if (!netdevice->irq) {
+	if (!netdevice->irq)
+	{
 		printk(KERN_ERR "%s: IRQ not found for i82596 at 0x%lx\n",
-			__FILE__, netdevice->base_addr);
+			   __FILE__, netdevice->base_addr);
 		goto probe_failed;
 	}
 
@@ -134,8 +155,11 @@ static int sni_82596_probe(struct platform_device *dev)
 	lp->mpu_port = mpu_addr;
 
 	retval = i82596_probe(netdevice);
+
 	if (retval == 0)
+	{
 		return 0;
+	}
 
 probe_failed:
 	free_netdev(netdevice);
@@ -153,14 +177,15 @@ static int sni_82596_driver_remove(struct platform_device *pdev)
 
 	unregister_netdev(dev);
 	DMA_FREE(dev->dev.parent, sizeof(struct i596_private),
-		 lp->dma, lp->dma_addr);
+			 lp->dma, lp->dma_addr);
 	iounmap(lp->ca);
 	iounmap(lp->mpu_port);
 	free_netdev (dev);
 	return 0;
 }
 
-static struct platform_driver sni_82596_driver = {
+static struct platform_driver sni_82596_driver =
+{
 	.probe	= sni_82596_probe,
 	.remove	= sni_82596_driver_remove,
 	.driver	= {

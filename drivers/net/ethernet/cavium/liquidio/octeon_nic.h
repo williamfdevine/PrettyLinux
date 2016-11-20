@@ -37,7 +37,8 @@ typedef void (*octnic_ctrl_pkt_cb_fn_t) (void *);
 /* Structure of control information passed by the NIC module to the OSI
  * layer when sending control commands to Octeon device software.
  */
-struct octnic_ctrl_pkt {
+struct octnic_ctrl_pkt
+{
 	/** Command to be passed to the Octeon device software. */
 	union octnet_cmd ncmd;
 
@@ -72,7 +73,8 @@ struct octnic_ctrl_pkt {
 /** Structure of data information passed by the NIC module to the OSI
  * layer when forwarding data to Octeon device software.
  */
-struct octnic_data_pkt {
+struct octnic_data_pkt
+{
 	/** Pointer to information maintained by NIC module for this packet. The
 	 *  OSI layer passes this as-is to the driver.
 	 */
@@ -95,17 +97,20 @@ struct octnic_data_pkt {
 /** Structure passed by NIC module to OSI layer to prepare a command to send
  * network data to Octeon.
  */
-union octnic_cmd_setup {
-	struct {
-		u32 iq_no:8;
-		u32 gather:1;
-		u32 timestamp:1;
-		u32 ip_csum:1;
-		u32 transport_csum:1;
-		u32 tnl_csum:1;
-		u32 rsvd:19;
+union octnic_cmd_setup
+{
+	struct
+	{
+		u32 iq_no: 8;
+		u32 gather: 1;
+		u32 timestamp: 1;
+		u32 ip_csum: 1;
+		u32 transport_csum: 1;
+		u32 tnl_csum: 1;
+		u32 rsvd: 19;
 
-		union {
+		union
+		{
 			u32 datasize;
 			u32 gatherptrs;
 		} u;
@@ -118,13 +123,13 @@ union octnic_cmd_setup {
 static inline int octnet_iq_is_full(struct octeon_device *oct, u32 q_no)
 {
 	return ((u32)atomic_read(&oct->instr_queue[q_no]->instr_pending)
-		>= (oct->instr_queue[q_no]->max_count - 2));
+			>= (oct->instr_queue[q_no]->max_count - 2));
 }
 
 static inline void
 octnet_prepare_pci_cmd_o2(struct octeon_device *oct,
-			  union octeon_instr_64B *cmd,
-			  union octnic_cmd_setup *setup, u32 tag)
+						  union octeon_instr_64B *cmd,
+						  union octnic_cmd_setup *setup, u32 tag)
 {
 	struct octeon_instr_ih2 *ih2;
 	struct octeon_instr_irh *irh;
@@ -146,16 +151,23 @@ octnet_prepare_pci_cmd_o2(struct octeon_device *oct,
 	port = (int)oct->instr_queue[setup->s.iq_no]->txpciq.s.port;
 
 	if (tag)
+	{
 		ih2->tag = tag;
+	}
 	else
+	{
 		ih2->tag = LIO_DATA(port);
+	}
 
 	ih2->raw = 1;
 	ih2->qos = (port & 3) + 4;	/* map qos based on interface */
 
-	if (!setup->s.gather) {
+	if (!setup->s.gather)
+	{
 		ih2->dlengsz = setup->s.u.datasize;
-	} else {
+	}
+	else
+	{
 		ih2->gather = 1;
 		ih2->dlengsz = setup->s.u.gatherptrs;
 	}
@@ -177,8 +189,8 @@ octnet_prepare_pci_cmd_o2(struct octeon_device *oct,
 
 static inline void
 octnet_prepare_pci_cmd_o3(struct octeon_device *oct,
-			  union octeon_instr_64B *cmd,
-			  union octnic_cmd_setup *setup, u32 tag)
+						  union octeon_instr_64B *cmd,
+						  union octnic_cmd_setup *setup, u32 tag)
 {
 	struct octeon_instr_irh *irh;
 	struct octeon_instr_ih3     *ih3;
@@ -198,9 +210,12 @@ octnet_prepare_pci_cmd_o3(struct octeon_device *oct,
 	/*PKI IH*/
 	ih3->fsz = LIO_PCICMD_O3;
 
-	if (!setup->s.gather) {
+	if (!setup->s.gather)
+	{
 		ih3->dlengsz = setup->s.u.datasize;
-	} else {
+	}
+	else
+	{
 		ih3->gather = 1;
 		ih3->dlengsz = setup->s.u.gatherptrs;
 	}
@@ -214,9 +229,13 @@ octnet_prepare_pci_cmd_o3(struct octeon_device *oct,
 	port = (int)oct->instr_queue[setup->s.iq_no]->txpciq.s.port;
 
 	if (tag)
+	{
 		pki_ih3->tag = tag;
+	}
 	else
+	{
 		pki_ih3->tag     = LIO_DATA(port);
+	}
 
 	pki_ih3->tagtype = ORDERED_TAG;
 	pki_ih3->qpg     = oct->instr_queue[setup->s.iq_no]->txpciq.s.qpg;
@@ -247,12 +266,16 @@ octnet_prepare_pci_cmd_o3(struct octeon_device *oct,
  */
 static inline void
 octnet_prepare_pci_cmd(struct octeon_device *oct, union octeon_instr_64B *cmd,
-		       union octnic_cmd_setup *setup, u32 tag)
+					   union octnic_cmd_setup *setup, u32 tag)
 {
 	if (OCTEON_CN6XXX(oct))
+	{
 		octnet_prepare_pci_cmd_o2(oct, cmd, setup, tag);
+	}
 	else
+	{
 		octnet_prepare_pci_cmd_o3(oct, cmd, setup, tag);
+	}
 }
 
 /** Allocate and a soft command with space for a response immediately following
@@ -267,8 +290,8 @@ octnet_prepare_pci_cmd(struct octeon_device *oct, union octeon_instr_64B *cmd,
  */
 void *
 octeon_alloc_soft_command_resp(struct octeon_device    *oct,
-			       union octeon_instr_64B *cmd,
-			       u32		       rdatasize);
+							   union octeon_instr_64B *cmd,
+							   u32		       rdatasize);
 
 /** Send a NIC data packet to the device
  * @param oct - octeon device pointer
@@ -278,7 +301,7 @@ octeon_alloc_soft_command_resp(struct octeon_device    *oct,
  * queue should be stopped, and IQ_SEND_OK if it sent okay.
  */
 int octnet_send_nic_data_pkt(struct octeon_device *oct,
-			     struct octnic_data_pkt *ndata);
+							 struct octnic_data_pkt *ndata);
 
 /** Send a NIC control packet to the device
  * @param oct - octeon device pointer
@@ -288,6 +311,6 @@ int octnet_send_nic_data_pkt(struct octeon_device *oct,
  */
 int
 octnet_send_nic_ctrl_pkt(struct octeon_device *oct,
-			 struct octnic_ctrl_pkt *nctrl);
+						 struct octnic_ctrl_pkt *nctrl);
 
 #endif

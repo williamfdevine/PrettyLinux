@@ -15,7 +15,8 @@
 
 /* LPDDR2 addressing details from JESD209-2 section 2.4 */
 const struct lpddr2_addressing
-	lpddr2_jedec_addressing_table[NUM_DDR_ADDR_TABLE_ENTRIES] = {
+	lpddr2_jedec_addressing_table[NUM_DDR_ADDR_TABLE_ENTRIES] =
+{
 	{B4, T_REFI_15_6, T_RFC_90}, /* 64M */
 	{B4, T_REFI_15_6, T_RFC_90}, /* 128M */
 	{B4, T_REFI_7_8,  T_RFC_90}, /* 256M */
@@ -31,7 +32,8 @@ EXPORT_SYMBOL_GPL(lpddr2_jedec_addressing_table);
 
 /* LPDDR2 AC timing parameters from JESD209-2 section 12 */
 const struct lpddr2_timings
-	lpddr2_jedec_timings[NUM_DDR_TIMING_TABLE_ENTRIES] = {
+	lpddr2_jedec_timings[NUM_DDR_TIMING_TABLE_ENTRIES] =
+{
 	/* Speed bin 400(200 MHz) */
 	[0] = {
 		.max_freq	= 200000000,
@@ -119,7 +121,8 @@ const struct lpddr2_timings
 };
 EXPORT_SYMBOL_GPL(lpddr2_jedec_timings);
 
-const struct lpddr2_min_tck lpddr2_jedec_min_tck = {
+const struct lpddr2_min_tck lpddr2_jedec_min_tck =
+{
 	.tRPab		= 3,
 	.tRCD		= 3,
 	.tWR		= 3,

@@ -29,34 +29,38 @@
 #define VPIF_CAPTURE_VERSION		"0.0.2"
 
 #define VPIF_VALID_FIELD(field)		(((V4L2_FIELD_ANY == field) || \
-	(V4L2_FIELD_NONE == field)) || \
-	(((V4L2_FIELD_INTERLACED == field) || \
-	(V4L2_FIELD_SEQ_TB == field)) || \
-	(V4L2_FIELD_SEQ_BT == field)))
+									  (V4L2_FIELD_NONE == field)) || \
+									 (((V4L2_FIELD_INTERLACED == field) || \
+									   (V4L2_FIELD_SEQ_TB == field)) || \
+									  (V4L2_FIELD_SEQ_BT == field)))
 
 #define VPIF_CAPTURE_MAX_DEVICES	2
 #define VPIF_VIDEO_INDEX		0
 #define VPIF_NUMBER_OF_OBJECTS		1
 
 /* Enumerated data type to give id to each device per channel */
-enum vpif_channel_id {
+enum vpif_channel_id
+{
 	VPIF_CHANNEL0_VIDEO = 0,
 	VPIF_CHANNEL1_VIDEO,
 };
 
-struct video_obj {
+struct video_obj
+{
 	enum v4l2_field buf_field;
 	/* Currently selected or default standard */
 	v4l2_std_id stdid;
 	struct v4l2_dv_timings dv_timings;
 };
 
-struct vpif_cap_buffer {
+struct vpif_cap_buffer
+{
 	struct vb2_v4l2_buffer vb;
 	struct list_head list;
 };
 
-struct common_obj {
+struct common_obj
+{
 	/* Pointer pointing to current v4l2_buffer */
 	struct vpif_cap_buffer *cur_frm;
 	/* Pointer pointing to current v4l2_buffer */
@@ -73,7 +77,7 @@ struct common_obj {
 	struct mutex lock;
 	/* Function pointer to set the addresses */
 	void (*set_addr) (unsigned long, unsigned long, unsigned long,
-			  unsigned long);
+					  unsigned long);
 	/* offset where Y top starts from the starting of the buffer */
 	u32 ytop_off;
 	/* offset where Y bottom starts from the starting of the buffer */
@@ -88,7 +92,8 @@ struct common_obj {
 	u32 height;
 };
 
-struct channel_obj {
+struct channel_obj
+{
 	/* Identifies video device for this channel */
 	struct video_device video_dev;
 	/* Indicates id of the field which is being displayed */
@@ -109,7 +114,8 @@ struct channel_obj {
 	struct video_obj video;
 };
 
-struct vpif_device {
+struct vpif_device
+{
 	struct v4l2_device v4l2_dev;
 	struct channel_obj *dev[VPIF_CAPTURE_NUM_CHANNELS];
 	struct v4l2_subdev **sd;

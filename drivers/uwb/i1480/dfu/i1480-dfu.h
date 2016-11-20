@@ -71,7 +71,7 @@
 #define i1480_FW_UPLOAD_MODE_MASK (cpu_to_le32(0x00000018))
 
 #if i1480_FW > 0x00000302
-#define i1480_RCEB_EXTENDED
+	#define i1480_RCEB_EXTENDED
 #endif
 
 struct uwb_rccb;
@@ -110,7 +110,8 @@ struct uwb_rceb;
  *              of hardware.  i1480_init() sets this to a default value.
  *              It should be updated by the USB and PCI code.
  */
-struct i1480 {
+struct i1480
+{
 	struct device *dev;
 
 	int (*write)(struct i1480 *, u32 addr, const void *, size_t);
@@ -144,10 +145,11 @@ extern int i1480_mac_fw_upload(struct i1480 *);
 extern int i1480_phy_fw_upload(struct i1480 *);
 extern ssize_t i1480_cmd(struct i1480 *, const char *, size_t, size_t);
 extern int i1480_rceb_check(const struct i1480 *,
-			    const struct uwb_rceb *, const char *, u8,
-			    u8, unsigned);
+							const struct uwb_rceb *, const char *, u8,
+							u8, unsigned);
 
-enum {
+enum
+{
 	/* Vendor specific command type */
 	i1480_CET_VS1 = 		0xfd,
 	/* i1480 commands */
@@ -174,7 +176,8 @@ enum {
 };
 
 
-struct i1480_evt_confirm {
+struct i1480_evt_confirm
+{
 	struct uwb_rceb rceb;
 #ifdef i1480_RCEB_EXTENDED
 	__le16 wParamLength;
@@ -183,7 +186,8 @@ struct i1480_evt_confirm {
 } __attribute__((packed));
 
 
-struct i1480_rceb {
+struct i1480_rceb
+{
 	struct uwb_rceb rceb;
 #ifdef i1480_RCEB_EXTENDED
 	__le16 wParamLength;
@@ -196,7 +200,8 @@ struct i1480_rceb {
  *
  * Confirm event returned by the command.
  */
-struct i1480_evt_confirm_GMPI {
+struct i1480_evt_confirm_GMPI
+{
 #if i1480_FW > 0x00000302
 	struct uwb_rceb rceb;
 	__le16 wParamLength;
@@ -228,30 +233,35 @@ struct i1480_evt_confirm_GMPI {
 } __attribute__((packed));
 
 
-struct i1480_cmd_mpi_write {
+struct i1480_cmd_mpi_write
+{
 	struct uwb_rccb rccb;
 	__le16 size;
 	u8 data[];
 };
 
 
-struct i1480_cmd_mpi_read {
+struct i1480_cmd_mpi_read
+{
 	struct uwb_rccb rccb;
 	__le16 size;
-	struct {
+	struct
+	{
 		u8 page, offset;
 	} __attribute__((packed)) data[];
 } __attribute__((packed));
 
 
-struct i1480_evt_mpi_read {
+struct i1480_evt_mpi_read
+{
 	struct uwb_rceb rceb;
 #ifdef i1480_RCEB_EXTENDED
 	__le16 wParamLength;
 #endif
 	u8 bResultCode;
 	__le16 size;
-	struct {
+	struct
+	{
 		u8 page, offset, value;
 	} __attribute__((packed)) data[];
 } __attribute__((packed));

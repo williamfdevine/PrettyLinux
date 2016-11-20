@@ -41,7 +41,9 @@ static inline void rwsem_set_reader_owned(struct rw_semaphore *sem)
 	 * to minimize cacheline contention.
 	 */
 	if (sem->owner != RWSEM_READER_OWNED)
+	{
 		WRITE_ONCE(sem->owner, RWSEM_READER_OWNED);
+	}
 }
 
 static inline bool rwsem_owner_is_writer(struct task_struct *owner)

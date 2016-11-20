@@ -221,14 +221,16 @@
 
 #define IXGBE_MAX_SENSORS		3
 
-struct ixgbe_thermal_diode_data {
+struct ixgbe_thermal_diode_data
+{
 	u8 location;
 	u8 temp;
 	u8 caution_thresh;
 	u8 max_op_thresh;
 };
 
-struct ixgbe_thermal_sensor_data {
+struct ixgbe_thermal_sensor_data
+{
 	struct ixgbe_thermal_diode_data sensor[IXGBE_MAX_SENSORS];
 };
 
@@ -253,7 +255,7 @@ struct ixgbe_thermal_sensor_data {
 #define IXGBE_MAX_EITR     0x00000FF8
 #define IXGBE_MIN_EITR     8
 #define IXGBE_EITR(_i)  (((_i) <= 23) ? (0x00820 + ((_i) * 4)) : \
-			 (0x012300 + (((_i) - 24) * 4)))
+						 (0x012300 + (((_i) - 24) * 4)))
 #define IXGBE_EITR_ITR_INT_MASK 0x00000FF8
 #define IXGBE_EITR_LLI_MOD      0x00008000
 #define IXGBE_EITR_CNT_WDIS     0x80000000
@@ -282,19 +284,19 @@ struct ixgbe_thermal_sensor_data {
 
 /* Receive DMA Registers */
 #define IXGBE_RDBAL(_i) (((_i) < 64) ? (0x01000 + ((_i) * 0x40)) : \
-			 (0x0D000 + (((_i) - 64) * 0x40)))
+						 (0x0D000 + (((_i) - 64) * 0x40)))
 #define IXGBE_RDBAH(_i) (((_i) < 64) ? (0x01004 + ((_i) * 0x40)) : \
-			 (0x0D004 + (((_i) - 64) * 0x40)))
+						 (0x0D004 + (((_i) - 64) * 0x40)))
 #define IXGBE_RDLEN(_i) (((_i) < 64) ? (0x01008 + ((_i) * 0x40)) : \
-			 (0x0D008 + (((_i) - 64) * 0x40)))
+						 (0x0D008 + (((_i) - 64) * 0x40)))
 #define IXGBE_RDH(_i)   (((_i) < 64) ? (0x01010 + ((_i) * 0x40)) : \
-			 (0x0D010 + (((_i) - 64) * 0x40)))
+						 (0x0D010 + (((_i) - 64) * 0x40)))
 #define IXGBE_RDT(_i)   (((_i) < 64) ? (0x01018 + ((_i) * 0x40)) : \
-			 (0x0D018 + (((_i) - 64) * 0x40)))
+						 (0x0D018 + (((_i) - 64) * 0x40)))
 #define IXGBE_RXDCTL(_i) (((_i) < 64) ? (0x01028 + ((_i) * 0x40)) : \
-			 (0x0D028 + (((_i) - 64) * 0x40)))
+						  (0x0D028 + (((_i) - 64) * 0x40)))
 #define IXGBE_RSCCTL(_i) (((_i) < 64) ? (0x0102C + ((_i) * 0x40)) : \
-			 (0x0D02C + (((_i) - 64) * 0x40)))
+						  (0x0D02C + (((_i) - 64) * 0x40)))
 #define IXGBE_RSCDBU     0x03028
 #define IXGBE_RDDCC      0x02F20
 #define IXGBE_RXMEMWRAP  0x03190
@@ -306,8 +308,8 @@ struct ixgbe_thermal_sensor_data {
  * 64-127: 0x0D014 + (n-64)*0x40
  */
 #define IXGBE_SRRCTL(_i) (((_i) <= 15) ? (0x02100 + ((_i) * 4)) : \
-			  (((_i) < 64) ? (0x01014 + ((_i) * 0x40)) : \
-			  (0x0D014 + (((_i) - 64) * 0x40))))
+						  (((_i) < 64) ? (0x01014 + ((_i) * 0x40)) : \
+						   (0x0D014 + (((_i) - 64) * 0x40))))
 /*
  * Rx DCA Control Register:
  * 00-15 : 0x02200 + n*4
@@ -315,11 +317,11 @@ struct ixgbe_thermal_sensor_data {
  * 64-127: 0x0D00C + (n-64)*0x40
  */
 #define IXGBE_DCA_RXCTRL(_i)    (((_i) <= 15) ? (0x02200 + ((_i) * 4)) : \
-				 (((_i) < 64) ? (0x0100C + ((_i) * 0x40)) : \
-				 (0x0D00C + (((_i) - 64) * 0x40))))
+								 (((_i) < 64) ? (0x0100C + ((_i) * 0x40)) : \
+								  (0x0D00C + (((_i) - 64) * 0x40))))
 #define IXGBE_RDRXCTL           0x02F00
 #define IXGBE_RXPBSIZE(_i)      (0x03C00 + ((_i) * 4))
-					     /* 8 of these 0x03C00 - 0x03C1C */
+/* 8 of these 0x03C00 - 0x03C1C */
 #define IXGBE_RXCTRL    0x03000
 #define IXGBE_DROPEN    0x03D04
 #define IXGBE_RXPBSIZE_SHIFT 10
@@ -332,14 +334,14 @@ struct ixgbe_thermal_sensor_data {
 /* Multicast Table Array - 128 entries */
 #define IXGBE_MTA(_i)   (0x05200 + ((_i) * 4))
 #define IXGBE_RAL(_i)   (((_i) <= 15) ? (0x05400 + ((_i) * 8)) : \
-			 (0x0A200 + ((_i) * 8)))
+						 (0x0A200 + ((_i) * 8)))
 #define IXGBE_RAH(_i)   (((_i) <= 15) ? (0x05404 + ((_i) * 8)) : \
-			 (0x0A204 + ((_i) * 8)))
+						 (0x0A204 + ((_i) * 8)))
 #define IXGBE_MPSAR_LO(_i) (0x0A600 + ((_i) * 8))
 #define IXGBE_MPSAR_HI(_i) (0x0A604 + ((_i) * 8))
 /* Packet split receive type */
 #define IXGBE_PSRTYPE(_i)    (((_i) <= 15) ? (0x05480 + ((_i) * 4)) : \
-			      (0x0EA00 + ((_i) * 4)))
+							  (0x0EA00 + ((_i) * 4)))
 /* array of 4096 1-bit vlan filters */
 #define IXGBE_VFTA(_i)  (0x0A000 + ((_i) * 4))
 /*array of 4096 4-bit vlan vmdq indices */
@@ -824,7 +826,7 @@ struct ixgbe_thermal_sensor_data {
 
 #define IXGBE_RQSMR(_i) (0x02300 + ((_i) * 4))
 #define IXGBE_TQSMR(_i) (((_i) <= 7) ? (0x07300 + ((_i) * 4)) : \
-			 (0x08600 + ((_i) * 4)))
+						 (0x08600 + ((_i) * 4)))
 #define IXGBE_TQSM(_i)  (0x08600 + ((_i) * 4))
 
 #define IXGBE_QPRC(_i) (0x01030 + ((_i) * 0x40)) /* 16 of these */
@@ -1019,7 +1021,7 @@ struct ixgbe_thermal_sensor_data {
 #define IXGBE_GCR_EXT_VT_MODE_32        0x00000002
 #define IXGBE_GCR_EXT_VT_MODE_64        0x00000003
 #define IXGBE_GCR_EXT_SRIOV             (IXGBE_GCR_EXT_MSIX_EN | \
-					 IXGBE_GCR_EXT_VT_MODE_64)
+		IXGBE_GCR_EXT_VT_MODE_64)
 
 /* Time Sync Registers */
 #define IXGBE_TSYNCRXCTL 0x05188 /* Rx Time Sync Control register - RW */
@@ -1459,7 +1461,8 @@ struct ixgbe_thermal_sensor_data {
 #define IXGBE_MAX_PB		8
 
 /* Packet buffer allocation strategies */
-enum {
+enum
+{
 	PBA_STRATEGY_EQUAL	= 0,	/* Distribute PB space equally */
 #define PBA_STRATEGY_EQUAL	PBA_STRATEGY_EQUAL
 	PBA_STRATEGY_WEIGHTED	= 1,	/* Weight front half of TCs */
@@ -1676,10 +1679,10 @@ enum {
 #define IXGBE_EIMC_OTHER        IXGBE_EICR_OTHER     /* INT Cause Active */
 
 #define IXGBE_EIMS_ENABLE_MASK ( \
-				IXGBE_EIMS_RTX_QUEUE       | \
-				IXGBE_EIMS_LSC             | \
-				IXGBE_EIMS_TCP_TIMER       | \
-				IXGBE_EIMS_OTHER)
+								 IXGBE_EIMS_RTX_QUEUE       | \
+								 IXGBE_EIMS_LSC             | \
+								 IXGBE_EIMS_TCP_TIMER       | \
+								 IXGBE_EIMS_OTHER)
 
 /* Immediate Interrupt Rx (A.K.A. Low Latency Interrupt) */
 #define IXGBE_IMIR_PORT_IM_EN     0x00010000  /* TCP port enable */
@@ -2107,18 +2110,18 @@ enum {
 #define IXGBE_EEPROM_CCD_BIT	2 /* EEPROM Core Clock Disable bit */
 
 #ifndef IXGBE_EEPROM_GRANT_ATTEMPTS
-#define IXGBE_EEPROM_GRANT_ATTEMPTS 1000 /* EEPROM # attempts to gain grant */
+	#define IXGBE_EEPROM_GRANT_ATTEMPTS 1000 /* EEPROM # attempts to gain grant */
 #endif
 
 #ifndef IXGBE_EERD_EEWR_ATTEMPTS
-/* Number of 5 microseconds we wait for EERD read and
- * EERW write to complete */
-#define IXGBE_EERD_EEWR_ATTEMPTS 100000
+	/* Number of 5 microseconds we wait for EERD read and
+	* EERW write to complete */
+	#define IXGBE_EERD_EEWR_ATTEMPTS 100000
 #endif
 
 #ifndef IXGBE_FLUDONE_ATTEMPTS
-/* # attempts we wait for flush update to complete */
-#define IXGBE_FLUDONE_ATTEMPTS 20000
+	/* # attempts we wait for flush update to complete */
+	#define IXGBE_FLUDONE_ATTEMPTS 20000
 #endif
 
 #define IXGBE_PCIE_CTRL2                 0x5   /* PCIe Control 2 Offset */
@@ -2484,18 +2487,18 @@ enum {
 
 /* Masks to determine if packets should be dropped due to frame errors */
 #define IXGBE_RXD_ERR_FRAME_ERR_MASK ( \
-				      IXGBE_RXD_ERR_CE | \
-				      IXGBE_RXD_ERR_LE | \
-				      IXGBE_RXD_ERR_PE | \
-				      IXGBE_RXD_ERR_OSE | \
-				      IXGBE_RXD_ERR_USE)
+									   IXGBE_RXD_ERR_CE | \
+									   IXGBE_RXD_ERR_LE | \
+									   IXGBE_RXD_ERR_PE | \
+									   IXGBE_RXD_ERR_OSE | \
+									   IXGBE_RXD_ERR_USE)
 
 #define IXGBE_RXDADV_ERR_FRAME_ERR_MASK ( \
-				      IXGBE_RXDADV_ERR_CE | \
-				      IXGBE_RXDADV_ERR_LE | \
-				      IXGBE_RXDADV_ERR_PE | \
-				      IXGBE_RXDADV_ERR_OSE | \
-				      IXGBE_RXDADV_ERR_USE)
+		IXGBE_RXDADV_ERR_CE | \
+		IXGBE_RXDADV_ERR_LE | \
+		IXGBE_RXDADV_ERR_PE | \
+		IXGBE_RXDADV_ERR_OSE | \
+		IXGBE_RXDADV_ERR_USE)
 
 /* Multicast bit mask */
 #define IXGBE_MCSTCTRL_MFE      0x4
@@ -2523,16 +2526,17 @@ enum {
 #define IXGBE_PVFTDWBAH(P)	(0x0603C + (0x40 * (P)))
 
 #define IXGBE_PVFTDWBALn(q_per_pool, vf_number, vf_q_index) \
-		(IXGBE_PVFTDWBAL((q_per_pool)*(vf_number) + (vf_q_index)))
+	(IXGBE_PVFTDWBAL((q_per_pool)*(vf_number) + (vf_q_index)))
 #define IXGBE_PVFTDWBAHn(q_per_pool, vf_number, vf_q_index) \
-		(IXGBE_PVFTDWBAH((q_per_pool)*(vf_number) + (vf_q_index)))
+	(IXGBE_PVFTDWBAH((q_per_pool)*(vf_number) + (vf_q_index)))
 
 #define IXGBE_PVFTDHN(q_per_pool, vf_number, vf_q_index) \
-		(IXGBE_PVFTDH((q_per_pool)*(vf_number) + (vf_q_index)))
+	(IXGBE_PVFTDH((q_per_pool)*(vf_number) + (vf_q_index)))
 #define IXGBE_PVFTDTN(q_per_pool, vf_number, vf_q_index) \
-		(IXGBE_PVFTDT((q_per_pool)*(vf_number) + (vf_q_index)))
+	(IXGBE_PVFTDT((q_per_pool)*(vf_number) + (vf_q_index)))
 
-enum ixgbe_fdir_pballoc_type {
+enum ixgbe_fdir_pballoc_type
+{
 	IXGBE_FDIR_PBALLOC_NONE = 0,
 	IXGBE_FDIR_PBALLOC_64K  = 1,
 	IXGBE_FDIR_PBALLOC_128K = 2,
@@ -2660,36 +2664,42 @@ enum ixgbe_fdir_pballoc_type {
 #define FW_INT_PHY_REQ_WRITE		1
 
 /* Host Interface Command Structures */
-struct ixgbe_hic_hdr {
+struct ixgbe_hic_hdr
+{
 	u8 cmd;
 	u8 buf_len;
-	union {
+	union
+	{
 		u8 cmd_resv;
 		u8 ret_status;
 	} cmd_or_resp;
 	u8 checksum;
 };
 
-struct ixgbe_hic_hdr2_req {
+struct ixgbe_hic_hdr2_req
+{
 	u8 cmd;
 	u8 buf_lenh;
 	u8 buf_lenl;
 	u8 checksum;
 };
 
-struct ixgbe_hic_hdr2_rsp {
+struct ixgbe_hic_hdr2_rsp
+{
 	u8 cmd;
 	u8 buf_lenl;
 	u8 buf_lenh_status;     /* 7-5: high bits of buf_len, 4-0: status */
 	u8 checksum;
 };
 
-union ixgbe_hic_hdr2 {
+union ixgbe_hic_hdr2
+{
 	struct ixgbe_hic_hdr2_req req;
 	struct ixgbe_hic_hdr2_rsp rsp;
 };
 
-struct ixgbe_hic_drv_info {
+struct ixgbe_hic_drv_info
+{
 	struct ixgbe_hic_hdr hdr;
 	u8 port_num;
 	u8 ver_sub;
@@ -2701,7 +2711,8 @@ struct ixgbe_hic_drv_info {
 };
 
 /* These need to be dword aligned */
-struct ixgbe_hic_read_shadow_ram {
+struct ixgbe_hic_read_shadow_ram
+{
 	union ixgbe_hic_hdr2 hdr;
 	u32 address;
 	u16 length;
@@ -2710,7 +2721,8 @@ struct ixgbe_hic_read_shadow_ram {
 	u16 pad3;
 };
 
-struct ixgbe_hic_write_shadow_ram {
+struct ixgbe_hic_write_shadow_ram
+{
 	union ixgbe_hic_hdr2 hdr;
 	__be32 address;
 	__be16 length;
@@ -2719,21 +2731,24 @@ struct ixgbe_hic_write_shadow_ram {
 	u16 pad3;
 };
 
-struct ixgbe_hic_disable_rxen {
+struct ixgbe_hic_disable_rxen
+{
 	struct ixgbe_hic_hdr hdr;
 	u8  port_number;
 	u8  pad2;
 	u16 pad3;
 };
 
-struct ixgbe_hic_phy_token_req {
+struct ixgbe_hic_phy_token_req
+{
 	struct ixgbe_hic_hdr hdr;
 	u8 port_number;
 	u8 command_type;
 	u16 pad;
 };
 
-struct ixgbe_hic_internal_phy_req {
+struct ixgbe_hic_internal_phy_req
+{
 	struct ixgbe_hic_hdr hdr;
 	u8 port_number;
 	u8 command_type;
@@ -2743,19 +2758,23 @@ struct ixgbe_hic_internal_phy_req {
 	u16 pad;
 } __packed;
 
-struct ixgbe_hic_internal_phy_resp {
+struct ixgbe_hic_internal_phy_resp
+{
 	struct ixgbe_hic_hdr hdr;
 	__be32 read_data;
 };
 
 /* Transmit Descriptor - Advanced */
-union ixgbe_adv_tx_desc {
-	struct {
+union ixgbe_adv_tx_desc
+{
+	struct
+	{
 		__le64 buffer_addr;      /* Address of descriptor's data buf */
 		__le32 cmd_type_len;
 		__le32 olinfo_status;
 	} read;
-	struct {
+	struct
+	{
 		__le64 rsvd;       /* Reserved */
 		__le32 nxtseq_seed;
 		__le32 status;
@@ -2763,29 +2782,38 @@ union ixgbe_adv_tx_desc {
 };
 
 /* Receive Descriptor - Advanced */
-union ixgbe_adv_rx_desc {
-	struct {
+union ixgbe_adv_rx_desc
+{
+	struct
+	{
 		__le64 pkt_addr; /* Packet buffer address */
 		__le64 hdr_addr; /* Header buffer address */
 	} read;
-	struct {
-		struct {
-			union {
+	struct
+	{
+		struct
+		{
+			union
+			{
 				__le32 data;
-				struct {
+				struct
+				{
 					__le16 pkt_info; /* RSS, Pkt type */
 					__le16 hdr_info; /* Splithdr, hdrlen */
 				} hs_rss;
 			} lo_dword;
-			union {
+			union
+			{
 				__le32 rss; /* RSS Hash */
-				struct {
+				struct
+				{
 					__le16 ip_id; /* IP id */
 					__le16 csum; /* Packet Checksum */
 				} csum_ip;
 			} hi_dword;
 		} lower;
-		struct {
+		struct
+		{
 			__le32 status_error; /* ext status/error */
 			__le16 length; /* Packet length */
 			__le16 vlan; /* VLAN tag */
@@ -2794,7 +2822,8 @@ union ixgbe_adv_rx_desc {
 };
 
 /* Context descriptors */
-struct ixgbe_adv_tx_context_desc {
+struct ixgbe_adv_tx_context_desc
+{
 	__le32 vlan_macip_lens;
 	__le32 seqnum_seed;
 	__le32 type_tucmd_mlhl;
@@ -2824,9 +2853,9 @@ struct ixgbe_adv_tx_context_desc {
 #define IXGBE_ADVTXD_CC         0x00000080 /* Check Context */
 #define IXGBE_ADVTXD_POPTS_SHIFT      8  /* Adv desc POPTS shift */
 #define IXGBE_ADVTXD_POPTS_IXSM (IXGBE_TXD_POPTS_IXSM << \
-				 IXGBE_ADVTXD_POPTS_SHIFT)
+								 IXGBE_ADVTXD_POPTS_SHIFT)
 #define IXGBE_ADVTXD_POPTS_TXSM (IXGBE_TXD_POPTS_TXSM << \
-				 IXGBE_ADVTXD_POPTS_SHIFT)
+								 IXGBE_ADVTXD_POPTS_SHIFT)
 #define IXGBE_ADVTXD_POPTS_ISCO_1ST  0x00000000 /* 1st TSO of iSCSI PDU */
 #define IXGBE_ADVTXD_POPTS_ISCO_MDL  0x00000800 /* Middle TSO of iSCSI PDU */
 #define IXGBE_ADVTXD_POPTS_ISCO_LAST 0x00001000 /* Last TSO of iSCSI PDU */
@@ -2869,10 +2898,10 @@ typedef u32 ixgbe_link_speed;
 #define IXGBE_LINK_SPEED_5GB_FULL	0x0800
 #define IXGBE_LINK_SPEED_10GB_FULL	0x0080
 #define IXGBE_LINK_SPEED_82598_AUTONEG (IXGBE_LINK_SPEED_1GB_FULL | \
-					IXGBE_LINK_SPEED_10GB_FULL)
+										IXGBE_LINK_SPEED_10GB_FULL)
 #define IXGBE_LINK_SPEED_82599_AUTONEG (IXGBE_LINK_SPEED_100_FULL | \
-					IXGBE_LINK_SPEED_1GB_FULL | \
-					IXGBE_LINK_SPEED_10GB_FULL)
+										IXGBE_LINK_SPEED_1GB_FULL | \
+										IXGBE_LINK_SPEED_10GB_FULL)
 
 /* Flow Control Data Sheet defined values
  * Calculation and defines taken from 802.1bb Annex O
@@ -2911,30 +2940,30 @@ typedef u32 ixgbe_link_speed;
 
 /* Calculate X540 delay value in bit times */
 #define IXGBE_DV_X540(_max_frame_link, _max_frame_tc) \
-			((36 * \
-			  (IXGBE_B2BT(_max_frame_link) + \
-			   IXGBE_PFC_D + \
-			   (2 * IXGBE_CABLE_DC) + \
-			   (2 * IXGBE_ID_X540) + \
-			   IXGBE_HD) / 25 + 1) + \
-			 2 * IXGBE_B2BT(_max_frame_tc))
+	((36 * \
+	  (IXGBE_B2BT(_max_frame_link) + \
+	   IXGBE_PFC_D + \
+	   (2 * IXGBE_CABLE_DC) + \
+	   (2 * IXGBE_ID_X540) + \
+	   IXGBE_HD) / 25 + 1) + \
+	 2 * IXGBE_B2BT(_max_frame_tc))
 
 /* Calculate 82599, 82598 delay value in bit times */
 #define IXGBE_DV(_max_frame_link, _max_frame_tc) \
-			((36 * \
-			  (IXGBE_B2BT(_max_frame_link) + \
-			   IXGBE_PFC_D + \
-			   (2 * IXGBE_CABLE_DC) + \
-			   (2 * IXGBE_ID) + \
-			   IXGBE_HD) / 25 + 1) + \
-			 2 * IXGBE_B2BT(_max_frame_tc))
+	((36 * \
+	  (IXGBE_B2BT(_max_frame_link) + \
+	   IXGBE_PFC_D + \
+	   (2 * IXGBE_CABLE_DC) + \
+	   (2 * IXGBE_ID) + \
+	   IXGBE_HD) / 25 + 1) + \
+	 2 * IXGBE_B2BT(_max_frame_tc))
 
 /* Calculate low threshold delay values */
 #define IXGBE_LOW_DV_X540(_max_frame_tc) \
-			(2 * IXGBE_B2BT(_max_frame_tc) + \
-			(36 * IXGBE_PCI_DELAY / 25) + 1)
+	(2 * IXGBE_B2BT(_max_frame_tc) + \
+	 (36 * IXGBE_PCI_DELAY / 25) + 1)
 #define IXGBE_LOW_DV(_max_frame_tc) \
-			(2 * IXGBE_LOW_DV_X540(_max_frame_tc))
+	(2 * IXGBE_LOW_DV_X540(_max_frame_tc))
 
 /* Software ATR hash keys */
 #define IXGBE_ATR_BUCKET_HASH_KEY    0x3DAD14E2
@@ -2948,7 +2977,8 @@ typedef u32 ixgbe_link_speed;
 #define IXGBE_ATR_L4TYPE_SCTP		0x3
 #define IXGBE_ATR_L4TYPE_IPV6_MASK	0x4
 #define IXGBE_ATR_L4TYPE_TUNNEL_MASK	0x10
-enum ixgbe_atr_flow_type {
+enum ixgbe_atr_flow_type
+{
 	IXGBE_ATR_FLOW_TYPE_IPV4   = 0x0,
 	IXGBE_ATR_FLOW_TYPE_UDPV4  = 0x1,
 	IXGBE_ATR_FLOW_TYPE_TCPV4  = 0x2,
@@ -2960,7 +2990,8 @@ enum ixgbe_atr_flow_type {
 };
 
 /* Flow Director ATR input struct. */
-union ixgbe_atr_input {
+union ixgbe_atr_input
+{
 	/*
 	 * Byte layout in order, all values with MSB first:
 	 *
@@ -2974,7 +3005,8 @@ union ixgbe_atr_input {
 	 * flex_bytes - 2 bytes
 	 * bkt_hash   - 2 bytes
 	 */
-	struct {
+	struct
+	{
 		u8     vm_pool;
 		u8     flow_type;
 		__be16 vlan_id;
@@ -2989,14 +3021,17 @@ union ixgbe_atr_input {
 };
 
 /* Flow Director compressed ATR hash input struct */
-union ixgbe_atr_hash_dword {
-	struct {
+union ixgbe_atr_hash_dword
+{
+	struct
+	{
 		u8 vm_pool;
 		u8 flow_type;
 		__be16 vlan_id;
 	} formatted;
 	__be32 ip;
-	struct {
+	struct
+	{
 		__be16 src;
 		__be16 dst;
 	} port;
@@ -3029,19 +3064,22 @@ union ixgbe_atr_hash_dword {
 	IXGBE_CAT(I2C_CLK_OE_N_EN, m),	\
 	IXGBE_CAT(I2CCTL, m)
 
-enum ixgbe_mvals {
+enum ixgbe_mvals
+{
 	IXGBE_MVALS_INIT(IDX),
 	IXGBE_MVALS_IDX_LIMIT
 };
 
-enum ixgbe_eeprom_type {
+enum ixgbe_eeprom_type
+{
 	ixgbe_eeprom_uninitialized = 0,
 	ixgbe_eeprom_spi,
 	ixgbe_flash,
 	ixgbe_eeprom_none /* No NVM support */
 };
 
-enum ixgbe_mac_type {
+enum ixgbe_mac_type
+{
 	ixgbe_mac_unknown = 0,
 	ixgbe_mac_82598EB,
 	ixgbe_mac_82599EB,
@@ -3052,7 +3090,8 @@ enum ixgbe_mac_type {
 	ixgbe_num_macs
 };
 
-enum ixgbe_phy_type {
+enum ixgbe_phy_type
+{
 	ixgbe_phy_unknown = 0,
 	ixgbe_phy_none,
 	ixgbe_phy_tn,
@@ -3094,7 +3133,8 @@ enum ixgbe_phy_type {
  * 5    SFP_SR/LR_CORE0 - 82599-specific
  * 6    SFP_SR/LR_CORE1 - 82599-specific
  */
-enum ixgbe_sfp_type {
+enum ixgbe_sfp_type
+{
 	ixgbe_sfp_type_da_cu = 0,
 	ixgbe_sfp_type_sr = 1,
 	ixgbe_sfp_type_lr = 2,
@@ -3114,7 +3154,8 @@ enum ixgbe_sfp_type {
 	ixgbe_sfp_type_unknown = 0xFFFF
 };
 
-enum ixgbe_media_type {
+enum ixgbe_media_type
+{
 	ixgbe_media_type_unknown = 0,
 	ixgbe_media_type_fiber,
 	ixgbe_media_type_fiber_qsfp,
@@ -3126,7 +3167,8 @@ enum ixgbe_media_type {
 };
 
 /* Flow Control Settings */
-enum ixgbe_fc_mode {
+enum ixgbe_fc_mode
+{
 	ixgbe_fc_none = 0,
 	ixgbe_fc_rx_pause,
 	ixgbe_fc_tx_pause,
@@ -3136,14 +3178,16 @@ enum ixgbe_fc_mode {
 
 /* Smart Speed Settings */
 #define IXGBE_SMARTSPEED_MAX_RETRIES	3
-enum ixgbe_smart_speed {
+enum ixgbe_smart_speed
+{
 	ixgbe_smart_speed_auto = 0,
 	ixgbe_smart_speed_on,
 	ixgbe_smart_speed_off
 };
 
 /* PCI bus types */
-enum ixgbe_bus_type {
+enum ixgbe_bus_type
+{
 	ixgbe_bus_type_unknown = 0,
 	ixgbe_bus_type_pci_express,
 	ixgbe_bus_type_internal,
@@ -3151,7 +3195,8 @@ enum ixgbe_bus_type {
 };
 
 /* PCI bus speeds */
-enum ixgbe_bus_speed {
+enum ixgbe_bus_speed
+{
 	ixgbe_bus_speed_unknown = 0,
 	ixgbe_bus_speed_33      = 33,
 	ixgbe_bus_speed_66      = 66,
@@ -3165,7 +3210,8 @@ enum ixgbe_bus_speed {
 };
 
 /* PCI bus widths */
-enum ixgbe_bus_width {
+enum ixgbe_bus_width
+{
 	ixgbe_bus_width_unknown = 0,
 	ixgbe_bus_width_pcie_x1 = 1,
 	ixgbe_bus_width_pcie_x2 = 2,
@@ -3176,7 +3222,8 @@ enum ixgbe_bus_width {
 	ixgbe_bus_width_reserved
 };
 
-struct ixgbe_addr_filter_info {
+struct ixgbe_addr_filter_info
+{
 	u32 num_mc_addrs;
 	u32 rar_used_count;
 	u32 mta_in_use;
@@ -3186,7 +3233,8 @@ struct ixgbe_addr_filter_info {
 };
 
 /* Bus parameters */
-struct ixgbe_bus_info {
+struct ixgbe_bus_info
+{
 	enum ixgbe_bus_speed speed;
 	enum ixgbe_bus_width width;
 	enum ixgbe_bus_type type;
@@ -3197,7 +3245,8 @@ struct ixgbe_bus_info {
 };
 
 /* Flow control parameters */
-struct ixgbe_fc_info {
+struct ixgbe_fc_info
+{
 	u32 high_water[MAX_TRAFFIC_CLASS]; /* Flow Control High-water */
 	u32 low_water[MAX_TRAFFIC_CLASS]; /* Flow Control Low-water */
 	u16 pause_time; /* Flow Control Pause timer */
@@ -3210,7 +3259,8 @@ struct ixgbe_fc_info {
 };
 
 /* Statistics counters collected by the MAC */
-struct ixgbe_hw_stats {
+struct ixgbe_hw_stats
+{
 	u64 crcerrs;
 	u64 illerrc;
 	u64 errbc;
@@ -3292,11 +3342,12 @@ struct ixgbe_hw_stats {
 struct ixgbe_hw;
 
 /* iterator type for walking multicast address lists */
-typedef u8* (*ixgbe_mc_addr_itr) (struct ixgbe_hw *hw, u8 **mc_addr_ptr,
-				  u32 *vmdq);
+typedef u8 *(*ixgbe_mc_addr_itr) (struct ixgbe_hw *hw, u8 **mc_addr_ptr,
+								  u32 *vmdq);
 
 /* Function pointer table */
-struct ixgbe_eeprom_operations {
+struct ixgbe_eeprom_operations
+{
 	s32 (*init_params)(struct ixgbe_hw *);
 	s32 (*read)(struct ixgbe_hw *, u16, u16 *);
 	s32 (*read_buffer)(struct ixgbe_hw *, u16, u16, u16 *);
@@ -3307,7 +3358,8 @@ struct ixgbe_eeprom_operations {
 	s32 (*calc_checksum)(struct ixgbe_hw *);
 };
 
-struct ixgbe_mac_operations {
+struct ixgbe_mac_operations
+{
 	s32 (*init_hw)(struct ixgbe_hw *);
 	s32 (*reset_hw)(struct ixgbe_hw *);
 	s32 (*start_hw)(struct ixgbe_hw *);
@@ -3320,8 +3372,8 @@ struct ixgbe_mac_operations {
 	s32 (*stop_adapter)(struct ixgbe_hw *);
 	s32 (*get_bus_info)(struct ixgbe_hw *);
 	void (*set_lan_id)(struct ixgbe_hw *);
-	s32 (*read_analog_reg8)(struct ixgbe_hw*, u32, u8*);
-	s32 (*write_analog_reg8)(struct ixgbe_hw*, u32, u8);
+	s32 (*read_analog_reg8)(struct ixgbe_hw *, u32, u8 *);
+	s32 (*write_analog_reg8)(struct ixgbe_hw *, u32, u8);
 	s32 (*setup_sfp)(struct ixgbe_hw *);
 	s32 (*disable_rx_buff)(struct ixgbe_hw *);
 	s32 (*enable_rx_buff)(struct ixgbe_hw *);
@@ -3341,7 +3393,7 @@ struct ixgbe_mac_operations {
 	s32 (*setup_mac_link)(struct ixgbe_hw *, ixgbe_link_speed, bool);
 	s32 (*check_link)(struct ixgbe_hw *, ixgbe_link_speed *, bool *, bool);
 	s32 (*get_link_capabilities)(struct ixgbe_hw *, ixgbe_link_speed *,
-				     bool *);
+								 bool *);
 	void (*set_rate_select_speed)(struct ixgbe_hw *, ixgbe_link_speed);
 
 	/* Packet Buffer Manipulation */
@@ -3380,7 +3432,7 @@ struct ixgbe_mac_operations {
 	void (*disable_rx)(struct ixgbe_hw *hw);
 	void (*enable_rx)(struct ixgbe_hw *hw);
 	void (*set_source_address_pruning)(struct ixgbe_hw *, bool,
-					   unsigned int);
+									   unsigned int);
 	void (*set_ethertype_anti_spoofing)(struct ixgbe_hw *, bool, int);
 
 	/* DMA Coalescing */
@@ -3391,7 +3443,8 @@ struct ixgbe_mac_operations {
 	s32 (*write_iosf_sb_reg)(struct ixgbe_hw *, u32, u32, u32);
 };
 
-struct ixgbe_phy_operations {
+struct ixgbe_phy_operations
+{
 	s32 (*identify)(struct ixgbe_hw *);
 	s32 (*identify_sfp)(struct ixgbe_hw *);
 	s32 (*init)(struct ixgbe_hw *);
@@ -3417,12 +3470,13 @@ struct ixgbe_phy_operations {
 	s32 (*enter_lplu)(struct ixgbe_hw *);
 	s32 (*handle_lasi)(struct ixgbe_hw *hw);
 	s32 (*read_i2c_combined_unlocked)(struct ixgbe_hw *, u8 addr, u16 reg,
-					  u16 *value);
+									  u16 *value);
 	s32 (*write_i2c_combined_unlocked)(struct ixgbe_hw *, u8 addr, u16 reg,
-					   u16 value);
+									   u16 value);
 };
 
-struct ixgbe_eeprom_info {
+struct ixgbe_eeprom_info
+{
 	struct ixgbe_eeprom_operations  ops;
 	enum ixgbe_eeprom_type          type;
 	u32                             semaphore_delay;
@@ -3433,7 +3487,8 @@ struct ixgbe_eeprom_info {
 };
 
 #define IXGBE_FLAGS_DOUBLE_RESET_REQUIRED	0x01
-struct ixgbe_mac_info {
+struct ixgbe_mac_info
+{
 	struct ixgbe_mac_operations     ops;
 	enum ixgbe_mac_type             type;
 	u8                              addr[ETH_ALEN];
@@ -3464,7 +3519,8 @@ struct ixgbe_mac_info {
 	bool				set_lben;
 };
 
-struct ixgbe_phy_info {
+struct ixgbe_phy_info
+{
 	struct ixgbe_phy_operations     ops;
 	struct mdio_if_info		mdio;
 	enum ixgbe_phy_type             type;
@@ -3487,7 +3543,8 @@ struct ixgbe_phy_info {
 
 #include "ixgbe_mbx.h"
 
-struct ixgbe_mbx_operations {
+struct ixgbe_mbx_operations
+{
 	s32 (*init_params)(struct ixgbe_hw *hw);
 	s32 (*read)(struct ixgbe_hw *, u32 *, u16,  u16);
 	s32 (*write)(struct ixgbe_hw *, u32 *, u16, u16);
@@ -3498,7 +3555,8 @@ struct ixgbe_mbx_operations {
 	s32 (*check_for_rst)(struct ixgbe_hw *, u16);
 };
 
-struct ixgbe_mbx_stats {
+struct ixgbe_mbx_stats
+{
 	u32 msgs_tx;
 	u32 msgs_rx;
 
@@ -3507,7 +3565,8 @@ struct ixgbe_mbx_stats {
 	u32 rsts;
 };
 
-struct ixgbe_mbx_info {
+struct ixgbe_mbx_info
+{
 	const struct ixgbe_mbx_operations *ops;
 	struct ixgbe_mbx_stats stats;
 	u32 timeout;
@@ -3516,7 +3575,8 @@ struct ixgbe_mbx_info {
 	u16 size;
 };
 
-struct ixgbe_hw {
+struct ixgbe_hw
+{
 	u8 __iomem			*hw_addr;
 	void				*back;
 	struct ixgbe_mac_info		mac;
@@ -3539,7 +3599,8 @@ struct ixgbe_hw {
 	bool				need_crosstalk_fix;
 };
 
-struct ixgbe_info {
+struct ixgbe_info
+{
 	enum ixgbe_mac_type		mac;
 	s32 				(*get_invariants)(struct ixgbe_hw *);
 	const struct ixgbe_mac_operations	*mac_ops;
@@ -3660,10 +3721,10 @@ struct ixgbe_info {
 #define IXGBE_SB_IOSF_CTRL_ADDR_MASK		0xFF
 #define IXGBE_SB_IOSF_CTRL_RESP_STAT_SHIFT	18
 #define IXGBE_SB_IOSF_CTRL_RESP_STAT_MASK \
-				(0x3 << IXGBE_SB_IOSF_CTRL_RESP_STAT_SHIFT)
+	(0x3 << IXGBE_SB_IOSF_CTRL_RESP_STAT_SHIFT)
 #define IXGBE_SB_IOSF_CTRL_CMPL_ERR_SHIFT	20
 #define IXGBE_SB_IOSF_CTRL_CMPL_ERR_MASK \
-				(0xFF << IXGBE_SB_IOSF_CTRL_CMPL_ERR_SHIFT)
+	(0xFF << IXGBE_SB_IOSF_CTRL_CMPL_ERR_SHIFT)
 #define IXGBE_SB_IOSF_CTRL_TARGET_SELECT_SHIFT	28
 #define IXGBE_SB_IOSF_CTRL_TARGET_SELECT_MASK	0x7
 #define IXGBE_SB_IOSF_CTRL_BUSY_SHIFT		31
@@ -3679,5 +3740,5 @@ struct ixgbe_info {
 #define IXGBE_NW_MNG_IF_SEL_INT_PHY_MODE	BIT(24)
 #define IXGBE_NW_MNG_IF_SEL_MDIO_PHY_ADD_SHIFT	3
 #define IXGBE_NW_MNG_IF_SEL_MDIO_PHY_ADD	\
-				(0x1F << IXGBE_NW_MNG_IF_SEL_MDIO_PHY_ADD_SHIFT)
+	(0x1F << IXGBE_NW_MNG_IF_SEL_MDIO_PHY_ADD_SHIFT)
 #endif /* _IXGBE_TYPE_H_ */

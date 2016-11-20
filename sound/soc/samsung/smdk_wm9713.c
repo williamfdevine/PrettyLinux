@@ -39,7 +39,8 @@ static struct snd_soc_card smdk;
 	$ amixer sset 'Left Capture Source' 'Line'
 */
 
-static struct snd_soc_dai_link smdk_dai = {
+static struct snd_soc_dai_link smdk_dai =
+{
 	.name = "AC97",
 	.stream_name = "AC97 PCM",
 	.platform_name = "samsung-ac97",
@@ -48,7 +49,8 @@ static struct snd_soc_dai_link smdk_dai = {
 	.codec_name = "wm9713-codec",
 };
 
-static struct snd_soc_card smdk = {
+static struct snd_soc_card smdk =
+{
 	.name = "SMDK WM9713",
 	.owner = THIS_MODULE,
 	.dai_link = &smdk_dai,
@@ -63,15 +65,23 @@ static int __init smdk_init(void)
 	int ret;
 
 	smdk_snd_wm9713_device = platform_device_alloc("wm9713-codec", -1);
+
 	if (!smdk_snd_wm9713_device)
+	{
 		return -ENOMEM;
+	}
 
 	ret = platform_device_add(smdk_snd_wm9713_device);
+
 	if (ret)
+	{
 		goto err1;
+	}
 
 	smdk_snd_ac97_device = platform_device_alloc("soc-audio", -1);
-	if (!smdk_snd_ac97_device) {
+
+	if (!smdk_snd_ac97_device)
+	{
 		ret = -ENOMEM;
 		goto err2;
 	}
@@ -79,8 +89,11 @@ static int __init smdk_init(void)
 	platform_set_drvdata(smdk_snd_ac97_device, &smdk);
 
 	ret = platform_device_add(smdk_snd_ac97_device);
+
 	if (ret)
+	{
 		goto err3;
+	}
 
 	return 0;
 

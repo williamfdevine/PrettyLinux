@@ -24,24 +24,37 @@
 
 /* Convert Sanyo data to a scancode */
 static int img_ir_sanyo_scancode(int len, u64 raw, u64 enabled_protocols,
-				 struct img_ir_scancode_req *request)
+								 struct img_ir_scancode_req *request)
 {
 	unsigned int addr, addr_inv, data, data_inv;
+
 	/* a repeat code has no data */
 	if (!len)
+	{
 		return IMG_IR_REPEATCODE;
+	}
+
 	if (len != 42)
+	{
 		return -EINVAL;
+	}
+
 	addr     = (raw >>  0) & 0x1fff;
 	addr_inv = (raw >> 13) & 0x1fff;
 	data     = (raw >> 26) & 0xff;
 	data_inv = (raw >> 34) & 0xff;
+
 	/* Validate data */
 	if ((data_inv ^ data) != 0xff)
+	{
 		return -EINVAL;
+	}
+
 	/* Validate address */
 	if ((addr_inv ^ addr) != 0x1fff)
+	{
 		return -EINVAL;
+	}
 
 	/* Normal Sanyo */
 	request->protocol = RC_TYPE_SANYO;
@@ -51,7 +64,7 @@ static int img_ir_sanyo_scancode(int len, u64 raw, u64 enabled_protocols,
 
 /* Convert Sanyo scancode to Sanyo data filter */
 static int img_ir_sanyo_filter(const struct rc_scancode_filter *in,
-			       struct img_ir_filter *out, u64 protocols)
+							   struct img_ir_filter *out, u64 protocols)
 {
 	unsigned int addr, addr_inv, data, data_inv;
 	unsigned int addr_m, data_m;
@@ -61,25 +74,28 @@ static int img_ir_sanyo_filter(const struct rc_scancode_filter *in,
 	data_inv = data ^ 0xff;
 
 	if (in->data & 0xff700000)
+	{
 		return -EINVAL;
+	}
 
 	addr       = (in->data >> 8) & 0x1fff;
 	addr_m     = (in->mask >> 8) & 0x1fff;
 	addr_inv   = addr ^ 0x1fff;
 
 	out->data = (u64)data_inv << 34 |
-		    (u64)data     << 26 |
-			 addr_inv << 13 |
-			 addr;
+				(u64)data     << 26 |
+				addr_inv << 13 |
+				addr;
 	out->mask = (u64)data_m << 34 |
-		    (u64)data_m << 26 |
-			 addr_m << 13 |
-			 addr_m;
+				(u64)data_m << 26 |
+				addr_m << 13 |
+				addr_m;
 	return 0;
 }
 
 /* Sanyo decoder */
-struct img_ir_decoder img_ir_sanyo = {
+struct img_ir_decoder img_ir_sanyo =
+{
 	.type = RC_BIT_SANYO,
 	.control = {
 		.decoden = 1,

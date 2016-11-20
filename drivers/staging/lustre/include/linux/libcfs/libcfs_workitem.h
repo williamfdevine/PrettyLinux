@@ -64,12 +64,13 @@ struct cfs_wi_sched;
 
 void cfs_wi_sched_destroy(struct cfs_wi_sched *);
 int cfs_wi_sched_create(char *name, struct cfs_cpt_table *cptab, int cpt,
-			int nthrs, struct cfs_wi_sched **);
+						int nthrs, struct cfs_wi_sched **);
 
 struct cfs_workitem;
 
 typedef int (*cfs_wi_action_t) (struct cfs_workitem *);
-struct cfs_workitem {
+struct cfs_workitem
+{
 	/** chain on runq or rerunq */
 	struct list_head       wi_list;
 	/** working function */
@@ -77,9 +78,9 @@ struct cfs_workitem {
 	/** arg for working function */
 	void	    *wi_data;
 	/** in running */
-	unsigned short   wi_running:1;
+	unsigned short   wi_running: 1;
 	/** scheduled */
-	unsigned short   wi_scheduled:1;
+	unsigned short   wi_scheduled: 1;
 };
 
 static inline void

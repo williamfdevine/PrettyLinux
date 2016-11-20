@@ -30,7 +30,8 @@
  *	accessed. If NULL, the most recently used pinctrl state will be left
  *	selected.
  */
-struct i2c_mux_pinctrl_platform_data {
+struct i2c_mux_pinctrl_platform_data
+{
 	int parent_bus_num;
 	int base_bus_num;
 	int bus_count;

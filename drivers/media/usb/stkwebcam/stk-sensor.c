@@ -231,23 +231,43 @@ static int stk_sensor_outb(struct stk_camera *dev, u8 reg, u8 val)
 	int tmpval = 0;
 
 	if (stk_camera_write_reg(dev, STK_IIC_TX_INDEX, reg))
+	{
 		return 1;
+	}
+
 	if (stk_camera_write_reg(dev, STK_IIC_TX_VALUE, val))
+	{
 		return 1;
+	}
+
 	if (stk_camera_write_reg(dev, STK_IIC_OP, STK_IIC_OP_TX))
+	{
 		return 1;
-	do {
+	}
+
+	do
+	{
 		if (stk_camera_read_reg(dev, STK_IIC_STAT, &tmpval))
+		{
 			return 1;
+		}
+
 		i++;
-	} while (tmpval == 0 && i < MAX_RETRIES);
-	if (tmpval != STK_IIC_STAT_TX_OK) {
+	}
+	while (tmpval == 0 && i < MAX_RETRIES);
+
+	if (tmpval != STK_IIC_STAT_TX_OK)
+	{
 		if (tmpval)
 			STK_ERROR("stk_sensor_outb failed, status=0x%02x\n",
-				tmpval);
+					  tmpval);
+
 		return 1;
-	} else
+	}
+	else
+	{
 		return 0;
+	}
 }
 
 static int stk_sensor_inb(struct stk_camera *dev, u8 reg, u8 *val)
@@ -256,40 +276,66 @@ static int stk_sensor_inb(struct stk_camera *dev, u8 reg, u8 *val)
 	int tmpval = 0;
 
 	if (stk_camera_write_reg(dev, STK_IIC_RX_INDEX, reg))
+	{
 		return 1;
+	}
+
 	if (stk_camera_write_reg(dev, STK_IIC_OP, STK_IIC_OP_RX))
+	{
 		return 1;
-	do {
+	}
+
+	do
+	{
 		if (stk_camera_read_reg(dev, STK_IIC_STAT, &tmpval))
+		{
 			return 1;
+		}
+
 		i++;
-	} while (tmpval == 0 && i < MAX_RETRIES);
-	if (tmpval != STK_IIC_STAT_RX_OK) {
+	}
+	while (tmpval == 0 && i < MAX_RETRIES);
+
+	if (tmpval != STK_IIC_STAT_RX_OK)
+	{
 		if (tmpval)
 			STK_ERROR("stk_sensor_inb failed, status=0x%02x\n",
-				tmpval);
+					  tmpval);
+
 		return 1;
 	}
 
 	if (stk_camera_read_reg(dev, STK_IIC_RX_VALUE, &tmpval))
+	{
 		return 1;
+	}
 
 	*val = (u8) tmpval;
 	return 0;
 }
 
 static int stk_sensor_write_regvals(struct stk_camera *dev,
-		struct regval *rv)
+									struct regval *rv)
 {
 	int ret;
+
 	if (rv == NULL)
+	{
 		return 0;
-	while (rv->reg != 0xff || rv->val != 0xff) {
+	}
+
+	while (rv->reg != 0xff || rv->val != 0xff)
+	{
 		ret = stk_sensor_outb(dev, rv->reg, rv->val);
+
 		if (ret != 0)
+		{
 			return ret;
+		}
+
 		rv++;
 	}
+
 	return 0;
 }
 
@@ -297,17 +343,18 @@ int stk_sensor_sleep(struct stk_camera *dev)
 {
 	u8 tmp;
 	return stk_sensor_inb(dev, REG_COM2, &tmp)
-		|| stk_sensor_outb(dev, REG_COM2, tmp|COM2_SSLEEP);
+		   || stk_sensor_outb(dev, REG_COM2, tmp | COM2_SSLEEP);
 }
 
 int stk_sensor_wakeup(struct stk_camera *dev)
 {
 	u8 tmp;
 	return stk_sensor_inb(dev, REG_COM2, &tmp)
-		|| stk_sensor_outb(dev, REG_COM2, tmp&~COM2_SSLEEP);
+		   || stk_sensor_outb(dev, REG_COM2, tmp & ~COM2_SSLEEP);
 }
 
-static struct regval ov_initvals[] = {
+static struct regval ov_initvals[] =
+{
 	{REG_CLKRC, CLK_PLL},
 	{REG_COM11, 0x01},
 	{0x6a, 0x7d},
@@ -317,7 +364,7 @@ static struct regval ov_initvals[] = {
 	{REG_RED, 0x80},
 	/* Do not enable fast AEC for now */
 	/*{REG_COM8, COM8_FASTAEC|COM8_AECSTEP|COM8_BFILT|COM8_AGC|COM8_AEC},*/
-	{REG_COM8, COM8_AECSTEP|COM8_BFILT|COM8_AGC|COM8_AEC},
+	{REG_COM8, COM8_AECSTEP | COM8_BFILT | COM8_AGC | COM8_AEC},
 	{0x39, 0x50}, {0x38, 0x93},
 	{0x37, 0x00}, {0x35, 0x81},
 	{REG_COM5, 0x20},
@@ -330,22 +377,22 @@ static struct regval ov_initvals[] = {
 	{REG_COM16, 0x00},
 	{0x96, 0x04},
 	/* Gamma curve values */
-/*	{ 0x7a, 0x20 },		{ 0x7b, 0x10 },
-	{ 0x7c, 0x1e },		{ 0x7d, 0x35 },
-	{ 0x7e, 0x5a },		{ 0x7f, 0x69 },
-	{ 0x80, 0x76 },		{ 0x81, 0x80 },
-	{ 0x82, 0x88 },		{ 0x83, 0x8f },
-	{ 0x84, 0x96 },		{ 0x85, 0xa3 },
-	{ 0x86, 0xaf },		{ 0x87, 0xc4 },
-	{ 0x88, 0xd7 },		{ 0x89, 0xe8 },
-*/
+	/*	{ 0x7a, 0x20 },		{ 0x7b, 0x10 },
+		{ 0x7c, 0x1e },		{ 0x7d, 0x35 },
+		{ 0x7e, 0x5a },		{ 0x7f, 0x69 },
+		{ 0x80, 0x76 },		{ 0x81, 0x80 },
+		{ 0x82, 0x88 },		{ 0x83, 0x8f },
+		{ 0x84, 0x96 },		{ 0x85, 0xa3 },
+		{ 0x86, 0xaf },		{ 0x87, 0xc4 },
+		{ 0x88, 0xd7 },		{ 0x89, 0xe8 },
+	*/
 	{REG_GFIX, 0x40},
 	{0x8e, 0x00},
 	{REG_COM12, 0x73},
 	{0x8f, 0xdf}, {0x8b, 0x06},
 	{0x8c, 0x20},
 	{0x94, 0x88}, {0x95, 0x88},
-/*	{REG_COM15, 0xc1}, TODO */
+	/*	{REG_COM15, 0xc1}, TODO */
 	{0x29, 0x3f},
 	{REG_COM6, 0x42},
 	{REG_BD50MAX, 0x80},
@@ -369,48 +416,59 @@ int stk_sensor_init(struct stk_camera *dev)
 
 	if (stk_camera_write_reg(dev, STK_IIC_ENABLE, STK_IIC_ENABLE_YES)
 		|| stk_camera_write_reg(dev, STK_IIC_ADDR, SENSOR_ADDRESS)
-		|| stk_sensor_outb(dev, REG_COM7, COM7_RESET)) {
+		|| stk_sensor_outb(dev, REG_COM7, COM7_RESET))
+	{
 		STK_ERROR("Sensor resetting failed\n");
 		return -ENODEV;
 	}
+
 	msleep(10);
+
 	/* Read the manufacturer ID: ov = 0x7FA2 */
 	if (stk_sensor_inb(dev, REG_MIDH, &idh)
-	    || stk_sensor_inb(dev, REG_MIDL, &idl)) {
+		|| stk_sensor_inb(dev, REG_MIDL, &idl))
+	{
 		STK_ERROR("Strange error reading sensor ID\n");
 		return -ENODEV;
 	}
-	if (idh != 0x7f || idl != 0xa2) {
+
+	if (idh != 0x7f || idl != 0xa2)
+	{
 		STK_ERROR("Huh? you don't have a sensor from ovt\n");
 		return -ENODEV;
 	}
+
 	if (stk_sensor_inb(dev, REG_PID, &idh)
-	    || stk_sensor_inb(dev, REG_VER, &idl)) {
+		|| stk_sensor_inb(dev, REG_VER, &idl))
+	{
 		STK_ERROR("Could not read sensor model\n");
 		return -ENODEV;
 	}
+
 	stk_sensor_write_regvals(dev, ov_initvals);
 	msleep(10);
 	STK_INFO("OmniVision sensor detected, id %02X%02X"
-		" at address %x\n", idh, idl, SENSOR_ADDRESS);
+			 " at address %x\n", idh, idl, SENSOR_ADDRESS);
 	return 0;
 }
 
 /* V4L2_PIX_FMT_UYVY */
-static struct regval ov_fmt_uyvy[] = {
-	{REG_TSLB, TSLB_YLAST|0x08 },
+static struct regval ov_fmt_uyvy[] =
+{
+	{REG_TSLB, TSLB_YLAST | 0x08 },
 	{ 0x4f, 0x80 }, 	/* "matrix coefficient 1" */
 	{ 0x50, 0x80 }, 	/* "matrix coefficient 2" */
 	{ 0x51, 0    },		/* vb */
 	{ 0x52, 0x22 }, 	/* "matrix coefficient 4" */
 	{ 0x53, 0x5e }, 	/* "matrix coefficient 5" */
 	{ 0x54, 0x80 }, 	/* "matrix coefficient 6" */
-	{REG_COM13, COM13_UVSAT|COM13_CMATRIX},
+	{REG_COM13, COM13_UVSAT | COM13_CMATRIX},
 	{REG_COM15, COM15_R00FF },
 	{0xff, 0xff}, /* END MARKER */
 };
 /* V4L2_PIX_FMT_YUYV */
-static struct regval ov_fmt_yuyv[] = {
+static struct regval ov_fmt_yuyv[] =
+{
 	{REG_TSLB, 0 },
 	{ 0x4f, 0x80 }, 	/* "matrix coefficient 1" */
 	{ 0x50, 0x80 }, 	/* "matrix coefficient 2" */
@@ -418,13 +476,14 @@ static struct regval ov_fmt_yuyv[] = {
 	{ 0x52, 0x22 }, 	/* "matrix coefficient 4" */
 	{ 0x53, 0x5e }, 	/* "matrix coefficient 5" */
 	{ 0x54, 0x80 }, 	/* "matrix coefficient 6" */
-	{REG_COM13, COM13_UVSAT|COM13_CMATRIX},
+	{REG_COM13, COM13_UVSAT | COM13_CMATRIX},
 	{REG_COM15, COM15_R00FF },
 	{0xff, 0xff}, /* END MARKER */
 };
 
 /* V4L2_PIX_FMT_RGB565X rrrrrggg gggbbbbb */
-static struct regval ov_fmt_rgbr[] = {
+static struct regval ov_fmt_rgbr[] =
+{
 	{ REG_RGB444, 0 },	/* No RGB444 please */
 	{REG_TSLB, 0x00},
 	{ REG_COM1, 0x0 },
@@ -436,12 +495,13 @@ static struct regval ov_fmt_rgbr[] = {
 	{ 0x53, 0xa7 }, 	/* "matrix coefficient 5" */
 	{ 0x54, 0xe4 }, 	/* "matrix coefficient 6" */
 	{ REG_COM13, COM13_GAMMA },
-	{ REG_COM15, COM15_RGB565|COM15_R00FF },
+	{ REG_COM15, COM15_RGB565 | COM15_R00FF },
 	{ 0xff, 0xff },
 };
 
 /* V4L2_PIX_FMT_RGB565 gggbbbbb rrrrrggg */
-static struct regval ov_fmt_rgbp[] = {
+static struct regval ov_fmt_rgbp[] =
+{
 	{ REG_RGB444, 0 },	/* No RGB444 please */
 	{REG_TSLB, TSLB_BYTEORD },
 	{ REG_COM1, 0x0 },
@@ -453,12 +513,13 @@ static struct regval ov_fmt_rgbp[] = {
 	{ 0x53, 0xa7 }, 	/* "matrix coefficient 5" */
 	{ 0x54, 0xe4 }, 	/* "matrix coefficient 6" */
 	{ REG_COM13, COM13_GAMMA },
-	{ REG_COM15, COM15_RGB565|COM15_R00FF },
+	{ REG_COM15, COM15_RGB565 | COM15_R00FF },
 	{ 0xff, 0xff },
 };
 
 /* V4L2_PIX_FMT_SRGGB8 */
-static struct regval ov_fmt_bayer[] = {
+static struct regval ov_fmt_bayer[] =
+{
 	/* This changes color order */
 	{REG_TSLB, 0x40}, /* BGGR */
 	/* {REG_TSLB, 0x08}, */ /* BGGR with vertical image flipping */
@@ -469,24 +530,24 @@ static struct regval ov_fmt_bayer[] = {
  * Store a set of start/stop values into the camera.
  */
 static int stk_sensor_set_hw(struct stk_camera *dev,
-		int hstart, int hstop, int vstart, int vstop)
+							 int hstart, int hstop, int vstart, int vstop)
 {
 	int ret;
 	unsigned char v;
-/*
- * Horizontal: 11 bits, top 8 live in hstart and hstop.  Bottom 3 of
- * hstart are in href[2:0], bottom 3 of hstop in href[5:3].  There is
- * a mystery "edge offset" value in the top two bits of href.
- */
+	/*
+	 * Horizontal: 11 bits, top 8 live in hstart and hstop.  Bottom 3 of
+	 * hstart are in href[2:0], bottom 3 of hstop in href[5:3].  There is
+	 * a mystery "edge offset" value in the top two bits of href.
+	 */
 	ret =  stk_sensor_outb(dev, REG_HSTART, (hstart >> 3) & 0xff);
 	ret += stk_sensor_outb(dev, REG_HSTOP, (hstop >> 3) & 0xff);
 	ret += stk_sensor_inb(dev, REG_HREF, &v);
 	v = (v & 0xc0) | ((hstop & 0x7) << 3) | (hstart & 0x7);
 	msleep(10);
 	ret += stk_sensor_outb(dev, REG_HREF, v);
-/*
- * Vertical: similar arrangement (note: this is different from ov7670.c)
- */
+	/*
+	 * Vertical: similar arrangement (note: this is different from ov7670.c)
+	 */
 	ret += stk_sensor_outb(dev, REG_VSTART, (vstart >> 3) & 0xff);
 	ret += stk_sensor_outb(dev, REG_VSTOP, (vstop >> 3) & 0xff);
 	ret += stk_sensor_inb(dev, REG_VREF, &v);
@@ -508,78 +569,103 @@ int stk_sensor_configure(struct stk_camera *dev)
 	int flip;
 	struct regval *rv;
 
-	switch (dev->vsettings.mode) {
-	case MODE_QCIF: com7 = COM7_FMT_QCIF;
-		dummylines = 604;
-		break;
-	case MODE_QVGA: com7 = COM7_FMT_QVGA;
-		dummylines = 267;
-		break;
-	case MODE_CIF: com7 = COM7_FMT_CIF;
-		dummylines = 412;
-		break;
-	case MODE_VGA: com7 = COM7_FMT_VGA;
-		dummylines = 11;
-		break;
-	case MODE_SXGA: com7 = COM7_FMT_SXGA;
-		dummylines = 0;
-		break;
-	default: STK_ERROR("Unsupported mode %d\n", dev->vsettings.mode);
-		return -EFAULT;
+	switch (dev->vsettings.mode)
+	{
+		case MODE_QCIF: com7 = COM7_FMT_QCIF;
+			dummylines = 604;
+			break;
+
+		case MODE_QVGA: com7 = COM7_FMT_QVGA;
+			dummylines = 267;
+			break;
+
+		case MODE_CIF: com7 = COM7_FMT_CIF;
+			dummylines = 412;
+			break;
+
+		case MODE_VGA: com7 = COM7_FMT_VGA;
+			dummylines = 11;
+			break;
+
+		case MODE_SXGA: com7 = COM7_FMT_SXGA;
+			dummylines = 0;
+			break;
+
+		default: STK_ERROR("Unsupported mode %d\n", dev->vsettings.mode);
+			return -EFAULT;
 	}
-	switch (dev->vsettings.palette) {
-	case V4L2_PIX_FMT_UYVY:
-		com7 |= COM7_YUV;
-		rv = ov_fmt_uyvy;
-		break;
-	case V4L2_PIX_FMT_YUYV:
-		com7 |= COM7_YUV;
-		rv = ov_fmt_yuyv;
-		break;
-	case V4L2_PIX_FMT_RGB565:
-		com7 |= COM7_RGB;
-		rv = ov_fmt_rgbp;
-		break;
-	case V4L2_PIX_FMT_RGB565X:
-		com7 |= COM7_RGB;
-		rv = ov_fmt_rgbr;
-		break;
-	case V4L2_PIX_FMT_SBGGR8:
-		com7 |= COM7_PBAYER;
-		rv = ov_fmt_bayer;
-		break;
-	default: STK_ERROR("Unsupported colorspace\n");
-		return -EFAULT;
+
+	switch (dev->vsettings.palette)
+	{
+		case V4L2_PIX_FMT_UYVY:
+			com7 |= COM7_YUV;
+			rv = ov_fmt_uyvy;
+			break;
+
+		case V4L2_PIX_FMT_YUYV:
+			com7 |= COM7_YUV;
+			rv = ov_fmt_yuyv;
+			break;
+
+		case V4L2_PIX_FMT_RGB565:
+			com7 |= COM7_RGB;
+			rv = ov_fmt_rgbp;
+			break;
+
+		case V4L2_PIX_FMT_RGB565X:
+			com7 |= COM7_RGB;
+			rv = ov_fmt_rgbr;
+			break;
+
+		case V4L2_PIX_FMT_SBGGR8:
+			com7 |= COM7_PBAYER;
+			rv = ov_fmt_bayer;
+			break;
+
+		default: STK_ERROR("Unsupported colorspace\n");
+			return -EFAULT;
 	}
+
 	/*FIXME sometimes the sensor go to a bad state
 	stk_sensor_write_regvals(dev, ov_initvals); */
 	stk_sensor_outb(dev, REG_COM7, com7);
 	msleep(50);
 	stk_sensor_write_regvals(dev, rv);
-	flip = (dev->vsettings.vflip?MVFP_FLIP:0)
-		| (dev->vsettings.hflip?MVFP_MIRROR:0);
+	flip = (dev->vsettings.vflip ? MVFP_FLIP : 0)
+		   | (dev->vsettings.hflip ? MVFP_MIRROR : 0);
 	stk_sensor_outb(dev, REG_MVFP, flip);
+
 	if (dev->vsettings.palette == V4L2_PIX_FMT_SBGGR8
-			&& !dev->vsettings.vflip)
+		&& !dev->vsettings.vflip)
+	{
 		stk_sensor_outb(dev, REG_TSLB, 0x08);
+	}
+
 	stk_sensor_outb(dev, REG_ADVFH, dummylines >> 8);
 	stk_sensor_outb(dev, REG_ADVFL, dummylines & 0xff);
 	msleep(50);
-	switch (dev->vsettings.mode) {
-	case MODE_VGA:
-		if (stk_sensor_set_hw(dev, 302, 1582, 6, 486))
-			STK_ERROR("stk_sensor_set_hw failed (VGA)\n");
-		break;
-	case MODE_SXGA:
-	case MODE_CIF:
-	case MODE_QVGA:
-	case MODE_QCIF:
-		/*FIXME These settings seem ignored by the sensor
-		if (stk_sensor_set_hw(dev, 220, 1500, 10, 1034))
-			STK_ERROR("stk_sensor_set_hw failed (SXGA)\n");
-		*/
-		break;
+
+	switch (dev->vsettings.mode)
+	{
+		case MODE_VGA:
+			if (stk_sensor_set_hw(dev, 302, 1582, 6, 486))
+			{
+				STK_ERROR("stk_sensor_set_hw failed (VGA)\n");
+			}
+
+			break;
+
+		case MODE_SXGA:
+		case MODE_CIF:
+		case MODE_QVGA:
+		case MODE_QCIF:
+			/*FIXME These settings seem ignored by the sensor
+			if (stk_sensor_set_hw(dev, 220, 1500, 10, 1034))
+				STK_ERROR("stk_sensor_set_hw failed (SXGA)\n");
+			*/
+			break;
 	}
+
 	msleep(10);
 	return 0;
 }
@@ -587,7 +673,10 @@ int stk_sensor_configure(struct stk_camera *dev)
 int stk_sensor_set_brightness(struct stk_camera *dev, int br)
 {
 	if (br < 0 || br > 0xff)
+	{
 		return -EINVAL;
+	}
+
 	stk_sensor_outb(dev, REG_AEB, max(0x00, br - 6));
 	stk_sensor_outb(dev, REG_AEW, min(0xff, br + 6));
 	return 0;

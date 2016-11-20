@@ -54,23 +54,33 @@
 static inline int dB_to_cx18_av_vol(int dB)
 {
 	if (dB < -96)
+	{
 		dB = -96;
+	}
 	else if (dB > 8)
+	{
 		dB = 8;
+	}
+
 	return (dB + 119) << 9;
 }
 
 static inline int cx18_av_vol_to_dB(int v)
 {
 	if (v < (23 << 9))
+	{
 		v = (23 << 9);
+	}
 	else if (v > (127 << 9))
+	{
 		v = (127 << 9);
+	}
+
 	return (v >> 9) - 119;
 }
 
 static int snd_cx18_mixer_tv_vol_info(struct snd_kcontrol *kcontrol,
-				      struct snd_ctl_elem_info *uinfo)
+									  struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	uinfo->count = 1;
@@ -82,7 +92,7 @@ static int snd_cx18_mixer_tv_vol_info(struct snd_kcontrol *kcontrol,
 }
 
 static int snd_cx18_mixer_tv_vol_get(struct snd_kcontrol *kctl,
-				     struct snd_ctl_elem_value *uctl)
+									 struct snd_ctl_elem_value *uctl)
 {
 	struct snd_cx18_card *cxsc = snd_kcontrol_chip(kctl);
 	struct cx18 *cx = to_cx18(cxsc->v4l2_dev);
@@ -97,12 +107,15 @@ static int snd_cx18_mixer_tv_vol_get(struct snd_kcontrol *kctl,
 	snd_cx18_unlock(cxsc);
 
 	if (!ret)
+	{
 		uctl->value.integer.value[0] = cx18_av_vol_to_dB(vctrl.value);
+	}
+
 	return ret;
 }
 
 static int snd_cx18_mixer_tv_vol_put(struct snd_kcontrol *kctl,
-				     struct snd_ctl_elem_value *uctl)
+									 struct snd_ctl_elem_value *uctl)
 {
 	struct snd_cx18_card *cxsc = snd_kcontrol_chip(kctl);
 	struct cx18 *cx = to_cx18(cxsc->v4l2_dev);
@@ -118,14 +131,19 @@ static int snd_cx18_mixer_tv_vol_put(struct snd_kcontrol *kctl,
 	ret = v4l2_g_ctrl(cx->sd_av->ctrl_handler, &vctrl);
 
 	if (ret ||
-	    (cx18_av_vol_to_dB(vctrl.value) != uctl->value.integer.value[0])) {
+		(cx18_av_vol_to_dB(vctrl.value) != uctl->value.integer.value[0]))
+	{
 
 		/* Set, if needed */
 		vctrl.value = dB_to_cx18_av_vol(uctl->value.integer.value[0]);
 		ret = v4l2_s_ctrl(cx->sd_av->ctrl_handler, &vctrl);
+
 		if (!ret)
-			ret = 1; /* Indicate control was changed w/o error */
+		{
+			ret = 1;    /* Indicate control was changed w/o error */
+		}
 	}
+
 	snd_cx18_unlock(cxsc);
 
 	return ret;
@@ -135,11 +153,12 @@ static int snd_cx18_mixer_tv_vol_put(struct snd_kcontrol *kctl,
 /* This is a bit of overkill, the slider is already in dB internally */
 static DECLARE_TLV_DB_SCALE(snd_cx18_mixer_tv_vol_db_scale, -9600, 100, 0);
 
-static struct snd_kcontrol_new snd_cx18_mixer_tv_vol __initdata = {
+static struct snd_kcontrol_new snd_cx18_mixer_tv_vol __initdata =
+{
 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 	.name = "Analog TV Capture Volume",
 	.access = SNDRV_CTL_ELEM_ACCESS_READWRITE |
-		  SNDRV_CTL_ELEM_ACCESS_TLV_READ,
+	SNDRV_CTL_ELEM_ACCESS_TLV_READ,
 	.info = snd_cx18_mixer_tv_volume_info,
 	.get = snd_cx18_mixer_tv_volume_get,
 	.put = snd_cx18_mixer_tv_volume_put,
@@ -167,9 +186,12 @@ int __init snd_cx18_mixer_create(struct snd_cx18_card *cxsc)
 	strlcpy(sc->mixername, "CX23418 Mixer", sizeof(sc->mixername));
 
 	ret = snd_ctl_add(sc, snd_ctl_new1(snd_cx18_mixer_tv_vol, cxsc));
-	if (ret) {
+
+	if (ret)
+	{
 		CX18_ALSA_WARN("%s: failed to add %s control, err %d\n",
-				__func__, snd_cx18_mixer_tv_vol.name, ret);
+					   __func__, snd_cx18_mixer_tv_vol.name, ret);
 	}
+
 	return ret;
 }

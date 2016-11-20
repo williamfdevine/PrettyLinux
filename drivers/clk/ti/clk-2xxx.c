@@ -21,7 +21,8 @@
 
 #include "clock.h"
 
-static struct ti_dt_clk omap2xxx_clks[] = {
+static struct ti_dt_clk omap2xxx_clks[] =
+{
 	DT_CLK(NULL, "func_32k_ck", "func_32k_ck"),
 	DT_CLK(NULL, "secure_32k_ck", "secure_32k_ck"),
 	DT_CLK(NULL, "virt_12m_ck", "virt_12m_ck"),
@@ -148,7 +149,8 @@ static struct ti_dt_clk omap2xxx_clks[] = {
 	{ .node_name = NULL },
 };
 
-static struct ti_dt_clk omap2420_clks[] = {
+static struct ti_dt_clk omap2420_clks[] =
+{
 	DT_CLK(NULL, "sys_clkout2_src", "sys_clkout2_src"),
 	DT_CLK(NULL, "sys_clkout2", "sys_clkout2"),
 	DT_CLK(NULL, "dsp_ick", "dsp_ick"),
@@ -170,7 +172,8 @@ static struct ti_dt_clk omap2420_clks[] = {
 	{ .node_name = NULL },
 };
 
-static struct ti_dt_clk omap2430_clks[] = {
+static struct ti_dt_clk omap2430_clks[] =
+{
 	DT_CLK("twl", "fck", "osc_ck"),
 	DT_CLK(NULL, "iva2_1_ick", "iva2_1_ick"),
 	DT_CLK(NULL, "mdm_ick", "mdm_ick"),
@@ -208,7 +211,8 @@ static struct ti_dt_clk omap2430_clks[] = {
 	{ .node_name = NULL },
 };
 
-static const char *enable_init_clks[] = {
+static const char *enable_init_clks[] =
+{
 	"apll96_ck",
 	"apll54_ck",
 	"sync_32k_ick",
@@ -217,7 +221,8 @@ static const char *enable_init_clks[] = {
 	"sdrc_ick",
 };
 
-enum {
+enum
+{
 	OMAP2_SOC_OMAP2420,
 	OMAP2_SOC_OMAP2430,
 };
@@ -227,22 +232,26 @@ static int __init omap2xxx_dt_clk_init(int soc_type)
 	ti_dt_clocks_register(omap2xxx_clks);
 
 	if (soc_type == OMAP2_SOC_OMAP2420)
+	{
 		ti_dt_clocks_register(omap2420_clks);
+	}
 	else
+	{
 		ti_dt_clocks_register(omap2430_clks);
+	}
 
 	omap2xxx_clkt_vps_init();
 
 	omap2_clk_disable_autoidle_all();
 
 	omap2_clk_enable_init_clocks(enable_init_clks,
-				     ARRAY_SIZE(enable_init_clks));
+								 ARRAY_SIZE(enable_init_clks));
 
 	pr_info("Clocking rate (Crystal/DPLL/MPU): %ld.%01ld/%ld/%ld MHz\n",
-		(clk_get_rate(clk_get_sys(NULL, "sys_ck")) / 1000000),
-		(clk_get_rate(clk_get_sys(NULL, "sys_ck")) / 100000) % 10,
-		(clk_get_rate(clk_get_sys(NULL, "dpll_ck")) / 1000000),
-		(clk_get_rate(clk_get_sys(NULL, "mpu_ck")) / 1000000));
+			(clk_get_rate(clk_get_sys(NULL, "sys_ck")) / 1000000),
+			(clk_get_rate(clk_get_sys(NULL, "sys_ck")) / 100000) % 10,
+			(clk_get_rate(clk_get_sys(NULL, "dpll_ck")) / 1000000),
+			(clk_get_rate(clk_get_sys(NULL, "mpu_ck")) / 1000000));
 
 	return 0;
 }

@@ -31,7 +31,8 @@
 #include "../amdtp-stream.h"
 #include "../iso-resources.h"
 
-struct snd_tscm_spec {
+struct snd_tscm_spec
+{
 	const char *const name;
 	bool has_adat;
 	bool has_spdif;
@@ -44,7 +45,8 @@ struct snd_tscm_spec {
 #define TSCM_MIDI_IN_PORT_MAX	4
 #define TSCM_MIDI_OUT_PORT_MAX	4
 
-struct snd_tscm {
+struct snd_tscm
+{
 	struct snd_card *card;
 	struct fw_unit *unit;
 
@@ -103,7 +105,8 @@ struct snd_tscm {
 
 #define TSCM_OFFSET_MIDI_RX_QUAD	0x4000
 
-enum snd_tscm_clock {
+enum snd_tscm_clock
+{
 	SND_TSCM_CLOCK_INTERNAL = 0,
 	SND_TSCM_CLOCK_WORD	= 1,
 	SND_TSCM_CLOCK_SPDIF	= 2,
@@ -111,15 +114,15 @@ enum snd_tscm_clock {
 };
 
 int amdtp_tscm_init(struct amdtp_stream *s, struct fw_unit *unit,
-		  enum amdtp_stream_direction dir, unsigned int pcm_channels);
+					enum amdtp_stream_direction dir, unsigned int pcm_channels);
 int amdtp_tscm_set_parameters(struct amdtp_stream *s, unsigned int rate);
 int amdtp_tscm_add_pcm_hw_constraints(struct amdtp_stream *s,
-				      struct snd_pcm_runtime *runtime);
+									  struct snd_pcm_runtime *runtime);
 void amdtp_tscm_set_pcm_format(struct amdtp_stream *s, snd_pcm_format_t format);
 
 int snd_tscm_stream_get_rate(struct snd_tscm *tscm, unsigned int *rate);
 int snd_tscm_stream_get_clock(struct snd_tscm *tscm,
-			      enum snd_tscm_clock *clock);
+							  enum snd_tscm_clock *clock);
 int snd_tscm_stream_init_duplex(struct snd_tscm *tscm);
 void snd_tscm_stream_update_duplex(struct snd_tscm *tscm);
 void snd_tscm_stream_destroy_duplex(struct snd_tscm *tscm);

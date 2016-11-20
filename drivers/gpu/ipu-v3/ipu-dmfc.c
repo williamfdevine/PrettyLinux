@@ -45,7 +45,8 @@
 #define DMFC_DP_CHAN_6B_24		16
 #define DMFC_DP_CHAN_6F_29		24
 
-struct dmfc_channel_data {
+struct dmfc_channel_data
+{
 	int		ipu_channel;
 	unsigned long	channel_reg;
 	unsigned long	shift;
@@ -53,7 +54,8 @@ struct dmfc_channel_data {
 	unsigned	max_fifo_lines;
 };
 
-static const struct dmfc_channel_data dmfcdata[] = {
+static const struct dmfc_channel_data dmfcdata[] =
+{
 	{
 		.ipu_channel	= IPUV3_CHANNEL_MEM_BG_SYNC,
 		.channel_reg	= DMFC_DP_CHAN,
@@ -91,14 +93,16 @@ static const struct dmfc_channel_data dmfcdata[] = {
 
 struct ipu_dmfc_priv;
 
-struct dmfc_channel {
+struct dmfc_channel
+{
 	unsigned			slots;
 	struct ipu_soc			*ipu;
 	struct ipu_dmfc_priv		*priv;
 	const struct dmfc_channel_data	*data;
 };
 
-struct ipu_dmfc_priv {
+struct ipu_dmfc_priv
+{
 	struct ipu_soc *ipu;
 	struct device *dev;
 	struct dmfc_channel channels[DMFC_NUM_CHANNELS];
@@ -113,7 +117,9 @@ int ipu_dmfc_enable_channel(struct dmfc_channel *dmfc)
 	mutex_lock(&priv->mutex);
 
 	if (!priv->use_count)
+	{
 		ipu_module_enable(priv->ipu, IPU_CONF_DMFC_EN);
+	}
 
 	priv->use_count++;
 
@@ -132,10 +138,14 @@ void ipu_dmfc_disable_channel(struct dmfc_channel *dmfc)
 	priv->use_count--;
 
 	if (!priv->use_count)
+	{
 		ipu_module_disable(priv->ipu, IPU_CONF_DMFC_EN);
+	}
 
 	if (priv->use_count < 0)
+	{
 		priv->use_count = 0;
+	}
 
 	mutex_unlock(&priv->mutex);
 }
@@ -151,9 +161,13 @@ void ipu_dmfc_config_wait4eot(struct dmfc_channel *dmfc, int width)
 	dmfc_gen1 = readl(priv->base + DMFC_GENERAL1);
 
 	if ((dmfc->slots * 64 * 4) / width > dmfc->data->max_fifo_lines)
+	{
 		dmfc_gen1 |= 1 << dmfc->data->eot_shift;
+	}
 	else
+	{
 		dmfc_gen1 &= ~(1 << dmfc->data->eot_shift);
+	}
 
 	writel(dmfc_gen1, priv->base + DMFC_GENERAL1);
 
@@ -168,7 +182,10 @@ struct dmfc_channel *ipu_dmfc_get(struct ipu_soc *ipu, int ipu_channel)
 
 	for (i = 0; i < DMFC_NUM_CHANNELS; i++)
 		if (dmfcdata[i].ipu_channel == ipu_channel)
+		{
 			return &priv->channels[i];
+		}
+
 	return ERR_PTR(-ENODEV);
 }
 EXPORT_SYMBOL_GPL(ipu_dmfc_get);
@@ -179,18 +196,24 @@ void ipu_dmfc_put(struct dmfc_channel *dmfc)
 EXPORT_SYMBOL_GPL(ipu_dmfc_put);
 
 int ipu_dmfc_init(struct ipu_soc *ipu, struct device *dev, unsigned long base,
-		struct clk *ipu_clk)
+				  struct clk *ipu_clk)
 {
 	struct ipu_dmfc_priv *priv;
 	int i;
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	priv->base = devm_ioremap(dev, base, PAGE_SIZE);
+
 	if (!priv->base)
+	{
 		return -ENOMEM;
+	}
 
 	priv->dev = dev;
 	priv->ipu = ipu;
@@ -198,15 +221,18 @@ int ipu_dmfc_init(struct ipu_soc *ipu, struct device *dev, unsigned long base,
 
 	ipu->dmfc_priv = priv;
 
-	for (i = 0; i < DMFC_NUM_CHANNELS; i++) {
+	for (i = 0; i < DMFC_NUM_CHANNELS; i++)
+	{
 		priv->channels[i].priv = priv;
 		priv->channels[i].ipu = ipu;
 		priv->channels[i].data = &dmfcdata[i];
 
 		if (dmfcdata[i].ipu_channel == IPUV3_CHANNEL_MEM_BG_SYNC ||
-		    dmfcdata[i].ipu_channel == IPUV3_CHANNEL_MEM_FG_SYNC ||
-		    dmfcdata[i].ipu_channel == IPUV3_CHANNEL_MEM_DC_SYNC)
+			dmfcdata[i].ipu_channel == IPUV3_CHANNEL_MEM_FG_SYNC ||
+			dmfcdata[i].ipu_channel == IPUV3_CHANNEL_MEM_DC_SYNC)
+		{
 			priv->channels[i].slots = 2;
+		}
 	}
 
 	writel(0x00000050, priv->base + DMFC_WR_CHAN);

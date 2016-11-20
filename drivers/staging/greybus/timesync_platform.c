@@ -24,7 +24,7 @@
 
 static u32 gb_timesync_clock_frequency;
 int (*arche_platform_change_state_cb)(enum arche_platform_state state,
-				      struct gb_timesync_svc *pdata);
+									  struct gb_timesync_svc *pdata);
 EXPORT_SYMBOL_GPL(arche_platform_change_state_cb);
 
 u64 gb_timesync_platform_get_counter(void)
@@ -34,10 +34,14 @@ u64 gb_timesync_platform_get_counter(void)
 
 u32 gb_timesync_platform_get_clock_rate(void)
 {
-	if (unlikely(!gb_timesync_clock_frequency)) {
+	if (unlikely(!gb_timesync_clock_frequency))
+	{
 		gb_timesync_clock_frequency = cpufreq_get(0);
+
 		if (!gb_timesync_clock_frequency)
+		{
 			gb_timesync_clock_frequency = DEFAULT_FRAMETIME_CLOCK_HZ;
+		}
 	}
 
 	return gb_timesync_clock_frequency;
@@ -46,7 +50,7 @@ u32 gb_timesync_platform_get_clock_rate(void)
 int gb_timesync_platform_lock_bus(struct gb_timesync_svc *pdata)
 {
 	return arche_platform_change_state_cb(ARCHE_PLATFORM_STATE_TIME_SYNC,
-					      pdata);
+										  pdata);
 }
 
 void gb_timesync_platform_unlock_bus(void)
@@ -54,7 +58,8 @@ void gb_timesync_platform_unlock_bus(void)
 	arche_platform_change_state_cb(ARCHE_PLATFORM_STATE_ACTIVE, NULL);
 }
 
-static const struct of_device_id arch_timer_of_match[] = {
+static const struct of_device_id arch_timer_of_match[] =
+{
 	{ .compatible   = "google,greybus-frame-time-counter", },
 	{},
 };
@@ -64,14 +69,17 @@ int __init gb_timesync_platform_init(void)
 	struct device_node *np;
 
 	np = of_find_matching_node(NULL, arch_timer_of_match);
-	if (!np) {
+
+	if (!np)
+	{
 		/* Tolerate not finding to allow BBB etc to continue */
 		pr_warn("Unable to find a compatible ARMv7 timer\n");
 		return 0;
 	}
 
 	if (of_property_read_u32(np, "clock-frequency",
-				 &gb_timesync_clock_frequency)) {
+							 &gb_timesync_clock_frequency))
+	{
 		pr_err("Unable to find timer clock-frequency\n");
 		return -ENODEV;
 	}

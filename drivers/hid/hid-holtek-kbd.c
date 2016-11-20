@@ -30,7 +30,8 @@
  * to the boot interface.
  */
 
-static __u8 holtek_kbd_rdesc_fixed[] = {
+static __u8 holtek_kbd_rdesc_fixed[] =
+{
 	/* Original report descriptor, with reduced number of consumer usages */
 	0x05, 0x01,         /*  Usage Page (Desktop),                         */
 	0x09, 0x80,         /*  Usage (Sys Control),                          */
@@ -106,20 +107,22 @@ static __u8 holtek_kbd_rdesc_fixed[] = {
 };
 
 static __u8 *holtek_kbd_report_fixup(struct hid_device *hdev, __u8 *rdesc,
-		unsigned int *rsize)
+									 unsigned int *rsize)
 {
 	struct usb_interface *intf = to_usb_interface(hdev->dev.parent);
 
-	if (intf->cur_altsetting->desc.bInterfaceNumber == 1) {
+	if (intf->cur_altsetting->desc.bInterfaceNumber == 1)
+	{
 		rdesc = holtek_kbd_rdesc_fixed;
 		*rsize = sizeof(holtek_kbd_rdesc_fixed);
 	}
+
 	return rdesc;
 }
 
 static int holtek_kbd_input_event(struct input_dev *dev, unsigned int type,
-		unsigned int code,
-		int value)
+								  unsigned int code,
+								  int value)
 {
 	struct hid_device *hid = input_get_drvdata(dev);
 	struct usb_device *usb_dev = hid_to_usb_dev(hid);
@@ -129,24 +132,28 @@ static int holtek_kbd_input_event(struct input_dev *dev, unsigned int type,
 
 	struct hid_device *boot_hid = usb_get_intfdata(boot_interface);
 	struct hid_input *boot_hid_input = list_first_entry(&boot_hid->inputs,
-		struct hid_input, list);
+									   struct hid_input, list);
 
 	return boot_hid_input->input->event(boot_hid_input->input, type, code,
-			value);
+										value);
 }
 
 static int holtek_kbd_probe(struct hid_device *hdev,
-		const struct hid_device_id *id)
+							const struct hid_device_id *id)
 {
 	struct usb_interface *intf = to_usb_interface(hdev->dev.parent);
 	int ret = hid_parse(hdev);
 
 	if (!ret)
+	{
 		ret = hid_hw_start(hdev, HID_CONNECT_DEFAULT);
+	}
 
-	if (!ret && intf->cur_altsetting->desc.bInterfaceNumber == 1) {
+	if (!ret && intf->cur_altsetting->desc.bInterfaceNumber == 1)
+	{
 		struct hid_input *hidinput;
-		list_for_each_entry(hidinput, &hdev->inputs, list) {
+		list_for_each_entry(hidinput, &hdev->inputs, list)
+		{
 			hidinput->input->event = holtek_kbd_input_event;
 		}
 	}
@@ -154,14 +161,18 @@ static int holtek_kbd_probe(struct hid_device *hdev,
 	return ret;
 }
 
-static const struct hid_device_id holtek_kbd_devices[] = {
-	{ HID_USB_DEVICE(USB_VENDOR_ID_HOLTEK_ALT,
-			USB_DEVICE_ID_HOLTEK_ALT_KEYBOARD) },
+static const struct hid_device_id holtek_kbd_devices[] =
+{
+	{
+		HID_USB_DEVICE(USB_VENDOR_ID_HOLTEK_ALT,
+		USB_DEVICE_ID_HOLTEK_ALT_KEYBOARD)
+	},
 	{ }
 };
 MODULE_DEVICE_TABLE(hid, holtek_kbd_devices);
 
-static struct hid_driver holtek_kbd_driver = {
+static struct hid_driver holtek_kbd_driver =
+{
 	.name = "holtek_kbd",
 	.id_table = holtek_kbd_devices,
 	.report_fixup = holtek_kbd_report_fixup,

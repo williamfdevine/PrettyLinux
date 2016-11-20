@@ -4,7 +4,8 @@
 #include <linux/compiler.h>
 #include <linux/types.h>
 
-typedef union sigval {
+typedef union sigval
+{
 	int sival_int;
 	void __user *sival_ptr;
 } sigval_t;
@@ -14,16 +15,16 @@ typedef union sigval {
  * struct siginfo that is before the union.
  */
 #ifndef __ARCH_SI_PREAMBLE_SIZE
-#define __ARCH_SI_PREAMBLE_SIZE	(3 * sizeof(int))
+	#define __ARCH_SI_PREAMBLE_SIZE	(3 * sizeof(int))
 #endif
 
 #define SI_MAX_SIZE	128
 #ifndef SI_PAD_SIZE
-#define SI_PAD_SIZE	((SI_MAX_SIZE - __ARCH_SI_PREAMBLE_SIZE) / sizeof(int))
+	#define SI_PAD_SIZE	((SI_MAX_SIZE - __ARCH_SI_PREAMBLE_SIZE) / sizeof(int))
 #endif
 
 #ifndef __ARCH_SI_UID_T
-#define __ARCH_SI_UID_T	__kernel_uid32_t
+	#define __ARCH_SI_UID_T	__kernel_uid32_t
 #endif
 
 /*
@@ -32,35 +33,39 @@ typedef union sigval {
  * for historical compatibility reasons, so we allow that.
  */
 #ifndef __ARCH_SI_BAND_T
-#define __ARCH_SI_BAND_T long
+	#define __ARCH_SI_BAND_T long
 #endif
 
 #ifndef __ARCH_SI_CLOCK_T
-#define __ARCH_SI_CLOCK_T __kernel_clock_t
+	#define __ARCH_SI_CLOCK_T __kernel_clock_t
 #endif
 
 #ifndef __ARCH_SI_ATTRIBUTES
-#define __ARCH_SI_ATTRIBUTES
+	#define __ARCH_SI_ATTRIBUTES
 #endif
 
 #ifndef HAVE_ARCH_SIGINFO_T
 
-typedef struct siginfo {
+typedef struct siginfo
+{
 	int si_signo;
 	int si_errno;
 	int si_code;
 
-	union {
+	union
+	{
 		int _pad[SI_PAD_SIZE];
 
 		/* kill() */
-		struct {
+		struct
+		{
 			__kernel_pid_t _pid;	/* sender's pid */
 			__ARCH_SI_UID_T _uid;	/* sender's uid */
 		} _kill;
 
 		/* POSIX.1b timers */
-		struct {
+		struct
+		{
 			__kernel_timer_t _tid;	/* timer id */
 			int _overrun;		/* overrun count */
 			char _pad[sizeof( __ARCH_SI_UID_T) - sizeof(int)];
@@ -69,14 +74,16 @@ typedef struct siginfo {
 		} _timer;
 
 		/* POSIX.1b signals */
-		struct {
+		struct
+		{
 			__kernel_pid_t _pid;	/* sender's pid */
 			__ARCH_SI_UID_T _uid;	/* sender's uid */
 			sigval_t _sigval;
 		} _rt;
 
 		/* SIGCHLD */
-		struct {
+		struct
+		{
 			__kernel_pid_t _pid;	/* which child */
 			__ARCH_SI_UID_T _uid;	/* sender's uid */
 			int _status;		/* exit code */
@@ -85,15 +92,18 @@ typedef struct siginfo {
 		} _sigchld;
 
 		/* SIGILL, SIGFPE, SIGSEGV, SIGBUS */
-		struct {
+		struct
+		{
 			void __user *_addr; /* faulting insn/memory ref. */
 #ifdef __ARCH_SI_TRAPNO
 			int _trapno;	/* TRAP # which caused the signal */
 #endif
 			short _addr_lsb; /* LSB of the reported address */
-			union {
+			union
+			{
 				/* used when si_code=SEGV_BNDERR */
-				struct {
+				struct
+				{
 					void __user *_lower;
 					void __user *_upper;
 				} _addr_bnd;
@@ -103,13 +113,15 @@ typedef struct siginfo {
 		} _sigfault;
 
 		/* SIGPOLL */
-		struct {
+		struct
+		{
 			__ARCH_SI_BAND_T _band;	/* POLL_IN, POLL_OUT, POLL_MSG */
 			int _fd;
 		} _sigpoll;
 
 		/* SIGSYS */
-		struct {
+		struct
+		{
 			void __user *_call_addr; /* calling user insn */
 			int _syscall;	/* triggering system call number */
 			unsigned int _arch;	/* AUDIT_ARCH_* of syscall */
@@ -137,7 +149,7 @@ typedef struct siginfo {
 #define si_ptr		_sifields._rt._sigval.sival_ptr
 #define si_addr		_sifields._sigfault._addr
 #ifdef __ARCH_SI_TRAPNO
-#define si_trapno	_sifields._sigfault._trapno
+	#define si_trapno	_sifields._sigfault._trapno
 #endif
 #define si_addr_lsb	_sifields._sigfault._addr_lsb
 #define si_lower	_sifields._sigfault._addr_bnd._lower
@@ -146,21 +158,21 @@ typedef struct siginfo {
 #define si_band		_sifields._sigpoll._band
 #define si_fd		_sifields._sigpoll._fd
 #ifdef __ARCH_SIGSYS
-#define si_call_addr	_sifields._sigsys._call_addr
-#define si_syscall	_sifields._sigsys._syscall
-#define si_arch		_sifields._sigsys._arch
+	#define si_call_addr	_sifields._sigsys._call_addr
+	#define si_syscall	_sifields._sigsys._syscall
+	#define si_arch		_sifields._sigsys._arch
 #endif
 
 #ifndef __KERNEL__
-#define __SI_KILL	0
-#define __SI_TIMER	0
-#define __SI_POLL	0
-#define __SI_FAULT	0
-#define __SI_CHLD	0
-#define __SI_RT		0
-#define __SI_MESGQ	0
-#define __SI_SYS	0
-#define __SI_CODE(T,N)	(N)
+	#define __SI_KILL	0
+	#define __SI_TIMER	0
+	#define __SI_POLL	0
+	#define __SI_FAULT	0
+	#define __SI_CHLD	0
+	#define __SI_RT		0
+	#define __SI_MESGQ	0
+	#define __SI_SYS	0
+	#define __SI_CODE(T,N)	(N)
 #endif
 
 /*
@@ -266,8 +278,8 @@ typedef struct siginfo {
 
 /*
  * sigevent definitions
- * 
- * It seems likely that SIGEV_THREAD will have to be handled from 
+ *
+ * It seems likely that SIGEV_THREAD will have to be handled from
  * userspace, libpthread transmuting it to SIGEV_SIGNAL, which the
  * thread manager then catches and does the appropriate nonsense.
  * However, everything is written out here so as to not get lost.
@@ -282,22 +294,25 @@ typedef struct siginfo {
  * but we leave open this being overridden in the future
  */
 #ifndef __ARCH_SIGEV_PREAMBLE_SIZE
-#define __ARCH_SIGEV_PREAMBLE_SIZE	(sizeof(int) * 2 + sizeof(sigval_t))
+	#define __ARCH_SIGEV_PREAMBLE_SIZE	(sizeof(int) * 2 + sizeof(sigval_t))
 #endif
 
 #define SIGEV_MAX_SIZE	64
 #define SIGEV_PAD_SIZE	((SIGEV_MAX_SIZE - __ARCH_SIGEV_PREAMBLE_SIZE) \
-		/ sizeof(int))
+						 / sizeof(int))
 
-typedef struct sigevent {
+typedef struct sigevent
+{
 	sigval_t sigev_value;
 	int sigev_signo;
 	int sigev_notify;
-	union {
+	union
+	{
 		int _pad[SIGEV_PAD_SIZE];
-		 int _tid;
+		int _tid;
 
-		struct {
+		struct
+		{
 			void (*_function)(sigval_t);
 			void *_attribute;	/* really pthread_attr_t */
 		} _sigev_thread;

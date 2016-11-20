@@ -34,16 +34,18 @@
  * negative value of the address means that MAC controller is not connected
  * with PHY.
  */
-struct stmmac_pci_dmi_data {
+struct stmmac_pci_dmi_data
+{
 	const char *name;
 	unsigned int func;
 	int phy_addr;
 };
 
-struct stmmac_pci_info {
+struct stmmac_pci_info
+{
 	struct pci_dev *pdev;
 	int (*setup)(struct plat_stmmacenet_data *plat,
-		     struct stmmac_pci_info *info);
+				 struct stmmac_pci_info *info);
 	struct stmmac_pci_dmi_data *dmi;
 };
 
@@ -58,11 +60,16 @@ static int stmmac_pci_find_phy_addr(struct stmmac_pci_info *info)
 	 * 1 here, so at least first found MAC controller would be probed.
 	 */
 	if (!name)
+	{
 		return 1;
+	}
 
-	for (dmi = info->dmi; dmi->name && *dmi->name; dmi++) {
+	for (dmi = info->dmi; dmi->name && *dmi->name; dmi++)
+	{
 		if (!strcmp(dmi->name, name) && dmi->func == func)
+		{
 			return dmi->phy_addr;
+		}
 	}
 
 	return -ENODEV;
@@ -91,7 +98,7 @@ static void stmmac_default_data(struct plat_stmmacenet_data *plat)
 }
 
 static int quark_default_data(struct plat_stmmacenet_data *plat,
-			      struct stmmac_pci_info *info)
+							  struct stmmac_pci_info *info)
 {
 	struct pci_dev *pdev = info->pdev;
 	int ret;
@@ -101,8 +108,11 @@ static int quark_default_data(struct plat_stmmacenet_data *plat,
 	 * does not connect to any PHY interface.
 	 */
 	ret = stmmac_pci_find_phy_addr(info);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	plat->bus_id = PCI_DEVID(pdev->bus->number, pdev->devfn);
 	plat->phy_addr = ret;
@@ -127,7 +137,8 @@ static int quark_default_data(struct plat_stmmacenet_data *plat,
 	return 0;
 }
 
-static struct stmmac_pci_dmi_data quark_pci_dmi_data[] = {
+static struct stmmac_pci_dmi_data quark_pci_dmi_data[] =
+{
 	{
 		.name = "Galileo",
 		.func = 6,
@@ -141,7 +152,8 @@ static struct stmmac_pci_dmi_data quark_pci_dmi_data[] = {
 	{}
 };
 
-static struct stmmac_pci_info quark_pci_info = {
+static struct stmmac_pci_info quark_pci_info =
+{
 	.setup = quark_default_data,
 	.dmi = quark_pci_dmi_data,
 };
@@ -159,7 +171,7 @@ static struct stmmac_pci_info quark_pci_info = {
  * to take "ownership" of the device or an error code(-ve no) otherwise.
  */
 static int stmmac_pci_probe(struct pci_dev *pdev,
-			    const struct pci_device_id *id)
+							const struct pci_device_id *id)
 {
 	struct stmmac_pci_info *info = (struct stmmac_pci_info *)id->driver_data;
 	struct plat_stmmacenet_data *plat;
@@ -168,49 +180,77 @@ static int stmmac_pci_probe(struct pci_dev *pdev,
 	int ret;
 
 	plat = devm_kzalloc(&pdev->dev, sizeof(*plat), GFP_KERNEL);
+
 	if (!plat)
+	{
 		return -ENOMEM;
+	}
 
 	plat->mdio_bus_data = devm_kzalloc(&pdev->dev,
-					   sizeof(*plat->mdio_bus_data),
-					   GFP_KERNEL);
+									   sizeof(*plat->mdio_bus_data),
+									   GFP_KERNEL);
+
 	if (!plat->mdio_bus_data)
+	{
 		return -ENOMEM;
+	}
 
 	plat->dma_cfg = devm_kzalloc(&pdev->dev, sizeof(*plat->dma_cfg),
-				     GFP_KERNEL);
+								 GFP_KERNEL);
+
 	if (!plat->dma_cfg)
+	{
 		return -ENOMEM;
+	}
 
 	/* Enable pci device */
 	ret = pcim_enable_device(pdev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "%s: ERROR: failed to enable device\n",
-			__func__);
+				__func__);
 		return ret;
 	}
 
 	/* Get the base address of device */
-	for (i = 0; i <= PCI_STD_RESOURCE_END; i++) {
+	for (i = 0; i <= PCI_STD_RESOURCE_END; i++)
+	{
 		if (pci_resource_len(pdev, i) == 0)
+		{
 			continue;
+		}
+
 		ret = pcim_iomap_regions(pdev, BIT(i), pci_name(pdev));
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		break;
 	}
 
 	pci_set_master(pdev);
 
-	if (info) {
+	if (info)
+	{
 		info->pdev = pdev;
-		if (info->setup) {
+
+		if (info->setup)
+		{
 			ret = info->setup(plat, info);
+
 			if (ret)
+			{
 				return ret;
+			}
 		}
-	} else
+	}
+	else
+	{
 		stmmac_default_data(plat);
+	}
 
 	pci_enable_msi(pdev);
 
@@ -240,16 +280,18 @@ static SIMPLE_DEV_PM_OPS(stmmac_pm_ops, stmmac_suspend, stmmac_resume);
 #define STMMAC_QUARK_ID  0x0937
 #define STMMAC_DEVICE_ID 0x1108
 
-static const struct pci_device_id stmmac_id_table[] = {
+static const struct pci_device_id stmmac_id_table[] =
+{
 	{PCI_DEVICE(STMMAC_VENDOR_ID, STMMAC_DEVICE_ID)},
 	{PCI_DEVICE(PCI_VENDOR_ID_STMICRO, PCI_DEVICE_ID_STMICRO_MAC)},
-	{PCI_VDEVICE(INTEL, STMMAC_QUARK_ID), (kernel_ulong_t)&quark_pci_info},
+	{PCI_VDEVICE(INTEL, STMMAC_QUARK_ID), (kernel_ulong_t) &quark_pci_info},
 	{}
 };
 
 MODULE_DEVICE_TABLE(pci, stmmac_id_table);
 
-static struct pci_driver stmmac_pci_driver = {
+static struct pci_driver stmmac_pci_driver =
+{
 	.name = STMMAC_RESOURCE_NAME,
 	.id_table = stmmac_id_table,
 	.probe = stmmac_pci_probe,

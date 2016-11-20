@@ -14,11 +14,11 @@
 	do {                                                            \
 		struct tb_pci_tunnel *__tunnel = (tunnel);              \
 		level(__tunnel->tb, "%llx:%x <-> %llx:%x (PCI): " fmt,  \
-		      tb_route(__tunnel->down_port->sw),                \
-		      __tunnel->down_port->port,                        \
-		      tb_route(__tunnel->up_port->sw),                  \
-		      __tunnel->up_port->port,                          \
-		      ## arg);                                          \
+			  tb_route(__tunnel->down_port->sw),                \
+			  __tunnel->down_port->port,                        \
+			  tb_route(__tunnel->up_port->sw),                  \
+			  __tunnel->up_port->port,                          \
+			  ## arg);                                          \
 	} while (0)
 
 #define tb_tunnel_WARN(tunnel, fmt, arg...) \
@@ -56,21 +56,33 @@ static void tb_pci_init_path(struct tb_path *path)
  * Return: Returns a tb_pci_tunnel on success or NULL on failure.
  */
 struct tb_pci_tunnel *tb_pci_alloc(struct tb *tb, struct tb_port *up,
-				   struct tb_port *down)
+								   struct tb_port *down)
 {
 	struct tb_pci_tunnel *tunnel = kzalloc(sizeof(*tunnel), GFP_KERNEL);
+
 	if (!tunnel)
+	{
 		goto err;
+	}
+
 	tunnel->tb = tb;
 	tunnel->down_port = down;
 	tunnel->up_port = up;
 	INIT_LIST_HEAD(&tunnel->list);
 	tunnel->path_to_up = tb_path_alloc(up->sw->tb, 2);
+
 	if (!tunnel->path_to_up)
+	{
 		goto err;
+	}
+
 	tunnel->path_to_down = tb_path_alloc(up->sw->tb, 2);
+
 	if (!tunnel->path_to_down)
+	{
 		goto err;
+	}
+
 	tb_pci_init_path(tunnel->path_to_up);
 	tb_pci_init_path(tunnel->path_to_down);
 
@@ -101,13 +113,22 @@ struct tb_pci_tunnel *tb_pci_alloc(struct tb *tb, struct tb_port *up,
 	return tunnel;
 
 err:
-	if (tunnel) {
+
+	if (tunnel)
+	{
 		if (tunnel->path_to_down)
+		{
 			tb_path_free(tunnel->path_to_down);
+		}
+
 		if (tunnel->path_to_up)
+		{
 			tb_path_free(tunnel->path_to_up);
+		}
+
 		kfree(tunnel);
 	}
+
 	return NULL;
 }
 
@@ -118,10 +139,12 @@ err:
  */
 void tb_pci_free(struct tb_pci_tunnel *tunnel)
 {
-	if (tunnel->path_to_up->activated || tunnel->path_to_down->activated) {
+	if (tunnel->path_to_up->activated || tunnel->path_to_down->activated)
+	{
 		tb_tunnel_WARN(tunnel, "trying to free an activated tunnel\n");
 		return;
 	}
+
 	tb_path_free(tunnel->path_to_up);
 	tb_path_free(tunnel->path_to_down);
 	kfree(tunnel);
@@ -136,7 +159,7 @@ bool tb_pci_is_invalid(struct tb_pci_tunnel *tunnel)
 	WARN_ON(!tunnel->path_to_down->activated);
 
 	return tb_path_is_invalid(tunnel->path_to_up)
-	       || tb_path_is_invalid(tunnel->path_to_down);
+		   || tb_path_is_invalid(tunnel->path_to_down);
 }
 
 /**
@@ -148,10 +171,13 @@ static int tb_pci_port_active(struct tb_port *port, bool active)
 {
 	u32 word = active ? 0x80000000 : 0x0;
 	int cap = tb_find_cap(port, TB_CFG_PORT, TB_CAP_PCIE);
-	if (cap <= 0) {
+
+	if (cap <= 0)
+	{
 		tb_port_warn(port, "TB_CAP_PCIE not found: %d\n", cap);
 		return cap ? cap : -ENXIO;
 	}
+
 	return tb_port_write(port, &word, TB_CFG_PORT, cap, 1);
 }
 
@@ -167,19 +193,33 @@ int tb_pci_restart(struct tb_pci_tunnel *tunnel)
 	tb_tunnel_info(tunnel, "activating\n");
 
 	res = tb_path_activate(tunnel->path_to_up);
+
 	if (res)
+	{
 		goto err;
+	}
+
 	res = tb_path_activate(tunnel->path_to_down);
+
 	if (res)
+	{
 		goto err;
+	}
 
 	res = tb_pci_port_active(tunnel->down_port, true);
+
 	if (res)
+	{
 		goto err;
+	}
 
 	res = tb_pci_port_active(tunnel->up_port, true);
+
 	if (res)
+	{
 		goto err;
+	}
+
 	return 0;
 err:
 	tb_tunnel_warn(tunnel, "activation failed\n");
@@ -195,15 +235,20 @@ err:
 int tb_pci_activate(struct tb_pci_tunnel *tunnel)
 {
 	int res;
-	if (tunnel->path_to_up->activated || tunnel->path_to_down->activated) {
+
+	if (tunnel->path_to_up->activated || tunnel->path_to_down->activated)
+	{
 		tb_tunnel_WARN(tunnel,
-			       "trying to activate an already activated tunnel\n");
+					   "trying to activate an already activated tunnel\n");
 		return -EINVAL;
 	}
 
 	res = tb_pci_restart(tunnel);
+
 	if (res)
+	{
 		return res;
+	}
 
 	list_add(&tunnel->list, &tunnel->tb->tunnel_list);
 	return 0;
@@ -223,10 +268,17 @@ void tb_pci_deactivate(struct tb_pci_tunnel *tunnel)
 	 */
 	tb_pci_port_active(tunnel->up_port, false);
 	tb_pci_port_active(tunnel->down_port, false);
+
 	if (tunnel->path_to_down->activated)
+	{
 		tb_path_deactivate(tunnel->path_to_down);
+	}
+
 	if (tunnel->path_to_up->activated)
+	{
 		tb_path_deactivate(tunnel->path_to_up);
+	}
+
 	list_del_init(&tunnel->list);
 }
 

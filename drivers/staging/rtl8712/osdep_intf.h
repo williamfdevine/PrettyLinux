@@ -31,7 +31,8 @@
 
 #define RND4(x)	(((x >> 2) + (((x & 3) == 0) ?  0 : 1)) << 2)
 
-struct intf_priv {
+struct intf_priv
+{
 	u8 *intf_dev;
 	/* when in USB, IO is through interrupt in/out endpoints */
 	struct usb_device *udev;

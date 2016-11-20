@@ -13,7 +13,8 @@
 #define ____LINUX_PLATFORM_DATA_SPI_CLPS711X_H
 
 /* Board specific platform_data */
-struct spi_clps711x_pdata {
+struct spi_clps711x_pdata
+{
 	int *chipselect;	/* Array of GPIO-numbers */
 	int num_chipselect;	/* Total count of GPIOs */
 };

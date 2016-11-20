@@ -2,7 +2,7 @@
 #define _NET_DN_NSP_H
 /******************************************************************************
     (c) 1995-1998 E.M. Serrat		emserrat@geocities.com
-    
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -21,17 +21,17 @@ void dn_nsp_delayed_ack(struct sock *sk);
 void dn_send_conn_ack(struct sock *sk);
 void dn_send_conn_conf(struct sock *sk, gfp_t gfp);
 void dn_nsp_send_disc(struct sock *sk, unsigned char type,
-		      unsigned short reason, gfp_t gfp);
+					  unsigned short reason, gfp_t gfp);
 void dn_nsp_return_disc(struct sk_buff *skb, unsigned char type,
-			unsigned short reason);
+						unsigned short reason);
 void dn_nsp_send_link(struct sock *sk, unsigned char lsflags, char fcval);
 void dn_nsp_send_conninit(struct sock *sk, unsigned char flags);
 
 void dn_nsp_output(struct sock *sk);
 int dn_nsp_check_xmit_queue(struct sock *sk, struct sk_buff *skb,
-			    struct sk_buff_head *q, unsigned short acknum);
+							struct sk_buff_head *q, unsigned short acknum);
 void dn_nsp_queue_xmit(struct sock *sk, struct sk_buff *skb, gfp_t gfp,
-		       int oob);
+					   int oob);
 unsigned long dn_nsp_persist(struct sock *sk);
 int dn_nsp_xmit_timeout(struct sock *sk);
 
@@ -40,7 +40,7 @@ int dn_nsp_backlog_rcv(struct sock *sk, struct sk_buff *skb);
 
 struct sk_buff *dn_alloc_skb(struct sock *sk, int size, gfp_t pri);
 struct sk_buff *dn_alloc_send_skb(struct sock *sk, size_t *size, int noblock,
-				  long timeo, int *err);
+								  long timeo, int *err);
 
 #define NSP_REASON_OK 0		/* No error */
 #define NSP_REASON_NR 1		/* No resources */
@@ -73,26 +73,30 @@ struct sk_buff *dn_alloc_send_skb(struct sock *sk, size_t *size, int noblock,
 
 /* Data Messages    (data segment/interrupt/link service)               */
 
-struct nsp_data_seg_msg {
+struct nsp_data_seg_msg
+{
 	__u8   msgflg;
 	__le16 dstaddr;
 	__le16 srcaddr;
 } __packed;
 
-struct nsp_data_opt_msg {
+struct nsp_data_opt_msg
+{
 	__le16 acknum;
 	__le16 segnum;
 	__le16 lsflgs;
 } __packed;
 
-struct nsp_data_opt_msg1 {
+struct nsp_data_opt_msg1
+{
 	__le16 acknum;
 	__le16 segnum;
 } __packed;
 
 
 /* Acknowledgment Message (data/other data)                             */
-struct nsp_data_ack_msg {
+struct nsp_data_ack_msg
+{
 	__u8   msgflg;
 	__le16 dstaddr;
 	__le16 srcaddr;
@@ -100,14 +104,16 @@ struct nsp_data_ack_msg {
 } __packed;
 
 /* Connect Acknowledgment Message */
-struct  nsp_conn_ack_msg {
+struct  nsp_conn_ack_msg
+{
 	__u8 msgflg;
 	__le16 dstaddr;
 } __packed;
 
 
 /* Connect Initiate/Retransmit Initiate/Connect Confirm */
-struct  nsp_conn_init_msg {
+struct  nsp_conn_init_msg
+{
 	__u8   msgflg;
 #define NSP_CI      0x18            /* Connect Initiate     */
 #define NSP_RCI     0x68            /* Retrans. Conn Init   */
@@ -123,7 +129,8 @@ struct  nsp_conn_init_msg {
 } __packed;
 
 /* Disconnect Initiate/Disconnect Confirm */
-struct  nsp_disconn_init_msg {
+struct  nsp_disconn_init_msg
+{
 	__u8   msgflg;
 	__le16 dstaddr;
 	__le16 srcaddr;
@@ -132,7 +139,8 @@ struct  nsp_disconn_init_msg {
 
 
 
-struct  srcobj_fmt {
+struct  srcobj_fmt
+{
 	__u8   format;
 	__u8   task;
 	__le16 grpcode;
@@ -147,24 +155,24 @@ struct  srcobj_fmt {
  */
 static __inline__ int dn_before(__u16 seq1, __u16 seq2)
 {
-        seq1 &= 0x0fff;
-        seq2 &= 0x0fff;
+	seq1 &= 0x0fff;
+	seq2 &= 0x0fff;
 
-        return (int)((seq1 - seq2) & 0x0fff) > 2048;
+	return (int)((seq1 - seq2) & 0x0fff) > 2048;
 }
 
 
 static __inline__ int dn_after(__u16 seq1, __u16 seq2)
 {
-        seq1 &= 0x0fff;
-        seq2 &= 0x0fff;
+	seq1 &= 0x0fff;
+	seq2 &= 0x0fff;
 
-        return (int)((seq2 - seq1) & 0x0fff) > 2048;
+	return (int)((seq2 - seq1) & 0x0fff) > 2048;
 }
 
 static __inline__ int dn_equal(__u16 seq1, __u16 seq2)
 {
-        return ((seq1 ^ seq2) & 0x0fff) == 0;
+	return ((seq1 ^ seq2) & 0x0fff) == 0;
 }
 
 static __inline__ int dn_before_or_equal(__u16 seq1, __u16 seq2)
@@ -174,8 +182,8 @@ static __inline__ int dn_before_or_equal(__u16 seq1, __u16 seq2)
 
 static __inline__ void seq_add(__u16 *seq, __u16 off)
 {
-        (*seq) += off;
-        (*seq) &= 0x0fff;
+	(*seq) += off;
+	(*seq) &= 0x0fff;
 }
 
 static __inline__ int seq_next(__u16 seq1, __u16 seq2)
@@ -188,7 +196,7 @@ static __inline__ int seq_next(__u16 seq1, __u16 seq2)
  */
 static __inline__ int sendack(__u16 seq)
 {
-        return (int)((seq & 0x1000) ? 0 : 1);
+	return (int)((seq & 0x1000) ? 0 : 1);
 }
 
 /*
@@ -196,7 +204,7 @@ static __inline__ int sendack(__u16 seq)
  */
 static __inline__ int dn_congested(struct sock *sk)
 {
-        return atomic_read(&sk->sk_rmem_alloc) > (sk->sk_rcvbuf >> 1);
+	return atomic_read(&sk->sk_rmem_alloc) > (sk->sk_rcvbuf >> 1);
 }
 
 #define DN_MAX_NSP_DATA_HEADER (11)

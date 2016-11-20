@@ -27,7 +27,8 @@
 
 #define TRINITY_SIZEOF_DPM_STATE_TABLE (SMU_SCLK_DPM_STATE_1_CNTL_0 - SMU_SCLK_DPM_STATE_0_CNTL_0)
 
-struct trinity_pl {
+struct trinity_pl
+{
 	u32 sclk;
 	u8 vddc_index;
 	u8 ds_divider_index;
@@ -44,7 +45,8 @@ struct trinity_pl {
 
 #define TRINITY_POWERSTATE_FLAGS_BAPM_DISABLE    (1 << 0)
 
-struct trinity_ps {
+struct trinity_ps
+{
 	u32 num_levels;
 	struct trinity_pl levels[SUMO_MAX_HARDWARE_POWERLEVELS];
 
@@ -73,7 +75,8 @@ struct trinity_uvd_clock_table_entry
 	u8 rsv[2];
 };
 
-struct trinity_sys_info {
+struct trinity_sys_info
+{
 	u32 bootup_uma_clk;
 	u32 bootup_sclk;
 	u32 min_sclk;
@@ -91,7 +94,8 @@ struct trinity_sys_info {
 	struct trinity_uvd_clock_table_entry uvd_clock_table_entries[4];
 };
 
-struct trinity_power_info {
+struct trinity_power_info
+{
 	u32 at[SUMO_MAX_HARDWARE_POWERLEVELS];
 	u32 dpm_interval;
 	u32 thermal_auto_throttling;
@@ -126,7 +130,7 @@ int trinity_dpm_force_state(struct radeon_device *rdev, u32 n);
 int trinity_dpm_n_levels_disabled(struct radeon_device *rdev, u32 n);
 int trinity_dpm_no_forced_level(struct radeon_device *rdev);
 int trinity_dce_enable_voltage_adjustment(struct radeon_device *rdev,
-					  bool enable);
+		bool enable);
 int trinity_gfx_dynamic_mgpg_config(struct radeon_device *rdev);
 void trinity_acquire_mutex(struct radeon_device *rdev);
 void trinity_release_mutex(struct radeon_device *rdev);

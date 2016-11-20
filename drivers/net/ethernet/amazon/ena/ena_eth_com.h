@@ -38,7 +38,8 @@
 /* head update threshold in units of (queue size / ENA_COMP_HEAD_THRESH) */
 #define ENA_COMP_HEAD_THRESH 4
 
-struct ena_com_tx_ctx {
+struct ena_com_tx_ctx
+{
 	struct ena_com_tx_meta ena_meta;
 	struct ena_com_buf *ena_bufs;
 	/* For LLQ, header buffer - pushed to the device mem space */
@@ -61,7 +62,8 @@ struct ena_com_tx_ctx {
 	u8 df; /* Don't fragment */
 };
 
-struct ena_com_rx_ctx {
+struct ena_com_rx_ctx
+{
 	struct ena_com_rx_buf_info *ena_bufs;
 	enum ena_eth_io_l3_proto_index l3_proto;
 	enum ena_eth_io_l4_proto_index l4_proto;
@@ -75,21 +77,21 @@ struct ena_com_rx_ctx {
 };
 
 int ena_com_prepare_tx(struct ena_com_io_sq *io_sq,
-		       struct ena_com_tx_ctx *ena_tx_ctx,
-		       int *nb_hw_desc);
+					   struct ena_com_tx_ctx *ena_tx_ctx,
+					   int *nb_hw_desc);
 
 int ena_com_rx_pkt(struct ena_com_io_cq *io_cq,
-		   struct ena_com_io_sq *io_sq,
-		   struct ena_com_rx_ctx *ena_rx_ctx);
+				   struct ena_com_io_sq *io_sq,
+				   struct ena_com_rx_ctx *ena_rx_ctx);
 
 int ena_com_add_single_rx_desc(struct ena_com_io_sq *io_sq,
-			       struct ena_com_buf *ena_buf,
-			       u16 req_id);
+							   struct ena_com_buf *ena_buf,
+							   u16 req_id);
 
 int ena_com_tx_comp_req_id_get(struct ena_com_io_cq *io_cq, u16 *req_id);
 
 static inline void ena_com_unmask_intr(struct ena_com_io_cq *io_cq,
-				       struct ena_eth_io_intr_reg *intr_reg)
+									   struct ena_eth_io_intr_reg *intr_reg)
 {
 	writel(intr_reg->intr_control, io_cq->unmask_reg);
 }
@@ -112,7 +114,7 @@ static inline int ena_com_write_sq_doorbell(struct ena_com_io_sq *io_sq)
 	tail = io_sq->tail;
 
 	pr_debug("write submission queue doorbell for queue: %d tail: %d\n",
-		 io_sq->qid, tail);
+			 io_sq->qid, tail);
 
 	writel(tail, io_sq->db_addr);
 
@@ -128,9 +130,10 @@ static inline int ena_com_update_dev_comp_head(struct ena_com_io_cq *io_cq)
 	unreported_comp = head - io_cq->last_head_update;
 	need_update = unreported_comp > (io_cq->q_depth / ENA_COMP_HEAD_THRESH);
 
-	if (io_cq->cq_head_db_reg && need_update) {
+	if (io_cq->cq_head_db_reg && need_update)
+	{
 		pr_debug("Write completion queue doorbell for queue %d: head: %d\n",
-			 io_cq->qid, head);
+				 io_cq->qid, head);
 		writel(head, io_cq->cq_head_db_reg);
 		io_cq->last_head_update = head;
 	}
@@ -139,15 +142,17 @@ static inline int ena_com_update_dev_comp_head(struct ena_com_io_cq *io_cq)
 }
 
 static inline void ena_com_update_numa_node(struct ena_com_io_cq *io_cq,
-					    u8 numa_node)
+		u8 numa_node)
 {
 	struct ena_eth_io_numa_node_cfg_reg numa_cfg;
 
 	if (!io_cq->numa_node_cfg_reg)
+	{
 		return;
+	}
 
 	numa_cfg.numa_cfg = (numa_node & ENA_ETH_IO_NUMA_NODE_CFG_REG_NUMA_MASK)
-		| ENA_ETH_IO_NUMA_NODE_CFG_REG_ENABLED_MASK;
+						| ENA_ETH_IO_NUMA_NODE_CFG_REG_ENABLED_MASK;
 
 	writel(numa_cfg.numa_cfg, io_cq->numa_node_cfg_reg);
 }

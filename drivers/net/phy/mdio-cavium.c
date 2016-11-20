@@ -14,12 +14,14 @@
 #include "mdio-cavium.h"
 
 static void cavium_mdiobus_set_mode(struct cavium_mdiobus *p,
-				    enum cavium_mdiobus_mode m)
+									enum cavium_mdiobus_mode m)
 {
 	union cvmx_smix_clk smi_clk;
 
 	if (m == p->mode)
+	{
 		return;
+	}
 
 	smi_clk.u64 = oct_mdio_readq(p->register_base + SMI_CLK);
 	smi_clk.s.mode = (m == C45) ? 1 : 0;
@@ -29,7 +31,7 @@ static void cavium_mdiobus_set_mode(struct cavium_mdiobus *p,
 }
 
 static int cavium_mdiobus_c45_addr(struct cavium_mdiobus *p,
-				   int phy_id, int regnum)
+								   int phy_id, int regnum)
 {
 	union cvmx_smix_cmd smi_cmd;
 	union cvmx_smix_wr_dat smi_wr;
@@ -49,16 +51,21 @@ static int cavium_mdiobus_c45_addr(struct cavium_mdiobus *p,
 	smi_cmd.s.reg_adr = regnum;
 	oct_mdio_writeq(smi_cmd.u64, p->register_base + SMI_CMD);
 
-	do {
+	do
+	{
 		/* Wait 1000 clocks so we don't saturate the RSL bus
 		 * doing reads.
 		 */
 		__delay(1000);
 		smi_wr.u64 = oct_mdio_readq(p->register_base + SMI_WR_DAT);
-	} while (smi_wr.s.pending && --timeout);
+	}
+	while (smi_wr.s.pending && --timeout);
 
 	if (timeout <= 0)
+	{
 		return -EIO;
+	}
+
 	return 0;
 }
 
@@ -70,15 +77,20 @@ int cavium_mdiobus_read(struct mii_bus *bus, int phy_id, int regnum)
 	unsigned int op = 1; /* MDIO_CLAUSE_22_READ */
 	int timeout = 1000;
 
-	if (regnum & MII_ADDR_C45) {
+	if (regnum & MII_ADDR_C45)
+	{
 		int r = cavium_mdiobus_c45_addr(p, phy_id, regnum);
 
 		if (r < 0)
+		{
 			return r;
+		}
 
 		regnum = (regnum >> 16) & 0x1f;
 		op = 3; /* MDIO_CLAUSE_45_READ */
-	} else {
+	}
+	else
+	{
 		cavium_mdiobus_set_mode(p, C22);
 	}
 
@@ -88,18 +100,24 @@ int cavium_mdiobus_read(struct mii_bus *bus, int phy_id, int regnum)
 	smi_cmd.s.reg_adr = regnum;
 	oct_mdio_writeq(smi_cmd.u64, p->register_base + SMI_CMD);
 
-	do {
+	do
+	{
 		/* Wait 1000 clocks so we don't saturate the RSL bus
 		 * doing reads.
 		 */
 		__delay(1000);
 		smi_rd.u64 = oct_mdio_readq(p->register_base + SMI_RD_DAT);
-	} while (smi_rd.s.pending && --timeout);
+	}
+	while (smi_rd.s.pending && --timeout);
 
 	if (smi_rd.s.val)
+	{
 		return smi_rd.s.dat;
+	}
 	else
+	{
 		return -EIO;
+	}
 }
 EXPORT_SYMBOL(cavium_mdiobus_read);
 
@@ -111,15 +129,20 @@ int cavium_mdiobus_write(struct mii_bus *bus, int phy_id, int regnum, u16 val)
 	unsigned int op = 0; /* MDIO_CLAUSE_22_WRITE */
 	int timeout = 1000;
 
-	if (regnum & MII_ADDR_C45) {
+	if (regnum & MII_ADDR_C45)
+	{
 		int r = cavium_mdiobus_c45_addr(p, phy_id, regnum);
 
 		if (r < 0)
+		{
 			return r;
+		}
 
 		regnum = (regnum >> 16) & 0x1f;
 		op = 1; /* MDIO_CLAUSE_45_WRITE */
-	} else {
+	}
+	else
+	{
 		cavium_mdiobus_set_mode(p, C22);
 	}
 
@@ -133,16 +156,20 @@ int cavium_mdiobus_write(struct mii_bus *bus, int phy_id, int regnum, u16 val)
 	smi_cmd.s.reg_adr = regnum;
 	oct_mdio_writeq(smi_cmd.u64, p->register_base + SMI_CMD);
 
-	do {
+	do
+	{
 		/* Wait 1000 clocks so we don't saturate the RSL bus
 		 * doing reads.
 		 */
 		__delay(1000);
 		smi_wr.u64 = oct_mdio_readq(p->register_base + SMI_WR_DAT);
-	} while (smi_wr.s.pending && --timeout);
+	}
+	while (smi_wr.s.pending && --timeout);
 
 	if (timeout <= 0)
+	{
 		return -EIO;
+	}
 
 	return 0;
 }

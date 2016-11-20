@@ -107,7 +107,7 @@ static inline bool aa_strneq(const char *str, const char *sub, int len)
  * used to separate pairs.
  */
 static inline unsigned int aa_dfa_null_transition(struct aa_dfa *dfa,
-						  unsigned int start)
+		unsigned int start)
 {
 	/* the null transition only needs the string's null terminator byte */
 	return aa_dfa_next(dfa, start, 0);

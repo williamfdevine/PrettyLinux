@@ -18,12 +18,14 @@
 #define PLAYBACK_DST_HP_FP	1
 #define PLAYBACK_DST_MULTICH	2
 
-enum cs4245_shadow_operation {
+enum cs4245_shadow_operation
+{
 	CS4245_SAVE_TO_SHADOW,
 	CS4245_LOAD_FROM_SHADOW
 };
 
-struct dg {
+struct dg
+{
 	/* shadow copy of the CS4245 register space */
 	unsigned char cs4245_shadow[17];
 	/* output select: headphone/speakers */
@@ -40,13 +42,13 @@ int cs4245_read_spi(struct oxygen *chip, u8 reg);
 int cs4245_shadow_control(struct oxygen *chip, enum cs4245_shadow_operation op);
 void dg_init(struct oxygen *chip);
 void set_cs4245_dac_params(struct oxygen *chip,
-				  struct snd_pcm_hw_params *params);
+						   struct snd_pcm_hw_params *params);
 void set_cs4245_adc_params(struct oxygen *chip,
-				  struct snd_pcm_hw_params *params);
+						   struct snd_pcm_hw_params *params);
 unsigned int adjust_dg_dac_routing(struct oxygen *chip,
-					  unsigned int play_routing);
+								   unsigned int play_routing);
 void dump_cs4245_registers(struct oxygen *chip,
-				struct snd_info_buffer *buffer);
+						   struct snd_info_buffer *buffer);
 void dg_suspend(struct oxygen *chip);
 void dg_resume(struct oxygen *chip);
 void dg_cleanup(struct oxygen *chip);

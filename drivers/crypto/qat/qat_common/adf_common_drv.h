@@ -57,8 +57,8 @@
 #define ADF_MINOR_VERSION	6
 #define ADF_BUILD_VERSION	0
 #define ADF_DRV_VERSION		__stringify(ADF_MAJOR_VERSION) "." \
-				__stringify(ADF_MINOR_VERSION) "." \
-				__stringify(ADF_BUILD_VERSION)
+	__stringify(ADF_MINOR_VERSION) "." \
+	__stringify(ADF_BUILD_VERSION)
 
 #define ADF_STATUS_RESTARTING 0
 #define ADF_STATUS_STARTING 1
@@ -70,12 +70,14 @@
 #define ADF_STATUS_PF_RUNNING 7
 #define ADF_STATUS_IRQ_ALLOCATED 8
 
-enum adf_dev_reset_mode {
+enum adf_dev_reset_mode
+{
 	ADF_DEV_RESET_ASYNC = 0,
 	ADF_DEV_RESET_SYNC
 };
 
-enum adf_event {
+enum adf_event
+{
 	ADF_EVENT_INIT = 0,
 	ADF_EVENT_START,
 	ADF_EVENT_STOP,
@@ -84,9 +86,10 @@ enum adf_event {
 	ADF_EVENT_RESTARTED,
 };
 
-struct service_hndl {
+struct service_hndl
+{
 	int (*event_hld)(struct adf_accel_dev *accel_dev,
-			 enum adf_event event);
+					 enum adf_event event);
 	unsigned long init_status;
 	unsigned long start_status;
 	char *name;
@@ -119,9 +122,9 @@ int adf_processes_dev_register(void);
 void adf_processes_dev_unregister(void);
 
 int adf_devmgr_add_dev(struct adf_accel_dev *accel_dev,
-		       struct adf_accel_dev *pf);
+					   struct adf_accel_dev *pf);
 void adf_devmgr_rm_dev(struct adf_accel_dev *accel_dev,
-		       struct adf_accel_dev *pf);
+					   struct adf_accel_dev *pf);
 struct list_head *adf_devmgr_get_head(void);
 struct adf_accel_dev *adf_devmgr_get_dev_by_id(uint32_t id);
 struct adf_accel_dev *adf_devmgr_get_first(void);
@@ -178,64 +181,64 @@ void adf_vf_isr_resource_free(struct adf_accel_dev *accel_dev);
 int qat_hal_init(struct adf_accel_dev *accel_dev);
 void qat_hal_deinit(struct icp_qat_fw_loader_handle *handle);
 void qat_hal_start(struct icp_qat_fw_loader_handle *handle, unsigned char ae,
-		   unsigned int ctx_mask);
+				   unsigned int ctx_mask);
 void qat_hal_stop(struct icp_qat_fw_loader_handle *handle, unsigned char ae,
-		  unsigned int ctx_mask);
+				  unsigned int ctx_mask);
 void qat_hal_reset(struct icp_qat_fw_loader_handle *handle);
 int qat_hal_clr_reset(struct icp_qat_fw_loader_handle *handle);
 void qat_hal_set_live_ctx(struct icp_qat_fw_loader_handle *handle,
-			  unsigned char ae, unsigned int ctx_mask);
+						  unsigned char ae, unsigned int ctx_mask);
 int qat_hal_check_ae_active(struct icp_qat_fw_loader_handle *handle,
-			    unsigned int ae);
+							unsigned int ae);
 int qat_hal_set_ae_lm_mode(struct icp_qat_fw_loader_handle *handle,
-			   unsigned char ae, enum icp_qat_uof_regtype lm_type,
-			   unsigned char mode);
+						   unsigned char ae, enum icp_qat_uof_regtype lm_type,
+						   unsigned char mode);
 int qat_hal_set_ae_ctx_mode(struct icp_qat_fw_loader_handle *handle,
-			    unsigned char ae, unsigned char mode);
+							unsigned char ae, unsigned char mode);
 int qat_hal_set_ae_nn_mode(struct icp_qat_fw_loader_handle *handle,
-			   unsigned char ae, unsigned char mode);
+						   unsigned char ae, unsigned char mode);
 void qat_hal_set_pc(struct icp_qat_fw_loader_handle *handle,
-		    unsigned char ae, unsigned int ctx_mask, unsigned int upc);
+					unsigned char ae, unsigned int ctx_mask, unsigned int upc);
 void qat_hal_wr_uwords(struct icp_qat_fw_loader_handle *handle,
-		       unsigned char ae, unsigned int uaddr,
-		       unsigned int words_num, uint64_t *uword);
+					   unsigned char ae, unsigned int uaddr,
+					   unsigned int words_num, uint64_t *uword);
 void qat_hal_wr_umem(struct icp_qat_fw_loader_handle *handle, unsigned char ae,
-		     unsigned int uword_addr, unsigned int words_num,
-		     unsigned int *data);
+					 unsigned int uword_addr, unsigned int words_num,
+					 unsigned int *data);
 int qat_hal_get_ins_num(void);
 int qat_hal_batch_wr_lm(struct icp_qat_fw_loader_handle *handle,
-			unsigned char ae,
-			struct icp_qat_uof_batch_init *lm_init_header);
+						unsigned char ae,
+						struct icp_qat_uof_batch_init *lm_init_header);
 int qat_hal_init_gpr(struct icp_qat_fw_loader_handle *handle,
-		     unsigned char ae, unsigned char ctx_mask,
-		     enum icp_qat_uof_regtype reg_type,
-		     unsigned short reg_num, unsigned int regdata);
+					 unsigned char ae, unsigned char ctx_mask,
+					 enum icp_qat_uof_regtype reg_type,
+					 unsigned short reg_num, unsigned int regdata);
 int qat_hal_init_wr_xfer(struct icp_qat_fw_loader_handle *handle,
-			 unsigned char ae, unsigned char ctx_mask,
-			 enum icp_qat_uof_regtype reg_type,
-			 unsigned short reg_num, unsigned int regdata);
+						 unsigned char ae, unsigned char ctx_mask,
+						 enum icp_qat_uof_regtype reg_type,
+						 unsigned short reg_num, unsigned int regdata);
 int qat_hal_init_rd_xfer(struct icp_qat_fw_loader_handle *handle,
-			 unsigned char ae, unsigned char ctx_mask,
-			 enum icp_qat_uof_regtype reg_type,
-			 unsigned short reg_num, unsigned int regdata);
+						 unsigned char ae, unsigned char ctx_mask,
+						 enum icp_qat_uof_regtype reg_type,
+						 unsigned short reg_num, unsigned int regdata);
 int qat_hal_init_nn(struct icp_qat_fw_loader_handle *handle,
-		    unsigned char ae, unsigned char ctx_mask,
-		    unsigned short reg_num, unsigned int regdata);
+					unsigned char ae, unsigned char ctx_mask,
+					unsigned short reg_num, unsigned int regdata);
 int qat_hal_wr_lm(struct icp_qat_fw_loader_handle *handle,
-		  unsigned char ae, unsigned short lm_addr, unsigned int value);
+				  unsigned char ae, unsigned short lm_addr, unsigned int value);
 int qat_uclo_wr_all_uimage(struct icp_qat_fw_loader_handle *handle);
 void qat_uclo_del_uof_obj(struct icp_qat_fw_loader_handle *handle);
 int qat_uclo_wr_mimage(struct icp_qat_fw_loader_handle *handle, void *addr_ptr,
-		       int mem_size);
+					   int mem_size);
 int qat_uclo_map_obj(struct icp_qat_fw_loader_handle *handle,
-		     void *addr_ptr, int mem_size);
+					 void *addr_ptr, int mem_size);
 #if defined(CONFIG_PCI_IOV)
 int adf_sriov_configure(struct pci_dev *pdev, int numvfs);
 void adf_disable_sriov(struct adf_accel_dev *accel_dev);
 void adf_disable_vf2pf_interrupts(struct adf_accel_dev *accel_dev,
-				  uint32_t vf_mask);
+								  uint32_t vf_mask);
 void adf_enable_vf2pf_interrupts(struct adf_accel_dev *accel_dev,
-				 uint32_t vf_mask);
+								 uint32_t vf_mask);
 void adf_enable_pf2vf_interrupts(struct adf_accel_dev *accel_dev);
 void adf_disable_pf2vf_interrupts(struct adf_accel_dev *accel_dev);
 

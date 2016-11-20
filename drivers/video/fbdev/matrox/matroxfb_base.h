@@ -46,66 +46,66 @@
 #include <asm/unaligned.h>
 
 #if defined(CONFIG_PPC_PMAC)
-#include <asm/prom.h>
-#include "../macmodes.h"
+	#include <asm/prom.h>
+	#include "../macmodes.h"
 #endif
 
 #ifdef MATROXFB_DEBUG
 
-#define DEBUG
-#define DBG(x)		printk(KERN_DEBUG "matroxfb: %s\n", (x));
+	#define DEBUG
+	#define DBG(x)		printk(KERN_DEBUG "matroxfb: %s\n", (x));
 
-#ifdef MATROXFB_DEBUG_HEAVY
-#define DBG_HEAVY(x)	DBG(x)
-#else /* MATROXFB_DEBUG_HEAVY */
-#define DBG_HEAVY(x)	/* DBG_HEAVY */
-#endif /* MATROXFB_DEBUG_HEAVY */
+	#ifdef MATROXFB_DEBUG_HEAVY
+		#define DBG_HEAVY(x)	DBG(x)
+	#else /* MATROXFB_DEBUG_HEAVY */
+		#define DBG_HEAVY(x)	/* DBG_HEAVY */
+	#endif /* MATROXFB_DEBUG_HEAVY */
 
-#ifdef MATROXFB_DEBUG_LOOP
-#define DBG_LOOP(x)	DBG(x)
-#else /* MATROXFB_DEBUG_LOOP */
-#define DBG_LOOP(x)	/* DBG_LOOP */
-#endif /* MATROXFB_DEBUG_LOOP */
+	#ifdef MATROXFB_DEBUG_LOOP
+		#define DBG_LOOP(x)	DBG(x)
+	#else /* MATROXFB_DEBUG_LOOP */
+		#define DBG_LOOP(x)	/* DBG_LOOP */
+	#endif /* MATROXFB_DEBUG_LOOP */
 
-#ifdef MATROXFB_DEBUG_REG
-#define DBG_REG(x)	DBG(x)
-#else /* MATROXFB_DEBUG_REG */
-#define DBG_REG(x)	/* DBG_REG */
-#endif /* MATROXFB_DEBUG_REG */
+	#ifdef MATROXFB_DEBUG_REG
+		#define DBG_REG(x)	DBG(x)
+	#else /* MATROXFB_DEBUG_REG */
+		#define DBG_REG(x)	/* DBG_REG */
+	#endif /* MATROXFB_DEBUG_REG */
 
 #else /* MATROXFB_DEBUG */
 
-#define DBG(x)		/* DBG */
-#define DBG_HEAVY(x)	/* DBG_HEAVY */
-#define DBG_REG(x)	/* DBG_REG */
-#define DBG_LOOP(x)	/* DBG_LOOP */
+	#define DBG(x)		/* DBG */
+	#define DBG_HEAVY(x)	/* DBG_HEAVY */
+	#define DBG_REG(x)	/* DBG_REG */
+	#define DBG_LOOP(x)	/* DBG_LOOP */
 
 #endif /* MATROXFB_DEBUG */
 
 #ifdef DEBUG
-#define dprintk(X...)	printk(X)
+	#define dprintk(X...)	printk(X)
 #else
-#define dprintk(X...)
+	#define dprintk(X...)
 #endif
 
 #ifndef PCI_SS_VENDOR_ID_SIEMENS_NIXDORF
-#define PCI_SS_VENDOR_ID_SIEMENS_NIXDORF	0x110A
+	#define PCI_SS_VENDOR_ID_SIEMENS_NIXDORF	0x110A
 #endif
 #ifndef PCI_SS_VENDOR_ID_MATROX
-#define PCI_SS_VENDOR_ID_MATROX		PCI_VENDOR_ID_MATROX
+	#define PCI_SS_VENDOR_ID_MATROX		PCI_VENDOR_ID_MATROX
 #endif
 
 #ifndef PCI_SS_ID_MATROX_PRODUCTIVA_G100_AGP
-#define PCI_SS_ID_MATROX_GENERIC		0xFF00
-#define PCI_SS_ID_MATROX_PRODUCTIVA_G100_AGP	0xFF01
-#define PCI_SS_ID_MATROX_MYSTIQUE_G200_AGP	0xFF02
-#define PCI_SS_ID_MATROX_MILLENIUM_G200_AGP	0xFF03
-#define PCI_SS_ID_MATROX_MARVEL_G200_AGP	0xFF04
-#define PCI_SS_ID_MATROX_MGA_G100_PCI		0xFF05
-#define PCI_SS_ID_MATROX_MGA_G100_AGP		0x1001
-#define PCI_SS_ID_MATROX_MILLENNIUM_G400_MAX_AGP	0x2179
-#define PCI_SS_ID_SIEMENS_MGA_G100_AGP		0x001E /* 30 */
-#define PCI_SS_ID_SIEMENS_MGA_G200_AGP		0x0032 /* 50 */
+	#define PCI_SS_ID_MATROX_GENERIC		0xFF00
+	#define PCI_SS_ID_MATROX_PRODUCTIVA_G100_AGP	0xFF01
+	#define PCI_SS_ID_MATROX_MYSTIQUE_G200_AGP	0xFF02
+	#define PCI_SS_ID_MATROX_MILLENIUM_G200_AGP	0xFF03
+	#define PCI_SS_ID_MATROX_MARVEL_G200_AGP	0xFF04
+	#define PCI_SS_ID_MATROX_MGA_G100_PCI		0xFF05
+	#define PCI_SS_ID_MATROX_MGA_G100_AGP		0x1001
+	#define PCI_SS_ID_MATROX_MILLENNIUM_G400_MAX_AGP	0x2179
+	#define PCI_SS_ID_SIEMENS_MGA_G100_AGP		0x001E /* 30 */
+	#define PCI_SS_ID_SIEMENS_MGA_G200_AGP		0x0032 /* 50 */
 #endif
 
 #define MX_VISUAL_TRUECOLOR	FB_VISUAL_DIRECTCOLOR
@@ -117,34 +117,41 @@
 /* G-series and Mystique have (almost) same DAC */
 #undef NEED_DAC1064
 #if defined(CONFIG_FB_MATROX_MYSTIQUE) || defined(CONFIG_FB_MATROX_G)
-#define NEED_DAC1064 1
+	#define NEED_DAC1064 1
 #endif
 
-typedef struct {
-	void __iomem*	vaddr;
+typedef struct
+{
+	void __iomem	*vaddr;
 } vaddr_t;
 
-static inline unsigned int mga_readb(vaddr_t va, unsigned int offs) {
+static inline unsigned int mga_readb(vaddr_t va, unsigned int offs)
+{
 	return readb(va.vaddr + offs);
 }
 
-static inline void mga_writeb(vaddr_t va, unsigned int offs, u_int8_t value) {
+static inline void mga_writeb(vaddr_t va, unsigned int offs, u_int8_t value)
+{
 	writeb(value, va.vaddr + offs);
 }
 
-static inline void mga_writew(vaddr_t va, unsigned int offs, u_int16_t value) {
+static inline void mga_writew(vaddr_t va, unsigned int offs, u_int16_t value)
+{
 	writew(value, va.vaddr + offs);
 }
 
-static inline u_int32_t mga_readl(vaddr_t va, unsigned int offs) {
+static inline u_int32_t mga_readl(vaddr_t va, unsigned int offs)
+{
 	return readl(va.vaddr + offs);
 }
 
-static inline void mga_writel(vaddr_t va, unsigned int offs, u_int32_t value) {
+static inline void mga_writel(vaddr_t va, unsigned int offs, u_int32_t value)
+{
 	writel(value, va.vaddr + offs);
 }
 
-static inline void mga_memcpy_toio(vaddr_t va, const void* src, int len) {
+static inline void mga_memcpy_toio(vaddr_t va, const void *src, int len)
+{
 #if defined(__alpha__) || defined(__i386__) || defined(__x86_64__)
 	/*
 	 * iowrite32_rep works for us if:
@@ -155,35 +162,44 @@ static inline void mga_memcpy_toio(vaddr_t va, const void* src, int len) {
 	 */
 	iowrite32_rep(va.vaddr, src, len >> 2);
 #else
-        u_int32_t __iomem* addr = va.vaddr;
+	u_int32_t __iomem *addr = va.vaddr;
 
-	if ((unsigned long)src & 3) {
-		while (len >= 4) {
+	if ((unsigned long)src & 3)
+	{
+		while (len >= 4)
+		{
 			fb_writel(get_unaligned((u32 *)src), addr);
 			addr++;
 			len -= 4;
 			src += 4;
 		}
-	} else {
-		while (len >= 4) {
+	}
+	else
+	{
+		while (len >= 4)
+		{
 			fb_writel(*(u32 *)src, addr);
 			addr++;
 			len -= 4;
 			src += 4;
 		}
 	}
+
 #endif
 }
 
-static inline void vaddr_add(vaddr_t* va, unsigned long offs) {
+static inline void vaddr_add(vaddr_t *va, unsigned long offs)
+{
 	va->vaddr += offs;
 }
 
-static inline void __iomem* vaddr_va(vaddr_t va) {
+static inline void __iomem *vaddr_va(vaddr_t va)
+{
 	return va.vaddr;
 }
 
-struct my_timming {
+struct my_timming
+{
 	unsigned int pixclock;
 	int mnp;
 	unsigned int crtc;
@@ -203,20 +219,24 @@ struct my_timming {
 
 enum { M_SYSTEM_PLL, M_PIXEL_PLL_A, M_PIXEL_PLL_B, M_PIXEL_PLL_C, M_VIDEO_PLL };
 
-struct matrox_pll_cache {
+struct matrox_pll_cache
+{
 	unsigned int	valid;
-	struct {
+	struct
+	{
 		unsigned int	mnp_key;
 		unsigned int	mnp_value;
-		      } data[4];
+	} data[4];
 };
 
-struct matrox_pll_limits {
+struct matrox_pll_limits
+{
 	unsigned int	vcomin;
 	unsigned int	vcomax;
 };
 
-struct matrox_pll_features {
+struct matrox_pll_features
+{
 	unsigned int	vco_freq_min;
 	unsigned int	ref_freq;
 	unsigned int	feed_div_min;
@@ -230,22 +250,25 @@ struct matroxfb_par
 {
 	unsigned int	final_bppShift;
 	unsigned int	cmap_len;
-	struct {
+	struct
+	{
 		unsigned int bytes;
 		unsigned int pixels;
 		unsigned int chunks;
-		      } ydstorg;
+	} ydstorg;
 };
 
 struct matrox_fb_info;
 
-struct matrox_DAC1064_features {
+struct matrox_DAC1064_features
+{
 	u_int8_t	xvrefctrl;
 	u_int8_t	xmiscctrl;
 };
 
 /* current hardware status */
-struct mavenregs {
+struct mavenregs
+{
 	u_int8_t regs[256];
 	int	 mode;
 	int	 vlines;
@@ -256,11 +279,13 @@ struct mavenregs {
 	u_int16_t hcorr;
 };
 
-struct matrox_crtc2 {
+struct matrox_crtc2
+{
 	u_int32_t ctl;
 };
 
-struct matrox_hw_state {
+struct matrox_hw_state
+{
 	u_int32_t	MXoptionReg;
 	unsigned char	DACclk[6];
 	unsigned char	DACreg[80];
@@ -280,7 +305,8 @@ struct matrox_hw_state {
 	struct matrox_crtc2	crtc2;
 };
 
-struct matrox_accel_data {
+struct matrox_accel_data
+{
 #ifdef CONFIG_FB_MATROX_MILLENIUM
 	unsigned char	ramdac_rev;
 #endif
@@ -293,18 +319,19 @@ struct matrox_accel_data {
 struct v4l2_queryctrl;
 struct v4l2_control;
 
-struct matrox_altout {
+struct matrox_altout
+{
 	const char	*name;
-	int		(*compute)(void* altout_dev, struct my_timming* input);
-	int		(*program)(void* altout_dev);
-	int		(*start)(void* altout_dev);
-	int		(*verifymode)(void* altout_dev, u_int32_t mode);
-	int		(*getqueryctrl)(void* altout_dev,
-					struct v4l2_queryctrl* ctrl);
-	int		(*getctrl)(void* altout_dev, 
-				   struct v4l2_control* ctrl);
-	int		(*setctrl)(void* altout_dev, 
-				   struct v4l2_control* ctrl);
+	int		(*compute)(void *altout_dev, struct my_timming *input);
+	int		(*program)(void *altout_dev);
+	int		(*start)(void *altout_dev);
+	int		(*verifymode)(void *altout_dev, u_int32_t mode);
+	int		(*getqueryctrl)(void *altout_dev,
+							struct v4l2_queryctrl *ctrl);
+	int		(*getctrl)(void *altout_dev,
+					   struct v4l2_control *ctrl);
+	int		(*setctrl)(void *altout_dev,
+					   struct v4l2_control *ctrl);
 };
 
 #define MATROXFB_SRC_NONE	0
@@ -313,28 +340,33 @@ struct matrox_altout {
 
 enum mga_chip { MGA_2064, MGA_2164, MGA_1064, MGA_1164, MGA_G100, MGA_G200, MGA_G400, MGA_G450, MGA_G550 };
 
-struct matrox_bios {
+struct matrox_bios
+{
 	unsigned int	bios_valid : 1;
 	unsigned int	pins_len;
 	unsigned char	pins[128];
-	struct {
+	struct
+	{
 		unsigned char vMaj, vMin, vRev;
-		      } version;
-	struct {
+	} version;
+	struct
+	{
 		unsigned char state, tvout;
-		      } output;
+	} output;
 };
 
 struct matrox_switch;
 struct matroxfb_driver;
 struct matroxfb_dh_fb_info;
 
-struct matrox_vsync {
+struct matrox_vsync
+{
 	wait_queue_head_t	wait;
 	unsigned int		cnt;
 };
 
-struct matrox_fb_info {
+struct matrox_fb_info
+{
 	struct fb_info		fbcon;
 
 	struct list_head	next_fb;
@@ -351,85 +383,96 @@ struct matrox_fb_info {
 
 	struct matrox_accel_data accel;
 
-	struct pci_dev*		pcidev;
+	struct pci_dev		*pcidev;
 
-	struct {
+	struct
+	{
 		struct matrox_vsync	vsync;
 		unsigned int	pixclock;
 		int		mnp;
 		int		panpos;
-			      } crtc1;
-	struct {
+	} crtc1;
+	struct
+	{
 		struct matrox_vsync	vsync;
 		unsigned int 	pixclock;
 		int		mnp;
-	struct matroxfb_dh_fb_info*	info;
-	struct rw_semaphore	lock;
-			      } crtc2;
-	struct {
-	struct rw_semaphore	lock;
-	struct {
-		int brightness, contrast, saturation, hue, gamma;
-		int testout, deflicker;
-				} tvo_params;
-			      } altout;
+		struct matroxfb_dh_fb_info	*info;
+		struct rw_semaphore	lock;
+	} crtc2;
+	struct
+	{
+		struct rw_semaphore	lock;
+		struct
+		{
+			int brightness, contrast, saturation, hue, gamma;
+			int testout, deflicker;
+		} tvo_params;
+	} altout;
 #define MATROXFB_MAX_OUTPUTS		3
-	struct {
-	unsigned int		src;
-	struct matrox_altout*	output;
-	void*			data;
-	unsigned int		mode;
-	unsigned int		default_src;
-			      } outputs[MATROXFB_MAX_OUTPUTS];
+	struct
+	{
+		unsigned int		src;
+		struct matrox_altout	*output;
+		void			*data;
+		unsigned int		mode;
+		unsigned int		default_src;
+	} outputs[MATROXFB_MAX_OUTPUTS];
 
 #define MATROXFB_MAX_FB_DRIVERS		5
-	struct matroxfb_driver* (drivers[MATROXFB_MAX_FB_DRIVERS]);
-	void*			(drivers_data[MATROXFB_MAX_FB_DRIVERS]);
+	struct matroxfb_driver *(drivers[MATROXFB_MAX_FB_DRIVERS]);
+	void			*(drivers_data[MATROXFB_MAX_FB_DRIVERS]);
 	unsigned int		drivers_count;
 
-	struct {
-	unsigned long	base;	/* physical */
-	vaddr_t		vbase;	/* CPU view */
-	unsigned int	len;
-	unsigned int	len_usable;
-	unsigned int	len_maximum;
-		      } video;
+	struct
+	{
+		unsigned long	base;	/* physical */
+		vaddr_t		vbase;	/* CPU view */
+		unsigned int	len;
+		unsigned int	len_usable;
+		unsigned int	len_maximum;
+	} video;
 
-	struct {
-	unsigned long	base;	/* physical */
-	vaddr_t		vbase;	/* CPU view */
-	unsigned int	len;
-		      } mmio;
+	struct
+	{
+		unsigned long	base;	/* physical */
+		vaddr_t		vbase;	/* CPU view */
+		unsigned int	len;
+	} mmio;
 
 	unsigned int	max_pixel_clock;
 	unsigned int	max_pixel_clock_panellink;
 
-	struct matrox_switch*	hw_switch;
+	struct matrox_switch	*hw_switch;
 
-	struct {
+	struct
+	{
 		struct matrox_pll_features pll;
 		struct matrox_DAC1064_features DAC1064;
-			      } features;
-	struct {
+	} features;
+	struct
+	{
 		spinlock_t	DAC;
 		spinlock_t	accel;
-			      } lock;
+	} lock;
 
 	enum mga_chip		chip;
 
 	int			interleave;
 	int			millenium;
 	int			milleniumII;
-	struct {
+	struct
+	{
 		int		cfb4;
-		const int*	vxres;
+		const int	*vxres;
 		int		cross4MB;
 		int		text;
 		int		plnwt;
 		int		srcorg;
-			      } capable;
+	} capable;
 	int			wc_cookie;
-	struct {
+	struct
+	{
 		int		precise_width;
 		int		mga_24bpp_fix;
 		int		novga;
@@ -449,32 +492,37 @@ struct matrox_fb_info {
 		unsigned int	textstep;
 		unsigned int	textvram;	/* character cells */
 		unsigned int	ydstorg;	/* offset in bytes from video start to usable memory */
-						/* 0 except for 6MB Millenium */
+		/* 0 except for 6MB Millenium */
 		int		memtype;
 		int		g450dac;
 		int		dfp_type;
 		int		panellink;	/* G400 DFP possible (not G450/G550) */
 		int		dualhead;
 		unsigned int	fbResource;
-			      } devflags;
+	} devflags;
 	struct fb_ops		fbops;
 	struct matrox_bios	bios;
-	struct {
+	struct
+	{
 		struct matrox_pll_limits	pixel;
 		struct matrox_pll_limits	system;
 		struct matrox_pll_limits	video;
-			      } limits;
-	struct {
+	} limits;
+	struct
+	{
 		struct matrox_pll_cache	pixel;
 		struct matrox_pll_cache	system;
 		struct matrox_pll_cache	video;
-				      } cache;
-	struct {
-		struct {
+	} cache;
+	struct
+	{
+		struct
+		{
 			unsigned int	video;
 			unsigned int	system;
-				      } pll;
-		struct {
+		} pll;
+		struct
+		{
 			u_int32_t	opt;
 			u_int32_t	opt2;
 			u_int32_t	opt3;
@@ -483,34 +531,37 @@ struct matrox_fb_info {
 			u_int32_t	memmisc;
 			u_int32_t	memrdbk;
 			u_int32_t	maccess;
-				      } reg;
-		struct {
-			unsigned int	ddr:1,
-			                emrswen:1,
-					dll:1;
-				      } memory;
-			      } values;
+		} reg;
+		struct
+		{
+			unsigned int	ddr: 1,
+						emrswen: 1,
+						dll: 1;
+		} memory;
+	} values;
 	u_int32_t cmap[16];
 };
 
 #define info2minfo(info) container_of(info, struct matrox_fb_info, fbcon)
 
-struct matrox_switch {
+struct matrox_switch
+{
 	int	(*preinit)(struct matrox_fb_info *minfo);
 	void	(*reset)(struct matrox_fb_info *minfo);
-	int	(*init)(struct matrox_fb_info *minfo, struct my_timming*);
+	int	(*init)(struct matrox_fb_info *minfo, struct my_timming *);
 	void	(*restore)(struct matrox_fb_info *minfo);
 };
 
-struct matroxfb_driver {
+struct matroxfb_driver
+{
 	struct list_head	node;
-	char*			name;
-	void*			(*probe)(struct matrox_fb_info* info);
-	void			(*remove)(struct matrox_fb_info* info, void* data);
+	char			*name;
+	void			*(*probe)(struct matrox_fb_info *info);
+	void			(*remove)(struct matrox_fb_info *info, void *data);
 };
 
-int matroxfb_register_driver(struct matroxfb_driver* drv);
-void matroxfb_unregister_driver(struct matroxfb_driver* drv);
+int matroxfb_register_driver(struct matroxfb_driver *drv);
+void matroxfb_unregister_driver(struct matroxfb_driver *drv);
 
 #define PCI_OPTION_REG	0x40
 #define   PCI_OPTION_ENABLE_ROM		0x40000000
@@ -645,21 +696,21 @@ void matroxfb_unregister_driver(struct matroxfb_driver* drv);
 #define MX_OPTION_BSWAP         0x00000000
 
 #ifdef __LITTLE_ENDIAN
-#define M_OPMODE_4BPP	(M_OPMODE_DMA_LE | M_OPMODE_DIR_LE | M_OPMODE_DMA_BLIT)
-#define M_OPMODE_8BPP	(M_OPMODE_DMA_LE | M_OPMODE_DIR_LE | M_OPMODE_DMA_BLIT)
-#define M_OPMODE_16BPP	(M_OPMODE_DMA_LE | M_OPMODE_DIR_LE | M_OPMODE_DMA_BLIT)
-#define M_OPMODE_24BPP	(M_OPMODE_DMA_LE | M_OPMODE_DIR_LE | M_OPMODE_DMA_BLIT)
-#define M_OPMODE_32BPP	(M_OPMODE_DMA_LE | M_OPMODE_DIR_LE | M_OPMODE_DMA_BLIT)
+	#define M_OPMODE_4BPP	(M_OPMODE_DMA_LE | M_OPMODE_DIR_LE | M_OPMODE_DMA_BLIT)
+	#define M_OPMODE_8BPP	(M_OPMODE_DMA_LE | M_OPMODE_DIR_LE | M_OPMODE_DMA_BLIT)
+	#define M_OPMODE_16BPP	(M_OPMODE_DMA_LE | M_OPMODE_DIR_LE | M_OPMODE_DMA_BLIT)
+	#define M_OPMODE_24BPP	(M_OPMODE_DMA_LE | M_OPMODE_DIR_LE | M_OPMODE_DMA_BLIT)
+	#define M_OPMODE_32BPP	(M_OPMODE_DMA_LE | M_OPMODE_DIR_LE | M_OPMODE_DMA_BLIT)
 #else
-#ifdef __BIG_ENDIAN
-#define M_OPMODE_4BPP	(M_OPMODE_DMA_LE | M_OPMODE_DIR_LE       | M_OPMODE_DMA_BLIT)	/* TODO */
-#define M_OPMODE_8BPP	(M_OPMODE_DMA_LE | M_OPMODE_DIR_BE_8BPP  | M_OPMODE_DMA_BLIT)
-#define M_OPMODE_16BPP	(M_OPMODE_DMA_LE | M_OPMODE_DIR_BE_16BPP | M_OPMODE_DMA_BLIT)
-#define M_OPMODE_24BPP	(M_OPMODE_DMA_LE | M_OPMODE_DIR_BE_8BPP  | M_OPMODE_DMA_BLIT)	/* TODO, ?32 */
-#define M_OPMODE_32BPP	(M_OPMODE_DMA_LE | M_OPMODE_DIR_BE_32BPP | M_OPMODE_DMA_BLIT)
-#else
-#error "Byte ordering have to be defined. Cannot continue."
-#endif
+	#ifdef __BIG_ENDIAN
+		#define M_OPMODE_4BPP	(M_OPMODE_DMA_LE | M_OPMODE_DIR_LE       | M_OPMODE_DMA_BLIT)	/* TODO */
+		#define M_OPMODE_8BPP	(M_OPMODE_DMA_LE | M_OPMODE_DIR_BE_8BPP  | M_OPMODE_DMA_BLIT)
+		#define M_OPMODE_16BPP	(M_OPMODE_DMA_LE | M_OPMODE_DIR_BE_16BPP | M_OPMODE_DMA_BLIT)
+		#define M_OPMODE_24BPP	(M_OPMODE_DMA_LE | M_OPMODE_DIR_BE_8BPP  | M_OPMODE_DMA_BLIT)	/* TODO, ?32 */
+		#define M_OPMODE_32BPP	(M_OPMODE_DMA_LE | M_OPMODE_DIR_BE_32BPP | M_OPMODE_DMA_BLIT)
+	#else
+		#error "Byte ordering have to be defined. Cannot continue."
+	#endif
 #endif
 
 #define mga_inb(addr)		mga_readb(minfo->mmio.vbase, (addr))
@@ -676,13 +727,13 @@ void matroxfb_unregister_driver(struct matroxfb_driver* drv);
 
 /* code speedup */
 #ifdef CONFIG_FB_MATROX_MILLENIUM
-#define isInterleave(x)	 (x->interleave)
-#define isMillenium(x)	 (x->millenium)
-#define isMilleniumII(x) (x->milleniumII)
+	#define isInterleave(x)	 (x->interleave)
+	#define isMillenium(x)	 (x->millenium)
+	#define isMilleniumII(x) (x->milleniumII)
 #else
-#define isInterleave(x)  (0)
-#define isMillenium(x)	 (0)
-#define isMilleniumII(x) (0)
+	#define isInterleave(x)  (0)
+	#define isMillenium(x)	 (0)
+	#define isMilleniumII(x) (0)
 #endif
 
 #define matroxfb_DAC_lock()                   spin_lock(&minfo->lock.DAC)
@@ -690,20 +741,20 @@ void matroxfb_unregister_driver(struct matroxfb_driver* drv);
 #define matroxfb_DAC_lock_irqsave(flags)      spin_lock_irqsave(&minfo->lock.DAC, flags)
 #define matroxfb_DAC_unlock_irqrestore(flags) spin_unlock_irqrestore(&minfo->lock.DAC, flags)
 extern void matroxfb_DAC_out(const struct matrox_fb_info *minfo, int reg,
-			     int val);
+							 int val);
 extern int matroxfb_DAC_in(const struct matrox_fb_info *minfo, int reg);
-extern void matroxfb_var2my(struct fb_var_screeninfo* fvsi, struct my_timming* mt);
+extern void matroxfb_var2my(struct fb_var_screeninfo *fvsi, struct my_timming *mt);
 extern int matroxfb_wait_for_sync(struct matrox_fb_info *minfo, u_int32_t crtc);
 extern int matroxfb_enable_irq(struct matrox_fb_info *minfo, int reenable);
 
 #ifdef MATROXFB_USE_SPINLOCKS
-#define CRITBEGIN  spin_lock_irqsave(&minfo->lock.accel, critflags);
-#define CRITEND	   spin_unlock_irqrestore(&minfo->lock.accel, critflags);
-#define CRITFLAGS  unsigned long critflags;
+	#define CRITBEGIN  spin_lock_irqsave(&minfo->lock.accel, critflags);
+	#define CRITEND	   spin_unlock_irqrestore(&minfo->lock.accel, critflags);
+	#define CRITFLAGS  unsigned long critflags;
 #else
-#define CRITBEGIN
-#define CRITEND
-#define CRITFLAGS
+	#define CRITBEGIN
+	#define CRITEND
+	#define CRITFLAGS
 #endif
 
 #endif	/* __MATROXFB_H__ */

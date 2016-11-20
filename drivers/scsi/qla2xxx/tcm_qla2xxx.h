@@ -12,7 +12,8 @@
 
 #include "qla_target.h"
 
-struct tcm_qla2xxx_nacl {
+struct tcm_qla2xxx_nacl
+{
 	struct se_node_acl se_node_acl;
 
 	/* From libfc struct fc_rport->port_id */
@@ -27,7 +28,8 @@ struct tcm_qla2xxx_nacl {
 	struct se_session *nport_nexus;
 };
 
-struct tcm_qla2xxx_tpg_attrib {
+struct tcm_qla2xxx_tpg_attrib
+{
 	int generate_node_acls;
 	int cache_dynamic_acls;
 	int demo_mode_write_protect;
@@ -37,7 +39,8 @@ struct tcm_qla2xxx_tpg_attrib {
 	int jam_host;
 };
 
-struct tcm_qla2xxx_tpg {
+struct tcm_qla2xxx_tpg
+{
 	/* FC lport target portal group tag for TCM */
 	u16 lport_tpgt;
 	/* Atomic bit to determine TPG active status */
@@ -53,11 +56,13 @@ struct tcm_qla2xxx_tpg {
 	struct work_struct tpg_base_work;
 };
 
-struct tcm_qla2xxx_fc_loopid {
+struct tcm_qla2xxx_fc_loopid
+{
 	struct se_node_acl *se_nacl;
 };
 
-struct tcm_qla2xxx_lport {
+struct tcm_qla2xxx_lport
+{
 	/* Binary World Wide unique Port Name for FC Target Lport */
 	u64 lport_wwpn;
 	/* Binary World Wide unique Port Name for FC NPIV Target Lport */

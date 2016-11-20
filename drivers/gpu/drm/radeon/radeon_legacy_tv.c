@@ -65,7 +65,8 @@
 #define FRAC_BITS 0xe
 #define FRAC_MASK 0x3fff
 
-struct radeon_tv_mode_constants {
+struct radeon_tv_mode_constants
+{
 	uint16_t hor_resolution;
 	uint16_t ver_resolution;
 	enum radeon_tv_std standard;
@@ -81,7 +82,8 @@ struct radeon_tv_mode_constants {
 	unsigned pix_to_tv;
 };
 
-static const uint16_t hor_timing_NTSC[MAX_H_CODE_TIMING_LEN] = {
+static const uint16_t hor_timing_NTSC[MAX_H_CODE_TIMING_LEN] =
+{
 	0x0007,
 	0x003f,
 	0x0263,
@@ -102,7 +104,8 @@ static const uint16_t hor_timing_NTSC[MAX_H_CODE_TIMING_LEN] = {
 	0
 };
 
-static const uint16_t vert_timing_NTSC[MAX_V_CODE_TIMING_LEN] = {
+static const uint16_t vert_timing_NTSC[MAX_V_CODE_TIMING_LEN] =
+{
 	0x2001,
 	0x200d,
 	0x1006,
@@ -119,7 +122,8 @@ static const uint16_t vert_timing_NTSC[MAX_V_CODE_TIMING_LEN] = {
 	0
 };
 
-static const uint16_t hor_timing_PAL[MAX_H_CODE_TIMING_LEN] = {
+static const uint16_t hor_timing_PAL[MAX_H_CODE_TIMING_LEN] =
+{
 	0x0007,
 	0x0058,
 	0x027c,
@@ -140,7 +144,8 @@ static const uint16_t hor_timing_PAL[MAX_H_CODE_TIMING_LEN] = {
 	0
 };
 
-static const uint16_t vert_timing_PAL[MAX_V_CODE_TIMING_LEN] = {
+static const uint16_t vert_timing_PAL[MAX_V_CODE_TIMING_LEN] =
+{
 	0x2001,
 	0x200c,
 	0x1005,
@@ -166,7 +171,8 @@ static const uint16_t vert_timing_PAL[MAX_V_CODE_TIMING_LEN] = {
  * Table of all allowed modes for tv output
  *
  **********************************************************************/
-static const struct radeon_tv_mode_constants available_tv_modes[] = {
+static const struct radeon_tv_mode_constants available_tv_modes[] =
+{
 	{   /* NTSC timing for 27 Mhz ref clk */
 		800,                /* horResolution */
 		600,                /* verResolution */
@@ -232,7 +238,7 @@ static const struct radeon_tv_mode_constants available_tv_modes[] = {
 #define N_AVAILABLE_MODES ARRAY_SIZE(available_tv_modes)
 
 static const struct radeon_tv_mode_constants *radeon_legacy_tv_get_std_mode(struct radeon_encoder *radeon_encoder,
-									    uint16_t *pll_ref_freq)
+		uint16_t *pll_ref_freq)
 {
 	struct drm_device *dev = radeon_encoder->base.dev;
 	struct radeon_device *rdev = dev->dev_private;
@@ -242,27 +248,46 @@ static const struct radeon_tv_mode_constants *radeon_legacy_tv_get_std_mode(stru
 	struct radeon_pll *pll;
 
 	radeon_crtc = to_radeon_crtc(radeon_encoder->base.crtc);
+
 	if (radeon_crtc->crtc_id == 1)
+	{
 		pll = &rdev->clock.p2pll;
+	}
 	else
+	{
 		pll = &rdev->clock.p1pll;
+	}
 
 	if (pll_ref_freq)
+	{
 		*pll_ref_freq = pll->reference_freq;
+	}
 
 	if (tv_dac->tv_std == TV_STD_NTSC ||
-	    tv_dac->tv_std == TV_STD_NTSC_J ||
-	    tv_dac->tv_std == TV_STD_PAL_M) {
+		tv_dac->tv_std == TV_STD_NTSC_J ||
+		tv_dac->tv_std == TV_STD_PAL_M)
+	{
 		if (pll->reference_freq == 2700)
+		{
 			const_ptr = &available_tv_modes[0];
+		}
 		else
+		{
 			const_ptr = &available_tv_modes[2];
-	} else {
-		if (pll->reference_freq == 2700)
-			const_ptr = &available_tv_modes[1];
-		else
-			const_ptr = &available_tv_modes[3];
+		}
 	}
+	else
+	{
+		if (pll->reference_freq == 2700)
+		{
+			const_ptr = &available_tv_modes[1];
+		}
+		else
+		{
+			const_ptr = &available_tv_modes[3];
+		}
+	}
+
 	return const_ptr;
 }
 
@@ -272,7 +297,7 @@ static long SLOPE_value[5] = { 1, 2, 2, 4, 8 };
 static long SLOPE_limit[5] = { 6, 5, 4, 3, 2 };
 
 static void radeon_wait_pll_lock(struct drm_encoder *encoder, unsigned n_tests,
-				 unsigned n_wait_loops, unsigned cnt_threshold)
+								 unsigned n_wait_loops, unsigned cnt_threshold)
 {
 	struct drm_device *dev = encoder->dev;
 	struct radeon_device *rdev = dev->dev_private;
@@ -284,19 +309,25 @@ static void radeon_wait_pll_lock(struct drm_encoder *encoder, unsigned n_tests,
 	WREG32_PLL(RADEON_PLL_TEST_CNTL, save_pll_test & ~RADEON_PLL_MASK_READ_B);
 
 	WREG8(RADEON_CLOCK_CNTL_INDEX, RADEON_PLL_TEST_CNTL);
-	for (i = 0; i < n_tests; i++) {
+
+	for (i = 0; i < n_tests; i++)
+	{
 		WREG8(RADEON_CLOCK_CNTL_DATA + 3, 0);
+
 		for (j = 0; j < n_wait_loops; j++)
 			if (RREG8(RADEON_CLOCK_CNTL_DATA + 3) >= cnt_threshold)
+			{
 				break;
+			}
 	}
+
 	WREG32_PLL(RADEON_PLL_TEST_CNTL, save_pll_test);
 	WREG32(RADEON_TEST_DEBUG_MUX, RREG32(RADEON_TEST_DEBUG_MUX) & 0xffffe0ff);
 }
 
 
 static void radeon_legacy_tv_write_fifo(struct radeon_encoder *radeon_encoder,
-					uint16_t addr, uint32_t value)
+										uint16_t addr, uint32_t value)
 {
 	struct drm_device *dev = radeon_encoder->base.dev;
 	struct radeon_device *rdev = dev->dev_private;
@@ -308,12 +339,19 @@ static void radeon_legacy_tv_write_fifo(struct radeon_encoder *radeon_encoder,
 	WREG32(RADEON_TV_HOST_RD_WT_CNTL, addr);
 	WREG32(RADEON_TV_HOST_RD_WT_CNTL, addr | RADEON_HOST_FIFO_WT);
 
-	do {
+	do
+	{
 		tmp = RREG32(RADEON_TV_HOST_RD_WT_CNTL);
+
 		if ((tmp & RADEON_HOST_FIFO_WT_ACK) == 0)
+		{
 			break;
+		}
+
 		i++;
-	} while (i < 10000);
+	}
+	while (i < 10000);
+
 	WREG32(RADEON_TV_HOST_RD_WT_CNTL, 0);
 }
 
@@ -328,12 +366,19 @@ static uint32_t radeon_legacy_tv_read_fifo(struct radeon_encoder *radeon_encoder
 	WREG32(RADEON_TV_HOST_RD_WT_CNTL, addr);
 	WREG32(RADEON_TV_HOST_RD_WT_CNTL, addr | RADEON_HOST_FIFO_RD);
 
-	do {
+	do
+	{
 		tmp = RREG32(RADEON_TV_HOST_RD_WT_CNTL);
+
 		if ((tmp & RADEON_HOST_FIFO_RD_ACK) == 0)
+		{
 			break;
+		}
+
 		i++;
-	} while (i < 10000);
+	}
+	while (i < 10000);
+
 	WREG32(RADEON_TV_HOST_RD_WT_CNTL, 0);
 	return RREG32(RADEON_TV_HOST_READ_DATA);
 }
@@ -343,20 +388,25 @@ static uint16_t radeon_get_htiming_tables_addr(uint32_t tv_uv_adr)
 {
 	uint16_t h_table;
 
-	switch ((tv_uv_adr & RADEON_HCODE_TABLE_SEL_MASK) >> RADEON_HCODE_TABLE_SEL_SHIFT) {
-	case 0:
-		h_table = RADEON_TV_MAX_FIFO_ADDR_INTERNAL;
-		break;
-	case 1:
-		h_table = ((tv_uv_adr & RADEON_TABLE1_BOT_ADR_MASK) >> RADEON_TABLE1_BOT_ADR_SHIFT) * 2;
-		break;
-	case 2:
-		h_table = ((tv_uv_adr & RADEON_TABLE3_TOP_ADR_MASK) >> RADEON_TABLE3_TOP_ADR_SHIFT) * 2;
-		break;
-	default:
-		h_table = 0;
-		break;
+	switch ((tv_uv_adr & RADEON_HCODE_TABLE_SEL_MASK) >> RADEON_HCODE_TABLE_SEL_SHIFT)
+	{
+		case 0:
+			h_table = RADEON_TV_MAX_FIFO_ADDR_INTERNAL;
+			break;
+
+		case 1:
+			h_table = ((tv_uv_adr & RADEON_TABLE1_BOT_ADR_MASK) >> RADEON_TABLE1_BOT_ADR_SHIFT) * 2;
+			break;
+
+		case 2:
+			h_table = ((tv_uv_adr & RADEON_TABLE3_TOP_ADR_MASK) >> RADEON_TABLE3_TOP_ADR_SHIFT) * 2;
+			break;
+
+		default:
+			h_table = 0;
+			break;
 	}
+
 	return h_table;
 }
 
@@ -364,20 +414,25 @@ static uint16_t radeon_get_vtiming_tables_addr(uint32_t tv_uv_adr)
 {
 	uint16_t v_table;
 
-	switch ((tv_uv_adr & RADEON_VCODE_TABLE_SEL_MASK) >> RADEON_VCODE_TABLE_SEL_SHIFT) {
-	case 0:
-		v_table = ((tv_uv_adr & RADEON_MAX_UV_ADR_MASK) >> RADEON_MAX_UV_ADR_SHIFT) * 2 + 1;
-		break;
-	case 1:
-		v_table = ((tv_uv_adr & RADEON_TABLE1_BOT_ADR_MASK) >> RADEON_TABLE1_BOT_ADR_SHIFT) * 2 + 1;
-		break;
-	case 2:
-		v_table = ((tv_uv_adr & RADEON_TABLE3_TOP_ADR_MASK) >> RADEON_TABLE3_TOP_ADR_SHIFT) * 2 + 1;
-		break;
-	default:
-		v_table = 0;
-		break;
+	switch ((tv_uv_adr & RADEON_VCODE_TABLE_SEL_MASK) >> RADEON_VCODE_TABLE_SEL_SHIFT)
+	{
+		case 0:
+			v_table = ((tv_uv_adr & RADEON_MAX_UV_ADR_MASK) >> RADEON_MAX_UV_ADR_SHIFT) * 2 + 1;
+			break;
+
+		case 1:
+			v_table = ((tv_uv_adr & RADEON_TABLE1_BOT_ADR_MASK) >> RADEON_TABLE1_BOT_ADR_SHIFT) * 2 + 1;
+			break;
+
+		case 2:
+			v_table = ((tv_uv_adr & RADEON_TABLE3_TOP_ADR_MASK) >> RADEON_TABLE3_TOP_ADR_SHIFT) * 2 + 1;
+			break;
+
+		default:
+			v_table = 0;
+			break;
 	}
+
 	return v_table;
 }
 
@@ -394,17 +449,26 @@ static void radeon_restore_tv_timing_tables(struct radeon_encoder *radeon_encode
 	h_table = radeon_get_htiming_tables_addr(tv_dac->tv.tv_uv_adr);
 	v_table = radeon_get_vtiming_tables_addr(tv_dac->tv.tv_uv_adr);
 
-	for (i = 0; i < MAX_H_CODE_TIMING_LEN; i += 2, h_table--) {
-		tmp = ((uint32_t)tv_dac->tv.h_code_timing[i] << 14) | ((uint32_t)tv_dac->tv.h_code_timing[i+1]);
+	for (i = 0; i < MAX_H_CODE_TIMING_LEN; i += 2, h_table--)
+	{
+		tmp = ((uint32_t)tv_dac->tv.h_code_timing[i] << 14) | ((uint32_t)tv_dac->tv.h_code_timing[i + 1]);
 		radeon_legacy_tv_write_fifo(radeon_encoder, h_table, tmp);
+
 		if (tv_dac->tv.h_code_timing[i] == 0 || tv_dac->tv.h_code_timing[i + 1] == 0)
+		{
 			break;
+		}
 	}
-	for (i = 0; i < MAX_V_CODE_TIMING_LEN; i += 2, v_table++) {
-		tmp = ((uint32_t)tv_dac->tv.v_code_timing[i+1] << 14) | ((uint32_t)tv_dac->tv.v_code_timing[i]);
+
+	for (i = 0; i < MAX_V_CODE_TIMING_LEN; i += 2, v_table++)
+	{
+		tmp = ((uint32_t)tv_dac->tv.v_code_timing[i + 1] << 14) | ((uint32_t)tv_dac->tv.v_code_timing[i]);
 		radeon_legacy_tv_write_fifo(radeon_encoder, v_table, tmp);
+
 		if (tv_dac->tv.v_code_timing[i] == 0 || tv_dac->tv.v_code_timing[i + 1] == 0)
+		{
 			break;
+		}
 	}
 }
 
@@ -434,36 +498,51 @@ static bool radeon_legacy_tv_init_restarts(struct drm_encoder *encoder)
 	struct radeon_pll *pll;
 
 	radeon_crtc = to_radeon_crtc(radeon_encoder->base.crtc);
+
 	if (radeon_crtc->crtc_id == 1)
+	{
 		pll = &rdev->clock.p2pll;
+	}
 	else
+	{
 		pll = &rdev->clock.p1pll;
+	}
 
 	const_ptr = radeon_legacy_tv_get_std_mode(radeon_encoder, NULL);
+
 	if (!const_ptr)
+	{
 		return false;
+	}
 
 	h_total = const_ptr->hor_total;
 	v_total = const_ptr->ver_total;
 
 	if (tv_dac->tv_std == TV_STD_NTSC ||
-	    tv_dac->tv_std == TV_STD_NTSC_J ||
-	    tv_dac->tv_std == TV_STD_PAL_M ||
-	    tv_dac->tv_std == TV_STD_PAL_60)
+		tv_dac->tv_std == TV_STD_NTSC_J ||
+		tv_dac->tv_std == TV_STD_PAL_M ||
+		tv_dac->tv_std == TV_STD_PAL_60)
+	{
 		f_total = NTSC_TV_VFTOTAL + 1;
+	}
 	else
+	{
 		f_total = PAL_TV_VFTOTAL + 1;
+	}
 
 	/* adjust positions 1&2 in hor. cod timing table */
 	h_offset = tv_dac->h_pos * H_POS_UNIT;
 
 	if (tv_dac->tv_std == TV_STD_NTSC ||
-	    tv_dac->tv_std == TV_STD_NTSC_J ||
-	    tv_dac->tv_std == TV_STD_PAL_M) {
+		tv_dac->tv_std == TV_STD_NTSC_J ||
+		tv_dac->tv_std == TV_STD_PAL_M)
+	{
 		h_offset -= 50;
 		p1 = hor_timing_NTSC[H_TABLE_POS1];
 		p2 = hor_timing_NTSC[H_TABLE_POS2];
-	} else {
+	}
+	else
+	{
 		p1 = hor_timing_PAL[H_TABLE_POS1];
 		p2 = hor_timing_PAL[H_TABLE_POS2];
 	}
@@ -472,7 +551,7 @@ static bool radeon_legacy_tv_init_restarts(struct drm_encoder *encoder)
 	p2 = (u16)((int)p2 - h_offset);
 
 	h_changed = (p1 != tv_dac->tv.h_code_timing[H_TABLE_POS1] ||
-		     p2 != tv_dac->tv.h_code_timing[H_TABLE_POS2]);
+				 p2 != tv_dac->tv.h_code_timing[H_TABLE_POS2]);
 
 	tv_dac->tv.h_code_timing[H_TABLE_POS1] = p1;
 	tv_dac->tv.h_code_timing[H_TABLE_POS2] = p2;
@@ -487,17 +566,21 @@ static bool radeon_legacy_tv_init_restarts(struct drm_encoder *encoder)
 	 * convert v_pos TV lines to n. of CRTC pixels
 	 */
 	if (tv_dac->tv_std == TV_STD_NTSC ||
-	    tv_dac->tv_std == TV_STD_NTSC_J ||
-	    tv_dac->tv_std == TV_STD_PAL_M ||
-	    tv_dac->tv_std == TV_STD_PAL_60)
+		tv_dac->tv_std == TV_STD_NTSC_J ||
+		tv_dac->tv_std == TV_STD_PAL_M ||
+		tv_dac->tv_std == TV_STD_PAL_60)
+	{
 		v_offset = ((int)(v_total * h_total) * 2 * tv_dac->v_pos) / (int)(NTSC_TV_LINES_PER_FRAME);
+	}
 	else
+	{
 		v_offset = ((int)(v_total * h_total) * 2 * tv_dac->v_pos) / (int)(PAL_TV_LINES_PER_FRAME);
+	}
 
 	restart -= v_offset + h_offset;
 
 	DRM_DEBUG_KMS("compute_restarts: def = %u h = %d v = %d, p1 = %04x, p2 = %04x, restart = %d\n",
-		  const_ptr->def_restart, tv_dac->h_pos, tv_dac->v_pos, p1, p2, restart);
+				  const_ptr->def_restart, tv_dac->h_pos, tv_dac->v_pos, p1, p2, restart);
 
 	tv_dac->tv.hrestart = restart % h_total;
 	restart /= h_total;
@@ -506,22 +589,22 @@ static bool radeon_legacy_tv_init_restarts(struct drm_encoder *encoder)
 	tv_dac->tv.frestart = restart % f_total;
 
 	DRM_DEBUG_KMS("compute_restart: F/H/V=%u,%u,%u\n",
-		  (unsigned)tv_dac->tv.frestart,
-		  (unsigned)tv_dac->tv.vrestart,
-		  (unsigned)tv_dac->tv.hrestart);
+				  (unsigned)tv_dac->tv.frestart,
+				  (unsigned)tv_dac->tv.vrestart,
+				  (unsigned)tv_dac->tv.hrestart);
 
 	/* compute h_inc from hsize */
 	if (tv_dac->tv_std == TV_STD_NTSC ||
-	    tv_dac->tv_std == TV_STD_NTSC_J ||
-	    tv_dac->tv_std == TV_STD_PAL_M)
+		tv_dac->tv_std == TV_STD_NTSC_J ||
+		tv_dac->tv_std == TV_STD_PAL_M)
 		h_inc = (u16)((int)(const_ptr->hor_resolution * 4096 * NTSC_TV_CLOCK_T) /
-			      (tv_dac->h_size * (int)(NTSC_TV_H_SIZE_UNIT) + (int)(NTSC_TV_ZERO_H_SIZE)));
+					  (tv_dac->h_size * (int)(NTSC_TV_H_SIZE_UNIT) + (int)(NTSC_TV_ZERO_H_SIZE)));
 	else
 		h_inc = (u16)((int)(const_ptr->hor_resolution * 4096 * PAL_TV_CLOCK_T) /
-			      (tv_dac->h_size * (int)(PAL_TV_H_SIZE_UNIT) + (int)(PAL_TV_ZERO_H_SIZE)));
+					  (tv_dac->h_size * (int)(PAL_TV_H_SIZE_UNIT) + (int)(PAL_TV_ZERO_H_SIZE)));
 
 	tv_dac->tv.timing_cntl = (tv_dac->tv.timing_cntl & ~RADEON_H_INC_MASK) |
-		((u32)h_inc << RADEON_H_INC_SHIFT);
+							 ((u32)h_inc << RADEON_H_INC_SHIFT);
 
 	DRM_DEBUG_KMS("compute_restart: h_size = %d h_inc = %d\n", tv_dac->h_size, h_inc);
 
@@ -529,8 +612,8 @@ static bool radeon_legacy_tv_init_restarts(struct drm_encoder *encoder)
 }
 
 void radeon_legacy_tv_mode_set(struct drm_encoder *encoder,
-			       struct drm_display_mode *mode,
-			       struct drm_display_mode *adjusted_mode)
+							   struct drm_display_mode *mode,
+							   struct drm_display_mode *adjusted_mode)
 {
 	struct drm_device *dev = encoder->dev;
 	struct radeon_device *rdev = dev->dev_private;
@@ -551,71 +634,94 @@ void radeon_legacy_tv_mode_set(struct drm_encoder *encoder,
 	const uint16_t *vert_timing;
 
 	const_ptr = radeon_legacy_tv_get_std_mode(radeon_encoder, &pll_ref_freq);
+
 	if (!const_ptr)
+	{
 		return;
+	}
 
 	radeon_crtc = to_radeon_crtc(encoder->crtc);
 
 	tv_master_cntl = (RADEON_VIN_ASYNC_RST |
-			  RADEON_CRT_FIFO_CE_EN |
-			  RADEON_TV_FIFO_CE_EN |
-			  RADEON_TV_ON);
+					  RADEON_CRT_FIFO_CE_EN |
+					  RADEON_TV_FIFO_CE_EN |
+					  RADEON_TV_ON);
 
 	if (!ASIC_IS_R300(rdev))
+	{
 		tv_master_cntl |= RADEON_TVCLK_ALWAYS_ONb;
+	}
 
 	if (tv_dac->tv_std == TV_STD_NTSC ||
-	    tv_dac->tv_std == TV_STD_NTSC_J)
+		tv_dac->tv_std == TV_STD_NTSC_J)
+	{
 		tv_master_cntl |= RADEON_RESTART_PHASE_FIX;
+	}
 
 	tv_modulator_cntl1 = (RADEON_SLEW_RATE_LIMIT |
-			      RADEON_SYNC_TIP_LEVEL |
-			      RADEON_YFLT_EN |
-			      RADEON_UVFLT_EN |
-			      (6 << RADEON_CY_FILT_BLEND_SHIFT));
+						  RADEON_SYNC_TIP_LEVEL |
+						  RADEON_YFLT_EN |
+						  RADEON_UVFLT_EN |
+						  (6 << RADEON_CY_FILT_BLEND_SHIFT));
 
 	if (tv_dac->tv_std == TV_STD_NTSC ||
-	    tv_dac->tv_std == TV_STD_NTSC_J) {
+		tv_dac->tv_std == TV_STD_NTSC_J)
+	{
 		tv_modulator_cntl1 |= (0x46 << RADEON_SET_UP_LEVEL_SHIFT) |
-			(0x3b << RADEON_BLANK_LEVEL_SHIFT);
+							  (0x3b << RADEON_BLANK_LEVEL_SHIFT);
 		tv_modulator_cntl2 = (-111 & RADEON_TV_U_BURST_LEVEL_MASK) |
-			((0 & RADEON_TV_V_BURST_LEVEL_MASK) << RADEON_TV_V_BURST_LEVEL_SHIFT);
-	} else if (tv_dac->tv_std == TV_STD_SCART_PAL) {
+							 ((0 & RADEON_TV_V_BURST_LEVEL_MASK) << RADEON_TV_V_BURST_LEVEL_SHIFT);
+	}
+	else if (tv_dac->tv_std == TV_STD_SCART_PAL)
+	{
 		tv_modulator_cntl1 |= RADEON_ALT_PHASE_EN;
 		tv_modulator_cntl2 = (0 & RADEON_TV_U_BURST_LEVEL_MASK) |
-			((0 & RADEON_TV_V_BURST_LEVEL_MASK) << RADEON_TV_V_BURST_LEVEL_SHIFT);
-	} else {
+							 ((0 & RADEON_TV_V_BURST_LEVEL_MASK) << RADEON_TV_V_BURST_LEVEL_SHIFT);
+	}
+	else
+	{
 		tv_modulator_cntl1 |= RADEON_ALT_PHASE_EN |
-			(0x3b << RADEON_SET_UP_LEVEL_SHIFT) |
-			(0x3b << RADEON_BLANK_LEVEL_SHIFT);
+							  (0x3b << RADEON_SET_UP_LEVEL_SHIFT) |
+							  (0x3b << RADEON_BLANK_LEVEL_SHIFT);
 		tv_modulator_cntl2 = (-78 & RADEON_TV_U_BURST_LEVEL_MASK) |
-			((62 & RADEON_TV_V_BURST_LEVEL_MASK) << RADEON_TV_V_BURST_LEVEL_SHIFT);
+							 ((62 & RADEON_TV_V_BURST_LEVEL_MASK) << RADEON_TV_V_BURST_LEVEL_SHIFT);
 	}
 
 
 	tv_rgb_cntl = (RADEON_RGB_DITHER_EN
-		       | RADEON_TVOUT_SCALE_EN
-		       | (0x0b << RADEON_UVRAM_READ_MARGIN_SHIFT)
-		       | (0x07 << RADEON_FIFORAM_FFMACRO_READ_MARGIN_SHIFT)
-		       | RADEON_RGB_ATTEN_SEL(0x3)
-		       | RADEON_RGB_ATTEN_VAL(0xc));
+				   | RADEON_TVOUT_SCALE_EN
+				   | (0x0b << RADEON_UVRAM_READ_MARGIN_SHIFT)
+				   | (0x07 << RADEON_FIFORAM_FFMACRO_READ_MARGIN_SHIFT)
+				   | RADEON_RGB_ATTEN_SEL(0x3)
+				   | RADEON_RGB_ATTEN_VAL(0xc));
 
 	if (radeon_crtc->crtc_id == 1)
+	{
 		tv_rgb_cntl |= RADEON_RGB_SRC_SEL_CRTC2;
-	else {
+	}
+	else
+	{
 		if (radeon_crtc->rmx_type != RMX_OFF)
+		{
 			tv_rgb_cntl |= RADEON_RGB_SRC_SEL_RMX;
+		}
 		else
+		{
 			tv_rgb_cntl |= RADEON_RGB_SRC_SEL_CRTC1;
+		}
 	}
 
 	if (tv_dac->tv_std == TV_STD_NTSC ||
-	    tv_dac->tv_std == TV_STD_NTSC_J ||
-	    tv_dac->tv_std == TV_STD_PAL_M ||
-	    tv_dac->tv_std == TV_STD_PAL_60)
+		tv_dac->tv_std == TV_STD_NTSC_J ||
+		tv_dac->tv_std == TV_STD_PAL_M ||
+		tv_dac->tv_std == TV_STD_PAL_60)
+	{
 		vert_space = const_ptr->ver_total * 2 * 10000 / NTSC_TV_LINES_PER_FRAME;
+	}
 	else
+	{
 		vert_space = const_ptr->ver_total * 2 * 10000 / PAL_TV_LINES_PER_FRAME;
+	}
 
 	tmp = RREG32(RADEON_TV_VSCALER_CNTL1);
 	tmp &= 0xe3ff0000;
@@ -623,48 +729,65 @@ void radeon_legacy_tv_mode_set(struct drm_encoder *encoder,
 	tv_vscaler_cntl1 = tmp;
 
 	if (pll_ref_freq == 2700)
+	{
 		tv_vscaler_cntl1 |= RADEON_RESTART_FIELD;
+	}
 
 	if (const_ptr->hor_resolution == 1024)
+	{
 		tv_vscaler_cntl1 |= (4 << RADEON_Y_DEL_W_SIG_SHIFT);
+	}
 	else
+	{
 		tv_vscaler_cntl1 |= (2 << RADEON_Y_DEL_W_SIG_SHIFT);
+	}
 
 	/* scale up for int divide */
 	tmp = const_ptr->ver_total * 2 * 1000;
+
 	if (tv_dac->tv_std == TV_STD_NTSC ||
-	    tv_dac->tv_std == TV_STD_NTSC_J ||
-	    tv_dac->tv_std == TV_STD_PAL_M ||
-	    tv_dac->tv_std == TV_STD_PAL_60) {
+		tv_dac->tv_std == TV_STD_NTSC_J ||
+		tv_dac->tv_std == TV_STD_PAL_M ||
+		tv_dac->tv_std == TV_STD_PAL_60)
+	{
 		tmp /= NTSC_TV_LINES_PER_FRAME;
-	} else {
+	}
+	else
+	{
 		tmp /= PAL_TV_LINES_PER_FRAME;
 	}
+
 	flicker_removal = (tmp + 500) / 1000;
 
 	if (flicker_removal < 3)
+	{
 		flicker_removal = 3;
-	for (i = 0; i < ARRAY_SIZE(SLOPE_limit); ++i) {
+	}
+
+	for (i = 0; i < ARRAY_SIZE(SLOPE_limit); ++i)
+	{
 		if (flicker_removal == SLOPE_limit[i])
+		{
 			break;
+		}
 	}
 
 	tv_y_saw_tooth_cntl = (vert_space * SLOPE_value[i] * (1 << (FRAC_BITS - 1)) +
-				5001) / 10000 / 8 | ((SLOPE_value[i] *
-				(1 << (FRAC_BITS - 1)) / 8) << 16);
+						   5001) / 10000 / 8 | ((SLOPE_value[i] *
+								   (1 << (FRAC_BITS - 1)) / 8) << 16);
 	tv_y_fall_cntl =
 		(YCOEF_EN_value[i] << 17) | ((YCOEF_value[i] * (1 << 8) / 8) << 24) |
 		RADEON_Y_FALL_PING_PONG | (272 * SLOPE_value[i] / 8) * (1 << (FRAC_BITS - 1)) /
 		1024;
-	tv_y_rise_cntl = RADEON_Y_RISE_PING_PONG|
-		(flicker_removal * 1024 - 272) * SLOPE_value[i] / 8 * (1 << (FRAC_BITS - 1)) / 1024;
+	tv_y_rise_cntl = RADEON_Y_RISE_PING_PONG |
+					 (flicker_removal * 1024 - 272) * SLOPE_value[i] / 8 * (1 << (FRAC_BITS - 1)) / 1024;
 
 	tv_vscaler_cntl2 = RREG32(RADEON_TV_VSCALER_CNTL2) & 0x00fffff0;
 	tv_vscaler_cntl2 |= (0x10 << 24) |
-		RADEON_DITHER_MODE |
-		RADEON_Y_OUTPUT_DITHER_EN |
-		RADEON_UV_OUTPUT_DITHER_EN |
-		RADEON_UV_TO_BUF_DITHER_EN;
+						RADEON_DITHER_MODE |
+						RADEON_Y_OUTPUT_DITHER_EN |
+						RADEON_UV_OUTPUT_DITHER_EN |
+						RADEON_UV_TO_BUF_DITHER_EN;
 
 	tmp = (tv_vscaler_cntl1 >> RADEON_UV_INC_SHIFT) & RADEON_UV_INC_MASK;
 	tmp = ((16384 * 256 * 10) / tmp + 5) / 10;
@@ -672,38 +795,55 @@ void radeon_legacy_tv_mode_set(struct drm_encoder *encoder,
 	tv_dac->tv.timing_cntl = tmp;
 
 	if (tv_dac->tv_std == TV_STD_NTSC ||
-	    tv_dac->tv_std == TV_STD_NTSC_J ||
-	    tv_dac->tv_std == TV_STD_PAL_M ||
-	    tv_dac->tv_std == TV_STD_PAL_60)
+		tv_dac->tv_std == TV_STD_NTSC_J ||
+		tv_dac->tv_std == TV_STD_PAL_M ||
+		tv_dac->tv_std == TV_STD_PAL_60)
+	{
 		tv_dac_cntl = tv_dac->ntsc_tvdac_adj;
+	}
 	else
+	{
 		tv_dac_cntl = tv_dac->pal_tvdac_adj;
+	}
 
 	tv_dac_cntl |= RADEON_TV_DAC_NBLANK | RADEON_TV_DAC_NHOLD;
 
 	if (tv_dac->tv_std == TV_STD_NTSC ||
-	    tv_dac->tv_std == TV_STD_NTSC_J)
+		tv_dac->tv_std == TV_STD_NTSC_J)
+	{
 		tv_dac_cntl |= RADEON_TV_DAC_STD_NTSC;
+	}
 	else
+	{
 		tv_dac_cntl |= RADEON_TV_DAC_STD_PAL;
+	}
 
 	if (tv_dac->tv_std == TV_STD_NTSC ||
-	    tv_dac->tv_std == TV_STD_NTSC_J) {
-		if (pll_ref_freq == 2700) {
+		tv_dac->tv_std == TV_STD_NTSC_J)
+	{
+		if (pll_ref_freq == 2700)
+		{
 			m = NTSC_TV_PLL_M_27;
 			n = NTSC_TV_PLL_N_27;
 			p = NTSC_TV_PLL_P_27;
-		} else {
+		}
+		else
+		{
 			m = NTSC_TV_PLL_M_14;
 			n = NTSC_TV_PLL_N_14;
 			p = NTSC_TV_PLL_P_14;
 		}
-	} else {
-		if (pll_ref_freq == 2700) {
+	}
+	else
+	{
+		if (pll_ref_freq == 2700)
+		{
 			m = PAL_TV_PLL_M_27;
 			n = PAL_TV_PLL_N_27;
 			p = PAL_TV_PLL_P_27;
-		} else {
+		}
+		else
+		{
 			m = PAL_TV_PLL_M_14;
 			n = PAL_TV_PLL_N_14;
 			p = PAL_TV_PLL_P_14;
@@ -711,40 +851,49 @@ void radeon_legacy_tv_mode_set(struct drm_encoder *encoder,
 	}
 
 	tv_pll_cntl = (m & RADEON_TV_M0LO_MASK) |
-		(((m >> 8) & RADEON_TV_M0HI_MASK) << RADEON_TV_M0HI_SHIFT) |
-		((n & RADEON_TV_N0LO_MASK) << RADEON_TV_N0LO_SHIFT) |
-		(((n >> 9) & RADEON_TV_N0HI_MASK) << RADEON_TV_N0HI_SHIFT) |
-		((p & RADEON_TV_P_MASK) << RADEON_TV_P_SHIFT);
+				  (((m >> 8) & RADEON_TV_M0HI_MASK) << RADEON_TV_M0HI_SHIFT) |
+				  ((n & RADEON_TV_N0LO_MASK) << RADEON_TV_N0LO_SHIFT) |
+				  (((n >> 9) & RADEON_TV_N0HI_MASK) << RADEON_TV_N0HI_SHIFT) |
+				  ((p & RADEON_TV_P_MASK) << RADEON_TV_P_SHIFT);
 
 	tv_pll_cntl1 = (((4 & RADEON_TVPCP_MASK) << RADEON_TVPCP_SHIFT) |
-			((4 & RADEON_TVPVG_MASK) << RADEON_TVPVG_SHIFT) |
-			((1 & RADEON_TVPDC_MASK) << RADEON_TVPDC_SHIFT) |
-			RADEON_TVCLK_SRC_SEL_TVPLL |
-			RADEON_TVPLL_TEST_DIS);
+					((4 & RADEON_TVPVG_MASK) << RADEON_TVPVG_SHIFT) |
+					((1 & RADEON_TVPDC_MASK) << RADEON_TVPDC_SHIFT) |
+					RADEON_TVCLK_SRC_SEL_TVPLL |
+					RADEON_TVPLL_TEST_DIS);
 
 	tv_dac->tv.tv_uv_adr = 0xc8;
 
 	if (tv_dac->tv_std == TV_STD_NTSC ||
-	    tv_dac->tv_std == TV_STD_NTSC_J ||
-	    tv_dac->tv_std == TV_STD_PAL_M ||
-	    tv_dac->tv_std == TV_STD_PAL_60) {
+		tv_dac->tv_std == TV_STD_NTSC_J ||
+		tv_dac->tv_std == TV_STD_PAL_M ||
+		tv_dac->tv_std == TV_STD_PAL_60)
+	{
 		tv_ftotal = NTSC_TV_VFTOTAL;
 		hor_timing = hor_timing_NTSC;
 		vert_timing = vert_timing_NTSC;
-	} else {
+	}
+	else
+	{
 		hor_timing = hor_timing_PAL;
 		vert_timing = vert_timing_PAL;
 		tv_ftotal = PAL_TV_VFTOTAL;
 	}
 
-	for (i = 0; i < MAX_H_CODE_TIMING_LEN; i++) {
+	for (i = 0; i < MAX_H_CODE_TIMING_LEN; i++)
+	{
 		if ((tv_dac->tv.h_code_timing[i] = hor_timing[i]) == 0)
+		{
 			break;
+		}
 	}
 
-	for (i = 0; i < MAX_V_CODE_TIMING_LEN; i++) {
+	for (i = 0; i < MAX_V_CODE_TIMING_LEN; i++)
+	{
 		if ((tv_dac->tv.v_code_timing[i] = vert_timing[i]) == 0)
+		{
 			break;
+		}
 	}
 
 	radeon_legacy_tv_init_restarts(encoder);
@@ -756,14 +905,14 @@ void radeon_legacy_tv_mode_set(struct drm_encoder *encoder,
 
 	/* program the TV registers */
 	WREG32(RADEON_TV_MASTER_CNTL, (tv_master_cntl | RADEON_TV_ASYNC_RST |
-				       RADEON_CRT_ASYNC_RST | RADEON_TV_FIFO_ASYNC_RST));
+								   RADEON_CRT_ASYNC_RST | RADEON_TV_FIFO_ASYNC_RST));
 
 	tmp = RREG32(RADEON_TV_DAC_CNTL);
 	tmp &= ~RADEON_TV_DAC_NBLANK;
 	tmp |= RADEON_TV_DAC_BGSLEEP |
-		RADEON_TV_DAC_RDACPD |
-		RADEON_TV_DAC_GDACPD |
-		RADEON_TV_DAC_BDACPD;
+		   RADEON_TV_DAC_RDACPD |
+		   RADEON_TV_DAC_GDACPD |
+		   RADEON_TV_DAC_BDACPD;
 	WREG32(RADEON_TV_DAC_CNTL, tmp);
 
 	/* TV PLL */
@@ -801,7 +950,7 @@ void radeon_legacy_tv_mode_set(struct drm_encoder *encoder,
 	WREG32(RADEON_TV_Y_SAW_TOOTH_CNTL, tv_y_saw_tooth_cntl);
 
 	WREG32(RADEON_TV_MASTER_CNTL, (tv_master_cntl | RADEON_TV_ASYNC_RST |
-				       RADEON_CRT_ASYNC_RST));
+								   RADEON_CRT_ASYNC_RST));
 
 	/* TV restarts */
 	radeon_legacy_write_tv_restarts(radeon_encoder);
@@ -817,46 +966,49 @@ void radeon_legacy_tv_mode_set(struct drm_encoder *encoder,
 	WREG32(RADEON_TV_MODULATOR_CNTL1, tv_modulator_cntl1);
 	WREG32(RADEON_TV_MODULATOR_CNTL2, tv_modulator_cntl2);
 	WREG32(RADEON_TV_PRE_DAC_MUX_CNTL, (RADEON_Y_RED_EN |
-					    RADEON_C_GRN_EN |
-					    RADEON_CMP_BLU_EN |
-					    RADEON_DAC_DITHER_EN));
+										RADEON_C_GRN_EN |
+										RADEON_CMP_BLU_EN |
+										RADEON_DAC_DITHER_EN));
 
 	WREG32(RADEON_TV_CRC_CNTL, 0);
 
 	WREG32(RADEON_TV_MASTER_CNTL, tv_master_cntl);
 
 	WREG32(RADEON_TV_GAIN_LIMIT_SETTINGS, ((0x17f << RADEON_UV_GAIN_LIMIT_SHIFT) |
-					       (0x5ff << RADEON_Y_GAIN_LIMIT_SHIFT)));
+										   (0x5ff << RADEON_Y_GAIN_LIMIT_SHIFT)));
 	WREG32(RADEON_TV_LINEAR_GAIN_SETTINGS, ((0x100 << RADEON_UV_GAIN_SHIFT) |
-						(0x100 << RADEON_Y_GAIN_SHIFT)));
+											(0x100 << RADEON_Y_GAIN_SHIFT)));
 
 	WREG32(RADEON_TV_DAC_CNTL, tv_dac_cntl);
 
 }
 
 void radeon_legacy_tv_adjust_crtc_reg(struct drm_encoder *encoder,
-				      uint32_t *h_total_disp, uint32_t *h_sync_strt_wid,
-				      uint32_t *v_total_disp, uint32_t *v_sync_strt_wid)
+									  uint32_t *h_total_disp, uint32_t *h_sync_strt_wid,
+									  uint32_t *v_total_disp, uint32_t *v_sync_strt_wid)
 {
 	struct radeon_encoder *radeon_encoder = to_radeon_encoder(encoder);
 	const struct radeon_tv_mode_constants *const_ptr;
 	uint32_t tmp;
 
 	const_ptr = radeon_legacy_tv_get_std_mode(radeon_encoder, NULL);
+
 	if (!const_ptr)
+	{
 		return;
+	}
 
 	*h_total_disp = (((const_ptr->hor_resolution / 8) - 1) << RADEON_CRTC_H_DISP_SHIFT) |
-		(((const_ptr->hor_total / 8) - 1) << RADEON_CRTC_H_TOTAL_SHIFT);
+					(((const_ptr->hor_total / 8) - 1) << RADEON_CRTC_H_TOTAL_SHIFT);
 
 	tmp = *h_sync_strt_wid;
 	tmp &= ~(RADEON_CRTC_H_SYNC_STRT_PIX | RADEON_CRTC_H_SYNC_STRT_CHAR);
 	tmp |= (((const_ptr->hor_syncstart / 8) - 1) << RADEON_CRTC_H_SYNC_STRT_CHAR_SHIFT) |
-		(const_ptr->hor_syncstart & 7);
+		   (const_ptr->hor_syncstart & 7);
 	*h_sync_strt_wid = tmp;
 
 	*v_total_disp = ((const_ptr->ver_resolution - 1) << RADEON_CRTC_V_DISP_SHIFT) |
-		((const_ptr->ver_total - 1) << RADEON_CRTC_V_TOTAL_SHIFT);
+					((const_ptr->ver_total - 1) << RADEON_CRTC_V_TOTAL_SHIFT);
 
 	tmp = *v_sync_strt_wid;
 	tmp &= ~RADEON_CRTC_V_SYNC_STRT;
@@ -867,30 +1019,43 @@ void radeon_legacy_tv_adjust_crtc_reg(struct drm_encoder *encoder,
 static int get_post_div(int value)
 {
 	int post_div;
-	switch (value) {
-	case 1: post_div = 0; break;
-	case 2: post_div = 1; break;
-	case 3: post_div = 4; break;
-	case 4: post_div = 2; break;
-	case 6: post_div = 6; break;
-	case 8: post_div = 3; break;
-	case 12: post_div = 7; break;
-	case 16:
-	default: post_div = 5; break;
+
+	switch (value)
+	{
+		case 1: post_div = 0; break;
+
+		case 2: post_div = 1; break;
+
+		case 3: post_div = 4; break;
+
+		case 4: post_div = 2; break;
+
+		case 6: post_div = 6; break;
+
+		case 8: post_div = 3; break;
+
+		case 12: post_div = 7; break;
+
+		case 16:
+		default: post_div = 5; break;
 	}
+
 	return post_div;
 }
 
 void radeon_legacy_tv_adjust_pll1(struct drm_encoder *encoder,
-				  uint32_t *htotal_cntl, uint32_t *ppll_ref_div,
-				  uint32_t *ppll_div_3, uint32_t *pixclks_cntl)
+								  uint32_t *htotal_cntl, uint32_t *ppll_ref_div,
+								  uint32_t *ppll_div_3, uint32_t *pixclks_cntl)
 {
 	struct radeon_encoder *radeon_encoder = to_radeon_encoder(encoder);
 	const struct radeon_tv_mode_constants *const_ptr;
 
 	const_ptr = radeon_legacy_tv_get_std_mode(radeon_encoder, NULL);
+
 	if (!const_ptr)
+	{
 		return;
+	}
 
 	*htotal_cntl = (const_ptr->hor_total & 0x7) | RADEON_HTOT_CNTL_VGA_EN;
 
@@ -902,15 +1067,18 @@ void radeon_legacy_tv_adjust_pll1(struct drm_encoder *encoder,
 }
 
 void radeon_legacy_tv_adjust_pll2(struct drm_encoder *encoder,
-				  uint32_t *htotal2_cntl, uint32_t *p2pll_ref_div,
-				  uint32_t *p2pll_div_0, uint32_t *pixclks_cntl)
+								  uint32_t *htotal2_cntl, uint32_t *p2pll_ref_div,
+								  uint32_t *p2pll_div_0, uint32_t *pixclks_cntl)
 {
 	struct radeon_encoder *radeon_encoder = to_radeon_encoder(encoder);
 	const struct radeon_tv_mode_constants *const_ptr;
 
 	const_ptr = radeon_legacy_tv_get_std_mode(radeon_encoder, NULL);
+
 	if (!const_ptr)
+	{
 		return;
+	}
 
 	*htotal2_cntl = (const_ptr->hor_total & 0x7);
 

@@ -23,7 +23,7 @@
  * Assign the starting bdl address to each stream (device) and initialize.
  */
 void snd_hdac_stream_init(struct hdac_bus *bus, struct hdac_stream *azx_dev,
-			  int idx, int direction, int tag)
+						  int idx, int direction, int tag)
 {
 	azx_dev->bus = bus;
 	/* offset: SDI0=0x80, SDI1=0xa0, ... SDO3=0x160 */
@@ -52,14 +52,17 @@ void snd_hdac_stream_start(struct hdac_stream *azx_dev, bool fresh_start)
 	trace_snd_hdac_stream_start(bus, azx_dev);
 
 	azx_dev->start_wallclk = snd_hdac_chip_readl(bus, WALLCLK);
+
 	if (!fresh_start)
+	{
 		azx_dev->start_wallclk -= azx_dev->period_wallclk;
+	}
 
 	/* enable SIE */
 	snd_hdac_chip_updatel(bus, INTCTL, 0, 1 << azx_dev->index);
 	/* set DMA start and interrupt mask */
 	snd_hdac_stream_updateb(azx_dev, SD_CTL,
-				0, SD_CTL_DMA_START | SD_INT_MASK);
+							0, SD_CTL_DMA_START | SD_INT_MASK);
 	azx_dev->running = true;
 }
 EXPORT_SYMBOL_GPL(snd_hdac_stream_start);
@@ -71,7 +74,7 @@ EXPORT_SYMBOL_GPL(snd_hdac_stream_start);
 void snd_hdac_stream_clear(struct hdac_stream *azx_dev)
 {
 	snd_hdac_stream_updateb(azx_dev, SD_CTL,
-				SD_CTL_DMA_START | SD_INT_MASK, 0);
+							SD_CTL_DMA_START | SD_INT_MASK, 0);
 	snd_hdac_stream_writeb(azx_dev, SD_STS, SD_INT_MASK); /* to be sure */
 	azx_dev->running = false;
 }
@@ -107,28 +110,43 @@ void snd_hdac_stream_reset(struct hdac_stream *azx_dev)
 	snd_hdac_stream_updateb(azx_dev, SD_CTL, 0, SD_CTL_STREAM_RESET);
 	udelay(3);
 	timeout = 300;
-	do {
+
+	do
+	{
 		val = snd_hdac_stream_readb(azx_dev, SD_CTL) &
-			SD_CTL_STREAM_RESET;
+			  SD_CTL_STREAM_RESET;
+
 		if (val)
+		{
 			break;
-	} while (--timeout);
+		}
+	}
+	while (--timeout);
+
 	val &= ~SD_CTL_STREAM_RESET;
 	snd_hdac_stream_writeb(azx_dev, SD_CTL, val);
 	udelay(3);
 
 	timeout = 300;
+
 	/* waiting for hardware to report that the stream is out of reset */
-	do {
+	do
+	{
 		val = snd_hdac_stream_readb(azx_dev, SD_CTL) &
-			SD_CTL_STREAM_RESET;
+			  SD_CTL_STREAM_RESET;
+
 		if (!val)
+		{
 			break;
-	} while (--timeout);
+		}
+	}
+	while (--timeout);
 
 	/* reset first position - may not be synced with hw at this time */
 	if (azx_dev->posbuf)
+	{
 		*azx_dev->posbuf = 0;
+	}
 }
 EXPORT_SYMBOL_GPL(snd_hdac_stream_reset);
 
@@ -143,17 +161,26 @@ int snd_hdac_stream_setup(struct hdac_stream *azx_dev)
 	unsigned int val;
 
 	if (azx_dev->substream)
+	{
 		runtime = azx_dev->substream->runtime;
+	}
 	else
+	{
 		runtime = NULL;
+	}
+
 	/* make sure the run bit is zero for SD */
 	snd_hdac_stream_clear(azx_dev);
 	/* program the stream_tag */
 	val = snd_hdac_stream_readl(azx_dev, SD_CTL);
 	val = (val & ~SD_CTL_STREAM_TAG_MASK) |
-		(azx_dev->stream_tag << SD_CTL_STREAM_TAG_SHIFT);
+		  (azx_dev->stream_tag << SD_CTL_STREAM_TAG_SHIFT);
+
 	if (!bus->snoop)
+	{
 		val |= SD_CTL_TRAFFIC_PRIO;
+	}
+
 	snd_hdac_stream_writel(azx_dev, SD_CTL, val);
 
 	/* program the length of samples in cyclic buffer */
@@ -171,13 +198,14 @@ int snd_hdac_stream_setup(struct hdac_stream *azx_dev)
 	snd_hdac_stream_writel(azx_dev, SD_BDLPL, (u32)azx_dev->bdl.addr);
 	/* upper BDL address */
 	snd_hdac_stream_writel(azx_dev, SD_BDLPU,
-			       upper_32_bits(azx_dev->bdl.addr));
+						   upper_32_bits(azx_dev->bdl.addr));
 
 	/* enable the position buffer */
-	if (bus->use_posbuf && bus->posbuf.addr) {
+	if (bus->use_posbuf && bus->posbuf.addr)
+	{
 		if (!(snd_hdac_chip_readl(bus, DPLBASE) & AZX_DPLBASE_ENABLE))
 			snd_hdac_chip_writel(bus, DPLBASE,
-				(u32)bus->posbuf.addr | AZX_DPLBASE_ENABLE);
+								 (u32)bus->posbuf.addr | AZX_DPLBASE_ENABLE);
 	}
 
 	/* set the interrupt enable bits in the descriptor control register */
@@ -187,7 +215,9 @@ int snd_hdac_stream_setup(struct hdac_stream *azx_dev)
 		azx_dev->fifo_size =
 			snd_hdac_stream_readw(azx_dev, SD_FIFOSIZE) + 1;
 	else
+	{
 		azx_dev->fifo_size = 0;
+	}
 
 	/* when LPIB delay correction gives a small negative value,
 	 * we ignore it; currently set the threshold statically to
@@ -197,12 +227,14 @@ int snd_hdac_stream_setup(struct hdac_stream *azx_dev)
 		azx_dev->delay_negative_threshold =
 			-frames_to_bytes(runtime, 64);
 	else
+	{
 		azx_dev->delay_negative_threshold = 0;
+	}
 
 	/* wallclk has 24Mhz clock source */
 	if (runtime)
 		azx_dev->period_wallclk = (((runtime->period_size * 24000) /
-				    runtime->rate) * 1000);
+									runtime->rate) * 1000);
 
 	return 0;
 }
@@ -235,28 +267,41 @@ EXPORT_SYMBOL_GPL(snd_hdac_stream_cleanup);
  * or matching entry is returned.  This is needed for some strange codecs.
  */
 struct hdac_stream *snd_hdac_stream_assign(struct hdac_bus *bus,
-					   struct snd_pcm_substream *substream)
+		struct snd_pcm_substream *substream)
 {
 	struct hdac_stream *azx_dev;
 	struct hdac_stream *res = NULL;
 
 	/* make a non-zero unique key for the substream */
 	int key = (substream->pcm->device << 16) | (substream->number << 2) |
-		(substream->stream + 1);
+			  (substream->stream + 1);
 
-	list_for_each_entry(azx_dev, &bus->stream_list, list) {
+	list_for_each_entry(azx_dev, &bus->stream_list, list)
+	{
 		if (azx_dev->direction != substream->stream)
+		{
 			continue;
+		}
+
 		if (azx_dev->opened)
+		{
 			continue;
-		if (azx_dev->assigned_key == key) {
+		}
+
+		if (azx_dev->assigned_key == key)
+		{
 			res = azx_dev;
 			break;
 		}
+
 		if (!res || bus->reverse_assign)
+		{
 			res = azx_dev;
+		}
 	}
-	if (res) {
+
+	if (res)
+	{
 		spin_lock_irq(&bus->reg_lock);
 		res->opened = 1;
 		res->running = 0;
@@ -264,6 +309,7 @@ struct hdac_stream *snd_hdac_stream_assign(struct hdac_bus *bus,
 		res->substream = substream;
 		spin_unlock_irq(&bus->reg_lock);
 	}
+
 	return res;
 }
 EXPORT_SYMBOL_GPL(snd_hdac_stream_assign);
@@ -295,13 +341,16 @@ EXPORT_SYMBOL_GPL(snd_hdac_stream_release);
  * @stream_tag: stream tag for stream to be found
  */
 struct hdac_stream *snd_hdac_get_stream(struct hdac_bus *bus,
-					int dir, int stream_tag)
+										int dir, int stream_tag)
 {
 	struct hdac_stream *s;
 
-	list_for_each_entry(s, &bus->stream_list, list) {
+	list_for_each_entry(s, &bus->stream_list, list)
+	{
 		if (s->direction == dir && s->stream_tag == stream_tag)
+		{
 			return s;
+		}
 	}
 
 	return NULL;
@@ -312,18 +361,21 @@ EXPORT_SYMBOL_GPL(snd_hdac_get_stream);
  * set up a BDL entry
  */
 static int setup_bdle(struct hdac_bus *bus,
-		      struct snd_dma_buffer *dmab,
-		      struct hdac_stream *azx_dev, __le32 **bdlp,
-		      int ofs, int size, int with_ioc)
+					  struct snd_dma_buffer *dmab,
+					  struct hdac_stream *azx_dev, __le32 **bdlp,
+					  int ofs, int size, int with_ioc)
 {
 	__le32 *bdl = *bdlp;
 
-	while (size > 0) {
+	while (size > 0)
+	{
 		dma_addr_t addr;
 		int chunk;
 
 		if (azx_dev->frags >= AZX_MAX_BDL_ENTRIES)
+		{
 			return -EINVAL;
+		}
 
 		addr = snd_sgbuf_get_addr(dmab, ofs);
 		/* program the address field of the BDL entry */
@@ -331,13 +383,18 @@ static int setup_bdle(struct hdac_bus *bus,
 		bdl[1] = cpu_to_le32(upper_32_bits(addr));
 		/* program the size field of the BDL entry */
 		chunk = snd_sgbuf_get_chunk_size(dmab, ofs, size);
+
 		/* one BDLE cannot cross 4K boundary on CTHDA chips */
-		if (bus->align_bdle_4k) {
+		if (bus->align_bdle_4k)
+		{
 			u32 remain = 0x1000 - (ofs & 0xfff);
 
 			if (chunk > remain)
+			{
 				chunk = remain;
+			}
 		}
+
 		bdl[2] = cpu_to_le32(chunk);
 		/* program the IOC to enable interrupt
 		 * only when the whole fragment is processed
@@ -348,6 +405,7 @@ static int setup_bdle(struct hdac_bus *bus,
 		azx_dev->frags++;
 		ofs += chunk;
 	}
+
 	*bdlp = bdl;
 	return ofs;
 }
@@ -381,47 +439,68 @@ int snd_hdac_stream_setup_periods(struct hdac_stream *azx_dev)
 	azx_dev->frags = 0;
 
 	pos_adj = bus->bdl_pos_adj;
-	if (!azx_dev->no_period_wakeup && pos_adj > 0) {
+
+	if (!azx_dev->no_period_wakeup && pos_adj > 0)
+	{
 		pos_align = pos_adj;
 		pos_adj = (pos_adj * runtime->rate + 47999) / 48000;
+
 		if (!pos_adj)
+		{
 			pos_adj = pos_align;
+		}
 		else
 			pos_adj = ((pos_adj + pos_align - 1) / pos_align) *
-				pos_align;
-		pos_adj = frames_to_bytes(runtime, pos_adj);
-		if (pos_adj >= period_bytes) {
-			dev_warn(bus->dev, "Too big adjustment %d\n",
-				 pos_adj);
-			pos_adj = 0;
-		} else {
-			ofs = setup_bdle(bus, snd_pcm_get_dma_buf(substream),
-					 azx_dev,
-					 &bdl, ofs, pos_adj, true);
-			if (ofs < 0)
-				goto error;
-		}
-	} else
-		pos_adj = 0;
+					  pos_align;
 
-	for (i = 0; i < periods; i++) {
+		pos_adj = frames_to_bytes(runtime, pos_adj);
+
+		if (pos_adj >= period_bytes)
+		{
+			dev_warn(bus->dev, "Too big adjustment %d\n",
+					 pos_adj);
+			pos_adj = 0;
+		}
+		else
+		{
+			ofs = setup_bdle(bus, snd_pcm_get_dma_buf(substream),
+							 azx_dev,
+							 &bdl, ofs, pos_adj, true);
+
+			if (ofs < 0)
+			{
+				goto error;
+			}
+		}
+	}
+	else
+	{
+		pos_adj = 0;
+	}
+
+	for (i = 0; i < periods; i++)
+	{
 		if (i == periods - 1 && pos_adj)
 			ofs = setup_bdle(bus, snd_pcm_get_dma_buf(substream),
-					 azx_dev, &bdl, ofs,
-					 period_bytes - pos_adj, 0);
+							 azx_dev, &bdl, ofs,
+							 period_bytes - pos_adj, 0);
 		else
 			ofs = setup_bdle(bus, snd_pcm_get_dma_buf(substream),
-					 azx_dev, &bdl, ofs,
-					 period_bytes,
-					 !azx_dev->no_period_wakeup);
+							 azx_dev, &bdl, ofs,
+							 period_bytes,
+							 !azx_dev->no_period_wakeup);
+
 		if (ofs < 0)
+		{
 			goto error;
+		}
 	}
+
 	return 0;
 
- error:
+error:
 	dev_err(bus->dev, "Too many BDL entries: buffer=%d, period=%d\n",
-		azx_dev->bufsize, period_bytes);
+			azx_dev->bufsize, period_bytes);
 	return -EINVAL;
 }
 EXPORT_SYMBOL_GPL(snd_hdac_stream_setup_periods);
@@ -435,7 +514,7 @@ EXPORT_SYMBOL_GPL(snd_hdac_stream_setup_periods);
  * and passed format value
  */
 int snd_hdac_stream_set_params(struct hdac_stream *azx_dev,
-				 unsigned int format_val)
+							   unsigned int format_val)
 {
 
 	unsigned int bufsize, period_bytes;
@@ -444,23 +523,31 @@ int snd_hdac_stream_set_params(struct hdac_stream *azx_dev,
 	int err;
 
 	if (!substream)
+	{
 		return -EINVAL;
+	}
+
 	runtime = substream->runtime;
 	bufsize = snd_pcm_lib_buffer_bytes(substream);
 	period_bytes = snd_pcm_lib_period_bytes(substream);
 
 	if (bufsize != azx_dev->bufsize ||
-	    period_bytes != azx_dev->period_bytes ||
-	    format_val != azx_dev->format_val ||
-	    runtime->no_period_wakeup != azx_dev->no_period_wakeup) {
+		period_bytes != azx_dev->period_bytes ||
+		format_val != azx_dev->format_val ||
+		runtime->no_period_wakeup != azx_dev->no_period_wakeup)
+	{
 		azx_dev->bufsize = bufsize;
 		azx_dev->period_bytes = period_bytes;
 		azx_dev->format_val = format_val;
 		azx_dev->no_period_wakeup = runtime->no_period_wakeup;
 		err = snd_hdac_stream_setup_periods(azx_dev);
+
 		if (err < 0)
+		{
 			return err;
+		}
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(snd_hdac_stream_set_params);
@@ -473,7 +560,7 @@ static cycle_t azx_cc_read(const struct cyclecounter *cc)
 }
 
 static void azx_timecounter_init(struct hdac_stream *azx_dev,
-				 bool force, cycle_t last)
+								 bool force, cycle_t last)
 {
 	struct timecounter *tc = &azx_dev->tc;
 	struct cyclecounter *cc = &azx_dev->cc;
@@ -497,7 +584,9 @@ static void azx_timecounter_init(struct hdac_stream *azx_dev,
 
 	nsec = 0; /* audio time is elapsed time since trigger */
 	timecounter_init(tc, cc, nsec);
-	if (force) {
+
+	if (force)
+	{
 		/*
 		 * force timecounter to use predefined value,
 		 * used for synchronized starts
@@ -517,7 +606,7 @@ static void azx_timecounter_init(struct hdac_stream *azx_dev,
  * updated accordingly, too.
  */
 void snd_hdac_stream_timecounter_init(struct hdac_stream *azx_dev,
-				      unsigned int streams)
+									  unsigned int streams)
 {
 	struct hdac_bus *bus = azx_dev->bus;
 	struct snd_pcm_runtime *runtime = azx_dev->substream->runtime;
@@ -526,14 +615,19 @@ void snd_hdac_stream_timecounter_init(struct hdac_stream *azx_dev,
 	cycle_t cycle_last = 0;
 	int i = 0;
 
-	list_for_each_entry(s, &bus->stream_list, list) {
-		if (streams & (1 << i)) {
+	list_for_each_entry(s, &bus->stream_list, list)
+	{
+		if (streams & (1 << i))
+		{
 			azx_timecounter_init(s, inited, cycle_last);
-			if (!inited) {
+
+			if (!inited)
+			{
 				inited = true;
 				cycle_last = s->tc.cycle_last;
 			}
 		}
+
 		i++;
 	}
 
@@ -548,18 +642,27 @@ EXPORT_SYMBOL_GPL(snd_hdac_stream_timecounter_init);
  * @streams: bit flags of streams to sync
  */
 void snd_hdac_stream_sync_trigger(struct hdac_stream *azx_dev, bool set,
-				  unsigned int streams, unsigned int reg)
+								  unsigned int streams, unsigned int reg)
 {
 	struct hdac_bus *bus = azx_dev->bus;
 	unsigned int val;
 
 	if (!reg)
+	{
 		reg = AZX_REG_SSYNC;
+	}
+
 	val = _snd_hdac_chip_read(l, bus, reg);
+
 	if (set)
+	{
 		val |= streams;
+	}
 	else
+	{
 		val &= ~streams;
+	}
+
 	_snd_hdac_chip_write(l, bus, reg, val);
 }
 EXPORT_SYMBOL_GPL(snd_hdac_stream_sync_trigger);
@@ -574,33 +677,48 @@ EXPORT_SYMBOL_GPL(snd_hdac_stream_sync_trigger);
  * For @start = false, wait until all RUN bits are cleared.
  */
 void snd_hdac_stream_sync(struct hdac_stream *azx_dev, bool start,
-			  unsigned int streams)
+						  unsigned int streams)
 {
 	struct hdac_bus *bus = azx_dev->bus;
 	int i, nwait, timeout;
 	struct hdac_stream *s;
 
-	for (timeout = 5000; timeout; timeout--) {
+	for (timeout = 5000; timeout; timeout--)
+	{
 		nwait = 0;
 		i = 0;
-		list_for_each_entry(s, &bus->stream_list, list) {
-			if (streams & (1 << i)) {
-				if (start) {
+		list_for_each_entry(s, &bus->stream_list, list)
+		{
+			if (streams & (1 << i))
+			{
+				if (start)
+				{
 					/* check FIFO gets ready */
 					if (!(snd_hdac_stream_readb(s, SD_STS) &
-					      SD_STS_FIFO_READY))
+						  SD_STS_FIFO_READY))
+					{
 						nwait++;
-				} else {
+					}
+				}
+				else
+				{
 					/* check RUN bit is cleared */
 					if (snd_hdac_stream_readb(s, SD_CTL) &
-					    SD_CTL_DMA_START)
+						SD_CTL_DMA_START)
+					{
 						nwait++;
+					}
 				}
 			}
+
 			i++;
 		}
+
 		if (!nwait)
+		{
 			break;
+		}
+
 		cpu_relax();
 	}
 }
@@ -618,7 +736,7 @@ EXPORT_SYMBOL_GPL(snd_hdac_stream_sync);
  * DSP loading.  Returns the stream tag (>= 0), or a negative error code.
  */
 int snd_hdac_dsp_prepare(struct hdac_stream *azx_dev, unsigned int format,
-			 unsigned int byte_size, struct snd_dma_buffer *bufp)
+						 unsigned int byte_size, struct snd_dma_buffer *bufp)
 {
 	struct hdac_bus *bus = azx_dev->bus;
 	u32 *bdl;
@@ -626,18 +744,24 @@ int snd_hdac_dsp_prepare(struct hdac_stream *azx_dev, unsigned int format,
 
 	snd_hdac_dsp_lock(azx_dev);
 	spin_lock_irq(&bus->reg_lock);
-	if (azx_dev->running || azx_dev->locked) {
+
+	if (azx_dev->running || azx_dev->locked)
+	{
 		spin_unlock_irq(&bus->reg_lock);
 		err = -EBUSY;
 		goto unlock;
 	}
+
 	azx_dev->locked = true;
 	spin_unlock_irq(&bus->reg_lock);
 
 	err = bus->io_ops->dma_alloc_pages(bus, SNDRV_DMA_TYPE_DEV_SG,
-					   byte_size, bufp);
+									   byte_size, bufp);
+
 	if (err < 0)
+	{
 		goto err_alloc;
+	}
 
 	azx_dev->substream = NULL;
 	azx_dev->bufsize = byte_size;
@@ -653,20 +777,23 @@ int snd_hdac_dsp_prepare(struct hdac_stream *azx_dev, unsigned int format,
 	azx_dev->frags = 0;
 	bdl = (u32 *)azx_dev->bdl.area;
 	err = setup_bdle(bus, bufp, azx_dev, &bdl, 0, byte_size, 0);
+
 	if (err < 0)
+	{
 		goto error;
+	}
 
 	snd_hdac_stream_setup(azx_dev);
 	snd_hdac_dsp_unlock(azx_dev);
 	return azx_dev->stream_tag;
 
- error:
+error:
 	bus->io_ops->dma_free_pages(bus, bufp);
- err_alloc:
+err_alloc:
 	spin_lock_irq(&bus->reg_lock);
 	azx_dev->locked = false;
 	spin_unlock_irq(&bus->reg_lock);
- unlock:
+unlock:
 	snd_hdac_dsp_unlock(azx_dev);
 	return err;
 }
@@ -680,9 +807,13 @@ EXPORT_SYMBOL_GPL(snd_hdac_dsp_prepare);
 void snd_hdac_dsp_trigger(struct hdac_stream *azx_dev, bool start)
 {
 	if (start)
+	{
 		snd_hdac_stream_start(azx_dev, true);
+	}
 	else
+	{
 		snd_hdac_stream_stop(azx_dev);
+	}
 }
 EXPORT_SYMBOL_GPL(snd_hdac_dsp_trigger);
 
@@ -692,12 +823,14 @@ EXPORT_SYMBOL_GPL(snd_hdac_dsp_trigger);
  * @dmab: buffer used by DSP loading
  */
 void snd_hdac_dsp_cleanup(struct hdac_stream *azx_dev,
-			  struct snd_dma_buffer *dmab)
+						  struct snd_dma_buffer *dmab)
 {
 	struct hdac_bus *bus = azx_dev->bus;
 
 	if (!dmab->area || !azx_dev->locked)
+	{
 		return;
+	}
 
 	snd_hdac_dsp_lock(azx_dev);
 	/* reset BDL address */

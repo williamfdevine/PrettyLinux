@@ -33,13 +33,14 @@ MODULE_DESCRIPTION("Generic i2c interface for ALSA");
 MODULE_LICENSE("GPL");
 
 static int snd_i2c_bit_sendbytes(struct snd_i2c_device *device,
-				 unsigned char *bytes, int count);
+								 unsigned char *bytes, int count);
 static int snd_i2c_bit_readbytes(struct snd_i2c_device *device,
-				 unsigned char *bytes, int count);
+								 unsigned char *bytes, int count);
 static int snd_i2c_bit_probeaddr(struct snd_i2c_bus *bus,
-				 unsigned short addr);
+								 unsigned short addr);
 
-static const struct snd_i2c_ops snd_i2c_bit_ops = {
+static const struct snd_i2c_ops snd_i2c_bit_ops =
+{
 	.sendbytes = snd_i2c_bit_sendbytes,
 	.readbytes = snd_i2c_bit_readbytes,
 	.probeaddr = snd_i2c_bit_probeaddr,
@@ -51,21 +52,34 @@ static int snd_i2c_bus_free(struct snd_i2c_bus *bus)
 	struct snd_i2c_device *device;
 
 	if (snd_BUG_ON(!bus))
+	{
 		return -EINVAL;
-	while (!list_empty(&bus->devices)) {
+	}
+
+	while (!list_empty(&bus->devices))
+	{
 		device = snd_i2c_device(bus->devices.next);
 		snd_i2c_device_free(device);
 	}
+
 	if (bus->master)
+	{
 		list_del(&bus->buses);
-	else {
-		while (!list_empty(&bus->buses)) {
+	}
+	else
+	{
+		while (!list_empty(&bus->buses))
+		{
 			slave = snd_i2c_slave_bus(bus->buses.next);
 			snd_device_free(bus->card, slave);
 		}
 	}
+
 	if (bus->private_free)
+	{
 		bus->private_free(bus);
+	}
+
 	kfree(bus);
 	return 0;
 }
@@ -77,33 +91,44 @@ static int snd_i2c_bus_dev_free(struct snd_device *device)
 }
 
 int snd_i2c_bus_create(struct snd_card *card, const char *name,
-		       struct snd_i2c_bus *master, struct snd_i2c_bus **ri2c)
+					   struct snd_i2c_bus *master, struct snd_i2c_bus **ri2c)
 {
 	struct snd_i2c_bus *bus;
 	int err;
-	static struct snd_device_ops ops = {
+	static struct snd_device_ops ops =
+	{
 		.dev_free =	snd_i2c_bus_dev_free,
 	};
 
 	*ri2c = NULL;
 	bus = kzalloc(sizeof(*bus), GFP_KERNEL);
+
 	if (bus == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	mutex_init(&bus->lock_mutex);
 	INIT_LIST_HEAD(&bus->devices);
 	INIT_LIST_HEAD(&bus->buses);
 	bus->card = card;
 	bus->ops = &snd_i2c_bit_ops;
-	if (master) {
+
+	if (master)
+	{
 		list_add_tail(&bus->buses, &master->buses);
 		bus->master = master;
 	}
+
 	strlcpy(bus->name, name, sizeof(bus->name));
 	err = snd_device_new(card, SNDRV_DEV_BUS, bus, &ops);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		snd_i2c_bus_free(bus);
 		return err;
 	}
+
 	*ri2c = bus;
 	return 0;
 }
@@ -111,16 +136,24 @@ int snd_i2c_bus_create(struct snd_card *card, const char *name,
 EXPORT_SYMBOL(snd_i2c_bus_create);
 
 int snd_i2c_device_create(struct snd_i2c_bus *bus, const char *name,
-			  unsigned char addr, struct snd_i2c_device **rdevice)
+						  unsigned char addr, struct snd_i2c_device **rdevice)
 {
 	struct snd_i2c_device *device;
 
 	*rdevice = NULL;
+
 	if (snd_BUG_ON(!bus))
+	{
 		return -EINVAL;
+	}
+
 	device = kzalloc(sizeof(*device), GFP_KERNEL);
+
 	if (device == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	device->addr = addr;
 	strlcpy(device->name, name, sizeof(device->name));
 	list_add_tail(&device->list, &bus->devices);
@@ -134,9 +167,15 @@ EXPORT_SYMBOL(snd_i2c_device_create);
 int snd_i2c_device_free(struct snd_i2c_device *device)
 {
 	if (device->bus)
+	{
 		list_del(&device->list);
+	}
+
 	if (device->private_free)
+	{
 		device->private_free(device);
+	}
+
 	kfree(device);
 	return 0;
 }
@@ -171,19 +210,25 @@ EXPORT_SYMBOL(snd_i2c_probeaddr);
 static inline void snd_i2c_bit_hw_start(struct snd_i2c_bus *bus)
 {
 	if (bus->hw_ops.bit->start)
+	{
 		bus->hw_ops.bit->start(bus);
+	}
 }
 
 static inline void snd_i2c_bit_hw_stop(struct snd_i2c_bus *bus)
 {
 	if (bus->hw_ops.bit->stop)
+	{
 		bus->hw_ops.bit->stop(bus);
+	}
 }
 
 static void snd_i2c_bit_direction(struct snd_i2c_bus *bus, int clock, int data)
 {
 	if (bus->hw_ops.bit->direction)
+	{
 		bus->hw_ops.bit->direction(bus, clock, data);
+	}
 }
 
 static void snd_i2c_bit_set(struct snd_i2c_bus *bus, int clock, int data)
@@ -195,7 +240,10 @@ static void snd_i2c_bit_set(struct snd_i2c_bus *bus, int clock, int data)
 static int snd_i2c_bit_clock(struct snd_i2c_bus *bus)
 {
 	if (bus->hw_ops.bit->getclock)
+	{
 		return bus->hw_ops.bit->getclock(bus);
+	}
+
 	return -ENXIO;
 }
 #endif
@@ -247,10 +295,17 @@ static int snd_i2c_bit_sendbyte(struct snd_i2c_bus *bus, unsigned char data)
 	int i, err;
 
 	for (i = 7; i >= 0; i--)
+	{
 		snd_i2c_bit_send(bus, !!(data & (1 << i)));
+	}
+
 	err = snd_i2c_bit_ack(bus);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	return 0;
 }
 
@@ -261,66 +316,95 @@ static int snd_i2c_bit_readbyte(struct snd_i2c_bus *bus, int last)
 
 	snd_i2c_bit_set(bus, 0, 1);
 	snd_i2c_bit_direction(bus, 1, 0);	/* SCL - wr, SDA - rd */
-	for (i = 7; i >= 0; i--) {
+
+	for (i = 7; i >= 0; i--)
+	{
 		snd_i2c_bit_set(bus, 1, 1);
+
 		if (snd_i2c_bit_data(bus, 0))
+		{
 			data |= (1 << i);
+		}
+
 		snd_i2c_bit_set(bus, 0, 1);
 	}
+
 	snd_i2c_bit_direction(bus, 1, 1);	/* SCL - wr, SDA - wr */
 	snd_i2c_bit_send(bus, !!last);
 	return data;
 }
 
 static int snd_i2c_bit_sendbytes(struct snd_i2c_device *device,
-				 unsigned char *bytes, int count)
+								 unsigned char *bytes, int count)
 {
 	struct snd_i2c_bus *bus = device->bus;
 	int err, res = 0;
 
 	if (device->flags & SND_I2C_DEVICE_ADDRTEN)
-		return -EIO;		/* not yet implemented */
+	{
+		return -EIO;    /* not yet implemented */
+	}
+
 	snd_i2c_bit_start(bus);
 	err = snd_i2c_bit_sendbyte(bus, device->addr << 1);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		snd_i2c_bit_hw_stop(bus);
 		return err;
 	}
-	while (count-- > 0) {
+
+	while (count-- > 0)
+	{
 		err = snd_i2c_bit_sendbyte(bus, *bytes++);
-		if (err < 0) {
+
+		if (err < 0)
+		{
 			snd_i2c_bit_hw_stop(bus);
 			return err;
 		}
+
 		res++;
 	}
+
 	snd_i2c_bit_stop(bus);
 	return res;
 }
 
 static int snd_i2c_bit_readbytes(struct snd_i2c_device *device,
-				 unsigned char *bytes, int count)
+								 unsigned char *bytes, int count)
 {
 	struct snd_i2c_bus *bus = device->bus;
 	int err, res = 0;
 
 	if (device->flags & SND_I2C_DEVICE_ADDRTEN)
-		return -EIO;		/* not yet implemented */
+	{
+		return -EIO;    /* not yet implemented */
+	}
+
 	snd_i2c_bit_start(bus);
 	err = snd_i2c_bit_sendbyte(bus, (device->addr << 1) | 1);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		snd_i2c_bit_hw_stop(bus);
 		return err;
 	}
-	while (count-- > 0) {
+
+	while (count-- > 0)
+	{
 		err = snd_i2c_bit_readbyte(bus, count == 0);
-		if (err < 0) {
+
+		if (err < 0)
+		{
 			snd_i2c_bit_hw_stop(bus);
 			return err;
 		}
+
 		*bytes++ = (unsigned char)err;
 		res++;
 	}
+
 	snd_i2c_bit_stop(bus);
 	return res;
 }
@@ -330,9 +414,15 @@ static int snd_i2c_bit_probeaddr(struct snd_i2c_bus *bus, unsigned short addr)
 	int err;
 
 	if (addr & 0x8000)	/* 10-bit address */
-		return -EIO;	/* not yet implemented */
+	{
+		return -EIO;    /* not yet implemented */
+	}
+
 	if (addr & 0x7f80)	/* invalid address */
+	{
 		return -EINVAL;
+	}
+
 	snd_i2c_bit_start(bus);
 	err = snd_i2c_bit_sendbyte(bus, addr << 1);
 	snd_i2c_bit_stop(bus);

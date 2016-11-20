@@ -57,27 +57,40 @@ static int sxgbe_get_lpi_status(void __iomem *ioaddr, const u32 irq_status)
 	lpi_status = readl(ioaddr + SXGBE_CORE_LPI_CTRL_STATUS);
 
 	if (lpi_status & LPI_CTRL_STATUS_TLPIEN)
+	{
 		status |= TX_ENTRY_LPI_MODE;
+	}
+
 	if (lpi_status & LPI_CTRL_STATUS_TLPIEX)
+	{
 		status |= TX_EXIT_LPI_MODE;
+	}
+
 	if (lpi_status & LPI_CTRL_STATUS_RLPIEN)
+	{
 		status |= RX_ENTRY_LPI_MODE;
+	}
+
 	if (lpi_status & LPI_CTRL_STATUS_RLPIEX)
+	{
 		status |= RX_EXIT_LPI_MODE;
+	}
 
 	return status;
 }
 
 /* Handle extra events on specific interrupts hw dependent */
 static int sxgbe_core_host_irq_status(void __iomem *ioaddr,
-				      struct sxgbe_extra_stats *x)
+									  struct sxgbe_extra_stats *x)
 {
 	int irq_status, status = 0;
 
 	irq_status = readl(ioaddr + SXGBE_CORE_INT_STATUS_REG);
 
 	if (unlikely(irq_status & LPI_INT_STATUS))
+	{
 		status |= sxgbe_get_lpi_status(ioaddr, irq_status);
+	}
 
 	return status;
 }
@@ -89,19 +102,19 @@ static void sxgbe_core_pmt(void __iomem *ioaddr, unsigned long mode)
 
 /* Set/Get Unicast MAC addresses */
 static void sxgbe_core_set_umac_addr(void __iomem *ioaddr, unsigned char *addr,
-				     unsigned int reg_n)
+									 unsigned int reg_n)
 {
 	u32 high_word, low_word;
 
 	high_word = (addr[5] << 8) | (addr[4]);
 	low_word = (addr[3] << 24) | (addr[2] << 16) |
-		   (addr[1] << 8) | (addr[0]);
+			   (addr[1] << 8) | (addr[0]);
 	writel(high_word, ioaddr + SXGBE_CORE_ADD_HIGHOFFSET(reg_n));
 	writel(low_word, ioaddr + SXGBE_CORE_ADD_LOWOFFSET(reg_n));
 }
 
 static void sxgbe_core_get_umac_addr(void __iomem *ioaddr, unsigned char *addr,
-				     unsigned int reg_n)
+									 unsigned int reg_n)
 {
 	u32 high_word, low_word;
 
@@ -125,7 +138,10 @@ static void sxgbe_enable_tx(void __iomem *ioaddr, bool enable)
 	tx_config &= ~SXGBE_TX_ENABLE;
 
 	if (enable)
+	{
 		tx_config |= SXGBE_TX_ENABLE;
+	}
+
 	writel(tx_config, ioaddr + SXGBE_CORE_TX_CONFIG_REG);
 }
 
@@ -137,7 +153,10 @@ static void sxgbe_enable_rx(void __iomem *ioaddr, bool enable)
 	rx_config &= ~SXGBE_RX_ENABLE;
 
 	if (enable)
+	{
 		rx_config |= SXGBE_RX_ENABLE;
+	}
+
 	writel(rx_config, ioaddr + SXGBE_CORE_RX_CONFIG_REG);
 }
 
@@ -148,7 +167,7 @@ static int sxgbe_get_controller_version(void __iomem *ioaddr)
 
 /* If supported then get the optional core features */
 static unsigned int sxgbe_get_hw_feature(void __iomem *ioaddr,
-					 unsigned char feature_index)
+		unsigned char feature_index)
 {
 	return readl(ioaddr + (SXGBE_CORE_HW_FEA_REG(feature_index)));
 }
@@ -216,15 +235,19 @@ static void  sxgbe_set_eee_pls(void __iomem *ioaddr, const int link)
 
 	/* If the PHY link status is UP then set PLS */
 	if (link)
+	{
 		ctrl |= LPI_CTRL_STATUS_PLS;
+	}
 	else
+	{
 		ctrl &= ~LPI_CTRL_STATUS_PLS;
+	}
 
 	writel(ctrl, ioaddr + SXGBE_CORE_LPI_CTRL_STATUS);
 }
 
 static void  sxgbe_set_eee_timer(void __iomem *ioaddr,
-				 const int ls, const int tw)
+								 const int ls, const int tw)
 {
 	int value = ((tw & 0xffff)) | ((ls & 0x7ff) << 16);
 
@@ -256,7 +279,8 @@ static void sxgbe_disable_rx_csum(void __iomem *ioaddr)
 	writel(ctrl, ioaddr + SXGBE_CORE_RX_CONFIG_REG);
 }
 
-static const struct sxgbe_core_ops core_ops = {
+static const struct sxgbe_core_ops core_ops =
+{
 	.core_init		= sxgbe_core_init,
 	.dump_regs		= sxgbe_core_dump_regs,
 	.host_irq_status	= sxgbe_core_host_irq_status,

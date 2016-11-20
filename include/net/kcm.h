@@ -21,7 +21,8 @@ extern unsigned int kcm_net_id;
 #define KCM_STATS_ADD(stat, count) ((stat) += (count))
 #define KCM_STATS_INCR(stat) ((stat)++)
 
-struct kcm_psock_stats {
+struct kcm_psock_stats
+{
 	unsigned long long tx_msgs;
 	unsigned long long tx_bytes;
 	unsigned long long reserved;
@@ -29,7 +30,8 @@ struct kcm_psock_stats {
 	unsigned int tx_aborts;
 };
 
-struct kcm_mux_stats {
+struct kcm_mux_stats
+{
 	unsigned long long rx_msgs;
 	unsigned long long rx_bytes;
 	unsigned long long tx_msgs;
@@ -41,14 +43,16 @@ struct kcm_mux_stats {
 	unsigned int psock_unattach;
 };
 
-struct kcm_stats {
+struct kcm_stats
+{
 	unsigned long long rx_msgs;
 	unsigned long long rx_bytes;
 	unsigned long long tx_msgs;
 	unsigned long long tx_bytes;
 };
 
-struct kcm_tx_msg {
+struct kcm_tx_msg
+{
 	unsigned int sent;
 	unsigned int fragidx;
 	unsigned int frag_offset;
@@ -58,7 +62,8 @@ struct kcm_tx_msg {
 };
 
 /* Socket structure for KCM client sockets */
-struct kcm_sock {
+struct kcm_sock
+{
 	struct sock sk;
 	struct kcm_mux *mux;
 	struct list_head kcm_sock_list;
@@ -89,7 +94,8 @@ struct kcm_sock {
 struct bpf_prog;
 
 /* Structure for an attached lower socket */
-struct kcm_psock {
+struct kcm_psock
+{
 	struct sock *sk;
 	struct strparser strp;
 	struct kcm_mux *mux;
@@ -123,7 +129,8 @@ struct kcm_psock {
 };
 
 /* Per net MUX list */
-struct kcm_net {
+struct kcm_net
+{
 	struct mutex mutex;
 	struct kcm_psock_stats aggregate_psock_stats;
 	struct kcm_mux_stats aggregate_mux_stats;
@@ -133,7 +140,8 @@ struct kcm_net {
 };
 
 /* Structure for a MUX */
-struct kcm_mux {
+struct kcm_mux
+{
 	struct list_head kcm_mux_list;
 	struct rcu_head rcu;
 	struct kcm_net *knet;
@@ -168,7 +176,7 @@ static inline void kcm_proc_exit(void) { }
 #endif
 
 static inline void aggregate_psock_stats(struct kcm_psock_stats *stats,
-					 struct kcm_psock_stats *agg_stats)
+		struct kcm_psock_stats *agg_stats)
 {
 	/* Save psock statistics in the mux when psock is being unattached. */
 
@@ -182,7 +190,7 @@ static inline void aggregate_psock_stats(struct kcm_psock_stats *stats,
 }
 
 static inline void aggregate_mux_stats(struct kcm_mux_stats *stats,
-				       struct kcm_mux_stats *agg_stats)
+									   struct kcm_mux_stats *agg_stats)
 {
 	/* Save psock statistics in the mux when psock is being unattached. */
 

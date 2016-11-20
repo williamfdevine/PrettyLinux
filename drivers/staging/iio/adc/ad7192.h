@@ -31,7 +31,8 @@
  * @burnout_curr_en:	constant current generators on AIN(+|-) enable
  */
 
-struct ad7192_platform_data {
+struct ad7192_platform_data
+{
 	u16		vref_mv;
 	u8		clock_source_sel;
 	u32		ext_clk_hz;

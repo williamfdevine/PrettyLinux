@@ -32,13 +32,13 @@
 struct w1_reg_num
 {
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	__u64	family:8,
-		id:48,
-		crc:8;
+	__u64	family: 8,
+			id: 48,
+			crc: 8;
 #elif defined(__BIG_ENDIAN_BITFIELD)
-	__u64	crc:8,
-		id:48,
-		family:8;
+	__u64	crc: 8,
+			id: 48,
+			family: 8;
 #else
 #error "Please fix <asm/byteorder.h>"
 #endif
@@ -174,7 +174,7 @@ struct w1_bus_master
 	u8		(*set_pullup)(void *, int);
 
 	void		(*search)(void *, struct w1_master *,
-		u8, w1_slave_found_callback);
+						  u8, w1_slave_found_callback);
 };
 
 /**
@@ -182,7 +182,8 @@ struct w1_bus_master
  * @W1_ABORT_SEARCH: abort searching early on shutdown
  * @W1_WARN_MAX_COUNT: limit warning when the maximum count is reached
  */
-enum w1_master_flags {
+enum w1_master_flags
+{
 	W1_ABORT_SEARCH = 0,
 	W1_WARN_MAX_COUNT = 1,
 };
@@ -270,7 +271,8 @@ struct w1_master
  * When inserted into the w1_master async_list, w1_process will execute
  * the callback.  Embed this into the structure with the command details.
  */
-struct w1_async_cmd {
+struct w1_async_cmd
+{
 	struct list_head	async_entry;
 	void (*cb)(struct w1_master *dev, struct w1_async_cmd *async_cmd);
 };
@@ -286,9 +288,9 @@ struct w1_slave *w1_search_slave(struct w1_reg_num *id);
 int w1_unref_slave(struct w1_slave *sl);
 void w1_slave_found(struct w1_master *dev, u64 rn);
 void w1_search_process_cb(struct w1_master *dev, u8 search_type,
-	w1_slave_found_callback cb);
+						  w1_slave_found_callback cb);
 struct w1_slave *w1_slave_search_device(struct w1_master *dev,
-	struct w1_reg_num *rn);
+										struct w1_reg_num *rn);
 struct w1_master *w1_search_master_id(u32 id);
 
 /* Disconnect and reconnect devices in the given family.  Used for finding
@@ -313,17 +315,17 @@ int w1_reset_select_slave(struct w1_slave *sl);
 int w1_reset_resume_command(struct w1_master *);
 void w1_next_pullup(struct w1_master *, int);
 
-static inline struct w1_slave* dev_to_w1_slave(struct device *dev)
+static inline struct w1_slave *dev_to_w1_slave(struct device *dev)
 {
 	return container_of(dev, struct w1_slave, dev);
 }
 
-static inline struct w1_slave* kobj_to_w1_slave(struct kobject *kobj)
+static inline struct w1_slave *kobj_to_w1_slave(struct kobject *kobj)
 {
 	return dev_to_w1_slave(container_of(kobj, struct device, kobj));
 }
 
-static inline struct w1_master* dev_to_w1_master(struct device *dev)
+static inline struct w1_master *dev_to_w1_master(struct device *dev)
 {
 	return container_of(dev, struct w1_master, dev);
 }

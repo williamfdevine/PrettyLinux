@@ -3,14 +3,16 @@
 #define XCOPY_NAA_IEEE_REGEX_LEN	16
 #define XCOPY_MAX_SECTORS		1024
 
-enum xcopy_origin_list {
+enum xcopy_origin_list
+{
 	XCOL_SOURCE_RECV_OP = 0x01,
 	XCOL_DEST_RECV_OP = 0x02,
 };
 
 struct xcopy_pt_cmd;
 
-struct xcopy_op {
+struct xcopy_op
+{
 	int op_origin;
 
 	struct se_cmd *xop_se_cmd;

@@ -24,14 +24,16 @@
 
 #define MCLK_FOR_CODECS		12288000
 
-static const struct snd_soc_dapm_widget mt8173_rt5650_rt5676_widgets[] = {
+static const struct snd_soc_dapm_widget mt8173_rt5650_rt5676_widgets[] =
+{
 	SND_SOC_DAPM_SPK("Speaker", NULL),
 	SND_SOC_DAPM_MIC("Int Mic", NULL),
 	SND_SOC_DAPM_HP("Headphone", NULL),
 	SND_SOC_DAPM_MIC("Headset Mic", NULL),
 };
 
-static const struct snd_soc_dapm_route mt8173_rt5650_rt5676_routes[] = {
+static const struct snd_soc_dapm_route mt8173_rt5650_rt5676_routes[] =
+{
 	{"Speaker", NULL, "SPOL"},
 	{"Speaker", NULL, "SPOR"},
 	{"Speaker", NULL, "Sub AIF2TX"}, /* IF2 ADC to 5650  */
@@ -47,7 +49,8 @@ static const struct snd_soc_dapm_route mt8173_rt5650_rt5676_routes[] = {
 	{"Sub AIF2RX", NULL, "Headset Mic"}, /* IF2 DAC from 5650  */
 };
 
-static const struct snd_kcontrol_new mt8173_rt5650_rt5676_controls[] = {
+static const struct snd_kcontrol_new mt8173_rt5650_rt5676_controls[] =
+{
 	SOC_DAPM_PIN_SWITCH("Speaker"),
 	SOC_DAPM_PIN_SWITCH("Int Mic"),
 	SOC_DAPM_PIN_SWITCH("Headphone"),
@@ -55,31 +58,40 @@ static const struct snd_kcontrol_new mt8173_rt5650_rt5676_controls[] = {
 };
 
 static int mt8173_rt5650_rt5676_hw_params(struct snd_pcm_substream *substream,
-					  struct snd_pcm_hw_params *params)
+		struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	int i, ret;
 
-	for (i = 0; i < rtd->num_codecs; i++) {
+	for (i = 0; i < rtd->num_codecs; i++)
+	{
 		struct snd_soc_dai *codec_dai = rtd->codec_dais[i];
 
 		/* pll from mclk 12.288M */
 		ret = snd_soc_dai_set_pll(codec_dai, 0, 0, MCLK_FOR_CODECS,
-					  params_rate(params) * 512);
+								  params_rate(params) * 512);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		/* sysclk from pll */
 		ret = snd_soc_dai_set_sysclk(codec_dai, 1,
-					     params_rate(params) * 512,
-					     SND_SOC_CLOCK_IN);
+									 params_rate(params) * 512,
+									 SND_SOC_CLOCK_IN);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
+
 	return 0;
 }
 
-static struct snd_soc_ops mt8173_rt5650_rt5676_ops = {
+static struct snd_soc_ops mt8173_rt5650_rt5676_ops =
+{
 	.hw_params = mt8173_rt5650_rt5676_hw_params,
 };
 
@@ -93,36 +105,39 @@ static int mt8173_rt5650_rt5676_init(struct snd_soc_pcm_runtime *runtime)
 	int ret;
 
 	rt5645_sel_asrc_clk_src(codec,
-				RT5645_DA_STEREO_FILTER |
-				RT5645_AD_STEREO_FILTER,
-				RT5645_CLK_SEL_I2S1_ASRC);
+							RT5645_DA_STEREO_FILTER |
+							RT5645_AD_STEREO_FILTER,
+							RT5645_CLK_SEL_I2S1_ASRC);
 	rt5677_sel_asrc_clk_src(codec_sub,
-				RT5677_DA_STEREO_FILTER |
-				RT5677_AD_STEREO1_FILTER,
-				RT5677_CLK_SEL_I2S1_ASRC);
+							RT5677_DA_STEREO_FILTER |
+							RT5677_AD_STEREO1_FILTER,
+							RT5677_CLK_SEL_I2S1_ASRC);
 	rt5677_sel_asrc_clk_src(codec_sub,
-				RT5677_AD_STEREO2_FILTER |
-				RT5677_I2S2_SOURCE,
-				RT5677_CLK_SEL_I2S2_ASRC);
+							RT5677_AD_STEREO2_FILTER |
+							RT5677_I2S2_SOURCE,
+							RT5677_CLK_SEL_I2S2_ASRC);
 
 	/* enable jack detection */
 	ret = snd_soc_card_jack_new(card, "Headset Jack",
-				    SND_JACK_HEADPHONE | SND_JACK_MICROPHONE |
-				    SND_JACK_BTN_0 | SND_JACK_BTN_1 |
-				    SND_JACK_BTN_2 | SND_JACK_BTN_3,
-				    &mt8173_rt5650_rt5676_jack, NULL, 0);
-	if (ret) {
+								SND_JACK_HEADPHONE | SND_JACK_MICROPHONE |
+								SND_JACK_BTN_0 | SND_JACK_BTN_1 |
+								SND_JACK_BTN_2 | SND_JACK_BTN_3,
+								&mt8173_rt5650_rt5676_jack, NULL, 0);
+
+	if (ret)
+	{
 		dev_err(card->dev, "Can't new Headset Jack %d\n", ret);
 		return ret;
 	}
 
 	return rt5645_set_jack_detect(codec,
-				      &mt8173_rt5650_rt5676_jack,
-				      &mt8173_rt5650_rt5676_jack,
-				      &mt8173_rt5650_rt5676_jack);
+								  &mt8173_rt5650_rt5676_jack,
+								  &mt8173_rt5650_rt5676_jack,
+								  &mt8173_rt5650_rt5676_jack);
 }
 
-static struct snd_soc_dai_link_component mt8173_rt5650_rt5676_codecs[] = {
+static struct snd_soc_dai_link_component mt8173_rt5650_rt5676_codecs[] =
+{
 	{
 		.dai_name = "rt5645-aif1",
 	},
@@ -131,7 +146,8 @@ static struct snd_soc_dai_link_component mt8173_rt5650_rt5676_codecs[] = {
 	},
 };
 
-enum {
+enum
+{
 	DAI_LINK_PLAYBACK,
 	DAI_LINK_CAPTURE,
 	DAI_LINK_HDMI,
@@ -141,7 +157,8 @@ enum {
 };
 
 /* Digital audio interface glue - connects codec <---> CPU */
-static struct snd_soc_dai_link mt8173_rt5650_rt5676_dais[] = {
+static struct snd_soc_dai_link mt8173_rt5650_rt5676_dais[] =
+{
 	/* Front End DAI links */
 	[DAI_LINK_PLAYBACK] = {
 		.name = "rt5650_rt5676 Playback",
@@ -183,7 +200,7 @@ static struct snd_soc_dai_link mt8173_rt5650_rt5676_dais[] = {
 		.num_codecs = 2,
 		.init = mt8173_rt5650_rt5676_init,
 		.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
-			   SND_SOC_DAIFMT_CBS_CFS,
+		SND_SOC_DAIFMT_CBS_CFS,
 		.ops = &mt8173_rt5650_rt5676_ops,
 		.ignore_pmdown_time = 1,
 		.dpcm_playback = 1,
@@ -205,18 +222,20 @@ static struct snd_soc_dai_link mt8173_rt5650_rt5676_dais[] = {
 		.no_pcm = 1,
 		.codec_dai_name = "rt5677-aif2",
 		.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
-			   SND_SOC_DAIFMT_CBM_CFM,
+		SND_SOC_DAIFMT_CBM_CFM,
 	},
 
 };
 
-static struct snd_soc_codec_conf mt8173_rt5650_rt5676_codec_conf[] = {
+static struct snd_soc_codec_conf mt8173_rt5650_rt5676_codec_conf[] =
+{
 	{
 		.name_prefix = "Sub",
 	},
 };
 
-static struct snd_soc_card mt8173_rt5650_rt5676_card = {
+static struct snd_soc_card mt8173_rt5650_rt5676_card =
+{
 	.name = "mtk-rt5650-rt5676",
 	.owner = THIS_MODULE,
 	.dai_link = mt8173_rt5650_rt5676_dais,
@@ -238,32 +257,44 @@ static int mt8173_rt5650_rt5676_dev_probe(struct platform_device *pdev)
 	int i, ret;
 
 	platform_node = of_parse_phandle(pdev->dev.of_node,
-					 "mediatek,platform", 0);
-	if (!platform_node) {
+									 "mediatek,platform", 0);
+
+	if (!platform_node)
+	{
 		dev_err(&pdev->dev, "Property 'platform' missing or invalid\n");
 		return -EINVAL;
 	}
 
-	for (i = 0; i < card->num_links; i++) {
+	for (i = 0; i < card->num_links; i++)
+	{
 		if (mt8173_rt5650_rt5676_dais[i].platform_name)
+		{
 			continue;
+		}
+
 		mt8173_rt5650_rt5676_dais[i].platform_of_node = platform_node;
 	}
 
 	mt8173_rt5650_rt5676_codecs[0].of_node =
 		of_parse_phandle(pdev->dev.of_node, "mediatek,audio-codec", 0);
-	if (!mt8173_rt5650_rt5676_codecs[0].of_node) {
+
+	if (!mt8173_rt5650_rt5676_codecs[0].of_node)
+	{
 		dev_err(&pdev->dev,
-			"Property 'audio-codec' missing or invalid\n");
+				"Property 'audio-codec' missing or invalid\n");
 		return -EINVAL;
 	}
+
 	mt8173_rt5650_rt5676_codecs[1].of_node =
 		of_parse_phandle(pdev->dev.of_node, "mediatek,audio-codec", 1);
-	if (!mt8173_rt5650_rt5676_codecs[1].of_node) {
+
+	if (!mt8173_rt5650_rt5676_codecs[1].of_node)
+	{
 		dev_err(&pdev->dev,
-			"Property 'audio-codec' missing or invalid\n");
+				"Property 'audio-codec' missing or invalid\n");
 		return -EINVAL;
 	}
+
 	mt8173_rt5650_rt5676_codec_conf[0].of_node =
 		mt8173_rt5650_rt5676_codecs[1].of_node;
 
@@ -272,9 +303,11 @@ static int mt8173_rt5650_rt5676_dev_probe(struct platform_device *pdev)
 
 	mt8173_rt5650_rt5676_dais[DAI_LINK_HDMI_I2S].codec_of_node =
 		of_parse_phandle(pdev->dev.of_node, "mediatek,audio-codec", 2);
-	if (!mt8173_rt5650_rt5676_dais[DAI_LINK_HDMI_I2S].codec_of_node) {
+
+	if (!mt8173_rt5650_rt5676_dais[DAI_LINK_HDMI_I2S].codec_of_node)
+	{
 		dev_err(&pdev->dev,
-			"Property 'audio-codec' missing or invalid\n");
+				"Property 'audio-codec' missing or invalid\n");
 		return -EINVAL;
 	}
 
@@ -282,24 +315,28 @@ static int mt8173_rt5650_rt5676_dev_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, card);
 
 	ret = devm_snd_soc_register_card(&pdev->dev, card);
+
 	if (ret)
 		dev_err(&pdev->dev, "%s snd_soc_register_card fail %d\n",
-			__func__, ret);
+				__func__, ret);
+
 	return ret;
 }
 
-static const struct of_device_id mt8173_rt5650_rt5676_dt_match[] = {
+static const struct of_device_id mt8173_rt5650_rt5676_dt_match[] =
+{
 	{ .compatible = "mediatek,mt8173-rt5650-rt5676", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, mt8173_rt5650_rt5676_dt_match);
 
-static struct platform_driver mt8173_rt5650_rt5676_driver = {
+static struct platform_driver mt8173_rt5650_rt5676_driver =
+{
 	.driver = {
-		   .name = "mtk-rt5650-rt5676",
-		   .of_match_table = mt8173_rt5650_rt5676_dt_match,
+		.name = "mtk-rt5650-rt5676",
+		.of_match_table = mt8173_rt5650_rt5676_dt_match,
 #ifdef CONFIG_PM
-		   .pm = &snd_soc_pm_ops,
+		.pm = &snd_soc_pm_ops,
 #endif
 	},
 	.probe = mt8173_rt5650_rt5676_dev_probe,

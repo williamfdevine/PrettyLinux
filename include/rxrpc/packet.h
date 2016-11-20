@@ -22,7 +22,8 @@ typedef __be32	rxrpc_serial_net_t; /* on-the-wire Rx message serial number */
  * on-the-wire Rx packet header
  * - all multibyte fields should be in network byte order
  */
-struct rxrpc_wire_header {
+struct rxrpc_wire_header
+{
 	__be32		epoch;		/* client boot timestamp */
 #define RXRPC_RANDOM_EPOCH	0x80000000	/* Random if set, date-based if not */
 
@@ -59,7 +60,8 @@ struct rxrpc_wire_header {
 
 	uint8_t		userStatus;	/* app-layer defined status */
 	uint8_t		securityIndex;	/* security protocol ID */
-	union {
+	union
+	{
 		__be16	_rsvd;		/* reserved */
 		__be16	cksum;		/* kerberos security checksum */
 	};
@@ -88,10 +90,12 @@ struct rxrpc_wire_header {
  *   - new__rsvd = j__rsvd
  *   - duplicating all other fields
  */
-struct rxrpc_jumbo_header {
+struct rxrpc_jumbo_header
+{
 	uint8_t		flags;		/* packet flags (as per rxrpc_header) */
 	uint8_t		pad;
-	union {
+	union
+	{
 		__be16	_rsvd;		/* reserved */
 		__be16	cksum;		/* kerberos security checksum */
 	};
@@ -105,7 +109,8 @@ struct rxrpc_jumbo_header {
  * on-the-wire Rx ACK packet data payload
  * - all multibyte fields should be in network byte order
  */
-struct rxrpc_ackpacket {
+struct rxrpc_ackpacket
+{
 	__be16		bufferSpace;	/* number of packet buffers available */
 	__be16		maxSkew;	/* diff between serno being ACK'd and highest serial no
 					 * received */
@@ -136,15 +141,16 @@ struct rxrpc_ackpacket {
 
 /* Some ACKs refer to specific packets and some are general and can be updated. */
 #define RXRPC_ACK_UPDATEABLE ((1 << RXRPC_ACK_REQUESTED)	|	\
-			      (1 << RXRPC_ACK_PING_RESPONSE)	|	\
-			      (1 << RXRPC_ACK_DELAY)		|	\
-			      (1 << RXRPC_ACK_IDLE))
+							  (1 << RXRPC_ACK_PING_RESPONSE)	|	\
+							  (1 << RXRPC_ACK_DELAY)		|	\
+							  (1 << RXRPC_ACK_IDLE))
 
 
 /*
  * ACK packets can have a further piece of information tagged on the end
  */
-struct rxrpc_ackinfo {
+struct rxrpc_ackinfo
+{
 	__be32		rxMTU;		/* maximum Rx MTU size (bytes) [AFS 3.3] */
 	__be32		maxMTU;		/* maximum interface MTU size (bytes) [AFS 3.3] */
 	__be32		rwind;		/* Rx window size (packets) [AFS 3.4] */
@@ -155,7 +161,8 @@ struct rxrpc_ackinfo {
 /*
  * Kerberos security type-2 challenge packet
  */
-struct rxkad_challenge {
+struct rxkad_challenge
+{
 	__be32		version;	/* version of this challenge type */
 	__be32		nonce;		/* encrypted random number */
 	__be32		min_level;	/* minimum security level */
@@ -166,12 +173,14 @@ struct rxkad_challenge {
 /*
  * Kerberos security type-2 response packet
  */
-struct rxkad_response {
+struct rxkad_response
+{
 	__be32		version;	/* version of this response type */
 	__be32		__pad;
 
 	/* encrypted bit of the response */
-	struct {
+	struct
+	{
 		__be32		epoch;		/* current epoch */
 		__be32		cid;		/* parent connection ID */
 		__be32		checksum;	/* checksum */

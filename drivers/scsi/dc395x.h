@@ -22,7 +22,7 @@
 #define DC395x_MAX_CMD_PER_LUN		DC395x_MAX_QTAGS
 #define DC395x_MAX_SG_TABLESIZE		64	/* HW limitation			*/
 #define DC395x_MAX_SG_LISTENTRY		64	/* Must be equal or lower to previous	*/
-						/* item					*/
+/* item					*/
 #define DC395x_MAX_SRB_CNT		63
 /* #define DC395x_MAX_CAN_QUEUE		7 * DC395x_MAX_QTAGS */
 #define DC395x_MAX_CAN_QUEUE		DC395x_MAX_SRB_CNT
@@ -31,7 +31,7 @@
 #define DC395x_MAX_RETRIES		3
 
 #if 0
-#define SYNC_FIRST
+	#define SYNC_FIRST
 #endif
 
 #define NORM_REC_LVL			0
@@ -220,7 +220,8 @@
 /*									*/
 /************************************************************************/
 struct ScsiInqData
-{						/* INQ					*/
+{
+	/* INQ					*/
 	u8 DevType;				/* Periph Qualifier & Periph Dev Type	*/
 	u8 RMB_TypeMod;				/* rem media bit & Dev Type Modifier	*/
 	u8 Vers;				/* ISO, ECMA, & ANSI versions		*/
@@ -234,19 +235,19 @@ struct ScsiInqData
 	u8 ProductRev[4];			/* Product Revision			*/
 };
 
-						/* Inquiry byte 0 masks			*/
+/* Inquiry byte 0 masks			*/
 #define SCSI_DEVTYPE			0x1F	/* Peripheral Device Type		*/
 #define SCSI_PERIPHQUAL			0xE0	/* Peripheral Qualifier			*/
-						/* Inquiry byte 1 mask			*/
+/* Inquiry byte 1 mask			*/
 #define SCSI_REMOVABLE_MEDIA		0x80	/* Removable Media bit (1=removable)	*/
-						/* Peripheral Device Type definitions	*/
-						/* See include/scsi/scsi.h		*/
+/* Peripheral Device Type definitions	*/
+/* See include/scsi/scsi.h		*/
 #define TYPE_NODEV		SCSI_DEVTYPE	/* Unknown or no device type		*/
 #ifndef TYPE_PRINTER				/*					*/
-# define TYPE_PRINTER			0x02	/* Printer device			*/
+	#define TYPE_PRINTER			0x02	/* Printer device			*/
 #endif						/*					*/
 #ifndef TYPE_COMM				/*					*/
-# define TYPE_COMM			0x09	/* Communications device		*/
+	#define TYPE_COMM			0x09	/* Communications device		*/
 #endif
 
 /************************************************************************/
@@ -618,7 +619,7 @@ struct ScsiInqData
 #define NTC_DO_DISCONNECT		0x04	/* Enable SCSI disconnect		*/
 #define NTC_DO_SYNC_NEGO		0x02	/* Sync negotiation			*/
 #define NTC_DO_PARITY_CHK		0x01	/* (it should define at NAC)		*/
-						/* Parity check enable			*/
+/* Parity check enable			*/
 
 /************************************************************************/
 /*									*/
@@ -626,12 +627,12 @@ struct ScsiInqData
 /*									*/
 /************************************************************************/
 #if 0
-#define MORE2_DRV			BIT0
-#define GREATER_1G			BIT1
-#define RST_SCSI_BUS			BIT2
-#define ACTIVE_NEGATION			BIT3
-#define NO_SEEK				BIT4
-#define LUN_CHECK			BIT5
+	#define MORE2_DRV			BIT0
+	#define GREATER_1G			BIT1
+	#define RST_SCSI_BUS			BIT2
+	#define ACTIVE_NEGATION			BIT3
+	#define NO_SEEK				BIT4
+	#define LUN_CHECK			BIT5
 #endif
 
 /************************************************************************/

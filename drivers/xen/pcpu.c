@@ -54,14 +54,16 @@
  * - XEN_PCPU_FLAGS_ONLINE: cpu is online
  * - XEN_PCPU_FLAGS_INVALID: cpu is not present
  */
-struct pcpu {
+struct pcpu
+{
 	struct list_head list;
 	struct device dev;
 	uint32_t cpu_id;
 	uint32_t flags;
 };
 
-static struct bus_type xen_pcpu_subsys = {
+static struct bus_type xen_pcpu_subsys =
+{
 	.name = "xen_cpu",
 	.dev_name = "xen_cpu",
 };
@@ -72,7 +74,8 @@ static LIST_HEAD(xen_pcpus);
 
 static int xen_pcpu_down(uint32_t cpu_id)
 {
-	struct xen_platform_op op = {
+	struct xen_platform_op op =
+	{
 		.cmd			= XENPF_cpu_offline,
 		.interface_version	= XENPF_INTERFACE_VERSION,
 		.u.cpu_ol.cpuid		= cpu_id,
@@ -83,7 +86,8 @@ static int xen_pcpu_down(uint32_t cpu_id)
 
 static int xen_pcpu_up(uint32_t cpu_id)
 {
-	struct xen_platform_op op = {
+	struct xen_platform_op op =
+	{
 		.cmd			= XENPF_cpu_online,
 		.interface_version	= XENPF_INTERFACE_VERSION,
 		.u.cpu_ol.cpuid		= cpu_id,
@@ -93,8 +97,8 @@ static int xen_pcpu_up(uint32_t cpu_id)
 }
 
 static ssize_t show_online(struct device *dev,
-			   struct device_attribute *attr,
-			   char *buf)
+						   struct device_attribute *attr,
+						   char *buf)
 {
 	struct pcpu *cpu = container_of(dev, struct pcpu, dev);
 
@@ -102,43 +106,54 @@ static ssize_t show_online(struct device *dev,
 }
 
 static ssize_t __ref store_online(struct device *dev,
-				  struct device_attribute *attr,
-				  const char *buf, size_t count)
+								  struct device_attribute *attr,
+								  const char *buf, size_t count)
 {
 	struct pcpu *pcpu = container_of(dev, struct pcpu, dev);
 	unsigned long long val;
 	ssize_t ret;
 
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
 
 	if (kstrtoull(buf, 0, &val) < 0)
+	{
 		return -EINVAL;
+	}
 
-	switch (val) {
-	case 0:
-		ret = xen_pcpu_down(pcpu->cpu_id);
-		break;
-	case 1:
-		ret = xen_pcpu_up(pcpu->cpu_id);
-		break;
-	default:
-		ret = -EINVAL;
+	switch (val)
+	{
+		case 0:
+			ret = xen_pcpu_down(pcpu->cpu_id);
+			break;
+
+		case 1:
+			ret = xen_pcpu_up(pcpu->cpu_id);
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
 
 	if (ret >= 0)
+	{
 		ret = count;
+	}
+
 	return ret;
 }
 static DEVICE_ATTR(online, S_IRUGO | S_IWUSR, show_online, store_online);
 
-static struct attribute *pcpu_dev_attrs[] = {
+static struct attribute *pcpu_dev_attrs[] =
+{
 	&dev_attr_online.attr,
 	NULL
 };
 
 static umode_t pcpu_dev_is_visible(struct kobject *kobj,
-				   struct attribute *attr, int idx)
+								   struct attribute *attr, int idx)
 {
 	struct device *dev = kobj_to_dev(kobj);
 	/*
@@ -149,12 +164,14 @@ static umode_t pcpu_dev_is_visible(struct kobject *kobj,
 	return dev->id ? attr->mode : 0;
 }
 
-static const struct attribute_group pcpu_dev_group = {
+static const struct attribute_group pcpu_dev_group =
+{
 	.attrs = pcpu_dev_attrs,
 	.is_visible = pcpu_dev_is_visible,
 };
 
-static const struct attribute_group *pcpu_dev_groups[] = {
+static const struct attribute_group *pcpu_dev_groups[] =
+{
 	&pcpu_dev_group,
 	NULL
 };
@@ -165,15 +182,18 @@ static bool xen_pcpu_online(uint32_t flags)
 }
 
 static void pcpu_online_status(struct xenpf_pcpuinfo *info,
-			       struct pcpu *pcpu)
+							   struct pcpu *pcpu)
 {
 	if (xen_pcpu_online(info->flags) &&
-	   !xen_pcpu_online(pcpu->flags)) {
+		!xen_pcpu_online(pcpu->flags))
+	{
 		/* the pcpu is onlined */
 		pcpu->flags |= XEN_PCPU_FLAGS_ONLINE;
 		kobject_uevent(&pcpu->dev.kobj, KOBJ_ONLINE);
-	} else if (!xen_pcpu_online(info->flags) &&
-		    xen_pcpu_online(pcpu->flags)) {
+	}
+	else if (!xen_pcpu_online(info->flags) &&
+			 xen_pcpu_online(pcpu->flags))
+	{
 		/* The pcpu is offlined */
 		pcpu->flags &= ~XEN_PCPU_FLAGS_ONLINE;
 		kobject_uevent(&pcpu->dev.kobj, KOBJ_OFFLINE);
@@ -184,9 +204,12 @@ static struct pcpu *get_pcpu(uint32_t cpu_id)
 {
 	struct pcpu *pcpu;
 
-	list_for_each_entry(pcpu, &xen_pcpus, list) {
+	list_for_each_entry(pcpu, &xen_pcpus, list)
+	{
 		if (pcpu->cpu_id == cpu_id)
+		{
 			return pcpu;
+		}
 	}
 
 	return NULL;
@@ -205,7 +228,9 @@ static void unregister_and_remove_pcpu(struct pcpu *pcpu)
 	struct device *dev;
 
 	if (!pcpu)
+	{
 		return;
+	}
 
 	dev = &pcpu->dev;
 	/* pcpu remove would be implicitly done */
@@ -218,7 +243,9 @@ static int register_pcpu(struct pcpu *pcpu)
 	int err = -EINVAL;
 
 	if (!pcpu)
+	{
 		return err;
+	}
 
 	dev = &pcpu->dev;
 	dev->bus = &xen_pcpu_subsys;
@@ -227,7 +254,9 @@ static int register_pcpu(struct pcpu *pcpu)
 	dev->groups = pcpu_dev_groups;
 
 	err = device_register(dev);
-	if (err) {
+
+	if (err)
+	{
 		pcpu_release(dev);
 		return err;
 	}
@@ -241,11 +270,16 @@ static struct pcpu *create_and_register_pcpu(struct xenpf_pcpuinfo *info)
 	int err;
 
 	if (info->flags & XEN_PCPU_FLAGS_INVALID)
+	{
 		return ERR_PTR(-ENODEV);
+	}
 
 	pcpu = kzalloc(sizeof(struct pcpu), GFP_KERNEL);
+
 	if (!pcpu)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	INIT_LIST_HEAD(&pcpu->list);
 	pcpu->cpu_id = info->xen_cpuid;
@@ -255,7 +289,9 @@ static struct pcpu *create_and_register_pcpu(struct xenpf_pcpuinfo *info)
 	list_add_tail(&pcpu->list, &xen_pcpus);
 
 	err = register_pcpu(pcpu);
-	if (err) {
+
+	if (err)
+	{
 		pr_warn("Failed to register pcpu%u\n", info->xen_cpuid);
 		return ERR_PTR(-ENOENT);
 	}
@@ -271,36 +307,51 @@ static int sync_pcpu(uint32_t cpu, uint32_t *max_cpu)
 	int ret;
 	struct pcpu *pcpu = NULL;
 	struct xenpf_pcpuinfo *info;
-	struct xen_platform_op op = {
+	struct xen_platform_op op =
+	{
 		.cmd                   = XENPF_get_cpuinfo,
 		.interface_version     = XENPF_INTERFACE_VERSION,
 		.u.pcpu_info.xen_cpuid = cpu,
 	};
 
 	ret = HYPERVISOR_platform_op(&op);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	info = &op.u.pcpu_info;
+
 	if (max_cpu)
+	{
 		*max_cpu = info->max_present;
+	}
 
 	pcpu = get_pcpu(cpu);
 
 	/*
 	 * Only those at cpu present map has its sys interface.
 	 */
-	if (info->flags & XEN_PCPU_FLAGS_INVALID) {
+	if (info->flags & XEN_PCPU_FLAGS_INVALID)
+	{
 		unregister_and_remove_pcpu(pcpu);
 		return 0;
 	}
 
-	if (!pcpu) {
+	if (!pcpu)
+	{
 		pcpu = create_and_register_pcpu(info);
+
 		if (IS_ERR_OR_NULL(pcpu))
+		{
 			return -ENODEV;
-	} else
+		}
+	}
+	else
+	{
 		pcpu_online_status(info, pcpu);
+	}
 
 	return 0;
 }
@@ -319,14 +370,15 @@ static int xen_sync_pcpus(void)
 
 	mutex_lock(&xen_pcpu_lock);
 
-	while (!err && (cpu <= max_cpu)) {
+	while (!err && (cpu <= max_cpu))
+	{
 		err = sync_pcpu(cpu, &max_cpu);
 		cpu++;
 	}
 
 	if (err)
 		list_for_each_entry_safe(pcpu, tmp, &xen_pcpus, list)
-			unregister_and_remove_pcpu(pcpu);
+		unregister_and_remove_pcpu(pcpu);
 
 	mutex_unlock(&xen_pcpu_lock);
 
@@ -362,17 +414,27 @@ int xen_pcpu_id(uint32_t acpi_id)
 	struct xen_platform_op op;
 
 	op.cmd = XENPF_get_cpuinfo;
-	while (cpu_id <= max_id) {
+
+	while (cpu_id <= max_id)
+	{
 		op.u.pcpu_info.xen_cpuid = cpu_id;
-		if (HYPERVISOR_platform_op(&op)) {
+
+		if (HYPERVISOR_platform_op(&op))
+		{
 			cpu_id++;
 			continue;
 		}
 
 		if (acpi_id == op.u.pcpu_info.acpi_id)
+		{
 			return cpu_id;
+		}
+
 		if (op.u.pcpu_info.max_present > max_id)
+		{
 			max_id = op.u.pcpu_info.max_present;
+		}
+
 		cpu_id++;
 	}
 
@@ -385,24 +447,32 @@ static int __init xen_pcpu_init(void)
 	int irq, ret;
 
 	if (!xen_initial_domain())
+	{
 		return -ENODEV;
+	}
 
 	irq = bind_virq_to_irqhandler(VIRQ_PCPU_STATE, 0,
-				      xen_pcpu_interrupt, 0,
-				      "xen-pcpu", NULL);
-	if (irq < 0) {
+								  xen_pcpu_interrupt, 0,
+								  "xen-pcpu", NULL);
+
+	if (irq < 0)
+	{
 		pr_warn("Failed to bind pcpu virq\n");
 		return irq;
 	}
 
 	ret = subsys_system_register(&xen_pcpu_subsys, NULL);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_warn("Failed to register pcpu subsys\n");
 		goto err1;
 	}
 
 	ret = xen_sync_pcpus();
-	if (ret) {
+
+	if (ret)
+	{
 		pr_warn("Failed to sync pcpu info\n");
 		goto err2;
 	}

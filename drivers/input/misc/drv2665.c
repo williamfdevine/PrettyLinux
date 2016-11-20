@@ -58,7 +58,8 @@
  * @work - Work item used to off load the enable/disable of the vibration
  * @regulator - Pointer to the regulator for the IC
  */
-struct drv2665_data {
+struct drv2665_data
+{
 	struct input_dev *input_dev;
 	struct i2c_client *client;
 	struct regmap *regmap;
@@ -67,14 +68,16 @@ struct drv2665_data {
 };
 
 /* 8kHz Sine wave to stream to the FIFO */
-static const u8 drv2665_sine_wave_form[] = {
+static const u8 drv2665_sine_wave_form[] =
+{
 	0x00, 0x10, 0x20, 0x2e, 0x3c, 0x48, 0x53, 0x5b, 0x61, 0x65, 0x66,
 	0x65, 0x61, 0x5b, 0x53, 0x48, 0x3c, 0x2e, 0x20, 0x10,
 	0x00, 0xf0, 0xe0, 0xd2, 0xc4, 0xb8, 0xad, 0xa5, 0x9f, 0x9b, 0x9a,
 	0x9b, 0x9f, 0xa5, 0xad, 0xb8, 0xc4, 0xd2, 0xe0, 0xf0, 0x00,
 };
 
-static const struct reg_default drv2665_reg_defs[] = {
+static const struct reg_default drv2665_reg_defs[] =
+{
 	{ DRV2665_STATUS, 0x02 },
 	{ DRV2665_CTRL_1, 0x28 },
 	{ DRV2665_CTRL_2, 0x40 },
@@ -84,32 +87,37 @@ static const struct reg_default drv2665_reg_defs[] = {
 static void drv2665_worker(struct work_struct *work)
 {
 	struct drv2665_data *haptics =
-				container_of(work, struct drv2665_data, work);
+		container_of(work, struct drv2665_data, work);
 	unsigned int read_buf;
 	int error;
 
 	error = regmap_read(haptics->regmap, DRV2665_STATUS, &read_buf);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&haptics->client->dev,
-			"Failed to read status: %d\n", error);
+				"Failed to read status: %d\n", error);
 		return;
 	}
 
-	if (read_buf & DRV2665_FIFO_EMPTY) {
+	if (read_buf & DRV2665_FIFO_EMPTY)
+	{
 		error = regmap_bulk_write(haptics->regmap,
-					  DRV2665_FIFO,
-					  drv2665_sine_wave_form,
-					  ARRAY_SIZE(drv2665_sine_wave_form));
-		if (error) {
+								  DRV2665_FIFO,
+								  drv2665_sine_wave_form,
+								  ARRAY_SIZE(drv2665_sine_wave_form));
+
+		if (error)
+		{
 			dev_err(&haptics->client->dev,
-				"Failed to write FIFO: %d\n", error);
+					"Failed to write FIFO: %d\n", error);
 			return;
 		}
 	}
 }
 
 static int drv2665_haptics_play(struct input_dev *input, void *data,
-				struct ff_effect *effect)
+								struct ff_effect *effect)
 {
 	struct drv2665_data *haptics = input_get_drvdata(input);
 
@@ -126,13 +134,15 @@ static void drv2665_close(struct input_dev *input)
 	cancel_work_sync(&haptics->work);
 
 	error = regmap_update_bits(haptics->regmap,
-				   DRV2665_CTRL_2, DRV2665_STANDBY, 1);
+							   DRV2665_CTRL_2, DRV2665_STANDBY, 1);
+
 	if (error)
 		dev_err(&haptics->client->dev,
-			"Failed to enter standby mode: %d\n", error);
+				"Failed to enter standby mode: %d\n", error);
 }
 
-static const struct reg_sequence drv2665_init_regs[] = {
+static const struct reg_sequence drv2665_init_regs[] =
+{
 	{ DRV2665_CTRL_2, 0 | DRV2665_10_MS_IDLE_TOUT },
 	{ DRV2665_CTRL_1, DRV2665_25_VPP_GAIN },
 };
@@ -142,19 +152,22 @@ static int drv2665_init(struct drv2665_data *haptics)
 	int error;
 
 	error = regmap_register_patch(haptics->regmap,
-				      drv2665_init_regs,
-				      ARRAY_SIZE(drv2665_init_regs));
-	if (error) {
+								  drv2665_init_regs,
+								  ARRAY_SIZE(drv2665_init_regs));
+
+	if (error)
+	{
 		dev_err(&haptics->client->dev,
-			"Failed to write init registers: %d\n",
-			error);
+				"Failed to write init registers: %d\n",
+				error);
 		return error;
 	}
 
 	return 0;
 }
 
-static const struct regmap_config drv2665_regmap_config = {
+static const struct regmap_config drv2665_regmap_config =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 
@@ -165,25 +178,32 @@ static const struct regmap_config drv2665_regmap_config = {
 };
 
 static int drv2665_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct drv2665_data *haptics;
 	int error;
 
 	haptics = devm_kzalloc(&client->dev, sizeof(*haptics), GFP_KERNEL);
+
 	if (!haptics)
+	{
 		return -ENOMEM;
+	}
 
 	haptics->regulator = devm_regulator_get(&client->dev, "vbat");
-	if (IS_ERR(haptics->regulator)) {
+
+	if (IS_ERR(haptics->regulator))
+	{
 		error = PTR_ERR(haptics->regulator);
 		dev_err(&client->dev,
-			"unable to get regulator, error: %d\n", error);
+				"unable to get regulator, error: %d\n", error);
 		return error;
 	}
 
 	haptics->input_dev = devm_input_allocate_device(&client->dev);
-	if (!haptics->input_dev) {
+
+	if (!haptics->input_dev)
+	{
 		dev_err(&client->dev, "Failed to allocate input device\n");
 		return -ENOMEM;
 	}
@@ -195,10 +215,12 @@ static int drv2665_probe(struct i2c_client *client,
 	input_set_capability(haptics->input_dev, EV_FF, FF_RUMBLE);
 
 	error = input_ff_create_memless(haptics->input_dev, NULL,
-					drv2665_haptics_play);
-	if (error) {
+									drv2665_haptics_play);
+
+	if (error)
+	{
 		dev_err(&client->dev, "input_ff_create() failed: %d\n",
-			error);
+				error);
 		return error;
 	}
 
@@ -208,23 +230,29 @@ static int drv2665_probe(struct i2c_client *client,
 	i2c_set_clientdata(client, haptics);
 
 	haptics->regmap = devm_regmap_init_i2c(client, &drv2665_regmap_config);
-	if (IS_ERR(haptics->regmap)) {
+
+	if (IS_ERR(haptics->regmap))
+	{
 		error = PTR_ERR(haptics->regmap);
 		dev_err(&client->dev, "Failed to allocate register map: %d\n",
-			error);
+				error);
 		return error;
 	}
 
 	error = drv2665_init(haptics);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&client->dev, "Device init failed: %d\n", error);
 		return error;
 	}
 
 	error = input_register_device(haptics->input_dev);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&client->dev, "couldn't register input device: %d\n",
-			error);
+				error);
 		return error;
 	}
 
@@ -238,23 +266,29 @@ static int __maybe_unused drv2665_suspend(struct device *dev)
 
 	mutex_lock(&haptics->input_dev->mutex);
 
-	if (haptics->input_dev->users) {
+	if (haptics->input_dev->users)
+	{
 		ret = regmap_update_bits(haptics->regmap, DRV2665_CTRL_2,
-				DRV2665_STANDBY, 1);
-		if (ret) {
+								 DRV2665_STANDBY, 1);
+
+		if (ret)
+		{
 			dev_err(dev, "Failed to set standby mode\n");
 			regulator_disable(haptics->regulator);
 			goto out;
 		}
 
 		ret = regulator_disable(haptics->regulator);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev, "Failed to disable regulator\n");
 			regmap_update_bits(haptics->regmap,
-					   DRV2665_CTRL_2,
-					   DRV2665_STANDBY, 0);
+							   DRV2665_CTRL_2,
+							   DRV2665_STANDBY, 0);
 		}
 	}
+
 out:
 	mutex_unlock(&haptics->input_dev->mutex);
 	return ret;
@@ -267,16 +301,21 @@ static int __maybe_unused drv2665_resume(struct device *dev)
 
 	mutex_lock(&haptics->input_dev->mutex);
 
-	if (haptics->input_dev->users) {
+	if (haptics->input_dev->users)
+	{
 		ret = regulator_enable(haptics->regulator);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev, "Failed to enable regulator\n");
 			goto out;
 		}
 
 		ret = regmap_update_bits(haptics->regmap, DRV2665_CTRL_2,
-					 DRV2665_STANDBY, 0);
-		if (ret) {
+								 DRV2665_STANDBY, 0);
+
+		if (ret)
+		{
 			dev_err(dev, "Failed to unset standby mode\n");
 			regulator_disable(haptics->regulator);
 			goto out;
@@ -291,21 +330,24 @@ out:
 
 static SIMPLE_DEV_PM_OPS(drv2665_pm_ops, drv2665_suspend, drv2665_resume);
 
-static const struct i2c_device_id drv2665_id[] = {
+static const struct i2c_device_id drv2665_id[] =
+{
 	{ "drv2665", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, drv2665_id);
 
 #ifdef CONFIG_OF
-static const struct of_device_id drv2665_of_match[] = {
+static const struct of_device_id drv2665_of_match[] =
+{
 	{ .compatible = "ti,drv2665", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, drv2665_of_match);
 #endif
 
-static struct i2c_driver drv2665_driver = {
+static struct i2c_driver drv2665_driver =
+{
 	.probe		= drv2665_probe,
 	.driver		= {
 		.name	= "drv2665-haptics",

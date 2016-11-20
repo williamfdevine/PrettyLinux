@@ -6,12 +6,14 @@
 
 #define TCA_ACT_CONNMARK 14
 
-struct tc_connmark {
+struct tc_connmark
+{
 	tc_gen;
 	__u16 zone;
 };
 
-enum {
+enum
+{
 	TCA_CONNMARK_UNSPEC,
 	TCA_CONNMARK_PARMS,
 	TCA_CONNMARK_TM,

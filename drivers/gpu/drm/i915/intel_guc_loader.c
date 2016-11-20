@@ -69,7 +69,7 @@
 #define KBL_FW_MINOR 14
 
 #define GUC_FW_PATH(platform, major, minor) \
-       "i915/" __stringify(platform) "_guc_ver" __stringify(major) "_" __stringify(minor) ".bin"
+	"i915/" __stringify(platform) "_guc_ver" __stringify(major) "_" __stringify(minor) ".bin"
 
 #define I915_SKL_GUC_UCODE GUC_FW_PATH(skl, SKL_FW_MAJOR, SKL_FW_MINOR)
 MODULE_FIRMWARE(I915_SKL_GUC_UCODE);
@@ -83,17 +83,22 @@ MODULE_FIRMWARE(I915_KBL_GUC_UCODE);
 /* User-friendly representation of an enum */
 const char *intel_guc_fw_status_repr(enum intel_guc_fw_status status)
 {
-	switch (status) {
-	case GUC_FIRMWARE_FAIL:
-		return "FAIL";
-	case GUC_FIRMWARE_NONE:
-		return "NONE";
-	case GUC_FIRMWARE_PENDING:
-		return "PENDING";
-	case GUC_FIRMWARE_SUCCESS:
-		return "SUCCESS";
-	default:
-		return "UNKNOWN!";
+	switch (status)
+	{
+		case GUC_FIRMWARE_FAIL:
+			return "FAIL";
+
+		case GUC_FIRMWARE_NONE:
+			return "NONE";
+
+		case GUC_FIRMWARE_PENDING:
+			return "PENDING";
+
+		case GUC_FIRMWARE_SUCCESS:
+			return "SUCCESS";
+
+		default:
+			return "UNKNOWN!";
 	}
 };
 
@@ -106,7 +111,7 @@ static void guc_interrupts_release(struct drm_i915_private *dev_priv)
 	irqs = _MASKED_FIELD(GFX_FORWARD_VBLANK_MASK, GFX_FORWARD_VBLANK_NEVER);
 	irqs |= _MASKED_BIT_DISABLE(GFX_INTERRUPT_STEERING);
 	for_each_engine(engine, dev_priv)
-		I915_WRITE(RING_MODE_GEN7(engine), irqs);
+	I915_WRITE(RING_MODE_GEN7(engine), irqs);
 
 	/* route all GT interrupts to the host */
 	I915_WRITE(GUC_BCS_RCS_IER, 0);
@@ -123,11 +128,11 @@ static void guc_interrupts_capture(struct drm_i915_private *dev_priv)
 	/* tell all command streamers to forward interrupts (but not vblank) to GuC */
 	irqs = _MASKED_BIT_ENABLE(GFX_INTERRUPT_STEERING);
 	for_each_engine(engine, dev_priv)
-		I915_WRITE(RING_MODE_GEN7(engine), irqs);
+	I915_WRITE(RING_MODE_GEN7(engine), irqs);
 
 	/* route USER_INTERRUPT to Host, all others are sent to GuC. */
 	irqs = GT_RENDER_USER_INTERRUPT << GEN8_RCS_IRQ_SHIFT |
-	       GT_RENDER_USER_INTERRUPT << GEN8_BCS_IRQ_SHIFT;
+		   GT_RENDER_USER_INTERRUPT << GEN8_BCS_IRQ_SHIFT;
 	/* These three registers have the same bit definitions */
 	I915_WRITE(GUC_BCS_RCS_IER, ~irqs);
 	I915_WRITE(GUC_VCS2_VCS1_IER, ~irqs);
@@ -153,7 +158,9 @@ static void guc_interrupts_capture(struct drm_i915_private *dev_priv)
 	 * being left SET!
 	 */
 	tmp = I915_READ(GEN6_PMINTRMSK);
-	if (tmp & GEN8_PMINTR_REDIRECT_TO_GUC) {
+
+	if (tmp & GEN8_PMINTR_REDIRECT_TO_GUC)
+	{
 		dev_priv->rps.pm_intr_keep |= ~tmp;
 		dev_priv->rps.pm_intr_keep &= ~GEN8_PMINTR_REDIRECT_TO_GUC;
 	}
@@ -169,13 +176,14 @@ static u32 get_core_family(struct drm_i915_private *dev_priv)
 {
 	u32 gen = INTEL_GEN(dev_priv);
 
-	switch (gen) {
-	case 9:
-		return GFXCORE_FAMILY_GEN9;
+	switch (gen)
+	{
+		case 9:
+			return GFXCORE_FAMILY_GEN9;
 
-	default:
-		WARN(1, "GEN%d does not support GuC operation!\n", gen);
-		return GFXCORE_FAMILY_UNKNOWN;
+		default:
+			WARN(1, "GEN%d does not support GuC operation!\n", gen);
+			return GFXCORE_FAMILY_UNKNOWN;
 	}
 }
 
@@ -207,28 +215,31 @@ static void guc_params_init(struct drm_i915_private *dev_priv)
 	params[GUC_CTL_WA] |= GUC_CTL_WA_UK_BY_DRIVER;
 
 	params[GUC_CTL_FEATURE] |= GUC_CTL_DISABLE_SCHEDULER |
-			GUC_CTL_VCS2_ENABLED;
+							   GUC_CTL_VCS2_ENABLED;
 
-	if (i915.guc_log_level >= 0) {
+	if (i915.guc_log_level >= 0)
+	{
 		params[GUC_CTL_LOG_PARAMS] = guc->log_flags;
 		params[GUC_CTL_DEBUG] =
 			i915.guc_log_level << GUC_LOG_VERBOSITY_SHIFT;
 	}
 
-	if (guc->ads_vma) {
+	if (guc->ads_vma)
+	{
 		u32 ads = i915_ggtt_offset(guc->ads_vma) >> PAGE_SHIFT;
 		params[GUC_CTL_DEBUG] |= ads << GUC_ADS_ADDR_SHIFT;
 		params[GUC_CTL_DEBUG] |= GUC_ADS_ENABLED;
 	}
 
 	/* If GuC submission is enabled, set up additional parameters here */
-	if (i915.enable_guc_submission) {
+	if (i915.enable_guc_submission)
+	{
 		u32 pgs = i915_ggtt_offset(dev_priv->guc.ctx_pool_vma);
 		u32 ctx_in_16 = GUC_MAX_GPU_CONTEXTS / 16;
 
 		pgs >>= PAGE_SHIFT;
 		params[GUC_CTL_CTXINFO] = (pgs << GUC_CTL_BASE_ADDR_SHIFT) |
-			(ctx_in_16 << GUC_CTL_CTXNUM_IN16_SHIFT);
+								  (ctx_in_16 << GUC_CTL_CTXNUM_IN16_SHIFT);
 
 		params[GUC_CTL_FEATURE] |= GUC_CTL_KERNEL_SUBMISSIONS;
 
@@ -239,7 +250,9 @@ static void guc_params_init(struct drm_i915_private *dev_priv)
 	I915_WRITE(SOFT_SCRATCH(0), 0);
 
 	for (i = 0; i < GUC_CTL_MAX_DWORDS; i++)
+	{
 		I915_WRITE(SOFT_SCRATCH(1 + i), params[i]);
+	}
 }
 
 /*
@@ -252,13 +265,13 @@ static void guc_params_init(struct drm_i915_private *dev_priv)
  * loop below.
  */
 static inline bool guc_ucode_response(struct drm_i915_private *dev_priv,
-				      u32 *status)
+									  u32 *status)
 {
 	u32 val = I915_READ(GUC_STATUS);
 	u32 uk_val = val & GS_UKERNEL_MASK;
 	*status = val;
 	return (uk_val == GS_UKERNEL_READY ||
-		((val & GS_MIA_CORE_STATE) && uk_val == GS_UKERNEL_LAPIC_DONE));
+			((val & GS_MIA_CORE_STATE) && uk_val == GS_UKERNEL_LAPIC_DONE));
 }
 
 /*
@@ -272,7 +285,7 @@ static inline bool guc_ucode_response(struct drm_i915_private *dev_priv,
  * DMA engine in one operation, whereas the RSA signature is loaded via MMIO.
  */
 static int guc_ucode_xfer_dma(struct drm_i915_private *dev_priv,
-			      struct i915_vma *vma)
+							  struct i915_vma *vma)
 {
 	struct intel_guc_fw *guc_fw = &dev_priv->guc.guc_fw;
 	unsigned long offset;
@@ -285,8 +298,11 @@ static int guc_ucode_xfer_dma(struct drm_i915_private *dev_priv,
 
 	/* Copy RSA signature from the fw image to HW for verification */
 	sg_pcopy_to_buffer(sg->sgl, sg->nents, rsa, sizeof(rsa), offset);
+
 	for (i = 0; i < UOS_RSA_SCRATCH_MAX_COUNT; i++)
+	{
 		I915_WRITE(UOS_RSA_SCRATCH(i), rsa[i]);
+	}
 
 	/* The header plus uCode will be copied to WOPCM via DMA, excluding any
 	 * other components */
@@ -318,9 +334,10 @@ static int guc_ucode_xfer_dma(struct drm_i915_private *dev_priv,
 	ret = wait_for(guc_ucode_response(dev_priv, &status), 100);
 
 	DRM_DEBUG_DRIVER("DMA status 0x%x, GuC status 0x%x\n",
-			I915_READ(DMA_CTRL), status);
+					 I915_READ(DMA_CTRL), status);
 
-	if ((status & GS_BOOTROM_MASK) == GS_BOOTROM_RSA_FAILED) {
+	if ((status & GS_BOOTROM_MASK) == GS_BOOTROM_RSA_FAILED)
+	{
 		DRM_ERROR("GuC firmware signature verification failed\n");
 		ret = -ENOEXEC;
 	}
@@ -336,7 +353,9 @@ static u32 guc_wopcm_size(struct drm_i915_private *dev_priv)
 
 	/* On BXT, the top of WOPCM is reserved for RC6 context */
 	if (IS_BROXTON(dev_priv))
+	{
 		wopcm_size -= BXT_GUC_WOPCM_RC6_RESERVED;
+	}
 
 	return wopcm_size;
 }
@@ -352,13 +371,17 @@ static int guc_ucode_xfer(struct drm_i915_private *dev_priv)
 	int ret;
 
 	ret = i915_gem_object_set_to_gtt_domain(guc_fw->guc_fw_obj, false);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_DEBUG_DRIVER("set-domain failed %d\n", ret);
 		return ret;
 	}
 
 	vma = i915_gem_object_ggtt_pin(guc_fw->guc_fw_obj, NULL, 0, 0, 0);
-	if (IS_ERR(vma)) {
+
+	if (IS_ERR(vma))
+	{
 		DRM_DEBUG_DRIVER("pin failed %d\n", (int)PTR_ERR(vma));
 		return PTR_ERR(vma);
 	}
@@ -377,25 +400,33 @@ static int guc_ucode_xfer(struct drm_i915_private *dev_priv)
 
 	/* WaDisableMinuteIaClockGating:skl,bxt */
 	if (IS_SKL_REVID(dev, 0, SKL_REVID_B0) ||
-	    IS_BXT_REVID(dev, 0, BXT_REVID_A1)) {
+		IS_BXT_REVID(dev, 0, BXT_REVID_A1))
+	{
 		I915_WRITE(GUC_SHIM_CONTROL, (I915_READ(GUC_SHIM_CONTROL) &
-					      ~GUC_ENABLE_MIA_CLOCK_GATING));
+									  ~GUC_ENABLE_MIA_CLOCK_GATING));
 	}
 
 	/* WaC6DisallowByGfxPause*/
 	if (IS_SKL_REVID(dev, 0, SKL_REVID_C0) ||
-	    IS_BXT_REVID(dev, 0, BXT_REVID_B0))
+		IS_BXT_REVID(dev, 0, BXT_REVID_B0))
+	{
 		I915_WRITE(GEN6_GFXPAUSE, 0x30FFF);
+	}
 
 	if (IS_BROXTON(dev))
+	{
 		I915_WRITE(GEN9LP_GT_PM_CONFIG, GT_DOORBELL_ENABLE);
+	}
 	else
+	{
 		I915_WRITE(GEN9_GT_PM_CONFIG, GT_DOORBELL_ENABLE);
+	}
 
-	if (IS_GEN9(dev)) {
+	if (IS_GEN9(dev))
+	{
 		/* DOP Clock Gating Enable for GuC clocks */
 		I915_WRITE(GEN7_MISCCPCTL, (GEN8_DOP_CLOCK_GATE_GUC_ENABLE |
-					    I915_READ(GEN7_MISCCPCTL)));
+									I915_READ(GEN7_MISCCPCTL)));
 
 		/* allows for 5us (in 10ns units) before GT can go to RC6 */
 		I915_WRITE(GUC_ARAT_C6DIS, 0x1FF);
@@ -422,14 +453,16 @@ static int guc_hw_reset(struct drm_i915_private *dev_priv)
 	u32 guc_status;
 
 	ret = intel_guc_reset(dev_priv);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("GuC reset failed, ret = %d\n", ret);
 		return ret;
 	}
 
 	guc_status = I915_READ(GUC_STATUS);
 	WARN(!(guc_status & GS_MIA_IN_RESET),
-	     "GuC status: 0x%x, MIA core expected to be in reset\n", guc_status);
+		 "GuC status: 0x%x, MIA core expected to be in reset\n", guc_status);
 
 	return ret;
 }
@@ -455,19 +488,24 @@ int intel_guc_setup(struct drm_device *dev)
 	int retries, ret, err;
 
 	DRM_DEBUG_DRIVER("GuC fw status: path %s, fetch %s, load %s\n",
-		fw_path,
-		intel_guc_fw_status_repr(guc_fw->guc_fw_fetch_status),
-		intel_guc_fw_status_repr(guc_fw->guc_fw_load_status));
+					 fw_path,
+					 intel_guc_fw_status_repr(guc_fw->guc_fw_fetch_status),
+					 intel_guc_fw_status_repr(guc_fw->guc_fw_load_status));
 
 	/* Loading forbidden, or no firmware to load? */
-	if (!i915.enable_guc_loading) {
+	if (!i915.enable_guc_loading)
+	{
 		err = 0;
 		goto fail;
-	} else if (fw_path == NULL) {
+	}
+	else if (fw_path == NULL)
+	{
 		/* Device is known to have no uCode (e.g. no GuC) */
 		err = -ENXIO;
 		goto fail;
-	} else if (*fw_path == '\0') {
+	}
+	else if (*fw_path == '\0')
+	{
 		/* Device has a GuC but we don't know what f/w to load? */
 		WARN(1, "No GuC firmware known for this platform!\n");
 		err = -ENODEV;
@@ -475,10 +513,13 @@ int intel_guc_setup(struct drm_device *dev)
 	}
 
 	/* Fetch failed, or already fetched but failed to load? */
-	if (guc_fw->guc_fw_fetch_status != GUC_FIRMWARE_SUCCESS) {
+	if (guc_fw->guc_fw_fetch_status != GUC_FIRMWARE_SUCCESS)
+	{
 		err = -EIO;
 		goto fail;
-	} else if (guc_fw->guc_fw_load_status == GUC_FIRMWARE_FAIL) {
+	}
+	else if (guc_fw->guc_fw_load_status == GUC_FIRMWARE_FAIL)
+	{
 		err = -ENOEXEC;
 		goto fail;
 	}
@@ -488,12 +529,15 @@ int intel_guc_setup(struct drm_device *dev)
 	guc_fw->guc_fw_load_status = GUC_FIRMWARE_PENDING;
 
 	DRM_DEBUG_DRIVER("GuC fw status: fetch %s, load %s\n",
-		intel_guc_fw_status_repr(guc_fw->guc_fw_fetch_status),
-		intel_guc_fw_status_repr(guc_fw->guc_fw_load_status));
+					 intel_guc_fw_status_repr(guc_fw->guc_fw_fetch_status),
+					 intel_guc_fw_status_repr(guc_fw->guc_fw_load_status));
 
 	err = i915_guc_submission_init(dev_priv);
+
 	if (err)
+	{
 		goto fail;
+	}
 
 	/*
 	 * WaEnableuKernelHeaderValidFix:skl,bxt
@@ -501,44 +545,61 @@ int intel_guc_setup(struct drm_device *dev)
 	 * steppings also so this is extended as well.
 	 */
 	/* WaEnableGuCBootHashCheckNotSet:skl,bxt */
-	for (retries = 3; ; ) {
+	for (retries = 3; ; )
+	{
 		/*
 		 * Always reset the GuC just before (re)loading, so
 		 * that the state and timing are fairly predictable
 		 */
 		err = guc_hw_reset(dev_priv);
+
 		if (err)
+		{
 			goto fail;
+		}
 
 		err = guc_ucode_xfer(dev_priv);
+
 		if (!err)
+		{
 			break;
+		}
 
 		if (--retries == 0)
+		{
 			goto fail;
+		}
 
 		DRM_INFO("GuC fw load failed: %d; will reset and "
-			 "retry %d more time(s)\n", err, retries);
+				 "retry %d more time(s)\n", err, retries);
 	}
 
 	guc_fw->guc_fw_load_status = GUC_FIRMWARE_SUCCESS;
 
 	DRM_DEBUG_DRIVER("GuC fw status: fetch %s, load %s\n",
-		intel_guc_fw_status_repr(guc_fw->guc_fw_fetch_status),
-		intel_guc_fw_status_repr(guc_fw->guc_fw_load_status));
+					 intel_guc_fw_status_repr(guc_fw->guc_fw_fetch_status),
+					 intel_guc_fw_status_repr(guc_fw->guc_fw_load_status));
 
-	if (i915.enable_guc_submission) {
+	if (i915.enable_guc_submission)
+	{
 		err = i915_guc_submission_enable(dev_priv);
+
 		if (err)
+		{
 			goto fail;
+		}
+
 		guc_interrupts_capture(dev_priv);
 	}
 
 	return 0;
 
 fail:
+
 	if (guc_fw->guc_fw_load_status == GUC_FIRMWARE_PENDING)
+	{
 		guc_fw->guc_fw_load_status = GUC_FIRMWARE_FAIL;
+	}
 
 	guc_interrupts_release(dev_priv);
 	i915_guc_submission_disable(dev_priv);
@@ -553,31 +614,51 @@ fail:
 	 * nonfatal error (i.e. it doesn't prevent driver load, but
 	 * marks the GPU as wedged until reset).
 	 */
-	if (i915.enable_guc_loading > 1) {
+	if (i915.enable_guc_loading > 1)
+	{
 		ret = -EIO;
-	} else if (i915.enable_guc_submission > 1) {
+	}
+	else if (i915.enable_guc_submission > 1)
+	{
 		ret = -EIO;
-	} else {
+	}
+	else
+	{
 		ret = 0;
 	}
 
 	if (err == 0 && !HAS_GUC_UCODE(dev))
 		;	/* Don't mention the GuC! */
 	else if (err == 0)
+	{
 		DRM_INFO("GuC firmware load skipped\n");
-	else if (ret != -EIO)
-		DRM_NOTE("GuC firmware load failed: %d\n", err);
-	else
-		DRM_WARN("GuC firmware load failed: %d\n", err);
-
-	if (i915.enable_guc_submission) {
-		if (fw_path == NULL)
-			DRM_INFO("GuC submission without firmware not supported\n");
-		if (ret == 0)
-			DRM_NOTE("Falling back from GuC submission to execlist mode\n");
-		else
-			DRM_ERROR("GuC init failed: %d\n", ret);
 	}
+	else if (ret != -EIO)
+	{
+		DRM_NOTE("GuC firmware load failed: %d\n", err);
+	}
+	else
+	{
+		DRM_WARN("GuC firmware load failed: %d\n", err);
+	}
+
+	if (i915.enable_guc_submission)
+	{
+		if (fw_path == NULL)
+		{
+			DRM_INFO("GuC submission without firmware not supported\n");
+		}
+
+		if (ret == 0)
+		{
+			DRM_NOTE("Falling back from GuC submission to execlist mode\n");
+		}
+		else
+		{
+			DRM_ERROR("GuC init failed: %d\n", ret);
+		}
+	}
+
 	i915.enable_guc_submission = 0;
 
 	return ret;
@@ -593,19 +674,26 @@ static void guc_fw_fetch(struct drm_device *dev, struct intel_guc_fw *guc_fw)
 	int err;
 
 	DRM_DEBUG_DRIVER("before requesting firmware: GuC fw fetch status %s\n",
-		intel_guc_fw_status_repr(guc_fw->guc_fw_fetch_status));
+					 intel_guc_fw_status_repr(guc_fw->guc_fw_fetch_status));
 
 	err = request_firmware(&fw, guc_fw->guc_fw_path, &pdev->dev);
+
 	if (err)
+	{
 		goto fail;
+	}
+
 	if (!fw)
+	{
 		goto fail;
+	}
 
 	DRM_DEBUG_DRIVER("fetch GuC fw from %s succeeded, fw %p\n",
-		guc_fw->guc_fw_path, fw);
+					 guc_fw->guc_fw_path, fw);
 
 	/* Check the size of the blob before examining buffer contents */
-	if (fw->size < sizeof(struct guc_css_header)) {
+	if (fw->size < sizeof(struct guc_css_header))
+	{
 		DRM_NOTE("Firmware header is missing\n");
 		goto fail;
 	}
@@ -615,9 +703,10 @@ static void guc_fw_fetch(struct drm_device *dev, struct intel_guc_fw *guc_fw)
 	/* Firmware bits always start from header */
 	guc_fw->header_offset = 0;
 	guc_fw->header_size = (css->header_size_dw - css->modulus_size_dw -
-		css->key_size_dw - css->exponent_size_dw) * sizeof(u32);
+						   css->key_size_dw - css->exponent_size_dw) * sizeof(u32);
 
-	if (guc_fw->header_size != sizeof(struct guc_css_header)) {
+	if (guc_fw->header_size != sizeof(struct guc_css_header))
+	{
 		DRM_NOTE("CSS header definition mismatch\n");
 		goto fail;
 	}
@@ -627,23 +716,29 @@ static void guc_fw_fetch(struct drm_device *dev, struct intel_guc_fw *guc_fw)
 	guc_fw->ucode_size = (css->size_dw - css->header_size_dw) * sizeof(u32);
 
 	/* now RSA */
-	if (css->key_size_dw != UOS_RSA_SCRATCH_MAX_COUNT) {
+	if (css->key_size_dw != UOS_RSA_SCRATCH_MAX_COUNT)
+	{
 		DRM_NOTE("RSA key size is bad\n");
 		goto fail;
 	}
+
 	guc_fw->rsa_offset = guc_fw->ucode_offset + guc_fw->ucode_size;
 	guc_fw->rsa_size = css->key_size_dw * sizeof(u32);
 
 	/* At least, it should have header, uCode and RSA. Size of all three. */
 	size = guc_fw->header_size + guc_fw->ucode_size + guc_fw->rsa_size;
-	if (fw->size < size) {
+
+	if (fw->size < size)
+	{
 		DRM_NOTE("Missing firmware components\n");
 		goto fail;
 	}
 
 	/* Header and uCode will be loaded to WOPCM. Size of the two. */
 	size = guc_fw->header_size + guc_fw->ucode_size;
-	if (size > guc_wopcm_size(to_i915(dev))) {
+
+	if (size > guc_wopcm_size(to_i915(dev)))
+	{
 		DRM_NOTE("Firmware is too large to fit in WOPCM\n");
 		goto fail;
 	}
@@ -658,22 +753,25 @@ static void guc_fw_fetch(struct drm_device *dev, struct intel_guc_fw *guc_fw)
 	guc_fw->guc_fw_minor_found = css->guc_sw_version & 0xFFFF;
 
 	if (guc_fw->guc_fw_major_found != guc_fw->guc_fw_major_wanted ||
-	    guc_fw->guc_fw_minor_found < guc_fw->guc_fw_minor_wanted) {
+		guc_fw->guc_fw_minor_found < guc_fw->guc_fw_minor_wanted)
+	{
 		DRM_NOTE("GuC firmware version %d.%d, required %d.%d\n",
-			guc_fw->guc_fw_major_found, guc_fw->guc_fw_minor_found,
-			guc_fw->guc_fw_major_wanted, guc_fw->guc_fw_minor_wanted);
+				 guc_fw->guc_fw_major_found, guc_fw->guc_fw_minor_found,
+				 guc_fw->guc_fw_major_wanted, guc_fw->guc_fw_minor_wanted);
 		err = -ENOEXEC;
 		goto fail;
 	}
 
 	DRM_DEBUG_DRIVER("firmware version %d.%d OK (minimum %d.%d)\n",
-			guc_fw->guc_fw_major_found, guc_fw->guc_fw_minor_found,
-			guc_fw->guc_fw_major_wanted, guc_fw->guc_fw_minor_wanted);
+					 guc_fw->guc_fw_major_found, guc_fw->guc_fw_minor_found,
+					 guc_fw->guc_fw_major_wanted, guc_fw->guc_fw_minor_wanted);
 
 	mutex_lock(&dev->struct_mutex);
 	obj = i915_gem_object_create_from_data(dev, fw->data, fw->size);
 	mutex_unlock(&dev->struct_mutex);
-	if (IS_ERR_OR_NULL(obj)) {
+
+	if (IS_ERR_OR_NULL(obj))
+	{
 		err = obj ? PTR_ERR(obj) : -ENOMEM;
 		goto fail;
 	}
@@ -682,7 +780,7 @@ static void guc_fw_fetch(struct drm_device *dev, struct intel_guc_fw *guc_fw)
 	guc_fw->guc_fw_size = fw->size;
 
 	DRM_DEBUG_DRIVER("GuC fw fetch status SUCCESS, obj %p\n",
-			guc_fw->guc_fw_obj);
+					 guc_fw->guc_fw_obj);
 
 	release_firmware(fw);
 	guc_fw->guc_fw_fetch_status = GUC_FIRMWARE_SUCCESS;
@@ -690,14 +788,18 @@ static void guc_fw_fetch(struct drm_device *dev, struct intel_guc_fw *guc_fw)
 
 fail:
 	DRM_WARN("Failed to fetch valid GuC firmware from %s (error %d)\n",
-		 guc_fw->guc_fw_path, err);
+			 guc_fw->guc_fw_path, err);
 	DRM_DEBUG_DRIVER("GuC fw fetch status FAIL; err %d, fw %p, obj %p\n",
-		err, fw, guc_fw->guc_fw_obj);
+					 err, fw, guc_fw->guc_fw_obj);
 
 	mutex_lock(&dev->struct_mutex);
 	obj = guc_fw->guc_fw_obj;
+
 	if (obj)
+	{
 		i915_gem_object_put(obj);
+	}
+
 	guc_fw->guc_fw_obj = NULL;
 	mutex_unlock(&dev->struct_mutex);
 
@@ -722,25 +824,39 @@ void intel_guc_init(struct drm_device *dev)
 
 	/* A negative value means "use platform default" */
 	if (i915.enable_guc_loading < 0)
+	{
 		i915.enable_guc_loading = HAS_GUC_UCODE(dev);
-	if (i915.enable_guc_submission < 0)
-		i915.enable_guc_submission = HAS_GUC_SCHED(dev);
+	}
 
-	if (!HAS_GUC_UCODE(dev)) {
+	if (i915.enable_guc_submission < 0)
+	{
+		i915.enable_guc_submission = HAS_GUC_SCHED(dev);
+	}
+
+	if (!HAS_GUC_UCODE(dev))
+	{
 		fw_path = NULL;
-	} else if (IS_SKYLAKE(dev)) {
+	}
+	else if (IS_SKYLAKE(dev))
+	{
 		fw_path = I915_SKL_GUC_UCODE;
 		guc_fw->guc_fw_major_wanted = SKL_FW_MAJOR;
 		guc_fw->guc_fw_minor_wanted = SKL_FW_MINOR;
-	} else if (IS_BROXTON(dev)) {
+	}
+	else if (IS_BROXTON(dev))
+	{
 		fw_path = I915_BXT_GUC_UCODE;
 		guc_fw->guc_fw_major_wanted = BXT_FW_MAJOR;
 		guc_fw->guc_fw_minor_wanted = BXT_FW_MINOR;
-	} else if (IS_KABYLAKE(dev)) {
+	}
+	else if (IS_KABYLAKE(dev))
+	{
 		fw_path = I915_KBL_GUC_UCODE;
 		guc_fw->guc_fw_major_wanted = KBL_FW_MAJOR;
 		guc_fw->guc_fw_minor_wanted = KBL_FW_MINOR;
-	} else {
+	}
+	else
+	{
 		fw_path = "";	/* unknown device */
 	}
 
@@ -751,11 +867,19 @@ void intel_guc_init(struct drm_device *dev)
 
 	/* Early (and silent) return if GuC loading is disabled */
 	if (!i915.enable_guc_loading)
+	{
 		return;
+	}
+
 	if (fw_path == NULL)
+	{
 		return;
+	}
+
 	if (*fw_path == '\0')
+	{
 		return;
+	}
 
 	guc_fw->guc_fw_fetch_status = GUC_FIRMWARE_PENDING;
 	DRM_DEBUG_DRIVER("GuC firmware pending, path %s\n", fw_path);
@@ -778,7 +902,10 @@ void intel_guc_fini(struct drm_device *dev)
 	i915_guc_submission_fini(dev_priv);
 
 	if (guc_fw->guc_fw_obj)
+	{
 		i915_gem_object_put(guc_fw->guc_fw_obj);
+	}
+
 	guc_fw->guc_fw_obj = NULL;
 	mutex_unlock(&dev->struct_mutex);
 

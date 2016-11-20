@@ -18,12 +18,13 @@ static void nop_helpline__push(const char *msg __maybe_unused)
 }
 
 static int nop_helpline__show(const char *fmt __maybe_unused,
-			       va_list ap __maybe_unused)
+							  va_list ap __maybe_unused)
 {
 	return 0;
 }
 
-static struct ui_helpline default_helpline_fns = {
+static struct ui_helpline default_helpline_fns =
+{
 	.pop	= nop_helpline__pop,
 	.push	= nop_helpline__push,
 	.show	= nop_helpline__show,
@@ -46,8 +47,11 @@ void ui_helpline__vpush(const char *fmt, va_list ap)
 	char *s;
 
 	if (vasprintf(&s, fmt, ap) < 0)
+	{
 		vfprintf(stderr, fmt, ap);
-	else {
+	}
+	else
+	{
 		ui_helpline__push(s);
 		free(s);
 	}

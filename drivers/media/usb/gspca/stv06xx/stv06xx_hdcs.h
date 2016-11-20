@@ -138,7 +138,8 @@ static int hdcs_dump(struct sd *sd);
 static int hdcs_set_exposure(struct gspca_dev *gspca_dev, __s32 val);
 static int hdcs_set_gain(struct gspca_dev *gspca_dev, __s32 val);
 
-const struct stv06xx_sensor stv06xx_sensor_hdcs1x00 = {
+const struct stv06xx_sensor stv06xx_sensor_hdcs1x00 =
+{
 	.name = "HP HDCS-1000/1100",
 	.i2c_flush = 0,
 	.i2c_addr = (0x55 << 1),
@@ -157,7 +158,8 @@ const struct stv06xx_sensor stv06xx_sensor_hdcs1x00 = {
 	.dump = hdcs_dump,
 };
 
-const struct stv06xx_sensor stv06xx_sensor_hdcs1020 = {
+const struct stv06xx_sensor stv06xx_sensor_hdcs1020 =
+{
 	.name = "HDCS-1020",
 	.i2c_flush = 0,
 	.i2c_addr = (0x55 << 1),
@@ -176,7 +178,8 @@ const struct stv06xx_sensor stv06xx_sensor_hdcs1020 = {
 	.dump = hdcs_dump,
 };
 
-static const u16 stv_bridge_init[][2] = {
+static const u16 stv_bridge_init[][2] =
+{
 	{STV_ISO_ENABLE, 0},
 	{STV_REG23, 0},
 	{STV_REG00, 0x1d},
@@ -190,7 +193,8 @@ static const u16 stv_bridge_init[][2] = {
 	{STV_X_CTRL, 0x0a}
 };
 
-static const u8 stv_sensor_init[][2] = {
+static const u8 stv_sensor_init[][2] =
+{
 	/* Clear status (writing 1 will clear the corresponding status bit) */
 	{HDCS_STATUS, BIT(6) | BIT(5) | BIT(4) | BIT(3) | BIT(2) | BIT(1)},
 	/* Disable all interrupts */

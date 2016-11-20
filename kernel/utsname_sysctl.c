@@ -26,18 +26,27 @@ static void *get_uts(struct ctl_table *table, int write)
 	which = (which - (char *)&init_uts_ns) + (char *)uts_ns;
 
 	if (!write)
+	{
 		down_read(&uts_sem);
+	}
 	else
+	{
 		down_write(&uts_sem);
+	}
+
 	return which;
 }
 
 static void put_uts(struct ctl_table *table, int write, void *which)
 {
 	if (!write)
+	{
 		up_read(&uts_sem);
+	}
 	else
+	{
 		up_write(&uts_sem);
+	}
 }
 
 /*
@@ -45,7 +54,7 @@ static void put_uts(struct ctl_table *table, int write, void *which)
  *	to observe. Should this be in kernel/sys.c ????
  */
 static int proc_do_uts_string(struct ctl_table *table, int write,
-		  void __user *buffer, size_t *lenp, loff_t *ppos)
+							  void __user *buffer, size_t *lenp, loff_t *ppos)
 {
 	struct ctl_table uts_table;
 	int r;
@@ -55,7 +64,9 @@ static int proc_do_uts_string(struct ctl_table *table, int write,
 	put_uts(table, write, uts_table.data);
 
 	if (write)
+	{
 		proc_sys_poll_notify(table->poll);
+	}
 
 	return r;
 }
@@ -66,7 +77,8 @@ static int proc_do_uts_string(struct ctl_table *table, int write,
 static DEFINE_CTL_TABLE_POLL(hostname_poll);
 static DEFINE_CTL_TABLE_POLL(domainname_poll);
 
-static struct ctl_table uts_kern_table[] = {
+static struct ctl_table uts_kern_table[] =
+{
 	{
 		.procname	= "ostype",
 		.data		= init_uts_ns.name.sysname,
@@ -107,7 +119,8 @@ static struct ctl_table uts_kern_table[] = {
 	{}
 };
 
-static struct ctl_table uts_root_table[] = {
+static struct ctl_table uts_root_table[] =
+{
 	{
 		.procname	= "kernel",
 		.mode		= 0555,

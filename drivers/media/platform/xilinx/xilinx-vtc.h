@@ -21,7 +21,8 @@ struct xvtc_device;
 #define XVTC_MAX_HSIZE			8191
 #define XVTC_MAX_VSIZE			8191
 
-struct xvtc_config {
+struct xvtc_config
+{
 	unsigned int hblank_start;
 	unsigned int hsync_start;
 	unsigned int hsync_end;
@@ -36,7 +37,7 @@ struct xvtc_device *xvtc_of_get(struct device_node *np);
 void xvtc_put(struct xvtc_device *xvtc);
 
 int xvtc_generator_start(struct xvtc_device *xvtc,
-			 const struct xvtc_config *config);
+						 const struct xvtc_config *config);
 int xvtc_generator_stop(struct xvtc_device *xvtc);
 
 #endif /* __XILINX_VTC_H__ */

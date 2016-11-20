@@ -3,7 +3,8 @@
 
 #define NVIF_VERSION_LATEST                               0x0000000000000000ULL
 
-struct nvif_ioctl_v0 {
+struct nvif_ioctl_v0
+{
 	__u8  version;
 #define NVIF_IOCTL_V0_NOP                                                  0x00
 #define NVIF_IOCTL_V0_SCLASS                                               0x01
@@ -31,23 +32,27 @@ struct nvif_ioctl_v0 {
 	__u8  data[];		/* ioctl data (below) */
 };
 
-struct nvif_ioctl_nop_v0 {
+struct nvif_ioctl_nop_v0
+{
 	__u64 version;
 };
 
-struct nvif_ioctl_sclass_v0 {
+struct nvif_ioctl_sclass_v0
+{
 	/* nvif_ioctl ... */
 	__u8  version;
 	__u8  count;
 	__u8  pad02[6];
-	struct nvif_ioctl_sclass_oclass_v0 {
+	struct nvif_ioctl_sclass_oclass_v0
+	{
 		__s32 oclass;
 		__s16 minver;
 		__s16 maxver;
 	} oclass[];
 };
 
-struct nvif_ioctl_new_v0 {
+struct nvif_ioctl_new_v0
+{
 	/* nvif_ioctl ... */
 	__u8  version;
 	__u8  pad01[6];
@@ -59,10 +64,12 @@ struct nvif_ioctl_new_v0 {
 	__u8  data[];		/* class data (class.h) */
 };
 
-struct nvif_ioctl_del {
+struct nvif_ioctl_del
+{
 };
 
-struct nvif_ioctl_rd_v0 {
+struct nvif_ioctl_rd_v0
+{
 	/* nvif_ioctl ... */
 	__u8  version;
 	__u8  size;
@@ -71,7 +78,8 @@ struct nvif_ioctl_rd_v0 {
 	__u64 addr;
 };
 
-struct nvif_ioctl_wr_v0 {
+struct nvif_ioctl_wr_v0
+{
 	/* nvif_ioctl ... */
 	__u8  version;
 	__u8  size;
@@ -80,7 +88,8 @@ struct nvif_ioctl_wr_v0 {
 	__u64 addr;
 };
 
-struct nvif_ioctl_map_v0 {
+struct nvif_ioctl_map_v0
+{
 	/* nvif_ioctl ... */
 	__u8  version;
 	__u8  pad01[3];
@@ -88,10 +97,12 @@ struct nvif_ioctl_map_v0 {
 	__u64 handle;
 };
 
-struct nvif_ioctl_unmap {
+struct nvif_ioctl_unmap
+{
 };
 
-struct nvif_ioctl_ntfy_new_v0 {
+struct nvif_ioctl_ntfy_new_v0
+{
 	/* nvif_ioctl ... */
 	__u8  version;
 	__u8  event;
@@ -100,28 +111,32 @@ struct nvif_ioctl_ntfy_new_v0 {
 	__u8  data[];		/* event request data (event.h) */
 };
 
-struct nvif_ioctl_ntfy_del_v0 {
+struct nvif_ioctl_ntfy_del_v0
+{
 	/* nvif_ioctl ... */
 	__u8  version;
 	__u8  index;
 	__u8  pad02[6];
 };
 
-struct nvif_ioctl_ntfy_get_v0 {
+struct nvif_ioctl_ntfy_get_v0
+{
 	/* nvif_ioctl ... */
 	__u8  version;
 	__u8  index;
 	__u8  pad02[6];
 };
 
-struct nvif_ioctl_ntfy_put_v0 {
+struct nvif_ioctl_ntfy_put_v0
+{
 	/* nvif_ioctl ... */
 	__u8  version;
 	__u8  index;
 	__u8  pad02[6];
 };
 
-struct nvif_ioctl_mthd_v0 {
+struct nvif_ioctl_mthd_v0
+{
 	/* nvif_ioctl ... */
 	__u8  version;
 	__u8  method;

@@ -77,7 +77,8 @@ static u8 acpi_rs_count_set_bits(u16 bit_field)
 
 	ACPI_FUNCTION_ENTRY();
 
-	for (bits_set = 0; bit_field; bits_set++) {
+	for (bits_set = 0; bit_field; bits_set++)
+	{
 
 		/* Zero the least significant bit that is set */
 
@@ -111,7 +112,8 @@ acpi_rs_struct_option_length(struct acpi_resource_source *resource_source)
 	 * (string_length includes the NULL terminator) plus the size of the
 	 * resource_source_index (1).
 	 */
-	if (resource_source->string_ptr) {
+	if (resource_source->string_ptr)
+	{
 		return ((acpi_rs_length)(resource_source->string_length + 1));
 	}
 
@@ -136,7 +138,7 @@ acpi_rs_struct_option_length(struct acpi_resource_source *resource_source)
 
 static u32
 acpi_rs_stream_option_length(u32 resource_length,
-			     u32 minimum_aml_resource_length)
+							 u32 minimum_aml_resource_length)
 {
 	u32 string_length = 0;
 
@@ -155,12 +157,13 @@ acpi_rs_stream_option_length(u32 resource_length,
 	 * minus the minimum length, minus one byte for the resource_source_index
 	 * itself.
 	 */
-	if (resource_length > minimum_aml_resource_length) {
+	if (resource_length > minimum_aml_resource_length)
+	{
 
 		/* Compute the length of the optional string */
 
 		string_length =
-		    resource_length - minimum_aml_resource_length - 1;
+			resource_length - minimum_aml_resource_length - 1;
 	}
 
 	/*
@@ -188,7 +191,7 @@ acpi_rs_stream_option_length(u32 resource_length,
 
 acpi_status
 acpi_rs_get_aml_length(struct acpi_resource *resource,
-		       acpi_size resource_list_size, acpi_size *size_needed)
+					   acpi_size resource_list_size, acpi_size *size_needed)
 {
 	acpi_size aml_size_needed = 0;
 	struct acpi_resource *resource_end;
@@ -199,18 +202,22 @@ acpi_rs_get_aml_length(struct acpi_resource *resource,
 	/* Traverse entire list of internal resource descriptors */
 
 	resource_end =
-	    ACPI_ADD_PTR(struct acpi_resource, resource, resource_list_size);
-	while (resource < resource_end) {
+		ACPI_ADD_PTR(struct acpi_resource, resource, resource_list_size);
+
+	while (resource < resource_end)
+	{
 
 		/* Validate the descriptor type */
 
-		if (resource->type > ACPI_RESOURCE_TYPE_MAX) {
+		if (resource->type > ACPI_RESOURCE_TYPE_MAX)
+		{
 			return_ACPI_STATUS(AE_AML_INVALID_RESOURCE_TYPE);
 		}
 
 		/* Sanity check the length. It must not be zero, or we loop forever */
 
-		if (!resource->length) {
+		if (!resource->length)
+		{
 			return_ACPI_STATUS(AE_AML_BAD_RESOURCE_LENGTH);
 		}
 
@@ -222,146 +229,153 @@ acpi_rs_get_aml_length(struct acpi_resource *resource,
 		 * Augment the base size for descriptors with optional and/or
 		 * variable-length fields
 		 */
-		switch (resource->type) {
-		case ACPI_RESOURCE_TYPE_IRQ:
+		switch (resource->type)
+		{
+			case ACPI_RESOURCE_TYPE_IRQ:
 
-			/* Length can be 3 or 2 */
+				/* Length can be 3 or 2 */
 
-			if (resource->data.irq.descriptor_length == 2) {
-				total_size--;
-			}
-			break;
+				if (resource->data.irq.descriptor_length == 2)
+				{
+					total_size--;
+				}
 
-		case ACPI_RESOURCE_TYPE_START_DEPENDENT:
+				break;
 
-			/* Length can be 1 or 0 */
+			case ACPI_RESOURCE_TYPE_START_DEPENDENT:
 
-			if (resource->data.irq.descriptor_length == 0) {
-				total_size--;
-			}
-			break;
+				/* Length can be 1 or 0 */
 
-		case ACPI_RESOURCE_TYPE_VENDOR:
-			/*
-			 * Vendor Defined Resource:
-			 * For a Vendor Specific resource, if the Length is between 1 and 7
-			 * it will be created as a Small Resource data type, otherwise it
-			 * is a Large Resource data type.
-			 */
-			if (resource->data.vendor.byte_length > 7) {
+				if (resource->data.irq.descriptor_length == 0)
+				{
+					total_size--;
+				}
 
-				/* Base size of a Large resource descriptor */
+				break;
+
+			case ACPI_RESOURCE_TYPE_VENDOR:
+
+				/*
+				 * Vendor Defined Resource:
+				 * For a Vendor Specific resource, if the Length is between 1 and 7
+				 * it will be created as a Small Resource data type, otherwise it
+				 * is a Large Resource data type.
+				 */
+				if (resource->data.vendor.byte_length > 7)
+				{
+
+					/* Base size of a Large resource descriptor */
+
+					total_size =
+						sizeof(struct aml_resource_large_header);
+				}
+
+				/* Add the size of the vendor-specific data */
+
+				total_size = (acpi_rs_length)
+							 (total_size + resource->data.vendor.byte_length);
+				break;
+
+			case ACPI_RESOURCE_TYPE_END_TAG:
+				/*
+				 * End Tag:
+				 * We are done -- return the accumulated total size.
+				 */
+				*size_needed = aml_size_needed + total_size;
+
+				/* Normal exit */
+
+				return_ACPI_STATUS(AE_OK);
+
+			case ACPI_RESOURCE_TYPE_ADDRESS16:
+				/*
+				 * 16-Bit Address Resource:
+				 * Add the size of the optional resource_source info
+				 */
+				total_size = (acpi_rs_length)(total_size +
+											  acpi_rs_struct_option_length
+											  (&resource->data.
+											   address16.
+											   resource_source));
+				break;
+
+			case ACPI_RESOURCE_TYPE_ADDRESS32:
+				/*
+				 * 32-Bit Address Resource:
+				 * Add the size of the optional resource_source info
+				 */
+				total_size = (acpi_rs_length)(total_size +
+											  acpi_rs_struct_option_length
+											  (&resource->data.
+											   address32.
+											   resource_source));
+				break;
+
+			case ACPI_RESOURCE_TYPE_ADDRESS64:
+				/*
+				 * 64-Bit Address Resource:
+				 * Add the size of the optional resource_source info
+				 */
+				total_size = (acpi_rs_length)(total_size +
+											  acpi_rs_struct_option_length
+											  (&resource->data.
+											   address64.
+											   resource_source));
+				break;
+
+			case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+				/*
+				 * Extended IRQ Resource:
+				 * Add the size of each additional optional interrupt beyond the
+				 * required 1 (4 bytes for each u32 interrupt number)
+				 */
+				total_size = (acpi_rs_length)(total_size +
+											  ((resource->data.
+												extended_irq.
+												interrupt_count -
+												1) * 4) +
+											  /* Add the size of the optional resource_source info */
+											  acpi_rs_struct_option_length
+											  (&resource->data.
+											   extended_irq.
+											   resource_source));
+				break;
+
+			case ACPI_RESOURCE_TYPE_GPIO:
+
+				total_size = (acpi_rs_length)(total_size +
+											  (resource->data.gpio.
+											   pin_table_length * 2) +
+											  resource->data.gpio.
+											  resource_source.
+											  string_length +
+											  resource->data.gpio.
+											  vendor_length);
+
+				break;
+
+			case ACPI_RESOURCE_TYPE_SERIAL_BUS:
 
 				total_size =
-				    sizeof(struct aml_resource_large_header);
-			}
+					acpi_gbl_aml_resource_serial_bus_sizes[resource->
+							data.
+							common_serial_bus.
+							type];
 
-			/* Add the size of the vendor-specific data */
+				total_size = (acpi_rs_length)(total_size +
+											  resource->data.
+											  i2c_serial_bus.
+											  resource_source.
+											  string_length +
+											  resource->data.
+											  i2c_serial_bus.
+											  vendor_length);
 
-			total_size = (acpi_rs_length)
-			    (total_size + resource->data.vendor.byte_length);
-			break;
+				break;
 
-		case ACPI_RESOURCE_TYPE_END_TAG:
-			/*
-			 * End Tag:
-			 * We are done -- return the accumulated total size.
-			 */
-			*size_needed = aml_size_needed + total_size;
+			default:
 
-			/* Normal exit */
-
-			return_ACPI_STATUS(AE_OK);
-
-		case ACPI_RESOURCE_TYPE_ADDRESS16:
-			/*
-			 * 16-Bit Address Resource:
-			 * Add the size of the optional resource_source info
-			 */
-			total_size = (acpi_rs_length)(total_size +
-						      acpi_rs_struct_option_length
-						      (&resource->data.
-						       address16.
-						       resource_source));
-			break;
-
-		case ACPI_RESOURCE_TYPE_ADDRESS32:
-			/*
-			 * 32-Bit Address Resource:
-			 * Add the size of the optional resource_source info
-			 */
-			total_size = (acpi_rs_length)(total_size +
-						      acpi_rs_struct_option_length
-						      (&resource->data.
-						       address32.
-						       resource_source));
-			break;
-
-		case ACPI_RESOURCE_TYPE_ADDRESS64:
-			/*
-			 * 64-Bit Address Resource:
-			 * Add the size of the optional resource_source info
-			 */
-			total_size = (acpi_rs_length)(total_size +
-						      acpi_rs_struct_option_length
-						      (&resource->data.
-						       address64.
-						       resource_source));
-			break;
-
-		case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
-			/*
-			 * Extended IRQ Resource:
-			 * Add the size of each additional optional interrupt beyond the
-			 * required 1 (4 bytes for each u32 interrupt number)
-			 */
-			total_size = (acpi_rs_length)(total_size +
-						      ((resource->data.
-							extended_irq.
-							interrupt_count -
-							1) * 4) +
-						      /* Add the size of the optional resource_source info */
-						      acpi_rs_struct_option_length
-						      (&resource->data.
-						       extended_irq.
-						       resource_source));
-			break;
-
-		case ACPI_RESOURCE_TYPE_GPIO:
-
-			total_size = (acpi_rs_length)(total_size +
-						      (resource->data.gpio.
-						       pin_table_length * 2) +
-						      resource->data.gpio.
-						      resource_source.
-						      string_length +
-						      resource->data.gpio.
-						      vendor_length);
-
-			break;
-
-		case ACPI_RESOURCE_TYPE_SERIAL_BUS:
-
-			total_size =
-			    acpi_gbl_aml_resource_serial_bus_sizes[resource->
-								   data.
-								   common_serial_bus.
-								   type];
-
-			total_size = (acpi_rs_length)(total_size +
-						      resource->data.
-						      i2c_serial_bus.
-						      resource_source.
-						      string_length +
-						      resource->data.
-						      i2c_serial_bus.
-						      vendor_length);
-
-			break;
-
-		default:
-
-			break;
+				break;
 		}
 
 		/* Update the total */
@@ -371,8 +385,8 @@ acpi_rs_get_aml_length(struct acpi_resource *resource,
 		/* Point to the next object */
 
 		resource =
-		    ACPI_ADD_PTR(struct acpi_resource, resource,
-				 resource->length);
+			ACPI_ADD_PTR(struct acpi_resource, resource,
+						 resource->length);
 	}
 
 	/* Did not find an end_tag resource descriptor */
@@ -398,7 +412,7 @@ acpi_rs_get_aml_length(struct acpi_resource *resource,
 
 acpi_status
 acpi_rs_get_list_length(u8 *aml_buffer,
-			u32 aml_buffer_length, acpi_size *size_needed)
+						u32 aml_buffer_length, acpi_size *size_needed)
 {
 	acpi_status status;
 	u8 *end_aml;
@@ -418,14 +432,17 @@ acpi_rs_get_list_length(u8 *aml_buffer,
 
 	/* Walk the list of AML resource descriptors */
 
-	while (aml_buffer < end_aml) {
+	while (aml_buffer < end_aml)
+	{
 
 		/* Validate the Resource Type and Resource Length */
 
 		status =
-		    acpi_ut_validate_resource(NULL, aml_buffer,
-					      &resource_index);
-		if (ACPI_FAILURE(status)) {
+			acpi_ut_validate_resource(NULL, aml_buffer,
+									  &resource_index);
+
+		if (ACPI_FAILURE(status))
+		{
 			/*
 			 * Exit on failure. Cannot continue because the descriptor length
 			 * may be bogus also.
@@ -439,7 +456,7 @@ acpi_rs_get_list_length(u8 *aml_buffer,
 
 		resource_length = acpi_ut_get_resource_length(aml_buffer);
 		minimum_aml_resource_length =
-		    acpi_gbl_resource_aml_sizes[resource_index];
+			acpi_gbl_resource_aml_sizes[resource_index];
 
 		/*
 		 * Augment the size for descriptors with optional
@@ -447,109 +464,116 @@ acpi_rs_get_list_length(u8 *aml_buffer,
 		 */
 		extra_struct_bytes = 0;
 		buffer =
-		    aml_buffer + acpi_ut_get_resource_header_length(aml_buffer);
+			aml_buffer + acpi_ut_get_resource_header_length(aml_buffer);
 
-		switch (acpi_ut_get_resource_type(aml_buffer)) {
-		case ACPI_RESOURCE_NAME_IRQ:
-			/*
-			 * IRQ Resource:
-			 * Get the number of bits set in the 16-bit IRQ mask
-			 */
-			ACPI_MOVE_16_TO_16(&temp16, buffer);
-			extra_struct_bytes = acpi_rs_count_set_bits(temp16);
-			break;
+		switch (acpi_ut_get_resource_type(aml_buffer))
+		{
+			case ACPI_RESOURCE_NAME_IRQ:
+				/*
+				 * IRQ Resource:
+				 * Get the number of bits set in the 16-bit IRQ mask
+				 */
+				ACPI_MOVE_16_TO_16(&temp16, buffer);
+				extra_struct_bytes = acpi_rs_count_set_bits(temp16);
+				break;
 
-		case ACPI_RESOURCE_NAME_DMA:
-			/*
-			 * DMA Resource:
-			 * Get the number of bits set in the 8-bit DMA mask
-			 */
-			extra_struct_bytes = acpi_rs_count_set_bits(*buffer);
-			break;
+			case ACPI_RESOURCE_NAME_DMA:
+				/*
+				 * DMA Resource:
+				 * Get the number of bits set in the 8-bit DMA mask
+				 */
+				extra_struct_bytes = acpi_rs_count_set_bits(*buffer);
+				break;
 
-		case ACPI_RESOURCE_NAME_VENDOR_SMALL:
-		case ACPI_RESOURCE_NAME_VENDOR_LARGE:
-			/*
-			 * Vendor Resource:
-			 * Get the number of vendor data bytes
-			 */
-			extra_struct_bytes = resource_length;
+			case ACPI_RESOURCE_NAME_VENDOR_SMALL:
+			case ACPI_RESOURCE_NAME_VENDOR_LARGE:
+				/*
+				 * Vendor Resource:
+				 * Get the number of vendor data bytes
+				 */
+				extra_struct_bytes = resource_length;
 
-			/*
-			 * There is already one byte included in the minimum
-			 * descriptor size. If there are extra struct bytes,
-			 * subtract one from the count.
-			 */
-			if (extra_struct_bytes) {
-				extra_struct_bytes--;
-			}
-			break;
+				/*
+				 * There is already one byte included in the minimum
+				 * descriptor size. If there are extra struct bytes,
+				 * subtract one from the count.
+				 */
+				if (extra_struct_bytes)
+				{
+					extra_struct_bytes--;
+				}
 
-		case ACPI_RESOURCE_NAME_END_TAG:
-			/*
-			 * End Tag: This is the normal exit
-			 */
-			return_ACPI_STATUS(AE_OK);
+				break;
 
-		case ACPI_RESOURCE_NAME_ADDRESS32:
-		case ACPI_RESOURCE_NAME_ADDRESS16:
-		case ACPI_RESOURCE_NAME_ADDRESS64:
-			/*
-			 * Address Resource:
-			 * Add the size of the optional resource_source
-			 */
-			extra_struct_bytes =
-			    acpi_rs_stream_option_length(resource_length,
-							 minimum_aml_resource_length);
-			break;
+			case ACPI_RESOURCE_NAME_END_TAG:
+				/*
+				 * End Tag: This is the normal exit
+				 */
+				return_ACPI_STATUS(AE_OK);
 
-		case ACPI_RESOURCE_NAME_EXTENDED_IRQ:
-			/*
-			 * Extended IRQ Resource:
-			 * Using the interrupt_table_length, add 4 bytes for each additional
-			 * interrupt. Note: at least one interrupt is required and is
-			 * included in the minimum descriptor size (reason for the -1)
-			 */
-			extra_struct_bytes = (buffer[1] - 1) * sizeof(u32);
+			case ACPI_RESOURCE_NAME_ADDRESS32:
+			case ACPI_RESOURCE_NAME_ADDRESS16:
+			case ACPI_RESOURCE_NAME_ADDRESS64:
+				/*
+				 * Address Resource:
+				 * Add the size of the optional resource_source
+				 */
+				extra_struct_bytes =
+					acpi_rs_stream_option_length(resource_length,
+												 minimum_aml_resource_length);
+				break;
 
-			/* Add the size of the optional resource_source */
+			case ACPI_RESOURCE_NAME_EXTENDED_IRQ:
+				/*
+				 * Extended IRQ Resource:
+				 * Using the interrupt_table_length, add 4 bytes for each additional
+				 * interrupt. Note: at least one interrupt is required and is
+				 * included in the minimum descriptor size (reason for the -1)
+				 */
+				extra_struct_bytes = (buffer[1] - 1) * sizeof(u32);
 
-			extra_struct_bytes +=
-			    acpi_rs_stream_option_length(resource_length -
-							 extra_struct_bytes,
-							 minimum_aml_resource_length);
-			break;
+				/* Add the size of the optional resource_source */
 
-		case ACPI_RESOURCE_NAME_GPIO:
-
-			/* Vendor data is optional */
-
-			if (aml_resource->gpio.vendor_length) {
 				extra_struct_bytes +=
-				    aml_resource->gpio.vendor_offset -
-				    aml_resource->gpio.pin_table_offset +
-				    aml_resource->gpio.vendor_length;
-			} else {
+					acpi_rs_stream_option_length(resource_length -
+												 extra_struct_bytes,
+												 minimum_aml_resource_length);
+				break;
+
+			case ACPI_RESOURCE_NAME_GPIO:
+
+				/* Vendor data is optional */
+
+				if (aml_resource->gpio.vendor_length)
+				{
+					extra_struct_bytes +=
+						aml_resource->gpio.vendor_offset -
+						aml_resource->gpio.pin_table_offset +
+						aml_resource->gpio.vendor_length;
+				}
+				else
+				{
+					extra_struct_bytes +=
+						aml_resource->large_header.resource_length +
+						sizeof(struct aml_resource_large_header) -
+						aml_resource->gpio.pin_table_offset;
+				}
+
+				break;
+
+			case ACPI_RESOURCE_NAME_SERIAL_BUS:
+
+				minimum_aml_resource_length =
+					acpi_gbl_resource_aml_serial_bus_sizes
+					[aml_resource->common_serial_bus.type];
 				extra_struct_bytes +=
-				    aml_resource->large_header.resource_length +
-				    sizeof(struct aml_resource_large_header) -
-				    aml_resource->gpio.pin_table_offset;
-			}
-			break;
+					aml_resource->common_serial_bus.resource_length -
+					minimum_aml_resource_length;
+				break;
 
-		case ACPI_RESOURCE_NAME_SERIAL_BUS:
+			default:
 
-			minimum_aml_resource_length =
-			    acpi_gbl_resource_aml_serial_bus_sizes
-			    [aml_resource->common_serial_bus.type];
-			extra_struct_bytes +=
-			    aml_resource->common_serial_bus.resource_length -
-			    minimum_aml_resource_length;
-			break;
-
-		default:
-
-			break;
+				break;
 		}
 
 		/*
@@ -559,25 +583,28 @@ acpi_rs_get_list_length(u8 *aml_buffer,
 		 * is a requirement on IA64.
 		 */
 		if (acpi_ut_get_resource_type(aml_buffer) ==
-		    ACPI_RESOURCE_NAME_SERIAL_BUS) {
+			ACPI_RESOURCE_NAME_SERIAL_BUS)
+		{
 			buffer_size =
-			    acpi_gbl_resource_struct_serial_bus_sizes
-			    [aml_resource->common_serial_bus.type] +
-			    extra_struct_bytes;
-		} else {
+				acpi_gbl_resource_struct_serial_bus_sizes
+				[aml_resource->common_serial_bus.type] +
+				extra_struct_bytes;
+		}
+		else
+		{
 			buffer_size =
-			    acpi_gbl_resource_struct_sizes[resource_index] +
-			    extra_struct_bytes;
+				acpi_gbl_resource_struct_sizes[resource_index] +
+				extra_struct_bytes;
 		}
 
 		buffer_size = (u32)ACPI_ROUND_UP_TO_NATIVE_WORD(buffer_size);
 		*size_needed += buffer_size;
 
 		ACPI_DEBUG_PRINT((ACPI_DB_RESOURCES,
-				  "Type %.2X, AmlLength %.2X InternalLength %.2X\n",
-				  acpi_ut_get_resource_type(aml_buffer),
-				  acpi_ut_get_descriptor_length(aml_buffer),
-				  buffer_size));
+						  "Type %.2X, AmlLength %.2X InternalLength %.2X\n",
+						  acpi_ut_get_resource_type(aml_buffer),
+						  acpi_ut_get_descriptor_length(aml_buffer),
+						  buffer_size));
 
 		/*
 		 * Point to the next resource within the AML stream using the length
@@ -610,7 +637,7 @@ acpi_rs_get_list_length(u8 *aml_buffer,
 
 acpi_status
 acpi_rs_get_pci_routing_table_length(union acpi_operand_object *package_object,
-				     acpi_size *buffer_size_needed)
+									 acpi_size *buffer_size_needed)
 {
 	u32 number_of_elements;
 	acpi_size temp_size_needed = 0;
@@ -637,7 +664,8 @@ acpi_rs_get_pci_routing_table_length(union acpi_operand_object *package_object,
 	 */
 	top_object_list = package_object->package.elements;
 
-	for (index = 0; index < number_of_elements; index++) {
+	for (index = 0; index < number_of_elements; index++)
+	{
 
 		/* Dereference the subpackage */
 
@@ -646,7 +674,8 @@ acpi_rs_get_pci_routing_table_length(union acpi_operand_object *package_object,
 		/* We must have a valid Package object */
 
 		if (!package_element ||
-		    (package_element->common.type != ACPI_TYPE_PACKAGE)) {
+			(package_element->common.type != ACPI_TYPE_PACKAGE))
+		{
 			return_ACPI_STATUS(AE_AML_OPERAND_TYPE);
 		}
 
@@ -661,17 +690,21 @@ acpi_rs_get_pci_routing_table_length(union acpi_operand_object *package_object,
 		name_found = FALSE;
 
 		for (table_index = 0;
-		     table_index < package_element->package.count
-		     && !name_found; table_index++) {
+			 table_index < package_element->package.count
+			 && !name_found; table_index++)
+		{
 			if (*sub_object_list &&	/* Null object allowed */
-			    ((ACPI_TYPE_STRING ==
-			      (*sub_object_list)->common.type) ||
-			     ((ACPI_TYPE_LOCAL_REFERENCE ==
-			       (*sub_object_list)->common.type) &&
-			      ((*sub_object_list)->reference.class ==
-			       ACPI_REFCLASS_NAME)))) {
+				((ACPI_TYPE_STRING ==
+				  (*sub_object_list)->common.type) ||
+				 ((ACPI_TYPE_LOCAL_REFERENCE ==
+				   (*sub_object_list)->common.type) &&
+				  ((*sub_object_list)->reference.class ==
+				   ACPI_REFCLASS_NAME))))
+			{
 				name_found = TRUE;
-			} else {
+			}
+			else
+			{
 				/* Look at the next element */
 
 				sub_object_list++;
@@ -682,19 +715,25 @@ acpi_rs_get_pci_routing_table_length(union acpi_operand_object *package_object,
 
 		/* Was a String type found? */
 
-		if (name_found) {
-			if ((*sub_object_list)->common.type == ACPI_TYPE_STRING) {
+		if (name_found)
+		{
+			if ((*sub_object_list)->common.type == ACPI_TYPE_STRING)
+			{
 				/*
 				 * The length String.Length field does not include the
 				 * terminating NULL, add 1
 				 */
 				temp_size_needed += ((acpi_size)
-						     (*sub_object_list)->string.
-						     length + 1);
-			} else {
+									 (*sub_object_list)->string.
+									 length + 1);
+			}
+			else
+			{
 				temp_size_needed += acpi_ns_get_pathname_length((*sub_object_list)->reference.node);
 			}
-		} else {
+		}
+		else
+		{
 			/*
 			 * If no name was found, then this is a NULL, which is
 			 * translated as a u32 zero.
@@ -716,6 +755,6 @@ acpi_rs_get_pci_routing_table_length(union acpi_operand_object *package_object,
 	 * NULL terminator
 	 */
 	*buffer_size_needed =
-	    temp_size_needed + sizeof(struct acpi_pci_routing_table);
+		temp_size_needed + sizeof(struct acpi_pci_routing_table);
 	return_ACPI_STATUS(AE_OK);
 }

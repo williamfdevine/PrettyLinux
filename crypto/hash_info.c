@@ -13,7 +13,8 @@
 #include <linux/export.h>
 #include <crypto/hash_info.h>
 
-const char *const hash_algo_name[HASH_ALGO__LAST] = {
+const char *const hash_algo_name[HASH_ALGO__LAST] =
+{
 	[HASH_ALGO_MD4]		= "md4",
 	[HASH_ALGO_MD5]		= "md5",
 	[HASH_ALGO_SHA1]	= "sha1",
@@ -35,7 +36,8 @@ const char *const hash_algo_name[HASH_ALGO__LAST] = {
 };
 EXPORT_SYMBOL_GPL(hash_algo_name);
 
-const int hash_digest_size[HASH_ALGO__LAST] = {
+const int hash_digest_size[HASH_ALGO__LAST] =
+{
 	[HASH_ALGO_MD4]		= MD5_DIGEST_SIZE,
 	[HASH_ALGO_MD5]		= MD5_DIGEST_SIZE,
 	[HASH_ALGO_SHA1]	= SHA1_DIGEST_SIZE,

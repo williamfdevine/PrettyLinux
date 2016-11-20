@@ -41,7 +41,8 @@
 #define MII_DATA_OP_READ     2
 #define MII_DATA_SB_SHIFT    30
 
-struct iproc_mdio_priv {
+struct iproc_mdio_priv
+{
 	struct mii_bus *mii_bus;
 	void __iomem *base;
 };
@@ -51,13 +52,18 @@ static inline int iproc_mdio_wait_for_idle(void __iomem *base)
 	u32 val;
 	unsigned int timeout = 1000; /* loop for 1s */
 
-	do {
+	do
+	{
 		val = readl(base + MII_CTRL_OFFSET);
+
 		if ((val & BIT(MII_CTRL_BUSY_SHIFT)) == 0)
+		{
 			return 0;
+		}
 
 		usleep_range(1000, 2000);
-	} while (timeout--);
+	}
+	while (timeout--);
 
 	return -ETIMEDOUT;
 }
@@ -78,23 +84,29 @@ static int iproc_mdio_read(struct mii_bus *bus, int phy_id, int reg)
 	int rc;
 
 	rc = iproc_mdio_wait_for_idle(priv->base);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	iproc_mdio_config_clk(priv->base);
 
 	/* Prepare the read operation */
 	cmd = (MII_DATA_TA_VAL << MII_DATA_TA_SHIFT) |
-		(reg << MII_DATA_RA_SHIFT) |
-		(phy_id << MII_DATA_PA_SHIFT) |
-		BIT(MII_DATA_SB_SHIFT) |
-		(MII_DATA_OP_READ << MII_DATA_OP_SHIFT);
+		  (reg << MII_DATA_RA_SHIFT) |
+		  (phy_id << MII_DATA_PA_SHIFT) |
+		  BIT(MII_DATA_SB_SHIFT) |
+		  (MII_DATA_OP_READ << MII_DATA_OP_SHIFT);
 
 	writel(cmd, priv->base + MII_DATA_OFFSET);
 
 	rc = iproc_mdio_wait_for_idle(priv->base);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	cmd = readl(priv->base + MII_DATA_OFFSET) & MII_DATA_MASK;
 
@@ -102,31 +114,37 @@ static int iproc_mdio_read(struct mii_bus *bus, int phy_id, int reg)
 }
 
 static int iproc_mdio_write(struct mii_bus *bus, int phy_id,
-			    int reg, u16 val)
+							int reg, u16 val)
 {
 	struct iproc_mdio_priv *priv = bus->priv;
 	u32 cmd;
 	int rc;
 
 	rc = iproc_mdio_wait_for_idle(priv->base);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	iproc_mdio_config_clk(priv->base);
 
 	/* Prepare the write operation */
 	cmd = (MII_DATA_TA_VAL << MII_DATA_TA_SHIFT) |
-		(reg << MII_DATA_RA_SHIFT) |
-		(phy_id << MII_DATA_PA_SHIFT) |
-		BIT(MII_DATA_SB_SHIFT) |
-		(MII_DATA_OP_WRITE << MII_DATA_OP_SHIFT) |
-		((u32)(val) & MII_DATA_MASK);
+		  (reg << MII_DATA_RA_SHIFT) |
+		  (phy_id << MII_DATA_PA_SHIFT) |
+		  BIT(MII_DATA_SB_SHIFT) |
+		  (MII_DATA_OP_WRITE << MII_DATA_OP_SHIFT) |
+		  ((u32)(val) & MII_DATA_MASK);
 
 	writel(cmd, priv->base + MII_DATA_OFFSET);
 
 	rc = iproc_mdio_wait_for_idle(priv->base);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	return 0;
 }
@@ -139,18 +157,25 @@ static int iproc_mdio_probe(struct platform_device *pdev)
 	int rc;
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->base = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(priv->base)) {
+
+	if (IS_ERR(priv->base))
+	{
 		dev_err(&pdev->dev, "failed to ioremap register\n");
 		return PTR_ERR(priv->base);
 	}
 
 	priv->mii_bus = mdiobus_alloc();
-	if (!priv->mii_bus) {
+
+	if (!priv->mii_bus)
+	{
 		dev_err(&pdev->dev, "MDIO bus alloc failed\n");
 		return -ENOMEM;
 	}
@@ -164,7 +189,9 @@ static int iproc_mdio_probe(struct platform_device *pdev)
 	bus->write = iproc_mdio_write;
 
 	rc = of_mdiobus_register(bus, pdev->dev.of_node);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&pdev->dev, "MDIO bus registration failed\n");
 		goto err_iproc_mdio;
 	}
@@ -190,13 +217,15 @@ static int iproc_mdio_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id iproc_mdio_of_match[] = {
+static const struct of_device_id iproc_mdio_of_match[] =
+{
 	{ .compatible = "brcm,iproc-mdio", },
 	{ /* sentinel */ },
 };
 MODULE_DEVICE_TABLE(of, iproc_mdio_of_match);
 
-static struct platform_driver iproc_mdio_driver = {
+static struct platform_driver iproc_mdio_driver =
+{
 	.driver = {
 		.name = "iproc-mdio",
 		.of_match_table = iproc_mdio_of_match,

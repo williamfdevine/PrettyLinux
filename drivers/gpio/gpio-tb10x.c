@@ -52,7 +52,8 @@
  * @irq: Interrupt line of parent interrupt controller
  * @gc: gpio_chip structure associated to this GPIO controller
  */
-struct tb10x_gpio {
+struct tb10x_gpio
+{
 	spinlock_t spinlock;
 	void __iomem *base;
 	struct irq_domain *domain;
@@ -66,13 +67,13 @@ static inline u32 tb10x_reg_read(struct tb10x_gpio *gpio, unsigned int offs)
 }
 
 static inline void tb10x_reg_write(struct tb10x_gpio *gpio, unsigned int offs,
-				u32 val)
+								   u32 val)
 {
 	iowrite32(val, gpio->base + offs);
 }
 
 static inline void tb10x_set_bits(struct tb10x_gpio *gpio, unsigned int offs,
-				u32 mask, u32 val)
+								  u32 mask, u32 val)
 {
 	u32 r;
 	unsigned long flags;
@@ -106,9 +107,13 @@ static int tb10x_gpio_get(struct gpio_chip *chip, unsigned offset)
 	val = tb10x_reg_read(tb10x_gpio, OFFSET_TO_REG_DATA);
 
 	if (val & BIT(offset))
+	{
 		return 1;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 static void tb10x_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
@@ -121,7 +126,7 @@ static void tb10x_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 }
 
 static int tb10x_gpio_direction_out(struct gpio_chip *chip,
-					unsigned offset, int value)
+									unsigned offset, int value)
 {
 	struct tb10x_gpio *tb10x_gpio = gpiochip_get_data(chip);
 	int mask = BIT(offset);
@@ -142,7 +147,8 @@ static int tb10x_gpio_to_irq(struct gpio_chip *chip, unsigned offset)
 
 static int tb10x_gpio_irq_set_type(struct irq_data *data, unsigned int type)
 {
-	if ((type & IRQF_TRIGGER_MASK) != IRQ_TYPE_EDGE_BOTH) {
+	if ((type & IRQF_TRIGGER_MASK) != IRQ_TYPE_EDGE_BOTH)
+	{
 		pr_err("Only (both) edge triggered interrupts supported.\n");
 		return -EINVAL;
 	}
@@ -161,7 +167,7 @@ static irqreturn_t tb10x_gpio_irq_cascade(int irq, void *data)
 	int i;
 
 	for_each_set_bit(i, &bits, 32)
-		generic_handle_irq(irq_find_mapping(tb10x_gpio->domain, i));
+	generic_handle_irq(irq_find_mapping(tb10x_gpio->domain, i));
 
 	return IRQ_HANDLED;
 }
@@ -175,21 +181,31 @@ static int tb10x_gpio_probe(struct platform_device *pdev)
 	u32 ngpio;
 
 	if (!dn)
+	{
 		return -EINVAL;
+	}
 
 	if (of_property_read_u32(dn, "abilis,ngpio", &ngpio))
+	{
 		return -EINVAL;
+	}
 
 	tb10x_gpio = devm_kzalloc(&pdev->dev, sizeof(*tb10x_gpio), GFP_KERNEL);
+
 	if (tb10x_gpio == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&tb10x_gpio->spinlock);
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	tb10x_gpio->base = devm_ioremap_resource(&pdev->dev, mem);
+
 	if (IS_ERR(tb10x_gpio->base))
+	{
 		return PTR_ERR(tb10x_gpio->base);
+	}
 
 	tb10x_gpio->gc.label		= of_node_full_name(dn);
 	tb10x_gpio->gc.parent		= &pdev->dev;
@@ -206,18 +222,23 @@ static int tb10x_gpio_probe(struct platform_device *pdev)
 
 
 	ret = devm_gpiochip_add_data(&pdev->dev, &tb10x_gpio->gc, tb10x_gpio);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Could not add gpiochip.\n");
 		return ret;
 	}
 
 	platform_set_drvdata(pdev, tb10x_gpio);
 
-	if (of_find_property(dn, "interrupt-controller", NULL)) {
+	if (of_find_property(dn, "interrupt-controller", NULL))
+	{
 		struct irq_chip_generic *gc;
 
 		ret = platform_get_irq(pdev, 0);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(&pdev->dev, "No interrupt specified.\n");
 			return ret;
 		}
@@ -226,24 +247,32 @@ static int tb10x_gpio_probe(struct platform_device *pdev)
 		tb10x_gpio->irq		= ret;
 
 		ret = devm_request_irq(&pdev->dev, ret, tb10x_gpio_irq_cascade,
-				IRQF_TRIGGER_NONE | IRQF_SHARED,
-				dev_name(&pdev->dev), tb10x_gpio);
+							   IRQF_TRIGGER_NONE | IRQF_SHARED,
+							   dev_name(&pdev->dev), tb10x_gpio);
+
 		if (ret != 0)
+		{
 			return ret;
+		}
 
 		tb10x_gpio->domain = irq_domain_add_linear(dn,
-						tb10x_gpio->gc.ngpio,
-						&irq_generic_chip_ops, NULL);
-		if (!tb10x_gpio->domain) {
+							 tb10x_gpio->gc.ngpio,
+							 &irq_generic_chip_ops, NULL);
+
+		if (!tb10x_gpio->domain)
+		{
 			return -ENOMEM;
 		}
 
 		ret = irq_alloc_domain_generic_chips(tb10x_gpio->domain,
-				tb10x_gpio->gc.ngpio, 1, tb10x_gpio->gc.label,
-				handle_edge_irq, IRQ_NOREQUEST, IRQ_NOPROBE,
-				IRQ_GC_INIT_MASK_CACHE);
+											 tb10x_gpio->gc.ngpio, 1, tb10x_gpio->gc.label,
+											 handle_edge_irq, IRQ_NOREQUEST, IRQ_NOPROBE,
+											 IRQ_GC_INIT_MASK_CACHE);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		gc = tb10x_gpio->domain->gc->gc[0];
 		gc->reg_base                         = tb10x_gpio->base;
@@ -263,9 +292,10 @@ static int tb10x_gpio_remove(struct platform_device *pdev)
 {
 	struct tb10x_gpio *tb10x_gpio = platform_get_drvdata(pdev);
 
-	if (tb10x_gpio->gc.to_irq) {
+	if (tb10x_gpio->gc.to_irq)
+	{
 		irq_remove_generic_chip(tb10x_gpio->domain->gc->gc[0],
-					BIT(tb10x_gpio->gc.ngpio) - 1, 0, 0);
+								BIT(tb10x_gpio->gc.ngpio) - 1, 0, 0);
 		kfree(tb10x_gpio->domain->gc);
 		irq_domain_remove(tb10x_gpio->domain);
 	}
@@ -273,13 +303,15 @@ static int tb10x_gpio_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id tb10x_gpio_dt_ids[] = {
+static const struct of_device_id tb10x_gpio_dt_ids[] =
+{
 	{ .compatible = "abilis,tb10x-gpio" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, tb10x_gpio_dt_ids);
 
-static struct platform_driver tb10x_gpio_driver = {
+static struct platform_driver tb10x_gpio_driver =
+{
 	.probe		= tb10x_gpio_probe,
 	.remove		= tb10x_gpio_remove,
 	.driver = {

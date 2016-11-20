@@ -27,7 +27,8 @@ enum { LSB, CSB, MSB };
 /* No variant has more than 24 GPIOs */
 #define CACHE_NR_BANKS	(24 / 8)
 
-struct stmpe_gpio {
+struct stmpe_gpio
+{
 	struct gpio_chip chip;
 	struct stmpe *stmpe;
 	struct device *dev;
@@ -47,8 +48,11 @@ static int stmpe_gpio_get(struct gpio_chip *chip, unsigned offset)
 	int ret;
 
 	ret = stmpe_reg_read(stmpe, reg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return !!(ret & mask);
 }
@@ -66,13 +70,17 @@ static void stmpe_gpio_set(struct gpio_chip *chip, unsigned offset, int val)
 	 * For them we need to write 0 to clear and 1 to set.
 	 */
 	if (stmpe->regs[STMPE_IDX_GPSR_LSB] == stmpe->regs[STMPE_IDX_GPCR_LSB])
+	{
 		stmpe_set_bits(stmpe, reg, mask, val ? mask : 0);
+	}
 	else
+	{
 		stmpe_reg_write(stmpe, reg, mask);
+	}
 }
 
 static int stmpe_gpio_get_direction(struct gpio_chip *chip,
-				    unsigned offset)
+									unsigned offset)
 {
 	struct stmpe_gpio *stmpe_gpio = gpiochip_get_data(chip);
 	struct stmpe *stmpe = stmpe_gpio->stmpe;
@@ -81,14 +89,17 @@ static int stmpe_gpio_get_direction(struct gpio_chip *chip,
 	int ret;
 
 	ret = stmpe_reg_read(stmpe, reg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return !(ret & mask);
 }
 
 static int stmpe_gpio_direction_output(struct gpio_chip *chip,
-					 unsigned offset, int val)
+									   unsigned offset, int val)
 {
 	struct stmpe_gpio *stmpe_gpio = gpiochip_get_data(chip);
 	struct stmpe *stmpe = stmpe_gpio->stmpe;
@@ -101,7 +112,7 @@ static int stmpe_gpio_direction_output(struct gpio_chip *chip,
 }
 
 static int stmpe_gpio_direction_input(struct gpio_chip *chip,
-					unsigned offset)
+									  unsigned offset)
 {
 	struct stmpe_gpio *stmpe_gpio = gpiochip_get_data(chip);
 	struct stmpe *stmpe = stmpe_gpio->stmpe;
@@ -117,12 +128,15 @@ static int stmpe_gpio_request(struct gpio_chip *chip, unsigned offset)
 	struct stmpe *stmpe = stmpe_gpio->stmpe;
 
 	if (stmpe_gpio->norequest_mask & BIT(offset))
+	{
 		return -EINVAL;
+	}
 
 	return stmpe_set_altfunc(stmpe, BIT(offset), STMPE_BLOCK_GPIO);
 }
 
-static const struct gpio_chip template_chip = {
+static const struct gpio_chip template_chip =
+{
 	.label			= "stmpe",
 	.owner			= THIS_MODULE,
 	.get_direction		= stmpe_gpio_get_direction,
@@ -143,22 +157,34 @@ static int stmpe_gpio_irq_set_type(struct irq_data *d, unsigned int type)
 	int mask = BIT(offset % 8);
 
 	if (type & IRQ_TYPE_LEVEL_LOW || type & IRQ_TYPE_LEVEL_HIGH)
+	{
 		return -EINVAL;
+	}
 
 	/* STMPE801 and STMPE 1600 don't have RE and FE registers */
 	if (stmpe_gpio->stmpe->partnum == STMPE801 ||
-	    stmpe_gpio->stmpe->partnum == STMPE1600)
+		stmpe_gpio->stmpe->partnum == STMPE1600)
+	{
 		return 0;
+	}
 
 	if (type & IRQ_TYPE_EDGE_RISING)
+	{
 		stmpe_gpio->regs[REG_RE][regoffset] |= mask;
+	}
 	else
+	{
 		stmpe_gpio->regs[REG_RE][regoffset] &= ~mask;
+	}
 
 	if (type & IRQ_TYPE_EDGE_FALLING)
+	{
 		stmpe_gpio->regs[REG_FE][regoffset] |= mask;
+	}
 	else
+	{
 		stmpe_gpio->regs[REG_FE][regoffset] &= ~mask;
+	}
 
 	return 0;
 }
@@ -177,7 +203,8 @@ static void stmpe_gpio_irq_sync_unlock(struct irq_data *d)
 	struct stmpe_gpio *stmpe_gpio = gpiochip_get_data(gc);
 	struct stmpe *stmpe = stmpe_gpio->stmpe;
 	int num_banks = DIV_ROUND_UP(stmpe->num_gpios, 8);
-	static const u8 regmap[CACHE_NR_REGS][CACHE_NR_BANKS] = {
+	static const u8 regmap[CACHE_NR_REGS][CACHE_NR_BANKS] =
+	{
 		[REG_RE][LSB] = STMPE_IDX_GPRER_LSB,
 		[REG_RE][CSB] = STMPE_IDX_GPRER_CSB,
 		[REG_RE][MSB] = STMPE_IDX_GPRER_MSB,
@@ -190,19 +217,25 @@ static void stmpe_gpio_irq_sync_unlock(struct irq_data *d)
 	};
 	int i, j;
 
-	for (i = 0; i < CACHE_NR_REGS; i++) {
+	for (i = 0; i < CACHE_NR_REGS; i++)
+	{
 		/* STMPE801 and STMPE1600 don't have RE and FE registers */
 		if ((stmpe->partnum == STMPE801 ||
-		     stmpe->partnum == STMPE1600) &&
-		     (i != REG_IE))
+			 stmpe->partnum == STMPE1600) &&
+			(i != REG_IE))
+		{
 			continue;
+		}
 
-		for (j = 0; j < num_banks; j++) {
+		for (j = 0; j < num_banks; j++)
+		{
 			u8 old = stmpe_gpio->oldregs[i][j];
 			u8 new = stmpe_gpio->regs[i][j];
 
 			if (new == old)
+			{
 				continue;
+			}
 
 			stmpe_gpio->oldregs[i][j] = new;
 			stmpe_reg_write(stmpe, stmpe->regs[regmap[i][j]], new);
@@ -241,12 +274,12 @@ static void stmpe_gpio_irq_unmask(struct irq_data *d)
 	 */
 	if (stmpe->partnum == STMPE1600)
 		stmpe_reg_read(stmpe,
-			       stmpe->regs[STMPE_IDX_GPMR_LSB + regoffset]);
+					   stmpe->regs[STMPE_IDX_GPMR_LSB + regoffset]);
 }
 
 static void stmpe_dbg_show_one(struct seq_file *s,
-			       struct gpio_chip *gc,
-			       unsigned offset, unsigned gpio)
+							   struct gpio_chip *gc,
+							   unsigned offset, unsigned gpio)
 {
 	struct stmpe_gpio *stmpe_gpio = gpiochip_get_data(gc);
 	struct stmpe *stmpe = stmpe_gpio->stmpe;
@@ -259,81 +292,108 @@ static void stmpe_dbg_show_one(struct seq_file *s,
 	u8 dir;
 
 	ret = stmpe_reg_read(stmpe, dir_reg);
+
 	if (ret < 0)
+	{
 		return;
+	}
+
 	dir = !!(ret & mask);
 
-	if (dir) {
+	if (dir)
+	{
 		seq_printf(s, " gpio-%-3d (%-20.20s) out %s",
-			   gpio, label ?: "(none)",
-			   val ? "hi" : "lo");
-	} else {
+				   gpio, label ? : "(none)",
+				   val ? "hi" : "lo");
+	}
+	else
+	{
 		u8 edge_det_reg;
 		u8 rise_reg;
 		u8 fall_reg;
 		u8 irqen_reg;
 
 		char *edge_det_values[] = {"edge-inactive",
-					   "edge-asserted",
-					   "not-supported"};
+								   "edge-asserted",
+								   "not-supported"
+								  };
 		char *rise_values[] = {"no-rising-edge-detection",
-				       "rising-edge-detection",
-				       "not-supported"};
+							   "rising-edge-detection",
+							   "not-supported"
+							  };
 		char *fall_values[] = {"no-falling-edge-detection",
-				       "falling-edge-detection",
-				       "not-supported"};
-		#define NOT_SUPPORTED_IDX 2
+							   "falling-edge-detection",
+							   "not-supported"
+							  };
+#define NOT_SUPPORTED_IDX 2
 		u8 edge_det = NOT_SUPPORTED_IDX;
 		u8 rise = NOT_SUPPORTED_IDX;
 		u8 fall = NOT_SUPPORTED_IDX;
 		bool irqen;
 
-		switch (stmpe->partnum) {
-		case STMPE610:
-		case STMPE811:
-		case STMPE1601:
-		case STMPE2401:
-		case STMPE2403:
-			edge_det_reg = stmpe->regs[STMPE_IDX_GPEDR_LSB + bank];
-			ret = stmpe_reg_read(stmpe, edge_det_reg);
-			if (ret < 0)
+		switch (stmpe->partnum)
+		{
+			case STMPE610:
+			case STMPE811:
+			case STMPE1601:
+			case STMPE2401:
+			case STMPE2403:
+				edge_det_reg = stmpe->regs[STMPE_IDX_GPEDR_LSB + bank];
+				ret = stmpe_reg_read(stmpe, edge_det_reg);
+
+				if (ret < 0)
+				{
+					return;
+				}
+
+				edge_det = !!(ret & mask);
+
+			case STMPE1801:
+				rise_reg = stmpe->regs[STMPE_IDX_GPRER_LSB + bank];
+				fall_reg = stmpe->regs[STMPE_IDX_GPFER_LSB + bank];
+
+				ret = stmpe_reg_read(stmpe, rise_reg);
+
+				if (ret < 0)
+				{
+					return;
+				}
+
+				rise = !!(ret & mask);
+				ret = stmpe_reg_read(stmpe, fall_reg);
+
+				if (ret < 0)
+				{
+					return;
+				}
+
+				fall = !!(ret & mask);
+
+			case STMPE801:
+			case STMPE1600:
+				irqen_reg = stmpe->regs[STMPE_IDX_IEGPIOR_LSB + bank];
+				break;
+
+			default:
 				return;
-			edge_det = !!(ret & mask);
-
-		case STMPE1801:
-			rise_reg = stmpe->regs[STMPE_IDX_GPRER_LSB + bank];
-			fall_reg = stmpe->regs[STMPE_IDX_GPFER_LSB + bank];
-
-			ret = stmpe_reg_read(stmpe, rise_reg);
-			if (ret < 0)
-				return;
-			rise = !!(ret & mask);
-			ret = stmpe_reg_read(stmpe, fall_reg);
-			if (ret < 0)
-				return;
-			fall = !!(ret & mask);
-
-		case STMPE801:
-		case STMPE1600:
-			irqen_reg = stmpe->regs[STMPE_IDX_IEGPIOR_LSB + bank];
-			break;
-
-		default:
-			return;
 		}
 
 		ret = stmpe_reg_read(stmpe, irqen_reg);
+
 		if (ret < 0)
+		{
 			return;
+		}
+
 		irqen = !!(ret & mask);
 
 		seq_printf(s, " gpio-%-3d (%-20.20s) in  %s %13s %13s %25s %25s",
-			   gpio, label ?: "(none)",
-			   val ? "hi" : "lo",
-			   edge_det_values[edge_det],
-			   irqen ? "IRQ-enabled" : "IRQ-disabled",
-			   rise_values[rise],
-			   fall_values[fall]);
+				   gpio, label ? : "(none)",
+				   val ? "hi" : "lo",
+				   edge_det_values[edge_det],
+				   irqen ? "IRQ-enabled" : "IRQ-disabled",
+				   rise_values[rise],
+				   fall_values[fall]);
 	}
 }
 
@@ -342,13 +402,15 @@ static void stmpe_dbg_show(struct seq_file *s, struct gpio_chip *gc)
 	unsigned i;
 	unsigned gpio = gc->base;
 
-	for (i = 0; i < gc->ngpio; i++, gpio++) {
+	for (i = 0; i < gc->ngpio; i++, gpio++)
+	{
 		stmpe_dbg_show_one(s, gc, i, gpio);
 		seq_printf(s, "\n");
 	}
 }
 
-static struct irq_chip stmpe_gpio_irq_chip = {
+static struct irq_chip stmpe_gpio_irq_chip =
+{
 	.name			= "stmpe-gpio",
 	.irq_bus_lock		= stmpe_gpio_irq_lock,
 	.irq_bus_sync_unlock	= stmpe_gpio_irq_sync_unlock,
@@ -376,29 +438,41 @@ static irqreturn_t stmpe_gpio_irq(int irq, void *dev)
 	 * LSB regs.
 	 */
 	if (stmpe->partnum == STMPE1600)
+	{
 		statmsbreg = stmpe->regs[STMPE_IDX_ISGPIOR_LSB];
+	}
 	else
+	{
 		statmsbreg = stmpe->regs[STMPE_IDX_ISGPIOR_MSB];
+	}
 
 	ret = stmpe_block_read(stmpe, statmsbreg, num_banks, status);
-	if (ret < 0)
-		return IRQ_NONE;
 
-	for (i = 0; i < num_banks; i++) {
+	if (ret < 0)
+	{
+		return IRQ_NONE;
+	}
+
+	for (i = 0; i < num_banks; i++)
+	{
 		int bank = (stmpe_gpio->stmpe->partnum == STMPE1600) ? i :
-			   num_banks - i - 1;
+				   num_banks - i - 1;
 		unsigned int enabled = stmpe_gpio->regs[REG_IE][bank];
 		unsigned int stat = status[i];
 
 		stat &= enabled;
-		if (!stat)
-			continue;
 
-		while (stat) {
+		if (!stat)
+		{
+			continue;
+		}
+
+		while (stat)
+		{
 			int bit = __ffs(stat);
 			int line = bank * 8 + bit;
 			int child_irq = irq_find_mapping(stmpe_gpio->chip.irqdomain,
-							 line);
+											 line);
 
 			handle_nested_irq(child_irq);
 			stat &= ~BIT(bit);
@@ -410,11 +484,12 @@ static irqreturn_t stmpe_gpio_irq(int irq, void *dev)
 		 * Edge detect register is not present on 801/1600/1801
 		 */
 		if (stmpe->partnum != STMPE801 && stmpe->partnum != STMPE1600 &&
-		    stmpe->partnum != STMPE1801) {
+			stmpe->partnum != STMPE1801)
+		{
 			stmpe_reg_write(stmpe, statmsbreg + i, status[i]);
 			stmpe_reg_write(stmpe,
-					stmpe->regs[STMPE_IDX_GPEDR_LSB + i],
-					status[i]);
+							stmpe->regs[STMPE_IDX_GPEDR_LSB + i],
+							status[i]);
 		}
 	}
 
@@ -432,8 +507,11 @@ static int stmpe_gpio_probe(struct platform_device *pdev)
 	irq = platform_get_irq(pdev, 0);
 
 	stmpe_gpio = kzalloc(sizeof(struct stmpe_gpio), GFP_KERNEL);
+
 	if (!stmpe_gpio)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&stmpe_gpio->irq_lock);
 
@@ -446,59 +524,79 @@ static int stmpe_gpio_probe(struct platform_device *pdev)
 	stmpe_gpio->chip.base = -1;
 
 	if (IS_ENABLED(CONFIG_DEBUG_FS))
-                stmpe_gpio->chip.dbg_show = stmpe_dbg_show;
+	{
+		stmpe_gpio->chip.dbg_show = stmpe_dbg_show;
+	}
 
 	of_property_read_u32(np, "st,norequest-mask",
-			&stmpe_gpio->norequest_mask);
+						 &stmpe_gpio->norequest_mask);
+
 	if (stmpe_gpio->norequest_mask)
+	{
 		stmpe_gpio->chip.irq_need_valid_mask = true;
+	}
 
 	if (irq < 0)
 		dev_info(&pdev->dev,
-			"device configured in no-irq mode: "
-			"irqs are not available\n");
+				 "device configured in no-irq mode: "
+				 "irqs are not available\n");
 
 	ret = stmpe_enable(stmpe, STMPE_BLOCK_GPIO);
+
 	if (ret)
+	{
 		goto out_free;
+	}
 
 	ret = gpiochip_add_data(&stmpe_gpio->chip, stmpe_gpio);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to add gpiochip: %d\n", ret);
 		goto out_disable;
 	}
 
-	if (irq > 0) {
+	if (irq > 0)
+	{
 		ret = devm_request_threaded_irq(&pdev->dev, irq, NULL,
-				stmpe_gpio_irq, IRQF_ONESHOT,
-				"stmpe-gpio", stmpe_gpio);
-		if (ret) {
+										stmpe_gpio_irq, IRQF_ONESHOT,
+										"stmpe-gpio", stmpe_gpio);
+
+		if (ret)
+		{
 			dev_err(&pdev->dev, "unable to get irq: %d\n", ret);
 			goto out_disable;
 		}
-		if (stmpe_gpio->norequest_mask) {
+
+		if (stmpe_gpio->norequest_mask)
+		{
 			int i;
 
 			/* Forbid unused lines to be mapped as IRQs */
 			for (i = 0; i < sizeof(u32); i++)
 				if (stmpe_gpio->norequest_mask & BIT(i))
+				{
 					clear_bit(i, stmpe_gpio->chip.irq_valid_mask);
+				}
 		}
+
 		ret =  gpiochip_irqchip_add(&stmpe_gpio->chip,
-					    &stmpe_gpio_irq_chip,
-					    0,
-					    handle_simple_irq,
-					    IRQ_TYPE_NONE);
-		if (ret) {
+									&stmpe_gpio_irq_chip,
+									0,
+									handle_simple_irq,
+									IRQ_TYPE_NONE);
+
+		if (ret)
+		{
 			dev_err(&pdev->dev,
-				"could not connect irqchip to gpiochip\n");
+					"could not connect irqchip to gpiochip\n");
 			goto out_disable;
 		}
 
 		gpiochip_set_chained_irqchip(&stmpe_gpio->chip,
-					     &stmpe_gpio_irq_chip,
-					     irq,
-					     NULL);
+									 &stmpe_gpio_irq_chip,
+									 irq,
+									 NULL);
 	}
 
 	platform_set_drvdata(pdev, stmpe_gpio);
@@ -513,7 +611,8 @@ out_free:
 	return ret;
 }
 
-static struct platform_driver stmpe_gpio_driver = {
+static struct platform_driver stmpe_gpio_driver =
+{
 	.driver = {
 		.suppress_bind_attrs	= true,
 		.name			= "stmpe-gpio",

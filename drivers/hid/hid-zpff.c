@@ -30,12 +30,13 @@
 
 #ifdef CONFIG_ZEROPLUS_FF
 
-struct zpff_device {
+struct zpff_device
+{
 	struct hid_report *report;
 };
 
 static int zpff_play(struct input_dev *dev, void *data,
-			 struct ff_effect *effect)
+					 struct ff_effect *effect)
 {
 	struct hid_device *hid = input_get_drvdata(dev);
 	struct zpff_device *zpff = data;
@@ -67,24 +68,33 @@ static int zpff_init(struct hid_device *hid)
 	struct zpff_device *zpff;
 	struct hid_report *report;
 	struct hid_input *hidinput = list_entry(hid->inputs.next,
-						struct hid_input, list);
+											struct hid_input, list);
 	struct input_dev *dev = hidinput->input;
 	int i, error;
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		report = hid_validate_values(hid, HID_OUTPUT_REPORT, 0, i, 1);
+
 		if (!report)
+		{
 			return -ENODEV;
+		}
 	}
 
 	zpff = kzalloc(sizeof(struct zpff_device), GFP_KERNEL);
+
 	if (!zpff)
+	{
 		return -ENOMEM;
+	}
 
 	set_bit(FF_RUMBLE, dev->ffbit);
 
 	error = input_ff_create_memless(dev, zpff, zpff_play);
-	if (error) {
+
+	if (error)
+	{
 		kfree(zpff);
 		return error;
 	}
@@ -112,13 +122,17 @@ static int zp_probe(struct hid_device *hdev, const struct hid_device_id *id)
 	int ret;
 
 	ret = hid_parse(hdev);
-	if (ret) {
+
+	if (ret)
+	{
 		hid_err(hdev, "parse failed\n");
 		goto err;
 	}
 
 	ret = hid_hw_start(hdev, HID_CONNECT_DEFAULT & ~HID_CONNECT_FF);
-	if (ret) {
+
+	if (ret)
+	{
 		hid_err(hdev, "hw start failed\n");
 		goto err;
 	}
@@ -130,14 +144,16 @@ err:
 	return ret;
 }
 
-static const struct hid_device_id zp_devices[] = {
+static const struct hid_device_id zp_devices[] =
+{
 	{ HID_USB_DEVICE(USB_VENDOR_ID_ZEROPLUS, 0x0005) },
 	{ HID_USB_DEVICE(USB_VENDOR_ID_ZEROPLUS, 0x0030) },
 	{ }
 };
 MODULE_DEVICE_TABLE(hid, zp_devices);
 
-static struct hid_driver zp_driver = {
+static struct hid_driver zp_driver =
+{
 	.name = "zeroplus",
 	.id_table = zp_devices,
 	.probe = zp_probe,

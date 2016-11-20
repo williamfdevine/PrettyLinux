@@ -22,14 +22,16 @@
 #include <linux/of_device.h>
 #include "sdhci-pltfm.h"
 
-struct sdhci_iproc_data {
+struct sdhci_iproc_data
+{
 	const struct sdhci_pltfm_data *pdata;
 	u32 caps;
 	u32 caps1;
 	u32 mmc_caps;
 };
 
-struct sdhci_iproc_host {
+struct sdhci_iproc_host
+{
 	const struct sdhci_iproc_data *data;
 	u32 shadow_cmd;
 	u32 shadow_blk;
@@ -42,7 +44,7 @@ static inline u32 sdhci_iproc_readl(struct sdhci_host *host, int reg)
 	u32 val = readl(host->ioaddr + reg);
 
 	pr_debug("%s: readl [0x%02x] 0x%08x\n",
-		 mmc_hostname(host->mmc), reg, val);
+			 mmc_hostname(host->mmc), reg, val);
 	return val;
 }
 
@@ -63,16 +65,21 @@ static u8 sdhci_iproc_readb(struct sdhci_host *host, int reg)
 static inline void sdhci_iproc_writel(struct sdhci_host *host, u32 val, int reg)
 {
 	pr_debug("%s: writel [0x%02x] 0x%08x\n",
-		 mmc_hostname(host->mmc), reg, val);
+			 mmc_hostname(host->mmc), reg, val);
 
 	writel(val, host->ioaddr + reg);
 
-	if (host->clock <= 400000) {
+	if (host->clock <= 400000)
+	{
 		/* Round up to micro-second four SD clock delay */
 		if (host->clock)
+		{
 			udelay((4 * 1000000 + host->clock - 1) / host->clock);
+		}
 		else
+		{
 			udelay(10);
+		}
 	}
 }
 
@@ -103,30 +110,43 @@ static void sdhci_iproc_writew(struct sdhci_host *host, u16 val, int reg)
 	u32 mask = 0xffff << word_shift;
 	u32 oldval, newval;
 
-	if (reg == SDHCI_COMMAND) {
+	if (reg == SDHCI_COMMAND)
+	{
 		/* Write the block now as we are issuing a command */
-		if (iproc_host->shadow_blk != 0) {
+		if (iproc_host->shadow_blk != 0)
+		{
 			sdhci_iproc_writel(host, iproc_host->shadow_blk,
-				SDHCI_BLOCK_SIZE);
+							   SDHCI_BLOCK_SIZE);
 			iproc_host->shadow_blk = 0;
 		}
+
 		oldval = iproc_host->shadow_cmd;
-	} else if (reg == SDHCI_BLOCK_SIZE || reg == SDHCI_BLOCK_COUNT) {
+	}
+	else if (reg == SDHCI_BLOCK_SIZE || reg == SDHCI_BLOCK_COUNT)
+	{
 		/* Block size and count are stored in shadow reg */
 		oldval = iproc_host->shadow_blk;
-	} else {
+	}
+	else
+	{
 		/* Read reg, all other registers are not shadowed */
 		oldval = sdhci_iproc_readl(host, (reg & ~3));
 	}
+
 	newval = (oldval & ~mask) | (val << word_shift);
 
-	if (reg == SDHCI_TRANSFER_MODE) {
+	if (reg == SDHCI_TRANSFER_MODE)
+	{
 		/* Save the transfer mode until the command is issued */
 		iproc_host->shadow_cmd = newval;
-	} else if (reg == SDHCI_BLOCK_SIZE || reg == SDHCI_BLOCK_COUNT) {
+	}
+	else if (reg == SDHCI_BLOCK_SIZE || reg == SDHCI_BLOCK_COUNT)
+	{
 		/* Save the block info until the command is issued */
 		iproc_host->shadow_blk = newval;
-	} else {
+	}
+	else
+	{
 		/* Command or other regular 32-bit write */
 		sdhci_iproc_writel(host, newval, reg & ~3);
 	}
@@ -142,7 +162,8 @@ static void sdhci_iproc_writeb(struct sdhci_host *host, u8 val, int reg)
 	sdhci_iproc_writel(host, newval, reg & ~3);
 }
 
-static const struct sdhci_ops sdhci_iproc_ops = {
+static const struct sdhci_ops sdhci_iproc_ops =
+{
 	.read_l = sdhci_iproc_readl,
 	.read_w = sdhci_iproc_readw,
 	.read_b = sdhci_iproc_readb,
@@ -156,43 +177,48 @@ static const struct sdhci_ops sdhci_iproc_ops = {
 	.set_uhs_signaling = sdhci_set_uhs_signaling,
 };
 
-static const struct sdhci_pltfm_data sdhci_iproc_pltfm_data = {
+static const struct sdhci_pltfm_data sdhci_iproc_pltfm_data =
+{
 	.quirks = SDHCI_QUIRK_DATA_TIMEOUT_USES_SDCLK,
 	.quirks2 = SDHCI_QUIRK2_ACMD23_BROKEN,
 	.ops = &sdhci_iproc_ops,
 };
 
-static const struct sdhci_iproc_data iproc_data = {
+static const struct sdhci_iproc_data iproc_data =
+{
 	.pdata = &sdhci_iproc_pltfm_data,
 	.caps = ((0x1 << SDHCI_MAX_BLOCK_SHIFT)
-			& SDHCI_MAX_BLOCK_MASK) |
-		SDHCI_CAN_VDD_330 |
-		SDHCI_CAN_VDD_180 |
-		SDHCI_CAN_DO_SUSPEND |
-		SDHCI_CAN_DO_HISPD |
-		SDHCI_CAN_DO_ADMA2 |
-		SDHCI_CAN_DO_SDMA,
+	& SDHCI_MAX_BLOCK_MASK) |
+	SDHCI_CAN_VDD_330 |
+	SDHCI_CAN_VDD_180 |
+	SDHCI_CAN_DO_SUSPEND |
+	SDHCI_CAN_DO_HISPD |
+	SDHCI_CAN_DO_ADMA2 |
+	SDHCI_CAN_DO_SDMA,
 	.caps1 = SDHCI_DRIVER_TYPE_C |
-		 SDHCI_DRIVER_TYPE_D |
-		 SDHCI_SUPPORT_DDR50,
+	SDHCI_DRIVER_TYPE_D |
+	SDHCI_SUPPORT_DDR50,
 	.mmc_caps = MMC_CAP_1_8V_DDR,
 };
 
-static const struct sdhci_pltfm_data sdhci_bcm2835_pltfm_data = {
+static const struct sdhci_pltfm_data sdhci_bcm2835_pltfm_data =
+{
 	.quirks = SDHCI_QUIRK_BROKEN_CARD_DETECTION |
-		  SDHCI_QUIRK_DATA_TIMEOUT_USES_SDCLK |
-		  SDHCI_QUIRK_MISSING_CAPS,
+	SDHCI_QUIRK_DATA_TIMEOUT_USES_SDCLK |
+	SDHCI_QUIRK_MISSING_CAPS,
 	.ops = &sdhci_iproc_ops,
 };
 
-static const struct sdhci_iproc_data bcm2835_data = {
+static const struct sdhci_iproc_data bcm2835_data =
+{
 	.pdata = &sdhci_bcm2835_pltfm_data,
 	.caps = SDHCI_CAN_VDD_330,
 	.caps1 = 0x00000000,
 	.mmc_caps = 0x00000000,
 };
 
-static const struct of_device_id sdhci_iproc_of_match[] = {
+static const struct of_device_id sdhci_iproc_of_match[] =
+{
 	{ .compatible = "brcm,bcm2835-sdhci", .data = &bcm2835_data },
 	{ .compatible = "brcm,sdhci-iproc-cygnus", .data = &iproc_data },
 	{ }
@@ -209,13 +235,20 @@ static int sdhci_iproc_probe(struct platform_device *pdev)
 	int ret;
 
 	match = of_match_device(sdhci_iproc_of_match, &pdev->dev);
+
 	if (!match)
+	{
 		return -EINVAL;
+	}
+
 	iproc_data = match->data;
 
 	host = sdhci_pltfm_init(pdev, iproc_data->pdata, sizeof(*iproc_host));
+
 	if (IS_ERR(host))
+	{
 		return PTR_ERR(host);
+	}
 
 	pltfm_host = sdhci_priv(host);
 	iproc_host = sdhci_pltfm_priv(pltfm_host);
@@ -228,24 +261,33 @@ static int sdhci_iproc_probe(struct platform_device *pdev)
 	host->mmc->caps |= iproc_host->data->mmc_caps;
 
 	pltfm_host->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(pltfm_host->clk)) {
+
+	if (IS_ERR(pltfm_host->clk))
+	{
 		ret = PTR_ERR(pltfm_host->clk);
 		goto err;
 	}
+
 	ret = clk_prepare_enable(pltfm_host->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to enable host clk\n");
 		goto err;
 	}
 
-	if (iproc_host->data->pdata->quirks & SDHCI_QUIRK_MISSING_CAPS) {
+	if (iproc_host->data->pdata->quirks & SDHCI_QUIRK_MISSING_CAPS)
+	{
 		host->caps = iproc_host->data->caps;
 		host->caps1 = iproc_host->data->caps1;
 	}
 
 	ret = sdhci_add_host(host);
+
 	if (ret)
+	{
 		goto err_clk;
+	}
 
 	return 0;
 
@@ -256,7 +298,8 @@ err:
 	return ret;
 }
 
-static struct platform_driver sdhci_iproc_driver = {
+static struct platform_driver sdhci_iproc_driver =
+{
 	.driver = {
 		.name = "sdhci-iproc",
 		.of_match_table = sdhci_iproc_of_match,

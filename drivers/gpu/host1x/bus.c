@@ -32,7 +32,8 @@ static LIST_HEAD(drivers);
 static DEFINE_MUTEX(devices_lock);
 static LIST_HEAD(devices);
 
-struct host1x_subdev {
+struct host1x_subdev
+{
 	struct host1x_client *client;
 	struct device_node *np;
 	struct list_head list;
@@ -42,13 +43,16 @@ struct host1x_subdev {
  * host1x_subdev_add() - add a new subdevice with an associated device node
  */
 static int host1x_subdev_add(struct host1x_device *device,
-			     struct device_node *np)
+							 struct device_node *np)
 {
 	struct host1x_subdev *subdev;
 
 	subdev = kzalloc(sizeof(*subdev), GFP_KERNEL);
+
 	if (!subdev)
+	{
 		return -ENOMEM;
+	}
 
 	INIT_LIST_HEAD(&subdev->list);
 	subdev->np = of_node_get(np);
@@ -74,16 +78,20 @@ static void host1x_subdev_del(struct host1x_subdev *subdev)
  * host1x_device_parse_dt() - scan device tree and add matching subdevices
  */
 static int host1x_device_parse_dt(struct host1x_device *device,
-				  struct host1x_driver *driver)
+								  struct host1x_driver *driver)
 {
 	struct device_node *np;
 	int err;
 
-	for_each_child_of_node(device->dev.parent->of_node, np) {
+	for_each_child_of_node(device->dev.parent->of_node, np)
+	{
 		if (of_match_node(driver->subdevs, np) &&
-		    of_device_is_available(np)) {
+			of_device_is_available(np))
+		{
 			err = host1x_subdev_add(device, np);
-			if (err < 0) {
+
+			if (err < 0)
+			{
 				of_node_put(np);
 				return err;
 			}
@@ -94,8 +102,8 @@ static int host1x_device_parse_dt(struct host1x_device *device,
 }
 
 static void host1x_subdev_register(struct host1x_device *device,
-				   struct host1x_subdev *subdev,
-				   struct host1x_client *client)
+								   struct host1x_subdev *subdev,
+								   struct host1x_client *client)
 {
 	int err;
 
@@ -113,17 +121,23 @@ static void host1x_subdev_register(struct host1x_device *device,
 	mutex_unlock(&device->clients_lock);
 	mutex_unlock(&device->subdevs_lock);
 
-	if (list_empty(&device->subdevs)) {
+	if (list_empty(&device->subdevs))
+	{
 		err = device_add(&device->dev);
+
 		if (err < 0)
+		{
 			dev_err(&device->dev, "failed to add: %d\n", err);
+		}
 		else
+		{
 			device->registered = true;
+		}
 	}
 }
 
 static void __host1x_subdev_unregister(struct host1x_device *device,
-				       struct host1x_subdev *subdev)
+									   struct host1x_subdev *subdev)
 {
 	struct host1x_client *client = subdev->client;
 
@@ -131,8 +145,10 @@ static void __host1x_subdev_unregister(struct host1x_device *device,
 	 * If all subdevices have been activated, we're about to remove the
 	 * first active subdevice, so unload the driver first.
 	 */
-	if (list_empty(&device->subdevs)) {
-		if (device->registered) {
+	if (list_empty(&device->subdevs))
+	{
+		if (device->registered)
+		{
 			device->registered = false;
 			device_del(&device->dev);
 		}
@@ -159,7 +175,7 @@ static void __host1x_subdev_unregister(struct host1x_device *device,
 }
 
 static void host1x_subdev_unregister(struct host1x_device *device,
-				     struct host1x_subdev *subdev)
+									 struct host1x_subdev *subdev)
 {
 	mutex_lock(&device->subdevs_lock);
 	__host1x_subdev_unregister(device, subdev);
@@ -173,13 +189,17 @@ int host1x_device_init(struct host1x_device *device)
 
 	mutex_lock(&device->clients_lock);
 
-	list_for_each_entry(client, &device->clients, list) {
-		if (client->ops && client->ops->init) {
+	list_for_each_entry(client, &device->clients, list)
+	{
+		if (client->ops && client->ops->init)
+		{
 			err = client->ops->init(client);
-			if (err < 0) {
+
+			if (err < 0)
+			{
 				dev_err(&device->dev,
-					"failed to initialize %s: %d\n",
-					dev_name(client->dev), err);
+						"failed to initialize %s: %d\n",
+						dev_name(client->dev), err);
 				mutex_unlock(&device->clients_lock);
 				return err;
 			}
@@ -199,13 +219,17 @@ int host1x_device_exit(struct host1x_device *device)
 
 	mutex_lock(&device->clients_lock);
 
-	list_for_each_entry_reverse(client, &device->clients, list) {
-		if (client->ops && client->ops->exit) {
+	list_for_each_entry_reverse(client, &device->clients, list)
+	{
+		if (client->ops && client->ops->exit)
+		{
 			err = client->ops->exit(client);
-			if (err < 0) {
+
+			if (err < 0)
+			{
 				dev_err(&device->dev,
-					"failed to cleanup %s: %d\n",
-					dev_name(client->dev), err);
+						"failed to cleanup %s: %d\n",
+						dev_name(client->dev), err);
 				mutex_unlock(&device->clients_lock);
 				return err;
 			}
@@ -219,16 +243,19 @@ int host1x_device_exit(struct host1x_device *device)
 EXPORT_SYMBOL(host1x_device_exit);
 
 static int host1x_add_client(struct host1x *host1x,
-			     struct host1x_client *client)
+							 struct host1x_client *client)
 {
 	struct host1x_device *device;
 	struct host1x_subdev *subdev;
 
 	mutex_lock(&host1x->devices_lock);
 
-	list_for_each_entry(device, &host1x->devices, list) {
-		list_for_each_entry(subdev, &device->subdevs, list) {
-			if (subdev->np == client->dev->of_node) {
+	list_for_each_entry(device, &host1x->devices, list)
+	{
+		list_for_each_entry(subdev, &device->subdevs, list)
+		{
+			if (subdev->np == client->dev->of_node)
+			{
 				host1x_subdev_register(device, subdev, client);
 				mutex_unlock(&host1x->devices_lock);
 				return 0;
@@ -241,16 +268,19 @@ static int host1x_add_client(struct host1x *host1x,
 }
 
 static int host1x_del_client(struct host1x *host1x,
-			     struct host1x_client *client)
+							 struct host1x_client *client)
 {
 	struct host1x_device *device, *dt;
 	struct host1x_subdev *subdev;
 
 	mutex_lock(&host1x->devices_lock);
 
-	list_for_each_entry_safe(device, dt, &host1x->devices, list) {
-		list_for_each_entry(subdev, &device->active, list) {
-			if (subdev->client == client) {
+	list_for_each_entry_safe(device, dt, &host1x->devices, list)
+	{
+		list_for_each_entry(subdev, &device->active, list)
+		{
+			if (subdev->client == client)
+			{
 				host1x_subdev_unregister(device, subdev);
 				mutex_unlock(&host1x->devices_lock);
 				return 0;
@@ -273,7 +303,9 @@ static int host1x_device_probe(struct device *dev)
 	struct host1x_device *device = to_host1x_device(dev);
 
 	if (driver->probe)
+	{
 		return driver->probe(device);
+	}
 
 	return 0;
 }
@@ -284,7 +316,9 @@ static int host1x_device_remove(struct device *dev)
 	struct host1x_device *device = to_host1x_device(dev);
 
 	if (driver->remove)
+	{
 		return driver->remove(device);
+	}
 
 	return 0;
 }
@@ -295,10 +329,13 @@ static void host1x_device_shutdown(struct device *dev)
 	struct host1x_device *device = to_host1x_device(dev);
 
 	if (driver->shutdown)
+	{
 		driver->shutdown(device);
+	}
 }
 
-static const struct dev_pm_ops host1x_device_pm_ops = {
+static const struct dev_pm_ops host1x_device_pm_ops =
+{
 	.suspend = pm_generic_suspend,
 	.resume = pm_generic_resume,
 	.freeze = pm_generic_freeze,
@@ -307,7 +344,8 @@ static const struct dev_pm_ops host1x_device_pm_ops = {
 	.restore = pm_generic_restore,
 };
 
-struct bus_type host1x_bus_type = {
+struct bus_type host1x_bus_type =
+{
 	.name = "host1x",
 	.match = host1x_device_match,
 	.probe = host1x_device_probe,
@@ -324,7 +362,8 @@ static void __host1x_device_del(struct host1x_device *device)
 	mutex_lock(&device->subdevs_lock);
 
 	/* unregister subdevices */
-	list_for_each_entry_safe(subdev, sd, &device->active, list) {
+	list_for_each_entry_safe(subdev, sd, &device->active, list)
+	{
 		/*
 		 * host1x_subdev_unregister() will remove the client from
 		 * any lists, so we'll need to manually add it back to the
@@ -346,7 +385,7 @@ static void __host1x_device_del(struct host1x_device *device)
 
 	/* remove subdevices */
 	list_for_each_entry_safe(subdev, sd, &device->subdevs, list)
-		host1x_subdev_del(subdev);
+	host1x_subdev_del(subdev);
 
 	mutex_unlock(&device->subdevs_lock);
 
@@ -355,7 +394,7 @@ static void __host1x_device_del(struct host1x_device *device)
 	mutex_lock(&device->clients_lock);
 
 	list_for_each_entry_safe(client, cl, &device->clients, list)
-		list_move_tail(&client->list, &clients);
+	list_move_tail(&client->list, &clients);
 
 	mutex_unlock(&device->clients_lock);
 	mutex_unlock(&clients_lock);
@@ -373,7 +412,7 @@ static void host1x_device_release(struct device *dev)
 }
 
 static int host1x_device_add(struct host1x *host1x,
-			     struct host1x_driver *driver)
+							 struct host1x_driver *driver)
 {
 	struct host1x_client *client, *tmp;
 	struct host1x_subdev *subdev;
@@ -381,8 +420,11 @@ static int host1x_device_add(struct host1x *host1x,
 	int err;
 
 	device = kzalloc(sizeof(*device), GFP_KERNEL);
+
 	if (!device)
+	{
 		return -ENOMEM;
+	}
 
 	device_initialize(&device->dev);
 
@@ -403,7 +445,9 @@ static int host1x_device_add(struct host1x *host1x,
 	device->dev.parent = host1x->dev;
 
 	err = host1x_device_parse_dt(device, driver);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		kfree(device);
 		return err;
 	}
@@ -412,9 +456,12 @@ static int host1x_device_add(struct host1x *host1x,
 
 	mutex_lock(&clients_lock);
 
-	list_for_each_entry_safe(client, tmp, &clients, list) {
-		list_for_each_entry(subdev, &device->subdevs, list) {
-			if (subdev->np == client->dev->of_node) {
+	list_for_each_entry_safe(client, tmp, &clients, list)
+	{
+		list_for_each_entry(subdev, &device->subdevs, list)
+		{
+			if (subdev->np == client->dev->of_node)
+			{
 				host1x_subdev_register(device, subdev, client);
 				break;
 			}
@@ -433,9 +480,10 @@ static int host1x_device_add(struct host1x *host1x,
  * This function must be called with the host1x->devices_lock held.
  */
 static void host1x_device_del(struct host1x *host1x,
-			      struct host1x_device *device)
+							  struct host1x_device *device)
 {
-	if (device->registered) {
+	if (device->registered)
+	{
 		device->registered = false;
 		device_del(&device->dev);
 	}
@@ -444,37 +492,45 @@ static void host1x_device_del(struct host1x *host1x,
 }
 
 static void host1x_attach_driver(struct host1x *host1x,
-				 struct host1x_driver *driver)
+								 struct host1x_driver *driver)
 {
 	struct host1x_device *device;
 	int err;
 
 	mutex_lock(&host1x->devices_lock);
 
-	list_for_each_entry(device, &host1x->devices, list) {
-		if (device->driver == driver) {
+	list_for_each_entry(device, &host1x->devices, list)
+	{
+		if (device->driver == driver)
+		{
 			mutex_unlock(&host1x->devices_lock);
 			return;
 		}
 	}
 
 	err = host1x_device_add(host1x, driver);
+
 	if (err < 0)
+	{
 		dev_err(host1x->dev, "failed to allocate device: %d\n", err);
+	}
 
 	mutex_unlock(&host1x->devices_lock);
 }
 
 static void host1x_detach_driver(struct host1x *host1x,
-				 struct host1x_driver *driver)
+								 struct host1x_driver *driver)
 {
 	struct host1x_device *device, *tmp;
 
 	mutex_lock(&host1x->devices_lock);
 
 	list_for_each_entry_safe(device, tmp, &host1x->devices, list)
-		if (device->driver == driver)
-			host1x_device_del(host1x, device);
+
+	if (device->driver == driver)
+	{
+		host1x_device_del(host1x, device);
+	}
 
 	mutex_unlock(&host1x->devices_lock);
 }
@@ -490,7 +546,7 @@ int host1x_register(struct host1x *host1x)
 	mutex_lock(&drivers_lock);
 
 	list_for_each_entry(driver, &drivers, list)
-		host1x_attach_driver(host1x, driver);
+	host1x_attach_driver(host1x, driver);
 
 	mutex_unlock(&drivers_lock);
 
@@ -504,7 +560,7 @@ int host1x_unregister(struct host1x *host1x)
 	mutex_lock(&drivers_lock);
 
 	list_for_each_entry(driver, &drivers, list)
-		host1x_detach_driver(host1x, driver);
+	host1x_detach_driver(host1x, driver);
 
 	mutex_unlock(&drivers_lock);
 
@@ -516,7 +572,7 @@ int host1x_unregister(struct host1x *host1x)
 }
 
 int host1x_driver_register_full(struct host1x_driver *driver,
-				struct module *owner)
+								struct module *owner)
 {
 	struct host1x *host1x;
 
@@ -529,7 +585,7 @@ int host1x_driver_register_full(struct host1x_driver *driver,
 	mutex_lock(&devices_lock);
 
 	list_for_each_entry(host1x, &devices, list)
-		host1x_attach_driver(host1x, driver);
+	host1x_attach_driver(host1x, driver);
 
 	mutex_unlock(&devices_lock);
 
@@ -557,9 +613,12 @@ int host1x_client_register(struct host1x_client *client)
 
 	mutex_lock(&devices_lock);
 
-	list_for_each_entry(host1x, &devices, list) {
+	list_for_each_entry(host1x, &devices, list)
+	{
 		err = host1x_add_client(host1x, client);
-		if (!err) {
+
+		if (!err)
+		{
 			mutex_unlock(&devices_lock);
 			return 0;
 		}
@@ -583,9 +642,12 @@ int host1x_client_unregister(struct host1x_client *client)
 
 	mutex_lock(&devices_lock);
 
-	list_for_each_entry(host1x, &devices, list) {
+	list_for_each_entry(host1x, &devices, list)
+	{
 		err = host1x_del_client(host1x, client);
-		if (!err) {
+
+		if (!err)
+		{
 			mutex_unlock(&devices_lock);
 			return 0;
 		}
@@ -594,8 +656,10 @@ int host1x_client_unregister(struct host1x_client *client)
 	mutex_unlock(&devices_lock);
 	mutex_lock(&clients_lock);
 
-	list_for_each_entry(c, &clients, list) {
-		if (c == client) {
+	list_for_each_entry(c, &clients, list)
+	{
+		if (c == client)
+		{
 			list_del_init(&c->list);
 			break;
 		}

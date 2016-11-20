@@ -39,13 +39,16 @@
 #include <linux/mlx4/device.h>
 #include <linux/mlx4/doorbell.h>
 
-struct mlx4_cqe {
+struct mlx4_cqe
+{
 	__be32			vlan_my_qpn;
 	__be32			immed_rss_invalid;
 	__be32			g_mlpath_rqpn;
 	__be16			sl_vid;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__be16	rlid;
 			__be16  status;
 			u8      ipv6_ext_mask;
@@ -60,7 +63,8 @@ struct mlx4_cqe {
 	u8			owner_sr_opcode;
 };
 
-struct mlx4_err_cqe {
+struct mlx4_err_cqe
+{
 	__be32			my_qpn;
 	u32			reserved1[5];
 	__be16			wqe_index;
@@ -70,7 +74,8 @@ struct mlx4_err_cqe {
 	u8			owner_sr_opcode;
 };
 
-struct mlx4_ts_cqe {
+struct mlx4_ts_cqe
+{
 	__be32			vlan_my_qpn;
 	__be32			immed_rss_invalid;
 	__be32			g_mlpath_rqpn;
@@ -86,7 +91,8 @@ struct mlx4_ts_cqe {
 	u8			owner_sr_opcode;
 } __packed;
 
-enum {
+enum
+{
 	MLX4_CQE_L2_TUNNEL_IPOK		= 1 << 31,
 	MLX4_CQE_CVLAN_PRESENT_MASK	= 1 << 29,
 	MLX4_CQE_SVLAN_PRESENT_MASK	= 1 << 30,
@@ -98,13 +104,15 @@ enum {
 	MLX4_CQE_VID_MASK		= 0xfff,
 };
 
-enum {
+enum
+{
 	MLX4_CQE_OWNER_MASK	= 0x80,
 	MLX4_CQE_IS_SEND_MASK	= 0x40,
 	MLX4_CQE_OPCODE_MASK	= 0x1f
 };
 
-enum {
+enum
+{
 	MLX4_CQE_SYNDROME_LOCAL_LENGTH_ERR		= 0x01,
 	MLX4_CQE_SYNDROME_LOCAL_QP_OP_ERR		= 0x02,
 	MLX4_CQE_SYNDROME_LOCAL_PROT_ERR		= 0x04,
@@ -120,7 +128,8 @@ enum {
 	MLX4_CQE_SYNDROME_REMOTE_ABORTED_ERR		= 0x22,
 };
 
-enum {
+enum
+{
 	MLX4_CQE_STATUS_IPV4		= 1 << 6,
 	MLX4_CQE_STATUS_IPV4F		= 1 << 7,
 	MLX4_CQE_STATUS_IPV6		= 1 << 8,
@@ -130,15 +139,16 @@ enum {
 	MLX4_CQE_STATUS_IPOK		= 1 << 12,
 };
 
-enum {
+enum
+{
 	MLX4_CQE_LLC                     = 1,
 	MLX4_CQE_SNAP                    = 1 << 1,
 	MLX4_CQE_BAD_FCS                 = 1 << 4,
 };
 
 static inline void mlx4_cq_arm(struct mlx4_cq *cq, u32 cmd,
-			       void __iomem *uar_page,
-			       spinlock_t *doorbell_lock)
+							   void __iomem *uar_page,
+							   spinlock_t *doorbell_lock)
 {
 	__be32 doorbell[2];
 	u32 sn;
@@ -166,14 +176,15 @@ static inline void mlx4_cq_set_ci(struct mlx4_cq *cq)
 	*cq->set_ci_db = cpu_to_be32(cq->cons_index & 0xffffff);
 }
 
-enum {
+enum
+{
 	MLX4_CQ_DB_REQ_NOT_SOL		= 1 << 24,
 	MLX4_CQ_DB_REQ_NOT		= 2 << 24
 };
 
 int mlx4_cq_modify(struct mlx4_dev *dev, struct mlx4_cq *cq,
-		   u16 count, u16 period);
+				   u16 count, u16 period);
 int mlx4_cq_resize(struct mlx4_dev *dev, struct mlx4_cq *cq,
-		   int entries, struct mlx4_mtt *mtt);
+				   int entries, struct mlx4_mtt *mtt);
 
 #endif /* MLX4_CQ_H */

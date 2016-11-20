@@ -65,7 +65,8 @@
 
 #include "fw-api-tof.h"
 
-struct iwl_mvm_tof_data {
+struct iwl_mvm_tof_data
+{
 	struct iwl_tof_config_cmd tof_cfg;
 	struct iwl_tof_range_req_cmd range_req;
 	struct iwl_tof_range_req_ext_cmd range_req_ext;
@@ -82,13 +83,13 @@ void iwl_mvm_tof_clean(struct iwl_mvm *mvm);
 int iwl_mvm_tof_config_cmd(struct iwl_mvm *mvm);
 int iwl_mvm_tof_range_abort_cmd(struct iwl_mvm *mvm, u8 id);
 int iwl_mvm_tof_range_request_cmd(struct iwl_mvm *mvm,
-				  struct ieee80211_vif *vif);
+								  struct ieee80211_vif *vif);
 void iwl_mvm_tof_resp_handler(struct iwl_mvm *mvm,
-			      struct iwl_rx_cmd_buffer *rxb);
+							  struct iwl_rx_cmd_buffer *rxb);
 int iwl_mvm_tof_range_request_ext_cmd(struct iwl_mvm *mvm,
-				      struct ieee80211_vif *vif);
+									  struct ieee80211_vif *vif);
 #ifdef CONFIG_IWLWIFI_DEBUGFS
 int iwl_mvm_tof_responder_cmd(struct iwl_mvm *mvm,
-			      struct ieee80211_vif *vif);
+							  struct ieee80211_vif *vif);
 #endif
 #endif /* __tof_h__ */

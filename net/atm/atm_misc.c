@@ -14,8 +14,12 @@
 int atm_charge(struct atm_vcc *vcc, int truesize)
 {
 	atm_force_charge(vcc, truesize);
+
 	if (atomic_read(&sk_atm(vcc)->sk_rmem_alloc) <= sk_atm(vcc)->sk_rcvbuf)
+	{
 		return 1;
+	}
+
 	atm_return(vcc, truesize);
 	atomic_inc(&vcc->stats->rx_drop);
 	return 0;
@@ -23,21 +27,25 @@ int atm_charge(struct atm_vcc *vcc, int truesize)
 EXPORT_SYMBOL(atm_charge);
 
 struct sk_buff *atm_alloc_charge(struct atm_vcc *vcc, int pdu_size,
-				 gfp_t gfp_flags)
+								 gfp_t gfp_flags)
 {
 	struct sock *sk = sk_atm(vcc);
 	int guess = SKB_TRUESIZE(pdu_size);
 
 	atm_force_charge(vcc, guess);
-	if (atomic_read(&sk->sk_rmem_alloc) <= sk->sk_rcvbuf) {
+
+	if (atomic_read(&sk->sk_rmem_alloc) <= sk->sk_rcvbuf)
+	{
 		struct sk_buff *skb = alloc_skb(pdu_size, gfp_flags);
 
-		if (skb) {
-			atomic_add(skb->truesize-guess,
-				   &sk->sk_rmem_alloc);
+		if (skb)
+		{
+			atomic_add(skb->truesize - guess,
+					   &sk->sk_rmem_alloc);
 			return skb;
 		}
 	}
+
 	atm_return(vcc, guess);
 	atomic_inc(&vcc->stats->rx_drop);
 	return NULL;
@@ -75,11 +83,20 @@ EXPORT_SYMBOL(atm_alloc_charge);
 int atm_pcr_goal(const struct atm_trafprm *tp)
 {
 	if (tp->pcr && tp->pcr != ATM_MAX_PCR)
+	{
 		return -tp->pcr;
+	}
+
 	if (tp->min_pcr && !tp->pcr)
+	{
 		return tp->min_pcr;
+	}
+
 	if (tp->max_pcr != ATM_MAX_PCR)
+	{
 		return -tp->max_pcr;
+	}
+
 	return 0;
 }
 EXPORT_SYMBOL(atm_pcr_goal);

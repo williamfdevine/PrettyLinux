@@ -14,14 +14,16 @@
 /* this must be > 0. */
 #define FAT_MAX_CACHE	8
 
-struct fat_cache {
+struct fat_cache
+{
 	struct list_head cache_list;
 	int nr_contig;	/* number of contiguous clusters */
 	int fcluster;	/* cluster number in the file. */
 	int dcluster;	/* cluster number on disk. */
 };
 
-struct fat_cache_id {
+struct fat_cache_id
+{
 	unsigned int id;
 	int nr_contig;
 	int fcluster;
@@ -45,11 +47,15 @@ static void init_once(void *foo)
 int __init fat_cache_init(void)
 {
 	fat_cache_cachep = kmem_cache_create("fat_cache",
-				sizeof(struct fat_cache),
-				0, SLAB_RECLAIM_ACCOUNT|SLAB_MEM_SPREAD,
-				init_once);
+										 sizeof(struct fat_cache),
+										 0, SLAB_RECLAIM_ACCOUNT | SLAB_MEM_SPREAD,
+										 init_once);
+
 	if (fat_cache_cachep == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 
@@ -70,15 +76,17 @@ static inline void fat_cache_free(struct fat_cache *cache)
 }
 
 static inline void fat_cache_update_lru(struct inode *inode,
-					struct fat_cache *cache)
+										struct fat_cache *cache)
 {
 	if (MSDOS_I(inode)->cache_lru.next != &cache->cache_list)
+	{
 		list_move(&cache->cache_list, &MSDOS_I(inode)->cache_lru);
+	}
 }
 
 static int fat_cache_lookup(struct inode *inode, int fclus,
-			    struct fat_cache_id *cid,
-			    int *cached_fclus, int *cached_dclus)
+							struct fat_cache_id *cid,
+							int *cached_fclus, int *cached_dclus)
 {
 	static struct fat_cache nohit = { .fcluster = 0, };
 
@@ -86,19 +94,27 @@ static int fat_cache_lookup(struct inode *inode, int fclus,
 	int offset = -1;
 
 	spin_lock(&MSDOS_I(inode)->cache_lru_lock);
-	list_for_each_entry(p, &MSDOS_I(inode)->cache_lru, cache_list) {
+	list_for_each_entry(p, &MSDOS_I(inode)->cache_lru, cache_list)
+	{
 		/* Find the cache of "fclus" or nearest cache. */
-		if (p->fcluster <= fclus && hit->fcluster < p->fcluster) {
+		if (p->fcluster <= fclus && hit->fcluster < p->fcluster)
+		{
 			hit = p;
-			if ((hit->fcluster + hit->nr_contig) < fclus) {
+
+			if ((hit->fcluster + hit->nr_contig) < fclus)
+			{
 				offset = hit->nr_contig;
-			} else {
+			}
+			else
+			{
 				offset = fclus - hit->fcluster;
 				break;
 			}
 		}
 	}
-	if (hit != &nohit) {
+
+	if (hit != &nohit)
+	{
 		fat_cache_update_lru(inode, hit);
 
 		cid->id = MSDOS_I(inode)->cache_valid_id;
@@ -108,22 +124,29 @@ static int fat_cache_lookup(struct inode *inode, int fclus,
 		*cached_fclus = cid->fcluster + offset;
 		*cached_dclus = cid->dcluster + offset;
 	}
+
 	spin_unlock(&MSDOS_I(inode)->cache_lru_lock);
 
 	return offset;
 }
 
 static struct fat_cache *fat_cache_merge(struct inode *inode,
-					 struct fat_cache_id *new)
+		struct fat_cache_id *new)
 {
 	struct fat_cache *p;
 
-	list_for_each_entry(p, &MSDOS_I(inode)->cache_lru, cache_list) {
+	list_for_each_entry(p, &MSDOS_I(inode)->cache_lru, cache_list)
+	{
 		/* Find the same part as "new" in cluster-chain. */
-		if (p->fcluster == new->fcluster) {
+		if (p->fcluster == new->fcluster)
+		{
 			BUG_ON(p->dcluster != new->dcluster);
+
 			if (new->nr_contig > p->nr_contig)
+			{
 				p->nr_contig = new->nr_contig;
+			}
+
 			return p;
 		}
 	}
@@ -135,21 +158,31 @@ static void fat_cache_add(struct inode *inode, struct fat_cache_id *new)
 	struct fat_cache *cache, *tmp;
 
 	if (new->fcluster == -1) /* dummy cache */
+	{
 		return;
+	}
 
 	spin_lock(&MSDOS_I(inode)->cache_lru_lock);
+
 	if (new->id != FAT_CACHE_VALID &&
-	    new->id != MSDOS_I(inode)->cache_valid_id)
-		goto out;	/* this cache was invalidated */
+		new->id != MSDOS_I(inode)->cache_valid_id)
+	{
+		goto out;    /* this cache was invalidated */
+	}
 
 	cache = fat_cache_merge(inode, new);
-	if (cache == NULL) {
-		if (MSDOS_I(inode)->nr_caches < fat_max_cache(inode)) {
+
+	if (cache == NULL)
+	{
+		if (MSDOS_I(inode)->nr_caches < fat_max_cache(inode))
+		{
 			MSDOS_I(inode)->nr_caches++;
 			spin_unlock(&MSDOS_I(inode)->cache_lru_lock);
 
 			tmp = fat_cache_alloc(inode);
-			if (!tmp) {
+
+			if (!tmp)
+			{
 				spin_lock(&MSDOS_I(inode)->cache_lru_lock);
 				MSDOS_I(inode)->nr_caches--;
 				spin_unlock(&MSDOS_I(inode)->cache_lru_lock);
@@ -158,20 +191,27 @@ static void fat_cache_add(struct inode *inode, struct fat_cache_id *new)
 
 			spin_lock(&MSDOS_I(inode)->cache_lru_lock);
 			cache = fat_cache_merge(inode, new);
-			if (cache != NULL) {
+
+			if (cache != NULL)
+			{
 				MSDOS_I(inode)->nr_caches--;
 				fat_cache_free(tmp);
 				goto out_update_lru;
 			}
+
 			cache = tmp;
-		} else {
+		}
+		else
+		{
 			struct list_head *p = MSDOS_I(inode)->cache_lru.prev;
 			cache = list_entry(p, struct fat_cache, cache_list);
 		}
+
 		cache->fcluster = new->fcluster;
 		cache->dcluster = new->dcluster;
 		cache->nr_contig = new->nr_contig;
 	}
+
 out_update_lru:
 	fat_cache_update_lru(inode, cache);
 out:
@@ -187,17 +227,22 @@ static void __fat_cache_inval_inode(struct inode *inode)
 	struct msdos_inode_info *i = MSDOS_I(inode);
 	struct fat_cache *cache;
 
-	while (!list_empty(&i->cache_lru)) {
+	while (!list_empty(&i->cache_lru))
+	{
 		cache = list_entry(i->cache_lru.next,
-				   struct fat_cache, cache_list);
+						   struct fat_cache, cache_list);
 		list_del_init(&cache->cache_list);
 		i->nr_caches--;
 		fat_cache_free(cache);
 	}
+
 	/* Update. The copy of caches before this id is discarded. */
 	i->cache_valid_id++;
+
 	if (i->cache_valid_id == FAT_CACHE_VALID)
+	{
 		i->cache_valid_id++;
+	}
 }
 
 void fat_cache_inval_inode(struct inode *inode)
@@ -233,10 +278,14 @@ int fat_get_cluster(struct inode *inode, int cluster, int *fclus, int *dclus)
 
 	*fclus = 0;
 	*dclus = MSDOS_I(inode)->i_start;
-	if (cluster == 0)
-		return 0;
 
-	if (fat_cache_lookup(inode, cluster, &cid, fclus, dclus) < 0) {
+	if (cluster == 0)
+	{
+		return 0;
+	}
+
+	if (fat_cache_lookup(inode, cluster, &cid, fclus, dclus) < 0)
+	{
 		/*
 		 * dummy, always not contiguous
 		 * This is reinitialized by cache_init(), later.
@@ -245,36 +294,50 @@ int fat_get_cluster(struct inode *inode, int cluster, int *fclus, int *dclus)
 	}
 
 	fatent_init(&fatent);
-	while (*fclus < cluster) {
+
+	while (*fclus < cluster)
+	{
 		/* prevent the infinite loop of cluster chain */
-		if (*fclus > limit) {
+		if (*fclus > limit)
+		{
 			fat_fs_error_ratelimit(sb,
-					"%s: detected the cluster chain loop"
-					" (i_pos %lld)", __func__,
-					MSDOS_I(inode)->i_pos);
+								   "%s: detected the cluster chain loop"
+								   " (i_pos %lld)", __func__,
+								   MSDOS_I(inode)->i_pos);
 			nr = -EIO;
 			goto out;
 		}
 
 		nr = fat_ent_read(inode, &fatent, *dclus);
+
 		if (nr < 0)
+		{
 			goto out;
-		else if (nr == FAT_ENT_FREE) {
+		}
+		else if (nr == FAT_ENT_FREE)
+		{
 			fat_fs_error_ratelimit(sb,
-				       "%s: invalid cluster chain (i_pos %lld)",
-				       __func__,
-				       MSDOS_I(inode)->i_pos);
+								   "%s: invalid cluster chain (i_pos %lld)",
+								   __func__,
+								   MSDOS_I(inode)->i_pos);
 			nr = -EIO;
 			goto out;
-		} else if (nr == FAT_ENT_EOF) {
+		}
+		else if (nr == FAT_ENT_EOF)
+		{
 			fat_cache_add(inode, &cid);
 			goto out;
 		}
+
 		(*fclus)++;
 		*dclus = nr;
+
 		if (!cache_contiguous(&cid, *dclus))
+		{
 			cache_init(&cid, *fclus, *dclus);
+		}
 	}
+
 	nr = 0;
 	fat_cache_add(inode, &cid);
 out:
@@ -288,22 +351,29 @@ static int fat_bmap_cluster(struct inode *inode, int cluster)
 	int ret, fclus, dclus;
 
 	if (MSDOS_I(inode)->i_start == 0)
+	{
 		return 0;
+	}
 
 	ret = fat_get_cluster(inode, cluster, &fclus, &dclus);
+
 	if (ret < 0)
+	{
 		return ret;
-	else if (ret == FAT_ENT_EOF) {
+	}
+	else if (ret == FAT_ENT_EOF)
+	{
 		fat_fs_error(sb, "%s: request beyond EOF (i_pos %lld)",
-			     __func__, MSDOS_I(inode)->i_pos);
+					 __func__, MSDOS_I(inode)->i_pos);
 		return -EIO;
 	}
+
 	return dclus;
 }
 
 int fat_get_mapped_cluster(struct inode *inode, sector_t sector,
-			   sector_t last_block,
-			   unsigned long *mapped_blocks, sector_t *bmap)
+						   sector_t last_block,
+						   unsigned long *mapped_blocks, sector_t *bmap)
 {
 	struct super_block *sb = inode->i_sb;
 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
@@ -312,69 +382,95 @@ int fat_get_mapped_cluster(struct inode *inode, sector_t sector,
 	cluster = sector >> (sbi->cluster_bits - sb->s_blocksize_bits);
 	offset  = sector & (sbi->sec_per_clus - 1);
 	cluster = fat_bmap_cluster(inode, cluster);
+
 	if (cluster < 0)
+	{
 		return cluster;
-	else if (cluster) {
+	}
+	else if (cluster)
+	{
 		*bmap = fat_clus_to_blknr(sbi, cluster) + offset;
 		*mapped_blocks = sbi->sec_per_clus - offset;
+
 		if (*mapped_blocks > last_block - sector)
+		{
 			*mapped_blocks = last_block - sector;
+		}
 	}
 
 	return 0;
 }
 
 static int is_exceed_eof(struct inode *inode, sector_t sector,
-			 sector_t *last_block, int create)
+						 sector_t *last_block, int create)
 {
 	struct super_block *sb = inode->i_sb;
 	const unsigned long blocksize = sb->s_blocksize;
 	const unsigned char blocksize_bits = sb->s_blocksize_bits;
 
 	*last_block = (i_size_read(inode) + (blocksize - 1)) >> blocksize_bits;
-	if (sector >= *last_block) {
+
+	if (sector >= *last_block)
+	{
 		if (!create)
+		{
 			return 1;
+		}
 
 		/*
 		 * ->mmu_private can access on only allocation path.
 		 * (caller must hold ->i_mutex)
 		 */
 		*last_block = (MSDOS_I(inode)->mmu_private + (blocksize - 1))
-			>> blocksize_bits;
+					  >> blocksize_bits;
+
 		if (sector >= *last_block)
+		{
 			return 1;
+		}
 	}
 
 	return 0;
 }
 
 int fat_bmap(struct inode *inode, sector_t sector, sector_t *phys,
-	     unsigned long *mapped_blocks, int create, bool from_bmap)
+			 unsigned long *mapped_blocks, int create, bool from_bmap)
 {
 	struct msdos_sb_info *sbi = MSDOS_SB(inode->i_sb);
 	sector_t last_block;
 
 	*phys = 0;
 	*mapped_blocks = 0;
-	if ((sbi->fat_bits != 32) && (inode->i_ino == MSDOS_ROOT_INO)) {
-		if (sector < (sbi->dir_entries >> sbi->dir_per_block_bits)) {
+
+	if ((sbi->fat_bits != 32) && (inode->i_ino == MSDOS_ROOT_INO))
+	{
+		if (sector < (sbi->dir_entries >> sbi->dir_per_block_bits))
+		{
 			*phys = sector + sbi->dir_start;
 			*mapped_blocks = 1;
 		}
+
 		return 0;
 	}
 
-	if (!from_bmap) {
+	if (!from_bmap)
+	{
 		if (is_exceed_eof(inode, sector, &last_block, create))
+		{
 			return 0;
-	} else {
+		}
+	}
+	else
+	{
 		last_block = inode->i_blocks >>
-				(inode->i_sb->s_blocksize_bits - 9);
+					 (inode->i_sb->s_blocksize_bits - 9);
+
 		if (sector >= last_block)
+		{
 			return 0;
+		}
 	}
 
 	return fat_get_mapped_cluster(inode, sector, last_block, mapped_blocks,
-				      phys);
+								  phys);
 }

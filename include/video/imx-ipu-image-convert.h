@@ -28,7 +28,8 @@ struct ipu_image_convert_ctx;
  * @out_phys:	dma addr of output image buffer for this run
  * @status:	completion status of this run
  */
-struct ipu_image_convert_run {
+struct ipu_image_convert_run
+{
 	struct ipu_image_convert_ctx *ctx;
 
 	dma_addr_t in_phys;
@@ -47,7 +48,7 @@ struct ipu_image_convert_run {
  * @ctx:	a private context pointer for the callback
  */
 typedef void (*ipu_image_convert_cb_t)(struct ipu_image_convert_run *run,
-				       void *ctx);
+									   void *ctx);
 
 /**
  * ipu_image_convert_enum_format() - enumerate the image converter's
@@ -72,7 +73,7 @@ int ipu_image_convert_enum_format(int index, u32 *fourcc);
  * In V4L2, drivers can call ipu_image_convert_adjust() in .try_fmt.
  */
 void ipu_image_convert_adjust(struct ipu_image *in, struct ipu_image *out,
-			      enum ipu_rotate_mode rot_mode);
+							  enum ipu_rotate_mode rot_mode);
 
 /**
  * ipu_image_convert_verify() - verify that input/output image formats
@@ -86,7 +87,7 @@ void ipu_image_convert_adjust(struct ipu_image *in, struct ipu_image *out,
  * -EINVAL otherwise.
  */
 int ipu_image_convert_verify(struct ipu_image *in, struct ipu_image *out,
-			     enum ipu_rotate_mode rot_mode);
+							 enum ipu_rotate_mode rot_mode);
 
 /**
  * ipu_image_convert_prepare() - prepare a conversion context.
@@ -107,10 +108,10 @@ int ipu_image_convert_verify(struct ipu_image *in, struct ipu_image *out,
  */
 struct ipu_image_convert_ctx *
 ipu_image_convert_prepare(struct ipu_soc *ipu, enum ipu_ic_task ic_task,
-			  struct ipu_image *in, struct ipu_image *out,
-			  enum ipu_rotate_mode rot_mode,
-			  ipu_image_convert_cb_t complete,
-			  void *complete_context);
+						  struct ipu_image *in, struct ipu_image *out,
+						  enum ipu_rotate_mode rot_mode,
+						  ipu_image_convert_cb_t complete,
+						  void *complete_context);
 
 /**
  * ipu_image_convert_unprepare() - unprepare a conversion context.
@@ -180,10 +181,10 @@ void ipu_image_convert_abort(struct ipu_image_convert_ctx *ctx);
  */
 struct ipu_image_convert_run *
 ipu_image_convert(struct ipu_soc *ipu, enum ipu_ic_task ic_task,
-		  struct ipu_image *in, struct ipu_image *out,
-		  enum ipu_rotate_mode rot_mode,
-		  ipu_image_convert_cb_t complete,
-		  void *complete_context);
+				  struct ipu_image *in, struct ipu_image *out,
+				  enum ipu_rotate_mode rot_mode,
+				  ipu_image_convert_cb_t complete,
+				  void *complete_context);
 
 /**
  * ipu_image_convert_sync() - synchronous single image conversion request
@@ -200,8 +201,8 @@ ipu_image_convert(struct ipu_soc *ipu, enum ipu_ic_task ic_task,
  * and the run freed on return.
  */
 int ipu_image_convert_sync(struct ipu_soc *ipu, enum ipu_ic_task ic_task,
-			   struct ipu_image *in, struct ipu_image *out,
-			   enum ipu_rotate_mode rot_mode);
+						   struct ipu_image *in, struct ipu_image *out,
+						   enum ipu_rotate_mode rot_mode);
 
 
 #endif /* __IMX_IPU_IMAGE_CONVERT_H__ */

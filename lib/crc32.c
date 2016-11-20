@@ -33,15 +33,15 @@
 #include "crc32defs.h"
 
 #if CRC_LE_BITS > 8
-# define tole(x) ((__force u32) cpu_to_le32(x))
+	#define tole(x) ((__force u32) cpu_to_le32(x))
 #else
-# define tole(x) (x)
+	#define tole(x) (x)
 #endif
 
 #if CRC_BE_BITS > 8
-# define tobe(x) ((__force u32) cpu_to_be32(x))
+	#define tobe(x) ((__force u32) cpu_to_be32(x))
 #else
-# define tobe(x) (x)
+	#define tobe(x) (x)
 #endif
 
 #include "crc32table.h"
@@ -59,32 +59,35 @@ crc32_body(u32 crc, unsigned char const *buf, size_t len, const u32 (*tab)[256])
 # ifdef __LITTLE_ENDIAN
 #  define DO_CRC(x) crc = t0[(crc ^ (x)) & 255] ^ (crc >> 8)
 #  define DO_CRC4 (t3[(q) & 255] ^ t2[(q >> 8) & 255] ^ \
-		   t1[(q >> 16) & 255] ^ t0[(q >> 24) & 255])
+				   t1[(q >> 16) & 255] ^ t0[(q >> 24) & 255])
 #  define DO_CRC8 (t7[(q) & 255] ^ t6[(q >> 8) & 255] ^ \
-		   t5[(q >> 16) & 255] ^ t4[(q >> 24) & 255])
+				   t5[(q >> 16) & 255] ^ t4[(q >> 24) & 255])
 # else
 #  define DO_CRC(x) crc = t0[((crc >> 24) ^ (x)) & 255] ^ (crc << 8)
 #  define DO_CRC4 (t0[(q) & 255] ^ t1[(q >> 8) & 255] ^ \
-		   t2[(q >> 16) & 255] ^ t3[(q >> 24) & 255])
+				   t2[(q >> 16) & 255] ^ t3[(q >> 24) & 255])
 #  define DO_CRC8 (t4[(q) & 255] ^ t5[(q >> 8) & 255] ^ \
-		   t6[(q >> 16) & 255] ^ t7[(q >> 24) & 255])
+				   t6[(q >> 16) & 255] ^ t7[(q >> 24) & 255])
 # endif
 	const u32 *b;
 	size_t    rem_len;
 # ifdef CONFIG_X86
 	size_t i;
 # endif
-	const u32 *t0=tab[0], *t1=tab[1], *t2=tab[2], *t3=tab[3];
+	const u32 *t0 = tab[0], *t1 = tab[1], *t2 = tab[2], *t3 = tab[3];
 # if CRC_LE_BITS != 32
 	const u32 *t4 = tab[4], *t5 = tab[5], *t6 = tab[6], *t7 = tab[7];
 # endif
 	u32 q;
 
 	/* Align it */
-	if (unlikely((long)buf & 3 && len)) {
-		do {
+	if (unlikely((long)buf & 3 && len))
+	{
+		do
+		{
 			DO_CRC(*buf++);
-		} while ((--len) && ((long)buf)&3);
+		}
+		while ((--len) && ((long)buf) & 3);
 	}
 
 # if CRC_LE_BITS == 32
@@ -98,9 +101,13 @@ crc32_body(u32 crc, unsigned char const *buf, size_t len, const u32 (*tab)[256])
 	b = (const u32 *)buf;
 # ifdef CONFIG_X86
 	--b;
-	for (i = 0; i < len; i++) {
+
+	for (i = 0; i < len; i++)
+	{
 # else
-	for (--b; len; --len) {
+
+	for (--b; len; --len)
+	{
 # endif
 		q = crc ^ *++b; /* use pre increment for speed */
 # if CRC_LE_BITS == 32
@@ -111,24 +118,37 @@ crc32_body(u32 crc, unsigned char const *buf, size_t len, const u32 (*tab)[256])
 		crc ^= DO_CRC4;
 # endif
 	}
+
 	len = rem_len;
+
 	/* And the last few bytes */
-	if (len) {
+	if (len)
+	{
 		u8 *p = (u8 *)(b + 1) - 1;
 # ifdef CONFIG_X86
+
 		for (i = 0; i < len; i++)
-			DO_CRC(*++p); /* use pre increment for speed */
+		{
+			DO_CRC(*++p);    /* use pre increment for speed */
+		}
+
 # else
-		do {
+
+		do
+		{
 			DO_CRC(*++p); /* use pre increment for speed */
-		} while (--len);
+		}
+		while (--len);
+
 # endif
 	}
+
 	return crc;
 #undef DO_CRC
 #undef DO_CRC4
 #undef DO_CRC8
 }
+
 #endif
 
 
@@ -143,36 +163,51 @@ crc32_body(u32 crc, unsigned char const *buf, size_t len, const u32 (*tab)[256])
  * @polynomial: CRC32/CRC32c LE polynomial
  */
 static inline u32 __pure crc32_le_generic(u32 crc, unsigned char const *p,
-					  size_t len, const u32 (*tab)[256],
-					  u32 polynomial)
+		size_t len, const u32 (*tab)[256],
+		u32 polynomial)
 {
 #if CRC_LE_BITS == 1
 	int i;
-	while (len--) {
+
+	while (len--)
+	{
 		crc ^= *p++;
+
 		for (i = 0; i < 8; i++)
+		{
 			crc = (crc >> 1) ^ ((crc & 1) ? polynomial : 0);
+		}
 	}
+
 # elif CRC_LE_BITS == 2
-	while (len--) {
+
+	while (len--)
+	{
 		crc ^= *p++;
 		crc = (crc >> 2) ^ tab[0][crc & 3];
 		crc = (crc >> 2) ^ tab[0][crc & 3];
 		crc = (crc >> 2) ^ tab[0][crc & 3];
 		crc = (crc >> 2) ^ tab[0][crc & 3];
 	}
+
 # elif CRC_LE_BITS == 4
-	while (len--) {
+
+	while (len--)
+	{
 		crc ^= *p++;
 		crc = (crc >> 4) ^ tab[0][crc & 15];
 		crc = (crc >> 4) ^ tab[0][crc & 15];
 	}
+
 # elif CRC_LE_BITS == 8
+
 	/* aka Sarwate algorithm */
-	while (len--) {
+	while (len--)
+	{
 		crc ^= *p++;
 		crc = (crc >> 8) ^ tab[0][crc & 255];
 	}
+
 # else
 	crc = (__force u32) __cpu_to_le32(crc);
 	crc = crc32_body(crc, p, len, tab);
@@ -194,12 +229,12 @@ u32 __pure __crc32c_le(u32 crc, unsigned char const *p, size_t len)
 u32 __pure crc32_le(u32 crc, unsigned char const *p, size_t len)
 {
 	return crc32_le_generic(crc, p, len,
-			(const u32 (*)[256])crc32table_le, CRCPOLY_LE);
+							(const u32 (*)[256])crc32table_le, CRCPOLY_LE);
 }
 u32 __pure __crc32c_le(u32 crc, unsigned char const *p, size_t len)
 {
 	return crc32_le_generic(crc, p, len,
-			(const u32 (*)[256])crc32ctable_le, CRC32C_POLY_LE);
+							(const u32 (*)[256])crc32ctable_le, CRC32C_POLY_LE);
 }
 #endif
 EXPORT_SYMBOL(crc32_le);
@@ -215,7 +250,8 @@ static u32 __attribute_const__ gf2_multiply(u32 x, u32 y, u32 modulus)
 	u32 product = x & 1 ? y : 0;
 	int i;
 
-	for (i = 0; i < 31; i++) {
+	for (i = 0; i < 31; i++)
+	{
 		product = (product >> 1) ^ (product & 1 ? modulus : 0);
 		x >>= 1;
 		product ^= x & 1 ? y : 0;
@@ -237,27 +273,38 @@ static u32 __attribute_const__ gf2_multiply(u32 x, u32 y, u32 modulus)
  * to log(len).
  */
 static u32 __attribute_const__ crc32_generic_shift(u32 crc, size_t len,
-						   u32 polynomial)
+		u32 polynomial)
 {
 	u32 power = polynomial;	/* CRC of x^32 */
 	int i;
 
 	/* Shift up to 32 bits in the simple linear way */
 	for (i = 0; i < 8 * (int)(len & 3); i++)
+	{
 		crc = (crc >> 1) ^ (crc & 1 ? polynomial : 0);
+	}
 
 	len >>= 2;
-	if (!len)
-		return crc;
 
-	for (;;) {
+	if (!len)
+	{
+		return crc;
+	}
+
+	for (;;)
+	{
 		/* "power" is x^(2^i), modulo the polynomial */
 		if (len & 1)
+		{
 			crc = gf2_multiply(crc, power, polynomial);
+		}
 
 		len >>= 1;
+
 		if (!len)
+		{
 			break;
+		}
 
 		/* Square power, advancing to x^(2^(i+1)) */
 		power = gf2_multiply(power, power, polynomial);
@@ -288,37 +335,50 @@ EXPORT_SYMBOL(__crc32c_le_shift);
  * @polynomial: CRC32 BE polynomial
  */
 static inline u32 __pure crc32_be_generic(u32 crc, unsigned char const *p,
-					  size_t len, const u32 (*tab)[256],
-					  u32 polynomial)
+		size_t len, const u32 (*tab)[256],
+		u32 polynomial)
 {
 #if CRC_BE_BITS == 1
 	int i;
-	while (len--) {
+
+	while (len--)
+	{
 		crc ^= *p++ << 24;
+
 		for (i = 0; i < 8; i++)
 			crc =
-			    (crc << 1) ^ ((crc & 0x80000000) ? polynomial :
-					  0);
+				(crc << 1) ^ ((crc & 0x80000000) ? polynomial :
+							  0);
 	}
+
 # elif CRC_BE_BITS == 2
-	while (len--) {
+
+	while (len--)
+	{
 		crc ^= *p++ << 24;
 		crc = (crc << 2) ^ tab[0][crc >> 30];
 		crc = (crc << 2) ^ tab[0][crc >> 30];
 		crc = (crc << 2) ^ tab[0][crc >> 30];
 		crc = (crc << 2) ^ tab[0][crc >> 30];
 	}
+
 # elif CRC_BE_BITS == 4
-	while (len--) {
+
+	while (len--)
+	{
 		crc ^= *p++ << 24;
 		crc = (crc << 4) ^ tab[0][crc >> 28];
 		crc = (crc << 4) ^ tab[0][crc >> 28];
 	}
+
 # elif CRC_BE_BITS == 8
-	while (len--) {
+
+	while (len--)
+	{
 		crc ^= *p++ << 24;
 		crc = (crc << 8) ^ tab[0][crc >> 24];
 	}
+
 # else
 	crc = (__force u32) __cpu_to_be32(crc);
 	crc = crc32_body(crc, p, len, tab);
@@ -336,7 +396,7 @@ u32 __pure crc32_be(u32 crc, unsigned char const *p, size_t len)
 u32 __pure crc32_be(u32 crc, unsigned char const *p, size_t len)
 {
 	return crc32_be_generic(crc, p, len,
-			(const u32 (*)[256])crc32table_be, CRCPOLY_BE);
+							(const u32 (*)[256])crc32table_be, CRCPOLY_BE);
 }
 #endif
 EXPORT_SYMBOL(crc32_be);
@@ -861,7 +921,8 @@ static u8 const __aligned(8) test_buf[] __initconst =
 };
 
 /* 100 test cases */
-static struct crc_test {
+static struct crc_test
+{
 	u32 crc;	/* random starting crc */
 	u32 start;	/* random 6 bit offset in buf */
 	u32 length;	/* random 11 bit length of test */
@@ -987,11 +1048,12 @@ static int __init crc32c_test(void)
 	static u32 crc;
 
 	/* pre-warm the cache */
-	for (i = 0; i < 100; i++) {
-		bytes += 2*test[i].length;
+	for (i = 0; i < 100; i++)
+	{
+		bytes += 2 * test[i].length;
 
 		crc ^= __crc32c_le(test[i].crc, test_buf +
-		    test[i].start, test[i].length);
+						   test[i].start, test[i].length);
 	}
 
 	/* reduce OS noise */
@@ -999,11 +1061,16 @@ static int __init crc32c_test(void)
 	local_irq_disable();
 
 	nsec = ktime_get_ns();
-	for (i = 0; i < 100; i++) {
+
+	for (i = 0; i < 100; i++)
+	{
 		if (test[i].crc32c_le != __crc32c_le(test[i].crc, test_buf +
-		    test[i].start, test[i].length))
+											 test[i].start, test[i].length))
+		{
 			errors++;
+		}
 	}
+
 	nsec = ktime_get_ns() - nsec;
 
 	local_irq_restore(flags);
@@ -1012,10 +1079,13 @@ static int __init crc32c_test(void)
 	pr_info("crc32c: CRC_LE_BITS = %d\n", CRC_LE_BITS);
 
 	if (errors)
+	{
 		pr_warn("crc32c: %d self tests failed\n", errors);
-	else {
+	}
+	else
+	{
 		pr_info("crc32c: self tests passed, processed %d bytes in %lld nsec\n",
-			bytes, nsec);
+				bytes, nsec);
 	}
 
 	return 0;
@@ -1026,32 +1096,42 @@ static int __init crc32c_combine_test(void)
 	int i, j;
 	int errors = 0, runs = 0;
 
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 10; i++)
+	{
 		u32 crc_full;
 
 		crc_full = __crc32c_le(test[i].crc, test_buf + test[i].start,
-				       test[i].length);
-		for (j = 0; j <= test[i].length; ++j) {
+							   test[i].length);
+
+		for (j = 0; j <= test[i].length; ++j)
+		{
 			u32 crc1, crc2;
 			u32 len1 = j, len2 = test[i].length - j;
 
 			crc1 = __crc32c_le(test[i].crc, test_buf +
-					   test[i].start, len1);
+							   test[i].start, len1);
 			crc2 = __crc32c_le(0, test_buf + test[i].start +
-					   len1, len2);
+							   len1, len2);
 
 			if (!(crc_full == __crc32c_le_combine(crc1, crc2, len2) &&
-			      crc_full == test[i].crc32c_le))
+				  crc_full == test[i].crc32c_le))
+			{
 				errors++;
+			}
+
 			runs++;
 			cond_resched();
 		}
 	}
 
 	if (errors)
+	{
 		pr_warn("crc32c_combine: %d/%d self tests failed\n", errors, runs);
+	}
 	else
+	{
 		pr_info("crc32c_combine: %d self tests passed\n", runs);
+	}
 
 	return 0;
 }
@@ -1069,14 +1149,15 @@ static int __init crc32_test(void)
 	static u32 crc;
 
 	/* pre-warm the cache */
-	for (i = 0; i < 100; i++) {
-		bytes += 2*test[i].length;
+	for (i = 0; i < 100; i++)
+	{
+		bytes += 2 * test[i].length;
 
 		crc ^= crc32_le(test[i].crc, test_buf +
-		    test[i].start, test[i].length);
+						test[i].start, test[i].length);
 
 		crc ^= crc32_be(test[i].crc, test_buf +
-		    test[i].start, test[i].length);
+						test[i].start, test[i].length);
 	}
 
 	/* reduce OS noise */
@@ -1084,28 +1165,38 @@ static int __init crc32_test(void)
 	local_irq_disable();
 
 	nsec = ktime_get_ns();
-	for (i = 0; i < 100; i++) {
+
+	for (i = 0; i < 100; i++)
+	{
 		if (test[i].crc_le != crc32_le(test[i].crc, test_buf +
-		    test[i].start, test[i].length))
+									   test[i].start, test[i].length))
+		{
 			errors++;
+		}
 
 		if (test[i].crc_be != crc32_be(test[i].crc, test_buf +
-		    test[i].start, test[i].length))
+									   test[i].start, test[i].length))
+		{
 			errors++;
+		}
 	}
+
 	nsec = ktime_get_ns() - nsec;
 
 	local_irq_restore(flags);
 	local_irq_enable();
 
 	pr_info("crc32: CRC_LE_BITS = %d, CRC_BE BITS = %d\n",
-		 CRC_LE_BITS, CRC_BE_BITS);
+			CRC_LE_BITS, CRC_BE_BITS);
 
 	if (errors)
+	{
 		pr_warn("crc32: %d self tests failed\n", errors);
-	else {
+	}
+	else
+	{
 		pr_info("crc32: self tests passed, processed %d bytes in %lld nsec\n",
-			bytes, nsec);
+				bytes, nsec);
 	}
 
 	return 0;
@@ -1116,32 +1207,42 @@ static int __init crc32_combine_test(void)
 	int i, j;
 	int errors = 0, runs = 0;
 
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 10; i++)
+	{
 		u32 crc_full;
 
 		crc_full = crc32_le(test[i].crc, test_buf + test[i].start,
-				    test[i].length);
-		for (j = 0; j <= test[i].length; ++j) {
+							test[i].length);
+
+		for (j = 0; j <= test[i].length; ++j)
+		{
 			u32 crc1, crc2;
 			u32 len1 = j, len2 = test[i].length - j;
 
 			crc1 = crc32_le(test[i].crc, test_buf +
-					test[i].start, len1);
+							test[i].start, len1);
 			crc2 = crc32_le(0, test_buf + test[i].start +
-					len1, len2);
+							len1, len2);
 
 			if (!(crc_full == crc32_le_combine(crc1, crc2, len2) &&
-			      crc_full == test[i].crc_le))
+				  crc_full == test[i].crc_le))
+			{
 				errors++;
+			}
+
 			runs++;
 			cond_resched();
 		}
 	}
 
 	if (errors)
+	{
 		pr_warn("crc32_combine: %d/%d self tests failed\n", errors, runs);
+	}
 	else
+	{
 		pr_info("crc32_combine: %d self tests passed\n", runs);
+	}
 
 	return 0;
 }

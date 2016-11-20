@@ -35,17 +35,23 @@ static int __init hmcdrv_mod_init(void)
 	int rc = hmcdrv_ftp_probe(); /* perform w/o cache */
 
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = hmcdrv_cache_startup(hmcdrv_mod_cachesize);
 
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = hmcdrv_dev_init();
 
 	if (rc)
+	{
 		hmcdrv_cache_shutdown();
+	}
 
 	return rc;
 }

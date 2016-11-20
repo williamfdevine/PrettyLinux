@@ -4,7 +4,8 @@
 #define FERMI_A_ZBC_COLOR                                                  0x00
 #define FERMI_A_ZBC_DEPTH                                                  0x01
 
-struct fermi_a_zbc_color_v0 {
+struct fermi_a_zbc_color_v0
+{
 	__u8  version;
 #define FERMI_A_ZBC_COLOR_V0_FMT_ZERO                                      0x01
 #define FERMI_A_ZBC_COLOR_V0_FMT_UNORM_ONE                                 0x02
@@ -32,7 +33,8 @@ struct fermi_a_zbc_color_v0 {
 	__u32 l2[4];
 };
 
-struct fermi_a_zbc_depth_v0 {
+struct fermi_a_zbc_depth_v0
+{
 	__u8  version;
 #define FERMI_A_ZBC_DEPTH_V0_FMT_FP32                                      0x01
 	__u8  format;

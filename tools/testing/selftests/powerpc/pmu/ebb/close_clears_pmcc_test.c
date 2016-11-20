@@ -35,7 +35,9 @@ int close_clears_pmcc(void)
 	mtspr(SPRN_PMC1, pmc_sample_period(sample_period));
 
 	while (ebb_state.stats.ebb_count < 1)
+	{
 		FAIL_IF(core_busy_loop());
+	}
 
 	ebb_global_disable();
 	event_close(&event);

@@ -37,14 +37,16 @@ static u64 mmap_read_self(void *addr)
 	u32 seq, idx, time_mult = 0, time_shift = 0;
 	u64 count, cyc = 0, time_offset = 0, enabled, running, delta;
 
-	do {
+	do
+	{
 		seq = pc->lock;
 		barrier();
 
 		enabled = pc->time_enabled;
 		running = pc->time_running;
 
-		if (enabled != running) {
+		if (enabled != running)
+		{
 			cyc = rdtsc();
 			time_mult = pc->time_mult;
 			time_shift = pc->time_shift;
@@ -53,23 +55,31 @@ static u64 mmap_read_self(void *addr)
 
 		idx = pc->index;
 		count = pc->offset;
+
 		if (idx)
+		{
 			count += rdpmc(idx - 1);
+		}
 
 		barrier();
-	} while (pc->lock != seq);
+	}
+	while (pc->lock != seq);
 
-	if (enabled != running) {
+	if (enabled != running)
+	{
 		u64 quot, rem;
 
 		quot = (cyc >> time_shift);
 		rem = cyc & (((u64)1 << time_shift) - 1);
 		delta = time_offset + quot * time_mult +
-			((rem * time_mult) >> time_shift);
+				((rem * time_mult) >> time_shift);
 
 		enabled += delta;
+
 		if (idx)
+		{
 			running += delta;
+		}
 
 		quot = count / running;
 		rem = count % running;
@@ -83,8 +93,8 @@ static u64 mmap_read_self(void *addr)
  * If the RDPMC instruction faults then signal this back to the test parent task:
  */
 static void segfault_handler(int sig __maybe_unused,
-			     siginfo_t *info __maybe_unused,
-			     void *uc __maybe_unused)
+							 siginfo_t *info __maybe_unused,
+							 void *uc __maybe_unused)
 {
 	exit(-1);
 }
@@ -96,13 +106,14 @@ static int __test__rdpmc(void)
 	int n;
 	int fd;
 	void *addr;
-	struct perf_event_attr attr = {
+	struct perf_event_attr attr =
+	{
 		.type = PERF_TYPE_HARDWARE,
 		.config = PERF_COUNT_HW_INSTRUCTIONS,
 		.exclude_kernel = 1,
 	};
 	u64 delta_sum = 0;
-        struct sigaction sa;
+	struct sigaction sa;
 	char sbuf[STRERR_BUFSIZE];
 
 	sigfillset(&sa.sa_mask);
@@ -111,28 +122,35 @@ static int __test__rdpmc(void)
 	sigaction(SIGSEGV, &sa, NULL);
 
 	fd = sys_perf_event_open(&attr, 0, -1, -1,
-				 perf_event_open_cloexec_flag());
-	if (fd < 0) {
+							 perf_event_open_cloexec_flag());
+
+	if (fd < 0)
+	{
 		pr_err("Error: sys_perf_event_open() syscall returned "
-		       "with %d (%s)\n", fd,
-		       str_error_r(errno, sbuf, sizeof(sbuf)));
+			   "with %d (%s)\n", fd,
+			   str_error_r(errno, sbuf, sizeof(sbuf)));
 		return -1;
 	}
 
 	addr = mmap(NULL, page_size, PROT_READ, MAP_SHARED, fd, 0);
-	if (addr == (void *)(-1)) {
+
+	if (addr == (void *)(-1))
+	{
 		pr_err("Error: mmap() syscall returned with (%s)\n",
-		       str_error_r(errno, sbuf, sizeof(sbuf)));
+			   str_error_r(errno, sbuf, sizeof(sbuf)));
 		goto out_close;
 	}
 
-	for (n = 0; n < 6; n++) {
+	for (n = 0; n < 6; n++)
+	{
 		u64 stamp, now, delta;
 
 		stamp = mmap_read_self(addr);
 
 		for (i = 0; i < loops; i++)
+		{
 			tmp++;
+		}
 
 		now = mmap_read_self(addr);
 		loops *= 10;
@@ -149,7 +167,9 @@ out_close:
 	close(fd);
 
 	if (!delta_sum)
+	{
 		return -1;
+	}
 
 	return 0;
 }
@@ -162,18 +182,25 @@ int test__rdpmc(int subtest __maybe_unused)
 	int pid;
 
 	pid = fork();
-	if (pid < 0)
-		return -1;
 
-	if (!pid) {
+	if (pid < 0)
+	{
+		return -1;
+	}
+
+	if (!pid)
+	{
 		ret = __test__rdpmc();
 
 		exit(ret);
 	}
 
 	wret = waitpid(pid, &status, 0);
+
 	if (wret < 0 || status)
+	{
 		return -1;
+	}
 
 	return 0;
 }

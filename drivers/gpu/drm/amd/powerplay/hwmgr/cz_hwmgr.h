@@ -43,16 +43,18 @@
 #define DEVICE_ID_CZ_9877             0x9877
 
 #define PHMCZ_WRITE_SMC_REGISTER(device, reg, value)                            \
-		cgs_write_ind_register(device, CGS_IND_REG__SMC, ix##reg, value)
+	cgs_write_ind_register(device, CGS_IND_REG__SMC, ix##reg, value)
 
-struct cz_dpm_entry {
+struct cz_dpm_entry
+{
 	uint32_t soft_min_clk;
 	uint32_t hard_min_clk;
 	uint32_t soft_max_clk;
 	uint32_t hard_max_clk;
 };
 
-struct cz_sys_info {
+struct cz_sys_info
+{
 	uint32_t bootup_uma_clock;
 	uint32_t bootup_engine_clock;
 	uint32_t dentist_vco_freq;
@@ -80,13 +82,14 @@ struct cz_sys_info {
 #define DISPLAYPHY_CORE_SELECT			0x4
 
 #define DDI_POWERGATING_ARG(phyID, lanemask, rx, tx, core) \
-		(((uint32_t)(phyID))<<DISPLAYPHY_PHYID_SHIFT | \
-		((uint32_t)(lanemask))<<DISPLAYPHY_LANESELECT_SHIFT | \
-		((rx) ? DISPLAYPHY_RX_SELECT : 0) | \
-		((tx) ? DISPLAYPHY_TX_SELECT : 0) | \
-		((core) ? DISPLAYPHY_CORE_SELECT : 0))
+	(((uint32_t)(phyID))<<DISPLAYPHY_PHYID_SHIFT | \
+	 ((uint32_t)(lanemask))<<DISPLAYPHY_LANESELECT_SHIFT | \
+	 ((rx) ? DISPLAYPHY_RX_SELECT : 0) | \
+	 ((tx) ? DISPLAYPHY_TX_SELECT : 0) | \
+	 ((core) ? DISPLAYPHY_CORE_SELECT : 0))
 
-struct cz_display_phy_info_entry {
+struct cz_display_phy_info_entry
+{
 	uint8_t phy_present;
 	uint8_t active_lane_mapping;
 	uint8_t display_config_type;
@@ -95,12 +98,14 @@ struct cz_display_phy_info_entry {
 
 #define CZ_MAX_DISPLAYPHY_IDS			10
 
-struct cz_display_phy_info {
+struct cz_display_phy_info
+{
 	bool display_phy_access_initialized;
 	struct cz_display_phy_info_entry entries[CZ_MAX_DISPLAYPHY_IDS];
 };
 
-struct cz_power_level {
+struct cz_power_level
+{
 	uint32_t engineClock;
 	uint8_t vddcIndex;
 	uint8_t dsDividerIndex;
@@ -114,7 +119,8 @@ struct cz_power_level {
 	uint8_t rsv[3];
 };
 
-struct cz_uvd_clocks {
+struct cz_uvd_clocks
+{
 	uint32_t vclk;
 	uint32_t dclk;
 	uint32_t vclk_low_divider;
@@ -123,15 +129,19 @@ struct cz_uvd_clocks {
 	uint32_t dclk_high_divider;
 };
 
-enum cz_pstate_previous_action {
+enum cz_pstate_previous_action
+{
 	DO_NOTHING = 1,
 	FORCE_HIGH,
 	CANCEL_FORCE_HIGH
 };
 
-struct pp_disable_nb_ps_flags {
-	union {
-		struct {
+struct pp_disable_nb_ps_flags
+{
+	union
+	{
+		struct
+		{
 			uint32_t entry : 1;
 			uint32_t display : 1;
 			uint32_t driver: 1;
@@ -144,7 +154,8 @@ struct pp_disable_nb_ps_flags {
 	};
 };
 
-struct cz_power_state {
+struct cz_power_state
+{
 	unsigned int magic;
 	uint32_t level;
 	struct cz_uvd_clocks uvd_clocks;
@@ -176,7 +187,8 @@ struct cz_power_state {
 #define SMU_EnabledFeatureScoreboard_UvdDpmOn   0x00800000 /* bit 23 */
 #define SMU_EnabledFeatureScoreboard_VceDpmOn   0x01000000 /* bit 24 */
 
-struct cc6_settings {
+struct cc6_settings
+{
 	bool cc6_setting_changed;
 	bool nb_pstate_switch_disable;/* controls NB PState switch */
 	bool cpu_cc6_disable; /* controls CPU CState switch ( on or off) */
@@ -184,7 +196,8 @@ struct cc6_settings {
 	uint32_t cpu_pstate_separation_time;
 };
 
-struct cz_hwmgr {
+struct cz_hwmgr
+{
 	uint32_t activity_target[CZ_MAX_HARDWARE_POWERLEVELS];
 	uint32_t dpm_interval;
 

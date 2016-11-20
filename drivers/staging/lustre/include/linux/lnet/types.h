@@ -114,7 +114,8 @@ static inline __u32 LNET_MKNET(__u32 type, __u32 num)
 #define WIRE_ATTR	__packed
 
 /* Packed version of lnet_process_id_t to transfer via network */
-typedef struct {
+typedef struct
+{
 	/* node id / process id */
 	lnet_nid_t	nid;
 	lnet_pid_t	pid;
@@ -126,12 +127,14 @@ typedef struct {
  * reboots).  The object cookie only matches one object on that interface
  * during that object's lifetime (i.e. no cookie re-use).
  */
-typedef struct {
+typedef struct
+{
 	__u64	wh_interface_cookie;
 	__u64	wh_object_cookie;
 } WIRE_ATTR lnet_handle_wire_t;
 
-typedef enum {
+typedef enum
+{
 	LNET_MSG_ACK = 0,
 	LNET_MSG_PUT,
 	LNET_MSG_GET,
@@ -145,13 +148,15 @@ typedef enum {
  * wire structs MUST be fixed size and the smaller types are placed at the
  * end.
  */
-typedef struct lnet_ack {
+typedef struct lnet_ack
+{
 	lnet_handle_wire_t	dst_wmd;
 	__u64			match_bits;
 	__u32			mlength;
 } WIRE_ATTR lnet_ack_t;
 
-typedef struct lnet_put {
+typedef struct lnet_put
+{
 	lnet_handle_wire_t	ack_wmd;
 	__u64			match_bits;
 	__u64			hdr_data;
@@ -159,7 +164,8 @@ typedef struct lnet_put {
 	__u32			offset;
 } WIRE_ATTR lnet_put_t;
 
-typedef struct lnet_get {
+typedef struct lnet_get
+{
 	lnet_handle_wire_t	return_wmd;
 	__u64			match_bits;
 	__u32			ptl_index;
@@ -167,16 +173,19 @@ typedef struct lnet_get {
 	__u32			sink_length;
 } WIRE_ATTR lnet_get_t;
 
-typedef struct lnet_reply {
+typedef struct lnet_reply
+{
 	lnet_handle_wire_t	dst_wmd;
 } WIRE_ATTR lnet_reply_t;
 
-typedef struct lnet_hello {
+typedef struct lnet_hello
+{
 	__u64			incarnation;
 	__u32			type;
 } WIRE_ATTR lnet_hello_t;
 
-typedef struct {
+typedef struct
+{
 	lnet_nid_t	dest_nid;
 	lnet_nid_t	src_nid;
 	lnet_pid_t	dest_pid;
@@ -184,7 +193,8 @@ typedef struct {
 	__u32		type;		/* lnet_msg_type_t */
 	__u32		payload_length;	/* payload data to follow */
 	/*<------__u64 aligned------->*/
-	union {
+	union
+	{
 		lnet_ack_t	ack;
 		lnet_put_t	put;
 		lnet_get_t	get;
@@ -203,7 +213,8 @@ typedef struct {
  * exchange HELLO messages when a connection is first established.  Individual
  * LNDs can put whatever else they fancy in lnet_hdr_t::msg.
  */
-typedef struct {
+typedef struct
+{
 	__u32	magic;		/* LNET_PROTO_TCP_MAGIC */
 	__u16	version_major;	/* increment on incompatible change */
 	__u16	version_minor;	/* increment on compatible change */
@@ -227,7 +238,8 @@ typedef struct {
 #define LNET_PROTO_TCP_VERSION_MINOR	0
 
 /* Acceptor connection request */
-typedef struct {
+typedef struct
+{
 	__u32	acr_magic;		/* PTL_ACCEPTOR_PROTO_MAGIC */
 	__u32	acr_version;		/* protocol version */
 	__u64	acr_nid;		/* target NID */
@@ -235,13 +247,15 @@ typedef struct {
 
 #define LNET_PROTO_ACCEPTOR_VERSION	1
 
-typedef struct {
+typedef struct
+{
 	lnet_nid_t	ns_nid;
 	__u32		ns_status;
 	__u32		ns_unused;
 } WIRE_ATTR lnet_ni_status_t;
 
-typedef struct {
+typedef struct
+{
 	__u32			pi_magic;
 	__u32			pi_features;
 	lnet_pid_t		pi_pid;
@@ -249,7 +263,8 @@ typedef struct {
 	lnet_ni_status_t	pi_ni[0];
 } WIRE_ATTR lnet_ping_info_t;
 
-typedef struct lnet_counters {
+typedef struct lnet_counters
+{
 	__u32	msgs_alloc;
 	__u32	msgs_max;
 	__u32	errors;
@@ -279,7 +294,8 @@ typedef struct lnet_counters {
  * Every handle value can be converted into a value of type lnet_handle_any_t
  * without loss of information.
  */
-typedef struct {
+typedef struct
+{
 	__u64	 cookie;
 } lnet_handle_any_t;
 
@@ -320,7 +336,8 @@ static inline int LNetHandleIsInvalid(lnet_handle_any_t h)
 /**
  * Global process ID.
  */
-typedef struct {
+typedef struct
+{
 	/** node id */
 	lnet_nid_t nid;
 	/** process id */
@@ -336,7 +353,8 @@ typedef struct {
  * Specifies whether the match entry or memory descriptor should be unlinked
  * automatically (LNET_UNLINK) or not (LNET_RETAIN).
  */
-typedef enum {
+typedef enum
+{
 	LNET_RETAIN = 0,
 	LNET_UNLINK
 } lnet_unlink_t;
@@ -348,7 +366,8 @@ typedef enum {
  * LNET_INS_AFTER is used to insert the new entry after the current entry
  * or after the last item in the list.
  */
-typedef enum {
+typedef enum
+{
 	/** insert ME before current position or head of the list */
 	LNET_INS_BEFORE,
 	/** insert ME after current position or tail of the list */
@@ -367,7 +386,8 @@ typedef enum {
  * Defines the visible parts of a memory descriptor. Values of this type
  * are used to initialize memory descriptors.
  */
-typedef struct {
+typedef struct
+{
 	/**
 	 * Specify the memory region associated with the memory descriptor.
 	 * If the options field has:
@@ -513,7 +533,8 @@ typedef struct bio_vec lnet_kiov_t;
 /**
  * Six types of events can be logged in an event queue.
  */
-typedef enum {
+typedef enum
+{
 	/** An incoming GET operation has completed on the MD. */
 	LNET_EVENT_GET		= 1,
 	/**
@@ -558,7 +579,8 @@ typedef unsigned LNET_SEQ_BASETYPE lnet_seq_t;
 /**
  * Information about an event on a MD.
  */
-typedef struct {
+typedef struct
+{
 	/** The identifier (nid, pid) of the target. */
 	lnet_process_id_t	target;
 	/** The identifier (nid, pid) of the initiator. */
@@ -653,7 +675,8 @@ typedef void (*lnet_eq_handler_t)(lnet_event_t *event);
  * \see lnet_md_t::options for the discussion on LNET_MD_ACK_DISABLE by which
  * acknowledgments can be disabled for a MD.
  */
-typedef enum {
+typedef enum
+{
 	/** Request an acknowledgment */
 	LNET_ACK_REQ,
 	/** Request that no acknowledgment should be generated. */

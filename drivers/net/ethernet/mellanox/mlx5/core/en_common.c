@@ -37,13 +37,16 @@
  */
 
 int mlx5e_create_tir(struct mlx5_core_dev *mdev,
-		     struct mlx5e_tir *tir, u32 *in, int inlen)
+					 struct mlx5e_tir *tir, u32 *in, int inlen)
 {
 	int err;
 
 	err = mlx5_core_create_tir(mdev, in, inlen, &tir->tirn);
+
 	if (err)
+	{
 		return err;
+	}
 
 	list_add(&tir->list, &mdev->mlx5e_res.td.tirs_list);
 
@@ -51,14 +54,14 @@ int mlx5e_create_tir(struct mlx5_core_dev *mdev,
 }
 
 void mlx5e_destroy_tir(struct mlx5_core_dev *mdev,
-		       struct mlx5e_tir *tir)
+					   struct mlx5e_tir *tir)
 {
 	mlx5_core_destroy_tir(mdev, tir->tirn);
 	list_del(&tir->list);
 }
 
 static int mlx5e_create_mkey(struct mlx5_core_dev *mdev, u32 pdn,
-			     struct mlx5_core_mkey *mkey)
+							 struct mlx5_core_mkey *mkey)
 {
 	int inlen = MLX5_ST_SZ_BYTES(create_mkey_in);
 	void *mkc;
@@ -66,8 +69,11 @@ static int mlx5e_create_mkey(struct mlx5_core_dev *mdev, u32 pdn,
 	int err;
 
 	in = mlx5_vzalloc(inlen);
+
 	if (!in)
+	{
 		return -ENOMEM;
+	}
 
 	mkc = MLX5_ADDR_OF(create_mkey_in, in, memory_key_mkey_entry);
 	MLX5_SET(mkc, mkc, access_mode, MLX5_MKC_ACCESS_MODE_PA);
@@ -90,25 +96,33 @@ int mlx5e_create_mdev_resources(struct mlx5_core_dev *mdev)
 	int err;
 
 	err = mlx5_alloc_map_uar(mdev, &res->cq_uar, false);
-	if (err) {
+
+	if (err)
+	{
 		mlx5_core_err(mdev, "alloc_map uar failed, %d\n", err);
 		return err;
 	}
 
 	err = mlx5_core_alloc_pd(mdev, &res->pdn);
-	if (err) {
+
+	if (err)
+	{
 		mlx5_core_err(mdev, "alloc pd failed, %d\n", err);
 		goto err_unmap_free_uar;
 	}
 
 	err = mlx5_core_alloc_transport_domain(mdev, &res->td.tdn);
-	if (err) {
+
+	if (err)
+	{
 		mlx5_core_err(mdev, "alloc td failed, %d\n", err);
 		goto err_dealloc_pd;
 	}
 
 	err = mlx5e_create_mkey(mdev, res->pdn, &res->mkey);
-	if (err) {
+
+	if (err)
+	{
 		mlx5_core_err(mdev, "create mkey failed, %d\n", err);
 		goto err_dealloc_transport_domain;
 	}
@@ -146,15 +160,22 @@ int mlx5e_refresh_tirs_self_loopback_enable(struct mlx5_core_dev *mdev)
 
 	inlen = MLX5_ST_SZ_BYTES(modify_tir_in);
 	in = mlx5_vzalloc(inlen);
+
 	if (!in)
+	{
 		return -ENOMEM;
+	}
 
 	MLX5_SET(modify_tir_in, in, bitmask.self_lb_en, 1);
 
-	list_for_each_entry(tir, &mdev->mlx5e_res.td.tirs_list, list) {
+	list_for_each_entry(tir, &mdev->mlx5e_res.td.tirs_list, list)
+	{
 		err = mlx5_core_modify_tir(mdev, tir->tirn, in, inlen);
+
 		if (err)
+		{
 			goto out;
+		}
 	}
 
 out:

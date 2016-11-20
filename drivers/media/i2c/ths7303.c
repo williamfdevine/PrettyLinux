@@ -32,7 +32,8 @@
 #define THS7303_CHANNEL_2	2
 #define THS7303_CHANNEL_3	3
 
-struct ths7303_state {
+struct ths7303_state
+{
 	struct v4l2_subdev		sd;
 	const struct ths7303_platform_data *pdata;
 	struct v4l2_bt_timings		bt;
@@ -40,7 +41,8 @@ struct ths7303_state {
 	int stream_on;
 };
 
-enum ths7303_filter_mode {
+enum ths7303_filter_mode
+{
 	THS7303_FILTER_MODE_480I_576I,
 	THS7303_FILTER_MODE_480P_576P,
 	THS7303_FILTER_MODE_720P_1080I,
@@ -70,17 +72,22 @@ static int ths7303_write(struct v4l2_subdev *sd, u8 reg, u8 val)
 	int ret;
 	int i;
 
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 3; i++)
+	{
 		ret = i2c_smbus_write_byte_data(client, reg, val);
+
 		if (ret == 0)
+		{
 			return 0;
+		}
 	}
+
 	return ret;
 }
 
 /* following function is used to set ths7303 */
 static int ths7303_setval(struct v4l2_subdev *sd,
-			  enum ths7303_filter_mode mode)
+						  enum ths7303_filter_mode mode)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct ths7303_state *state = to_state(sd);
@@ -89,46 +96,74 @@ static int ths7303_setval(struct v4l2_subdev *sd,
 	int err, disable = 0;
 
 	if (!client)
+	{
 		return -EINVAL;
+	}
 
-	switch (mode) {
-	case THS7303_FILTER_MODE_1080P:
-		sel = 0x3;	/*1080p and SXGA/UXGA */
-		break;
-	case THS7303_FILTER_MODE_720P_1080I:
-		sel = 0x2;	/*720p, 1080i and SVGA/XGA */
-		break;
-	case THS7303_FILTER_MODE_480P_576P:
-		sel = 0x1;	/* EDTV 480p/576p and VGA */
-		break;
-	case THS7303_FILTER_MODE_480I_576I:
-		sel = 0x0;	/* SDTV, S-Video, 480i/576i */
-		break;
-	default:
-		/* disable all channels */
-		disable = 1;
+	switch (mode)
+	{
+		case THS7303_FILTER_MODE_1080P:
+			sel = 0x3;	/*1080p and SXGA/UXGA */
+			break;
+
+		case THS7303_FILTER_MODE_720P_1080I:
+			sel = 0x2;	/*720p, 1080i and SVGA/XGA */
+			break;
+
+		case THS7303_FILTER_MODE_480P_576P:
+			sel = 0x1;	/* EDTV 480p/576p and VGA */
+			break;
+
+		case THS7303_FILTER_MODE_480I_576I:
+			sel = 0x0;	/* SDTV, S-Video, 480i/576i */
+			break;
+
+		default:
+			/* disable all channels */
+			disable = 1;
 	}
 
 	val = (sel << 6) | (sel << 3);
+
 	if (!disable)
+	{
 		val |= (pdata->ch_1 & 0x27);
+	}
+
 	err = ths7303_write(sd, THS7303_CHANNEL_1, val);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	val = (sel << 6) | (sel << 3);
+
 	if (!disable)
+	{
 		val |= (pdata->ch_2 & 0x27);
+	}
+
 	err = ths7303_write(sd, THS7303_CHANNEL_2, val);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	val = (sel << 6) | (sel << 3);
+
 	if (!disable)
+	{
 		val |= (pdata->ch_3 & 0x27);
+	}
+
 	err = ths7303_write(sd, THS7303_CHANNEL_3, val);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	return 0;
 out:
@@ -140,7 +175,8 @@ static int ths7303_s_std_output(struct v4l2_subdev *sd, v4l2_std_id norm)
 {
 	struct ths7303_state *state = to_state(sd);
 
-	if (norm & (V4L2_STD_ALL & ~V4L2_STD_SECAM)) {
+	if (norm & (V4L2_STD_ALL & ~V4L2_STD_SECAM))
+	{
 		state->std_id = 1;
 		state->bt.pixelclock = 0;
 		return ths7303_setval(sd, THS7303_FILTER_MODE_480I_576I);
@@ -154,30 +190,41 @@ static int ths7303_config(struct v4l2_subdev *sd)
 	struct ths7303_state *state = to_state(sd);
 	int res;
 
-	if (!state->stream_on) {
+	if (!state->stream_on)
+	{
 		ths7303_write(sd, THS7303_CHANNEL_1,
-			      (ths7303_read(sd, THS7303_CHANNEL_1) & 0xf8) |
-			      0x00);
+					  (ths7303_read(sd, THS7303_CHANNEL_1) & 0xf8) |
+					  0x00);
 		ths7303_write(sd, THS7303_CHANNEL_2,
-			      (ths7303_read(sd, THS7303_CHANNEL_2) & 0xf8) |
-			      0x00);
+					  (ths7303_read(sd, THS7303_CHANNEL_2) & 0xf8) |
+					  0x00);
 		ths7303_write(sd, THS7303_CHANNEL_3,
-			      (ths7303_read(sd, THS7303_CHANNEL_3) & 0xf8) |
-			      0x00);
+					  (ths7303_read(sd, THS7303_CHANNEL_3) & 0xf8) |
+					  0x00);
 		return 0;
 	}
 
 	if (state->bt.pixelclock > 120000000)
+	{
 		res = ths7303_setval(sd, THS7303_FILTER_MODE_1080P);
+	}
 	else if (state->bt.pixelclock > 70000000)
+	{
 		res = ths7303_setval(sd, THS7303_FILTER_MODE_720P_1080I);
+	}
 	else if (state->bt.pixelclock > 20000000)
+	{
 		res = ths7303_setval(sd, THS7303_FILTER_MODE_480P_576P);
+	}
 	else if (state->std_id)
+	{
 		res = ths7303_setval(sd, THS7303_FILTER_MODE_480I_576I);
+	}
 	else
 		/* disable all channels */
+	{
 		res = ths7303_setval(sd, THS7303_FILTER_MODE_DISABLE);
+	}
 
 	return res;
 
@@ -194,12 +241,14 @@ static int ths7303_s_stream(struct v4l2_subdev *sd, int enable)
 
 /* for setting filter for HD output */
 static int ths7303_s_dv_timings(struct v4l2_subdev *sd,
-			       struct v4l2_dv_timings *dv_timings)
+								struct v4l2_dv_timings *dv_timings)
 {
 	struct ths7303_state *state = to_state(sd);
 
 	if (!dv_timings || dv_timings->type != V4L2_DV_BT_656_1120)
+	{
 		return -EINVAL;
+	}
 
 	state->bt = dv_timings->bt;
 	state->std_id = 0;
@@ -207,7 +256,8 @@ static int ths7303_s_dv_timings(struct v4l2_subdev *sd,
 	return ths7303_config(sd);
 }
 
-static const struct v4l2_subdev_video_ops ths7303_video_ops = {
+static const struct v4l2_subdev_video_ops ths7303_video_ops =
+{
 	.s_stream	= ths7303_s_stream,
 	.s_std_output	= ths7303_s_std_output,
 	.s_dv_timings   = ths7303_s_dv_timings,
@@ -216,7 +266,7 @@ static const struct v4l2_subdev_video_ops ths7303_video_ops = {
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 
 static int ths7303_g_register(struct v4l2_subdev *sd,
-			      struct v4l2_dbg_register *reg)
+							  struct v4l2_dbg_register *reg)
 {
 	reg->size = 1;
 	reg->val = ths7303_read(sd, reg->reg);
@@ -224,33 +274,37 @@ static int ths7303_g_register(struct v4l2_subdev *sd,
 }
 
 static int ths7303_s_register(struct v4l2_subdev *sd,
-			      const struct v4l2_dbg_register *reg)
+							  const struct v4l2_dbg_register *reg)
 {
 	ths7303_write(sd, reg->reg, reg->val);
 	return 0;
 }
 #endif
 
-static const char * const stc_lpf_sel_txt[4] = {
+static const char *const stc_lpf_sel_txt[4] =
+{
 	"500-kHz Filter",
 	"2.5-MHz Filter",
 	"5-MHz Filter",
 	"5-MHz Filter",
 };
 
-static const char * const in_mux_sel_txt[2] = {
+static const char *const in_mux_sel_txt[2] =
+{
 	"Input A Select",
 	"Input B Select",
 };
 
-static const char * const lpf_freq_sel_txt[4] = {
+static const char *const lpf_freq_sel_txt[4] =
+{
 	"9-MHz LPF",
 	"16-MHz LPF",
 	"35-MHz LPF",
 	"Bypass LPF",
 };
 
-static const char * const in_bias_sel_dis_cont_txt[8] = {
+static const char *const in_bias_sel_dis_cont_txt[8] =
+{
 	"Disable Channel",
 	"Mute Function - No Output",
 	"DC Bias Select",
@@ -265,7 +319,8 @@ static void ths7303_log_channel_status(struct v4l2_subdev *sd, u8 reg)
 {
 	u8 val = ths7303_read(sd, reg);
 
-	if ((val & 0x7) == 0) {
+	if ((val & 0x7) == 0)
+	{
 		v4l2_info(sd, "Channel %d Off\n", reg);
 		return;
 	}
@@ -284,21 +339,24 @@ static int ths7303_log_status(struct v4l2_subdev *sd)
 
 	v4l2_info(sd, "stream %s\n", state->stream_on ? "On" : "Off");
 
-	if (state->bt.pixelclock) {
+	if (state->bt.pixelclock)
+	{
 		struct v4l2_bt_timings *bt = &state->bt;
 		u32 frame_width, frame_height;
 
 		frame_width = V4L2_DV_BT_FRAME_WIDTH(bt);
 		frame_height = V4L2_DV_BT_FRAME_HEIGHT(bt);
 		v4l2_info(sd,
-			  "timings: %dx%d%s%d (%dx%d). Pix freq. = %d Hz. Polarities = 0x%x\n",
-			  bt->width, bt->height, bt->interlaced ? "i" : "p",
-			  (frame_height * frame_width) > 0 ?
-			  (int)bt->pixelclock /
-			  (frame_height * frame_width) : 0,
-			  frame_width, frame_height,
-			  (int)bt->pixelclock, bt->polarities);
-	} else {
+				  "timings: %dx%d%s%d (%dx%d). Pix freq. = %d Hz. Polarities = 0x%x\n",
+				  bt->width, bt->height, bt->interlaced ? "i" : "p",
+				  (frame_height * frame_width) > 0 ?
+				  (int)bt->pixelclock /
+				  (frame_height * frame_width) : 0,
+				  frame_width, frame_height,
+				  (int)bt->pixelclock, bt->polarities);
+	}
+	else
+	{
 		v4l2_info(sd, "no timings set\n");
 	}
 
@@ -309,7 +367,8 @@ static int ths7303_log_status(struct v4l2_subdev *sd)
 	return 0;
 }
 
-static const struct v4l2_subdev_core_ops ths7303_core_ops = {
+static const struct v4l2_subdev_core_ops ths7303_core_ops =
+{
 	.log_status = ths7303_log_status,
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 	.g_register = ths7303_g_register,
@@ -317,40 +376,48 @@ static const struct v4l2_subdev_core_ops ths7303_core_ops = {
 #endif
 };
 
-static const struct v4l2_subdev_ops ths7303_ops = {
+static const struct v4l2_subdev_ops ths7303_ops =
+{
 	.core	= &ths7303_core_ops,
 	.video 	= &ths7303_video_ops,
 };
 
 static int ths7303_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct ths7303_platform_data *pdata = client->dev.platform_data;
 	struct ths7303_state *state;
 	struct v4l2_subdev *sd;
 
-	if (pdata == NULL) {
+	if (pdata == NULL)
+	{
 		dev_err(&client->dev, "No platform data\n");
 		return -EINVAL;
 	}
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		return -ENODEV;
+	}
 
 	v4l_info(client, "chip found @ 0x%x (%s)\n",
-			client->addr << 1, client->adapter->name);
+			 client->addr << 1, client->adapter->name);
 
 	state = devm_kzalloc(&client->dev, sizeof(struct ths7303_state),
-			     GFP_KERNEL);
+						 GFP_KERNEL);
+
 	if (!state)
+	{
 		return -ENOMEM;
+	}
 
 	state->pdata = pdata;
 	sd = &state->sd;
 	v4l2_i2c_subdev_init(sd, client, &ths7303_ops);
 
 	/* set to default 480I_576I filter mode */
-	if (ths7303_setval(sd, THS7303_FILTER_MODE_480I_576I) < 0) {
+	if (ths7303_setval(sd, THS7303_FILTER_MODE_480I_576I) < 0)
+	{
 		v4l_err(client, "Setting to 480I_576I filter mode failed!\n");
 		return -EINVAL;
 	}
@@ -367,7 +434,8 @@ static int ths7303_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id ths7303_id[] = {
+static const struct i2c_device_id ths7303_id[] =
+{
 	{"ths7303", 0},
 	{"ths7353", 0},
 	{},
@@ -375,7 +443,8 @@ static const struct i2c_device_id ths7303_id[] = {
 
 MODULE_DEVICE_TABLE(i2c, ths7303_id);
 
-static struct i2c_driver ths7303_driver = {
+static struct i2c_driver ths7303_driver =
+{
 	.driver = {
 		.name	= "ths73x3",
 	},

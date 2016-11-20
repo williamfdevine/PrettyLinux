@@ -33,7 +33,8 @@
 
 #include "commands.h"
 
-struct iwl_rate_info {
+struct iwl_rate_info
+{
 	u8 plcp;	/* uCode API:  IWL_RATE_6M_PLCP, etc. */
 	u8 plcp_siso;	/* uCode API:  IWL_RATE_SISO_6M_PLCP, etc. */
 	u8 plcp_mimo2;	/* uCode API:  IWL_RATE_MIMO2_6M_PLCP, etc. */
@@ -51,7 +52,8 @@ struct iwl_rate_info {
  * These serve as indexes into
  * struct iwl_rate_info iwl_rates[IWL_RATE_COUNT];
  */
-enum {
+enum
+{
 	IWL_RATE_1M_INDEX = 0,
 	IWL_RATE_2M_INDEX,
 	IWL_RATE_5M_INDEX,
@@ -71,7 +73,8 @@ enum {
 	IWL_RATE_INVALID = IWL_RATE_COUNT,
 };
 
-enum {
+enum
+{
 	IWL_RATE_6M_INDEX_TABLE = 0,
 	IWL_RATE_9M_INDEX_TABLE,
 	IWL_RATE_12M_INDEX_TABLE,
@@ -87,7 +90,8 @@ enum {
 	IWL_RATE_INVM_INDEX_TABLE = IWL_RATE_INVM_INDEX - 1,
 };
 
-enum {
+enum
+{
 	IWL_FIRST_OFDM_RATE = IWL_RATE_6M_INDEX,
 	IWL_LAST_OFDM_RATE = IWL_RATE_60M_INDEX,
 	IWL_FIRST_CCK_RATE = IWL_RATE_1M_INDEX,
@@ -110,7 +114,8 @@ enum {
 #define	IWL_RATE_11M_MASK  (1 << IWL_RATE_11M_INDEX)
 
 /* uCode API values for legacy bit rates, both OFDM and CCK */
-enum {
+enum
+{
 	IWL_RATE_6M_PLCP  = 13,
 	IWL_RATE_9M_PLCP  = 15,
 	IWL_RATE_12M_PLCP = 5,
@@ -129,7 +134,8 @@ enum {
 };
 
 /* uCode API values for OFDM high-throughput (HT) bit rates */
-enum {
+enum
+{
 	IWL_RATE_SISO_6M_PLCP = 0,
 	IWL_RATE_SISO_12M_PLCP = 1,
 	IWL_RATE_SISO_18M_PLCP = 2,
@@ -160,7 +166,8 @@ enum {
 };
 
 /* MAC header values for bit rates */
-enum {
+enum
+{
 	IWL_RATE_6M_IEEE  = 12,
 	IWL_RATE_9M_IEEE  = 18,
 	IWL_RATE_12M_IEEE = 24,
@@ -263,7 +270,8 @@ enum {
 
 extern const struct iwl_rate_info iwl_rates[IWL_RATE_COUNT];
 
-enum iwl_table_type {
+enum iwl_table_type
+{
 	LQ_NONE,
 	LQ_G,		/* legacy types */
 	LQ_A,
@@ -284,7 +292,8 @@ enum iwl_table_type {
 
 #define IWL_MAX_MCS_DISPLAY_SIZE	12
 
-struct iwl_rate_mcs_info {
+struct iwl_rate_mcs_info
+{
 	char	mbps[IWL_MAX_MCS_DISPLAY_SIZE];
 	char	mcs[IWL_MAX_MCS_DISPLAY_SIZE];
 };
@@ -292,7 +301,8 @@ struct iwl_rate_mcs_info {
 /**
  * struct iwl_rate_scale_data -- tx success history for one rate
  */
-struct iwl_rate_scale_data {
+struct iwl_rate_scale_data
+{
 	u64 data;		/* bitmap of successful frames */
 	s32 success_counter;	/* number of frames successful */
 	s32 success_ratio;	/* per-cent * 128  */
@@ -307,7 +317,8 @@ struct iwl_rate_scale_data {
  * There are two of these in struct iwl_lq_sta,
  * one for "active", and one for "search".
  */
-struct iwl_scale_tbl_info {
+struct iwl_scale_tbl_info
+{
 	enum iwl_table_type lq_type;
 	u8 ant_type;
 	u8 is_SGI;	/* 1 = short guard interval */
@@ -320,7 +331,8 @@ struct iwl_scale_tbl_info {
 	struct iwl_rate_scale_data win[IWL_RATE_COUNT]; /* rate histories */
 };
 
-struct iwl_traffic_load {
+struct iwl_traffic_load
+{
 	unsigned long time_stamp;	/* age of the oldest statistics */
 	u32 packet_count[TID_QUEUE_MAX_SIZE];   /* packet count in this time
 						 * slice */
@@ -336,7 +348,8 @@ struct iwl_traffic_load {
  *
  * Pointer to this gets passed back and forth between driver and mac80211.
  */
-struct iwl_lq_sta {
+struct iwl_lq_sta
+{
 	u8 active_tbl;		/* index of active table, range 0-1 */
 	u8 enable_counter;	/* indicates HT mode */
 	u8 stay_in_tbl;		/* 1: disallow, 0: allow search for new mode */
@@ -392,16 +405,22 @@ struct iwl_lq_sta {
 static inline u8 first_antenna(u8 mask)
 {
 	if (mask & ANT_A)
+	{
 		return ANT_A;
+	}
+
 	if (mask & ANT_B)
+	{
 		return ANT_B;
+	}
+
 	return ANT_C;
 }
 
 
 /* Initialize station's rate scaling information after adding station */
 void iwl_rs_rate_init(struct iwl_priv *priv, struct ieee80211_sta *sta,
-		      u8 sta_id);
+					  u8 sta_id);
 
 /**
  * iwl_rate_control_register - Register the rate control algorithm callbacks

@@ -30,7 +30,8 @@
 #include <linux/cpu.h>
 #include <crypto/pcrypt.h>
 
-struct padata_pcrypt {
+struct padata_pcrypt
+{
 	struct padata_instance *pinst;
 	struct workqueue_struct *wq;
 
@@ -50,7 +51,8 @@ struct padata_pcrypt {
 	 * rcu_dereference. So cpumask_var_t is wrapped with struct
 	 * pcrypt_cpumask which makes possible to use it with RCU.
 	 */
-	struct pcrypt_cpumask {
+	struct pcrypt_cpumask
+	{
 		cpumask_var_t mask;
 	} *cb_cpumask;
 	struct notifier_block nblock;
@@ -60,18 +62,20 @@ static struct padata_pcrypt pencrypt;
 static struct padata_pcrypt pdecrypt;
 static struct kset           *pcrypt_kset;
 
-struct pcrypt_instance_ctx {
+struct pcrypt_instance_ctx
+{
 	struct crypto_aead_spawn spawn;
 	atomic_t tfm_count;
 };
 
-struct pcrypt_aead_ctx {
+struct pcrypt_aead_ctx
+{
 	struct crypto_aead *child;
 	unsigned int cb_cpu;
 };
 
 static int pcrypt_do_parallel(struct padata_priv *padata, unsigned int *cb_cpu,
-			      struct padata_pcrypt *pcrypt)
+							  struct padata_pcrypt *pcrypt)
 {
 	unsigned int cpu_index, cpu, i;
 	struct pcrypt_cpumask *cpumask;
@@ -80,17 +84,25 @@ static int pcrypt_do_parallel(struct padata_priv *padata, unsigned int *cb_cpu,
 
 	rcu_read_lock_bh();
 	cpumask = rcu_dereference_bh(pcrypt->cb_cpumask);
+
 	if (cpumask_test_cpu(cpu, cpumask->mask))
-			goto out;
+	{
+		goto out;
+	}
 
 	if (!cpumask_weight(cpumask->mask))
-			goto out;
+	{
+		goto out;
+	}
 
 	cpu_index = cpu % cpumask_weight(cpumask->mask);
 
 	cpu = cpumask_first(cpumask->mask);
+
 	for (i = 0; i < cpu_index; i++)
+	{
 		cpu = cpumask_next(cpu, cpumask->mask);
+	}
 
 	*cb_cpu = cpu;
 
@@ -100,7 +112,7 @@ out:
 }
 
 static int pcrypt_aead_setkey(struct crypto_aead *parent,
-			      const u8 *key, unsigned int keylen)
+							  const u8 *key, unsigned int keylen)
 {
 	struct pcrypt_aead_ctx *ctx = crypto_aead_ctx(parent);
 
@@ -108,7 +120,7 @@ static int pcrypt_aead_setkey(struct crypto_aead *parent,
 }
 
 static int pcrypt_aead_setauthsize(struct crypto_aead *parent,
-				   unsigned int authsize)
+								   unsigned int authsize)
 {
 	struct pcrypt_aead_ctx *ctx = crypto_aead_ctx(parent);
 
@@ -143,7 +155,9 @@ static void pcrypt_aead_enc(struct padata_priv *padata)
 	padata->info = crypto_aead_encrypt(req);
 
 	if (padata->info == -EINPROGRESS)
+	{
 		return;
+	}
 
 	padata_do_serial(padata);
 }
@@ -165,14 +179,17 @@ static int pcrypt_aead_encrypt(struct aead_request *req)
 
 	aead_request_set_tfm(creq, ctx->child);
 	aead_request_set_callback(creq, flags & ~CRYPTO_TFM_REQ_MAY_SLEEP,
-				  pcrypt_aead_done, req);
+							  pcrypt_aead_done, req);
 	aead_request_set_crypt(creq, req->src, req->dst,
-			       req->cryptlen, req->iv);
+						   req->cryptlen, req->iv);
 	aead_request_set_ad(creq, req->assoclen);
 
 	err = pcrypt_do_parallel(padata, &ctx->cb_cpu, &pencrypt);
+
 	if (!err)
+	{
 		return -EINPROGRESS;
+	}
 
 	return err;
 }
@@ -185,7 +202,9 @@ static void pcrypt_aead_dec(struct padata_priv *padata)
 	padata->info = crypto_aead_decrypt(req);
 
 	if (padata->info == -EINPROGRESS)
+	{
 		return;
+	}
 
 	padata_do_serial(padata);
 }
@@ -207,14 +226,17 @@ static int pcrypt_aead_decrypt(struct aead_request *req)
 
 	aead_request_set_tfm(creq, ctx->child);
 	aead_request_set_callback(creq, flags & ~CRYPTO_TFM_REQ_MAY_SLEEP,
-				  pcrypt_aead_done, req);
+							  pcrypt_aead_done, req);
 	aead_request_set_crypt(creq, req->src, req->dst,
-			       req->cryptlen, req->iv);
+						   req->cryptlen, req->iv);
 	aead_request_set_ad(creq, req->assoclen);
 
 	err = pcrypt_do_parallel(padata, &ctx->cb_cpu, &pdecrypt);
+
 	if (!err)
+	{
 		return -EINPROGRESS;
+	}
 
 	return err;
 }
@@ -228,21 +250,26 @@ static int pcrypt_aead_init_tfm(struct crypto_aead *tfm)
 	struct crypto_aead *cipher;
 
 	cpu_index = (unsigned int)atomic_inc_return(&ictx->tfm_count) %
-		    cpumask_weight(cpu_online_mask);
+				cpumask_weight(cpu_online_mask);
 
 	ctx->cb_cpu = cpumask_first(cpu_online_mask);
+
 	for (cpu = 0; cpu < cpu_index; cpu++)
+	{
 		ctx->cb_cpu = cpumask_next(ctx->cb_cpu, cpu_online_mask);
+	}
 
 	cipher = crypto_spawn_aead(&ictx->spawn);
 
 	if (IS_ERR(cipher))
+	{
 		return PTR_ERR(cipher);
+	}
 
 	ctx->child = cipher;
 	crypto_aead_set_reqsize(tfm, sizeof(struct pcrypt_request) +
-				     sizeof(struct aead_request) +
-				     crypto_aead_reqsize(cipher));
+							sizeof(struct aead_request) +
+							crypto_aead_reqsize(cipher));
 
 	return 0;
 }
@@ -255,11 +282,13 @@ static void pcrypt_aead_exit_tfm(struct crypto_aead *tfm)
 }
 
 static int pcrypt_init_instance(struct crypto_instance *inst,
-				struct crypto_alg *alg)
+								struct crypto_alg *alg)
 {
 	if (snprintf(inst->alg.cra_driver_name, CRYPTO_MAX_ALG_NAME,
-		     "pcrypt(%s)", alg->cra_driver_name) >= CRYPTO_MAX_ALG_NAME)
+				 "pcrypt(%s)", alg->cra_driver_name) >= CRYPTO_MAX_ALG_NAME)
+	{
 		return -ENAMETOOLONG;
+	}
 
 	memcpy(inst->alg.cra_name, alg->cra_name, CRYPTO_MAX_ALG_NAME);
 
@@ -271,7 +300,7 @@ static int pcrypt_init_instance(struct crypto_instance *inst,
 }
 
 static int pcrypt_create_aead(struct crypto_template *tmpl, struct rtattr **tb,
-			      u32 type, u32 mask)
+							  u32 type, u32 mask)
 {
 	struct pcrypt_instance_ctx *ctx;
 	struct crypto_attr_type *algt;
@@ -281,28 +310,43 @@ static int pcrypt_create_aead(struct crypto_template *tmpl, struct rtattr **tb,
 	int err;
 
 	algt = crypto_get_attr_type(tb);
+
 	if (IS_ERR(algt))
+	{
 		return PTR_ERR(algt);
+	}
 
 	name = crypto_attr_alg_name(tb[1]);
+
 	if (IS_ERR(name))
+	{
 		return PTR_ERR(name);
+	}
 
 	inst = kzalloc(sizeof(*inst) + sizeof(*ctx), GFP_KERNEL);
+
 	if (!inst)
+	{
 		return -ENOMEM;
+	}
 
 	ctx = aead_instance_ctx(inst);
 	crypto_set_aead_spawn(&ctx->spawn, aead_crypto_instance(inst));
 
 	err = crypto_grab_aead(&ctx->spawn, name, 0, 0);
+
 	if (err)
+	{
 		goto out_free_inst;
+	}
 
 	alg = crypto_spawn_aead_alg(&ctx->spawn);
 	err = pcrypt_init_instance(aead_crypto_instance(inst), &alg->base);
+
 	if (err)
+	{
 		goto out_drop_aead;
+	}
 
 	inst->alg.base.cra_flags = CRYPTO_ALG_ASYNC;
 
@@ -320,8 +364,11 @@ static int pcrypt_create_aead(struct crypto_template *tmpl, struct rtattr **tb,
 	inst->alg.decrypt = pcrypt_aead_decrypt;
 
 	err = aead_register_instance(tmpl, inst);
+
 	if (err)
+	{
 		goto out_drop_aead;
+	}
 
 out:
 	return err;
@@ -338,12 +385,16 @@ static int pcrypt_create(struct crypto_template *tmpl, struct rtattr **tb)
 	struct crypto_attr_type *algt;
 
 	algt = crypto_get_attr_type(tb);
-	if (IS_ERR(algt))
-		return PTR_ERR(algt);
 
-	switch (algt->type & algt->mask & CRYPTO_ALG_TYPE_MASK) {
-	case CRYPTO_ALG_TYPE_AEAD:
-		return pcrypt_create_aead(tmpl, tb, algt->type, algt->mask);
+	if (IS_ERR(algt))
+	{
+		return PTR_ERR(algt);
+	}
+
+	switch (algt->type & algt->mask & CRYPTO_ALG_TYPE_MASK)
+	{
+		case CRYPTO_ALG_TYPE_AEAD:
+			return pcrypt_create_aead(tmpl, tb, algt->type, algt->mask);
 	}
 
 	return -EINVAL;
@@ -358,20 +409,27 @@ static void pcrypt_free(struct crypto_instance *inst)
 }
 
 static int pcrypt_cpumask_change_notify(struct notifier_block *self,
-					unsigned long val, void *data)
+										unsigned long val, void *data)
 {
 	struct padata_pcrypt *pcrypt;
 	struct pcrypt_cpumask *new_mask, *old_mask;
 	struct padata_cpumask *cpumask = (struct padata_cpumask *)data;
 
 	if (!(val & PADATA_CPU_SERIAL))
+	{
 		return 0;
+	}
 
 	pcrypt = container_of(self, struct padata_pcrypt, nblock);
 	new_mask = kmalloc(sizeof(*new_mask), GFP_KERNEL);
+
 	if (!new_mask)
+	{
 		return -ENOMEM;
-	if (!alloc_cpumask_var(&new_mask->mask, GFP_KERNEL)) {
+	}
+
+	if (!alloc_cpumask_var(&new_mask->mask, GFP_KERNEL))
+	{
 		kfree(new_mask);
 		return -ENOMEM;
 	}
@@ -393,14 +451,17 @@ static int pcrypt_sysfs_add(struct padata_instance *pinst, const char *name)
 
 	pinst->kobj.kset = pcrypt_kset;
 	ret = kobject_add(&pinst->kobj, NULL, name);
+
 	if (!ret)
+	{
 		kobject_uevent(&pinst->kobj, KOBJ_ADD);
+	}
 
 	return ret;
 }
 
 static int pcrypt_init_padata(struct padata_pcrypt *pcrypt,
-			      const char *name)
+							  const char *name)
 {
 	int ret = -ENOMEM;
 	struct pcrypt_cpumask *mask;
@@ -408,18 +469,29 @@ static int pcrypt_init_padata(struct padata_pcrypt *pcrypt,
 	get_online_cpus();
 
 	pcrypt->wq = alloc_workqueue("%s", WQ_MEM_RECLAIM | WQ_CPU_INTENSIVE,
-				     1, name);
+								 1, name);
+
 	if (!pcrypt->wq)
+	{
 		goto err;
+	}
 
 	pcrypt->pinst = padata_alloc_possible(pcrypt->wq);
+
 	if (!pcrypt->pinst)
+	{
 		goto err_destroy_workqueue;
+	}
 
 	mask = kmalloc(sizeof(*mask), GFP_KERNEL);
+
 	if (!mask)
+	{
 		goto err_free_padata;
-	if (!alloc_cpumask_var(&mask->mask, GFP_KERNEL)) {
+	}
+
+	if (!alloc_cpumask_var(&mask->mask, GFP_KERNEL))
+	{
 		kfree(mask);
 		goto err_free_padata;
 	}
@@ -429,12 +501,18 @@ static int pcrypt_init_padata(struct padata_pcrypt *pcrypt,
 
 	pcrypt->nblock.notifier_call = pcrypt_cpumask_change_notify;
 	ret = padata_register_cpumask_notifier(pcrypt->pinst, &pcrypt->nblock);
+
 	if (ret)
+	{
 		goto err_free_cpumask;
+	}
 
 	ret = pcrypt_sysfs_add(pcrypt->pinst, name);
+
 	if (ret)
+	{
 		goto err_unregister_notifier;
+	}
 
 	put_online_cpus();
 
@@ -466,7 +544,8 @@ static void pcrypt_fini_padata(struct padata_pcrypt *pcrypt)
 	padata_free(pcrypt->pinst);
 }
 
-static struct crypto_template pcrypt_tmpl = {
+static struct crypto_template pcrypt_tmpl =
+{
 	.name = "pcrypt",
 	.create = pcrypt_create,
 	.free = pcrypt_free,
@@ -478,16 +557,25 @@ static int __init pcrypt_init(void)
 	int err = -ENOMEM;
 
 	pcrypt_kset = kset_create_and_add("pcrypt", NULL, kernel_kobj);
+
 	if (!pcrypt_kset)
+	{
 		goto err;
+	}
 
 	err = pcrypt_init_padata(&pencrypt, "pencrypt");
+
 	if (err)
+	{
 		goto err_unreg_kset;
+	}
 
 	err = pcrypt_init_padata(&pdecrypt, "pdecrypt");
+
 	if (err)
+	{
 		goto err_deinit_pencrypt;
+	}
 
 	padata_start(pencrypt.pinst);
 	padata_start(pdecrypt.pinst);

@@ -70,14 +70,16 @@ typedef void (*pio_release_cb)(void *arg, int code);
 #define PRC_SC_DISABLE	0x20	/* clean-up after a context disable */
 
 /* byte helper */
-union mix {
+union mix
+{
 	u64 val64;
 	u32 val32[2];
 	u8  val8[8];
 };
 
 /* an allocated PIO buffer */
-struct pio_buf {
+struct pio_buf
+{
 	struct send_context *sc;/* back pointer to owning send context */
 	pio_release_cb cb;	/* called when the buffer is released */
 	void *arg;		/* argument for cb */
@@ -92,13 +94,15 @@ struct pio_buf {
 };
 
 /* cache line aligned pio buffer array */
-union pio_shadow_ring {
+union pio_shadow_ring
+{
 	struct pio_buf pbuf;
 	u64 unused[16];		/* cache line spacer */
 } ____cacheline_aligned;
 
 /* per-NUMA send context */
-struct send_context {
+struct send_context
+{
 	/* read-only after init */
 	struct hfi1_devdata *dd;		/* device */
 	void __iomem *base_addr;	/* start of PIO memory */
@@ -138,7 +142,8 @@ struct send_context {
 #define SCF_HALTED  0x04
 #define SCF_FROZEN  0x08
 
-struct send_context_info {
+struct send_context_info
+{
 	struct send_context *sc;	/* allocated working context */
 	u16 allocated;			/* has this been allocated? */
 	u16 type;			/* context type */
@@ -147,18 +152,21 @@ struct send_context_info {
 };
 
 /* DMA credit return, index is always (context & 0x7) */
-struct credit_return {
+struct credit_return
+{
 	volatile __le64 cr[8];
 };
 
 /* NUMA indexed credit return array */
-struct credit_return_base {
+struct credit_return_base
+{
 	struct credit_return *va;
 	dma_addr_t dma;
 };
 
 /* send context configuration sizes (one per type) */
-struct sc_config_sizes {
+struct sc_config_sizes
+{
 	short int size;
 	short int count;
 };
@@ -236,7 +244,8 @@ struct sc_config_sizes {
  * produce index into the trailing array of
  * kscs
  */
-struct pio_map_elem {
+struct pio_map_elem
+{
 	u32 mask;
 	struct send_context *ksc[0];
 };
@@ -253,7 +262,8 @@ struct pio_map_elem {
  * struct point to pio_map_elem entries, which in turn point to an
  * array of kscs for that vl.
  */
-struct pio_vl_map {
+struct pio_vl_map
+{
 	struct rcu_head list;
 	u32 mask;
 	u8 actual_vls;
@@ -262,12 +272,12 @@ struct pio_vl_map {
 };
 
 int pio_map_init(struct hfi1_devdata *dd, u8 port, u8 num_vls,
-		 u8 *vl_scontexts);
+				 u8 *vl_scontexts);
 void free_pio_map(struct hfi1_devdata *dd);
 struct send_context *pio_select_send_context_vl(struct hfi1_devdata *dd,
-						u32 selector, u8 vl);
+		u32 selector, u8 vl);
 struct send_context *pio_select_send_context_sc(struct hfi1_devdata *dd,
-						u32 selector, u8 sc5);
+		u32 selector, u8 sc5);
 
 /* send context functions */
 int init_credit_return(struct hfi1_devdata *dd);
@@ -277,7 +287,7 @@ int init_send_contexts(struct hfi1_devdata *dd);
 int init_credit_return(struct hfi1_devdata *dd);
 int init_pervl_scs(struct hfi1_devdata *dd);
 struct send_context *sc_alloc(struct hfi1_devdata *dd, int type,
-			      uint hdrqentsize, int numa);
+							  uint hdrqentsize, int numa);
 void sc_free(struct send_context *sc);
 int sc_enable(struct send_context *sc);
 void sc_disable(struct send_context *sc);
@@ -287,7 +297,7 @@ void sc_flush(struct send_context *sc);
 void sc_drop(struct send_context *sc);
 void sc_stop(struct send_context *sc, int bit);
 struct pio_buf *sc_buffer_alloc(struct send_context *sc, u32 dw_len,
-				pio_release_cb cb, void *arg);
+								pio_release_cb cb, void *arg);
 void sc_release_update(struct send_context *sc);
 void sc_return_credits(struct send_context *sc);
 void sc_group_release_update(struct hfi1_devdata *dd, u32 hw_context);
@@ -319,9 +329,9 @@ void pio_send_control(struct hfi1_devdata *dd, int op);
 
 /* PIO copy routines */
 void pio_copy(struct hfi1_devdata *dd, struct pio_buf *pbuf, u64 pbc,
-	      const void *from, size_t count);
+			  const void *from, size_t count);
 void seg_pio_copy_start(struct pio_buf *pbuf, u64 pbc,
-			const void *from, size_t nbytes);
+						const void *from, size_t nbytes);
 void seg_pio_copy_mid(struct pio_buf *pbuf, const void *from, size_t nbytes);
 void seg_pio_copy_end(struct pio_buf *pbuf);
 

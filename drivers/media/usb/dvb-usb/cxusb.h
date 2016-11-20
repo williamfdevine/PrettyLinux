@@ -31,7 +31,8 @@
 /* Max transfer size done by I2C transfer functions */
 #define MAX_XFER_SIZE  80
 
-struct cxusb_state {
+struct cxusb_state
+{
 	u8 gpio_write_state[3];
 	struct i2c_client *i2c_client_demod;
 	struct i2c_client *i2c_client_tuner;

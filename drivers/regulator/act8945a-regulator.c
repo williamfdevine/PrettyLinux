@@ -52,7 +52,8 @@
  */
 #define ACT8945A_VOLTAGE_NUM	64
 
-enum {
+enum
+{
 	ACT8945A_ID_DCDC1,
 	ACT8945A_ID_DCDC2,
 	ACT8945A_ID_DCDC3,
@@ -63,13 +64,15 @@ enum {
 	ACT8945A_REG_NUM,
 };
 
-static const struct regulator_linear_range act8945a_voltage_ranges[] = {
+static const struct regulator_linear_range act8945a_voltage_ranges[] =
+{
 	REGULATOR_LINEAR_RANGE(600000, 0, 23, 25000),
 	REGULATOR_LINEAR_RANGE(1200000, 24, 47, 50000),
 	REGULATOR_LINEAR_RANGE(2400000, 48, 63, 100000),
 };
 
-static struct regulator_ops act8945a_ops = {
+static struct regulator_ops act8945a_ops =
+{
 	.list_voltage		= regulator_list_voltage_linear_range,
 	.map_voltage		= regulator_map_voltage_linear_range,
 	.get_voltage_sel	= regulator_get_voltage_sel_regmap,
@@ -81,24 +84,25 @@ static struct regulator_ops act8945a_ops = {
 
 #define ACT89xx_REG(_name, _family, _id, _vsel_reg, _supply)		\
 	[_family##_ID_##_id] = {					\
-		.name			= _name,			\
-		.supply_name		= _supply,			\
-		.of_match		= of_match_ptr("REG_"#_id),	\
-		.regulators_node	= of_match_ptr("regulators"),	\
-		.id			= _family##_ID_##_id,		\
-		.type			= REGULATOR_VOLTAGE,		\
-		.ops			= &act8945a_ops,		\
-		.n_voltages		= ACT8945A_VOLTAGE_NUM,		\
-		.linear_ranges		= act8945a_voltage_ranges,	\
-		.n_linear_ranges	= ARRAY_SIZE(act8945a_voltage_ranges), \
-		.vsel_reg		= _family##_##_id##_##_vsel_reg, \
-		.vsel_mask		= ACT8945A_VSEL_MASK,		\
-		.enable_reg		= _family##_##_id##_CTRL,	\
-		.enable_mask		= ACT8945A_ENA,			\
-		.owner			= THIS_MODULE,			\
-	}
+												.name			= _name,			\
+												.supply_name		= _supply,			\
+												.of_match		= of_match_ptr("REG_"#_id),	\
+												.regulators_node	= of_match_ptr("regulators"),	\
+												.id			= _family##_ID_##_id,		\
+												.type			= REGULATOR_VOLTAGE,		\
+												.ops			= &act8945a_ops,		\
+												.n_voltages		= ACT8945A_VOLTAGE_NUM,		\
+												.linear_ranges		= act8945a_voltage_ranges,	\
+												.n_linear_ranges	= ARRAY_SIZE(act8945a_voltage_ranges), \
+												.vsel_reg		= _family##_##_id##_##_vsel_reg, \
+												.vsel_mask		= ACT8945A_VSEL_MASK,		\
+												.enable_reg		= _family##_##_id##_CTRL,	\
+												.enable_mask		= ACT8945A_ENA,			\
+												.owner			= THIS_MODULE,			\
+						   }
 
-static const struct regulator_desc act8945a_regulators[] = {
+static const struct regulator_desc act8945a_regulators[] =
+{
 	ACT89xx_REG("DCDC_REG1", ACT8945A, DCDC1, VSET1, "vp1"),
 	ACT89xx_REG("DCDC_REG2", ACT8945A, DCDC2, VSET1, "vp2"),
 	ACT89xx_REG("DCDC_REG3", ACT8945A, DCDC3, VSET1, "vp3"),
@@ -108,7 +112,8 @@ static const struct regulator_desc act8945a_regulators[] = {
 	ACT89xx_REG("LDO_REG4", ACT8945A, LDO4, VSET, "inl67"),
 };
 
-static const struct regulator_desc act8945a_alt_regulators[] = {
+static const struct regulator_desc act8945a_alt_regulators[] =
+{
 	ACT89xx_REG("DCDC_REG1", ACT8945A, DCDC1, VSET2, "vp1"),
 	ACT89xx_REG("DCDC_REG2", ACT8945A, DCDC2, VSET2, "vp2"),
 	ACT89xx_REG("DCDC_REG3", ACT8945A, DCDC3, VSET2, "vp3"),
@@ -127,24 +132,31 @@ static int act8945a_pmic_probe(struct platform_device *pdev)
 	bool voltage_select;
 
 	voltage_select = of_property_read_bool(pdev->dev.parent->of_node,
-					       "active-semi,vsel-high");
+										   "active-semi,vsel-high");
 
-	if (voltage_select) {
+	if (voltage_select)
+	{
 		regulators = act8945a_alt_regulators;
 		num_regulators = ARRAY_SIZE(act8945a_alt_regulators);
-	} else {
+	}
+	else
+	{
 		regulators = act8945a_regulators;
 		num_regulators = ARRAY_SIZE(act8945a_regulators);
 	}
 
 	config.dev = &pdev->dev;
 	config.dev->of_node = pdev->dev.parent->of_node;
-	for (i = 0; i < num_regulators; i++) {
+
+	for (i = 0; i < num_regulators; i++)
+	{
 		rdev = devm_regulator_register(&pdev->dev, &regulators[i], &config);
-		if (IS_ERR(rdev)) {
+
+		if (IS_ERR(rdev))
+		{
 			dev_err(&pdev->dev,
-				"failed to register %s regulator\n",
-				regulators[i].name);
+					"failed to register %s regulator\n",
+					regulators[i].name);
 			return PTR_ERR(rdev);
 		}
 	}
@@ -152,7 +164,8 @@ static int act8945a_pmic_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver act8945a_pmic_driver = {
+static struct platform_driver act8945a_pmic_driver =
+{
 	.driver = {
 		.name = "act8945a-regulator",
 	},

@@ -63,8 +63,8 @@ static void disable_timer(struct cs5535_mfgpt_timer *timer)
 {
 	/* avoid races by clearing CMP1 and CMP2 unconditionally */
 	cs5535_mfgpt_write(timer, MFGPT_REG_SETUP,
-			(uint16_t) ~MFGPT_SETUP_CNTEN | MFGPT_SETUP_CMP1 |
-				MFGPT_SETUP_CMP2);
+					   (uint16_t) ~MFGPT_SETUP_CNTEN | MFGPT_SETUP_CMP1 |
+					   MFGPT_SETUP_CMP2);
 }
 
 static void start_timer(struct cs5535_mfgpt_timer *timer, uint16_t delta)
@@ -73,7 +73,7 @@ static void start_timer(struct cs5535_mfgpt_timer *timer, uint16_t delta)
 	cs5535_mfgpt_write(timer, MFGPT_REG_COUNTER, 0);
 
 	cs5535_mfgpt_write(timer, MFGPT_REG_SETUP,
-			MFGPT_SETUP_CNTEN | MFGPT_SETUP_CMP2);
+					   MFGPT_SETUP_CNTEN | MFGPT_SETUP_CMP2);
 }
 
 static int mfgpt_shutdown(struct clock_event_device *evt)
@@ -95,7 +95,8 @@ static int mfgpt_next_event(unsigned long delta, struct clock_event_device *evt)
 	return 0;
 }
 
-static struct clock_event_device cs5535_clockevent = {
+static struct clock_event_device cs5535_clockevent =
+{
 	.name = DRV_NAME,
 	.features = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
 	.set_state_shutdown = mfgpt_shutdown,
@@ -112,13 +113,17 @@ static irqreturn_t mfgpt_tick(int irq, void *dev_id)
 
 	/* See if the interrupt was for us */
 	if (!(val & (MFGPT_SETUP_SETUP | MFGPT_SETUP_CMP2 | MFGPT_SETUP_CMP1)))
+	{
 		return IRQ_NONE;
+	}
 
 	/* Turn off the clock (and clear the event) */
 	disable_timer(cs5535_event_clock);
 
 	if (clockevent_state_shutdown(&cs5535_clockevent))
+	{
 		return IRQ_HANDLED;
+	}
 
 	/* Clear the counter */
 	cs5535_mfgpt_write(cs5535_event_clock, MFGPT_REG_COUNTER, 0);
@@ -127,13 +132,14 @@ static irqreturn_t mfgpt_tick(int irq, void *dev_id)
 
 	if (clockevent_state_periodic(&cs5535_clockevent))
 		cs5535_mfgpt_write(cs5535_event_clock, MFGPT_REG_SETUP,
-				MFGPT_SETUP_CNTEN | MFGPT_SETUP_CMP2);
+						   MFGPT_SETUP_CNTEN | MFGPT_SETUP_CMP2);
 
 	cs5535_clockevent.event_handler(&cs5535_clockevent);
 	return IRQ_HANDLED;
 }
 
-static struct irqaction mfgptirq  = {
+static struct irqaction mfgptirq  =
+{
 	.handler = mfgpt_tick,
 	.flags = IRQF_NOBALANCING | IRQF_TIMER | IRQF_SHARED,
 	.name = DRV_NAME,
@@ -146,22 +152,28 @@ static int __init cs5535_mfgpt_init(void)
 	uint16_t val;
 
 	timer = cs5535_mfgpt_alloc_timer(MFGPT_TIMER_ANY, MFGPT_DOMAIN_WORKING);
-	if (!timer) {
+
+	if (!timer)
+	{
 		printk(KERN_ERR DRV_NAME ": Could not allocate MFGPT timer\n");
 		return -ENODEV;
 	}
+
 	cs5535_event_clock = timer;
 
 	/* Set up the IRQ on the MFGPT side */
-	if (cs5535_mfgpt_setup_irq(timer, MFGPT_CMP2, &timer_irq)) {
+	if (cs5535_mfgpt_setup_irq(timer, MFGPT_CMP2, &timer_irq))
+	{
 		printk(KERN_ERR DRV_NAME ": Could not set up IRQ %d\n",
-				timer_irq);
+			   timer_irq);
 		goto err_timer;
 	}
 
 	/* And register it with the kernel */
 	ret = setup_irq(timer_irq, &mfgptirq);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR DRV_NAME ": Unable to set up the interrupt.\n");
 		goto err_irq;
 	}
@@ -173,10 +185,10 @@ static int __init cs5535_mfgpt_init(void)
 
 	/* Set up the clock event */
 	printk(KERN_INFO DRV_NAME
-		": Registering MFGPT timer as a clock event, using IRQ %d\n",
-		timer_irq);
+		   ": Registering MFGPT timer as a clock event, using IRQ %d\n",
+		   timer_irq);
 	clockevents_config_and_register(&cs5535_clockevent, MFGPT_HZ,
-					0xF, 0xFFFE);
+									0xF, 0xFFFE);
 
 	return 0;
 

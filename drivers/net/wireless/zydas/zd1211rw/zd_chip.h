@@ -31,7 +31,8 @@
  */
 
 /* Address space */
-enum {
+enum
+{
 	/* CONTROL REGISTERS */
 	CR_START			= 0x9000,
 
@@ -547,16 +548,16 @@ enum {
 
 /* Enable bits for all frames you are interested in. */
 #define STA_RX_FILTER	(RX_FILTER_ASSOC_REQUEST | RX_FILTER_ASSOC_RESPONSE | \
-	RX_FILTER_REASSOC_REQUEST | RX_FILTER_REASSOC_RESPONSE | \
-	RX_FILTER_PROBE_REQUEST | RX_FILTER_PROBE_RESPONSE | \
-	(0x3 << 6) /* vendor driver sets these reserved bits */ | \
-	RX_FILTER_BEACON | RX_FILTER_ATIM | RX_FILTER_DISASSOC | \
-	RX_FILTER_AUTH | RX_FILTER_DEAUTH | \
-	(0x7 << 13) /* vendor driver sets these reserved bits */ | \
-	RX_FILTER_PSPOLL | RX_FILTER_ACK) /* 0x2400ffff */
+						 RX_FILTER_REASSOC_REQUEST | RX_FILTER_REASSOC_RESPONSE | \
+						 RX_FILTER_PROBE_REQUEST | RX_FILTER_PROBE_RESPONSE | \
+						 (0x3 << 6) /* vendor driver sets these reserved bits */ | \
+						 RX_FILTER_BEACON | RX_FILTER_ATIM | RX_FILTER_DISASSOC | \
+						 RX_FILTER_AUTH | RX_FILTER_DEAUTH | \
+						 (0x7 << 13) /* vendor driver sets these reserved bits */ | \
+						 RX_FILTER_PSPOLL | RX_FILTER_ACK) /* 0x2400ffff */
 
 #define RX_FILTER_CTRL (RX_FILTER_RTS | RX_FILTER_CTS | \
-	RX_FILTER_CFEND | RX_FILTER_CFACK)
+						RX_FILTER_CFEND | RX_FILTER_CFACK)
 
 #define BCN_MODE_AP			0x1000000
 #define BCN_MODE_IBSS			0x2000000
@@ -571,8 +572,8 @@ enum {
 #define IFS_VALUE_EIFS_SH		12
 #define IFS_VALUE_SIFS_SH		24
 #define IFS_VALUE_DEFAULT		((  50 << IFS_VALUE_DIFS_SH) | \
-					 (1148 << IFS_VALUE_EIFS_SH) | \
-					 (  10 << IFS_VALUE_SIFS_SH))
+								 (1148 << IFS_VALUE_EIFS_SH) | \
+								 (  10 << IFS_VALUE_SIFS_SH))
 
 #define CR_RX_TIME_OUT			CTL_REG(0x069C)
 #define CR_TOTAL_RX_FRM			CTL_REG(0x06A0)
@@ -738,7 +739,8 @@ enum {
 #define FWRAW_REGS_ADDR		FWRAW_DATA(0x1d)
 
 /* All 16 bit values, offset from the address in FWRAW_REGS_ADDR */
-enum {
+enum
+{
 	FW_REG_FIRMWARE_VER	= 0,
 	/* non-zero if USB high speed connection */
 	FW_REG_USB_SPEED	= 1,
@@ -754,14 +756,16 @@ enum {
 #define FW_LINK_TX		0x1
 /* 0x2 - link led on? */
 
-enum {
+enum
+{
 	/* indices for ofdm_cal_values */
 	OFDM_36M_INDEX = 0,
 	OFDM_48M_INDEX = 1,
 	OFDM_54M_INDEX = 2,
 };
 
-struct zd_chip {
+struct zd_chip
+{
 	struct zd_usb usb;
 	struct zd_rf rf;
 	struct mutex mutex;
@@ -774,10 +778,10 @@ struct zd_chip {
 	/* SetPointOFDM in the vendor driver */
 	u8 ofdm_cal_values[3][E2P_CHANNEL_COUNT];
 	u16 link_led;
-	unsigned int pa_type:4,
-		patch_cck_gain:1, patch_cr157:1, patch_6m_band_edge:1,
-		new_phy_layout:1, al2230s_bit:1,
-		supports_tx_led:1;
+	unsigned int pa_type: 4,
+			 patch_cck_gain: 1, patch_cr157: 1, patch_6m_band_edge: 1,
+			 new_phy_layout: 1, al2230s_bit: 1,
+			 supports_tx_led: 1;
 };
 
 static inline struct zd_chip *zd_usb_to_chip(struct zd_usb *usb)
@@ -793,8 +797,8 @@ static inline struct zd_chip *zd_rf_to_chip(struct zd_rf *rf)
 #define zd_chip_dev(chip) (&(chip)->usb.intf->dev)
 
 void zd_chip_init(struct zd_chip *chip,
-	         struct ieee80211_hw *hw,
-	         struct usb_interface *intf);
+				  struct ieee80211_hw *hw,
+				  struct usb_interface *intf);
 void zd_chip_clear(struct zd_chip *chip);
 int zd_chip_read_mac_addr_fw(struct zd_chip *chip, u8 *addr);
 int zd_chip_init_hw(struct zd_chip *chip);
@@ -806,31 +810,31 @@ static inline int zd_chip_is_zd1211b(struct zd_chip *chip)
 }
 
 static inline int zd_ioread16v_locked(struct zd_chip *chip, u16 *values,
-	                              const zd_addr_t *addresses,
-				      unsigned int count)
+									  const zd_addr_t *addresses,
+									  unsigned int count)
 {
 	ZD_ASSERT(mutex_is_locked(&chip->mutex));
 	return zd_usb_ioread16v(&chip->usb, values, addresses, count);
 }
 
 static inline int zd_ioread16_locked(struct zd_chip *chip, u16 *value,
-	                             const zd_addr_t addr)
+									 const zd_addr_t addr)
 {
 	ZD_ASSERT(mutex_is_locked(&chip->mutex));
 	return zd_usb_ioread16(&chip->usb, value, addr);
 }
 
 int zd_ioread32v_locked(struct zd_chip *chip, u32 *values,
-	                const zd_addr_t *addresses, unsigned int count);
+						const zd_addr_t *addresses, unsigned int count);
 
 static inline int zd_ioread32_locked(struct zd_chip *chip, u32 *value,
-	                             const zd_addr_t addr)
+									 const zd_addr_t addr)
 {
 	return zd_ioread32v_locked(chip, value, &addr, 1);
 }
 
 static inline int zd_iowrite16_locked(struct zd_chip *chip, u16 value,
-	                              zd_addr_t addr)
+									  zd_addr_t addr)
 {
 	struct zd_ioreq16 ioreq;
 
@@ -842,13 +846,13 @@ static inline int zd_iowrite16_locked(struct zd_chip *chip, u16 value,
 }
 
 int zd_iowrite16a_locked(struct zd_chip *chip,
-                         const struct zd_ioreq16 *ioreqs, unsigned int count);
+						 const struct zd_ioreq16 *ioreqs, unsigned int count);
 
 int _zd_iowrite32v_locked(struct zd_chip *chip, const struct zd_ioreq32 *ioreqs,
-			  unsigned int count);
+						  unsigned int count);
 
 static inline int zd_iowrite32_locked(struct zd_chip *chip, u32 value,
-	                              zd_addr_t addr)
+									  zd_addr_t addr)
 {
 	struct zd_ioreq32 ioreq;
 
@@ -859,7 +863,7 @@ static inline int zd_iowrite32_locked(struct zd_chip *chip, u32 value,
 }
 
 int zd_iowrite32a_locked(struct zd_chip *chip,
-	                 const struct zd_ioreq32 *ioreqs, unsigned int count);
+						 const struct zd_ioreq32 *ioreqs, unsigned int count);
 
 static inline int zd_rfwrite_locked(struct zd_chip *chip, u32 value, u8 bits)
 {
@@ -870,9 +874,9 @@ static inline int zd_rfwrite_locked(struct zd_chip *chip, u32 value, u8 bits)
 int zd_rfwrite_cr_locked(struct zd_chip *chip, u32 value);
 
 int zd_rfwritev_locked(struct zd_chip *chip,
-	               const u32* values, unsigned int count, u8 bits);
+					   const u32 *values, unsigned int count, u8 bits);
 int zd_rfwritev_cr_locked(struct zd_chip *chip,
-	                  const u32* values, unsigned int count);
+						  const u32 *values, unsigned int count);
 
 /* Locking functions for reading and writing registers.
  * The different parameters are intentional.
@@ -882,9 +886,9 @@ int zd_iowrite16(struct zd_chip *chip, zd_addr_t addr, u16 value);
 int zd_ioread32(struct zd_chip *chip, zd_addr_t addr, u32 *value);
 int zd_iowrite32(struct zd_chip *chip, zd_addr_t addr, u32 value);
 int zd_ioread32v(struct zd_chip *chip, const zd_addr_t *addresses,
-	          u32 *values, unsigned int count);
+				 u32 *values, unsigned int count);
 int zd_iowrite32a(struct zd_chip *chip, const struct zd_ioreq32 *ioreqs,
-	           unsigned int count);
+				  unsigned int count);
 
 int zd_chip_set_channel(struct zd_chip *chip, u8 channel);
 static inline u8 _zd_chip_get_channel(struct zd_chip *chip)
@@ -926,7 +930,8 @@ int zd_chip_set_basic_rates(struct zd_chip *chip, u16 cr_rates);
 int zd_chip_lock_phy_regs(struct zd_chip *chip);
 int zd_chip_unlock_phy_regs(struct zd_chip *chip);
 
-enum led_status {
+enum led_status
+{
 	ZD_LED_OFF = 0,
 	ZD_LED_SCANNING = 1,
 	ZD_LED_ASSOCIATED = 2,
@@ -935,7 +940,7 @@ enum led_status {
 int zd_chip_control_leds(struct zd_chip *chip, enum led_status status);
 
 int zd_set_beacon_interval(struct zd_chip *chip, u16 interval, u8 dtim_period,
-			   int type);
+						   int type);
 
 static inline int zd_get_beacon_interval(struct zd_chip *chip, u32 *interval)
 {
@@ -946,7 +951,8 @@ struct rx_status;
 
 u8 zd_rx_rate(const void *rx_frame, const struct rx_status *status);
 
-struct zd_mc_hash {
+struct zd_mc_hash
+{
 	u32 low;
 	u32 high;
 };
@@ -968,15 +974,19 @@ static inline void zd_mc_add_all(struct zd_mc_hash *hash)
 static inline void zd_mc_add_addr(struct zd_mc_hash *hash, u8 *addr)
 {
 	unsigned int i = addr[5] >> 2;
-	if (i < 32) {
+
+	if (i < 32)
+	{
 		hash->low |= 1 << i;
-	} else {
-		hash->high |= 1 << (i-32);
+	}
+	else
+	{
+		hash->high |= 1 << (i - 32);
 	}
 }
 
 int zd_chip_set_multicast_hash(struct zd_chip *chip,
-	                       struct zd_mc_hash *hash);
+							   struct zd_mc_hash *hash);
 
 u64 zd_chip_get_tsf(struct zd_chip *chip);
 

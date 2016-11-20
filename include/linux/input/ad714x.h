@@ -19,19 +19,22 @@
 #define SYS_CFGREG_NUM         8
 
 /* board information which need be initialized in arch/mach... */
-struct ad714x_slider_plat {
+struct ad714x_slider_plat
+{
 	int start_stage;
 	int end_stage;
 	int max_coord;
 };
 
-struct ad714x_wheel_plat {
+struct ad714x_wheel_plat
+{
 	int start_stage;
 	int end_stage;
 	int max_coord;
 };
 
-struct ad714x_touchpad_plat {
+struct ad714x_touchpad_plat
+{
 	int x_start_stage;
 	int x_end_stage;
 	int x_max_coord;
@@ -41,13 +44,15 @@ struct ad714x_touchpad_plat {
 	int y_max_coord;
 };
 
-struct ad714x_button_plat {
+struct ad714x_button_plat
+{
 	int keycode;
 	unsigned short l_mask;
 	unsigned short h_mask;
 };
 
-struct ad714x_platform_data {
+struct ad714x_platform_data
+{
 	int slider_num;
 	int wheel_num;
 	int touchpad_num;

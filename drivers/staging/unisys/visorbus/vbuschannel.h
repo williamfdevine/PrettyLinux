@@ -27,8 +27,8 @@
 
 /* {193b331b-c58f-11da-95a9-00e08161165f} */
 #define SPAR_VBUS_CHANNEL_PROTOCOL_UUID \
-		UUID_LE(0x193b331b, 0xc58f, 0x11da, \
-				0x95, 0xa9, 0x0, 0xe0, 0x81, 0x61, 0x16, 0x5f)
+	UUID_LE(0x193b331b, 0xc58f, 0x11da, \
+			0x95, 0xa9, 0x0, 0xe0, 0x81, 0x61, 0x16, 0x5f)
 static const uuid_le spar_vbus_channel_protocol_uuid =
 	SPAR_VBUS_CHANNEL_PROTOCOL_UUID;
 
@@ -44,17 +44,17 @@ static const uuid_le spar_vbus_channel_protocol_uuid =
 
 #define SPAR_VBUS_CHANNEL_OK_CLIENT(ch)       \
 	spar_check_channel_client(ch,				\
-				   spar_vbus_channel_protocol_uuid,	\
-				   "vbus",				\
-				   sizeof(struct spar_vbus_channel_protocol),\
-				   SPAR_VBUS_CHANNEL_PROTOCOL_VERSIONID, \
-				   SPAR_VBUS_CHANNEL_PROTOCOL_SIGNATURE)
+							  spar_vbus_channel_protocol_uuid,	\
+							  "vbus",				\
+							  sizeof(struct spar_vbus_channel_protocol),\
+							  SPAR_VBUS_CHANNEL_PROTOCOL_VERSIONID, \
+							  SPAR_VBUS_CHANNEL_PROTOCOL_SIGNATURE)
 
 #define SPAR_VBUS_CHANNEL_OK_SERVER(actual_bytes)    \
 	(spar_check_channel_server(spar_vbus_channel_protocol_uuid,	\
-				   "vbus",				\
-				   sizeof(struct spar_vbus_channel_protocol),\
-				   actual_bytes))
+							   "vbus",				\
+							   sizeof(struct spar_vbus_channel_protocol),\
+							   actual_bytes))
 
 #pragma pack(push, 1)		/* both GCC and VC now allow this pragma */
 
@@ -64,7 +64,8 @@ static const uuid_le spar_vbus_channel_protocol_uuid =
  * It is filled in by the client side to provide info about the device
  * and driver from the client's perspective.
  */
-struct ultra_vbus_deviceinfo {
+struct ultra_vbus_deviceinfo
+{
 	u8 devtype[16];		/* short string identifying the device type */
 	u8 drvname[16];		/* driver .sys file name */
 	u8 infostrs[96];	/* kernel version */
@@ -100,33 +101,48 @@ vbuschannel_sanitize_buffer(char *p, int remain, char *src, int srcmax)
 	int chars = 0;
 	int nonprintable_streak = 0;
 
-	while (srcmax > 0) {
-		if ((*src >= ' ') && (*src < 0x7f)) {
-			if (nonprintable_streak) {
-				if (remain > 0) {
+	while (srcmax > 0)
+	{
+		if ((*src >= ' ') && (*src < 0x7f))
+		{
+			if (nonprintable_streak)
+			{
+				if (remain > 0)
+				{
 					*p = ' ';
 					p++;
 					remain--;
 					chars++;
-				} else if (!p) {
+				}
+				else if (!p)
+				{
 					chars++;
 				}
+
 				nonprintable_streak = 0;
 			}
-			if (remain > 0) {
+
+			if (remain > 0)
+			{
 				*p = *src;
 				p++;
 				remain--;
 				chars++;
-			} else if (!p) {
+			}
+			else if (!p)
+			{
 				chars++;
 			}
-		} else {
+		}
+		else
+		{
 			nonprintable_streak = 1;
 		}
+
 		src++;
 		srcmax--;
 	}
+
 	return chars;
 }
 
@@ -158,36 +174,54 @@ vbuschannel_itoa(char *p, int remain, int num)
 	char s[32];
 	int i;
 
-	if (num == 0) {
+	if (num == 0)
+	{
 		/* '0' is a special case */
 		if (remain <= 0)
+		{
 			return 0;
+		}
+
 		*p = '0';
 		return 1;
 	}
+
 	/* form a backwards decimal ascii string in <s> */
-	while (num > 0) {
+	while (num > 0)
+	{
 		if (digits >= (int)sizeof(s))
+		{
 			return 0;
+		}
+
 		s[digits++] = (num % 10) + '0';
 		num = num / 10;
 	}
-	if (remain < digits) {
+
+	if (remain < digits)
+	{
 		/* not enough room left at <p> to hold number, so fill with
 		 * '?'
 		 */
 		for (i = 0; i < remain; i++, p++)
+		{
 			*p = '?';
+		}
+
 		return remain;
 	}
+
 	/* plug in the decimal ascii string representing the number, by */
 	/* reversing the string we just built in <s> */
 	i = digits;
-	while (i > 0) {
+
+	while (i > 0)
+	{
 		i--;
 		*p = s[i];
 		p++;
 	}
+
 	return digits;
 }
 
@@ -208,7 +242,7 @@ vbuschannel_itoa(char *p, int remain, int num)
  */
 static inline int
 vbuschannel_devinfo_to_string(struct ultra_vbus_deviceinfo *devinfo,
-			      char *p, int remain, int devix)
+							  char *p, int remain, int devix)
 {
 	char *psrc;
 	int nsrc, x, i, pad;
@@ -216,18 +250,24 @@ vbuschannel_devinfo_to_string(struct ultra_vbus_deviceinfo *devinfo,
 
 	psrc = &devinfo->devtype[0];
 	nsrc = sizeof(devinfo->devtype);
+
 	if (vbuschannel_sanitize_buffer(NULL, 0, psrc, nsrc) <= 0)
+	{
 		return 0;
+	}
 
 	/* emit device index */
-	if (devix >= 0) {
+	if (devix >= 0)
+	{
 		VBUSCHANNEL_ADDACHAR('[', p, remain, chars);
 		x = vbuschannel_itoa(p, remain, devix);
 		p += x;
 		remain -= x;
 		chars += x;
 		VBUSCHANNEL_ADDACHAR(']', p, remain, chars);
-	} else {
+	}
+	else
+	{
 		VBUSCHANNEL_ADDACHAR(' ', p, remain, chars);
 		VBUSCHANNEL_ADDACHAR(' ', p, remain, chars);
 		VBUSCHANNEL_ADDACHAR(' ', p, remain, chars);
@@ -239,8 +279,12 @@ vbuschannel_devinfo_to_string(struct ultra_vbus_deviceinfo *devinfo,
 	remain -= x;
 	chars += x;
 	pad = 15 - x;		/* pad device type to be exactly 15 chars */
+
 	for (i = 0; i < pad; i++)
+	{
 		VBUSCHANNEL_ADDACHAR(' ', p, remain, chars);
+	}
+
 	VBUSCHANNEL_ADDACHAR(' ', p, remain, chars);
 
 	/* emit driver name */
@@ -251,8 +295,12 @@ vbuschannel_devinfo_to_string(struct ultra_vbus_deviceinfo *devinfo,
 	remain -= x;
 	chars += x;
 	pad = 15 - x;		/* pad driver name to be exactly 15 chars */
+
 	for (i = 0; i < pad; i++)
+	{
 		VBUSCHANNEL_ADDACHAR(' ', p, remain, chars);
+	}
+
 	VBUSCHANNEL_ADDACHAR(' ', p, remain, chars);
 
 	/* emit strings */
@@ -267,7 +315,8 @@ vbuschannel_devinfo_to_string(struct ultra_vbus_deviceinfo *devinfo,
 	return chars;
 }
 
-struct spar_vbus_headerinfo {
+struct spar_vbus_headerinfo
+{
 	u32 struct_bytes;	/* size of this struct in bytes */
 	u32 device_info_struct_bytes;	/* sizeof(ULTRA_VBUS_DEVICEINFO) */
 	u32 dev_info_count;	/* num of items in DevInfo member */
@@ -281,7 +330,8 @@ struct spar_vbus_headerinfo {
 	u8 reserved[104];
 };
 
-struct spar_vbus_channel_protocol {
+struct spar_vbus_channel_protocol
+{
 	struct channel_header channel_header;	/* initialized by server */
 	struct spar_vbus_headerinfo hdr_info;	/* initialized by server */
 	/* the remainder of this channel is filled in by the client */
@@ -295,7 +345,7 @@ struct spar_vbus_channel_protocol {
 
 #define VBUS_CH_SIZE_EXACT(MAXDEVICES) \
 	(sizeof(ULTRA_VBUS_CHANNEL_PROTOCOL) + ((MAXDEVICES) * \
-						sizeof(ULTRA_VBUS_DEVICEINFO)))
+											sizeof(ULTRA_VBUS_DEVICEINFO)))
 #define VBUS_CH_SIZE(MAXDEVICES) COVER(VBUS_CH_SIZE_EXACT(MAXDEVICES), 4096)
 
 #pragma pack(pop)

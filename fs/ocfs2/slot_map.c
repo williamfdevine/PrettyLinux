@@ -43,12 +43,14 @@
 #include "buffer_head_io.h"
 
 
-struct ocfs2_slot {
+struct ocfs2_slot
+{
 	int sl_valid;
 	unsigned int sl_node_num;
 };
 
-struct ocfs2_slot_info {
+struct ocfs2_slot_info
+{
 	int si_extended;
 	int si_slots_per_block;
 	struct inode *si_inode;
@@ -60,17 +62,17 @@ struct ocfs2_slot_info {
 
 
 static int __ocfs2_node_num_to_slot(struct ocfs2_slot_info *si,
-				    unsigned int node_num);
+									unsigned int node_num);
 
 static void ocfs2_invalidate_slot(struct ocfs2_slot_info *si,
-				  int slot_num)
+								  int slot_num)
 {
 	BUG_ON((slot_num < 0) || (slot_num >= si->si_num_slots));
 	si->si_slots[slot_num].sl_valid = 0;
 }
 
 static void ocfs2_set_slot(struct ocfs2_slot_info *si,
-			   int slot_num, unsigned int node_num)
+						   int slot_num, unsigned int node_num)
 {
 	BUG_ON((slot_num < 0) || (slot_num >= si->si_num_slots));
 
@@ -85,17 +87,23 @@ static void ocfs2_update_slot_info_extended(struct ocfs2_slot_info *si)
 	struct ocfs2_slot_map_extended *se;
 
 	slotno = 0;
-	for (b = 0; b < si->si_blocks; b++) {
+
+	for (b = 0; b < si->si_blocks; b++)
+	{
 		se = (struct ocfs2_slot_map_extended *)si->si_bh[b]->b_data;
+
 		for (i = 0;
-		     (i < si->si_slots_per_block) &&
-		     (slotno < si->si_num_slots);
-		     i++, slotno++) {
+			 (i < si->si_slots_per_block) &&
+			 (slotno < si->si_num_slots);
+			 i++, slotno++)
+		{
 			if (se->se_slots[i].es_valid)
 				ocfs2_set_slot(si, slotno,
-					       le32_to_cpu(se->se_slots[i].es_node_num));
+							   le32_to_cpu(se->se_slots[i].es_node_num));
 			else
+			{
 				ocfs2_invalidate_slot(si, slotno);
+			}
 		}
 	}
 }
@@ -111,11 +119,16 @@ static void ocfs2_update_slot_info_old(struct ocfs2_slot_info *si)
 
 	sm = (struct ocfs2_slot_map *)si->si_bh[0]->b_data;
 
-	for (i = 0; i < si->si_num_slots; i++) {
+	for (i = 0; i < si->si_num_slots; i++)
+	{
 		if (le16_to_cpu(sm->sm_slots[i]) == (u16)OCFS2_INVALID_SLOT)
+		{
 			ocfs2_invalidate_slot(si, i);
+		}
 		else
+		{
 			ocfs2_set_slot(si, i, le16_to_cpu(sm->sm_slots[i]));
+		}
 	}
 }
 
@@ -126,9 +139,13 @@ static void ocfs2_update_slot_info(struct ocfs2_slot_info *si)
 	 * was taken.
 	 */
 	if (si->si_extended)
+	{
 		ocfs2_update_slot_info_extended(si);
+	}
 	else
+	{
 		ocfs2_update_slot_info_old(si);
+	}
 }
 
 int ocfs2_refresh_slot_info(struct ocfs2_super *osb)
@@ -137,7 +154,9 @@ int ocfs2_refresh_slot_info(struct ocfs2_super *osb)
 	struct ocfs2_slot_info *si = osb->slot_info;
 
 	if (si == NULL)
+	{
 		return 0;
+	}
 
 	BUG_ON(si->si_blocks == 0);
 	BUG_ON(si->si_bh == NULL);
@@ -150,8 +169,10 @@ int ocfs2_refresh_slot_info(struct ocfs2_super *osb)
 	 * this is not true, the read of -1 (UINT64_MAX) will fail.
 	 */
 	ret = ocfs2_read_blocks(INODE_CACHE(si->si_inode), -1, si->si_blocks,
-				si->si_bh, OCFS2_BH_IGNORE_CACHE, NULL);
-	if (ret == 0) {
+							si->si_bh, OCFS2_BH_IGNORE_CACHE, NULL);
+
+	if (ret == 0)
+	{
 		spin_lock(&osb->osb_lock);
 		ocfs2_update_slot_info(si);
 		spin_unlock(&osb->osb_lock);
@@ -163,8 +184,8 @@ int ocfs2_refresh_slot_info(struct ocfs2_super *osb)
 /* post the our slot info stuff into it's destination bh and write it
  * out. */
 static void ocfs2_update_disk_slot_extended(struct ocfs2_slot_info *si,
-					    int slot_num,
-					    struct buffer_head **bh)
+		int slot_num,
+		struct buffer_head **bh)
 {
 	int blkind = slot_num / si->si_slots_per_block;
 	int slotno = slot_num % si->si_slots_per_block;
@@ -174,47 +195,63 @@ static void ocfs2_update_disk_slot_extended(struct ocfs2_slot_info *si,
 
 	se = (struct ocfs2_slot_map_extended *)si->si_bh[blkind]->b_data;
 	se->se_slots[slotno].es_valid = si->si_slots[slot_num].sl_valid;
+
 	if (si->si_slots[slot_num].sl_valid)
 		se->se_slots[slotno].es_node_num =
 			cpu_to_le32(si->si_slots[slot_num].sl_node_num);
+
 	*bh = si->si_bh[blkind];
 }
 
 static void ocfs2_update_disk_slot_old(struct ocfs2_slot_info *si,
-				       int slot_num,
-				       struct buffer_head **bh)
+									   int slot_num,
+									   struct buffer_head **bh)
 {
 	int i;
 	struct ocfs2_slot_map *sm;
 
 	sm = (struct ocfs2_slot_map *)si->si_bh[0]->b_data;
-	for (i = 0; i < si->si_num_slots; i++) {
+
+	for (i = 0; i < si->si_num_slots; i++)
+	{
 		if (si->si_slots[i].sl_valid)
 			sm->sm_slots[i] =
 				cpu_to_le16(si->si_slots[i].sl_node_num);
 		else
+		{
 			sm->sm_slots[i] = cpu_to_le16(OCFS2_INVALID_SLOT);
+		}
 	}
+
 	*bh = si->si_bh[0];
 }
 
 static int ocfs2_update_disk_slot(struct ocfs2_super *osb,
-				  struct ocfs2_slot_info *si,
-				  int slot_num)
+								  struct ocfs2_slot_info *si,
+								  int slot_num)
 {
 	int status;
 	struct buffer_head *bh;
 
 	spin_lock(&osb->osb_lock);
+
 	if (si->si_extended)
+	{
 		ocfs2_update_disk_slot_extended(si, slot_num, &bh);
+	}
 	else
+	{
 		ocfs2_update_disk_slot_old(si, slot_num, &bh);
+	}
+
 	spin_unlock(&osb->osb_lock);
 
 	status = ocfs2_write_block(osb, bh, INODE_CACHE(si->si_inode));
+
 	if (status < 0)
+	{
 		mlog_errno(status);
+	}
 
 	return status;
 }
@@ -224,21 +261,26 @@ static int ocfs2_update_disk_slot(struct ocfs2_super *osb,
  * an error if the slot map file is too small.
  */
 static int ocfs2_slot_map_physical_size(struct ocfs2_super *osb,
-					struct inode *inode,
-					unsigned long long *bytes)
+										struct inode *inode,
+										unsigned long long *bytes)
 {
 	unsigned long long bytes_needed;
 
-	if (ocfs2_uses_extended_slot_map(osb)) {
+	if (ocfs2_uses_extended_slot_map(osb))
+	{
 		bytes_needed = osb->max_slots *
-			sizeof(struct ocfs2_extended_slot);
-	} else {
+					   sizeof(struct ocfs2_extended_slot);
+	}
+	else
+	{
 		bytes_needed = osb->max_slots * sizeof(__le16);
 	}
-	if (bytes_needed > i_size_read(inode)) {
+
+	if (bytes_needed > i_size_read(inode))
+	{
 		mlog(ML_ERROR,
-		     "Slot map file is too small!  (size %llu, needed %llu)\n",
-		     i_size_read(inode), bytes_needed);
+			 "Slot map file is too small!  (size %llu, needed %llu)\n",
+			 i_size_read(inode), bytes_needed);
 		return -ENOSPC;
 	}
 
@@ -249,13 +291,15 @@ static int ocfs2_slot_map_physical_size(struct ocfs2_super *osb,
 /* try to find global node in the slot info. Returns -ENOENT
  * if nothing is found. */
 static int __ocfs2_node_num_to_slot(struct ocfs2_slot_info *si,
-				    unsigned int node_num)
+									unsigned int node_num)
 {
 	int i, ret = -ENOENT;
 
-	for(i = 0; i < si->si_num_slots; i++) {
+	for (i = 0; i < si->si_num_slots; i++)
+	{
 		if (si->si_slots[i].sl_valid &&
-		    (node_num == si->si_slots[i].sl_node_num)) {
+			(node_num == si->si_slots[i].sl_node_num))
+		{
 			ret = i;
 			break;
 		}
@@ -265,23 +309,28 @@ static int __ocfs2_node_num_to_slot(struct ocfs2_slot_info *si,
 }
 
 static int __ocfs2_find_empty_slot(struct ocfs2_slot_info *si,
-				   int preferred)
+								   int preferred)
 {
 	int i, ret = -ENOSPC;
 
-	if ((preferred >= 0) && (preferred < si->si_num_slots)) {
-		if (!si->si_slots[preferred].sl_valid) {
+	if ((preferred >= 0) && (preferred < si->si_num_slots))
+	{
+		if (!si->si_slots[preferred].sl_valid)
+		{
 			ret = preferred;
 			goto out;
 		}
 	}
 
-	for(i = 0; i < si->si_num_slots; i++) {
-		if (!si->si_slots[i].sl_valid) {
+	for (i = 0; i < si->si_num_slots; i++)
+	{
+		if (!si->si_slots[i].sl_valid)
+		{
 			ret = i;
 			break;
 		}
 	}
+
 out:
 	return ret;
 }
@@ -299,7 +348,7 @@ int ocfs2_node_num_to_slot(struct ocfs2_super *osb, unsigned int node_num)
 }
 
 int ocfs2_slot_to_node_num_locked(struct ocfs2_super *osb, int slot_num,
-				  unsigned int *node_num)
+								  unsigned int *node_num)
 {
 	struct ocfs2_slot_info *si = osb->slot_info;
 
@@ -309,7 +358,9 @@ int ocfs2_slot_to_node_num_locked(struct ocfs2_super *osb, int slot_num,
 	BUG_ON(slot_num >= osb->max_slots);
 
 	if (!si->si_slots[slot_num].sl_valid)
+	{
 		return -ENOENT;
+	}
 
 	*node_num = si->si_slots[slot_num].sl_node_num;
 	return 0;
@@ -320,16 +371,23 @@ static void __ocfs2_free_slot_info(struct ocfs2_slot_info *si)
 	unsigned int i;
 
 	if (si == NULL)
+	{
 		return;
+	}
 
 	iput(si->si_inode);
-	if (si->si_bh) {
-		for (i = 0; i < si->si_blocks; i++) {
-			if (si->si_bh[i]) {
+
+	if (si->si_bh)
+	{
+		for (i = 0; i < si->si_blocks; i++)
+		{
+			if (si->si_bh[i])
+			{
 				brelse(si->si_bh[i]);
 				si->si_bh[i] = NULL;
 			}
 		}
+
 		kfree(si->si_bh);
 	}
 
@@ -341,7 +399,9 @@ int ocfs2_clear_slot(struct ocfs2_super *osb, int slot_num)
 	struct ocfs2_slot_info *si = osb->slot_info;
 
 	if (si == NULL)
+	{
 		return 0;
+	}
 
 	spin_lock(&osb->osb_lock);
 	ocfs2_invalidate_slot(si, slot_num);
@@ -351,7 +411,7 @@ int ocfs2_clear_slot(struct ocfs2_super *osb, int slot_num)
 }
 
 static int ocfs2_map_slot_buffers(struct ocfs2_super *osb,
-				  struct ocfs2_slot_info *si)
+								  struct ocfs2_slot_info *si)
 {
 	int status = 0;
 	u64 blkno;
@@ -360,21 +420,29 @@ static int ocfs2_map_slot_buffers(struct ocfs2_super *osb,
 	struct buffer_head *bh;
 
 	status = ocfs2_slot_map_physical_size(osb, si->si_inode, &bytes);
+
 	if (status)
+	{
 		goto bail;
+	}
 
 	blocks = ocfs2_blocks_for_bytes(si->si_inode->i_sb, bytes);
 	BUG_ON(blocks > UINT_MAX);
 	si->si_blocks = blocks;
+
 	if (!si->si_blocks)
+	{
 		goto bail;
+	}
 
 	if (si->si_extended)
 		si->si_slots_per_block =
 			(osb->sb->s_blocksize /
 			 sizeof(struct ocfs2_extended_slot));
 	else
+	{
 		si->si_slots_per_block = osb->sb->s_blocksize / sizeof(__le16);
+	}
 
 	/* The size checks above should ensure this */
 	BUG_ON((osb->max_slots / si->si_slots_per_block) > blocks);
@@ -382,17 +450,22 @@ static int ocfs2_map_slot_buffers(struct ocfs2_super *osb,
 	trace_ocfs2_map_slot_buffers(bytes, si->si_blocks);
 
 	si->si_bh = kcalloc(si->si_blocks, sizeof(struct buffer_head *),
-			    GFP_KERNEL);
-	if (!si->si_bh) {
+						GFP_KERNEL);
+
+	if (!si->si_bh)
+	{
 		status = -ENOMEM;
 		mlog_errno(status);
 		goto bail;
 	}
 
-	for (i = 0; i < si->si_blocks; i++) {
+	for (i = 0; i < si->si_blocks; i++)
+	{
 		status = ocfs2_extent_map_get_blocks(si->si_inode, i,
-						     &blkno, NULL, NULL);
-		if (status < 0) {
+											 &blkno, NULL, NULL);
+
+		if (status < 0)
+		{
 			mlog_errno(status);
 			goto bail;
 		}
@@ -401,8 +474,10 @@ static int ocfs2_map_slot_buffers(struct ocfs2_super *osb,
 
 		bh = NULL;  /* Acquire a fresh bh */
 		status = ocfs2_read_blocks(INODE_CACHE(si->si_inode), blkno,
-					   1, &bh, OCFS2_BH_IGNORE_CACHE, NULL);
-		if (status < 0) {
+								   1, &bh, OCFS2_BH_IGNORE_CACHE, NULL);
+
+		if (status < 0)
+		{
 			mlog_errno(status);
 			goto bail;
 		}
@@ -421,9 +496,11 @@ int ocfs2_init_slot_info(struct ocfs2_super *osb)
 	struct ocfs2_slot_info *si;
 
 	si = kzalloc(sizeof(struct ocfs2_slot_info) +
-		     (sizeof(struct ocfs2_slot) * osb->max_slots),
-		     GFP_KERNEL);
-	if (!si) {
+				 (sizeof(struct ocfs2_slot) * osb->max_slots),
+				 GFP_KERNEL);
+
+	if (!si)
+	{
 		status = -ENOMEM;
 		mlog_errno(status);
 		return status;
@@ -432,11 +509,13 @@ int ocfs2_init_slot_info(struct ocfs2_super *osb)
 	si->si_extended = ocfs2_uses_extended_slot_map(osb);
 	si->si_num_slots = osb->max_slots;
 	si->si_slots = (struct ocfs2_slot *)((char *)si +
-					     sizeof(struct ocfs2_slot_info));
+										 sizeof(struct ocfs2_slot_info));
 
 	inode = ocfs2_get_system_file_inode(osb, SLOT_MAP_SYSTEM_INODE,
-					    OCFS2_INVALID_SLOT);
-	if (!inode) {
+										OCFS2_INVALID_SLOT);
+
+	if (!inode)
+	{
 		status = -EINVAL;
 		mlog_errno(status);
 		goto bail;
@@ -444,15 +523,20 @@ int ocfs2_init_slot_info(struct ocfs2_super *osb)
 
 	si->si_inode = inode;
 	status = ocfs2_map_slot_buffers(osb, si);
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		mlog_errno(status);
 		goto bail;
 	}
 
 	osb->slot_info = (struct ocfs2_slot_info *)si;
 bail:
+
 	if (status < 0)
+	{
 		__ocfs2_free_slot_info(si);
+	}
 
 	return status;
 }
@@ -481,19 +565,24 @@ int ocfs2_find_slot(struct ocfs2_super *osb)
 	 * own journal recovery? Possibly not, though we certainly
 	 * need to warn to the user */
 	slot = __ocfs2_node_num_to_slot(si, osb->node_num);
-	if (slot < 0) {
+
+	if (slot < 0)
+	{
 		/* if no slot yet, then just take 1st available
 		 * one. */
 		slot = __ocfs2_find_empty_slot(si, osb->preferred_slot);
-		if (slot < 0) {
+
+		if (slot < 0)
+		{
 			spin_unlock(&osb->osb_lock);
 			mlog(ML_ERROR, "no free slots available!\n");
 			status = -EINVAL;
 			goto bail;
 		}
-	} else
+	}
+	else
 		printk(KERN_INFO "ocfs2: Slot %d on device (%s) was already "
-		       "allocated to this node!\n", slot, osb->dev_str);
+			   "allocated to this node!\n", slot, osb->dev_str);
 
 	ocfs2_set_slot(si, slot, osb->node_num);
 	osb->slot_num = slot;
@@ -502,7 +591,9 @@ int ocfs2_find_slot(struct ocfs2_super *osb)
 	trace_ocfs2_find_slot(osb->slot_num);
 
 	status = ocfs2_update_disk_slot(osb, si, osb->slot_num);
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		mlog_errno(status);
 		/*
 		 * if write block failed, invalidate slot to avoid overwrite
@@ -524,7 +615,9 @@ void ocfs2_put_slot(struct ocfs2_super *osb)
 	struct ocfs2_slot_info *si = osb->slot_info;
 
 	if (!si)
+	{
 		return;
+	}
 
 	spin_lock(&osb->osb_lock);
 	ocfs2_update_slot_info(si);
@@ -535,8 +628,11 @@ void ocfs2_put_slot(struct ocfs2_super *osb)
 	spin_unlock(&osb->osb_lock);
 
 	status = ocfs2_update_disk_slot(osb, si, slot_num);
+
 	if (status < 0)
+	{
 		mlog_errno(status);
+	}
 
 	ocfs2_free_slot_info(osb);
 }

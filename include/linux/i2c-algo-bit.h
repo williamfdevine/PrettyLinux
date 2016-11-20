@@ -31,7 +31,8 @@
  * manipulate the line states, and to init any hw-specific features. This is
  * only used if you have more than one hw-type of adapter running.
  */
-struct i2c_algo_bit_data {
+struct i2c_algo_bit_data
+{
 	void *data;		/* private data for lowlevel routines */
 	void (*setsda) (void *data, int state);
 	void (*setscl) (void *data, int state);

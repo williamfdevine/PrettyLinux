@@ -27,7 +27,8 @@
 #include <linux/slab.h>
 
 /* Crypto notification events. */
-enum {
+enum
+{
 	CRYPTO_MSG_ALG_REQUEST,
 	CRYPTO_MSG_ALG_REGISTER,
 	CRYPTO_MSG_ALG_UNREGISTER,
@@ -38,7 +39,8 @@ enum {
 struct crypto_instance;
 struct crypto_template;
 
-struct crypto_larval {
+struct crypto_larval
+{
 	struct crypto_alg alg;
 	struct crypto_alg *adult;
 	struct completion completion;
@@ -85,18 +87,18 @@ struct crypto_alg *crypto_larval_lookup(const char *name, u32 type, u32 mask);
 void crypto_alg_tested(const char *name, int err);
 
 void crypto_remove_spawns(struct crypto_alg *alg, struct list_head *list,
-			  struct crypto_alg *nalg);
+						  struct crypto_alg *nalg);
 void crypto_remove_final(struct list_head *list);
 void crypto_shoot_alg(struct crypto_alg *alg);
 struct crypto_tfm *__crypto_alloc_tfm(struct crypto_alg *alg, u32 type,
-				      u32 mask);
+									  u32 mask);
 void *crypto_create_tfm(struct crypto_alg *alg,
-			const struct crypto_type *frontend);
+						const struct crypto_type *frontend);
 struct crypto_alg *crypto_find_alg(const char *alg_name,
-				   const struct crypto_type *frontend,
-				   u32 type, u32 mask);
+								   const struct crypto_type *frontend,
+								   u32 type, u32 mask);
 void *crypto_alloc_tfm(const char *alg_name,
-		       const struct crypto_type *frontend, u32 type, u32 mask);
+					   const struct crypto_type *frontend, u32 type, u32 mask);
 
 int crypto_register_notifier(struct notifier_block *nb);
 int crypto_unregister_notifier(struct notifier_block *nb);
@@ -105,7 +107,7 @@ int crypto_probing_notify(unsigned long val, void *v);
 unsigned int crypto_alg_extsize(struct crypto_alg *alg);
 
 int crypto_type_has_alg(const char *name, const struct crypto_type *frontend,
-			u32 type, u32 mask);
+						u32 type, u32 mask);
 
 static inline struct crypto_alg *crypto_alg_get(struct crypto_alg *alg)
 {
@@ -116,7 +118,9 @@ static inline struct crypto_alg *crypto_alg_get(struct crypto_alg *alg)
 static inline void crypto_alg_put(struct crypto_alg *alg)
 {
 	if (atomic_dec_and_test(&alg->cra_refcnt) && alg->cra_destroy)
+	{
 		alg->cra_destroy(alg);
+	}
 }
 
 static inline int crypto_tmpl_get(struct crypto_template *tmpl)

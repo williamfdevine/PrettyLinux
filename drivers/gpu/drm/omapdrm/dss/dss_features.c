@@ -28,15 +28,18 @@
 #include "dss_features.h"
 
 /* Defines a generic omap register field */
-struct dss_reg_field {
+struct dss_reg_field
+{
 	u8 start, end;
 };
 
-struct dss_param_range {
+struct dss_param_range
+{
 	int min, max;
 };
 
-struct omap_dss_features {
+struct omap_dss_features
+{
 	const struct dss_reg_field *reg_fields;
 	const int num_reg_fields;
 
@@ -60,7 +63,8 @@ struct omap_dss_features {
 /* This struct is assigned to one of the below during initialization */
 static const struct omap_dss_features *omap_current_dss_features;
 
-static const struct dss_reg_field omap2_dss_reg_fields[] = {
+static const struct dss_reg_field omap2_dss_reg_fields[] =
+{
 	[FEAT_REG_FIRHINC]			= { 11, 0 },
 	[FEAT_REG_FIRVINC]			= { 27, 16 },
 	[FEAT_REG_FIFOLOWTHRESHOLD]		= { 8, 0 },
@@ -71,7 +75,8 @@ static const struct dss_reg_field omap2_dss_reg_fields[] = {
 	[FEAT_REG_DISPC_CLK_SWITCH]		= { 0, 0 },
 };
 
-static const struct dss_reg_field omap3_dss_reg_fields[] = {
+static const struct dss_reg_field omap3_dss_reg_fields[] =
+{
 	[FEAT_REG_FIRHINC]			= { 12, 0 },
 	[FEAT_REG_FIRVINC]			= { 28, 16 },
 	[FEAT_REG_FIFOLOWTHRESHOLD]		= { 11, 0 },
@@ -82,7 +87,8 @@ static const struct dss_reg_field omap3_dss_reg_fields[] = {
 	[FEAT_REG_DISPC_CLK_SWITCH]		= { 0, 0 },
 };
 
-static const struct dss_reg_field am43xx_dss_reg_fields[] = {
+static const struct dss_reg_field am43xx_dss_reg_fields[] =
+{
 	[FEAT_REG_FIRHINC]			= { 12, 0 },
 	[FEAT_REG_FIRVINC]			= { 28, 16 },
 	[FEAT_REG_FIFOLOWTHRESHOLD]	= { 11, 0 },
@@ -93,7 +99,8 @@ static const struct dss_reg_field am43xx_dss_reg_fields[] = {
 	[FEAT_REG_DISPC_CLK_SWITCH]		= { 0, 0 },
 };
 
-static const struct dss_reg_field omap4_dss_reg_fields[] = {
+static const struct dss_reg_field omap4_dss_reg_fields[] =
+{
 	[FEAT_REG_FIRHINC]			= { 12, 0 },
 	[FEAT_REG_FIRVINC]			= { 28, 16 },
 	[FEAT_REG_FIFOLOWTHRESHOLD]		= { 15, 0 },
@@ -104,7 +111,8 @@ static const struct dss_reg_field omap4_dss_reg_fields[] = {
 	[FEAT_REG_DISPC_CLK_SWITCH]		= { 9, 8 },
 };
 
-static const struct dss_reg_field omap5_dss_reg_fields[] = {
+static const struct dss_reg_field omap5_dss_reg_fields[] =
+{
 	[FEAT_REG_FIRHINC]			= { 12, 0 },
 	[FEAT_REG_FIRVINC]			= { 28, 16 },
 	[FEAT_REG_FIFOLOWTHRESHOLD]		= { 15, 0 },
@@ -115,7 +123,8 @@ static const struct dss_reg_field omap5_dss_reg_fields[] = {
 	[FEAT_REG_DISPC_CLK_SWITCH]		= { 9, 7 },
 };
 
-static const enum omap_display_type omap2_dss_supported_displays[] = {
+static const enum omap_display_type omap2_dss_supported_displays[] =
+{
 	/* OMAP_DSS_CHANNEL_LCD */
 	OMAP_DISPLAY_TYPE_DPI | OMAP_DISPLAY_TYPE_DBI,
 
@@ -123,7 +132,8 @@ static const enum omap_display_type omap2_dss_supported_displays[] = {
 	OMAP_DISPLAY_TYPE_VENC,
 };
 
-static const enum omap_display_type omap3430_dss_supported_displays[] = {
+static const enum omap_display_type omap3430_dss_supported_displays[] =
+{
 	/* OMAP_DSS_CHANNEL_LCD */
 	OMAP_DISPLAY_TYPE_DPI | OMAP_DISPLAY_TYPE_DBI |
 	OMAP_DISPLAY_TYPE_SDI | OMAP_DISPLAY_TYPE_DSI,
@@ -132,7 +142,8 @@ static const enum omap_display_type omap3430_dss_supported_displays[] = {
 	OMAP_DISPLAY_TYPE_VENC,
 };
 
-static const enum omap_display_type omap3630_dss_supported_displays[] = {
+static const enum omap_display_type omap3630_dss_supported_displays[] =
+{
 	/* OMAP_DSS_CHANNEL_LCD */
 	OMAP_DISPLAY_TYPE_DPI | OMAP_DISPLAY_TYPE_DBI |
 	OMAP_DISPLAY_TYPE_DSI,
@@ -141,12 +152,14 @@ static const enum omap_display_type omap3630_dss_supported_displays[] = {
 	OMAP_DISPLAY_TYPE_VENC,
 };
 
-static const enum omap_display_type am43xx_dss_supported_displays[] = {
+static const enum omap_display_type am43xx_dss_supported_displays[] =
+{
 	/* OMAP_DSS_CHANNEL_LCD */
 	OMAP_DISPLAY_TYPE_DPI | OMAP_DISPLAY_TYPE_DBI,
 };
 
-static const enum omap_display_type omap4_dss_supported_displays[] = {
+static const enum omap_display_type omap4_dss_supported_displays[] =
+{
 	/* OMAP_DSS_CHANNEL_LCD */
 	OMAP_DISPLAY_TYPE_DBI | OMAP_DISPLAY_TYPE_DSI,
 
@@ -158,7 +171,8 @@ static const enum omap_display_type omap4_dss_supported_displays[] = {
 	OMAP_DISPLAY_TYPE_DSI,
 };
 
-static const enum omap_display_type omap5_dss_supported_displays[] = {
+static const enum omap_display_type omap5_dss_supported_displays[] =
+{
 	/* OMAP_DSS_CHANNEL_LCD */
 	OMAP_DISPLAY_TYPE_DPI | OMAP_DISPLAY_TYPE_DBI |
 	OMAP_DISPLAY_TYPE_DSI,
@@ -171,7 +185,8 @@ static const enum omap_display_type omap5_dss_supported_displays[] = {
 	OMAP_DISPLAY_TYPE_DSI,
 };
 
-static const enum omap_dss_output_id omap2_dss_supported_outputs[] = {
+static const enum omap_dss_output_id omap2_dss_supported_outputs[] =
+{
 	/* OMAP_DSS_CHANNEL_LCD */
 	OMAP_DSS_OUTPUT_DPI | OMAP_DSS_OUTPUT_DBI,
 
@@ -179,7 +194,8 @@ static const enum omap_dss_output_id omap2_dss_supported_outputs[] = {
 	OMAP_DSS_OUTPUT_VENC,
 };
 
-static const enum omap_dss_output_id omap3430_dss_supported_outputs[] = {
+static const enum omap_dss_output_id omap3430_dss_supported_outputs[] =
+{
 	/* OMAP_DSS_CHANNEL_LCD */
 	OMAP_DSS_OUTPUT_DPI | OMAP_DSS_OUTPUT_DBI |
 	OMAP_DSS_OUTPUT_SDI | OMAP_DSS_OUTPUT_DSI1,
@@ -188,7 +204,8 @@ static const enum omap_dss_output_id omap3430_dss_supported_outputs[] = {
 	OMAP_DSS_OUTPUT_VENC,
 };
 
-static const enum omap_dss_output_id omap3630_dss_supported_outputs[] = {
+static const enum omap_dss_output_id omap3630_dss_supported_outputs[] =
+{
 	/* OMAP_DSS_CHANNEL_LCD */
 	OMAP_DSS_OUTPUT_DPI | OMAP_DSS_OUTPUT_DBI |
 	OMAP_DSS_OUTPUT_DSI1,
@@ -197,12 +214,14 @@ static const enum omap_dss_output_id omap3630_dss_supported_outputs[] = {
 	OMAP_DSS_OUTPUT_VENC,
 };
 
-static const enum omap_dss_output_id am43xx_dss_supported_outputs[] = {
+static const enum omap_dss_output_id am43xx_dss_supported_outputs[] =
+{
 	/* OMAP_DSS_CHANNEL_LCD */
 	OMAP_DSS_OUTPUT_DPI | OMAP_DSS_OUTPUT_DBI,
 };
 
-static const enum omap_dss_output_id omap4_dss_supported_outputs[] = {
+static const enum omap_dss_output_id omap4_dss_supported_outputs[] =
+{
 	/* OMAP_DSS_CHANNEL_LCD */
 	OMAP_DSS_OUTPUT_DBI | OMAP_DSS_OUTPUT_DSI1,
 
@@ -214,7 +233,8 @@ static const enum omap_dss_output_id omap4_dss_supported_outputs[] = {
 	OMAP_DSS_OUTPUT_DSI2,
 };
 
-static const enum omap_dss_output_id omap5_dss_supported_outputs[] = {
+static const enum omap_dss_output_id omap5_dss_supported_outputs[] =
+{
 	/* OMAP_DSS_CHANNEL_LCD */
 	OMAP_DSS_OUTPUT_DPI | OMAP_DSS_OUTPUT_DBI |
 	OMAP_DSS_OUTPUT_DSI1 | OMAP_DSS_OUTPUT_DSI2,
@@ -231,7 +251,8 @@ static const enum omap_dss_output_id omap5_dss_supported_outputs[] = {
 	OMAP_DSS_OUTPUT_DSI2,
 };
 
-static const enum omap_color_mode omap2_dss_supported_color_modes[] = {
+static const enum omap_color_mode omap2_dss_supported_color_modes[] =
+{
 	/* OMAP_DSS_GFX */
 	OMAP_DSS_COLOR_CLUT1 | OMAP_DSS_COLOR_CLUT2 |
 	OMAP_DSS_COLOR_CLUT4 | OMAP_DSS_COLOR_CLUT8 |
@@ -249,7 +270,8 @@ static const enum omap_color_mode omap2_dss_supported_color_modes[] = {
 	OMAP_DSS_COLOR_UYVY,
 };
 
-static const enum omap_color_mode omap3_dss_supported_color_modes[] = {
+static const enum omap_color_mode omap3_dss_supported_color_modes[] =
+{
 	/* OMAP_DSS_GFX */
 	OMAP_DSS_COLOR_CLUT1 | OMAP_DSS_COLOR_CLUT2 |
 	OMAP_DSS_COLOR_CLUT4 | OMAP_DSS_COLOR_CLUT8 |
@@ -271,7 +293,8 @@ static const enum omap_color_mode omap3_dss_supported_color_modes[] = {
 	OMAP_DSS_COLOR_RGBA32 | OMAP_DSS_COLOR_RGBX32,
 };
 
-static const enum omap_color_mode omap4_dss_supported_color_modes[] = {
+static const enum omap_color_mode omap4_dss_supported_color_modes[] =
+{
 	/* OMAP_DSS_GFX */
 	OMAP_DSS_COLOR_CLUT1 | OMAP_DSS_COLOR_CLUT2 |
 	OMAP_DSS_COLOR_CLUT4 | OMAP_DSS_COLOR_CLUT8 |
@@ -292,7 +315,7 @@ static const enum omap_color_mode omap4_dss_supported_color_modes[] = {
 	OMAP_DSS_COLOR_ARGB32 | OMAP_DSS_COLOR_RGBX16 |
 	OMAP_DSS_COLOR_RGBX32,
 
-       /* OMAP_DSS_VIDEO2 */
+	/* OMAP_DSS_VIDEO2 */
 	OMAP_DSS_COLOR_RGB16 | OMAP_DSS_COLOR_RGB12U |
 	OMAP_DSS_COLOR_YUV2 | OMAP_DSS_COLOR_ARGB16_1555 |
 	OMAP_DSS_COLOR_RGBA32 | OMAP_DSS_COLOR_NV12 |
@@ -323,71 +346,76 @@ static const enum omap_color_mode omap4_dss_supported_color_modes[] = {
 	OMAP_DSS_COLOR_RGBX32,
 };
 
-static const enum omap_overlay_caps omap2_dss_overlay_caps[] = {
+static const enum omap_overlay_caps omap2_dss_overlay_caps[] =
+{
 	/* OMAP_DSS_GFX */
 	OMAP_DSS_OVL_CAP_POS | OMAP_DSS_OVL_CAP_REPLICATION,
 
 	/* OMAP_DSS_VIDEO1 */
 	OMAP_DSS_OVL_CAP_SCALE | OMAP_DSS_OVL_CAP_POS |
-		OMAP_DSS_OVL_CAP_REPLICATION,
+	OMAP_DSS_OVL_CAP_REPLICATION,
 
 	/* OMAP_DSS_VIDEO2 */
 	OMAP_DSS_OVL_CAP_SCALE | OMAP_DSS_OVL_CAP_POS |
-		OMAP_DSS_OVL_CAP_REPLICATION,
+	OMAP_DSS_OVL_CAP_REPLICATION,
 };
 
-static const enum omap_overlay_caps omap3430_dss_overlay_caps[] = {
+static const enum omap_overlay_caps omap3430_dss_overlay_caps[] =
+{
 	/* OMAP_DSS_GFX */
 	OMAP_DSS_OVL_CAP_GLOBAL_ALPHA | OMAP_DSS_OVL_CAP_POS |
-		OMAP_DSS_OVL_CAP_REPLICATION,
+	OMAP_DSS_OVL_CAP_REPLICATION,
 
 	/* OMAP_DSS_VIDEO1 */
 	OMAP_DSS_OVL_CAP_SCALE | OMAP_DSS_OVL_CAP_POS |
-		OMAP_DSS_OVL_CAP_REPLICATION,
+	OMAP_DSS_OVL_CAP_REPLICATION,
 
 	/* OMAP_DSS_VIDEO2 */
 	OMAP_DSS_OVL_CAP_SCALE | OMAP_DSS_OVL_CAP_GLOBAL_ALPHA |
-		OMAP_DSS_OVL_CAP_POS | OMAP_DSS_OVL_CAP_REPLICATION,
+	OMAP_DSS_OVL_CAP_POS | OMAP_DSS_OVL_CAP_REPLICATION,
 };
 
-static const enum omap_overlay_caps omap3630_dss_overlay_caps[] = {
+static const enum omap_overlay_caps omap3630_dss_overlay_caps[] =
+{
 	/* OMAP_DSS_GFX */
 	OMAP_DSS_OVL_CAP_GLOBAL_ALPHA | OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA |
-		OMAP_DSS_OVL_CAP_POS | OMAP_DSS_OVL_CAP_REPLICATION,
+	OMAP_DSS_OVL_CAP_POS | OMAP_DSS_OVL_CAP_REPLICATION,
 
 	/* OMAP_DSS_VIDEO1 */
 	OMAP_DSS_OVL_CAP_SCALE | OMAP_DSS_OVL_CAP_POS |
-		OMAP_DSS_OVL_CAP_REPLICATION,
+	OMAP_DSS_OVL_CAP_REPLICATION,
 
 	/* OMAP_DSS_VIDEO2 */
 	OMAP_DSS_OVL_CAP_SCALE | OMAP_DSS_OVL_CAP_GLOBAL_ALPHA |
-		OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA | OMAP_DSS_OVL_CAP_POS |
-		OMAP_DSS_OVL_CAP_REPLICATION,
+	OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA | OMAP_DSS_OVL_CAP_POS |
+	OMAP_DSS_OVL_CAP_REPLICATION,
 };
 
-static const enum omap_overlay_caps omap4_dss_overlay_caps[] = {
+static const enum omap_overlay_caps omap4_dss_overlay_caps[] =
+{
 	/* OMAP_DSS_GFX */
 	OMAP_DSS_OVL_CAP_GLOBAL_ALPHA | OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA |
-		OMAP_DSS_OVL_CAP_ZORDER | OMAP_DSS_OVL_CAP_POS |
-		OMAP_DSS_OVL_CAP_REPLICATION,
+	OMAP_DSS_OVL_CAP_ZORDER | OMAP_DSS_OVL_CAP_POS |
+	OMAP_DSS_OVL_CAP_REPLICATION,
 
 	/* OMAP_DSS_VIDEO1 */
 	OMAP_DSS_OVL_CAP_SCALE | OMAP_DSS_OVL_CAP_GLOBAL_ALPHA |
-		OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA | OMAP_DSS_OVL_CAP_ZORDER |
-		OMAP_DSS_OVL_CAP_POS | OMAP_DSS_OVL_CAP_REPLICATION,
+	OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA | OMAP_DSS_OVL_CAP_ZORDER |
+	OMAP_DSS_OVL_CAP_POS | OMAP_DSS_OVL_CAP_REPLICATION,
 
 	/* OMAP_DSS_VIDEO2 */
 	OMAP_DSS_OVL_CAP_SCALE | OMAP_DSS_OVL_CAP_GLOBAL_ALPHA |
-		OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA | OMAP_DSS_OVL_CAP_ZORDER |
-		OMAP_DSS_OVL_CAP_POS | OMAP_DSS_OVL_CAP_REPLICATION,
+	OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA | OMAP_DSS_OVL_CAP_ZORDER |
+	OMAP_DSS_OVL_CAP_POS | OMAP_DSS_OVL_CAP_REPLICATION,
 
 	/* OMAP_DSS_VIDEO3 */
 	OMAP_DSS_OVL_CAP_SCALE | OMAP_DSS_OVL_CAP_GLOBAL_ALPHA |
-		OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA | OMAP_DSS_OVL_CAP_ZORDER |
-		OMAP_DSS_OVL_CAP_POS | OMAP_DSS_OVL_CAP_REPLICATION,
+	OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA | OMAP_DSS_OVL_CAP_ZORDER |
+	OMAP_DSS_OVL_CAP_POS | OMAP_DSS_OVL_CAP_REPLICATION,
 };
 
-static const struct dss_param_range omap2_dss_param_range[] = {
+static const struct dss_param_range omap2_dss_param_range[] =
+{
 	[FEAT_PARAM_DSS_FCK]			= { 0, 133000000 },
 	[FEAT_PARAM_DSS_PCD]			= { 2, 255 },
 	[FEAT_PARAM_DOWNSCALE]			= { 1, 2 },
@@ -398,7 +426,8 @@ static const struct dss_param_range omap2_dss_param_range[] = {
 	[FEAT_PARAM_LINEWIDTH]			= { 1, 768 },
 };
 
-static const struct dss_param_range omap3_dss_param_range[] = {
+static const struct dss_param_range omap3_dss_param_range[] =
+{
 	[FEAT_PARAM_DSS_FCK]			= { 0, 173000000 },
 	[FEAT_PARAM_DSS_PCD]			= { 1, 255 },
 	[FEAT_PARAM_DSIPLL_LPDIV]		= { 1, (1 << 13) - 1},
@@ -407,14 +436,16 @@ static const struct dss_param_range omap3_dss_param_range[] = {
 	[FEAT_PARAM_LINEWIDTH]			= { 1, 1024 },
 };
 
-static const struct dss_param_range am43xx_dss_param_range[] = {
+static const struct dss_param_range am43xx_dss_param_range[] =
+{
 	[FEAT_PARAM_DSS_FCK]			= { 0, 200000000 },
 	[FEAT_PARAM_DSS_PCD]			= { 1, 255 },
 	[FEAT_PARAM_DOWNSCALE]			= { 1, 4 },
 	[FEAT_PARAM_LINEWIDTH]			= { 1, 1024 },
 };
 
-static const struct dss_param_range omap4_dss_param_range[] = {
+static const struct dss_param_range omap4_dss_param_range[] =
+{
 	[FEAT_PARAM_DSS_FCK]			= { 0, 186000000 },
 	[FEAT_PARAM_DSS_PCD]			= { 1, 255 },
 	[FEAT_PARAM_DSIPLL_LPDIV]		= { 0, (1 << 13) - 1 },
@@ -423,7 +454,8 @@ static const struct dss_param_range omap4_dss_param_range[] = {
 	[FEAT_PARAM_LINEWIDTH]			= { 1, 2048 },
 };
 
-static const struct dss_param_range omap5_dss_param_range[] = {
+static const struct dss_param_range omap5_dss_param_range[] =
+{
 	[FEAT_PARAM_DSS_FCK]			= { 0, 209250000 },
 	[FEAT_PARAM_DSS_PCD]			= { 1, 255 },
 	[FEAT_PARAM_DSIPLL_LPDIV]		= { 0, (1 << 13) - 1 },
@@ -432,7 +464,8 @@ static const struct dss_param_range omap5_dss_param_range[] = {
 	[FEAT_PARAM_LINEWIDTH]			= { 1, 2048 },
 };
 
-static const enum dss_feat_id omap2_dss_feat_list[] = {
+static const enum dss_feat_id omap2_dss_feat_list[] =
+{
 	FEAT_LCDENABLEPOL,
 	FEAT_LCDENABLESIGNAL,
 	FEAT_PCKFREEENABLE,
@@ -441,7 +474,8 @@ static const enum dss_feat_id omap2_dss_feat_list[] = {
 	FEAT_RESIZECONF,
 };
 
-static const enum dss_feat_id omap3430_dss_feat_list[] = {
+static const enum dss_feat_id omap3430_dss_feat_list[] =
+{
 	FEAT_LCDENABLEPOL,
 	FEAT_LCDENABLESIGNAL,
 	FEAT_PCKFREEENABLE,
@@ -460,7 +494,8 @@ static const enum dss_feat_id omap3430_dss_feat_list[] = {
 	FEAT_DPI_USES_VDDS_DSI,
 };
 
-static const enum dss_feat_id am35xx_dss_feat_list[] = {
+static const enum dss_feat_id am35xx_dss_feat_list[] =
+{
 	FEAT_LCDENABLEPOL,
 	FEAT_LCDENABLESIGNAL,
 	FEAT_PCKFREEENABLE,
@@ -478,7 +513,8 @@ static const enum dss_feat_id am35xx_dss_feat_list[] = {
 	FEAT_OMAP3_DSI_FIFO_BUG,
 };
 
-static const enum dss_feat_id am43xx_dss_feat_list[] = {
+static const enum dss_feat_id am43xx_dss_feat_list[] =
+{
 	FEAT_LCDENABLEPOL,
 	FEAT_LCDENABLESIGNAL,
 	FEAT_PCKFREEENABLE,
@@ -493,7 +529,8 @@ static const enum dss_feat_id am43xx_dss_feat_list[] = {
 	FEAT_FIFO_MERGE,
 };
 
-static const enum dss_feat_id omap3630_dss_feat_list[] = {
+static const enum dss_feat_id omap3630_dss_feat_list[] =
+{
 	FEAT_LCDENABLEPOL,
 	FEAT_LCDENABLESIGNAL,
 	FEAT_PCKFREEENABLE,
@@ -511,7 +548,8 @@ static const enum dss_feat_id omap3630_dss_feat_list[] = {
 	FEAT_DPI_USES_VDDS_DSI,
 };
 
-static const enum dss_feat_id omap4430_es1_0_dss_feat_list[] = {
+static const enum dss_feat_id omap4430_es1_0_dss_feat_list[] =
+{
 	FEAT_MGR_LCD2,
 	FEAT_CORE_CLK_DIV,
 	FEAT_LCD_CLK_SRC,
@@ -528,7 +566,8 @@ static const enum dss_feat_id omap4430_es1_0_dss_feat_list[] = {
 	FEAT_BURST_2D,
 };
 
-static const enum dss_feat_id omap4430_es2_0_1_2_dss_feat_list[] = {
+static const enum dss_feat_id omap4430_es2_0_1_2_dss_feat_list[] =
+{
 	FEAT_MGR_LCD2,
 	FEAT_CORE_CLK_DIV,
 	FEAT_LCD_CLK_SRC,
@@ -546,7 +585,8 @@ static const enum dss_feat_id omap4430_es2_0_1_2_dss_feat_list[] = {
 	FEAT_BURST_2D,
 };
 
-static const enum dss_feat_id omap4_dss_feat_list[] = {
+static const enum dss_feat_id omap4_dss_feat_list[] =
+{
 	FEAT_MGR_LCD2,
 	FEAT_CORE_CLK_DIV,
 	FEAT_LCD_CLK_SRC,
@@ -565,7 +605,8 @@ static const enum dss_feat_id omap4_dss_feat_list[] = {
 	FEAT_BURST_2D,
 };
 
-static const enum dss_feat_id omap5_dss_feat_list[] = {
+static const enum dss_feat_id omap5_dss_feat_list[] =
+{
 	FEAT_MGR_LCD2,
 	FEAT_MGR_LCD3,
 	FEAT_CORE_CLK_DIV,
@@ -588,7 +629,8 @@ static const enum dss_feat_id omap5_dss_feat_list[] = {
 };
 
 /* OMAP2 DSS Features */
-static const struct omap_dss_features omap2_dss_features = {
+static const struct omap_dss_features omap2_dss_features =
+{
 	.reg_fields = omap2_dss_reg_fields,
 	.num_reg_fields = ARRAY_SIZE(omap2_dss_reg_fields),
 
@@ -608,7 +650,8 @@ static const struct omap_dss_features omap2_dss_features = {
 };
 
 /* OMAP3 DSS Features */
-static const struct omap_dss_features omap3430_dss_features = {
+static const struct omap_dss_features omap3430_dss_features =
+{
 	.reg_fields = omap3_dss_reg_fields,
 	.num_reg_fields = ARRAY_SIZE(omap3_dss_reg_fields),
 
@@ -631,7 +674,8 @@ static const struct omap_dss_features omap3430_dss_features = {
  * AM35xx DSS Features. This is basically OMAP3 DSS Features without the
  * vdds_dsi regulator.
  */
-static const struct omap_dss_features am35xx_dss_features = {
+static const struct omap_dss_features am35xx_dss_features =
+{
 	.reg_fields = omap3_dss_reg_fields,
 	.num_reg_fields = ARRAY_SIZE(omap3_dss_reg_fields),
 
@@ -650,7 +694,8 @@ static const struct omap_dss_features am35xx_dss_features = {
 	.burst_size_unit = 8,
 };
 
-static const struct omap_dss_features am43xx_dss_features = {
+static const struct omap_dss_features am43xx_dss_features =
+{
 	.reg_fields = am43xx_dss_reg_fields,
 	.num_reg_fields = ARRAY_SIZE(am43xx_dss_reg_fields),
 
@@ -669,7 +714,8 @@ static const struct omap_dss_features am43xx_dss_features = {
 	.burst_size_unit = 8,
 };
 
-static const struct omap_dss_features omap3630_dss_features = {
+static const struct omap_dss_features omap3630_dss_features =
+{
 	.reg_fields = omap3_dss_reg_fields,
 	.num_reg_fields = ARRAY_SIZE(omap3_dss_reg_fields),
 
@@ -690,7 +736,8 @@ static const struct omap_dss_features omap3630_dss_features = {
 
 /* OMAP4 DSS Features */
 /* For OMAP4430 ES 1.0 revision */
-static const struct omap_dss_features omap4430_es1_0_dss_features  = {
+static const struct omap_dss_features omap4430_es1_0_dss_features  =
+{
 	.reg_fields = omap4_dss_reg_fields,
 	.num_reg_fields = ARRAY_SIZE(omap4_dss_reg_fields),
 
@@ -710,7 +757,8 @@ static const struct omap_dss_features omap4430_es1_0_dss_features  = {
 };
 
 /* For OMAP4430 ES 2.0, 2.1 and 2.2 revisions */
-static const struct omap_dss_features omap4430_es2_0_1_2_dss_features = {
+static const struct omap_dss_features omap4430_es2_0_1_2_dss_features =
+{
 	.reg_fields = omap4_dss_reg_fields,
 	.num_reg_fields = ARRAY_SIZE(omap4_dss_reg_fields),
 
@@ -730,7 +778,8 @@ static const struct omap_dss_features omap4430_es2_0_1_2_dss_features = {
 };
 
 /* For all the other OMAP4 versions */
-static const struct omap_dss_features omap4_dss_features = {
+static const struct omap_dss_features omap4_dss_features =
+{
 	.reg_fields = omap4_dss_reg_fields,
 	.num_reg_fields = ARRAY_SIZE(omap4_dss_reg_fields),
 
@@ -750,7 +799,8 @@ static const struct omap_dss_features omap4_dss_features = {
 };
 
 /* OMAP5 DSS Features */
-static const struct omap_dss_features omap5_dss_features = {
+static const struct omap_dss_features omap5_dss_features =
+{
 	.reg_fields = omap5_dss_reg_fields,
 	.num_reg_fields = ARRAY_SIZE(omap5_dss_reg_fields),
 
@@ -814,10 +864,10 @@ enum omap_overlay_caps dss_feat_get_overlay_caps(enum omap_plane plane)
 }
 
 bool dss_feat_color_mode_supported(enum omap_plane plane,
-		enum omap_color_mode color_mode)
+								   enum omap_color_mode color_mode)
 {
 	return omap_current_dss_features->supported_color_modes[plane] &
-			color_mode;
+		   color_mode;
 }
 
 u32 dss_feat_get_buffer_size_unit(void)
@@ -837,9 +887,12 @@ bool dss_has_feature(enum dss_feat_id id)
 	const enum dss_feat_id *features = omap_current_dss_features->features;
 	const int num_features = omap_current_dss_features->num_features;
 
-	for (i = 0; i < num_features; i++) {
+	for (i = 0; i < num_features; i++)
+	{
 		if (features[i] == id)
+		{
 			return true;
+		}
 	}
 
 	return false;
@@ -848,7 +901,9 @@ bool dss_has_feature(enum dss_feat_id id)
 void dss_feat_get_reg_field(enum dss_feat_reg_field id, u8 *start, u8 *end)
 {
 	if (id >= omap_current_dss_features->num_reg_fields)
+	{
 		BUG();
+	}
 
 	*start = omap_current_dss_features->reg_fields[id].start;
 	*end = omap_current_dss_features->reg_fields[id].end;
@@ -861,47 +916,48 @@ bool dss_feat_rotation_type_supported(enum omap_dss_rotation_type rot_type)
 
 void dss_features_init(enum omapdss_version version)
 {
-	switch (version) {
-	case OMAPDSS_VER_OMAP24xx:
-		omap_current_dss_features = &omap2_dss_features;
-		break;
+	switch (version)
+	{
+		case OMAPDSS_VER_OMAP24xx:
+			omap_current_dss_features = &omap2_dss_features;
+			break;
 
-	case OMAPDSS_VER_OMAP34xx_ES1:
-	case OMAPDSS_VER_OMAP34xx_ES3:
-		omap_current_dss_features = &omap3430_dss_features;
-		break;
+		case OMAPDSS_VER_OMAP34xx_ES1:
+		case OMAPDSS_VER_OMAP34xx_ES3:
+			omap_current_dss_features = &omap3430_dss_features;
+			break;
 
-	case OMAPDSS_VER_OMAP3630:
-		omap_current_dss_features = &omap3630_dss_features;
-		break;
+		case OMAPDSS_VER_OMAP3630:
+			omap_current_dss_features = &omap3630_dss_features;
+			break;
 
-	case OMAPDSS_VER_OMAP4430_ES1:
-		omap_current_dss_features = &omap4430_es1_0_dss_features;
-		break;
+		case OMAPDSS_VER_OMAP4430_ES1:
+			omap_current_dss_features = &omap4430_es1_0_dss_features;
+			break;
 
-	case OMAPDSS_VER_OMAP4430_ES2:
-		omap_current_dss_features = &omap4430_es2_0_1_2_dss_features;
-		break;
+		case OMAPDSS_VER_OMAP4430_ES2:
+			omap_current_dss_features = &omap4430_es2_0_1_2_dss_features;
+			break;
 
-	case OMAPDSS_VER_OMAP4:
-		omap_current_dss_features = &omap4_dss_features;
-		break;
+		case OMAPDSS_VER_OMAP4:
+			omap_current_dss_features = &omap4_dss_features;
+			break;
 
-	case OMAPDSS_VER_OMAP5:
-	case OMAPDSS_VER_DRA7xx:
-		omap_current_dss_features = &omap5_dss_features;
-		break;
+		case OMAPDSS_VER_OMAP5:
+		case OMAPDSS_VER_DRA7xx:
+			omap_current_dss_features = &omap5_dss_features;
+			break;
 
-	case OMAPDSS_VER_AM35xx:
-		omap_current_dss_features = &am35xx_dss_features;
-		break;
+		case OMAPDSS_VER_AM35xx:
+			omap_current_dss_features = &am35xx_dss_features;
+			break;
 
-	case OMAPDSS_VER_AM43xx:
-		omap_current_dss_features = &am43xx_dss_features;
-		break;
+		case OMAPDSS_VER_AM43xx:
+			omap_current_dss_features = &am43xx_dss_features;
+			break;
 
-	default:
-		DSSWARN("Unsupported OMAP version");
-		break;
+		default:
+			DSSWARN("Unsupported OMAP version");
+			break;
 	}
 }

@@ -31,7 +31,8 @@
  * Internal data structure containing a (made up, but unique) devid
  * and the callback to write the MSI message.
  */
-struct platform_msi_priv_data {
+struct platform_msi_priv_data
+{
 	struct device		*dev;
 	void 			*host_data;
 	msi_alloc_info_t	arg;
@@ -63,12 +64,12 @@ static void platform_msi_set_desc(msi_alloc_info_t *arg, struct msi_desc *desc)
 }
 
 static int platform_msi_init(struct irq_domain *domain,
-			     struct msi_domain_info *info,
-			     unsigned int virq, irq_hw_number_t hwirq,
-			     msi_alloc_info_t *arg)
+							 struct msi_domain_info *info,
+							 unsigned int virq, irq_hw_number_t hwirq,
+							 msi_alloc_info_t *arg)
 {
 	return irq_domain_set_hwirq_and_chip(domain, virq, hwirq,
-					     info->chip, info->chip_data);
+										 info->chip, info->chip_data);
 }
 #else
 #define platform_msi_set_desc		NULL
@@ -82,9 +83,14 @@ static void platform_msi_update_dom_ops(struct msi_domain_info *info)
 	BUG_ON(!ops);
 
 	if (ops->msi_init == NULL)
+	{
 		ops->msi_init = platform_msi_init;
+	}
+
 	if (ops->set_desc == NULL)
+	{
 		ops->set_desc = platform_msi_set_desc;
+	}
 }
 
 static void platform_msi_write_msg(struct irq_data *data, struct msi_msg *msg)
@@ -102,25 +108,42 @@ static void platform_msi_update_chip_ops(struct msi_domain_info *info)
 	struct irq_chip *chip = info->chip;
 
 	BUG_ON(!chip);
+
 	if (!chip->irq_mask)
+	{
 		chip->irq_mask = irq_chip_mask_parent;
+	}
+
 	if (!chip->irq_unmask)
+	{
 		chip->irq_unmask = irq_chip_unmask_parent;
+	}
+
 	if (!chip->irq_eoi)
+	{
 		chip->irq_eoi = irq_chip_eoi_parent;
+	}
+
 	if (!chip->irq_set_affinity)
+	{
 		chip->irq_set_affinity = msi_domain_set_affinity;
+	}
+
 	if (!chip->irq_write_msi_msg)
+	{
 		chip->irq_write_msi_msg = platform_msi_write_msg;
+	}
 }
 
 static void platform_msi_free_descs(struct device *dev, int base, int nvec)
 {
 	struct msi_desc *desc, *tmp;
 
-	list_for_each_entry_safe(desc, tmp, dev_to_msi_list(dev), list) {
+	list_for_each_entry_safe(desc, tmp, dev_to_msi_list(dev), list)
+	{
 		if (desc->platform.msi_index >= base &&
-		    desc->platform.msi_index < (base + nvec)) {
+			desc->platform.msi_index < (base + nvec))
+		{
 			list_del(&desc->list);
 			free_msi_entry(desc);
 		}
@@ -128,23 +151,28 @@ static void platform_msi_free_descs(struct device *dev, int base, int nvec)
 }
 
 static int platform_msi_alloc_descs_with_irq(struct device *dev, int virq,
-					     int nvec,
-					     struct platform_msi_priv_data *data)
+		int nvec,
+		struct platform_msi_priv_data *data)
 
 {
 	struct msi_desc *desc;
 	int i, base = 0;
 
-	if (!list_empty(dev_to_msi_list(dev))) {
+	if (!list_empty(dev_to_msi_list(dev)))
+	{
 		desc = list_last_entry(dev_to_msi_list(dev),
-				       struct msi_desc, list);
+							   struct msi_desc, list);
 		base = desc->platform.msi_index + 1;
 	}
 
-	for (i = 0; i < nvec; i++) {
+	for (i = 0; i < nvec; i++)
+	{
 		desc = alloc_msi_entry(dev, 1, NULL);
+
 		if (!desc)
+		{
 			break;
+		}
 
 		desc->platform.msi_priv_data = data;
 		desc->platform.msi_index = base + i;
@@ -153,7 +181,8 @@ static int platform_msi_alloc_descs_with_irq(struct device *dev, int virq,
 		list_add_tail(&desc->list, dev_to_msi_list(dev));
 	}
 
-	if (i != nvec) {
+	if (i != nvec)
+	{
 		/* Clean up the mess */
 		platform_msi_free_descs(dev, base, nvec);
 
@@ -164,7 +193,7 @@ static int platform_msi_alloc_descs_with_irq(struct device *dev, int virq,
 }
 
 static int platform_msi_alloc_descs(struct device *dev, int nvec,
-				    struct platform_msi_priv_data *data)
+									struct platform_msi_priv_data *data)
 
 {
 	return platform_msi_alloc_descs_with_irq(dev, 0, nvec, data);
@@ -183,28 +212,37 @@ static int platform_msi_alloc_descs(struct device *dev, int nvec,
  * A domain pointer or NULL in case of failure.
  */
 struct irq_domain *platform_msi_create_irq_domain(struct fwnode_handle *fwnode,
-						  struct msi_domain_info *info,
-						  struct irq_domain *parent)
+		struct msi_domain_info *info,
+		struct irq_domain *parent)
 {
 	struct irq_domain *domain;
 
 	if (info->flags & MSI_FLAG_USE_DEF_DOM_OPS)
+	{
 		platform_msi_update_dom_ops(info);
+	}
+
 	if (info->flags & MSI_FLAG_USE_DEF_CHIP_OPS)
+	{
 		platform_msi_update_chip_ops(info);
+	}
 
 	domain = msi_create_irq_domain(fwnode, info, parent);
+
 	if (domain)
+	{
 		domain->bus_token = DOMAIN_BUS_PLATFORM_MSI;
+	}
 
 	return domain;
 }
 
 static struct platform_msi_priv_data *
 platform_msi_alloc_priv_data(struct device *dev, unsigned int nvec,
-			     irq_write_msi_msg_t write_msi_msg)
+							 irq_write_msi_msg_t write_msi_msg)
 {
 	struct platform_msi_priv_data *datap;
+
 	/*
 	 * Limit the number of interrupts to 256 per device. Should we
 	 * need to bump this up, DEV_ID_SHIFT should be adjusted
@@ -212,24 +250,34 @@ platform_msi_alloc_priv_data(struct device *dev, unsigned int nvec,
 	 * capable devices).
 	 */
 	if (!dev->msi_domain || !write_msi_msg || !nvec || nvec > MAX_DEV_MSIS)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
-	if (dev->msi_domain->bus_token != DOMAIN_BUS_PLATFORM_MSI) {
+	if (dev->msi_domain->bus_token != DOMAIN_BUS_PLATFORM_MSI)
+	{
 		dev_err(dev, "Incompatible msi_domain, giving up\n");
 		return ERR_PTR(-EINVAL);
 	}
 
 	/* Already had a helping of MSI? Greed... */
 	if (!list_empty(dev_to_msi_list(dev)))
+	{
 		return ERR_PTR(-EBUSY);
+	}
 
 	datap = kzalloc(sizeof(*datap), GFP_KERNEL);
+
 	if (!datap)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	datap->devid = ida_simple_get(&platform_msi_devid_ida,
-				      0, 1 << DEV_ID_SHIFT, GFP_KERNEL);
-	if (datap->devid < 0) {
+								  0, 1 << DEV_ID_SHIFT, GFP_KERNEL);
+
+	if (datap->devid < 0)
+	{
 		int err = datap->devid;
 		kfree(datap);
 		return ERR_PTR(err);
@@ -257,22 +305,31 @@ static void platform_msi_free_priv_data(struct platform_msi_priv_data *data)
  * Zero for success, or an error code in case of failure
  */
 int platform_msi_domain_alloc_irqs(struct device *dev, unsigned int nvec,
-				   irq_write_msi_msg_t write_msi_msg)
+								   irq_write_msi_msg_t write_msi_msg)
 {
 	struct platform_msi_priv_data *priv_data;
 	int err;
 
 	priv_data = platform_msi_alloc_priv_data(dev, nvec, write_msi_msg);
+
 	if (IS_ERR(priv_data))
+	{
 		return PTR_ERR(priv_data);
+	}
 
 	err = platform_msi_alloc_descs(dev, nvec, priv_data);
+
 	if (err)
+	{
 		goto out_free_priv_data;
+	}
 
 	err = msi_domain_alloc_irqs(dev->msi_domain, dev, nvec);
+
 	if (err)
+	{
 		goto out_free_desc;
+	}
 
 	return 0;
 
@@ -291,7 +348,8 @@ EXPORT_SYMBOL_GPL(platform_msi_domain_alloc_irqs);
  */
 void platform_msi_domain_free_irqs(struct device *dev)
 {
-	if (!list_empty(dev_to_msi_list(dev))) {
+	if (!list_empty(dev_to_msi_list(dev)))
+	{
 		struct msi_desc *desc;
 
 		desc = first_msi_entry(dev);
@@ -330,29 +388,38 @@ void *platform_msi_get_host_data(struct irq_domain *domain)
  */
 struct irq_domain *
 platform_msi_create_device_domain(struct device *dev,
-				  unsigned int nvec,
-				  irq_write_msi_msg_t write_msi_msg,
-				  const struct irq_domain_ops *ops,
-				  void *host_data)
+								  unsigned int nvec,
+								  irq_write_msi_msg_t write_msi_msg,
+								  const struct irq_domain_ops *ops,
+								  void *host_data)
 {
 	struct platform_msi_priv_data *data;
 	struct irq_domain *domain;
 	int err;
 
 	data = platform_msi_alloc_priv_data(dev, nvec, write_msi_msg);
+
 	if (IS_ERR(data))
+	{
 		return NULL;
+	}
 
 	data->host_data = host_data;
 	domain = irq_domain_create_hierarchy(dev->msi_domain, 0, nvec,
-					     of_node_to_fwnode(dev->of_node),
-					     ops, data);
+										 of_node_to_fwnode(dev->of_node),
+										 ops, data);
+
 	if (!domain)
+	{
 		goto free_priv;
+	}
 
 	err = msi_domain_prepare_irqs(domain->parent, dev, nvec, &data->arg);
+
 	if (err)
+	{
 		goto free_domain;
+	}
 
 	return domain;
 
@@ -372,15 +439,21 @@ free_priv:
  * @nvec:	How many interrupts to free from @virq
  */
 void platform_msi_domain_free(struct irq_domain *domain, unsigned int virq,
-			      unsigned int nvec)
+							  unsigned int nvec)
 {
 	struct platform_msi_priv_data *data = domain->host_data;
 	struct msi_desc *desc;
-	for_each_msi_entry(desc, data->dev) {
+	for_each_msi_entry(desc, data->dev)
+	{
 		if (WARN_ON(!desc->irq || desc->nvec_used != 1))
+		{
 			return;
+		}
+
 		if (!(desc->irq >= virq && desc->irq < (virq + nvec)))
+		{
 			continue;
+		}
 
 		irq_domain_free_irqs_common(domain, desc->irq, 1);
 	}
@@ -399,19 +472,25 @@ void platform_msi_domain_free(struct irq_domain *domain, unsigned int virq,
  * top-level interrupt allocation).
  */
 int platform_msi_domain_alloc(struct irq_domain *domain, unsigned int virq,
-			      unsigned int nr_irqs)
+							  unsigned int nr_irqs)
 {
 	struct platform_msi_priv_data *data = domain->host_data;
 	int err;
 
 	err = platform_msi_alloc_descs_with_irq(data->dev, virq, nr_irqs, data);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = msi_domain_populate_irqs(domain->parent, data->dev,
-				       virq, nr_irqs, &data->arg);
+								   virq, nr_irqs, &data->arg);
+
 	if (err)
+	{
 		platform_msi_domain_free(domain, virq, nr_irqs);
+	}
 
 	return err;
 }

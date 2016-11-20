@@ -33,7 +33,8 @@
 #include <linux/spi/spi.h>
 #include <video/mmp_disp.h>
 
-static u16 init[] = {
+static u16 init[] =
+{
 	0x0801,
 	0x0800,
 	0x0200,
@@ -76,11 +77,13 @@ static u16 init[] = {
 	0x07c9,
 };
 
-static u16 poweroff[] = {
+static u16 poweroff[] =
+{
 	0x07d9,
 };
 
-struct tpohvga_plat_data {
+struct tpohvga_plat_data
+{
 	void (*plat_onoff)(int status);
 	struct spi_device *spi;
 };
@@ -90,22 +93,32 @@ static void tpohvga_onoff(struct mmp_panel *panel, int status)
 	struct tpohvga_plat_data *plat = panel->plat_data;
 	int ret;
 
-	if (status) {
+	if (status)
+	{
 		plat->plat_onoff(1);
 
 		ret = spi_write(plat->spi, init, sizeof(init));
+
 		if (ret < 0)
+		{
 			dev_warn(panel->dev, "init cmd failed(%d)\n", ret);
-	} else {
+		}
+	}
+	else
+	{
 		ret = spi_write(plat->spi, poweroff, sizeof(poweroff));
+
 		if (ret < 0)
+		{
 			dev_warn(panel->dev, "poweroff cmd failed(%d)\n", ret);
+		}
 
 		plat->plat_onoff(0);
 	}
 }
 
-static struct mmp_mode mmp_modes_tpohvga[] = {
+static struct mmp_mode mmp_modes_tpohvga[] =
+{
 	[0] = {
 		.pixclock_freq = 10394400,
 		.refresh = 60,
@@ -123,13 +136,14 @@ static struct mmp_mode mmp_modes_tpohvga[] = {
 };
 
 static int tpohvga_get_modelist(struct mmp_panel *panel,
-		struct mmp_mode **modelist)
+								struct mmp_mode **modelist)
 {
 	*modelist = mmp_modes_tpohvga;
 	return 1;
 }
 
-static struct mmp_panel panel_tpohvga = {
+static struct mmp_panel panel_tpohvga =
+{
 	.name = "tpohvga",
 	.panel_type = PANELTYPE_ACTIVE,
 	.get_modelist = tpohvga_get_modelist,
@@ -144,7 +158,9 @@ static int tpohvga_probe(struct spi_device *spi)
 
 	/* get configs from platform data */
 	mi = spi->dev.platform_data;
-	if (mi == NULL) {
+
+	if (mi == NULL)
+	{
 		dev_err(&spi->dev, "%s: no platform data defined\n", __func__);
 		return -EINVAL;
 	}
@@ -152,14 +168,19 @@ static int tpohvga_probe(struct spi_device *spi)
 	/* setup spi related info */
 	spi->bits_per_word = 16;
 	ret = spi_setup(spi);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&spi->dev, "spi setup failed %d", ret);
 		return ret;
 	}
 
 	plat_data = kzalloc(sizeof(*plat_data), GFP_KERNEL);
+
 	if (plat_data == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	plat_data->spi = spi;
 	plat_data->plat_onoff = mi->plat_set_onoff;
@@ -172,7 +193,8 @@ static int tpohvga_probe(struct spi_device *spi)
 	return 0;
 }
 
-static struct spi_driver panel_tpohvga_driver = {
+static struct spi_driver panel_tpohvga_driver =
+{
 	.driver		= {
 		.name	= "tpo-hvga",
 	},

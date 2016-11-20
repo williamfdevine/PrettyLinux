@@ -54,7 +54,8 @@ MODULE_LICENSE("GPL");
  * Per-touchscreen data.
  */
 
-struct inexio {
+struct inexio
+{
 	struct input_dev *dev;
 	struct serio *serio;
 	int idx;
@@ -66,7 +67,8 @@ static void inexio_process_data(struct inexio *pinexio)
 {
 	struct input_dev *dev = pinexio->dev;
 
-	if (INEXIO_FORMAT_LENGTH == ++pinexio->idx) {
+	if (INEXIO_FORMAT_LENGTH == ++pinexio->idx)
+	{
 		input_report_abs(dev, ABS_X, INEXIO_GET_XC(pinexio->data));
 		input_report_abs(dev, ABS_Y, INEXIO_GET_YC(pinexio->data));
 		input_report_key(dev, BTN_TOUCH, INEXIO_GET_TOUCHED(pinexio->data));
@@ -77,16 +79,20 @@ static void inexio_process_data(struct inexio *pinexio)
 }
 
 static irqreturn_t inexio_interrupt(struct serio *serio,
-		unsigned char data, unsigned int flags)
+									unsigned char data, unsigned int flags)
 {
-	struct inexio* pinexio = serio_get_drvdata(serio);
+	struct inexio *pinexio = serio_get_drvdata(serio);
 
 	pinexio->data[pinexio->idx] = data;
 
-	if (INEXIO_RESPONSE_BEGIN_BYTE&pinexio->data[0])
+	if (INEXIO_RESPONSE_BEGIN_BYTE & pinexio->data[0])
+	{
 		inexio_process_data(pinexio);
+	}
 	else
-		printk(KERN_DEBUG "inexio.c: unknown/unsynchronized data from device, byte %x\n",pinexio->data[0]);
+	{
+		printk(KERN_DEBUG "inexio.c: unknown/unsynchronized data from device, byte %x\n", pinexio->data[0]);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -97,7 +103,7 @@ static irqreturn_t inexio_interrupt(struct serio *serio,
 
 static void inexio_disconnect(struct serio *serio)
 {
-	struct inexio* pinexio = serio_get_drvdata(serio);
+	struct inexio *pinexio = serio_get_drvdata(serio);
 
 	input_get_device(pinexio->dev);
 	input_unregister_device(pinexio->dev);
@@ -121,7 +127,9 @@ static int inexio_connect(struct serio *serio, struct serio_driver *drv)
 
 	pinexio = kzalloc(sizeof(struct inexio), GFP_KERNEL);
 	input_dev = input_allocate_device();
-	if (!pinexio || !input_dev) {
+
+	if (!pinexio || !input_dev)
+	{
 		err = -ENOMEM;
 		goto fail1;
 	}
@@ -145,18 +153,24 @@ static int inexio_connect(struct serio *serio, struct serio_driver *drv)
 	serio_set_drvdata(serio, pinexio);
 
 	err = serio_open(serio, drv);
+
 	if (err)
+	{
 		goto fail2;
+	}
 
 	err = input_register_device(pinexio->dev);
+
 	if (err)
+	{
 		goto fail3;
+	}
 
 	return 0;
 
- fail3:	serio_close(serio);
- fail2:	serio_set_drvdata(serio, NULL);
- fail1:	input_free_device(input_dev);
+fail3:	serio_close(serio);
+fail2:	serio_set_drvdata(serio, NULL);
+fail1:	input_free_device(input_dev);
 	kfree(pinexio);
 	return err;
 }
@@ -165,7 +179,8 @@ static int inexio_connect(struct serio *serio, struct serio_driver *drv)
  * The serio driver structure.
  */
 
-static struct serio_device_id inexio_serio_ids[] = {
+static struct serio_device_id inexio_serio_ids[] =
+{
 	{
 		.type	= SERIO_RS232,
 		.proto	= SERIO_INEXIO,
@@ -177,7 +192,8 @@ static struct serio_device_id inexio_serio_ids[] = {
 
 MODULE_DEVICE_TABLE(serio, inexio_serio_ids);
 
-static struct serio_driver inexio_drv = {
+static struct serio_driver inexio_drv =
+{
 	.driver		= {
 		.name	= "inexio",
 	},

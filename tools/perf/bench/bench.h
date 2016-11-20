@@ -10,19 +10,19 @@
  * needs to be special-cased.
  */
 #ifdef __hppa__
-# ifndef MADV_HUGEPAGE
-#  define MADV_HUGEPAGE		67
-# endif
-# ifndef MADV_NOHUGEPAGE
-#  define MADV_NOHUGEPAGE	68
-# endif
+	#ifndef MADV_HUGEPAGE
+		#define MADV_HUGEPAGE		67
+	#endif
+	#ifndef MADV_NOHUGEPAGE
+		#define MADV_NOHUGEPAGE	68
+	#endif
 #else
-# ifndef MADV_HUGEPAGE
-#  define MADV_HUGEPAGE		14
-# endif
-# ifndef MADV_NOHUGEPAGE
-#  define MADV_NOHUGEPAGE	15
-# endif
+	#ifndef MADV_HUGEPAGE
+		#define MADV_HUGEPAGE		14
+	#endif
+	#ifndef MADV_NOHUGEPAGE
+		#define MADV_NOHUGEPAGE	15
+	#endif
 #endif
 
 int bench_numa(int argc, const char **argv, const char *prefix);

@@ -65,7 +65,7 @@
 #define divider_exists(div)		FLAG_TEST(div, DIV, EXISTS)
 #define divider_is_fixed(div)		FLAG_TEST(div, DIV, FIXED)
 #define divider_has_fraction(div)	(!divider_is_fixed(div) && \
-						(div)->u.s.frac_width > 0)
+									 (div)->u.s.frac_width > 0)
 
 #define selector_exists(sel)		((sel)->width != 0)
 #define trigger_exists(trig)		FLAG_TEST(trig, TRIG, EXISTS)
@@ -74,7 +74,8 @@
 #define policy_ctl_exists(control)	((control)->offset != 0)
 
 /* Clock type, used to tell common block what it's part of */
-enum bcm_clk_type {
+enum bcm_clk_type
+{
 	bcm_clk_none,		/* undefined clock type */
 	bcm_clk_bus,
 	bcm_clk_core,
@@ -89,7 +90,8 @@ enum bcm_clk_type {
  * must be stopped to update these bits, and must be restarted again
  * afterward.
  */
-struct bcm_clk_policy {
+struct bcm_clk_policy
+{
 	u32 offset;		/* first policy mask register offset */
 	u32 bit;		/* bit used in all mask registers */
 };
@@ -99,7 +101,7 @@ struct bcm_clk_policy {
 #define POLICY(_offset, _bit)						\
 	{								\
 		.offset = (_offset),					\
-		.bit = (_bit),						\
+				  .bit = (_bit),						\
 	}
 
 /*
@@ -126,7 +128,8 @@ struct bcm_clk_policy {
  *     under software or hardware control.  Which type is in use is
  *     determined by the hw_sw_sel bit of the gate register.
  */
-struct bcm_clk_gate {
+struct bcm_clk_gate
+{
 	u32 offset;		/* gate register offset */
 	u32 status_bit;		/* 0: gate is disabled; 0: gatge is enabled */
 	u32 en_bit;		/* 0: disable; 1: enable */
@@ -159,56 +162,57 @@ struct bcm_clk_gate {
 #define HW_SW_GATE(_offset, _status_bit, _en_bit, _hw_sw_sel_bit)	\
 	{								\
 		.offset = (_offset),					\
-		.status_bit = (_status_bit),				\
-		.en_bit = (_en_bit),					\
-		.hw_sw_sel_bit = (_hw_sw_sel_bit),			\
-		.flags = FLAG(GATE, HW)|FLAG(GATE, SW)|			\
-			FLAG(GATE, SW_MANAGED)|FLAG(GATE, ENABLED)|	\
-			FLAG(GATE, EXISTS),				\
+				  .status_bit = (_status_bit),				\
+								.en_bit = (_en_bit),					\
+										  .hw_sw_sel_bit = (_hw_sw_sel_bit),			\
+												  .flags = FLAG(GATE, HW)|FLAG(GATE, SW)|			\
+														  FLAG(GATE, SW_MANAGED)|FLAG(GATE, ENABLED)|	\
+														  FLAG(GATE, EXISTS),				\
 	}
 
 /* A hardware/software gate initially under hardware control */
 #define HW_SW_GATE_AUTO(_offset, _status_bit, _en_bit, _hw_sw_sel_bit)	\
 	{								\
 		.offset = (_offset),					\
-		.status_bit = (_status_bit),				\
-		.en_bit = (_en_bit),					\
-		.hw_sw_sel_bit = (_hw_sw_sel_bit),			\
-		.flags = FLAG(GATE, HW)|FLAG(GATE, SW)|			\
-			FLAG(GATE, EXISTS),				\
+				  .status_bit = (_status_bit),				\
+								.en_bit = (_en_bit),					\
+										  .hw_sw_sel_bit = (_hw_sw_sel_bit),			\
+												  .flags = FLAG(GATE, HW)|FLAG(GATE, SW)|			\
+														  FLAG(GATE, EXISTS),				\
 	}
 
 /* A hardware-or-enabled gate (enabled if not under hardware control) */
 #define HW_ENABLE_GATE(_offset, _status_bit, _en_bit, _hw_sw_sel_bit)	\
 	{								\
 		.offset = (_offset),					\
-		.status_bit = (_status_bit),				\
-		.en_bit = (_en_bit),					\
-		.hw_sw_sel_bit = (_hw_sw_sel_bit),			\
-		.flags = FLAG(GATE, HW)|FLAG(GATE, SW)|			\
-			FLAG(GATE, NO_DISABLE)|FLAG(GATE, EXISTS),	\
+				  .status_bit = (_status_bit),				\
+								.en_bit = (_en_bit),					\
+										  .hw_sw_sel_bit = (_hw_sw_sel_bit),			\
+												  .flags = FLAG(GATE, HW)|FLAG(GATE, SW)|			\
+														  FLAG(GATE, NO_DISABLE)|FLAG(GATE, EXISTS),	\
 	}
 
 /* A software-only gate */
 #define SW_ONLY_GATE(_offset, _status_bit, _en_bit)			\
 	{								\
 		.offset = (_offset),					\
-		.status_bit = (_status_bit),				\
-		.en_bit = (_en_bit),					\
-		.flags = FLAG(GATE, SW)|FLAG(GATE, SW_MANAGED)|		\
-			FLAG(GATE, ENABLED)|FLAG(GATE, EXISTS),		\
+				  .status_bit = (_status_bit),				\
+								.en_bit = (_en_bit),					\
+										  .flags = FLAG(GATE, SW)|FLAG(GATE, SW_MANAGED)|		\
+												  FLAG(GATE, ENABLED)|FLAG(GATE, EXISTS),		\
 	}
 
 /* A hardware-only gate */
 #define HW_ONLY_GATE(_offset, _status_bit)				\
 	{								\
 		.offset = (_offset),					\
-		.status_bit = (_status_bit),				\
-		.flags = FLAG(GATE, HW)|FLAG(GATE, EXISTS),		\
+				  .status_bit = (_status_bit),				\
+								.flags = FLAG(GATE, HW)|FLAG(GATE, EXISTS),		\
 	}
 
 /* Gate hysteresis for clocks */
-struct bcm_clk_hyst {
+struct bcm_clk_hyst
+{
 	u32 offset;		/* hyst register offset (normally CLKGATE) */
 	u32 en_bit;		/* bit used to enable hysteresis */
 	u32 val_bit;		/* if enabled: 0 = low delay; 1 = high delay */
@@ -219,8 +223,8 @@ struct bcm_clk_hyst {
 #define HYST(_offset, _en_bit, _val_bit)				\
 	{								\
 		.offset = (_offset),					\
-		.en_bit = (_en_bit),					\
-		.val_bit = (_val_bit),					\
+				  .en_bit = (_en_bit),					\
+							.val_bit = (_val_bit),					\
 	}
 
 /*
@@ -263,9 +267,12 @@ struct bcm_clk_hyst {
  * below) must be used to commit the change, and polled to verify
  * the change is complete.
  */
-struct bcm_clk_div {
-	union {
-		struct {	/* variable divider */
+struct bcm_clk_div
+{
+	union
+	{
+		struct  	/* variable divider */
+		{
 			u32 offset;	/* divider register offset */
 			u32 shift;	/* field shift */
 			u32 width;	/* field width */
@@ -292,28 +299,28 @@ struct bcm_clk_div {
 #define FIXED_DIVIDER(_value)						\
 	{								\
 		.u.fixed = (_value),					\
-		.flags = FLAG(DIV, EXISTS)|FLAG(DIV, FIXED),		\
+				   .flags = FLAG(DIV, EXISTS)|FLAG(DIV, FIXED),		\
 	}
 
 /* A divider with an integral divisor */
 #define DIVIDER(_offset, _shift, _width)				\
 	{								\
 		.u.s.offset = (_offset),				\
-		.u.s.shift = (_shift),					\
-		.u.s.width = (_width),					\
-		.u.s.scaled_div = BAD_SCALED_DIV_VALUE,			\
-		.flags = FLAG(DIV, EXISTS),				\
+					  .u.s.shift = (_shift),					\
+								   .u.s.width = (_width),					\
+												.u.s.scaled_div = BAD_SCALED_DIV_VALUE,			\
+														.flags = FLAG(DIV, EXISTS),				\
 	}
 
 /* A divider whose divisor has an integer and fractional part */
 #define FRAC_DIVIDER(_offset, _shift, _width, _frac_width)		\
 	{								\
 		.u.s.offset = (_offset),				\
-		.u.s.shift = (_shift),					\
-		.u.s.width = (_width),					\
-		.u.s.frac_width = (_frac_width),			\
-		.u.s.scaled_div = BAD_SCALED_DIV_VALUE,			\
-		.flags = FLAG(DIV, EXISTS),				\
+					  .u.s.shift = (_shift),					\
+								   .u.s.width = (_width),					\
+												.u.s.frac_width = (_frac_width),			\
+														.u.s.scaled_div = BAD_SCALED_DIV_VALUE,			\
+																.flags = FLAG(DIV, EXISTS),				\
 	}
 
 /*
@@ -336,7 +343,8 @@ struct bcm_clk_div {
  * Like dividers, a selector can be modified, but to do so a clock
  * must be enabled, and a trigger must be used to commit the change.
  */
-struct bcm_clk_sel {
+struct bcm_clk_sel
+{
 	u32 offset;		/* selector register offset */
 	u32 shift;		/* field shift */
 	u32 width;		/* field width */
@@ -350,9 +358,9 @@ struct bcm_clk_sel {
 #define SELECTOR(_offset, _shift, _width)				\
 	{								\
 		.offset = (_offset),					\
-		.shift = (_shift),					\
-		.width = (_width),					\
-		.clk_index = BAD_CLK_INDEX,				\
+				  .shift = (_shift),					\
+						   .width = (_width),					\
+									.clk_index = BAD_CLK_INDEX,				\
 	}
 
 /*
@@ -367,7 +375,8 @@ struct bcm_clk_sel {
  * case, the "pre-trigger" will be used when changing a clock's
  * selector and/or its pre-divider.
  */
-struct bcm_clk_trig {
+struct bcm_clk_trig
+{
 	u32 offset;		/* trigger register offset */
 	u32 bit;		/* trigger bit */
 	u32 flags;		/* BCM_CLK_TRIG_FLAGS_* below */
@@ -383,11 +392,12 @@ struct bcm_clk_trig {
 #define TRIGGER(_offset, _bit)						\
 	{								\
 		.offset = (_offset),					\
-		.bit = (_bit),						\
-		.flags = FLAG(TRIG, EXISTS),				\
+				  .bit = (_bit),						\
+						 .flags = FLAG(TRIG, EXISTS),				\
 	}
 
-struct peri_clk_data {
+struct peri_clk_data
+{
 	struct bcm_clk_policy policy;
 	struct bcm_clk_gate gate;
 	struct bcm_clk_hyst hyst;
@@ -401,12 +411,14 @@ struct peri_clk_data {
 #define CLOCKS(...)	{ __VA_ARGS__, NULL, }
 #define NO_CLOCKS	{ NULL, }	/* Must use of no parent clocks */
 
-struct kona_clk {
+struct kona_clk
+{
 	struct clk_hw hw;
 	struct clk_init_data init_data;	/* includes name of this clock */
 	struct ccu_data *ccu;	/* ccu this clock is associated with */
 	enum bcm_clk_type type;
-	union {
+	union
+	{
 		void *data;
 		struct peri_clk_data *peri;
 	} u;
@@ -418,12 +430,12 @@ struct kona_clk {
 #define KONA_CLK(_ccu_name, _clk_name, _type)				\
 	{								\
 		.init_data	= {					\
-			.name = #_clk_name,				\
-			.ops = &kona_ ## _type ## _clk_ops,		\
-		},							\
-		.ccu		= &_ccu_name ## _ccu_data,		\
-		.type		= bcm_clk_ ## _type,			\
-		.u.data		= &_clk_name ## _data,			\
+										.name = #_clk_name,				\
+										.ops = &kona_ ## _type ## _clk_ops,		\
+					 },							\
+					  .ccu		= &_ccu_name ## _ccu_data,		\
+									.type		= bcm_clk_ ## _type,			\
+											.u.data		= &_clk_name ## _data,			\
 	}
 #define LAST_KONA_CLK	{ .type = bcm_clk_none }
 
@@ -433,7 +445,8 @@ struct kona_clk {
  * software update enable bit (LVM_EN).  After an update the engine
  * is restarted using the GO bit and either the GO_ATL or GO_AC bit.
  */
-struct bcm_lvm_en {
+struct bcm_lvm_en
+{
 	u32 offset;		/* LVM_EN register offset */
 	u32 bit;		/* POLICY_CONFIG_EN bit in register */
 };
@@ -442,10 +455,11 @@ struct bcm_lvm_en {
 #define CCU_LVM_EN(_offset, _bit)					\
 	{								\
 		.offset = (_offset),					\
-		.bit = (_bit),						\
+				  .bit = (_bit),						\
 	}
 
-struct bcm_policy_ctl {
+struct bcm_policy_ctl
+{
 	u32 offset;		/* POLICY_CTL register offset */
 	u32 go_bit;
 	u32 atl_bit;		/* GO, GO_ATL, and GO_AC bits */
@@ -456,12 +470,13 @@ struct bcm_policy_ctl {
 #define CCU_POLICY_CTL(_offset, _go_bit, _ac_bit, _atl_bit)		\
 	{								\
 		.offset = (_offset),					\
-		.go_bit = (_go_bit),					\
-		.ac_bit = (_ac_bit),					\
-		.atl_bit = (_atl_bit),					\
+				  .go_bit = (_go_bit),					\
+							.ac_bit = (_ac_bit),					\
+									  .atl_bit = (_atl_bit),					\
 	}
 
-struct ccu_policy {
+struct ccu_policy
+{
 	struct bcm_lvm_en enable;
 	struct bcm_policy_ctl control;
 };
@@ -475,7 +490,8 @@ struct ccu_policy {
  * address of the range).  We keep track of the name of each CCU as
  * it is set up, and maintain them in a list.
  */
-struct ccu_data {
+struct ccu_data
+{
 	void __iomem *base;	/* base of mapped address space */
 	spinlock_t lock;	/* serialization lock */
 	bool write_enabled;	/* write access is currently enabled */
@@ -490,8 +506,8 @@ struct ccu_data {
 /* Initialization for common fields in a Kona ccu_data structure */
 #define KONA_CCU_COMMON(_prefix, _name, _ccuname)			    \
 	.name		= #_name "_ccu",				    \
-	.lock		= __SPIN_LOCK_UNLOCKED(_name ## _ccu_data.lock),    \
-	.clk_num	= _prefix ## _ ## _ccuname ## _CCU_CLOCK_COUNT
+				  .lock		= __SPIN_LOCK_UNLOCKED(_name ## _ccu_data.lock),    \
+								.clk_num	= _prefix ## _ ## _ccuname ## _CCU_CLOCK_COUNT
 
 /* Exported globals */
 
@@ -501,10 +517,10 @@ extern struct clk_ops kona_peri_clk_ops;
 
 extern u64 scaled_div_max(struct bcm_clk_div *div);
 extern u64 scaled_div_build(struct bcm_clk_div *div, u32 div_value,
-				u32 billionths);
+							u32 billionths);
 
 extern void __init kona_dt_ccu_setup(struct ccu_data *ccu,
-				struct device_node *node);
+									 struct device_node *node);
 extern bool __init kona_ccu_init(struct ccu_data *ccu);
 
 #endif /* _CLK_KONA_H */

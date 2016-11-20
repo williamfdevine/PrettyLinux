@@ -3,7 +3,8 @@
 
 struct dw_hdmi;
 
-struct dw_hdmi_audio_data {
+struct dw_hdmi_audio_data
+{
 	phys_addr_t phys;
 	void __iomem *base;
 	int irq;

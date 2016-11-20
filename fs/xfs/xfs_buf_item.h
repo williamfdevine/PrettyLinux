@@ -50,7 +50,8 @@ struct xfs_buf_log_item;
  * needed to log buffers.  It tracks how many times the lock has been
  * locked, and which 128 byte chunks of the buffer are dirty.
  */
-typedef struct xfs_buf_log_item {
+typedef struct xfs_buf_log_item
+{
 	xfs_log_item_t		bli_item;	/* common item structure */
 	struct xfs_buf		*bli_buf;	/* real buffer pointer */
 	unsigned int		bli_flags;	/* misc flags */
@@ -66,8 +67,8 @@ void	xfs_buf_item_relse(struct xfs_buf *);
 void	xfs_buf_item_log(xfs_buf_log_item_t *, uint, uint);
 uint	xfs_buf_item_dirty(xfs_buf_log_item_t *);
 void	xfs_buf_attach_iodone(struct xfs_buf *,
-			      void(*)(struct xfs_buf *, xfs_log_item_t *),
-			      xfs_log_item_t *);
+							  void(*)(struct xfs_buf *, xfs_log_item_t *),
+							  xfs_log_item_t *);
 void	xfs_buf_iodone_callbacks(struct xfs_buf *);
 void	xfs_buf_iodone(struct xfs_buf *, struct xfs_log_item *);
 

@@ -80,9 +80,10 @@ MODULE_PARM_DESC(dma_agg_pages, "Set DMA aggregation pages (range 1-127, 0 to di
 #define RTL8XXXU_TX_URB_HIGH_WATER	32
 
 static int rtl8xxxu_submit_rx_urb(struct rtl8xxxu_priv *priv,
-				  struct rtl8xxxu_rx_urb *rx_urb);
+								  struct rtl8xxxu_rx_urb *rx_urb);
 
-static struct ieee80211_rate rtl8xxxu_rates[] = {
+static struct ieee80211_rate rtl8xxxu_rates[] =
+{
 	{ .bitrate = 10, .hw_value = DESC_RATE_1M, .flags = 0 },
 	{ .bitrate = 20, .hw_value = DESC_RATE_2M, .flags = 0 },
 	{ .bitrate = 55, .hw_value = DESC_RATE_5_5M, .flags = 0 },
@@ -97,45 +98,76 @@ static struct ieee80211_rate rtl8xxxu_rates[] = {
 	{ .bitrate = 540, .hw_value = DESC_RATE_54M, .flags = 0 },
 };
 
-static struct ieee80211_channel rtl8xxxu_channels_2g[] = {
-	{ .band = NL80211_BAND_2GHZ, .center_freq = 2412,
-	  .hw_value = 1, .max_power = 30 },
-	{ .band = NL80211_BAND_2GHZ, .center_freq = 2417,
-	  .hw_value = 2, .max_power = 30 },
-	{ .band = NL80211_BAND_2GHZ, .center_freq = 2422,
-	  .hw_value = 3, .max_power = 30 },
-	{ .band = NL80211_BAND_2GHZ, .center_freq = 2427,
-	  .hw_value = 4, .max_power = 30 },
-	{ .band = NL80211_BAND_2GHZ, .center_freq = 2432,
-	  .hw_value = 5, .max_power = 30 },
-	{ .band = NL80211_BAND_2GHZ, .center_freq = 2437,
-	  .hw_value = 6, .max_power = 30 },
-	{ .band = NL80211_BAND_2GHZ, .center_freq = 2442,
-	  .hw_value = 7, .max_power = 30 },
-	{ .band = NL80211_BAND_2GHZ, .center_freq = 2447,
-	  .hw_value = 8, .max_power = 30 },
-	{ .band = NL80211_BAND_2GHZ, .center_freq = 2452,
-	  .hw_value = 9, .max_power = 30 },
-	{ .band = NL80211_BAND_2GHZ, .center_freq = 2457,
-	  .hw_value = 10, .max_power = 30 },
-	{ .band = NL80211_BAND_2GHZ, .center_freq = 2462,
-	  .hw_value = 11, .max_power = 30 },
-	{ .band = NL80211_BAND_2GHZ, .center_freq = 2467,
-	  .hw_value = 12, .max_power = 30 },
-	{ .band = NL80211_BAND_2GHZ, .center_freq = 2472,
-	  .hw_value = 13, .max_power = 30 },
-	{ .band = NL80211_BAND_2GHZ, .center_freq = 2484,
-	  .hw_value = 14, .max_power = 30 }
+static struct ieee80211_channel rtl8xxxu_channels_2g[] =
+{
+	{
+		.band = NL80211_BAND_2GHZ, .center_freq = 2412,
+		.hw_value = 1, .max_power = 30
+	},
+	{
+		.band = NL80211_BAND_2GHZ, .center_freq = 2417,
+		.hw_value = 2, .max_power = 30
+	},
+	{
+		.band = NL80211_BAND_2GHZ, .center_freq = 2422,
+		.hw_value = 3, .max_power = 30
+	},
+	{
+		.band = NL80211_BAND_2GHZ, .center_freq = 2427,
+		.hw_value = 4, .max_power = 30
+	},
+	{
+		.band = NL80211_BAND_2GHZ, .center_freq = 2432,
+		.hw_value = 5, .max_power = 30
+	},
+	{
+		.band = NL80211_BAND_2GHZ, .center_freq = 2437,
+		.hw_value = 6, .max_power = 30
+	},
+	{
+		.band = NL80211_BAND_2GHZ, .center_freq = 2442,
+		.hw_value = 7, .max_power = 30
+	},
+	{
+		.band = NL80211_BAND_2GHZ, .center_freq = 2447,
+		.hw_value = 8, .max_power = 30
+	},
+	{
+		.band = NL80211_BAND_2GHZ, .center_freq = 2452,
+		.hw_value = 9, .max_power = 30
+	},
+	{
+		.band = NL80211_BAND_2GHZ, .center_freq = 2457,
+		.hw_value = 10, .max_power = 30
+	},
+	{
+		.band = NL80211_BAND_2GHZ, .center_freq = 2462,
+		.hw_value = 11, .max_power = 30
+	},
+	{
+		.band = NL80211_BAND_2GHZ, .center_freq = 2467,
+		.hw_value = 12, .max_power = 30
+	},
+	{
+		.band = NL80211_BAND_2GHZ, .center_freq = 2472,
+		.hw_value = 13, .max_power = 30
+	},
+	{
+		.band = NL80211_BAND_2GHZ, .center_freq = 2484,
+		.hw_value = 14, .max_power = 30
+	}
 };
 
-static struct ieee80211_supported_band rtl8xxxu_supported_band = {
+static struct ieee80211_supported_band rtl8xxxu_supported_band =
+{
 	.channels = rtl8xxxu_channels_2g,
 	.n_channels = ARRAY_SIZE(rtl8xxxu_channels_2g),
 	.bitrates = rtl8xxxu_rates,
 	.n_bitrates = ARRAY_SIZE(rtl8xxxu_rates),
 };
 
-struct rtl8xxxu_reg8val rtl8xxxu_gen1_mac_init_table[] = {
+struct rtl8xxxu_reg8val rtl8xxxu_gen1_mac_init_table[] =
+{
 	{0x420, 0x80}, {0x423, 0x00}, {0x430, 0x00}, {0x431, 0x00},
 	{0x432, 0x00}, {0x433, 0x01}, {0x434, 0x04}, {0x435, 0x05},
 	{0x436, 0x06}, {0x437, 0x07}, {0x438, 0x00}, {0x439, 0x00},
@@ -160,7 +192,8 @@ struct rtl8xxxu_reg8val rtl8xxxu_gen1_mac_init_table[] = {
 	{0x70a, 0x65}, {0x70b, 0x87}, {0xffff, 0xff},
 };
 
-static struct rtl8xxxu_reg32val rtl8723a_phy_1t_init_table[] = {
+static struct rtl8xxxu_reg32val rtl8723a_phy_1t_init_table[] =
+{
 	{0x800, 0x80040000}, {0x804, 0x00000003},
 	{0x808, 0x0000fc00}, {0x80c, 0x0000000a},
 	{0x810, 0x10001331}, {0x814, 0x020c3d10},
@@ -258,7 +291,8 @@ static struct rtl8xxxu_reg32val rtl8723a_phy_1t_init_table[] = {
 	{0xffff, 0xffffffff},
 };
 
-static struct rtl8xxxu_reg32val rtl8192cu_phy_2t_init_table[] = {
+static struct rtl8xxxu_reg32val rtl8192cu_phy_2t_init_table[] =
+{
 	{0x024, 0x0011800f}, {0x028, 0x00ffdb83},
 	{0x800, 0x80040002}, {0x804, 0x00000003},
 	{0x808, 0x0000fc00}, {0x80c, 0x0000000a},
@@ -356,7 +390,8 @@ static struct rtl8xxxu_reg32val rtl8192cu_phy_2t_init_table[] = {
 	{0xffff, 0xffffffff},
 };
 
-static struct rtl8xxxu_reg32val rtl8188ru_phy_1t_highpa_table[] = {
+static struct rtl8xxxu_reg32val rtl8188ru_phy_1t_highpa_table[] =
+{
 	{0x024, 0x0011800f}, {0x028, 0x00ffdb83},
 	{0x040, 0x000c0004}, {0x800, 0x80040000},
 	{0x804, 0x00000001}, {0x808, 0x0000fc00},
@@ -455,7 +490,8 @@ static struct rtl8xxxu_reg32val rtl8188ru_phy_1t_highpa_table[] = {
 	{0xffff, 0xffffffff},
 };
 
-static struct rtl8xxxu_reg32val rtl8xxx_agc_standard_table[] = {
+static struct rtl8xxxu_reg32val rtl8xxx_agc_standard_table[] =
+{
 	{0xc78, 0x7b000001}, {0xc78, 0x7b010001},
 	{0xc78, 0x7b020001}, {0xc78, 0x7b030001},
 	{0xc78, 0x7b040001}, {0xc78, 0x7b050001},
@@ -539,7 +575,8 @@ static struct rtl8xxxu_reg32val rtl8xxx_agc_standard_table[] = {
 	{0xffff, 0xffffffff}
 };
 
-static struct rtl8xxxu_reg32val rtl8xxx_agc_highpa_table[] = {
+static struct rtl8xxxu_reg32val rtl8xxx_agc_highpa_table[] =
+{
 	{0xc78, 0x7b000001}, {0xc78, 0x7b010001},
 	{0xc78, 0x7b020001}, {0xc78, 0x7b030001},
 	{0xc78, 0x7b040001}, {0xc78, 0x7b050001},
@@ -623,7 +660,8 @@ static struct rtl8xxxu_reg32val rtl8xxx_agc_highpa_table[] = {
 	{0xffff, 0xffffffff}
 };
 
-static struct rtl8xxxu_rfregs rtl8xxxu_rfregs[] = {
+static struct rtl8xxxu_rfregs rtl8xxxu_rfregs[] =
+{
 	{	/* RF_A */
 		.hssiparm1 = REG_FPGA0_XA_HSSI_PARM1,
 		.hssiparm2 = REG_FPGA0_XA_HSSI_PARM2,
@@ -642,7 +680,8 @@ static struct rtl8xxxu_rfregs rtl8xxxu_rfregs[] = {
 	},
 };
 
-const u32 rtl8xxxu_iqk_phy_iq_bb_reg[RTL8XXXU_BB_REGS] = {
+const u32 rtl8xxxu_iqk_phy_iq_bb_reg[RTL8XXXU_BB_REGS] =
+{
 	REG_OFDM0_XA_RX_IQ_IMBALANCE,
 	REG_OFDM0_XB_RX_IQ_IMBALANCE,
 	REG_OFDM0_ENERGY_CCA_THRES,
@@ -662,15 +701,16 @@ u8 rtl8xxxu_read8(struct rtl8xxxu_priv *priv, u16 addr)
 
 	mutex_lock(&priv->usb_buf_mutex);
 	len = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
-			      REALTEK_USB_CMD_REQ, REALTEK_USB_READ,
-			      addr, 0, &priv->usb_buf.val8, sizeof(u8),
-			      RTW_USB_CONTROL_MSG_TIMEOUT);
+						  REALTEK_USB_CMD_REQ, REALTEK_USB_READ,
+						  addr, 0, &priv->usb_buf.val8, sizeof(u8),
+						  RTW_USB_CONTROL_MSG_TIMEOUT);
 	data = priv->usb_buf.val8;
 	mutex_unlock(&priv->usb_buf_mutex);
 
 	if (rtl8xxxu_debug & RTL8XXXU_DEBUG_REG_READ)
 		dev_info(&udev->dev, "%s(%04x)   = 0x%02x, len %i\n",
-			 __func__, addr, data, len);
+				 __func__, addr, data, len);
+
 	return data;
 }
 
@@ -682,15 +722,16 @@ u16 rtl8xxxu_read16(struct rtl8xxxu_priv *priv, u16 addr)
 
 	mutex_lock(&priv->usb_buf_mutex);
 	len = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
-			      REALTEK_USB_CMD_REQ, REALTEK_USB_READ,
-			      addr, 0, &priv->usb_buf.val16, sizeof(u16),
-			      RTW_USB_CONTROL_MSG_TIMEOUT);
+						  REALTEK_USB_CMD_REQ, REALTEK_USB_READ,
+						  addr, 0, &priv->usb_buf.val16, sizeof(u16),
+						  RTW_USB_CONTROL_MSG_TIMEOUT);
 	data = le16_to_cpu(priv->usb_buf.val16);
 	mutex_unlock(&priv->usb_buf_mutex);
 
 	if (rtl8xxxu_debug & RTL8XXXU_DEBUG_REG_READ)
 		dev_info(&udev->dev, "%s(%04x)  = 0x%04x, len %i\n",
-			 __func__, addr, data, len);
+				 __func__, addr, data, len);
+
 	return data;
 }
 
@@ -702,15 +743,16 @@ u32 rtl8xxxu_read32(struct rtl8xxxu_priv *priv, u16 addr)
 
 	mutex_lock(&priv->usb_buf_mutex);
 	len = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
-			      REALTEK_USB_CMD_REQ, REALTEK_USB_READ,
-			      addr, 0, &priv->usb_buf.val32, sizeof(u32),
-			      RTW_USB_CONTROL_MSG_TIMEOUT);
+						  REALTEK_USB_CMD_REQ, REALTEK_USB_READ,
+						  addr, 0, &priv->usb_buf.val32, sizeof(u32),
+						  RTW_USB_CONTROL_MSG_TIMEOUT);
 	data = le32_to_cpu(priv->usb_buf.val32);
 	mutex_unlock(&priv->usb_buf_mutex);
 
 	if (rtl8xxxu_debug & RTL8XXXU_DEBUG_REG_READ)
 		dev_info(&udev->dev, "%s(%04x)  = 0x%08x, len %i\n",
-			 __func__, addr, data, len);
+				 __func__, addr, data, len);
+
 	return data;
 }
 
@@ -722,15 +764,16 @@ int rtl8xxxu_write8(struct rtl8xxxu_priv *priv, u16 addr, u8 val)
 	mutex_lock(&priv->usb_buf_mutex);
 	priv->usb_buf.val8 = val;
 	ret = usb_control_msg(udev, usb_sndctrlpipe(udev, 0),
-			      REALTEK_USB_CMD_REQ, REALTEK_USB_WRITE,
-			      addr, 0, &priv->usb_buf.val8, sizeof(u8),
-			      RTW_USB_CONTROL_MSG_TIMEOUT);
+						  REALTEK_USB_CMD_REQ, REALTEK_USB_WRITE,
+						  addr, 0, &priv->usb_buf.val8, sizeof(u8),
+						  RTW_USB_CONTROL_MSG_TIMEOUT);
 
 	mutex_unlock(&priv->usb_buf_mutex);
 
 	if (rtl8xxxu_debug & RTL8XXXU_DEBUG_REG_WRITE)
 		dev_info(&udev->dev, "%s(%04x) = 0x%02x\n",
-			 __func__, addr, val);
+				 __func__, addr, val);
+
 	return ret;
 }
 
@@ -742,14 +785,15 @@ int rtl8xxxu_write16(struct rtl8xxxu_priv *priv, u16 addr, u16 val)
 	mutex_lock(&priv->usb_buf_mutex);
 	priv->usb_buf.val16 = cpu_to_le16(val);
 	ret = usb_control_msg(udev, usb_sndctrlpipe(udev, 0),
-			      REALTEK_USB_CMD_REQ, REALTEK_USB_WRITE,
-			      addr, 0, &priv->usb_buf.val16, sizeof(u16),
-			      RTW_USB_CONTROL_MSG_TIMEOUT);
+						  REALTEK_USB_CMD_REQ, REALTEK_USB_WRITE,
+						  addr, 0, &priv->usb_buf.val16, sizeof(u16),
+						  RTW_USB_CONTROL_MSG_TIMEOUT);
 	mutex_unlock(&priv->usb_buf_mutex);
 
 	if (rtl8xxxu_debug & RTL8XXXU_DEBUG_REG_WRITE)
 		dev_info(&udev->dev, "%s(%04x) = 0x%04x\n",
-			 __func__, addr, val);
+				 __func__, addr, val);
+
 	return ret;
 }
 
@@ -761,14 +805,15 @@ int rtl8xxxu_write32(struct rtl8xxxu_priv *priv, u16 addr, u32 val)
 	mutex_lock(&priv->usb_buf_mutex);
 	priv->usb_buf.val32 = cpu_to_le32(val);
 	ret = usb_control_msg(udev, usb_sndctrlpipe(udev, 0),
-			      REALTEK_USB_CMD_REQ, REALTEK_USB_WRITE,
-			      addr, 0, &priv->usb_buf.val32, sizeof(u32),
-			      RTW_USB_CONTROL_MSG_TIMEOUT);
+						  REALTEK_USB_CMD_REQ, REALTEK_USB_WRITE,
+						  addr, 0, &priv->usb_buf.val32, sizeof(u32),
+						  RTW_USB_CONTROL_MSG_TIMEOUT);
 	mutex_unlock(&priv->usb_buf_mutex);
 
 	if (rtl8xxxu_debug & RTL8XXXU_DEBUG_REG_WRITE)
 		dev_info(&udev->dev, "%s(%04x) = 0x%08x\n",
-			 __func__, addr, val);
+				 __func__, addr, val);
+
 	return ret;
 }
 
@@ -782,46 +827,59 @@ rtl8xxxu_writeN(struct rtl8xxxu_priv *priv, u16 addr, u8 *buf, u16 len)
 	count = len / blocksize;
 	remainder = len % blocksize;
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		ret = usb_control_msg(udev, usb_sndctrlpipe(udev, 0),
-				      REALTEK_USB_CMD_REQ, REALTEK_USB_WRITE,
-				      addr, 0, buf, blocksize,
-				      RTW_USB_CONTROL_MSG_TIMEOUT);
+							  REALTEK_USB_CMD_REQ, REALTEK_USB_WRITE,
+							  addr, 0, buf, blocksize,
+							  RTW_USB_CONTROL_MSG_TIMEOUT);
+
 		if (ret != blocksize)
+		{
 			goto write_error;
+		}
 
 		addr += blocksize;
 		buf += blocksize;
 	}
 
-	if (remainder) {
+	if (remainder)
+	{
 		ret = usb_control_msg(udev, usb_sndctrlpipe(udev, 0),
-				      REALTEK_USB_CMD_REQ, REALTEK_USB_WRITE,
-				      addr, 0, buf, remainder,
-				      RTW_USB_CONTROL_MSG_TIMEOUT);
+							  REALTEK_USB_CMD_REQ, REALTEK_USB_WRITE,
+							  addr, 0, buf, remainder,
+							  RTW_USB_CONTROL_MSG_TIMEOUT);
+
 		if (ret != remainder)
+		{
 			goto write_error;
+		}
 	}
 
 	return len;
 
 write_error:
 	dev_info(&udev->dev,
-		 "%s: Failed to write block at addr: %04x size: %04x\n",
-		 __func__, addr, blocksize);
+			 "%s: Failed to write block at addr: %04x size: %04x\n",
+			 __func__, addr, blocksize);
 	return -EAGAIN;
 }
 
 u32 rtl8xxxu_read_rfreg(struct rtl8xxxu_priv *priv,
-			enum rtl8xxxu_rfpath path, u8 reg)
+						enum rtl8xxxu_rfpath path, u8 reg)
 {
 	u32 hssia, val32, retval;
 
 	hssia = rtl8xxxu_read32(priv, REG_FPGA0_XA_HSSI_PARM2);
+
 	if (path != RF_A)
+	{
 		val32 = rtl8xxxu_read32(priv, rtl8xxxu_rfregs[path].hssiparm2);
+	}
 	else
+	{
 		val32 = hssia;
+	}
 
 	val32 &= ~FPGA0_HSSI_PARM2_ADDR_MASK;
 	val32 |= (reg << FPGA0_HSSI_PARM2_ADDR_SHIFT);
@@ -839,16 +897,22 @@ u32 rtl8xxxu_read_rfreg(struct rtl8xxxu_priv *priv,
 	udelay(10);
 
 	val32 = rtl8xxxu_read32(priv, rtl8xxxu_rfregs[path].hssiparm1);
+
 	if (val32 & FPGA0_HSSI_PARM1_PI)
+	{
 		retval = rtl8xxxu_read32(priv, rtl8xxxu_rfregs[path].hspiread);
+	}
 	else
+	{
 		retval = rtl8xxxu_read32(priv, rtl8xxxu_rfregs[path].lssiread);
+	}
 
 	retval &= 0xfffff;
 
 	if (rtl8xxxu_debug & RTL8XXXU_DEBUG_RFREG_READ)
 		dev_info(&priv->udev->dev, "%s(%02x) = 0x%06x\n",
-			 __func__, reg, retval);
+				 __func__, reg, retval);
+
 	return retval;
 }
 
@@ -858,19 +922,20 @@ u32 rtl8xxxu_read_rfreg(struct rtl8xxxu_priv *priv,
  * retry writing them.
  */
 int rtl8xxxu_write_rfreg(struct rtl8xxxu_priv *priv,
-			 enum rtl8xxxu_rfpath path, u8 reg, u32 data)
+						 enum rtl8xxxu_rfpath path, u8 reg, u32 data)
 {
 	int ret, retval;
 	u32 dataaddr, val32;
 
 	if (rtl8xxxu_debug & RTL8XXXU_DEBUG_RFREG_WRITE)
 		dev_info(&priv->udev->dev, "%s(%02x) = 0x%06x\n",
-			 __func__, reg, data);
+				 __func__, reg, data);
 
 	data &= FPGA0_LSSI_PARM_DATA_MASK;
 	dataaddr = (reg << FPGA0_LSSI_PARM_ADDR_SHIFT) | data;
 
-	if (priv->rtl_chip == RTL8192E) {
+	if (priv->rtl_chip == RTL8192E)
+	{
 		val32 = rtl8xxxu_read32(priv, REG_FPGA0_POWER_SAVE);
 		val32 &= ~0x20000;
 		rtl8xxxu_write32(priv, REG_FPGA0_POWER_SAVE, val32);
@@ -878,14 +943,20 @@ int rtl8xxxu_write_rfreg(struct rtl8xxxu_priv *priv,
 
 	/* Use XB for path B */
 	ret = rtl8xxxu_write32(priv, rtl8xxxu_rfregs[path].lssiparm, dataaddr);
+
 	if (ret != sizeof(dataaddr))
+	{
 		retval = -EIO;
+	}
 	else
+	{
 		retval = 0;
+	}
 
 	udelay(1);
 
-	if (priv->rtl_chip == RTL8192E) {
+	if (priv->rtl_chip == RTL8192E)
+	{
 		val32 = rtl8xxxu_read32(priv, REG_FPGA0_POWER_SAVE);
 		val32 |= 0x20000;
 		rtl8xxxu_write32(priv, REG_FPGA0_POWER_SAVE, val32);
@@ -912,13 +983,20 @@ rtl8xxxu_gen1_h2c_cmd(struct rtl8xxxu_priv *priv, struct h2c_cmd *h2c, int len)
 	 * MBOX ready?
 	 */
 	retry = 100;
-	do {
-		val8 = rtl8xxxu_read8(priv, REG_HMTFR);
-		if (!(val8 & BIT(mbox_nr)))
-			break;
-	} while (retry--);
 
-	if (!retry) {
+	do
+	{
+		val8 = rtl8xxxu_read8(priv, REG_HMTFR);
+
+		if (!(val8 & BIT(mbox_nr)))
+		{
+			break;
+		}
+	}
+	while (retry--);
+
+	if (!retry)
+	{
 		dev_info(dev, "%s: Mailbox busy\n", __func__);
 		retval = -EBUSY;
 		goto error;
@@ -927,15 +1005,21 @@ rtl8xxxu_gen1_h2c_cmd(struct rtl8xxxu_priv *priv, struct h2c_cmd *h2c, int len)
 	/*
 	 * Need to swap as it's being swapped again by rtl8xxxu_write16/32()
 	 */
-	if (len > sizeof(u32)) {
+	if (len > sizeof(u32))
+	{
 		rtl8xxxu_write16(priv, mbox_ext_reg, le16_to_cpu(h2c->raw.ext));
+
 		if (rtl8xxxu_debug & RTL8XXXU_DEBUG_H2C)
 			dev_info(dev, "H2C_EXT %04x\n",
-				 le16_to_cpu(h2c->raw.ext));
+					 le16_to_cpu(h2c->raw.ext));
 	}
+
 	rtl8xxxu_write32(priv, mbox_reg, le32_to_cpu(h2c->raw.data));
+
 	if (rtl8xxxu_debug & RTL8XXXU_DEBUG_H2C)
+	{
 		dev_info(dev, "H2C %08x\n", le32_to_cpu(h2c->raw.data));
+	}
 
 	priv->next_mbox = (mbox_nr + 1) % H2C_MAX_MBOX;
 
@@ -962,13 +1046,20 @@ rtl8xxxu_gen2_h2c_cmd(struct rtl8xxxu_priv *priv, struct h2c_cmd *h2c, int len)
 	 * MBOX ready?
 	 */
 	retry = 100;
-	do {
-		val8 = rtl8xxxu_read8(priv, REG_HMTFR);
-		if (!(val8 & BIT(mbox_nr)))
-			break;
-	} while (retry--);
 
-	if (!retry) {
+	do
+	{
+		val8 = rtl8xxxu_read8(priv, REG_HMTFR);
+
+		if (!(val8 & BIT(mbox_nr)))
+		{
+			break;
+		}
+	}
+	while (retry--);
+
+	if (!retry)
+	{
 		dev_info(dev, "%s: Mailbox busy\n", __func__);
 		retval = -EBUSY;
 		goto error;
@@ -977,16 +1068,22 @@ rtl8xxxu_gen2_h2c_cmd(struct rtl8xxxu_priv *priv, struct h2c_cmd *h2c, int len)
 	/*
 	 * Need to swap as it's being swapped again by rtl8xxxu_write16/32()
 	 */
-	if (len > sizeof(u32)) {
+	if (len > sizeof(u32))
+	{
 		rtl8xxxu_write32(priv, mbox_ext_reg,
-				 le32_to_cpu(h2c->raw_wide.ext));
+						 le32_to_cpu(h2c->raw_wide.ext));
+
 		if (rtl8xxxu_debug & RTL8XXXU_DEBUG_H2C)
 			dev_info(dev, "H2C_EXT %08x\n",
-				 le32_to_cpu(h2c->raw_wide.ext));
+					 le32_to_cpu(h2c->raw_wide.ext));
 	}
+
 	rtl8xxxu_write32(priv, mbox_reg, le32_to_cpu(h2c->raw.data));
+
 	if (rtl8xxxu_debug & RTL8XXXU_DEBUG_H2C)
+	{
 		dev_info(dev, "H2C %08x\n", le32_to_cpu(h2c->raw.data));
+	}
 
 	priv->next_mbox = (mbox_nr + 1) % H2C_MAX_MBOX;
 
@@ -1007,20 +1104,31 @@ void rtl8xxxu_gen1_enable_rf(struct rtl8xxxu_priv *priv)
 	val32 = rtl8xxxu_read32(priv, REG_FPGA0_XAB_RF_PARM);
 	val32 &= ~(BIT(4) | BIT(5));
 	val32 |= BIT(3);
-	if (priv->rf_paths == 2) {
+
+	if (priv->rf_paths == 2)
+	{
 		val32 &= ~(BIT(20) | BIT(21));
 		val32 |= BIT(19);
 	}
+
 	rtl8xxxu_write32(priv, REG_FPGA0_XAB_RF_PARM, val32);
 
 	val32 = rtl8xxxu_read32(priv, REG_OFDM0_TRX_PATH_ENABLE);
 	val32 &= ~OFDM_RF_PATH_TX_MASK;
+
 	if (priv->tx_paths == 2)
+	{
 		val32 |= OFDM_RF_PATH_TX_A | OFDM_RF_PATH_TX_B;
+	}
 	else if (priv->rtl_chip == RTL8192C || priv->rtl_chip == RTL8191C)
+	{
 		val32 |= OFDM_RF_PATH_TX_B;
+	}
 	else
+	{
 		val32 |= OFDM_RF_PATH_TX_A;
+	}
+
 	rtl8xxxu_write32(priv, REG_OFDM0_TRX_PATH_ENABLE, val32);
 
 	val32 = rtl8xxxu_read32(priv, REG_FPGA0_RF_MODE);
@@ -1028,13 +1136,20 @@ void rtl8xxxu_gen1_enable_rf(struct rtl8xxxu_priv *priv)
 	rtl8xxxu_write32(priv, REG_FPGA0_RF_MODE, val32);
 
 	if (priv->rf_paths == 2)
+	{
 		rtl8xxxu_write32(priv, REG_RX_WAIT_CCA, 0x63db25a0);
+	}
 	else
+	{
 		rtl8xxxu_write32(priv, REG_RX_WAIT_CCA, 0x631b25a0);
+	}
 
 	rtl8xxxu_write_rfreg(priv, RF_A, RF6052_REG_AC, 0x32d95);
+
 	if (priv->rf_paths == 2)
+	{
 		rtl8xxxu_write_rfreg(priv, RF_B, RF6052_REG_AC, 0x32d95);
+	}
 
 	rtl8xxxu_write8(priv, REG_TXPAUSE, 0x00);
 }
@@ -1049,8 +1164,12 @@ void rtl8xxxu_gen1_disable_rf(struct rtl8xxxu_priv *priv)
 	/* RF RX code for preamble power saving */
 	val32 = rtl8xxxu_read32(priv, REG_FPGA0_XAB_RF_PARM);
 	val32 &= ~(BIT(3) | BIT(4) | BIT(5));
+
 	if (priv->rf_paths == 2)
+	{
 		val32 &= ~(BIT(19) | BIT(20) | BIT(21));
+	}
+
 	rtl8xxxu_write32(priv, REG_FPGA0_XAB_RF_PARM, val32);
 
 	/* Disable TX for four paths */
@@ -1065,14 +1184,21 @@ void rtl8xxxu_gen1_disable_rf(struct rtl8xxxu_priv *priv)
 
 	/* AFE control register to power down bits [30:22] */
 	if (priv->rf_paths == 2)
+	{
 		rtl8xxxu_write32(priv, REG_RX_WAIT_CCA, 0x00db25a0);
+	}
 	else
+	{
 		rtl8xxxu_write32(priv, REG_RX_WAIT_CCA, 0x001b25a0);
+	}
 
 	/* Power down RF module */
 	rtl8xxxu_write_rfreg(priv, RF_A, RF6052_REG_AC, 0);
+
 	if (priv->rf_paths == 2)
+	{
 		rtl8xxxu_write_rfreg(priv, RF_B, RF6052_REG_AC, 0);
+	}
 
 	sps0 &= ~(BIT(0) | BIT(3));
 	rtl8xxxu_write8(priv, REG_SPS0_CTRL, sps0);
@@ -1107,11 +1233,17 @@ static int rtl8xxxu_gen1_channel_to_group(int channel)
 	int group;
 
 	if (channel < 4)
+	{
 		group = 0;
+	}
 	else if (channel < 10)
+	{
 		group = 1;
+	}
 	else
+	{
 		group = 2;
+	}
 
 	return group;
 }
@@ -1124,15 +1256,25 @@ int rtl8xxxu_gen2_channel_to_group(int channel)
 	int group;
 
 	if (channel < 3)
+	{
 		group = 0;
+	}
 	else if (channel < 6)
+	{
 		group = 1;
+	}
 	else if (channel < 9)
+	{
 		group = 2;
+	}
 	else if (channel < 12)
+	{
 		group = 3;
+	}
 	else
+	{
 		group = 4;
+	}
 
 	return group;
 }
@@ -1150,88 +1292,117 @@ void rtl8xxxu_gen1_config_channel(struct ieee80211_hw *hw)
 	rsr = rtl8xxxu_read32(priv, REG_RESPONSE_RATE_SET);
 	channel = hw->conf.chandef.chan->hw_value;
 
-	switch (hw->conf.chandef.width) {
-	case NL80211_CHAN_WIDTH_20_NOHT:
-		ht = false;
-	case NL80211_CHAN_WIDTH_20:
-		opmode |= BW_OPMODE_20MHZ;
-		rtl8xxxu_write8(priv, REG_BW_OPMODE, opmode);
+	switch (hw->conf.chandef.width)
+	{
+		case NL80211_CHAN_WIDTH_20_NOHT:
+			ht = false;
 
-		val32 = rtl8xxxu_read32(priv, REG_FPGA0_RF_MODE);
-		val32 &= ~FPGA_RF_MODE;
-		rtl8xxxu_write32(priv, REG_FPGA0_RF_MODE, val32);
+		case NL80211_CHAN_WIDTH_20:
+			opmode |= BW_OPMODE_20MHZ;
+			rtl8xxxu_write8(priv, REG_BW_OPMODE, opmode);
 
-		val32 = rtl8xxxu_read32(priv, REG_FPGA1_RF_MODE);
-		val32 &= ~FPGA_RF_MODE;
-		rtl8xxxu_write32(priv, REG_FPGA1_RF_MODE, val32);
+			val32 = rtl8xxxu_read32(priv, REG_FPGA0_RF_MODE);
+			val32 &= ~FPGA_RF_MODE;
+			rtl8xxxu_write32(priv, REG_FPGA0_RF_MODE, val32);
 
-		val32 = rtl8xxxu_read32(priv, REG_FPGA0_ANALOG2);
-		val32 |= FPGA0_ANALOG2_20MHZ;
-		rtl8xxxu_write32(priv, REG_FPGA0_ANALOG2, val32);
-		break;
-	case NL80211_CHAN_WIDTH_40:
-		if (hw->conf.chandef.center_freq1 >
-		    hw->conf.chandef.chan->center_freq) {
-			sec_ch_above = 1;
-			channel += 2;
-		} else {
-			sec_ch_above = 0;
-			channel -= 2;
-		}
+			val32 = rtl8xxxu_read32(priv, REG_FPGA1_RF_MODE);
+			val32 &= ~FPGA_RF_MODE;
+			rtl8xxxu_write32(priv, REG_FPGA1_RF_MODE, val32);
 
-		opmode &= ~BW_OPMODE_20MHZ;
-		rtl8xxxu_write8(priv, REG_BW_OPMODE, opmode);
-		rsr &= ~RSR_RSC_BANDWIDTH_40M;
-		if (sec_ch_above)
-			rsr |= RSR_RSC_UPPER_SUB_CHANNEL;
-		else
-			rsr |= RSR_RSC_LOWER_SUB_CHANNEL;
-		rtl8xxxu_write32(priv, REG_RESPONSE_RATE_SET, rsr);
+			val32 = rtl8xxxu_read32(priv, REG_FPGA0_ANALOG2);
+			val32 |= FPGA0_ANALOG2_20MHZ;
+			rtl8xxxu_write32(priv, REG_FPGA0_ANALOG2, val32);
+			break;
 
-		val32 = rtl8xxxu_read32(priv, REG_FPGA0_RF_MODE);
-		val32 |= FPGA_RF_MODE;
-		rtl8xxxu_write32(priv, REG_FPGA0_RF_MODE, val32);
+		case NL80211_CHAN_WIDTH_40:
+			if (hw->conf.chandef.center_freq1 >
+				hw->conf.chandef.chan->center_freq)
+			{
+				sec_ch_above = 1;
+				channel += 2;
+			}
+			else
+			{
+				sec_ch_above = 0;
+				channel -= 2;
+			}
 
-		val32 = rtl8xxxu_read32(priv, REG_FPGA1_RF_MODE);
-		val32 |= FPGA_RF_MODE;
-		rtl8xxxu_write32(priv, REG_FPGA1_RF_MODE, val32);
+			opmode &= ~BW_OPMODE_20MHZ;
+			rtl8xxxu_write8(priv, REG_BW_OPMODE, opmode);
+			rsr &= ~RSR_RSC_BANDWIDTH_40M;
 
-		/*
-		 * Set Control channel to upper or lower. These settings
-		 * are required only for 40MHz
-		 */
-		val32 = rtl8xxxu_read32(priv, REG_CCK0_SYSTEM);
-		val32 &= ~CCK0_SIDEBAND;
-		if (!sec_ch_above)
-			val32 |= CCK0_SIDEBAND;
-		rtl8xxxu_write32(priv, REG_CCK0_SYSTEM, val32);
+			if (sec_ch_above)
+			{
+				rsr |= RSR_RSC_UPPER_SUB_CHANNEL;
+			}
+			else
+			{
+				rsr |= RSR_RSC_LOWER_SUB_CHANNEL;
+			}
 
-		val32 = rtl8xxxu_read32(priv, REG_OFDM1_LSTF);
-		val32 &= ~OFDM_LSTF_PRIME_CH_MASK; /* 0xc00 */
-		if (sec_ch_above)
-			val32 |= OFDM_LSTF_PRIME_CH_LOW;
-		else
-			val32 |= OFDM_LSTF_PRIME_CH_HIGH;
-		rtl8xxxu_write32(priv, REG_OFDM1_LSTF, val32);
+			rtl8xxxu_write32(priv, REG_RESPONSE_RATE_SET, rsr);
 
-		val32 = rtl8xxxu_read32(priv, REG_FPGA0_ANALOG2);
-		val32 &= ~FPGA0_ANALOG2_20MHZ;
-		rtl8xxxu_write32(priv, REG_FPGA0_ANALOG2, val32);
+			val32 = rtl8xxxu_read32(priv, REG_FPGA0_RF_MODE);
+			val32 |= FPGA_RF_MODE;
+			rtl8xxxu_write32(priv, REG_FPGA0_RF_MODE, val32);
 
-		val32 = rtl8xxxu_read32(priv, REG_FPGA0_POWER_SAVE);
-		val32 &= ~(FPGA0_PS_LOWER_CHANNEL | FPGA0_PS_UPPER_CHANNEL);
-		if (sec_ch_above)
-			val32 |= FPGA0_PS_UPPER_CHANNEL;
-		else
-			val32 |= FPGA0_PS_LOWER_CHANNEL;
-		rtl8xxxu_write32(priv, REG_FPGA0_POWER_SAVE, val32);
-		break;
+			val32 = rtl8xxxu_read32(priv, REG_FPGA1_RF_MODE);
+			val32 |= FPGA_RF_MODE;
+			rtl8xxxu_write32(priv, REG_FPGA1_RF_MODE, val32);
 
-	default:
-		break;
+			/*
+			 * Set Control channel to upper or lower. These settings
+			 * are required only for 40MHz
+			 */
+			val32 = rtl8xxxu_read32(priv, REG_CCK0_SYSTEM);
+			val32 &= ~CCK0_SIDEBAND;
+
+			if (!sec_ch_above)
+			{
+				val32 |= CCK0_SIDEBAND;
+			}
+
+			rtl8xxxu_write32(priv, REG_CCK0_SYSTEM, val32);
+
+			val32 = rtl8xxxu_read32(priv, REG_OFDM1_LSTF);
+			val32 &= ~OFDM_LSTF_PRIME_CH_MASK; /* 0xc00 */
+
+			if (sec_ch_above)
+			{
+				val32 |= OFDM_LSTF_PRIME_CH_LOW;
+			}
+			else
+			{
+				val32 |= OFDM_LSTF_PRIME_CH_HIGH;
+			}
+
+			rtl8xxxu_write32(priv, REG_OFDM1_LSTF, val32);
+
+			val32 = rtl8xxxu_read32(priv, REG_FPGA0_ANALOG2);
+			val32 &= ~FPGA0_ANALOG2_20MHZ;
+			rtl8xxxu_write32(priv, REG_FPGA0_ANALOG2, val32);
+
+			val32 = rtl8xxxu_read32(priv, REG_FPGA0_POWER_SAVE);
+			val32 &= ~(FPGA0_PS_LOWER_CHANNEL | FPGA0_PS_UPPER_CHANNEL);
+
+			if (sec_ch_above)
+			{
+				val32 |= FPGA0_PS_UPPER_CHANNEL;
+			}
+			else
+			{
+				val32 |= FPGA0_PS_LOWER_CHANNEL;
+			}
+
+			rtl8xxxu_write32(priv, REG_FPGA0_POWER_SAVE, val32);
+			break;
+
+		default:
+			break;
 	}
 
-	for (i = RF_A; i < priv->rf_paths; i++) {
+	for (i = RF_A; i < priv->rf_paths; i++)
+	{
 		val32 = rtl8xxxu_read_rfreg(priv, i, RF6052_REG_MODE_AG);
 		val32 &= ~MODE_AG_CHANNEL_MASK;
 		val32 |= channel;
@@ -1239,9 +1410,13 @@ void rtl8xxxu_gen1_config_channel(struct ieee80211_hw *hw)
 	}
 
 	if (ht)
+	{
 		val8 = 0x0e;
+	}
 	else
+	{
 		val8 = 0x0a;
+	}
 
 	rtl8xxxu_write8(priv, REG_SIFS_CCK + 1, val8);
 	rtl8xxxu_write8(priv, REG_SIFS_OFDM + 1, val8);
@@ -1249,12 +1424,19 @@ void rtl8xxxu_gen1_config_channel(struct ieee80211_hw *hw)
 	rtl8xxxu_write16(priv, REG_R2T_SIFS, 0x0808);
 	rtl8xxxu_write16(priv, REG_T2T_SIFS, 0x0a0a);
 
-	for (i = RF_A; i < priv->rf_paths; i++) {
+	for (i = RF_A; i < priv->rf_paths; i++)
+	{
 		val32 = rtl8xxxu_read_rfreg(priv, i, RF6052_REG_MODE_AG);
+
 		if (hw->conf.chandef.width == NL80211_CHAN_WIDTH_40)
+		{
 			val32 &= ~MODE_AG_CHANNEL_20MHZ;
+		}
 		else
+		{
 			val32 |= MODE_AG_CHANNEL_20MHZ;
+		}
+
 		rtl8xxxu_write_rfreg(priv, i, RF6052_REG_MODE_AG, val32);
 	}
 }
@@ -1274,83 +1456,108 @@ void rtl8xxxu_gen2_config_channel(struct ieee80211_hw *hw)
 	rsr = rtl8xxxu_read32(priv, REG_RESPONSE_RATE_SET);
 	channel = hw->conf.chandef.chan->hw_value;
 
-/* Hack */
+	/* Hack */
 	subchannel = 0;
 
-	switch (hw->conf.chandef.width) {
-	case NL80211_CHAN_WIDTH_20_NOHT:
-		ht = false;
-	case NL80211_CHAN_WIDTH_20:
-		rf_mode_bw |= WMAC_TRXPTCL_CTL_BW_20;
-		subchannel = 0;
+	switch (hw->conf.chandef.width)
+	{
+		case NL80211_CHAN_WIDTH_20_NOHT:
+			ht = false;
 
-		val32 = rtl8xxxu_read32(priv, REG_FPGA0_RF_MODE);
-		val32 &= ~FPGA_RF_MODE;
-		rtl8xxxu_write32(priv, REG_FPGA0_RF_MODE, val32);
+		case NL80211_CHAN_WIDTH_20:
+			rf_mode_bw |= WMAC_TRXPTCL_CTL_BW_20;
+			subchannel = 0;
 
-		val32 = rtl8xxxu_read32(priv, REG_FPGA1_RF_MODE);
-		val32 &= ~FPGA_RF_MODE;
-		rtl8xxxu_write32(priv, REG_FPGA1_RF_MODE, val32);
+			val32 = rtl8xxxu_read32(priv, REG_FPGA0_RF_MODE);
+			val32 &= ~FPGA_RF_MODE;
+			rtl8xxxu_write32(priv, REG_FPGA0_RF_MODE, val32);
 
-		val32 = rtl8xxxu_read32(priv, REG_OFDM0_TX_PSDO_NOISE_WEIGHT);
-		val32 &= ~(BIT(30) | BIT(31));
-		rtl8xxxu_write32(priv, REG_OFDM0_TX_PSDO_NOISE_WEIGHT, val32);
+			val32 = rtl8xxxu_read32(priv, REG_FPGA1_RF_MODE);
+			val32 &= ~FPGA_RF_MODE;
+			rtl8xxxu_write32(priv, REG_FPGA1_RF_MODE, val32);
 
-		break;
-	case NL80211_CHAN_WIDTH_40:
-		rf_mode_bw |= WMAC_TRXPTCL_CTL_BW_40;
+			val32 = rtl8xxxu_read32(priv, REG_OFDM0_TX_PSDO_NOISE_WEIGHT);
+			val32 &= ~(BIT(30) | BIT(31));
+			rtl8xxxu_write32(priv, REG_OFDM0_TX_PSDO_NOISE_WEIGHT, val32);
 
-		if (hw->conf.chandef.center_freq1 >
-		    hw->conf.chandef.chan->center_freq) {
-			sec_ch_above = 1;
-			channel += 2;
-		} else {
-			sec_ch_above = 0;
-			channel -= 2;
-		}
+			break;
 
-		val32 = rtl8xxxu_read32(priv, REG_FPGA0_RF_MODE);
-		val32 |= FPGA_RF_MODE;
-		rtl8xxxu_write32(priv, REG_FPGA0_RF_MODE, val32);
+		case NL80211_CHAN_WIDTH_40:
+			rf_mode_bw |= WMAC_TRXPTCL_CTL_BW_40;
 
-		val32 = rtl8xxxu_read32(priv, REG_FPGA1_RF_MODE);
-		val32 |= FPGA_RF_MODE;
-		rtl8xxxu_write32(priv, REG_FPGA1_RF_MODE, val32);
+			if (hw->conf.chandef.center_freq1 >
+				hw->conf.chandef.chan->center_freq)
+			{
+				sec_ch_above = 1;
+				channel += 2;
+			}
+			else
+			{
+				sec_ch_above = 0;
+				channel -= 2;
+			}
 
-		/*
-		 * Set Control channel to upper or lower. These settings
-		 * are required only for 40MHz
-		 */
-		val32 = rtl8xxxu_read32(priv, REG_CCK0_SYSTEM);
-		val32 &= ~CCK0_SIDEBAND;
-		if (!sec_ch_above)
-			val32 |= CCK0_SIDEBAND;
-		rtl8xxxu_write32(priv, REG_CCK0_SYSTEM, val32);
+			val32 = rtl8xxxu_read32(priv, REG_FPGA0_RF_MODE);
+			val32 |= FPGA_RF_MODE;
+			rtl8xxxu_write32(priv, REG_FPGA0_RF_MODE, val32);
 
-		val32 = rtl8xxxu_read32(priv, REG_OFDM1_LSTF);
-		val32 &= ~OFDM_LSTF_PRIME_CH_MASK; /* 0xc00 */
-		if (sec_ch_above)
-			val32 |= OFDM_LSTF_PRIME_CH_LOW;
-		else
-			val32 |= OFDM_LSTF_PRIME_CH_HIGH;
-		rtl8xxxu_write32(priv, REG_OFDM1_LSTF, val32);
+			val32 = rtl8xxxu_read32(priv, REG_FPGA1_RF_MODE);
+			val32 |= FPGA_RF_MODE;
+			rtl8xxxu_write32(priv, REG_FPGA1_RF_MODE, val32);
 
-		val32 = rtl8xxxu_read32(priv, REG_FPGA0_POWER_SAVE);
-		val32 &= ~(FPGA0_PS_LOWER_CHANNEL | FPGA0_PS_UPPER_CHANNEL);
-		if (sec_ch_above)
-			val32 |= FPGA0_PS_UPPER_CHANNEL;
-		else
-			val32 |= FPGA0_PS_LOWER_CHANNEL;
-		rtl8xxxu_write32(priv, REG_FPGA0_POWER_SAVE, val32);
-		break;
-	case NL80211_CHAN_WIDTH_80:
-		rf_mode_bw |= WMAC_TRXPTCL_CTL_BW_80;
-		break;
-	default:
-		break;
+			/*
+			 * Set Control channel to upper or lower. These settings
+			 * are required only for 40MHz
+			 */
+			val32 = rtl8xxxu_read32(priv, REG_CCK0_SYSTEM);
+			val32 &= ~CCK0_SIDEBAND;
+
+			if (!sec_ch_above)
+			{
+				val32 |= CCK0_SIDEBAND;
+			}
+
+			rtl8xxxu_write32(priv, REG_CCK0_SYSTEM, val32);
+
+			val32 = rtl8xxxu_read32(priv, REG_OFDM1_LSTF);
+			val32 &= ~OFDM_LSTF_PRIME_CH_MASK; /* 0xc00 */
+
+			if (sec_ch_above)
+			{
+				val32 |= OFDM_LSTF_PRIME_CH_LOW;
+			}
+			else
+			{
+				val32 |= OFDM_LSTF_PRIME_CH_HIGH;
+			}
+
+			rtl8xxxu_write32(priv, REG_OFDM1_LSTF, val32);
+
+			val32 = rtl8xxxu_read32(priv, REG_FPGA0_POWER_SAVE);
+			val32 &= ~(FPGA0_PS_LOWER_CHANNEL | FPGA0_PS_UPPER_CHANNEL);
+
+			if (sec_ch_above)
+			{
+				val32 |= FPGA0_PS_UPPER_CHANNEL;
+			}
+			else
+			{
+				val32 |= FPGA0_PS_LOWER_CHANNEL;
+			}
+
+			rtl8xxxu_write32(priv, REG_FPGA0_POWER_SAVE, val32);
+			break;
+
+		case NL80211_CHAN_WIDTH_80:
+			rf_mode_bw |= WMAC_TRXPTCL_CTL_BW_80;
+			break;
+
+		default:
+			break;
 	}
 
-	for (i = RF_A; i < priv->rf_paths; i++) {
+	for (i = RF_A; i < priv->rf_paths; i++)
+	{
 		val32 = rtl8xxxu_read_rfreg(priv, i, RF6052_REG_MODE_AG);
 		val32 &= ~MODE_AG_CHANNEL_MASK;
 		val32 |= channel;
@@ -1361,9 +1568,13 @@ void rtl8xxxu_gen2_config_channel(struct ieee80211_hw *hw)
 	rtl8xxxu_write8(priv, REG_DATA_SUBCHANNEL, subchannel);
 
 	if (ht)
+	{
 		val8 = 0x0e;
+	}
 	else
+	{
 		val8 = 0x0a;
+	}
 
 	rtl8xxxu_write8(priv, REG_SIFS_CCK + 1, val8);
 	rtl8xxxu_write8(priv, REG_SIFS_OFDM + 1, val8);
@@ -1371,20 +1582,26 @@ void rtl8xxxu_gen2_config_channel(struct ieee80211_hw *hw)
 	rtl8xxxu_write16(priv, REG_R2T_SIFS, 0x0808);
 	rtl8xxxu_write16(priv, REG_T2T_SIFS, 0x0a0a);
 
-	for (i = RF_A; i < priv->rf_paths; i++) {
+	for (i = RF_A; i < priv->rf_paths; i++)
+	{
 		val32 = rtl8xxxu_read_rfreg(priv, i, RF6052_REG_MODE_AG);
 		val32 &= ~MODE_AG_BW_MASK;
-		switch(hw->conf.chandef.width) {
-		case NL80211_CHAN_WIDTH_80:
-			val32 |= MODE_AG_BW_80MHZ_8723B;
-			break;
-		case NL80211_CHAN_WIDTH_40:
-			val32 |= MODE_AG_BW_40MHZ_8723B;
-			break;
-		default:
-			val32 |= MODE_AG_BW_20MHZ_8723B;
-			break;
+
+		switch (hw->conf.chandef.width)
+		{
+			case NL80211_CHAN_WIDTH_80:
+				val32 |= MODE_AG_BW_80MHZ_8723B;
+				break;
+
+			case NL80211_CHAN_WIDTH_40:
+				val32 |= MODE_AG_BW_40MHZ_8723B;
+				break;
+
+			default:
+				val32 |= MODE_AG_BW_20MHZ_8723B;
+				break;
 		}
+
 		rtl8xxxu_write_rfreg(priv, i, RF6052_REG_MODE_AG, val32);
 	}
 }
@@ -1404,48 +1621,74 @@ rtl8xxxu_gen1_set_tx_power(struct rtl8xxxu_priv *priv, int channel, bool ht40)
 	cck[0] = priv->cck_tx_power_index_A[group] - 1;
 	cck[1] = priv->cck_tx_power_index_B[group] - 1;
 
-	if (priv->hi_pa) {
+	if (priv->hi_pa)
+	{
 		if (cck[0] > 0x20)
+		{
 			cck[0] = 0x20;
+		}
+
 		if (cck[1] > 0x20)
+		{
 			cck[1] = 0x20;
+		}
 	}
 
 	ofdm[0] = priv->ht40_1s_tx_power_index_A[group];
 	ofdm[1] = priv->ht40_1s_tx_power_index_B[group];
+
 	if (ofdm[0])
+	{
 		ofdm[0] -= 1;
+	}
+
 	if (ofdm[1])
+	{
 		ofdm[1] -= 1;
+	}
 
 	ofdmbase[0] = ofdm[0] +	priv->ofdm_tx_power_index_diff[group].a;
 	ofdmbase[1] = ofdm[1] +	priv->ofdm_tx_power_index_diff[group].b;
 
 	mcsbase[0] = ofdm[0];
 	mcsbase[1] = ofdm[1];
-	if (!ht40) {
+
+	if (!ht40)
+	{
 		mcsbase[0] += priv->ht20_tx_power_index_diff[group].a;
 		mcsbase[1] += priv->ht20_tx_power_index_diff[group].b;
 	}
 
-	if (priv->tx_paths > 1) {
+	if (priv->tx_paths > 1)
+	{
 		if (ofdm[0] > priv->ht40_2s_tx_power_index_diff[group].a)
+		{
 			ofdm[0] -=  priv->ht40_2s_tx_power_index_diff[group].a;
+		}
+
 		if (ofdm[1] > priv->ht40_2s_tx_power_index_diff[group].b)
+		{
 			ofdm[1] -=  priv->ht40_2s_tx_power_index_diff[group].b;
+		}
 	}
 
 	if (rtl8xxxu_debug & RTL8XXXU_DEBUG_CHANNEL)
 		dev_info(&priv->udev->dev,
-			 "%s: Setting TX power CCK A: %02x, "
-			 "CCK B: %02x, OFDM A: %02x, OFDM B: %02x\n",
-			 __func__, cck[0], cck[1], ofdm[0], ofdm[1]);
+				 "%s: Setting TX power CCK A: %02x, "
+				 "CCK B: %02x, OFDM A: %02x, OFDM B: %02x\n",
+				 __func__, cck[0], cck[1], ofdm[0], ofdm[1]);
 
-	for (i = 0; i < RTL8723A_MAX_RF_PATHS; i++) {
+	for (i = 0; i < RTL8723A_MAX_RF_PATHS; i++)
+	{
 		if (cck[i] > RF6052_MAX_TX_PWR)
+		{
 			cck[i] = RF6052_MAX_TX_PWR;
+		}
+
 		if (ofdm[i] > RF6052_MAX_TX_PWR)
+		{
 			ofdm[i] = RF6052_MAX_TX_PWR;
+		}
 	}
 
 	val32 = rtl8xxxu_read32(priv, REG_TX_AGC_A_CCK1_MCS32);
@@ -1469,83 +1712,103 @@ rtl8xxxu_gen1_set_tx_power(struct rtl8xxxu_priv *priv, int channel, bool ht40)
 	rtl8xxxu_write32(priv, REG_TX_AGC_B_CCK1_55_MCS32, val32);
 
 	ofdm_a = ofdmbase[0] | ofdmbase[0] << 8 |
-		ofdmbase[0] << 16 | ofdmbase[0] << 24;
+			 ofdmbase[0] << 16 | ofdmbase[0] << 24;
 	ofdm_b = ofdmbase[1] | ofdmbase[1] << 8 |
-		ofdmbase[1] << 16 | ofdmbase[1] << 24;
+			 ofdmbase[1] << 16 | ofdmbase[1] << 24;
 
 	rtl8xxxu_write32(priv, REG_TX_AGC_A_RATE18_06,
-			 ofdm_a + power_base->reg_0e00);
+					 ofdm_a + power_base->reg_0e00);
 	rtl8xxxu_write32(priv, REG_TX_AGC_B_RATE18_06,
-			 ofdm_b + power_base->reg_0830);
+					 ofdm_b + power_base->reg_0830);
 
 	rtl8xxxu_write32(priv, REG_TX_AGC_A_RATE54_24,
-			 ofdm_a + power_base->reg_0e04);
+					 ofdm_a + power_base->reg_0e04);
 	rtl8xxxu_write32(priv, REG_TX_AGC_B_RATE54_24,
-			 ofdm_b + power_base->reg_0834);
+					 ofdm_b + power_base->reg_0834);
 
 	mcs_a = mcsbase[0] | mcsbase[0] << 8 |
-		mcsbase[0] << 16 | mcsbase[0] << 24;
+			mcsbase[0] << 16 | mcsbase[0] << 24;
 	mcs_b = mcsbase[1] | mcsbase[1] << 8 |
-		mcsbase[1] << 16 | mcsbase[1] << 24;
+			mcsbase[1] << 16 | mcsbase[1] << 24;
 
 	rtl8xxxu_write32(priv, REG_TX_AGC_A_MCS03_MCS00,
-			 mcs_a + power_base->reg_0e10);
+					 mcs_a + power_base->reg_0e10);
 	rtl8xxxu_write32(priv, REG_TX_AGC_B_MCS03_MCS00,
-			 mcs_b + power_base->reg_083c);
+					 mcs_b + power_base->reg_083c);
 
 	rtl8xxxu_write32(priv, REG_TX_AGC_A_MCS07_MCS04,
-			 mcs_a + power_base->reg_0e14);
+					 mcs_a + power_base->reg_0e14);
 	rtl8xxxu_write32(priv, REG_TX_AGC_B_MCS07_MCS04,
-			 mcs_b + power_base->reg_0848);
+					 mcs_b + power_base->reg_0848);
 
 	rtl8xxxu_write32(priv, REG_TX_AGC_A_MCS11_MCS08,
-			 mcs_a + power_base->reg_0e18);
+					 mcs_a + power_base->reg_0e18);
 	rtl8xxxu_write32(priv, REG_TX_AGC_B_MCS11_MCS08,
-			 mcs_b + power_base->reg_084c);
+					 mcs_b + power_base->reg_084c);
 
 	rtl8xxxu_write32(priv, REG_TX_AGC_A_MCS15_MCS12,
-			 mcs_a + power_base->reg_0e1c);
-	for (i = 0; i < 3; i++) {
+					 mcs_a + power_base->reg_0e1c);
+
+	for (i = 0; i < 3; i++)
+	{
 		if (i != 2)
+		{
 			val8 = (mcsbase[0] > 8) ? (mcsbase[0] - 8) : 0;
+		}
 		else
+		{
 			val8 = (mcsbase[0] > 6) ? (mcsbase[0] - 6) : 0;
+		}
+
 		rtl8xxxu_write8(priv, REG_OFDM0_XC_TX_IQ_IMBALANCE + i, val8);
 	}
+
 	rtl8xxxu_write32(priv, REG_TX_AGC_B_MCS15_MCS12,
-			 mcs_b + power_base->reg_0868);
-	for (i = 0; i < 3; i++) {
+					 mcs_b + power_base->reg_0868);
+
+	for (i = 0; i < 3; i++)
+	{
 		if (i != 2)
+		{
 			val8 = (mcsbase[1] > 8) ? (mcsbase[1] - 8) : 0;
+		}
 		else
+		{
 			val8 = (mcsbase[1] > 6) ? (mcsbase[1] - 6) : 0;
+		}
+
 		rtl8xxxu_write8(priv, REG_OFDM0_XD_TX_IQ_IMBALANCE + i, val8);
 	}
 }
 
 static void rtl8xxxu_set_linktype(struct rtl8xxxu_priv *priv,
-				  enum nl80211_iftype linktype)
+								  enum nl80211_iftype linktype)
 {
 	u8 val8;
 
 	val8 = rtl8xxxu_read8(priv, REG_MSR);
 	val8 &= ~MSR_LINKTYPE_MASK;
 
-	switch (linktype) {
-	case NL80211_IFTYPE_UNSPECIFIED:
-		val8 |= MSR_LINKTYPE_NONE;
-		break;
-	case NL80211_IFTYPE_ADHOC:
-		val8 |= MSR_LINKTYPE_ADHOC;
-		break;
-	case NL80211_IFTYPE_STATION:
-		val8 |= MSR_LINKTYPE_STATION;
-		break;
-	case NL80211_IFTYPE_AP:
-		val8 |= MSR_LINKTYPE_AP;
-		break;
-	default:
-		goto out;
+	switch (linktype)
+	{
+		case NL80211_IFTYPE_UNSPECIFIED:
+			val8 |= MSR_LINKTYPE_NONE;
+			break;
+
+		case NL80211_IFTYPE_ADHOC:
+			val8 |= MSR_LINKTYPE_ADHOC;
+			break;
+
+		case NL80211_IFTYPE_STATION:
+			val8 |= MSR_LINKTYPE_STATION;
+			break;
+
+		case NL80211_IFTYPE_AP:
+			val8 |= MSR_LINKTYPE_AP;
+			break;
+
+		default:
+			goto out;
 	}
 
 	rtl8xxxu_write8(priv, REG_MSR, val8);
@@ -1559,9 +1822,9 @@ rtl8xxxu_set_retry(struct rtl8xxxu_priv *priv, u16 short_retry, u16 long_retry)
 	u16 val16;
 
 	val16 = ((short_retry << RETRY_LIMIT_SHORT_SHIFT) &
-		 RETRY_LIMIT_SHORT_MASK) |
-		((long_retry << RETRY_LIMIT_LONG_SHIFT) &
-		 RETRY_LIMIT_LONG_MASK);
+			 RETRY_LIMIT_SHORT_MASK) |
+			((long_retry << RETRY_LIMIT_LONG_SHIFT) &
+			 RETRY_LIMIT_LONG_MASK);
 
 	rtl8xxxu_write16(priv, REG_RETRY_LIMIT, val16);
 }
@@ -1572,7 +1835,7 @@ rtl8xxxu_set_spec_sifs(struct rtl8xxxu_priv *priv, u16 cck, u16 ofdm)
 	u16 val16;
 
 	val16 = ((cck << SPEC_SIFS_CCK_SHIFT) & SPEC_SIFS_CCK_MASK) |
-		((ofdm << SPEC_SIFS_OFDM_SHIFT) & SPEC_SIFS_OFDM_MASK);
+			((ofdm << SPEC_SIFS_OFDM_SHIFT) & SPEC_SIFS_OFDM_MASK);
 
 	rtl8xxxu_write16(priv, REG_SPEC_SIFS, val16);
 }
@@ -1582,31 +1845,37 @@ static void rtl8xxxu_print_chipinfo(struct rtl8xxxu_priv *priv)
 	struct device *dev = &priv->udev->dev;
 	char *cut;
 
-	switch (priv->chip_cut) {
-	case 0:
-		cut = "A";
-		break;
-	case 1:
-		cut = "B";
-		break;
-	case 2:
-		cut = "C";
-		break;
-	case 3:
-		cut = "D";
-		break;
-	case 4:
-		cut = "E";
-		break;
-	default:
-		cut = "unknown";
+	switch (priv->chip_cut)
+	{
+		case 0:
+			cut = "A";
+			break;
+
+		case 1:
+			cut = "B";
+			break;
+
+		case 2:
+			cut = "C";
+			break;
+
+		case 3:
+			cut = "D";
+			break;
+
+		case 4:
+			cut = "E";
+			break;
+
+		default:
+			cut = "unknown";
 	}
 
 	dev_info(dev,
-		 "RTL%s rev %s (%s) %iT%iR, TX queues %i, WiFi=%i, BT=%i, GPS=%i, HI PA=%i\n",
-		 priv->chip_name, cut, priv->chip_vendor, priv->tx_paths,
-		 priv->rx_paths, priv->ep_tx_count, priv->has_wifi,
-		 priv->has_bluetooth, priv->has_gps, priv->hi_pa);
+			 "RTL%s rev %s (%s) %iT%iR, TX queues %i, WiFi=%i, BT=%i, GPS=%i, HI PA=%i\n",
+			 priv->chip_name, cut, priv->chip_vendor, priv->tx_paths,
+			 priv->rx_paths, priv->ep_tx_count, priv->has_wifi,
+			 priv->has_bluetooth, priv->has_gps, priv->hi_pa);
 
 	dev_info(dev, "RTL%s MAC: %pM\n", priv->chip_name, priv->mac_addr);
 }
@@ -1619,17 +1888,23 @@ static int rtl8xxxu_identify_chip(struct rtl8xxxu_priv *priv)
 
 	val32 = rtl8xxxu_read32(priv, REG_SYS_CFG);
 	priv->chip_cut = (val32 & SYS_CFG_CHIP_VERSION_MASK) >>
-		SYS_CFG_CHIP_VERSION_SHIFT;
-	if (val32 & SYS_CFG_TRP_VAUX_EN) {
+					 SYS_CFG_CHIP_VERSION_SHIFT;
+
+	if (val32 & SYS_CFG_TRP_VAUX_EN)
+	{
 		dev_info(dev, "Unsupported test chip\n");
 		return -ENOTSUPP;
 	}
 
-	if (val32 & SYS_CFG_BT_FUNC) {
-		if (priv->chip_cut >= 3) {
+	if (val32 & SYS_CFG_BT_FUNC)
+	{
+		if (priv->chip_cut >= 3)
+		{
 			sprintf(priv->chip_name, "8723BU");
 			priv->rtl_chip = RTL8723B;
-		} else {
+		}
+		else
+		{
 			sprintf(priv->chip_name, "8723AU");
 			priv->usb_interrupts = 1;
 			priv->rtl_chip = RTL8723A;
@@ -1640,39 +1915,60 @@ static int rtl8xxxu_identify_chip(struct rtl8xxxu_priv *priv)
 		priv->tx_paths = 1;
 
 		val32 = rtl8xxxu_read32(priv, REG_MULTI_FUNC_CTRL);
+
 		if (val32 & MULTI_WIFI_FUNC_EN)
+		{
 			priv->has_wifi = 1;
+		}
+
 		if (val32 & MULTI_BT_FUNC_EN)
+		{
 			priv->has_bluetooth = 1;
+		}
+
 		if (val32 & MULTI_GPS_FUNC_EN)
+		{
 			priv->has_gps = 1;
+		}
+
 		priv->is_multi_func = 1;
-	} else if (val32 & SYS_CFG_TYPE_ID) {
+	}
+	else if (val32 & SYS_CFG_TYPE_ID)
+	{
 		bonding = rtl8xxxu_read32(priv, REG_HPON_FSM);
 		bonding &= HPON_FSM_BONDING_MASK;
+
 		if (priv->fops->tx_desc_size ==
-		    sizeof(struct rtl8xxxu_txdesc40)) {
-			if (bonding == HPON_FSM_BONDING_1T2R) {
+			sizeof(struct rtl8xxxu_txdesc40))
+		{
+			if (bonding == HPON_FSM_BONDING_1T2R)
+			{
 				sprintf(priv->chip_name, "8191EU");
 				priv->rf_paths = 2;
 				priv->rx_paths = 2;
 				priv->tx_paths = 1;
 				priv->rtl_chip = RTL8191E;
-			} else {
+			}
+			else
+			{
 				sprintf(priv->chip_name, "8192EU");
 				priv->rf_paths = 2;
 				priv->rx_paths = 2;
 				priv->tx_paths = 2;
 				priv->rtl_chip = RTL8192E;
 			}
-		} else if (bonding == HPON_FSM_BONDING_1T2R) {
+		}
+		else if (bonding == HPON_FSM_BONDING_1T2R)
+		{
 			sprintf(priv->chip_name, "8191CU");
 			priv->rf_paths = 2;
 			priv->rx_paths = 2;
 			priv->tx_paths = 1;
 			priv->usb_interrupts = 1;
 			priv->rtl_chip = RTL8191C;
-		} else {
+		}
+		else
+		{
 			sprintf(priv->chip_name, "8192CU");
 			priv->rf_paths = 2;
 			priv->rx_paths = 2;
@@ -1680,8 +1976,11 @@ static int rtl8xxxu_identify_chip(struct rtl8xxxu_priv *priv)
 			priv->usb_interrupts = 1;
 			priv->rtl_chip = RTL8192C;
 		}
+
 		priv->has_wifi = 1;
-	} else {
+	}
+	else
+	{
 		sprintf(priv->chip_name, "8188CU");
 		priv->rf_paths = 1;
 		priv->rx_paths = 1;
@@ -1691,50 +1990,64 @@ static int rtl8xxxu_identify_chip(struct rtl8xxxu_priv *priv)
 		priv->has_wifi = 1;
 	}
 
-	switch (priv->rtl_chip) {
-	case RTL8188E:
-	case RTL8192E:
-	case RTL8723B:
-		switch (val32 & SYS_CFG_VENDOR_EXT_MASK) {
-		case SYS_CFG_VENDOR_ID_TSMC:
-			sprintf(priv->chip_vendor, "TSMC");
+	switch (priv->rtl_chip)
+	{
+		case RTL8188E:
+		case RTL8192E:
+		case RTL8723B:
+			switch (val32 & SYS_CFG_VENDOR_EXT_MASK)
+			{
+				case SYS_CFG_VENDOR_ID_TSMC:
+					sprintf(priv->chip_vendor, "TSMC");
+					break;
+
+				case SYS_CFG_VENDOR_ID_SMIC:
+					sprintf(priv->chip_vendor, "SMIC");
+					priv->vendor_smic = 1;
+					break;
+
+				case SYS_CFG_VENDOR_ID_UMC:
+					sprintf(priv->chip_vendor, "UMC");
+					priv->vendor_umc = 1;
+					break;
+
+				default:
+					sprintf(priv->chip_vendor, "unknown");
+			}
+
 			break;
-		case SYS_CFG_VENDOR_ID_SMIC:
-			sprintf(priv->chip_vendor, "SMIC");
-			priv->vendor_smic = 1;
-			break;
-		case SYS_CFG_VENDOR_ID_UMC:
-			sprintf(priv->chip_vendor, "UMC");
-			priv->vendor_umc = 1;
-			break;
+
 		default:
-			sprintf(priv->chip_vendor, "unknown");
-		}
-		break;
-	default:
-		if (val32 & SYS_CFG_VENDOR_ID) {
-			sprintf(priv->chip_vendor, "UMC");
-			priv->vendor_umc = 1;
-		} else {
-			sprintf(priv->chip_vendor, "TSMC");
-		}
+			if (val32 & SYS_CFG_VENDOR_ID)
+			{
+				sprintf(priv->chip_vendor, "UMC");
+				priv->vendor_umc = 1;
+			}
+			else
+			{
+				sprintf(priv->chip_vendor, "TSMC");
+			}
 	}
 
 	val32 = rtl8xxxu_read32(priv, REG_GPIO_OUTSTS);
 	priv->rom_rev = (val32 & GPIO_RF_RL_ID) >> 28;
 
 	val16 = rtl8xxxu_read16(priv, REG_NORMAL_SIE_EP_TX);
-	if (val16 & NORMAL_SIE_EP_TX_HIGH_MASK) {
+
+	if (val16 & NORMAL_SIE_EP_TX_HIGH_MASK)
+	{
 		priv->ep_tx_high_queue = 1;
 		priv->ep_tx_count++;
 	}
 
-	if (val16 & NORMAL_SIE_EP_TX_NORMAL_MASK) {
+	if (val16 & NORMAL_SIE_EP_TX_NORMAL_MASK)
+	{
 		priv->ep_tx_normal_queue = 1;
 		priv->ep_tx_count++;
 	}
 
-	if (val16 & NORMAL_SIE_EP_TX_LOW_MASK) {
+	if (val16 & NORMAL_SIE_EP_TX_LOW_MASK)
+	{
 		priv->ep_tx_low_queue = 1;
 		priv->ep_tx_count++;
 	}
@@ -1742,22 +2055,27 @@ static int rtl8xxxu_identify_chip(struct rtl8xxxu_priv *priv)
 	/*
 	 * Fallback for devices that do not provide REG_NORMAL_SIE_EP_TX
 	 */
-	if (!priv->ep_tx_count) {
-		switch (priv->nr_out_eps) {
-		case 4:
-		case 3:
-			priv->ep_tx_low_queue = 1;
-			priv->ep_tx_count++;
-		case 2:
-			priv->ep_tx_normal_queue = 1;
-			priv->ep_tx_count++;
-		case 1:
-			priv->ep_tx_high_queue = 1;
-			priv->ep_tx_count++;
-			break;
-		default:
-			dev_info(dev, "Unsupported USB TX end-points\n");
-			return -ENOTSUPP;
+	if (!priv->ep_tx_count)
+	{
+		switch (priv->nr_out_eps)
+		{
+			case 4:
+			case 3:
+				priv->ep_tx_low_queue = 1;
+				priv->ep_tx_count++;
+
+			case 2:
+				priv->ep_tx_normal_queue = 1;
+				priv->ep_tx_count++;
+
+			case 1:
+				priv->ep_tx_high_queue = 1;
+				priv->ep_tx_count++;
+				break;
+
+			default:
+				dev_info(dev, "Unsupported USB TX end-points\n");
+				return -ENOTSUPP;
 		}
 	}
 
@@ -1783,14 +2101,21 @@ rtl8xxxu_read_efuse8(struct rtl8xxxu_priv *priv, u16 offset, u8 *data)
 
 	/* Poll for data read */
 	val32 = rtl8xxxu_read32(priv, REG_EFUSE_CTRL);
-	for (i = 0; i < RTL8XXXU_MAX_REG_POLL; i++) {
+
+	for (i = 0; i < RTL8XXXU_MAX_REG_POLL; i++)
+	{
 		val32 = rtl8xxxu_read32(priv, REG_EFUSE_CTRL);
+
 		if (val32 & BIT(31))
+		{
 			break;
+		}
 	}
 
 	if (i == RTL8XXXU_MAX_REG_POLL)
+	{
 		return -EIO;
+	}
 
 	udelay(50);
 	val32 = rtl8xxxu_read32(priv, REG_EFUSE_CTRL);
@@ -1808,31 +2133,43 @@ static int rtl8xxxu_read_efuse(struct rtl8xxxu_priv *priv)
 	u32 val32;
 
 	val16 = rtl8xxxu_read16(priv, REG_9346CR);
-	if (val16 & EEPROM_ENABLE)
-		priv->has_eeprom = 1;
-	if (val16 & EEPROM_BOOT)
-		priv->boot_eeprom = 1;
 
-	if (priv->is_multi_func) {
+	if (val16 & EEPROM_ENABLE)
+	{
+		priv->has_eeprom = 1;
+	}
+
+	if (val16 & EEPROM_BOOT)
+	{
+		priv->boot_eeprom = 1;
+	}
+
+	if (priv->is_multi_func)
+	{
 		val32 = rtl8xxxu_read32(priv, REG_EFUSE_TEST);
 		val32 = (val32 & ~EFUSE_SELECT_MASK) | EFUSE_WIFI_SELECT;
 		rtl8xxxu_write32(priv, REG_EFUSE_TEST, val32);
 	}
 
 	dev_dbg(dev, "Booting from %s\n",
-		priv->boot_eeprom ? "EEPROM" : "EFUSE");
+			priv->boot_eeprom ? "EEPROM" : "EFUSE");
 
 	rtl8xxxu_write8(priv, REG_EFUSE_ACCESS, EFUSE_ACCESS_ENABLE);
 
 	/*  1.2V Power: From VDDON with Power Cut(0x0000[15]), default valid */
 	val16 = rtl8xxxu_read16(priv, REG_SYS_ISO_CTRL);
-	if (!(val16 & SYS_ISO_PWC_EV12V)) {
+
+	if (!(val16 & SYS_ISO_PWC_EV12V))
+	{
 		val16 |= SYS_ISO_PWC_EV12V;
 		rtl8xxxu_write16(priv, REG_SYS_ISO_CTRL, val16);
 	}
+
 	/*  Reset: 0x0000[28], default valid */
 	val16 = rtl8xxxu_read16(priv, REG_SYS_FUNC);
-	if (!(val16 & SYS_FUNC_ELDR)) {
+
+	if (!(val16 & SYS_FUNC_ELDR))
+	{
 		val16 |= SYS_FUNC_ELDR;
 		rtl8xxxu_write16(priv, REG_SYS_FUNC, val16);
 	}
@@ -1841,7 +2178,9 @@ static int rtl8xxxu_read_efuse(struct rtl8xxxu_priv *priv)
 	 * Clock: Gated(0x0008[5]) 8M(0x0008[1]) clock from ANA, default valid
 	 */
 	val16 = rtl8xxxu_read16(priv, REG_SYS_CLKR);
-	if (!(val16 & SYS_CLK_LOADER_ENABLE) || !(val16 & SYS_CLK_ANA8M)) {
+
+	if (!(val16 & SYS_CLK_LOADER_ENABLE) || !(val16 & SYS_CLK_ANA8M))
+	{
 		val16 |= (SYS_CLK_LOADER_ENABLE | SYS_CLK_ANA8M);
 		rtl8xxxu_write16(priv, REG_SYS_CLKR, val16);
 	}
@@ -1850,27 +2189,41 @@ static int rtl8xxxu_read_efuse(struct rtl8xxxu_priv *priv)
 	memset(priv->efuse_wifi.raw, 0xff, EFUSE_MAP_LEN);
 
 	efuse_addr = 0;
-	while (efuse_addr < EFUSE_REAL_CONTENT_LEN_8723A) {
+
+	while (efuse_addr < EFUSE_REAL_CONTENT_LEN_8723A)
+	{
 		u16 map_addr;
 
 		ret = rtl8xxxu_read_efuse8(priv, efuse_addr++, &header);
-		if (ret || header == 0xff)
-			goto exit;
 
-		if ((header & 0x1f) == 0x0f) {	/* extended header */
+		if (ret || header == 0xff)
+		{
+			goto exit;
+		}
+
+		if ((header & 0x1f) == 0x0f)  	/* extended header */
+		{
 			offset = (header & 0xe0) >> 5;
 
 			ret = rtl8xxxu_read_efuse8(priv, efuse_addr++,
-						   &extheader);
+									   &extheader);
+
 			if (ret)
+			{
 				goto exit;
+			}
+
 			/* All words disabled */
 			if ((extheader & 0x0f) == 0x0f)
+			{
 				continue;
+			}
 
 			offset |= ((extheader & 0xf0) >> 1);
 			word_mask = extheader & 0x0f;
-		} else {
+		}
+		else
+		{
 			offset = (header >> 4) & 0x0f;
 			word_mask = header & 0x0f;
 		}
@@ -1879,28 +2232,41 @@ static int rtl8xxxu_read_efuse(struct rtl8xxxu_priv *priv)
 
 		/* We have 8 bits to indicate validity */
 		map_addr = offset * 8;
-		if (map_addr >= EFUSE_MAP_LEN) {
+
+		if (map_addr >= EFUSE_MAP_LEN)
+		{
 			dev_warn(dev, "%s: Illegal map_addr (%04x), "
-				 "efuse corrupt!\n",
-				 __func__, map_addr);
+					 "efuse corrupt!\n",
+					 __func__, map_addr);
 			ret = -EINVAL;
 			goto exit;
 		}
-		for (i = 0; i < EFUSE_MAX_WORD_UNIT; i++) {
+
+		for (i = 0; i < EFUSE_MAX_WORD_UNIT; i++)
+		{
 			/* Check word enable condition in the section */
-			if (word_mask & BIT(i)) {
+			if (word_mask & BIT(i))
+			{
 				map_addr += 2;
 				continue;
 			}
 
 			ret = rtl8xxxu_read_efuse8(priv, efuse_addr++, &val8);
+
 			if (ret)
+			{
 				goto exit;
+			}
+
 			priv->efuse_wifi.raw[map_addr++] = val8;
 
 			ret = rtl8xxxu_read_efuse8(priv, efuse_addr++, &val8);
+
 			if (ret)
+			{
 				goto exit;
+			}
+
 			priv->efuse_wifi.raw[map_addr++] = val8;
 		}
 	}
@@ -1939,13 +2305,18 @@ static int rtl8xxxu_start_firmware(struct rtl8xxxu_priv *priv)
 	u32 val32;
 
 	/* Poll checksum report */
-	for (i = 0; i < RTL8XXXU_FIRMWARE_POLL_MAX; i++) {
+	for (i = 0; i < RTL8XXXU_FIRMWARE_POLL_MAX; i++)
+	{
 		val32 = rtl8xxxu_read32(priv, REG_MCU_FW_DL);
+
 		if (val32 & MCU_FW_DL_CSUM_REPORT)
+		{
 			break;
+		}
 	}
 
-	if (i == RTL8XXXU_FIRMWARE_POLL_MAX) {
+	if (i == RTL8XXXU_FIRMWARE_POLL_MAX)
+	{
 		dev_warn(dev, "Firmware checksum poll timed out\n");
 		ret = -EAGAIN;
 		goto exit;
@@ -1963,15 +2334,20 @@ static int rtl8xxxu_start_firmware(struct rtl8xxxu_priv *priv)
 	priv->fops->reset_8051(priv);
 
 	/* Wait for firmware to become ready */
-	for (i = 0; i < RTL8XXXU_FIRMWARE_POLL_MAX; i++) {
+	for (i = 0; i < RTL8XXXU_FIRMWARE_POLL_MAX; i++)
+	{
 		val32 = rtl8xxxu_read32(priv, REG_MCU_FW_DL);
+
 		if (val32 & MCU_WINT_INIT_READY)
+		{
 			break;
+		}
 
 		udelay(100);
 	}
 
-	if (i == RTL8XXXU_FIRMWARE_POLL_MAX) {
+	if (i == RTL8XXXU_FIRMWARE_POLL_MAX)
+	{
 		dev_warn(dev, "Firmware failed to start\n");
 		ret = -EAGAIN;
 		goto exit;
@@ -1981,7 +2357,10 @@ static int rtl8xxxu_start_firmware(struct rtl8xxxu_priv *priv)
 	 * Init H2C command
 	 */
 	if (priv->rtl_chip == RTL8723B)
+	{
 		rtl8xxxu_write8(priv, REG_HMTFR, 0x0f);
+	}
+
 exit:
 	return ret;
 }
@@ -2004,7 +2383,9 @@ static int rtl8xxxu_download_firmware(struct rtl8xxxu_priv *priv)
 	rtl8xxxu_write16(priv, REG_SYS_FUNC, val16);
 
 	val8 = rtl8xxxu_read8(priv, REG_MCU_FW_DL);
-	if (val8 & MCU_FW_RAM_SEL) {
+
+	if (val8 & MCU_FW_RAM_SEL)
+	{
 		pr_info("do the RAM reset\n");
 		rtl8xxxu_write8(priv, REG_MCU_FW_DL, 0x00);
 		priv->fops->reset_8051(priv);
@@ -2030,14 +2411,17 @@ static int rtl8xxxu_download_firmware(struct rtl8xxxu_priv *priv)
 
 	fwptr = priv->fw_data->data;
 
-	for (i = 0; i < pages; i++) {
+	for (i = 0; i < pages; i++)
+	{
 		val8 = rtl8xxxu_read8(priv, REG_MCU_FW_DL + 2) & 0xF8;
 		val8 |= i;
 		rtl8xxxu_write8(priv, REG_MCU_FW_DL + 2, val8);
 
 		ret = rtl8xxxu_writeN(priv, REG_FW_START_ADDRESS,
-				      fwptr, RTL_FW_PAGE_SIZE);
-		if (ret != RTL_FW_PAGE_SIZE) {
+							  fwptr, RTL_FW_PAGE_SIZE);
+
+		if (ret != RTL_FW_PAGE_SIZE)
+		{
 			ret = -EAGAIN;
 			goto fw_abort;
 		}
@@ -2045,13 +2429,16 @@ static int rtl8xxxu_download_firmware(struct rtl8xxxu_priv *priv)
 		fwptr += RTL_FW_PAGE_SIZE;
 	}
 
-	if (remainder) {
+	if (remainder)
+	{
 		val8 = rtl8xxxu_read8(priv, REG_MCU_FW_DL + 2) & 0xF8;
 		val8 |= i;
 		rtl8xxxu_write8(priv, REG_MCU_FW_DL + 2, val8);
 		ret = rtl8xxxu_writeN(priv, REG_FW_START_ADDRESS,
-				      fwptr, remainder);
-		if (ret != remainder) {
+							  fwptr, remainder);
+
+		if (ret != remainder)
+		{
 			ret = -EAGAIN;
 			goto fw_abort;
 		}
@@ -2075,41 +2462,51 @@ int rtl8xxxu_load_firmware(struct rtl8xxxu_priv *priv, char *fw_name)
 	u16 signature;
 
 	dev_info(dev, "%s: Loading firmware %s\n", DRIVER_NAME, fw_name);
-	if (request_firmware(&fw, fw_name, &priv->udev->dev)) {
+
+	if (request_firmware(&fw, fw_name, &priv->udev->dev))
+	{
 		dev_warn(dev, "request_firmware(%s) failed\n", fw_name);
 		ret = -EAGAIN;
 		goto exit;
 	}
-	if (!fw) {
+
+	if (!fw)
+	{
 		dev_warn(dev, "Firmware data not available\n");
 		ret = -EINVAL;
 		goto exit;
 	}
 
 	priv->fw_data = kmemdup(fw->data, fw->size, GFP_KERNEL);
-	if (!priv->fw_data) {
+
+	if (!priv->fw_data)
+	{
 		ret = -ENOMEM;
 		goto exit;
 	}
+
 	priv->fw_size = fw->size - sizeof(struct rtl8xxxu_firmware_header);
 
 	signature = le16_to_cpu(priv->fw_data->signature);
-	switch (signature & 0xfff0) {
-	case 0x92e0:
-	case 0x92c0:
-	case 0x88c0:
-	case 0x5300:
-	case 0x2300:
-		break;
-	default:
-		ret = -EINVAL;
-		dev_warn(dev, "%s: Invalid firmware signature: 0x%04x\n",
-			 __func__, signature);
+
+	switch (signature & 0xfff0)
+	{
+		case 0x92e0:
+		case 0x92c0:
+		case 0x88c0:
+		case 0x5300:
+		case 0x2300:
+			break;
+
+		default:
+			ret = -EINVAL;
+			dev_warn(dev, "%s: Invalid firmware signature: 0x%04x\n",
+					 __func__, signature);
 	}
 
 	dev_info(dev, "Firmware revision %i.%i (signature 0x%04x)\n",
-		 le16_to_cpu(priv->fw_data->major_version),
-		 priv->fw_data->minor_version, signature);
+			 le16_to_cpu(priv->fw_data->major_version),
+			 priv->fw_data->minor_version, signature);
 
 exit:
 	release_firmware(fw);
@@ -2124,18 +2521,22 @@ void rtl8xxxu_firmware_self_reset(struct rtl8xxxu_priv *priv)
 	/* Inform 8051 to perform reset */
 	rtl8xxxu_write8(priv, REG_HMTFR + 3, 0x20);
 
-	for (i = 100; i > 0; i--) {
+	for (i = 100; i > 0; i--)
+	{
 		val16 = rtl8xxxu_read16(priv, REG_SYS_FUNC);
 
-		if (!(val16 & SYS_FUNC_CPU_ENABLE)) {
+		if (!(val16 & SYS_FUNC_CPU_ENABLE))
+		{
 			dev_dbg(&priv->udev->dev,
-				"%s: Firmware self reset success!\n", __func__);
+					"%s: Firmware self reset success!\n", __func__);
 			break;
 		}
+
 		udelay(50);
 	}
 
-	if (!i) {
+	if (!i)
+	{
 		/* Force firmware reset */
 		val16 = rtl8xxxu_read16(priv, REG_SYS_FUNC);
 		val16 &= ~SYS_FUNC_CPU_ENABLE;
@@ -2151,48 +2552,61 @@ rtl8xxxu_init_mac(struct rtl8xxxu_priv *priv)
 	u16 reg;
 	u8 val;
 
-	for (i = 0; ; i++) {
+	for (i = 0; ; i++)
+	{
 		reg = array[i].reg;
 		val = array[i].val;
 
 		if (reg == 0xffff && val == 0xff)
+		{
 			break;
+		}
 
 		ret = rtl8xxxu_write8(priv, reg, val);
-		if (ret != 1) {
+
+		if (ret != 1)
+		{
 			dev_warn(&priv->udev->dev,
-				 "Failed to initialize MAC "
-				 "(reg: %04x, val %02x)\n", reg, val);
+					 "Failed to initialize MAC "
+					 "(reg: %04x, val %02x)\n", reg, val);
 			return -EAGAIN;
 		}
 	}
 
 	if (priv->rtl_chip != RTL8723B && priv->rtl_chip != RTL8192E)
+	{
 		rtl8xxxu_write8(priv, REG_MAX_AGGR_NUM, 0x0a);
+	}
 
 	return 0;
 }
 
 int rtl8xxxu_init_phy_regs(struct rtl8xxxu_priv *priv,
-			   struct rtl8xxxu_reg32val *array)
+						   struct rtl8xxxu_reg32val *array)
 {
 	int i, ret;
 	u16 reg;
 	u32 val;
 
-	for (i = 0; ; i++) {
+	for (i = 0; ; i++)
+	{
 		reg = array[i].reg;
 		val = array[i].val;
 
 		if (reg == 0xffff && val == 0xffffffff)
+		{
 			break;
+		}
 
 		ret = rtl8xxxu_write32(priv, reg, val);
-		if (ret != sizeof(val)) {
+
+		if (ret != sizeof(val))
+		{
 			dev_warn(&priv->udev->dev,
-				 "Failed to initialize PHY\n");
+					 "Failed to initialize PHY\n");
 			return -EAGAIN;
 		}
+
 		udelay(1);
 	}
 
@@ -2220,8 +2634,12 @@ void rtl8xxxu_gen1_init_phy_bb(struct rtl8xxxu_priv *priv)
 
 	val32 = rtl8xxxu_read32(priv, REG_AFE_XTAL_CTRL);
 	val32 &= ~AFE_XTAL_RF_GATE;
+
 	if (priv->has_bluetooth)
+	{
 		val32 &= ~AFE_XTAL_BT_GATE;
+	}
+
 	rtl8xxxu_write32(priv, REG_AFE_XTAL_CTRL, val32);
 
 	/* 6. 0x1f[7:0] = 0x07 */
@@ -2229,20 +2647,32 @@ void rtl8xxxu_gen1_init_phy_bb(struct rtl8xxxu_priv *priv)
 	rtl8xxxu_write8(priv, REG_RF_CTRL, val8);
 
 	if (priv->hi_pa)
+	{
 		rtl8xxxu_init_phy_regs(priv, rtl8188ru_phy_1t_highpa_table);
+	}
 	else if (priv->tx_paths == 2)
+	{
 		rtl8xxxu_init_phy_regs(priv, rtl8192cu_phy_2t_init_table);
+	}
 	else
+	{
 		rtl8xxxu_init_phy_regs(priv, rtl8723a_phy_1t_init_table);
+	}
 
 	if (priv->rtl_chip == RTL8188R && priv->hi_pa &&
-	    priv->vendor_umc && priv->chip_cut == 1)
+		priv->vendor_umc && priv->chip_cut == 1)
+	{
 		rtl8xxxu_write8(priv, REG_OFDM0_AGC_PARM1 + 2, 0x50);
+	}
 
 	if (priv->hi_pa)
+	{
 		rtl8xxxu_init_phy_regs(priv, rtl8xxx_agc_highpa_table);
+	}
 	else
+	{
 		rtl8xxxu_init_phy_regs(priv, rtl8xxx_agc_standard_table);
+	}
 
 	ldoa15 = LDOA15_ENABLE | LDOA15_OBUF;
 	ldov12d = LDOV12D_ENABLE | BIT(2) | (2 << LDOV12D_VADJ_SHIFT);
@@ -2262,7 +2692,8 @@ static int rtl8xxxu_init_phy_bb(struct rtl8xxxu_priv *priv)
 
 	priv->fops->init_phy_bb(priv);
 
-	if (priv->tx_paths == 1 && priv->rx_paths == 2) {
+	if (priv->tx_paths == 1 && priv->rx_paths == 2)
+	{
 		/*
 		 * For 1T2R boards, patch the registers.
 		 *
@@ -2288,7 +2719,7 @@ static int rtl8xxxu_init_phy_bb(struct rtl8xxxu_priv *priv)
 		val32 = rtl8xxxu_read32(priv, REG_OFDM0_TRX_PATH_ENABLE);
 		val32 &= ~(OFDM_RF_PATH_RX_MASK | OFDM_RF_PATH_TX_MASK);
 		val32 |= (OFDM_RF_PATH_RX_A | OFDM_RF_PATH_RX_B |
-			  OFDM_RF_PATH_TX_B);
+				  OFDM_RF_PATH_TX_B);
 		rtl8xxxu_write32(priv, REG_OFDM0_TRX_PATH_ENABLE, val32);
 
 		val32 = rtl8xxxu_read32(priv, REG_OFDM0_AGC_PARM1);
@@ -2322,7 +2753,8 @@ static int rtl8xxxu_init_phy_bb(struct rtl8xxxu_priv *priv)
 		rtl8xxxu_write32(priv, REG_TX_TO_TX, val32);
 	}
 
-	if (priv->has_xtalk) {
+	if (priv->has_xtalk)
+	{
 		val32 = rtl8xxxu_read32(priv, REG_MAC_PHY_CTRL);
 
 		val8 = priv->xtalk;
@@ -2333,53 +2765,67 @@ static int rtl8xxxu_init_phy_bb(struct rtl8xxxu_priv *priv)
 	}
 
 	if (priv->rtl_chip == RTL8192E)
+	{
 		rtl8xxxu_write32(priv, REG_AFE_XTAL_CTRL, 0x000f81fb);
+	}
 
 	return 0;
 }
 
 static int rtl8xxxu_init_rf_regs(struct rtl8xxxu_priv *priv,
-				 struct rtl8xxxu_rfregval *array,
-				 enum rtl8xxxu_rfpath path)
+								 struct rtl8xxxu_rfregval *array,
+								 enum rtl8xxxu_rfpath path)
 {
 	int i, ret;
 	u8 reg;
 	u32 val;
 
-	for (i = 0; ; i++) {
+	for (i = 0; ; i++)
+	{
 		reg = array[i].reg;
 		val = array[i].val;
 
 		if (reg == 0xff && val == 0xffffffff)
+		{
 			break;
+		}
 
-		switch (reg) {
-		case 0xfe:
-			msleep(50);
-			continue;
-		case 0xfd:
-			mdelay(5);
-			continue;
-		case 0xfc:
-			mdelay(1);
-			continue;
-		case 0xfb:
-			udelay(50);
-			continue;
-		case 0xfa:
-			udelay(5);
-			continue;
-		case 0xf9:
-			udelay(1);
-			continue;
+		switch (reg)
+		{
+			case 0xfe:
+				msleep(50);
+				continue;
+
+			case 0xfd:
+				mdelay(5);
+				continue;
+
+			case 0xfc:
+				mdelay(1);
+				continue;
+
+			case 0xfb:
+				udelay(50);
+				continue;
+
+			case 0xfa:
+				udelay(5);
+				continue;
+
+			case 0xf9:
+				udelay(1);
+				continue;
 		}
 
 		ret = rtl8xxxu_write_rfreg(priv, path, reg, val);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_warn(&priv->udev->dev,
-				 "Failed to initialize RF\n");
+					 "Failed to initialize RF\n");
 			return -EAGAIN;
 		}
+
 		udelay(1);
 	}
 
@@ -2387,29 +2833,33 @@ static int rtl8xxxu_init_rf_regs(struct rtl8xxxu_priv *priv,
 }
 
 int rtl8xxxu_init_phy_rf(struct rtl8xxxu_priv *priv,
-			 struct rtl8xxxu_rfregval *table,
-			 enum rtl8xxxu_rfpath path)
+						 struct rtl8xxxu_rfregval *table,
+						 enum rtl8xxxu_rfpath path)
 {
 	u32 val32;
 	u16 val16, rfsi_rfenv;
 	u16 reg_sw_ctrl, reg_int_oe, reg_hssi_parm2;
 
-	switch (path) {
-	case RF_A:
-		reg_sw_ctrl = REG_FPGA0_XA_RF_SW_CTRL;
-		reg_int_oe = REG_FPGA0_XA_RF_INT_OE;
-		reg_hssi_parm2 = REG_FPGA0_XA_HSSI_PARM2;
-		break;
-	case RF_B:
-		reg_sw_ctrl = REG_FPGA0_XB_RF_SW_CTRL;
-		reg_int_oe = REG_FPGA0_XB_RF_INT_OE;
-		reg_hssi_parm2 = REG_FPGA0_XB_HSSI_PARM2;
-		break;
-	default:
-		dev_err(&priv->udev->dev, "%s:Unsupported RF path %c\n",
-			__func__, path + 'A');
-		return -EINVAL;
+	switch (path)
+	{
+		case RF_A:
+			reg_sw_ctrl = REG_FPGA0_XA_RF_SW_CTRL;
+			reg_int_oe = REG_FPGA0_XA_RF_INT_OE;
+			reg_hssi_parm2 = REG_FPGA0_XA_HSSI_PARM2;
+			break;
+
+		case RF_B:
+			reg_sw_ctrl = REG_FPGA0_XB_RF_SW_CTRL;
+			reg_int_oe = REG_FPGA0_XB_RF_INT_OE;
+			reg_hssi_parm2 = REG_FPGA0_XB_HSSI_PARM2;
+			break;
+
+		default:
+			dev_err(&priv->udev->dev, "%s:Unsupported RF path %c\n",
+					__func__, path + 'A');
+			return -EINVAL;
 	}
+
 	/* For path B, use XB */
 	rfsi_rfenv = rtl8xxxu_read16(priv, reg_sw_ctrl);
 	rfsi_rfenv &= FPGA0_RF_RFENV;
@@ -2461,13 +2911,17 @@ static int rtl8xxxu_llt_write(struct rtl8xxxu_priv *priv, u8 address, u8 data)
 
 	rtl8xxxu_write32(priv, REG_LLT_INIT, value);
 
-	do {
+	do
+	{
 		value = rtl8xxxu_read32(priv, REG_LLT_INIT);
-		if ((value & LLT_OP_MASK) == LLT_OP_INACTIVE) {
+
+		if ((value & LLT_OP_MASK) == LLT_OP_INACTIVE)
+		{
 			ret = 0;
 			break;
 		}
-	} while (count++ < 20);
+	}
+	while (count++ < 20);
 
 	return ret;
 }
@@ -2480,27 +2934,41 @@ int rtl8xxxu_init_llt_table(struct rtl8xxxu_priv *priv)
 
 	last_tx_page = priv->fops->total_page_num;
 
-	for (i = 0; i < last_tx_page; i++) {
+	for (i = 0; i < last_tx_page; i++)
+	{
 		ret = rtl8xxxu_llt_write(priv, i, i + 1);
+
 		if (ret)
+		{
 			goto exit;
+		}
 	}
 
 	ret = rtl8xxxu_llt_write(priv, last_tx_page, 0xff);
+
 	if (ret)
+	{
 		goto exit;
+	}
 
 	/* Mark remaining pages as a ring buffer */
-	for (i = last_tx_page + 1; i < 0xff; i++) {
+	for (i = last_tx_page + 1; i < 0xff; i++)
+	{
 		ret = rtl8xxxu_llt_write(priv, i, (i + 1));
+
 		if (ret)
+		{
 			goto exit;
+		}
 	}
 
 	/*  Let last entry point to the start entry of ring buffer */
 	ret = rtl8xxxu_llt_write(priv, 0xff, last_tx_page + 1);
+
 	if (ret)
+	{
 		goto exit;
+	}
 
 exit:
 	return ret;
@@ -2516,14 +2984,20 @@ int rtl8xxxu_auto_llt_table(struct rtl8xxxu_priv *priv)
 	val32 |= AUTO_LLT_INIT_LLT;
 	rtl8xxxu_write32(priv, REG_AUTO_LLT, val32);
 
-	for (i = 500; i; i--) {
+	for (i = 500; i; i--)
+	{
 		val32 = rtl8xxxu_read32(priv, REG_AUTO_LLT);
+
 		if (!(val32 & AUTO_LLT_INIT_LLT))
+		{
 			break;
+		}
+
 		usleep_range(2, 4);
 	}
 
-	if (!i) {
+	if (!i)
+	{
 		ret = -EBUSY;
 		dev_warn(&priv->udev->dev, "LLT table init failed\n");
 	}
@@ -2538,95 +3012,114 @@ static int rtl8xxxu_init_queue_priority(struct rtl8xxxu_priv *priv)
 	int hip, mgp, bkp, bep, vip, vop;
 	int ret = 0;
 
-	switch (priv->ep_tx_count) {
-	case 1:
-		if (priv->ep_tx_high_queue) {
-			hi = TRXDMA_QUEUE_HIGH;
-		} else if (priv->ep_tx_low_queue) {
-			hi = TRXDMA_QUEUE_LOW;
-		} else if (priv->ep_tx_normal_queue) {
-			hi = TRXDMA_QUEUE_NORMAL;
-		} else {
-			hi = 0;
+	switch (priv->ep_tx_count)
+	{
+		case 1:
+			if (priv->ep_tx_high_queue)
+			{
+				hi = TRXDMA_QUEUE_HIGH;
+			}
+			else if (priv->ep_tx_low_queue)
+			{
+				hi = TRXDMA_QUEUE_LOW;
+			}
+			else if (priv->ep_tx_normal_queue)
+			{
+				hi = TRXDMA_QUEUE_NORMAL;
+			}
+			else
+			{
+				hi = 0;
+				ret = -EINVAL;
+			}
+
+			hiq = hi;
+			mgq = hi;
+			bkq = hi;
+			beq = hi;
+			viq = hi;
+			voq = hi;
+
+			hip = 0;
+			mgp = 0;
+			bkp = 0;
+			bep = 0;
+			vip = 0;
+			vop = 0;
+			break;
+
+		case 2:
+			if (priv->ep_tx_high_queue && priv->ep_tx_low_queue)
+			{
+				hi = TRXDMA_QUEUE_HIGH;
+				lo = TRXDMA_QUEUE_LOW;
+			}
+			else if (priv->ep_tx_normal_queue && priv->ep_tx_low_queue)
+			{
+				hi = TRXDMA_QUEUE_NORMAL;
+				lo = TRXDMA_QUEUE_LOW;
+			}
+			else if (priv->ep_tx_high_queue && priv->ep_tx_normal_queue)
+			{
+				hi = TRXDMA_QUEUE_HIGH;
+				lo = TRXDMA_QUEUE_NORMAL;
+			}
+			else
+			{
+				ret = -EINVAL;
+				hi = 0;
+				lo = 0;
+			}
+
+			hiq = hi;
+			mgq = hi;
+			bkq = lo;
+			beq = lo;
+			viq = hi;
+			voq = hi;
+
+			hip = 0;
+			mgp = 0;
+			bkp = 1;
+			bep = 1;
+			vip = 0;
+			vop = 0;
+			break;
+
+		case 3:
+			beq = TRXDMA_QUEUE_LOW;
+			bkq = TRXDMA_QUEUE_LOW;
+			viq = TRXDMA_QUEUE_NORMAL;
+			voq = TRXDMA_QUEUE_HIGH;
+			mgq = TRXDMA_QUEUE_HIGH;
+			hiq = TRXDMA_QUEUE_HIGH;
+
+			hip = hiq ^ 3;
+			mgp = mgq ^ 3;
+			bkp = bkq ^ 3;
+			bep = beq ^ 3;
+			vip = viq ^ 3;
+			vop = viq ^ 3;
+			break;
+
+		default:
 			ret = -EINVAL;
-		}
-
-		hiq = hi;
-		mgq = hi;
-		bkq = hi;
-		beq = hi;
-		viq = hi;
-		voq = hi;
-
-		hip = 0;
-		mgp = 0;
-		bkp = 0;
-		bep = 0;
-		vip = 0;
-		vop = 0;
-		break;
-	case 2:
-		if (priv->ep_tx_high_queue && priv->ep_tx_low_queue) {
-			hi = TRXDMA_QUEUE_HIGH;
-			lo = TRXDMA_QUEUE_LOW;
-		} else if (priv->ep_tx_normal_queue && priv->ep_tx_low_queue) {
-			hi = TRXDMA_QUEUE_NORMAL;
-			lo = TRXDMA_QUEUE_LOW;
-		} else if (priv->ep_tx_high_queue && priv->ep_tx_normal_queue) {
-			hi = TRXDMA_QUEUE_HIGH;
-			lo = TRXDMA_QUEUE_NORMAL;
-		} else {
-			ret = -EINVAL;
-			hi = 0;
-			lo = 0;
-		}
-
-		hiq = hi;
-		mgq = hi;
-		bkq = lo;
-		beq = lo;
-		viq = hi;
-		voq = hi;
-
-		hip = 0;
-		mgp = 0;
-		bkp = 1;
-		bep = 1;
-		vip = 0;
-		vop = 0;
-		break;
-	case 3:
-		beq = TRXDMA_QUEUE_LOW;
-		bkq = TRXDMA_QUEUE_LOW;
-		viq = TRXDMA_QUEUE_NORMAL;
-		voq = TRXDMA_QUEUE_HIGH;
-		mgq = TRXDMA_QUEUE_HIGH;
-		hiq = TRXDMA_QUEUE_HIGH;
-
-		hip = hiq ^ 3;
-		mgp = mgq ^ 3;
-		bkp = bkq ^ 3;
-		bep = beq ^ 3;
-		vip = viq ^ 3;
-		vop = viq ^ 3;
-		break;
-	default:
-		ret = -EINVAL;
 	}
 
 	/*
 	 * None of the vendor drivers are configuring the beacon
 	 * queue here .... why?
 	 */
-	if (!ret) {
+	if (!ret)
+	{
 		val16 = rtl8xxxu_read16(priv, REG_TRXDMA_CTRL);
 		val16 &= 0x7;
 		val16 |= (voq << TRXDMA_CTRL_VOQ_SHIFT) |
-			(viq << TRXDMA_CTRL_VIQ_SHIFT) |
-			(beq << TRXDMA_CTRL_BEQ_SHIFT) |
-			(bkq << TRXDMA_CTRL_BKQ_SHIFT) |
-			(mgq << TRXDMA_CTRL_MGQ_SHIFT) |
-			(hiq << TRXDMA_CTRL_HIQ_SHIFT);
+				 (viq << TRXDMA_CTRL_VIQ_SHIFT) |
+				 (beq << TRXDMA_CTRL_BEQ_SHIFT) |
+				 (bkq << TRXDMA_CTRL_BKQ_SHIFT) |
+				 (mgq << TRXDMA_CTRL_MGQ_SHIFT) |
+				 (hiq << TRXDMA_CTRL_HIQ_SHIFT);
 		rtl8xxxu_write16(priv, REG_TRXDMA_CTRL, val16);
 
 		priv->pipe_out[TXDESC_QUEUE_VO] =
@@ -2651,21 +3144,27 @@ static int rtl8xxxu_init_queue_priority(struct rtl8xxxu_priv *priv)
 }
 
 void rtl8xxxu_fill_iqk_matrix_a(struct rtl8xxxu_priv *priv, bool iqk_ok,
-				int result[][8], int candidate, bool tx_only)
+								int result[][8], int candidate, bool tx_only)
 {
 	u32 oldval, x, tx0_a, reg;
 	int y, tx0_c;
 	u32 val32;
 
 	if (!iqk_ok)
+	{
 		return;
+	}
 
 	val32 = rtl8xxxu_read32(priv, REG_OFDM0_XA_TX_IQ_IMBALANCE);
 	oldval = val32 >> 22;
 
 	x = result[candidate][0];
+
 	if ((x & 0x00000200) != 0)
+	{
 		x = x | 0xfffffc00;
+	}
+
 	tx0_a = (x * oldval) >> 8;
 
 	val32 = rtl8xxxu_read32(priv, REG_OFDM0_XA_TX_IQ_IMBALANCE);
@@ -2675,13 +3174,21 @@ void rtl8xxxu_fill_iqk_matrix_a(struct rtl8xxxu_priv *priv, bool iqk_ok,
 
 	val32 = rtl8xxxu_read32(priv, REG_OFDM0_ENERGY_CCA_THRES);
 	val32 &= ~BIT(31);
+
 	if ((x * oldval >> 7) & 0x1)
+	{
 		val32 |= BIT(31);
+	}
+
 	rtl8xxxu_write32(priv, REG_OFDM0_ENERGY_CCA_THRES, val32);
 
 	y = result[candidate][1];
+
 	if ((y & 0x00000200) != 0)
+	{
 		y = y | 0xfffffc00;
+	}
+
 	tx0_c = (y * oldval) >> 8;
 
 	val32 = rtl8xxxu_read32(priv, REG_OFDM0_XC_TX_AFE);
@@ -2696,11 +3203,16 @@ void rtl8xxxu_fill_iqk_matrix_a(struct rtl8xxxu_priv *priv, bool iqk_ok,
 
 	val32 = rtl8xxxu_read32(priv, REG_OFDM0_ENERGY_CCA_THRES);
 	val32 &= ~BIT(29);
+
 	if ((y * oldval >> 7) & 0x1)
+	{
 		val32 |= BIT(29);
+	}
+
 	rtl8xxxu_write32(priv, REG_OFDM0_ENERGY_CCA_THRES, val32);
 
-	if (tx_only) {
+	if (tx_only)
+	{
 		dev_dbg(&priv->udev->dev, "%s: only TX\n", __func__);
 		return;
 	}
@@ -2728,21 +3240,27 @@ void rtl8xxxu_fill_iqk_matrix_a(struct rtl8xxxu_priv *priv, bool iqk_ok,
 }
 
 void rtl8xxxu_fill_iqk_matrix_b(struct rtl8xxxu_priv *priv, bool iqk_ok,
-				int result[][8], int candidate, bool tx_only)
+								int result[][8], int candidate, bool tx_only)
 {
 	u32 oldval, x, tx1_a, reg;
 	int y, tx1_c;
 	u32 val32;
 
 	if (!iqk_ok)
+	{
 		return;
+	}
 
 	val32 = rtl8xxxu_read32(priv, REG_OFDM0_XB_TX_IQ_IMBALANCE);
 	oldval = val32 >> 22;
 
 	x = result[candidate][4];
+
 	if ((x & 0x00000200) != 0)
+	{
 		x = x | 0xfffffc00;
+	}
+
 	tx1_a = (x * oldval) >> 8;
 
 	val32 = rtl8xxxu_read32(priv, REG_OFDM0_XB_TX_IQ_IMBALANCE);
@@ -2752,13 +3270,21 @@ void rtl8xxxu_fill_iqk_matrix_b(struct rtl8xxxu_priv *priv, bool iqk_ok,
 
 	val32 = rtl8xxxu_read32(priv, REG_OFDM0_ENERGY_CCA_THRES);
 	val32 &= ~BIT(27);
+
 	if ((x * oldval >> 7) & 0x1)
+	{
 		val32 |= BIT(27);
+	}
+
 	rtl8xxxu_write32(priv, REG_OFDM0_ENERGY_CCA_THRES, val32);
 
 	y = result[candidate][5];
+
 	if ((y & 0x00000200) != 0)
+	{
 		y = y | 0xfffffc00;
+	}
+
 	tx1_c = (y * oldval) >> 8;
 
 	val32 = rtl8xxxu_read32(priv, REG_OFDM0_XD_TX_AFE);
@@ -2773,11 +3299,16 @@ void rtl8xxxu_fill_iqk_matrix_b(struct rtl8xxxu_priv *priv, bool iqk_ok,
 
 	val32 = rtl8xxxu_read32(priv, REG_OFDM0_ENERGY_CCA_THRES);
 	val32 &= ~BIT(25);
+
 	if ((y * oldval >> 7) & 0x1)
+	{
 		val32 |= BIT(25);
+	}
+
 	rtl8xxxu_write32(priv, REG_OFDM0_ENERGY_CCA_THRES, val32);
 
-	if (tx_only) {
+	if (tx_only)
+	{
 		dev_dbg(&priv->udev->dev, "%s: only TX\n", __func__);
 		return;
 	}
@@ -2807,138 +3338,216 @@ void rtl8xxxu_fill_iqk_matrix_b(struct rtl8xxxu_priv *priv, bool iqk_ok,
 #define MAX_TOLERANCE		5
 
 static bool rtl8xxxu_simularity_compare(struct rtl8xxxu_priv *priv,
-					int result[][8], int c1, int c2)
+										int result[][8], int c1, int c2)
 {
 	u32 i, j, diff, simubitmap, bound = 0;
-	int candidate[2] = {-1, -1};	/* for path A and path B */
+	int candidate[2] = { -1, -1};	/* for path A and path B */
 	bool retval = true;
 
 	if (priv->tx_paths > 1)
+	{
 		bound = 8;
+	}
 	else
+	{
 		bound = 4;
+	}
 
 	simubitmap = 0;
 
-	for (i = 0; i < bound; i++) {
+	for (i = 0; i < bound; i++)
+	{
 		diff = (result[c1][i] > result[c2][i]) ?
-			(result[c1][i] - result[c2][i]) :
-			(result[c2][i] - result[c1][i]);
-		if (diff > MAX_TOLERANCE) {
-			if ((i == 2 || i == 6) && !simubitmap) {
+			   (result[c1][i] - result[c2][i]) :
+			   (result[c2][i] - result[c1][i]);
+
+		if (diff > MAX_TOLERANCE)
+		{
+			if ((i == 2 || i == 6) && !simubitmap)
+			{
 				if (result[c1][i] + result[c1][i + 1] == 0)
+				{
 					candidate[(i / 4)] = c2;
+				}
 				else if (result[c2][i] + result[c2][i + 1] == 0)
+				{
 					candidate[(i / 4)] = c1;
+				}
 				else
+				{
 					simubitmap = simubitmap | (1 << i);
-			} else {
+				}
+			}
+			else
+			{
 				simubitmap = simubitmap | (1 << i);
 			}
 		}
 	}
 
-	if (simubitmap == 0) {
-		for (i = 0; i < (bound / 4); i++) {
-			if (candidate[i] >= 0) {
+	if (simubitmap == 0)
+	{
+		for (i = 0; i < (bound / 4); i++)
+		{
+			if (candidate[i] >= 0)
+			{
 				for (j = i * 4; j < (i + 1) * 4 - 2; j++)
+				{
 					result[3][j] = result[candidate[i]][j];
+				}
+
 				retval = false;
 			}
 		}
+
 		return retval;
-	} else if (!(simubitmap & 0x0f)) {
+	}
+	else if (!(simubitmap & 0x0f))
+	{
 		/* path A OK */
 		for (i = 0; i < 4; i++)
+		{
 			result[3][i] = result[c1][i];
-	} else if (!(simubitmap & 0xf0) && priv->tx_paths > 1) {
+		}
+	}
+	else if (!(simubitmap & 0xf0) && priv->tx_paths > 1)
+	{
 		/* path B OK */
 		for (i = 4; i < 8; i++)
+		{
 			result[3][i] = result[c1][i];
+		}
 	}
 
 	return false;
 }
 
 bool rtl8xxxu_gen2_simularity_compare(struct rtl8xxxu_priv *priv,
-				      int result[][8], int c1, int c2)
+									  int result[][8], int c1, int c2)
 {
 	u32 i, j, diff, simubitmap, bound = 0;
-	int candidate[2] = {-1, -1};	/* for path A and path B */
+	int candidate[2] = { -1, -1};	/* for path A and path B */
 	int tmp1, tmp2;
 	bool retval = true;
 
 	if (priv->tx_paths > 1)
+	{
 		bound = 8;
+	}
 	else
+	{
 		bound = 4;
+	}
 
 	simubitmap = 0;
 
-	for (i = 0; i < bound; i++) {
-		if (i & 1) {
+	for (i = 0; i < bound; i++)
+	{
+		if (i & 1)
+		{
 			if ((result[c1][i] & 0x00000200))
+			{
 				tmp1 = result[c1][i] | 0xfffffc00;
+			}
 			else
+			{
 				tmp1 = result[c1][i];
+			}
 
-			if ((result[c2][i]& 0x00000200))
+			if ((result[c2][i] & 0x00000200))
+			{
 				tmp2 = result[c2][i] | 0xfffffc00;
+			}
 			else
+			{
 				tmp2 = result[c2][i];
-		} else {
+			}
+		}
+		else
+		{
 			tmp1 = result[c1][i];
 			tmp2 = result[c2][i];
 		}
 
 		diff = (tmp1 > tmp2) ? (tmp1 - tmp2) : (tmp2 - tmp1);
 
-		if (diff > MAX_TOLERANCE) {
-			if ((i == 2 || i == 6) && !simubitmap) {
+		if (diff > MAX_TOLERANCE)
+		{
+			if ((i == 2 || i == 6) && !simubitmap)
+			{
 				if (result[c1][i] + result[c1][i + 1] == 0)
+				{
 					candidate[(i / 4)] = c2;
+				}
 				else if (result[c2][i] + result[c2][i + 1] == 0)
+				{
 					candidate[(i / 4)] = c1;
+				}
 				else
+				{
 					simubitmap = simubitmap | (1 << i);
-			} else {
+				}
+			}
+			else
+			{
 				simubitmap = simubitmap | (1 << i);
 			}
 		}
 	}
 
-	if (simubitmap == 0) {
-		for (i = 0; i < (bound / 4); i++) {
-			if (candidate[i] >= 0) {
+	if (simubitmap == 0)
+	{
+		for (i = 0; i < (bound / 4); i++)
+		{
+			if (candidate[i] >= 0)
+			{
 				for (j = i * 4; j < (i + 1) * 4 - 2; j++)
+				{
 					result[3][j] = result[candidate[i]][j];
+				}
+
 				retval = false;
 			}
 		}
+
 		return retval;
-	} else {
-		if (!(simubitmap & 0x03)) {
+	}
+	else
+	{
+		if (!(simubitmap & 0x03))
+		{
 			/* path A TX OK */
 			for (i = 0; i < 2; i++)
+			{
 				result[3][i] = result[c1][i];
+			}
 		}
 
-		if (!(simubitmap & 0x0c)) {
+		if (!(simubitmap & 0x0c))
+		{
 			/* path A RX OK */
 			for (i = 2; i < 4; i++)
+			{
 				result[3][i] = result[c1][i];
+			}
 		}
 
-		if (!(simubitmap & 0x30) && priv->tx_paths > 1) {
+		if (!(simubitmap & 0x30) && priv->tx_paths > 1)
+		{
 			/* path B RX OK */
 			for (i = 4; i < 6; i++)
+			{
 				result[3][i] = result[c1][i];
+			}
 		}
 
-		if (!(simubitmap & 0x30) && priv->tx_paths > 1) {
+		if (!(simubitmap & 0x30) && priv->tx_paths > 1)
+		{
 			/* path B RX OK */
 			for (i = 6; i < 8; i++)
+			{
 				result[3][i] = result[c1][i];
+			}
 		}
 	}
 
@@ -2951,70 +3560,85 @@ rtl8xxxu_save_mac_regs(struct rtl8xxxu_priv *priv, const u32 *reg, u32 *backup)
 	int i;
 
 	for (i = 0; i < (RTL8XXXU_MAC_REGS - 1); i++)
+	{
 		backup[i] = rtl8xxxu_read8(priv, reg[i]);
+	}
 
 	backup[i] = rtl8xxxu_read32(priv, reg[i]);
 }
 
 void rtl8xxxu_restore_mac_regs(struct rtl8xxxu_priv *priv,
-			       const u32 *reg, u32 *backup)
+							   const u32 *reg, u32 *backup)
 {
 	int i;
 
 	for (i = 0; i < (RTL8XXXU_MAC_REGS - 1); i++)
+	{
 		rtl8xxxu_write8(priv, reg[i], backup[i]);
+	}
 
 	rtl8xxxu_write32(priv, reg[i], backup[i]);
 }
 
 void rtl8xxxu_save_regs(struct rtl8xxxu_priv *priv, const u32 *regs,
-			u32 *backup, int count)
+						u32 *backup, int count)
 {
 	int i;
 
 	for (i = 0; i < count; i++)
+	{
 		backup[i] = rtl8xxxu_read32(priv, regs[i]);
+	}
 }
 
 void rtl8xxxu_restore_regs(struct rtl8xxxu_priv *priv, const u32 *regs,
-			   u32 *backup, int count)
+						   u32 *backup, int count)
 {
 	int i;
 
 	for (i = 0; i < count; i++)
+	{
 		rtl8xxxu_write32(priv, regs[i], backup[i]);
+	}
 }
 
 
 void rtl8xxxu_path_adda_on(struct rtl8xxxu_priv *priv, const u32 *regs,
-			   bool path_a_on)
+						   bool path_a_on)
 {
 	u32 path_on;
 	int i;
 
-	if (priv->tx_paths == 1) {
+	if (priv->tx_paths == 1)
+	{
 		path_on = priv->fops->adda_1t_path_on;
 		rtl8xxxu_write32(priv, regs[0], priv->fops->adda_1t_init);
-	} else {
+	}
+	else
+	{
 		path_on = path_a_on ? priv->fops->adda_2t_path_on_a :
-			priv->fops->adda_2t_path_on_b;
+				  priv->fops->adda_2t_path_on_b;
 
 		rtl8xxxu_write32(priv, regs[0], path_on);
 	}
 
 	for (i = 1 ; i < RTL8XXXU_ADDA_REGS ; i++)
+	{
 		rtl8xxxu_write32(priv, regs[i], path_on);
+	}
 }
 
 void rtl8xxxu_mac_calibration(struct rtl8xxxu_priv *priv,
-			      const u32 *regs, u32 *backup)
+							  const u32 *regs, u32 *backup)
 {
 	int i = 0;
 
 	rtl8xxxu_write8(priv, regs[i], 0x3f);
 
 	for (i = 1 ; i < (RTL8XXXU_MAC_REGS - 1); i++)
+	{
 		rtl8xxxu_write8(priv, regs[i], (u8)(backup[i] & ~BIT(3)));
+	}
 
 	rtl8xxxu_write8(priv, regs[i], (u8)(backup[i] & ~BIT(5)));
 }
@@ -3030,12 +3654,13 @@ static int rtl8xxxu_iqk_path_a(struct rtl8xxxu_priv *priv)
 	rtl8xxxu_write32(priv, REG_TX_IQK_PI_A, 0x82140102);
 
 	val32 = (priv->rf_paths > 1) ? 0x28160202 :
-		/*IS_81xxC_VENDOR_UMC_B_CUT(pHalData->VersionID)?0x28160202: */
-		0x28160502;
+			/*IS_81xxC_VENDOR_UMC_B_CUT(pHalData->VersionID)?0x28160202: */
+			0x28160502;
 	rtl8xxxu_write32(priv, REG_RX_IQK_PI_A, val32);
 
 	/* path-B IQK setting */
-	if (priv->rf_paths > 1) {
+	if (priv->rf_paths > 1)
+	{
 		rtl8xxxu_write32(priv, REG_TX_IQK_TONE_B, 0x10008c22);
 		rtl8xxxu_write32(priv, REG_RX_IQK_TONE_B, 0x10008c22);
 		rtl8xxxu_write32(priv, REG_TX_IQK_PI_B, 0x82140102);
@@ -3058,20 +3683,27 @@ static int rtl8xxxu_iqk_path_a(struct rtl8xxxu_priv *priv)
 	reg_ea4 = rtl8xxxu_read32(priv, REG_RX_POWER_BEFORE_IQK_A_2);
 
 	if (!(reg_eac & BIT(28)) &&
-	    ((reg_e94 & 0x03ff0000) != 0x01420000) &&
-	    ((reg_e9c & 0x03ff0000) != 0x00420000))
+		((reg_e94 & 0x03ff0000) != 0x01420000) &&
+		((reg_e9c & 0x03ff0000) != 0x00420000))
+	{
 		result |= 0x01;
+	}
 	else	/* If TX not OK, ignore RX */
+	{
 		goto out;
+	}
 
 	/* If TX is OK, check whether RX is OK */
 	if (!(reg_eac & BIT(27)) &&
-	    ((reg_ea4 & 0x03ff0000) != 0x01320000) &&
-	    ((reg_eac & 0x03ff0000) != 0x00360000))
+		((reg_ea4 & 0x03ff0000) != 0x01320000) &&
+		((reg_eac & 0x03ff0000) != 0x00360000))
+	{
 		result |= 0x02;
+	}
 	else
 		dev_warn(&priv->udev->dev, "%s: Path A RX IQK failed!\n",
-			 __func__);
+				 __func__);
+
 out:
 	return result;
 }
@@ -3095,31 +3727,39 @@ static int rtl8xxxu_iqk_path_b(struct rtl8xxxu_priv *priv)
 	reg_ecc = rtl8xxxu_read32(priv, REG_RX_POWER_AFTER_IQK_B_2);
 
 	if (!(reg_eac & BIT(31)) &&
-	    ((reg_eb4 & 0x03ff0000) != 0x01420000) &&
-	    ((reg_ebc & 0x03ff0000) != 0x00420000))
+		((reg_eb4 & 0x03ff0000) != 0x01420000) &&
+		((reg_ebc & 0x03ff0000) != 0x00420000))
+	{
 		result |= 0x01;
+	}
 	else
+	{
 		goto out;
+	}
 
 	if (!(reg_eac & BIT(30)) &&
-	    (((reg_ec4 & 0x03ff0000) >> 16) != 0x132) &&
-	    (((reg_ecc & 0x03ff0000) >> 16) != 0x36))
+		(((reg_ec4 & 0x03ff0000) >> 16) != 0x132) &&
+		(((reg_ecc & 0x03ff0000) >> 16) != 0x36))
+	{
 		result |= 0x02;
+	}
 	else
 		dev_warn(&priv->udev->dev, "%s: Path B RX IQK failed!\n",
-			 __func__);
+				 __func__);
+
 out:
 	return result;
 }
 
 static void rtl8xxxu_phy_iqcalibrate(struct rtl8xxxu_priv *priv,
-				     int result[][8], int t)
+									 int result[][8], int t)
 {
 	struct device *dev = &priv->udev->dev;
 	u32 i, val32;
 	int path_a_ok, path_b_ok;
 	int retry = 2;
-	const u32 adda_regs[RTL8XXXU_ADDA_REGS] = {
+	const u32 adda_regs[RTL8XXXU_ADDA_REGS] =
+	{
 		REG_FPGA0_XCD_SWITCH_CTRL, REG_BLUETOOTH,
 		REG_RX_WAIT_CCA, REG_TX_CCK_RFON,
 		REG_TX_CCK_BBON, REG_TX_OFDM_RFON,
@@ -3129,11 +3769,13 @@ static void rtl8xxxu_phy_iqcalibrate(struct rtl8xxxu_priv *priv,
 		REG_RX_TO_RX, REG_STANDBY,
 		REG_SLEEP, REG_PMPD_ANAEN
 	};
-	const u32 iqk_mac_regs[RTL8XXXU_MAC_REGS] = {
+	const u32 iqk_mac_regs[RTL8XXXU_MAC_REGS] =
+	{
 		REG_TXPAUSE, REG_BEACON_CTRL,
 		REG_BEACON_CTRL_1, REG_GPIO_MUXCFG
 	};
-	const u32 iqk_bb_regs[RTL8XXXU_BB_REGS] = {
+	const u32 iqk_bb_regs[RTL8XXXU_BB_REGS] =
+	{
 		REG_OFDM0_TRX_PATH_ENABLE, REG_OFDM0_TR_MUX_PAR,
 		REG_FPGA0_XCD_RF_SW_CTRL, REG_CONFIG_ANT_A, REG_CONFIG_ANT_B,
 		REG_FPGA0_XAB_RF_SW_CTRL, REG_FPGA0_XA_RF_INT_OE,
@@ -3145,24 +3787,30 @@ static void rtl8xxxu_phy_iqcalibrate(struct rtl8xxxu_priv *priv,
 	 *       PHY_REG.txt , and radio_a, radio_b.txt
 	 */
 
-	if (t == 0) {
+	if (t == 0)
+	{
 		/* Save ADDA parameters, turn Path A ADDA on */
 		rtl8xxxu_save_regs(priv, adda_regs, priv->adda_backup,
-				   RTL8XXXU_ADDA_REGS);
+						   RTL8XXXU_ADDA_REGS);
 		rtl8xxxu_save_mac_regs(priv, iqk_mac_regs, priv->mac_backup);
 		rtl8xxxu_save_regs(priv, iqk_bb_regs,
-				   priv->bb_backup, RTL8XXXU_BB_REGS);
+						   priv->bb_backup, RTL8XXXU_BB_REGS);
 	}
 
 	rtl8xxxu_path_adda_on(priv, adda_regs, true);
 
-	if (t == 0) {
+	if (t == 0)
+	{
 		val32 = rtl8xxxu_read32(priv, REG_FPGA0_XA_HSSI_PARM1);
+
 		if (val32 & FPGA0_HSSI_PARM1_PI)
+		{
 			priv->pi_enabled = 1;
+		}
 	}
 
-	if (!priv->pi_enabled) {
+	if (!priv->pi_enabled)
+	{
 		/* Switch BB to PI mode to do IQ Calibration. */
 		rtl8xxxu_write32(priv, REG_FPGA0_XA_HSSI_PARM1, 0x01000100);
 		rtl8xxxu_write32(priv, REG_FPGA0_XB_HSSI_PARM1, 0x01000100);
@@ -3176,10 +3824,11 @@ static void rtl8xxxu_phy_iqcalibrate(struct rtl8xxxu_priv *priv,
 	rtl8xxxu_write32(priv, REG_OFDM0_TR_MUX_PAR, 0x000800e4);
 	rtl8xxxu_write32(priv, REG_FPGA0_XCD_RF_SW_CTRL, 0x22204000);
 
-	if (!priv->no_pape) {
+	if (!priv->no_pape)
+	{
 		val32 = rtl8xxxu_read32(priv, REG_FPGA0_XAB_RF_SW_CTRL);
 		val32 |= (FPGA0_RF_PAPE |
-			  (FPGA0_RF_PAPE << FPGA0_RF_BD_CTRL_SHIFT));
+				  (FPGA0_RF_PAPE << FPGA0_RF_BD_CTRL_SHIFT));
 		rtl8xxxu_write32(priv, REG_FPGA0_XAB_RF_SW_CTRL, val32);
 	}
 
@@ -3190,7 +3839,8 @@ static void rtl8xxxu_phy_iqcalibrate(struct rtl8xxxu_priv *priv,
 	val32 &= ~BIT(10);
 	rtl8xxxu_write32(priv, REG_FPGA0_XB_RF_INT_OE, val32);
 
-	if (priv->tx_paths > 1) {
+	if (priv->tx_paths > 1)
+	{
 		rtl8xxxu_write32(priv, REG_FPGA0_XA_LSSI_PARM, 0x00010000);
 		rtl8xxxu_write32(priv, REG_FPGA0_XB_LSSI_PARM, 0x00010000);
 	}
@@ -3202,47 +3852,57 @@ static void rtl8xxxu_phy_iqcalibrate(struct rtl8xxxu_priv *priv,
 	rtl8xxxu_write32(priv, REG_CONFIG_ANT_A, 0x00080000);
 
 	if (priv->tx_paths > 1)
+	{
 		rtl8xxxu_write32(priv, REG_CONFIG_ANT_B, 0x00080000);
+	}
 
 	/* IQ calibration setting */
 	rtl8xxxu_write32(priv, REG_FPGA0_IQK, 0x80800000);
 	rtl8xxxu_write32(priv, REG_TX_IQK, 0x01007c00);
 	rtl8xxxu_write32(priv, REG_RX_IQK, 0x01004800);
 
-	for (i = 0; i < retry; i++) {
+	for (i = 0; i < retry; i++)
+	{
 		path_a_ok = rtl8xxxu_iqk_path_a(priv);
-		if (path_a_ok == 0x03) {
+
+		if (path_a_ok == 0x03)
+		{
 			val32 = rtl8xxxu_read32(priv,
-						REG_TX_POWER_BEFORE_IQK_A);
+									REG_TX_POWER_BEFORE_IQK_A);
 			result[t][0] = (val32 >> 16) & 0x3ff;
 			val32 = rtl8xxxu_read32(priv,
-						REG_TX_POWER_AFTER_IQK_A);
+									REG_TX_POWER_AFTER_IQK_A);
 			result[t][1] = (val32 >> 16) & 0x3ff;
 			val32 = rtl8xxxu_read32(priv,
-						REG_RX_POWER_BEFORE_IQK_A_2);
+									REG_RX_POWER_BEFORE_IQK_A_2);
 			result[t][2] = (val32 >> 16) & 0x3ff;
 			val32 = rtl8xxxu_read32(priv,
-						REG_RX_POWER_AFTER_IQK_A_2);
+									REG_RX_POWER_AFTER_IQK_A_2);
 			result[t][3] = (val32 >> 16) & 0x3ff;
 			break;
-		} else if (i == (retry - 1) && path_a_ok == 0x01) {
+		}
+		else if (i == (retry - 1) && path_a_ok == 0x01)
+		{
 			/* TX IQK OK */
 			dev_dbg(dev, "%s: Path A IQK Only Tx Success!!\n",
-				__func__);
+					__func__);
 
 			val32 = rtl8xxxu_read32(priv,
-						REG_TX_POWER_BEFORE_IQK_A);
+									REG_TX_POWER_BEFORE_IQK_A);
 			result[t][0] = (val32 >> 16) & 0x3ff;
 			val32 = rtl8xxxu_read32(priv,
-						REG_TX_POWER_AFTER_IQK_A);
+									REG_TX_POWER_AFTER_IQK_A);
 			result[t][1] = (val32 >> 16) & 0x3ff;
 		}
 	}
 
 	if (!path_a_ok)
+	{
 		dev_dbg(dev, "%s: Path A IQK failed!\n", __func__);
+	}
 
-	if (priv->tx_paths > 1) {
+	if (priv->tx_paths > 1)
+	{
 		/*
 		 * Path A into standby
 		 */
@@ -3253,9 +3913,12 @@ static void rtl8xxxu_phy_iqcalibrate(struct rtl8xxxu_priv *priv,
 		/* Turn Path B ADDA on */
 		rtl8xxxu_path_adda_on(priv, adda_regs, false);
 
-		for (i = 0; i < retry; i++) {
+		for (i = 0; i < retry; i++)
+		{
 			path_b_ok = rtl8xxxu_iqk_path_b(priv);
-			if (path_b_ok == 0x03) {
+
+			if (path_b_ok == 0x03)
+			{
 				val32 = rtl8xxxu_read32(priv, REG_TX_POWER_BEFORE_IQK_B);
 				result[t][4] = (val32 >> 16) & 0x3ff;
 				val32 = rtl8xxxu_read32(priv, REG_TX_POWER_AFTER_IQK_B);
@@ -3265,7 +3928,9 @@ static void rtl8xxxu_phy_iqcalibrate(struct rtl8xxxu_priv *priv,
 				val32 = rtl8xxxu_read32(priv, REG_RX_POWER_AFTER_IQK_B_2);
 				result[t][7] = (val32 >> 16) & 0x3ff;
 				break;
-			} else if (i == (retry - 1) && path_b_ok == 0x01) {
+			}
+			else if (i == (retry - 1) && path_b_ok == 0x01)
+			{
 				/* TX IQK OK */
 				val32 = rtl8xxxu_read32(priv, REG_TX_POWER_BEFORE_IQK_B);
 				result[t][4] = (val32 >> 16) & 0x3ff;
@@ -3275,14 +3940,18 @@ static void rtl8xxxu_phy_iqcalibrate(struct rtl8xxxu_priv *priv,
 		}
 
 		if (!path_b_ok)
+		{
 			dev_dbg(dev, "%s: Path B IQK failed!\n", __func__);
+		}
 	}
 
 	/* Back to BB mode, load original value */
 	rtl8xxxu_write32(priv, REG_FPGA0_IQK, 0);
 
-	if (t) {
-		if (!priv->pi_enabled) {
+	if (t)
+	{
+		if (!priv->pi_enabled)
+		{
 			/*
 			 * Switch back BB to SI mode after finishing
 			 * IQ Calibration
@@ -3294,21 +3963,22 @@ static void rtl8xxxu_phy_iqcalibrate(struct rtl8xxxu_priv *priv,
 
 		/* Reload ADDA power saving parameters */
 		rtl8xxxu_restore_regs(priv, adda_regs, priv->adda_backup,
-				      RTL8XXXU_ADDA_REGS);
+							  RTL8XXXU_ADDA_REGS);
 
 		/* Reload MAC parameters */
 		rtl8xxxu_restore_mac_regs(priv, iqk_mac_regs, priv->mac_backup);
 
 		/* Reload BB parameters */
 		rtl8xxxu_restore_regs(priv, iqk_bb_regs,
-				      priv->bb_backup, RTL8XXXU_BB_REGS);
+							  priv->bb_backup, RTL8XXXU_BB_REGS);
 
 		/* Restore RX initial gain */
 		rtl8xxxu_write32(priv, REG_FPGA0_XA_LSSI_PARM, 0x00032ed3);
 
-		if (priv->tx_paths > 1) {
+		if (priv->tx_paths > 1)
+		{
 			rtl8xxxu_write32(priv, REG_FPGA0_XB_LSSI_PARM,
-					 0x00032ed3);
+							 0x00032ed3);
 		}
 
 		/* Load 0xe30 IQC default value */
@@ -3347,40 +4017,58 @@ void rtl8xxxu_gen1_phy_iq_calibrate(struct rtl8xxxu_priv *priv)
 
 	rtl8xxxu_read32(priv, REG_FPGA0_RF_MODE);
 
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 3; i++)
+	{
 		rtl8xxxu_phy_iqcalibrate(priv, result, i);
 
-		if (i == 1) {
+		if (i == 1)
+		{
 			simu = rtl8xxxu_simularity_compare(priv, result, 0, 1);
-			if (simu) {
+
+			if (simu)
+			{
 				candidate = 0;
 				break;
 			}
 		}
 
-		if (i == 2) {
+		if (i == 2)
+		{
 			simu = rtl8xxxu_simularity_compare(priv, result, 0, 2);
-			if (simu) {
+
+			if (simu)
+			{
 				candidate = 0;
 				break;
 			}
 
 			simu = rtl8xxxu_simularity_compare(priv, result, 1, 2);
-			if (simu) {
+
+			if (simu)
+			{
 				candidate = 1;
-			} else {
+			}
+			else
+			{
 				for (i = 0; i < 8; i++)
+				{
 					reg_tmp += result[3][i];
+				}
 
 				if (reg_tmp)
+				{
 					candidate = 3;
+				}
 				else
+				{
 					candidate = -1;
+				}
 			}
 		}
 	}
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		reg_e94 = result[i][0];
 		reg_e9c = result[i][1];
 		reg_ea4 = result[i][2];
@@ -3391,7 +4079,8 @@ void rtl8xxxu_gen1_phy_iq_calibrate(struct rtl8xxxu_priv *priv)
 		reg_ecc = result[i][7];
 	}
 
-	if (candidate >= 0) {
+	if (candidate >= 0)
+	{
 		reg_e94 = result[candidate][0];
 		priv->rege94 =  reg_e94;
 		reg_e9c = result[candidate][1];
@@ -3406,26 +4095,28 @@ void rtl8xxxu_gen1_phy_iq_calibrate(struct rtl8xxxu_priv *priv)
 		reg_ecc = result[candidate][7];
 		dev_dbg(dev, "%s: candidate is %x\n", __func__, candidate);
 		dev_dbg(dev,
-			"%s: e94 =%x e9c=%x ea4=%x eac=%x eb4=%x ebc=%x ec4=%x "
-			"ecc=%x\n ", __func__, reg_e94, reg_e9c,
-			reg_ea4, reg_eac, reg_eb4, reg_ebc, reg_ec4, reg_ecc);
+				"%s: e94 =%x e9c=%x ea4=%x eac=%x eb4=%x ebc=%x ec4=%x "
+				"ecc=%x\n ", __func__, reg_e94, reg_e9c,
+				reg_ea4, reg_eac, reg_eb4, reg_ebc, reg_ec4, reg_ecc);
 		path_a_ok = true;
 		path_b_ok = true;
-	} else {
+	}
+	else
+	{
 		reg_e94 = reg_eb4 = priv->rege94 = priv->regeb4 = 0x100;
 		reg_e9c = reg_ebc = priv->rege9c = priv->regebc = 0x0;
 	}
 
 	if (reg_e94 && candidate >= 0)
 		rtl8xxxu_fill_iqk_matrix_a(priv, path_a_ok, result,
-					   candidate, (reg_ea4 == 0));
+								   candidate, (reg_ea4 == 0));
 
 	if (priv->tx_paths > 1 && reg_eb4)
 		rtl8xxxu_fill_iqk_matrix_b(priv, path_b_ok, result,
-					   candidate, (reg_ec4 == 0));
+								   candidate, (reg_ec4 == 0));
 
 	rtl8xxxu_save_regs(priv, rtl8xxxu_iqk_phy_iq_bb_reg,
-			   priv->bb_recovery_backup, RTL8XXXU_BB_REGS);
+					   priv->bb_recovery_backup, RTL8XXXU_BB_REGS);
 }
 
 static void rtl8723a_phy_lc_calibrate(struct rtl8xxxu_priv *priv)
@@ -3436,7 +4127,8 @@ static void rtl8723a_phy_lc_calibrate(struct rtl8xxxu_priv *priv)
 	/* Check continuous TX and Packet TX */
 	lstf = rtl8xxxu_read32(priv, REG_OFDM1_LSTF);
 
-	if (lstf & OFDM_LSTF_MASK) {
+	if (lstf & OFDM_LSTF_MASK)
+	{
 		/* Disable all continuous TX */
 		val32 = lstf & ~OFDM_LSTF_MASK;
 		rtl8xxxu_write32(priv, REG_OFDM1_LSTF, val32);
@@ -3446,17 +4138,20 @@ static void rtl8723a_phy_lc_calibrate(struct rtl8xxxu_priv *priv)
 
 		/* Set RF mode to standby Path A */
 		rtl8xxxu_write_rfreg(priv, RF_A, RF6052_REG_AC,
-				     (rf_amode & 0x8ffff) | 0x10000);
+							 (rf_amode & 0x8ffff) | 0x10000);
 
 		/* Path-B */
-		if (priv->tx_paths > 1) {
+		if (priv->tx_paths > 1)
+		{
 			rf_bmode = rtl8xxxu_read_rfreg(priv, RF_B,
-						       RF6052_REG_AC);
+										   RF6052_REG_AC);
 
 			rtl8xxxu_write_rfreg(priv, RF_B, RF6052_REG_AC,
-					     (rf_bmode & 0x8ffff) | 0x10000);
+								 (rf_bmode & 0x8ffff) | 0x10000);
 		}
-	} else {
+	}
+	else
+	{
 		/*  Deal with Packet TX case */
 		/*  block all queues */
 		rtl8xxxu_write8(priv, REG_TXPAUSE, 0xff);
@@ -3464,7 +4159,10 @@ static void rtl8723a_phy_lc_calibrate(struct rtl8xxxu_priv *priv)
 
 	/* Start LC calibration */
 	if (priv->fops->has_s0s1)
+	{
 		rtl8xxxu_write_rfreg(priv, RF_A, RF6052_REG_S0S1, 0xdfbe0);
+	}
+
 	val32 = rtl8xxxu_read_rfreg(priv, RF_A, RF6052_REG_MODE_AG);
 	val32 |= 0x08000;
 	rtl8xxxu_write_rfreg(priv, RF_A, RF6052_REG_MODE_AG, val32);
@@ -3472,10 +4170,13 @@ static void rtl8723a_phy_lc_calibrate(struct rtl8xxxu_priv *priv)
 	msleep(100);
 
 	if (priv->fops->has_s0s1)
+	{
 		rtl8xxxu_write_rfreg(priv, RF_A, RF6052_REG_S0S1, 0xdffe0);
+	}
 
 	/* Restore original parameters */
-	if (lstf & OFDM_LSTF_MASK) {
+	if (lstf & OFDM_LSTF_MASK)
+	{
 		/* Path-A */
 		rtl8xxxu_write32(priv, REG_OFDM1_LSTF, lstf);
 		rtl8xxxu_write_rfreg(priv, RF_A, RF6052_REG_AC, rf_amode);
@@ -3483,9 +4184,12 @@ static void rtl8723a_phy_lc_calibrate(struct rtl8xxxu_priv *priv)
 		/* Path-B */
 		if (priv->tx_paths > 1)
 			rtl8xxxu_write_rfreg(priv, RF_B, RF6052_REG_AC,
-					     rf_bmode);
-	} else /*  Deal with Packet TX case */
+								 rf_bmode);
+	}
+	else   /*  Deal with Packet TX case */
+	{
 		rtl8xxxu_write8(priv, REG_TXPAUSE, 0x00);
+	}
 }
 
 static int rtl8xxxu_set_mac(struct rtl8xxxu_priv *priv)
@@ -3496,7 +4200,9 @@ static int rtl8xxxu_set_mac(struct rtl8xxxu_priv *priv)
 	reg = REG_MACID;
 
 	for (i = 0; i < ETH_ALEN; i++)
+	{
 		rtl8xxxu_write8(priv, reg + i, priv->mac_addr[i]);
+	}
 
 	return 0;
 }
@@ -3511,7 +4217,9 @@ static int rtl8xxxu_set_bssid(struct rtl8xxxu_priv *priv, const u8 *bssid)
 	reg = REG_BSSID;
 
 	for (i = 0; i < ETH_ALEN; i++)
+	{
 		rtl8xxxu_write8(priv, reg + i, bssid[i]);
+	}
 
 	return 0;
 }
@@ -3524,15 +4232,23 @@ rtl8xxxu_set_ampdu_factor(struct rtl8xxxu_priv *priv, u8 ampdu_factor)
 	int i;
 
 	ampdu_factor = 1 << (ampdu_factor + 2);
-	if (ampdu_factor > max_agg)
-		ampdu_factor = max_agg;
 
-	for (i = 0; i < 4; i++) {
+	if (ampdu_factor > max_agg)
+	{
+		ampdu_factor = max_agg;
+	}
+
+	for (i = 0; i < 4; i++)
+	{
 		if ((vals[i] & 0xf0) > (ampdu_factor << 4))
+		{
 			vals[i] = (vals[i] & 0x0f) | (ampdu_factor << 4);
+		}
 
 		if ((vals[i] & 0x0f) > ampdu_factor)
+		{
 			vals[i] = (vals[i] & 0xf0) | ampdu_factor;
+		}
 
 		rtl8xxxu_write8(priv, REG_AGGLEN_LMT + i, vals[i]);
 	}
@@ -3568,16 +4284,22 @@ static int rtl8xxxu_active_to_emu(struct rtl8xxxu_priv *priv)
 	val8 |= BIT(1);
 	rtl8xxxu_write8(priv, REG_APS_FSMCO + 1, val8);
 
-	for (count = RTL8XXXU_MAX_REG_POLL; count; count--) {
+	for (count = RTL8XXXU_MAX_REG_POLL; count; count--)
+	{
 		val8 = rtl8xxxu_read8(priv, REG_APS_FSMCO + 1);
+
 		if ((val8 & BIT(1)) == 0)
+		{
 			break;
+		}
+
 		udelay(10);
 	}
 
-	if (!count) {
+	if (!count)
+	{
 		dev_warn(&priv->udev->dev, "%s: Disabling MAC timed out\n",
-			 __func__);
+				 __func__);
 		ret = -EBUSY;
 		goto exit;
 	}
@@ -3607,16 +4329,22 @@ int rtl8xxxu_active_to_lps(struct rtl8xxxu_priv *priv)
 	/*
 	 * Poll - wait for RX packet to complete
 	 */
-	for (count = RTL8XXXU_MAX_REG_POLL; count; count--) {
+	for (count = RTL8XXXU_MAX_REG_POLL; count; count--)
+	{
 		val32 = rtl8xxxu_read32(priv, 0x5f8);
+
 		if (!val32)
+		{
 			break;
+		}
+
 		udelay(10);
 	}
 
-	if (!count) {
+	if (!count)
+	{
 		dev_warn(&priv->udev->dev,
-			 "%s: RX poll timed out (0x05f8)\n", __func__);
+				 "%s: RX poll timed out (0x05f8)\n", __func__);
 		ret = -EBUSY;
 		goto exit;
 	}
@@ -3712,20 +4440,26 @@ int rtl8xxxu_flush_fifo(struct rtl8xxxu_priv *priv)
 	retry = 100;
 	retval = -EBUSY;
 
-	do {
+	do
+	{
 		val32 = rtl8xxxu_read32(priv, REG_RXPKT_NUM);
-		if (val32 & RXPKT_NUM_RXDMA_IDLE) {
+
+		if (val32 & RXPKT_NUM_RXDMA_IDLE)
+		{
 			retval = 0;
 			break;
 		}
-	} while (retry--);
+	}
+	while (retry--);
 
 	rtl8xxxu_write16(priv, REG_RQPN_NPQ, 0);
 	rtl8xxxu_write32(priv, REG_RQPN, 0x80000000);
 	mdelay(2);
 
 	if (!retry)
+	{
 		dev_warn(dev, "Failed to flush FIFO\n");
+	}
 
 	return retval;
 }
@@ -3746,7 +4480,8 @@ void rtl8xxxu_gen1_usb_quirks(struct rtl8xxxu_priv *priv)
 	 * Solve too many protocol error on USB bus.
 	 * Can't do this for 8188/8192 UMC A cut parts
 	 */
-	if (!(!priv->chip_cut && priv->vendor_umc)) {
+	if (!(!priv->chip_cut && priv->vendor_umc))
+	{
 		rtl8xxxu_write8(priv, 0xfe40, 0xe6);
 		rtl8xxxu_write8(priv, 0xfe41, 0x94);
 		rtl8xxxu_write8(priv, 0xfe42, 0x80);
@@ -3783,7 +4518,8 @@ void rtl8xxxu_power_off(struct rtl8xxxu_priv *priv)
 	/*
 	 * Workaround for 8188RU LNA power leakage problem.
 	 */
-	if (priv->rtl_chip == RTL8188R) {
+	if (priv->rtl_chip == RTL8188R)
+	{
 		val32 = rtl8xxxu_read32(priv, REG_FPGA0_XCD_RF_PARM);
 		val32 |= BIT(1);
 		rtl8xxxu_write32(priv, REG_FPGA0_XCD_RF_PARM, val32);
@@ -3798,7 +4534,9 @@ void rtl8xxxu_power_off(struct rtl8xxxu_priv *priv)
 
 	/* Reset Firmware if running in RAM */
 	if (rtl8xxxu_read8(priv, REG_MCU_FW_DL) & MCU_FW_RAM_SEL)
+	{
 		rtl8xxxu_firmware_self_reset(priv);
+	}
 
 	/* Reset MCU */
 	val16 = rtl8xxxu_read16(priv, REG_SYS_FUNC);
@@ -3826,7 +4564,7 @@ void rtl8xxxu_power_off(struct rtl8xxxu_priv *priv)
 
 #ifdef NEED_PS_TDMA
 static void rtl8723bu_set_ps_tdma(struct rtl8xxxu_priv *priv,
-				  u8 arg1, u8 arg2, u8 arg3, u8 arg4, u8 arg5)
+								  u8 arg1, u8 arg2, u8 arg3, u8 arg4, u8 arg5)
 {
 	struct h2c_cmd h2c;
 
@@ -3863,11 +4601,19 @@ static void rtl8xxxu_init_queue_reserved_page(struct rtl8xxxu_priv *priv)
 	pubq = 0;
 
 	if (priv->ep_tx_high_queue)
+	{
 		hq = fops->page_num_hi;
+	}
+
 	if (priv->ep_tx_low_queue)
+	{
 		lq = fops->page_num_lo;
+	}
+
 	if (priv->ep_tx_normal_queue)
+	{
 		nq = fops->page_num_norm;
+	}
 
 	val32 = (nq << RQPN_NPQ_SHIFT) | (eq << RQPN_EPQ_SHIFT);
 	rtl8xxxu_write32(priv, REG_RQPN_NPQ, val32);
@@ -3901,23 +4647,34 @@ static int rtl8xxxu_init_device(struct ieee80211_hw *hw)
 	 * initialized. First MAC returns 0xea, second MAC returns 0x00
 	 */
 	if (val8 == 0xea)
+	{
 		macpower = false;
+	}
 	else
+	{
 		macpower = true;
+	}
 
 	ret = fops->power_on(priv);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_warn(dev, "%s: Failed power on\n", __func__);
 		goto exit;
 	}
 
 	if (!macpower)
+	{
 		rtl8xxxu_init_queue_reserved_page(priv);
+	}
 
 	ret = rtl8xxxu_init_queue_priority(priv);
 	dev_dbg(dev, "%s: init_queue_priority %i\n", __func__, ret);
+
 	if (ret)
+	{
 		goto exit;
+	}
 
 	/*
 	 * Set RX page boundary
@@ -3926,49 +4683,75 @@ static int rtl8xxxu_init_device(struct ieee80211_hw *hw)
 
 	ret = rtl8xxxu_download_firmware(priv);
 	dev_dbg(dev, "%s: download_firmware %i\n", __func__, ret);
+
 	if (ret)
+	{
 		goto exit;
+	}
+
 	ret = rtl8xxxu_start_firmware(priv);
 	dev_dbg(dev, "%s: start_firmware %i\n", __func__, ret);
+
 	if (ret)
+	{
 		goto exit;
+	}
 
 	if (fops->phy_init_antenna_selection)
+	{
 		fops->phy_init_antenna_selection(priv);
+	}
 
 	ret = rtl8xxxu_init_mac(priv);
 
 	dev_dbg(dev, "%s: init_mac %i\n", __func__, ret);
+
 	if (ret)
+	{
 		goto exit;
+	}
 
 	ret = rtl8xxxu_init_phy_bb(priv);
 	dev_dbg(dev, "%s: init_phy_bb %i\n", __func__, ret);
+
 	if (ret)
+	{
 		goto exit;
+	}
 
 	ret = fops->init_phy_rf(priv);
+
 	if (ret)
+	{
 		goto exit;
+	}
 
 	/* RFSW Control - clear bit 14 ?? */
 	if (priv->rtl_chip != RTL8723B && priv->rtl_chip != RTL8192E)
+	{
 		rtl8xxxu_write32(priv, REG_FPGA0_TX_INFO, 0x00000003);
+	}
 
 	val32 = FPGA0_RF_TRSW | FPGA0_RF_TRSWB | FPGA0_RF_ANTSW |
-		FPGA0_RF_ANTSWB |
-		((FPGA0_RF_ANTSW | FPGA0_RF_ANTSWB) << FPGA0_RF_BD_CTRL_SHIFT);
-	if (!priv->no_pape) {
+			FPGA0_RF_ANTSWB |
+			((FPGA0_RF_ANTSW | FPGA0_RF_ANTSWB) << FPGA0_RF_BD_CTRL_SHIFT);
+
+	if (!priv->no_pape)
+	{
 		val32 |= (FPGA0_RF_PAPE |
-			  (FPGA0_RF_PAPE << FPGA0_RF_BD_CTRL_SHIFT));
+				  (FPGA0_RF_PAPE << FPGA0_RF_BD_CTRL_SHIFT));
 	}
+
 	rtl8xxxu_write32(priv, REG_FPGA0_XAB_RF_SW_CTRL, val32);
 
 	/* 0x860[6:5]= 00 - why? - this sets antenna B */
 	if (priv->rtl_chip != RTL8192E)
+	{
 		rtl8xxxu_write32(priv, REG_FPGA0_XA_RF_INT_OE, 0x66f60210);
+	}
 
-	if (!macpower) {
+	if (!macpower)
+	{
 		/*
 		 * Set TX buffer boundary
 		 */
@@ -3986,14 +4769,21 @@ static int rtl8xxxu_init_device(struct ieee80211_hw *hw)
 	 * There is no explanation for this in any of the sources.
 	 */
 	val8 = (fops->pbp_rx << PBP_PAGE_SIZE_RX_SHIFT) |
-		(fops->pbp_tx << PBP_PAGE_SIZE_TX_SHIFT);
+		   (fops->pbp_tx << PBP_PAGE_SIZE_TX_SHIFT);
+
 	if (priv->rtl_chip != RTL8192E)
+	{
 		rtl8xxxu_write8(priv, REG_PBP, val8);
+	}
 
 	dev_dbg(dev, "%s: macpower %i\n", __func__, macpower);
-	if (!macpower) {
+
+	if (!macpower)
+	{
 		ret = fops->llt_init(priv);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_warn(dev, "%s: LLT table init failed\n", __func__);
 			goto exit;
 		}
@@ -4006,7 +4796,8 @@ static int rtl8xxxu_init_device(struct ieee80211_hw *hw)
 		/*
 		 * Enable TX report and TX report timer for 8723bu/8188eu/...
 		 */
-		if (fops->has_tx_report) {
+		if (fops->has_tx_report)
+		{
 			val8 = rtl8xxxu_read8(priv, REG_TX_REPORT_CTRL);
 			val8 |= TX_REPORT_CTRL_TIMER_ENABLE;
 			rtl8xxxu_write8(priv, REG_TX_REPORT_CTRL, val8);
@@ -4027,10 +4818,13 @@ static int rtl8xxxu_init_device(struct ieee80211_hw *hw)
 	 */
 	rtl8xxxu_write8(priv, REG_RX_DRVINFO_SZ, 4);
 
-	if (priv->rtl_chip == RTL8192E) {
+	if (priv->rtl_chip == RTL8192E)
+	{
 		rtl8xxxu_write32(priv, REG_HIMR0, 0x00);
 		rtl8xxxu_write32(priv, REG_HIMR1, 0x00);
-	} else {
+	}
+	else
+	{
 		/*
 		 * Enable all interrupts - not obvious USB needs to do this
 		 */
@@ -4045,8 +4839,8 @@ static int rtl8xxxu_init_device(struct ieee80211_hw *hw)
 	 * Configure initial WMAC settings
 	 */
 	val32 = RCR_ACCEPT_PHYS_MATCH | RCR_ACCEPT_MCAST | RCR_ACCEPT_BCAST |
-		RCR_ACCEPT_MGMT_FRAME | RCR_HTC_LOC_CTRL |
-		RCR_APPEND_PHYSTAT | RCR_APPEND_ICV | RCR_APPEND_MIC;
+			RCR_ACCEPT_MGMT_FRAME | RCR_HTC_LOC_CTRL |
+			RCR_APPEND_PHYSTAT | RCR_APPEND_ICV | RCR_APPEND_MIC;
 	rtl8xxxu_write32(priv, REG_RCR, val32);
 
 	/*
@@ -4111,7 +4905,8 @@ static int rtl8xxxu_init_device(struct ieee80211_hw *hw)
 	/*
 	 * Initialize burst parameters
 	 */
-	if (priv->rtl_chip == RTL8723B) {
+	if (priv->rtl_chip == RTL8723B)
+	{
 		/*
 		 * For USB high speed set 512B packets
 		 */
@@ -4142,7 +4937,9 @@ static int rtl8xxxu_init_device(struct ieee80211_hw *hw)
 	}
 
 	if (fops->init_aggregation)
+	{
 		fops->init_aggregation(priv);
+	}
 
 	/*
 	 * Enable CCK and OFDM block
@@ -4162,7 +4959,8 @@ static int rtl8xxxu_init_device(struct ieee80211_hw *hw)
 	fops->set_tx_power(priv, 1, false);
 
 	/* Let the 8051 take control of antenna setting */
-	if (priv->rtl_chip != RTL8192E) {
+	if (priv->rtl_chip != RTL8192E)
+	{
 		val8 = rtl8xxxu_read8(priv, REG_LEDCFG2);
 		val8 |= LEDCFG2_DPDT_SELECT;
 		rtl8xxxu_write8(priv, REG_LEDCFG2, val8);
@@ -4176,9 +4974,12 @@ static int rtl8xxxu_init_device(struct ieee80211_hw *hw)
 	rtl8xxxu_write16(priv, REG_FAST_EDCA_CTRL, 0);
 
 	if (fops->init_statistics)
+	{
 		fops->init_statistics(priv);
+	}
 
-	if (priv->rtl_chip == RTL8192E) {
+	if (priv->rtl_chip == RTL8192E)
+	{
 		/*
 		 * 0x4c6[3] 1: RTS BW = Data BW
 		 * 0: RTS BW depends on CCA / secondary CCA result.
@@ -4201,26 +5002,33 @@ static int rtl8xxxu_init_device(struct ieee80211_hw *hw)
 	 */
 	if (fops->gen2_thermal_meter)
 		rtl8xxxu_write_rfreg(priv,
-				     RF_A, RF6052_REG_T_METER_8723B, 0x37cf8);
+							 RF_A, RF6052_REG_T_METER_8723B, 0x37cf8);
 	else
+	{
 		rtl8xxxu_write_rfreg(priv, RF_A, RF6052_REG_T_METER, 0x60);
+	}
 
 	/* Set NAV_UPPER to 30000us */
 	val8 = ((30000 + NAV_UPPER_UNIT - 1) / NAV_UPPER_UNIT);
 	rtl8xxxu_write8(priv, REG_NAV_UPPER, val8);
 
-	if (priv->rtl_chip == RTL8723A) {
+	if (priv->rtl_chip == RTL8723A)
+	{
 		/*
 		 * 2011/03/09 MH debug only, UMC-B cut pass 2500 S5 test,
 		 * but we need to find root cause.
 		 * This is 8723au only.
 		 */
 		val32 = rtl8xxxu_read32(priv, REG_FPGA0_RF_MODE);
-		if ((val32 & 0xff000000) != 0x83000000) {
+
+		if ((val32 & 0xff000000) != 0x83000000)
+		{
 			val32 |= FPGA_RF_MODE_CCK;
 			rtl8xxxu_write32(priv, REG_FPGA0_RF_MODE, val32);
 		}
-	} else if (priv->rtl_chip == RTL8192E) {
+	}
+	else if (priv->rtl_chip == RTL8192E)
+	{
 		rtl8xxxu_write8(priv, REG_USB_HRPWM, 0x00);
 	}
 
@@ -4229,7 +5037,8 @@ static int rtl8xxxu_init_device(struct ieee80211_hw *hw)
 	/* ack for xmit mgmt frames. */
 	rtl8xxxu_write32(priv, REG_FWHW_TXQ_CTRL, val32);
 
-	if (priv->rtl_chip == RTL8192E) {
+	if (priv->rtl_chip == RTL8192E)
+	{
 		/*
 		 * Fix LDPC rx hang issue.
 		 */
@@ -4239,19 +5048,23 @@ static int rtl8xxxu_init_device(struct ieee80211_hw *hw)
 		val32 |= 0x0007e000;
 		rtl8xxxu_write32(priv, REG_AFE_MISC, val32);
 	}
+
 exit:
 	return ret;
 }
 
 static void rtl8xxxu_cam_write(struct rtl8xxxu_priv *priv,
-			       struct ieee80211_key_conf *key, const u8 *mac)
+							   struct ieee80211_key_conf *key, const u8 *mac)
 {
 	u32 cmd, val32, addr, ctrl;
 	int j, i, tmp_debug;
 
 	tmp_debug = rtl8xxxu_debug;
+
 	if (rtl8xxxu_debug & RTL8XXXU_DEBUG_KEY)
+	{
 		rtl8xxxu_debug |= RTL8XXXU_DEBUG_REG_WRITE;
+	}
 
 	/*
 	 * This is a bit of a hack - the lower bits of the cipher
@@ -4260,20 +5073,24 @@ static void rtl8xxxu_cam_write(struct rtl8xxxu_priv *priv,
 	addr = key->keyidx << CAM_CMD_KEY_SHIFT;
 	ctrl = (key->cipher & 0x0f) << 2 | key->keyidx | CAM_WRITE_VALID;
 
-	for (j = 5; j >= 0; j--) {
-		switch (j) {
-		case 0:
-			val32 = ctrl | (mac[0] << 16) | (mac[1] << 24);
-			break;
-		case 1:
-			val32 = mac[2] | (mac[3] << 8) |
-				(mac[4] << 16) | (mac[5] << 24);
-			break;
-		default:
-			i = (j - 2) << 2;
-			val32 = key->key[i] | (key->key[i + 1] << 8) |
-				key->key[i + 2] << 16 | key->key[i + 3] << 24;
-			break;
+	for (j = 5; j >= 0; j--)
+	{
+		switch (j)
+		{
+			case 0:
+				val32 = ctrl | (mac[0] << 16) | (mac[1] << 24);
+				break;
+
+			case 1:
+				val32 = mac[2] | (mac[3] << 8) |
+						(mac[4] << 16) | (mac[5] << 24);
+				break;
+
+			default:
+				i = (j - 2) << 2;
+				val32 = key->key[i] | (key->key[i + 1] << 8) |
+						key->key[i + 2] << 16 | key->key[i + 3] << 24;
+				break;
 		}
 
 		rtl8xxxu_write32(priv, REG_CAM_WRITE, val32);
@@ -4286,7 +5103,7 @@ static void rtl8xxxu_cam_write(struct rtl8xxxu_priv *priv,
 }
 
 static void rtl8xxxu_sw_scan_start(struct ieee80211_hw *hw,
-				   struct ieee80211_vif *vif, const u8 *mac)
+								   struct ieee80211_vif *vif, const u8 *mac)
 {
 	struct rtl8xxxu_priv *priv = hw->priv;
 	u8 val8;
@@ -4297,7 +5114,7 @@ static void rtl8xxxu_sw_scan_start(struct ieee80211_hw *hw,
 }
 
 static void rtl8xxxu_sw_scan_complete(struct ieee80211_hw *hw,
-				      struct ieee80211_vif *vif)
+									  struct ieee80211_vif *vif)
 {
 	struct rtl8xxxu_priv *priv = hw->priv;
 	u8 val8;
@@ -4318,16 +5135,19 @@ void rtl8xxxu_update_rate_mask(struct rtl8xxxu_priv *priv, u32 ramask, int sgi)
 	h2c.ramask.mask_hi = cpu_to_le16(ramask >> 16);
 
 	h2c.ramask.arg = 0x80;
+
 	if (sgi)
+	{
 		h2c.ramask.arg |= 0x20;
+	}
 
 	dev_dbg(&priv->udev->dev, "%s: rate mask %08x, arg %02x, size %zi\n",
-		__func__, ramask, h2c.ramask.arg, sizeof(h2c.ramask));
+			__func__, ramask, h2c.ramask.arg, sizeof(h2c.ramask));
 	rtl8xxxu_gen1_h2c_cmd(priv, &h2c, sizeof(h2c.ramask));
 }
 
 void rtl8xxxu_gen2_update_rate_mask(struct rtl8xxxu_priv *priv,
-				    u32 ramask, int sgi)
+									u32 ramask, int sgi)
 {
 	struct h2c_cmd h2c;
 	u8 bw = 0;
@@ -4342,18 +5162,21 @@ void rtl8xxxu_gen2_update_rate_mask(struct rtl8xxxu_priv *priv,
 
 	h2c.ramask.arg = 0x80;
 	h2c.b_macid_cfg.data1 = 0;
+
 	if (sgi)
+	{
 		h2c.b_macid_cfg.data1 |= BIT(7);
+	}
 
 	h2c.b_macid_cfg.data2 = bw;
 
 	dev_dbg(&priv->udev->dev, "%s: rate mask %08x, arg %02x, size %zi\n",
-		__func__, ramask, h2c.ramask.arg, sizeof(h2c.b_macid_cfg));
+			__func__, ramask, h2c.ramask.arg, sizeof(h2c.b_macid_cfg));
 	rtl8xxxu_gen2_h2c_cmd(priv, &h2c, sizeof(h2c.b_macid_cfg));
 }
 
 void rtl8xxxu_gen1_report_connect(struct rtl8xxxu_priv *priv,
-				  u8 macid, bool connect)
+								  u8 macid, bool connect)
 {
 	struct h2c_cmd h2c;
 
@@ -4362,25 +5185,34 @@ void rtl8xxxu_gen1_report_connect(struct rtl8xxxu_priv *priv,
 	h2c.joinbss.cmd = H2C_JOIN_BSS_REPORT;
 
 	if (connect)
+	{
 		h2c.joinbss.data = H2C_JOIN_BSS_CONNECT;
+	}
 	else
+	{
 		h2c.joinbss.data = H2C_JOIN_BSS_DISCONNECT;
+	}
 
 	rtl8xxxu_gen1_h2c_cmd(priv, &h2c, sizeof(h2c.joinbss));
 }
 
 void rtl8xxxu_gen2_report_connect(struct rtl8xxxu_priv *priv,
-				  u8 macid, bool connect)
+								  u8 macid, bool connect)
 {
 	struct h2c_cmd h2c;
 
 	memset(&h2c, 0, sizeof(struct h2c_cmd));
 
 	h2c.media_status_rpt.cmd = H2C_8723B_MEDIA_STATUS_RPT;
+
 	if (connect)
+	{
 		h2c.media_status_rpt.parm |= BIT(0);
+	}
 	else
+	{
 		h2c.media_status_rpt.parm &= ~BIT(0);
+	}
 
 	rtl8xxxu_gen2_h2c_cmd(priv, &h2c, sizeof(h2c.media_status_rpt));
 }
@@ -4396,7 +5228,8 @@ void rtl8xxxu_gen1_init_aggregation(struct rtl8xxxu_priv *priv)
 	agg_ctrl = rtl8xxxu_read8(priv, REG_TRXDMA_CTRL);
 	agg_ctrl &= ~TRXDMA_CTRL_RXDMA_AGG_EN;
 
-	if (!rtl8xxxu_dma_aggregation) {
+	if (!rtl8xxxu_dma_aggregation)
+	{
 		rtl8xxxu_write8(priv, REG_TRXDMA_CTRL, agg_ctrl);
 		return;
 	}
@@ -4418,18 +5251,23 @@ void rtl8xxxu_gen1_init_aggregation(struct rtl8xxxu_priv *priv)
 	 */
 
 	page_thresh = (priv->fops->rx_agg_buf_size / 512);
-	if (rtl8xxxu_dma_agg_pages >= 0) {
+
+	if (rtl8xxxu_dma_agg_pages >= 0)
+	{
 		if (rtl8xxxu_dma_agg_pages <= page_thresh)
+		{
 			timeout = page_thresh;
+		}
 		else if (rtl8xxxu_dma_agg_pages <= 6)
 			dev_err(&priv->udev->dev,
-				"%s: dma_agg_pages=%i too small, minium is 6\n",
-				__func__, rtl8xxxu_dma_agg_pages);
+					"%s: dma_agg_pages=%i too small, minium is 6\n",
+					__func__, rtl8xxxu_dma_agg_pages);
 		else
 			dev_err(&priv->udev->dev,
-				"%s: dma_agg_pages=%i larger than limit %i\n",
-				__func__, rtl8xxxu_dma_agg_pages, page_thresh);
+					"%s: dma_agg_pages=%i larger than limit %i\n",
+					__func__, rtl8xxxu_dma_agg_pages, page_thresh);
 	}
+
 	rtl8xxxu_write8(priv, REG_RXDMA_AGG_PG_TH, page_thresh);
 	/*
 	 * REG_RXDMA_AGG_PG_TH + 1 seems to be the timeout register on
@@ -4438,13 +5276,16 @@ void rtl8xxxu_gen1_init_aggregation(struct rtl8xxxu_priv *priv)
 	 */
 	timeout = 4;
 
-	if (rtl8xxxu_dma_agg_timeout >= 0) {
+	if (rtl8xxxu_dma_agg_timeout >= 0)
+	{
 		if (rtl8xxxu_dma_agg_timeout <= 127)
+		{
 			timeout = rtl8xxxu_dma_agg_timeout;
+		}
 		else
 			dev_err(&priv->udev->dev,
-				"%s: Invalid dma_agg_timeout: %i\n",
-				__func__, rtl8xxxu_dma_agg_timeout);
+					"%s: Invalid dma_agg_timeout: %i\n",
+					__func__, rtl8xxxu_dma_agg_timeout);
 	}
 
 	rtl8xxxu_write8(priv, REG_RXDMA_AGG_PG_TH + 1, timeout);
@@ -4466,16 +5307,18 @@ static void rtl8xxxu_set_basic_rates(struct rtl8xxxu_priv *priv, u32 rate_cfg)
 
 	dev_dbg(&priv->udev->dev, "%s: rates %08x\n", __func__,	rate_cfg);
 
-	while (rate_cfg) {
+	while (rate_cfg)
+	{
 		rate_cfg = (rate_cfg >> 1);
 		rate_idx++;
 	}
+
 	rtl8xxxu_write8(priv, REG_INIRTS_RATE_SEL, rate_idx);
 }
 
 static void
 rtl8xxxu_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-			  struct ieee80211_bss_conf *bss_conf, u32 changed)
+						  struct ieee80211_bss_conf *bss_conf, u32 changed)
 {
 	struct rtl8xxxu_priv *priv = hw->priv;
 	struct device *dev = &priv->udev->dev;
@@ -4483,36 +5326,49 @@ rtl8xxxu_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 	u32 val32;
 	u8 val8;
 
-	if (changed & BSS_CHANGED_ASSOC) {
+	if (changed & BSS_CHANGED_ASSOC)
+	{
 		dev_dbg(dev, "Changed ASSOC: %i!\n", bss_conf->assoc);
 
 		rtl8xxxu_set_linktype(priv, vif->type);
 
-		if (bss_conf->assoc) {
+		if (bss_conf->assoc)
+		{
 			u32 ramask;
 			int sgi = 0;
 
 			rcu_read_lock();
 			sta = ieee80211_find_sta(vif, bss_conf->bssid);
-			if (!sta) {
+
+			if (!sta)
+			{
 				dev_info(dev, "%s: ASSOC no sta found\n",
-					 __func__);
+						 __func__);
 				rcu_read_unlock();
 				goto error;
 			}
 
 			if (sta->ht_cap.ht_supported)
+			{
 				dev_info(dev, "%s: HT supported\n", __func__);
+			}
+
 			if (sta->vht_cap.vht_supported)
+			{
 				dev_info(dev, "%s: VHT supported\n", __func__);
+			}
 
 			/* TODO: Set bits 28-31 for rate adaptive id */
 			ramask = (sta->supp_rates[0] & 0xfff) |
-				sta->ht_cap.mcs.rx_mask[0] << 12 |
-				sta->ht_cap.mcs.rx_mask[1] << 20;
+					 sta->ht_cap.mcs.rx_mask[0] << 12 |
+					 sta->ht_cap.mcs.rx_mask[1] << 20;
+
 			if (sta->ht_cap.cap &
-			    (IEEE80211_HT_CAP_SGI_40 | IEEE80211_HT_CAP_SGI_20))
+				(IEEE80211_HT_CAP_SGI_40 | IEEE80211_HT_CAP_SGI_20))
+			{
 				sgi = 1;
+			}
+
 			rcu_read_unlock();
 
 			priv->fops->update_rate_mask(priv, ramask, sgi);
@@ -4523,10 +5379,12 @@ rtl8xxxu_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 
 			/* joinbss sequence */
 			rtl8xxxu_write16(priv, REG_BCN_PSR_RPT,
-					 0xc000 | bss_conf->aid);
+							 0xc000 | bss_conf->aid);
 
 			priv->fops->report_connect(priv, 0, true);
-		} else {
+		}
+		else
+		{
 			val8 = rtl8xxxu_read8(priv, REG_BEACON_CTRL);
 			val8 |= BEACON_DISABLE_TSF_UPDATE;
 			rtl8xxxu_write8(priv, REG_BEACON_CTRL, val8);
@@ -4535,37 +5393,53 @@ rtl8xxxu_bss_info_changed(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 		}
 	}
 
-	if (changed & BSS_CHANGED_ERP_PREAMBLE) {
+	if (changed & BSS_CHANGED_ERP_PREAMBLE)
+	{
 		dev_dbg(dev, "Changed ERP_PREAMBLE: Use short preamble %i\n",
-			bss_conf->use_short_preamble);
+				bss_conf->use_short_preamble);
 		val32 = rtl8xxxu_read32(priv, REG_RESPONSE_RATE_SET);
+
 		if (bss_conf->use_short_preamble)
+		{
 			val32 |= RSR_ACK_SHORT_PREAMBLE;
+		}
 		else
+		{
 			val32 &= ~RSR_ACK_SHORT_PREAMBLE;
+		}
+
 		rtl8xxxu_write32(priv, REG_RESPONSE_RATE_SET, val32);
 	}
 
-	if (changed & BSS_CHANGED_ERP_SLOT) {
+	if (changed & BSS_CHANGED_ERP_SLOT)
+	{
 		dev_dbg(dev, "Changed ERP_SLOT: short_slot_time %i\n",
-			bss_conf->use_short_slot);
+				bss_conf->use_short_slot);
 
 		if (bss_conf->use_short_slot)
+		{
 			val8 = 9;
+		}
 		else
+		{
 			val8 = 20;
+		}
+
 		rtl8xxxu_write8(priv, REG_SLOT, val8);
 	}
 
-	if (changed & BSS_CHANGED_BSSID) {
+	if (changed & BSS_CHANGED_BSSID)
+	{
 		dev_dbg(dev, "Changed BSSID!\n");
 		rtl8xxxu_set_bssid(priv, bss_conf->bssid);
 	}
 
-	if (changed & BSS_CHANGED_BASIC_RATES) {
+	if (changed & BSS_CHANGED_BASIC_RATES)
+	{
 		dev_dbg(dev, "Changed BASIC_RATES!\n");
 		rtl8xxxu_set_basic_rates(priv, bss_conf->basic_rates);
 	}
+
 error:
 	return;
 }
@@ -4574,21 +5448,26 @@ static u32 rtl8xxxu_80211_to_rtl_queue(u32 queue)
 {
 	u32 rtlqueue;
 
-	switch (queue) {
-	case IEEE80211_AC_VO:
-		rtlqueue = TXDESC_QUEUE_VO;
-		break;
-	case IEEE80211_AC_VI:
-		rtlqueue = TXDESC_QUEUE_VI;
-		break;
-	case IEEE80211_AC_BE:
-		rtlqueue = TXDESC_QUEUE_BE;
-		break;
-	case IEEE80211_AC_BK:
-		rtlqueue = TXDESC_QUEUE_BK;
-		break;
-	default:
-		rtlqueue = TXDESC_QUEUE_BE;
+	switch (queue)
+	{
+		case IEEE80211_AC_VO:
+			rtlqueue = TXDESC_QUEUE_VO;
+			break;
+
+		case IEEE80211_AC_VI:
+			rtlqueue = TXDESC_QUEUE_VI;
+			break;
+
+		case IEEE80211_AC_BE:
+			rtlqueue = TXDESC_QUEUE_BE;
+			break;
+
+		case IEEE80211_AC_BK:
+			rtlqueue = TXDESC_QUEUE_BK;
+			break;
+
+		default:
+			rtlqueue = TXDESC_QUEUE_BE;
 	}
 
 	return rtlqueue;
@@ -4600,9 +5479,13 @@ static u32 rtl8xxxu_queue_select(struct ieee80211_hw *hw, struct sk_buff *skb)
 	u32 queue;
 
 	if (ieee80211_is_mgmt(hdr->frame_control))
+	{
 		queue = TXDESC_QUEUE_MGNT;
+	}
 	else
+	{
 		queue = rtl8xxxu_80211_to_rtl_queue(skb_get_queue_mapping(skb));
+	}
 
 	return queue;
 }
@@ -4625,7 +5508,9 @@ static void rtl8xxxu_calc_tx_desc_csum(struct rtl8xxxu_txdesc32 *tx_desc)
 	tx_desc->csum = cpu_to_le16(0);
 
 	for (i = 0; i < (sizeof(struct rtl8xxxu_txdesc32) / sizeof(u16)); i++)
+	{
 		csum = csum ^ le16_to_cpu(ptr[i]);
+	}
 
 	tx_desc->csum |= cpu_to_le16(csum);
 }
@@ -4636,7 +5521,8 @@ static void rtl8xxxu_free_tx_resources(struct rtl8xxxu_priv *priv)
 	unsigned long flags;
 
 	spin_lock_irqsave(&priv->tx_urb_lock, flags);
-	list_for_each_entry_safe(tx_urb, tmp, &priv->tx_urb_free_list, list) {
+	list_for_each_entry_safe(tx_urb, tmp, &priv->tx_urb_free_list, list)
+	{
 		list_del(&tx_urb->list);
 		priv->tx_urb_free_count--;
 		usb_free_urb(&tx_urb->urb);
@@ -4652,12 +5538,16 @@ rtl8xxxu_alloc_tx_urb(struct rtl8xxxu_priv *priv)
 
 	spin_lock_irqsave(&priv->tx_urb_lock, flags);
 	tx_urb = list_first_entry_or_null(&priv->tx_urb_free_list,
-					  struct rtl8xxxu_tx_urb, list);
-	if (tx_urb) {
+									  struct rtl8xxxu_tx_urb, list);
+
+	if (tx_urb)
+	{
 		list_del(&tx_urb->list);
 		priv->tx_urb_free_count--;
+
 		if (priv->tx_urb_free_count < RTL8XXXU_TX_URB_LOW_WATER &&
-		    !priv->tx_stopped) {
+			!priv->tx_stopped)
+		{
 			priv->tx_stopped = true;
 			ieee80211_stop_queues(priv->hw);
 		}
@@ -4669,7 +5559,7 @@ rtl8xxxu_alloc_tx_urb(struct rtl8xxxu_priv *priv)
 }
 
 static void rtl8xxxu_free_tx_urb(struct rtl8xxxu_priv *priv,
-				 struct rtl8xxxu_tx_urb *tx_urb)
+								 struct rtl8xxxu_tx_urb *tx_urb)
 {
 	unsigned long flags;
 
@@ -4679,8 +5569,10 @@ static void rtl8xxxu_free_tx_urb(struct rtl8xxxu_priv *priv,
 
 	list_add(&tx_urb->list, &priv->tx_urb_free_list);
 	priv->tx_urb_free_count++;
+
 	if (priv->tx_urb_free_count > RTL8XXXU_TX_URB_HIGH_WATER &&
-	    priv->tx_stopped) {
+		priv->tx_stopped)
+	{
 		priv->tx_stopped = false;
 		ieee80211_wake_queues(priv->hw);
 	}
@@ -4708,7 +5600,9 @@ static void rtl8xxxu_tx_complete(struct urb *urb)
 	tx_info->status.rates[0].count = 0;
 
 	if (!urb->status)
+	{
 		tx_info->flags |= IEEE80211_TX_STAT_ACK;
+	}
 
 	ieee80211_tx_status_irqsafe(hw, skb);
 
@@ -4716,41 +5610,46 @@ static void rtl8xxxu_tx_complete(struct urb *urb)
 }
 
 static void rtl8xxxu_dump_action(struct device *dev,
-				 struct ieee80211_hdr *hdr)
+								 struct ieee80211_hdr *hdr)
 {
 	struct ieee80211_mgmt *mgmt = (struct ieee80211_mgmt *)hdr;
 	u16 cap, timeout;
 
 	if (!(rtl8xxxu_debug & RTL8XXXU_DEBUG_ACTION))
+	{
 		return;
+	}
 
-	switch (mgmt->u.action.u.addba_resp.action_code) {
-	case WLAN_ACTION_ADDBA_RESP:
-		cap = le16_to_cpu(mgmt->u.action.u.addba_resp.capab);
-		timeout = le16_to_cpu(mgmt->u.action.u.addba_resp.timeout);
-		dev_info(dev, "WLAN_ACTION_ADDBA_RESP: "
-			 "timeout %i, tid %02x, buf_size %02x, policy %02x, "
-			 "status %02x\n",
-			 timeout,
-			 (cap & IEEE80211_ADDBA_PARAM_TID_MASK) >> 2,
-			 (cap & IEEE80211_ADDBA_PARAM_BUF_SIZE_MASK) >> 6,
-			 (cap >> 1) & 0x1,
-			 le16_to_cpu(mgmt->u.action.u.addba_resp.status));
-		break;
-	case WLAN_ACTION_ADDBA_REQ:
-		cap = le16_to_cpu(mgmt->u.action.u.addba_req.capab);
-		timeout = le16_to_cpu(mgmt->u.action.u.addba_req.timeout);
-		dev_info(dev, "WLAN_ACTION_ADDBA_REQ: "
-			 "timeout %i, tid %02x, buf_size %02x, policy %02x\n",
-			 timeout,
-			 (cap & IEEE80211_ADDBA_PARAM_TID_MASK) >> 2,
-			 (cap & IEEE80211_ADDBA_PARAM_BUF_SIZE_MASK) >> 6,
-			 (cap >> 1) & 0x1);
-		break;
-	default:
-		dev_info(dev, "action frame %02x\n",
-			 mgmt->u.action.u.addba_resp.action_code);
-		break;
+	switch (mgmt->u.action.u.addba_resp.action_code)
+	{
+		case WLAN_ACTION_ADDBA_RESP:
+			cap = le16_to_cpu(mgmt->u.action.u.addba_resp.capab);
+			timeout = le16_to_cpu(mgmt->u.action.u.addba_resp.timeout);
+			dev_info(dev, "WLAN_ACTION_ADDBA_RESP: "
+					 "timeout %i, tid %02x, buf_size %02x, policy %02x, "
+					 "status %02x\n",
+					 timeout,
+					 (cap & IEEE80211_ADDBA_PARAM_TID_MASK) >> 2,
+					 (cap & IEEE80211_ADDBA_PARAM_BUF_SIZE_MASK) >> 6,
+					 (cap >> 1) & 0x1,
+					 le16_to_cpu(mgmt->u.action.u.addba_resp.status));
+			break;
+
+		case WLAN_ACTION_ADDBA_REQ:
+			cap = le16_to_cpu(mgmt->u.action.u.addba_req.capab);
+			timeout = le16_to_cpu(mgmt->u.action.u.addba_req.timeout);
+			dev_info(dev, "WLAN_ACTION_ADDBA_REQ: "
+					 "timeout %i, tid %02x, buf_size %02x, policy %02x\n",
+					 timeout,
+					 (cap & IEEE80211_ADDBA_PARAM_TID_MASK) >> 2,
+					 (cap & IEEE80211_ADDBA_PARAM_BUF_SIZE_MASK) >> 6,
+					 (cap >> 1) & 0x1);
+			break;
+
+		default:
+			dev_info(dev, "action frame %02x\n",
+					 mgmt->u.action.u.addba_resp.action_code);
+			break;
 	}
 }
 
@@ -4760,9 +5659,9 @@ static void rtl8xxxu_dump_action(struct device *dev,
  */
 void
 rtl8xxxu_fill_txdesc_v1(struct ieee80211_hdr *hdr,
-			struct rtl8xxxu_txdesc32 *tx_desc, u32 rate,
-			u16 rate_flag, bool sgi, bool short_preamble,
-			bool ampdu_enable)
+						struct rtl8xxxu_txdesc32 *tx_desc, u32 rate,
+						u16 rate_flag, bool sgi, bool short_preamble,
+						bool ampdu_enable)
 {
 	u16 seq_number;
 
@@ -4771,16 +5670,23 @@ rtl8xxxu_fill_txdesc_v1(struct ieee80211_hdr *hdr,
 	tx_desc->txdw5 = cpu_to_le32(rate);
 
 	if (ieee80211_is_data(hdr->frame_control))
+	{
 		tx_desc->txdw5 |= cpu_to_le32(0x0001ff00);
+	}
 
 	tx_desc->txdw3 = cpu_to_le32((u32)seq_number << TXDESC32_SEQ_SHIFT);
 
 	if (ampdu_enable)
+	{
 		tx_desc->txdw1 |= cpu_to_le32(TXDESC32_AGG_ENABLE);
+	}
 	else
+	{
 		tx_desc->txdw1 |= cpu_to_le32(TXDESC32_AGG_BREAK);
+	}
 
-	if (ieee80211_is_mgmt(hdr->frame_control)) {
+	if (ieee80211_is_mgmt(hdr->frame_control))
+	{
 		tx_desc->txdw5 = cpu_to_le32(rate);
 		tx_desc->txdw4 |= cpu_to_le32(TXDESC32_USE_DRIVER_RATE);
 		tx_desc->txdw5 |= cpu_to_le32(6 << TXDESC32_RETRY_LIMIT_SHIFT);
@@ -4788,21 +5694,28 @@ rtl8xxxu_fill_txdesc_v1(struct ieee80211_hdr *hdr,
 	}
 
 	if (ieee80211_is_data_qos(hdr->frame_control))
+	{
 		tx_desc->txdw4 |= cpu_to_le32(TXDESC32_QOS);
+	}
 
 	if (short_preamble)
+	{
 		tx_desc->txdw4 |= cpu_to_le32(TXDESC32_SHORT_PREAMBLE);
+	}
 
 	if (sgi)
+	{
 		tx_desc->txdw5 |= cpu_to_le32(TXDESC32_SHORT_GI);
+	}
 
-	if (rate_flag & IEEE80211_TX_RC_USE_RTS_CTS) {
+	if (rate_flag & IEEE80211_TX_RC_USE_RTS_CTS)
+	{
 		/*
 		 * Use RTS rate 24M - does the mac80211 tell
 		 * us which to use?
 		 */
 		tx_desc->txdw4 |= cpu_to_le32(DESC_RATE_24M <<
-					      TXDESC32_RTS_RATE_SHIFT);
+									  TXDESC32_RTS_RATE_SHIFT);
 		tx_desc->txdw4 |= cpu_to_le32(TXDESC32_RTS_CTS_ENABLE);
 		tx_desc->txdw4 |= cpu_to_le32(TXDESC32_HW_RTS_ENABLE);
 	}
@@ -4814,9 +5727,9 @@ rtl8xxxu_fill_txdesc_v1(struct ieee80211_hdr *hdr,
  */
 void
 rtl8xxxu_fill_txdesc_v2(struct ieee80211_hdr *hdr,
-			struct rtl8xxxu_txdesc32 *tx_desc32, u32 rate,
-			u16 rate_flag, bool sgi, bool short_preamble,
-			bool ampdu_enable)
+						struct rtl8xxxu_txdesc32 *tx_desc32, u32 rate,
+						u16 rate_flag, bool sgi, bool short_preamble,
+						bool ampdu_enable)
 {
 	struct rtl8xxxu_txdesc40 *tx_desc40;
 	u16 seq_number;
@@ -4826,19 +5739,26 @@ rtl8xxxu_fill_txdesc_v2(struct ieee80211_hdr *hdr,
 	seq_number = IEEE80211_SEQ_TO_SN(le16_to_cpu(hdr->seq_ctrl));
 
 	tx_desc40->txdw4 = cpu_to_le32(rate);
-	if (ieee80211_is_data(hdr->frame_control)) {
+
+	if (ieee80211_is_data(hdr->frame_control))
+	{
 		tx_desc40->txdw4 |= cpu_to_le32(0x1f <<
-						TXDESC40_DATA_RATE_FB_SHIFT);
+										TXDESC40_DATA_RATE_FB_SHIFT);
 	}
 
 	tx_desc40->txdw9 = cpu_to_le32((u32)seq_number << TXDESC40_SEQ_SHIFT);
 
 	if (ampdu_enable)
+	{
 		tx_desc40->txdw2 |= cpu_to_le32(TXDESC40_AGG_ENABLE);
+	}
 	else
+	{
 		tx_desc40->txdw2 |= cpu_to_le32(TXDESC40_AGG_BREAK);
+	}
 
-	if (ieee80211_is_mgmt(hdr->frame_control)) {
+	if (ieee80211_is_mgmt(hdr->frame_control))
+	{
 		tx_desc40->txdw4 = cpu_to_le32(rate);
 		tx_desc40->txdw3 |= cpu_to_le32(TXDESC40_USE_DRIVER_RATE);
 		tx_desc40->txdw4 |=
@@ -4847,23 +5767,26 @@ rtl8xxxu_fill_txdesc_v2(struct ieee80211_hdr *hdr,
 	}
 
 	if (short_preamble)
+	{
 		tx_desc40->txdw5 |= cpu_to_le32(TXDESC40_SHORT_PREAMBLE);
+	}
 
-	if (rate_flag & IEEE80211_TX_RC_USE_RTS_CTS) {
+	if (rate_flag & IEEE80211_TX_RC_USE_RTS_CTS)
+	{
 		/*
 		 * Use RTS rate 24M - does the mac80211 tell
 		 * us which to use?
 		 */
 		tx_desc40->txdw4 |= cpu_to_le32(DESC_RATE_24M <<
-						TXDESC40_RTS_RATE_SHIFT);
+										TXDESC40_RTS_RATE_SHIFT);
 		tx_desc40->txdw3 |= cpu_to_le32(TXDESC40_RTS_CTS_ENABLE);
 		tx_desc40->txdw3 |= cpu_to_le32(TXDESC40_HW_RTS_ENABLE);
 	}
 }
 
 static void rtl8xxxu_tx(struct ieee80211_hw *hw,
-			struct ieee80211_tx_control *control,
-			struct sk_buff *skb)
+						struct ieee80211_tx_control *control,
+						struct sk_buff *skb)
 {
 	struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)skb->data;
 	struct ieee80211_tx_info *tx_info = IEEE80211_SKB_CB(skb);
@@ -4882,37 +5805,45 @@ static void rtl8xxxu_tx(struct ieee80211_hw *hw,
 	int ret;
 	bool usedesc40, ampdu_enable, sgi = false, short_preamble = false;
 
-	if (skb_headroom(skb) < tx_desc_size) {
+	if (skb_headroom(skb) < tx_desc_size)
+	{
 		dev_warn(dev,
-			 "%s: Not enough headroom (%i) for tx descriptor\n",
-			 __func__, skb_headroom(skb));
+				 "%s: Not enough headroom (%i) for tx descriptor\n",
+				 __func__, skb_headroom(skb));
 		goto error;
 	}
 
-	if (unlikely(skb->len > (65535 - tx_desc_size))) {
+	if (unlikely(skb->len > (65535 - tx_desc_size)))
+	{
 		dev_warn(dev, "%s: Trying to send over-sized skb (%i)\n",
-			 __func__, skb->len);
+				 __func__, skb->len);
 		goto error;
 	}
 
 	tx_urb = rtl8xxxu_alloc_tx_urb(priv);
-	if (!tx_urb) {
+
+	if (!tx_urb)
+	{
 		dev_warn(dev, "%s: Unable to allocate tx urb\n", __func__);
 		goto error;
 	}
 
 	if (rtl8xxxu_debug & RTL8XXXU_DEBUG_TX)
 		dev_info(dev, "%s: TX rate: %d (%d), pkt size %d\n",
-			 __func__, tx_rate->bitrate, tx_rate->hw_value, pktlen);
+				 __func__, tx_rate->bitrate, tx_rate->hw_value, pktlen);
 
 	if (ieee80211_is_action(hdr->frame_control))
+	{
 		rtl8xxxu_dump_action(dev, hdr);
+	}
 
 	usedesc40 = (tx_desc_size == 40);
 	tx_info->rate_driver_data[0] = hw;
 
 	if (control && control->sta)
+	{
 		sta = control->sta;
+	}
 
 	tx_desc = (struct rtl8xxxu_txdesc32 *)skb_push(skb, tx_desc_size);
 
@@ -4922,32 +5853,42 @@ static void rtl8xxxu_tx(struct ieee80211_hw *hw,
 
 	tx_desc->txdw0 =
 		TXDESC_OWN | TXDESC_FIRST_SEGMENT | TXDESC_LAST_SEGMENT;
+
 	if (is_multicast_ether_addr(ieee80211_get_DA(hdr)) ||
-	    is_broadcast_ether_addr(ieee80211_get_DA(hdr)))
+		is_broadcast_ether_addr(ieee80211_get_DA(hdr)))
+	{
 		tx_desc->txdw0 |= TXDESC_BROADMULTICAST;
+	}
 
 	queue = rtl8xxxu_queue_select(hw, skb);
 	tx_desc->txdw1 = cpu_to_le32(queue << TXDESC_QUEUE_SHIFT);
 
-	if (tx_info->control.hw_key) {
-		switch (tx_info->control.hw_key->cipher) {
-		case WLAN_CIPHER_SUITE_WEP40:
-		case WLAN_CIPHER_SUITE_WEP104:
-		case WLAN_CIPHER_SUITE_TKIP:
-			tx_desc->txdw1 |= cpu_to_le32(TXDESC_SEC_RC4);
-			break;
-		case WLAN_CIPHER_SUITE_CCMP:
-			tx_desc->txdw1 |= cpu_to_le32(TXDESC_SEC_AES);
-			break;
-		default:
-			break;
+	if (tx_info->control.hw_key)
+	{
+		switch (tx_info->control.hw_key->cipher)
+		{
+			case WLAN_CIPHER_SUITE_WEP40:
+			case WLAN_CIPHER_SUITE_WEP104:
+			case WLAN_CIPHER_SUITE_TKIP:
+				tx_desc->txdw1 |= cpu_to_le32(TXDESC_SEC_RC4);
+				break;
+
+			case WLAN_CIPHER_SUITE_CCMP:
+				tx_desc->txdw1 |= cpu_to_le32(TXDESC_SEC_AES);
+				break;
+
+			default:
+				break;
 		}
 	}
 
 	/* (tx_info->flags & IEEE80211_TX_CTL_AMPDU) && */
 	ampdu_enable = false;
-	if (ieee80211_is_data_qos(hdr->frame_control) && sta) {
-		if (sta->ht_cap.ht_supported) {
+
+	if (ieee80211_is_data_qos(hdr->frame_control) && sta)
+	{
+		if (sta->ht_cap.ht_supported)
+		{
 			u32 ampdu, val32;
 
 			ampdu = (u32)sta->ht_cap.ampdu_density;
@@ -4959,72 +5900,92 @@ static void rtl8xxxu_tx(struct ieee80211_hw *hw,
 	}
 
 	if (rate_flag & IEEE80211_TX_RC_MCS &&
-	    !ieee80211_is_mgmt(hdr->frame_control))
+		!ieee80211_is_mgmt(hdr->frame_control))
+	{
 		rate = tx_info->control.rates[0].idx + DESC_RATE_MCS0;
+	}
 	else
+	{
 		rate = tx_rate->hw_value;
+	}
 
 	if (rate_flag & IEEE80211_TX_RC_SHORT_GI ||
-	    (ieee80211_is_data_qos(hdr->frame_control) &&
-	     sta && sta->ht_cap.cap &
-	     (IEEE80211_HT_CAP_SGI_40 | IEEE80211_HT_CAP_SGI_20)))
+		(ieee80211_is_data_qos(hdr->frame_control) &&
+		 sta && sta->ht_cap.cap &
+		 (IEEE80211_HT_CAP_SGI_40 | IEEE80211_HT_CAP_SGI_20)))
+	{
 		sgi = true;
+	}
 
 	if (rate_flag & IEEE80211_TX_RC_USE_SHORT_PREAMBLE ||
-	    (sta && vif && vif->bss_conf.use_short_preamble))
+		(sta && vif && vif->bss_conf.use_short_preamble))
+	{
 		short_preamble = true;
+	}
 
 	seq_number = IEEE80211_SEQ_TO_SN(le16_to_cpu(hdr->seq_ctrl));
 
 	priv->fops->fill_txdesc(hdr, tx_desc, rate, rate_flag,
-				sgi, short_preamble, ampdu_enable);
+							sgi, short_preamble, ampdu_enable);
 
 	rtl8xxxu_calc_tx_desc_csum(tx_desc);
 
 	usb_fill_bulk_urb(&tx_urb->urb, priv->udev, priv->pipe_out[queue],
-			  skb->data, skb->len, rtl8xxxu_tx_complete, skb);
+					  skb->data, skb->len, rtl8xxxu_tx_complete, skb);
 
 	usb_anchor_urb(&tx_urb->urb, &priv->tx_anchor);
 	ret = usb_submit_urb(&tx_urb->urb, GFP_ATOMIC);
-	if (ret) {
+
+	if (ret)
+	{
 		usb_unanchor_urb(&tx_urb->urb);
 		rtl8xxxu_free_tx_urb(priv, tx_urb);
 		goto error;
 	}
+
 	return;
 error:
 	dev_kfree_skb(skb);
 }
 
 static void rtl8xxxu_rx_parse_phystats(struct rtl8xxxu_priv *priv,
-				       struct ieee80211_rx_status *rx_status,
-				       struct rtl8723au_phy_stats *phy_stats,
-				       u32 rxmcs)
+									   struct ieee80211_rx_status *rx_status,
+									   struct rtl8723au_phy_stats *phy_stats,
+									   u32 rxmcs)
 {
 	if (phy_stats->sgi_en)
+	{
 		rx_status->flag |= RX_FLAG_SHORT_GI;
+	}
 
-	if (rxmcs < DESC_RATE_6M) {
+	if (rxmcs < DESC_RATE_6M)
+	{
 		/*
 		 * Handle PHY stats for CCK rates
 		 */
 		u8 cck_agc_rpt = phy_stats->cck_agc_rpt_ofdm_cfosho_a;
 
-		switch (cck_agc_rpt & 0xc0) {
-		case 0xc0:
-			rx_status->signal = -46 - (cck_agc_rpt & 0x3e);
-			break;
-		case 0x80:
-			rx_status->signal = -26 - (cck_agc_rpt & 0x3e);
-			break;
-		case 0x40:
-			rx_status->signal = -12 - (cck_agc_rpt & 0x3e);
-			break;
-		case 0x00:
-			rx_status->signal = 16 - (cck_agc_rpt & 0x3e);
-			break;
+		switch (cck_agc_rpt & 0xc0)
+		{
+			case 0xc0:
+				rx_status->signal = -46 - (cck_agc_rpt & 0x3e);
+				break;
+
+			case 0x80:
+				rx_status->signal = -26 - (cck_agc_rpt & 0x3e);
+				break;
+
+			case 0x40:
+				rx_status->signal = -12 - (cck_agc_rpt & 0x3e);
+				break;
+
+			case 0x00:
+				rx_status->signal = 16 - (cck_agc_rpt & 0x3e);
+				break;
 		}
-	} else {
+	}
+	else
+	{
 		rx_status->signal =
 			(phy_stats->cck_sig_qual_ofdm_pwdb_all >> 1) - 110;
 	}
@@ -5038,7 +5999,8 @@ static void rtl8xxxu_free_rx_resources(struct rtl8xxxu_priv *priv)
 	spin_lock_irqsave(&priv->rx_urb_lock, flags);
 
 	list_for_each_entry_safe(rx_urb, tmp,
-				 &priv->rx_urb_pending_list, list) {
+							 &priv->rx_urb_pending_list, list)
+	{
 		list_del(&rx_urb->list);
 		priv->rx_urb_pending_count--;
 		usb_free_urb(&rx_urb->urb);
@@ -5048,7 +6010,7 @@ static void rtl8xxxu_free_rx_resources(struct rtl8xxxu_priv *priv)
 }
 
 static void rtl8xxxu_queue_rx_urb(struct rtl8xxxu_priv *priv,
-				  struct rtl8xxxu_rx_urb *rx_urb)
+								  struct rtl8xxxu_rx_urb *rx_urb)
 {
 	struct sk_buff *skb;
 	unsigned long flags;
@@ -5056,11 +6018,14 @@ static void rtl8xxxu_queue_rx_urb(struct rtl8xxxu_priv *priv,
 
 	spin_lock_irqsave(&priv->rx_urb_lock, flags);
 
-	if (!priv->shutdown) {
+	if (!priv->shutdown)
+	{
 		list_add_tail(&rx_urb->list, &priv->rx_urb_pending_list);
 		priv->rx_urb_pending_count++;
 		pending = priv->rx_urb_pending_count;
-	} else {
+	}
+	else
+	{
 		skb = (struct sk_buff *)rx_urb->urb.context;
 		dev_kfree_skb(skb);
 		usb_free_urb(&rx_urb->urb);
@@ -5069,7 +6034,9 @@ static void rtl8xxxu_queue_rx_urb(struct rtl8xxxu_priv *priv,
 	spin_unlock_irqrestore(&priv->rx_urb_lock, flags);
 
 	if (pending > RTL8XXXU_RX_URB_PENDING_WATER)
+	{
 		schedule_work(&priv->rx_urb_wq);
+	}
 }
 
 static void rtl8xxxu_rx_urb_work(struct work_struct *work)
@@ -5091,32 +6058,37 @@ static void rtl8xxxu_rx_urb_work(struct work_struct *work)
 
 	spin_unlock_irqrestore(&priv->rx_urb_lock, flags);
 
-	list_for_each_entry_safe(rx_urb, tmp, &local, list) {
+	list_for_each_entry_safe(rx_urb, tmp, &local, list)
+	{
 		list_del_init(&rx_urb->list);
 		ret = rtl8xxxu_submit_rx_urb(priv, rx_urb);
+
 		/*
 		 * If out of memory or temporary error, put it back on the
 		 * queue and try again. Otherwise the device is dead/gone
 		 * and we should drop it.
 		 */
-		switch (ret) {
-		case 0:
-			break;
-		case -ENOMEM:
-		case -EAGAIN:
-			rtl8xxxu_queue_rx_urb(priv, rx_urb);
-			break;
-		default:
-			pr_info("failed to requeue urb %i\n", ret);
-			skb = (struct sk_buff *)rx_urb->urb.context;
-			dev_kfree_skb(skb);
-			usb_free_urb(&rx_urb->urb);
+		switch (ret)
+		{
+			case 0:
+				break;
+
+			case -ENOMEM:
+			case -EAGAIN:
+				rtl8xxxu_queue_rx_urb(priv, rx_urb);
+				break;
+
+			default:
+				pr_info("failed to requeue urb %i\n", ret);
+				skb = (struct sk_buff *)rx_urb->urb.context;
+				dev_kfree_skb(skb);
+				usb_free_urb(&rx_urb->urb);
 		}
 	}
 }
 
 static void rtl8723bu_handle_c2h(struct rtl8xxxu_priv *priv,
-				 struct sk_buff *skb)
+								 struct sk_buff *skb)
 {
 	struct rtl8723bu_c2h *c2h = (struct rtl8723bu_c2h *)skb->data;
 	struct device *dev = &priv->udev->dev;
@@ -5125,38 +6097,51 @@ static void rtl8723bu_handle_c2h(struct rtl8xxxu_priv *priv,
 	len = skb->len - 2;
 
 	dev_dbg(dev, "C2H ID %02x seq %02x, len %02x source %02x\n",
-		c2h->id, c2h->seq, len, c2h->bt_info.response_source);
+			c2h->id, c2h->seq, len, c2h->bt_info.response_source);
 
-	switch(c2h->id) {
-	case C2H_8723B_BT_INFO:
-		if (c2h->bt_info.response_source >
-		    BT_INFO_SRC_8723B_BT_ACTIVE_SEND)
-			dev_dbg(dev, "C2H_BT_INFO WiFi only firmware\n");
-		else
-			dev_dbg(dev, "C2H_BT_INFO BT/WiFi coexist firmware\n");
+	switch (c2h->id)
+	{
+		case C2H_8723B_BT_INFO:
+			if (c2h->bt_info.response_source >
+				BT_INFO_SRC_8723B_BT_ACTIVE_SEND)
+			{
+				dev_dbg(dev, "C2H_BT_INFO WiFi only firmware\n");
+			}
+			else
+			{
+				dev_dbg(dev, "C2H_BT_INFO BT/WiFi coexist firmware\n");
+			}
 
-		if (c2h->bt_info.bt_has_reset)
-			dev_dbg(dev, "BT has been reset\n");
-		if (c2h->bt_info.tx_rx_mask)
-			dev_dbg(dev, "BT TRx mask\n");
+			if (c2h->bt_info.bt_has_reset)
+			{
+				dev_dbg(dev, "BT has been reset\n");
+			}
 
-		break;
-	case C2H_8723B_BT_MP_INFO:
-		dev_dbg(dev, "C2H_MP_INFO ext ID %02x, status %02x\n",
-			c2h->bt_mp_info.ext_id, c2h->bt_mp_info.status);
-		break;
-	case C2H_8723B_RA_REPORT:
-		dev_dbg(dev,
-			"C2H RA RPT: rate %02x, unk %i, macid %02x, noise %i\n",
-			c2h->ra_report.rate, c2h->ra_report.dummy0_0,
-			c2h->ra_report.macid, c2h->ra_report.noisy_state);
-		break;
-	default:
-		dev_info(dev, "Unhandled C2H event %02x seq %02x\n",
-			 c2h->id, c2h->seq);
-		print_hex_dump(KERN_INFO, "C2H content: ", DUMP_PREFIX_NONE,
-			       16, 1, c2h->raw.payload, len, false);
-		break;
+			if (c2h->bt_info.tx_rx_mask)
+			{
+				dev_dbg(dev, "BT TRx mask\n");
+			}
+
+			break;
+
+		case C2H_8723B_BT_MP_INFO:
+			dev_dbg(dev, "C2H_MP_INFO ext ID %02x, status %02x\n",
+					c2h->bt_mp_info.ext_id, c2h->bt_mp_info.status);
+			break;
+
+		case C2H_8723B_RA_REPORT:
+			dev_dbg(dev,
+					"C2H RA RPT: rate %02x, unk %i, macid %02x, noise %i\n",
+					c2h->ra_report.rate, c2h->ra_report.dummy0_0,
+					c2h->ra_report.macid, c2h->ra_report.noisy_state);
+			break;
+
+		default:
+			dev_info(dev, "Unhandled C2H event %02x seq %02x\n",
+					 c2h->id, c2h->seq);
+			print_hex_dump(KERN_INFO, "C2H content: ", DUMP_PREFIX_NONE,
+						   16, 1, c2h->raw.payload, len, false);
+			break;
 	}
 }
 
@@ -5175,35 +6160,43 @@ int rtl8xxxu_parse_rxdesc16(struct rtl8xxxu_priv *priv, struct sk_buff *skb)
 	urb_len = skb->len;
 	pkt_cnt = 0;
 
-	do {
+	do
+	{
 		rx_desc = (struct rtl8xxxu_rxdesc16 *)skb->data;
 		_rx_desc_le = (__le32 *)skb->data;
 		_rx_desc = (u32 *)skb->data;
 
 		for (i = 0;
-		     i < (sizeof(struct rtl8xxxu_rxdesc16) / sizeof(u32)); i++)
+			 i < (sizeof(struct rtl8xxxu_rxdesc16) / sizeof(u32)); i++)
+		{
 			_rx_desc[i] = le32_to_cpu(_rx_desc_le[i]);
+		}
 
 		/*
 		 * Only read pkt_cnt from the header if we're parsing the
 		 * first packet
 		 */
 		if (!pkt_cnt)
+		{
 			pkt_cnt = rx_desc->pkt_cnt;
+		}
+
 		pkt_len = rx_desc->pktlen;
 
 		drvinfo_sz = rx_desc->drvinfo_sz * 8;
 		desc_shift = rx_desc->shift;
 		pkt_offset = roundup(pkt_len + drvinfo_sz + desc_shift +
-				     sizeof(struct rtl8xxxu_rxdesc16), 128);
+							 sizeof(struct rtl8xxxu_rxdesc16), 128);
 
 		/*
 		 * Only clone the skb if there's enough data at the end to
 		 * at least cover the rx descriptor
 		 */
 		if (pkt_cnt > 1 &&
-		    urb_len > (pkt_offset + sizeof(struct rtl8xxxu_rxdesc16)))
+			urb_len > (pkt_offset + sizeof(struct rtl8xxxu_rxdesc16)))
+		{
 			next_skb = skb_clone(skb, GFP_ATOMIC);
+		}
 
 		rx_status = IEEE80211_SKB_RXCB(skb);
 		memset(rx_status, 0, sizeof(struct ieee80211_rx_status));
@@ -5218,22 +6211,33 @@ int rtl8xxxu_parse_rxdesc16(struct rtl8xxxu_priv *priv, struct sk_buff *skb)
 
 		if (rx_desc->phy_stats)
 			rtl8xxxu_rx_parse_phystats(priv, rx_status, phy_stats,
-						   rx_desc->rxmcs);
+									   rx_desc->rxmcs);
 
 		rx_status->mactime = rx_desc->tsfl;
 		rx_status->flag |= RX_FLAG_MACTIME_START;
 
 		if (!rx_desc->swdec)
+		{
 			rx_status->flag |= RX_FLAG_DECRYPTED;
-		if (rx_desc->crc32)
-			rx_status->flag |= RX_FLAG_FAILED_FCS_CRC;
-		if (rx_desc->bw)
-			rx_status->flag |= RX_FLAG_40MHZ;
+		}
 
-		if (rx_desc->rxht) {
+		if (rx_desc->crc32)
+		{
+			rx_status->flag |= RX_FLAG_FAILED_FCS_CRC;
+		}
+
+		if (rx_desc->bw)
+		{
+			rx_status->flag |= RX_FLAG_40MHZ;
+		}
+
+		if (rx_desc->rxht)
+		{
 			rx_status->flag |= RX_FLAG_HT;
 			rx_status->rate_idx = rx_desc->rxmcs - DESC_RATE_MCS0;
-		} else {
+		}
+		else
+		{
 			rx_status->rate_idx = rx_desc->rxmcs;
 		}
 
@@ -5243,12 +6247,16 @@ int rtl8xxxu_parse_rxdesc16(struct rtl8xxxu_priv *priv, struct sk_buff *skb)
 		ieee80211_rx_irqsafe(hw, skb);
 
 		skb = next_skb;
+
 		if (skb)
+		{
 			skb_pull(next_skb, pkt_offset);
+		}
 
 		pkt_cnt--;
 		urb_len -= pkt_offset;
-	} while (skb && urb_len > 0 && pkt_cnt > 0);
+	}
+	while (skb && urb_len > 0 && pkt_cnt > 0);
 
 	return RX_TYPE_DATA_PKT;
 }
@@ -5266,7 +6274,9 @@ int rtl8xxxu_parse_rxdesc24(struct rtl8xxxu_priv *priv, struct sk_buff *skb)
 	int i;
 
 	for (i = 0; i < (sizeof(struct rtl8xxxu_rxdesc24) / sizeof(u32)); i++)
+	{
 		_rx_desc[i] = le32_to_cpu(_rx_desc_le[i]);
+	}
 
 	memset(rx_status, 0, sizeof(struct ieee80211_rx_status));
 
@@ -5278,7 +6288,8 @@ int rtl8xxxu_parse_rxdesc24(struct rtl8xxxu_priv *priv, struct sk_buff *skb)
 	desc_shift = rx_desc->shift;
 	skb_pull(skb, drvinfo_sz + desc_shift);
 
-	if (rx_desc->rpt_sel) {
+	if (rx_desc->rpt_sel)
+	{
 		struct device *dev = &priv->udev->dev;
 		dev_dbg(dev, "%s: C2H packet\n", __func__);
 		rtl8723bu_handle_c2h(priv, skb);
@@ -5288,22 +6299,33 @@ int rtl8xxxu_parse_rxdesc24(struct rtl8xxxu_priv *priv, struct sk_buff *skb)
 
 	if (rx_desc->phy_stats)
 		rtl8xxxu_rx_parse_phystats(priv, rx_status, phy_stats,
-					   rx_desc->rxmcs);
+								   rx_desc->rxmcs);
 
 	rx_status->mactime = rx_desc->tsfl;
 	rx_status->flag |= RX_FLAG_MACTIME_START;
 
 	if (!rx_desc->swdec)
+	{
 		rx_status->flag |= RX_FLAG_DECRYPTED;
-	if (rx_desc->crc32)
-		rx_status->flag |= RX_FLAG_FAILED_FCS_CRC;
-	if (rx_desc->bw)
-		rx_status->flag |= RX_FLAG_40MHZ;
+	}
 
-	if (rx_desc->rxmcs >= DESC_RATE_MCS0) {
+	if (rx_desc->crc32)
+	{
+		rx_status->flag |= RX_FLAG_FAILED_FCS_CRC;
+	}
+
+	if (rx_desc->bw)
+	{
+		rx_status->flag |= RX_FLAG_40MHZ;
+	}
+
+	if (rx_desc->rxmcs >= DESC_RATE_MCS0)
+	{
 		rx_status->flag |= RX_FLAG_HT;
 		rx_status->rate_idx = rx_desc->rxmcs - DESC_RATE_MCS0;
-	} else {
+	}
+	else
+	{
 		rx_status->rate_idx = rx_desc->rxmcs;
 	}
 
@@ -5325,16 +6347,20 @@ static void rtl8xxxu_rx_complete(struct urb *urb)
 
 	skb_put(skb, urb->actual_length);
 
-	if (urb->status == 0) {
+	if (urb->status == 0)
+	{
 		priv->fops->parse_rx_desc(priv, skb);
 
 		skb = NULL;
 		rx_urb->urb.context = NULL;
 		rtl8xxxu_queue_rx_urb(priv, rx_urb);
-	} else {
+	}
+	else
+	{
 		dev_dbg(dev, "%s: status %i\n",	__func__, urb->status);
 		goto cleanup;
 	}
+
 	return;
 
 cleanup:
@@ -5344,7 +6370,7 @@ cleanup:
 }
 
 static int rtl8xxxu_submit_rx_urb(struct rtl8xxxu_priv *priv,
-				  struct rtl8xxxu_rx_urb *rx_urb)
+								  struct rtl8xxxu_rx_urb *rx_urb)
 {
 	struct rtl8xxxu_fileops *fops = priv->fops;
 	struct sk_buff *skb;
@@ -5353,24 +6379,34 @@ static int rtl8xxxu_submit_rx_urb(struct rtl8xxxu_priv *priv,
 
 	rx_desc_sz = fops->rx_desc_size;
 
-	if (priv->rx_buf_aggregation && fops->rx_agg_buf_size) {
+	if (priv->rx_buf_aggregation && fops->rx_agg_buf_size)
+	{
 		skb_size = fops->rx_agg_buf_size;
 		skb_size += (rx_desc_sz + sizeof(struct rtl8723au_phy_stats));
-	} else {
+	}
+	else
+	{
 		skb_size = IEEE80211_MAX_FRAME_LEN;
 	}
 
 	skb = __netdev_alloc_skb(NULL, skb_size, GFP_KERNEL);
+
 	if (!skb)
+	{
 		return -ENOMEM;
+	}
 
 	memset(skb->data, 0, rx_desc_sz);
 	usb_fill_bulk_urb(&rx_urb->urb, priv->udev, priv->pipe_in, skb->data,
-			  skb_size, rtl8xxxu_rx_complete, skb);
+					  skb_size, rtl8xxxu_rx_complete, skb);
 	usb_anchor_urb(&rx_urb->urb, &priv->rx_anchor);
 	ret = usb_submit_urb(&rx_urb->urb, GFP_ATOMIC);
+
 	if (ret)
+	{
 		usb_unanchor_urb(&rx_urb->urb);
+	}
+
 	return ret;
 }
 
@@ -5381,13 +6417,22 @@ static void rtl8xxxu_int_complete(struct urb *urb)
 	int ret;
 
 	if (rtl8xxxu_debug & RTL8XXXU_DEBUG_INTERRUPT)
+	{
 		dev_dbg(dev, "%s: status %i\n", __func__, urb->status);
-	if (urb->status == 0) {
+	}
+
+	if (urb->status == 0)
+	{
 		usb_anchor_urb(urb, &priv->int_anchor);
 		ret = usb_submit_urb(urb, GFP_ATOMIC);
+
 		if (ret)
+		{
 			usb_unanchor_urb(urb);
-	} else {
+		}
+	}
+	else
+	{
 		dev_dbg(dev, "%s: Error %i\n", __func__, urb->status);
 	}
 }
@@ -5401,15 +6446,20 @@ static int rtl8xxxu_submit_int_urb(struct ieee80211_hw *hw)
 	int ret;
 
 	urb = usb_alloc_urb(0, GFP_KERNEL);
+
 	if (!urb)
+	{
 		return -ENOMEM;
+	}
 
 	usb_fill_int_urb(urb, priv->udev, priv->pipe_interrupt,
-			 priv->int_buf, USB_INTR_CONTENT_LENGTH,
-			 rtl8xxxu_int_complete, priv, 1);
+					 priv->int_buf, USB_INTR_CONTENT_LENGTH,
+					 rtl8xxxu_int_complete, priv, 1);
 	usb_anchor_urb(urb, &priv->int_anchor);
 	ret = usb_submit_urb(urb, GFP_KERNEL);
-	if (ret) {
+
+	if (ret)
+	{
 		usb_unanchor_urb(urb);
 		goto error;
 	}
@@ -5423,24 +6473,26 @@ error:
 }
 
 static int rtl8xxxu_add_interface(struct ieee80211_hw *hw,
-				  struct ieee80211_vif *vif)
+								  struct ieee80211_vif *vif)
 {
 	struct rtl8xxxu_priv *priv = hw->priv;
 	int ret;
 	u8 val8;
 
-	switch (vif->type) {
-	case NL80211_IFTYPE_STATION:
-		rtl8xxxu_stop_tx_beacon(priv);
+	switch (vif->type)
+	{
+		case NL80211_IFTYPE_STATION:
+			rtl8xxxu_stop_tx_beacon(priv);
 
-		val8 = rtl8xxxu_read8(priv, REG_BEACON_CTRL);
-		val8 |= BEACON_ATIM | BEACON_FUNCTION_ENABLE |
-			BEACON_DISABLE_TSF_UPDATE;
-		rtl8xxxu_write8(priv, REG_BEACON_CTRL, val8);
-		ret = 0;
-		break;
-	default:
-		ret = -EOPNOTSUPP;
+			val8 = rtl8xxxu_read8(priv, REG_BEACON_CTRL);
+			val8 |= BEACON_ATIM | BEACON_FUNCTION_ENABLE |
+					BEACON_DISABLE_TSF_UPDATE;
+			rtl8xxxu_write8(priv, REG_BEACON_CTRL, val8);
+			ret = 0;
+			break;
+
+		default:
+			ret = -EOPNOTSUPP;
 	}
 
 	rtl8xxxu_set_linktype(priv, vif->type);
@@ -5449,7 +6501,7 @@ static int rtl8xxxu_add_interface(struct ieee80211_hw *hw,
 }
 
 static void rtl8xxxu_remove_interface(struct ieee80211_hw *hw,
-				      struct ieee80211_vif *vif)
+									  struct ieee80211_vif *vif)
 {
 	struct rtl8xxxu_priv *priv = hw->priv;
 
@@ -5466,30 +6518,35 @@ static int rtl8xxxu_config(struct ieee80211_hw *hw, u32 changed)
 
 	if (rtl8xxxu_debug & RTL8XXXU_DEBUG_CHANNEL)
 		dev_info(dev,
-			 "%s: channel: %i (changed %08x chandef.width %02x)\n",
-			 __func__, hw->conf.chandef.chan->hw_value,
-			 changed, hw->conf.chandef.width);
+				 "%s: channel: %i (changed %08x chandef.width %02x)\n",
+				 __func__, hw->conf.chandef.chan->hw_value,
+				 changed, hw->conf.chandef.width);
 
-	if (changed & IEEE80211_CONF_CHANGE_RETRY_LIMITS) {
+	if (changed & IEEE80211_CONF_CHANGE_RETRY_LIMITS)
+	{
 		val16 = ((hw->conf.long_frame_max_tx_count <<
-			  RETRY_LIMIT_LONG_SHIFT) & RETRY_LIMIT_LONG_MASK) |
-			((hw->conf.short_frame_max_tx_count <<
-			  RETRY_LIMIT_SHORT_SHIFT) & RETRY_LIMIT_SHORT_MASK);
+				  RETRY_LIMIT_LONG_SHIFT) & RETRY_LIMIT_LONG_MASK) |
+				((hw->conf.short_frame_max_tx_count <<
+				  RETRY_LIMIT_SHORT_SHIFT) & RETRY_LIMIT_SHORT_MASK);
 		rtl8xxxu_write16(priv, REG_RETRY_LIMIT, val16);
 	}
 
-	if (changed & IEEE80211_CONF_CHANGE_CHANNEL) {
-		switch (hw->conf.chandef.width) {
-		case NL80211_CHAN_WIDTH_20_NOHT:
-		case NL80211_CHAN_WIDTH_20:
-			ht40 = false;
-			break;
-		case NL80211_CHAN_WIDTH_40:
-			ht40 = true;
-			break;
-		default:
-			ret = -ENOTSUPP;
-			goto exit;
+	if (changed & IEEE80211_CONF_CHANGE_CHANNEL)
+	{
+		switch (hw->conf.chandef.width)
+		{
+			case NL80211_CHAN_WIDTH_20_NOHT:
+			case NL80211_CHAN_WIDTH_20:
+				ht40 = false;
+				break;
+
+			case NL80211_CHAN_WIDTH_40:
+				ht40 = true;
+				break;
+
+			default:
+				ret = -ENOTSUPP;
+				goto exit;
 		}
 
 		channel = hw->conf.chandef.chan->hw_value;
@@ -5504,8 +6561,8 @@ exit:
 }
 
 static int rtl8xxxu_conf_tx(struct ieee80211_hw *hw,
-			    struct ieee80211_vif *vif, u16 queue,
-			    const struct ieee80211_tx_queue_params *param)
+							struct ieee80211_vif *vif, u16 queue,
+							const struct ieee80211_tx_queue_params *param)
 {
 	struct rtl8xxxu_priv *priv = hw->priv;
 	struct device *dev = &priv->udev->dev;
@@ -5515,91 +6572,120 @@ static int rtl8xxxu_conf_tx(struct ieee80211_hw *hw,
 	aifs = param->aifs;
 
 	val32 = aifs |
-		fls(param->cw_min) << EDCA_PARAM_ECW_MIN_SHIFT |
-		fls(param->cw_max) << EDCA_PARAM_ECW_MAX_SHIFT |
-		(u32)param->txop << EDCA_PARAM_TXOP_SHIFT;
+			fls(param->cw_min) << EDCA_PARAM_ECW_MIN_SHIFT |
+			fls(param->cw_max) << EDCA_PARAM_ECW_MAX_SHIFT |
+			(u32)param->txop << EDCA_PARAM_TXOP_SHIFT;
 
 	acm_ctrl = rtl8xxxu_read8(priv, REG_ACM_HW_CTRL);
 	dev_dbg(dev,
-		"%s: IEEE80211 queue %02x val %08x, acm %i, acm_ctrl %02x\n",
-		__func__, queue, val32, param->acm, acm_ctrl);
+			"%s: IEEE80211 queue %02x val %08x, acm %i, acm_ctrl %02x\n",
+			__func__, queue, val32, param->acm, acm_ctrl);
 
-	switch (queue) {
-	case IEEE80211_AC_VO:
-		acm_bit = ACM_HW_CTRL_VO;
-		rtl8xxxu_write32(priv, REG_EDCA_VO_PARAM, val32);
-		break;
-	case IEEE80211_AC_VI:
-		acm_bit = ACM_HW_CTRL_VI;
-		rtl8xxxu_write32(priv, REG_EDCA_VI_PARAM, val32);
-		break;
-	case IEEE80211_AC_BE:
-		acm_bit = ACM_HW_CTRL_BE;
-		rtl8xxxu_write32(priv, REG_EDCA_BE_PARAM, val32);
-		break;
-	case IEEE80211_AC_BK:
-		acm_bit = ACM_HW_CTRL_BK;
-		rtl8xxxu_write32(priv, REG_EDCA_BK_PARAM, val32);
-		break;
-	default:
-		acm_bit = 0;
-		break;
+	switch (queue)
+	{
+		case IEEE80211_AC_VO:
+			acm_bit = ACM_HW_CTRL_VO;
+			rtl8xxxu_write32(priv, REG_EDCA_VO_PARAM, val32);
+			break;
+
+		case IEEE80211_AC_VI:
+			acm_bit = ACM_HW_CTRL_VI;
+			rtl8xxxu_write32(priv, REG_EDCA_VI_PARAM, val32);
+			break;
+
+		case IEEE80211_AC_BE:
+			acm_bit = ACM_HW_CTRL_BE;
+			rtl8xxxu_write32(priv, REG_EDCA_BE_PARAM, val32);
+			break;
+
+		case IEEE80211_AC_BK:
+			acm_bit = ACM_HW_CTRL_BK;
+			rtl8xxxu_write32(priv, REG_EDCA_BK_PARAM, val32);
+			break;
+
+		default:
+			acm_bit = 0;
+			break;
 	}
 
 	if (param->acm)
+	{
 		acm_ctrl |= acm_bit;
+	}
 	else
+	{
 		acm_ctrl &= ~acm_bit;
+	}
+
 	rtl8xxxu_write8(priv, REG_ACM_HW_CTRL, acm_ctrl);
 
 	return 0;
 }
 
 static void rtl8xxxu_configure_filter(struct ieee80211_hw *hw,
-				      unsigned int changed_flags,
-				      unsigned int *total_flags, u64 multicast)
+									  unsigned int changed_flags,
+									  unsigned int *total_flags, u64 multicast)
 {
 	struct rtl8xxxu_priv *priv = hw->priv;
 	u32 rcr = rtl8xxxu_read32(priv, REG_RCR);
 
 	dev_dbg(&priv->udev->dev, "%s: changed_flags %08x, total_flags %08x\n",
-		__func__, changed_flags, *total_flags);
+			__func__, changed_flags, *total_flags);
 
 	/*
 	 * FIF_ALLMULTI ignored as all multicast frames are accepted (REG_MAR)
 	 */
 
 	if (*total_flags & FIF_FCSFAIL)
+	{
 		rcr |= RCR_ACCEPT_CRC32;
+	}
 	else
+	{
 		rcr &= ~RCR_ACCEPT_CRC32;
+	}
 
 	/*
 	 * FIF_PLCPFAIL not supported?
 	 */
 
 	if (*total_flags & FIF_BCN_PRBRESP_PROMISC)
+	{
 		rcr &= ~RCR_CHECK_BSSID_BEACON;
+	}
 	else
+	{
 		rcr |= RCR_CHECK_BSSID_BEACON;
+	}
 
 	if (*total_flags & FIF_CONTROL)
+	{
 		rcr |= RCR_ACCEPT_CTRL_FRAME;
+	}
 	else
+	{
 		rcr &= ~RCR_ACCEPT_CTRL_FRAME;
+	}
 
-	if (*total_flags & FIF_OTHER_BSS) {
+	if (*total_flags & FIF_OTHER_BSS)
+	{
 		rcr |= RCR_ACCEPT_AP;
 		rcr &= ~RCR_CHECK_BSSID_MATCH;
-	} else {
+	}
+	else
+	{
 		rcr &= ~RCR_ACCEPT_AP;
 		rcr |= RCR_CHECK_BSSID_MATCH;
 	}
 
 	if (*total_flags & FIF_PSPOLL)
+	{
 		rcr |= RCR_ACCEPT_PM;
+	}
 	else
+	{
 		rcr &= ~RCR_ACCEPT_PM;
+	}
 
 	/*
 	 * FIF_PROBE_REQ ignored as probe requests always seem to be accepted
@@ -5608,22 +6694,24 @@ static void rtl8xxxu_configure_filter(struct ieee80211_hw *hw,
 	rtl8xxxu_write32(priv, REG_RCR, rcr);
 
 	*total_flags &= (FIF_ALLMULTI | FIF_FCSFAIL | FIF_BCN_PRBRESP_PROMISC |
-			 FIF_CONTROL | FIF_OTHER_BSS | FIF_PSPOLL |
-			 FIF_PROBE_REQ);
+					 FIF_CONTROL | FIF_OTHER_BSS | FIF_PSPOLL |
+					 FIF_PROBE_REQ);
 }
 
 static int rtl8xxxu_set_rts_threshold(struct ieee80211_hw *hw, u32 rts)
 {
 	if (rts > 2347)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
 static int rtl8xxxu_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
-			    struct ieee80211_vif *vif,
-			    struct ieee80211_sta *sta,
-			    struct ieee80211_key_conf *key)
+							struct ieee80211_vif *vif,
+							struct ieee80211_sta *sta,
+							struct ieee80211_key_conf *key)
 {
 	struct rtl8xxxu_priv *priv = hw->priv;
 	struct device *dev = &priv->udev->dev;
@@ -5634,32 +6722,43 @@ static int rtl8xxxu_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
 	int retval = -EOPNOTSUPP;
 
 	dev_dbg(dev, "%s: cmd %02x, cipher %08x, index %i\n",
-		__func__, cmd, key->cipher, key->keyidx);
+			__func__, cmd, key->cipher, key->keyidx);
 
 	if (vif->type != NL80211_IFTYPE_STATION)
-		return -EOPNOTSUPP;
-
-	if (key->keyidx > 3)
-		return -EOPNOTSUPP;
-
-	switch (key->cipher) {
-	case WLAN_CIPHER_SUITE_WEP40:
-	case WLAN_CIPHER_SUITE_WEP104:
-
-		break;
-	case WLAN_CIPHER_SUITE_CCMP:
-		key->flags |= IEEE80211_KEY_FLAG_SW_MGMT_TX;
-		break;
-	case WLAN_CIPHER_SUITE_TKIP:
-		key->flags |= IEEE80211_KEY_FLAG_GENERATE_MMIC;
-	default:
+	{
 		return -EOPNOTSUPP;
 	}
 
-	if (key->flags & IEEE80211_KEY_FLAG_PAIRWISE) {
+	if (key->keyidx > 3)
+	{
+		return -EOPNOTSUPP;
+	}
+
+	switch (key->cipher)
+	{
+		case WLAN_CIPHER_SUITE_WEP40:
+		case WLAN_CIPHER_SUITE_WEP104:
+
+			break;
+
+		case WLAN_CIPHER_SUITE_CCMP:
+			key->flags |= IEEE80211_KEY_FLAG_SW_MGMT_TX;
+			break;
+
+		case WLAN_CIPHER_SUITE_TKIP:
+			key->flags |= IEEE80211_KEY_FLAG_GENERATE_MMIC;
+
+		default:
+			return -EOPNOTSUPP;
+	}
+
+	if (key->flags & IEEE80211_KEY_FLAG_PAIRWISE)
+	{
 		dev_dbg(dev, "%s: pairwise key\n", __func__);
 		ether_addr_copy(mac_addr, sta->addr);
-	} else {
+	}
+	else
+	{
 		dev_dbg(dev, "%s: group key\n", __func__);
 		eth_broadcast_addr(mac_addr);
 	}
@@ -5669,26 +6768,29 @@ static int rtl8xxxu_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
 	rtl8xxxu_write16(priv, REG_CR, val16);
 
 	val8 = SEC_CFG_TX_SEC_ENABLE | SEC_CFG_TXBC_USE_DEFKEY |
-		SEC_CFG_RX_SEC_ENABLE | SEC_CFG_RXBC_USE_DEFKEY;
+		   SEC_CFG_RX_SEC_ENABLE | SEC_CFG_RXBC_USE_DEFKEY;
 	val8 |= SEC_CFG_TX_USE_DEFKEY | SEC_CFG_RX_USE_DEFKEY;
 	rtl8xxxu_write8(priv, REG_SECURITY_CFG, val8);
 
-	switch (cmd) {
-	case SET_KEY:
-		key->hw_key_idx = key->keyidx;
-		key->flags |= IEEE80211_KEY_FLAG_GENERATE_IV;
-		rtl8xxxu_cam_write(priv, key, mac_addr);
-		retval = 0;
-		break;
-	case DISABLE_KEY:
-		rtl8xxxu_write32(priv, REG_CAM_WRITE, 0x00000000);
-		val32 = CAM_CMD_POLLING | CAM_CMD_WRITE |
-			key->keyidx << CAM_CMD_KEY_SHIFT;
-		rtl8xxxu_write32(priv, REG_CAM_CMD, val32);
-		retval = 0;
-		break;
-	default:
-		dev_warn(dev, "%s: Unsupported command %02x\n", __func__, cmd);
+	switch (cmd)
+	{
+		case SET_KEY:
+			key->hw_key_idx = key->keyidx;
+			key->flags |= IEEE80211_KEY_FLAG_GENERATE_IV;
+			rtl8xxxu_cam_write(priv, key, mac_addr);
+			retval = 0;
+			break;
+
+		case DISABLE_KEY:
+			rtl8xxxu_write32(priv, REG_CAM_WRITE, 0x00000000);
+			val32 = CAM_CMD_POLLING | CAM_CMD_WRITE |
+					key->keyidx << CAM_CMD_KEY_SHIFT;
+			rtl8xxxu_write32(priv, REG_CAM_CMD, val32);
+			retval = 0;
+			break;
+
+		default:
+			dev_warn(dev, "%s: Unsupported command %02x\n", __func__, cmd);
 	}
 
 	return retval;
@@ -5696,7 +6798,7 @@ static int rtl8xxxu_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
 
 static int
 rtl8xxxu_ampdu_action(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-		      struct ieee80211_ampdu_params *params)
+					  struct ieee80211_ampdu_params *params)
 {
 	struct rtl8xxxu_priv *priv = hw->priv;
 	struct device *dev = &priv->udev->dev;
@@ -5704,37 +6806,44 @@ rtl8xxxu_ampdu_action(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 	struct ieee80211_sta *sta = params->sta;
 	enum ieee80211_ampdu_mlme_action action = params->action;
 
-	switch (action) {
-	case IEEE80211_AMPDU_TX_START:
-		dev_dbg(dev, "%s: IEEE80211_AMPDU_TX_START\n", __func__);
-		ampdu_factor = sta->ht_cap.ampdu_factor;
-		ampdu_density = sta->ht_cap.ampdu_density;
-		rtl8xxxu_set_ampdu_factor(priv, ampdu_factor);
-		rtl8xxxu_set_ampdu_min_space(priv, ampdu_density);
-		dev_dbg(dev,
-			"Changed HT: ampdu_factor %02x, ampdu_density %02x\n",
-			ampdu_factor, ampdu_density);
-		break;
-	case IEEE80211_AMPDU_TX_STOP_FLUSH:
-		dev_dbg(dev, "%s: IEEE80211_AMPDU_TX_STOP_FLUSH\n", __func__);
-		rtl8xxxu_set_ampdu_factor(priv, 0);
-		rtl8xxxu_set_ampdu_min_space(priv, 0);
-		break;
-	case IEEE80211_AMPDU_TX_STOP_FLUSH_CONT:
-		dev_dbg(dev, "%s: IEEE80211_AMPDU_TX_STOP_FLUSH_CONT\n",
-			 __func__);
-		rtl8xxxu_set_ampdu_factor(priv, 0);
-		rtl8xxxu_set_ampdu_min_space(priv, 0);
-		break;
-	case IEEE80211_AMPDU_RX_START:
-		dev_dbg(dev, "%s: IEEE80211_AMPDU_RX_START\n", __func__);
-		break;
-	case IEEE80211_AMPDU_RX_STOP:
-		dev_dbg(dev, "%s: IEEE80211_AMPDU_RX_STOP\n", __func__);
-		break;
-	default:
-		break;
+	switch (action)
+	{
+		case IEEE80211_AMPDU_TX_START:
+			dev_dbg(dev, "%s: IEEE80211_AMPDU_TX_START\n", __func__);
+			ampdu_factor = sta->ht_cap.ampdu_factor;
+			ampdu_density = sta->ht_cap.ampdu_density;
+			rtl8xxxu_set_ampdu_factor(priv, ampdu_factor);
+			rtl8xxxu_set_ampdu_min_space(priv, ampdu_density);
+			dev_dbg(dev,
+					"Changed HT: ampdu_factor %02x, ampdu_density %02x\n",
+					ampdu_factor, ampdu_density);
+			break;
+
+		case IEEE80211_AMPDU_TX_STOP_FLUSH:
+			dev_dbg(dev, "%s: IEEE80211_AMPDU_TX_STOP_FLUSH\n", __func__);
+			rtl8xxxu_set_ampdu_factor(priv, 0);
+			rtl8xxxu_set_ampdu_min_space(priv, 0);
+			break;
+
+		case IEEE80211_AMPDU_TX_STOP_FLUSH_CONT:
+			dev_dbg(dev, "%s: IEEE80211_AMPDU_TX_STOP_FLUSH_CONT\n",
+					__func__);
+			rtl8xxxu_set_ampdu_factor(priv, 0);
+			rtl8xxxu_set_ampdu_min_space(priv, 0);
+			break;
+
+		case IEEE80211_AMPDU_RX_START:
+			dev_dbg(dev, "%s: IEEE80211_AMPDU_RX_START\n", __func__);
+			break;
+
+		case IEEE80211_AMPDU_RX_STOP:
+			dev_dbg(dev, "%s: IEEE80211_AMPDU_RX_STOP\n", __func__);
+			break;
+
+		default:
+			break;
 	}
+
 	return 0;
 }
 
@@ -5753,20 +6862,31 @@ static int rtl8xxxu_start(struct ieee80211_hw *hw)
 	init_usb_anchor(&priv->int_anchor);
 
 	priv->fops->enable_rf(priv);
-	if (priv->usb_interrupts) {
+
+	if (priv->usb_interrupts)
+	{
 		ret = rtl8xxxu_submit_int_urb(hw);
+
 		if (ret)
+		{
 			goto exit;
+		}
 	}
 
-	for (i = 0; i < RTL8XXXU_TX_URBS; i++) {
+	for (i = 0; i < RTL8XXXU_TX_URBS; i++)
+	{
 		tx_urb = kmalloc(sizeof(struct rtl8xxxu_tx_urb), GFP_KERNEL);
-		if (!tx_urb) {
+
+		if (!tx_urb)
+		{
 			if (!i)
+			{
 				ret = -ENOMEM;
+			}
 
 			goto error_out;
 		}
+
 		usb_init_urb(&tx_urb->urb);
 		INIT_LIST_HEAD(&tx_urb->list);
 		tx_urb->hw = hw;
@@ -5780,20 +6900,27 @@ static int rtl8xxxu_start(struct ieee80211_hw *hw)
 	priv->shutdown = false;
 	spin_unlock_irqrestore(&priv->rx_urb_lock, flags);
 
-	for (i = 0; i < RTL8XXXU_RX_URBS; i++) {
+	for (i = 0; i < RTL8XXXU_RX_URBS; i++)
+	{
 		rx_urb = kmalloc(sizeof(struct rtl8xxxu_rx_urb), GFP_KERNEL);
-		if (!rx_urb) {
+
+		if (!rx_urb)
+		{
 			if (!i)
+			{
 				ret = -ENOMEM;
+			}
 
 			goto error_out;
 		}
+
 		usb_init_urb(&rx_urb->urb);
 		INIT_LIST_HEAD(&rx_urb->list);
 		rx_urb->hw = hw;
 
 		ret = rtl8xxxu_submit_rx_urb(priv, rx_urb);
 	}
+
 exit:
 	/*
 	 * Accept all data and mgmt frames
@@ -5832,8 +6959,11 @@ static void rtl8xxxu_stop(struct ieee80211_hw *hw)
 
 	usb_kill_anchored_urbs(&priv->rx_anchor);
 	usb_kill_anchored_urbs(&priv->tx_anchor);
+
 	if (priv->usb_interrupts)
+	{
 		usb_kill_anchored_urbs(&priv->int_anchor);
+	}
 
 	rtl8xxxu_write8(priv, REG_TXPAUSE, 0xff);
 
@@ -5843,13 +6973,16 @@ static void rtl8xxxu_stop(struct ieee80211_hw *hw)
 	 * Disable interrupts
 	 */
 	if (priv->usb_interrupts)
+	{
 		rtl8xxxu_write32(priv, REG_USB_HIMR, 0);
+	}
 
 	rtl8xxxu_free_rx_resources(priv);
 	rtl8xxxu_free_tx_resources(priv);
 }
 
-static const struct ieee80211_ops rtl8xxxu_ops = {
+static const struct ieee80211_ops rtl8xxxu_ops =
+{
 	.tx = rtl8xxxu_tx,
 	.add_interface = rtl8xxxu_add_interface,
 	.remove_interface = rtl8xxxu_remove_interface,
@@ -5867,7 +7000,7 @@ static const struct ieee80211_ops rtl8xxxu_ops = {
 };
 
 static int rtl8xxxu_parse_usb(struct rtl8xxxu_priv *priv,
-			      struct usb_interface *interface)
+							  struct usb_interface *interface)
 {
 	struct usb_interface_descriptor *interface_desc;
 	struct usb_host_interface *host_interface;
@@ -5881,25 +7014,30 @@ static int rtl8xxxu_parse_usb(struct rtl8xxxu_priv *priv,
 	interface_desc = &host_interface->desc;
 	endpoints = interface_desc->bNumEndpoints;
 
-	for (i = 0; i < endpoints; i++) {
+	for (i = 0; i < endpoints; i++)
+	{
 		endpoint = &host_interface->endpoint[i].desc;
 
 		dir = endpoint->bEndpointAddress & USB_ENDPOINT_DIR_MASK;
 		num = usb_endpoint_num(endpoint);
 		xtype = usb_endpoint_type(endpoint);
+
 		if (rtl8xxxu_debug & RTL8XXXU_DEBUG_USB)
 			dev_dbg(dev,
-				"%s: endpoint: dir %02x, # %02x, type %02x\n",
-				__func__, dir, num, xtype);
+					"%s: endpoint: dir %02x, # %02x, type %02x\n",
+					__func__, dir, num, xtype);
+
 		if (usb_endpoint_dir_in(endpoint) &&
-		    usb_endpoint_xfer_bulk(endpoint)) {
+			usb_endpoint_xfer_bulk(endpoint))
+		{
 			if (rtl8xxxu_debug & RTL8XXXU_DEBUG_USB)
 				dev_dbg(dev, "%s: in endpoint num %i\n",
-					__func__, num);
+						__func__, num);
 
-			if (priv->pipe_in) {
+			if (priv->pipe_in)
+			{
 				dev_warn(dev,
-					 "%s: Too many IN pipes\n", __func__);
+						 "%s: Too many IN pipes\n", __func__);
 				ret = -EINVAL;
 				goto exit;
 			}
@@ -5908,14 +7046,16 @@ static int rtl8xxxu_parse_usb(struct rtl8xxxu_priv *priv,
 		}
 
 		if (usb_endpoint_dir_in(endpoint) &&
-		    usb_endpoint_xfer_int(endpoint)) {
+			usb_endpoint_xfer_int(endpoint))
+		{
 			if (rtl8xxxu_debug & RTL8XXXU_DEBUG_USB)
 				dev_dbg(dev, "%s: interrupt endpoint num %i\n",
-					__func__, num);
+						__func__, num);
 
-			if (priv->pipe_interrupt) {
+			if (priv->pipe_interrupt)
+			{
 				dev_warn(dev, "%s: Too many INTERRUPT pipes\n",
-					 __func__);
+						 __func__);
 				ret = -EINVAL;
 				goto exit;
 			}
@@ -5924,26 +7064,31 @@ static int rtl8xxxu_parse_usb(struct rtl8xxxu_priv *priv,
 		}
 
 		if (usb_endpoint_dir_out(endpoint) &&
-		    usb_endpoint_xfer_bulk(endpoint)) {
+			usb_endpoint_xfer_bulk(endpoint))
+		{
 			if (rtl8xxxu_debug & RTL8XXXU_DEBUG_USB)
 				dev_dbg(dev, "%s: out endpoint num %i\n",
-					__func__, num);
-			if (j >= RTL8XXXU_OUT_ENDPOINTS) {
+						__func__, num);
+
+			if (j >= RTL8XXXU_OUT_ENDPOINTS)
+			{
 				dev_warn(dev,
-					 "%s: Too many OUT pipes\n", __func__);
+						 "%s: Too many OUT pipes\n", __func__);
 				ret = -EINVAL;
 				goto exit;
 			}
+
 			priv->out_ep[j++] = num;
 		}
 	}
+
 exit:
 	priv->nr_out_eps = j;
 	return ret;
 }
 
 static int rtl8xxxu_probe(struct usb_interface *interface,
-			  const struct usb_device_id *id)
+						  const struct usb_device_id *id)
 {
 	struct rtl8xxxu_priv *priv;
 	struct ieee80211_hw *hw;
@@ -5954,52 +7099,79 @@ static int rtl8xxxu_probe(struct usb_interface *interface,
 
 	udev = usb_get_dev(interface_to_usbdev(interface));
 
-	switch (id->idVendor) {
-	case USB_VENDOR_ID_REALTEK:
-		switch(id->idProduct) {
-		case 0x1724:
-		case 0x8176:
-		case 0x8178:
-		case 0x817f:
-			untested = 0;
+	switch (id->idVendor)
+	{
+		case USB_VENDOR_ID_REALTEK:
+			switch (id->idProduct)
+			{
+				case 0x1724:
+				case 0x8176:
+				case 0x8178:
+				case 0x817f:
+					untested = 0;
+					break;
+			}
+
 			break;
-		}
-		break;
-	case 0x7392:
-		if (id->idProduct == 0x7811)
-			untested = 0;
-		break;
-	case 0x050d:
-		if (id->idProduct == 0x1004)
-			untested = 0;
-		break;
-	case 0x20f4:
-		if (id->idProduct == 0x648b)
-			untested = 0;
-		break;
-	case 0x2001:
-		if (id->idProduct == 0x3308)
-			untested = 0;
-		break;
-	case 0x2357:
-		if (id->idProduct == 0x0109)
-			untested = 0;
-		break;
-	default:
-		break;
+
+		case 0x7392:
+			if (id->idProduct == 0x7811)
+			{
+				untested = 0;
+			}
+
+			break;
+
+		case 0x050d:
+			if (id->idProduct == 0x1004)
+			{
+				untested = 0;
+			}
+
+			break;
+
+		case 0x20f4:
+			if (id->idProduct == 0x648b)
+			{
+				untested = 0;
+			}
+
+			break;
+
+		case 0x2001:
+			if (id->idProduct == 0x3308)
+			{
+				untested = 0;
+			}
+
+			break;
+
+		case 0x2357:
+			if (id->idProduct == 0x0109)
+			{
+				untested = 0;
+			}
+
+			break;
+
+		default:
+			break;
 	}
 
-	if (untested) {
+	if (untested)
+	{
 		rtl8xxxu_debug |= RTL8XXXU_DEBUG_EFUSE;
 		dev_info(&udev->dev,
-			 "This Realtek USB WiFi dongle (0x%04x:0x%04x) is untested!\n",
-			 id->idVendor, id->idProduct);
+				 "This Realtek USB WiFi dongle (0x%04x:0x%04x) is untested!\n",
+				 id->idVendor, id->idProduct);
 		dev_info(&udev->dev,
-			 "Please report results to Jes.Sorensen@gmail.com\n");
+				 "Please report results to Jes.Sorensen@gmail.com\n");
 	}
 
 	hw = ieee80211_alloc_hw(sizeof(struct rtl8xxxu_priv), &rtl8xxxu_ops);
-	if (!hw) {
+
+	if (!hw)
+	{
 		ret = -ENOMEM;
 		priv = NULL;
 		goto exit;
@@ -6020,23 +7192,32 @@ static int rtl8xxxu_probe(struct usb_interface *interface,
 	usb_set_intfdata(interface, hw);
 
 	ret = rtl8xxxu_parse_usb(priv, interface);
+
 	if (ret)
+	{
 		goto exit;
+	}
 
 	ret = rtl8xxxu_identify_chip(priv);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&udev->dev, "Fatal - failed to identify chip\n");
 		goto exit;
 	}
 
 	ret = rtl8xxxu_read_efuse(priv);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&udev->dev, "Fatal - failed to read EFuse\n");
 		goto exit;
 	}
 
 	ret = priv->fops->parse_efuse(priv);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&udev->dev, "Fatal - failed to parse EFuse\n");
 		goto exit;
 	}
@@ -6044,14 +7225,19 @@ static int rtl8xxxu_probe(struct usb_interface *interface,
 	rtl8xxxu_print_chipinfo(priv);
 
 	ret = priv->fops->load_firmware(priv);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&udev->dev, "Fatal - failed to load firmware\n");
 		goto exit;
 	}
 
 	ret = rtl8xxxu_init_device(hw);
+
 	if (ret)
+	{
 		goto exit;
+	}
 
 	hw->wiphy->max_scan_ssids = 1;
 	hw->wiphy->max_scan_ie_len = IEEE80211_MAX_DATA_LEN;
@@ -6066,20 +7252,26 @@ static int rtl8xxxu_probe(struct usb_interface *interface,
 	memset(&sband->ht_cap.mcs, 0, sizeof(sband->ht_cap.mcs));
 	sband->ht_cap.mcs.rx_mask[0] = 0xff;
 	sband->ht_cap.mcs.rx_mask[4] = 0x01;
-	if (priv->rf_paths > 1) {
+
+	if (priv->rf_paths > 1)
+	{
 		sband->ht_cap.mcs.rx_mask[1] = 0xff;
 		sband->ht_cap.cap |= IEEE80211_HT_CAP_SGI_40;
 	}
+
 	sband->ht_cap.mcs.tx_params = IEEE80211_HT_MCS_TX_DEFINED;
+
 	/*
 	 * Some APs will negotiate HT20_40 in a noisy environment leading
 	 * to miserable performance. Rather than defaulting to this, only
 	 * enable it if explicitly requested at module load time.
 	 */
-	if (rtl8xxxu_ht40_2g) {
+	if (rtl8xxxu_ht40_2g)
+	{
 		dev_info(&udev->dev, "Enabling HT_20_40 on the 2.4GHz band\n");
 		sband->ht_cap.cap |= IEEE80211_HT_CAP_SUP_WIDTH_20_40;
 	}
+
 	hw->wiphy->bands[NL80211_BAND_2GHZ] = sband;
 
 	hw->wiphy->rts_threshold = 2347;
@@ -6096,9 +7288,11 @@ static int rtl8xxxu_probe(struct usb_interface *interface,
 	ieee80211_hw_set(hw, AMPDU_AGGREGATION);
 
 	ret = ieee80211_register_hw(priv->hw);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&udev->dev, "%s: Failed to register: %i\n",
-			__func__, ret);
+				__func__, ret);
 		goto exit;
 	}
 
@@ -6107,11 +7301,13 @@ static int rtl8xxxu_probe(struct usb_interface *interface,
 exit:
 	usb_set_intfdata(interface, NULL);
 
-	if (priv) {
+	if (priv)
+	{
 		kfree(priv->fw_data);
 		mutex_destroy(&priv->usb_buf_mutex);
 		mutex_destroy(&priv->h2c_mutex);
 	}
+
 	usb_put_dev(udev);
 
 	ieee80211_free_hw(hw);
@@ -6139,180 +7335,334 @@ static void rtl8xxxu_disconnect(struct usb_interface *interface)
 	mutex_destroy(&priv->usb_buf_mutex);
 	mutex_destroy(&priv->h2c_mutex);
 
-	if (priv->udev->state != USB_STATE_NOTATTACHED) {
+	if (priv->udev->state != USB_STATE_NOTATTACHED)
+	{
 		dev_info(&priv->udev->dev,
-			 "Device still attached, trying to reset\n");
+				 "Device still attached, trying to reset\n");
 		usb_reset_device(priv->udev);
 	}
+
 	usb_put_dev(priv->udev);
 	ieee80211_free_hw(hw);
 }
 
-static struct usb_device_id dev_table[] = {
-{USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x8724, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8723au_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x1724, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8723au_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x0724, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8723au_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x818b, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192eu_fops},
-/* Tested by Myckel Habets */
-{USB_DEVICE_AND_INTERFACE_INFO(0x2357, 0x0109, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192eu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0xb720, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8723bu_fops},
+static struct usb_device_id dev_table[] =
+{
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x8724, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8723au_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x1724, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8723au_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x0724, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8723au_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x818b, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192eu_fops
+	},
+	/* Tested by Myckel Habets */
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x2357, 0x0109, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192eu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0xb720, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8723bu_fops
+	},
 #ifdef CONFIG_RTL8XXXU_UNTESTED
-/* Still supported by rtlwifi */
-{USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x8176, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x8178, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x817f, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-/* Tested by Larry Finger */
-{USB_DEVICE_AND_INTERFACE_INFO(0x7392, 0x7811, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-/* Tested by Andrea Merello */
-{USB_DEVICE_AND_INTERFACE_INFO(0x050d, 0x1004, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-/* Tested by Jocelyn Mayer */
-{USB_DEVICE_AND_INTERFACE_INFO(0x20f4, 0x648b, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-/* Tested by Stefano Bravi */
-{USB_DEVICE_AND_INTERFACE_INFO(0x2001, 0x3308, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-/* Currently untested 8188 series devices */
-{USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x8191, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x8170, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x8177, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x817a, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x817b, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x817d, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x817e, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x818a, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x317f, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x1058, 0x0631, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x04bb, 0x094c, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x050d, 0x1102, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x06f8, 0xe033, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x07b8, 0x8189, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x0846, 0x9041, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x0b05, 0x17ba, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x1e1e, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x5088, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x0df6, 0x0052, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x0df6, 0x005c, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x0eb0, 0x9071, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x103c, 0x1629, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x13d3, 0x3357, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x2001, 0x330b, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x2019, 0x4902, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x2019, 0xab2a, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x2019, 0xab2e, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x2019, 0xed17, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x4855, 0x0090, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x4856, 0x0091, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0xcdab, 0x8010, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x04f2, 0xaff7, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x04f2, 0xaff9, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x04f2, 0xaffa, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x04f2, 0xaff8, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x04f2, 0xaffb, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x04f2, 0xaffc, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x2019, 0x1201, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-/* Currently untested 8192 series devices */
-{USB_DEVICE_AND_INTERFACE_INFO(0x04bb, 0x0950, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x050d, 0x2102, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x050d, 0x2103, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x0586, 0x341f, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x06f8, 0xe035, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x0b05, 0x17ab, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x0df6, 0x0061, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x0df6, 0x0070, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x0789, 0x016d, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x07aa, 0x0056, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x07b8, 0x8178, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x0846, 0x9021, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x0846, 0xf001, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x2e2e, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x0e66, 0x0019, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x0e66, 0x0020, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x2001, 0x3307, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x2001, 0x3309, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x2001, 0x330a, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x2019, 0xab2b, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x20f4, 0x624d, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x2357, 0x0100, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x4855, 0x0091, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
-{USB_DEVICE_AND_INTERFACE_INFO(0x7392, 0x7822, 0xff, 0xff, 0xff),
-	.driver_info = (unsigned long)&rtl8192cu_fops},
+	/* Still supported by rtlwifi */
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x8176, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x8178, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x817f, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	/* Tested by Larry Finger */
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x7392, 0x7811, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	/* Tested by Andrea Merello */
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x050d, 0x1004, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	/* Tested by Jocelyn Mayer */
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x20f4, 0x648b, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	/* Tested by Stefano Bravi */
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x2001, 0x3308, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	/* Currently untested 8188 series devices */
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x8191, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x8170, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x8177, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x817a, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x817b, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x817d, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x817e, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x818a, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x317f, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x1058, 0x0631, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x04bb, 0x094c, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x050d, 0x1102, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x06f8, 0xe033, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x07b8, 0x8189, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x0846, 0x9041, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x0b05, 0x17ba, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x1e1e, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x5088, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x0df6, 0x0052, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x0df6, 0x005c, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x0eb0, 0x9071, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x103c, 0x1629, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x13d3, 0x3357, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x2001, 0x330b, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x2019, 0x4902, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x2019, 0xab2a, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x2019, 0xab2e, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x2019, 0xed17, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x4855, 0x0090, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x4856, 0x0091, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0xcdab, 0x8010, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x04f2, 0xaff7, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x04f2, 0xaff9, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x04f2, 0xaffa, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x04f2, 0xaff8, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x04f2, 0xaffb, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x04f2, 0xaffc, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x2019, 0x1201, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	/* Currently untested 8192 series devices */
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x04bb, 0x0950, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x050d, 0x2102, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x050d, 0x2103, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x0586, 0x341f, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x06f8, 0xe035, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x0b05, 0x17ab, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x0df6, 0x0061, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x0df6, 0x0070, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x0789, 0x016d, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x07aa, 0x0056, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x07b8, 0x8178, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x0846, 0x9021, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x0846, 0xf001, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(USB_VENDOR_ID_REALTEK, 0x2e2e, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x0e66, 0x0019, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x0e66, 0x0020, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x2001, 0x3307, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x2001, 0x3309, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x2001, 0x330a, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x2019, 0xab2b, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x20f4, 0x624d, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x2357, 0x0100, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x4855, 0x0091, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x7392, 0x7822, 0xff, 0xff, 0xff),
+		.driver_info = (unsigned long) &rtl8192cu_fops
+	},
 #endif
-{ }
+	{ }
 };
 
-static struct usb_driver rtl8xxxu_driver = {
+static struct usb_driver rtl8xxxu_driver =
+{
 	.name = DRIVER_NAME,
 	.probe = rtl8xxxu_probe,
 	.disconnect = rtl8xxxu_disconnect,
@@ -6326,8 +7676,11 @@ static int __init rtl8xxxu_module_init(void)
 	int res;
 
 	res = usb_register(&rtl8xxxu_driver);
+
 	if (res < 0)
+	{
 		pr_err(DRIVER_NAME ": usb_register() failed (%i)\n", res);
+	}
 
 	return res;
 }

@@ -32,18 +32,21 @@
  * iio_triggered_event_cleanup().
  */
 int iio_triggered_event_setup(struct iio_dev *indio_dev,
-			      irqreturn_t (*h)(int irq, void *p),
-			      irqreturn_t (*thread)(int irq, void *p))
+							  irqreturn_t (*h)(int irq, void *p),
+							  irqreturn_t (*thread)(int irq, void *p))
 {
 	indio_dev->pollfunc_event = iio_alloc_pollfunc(h,
-						       thread,
-						       IRQF_ONESHOT,
-						       indio_dev,
-						       "%s_consumer%d",
-						       indio_dev->name,
-						       indio_dev->id);
+								thread,
+								IRQF_ONESHOT,
+								indio_dev,
+								"%s_consumer%d",
+								indio_dev->name,
+								indio_dev->id);
+
 	if (indio_dev->pollfunc_event == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	/* Flag that events polling is possible */
 	indio_dev->modes |= INDIO_EVENT_TRIGGERED;

@@ -42,7 +42,8 @@ struct poll_table_struct;
  * @p_char:	Pointer to a string.
  * @p:		Pointer to a compound value.
  */
-union v4l2_ctrl_ptr {
+union v4l2_ctrl_ptr
+{
 	s32 *p_s32;
 	s64 *p_s64;
 	u8 *p_u8;
@@ -66,7 +67,8 @@ union v4l2_ctrl_ptr {
  *		ctrl->handler->lock is held when these ops are called, so no
  *		one else can access controls owned by that handler.
  */
-struct v4l2_ctrl_ops {
+struct v4l2_ctrl_ops
+{
 	int (*g_volatile_ctrl)(struct v4l2_ctrl *ctrl);
 	int (*try_ctrl)(struct v4l2_ctrl *ctrl);
 	int (*s_ctrl)(struct v4l2_ctrl *ctrl);
@@ -82,15 +84,16 @@ struct v4l2_ctrl_ops {
  * @validate: validate the value. Return 0 on success and a negative value
  *	otherwise.
  */
-struct v4l2_ctrl_type_ops {
+struct v4l2_ctrl_type_ops
+{
 	bool (*equal)(const struct v4l2_ctrl *ctrl, u32 idx,
-		      union v4l2_ctrl_ptr ptr1,
-		      union v4l2_ctrl_ptr ptr2);
+				  union v4l2_ctrl_ptr ptr1,
+				  union v4l2_ctrl_ptr ptr2);
 	void (*init)(const struct v4l2_ctrl *ctrl, u32 idx,
-		     union v4l2_ctrl_ptr ptr);
+				 union v4l2_ctrl_ptr ptr);
 	void (*log)(const struct v4l2_ctrl *ctrl);
 	int (*validate)(const struct v4l2_ctrl *ctrl, u32 idx,
-			union v4l2_ctrl_ptr ptr);
+					union v4l2_ctrl_ptr ptr);
 };
 
 /**
@@ -181,7 +184,8 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
  *		a standard way of accessing control types
  *		through a pointer.
  */
-struct v4l2_ctrl {
+struct v4l2_ctrl
+{
 	/* Administrative fields */
 	struct list_head node;
 	struct list_head ev_subs;
@@ -189,19 +193,19 @@ struct v4l2_ctrl {
 	struct v4l2_ctrl **cluster;
 	unsigned int ncontrols;
 
-	unsigned int done:1;
+	unsigned int done: 1;
 
-	unsigned int is_new:1;
-	unsigned int has_changed:1;
-	unsigned int is_private:1;
-	unsigned int is_auto:1;
-	unsigned int is_int:1;
-	unsigned int is_string:1;
-	unsigned int is_ptr:1;
-	unsigned int is_array:1;
-	unsigned int has_volatiles:1;
-	unsigned int call_notify:1;
-	unsigned int manual_mode_value:8;
+	unsigned int is_new: 1;
+	unsigned int has_changed: 1;
+	unsigned int is_private: 1;
+	unsigned int is_auto: 1;
+	unsigned int is_int: 1;
+	unsigned int is_string: 1;
+	unsigned int is_ptr: 1;
+	unsigned int is_array: 1;
+	unsigned int has_volatiles: 1;
+	unsigned int call_notify: 1;
+	unsigned int manual_mode_value: 8;
 
 	const struct v4l2_ctrl_ops *ops;
 	const struct v4l2_ctrl_type_ops *type_ops;
@@ -213,18 +217,21 @@ struct v4l2_ctrl {
 	u32 elem_size;
 	u32 dims[V4L2_CTRL_MAX_DIMS];
 	u32 nr_of_dims;
-	union {
+	union
+	{
 		u64 step;
 		u64 menu_skip_mask;
 	};
-	union {
-		const char * const *qmenu;
+	union
+	{
+		const char *const *qmenu;
 		const s64 *qmenu_int;
 	};
 	unsigned long flags;
 	void *priv;
 	s32 val;
-	struct {
+	struct
+	{
 		s32 val;
 	} cur;
 
@@ -245,7 +252,8 @@ struct v4l2_ctrl {
  * keep a sorted-by-control-ID list of all controls, while the next pointer
  * is used to link the control in the hash's bucket.
  */
-struct v4l2_ctrl_ref {
+struct v4l2_ctrl_ref
+{
 	struct list_head node;
 	struct v4l2_ctrl_ref *next;
 	struct v4l2_ctrl *ctrl;
@@ -274,7 +282,8 @@ struct v4l2_ctrl_ref {
  * @nr_of_buckets: Total number of buckets in the array.
  * @error:	The error code of the first failed control addition.
  */
-struct v4l2_ctrl_handler {
+struct v4l2_ctrl_handler
+{
 	struct mutex _lock;
 	struct mutex *lock;
 	struct list_head ctrls;
@@ -317,7 +326,8 @@ struct v4l2_ctrl_handler {
  * @is_private: If set, then this control is private to its handler and it
  *		will not be added to any other handlers.
  */
-struct v4l2_ctrl_config {
+struct v4l2_ctrl_config
+{
 	const struct v4l2_ctrl_ops *ops;
 	const struct v4l2_ctrl_type_ops *type_ops;
 	u32 id;
@@ -331,9 +341,9 @@ struct v4l2_ctrl_config {
 	u32 elem_size;
 	u32 flags;
 	u64 menu_skip_mask;
-	const char * const *qmenu;
+	const char *const *qmenu;
 	const s64 *qmenu_int;
-	unsigned int is_private:1;
+	unsigned int is_private: 1;
 };
 
 /**
@@ -363,7 +373,7 @@ struct v4l2_ctrl_config {
  *    control framework this function will no longer be exported.
  */
 void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
-		    s64 *min, s64 *max, u64 *step, s64 *def, u32 *flags);
+					s64 *min, s64 *max, u64 *step, s64 *def, u32 *flags);
 
 
 /**
@@ -388,8 +398,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
  * error will also be stored in @hdl->error.
  */
 int v4l2_ctrl_handler_init_class(struct v4l2_ctrl_handler *hdl,
-				 unsigned int nr_of_controls_hint,
-				 struct lock_class_key *key, const char *name);
+								 unsigned int nr_of_controls_hint,
+								 struct lock_class_key *key, const char *name);
 
 #ifdef CONFIG_LOCKDEP
 
@@ -413,16 +423,16 @@ int v4l2_ctrl_handler_init_class(struct v4l2_ctrl_handler *hdl,
  * Use this helper function to initialize a control handler.
  */
 #define v4l2_ctrl_handler_init(hdl, nr_of_controls_hint)		\
-(									\
+	(									\
 	({								\
 		static struct lock_class_key _key;			\
 		v4l2_ctrl_handler_init_class(hdl, nr_of_controls_hint,	\
-					&_key,				\
-					KBUILD_BASENAME ":"		\
-					__stringify(__LINE__) ":"	\
-					"(" #hdl ")->_lock");		\
+									 &_key,				\
+									 KBUILD_BASENAME ":"		\
+									 __stringify(__LINE__) ":"	\
+									 "(" #hdl ")->_lock");		\
 	})								\
-)
+	)
 #else
 #define v4l2_ctrl_handler_init(hdl, nr_of_controls_hint)		\
 	v4l2_ctrl_handler_init_class(hdl, nr_of_controls_hint, NULL, NULL)
@@ -481,7 +491,7 @@ int v4l2_ctrl_handler_setup(struct v4l2_ctrl_handler *hdl);
  * Does nothing if @hdl == NULL.
  */
 void v4l2_ctrl_handler_log_status(struct v4l2_ctrl_handler *hdl,
-				  const char *prefix);
+								  const char *prefix);
 
 /**
  * v4l2_ctrl_new_custom() - Allocate and initialize a new custom V4L2
@@ -495,8 +505,8 @@ void v4l2_ctrl_handler_log_status(struct v4l2_ctrl_handler *hdl,
  * and @hdl->error is set to the error code (if it wasn't set already).
  */
 struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
-				       const struct v4l2_ctrl_config *cfg,
-				       void *priv);
+									   const struct v4l2_ctrl_config *cfg,
+									   void *priv);
 
 /**
  * v4l2_ctrl_new_std() - Allocate and initialize a new standard V4L2 non-menu
@@ -519,9 +529,9 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
  * Use v4l2_ctrl_new_std_menu() when adding menu controls.
  */
 struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
-				    const struct v4l2_ctrl_ops *ops,
-				    u32 id, s64 min, s64 max, u64 step,
-				    s64 def);
+									const struct v4l2_ctrl_ops *ops,
+									u32 id, s64 min, s64 max, u64 step,
+									s64 def);
 
 /**
  * v4l2_ctrl_new_std_menu() - Allocate and initialize a new standard V4L2
@@ -545,8 +555,8 @@ struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
  * If @id refers to a non-menu control, then this function will return NULL.
  */
 struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
-					 const struct v4l2_ctrl_ops *ops,
-					 u32 id, u8 max, u64 mask, u8 def);
+		const struct v4l2_ctrl_ops *ops,
+		u32 id, u8 max, u64 mask, u8 def);
 
 /**
  * v4l2_ctrl_new_std_menu_items() - Create a new standard V4L2 menu control
@@ -570,10 +580,10 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
  *
  */
 struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
-					       const struct v4l2_ctrl_ops *ops,
-					       u32 id, u8 max,
-					       u64 mask, u8 def,
-					       const char * const *qmenu);
+		const struct v4l2_ctrl_ops *ops,
+		u32 id, u8 max,
+		u64 mask, u8 def,
+		const char *const *qmenu);
 
 /**
  * v4l2_ctrl_new_int_menu() - Create a new standard V4L2 integer menu control.
@@ -592,9 +602,9 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(struct v4l2_ctrl_handler *hdl,
  * return %NULL.
  */
 struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
-					 const struct v4l2_ctrl_ops *ops,
-					 u32 id, u8 max, u8 def,
-					 const s64 *qmenu_int);
+		const struct v4l2_ctrl_ops *ops,
+		u32 id, u8 max, u8 def,
+		const s64 *qmenu_int);
 
 /**
  * typedef v4l2_ctrl_filter - Typedef to define the filter function to be
@@ -621,8 +631,8 @@ typedef bool (*v4l2_ctrl_filter)(const struct v4l2_ctrl *ctrl);
  * wasn't set already).
  */
 int v4l2_ctrl_add_handler(struct v4l2_ctrl_handler *hdl,
-			  struct v4l2_ctrl_handler *add,
-			  v4l2_ctrl_filter filter);
+						  struct v4l2_ctrl_handler *add,
+						  v4l2_ctrl_filter filter);
 
 /**
  * v4l2_ctrl_radio_filter() - Standard filter for radio controls.
@@ -679,8 +689,8 @@ void v4l2_ctrl_cluster(unsigned int ncontrols, struct v4l2_ctrl **controls);
  * if autofoo is in auto mode.
  */
 void v4l2_ctrl_auto_cluster(unsigned int ncontrols,
-			    struct v4l2_ctrl **controls,
-			    u8 manual_val, bool set_volatile);
+							struct v4l2_ctrl **controls,
+							u8 manual_val, bool set_volatile);
 
 
 /**
@@ -745,7 +755,7 @@ void v4l2_ctrl_grab(struct v4l2_ctrl *ctrl, bool grabbed);
  * take the lock itself.
  */
 int __v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
-			     s64 min, s64 max, u64 step, s64 def);
+							 s64 min, s64 max, u64 step, s64 def);
 
 /**
  * v4l2_ctrl_modify_range() - Update the range of a control.
@@ -767,7 +777,7 @@ int __v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
  * take the lock itself.
  */
 static inline int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
-					 s64 min, s64 max, u64 step, s64 def)
+		s64 min, s64 max, u64 step, s64 def)
 {
 	int rval;
 
@@ -793,7 +803,7 @@ static inline int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
  * will be issued and the function will do nothing.
  */
 void v4l2_ctrl_notify(struct v4l2_ctrl *ctrl, v4l2_ctrl_notify_fnc notify,
-		      void *priv);
+					  void *priv);
 
 /**
  * v4l2_ctrl_get_name() - Get the name of the control
@@ -813,7 +823,7 @@ const char *v4l2_ctrl_get_name(u32 id);
  * This function returns the NULL-terminated menu string array name of the
  * given control ID or NULL if it isn't a known menu control.
  */
-const char * const *v4l2_ctrl_get_menu(u32 id);
+const char *const *v4l2_ctrl_get_menu(u32 id);
 
 /**
  * v4l2_ctrl_get_int_menu() - Get the integer menu array of the control
@@ -1015,7 +1025,7 @@ int v4l2_ctrl_log_status(struct file *file, void *fh);
  * control events.
  */
 int v4l2_ctrl_subscribe_event(struct v4l2_fh *fh,
-				const struct v4l2_event_subscription *sub);
+							  const struct v4l2_event_subscription *sub);
 
 /**
  * v4l2_ctrl_poll - function to be used as a callback to the poll()
@@ -1049,7 +1059,7 @@ int v4l2_queryctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_queryctrl *qc);
  * If hdl == NULL then they will all return -EINVAL.
  */
 int v4l2_query_ext_ctrl(struct v4l2_ctrl_handler *hdl,
-			struct v4l2_query_ext_ctrl *qc);
+						struct v4l2_query_ext_ctrl *qc);
 
 /**
  * v4l2_querymenu - Helper function to implement
@@ -1085,7 +1095,7 @@ int v4l2_g_ctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_control *ctrl);
  * If hdl == NULL then they will all return -EINVAL.
  */
 int v4l2_s_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
-		struct v4l2_control *ctrl);
+				struct v4l2_control *ctrl);
 
 /**
  * v4l2_g_ext_ctrls - Helper function to implement
@@ -1097,7 +1107,7 @@ int v4l2_s_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
  * If hdl == NULL then they will all return -EINVAL.
  */
 int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl,
-		     struct v4l2_ext_controls *c);
+					 struct v4l2_ext_controls *c);
 
 /**
  * v4l2_try_ext_ctrls - Helper function to implement
@@ -1109,7 +1119,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl,
  * If hdl == NULL then they will all return -EINVAL.
  */
 int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl,
-		       struct v4l2_ext_controls *c);
+					   struct v4l2_ext_controls *c);
 
 /**
  * v4l2_s_ext_ctrls - Helper function to implement
@@ -1122,7 +1132,7 @@ int v4l2_try_ext_ctrls(struct v4l2_ctrl_handler *hdl,
  * If hdl == NULL then they will all return -EINVAL.
  */
 int v4l2_s_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
-		     struct v4l2_ext_controls *c);
+					 struct v4l2_ext_controls *c);
 
 /**
  * v4l2_ctrl_subdev_subscribe_event - Helper function to implement
@@ -1134,7 +1144,7 @@ int v4l2_s_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
  * @sub: pointer to &struct v4l2_event_subscription
  */
 int v4l2_ctrl_subdev_subscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
-				     struct v4l2_event_subscription *sub);
+									 struct v4l2_event_subscription *sub);
 
 /**
  * v4l2_ctrl_subdev_log_status - Log all controls owned by subdev's control

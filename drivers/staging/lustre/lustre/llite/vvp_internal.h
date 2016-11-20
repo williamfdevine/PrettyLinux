@@ -52,7 +52,8 @@ struct page;
 /**
  * IO state private to IO state private to VVP layer.
  */
-struct vvp_io {
+struct vvp_io
+{
 	/** super class */
 	struct cl_io_slice     vui_cl;
 	struct cl_io_lock_link vui_link;
@@ -65,8 +66,10 @@ struct vvp_io {
 	 */
 	size_t vui_tot_count;
 
-	union {
-		struct vvp_fault_io {
+	union
+	{
+		struct vvp_fault_io
+		{
 			/**
 			 * Inode modification time that is checked across DLM
 			 * lock request.
@@ -90,7 +93,8 @@ struct vvp_io {
 			 */
 			bool		ft_flags_valid;
 		} fault;
-		struct {
+		struct
+		{
 			struct cl_page_list vui_queue;
 			unsigned long vui_written;
 			int vui_from;
@@ -124,7 +128,8 @@ extern struct kmem_cache *vvp_lock_kmem;
 extern struct kmem_cache *vvp_object_kmem;
 extern struct kmem_cache *vvp_req_kmem;
 
-struct vvp_thread_info {
+struct vvp_thread_info
+{
 	struct cl_lock		vti_lock;
 	struct cl_lock_descr	vti_descr;
 	struct cl_io		vti_io;
@@ -167,7 +172,8 @@ static inline struct cl_io *vvp_env_thread_io(const struct lu_env *env)
 	return io;
 }
 
-struct vvp_session {
+struct vvp_session
+{
 	struct vvp_io cs_ios;
 };
 
@@ -189,7 +195,8 @@ static inline struct vvp_io *vvp_env_io(const struct lu_env *env)
 /**
  * ccc-private object state.
  */
-struct vvp_object {
+struct vvp_object
+{
 	struct cl_object_header vob_header;
 	struct cl_object        vob_cl;
 	struct inode           *vob_inode;
@@ -226,17 +233,18 @@ struct vvp_object {
 	 *
 	 * \see ll_dirty_page_discard_warn.
 	 */
-	unsigned int		vob_discard_page_warned:1;
+	unsigned int		vob_discard_page_warned: 1;
 };
 
 /**
  * VVP-private page state.
  */
-struct vvp_page {
+struct vvp_page
+{
 	struct cl_page_slice vpg_cl;
-	unsigned int	vpg_defer_uptodate:1,
-			vpg_ra_used:1,
-			vpg_write_queued:1;
+	unsigned int	vpg_defer_uptodate: 1,
+				vpg_ra_used: 1,
+				vpg_write_queued: 1;
 	/**
 	 * Non-empty iff this page is already counted in
 	 * vvp_object::vob_pending_list. This list is only used as a flag,
@@ -258,24 +266,27 @@ static inline pgoff_t vvp_index(struct vvp_page *vvp)
 	return vvp->vpg_cl.cpl_index;
 }
 
-struct vvp_device {
+struct vvp_device
+{
 	struct cl_device    vdv_cl;
 	struct super_block *vdv_sb;
 	struct cl_device   *vdv_next;
 };
 
-struct vvp_lock {
+struct vvp_lock
+{
 	struct cl_lock_slice vlk_cl;
 };
 
-struct vvp_req {
+struct vvp_req
+{
 	struct cl_req_slice  vrq_cl;
 };
 
 void *ccc_key_init(const struct lu_context *ctx,
-		   struct lu_context_key *key);
+				   struct lu_context_key *key);
 void ccc_key_fini(const struct lu_context *ctx,
-		  struct lu_context_key *key, void *data);
+				  struct lu_context_key *key, void *data);
 
 void ccc_umount(const struct lu_env *env, struct cl_device *dev);
 
@@ -341,17 +352,17 @@ struct lov_stripe_md *ccc_inode_lsm_get(struct inode *inode);
 void ccc_inode_lsm_put(struct inode *inode, struct lov_stripe_md *lsm);
 
 int vvp_io_init(const struct lu_env *env, struct cl_object *obj,
-		struct cl_io *io);
+				struct cl_io *io);
 int vvp_io_write_commit(const struct lu_env *env, struct cl_io *io);
 int vvp_lock_init(const struct lu_env *env, struct cl_object *obj,
-		  struct cl_lock *lock, const struct cl_io *io);
+				  struct cl_lock *lock, const struct cl_io *io);
 int vvp_page_init(const struct lu_env *env, struct cl_object *obj,
-		  struct cl_page *page, pgoff_t index);
+				  struct cl_page *page, pgoff_t index);
 int vvp_req_init(const struct lu_env *env, struct cl_device *dev,
-		 struct cl_req *req);
+				 struct cl_req *req);
 struct lu_object *vvp_object_alloc(const struct lu_env *env,
-				   const struct lu_object_header *hdr,
-				   struct lu_device *dev);
+								   const struct lu_object_header *hdr,
+								   struct lu_device *dev);
 
 int vvp_global_init(void);
 void vvp_global_fini(void);

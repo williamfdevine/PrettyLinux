@@ -278,7 +278,7 @@
  * (UUID_upper_64_bits, BTRFS_UUID_KEY*, UUID_lower_64_bits).
  */
 #if BTRFS_UUID_SIZE != 16
-#error "UUID items require BTRFS_UUID_SIZE == 16!"
+	#error "UUID items require BTRFS_UUID_SIZE == 16!"
 #endif
 #define BTRFS_UUID_KEY_SUBVOL	251	/* for UUIDs assigned to subvols */
 #define BTRFS_UUID_KEY_RECEIVED_SUBVOL	252	/* for UUIDs assigned to
@@ -332,19 +332,22 @@
  * in cpu native order.  Otherwise they are identical and their sizes
  * should be the same (ie both packed)
  */
-struct btrfs_disk_key {
+struct btrfs_disk_key
+{
 	__le64 objectid;
 	__u8 type;
 	__le64 offset;
 } __attribute__ ((__packed__));
 
-struct btrfs_key {
+struct btrfs_key
+{
 	__u64 objectid;
 	__u8 type;
 	__u64 offset;
 } __attribute__ ((__packed__));
 
-struct btrfs_dev_item {
+struct btrfs_dev_item
+{
 	/* the internal btrfs device id */
 	__le64 devid;
 
@@ -391,13 +394,15 @@ struct btrfs_dev_item {
 	__u8 fsid[BTRFS_UUID_SIZE];
 } __attribute__ ((__packed__));
 
-struct btrfs_stripe {
+struct btrfs_stripe
+{
 	__le64 devid;
 	__le64 offset;
 	__u8 dev_uuid[BTRFS_UUID_SIZE];
 } __attribute__ ((__packed__));
 
-struct btrfs_chunk {
+struct btrfs_chunk
+{
 	/* size of this chunk in bytes */
 	__le64 length;
 
@@ -430,13 +435,15 @@ struct btrfs_chunk {
 #define BTRFS_FREE_SPACE_EXTENT	1
 #define BTRFS_FREE_SPACE_BITMAP	2
 
-struct btrfs_free_space_entry {
+struct btrfs_free_space_entry
+{
 	__le64 offset;
 	__le64 bytes;
 	__u8 type;
 } __attribute__ ((__packed__));
 
-struct btrfs_free_space_header {
+struct btrfs_free_space_header
+{
 	struct btrfs_disk_key location;
 	__le64 generation;
 	__le64 num_entries;
@@ -459,13 +466,15 @@ struct btrfs_free_space_header {
  * owner of the block and the number of references
  */
 
-struct btrfs_extent_item {
+struct btrfs_extent_item
+{
 	__le64 refs;
 	__le64 generation;
 	__le64 flags;
 } __attribute__ ((__packed__));
 
-struct btrfs_extent_item_v0 {
+struct btrfs_extent_item_v0
+{
 	__le32 refs;
 } __attribute__ ((__packed__));
 
@@ -484,29 +493,34 @@ struct btrfs_extent_item_v0 {
  */
 #define BTRFS_EXTENT_FLAG_SUPER		(1ULL << 48)
 
-struct btrfs_tree_block_info {
+struct btrfs_tree_block_info
+{
 	struct btrfs_disk_key key;
 	__u8 level;
 } __attribute__ ((__packed__));
 
-struct btrfs_extent_data_ref {
+struct btrfs_extent_data_ref
+{
 	__le64 root;
 	__le64 objectid;
 	__le64 offset;
 	__le32 count;
 } __attribute__ ((__packed__));
 
-struct btrfs_shared_data_ref {
+struct btrfs_shared_data_ref
+{
 	__le32 count;
 } __attribute__ ((__packed__));
 
-struct btrfs_extent_inline_ref {
+struct btrfs_extent_inline_ref
+{
 	__u8 type;
 	__le64 offset;
 } __attribute__ ((__packed__));
 
 /* old style backrefs item */
-struct btrfs_extent_ref_v0 {
+struct btrfs_extent_ref_v0
+{
 	__le64 root;
 	__le64 generation;
 	__le64 objectid;
@@ -518,7 +532,8 @@ struct btrfs_extent_ref_v0 {
  * field points back to the chunk allocation mapping tree that allocated
  * the extent.  The chunk tree uuid field is a way to double check the owner
  */
-struct btrfs_dev_extent {
+struct btrfs_dev_extent
+{
 	__le64 chunk_tree;
 	__le64 chunk_objectid;
 	__le64 chunk_offset;
@@ -526,13 +541,15 @@ struct btrfs_dev_extent {
 	__u8 chunk_tree_uuid[BTRFS_UUID_SIZE];
 } __attribute__ ((__packed__));
 
-struct btrfs_inode_ref {
+struct btrfs_inode_ref
+{
 	__le64 index;
 	__le16 name_len;
 	/* name goes here */
 } __attribute__ ((__packed__));
 
-struct btrfs_inode_extref {
+struct btrfs_inode_extref
+{
 	__le64 parent_objectid;
 	__le64 index;
 	__le16 name_len;
@@ -540,12 +557,14 @@ struct btrfs_inode_extref {
 	/* name goes here */
 } __attribute__ ((__packed__));
 
-struct btrfs_timespec {
+struct btrfs_timespec
+{
 	__le64 sec;
 	__le32 nsec;
 } __attribute__ ((__packed__));
 
-struct btrfs_inode_item {
+struct btrfs_inode_item
+{
 	/* nfs style generation number */
 	__le64 generation;
 	/* transid that last touched this inode */
@@ -574,11 +593,13 @@ struct btrfs_inode_item {
 	struct btrfs_timespec otime;
 } __attribute__ ((__packed__));
 
-struct btrfs_dir_log_item {
+struct btrfs_dir_log_item
+{
 	__le64 end;
 } __attribute__ ((__packed__));
 
-struct btrfs_dir_item {
+struct btrfs_dir_item
+{
 	struct btrfs_disk_key location;
 	__le64 transid;
 	__le16 data_len;
@@ -594,7 +615,8 @@ struct btrfs_dir_item {
  */
 #define BTRFS_ROOT_SUBVOL_DEAD		(1ULL << 48)
 
-struct btrfs_root_item {
+struct btrfs_root_item
+{
 	struct btrfs_inode_item inode;
 	__le64 generation;
 	__le64 root_dirid;
@@ -642,13 +664,15 @@ struct btrfs_root_item {
 /*
  * this is used for both forward and backward root refs
  */
-struct btrfs_root_ref {
+struct btrfs_root_ref
+{
 	__le64 dirid;
 	__le64 sequence;
 	__le16 name_len;
 } __attribute__ ((__packed__));
 
-struct btrfs_disk_balance_args {
+struct btrfs_disk_balance_args
+{
 	/*
 	 * profiles to operate on, single is denoted by
 	 * BTRFS_AVAIL_ALLOC_BIT_SINGLE
@@ -660,9 +684,11 @@ struct btrfs_disk_balance_args {
 	 * BTRFS_BALANCE_ARGS_USAGE with a single value means '0..N'
 	 * BTRFS_BALANCE_ARGS_USAGE_RANGE - range syntax, min..max
 	 */
-	union {
+	union
+	{
 		__le64 usage;
-		struct {
+		struct
+		{
 			__le32 usage_min;
 			__le32 usage_max;
 		};
@@ -693,9 +719,11 @@ struct btrfs_disk_balance_args {
 	 * BTRFS_BALANCE_ARGS_LIMIT_RANGE - the extend version can use minimum
 	 * and maximum
 	 */
-	union {
+	union
+	{
 		__le64 limit;
-		struct {
+		struct
+		{
 			__le32 limit_min;
 			__le32 limit_max;
 		};
@@ -715,7 +743,8 @@ struct btrfs_disk_balance_args {
  * store balance parameters to disk so that balance can be properly
  * resumed after crash or unmount
  */
-struct btrfs_balance_item {
+struct btrfs_balance_item
+{
 	/* BTRFS_BALANCE_* */
 	__le64 flags;
 
@@ -730,7 +759,8 @@ struct btrfs_balance_item {
 #define BTRFS_FILE_EXTENT_REG 1
 #define BTRFS_FILE_EXTENT_PREALLOC 2
 
-struct btrfs_file_extent_item {
+struct btrfs_file_extent_item
+{
 	/*
 	 * transaction id that created this extent
 	 */
@@ -782,11 +812,13 @@ struct btrfs_file_extent_item {
 
 } __attribute__ ((__packed__));
 
-struct btrfs_csum_item {
+struct btrfs_csum_item
+{
 	__u8 csum;
 } __attribute__ ((__packed__));
 
-struct btrfs_dev_stats_item {
+struct btrfs_dev_stats_item
+{
 	/*
 	 * grow this item struct at the end for future enhancements and keep
 	 * the existing values unchanged
@@ -802,7 +834,8 @@ struct btrfs_dev_stats_item {
 #define BTRFS_DEV_REPLACE_ITEM_STATE_FINISHED		3
 #define BTRFS_DEV_REPLACE_ITEM_STATE_CANCELED		4
 
-struct btrfs_dev_replace_item {
+struct btrfs_dev_replace_item
+{
 	/*
 	 * grow this item struct at the end for future enhancements and keep
 	 * the existing values unchanged
@@ -830,9 +863,10 @@ struct btrfs_dev_replace_item {
 #define BTRFS_BLOCK_GROUP_RAID5         (1ULL << 7)
 #define BTRFS_BLOCK_GROUP_RAID6         (1ULL << 8)
 #define BTRFS_BLOCK_GROUP_RESERVED	(BTRFS_AVAIL_ALLOC_BIT_SINGLE | \
-					 BTRFS_SPACE_INFO_GLOBAL_RSV)
+									 BTRFS_SPACE_INFO_GLOBAL_RSV)
 
-enum btrfs_raid_types {
+enum btrfs_raid_types
+{
 	BTRFS_RAID_RAID10,
 	BTRFS_RAID_RAID1,
 	BTRFS_RAID_DUP,
@@ -844,17 +878,17 @@ enum btrfs_raid_types {
 };
 
 #define BTRFS_BLOCK_GROUP_TYPE_MASK	(BTRFS_BLOCK_GROUP_DATA |    \
-					 BTRFS_BLOCK_GROUP_SYSTEM |  \
-					 BTRFS_BLOCK_GROUP_METADATA)
+									 BTRFS_BLOCK_GROUP_SYSTEM |  \
+									 BTRFS_BLOCK_GROUP_METADATA)
 
 #define BTRFS_BLOCK_GROUP_PROFILE_MASK	(BTRFS_BLOCK_GROUP_RAID0 |   \
-					 BTRFS_BLOCK_GROUP_RAID1 |   \
-					 BTRFS_BLOCK_GROUP_RAID5 |   \
-					 BTRFS_BLOCK_GROUP_RAID6 |   \
-					 BTRFS_BLOCK_GROUP_DUP |     \
-					 BTRFS_BLOCK_GROUP_RAID10)
+		BTRFS_BLOCK_GROUP_RAID1 |   \
+		BTRFS_BLOCK_GROUP_RAID5 |   \
+		BTRFS_BLOCK_GROUP_RAID6 |   \
+		BTRFS_BLOCK_GROUP_DUP |     \
+		BTRFS_BLOCK_GROUP_RAID10)
 #define BTRFS_BLOCK_GROUP_RAID56_MASK	(BTRFS_BLOCK_GROUP_RAID5 |   \
-					 BTRFS_BLOCK_GROUP_RAID6)
+		BTRFS_BLOCK_GROUP_RAID6)
 
 /*
  * We need a bit for restriper to be able to tell when chunks of type
@@ -872,12 +906,14 @@ enum btrfs_raid_types {
 #define BTRFS_SPACE_INFO_GLOBAL_RSV	(1ULL << 49)
 
 #define BTRFS_EXTENDED_PROFILE_MASK	(BTRFS_BLOCK_GROUP_PROFILE_MASK | \
-					 BTRFS_AVAIL_ALLOC_BIT_SINGLE)
+									 BTRFS_AVAIL_ALLOC_BIT_SINGLE)
 
 static inline __u64 chunk_to_extended(__u64 flags)
 {
 	if ((flags & BTRFS_BLOCK_GROUP_PROFILE_MASK) == 0)
+	{
 		flags |= BTRFS_AVAIL_ALLOC_BIT_SINGLE;
+	}
 
 	return flags;
 }
@@ -886,13 +922,15 @@ static inline __u64 extended_to_chunk(__u64 flags)
 	return flags & ~BTRFS_AVAIL_ALLOC_BIT_SINGLE;
 }
 
-struct btrfs_block_group_item {
+struct btrfs_block_group_item
+{
 	__le64 used;
 	__le64 chunk_objectid;
 	__le64 flags;
 } __attribute__ ((__packed__));
 
-struct btrfs_free_space_info {
+struct btrfs_free_space_info
+{
 	__le32 extent_count;
 	__le32 flags;
 } __attribute__ ((__packed__));
@@ -924,7 +962,8 @@ static inline __u64 btrfs_qgroup_level(__u64 qgroupid)
 
 #define BTRFS_QGROUP_STATUS_VERSION        1
 
-struct btrfs_qgroup_status_item {
+struct btrfs_qgroup_status_item
+{
 	__le64 version;
 	/*
 	 * the generation is updated during every commit. As older
@@ -944,7 +983,8 @@ struct btrfs_qgroup_status_item {
 	__le64 rescan;
 } __attribute__ ((__packed__));
 
-struct btrfs_qgroup_info_item {
+struct btrfs_qgroup_info_item
+{
 	__le64 generation;
 	__le64 rfer;
 	__le64 rfer_cmpr;
@@ -952,7 +992,8 @@ struct btrfs_qgroup_info_item {
 	__le64 excl_cmpr;
 } __attribute__ ((__packed__));
 
-struct btrfs_qgroup_limit_item {
+struct btrfs_qgroup_limit_item
+{
 	/*
 	 * only updated when any of the other values change
 	 */

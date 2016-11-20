@@ -41,10 +41,14 @@ static void ioc_exit_icq(struct io_cq *icq)
 	struct elevator_type *et = icq->q->elevator->type;
 
 	if (icq->flags & ICQ_EXITED)
+	{
 		return;
+	}
 
 	if (et->ops.elevator_exit_icq_fn)
+	{
 		et->ops.elevator_exit_icq_fn(icq);
+	}
 
 	icq->flags |= ICQ_EXITED;
 }
@@ -69,7 +73,9 @@ static void ioc_destroy_icq(struct io_cq *icq)
 	 * will.  Hint assignment itself can race safely.
 	 */
 	if (rcu_access_pointer(ioc->icq_hint) == icq)
+	{
 		rcu_assign_pointer(ioc->icq_hint, NULL);
+	}
 
 	ioc_exit_icq(icq);
 
@@ -88,7 +94,7 @@ static void ioc_destroy_icq(struct io_cq *icq)
 static void ioc_release_fn(struct work_struct *work)
 {
 	struct io_context *ioc = container_of(work, struct io_context,
-					      release_work);
+										  release_work);
 	unsigned long flags;
 
 	/*
@@ -99,15 +105,19 @@ static void ioc_release_fn(struct work_struct *work)
 	 */
 	spin_lock_irqsave_nested(&ioc->lock, flags, 1);
 
-	while (!hlist_empty(&ioc->icq_list)) {
+	while (!hlist_empty(&ioc->icq_list))
+	{
 		struct io_cq *icq = hlist_entry(ioc->icq_list.first,
-						struct io_cq, ioc_node);
+										struct io_cq, ioc_node);
 		struct request_queue *q = icq->q;
 
-		if (spin_trylock(q->queue_lock)) {
+		if (spin_trylock(q->queue_lock))
+		{
 			ioc_destroy_icq(icq);
 			spin_unlock(q->queue_lock);
-		} else {
+		}
+		else
+		{
 			spin_unlock_irqrestore(&ioc->lock, flags);
 			cpu_relax();
 			spin_lock_irqsave_nested(&ioc->lock, flags, 1);
@@ -132,7 +142,9 @@ void put_io_context(struct io_context *ioc)
 	bool free_ioc = false;
 
 	if (ioc == NULL)
+	{
 		return;
+	}
 
 	BUG_ON(atomic_long_read(&ioc->refcount) <= 0);
 
@@ -140,18 +152,25 @@ void put_io_context(struct io_context *ioc)
 	 * Releasing ioc requires reverse order double locking and we may
 	 * already be holding a queue_lock.  Do it asynchronously from wq.
 	 */
-	if (atomic_long_dec_and_test(&ioc->refcount)) {
+	if (atomic_long_dec_and_test(&ioc->refcount))
+	{
 		spin_lock_irqsave(&ioc->lock, flags);
+
 		if (!hlist_empty(&ioc->icq_list))
 			queue_work(system_power_efficient_wq,
-					&ioc->release_work);
+					   &ioc->release_work);
 		else
+		{
 			free_ioc = true;
+		}
+
 		spin_unlock_irqrestore(&ioc->lock, flags);
 	}
 
 	if (free_ioc)
+	{
 		kmem_cache_free(iocontext_cachep, ioc);
+	}
 }
 EXPORT_SYMBOL(put_io_context);
 
@@ -167,7 +186,8 @@ void put_io_context_active(struct io_context *ioc)
 	unsigned long flags;
 	struct io_cq *icq;
 
-	if (!atomic_dec_and_test(&ioc->active_ref)) {
+	if (!atomic_dec_and_test(&ioc->active_ref))
+	{
 		put_io_context(ioc);
 		return;
 	}
@@ -179,13 +199,20 @@ void put_io_context_active(struct io_context *ioc)
 	 */
 retry:
 	spin_lock_irqsave_nested(&ioc->lock, flags, 1);
-	hlist_for_each_entry(icq, &ioc->icq_list, ioc_node) {
+	hlist_for_each_entry(icq, &ioc->icq_list, ioc_node)
+	{
 		if (icq->flags & ICQ_EXITED)
+		{
 			continue;
-		if (spin_trylock(icq->q->queue_lock)) {
+		}
+
+		if (spin_trylock(icq->q->queue_lock))
+		{
 			ioc_exit_icq(icq);
 			spin_unlock(icq->q->queue_lock);
-		} else {
+		}
+		else
+		{
 			spin_unlock_irqrestore(&ioc->lock, flags);
 			cpu_relax();
 			goto retry;
@@ -220,9 +247,10 @@ void ioc_clear_queue(struct request_queue *q)
 {
 	lockdep_assert_held(q->queue_lock);
 
-	while (!list_empty(&q->icq_list)) {
+	while (!list_empty(&q->icq_list))
+	{
 		struct io_cq *icq = list_entry(q->icq_list.next,
-					       struct io_cq, q_node);
+									   struct io_cq, q_node);
 		struct io_context *ioc = icq->ioc;
 
 		spin_lock(&ioc->lock);
@@ -237,9 +265,12 @@ int create_task_io_context(struct task_struct *task, gfp_t gfp_flags, int node)
 	int ret;
 
 	ioc = kmem_cache_alloc_node(iocontext_cachep, gfp_flags | __GFP_ZERO,
-				    node);
+								node);
+
 	if (unlikely(!ioc))
+	{
 		return -ENOMEM;
+	}
 
 	/* initialize */
 	atomic_long_set(&ioc->refcount, 1);
@@ -258,11 +289,16 @@ int create_task_io_context(struct task_struct *task, gfp_t gfp_flags, int node)
 	 * responsible for not issuing IO after exit_io_context().
 	 */
 	task_lock(task);
+
 	if (!task->io_context &&
-	    (task == current || !(task->flags & PF_EXITING)))
+		(task == current || !(task->flags & PF_EXITING)))
+	{
 		task->io_context = ioc;
+	}
 	else
+	{
 		kmem_cache_free(iocontext_cachep, ioc);
+	}
 
 	ret = task->io_context ? 0 : -EBUSY;
 
@@ -285,22 +321,27 @@ int create_task_io_context(struct task_struct *task, gfp_t gfp_flags, int node)
  * %current->io_context + get_io_context() for %current.
  */
 struct io_context *get_task_io_context(struct task_struct *task,
-				       gfp_t gfp_flags, int node)
+									   gfp_t gfp_flags, int node)
 {
 	struct io_context *ioc;
 
 	might_sleep_if(gfpflags_allow_blocking(gfp_flags));
 
-	do {
+	do
+	{
 		task_lock(task);
 		ioc = task->io_context;
-		if (likely(ioc)) {
+
+		if (likely(ioc))
+		{
 			get_io_context(ioc);
 			task_unlock(task);
 			return ioc;
 		}
+
 		task_unlock(task);
-	} while (!create_task_io_context(task, gfp_flags, node));
+	}
+	while (!create_task_io_context(task, gfp_flags, node));
 
 	return NULL;
 }
@@ -328,14 +369,23 @@ struct io_cq *ioc_lookup_icq(struct io_context *ioc, struct request_queue *q)
 	 */
 	rcu_read_lock();
 	icq = rcu_dereference(ioc->icq_hint);
+
 	if (icq && icq->q == q)
+	{
 		goto out;
+	}
 
 	icq = radix_tree_lookup(&ioc->icq_tree, q->id);
+
 	if (icq && icq->q == q)
-		rcu_assign_pointer(ioc->icq_hint, icq);	/* allowed to race */
+	{
+		rcu_assign_pointer(ioc->icq_hint, icq);    /* allowed to race */
+	}
 	else
+	{
 		icq = NULL;
+	}
+
 out:
 	rcu_read_unlock();
 	return icq;
@@ -355,18 +405,22 @@ EXPORT_SYMBOL(ioc_lookup_icq);
  * alive and will stay alive until this function returns.
  */
 struct io_cq *ioc_create_icq(struct io_context *ioc, struct request_queue *q,
-			     gfp_t gfp_mask)
+							 gfp_t gfp_mask)
 {
 	struct elevator_type *et = q->elevator->type;
 	struct io_cq *icq;
 
 	/* allocate stuff */
 	icq = kmem_cache_alloc_node(et->icq_cache, gfp_mask | __GFP_ZERO,
-				    q->node);
-	if (!icq)
-		return NULL;
+								q->node);
 
-	if (radix_tree_maybe_preload(gfp_mask) < 0) {
+	if (!icq)
+	{
+		return NULL;
+	}
+
+	if (radix_tree_maybe_preload(gfp_mask) < 0)
+	{
 		kmem_cache_free(et->icq_cache, icq);
 		return NULL;
 	}
@@ -380,16 +434,25 @@ struct io_cq *ioc_create_icq(struct io_context *ioc, struct request_queue *q,
 	spin_lock_irq(q->queue_lock);
 	spin_lock(&ioc->lock);
 
-	if (likely(!radix_tree_insert(&ioc->icq_tree, q->id, icq))) {
+	if (likely(!radix_tree_insert(&ioc->icq_tree, q->id, icq)))
+	{
 		hlist_add_head(&icq->ioc_node, &ioc->icq_list);
 		list_add(&icq->q_node, &q->icq_list);
+
 		if (et->ops.elevator_init_icq_fn)
+		{
 			et->ops.elevator_init_icq_fn(icq);
-	} else {
+		}
+	}
+	else
+	{
 		kmem_cache_free(et->icq_cache, icq);
 		icq = ioc_lookup_icq(ioc, q);
+
 		if (!icq)
+		{
 			printk(KERN_ERR "cfq: icq link failed!\n");
+		}
 	}
 
 	spin_unlock(&ioc->lock);
@@ -401,7 +464,7 @@ struct io_cq *ioc_create_icq(struct io_context *ioc, struct request_queue *q,
 static int __init blk_ioc_init(void)
 {
 	iocontext_cachep = kmem_cache_create("blkdev_ioc",
-			sizeof(struct io_context), 0, SLAB_PANIC, NULL);
+										 sizeof(struct io_context), 0, SLAB_PANIC, NULL);
 	return 0;
 }
 subsys_initcall(blk_ioc_init);

@@ -15,12 +15,13 @@
 #define CVISIONPPC_H
 
 #ifndef PM2FB_H
-#include "pm2fb.h"
+	#include "pm2fb.h"
 #endif
 
-struct cvppc_par {
-	unsigned char* pci_config;
-	unsigned char* pci_bridge;
+struct cvppc_par
+{
+	unsigned char *pci_config;
+	unsigned char *pci_bridge;
 	u32 user_flags;
 };
 

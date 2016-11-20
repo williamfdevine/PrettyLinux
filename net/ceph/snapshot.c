@@ -40,7 +40,7 @@
  * Returns a null pointer if an error occurs.
  */
 struct ceph_snap_context *ceph_create_snap_context(u32 snap_count,
-						gfp_t gfp_flags)
+		gfp_t gfp_flags)
 {
 	struct ceph_snap_context *snapc;
 	size_t size;
@@ -48,8 +48,11 @@ struct ceph_snap_context *ceph_create_snap_context(u32 snap_count,
 	size = sizeof (struct ceph_snap_context);
 	size += snap_count * sizeof (snapc->snaps[0]);
 	snapc = kzalloc(size, gfp_flags);
+
 	if (!snapc)
+	{
 		return NULL;
+	}
 
 	atomic_set(&snapc->nref, 1);
 	snapc->num_snaps = snap_count;
@@ -61,7 +64,10 @@ EXPORT_SYMBOL(ceph_create_snap_context);
 struct ceph_snap_context *ceph_get_snap_context(struct ceph_snap_context *sc)
 {
 	if (sc)
+	{
 		atomic_inc(&sc->nref);
+	}
+
 	return sc;
 }
 EXPORT_SYMBOL(ceph_get_snap_context);
@@ -69,8 +75,12 @@ EXPORT_SYMBOL(ceph_get_snap_context);
 void ceph_put_snap_context(struct ceph_snap_context *sc)
 {
 	if (!sc)
+	{
 		return;
-	if (atomic_dec_and_test(&sc->nref)) {
+	}
+
+	if (atomic_dec_and_test(&sc->nref))
+	{
 		/*printk(" deleting snap_context %p\n", sc);*/
 		kfree(sc);
 	}

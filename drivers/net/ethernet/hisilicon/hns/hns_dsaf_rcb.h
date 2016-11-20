@@ -59,13 +59,15 @@ struct rcb_common_cb;
 #define HNS_TSO_MODE_8BD_32K			1
 #define HNS_TSO_MDOE_4BD_16K			0
 
-enum rcb_int_flag {
+enum rcb_int_flag
+{
 	RCB_INT_FLAG_TX = 0x1,
 	RCB_INT_FLAG_RX = (0x1 << 1),
 	RCB_INT_FLAG_MAX = (0x1 << 2),	/*must be the last element */
 };
 
-struct hns_ring_hw_stats {
+struct hns_ring_hw_stats
+{
 	u64 tx_pkts;
 	u64 ppe_tx_ok_pkts;
 	u64 ppe_tx_drop_pkts;
@@ -74,7 +76,8 @@ struct hns_ring_hw_stats {
 	u64 ppe_rx_drop_pkts;
 };
 
-struct ring_pair_cb {
+struct ring_pair_cb
+{
 	struct rcb_common_cb *rcb_common;	/*  ring belongs to */
 	struct device *dev;	/*device for DMA mapping */
 	struct hnae_queue q;
@@ -90,7 +93,8 @@ struct ring_pair_cb {
 	struct hns_ring_hw_stats hw_stats;
 };
 
-struct rcb_common_cb {
+struct rcb_common_cb
+{
 	u8 __iomem *io_base;
 	phys_addr_t phy_base;
 	struct dsaf_device *dsaf_dev;
@@ -112,7 +116,7 @@ int hns_rcb_common_init_hw(struct rcb_common_cb *rcb_common);
 void hns_rcb_start(struct hnae_queue *q, u32 val);
 void hns_rcb_get_cfg(struct rcb_common_cb *rcb_common);
 void hns_rcb_get_queue_mode(enum dsaf_mode dsaf_mode,
-			    u16 *max_vfn, u16 *max_q_per_vf);
+							u16 *max_vfn, u16 *max_q_per_vf);
 
 void hns_rcb_common_init_commit_hw(struct rcb_common_cb *rcb_common);
 

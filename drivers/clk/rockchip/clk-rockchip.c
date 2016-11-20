@@ -38,28 +38,38 @@ static void __init rk2928_gate_clk_init(struct device_node *node)
 	int i;
 
 	qty = of_property_count_strings(node, "clock-output-names");
-	if (qty < 0) {
+
+	if (qty < 0)
+	{
 		pr_err("%s: error in clock-output-names %d\n", __func__, qty);
 		return;
 	}
 
-	if (qty == 0) {
+	if (qty == 0)
+	{
 		pr_info("%s: nothing to do\n", __func__);
 		return;
 	}
 
 	reg = of_iomap(node, 0);
+
 	if (!reg)
+	{
 		return;
+	}
 
 	clk_data = kzalloc(sizeof(struct clk_onecell_data), GFP_KERNEL);
-	if (!clk_data) {
+
+	if (!clk_data)
+	{
 		iounmap(reg);
 		return;
 	}
 
 	clk_data->clks = kzalloc(qty * sizeof(struct clk *), GFP_KERNEL);
-	if (!clk_data->clks) {
+
+	if (!clk_data->clks)
+	{
 		kfree(clk_data);
 		iounmap(reg);
 		return;
@@ -67,13 +77,16 @@ static void __init rk2928_gate_clk_init(struct device_node *node)
 
 	flags = CLK_GATE_HIWORD_MASK | CLK_GATE_SET_TO_DISABLE;
 
-	for (i = 0; i < qty; i++) {
+	for (i = 0; i < qty; i++)
+	{
 		of_property_read_string_index(node, "clock-output-names",
-					      i, &clk_name);
+									  i, &clk_name);
 
 		/* ignore empty slots */
 		if (!strcmp("reserved", clk_name))
+		{
 			continue;
+		}
 
 		clk_parent = of_clk_get_parent_name(node, i);
 
@@ -84,10 +97,10 @@ static void __init rk2928_gate_clk_init(struct device_node *node)
 		reg_bit = (i % 16);
 
 		clk_data->clks[i] = clk_register_gate(NULL, clk_name,
-						      clk_parent, clkflags,
-						      reg_idx, reg_bit,
-						      flags,
-						      &clk_lock);
+											  clk_parent, clkflags,
+											  reg_idx, reg_bit,
+											  flags,
+											  &clk_lock);
 		WARN_ON(IS_ERR(clk_data->clks[i]));
 	}
 

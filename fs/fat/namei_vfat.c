@@ -27,7 +27,7 @@ static inline unsigned long vfat_d_version(struct dentry *dentry)
 }
 
 static inline void vfat_d_version_set(struct dentry *dentry,
-				      unsigned long version)
+									  unsigned long version)
 {
 	dentry->d_fsdata = (void *) version;
 }
@@ -44,8 +44,12 @@ static int vfat_revalidate_shortname(struct dentry *dentry)
 {
 	int ret = 1;
 	spin_lock(&dentry->d_lock);
+
 	if (vfat_d_version(dentry) != d_inode(dentry->d_parent)->i_version)
+	{
 		ret = 0;
+	}
+
 	spin_unlock(&dentry->d_lock);
 	return ret;
 }
@@ -53,18 +57,25 @@ static int vfat_revalidate_shortname(struct dentry *dentry)
 static int vfat_revalidate(struct dentry *dentry, unsigned int flags)
 {
 	if (flags & LOOKUP_RCU)
+	{
 		return -ECHILD;
+	}
 
 	/* This is not negative dentry. Always valid. */
 	if (d_really_is_positive(dentry))
+	{
 		return 1;
+	}
+
 	return vfat_revalidate_shortname(dentry);
 }
 
 static int vfat_revalidate_ci(struct dentry *dentry, unsigned int flags)
 {
 	if (flags & LOOKUP_RCU)
+	{
 		return -ECHILD;
+	}
 
 	/*
 	 * This is not negative dentry. Always valid.
@@ -77,14 +88,18 @@ static int vfat_revalidate_ci(struct dentry *dentry, unsigned int flags)
 	 * rename("filename", "FILENAME") for now.
 	 */
 	if (d_really_is_positive(dentry))
+	{
 		return 1;
+	}
 
 	/*
 	 * This may be nfsd (or something), anyway, we can't see the
 	 * intent of this. So, since this can be for creation, drop it.
 	 */
 	if (!flags)
+	{
 		return 0;
+	}
 
 	/*
 	 * Drop the negative dentry, in order to make sure to use the
@@ -92,7 +107,9 @@ static int vfat_revalidate_ci(struct dentry *dentry, unsigned int flags)
 	 * for creation.
 	 */
 	if (flags & (LOOKUP_CREATE | LOOKUP_RENAME_TARGET))
+	{
 		return 0;
+	}
 
 	return vfat_revalidate_shortname(dentry);
 }
@@ -101,7 +118,10 @@ static int vfat_revalidate_ci(struct dentry *dentry, unsigned int flags)
 static unsigned int __vfat_striptail_len(unsigned int len, const char *name)
 {
 	while (len && name[len - 1] == '.')
+	{
 		len--;
+	}
+
 	return len;
 }
 
@@ -139,8 +159,12 @@ static int vfat_hashi(const struct dentry *dentry, struct qstr *qstr)
 	len = vfat_striptail_len(qstr);
 
 	hash = init_name_hash(dentry);
+
 	while (len--)
+	{
 		hash = partial_name_hash(nls_tolower(t, *name++), hash);
+	}
+
 	qstr->hash = end_name_hash(hash);
 
 	return 0;
@@ -150,7 +174,7 @@ static int vfat_hashi(const struct dentry *dentry, struct qstr *qstr)
  * Case insensitive compare of two vfat names.
  */
 static int vfat_cmpi(const struct dentry *dentry,
-		unsigned int len, const char *str, const struct qstr *name)
+					 unsigned int len, const char *str, const struct qstr *name)
 {
 	struct nls_table *t = MSDOS_SB(dentry->d_sb)->nls_io;
 	unsigned int alen, blen;
@@ -158,10 +182,15 @@ static int vfat_cmpi(const struct dentry *dentry,
 	/* A filename cannot end in '.' or we treat it like it has none */
 	alen = vfat_striptail_len(name);
 	blen = __vfat_striptail_len(len, str);
-	if (alen == blen) {
+
+	if (alen == blen)
+	{
 		if (nls_strnicmp(t, name->name, str, alen) == 0)
+		{
 			return 0;
+		}
 	}
+
 	return 1;
 }
 
@@ -169,27 +198,34 @@ static int vfat_cmpi(const struct dentry *dentry,
  * Case sensitive compare of two vfat names.
  */
 static int vfat_cmp(const struct dentry *dentry,
-		unsigned int len, const char *str, const struct qstr *name)
+					unsigned int len, const char *str, const struct qstr *name)
 {
 	unsigned int alen, blen;
 
 	/* A filename cannot end in '.' or we treat it like it has none */
 	alen = vfat_striptail_len(name);
 	blen = __vfat_striptail_len(len, str);
-	if (alen == blen) {
+
+	if (alen == blen)
+	{
 		if (strncmp(name->name, str, alen) == 0)
+		{
 			return 0;
+		}
 	}
+
 	return 1;
 }
 
-static const struct dentry_operations vfat_ci_dentry_ops = {
+static const struct dentry_operations vfat_ci_dentry_ops =
+{
 	.d_revalidate	= vfat_revalidate_ci,
 	.d_hash		= vfat_hashi,
 	.d_compare	= vfat_cmpi,
 };
 
-static const struct dentry_operations vfat_dentry_ops = {
+static const struct dentry_operations vfat_dentry_ops =
+{
 	.d_revalidate	= vfat_revalidate,
 	.d_hash		= vfat_hash,
 	.d_compare	= vfat_cmp,
@@ -200,15 +236,15 @@ static const struct dentry_operations vfat_dentry_ops = {
 static inline wchar_t vfat_bad_char(wchar_t w)
 {
 	return (w < 0x0020)
-	    || (w == '*') || (w == '?') || (w == '<') || (w == '>')
-	    || (w == '|') || (w == '"') || (w == ':') || (w == '/')
-	    || (w == '\\');
+		   || (w == '*') || (w == '?') || (w == '<') || (w == '>')
+		   || (w == '|') || (w == '"') || (w == ':') || (w == '/')
+		   || (w == '\\');
 }
 
 static inline wchar_t vfat_replace_char(wchar_t w)
 {
 	return (w == '[') || (w == ']') || (w == ';') || (w == ',')
-	    || (w == '+') || (w == '=');
+		   || (w == '+') || (w == '=');
 }
 
 static wchar_t vfat_skip_char(wchar_t w)
@@ -222,10 +258,14 @@ static inline int vfat_is_used_badchars(const wchar_t *s, int len)
 
 	for (i = 0; i < len; i++)
 		if (vfat_bad_char(s[i]))
+		{
 			return -EINVAL;
+		}
 
 	if (s[i - 1] == ' ') /* last character cannot be space */
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -234,8 +274,12 @@ static int vfat_find_form(struct inode *dir, unsigned char *name)
 {
 	struct fat_slot_info sinfo;
 	int err = fat_scan(dir, name, &sinfo);
+
 	if (err)
+	{
 		return -ENOENT;
+	}
+
 	brelse(sinfo.bh);
 	return 0;
 }
@@ -260,54 +304,71 @@ static int vfat_find_form(struct inode *dir, unsigned char *name)
  *        .   [ ] ; , + =
  * numtail is added, and Longfilename must be stored in disk .
  */
-struct shortname_info {
-	unsigned char lower:1,
-		      upper:1,
-		      valid:1;
+struct shortname_info
+{
+	unsigned char lower: 1,
+			 upper: 1,
+			 valid: 1;
 };
 #define INIT_SHORTNAME_INFO(x)	do {		\
-	(x)->lower = 1;				\
-	(x)->upper = 1;				\
-	(x)->valid = 1;				\
-} while (0)
+		(x)->lower = 1;				\
+		(x)->upper = 1;				\
+		(x)->valid = 1;				\
+	} while (0)
 
 static inline int to_shortname_char(struct nls_table *nls,
-				    unsigned char *buf, int buf_size,
-				    wchar_t *src, struct shortname_info *info)
+									unsigned char *buf, int buf_size,
+									wchar_t *src, struct shortname_info *info)
 {
 	int len;
 
-	if (vfat_skip_char(*src)) {
+	if (vfat_skip_char(*src))
+	{
 		info->valid = 0;
 		return 0;
 	}
-	if (vfat_replace_char(*src)) {
+
+	if (vfat_replace_char(*src))
+	{
 		info->valid = 0;
 		buf[0] = '_';
 		return 1;
 	}
 
 	len = nls->uni2char(*src, buf, buf_size);
-	if (len <= 0) {
+
+	if (len <= 0)
+	{
 		info->valid = 0;
 		buf[0] = '_';
 		len = 1;
-	} else if (len == 1) {
+	}
+	else if (len == 1)
+	{
 		unsigned char prev = buf[0];
 
-		if (buf[0] >= 0x7F) {
+		if (buf[0] >= 0x7F)
+		{
 			info->lower = 0;
 			info->upper = 0;
 		}
 
 		buf[0] = nls_toupper(nls, buf[0]);
-		if (isalpha(buf[0])) {
+
+		if (isalpha(buf[0]))
+		{
 			if (buf[0] == prev)
+			{
 				info->lower = 0;
+			}
 			else
+			{
 				info->upper = 0;
+			}
 		}
-	} else {
+	}
+	else
+	{
 		info->lower = 0;
 		info->upper = 0;
 	}
@@ -322,8 +383,8 @@ static inline int to_shortname_char(struct nls_table *nls,
  * return, and 1 for valid shortname
  */
 static int vfat_create_shortname(struct inode *dir, struct nls_table *nls,
-				 wchar_t *uname, int ulen,
-				 unsigned char *name_res, unsigned char *lcase)
+								 wchar_t *uname, int ulen,
+								 unsigned char *name_res, unsigned char *lcase)
 {
 	struct fat_mount_options *opts = &MSDOS_SB(dir->i_sb)->options;
 	wchar_t *ip, *ext_start, *end, *name_start;
@@ -340,35 +401,52 @@ static int vfat_create_shortname(struct inode *dir, struct nls_table *nls,
 
 	/* Now, we need to create a shortname from the long name */
 	ext_start = end = &uname[ulen];
-	while (--ext_start >= uname) {
-		if (*ext_start == 0x002E) {	/* is `.' */
-			if (ext_start == end - 1) {
+
+	while (--ext_start >= uname)
+	{
+		if (*ext_start == 0x002E)  	/* is `.' */
+		{
+			if (ext_start == end - 1)
+			{
 				sz = ulen;
 				ext_start = NULL;
 			}
+
 			break;
 		}
 	}
 
-	if (ext_start == uname - 1) {
+	if (ext_start == uname - 1)
+	{
 		sz = ulen;
 		ext_start = NULL;
-	} else if (ext_start) {
+	}
+	else if (ext_start)
+	{
 		/*
 		 * Names which start with a dot could be just
 		 * an extension eg. "...test".  In this case Win95
 		 * uses the extension as the name and sets no extension.
 		 */
 		name_start = &uname[0];
-		while (name_start < ext_start) {
+
+		while (name_start < ext_start)
+		{
 			if (!vfat_skip_char(*name_start))
+			{
 				break;
+			}
+
 			name_start++;
 		}
-		if (name_start != ext_start) {
+
+		if (name_start != ext_start)
+		{
 			sz = ext_start - uname;
 			ext_start++;
-		} else {
+		}
+		else
+		{
 			sz = ulen;
 			ext_start = NULL;
 		}
@@ -376,61 +454,100 @@ static int vfat_create_shortname(struct inode *dir, struct nls_table *nls,
 
 	numtail_baselen = 6;
 	numtail2_baselen = 2;
-	for (baselen = i = 0, p = base, ip = uname; i < sz; i++, ip++) {
+
+	for (baselen = i = 0, p = base, ip = uname; i < sz; i++, ip++)
+	{
 		chl = to_shortname_char(nls, charbuf, sizeof(charbuf),
-					ip, &base_info);
+								ip, &base_info);
+
 		if (chl == 0)
+		{
 			continue;
+		}
 
 		if (baselen < 2 && (baselen + chl) > 2)
+		{
 			numtail2_baselen = baselen;
+		}
+
 		if (baselen < 6 && (baselen + chl) > 6)
+		{
 			numtail_baselen = baselen;
-		for (chi = 0; chi < chl; chi++) {
+		}
+
+		for (chi = 0; chi < chl; chi++)
+		{
 			*p++ = charbuf[chi];
 			baselen++;
+
 			if (baselen >= 8)
+			{
 				break;
+			}
 		}
-		if (baselen >= 8) {
+
+		if (baselen >= 8)
+		{
 			if ((chi < chl - 1) || (ip + 1) - uname < sz)
+			{
 				is_shortname = 0;
+			}
+
 			break;
 		}
 	}
-	if (baselen == 0) {
+
+	if (baselen == 0)
+	{
 		return -EINVAL;
 	}
 
 	extlen = 0;
-	if (ext_start) {
-		for (p = ext, ip = ext_start; extlen < 3 && ip < end; ip++) {
-			chl = to_shortname_char(nls, charbuf, sizeof(charbuf),
-						ip, &ext_info);
-			if (chl == 0)
-				continue;
 
-			if ((extlen + chl) > 3) {
+	if (ext_start)
+	{
+		for (p = ext, ip = ext_start; extlen < 3 && ip < end; ip++)
+		{
+			chl = to_shortname_char(nls, charbuf, sizeof(charbuf),
+									ip, &ext_info);
+
+			if (chl == 0)
+			{
+				continue;
+			}
+
+			if ((extlen + chl) > 3)
+			{
 				is_shortname = 0;
 				break;
 			}
-			for (chi = 0; chi < chl; chi++) {
+
+			for (chi = 0; chi < chl; chi++)
+			{
 				*p++ = charbuf[chi];
 				extlen++;
 			}
-			if (extlen >= 3) {
+
+			if (extlen >= 3)
+			{
 				if (ip + 1 != end)
+				{
 					is_shortname = 0;
+				}
+
 				break;
 			}
 		}
 	}
+
 	ext[extlen] = '\0';
 	base[baselen] = '\0';
 
 	/* Yes, it can happen. ".\xe5" would do it. */
 	if (base[0] == DELETED_FLAG)
+	{
 		base[0] = 0x05;
+	}
 
 	/* OK, at this point we know that base is not longer than 8 symbols,
 	 * ext is not longer than 3, base is nonempty, both don't contain
@@ -441,30 +558,49 @@ static int vfat_create_shortname(struct inode *dir, struct nls_table *nls,
 	memcpy(name_res, base, baselen);
 	memcpy(name_res + 8, ext, extlen);
 	*lcase = 0;
-	if (is_shortname && base_info.valid && ext_info.valid) {
-		if (vfat_find_form(dir, name_res) == 0)
-			return -EEXIST;
 
-		if (opts->shortname & VFAT_SFN_CREATE_WIN95) {
+	if (is_shortname && base_info.valid && ext_info.valid)
+	{
+		if (vfat_find_form(dir, name_res) == 0)
+		{
+			return -EEXIST;
+		}
+
+		if (opts->shortname & VFAT_SFN_CREATE_WIN95)
+		{
 			return (base_info.upper && ext_info.upper);
-		} else if (opts->shortname & VFAT_SFN_CREATE_WINNT) {
+		}
+		else if (opts->shortname & VFAT_SFN_CREATE_WINNT)
+		{
 			if ((base_info.upper || base_info.lower) &&
-			    (ext_info.upper || ext_info.lower)) {
+				(ext_info.upper || ext_info.lower))
+			{
 				if (!base_info.upper && base_info.lower)
+				{
 					*lcase |= CASE_LOWER_BASE;
+				}
+
 				if (!ext_info.upper && ext_info.lower)
+				{
 					*lcase |= CASE_LOWER_EXT;
+				}
+
 				return 1;
 			}
+
 			return 0;
-		} else {
+		}
+		else
+		{
 			BUG();
 		}
 	}
 
 	if (opts->numtail == 0)
 		if (vfat_find_form(dir, name_res) < 0)
+		{
 			return 0;
+		}
 
 	/*
 	 * Try to find a unique extension.  This used to
@@ -474,40 +610,57 @@ static int vfat_create_shortname(struct inode *dir, struct nls_table *nls,
 	 * values for part of the base.
 	 */
 
-	if (baselen > 6) {
+	if (baselen > 6)
+	{
 		baselen = numtail_baselen;
 		name_res[7] = ' ';
 	}
+
 	name_res[baselen] = '~';
-	for (i = 1; i < 10; i++) {
+
+	for (i = 1; i < 10; i++)
+	{
 		name_res[baselen + 1] = i + '0';
+
 		if (vfat_find_form(dir, name_res) < 0)
+		{
 			return 0;
+		}
 	}
 
 	i = jiffies;
 	sz = (jiffies >> 16) & 0x7;
-	if (baselen > 2) {
+
+	if (baselen > 2)
+	{
 		baselen = numtail2_baselen;
 		name_res[7] = ' ';
 	}
+
 	name_res[baselen + 4] = '~';
 	name_res[baselen + 5] = '1' + sz;
-	while (1) {
+
+	while (1)
+	{
 		snprintf(buf, sizeof(buf), "%04X", i & 0xffff);
 		memcpy(&name_res[baselen], buf, 4);
+
 		if (vfat_find_form(dir, name_res) < 0)
+		{
 			break;
+		}
+
 		i -= 11;
 	}
+
 	return 0;
 }
 
 /* Translate a string, including coded sequences into Unicode */
 static int
 xlate_to_uni(const unsigned char *name, int len, unsigned char *outname,
-	     int *longlen, int *outlen, int escape, int utf8,
-	     struct nls_table *nls)
+			 int *longlen, int *outlen, int escape, int utf8,
+			 struct nls_table *nls)
 {
 	const unsigned char *ip;
 	unsigned char nc;
@@ -516,69 +669,108 @@ xlate_to_uni(const unsigned char *name, int len, unsigned char *outname,
 	int i, k, fill;
 	int charlen;
 
-	if (utf8) {
+	if (utf8)
+	{
 		*outlen = utf8s_to_utf16s(name, len, UTF16_HOST_ENDIAN,
-				(wchar_t *) outname, FAT_LFN_LEN + 2);
+								  (wchar_t *) outname, FAT_LFN_LEN + 2);
+
 		if (*outlen < 0)
+		{
 			return *outlen;
+		}
 		else if (*outlen > FAT_LFN_LEN)
+		{
 			return -ENAMETOOLONG;
+		}
 
 		op = &outname[*outlen * sizeof(wchar_t)];
-	} else {
+	}
+	else
+	{
 		for (i = 0, ip = name, op = outname, *outlen = 0;
 			 i < len && *outlen < FAT_LFN_LEN;
-			 *outlen += 1) {
-			if (escape && (*ip == ':')) {
+			 *outlen += 1)
+		{
+			if (escape && (*ip == ':'))
+			{
 				if (i > len - 5)
+				{
 					return -EINVAL;
+				}
+
 				ec = 0;
-				for (k = 1; k < 5; k++) {
+
+				for (k = 1; k < 5; k++)
+				{
 					nc = ip[k];
 					ec <<= 4;
-					if (nc >= '0' && nc <= '9') {
+
+					if (nc >= '0' && nc <= '9')
+					{
 						ec |= nc - '0';
 						continue;
 					}
-					if (nc >= 'a' && nc <= 'f') {
+
+					if (nc >= 'a' && nc <= 'f')
+					{
 						ec |= nc - ('a' - 10);
 						continue;
 					}
-					if (nc >= 'A' && nc <= 'F') {
+
+					if (nc >= 'A' && nc <= 'F')
+					{
 						ec |= nc - ('A' - 10);
 						continue;
 					}
+
 					return -EINVAL;
 				}
+
 				*op++ = ec & 0xFF;
 				*op++ = ec >> 8;
 				ip += 5;
 				i += 5;
-			} else {
+			}
+			else
+			{
 				charlen = nls->char2uni(ip, len - i,
-									(wchar_t *)op);
+										(wchar_t *)op);
+
 				if (charlen < 0)
+				{
 					return -EINVAL;
+				}
+
 				ip += charlen;
 				i += charlen;
 				op += 2;
 			}
 		}
+
 		if (i < len)
+		{
 			return -ENAMETOOLONG;
+		}
 	}
 
 	*longlen = *outlen;
-	if (*outlen % 13) {
+
+	if (*outlen % 13)
+	{
 		*op++ = 0;
 		*op++ = 0;
 		*outlen += 1;
-		if (*outlen % 13) {
+
+		if (*outlen % 13)
+		{
 			fill = 13 - (*outlen % 13);
-			for (i = 0; i < fill; i++) {
+
+			for (i = 0; i < fill; i++)
+			{
 				*op++ = 0xff;
 				*op++ = 0xff;
 			}
+
 			*outlen += fill;
 		}
 	}
@@ -587,9 +779,9 @@ xlate_to_uni(const unsigned char *name, int len, unsigned char *outname,
 }
 
 static int vfat_build_slots(struct inode *dir, const unsigned char *name,
-			    int len, int is_dir, int cluster,
-			    struct timespec *ts,
-			    struct msdos_dir_slot *slots, int *nr_slots)
+							int len, int is_dir, int cluster,
+							struct timespec *ts,
+							struct msdos_dir_slot *slots, int *nr_slots)
 {
 	struct msdos_sb_info *sbi = MSDOS_SB(dir->i_sb);
 	struct fat_mount_options *opts = &sbi->options;
@@ -606,23 +798,36 @@ static int vfat_build_slots(struct inode *dir, const unsigned char *name,
 	*nr_slots = 0;
 
 	uname = __getname();
+
 	if (!uname)
+	{
 		return -ENOMEM;
+	}
 
 	err = xlate_to_uni(name, len, (unsigned char *)uname, &ulen, &usize,
-			   opts->unicode_xlate, opts->utf8, sbi->nls_io);
+					   opts->unicode_xlate, opts->utf8, sbi->nls_io);
+
 	if (err)
+	{
 		goto out_free;
+	}
 
 	err = vfat_is_used_badchars(uname, ulen);
+
 	if (err)
+	{
 		goto out_free;
+	}
 
 	err = vfat_create_shortname(dir, sbi->nls_disk, uname, ulen,
-				    msdos_name, &lcase);
+								msdos_name, &lcase);
+
 	if (err < 0)
+	{
 		goto out_free;
-	else if (err == 1) {
+	}
+	else if (err == 1)
+	{
 		de = (struct msdos_dir_entry *)slots;
 		err = 0;
 		goto shortname;
@@ -632,7 +837,9 @@ static int vfat_build_slots(struct inode *dir, const unsigned char *name,
 	cksum = fat_checksum(msdos_name);
 
 	*nr_slots = usize / 13;
-	for (ps = slots, i = *nr_slots; i > 0; i--, ps++) {
+
+	for (ps = slots, i = *nr_slots; i > 0; i--, ps++)
+	{
 		ps->id = i;
 		ps->attr = ATTR_EXT;
 		ps->reserved = 0;
@@ -643,6 +850,7 @@ static int vfat_build_slots(struct inode *dir, const unsigned char *name,
 		fatwchar_to16(ps->name5_10, uname + offset + 5, 6);
 		fatwchar_to16(ps->name11_12, uname + offset + 11, 2);
 	}
+
 	slots[0].id |= 0x40;
 	de = (struct msdos_dir_entry *)ps;
 
@@ -664,47 +872,69 @@ out_free:
 }
 
 static int vfat_add_entry(struct inode *dir, const struct qstr *qname,
-			  int is_dir, int cluster, struct timespec *ts,
-			  struct fat_slot_info *sinfo)
+						  int is_dir, int cluster, struct timespec *ts,
+						  struct fat_slot_info *sinfo)
 {
 	struct msdos_dir_slot *slots;
 	unsigned int len;
 	int err, nr_slots;
 
 	len = vfat_striptail_len(qname);
+
 	if (len == 0)
+	{
 		return -ENOENT;
+	}
 
 	slots = kmalloc(sizeof(*slots) * MSDOS_SLOTS, GFP_NOFS);
+
 	if (slots == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	err = vfat_build_slots(dir, qname->name, len, is_dir, cluster, ts,
-			       slots, &nr_slots);
+						   slots, &nr_slots);
+
 	if (err)
+	{
 		goto cleanup;
+	}
 
 	err = fat_add_entries(dir, slots, nr_slots, sinfo);
+
 	if (err)
+	{
 		goto cleanup;
+	}
 
 	/* update timestamp */
 	dir->i_ctime = dir->i_mtime = dir->i_atime = *ts;
+
 	if (IS_DIRSYNC(dir))
+	{
 		(void)fat_sync_inode(dir);
+	}
 	else
+	{
 		mark_inode_dirty(dir);
+	}
+
 cleanup:
 	kfree(slots);
 	return err;
 }
 
 static int vfat_find(struct inode *dir, const struct qstr *qname,
-		     struct fat_slot_info *sinfo)
+					 struct fat_slot_info *sinfo)
 {
 	unsigned int len = vfat_striptail_len(qname);
+
 	if (len == 0)
+	{
 		return -ENOENT;
+	}
+
 	return fat_search_long(dir, qname->name, len, sinfo);
 }
 
@@ -718,7 +948,7 @@ static int vfat_d_anon_disconn(struct dentry *dentry)
 }
 
 static struct dentry *vfat_lookup(struct inode *dir, struct dentry *dentry,
-				  unsigned int flags)
+								  unsigned int flags)
 {
 	struct super_block *sb = dir->i_sb;
 	struct fat_slot_info sinfo;
@@ -729,28 +959,36 @@ static struct dentry *vfat_lookup(struct inode *dir, struct dentry *dentry,
 	mutex_lock(&MSDOS_SB(sb)->s_lock);
 
 	err = vfat_find(dir, &dentry->d_name, &sinfo);
-	if (err) {
-		if (err == -ENOENT) {
+
+	if (err)
+	{
+		if (err == -ENOENT)
+		{
 			inode = NULL;
 			goto out;
 		}
+
 		goto error;
 	}
 
 	inode = fat_build_inode(sb, sinfo.de, sinfo.i_pos);
 	brelse(sinfo.bh);
-	if (IS_ERR(inode)) {
+
+	if (IS_ERR(inode))
+	{
 		err = PTR_ERR(inode);
 		goto error;
 	}
 
 	alias = d_find_alias(inode);
+
 	/*
 	 * Checking "alias->d_parent == dentry->d_parent" to make sure
 	 * FS is not corrupted (especially double linked dir).
 	 */
 	if (alias && alias->d_parent == dentry->d_parent &&
-	    !vfat_d_anon_disconn(alias)) {
+		!vfat_d_anon_disconn(alias))
+	{
 		/*
 		 * This inode has non anonymous-DCACHE_DISCONNECTED
 		 * dentry. This means, the user did ->lookup() by an
@@ -759,18 +997,29 @@ static struct dentry *vfat_lookup(struct inode *dir, struct dentry *dentry,
 		 * Switch to new one for reason of locality if possible.
 		 */
 		BUG_ON(d_unhashed(alias));
+
 		if (!S_ISDIR(inode->i_mode))
+		{
 			d_move(alias, dentry);
+		}
+
 		iput(inode);
 		mutex_unlock(&MSDOS_SB(sb)->s_lock);
 		return alias;
-	} else
+	}
+	else
+	{
 		dput(alias);
+	}
 
 out:
 	mutex_unlock(&MSDOS_SB(sb)->s_lock);
+
 	if (!inode)
+	{
 		vfat_d_version_set(dentry, dir->i_version);
+	}
+
 	return d_splice_alias(inode, dentry);
 error:
 	mutex_unlock(&MSDOS_SB(sb)->s_lock);
@@ -778,7 +1027,7 @@ error:
 }
 
 static int vfat_create(struct inode *dir, struct dentry *dentry, umode_t mode,
-		       bool excl)
+					   bool excl)
 {
 	struct super_block *sb = dir->i_sb;
 	struct inode *inode;
@@ -790,16 +1039,23 @@ static int vfat_create(struct inode *dir, struct dentry *dentry, umode_t mode,
 
 	ts = current_time(dir);
 	err = vfat_add_entry(dir, &dentry->d_name, 0, 0, &ts, &sinfo);
+
 	if (err)
+	{
 		goto out;
+	}
+
 	dir->i_version++;
 
 	inode = fat_build_inode(sb, sinfo.de, sinfo.i_pos);
 	brelse(sinfo.bh);
-	if (IS_ERR(inode)) {
+
+	if (IS_ERR(inode))
+	{
 		err = PTR_ERR(inode);
 		goto out;
 	}
+
 	inode->i_version++;
 	inode->i_mtime = inode->i_atime = inode->i_ctime = ts;
 	/* timestamp is already written, so mark_inode_dirty() is unneeded. */
@@ -820,15 +1076,26 @@ static int vfat_rmdir(struct inode *dir, struct dentry *dentry)
 	mutex_lock(&MSDOS_SB(sb)->s_lock);
 
 	err = fat_dir_empty(inode);
+
 	if (err)
+	{
 		goto out;
+	}
+
 	err = vfat_find(dir, &dentry->d_name, &sinfo);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	err = fat_remove_entries(dir, &sinfo);	/* and releases bh */
+
 	if (err)
+	{
 		goto out;
+	}
+
 	drop_nlink(dir);
 
 	clear_nlink(inode);
@@ -851,12 +1118,19 @@ static int vfat_unlink(struct inode *dir, struct dentry *dentry)
 	mutex_lock(&MSDOS_SB(sb)->s_lock);
 
 	err = vfat_find(dir, &dentry->d_name, &sinfo);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	err = fat_remove_entries(dir, &sinfo);	/* and releases bh */
+
 	if (err)
+	{
 		goto out;
+	}
+
 	clear_nlink(inode);
 	inode->i_mtime = inode->i_atime = current_time(inode);
 	fat_detach(inode);
@@ -879,23 +1153,33 @@ static int vfat_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
 
 	ts = current_time(dir);
 	cluster = fat_alloc_new_dir(dir, &ts);
-	if (cluster < 0) {
+
+	if (cluster < 0)
+	{
 		err = cluster;
 		goto out;
 	}
+
 	err = vfat_add_entry(dir, &dentry->d_name, 1, cluster, &ts, &sinfo);
+
 	if (err)
+	{
 		goto out_free;
+	}
+
 	dir->i_version++;
 	inc_nlink(dir);
 
 	inode = fat_build_inode(sb, sinfo.de, sinfo.i_pos);
 	brelse(sinfo.bh);
-	if (IS_ERR(inode)) {
+
+	if (IS_ERR(inode))
+	{
 		err = PTR_ERR(inode);
 		/* the directory was completed, just return a error */
 		goto out;
 	}
+
 	inode->i_version++;
 	set_nlink(inode, 2);
 	inode->i_mtime = inode->i_atime = inode->i_ctime = ts;
@@ -914,8 +1198,8 @@ out:
 }
 
 static int vfat_rename(struct inode *old_dir, struct dentry *old_dentry,
-		       struct inode *new_dir, struct dentry *new_dentry,
-		       unsigned int flags)
+					   struct inode *new_dir, struct dentry *new_dentry,
+					   unsigned int flags)
 {
 	struct buffer_head *dotdot_bh;
 	struct msdos_dir_entry *dotdot_de;
@@ -927,82 +1211,137 @@ static int vfat_rename(struct inode *old_dir, struct dentry *old_dentry,
 	struct super_block *sb = old_dir->i_sb;
 
 	if (flags & ~RENAME_NOREPLACE)
+	{
 		return -EINVAL;
+	}
 
 	old_sinfo.bh = sinfo.bh = dotdot_bh = NULL;
 	old_inode = d_inode(old_dentry);
 	new_inode = d_inode(new_dentry);
 	mutex_lock(&MSDOS_SB(sb)->s_lock);
 	err = vfat_find(old_dir, &old_dentry->d_name, &old_sinfo);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	is_dir = S_ISDIR(old_inode->i_mode);
 	update_dotdot = (is_dir && old_dir != new_dir);
-	if (update_dotdot) {
-		if (fat_get_dotdot_entry(old_inode, &dotdot_bh, &dotdot_de)) {
+
+	if (update_dotdot)
+	{
+		if (fat_get_dotdot_entry(old_inode, &dotdot_bh, &dotdot_de))
+		{
 			err = -EIO;
 			goto out;
 		}
 	}
 
 	ts = current_time(old_dir);
-	if (new_inode) {
-		if (is_dir) {
+
+	if (new_inode)
+	{
+		if (is_dir)
+		{
 			err = fat_dir_empty(new_inode);
+
 			if (err)
+			{
 				goto out;
+			}
 		}
+
 		new_i_pos = MSDOS_I(new_inode)->i_pos;
 		fat_detach(new_inode);
-	} else {
+	}
+	else
+	{
 		err = vfat_add_entry(new_dir, &new_dentry->d_name, is_dir, 0,
-				     &ts, &sinfo);
+							 &ts, &sinfo);
+
 		if (err)
+		{
 			goto out;
+		}
+
 		new_i_pos = sinfo.i_pos;
 	}
+
 	new_dir->i_version++;
 
 	fat_detach(old_inode);
 	fat_attach(old_inode, new_i_pos);
-	if (IS_DIRSYNC(new_dir)) {
-		err = fat_sync_inode(old_inode);
-		if (err)
-			goto error_inode;
-	} else
-		mark_inode_dirty(old_inode);
 
-	if (update_dotdot) {
+	if (IS_DIRSYNC(new_dir))
+	{
+		err = fat_sync_inode(old_inode);
+
+		if (err)
+		{
+			goto error_inode;
+		}
+	}
+	else
+	{
+		mark_inode_dirty(old_inode);
+	}
+
+	if (update_dotdot)
+	{
 		fat_set_start(dotdot_de, MSDOS_I(new_dir)->i_logstart);
 		mark_buffer_dirty_inode(dotdot_bh, old_inode);
-		if (IS_DIRSYNC(new_dir)) {
+
+		if (IS_DIRSYNC(new_dir))
+		{
 			err = sync_dirty_buffer(dotdot_bh);
+
 			if (err)
+			{
 				goto error_dotdot;
+			}
 		}
+
 		drop_nlink(old_dir);
+
 		if (!new_inode)
- 			inc_nlink(new_dir);
+		{
+			inc_nlink(new_dir);
+		}
 	}
 
 	err = fat_remove_entries(old_dir, &old_sinfo);	/* and releases bh */
 	old_sinfo.bh = NULL;
+
 	if (err)
+	{
 		goto error_dotdot;
+	}
+
 	old_dir->i_version++;
 	old_dir->i_ctime = old_dir->i_mtime = ts;
-	if (IS_DIRSYNC(old_dir))
-		(void)fat_sync_inode(old_dir);
-	else
-		mark_inode_dirty(old_dir);
 
-	if (new_inode) {
+	if (IS_DIRSYNC(old_dir))
+	{
+		(void)fat_sync_inode(old_dir);
+	}
+	else
+	{
+		mark_inode_dirty(old_dir);
+	}
+
+	if (new_inode)
+	{
 		drop_nlink(new_inode);
+
 		if (is_dir)
+		{
 			drop_nlink(new_inode);
+		}
+
 		new_inode->i_ctime = ts;
 	}
+
 out:
 	brelse(sinfo.bh);
 	brelse(dotdot_bh);
@@ -1015,37 +1354,54 @@ error_dotdot:
 	/* data cluster is shared, serious corruption */
 	corrupt = 1;
 
-	if (update_dotdot) {
+	if (update_dotdot)
+	{
 		fat_set_start(dotdot_de, MSDOS_I(old_dir)->i_logstart);
 		mark_buffer_dirty_inode(dotdot_bh, old_inode);
 		corrupt |= sync_dirty_buffer(dotdot_bh);
 	}
+
 error_inode:
 	fat_detach(old_inode);
 	fat_attach(old_inode, old_sinfo.i_pos);
-	if (new_inode) {
+
+	if (new_inode)
+	{
 		fat_attach(new_inode, new_i_pos);
+
 		if (corrupt)
+		{
 			corrupt |= fat_sync_inode(new_inode);
-	} else {
+		}
+	}
+	else
+	{
 		/*
 		 * If new entry was not sharing the data cluster, it
 		 * shouldn't be serious corruption.
 		 */
 		int err2 = fat_remove_entries(new_dir, &sinfo);
+
 		if (corrupt)
+		{
 			corrupt |= err2;
+		}
+
 		sinfo.bh = NULL;
 	}
-	if (corrupt < 0) {
+
+	if (corrupt < 0)
+	{
 		fat_fs_error(new_dir->i_sb,
-			     "%s: Filesystem corrupted (i_pos %lld)",
-			     __func__, sinfo.i_pos);
+					 "%s: Filesystem corrupted (i_pos %lld)",
+					 __func__, sinfo.i_pos);
 	}
+
 	goto out;
 }
 
-static const struct inode_operations vfat_dir_inode_operations = {
+static const struct inode_operations vfat_dir_inode_operations =
+{
 	.create		= vfat_create,
 	.lookup		= vfat_lookup,
 	.unlink		= vfat_unlink,
@@ -1059,10 +1415,15 @@ static const struct inode_operations vfat_dir_inode_operations = {
 static void setup(struct super_block *sb)
 {
 	MSDOS_SB(sb)->dir_ops = &vfat_dir_inode_operations;
+
 	if (MSDOS_SB(sb)->options.name_check != 's')
+	{
 		sb->s_d_op = &vfat_ci_dentry_ops;
+	}
 	else
+	{
 		sb->s_d_op = &vfat_dentry_ops;
+	}
 }
 
 static int vfat_fill_super(struct super_block *sb, void *data, int silent)
@@ -1071,13 +1432,14 @@ static int vfat_fill_super(struct super_block *sb, void *data, int silent)
 }
 
 static struct dentry *vfat_mount(struct file_system_type *fs_type,
-		       int flags, const char *dev_name,
-		       void *data)
+								 int flags, const char *dev_name,
+								 void *data)
 {
 	return mount_bdev(fs_type, flags, dev_name, data, vfat_fill_super);
 }
 
-static struct file_system_type vfat_fs_type = {
+static struct file_system_type vfat_fs_type =
+{
 	.owner		= THIS_MODULE,
 	.name		= "vfat",
 	.mount		= vfat_mount,

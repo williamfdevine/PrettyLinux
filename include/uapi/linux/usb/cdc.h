@@ -59,7 +59,8 @@
 #define USB_CDC_MBIM_EXTENDED_TYPE	0x1c
 
 /* "Header Functional Descriptor" from CDC spec  5.2.3.1 */
-struct usb_cdc_header_desc {
+struct usb_cdc_header_desc
+{
 	__u8	bLength;
 	__u8	bDescriptorType;
 	__u8	bDescriptorSubType;
@@ -68,7 +69,8 @@ struct usb_cdc_header_desc {
 } __attribute__ ((packed));
 
 /* "Call Management Descriptor" from CDC spec  5.2.3.2 */
-struct usb_cdc_call_mgmt_descriptor {
+struct usb_cdc_call_mgmt_descriptor
+{
 	__u8	bLength;
 	__u8	bDescriptorType;
 	__u8	bDescriptorSubType;
@@ -81,7 +83,8 @@ struct usb_cdc_call_mgmt_descriptor {
 } __attribute__ ((packed));
 
 /* "Abstract Control Management Descriptor" from CDC spec  5.2.3.3 */
-struct usb_cdc_acm_descriptor {
+struct usb_cdc_acm_descriptor
+{
 	__u8	bLength;
 	__u8	bDescriptorType;
 	__u8	bDescriptorSubType;
@@ -97,7 +100,8 @@ struct usb_cdc_acm_descriptor {
 #define USB_CDC_CAP_NOTIFY	0x08
 
 /* "Union Functional Descriptor" from CDC spec 5.2.3.8 */
-struct usb_cdc_union_desc {
+struct usb_cdc_union_desc
+{
 	__u8	bLength;
 	__u8	bDescriptorType;
 	__u8	bDescriptorSubType;
@@ -108,7 +112,8 @@ struct usb_cdc_union_desc {
 } __attribute__ ((packed));
 
 /* "Country Selection Functional Descriptor" from CDC spec 5.2.3.9 */
-struct usb_cdc_country_functional_desc {
+struct usb_cdc_country_functional_desc
+{
 	__u8	bLength;
 	__u8	bDescriptorType;
 	__u8	bDescriptorSubType;
@@ -119,7 +124,8 @@ struct usb_cdc_country_functional_desc {
 } __attribute__ ((packed));
 
 /* "Network Channel Terminal Functional Descriptor" from CDC spec 5.2.3.11 */
-struct usb_cdc_network_terminal_desc {
+struct usb_cdc_network_terminal_desc
+{
 	__u8	bLength;
 	__u8	bDescriptorType;
 	__u8	bDescriptorSubType;
@@ -131,7 +137,8 @@ struct usb_cdc_network_terminal_desc {
 } __attribute__ ((packed));
 
 /* "Ethernet Networking Functional Descriptor" from CDC spec 5.2.3.16 */
-struct usb_cdc_ether_desc {
+struct usb_cdc_ether_desc
+{
 	__u8	bLength;
 	__u8	bDescriptorType;
 	__u8	bDescriptorSubType;
@@ -144,7 +151,8 @@ struct usb_cdc_ether_desc {
 } __attribute__ ((packed));
 
 /* "Telephone Control Model Functional Descriptor" from CDC WMC spec 6.3..3 */
-struct usb_cdc_dmm_desc {
+struct usb_cdc_dmm_desc
+{
 	__u8	bFunctionLength;
 	__u8	bDescriptorType;
 	__u8	bDescriptorSubtype;
@@ -153,7 +161,8 @@ struct usb_cdc_dmm_desc {
 } __attribute__ ((packed));
 
 /* "MDLM Functional Descriptor" from CDC WMC spec 6.7.2.3 */
-struct usb_cdc_mdlm_desc {
+struct usb_cdc_mdlm_desc
+{
 	__u8	bLength;
 	__u8	bDescriptorType;
 	__u8	bDescriptorSubType;
@@ -163,7 +172,8 @@ struct usb_cdc_mdlm_desc {
 } __attribute__ ((packed));
 
 /* "MDLM Detail Functional Descriptor" from CDC WMC spec 6.7.2.4 */
-struct usb_cdc_mdlm_detail_desc {
+struct usb_cdc_mdlm_detail_desc
+{
 	__u8	bLength;
 	__u8	bDescriptorType;
 	__u8	bDescriptorSubType;
@@ -174,7 +184,8 @@ struct usb_cdc_mdlm_detail_desc {
 } __attribute__ ((packed));
 
 /* "OBEX Control Model Functional Descriptor" */
-struct usb_cdc_obex_desc {
+struct usb_cdc_obex_desc
+{
 	__u8	bLength;
 	__u8	bDescriptorType;
 	__u8	bDescriptorSubType;
@@ -183,7 +194,8 @@ struct usb_cdc_obex_desc {
 } __attribute__ ((packed));
 
 /* "NCM Control Model Functional Descriptor" */
-struct usb_cdc_ncm_desc {
+struct usb_cdc_ncm_desc
+{
 	__u8	bLength;
 	__u8	bDescriptorType;
 	__u8	bDescriptorSubType;
@@ -193,7 +205,8 @@ struct usb_cdc_ncm_desc {
 } __attribute__ ((packed));
 
 /* "MBIM Control Model Functional Descriptor" */
-struct usb_cdc_mbim_desc {
+struct usb_cdc_mbim_desc
+{
 	__u8	bLength;
 	__u8	bDescriptorType;
 	__u8	bDescriptorSubType;
@@ -207,7 +220,8 @@ struct usb_cdc_mbim_desc {
 } __attribute__ ((packed));
 
 /* "MBIM Extended Functional Descriptor" from CDC MBIM spec 1.0 errata-1 */
-struct usb_cdc_mbim_extended_desc {
+struct usb_cdc_mbim_extended_desc
+{
 	__u8	bLength;
 	__u8	bDescriptorType;
 	__u8	bDescriptorSubType;
@@ -253,7 +267,8 @@ struct usb_cdc_mbim_extended_desc {
 #define USB_CDC_SET_CRC_MODE			0x8a
 
 /* Line Coding Structure from CDC spec 6.2.13 */
-struct usb_cdc_line_coding {
+struct usb_cdc_line_coding
+{
 	__le32	dwDTERate;
 	__u8	bCharFormat;
 #define USB_CDC_1_STOP_BITS			0
@@ -293,7 +308,8 @@ struct usb_cdc_line_coding {
 #define USB_CDC_NOTIFY_SERIAL_STATE		0x20
 #define USB_CDC_NOTIFY_SPEED_CHANGE		0x2a
 
-struct usb_cdc_notification {
+struct usb_cdc_notification
+{
 	__u8	bmRequestType;
 	__u8	bNotificationType;
 	__le16	wValue;
@@ -301,7 +317,8 @@ struct usb_cdc_notification {
 	__le16	wLength;
 } __attribute__ ((packed));
 
-struct usb_cdc_speed_change {
+struct usb_cdc_speed_change
+{
 	__le32	DLBitRRate;	/* contains the downlink bit rate (IN pipe) */
 	__le32	ULBitRate;	/* contains the uplink bit rate (OUT pipe) */
 } __attribute__ ((packed));
@@ -315,7 +332,8 @@ struct usb_cdc_speed_change {
  *
  */
 
-struct usb_cdc_ncm_ntb_parameters {
+struct usb_cdc_ncm_ntb_parameters
+{
 	__le16	wLength;
 	__le16	bmNtbFormatsSupported;
 	__le32	dwNtbInMaxSize;
@@ -337,7 +355,8 @@ struct usb_cdc_ncm_ntb_parameters {
 #define USB_CDC_NCM_NTH16_SIGN		0x484D434E /* NCMH */
 #define USB_CDC_NCM_NTH32_SIGN		0x686D636E /* ncmh */
 
-struct usb_cdc_ncm_nth16 {
+struct usb_cdc_ncm_nth16
+{
 	__le32	dwSignature;
 	__le16	wHeaderLength;
 	__le16	wSequence;
@@ -345,7 +364,8 @@ struct usb_cdc_ncm_nth16 {
 	__le16	wNdpIndex;
 } __attribute__ ((packed));
 
-struct usb_cdc_ncm_nth32 {
+struct usb_cdc_ncm_nth32
+{
 	__le32	dwSignature;
 	__le16	wHeaderLength;
 	__le16	wSequence;
@@ -368,13 +388,15 @@ struct usb_cdc_ncm_nth32 {
 #define USB_CDC_MBIM_NDP32_DSS_SIGN     0x00737364 /* dss<sessionID> */
 
 /* 16-bit NCM Datagram Pointer Entry */
-struct usb_cdc_ncm_dpe16 {
+struct usb_cdc_ncm_dpe16
+{
 	__le16	wDatagramIndex;
 	__le16	wDatagramLength;
 } __attribute__((__packed__));
 
 /* 16-bit NCM Datagram Pointer Table */
-struct usb_cdc_ncm_ndp16 {
+struct usb_cdc_ncm_ndp16
+{
 	__le32	dwSignature;
 	__le16	wLength;
 	__le16	wNextNdpIndex;
@@ -382,13 +404,15 @@ struct usb_cdc_ncm_ndp16 {
 } __attribute__ ((packed));
 
 /* 32-bit NCM Datagram Pointer Entry */
-struct usb_cdc_ncm_dpe32 {
+struct usb_cdc_ncm_dpe32
+{
 	__le32	dwDatagramIndex;
 	__le32	dwDatagramLength;
 } __attribute__((__packed__));
 
 /* 32-bit NCM Datagram Pointer Table */
-struct usb_cdc_ncm_ndp32 {
+struct usb_cdc_ncm_ndp32
+{
 	__le32	dwSignature;
 	__le16	wLength;
 	__le16	wReserved6;
@@ -434,7 +458,8 @@ struct usb_cdc_ncm_ndp32 {
 #define USB_CDC_NCM_NTB_MIN_OUT_SIZE			2048
 
 /* NTB Input Size Structure */
-struct usb_cdc_ncm_ndp_input_size {
+struct usb_cdc_ncm_ndp_input_size
+{
 	__le32	dwNtbInMaxSize;
 	__le16	wNtbInMaxDatagrams;
 	__le16	wReserved;

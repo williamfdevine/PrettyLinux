@@ -27,7 +27,8 @@
 
 #include <linux/cache.h> /* for __read_mostly */
 
-struct i915_params {
+struct i915_params
+{
 	int modeset;
 	int panel_ignore_lid;
 	int semaphores;

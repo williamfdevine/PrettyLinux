@@ -48,7 +48,8 @@ MODULE_PARM_DESC(irq, "WinSystems WS16C48 interrupt line numbers");
  * @base:	base port address of the GPIO device
  * @irq:	Interrupt line number
  */
-struct ws16c48_gpio {
+struct ws16c48_gpio
+{
 	struct gpio_chip chip;
 	unsigned char io_state[6];
 	unsigned char out_state[6];
@@ -87,7 +88,7 @@ static int ws16c48_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
 }
 
 static int ws16c48_gpio_direction_output(struct gpio_chip *chip,
-	unsigned offset, int value)
+		unsigned offset, int value)
 {
 	struct ws16c48_gpio *const ws16c48gpio = gpiochip_get_data(chip);
 	const unsigned port = offset / 8;
@@ -97,10 +98,16 @@ static int ws16c48_gpio_direction_output(struct gpio_chip *chip,
 	spin_lock_irqsave(&ws16c48gpio->lock, flags);
 
 	ws16c48gpio->io_state[port] &= ~mask;
+
 	if (value)
+	{
 		ws16c48gpio->out_state[port] |= mask;
+	}
 	else
+	{
 		ws16c48gpio->out_state[port] &= ~mask;
+	}
+
 	outb(ws16c48gpio->out_state[port], ws16c48gpio->base + port);
 
 	spin_unlock_irqrestore(&ws16c48gpio->lock, flags);
@@ -119,7 +126,8 @@ static int ws16c48_gpio_get(struct gpio_chip *chip, unsigned offset)
 	spin_lock_irqsave(&ws16c48gpio->lock, flags);
 
 	/* ensure that GPIO is set for input */
-	if (!(ws16c48gpio->io_state[port] & mask)) {
+	if (!(ws16c48gpio->io_state[port] & mask))
+	{
 		spin_unlock_irqrestore(&ws16c48gpio->lock, flags);
 		return -EINVAL;
 	}
@@ -141,15 +149,21 @@ static void ws16c48_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 	spin_lock_irqsave(&ws16c48gpio->lock, flags);
 
 	/* ensure that GPIO is set for output */
-	if (ws16c48gpio->io_state[port] & mask) {
+	if (ws16c48gpio->io_state[port] & mask)
+	{
 		spin_unlock_irqrestore(&ws16c48gpio->lock, flags);
 		return;
 	}
 
 	if (value)
+	{
 		ws16c48gpio->out_state[port] |= mask;
+	}
 	else
+	{
 		ws16c48gpio->out_state[port] &= ~mask;
+	}
+
 	outb(ws16c48gpio->out_state[port], ws16c48gpio->base + port);
 
 	spin_unlock_irqrestore(&ws16c48gpio->lock, flags);
@@ -167,11 +181,13 @@ static void ws16c48_irq_ack(struct irq_data *data)
 
 	/* only the first 3 ports support interrupts */
 	if (port > 2)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&ws16c48gpio->lock, flags);
 
-	port_state = ws16c48gpio->irq_mask >> (8*port);
+	port_state = ws16c48gpio->irq_mask >> (8 * port);
 
 	outb(0x80, ws16c48gpio->base + 7);
 	outb(port_state & ~mask, ws16c48gpio->base + 8 + port);
@@ -192,14 +208,16 @@ static void ws16c48_irq_mask(struct irq_data *data)
 
 	/* only the first 3 ports support interrupts */
 	if (port > 2)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&ws16c48gpio->lock, flags);
 
 	ws16c48gpio->irq_mask &= ~mask;
 
 	outb(0x80, ws16c48gpio->base + 7);
-	outb(ws16c48gpio->irq_mask >> (8*port), ws16c48gpio->base + 8 + port);
+	outb(ws16c48gpio->irq_mask >> (8 * port), ws16c48gpio->base + 8 + port);
 	outb(0xC0, ws16c48gpio->base + 7);
 
 	spin_unlock_irqrestore(&ws16c48gpio->lock, flags);
@@ -216,14 +234,16 @@ static void ws16c48_irq_unmask(struct irq_data *data)
 
 	/* only the first 3 ports support interrupts */
 	if (port > 2)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&ws16c48gpio->lock, flags);
 
 	ws16c48gpio->irq_mask |= mask;
 
 	outb(0x80, ws16c48gpio->base + 7);
-	outb(ws16c48gpio->irq_mask >> (8*port), ws16c48gpio->base + 8 + port);
+	outb(ws16c48gpio->irq_mask >> (8 * port), ws16c48gpio->base + 8 + port);
 	outb(0xC0, ws16c48gpio->base + 7);
 
 	spin_unlock_irqrestore(&ws16c48gpio->lock, flags);
@@ -240,26 +260,32 @@ static int ws16c48_irq_set_type(struct irq_data *data, unsigned flow_type)
 
 	/* only the first 3 ports support interrupts */
 	if (port > 2)
-		return -EINVAL;
-
-	spin_lock_irqsave(&ws16c48gpio->lock, flags);
-
-	switch (flow_type) {
-	case IRQ_TYPE_NONE:
-		break;
-	case IRQ_TYPE_EDGE_RISING:
-		ws16c48gpio->flow_mask |= mask;
-		break;
-	case IRQ_TYPE_EDGE_FALLING:
-		ws16c48gpio->flow_mask &= ~mask;
-		break;
-	default:
-		spin_unlock_irqrestore(&ws16c48gpio->lock, flags);
+	{
 		return -EINVAL;
 	}
 
+	spin_lock_irqsave(&ws16c48gpio->lock, flags);
+
+	switch (flow_type)
+	{
+		case IRQ_TYPE_NONE:
+			break;
+
+		case IRQ_TYPE_EDGE_RISING:
+			ws16c48gpio->flow_mask |= mask;
+			break;
+
+		case IRQ_TYPE_EDGE_FALLING:
+			ws16c48gpio->flow_mask &= ~mask;
+			break;
+
+		default:
+			spin_unlock_irqrestore(&ws16c48gpio->lock, flags);
+			return -EINVAL;
+	}
+
 	outb(0x40, ws16c48gpio->base + 7);
-	outb(ws16c48gpio->flow_mask >> (8*port), ws16c48gpio->base + 8 + port);
+	outb(ws16c48gpio->flow_mask >> (8 * port), ws16c48gpio->base + 8 + port);
 	outb(0xC0, ws16c48gpio->base + 7);
 
 	spin_unlock_irqrestore(&ws16c48gpio->lock, flags);
@@ -267,7 +293,8 @@ static int ws16c48_irq_set_type(struct irq_data *data, unsigned flow_type)
 	return 0;
 }
 
-static struct irq_chip ws16c48_irqchip = {
+static struct irq_chip ws16c48_irqchip =
+{
 	.name = "ws16c48",
 	.irq_ack = ws16c48_irq_ack,
 	.irq_mask = ws16c48_irq_mask,
@@ -285,20 +312,26 @@ static irqreturn_t ws16c48_irq_handler(int irq, void *dev_id)
 	unsigned long gpio;
 
 	int_pending = inb(ws16c48gpio->base + 6) & 0x7;
+
 	if (!int_pending)
+	{
 		return IRQ_NONE;
+	}
 
 	/* loop until all pending interrupts are handled */
-	do {
-		for_each_set_bit(port, &int_pending, 3) {
+	do
+	{
+		for_each_set_bit(port, &int_pending, 3)
+		{
 			int_id = inb(ws16c48gpio->base + 8 + port);
 			for_each_set_bit(gpio, &int_id, 8)
-				generic_handle_irq(irq_find_mapping(
-					chip->irqdomain, gpio + 8*port));
+			generic_handle_irq(irq_find_mapping(
+								   chip->irqdomain, gpio + 8 * port));
 		}
 
 		int_pending = inb(ws16c48gpio->base + 6) & 0x7;
-	} while (int_pending);
+	}
+	while (int_pending);
 
 	return IRQ_HANDLED;
 }
@@ -310,12 +343,16 @@ static int ws16c48_probe(struct device *dev, unsigned int id)
 	int err;
 
 	ws16c48gpio = devm_kzalloc(dev, sizeof(*ws16c48gpio), GFP_KERNEL);
-	if (!ws16c48gpio)
-		return -ENOMEM;
 
-	if (!devm_request_region(dev, base[id], WS16C48_EXTENT, name)) {
+	if (!ws16c48gpio)
+	{
+		return -ENOMEM;
+	}
+
+	if (!devm_request_region(dev, base[id], WS16C48_EXTENT, name))
+	{
 		dev_err(dev, "Unable to lock port addresses (0x%X-0x%X)\n",
-			base[id], base[id] + WS16C48_EXTENT);
+				base[id], base[id] + WS16C48_EXTENT);
 		return -EBUSY;
 	}
 
@@ -337,7 +374,9 @@ static int ws16c48_probe(struct device *dev, unsigned int id)
 	dev_set_drvdata(dev, ws16c48gpio);
 
 	err = gpiochip_add_data(&ws16c48gpio->chip, ws16c48gpio);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(dev, "GPIO registering failed (%d)\n", err);
 		return err;
 	}
@@ -350,15 +389,19 @@ static int ws16c48_probe(struct device *dev, unsigned int id)
 	outb(0xC0, base[id] + 7);
 
 	err = gpiochip_irqchip_add(&ws16c48gpio->chip, &ws16c48_irqchip, 0,
-		handle_edge_irq, IRQ_TYPE_NONE);
-	if (err) {
+							   handle_edge_irq, IRQ_TYPE_NONE);
+
+	if (err)
+	{
 		dev_err(dev, "Could not add irqchip (%d)\n", err);
 		goto err_gpiochip_remove;
 	}
 
 	err = request_irq(irq[id], ws16c48_irq_handler, IRQF_SHARED, name,
-		ws16c48gpio);
-	if (err) {
+					  ws16c48gpio);
+
+	if (err)
+	{
 		dev_err(dev, "IRQ handler registering failed (%d)\n", err);
 		goto err_gpiochip_remove;
 	}
@@ -380,7 +423,8 @@ static int ws16c48_remove(struct device *dev, unsigned int id)
 	return 0;
 }
 
-static struct isa_driver ws16c48_driver = {
+static struct isa_driver ws16c48_driver =
+{
 	.probe = ws16c48_probe,
 	.driver = {
 		.name = "ws16c48"

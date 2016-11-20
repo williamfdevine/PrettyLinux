@@ -9,27 +9,31 @@
 
 #include "ssb_private.h"
 
-static struct resource ssb_sflash_resource = {
+static struct resource ssb_sflash_resource =
+{
 	.name	= "ssb_sflash",
 	.start	= SSB_FLASH2,
 	.end	= 0,
 	.flags  = IORESOURCE_MEM | IORESOURCE_READONLY,
 };
 
-struct platform_device ssb_sflash_dev = {
+struct platform_device ssb_sflash_dev =
+{
 	.name		= "ssb_sflash",
 	.resource	= &ssb_sflash_resource,
 	.num_resources	= 1,
 };
 
-struct ssb_sflash_tbl_e {
+struct ssb_sflash_tbl_e
+{
 	char *name;
 	u32 id;
 	u32 blocksize;
 	u16 numblocks;
 };
 
-static const struct ssb_sflash_tbl_e ssb_sflash_st_tbl[] = {
+static const struct ssb_sflash_tbl_e ssb_sflash_st_tbl[] =
+{
 	{ "M25P20", 0x11, 0x10000, 4, },
 	{ "M25P40", 0x12, 0x10000, 8, },
 
@@ -40,7 +44,8 @@ static const struct ssb_sflash_tbl_e ssb_sflash_st_tbl[] = {
 	{ NULL },
 };
 
-static const struct ssb_sflash_tbl_e ssb_sflash_sst_tbl[] = {
+static const struct ssb_sflash_tbl_e ssb_sflash_sst_tbl[] =
+{
 	{ "SST25WF512", 1, 0x1000, 16, },
 	{ "SST25VF512", 0x48, 0x1000, 16, },
 	{ "SST25WF010", 2, 0x1000, 32, },
@@ -58,7 +63,8 @@ static const struct ssb_sflash_tbl_e ssb_sflash_sst_tbl[] = {
 	{ NULL },
 };
 
-static const struct ssb_sflash_tbl_e ssb_sflash_at_tbl[] = {
+static const struct ssb_sflash_tbl_e ssb_sflash_at_tbl[] =
+{
 	{ "AT45DB011", 0xc, 256, 512, },
 	{ "AT45DB021", 0x14, 256, 1024, },
 	{ "AT45DB041", 0x1c, 256, 2048, },
@@ -73,13 +79,19 @@ static void ssb_sflash_cmd(struct ssb_chipcommon *cc, u32 opcode)
 {
 	int i;
 	chipco_write32(cc, SSB_CHIPCO_FLASHCTL,
-		       SSB_CHIPCO_FLASHCTL_START | opcode);
-	for (i = 0; i < 1000; i++) {
+				   SSB_CHIPCO_FLASHCTL_START | opcode);
+
+	for (i = 0; i < 1000; i++)
+	{
 		if (!(chipco_read32(cc, SSB_CHIPCO_FLASHCTL) &
-		      SSB_CHIPCO_FLASHCTL_BUSY))
+			  SSB_CHIPCO_FLASHCTL_BUSY))
+		{
 			return;
+		}
+
 		cpu_relax();
 	}
+
 	pr_err("SFLASH control command failed (timeout)!\n");
 }
 
@@ -90,59 +102,80 @@ int ssb_sflash_init(struct ssb_chipcommon *cc)
 	const struct ssb_sflash_tbl_e *e;
 	u32 id, id2;
 
-	switch (cc->capabilities & SSB_CHIPCO_CAP_FLASHT) {
-	case SSB_CHIPCO_FLASHT_STSER:
-		ssb_sflash_cmd(cc, SSB_CHIPCO_FLASHCTL_ST_DP);
+	switch (cc->capabilities & SSB_CHIPCO_CAP_FLASHT)
+	{
+		case SSB_CHIPCO_FLASHT_STSER:
+			ssb_sflash_cmd(cc, SSB_CHIPCO_FLASHCTL_ST_DP);
 
-		chipco_write32(cc, SSB_CHIPCO_FLASHADDR, 0);
-		ssb_sflash_cmd(cc, SSB_CHIPCO_FLASHCTL_ST_RES);
-		id = chipco_read32(cc, SSB_CHIPCO_FLASHDATA);
+			chipco_write32(cc, SSB_CHIPCO_FLASHADDR, 0);
+			ssb_sflash_cmd(cc, SSB_CHIPCO_FLASHCTL_ST_RES);
+			id = chipco_read32(cc, SSB_CHIPCO_FLASHDATA);
 
-		chipco_write32(cc, SSB_CHIPCO_FLASHADDR, 1);
-		ssb_sflash_cmd(cc, SSB_CHIPCO_FLASHCTL_ST_RES);
-		id2 = chipco_read32(cc, SSB_CHIPCO_FLASHDATA);
+			chipco_write32(cc, SSB_CHIPCO_FLASHADDR, 1);
+			ssb_sflash_cmd(cc, SSB_CHIPCO_FLASHCTL_ST_RES);
+			id2 = chipco_read32(cc, SSB_CHIPCO_FLASHDATA);
 
-		switch (id) {
-		case 0xbf:
-			for (e = ssb_sflash_sst_tbl; e->name; e++) {
-				if (e->id == id2)
+			switch (id)
+			{
+				case 0xbf:
+					for (e = ssb_sflash_sst_tbl; e->name; e++)
+					{
+						if (e->id == id2)
+						{
+							break;
+						}
+					}
+
+					break;
+
+				case 0x13:
+					return -ENOTSUPP;
+
+				default:
+					for (e = ssb_sflash_st_tbl; e->name; e++)
+					{
+						if (e->id == id)
+						{
+							break;
+						}
+					}
+
 					break;
 			}
+
+			if (!e->name)
+			{
+				pr_err("Unsupported ST serial flash (id: 0x%X, id2: 0x%X)\n",
+					   id, id2);
+				return -ENOTSUPP;
+			}
+
 			break;
-		case 0x13:
-			return -ENOTSUPP;
-		default:
-			for (e = ssb_sflash_st_tbl; e->name; e++) {
+
+		case SSB_CHIPCO_FLASHT_ATSER:
+			ssb_sflash_cmd(cc, SSB_CHIPCO_FLASHCTL_AT_STATUS);
+			id = chipco_read32(cc, SSB_CHIPCO_FLASHDATA) & 0x3c;
+
+			for (e = ssb_sflash_at_tbl; e->name; e++)
+			{
 				if (e->id == id)
+				{
 					break;
+				}
 			}
+
+			if (!e->name)
+			{
+				pr_err("Unsupported Atmel serial flash (id: 0x%X)\n",
+					   id);
+				return -ENOTSUPP;
+			}
+
 			break;
-		}
-		if (!e->name) {
-			pr_err("Unsupported ST serial flash (id: 0x%X, id2: 0x%X)\n",
-			       id, id2);
+
+		default:
+			pr_err("Unsupported flash type\n");
 			return -ENOTSUPP;
-		}
-
-		break;
-	case SSB_CHIPCO_FLASHT_ATSER:
-		ssb_sflash_cmd(cc, SSB_CHIPCO_FLASHCTL_AT_STATUS);
-		id = chipco_read32(cc, SSB_CHIPCO_FLASHDATA) & 0x3c;
-
-		for (e = ssb_sflash_at_tbl; e->name; e++) {
-			if (e->id == id)
-				break;
-		}
-		if (!e->name) {
-			pr_err("Unsupported Atmel serial flash (id: 0x%X)\n",
-			       id);
-			return -ENOTSUPP;
-		}
-
-		break;
-	default:
-		pr_err("Unsupported flash type\n");
-		return -ENOTSUPP;
 	}
 
 	sflash->window = SSB_FLASH2;
@@ -152,12 +185,12 @@ int ssb_sflash_init(struct ssb_chipcommon *cc)
 	sflash->present = true;
 
 	pr_info("Found %s serial flash (size: %dKiB, blocksize: 0x%X, blocks: %d)\n",
-		e->name, sflash->size / 1024, e->blocksize, e->numblocks);
+			e->name, sflash->size / 1024, e->blocksize, e->numblocks);
 
 	/* Prepare platform device, but don't register it yet. It's too early,
 	 * malloc (required by device_private_init) is not available yet. */
 	ssb_sflash_dev.resource[0].end = ssb_sflash_dev.resource[0].start +
-					 sflash->size;
+									 sflash->size;
 	ssb_sflash_dev.dev.platform_data = sflash;
 
 	return 0;

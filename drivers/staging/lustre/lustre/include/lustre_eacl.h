@@ -49,14 +49,16 @@
 #include <linux/fs.h>
 #include <linux/posix_acl_xattr.h>
 
-typedef struct {
+typedef struct
+{
 	__u16		   e_tag;
 	__u16		   e_perm;
 	__u32		   e_id;
 	__u32		   e_stat;
 } ext_acl_xattr_entry;
 
-typedef struct {
+typedef struct
+{
 	__u32		   a_count;
 	ext_acl_xattr_entry     a_entries[0];
 } ext_acl_xattr_header;

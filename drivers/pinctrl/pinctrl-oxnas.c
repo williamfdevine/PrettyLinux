@@ -58,32 +58,37 @@
 #define RE_IRQ_ENABLE	0x28
 #define FE_IRQ_ENABLE	0x2c
 
-struct oxnas_function {
+struct oxnas_function
+{
 	const char *name;
-	const char * const *groups;
+	const char *const *groups;
 	unsigned int ngroups;
 };
 
-struct oxnas_pin_group {
+struct oxnas_pin_group
+{
 	const char *name;
 	unsigned int pin;
 	unsigned int bank;
 	struct oxnas_desc_function *functions;
 };
 
-struct oxnas_desc_function {
+struct oxnas_desc_function
+{
 	const char *name;
 	unsigned int fct;
 };
 
-struct oxnas_gpio_bank {
+struct oxnas_gpio_bank
+{
 	void __iomem *reg_base;
 	struct gpio_chip gpio_chip;
 	struct irq_chip irq_chip;
 	unsigned int id;
 };
 
-struct oxnas_pinctrl {
+struct oxnas_pinctrl
+{
 	struct regmap *regmap;
 	struct device *dev;
 	struct pinctrl_dev *pctldev;
@@ -97,7 +102,8 @@ struct oxnas_pinctrl {
 	unsigned int nbanks;
 };
 
-static const struct pinctrl_pin_desc oxnas_pins[] = {
+static const struct pinctrl_pin_desc oxnas_pins[] =
+{
 	PINCTRL_PIN(0, "gpio0"),
 	PINCTRL_PIN(1, "gpio1"),
 	PINCTRL_PIN(2, "gpio2"),
@@ -135,7 +141,8 @@ static const struct pinctrl_pin_desc oxnas_pins[] = {
 	PINCTRL_PIN(34, "gpio34"),
 };
 
-static const char * const oxnas_fct0_group[] = {
+static const char *const oxnas_fct0_group[] =
+{
 	"gpio0",  "gpio1",  "gpio2",  "gpio3",
 	"gpio4",  "gpio5",  "gpio6",  "gpio7",
 	"gpio8",  "gpio9",  "gpio10", "gpio11",
@@ -147,7 +154,8 @@ static const char * const oxnas_fct0_group[] = {
 	"gpio32", "gpio33", "gpio34"
 };
 
-static const char * const oxnas_fct3_group[] = {
+static const char *const oxnas_fct3_group[] =
+{
 	"gpio0",  "gpio1",  "gpio2",  "gpio3",
 	"gpio4",  "gpio5",  "gpio6",  "gpio7",
 	"gpio8",  "gpio9",
@@ -161,11 +169,12 @@ static const char * const oxnas_fct3_group[] = {
 #define FUNCTION(_name, _gr)					\
 	{							\
 		.name = #_name,					\
-		.groups = oxnas_##_gr##_group,			\
-		.ngroups = ARRAY_SIZE(oxnas_##_gr##_group),	\
+				.groups = oxnas_##_gr##_group,			\
+						  .ngroups = ARRAY_SIZE(oxnas_##_gr##_group),	\
 	}
 
-static const struct oxnas_function oxnas_functions[] = {
+static const struct oxnas_function oxnas_functions[] =
+{
 	FUNCTION(gpio, fct0),
 	FUNCTION(fct3, fct3),
 };
@@ -173,8 +182,8 @@ static const struct oxnas_function oxnas_functions[] = {
 #define OXNAS_PINCTRL_GROUP(_pin, _name, ...)				\
 	{								\
 		.name = #_name,						\
-		.pin = _pin,						\
-		.bank = _pin / PINS_PER_BANK,				\
+				.pin = _pin,						\
+					   .bank = _pin / PINS_PER_BANK,				\
 		.functions = (struct oxnas_desc_function[]){		\
 			__VA_ARGS__, { } },				\
 	}
@@ -182,108 +191,109 @@ static const struct oxnas_function oxnas_functions[] = {
 #define OXNAS_PINCTRL_FUNCTION(_name, _fct)		\
 	{						\
 		.name = #_name,				\
-		.fct = _fct,				\
+				.fct = _fct,				\
 	}
 
-static const struct oxnas_pin_group oxnas_groups[] = {
+static const struct oxnas_pin_group oxnas_groups[] =
+{
 	OXNAS_PINCTRL_GROUP(0, gpio0,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0),
-			OXNAS_PINCTRL_FUNCTION(fct3, 3)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0),
+	OXNAS_PINCTRL_FUNCTION(fct3, 3)),
 	OXNAS_PINCTRL_GROUP(1, gpio1,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0),
-			OXNAS_PINCTRL_FUNCTION(fct3, 3)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0),
+	OXNAS_PINCTRL_FUNCTION(fct3, 3)),
 	OXNAS_PINCTRL_GROUP(2, gpio2,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0),
-			OXNAS_PINCTRL_FUNCTION(fct3, 3)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0),
+	OXNAS_PINCTRL_FUNCTION(fct3, 3)),
 	OXNAS_PINCTRL_GROUP(3, gpio3,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0),
-			OXNAS_PINCTRL_FUNCTION(fct3, 3)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0),
+	OXNAS_PINCTRL_FUNCTION(fct3, 3)),
 	OXNAS_PINCTRL_GROUP(4, gpio4,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0),
-			OXNAS_PINCTRL_FUNCTION(fct3, 3)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0),
+	OXNAS_PINCTRL_FUNCTION(fct3, 3)),
 	OXNAS_PINCTRL_GROUP(5, gpio5,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0),
-			OXNAS_PINCTRL_FUNCTION(fct3, 3)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0),
+	OXNAS_PINCTRL_FUNCTION(fct3, 3)),
 	OXNAS_PINCTRL_GROUP(6, gpio6,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0),
-			OXNAS_PINCTRL_FUNCTION(fct3, 3)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0),
+	OXNAS_PINCTRL_FUNCTION(fct3, 3)),
 	OXNAS_PINCTRL_GROUP(7, gpio7,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0),
-			OXNAS_PINCTRL_FUNCTION(fct3, 3)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0),
+	OXNAS_PINCTRL_FUNCTION(fct3, 3)),
 	OXNAS_PINCTRL_GROUP(8, gpio8,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0),
-			OXNAS_PINCTRL_FUNCTION(fct3, 3)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0),
+	OXNAS_PINCTRL_FUNCTION(fct3, 3)),
 	OXNAS_PINCTRL_GROUP(9, gpio9,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0),
-			OXNAS_PINCTRL_FUNCTION(fct3, 3)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0),
+	OXNAS_PINCTRL_FUNCTION(fct3, 3)),
 	OXNAS_PINCTRL_GROUP(10, gpio10,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0)),
 	OXNAS_PINCTRL_GROUP(11, gpio11,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0)),
 	OXNAS_PINCTRL_GROUP(12, gpio12,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0)),
 	OXNAS_PINCTRL_GROUP(13, gpio13,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0)),
 	OXNAS_PINCTRL_GROUP(14, gpio14,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0)),
 	OXNAS_PINCTRL_GROUP(15, gpio15,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0)),
 	OXNAS_PINCTRL_GROUP(16, gpio16,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0)),
 	OXNAS_PINCTRL_GROUP(17, gpio17,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0)),
 	OXNAS_PINCTRL_GROUP(18, gpio18,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0)),
 	OXNAS_PINCTRL_GROUP(19, gpio19,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0)),
 	OXNAS_PINCTRL_GROUP(20, gpio20,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0),
-			OXNAS_PINCTRL_FUNCTION(fct3, 3)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0),
+	OXNAS_PINCTRL_FUNCTION(fct3, 3)),
 	OXNAS_PINCTRL_GROUP(21, gpio21,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0)),
 	OXNAS_PINCTRL_GROUP(22, gpio22,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0),
-			OXNAS_PINCTRL_FUNCTION(fct3, 3)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0),
+	OXNAS_PINCTRL_FUNCTION(fct3, 3)),
 	OXNAS_PINCTRL_GROUP(23, gpio23,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0),
-			OXNAS_PINCTRL_FUNCTION(fct3, 3)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0),
+	OXNAS_PINCTRL_FUNCTION(fct3, 3)),
 	OXNAS_PINCTRL_GROUP(24, gpio24,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0),
-			OXNAS_PINCTRL_FUNCTION(fct3, 3)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0),
+	OXNAS_PINCTRL_FUNCTION(fct3, 3)),
 	OXNAS_PINCTRL_GROUP(25, gpio25,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0),
-			OXNAS_PINCTRL_FUNCTION(fct3, 3)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0),
+	OXNAS_PINCTRL_FUNCTION(fct3, 3)),
 	OXNAS_PINCTRL_GROUP(26, gpio26,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0),
-			OXNAS_PINCTRL_FUNCTION(fct3, 3)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0),
+	OXNAS_PINCTRL_FUNCTION(fct3, 3)),
 	OXNAS_PINCTRL_GROUP(27, gpio27,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0),
-			OXNAS_PINCTRL_FUNCTION(fct3, 3)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0),
+	OXNAS_PINCTRL_FUNCTION(fct3, 3)),
 	OXNAS_PINCTRL_GROUP(28, gpio28,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0),
-			OXNAS_PINCTRL_FUNCTION(fct3, 3)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0),
+	OXNAS_PINCTRL_FUNCTION(fct3, 3)),
 	OXNAS_PINCTRL_GROUP(29, gpio29,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0),
-			OXNAS_PINCTRL_FUNCTION(fct3, 3)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0),
+	OXNAS_PINCTRL_FUNCTION(fct3, 3)),
 	OXNAS_PINCTRL_GROUP(30, gpio30,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0),
-			OXNAS_PINCTRL_FUNCTION(fct3, 3)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0),
+	OXNAS_PINCTRL_FUNCTION(fct3, 3)),
 	OXNAS_PINCTRL_GROUP(31, gpio31,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0),
-			OXNAS_PINCTRL_FUNCTION(fct3, 3)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0),
+	OXNAS_PINCTRL_FUNCTION(fct3, 3)),
 	OXNAS_PINCTRL_GROUP(32, gpio32,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0),
-			OXNAS_PINCTRL_FUNCTION(fct3, 3)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0),
+	OXNAS_PINCTRL_FUNCTION(fct3, 3)),
 	OXNAS_PINCTRL_GROUP(33, gpio33,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0),
-			OXNAS_PINCTRL_FUNCTION(fct3, 3)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0),
+	OXNAS_PINCTRL_FUNCTION(fct3, 3)),
 	OXNAS_PINCTRL_GROUP(34, gpio34,
-			OXNAS_PINCTRL_FUNCTION(gpio, 0),
-			OXNAS_PINCTRL_FUNCTION(fct3, 3)),
+	OXNAS_PINCTRL_FUNCTION(gpio, 0),
+	OXNAS_PINCTRL_FUNCTION(fct3, 3)),
 };
 
 static inline struct oxnas_gpio_bank *pctl_to_bank(struct oxnas_pinctrl *pctl,
-						   unsigned int pin)
+		unsigned int pin)
 {
 	return &pctl->gpio_banks[pin / PINS_PER_BANK];
 }
@@ -296,7 +306,7 @@ static int oxnas_pinctrl_get_groups_count(struct pinctrl_dev *pctldev)
 }
 
 static const char *oxnas_pinctrl_get_group_name(struct pinctrl_dev *pctldev,
-						unsigned int group)
+		unsigned int group)
 {
 	struct oxnas_pinctrl *pctl = pinctrl_dev_get_drvdata(pctldev);
 
@@ -304,9 +314,9 @@ static const char *oxnas_pinctrl_get_group_name(struct pinctrl_dev *pctldev,
 }
 
 static int oxnas_pinctrl_get_group_pins(struct pinctrl_dev *pctldev,
-					unsigned int group,
-					const unsigned int **pins,
-					unsigned int *num_pins)
+										unsigned int group,
+										const unsigned int **pins,
+										unsigned int *num_pins)
 {
 	struct oxnas_pinctrl *pctl = pinctrl_dev_get_drvdata(pctldev);
 
@@ -316,7 +326,8 @@ static int oxnas_pinctrl_get_group_pins(struct pinctrl_dev *pctldev,
 	return 0;
 }
 
-static const struct pinctrl_ops oxnas_pinctrl_ops = {
+static const struct pinctrl_ops oxnas_pinctrl_ops =
+{
 	.get_groups_count = oxnas_pinctrl_get_groups_count,
 	.get_group_name = oxnas_pinctrl_get_group_name,
 	.get_group_pins = oxnas_pinctrl_get_group_pins,
@@ -340,9 +351,9 @@ oxnas_pinmux_get_function_name(struct pinctrl_dev *pctldev, unsigned int func)
 }
 
 static int oxnas_pinmux_get_function_groups(struct pinctrl_dev *pctldev,
-					    unsigned int func,
-					    const char * const **groups,
-					    unsigned int * const num_groups)
+		unsigned int func,
+		const char *const **groups,
+		unsigned int *const num_groups)
 {
 	struct oxnas_pinctrl *pctl = pinctrl_dev_get_drvdata(pctldev);
 
@@ -353,7 +364,7 @@ static int oxnas_pinmux_get_function_groups(struct pinctrl_dev *pctldev,
 }
 
 static int oxnas_pinmux_enable(struct pinctrl_dev *pctldev,
-			       unsigned int func, unsigned int group)
+							   unsigned int func, unsigned int group)
 {
 	struct oxnas_pinctrl *pctl = pinctrl_dev_get_drvdata(pctldev);
 	const struct oxnas_pin_group *pg = &pctl->groups[group];
@@ -362,34 +373,36 @@ static int oxnas_pinmux_enable(struct pinctrl_dev *pctldev,
 	struct oxnas_desc_function *functions = pg->functions;
 	u32 mask = BIT(pg->pin);
 
-	while (functions->name) {
-		if (!strcmp(functions->name, fname)) {
+	while (functions->name)
+	{
+		if (!strcmp(functions->name, fname))
+		{
 			dev_dbg(pctl->dev,
-				"setting function %s bank %d pin %d fct %d mask %x\n",
-				fname, pg->bank, pg->pin,
-				functions->fct, mask);
+					"setting function %s bank %d pin %d fct %d mask %x\n",
+					fname, pg->bank, pg->pin,
+					functions->fct, mask);
 
 			regmap_write_bits(pctl->regmap,
-					  (pg->bank ?
-						PINMUX_PRIMARY_SEL1 :
-						PINMUX_PRIMARY_SEL0),
-					  mask,
-					  (functions->fct == 1 ?
-						mask : 0));
+							  (pg->bank ?
+							   PINMUX_PRIMARY_SEL1 :
+							   PINMUX_PRIMARY_SEL0),
+							  mask,
+							  (functions->fct == 1 ?
+							   mask : 0));
 			regmap_write_bits(pctl->regmap,
-					  (pg->bank ?
-						PINMUX_SECONDARY_SEL1 :
-						PINMUX_SECONDARY_SEL0),
-					  mask,
-					  (functions->fct == 2 ?
-						mask : 0));
+							  (pg->bank ?
+							   PINMUX_SECONDARY_SEL1 :
+							   PINMUX_SECONDARY_SEL0),
+							  mask,
+							  (functions->fct == 2 ?
+							   mask : 0));
 			regmap_write_bits(pctl->regmap,
-					  (pg->bank ?
-						PINMUX_TERTIARY_SEL1 :
-						PINMUX_TERTIARY_SEL0),
-					  mask,
-					  (functions->fct == 3 ?
-						mask : 0));
+							  (pg->bank ?
+							   PINMUX_TERTIARY_SEL1 :
+							   PINMUX_TERTIARY_SEL0),
+							  mask,
+							  (functions->fct == 3 ?
+							   mask : 0));
 
 			return 0;
 		}
@@ -403,37 +416,37 @@ static int oxnas_pinmux_enable(struct pinctrl_dev *pctldev,
 }
 
 static int oxnas_gpio_request_enable(struct pinctrl_dev *pctldev,
-				     struct pinctrl_gpio_range *range,
-				     unsigned int offset)
+									 struct pinctrl_gpio_range *range,
+									 unsigned int offset)
 {
 	struct oxnas_pinctrl *pctl = pinctrl_dev_get_drvdata(pctldev);
 	struct oxnas_gpio_bank *bank = gpiochip_get_data(range->gc);
 	u32 mask = BIT(offset - bank->gpio_chip.base);
 
 	dev_dbg(pctl->dev, "requesting gpio %d in bank %d (id %d) with mask 0x%x\n",
-		offset, bank->gpio_chip.base, bank->id, mask);
+			offset, bank->gpio_chip.base, bank->id, mask);
 
 	regmap_write_bits(pctl->regmap,
-			  (bank->id ?
-				PINMUX_PRIMARY_SEL1 :
-				PINMUX_PRIMARY_SEL0),
-			  mask, 0);
+					  (bank->id ?
+					   PINMUX_PRIMARY_SEL1 :
+					   PINMUX_PRIMARY_SEL0),
+					  mask, 0);
 	regmap_write_bits(pctl->regmap,
-			  (bank->id ?
-				PINMUX_SECONDARY_SEL1 :
-				PINMUX_SECONDARY_SEL0),
-			  mask, 0);
+					  (bank->id ?
+					   PINMUX_SECONDARY_SEL1 :
+					   PINMUX_SECONDARY_SEL0),
+					  mask, 0);
 	regmap_write_bits(pctl->regmap,
-			  (bank->id ?
-				PINMUX_TERTIARY_SEL1 :
-				PINMUX_TERTIARY_SEL0),
-			  mask, 0);
+					  (bank->id ?
+					   PINMUX_TERTIARY_SEL1 :
+					   PINMUX_TERTIARY_SEL0),
+					  mask, 0);
 
 	return 0;
 }
 
 static int oxnas_gpio_get_direction(struct gpio_chip *chip,
-				      unsigned int offset)
+									unsigned int offset)
 {
 	struct oxnas_gpio_bank *bank = gpiochip_get_data(chip);
 	u32 mask = BIT(offset);
@@ -442,7 +455,7 @@ static int oxnas_gpio_get_direction(struct gpio_chip *chip,
 }
 
 static int oxnas_gpio_direction_input(struct gpio_chip *chip,
-				      unsigned int offset)
+									  unsigned int offset)
 {
 	struct oxnas_gpio_bank *bank = gpiochip_get_data(chip);
 	u32 mask = BIT(offset);
@@ -461,19 +474,23 @@ static int oxnas_gpio_get(struct gpio_chip *chip, unsigned int offset)
 }
 
 static void oxnas_gpio_set(struct gpio_chip *chip, unsigned int offset,
-			       int value)
+						   int value)
 {
 	struct oxnas_gpio_bank *bank = gpiochip_get_data(chip);
 	u32 mask = BIT(offset);
 
 	if (value)
+	{
 		writel_relaxed(mask, bank->reg_base + OUTPUT_SET);
+	}
 	else
+	{
 		writel_relaxed(mask, bank->reg_base + OUTPUT_CLEAR);
+	}
 }
 
 static int oxnas_gpio_direction_output(struct gpio_chip *chip,
-				       unsigned int offset, int value)
+									   unsigned int offset, int value)
 {
 	struct oxnas_gpio_bank *bank = gpiochip_get_data(chip);
 	u32 mask = BIT(offset);
@@ -485,20 +502,25 @@ static int oxnas_gpio_direction_output(struct gpio_chip *chip,
 }
 
 static int oxnas_gpio_set_direction(struct pinctrl_dev *pctldev,
-				    struct pinctrl_gpio_range *range,
-				    unsigned int offset, bool input)
+									struct pinctrl_gpio_range *range,
+									unsigned int offset, bool input)
 {
 	struct gpio_chip *chip = range->gc;
 
 	if (input)
+	{
 		oxnas_gpio_direction_input(chip, offset);
+	}
 	else
+	{
 		oxnas_gpio_direction_output(chip, offset, 0);
+	}
 
 	return 0;
 }
 
-static const struct pinmux_ops oxnas_pinmux_ops = {
+static const struct pinmux_ops oxnas_pinmux_ops =
+{
 	.get_functions_count = oxnas_pinmux_get_functions_count,
 	.get_function_name = oxnas_pinmux_get_function_name,
 	.get_function_groups = oxnas_pinmux_get_function_groups,
@@ -508,7 +530,7 @@ static const struct pinmux_ops oxnas_pinmux_ops = {
 };
 
 static int oxnas_pinconf_get(struct pinctrl_dev *pctldev, unsigned int pin,
-			     unsigned long *config)
+							 unsigned long *config)
 {
 	struct oxnas_pinctrl *pctl = pinctrl_dev_get_drvdata(pctldev);
 	struct oxnas_gpio_bank *bank = pctl_to_bank(pctl, pin);
@@ -517,20 +539,25 @@ static int oxnas_pinconf_get(struct pinctrl_dev *pctldev, unsigned int pin,
 	int ret;
 	u32 arg;
 
-	switch (param) {
-	case PIN_CONFIG_BIAS_PULL_UP:
-		ret = regmap_read(pctl->regmap,
-				  (bank->id ?
-					PINMUX_PULLUP_CTRL1 :
-					PINMUX_PULLUP_CTRL0),
-				  &arg);
-		if (ret)
-			return ret;
+	switch (param)
+	{
+		case PIN_CONFIG_BIAS_PULL_UP:
+			ret = regmap_read(pctl->regmap,
+							  (bank->id ?
+							   PINMUX_PULLUP_CTRL1 :
+							   PINMUX_PULLUP_CTRL0),
+							  &arg);
 
-		arg = !!(arg & mask);
-		break;
-	default:
-		return -ENOTSUPP;
+			if (ret)
+			{
+				return ret;
+			}
+
+			arg = !!(arg & mask);
+			break;
+
+		default:
+			return -ENOTSUPP;
 	}
 
 	*config = pinconf_to_config_packed(param, arg);
@@ -539,7 +566,7 @@ static int oxnas_pinconf_get(struct pinctrl_dev *pctldev, unsigned int pin,
 }
 
 static int oxnas_pinconf_set(struct pinctrl_dev *pctldev, unsigned int pin,
-			     unsigned long *configs, unsigned int num_configs)
+							 unsigned long *configs, unsigned int num_configs)
 {
 	struct oxnas_pinctrl *pctl = pinctrl_dev_get_drvdata(pctldev);
 	struct oxnas_gpio_bank *bank = pctl_to_bank(pctl, pin);
@@ -550,38 +577,43 @@ static int oxnas_pinconf_set(struct pinctrl_dev *pctldev, unsigned int pin,
 	u32 mask = BIT(offset);
 
 	dev_dbg(pctl->dev, "setting pin %d bank %d mask 0x%x\n",
-		pin, bank->gpio_chip.base, mask);
+			pin, bank->gpio_chip.base, mask);
 
-	for (i = 0; i < num_configs; i++) {
+	for (i = 0; i < num_configs; i++)
+	{
 		param = pinconf_to_config_param(configs[i]);
 		arg = pinconf_to_config_argument(configs[i]);
 
-		switch (param) {
-		case PIN_CONFIG_BIAS_PULL_UP:
-			dev_dbg(pctl->dev, "   pullup\n");
-			regmap_write_bits(pctl->regmap,
-					  (bank->id ?
-						PINMUX_PULLUP_CTRL1 :
-						PINMUX_PULLUP_CTRL0),
-					  mask, mask);
-			break;
-		default:
-			dev_err(pctl->dev, "Property %u not supported\n",
-				param);
-			return -ENOTSUPP;
+		switch (param)
+		{
+			case PIN_CONFIG_BIAS_PULL_UP:
+				dev_dbg(pctl->dev, "   pullup\n");
+				regmap_write_bits(pctl->regmap,
+								  (bank->id ?
+								   PINMUX_PULLUP_CTRL1 :
+								   PINMUX_PULLUP_CTRL0),
+								  mask, mask);
+				break;
+
+			default:
+				dev_err(pctl->dev, "Property %u not supported\n",
+						param);
+				return -ENOTSUPP;
 		}
 	}
 
 	return 0;
 }
 
-static const struct pinconf_ops oxnas_pinconf_ops = {
+static const struct pinconf_ops oxnas_pinconf_ops =
+{
 	.pin_config_get = oxnas_pinconf_get,
 	.pin_config_set = oxnas_pinconf_set,
 	.is_generic = true,
 };
 
-static struct pinctrl_desc oxnas_pinctrl_desc = {
+static struct pinctrl_desc oxnas_pinctrl_desc =
+{
 	.name = "oxnas-pinctrl",
 	.pctlops = &oxnas_pinctrl_ops,
 	.pmxops = &oxnas_pinmux_ops,
@@ -607,11 +639,11 @@ static void oxnas_gpio_irq_mask(struct irq_data *data)
 
 	if (type & IRQ_TYPE_EDGE_RISING)
 		writel(readl(bank->reg_base + RE_IRQ_ENABLE) & ~mask,
-		       bank->reg_base + RE_IRQ_ENABLE);
+			   bank->reg_base + RE_IRQ_ENABLE);
 
 	if (type & IRQ_TYPE_EDGE_FALLING)
 		writel(readl(bank->reg_base + FE_IRQ_ENABLE) & ~mask,
-		       bank->reg_base + FE_IRQ_ENABLE);
+			   bank->reg_base + FE_IRQ_ENABLE);
 }
 
 static void oxnas_gpio_irq_unmask(struct irq_data *data)
@@ -623,11 +655,11 @@ static void oxnas_gpio_irq_unmask(struct irq_data *data)
 
 	if (type & IRQ_TYPE_EDGE_RISING)
 		writel(readl(bank->reg_base + RE_IRQ_ENABLE) | mask,
-		       bank->reg_base + RE_IRQ_ENABLE);
+			   bank->reg_base + RE_IRQ_ENABLE);
 
 	if (type & IRQ_TYPE_EDGE_FALLING)
 		writel(readl(bank->reg_base + FE_IRQ_ENABLE) | mask,
-		       bank->reg_base + FE_IRQ_ENABLE);
+			   bank->reg_base + FE_IRQ_ENABLE);
 }
 
 static unsigned int oxnas_gpio_irq_startup(struct irq_data *data)
@@ -642,8 +674,10 @@ static unsigned int oxnas_gpio_irq_startup(struct irq_data *data)
 
 static int oxnas_gpio_irq_set_type(struct irq_data *data, unsigned int type)
 {
-	if ((type & (IRQ_TYPE_EDGE_RISING|IRQ_TYPE_EDGE_FALLING)) == 0)
+	if ((type & (IRQ_TYPE_EDGE_RISING | IRQ_TYPE_EDGE_FALLING)) == 0)
+	{
 		return -EINVAL;
+	}
 
 	irq_set_handler_locked(data, handle_edge_irq);
 
@@ -663,7 +697,7 @@ static void oxnas_gpio_irq_handler(struct irq_desc *desc)
 	stat = readl(bank->reg_base + IRQ_PENDING);
 
 	for_each_set_bit(pin, &stat, BITS_PER_LONG)
-		generic_handle_irq(irq_linear_revmap(gc->irqdomain, pin));
+	generic_handle_irq(irq_linear_revmap(gc->irqdomain, pin));
 
 	chained_irq_exit(chip, desc);
 }
@@ -671,30 +705,31 @@ static void oxnas_gpio_irq_handler(struct irq_desc *desc)
 #define GPIO_BANK(_bank)						\
 	{								\
 		.gpio_chip = {						\
-			.label = "GPIO" #_bank,				\
-			.request = gpiochip_generic_request,		\
-			.free = gpiochip_generic_free,			\
-			.get_direction = oxnas_gpio_get_direction,	\
-			.direction_input = oxnas_gpio_direction_input,	\
-			.direction_output = oxnas_gpio_direction_output, \
-			.get = oxnas_gpio_get,				\
-			.set = oxnas_gpio_set,				\
-			.ngpio = PINS_PER_BANK,				\
-			.base = GPIO_BANK_START(_bank),			\
-			.owner = THIS_MODULE,				\
-			.can_sleep = 0,					\
-		},							\
-		.irq_chip = {						\
-			.name = "GPIO" #_bank,				\
-			.irq_startup = oxnas_gpio_irq_startup,	\
-			.irq_ack = oxnas_gpio_irq_ack,		\
-			.irq_mask = oxnas_gpio_irq_mask,		\
-			.irq_unmask = oxnas_gpio_irq_unmask,		\
-			.irq_set_type = oxnas_gpio_irq_set_type,	\
-		},							\
+											.label = "GPIO" #_bank,				\
+											.request = gpiochip_generic_request,		\
+											.free = gpiochip_generic_free,			\
+											.get_direction = oxnas_gpio_get_direction,	\
+											.direction_input = oxnas_gpio_direction_input,	\
+											.direction_output = oxnas_gpio_direction_output, \
+											.get = oxnas_gpio_get,				\
+											.set = oxnas_gpio_set,				\
+											.ngpio = PINS_PER_BANK,				\
+											.base = GPIO_BANK_START(_bank),			\
+											.owner = THIS_MODULE,				\
+											.can_sleep = 0,					\
+					 },							\
+					 .irq_chip = {						\
+														 .name = "GPIO" #_bank,				\
+														 .irq_startup = oxnas_gpio_irq_startup,	\
+														 .irq_ack = oxnas_gpio_irq_ack,		\
+														 .irq_mask = oxnas_gpio_irq_mask,		\
+														 .irq_unmask = oxnas_gpio_irq_unmask,		\
+														 .irq_set_type = oxnas_gpio_irq_set_type,	\
+								 },							\
 	}
 
-static struct oxnas_gpio_bank oxnas_gpio_banks[] = {
+static struct oxnas_gpio_bank oxnas_gpio_banks[] =
+{
 	GPIO_BANK(0),
 	GPIO_BANK(1),
 };
@@ -704,14 +739,20 @@ static int oxnas_pinctrl_probe(struct platform_device *pdev)
 	struct oxnas_pinctrl *pctl;
 
 	pctl = devm_kzalloc(&pdev->dev, sizeof(*pctl), GFP_KERNEL);
+
 	if (!pctl)
+	{
 		return -ENOMEM;
+	}
+
 	pctl->dev = &pdev->dev;
 	dev_set_drvdata(&pdev->dev, pctl);
 
 	pctl->regmap = syscon_regmap_lookup_by_phandle(pdev->dev.of_node,
-						       "oxsemi,sys-ctrl");
-	if (IS_ERR(pctl->regmap)) {
+				   "oxsemi,sys-ctrl");
+
+	if (IS_ERR(pctl->regmap))
+	{
 		dev_err(&pdev->dev, "failed to get sys ctrl regmap\n");
 		return -ENODEV;
 	}
@@ -729,8 +770,10 @@ static int oxnas_pinctrl_probe(struct platform_device *pdev)
 	oxnas_pinctrl_desc.npins = pctl->npins;
 
 	pctl->pctldev = pinctrl_register(&oxnas_pinctrl_desc,
-					 &pdev->dev, pctl);
-	if (IS_ERR(pctl->pctldev)) {
+									 &pdev->dev, pctl);
+
+	if (IS_ERR(pctl->pctldev))
+	{
 		dev_err(&pdev->dev, "Failed to register pinctrl device\n");
 		return PTR_ERR(pctl->pctldev);
 	}
@@ -748,7 +791,8 @@ static int oxnas_gpio_probe(struct platform_device *pdev)
 	struct resource *res;
 
 	if (of_parse_phandle_with_fixed_args(np, "gpio-ranges",
-					     3, 0, &pinspec)) {
+										 3, 0, &pinspec))
+	{
 		dev_err(&pdev->dev, "gpio-ranges property not found\n");
 		return -EINVAL;
 	}
@@ -756,12 +800,14 @@ static int oxnas_gpio_probe(struct platform_device *pdev)
 	id = pinspec.args[1] / PINS_PER_BANK;
 	ngpios = pinspec.args[2];
 
-	if (id >= ARRAY_SIZE(oxnas_gpio_banks)) {
+	if (id >= ARRAY_SIZE(oxnas_gpio_banks))
+	{
 		dev_err(&pdev->dev, "invalid gpio-ranges base arg\n");
 		return -EINVAL;
 	}
 
-	if (ngpios > PINS_PER_BANK) {
+	if (ngpios > PINS_PER_BANK)
+	{
 		dev_err(&pdev->dev, "invalid gpio-ranges count arg\n");
 		return -EINVAL;
 	}
@@ -770,11 +816,16 @@ static int oxnas_gpio_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	bank->reg_base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(bank->reg_base))
+	{
 		return PTR_ERR(bank->reg_base);
+	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "irq get failed\n");
 		return irq;
 	}
@@ -784,33 +835,39 @@ static int oxnas_gpio_probe(struct platform_device *pdev)
 	bank->gpio_chip.of_node = np;
 	bank->gpio_chip.ngpio = ngpios;
 	ret = gpiochip_add_data(&bank->gpio_chip, bank);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Failed to add GPIO chip %u: %d\n",
-			id, ret);
+				id, ret);
 		return ret;
 	}
 
 	ret = gpiochip_irqchip_add(&bank->gpio_chip, &bank->irq_chip,
-				0, handle_level_irq, IRQ_TYPE_NONE);
-	if (ret < 0) {
+							   0, handle_level_irq, IRQ_TYPE_NONE);
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Failed to add IRQ chip %u: %d\n",
-			id, ret);
+				id, ret);
 		gpiochip_remove(&bank->gpio_chip);
 		return ret;
 	}
 
 	gpiochip_set_chained_irqchip(&bank->gpio_chip, &bank->irq_chip,
-				     irq, oxnas_gpio_irq_handler);
+								 irq, oxnas_gpio_irq_handler);
 
 	return 0;
 }
 
-static const struct of_device_id oxnas_pinctrl_of_match[] = {
+static const struct of_device_id oxnas_pinctrl_of_match[] =
+{
 	{ .compatible = "oxsemi,ox810se-pinctrl", },
 	{ },
 };
 
-static struct platform_driver oxnas_pinctrl_driver = {
+static struct platform_driver oxnas_pinctrl_driver =
+{
 	.driver = {
 		.name = "oxnas-pinctrl",
 		.of_match_table = oxnas_pinctrl_of_match,
@@ -819,12 +876,14 @@ static struct platform_driver oxnas_pinctrl_driver = {
 	.probe = oxnas_pinctrl_probe,
 };
 
-static const struct of_device_id oxnas_gpio_of_match[] = {
+static const struct of_device_id oxnas_gpio_of_match[] =
+{
 	{ .compatible = "oxsemi,ox810se-gpio", },
 	{ },
 };
 
-static struct platform_driver oxnas_gpio_driver = {
+static struct platform_driver oxnas_gpio_driver =
+{
 	.driver = {
 		.name = "oxnas-gpio",
 		.of_match_table = oxnas_gpio_of_match,

@@ -51,13 +51,13 @@ static int index[SNDRV_CARDS] = SNDRV_DEFAULT_IDX;
 
 module_param_named(debug, ivtv_alsa_debug, int, 0644);
 MODULE_PARM_DESC(debug,
-		 "Debug level (bitmask). Default: 0\n"
-		 "\t\t\t  1/0x0001: warning\n"
-		 "\t\t\t  2/0x0002: info\n");
+				 "Debug level (bitmask). Default: 0\n"
+				 "\t\t\t  1/0x0001: warning\n"
+				 "\t\t\t  2/0x0002: info\n");
 
 module_param_array(index, int, NULL, 0444);
 MODULE_PARM_DESC(index,
-		 "Index value for IVTV ALSA capture interface(s).\n");
+				 "Index value for IVTV ALSA capture interface(s).\n");
 
 MODULE_AUTHOR("Andy Walls");
 MODULE_DESCRIPTION("CX23415/CX23416 ALSA Interface");
@@ -81,10 +81,14 @@ struct snd_ivtv_card *p_to_snd_ivtv_card(struct v4l2_device **v4l2_dev)
 static void snd_ivtv_card_free(struct snd_ivtv_card *itvsc)
 {
 	if (itvsc == NULL)
+	{
 		return;
+	}
 
 	if (itvsc->v4l2_dev != NULL)
+	{
 		to_ivtv(itvsc->v4l2_dev)->alsa = NULL;
+	}
 
 	/* FIXME - take any other stopping actions needed */
 
@@ -94,19 +98,25 @@ static void snd_ivtv_card_free(struct snd_ivtv_card *itvsc)
 static void snd_ivtv_card_private_free(struct snd_card *sc)
 {
 	if (sc == NULL)
+	{
 		return;
+	}
+
 	snd_ivtv_card_free(sc->private_data);
 	sc->private_data = NULL;
 	sc->private_free = NULL;
 }
 
 static int snd_ivtv_card_create(struct v4l2_device *v4l2_dev,
-				       struct snd_card *sc,
-				       struct snd_ivtv_card **itvsc)
+								struct snd_card *sc,
+								struct snd_ivtv_card **itvsc)
 {
 	*itvsc = kzalloc(sizeof(struct snd_ivtv_card), GFP_KERNEL);
+
 	if (*itvsc == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	(*itvsc)->v4l2_dev = v4l2_dev;
 	(*itvsc)->sc = sc;
@@ -127,12 +137,12 @@ static int snd_ivtv_card_set_names(struct snd_ivtv_card *itvsc)
 
 	/* sc->shortname is a symlink in /proc/asound: IVTV-M -> cardN */
 	snprintf(sc->shortname,  sizeof(sc->shortname), "IVTV-%d",
-		 itv->instance);
+			 itv->instance);
 
 	/* sc->longname is read from /proc/asound/cards */
 	snprintf(sc->longname, sizeof(sc->longname),
-		 "CX2341[56] #%d %s TV/FM Radio/Line-In Capture",
-		 itv->instance, itv->card_name);
+			 "CX2341[56] #%d %s TV/FM Radio/Line-In Capture",
+			 itv->instance, itv->card_name);
 
 	return 0;
 }
@@ -153,20 +163,24 @@ static int snd_ivtv_init(struct v4l2_device *v4l2_dev)
 	/* use first available id if not specified otherwise*/
 	idx = index[itv->instance] == -1 ? SNDRV_DEFAULT_IDX1 : index[itv->instance];
 	ret = snd_card_new(&itv->pdev->dev,
-			   idx,
-			   SNDRV_DEFAULT_STR1, /* xid from end of shortname*/
-			   THIS_MODULE, 0, &sc);
-	if (ret) {
+					   idx,
+					   SNDRV_DEFAULT_STR1, /* xid from end of shortname*/
+					   THIS_MODULE, 0, &sc);
+
+	if (ret)
+	{
 		IVTV_ALSA_ERR("%s: snd_card_new() failed with err %d\n",
-			      __func__, ret);
+					  __func__, ret);
 		goto err_exit;
 	}
 
 	/* (3) Create a main component */
 	ret = snd_ivtv_card_create(v4l2_dev, sc, &itvsc);
-	if (ret) {
+
+	if (ret)
+	{
 		IVTV_ALSA_ERR("%s: snd_ivtv_card_create() failed with err %d\n",
-			      __func__, ret);
+					  __func__, ret);
 		goto err_exit_free;
 	}
 
@@ -176,18 +190,24 @@ static int snd_ivtv_init(struct v4l2_device *v4l2_dev)
 	/* (5) Create other components: mixer, PCM, & proc files */
 #if 0
 	ret = snd_ivtv_mixer_create(itvsc);
-	if (ret) {
+
+	if (ret)
+	{
 		IVTV_ALSA_WARN("%s: snd_ivtv_mixer_create() failed with err %d:"
-			       " proceeding anyway\n", __func__, ret);
+					   " proceeding anyway\n", __func__, ret);
 	}
+
 #endif
 
 	ret = snd_ivtv_pcm_create(itvsc);
-	if (ret) {
+
+	if (ret)
+	{
 		IVTV_ALSA_ERR("%s: snd_ivtv_pcm_create() failed with err %d\n",
-			      __func__, ret);
+					  __func__, ret);
 		goto err_exit_free;
 	}
+
 	/* FIXME - proc files */
 
 	/* (7) Set the driver data and return 0 */
@@ -196,21 +216,27 @@ static int snd_ivtv_init(struct v4l2_device *v4l2_dev)
 
 	/* (6) Register the card instance */
 	ret = snd_card_register(sc);
-	if (ret) {
+
+	if (ret)
+	{
 		itv->alsa = NULL;
 		IVTV_ALSA_ERR("%s: snd_card_register() failed with err %d\n",
-			      __func__, ret);
+					  __func__, ret);
 		goto err_exit_free;
 	}
 
 	IVTV_ALSA_INFO("%s: Instance %d registered as ALSA card %d\n",
-			 __func__, itv->instance, sc->number);
+				   __func__, itv->instance, sc->number);
 
 	return 0;
 
 err_exit_free:
+
 	if (sc != NULL)
+	{
 		snd_card_free(sc);
+	}
+
 	kfree(itvsc);
 err_exit:
 	return ret;
@@ -221,38 +247,48 @@ static int ivtv_alsa_load(struct ivtv *itv)
 	struct v4l2_device *v4l2_dev = &itv->v4l2_dev;
 	struct ivtv_stream *s;
 
-	if (v4l2_dev == NULL) {
+	if (v4l2_dev == NULL)
+	{
 		pr_err("ivtv-alsa: %s: struct v4l2_device * is NULL\n",
-		       __func__);
+			   __func__);
 		return 0;
 	}
 
 	itv = to_ivtv(v4l2_dev);
-	if (itv == NULL) {
+
+	if (itv == NULL)
+	{
 		pr_err("ivtv-alsa itv is NULL\n");
 		return 0;
 	}
 
 	s = &itv->streams[IVTV_ENC_STREAM_TYPE_PCM];
-	if (s->vdev.v4l2_dev == NULL) {
+
+	if (s->vdev.v4l2_dev == NULL)
+	{
 		IVTV_DEBUG_ALSA_INFO("%s: PCM stream for card is disabled - "
-				     "skipping\n", __func__);
+							 "skipping\n", __func__);
 		return 0;
 	}
 
-	if (itv->alsa != NULL) {
+	if (itv->alsa != NULL)
+	{
 		IVTV_ALSA_ERR("%s: struct snd_ivtv_card * already exists\n",
-			      __func__);
+					  __func__);
 		return 0;
 	}
 
-	if (snd_ivtv_init(v4l2_dev)) {
+	if (snd_ivtv_init(v4l2_dev))
+	{
 		IVTV_ALSA_ERR("%s: failed to create struct snd_ivtv_card\n",
-			      __func__);
-	} else {
-		IVTV_DEBUG_ALSA_INFO("%s: created ivtv ALSA interface instance "
-				     "\n", __func__);
+					  __func__);
 	}
+	else
+	{
+		IVTV_DEBUG_ALSA_INFO("%s: created ivtv ALSA interface instance "
+							 "\n", __func__);
+	}
+
 	return 0;
 }
 
@@ -278,16 +314,19 @@ static int __exit ivtv_alsa_exit_callback(struct device *dev, void *data)
 	struct v4l2_device *v4l2_dev = dev_get_drvdata(dev);
 	struct snd_ivtv_card *itvsc;
 
-	if (v4l2_dev == NULL) {
+	if (v4l2_dev == NULL)
+	{
 		pr_err("ivtv-alsa: %s: struct v4l2_device * is NULL\n",
-		       __func__);
+			   __func__);
 		return 0;
 	}
 
 	itvsc = to_snd_ivtv_card(v4l2_dev);
-	if (itvsc == NULL) {
+
+	if (itvsc == NULL)
+	{
 		IVTV_ALSA_WARN("%s: struct snd_ivtv_card * is NULL\n",
-			       __func__);
+					   __func__);
 		return 0;
 	}
 

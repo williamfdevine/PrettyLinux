@@ -20,12 +20,13 @@
 #include <asm/mpc52xx.h>
 #include "fec_mpc52xx.h"
 
-struct mpc52xx_fec_mdio_priv {
+struct mpc52xx_fec_mdio_priv
+{
 	struct mpc52xx_fec __iomem *regs;
 };
 
 static int mpc52xx_fec_mdio_transfer(struct mii_bus *bus, int phy_id,
-		int reg, u32 value)
+									 int reg, u32 value)
 {
 	struct mpc52xx_fec_mdio_priv *priv = bus->priv;
 	struct mpc52xx_fec __iomem *fec = priv->regs;
@@ -39,13 +40,17 @@ static int mpc52xx_fec_mdio_transfer(struct mii_bus *bus, int phy_id,
 
 	/* wait for it to finish, this takes about 23 us on lite5200b */
 	while (!(in_be32(&fec->ievent) & FEC_IEVENT_MII) && --tries)
+	{
 		msleep(1);
+	}
 
 	if (!tries)
+	{
 		return -ETIMEDOUT;
+	}
 
 	return value & FEC_MII_DATA_OP_RD ?
-		in_be32(&fec->mii_data) & FEC_MII_DATA_DATAMSK : 0;
+		   in_be32(&fec->mii_data) & FEC_MII_DATA_DATAMSK : 0;
 }
 
 static int mpc52xx_fec_mdio_read(struct mii_bus *bus, int phy_id, int reg)
@@ -54,10 +59,10 @@ static int mpc52xx_fec_mdio_read(struct mii_bus *bus, int phy_id, int reg)
 }
 
 static int mpc52xx_fec_mdio_write(struct mii_bus *bus, int phy_id, int reg,
-		u16 data)
+								  u16 data)
 {
 	return mpc52xx_fec_mdio_transfer(bus, phy_id, reg,
-		data | FEC_MII_WRITE_FRAME);
+									 data | FEC_MII_WRITE_FRAME);
 }
 
 static int mpc52xx_fec_mdio_probe(struct platform_device *of)
@@ -70,10 +75,16 @@ static int mpc52xx_fec_mdio_probe(struct platform_device *of)
 	int err;
 
 	bus = mdiobus_alloc();
+
 	if (bus == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
-	if (priv == NULL) {
+
+	if (priv == NULL)
+	{
 		err = -ENOMEM;
 		goto out_free;
 	}
@@ -84,10 +95,16 @@ static int mpc52xx_fec_mdio_probe(struct platform_device *of)
 
 	/* setup registers */
 	err = of_address_to_resource(np, 0, &res);
+
 	if (err)
+	{
 		goto out_free;
+	}
+
 	priv->regs = ioremap(res.start, resource_size(&res));
-	if (priv->regs == NULL) {
+
+	if (priv->regs == NULL)
+	{
 		err = -ENOMEM;
 		goto out_free;
 	}
@@ -100,17 +117,20 @@ static int mpc52xx_fec_mdio_probe(struct platform_device *of)
 
 	/* set MII speed */
 	out_be32(&priv->regs->mii_speed,
-		((mpc5xxx_get_bus_frequency(of->dev.of_node) >> 20) / 5) << 1);
+			 ((mpc5xxx_get_bus_frequency(of->dev.of_node) >> 20) / 5) << 1);
 
 	err = of_mdiobus_register(bus, np);
+
 	if (err)
+	{
 		goto out_unmap;
+	}
 
 	return 0;
 
- out_unmap:
+out_unmap:
 	iounmap(priv->regs);
- out_free:
+out_free:
 	kfree(priv);
 	mdiobus_free(bus);
 
@@ -130,7 +150,8 @@ static int mpc52xx_fec_mdio_remove(struct platform_device *of)
 	return 0;
 }
 
-static const struct of_device_id mpc52xx_fec_mdio_match[] = {
+static const struct of_device_id mpc52xx_fec_mdio_match[] =
+{
 	{ .compatible = "fsl,mpc5200b-mdio", },
 	{ .compatible = "fsl,mpc5200-mdio", },
 	{ .compatible = "mpc5200b-fec-phy", },
@@ -138,7 +159,8 @@ static const struct of_device_id mpc52xx_fec_mdio_match[] = {
 };
 MODULE_DEVICE_TABLE(of, mpc52xx_fec_mdio_match);
 
-struct platform_driver mpc52xx_fec_mdio_driver = {
+struct platform_driver mpc52xx_fec_mdio_driver =
+{
 	.driver = {
 		.name = "mpc5200b-fec-phy",
 		.owner = THIS_MODULE,

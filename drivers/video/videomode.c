@@ -12,7 +12,7 @@
 #include <video/videomode.h>
 
 void videomode_from_timing(const struct display_timing *dt,
-			  struct videomode *vm)
+						   struct videomode *vm)
 {
 	vm->pixelclock = dt->pixelclock.typ;
 	vm->hactive = dt->hactive.typ;
@@ -30,13 +30,16 @@ void videomode_from_timing(const struct display_timing *dt,
 EXPORT_SYMBOL_GPL(videomode_from_timing);
 
 int videomode_from_timings(const struct display_timings *disp,
-			  struct videomode *vm, unsigned int index)
+						   struct videomode *vm, unsigned int index)
 {
 	struct display_timing *dt;
 
 	dt = display_timings_get(disp, index);
+
 	if (!dt)
+	{
 		return -EINVAL;
+	}
 
 	videomode_from_timing(dt, vm);
 

@@ -52,7 +52,8 @@ MODULE_PARM_DESC(ignore_cis_vcc, "Allow voltage mismatch between card and socket
 
 /* PCMCIA specific device information (goes in the card field of
  * struct orinoco_private */
-struct orinoco_pccard {
+struct orinoco_pccard
+{
 	struct pcmcia_device	*p_dev;
 };
 
@@ -82,24 +83,36 @@ spectrum_reset(struct pcmcia_device *link, int idle)
 
 	/* Doing it if hardware is gone is guaranteed crash */
 	if (!pcmcia_dev_present(link))
+	{
 		return -ENODEV;
+	}
 
 	/* Save original COR value */
 	ret = pcmcia_read_config_byte(link, CISREG_COR, &save_cor);
+
 	if (ret)
+	{
 		goto failed;
+	}
 
 	/* Soft-Reset card */
 	ret = pcmcia_write_config_byte(link, CISREG_COR,
-				(save_cor | COR_SOFT_RESET));
+								   (save_cor | COR_SOFT_RESET));
+
 	if (ret)
+	{
 		goto failed;
+	}
+
 	udelay(1000);
 
 	/* Read CCSR */
 	ret = pcmcia_read_config_byte(link, CISREG_CCSR, &ccsr);
+
 	if (ret)
+	{
 		goto failed;
+	}
 
 	/*
 	 * Start or stop the firmware.  Memory width bit should be
@@ -107,15 +120,23 @@ spectrum_reset(struct pcmcia_device *link, int idle)
 	 */
 	ccsr = (idle ? HCR_IDLE : HCR_RUN) | (ccsr & HCR_MEM16);
 	ret = pcmcia_write_config_byte(link, CISREG_CCSR, ccsr);
+
 	if (ret)
+	{
 		goto failed;
+	}
+
 	udelay(1000);
 
 	/* Restore original COR configuration index */
 	ret = pcmcia_write_config_byte(link, CISREG_COR,
-				(save_cor & ~COR_SOFT_RESET));
+								   (save_cor & ~COR_SOFT_RESET));
+
 	if (ret)
+	{
 		goto failed;
+	}
+
 	udelay(1000);
 	return 0;
 
@@ -159,10 +180,14 @@ spectrum_cs_probe(struct pcmcia_device *link)
 	struct orinoco_pccard *card;
 
 	priv = alloc_orinocodev(sizeof(*card), &link->dev,
-				spectrum_cs_hard_reset,
-				spectrum_cs_stop_firmware);
+							spectrum_cs_hard_reset,
+							spectrum_cs_stop_firmware);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
+
 	card = priv->card;
 
 	/* Link both structures together */
@@ -184,10 +209,12 @@ static void spectrum_cs_detach(struct pcmcia_device *link)
 }				/* spectrum_cs_detach */
 
 static int spectrum_cs_config_check(struct pcmcia_device *p_dev,
-				    void *priv_data)
+									void *priv_data)
 {
 	if (p_dev->config_index == 0)
+	{
 		return -EINVAL;
+	}
 
 	return pcmcia_request_io(p_dev);
 };
@@ -201,22 +228,32 @@ spectrum_cs_config(struct pcmcia_device *link)
 	void __iomem *mem;
 
 	link->config_flags |= CONF_AUTO_SET_VPP | CONF_AUTO_CHECK_VCC |
-		CONF_AUTO_SET_IO | CONF_ENABLE_IRQ;
+						  CONF_AUTO_SET_IO | CONF_ENABLE_IRQ;
+
 	if (ignore_cis_vcc)
+	{
 		link->config_flags &= ~CONF_AUTO_CHECK_VCC;
+	}
+
 	ret = pcmcia_loop_config(link, spectrum_cs_config_check, NULL);
-	if (ret) {
+
+	if (ret)
+	{
 		if (!ignore_cis_vcc)
 			printk(KERN_ERR PFX "GetNextTuple(): No matching "
-			       "CIS configuration.  Maybe you need the "
-			       "ignore_cis_vcc=1 parameter.\n");
+				   "CIS configuration.  Maybe you need the "
+				   "ignore_cis_vcc=1 parameter.\n");
+
 		goto failed;
 	}
 
 	mem = ioport_map(link->resource[0]->start,
-			resource_size(link->resource[0]));
+					 resource_size(link->resource[0]));
+
 	if (!mem)
+	{
 		goto failed;
+	}
 
 	/* We initialize the hermes structure before completing PCMCIA
 	 * configuration just in case the interrupt handler gets
@@ -225,33 +262,43 @@ spectrum_cs_config(struct pcmcia_device *link)
 	hw->eeprom_pda = true;
 
 	ret = pcmcia_request_irq(link, orinoco_interrupt);
+
 	if (ret)
+	{
 		goto failed;
+	}
 
 	ret = pcmcia_enable_device(link);
+
 	if (ret)
+	{
 		goto failed;
+	}
 
 	/* Reset card */
 	if (spectrum_cs_hard_reset(priv) != 0)
+	{
 		goto failed;
+	}
 
 	/* Initialise the main driver */
-	if (orinoco_init(priv) != 0) {
+	if (orinoco_init(priv) != 0)
+	{
 		printk(KERN_ERR PFX "orinoco_init() failed\n");
 		goto failed;
 	}
 
 	/* Register an interface with the stack */
 	if (orinoco_if_add(priv, link->resource[0]->start,
-			   link->irq, NULL) != 0) {
+					   link->irq, NULL) != 0)
+	{
 		printk(KERN_ERR PFX "orinoco_if_add() failed\n");
 		goto failed;
 	}
 
 	return 0;
 
- failed:
+failed:
 	spectrum_cs_release(link);
 	return -ENODEV;
 }				/* spectrum_cs_config */
@@ -269,8 +316,11 @@ spectrum_cs_release(struct pcmcia_device *link)
 	priv->hw.ops->unlock_irqrestore(&priv->lock, &flags);
 
 	pcmcia_disable_device(link);
+
 	if (priv->hw.iobase)
+	{
 		ioport_unmap(priv->hw.iobase);
+	}
 }				/* spectrum_cs_release */
 
 
@@ -300,7 +350,8 @@ spectrum_cs_resume(struct pcmcia_device *link)
 /* Module initialization					    */
 /********************************************************************/
 
-static const struct pcmcia_device_id spectrum_cs_ids[] = {
+static const struct pcmcia_device_id spectrum_cs_ids[] =
+{
 	PCMCIA_DEVICE_MANF_CARD(0x026c, 0x0001), /* Symbol Spectrum24 LA4137 */
 	PCMCIA_DEVICE_MANF_CARD(0x0104, 0x0001), /* Socket Communications CF */
 	PCMCIA_DEVICE_PROD_ID12("Intel", "PRO/Wireless LAN PC Card", 0x816cc815, 0x6fbf459a), /* 2011B, not 2011 */
@@ -308,7 +359,8 @@ static const struct pcmcia_device_id spectrum_cs_ids[] = {
 };
 MODULE_DEVICE_TABLE(pcmcia, spectrum_cs_ids);
 
-static struct pcmcia_driver orinoco_driver = {
+static struct pcmcia_driver orinoco_driver =
+{
 	.owner		= THIS_MODULE,
 	.name		= DRIVER_NAME,
 	.probe		= spectrum_cs_probe,

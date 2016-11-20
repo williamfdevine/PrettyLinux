@@ -20,19 +20,30 @@ static int tegra_aconnect_probe(struct platform_device *pdev)
 	int ret;
 
 	if (!pdev->dev.of_node)
+	{
 		return -EINVAL;
+	}
 
 	ret = pm_clk_create(&pdev->dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = of_pm_clk_add_clk(&pdev->dev, "ape");
+
 	if (ret)
+	{
 		goto clk_destroy;
+	}
 
 	ret = of_pm_clk_add_clk(&pdev->dev, "apb2ape");
+
 	if (ret)
+	{
 		goto clk_destroy;
+	}
 
 	pm_runtime_enable(&pdev->dev);
 
@@ -67,18 +78,21 @@ static int tegra_aconnect_runtime_suspend(struct device *dev)
 	return pm_clk_suspend(dev);
 }
 
-static const struct dev_pm_ops tegra_aconnect_pm_ops = {
+static const struct dev_pm_ops tegra_aconnect_pm_ops =
+{
 	SET_RUNTIME_PM_OPS(tegra_aconnect_runtime_suspend,
-			   tegra_aconnect_runtime_resume, NULL)
+	tegra_aconnect_runtime_resume, NULL)
 };
 
-static const struct of_device_id tegra_aconnect_of_match[] = {
+static const struct of_device_id tegra_aconnect_of_match[] =
+{
 	{ .compatible = "nvidia,tegra210-aconnect", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, tegra_aconnect_of_match);
 
-static struct platform_driver tegra_aconnect_driver = {
+static struct platform_driver tegra_aconnect_driver =
+{
 	.probe = tegra_aconnect_probe,
 	.remove = tegra_aconnect_remove,
 	.driver = {

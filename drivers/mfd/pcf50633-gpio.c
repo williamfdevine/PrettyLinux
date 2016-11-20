@@ -21,7 +21,8 @@
 #include <linux/mfd/pcf50633/gpio.h>
 #include <linux/mfd/pcf50633/pmic.h>
 
-static const u8 pcf50633_regulator_registers[PCF50633_NUM_REGULATORS] = {
+static const u8 pcf50633_regulator_registers[PCF50633_NUM_REGULATORS] =
+{
 	[PCF50633_REGULATOR_AUTO]	= PCF50633_REG_AUTOOUT,
 	[PCF50633_REGULATOR_DOWN1]	= PCF50633_REG_DOWN1OUT,
 	[PCF50633_REGULATOR_DOWN2]	= PCF50633_REG_DOWN2OUT,
@@ -79,7 +80,7 @@ int pcf50633_gpio_invert_get(struct pcf50633 *pcf, int gpio)
 EXPORT_SYMBOL_GPL(pcf50633_gpio_invert_get);
 
 int pcf50633_gpio_power_supply_set(struct pcf50633 *pcf,
-					int gpio, int regulator, int on)
+								   int gpio, int regulator, int on)
 {
 	u8 reg, val, mask;
 

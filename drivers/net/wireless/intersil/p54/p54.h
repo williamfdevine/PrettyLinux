@@ -15,7 +15,7 @@
 #define P54_H
 
 #ifdef CONFIG_P54_LEDS
-#include <linux/leds.h>
+	#include <linux/leds.h>
 #endif /* CONFIG_P54_LEDS */
 
 #define ISL38XX_DEV_FIRMWARE_ADDR 0x20000
@@ -30,7 +30,8 @@
 #define BR_CODE_END_OF_BRA		0xFF0000FF
 #define LEGACY_BR_CODE_END_OF_BRA	0xFFFFFFFF
 
-struct bootrec {
+struct bootrec
+{
 	__le32 code;
 	__le32 len;
 	u32 data[10];
@@ -47,7 +48,8 @@ struct bootrec {
 #define BR_DESC_PRIV_CAP_CCX_MIC	BIT(4)
 #define BR_DESC_PRIV_CAP_AESCCMP	BIT(5)
 
-struct bootrec_desc {
+struct bootrec_desc
+{
 	__le16 modes;
 	__le16 flags;
 	__le32 rx_start;
@@ -70,15 +72,18 @@ struct bootrec_desc {
 #define FW_LM87 0x4c4d3837
 #define FW_LM20 0x4c4d3230
 
-struct bootrec_comp_id {
+struct bootrec_comp_id
+{
 	__le32 fw_variant;
 } __packed;
 
-struct bootrec_comp_ver {
+struct bootrec_comp_ver
+{
 	char fw_version[24];
 } __packed;
 
-struct bootrec_end {
+struct bootrec_end
+{
 	__le16 crc;
 	u8 padding[2];
 	u8 md5[16];
@@ -88,12 +93,15 @@ struct bootrec_end {
 #define P54_TX_INFO_DATA_SIZE		16
 
 /* stored in ieee80211_tx_info's rate_driver_data */
-struct p54_tx_info {
+struct p54_tx_info
+{
 	u32 start_addr;
 	u32 end_addr;
-	union {
+	union
+	{
 		void *data[P54_TX_INFO_DATA_SIZE / sizeof(void *)];
-		struct {
+		struct
+		{
 			u32 extra_len;
 		};
 	};
@@ -102,21 +110,23 @@ struct p54_tx_info {
 #define P54_MAX_CTRL_FRAME_LEN		0x1000
 
 #define P54_SET_QUEUE(queue, ai_fs, cw_min, cw_max, _txop)	\
-do {								\
-	queue.aifs = cpu_to_le16(ai_fs);			\
-	queue.cwmin = cpu_to_le16(cw_min);			\
-	queue.cwmax = cpu_to_le16(cw_max);			\
-	queue.txop = cpu_to_le16(_txop);			\
-} while (0)
+	do {								\
+		queue.aifs = cpu_to_le16(ai_fs);			\
+		queue.cwmin = cpu_to_le16(cw_min);			\
+		queue.cwmax = cpu_to_le16(cw_max);			\
+		queue.txop = cpu_to_le16(_txop);			\
+	} while (0)
 
-struct p54_edcf_queue_param {
+struct p54_edcf_queue_param
+{
 	__le16 aifs;
 	__le16 cwmin;
 	__le16 cwmax;
 	__le16 txop;
 } __packed;
 
-struct p54_rssi_db_entry {
+struct p54_rssi_db_entry
+{
 	u16 freq;
 	s16 mul;
 	s16 add;
@@ -124,7 +134,8 @@ struct p54_rssi_db_entry {
 	s16 longbow_unk2;
 };
 
-struct p54_cal_database {
+struct p54_cal_database
+{
 	size_t entries;
 	size_t entry_size;
 	size_t offset;
@@ -134,7 +145,8 @@ struct p54_cal_database {
 
 #define EEPROM_READBACK_LEN 0x3fc
 
-enum fw_state {
+enum fw_state
+{
 	FW_STATE_OFF,
 	FW_STATE_BOOTING,
 	FW_STATE_READY,
@@ -146,7 +158,8 @@ enum fw_state {
 
 #define P54_LED_MAX_NAME_LEN 31
 
-struct p54_led_dev {
+struct p54_led_dev
+{
 	struct ieee80211_hw *hw_dev;
 	struct led_classdev led_dev;
 	char name[P54_LED_MAX_NAME_LEN + 1];
@@ -158,13 +171,15 @@ struct p54_led_dev {
 
 #endif /* CONFIG_P54_LEDS */
 
-struct p54_tx_queue_stats {
+struct p54_tx_queue_stats
+{
 	unsigned int len;
 	unsigned int limit;
 	unsigned int count;
 };
 
-struct p54_common {
+struct p54_common
+{
 	struct ieee80211_hw *hw;
 	struct ieee80211_vif *vif;
 	void (*tx)(struct ieee80211_hw *dev, struct sk_buff *skb);
@@ -205,7 +220,8 @@ struct p54_common {
 	unsigned int chan_num;
 	struct completion stat_comp;
 	bool update_stats;
-	struct {
+	struct
+	{
 		unsigned int timestamp;
 		unsigned int cached_cca;
 		unsigned int cached_tx;

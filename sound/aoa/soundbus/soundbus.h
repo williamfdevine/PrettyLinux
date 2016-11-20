@@ -24,7 +24,8 @@
  * the soundbus to master we tell the codec we're going to switch
  * and give it CLOCK_SWITCH_PREPARE_SLAVE!
  */
-enum clock_switch {
+enum clock_switch
+{
 	CLOCK_SWITCH_PREPARE_SLAVE,
 	CLOCK_SWITCH_PREPARE_MASTER,
 	CLOCK_SWITCH_SLAVE,
@@ -33,17 +34,19 @@ enum clock_switch {
 };
 
 /* information on a transfer the codec can take */
-struct transfer_info {
+struct transfer_info
+{
 	u64 formats;		/* SNDRV_PCM_FMTBIT_* */
 	unsigned int rates;	/* SNDRV_PCM_RATE_* */
 	/* flags */
-	u32 transfer_in:1, /* input = 1, output = 0 */
-	    must_be_clock_source:1;
+	u32 transfer_in: 1, /* input = 1, output = 0 */
+		must_be_clock_source: 1;
 	/* for codecs to distinguish among their TIs */
 	int tag;
 };
 
-struct codec_info_item {
+struct codec_info_item
+{
 	struct codec_info *codec;
 	void *codec_data;
 	struct soundbus_dev *sdev;
@@ -53,14 +56,16 @@ struct codec_info_item {
 
 /* for prepare, where the codecs need to know
  * what we're going to drive the bus with */
-struct bus_info {
+struct bus_info
+{
 	/* see below */
 	int sysclock_factor;
 	int bus_factor;
 };
 
 /* information on the codec itself, plus function pointers */
-struct codec_info {
+struct codec_info
+{
 	/* the module this lives in */
 	struct module *owner;
 
@@ -82,7 +87,7 @@ struct codec_info {
 	/* operations */
 	/* clock switching, see above */
 	int (*switch_clock)(struct codec_info_item *cii,
-			    enum clock_switch clock);
+						enum clock_switch clock);
 
 	/* called for each transfer_info when the user
 	 * opens the pcm device to determine what the
@@ -98,18 +103,18 @@ struct codec_info {
 	 * info structs for multiple inputs.
 	 */
 	int (*usable)(struct codec_info_item *cii,
-		      struct transfer_info *ti,
-		      struct transfer_info *out);
+				  struct transfer_info *ti,
+				  struct transfer_info *out);
 
 	/* called when pcm stream is opened, probably not implemented
 	 * most of the time since it isn't too useful */
 	int (*open)(struct codec_info_item *cii,
-		    struct snd_pcm_substream *substream);
+				struct snd_pcm_substream *substream);
 
 	/* called when the pcm stream is closed, at this point
 	 * the user choices can all be unlocked (see below) */
 	int (*close)(struct codec_info_item *cii,
-		     struct snd_pcm_substream *substream);
+				 struct snd_pcm_substream *substream);
 
 	/* if the codec must forbid some user choices because
 	 * they are not valid with the substream/transfer info,
@@ -118,25 +123,26 @@ struct codec_info {
 	 * If the selected stuff in the substream is NOT
 	 * compatible, you have to reject this call! */
 	int (*prepare)(struct codec_info_item *cii,
-		       struct bus_info *bi,
-		       struct snd_pcm_substream *substream);
+				   struct bus_info *bi,
+				   struct snd_pcm_substream *substream);
 
 	/* start() is called before data is pushed to the codec.
 	 * Note that start() must be atomic! */
 	int (*start)(struct codec_info_item *cii,
-		     struct snd_pcm_substream *substream);
+				 struct snd_pcm_substream *substream);
 
 	/* stop() is called after data is no longer pushed to the codec.
 	 * Note that stop() must be atomic! */
 	int (*stop)(struct codec_info_item *cii,
-		    struct snd_pcm_substream *substream);
+				struct snd_pcm_substream *substream);
 
 	int (*suspend)(struct codec_info_item *cii, pm_message_t state);
 	int (*resume)(struct codec_info_item *cii);
 };
 
 /* information on a soundbus device */
-struct soundbus_dev {
+struct soundbus_dev
+{
 	/* the bus it belongs to */
 	struct list_head onbuslist;
 
@@ -162,13 +168,13 @@ struct soundbus_dev {
 	 * The 'data' pointer must be unique, it is used as the
 	 * key for detach_codec(). */
 	int (*attach_codec)(struct soundbus_dev *dev, struct snd_card *card,
-			    struct codec_info *ci, void *data);
+						struct codec_info *ci, void *data);
 	void (*detach_codec)(struct soundbus_dev *dev, void *data);
 	/* TODO: suspend/resume */
 
 	/* private for the soundbus provider */
 	struct list_head codec_list;
-	u32 have_out:1, have_in:1;
+	u32 have_out: 1, have_in: 1;
 };
 #define to_soundbus_device(d) container_of(d, struct soundbus_dev, ofdev.dev)
 #define of_to_soundbus_device(d) container_of(d, struct soundbus_dev, ofdev)
@@ -179,16 +185,17 @@ extern void soundbus_remove_one(struct soundbus_dev *dev);
 extern struct soundbus_dev *soundbus_dev_get(struct soundbus_dev *dev);
 extern void soundbus_dev_put(struct soundbus_dev *dev);
 
-struct soundbus_driver {
+struct soundbus_driver
+{
 	char *name;
 	struct module *owner;
 
 	/* we don't implement any matching at all */
 
-	int	(*probe)(struct soundbus_dev* dev);
-	int	(*remove)(struct soundbus_dev* dev);
+	int	(*probe)(struct soundbus_dev *dev);
+	int	(*remove)(struct soundbus_dev *dev);
 
-	int	(*shutdown)(struct soundbus_dev* dev);
+	int	(*shutdown)(struct soundbus_dev *dev);
 
 	struct device_driver driver;
 };

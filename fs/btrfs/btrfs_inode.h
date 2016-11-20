@@ -46,7 +46,8 @@
 #define BTRFS_INODE_HAS_PROPS		        11
 
 /* in memory btrfs inode */
-struct btrfs_inode {
+struct btrfs_inode
+{
 	/* which subvolume this inode belongs to */
 	struct btrfs_root *root;
 
@@ -206,7 +207,7 @@ static inline struct btrfs_inode *BTRFS_I(struct inode *inode)
 }
 
 static inline unsigned long btrfs_inode_hash(u64 objectid,
-					     const struct btrfs_root *root)
+		const struct btrfs_root *root)
 {
 	u64 h = objectid ^ (root->objectid * GOLDEN_RATIO_PRIME);
 
@@ -233,7 +234,10 @@ static inline u64 btrfs_ino(struct inode *inode)
 	 * type == BTRFS_ROOT_ITEM_KEY: subvol dir
 	 */
 	if (!ino || BTRFS_I(inode)->location.type == BTRFS_ROOT_ITEM_KEY)
+	{
 		ino = inode->i_ino;
+	}
+
 	return ino;
 }
 
@@ -248,10 +252,16 @@ static inline bool btrfs_is_free_space_inode(struct inode *inode)
 	struct btrfs_root *root = BTRFS_I(inode)->root;
 
 	if (root == root->fs_info->tree_root &&
-	    btrfs_ino(inode) != BTRFS_BTREE_INODE_OBJECTID)
+		btrfs_ino(inode) != BTRFS_BTREE_INODE_OBJECTID)
+	{
 		return true;
+	}
+
 	if (BTRFS_I(inode)->location.objectid == BTRFS_FREE_INO_OBJECTID)
+	{
 		return true;
+	}
+
 	return false;
 }
 
@@ -260,11 +270,13 @@ static inline int btrfs_inode_in_log(struct inode *inode, u64 generation)
 	int ret = 0;
 
 	spin_lock(&BTRFS_I(inode)->lock);
+
 	if (BTRFS_I(inode)->logged_trans == generation &&
-	    BTRFS_I(inode)->last_sub_trans <=
-	    BTRFS_I(inode)->last_log_commit &&
-	    BTRFS_I(inode)->last_sub_trans <=
-	    BTRFS_I(inode)->root->last_log_commit) {
+		BTRFS_I(inode)->last_sub_trans <=
+		BTRFS_I(inode)->last_log_commit &&
+		BTRFS_I(inode)->last_sub_trans <=
+		BTRFS_I(inode)->root->last_log_commit)
+	{
 		/*
 		 * After a ranged fsync we might have left some extent maps
 		 * (that fall outside the fsync's range). So return false
@@ -272,40 +284,45 @@ static inline int btrfs_inode_in_log(struct inode *inode, u64 generation)
 		 * will be called and process those extent maps.
 		 */
 		smp_mb();
+
 		if (list_empty(&BTRFS_I(inode)->extent_tree.modified_extents))
+		{
 			ret = 1;
+		}
 	}
+
 	spin_unlock(&BTRFS_I(inode)->lock);
 	return ret;
 }
 
 #define BTRFS_DIO_ORIG_BIO_SUBMITTED	0x1
 
-struct btrfs_dio_private {
-	struct inode *inode;
-	unsigned long flags;
-	u64 logical_offset;
-	u64 disk_bytenr;
-	u64 bytes;
-	void *private;
+struct btrfs_dio_private
+{
+		struct inode *inode;
+		unsigned long flags;
+		u64 logical_offset;
+		u64 disk_bytenr;
+		u64 bytes;
+		void *private;
 
-	/* number of bios pending for this dio */
-	atomic_t pending_bios;
+		/* number of bios pending for this dio */
+		atomic_t pending_bios;
 
-	/* IO errors */
-	int errors;
+		/* IO errors */
+		int errors;
 
-	/* orig_bio is our btrfs_io_bio */
-	struct bio *orig_bio;
+		/* orig_bio is our btrfs_io_bio */
+		struct bio *orig_bio;
 
-	/* dio_bio came from fs/direct-io.c */
-	struct bio *dio_bio;
+		/* dio_bio came from fs/direct-io.c */
+		struct bio *dio_bio;
 
-	/*
-	 * The original bio may be split to several sub-bios, this is
-	 * done during endio of sub-bios
-	 */
-	int (*subio_endio)(struct inode *, struct btrfs_io_bio *, int);
+		/*
+		 * The original bio may be split to several sub-bios, this is
+		 * done during endio of sub-bios
+		 */
+		int (*subio_endio)(struct inode *, struct btrfs_io_bio *, int);
 };
 
 /*
@@ -323,7 +340,7 @@ static inline void btrfs_inode_resume_unlocked_dio(struct inode *inode)
 {
 	smp_mb__before_atomic();
 	clear_bit(BTRFS_INODE_READDIO_NEED_LOCK,
-		  &BTRFS_I(inode)->runtime_flags);
+			  &BTRFS_I(inode)->runtime_flags);
 }
 
 bool btrfs_page_exists_in_range(struct inode *inode, loff_t start, loff_t end);

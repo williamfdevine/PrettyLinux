@@ -33,7 +33,8 @@
 
 static struct most_aim aim_info;
 
-struct most_video_dev {
+struct most_video_dev
+{
 	struct most_interface *iface;
 	int ch_idx;
 	struct list_head list;
@@ -52,7 +53,8 @@ struct most_video_dev {
 	wait_queue_head_t wait_data;
 };
 
-struct aim_fh {
+struct aim_fh
+{
 	/* must be the first field of this struct! */
 	struct v4l2_fh fh;
 	struct most_video_dev *mdev;
@@ -81,18 +83,24 @@ static int aim_vdev_open(struct file *filp)
 
 	v4l2_info(&mdev->v4l2_dev, "aim_vdev_open()\n");
 
-	switch (vdev->vfl_type) {
-	case VFL_TYPE_GRABBER:
-		break;
-	default:
-		return -EINVAL;
+	switch (vdev->vfl_type)
+	{
+		case VFL_TYPE_GRABBER:
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	fh = kzalloc(sizeof(*fh), GFP_KERNEL);
-	if (!fh)
-		return -ENOMEM;
 
-	if (!atomic_inc_and_test(&mdev->access_ref)) {
+	if (!fh)
+	{
+		return -ENOMEM;
+	}
+
+	if (!atomic_inc_and_test(&mdev->access_ref))
+	{
 		v4l2_err(&mdev->v4l2_dev, "too many clients\n");
 		ret = -EBUSY;
 		goto err_dec;
@@ -105,7 +113,9 @@ static int aim_vdev_open(struct file *filp)
 	v4l2_fh_add(&fh->fh);
 
 	ret = most_start_channel(mdev->iface, mdev->ch_idx, &aim_info);
-	if (ret) {
+
+	if (ret)
+	{
 		v4l2_err(&mdev->v4l2_dev, "most_start_channel() failed\n");
 		goto err_rm;
 	}
@@ -141,7 +151,8 @@ static int aim_vdev_close(struct file *filp)
 
 	spin_lock_irq(&mdev->list_lock);
 	mdev->mute = true;
-	list_for_each_entry_safe(mbo, tmp, &mdev->pending_mbos, list) {
+	list_for_each_entry_safe(mbo, tmp, &mdev->pending_mbos, list)
+	{
 		list_del(&mbo->list);
 		spin_unlock_irq(&mdev->list_lock);
 		most_put_mbo(mbo);
@@ -160,36 +171,51 @@ static int aim_vdev_close(struct file *filp)
 }
 
 static ssize_t aim_vdev_read(struct file *filp, char __user *buf,
-			     size_t count, loff_t *pos)
+							 size_t count, loff_t *pos)
 {
 	struct aim_fh *fh = filp->private_data;
 	struct most_video_dev *mdev = fh->mdev;
 	int ret = 0;
 
 	if (*pos)
+	{
 		return -ESPIPE;
+	}
 
 	if (!mdev)
+	{
 		return -ENODEV;
+	}
 
 	/* wait for the first buffer */
-	if (!(filp->f_flags & O_NONBLOCK)) {
+	if (!(filp->f_flags & O_NONBLOCK))
+	{
 		if (wait_event_interruptible(mdev->wait_data, data_ready(mdev)))
+		{
 			return -ERESTARTSYS;
+		}
 	}
 
 	if (!data_ready(mdev))
+	{
 		return -EAGAIN;
+	}
 
-	while (count > 0 && data_ready(mdev)) {
+	while (count > 0 && data_ready(mdev))
+	{
 		struct mbo *const mbo = get_top_mbo(mdev);
 		int const rem = mbo->processed_length - fh->offs;
 		int const cnt = rem < count ? rem : count;
 
-		if (copy_to_user(buf, mbo->virt_address + fh->offs, cnt)) {
+		if (copy_to_user(buf, mbo->virt_address + fh->offs, cnt))
+		{
 			v4l2_err(&mdev->v4l2_dev, "read: copy_to_user failed\n");
+
 			if (!ret)
+			{
 				ret = -EFAULT;
+			}
+
 			return ret;
 		}
 
@@ -198,7 +224,8 @@ static ssize_t aim_vdev_read(struct file *filp, char __user *buf,
 		buf += cnt;
 		ret += cnt;
 
-		if (cnt >= rem) {
+		if (cnt >= rem)
+		{
 			fh->offs = 0;
 			spin_lock_irq(&mdev->list_lock);
 			list_del(&mbo->list);
@@ -206,6 +233,7 @@ static ssize_t aim_vdev_read(struct file *filp, char __user *buf,
 			most_put_mbo(mbo);
 		}
 	}
+
 	return ret;
 }
 
@@ -217,9 +245,14 @@ static unsigned int aim_vdev_poll(struct file *filp, poll_table *wait)
 
 	/* only wait if no data is available */
 	if (!data_ready(mdev))
+	{
 		poll_wait(filp, &mdev->wait_data, wait);
+	}
+
 	if (data_ready(mdev))
+	{
 		mask |= POLLIN | POLLRDNORM;
+	}
 
 	return mask;
 }
@@ -237,13 +270,17 @@ static void aim_set_format_struct(struct v4l2_format *f)
 }
 
 static int aim_set_format(struct most_video_dev *mdev, unsigned int cmd,
-			  struct v4l2_format *format)
+						  struct v4l2_format *format)
 {
 	if (format->fmt.pix.pixelformat != V4L2_PIX_FMT_MPEG)
+	{
 		return -EINVAL;
+	}
 
 	if (cmd == VIDIOC_TRY_FMT)
+	{
 		return 0;
+	}
 
 	aim_set_format_struct(format);
 
@@ -251,7 +288,7 @@ static int aim_set_format(struct most_video_dev *mdev, unsigned int cmd,
 }
 
 static int vidioc_querycap(struct file *file, void *priv,
-			   struct v4l2_capability *cap)
+						   struct v4l2_capability *cap)
 {
 	struct aim_fh *fh = priv;
 	struct most_video_dev *mdev = fh->mdev;
@@ -261,7 +298,7 @@ static int vidioc_querycap(struct file *file, void *priv,
 	strlcpy(cap->driver, "v4l2_most_aim", sizeof(cap->driver));
 	strlcpy(cap->card, "MOST", sizeof(cap->card));
 	snprintf(cap->bus_info, sizeof(cap->bus_info),
-		 "%s", mdev->iface->description);
+			 "%s", mdev->iface->description);
 
 	cap->capabilities =
 		V4L2_CAP_READWRITE |
@@ -271,7 +308,7 @@ static int vidioc_querycap(struct file *file, void *priv,
 }
 
 static int vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
-				   struct v4l2_fmtdesc *f)
+								   struct v4l2_fmtdesc *f)
 {
 	struct aim_fh *fh = priv;
 	struct most_video_dev *mdev = fh->mdev;
@@ -279,7 +316,9 @@ static int vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
 	v4l2_info(&mdev->v4l2_dev, "vidioc_enum_fmt_vid_cap() %d\n", f->index);
 
 	if (f->index)
+	{
 		return -EINVAL;
+	}
 
 	strcpy(f->description, "MPEG");
 	f->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -290,7 +329,7 @@ static int vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
 }
 
 static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
-				struct v4l2_format *f)
+								struct v4l2_format *f)
 {
 	struct aim_fh *fh = priv;
 	struct most_video_dev *mdev = fh->mdev;
@@ -302,7 +341,7 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
 }
 
 static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
-				  struct v4l2_format *f)
+								  struct v4l2_format *f)
 {
 	struct aim_fh *fh = priv;
 	struct most_video_dev *mdev = fh->mdev;
@@ -311,7 +350,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
 }
 
 static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
-				struct v4l2_format *f)
+								struct v4l2_format *f)
 {
 	struct aim_fh *fh = priv;
 	struct most_video_dev *mdev = fh->mdev;
@@ -331,13 +370,15 @@ static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *norm)
 }
 
 static int vidioc_enum_input(struct file *file, void *priv,
-			     struct v4l2_input *input)
+							 struct v4l2_input *input)
 {
 	struct aim_fh *fh = priv;
 	struct most_video_dev *mdev = fh->mdev;
 
 	if (input->index >= V4L2_AIM_MAX_INPUT)
+	{
 		return -EINVAL;
+	}
 
 	strcpy(input->name, "MOST Video");
 	input->type |= V4L2_INPUT_TYPE_CAMERA;
@@ -364,12 +405,16 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int index)
 	v4l2_info(&mdev->v4l2_dev, "vidioc_s_input(%d)\n", index);
 
 	if (index >= V4L2_AIM_MAX_INPUT)
+	{
 		return -EINVAL;
+	}
+
 	mdev->ctrl_input = index;
 	return 0;
 }
 
-static const struct v4l2_file_operations aim_fops = {
+static const struct v4l2_file_operations aim_fops =
+{
 	.owner      = THIS_MODULE,
 	.open       = aim_vdev_open,
 	.release    = aim_vdev_close,
@@ -378,7 +423,8 @@ static const struct v4l2_file_operations aim_fops = {
 	.unlocked_ioctl = video_ioctl2,
 };
 
-static const struct v4l2_ioctl_ops video_ioctl_ops = {
+static const struct v4l2_ioctl_ops video_ioctl_ops =
+{
 	.vidioc_querycap            = vidioc_querycap,
 	.vidioc_enum_fmt_vid_cap    = vidioc_enum_fmt_vid_cap,
 	.vidioc_g_fmt_vid_cap       = vidioc_g_fmt_vid_cap,
@@ -390,7 +436,8 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
 	.vidioc_s_input             = vidioc_s_input,
 };
 
-static const struct video_device aim_videodev_template = {
+static const struct video_device aim_videodev_template =
+{
 	.fops = &aim_fops,
 	.release = video_device_release,
 	.ioctl_ops = &video_ioctl_ops,
@@ -406,8 +453,10 @@ static struct most_video_dev *get_aim_dev(
 	unsigned long flags;
 
 	spin_lock_irqsave(&list_lock, flags);
-	list_for_each_entry(mdev, &video_devices, list) {
-		if (mdev->iface == iface && mdev->ch_idx == channel_idx) {
+	list_for_each_entry(mdev, &video_devices, list)
+	{
+		if (mdev->iface == iface && mdev->ch_idx == channel_idx)
+		{
 			spin_unlock_irqrestore(&list_lock, flags);
 			return mdev;
 		}
@@ -423,10 +472,14 @@ static int aim_rx_data(struct mbo *mbo)
 		get_aim_dev(mbo->ifp, mbo->hdm_channel_id);
 
 	if (!mdev)
+	{
 		return -EIO;
+	}
 
 	spin_lock_irqsave(&mdev->list_lock, flags);
-	if (unlikely(mdev->mute)) {
+
+	if (unlikely(mdev->mute))
+	{
 		spin_unlock_irqrestore(&mdev->list_lock, flags);
 		return -EIO;
 	}
@@ -447,22 +500,27 @@ static int aim_register_videodev(struct most_video_dev *mdev)
 
 	/* allocate and fill v4l2 video struct */
 	mdev->vdev = video_device_alloc();
+
 	if (!mdev->vdev)
+	{
 		return -ENOMEM;
+	}
 
 	/* Fill the video capture device struct */
 	*mdev->vdev = aim_videodev_template;
 	mdev->vdev->v4l2_dev = &mdev->v4l2_dev;
 	mdev->vdev->lock = &mdev->lock;
 	snprintf(mdev->vdev->name, sizeof(mdev->vdev->name), "MOST: %s",
-		 mdev->v4l2_dev.name);
+			 mdev->v4l2_dev.name);
 
 	/* Register the v4l2 device */
 	video_set_drvdata(mdev->vdev, mdev);
 	ret = video_register_device(mdev->vdev, VFL_TYPE_GRABBER, -1);
-	if (ret) {
+
+	if (ret)
+	{
 		v4l2_err(&mdev->v4l2_dev, "video_register_device failed (%d)\n",
-			 ret);
+				 ret);
 		video_device_release(mdev->vdev);
 	}
 
@@ -486,33 +544,39 @@ static void aim_v4l2_dev_release(struct v4l2_device *v4l2_dev)
 }
 
 static int aim_probe_channel(struct most_interface *iface, int channel_idx,
-			     struct most_channel_config *ccfg,
-			     struct kobject *parent, char *name)
+							 struct most_channel_config *ccfg,
+							 struct kobject *parent, char *name)
 {
 	int ret;
 	struct most_video_dev *mdev = get_aim_dev(iface, channel_idx);
 
 	pr_info("aim_probe_channel(%s)\n", name);
 
-	if (mdev) {
+	if (mdev)
+	{
 		pr_err("channel already linked\n");
 		return -EEXIST;
 	}
 
-	if (ccfg->direction != MOST_CH_RX) {
+	if (ccfg->direction != MOST_CH_RX)
+	{
 		pr_err("wrong direction, expect rx\n");
 		return -EINVAL;
 	}
 
 	if (ccfg->data_type != MOST_CH_SYNC &&
-	    ccfg->data_type != MOST_CH_ISOC) {
+		ccfg->data_type != MOST_CH_ISOC)
+	{
 		pr_err("wrong channel type, expect sync or isoc\n");
 		return -EINVAL;
 	}
 
 	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
+
 	if (!mdev)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&mdev->lock);
 	atomic_set(&mdev->access_ref, -1);
@@ -525,15 +589,20 @@ static int aim_probe_channel(struct most_interface *iface, int channel_idx,
 	/* Create the v4l2_device */
 	strlcpy(mdev->v4l2_dev.name, name, sizeof(mdev->v4l2_dev.name));
 	ret = v4l2_device_register(NULL, &mdev->v4l2_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("v4l2_device_register() failed\n");
 		kfree(mdev);
 		return ret;
 	}
 
 	ret = aim_register_videodev(mdev);
+
 	if (ret)
+	{
 		goto err_unreg;
+	}
 
 	spin_lock_irq(&list_lock);
 	list_add(&mdev->list, &video_devices);
@@ -548,11 +617,12 @@ err_unreg:
 }
 
 static int aim_disconnect_channel(struct most_interface *iface,
-				  int channel_idx)
+								  int channel_idx)
 {
 	struct most_video_dev *mdev = get_aim_dev(iface, channel_idx);
 
-	if (!mdev) {
+	if (!mdev)
+	{
 		pr_err("no such channel is linked\n");
 		return -ENOENT;
 	}
@@ -569,7 +639,8 @@ static int aim_disconnect_channel(struct most_interface *iface,
 	return 0;
 }
 
-static struct most_aim aim_info = {
+static struct most_aim aim_info =
+{
 	.name = "v4l",
 	.probe_channel = aim_probe_channel,
 	.disconnect_channel = aim_disconnect_channel,
@@ -593,7 +664,8 @@ static void __exit aim_exit(void)
 	 * This must be fixed in core.
 	 */
 	spin_lock_irq(&list_lock);
-	list_for_each_entry_safe(mdev, tmp, &video_devices, list) {
+	list_for_each_entry_safe(mdev, tmp, &video_devices, list)
+	{
 		list_del(&mdev->list);
 		spin_unlock_irq(&list_lock);
 

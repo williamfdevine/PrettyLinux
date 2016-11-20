@@ -108,21 +108,21 @@ static inline void close_io_config(void)
 static inline void select_io_device(unsigned char devno)
 {
 	outb(0x07, IOPORT);
-	outb(devno, IOPORT+1);
+	outb(devno, IOPORT + 1);
 }
 
 /* write to the control register */
 static inline void write_io_cr(unsigned char reg, unsigned char data)
 {
 	outb(reg, IOPORT);
-	outb(data, IOPORT+1);
+	outb(data, IOPORT + 1);
 }
 
 /* read from the control register */
 static inline char read_io_cr(unsigned char reg)
 {
 	outb(reg, IOPORT);
-	return inb(IOPORT+1);
+	return inb(IOPORT + 1);
 }
 
 /* -- Medium level functions ------------------------------------*/
@@ -237,8 +237,11 @@ static void wb_smsc_wdt_initialize(void)
 
 	/* read old (timer units) register */
 	old = read_io_cr(0xF1) & 0x7F;
+
 	if (unit == UNIT_SECOND)
-		old |= 0x80;	/* set to seconds */
+	{
+		old |= 0x80;    /* set to seconds */
+	}
 
 	/* set the watchdog timer units */
 	wdt_timer_units(old);
@@ -355,16 +358,20 @@ static int wb_smsc_wdt_open(struct inode *inode, struct file *file)
 	/* /dev/watchdog can only be opened once */
 
 	if (test_and_set_bit(0, &timer_enabled))
+	{
 		return -EBUSY;
+	}
 
 	if (nowayout)
+	{
 		__module_get(THIS_MODULE);
+	}
 
 	/* Reload and activate timer */
 	wb_smsc_wdt_enable();
 
 	pr_info("Watchdog enabled. Timeout set to %d %s\n",
-		timeout, (unit == UNIT_SECOND) ? "second(s)" : "minute(s)");
+			timeout, (unit == UNIT_SECOND) ? "second(s)" : "minute(s)");
 
 	return nonseekable_open(inode, file);
 }
@@ -375,10 +382,13 @@ static int wb_smsc_wdt_release(struct inode *inode, struct file *file)
 {
 	/* Shut off the timer. */
 
-	if (expect_close == 42) {
+	if (expect_close == 42)
+	{
 		wb_smsc_wdt_disable();
 		pr_info("Watchdog disabled, sleeping again...\n");
-	} else {
+	}
+	else
+	{
 		pr_crit("Unexpected close, not stopping watchdog!\n");
 		wb_smsc_wdt_reset_timer();
 	}
@@ -391,11 +401,13 @@ static int wb_smsc_wdt_release(struct inode *inode, struct file *file)
 /* write => update the timer to keep the machine alive */
 
 static ssize_t wb_smsc_wdt_write(struct file *file, const char __user *data,
-				 size_t len, loff_t *ppos)
+								 size_t len, loff_t *ppos)
 {
 	/* See if we got the magic character 'V' and reload the timer */
-	if (len) {
-		if (!nowayout) {
+	if (len)
+	{
+		if (!nowayout)
+		{
 			size_t i;
 
 			/* reset expect flag */
@@ -403,108 +415,148 @@ static ssize_t wb_smsc_wdt_write(struct file *file, const char __user *data,
 
 			/* scan to see whether or not we got the
 			   magic character */
-			for (i = 0; i != len; i++) {
+			for (i = 0; i != len; i++)
+			{
 				char c;
+
 				if (get_user(c, data + i))
+				{
 					return -EFAULT;
+				}
+
 				if (c == 'V')
+				{
 					expect_close = 42;
+				}
 			}
 		}
 
 		/* someone wrote to us, we should reload the timer */
 		wb_smsc_wdt_reset_timer();
 	}
+
 	return len;
 }
 
 /* ioctl => control interface */
 
 static long wb_smsc_wdt_ioctl(struct file *file,
-					unsigned int cmd, unsigned long arg)
+							  unsigned int cmd, unsigned long arg)
 {
 	int new_timeout;
 
-	union {
+	union
+	{
 		struct watchdog_info __user *ident;
 		int __user *i;
 	} uarg;
 
-	static const struct watchdog_info ident = {
+	static const struct watchdog_info ident =
+	{
 		.options =		WDIOF_KEEPALIVEPING |
-					WDIOF_SETTIMEOUT |
-					WDIOF_MAGICCLOSE,
+		WDIOF_SETTIMEOUT |
+		WDIOF_MAGICCLOSE,
 		.firmware_version =	0,
 		.identity =		"SMsC 37B787 Watchdog",
 	};
 
 	uarg.i = (int __user *)arg;
 
-	switch (cmd) {
-	case WDIOC_GETSUPPORT:
-		return copy_to_user(uarg.ident, &ident, sizeof(ident))
-								? -EFAULT : 0;
-	case WDIOC_GETSTATUS:
-		return put_user(wb_smsc_wdt_status(), uarg.i);
-	case WDIOC_GETBOOTSTATUS:
-		return put_user(0, uarg.i);
-	case WDIOC_SETOPTIONS:
+	switch (cmd)
 	{
-		int options, retval = -EINVAL;
+		case WDIOC_GETSUPPORT:
+			return copy_to_user(uarg.ident, &ident, sizeof(ident))
+				   ? -EFAULT : 0;
 
-		if (get_user(options, uarg.i))
-			return -EFAULT;
+		case WDIOC_GETSTATUS:
+			return put_user(wb_smsc_wdt_status(), uarg.i);
 
-		if (options & WDIOS_DISABLECARD) {
-			wb_smsc_wdt_disable();
-			retval = 0;
-		}
-		if (options & WDIOS_ENABLECARD) {
-			wb_smsc_wdt_enable();
-			retval = 0;
-		}
-		return retval;
-	}
-	case WDIOC_KEEPALIVE:
-		wb_smsc_wdt_reset_timer();
-		return 0;
-	case WDIOC_SETTIMEOUT:
-		if (get_user(new_timeout, uarg.i))
-			return -EFAULT;
-		/* the API states this is given in secs */
-		if (unit == UNIT_MINUTE)
-			new_timeout /= 60;
-		if (new_timeout < 0 || new_timeout > MAX_TIMEOUT)
-			return -EINVAL;
-		timeout = new_timeout;
-		wb_smsc_wdt_set_timeout(timeout);
+		case WDIOC_GETBOOTSTATUS:
+			return put_user(0, uarg.i);
+
+		case WDIOC_SETOPTIONS:
+			{
+				int options, retval = -EINVAL;
+
+				if (get_user(options, uarg.i))
+				{
+					return -EFAULT;
+				}
+
+				if (options & WDIOS_DISABLECARD)
+				{
+					wb_smsc_wdt_disable();
+					retval = 0;
+				}
+
+				if (options & WDIOS_ENABLECARD)
+				{
+					wb_smsc_wdt_enable();
+					retval = 0;
+				}
+
+				return retval;
+			}
+
+		case WDIOC_KEEPALIVE:
+			wb_smsc_wdt_reset_timer();
+			return 0;
+
+		case WDIOC_SETTIMEOUT:
+			if (get_user(new_timeout, uarg.i))
+			{
+				return -EFAULT;
+			}
+
+			/* the API states this is given in secs */
+			if (unit == UNIT_MINUTE)
+			{
+				new_timeout /= 60;
+			}
+
+			if (new_timeout < 0 || new_timeout > MAX_TIMEOUT)
+			{
+				return -EINVAL;
+			}
+
+			timeout = new_timeout;
+			wb_smsc_wdt_set_timeout(timeout);
+
 		/* fall through and return the new timeout... */
-	case WDIOC_GETTIMEOUT:
-		new_timeout = timeout;
-		if (unit == UNIT_MINUTE)
-			new_timeout *= 60;
-		return put_user(new_timeout, uarg.i);
-	default:
-		return -ENOTTY;
+		case WDIOC_GETTIMEOUT:
+			new_timeout = timeout;
+
+			if (unit == UNIT_MINUTE)
+			{
+				new_timeout *= 60;
+			}
+
+			return put_user(new_timeout, uarg.i);
+
+		default:
+			return -ENOTTY;
 	}
 }
 
 /* -- Notifier funtions -----------------------------------------*/
 
 static int wb_smsc_wdt_notify_sys(struct notifier_block *this,
-					unsigned long code, void *unused)
+								  unsigned long code, void *unused)
 {
-	if (code == SYS_DOWN || code == SYS_HALT) {
+	if (code == SYS_DOWN || code == SYS_HALT)
+	{
 		/* set timeout to 0, to avoid possible race-condition */
 		timeout = 0;
 		wb_smsc_wdt_disable();
 	}
+
 	return NOTIFY_DONE;
 }
 
 /* -- Module's structures ---------------------------------------*/
 
-static const struct file_operations wb_smsc_wdt_fops = {
+static const struct file_operations wb_smsc_wdt_fops =
+{
 	.owner	  = THIS_MODULE,
 	.llseek		= no_llseek,
 	.write		= wb_smsc_wdt_write,
@@ -513,11 +565,13 @@ static const struct file_operations wb_smsc_wdt_fops = {
 	.release	= wb_smsc_wdt_release,
 };
 
-static struct notifier_block wb_smsc_wdt_notifier = {
+static struct notifier_block wb_smsc_wdt_notifier =
+{
 	.notifier_call  = wb_smsc_wdt_notify_sys,
 };
 
-static struct miscdevice wb_smsc_wdt_miscdev = {
+static struct miscdevice wb_smsc_wdt_miscdev =
+{
 	.minor		= WATCHDOG_MINOR,
 	.name		= "watchdog",
 	.fops		= &wb_smsc_wdt_fops,
@@ -532,9 +586,10 @@ static int __init wb_smsc_wdt_init(void)
 	int ret;
 
 	pr_info("SMsC 37B787 watchdog component driver "
-		VERSION " initialising...\n");
+			VERSION " initialising...\n");
 
-	if (!request_region(IOPORT, IOPORT_SIZE, "SMsC 37B787 watchdog")) {
+	if (!request_region(IOPORT, IOPORT_SIZE, "SMsC 37B787 watchdog"))
+	{
 		pr_err("Unable to register IO port %#x\n", IOPORT);
 		ret = -EBUSY;
 		goto out_pnp;
@@ -542,29 +597,35 @@ static int __init wb_smsc_wdt_init(void)
 
 	/* set new maximum, if it's too big */
 	if (timeout > MAX_TIMEOUT)
+	{
 		timeout = MAX_TIMEOUT;
+	}
 
 	/* init the watchdog timer */
 	wb_smsc_wdt_initialize();
 
 	ret = register_reboot_notifier(&wb_smsc_wdt_notifier);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Unable to register reboot notifier err = %d\n", ret);
 		goto out_io;
 	}
 
 	ret = misc_register(&wb_smsc_wdt_miscdev);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Unable to register miscdev on minor %d\n",
-		       WATCHDOG_MINOR);
+			   WATCHDOG_MINOR);
 		goto out_rbt;
 	}
 
 	/* output info */
 	pr_info("Timeout set to %d %s\n",
-		timeout, (unit == UNIT_SECOND) ? "second(s)" : "minute(s)");
+			timeout, (unit == UNIT_SECOND) ? "second(s)" : "minute(s)");
 	pr_info("Watchdog initialized and sleeping (nowayout=%d)...\n",
-		nowayout);
+			nowayout);
 out_clean:
 	return ret;
 
@@ -583,7 +644,8 @@ out_pnp:
 static void __exit wb_smsc_wdt_exit(void)
 {
 	/* Stop the timer before we leave */
-	if (!nowayout) {
+	if (!nowayout)
+	{
 		wb_smsc_wdt_shutdown();
 		pr_info("Watchdog disabled\n");
 	}
@@ -600,13 +662,13 @@ module_exit(wb_smsc_wdt_exit);
 
 MODULE_AUTHOR("Sven Anders <anders@anduras.de>");
 MODULE_DESCRIPTION("Driver for SMsC 37B787 watchdog component (Version "
-								VERSION ")");
+				   VERSION ")");
 MODULE_LICENSE("GPL");
 
 #ifdef SMSC_SUPPORT_MINUTES
 module_param(unit, int, 0);
 MODULE_PARM_DESC(unit,
-		"set unit to use, 0=seconds or 1=minutes, default is 0");
+				 "set unit to use, 0=seconds or 1=minutes, default is 0");
 #endif
 
 module_param(timeout, int, 0);
@@ -614,5 +676,5 @@ MODULE_PARM_DESC(timeout, "range is 1-255 units, default is 60");
 
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout,
-		"Watchdog cannot be stopped once started (default="
-				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "Watchdog cannot be stopped once started (default="
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");

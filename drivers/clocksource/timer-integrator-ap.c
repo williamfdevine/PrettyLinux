@@ -29,7 +29,7 @@
 
 #include "timer-sp.h"
 
-static void __iomem * sched_clk_base;
+static void __iomem *sched_clk_base;
 
 static u64 notrace integrator_read_sched_clock(void)
 {
@@ -37,13 +37,14 @@ static u64 notrace integrator_read_sched_clock(void)
 }
 
 static int integrator_clocksource_init(unsigned long inrate,
-				       void __iomem *base)
+									   void __iomem *base)
 {
 	u32 ctrl = TIMER_CTRL_ENABLE | TIMER_CTRL_PERIODIC;
 	unsigned long rate = inrate;
 	int ret;
 
-	if (rate >= 1500000) {
+	if (rate >= 1500000)
+	{
 		rate /= 16;
 		ctrl |= TIMER_CTRL_DIV16;
 	}
@@ -52,9 +53,12 @@ static int integrator_clocksource_init(unsigned long inrate,
 	writel(ctrl, base + TIMER_CTRL);
 
 	ret = clocksource_mmio_init(base + TIMER_VALUE, "timer2",
-				    rate, 200, 16, clocksource_mmio_readl_down);
+								rate, 200, 16, clocksource_mmio_readl_down);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	sched_clk_base = base;
 	sched_clock_register(integrator_read_sched_clock, 16, rate);
@@ -63,7 +67,7 @@ static int integrator_clocksource_init(unsigned long inrate,
 }
 
 static unsigned long timer_reload;
-static void __iomem * clkevt_base;
+static void __iomem *clkevt_base;
 
 /*
  * IRQ handler for the timer
@@ -92,7 +96,7 @@ static int clkevt_shutdown(struct clock_event_device *evt)
 static int clkevt_set_oneshot(struct clock_event_device *evt)
 {
 	u32 ctrl = readl(clkevt_base + TIMER_CTRL) &
-		   ~(TIMER_CTRL_ENABLE | TIMER_CTRL_PERIODIC);
+			   ~(TIMER_CTRL_ENABLE | TIMER_CTRL_PERIODIC);
 
 	/* Leave the timer disabled, .set_next_event will enable it */
 	writel(ctrl, clkevt_base + TIMER_CTRL);
@@ -124,10 +128,11 @@ static int clkevt_set_next_event(unsigned long next, struct clock_event_device *
 	return 0;
 }
 
-static struct clock_event_device integrator_clockevent = {
+static struct clock_event_device integrator_clockevent =
+{
 	.name			= "timer1",
 	.features		= CLOCK_EVT_FEAT_PERIODIC |
-				  CLOCK_EVT_FEAT_ONESHOT,
+	CLOCK_EVT_FEAT_ONESHOT,
 	.set_state_shutdown	= clkevt_shutdown,
 	.set_state_periodic	= clkevt_set_periodic,
 	.set_state_oneshot	= clkevt_set_oneshot,
@@ -136,7 +141,8 @@ static struct clock_event_device integrator_clockevent = {
 	.rating			= 300,
 };
 
-static struct irqaction integrator_timer_irq = {
+static struct irqaction integrator_timer_irq =
+{
 	.name		= "timer",
 	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
 	.handler	= integrator_timer_interrupt,
@@ -144,32 +150,40 @@ static struct irqaction integrator_timer_irq = {
 };
 
 static int integrator_clockevent_init(unsigned long inrate,
-				      void __iomem *base, int irq)
+									  void __iomem *base, int irq)
 {
 	unsigned long rate = inrate;
 	unsigned int ctrl = 0;
 	int ret;
 
 	clkevt_base = base;
+
 	/* Calculate and program a divisor */
-	if (rate > 0x100000 * HZ) {
+	if (rate > 0x100000 * HZ)
+	{
 		rate /= 256;
 		ctrl |= TIMER_CTRL_DIV256;
-	} else if (rate > 0x10000 * HZ) {
+	}
+	else if (rate > 0x10000 * HZ)
+	{
 		rate /= 16;
 		ctrl |= TIMER_CTRL_DIV16;
 	}
+
 	timer_reload = rate / HZ;
 	writel(ctrl, clkevt_base + TIMER_CTRL);
 
 	ret = setup_irq(irq, &integrator_timer_irq);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	clockevents_config_and_register(&integrator_clockevent,
-					rate,
-					1,
-					0xffffU);
+									rate,
+									1,
+									0xffffU);
 	return 0;
 }
 
@@ -185,21 +199,29 @@ static int __init integrator_ap_timer_init_of(struct device_node *node)
 	struct device_node *sec_node;
 
 	base = of_io_request_and_map(node, 0, "integrator-timer");
+
 	if (IS_ERR(base))
+	{
 		return PTR_ERR(base);
+	}
 
 	clk = of_clk_get(node, 0);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		pr_err("No clock for %s\n", node->name);
 		return PTR_ERR(clk);
 	}
+
 	clk_prepare_enable(clk);
 	rate = clk_get_rate(clk);
 	writel(0, base + TIMER_CTRL);
 
 	err = of_property_read_string(of_aliases,
-				"arm,timer-primary", &path);
-	if (err) {
+								  "arm,timer-primary", &path);
+
+	if (err)
+	{
 		pr_warn("Failed to read property");
 		return err;
 	}
@@ -207,9 +229,11 @@ static int __init integrator_ap_timer_init_of(struct device_node *node)
 	pri_node = of_find_node_by_path(path);
 
 	err = of_property_read_string(of_aliases,
-				"arm,timer-secondary", &path);
-	if (err) {
-		pr_warn("Failed to read property");		
+								  "arm,timer-secondary", &path);
+
+	if (err)
+	{
+		pr_warn("Failed to read property");
 		return err;
 	}
 
@@ -218,9 +242,12 @@ static int __init integrator_ap_timer_init_of(struct device_node *node)
 
 	if (node == pri_node)
 		/* The primary timer lacks IRQ, use as clocksource */
+	{
 		return integrator_clocksource_init(rate, base);
+	}
 
-	if (node == sec_node) {
+	if (node == sec_node)
+	{
 		/* The secondary timer will drive the clock event */
 		irq = irq_of_parse_and_map(node, 0);
 		return integrator_clockevent_init(rate, base, irq);
@@ -233,4 +260,4 @@ static int __init integrator_ap_timer_init_of(struct device_node *node)
 }
 
 CLOCKSOURCE_OF_DECLARE(integrator_ap_timer, "arm,integrator-timer",
-		       integrator_ap_timer_init_of);
+					   integrator_ap_timer_init_of);

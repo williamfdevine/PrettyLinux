@@ -59,7 +59,8 @@
 #define LNB_OFF		{0x3a, 0x01, 0x01}
 
 /* Initial stv0288 settings for 7395 Frontend */
-static u8 s7395_inittab[] = {
+static u8 s7395_inittab[] =
+{
 	0x01, 0x15,
 	0x02, 0x20,
 	0x03, 0xa0,

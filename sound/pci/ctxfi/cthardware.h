@@ -22,13 +22,15 @@
 #include <linux/pci.h>
 #include <sound/core.h>
 
-enum CHIPTYP {
+enum CHIPTYP
+{
 	ATC20K1,
 	ATC20K2,
 	ATCNONE
 };
 
-enum CTCARDS {
+enum CTCARDS
+{
 	/* 20k1 models */
 	CTSB055X,
 	CT20K1_MODEL_FIRST = CTSB055X,
@@ -46,7 +48,8 @@ enum CTCARDS {
 };
 
 /* Type of input source for ADC */
-enum ADCSRC{
+enum ADCSRC
+{
 	ADC_MICIN,
 	ADC_LINEIN,
 	ADC_VIDEO,
@@ -54,7 +57,8 @@ enum ADCSRC{
 	ADC_NONE	/* Switch to digital input */
 };
 
-struct card_conf {
+struct card_conf
+{
 	/* device virtual mem page table page physical addr
 	 * (supporting one page table page now) */
 	unsigned long vm_pgt_phys;
@@ -62,14 +66,16 @@ struct card_conf {
 	unsigned int msr;	/* master sample rate in rsrs */
 };
 
-struct capabilities {
-	unsigned int digit_io_switch:1;
-	unsigned int dedicated_mic:1;
-	unsigned int output_switch:1;
-	unsigned int mic_source_switch:1;
+struct capabilities
+{
+	unsigned int digit_io_switch: 1;
+	unsigned int dedicated_mic: 1;
+	unsigned int output_switch: 1;
+	unsigned int mic_source_switch: 1;
 };
 
-struct hw {
+struct hw
+{
 	int (*card_init)(struct hw *hw, struct card_conf *info);
 	int (*card_stop)(struct hw *hw);
 	int (*pll_init)(struct hw *hw, unsigned int rsr);
@@ -171,7 +177,7 @@ struct hw {
 	int (*daio_mgr_enb_dao)(void *blk, unsigned int idx);
 	int (*daio_mgr_dsb_dao)(void *blk, unsigned int idx);
 	int (*daio_mgr_dao_init)(void *blk, unsigned int idx,
-						unsigned int conf);
+							 unsigned int conf);
 	int (*daio_mgr_set_imaparc)(void *blk, unsigned int slot);
 	int (*daio_mgr_set_imapnxt)(void *blk, unsigned int next);
 	int (*daio_mgr_set_imapaddr)(void *blk, unsigned int addr);
@@ -195,7 +201,7 @@ struct hw {
 };
 
 int create_hw_obj(struct pci_dev *pci, enum CHIPTYP chip_type,
-		  enum CTCARDS model, struct hw **rhw);
+				  enum CTCARDS model, struct hw **rhw);
 int destroy_hw_obj(struct hw *hw);
 
 unsigned int get_field(unsigned int data, unsigned int field);

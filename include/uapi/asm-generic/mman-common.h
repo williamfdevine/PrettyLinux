@@ -20,9 +20,9 @@
 #define MAP_FIXED	0x10		/* Interpret addr exactly */
 #define MAP_ANONYMOUS	0x20		/* don't use a file */
 #ifdef CONFIG_MMAP_ALLOW_UNINITIALIZED
-# define MAP_UNINITIALIZED 0x4000000	/* For anonymous mmap, memory could be uninitialized */
+	#define MAP_UNINITIALIZED 0x4000000	/* For anonymous mmap, memory could be uninitialized */
 #else
-# define MAP_UNINITIALIZED 0x0		/* Don't support this flag */
+	#define MAP_UNINITIALIZED 0x0		/* Don't support this flag */
 #endif
 
 /*
@@ -75,6 +75,6 @@
 #define PKEY_DISABLE_ACCESS	0x1
 #define PKEY_DISABLE_WRITE	0x2
 #define PKEY_ACCESS_MASK	(PKEY_DISABLE_ACCESS |\
-				 PKEY_DISABLE_WRITE)
+							 PKEY_DISABLE_WRITE)
 
 #endif /* __ASM_GENERIC_MMAN_COMMON_H */

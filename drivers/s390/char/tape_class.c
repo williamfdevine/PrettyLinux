@@ -39,29 +39,41 @@ static struct class *tape_class;
  *	The pointer to the name of the character device.
  */
 struct tape_class_device *register_tape_dev(
-	struct device *		device,
+	struct device 		*device,
 	dev_t			dev,
 	const struct file_operations *fops,
-	char *			device_name,
-	char *			mode_name)
+	char 			*device_name,
+	char 			*mode_name)
 {
-	struct tape_class_device *	tcd;
+	struct tape_class_device 	*tcd;
 	int		rc;
-	char *		s;
+	char 		*s;
 
 	tcd = kzalloc(sizeof(struct tape_class_device), GFP_KERNEL);
+
 	if (!tcd)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	strncpy(tcd->device_name, device_name, TAPECLASS_NAME_LEN);
+
 	for (s = strchr(tcd->device_name, '/'); s; s = strchr(s, '/'))
+	{
 		*s = '!';
+	}
+
 	strncpy(tcd->mode_name, mode_name, TAPECLASS_NAME_LEN);
+
 	for (s = strchr(tcd->mode_name, '/'); s; s = strchr(s, '/'))
+	{
 		*s = '!';
+	}
 
 	tcd->char_device = cdev_alloc();
-	if (!tcd->char_device) {
+
+	if (!tcd->char_device)
+	{
 		rc = -ENOMEM;
 		goto fail_with_tcd;
 	}
@@ -71,22 +83,32 @@ struct tape_class_device *register_tape_dev(
 	tcd->char_device->dev   = dev;
 
 	rc = cdev_add(tcd->char_device, tcd->char_device->dev, 1);
+
 	if (rc)
+	{
 		goto fail_with_cdev;
+	}
 
 	tcd->class_device = device_create(tape_class, device,
-					  tcd->char_device->dev, NULL,
-					  "%s", tcd->device_name);
+									  tcd->char_device->dev, NULL,
+									  "%s", tcd->device_name);
 	rc = PTR_RET(tcd->class_device);
+
 	if (rc)
+	{
 		goto fail_with_cdev;
+	}
+
 	rc = sysfs_create_link(
-		&device->kobj,
-		&tcd->class_device->kobj,
-		tcd->mode_name
-	);
+			 &device->kobj,
+			 &tcd->class_device->kobj,
+			 tcd->mode_name
+		 );
+
 	if (rc)
+	{
 		goto fail_with_class_device;
+	}
 
 	return tcd;
 
@@ -105,7 +127,8 @@ EXPORT_SYMBOL(register_tape_dev);
 
 void unregister_tape_dev(struct device *device, struct tape_class_device *tcd)
 {
-	if (tcd != NULL && !IS_ERR(tcd)) {
+	if (tcd != NULL && !IS_ERR(tcd))
+	{
 		sysfs_remove_link(&device->kobj, tcd->mode_name);
 		device_destroy(tape_class, tcd->char_device->dev);
 		cdev_del(tcd->char_device);

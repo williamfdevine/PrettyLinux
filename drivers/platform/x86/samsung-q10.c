@@ -24,7 +24,7 @@ static acpi_handle ec_handle;
 static bool force;
 module_param(force, bool, 0);
 MODULE_PARM_DESC(force,
-		"Disable the DMI check and force the driver to be loaded");
+				 "Disable the DMI check and force the driver to be loaded");
 
 static int samsungq10_bl_set_intensity(struct backlight_device *bd)
 {
@@ -32,21 +32,31 @@ static int samsungq10_bl_set_intensity(struct backlight_device *bd)
 	acpi_status status;
 	int i;
 
-	for (i = 0; i < SAMSUNGQ10_BL_MAX_INTENSITY; i++) {
+	for (i = 0; i < SAMSUNGQ10_BL_MAX_INTENSITY; i++)
+	{
 		status = acpi_evaluate_object(ec_handle, "_Q63", NULL, NULL);
+
 		if (ACPI_FAILURE(status))
+		{
 			return -EIO;
+		}
 	}
-	for (i = 0; i < bd->props.brightness; i++) {
+
+	for (i = 0; i < bd->props.brightness; i++)
+	{
 		status = acpi_evaluate_object(ec_handle, "_Q64", NULL, NULL);
+
 		if (ACPI_FAILURE(status))
+		{
 			return -EIO;
+		}
 	}
 
 	return 0;
 }
 
-static const struct backlight_ops samsungq10_bl_ops = {
+static const struct backlight_ops samsungq10_bl_ops =
+{
 	.update_status	= samsungq10_bl_set_intensity,
 };
 
@@ -60,9 +70,12 @@ static int samsungq10_probe(struct platform_device *pdev)
 	props.type = BACKLIGHT_PLATFORM;
 	props.max_brightness = SAMSUNGQ10_BL_MAX_INTENSITY;
 	bd = backlight_device_register("samsung", &pdev->dev, NULL,
-				       &samsungq10_bl_ops, &props);
+								   &samsungq10_bl_ops, &props);
+
 	if (IS_ERR(bd))
+	{
 		return PTR_ERR(bd);
+	}
 
 	platform_set_drvdata(pdev, bd);
 
@@ -79,7 +92,8 @@ static int samsungq10_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver samsungq10_driver = {
+static struct platform_driver samsungq10_driver =
+{
 	.driver		= {
 		.name	= KBUILD_MODNAME,
 	},
@@ -95,7 +109,8 @@ static int __init dmi_check_callback(const struct dmi_system_id *id)
 	return 1;
 }
 
-static struct dmi_system_id __initdata samsungq10_dmi_table[] = {
+static struct dmi_system_id __initdata samsungq10_dmi_table[] =
+{
 	{
 		.ident = "Samsung Q10",
 		.matches = {
@@ -135,16 +150,20 @@ MODULE_DEVICE_TABLE(dmi, samsungq10_dmi_table);
 static int __init samsungq10_init(void)
 {
 	if (!force && !dmi_check_system(samsungq10_dmi_table))
+	{
 		return -ENODEV;
+	}
 
 	ec_handle = ec_get_handle();
 
 	if (!ec_handle)
+	{
 		return -ENODEV;
+	}
 
 	samsungq10_device = platform_create_bundle(&samsungq10_driver,
-						   samsungq10_probe,
-						   NULL, 0, NULL, 0);
+						samsungq10_probe,
+						NULL, 0, NULL, 0);
 
 	return PTR_ERR_OR_ZERO(samsungq10_device);
 }

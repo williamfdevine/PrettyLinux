@@ -13,12 +13,12 @@
 extern struct posix_acl *nfs3_get_acl(struct inode *inode, int type);
 extern int nfs3_set_acl(struct inode *inode, struct posix_acl *acl, int type);
 extern int nfs3_proc_setacls(struct inode *inode, struct posix_acl *acl,
-		struct posix_acl *dfacl);
+							 struct posix_acl *dfacl);
 extern ssize_t nfs3_listxattr(struct dentry *, char *, size_t);
 extern const struct xattr_handler *nfs3_xattr_handlers[];
 #else
 static inline int nfs3_proc_setacls(struct inode *inode, struct posix_acl *acl,
-		struct posix_acl *dfacl)
+									struct posix_acl *dfacl)
 {
 	return 0;
 }
@@ -28,7 +28,7 @@ static inline int nfs3_proc_setacls(struct inode *inode, struct posix_acl *acl,
 /* nfs3client.c */
 struct nfs_server *nfs3_create_server(struct nfs_mount_info *, struct nfs_subversion *);
 struct nfs_server *nfs3_clone_server(struct nfs_server *, struct nfs_fh *,
-				     struct nfs_fattr *, rpc_authflavor_t);
+									 struct nfs_fattr *, rpc_authflavor_t);
 
 /* nfs3super.c */
 extern struct nfs_subversion nfs_v3;

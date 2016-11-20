@@ -33,60 +33,85 @@
 #define USB_TIMEOUT	(5 * HZ) /* ms */
 
 int tm6000_read_write_usb(struct tm6000_core *dev, u8 req_type, u8 req,
-			  u16 value, u16 index, u8 *buf, u16 len)
+						  u16 value, u16 index, u8 *buf, u16 len)
 {
 	int          ret, i;
 	unsigned int pipe;
 	u8	     *data = NULL;
 	int delay = 5000;
 
-	if (len) {
+	if (len)
+	{
 		data = kzalloc(len, GFP_KERNEL);
+
 		if (!data)
+		{
 			return -ENOMEM;
+		}
 	}
 
 	mutex_lock(&dev->usb_lock);
 
 	if (req_type & USB_DIR_IN)
+	{
 		pipe = usb_rcvctrlpipe(dev->udev, 0);
-	else {
+	}
+	else
+	{
 		pipe = usb_sndctrlpipe(dev->udev, 0);
 		memcpy(data, buf, len);
 	}
 
-	if (tm6000_debug & V4L2_DEBUG_I2C) {
+	if (tm6000_debug & V4L2_DEBUG_I2C)
+	{
 		printk(KERN_DEBUG "(dev %p, pipe %08x): ", dev->udev, pipe);
 
 		printk(KERN_CONT "%s: %02x %02x %02x %02x %02x %02x %02x %02x ",
-			(req_type & USB_DIR_IN) ? " IN" : "OUT",
-			req_type, req, value&0xff, value>>8, index&0xff,
-			index>>8, len&0xff, len>>8);
+			   (req_type & USB_DIR_IN) ? " IN" : "OUT",
+			   req_type, req, value & 0xff, value >> 8, index & 0xff,
+			   index >> 8, len & 0xff, len >> 8);
 
-		if (!(req_type & USB_DIR_IN)) {
+		if (!(req_type & USB_DIR_IN))
+		{
 			printk(KERN_CONT ">>> ");
+
 			for (i = 0; i < len; i++)
+			{
 				printk(KERN_CONT " %02x", buf[i]);
+			}
+
 			printk(KERN_CONT "\n");
 		}
 	}
 
 	ret = usb_control_msg(dev->udev, pipe, req, req_type, value, index,
-			      data, len, USB_TIMEOUT);
+						  data, len, USB_TIMEOUT);
 
 	if (req_type &  USB_DIR_IN)
+	{
 		memcpy(buf, data, len);
+	}
 
-	if (tm6000_debug & V4L2_DEBUG_I2C) {
-		if (ret < 0) {
+	if (tm6000_debug & V4L2_DEBUG_I2C)
+	{
+		if (ret < 0)
+		{
 			if (req_type &  USB_DIR_IN)
+			{
 				printk(KERN_DEBUG "<<< (len=%d)\n", len);
+			}
 
 			printk(KERN_CONT "%s: Error #%d\n", __func__, ret);
-		} else if (req_type &  USB_DIR_IN) {
+		}
+		else if (req_type &  USB_DIR_IN)
+		{
 			printk(KERN_CONT "<<< ");
+
 			for (i = 0; i < len; i++)
+			{
 				printk(KERN_CONT " %02x", buf[i]);
+			}
+
 			printk(KERN_CONT "\n");
 		}
 	}
@@ -94,18 +119,27 @@ int tm6000_read_write_usb(struct tm6000_core *dev, u8 req_type, u8 req,
 	kfree(data);
 
 	if (dev->quirks & TM6000_QUIRK_NO_USB_DELAY)
+	{
 		delay = 0;
+	}
 
-	if (req == REQ_16_SET_GET_I2C_WR1_RDN && !(req_type & USB_DIR_IN)) {
+	if (req == REQ_16_SET_GET_I2C_WR1_RDN && !(req_type & USB_DIR_IN))
+	{
 		unsigned int tsleep;
 		/* Calculate delay time, 14000us for 64 bytes */
 		tsleep = (len * 200) + 200;
+
 		if (tsleep < delay)
+		{
 			tsleep = delay;
+		}
+
 		usleep_range(tsleep, tsleep + 1000);
 	}
 	else if (delay)
+	{
 		usleep_range(delay, delay + 1000);
+	}
 
 	mutex_unlock(&dev->usb_lock);
 	return ret;
@@ -115,7 +149,7 @@ int tm6000_set_reg(struct tm6000_core *dev, u8 req, u16 value, u16 index)
 {
 	return
 		tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR,
-				      req, value, index, NULL, 0);
+							  req, value, index, NULL, 0);
 }
 EXPORT_SYMBOL_GPL(tm6000_set_reg);
 
@@ -125,10 +159,12 @@ int tm6000_get_reg(struct tm6000_core *dev, u8 req, u16 value, u16 index)
 	u8 buf[1];
 
 	rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR, req,
-					value, index, buf, 1);
+							   value, index, buf, 1);
 
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	return *buf;
 }
@@ -142,18 +178,22 @@ int tm6000_set_reg_mask(struct tm6000_core *dev, u8 req, u16 value,
 	u8 new_index;
 
 	rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR, req,
-					value, 0, buf, 1);
+							   value, 0, buf, 1);
 
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	new_index = (buf[0] & ~mask) | (index & mask);
 
 	if (new_index == buf[0])
+	{
 		return 0;
+	}
 
 	return tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR,
-				      req, value, new_index, NULL, 0);
+								 req, value, new_index, NULL, 0);
 }
 EXPORT_SYMBOL_GPL(tm6000_set_reg_mask);
 
@@ -163,12 +203,14 @@ int tm6000_get_reg16(struct tm6000_core *dev, u8 req, u16 value, u16 index)
 	u8 buf[2];
 
 	rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR, req,
-					value, index, buf, 2);
+							   value, index, buf, 2);
 
 	if (rc < 0)
+	{
 		return rc;
+	}
 
-	return buf[1]|buf[0]<<8;
+	return buf[1] | buf[0] << 8;
 }
 
 int tm6000_get_reg32(struct tm6000_core *dev, u8 req, u16 value, u16 index)
@@ -177,10 +219,12 @@ int tm6000_get_reg32(struct tm6000_core *dev, u8 req, u16 value, u16 index)
 	u8 buf[4];
 
 	rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR, req,
-					value, index, buf, 4);
+							   value, index, buf, 4);
 
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	return buf[3] | buf[2] << 8 | buf[1] << 16 | buf[0] << 24;
 }
@@ -190,8 +234,11 @@ int tm6000_i2c_reset(struct tm6000_core *dev, u16 tsleep)
 	int rc;
 
 	rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, TM6000_GPIO_CLK, 0);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	msleep(tsleep);
 
@@ -203,19 +250,31 @@ int tm6000_i2c_reset(struct tm6000_core *dev, u16 tsleep)
 
 void tm6000_set_fourcc_format(struct tm6000_core *dev)
 {
-	if (dev->dev_type == TM6010) {
+	if (dev->dev_type == TM6010)
+	{
 		int val;
 
 		val = tm6000_get_reg(dev, TM6010_REQ07_RCC_ACTIVE_IF, 0) & 0xfc;
+
 		if (dev->fourcc == V4L2_PIX_FMT_UYVY)
+		{
 			tm6000_set_reg(dev, TM6010_REQ07_RCC_ACTIVE_IF, val);
+		}
 		else
+		{
 			tm6000_set_reg(dev, TM6010_REQ07_RCC_ACTIVE_IF, val | 1);
-	} else {
+		}
+	}
+	else
+	{
 		if (dev->fourcc == V4L2_PIX_FMT_UYVY)
+		{
 			tm6000_set_reg(dev, TM6010_REQ07_RC1_TRESHOLD, 0xd0);
+		}
 		else
+		{
 			tm6000_set_reg(dev, TM6010_REQ07_RC1_TRESHOLD, 0x90);
+		}
 	}
 }
 
@@ -229,7 +288,8 @@ static void tm6000_set_vbi(struct tm6000_core *dev)
 	 * if (dev->norm & V4L2_STD_525_60)
 	 */
 
-	if (dev->dev_type == TM6010) {
+	if (dev->dev_type == TM6010)
+	{
 		tm6000_set_reg(dev, TM6010_REQ07_R3F_RESET, 0x01);
 		tm6000_set_reg(dev, TM6010_REQ07_R41_TELETEXT_VBI_CODE1, 0x27);
 		tm6000_set_reg(dev, TM6010_REQ07_R42_VBI_DATA_HIGH_LEVEL, 0x55);
@@ -237,41 +297,41 @@ static void tm6000_set_vbi(struct tm6000_core *dev)
 		tm6000_set_reg(dev, TM6010_REQ07_R44_VBI_DATA_TYPE_LINE8, 0x66);
 		tm6000_set_reg(dev, TM6010_REQ07_R45_VBI_DATA_TYPE_LINE9, 0x66);
 		tm6000_set_reg(dev,
-			TM6010_REQ07_R46_VBI_DATA_TYPE_LINE10, 0x66);
+					   TM6010_REQ07_R46_VBI_DATA_TYPE_LINE10, 0x66);
 		tm6000_set_reg(dev,
-			TM6010_REQ07_R47_VBI_DATA_TYPE_LINE11, 0x66);
+					   TM6010_REQ07_R47_VBI_DATA_TYPE_LINE11, 0x66);
 		tm6000_set_reg(dev,
-			TM6010_REQ07_R48_VBI_DATA_TYPE_LINE12, 0x66);
+					   TM6010_REQ07_R48_VBI_DATA_TYPE_LINE12, 0x66);
 		tm6000_set_reg(dev,
-			TM6010_REQ07_R49_VBI_DATA_TYPE_LINE13, 0x66);
+					   TM6010_REQ07_R49_VBI_DATA_TYPE_LINE13, 0x66);
 		tm6000_set_reg(dev,
-			TM6010_REQ07_R4A_VBI_DATA_TYPE_LINE14, 0x66);
+					   TM6010_REQ07_R4A_VBI_DATA_TYPE_LINE14, 0x66);
 		tm6000_set_reg(dev,
-			TM6010_REQ07_R4B_VBI_DATA_TYPE_LINE15, 0x66);
+					   TM6010_REQ07_R4B_VBI_DATA_TYPE_LINE15, 0x66);
 		tm6000_set_reg(dev,
-			TM6010_REQ07_R4C_VBI_DATA_TYPE_LINE16, 0x66);
+					   TM6010_REQ07_R4C_VBI_DATA_TYPE_LINE16, 0x66);
 		tm6000_set_reg(dev,
-			TM6010_REQ07_R4D_VBI_DATA_TYPE_LINE17, 0x66);
+					   TM6010_REQ07_R4D_VBI_DATA_TYPE_LINE17, 0x66);
 		tm6000_set_reg(dev,
-			TM6010_REQ07_R4E_VBI_DATA_TYPE_LINE18, 0x66);
+					   TM6010_REQ07_R4E_VBI_DATA_TYPE_LINE18, 0x66);
 		tm6000_set_reg(dev,
-			TM6010_REQ07_R4F_VBI_DATA_TYPE_LINE19, 0x66);
+					   TM6010_REQ07_R4F_VBI_DATA_TYPE_LINE19, 0x66);
 		tm6000_set_reg(dev,
-			TM6010_REQ07_R50_VBI_DATA_TYPE_LINE20, 0x66);
+					   TM6010_REQ07_R50_VBI_DATA_TYPE_LINE20, 0x66);
 		tm6000_set_reg(dev,
-			TM6010_REQ07_R51_VBI_DATA_TYPE_LINE21, 0x66);
+					   TM6010_REQ07_R51_VBI_DATA_TYPE_LINE21, 0x66);
 		tm6000_set_reg(dev,
-			TM6010_REQ07_R52_VBI_DATA_TYPE_LINE22, 0x66);
+					   TM6010_REQ07_R52_VBI_DATA_TYPE_LINE22, 0x66);
 		tm6000_set_reg(dev,
-			TM6010_REQ07_R53_VBI_DATA_TYPE_LINE23, 0x00);
+					   TM6010_REQ07_R53_VBI_DATA_TYPE_LINE23, 0x00);
 		tm6000_set_reg(dev,
-			TM6010_REQ07_R54_VBI_DATA_TYPE_RLINES, 0x00);
+					   TM6010_REQ07_R54_VBI_DATA_TYPE_RLINES, 0x00);
 		tm6000_set_reg(dev,
-			TM6010_REQ07_R55_VBI_LOOP_FILTER_GAIN, 0x01);
+					   TM6010_REQ07_R55_VBI_LOOP_FILTER_GAIN, 0x01);
 		tm6000_set_reg(dev,
-			TM6010_REQ07_R56_VBI_LOOP_FILTER_I_GAIN, 0x00);
+					   TM6010_REQ07_R56_VBI_LOOP_FILTER_I_GAIN, 0x00);
 		tm6000_set_reg(dev,
-			TM6010_REQ07_R57_VBI_LOOP_FILTER_P_GAIN, 0x02);
+					   TM6010_REQ07_R57_VBI_LOOP_FILTER_P_GAIN, 0x02);
 		tm6000_set_reg(dev, TM6010_REQ07_R58_VBI_CAPTION_DTO1, 0x35);
 		tm6000_set_reg(dev, TM6010_REQ07_R59_VBI_CAPTION_DTO0, 0xa0);
 		tm6000_set_reg(dev, TM6010_REQ07_R5A_VBI_TELETEXT_DTO1, 0x11);
@@ -285,11 +345,14 @@ int tm6000_init_analog_mode(struct tm6000_core *dev)
 {
 	struct v4l2_frequency f;
 
-	if (dev->dev_type == TM6010) {
+	if (dev->dev_type == TM6010)
+	{
 		u8 active = TM6010_REQ07_RCC_ACTIVE_IF_AUDIO_ENABLE;
 
 		if (!dev->radio)
+		{
 			active |= TM6010_REQ07_RCC_ACTIVE_IF_VIDEO_ENABLE;
+		}
 
 		/* Enable video and audio */
 		tm6000_set_reg_mask(dev, TM6010_REQ07_RCC_ACTIVE_IF,
@@ -297,15 +360,21 @@ int tm6000_init_analog_mode(struct tm6000_core *dev)
 		/* Disable TS input */
 		tm6000_set_reg_mask(dev, TM6010_REQ07_RC0_ACTIVE_VIDEO_SOURCE,
 							0x00, 0x40);
-	} else {
+	}
+	else
+	{
 		/* Enables soft reset */
 		tm6000_set_reg(dev, TM6010_REQ07_R3F_RESET, 0x01);
 
 		if (dev->scaler)
 			/* Disable Hfilter and Enable TS Drop err */
+		{
 			tm6000_set_reg(dev, TM6010_REQ07_RC0_ACTIVE_VIDEO_SOURCE, 0x20);
+		}
 		else	/* Enable Hfilter and disable TS Drop err */
+		{
 			tm6000_set_reg(dev, TM6010_REQ07_RC0_ACTIVE_VIDEO_SOURCE, 0x80);
+		}
 
 		tm6000_set_reg(dev, TM6010_REQ07_RC3_HSTART1, 0x88);
 		tm6000_set_reg(dev, TM6000_REQ07_RDA_CLK_SEL, 0x23);
@@ -323,6 +392,7 @@ int tm6000_init_analog_mode(struct tm6000_core *dev)
 		/* Disables soft reset */
 		tm6000_set_reg(dev, TM6010_REQ07_R3F_RESET, 0x00);
 	}
+
 	msleep(20);
 
 	/* Tuner firmware can now be loaded */
@@ -346,9 +416,10 @@ int tm6000_init_analog_mode(struct tm6000_core *dev)
 	tm6000_set_audio_bitrate(dev, 48000);
 
 	/* switch dvb led off */
-	if (dev->gpio.dvb_led) {
+	if (dev->gpio.dvb_led)
+	{
 		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-			dev->gpio.dvb_led, 0x01);
+					   dev->gpio.dvb_led, 0x01);
 	}
 
 	return 0;
@@ -356,18 +427,21 @@ int tm6000_init_analog_mode(struct tm6000_core *dev)
 
 int tm6000_init_digital_mode(struct tm6000_core *dev)
 {
-	if (dev->dev_type == TM6010) {
+	if (dev->dev_type == TM6010)
+	{
 		/* Disable video and audio */
 		tm6000_set_reg_mask(dev, TM6010_REQ07_RCC_ACTIVE_IF,
-				0x00, 0x60);
+							0x00, 0x60);
 		/* Enable TS input */
 		tm6000_set_reg_mask(dev, TM6010_REQ07_RC0_ACTIVE_VIDEO_SOURCE,
-				0x40, 0x40);
+							0x40, 0x40);
 		/* all power down, but not the digital data port */
 		tm6000_set_reg(dev, TM6010_REQ07_RFE_POWER_DOWN, 0x28);
 		tm6000_set_reg(dev, TM6010_REQ08_RE2_POWER_DOWN_CTRL1, 0xfc);
 		tm6000_set_reg(dev, TM6010_REQ08_RE6_POWER_DOWN_CTRL2, 0xff);
-	} else  {
+	}
+	else
+	{
 		tm6000_set_reg(dev, TM6010_REQ07_RFF_SOFT_RESET, 0x08);
 		tm6000_set_reg(dev, TM6010_REQ07_RFF_SOFT_RESET, 0x00);
 		tm6000_set_reg(dev, TM6010_REQ07_R3F_RESET, 0x01);
@@ -397,23 +471,26 @@ int tm6000_init_digital_mode(struct tm6000_core *dev)
 	}
 
 	/* switch dvb led on */
-	if (dev->gpio.dvb_led) {
+	if (dev->gpio.dvb_led)
+	{
 		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-			dev->gpio.dvb_led, 0x00);
+					   dev->gpio.dvb_led, 0x00);
 	}
 
 	return 0;
 }
 EXPORT_SYMBOL(tm6000_init_digital_mode);
 
-struct reg_init {
+struct reg_init
+{
 	u8 req;
 	u8 reg;
 	u8 val;
 };
 
 /* The meaning of those initializations are unknown */
-static struct reg_init tm6000_init_tab[] = {
+static struct reg_init tm6000_init_tab[] =
+{
 	/* REG  VALUE */
 	{ TM6000_REQ07_RDF_PWDOWN_ACLK, 0x1f },
 	{ TM6010_REQ07_RFF_SOFT_RESET, 0x08 },
@@ -481,7 +558,8 @@ static struct reg_init tm6000_init_tab[] = {
 	{ TM6010_REQ05_R18_IMASK7, 0x00 },
 };
 
-static struct reg_init tm6010_init_tab[] = {
+static struct reg_init tm6010_init_tab[] =
+{
 	{ TM6010_REQ07_RC0_ACTIVE_VIDEO_SOURCE, 0x00 },
 	{ TM6010_REQ07_RC4_HSTART0, 0xa0 },
 	{ TM6010_REQ07_RC6_HEND0, 0x40 },
@@ -572,39 +650,61 @@ int tm6000_init(struct tm6000_core *dev)
 
 	/* Check board revision */
 	board = tm6000_get_reg32(dev, REQ_40_GET_VERSION, 0, 0);
-	if (board >= 0) {
-		switch (board & 0xff) {
-		case 0xf3:
-			printk(KERN_INFO "Found tm6000\n");
-			if (dev->dev_type != TM6000)
-				dev->dev_type = TM6000;
-			break;
-		case 0xf4:
-			printk(KERN_INFO "Found tm6010\n");
-			if (dev->dev_type != TM6010)
-				dev->dev_type = TM6010;
-			break;
-		default:
-			printk(KERN_INFO "Unknown board version = 0x%08x\n", board);
-		}
-	} else
-		printk(KERN_ERR "Error %i while retrieving board version\n", board);
 
-	if (dev->dev_type == TM6010) {
+	if (board >= 0)
+	{
+		switch (board & 0xff)
+		{
+			case 0xf3:
+				printk(KERN_INFO "Found tm6000\n");
+
+				if (dev->dev_type != TM6000)
+				{
+					dev->dev_type = TM6000;
+				}
+
+				break;
+
+			case 0xf4:
+				printk(KERN_INFO "Found tm6010\n");
+
+				if (dev->dev_type != TM6010)
+				{
+					dev->dev_type = TM6010;
+				}
+
+				break;
+
+			default:
+				printk(KERN_INFO "Unknown board version = 0x%08x\n", board);
+		}
+	}
+	else
+	{
+		printk(KERN_ERR "Error %i while retrieving board version\n", board);
+	}
+
+	if (dev->dev_type == TM6010)
+	{
 		tab = tm6010_init_tab;
 		size = ARRAY_SIZE(tm6010_init_tab);
-	} else {
+	}
+	else
+	{
 		tab = tm6000_init_tab;
 		size = ARRAY_SIZE(tm6000_init_tab);
 	}
 
 	/* Load board's initialization table */
-	for (i = 0; i < size; i++) {
+	for (i = 0; i < size; i++)
+	{
 		rc = tm6000_set_reg(dev, tab[i].req, tab[i].reg, tab[i].val);
-		if (rc < 0) {
+
+		if (rc < 0)
+		{
 			printk(KERN_ERR "Error %i while setting req %d, "
-					"reg %d to value %d\n", rc,
-					tab[i].req, tab[i].reg, tab[i].val);
+				   "reg %d to value %d\n", rc,
+				   tab[i].req, tab[i].reg, tab[i].val);
 			return rc;
 		}
 	}
@@ -623,96 +723,127 @@ int tm6000_set_audio_bitrate(struct tm6000_core *dev, int bitrate)
 	u8 areg_f0 = 0x60; /* ADC MCLK = 250 Fs */
 	u8 areg_0a = 0x91; /* SIF 48KHz */
 
-	switch (bitrate) {
-	case 48000:
-		areg_f0 = 0x60; /* ADC MCLK = 250 Fs */
-		areg_0a = 0x91; /* SIF 48KHz */
-		dev->audio_bitrate = bitrate;
-		break;
-	case 32000:
-		areg_f0 = 0x00; /* ADC MCLK = 375 Fs */
-		areg_0a = 0x90; /* SIF 32KHz */
-		dev->audio_bitrate = bitrate;
-		break;
-	default:
-		return -EINVAL;
+	switch (bitrate)
+	{
+		case 48000:
+			areg_f0 = 0x60; /* ADC MCLK = 250 Fs */
+			areg_0a = 0x91; /* SIF 48KHz */
+			dev->audio_bitrate = bitrate;
+			break;
+
+		case 32000:
+			areg_f0 = 0x00; /* ADC MCLK = 375 Fs */
+			areg_0a = 0x90; /* SIF 32KHz */
+			dev->audio_bitrate = bitrate;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 
 	/* enable I2S, if we use sif or external I2S device */
-	if (dev->dev_type == TM6010) {
+	if (dev->dev_type == TM6010)
+	{
 		val = tm6000_set_reg(dev, TM6010_REQ08_R0A_A_I2S_MOD, areg_0a);
+
 		if (val < 0)
+		{
 			return val;
+		}
 
 		val = tm6000_set_reg_mask(dev, TM6010_REQ08_RF0_DAUDIO_INPUT_CONFIG,
-							areg_f0, 0xf0);
+								  areg_f0, 0xf0);
+
 		if (val < 0)
+		{
 			return val;
-	} else {
-		val = tm6000_set_reg_mask(dev, TM6000_REQ07_REB_VADC_AADC_MODE,
-							areg_f0, 0xf0);
-		if (val < 0)
-			return val;
+		}
 	}
+	else
+	{
+		val = tm6000_set_reg_mask(dev, TM6000_REQ07_REB_VADC_AADC_MODE,
+								  areg_f0, 0xf0);
+
+		if (val < 0)
+		{
+			return val;
+		}
+	}
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(tm6000_set_audio_bitrate);
 
 int tm6000_set_audio_rinput(struct tm6000_core *dev)
 {
-	if (dev->dev_type == TM6010) {
+	if (dev->dev_type == TM6010)
+	{
 		/* Audio crossbar setting, default SIF1 */
 		u8 areg_f0;
 		u8 areg_07 = 0x10;
 
-		switch (dev->rinput.amux) {
-		case TM6000_AMUX_SIF1:
-		case TM6000_AMUX_SIF2:
-			areg_f0 = 0x03;
-			areg_07 = 0x30;
-			break;
-		case TM6000_AMUX_ADC1:
-			areg_f0 = 0x00;
-			break;
-		case TM6000_AMUX_ADC2:
-			areg_f0 = 0x08;
-			break;
-		case TM6000_AMUX_I2S:
-			areg_f0 = 0x04;
-			break;
-		default:
-			printk(KERN_INFO "%s: audio input dosn't support\n",
-				dev->name);
-			return 0;
-			break;
+		switch (dev->rinput.amux)
+		{
+			case TM6000_AMUX_SIF1:
+			case TM6000_AMUX_SIF2:
+				areg_f0 = 0x03;
+				areg_07 = 0x30;
+				break;
+
+			case TM6000_AMUX_ADC1:
+				areg_f0 = 0x00;
+				break;
+
+			case TM6000_AMUX_ADC2:
+				areg_f0 = 0x08;
+				break;
+
+			case TM6000_AMUX_I2S:
+				areg_f0 = 0x04;
+				break;
+
+			default:
+				printk(KERN_INFO "%s: audio input dosn't support\n",
+					   dev->name);
+				return 0;
+				break;
 		}
+
 		/* Set audio input crossbar */
 		tm6000_set_reg_mask(dev, TM6010_REQ08_RF0_DAUDIO_INPUT_CONFIG,
 							areg_f0, 0x0f);
 		/* Mux overflow workaround */
 		tm6000_set_reg_mask(dev, TM6010_REQ07_R07_OUTPUT_CONTROL,
-			areg_07, 0xf0);
-	} else {
+							areg_07, 0xf0);
+	}
+	else
+	{
 		u8 areg_eb;
+
 		/* Audio setting, default LINE1 */
-		switch (dev->rinput.amux) {
-		case TM6000_AMUX_ADC1:
-			areg_eb = 0x00;
-			break;
-		case TM6000_AMUX_ADC2:
-			areg_eb = 0x04;
-			break;
-		default:
-			printk(KERN_INFO "%s: audio input dosn't support\n",
-				dev->name);
-			return 0;
-			break;
+		switch (dev->rinput.amux)
+		{
+			case TM6000_AMUX_ADC1:
+				areg_eb = 0x00;
+				break;
+
+			case TM6000_AMUX_ADC2:
+				areg_eb = 0x04;
+				break;
+
+			default:
+				printk(KERN_INFO "%s: audio input dosn't support\n",
+					   dev->name);
+				return 0;
+				break;
 		}
+
 		/* Set audio input */
 		tm6000_set_reg_mask(dev, TM6000_REQ07_REB_VADC_AADC_MODE,
 							areg_eb, 0x0f);
 	}
+
 	return 0;
 }
 
@@ -721,7 +852,9 @@ static void tm6010_set_mute_sif(struct tm6000_core *dev, u8 mute)
 	u8 mute_reg = 0;
 
 	if (mute)
+	{
 		mute_reg = 0x08;
+	}
 
 	tm6000_set_reg_mask(dev, TM6010_REQ08_R0A_A_I2S_MOD, mute_reg, 0x08);
 }
@@ -731,14 +864,19 @@ static void tm6010_set_mute_adc(struct tm6000_core *dev, u8 mute)
 	u8 mute_reg = 0;
 
 	if (mute)
+	{
 		mute_reg = 0x20;
+	}
 
-	if (dev->dev_type == TM6010) {
+	if (dev->dev_type == TM6010)
+	{
 		tm6000_set_reg_mask(dev, TM6010_REQ08_RF2_LEFT_CHANNEL_VOL,
 							mute_reg, 0x20);
 		tm6000_set_reg_mask(dev, TM6010_REQ08_RF3_RIGHT_CHANNEL_VOL,
 							mute_reg, 0x20);
-	} else {
+	}
+	else
+	{
 		tm6000_set_reg_mask(dev, TM6000_REQ07_REC_VADC_AADC_LVOL,
 							mute_reg, 0x20);
 		tm6000_set_reg_mask(dev, TM6000_REQ07_RED_VADC_AADC_RVOL,
@@ -751,30 +889,42 @@ int tm6000_tvaudio_set_mute(struct tm6000_core *dev, u8 mute)
 	enum tm6000_mux mux;
 
 	if (dev->radio)
+	{
 		mux = dev->rinput.amux;
-	else
-		mux = dev->vinput[dev->input].amux;
-
-	switch (mux) {
-	case TM6000_AMUX_SIF1:
-	case TM6000_AMUX_SIF2:
-		if (dev->dev_type == TM6010)
-			tm6010_set_mute_sif(dev, mute);
-		else {
-			printk(KERN_INFO "ERROR: TM5600 and TM6000 don't has"
-					" SIF audio inputs. Please check the %s"
-					" configuration.\n", dev->name);
-			return -EINVAL;
-		}
-		break;
-	case TM6000_AMUX_ADC1:
-	case TM6000_AMUX_ADC2:
-		tm6010_set_mute_adc(dev, mute);
-		break;
-	default:
-		return -EINVAL;
-		break;
 	}
+	else
+	{
+		mux = dev->vinput[dev->input].amux;
+	}
+
+	switch (mux)
+	{
+		case TM6000_AMUX_SIF1:
+		case TM6000_AMUX_SIF2:
+			if (dev->dev_type == TM6010)
+			{
+				tm6010_set_mute_sif(dev, mute);
+			}
+			else
+			{
+				printk(KERN_INFO "ERROR: TM5600 and TM6000 don't has"
+					   " SIF audio inputs. Please check the %s"
+					   " configuration.\n", dev->name);
+				return -EINVAL;
+			}
+
+			break;
+
+		case TM6000_AMUX_ADC1:
+		case TM6000_AMUX_ADC2:
+			tm6010_set_mute_adc(dev, mute);
+			break;
+
+		default:
+			return -EINVAL;
+			break;
+	}
+
 	return 0;
 }
 
@@ -785,7 +935,9 @@ static void tm6010_set_volume_sif(struct tm6000_core *dev, int vol)
 	vol_reg = vol & 0x0F;
 
 	if (vol < 0)
+	{
 		vol_reg |= 0x40;
+	}
 
 	tm6000_set_reg(dev, TM6010_REQ08_R07_A_LEFT_VOL, vol_reg);
 	tm6000_set_reg(dev, TM6010_REQ08_R08_A_RIGHT_VOL, vol_reg);
@@ -797,10 +949,13 @@ static void tm6010_set_volume_adc(struct tm6000_core *dev, int vol)
 
 	vol_reg = (vol + 0x10) & 0x1f;
 
-	if (dev->dev_type == TM6010) {
+	if (dev->dev_type == TM6010)
+	{
 		tm6000_set_reg(dev, TM6010_REQ08_RF2_LEFT_CHANNEL_VOL, vol_reg);
 		tm6000_set_reg(dev, TM6010_REQ08_RF3_RIGHT_CHANNEL_VOL, vol_reg);
-	} else {
+	}
+	else
+	{
 		tm6000_set_reg(dev, TM6000_REQ07_REC_VADC_AADC_LVOL, vol_reg);
 		tm6000_set_reg(dev, TM6000_REQ07_RED_VADC_AADC_RVOL, vol_reg);
 	}
@@ -810,28 +965,38 @@ void tm6000_set_volume(struct tm6000_core *dev, int vol)
 {
 	enum tm6000_mux mux;
 
-	if (dev->radio) {
+	if (dev->radio)
+	{
 		mux = dev->rinput.amux;
 		vol += 8; /* Offset to 0 dB */
-	} else
+	}
+	else
+	{
 		mux = dev->vinput[dev->input].amux;
+	}
 
-	switch (mux) {
-	case TM6000_AMUX_SIF1:
-	case TM6000_AMUX_SIF2:
-		if (dev->dev_type == TM6010)
-			tm6010_set_volume_sif(dev, vol);
-		else
-			printk(KERN_INFO "ERROR: TM5600 and TM6000 don't has"
-					" SIF audio inputs. Please check the %s"
-					" configuration.\n", dev->name);
-		break;
-	case TM6000_AMUX_ADC1:
-	case TM6000_AMUX_ADC2:
-		tm6010_set_volume_adc(dev, vol);
-		break;
-	default:
-		break;
+	switch (mux)
+	{
+		case TM6000_AMUX_SIF1:
+		case TM6000_AMUX_SIF2:
+			if (dev->dev_type == TM6010)
+			{
+				tm6010_set_volume_sif(dev, vol);
+			}
+			else
+				printk(KERN_INFO "ERROR: TM5600 and TM6000 don't has"
+					   " SIF audio inputs. Please check the %s"
+					   " configuration.\n", dev->name);
+
+			break;
+
+		case TM6000_AMUX_ADC1:
+		case TM6000_AMUX_ADC2:
+			tm6010_set_volume_adc(dev, vol);
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -863,16 +1028,20 @@ void tm6000_add_into_devlist(struct tm6000_core *dev)
 static LIST_HEAD(tm6000_extension_devlist);
 
 int tm6000_call_fillbuf(struct tm6000_core *dev, enum tm6000_ops_type type,
-			char *buf, int size)
+						char *buf, int size)
 {
 	struct tm6000_ops *ops = NULL;
 
 	/* FIXME: tm6000_extension_devlist_lock should be a spinlock */
 
-	if (!list_empty(&tm6000_extension_devlist)) {
-		list_for_each_entry(ops, &tm6000_extension_devlist, next) {
+	if (!list_empty(&tm6000_extension_devlist))
+	{
+		list_for_each_entry(ops, &tm6000_extension_devlist, next)
+		{
 			if (ops->fillbuf && ops->type == type)
+			{
 				ops->fillbuf(dev, buf, size);
+			}
 		}
 	}
 
@@ -885,10 +1054,11 @@ int tm6000_register_extension(struct tm6000_ops *ops)
 
 	mutex_lock(&tm6000_devlist_mutex);
 	list_add_tail(&ops->next, &tm6000_extension_devlist);
-	list_for_each_entry(dev, &tm6000_devlist, devlist) {
+	list_for_each_entry(dev, &tm6000_devlist, devlist)
+	{
 		ops->init(dev);
 		printk(KERN_INFO "%s: Initialized (%s) extension\n",
-		       dev->name, ops->name);
+			   dev->name, ops->name);
 	}
 	mutex_unlock(&tm6000_devlist_mutex);
 	return 0;
@@ -901,7 +1071,7 @@ void tm6000_unregister_extension(struct tm6000_ops *ops)
 
 	mutex_lock(&tm6000_devlist_mutex);
 	list_for_each_entry(dev, &tm6000_devlist, devlist)
-		ops->fini(dev);
+	ops->fini(dev);
 
 	printk(KERN_INFO "tm6000: Remove (%s) extension\n", ops->name);
 	list_del(&ops->next);
@@ -914,12 +1084,18 @@ void tm6000_init_extension(struct tm6000_core *dev)
 	struct tm6000_ops *ops = NULL;
 
 	mutex_lock(&tm6000_devlist_mutex);
-	if (!list_empty(&tm6000_extension_devlist)) {
-		list_for_each_entry(ops, &tm6000_extension_devlist, next) {
+
+	if (!list_empty(&tm6000_extension_devlist))
+	{
+		list_for_each_entry(ops, &tm6000_extension_devlist, next)
+		{
 			if (ops->init)
+			{
 				ops->init(dev);
+			}
 		}
 	}
+
 	mutex_unlock(&tm6000_devlist_mutex);
 }
 
@@ -928,11 +1104,17 @@ void tm6000_close_extension(struct tm6000_core *dev)
 	struct tm6000_ops *ops = NULL;
 
 	mutex_lock(&tm6000_devlist_mutex);
-	if (!list_empty(&tm6000_extension_devlist)) {
-		list_for_each_entry(ops, &tm6000_extension_devlist, next) {
+
+	if (!list_empty(&tm6000_extension_devlist))
+	{
+		list_for_each_entry(ops, &tm6000_extension_devlist, next)
+		{
 			if (ops->fini)
+			{
 				ops->fini(dev);
+			}
 		}
 	}
+
 	mutex_unlock(&tm6000_devlist_mutex);
 }

@@ -22,7 +22,8 @@
 #define ERG_TO_PC_BUF_SIZE  0x0E00	/* 3072 bytes to PC, too */
 
 /* following DPRAM layout copied from OS2-driver boarderg.h */
-typedef struct ErgDpram_tag {
+typedef struct ErgDpram_tag
+{
 	/*0000 */ unsigned char ToHyBuf[ERG_TO_HY_BUF_SIZE];
 	/*0E00 */ unsigned char ToPcBuf[ERG_TO_PC_BUF_SIZE];
 

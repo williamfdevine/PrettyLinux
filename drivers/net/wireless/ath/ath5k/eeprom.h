@@ -149,11 +149,11 @@
 #define AR5K_EEPROM_GROUP8_OFFSET	0x6f
 
 #define AR5K_EEPROM_TARGET_PWR_OFF_11A(_v)	AR5K_EEPROM_OFF(_v, AR5K_EEPROM_GROUPS_START(_v) + \
-								AR5K_EEPROM_GROUP5_OFFSET, 0x0000)
+		AR5K_EEPROM_GROUP5_OFFSET, 0x0000)
 #define AR5K_EEPROM_TARGET_PWR_OFF_11B(_v)	AR5K_EEPROM_OFF(_v, AR5K_EEPROM_GROUPS_START(_v) + \
-								AR5K_EEPROM_GROUP6_OFFSET, 0x0010)
+		AR5K_EEPROM_GROUP6_OFFSET, 0x0010)
 #define AR5K_EEPROM_TARGET_PWR_OFF_11G(_v)	AR5K_EEPROM_OFF(_v, AR5K_EEPROM_GROUPS_START(_v) + \
-								AR5K_EEPROM_GROUP7_OFFSET, 0x0014)
+		AR5K_EEPROM_GROUP7_OFFSET, 0x0014)
 
 /* [3.1 - 3.3] */
 #define AR5K_EEPROM_OBDB0_2GHZ		0x00ec
@@ -224,7 +224,8 @@
 #define AR5K_EEPROM_CCK_OFDM_DELTA	15
 #define AR5K_EEPROM_N_IQ_CAL		2
 /* 5GHz/2GHz */
-enum ath5k_eeprom_freq_bands {
+enum ath5k_eeprom_freq_bands
+{
 	AR5K_EEPROM_BAND_5GHZ = 0,
 	AR5K_EEPROM_BAND_2GHZ = 1,
 	AR5K_EEPROM_N_FREQ_BANDS,
@@ -242,254 +243,266 @@ enum ath5k_eeprom_freq_bands {
 #define	AR5K_SPUR_SYMBOL_WIDTH_TURBO_100Hz	6250
 
 #define AR5K_EEPROM_READ(_o, _v) do {			\
-	if (!ath5k_hw_nvram_read(ah, (_o), &(_v)))	\
-		return -EIO;				\
-} while (0)
+		if (!ath5k_hw_nvram_read(ah, (_o), &(_v)))	\
+			return -EIO;				\
+	} while (0)
 
 #define AR5K_EEPROM_READ_HDR(_o, _v)					\
 	AR5K_EEPROM_READ(_o, ah->ah_capabilities.cap_eeprom._v);	\
 
-enum ath5k_ant_table {
-	AR5K_ANT_CTL		= 0,	/* Idle switch table settings */
-	AR5K_ANT_SWTABLE_A	= 1,	/* Switch table for antenna A */
-	AR5K_ANT_SWTABLE_B	= 2,	/* Switch table for antenna B */
-	AR5K_ANT_MAX,
-};
-
-enum ath5k_ctl_mode {
-	AR5K_CTL_11A = 0,
-	AR5K_CTL_11B = 1,
-	AR5K_CTL_11G = 2,
-	AR5K_CTL_TURBO = 3,
-	AR5K_CTL_TURBOG = 4,
-	AR5K_CTL_2GHT20 = 5,
-	AR5K_CTL_5GHT20 = 6,
-	AR5K_CTL_2GHT40 = 7,
-	AR5K_CTL_5GHT40 = 8,
-	AR5K_CTL_MODE_M = 15,
-};
-
-/* Per channel calibration data, used for power table setup */
-struct ath5k_chan_pcal_info_rf5111 {
-	/* Power levels in half dBm units
-	 * for one power curve. */
-	u8 pwr[AR5K_EEPROM_N_PWR_POINTS_5111];
-	/* PCDAC table steps
-	 * for the above values */
-	u8 pcdac[AR5K_EEPROM_N_PWR_POINTS_5111];
-	/* Starting PCDAC step */
-	u8 pcdac_min;
-	/* Final PCDAC step */
-	u8 pcdac_max;
-};
-
-struct ath5k_chan_pcal_info_rf5112 {
-	/* Power levels in quarter dBm units
-	 * for lower (0) and higher (3)
-	 * level curves in 0.25dB units */
-	s8 pwr_x0[AR5K_EEPROM_N_XPD0_POINTS];
-	s8 pwr_x3[AR5K_EEPROM_N_XPD3_POINTS];
-	/* PCDAC table steps
-	 * for the above values */
-	u8 pcdac_x0[AR5K_EEPROM_N_XPD0_POINTS];
-	u8 pcdac_x3[AR5K_EEPROM_N_XPD3_POINTS];
-};
-
-struct ath5k_chan_pcal_info_rf2413 {
-	/* Starting pwr/pddac values */
-	s8 pwr_i[AR5K_EEPROM_N_PD_GAINS];
-	u8 pddac_i[AR5K_EEPROM_N_PD_GAINS];
-	/* (pwr,pddac) points
-	 * power levels in 0.5dB units */
-	s8 pwr[AR5K_EEPROM_N_PD_GAINS]
-		[AR5K_EEPROM_N_PD_POINTS];
-	u8 pddac[AR5K_EEPROM_N_PD_GAINS]
-		[AR5K_EEPROM_N_PD_POINTS];
-};
-
-enum ath5k_powertable_type {
-	AR5K_PWRTABLE_PWR_TO_PCDAC = 0,
-	AR5K_PWRTABLE_LINEAR_PCDAC = 1,
-	AR5K_PWRTABLE_PWR_TO_PDADC = 2,
-};
-
-struct ath5k_pdgain_info {
-	u8 pd_points;
-	u8 *pd_step;
-	/* Power values are in
-	 * 0.25dB units */
-	s16 *pd_pwr;
-};
-
-struct ath5k_chan_pcal_info {
-	/* Frequency */
-	u16	freq;
-	/* Tx power boundaries */
-	s16	max_pwr;
-	s16	min_pwr;
-	union {
-		struct ath5k_chan_pcal_info_rf5111 rf5111_info;
-		struct ath5k_chan_pcal_info_rf5112 rf5112_info;
-		struct ath5k_chan_pcal_info_rf2413 rf2413_info;
+	enum ath5k_ant_table
+	{
+		AR5K_ANT_CTL		= 0,	/* Idle switch table settings */
+		AR5K_ANT_SWTABLE_A	= 1,	/* Switch table for antenna A */
+		AR5K_ANT_SWTABLE_B	= 2,	/* Switch table for antenna B */
+		AR5K_ANT_MAX,
 	};
-	/* Raw values used by phy code
-	 * Curves are stored in order from lower
-	 * gain to higher gain (max txpower -> min txpower) */
-	struct ath5k_pdgain_info *pd_curves;
-};
 
-/* Per rate calibration data for each mode,
- * used for rate power table setup.
- * Note: Values in 0.5dB units */
-struct ath5k_rate_pcal_info {
-	u16	freq; /* Frequency */
-	/* Power level for 6-24Mbit/s rates or
-	 * 1Mb rate */
-	u16	target_power_6to24;
-	/* Power level for 36Mbit rate or
-	 * 2Mb rate */
-	u16	target_power_36;
-	/* Power level for 48Mbit rate or
-	 * 5.5Mbit rate */
-	u16	target_power_48;
-	/* Power level for 54Mbit rate or
-	 * 11Mbit rate */
-	u16	target_power_54;
-};
+	enum ath5k_ctl_mode
+	{
+		AR5K_CTL_11A = 0,
+		AR5K_CTL_11B = 1,
+		AR5K_CTL_11G = 2,
+		AR5K_CTL_TURBO = 3,
+		AR5K_CTL_TURBOG = 4,
+		AR5K_CTL_2GHT20 = 5,
+		AR5K_CTL_5GHT20 = 6,
+		AR5K_CTL_2GHT40 = 7,
+		AR5K_CTL_5GHT40 = 8,
+		AR5K_CTL_MODE_M = 15,
+	};
 
-/* Power edges for conformance test limits */
-struct ath5k_edge_power {
-	u16 freq;
-	u16 edge; /* in half dBm */
-	bool flag;
-};
+	/* Per channel calibration data, used for power table setup */
+	struct ath5k_chan_pcal_info_rf5111
+	{
+		/* Power levels in half dBm units
+		 * for one power curve. */
+		u8 pwr[AR5K_EEPROM_N_PWR_POINTS_5111];
+		/* PCDAC table steps
+		 * for the above values */
+		u8 pcdac[AR5K_EEPROM_N_PWR_POINTS_5111];
+		/* Starting PCDAC step */
+		u8 pcdac_min;
+		/* Final PCDAC step */
+		u8 pcdac_max;
+	};
 
-/**
- * struct ath5k_eeprom_info - EEPROM calibration data
- *
- * @ee_regdomain: ath/regd.c takes care of COUNTRY_ERD and WORLDWIDE_ROAMING
- *	flags
- * @ee_ant_gain: Antenna gain in 0.5dB steps signed [5211 only?]
- * @ee_cck_ofdm_gain_delta: difference in gainF to output the same power for
- *	OFDM and CCK packets
- * @ee_cck_ofdm_power_delta: power difference between OFDM (6Mbps) and CCK
- *	(11Mbps) rate in G mode. 0.1dB steps
- * @ee_scaled_cck_delta: for Japan Channel 14: 0.1dB resolution
- *
- * @ee_i_cal: Initial I coefficient to correct I/Q mismatch in the receive path
- * @ee_q_cal: Initial Q coefficient to correct I/Q mismatch in the receive path
- * @ee_fixed_bias: use ee_ob and ee_db settings or use automatic control
- * @ee_switch_settling: RX/TX Switch settling time
- * @ee_atn_tx_rx: Difference in attenuation between TX and RX in 1dB steps
- * @ee_ant_control: Antenna Control Settings
- * @ee_ob: Bias current for Output stage of PA
- *	B/G mode: Index [0] is used for AR2112/5112, otherwise [1]
- *	A mode: [0] 5.15-5.25 [1] 5.25-5.50 [2] 5.50-5.70 [3] 5.70-5.85 GHz
- * @ee_db: Bias current for Output stage of PA. see @ee_ob
- * @ee_tx_end2xlna_enable: Time difference from when BB finishes sending a frame
- *	to when the external LNA is activated
- * @ee_tx_end2xpa_disable: Time difference from when BB finishes sending a frame
- *	to when the external PA switch is deactivated
- * @ee_tx_frm2xpa_enable: Time difference from when MAC sends frame to when
- *	external PA switch is activated
- * @ee_thr_62: Clear Channel Assessment (CCA) sensitivity
- *	(IEEE802.11a section 17.3.10.5 )
- * @ee_xlna_gain: Total gain of the LNA (information only)
- * @ee_xpd: Use external (1) or internal power detector
- * @ee_x_gain: Gain for external power detector output (differences in EEMAP
- *	versions!)
- * @ee_i_gain: Initial gain value after reset
- * @ee_margin_tx_rx: Margin in dB when final attenuation stage should be used
- *
- * @ee_false_detect: Backoff in Sensitivity (dB) on channels with spur signals
- * @ee_noise_floor_thr: Noise floor threshold in 1dB steps
- * @ee_adc_desired_size: Desired amplitude for ADC, used by AGC; in 0.5 dB steps
- * @ee_pga_desired_size: Desired output of PGA (for BB gain) in 0.5 dB steps
- * @ee_pd_gain_overlap: PD ADC curves need to overlap in 0.5dB steps (ee_map>=2)
- */
-struct ath5k_eeprom_info {
+	struct ath5k_chan_pcal_info_rf5112
+	{
+		/* Power levels in quarter dBm units
+		 * for lower (0) and higher (3)
+		 * level curves in 0.25dB units */
+		s8 pwr_x0[AR5K_EEPROM_N_XPD0_POINTS];
+		s8 pwr_x3[AR5K_EEPROM_N_XPD3_POINTS];
+		/* PCDAC table steps
+		 * for the above values */
+		u8 pcdac_x0[AR5K_EEPROM_N_XPD0_POINTS];
+		u8 pcdac_x3[AR5K_EEPROM_N_XPD3_POINTS];
+	};
 
-	/* Header information */
-	u16	ee_magic;
-	u16	ee_protect;
-	u16	ee_regdomain;
-	u16	ee_version;
-	u16	ee_header;
-	u16	ee_ant_gain;
-	u8	ee_rfkill_pin;
-	bool	ee_rfkill_pol;
-	bool	ee_is_hb63;
-	bool	ee_serdes;
-	u16	ee_misc0;
-	u16	ee_misc1;
-	u16	ee_misc2;
-	u16	ee_misc3;
-	u16	ee_misc4;
-	u16	ee_misc5;
-	u16	ee_misc6;
-	u16	ee_cck_ofdm_gain_delta;
-	u16	ee_cck_ofdm_power_delta;
-	u16	ee_scaled_cck_delta;
+	struct ath5k_chan_pcal_info_rf2413
+	{
+		/* Starting pwr/pddac values */
+		s8 pwr_i[AR5K_EEPROM_N_PD_GAINS];
+		u8 pddac_i[AR5K_EEPROM_N_PD_GAINS];
+		/* (pwr,pddac) points
+		 * power levels in 0.5dB units */
+		s8 pwr[AR5K_EEPROM_N_PD_GAINS]
+		[AR5K_EEPROM_N_PD_POINTS];
+		u8 pddac[AR5K_EEPROM_N_PD_GAINS]
+		[AR5K_EEPROM_N_PD_POINTS];
+	};
 
-	/* RF Calibration settings (reset, rfregs) */
-	u16	ee_i_cal[AR5K_EEPROM_N_MODES];
-	u16	ee_q_cal[AR5K_EEPROM_N_MODES];
-	u16	ee_fixed_bias[AR5K_EEPROM_N_MODES];
-	u16	ee_turbo_max_power[AR5K_EEPROM_N_MODES];
-	u16	ee_xr_power[AR5K_EEPROM_N_MODES];
-	u16	ee_switch_settling[AR5K_EEPROM_N_MODES];
-	u16	ee_atn_tx_rx[AR5K_EEPROM_N_MODES];
-	u16	ee_ant_control[AR5K_EEPROM_N_MODES][AR5K_EEPROM_N_PCDAC];
-	u16	ee_ob[AR5K_EEPROM_N_MODES][AR5K_EEPROM_N_OBDB];
-	u16	ee_db[AR5K_EEPROM_N_MODES][AR5K_EEPROM_N_OBDB];
-	u16	ee_tx_end2xlna_enable[AR5K_EEPROM_N_MODES];
-	u16	ee_tx_end2xpa_disable[AR5K_EEPROM_N_MODES];
-	u16	ee_tx_frm2xpa_enable[AR5K_EEPROM_N_MODES];
-	u16	ee_thr_62[AR5K_EEPROM_N_MODES];
-	u16	ee_xlna_gain[AR5K_EEPROM_N_MODES];
-	u16	ee_xpd[AR5K_EEPROM_N_MODES];
-	u16	ee_x_gain[AR5K_EEPROM_N_MODES];
-	u16	ee_i_gain[AR5K_EEPROM_N_MODES];
-	u16	ee_margin_tx_rx[AR5K_EEPROM_N_MODES];
-	u16	ee_switch_settling_turbo[AR5K_EEPROM_N_MODES];
-	u16	ee_margin_tx_rx_turbo[AR5K_EEPROM_N_MODES];
-	u16	ee_atn_tx_rx_turbo[AR5K_EEPROM_N_MODES];
+	enum ath5k_powertable_type
+	{
+		AR5K_PWRTABLE_PWR_TO_PCDAC = 0,
+		AR5K_PWRTABLE_LINEAR_PCDAC = 1,
+		AR5K_PWRTABLE_PWR_TO_PDADC = 2,
+	};
 
-	/* Power calibration data */
-	u16	ee_false_detect[AR5K_EEPROM_N_MODES];
+	struct ath5k_pdgain_info
+	{
+		u8 pd_points;
+		u8 *pd_step;
+		/* Power values are in
+		 * 0.25dB units */
+		s16 *pd_pwr;
+	};
 
-	/* Number of pd gain curves per mode */
-	u8	ee_pd_gains[AR5K_EEPROM_N_MODES];
-	/* Back mapping pdcurve number -> pdcurve index in pd->pd_curves */
-	u8	ee_pdc_to_idx[AR5K_EEPROM_N_MODES][AR5K_EEPROM_N_PD_GAINS];
+	struct ath5k_chan_pcal_info
+	{
+		/* Frequency */
+		u16	freq;
+		/* Tx power boundaries */
+		s16	max_pwr;
+		s16	min_pwr;
+		union
+		{
+			struct ath5k_chan_pcal_info_rf5111 rf5111_info;
+			struct ath5k_chan_pcal_info_rf5112 rf5112_info;
+			struct ath5k_chan_pcal_info_rf2413 rf2413_info;
+		};
+		/* Raw values used by phy code
+		 * Curves are stored in order from lower
+		 * gain to higher gain (max txpower -> min txpower) */
+		struct ath5k_pdgain_info *pd_curves;
+	};
 
-	u8	ee_n_piers[AR5K_EEPROM_N_MODES];
-	struct ath5k_chan_pcal_info	ee_pwr_cal_a[AR5K_EEPROM_N_5GHZ_CHAN];
-	struct ath5k_chan_pcal_info	ee_pwr_cal_b[AR5K_EEPROM_N_2GHZ_CHAN_MAX];
-	struct ath5k_chan_pcal_info	ee_pwr_cal_g[AR5K_EEPROM_N_2GHZ_CHAN_MAX];
+	/* Per rate calibration data for each mode,
+	 * used for rate power table setup.
+	 * Note: Values in 0.5dB units */
+	struct ath5k_rate_pcal_info
+	{
+		u16	freq; /* Frequency */
+		/* Power level for 6-24Mbit/s rates or
+		 * 1Mb rate */
+		u16	target_power_6to24;
+		/* Power level for 36Mbit rate or
+		 * 2Mb rate */
+		u16	target_power_36;
+		/* Power level for 48Mbit rate or
+		 * 5.5Mbit rate */
+		u16	target_power_48;
+		/* Power level for 54Mbit rate or
+		 * 11Mbit rate */
+		u16	target_power_54;
+	};
 
-	/* Per rate target power levels */
-	u8	ee_rate_target_pwr_num[AR5K_EEPROM_N_MODES];
-	struct ath5k_rate_pcal_info	ee_rate_tpwr_a[AR5K_EEPROM_N_5GHZ_CHAN];
-	struct ath5k_rate_pcal_info	ee_rate_tpwr_b[AR5K_EEPROM_N_2GHZ_CHAN_MAX];
-	struct ath5k_rate_pcal_info	ee_rate_tpwr_g[AR5K_EEPROM_N_2GHZ_CHAN_MAX];
+	/* Power edges for conformance test limits */
+	struct ath5k_edge_power
+	{
+		u16 freq;
+		u16 edge; /* in half dBm */
+		bool flag;
+	};
 
-	/* Conformance test limits (Unused) */
-	u8	ee_ctls;
-	u8	ee_ctl[AR5K_EEPROM_MAX_CTLS];
-	struct ath5k_edge_power ee_ctl_pwr[AR5K_EEPROM_N_EDGES * AR5K_EEPROM_MAX_CTLS];
+	/**
+	 * struct ath5k_eeprom_info - EEPROM calibration data
+	 *
+	 * @ee_regdomain: ath/regd.c takes care of COUNTRY_ERD and WORLDWIDE_ROAMING
+	 *	flags
+	 * @ee_ant_gain: Antenna gain in 0.5dB steps signed [5211 only?]
+	 * @ee_cck_ofdm_gain_delta: difference in gainF to output the same power for
+	 *	OFDM and CCK packets
+	 * @ee_cck_ofdm_power_delta: power difference between OFDM (6Mbps) and CCK
+	 *	(11Mbps) rate in G mode. 0.1dB steps
+	 * @ee_scaled_cck_delta: for Japan Channel 14: 0.1dB resolution
+	 *
+	 * @ee_i_cal: Initial I coefficient to correct I/Q mismatch in the receive path
+	 * @ee_q_cal: Initial Q coefficient to correct I/Q mismatch in the receive path
+	 * @ee_fixed_bias: use ee_ob and ee_db settings or use automatic control
+	 * @ee_switch_settling: RX/TX Switch settling time
+	 * @ee_atn_tx_rx: Difference in attenuation between TX and RX in 1dB steps
+	 * @ee_ant_control: Antenna Control Settings
+	 * @ee_ob: Bias current for Output stage of PA
+	 *	B/G mode: Index [0] is used for AR2112/5112, otherwise [1]
+	 *	A mode: [0] 5.15-5.25 [1] 5.25-5.50 [2] 5.50-5.70 [3] 5.70-5.85 GHz
+	 * @ee_db: Bias current for Output stage of PA. see @ee_ob
+	 * @ee_tx_end2xlna_enable: Time difference from when BB finishes sending a frame
+	 *	to when the external LNA is activated
+	 * @ee_tx_end2xpa_disable: Time difference from when BB finishes sending a frame
+	 *	to when the external PA switch is deactivated
+	 * @ee_tx_frm2xpa_enable: Time difference from when MAC sends frame to when
+	 *	external PA switch is activated
+	 * @ee_thr_62: Clear Channel Assessment (CCA) sensitivity
+	 *	(IEEE802.11a section 17.3.10.5 )
+	 * @ee_xlna_gain: Total gain of the LNA (information only)
+	 * @ee_xpd: Use external (1) or internal power detector
+	 * @ee_x_gain: Gain for external power detector output (differences in EEMAP
+	 *	versions!)
+	 * @ee_i_gain: Initial gain value after reset
+	 * @ee_margin_tx_rx: Margin in dB when final attenuation stage should be used
+	 *
+	 * @ee_false_detect: Backoff in Sensitivity (dB) on channels with spur signals
+	 * @ee_noise_floor_thr: Noise floor threshold in 1dB steps
+	 * @ee_adc_desired_size: Desired amplitude for ADC, used by AGC; in 0.5 dB steps
+	 * @ee_pga_desired_size: Desired output of PGA (for BB gain) in 0.5 dB steps
+	 * @ee_pd_gain_overlap: PD ADC curves need to overlap in 0.5dB steps (ee_map>=2)
+	 */
+	struct ath5k_eeprom_info
+	{
 
-	/* Noise Floor Calibration settings */
-	s16	ee_noise_floor_thr[AR5K_EEPROM_N_MODES];
-	s8	ee_adc_desired_size[AR5K_EEPROM_N_MODES];
-	s8	ee_pga_desired_size[AR5K_EEPROM_N_MODES];
-	s8	ee_adc_desired_size_turbo[AR5K_EEPROM_N_MODES];
-	s8	ee_pga_desired_size_turbo[AR5K_EEPROM_N_MODES];
-	s8	ee_pd_gain_overlap;
+		/* Header information */
+		u16	ee_magic;
+		u16	ee_protect;
+		u16	ee_regdomain;
+		u16	ee_version;
+		u16	ee_header;
+		u16	ee_ant_gain;
+		u8	ee_rfkill_pin;
+		bool	ee_rfkill_pol;
+		bool	ee_is_hb63;
+		bool	ee_serdes;
+		u16	ee_misc0;
+		u16	ee_misc1;
+		u16	ee_misc2;
+		u16	ee_misc3;
+		u16	ee_misc4;
+		u16	ee_misc5;
+		u16	ee_misc6;
+		u16	ee_cck_ofdm_gain_delta;
+		u16	ee_cck_ofdm_power_delta;
+		u16	ee_scaled_cck_delta;
 
-	/* Spur mitigation data (fbin values for spur channels) */
-	u16	ee_spur_chans[AR5K_EEPROM_N_SPUR_CHANS][AR5K_EEPROM_N_FREQ_BANDS];
+		/* RF Calibration settings (reset, rfregs) */
+		u16	ee_i_cal[AR5K_EEPROM_N_MODES];
+		u16	ee_q_cal[AR5K_EEPROM_N_MODES];
+		u16	ee_fixed_bias[AR5K_EEPROM_N_MODES];
+		u16	ee_turbo_max_power[AR5K_EEPROM_N_MODES];
+		u16	ee_xr_power[AR5K_EEPROM_N_MODES];
+		u16	ee_switch_settling[AR5K_EEPROM_N_MODES];
+		u16	ee_atn_tx_rx[AR5K_EEPROM_N_MODES];
+		u16	ee_ant_control[AR5K_EEPROM_N_MODES][AR5K_EEPROM_N_PCDAC];
+		u16	ee_ob[AR5K_EEPROM_N_MODES][AR5K_EEPROM_N_OBDB];
+		u16	ee_db[AR5K_EEPROM_N_MODES][AR5K_EEPROM_N_OBDB];
+		u16	ee_tx_end2xlna_enable[AR5K_EEPROM_N_MODES];
+		u16	ee_tx_end2xpa_disable[AR5K_EEPROM_N_MODES];
+		u16	ee_tx_frm2xpa_enable[AR5K_EEPROM_N_MODES];
+		u16	ee_thr_62[AR5K_EEPROM_N_MODES];
+		u16	ee_xlna_gain[AR5K_EEPROM_N_MODES];
+		u16	ee_xpd[AR5K_EEPROM_N_MODES];
+		u16	ee_x_gain[AR5K_EEPROM_N_MODES];
+		u16	ee_i_gain[AR5K_EEPROM_N_MODES];
+		u16	ee_margin_tx_rx[AR5K_EEPROM_N_MODES];
+		u16	ee_switch_settling_turbo[AR5K_EEPROM_N_MODES];
+		u16	ee_margin_tx_rx_turbo[AR5K_EEPROM_N_MODES];
+		u16	ee_atn_tx_rx_turbo[AR5K_EEPROM_N_MODES];
 
-	/* Antenna raw switch tables */
-	u32	ee_antenna[AR5K_EEPROM_N_MODES][AR5K_ANT_MAX];
-};
+		/* Power calibration data */
+		u16	ee_false_detect[AR5K_EEPROM_N_MODES];
+
+		/* Number of pd gain curves per mode */
+		u8	ee_pd_gains[AR5K_EEPROM_N_MODES];
+		/* Back mapping pdcurve number -> pdcurve index in pd->pd_curves */
+		u8	ee_pdc_to_idx[AR5K_EEPROM_N_MODES][AR5K_EEPROM_N_PD_GAINS];
+
+		u8	ee_n_piers[AR5K_EEPROM_N_MODES];
+		struct ath5k_chan_pcal_info	ee_pwr_cal_a[AR5K_EEPROM_N_5GHZ_CHAN];
+		struct ath5k_chan_pcal_info	ee_pwr_cal_b[AR5K_EEPROM_N_2GHZ_CHAN_MAX];
+		struct ath5k_chan_pcal_info	ee_pwr_cal_g[AR5K_EEPROM_N_2GHZ_CHAN_MAX];
+
+		/* Per rate target power levels */
+		u8	ee_rate_target_pwr_num[AR5K_EEPROM_N_MODES];
+		struct ath5k_rate_pcal_info	ee_rate_tpwr_a[AR5K_EEPROM_N_5GHZ_CHAN];
+		struct ath5k_rate_pcal_info	ee_rate_tpwr_b[AR5K_EEPROM_N_2GHZ_CHAN_MAX];
+		struct ath5k_rate_pcal_info	ee_rate_tpwr_g[AR5K_EEPROM_N_2GHZ_CHAN_MAX];
+
+		/* Conformance test limits (Unused) */
+		u8	ee_ctls;
+		u8	ee_ctl[AR5K_EEPROM_MAX_CTLS];
+		struct ath5k_edge_power ee_ctl_pwr[AR5K_EEPROM_N_EDGES * AR5K_EEPROM_MAX_CTLS];
+
+		/* Noise Floor Calibration settings */
+		s16	ee_noise_floor_thr[AR5K_EEPROM_N_MODES];
+		s8	ee_adc_desired_size[AR5K_EEPROM_N_MODES];
+		s8	ee_pga_desired_size[AR5K_EEPROM_N_MODES];
+		s8	ee_adc_desired_size_turbo[AR5K_EEPROM_N_MODES];
+		s8	ee_pga_desired_size_turbo[AR5K_EEPROM_N_MODES];
+		s8	ee_pd_gain_overlap;
+
+		/* Spur mitigation data (fbin values for spur channels) */
+		u16	ee_spur_chans[AR5K_EEPROM_N_SPUR_CHANS][AR5K_EEPROM_N_FREQ_BANDS];
+
+		/* Antenna raw switch tables */
+		u32	ee_antenna[AR5K_EEPROM_N_MODES][AR5K_ANT_MAX];
+	};

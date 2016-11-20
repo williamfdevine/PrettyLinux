@@ -43,7 +43,7 @@
 #define WM_HP_ATTEN_L		0x00	/* headphone left attenuation */
 #define WM_HP_ATTEN_R		0x01	/* headphone left attenuation */
 #define WM_HP_MASTER		0x02	/* headphone master (both channels) */
-					/* override LLR */
+/* override LLR */
 #define WM_DAC_ATTEN_L		0x03	/* digital left attenuation */
 #define WM_DAC_ATTEN_R		0x04
 #define WM_DAC_MASTER		0x05
@@ -82,7 +82,7 @@ static unsigned short wm_get(struct snd_ice1712 *ice, int reg)
 {
 	reg <<= 1;
 	return ((unsigned short)ice->akm[0].images[reg] << 8) |
-		ice->akm[0].images[reg + 1];
+		   ice->akm[0].images[reg + 1];
 }
 
 /*
@@ -127,11 +127,14 @@ static int wm_dac_vol_get(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_val
 	int i;
 
 	mutex_lock(&ice->gpio_mutex);
-	for (i = 0; i < 2; i++) {
+
+	for (i = 0; i < 2; i++)
+	{
 		val = wm_get(ice, WM_DAC_ATTEN_L + i) & 0xff;
 		val = val > DAC_MIN ? (val - DAC_MIN) : 0;
 		ucontrol->value.integer.value[i] = val;
 	}
+
 	mutex_unlock(&ice->gpio_mutex);
 	return 0;
 }
@@ -143,17 +146,22 @@ static int wm_dac_vol_put(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_val
 	int i, idx, change = 0;
 
 	mutex_lock(&ice->gpio_mutex);
-	for (i = 0; i < 2; i++) {
+
+	for (i = 0; i < 2; i++)
+	{
 		nval = ucontrol->value.integer.value[i];
 		nval = (nval ? (nval + DAC_MIN) : 0) & 0xff;
 		idx = WM_DAC_ATTEN_L + i;
 		oval = wm_get(ice, idx) & 0xff;
-		if (oval != nval) {
+
+		if (oval != nval)
+		{
 			wm_put(ice, idx, nval);
 			wm_put_nocache(ice, idx, nval | 0x100);
 			change = 1;
 		}
 	}
+
 	mutex_unlock(&ice->gpio_mutex);
 	return change;
 }
@@ -182,11 +190,14 @@ static int wm_adc_vol_get(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_val
 	int i;
 
 	mutex_lock(&ice->gpio_mutex);
-	for (i = 0; i < 2; i++) {
+
+	for (i = 0; i < 2; i++)
+	{
 		val = wm_get(ice, WM_ADC_ATTEN_L + i) & 0xff;
 		val = val > ADC_MIN ? (val - ADC_MIN) : 0;
 		ucontrol->value.integer.value[i] = val;
 	}
+
 	mutex_unlock(&ice->gpio_mutex);
 	return 0;
 }
@@ -198,16 +209,21 @@ static int wm_adc_vol_put(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_val
 	int i, idx, change = 0;
 
 	mutex_lock(&ice->gpio_mutex);
-	for (i = 0; i < 2; i++) {
+
+	for (i = 0; i < 2; i++)
+	{
 		nvol = ucontrol->value.integer.value[i];
 		nvol = nvol ? (nvol + ADC_MIN) : 0;
 		idx  = WM_ADC_ATTEN_L + i;
 		ovol = wm_get(ice, idx) & 0xff;
-		if (ovol != nvol) {
+
+		if (ovol != nvol)
+		{
 			wm_put(ice, idx, nvol);
 			change = 1;
 		}
 	}
+
 	mutex_unlock(&ice->gpio_mutex);
 	return change;
 }
@@ -237,14 +253,23 @@ static int wm_adc_mux_put(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_val
 
 	mutex_lock(&ice->gpio_mutex);
 	nval = oval = wm_get(ice, WM_ADC_MUX);
+
 	if (ucontrol->value.integer.value[0])
+	{
 		nval |= (1 << bit);
+	}
 	else
+	{
 		nval &= ~(1 << bit);
+	}
+
 	change = nval != oval;
-	if (change) {
+
+	if (change)
+	{
 		wm_put(ice, WM_ADC_MUX, nval);
 	}
+
 	mutex_unlock(&ice->gpio_mutex);
 	return change;
 }
@@ -272,14 +297,22 @@ static int wm_bypass_put(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_valu
 
 	mutex_lock(&ice->gpio_mutex);
 	val = oval = wm_get(ice, WM_OUT_MUX);
+
 	if (ucontrol->value.integer.value[0])
+	{
 		val |= 0x04;
+	}
 	else
+	{
 		val &= ~0x04;
-	if (val != oval) {
+	}
+
+	if (val != oval)
+	{
 		wm_put(ice, WM_OUT_MUX, val);
 		change = 1;
 	}
+
 	mutex_unlock(&ice->gpio_mutex);
 	return change;
 }
@@ -308,15 +341,23 @@ static int wm_chswap_put(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_valu
 	mutex_lock(&ice->gpio_mutex);
 	oval = wm_get(ice, WM_DAC_CTRL1);
 	val = oval & 0x0f;
+
 	if (ucontrol->value.integer.value[0])
+	{
 		val |= 0x60;
+	}
 	else
+	{
 		val |= 0x90;
-	if (val != oval) {
+	}
+
+	if (val != oval)
+	{
 		wm_put(ice, WM_DAC_CTRL1, val);
 		wm_put_nocache(ice, WM_DAC_CTRL1, val);
 		change = 1;
 	}
+
 	mutex_unlock(&ice->gpio_mutex);
 	return change;
 }
@@ -327,17 +368,25 @@ static int wm_chswap_put(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_valu
 static void set_gpio_bit(struct snd_ice1712 *ice, unsigned int bit, int val)
 {
 	unsigned int tmp = snd_ice1712_gpio_read(ice);
+
 	if (val)
+	{
 		tmp |= bit;
+	}
 	else
+	{
 		tmp &= ~bit;
+	}
+
 	snd_ice1712_gpio_write(ice, tmp);
 }
 
 static void spi_send_byte(struct snd_ice1712 *ice, unsigned char data)
 {
 	int i;
-	for (i = 0; i < 8; i++) {
+
+	for (i = 0; i < 8; i++)
+	{
 		set_gpio_bit(ice, PONTIS_CS_CLK, 0);
 		udelay(1);
 		set_gpio_bit(ice, PONTIS_CS_WDATA, data & 0x80);
@@ -353,24 +402,30 @@ static unsigned int spi_read_byte(struct snd_ice1712 *ice)
 	int i;
 	unsigned int val = 0;
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		val <<= 1;
 		set_gpio_bit(ice, PONTIS_CS_CLK, 0);
 		udelay(1);
+
 		if (snd_ice1712_gpio_read(ice) & PONTIS_CS_RDATA)
+		{
 			val |= 1;
+		}
+
 		udelay(1);
 		set_gpio_bit(ice, PONTIS_CS_CLK, 1);
 		udelay(1);
 	}
+
 	return val;
 }
 
 
 static void spi_write(struct snd_ice1712 *ice, unsigned int dev, unsigned int reg, unsigned int data)
 {
-	snd_ice1712_gpio_set_dir(ice, PONTIS_CS_CS|PONTIS_CS_WDATA|PONTIS_CS_CLK);
-	snd_ice1712_gpio_set_mask(ice, ~(PONTIS_CS_CS|PONTIS_CS_WDATA|PONTIS_CS_CLK));
+	snd_ice1712_gpio_set_dir(ice, PONTIS_CS_CS | PONTIS_CS_WDATA | PONTIS_CS_CLK);
+	snd_ice1712_gpio_set_mask(ice, ~(PONTIS_CS_CS | PONTIS_CS_WDATA | PONTIS_CS_CLK));
 	set_gpio_bit(ice, PONTIS_CS_CS, 0);
 	spi_send_byte(ice, dev & ~1); /* WRITE */
 	spi_send_byte(ice, reg); /* MAP */
@@ -386,8 +441,8 @@ static void spi_write(struct snd_ice1712 *ice, unsigned int dev, unsigned int re
 static unsigned int spi_read(struct snd_ice1712 *ice, unsigned int dev, unsigned int reg)
 {
 	unsigned int val;
-	snd_ice1712_gpio_set_dir(ice, PONTIS_CS_CS|PONTIS_CS_WDATA|PONTIS_CS_CLK);
-	snd_ice1712_gpio_set_mask(ice, ~(PONTIS_CS_CS|PONTIS_CS_WDATA|PONTIS_CS_CLK));
+	snd_ice1712_gpio_set_dir(ice, PONTIS_CS_CS | PONTIS_CS_WDATA | PONTIS_CS_CLK);
+	snd_ice1712_gpio_set_mask(ice, ~(PONTIS_CS_CS | PONTIS_CS_WDATA | PONTIS_CS_CLK));
 	set_gpio_bit(ice, PONTIS_CS_CS, 0);
 	spi_send_byte(ice, dev & ~1); /* WRITE */
 	spi_send_byte(ice, reg); /* MAP */
@@ -412,7 +467,8 @@ static unsigned int spi_read(struct snd_ice1712 *ice, unsigned int dev, unsigned
  */
 static int cs_source_info(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_info *uinfo)
 {
-	static const char * const texts[] = {
+	static const char *const texts[] =
+	{
 		"Coax",		/* RXP0 */
 		"Optical",	/* RXP1 */
 		"CD",		/* RXP2 */
@@ -437,12 +493,15 @@ static int cs_source_put(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_valu
 	int change = 0;
 
 	mutex_lock(&ice->gpio_mutex);
-	if (ucontrol->value.enumerated.item[0] != ice->gpio.saved[0]) {
+
+	if (ucontrol->value.enumerated.item[0] != ice->gpio.saved[0])
+	{
 		ice->gpio.saved[0] = ucontrol->value.enumerated.item[0] & 3;
 		val = 0x80 | (ice->gpio.saved[0] << 3);
 		spi_write(ice, CS_DEV, 0x04, val);
 		change = 1;
 	}
+
 	mutex_unlock(&ice->gpio_mutex);
 	return change;
 }
@@ -469,7 +528,7 @@ static int pontis_gpio_mask_get(struct snd_kcontrol *kcontrol, struct snd_ctl_el
 	mutex_unlock(&ice->gpio_mutex);
 	return 0;
 }
-	
+
 static int pontis_gpio_mask_put(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
@@ -493,7 +552,7 @@ static int pontis_gpio_dir_get(struct snd_kcontrol *kcontrol, struct snd_ctl_ele
 	mutex_unlock(&ice->gpio_mutex);
 	return 0;
 }
-	
+
 static int pontis_gpio_dir_put(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
@@ -529,10 +588,13 @@ static int pontis_gpio_data_put(struct snd_kcontrol *kcontrol, struct snd_ctl_el
 	snd_ice1712_gpio_set_mask(ice, ice->gpio.write_mask);
 	val = snd_ice1712_gpio_read(ice) & 0xffff;
 	nval = ucontrol->value.integer.value[0] & 0xffff;
-	if (val != nval) {
+
+	if (val != nval)
+	{
 		snd_ice1712_gpio_write(ice, nval);
 		changed = 1;
 	}
+
 	mutex_unlock(&ice->gpio_mutex);
 	return changed;
 }
@@ -543,11 +605,12 @@ static const DECLARE_TLV_DB_SCALE(db_scale_volume, -6400, 50, 1);
  * mixers
  */
 
-static struct snd_kcontrol_new pontis_controls[] = {
+static struct snd_kcontrol_new pontis_controls[] =
+{
 	{
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.access = (SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			   SNDRV_CTL_ELEM_ACCESS_TLV_READ),
+		SNDRV_CTL_ELEM_ACCESS_TLV_READ),
 		.name = "PCM Playback Volume",
 		.info = wm_dac_vol_info,
 		.get = wm_dac_vol_get,
@@ -557,7 +620,7 @@ static struct snd_kcontrol_new pontis_controls[] = {
 	{
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.access = (SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			   SNDRV_CTL_ELEM_ACCESS_TLV_READ),
+		SNDRV_CTL_ELEM_ACCESS_TLV_READ),
 		.name = "Capture Volume",
 		.info = wm_adc_vol_info,
 		.get = wm_adc_vol_get,
@@ -635,12 +698,20 @@ static void wm_proc_regs_write(struct snd_info_entry *entry, struct snd_info_buf
 	char line[64];
 	unsigned int reg, val;
 	mutex_lock(&ice->gpio_mutex);
-	while (!snd_info_get_line(buffer, line, sizeof(line))) {
+
+	while (!snd_info_get_line(buffer, line, sizeof(line)))
+	{
 		if (sscanf(line, "%x %x", &reg, &val) != 2)
+		{
 			continue;
+		}
+
 		if (reg <= 0x17 && val <= 0xffff)
+		{
 			wm_put(ice, reg, val);
+		}
 	}
+
 	mutex_unlock(&ice->gpio_mutex);
 }
 
@@ -650,17 +721,22 @@ static void wm_proc_regs_read(struct snd_info_entry *entry, struct snd_info_buff
 	int reg, val;
 
 	mutex_lock(&ice->gpio_mutex);
-	for (reg = 0; reg <= 0x17; reg++) {
+
+	for (reg = 0; reg <= 0x17; reg++)
+	{
 		val = wm_get(ice, reg);
 		snd_iprintf(buffer, "%02x = %04x\n", reg, val);
 	}
+
 	mutex_unlock(&ice->gpio_mutex);
 }
 
 static void wm_proc_init(struct snd_ice1712 *ice)
 {
 	struct snd_info_entry *entry;
-	if (! snd_card_proc_new(ice->card, "wm_codec", &entry)) {
+
+	if (! snd_card_proc_new(ice->card, "wm_codec", &entry))
+	{
 		snd_info_set_text_ops(entry, ice, wm_proc_regs_read);
 		entry->mode |= S_IWUSR;
 		entry->c.text.write = wm_proc_regs_write;
@@ -673,10 +749,13 @@ static void cs_proc_regs_read(struct snd_info_entry *entry, struct snd_info_buff
 	int reg, val;
 
 	mutex_lock(&ice->gpio_mutex);
-	for (reg = 0; reg <= 0x26; reg++) {
+
+	for (reg = 0; reg <= 0x26; reg++)
+	{
 		val = spi_read(ice, CS_DEV, reg);
 		snd_iprintf(buffer, "%02x = %02x\n", reg, val);
 	}
+
 	val = spi_read(ice, CS_DEV, 0x7f);
 	snd_iprintf(buffer, "%02x = %02x\n", 0x7f, val);
 	mutex_unlock(&ice->gpio_mutex);
@@ -685,8 +764,11 @@ static void cs_proc_regs_read(struct snd_info_entry *entry, struct snd_info_buff
 static void cs_proc_init(struct snd_ice1712 *ice)
 {
 	struct snd_info_entry *entry;
+
 	if (! snd_card_proc_new(ice->card, "cs_codec", &entry))
+	{
 		snd_info_set_text_ops(entry, ice, cs_proc_regs_read);
+	}
 }
 
 
@@ -695,10 +777,14 @@ static int pontis_add_controls(struct snd_ice1712 *ice)
 	unsigned int i;
 	int err;
 
-	for (i = 0; i < ARRAY_SIZE(pontis_controls); i++) {
+	for (i = 0; i < ARRAY_SIZE(pontis_controls); i++)
+	{
 		err = snd_ctl_add(ice->card, snd_ctl_new1(&pontis_controls[i], ice));
+
 		if (err < 0)
+		{
 			return err;
+		}
 	}
 
 	wm_proc_init(ice);
@@ -713,7 +799,8 @@ static int pontis_add_controls(struct snd_ice1712 *ice)
  */
 static int pontis_init(struct snd_ice1712 *ice)
 {
-	static const unsigned short wm_inits[] = {
+	static const unsigned short wm_inits[] =
+	{
 		/* These come first to reduce init pop noise */
 		WM_ADC_MUX,	0x00c0,	/* ADC mute */
 		WM_DAC_MUTE,	0x0001,	/* DAC softmute */
@@ -722,7 +809,8 @@ static int pontis_init(struct snd_ice1712 *ice)
 		WM_POWERDOWN,	0x0008,	/* All power-up except HP */
 		WM_RESET,	0x0000,	/* reset */
 	};
-	static const unsigned short wm_inits2[] = {
+	static const unsigned short wm_inits2[] =
+	{
 		WM_MASTER_CTRL,	0x0022,	/* 256fs, slave mode */
 		WM_DAC_INT,	0x0022,	/* I2S, normal polarity, 24bit */
 		WM_ADC_INT,	0x0022,	/* I2S, normal polarity, 24bit */
@@ -748,7 +836,8 @@ static int pontis_init(struct snd_ice1712 *ice)
 		WM_DAC_MUTE,	0x0000,	/* DAC unmute */
 		WM_ADC_MUX,	0x0003,	/* ADC unmute, both CD/Line On */
 	};
-	static const unsigned char cs_inits[] = {
+	static const unsigned char cs_inits[] =
+	{
 		0x04,	0x80,	/* RUN, RXP0 */
 		0x05,	0x05,	/* slave, 24bit */
 		0x01,	0x00,
@@ -763,8 +852,12 @@ static int pontis_init(struct snd_ice1712 *ice)
 
 	/* to remember the register values */
 	ice->akm = kzalloc(sizeof(struct snd_akm4xxx), GFP_KERNEL);
+
 	if (! ice->akm)
+	{
 		return -ENOMEM;
+	}
+
 	ice->akm_codecs = 1;
 
 	/* HACK - use this as the SPDIF source.
@@ -774,10 +867,16 @@ static int pontis_init(struct snd_ice1712 *ice)
 
 	/* initialize WM8776 codec */
 	for (i = 0; i < ARRAY_SIZE(wm_inits); i += 2)
-		wm_put(ice, wm_inits[i], wm_inits[i+1]);
+	{
+		wm_put(ice, wm_inits[i], wm_inits[i + 1]);
+	}
+
 	schedule_timeout_uninterruptible(1);
+
 	for (i = 0; i < ARRAY_SIZE(wm_inits2); i += 2)
-		wm_put(ice, wm_inits2[i], wm_inits2[i+1]);
+	{
+		wm_put(ice, wm_inits2[i], wm_inits2[i + 1]);
+	}
 
 	/* initialize CS8416 codec */
 	/* assert PRST#; MT05 bit 7 */
@@ -787,7 +886,9 @@ static int pontis_init(struct snd_ice1712 *ice)
 	outb(inb(ICEMT1724(ice, AC97_CMD)) & ~0x80, ICEMT1724(ice, AC97_CMD));
 
 	for (i = 0; i < ARRAY_SIZE(cs_inits); i += 2)
-		spi_write(ice, CS_DEV, cs_inits[i], cs_inits[i+1]);
+	{
+		spi_write(ice, CS_DEV, cs_inits[i], cs_inits[i + 1]);
+	}
 
 	return 0;
 }
@@ -798,7 +899,8 @@ static int pontis_init(struct snd_ice1712 *ice)
  * hence the driver needs to sets up it properly.
  */
 
-static unsigned char pontis_eeprom[] = {
+static unsigned char pontis_eeprom[] =
+{
 	[ICE_EEP2_SYSCONF]     = 0x08,	/* clock 256, mpu401, spdif-in/ADC, 1DAC */
 	[ICE_EEP2_ACLINK]      = 0x80,	/* I2S */
 	[ICE_EEP2_I2S]         = 0xf8,	/* vol, 96k, 24bit, 192k */
@@ -815,7 +917,8 @@ static unsigned char pontis_eeprom[] = {
 };
 
 /* entry point */
-struct snd_ice1712_card_info snd_vt1720_pontis_cards[] = {
+struct snd_ice1712_card_info snd_vt1720_pontis_cards[] =
+{
 	{
 		.subvendor = VT1720_SUBDEVICE_PONTIS_MS300,
 		.name = "Pontis MS300",

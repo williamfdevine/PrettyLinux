@@ -30,12 +30,13 @@
  * layer.
  */
 static int mwifiex_11n_dispatch_amsdu_pkt(struct mwifiex_private *priv,
-					  struct sk_buff *skb)
+		struct sk_buff *skb)
 {
 	struct rxpd *local_rx_pd = (struct rxpd *)(skb->data);
 	int ret;
 
-	if (le16_to_cpu(local_rx_pd->rx_pkt_type) == PKT_TYPE_AMSDU) {
+	if (le16_to_cpu(local_rx_pd->rx_pkt_type) == PKT_TYPE_AMSDU)
+	{
 		struct sk_buff_head list;
 		struct sk_buff *rx_skb;
 
@@ -45,28 +46,37 @@ static int mwifiex_11n_dispatch_amsdu_pkt(struct mwifiex_private *priv,
 		skb_trim(skb, le16_to_cpu(local_rx_pd->rx_pkt_length));
 
 		ieee80211_amsdu_to_8023s(skb, &list, priv->curr_addr,
-					 priv->wdev.iftype, 0, NULL, NULL);
+								 priv->wdev.iftype, 0, NULL, NULL);
 
-		while (!skb_queue_empty(&list)) {
+		while (!skb_queue_empty(&list))
+		{
 			struct rx_packet_hdr *rx_hdr;
 
 			rx_skb = __skb_dequeue(&list);
 			rx_hdr = (struct rx_packet_hdr *)rx_skb->data;
+
 			if (ISSUPP_TDLS_ENABLED(priv->adapter->fw_cap_info) &&
-			    ntohs(rx_hdr->eth803_hdr.h_proto) == ETH_P_TDLS) {
+				ntohs(rx_hdr->eth803_hdr.h_proto) == ETH_P_TDLS)
+			{
 				mwifiex_process_tdls_action_frame(priv,
-								  (u8 *)rx_hdr,
-								  skb->len);
+												  (u8 *)rx_hdr,
+												  skb->len);
 			}
 
 			if (priv->bss_role == MWIFIEX_BSS_ROLE_UAP)
+			{
 				ret = mwifiex_uap_recv_packet(priv, rx_skb);
+			}
 			else
+			{
 				ret = mwifiex_recv_packet(priv, rx_skb);
+			}
+
 			if (ret == -1)
 				mwifiex_dbg(priv->adapter, ERROR,
-					    "Rx of A-MSDU failed");
+							"Rx of A-MSDU failed");
 		}
+
 		return 0;
 	}
 
@@ -81,17 +91,23 @@ static int mwifiex_11n_dispatch_pkt(struct mwifiex_private *priv, void *payload)
 
 	int ret;
 
-	if (!payload) {
+	if (!payload)
+	{
 		mwifiex_dbg(priv->adapter, INFO, "info: fw drop data\n");
 		return 0;
 	}
 
 	ret = mwifiex_11n_dispatch_amsdu_pkt(priv, payload);
+
 	if (!ret)
+	{
 		return 0;
+	}
 
 	if (priv->bss_role == MWIFIEX_BSS_ROLE_UAP)
+	{
 		return mwifiex_handle_uap_rx_forward(priv, payload);
+	}
 
 	return mwifiex_process_rx_packet(priv, payload);
 }
@@ -106,35 +122,44 @@ static int mwifiex_11n_dispatch_pkt(struct mwifiex_private *priv, void *payload)
  */
 static void
 mwifiex_11n_dispatch_pkt_until_start_win(struct mwifiex_private *priv,
-					 struct mwifiex_rx_reorder_tbl *tbl,
-					 int start_win)
+		struct mwifiex_rx_reorder_tbl *tbl,
+		int start_win)
 {
 	int pkt_to_send, i;
 	void *rx_tmp_ptr;
 	unsigned long flags;
 
 	pkt_to_send = (start_win > tbl->start_win) ?
-		      min((start_win - tbl->start_win), tbl->win_size) :
-		      tbl->win_size;
+				  min((start_win - tbl->start_win), tbl->win_size) :
+				  tbl->win_size;
 
-	for (i = 0; i < pkt_to_send; ++i) {
+	for (i = 0; i < pkt_to_send; ++i)
+	{
 		spin_lock_irqsave(&priv->rx_pkt_lock, flags);
 		rx_tmp_ptr = NULL;
-		if (tbl->rx_reorder_ptr[i]) {
+
+		if (tbl->rx_reorder_ptr[i])
+		{
 			rx_tmp_ptr = tbl->rx_reorder_ptr[i];
 			tbl->rx_reorder_ptr[i] = NULL;
 		}
+
 		spin_unlock_irqrestore(&priv->rx_pkt_lock, flags);
+
 		if (rx_tmp_ptr)
+		{
 			mwifiex_11n_dispatch_pkt(priv, rx_tmp_ptr);
+		}
 	}
 
 	spin_lock_irqsave(&priv->rx_pkt_lock, flags);
+
 	/*
 	 * We don't have a circular buffer, hence use rotation to simulate
 	 * circular buffer
 	 */
-	for (i = 0; i < tbl->win_size - pkt_to_send; ++i) {
+	for (i = 0; i < tbl->win_size - pkt_to_send; ++i)
+	{
 		tbl->rx_reorder_ptr[i] = tbl->rx_reorder_ptr[pkt_to_send + i];
 		tbl->rx_reorder_ptr[pkt_to_send + i] = NULL;
 	}
@@ -153,18 +178,22 @@ mwifiex_11n_dispatch_pkt_until_start_win(struct mwifiex_private *priv,
  */
 static void
 mwifiex_11n_scan_and_dispatch(struct mwifiex_private *priv,
-			      struct mwifiex_rx_reorder_tbl *tbl)
+							  struct mwifiex_rx_reorder_tbl *tbl)
 {
 	int i, j, xchg;
 	void *rx_tmp_ptr;
 	unsigned long flags;
 
-	for (i = 0; i < tbl->win_size; ++i) {
+	for (i = 0; i < tbl->win_size; ++i)
+	{
 		spin_lock_irqsave(&priv->rx_pkt_lock, flags);
-		if (!tbl->rx_reorder_ptr[i]) {
+
+		if (!tbl->rx_reorder_ptr[i])
+		{
 			spin_unlock_irqrestore(&priv->rx_pkt_lock, flags);
 			break;
 		}
+
 		rx_tmp_ptr = tbl->rx_reorder_ptr[i];
 		tbl->rx_reorder_ptr[i] = NULL;
 		spin_unlock_irqrestore(&priv->rx_pkt_lock, flags);
@@ -172,17 +201,22 @@ mwifiex_11n_scan_and_dispatch(struct mwifiex_private *priv,
 	}
 
 	spin_lock_irqsave(&priv->rx_pkt_lock, flags);
+
 	/*
 	 * We don't have a circular buffer, hence use rotation to simulate
 	 * circular buffer
 	 */
-	if (i > 0) {
+	if (i > 0)
+	{
 		xchg = tbl->win_size - i;
-		for (j = 0; j < xchg; ++j) {
+
+		for (j = 0; j < xchg; ++j)
+		{
 			tbl->rx_reorder_ptr[j] = tbl->rx_reorder_ptr[i + j];
 			tbl->rx_reorder_ptr[i + j] = NULL;
 		}
 	}
+
 	tbl->start_win = (tbl->start_win + i) & (MAX_TID_VALUE - 1);
 	spin_unlock_irqrestore(&priv->rx_pkt_lock, flags);
 }
@@ -195,20 +229,26 @@ mwifiex_11n_scan_and_dispatch(struct mwifiex_private *priv,
  */
 static void
 mwifiex_del_rx_reorder_entry(struct mwifiex_private *priv,
-			     struct mwifiex_rx_reorder_tbl *tbl)
+							 struct mwifiex_rx_reorder_tbl *tbl)
 {
 	unsigned long flags;
 	int start_win;
 
 	if (!tbl)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&priv->adapter->rx_proc_lock, flags);
 	priv->adapter->rx_locked = true;
-	if (priv->adapter->rx_processing) {
+
+	if (priv->adapter->rx_processing)
+	{
 		spin_unlock_irqrestore(&priv->adapter->rx_proc_lock, flags);
 		flush_workqueue(priv->adapter->rx_workqueue);
-	} else {
+	}
+	else
+	{
 		spin_unlock_irqrestore(&priv->adapter->rx_proc_lock, flags);
 	}
 
@@ -242,10 +282,12 @@ mwifiex_11n_get_rx_reorder_tbl(struct mwifiex_private *priv, int tid, u8 *ta)
 	unsigned long flags;
 
 	spin_lock_irqsave(&priv->rx_reorder_tbl_lock, flags);
-	list_for_each_entry(tbl, &priv->rx_reorder_tbl_ptr, list) {
-		if (!memcmp(tbl->ta, ta, ETH_ALEN) && tbl->tid == tid) {
+	list_for_each_entry(tbl, &priv->rx_reorder_tbl_ptr, list)
+	{
+		if (!memcmp(tbl->ta, ta, ETH_ALEN) && tbl->tid == tid)
+		{
 			spin_unlock_irqrestore(&priv->rx_reorder_tbl_lock,
-					       flags);
+								   flags);
 			return tbl;
 		}
 	}
@@ -263,13 +305,17 @@ void mwifiex_11n_del_rx_reorder_tbl_by_ta(struct mwifiex_private *priv, u8 *ta)
 	unsigned long flags;
 
 	if (!ta)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&priv->rx_reorder_tbl_lock, flags);
-	list_for_each_entry_safe(tbl, tmp, &priv->rx_reorder_tbl_ptr, list) {
-		if (!memcmp(tbl->ta, ta, ETH_ALEN)) {
+	list_for_each_entry_safe(tbl, tmp, &priv->rx_reorder_tbl_ptr, list)
+	{
+		if (!memcmp(tbl->ta, ta, ETH_ALEN))
+		{
 			spin_unlock_irqrestore(&priv->rx_reorder_tbl_lock,
-					       flags);
+								   flags);
 			mwifiex_del_rx_reorder_entry(priv, tbl);
 			spin_lock_irqsave(&priv->rx_reorder_tbl_lock, flags);
 		}
@@ -292,13 +338,17 @@ mwifiex_11n_find_last_seq_num(struct reorder_tmr_cnxt *ctx)
 	int i;
 
 	spin_lock_irqsave(&priv->rx_reorder_tbl_lock, flags);
-	for (i = rx_reorder_tbl_ptr->win_size - 1; i >= 0; --i) {
-		if (rx_reorder_tbl_ptr->rx_reorder_ptr[i]) {
+
+	for (i = rx_reorder_tbl_ptr->win_size - 1; i >= 0; --i)
+	{
+		if (rx_reorder_tbl_ptr->rx_reorder_ptr[i])
+		{
 			spin_unlock_irqrestore(&priv->rx_reorder_tbl_lock,
-					       flags);
+								   flags);
 			return i;
 		}
 	}
+
 	spin_unlock_irqrestore(&priv->rx_reorder_tbl_lock, flags);
 
 	return -1;
@@ -322,12 +372,14 @@ mwifiex_flush_data(unsigned long context)
 	seq_num = mwifiex_11n_find_last_seq_num(ctx);
 
 	if (seq_num < 0)
+	{
 		return;
+	}
 
 	mwifiex_dbg(ctx->priv->adapter, INFO, "info: flush data %d\n", seq_num);
 	start_win = (ctx->ptr->start_win + seq_num + 1) & (MAX_TID_VALUE - 1);
 	mwifiex_11n_dispatch_pkt_until_start_win(ctx->priv, ctx->ptr,
-						 start_win);
+			start_win);
 }
 
 /*
@@ -342,7 +394,7 @@ mwifiex_flush_data(unsigned long context)
  */
 static void
 mwifiex_11n_create_rx_reorder_tbl(struct mwifiex_private *priv, u8 *ta,
-				  int tid, int win_size, int seq_num)
+								  int tid, int win_size, int seq_num)
 {
 	int i;
 	struct mwifiex_rx_reorder_tbl *tbl, *new_node;
@@ -355,14 +407,20 @@ mwifiex_11n_create_rx_reorder_tbl(struct mwifiex_private *priv, u8 *ta,
 	 * the packets and move the window size until the ssn
 	 */
 	tbl = mwifiex_11n_get_rx_reorder_tbl(priv, tid, ta);
-	if (tbl) {
+
+	if (tbl)
+	{
 		mwifiex_11n_dispatch_pkt_until_start_win(priv, tbl, seq_num);
 		return;
 	}
+
 	/* if !tbl then create one */
 	new_node = kzalloc(sizeof(struct mwifiex_rx_reorder_tbl), GFP_KERNEL);
+
 	if (!new_node)
+	{
 		return;
+	}
 
 	INIT_LIST_HEAD(&new_node->list);
 	new_node->tid = tid;
@@ -372,27 +430,42 @@ mwifiex_11n_create_rx_reorder_tbl(struct mwifiex_private *priv, u8 *ta,
 	new_node->flags = 0;
 
 	spin_lock_irqsave(&priv->sta_list_spinlock, flags);
-	if (mwifiex_queuing_ra_based(priv)) {
-		if (priv->bss_role == MWIFIEX_BSS_ROLE_UAP) {
+
+	if (mwifiex_queuing_ra_based(priv))
+	{
+		if (priv->bss_role == MWIFIEX_BSS_ROLE_UAP)
+		{
 			node = mwifiex_get_sta_entry(priv, ta);
+
 			if (node)
+			{
 				last_seq = node->rx_seq[tid];
+			}
 		}
-	} else {
-		node = mwifiex_get_sta_entry(priv, ta);
-		if (node)
-			last_seq = node->rx_seq[tid];
-		else
-			last_seq = priv->rx_seq[tid];
 	}
+	else
+	{
+		node = mwifiex_get_sta_entry(priv, ta);
+
+		if (node)
+		{
+			last_seq = node->rx_seq[tid];
+		}
+		else
+		{
+			last_seq = priv->rx_seq[tid];
+		}
+	}
+
 	spin_unlock_irqrestore(&priv->sta_list_spinlock, flags);
 
 	mwifiex_dbg(priv->adapter, INFO,
-		    "info: last_seq=%d start_win=%d\n",
-		    last_seq, new_node->start_win);
+				"info: last_seq=%d start_win=%d\n",
+				last_seq, new_node->start_win);
 
 	if (last_seq != MWIFIEX_DEF_11N_RX_SEQ_NUM &&
-	    last_seq >= new_node->start_win) {
+		last_seq >= new_node->start_win)
+	{
 		new_node->start_win = last_seq + 1;
 		new_node->flags |= RXREOR_INIT_WINDOW_SHIFT;
 	}
@@ -400,11 +473,13 @@ mwifiex_11n_create_rx_reorder_tbl(struct mwifiex_private *priv, u8 *ta,
 	new_node->win_size = win_size;
 
 	new_node->rx_reorder_ptr = kzalloc(sizeof(void *) * win_size,
-					GFP_KERNEL);
-	if (!new_node->rx_reorder_ptr) {
+									   GFP_KERNEL);
+
+	if (!new_node->rx_reorder_ptr)
+	{
 		kfree((u8 *) new_node);
 		mwifiex_dbg(priv->adapter, ERROR,
-			    "%s: failed to alloc reorder_ptr\n", __func__);
+					"%s: failed to alloc reorder_ptr\n", __func__);
 		return;
 	}
 
@@ -413,10 +488,12 @@ mwifiex_11n_create_rx_reorder_tbl(struct mwifiex_private *priv, u8 *ta,
 	new_node->timer_context.timer_is_set = false;
 
 	setup_timer(&new_node->timer_context.timer, mwifiex_flush_data,
-		    (unsigned long)&new_node->timer_context);
+				(unsigned long)&new_node->timer_context);
 
 	for (i = 0; i < win_size; ++i)
+	{
 		new_node->rx_reorder_ptr[i] = NULL;
+	}
 
 	spin_lock_irqsave(&priv->rx_reorder_tbl_lock, flags);
 	list_add_tail(&new_node->list, &priv->rx_reorder_tbl_ptr);
@@ -429,12 +506,16 @@ mwifiex_11n_rxreorder_timer_restart(struct mwifiex_rx_reorder_tbl *tbl)
 	u32 min_flush_time;
 
 	if (tbl->win_size >= MWIFIEX_BA_WIN_SIZE_32)
+	{
 		min_flush_time = MIN_FLUSH_TIMER_15_MS;
+	}
 	else
+	{
 		min_flush_time = MIN_FLUSH_TIMER_MS;
+	}
 
 	mod_timer(&tbl->timer_context.timer,
-		  jiffies + msecs_to_jiffies(min_flush_time * tbl->win_size));
+			  jiffies + msecs_to_jiffies(min_flush_time * tbl->win_size));
 
 	tbl->timer_context.timer_is_set = true;
 }
@@ -467,9 +548,9 @@ int mwifiex_cmd_11n_addba_req(struct host_cmd_ds_command *cmd, void *data_buf)
  *      - Ensuring correct endian-ness
  */
 int mwifiex_cmd_11n_addba_rsp_gen(struct mwifiex_private *priv,
-				  struct host_cmd_ds_command *cmd,
-				  struct host_cmd_ds_11n_addba_req
-				  *cmd_addba_req)
+								  struct host_cmd_ds_command *cmd,
+								  struct host_cmd_ds_11n_addba_req
+								  *cmd_addba_req)
 {
 	struct host_cmd_ds_11n_addba_rsp *add_ba_rsp = &cmd->params.add_ba_rsp;
 	struct mwifiex_sta_node *sta_ptr;
@@ -480,21 +561,28 @@ int mwifiex_cmd_11n_addba_rsp_gen(struct mwifiex_private *priv,
 	uint16_t block_ack_param_set;
 
 	if ((GET_BSS_ROLE(priv) == MWIFIEX_BSS_ROLE_STA) &&
-	    ISSUPP_TDLS_ENABLED(priv->adapter->fw_cap_info) &&
-	    priv->adapter->is_hw_11ac_capable &&
-	    memcmp(priv->cfg_bssid, cmd_addba_req->peer_mac_addr, ETH_ALEN)) {
+		ISSUPP_TDLS_ENABLED(priv->adapter->fw_cap_info) &&
+		priv->adapter->is_hw_11ac_capable &&
+		memcmp(priv->cfg_bssid, cmd_addba_req->peer_mac_addr, ETH_ALEN))
+	{
 		spin_lock_irqsave(&priv->sta_list_spinlock, flags);
 		sta_ptr = mwifiex_get_sta_entry(priv,
-						cmd_addba_req->peer_mac_addr);
-		if (!sta_ptr) {
+										cmd_addba_req->peer_mac_addr);
+
+		if (!sta_ptr)
+		{
 			spin_unlock_irqrestore(&priv->sta_list_spinlock, flags);
 			mwifiex_dbg(priv->adapter, ERROR,
-				    "BA setup with unknown TDLS peer %pM!\n",
-				    cmd_addba_req->peer_mac_addr);
+						"BA setup with unknown TDLS peer %pM!\n",
+						cmd_addba_req->peer_mac_addr);
 			return -1;
 		}
+
 		if (sta_ptr->is_11ac_enabled)
+		{
 			rx_win_size = MWIFIEX_11AC_STA_AMPDU_DEF_RXWINSIZE;
+		}
+
 		spin_unlock_irqrestore(&priv->sta_list_spinlock, flags);
 	}
 
@@ -502,31 +590,34 @@ int mwifiex_cmd_11n_addba_rsp_gen(struct mwifiex_private *priv,
 	cmd->size = cpu_to_le16(sizeof(*add_ba_rsp) + S_DS_GEN);
 
 	memcpy(add_ba_rsp->peer_mac_addr, cmd_addba_req->peer_mac_addr,
-	       ETH_ALEN);
+		   ETH_ALEN);
 	add_ba_rsp->dialog_token = cmd_addba_req->dialog_token;
 	add_ba_rsp->block_ack_tmo = cmd_addba_req->block_ack_tmo;
 	add_ba_rsp->ssn = cmd_addba_req->ssn;
 
 	block_ack_param_set = le16_to_cpu(cmd_addba_req->block_ack_param_set);
 	tid = (block_ack_param_set & IEEE80211_ADDBA_PARAM_TID_MASK)
-		>> BLOCKACKPARAM_TID_POS;
+		  >> BLOCKACKPARAM_TID_POS;
 	add_ba_rsp->status_code = cpu_to_le16(ADDBA_RSP_STATUS_ACCEPT);
 	block_ack_param_set &= ~IEEE80211_ADDBA_PARAM_BUF_SIZE_MASK;
 
 	/* If we don't support AMSDU inside AMPDU, reset the bit */
 	if (!priv->add_ba_param.rx_amsdu ||
-	    (priv->aggr_prio_tbl[tid].amsdu == BA_STREAM_NOT_ALLOWED))
+		(priv->aggr_prio_tbl[tid].amsdu == BA_STREAM_NOT_ALLOWED))
+	{
 		block_ack_param_set &= ~BLOCKACKPARAM_AMSDU_SUPP_MASK;
+	}
+
 	block_ack_param_set |= rx_win_size << BLOCKACKPARAM_WINSIZE_POS;
 	add_ba_rsp->block_ack_param_set = cpu_to_le16(block_ack_param_set);
 	win_size = (le16_to_cpu(add_ba_rsp->block_ack_param_set)
-					& IEEE80211_ADDBA_PARAM_BUF_SIZE_MASK)
-					>> BLOCKACKPARAM_WINSIZE_POS;
+				& IEEE80211_ADDBA_PARAM_BUF_SIZE_MASK)
+			   >> BLOCKACKPARAM_WINSIZE_POS;
 	cmd_addba_req->block_ack_param_set = cpu_to_le16(block_ack_param_set);
 
 	mwifiex_11n_create_rx_reorder_tbl(priv, cmd_addba_req->peer_mac_addr,
-					  tid, win_size,
-					  le16_to_cpu(cmd_addba_req->ssn));
+									  tid, win_size,
+									  le16_to_cpu(cmd_addba_req->ssn));
 	return 0;
 }
 
@@ -563,8 +654,8 @@ int mwifiex_cmd_11n_delba(struct host_cmd_ds_command *cmd, void *data_buf)
  * For sequence number less than the starting window, the packet is dropped.
  */
 int mwifiex_11n_rx_reorder_pkt(struct mwifiex_private *priv,
-				u16 seq_num, u16 tid,
-				u8 *ta, u8 pkt_type, void *payload)
+							   u16 seq_num, u16 tid,
+							   u8 *ta, u8 pkt_type, void *payload)
 {
 	struct mwifiex_rx_reorder_tbl *tbl;
 	int prev_start_win, start_win, end_win, win_size;
@@ -573,13 +664,19 @@ int mwifiex_11n_rx_reorder_pkt(struct mwifiex_private *priv,
 	int ret = 0;
 
 	tbl = mwifiex_11n_get_rx_reorder_tbl(priv, tid, ta);
-	if (!tbl) {
+
+	if (!tbl)
+	{
 		if (pkt_type != PKT_TYPE_BAR)
+		{
 			mwifiex_11n_dispatch_pkt(priv, payload);
+		}
+
 		return ret;
 	}
 
-	if ((pkt_type == PKT_TYPE_AMSDU) && !tbl->amsdu) {
+	if ((pkt_type == PKT_TYPE_AMSDU) && !tbl->amsdu)
+	{
 		mwifiex_11n_dispatch_pkt(priv, payload);
 		return ret;
 	}
@@ -588,36 +685,47 @@ int mwifiex_11n_rx_reorder_pkt(struct mwifiex_private *priv,
 	prev_start_win = start_win;
 	win_size = tbl->win_size;
 	end_win = ((start_win + win_size) - 1) & (MAX_TID_VALUE - 1);
-	if (tbl->flags & RXREOR_INIT_WINDOW_SHIFT) {
+
+	if (tbl->flags & RXREOR_INIT_WINDOW_SHIFT)
+	{
 		init_window_shift = true;
 		tbl->flags &= ~RXREOR_INIT_WINDOW_SHIFT;
 	}
 
-	if (tbl->flags & RXREOR_FORCE_NO_DROP) {
+	if (tbl->flags & RXREOR_FORCE_NO_DROP)
+	{
 		mwifiex_dbg(priv->adapter, INFO,
-			    "RXREOR_FORCE_NO_DROP when HS is activated\n");
+					"RXREOR_FORCE_NO_DROP when HS is activated\n");
 		tbl->flags &= ~RXREOR_FORCE_NO_DROP;
-	} else if (init_window_shift && seq_num < start_win &&
-		   seq_num >= tbl->init_win) {
+	}
+	else if (init_window_shift && seq_num < start_win &&
+			 seq_num >= tbl->init_win)
+	{
 		mwifiex_dbg(priv->adapter, INFO,
-			    "Sender TID sequence number reset %d->%d for SSN %d\n",
-			    start_win, seq_num, tbl->init_win);
+					"Sender TID sequence number reset %d->%d for SSN %d\n",
+					start_win, seq_num, tbl->init_win);
 		tbl->start_win = start_win = seq_num;
 		end_win = ((start_win + win_size) - 1) & (MAX_TID_VALUE - 1);
-	} else {
+	}
+	else
+	{
 		/*
 		 * If seq_num is less then starting win then ignore and drop
 		 * the packet
 		 */
-		if ((start_win + TWOPOW11) > (MAX_TID_VALUE - 1)) {
+		if ((start_win + TWOPOW11) > (MAX_TID_VALUE - 1))
+		{
 			if (seq_num >= ((start_win + TWOPOW11) &
-					(MAX_TID_VALUE - 1)) &&
-			    seq_num < start_win) {
+							(MAX_TID_VALUE - 1)) &&
+				seq_num < start_win)
+			{
 				ret = -1;
 				goto done;
 			}
-		} else if ((seq_num < start_win) ||
-			   (seq_num >= (start_win + TWOPOW11))) {
+		}
+		else if ((seq_num < start_win) ||
+				 (seq_num >= (start_win + TWOPOW11)))
+		{
 			ret = -1;
 			goto done;
 		}
@@ -628,27 +736,42 @@ int mwifiex_11n_rx_reorder_pkt(struct mwifiex_private *priv,
 	 * WinStart = seq_num
 	 */
 	if (pkt_type == PKT_TYPE_BAR)
+	{
 		seq_num = ((seq_num + win_size) - 1) & (MAX_TID_VALUE - 1);
+	}
 
 	if (((end_win < start_win) &&
-	     (seq_num < start_win) && (seq_num > end_win)) ||
-	    ((end_win > start_win) && ((seq_num > end_win) ||
-				       (seq_num < start_win)))) {
+		 (seq_num < start_win) && (seq_num > end_win)) ||
+		((end_win > start_win) && ((seq_num > end_win) ||
+								   (seq_num < start_win))))
+	{
 		end_win = seq_num;
+
 		if (((end_win - win_size) + 1) >= 0)
+		{
 			start_win = (end_win - win_size) + 1;
+		}
 		else
+		{
 			start_win = (MAX_TID_VALUE - (win_size - end_win)) + 1;
+		}
+
 		mwifiex_11n_dispatch_pkt_until_start_win(priv, tbl, start_win);
 	}
 
-	if (pkt_type != PKT_TYPE_BAR) {
+	if (pkt_type != PKT_TYPE_BAR)
+	{
 		if (seq_num >= start_win)
+		{
 			pkt_index = seq_num - start_win;
+		}
 		else
-			pkt_index = (seq_num+MAX_TID_VALUE) - start_win;
+		{
+			pkt_index = (seq_num + MAX_TID_VALUE) - start_win;
+		}
 
-		if (tbl->rx_reorder_ptr[pkt_index]) {
+		if (tbl->rx_reorder_ptr[pkt_index])
+		{
 			ret = -1;
 			goto done;
 		}
@@ -663,9 +786,13 @@ int mwifiex_11n_rx_reorder_pkt(struct mwifiex_private *priv,
 	mwifiex_11n_scan_and_dispatch(priv, tbl);
 
 done:
+
 	if (!tbl->timer_context.timer_is_set ||
-	    prev_start_win != tbl->start_win)
+		prev_start_win != tbl->start_win)
+	{
 		mwifiex_11n_rxreorder_timer_restart(tbl);
+	}
+
 	return ret;
 }
 
@@ -676,7 +803,7 @@ done:
  */
 void
 mwifiex_del_ba_tbl(struct mwifiex_private *priv, int tid, u8 *peer_mac,
-		   u8 type, int initiator)
+				   u8 type, int initiator)
 {
 	struct mwifiex_rx_reorder_tbl *tbl;
 	struct mwifiex_tx_ba_stream_tbl *ptx_tbl;
@@ -686,36 +813,51 @@ mwifiex_del_ba_tbl(struct mwifiex_private *priv, int tid, u8 *peer_mac,
 	int tid_down;
 
 	if (type == TYPE_DELBA_RECEIVE)
+	{
 		cleanup_rx_reorder_tbl = (initiator) ? true : false;
+	}
 	else
+	{
 		cleanup_rx_reorder_tbl = (initiator) ? false : true;
+	}
 
 	mwifiex_dbg(priv->adapter, EVENT, "event: DELBA: %pM tid=%d initiator=%d\n",
-		    peer_mac, tid, initiator);
+				peer_mac, tid, initiator);
 
-	if (cleanup_rx_reorder_tbl) {
+	if (cleanup_rx_reorder_tbl)
+	{
 		tbl = mwifiex_11n_get_rx_reorder_tbl(priv, tid,
-								 peer_mac);
-		if (!tbl) {
+											 peer_mac);
+
+		if (!tbl)
+		{
 			mwifiex_dbg(priv->adapter, EVENT,
-				    "event: TID, TA not found in table\n");
+						"event: TID, TA not found in table\n");
 			return;
 		}
+
 		mwifiex_del_rx_reorder_entry(priv, tbl);
-	} else {
+	}
+	else
+	{
 		ptx_tbl = mwifiex_get_ba_tbl(priv, tid, peer_mac);
-		if (!ptx_tbl) {
+
+		if (!ptx_tbl)
+		{
 			mwifiex_dbg(priv->adapter, EVENT,
-				    "event: TID, RA not found in table\n");
+						"event: TID, RA not found in table\n");
 			return;
 		}
 
 		tid_down = mwifiex_wmm_downgrade_tid(priv, tid);
 		ra_list = mwifiex_wmm_get_ralist_node(priv, tid_down, peer_mac);
-		if (ra_list) {
+
+		if (ra_list)
+		{
 			ra_list->amsdu_in_ampdu = false;
 			ra_list->ba_status = BA_SETUP_NONE;
 		}
+
 		spin_lock_irqsave(&priv->tx_ba_stream_tbl_lock, flags);
 		mwifiex_11n_delete_tx_ba_stream_tbl_entry(priv, ptx_tbl);
 		spin_unlock_irqrestore(&priv->tx_ba_stream_tbl_lock, flags);
@@ -729,7 +871,7 @@ mwifiex_del_ba_tbl(struct mwifiex_private *priv, int tid, u8 *peer_mac,
  * creating the stream, provided the add BA is accepted.
  */
 int mwifiex_ret_11n_addba_resp(struct mwifiex_private *priv,
-			       struct host_cmd_ds_command *resp)
+							   struct host_cmd_ds_command *resp)
 {
 	struct host_cmd_ds_11n_addba_rsp *add_ba_rsp = &resp->params.add_ba_rsp;
 	int tid, win_size;
@@ -739,40 +881,51 @@ int mwifiex_ret_11n_addba_resp(struct mwifiex_private *priv,
 	block_ack_param_set = le16_to_cpu(add_ba_rsp->block_ack_param_set);
 
 	tid = (block_ack_param_set & IEEE80211_ADDBA_PARAM_TID_MASK)
-		>> BLOCKACKPARAM_TID_POS;
+		  >> BLOCKACKPARAM_TID_POS;
+
 	/*
 	 * Check if we had rejected the ADDBA, if yes then do not create
 	 * the stream
 	 */
-	if (le16_to_cpu(add_ba_rsp->status_code) != BA_RESULT_SUCCESS) {
+	if (le16_to_cpu(add_ba_rsp->status_code) != BA_RESULT_SUCCESS)
+	{
 		mwifiex_dbg(priv->adapter, ERROR, "ADDBA RSP: failed %pM tid=%d)\n",
-			    add_ba_rsp->peer_mac_addr, tid);
+					add_ba_rsp->peer_mac_addr, tid);
 
 		tbl = mwifiex_11n_get_rx_reorder_tbl(priv, tid,
-						     add_ba_rsp->peer_mac_addr);
+											 add_ba_rsp->peer_mac_addr);
+
 		if (tbl)
+		{
 			mwifiex_del_rx_reorder_entry(priv, tbl);
+		}
 
 		return 0;
 	}
 
 	win_size = (block_ack_param_set & IEEE80211_ADDBA_PARAM_BUF_SIZE_MASK)
-		    >> BLOCKACKPARAM_WINSIZE_POS;
+			   >> BLOCKACKPARAM_WINSIZE_POS;
 
 	tbl = mwifiex_11n_get_rx_reorder_tbl(priv, tid,
-					     add_ba_rsp->peer_mac_addr);
-	if (tbl) {
+										 add_ba_rsp->peer_mac_addr);
+
+	if (tbl)
+	{
 		if ((block_ack_param_set & BLOCKACKPARAM_AMSDU_SUPP_MASK) &&
-		    priv->add_ba_param.rx_amsdu &&
-		    (priv->aggr_prio_tbl[tid].amsdu != BA_STREAM_NOT_ALLOWED))
+			priv->add_ba_param.rx_amsdu &&
+			(priv->aggr_prio_tbl[tid].amsdu != BA_STREAM_NOT_ALLOWED))
+		{
 			tbl->amsdu = true;
+		}
 		else
+		{
 			tbl->amsdu = false;
+		}
 	}
 
 	mwifiex_dbg(priv->adapter, CMD,
-		    "cmd: ADDBA RSP: %pM tid=%d ssn=%d win_size=%d\n",
-		add_ba_rsp->peer_mac_addr, tid, add_ba_rsp->ssn, win_size);
+				"cmd: ADDBA RSP: %pM tid=%d ssn=%d win_size=%d\n",
+				add_ba_rsp->peer_mac_addr, tid, add_ba_rsp->ssn, win_size);
 
 	return 0;
 }
@@ -782,7 +935,7 @@ int mwifiex_ret_11n_addba_resp(struct mwifiex_private *priv,
  * a command to the firmware.
  */
 void mwifiex_11n_ba_stream_timeout(struct mwifiex_private *priv,
-				   struct host_cmd_ds_11n_batimeout *event)
+								   struct host_cmd_ds_11n_batimeout *event)
 {
 	struct host_cmd_ds_11n_delba delba;
 
@@ -792,7 +945,7 @@ void mwifiex_11n_ba_stream_timeout(struct mwifiex_private *priv,
 	delba.del_ba_param_set |=
 		cpu_to_le16((u16) event->tid << DELBA_TID_POS);
 	delba.del_ba_param_set |= cpu_to_le16(
-		(u16) event->origninator << DELBA_INITIATOR_POS);
+								  (u16) event->origninator << DELBA_INITIATOR_POS);
 	delba.reason_code = cpu_to_le16(WLAN_REASON_QSTA_TIMEOUT);
 	mwifiex_send_cmd(priv, HostCmd_CMD_11N_DELBA, 0, 0, &delba, false);
 }
@@ -808,7 +961,8 @@ void mwifiex_11n_cleanup_reorder_tbl(struct mwifiex_private *priv)
 
 	spin_lock_irqsave(&priv->rx_reorder_tbl_lock, flags);
 	list_for_each_entry_safe(del_tbl_ptr, tmp_node,
-				 &priv->rx_reorder_tbl_ptr, list) {
+							 &priv->rx_reorder_tbl_ptr, list)
+	{
 		spin_unlock_irqrestore(&priv->rx_reorder_tbl_lock, flags);
 		mwifiex_del_rx_reorder_entry(priv, del_tbl_ptr);
 		spin_lock_irqsave(&priv->rx_reorder_tbl_lock, flags);
@@ -829,20 +983,26 @@ void mwifiex_update_rxreor_flags(struct mwifiex_adapter *adapter, u8 flags)
 	unsigned long lock_flags;
 	int i;
 
-	for (i = 0; i < adapter->priv_num; i++) {
+	for (i = 0; i < adapter->priv_num; i++)
+	{
 		priv = adapter->priv[i];
+
 		if (!priv)
+		{
 			continue;
+		}
 
 		spin_lock_irqsave(&priv->rx_reorder_tbl_lock, lock_flags);
-		if (list_empty(&priv->rx_reorder_tbl_ptr)) {
+
+		if (list_empty(&priv->rx_reorder_tbl_ptr))
+		{
 			spin_unlock_irqrestore(&priv->rx_reorder_tbl_lock,
-					       lock_flags);
+								   lock_flags);
 			continue;
 		}
 
 		list_for_each_entry(tbl, &priv->rx_reorder_tbl_ptr, list)
-			tbl->flags = flags;
+		tbl->flags = flags;
 		spin_unlock_irqrestore(&priv->rx_reorder_tbl_lock, lock_flags);
 	}
 
@@ -852,7 +1012,7 @@ void mwifiex_update_rxreor_flags(struct mwifiex_adapter *adapter, u8 flags)
 /* This function update all the rx_win_size based on coex flag
  */
 static void mwifiex_update_ampdu_rxwinsize(struct mwifiex_adapter *adapter,
-					   bool coex_flag)
+		bool coex_flag)
 {
 	u8 i;
 	u32 rx_win_size;
@@ -860,28 +1020,40 @@ static void mwifiex_update_ampdu_rxwinsize(struct mwifiex_adapter *adapter,
 
 	dev_dbg(adapter->dev, "Update rxwinsize %d\n", coex_flag);
 
-	for (i = 0; i < adapter->priv_num; i++) {
+	for (i = 0; i < adapter->priv_num; i++)
+	{
 		if (!adapter->priv[i])
+		{
 			continue;
+		}
+
 		priv = adapter->priv[i];
 		rx_win_size = priv->add_ba_param.rx_win_size;
-		if (coex_flag) {
+
+		if (coex_flag)
+		{
 			if (priv->bss_type == MWIFIEX_BSS_TYPE_STA)
 				priv->add_ba_param.rx_win_size =
 					MWIFIEX_STA_COEX_AMPDU_DEF_RXWINSIZE;
+
 			if (priv->bss_type == MWIFIEX_BSS_TYPE_P2P)
 				priv->add_ba_param.rx_win_size =
 					MWIFIEX_STA_COEX_AMPDU_DEF_RXWINSIZE;
+
 			if (priv->bss_type == MWIFIEX_BSS_TYPE_UAP)
 				priv->add_ba_param.rx_win_size =
 					MWIFIEX_UAP_COEX_AMPDU_DEF_RXWINSIZE;
-		} else {
+		}
+		else
+		{
 			if (priv->bss_type == MWIFIEX_BSS_TYPE_STA)
 				priv->add_ba_param.rx_win_size =
 					MWIFIEX_STA_AMPDU_DEF_RXWINSIZE;
+
 			if (priv->bss_type == MWIFIEX_BSS_TYPE_P2P)
 				priv->add_ba_param.rx_win_size =
 					MWIFIEX_STA_AMPDU_DEF_RXWINSIZE;
+
 			if (priv->bss_type == MWIFIEX_BSS_TYPE_UAP)
 				priv->add_ba_param.rx_win_size =
 					MWIFIEX_UAP_AMPDU_DEF_RXWINSIZE;
@@ -889,13 +1061,19 @@ static void mwifiex_update_ampdu_rxwinsize(struct mwifiex_adapter *adapter,
 
 		if (adapter->coex_win_size && adapter->coex_rx_win_size)
 			priv->add_ba_param.rx_win_size =
-					adapter->coex_rx_win_size;
+				adapter->coex_rx_win_size;
 
-		if (rx_win_size != priv->add_ba_param.rx_win_size) {
+		if (rx_win_size != priv->add_ba_param.rx_win_size)
+		{
 			if (!priv->media_connected)
+			{
 				continue;
+			}
+
 			for (i = 0; i < MAX_NUM_TID; i++)
+			{
 				mwifiex_11n_delba(priv, i);
+			}
 		}
 	}
 }
@@ -908,31 +1086,49 @@ void mwifiex_coex_ampdu_rxwinsize(struct mwifiex_adapter *adapter)
 	struct mwifiex_private *priv;
 	u8 count = 0;
 
-	for (i = 0; i < adapter->priv_num; i++) {
-		if (adapter->priv[i]) {
+	for (i = 0; i < adapter->priv_num; i++)
+	{
+		if (adapter->priv[i])
+		{
 			priv = adapter->priv[i];
-			if (GET_BSS_ROLE(priv) == MWIFIEX_BSS_ROLE_STA) {
+
+			if (GET_BSS_ROLE(priv) == MWIFIEX_BSS_ROLE_STA)
+			{
 				if (priv->media_connected)
+				{
 					count++;
+				}
 			}
-			if (GET_BSS_ROLE(priv) == MWIFIEX_BSS_ROLE_UAP) {
+
+			if (GET_BSS_ROLE(priv) == MWIFIEX_BSS_ROLE_UAP)
+			{
 				if (priv->bss_started)
+				{
 					count++;
+				}
 			}
 		}
+
 		if (count >= MWIFIEX_BSS_COEX_COUNT)
+		{
 			break;
+		}
 	}
+
 	if (count >= MWIFIEX_BSS_COEX_COUNT)
+	{
 		mwifiex_update_ampdu_rxwinsize(adapter, true);
+	}
 	else
+	{
 		mwifiex_update_ampdu_rxwinsize(adapter, false);
+	}
 }
 
 /* This function handles rxba_sync event
  */
 void mwifiex_11n_rxba_sync_event(struct mwifiex_private *priv,
-				 u8 *event_buf, u16 len)
+								 u8 *event_buf, u16 len)
 {
 	struct mwifiex_ie_types_rxba_sync *tlv_rxba = (void *)event_buf;
 	u16 tlv_type, tlv_len;
@@ -944,50 +1140,59 @@ void mwifiex_11n_rxba_sync_event(struct mwifiex_private *priv,
 	u8 *tmp;
 
 	mwifiex_dbg_dump(priv->adapter, EVT_D, "RXBA_SYNC event:",
-			 event_buf, len);
-	while (tlv_buf_left >= sizeof(*tlv_rxba)) {
+					 event_buf, len);
+
+	while (tlv_buf_left >= sizeof(*tlv_rxba))
+	{
 		tlv_type = le16_to_cpu(tlv_rxba->header.type);
 		tlv_len  = le16_to_cpu(tlv_rxba->header.len);
-		if (tlv_type != TLV_TYPE_RXBA_SYNC) {
+
+		if (tlv_type != TLV_TYPE_RXBA_SYNC)
+		{
 			mwifiex_dbg(priv->adapter, ERROR,
-				    "Wrong TLV id=0x%x\n", tlv_type);
+						"Wrong TLV id=0x%x\n", tlv_type);
 			return;
 		}
 
 		tlv_seq_num = le16_to_cpu(tlv_rxba->seq_num);
 		tlv_bitmap_len = le16_to_cpu(tlv_rxba->bitmap_len);
 		mwifiex_dbg(priv->adapter, INFO,
-			    "%pM tid=%d seq_num=%d bitmap_len=%d\n",
-			    tlv_rxba->mac, tlv_rxba->tid, tlv_seq_num,
-			    tlv_bitmap_len);
+					"%pM tid=%d seq_num=%d bitmap_len=%d\n",
+					tlv_rxba->mac, tlv_rxba->tid, tlv_seq_num,
+					tlv_bitmap_len);
 
 		rx_reor_tbl_ptr =
 			mwifiex_11n_get_rx_reorder_tbl(priv, tlv_rxba->tid,
-						       tlv_rxba->mac);
-		if (!rx_reor_tbl_ptr) {
+										   tlv_rxba->mac);
+
+		if (!rx_reor_tbl_ptr)
+		{
 			mwifiex_dbg(priv->adapter, ERROR,
-				    "Can not find rx_reorder_tbl!");
+						"Can not find rx_reorder_tbl!");
 			return;
 		}
 
-		for (i = 0; i < tlv_bitmap_len; i++) {
-			for (j = 0 ; j < 8; j++) {
-				if (tlv_rxba->bitmap[i] & (1 << j)) {
+		for (i = 0; i < tlv_bitmap_len; i++)
+		{
+			for (j = 0 ; j < 8; j++)
+			{
+				if (tlv_rxba->bitmap[i] & (1 << j))
+				{
 					seq_num = (MAX_TID_VALUE - 1) &
-						(tlv_seq_num + i * 8 + j);
+							  (tlv_seq_num + i * 8 + j);
 
 					mwifiex_dbg(priv->adapter, ERROR,
-						    "drop packet,seq=%d\n",
-						    seq_num);
+								"drop packet,seq=%d\n",
+								seq_num);
 
 					ret = mwifiex_11n_rx_reorder_pkt
-					(priv, seq_num, tlv_rxba->tid,
-					 tlv_rxba->mac, 0, NULL);
+						  (priv, seq_num, tlv_rxba->tid,
+						   tlv_rxba->mac, 0, NULL);
 
 					if (ret)
 						mwifiex_dbg(priv->adapter,
-							    ERROR,
-							    "Fail to drop packet");
+									ERROR,
+									"Fail to drop packet");
 				}
 			}
 		}

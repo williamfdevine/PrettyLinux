@@ -40,43 +40,55 @@ MODULE_PARM_DESC(portal_rotor, "redirect PUTs to different cpu-partitions");
 
 static int
 lnet_ptl_match_type(unsigned int index, lnet_process_id_t match_id,
-		    __u64 mbits, __u64 ignore_bits)
+					__u64 mbits, __u64 ignore_bits)
 {
 	struct lnet_portal *ptl = the_lnet.ln_portals[index];
 	int unique;
 
 	unique = !ignore_bits &&
-		 match_id.nid != LNET_NID_ANY &&
-		 match_id.pid != LNET_PID_ANY;
+			 match_id.nid != LNET_NID_ANY &&
+			 match_id.pid != LNET_PID_ANY;
 
 	LASSERT(!lnet_ptl_is_unique(ptl) || !lnet_ptl_is_wildcard(ptl));
 
 	/* prefer to check w/o any lock */
 	if (likely(lnet_ptl_is_unique(ptl) || lnet_ptl_is_wildcard(ptl)))
+	{
 		goto match;
+	}
 
 	/* unset, new portal */
 	lnet_ptl_lock(ptl);
+
 	/* check again with lock */
-	if (unlikely(lnet_ptl_is_unique(ptl) || lnet_ptl_is_wildcard(ptl))) {
+	if (unlikely(lnet_ptl_is_unique(ptl) || lnet_ptl_is_wildcard(ptl)))
+	{
 		lnet_ptl_unlock(ptl);
 		goto match;
 	}
 
 	/* still not set */
 	if (unique)
+	{
 		lnet_ptl_setopt(ptl, LNET_PTL_MATCH_UNIQUE);
+	}
 	else
+	{
 		lnet_ptl_setopt(ptl, LNET_PTL_MATCH_WILDCARD);
+	}
 
 	lnet_ptl_unlock(ptl);
 
 	return 1;
 
- match:
+match:
+
 	if ((lnet_ptl_is_unique(ptl) && !unique) ||
-	    (lnet_ptl_is_wildcard(ptl) && unique))
+		(lnet_ptl_is_wildcard(ptl) && unique))
+	{
 		return 0;
+	}
+
 	return 1;
 }
 
@@ -92,10 +104,15 @@ lnet_ptl_enable_mt(struct lnet_portal *ptl, int cpt)
 	mtable->mt_enabled = 1;
 
 	ptl->ptl_mt_maps[ptl->ptl_mt_nmaps] = cpt;
-	for (i = ptl->ptl_mt_nmaps - 1; i >= 0; i--) {
+
+	for (i = ptl->ptl_mt_nmaps - 1; i >= 0; i--)
+	{
 		LASSERT(ptl->ptl_mt_maps[i] != cpt);
+
 		if (ptl->ptl_mt_maps[i] < cpt)
+		{
 			break;
+		}
 
 		/* swap to order */
 		ptl->ptl_mt_maps[i + 1] = ptl->ptl_mt_maps[i];
@@ -115,24 +132,30 @@ lnet_ptl_disable_mt(struct lnet_portal *ptl, int cpt)
 	LASSERT(lnet_ptl_is_wildcard(ptl));
 
 	if (LNET_CPT_NUMBER == 1)
-		return; /* never disable the only match-table */
+	{
+		return;    /* never disable the only match-table */
+	}
 
 	mtable->mt_enabled = 0;
 
 	LASSERT(ptl->ptl_mt_nmaps > 0 &&
-		ptl->ptl_mt_nmaps <= LNET_CPT_NUMBER);
+			ptl->ptl_mt_nmaps <= LNET_CPT_NUMBER);
 
 	/* remove it from mt_maps */
 	ptl->ptl_mt_nmaps--;
-	for (i = 0; i < ptl->ptl_mt_nmaps; i++) {
+
+	for (i = 0; i < ptl->ptl_mt_nmaps; i++)
+	{
 		if (ptl->ptl_mt_maps[i] >= cpt) /* overwrite it */
+		{
 			ptl->ptl_mt_maps[i] = ptl->ptl_mt_maps[i + 1];
+		}
 	}
 }
 
 static int
 lnet_try_match_md(lnet_libmd_t *md,
-		  struct lnet_match_info *info, struct lnet_msg *msg)
+				  struct lnet_match_info *info, struct lnet_msg *msg)
 {
 	/*
 	 * ALWAYS called holding the lnet_res_lock, and can't lnet_res_unlock;
@@ -144,61 +167,83 @@ lnet_try_match_md(lnet_libmd_t *md,
 
 	/* MD exhausted */
 	if (lnet_md_exhausted(md))
+	{
 		return LNET_MATCHMD_NONE | LNET_MATCHMD_EXHAUSTED;
+	}
 
 	/* mismatched MD op */
 	if (!(md->md_options & info->mi_opc))
+	{
 		return LNET_MATCHMD_NONE;
+	}
 
 	/* mismatched ME nid/pid? */
 	if (me->me_match_id.nid != LNET_NID_ANY &&
-	    me->me_match_id.nid != info->mi_id.nid)
+		me->me_match_id.nid != info->mi_id.nid)
+	{
 		return LNET_MATCHMD_NONE;
+	}
 
 	if (me->me_match_id.pid != LNET_PID_ANY &&
-	    me->me_match_id.pid != info->mi_id.pid)
+		me->me_match_id.pid != info->mi_id.pid)
+	{
 		return LNET_MATCHMD_NONE;
+	}
 
 	/* mismatched ME matchbits? */
 	if ((me->me_match_bits ^ info->mi_mbits) & ~me->me_ignore_bits)
+	{
 		return LNET_MATCHMD_NONE;
+	}
 
 	/* Hurrah! This _is_ a match; check it out... */
 
 	if (!(md->md_options & LNET_MD_MANAGE_REMOTE))
+	{
 		offset = md->md_offset;
+	}
 	else
+	{
 		offset = info->mi_roffset;
+	}
 
-	if (md->md_options & LNET_MD_MAX_SIZE) {
+	if (md->md_options & LNET_MD_MAX_SIZE)
+	{
 		mlength = md->md_max_size;
 		LASSERT(md->md_offset + mlength <= md->md_length);
-	} else {
+	}
+	else
+	{
 		mlength = md->md_length - offset;
 	}
 
-	if (info->mi_rlength <= mlength) {	/* fits in allowed space */
+	if (info->mi_rlength <= mlength)  	/* fits in allowed space */
+	{
 		mlength = info->mi_rlength;
-	} else if (!(md->md_options & LNET_MD_TRUNCATE)) {
+	}
+	else if (!(md->md_options & LNET_MD_TRUNCATE))
+	{
 		/* this packet _really_ is too big */
 		CERROR("Matching packet from %s, match %llu length %d too big: %d left, %d allowed\n",
-		       libcfs_id2str(info->mi_id), info->mi_mbits,
-		       info->mi_rlength, md->md_length - offset, mlength);
+			   libcfs_id2str(info->mi_id), info->mi_mbits,
+			   info->mi_rlength, md->md_length - offset, mlength);
 
 		return LNET_MATCHMD_DROP;
 	}
 
 	/* Commit to this ME/MD */
 	CDEBUG(D_NET, "Incoming %s index %x from %s of length %d/%d into md %#llx [%d] + %d\n",
-	       (info->mi_opc == LNET_MD_OP_PUT) ? "put" : "get",
-	       info->mi_portal, libcfs_id2str(info->mi_id), mlength,
-	       info->mi_rlength, md->md_lh.lh_cookie, md->md_niov, offset);
+		   (info->mi_opc == LNET_MD_OP_PUT) ? "put" : "get",
+		   info->mi_portal, libcfs_id2str(info->mi_id), mlength,
+		   info->mi_rlength, md->md_lh.lh_cookie, md->md_niov, offset);
 
 	lnet_msg_attach_md(msg, md, offset, mlength);
 	md->md_offset = offset + mlength;
 
 	if (!lnet_md_exhausted(md))
+	{
 		return LNET_MATCHMD_OK;
+	}
 
 	/*
 	 * Auto-unlink NOW, so the ME gets unlinked if required.
@@ -206,7 +251,9 @@ lnet_try_match_md(lnet_libmd_t *md,
 	 * for unlink when it is finalized.
 	 */
 	if (md->md_flags & LNET_MD_FLAG_AUTO_UNLINK)
+	{
 		lnet_md_unlink(md);
+	}
 
 	return LNET_MATCHMD_OK | LNET_MATCHMD_EXHAUSTED;
 }
@@ -215,16 +262,18 @@ static struct lnet_match_table *
 lnet_match2mt(struct lnet_portal *ptl, lnet_process_id_t id, __u64 mbits)
 {
 	if (LNET_CPT_NUMBER == 1)
-		return ptl->ptl_mtables[0]; /* the only one */
+	{
+		return ptl->ptl_mtables[0];    /* the only one */
+	}
 
 	/* if it's a unique portal, return match-table hashed by NID */
 	return lnet_ptl_is_unique(ptl) ?
-	       ptl->ptl_mtables[lnet_cpt_of_nid(id.nid)] : NULL;
+		   ptl->ptl_mtables[lnet_cpt_of_nid(id.nid)] : NULL;
 }
 
 struct lnet_match_table *
 lnet_mt_of_attach(unsigned int index, lnet_process_id_t id,
-		  __u64 mbits, __u64 ignore_bits, lnet_ins_pos_t pos)
+				  __u64 mbits, __u64 ignore_bits, lnet_ins_pos_t pos)
 {
 	struct lnet_portal *ptl;
 	struct lnet_match_table	*mtable;
@@ -233,28 +282,36 @@ lnet_mt_of_attach(unsigned int index, lnet_process_id_t id,
 	LASSERT(index < the_lnet.ln_nportals);
 
 	if (!lnet_ptl_match_type(index, id, mbits, ignore_bits))
+	{
 		return NULL;
+	}
 
 	ptl = the_lnet.ln_portals[index];
 
 	mtable = lnet_match2mt(ptl, id, mbits);
+
 	if (mtable) /* unique portal or only one match-table */
+	{
 		return mtable;
+	}
 
 	/* it's a wildcard portal */
-	switch (pos) {
-	default:
-		return NULL;
-	case LNET_INS_BEFORE:
-	case LNET_INS_AFTER:
-		/*
-		 * posted by no affinity thread, always hash to specific
-		 * match-table to avoid buffer stealing which is heavy
-		 */
-		return ptl->ptl_mtables[ptl->ptl_index % LNET_CPT_NUMBER];
-	case LNET_INS_LOCAL:
-		/* posted by cpu-affinity thread */
-		return ptl->ptl_mtables[lnet_cpt_current()];
+	switch (pos)
+	{
+		default:
+			return NULL;
+
+		case LNET_INS_BEFORE:
+		case LNET_INS_AFTER:
+			/*
+			 * posted by no affinity thread, always hash to specific
+			 * match-table to avoid buffer stealing which is heavy
+			 */
+			return ptl->ptl_mtables[ptl->ptl_index % LNET_CPT_NUMBER];
+
+		case LNET_INS_LOCAL:
+			/* posted by cpu-affinity thread */
+			return ptl->ptl_mtables[lnet_cpt_current()];
 	}
 }
 
@@ -275,31 +332,46 @@ lnet_mt_of_match(struct lnet_match_info *info, struct lnet_msg *msg)
 	LASSERT(lnet_ptl_is_wildcard(ptl) || lnet_ptl_is_unique(ptl));
 
 	mtable = lnet_match2mt(ptl, info->mi_id, info->mi_mbits);
+
 	if (mtable)
+	{
 		return mtable;
+	}
 
 	/* it's a wildcard portal */
 	routed = LNET_NIDNET(msg->msg_hdr.src_nid) !=
-		 LNET_NIDNET(msg->msg_hdr.dest_nid);
+			 LNET_NIDNET(msg->msg_hdr.dest_nid);
 
 	if (portal_rotor == LNET_PTL_ROTOR_OFF ||
-	    (portal_rotor != LNET_PTL_ROTOR_ON && !routed)) {
+		(portal_rotor != LNET_PTL_ROTOR_ON && !routed))
+	{
 		cpt = lnet_cpt_current();
+
 		if (ptl->ptl_mtables[cpt]->mt_enabled)
+		{
 			return ptl->ptl_mtables[cpt];
+		}
 	}
 
 	rotor = ptl->ptl_rotor++; /* get round-robin factor */
-	if (portal_rotor == LNET_PTL_ROTOR_HASH_RT && routed)
-		cpt = lnet_cpt_of_nid(msg->msg_hdr.src_nid);
-	else
-		cpt = rotor % LNET_CPT_NUMBER;
 
-	if (!ptl->ptl_mtables[cpt]->mt_enabled) {
+	if (portal_rotor == LNET_PTL_ROTOR_HASH_RT && routed)
+	{
+		cpt = lnet_cpt_of_nid(msg->msg_hdr.src_nid);
+	}
+	else
+	{
+		cpt = rotor % LNET_CPT_NUMBER;
+	}
+
+	if (!ptl->ptl_mtables[cpt]->mt_enabled)
+	{
 		/* is there any active entry for this portal? */
 		nmaps = ptl->ptl_mt_nmaps;
+
 		/* map to an active mtable to avoid heavy "stealing" */
-		if (nmaps) {
+		if (nmaps)
+		{
 			/*
 			 * NB: there is possibility that ptl_mt_maps is being
 			 * changed because we are not under protection of
@@ -319,13 +391,20 @@ lnet_mt_test_exhausted(struct lnet_match_table *mtable, int pos)
 	int i;
 
 	if (!lnet_ptl_is_wildcard(the_lnet.ln_portals[mtable->mt_portal]))
+	{
 		return 0;
+	}
 
-	if (pos < 0) { /* check all bits */
-		for (i = 0; i < LNET_MT_EXHAUSTED_BMAP; i++) {
+	if (pos < 0)   /* check all bits */
+	{
+		for (i = 0; i < LNET_MT_EXHAUSTED_BMAP; i++)
+		{
 			if (mtable->mt_exhausted[i] != (__u64)(-1))
+			{
 				return 0;
+			}
 		}
+
 		return 1;
 	}
 
@@ -350,30 +429,36 @@ lnet_mt_set_exhausted(struct lnet_match_table *mtable, int pos, int exhausted)
 	pos &= (1 << LNET_MT_BITS_U64) - 1;
 
 	if (!exhausted)
+	{
 		*bmap &= ~(1ULL << pos);
+	}
 	else
+	{
 		*bmap |= 1ULL << pos;
+	}
 }
 
 struct list_head *
 lnet_mt_match_head(struct lnet_match_table *mtable,
-		   lnet_process_id_t id, __u64 mbits)
+				   lnet_process_id_t id, __u64 mbits)
 {
 	struct lnet_portal *ptl = the_lnet.ln_portals[mtable->mt_portal];
 	unsigned long hash = mbits;
 
-	if (!lnet_ptl_is_wildcard(ptl)) {
+	if (!lnet_ptl_is_wildcard(ptl))
+	{
 		hash += id.nid + id.pid;
 
 		LASSERT(lnet_ptl_is_unique(ptl));
 		hash = hash_long(hash, LNET_MT_HASH_BITS);
 	}
+
 	return &mtable->mt_mhash[hash & LNET_MT_HASH_MASK];
 }
 
 int
 lnet_mt_match_md(struct lnet_match_table *mtable,
-		 struct lnet_match_info *info, struct lnet_msg *msg)
+				 struct lnet_match_info *info, struct lnet_msg *msg)
 {
 	struct list_head *head;
 	lnet_me_t *me;
@@ -383,26 +468,41 @@ lnet_mt_match_md(struct lnet_match_table *mtable,
 
 	/* any ME with ignore bits? */
 	if (!list_empty(&mtable->mt_mhash[LNET_MT_HASH_IGNORE]))
+	{
 		head = &mtable->mt_mhash[LNET_MT_HASH_IGNORE];
+	}
 	else
+	{
 		head = lnet_mt_match_head(mtable, info->mi_id, info->mi_mbits);
- again:
+	}
+
+again:
+
 	/* NB: only wildcard portal needs to return LNET_MATCHMD_EXHAUSTED */
 	if (lnet_ptl_is_wildcard(the_lnet.ln_portals[mtable->mt_portal]))
+	{
 		exhausted = LNET_MATCHMD_EXHAUSTED;
+	}
 
-	list_for_each_entry_safe(me, tmp, head, me_list) {
+	list_for_each_entry_safe(me, tmp, head, me_list)
+	{
 		/* ME attached but MD not attached yet */
 		if (!me->me_md)
+		{
 			continue;
+		}
 
 		LASSERT(me == me->me_md->md_me);
 
 		rc = lnet_try_match_md(me->me_md, info, msg);
-		if (!(rc & LNET_MATCHMD_EXHAUSTED))
-			exhausted = 0; /* mlist is not empty */
 
-		if (rc & LNET_MATCHMD_FINISH) {
+		if (!(rc & LNET_MATCHMD_EXHAUSTED))
+		{
+			exhausted = 0;    /* mlist is not empty */
+		}
+
+		if (rc & LNET_MATCHMD_FINISH)
+		{
 			/*
 			 * don't return EXHAUSTED bit because we don't know
 			 * whether the mlist is empty or not
@@ -411,20 +511,27 @@ lnet_mt_match_md(struct lnet_match_table *mtable,
 		}
 	}
 
-	if (exhausted == LNET_MATCHMD_EXHAUSTED) { /* @head is exhausted */
+	if (exhausted == LNET_MATCHMD_EXHAUSTED)   /* @head is exhausted */
+	{
 		lnet_mt_set_exhausted(mtable, head - mtable->mt_mhash, 1);
+
 		if (!lnet_mt_test_exhausted(mtable, -1))
+		{
 			exhausted = 0;
+		}
 	}
 
-	if (!exhausted && head == &mtable->mt_mhash[LNET_MT_HASH_IGNORE]) {
+	if (!exhausted && head == &mtable->mt_mhash[LNET_MT_HASH_IGNORE])
+	{
 		head = lnet_mt_match_head(mtable, info->mi_id, info->mi_mbits);
 		goto again; /* re-check MEs w/o ignore-bits */
 	}
 
 	if (info->mi_opc == LNET_MD_OP_GET ||
-	    !lnet_ptl_is_lazy(the_lnet.ln_portals[info->mi_portal]))
+		!lnet_ptl_is_lazy(the_lnet.ln_portals[info->mi_portal]))
+	{
 		return exhausted | LNET_MATCHMD_DROP;
+	}
 
 	return exhausted | LNET_MATCHMD_NONE;
 }
@@ -439,23 +546,32 @@ lnet_ptl_match_early(struct lnet_portal *ptl, struct lnet_msg *msg)
 	 * simply delay or drop this message
 	 */
 	if (likely(lnet_ptl_is_wildcard(ptl) || lnet_ptl_is_unique(ptl)))
+	{
 		return 0;
+	}
 
 	lnet_ptl_lock(ptl);
+
 	/* check it again with hold of lock */
-	if (lnet_ptl_is_wildcard(ptl) || lnet_ptl_is_unique(ptl)) {
+	if (lnet_ptl_is_wildcard(ptl) || lnet_ptl_is_unique(ptl))
+	{
 		lnet_ptl_unlock(ptl);
 		return 0;
 	}
 
-	if (lnet_ptl_is_lazy(ptl)) {
-		if (msg->msg_rx_ready_delay) {
+	if (lnet_ptl_is_lazy(ptl))
+	{
+		if (msg->msg_rx_ready_delay)
+		{
 			msg->msg_rx_delayed = 1;
 			list_add_tail(&msg->msg_list,
-				      &ptl->ptl_msg_delayed);
+						  &ptl->ptl_msg_delayed);
 		}
+
 		rc = LNET_MATCHMD_NONE;
-	} else {
+	}
+	else
+	{
 		rc = LNET_MATCHMD_DROP;
 	}
 
@@ -465,7 +581,7 @@ lnet_ptl_match_early(struct lnet_portal *ptl, struct lnet_msg *msg)
 
 static int
 lnet_ptl_match_delay(struct lnet_portal *ptl,
-		     struct lnet_match_info *info, struct lnet_msg *msg)
+					 struct lnet_match_info *info, struct lnet_msg *msg)
 {
 	int first = ptl->ptl_mt_maps[0]; /* read w/o lock */
 	int rc = 0;
@@ -480,39 +596,50 @@ lnet_ptl_match_delay(struct lnet_portal *ptl,
 	 */
 	LASSERT(lnet_ptl_is_wildcard(ptl));
 
-	for (i = 0; i < LNET_CPT_NUMBER; i++) {
+	for (i = 0; i < LNET_CPT_NUMBER; i++)
+	{
 		struct lnet_match_table *mtable;
 		int cpt;
 
 		cpt = (first + i) % LNET_CPT_NUMBER;
 		mtable = ptl->ptl_mtables[cpt];
+
 		if (i && i != LNET_CPT_NUMBER - 1 && !mtable->mt_enabled)
+		{
 			continue;
+		}
 
 		lnet_res_lock(cpt);
 		lnet_ptl_lock(ptl);
 
-		if (!i) {
+		if (!i)
+		{
 			/* The first try, add to stealing list. */
 			list_add_tail(&msg->msg_list,
-				      &ptl->ptl_msg_stealing);
+						  &ptl->ptl_msg_stealing);
 		}
 
-		if (!list_empty(&msg->msg_list)) {
+		if (!list_empty(&msg->msg_list))
+		{
 			/* On stealing list. */
 			rc = lnet_mt_match_md(mtable, info, msg);
 
 			if ((rc & LNET_MATCHMD_EXHAUSTED) &&
-			    mtable->mt_enabled)
+				mtable->mt_enabled)
+			{
 				lnet_ptl_disable_mt(ptl, cpt);
+			}
 
-			if (rc & LNET_MATCHMD_FINISH) {
+			if (rc & LNET_MATCHMD_FINISH)
+			{
 				/* Match found, remove from stealing list. */
 				list_del_init(&msg->msg_list);
-			} else if (i == LNET_CPT_NUMBER - 1 ||	/* (1) */
-				   !ptl->ptl_mt_nmaps ||	/* (2) */
-				   (ptl->ptl_mt_nmaps == 1 &&	/* (3) */
-				    ptl->ptl_mt_maps[0] == cpt)) {
+			}
+			else if (i == LNET_CPT_NUMBER - 1 ||	/* (1) */
+					 !ptl->ptl_mt_nmaps ||	/* (2) */
+					 (ptl->ptl_mt_nmaps == 1 &&	/* (3) */
+					  ptl->ptl_mt_maps[0] == cpt))
+			{
 				/**
 				 * No match found, and this is either
 				 * (1) the last cpt to check, or
@@ -523,26 +650,33 @@ lnet_ptl_match_delay(struct lnet_portal *ptl,
 				 */
 				list_del_init(&msg->msg_list);
 
-				if (lnet_ptl_is_lazy(ptl)) {
+				if (lnet_ptl_is_lazy(ptl))
+				{
 					msg->msg_rx_delayed = 1;
 					list_add_tail(&msg->msg_list,
-						      &ptl->ptl_msg_delayed);
+								  &ptl->ptl_msg_delayed);
 					rc = LNET_MATCHMD_NONE;
-				} else {
+				}
+				else
+				{
 					rc = LNET_MATCHMD_DROP;
 				}
-			} else {
+			}
+			else
+			{
 				/* Do another iteration. */
 				rc = 0;
 			}
-		} else {
+		}
+		else
+		{
 			/**
 			 * No longer on stealing list: another thread
 			 * matched the message in lnet_ptl_attach_md().
 			 * We are now expected to handle the message.
 			 */
 			rc = !msg->msg_md ?
-			     LNET_MATCHMD_DROP : LNET_MATCHMD_OK;
+				 LNET_MATCHMD_DROP : LNET_MATCHMD_OK;
 		}
 
 		lnet_ptl_unlock(ptl);
@@ -557,7 +691,9 @@ lnet_ptl_match_delay(struct lnet_portal *ptl,
 		 * after lnet_ptl_unlock() and lnet_res_unlock().
 		 */
 		if (rc & (LNET_MATCHMD_FINISH | LNET_MATCHMD_NONE))
+		{
 			break;
+		}
 	}
 
 	return rc;
@@ -571,46 +707,58 @@ lnet_ptl_match_md(struct lnet_match_info *info, struct lnet_msg *msg)
 	int rc;
 
 	CDEBUG(D_NET, "Request from %s of length %d into portal %d MB=%#llx\n",
-	       libcfs_id2str(info->mi_id), info->mi_rlength, info->mi_portal,
-	       info->mi_mbits);
+		   libcfs_id2str(info->mi_id), info->mi_rlength, info->mi_portal,
+		   info->mi_mbits);
 
-	if (info->mi_portal >= the_lnet.ln_nportals) {
+	if (info->mi_portal >= the_lnet.ln_nportals)
+	{
 		CERROR("Invalid portal %d not in [0-%d]\n",
-		       info->mi_portal, the_lnet.ln_nportals);
+			   info->mi_portal, the_lnet.ln_nportals);
 		return LNET_MATCHMD_DROP;
 	}
 
 	ptl = the_lnet.ln_portals[info->mi_portal];
 	rc = lnet_ptl_match_early(ptl, msg);
+
 	if (rc) /* matched or delayed early message */
+	{
 		return rc;
+	}
 
 	mtable = lnet_mt_of_match(info, msg);
 	lnet_res_lock(mtable->mt_cpt);
 
-	if (the_lnet.ln_shutdown) {
+	if (the_lnet.ln_shutdown)
+	{
 		rc = LNET_MATCHMD_DROP;
 		goto out1;
 	}
 
 	rc = lnet_mt_match_md(mtable, info, msg);
-	if ((rc & LNET_MATCHMD_EXHAUSTED) && mtable->mt_enabled) {
+
+	if ((rc & LNET_MATCHMD_EXHAUSTED) && mtable->mt_enabled)
+	{
 		lnet_ptl_lock(ptl);
 		lnet_ptl_disable_mt(ptl, mtable->mt_cpt);
 		lnet_ptl_unlock(ptl);
 	}
 
 	if (rc & LNET_MATCHMD_FINISH)	/* matched or dropping */
+	{
 		goto out1;
+	}
 
 	if (!msg->msg_rx_ready_delay)
+	{
 		goto out1;
+	}
 
 	LASSERT(lnet_ptl_is_lazy(ptl));
 	LASSERT(!msg->msg_rx_delayed);
 
 	/* NB: we don't expect "delay" can happen a lot */
-	if (lnet_ptl_is_unique(ptl) || LNET_CPT_NUMBER == 1) {
+	if (lnet_ptl_is_unique(ptl) || LNET_CPT_NUMBER == 1)
+	{
 		lnet_ptl_lock(ptl);
 
 		msg->msg_rx_delayed = 1;
@@ -619,23 +767,27 @@ lnet_ptl_match_md(struct lnet_match_info *info, struct lnet_msg *msg)
 		lnet_ptl_unlock(ptl);
 		lnet_res_unlock(mtable->mt_cpt);
 		rc = LNET_MATCHMD_NONE;
-	} else  {
+	}
+	else
+	{
 		lnet_res_unlock(mtable->mt_cpt);
 		rc = lnet_ptl_match_delay(ptl, info, msg);
 	}
 
 	/* LNET_MATCHMD_NONE means msg was added to the delay queue */
-	if (rc & LNET_MATCHMD_NONE) {
+	if (rc & LNET_MATCHMD_NONE)
+	{
 		CDEBUG(D_NET,
-		       "Delaying %s from %s ptl %d MB %#llx off %d len %d\n",
-		       info->mi_opc == LNET_MD_OP_PUT ? "PUT" : "GET",
-		       libcfs_id2str(info->mi_id), info->mi_portal,
-		       info->mi_mbits, info->mi_roffset, info->mi_rlength);
+			   "Delaying %s from %s ptl %d MB %#llx off %d len %d\n",
+			   info->mi_opc == LNET_MD_OP_PUT ? "PUT" : "GET",
+			   libcfs_id2str(info->mi_id), info->mi_portal,
+			   info->mi_mbits, info->mi_roffset, info->mi_rlength);
 	}
+
 	goto out0;
- out1:
+out1:
 	lnet_res_unlock(mtable->mt_cpt);
- out0:
+out0:
 	/* EXHAUSTED bit is only meaningful for internal functions */
 	return rc & ~LNET_MATCHMD_EXHAUSTED;
 }
@@ -652,7 +804,7 @@ lnet_ptl_detach_md(lnet_me_t *me, lnet_libmd_t *md)
 /* called with lnet_res_lock held */
 void
 lnet_ptl_attach_md(lnet_me_t *me, lnet_libmd_t *md,
-		   struct list_head *matches, struct list_head *drops)
+				   struct list_head *matches, struct list_head *drops)
 {
 	struct lnet_portal *ptl = the_lnet.ln_portals[me->me_portal];
 	struct lnet_match_table	*mtable;
@@ -671,14 +823,17 @@ lnet_ptl_attach_md(lnet_me_t *me, lnet_libmd_t *md,
 	mtable = ptl->ptl_mtables[cpt];
 
 	if (list_empty(&ptl->ptl_msg_stealing) &&
-	    list_empty(&ptl->ptl_msg_delayed) &&
-	    !lnet_mt_test_exhausted(mtable, me->me_pos))
+		list_empty(&ptl->ptl_msg_delayed) &&
+		!lnet_mt_test_exhausted(mtable, me->me_pos))
+	{
 		return;
+	}
 
 	lnet_ptl_lock(ptl);
 	head = &ptl->ptl_msg_stealing;
- again:
-	list_for_each_entry_safe(msg, tmp, head, msg_list) {
+again:
+	list_for_each_entry_safe(msg, tmp, head, msg_list)
+	{
 		struct lnet_match_info info;
 		lnet_hdr_t *hdr;
 		int rc;
@@ -697,9 +852,14 @@ lnet_ptl_attach_md(lnet_me_t *me, lnet_libmd_t *md,
 		rc = lnet_try_match_md(md, &info, msg);
 
 		exhausted = (rc & LNET_MATCHMD_EXHAUSTED);
-		if (rc & LNET_MATCHMD_NONE) {
+
+		if (rc & LNET_MATCHMD_NONE)
+		{
 			if (exhausted)
+			{
 				break;
+			}
+
 			continue;
 		}
 
@@ -707,37 +867,51 @@ lnet_ptl_attach_md(lnet_me_t *me, lnet_libmd_t *md,
 		LASSERT(rc & LNET_MATCHMD_FINISH);
 		list_del_init(&msg->msg_list);
 
-		if (head == &ptl->ptl_msg_stealing) {
+		if (head == &ptl->ptl_msg_stealing)
+		{
 			if (exhausted)
+			{
 				break;
+			}
+
 			/* stealing thread will handle the message */
 			continue;
 		}
 
-		if (rc & LNET_MATCHMD_OK) {
+		if (rc & LNET_MATCHMD_OK)
+		{
 			list_add_tail(&msg->msg_list, matches);
 
 			CDEBUG(D_NET, "Resuming delayed PUT from %s portal %d match %llu offset %d length %d.\n",
-			       libcfs_id2str(info.mi_id),
-			       info.mi_portal, info.mi_mbits,
-			       info.mi_roffset, info.mi_rlength);
-		} else {
+				   libcfs_id2str(info.mi_id),
+				   info.mi_portal, info.mi_mbits,
+				   info.mi_roffset, info.mi_rlength);
+		}
+		else
+		{
 			list_add_tail(&msg->msg_list, drops);
 		}
 
 		if (exhausted)
+		{
 			break;
+		}
 	}
 
-	if (!exhausted && head == &ptl->ptl_msg_stealing) {
+	if (!exhausted && head == &ptl->ptl_msg_stealing)
+	{
 		head = &ptl->ptl_msg_delayed;
 		goto again;
 	}
 
-	if (lnet_ptl_is_wildcard(ptl) && !exhausted) {
+	if (lnet_ptl_is_wildcard(ptl) && !exhausted)
+	{
 		lnet_mt_set_exhausted(mtable, me->me_pos, 0);
+
 		if (!mtable->mt_enabled)
+		{
 			lnet_ptl_enable_mt(ptl, cpt);
+		}
 	}
 
 	lnet_ptl_unlock(ptl);
@@ -750,29 +924,38 @@ lnet_ptl_cleanup(struct lnet_portal *ptl)
 	int i;
 
 	if (!ptl->ptl_mtables) /* uninitialized portal */
+	{
 		return;
+	}
 
 	LASSERT(list_empty(&ptl->ptl_msg_delayed));
 	LASSERT(list_empty(&ptl->ptl_msg_stealing));
-	cfs_percpt_for_each(mtable, i, ptl->ptl_mtables) {
+	cfs_percpt_for_each(mtable, i, ptl->ptl_mtables)
+	{
 		struct list_head *mhash;
 		lnet_me_t *me;
 		int j;
 
 		if (!mtable->mt_mhash) /* uninitialized match-table */
+		{
 			continue;
+		}
 
 		mhash = mtable->mt_mhash;
+
 		/* cleanup ME */
-		for (j = 0; j < LNET_MT_HASH_SIZE + 1; j++) {
-			while (!list_empty(&mhash[j])) {
+		for (j = 0; j < LNET_MT_HASH_SIZE + 1; j++)
+		{
+			while (!list_empty(&mhash[j]))
+			{
 				me = list_entry(mhash[j].next,
-						lnet_me_t, me_list);
+								lnet_me_t, me_list);
 				CERROR("Active ME %p on exit\n", me);
 				list_del(&me->me_list);
 				lnet_me_free(me);
 			}
 		}
+
 		/* the extra entry is for MEs with ignore bits */
 		LIBCFS_FREE(mhash, sizeof(*mhash) * (LNET_MT_HASH_SIZE + 1));
 	}
@@ -790,8 +973,10 @@ lnet_ptl_setup(struct lnet_portal *ptl, int index)
 	int j;
 
 	ptl->ptl_mtables = cfs_percpt_alloc(lnet_cpt_table(),
-					    sizeof(struct lnet_match_table));
-	if (!ptl->ptl_mtables) {
+										sizeof(struct lnet_match_table));
+
+	if (!ptl->ptl_mtables)
+	{
 		CERROR("Failed to create match table for portal %d\n", index);
 		return -ENOMEM;
 	}
@@ -800,29 +985,35 @@ lnet_ptl_setup(struct lnet_portal *ptl, int index)
 	INIT_LIST_HEAD(&ptl->ptl_msg_delayed);
 	INIT_LIST_HEAD(&ptl->ptl_msg_stealing);
 	spin_lock_init(&ptl->ptl_lock);
-	cfs_percpt_for_each(mtable, i, ptl->ptl_mtables) {
+	cfs_percpt_for_each(mtable, i, ptl->ptl_mtables)
+	{
 		/* the extra entry is for MEs with ignore bits */
 		LIBCFS_CPT_ALLOC(mhash, lnet_cpt_table(), i,
-				 sizeof(*mhash) * (LNET_MT_HASH_SIZE + 1));
-		if (!mhash) {
+						 sizeof(*mhash) * (LNET_MT_HASH_SIZE + 1));
+
+		if (!mhash)
+		{
 			CERROR("Failed to create match hash for portal %d\n",
-			       index);
+				   index);
 			goto failed;
 		}
 
 		memset(&mtable->mt_exhausted[0], -1,
-		       sizeof(mtable->mt_exhausted[0]) *
-		       LNET_MT_EXHAUSTED_BMAP);
+			   sizeof(mtable->mt_exhausted[0]) *
+			   LNET_MT_EXHAUSTED_BMAP);
 		mtable->mt_mhash = mhash;
+
 		for (j = 0; j < LNET_MT_HASH_SIZE + 1; j++)
+		{
 			INIT_LIST_HEAD(&mhash[j]);
+		}
 
 		mtable->mt_portal = index;
 		mtable->mt_cpt = i;
 	}
 
 	return 0;
- failed:
+failed:
 	lnet_ptl_cleanup(ptl);
 	return -ENOMEM;
 }
@@ -833,10 +1024,14 @@ lnet_portals_destroy(void)
 	int i;
 
 	if (!the_lnet.ln_portals)
+	{
 		return;
+	}
 
 	for (i = 0; i < the_lnet.ln_nportals; i++)
+	{
 		lnet_ptl_cleanup(the_lnet.ln_portals[i]);
+	}
 
 	cfs_array_free(the_lnet.ln_portals);
 	the_lnet.ln_portals = NULL;
@@ -852,13 +1047,17 @@ lnet_portals_create(void)
 
 	the_lnet.ln_nportals = MAX_PORTALS;
 	the_lnet.ln_portals = cfs_array_alloc(the_lnet.ln_nportals, size);
-	if (!the_lnet.ln_portals) {
+
+	if (!the_lnet.ln_portals)
+	{
 		CERROR("Failed to allocate portals table\n");
 		return -ENOMEM;
 	}
 
-	for (i = 0; i < the_lnet.ln_nportals; i++) {
-		if (lnet_ptl_setup(the_lnet.ln_portals[i], i)) {
+	for (i = 0; i < the_lnet.ln_nportals; i++)
+	{
+		if (lnet_ptl_setup(the_lnet.ln_portals[i], i))
+		{
 			lnet_portals_destroy();
 			return -ENOMEM;
 		}
@@ -901,7 +1100,9 @@ LNetSetLazyPortal(int portal)
 	struct lnet_portal *ptl;
 
 	if (portal < 0 || portal >= the_lnet.ln_nportals)
+	{
 		return -EINVAL;
+	}
 
 	CDEBUG(D_NET, "Setting portal %d lazy\n", portal);
 	ptl = the_lnet.ln_portals[portal];
@@ -925,33 +1126,46 @@ lnet_clear_lazy_portal(struct lnet_ni *ni, int portal, char *reason)
 	LIST_HEAD(zombies);
 
 	if (portal < 0 || portal >= the_lnet.ln_nportals)
+	{
 		return -EINVAL;
+	}
 
 	ptl = the_lnet.ln_portals[portal];
 
 	lnet_res_lock(LNET_LOCK_EX);
 	lnet_ptl_lock(ptl);
 
-	if (!lnet_ptl_is_lazy(ptl)) {
+	if (!lnet_ptl_is_lazy(ptl))
+	{
 		lnet_ptl_unlock(ptl);
 		lnet_res_unlock(LNET_LOCK_EX);
 		return 0;
 	}
 
-	if (ni) {
+	if (ni)
+	{
 		struct lnet_msg *msg, *tmp;
 
 		/* grab all messages which are on the NI passed in */
 		list_for_each_entry_safe(msg, tmp, &ptl->ptl_msg_delayed,
-					 msg_list) {
+								 msg_list)
+		{
 			if (msg->msg_rxpeer->lp_ni == ni)
+			{
 				list_move(&msg->msg_list, &zombies);
+			}
 		}
-	} else {
+	}
+	else
+	{
 		if (the_lnet.ln_shutdown)
+		{
 			CWARN("Active lazy portal %d on exit\n", portal);
+		}
 		else
+		{
 			CDEBUG(D_NET, "clearing portal %d lazy\n", portal);
+		}
 
 		/* grab all the blocked messages atomically */
 		list_splice_init(&ptl->ptl_msg_delayed, &zombies);
@@ -980,6 +1194,6 @@ int
 LNetClearLazyPortal(int portal)
 {
 	return lnet_clear_lazy_portal(NULL, portal,
-				      "Clearing lazy portal attr");
+								  "Clearing lazy portal attr");
 }
 EXPORT_SYMBOL(LNetClearLazyPortal);

@@ -17,7 +17,8 @@
    Shine Liu <shinel@foxmail.com>
  */
 
-static struct rc_map_table gadmei_rm008z[] = {
+static struct rc_map_table gadmei_rm008z[] =
+{
 	{ 0x14, KEY_POWER2},		/* POWER OFF */
 	{ 0x0c, KEY_MUTE},		/* MUTE */
 
@@ -56,7 +57,8 @@ static struct rc_map_table gadmei_rm008z[] = {
 	{ 0x15, KEY_ENTER},		/* OK */
 };
 
-static struct rc_map_list gadmei_rm008z_map = {
+static struct rc_map_list gadmei_rm008z_map =
+{
 	.map = {
 		.scan    = gadmei_rm008z,
 		.size    = ARRAY_SIZE(gadmei_rm008z),

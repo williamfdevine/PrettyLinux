@@ -6,9 +6,9 @@
 
 __printf(4, 5)
 struct task_struct *kthread_create_on_node(int (*threadfn)(void *data),
-					   void *data,
-					   int node,
-					   const char namefmt[], ...);
+		void *data,
+		int node,
+		const char namefmt[], ...);
 
 /**
  * kthread_create - create a kthread on the current node
@@ -26,9 +26,9 @@ struct task_struct *kthread_create_on_node(int (*threadfn)(void *data),
 
 
 struct task_struct *kthread_create_on_cpu(int (*threadfn)(void *data),
-					  void *data,
-					  unsigned int cpu,
-					  const char *namefmt);
+		void *data,
+		unsigned int cpu,
+		const char *namefmt);
 
 /**
  * kthread_run - create and wake a thread.
@@ -40,13 +40,13 @@ struct task_struct *kthread_create_on_cpu(int (*threadfn)(void *data),
  * wake_up_process().  Returns the kthread or ERR_PTR(-ENOMEM).
  */
 #define kthread_run(threadfn, data, namefmt, ...)			   \
-({									   \
-	struct task_struct *__k						   \
-		= kthread_create(threadfn, data, namefmt, ## __VA_ARGS__); \
-	if (!IS_ERR(__k))						   \
-		wake_up_process(__k);					   \
-	__k;								   \
-})
+	({									   \
+		struct task_struct *__k						   \
+			= kthread_create(threadfn, data, namefmt, ## __VA_ARGS__); \
+		if (!IS_ERR(__k))						   \
+			wake_up_process(__k);					   \
+		__k;								   \
+	})
 
 void kthread_bind(struct task_struct *k, unsigned int cpu);
 void kthread_bind_mask(struct task_struct *k, const struct cpumask *mask);
@@ -76,11 +76,13 @@ struct kthread_work;
 typedef void (*kthread_work_func_t)(struct kthread_work *work);
 void kthread_delayed_work_timer_fn(unsigned long __data);
 
-enum {
+enum
+{
 	KTW_FREEZABLE		= 1 << 0,	/* freeze during suspend */
 };
 
-struct kthread_worker {
+struct kthread_worker
+{
 	unsigned int		flags;
 	spinlock_t		lock;
 	struct list_head	work_list;
@@ -89,7 +91,8 @@ struct kthread_worker {
 	struct kthread_work	*current_work;
 };
 
-struct kthread_work {
+struct kthread_work
+{
 	struct list_head	node;
 	kthread_work_func_t	func;
 	struct kthread_worker	*worker;
@@ -97,27 +100,28 @@ struct kthread_work {
 	int			canceling;
 };
 
-struct kthread_delayed_work {
+struct kthread_delayed_work
+{
 	struct kthread_work work;
 	struct timer_list timer;
 };
 
 #define KTHREAD_WORKER_INIT(worker)	{				\
-	.lock = __SPIN_LOCK_UNLOCKED((worker).lock),			\
-	.work_list = LIST_HEAD_INIT((worker).work_list),		\
-	.delayed_work_list = LIST_HEAD_INIT((worker).delayed_work_list),\
+		.lock = __SPIN_LOCK_UNLOCKED((worker).lock),			\
+				.work_list = LIST_HEAD_INIT((worker).work_list),		\
+							 .delayed_work_list = LIST_HEAD_INIT((worker).delayed_work_list),\
 	}
 
 #define KTHREAD_WORK_INIT(work, fn)	{				\
-	.node = LIST_HEAD_INIT((work).node),				\
-	.func = (fn),							\
+		.node = LIST_HEAD_INIT((work).node),				\
+				.func = (fn),							\
 	}
 
 #define KTHREAD_DELAYED_WORK_INIT(dwork, fn) {				\
-	.work = KTHREAD_WORK_INIT((dwork).work, (fn)),			\
-	.timer = __TIMER_INITIALIZER(kthread_delayed_work_timer_fn,	\
-				     0, (unsigned long)&(dwork),	\
-				     TIMER_IRQSAFE),			\
+		.work = KTHREAD_WORK_INIT((dwork).work, (fn)),			\
+				.timer = __TIMER_INITIALIZER(kthread_delayed_work_timer_fn,	\
+											 0, (unsigned long)&(dwork),	\
+											 TIMER_IRQSAFE),			\
 	}
 
 #define DEFINE_KTHREAD_WORKER(worker)					\
@@ -128,7 +132,7 @@ struct kthread_delayed_work {
 
 #define DEFINE_KTHREAD_DELAYED_WORK(dwork, fn)				\
 	struct kthread_delayed_work dwork =				\
-		KTHREAD_DELAYED_WORK_INIT(dwork, fn)
+			KTHREAD_DELAYED_WORK_INIT(dwork, fn)
 
 /*
  * kthread_worker.lock needs its own lockdep class key when defined on
@@ -144,7 +148,7 @@ struct kthread_delayed_work {
 #endif
 
 extern void __kthread_init_worker(struct kthread_worker *worker,
-			const char *name, struct lock_class_key *key);
+								  const char *name, struct lock_class_key *key);
 
 #define kthread_init_worker(worker)					\
 	do {								\
@@ -163,9 +167,9 @@ extern void __kthread_init_worker(struct kthread_worker *worker,
 	do {								\
 		kthread_init_work(&(dwork)->work, (fn));		\
 		__setup_timer(&(dwork)->timer,				\
-			      kthread_delayed_work_timer_fn,		\
-			      (unsigned long)(dwork),			\
-			      TIMER_IRQSAFE);				\
+					  kthread_delayed_work_timer_fn,		\
+					  (unsigned long)(dwork),			\
+					  TIMER_IRQSAFE);				\
 	} while (0)
 
 int kthread_worker_fn(void *worker_ptr);
@@ -176,18 +180,18 @@ kthread_create_worker(unsigned int flags, const char namefmt[], ...);
 
 struct kthread_worker *
 kthread_create_worker_on_cpu(int cpu, unsigned int flags,
-			     const char namefmt[], ...);
+							 const char namefmt[], ...);
 
 bool kthread_queue_work(struct kthread_worker *worker,
-			struct kthread_work *work);
+						struct kthread_work *work);
 
 bool kthread_queue_delayed_work(struct kthread_worker *worker,
-				struct kthread_delayed_work *dwork,
-				unsigned long delay);
+								struct kthread_delayed_work *dwork,
+								unsigned long delay);
 
 bool kthread_mod_delayed_work(struct kthread_worker *worker,
-			      struct kthread_delayed_work *dwork,
-			      unsigned long delay);
+							  struct kthread_delayed_work *dwork,
+							  unsigned long delay);
 
 void kthread_flush_work(struct kthread_work *work);
 void kthread_flush_worker(struct kthread_worker *worker);

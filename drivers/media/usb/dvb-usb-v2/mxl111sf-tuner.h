@@ -24,7 +24,8 @@
 #include "dvb_frontend.h"
 #include "mxl111sf.h"
 
-enum mxl_if_freq {
+enum mxl_if_freq
+{
 #if 0
 	MXL_IF_LO    = 0x00, /* other IF < 9MHz */
 #endif
@@ -45,14 +46,15 @@ enum mxl_if_freq {
 #endif
 };
 
-struct mxl111sf_tuner_config {
+struct mxl111sf_tuner_config
+{
 	enum mxl_if_freq if_freq;
-	unsigned int invert_spectrum:1;
+	unsigned int invert_spectrum: 1;
 
 	int (*read_reg)(struct mxl111sf_state *state, u8 addr, u8 *data);
 	int (*write_reg)(struct mxl111sf_state *state, u8 addr, u8 data);
 	int (*program_regs)(struct mxl111sf_state *state,
-			    struct mxl111sf_reg_ctrl_info *ctrl_reg_info);
+						struct mxl111sf_reg_ctrl_info *ctrl_reg_info);
 	int (*top_master_ctrl)(struct mxl111sf_state *state, int onoff);
 	int (*ant_hunt)(struct dvb_frontend *fe);
 };
@@ -62,13 +64,13 @@ struct mxl111sf_tuner_config {
 #if IS_ENABLED(CONFIG_DVB_USB_MXL111SF)
 extern
 struct dvb_frontend *mxl111sf_tuner_attach(struct dvb_frontend *fe,
-				struct mxl111sf_state *mxl_state,
-				const struct mxl111sf_tuner_config *cfg);
+		struct mxl111sf_state *mxl_state,
+		const struct mxl111sf_tuner_config *cfg);
 #else
 static inline
 struct dvb_frontend *mxl111sf_tuner_attach(struct dvb_frontend *fe,
-				struct mxl111sf_state *mxl_state,
-				const struct mxl111sf_tuner_config *cfg)
+		struct mxl111sf_state *mxl_state,
+		const struct mxl111sf_tuner_config *cfg)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;

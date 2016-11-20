@@ -100,7 +100,8 @@
 #define ABX500_GPIO_INPUT	0
 #define ABX500_GPIO_OUTPUT	1
 
-struct abx500_pinctrl {
+struct abx500_pinctrl
+{
 	struct device *dev;
 	struct pinctrl_dev *pctldev;
 	struct abx500_pinctrl_soc_data *soc;
@@ -111,7 +112,7 @@ struct abx500_pinctrl {
 };
 
 static int abx500_gpio_get_bit(struct gpio_chip *chip, u8 reg,
-			       unsigned offset, bool *bit)
+							   unsigned offset, bool *bit)
 {
 	struct abx500_pinctrl *pct = gpiochip_get_data(chip);
 	u8 pos = offset % 8;
@@ -120,20 +121,20 @@ static int abx500_gpio_get_bit(struct gpio_chip *chip, u8 reg,
 
 	reg += offset / 8;
 	ret = abx500_get_register_interruptible(pct->dev,
-						AB8500_MISC, reg, &val);
+											AB8500_MISC, reg, &val);
 
 	*bit = !!(val & BIT(pos));
 
 	if (ret < 0)
 		dev_err(pct->dev,
-			"%s read reg =%x, offset=%x failed (%d)\n",
-			__func__, reg, offset, ret);
+				"%s read reg =%x, offset=%x failed (%d)\n",
+				__func__, reg, offset, ret);
 
 	return ret;
 }
 
 static int abx500_gpio_set_bits(struct gpio_chip *chip, u8 reg,
-				unsigned offset, int val)
+								unsigned offset, int val)
 {
 	struct abx500_pinctrl *pct = gpiochip_get_data(chip);
 	u8 pos = offset % 8;
@@ -141,7 +142,8 @@ static int abx500_gpio_set_bits(struct gpio_chip *chip, u8 reg,
 
 	reg += offset / 8;
 	ret = abx500_mask_and_set_register_interruptible(pct->dev,
-				AB8500_MISC, reg, BIT(pos), val << pos);
+			AB8500_MISC, reg, BIT(pos), val << pos);
+
 	if (ret < 0)
 		dev_err(pct->dev, "%s write reg, %x offset %x failed (%d)\n",
 				__func__, reg, offset, ret);
@@ -163,18 +165,24 @@ static int abx500_gpio_get(struct gpio_chip *chip, unsigned offset)
 	int ret;
 
 	ret = abx500_gpio_get_bit(chip, AB8500_GPIO_DIR1_REG,
-			gpio_offset, &is_out);
+							  gpio_offset, &is_out);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	if (is_out)
 		ret = abx500_gpio_get_bit(chip, AB8500_GPIO_OUT1_REG,
-				gpio_offset, &bit);
+								  gpio_offset, &bit);
 	else
 		ret = abx500_gpio_get_bit(chip, AB8500_GPIO_IN1_REG,
-				gpio_offset, &bit);
+								  gpio_offset, &bit);
+
 out:
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(pct->dev, "%s failed (%d)\n", __func__, ret);
 		return ret;
 	}
@@ -188,20 +196,24 @@ static void abx500_gpio_set(struct gpio_chip *chip, unsigned offset, int val)
 	int ret;
 
 	ret = abx500_gpio_set_bits(chip, AB8500_GPIO_OUT1_REG, offset, val);
+
 	if (ret < 0)
+	{
 		dev_err(pct->dev, "%s write failed (%d)\n", __func__, ret);
+	}
 }
 
 #ifdef CONFIG_DEBUG_FS
 static int abx500_get_pull_updown(struct abx500_pinctrl *pct, int offset,
-				  enum abx500_gpio_pull_updown *pull_updown)
+								  enum abx500_gpio_pull_updown *pull_updown)
 {
 	u8 pos;
 	u8 val;
 	int ret;
 	struct pullud *pullud;
 
-	if (!pct->soc->pullud) {
+	if (!pct->soc->pullud)
+	{
 		dev_err(pct->dev, "%s AB chip doesn't support pull up/down feature",
 				__func__);
 		ret = -EPERM;
@@ -211,33 +223,38 @@ static int abx500_get_pull_updown(struct abx500_pinctrl *pct, int offset,
 	pullud = pct->soc->pullud;
 
 	if ((offset < pullud->first_pin)
-		|| (offset > pullud->last_pin)) {
+		|| (offset > pullud->last_pin))
+	{
 		ret = -EINVAL;
 		goto out;
 	}
 
 	ret = abx500_get_register_interruptible(pct->dev,
-			AB8500_MISC, AB8540_GPIO_PULL_UPDOWN_REG, &val);
+											AB8500_MISC, AB8540_GPIO_PULL_UPDOWN_REG, &val);
 
 	pos = (offset - pullud->first_pin) << 1;
 	*pull_updown = (val >> pos) & AB8540_GPIO_PULL_UPDOWN_MASK;
 
 out:
+
 	if (ret < 0)
+	{
 		dev_err(pct->dev, "%s failed (%d)\n", __func__, ret);
+	}
 
 	return ret;
 }
 #endif
 
 static int abx500_set_pull_updown(struct abx500_pinctrl *pct,
-				  int offset, enum abx500_gpio_pull_updown val)
+								  int offset, enum abx500_gpio_pull_updown val)
 {
 	u8 pos;
 	int ret;
 	struct pullud *pullud;
 
-	if (!pct->soc->pullud) {
+	if (!pct->soc->pullud)
+	{
 		dev_err(pct->dev, "%s AB chip doesn't support pull up/down feature",
 				__func__);
 		ret = -EPERM;
@@ -247,10 +264,12 @@ static int abx500_set_pull_updown(struct abx500_pinctrl *pct,
 	pullud = pct->soc->pullud;
 
 	if ((offset < pullud->first_pin)
-		|| (offset > pullud->last_pin)) {
+		|| (offset > pullud->last_pin))
+	{
 		ret = -EINVAL;
 		goto out;
 	}
+
 	pos = (offset - pullud->first_pin) << 1;
 
 	ret = abx500_mask_and_set_register_interruptible(pct->dev,
@@ -258,8 +277,11 @@ static int abx500_set_pull_updown(struct abx500_pinctrl *pct,
 			AB8540_GPIO_PULL_UPDOWN_MASK << pos, val << pos);
 
 out:
+
 	if (ret < 0)
+	{
 		dev_err(pct->dev, "%s failed (%d)\n", __func__, ret);
+	}
 
 	return ret;
 }
@@ -270,13 +292,13 @@ static bool abx500_pullud_supported(struct gpio_chip *chip, unsigned gpio)
 	struct pullud *pullud = pct->soc->pullud;
 
 	return (pullud &&
-		gpio >= pullud->first_pin &&
-		gpio <= pullud->last_pin);
+			gpio >= pullud->first_pin &&
+			gpio <= pullud->last_pin);
 }
 
 static int abx500_gpio_direction_output(struct gpio_chip *chip,
-					unsigned offset,
-					int val)
+										unsigned offset,
+										int val)
 {
 	struct abx500_pinctrl *pct = gpiochip_get_data(chip);
 	unsigned gpio;
@@ -284,29 +306,40 @@ static int abx500_gpio_direction_output(struct gpio_chip *chip,
 
 	/* set direction as output */
 	ret = abx500_gpio_set_bits(chip,
-				AB8500_GPIO_DIR1_REG,
-				offset,
-				ABX500_GPIO_OUTPUT);
+							   AB8500_GPIO_DIR1_REG,
+							   offset,
+							   ABX500_GPIO_OUTPUT);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	/* disable pull down */
 	ret = abx500_gpio_set_bits(chip,
-				AB8500_GPIO_PUD1_REG,
-				offset,
-				ABX500_GPIO_PULL_NONE);
+							   AB8500_GPIO_PUD1_REG,
+							   offset,
+							   ABX500_GPIO_PULL_NONE);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	/* if supported, disable both pull down and pull up */
 	gpio = offset + 1;
-	if (abx500_pullud_supported(chip, gpio)) {
+
+	if (abx500_pullud_supported(chip, gpio))
+	{
 		ret = abx500_set_pull_updown(pct,
-				gpio,
-				ABX500_GPIO_PULL_NONE);
+									 gpio,
+									 ABX500_GPIO_PULL_NONE);
 	}
+
 out:
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(pct->dev, "%s failed (%d)\n", __func__, ret);
 		return ret;
 	}
@@ -319,9 +352,9 @@ static int abx500_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
 {
 	/* set the register as input */
 	return abx500_gpio_set_bits(chip,
-				AB8500_GPIO_DIR1_REG,
-				offset,
-				ABX500_GPIO_INPUT);
+								AB8500_GPIO_DIR1_REG,
+								offset,
+								ABX500_GPIO_INPUT);
 }
 
 static int abx500_gpio_to_irq(struct gpio_chip *chip, unsigned offset)
@@ -332,11 +365,13 @@ static int abx500_gpio_to_irq(struct gpio_chip *chip, unsigned offset)
 	int hwirq;
 	int i;
 
-	for (i = 0; i < pct->irq_cluster_size; i++) {
+	for (i = 0; i < pct->irq_cluster_size; i++)
+	{
 		struct abx500_gpio_irq_cluster *cluster =
-			&pct->irq_cluster[i];
+				&pct->irq_cluster[i];
 
-		if (gpio >= cluster->start && gpio <= cluster->end) {
+		if (gpio >= cluster->start && gpio <= cluster->end)
+		{
 			/*
 			 * The ABx500 GPIO's associated IRQs are clustered together
 			 * throughout the interrupt numbers at irregular intervals.
@@ -352,7 +387,7 @@ static int abx500_gpio_to_irq(struct gpio_chip *chip, unsigned offset)
 }
 
 static int abx500_set_mode(struct pinctrl_dev *pctldev, struct gpio_chip *chip,
-			   unsigned gpio, int alt_setting)
+						   unsigned gpio, int alt_setting)
 {
 	struct abx500_pinctrl *pct = pinctrl_dev_get_drvdata(pctldev);
 	struct alternate_functions af = pct->soc->alternate_functions[gpio];
@@ -360,7 +395,8 @@ static int abx500_set_mode(struct pinctrl_dev *pctldev, struct gpio_chip *chip,
 	int val;
 	unsigned offset;
 
-	const char *modes[] = {
+	const char *modes[] =
+	{
 		[ABX500_DEFAULT]	= "default",
 		[ABX500_ALT_A]		= "altA",
 		[ABX500_ALT_B]		= "altB",
@@ -369,8 +405,9 @@ static int abx500_set_mode(struct pinctrl_dev *pctldev, struct gpio_chip *chip,
 
 	/* sanity check */
 	if (((alt_setting == ABX500_ALT_A) && (af.gpiosel_bit == UNUSED)) ||
-	    ((alt_setting == ABX500_ALT_B) && (af.alt_bit1 == UNUSED)) ||
-	    ((alt_setting == ABX500_ALT_C) && (af.alt_bit2 == UNUSED))) {
+		((alt_setting == ABX500_ALT_B) && (af.alt_bit1 == UNUSED)) ||
+		((alt_setting == ABX500_ALT_C) && (af.alt_bit2 == UNUSED)))
+	{
 		dev_dbg(pct->dev, "pin %d doesn't support %s mode\n", gpio,
 				modes[alt_setting]);
 		return -EINVAL;
@@ -379,101 +416,132 @@ static int abx500_set_mode(struct pinctrl_dev *pctldev, struct gpio_chip *chip,
 	/* on ABx5xx, there is no GPIO0, so adjust the offset */
 	offset = gpio - 1;
 
-	switch (alt_setting) {
-	case ABX500_DEFAULT:
-		/*
-		 * for ABx5xx family, default mode is always selected by
-		 * writing 0 to GPIOSELx register, except for pins which
-		 * support at least ALT_B mode, default mode is selected
-		 * by writing 1 to GPIOSELx register
-		 */
-		val = 0;
-		if (af.alt_bit1 != UNUSED)
-			val++;
+	switch (alt_setting)
+	{
+		case ABX500_DEFAULT:
+			/*
+			 * for ABx5xx family, default mode is always selected by
+			 * writing 0 to GPIOSELx register, except for pins which
+			 * support at least ALT_B mode, default mode is selected
+			 * by writing 1 to GPIOSELx register
+			 */
+			val = 0;
 
-		ret = abx500_gpio_set_bits(chip, AB8500_GPIO_SEL1_REG,
-					   offset, val);
-		break;
+			if (af.alt_bit1 != UNUSED)
+			{
+				val++;
+			}
 
-	case ABX500_ALT_A:
-		/*
-		 * for ABx5xx family, alt_a mode is always selected by
-		 * writing 1 to GPIOSELx register, except for pins which
-		 * support at least ALT_B mode, alt_a mode is selected
-		 * by writing 0 to GPIOSELx register and 0 in ALTFUNC
-		 * register
-		 */
-		if (af.alt_bit1 != UNUSED) {
 			ret = abx500_gpio_set_bits(chip, AB8500_GPIO_SEL1_REG,
-					offset, 0);
-			if (ret < 0)
-				goto out;
+									   offset, val);
+			break;
 
-			ret = abx500_gpio_set_bits(chip,
-					AB8500_GPIO_ALTFUN_REG,
-					af.alt_bit1,
-					!!(af.alta_val & BIT(0)));
+		case ABX500_ALT_A:
+
+			/*
+			 * for ABx5xx family, alt_a mode is always selected by
+			 * writing 1 to GPIOSELx register, except for pins which
+			 * support at least ALT_B mode, alt_a mode is selected
+			 * by writing 0 to GPIOSELx register and 0 in ALTFUNC
+			 * register
+			 */
+			if (af.alt_bit1 != UNUSED)
+			{
+				ret = abx500_gpio_set_bits(chip, AB8500_GPIO_SEL1_REG,
+										   offset, 0);
+
+				if (ret < 0)
+				{
+					goto out;
+				}
+
+				ret = abx500_gpio_set_bits(chip,
+										   AB8500_GPIO_ALTFUN_REG,
+										   af.alt_bit1,
+										   !!(af.alta_val & BIT(0)));
+
+				if (ret < 0)
+				{
+					goto out;
+				}
+
+				if (af.alt_bit2 != UNUSED)
+					ret = abx500_gpio_set_bits(chip,
+											   AB8500_GPIO_ALTFUN_REG,
+											   af.alt_bit2,
+											   !!(af.alta_val & BIT(1)));
+			}
+			else
+				ret = abx500_gpio_set_bits(chip, AB8500_GPIO_SEL1_REG,
+										   offset, 1);
+
+			break;
+
+		case ABX500_ALT_B:
+			ret = abx500_gpio_set_bits(chip, AB8500_GPIO_SEL1_REG,
+									   offset, 0);
+
 			if (ret < 0)
+			{
 				goto out;
+			}
+
+			ret = abx500_gpio_set_bits(chip, AB8500_GPIO_ALTFUN_REG,
+									   af.alt_bit1, !!(af.altb_val & BIT(0)));
+
+			if (ret < 0)
+			{
+				goto out;
+			}
 
 			if (af.alt_bit2 != UNUSED)
 				ret = abx500_gpio_set_bits(chip,
-					AB8500_GPIO_ALTFUN_REG,
-					af.alt_bit2,
-					!!(af.alta_val & BIT(1)));
-		} else
+										   AB8500_GPIO_ALTFUN_REG,
+										   af.alt_bit2,
+										   !!(af.altb_val & BIT(1)));
+
+			break;
+
+		case ABX500_ALT_C:
 			ret = abx500_gpio_set_bits(chip, AB8500_GPIO_SEL1_REG,
-					offset, 1);
-		break;
+									   offset, 0);
 
-	case ABX500_ALT_B:
-		ret = abx500_gpio_set_bits(chip, AB8500_GPIO_SEL1_REG,
-				offset, 0);
-		if (ret < 0)
-			goto out;
+			if (ret < 0)
+			{
+				goto out;
+			}
 
-		ret = abx500_gpio_set_bits(chip, AB8500_GPIO_ALTFUN_REG,
-				af.alt_bit1, !!(af.altb_val & BIT(0)));
-		if (ret < 0)
-			goto out;
+			ret = abx500_gpio_set_bits(chip, AB8500_GPIO_ALTFUN_REG,
+									   af.alt_bit2, !!(af.altc_val & BIT(0)));
 
-		if (af.alt_bit2 != UNUSED)
-			ret = abx500_gpio_set_bits(chip,
-					AB8500_GPIO_ALTFUN_REG,
-					af.alt_bit2,
-					!!(af.altb_val & BIT(1)));
-		break;
+			if (ret < 0)
+			{
+				goto out;
+			}
 
-	case ABX500_ALT_C:
-		ret = abx500_gpio_set_bits(chip, AB8500_GPIO_SEL1_REG,
-				offset, 0);
-		if (ret < 0)
-			goto out;
+			ret = abx500_gpio_set_bits(chip, AB8500_GPIO_ALTFUN_REG,
+									   af.alt_bit2, !!(af.altc_val & BIT(1)));
+			break;
 
-		ret = abx500_gpio_set_bits(chip, AB8500_GPIO_ALTFUN_REG,
-				af.alt_bit2, !!(af.altc_val & BIT(0)));
-		if (ret < 0)
-			goto out;
+		default:
+			dev_dbg(pct->dev, "unknown alt_setting %d\n", alt_setting);
 
-		ret = abx500_gpio_set_bits(chip, AB8500_GPIO_ALTFUN_REG,
-				af.alt_bit2, !!(af.altc_val & BIT(1)));
-		break;
-
-	default:
-		dev_dbg(pct->dev, "unknown alt_setting %d\n", alt_setting);
-
-		return -EINVAL;
+			return -EINVAL;
 	}
+
 out:
+
 	if (ret < 0)
+	{
 		dev_err(pct->dev, "%s failed (%d)\n", __func__, ret);
+	}
 
 	return ret;
 }
 
 #ifdef CONFIG_DEBUG_FS
 static int abx500_get_mode(struct pinctrl_dev *pctldev, struct gpio_chip *chip,
-			  unsigned gpio)
+						   unsigned gpio)
 {
 	u8 mode;
 	bool bit_mode;
@@ -490,67 +558,96 @@ static int abx500_get_mode(struct pinctrl_dev *pctldev, struct gpio_chip *chip,
 	 * it means no GPIO or special case
 	 */
 	if (af.gpiosel_bit == UNUSED)
+	{
 		return ABX500_DEFAULT;
+	}
 
 	/* read GpioSelx register */
 	ret = abx500_gpio_get_bit(chip, AB8500_GPIO_SEL1_REG + (offset / 8),
-			af.gpiosel_bit, &bit_mode);
+							  af.gpiosel_bit, &bit_mode);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	mode = bit_mode;
 
 	/* sanity check */
 	if ((af.alt_bit1 < UNUSED) || (af.alt_bit1 > 7) ||
-	    (af.alt_bit2 < UNUSED) || (af.alt_bit2 > 7)) {
+		(af.alt_bit2 < UNUSED) || (af.alt_bit2 > 7))
+	{
 		dev_err(pct->dev,
-			"alt_bitX value not in correct range (-1 to 7)\n");
+				"alt_bitX value not in correct range (-1 to 7)\n");
 		return -EINVAL;
 	}
 
 	/* if alt_bit2 is used, alt_bit1 must be used too */
-	if ((af.alt_bit2 != UNUSED) && (af.alt_bit1 == UNUSED)) {
+	if ((af.alt_bit2 != UNUSED) && (af.alt_bit1 == UNUSED))
+	{
 		dev_err(pct->dev,
-			"if alt_bit2 is used, alt_bit1 can't be unused\n");
+				"if alt_bit2 is used, alt_bit1 can't be unused\n");
 		return -EINVAL;
 	}
 
 	/* check if pin use AlternateFunction register */
 	if ((af.alt_bit1 == UNUSED) && (af.alt_bit2 == UNUSED))
+	{
 		return mode;
+	}
+
 	/*
 	 * if pin GPIOSEL bit is set and pin supports alternate function,
 	 * it means DEFAULT mode
 	 */
 	if (mode)
+	{
 		return ABX500_DEFAULT;
+	}
 
 	/*
 	 * pin use the AlternatFunction register
 	 * read alt_bit1 value
 	 */
 	ret = abx500_gpio_get_bit(chip, AB8500_GPIO_ALTFUN_REG,
-			    af.alt_bit1, &alt_bit1);
-	if (ret < 0)
-		goto out;
+							  af.alt_bit1, &alt_bit1);
 
-	if (af.alt_bit2 != UNUSED) {
+	if (ret < 0)
+	{
+		goto out;
+	}
+
+	if (af.alt_bit2 != UNUSED)
+	{
 		/* read alt_bit2 value */
 		ret = abx500_gpio_get_bit(chip, AB8500_GPIO_ALTFUN_REG,
-				af.alt_bit2,
-				&alt_bit2);
+								  af.alt_bit2,
+								  &alt_bit2);
+
 		if (ret < 0)
+		{
 			goto out;
-	} else
+		}
+	}
+	else
+	{
 		alt_bit2 = 0;
+	}
 
 	mode = (alt_bit2 << 1) + alt_bit1;
+
 	if (mode == af.alta_val)
+	{
 		return ABX500_ALT_A;
+	}
 	else if (mode == af.altb_val)
+	{
 		return ABX500_ALT_B;
+	}
 	else
+	{
 		return ABX500_ALT_C;
+	}
 
 out:
 	dev_err(pct->dev, "%s failed (%d)\n", __func__, ret);
@@ -560,9 +657,9 @@ out:
 #include <linux/seq_file.h>
 
 static void abx500_gpio_dbg_show_one(struct seq_file *s,
-				     struct pinctrl_dev *pctldev,
-				     struct gpio_chip *chip,
-				     unsigned offset, unsigned gpio)
+									 struct pinctrl_dev *pctldev,
+									 struct gpio_chip *chip,
+									 unsigned offset, unsigned gpio)
 {
 	struct abx500_pinctrl *pct = pinctrl_dev_get_drvdata(pctldev);
 	const char *label = gpiochip_is_requested(chip, offset - 1);
@@ -573,14 +670,16 @@ static void abx500_gpio_dbg_show_one(struct seq_file *s,
 	enum abx500_gpio_pull_updown pud = 0;
 	int ret;
 
-	const char *modes[] = {
+	const char *modes[] =
+	{
 		[ABX500_DEFAULT]	= "default",
 		[ABX500_ALT_A]		= "altA",
 		[ABX500_ALT_B]		= "altB",
 		[ABX500_ALT_C]		= "altC",
 	};
 
-	const char *pull_up_down[] = {
+	const char *pull_up_down[] =
+	{
 		[ABX500_GPIO_PULL_DOWN]		= "pull down",
 		[ABX500_GPIO_PULL_NONE]		= "pull none",
 		[ABX500_GPIO_PULL_NONE + 1]	= "pull none",
@@ -588,39 +687,58 @@ static void abx500_gpio_dbg_show_one(struct seq_file *s,
 	};
 
 	ret = abx500_gpio_get_bit(chip, AB8500_GPIO_DIR1_REG,
-			gpio_offset, &is_out);
+							  gpio_offset, &is_out);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	seq_printf(s, " gpio-%-3d (%-20.20s) %-3s",
-		   gpio, label ?: "(none)",
-		   is_out ? "out" : "in ");
+			   gpio, label ? : "(none)",
+			   is_out ? "out" : "in ");
 
-	if (!is_out) {
-		if (abx500_pullud_supported(chip, offset)) {
+	if (!is_out)
+	{
+		if (abx500_pullud_supported(chip, offset))
+		{
 			ret = abx500_get_pull_updown(pct, offset, &pud);
+
 			if (ret < 0)
+			{
 				goto out;
+			}
 
 			seq_printf(s, " %-9s", pull_up_down[pud]);
-		} else {
+		}
+		else
+		{
 			ret = abx500_gpio_get_bit(chip, AB8500_GPIO_PUD1_REG,
-					gpio_offset, &pd);
+									  gpio_offset, &pd);
+
 			if (ret < 0)
+			{
 				goto out;
+			}
 
 			seq_printf(s, " %-9s", pull_up_down[pd]);
 		}
-	} else
+	}
+	else
+	{
 		seq_printf(s, " %-9s", chip->get(chip, offset) ? "hi" : "lo");
+	}
 
 	mode = abx500_get_mode(pctldev, chip, offset);
 
 	seq_printf(s, " %s", (mode < 0) ? "unknown" : modes[mode]);
 
 out:
+
 	if (ret < 0)
+	{
 		dev_err(pct->dev, "%s failed (%d)\n", __func__, ret);
+	}
 }
 
 static void abx500_gpio_dbg_show(struct seq_file *s, struct gpio_chip *chip)
@@ -630,7 +748,8 @@ static void abx500_gpio_dbg_show(struct seq_file *s, struct gpio_chip *chip)
 	struct abx500_pinctrl *pct = gpiochip_get_data(chip);
 	struct pinctrl_dev *pctldev = pct->pctldev;
 
-	for (i = 0; i < chip->ngpio; i++, gpio++) {
+	for (i = 0; i < chip->ngpio; i++, gpio++)
+	{
 		/* On AB8500, there is no GPIO0, the first is the GPIO 1 */
 		abx500_gpio_dbg_show_one(s, pctldev, chip, i + 1, gpio);
 		seq_printf(s, "\n");
@@ -639,15 +758,16 @@ static void abx500_gpio_dbg_show(struct seq_file *s, struct gpio_chip *chip)
 
 #else
 static inline void abx500_gpio_dbg_show_one(struct seq_file *s,
-					    struct pinctrl_dev *pctldev,
-					    struct gpio_chip *chip,
-					    unsigned offset, unsigned gpio)
+		struct pinctrl_dev *pctldev,
+		struct gpio_chip *chip,
+		unsigned offset, unsigned gpio)
 {
 }
 #define abx500_gpio_dbg_show	NULL
 #endif
 
-static struct gpio_chip abx500gpio_chip = {
+static struct gpio_chip abx500gpio_chip =
+{
 	.label			= "abx500-gpio",
 	.owner			= THIS_MODULE,
 	.request		= gpiochip_generic_request,
@@ -668,7 +788,7 @@ static int abx500_pmx_get_funcs_cnt(struct pinctrl_dev *pctldev)
 }
 
 static const char *abx500_pmx_get_func_name(struct pinctrl_dev *pctldev,
-					 unsigned function)
+		unsigned function)
 {
 	struct abx500_pinctrl *pct = pinctrl_dev_get_drvdata(pctldev);
 
@@ -676,9 +796,9 @@ static const char *abx500_pmx_get_func_name(struct pinctrl_dev *pctldev,
 }
 
 static int abx500_pmx_get_func_groups(struct pinctrl_dev *pctldev,
-				      unsigned function,
-				      const char * const **groups,
-				      unsigned * const num_groups)
+									  unsigned function,
+									  const char *const **groups,
+									  unsigned *const num_groups)
 {
 	struct abx500_pinctrl *pct = pinctrl_dev_get_drvdata(pctldev);
 
@@ -689,7 +809,7 @@ static int abx500_pmx_get_func_groups(struct pinctrl_dev *pctldev,
 }
 
 static int abx500_pmx_set(struct pinctrl_dev *pctldev, unsigned function,
-			  unsigned group)
+						  unsigned group)
 {
 	struct abx500_pinctrl *pct = pinctrl_dev_get_drvdata(pctldev);
 	struct gpio_chip *chip = &pct->chip;
@@ -698,27 +818,33 @@ static int abx500_pmx_set(struct pinctrl_dev *pctldev, unsigned function,
 	int ret = 0;
 
 	g = &pct->soc->groups[group];
+
 	if (g->altsetting < 0)
+	{
 		return -EINVAL;
+	}
 
 	dev_dbg(pct->dev, "enable group %s, %u pins\n", g->name, g->npins);
 
-	for (i = 0; i < g->npins; i++) {
+	for (i = 0; i < g->npins; i++)
+	{
 		dev_dbg(pct->dev, "setting pin %d to altsetting %d\n",
-			g->pins[i], g->altsetting);
+				g->pins[i], g->altsetting);
 
 		ret = abx500_set_mode(pctldev, chip, g->pins[i], g->altsetting);
 	}
 
 	if (ret < 0)
+	{
 		dev_err(pct->dev, "%s failed (%d)\n", __func__, ret);
+	}
 
 	return ret;
 }
 
 static int abx500_gpio_request_enable(struct pinctrl_dev *pctldev,
-			       struct pinctrl_gpio_range *range,
-			       unsigned offset)
+									  struct pinctrl_gpio_range *range,
+									  unsigned offset)
 {
 	struct abx500_pinctrl *pct = pinctrl_dev_get_drvdata(pctldev);
 	const struct abx500_pinrange *p;
@@ -730,36 +856,45 @@ static int abx500_gpio_request_enable(struct pinctrl_dev *pctldev,
 	 * pin, so refer back to our local range type, where we handily define
 	 * what altfunc enables GPIO for a certain pin.
 	 */
-	for (i = 0; i < pct->soc->gpio_num_ranges; i++) {
+	for (i = 0; i < pct->soc->gpio_num_ranges; i++)
+	{
 		p = &pct->soc->gpio_ranges[i];
+
 		if ((offset >= p->offset) &&
-		    (offset < (p->offset + p->npins)))
-		  break;
+			(offset < (p->offset + p->npins)))
+		{
+			break;
+		}
 	}
 
-	if (i == pct->soc->gpio_num_ranges) {
+	if (i == pct->soc->gpio_num_ranges)
+	{
 		dev_err(pct->dev, "%s failed to locate range\n", __func__);
 		return -ENODEV;
 	}
 
 	dev_dbg(pct->dev, "enable GPIO by altfunc %d at gpio %d\n",
-		p->altfunc, offset);
+			p->altfunc, offset);
 
 	ret = abx500_set_mode(pct->pctldev, &pct->chip,
-			      offset, p->altfunc);
+						  offset, p->altfunc);
+
 	if (ret < 0)
+	{
 		dev_err(pct->dev, "%s setting altfunc failed\n", __func__);
+	}
 
 	return ret;
 }
 
 static void abx500_gpio_disable_free(struct pinctrl_dev *pctldev,
-				     struct pinctrl_gpio_range *range,
-				     unsigned offset)
+									 struct pinctrl_gpio_range *range,
+									 unsigned offset)
 {
 }
 
-static const struct pinmux_ops abx500_pinmux_ops = {
+static const struct pinmux_ops abx500_pinmux_ops =
+{
 	.get_functions_count = abx500_pmx_get_funcs_cnt,
 	.get_function_name = abx500_pmx_get_func_name,
 	.get_function_groups = abx500_pmx_get_func_groups,
@@ -776,7 +911,7 @@ static int abx500_get_groups_cnt(struct pinctrl_dev *pctldev)
 }
 
 static const char *abx500_get_group_name(struct pinctrl_dev *pctldev,
-					 unsigned selector)
+		unsigned selector)
 {
 	struct abx500_pinctrl *pct = pinctrl_dev_get_drvdata(pctldev);
 
@@ -784,9 +919,9 @@ static const char *abx500_get_group_name(struct pinctrl_dev *pctldev,
 }
 
 static int abx500_get_group_pins(struct pinctrl_dev *pctldev,
-				 unsigned selector,
-				 const unsigned **pins,
-				 unsigned *num_pins)
+								 unsigned selector,
+								 const unsigned **pins,
+								 unsigned *num_pins)
 {
 	struct abx500_pinctrl *pct = pinctrl_dev_get_drvdata(pctldev);
 
@@ -797,22 +932,24 @@ static int abx500_get_group_pins(struct pinctrl_dev *pctldev,
 }
 
 static void abx500_pin_dbg_show(struct pinctrl_dev *pctldev,
-				struct seq_file *s, unsigned offset)
+								struct seq_file *s, unsigned offset)
 {
 	struct abx500_pinctrl *pct = pinctrl_dev_get_drvdata(pctldev);
 	struct gpio_chip *chip = &pct->chip;
 
 	abx500_gpio_dbg_show_one(s, pctldev, chip, offset,
-				 chip->base + offset - 1);
+							 chip->base + offset - 1);
 }
 
 static int abx500_dt_add_map_mux(struct pinctrl_map **map,
-		unsigned *reserved_maps,
-		unsigned *num_maps, const char *group,
-		const char *function)
+								 unsigned *reserved_maps,
+								 unsigned *num_maps, const char *group,
+								 const char *function)
 {
 	if (*num_maps == *reserved_maps)
+	{
 		return -ENOSPC;
+	}
 
 	(*map)[*num_maps].type = PIN_MAP_TYPE_MUX_GROUP;
 	(*map)[*num_maps].data.mux.group = group;
@@ -823,19 +960,24 @@ static int abx500_dt_add_map_mux(struct pinctrl_map **map,
 }
 
 static int abx500_dt_add_map_configs(struct pinctrl_map **map,
-		unsigned *reserved_maps,
-		unsigned *num_maps, const char *group,
-		unsigned long *configs, unsigned num_configs)
+									 unsigned *reserved_maps,
+									 unsigned *num_maps, const char *group,
+									 unsigned long *configs, unsigned num_configs)
 {
 	unsigned long *dup_configs;
 
 	if (*num_maps == *reserved_maps)
+	{
 		return -ENOSPC;
+	}
 
 	dup_configs = kmemdup(configs, num_configs * sizeof(*dup_configs),
-			      GFP_KERNEL);
+						  GFP_KERNEL);
+
 	if (!dup_configs)
+	{
 		return -ENOMEM;
+	}
 
 	(*map)[*num_maps].type = PIN_MAP_TYPE_CONFIGS_PIN;
 
@@ -848,7 +990,7 @@ static int abx500_dt_add_map_configs(struct pinctrl_map **map,
 }
 
 static const char *abx500_find_pin_name(struct pinctrl_dev *pctldev,
-					const char *pin_name)
+										const char *pin_name)
 {
 	int i, pin_number;
 	struct abx500_pinctrl *npct = pinctrl_dev_get_drvdata(pctldev);
@@ -856,15 +998,18 @@ static const char *abx500_find_pin_name(struct pinctrl_dev *pctldev,
 	if (sscanf((char *)pin_name, "GPIO%d", &pin_number) == 1)
 		for (i = 0; i < npct->soc->npins; i++)
 			if (npct->soc->pins[i].number == pin_number)
+			{
 				return npct->soc->pins[i].name;
+			}
+
 	return NULL;
 }
 
 static int abx500_dt_subnode_to_map(struct pinctrl_dev *pctldev,
-		struct device_node *np,
-		struct pinctrl_map **map,
-		unsigned *reserved_maps,
-		unsigned *num_maps)
+									struct device_node *np,
+									struct pinctrl_map **map,
+									unsigned *reserved_maps,
+									unsigned *num_maps)
 {
 	int ret;
 	const char *function = NULL;
@@ -873,48 +1018,72 @@ static int abx500_dt_subnode_to_map(struct pinctrl_dev *pctldev,
 	struct property *prop;
 
 	ret = of_property_read_string(np, "function", &function);
-	if (ret >= 0) {
+
+	if (ret >= 0)
+	{
 		const char *group;
 
 		ret = of_property_count_strings(np, "groups");
+
 		if (ret < 0)
+		{
 			goto exit;
+		}
 
 		ret = pinctrl_utils_reserve_map(pctldev, map, reserved_maps,
-						num_maps, ret);
-		if (ret < 0)
-			goto exit;
+										num_maps, ret);
 
-		of_property_for_each_string(np, "groups", prop, group) {
+		if (ret < 0)
+		{
+			goto exit;
+		}
+
+		of_property_for_each_string(np, "groups", prop, group)
+		{
 			ret = abx500_dt_add_map_mux(map, reserved_maps,
-					num_maps, group, function);
+										num_maps, group, function);
+
 			if (ret < 0)
+			{
 				goto exit;
+			}
 		}
 	}
 
 	ret = pinconf_generic_parse_dt_config(np, pctldev, &configs, &nconfigs);
-	if (nconfigs) {
+
+	if (nconfigs)
+	{
 		const char *gpio_name;
 		const char *pin;
 
 		ret = of_property_count_strings(np, "pins");
+
 		if (ret < 0)
+		{
 			goto exit;
+		}
 
 		ret = pinctrl_utils_reserve_map(pctldev, map,
-						reserved_maps,
-						num_maps, ret);
-		if (ret < 0)
-			goto exit;
+										reserved_maps,
+										num_maps, ret);
 
-		of_property_for_each_string(np, "pins", prop, pin) {
+		if (ret < 0)
+		{
+			goto exit;
+		}
+
+		of_property_for_each_string(np, "pins", prop, pin)
+		{
 			gpio_name = abx500_find_pin_name(pctldev, pin);
 
 			ret = abx500_dt_add_map_configs(map, reserved_maps,
-					num_maps, gpio_name, configs, 1);
+											num_maps, gpio_name, configs, 1);
+
 			if (ret < 0)
+			{
 				goto exit;
+			}
 		}
 	}
 
@@ -923,8 +1092,8 @@ exit:
 }
 
 static int abx500_dt_node_to_map(struct pinctrl_dev *pctldev,
-				 struct device_node *np_config,
-				 struct pinctrl_map **map, unsigned *num_maps)
+								 struct device_node *np_config,
+								 struct pinctrl_map **map, unsigned *num_maps)
 {
 	unsigned reserved_maps;
 	struct device_node *np;
@@ -934,10 +1103,13 @@ static int abx500_dt_node_to_map(struct pinctrl_dev *pctldev,
 	*map = NULL;
 	*num_maps = 0;
 
-	for_each_child_of_node(np_config, np) {
+	for_each_child_of_node(np_config, np)
+	{
 		ret = abx500_dt_subnode_to_map(pctldev, np, map,
-				&reserved_maps, num_maps);
-		if (ret < 0) {
+									   &reserved_maps, num_maps);
+
+		if (ret < 0)
+		{
 			pinctrl_utils_free_map(pctldev, *map, *num_maps);
 			return ret;
 		}
@@ -946,7 +1118,8 @@ static int abx500_dt_node_to_map(struct pinctrl_dev *pctldev,
 	return 0;
 }
 
-static const struct pinctrl_ops abx500_pinctrl_ops = {
+static const struct pinctrl_ops abx500_pinctrl_ops =
+{
 	.get_groups_count = abx500_get_groups_cnt,
 	.get_group_name = abx500_get_group_name,
 	.get_group_pins = abx500_get_group_pins,
@@ -956,16 +1129,16 @@ static const struct pinctrl_ops abx500_pinctrl_ops = {
 };
 
 static int abx500_pin_config_get(struct pinctrl_dev *pctldev,
-			  unsigned pin,
-			  unsigned long *config)
+								 unsigned pin,
+								 unsigned long *config)
 {
 	return -ENOSYS;
 }
 
 static int abx500_pin_config_set(struct pinctrl_dev *pctldev,
-			  unsigned pin,
-			  unsigned long *configs,
-			  unsigned num_configs)
+								 unsigned pin,
+								 unsigned long *configs,
+								 unsigned num_configs)
 {
 	struct abx500_pinctrl *pct = pinctrl_dev_get_drvdata(pctldev);
 	struct gpio_chip *chip = &pct->chip;
@@ -975,119 +1148,143 @@ static int abx500_pin_config_set(struct pinctrl_dev *pctldev,
 	enum pin_config_param param;
 	enum pin_config_param argument;
 
-	for (i = 0; i < num_configs; i++) {
+	for (i = 0; i < num_configs; i++)
+	{
 		param = pinconf_to_config_param(configs[i]);
 		argument = pinconf_to_config_argument(configs[i]);
 
 		dev_dbg(chip->parent, "pin %d [%#lx]: %s %s\n",
-			pin, configs[i],
-			(param == PIN_CONFIG_OUTPUT) ? "output " : "input",
-			(param == PIN_CONFIG_OUTPUT) ?
-			(argument ? "high" : "low") :
-			(argument ? "pull up" : "pull down"));
+				pin, configs[i],
+				(param == PIN_CONFIG_OUTPUT) ? "output " : "input",
+				(param == PIN_CONFIG_OUTPUT) ?
+				(argument ? "high" : "low") :
+				(argument ? "pull up" : "pull down"));
 
 		/* on ABx500, there is no GPIO0, so adjust the offset */
 		offset = pin - 1;
 
-		switch (param) {
-		case PIN_CONFIG_BIAS_DISABLE:
-			ret = abx500_gpio_direction_input(chip, offset);
-			if (ret < 0)
-				goto out;
-			/*
-			 * Some chips only support pull down, while some
-			 * actually support both pull up and pull down. Such
-			 * chips have a "pullud" range specified for the pins
-			 * that support both features. If the pin is not
-			 * within that range, we fall back to the old bit set
-			 * that only support pull down.
-			 */
-			if (abx500_pullud_supported(chip, pin))
-				ret = abx500_set_pull_updown(pct,
-					pin,
-					ABX500_GPIO_PULL_NONE);
-			else
-				/* Chip only supports pull down */
-				ret = abx500_gpio_set_bits(chip,
-					AB8500_GPIO_PUD1_REG, offset,
-					ABX500_GPIO_PULL_NONE);
-			break;
+		switch (param)
+		{
+			case PIN_CONFIG_BIAS_DISABLE:
+				ret = abx500_gpio_direction_input(chip, offset);
 
-		case PIN_CONFIG_BIAS_PULL_DOWN:
-			ret = abx500_gpio_direction_input(chip, offset);
-			if (ret < 0)
-				goto out;
-			/*
-			 * if argument = 1 set the pull down
-			 * else clear the pull down
-			 * Some chips only support pull down, while some
-			 * actually support both pull up and pull down. Such
-			 * chips have a "pullud" range specified for the pins
-			 * that support both features. If the pin is not
-			 * within that range, we fall back to the old bit set
-			 * that only support pull down.
-			 */
-			if (abx500_pullud_supported(chip, pin))
-				ret = abx500_set_pull_updown(pct,
-					pin,
-					argument ? ABX500_GPIO_PULL_DOWN :
-					ABX500_GPIO_PULL_NONE);
-			else
-				/* Chip only supports pull down */
-				ret = abx500_gpio_set_bits(chip,
-				AB8500_GPIO_PUD1_REG,
-					offset,
-					argument ? ABX500_GPIO_PULL_DOWN :
-					ABX500_GPIO_PULL_NONE);
-			break;
+				if (ret < 0)
+				{
+					goto out;
+				}
 
-		case PIN_CONFIG_BIAS_PULL_UP:
-			ret = abx500_gpio_direction_input(chip, offset);
-			if (ret < 0)
-				goto out;
-			/*
-			 * if argument = 1 set the pull up
-			 * else clear the pull up
-			 */
-			ret = abx500_gpio_direction_input(chip, offset);
-			/*
-			 * Some chips only support pull down, while some
-			 * actually support both pull up and pull down. Such
-			 * chips have a "pullud" range specified for the pins
-			 * that support both features. If the pin is not
-			 * within that range, do nothing
-			 */
-			if (abx500_pullud_supported(chip, pin))
-				ret = abx500_set_pull_updown(pct,
-					pin,
-					argument ? ABX500_GPIO_PULL_UP :
-					ABX500_GPIO_PULL_NONE);
-			break;
+				/*
+				 * Some chips only support pull down, while some
+				 * actually support both pull up and pull down. Such
+				 * chips have a "pullud" range specified for the pins
+				 * that support both features. If the pin is not
+				 * within that range, we fall back to the old bit set
+				 * that only support pull down.
+				 */
+				if (abx500_pullud_supported(chip, pin))
+					ret = abx500_set_pull_updown(pct,
+												 pin,
+												 ABX500_GPIO_PULL_NONE);
+				else
+					/* Chip only supports pull down */
+					ret = abx500_gpio_set_bits(chip,
+											   AB8500_GPIO_PUD1_REG, offset,
+											   ABX500_GPIO_PULL_NONE);
 
-		case PIN_CONFIG_OUTPUT:
-			ret = abx500_gpio_direction_output(chip, offset,
-				argument);
-			break;
+				break;
 
-		default:
-			dev_err(chip->parent,
-				"illegal configuration requested\n");
+			case PIN_CONFIG_BIAS_PULL_DOWN:
+				ret = abx500_gpio_direction_input(chip, offset);
+
+				if (ret < 0)
+				{
+					goto out;
+				}
+
+				/*
+				 * if argument = 1 set the pull down
+				 * else clear the pull down
+				 * Some chips only support pull down, while some
+				 * actually support both pull up and pull down. Such
+				 * chips have a "pullud" range specified for the pins
+				 * that support both features. If the pin is not
+				 * within that range, we fall back to the old bit set
+				 * that only support pull down.
+				 */
+				if (abx500_pullud_supported(chip, pin))
+					ret = abx500_set_pull_updown(pct,
+												 pin,
+												 argument ? ABX500_GPIO_PULL_DOWN :
+												 ABX500_GPIO_PULL_NONE);
+				else
+					/* Chip only supports pull down */
+					ret = abx500_gpio_set_bits(chip,
+											   AB8500_GPIO_PUD1_REG,
+											   offset,
+											   argument ? ABX500_GPIO_PULL_DOWN :
+											   ABX500_GPIO_PULL_NONE);
+
+				break;
+
+			case PIN_CONFIG_BIAS_PULL_UP:
+				ret = abx500_gpio_direction_input(chip, offset);
+
+				if (ret < 0)
+				{
+					goto out;
+				}
+
+				/*
+				 * if argument = 1 set the pull up
+				 * else clear the pull up
+				 */
+				ret = abx500_gpio_direction_input(chip, offset);
+
+				/*
+				 * Some chips only support pull down, while some
+				 * actually support both pull up and pull down. Such
+				 * chips have a "pullud" range specified for the pins
+				 * that support both features. If the pin is not
+				 * within that range, do nothing
+				 */
+				if (abx500_pullud_supported(chip, pin))
+					ret = abx500_set_pull_updown(pct,
+												 pin,
+												 argument ? ABX500_GPIO_PULL_UP :
+												 ABX500_GPIO_PULL_NONE);
+
+				break;
+
+			case PIN_CONFIG_OUTPUT:
+				ret = abx500_gpio_direction_output(chip, offset,
+												   argument);
+				break;
+
+			default:
+				dev_err(chip->parent,
+						"illegal configuration requested\n");
 		}
 	} /* for each config */
+
 out:
+
 	if (ret < 0)
+	{
 		dev_err(pct->dev, "%s failed (%d)\n", __func__, ret);
+	}
 
 	return ret;
 }
 
-static const struct pinconf_ops abx500_pinconf_ops = {
+static const struct pinconf_ops abx500_pinconf_ops =
+{
 	.pin_config_get = abx500_pin_config_get,
 	.pin_config_set = abx500_pin_config_set,
 	.is_generic = true,
 };
 
-static struct pinctrl_desc abx500_pinctrl_desc = {
+static struct pinctrl_desc abx500_pinctrl_desc =
+{
 	.name = "pinctrl-abx500",
 	.pctlops = &abx500_pinctrl_ops,
 	.pmxops = &abx500_pinmux_ops,
@@ -1108,7 +1305,8 @@ static int abx500_get_gpio_num(struct abx500_pinctrl_soc_data *soc)
 	 * still be homogeneous, so we need to detect and account for any
 	 * such holes so that these are included in the number of GPIO pins.
 	 */
-	for (i = 0; i < soc->gpio_num_ranges; i++) {
+	for (i = 0; i < soc->gpio_num_ranges; i++)
+	{
 		unsigned gstart;
 		unsigned gend;
 		const struct abx500_pinrange *p;
@@ -1117,23 +1315,33 @@ static int abx500_get_gpio_num(struct abx500_pinctrl_soc_data *soc)
 		gstart = p->offset;
 		gend = p->offset + p->npins - 1;
 
-		if (i == 0) {
+		if (i == 0)
+		{
 			/* First iteration, set start values */
 			lowest = gstart;
 			highest = gend;
-		} else {
+		}
+		else
+		{
 			if (gstart < lowest)
+			{
 				lowest = gstart;
+			}
+
 			if (gend > highest)
+			{
 				highest = gend;
+			}
 		}
 	}
+
 	/* this gives the absolute number of pins */
 	npins = highest - lowest + 1;
 	return npins;
 }
 
-static const struct of_device_id abx500_gpio_match[] = {
+static const struct of_device_id abx500_gpio_match[] =
+{
 	{ .compatible = "stericsson,ab8500-gpio", .data = (void *)PINCTRL_AB8500, },
 	{ .compatible = "stericsson,ab8505-gpio", .data = (void *)PINCTRL_AB8505, },
 	{ .compatible = "stericsson,ab8540-gpio", .data = (void *)PINCTRL_AB8540, },
@@ -1150,16 +1358,19 @@ static int abx500_gpio_probe(struct platform_device *pdev)
 	int ret;
 	int i;
 
-	if (!np) {
+	if (!np)
+	{
 		dev_err(&pdev->dev, "gpio dt node missing\n");
 		return -ENODEV;
 	}
 
 	pct = devm_kzalloc(&pdev->dev, sizeof(struct abx500_pinctrl),
-				   GFP_KERNEL);
-	if (pct == NULL) {
+					   GFP_KERNEL);
+
+	if (pct == NULL)
+	{
 		dev_err(&pdev->dev,
-			"failed to allocate memory for pct\n");
+				"failed to allocate memory for pct\n");
 		return -ENOMEM;
 	}
 
@@ -1170,32 +1381,41 @@ static int abx500_gpio_probe(struct platform_device *pdev)
 	pct->chip.base = -1; /* Dynamic allocation */
 
 	match = of_match_device(abx500_gpio_match, &pdev->dev);
-	if (!match) {
+
+	if (!match)
+	{
 		dev_err(&pdev->dev, "gpio dt not matching\n");
 		return -ENODEV;
 	}
+
 	id = (unsigned long)match->data;
 
 	/* Poke in other ASIC variants here */
-	switch (id) {
-	case PINCTRL_AB8500:
-		abx500_pinctrl_ab8500_init(&pct->soc);
-		break;
-	case PINCTRL_AB8540:
-		abx500_pinctrl_ab8540_init(&pct->soc);
-		break;
-	case PINCTRL_AB9540:
-		abx500_pinctrl_ab9540_init(&pct->soc);
-		break;
-	case PINCTRL_AB8505:
-		abx500_pinctrl_ab8505_init(&pct->soc);
-		break;
-	default:
-		dev_err(&pdev->dev, "Unsupported pinctrl sub driver (%d)\n", id);
-		return -EINVAL;
+	switch (id)
+	{
+		case PINCTRL_AB8500:
+			abx500_pinctrl_ab8500_init(&pct->soc);
+			break;
+
+		case PINCTRL_AB8540:
+			abx500_pinctrl_ab8540_init(&pct->soc);
+			break;
+
+		case PINCTRL_AB9540:
+			abx500_pinctrl_ab9540_init(&pct->soc);
+			break;
+
+		case PINCTRL_AB8505:
+			abx500_pinctrl_ab8505_init(&pct->soc);
+			break;
+
+		default:
+			dev_err(&pdev->dev, "Unsupported pinctrl sub driver (%d)\n", id);
+			return -EINVAL;
 	}
 
-	if (!pct->soc) {
+	if (!pct->soc)
+	{
 		dev_err(&pdev->dev, "Invalid SOC data\n");
 		return -EINVAL;
 	}
@@ -1205,33 +1425,43 @@ static int abx500_gpio_probe(struct platform_device *pdev)
 	pct->irq_cluster_size = pct->soc->ngpio_irq_cluster;
 
 	ret = gpiochip_add_data(&pct->chip, pct);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to add gpiochip: %d\n", ret);
 		return ret;
 	}
+
 	dev_info(&pdev->dev, "added gpiochip\n");
 
 	abx500_pinctrl_desc.pins = pct->soc->pins;
 	abx500_pinctrl_desc.npins = pct->soc->npins;
 	pct->pctldev = devm_pinctrl_register(&pdev->dev, &abx500_pinctrl_desc,
-					     pct);
-	if (IS_ERR(pct->pctldev)) {
+										 pct);
+
+	if (IS_ERR(pct->pctldev))
+	{
 		dev_err(&pdev->dev,
-			"could not register abx500 pinctrl driver\n");
+				"could not register abx500 pinctrl driver\n");
 		ret = PTR_ERR(pct->pctldev);
 		goto out_rem_chip;
 	}
+
 	dev_info(&pdev->dev, "registered pin controller\n");
 
 	/* We will handle a range of GPIO pins */
-	for (i = 0; i < pct->soc->gpio_num_ranges; i++) {
+	for (i = 0; i < pct->soc->gpio_num_ranges; i++)
+	{
 		const struct abx500_pinrange *p = &pct->soc->gpio_ranges[i];
 
 		ret = gpiochip_add_pin_range(&pct->chip,
-					dev_name(&pdev->dev),
-					p->offset - 1, p->offset, p->npins);
+									 dev_name(&pdev->dev),
+									 p->offset - 1, p->offset, p->npins);
+
 		if (ret < 0)
+		{
 			goto out_rem_chip;
+		}
 	}
 
 	platform_set_drvdata(pdev, pct);
@@ -1256,7 +1486,8 @@ static int abx500_gpio_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver abx500_gpio_driver = {
+static struct platform_driver abx500_gpio_driver =
+{
 	.driver = {
 		.name = "abx500-gpio",
 		.of_match_table = abx500_gpio_match,

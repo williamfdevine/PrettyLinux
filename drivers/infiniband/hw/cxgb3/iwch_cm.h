@@ -54,19 +54,20 @@
 #define MPA_FLAGS_MASK		0xE0
 
 #define put_ep(ep) { \
-	PDBG("put_ep (via %s:%u) ep %p refcnt %d\n", __func__, __LINE__,  \
-	     ep, atomic_read(&((ep)->kref.refcount))); \
-	WARN_ON(atomic_read(&((ep)->kref.refcount)) < 1); \
-	kref_put(&((ep)->kref), __free_ep); \
-}
+		PDBG("put_ep (via %s:%u) ep %p refcnt %d\n", __func__, __LINE__,  \
+			 ep, atomic_read(&((ep)->kref.refcount))); \
+		WARN_ON(atomic_read(&((ep)->kref.refcount)) < 1); \
+		kref_put(&((ep)->kref), __free_ep); \
+	}
 
 #define get_ep(ep) { \
-	PDBG("get_ep (via %s:%u) ep %p, refcnt %d\n", __func__, __LINE__, \
-	     ep, atomic_read(&((ep)->kref.refcount))); \
-	kref_get(&((ep)->kref));  \
-}
+		PDBG("get_ep (via %s:%u) ep %p, refcnt %d\n", __func__, __LINE__, \
+			 ep, atomic_read(&((ep)->kref.refcount))); \
+		kref_get(&((ep)->kref));  \
+	}
 
-struct mpa_message {
+struct mpa_message
+{
 	u8 key[16];
 	u8 flags;
 	u8 revision;
@@ -74,7 +75,8 @@ struct mpa_message {
 	u8 private_data[0];
 };
 
-struct terminate_message {
+struct terminate_message
+{
 	u8 layer_etype;
 	u8 ecode;
 	__be16 hdrct_rsvd;
@@ -83,7 +85,8 @@ struct terminate_message {
 
 #define TERM_MAX_LENGTH (sizeof(struct terminate_message) + 2 + 18 + 28)
 
-enum iwch_layers_types {
+enum iwch_layers_types
+{
 	LAYER_RDMAP		= 0x00,
 	LAYER_DDP		= 0x10,
 	LAYER_MPA		= 0x20,
@@ -96,7 +99,8 @@ enum iwch_layers_types {
 	DDP_LLP			= 0x03
 };
 
-enum iwch_rdma_ecodes {
+enum iwch_rdma_ecodes
+{
 	RDMAP_INV_STAG		= 0x00,
 	RDMAP_BASE_BOUNDS	= 0x01,
 	RDMAP_ACC_VIOL		= 0x02,
@@ -110,7 +114,8 @@ enum iwch_rdma_ecodes {
 	RDMAP_UNSPECIFIED	= 0xff
 };
 
-enum iwch_ddp_ecodes {
+enum iwch_ddp_ecodes
+{
 	DDPT_INV_STAG		= 0x00,
 	DDPT_BASE_BOUNDS	= 0x01,
 	DDPT_STAG_NOT_ASSOC	= 0x02,
@@ -124,12 +129,14 @@ enum iwch_ddp_ecodes {
 	DDPU_INV_VERS		= 0x06
 };
 
-enum iwch_mpa_ecodes {
+enum iwch_mpa_ecodes
+{
 	MPA_CRC_ERR		= 0x02,
 	MPA_MARKER_ERR		= 0x03
 };
 
-enum iwch_ep_state {
+enum iwch_ep_state
+{
 	IDLE = 0,
 	LISTEN,
 	CONNECTING,
@@ -144,14 +151,16 @@ enum iwch_ep_state {
 	DEAD,
 };
 
-enum iwch_ep_flags {
+enum iwch_ep_flags
+{
 	PEER_ABORT_IN_PROGRESS	= 0,
 	ABORT_REQ_IN_PROGRESS	= 1,
 	RELEASE_RESOURCES	= 2,
 	CLOSE_SENT		= 3,
 };
 
-struct iwch_ep_common {
+struct iwch_ep_common
+{
 	struct iw_cm_id *cm_id;
 	struct iwch_qp *qp;
 	struct t3cdev *tdev;
@@ -166,13 +175,15 @@ struct iwch_ep_common {
 	unsigned long flags;
 };
 
-struct iwch_listen_ep {
+struct iwch_listen_ep
+{
 	struct iwch_ep_common com;
 	unsigned int stid;
 	int backlog;
 };
 
-struct iwch_ep {
+struct iwch_ep
+{
 	struct iwch_ep_common com;
 	struct iwch_ep *parent_ep;
 	struct timer_list timer;
@@ -207,8 +218,11 @@ static inline int compute_wscale(int win)
 {
 	int wscale = 0;
 
-	while (wscale < 14 && (65535<<wscale) < win)
+	while (wscale < 14 && (65535 << wscale) < win)
+	{
 		wscale++;
+	}
+
 	return wscale;
 }
 

@@ -35,7 +35,8 @@
 #define BXTWC_STHRM1IRQ		0x4F1A
 #define BXTWC_STHRM2IRQ		0x4F1B
 
-struct trip_config_map {
+struct trip_config_map
+{
 	u16 irq_reg;
 	u16 irq_en;
 	u16 evt_stat;
@@ -45,18 +46,21 @@ struct trip_config_map {
 	u8 trip_num;
 };
 
-struct thermal_irq_map {
+struct thermal_irq_map
+{
 	char handle[20];
 	int num_trips;
 	const struct trip_config_map *trip_config;
 };
 
-struct pmic_thermal_data {
+struct pmic_thermal_data
+{
 	const struct thermal_irq_map *maps;
 	int num_maps;
 };
 
-static const struct trip_config_map bxtwc_str0_trip_config[] = {
+static const struct trip_config_map bxtwc_str0_trip_config[] =
+{
 	{
 		.irq_reg = BXTWC_THRM0IRQ,
 		.irq_mask = 0x01,
@@ -77,7 +81,8 @@ static const struct trip_config_map bxtwc_str0_trip_config[] = {
 	}
 };
 
-static const struct trip_config_map bxtwc_str1_trip_config[] = {
+static const struct trip_config_map bxtwc_str1_trip_config[] =
+{
 	{
 		.irq_reg = BXTWC_THRM0IRQ,
 		.irq_mask = 0x02,
@@ -98,7 +103,8 @@ static const struct trip_config_map bxtwc_str1_trip_config[] = {
 	},
 };
 
-static const struct trip_config_map bxtwc_str2_trip_config[] = {
+static const struct trip_config_map bxtwc_str2_trip_config[] =
+{
 	{
 		.irq_reg = BXTWC_THRM0IRQ,
 		.irq_mask = 0x04,
@@ -119,7 +125,8 @@ static const struct trip_config_map bxtwc_str2_trip_config[] = {
 	},
 };
 
-static const struct trip_config_map bxtwc_str3_trip_config[] = {
+static const struct trip_config_map bxtwc_str3_trip_config[] =
+{
 	{
 		.irq_reg = BXTWC_THRM2IRQ,
 		.irq_mask = 0x10,
@@ -131,7 +138,8 @@ static const struct trip_config_map bxtwc_str3_trip_config[] = {
 	},
 };
 
-static const struct thermal_irq_map bxtwc_thermal_irq_map[] = {
+static const struct thermal_irq_map bxtwc_thermal_irq_map[] =
+{
 	{
 		.handle = "STR0",
 		.trip_config = bxtwc_str0_trip_config,
@@ -154,7 +162,8 @@ static const struct thermal_irq_map bxtwc_thermal_irq_map[] = {
 	},
 };
 
-static const struct pmic_thermal_data bxtwc_thermal_data = {
+static const struct pmic_thermal_data bxtwc_thermal_data =
+{
 	.maps = bxtwc_thermal_irq_map,
 	.num_maps = ARRAY_SIZE(bxtwc_thermal_irq_map),
 };
@@ -173,39 +182,50 @@ static irqreturn_t pmic_thermal_irq_handler(int irq, void *data)
 	pmic = dev_get_drvdata(pdev->dev.parent);
 	regmap = pmic->regmap;
 	td = (struct pmic_thermal_data *)
-		platform_get_device_id(pdev)->driver_data;
+		 platform_get_device_id(pdev)->driver_data;
 
 	/* Resolve thermal irqs */
-	for (i = 0; i < td->num_maps; i++) {
-		for (j = 0; j < td->maps[i].num_trips; j++) {
+	for (i = 0; i < td->num_maps; i++)
+	{
+		for (j = 0; j < td->maps[i].num_trips; j++)
+		{
 			reg = td->maps[i].trip_config[j].irq_reg;
 			mask = td->maps[i].trip_config[j].irq_mask;
+
 			/*
 			 * Read the irq register to resolve whether the
 			 * interrupt was triggered for this sensor
 			 */
 			if (regmap_read(regmap, reg, &ret))
+			{
 				return IRQ_HANDLED;
+			}
 
 			reg_val = (u8)ret;
 			irq_stat = ((u8)ret & mask);
 
 			if (!irq_stat)
+			{
 				continue;
+			}
 
 			/*
 			 * Read the status register to find out what
 			 * event occurred i.e a high or a low
 			 */
 			evt_stat_reg = td->maps[i].trip_config[j].evt_stat;
+
 			if (regmap_read(regmap, evt_stat_reg, &ret))
+			{
 				return IRQ_HANDLED;
+			}
 
 			trip = td->maps[i].trip_config[j].trip_num;
 			tzd = thermal_zone_get_zone_by_name(td->maps[i].handle);
+
 			if (!IS_ERR(tzd))
 				thermal_zone_device_update(tzd,
-						THERMAL_EVENT_UNSPECIFIED);
+										   THERMAL_EVENT_UNSPECIFIED);
 
 			/* Clear the appropriate irq */
 			regmap_write(regmap, reg, reg_val & mask);
@@ -228,14 +248,18 @@ static int pmic_thermal_probe(struct platform_device *pdev)
 
 	dev = &pdev->dev;
 	pmic = dev_get_drvdata(pdev->dev.parent);
-	if (!pmic) {
+
+	if (!pmic)
+	{
 		dev_err(dev, "Failed to get struct intel_soc_pmic pointer\n");
 		return -ENODEV;
 	}
 
 	thermal_data = (struct pmic_thermal_data *)
-				platform_get_device_id(pdev)->driver_data;
-	if (!thermal_data) {
+				   platform_get_device_id(pdev)->driver_data;
+
+	if (!thermal_data)
+	{
 		dev_err(dev, "No thermal data initialized!!\n");
 		return -ENODEV;
 	}
@@ -244,47 +268,60 @@ static int pmic_thermal_probe(struct platform_device *pdev)
 	regmap_irq_chip = pmic->irq_chip_data_level2;
 
 	pmic_irq_count = 0;
-	while ((irq = platform_get_irq(pdev, pmic_irq_count)) != -ENXIO) {
+
+	while ((irq = platform_get_irq(pdev, pmic_irq_count)) != -ENXIO)
+	{
 		virq = regmap_irq_get_virq(regmap_irq_chip, irq);
-		if (virq < 0) {
+
+		if (virq < 0)
+		{
 			dev_err(dev, "failed to get virq by irq %d\n", irq);
 			return virq;
 		}
 
 		ret = devm_request_threaded_irq(&pdev->dev, virq,
-				NULL, pmic_thermal_irq_handler,
-				IRQF_ONESHOT, "pmic_thermal", pdev);
+										NULL, pmic_thermal_irq_handler,
+										IRQF_ONESHOT, "pmic_thermal", pdev);
 
-		if (ret) {
+		if (ret)
+		{
 			dev_err(dev, "request irq(%d) failed: %d\n", virq, ret);
 			return ret;
 		}
+
 		pmic_irq_count++;
 	}
 
 	/* Enable thermal interrupts */
-	for (i = 0; i < thermal_data->num_maps; i++) {
-		for (j = 0; j < thermal_data->maps[i].num_trips; j++) {
+	for (i = 0; i < thermal_data->num_maps; i++)
+	{
+		for (j = 0; j < thermal_data->maps[i].num_trips; j++)
+		{
 			reg = thermal_data->maps[i].trip_config[j].irq_en;
 			mask = thermal_data->maps[i].trip_config[j].irq_en_mask;
 			ret = regmap_update_bits(regmap, reg, mask, 0x00);
+
 			if (ret)
+			{
 				return ret;
+			}
 		}
 	}
 
 	return 0;
 }
 
-static const struct platform_device_id pmic_thermal_id_table[] = {
+static const struct platform_device_id pmic_thermal_id_table[] =
+{
 	{
 		.name = "bxt_wcove_thermal",
-		.driver_data = (kernel_ulong_t)&bxtwc_thermal_data,
+		.driver_data = (kernel_ulong_t) &bxtwc_thermal_data,
 	},
 	{},
 };
 
-static struct platform_driver pmic_thermal_driver = {
+static struct platform_driver pmic_thermal_driver =
+{
 	.probe = pmic_thermal_probe,
 	.driver = {
 		.name = "pmic_thermal",

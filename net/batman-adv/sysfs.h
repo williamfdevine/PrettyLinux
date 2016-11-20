@@ -35,24 +35,25 @@ struct net_device;
  */
 #define BATADV_SYSFS_VLAN_SUBDIR_PREFIX "vlan"
 
-struct batadv_attribute {
+struct batadv_attribute
+{
 	struct attribute attr;
 	ssize_t (*show)(struct kobject *kobj, struct attribute *attr,
-			char *buf);
+					char *buf);
 	ssize_t (*store)(struct kobject *kobj, struct attribute *attr,
-			 char *buf, size_t count);
+					 char *buf, size_t count);
 };
 
 int batadv_sysfs_add_meshif(struct net_device *dev);
 void batadv_sysfs_del_meshif(struct net_device *dev);
 int batadv_sysfs_add_hardif(struct kobject **hardif_obj,
-			    struct net_device *dev);
+							struct net_device *dev);
 void batadv_sysfs_del_hardif(struct kobject **hardif_obj);
 int batadv_sysfs_add_vlan(struct net_device *dev,
-			  struct batadv_softif_vlan *vlan);
+						  struct batadv_softif_vlan *vlan);
 void batadv_sysfs_del_vlan(struct batadv_priv *bat_priv,
-			   struct batadv_softif_vlan *vlan);
+						   struct batadv_softif_vlan *vlan);
 int batadv_throw_uevent(struct batadv_priv *bat_priv, enum batadv_uev_type type,
-			enum batadv_uev_action action, const char *data);
+						enum batadv_uev_action action, const char *data);
 
 #endif /* _NET_BATMAN_ADV_SYSFS_H_ */

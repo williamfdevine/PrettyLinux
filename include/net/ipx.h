@@ -3,7 +3,7 @@
 /*
  *	The following information is in its entirety obtained from:
  *
- *	Novell 'IPX Router Specification' Version 1.10 
+ *	Novell 'IPX Router Specification' Version 1.10
  *		Part No. 107-000029-001
  *
  *	Which is available from ftp.novell.com
@@ -15,9 +15,10 @@
 #include <linux/list.h>
 #include <linux/slab.h>
 
-struct ipx_address {
+struct ipx_address
+{
 	__be32  net;
-	__u8    node[IPX_NODE_LEN]; 
+	__u8    node[IPX_NODE_LEN];
 	__be16  sock;
 };
 
@@ -26,7 +27,8 @@ struct ipx_address {
 
 #define IPX_MAX_PPROP_HOPS 8
 
-struct ipxhdr {
+struct ipxhdr
+{
 	__be16			ipx_checksum __packed;
 #define IPX_NO_CHECKSUM	cpu_to_be16(0xFFFF)
 	__be16			ipx_pktsize __packed;
@@ -50,7 +52,8 @@ static __inline__ struct ipxhdr *ipx_hdr(struct sk_buff *skb)
 	return (struct ipxhdr *)skb_transport_header(skb);
 }
 
-struct ipx_interface {
+struct ipx_interface
+{
 	/* IPX address */
 	__be32			if_netnum;
 	unsigned char		if_node[IPX_NODE_LEN];
@@ -70,11 +73,12 @@ struct ipx_interface {
 	int			if_ipx_offset;
 	unsigned char		if_internal;
 	unsigned char		if_primary;
-	
+
 	struct list_head	node; /* node in ipx_interfaces list */
 };
 
-struct ipx_route {
+struct ipx_route
+{
 	__be32			ir_net;
 	struct ipx_interface	*ir_intrfc;
 	unsigned char		ir_routed;
@@ -83,11 +87,13 @@ struct ipx_route {
 	atomic_t		refcnt;
 };
 
-struct ipx_cb {
+struct ipx_cb
+{
 	u8	ipx_tctrl;
 	__be32	ipx_dest_net;
 	__be32	ipx_source_net;
-	struct {
+	struct
+	{
 		__be32 netnum;
 		int index;
 	} last_hop;
@@ -95,7 +101,8 @@ struct ipx_cb {
 
 #include <net/sock.h>
 
-struct ipx_sock {
+struct ipx_sock
+{
 	/* struct sock has to be the first member of ipx_sock */
 	struct sock		sk;
 	struct ipx_address	dest_addr;
@@ -107,7 +114,7 @@ struct ipx_sock {
 	unsigned short		type;
 	/*
 	 * To handle special ncp connection-handling sockets for mars_nwe,
- 	 * the connection number must be stored in the socket.
+	 * the connection number must be stored in the socket.
 	 */
 	unsigned short		ipx_ncp_conn;
 };
@@ -147,10 +154,10 @@ struct ipx_interface *ipxitf_find_using_net(__be32 net);
 int ipxitf_send(struct ipx_interface *intrfc, struct sk_buff *skb, char *node);
 __be16 ipx_cksum(struct ipxhdr *packet, int length);
 int ipxrtr_add_route(__be32 network, struct ipx_interface *intrfc,
-		     unsigned char *node);
+					 unsigned char *node);
 void ipxrtr_del_routes(struct ipx_interface *intrfc);
 int ipxrtr_route_packet(struct sock *sk, struct sockaddr_ipx *usipx,
-			struct msghdr *msg, size_t len, int noblock);
+						struct msghdr *msg, size_t len, int noblock);
 int ipxrtr_route_skb(struct sk_buff *skb);
 struct ipx_route *ipxrtr_lookup(__be32 net);
 int ipxrtr_ioctl(unsigned int cmd, void __user *arg);
@@ -158,17 +165,21 @@ int ipxrtr_ioctl(unsigned int cmd, void __user *arg);
 static __inline__ void ipxitf_put(struct ipx_interface *intrfc)
 {
 	if (atomic_dec_and_test(&intrfc->refcnt))
+	{
 		ipxitf_down(intrfc);
+	}
 }
 
 static __inline__ void ipxrtr_hold(struct ipx_route *rt)
 {
-	        atomic_inc(&rt->refcnt);
+	atomic_inc(&rt->refcnt);
 }
 
 static __inline__ void ipxrtr_put(struct ipx_route *rt)
 {
-	        if (atomic_dec_and_test(&rt->refcnt))
-			                kfree(rt);
+	if (atomic_dec_and_test(&rt->refcnt))
+	{
+		kfree(rt);
+	}
 }
 #endif /* _NET_INET_IPX_H_ */

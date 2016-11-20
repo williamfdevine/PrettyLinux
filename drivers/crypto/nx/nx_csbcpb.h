@@ -2,12 +2,14 @@
 #ifndef __NX_CSBCPB_H__
 #define __NX_CSBCPB_H__
 
-struct cop_symcpb_aes_ecb {
+struct cop_symcpb_aes_ecb
+{
 	u8 key[32];
 	u8 __rsvd[80];
 } __packed;
 
-struct cop_symcpb_aes_cbc {
+struct cop_symcpb_aes_cbc
+{
 	u8 iv[16];
 	u8 key[32];
 	u8 cv[16];
@@ -15,7 +17,8 @@ struct cop_symcpb_aes_cbc {
 	u8 __rsvd[44];
 } __packed;
 
-struct cop_symcpb_aes_gca {
+struct cop_symcpb_aes_gca
+{
 	u8 in_pat[16];
 	u8 key[32];
 	u8 out_pat[16];
@@ -23,7 +26,8 @@ struct cop_symcpb_aes_gca {
 	u8 __rsvd[44];
 } __packed;
 
-struct cop_symcpb_aes_gcm {
+struct cop_symcpb_aes_gcm
+{
 	u8 in_pat_or_aad[16];
 	u8 iv_or_cnt[16];
 	u64 bit_length_aad;
@@ -38,7 +42,8 @@ struct cop_symcpb_aes_gcm {
 	u8 __rsvd2[12];
 } __packed;
 
-struct cop_symcpb_aes_ctr {
+struct cop_symcpb_aes_ctr
+{
 	u8 iv[16];
 	u8 key[32];
 	u8 cv[16];
@@ -46,7 +51,8 @@ struct cop_symcpb_aes_ctr {
 	u8 __rsvd2[44];
 } __packed;
 
-struct cop_symcpb_aes_cca {
+struct cop_symcpb_aes_cca
+{
 	u8 b0[16];
 	u8 b1[16];
 	u8 key[16];
@@ -55,7 +61,8 @@ struct cop_symcpb_aes_cca {
 	u8 __rsvd[44];
 } __packed;
 
-struct cop_symcpb_aes_ccm {
+struct cop_symcpb_aes_ccm
+{
 	u8 in_pat_or_b0[16];
 	u8 iv_or_ctr[16];
 	u8 in_s0[16];
@@ -68,7 +75,8 @@ struct cop_symcpb_aes_ccm {
 	u8 __rsvd2[12];
 } __packed;
 
-struct cop_symcpb_aes_xcbc {
+struct cop_symcpb_aes_xcbc
+{
 	u8 cv[16];
 	u8 key[16];
 	u8 __rsvd1[16];
@@ -77,7 +85,8 @@ struct cop_symcpb_aes_xcbc {
 	u8 __rsvd2[44];
 } __packed;
 
-struct cop_symcpb_sha256 {
+struct cop_symcpb_sha256
+{
 	u64 message_bit_length;
 	u64 __rsvd1;
 	u8 input_partial_digest[32];
@@ -86,7 +95,8 @@ struct cop_symcpb_sha256 {
 	u8 __rsvd2[44];
 } __packed;
 
-struct cop_symcpb_sha512 {
+struct cop_symcpb_sha512
+{
 	u64 message_bit_length_hi;
 	u64 message_bit_length_lo;
 	u8 input_partial_digest[64];
@@ -107,7 +117,8 @@ struct cop_symcpb_sha512 {
 #define NX_CPB_SET_KEY_SIZE(c, x)	NX_CPB_KS_DS(c) |= ((x) << 4)
 #define NX_CPB_SET_DIGEST_SIZE(c, x)	NX_CPB_KS_DS(c) |= (x)
 
-struct cop_symcpb_header {
+struct cop_symcpb_header
+{
 	u8 mode;
 	u8 fdm;
 	u8 ks_ds;
@@ -115,9 +126,11 @@ struct cop_symcpb_header {
 	u8 __rsvd[12];
 } __packed;
 
-struct cop_parameter_block {
+struct cop_parameter_block
+{
 	struct cop_symcpb_header hdr;
-	union {
+	union
+	{
 		struct cop_symcpb_aes_ecb  aes_ecb;
 		struct cop_symcpb_aes_cbc  aes_cbc;
 		struct cop_symcpb_aes_gca  aes_gca;
@@ -134,7 +147,8 @@ struct cop_parameter_block {
 #define NX_CSB_VALID_BIT	0x80
 
 /* co-processor status block */
-struct cop_status_block {
+struct cop_status_block
+{
 	u8 valid;
 	u8 crb_seq_number;
 	u8 completion_code;
@@ -144,7 +158,8 @@ struct cop_status_block {
 } __packed;
 
 /* Nest accelerator workbook section 4.4 */
-struct nx_csbcpb {
+struct nx_csbcpb
+{
 	unsigned char __rsvd[112];
 	struct cop_status_block csb;
 	struct cop_parameter_block cpb;

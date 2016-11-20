@@ -17,7 +17,8 @@
 
 /* ACPI NVS regions, APEI may use it */
 
-struct nvs_region {
+struct nvs_region
+{
 	__u64 phys_start;
 	__u64 size;
 	struct list_head node;
@@ -39,8 +40,12 @@ int acpi_nvs_register(__u64 start, __u64 size)
 	struct nvs_region *region;
 
 	region = kmalloc(sizeof(*region), GFP_KERNEL);
+
 	if (!region)
+	{
 		return -ENOMEM;
+	}
+
 	region->phys_start = start;
 	region->size = size;
 	list_add_tail(&region->node, &nvs_region_list);
@@ -49,15 +54,19 @@ int acpi_nvs_register(__u64 start, __u64 size)
 }
 
 int acpi_nvs_for_each_region(int (*func)(__u64 start, __u64 size, void *data),
-			     void *data)
+							 void *data)
 {
 	int rc;
 	struct nvs_region *region;
 
-	list_for_each_entry(region, &nvs_region_list, node) {
+	list_for_each_entry(region, &nvs_region_list, node)
+	{
 		rc = func(region->phys_start, region->size, data);
+
 		if (rc)
+		{
 			return rc;
+		}
 	}
 
 	return 0;
@@ -71,7 +80,8 @@ int acpi_nvs_for_each_region(int (*func)(__u64 start, __u64 size, void *data),
  * resume.  The code below implements a mechanism allowing us to do that.
  */
 
-struct nvs_page {
+struct nvs_page
+{
 	unsigned long phys_start;
 	unsigned int size;
 	void *kaddr;
@@ -96,14 +106,18 @@ static int suspend_nvs_register(unsigned long start, unsigned long size)
 	struct nvs_page *entry, *next;
 
 	pr_info("PM: Registering ACPI NVS region [mem %#010lx-%#010lx] (%ld bytes)\n",
-		start, start + size - 1, size);
+			start, start + size - 1, size);
 
-	while (size > 0) {
+	while (size > 0)
+	{
 		unsigned int nr_bytes;
 
 		entry = kzalloc(sizeof(struct nvs_page), GFP_KERNEL);
+
 		if (!entry)
+		{
 			goto Error;
+		}
 
 		list_add_tail(&entry->node, &nvs_list);
 		entry->phys_start = start;
@@ -113,10 +127,12 @@ static int suspend_nvs_register(unsigned long start, unsigned long size)
 		start += entry->size;
 		size -= entry->size;
 	}
+
 	return 0;
 
- Error:
-	list_for_each_entry_safe(entry, next, &nvs_list, node) {
+Error:
+	list_for_each_entry_safe(entry, next, &nvs_list, node)
+	{
 		list_del(&entry->node);
 		kfree(entry);
 	}
@@ -131,20 +147,28 @@ void suspend_nvs_free(void)
 	struct nvs_page *entry;
 
 	list_for_each_entry(entry, &nvs_list, node)
-		if (entry->data) {
-			free_page((unsigned long)entry->data);
-			entry->data = NULL;
-			if (entry->kaddr) {
-				if (entry->unmap) {
-					iounmap(entry->kaddr);
-					entry->unmap = false;
-				} else {
-					acpi_os_unmap_iomem(entry->kaddr,
-							    entry->size);
-				}
-				entry->kaddr = NULL;
+
+	if (entry->data)
+	{
+		free_page((unsigned long)entry->data);
+		entry->data = NULL;
+
+		if (entry->kaddr)
+		{
+			if (entry->unmap)
+			{
+				iounmap(entry->kaddr);
+				entry->unmap = false;
 			}
+			else
+			{
+				acpi_os_unmap_iomem(entry->kaddr,
+									entry->size);
+			}
+
+			entry->kaddr = NULL;
 		}
+	}
 }
 
 /**
@@ -154,9 +178,12 @@ int suspend_nvs_alloc(void)
 {
 	struct nvs_page *entry;
 
-	list_for_each_entry(entry, &nvs_list, node) {
+	list_for_each_entry(entry, &nvs_list, node)
+	{
 		entry->data = (void *)__get_free_page(GFP_KERNEL);
-		if (!entry->data) {
+
+		if (!entry->data)
+		{
 			suspend_nvs_free();
 			return -ENOMEM;
 		}
@@ -174,21 +201,28 @@ int suspend_nvs_save(void)
 	printk(KERN_INFO "PM: Saving platform NVS memory\n");
 
 	list_for_each_entry(entry, &nvs_list, node)
-		if (entry->data) {
-			unsigned long phys = entry->phys_start;
-			unsigned int size = entry->size;
 
-			entry->kaddr = acpi_os_get_iomem(phys, size);
-			if (!entry->kaddr) {
-				entry->kaddr = acpi_os_ioremap(phys, size);
-				entry->unmap = !!entry->kaddr;
-			}
-			if (!entry->kaddr) {
-				suspend_nvs_free();
-				return -ENOMEM;
-			}
-			memcpy(entry->data, entry->kaddr, entry->size);
+	if (entry->data)
+	{
+		unsigned long phys = entry->phys_start;
+		unsigned int size = entry->size;
+
+		entry->kaddr = acpi_os_get_iomem(phys, size);
+
+		if (!entry->kaddr)
+		{
+			entry->kaddr = acpi_os_ioremap(phys, size);
+			entry->unmap = !!entry->kaddr;
 		}
+
+		if (!entry->kaddr)
+		{
+			suspend_nvs_free();
+			return -ENOMEM;
+		}
+
+		memcpy(entry->data, entry->kaddr, entry->size);
+	}
 
 	return 0;
 }
@@ -206,7 +240,10 @@ void suspend_nvs_restore(void)
 	printk(KERN_INFO "PM: Restoring platform NVS memory\n");
 
 	list_for_each_entry(entry, &nvs_list, node)
-		if (entry->data)
-			memcpy(entry->kaddr, entry->data, entry->size);
+
+	if (entry->data)
+	{
+		memcpy(entry->kaddr, entry->data, entry->size);
+	}
 }
 #endif

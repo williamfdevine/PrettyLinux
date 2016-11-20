@@ -27,7 +27,8 @@
  * @frame: last frame at which input_mt_report_slot_state() was called
  * @key: optional driver designation of this slot
  */
-struct input_mt_slot {
+struct input_mt_slot
+{
 	int abs[ABS_MT_LAST - ABS_MT_FIRST + 1];
 	unsigned int frame;
 	unsigned int key;
@@ -43,7 +44,8 @@ struct input_mt_slot {
  * @red: reduced cost matrix for in-kernel tracking
  * @slots: array of slots holding current values of tracked contacts
  */
-struct input_mt {
+struct input_mt
+{
 	int trkid;
 	int num_slots;
 	int slot;
@@ -54,13 +56,13 @@ struct input_mt {
 };
 
 static inline void input_mt_set_value(struct input_mt_slot *slot,
-				      unsigned code, int value)
+									  unsigned code, int value)
 {
 	slot->abs[code - ABS_MT_FIRST] = value;
 }
 
 static inline int input_mt_get_value(const struct input_mt_slot *slot,
-				     unsigned code)
+									 unsigned code)
 {
 	return slot->abs[code - ABS_MT_FIRST];
 }
@@ -71,13 +73,13 @@ static inline bool input_mt_is_active(const struct input_mt_slot *slot)
 }
 
 static inline bool input_mt_is_used(const struct input_mt *mt,
-				    const struct input_mt_slot *slot)
+									const struct input_mt_slot *slot)
 {
 	return slot->frame == mt->frame;
 }
 
 int input_mt_init_slots(struct input_dev *dev, unsigned int num_slots,
-			unsigned int flags);
+						unsigned int flags);
 void input_mt_destroy_slots(struct input_dev *dev);
 
 static inline int input_mt_new_trkid(struct input_mt *mt)
@@ -101,7 +103,7 @@ static inline bool input_is_mt_axis(int axis)
 }
 
 void input_mt_report_slot_state(struct input_dev *dev,
-				unsigned int tool_type, bool active);
+								unsigned int tool_type, bool active);
 
 void input_mt_report_finger_count(struct input_dev *dev, int count);
 void input_mt_report_pointer_emulation(struct input_dev *dev, bool use_count);
@@ -114,13 +116,14 @@ void input_mt_sync_frame(struct input_dev *dev);
  * @x: horizontal coordinate
  * @y: vertical coordinate
  */
-struct input_mt_pos {
+struct input_mt_pos
+{
 	s16 x, y;
 };
 
 int input_mt_assign_slots(struct input_dev *dev, int *slots,
-			  const struct input_mt_pos *pos, int num_pos,
-			  int dmax);
+						  const struct input_mt_pos *pos, int num_pos,
+						  int dmax);
 
 int input_mt_get_slot_by_key(struct input_dev *dev, int key);
 

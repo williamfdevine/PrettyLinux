@@ -112,7 +112,8 @@
 
 #define SRPC_CLKSRC_MAX			16
 
-enum spdif_gainsel {
+enum spdif_gainsel
+{
 	GAINSEL_MULTI_24 = 0,
 	GAINSEL_MULTI_16,
 	GAINSEL_MULTI_12,
@@ -162,7 +163,8 @@ enum spdif_gainsel {
 #define STC_TXCLK_SPDIF_ROOT		1
 
 /* SPDIF tx rate */
-enum spdif_txrate {
+enum spdif_txrate
+{
 	SPDIF_TXRATE_32000 = 0,
 	SPDIF_TXRATE_44100,
 	SPDIF_TXRATE_48000,
@@ -178,21 +180,21 @@ enum spdif_txrate {
 
 
 #define FSL_SPDIF_RATES_PLAYBACK	(SNDRV_PCM_RATE_32000 |	\
-					 SNDRV_PCM_RATE_44100 |	\
-					 SNDRV_PCM_RATE_48000 |	\
-					 SNDRV_PCM_RATE_96000 |	\
-					 SNDRV_PCM_RATE_192000)
+									 SNDRV_PCM_RATE_44100 |	\
+									 SNDRV_PCM_RATE_48000 |	\
+									 SNDRV_PCM_RATE_96000 |	\
+									 SNDRV_PCM_RATE_192000)
 
 #define FSL_SPDIF_RATES_CAPTURE		(SNDRV_PCM_RATE_16000 | \
-					 SNDRV_PCM_RATE_32000 |	\
-					 SNDRV_PCM_RATE_44100 | \
-					 SNDRV_PCM_RATE_48000 |	\
-					 SNDRV_PCM_RATE_64000 | \
-					 SNDRV_PCM_RATE_96000)
+									 SNDRV_PCM_RATE_32000 |	\
+									 SNDRV_PCM_RATE_44100 | \
+									 SNDRV_PCM_RATE_48000 |	\
+									 SNDRV_PCM_RATE_64000 | \
+									 SNDRV_PCM_RATE_96000)
 
 #define FSL_SPDIF_FORMATS_PLAYBACK	(SNDRV_PCM_FMTBIT_S16_LE | \
-					 SNDRV_PCM_FMTBIT_S20_3LE | \
-					 SNDRV_PCM_FMTBIT_S24_LE)
+									 SNDRV_PCM_FMTBIT_S20_3LE | \
+									 SNDRV_PCM_FMTBIT_S24_LE)
 
 #define FSL_SPDIF_FORMATS_CAPTURE	(SNDRV_PCM_FMTBIT_S24_LE)
 

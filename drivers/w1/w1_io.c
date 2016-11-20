@@ -34,7 +34,8 @@ module_param_named(delay_coef, w1_delay_parm, int, 0);
 static int w1_disable_irqs = 0;
 module_param_named(disable_irqs, w1_disable_irqs, int, 0);
 
-static u8 w1_crc8_table[] = {
+static u8 w1_crc8_table[] =
+{
 	0, 94, 188, 226, 97, 63, 221, 131, 194, 156, 126, 32, 163, 253, 31, 65,
 	157, 195, 33, 127, 252, 162, 64, 30, 95, 1, 227, 189, 62, 96, 130, 220,
 	35, 125, 159, 193, 66, 28, 254, 160, 225, 191, 93, 3, 128, 222, 60, 98,
@@ -69,10 +70,15 @@ static u8 w1_read_bit(struct w1_master *dev);
 static u8 w1_touch_bit(struct w1_master *dev, int bit)
 {
 	if (dev->bus_master->touch_bit)
+	{
 		return dev->bus_master->touch_bit(dev->bus_master->data, bit);
+	}
 	else if (bit)
+	{
 		return w1_read_bit(dev);
-	else {
+	}
+	else
+	{
 		w1_write_bit(dev, 0);
 		return 0;
 	}
@@ -89,21 +95,24 @@ static void w1_write_bit(struct w1_master *dev, int bit)
 {
 	unsigned long flags = 0;
 
-	if(w1_disable_irqs) local_irq_save(flags);
+	if (w1_disable_irqs) { local_irq_save(flags); }
 
-	if (bit) {
+	if (bit)
+	{
 		dev->bus_master->write_bit(dev->bus_master->data, 0);
 		w1_delay(6);
 		dev->bus_master->write_bit(dev->bus_master->data, 1);
 		w1_delay(64);
-	} else {
+	}
+	else
+	{
 		dev->bus_master->write_bit(dev->bus_master->data, 0);
 		w1_delay(60);
 		dev->bus_master->write_bit(dev->bus_master->data, 1);
 		w1_delay(10);
 	}
 
-	if(w1_disable_irqs) local_irq_restore(flags);
+	if (w1_disable_irqs) { local_irq_restore(flags); }
 }
 
 /**
@@ -117,9 +126,10 @@ static void w1_write_bit(struct w1_master *dev, int bit)
 static void w1_pre_write(struct w1_master *dev)
 {
 	if (dev->pullup_duration &&
-		dev->enable_pullup && dev->bus_master->set_pullup) {
+		dev->enable_pullup && dev->bus_master->set_pullup)
+	{
 		dev->bus_master->set_pullup(dev->bus_master->data,
-			dev->pullup_duration);
+									dev->pullup_duration);
 	}
 }
 
@@ -133,11 +143,17 @@ static void w1_pre_write(struct w1_master *dev)
  */
 static void w1_post_write(struct w1_master *dev)
 {
-	if (dev->pullup_duration) {
+	if (dev->pullup_duration)
+	{
 		if (dev->enable_pullup && dev->bus_master->set_pullup)
+		{
 			dev->bus_master->set_pullup(dev->bus_master->data, 0);
+		}
 		else
+		{
 			msleep(dev->pullup_duration);
+		}
+
 		dev->pullup_duration = 0;
 	}
 }
@@ -151,16 +167,22 @@ void w1_write_8(struct w1_master *dev, u8 byte)
 {
 	int i;
 
-	if (dev->bus_master->write_byte) {
+	if (dev->bus_master->write_byte)
+	{
 		w1_pre_write(dev);
 		dev->bus_master->write_byte(dev->bus_master->data, byte);
 	}
 	else
-		for (i = 0; i < 8; ++i) {
+		for (i = 0; i < 8; ++i)
+		{
 			if (i == 7)
+			{
 				w1_pre_write(dev);
+			}
+
 			w1_touch_bit(dev, (byte >> i) & 0x1);
 		}
+
 	w1_post_write(dev);
 }
 EXPORT_SYMBOL_GPL(w1_write_8);
@@ -208,28 +230,41 @@ static u8 w1_read_bit(struct w1_master *dev)
 u8 w1_triplet(struct w1_master *dev, int bdir)
 {
 	if (dev->bus_master->triplet)
+	{
 		return dev->bus_master->triplet(dev->bus_master->data, bdir);
-	else {
+	}
+	else
+	{
 		u8 id_bit   = w1_touch_bit(dev, 1);
 		u8 comp_bit = w1_touch_bit(dev, 1);
 		u8 retval;
 
 		if (id_bit && comp_bit)
-			return 0x03;  /* error */
+		{
+			return 0x03;    /* error */
+		}
 
-		if (!id_bit && !comp_bit) {
+		if (!id_bit && !comp_bit)
+		{
 			/* Both bits are valid, take the direction given */
 			retval = bdir ? 0x04 : 0;
-		} else {
+		}
+		else
+		{
 			/* Only one bit is valid, take that direction */
 			bdir = id_bit;
 			retval = id_bit ? 0x05 : 0x02;
 		}
 
 		if (dev->bus_master->touch_bit)
+		{
 			w1_touch_bit(dev, bdir);
+		}
 		else
+		{
 			w1_write_bit(dev, bdir);
+		}
+
 		return retval;
 	}
 }
@@ -246,10 +281,14 @@ u8 w1_read_8(struct w1_master *dev)
 	u8 res = 0;
 
 	if (dev->bus_master->read_byte)
+	{
 		res = dev->bus_master->read_byte(dev->bus_master->data);
+	}
 	else
 		for (i = 0; i < 8; ++i)
-			res |= (w1_touch_bit(dev,1) << i);
+		{
+			res |= (w1_touch_bit(dev, 1) << i);
+		}
 
 	return res;
 }
@@ -265,13 +304,17 @@ void w1_write_block(struct w1_master *dev, const u8 *buf, int len)
 {
 	int i;
 
-	if (dev->bus_master->write_block) {
+	if (dev->bus_master->write_block)
+	{
 		w1_pre_write(dev);
 		dev->bus_master->write_block(dev->bus_master->data, buf, len);
 	}
 	else
 		for (i = 0; i < len; ++i)
-			w1_write_8(dev, buf[i]); /* calls w1_pre_write */
+		{
+			w1_write_8(dev, buf[i]);    /* calls w1_pre_write */
+		}
+
 	w1_post_write(dev);
 }
 EXPORT_SYMBOL_GPL(w1_write_block);
@@ -287,11 +330,17 @@ void w1_touch_block(struct w1_master *dev, u8 *buf, int len)
 	int i, j;
 	u8 tmp;
 
-	for (i = 0; i < len; ++i) {
+	for (i = 0; i < len; ++i)
+	{
 		tmp = 0;
-		for (j = 0; j < 8; ++j) {
+
+		for (j = 0; j < 8; ++j)
+		{
 			if (j == 7)
+			{
 				w1_pre_write(dev);
+			}
+
 			tmp |= w1_touch_bit(dev, (buf[i] >> j) & 0x1) << j;
 		}
 
@@ -313,10 +362,16 @@ u8 w1_read_block(struct w1_master *dev, u8 *buf, int len)
 	u8 ret;
 
 	if (dev->bus_master->read_block)
+	{
 		ret = dev->bus_master->read_block(dev->bus_master->data, buf, len);
-	else {
+	}
+	else
+	{
 		for (i = 0; i < len; ++i)
+		{
 			buf[i] = w1_read_8(dev);
+		}
+
 		ret = len;
 	}
 
@@ -334,11 +389,14 @@ int w1_reset_bus(struct w1_master *dev)
 	int result;
 	unsigned long flags = 0;
 
-	if(w1_disable_irqs) local_irq_save(flags);
+	if (w1_disable_irqs) { local_irq_save(flags); }
 
 	if (dev->bus_master->reset_bus)
+	{
 		result = dev->bus_master->reset_bus(dev->bus_master->data) & 0x1;
-	else {
+	}
+	else
+	{
 		dev->bus_master->write_bit(dev->bus_master->data, 0);
 		/* minimum 480, max ? us
 		 * be nice and sleep, except 18b20 spec lists 960us maximum,
@@ -360,18 +418,20 @@ int w1_reset_bus(struct w1_master *dev)
 		msleep(1);
 	}
 
-	if(w1_disable_irqs) local_irq_restore(flags);
+	if (w1_disable_irqs) { local_irq_restore(flags); }
 
 	return result;
 }
 EXPORT_SYMBOL_GPL(w1_reset_bus);
 
-u8 w1_calc_crc8(u8 * data, int len)
+u8 w1_calc_crc8(u8 *data, int len)
 {
 	u8 crc = 0;
 
 	while (len--)
+	{
 		crc = w1_crc8_table[crc ^ *data++];
+	}
 
 	return crc;
 }
@@ -380,11 +440,14 @@ EXPORT_SYMBOL_GPL(w1_calc_crc8);
 void w1_search_devices(struct w1_master *dev, u8 search_type, w1_slave_found_callback cb)
 {
 	dev->attempts++;
+
 	if (dev->bus_master->search)
 		dev->bus_master->search(dev->bus_master->data, dev,
-			search_type, cb);
+								search_type, cb);
 	else
+	{
 		w1_search(dev, search_type, cb);
+	}
 }
 
 /**
@@ -401,17 +464,23 @@ void w1_search_devices(struct w1_master *dev, u8 search_type, w1_slave_found_cal
 int w1_reset_select_slave(struct w1_slave *sl)
 {
 	if (w1_reset_bus(sl->master))
+	{
 		return -1;
+	}
 
 	if (sl->master->slave_count == 1)
+	{
 		w1_write_8(sl->master, W1_SKIP_ROM);
-	else {
+	}
+	else
+	{
 		u8 match[9] = {W1_MATCH_ROM, };
-		u64 rn = le64_to_cpu(*((u64*)&sl->reg_num));
+		u64 rn = le64_to_cpu(*((u64 *)&sl->reg_num));
 
 		memcpy(&match[1], &rn, 8);
 		w1_write_block(sl->master, match, 9);
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(w1_reset_select_slave);
@@ -435,7 +504,9 @@ EXPORT_SYMBOL_GPL(w1_reset_select_slave);
 int w1_reset_resume_command(struct w1_master *dev)
 {
 	if (w1_reset_bus(dev))
+	{
 		return -1;
+	}
 
 	/* This will make only the last matched slave perform a skip ROM. */
 	w1_write_8(dev, W1_RESUME_CMD);

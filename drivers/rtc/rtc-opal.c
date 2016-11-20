@@ -33,7 +33,7 @@
 static void opal_to_tm(u32 y_m_d, u64 h_m_s_ms, struct rtc_time *tm)
 {
 	tm->tm_year = ((bcd2bin(y_m_d >> 24) * 100) +
-		       bcd2bin((y_m_d >> 16) & 0xff)) - 1900;
+				   bcd2bin((y_m_d >> 16) & 0xff)) - 1900;
 	tm->tm_mon  = bcd2bin((y_m_d >> 8) & 0xff) - 1;
 	tm->tm_mday = bcd2bin(y_m_d & 0xff);
 	tm->tm_hour = bcd2bin((h_m_s_ms >> 56) & 0xff);
@@ -63,16 +63,24 @@ static int opal_get_rtc_time(struct device *dev, struct rtc_time *tm)
 	__be32 __y_m_d;
 	__be64 __h_m_s_ms;
 
-	while (rc == OPAL_BUSY || rc == OPAL_BUSY_EVENT) {
+	while (rc == OPAL_BUSY || rc == OPAL_BUSY_EVENT)
+	{
 		rc = opal_rtc_read(&__y_m_d, &__h_m_s_ms);
+
 		if (rc == OPAL_BUSY_EVENT)
+		{
 			opal_poll_events(NULL);
+		}
 		else
+		{
 			msleep(10);
+		}
 	}
 
 	if (rc != OPAL_SUCCESS)
+	{
 		return -EIO;
+	}
 
 	y_m_d = be32_to_cpu(__y_m_d);
 	h_m_s_ms = be64_to_cpu(__h_m_s_ms);
@@ -88,12 +96,19 @@ static int opal_set_rtc_time(struct device *dev, struct rtc_time *tm)
 	u64 h_m_s_ms = 0;
 
 	tm_to_opal(tm, &y_m_d, &h_m_s_ms);
-	while (rc == OPAL_BUSY || rc == OPAL_BUSY_EVENT) {
+
+	while (rc == OPAL_BUSY || rc == OPAL_BUSY_EVENT)
+	{
 		rc = opal_rtc_write(y_m_d, h_m_s_ms);
+
 		if (rc == OPAL_BUSY_EVENT)
+		{
 			opal_poll_events(NULL);
+		}
 		else
+		{
 			msleep(10);
+		}
 	}
 
 	return rc == OPAL_SUCCESS ? 0 : -EIO;
@@ -115,27 +130,37 @@ static int opal_get_tpo_time(struct device *dev, struct rtc_wkalrm *alarm)
 	u32 y_m_d;
 
 	token = opal_async_get_token_interruptible();
-	if (token < 0) {
+
+	if (token < 0)
+	{
 		if (token != -ERESTARTSYS)
+		{
 			pr_err("Failed to get the async token\n");
+		}
 
 		return token;
 	}
 
 	rc = opal_tpo_read(token, &__y_m_d, &__h_m);
-	if (rc != OPAL_ASYNC_COMPLETION) {
+
+	if (rc != OPAL_ASYNC_COMPLETION)
+	{
 		rc = -EIO;
 		goto exit;
 	}
 
 	rc = opal_async_wait_response(token, &msg);
-	if (rc) {
+
+	if (rc)
+	{
 		rc = -EIO;
 		goto exit;
 	}
 
 	rc = opal_get_async_rc(msg);
-	if (rc != OPAL_SUCCESS) {
+
+	if (rc != OPAL_SUCCESS)
+	{
 		rc = -EIO;
 		goto exit;
 	}
@@ -160,37 +185,49 @@ static int opal_set_tpo_time(struct device *dev, struct rtc_wkalrm *alarm)
 	tm_to_opal(&alarm->time, &y_m_d, &h_m_s_ms);
 
 	token = opal_async_get_token_interruptible();
-	if (token < 0) {
+
+	if (token < 0)
+	{
 		if (token != -ERESTARTSYS)
+		{
 			pr_err("Failed to get the async token\n");
+		}
 
 		return token;
 	}
 
 	/* TPO, we care about hour and minute */
 	rc = opal_tpo_write(token, y_m_d,
-			    (u32)((h_m_s_ms >> 32) & 0xffff0000));
-	if (rc != OPAL_ASYNC_COMPLETION) {
+						(u32)((h_m_s_ms >> 32) & 0xffff0000));
+
+	if (rc != OPAL_ASYNC_COMPLETION)
+	{
 		rc = -EIO;
 		goto exit;
 	}
 
 	rc = opal_async_wait_response(token, &msg);
-	if (rc) {
+
+	if (rc)
+	{
 		rc = -EIO;
 		goto exit;
 	}
 
 	rc = opal_get_async_rc(msg);
+
 	if (rc != OPAL_SUCCESS)
+	{
 		rc = -EIO;
+	}
 
 exit:
 	opal_async_release_token(token);
 	return rc;
 }
 
-static struct rtc_class_ops opal_rtc_ops = {
+static struct rtc_class_ops opal_rtc_ops =
+{
 	.read_time	= opal_get_rtc_time,
 	.set_time	= opal_set_rtc_time,
 };
@@ -200,24 +237,29 @@ static int opal_rtc_probe(struct platform_device *pdev)
 	struct rtc_device *rtc;
 
 	if (pdev->dev.of_node &&
-	    (of_property_read_bool(pdev->dev.of_node, "wakeup-source") ||
-	     of_property_read_bool(pdev->dev.of_node, "has-tpo")/* legacy */)) {
+		(of_property_read_bool(pdev->dev.of_node, "wakeup-source") ||
+		 of_property_read_bool(pdev->dev.of_node, "has-tpo")/* legacy */))
+	{
 		device_set_wakeup_capable(&pdev->dev, true);
 		opal_rtc_ops.read_alarm	= opal_get_tpo_time;
 		opal_rtc_ops.set_alarm = opal_set_tpo_time;
 	}
 
 	rtc = devm_rtc_device_register(&pdev->dev, DRVNAME, &opal_rtc_ops,
-				       THIS_MODULE);
+								   THIS_MODULE);
+
 	if (IS_ERR(rtc))
+	{
 		return PTR_ERR(rtc);
+	}
 
 	rtc->uie_unsupported = 1;
 
 	return 0;
 }
 
-static const struct of_device_id opal_rtc_match[] = {
+static const struct of_device_id opal_rtc_match[] =
+{
 	{
 		.compatible	= "ibm,opal-rtc",
 	},
@@ -225,7 +267,8 @@ static const struct of_device_id opal_rtc_match[] = {
 };
 MODULE_DEVICE_TABLE(of, opal_rtc_match);
 
-static const struct platform_device_id opal_rtc_driver_ids[] = {
+static const struct platform_device_id opal_rtc_driver_ids[] =
+{
 	{
 		.name		= "opal-rtc",
 	},
@@ -233,7 +276,8 @@ static const struct platform_device_id opal_rtc_driver_ids[] = {
 };
 MODULE_DEVICE_TABLE(platform, opal_rtc_driver_ids);
 
-static struct platform_driver opal_rtc_driver = {
+static struct platform_driver opal_rtc_driver =
+{
 	.probe		= opal_rtc_probe,
 	.id_table	= opal_rtc_driver_ids,
 	.driver		= {
@@ -245,7 +289,9 @@ static struct platform_driver opal_rtc_driver = {
 static int __init opal_rtc_init(void)
 {
 	if (!firmware_has_feature(FW_FEATURE_OPAL))
+	{
 		return -ENODEV;
+	}
 
 	return platform_driver_register(&opal_rtc_driver);
 }

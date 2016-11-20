@@ -136,7 +136,8 @@
 /*
  * pixel format as used in the DSI_CONTROL_FORMAT field
  */
-enum tegra_dsi_format {
+enum tegra_dsi_format
+{
 	TEGRA_DSI_FORMAT_16P,
 	TEGRA_DSI_FORMAT_18NP,
 	TEGRA_DSI_FORMAT_18P,

@@ -187,7 +187,8 @@
 /*
  * Transmit descriptor, aligned to 16 bytes
  */
-struct ftgmac100_txdes {
+struct ftgmac100_txdes
+{
 	unsigned int	txdes0;
 	unsigned int	txdes1;
 	unsigned int	txdes2;	/* not used by HW */
@@ -212,7 +213,8 @@ struct ftgmac100_txdes {
 /*
  * Receive descriptor, aligned to 16 bytes
  */
-struct ftgmac100_rxdes {
+struct ftgmac100_rxdes
+{
 	unsigned int	rxdes0;
 	unsigned int	rxdes1;
 	unsigned int	rxdes2;	/* not used by HW */

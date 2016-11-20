@@ -36,10 +36,10 @@ module_param(i2c_scan, int, 0444);
 MODULE_PARM_DESC(i2c_scan, "scan i2c bus at insmod time");
 
 #define dprintk(level, fmt, arg...)					\
-do {									\
-	if (i2c_debug >= level)						\
-		printk(KERN_DEBUG "%s/0: " fmt, dev->name, ##arg);	\
-} while (0)
+	do {									\
+		if (i2c_debug >= level)						\
+			printk(KERN_DEBUG "%s/0: " fmt, dev->name, ##arg);	\
+	} while (0)
 
 #define I2C_WAIT_DELAY 32
 #define I2C_WAIT_RETRY 64
@@ -65,20 +65,26 @@ static int i2c_wait_done(struct i2c_adapter *i2c_adap)
 {
 	int count;
 
-	for (count = 0; count < I2C_WAIT_RETRY; count++) {
+	for (count = 0; count < I2C_WAIT_RETRY; count++)
+	{
 		if (!i2c_is_busy(i2c_adap))
+		{
 			break;
+		}
+
 		udelay(I2C_WAIT_DELAY);
 	}
 
 	if (I2C_WAIT_RETRY == count)
+	{
 		return 0;
+	}
 
 	return 1;
 }
 
 static int i2c_sendbytes(struct i2c_adapter *i2c_adap,
-			 const struct i2c_msg *msg, int joined_rlen)
+						 const struct i2c_msg *msg, int joined_rlen)
 {
 	struct cx25821_i2c *bus = i2c_adap->algo_data;
 	struct cx25821_dev *dev = bus->dev;
@@ -87,20 +93,27 @@ static int i2c_sendbytes(struct i2c_adapter *i2c_adap,
 
 	if (joined_rlen)
 		dprintk(1, "%s(msg->wlen=%d, nextmsg->rlen=%d)\n", __func__,
-			msg->len, joined_rlen);
+				msg->len, joined_rlen);
 	else
+	{
 		dprintk(1, "%s(msg->len=%d)\n", __func__, msg->len);
+	}
 
 	/* Deal with i2c probe functions with zero payload */
-	if (msg->len == 0) {
+	if (msg->len == 0)
+	{
 		cx_write(bus->reg_addr, msg->addr << 25);
 		cx_write(bus->reg_ctrl, bus->i2c_period | (1 << 2));
 
 		if (!i2c_wait_done(i2c_adap))
+		{
 			return -EIO;
+		}
 
 		if (!i2c_slave_did_ack(i2c_adap))
+		{
 			return -EIO;
+		}
 
 		dprintk(1, "%s(): returns 0\n", __func__);
 		return 0;
@@ -113,51 +126,77 @@ static int i2c_sendbytes(struct i2c_adapter *i2c_adap,
 	ctrl = bus->i2c_period | (1 << 12) | (1 << 2);
 
 	if (msg->len > 1)
+	{
 		ctrl |= I2C_NOSTOP | I2C_EXTEND;
+	}
 	else if (joined_rlen)
+	{
 		ctrl |= I2C_NOSTOP;
+	}
 
 	cx_write(bus->reg_addr, addr);
 	cx_write(bus->reg_wdata, wdata);
 	cx_write(bus->reg_ctrl, ctrl);
 
 	retval = i2c_wait_done(i2c_adap);
+
 	if (retval < 0)
+	{
 		goto err;
-
-	if (retval == 0)
-		goto eio;
-
-	if (i2c_debug) {
-		if (!(ctrl & I2C_NOSTOP))
-			printk(" >\n");
 	}
 
-	for (cnt = 1; cnt < msg->len; cnt++) {
+	if (retval == 0)
+	{
+		goto eio;
+	}
+
+	if (i2c_debug)
+	{
+		if (!(ctrl & I2C_NOSTOP))
+		{
+			printk(" >\n");
+		}
+	}
+
+	for (cnt = 1; cnt < msg->len; cnt++)
+	{
 		/* following bytes */
 		wdata = msg->buf[cnt];
 		ctrl = bus->i2c_period | (1 << 12) | (1 << 2);
 
 		if (cnt < msg->len - 1)
+		{
 			ctrl |= I2C_NOSTOP | I2C_EXTEND;
+		}
 		else if (joined_rlen)
+		{
 			ctrl |= I2C_NOSTOP;
+		}
 
 		cx_write(bus->reg_addr, addr);
 		cx_write(bus->reg_wdata, wdata);
 		cx_write(bus->reg_ctrl, ctrl);
 
 		retval = i2c_wait_done(i2c_adap);
+
 		if (retval < 0)
+		{
 			goto err;
+		}
 
 		if (retval == 0)
+		{
 			goto eio;
+		}
 
-		if (i2c_debug) {
+		if (i2c_debug)
+		{
 			dprintk(1, " %02x", msg->buf[cnt]);
+
 			if (!(ctrl & I2C_NOSTOP))
+			{
 				dprintk(1, " >\n");
+			}
 		}
 	}
 
@@ -166,13 +205,17 @@ static int i2c_sendbytes(struct i2c_adapter *i2c_adap,
 eio:
 	retval = -EIO;
 err:
+
 	if (i2c_debug)
+	{
 		pr_err(" ERR: %d\n", retval);
+	}
+
 	return retval;
 }
 
 static int i2c_readbytes(struct i2c_adapter *i2c_adap,
-			 const struct i2c_msg *msg, int joined)
+						 const struct i2c_msg *msg, int joined)
 {
 	struct cx25821_i2c *bus = i2c_adap->algo_data;
 	struct cx25821_dev *dev = bus->dev;
@@ -180,49 +223,77 @@ static int i2c_readbytes(struct i2c_adapter *i2c_adap,
 	int retval;
 
 	if (i2c_debug && !joined)
+	{
 		dprintk(1, "6-%s(msg->len=%d)\n", __func__, msg->len);
+	}
 
 	/* Deal with i2c probe functions with zero payload */
-	if (msg->len == 0) {
+	if (msg->len == 0)
+	{
 		cx_write(bus->reg_addr, msg->addr << 25);
 		cx_write(bus->reg_ctrl, bus->i2c_period | (1 << 2) | 1);
+
 		if (!i2c_wait_done(i2c_adap))
+		{
 			return -EIO;
+		}
+
 		if (!i2c_slave_did_ack(i2c_adap))
+		{
 			return -EIO;
+		}
 
 		dprintk(1, "%s(): returns 0\n", __func__);
 		return 0;
 	}
 
-	if (i2c_debug) {
+	if (i2c_debug)
+	{
 		if (joined)
+		{
 			dprintk(1, " R");
+		}
 		else
+		{
 			dprintk(1, " <R %02x", (msg->addr << 1) + 1);
+		}
 	}
 
-	for (cnt = 0; cnt < msg->len; cnt++) {
+	for (cnt = 0; cnt < msg->len; cnt++)
+	{
 
 		ctrl = bus->i2c_period | (1 << 12) | (1 << 2) | 1;
 
 		if (cnt < msg->len - 1)
+		{
 			ctrl |= I2C_NOSTOP | I2C_EXTEND;
+		}
 
 		cx_write(bus->reg_addr, msg->addr << 25);
 		cx_write(bus->reg_ctrl, ctrl);
 
 		retval = i2c_wait_done(i2c_adap);
+
 		if (retval < 0)
+		{
 			goto err;
+		}
+
 		if (retval == 0)
+		{
 			goto eio;
+		}
+
 		msg->buf[cnt] = cx_read(bus->reg_rdata) & 0xff;
 
-		if (i2c_debug) {
+		if (i2c_debug)
+		{
 			dprintk(1, " %02x", msg->buf[cnt]);
+
 			if (!(ctrl & I2C_NOSTOP))
+			{
 				dprintk(1, " >\n");
+			}
 		}
 	}
 
@@ -230,8 +301,12 @@ static int i2c_readbytes(struct i2c_adapter *i2c_adap,
 eio:
 	retval = -EIO;
 err:
+
 	if (i2c_debug)
+	{
 		pr_err(" ERR: %d\n", retval);
+	}
+
 	return retval;
 }
 
@@ -243,31 +318,43 @@ static int i2c_xfer(struct i2c_adapter *i2c_adap, struct i2c_msg *msgs, int num)
 
 	dprintk(1, "%s(num = %d)\n", __func__, num);
 
-	for (i = 0; i < num; i++) {
+	for (i = 0; i < num; i++)
+	{
 		dprintk(1, "%s(num = %d) addr = 0x%02x  len = 0x%x\n",
-			__func__, num, msgs[i].addr, msgs[i].len);
+				__func__, num, msgs[i].addr, msgs[i].len);
 
-		if (msgs[i].flags & I2C_M_RD) {
+		if (msgs[i].flags & I2C_M_RD)
+		{
 			/* read */
 			retval = i2c_readbytes(i2c_adap, &msgs[i], 0);
-		} else if (i + 1 < num && (msgs[i + 1].flags & I2C_M_RD) &&
-			   msgs[i].addr == msgs[i + 1].addr) {
+		}
+		else if (i + 1 < num && (msgs[i + 1].flags & I2C_M_RD) &&
+				 msgs[i].addr == msgs[i + 1].addr)
+		{
 			/* write then read from same address */
 			retval = i2c_sendbytes(i2c_adap, &msgs[i],
-					msgs[i + 1].len);
+								   msgs[i + 1].len);
 
 			if (retval < 0)
+			{
 				goto err;
+			}
+
 			i++;
 			retval = i2c_readbytes(i2c_adap, &msgs[i], 1);
-		} else {
+		}
+		else
+		{
 			/* write */
 			retval = i2c_sendbytes(i2c_adap, &msgs[i], 0);
 		}
 
 		if (retval < 0)
+		{
 			goto err;
+		}
 	}
+
 	return num;
 
 err:
@@ -278,10 +365,11 @@ err:
 static u32 cx25821_functionality(struct i2c_adapter *adap)
 {
 	return I2C_FUNC_SMBUS_EMUL | I2C_FUNC_I2C | I2C_FUNC_SMBUS_WORD_DATA |
-		I2C_FUNC_SMBUS_READ_WORD_DATA | I2C_FUNC_SMBUS_WRITE_WORD_DATA;
+		   I2C_FUNC_SMBUS_READ_WORD_DATA | I2C_FUNC_SMBUS_WRITE_WORD_DATA;
 }
 
-static const struct i2c_algorithm cx25821_i2c_algo_template = {
+static const struct i2c_algorithm cx25821_i2c_algo_template =
+{
 	.master_xfer = i2c_xfer,
 	.functionality = cx25821_functionality,
 #ifdef NEED_ALGO_CONTROL
@@ -289,13 +377,15 @@ static const struct i2c_algorithm cx25821_i2c_algo_template = {
 #endif
 };
 
-static struct i2c_adapter cx25821_i2c_adap_template = {
+static struct i2c_adapter cx25821_i2c_adap_template =
+{
 	.name = "cx25821",
 	.owner = THIS_MODULE,
 	.algo = &cx25821_i2c_algo_template,
 };
 
-static struct i2c_client cx25821_i2c_client_template = {
+static struct i2c_client cx25821_i2c_client_template =
+{
 	.name = "cx25821 internal",
 };
 
@@ -341,10 +431,15 @@ static void cx25821_av_clk(struct cx25821_dev *dev, int enable)
 	/* Register 0x144 */
 	buffer[0] = 0x01;
 	buffer[1] = 0x44;
+
 	if (enable == 1)
+	{
 		buffer[2] = 0x05;
+	}
 	else
+	{
 		buffer[2] = 0x00;
+	}
 
 	msg.addr = 0x44;
 	msg.flags = I2C_M_TEN;
@@ -362,7 +457,8 @@ int cx25821_i2c_read(struct cx25821_i2c *bus, u16 reg_addr, int *value)
 	u8 addr[2] = { 0, 0 };
 	u8 buf[4] = { 0, 0, 0, 0 };
 
-	struct i2c_msg msgs[2] = {
+	struct i2c_msg msgs[2] =
+	{
 		{
 			.addr = client->addr,
 			.flags = 0,
@@ -395,7 +491,8 @@ int cx25821_i2c_write(struct cx25821_i2c *bus, u16 reg_addr, int value)
 	int retval = 0;
 	u8 buf[6] = { 0, 0, 0, 0, 0, 0 };
 
-	struct i2c_msg msgs[1] = {
+	struct i2c_msg msgs[1] =
+	{
 		{
 			.addr = client->addr,
 			.flags = 0,

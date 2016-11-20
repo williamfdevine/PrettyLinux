@@ -36,24 +36,24 @@ TLB_FLUSH_REASON
 
 TRACE_EVENT(tlb_flush,
 
-	TP_PROTO(int reason, unsigned long pages),
-	TP_ARGS(reason, pages),
+			TP_PROTO(int reason, unsigned long pages),
+			TP_ARGS(reason, pages),
 
-	TP_STRUCT__entry(
-		__field(	  int, reason)
-		__field(unsigned long,  pages)
-	),
+			TP_STRUCT__entry(
+				__field(	  int, reason)
+				__field(unsigned long,  pages)
+			),
 
-	TP_fast_assign(
-		__entry->reason = reason;
-		__entry->pages  = pages;
-	),
+			TP_fast_assign(
+				__entry->reason = reason;
+				__entry->pages  = pages;
+			),
 
-	TP_printk("pages:%ld reason:%s (%d)",
-		__entry->pages,
-		__print_symbolic(__entry->reason, TLB_FLUSH_REASON),
-		__entry->reason)
-);
+			TP_printk("pages:%ld reason:%s (%d)",
+					  __entry->pages,
+					  __print_symbolic(__entry->reason, TLB_FLUSH_REASON),
+					  __entry->reason)
+		   );
 
 #endif /* _TRACE_TLB_H */
 

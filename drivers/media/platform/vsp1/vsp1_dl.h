@@ -23,8 +23,8 @@ struct vsp1_dl_manager;
 void vsp1_dlm_setup(struct vsp1_device *vsp1);
 
 struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
-					unsigned int index,
-					unsigned int prealloc);
+										unsigned int index,
+										unsigned int prealloc);
 void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm);
 void vsp1_dlm_reset(struct vsp1_dl_manager *dlm);
 void vsp1_dlm_irq_display_start(struct vsp1_dl_manager *dlm);
@@ -36,11 +36,11 @@ void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data);
 void vsp1_dl_list_commit(struct vsp1_dl_list *dl);
 
 struct vsp1_dl_body *vsp1_dl_fragment_alloc(struct vsp1_device *vsp1,
-					    unsigned int num_entries);
+		unsigned int num_entries);
 void vsp1_dl_fragment_free(struct vsp1_dl_body *dlb);
 void vsp1_dl_fragment_write(struct vsp1_dl_body *dlb, u32 reg, u32 data);
 int vsp1_dl_list_add_fragment(struct vsp1_dl_list *dl,
-			      struct vsp1_dl_body *dlb);
+							  struct vsp1_dl_body *dlb);
 int vsp1_dl_list_add_chain(struct vsp1_dl_list *head, struct vsp1_dl_list *dl);
 
 #endif /* __VSP1_DL_H__ */

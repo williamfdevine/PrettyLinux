@@ -16,7 +16,8 @@
 
 #include "iss_video.h"
 
-enum ipipe_input_entity {
+enum ipipe_input_entity
+{
 	IPIPE_INPUT_NONE,
 	IPIPE_INPUT_IPIPEIF,
 };
@@ -41,7 +42,8 @@ enum ipipe_input_entity {
  * @wait: Wait queue used to stop the module
  * @stopping: Stopping state
  */
-struct iss_ipipe_device {
+struct iss_ipipe_device
+{
 	struct v4l2_subdev subdev;
 	struct media_pad pads[IPIPE_PADS_NUM];
 	struct v4l2_mbus_framefmt formats[IPIPE_PADS_NUM];
@@ -58,7 +60,7 @@ struct iss_ipipe_device {
 struct iss_device;
 
 int omap4iss_ipipe_register_entities(struct iss_ipipe_device *ipipe,
-				     struct v4l2_device *vdev);
+									 struct v4l2_device *vdev);
 void omap4iss_ipipe_unregister_entities(struct iss_ipipe_device *ipipe);
 
 int omap4iss_ipipe_init(struct iss_device *iss);

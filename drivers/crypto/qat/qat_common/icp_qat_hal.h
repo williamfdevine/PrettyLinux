@@ -48,13 +48,15 @@
 #define __ICP_QAT_HAL_H
 #include "icp_qat_fw_loader_handle.h"
 
-enum hal_global_csr {
+enum hal_global_csr
+{
 	MISC_CONTROL = 0x04,
 	ICP_RESET = 0x0c,
 	ICP_GLOBAL_CLK_ENABLE = 0x50
 };
 
-enum hal_ae_csr {
+enum hal_ae_csr
+{
 	USTORE_ADDRESS = 0x000,
 	USTORE_DATA_LOWER = 0x004,
 	USTORE_DATA_UPPER = 0x008,
@@ -81,7 +83,8 @@ enum hal_ae_csr {
 	LOCAL_CSR_STATUS = 0x180,
 };
 
-enum fcu_csr {
+enum fcu_csr
+{
 	FCU_CONTROL           = 0x8c0,
 	FCU_STATUS            = 0x8c4,
 	FCU_STATUS1           = 0x8c8,
@@ -91,14 +94,16 @@ enum fcu_csr {
 	FCU_RAMBASE_ADDR_LO   = 0x8d8
 };
 
-enum fcu_cmd {
+enum fcu_cmd
+{
 	FCU_CTRL_CMD_NOOP  = 0,
 	FCU_CTRL_CMD_AUTH  = 1,
 	FCU_CTRL_CMD_LOAD  = 2,
 	FCU_CTRL_CMD_START = 3
 };
 
-enum fcu_sts {
+enum fcu_sts
+{
 	FCU_STS_NO_STS    = 0,
 	FCU_STS_VERI_DONE = 1,
 	FCU_STS_LOAD_DONE = 2,
@@ -139,16 +144,16 @@ enum fcu_sts {
 #define GET_GLB_CSR(handle, csr) GET_CAP_CSR(handle, GLOBAL_CSR + csr)
 #define AE_CSR(handle, ae) \
 	((char __iomem *)handle->hal_cap_ae_local_csr_addr_v + \
-	((ae & handle->hal_handle->ae_mask) << 12))
+	 ((ae & handle->hal_handle->ae_mask) << 12))
 #define AE_CSR_ADDR(handle, ae, csr) (AE_CSR(handle, ae) + (0x3ff & csr))
 #define SET_AE_CSR(handle, ae, csr, val) \
 	ADF_CSR_WR(AE_CSR_ADDR(handle, ae, csr), 0, val)
 #define GET_AE_CSR(handle, ae, csr) ADF_CSR_RD(AE_CSR_ADDR(handle, ae, csr), 0)
 #define AE_XFER(handle, ae) \
 	((char __iomem *)handle->hal_cap_ae_xfer_csr_addr_v + \
-	((ae & handle->hal_handle->ae_mask) << 12))
+	 ((ae & handle->hal_handle->ae_mask) << 12))
 #define AE_XFER_ADDR(handle, ae, reg) (AE_XFER(handle, ae) + \
-	((reg & 0xff) << 2))
+									   ((reg & 0xff) << 2))
 #define SET_AE_XFER(handle, ae, reg, val) \
 	ADF_CSR_WR(AE_XFER_ADDR(handle, ae, reg), 0, val)
 #define SRAM_WRITE(handle, addr, val) \

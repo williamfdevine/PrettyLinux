@@ -26,7 +26,8 @@
 #include <subdev/bios/gpio.h>
 #include <subdev/gpio.h>
 
-static const u8 tags[] = {
+static const u8 tags[] =
+{
 	DCB_GPIO_VID0, DCB_GPIO_VID1, DCB_GPIO_VID2, DCB_GPIO_VID3,
 	DCB_GPIO_VID4, DCB_GPIO_VID5, DCB_GPIO_VID6, DCB_GPIO_VID7,
 };
@@ -38,11 +39,17 @@ nvkm_voltgpio_get(struct nvkm_volt *volt)
 	u8 vid = 0;
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(tags); i++) {
-		if (volt->vid_mask & (1 << i)) {
+	for (i = 0; i < ARRAY_SIZE(tags); i++)
+	{
+		if (volt->vid_mask & (1 << i))
+		{
 			int ret = nvkm_gpio_get(gpio, 0, tags[i], 0xff);
+
 			if (ret < 0)
+			{
 				return ret;
+			}
+
 			vid |= ret << i;
 		}
 	}
@@ -56,11 +63,16 @@ nvkm_voltgpio_set(struct nvkm_volt *volt, u8 vid)
 	struct nvkm_gpio *gpio = volt->subdev.device->gpio;
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(tags); i++, vid >>= 1) {
-		if (volt->vid_mask & (1 << i)) {
+	for (i = 0; i < ARRAY_SIZE(tags); i++, vid >>= 1)
+	{
+		if (volt->vid_mask & (1 << i))
+		{
 			int ret = nvkm_gpio_set(gpio, 0, tags[i], 0xff, vid & 1);
+
 			if (ret < 0)
+			{
 				return ret;
+			}
 		}
 	}
 
@@ -81,12 +93,19 @@ nvkm_voltgpio_init(struct nvkm_volt *volt)
 	 * just touch the existing ones, so let's mask off the invalid
 	 * bits and continue with life
 	 */
-	for (i = 0; i < ARRAY_SIZE(tags); i++) {
-		if (volt->vid_mask & (1 << i)) {
+	for (i = 0; i < ARRAY_SIZE(tags); i++)
+	{
+		if (volt->vid_mask & (1 << i))
+		{
 			int ret = nvkm_gpio_find(gpio, 0, tags[i], 0xff, &func);
-			if (ret) {
+
+			if (ret)
+			{
 				if (ret != -ENOENT)
+				{
 					return ret;
+				}
+
 				nvkm_debug(subdev, "VID bit %d has no GPIO\n", i);
 				volt->vid_mask &= ~(1 << i);
 			}

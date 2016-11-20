@@ -71,21 +71,27 @@ static void opti621_set_pio_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 	u8 tim, misc, addr_pio = pio, clk;
 
 	/* DRDY is default 2 (by OPTi Databook) */
-	static const u8 addr_timings[2][5] = {
+	static const u8 addr_timings[2][5] =
+	{
 		{ 0x20, 0x10, 0x00, 0x00, 0x00 },	/* 33 MHz */
 		{ 0x10, 0x10, 0x00, 0x00, 0x00 },	/* 25 MHz */
 	};
-	static const u8 data_rec_timings[2][5] = {
+	static const u8 data_rec_timings[2][5] =
+	{
 		{ 0x5b, 0x45, 0x32, 0x21, 0x20 },	/* 33 MHz */
 		{ 0x48, 0x34, 0x21, 0x10, 0x10 }	/* 25 MHz */
 	};
 
 	ide_set_drivedata(drive, (void *)mode);
 
-	if (pair) {
+	if (pair)
+	{
 		pair_mode = (unsigned long)ide_get_drivedata(pair);
+
 		if (pair_mode && pair_mode < mode)
+		{
 			addr_pio = pair_mode - XFER_PIO_0;
+		}
 	}
 
 	spin_lock_irqsave(&opti621_lock, flags);
@@ -127,11 +133,13 @@ static void opti621_set_pio_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 	spin_unlock_irqrestore(&opti621_lock, flags);
 }
 
-static const struct ide_port_ops opti621_port_ops = {
+static const struct ide_port_ops opti621_port_ops =
+{
 	.set_pio_mode		= opti621_set_pio_mode,
 };
 
-static const struct ide_port_info opti621_chipset = {
+static const struct ide_port_info opti621_chipset =
+{
 	.name		= DRV_NAME,
 	.enablebits	= { {0x45, 0x80, 0x00}, {0x40, 0x08, 0x00} },
 	.port_ops	= &opti621_port_ops,
@@ -144,14 +152,16 @@ static int opti621_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 	return ide_pci_init_one(dev, &opti621_chipset, NULL);
 }
 
-static const struct pci_device_id opti621_pci_tbl[] = {
+static const struct pci_device_id opti621_pci_tbl[] =
+{
 	{ PCI_VDEVICE(OPTI, PCI_DEVICE_ID_OPTI_82C621), 0 },
 	{ PCI_VDEVICE(OPTI, PCI_DEVICE_ID_OPTI_82C825), 0 },
 	{ 0, },
 };
 MODULE_DEVICE_TABLE(pci, opti621_pci_tbl);
 
-static struct pci_driver opti621_pci_driver = {
+static struct pci_driver opti621_pci_driver =
+{
 	.name		= "Opti621_IDE",
 	.id_table	= opti621_pci_tbl,
 	.probe		= opti621_init_one,

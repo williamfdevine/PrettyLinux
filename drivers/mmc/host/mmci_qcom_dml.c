@@ -59,7 +59,8 @@ void dml_start_xfer(struct mmci_host *host, struct mmc_data *data)
 	u32 config;
 	void __iomem *base = host->base + DML_OFFSET;
 
-	if (data->flags & MMC_DATA_READ) {
+	if (data->flags & MMC_DATA_READ)
+	{
 		/* Read operation: configure DML for producer operation */
 		/* Set producer CRCI-x and disable consumer CRCI */
 		config = readl_relaxed(base + DML_CONFIG);
@@ -72,14 +73,16 @@ void dml_start_xfer(struct mmci_host *host, struct mmc_data *data)
 
 		/* Set Producer BAM Transaction size */
 		writel_relaxed(data->blocks * data->blksz,
-			       base + DML_PRODUCER_BAM_TRANS_SIZE);
+					   base + DML_PRODUCER_BAM_TRANS_SIZE);
 		/* Set Producer Transaction End bit */
 		config = readl_relaxed(base + DML_CONFIG);
 		config |= PRODUCER_TRANS_END_EN;
 		writel_relaxed(config, base + DML_CONFIG);
 		/* Trigger producer */
 		writel_relaxed(1, base + DML_PRODUCER_START);
-	} else {
+	}
+	else
+	{
 		/* Write operation: configure DML for consumer operation */
 		/* Set consumer CRCI-x and disable producer CRCI*/
 		config = readl_relaxed(base + DML_CONFIG);
@@ -106,14 +109,20 @@ static int of_get_dml_pipe_index(struct device_node *np, const char *name)
 	index = of_property_match_string(np, "dma-names", name);
 
 	if (index < 0)
+	{
 		return -ENODEV;
+	}
 
 	if (of_parse_phandle_with_args(np, "dmas", "#dma-cells", index,
-				       &dma_spec))
+								   &dma_spec))
+	{
 		return -ENODEV;
+	}
 
 	if (dma_spec.args_count)
+	{
 		return dma_spec.args[0];
+	}
 
 	return -ENODEV;
 }
@@ -129,7 +138,9 @@ int dml_hw_init(struct mmci_host *host, struct device_node *np)
 	producer_id = of_get_dml_pipe_index(np, "rx");
 
 	if (producer_id < 0 || consumer_id < 0)
+	{
 		return -ENODEV;
+	}
 
 	base = host->base + DML_OFFSET;
 
@@ -162,13 +173,13 @@ int dml_hw_init(struct mmci_host *host, struct device_node *np)
 	 * and consumer.
 	 */
 	writel_relaxed(PRODUCER_PIPE_LOGICAL_SIZE,
-		       base + DML_PRODUCER_PIPE_LOGICAL_SIZE);
+				   base + DML_PRODUCER_PIPE_LOGICAL_SIZE);
 	writel_relaxed(CONSUMER_PIPE_LOGICAL_SIZE,
-		       base + DML_CONSUMER_PIPE_LOGICAL_SIZE);
+				   base + DML_CONSUMER_PIPE_LOGICAL_SIZE);
 
 	/* Initialize Producer/consumer pipe id */
 	writel_relaxed(producer_id | (consumer_id << CONSUMER_PIPE_ID_SHFT),
-		       base + DML_PIPE_ID);
+				   base + DML_PIPE_ID);
 
 	/* Make sure dml intialization is finished */
 	mb();

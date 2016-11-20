@@ -34,7 +34,7 @@
 #include <rdma/ib_marshall.h>
 
 void ib_copy_ah_attr_to_user(struct ib_uverbs_ah_attr *dst,
-			     struct ib_ah_attr *src)
+							 struct ib_ah_attr *src)
 {
 	memcpy(dst->grh.dgid, src->grh.dgid.raw, sizeof src->grh.dgid);
 	dst->grh.flow_label        = src->grh.flow_label;
@@ -53,7 +53,7 @@ void ib_copy_ah_attr_to_user(struct ib_uverbs_ah_attr *dst,
 EXPORT_SYMBOL(ib_copy_ah_attr_to_user);
 
 void ib_copy_qp_attr_to_user(struct ib_uverbs_qp_attr *dst,
-			     struct ib_qp_attr *src)
+							 struct ib_qp_attr *src)
 {
 	dst->qp_state	        = src->qp_state;
 	dst->cur_qp_state	= src->cur_qp_state;
@@ -92,7 +92,7 @@ void ib_copy_qp_attr_to_user(struct ib_uverbs_qp_attr *dst,
 EXPORT_SYMBOL(ib_copy_qp_attr_to_user);
 
 void ib_copy_path_rec_to_user(struct ib_user_path_rec *dst,
-			      struct ib_sa_path_rec *src)
+							  struct ib_sa_path_rec *src)
 {
 	memcpy(dst->dgid, src->dgid.raw, sizeof src->dgid);
 	memcpy(dst->sgid, src->sgid.raw, sizeof src->sgid);
@@ -118,7 +118,7 @@ void ib_copy_path_rec_to_user(struct ib_user_path_rec *dst,
 EXPORT_SYMBOL(ib_copy_path_rec_to_user);
 
 void ib_copy_path_rec_from_user(struct ib_sa_path_rec *dst,
-				struct ib_user_path_rec *src)
+								struct ib_user_path_rec *src)
 {
 	memcpy(dst->dgid.raw, src->dgid, sizeof dst->dgid);
 	memcpy(dst->sgid.raw, src->sgid, sizeof dst->sgid);

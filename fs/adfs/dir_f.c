@@ -22,22 +22,31 @@ static inline unsigned int adfs_readval(unsigned char *p, int len)
 {
 	unsigned int val = 0;
 
-	switch (len) {
-	case 4:		val |= p[3] << 24;
-	case 3:		val |= p[2] << 16;
-	case 2:		val |= p[1] << 8;
-	default:	val |= p[0];
+	switch (len)
+	{
+		case 4:		val |= p[3] << 24;
+
+		case 3:		val |= p[2] << 16;
+
+		case 2:		val |= p[1] << 8;
+
+		default:	val |= p[0];
 	}
+
 	return val;
 }
 
 static inline void adfs_writeval(unsigned char *p, int len, unsigned int val)
 {
-	switch (len) {
-	case 4:		p[3] = val >> 24;
-	case 3:		p[2] = val >> 16;
-	case 2:		p[1] = val >> 8;
-	default:	p[0] = val;
+	switch (len)
+	{
+		case 4:		p[3] = val >> 24;
+
+		case 3:		p[2] = val >> 16;
+
+		case 2:		p[1] = val >> 8;
+
+		default:	p[0] = val;
 	}
 }
 
@@ -45,11 +54,17 @@ static inline int adfs_readname(char *buf, char *ptr, int maxlen)
 {
 	char *old_buf = buf;
 
-	while ((unsigned char)*ptr >= ' ' && maxlen--) {
+	while ((unsigned char)*ptr >= ' ' && maxlen--)
+	{
 		if (*ptr == '/')
+		{
 			*buf++ = '.';
+		}
 		else
+		{
 			*buf++ = *ptr;
+		}
+
 		ptr++;
 	}
 
@@ -60,20 +75,20 @@ static inline int adfs_readname(char *buf, char *ptr, int maxlen)
 
 #define dir_u8(idx)				\
 	({ int _buf = idx >> blocksize_bits;	\
-	   int _off = idx - (_buf << blocksize_bits);\
-	  *(u8 *)(bh[_buf]->b_data + _off);	\
+		int _off = idx - (_buf << blocksize_bits);\
+		*(u8 *)(bh[_buf]->b_data + _off);	\
 	})
 
 #define dir_u32(idx)				\
 	({ int _buf = idx >> blocksize_bits;	\
-	   int _off = idx - (_buf << blocksize_bits);\
-	  *(__le32 *)(bh[_buf]->b_data + _off);	\
+		int _off = idx - (_buf << blocksize_bits);\
+		*(__le32 *)(bh[_buf]->b_data + _off);	\
 	})
 
 #define bufoff(_bh,_idx)			\
 	({ int _buf = _idx >> blocksize_bits;	\
-	   int _off = _idx - (_buf << blocksize_bits);\
-	  (u8 *)(_bh[_buf]->b_data + _off);	\
+		int _off = _idx - (_buf << blocksize_bits);\
+		(u8 *)(_bh[_buf]->b_data + _off);	\
 	})
 
 /*
@@ -84,7 +99,7 @@ static inline int adfs_readname(char *buf, char *ptr, int maxlen)
 static u8
 adfs_dir_checkbyte(const struct adfs_dir *dir)
 {
-	struct buffer_head * const *bh = dir->bh;
+	struct buffer_head *const *bh = dir->bh;
 	const int blocksize_bits = dir->sb->s_blocksize_bits;
 	union { __le32 *ptr32; u8 *ptr8; } ptr, end;
 	u32 dircheck = 0;
@@ -96,26 +111,34 @@ adfs_dir_checkbyte(const struct adfs_dir *dir)
 	 * word of the last directory entry.  This
 	 * can spread across several buffer heads.
 	 */
-	do {
+	do
+	{
 		last += 26;
-		do {
+
+		do
+		{
 			dircheck = le32_to_cpu(dir_u32(i)) ^ ror13(dircheck);
 
 			i += sizeof(u32);
-		} while (i < (last & ~3));
-	} while (dir_u8(last) != 0);
+		}
+		while (i < (last & ~3));
+	}
+	while (dir_u8(last) != 0);
 
 	/*
 	 * Accumulate the last few bytes.  These
 	 * bytes will be within the same bh.
 	 */
-	if (i != last) {
+	if (i != last)
+	{
 		ptr.ptr8 = bufoff(bh, i);
 		end.ptr8 = ptr.ptr8 + last - i;
 
-		do {
+		do
+		{
 			dircheck = *ptr.ptr8++ ^ ror13(dircheck);
-		} while (ptr.ptr8 < end.ptr8);
+		}
+		while (ptr.ptr8 < end.ptr8);
 	}
 
 	/*
@@ -128,10 +151,12 @@ adfs_dir_checkbyte(const struct adfs_dir *dir)
 	ptr.ptr8 = bufoff(bh, 2008);
 	end.ptr8 = ptr.ptr8 + 36;
 
-	do {
+	do
+	{
 		__le32 v = *ptr.ptr32++;
 		dircheck = le32_to_cpu(v) ^ ror13(dircheck);
-	} while (ptr.ptr32 < end.ptr32);
+	}
+	while (ptr.ptr32 < end.ptr32);
 
 	return (dircheck ^ (dircheck >> 8) ^ (dircheck >> 16) ^ (dircheck >> 24)) & 0xff;
 }
@@ -141,7 +166,7 @@ adfs_dir_checkbyte(const struct adfs_dir *dir)
  */
 static int
 adfs_dir_read(struct super_block *sb, unsigned long object_id,
-	      unsigned int size, struct adfs_dir *dir)
+			  unsigned int size, struct adfs_dir *dir)
 {
 	const unsigned int blocksize_bits = sb->s_blocksize_bits;
 	int blk = 0;
@@ -151,41 +176,55 @@ adfs_dir_read(struct super_block *sb, unsigned long object_id,
 	 * are considered bad v2 [3.6]
 	 */
 	if (size & 2047)
+	{
 		goto bad_dir;
+	}
 
 	size >>= blocksize_bits;
 
 	dir->nr_buffers = 0;
 	dir->sb = sb;
 
-	for (blk = 0; blk < size; blk++) {
+	for (blk = 0; blk < size; blk++)
+	{
 		int phys;
 
 		phys = __adfs_block_map(sb, object_id, blk);
-		if (!phys) {
+
+		if (!phys)
+		{
 			adfs_error(sb, "dir object %lX has a hole at offset %d",
-				   object_id, blk);
+					   object_id, blk);
 			goto release_buffers;
 		}
 
 		dir->bh[blk] = sb_bread(sb, phys);
+
 		if (!dir->bh[blk])
+		{
 			goto release_buffers;
+		}
 	}
 
 	memcpy(&dir->dirhead, bufoff(dir->bh, 0), sizeof(dir->dirhead));
 	memcpy(&dir->dirtail, bufoff(dir->bh, 2007), sizeof(dir->dirtail));
 
 	if (dir->dirhead.startmasseq != dir->dirtail.new.endmasseq ||
-	    memcmp(&dir->dirhead.startname, &dir->dirtail.new.endname, 4))
+		memcmp(&dir->dirhead.startname, &dir->dirtail.new.endname, 4))
+	{
 		goto bad_dir;
+	}
 
 	if (memcmp(&dir->dirhead.startname, "Nick", 4) &&
-	    memcmp(&dir->dirhead.startname, "Hugo", 4))
+		memcmp(&dir->dirhead.startname, "Hugo", 4))
+	{
 		goto bad_dir;
+	}
 
 	if (adfs_dir_checkbyte(dir) != dir->dirtail.new.dircheckbyte)
+	{
 		goto bad_dir;
+	}
 
 	dir->nr_buffers = blk;
 
@@ -193,10 +232,13 @@ adfs_dir_read(struct super_block *sb, unsigned long object_id,
 
 bad_dir:
 	adfs_error(sb, "corrupted directory fragment %lX",
-		   object_id);
+			   object_id);
 release_buffers:
+
 	for (blk -= 1; blk >= 0; blk -= 1)
+	{
 		brelse(dir->bh[blk]);
+	}
 
 	dir->sb = NULL;
 
@@ -208,7 +250,7 @@ release_buffers:
  */
 static inline void
 adfs_dir2obj(struct adfs_dir *dir, struct object_info *obj,
-	struct adfs_direntry *de)
+			 struct adfs_direntry *de)
 {
 	obj->name_len =	adfs_readname(obj->name, de->dirobname, ADFS_F_NAME_LEN);
 	obj->file_id  = adfs_readval(de->dirinddiscadd, 3);
@@ -223,7 +265,8 @@ adfs_dir2obj(struct adfs_dir *dir, struct object_info *obj,
 	 * RISC OS 12-bit filetype is stored in load_address[19:8]
 	 */
 	if ((0 == (obj->attr & ADFS_NDA_DIRECTORY)) &&
-		(0xfff00000 == (0xfff00000 & obj->loadaddr))) {
+		(0xfff00000 == (0xfff00000 & obj->loadaddr)))
+	{
 		obj->filetype = (__u16) ((0x000fff00 & obj->loadaddr) >> 8);
 
 		/* optionally append the ,xyz hex filetype suffix */
@@ -262,20 +305,28 @@ __adfs_dir_get(struct adfs_dir *dir, int pos, struct object_info *obj)
 	buffer = pos >> sb->s_blocksize_bits;
 
 	if (buffer > dir->nr_buffers)
+	{
 		return -EINVAL;
+	}
 
 	offset = pos & (sb->s_blocksize - 1);
 	thissize = sb->s_blocksize - offset;
+
 	if (thissize > 26)
+	{
 		thissize = 26;
+	}
 
 	memcpy(&de, dir->bh[buffer]->b_data + offset, thissize);
+
 	if (thissize != 26)
 		memcpy(((char *)&de) + thissize, dir->bh[buffer + 1]->b_data,
-		       26 - thissize);
+			   26 - thissize);
 
 	if (!de.dirobname[0])
+	{
 		return -ENOENT;
+	}
 
 	adfs_dir2obj(dir, obj, &de);
 
@@ -292,20 +343,26 @@ __adfs_dir_put(struct adfs_dir *dir, int pos, struct object_info *obj)
 	buffer = pos >> sb->s_blocksize_bits;
 
 	if (buffer > dir->nr_buffers)
+	{
 		return -EINVAL;
+	}
 
 	offset = pos & (sb->s_blocksize - 1);
 	thissize = sb->s_blocksize - offset;
+
 	if (thissize > 26)
+	{
 		thissize = 26;
+	}
 
 	/*
 	 * Get the entry in total
 	 */
 	memcpy(&de, dir->bh[buffer]->b_data + offset, thissize);
+
 	if (thissize != 26)
 		memcpy(((char *)&de) + thissize, dir->bh[buffer + 1]->b_data,
-		       26 - thissize);
+			   26 - thissize);
 
 	/*
 	 * update it
@@ -316,9 +373,10 @@ __adfs_dir_put(struct adfs_dir *dir, int pos, struct object_info *obj)
 	 * Put the new entry back
 	 */
 	memcpy(dir->bh[buffer]->b_data + offset, &de, thissize);
+
 	if (thissize != 26)
 		memcpy(dir->bh[buffer + 1]->b_data, ((char *)&de) + thissize,
-		       26 - thissize);
+			   26 - thissize);
 
 	return 0;
 }
@@ -334,13 +392,17 @@ adfs_dir_find_entry(struct adfs_dir *dir, unsigned long object_id)
 
 	ret = -ENOENT;
 
-	for (pos = 5; pos < ADFS_NUM_DIR_ENTRIES * 26 + 5; pos += 26) {
+	for (pos = 5; pos < ADFS_NUM_DIR_ENTRIES * 26 + 5; pos += 26)
+	{
 		struct object_info obj;
 
 		if (!__adfs_dir_get(dir, pos, &obj))
+		{
 			break;
+		}
 
-		if (obj.file_id == object_id) {
+		if (obj.file_id == object_id)
+		{
 			ret = pos;
 			break;
 		}
@@ -355,13 +417,20 @@ adfs_f_read(struct super_block *sb, unsigned int id, unsigned int sz, struct adf
 	int ret;
 
 	if (sz != ADFS_NEWDIR_SIZE)
+	{
 		return -EIO;
+	}
 
 	ret = adfs_dir_read(sb, id, sz, dir);
+
 	if (ret)
+	{
 		adfs_error(sb, "unable to read directory");
+	}
 	else
+	{
 		dir->parent_id = adfs_readval(dir->dirtail.new.dirparent, 3);
+	}
 
 	return ret;
 }
@@ -370,7 +439,9 @@ static int
 adfs_f_setpos(struct adfs_dir *dir, unsigned int fpos)
 {
 	if (fpos >= ADFS_NUM_DIR_ENTRIES)
+	{
 		return -ENOENT;
+	}
 
 	dir->pos = 5 + fpos * 26;
 	return 0;
@@ -382,8 +453,11 @@ adfs_f_getnext(struct adfs_dir *dir, struct object_info *obj)
 	unsigned int ret;
 
 	ret = __adfs_dir_get(dir, dir->pos, obj);
+
 	if (ret == 0)
+	{
 		dir->pos += 26;
+	}
 
 	return ret;
 }
@@ -395,13 +469,15 @@ adfs_f_update(struct adfs_dir *dir, struct object_info *obj)
 	int ret, i;
 
 	ret = adfs_dir_find_entry(dir, obj->file_id);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		adfs_error(dir->sb, "unable to locate entry to update");
 		goto out;
 	}
 
 	__adfs_dir_put(dir, ret, obj);
- 
+
 	/*
 	 * Increment directory sequence number
 	 */
@@ -416,25 +492,34 @@ adfs_f_update(struct adfs_dir *dir, struct object_info *obj)
 
 #if 1
 	{
-	const unsigned int blocksize_bits = sb->s_blocksize_bits;
+		const unsigned int blocksize_bits = sb->s_blocksize_bits;
 
-	memcpy(&dir->dirhead, bufoff(dir->bh, 0), sizeof(dir->dirhead));
-	memcpy(&dir->dirtail, bufoff(dir->bh, 2007), sizeof(dir->dirtail));
+		memcpy(&dir->dirhead, bufoff(dir->bh, 0), sizeof(dir->dirhead));
+		memcpy(&dir->dirtail, bufoff(dir->bh, 2007), sizeof(dir->dirtail));
 
-	if (dir->dirhead.startmasseq != dir->dirtail.new.endmasseq ||
-	    memcmp(&dir->dirhead.startname, &dir->dirtail.new.endname, 4))
-		goto bad_dir;
+		if (dir->dirhead.startmasseq != dir->dirtail.new.endmasseq ||
+			memcmp(&dir->dirhead.startname, &dir->dirtail.new.endname, 4))
+		{
+			goto bad_dir;
+		}
 
-	if (memcmp(&dir->dirhead.startname, "Nick", 4) &&
-	    memcmp(&dir->dirhead.startname, "Hugo", 4))
-		goto bad_dir;
+		if (memcmp(&dir->dirhead.startname, "Nick", 4) &&
+			memcmp(&dir->dirhead.startname, "Hugo", 4))
+		{
+			goto bad_dir;
+		}
 
-	if (adfs_dir_checkbyte(dir) != dir->dirtail.new.dircheckbyte)
-		goto bad_dir;
+		if (adfs_dir_checkbyte(dir) != dir->dirtail.new.dircheckbyte)
+		{
+			goto bad_dir;
+		}
 	}
 #endif
+
 	for (i = dir->nr_buffers - 1; i >= 0; i--)
+	{
 		mark_buffer_dirty(dir->bh[i]);
+	}
 
 	ret = 0;
 out:
@@ -452,11 +537,15 @@ adfs_f_sync(struct adfs_dir *dir)
 	int err = 0;
 	int i;
 
-	for (i = dir->nr_buffers - 1; i >= 0; i--) {
+	for (i = dir->nr_buffers - 1; i >= 0; i--)
+	{
 		struct buffer_head *bh = dir->bh[i];
 		sync_dirty_buffer(bh);
+
 		if (buffer_req(bh) && !buffer_uptodate(bh))
+		{
 			err = -EIO;
+		}
 	}
 
 	return err;
@@ -467,7 +556,8 @@ adfs_f_free(struct adfs_dir *dir)
 {
 	int i;
 
-	for (i = dir->nr_buffers - 1; i >= 0; i--) {
+	for (i = dir->nr_buffers - 1; i >= 0; i--)
+	{
 		brelse(dir->bh[i]);
 		dir->bh[i] = NULL;
 	}
@@ -476,7 +566,8 @@ adfs_f_free(struct adfs_dir *dir)
 	dir->sb = NULL;
 }
 
-const struct adfs_dir_ops adfs_f_dir_ops = {
+const struct adfs_dir_ops adfs_f_dir_ops =
+{
 	.read		= adfs_f_read,
 	.setpos		= adfs_f_setpos,
 	.getnext	= adfs_f_getnext,

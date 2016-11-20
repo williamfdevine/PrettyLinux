@@ -23,12 +23,14 @@
 
 #include "exynos-ppmu.h"
 
-struct exynos_ppmu_data {
+struct exynos_ppmu_data
+{
 	void __iomem *base;
 	struct clk *clk;
 };
 
-struct exynos_ppmu {
+struct exynos_ppmu
+{
 	struct devfreq_event_dev **edev;
 	struct devfreq_event_desc *desc;
 	unsigned int num_events;
@@ -45,10 +47,12 @@ struct exynos_ppmu {
 	{ "ppmu-event2-"#name, PPMU_PMNCNT2 },	\
 	{ "ppmu-event3-"#name, PPMU_PMNCNT3 }
 
-struct __exynos_ppmu_events {
+struct __exynos_ppmu_events
+{
 	char *name;
 	int id;
-} ppmu_events[] = {
+} ppmu_events[] =
+{
 	/* For Exynos3250, Exynos4 and Exynos5260 */
 	PPMU_EVENT(g3d),
 	PPMU_EVENT(fsys),
@@ -66,14 +70,14 @@ struct __exynos_ppmu_events {
 	PPMU_EVENT(mfc),
 
 	/* Only for Exynos4 SoCs */
-	PPMU_EVENT(mfc-left),
-	PPMU_EVENT(mfc-right),
+	PPMU_EVENT(mfc - left),
+	PPMU_EVENT(mfc - right),
 
 	/* Only for Exynos5260 SoCs */
-	PPMU_EVENT(drex0-s0),
-	PPMU_EVENT(drex0-s1),
-	PPMU_EVENT(drex1-s0),
-	PPMU_EVENT(drex1-s1),
+	PPMU_EVENT(drex0 - s0),
+	PPMU_EVENT(drex0 - s1),
+	PPMU_EVENT(drex1 - s0),
+	PPMU_EVENT(drex1 - s1),
 	PPMU_EVENT(eagle),
 	PPMU_EVENT(kfc),
 	PPMU_EVENT(isp),
@@ -84,12 +88,12 @@ struct __exynos_ppmu_events {
 	PPMU_EVENT(fimd1x),
 
 	/* Only for Exynos5433 SoCs */
-	PPMU_EVENT(d0-cpu),
-	PPMU_EVENT(d0-general),
-	PPMU_EVENT(d0-rt),
-	PPMU_EVENT(d1-cpu),
-	PPMU_EVENT(d1-general),
-	PPMU_EVENT(d1-rt),
+	PPMU_EVENT(d0 - cpu),
+	PPMU_EVENT(d0 - general),
+	PPMU_EVENT(d0 - rt),
+	PPMU_EVENT(d1 - cpu),
+	PPMU_EVENT(d1 - general),
+	PPMU_EVENT(d1 - rt),
 
 	{ /* sentinel */ },
 };
@@ -100,7 +104,9 @@ static int exynos_ppmu_find_ppmu_id(struct devfreq_event_dev *edev)
 
 	for (i = 0; i < ARRAY_SIZE(ppmu_events); i++)
 		if (!strcmp(edev->desc->name, ppmu_events[i].name))
+		{
 			return ppmu_events[i].id;
+		}
 
 	return -EINVAL;
 }
@@ -115,11 +121,11 @@ static int exynos_ppmu_disable(struct devfreq_event_dev *edev)
 
 	/* Disable all counters */
 	__raw_writel(PPMU_CCNT_MASK |
-		     PPMU_PMCNT0_MASK |
-		     PPMU_PMCNT1_MASK |
-		     PPMU_PMCNT2_MASK |
-		     PPMU_PMCNT3_MASK,
-		     info->ppmu.base + PPMU_CNTENC);
+				 PPMU_PMCNT0_MASK |
+				 PPMU_PMCNT1_MASK |
+				 PPMU_PMCNT2_MASK |
+				 PPMU_PMCNT3_MASK,
+				 info->ppmu.base + PPMU_CNTENC);
 
 	/* Disable PPMU */
 	pmnc = __raw_readl(info->ppmu.base + PPMU_PMNC);
@@ -136,7 +142,9 @@ static int exynos_ppmu_set_event(struct devfreq_event_dev *edev)
 	u32 pmnc, cntens;
 
 	if (id < 0)
+	{
 		return id;
+	}
 
 	/* Enable specific counter */
 	cntens = __raw_readl(info->ppmu.base + PPMU_CNTENS);
@@ -145,13 +153,13 @@ static int exynos_ppmu_set_event(struct devfreq_event_dev *edev)
 
 	/* Set the event of Read/Write data count  */
 	__raw_writel(PPMU_RO_DATA_CNT | PPMU_WO_DATA_CNT,
-			info->ppmu.base + PPMU_BEVTxSEL(id));
+				 info->ppmu.base + PPMU_BEVTxSEL(id));
 
 	/* Reset cycle counter/performance counter and enable PPMU */
 	pmnc = __raw_readl(info->ppmu.base + PPMU_PMNC);
 	pmnc &= ~(PPMU_PMNC_ENABLE_MASK
-			| PPMU_PMNC_COUNTER_RESET_MASK
-			| PPMU_PMNC_CC_RESET_MASK);
+			  | PPMU_PMNC_COUNTER_RESET_MASK
+			  | PPMU_PMNC_CC_RESET_MASK);
 	pmnc |= (PPMU_ENABLE << PPMU_PMNC_ENABLE_SHIFT);
 	pmnc |= (PPMU_ENABLE << PPMU_PMNC_COUNTER_RESET_SHIFT);
 	pmnc |= (PPMU_ENABLE << PPMU_PMNC_CC_RESET_SHIFT);
@@ -161,14 +169,16 @@ static int exynos_ppmu_set_event(struct devfreq_event_dev *edev)
 }
 
 static int exynos_ppmu_get_event(struct devfreq_event_dev *edev,
-				struct devfreq_event_data *edata)
+								 struct devfreq_event_data *edata)
 {
 	struct exynos_ppmu *info = devfreq_event_get_drvdata(edev);
 	int id = exynos_ppmu_find_ppmu_id(edev);
 	u32 pmnc, cntenc;
 
 	if (id < 0)
+	{
 		return -EINVAL;
+	}
 
 	/* Disable PPMU */
 	pmnc = __raw_readl(info->ppmu.base + PPMU_PMNC);
@@ -179,20 +189,23 @@ static int exynos_ppmu_get_event(struct devfreq_event_dev *edev,
 	edata->total_count = __raw_readl(info->ppmu.base + PPMU_CCNT);
 
 	/* Read performance count */
-	switch (id) {
-	case PPMU_PMNCNT0:
-	case PPMU_PMNCNT1:
-	case PPMU_PMNCNT2:
-		edata->load_count
-			= __raw_readl(info->ppmu.base + PPMU_PMNCT(id));
-		break;
-	case PPMU_PMNCNT3:
-		edata->load_count =
-			((__raw_readl(info->ppmu.base + PPMU_PMCNT3_HIGH) << 8)
-			| __raw_readl(info->ppmu.base + PPMU_PMCNT3_LOW));
-		break;
-	default:
-		return -EINVAL;
+	switch (id)
+	{
+		case PPMU_PMNCNT0:
+		case PPMU_PMNCNT1:
+		case PPMU_PMNCNT2:
+			edata->load_count
+				= __raw_readl(info->ppmu.base + PPMU_PMNCT(id));
+			break;
+
+		case PPMU_PMNCNT3:
+			edata->load_count =
+				((__raw_readl(info->ppmu.base + PPMU_PMCNT3_HIGH) << 8)
+				 | __raw_readl(info->ppmu.base + PPMU_PMCNT3_LOW));
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	/* Disable specific counter */
@@ -201,12 +214,13 @@ static int exynos_ppmu_get_event(struct devfreq_event_dev *edev,
 	__raw_writel(cntenc, info->ppmu.base + PPMU_CNTENC);
 
 	dev_dbg(&edev->dev, "%s (event: %ld/%ld)\n", edev->desc->name,
-					edata->load_count, edata->total_count);
+			edata->load_count, edata->total_count);
 
 	return 0;
 }
 
-static const struct devfreq_event_ops exynos_ppmu_ops = {
+static const struct devfreq_event_ops exynos_ppmu_ops =
+{
 	.disable = exynos_ppmu_disable,
 	.set_event = exynos_ppmu_set_event,
 	.get_event = exynos_ppmu_get_event,
@@ -222,7 +236,7 @@ static int exynos_ppmu_v2_disable(struct devfreq_event_dev *edev)
 
 	/* Disable all counters */
 	clear = (PPMU_CCNT_MASK | PPMU_PMCNT0_MASK | PPMU_PMCNT1_MASK
-		| PPMU_PMCNT2_MASK | PPMU_PMCNT3_MASK);
+			 | PPMU_PMCNT2_MASK | PPMU_PMCNT3_MASK);
 
 	__raw_writel(clear, info->ppmu.base + PPMU_V2_FLAG);
 	__raw_writel(clear, info->ppmu.base + PPMU_V2_INTENC);
@@ -264,26 +278,28 @@ static int exynos_ppmu_v2_set_event(struct devfreq_event_dev *edev)
 	__raw_writel(cntens, info->ppmu.base + PPMU_V2_CNTENS);
 
 	/* Set the event of Read/Write data count  */
-	switch (id) {
-	case PPMU_PMNCNT0:
-	case PPMU_PMNCNT1:
-	case PPMU_PMNCNT2:
-		__raw_writel(PPMU_V2_RO_DATA_CNT | PPMU_V2_WO_DATA_CNT,
-				info->ppmu.base + PPMU_V2_CH_EVx_TYPE(id));
-		break;
-	case PPMU_PMNCNT3:
-		__raw_writel(PPMU_V2_EVT3_RW_DATA_CNT,
-				info->ppmu.base + PPMU_V2_CH_EVx_TYPE(id));
-		break;
+	switch (id)
+	{
+		case PPMU_PMNCNT0:
+		case PPMU_PMNCNT1:
+		case PPMU_PMNCNT2:
+			__raw_writel(PPMU_V2_RO_DATA_CNT | PPMU_V2_WO_DATA_CNT,
+						 info->ppmu.base + PPMU_V2_CH_EVx_TYPE(id));
+			break;
+
+		case PPMU_PMNCNT3:
+			__raw_writel(PPMU_V2_EVT3_RW_DATA_CNT,
+						 info->ppmu.base + PPMU_V2_CH_EVx_TYPE(id));
+			break;
 	}
 
 	/* Reset cycle counter/performance counter and enable PPMU */
 	pmnc = __raw_readl(info->ppmu.base + PPMU_V2_PMNC);
 	pmnc &= ~(PPMU_PMNC_ENABLE_MASK
-			| PPMU_PMNC_COUNTER_RESET_MASK
-			| PPMU_PMNC_CC_RESET_MASK
-			| PPMU_PMNC_CC_DIVIDER_MASK
-			| PPMU_V2_PMNC_START_MODE_MASK);
+			  | PPMU_PMNC_COUNTER_RESET_MASK
+			  | PPMU_PMNC_CC_RESET_MASK
+			  | PPMU_PMNC_CC_DIVIDER_MASK
+			  | PPMU_V2_PMNC_START_MODE_MASK);
 	pmnc |= (PPMU_ENABLE << PPMU_PMNC_ENABLE_SHIFT);
 	pmnc |= (PPMU_ENABLE << PPMU_PMNC_COUNTER_RESET_SHIFT);
 	pmnc |= (PPMU_ENABLE << PPMU_PMNC_CC_RESET_SHIFT);
@@ -294,7 +310,7 @@ static int exynos_ppmu_v2_set_event(struct devfreq_event_dev *edev)
 }
 
 static int exynos_ppmu_v2_get_event(struct devfreq_event_dev *edev,
-				    struct devfreq_event_data *edata)
+									struct devfreq_event_data *edata)
 {
 	struct exynos_ppmu *info = devfreq_event_get_drvdata(edev);
 	int id = exynos_ppmu_find_ppmu_id(edev);
@@ -310,19 +326,22 @@ static int exynos_ppmu_v2_get_event(struct devfreq_event_dev *edev,
 	/* Read cycle count and performance count */
 	edata->total_count = __raw_readl(info->ppmu.base + PPMU_V2_CCNT);
 
-	switch (id) {
-	case PPMU_PMNCNT0:
-	case PPMU_PMNCNT1:
-	case PPMU_PMNCNT2:
-		load_count = __raw_readl(info->ppmu.base + PPMU_V2_PMNCT(id));
-		break;
-	case PPMU_PMNCNT3:
-		pmcnt_high = __raw_readl(info->ppmu.base + PPMU_V2_PMCNT3_HIGH);
-		pmcnt_low = __raw_readl(info->ppmu.base + PPMU_V2_PMCNT3_LOW);
-		load_count = ((u64)((pmcnt_high & 0xff)) << 32)
-			   + (u64)pmcnt_low;
-		break;
+	switch (id)
+	{
+		case PPMU_PMNCNT0:
+		case PPMU_PMNCNT1:
+		case PPMU_PMNCNT2:
+			load_count = __raw_readl(info->ppmu.base + PPMU_V2_PMNCT(id));
+			break;
+
+		case PPMU_PMNCNT3:
+			pmcnt_high = __raw_readl(info->ppmu.base + PPMU_V2_PMCNT3_HIGH);
+			pmcnt_low = __raw_readl(info->ppmu.base + PPMU_V2_PMCNT3_LOW);
+			load_count = ((u64)((pmcnt_high & 0xff)) << 32)
+						 + (u64)pmcnt_low;
+			break;
 	}
+
 	edata->load_count = load_count;
 
 	/* Disable all counters */
@@ -331,23 +350,25 @@ static int exynos_ppmu_v2_get_event(struct devfreq_event_dev *edev,
 	__raw_writel(cntenc, info->ppmu.base + PPMU_V2_CNTENC);
 
 	dev_dbg(&edev->dev, "%25s (load: %ld / %ld)\n", edev->desc->name,
-					edata->load_count, edata->total_count);
+			edata->load_count, edata->total_count);
 	return 0;
 }
 
-static const struct devfreq_event_ops exynos_ppmu_v2_ops = {
+static const struct devfreq_event_ops exynos_ppmu_v2_ops =
+{
 	.disable = exynos_ppmu_v2_disable,
 	.set_event = exynos_ppmu_v2_set_event,
 	.get_event = exynos_ppmu_v2_get_event,
 };
 
-static const struct of_device_id exynos_ppmu_id_match[] = {
+static const struct of_device_id exynos_ppmu_id_match[] =
+{
 	{
 		.compatible = "samsung,exynos-ppmu",
-		.data = (void *)&exynos_ppmu_ops,
+		.data = (void *) &exynos_ppmu_ops,
 	}, {
 		.compatible = "samsung,exynos-ppmu-v2",
-		.data = (void *)&exynos_ppmu_v2_ops,
+		.data = (void *) &exynos_ppmu_v2_ops,
 	},
 	{ /* sentinel */ },
 };
@@ -361,7 +382,7 @@ static struct devfreq_event_ops *exynos_bus_get_ops(struct device_node *np)
 }
 
 static int of_get_devfreq_events(struct device_node *np,
-				 struct exynos_ppmu *info)
+								 struct exynos_ppmu *info)
 {
 	struct devfreq_event_desc *desc;
 	struct devfreq_event_ops *event_ops;
@@ -370,33 +391,47 @@ static int of_get_devfreq_events(struct device_node *np,
 	int i, j, count;
 
 	events_np = of_get_child_by_name(np, "events");
-	if (!events_np) {
+
+	if (!events_np)
+	{
 		dev_err(dev,
-			"failed to get child node of devfreq-event devices\n");
+				"failed to get child node of devfreq-event devices\n");
 		return -EINVAL;
 	}
+
 	event_ops = exynos_bus_get_ops(np);
 
 	count = of_get_child_count(events_np);
 	desc = devm_kzalloc(dev, sizeof(*desc) * count, GFP_KERNEL);
+
 	if (!desc)
+	{
 		return -ENOMEM;
+	}
+
 	info->num_events = count;
 
 	j = 0;
-	for_each_child_of_node(events_np, node) {
-		for (i = 0; i < ARRAY_SIZE(ppmu_events); i++) {
+	for_each_child_of_node(events_np, node)
+	{
+		for (i = 0; i < ARRAY_SIZE(ppmu_events); i++)
+		{
 			if (!ppmu_events[i].name)
+			{
 				continue;
+			}
 
 			if (!of_node_cmp(node->name, ppmu_events[i].name))
+			{
 				break;
+			}
 		}
 
-		if (i == ARRAY_SIZE(ppmu_events)) {
+		if (i == ARRAY_SIZE(ppmu_events))
+		{
 			dev_warn(dev,
-				"don't know how to configure events : %s\n",
-				node->name);
+					 "don't know how to configure events : %s\n",
+					 node->name);
 			continue;
 		}
 
@@ -420,26 +455,33 @@ static int exynos_ppmu_parse_dt(struct exynos_ppmu *info)
 	struct device_node *np = dev->of_node;
 	int ret = 0;
 
-	if (!np) {
+	if (!np)
+	{
 		dev_err(dev, "failed to find devicetree node\n");
 		return -EINVAL;
 	}
 
 	/* Maps the memory mapped IO to control PPMU register */
 	info->ppmu.base = of_iomap(np, 0);
-	if (IS_ERR_OR_NULL(info->ppmu.base)) {
+
+	if (IS_ERR_OR_NULL(info->ppmu.base))
+	{
 		dev_err(dev, "failed to map memory region\n");
 		return -ENOMEM;
 	}
 
 	info->ppmu.clk = devm_clk_get(dev, "ppmu");
-	if (IS_ERR(info->ppmu.clk)) {
+
+	if (IS_ERR(info->ppmu.clk))
+	{
 		info->ppmu.clk = NULL;
 		dev_warn(dev, "cannot get PPMU clock\n");
 	}
 
 	ret = of_get_devfreq_events(np, info);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "failed to parse exynos ppmu dt node\n");
 		goto err;
 	}
@@ -460,38 +502,50 @@ static int exynos_ppmu_probe(struct platform_device *pdev)
 	int i, ret = 0, size;
 
 	info = devm_kzalloc(&pdev->dev, sizeof(*info), GFP_KERNEL);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&info->lock);
 	info->dev = &pdev->dev;
 
 	/* Parse dt data to get resource */
 	ret = exynos_ppmu_parse_dt(info);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev,
-			"failed to parse devicetree for resource\n");
+				"failed to parse devicetree for resource\n");
 		return ret;
 	}
+
 	desc = info->desc;
 
 	size = sizeof(struct devfreq_event_dev *) * info->num_events;
 	info->edev = devm_kzalloc(&pdev->dev, size, GFP_KERNEL);
-	if (!info->edev) {
+
+	if (!info->edev)
+	{
 		dev_err(&pdev->dev,
-			"failed to allocate memory devfreq-event devices\n");
+				"failed to allocate memory devfreq-event devices\n");
 		ret = -ENOMEM;
 		goto err;
 	}
+
 	edev = info->edev;
 	platform_set_drvdata(pdev, info);
 
-	for (i = 0; i < info->num_events; i++) {
+	for (i = 0; i < info->num_events; i++)
+	{
 		edev[i] = devm_devfreq_event_add_edev(&pdev->dev, &desc[i]);
-		if (IS_ERR(edev[i])) {
+
+		if (IS_ERR(edev[i]))
+		{
 			ret = PTR_ERR(edev[i]);
 			dev_err(&pdev->dev,
-				"failed to add devfreq-event device\n");
+					"failed to add devfreq-event device\n");
 			goto err;
 		}
 	}
@@ -515,7 +569,8 @@ static int exynos_ppmu_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver exynos_ppmu_driver = {
+static struct platform_driver exynos_ppmu_driver =
+{
 	.probe	= exynos_ppmu_probe,
 	.remove	= exynos_ppmu_remove,
 	.driver = {

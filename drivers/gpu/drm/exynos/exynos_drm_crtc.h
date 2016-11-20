@@ -18,20 +18,20 @@
 #include "exynos_drm_drv.h"
 
 struct exynos_drm_crtc *exynos_drm_crtc_create(struct drm_device *drm_dev,
-					struct drm_plane *plane,
-					int pipe,
-					enum exynos_drm_output_type type,
-					const struct exynos_drm_crtc_ops *ops,
-					void *context);
+		struct drm_plane *plane,
+		int pipe,
+		enum exynos_drm_output_type type,
+		const struct exynos_drm_crtc_ops *ops,
+		void *context);
 int exynos_drm_crtc_enable_vblank(struct drm_device *dev, unsigned int pipe);
 void exynos_drm_crtc_disable_vblank(struct drm_device *dev, unsigned int pipe);
 void exynos_drm_crtc_wait_pending_update(struct exynos_drm_crtc *exynos_crtc);
 void exynos_drm_crtc_finish_update(struct exynos_drm_crtc *exynos_crtc,
-				   struct exynos_drm_plane *exynos_plane);
+								   struct exynos_drm_plane *exynos_plane);
 
 /* This function gets pipe value to crtc device matched with out_type. */
 int exynos_drm_crtc_get_pipe_from_type(struct drm_device *drm_dev,
-				       enum exynos_drm_output_type out_type);
+									   enum exynos_drm_output_type out_type);
 
 /*
  * This function calls the crtc device(manager)'s te_handler() callback
@@ -42,6 +42,6 @@ void exynos_drm_crtc_te_handler(struct drm_crtc *crtc);
 
 /* This function cancels a page flip request. */
 void exynos_drm_crtc_cancel_page_flip(struct drm_crtc *crtc,
-					struct drm_file *file);
+									  struct drm_file *file);
 
 #endif

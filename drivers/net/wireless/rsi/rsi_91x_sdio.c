@@ -30,15 +30,15 @@
  * Return: argument
  */
 static u32 rsi_sdio_set_cmd52_arg(bool rw,
-				  u8 func,
-				  u8 raw,
-				  u32 address,
-				  u8 writedata)
+								  u8 func,
+								  u8 raw,
+								  u32 address,
+								  u8 writedata)
 {
 	return ((rw & 1) << 31) | ((func & 0x7) << 28) |
-		((raw & 1) << 27) | (1 << 26) |
-		((address & 0x1FFFF) << 9) | (1 << 8) |
-		(writedata & 0xFF);
+		   ((raw & 1) << 27) | (1 << 26) |
+		   ((address & 0x1FFFF) << 9) | (1 << 8) |
+		   (writedata & 0xFF);
 }
 
 /**
@@ -50,8 +50,8 @@ static u32 rsi_sdio_set_cmd52_arg(bool rw,
  * Return: Write status.
  */
 static int rsi_cmd52writebyte(struct mmc_card *card,
-			      u32 address,
-			      u8 byte)
+							  u32 address,
+							  u8 byte)
 {
 	struct mmc_command io_cmd;
 	u32 arg;
@@ -74,8 +74,8 @@ static int rsi_cmd52writebyte(struct mmc_card *card,
  * Return: Read status.
  */
 static int rsi_cmd52readbyte(struct mmc_card *card,
-			     u32 address,
-			     u8 *byte)
+							 u32 address,
+							 u8 *byte)
 {
 	struct mmc_command io_cmd;
 	u32 arg;
@@ -88,8 +88,12 @@ static int rsi_cmd52readbyte(struct mmc_card *card,
 	io_cmd.flags = MMC_RSP_R5 | MMC_CMD_AC;
 
 	err = mmc_wait_for_cmd(card->host, &io_cmd, 0);
+
 	if ((!err) && (byte))
+	{
 		*byte =  io_cmd.resp[0] & 0xFF;
+	}
+
 	return err;
 }
 
@@ -104,10 +108,10 @@ static int rsi_cmd52readbyte(struct mmc_card *card,
  * Return: err: command status as 0 or -1.
  */
 static int rsi_issue_sdiocommand(struct sdio_func *func,
-				 u32 opcode,
-				 u32 arg,
-				 u32 flags,
-				 u32 *resp)
+								 u32 opcode,
+								 u32 arg,
+								 u32 flags,
+								 u32 *resp)
 {
 	struct mmc_command cmd;
 	struct mmc_host *host;
@@ -122,7 +126,9 @@ static int rsi_issue_sdiocommand(struct sdio_func *func,
 	err = mmc_wait_for_cmd(host, &cmd, 3);
 
 	if ((!err) && (resp))
+	{
 		*resp = cmd.resp[0];
+	}
 
 	return err;
 }
@@ -162,14 +168,16 @@ static void rsi_reset_card(struct sdio_func *pfunction)
 
 	/* Reset 9110 chip */
 	ret = rsi_cmd52writebyte(pfunction->card,
-				 SDIO_CCCR_ABORT,
-				 (1 << 3));
+							 SDIO_CCCR_ABORT,
+							 (1 << 3));
 
 	/* Card will not send any response as it is getting reset immediately
 	 * Hence expect a timeout status from host controller
 	 */
 	if (ret != -ETIMEDOUT)
+	{
 		rsi_dbg(ERR_ZONE, "%s: Reset failed : %d\n", __func__, ret);
+	}
 
 	/* Wait for few milli seconds to get rid of residue charges if any */
 	msleep(20);
@@ -204,97 +212,122 @@ static void rsi_reset_card(struct sdio_func *pfunction)
 	host->ops->set_ios(host, &host->ios);
 	msleep(20);
 	err = rsi_issue_sdiocommand(pfunction,
-				    MMC_GO_IDLE_STATE,
-				    0,
-				    (MMC_RSP_NONE | MMC_CMD_BC),
-				    NULL);
+								MMC_GO_IDLE_STATE,
+								0,
+								(MMC_RSP_NONE | MMC_CMD_BC),
+								NULL);
 	host->ios.chip_select = MMC_CS_DONTCARE;
 	host->ops->set_ios(host, &host->ios);
 	msleep(20);
 	host->use_spi_crc = 0;
 
 	if (err)
+	{
 		rsi_dbg(ERR_ZONE, "%s: CMD0 failed : %d\n", __func__, err);
+	}
 
-	if (!host->ocr_avail) {
+	if (!host->ocr_avail)
+	{
 		/* Issue CMD5, arg = 0 */
 		err = rsi_issue_sdiocommand(pfunction,
-					    SD_IO_SEND_OP_COND,
-					    0,
-					    (MMC_RSP_R4 | MMC_CMD_BCR),
-					    &resp);
+									SD_IO_SEND_OP_COND,
+									0,
+									(MMC_RSP_R4 | MMC_CMD_BCR),
+									&resp);
+
 		if (err)
 			rsi_dbg(ERR_ZONE, "%s: CMD5 failed : %d\n",
-				__func__, err);
+					__func__, err);
+
 		host->ocr_avail = resp;
 	}
 
 	/* Issue CMD5, arg = ocr. Wait till card is ready  */
-	for (i = 0; i < 100; i++) {
+	for (i = 0; i < 100; i++)
+	{
 		err = rsi_issue_sdiocommand(pfunction,
-					    SD_IO_SEND_OP_COND,
-					    host->ocr_avail,
-					    (MMC_RSP_R4 | MMC_CMD_BCR),
-					    &resp);
-		if (err) {
+									SD_IO_SEND_OP_COND,
+									host->ocr_avail,
+									(MMC_RSP_R4 | MMC_CMD_BCR),
+									&resp);
+
+		if (err)
+		{
 			rsi_dbg(ERR_ZONE, "%s: CMD5 failed : %d\n",
-				__func__, err);
+					__func__, err);
 			break;
 		}
 
 		if (resp & MMC_CARD_BUSY)
+		{
 			break;
+		}
+
 		msleep(20);
 	}
 
-	if ((i == 100) || (err)) {
+	if ((i == 100) || (err))
+	{
 		rsi_dbg(ERR_ZONE, "%s: card in not ready : %d %d\n",
-			__func__, i, err);
+				__func__, i, err);
 		return;
 	}
 
 	/* Issue CMD3, get RCA */
 	err = rsi_issue_sdiocommand(pfunction,
-				    SD_SEND_RELATIVE_ADDR,
-				    0,
-				    (MMC_RSP_R6 | MMC_CMD_BCR),
-				    &resp);
-	if (err) {
+								SD_SEND_RELATIVE_ADDR,
+								0,
+								(MMC_RSP_R6 | MMC_CMD_BCR),
+								&resp);
+
+	if (err)
+	{
 		rsi_dbg(ERR_ZONE, "%s: CMD3 failed : %d\n", __func__, err);
 		return;
 	}
+
 	rca = resp >> 16;
 	host->ios.bus_mode = MMC_BUSMODE_PUSHPULL;
 	host->ops->set_ios(host, &host->ios);
 
 	/* Issue CMD7, select card  */
 	err = rsi_issue_sdiocommand(pfunction,
-				    MMC_SELECT_CARD,
-				    (rca << 16),
-				    (MMC_RSP_R1 | MMC_CMD_AC),
-				    NULL);
-	if (err) {
+								MMC_SELECT_CARD,
+								(rca << 16),
+								(MMC_RSP_R1 | MMC_CMD_AC),
+								NULL);
+
+	if (err)
+	{
 		rsi_dbg(ERR_ZONE, "%s: CMD7 failed : %d\n", __func__, err);
 		return;
 	}
 
 	/* Enable high speed */
-	if (card->host->caps & MMC_CAP_SD_HIGHSPEED) {
+	if (card->host->caps & MMC_CAP_SD_HIGHSPEED)
+	{
 		rsi_dbg(ERR_ZONE, "%s: Set high speed mode\n", __func__);
 		err = rsi_cmd52readbyte(card, SDIO_CCCR_SPEED, &cmd52_resp);
-		if (err) {
+
+		if (err)
+		{
 			rsi_dbg(ERR_ZONE, "%s: CCCR speed reg read failed: %d\n",
-				__func__, err);
-		} else {
-			err = rsi_cmd52writebyte(card,
-						 SDIO_CCCR_SPEED,
-						 (cmd52_resp | SDIO_SPEED_EHS));
-			if (err) {
-				rsi_dbg(ERR_ZONE,
-					"%s: CCR speed regwrite failed %d\n",
 					__func__, err);
+		}
+		else
+		{
+			err = rsi_cmd52writebyte(card,
+									 SDIO_CCCR_SPEED,
+									 (cmd52_resp | SDIO_SPEED_EHS));
+
+			if (err)
+			{
+				rsi_dbg(ERR_ZONE,
+						"%s: CCR speed regwrite failed %d\n",
+						__func__, err);
 				return;
 			}
+
 			host->ios.timing = MMC_TIMING_SD_HS;
 			host->ops->set_ios(host, &host->ios);
 		}
@@ -302,27 +335,37 @@ static void rsi_reset_card(struct sdio_func *pfunction)
 
 	/* Set clock */
 	if (mmc_card_hs(card))
+	{
 		clock = 50000000;
+	}
 	else
+	{
 		clock = card->cis.max_dtr;
+	}
 
 	if (clock > host->f_max)
+	{
 		clock = host->f_max;
+	}
 
 	host->ios.clock = clock;
 	host->ops->set_ios(host, &host->ios);
 
-	if (card->host->caps & MMC_CAP_4_BIT_DATA) {
+	if (card->host->caps & MMC_CAP_4_BIT_DATA)
+	{
 		/* CMD52: Set bus width & disable card detect resistor */
 		err = rsi_cmd52writebyte(card,
-					 SDIO_CCCR_IF,
-					 (SDIO_BUS_CD_DISABLE |
-					  SDIO_BUS_WIDTH_4BIT));
-		if (err) {
+								 SDIO_CCCR_IF,
+								 (SDIO_BUS_CD_DISABLE |
+								  SDIO_BUS_WIDTH_4BIT));
+
+		if (err)
+		{
 			rsi_dbg(ERR_ZONE, "%s: Set bus mode failed : %d\n",
-				__func__, err);
+					__func__, err);
 			return;
 		}
+
 		host->ios.bus_width = MMC_BUS_WIDTH_4;
 		host->ops->set_ios(host, &host->ios);
 	}
@@ -343,8 +386,12 @@ static void rsi_setclock(struct rsi_hw *adapter, u32 freq)
 	u32 clock;
 
 	clock = freq * 1000;
+
 	if (clock > host->f_max)
+	{
 		clock = host->f_max;
+	}
+
 	host->ios.clock = clock;
 	host->ops->set_ios(host, &host->ios);
 }
@@ -367,7 +414,7 @@ static int rsi_setblocklength(struct rsi_hw *adapter, u32 length)
 	dev->pfunction->max_blksize = 256;
 
 	rsi_dbg(INFO_ZONE,
-		"%s: Operational blk length is %d\n", __func__, length);
+			"%s: Operational blk length is %d\n", __func__, length);
 	return status;
 }
 
@@ -387,9 +434,11 @@ static int rsi_setupcard(struct rsi_hw *adapter)
 
 	dev->tx_blk_size = 256;
 	status = rsi_setblocklength(adapter, dev->tx_blk_size);
+
 	if (status)
 		rsi_dbg(ERR_ZONE,
-			"%s: Unable to set block length\n", __func__);
+				"%s: Unable to set block length\n", __func__);
+
 	return status;
 }
 
@@ -403,8 +452,8 @@ static int rsi_setupcard(struct rsi_hw *adapter)
  * Return: 0 on success, -1 on failure.
  */
 int rsi_sdio_read_register(struct rsi_hw *adapter,
-			   u32 addr,
-			   u8 *data)
+						   u32 addr,
+						   u8 *data)
 {
 	struct rsi_91x_sdiodev *dev =
 		(struct rsi_91x_sdiodev *)adapter->rsi_dev;
@@ -414,9 +463,13 @@ int rsi_sdio_read_register(struct rsi_hw *adapter,
 	sdio_claim_host(dev->pfunction);
 
 	if (fun_num == 0)
+	{
 		*data = sdio_f0_readb(dev->pfunction, addr, &status);
+	}
 	else
+	{
 		*data = sdio_readb(dev->pfunction, addr, &status);
+	}
 
 	sdio_release_host(dev->pfunction);
 
@@ -434,9 +487,9 @@ int rsi_sdio_read_register(struct rsi_hw *adapter,
  * Return: 0 on success, -1 on failure.
  */
 int rsi_sdio_write_register(struct rsi_hw *adapter,
-			    u8 function,
-			    u32 addr,
-			    u8 *data)
+							u8 function,
+							u32 addr,
+							u8 *data)
 {
 	struct rsi_91x_sdiodev *dev =
 		(struct rsi_91x_sdiodev *)adapter->rsi_dev;
@@ -445,9 +498,13 @@ int rsi_sdio_write_register(struct rsi_hw *adapter,
 	sdio_claim_host(dev->pfunction);
 
 	if (function == 0)
+	{
 		sdio_f0_writeb(dev->pfunction, *data, addr, &status);
+	}
 	else
+	{
 		sdio_writeb(dev->pfunction, *data, addr, &status);
+	}
 
 	sdio_release_host(dev->pfunction);
 
@@ -465,12 +522,15 @@ void rsi_sdio_ack_intr(struct rsi_hw *adapter, u8 int_bit)
 {
 	int status;
 	status = rsi_sdio_write_register(adapter,
-					 1,
-					 (SDIO_FUN1_INTR_CLR_REG |
-					  RSI_SD_REQUEST_MASTER),
-					 &int_bit);
+									 1,
+									 (SDIO_FUN1_INTR_CLR_REG |
+									  RSI_SD_REQUEST_MASTER),
+									 &int_bit);
+
 	if (status)
+	{
 		rsi_dbg(ERR_ZONE, "%s: unable to send ack\n", __func__);
+	}
 }
 
 
@@ -486,9 +546,9 @@ void rsi_sdio_ack_intr(struct rsi_hw *adapter, u8 int_bit)
  * Return: 0 on success, -1 on failure.
  */
 static int rsi_sdio_read_register_multiple(struct rsi_hw *adapter,
-					   u32 addr,
-					   u32 count,
-					   u8 *data)
+		u32 addr,
+		u32 count,
+		u8 *data)
 {
 	struct rsi_91x_sdiodev *dev =
 		(struct rsi_91x_sdiodev *)adapter->rsi_dev;
@@ -501,7 +561,10 @@ static int rsi_sdio_read_register_multiple(struct rsi_hw *adapter,
 	sdio_release_host(dev->pfunction);
 
 	if (status != 0)
+	{
 		rsi_dbg(ERR_ZONE, "%s: Synch Cmd53 read failed\n", __func__);
+	}
+
 	return status;
 }
 
@@ -516,18 +579,21 @@ static int rsi_sdio_read_register_multiple(struct rsi_hw *adapter,
  * Return: 0 on success, -1 on failure.
  */
 int rsi_sdio_write_register_multiple(struct rsi_hw *adapter,
-				     u32 addr,
-				     u8 *data,
-				     u32 count)
+									 u32 addr,
+									 u8 *data,
+									 u32 count)
 {
 	struct rsi_91x_sdiodev *dev =
 		(struct rsi_91x_sdiodev *)adapter->rsi_dev;
 	int status;
 
-	if (dev->write_fail > 1) {
+	if (dev->write_fail > 1)
+	{
 		rsi_dbg(ERR_ZONE, "%s: Stopping card writes\n", __func__);
 		return 0;
-	} else if (dev->write_fail == 1) {
+	}
+	else if (dev->write_fail == 1)
+	{
 		/**
 		 * Assuming it is a CRC failure, we want to allow another
 		 *  card write
@@ -542,13 +608,17 @@ int rsi_sdio_write_register_multiple(struct rsi_hw *adapter,
 
 	sdio_release_host(dev->pfunction);
 
-	if (status) {
+	if (status)
+	{
 		rsi_dbg(ERR_ZONE, "%s: Synch Cmd53 write failed %d\n",
-			__func__, status);
+				__func__, status);
 		dev->write_fail = 2;
-	} else {
+	}
+	else
+	{
 		memcpy(dev->prev_desc, data, FRAME_DESC_SZ);
 	}
+
 	return status;
 }
 
@@ -561,8 +631,8 @@ int rsi_sdio_write_register_multiple(struct rsi_hw *adapter,
  * Return: 0 on success, -1 on failure.
  */
 static int rsi_sdio_host_intf_write_pkt(struct rsi_hw *adapter,
-					u8 *pkt,
-					u32 len)
+										u8 *pkt,
+										u32 len)
 {
 	struct rsi_91x_sdiodev *dev =
 		(struct rsi_91x_sdiodev *)adapter->rsi_dev;
@@ -576,18 +646,22 @@ static int rsi_sdio_host_intf_write_pkt(struct rsi_hw *adapter,
 	num_blocks = len / block_size;
 
 	if (len % block_size)
+	{
 		num_blocks++;
+	}
 
 	address = (num_blocks * block_size | (queueno << 12));
 	length  = num_blocks * block_size;
 
 	status = rsi_sdio_write_register_multiple(adapter,
-						  address,
-						  (u8 *)pkt,
-						  length);
+			 address,
+			 (u8 *)pkt,
+			 length);
+
 	if (status)
 		rsi_dbg(ERR_ZONE, "%s: Unable to write onto the card: %d\n",
-			__func__, status);
+				__func__, status);
+
 	rsi_dbg(DATA_TX_ZONE, "%s: Successfully written onto card\n", __func__);
 	return status;
 }
@@ -602,24 +676,26 @@ static int rsi_sdio_host_intf_write_pkt(struct rsi_hw *adapter,
  * Return: 0 on success, -1 on failure.
  */
 int rsi_sdio_host_intf_read_pkt(struct rsi_hw *adapter,
-				u8 *pkt,
-				u32 length)
+								u8 *pkt,
+								u32 length)
 {
 	int status = -EINVAL;
 
-	if (!length) {
+	if (!length)
+	{
 		rsi_dbg(ERR_ZONE, "%s: Pkt size is zero\n", __func__);
 		return status;
 	}
 
 	status = rsi_sdio_read_register_multiple(adapter,
-						 length,
-						 length, /*num of bytes*/
-						 (u8 *)pkt);
+			 length,
+			 length, /*num of bytes*/
+			 (u8 *)pkt);
 
 	if (status)
 		rsi_dbg(ERR_ZONE, "%s: Failed to read frame: %d\n", __func__,
-			status);
+				status);
+
 	return status;
 }
 
@@ -633,14 +709,17 @@ int rsi_sdio_host_intf_read_pkt(struct rsi_hw *adapter,
  */
 
 static int rsi_init_sdio_interface(struct rsi_hw *adapter,
-				   struct sdio_func *pfunction)
+								   struct sdio_func *pfunction)
 {
 	struct rsi_91x_sdiodev *rsi_91x_dev;
 	int status = -ENOMEM;
 
 	rsi_91x_dev = kzalloc(sizeof(*rsi_91x_dev), GFP_KERNEL);
+
 	if (!rsi_91x_dev)
+	{
 		return status;
+	}
 
 	adapter->rsi_dev = rsi_91x_dev;
 
@@ -648,7 +727,9 @@ static int rsi_init_sdio_interface(struct rsi_hw *adapter,
 
 	pfunction->enable_timeout = 100;
 	status = sdio_enable_func(pfunction);
-	if (status) {
+
+	if (status)
+	{
 		rsi_dbg(ERR_ZONE, "%s: Failed to enable interface\n", __func__);
 		sdio_release_host(pfunction);
 		return status;
@@ -662,7 +743,9 @@ static int rsi_init_sdio_interface(struct rsi_hw *adapter,
 	sdio_set_drvdata(pfunction, adapter);
 
 	status = rsi_setupcard(adapter);
-	if (status) {
+
+	if (status)
+	{
 		rsi_dbg(ERR_ZONE, "%s: Failed to setup card\n", __func__);
 		goto fail;
 	}
@@ -670,10 +753,13 @@ static int rsi_init_sdio_interface(struct rsi_hw *adapter,
 	rsi_dbg(INIT_ZONE, "%s: Setup card succesfully\n", __func__);
 
 	status = rsi_init_sdio_slave_regs(adapter);
-	if (status) {
+
+	if (status)
+	{
 		rsi_dbg(ERR_ZONE, "%s: Failed to init slave regs\n", __func__);
 		goto fail;
 	}
+
 	sdio_release_host(pfunction);
 
 	adapter->host_intf_write_pkt = rsi_sdio_host_intf_write_pkt;
@@ -701,26 +787,30 @@ fail:
  * Return: 0 on success, 1 on failure.
  */
 static int rsi_probe(struct sdio_func *pfunction,
-		     const struct sdio_device_id *id)
+					 const struct sdio_device_id *id)
 {
 	struct rsi_hw *adapter;
 
 	rsi_dbg(INIT_ZONE, "%s: Init function called\n", __func__);
 
 	adapter = rsi_91x_init();
-	if (!adapter) {
+
+	if (!adapter)
+	{
 		rsi_dbg(ERR_ZONE, "%s: Failed to init os intf ops\n",
-			__func__);
+				__func__);
 		return 1;
 	}
 
-	if (rsi_init_sdio_interface(adapter, pfunction)) {
+	if (rsi_init_sdio_interface(adapter, pfunction))
+	{
 		rsi_dbg(ERR_ZONE, "%s: Failed to init sdio interface\n",
-			__func__);
+				__func__);
 		goto fail;
 	}
 
-	if (rsi_sdio_device_init(adapter->priv)) {
+	if (rsi_sdio_device_init(adapter->priv))
+	{
 		rsi_dbg(ERR_ZONE, "%s: Failed in device init\n", __func__);
 		sdio_claim_host(pfunction);
 		sdio_disable_func(pfunction);
@@ -729,7 +819,9 @@ static int rsi_probe(struct sdio_func *pfunction,
 	}
 
 	sdio_claim_host(pfunction);
-	if (sdio_claim_irq(pfunction, rsi_handle_interrupt)) {
+
+	if (sdio_claim_irq(pfunction, rsi_handle_interrupt))
+	{
 		rsi_dbg(ERR_ZONE, "%s: Failed to request IRQ\n", __func__);
 		sdio_release_host(pfunction);
 		goto fail;
@@ -757,7 +849,9 @@ static void rsi_disconnect(struct sdio_func *pfunction)
 	struct rsi_91x_sdiodev *dev;
 
 	if (!adapter)
+	{
 		return;
+	}
 
 	dev = (struct rsi_91x_sdiodev *)adapter->rsi_dev;
 
@@ -786,13 +880,15 @@ static int rsi_resume(struct device *dev)
 	return -ENOSYS;
 }
 
-static const struct dev_pm_ops rsi_pm_ops = {
+static const struct dev_pm_ops rsi_pm_ops =
+{
 	.suspend = rsi_suspend,
 	.resume = rsi_resume,
 };
 #endif
 
-static const struct sdio_device_id rsi_dev_table[] =  {
+static const struct sdio_device_id rsi_dev_table[] =
+{
 	{ SDIO_DEVICE(0x303, 0x100) },
 	{ SDIO_DEVICE(0x041B, 0x0301) },
 	{ SDIO_DEVICE(0x041B, 0x0201) },
@@ -800,7 +896,8 @@ static const struct sdio_device_id rsi_dev_table[] =  {
 	{ /* Blank */},
 };
 
-static struct sdio_driver rsi_driver = {
+static struct sdio_driver rsi_driver =
+{
 	.name       = "RSI-SDIO WLAN",
 	.probe      = rsi_probe,
 	.remove     = rsi_disconnect,

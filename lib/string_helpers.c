@@ -31,19 +31,23 @@
  *
  */
 void string_get_size(u64 size, u64 blk_size, const enum string_size_units units,
-		     char *buf, int len)
+					 char *buf, int len)
 {
-	static const char *const units_10[] = {
+	static const char *const units_10[] =
+	{
 		"B", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"
 	};
-	static const char *const units_2[] = {
+	static const char *const units_2[] =
+	{
 		"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"
 	};
-	static const char *const *const units_str[] = {
+	static const char *const *const units_str[] =
+	{
 		[STRING_UNITS_10] = units_10,
 		[STRING_UNITS_2] = units_2,
 	};
-	static const unsigned int divisor[] = {
+	static const unsigned int divisor[] =
+	{
 		[STRING_UNITS_10] = 1000,
 		[STRING_UNITS_2] = 1024,
 	};
@@ -56,9 +60,14 @@ void string_get_size(u64 size, u64 blk_size, const enum string_size_units units,
 	tmp[0] = '\0';
 
 	if (blk_size == 0)
+	{
 		size = 0;
+	}
+
 	if (size == 0)
+	{
 		goto out;
+	}
 
 	/* This is Napier's algorithm.  Reduce the original block size to
 	 *
@@ -71,12 +80,14 @@ void string_get_size(u64 size, u64 blk_size, const enum string_size_units units,
 	 * Note: it's safe to throw away the remainders here because all the
 	 * precision is in the coefficients.
 	 */
-	while (blk_size >> 32) {
+	while (blk_size >> 32)
+	{
 		do_div(blk_size, divisor[units]);
 		i++;
 	}
 
-	while (size >> 32) {
+	while (size >> 32)
+	{
 		do_div(size, divisor[units]);
 		i++;
 	}
@@ -86,7 +97,8 @@ void string_get_size(u64 size, u64 blk_size, const enum string_size_units units,
 	size *= blk_size;
 
 	/* and logarithmically reduce it until it's just under the divisor */
-	while (size >= divisor[units]) {
+	while (size >= divisor[units])
+	{
 		remainder = do_div(size, divisor[units]);
 		i++;
 	}
@@ -94,10 +106,14 @@ void string_get_size(u64 size, u64 blk_size, const enum string_size_units units,
 	/* work out in j how many digits of precision we need from the
 	 * remainder */
 	sf_cap = size;
-	for (j = 0; sf_cap*10 < 1000; j++)
-		sf_cap *= 10;
 
-	if (units == STRING_UNITS_2) {
+	for (j = 0; sf_cap * 10 < 1000; j++)
+	{
+		sf_cap *= 10;
+	}
+
+	if (units == STRING_UNITS_2)
+	{
 		/* express the remainder as a decimal.  It's currently the
 		 * numerator of a fraction whose denominator is
 		 * divisor[units], which is 1 << 10 for STRING_UNITS_2 */
@@ -108,24 +124,32 @@ void string_get_size(u64 size, u64 blk_size, const enum string_size_units units,
 	/* add a 5 to the digit below what will be printed to ensure
 	 * an arithmetical round up and carry it through to size */
 	remainder += rounding[j];
-	if (remainder >= 1000) {
+
+	if (remainder >= 1000)
+	{
 		remainder -= 1000;
 		size += 1;
 	}
 
-	if (j) {
+	if (j)
+	{
 		snprintf(tmp, sizeof(tmp), ".%03u", remainder);
-		tmp[j+1] = '\0';
+		tmp[j + 1] = '\0';
 	}
 
- out:
+out:
+
 	if (i >= ARRAY_SIZE(units_2))
+	{
 		unit = "UNK";
+	}
 	else
+	{
 		unit = units_str[units][i];
+	}
 
 	snprintf(buf, len, "%u%s %s", (u32)size,
-		 tmp, unit);
+			 tmp, unit);
 }
 EXPORT_SYMBOL(string_get_size);
 
@@ -133,25 +157,32 @@ static bool unescape_space(char **src, char **dst)
 {
 	char *p = *dst, *q = *src;
 
-	switch (*q) {
-	case 'n':
-		*p = '\n';
-		break;
-	case 'r':
-		*p = '\r';
-		break;
-	case 't':
-		*p = '\t';
-		break;
-	case 'v':
-		*p = '\v';
-		break;
-	case 'f':
-		*p = '\f';
-		break;
-	default:
-		return false;
+	switch (*q)
+	{
+		case 'n':
+			*p = '\n';
+			break;
+
+		case 'r':
+			*p = '\r';
+			break;
+
+		case 't':
+			*p = '\t';
+			break;
+
+		case 'v':
+			*p = '\v';
+			break;
+
+		case 'f':
+			*p = '\f';
+			break;
+
+		default:
+			return false;
 	}
+
 	*dst += 1;
 	*src += 1;
 	return true;
@@ -163,13 +194,18 @@ static bool unescape_octal(char **src, char **dst)
 	u8 num;
 
 	if (isodigit(*q) == 0)
+	{
 		return false;
+	}
 
 	num = (*q++) & 7;
-	while (num < 32 && isodigit(*q) && (q - *src < 3)) {
+
+	while (num < 32 && isodigit(*q) && (q - *src < 3))
+	{
 		num <<= 3;
 		num += (*q++) & 7;
 	}
+
 	*p = num;
 	*dst += 1;
 	*src = q;
@@ -183,17 +219,25 @@ static bool unescape_hex(char **src, char **dst)
 	u8 num;
 
 	if (*q++ != 'x')
+	{
 		return false;
+	}
 
 	num = digit = hex_to_bin(*q++);
+
 	if (digit < 0)
+	{
 		return false;
+	}
 
 	digit = hex_to_bin(*q);
-	if (digit >= 0) {
+
+	if (digit >= 0)
+	{
 		q++;
 		num = (num << 4) | digit;
 	}
+
 	*p = num;
 	*dst += 1;
 	*src = q;
@@ -204,22 +248,28 @@ static bool unescape_special(char **src, char **dst)
 {
 	char *p = *dst, *q = *src;
 
-	switch (*q) {
-	case '\"':
-		*p = '\"';
-		break;
-	case '\\':
-		*p = '\\';
-		break;
-	case 'a':
-		*p = '\a';
-		break;
-	case 'e':
-		*p = '\e';
-		break;
-	default:
-		return false;
+	switch (*q)
+	{
+		case '\"':
+			*p = '\"';
+			break;
+
+		case '\\':
+			*p = '\\';
+			break;
+
+		case 'a':
+			*p = '\a';
+			break;
+
+		case 'e':
+			*p = '\e';
+			break;
+
+		default:
+			return false;
 	}
+
 	*dst += 1;
 	*src += 1;
 	return true;
@@ -267,31 +317,43 @@ int string_unescape(char *src, char *dst, size_t size, unsigned int flags)
 {
 	char *out = dst;
 
-	while (*src && --size) {
-		if (src[0] == '\\' && src[1] != '\0' && size > 1) {
+	while (*src && --size)
+	{
+		if (src[0] == '\\' && src[1] != '\0' && size > 1)
+		{
 			src++;
 			size--;
 
 			if (flags & UNESCAPE_SPACE &&
-					unescape_space(&src, &out))
+				unescape_space(&src, &out))
+			{
 				continue;
+			}
 
 			if (flags & UNESCAPE_OCTAL &&
-					unescape_octal(&src, &out))
+				unescape_octal(&src, &out))
+			{
 				continue;
+			}
 
 			if (flags & UNESCAPE_HEX &&
-					unescape_hex(&src, &out))
+				unescape_hex(&src, &out))
+			{
 				continue;
+			}
 
 			if (flags & UNESCAPE_SPECIAL &&
-					unescape_special(&src, &out))
+				unescape_special(&src, &out))
+			{
 				continue;
+			}
 
 			*out++ = '\\';
 		}
+
 		*out++ = *src++;
 	}
+
 	*out = '\0';
 
 	return out - dst;
@@ -303,7 +365,10 @@ static bool escape_passthrough(unsigned char c, char **dst, char *end)
 	char *out = *dst;
 
 	if (out < end)
+	{
 		*out = c;
+	}
+
 	*dst = out + 1;
 	return true;
 }
@@ -313,31 +378,44 @@ static bool escape_space(unsigned char c, char **dst, char *end)
 	char *out = *dst;
 	unsigned char to;
 
-	switch (c) {
-	case '\n':
-		to = 'n';
-		break;
-	case '\r':
-		to = 'r';
-		break;
-	case '\t':
-		to = 't';
-		break;
-	case '\v':
-		to = 'v';
-		break;
-	case '\f':
-		to = 'f';
-		break;
-	default:
-		return false;
+	switch (c)
+	{
+		case '\n':
+			to = 'n';
+			break;
+
+		case '\r':
+			to = 'r';
+			break;
+
+		case '\t':
+			to = 't';
+			break;
+
+		case '\v':
+			to = 'v';
+			break;
+
+		case '\f':
+			to = 'f';
+			break;
+
+		default:
+			return false;
 	}
 
 	if (out < end)
+	{
 		*out = '\\';
+	}
+
 	++out;
+
 	if (out < end)
+	{
 		*out = to;
+	}
+
 	++out;
 
 	*dst = out;
@@ -349,25 +427,36 @@ static bool escape_special(unsigned char c, char **dst, char *end)
 	char *out = *dst;
 	unsigned char to;
 
-	switch (c) {
-	case '\\':
-		to = '\\';
-		break;
-	case '\a':
-		to = 'a';
-		break;
-	case '\e':
-		to = 'e';
-		break;
-	default:
-		return false;
+	switch (c)
+	{
+		case '\\':
+			to = '\\';
+			break;
+
+		case '\a':
+			to = 'a';
+			break;
+
+		case '\e':
+			to = 'e';
+			break;
+
+		default:
+			return false;
 	}
 
 	if (out < end)
+	{
 		*out = '\\';
+	}
+
 	++out;
+
 	if (out < end)
+	{
 		*out = to;
+	}
+
 	++out;
 
 	*dst = out;
@@ -379,13 +468,22 @@ static bool escape_null(unsigned char c, char **dst, char *end)
 	char *out = *dst;
 
 	if (c)
+	{
 		return false;
+	}
 
 	if (out < end)
+	{
 		*out = '\\';
+	}
+
 	++out;
+
 	if (out < end)
+	{
 		*out = '0';
+	}
+
 	++out;
 
 	*dst = out;
@@ -397,16 +495,31 @@ static bool escape_octal(unsigned char c, char **dst, char *end)
 	char *out = *dst;
 
 	if (out < end)
+	{
 		*out = '\\';
+	}
+
 	++out;
+
 	if (out < end)
+	{
 		*out = ((c >> 6) & 0x07) + '0';
+	}
+
 	++out;
+
 	if (out < end)
+	{
 		*out = ((c >> 3) & 0x07) + '0';
+	}
+
 	++out;
+
 	if (out < end)
+	{
 		*out = ((c >> 0) & 0x07) + '0';
+	}
+
 	++out;
 
 	*dst = out;
@@ -418,16 +531,31 @@ static bool escape_hex(unsigned char c, char **dst, char *end)
 	char *out = *dst;
 
 	if (out < end)
+	{
 		*out = '\\';
+	}
+
 	++out;
+
 	if (out < end)
+	{
 		*out = 'x';
+	}
+
 	++out;
+
 	if (out < end)
+	{
 		*out = hex_asc_hi(c);
+	}
+
 	++out;
+
 	if (out < end)
+	{
 		*out = hex_asc_lo(c);
+	}
+
 	++out;
 
 	*dst = out;
@@ -491,13 +619,14 @@ static bool escape_hex(unsigned char c, char **dst, char *end)
  * dst for a '\0' terminator if and only if ret < osz.
  */
 int string_escape_mem(const char *src, size_t isz, char *dst, size_t osz,
-		      unsigned int flags, const char *only)
+					  unsigned int flags, const char *only)
 {
 	char *p = dst;
 	char *end = p + osz;
 	bool is_dict = only && *only;
 
-	while (isz--) {
+	while (isz--)
+	{
 		unsigned char c = *src++;
 
 		/*
@@ -512,24 +641,37 @@ int string_escape_mem(const char *src, size_t isz, char *dst, size_t osz,
 		 * output buffer.
 		 */
 		if ((flags & ESCAPE_NP && isprint(c)) ||
-		    (is_dict && !strchr(only, c))) {
+			(is_dict && !strchr(only, c)))
+		{
 			/* do nothing */
-		} else {
+		}
+		else
+		{
 			if (flags & ESCAPE_SPACE && escape_space(c, &p, end))
+			{
 				continue;
+			}
 
 			if (flags & ESCAPE_SPECIAL && escape_special(c, &p, end))
+			{
 				continue;
+			}
 
 			if (flags & ESCAPE_NULL && escape_null(c, &p, end))
+			{
 				continue;
+			}
 
 			/* ESCAPE_OCTAL and ESCAPE_HEX always go last */
 			if (flags & ESCAPE_OCTAL && escape_octal(c, &p, end))
+			{
 				continue;
+			}
 
 			if (flags & ESCAPE_HEX && escape_hex(c, &p, end))
+			{
 				continue;
+			}
 		}
 
 		escape_passthrough(c, &p, end);
@@ -551,13 +693,19 @@ char *kstrdup_quotable(const char *src, gfp_t gfp)
 	const char esc[] = "\f\n\r\t\v\a\e\\\"";
 
 	if (!src)
+	{
 		return NULL;
+	}
+
 	slen = strlen(src);
 
 	dlen = string_escape_mem(src, slen, NULL, 0, flags, esc);
 	dst = kmalloc(dlen + 1, gfp);
+
 	if (!dst)
+	{
 		return NULL;
+	}
 
 	WARN_ON(string_escape_mem(src, slen, dst, dlen, flags, esc) != dlen);
 	dst[dlen] = '\0';
@@ -577,8 +725,11 @@ char *kstrdup_quotable_cmdline(struct task_struct *task, gfp_t gfp)
 	int i, res;
 
 	buffer = kmalloc(PAGE_SIZE, GFP_TEMPORARY);
+
 	if (!buffer)
+	{
 		return NULL;
+	}
 
 	res = get_cmdline(task, buffer, PAGE_SIZE - 1);
 	buffer[res] = '\0';
@@ -590,7 +741,9 @@ char *kstrdup_quotable_cmdline(struct task_struct *task, gfp_t gfp)
 	/* Replace inter-argument NULLs. */
 	for (i = 0; i <= res; i++)
 		if (buffer[i] == '\0')
+		{
 			buffer[i] = ' ';
+		}
 
 	/* Make sure result is printable. */
 	quoted = kstrdup_quotable(buffer, gfp);
@@ -609,18 +762,28 @@ char *kstrdup_quotable_file(struct file *file, gfp_t gfp)
 	char *temp, *pathname;
 
 	if (!file)
+	{
 		return kstrdup("<unknown>", gfp);
+	}
 
 	/* We add 11 spaces for ' (deleted)' to be appended */
 	temp = kmalloc(PATH_MAX + 11, GFP_TEMPORARY);
+
 	if (!temp)
+	{
 		return kstrdup("<no_memory>", gfp);
+	}
 
 	pathname = file_path(file, temp, PATH_MAX + 11);
+
 	if (IS_ERR(pathname))
+	{
 		pathname = kstrdup("<too_long>", gfp);
+	}
 	else
+	{
 		pathname = kstrdup_quotable(pathname, gfp);
+	}
 
 	kfree(temp);
 	return pathname;

@@ -32,9 +32,9 @@
 #include <linux/if_ether.h>
 
 #define bfa_sm_fault(__event)    do {                            \
-	pr_err("SM Assertion failure: %s: %d: event = %d\n",	\
-		 __FILE__, __LINE__, __event);			\
-} while (0)
+		pr_err("SM Assertion failure: %s: %d: event = %d\n",	\
+			   __FILE__, __LINE__, __event);			\
+	} while (0)
 
 extern char bfa_version[];
 

@@ -40,7 +40,8 @@ static int scmdev_uevent(struct device *dev, struct kobj_uevent_env *env)
 	return add_uevent_var(env, "MODALIAS=scm:scmdev");
 }
 
-static struct bus_type scm_bus_type = {
+static struct bus_type scm_bus_type =
+{
 	.name  = "scm",
 	.probe = scmdev_probe,
 	.remove = scmdev_remove,
@@ -82,19 +83,19 @@ void scm_irq_handler(struct aob *aob, int error)
 EXPORT_SYMBOL_GPL(scm_irq_handler);
 
 #define scm_attr(name)							\
-static ssize_t show_##name(struct device *dev,				\
-	       struct device_attribute *attr, char *buf)		\
-{									\
-	struct scm_device *scmdev = to_scm_dev(dev);			\
-	int ret;							\
-									\
-	device_lock(dev);						\
-	ret = sprintf(buf, "%u\n", scmdev->attrs.name);			\
-	device_unlock(dev);						\
-									\
-	return ret;							\
-}									\
-static DEVICE_ATTR(name, S_IRUGO, show_##name, NULL);
+	static ssize_t show_##name(struct device *dev,				\
+							   struct device_attribute *attr, char *buf)		\
+	{									\
+		struct scm_device *scmdev = to_scm_dev(dev);			\
+		int ret;							\
+		\
+		device_lock(dev);						\
+		ret = sprintf(buf, "%u\n", scmdev->attrs.name);			\
+		device_unlock(dev);						\
+		\
+		return ret;							\
+	}									\
+	static DEVICE_ATTR(name, S_IRUGO, show_##name, NULL);
 
 scm_attr(persistence);
 scm_attr(oper_state);
@@ -103,7 +104,8 @@ scm_attr(rank);
 scm_attr(release);
 scm_attr(res_id);
 
-static struct attribute *scmdev_attrs[] = {
+static struct attribute *scmdev_attrs[] =
+{
 	&dev_attr_persistence.attr,
 	&dev_attr_oper_state.attr,
 	&dev_attr_data_state.attr,
@@ -113,11 +115,13 @@ static struct attribute *scmdev_attrs[] = {
 	NULL,
 };
 
-static struct attribute_group scmdev_attr_group = {
+static struct attribute_group scmdev_attr_group =
+{
 	.attrs = scmdev_attrs,
 };
 
-static const struct attribute_group *scmdev_attr_groups[] = {
+static const struct attribute_group *scmdev_attr_groups[] =
+{
 	&scmdev_attr_group,
 	NULL,
 };
@@ -130,7 +134,7 @@ static void scmdev_release(struct device *dev)
 }
 
 static void scmdev_setup(struct scm_device *scmdev, struct sale *sale,
-			 unsigned int size, unsigned int max_blk_count)
+						 unsigned int size, unsigned int max_blk_count)
 {
 	dev_set_name(&scmdev->dev, "%016llx", (unsigned long long) sale->sa);
 	scmdev->nr_max_block = max_blk_count;
@@ -159,18 +163,29 @@ static void scmdev_update(struct scm_device *scmdev, struct sale *sale)
 
 	device_lock(&scmdev->dev);
 	changed = scmdev->attrs.rank != sale->rank ||
-		  scmdev->attrs.oper_state != sale->op_state;
+			  scmdev->attrs.oper_state != sale->op_state;
 	scmdev->attrs.rank = sale->rank;
 	scmdev->attrs.oper_state = sale->op_state;
+
 	if (!scmdev->dev.driver)
+	{
 		goto out;
+	}
+
 	scmdrv = to_scm_drv(scmdev->dev.driver);
+
 	if (changed && scmdrv->notify)
+	{
 		scmdrv->notify(scmdev, SCM_CHANGE);
+	}
+
 out:
 	device_unlock(&scmdev->dev);
+
 	if (changed)
+	{
 		kobject_uevent(&scmdev->dev.kobj, KOBJ_CHANGE);
+	}
 }
 
 static int check_address(struct device *dev, void *data)
@@ -196,20 +211,30 @@ static int scm_add(struct chsc_scm_info *scm_info, size_t num)
 	struct scm_device *scmdev;
 	int ret;
 
-	for (sale = scmal; sale < scmal + num; sale++) {
+	for (sale = scmal; sale < scmal + num; sale++)
+	{
 		scmdev = scmdev_find(sale);
-		if (scmdev) {
+
+		if (scmdev)
+		{
 			scmdev_update(scmdev, sale);
 			/* Release reference from scm_find(). */
 			put_device(&scmdev->dev);
 			continue;
 		}
+
 		scmdev = kzalloc(sizeof(*scmdev), GFP_KERNEL);
+
 		if (!scmdev)
+		{
 			return -ENODEV;
+		}
+
 		scmdev_setup(scmdev, sale, scm_info->is, scm_info->mbc);
 		ret = device_register(&scmdev->dev);
-		if (ret) {
+
+		if (ret)
+		{
 			/* Release reference from device_initialize(). */
 			put_device(&scmdev->dev);
 			return ret;
@@ -227,25 +252,36 @@ int scm_update_information(void)
 	int ret;
 
 	scm_info = (void *)__get_free_page(GFP_KERNEL | GFP_DMA);
-	if (!scm_info)
-		return -ENOMEM;
 
-	do {
+	if (!scm_info)
+	{
+		return -ENOMEM;
+	}
+
+	do
+	{
 		ret = chsc_scm_info(scm_info, token);
+
 		if (ret)
+		{
 			break;
+		}
 
 		num = (scm_info->response.length -
-		       (offsetof(struct chsc_scm_info, scmal) -
-			offsetof(struct chsc_scm_info, response))
-		      ) / sizeof(struct sale);
+			   (offsetof(struct chsc_scm_info, scmal) -
+				offsetof(struct chsc_scm_info, response))
+			  ) / sizeof(struct sale);
 
 		ret = scm_add(scm_info, num);
+
 		if (ret)
+		{
 			break;
+		}
 
 		token = scm_info->restok;
-	} while (token);
+	}
+	while (token);
 
 	free_page((unsigned long)scm_info);
 
@@ -258,7 +294,9 @@ static int scm_dev_avail(struct device *dev, void *unused)
 	struct scm_device *scmdev = to_scm_dev(dev);
 
 	if (dev->driver && scmdrv->notify)
+	{
 		scmdrv->notify(scmdev, SCM_AVAIL);
+	}
 
 	return 0;
 }
@@ -273,11 +311,16 @@ static int __init scm_init(void)
 	int ret;
 
 	ret = bus_register(&scm_bus_type);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	scm_root = root_device_register("scm");
-	if (IS_ERR(scm_root)) {
+
+	if (IS_ERR(scm_root))
+	{
 		bus_unregister(&scm_bus_type);
 		return PTR_ERR(scm_root);
 	}

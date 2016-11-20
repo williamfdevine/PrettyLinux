@@ -25,8 +25,11 @@ armada_updatel(uint32_t val, uint32_t mask, void __iomem *ptr)
 
 	ov = v = readl_relaxed(ptr);
 	v = (v & ~mask) | val;
+
 	if (ov != v)
+	{
 		writel_relaxed(v, ptr);
+	}
 }
 
 static inline uint32_t armada_pitch(uint32_t width, uint32_t bpp)
@@ -40,19 +43,21 @@ static inline uint32_t armada_pitch(uint32_t width, uint32_t bpp)
 
 struct armada_private;
 
-struct armada_variant {
+struct armada_variant
+{
 	bool has_spu_adv_reg;
 	uint32_t spu_adv_reg;
 	int (*init)(struct armada_crtc *, struct device *);
 	int (*compute_clock)(struct armada_crtc *,
-			     const struct drm_display_mode *,
-			     uint32_t *);
+						 const struct drm_display_mode *,
+						 uint32_t *);
 };
 
 /* Variant ops */
 extern const struct armada_variant armada510_ops;
 
-struct armada_private {
+struct armada_private
+{
 	struct work_struct	fb_unref_work;
 	DECLARE_KFIFO(fb_unref, struct drm_framebuffer *, 8);
 	struct drm_fb_helper	*fbdev;
@@ -76,9 +81,9 @@ struct armada_private {
 };
 
 void __armada_drm_queue_unref_work(struct drm_device *,
-	struct drm_framebuffer *);
+								   struct drm_framebuffer *);
 void armada_drm_queue_unref_work(struct drm_device *,
-	struct drm_framebuffer *);
+								 struct drm_framebuffer *);
 
 extern const struct drm_mode_config_funcs armada_drm_mode_config_funcs;
 

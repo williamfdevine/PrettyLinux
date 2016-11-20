@@ -11,17 +11,20 @@
 #ifndef __LINUX_GPIO_FAN_H
 #define __LINUX_GPIO_FAN_H
 
-struct gpio_fan_alarm {
+struct gpio_fan_alarm
+{
 	unsigned	gpio;
 	unsigned	active_low;
 };
 
-struct gpio_fan_speed {
+struct gpio_fan_speed
+{
 	int rpm;
 	int ctrl_val;
 };
 
-struct gpio_fan_platform_data {
+struct gpio_fan_platform_data
+{
 	int			num_ctrl;
 	unsigned		*ctrl;	/* fan control GPIOs. */
 	struct gpio_fan_alarm	*alarm;	/* fan alarm GPIO. */

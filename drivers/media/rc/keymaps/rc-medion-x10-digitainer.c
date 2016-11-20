@@ -26,7 +26,8 @@
 #include <linux/module.h>
 #include <media/rc-map.h>
 
-static struct rc_map_table medion_x10_digitainer[] = {
+static struct rc_map_table medion_x10_digitainer[] =
+{
 	{ 0x02, KEY_POWER },
 
 	{ 0x2c, KEY_TV },
@@ -96,7 +97,8 @@ static struct rc_map_table medion_x10_digitainer[] = {
 	{ 0x22, KEY_DOWN },
 };
 
-static struct rc_map_list medion_x10_digitainer_map = {
+static struct rc_map_list medion_x10_digitainer_map =
+{
 	.map = {
 		.scan    = medion_x10_digitainer,
 		.size    = ARRAY_SIZE(medion_x10_digitainer),

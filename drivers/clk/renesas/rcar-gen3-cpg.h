@@ -11,7 +11,8 @@
 #ifndef __CLK_RENESAS_RCAR_GEN3_CPG_H__
 #define __CLK_RENESAS_RCAR_GEN3_CPG_H__
 
-enum rcar_gen3_clk_types {
+enum rcar_gen3_clk_types
+{
 	CLK_TYPE_GEN3_MAIN = CLK_TYPE_CUSTOM,
 	CLK_TYPE_GEN3_PLL0,
 	CLK_TYPE_GEN3_PLL1,
@@ -25,7 +26,8 @@ enum rcar_gen3_clk_types {
 #define DEF_GEN3_SD(_name, _id, _parent, _offset)	\
 	DEF_BASE(_name, _id, CLK_TYPE_GEN3_SD, _parent, .offset = _offset)
 
-struct rcar_gen3_cpg_pll_config {
+struct rcar_gen3_cpg_pll_config
+{
 	unsigned int extal_div;
 	unsigned int pll1_mult;
 	unsigned int pll3_mult;
@@ -35,9 +37,9 @@ struct rcar_gen3_cpg_pll_config {
 
 u32 rcar_gen3_read_mode_pins(void);
 struct clk *rcar_gen3_cpg_clk_register(struct device *dev,
-	const struct cpg_core_clk *core, const struct cpg_mssr_info *info,
-	struct clk **clks, void __iomem *base);
+									   const struct cpg_core_clk *core, const struct cpg_mssr_info *info,
+									   struct clk **clks, void __iomem *base);
 int rcar_gen3_cpg_init(const struct rcar_gen3_cpg_pll_config *config,
-		       unsigned int clk_extalr);
+					   unsigned int clk_extalr);
 
 #endif

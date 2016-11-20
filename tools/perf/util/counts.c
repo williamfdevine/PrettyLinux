@@ -6,11 +6,14 @@ struct perf_counts *perf_counts__new(int ncpus, int nthreads)
 {
 	struct perf_counts *counts = zalloc(sizeof(*counts));
 
-	if (counts) {
+	if (counts)
+	{
 		struct xyarray *values;
 
 		values = xyarray__new(ncpus, nthreads, sizeof(struct perf_counts_values));
-		if (!values) {
+
+		if (!values)
+		{
 			free(counts);
 			return NULL;
 		}
@@ -23,7 +26,8 @@ struct perf_counts *perf_counts__new(int ncpus, int nthreads)
 
 void perf_counts__delete(struct perf_counts *counts)
 {
-	if (counts) {
+	if (counts)
+	{
 		xyarray__delete(counts->values);
 		free(counts);
 	}

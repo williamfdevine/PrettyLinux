@@ -55,7 +55,8 @@
  * @atclk:	optional clock for the core parts of the TPIU.
  * @csdev:	component vitals needed by the framework.
  */
-struct tpiu_drvdata {
+struct tpiu_drvdata
+{
 	void __iomem		*base;
 	struct device		*dev;
 	struct clk		*atclk;
@@ -102,12 +103,14 @@ static void tpiu_disable(struct coresight_device *csdev)
 	dev_info(drvdata->dev, "TPIU disabled\n");
 }
 
-static const struct coresight_ops_sink tpiu_sink_ops = {
+static const struct coresight_ops_sink tpiu_sink_ops =
+{
 	.enable		= tpiu_enable,
 	.disable	= tpiu_disable,
 };
 
-static const struct coresight_ops tpiu_cs_ops = {
+static const struct coresight_ops tpiu_cs_ops =
+{
 	.sink_ops	= &tpiu_sink_ops,
 };
 
@@ -122,30 +125,47 @@ static int tpiu_probe(struct amba_device *adev, const struct amba_id *id)
 	struct coresight_desc desc = { 0 };
 	struct device_node *np = adev->dev.of_node;
 
-	if (np) {
+	if (np)
+	{
 		pdata = of_get_coresight_platform_data(dev, np);
+
 		if (IS_ERR(pdata))
+		{
 			return PTR_ERR(pdata);
+		}
+
 		adev->dev.platform_data = pdata;
 	}
 
 	drvdata = devm_kzalloc(dev, sizeof(*drvdata), GFP_KERNEL);
+
 	if (!drvdata)
+	{
 		return -ENOMEM;
+	}
 
 	drvdata->dev = &adev->dev;
 	drvdata->atclk = devm_clk_get(&adev->dev, "atclk"); /* optional */
-	if (!IS_ERR(drvdata->atclk)) {
+
+	if (!IS_ERR(drvdata->atclk))
+	{
 		ret = clk_prepare_enable(drvdata->atclk);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
+
 	dev_set_drvdata(dev, drvdata);
 
 	/* Validity for the resource is already checked by the AMBA core */
 	base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(base))
+	{
 		return PTR_ERR(base);
+	}
 
 	drvdata->base = base;
 
@@ -160,8 +180,11 @@ static int tpiu_probe(struct amba_device *adev, const struct amba_id *id)
 	desc.pdata = pdata;
 	desc.dev = dev;
 	drvdata->csdev = coresight_register(&desc);
+
 	if (IS_ERR(drvdata->csdev))
+	{
 		return PTR_ERR(drvdata->csdev);
+	}
 
 	return 0;
 }
@@ -172,7 +195,9 @@ static int tpiu_runtime_suspend(struct device *dev)
 	struct tpiu_drvdata *drvdata = dev_get_drvdata(dev);
 
 	if (drvdata && !IS_ERR(drvdata->atclk))
+	{
 		clk_disable_unprepare(drvdata->atclk);
+	}
 
 	return 0;
 }
@@ -182,17 +207,21 @@ static int tpiu_runtime_resume(struct device *dev)
 	struct tpiu_drvdata *drvdata = dev_get_drvdata(dev);
 
 	if (drvdata && !IS_ERR(drvdata->atclk))
+	{
 		clk_prepare_enable(drvdata->atclk);
+	}
 
 	return 0;
 }
 #endif
 
-static const struct dev_pm_ops tpiu_dev_pm_ops = {
+static const struct dev_pm_ops tpiu_dev_pm_ops =
+{
 	SET_RUNTIME_PM_OPS(tpiu_runtime_suspend, tpiu_runtime_resume, NULL)
 };
 
-static struct amba_id tpiu_ids[] = {
+static struct amba_id tpiu_ids[] =
+{
 	{
 		.id	= 0x0003b912,
 		.mask	= 0x0003ffff,
@@ -204,7 +233,8 @@ static struct amba_id tpiu_ids[] = {
 	{ 0, 0},
 };
 
-static struct amba_driver tpiu_driver = {
+static struct amba_driver tpiu_driver =
+{
 	.drv = {
 		.name	= "coresight-tpiu",
 		.owner	= THIS_MODULE,

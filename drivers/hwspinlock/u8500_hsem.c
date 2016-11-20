@@ -85,7 +85,8 @@ static void u8500_hsem_relax(struct hwspinlock *lock)
 	ndelay(50);
 }
 
-static const struct hwspinlock_ops u8500_hwspinlock_ops = {
+static const struct hwspinlock_ops u8500_hwspinlock_ops =
+{
 	.trylock	= u8500_hsem_trylock,
 	.unlock		= u8500_hsem_unlock,
 	.relax		= u8500_hsem_relax,
@@ -102,15 +103,23 @@ static int u8500_hsem_probe(struct platform_device *pdev)
 	ulong val;
 
 	if (!pdata)
+	{
 		return -ENODEV;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (!res)
+	{
 		return -ENODEV;
+	}
 
 	io_base = ioremap(res->start, resource_size(res));
+
 	if (!io_base)
+	{
 		return -ENOMEM;
+	}
 
 	/* make sure protocol 1 is selected */
 	val = readl(io_base + HSEM_CTRL_REG);
@@ -120,7 +129,9 @@ static int u8500_hsem_probe(struct platform_device *pdev)
 	writel(0xFFFF, io_base + HSEM_ICRALL);
 
 	bank = kzalloc(sizeof(*bank) + num_locks * sizeof(*hwlock), GFP_KERNEL);
-	if (!bank) {
+
+	if (!bank)
+	{
 		ret = -ENOMEM;
 		goto iounmap_base;
 	}
@@ -128,15 +139,20 @@ static int u8500_hsem_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, bank);
 
 	for (i = 0, hwlock = &bank->lock[0]; i < num_locks; i++, hwlock++)
+	{
 		hwlock->priv = io_base + HSEM_REGISTER_OFFSET + sizeof(u32) * i;
+	}
 
 	/* no pm needed for HSem but required to comply with hwspilock core */
 	pm_runtime_enable(&pdev->dev);
 
 	ret = hwspin_lock_register(bank, &pdev->dev, &u8500_hwspinlock_ops,
-						pdata->base_id, num_locks);
+							   pdata->base_id, num_locks);
+
 	if (ret)
+	{
 		goto reg_fail;
+	}
 
 	return 0;
 
@@ -158,7 +174,9 @@ static int u8500_hsem_remove(struct platform_device *pdev)
 	writel(0xFFFF, io_base + HSEM_ICRALL);
 
 	ret = hwspin_lock_unregister(bank);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "%s failed: %d\n", __func__, ret);
 		return ret;
 	}
@@ -170,7 +188,8 @@ static int u8500_hsem_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver u8500_hsem_driver = {
+static struct platform_driver u8500_hsem_driver =
+{
 	.probe		= u8500_hsem_probe,
 	.remove		= u8500_hsem_remove,
 	.driver		= {

@@ -4,8 +4,9 @@
 struct qcom_iris;
 struct qcom_wcnss;
 
-struct wcnss_vreg_info {
-	const char * const name;
+struct wcnss_vreg_info
+{
+	const char *const name;
 	int min_voltage;
 	int max_voltage;
 

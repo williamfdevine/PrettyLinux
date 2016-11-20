@@ -29,19 +29,22 @@ static u8 search_key_dn[3] = {0x40, 0x21, 0x02};
 static u8 search_key_up[3] = {0x40, 0x00, 0x00};
 
 static int gfrm_input_mapping(struct hid_device *hdev, struct hid_input *hi,
-		struct hid_field *field, struct hid_usage *usage,
-		unsigned long **bit, int *max)
+							  struct hid_field *field, struct hid_usage *usage,
+							  unsigned long **bit, int *max)
 {
 	unsigned long hdev_type = (unsigned long) hid_get_drvdata(hdev);
 
-	if (hdev_type == GFRM100) {
-		if (usage->hid == (HID_UP_CONSUMER | 0x4)) {
+	if (hdev_type == GFRM100)
+	{
+		if (usage->hid == (HID_UP_CONSUMER | 0x4))
+		{
 			/* Consumer.0004 -> KEY_INFO */
 			hid_map_usage_clear(hi, usage, bit, max, EV_KEY, KEY_INFO);
 			return 1;
 		}
 
-		if (usage->hid == (HID_UP_CONSUMER | 0x41)) {
+		if (usage->hid == (HID_UP_CONSUMER | 0x41))
+		{
 			/* Consumer.0041 -> KEY_OK */
 			hid_map_usage_clear(hi, usage, bit, max, EV_KEY, KEY_OK);
 			return 1;
@@ -52,37 +55,42 @@ static int gfrm_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 }
 
 static int gfrm_raw_event(struct hid_device *hdev, struct hid_report *report,
-		u8 *data, int size)
+						  u8 *data, int size)
 {
 	unsigned long hdev_type = (unsigned long) hid_get_drvdata(hdev);
 	int ret = 0;
 
 	if (hdev_type != GFRM100)
+	{
 		return 0;
+	}
 
 	if (size < 2 || data[0] != GFRM100_SEARCH_KEY_REPORT_ID)
+	{
 		return 0;
+	}
 
 	/*
 	 * Convert GFRM100 Search key reports into Consumer.0221 (Key.Search)
 	 * reports. Ignore audio data.
 	 */
-	switch (data[1]) {
-	case GFRM100_SEARCH_KEY_DOWN:
-		ret = hid_report_raw_event(hdev, HID_INPUT_REPORT, search_key_dn,
-					   sizeof(search_key_dn), 1);
-		break;
+	switch (data[1])
+	{
+		case GFRM100_SEARCH_KEY_DOWN:
+			ret = hid_report_raw_event(hdev, HID_INPUT_REPORT, search_key_dn,
+									   sizeof(search_key_dn), 1);
+			break;
 
-	case GFRM100_SEARCH_KEY_AUDIO_DATA:
-		break;
+		case GFRM100_SEARCH_KEY_AUDIO_DATA:
+			break;
 
-	case GFRM100_SEARCH_KEY_UP:
-		ret = hid_report_raw_event(hdev, HID_INPUT_REPORT, search_key_up,
-					   sizeof(search_key_up), 1);
-		break;
+		case GFRM100_SEARCH_KEY_UP:
+			ret = hid_report_raw_event(hdev, HID_INPUT_REPORT, search_key_up,
+									   sizeof(search_key_up), 1);
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 
 	return (ret < 0) ? ret : -1;
@@ -106,17 +114,22 @@ static int gfrm_probe(struct hid_device *hdev, const struct hid_device_id *id)
 	hid_set_drvdata(hdev, (void *) id->driver_data);
 
 	ret = hid_parse(hdev);
-	if (ret)
-		goto done;
 
-	if (id->driver_data == GFRM100) {
+	if (ret)
+	{
+		goto done;
+	}
+
+	if (id->driver_data == GFRM100)
+	{
 		/*
 		 * GFRM100 HID Report Descriptor does not describe the Search
 		 * key reports. Thus, we need to add it manually here, so that
 		 * those reports reach gfrm_raw_event() from hid_input_report().
 		 */
 		if (!hid_register_report(hdev, HID_INPUT_REPORT,
-					 GFRM100_SEARCH_KEY_REPORT_ID)) {
+								 GFRM100_SEARCH_KEY_REPORT_ID))
+		{
 			ret = -ENOMEM;
 			goto done;
 		}
@@ -133,16 +146,22 @@ static void gfrm_remove(struct hid_device *hdev)
 	hid_set_drvdata(hdev, NULL);
 }
 
-static const struct hid_device_id gfrm_devices[] = {
-	{ HID_BLUETOOTH_DEVICE(0x58, 0x2000),
-		.driver_data = GFRM100 },
-	{ HID_BLUETOOTH_DEVICE(0x471, 0x2210),
-		.driver_data = GFRM200 },
+static const struct hid_device_id gfrm_devices[] =
+{
+	{
+		HID_BLUETOOTH_DEVICE(0x58, 0x2000),
+		.driver_data = GFRM100
+	},
+	{
+		HID_BLUETOOTH_DEVICE(0x471, 0x2210),
+		.driver_data = GFRM200
+	},
 	{ }
 };
 MODULE_DEVICE_TABLE(hid, gfrm_devices);
 
-static struct hid_driver gfrm_driver = {
+static struct hid_driver gfrm_driver =
+{
 	.name = "gfrm",
 	.id_table = gfrm_devices,
 	.probe = gfrm_probe,

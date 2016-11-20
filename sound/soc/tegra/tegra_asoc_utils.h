@@ -26,14 +26,16 @@
 struct clk;
 struct device;
 
-enum tegra_asoc_utils_soc {
+enum tegra_asoc_utils_soc
+{
 	TEGRA_ASOC_UTILS_SOC_TEGRA20,
 	TEGRA_ASOC_UTILS_SOC_TEGRA30,
 	TEGRA_ASOC_UTILS_SOC_TEGRA114,
 	TEGRA_ASOC_UTILS_SOC_TEGRA124,
 };
 
-struct tegra_asoc_utils_data {
+struct tegra_asoc_utils_data
+{
 	struct device *dev;
 	enum tegra_asoc_utils_soc soc;
 	struct clk *clk_pll_a;
@@ -44,10 +46,10 @@ struct tegra_asoc_utils_data {
 };
 
 int tegra_asoc_utils_set_rate(struct tegra_asoc_utils_data *data, int srate,
-			      int mclk);
+							  int mclk);
 int tegra_asoc_utils_set_ac97_rate(struct tegra_asoc_utils_data *data);
 int tegra_asoc_utils_init(struct tegra_asoc_utils_data *data,
-			  struct device *dev);
+						  struct device *dev);
 void tegra_asoc_utils_fini(struct tegra_asoc_utils_data *data);
 
 #endif

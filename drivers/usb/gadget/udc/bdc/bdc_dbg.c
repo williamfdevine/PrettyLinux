@@ -74,15 +74,17 @@ void bdc_dbg_srr(struct bdc *bdc, u32 srr_num)
 	sr = bdc->srr.sr_bds;
 	addr = bdc->srr.dma_addr;
 	dev_vdbg(bdc->dev, "bdc_dbg_srr sr:%p dqp_index:%d\n",
-						sr, bdc->srr.dqp_index);
-	for (i = 0; i < NUM_SR_ENTRIES; i++) {
+			 sr, bdc->srr.dqp_index);
+
+	for (i = 0; i < NUM_SR_ENTRIES; i++)
+	{
 		sr = &bdc->srr.sr_bds[i];
 		dev_vdbg(bdc->dev, "%llx %08x %08x %08x %08x\n",
-					(unsigned long long)addr,
-					le32_to_cpu(sr->offset[0]),
-					le32_to_cpu(sr->offset[1]),
-					le32_to_cpu(sr->offset[2]),
-					le32_to_cpu(sr->offset[3]));
+				 (unsigned long long)addr,
+				 le32_to_cpu(sr->offset[0]),
+				 le32_to_cpu(sr->offset[1]),
+				 le32_to_cpu(sr->offset[2]),
+				 le32_to_cpu(sr->offset[3]));
 		addr += sizeof(*sr);
 	}
 }
@@ -97,27 +99,31 @@ void bdc_dbg_bd_list(struct bdc *bdc, struct bdc_ep *ep)
 
 	gbdi = 0;
 	dev_vdbg(bdc->dev,
-		"Dump bd list for %s epnum:%d\n",
-		ep->name, ep->ep_num);
+			 "Dump bd list for %s epnum:%d\n",
+			 ep->name, ep->ep_num);
 
 	dev_vdbg(bdc->dev,
-		"tabs:%d max_bdi:%d eqp_bdi:%d hwd_bdi:%d num_bds_table:%d\n",
-		bd_list->num_tabs, bd_list->max_bdi, bd_list->eqp_bdi,
-		bd_list->hwd_bdi, bd_list->num_bds_table);
+			 "tabs:%d max_bdi:%d eqp_bdi:%d hwd_bdi:%d num_bds_table:%d\n",
+			 bd_list->num_tabs, bd_list->max_bdi, bd_list->eqp_bdi,
+			 bd_list->hwd_bdi, bd_list->num_bds_table);
 
-	for (tbi = 0; tbi < bd_list->num_tabs; tbi++) {
+	for (tbi = 0; tbi < bd_list->num_tabs; tbi++)
+	{
 		bd_table = bd_list->bd_table_array[tbi];
-		for (bdi = 0; bdi < bd_list->num_bds_table; bdi++) {
+
+		for (bdi = 0; bdi < bd_list->num_bds_table; bdi++)
+		{
 			bd =  bd_table->start_bd + bdi;
 			dma = bd_table->dma + (sizeof(struct bdc_bd) * bdi);
 			dev_vdbg(bdc->dev,
-				"tbi:%2d bdi:%2d gbdi:%2d virt:%p phys:%llx %08x %08x %08x %08x\n",
-				tbi, bdi, gbdi++, bd, (unsigned long long)dma,
-				le32_to_cpu(bd->offset[0]),
-				le32_to_cpu(bd->offset[1]),
-				le32_to_cpu(bd->offset[2]),
-				le32_to_cpu(bd->offset[3]));
+					 "tbi:%2d bdi:%2d gbdi:%2d virt:%p phys:%llx %08x %08x %08x %08x\n",
+					 tbi, bdi, gbdi++, bd, (unsigned long long)dma,
+					 le32_to_cpu(bd->offset[0]),
+					 le32_to_cpu(bd->offset[1]),
+					 le32_to_cpu(bd->offset[2]),
+					 le32_to_cpu(bd->offset[3]));
 		}
+
 		dev_vdbg(bdc->dev, "\n\n");
 	}
 }

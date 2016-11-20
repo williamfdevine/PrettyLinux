@@ -33,7 +33,8 @@
 #define TPS6586X_GPIOSET1	0x5d
 #define TPS6586X_GPIOSET2	0x5e
 
-struct tps6586x_gpio {
+struct tps6586x_gpio
+{
 	struct gpio_chip gpio_chip;
 	struct device *parent;
 };
@@ -45,23 +46,26 @@ static int tps6586x_gpio_get(struct gpio_chip *gc, unsigned offset)
 	int ret;
 
 	ret = tps6586x_read(tps6586x_gpio->parent, TPS6586X_GPIOSET2, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return !!(val & (1 << offset));
 }
 
 static void tps6586x_gpio_set(struct gpio_chip *gc, unsigned offset,
-			      int value)
+							  int value)
 {
 	struct tps6586x_gpio *tps6586x_gpio = gpiochip_get_data(gc);
 
 	tps6586x_update(tps6586x_gpio->parent, TPS6586X_GPIOSET2,
-			value << offset, 1 << offset);
+					value << offset, 1 << offset);
 }
 
 static int tps6586x_gpio_output(struct gpio_chip *gc, unsigned offset,
-				int value)
+								int value)
 {
 	struct tps6586x_gpio *tps6586x_gpio = gpiochip_get_data(gc);
 	uint8_t val, mask;
@@ -72,7 +76,7 @@ static int tps6586x_gpio_output(struct gpio_chip *gc, unsigned offset,
 	mask = 0x3 << (offset * 2);
 
 	return tps6586x_update(tps6586x_gpio->parent, TPS6586X_GPIOSET1,
-				val, mask);
+						   val, mask);
 }
 
 static int tps6586x_gpio_to_irq(struct gpio_chip *gc, unsigned offset)
@@ -80,7 +84,7 @@ static int tps6586x_gpio_to_irq(struct gpio_chip *gc, unsigned offset)
 	struct tps6586x_gpio *tps6586x_gpio = gpiochip_get_data(gc);
 
 	return tps6586x_irq_get_virq(tps6586x_gpio->parent,
-				TPS6586X_INT_PLDO_0 + offset);
+								 TPS6586X_INT_PLDO_0 + offset);
 }
 
 static int tps6586x_gpio_probe(struct platform_device *pdev)
@@ -91,9 +95,12 @@ static int tps6586x_gpio_probe(struct platform_device *pdev)
 
 	pdata = dev_get_platdata(pdev->dev.parent);
 	tps6586x_gpio = devm_kzalloc(&pdev->dev,
-				sizeof(*tps6586x_gpio), GFP_KERNEL);
+								 sizeof(*tps6586x_gpio), GFP_KERNEL);
+
 	if (!tps6586x_gpio)
+	{
 		return -ENOMEM;
+	}
 
 	tps6586x_gpio->parent = pdev->dev.parent;
 
@@ -112,14 +119,21 @@ static int tps6586x_gpio_probe(struct platform_device *pdev)
 #ifdef CONFIG_OF_GPIO
 	tps6586x_gpio->gpio_chip.of_node = pdev->dev.parent->of_node;
 #endif
+
 	if (pdata && pdata->gpio_base)
+	{
 		tps6586x_gpio->gpio_chip.base = pdata->gpio_base;
+	}
 	else
+	{
 		tps6586x_gpio->gpio_chip.base = -1;
+	}
 
 	ret = devm_gpiochip_add_data(&pdev->dev, &tps6586x_gpio->gpio_chip,
-				     tps6586x_gpio);
-	if (ret < 0) {
+								 tps6586x_gpio);
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Could not register gpiochip, %d\n", ret);
 		return ret;
 	}
@@ -129,7 +143,8 @@ static int tps6586x_gpio_probe(struct platform_device *pdev)
 	return ret;
 }
 
-static struct platform_driver tps6586x_gpio_driver = {
+static struct platform_driver tps6586x_gpio_driver =
+{
 	.driver.name	= "tps6586x-gpio",
 	.probe		= tps6586x_gpio_probe,
 };

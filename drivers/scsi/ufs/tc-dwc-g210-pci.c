@@ -54,7 +54,8 @@ static int tc_dwc_g210_pci_runtime_idle(struct device *dev)
 /**
  * struct ufs_hba_dwc_vops - UFS DWC specific variant operations
  */
-static struct ufs_hba_variant_ops tc_dwc_g210_pci_hba_vops = {
+static struct ufs_hba_variant_ops tc_dwc_g210_pci_hba_vops =
+{
 	.name                   = "tc-dwc-g210-pci",
 	.link_startup_notify	= ufshcd_dwc_link_startup_notify,
 };
@@ -97,19 +98,26 @@ tc_dwc_g210_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	int err;
 
 	/* Check Test Chip type and set the specific setup routine */
-	if (tc_type == TC_G210_20BIT) {
+	if (tc_type == TC_G210_20BIT)
+	{
 		tc_dwc_g210_pci_hba_vops.phy_initialization =
-						tc_dwc_g210_config_20_bit;
-	} else if (tc_type == TC_G210_40BIT) {
+			tc_dwc_g210_config_20_bit;
+	}
+	else if (tc_type == TC_G210_40BIT)
+	{
 		tc_dwc_g210_pci_hba_vops.phy_initialization =
-						tc_dwc_g210_config_40_bit;
-	} else {
+			tc_dwc_g210_config_40_bit;
+	}
+	else
+	{
 		dev_err(&pdev->dev, "test chip version not specified\n");
 		return -EPERM;
 	}
 
 	err = pcim_enable_device(pdev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "pcim_enable_device failed\n");
 		return err;
 	}
@@ -117,7 +125,9 @@ tc_dwc_g210_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	pci_set_master(pdev);
 
 	err = pcim_iomap_regions(pdev, 1 << 0, UFSHCD);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(&pdev->dev, "request and iomap failed\n");
 		return err;
 	}
@@ -125,7 +135,9 @@ tc_dwc_g210_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	mmio_base = pcim_iomap_table(pdev)[0];
 
 	err = ufshcd_alloc_host(&pdev->dev, &hba);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "Allocation failed\n");
 		return err;
 	}
@@ -135,7 +147,9 @@ tc_dwc_g210_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	hba->vops = &tc_dwc_g210_pci_hba_vops;
 
 	err = ufshcd_init(hba, mmio_base, pdev->irq);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "Initialization failed\n");
 		return err;
 	}
@@ -147,7 +161,8 @@ tc_dwc_g210_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	return 0;
 }
 
-static const struct dev_pm_ops tc_dwc_g210_pci_pm_ops = {
+static const struct dev_pm_ops tc_dwc_g210_pci_pm_ops =
+{
 	.suspend	= tc_dwc_g210_pci_suspend,
 	.resume		= tc_dwc_g210_pci_resume,
 	.runtime_suspend = tc_dwc_g210_pci_runtime_suspend,
@@ -155,7 +170,8 @@ static const struct dev_pm_ops tc_dwc_g210_pci_pm_ops = {
 	.runtime_idle    = tc_dwc_g210_pci_runtime_idle,
 };
 
-static const struct pci_device_id tc_dwc_g210_pci_tbl[] = {
+static const struct pci_device_id tc_dwc_g210_pci_tbl[] =
+{
 	{ PCI_VENDOR_ID_SYNOPSYS, 0xB101, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
 	{ PCI_VENDOR_ID_SYNOPSYS, 0xB102, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
 	{ }	/* terminate list */
@@ -163,7 +179,8 @@ static const struct pci_device_id tc_dwc_g210_pci_tbl[] = {
 
 MODULE_DEVICE_TABLE(pci, tc_dwc_g210_pci_tbl);
 
-static struct pci_driver tc_dwc_g210_pci_driver = {
+static struct pci_driver tc_dwc_g210_pci_driver =
+{
 	.name = "tc-dwc-g210-pci",
 	.id_table = tc_dwc_g210_pci_tbl,
 	.probe = tc_dwc_g210_pci_probe,

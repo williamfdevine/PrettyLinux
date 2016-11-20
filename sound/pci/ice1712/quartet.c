@@ -35,21 +35,24 @@
 #include <sound/ak4113.h>
 #include "quartet.h"
 
-struct qtet_spec {
+struct qtet_spec
+{
 	struct ak4113 *ak4113;
 	unsigned int scr;	/* system control register */
 	unsigned int mcr;	/* monitoring control register */
 	unsigned int cpld;	/* cpld register */
 };
 
-struct qtet_kcontrol_private {
+struct qtet_kcontrol_private
+{
 	unsigned int bit;
 	void (*set_register)(struct snd_ice1712 *ice, unsigned int val);
 	unsigned int (*get_register)(struct snd_ice1712 *ice);
-	const char * const texts[2];
+	const char *const texts[2];
 };
 
-enum {
+enum
+{
 	IN12_SEL = 0,
 	IN34_SEL,
 	AIN34_SEL,
@@ -62,8 +65,9 @@ enum {
 	OUT34_MON12,
 };
 
-static const char * const ext_clock_names[3] = {"IEC958 In", "Word Clock 1xFS",
-	"Word Clock 256xFS"};
+static const char *const ext_clock_names[3] = {"IEC958 In", "Word Clock 1xFS",
+											   "Word Clock 256xFS"
+											  };
 
 /* chip address on I2C bus */
 #define AK4113_ADDR		0x26	/* S/PDIF receiver */
@@ -111,12 +115,12 @@ static const char * const ext_clock_names[3] = {"IEC958 In", "Word Clock 1xFS",
 #define GPIO_MCR		(1<<14)
 
 #define GPIO_SPI_ALL		(GPIO_D4_SPI_CDTO | GPIO_D5_SPI_CCLK |\
-		GPIO_SPI_CSN0 | GPIO_SPI_CSN1)
+							 GPIO_SPI_CSN0 | GPIO_SPI_CSN1)
 
 #define GPIO_DATA_MASK		(GPIO_D0 | GPIO_D1_JACKDTC0 | \
-		GPIO_D2_JACKDTC1 | GPIO_D3 | \
-		GPIO_D4_SPI_CDTO | GPIO_D5_SPI_CCLK | \
-		GPIO_D6_CD | GPIO_D7_DD)
+							 GPIO_D2_JACKDTC1 | GPIO_D3 | \
+							 GPIO_D4_SPI_CDTO | GPIO_D5_SPI_CCLK | \
+							 GPIO_D6_CD | GPIO_D7_DD)
 
 /* System Control Register GPIO_SCR data bits */
 /* Mic/Line select relay (0:line, 1:mic) */
@@ -186,7 +190,7 @@ static const char * const ext_clock_names[3] = {"IEC958 In", "Word Clock 1xFS",
 #define CPLD_EXT_WORDCLOCK_1FS	(CPLD_CKS1 | CPLD_SYNC_SEL)
 /* external clock - WordClock 256xfs */
 #define CPLD_EXT_WORDCLOCK_256FS	(CPLD_CKS1 | CPLD_WORD_SEL |\
-		CPLD_SYNC_SEL)
+									 CPLD_SYNC_SEL)
 
 #define EXT_SPDIF_TYPE			0
 #define EXT_WORDCLOCK_1FS_TYPE		1
@@ -211,19 +215,30 @@ static char *get_binary(char *buffer, int value)
 {
 	int i, j, pos;
 	pos = 0;
-	for (i = 0; i < 4; ++i) {
-		for (j = 0; j < 8; ++j) {
-			if (value & (1 << (31-(i*8 + j))))
+
+	for (i = 0; i < 4; ++i)
+	{
+		for (j = 0; j < 8; ++j)
+		{
+			if (value & (1 << (31 - (i * 8 + j))))
+			{
 				buffer[pos] = '1';
+			}
 			else
+			{
 				buffer[pos] = '0';
+			}
+
 			pos++;
 		}
-		if (i < 3) {
+
+		if (i < 3)
+		{
 			buffer[pos] = ' ';
 			pos++;
 		}
 	}
+
 	buffer[pos] = '\0';
 	return buffer;
 }
@@ -231,33 +246,36 @@ static char *get_binary(char *buffer, int value)
 /*
  * Initial setup of the conversion array GPIO <-> rate
  */
-static unsigned int qtet_rates[] = {
+static unsigned int qtet_rates[] =
+{
 	44100, 48000, 88200,
 	96000, 176400, 192000,
 };
 
-static unsigned int cks_vals[] = {
+static unsigned int cks_vals[] =
+{
 	CPLD_CKS_44100HZ, CPLD_CKS_48000HZ, CPLD_CKS_88200HZ,
 	CPLD_CKS_96000HZ, CPLD_CKS_176400HZ, CPLD_CKS_192000HZ,
 };
 
-static struct snd_pcm_hw_constraint_list qtet_rates_info = {
+static struct snd_pcm_hw_constraint_list qtet_rates_info =
+{
 	.count = ARRAY_SIZE(qtet_rates),
 	.list = qtet_rates,
 	.mask = 0,
 };
 
 static void qtet_ak4113_write(void *private_data, unsigned char reg,
-		unsigned char val)
+							  unsigned char val)
 {
 	snd_vt1724_write_i2c((struct snd_ice1712 *)private_data, AK4113_ADDR,
-			reg, val);
+						 reg, val);
 }
 
 static unsigned char qtet_ak4113_read(void *private_data, unsigned char reg)
 {
 	return snd_vt1724_read_i2c((struct snd_ice1712 *)private_data,
-			AK4113_ADDR, reg);
+							   AK4113_ADDR, reg);
 }
 
 
@@ -269,7 +287,7 @@ static unsigned char qtet_ak4113_read(void *private_data, unsigned char reg)
  * Write data to addr register of ak4620
  */
 static void qtet_akm_write(struct snd_akm4xxx *ak, int chip,
-		unsigned char addr, unsigned char data)
+						   unsigned char addr, unsigned char data)
 {
 	unsigned int tmp, orig_dir;
 	int idx;
@@ -277,7 +295,10 @@ static void qtet_akm_write(struct snd_akm4xxx *ak, int chip,
 	struct snd_ice1712 *ice = ak->private_data[0];
 
 	if (snd_BUG_ON(chip < 0 || chip >= 4))
+	{
 		return;
+	}
+
 	/*dev_dbg(ice->card->dev, "Writing to AK4620: chip=%d, addr=0x%x,
 	  data=0x%x\n", chip, addr, data);*/
 	orig_dir = ice->gpio.get_dir(ice);
@@ -290,28 +311,42 @@ static void qtet_akm_write(struct snd_akm4xxx *ak, int chip,
 	tmp |= GPIO_SPI_ALL;
 	ice->gpio.set_data(ice, tmp);
 	udelay(100);
+
 	/* drop chip select */
 	if (chip)
 		/* CODEC 1 */
+	{
 		tmp &= ~GPIO_SPI_CSN1;
+	}
 	else
+	{
 		tmp &= ~GPIO_SPI_CSN0;
+	}
+
 	ice->gpio.set_data(ice, tmp);
 	udelay(100);
 
 	/* build I2C address + data byte */
 	addrdata = (AK4620_ADDR << 6) | 0x20 | (addr & 0x1f);
 	addrdata = (addrdata << 8) | data;
-	for (idx = 15; idx >= 0; idx--) {
+
+	for (idx = 15; idx >= 0; idx--)
+	{
 		/* drop clock */
 		tmp &= ~GPIO_D5_SPI_CCLK;
 		ice->gpio.set_data(ice, tmp);
 		udelay(100);
+
 		/* set data */
 		if (addrdata & (1 << idx))
+		{
 			tmp |= GPIO_D4_SPI_CDTO;
+		}
 		else
+		{
 			tmp &= ~GPIO_D4_SPI_CDTO;
+		}
+
 		ice->gpio.set_data(ice, tmp);
 		udelay(100);
 		/* raise clock */
@@ -319,6 +354,7 @@ static void qtet_akm_write(struct snd_akm4xxx *ak, int chip,
 		ice->gpio.set_data(ice, tmp);
 		udelay(100);
 	}
+
 	/* all back to 1 */
 	tmp |= GPIO_SPI_ALL;
 	ice->gpio.set_data(ice, tmp);
@@ -331,11 +367,13 @@ static void qtet_akm_write(struct snd_akm4xxx *ak, int chip,
 }
 
 static void qtet_akm_set_regs(struct snd_akm4xxx *ak, unsigned char addr,
-		unsigned char mask, unsigned char value)
+							  unsigned char mask, unsigned char value)
 {
 	unsigned char tmp;
 	int chip;
-	for (chip = 0; chip < ak->num_chips; chip++) {
+
+	for (chip = 0; chip < ak->num_chips; chip++)
+	{
 		tmp = snd_akm4xxx_get(ak, chip, addr);
 		/* clear the bits */
 		tmp &= ~mask;
@@ -354,19 +392,27 @@ static void qtet_akm_set_rate_val(struct snd_akm4xxx *ak, unsigned int rate)
 
 	if (rate == 0)  /* no hint - S/PDIF input is master or the new spdif
 			   input rate undetected, simply return */
+	{
 		return;
+	}
 
 	/* adjust DFS on codecs - see datasheet */
 	if (rate > 108000)
+	{
 		ak4620_dfs = AK4620_DFS1 | AK4620_CKS1;
+	}
 	else if (rate > 54000)
+	{
 		ak4620_dfs = AK4620_DFS0 | AK4620_CKS0;
+	}
 	else
+	{
 		ak4620_dfs = 0;
+	}
 
 	/* set new value */
 	qtet_akm_set_regs(ak, AK4620_DFS_REG, AK4620_DFS0 | AK4620_DFS1 |
-			AK4620_CKS0 | AK4620_CKS1, ak4620_dfs);
+					  AK4620_CKS0 | AK4620_CKS1, ak4620_dfs);
 }
 
 #define AK_CONTROL(xname, xch)	{ .name = xname, .num_channels = xch }
@@ -376,17 +422,20 @@ static void qtet_akm_set_rate_val(struct snd_akm4xxx *ak, unsigned int rate)
 #define PCM_12_CAPTURE_VOLUME	"PCM 1/2 Capture Volume"
 #define PCM_34_CAPTURE_VOLUME	"PCM 3/4 Capture Volume"
 
-static const struct snd_akm4xxx_dac_channel qtet_dac[] = {
+static const struct snd_akm4xxx_dac_channel qtet_dac[] =
+{
 	AK_CONTROL(PCM_12_PLAYBACK_VOLUME, 2),
 	AK_CONTROL(PCM_34_PLAYBACK_VOLUME, 2),
 };
 
-static const struct snd_akm4xxx_adc_channel qtet_adc[] = {
+static const struct snd_akm4xxx_adc_channel qtet_adc[] =
+{
 	AK_CONTROL(PCM_12_CAPTURE_VOLUME, 2),
 	AK_CONTROL(PCM_34_CAPTURE_VOLUME, 2),
 };
 
-static struct snd_akm4xxx akm_qtet_dac = {
+static struct snd_akm4xxx akm_qtet_dac =
+{
 	.type = SND_AK4620,
 	.num_dacs = 4,	/* DAC1 - Output 12
 	*/
@@ -406,7 +455,7 @@ static struct snd_akm4xxx akm_qtet_dac = {
 /* Writes data to external register reg, both reg and data are
  * GPIO representations */
 static void reg_write(struct snd_ice1712 *ice, unsigned int reg,
-		unsigned int data)
+					  unsigned int data)
 {
 	unsigned int tmp;
 
@@ -486,7 +535,7 @@ static void set_cpld(struct snd_ice1712 *ice, unsigned int val)
 }
 
 static void proc_regs_read(struct snd_info_entry *entry,
-		struct snd_info_buffer *buffer)
+						   struct snd_info_buffer *buffer)
 {
 	struct snd_ice1712 *ice = entry->private_data;
 	char bin_buffer[36];
@@ -502,12 +551,15 @@ static void proc_regs_read(struct snd_info_entry *entry,
 static void proc_init(struct snd_ice1712 *ice)
 {
 	struct snd_info_entry *entry;
+
 	if (!snd_card_proc_new(ice->card, "quartet", &entry))
+	{
 		snd_info_set_text_ops(entry, ice, proc_regs_read);
+	}
 }
 
 static int qtet_mute_get(struct snd_kcontrol *kcontrol,
-		struct snd_ctl_elem_value *ucontrol)
+						 struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	unsigned int val;
@@ -517,112 +569,137 @@ static int qtet_mute_get(struct snd_kcontrol *kcontrol,
 }
 
 static int qtet_mute_put(struct snd_kcontrol *kcontrol,
-		struct snd_ctl_elem_value *ucontrol)
+						 struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	unsigned int old, new, smute;
 	old = get_scr(ice) & SCR_MUTE;
-	if (ucontrol->value.integer.value[0]) {
+
+	if (ucontrol->value.integer.value[0])
+	{
 		/* unmute */
 		new = 0;
 		/* un-smuting DAC */
 		smute = 0;
-	} else {
+	}
+	else
+	{
 		/* mute */
 		new = SCR_MUTE;
 		/* smuting DAC */
 		smute = AK4620_SMUTE;
 	}
-	if (old != new) {
+
+	if (old != new)
+	{
 		struct snd_akm4xxx *ak = ice->akm;
 		set_scr(ice, (get_scr(ice) & ~SCR_MUTE) | new);
 		/* set smute */
 		qtet_akm_set_regs(ak, AK4620_DEEMVOL_REG, AK4620_SMUTE, smute);
 		return 1;
 	}
+
 	/* no change */
 	return 0;
 }
 
 static int qtet_ain12_enum_info(struct snd_kcontrol *kcontrol,
-		struct snd_ctl_elem_info *uinfo)
+								struct snd_ctl_elem_info *uinfo)
 {
-	static const char * const texts[3] =
-		{"Line In 1/2", "Mic", "Mic + Low-cut"};
+	static const char *const texts[3] =
+	{"Line In 1/2", "Mic", "Mic + Low-cut"};
 	return snd_ctl_enum_info(uinfo, 1, ARRAY_SIZE(texts), texts);
 }
 
 static int qtet_ain12_sw_get(struct snd_kcontrol *kcontrol,
-		struct snd_ctl_elem_value *ucontrol)
+							 struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	unsigned int val, result;
 	val = get_scr(ice) & (SCR_AIN12_SEL1 | SCR_AIN12_SEL0);
-	switch (val) {
-	case SCR_AIN12_LINE:
-		result = 0;
-		break;
-	case SCR_AIN12_MIC:
-		result = 1;
-		break;
-	case SCR_AIN12_LOWCUT:
-		result = 2;
-		break;
-	default:
-		/* BUG - no other combinations allowed */
-		snd_BUG();
-		result = 0;
+
+	switch (val)
+	{
+		case SCR_AIN12_LINE:
+			result = 0;
+			break;
+
+		case SCR_AIN12_MIC:
+			result = 1;
+			break;
+
+		case SCR_AIN12_LOWCUT:
+			result = 2;
+			break;
+
+		default:
+			/* BUG - no other combinations allowed */
+			snd_BUG();
+			result = 0;
 	}
+
 	ucontrol->value.integer.value[0] = result;
 	return 0;
 }
 
 static int qtet_ain12_sw_put(struct snd_kcontrol *kcontrol,
-		struct snd_ctl_elem_value *ucontrol)
+							 struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	unsigned int old, new, tmp, masked_old;
 	old = new = get_scr(ice);
 	masked_old = old & (SCR_AIN12_SEL1 | SCR_AIN12_SEL0);
 	tmp = ucontrol->value.integer.value[0];
+
 	if (tmp == 2)
-		tmp = 3;	/* binary 10 is not supported */
+	{
+		tmp = 3;    /* binary 10 is not supported */
+	}
+
 	tmp <<= 4;	/* shifting to SCR_AIN12_SEL0 */
-	if (tmp != masked_old) {
+
+	if (tmp != masked_old)
+	{
 		/* change requested */
-		switch (tmp) {
-		case SCR_AIN12_LINE:
-			new = old & ~(SCR_AIN12_SEL1 | SCR_AIN12_SEL0);
-			set_scr(ice, new);
-			/* turn off relay */
-			new &= ~SCR_RELAY;
-			set_scr(ice, new);
-			break;
-		case SCR_AIN12_MIC:
-			/* turn on relay */
-			new = old | SCR_RELAY;
-			set_scr(ice, new);
-			new = (new & ~SCR_AIN12_SEL1) | SCR_AIN12_SEL0;
-			set_scr(ice, new);
-			break;
-		case SCR_AIN12_LOWCUT:
-			/* turn on relay */
-			new = old | SCR_RELAY;
-			set_scr(ice, new);
-			new |= SCR_AIN12_SEL1 | SCR_AIN12_SEL0;
-			set_scr(ice, new);
-			break;
-		default:
-			snd_BUG();
+		switch (tmp)
+		{
+			case SCR_AIN12_LINE:
+				new = old & ~(SCR_AIN12_SEL1 | SCR_AIN12_SEL0);
+				set_scr(ice, new);
+				/* turn off relay */
+				new &= ~SCR_RELAY;
+				set_scr(ice, new);
+				break;
+
+			case SCR_AIN12_MIC:
+				/* turn on relay */
+				new = old | SCR_RELAY;
+				set_scr(ice, new);
+				new = (new & ~SCR_AIN12_SEL1) | SCR_AIN12_SEL0;
+				set_scr(ice, new);
+				break;
+
+			case SCR_AIN12_LOWCUT:
+				/* turn on relay */
+				new = old | SCR_RELAY;
+				set_scr(ice, new);
+				new |= SCR_AIN12_SEL1 | SCR_AIN12_SEL0;
+				set_scr(ice, new);
+				break;
+
+			default:
+				snd_BUG();
 		}
+
 		return 1;
 	}
+
 	/* no change */
 	return 0;
 }
 
 static int qtet_php_get(struct snd_kcontrol *kcontrol,
-		struct snd_ctl_elem_value *ucontrol)
+						struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	unsigned int val;
@@ -633,13 +710,15 @@ static int qtet_php_get(struct snd_kcontrol *kcontrol,
 }
 
 static int qtet_php_put(struct snd_kcontrol *kcontrol,
-		struct snd_ctl_elem_value *ucontrol)
+						struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	unsigned int old, new;
 	old = new = get_scr(ice);
+
 	if (ucontrol->value.integer.value[0] /* phantom on requested */
-			&& (~old & SCR_PHP_V)) /* 0 = voltage 5V */ {
+		&& (~old & SCR_PHP_V)) /* 0 = voltage 5V */
+	{
 		/* is off, turn on */
 		/* turn voltage on first, = 1 */
 		new = old | SCR_PHP_V;
@@ -647,7 +726,9 @@ static int qtet_php_put(struct snd_kcontrol *kcontrol,
 		/* turn phantom on, = 0 */
 		new &= ~SCR_PHP;
 		set_scr(ice, new);
-	} else if (!ucontrol->value.integer.value[0] && (old & SCR_PHP_V)) {
+	}
+	else if (!ucontrol->value.integer.value[0] && (old & SCR_PHP_V))
+	{
 		/* phantom off requested and 1 = voltage 48V */
 		/* is on, turn off */
 		/* turn voltage off first, = 0 */
@@ -657,23 +738,28 @@ static int qtet_php_put(struct snd_kcontrol *kcontrol,
 		new |= SCR_PHP;
 		set_scr(ice, new);
 	}
+
 	if (old != new)
+	{
 		return 1;
+	}
+
 	/* no change */
 	return 0;
 }
 
 #define PRIV_SW(xid, xbit, xreg)	[xid] = {.bit = xbit,\
-	.set_register = set_##xreg,\
-	.get_register = get_##xreg, }
+											 .set_register = set_##xreg,\
+											 .get_register = get_##xreg, }
 
 
 #define PRIV_ENUM2(xid, xbit, xreg, xtext1, xtext2)	[xid] = {.bit = xbit,\
-	.set_register = set_##xreg,\
-	.get_register = get_##xreg,\
-	.texts = {xtext1, xtext2} }
+															 .set_register = set_##xreg,\
+															 .get_register = get_##xreg,\
+															 .texts = {xtext1, xtext2} }
 
-static struct qtet_kcontrol_private qtet_privates[] = {
+static struct qtet_kcontrol_private qtet_privates[] =
+{
 	PRIV_ENUM2(IN12_SEL, CPLD_IN12_SEL, cpld, "An In 1/2", "An In 3/4"),
 	PRIV_ENUM2(IN34_SEL, CPLD_IN34_SEL, cpld, "An In 3/4", "IEC958 In"),
 	PRIV_ENUM2(AIN34_SEL, SCR_AIN34_SEL, scr, "Line In 3/4", "Hi-Z"),
@@ -687,19 +773,19 @@ static struct qtet_kcontrol_private qtet_privates[] = {
 };
 
 static int qtet_enum_info(struct snd_kcontrol *kcontrol,
-		struct snd_ctl_elem_info *uinfo)
+						  struct snd_ctl_elem_info *uinfo)
 {
 	struct qtet_kcontrol_private private =
-		qtet_privates[kcontrol->private_value];
+			qtet_privates[kcontrol->private_value];
 	return snd_ctl_enum_info(uinfo, 1, ARRAY_SIZE(private.texts),
-				 private.texts);
+							 private.texts);
 }
 
 static int qtet_sw_get(struct snd_kcontrol *kcontrol,
-		struct snd_ctl_elem_value *ucontrol)
+					   struct snd_ctl_elem_value *ucontrol)
 {
 	struct qtet_kcontrol_private private =
-		qtet_privates[kcontrol->private_value];
+			qtet_privates[kcontrol->private_value];
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	ucontrol->value.integer.value[0] =
 		(private.get_register(ice) & private.bit) ? 1 : 0;
@@ -707,21 +793,29 @@ static int qtet_sw_get(struct snd_kcontrol *kcontrol,
 }
 
 static int qtet_sw_put(struct snd_kcontrol *kcontrol,
-		struct snd_ctl_elem_value *ucontrol)
+					   struct snd_ctl_elem_value *ucontrol)
 {
 	struct qtet_kcontrol_private private =
-		qtet_privates[kcontrol->private_value];
+			qtet_privates[kcontrol->private_value];
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	unsigned int old, new;
 	old = private.get_register(ice);
+
 	if (ucontrol->value.integer.value[0])
+	{
 		new = old | private.bit;
+	}
 	else
+	{
 		new = old & ~private.bit;
-	if (old != new) {
+	}
+
+	if (old != new)
+	{
 		private.set_register(ice, new);
 		return 1;
 	}
+
 	/* no change */
 	return 0;
 }
@@ -730,13 +824,14 @@ static int qtet_sw_put(struct snd_kcontrol *kcontrol,
 
 #define QTET_CONTROL(xname, xtype, xpriv)	\
 	{.iface = SNDRV_CTL_ELEM_IFACE_MIXER,\
-	.name = xname,\
-	.info = qtet_##xtype##_info,\
-	.get = qtet_sw_get,\
-	.put = qtet_sw_put,\
-	.private_value = xpriv }
+			  .name = xname,\
+					  .info = qtet_##xtype##_info,\
+							  .get = qtet_sw_get,\
+									 .put = qtet_sw_put,\
+											.private_value = xpriv }
 
-static struct snd_kcontrol_new qtet_controls[] = {
+static struct snd_kcontrol_new qtet_controls[] =
+{
 	{
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.name = "Master Playback Switch",
@@ -773,7 +868,8 @@ static struct snd_kcontrol_new qtet_controls[] = {
 	QTET_CONTROL("Output 3/4 to Monitor 1/2", sw, OUT34_MON12),
 };
 
-static char *slave_vols[] = {
+static char *slave_vols[] =
+{
 	PCM_12_PLAYBACK_VOLUME,
 	PCM_34_PLAYBACK_VOLUME,
 	NULL
@@ -783,7 +879,7 @@ static
 DECLARE_TLV_DB_SCALE(qtet_master_db_scale, -6350, 50, 1);
 
 static struct snd_kcontrol *ctl_find(struct snd_card *card,
-				     const char *name)
+									 const char *name)
 {
 	struct snd_ctl_elem_id sid;
 	memset(&sid, 0, sizeof(sid));
@@ -794,12 +890,16 @@ static struct snd_kcontrol *ctl_find(struct snd_card *card,
 }
 
 static void add_slaves(struct snd_card *card,
-		       struct snd_kcontrol *master, char * const *list)
+					   struct snd_kcontrol *master, char *const *list)
 {
-	for (; *list; list++) {
+	for (; *list; list++)
+	{
 		struct snd_kcontrol *slave = ctl_find(card, *list);
+
 		if (slave)
+		{
 			snd_ctl_add_slave(master, slave);
+		}
 	}
 }
 
@@ -809,27 +909,43 @@ static int qtet_add_controls(struct snd_ice1712 *ice)
 	int err, i;
 	struct snd_kcontrol *vmaster;
 	err = snd_ice1712_akm4xxx_build_controls(ice);
+
 	if (err < 0)
+	{
 		return err;
-	for (i = 0; i < ARRAY_SIZE(qtet_controls); i++) {
+	}
+
+	for (i = 0; i < ARRAY_SIZE(qtet_controls); i++)
+	{
 		err = snd_ctl_add(ice->card,
-				snd_ctl_new1(&qtet_controls[i], ice));
+						  snd_ctl_new1(&qtet_controls[i], ice));
+
 		if (err < 0)
+		{
 			return err;
+		}
 	}
 
 	/* Create virtual master control */
 	vmaster = snd_ctl_make_virtual_master("Master Playback Volume",
-			qtet_master_db_scale);
+										  qtet_master_db_scale);
+
 	if (!vmaster)
+	{
 		return -ENOMEM;
+	}
+
 	add_slaves(ice->card, vmaster, slave_vols);
 	err = snd_ctl_add(ice->card, vmaster);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	/* only capture SPDIF over AK4113 */
 	return snd_ak4113_build(spec->ak4113,
-			ice->pcm->streams[SNDRV_PCM_STREAM_CAPTURE].substream);
+							ice->pcm->streams[SNDRV_PCM_STREAM_CAPTURE].substream);
 }
 
 static inline int qtet_is_spdif_master(struct snd_ice1712 *ice)
@@ -844,18 +960,26 @@ static unsigned int qtet_get_rate(struct snd_ice1712 *ice)
 	unsigned char result;
 
 	result =  get_cpld(ice) & CPLD_CKS_MASK;
+
 	for (i = 0; i < ARRAY_SIZE(cks_vals); i++)
 		if (cks_vals[i] == result)
+		{
 			return qtet_rates[i];
+		}
+
 	return 0;
 }
 
 static int get_cks_val(int rate)
 {
 	int i;
+
 	for (i = 0; i < ARRAY_SIZE(qtet_rates); i++)
 		if (qtet_rates[i] == rate)
+		{
 			return cks_vals[i];
+		}
+
 	return 0;
 }
 
@@ -890,24 +1014,32 @@ static int qtet_set_spdif_clock(struct snd_ice1712 *ice, int type)
 
 	old = new = get_cpld(ice);
 	new &= ~(CPLD_CKS_MASK | CPLD_WORD_SEL);
-	switch (type) {
-	case EXT_SPDIF_TYPE:
-		new |= CPLD_EXT_SPDIF;
-		break;
-	case EXT_WORDCLOCK_1FS_TYPE:
-		new |= CPLD_EXT_WORDCLOCK_1FS;
-		break;
-	case EXT_WORDCLOCK_256FS_TYPE:
-		new |= CPLD_EXT_WORDCLOCK_256FS;
-		break;
-	default:
-		snd_BUG();
+
+	switch (type)
+	{
+		case EXT_SPDIF_TYPE:
+			new |= CPLD_EXT_SPDIF;
+			break;
+
+		case EXT_WORDCLOCK_1FS_TYPE:
+			new |= CPLD_EXT_WORDCLOCK_1FS;
+			break;
+
+		case EXT_WORDCLOCK_256FS_TYPE:
+			new |= CPLD_EXT_WORDCLOCK_256FS;
+			break;
+
+		default:
+			snd_BUG();
 	}
-	if (old != new) {
+
+	if (old != new)
+	{
 		set_cpld(ice, new);
 		/* changed */
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -918,37 +1050,48 @@ static int qtet_get_spdif_master_type(struct snd_ice1712 *ice)
 	val = get_cpld(ice);
 	/* checking only rate/clock-related bits */
 	val &= (CPLD_CKS_MASK | CPLD_WORD_SEL | CPLD_SYNC_SEL);
-	if (!(val & CPLD_SYNC_SEL)) {
+
+	if (!(val & CPLD_SYNC_SEL))
+	{
 		/* switched to internal clock, is not any external type */
 		result = -1;
-	} else {
-		switch (val) {
-		case (CPLD_EXT_SPDIF):
-			result = EXT_SPDIF_TYPE;
-			break;
-		case (CPLD_EXT_WORDCLOCK_1FS):
-			result = EXT_WORDCLOCK_1FS_TYPE;
-			break;
-		case (CPLD_EXT_WORDCLOCK_256FS):
-			result = EXT_WORDCLOCK_256FS_TYPE;
-			break;
-		default:
-			/* undefined combination of external clock setup */
-			snd_BUG();
-			result = 0;
+	}
+	else
+	{
+		switch (val)
+		{
+			case (CPLD_EXT_SPDIF):
+				result = EXT_SPDIF_TYPE;
+				break;
+
+			case (CPLD_EXT_WORDCLOCK_1FS):
+				result = EXT_WORDCLOCK_1FS_TYPE;
+				break;
+
+			case (CPLD_EXT_WORDCLOCK_256FS):
+				result = EXT_WORDCLOCK_256FS_TYPE;
+				break;
+
+			default:
+				/* undefined combination of external clock setup */
+				snd_BUG();
+				result = 0;
 		}
 	}
+
 	return result;
 }
 
 /* Called when ak4113 detects change in the input SPDIF stream */
 static void qtet_ak4113_change(struct ak4113 *ak4113, unsigned char c0,
-		unsigned char c1)
+							   unsigned char c1)
 {
 	struct snd_ice1712 *ice = ak4113->change_callback_private;
 	int rate;
+
 	if ((qtet_get_spdif_master_type(ice) == EXT_SPDIF_TYPE) &&
-			c1) {
+		c1)
+	{
 		/* only for SPDIF master mode, rate was changed */
 		rate = snd_ak4113_external_rate(ak4113);
 		/* dev_dbg(ice->card->dev, "ak4113 - input rate changed to %d\n",
@@ -962,7 +1105,7 @@ static void qtet_ak4113_change(struct ak4113 *ak4113, unsigned char c0,
  * to the detected external rate
  */
 static void qtet_spdif_in_open(struct snd_ice1712 *ice,
-		struct snd_pcm_substream *substream)
+							   struct snd_pcm_substream *substream)
 {
 	struct qtet_spec *spec = ice->spec;
 	struct snd_pcm_runtime *runtime = substream->runtime;
@@ -970,10 +1113,15 @@ static void qtet_spdif_in_open(struct snd_ice1712 *ice,
 
 	if (qtet_get_spdif_master_type(ice) != EXT_SPDIF_TYPE)
 		/* not external SPDIF, no rate limitation */
+	{
 		return;
+	}
+
 	/* only external SPDIF can detect incoming sample rate */
 	rate = snd_ak4113_external_rate(spec->ak4113);
-	if (rate >= runtime->hw.rate_min && rate <= runtime->hw.rate_max) {
+
+	if (rate >= runtime->hw.rate_min && rate <= runtime->hw.rate_max)
+	{
 		runtime->hw.rate_min = rate;
 		runtime->hw.rate_max = rate;
 	}
@@ -984,13 +1132,14 @@ static void qtet_spdif_in_open(struct snd_ice1712 *ice,
  */
 static int qtet_init(struct snd_ice1712 *ice)
 {
-	static const unsigned char ak4113_init_vals[] = {
+	static const unsigned char ak4113_init_vals[] =
+	{
 		/* AK4113_REG_PWRDN */	AK4113_RST | AK4113_PWN |
-			AK4113_OCKS0 | AK4113_OCKS1,
+		AK4113_OCKS0 | AK4113_OCKS1,
 		/* AK4113_REQ_FORMAT */	AK4113_DIF_I24I2S | AK4113_VTX |
-			AK4113_DEM_OFF | AK4113_DEAU,
+		AK4113_DEM_OFF | AK4113_DEAU,
 		/* AK4113_REG_IO0 */	AK4113_OPS2 | AK4113_TXE |
-			AK4113_XTL_24_576M,
+		AK4113_XTL_24_576M,
 		/* AK4113_REG_IO1 */	AK4113_EFH_1024LRCLK | AK4113_IPS(0),
 		/* AK4113_REG_INT0_MASK */	0,
 		/* AK4113_REG_INT1_MASK */	0,
@@ -1006,8 +1155,12 @@ static int qtet_init(struct snd_ice1712 *ice)
 	outb(val | VT1724_SPDIF_MASTER, ICEMT1724(ice, RATE));
 
 	spec = kzalloc(sizeof(*spec), GFP_KERNEL);
+
 	if (!spec)
+	{
 		return -ENOMEM;
+	}
+
 	/* qtet is clocked by Xilinx array */
 	ice->hw_rates = &qtet_rates_info;
 	ice->is_spdif_master = qtet_is_spdif_master;
@@ -1043,20 +1196,32 @@ static int qtet_init(struct snd_ice1712 *ice)
 
 	ice->akm = kcalloc(2, sizeof(struct snd_akm4xxx), GFP_KERNEL);
 	ak = ice->akm;
+
 	if (!ak)
+	{
 		return -ENOMEM;
+	}
+
 	/* only one codec with two chips */
 	ice->akm_codecs = 1;
 	err = snd_ice1712_akm4xxx_init(ak, &akm_qtet_dac, NULL, ice);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	err = snd_ak4113_create(ice->card,
-			qtet_ak4113_read,
-			qtet_ak4113_write,
-			ak4113_init_vals,
-			ice, &spec->ak4113);
+							qtet_ak4113_read,
+							qtet_ak4113_write,
+							ak4113_init_vals,
+							ice, &spec->ak4113);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	/* callback for codecs rate setting */
 	spec->ak4113->change_callback = qtet_ak4113_change;
 	spec->ak4113->change_callback_private = ice;
@@ -1070,7 +1235,8 @@ static int qtet_init(struct snd_ice1712 *ice)
 	return 0;
 }
 
-static unsigned char qtet_eeprom[] = {
+static unsigned char qtet_eeprom[] =
+{
 	[ICE_EEP2_SYSCONF]     = 0x28,	/* clock 256(24MHz), mpu401, 1xADC,
 					   1xDACs, SPDIF in */
 	[ICE_EEP2_ACLINK]      = 0x80,	/* I2S */
@@ -1091,7 +1257,8 @@ static unsigned char qtet_eeprom[] = {
 };
 
 /* entry point */
-struct snd_ice1712_card_info snd_vt1724_qtet_cards[] = {
+struct snd_ice1712_card_info snd_vt1724_qtet_cards[] =
+{
 	{
 		.subvendor = VT1724_SUBDEVICE_QTET,
 		.name = "Infrasonic Quartet",

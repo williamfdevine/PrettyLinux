@@ -1,7 +1,8 @@
 #ifndef _L3_H_
 #define _L3_H_ 1
 
-struct l3_pins {
+struct l3_pins
+{
 	void (*setdat)(struct l3_pins *, int);
 	void (*setclk)(struct l3_pins *, int);
 	void (*setmode)(struct l3_pins *, int);

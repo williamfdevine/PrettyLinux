@@ -134,28 +134,28 @@ extern unsigned int snic_log_level;
 #define SNIC_DESC_LOGGING	0x10
 
 #define SNIC_CHECK_LOGGING(LEVEL, CMD)		\
-do {						\
-	if (unlikely(snic_log_level & LEVEL))	\
-		do {				\
-			CMD;			\
-		} while (0);			\
-} while (0)
+	do {						\
+		if (unlikely(snic_log_level & LEVEL))	\
+			do {				\
+				CMD;			\
+			} while (0);			\
+	} while (0)
 
 #define SNIC_MAIN_DBG(host, fmt, args...)	\
 	SNIC_CHECK_LOGGING(SNIC_MAIN_LOGGING,		\
-		shost_printk(KERN_INFO, host, fmt, ## args);)
+					   shost_printk(KERN_INFO, host, fmt, ## args);)
 
 #define SNIC_SCSI_DBG(host, fmt, args...)	\
 	SNIC_CHECK_LOGGING(SNIC_SCSI_LOGGING,		\
-		shost_printk(KERN_INFO, host, fmt, ##args);)
+					   shost_printk(KERN_INFO, host, fmt, ##args);)
 
 #define SNIC_DISC_DBG(host, fmt, args...)	\
 	SNIC_CHECK_LOGGING(SNIC_SCSI_LOGGING,		\
-		shost_printk(KERN_INFO, host, fmt, ##args);)
+					   shost_printk(KERN_INFO, host, fmt, ##args);)
 
 #define SNIC_ISR_DBG(host, fmt, args...)	\
 	SNIC_CHECK_LOGGING(SNIC_ISR_LOGGING,		\
-		shost_printk(KERN_INFO, host, fmt, ##args);)
+					   shost_printk(KERN_INFO, host, fmt, ##args);)
 
 #define SNIC_HOST_ERR(host, fmt, args...)		\
 	shost_printk(KERN_ERR, host, fmt, ##args)
@@ -185,7 +185,7 @@ do {						\
 	({ \
 		if (EXPR) { \
 			SNIC_ERR("SNIC BUG(%s) at %s : %d\n", \
-				 #EXPR, __func__, __LINE__); \
+					 #EXPR, __func__, __LINE__); \
 			WARN_ON_ONCE(EXPR); \
 		} \
 	})
@@ -196,22 +196,24 @@ do {						\
 	({ \
 		if (EXPR) {\
 			SNIC_INFO("Functionality not impl'ed at %s:%d\n", \
-				  __func__, __LINE__); \
+					  __func__, __LINE__); \
 			WARN_ON_ONCE(EXPR); \
 		} \
-	 })
+	})
 
 
 extern const char *snic_state_str[];
 
-enum snic_intx_intr_index {
+enum snic_intx_intr_index
+{
 	SNIC_INTX_WQ_RQ_COPYWQ,
 	SNIC_INTX_ERR,
 	SNIC_INTX_NOTIFY,
 	SNIC_INTX_INTR_MAX,
 };
 
-enum snic_msix_intr_index {
+enum snic_msix_intr_index
+{
 	SNIC_MSIX_WQ,
 	SNIC_MSIX_IO_CMPL,
 	SNIC_MSIX_ERR_NOTIFY,
@@ -219,14 +221,16 @@ enum snic_msix_intr_index {
 };
 
 #define SNIC_INTRHDLR_NAMSZ	(2 * IFNAMSIZ)
-struct snic_msix_entry {
+struct snic_msix_entry
+{
 	int requested;
 	char devname[SNIC_INTRHDLR_NAMSZ];
 	irqreturn_t (*isr)(int, void *);
 	void *devid;
 };
 
-enum snic_state {
+enum snic_state
+{
 	SNIC_INIT = 0,
 	SNIC_ERROR,
 	SNIC_ONLINE,
@@ -239,7 +243,8 @@ enum snic_state {
 #define SNIC_CQ_MAX		(SNIC_WQ_MAX + SNIC_CQ_IO_CMPL_MAX)
 
 /* firmware version information */
-struct snic_fw_info {
+struct snic_fw_info
+{
 	u32	fw_ver;
 	u32	hid;			/* u16 hid | u16 vnic id */
 	u32	max_concur_ios;		/* max concurrent ios */
@@ -254,7 +259,8 @@ struct snic_fw_info {
 /*
  * snic_work item : defined to process asynchronous events
  */
-struct snic_work {
+struct snic_work
+{
 	struct work_struct work;
 	u16	ev_id;
 	u64	*ev_data;
@@ -263,7 +269,8 @@ struct snic_work {
 /*
  * snic structure to represent SCSI vNIC
  */
-struct snic {
+struct snic
+{
 	/* snic specific members */
 	struct list_head list;
 	char name[IFNAMSIZ];
@@ -352,7 +359,8 @@ struct snic {
 /*
  * SNIC Driver's Global Data
  */
-struct snic_global {
+struct snic_global
+{
 	struct list_head snic_list;
 	spinlock_t snic_list_lock;
 

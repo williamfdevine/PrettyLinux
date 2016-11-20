@@ -21,7 +21,8 @@ struct ad714x_chip;
 typedef int (*ad714x_read_t)(struct ad714x_chip *, unsigned short, unsigned short *, size_t);
 typedef int (*ad714x_write_t)(struct ad714x_chip *, unsigned short, unsigned short);
 
-struct ad714x_chip {
+struct ad714x_chip
+{
 	unsigned short l_state;
 	unsigned short h_state;
 	unsigned short c_state;
@@ -49,6 +50,6 @@ struct ad714x_chip {
 int ad714x_disable(struct ad714x_chip *ad714x);
 int ad714x_enable(struct ad714x_chip *ad714x);
 struct ad714x_chip *ad714x_probe(struct device *dev, u16 bus_type, int irq,
-				 ad714x_read_t read, ad714x_write_t write);
+								 ad714x_read_t read, ad714x_write_t write);
 
 #endif

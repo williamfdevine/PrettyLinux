@@ -25,7 +25,8 @@
  * @p_master:	peripheral master for transfers on allocated channel
  * @hs_polarity:set active low polarity of handshake interface
  */
-struct dw_dma_slave {
+struct dw_dma_slave
+{
 	struct device		*dma_dev;
 	u8			src_id;
 	u8			dst_id;
@@ -48,7 +49,8 @@ struct dw_dma_slave {
  * @data_width: Maximum data width supported by hardware per AHB master
  *		(in bytes, power of 2)
  */
-struct dw_dma_platform_data {
+struct dw_dma_platform_data
+{
 	unsigned int	nr_channels;
 	bool		is_private;
 	bool		is_memcpy;

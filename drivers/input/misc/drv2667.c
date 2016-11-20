@@ -105,7 +105,8 @@
  * @regulator - Pointer to the regulator for the IC
  * @magnitude - Magnitude of the vibration event
 **/
-struct drv2667_data {
+struct drv2667_data
+{
 	struct input_dev *input_dev;
 	struct i2c_client *client;
 	struct regmap *regmap;
@@ -116,7 +117,8 @@ struct drv2667_data {
 	u32 frequency;
 };
 
-static const struct reg_default drv2667_reg_defs[] = {
+static const struct reg_default drv2667_reg_defs[] =
+{
 	{ DRV2667_STATUS, 0x02 },
 	{ DRV2667_CTRL_1, 0x28 },
 	{ DRV2667_CTRL_2, 0x40 },
@@ -142,44 +144,55 @@ static int drv2667_set_waveform_freq(struct drv2667_data *haptics)
 	 * Sinusoid Frequency (Hz) = 7.8125 x Frequency
 	 */
 	freq = (haptics->frequency * 1000) / 78125;
-	if (freq <= 0) {
+
+	if (freq <= 0)
+	{
 		dev_err(&haptics->client->dev,
-			"ERROR: Frequency calculated to %i\n", freq);
+				"ERROR: Frequency calculated to %i\n", freq);
 		return -EINVAL;
 	}
 
 	error = regmap_read(haptics->regmap, DRV2667_PAGE, &read_buf);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&haptics->client->dev,
-			"Failed to read the page number: %d\n", error);
+				"Failed to read the page number: %d\n", error);
 		return -EIO;
 	}
 
 	if (read_buf == DRV2667_PAGE_0 ||
-		haptics->page != read_buf) {
+		haptics->page != read_buf)
+	{
 		error = regmap_write(haptics->regmap,
-				DRV2667_PAGE, haptics->page);
-		if (error) {
+							 DRV2667_PAGE, haptics->page);
+
+		if (error)
+		{
 			dev_err(&haptics->client->dev,
-				"Failed to set the page: %d\n", error);
+					"Failed to set the page: %d\n", error);
 			return -EIO;
 		}
 	}
 
 	error = regmap_write(haptics->regmap, DRV2667_RAM_FREQ,	freq);
+
 	if (error)
 		dev_err(&haptics->client->dev,
 				"Failed to set the frequency: %d\n", error);
 
 	/* Reset back to original page */
 	if (read_buf == DRV2667_PAGE_0 ||
-		haptics->page != read_buf) {
+		haptics->page != read_buf)
+	{
 		error = regmap_write(haptics->regmap, DRV2667_PAGE, read_buf);
-		if (error) {
+
+		if (error)
+		{
 			dev_err(&haptics->client->dev,
 					"Failed to set the page: %d\n", error);
-				return -EIO;
-			}
+			return -EIO;
+		}
 	}
 
 	return error;
@@ -190,58 +203,77 @@ static void drv2667_worker(struct work_struct *work)
 	struct drv2667_data *haptics = container_of(work, struct drv2667_data, work);
 	int error;
 
-	if (haptics->magnitude) {
+	if (haptics->magnitude)
+	{
 		error = regmap_write(haptics->regmap,
-				DRV2667_PAGE, haptics->page);
-		if (error) {
+							 DRV2667_PAGE, haptics->page);
+
+		if (error)
+		{
 			dev_err(&haptics->client->dev,
-				"Failed to set the page: %d\n", error);
+					"Failed to set the page: %d\n", error);
 			return;
 		}
 
 		error = regmap_write(haptics->regmap, DRV2667_RAM_AMP,
-				haptics->magnitude);
-		if (error) {
+							 haptics->magnitude);
+
+		if (error)
+		{
 			dev_err(&haptics->client->dev,
-				"Failed to set the amplitude: %d\n", error);
+					"Failed to set the amplitude: %d\n", error);
 			return;
 		}
 
 		error = regmap_write(haptics->regmap,
-				DRV2667_PAGE, DRV2667_PAGE_0);
-		if (error) {
+							 DRV2667_PAGE, DRV2667_PAGE_0);
+
+		if (error)
+		{
 			dev_err(&haptics->client->dev,
-				"Failed to set the page: %d\n", error);
+					"Failed to set the page: %d\n", error);
 			return;
 		}
 
 		error = regmap_write(haptics->regmap,
-				DRV2667_CTRL_2, DRV2667_GO);
-		if (error) {
+							 DRV2667_CTRL_2, DRV2667_GO);
+
+		if (error)
+		{
 			dev_err(&haptics->client->dev,
-				"Failed to set the GO bit: %d\n", error);
+					"Failed to set the GO bit: %d\n", error);
 		}
-	} else {
+	}
+	else
+	{
 		error = regmap_update_bits(haptics->regmap, DRV2667_CTRL_2,
-				DRV2667_GO, 0);
-		if (error) {
+								   DRV2667_GO, 0);
+
+		if (error)
+		{
 			dev_err(&haptics->client->dev,
-				"Failed to unset the GO bit: %d\n", error);
+					"Failed to unset the GO bit: %d\n", error);
 		}
 	}
 }
 
 static int drv2667_haptics_play(struct input_dev *input, void *data,
-				struct ff_effect *effect)
+								struct ff_effect *effect)
 {
 	struct drv2667_data *haptics = input_get_drvdata(input);
 
 	if (effect->u.rumble.strong_magnitude > 0)
+	{
 		haptics->magnitude = effect->u.rumble.strong_magnitude;
+	}
 	else if (effect->u.rumble.weak_magnitude > 0)
+	{
 		haptics->magnitude = effect->u.rumble.weak_magnitude;
+	}
 	else
+	{
 		haptics->magnitude = 0;
+	}
 
 	schedule_work(&haptics->work);
 
@@ -256,20 +288,23 @@ static void drv2667_close(struct input_dev *input)
 	cancel_work_sync(&haptics->work);
 
 	error = regmap_update_bits(haptics->regmap, DRV2667_CTRL_2,
-				DRV2667_STANDBY, 1);
+							   DRV2667_STANDBY, 1);
+
 	if (error)
 		dev_err(&haptics->client->dev,
-			"Failed to enter standby mode: %d\n", error);
+				"Failed to enter standby mode: %d\n", error);
 }
 
-static const struct reg_sequence drv2667_init_regs[] = {
+static const struct reg_sequence drv2667_init_regs[] =
+{
 	{ DRV2667_CTRL_2, 0 },
 	{ DRV2667_CTRL_1, DRV2667_25_VPP_GAIN },
 	{ DRV2667_WV_SEQ_0, 1 },
 	{ DRV2667_WV_SEQ_1, 0 }
 };
 
-static const struct reg_sequence drv2667_page1_init[] = {
+static const struct reg_sequence drv2667_page1_init[] =
+{
 	{ DRV2667_RAM_HDR_SZ, 0x05 },
 	{ DRV2667_RAM_START_HI, 0x80 },
 	{ DRV2667_RAM_START_LO, 0x06 },
@@ -290,33 +325,42 @@ static int drv2667_init(struct drv2667_data *haptics)
 	haptics->page = DRV2667_PAGE_1;
 
 	error = regmap_register_patch(haptics->regmap,
-				      drv2667_init_regs,
-				      ARRAY_SIZE(drv2667_init_regs));
-	if (error) {
+								  drv2667_init_regs,
+								  ARRAY_SIZE(drv2667_init_regs));
+
+	if (error)
+	{
 		dev_err(&haptics->client->dev,
-			"Failed to write init registers: %d\n",
-			error);
+				"Failed to write init registers: %d\n",
+				error);
 		return error;
 	}
 
 	error = regmap_write(haptics->regmap, DRV2667_PAGE, haptics->page);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&haptics->client->dev, "Failed to set page: %d\n",
-			error);
+				error);
 		goto error_out;
 	}
 
 	error = drv2667_set_waveform_freq(haptics);
+
 	if (error)
+	{
 		goto error_page;
+	}
 
 	error = regmap_register_patch(haptics->regmap,
-				      drv2667_page1_init,
-				      ARRAY_SIZE(drv2667_page1_init));
-	if (error) {
+								  drv2667_page1_init,
+								  ARRAY_SIZE(drv2667_page1_init));
+
+	if (error)
+	{
 		dev_err(&haptics->client->dev,
-			"Failed to write page registers: %d\n",
-			error);
+				"Failed to write page registers: %d\n",
+				error);
 		return error;
 	}
 
@@ -329,7 +373,8 @@ error_out:
 	return error;
 }
 
-static const struct regmap_config drv2667_regmap_config = {
+static const struct regmap_config drv2667_regmap_config =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 
@@ -340,25 +385,32 @@ static const struct regmap_config drv2667_regmap_config = {
 };
 
 static int drv2667_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct drv2667_data *haptics;
 	int error;
 
 	haptics = devm_kzalloc(&client->dev, sizeof(*haptics), GFP_KERNEL);
+
 	if (!haptics)
+	{
 		return -ENOMEM;
+	}
 
 	haptics->regulator = devm_regulator_get(&client->dev, "vbat");
-	if (IS_ERR(haptics->regulator)) {
+
+	if (IS_ERR(haptics->regulator))
+	{
 		error = PTR_ERR(haptics->regulator);
 		dev_err(&client->dev,
-			"unable to get regulator, error: %d\n", error);
+				"unable to get regulator, error: %d\n", error);
 		return error;
 	}
 
 	haptics->input_dev = devm_input_allocate_device(&client->dev);
-	if (!haptics->input_dev) {
+
+	if (!haptics->input_dev)
+	{
 		dev_err(&client->dev, "Failed to allocate input device\n");
 		return -ENOMEM;
 	}
@@ -370,10 +422,12 @@ static int drv2667_probe(struct i2c_client *client,
 	input_set_capability(haptics->input_dev, EV_FF, FF_RUMBLE);
 
 	error = input_ff_create_memless(haptics->input_dev, NULL,
-					drv2667_haptics_play);
-	if (error) {
+									drv2667_haptics_play);
+
+	if (error)
+	{
 		dev_err(&client->dev, "input_ff_create() failed: %d\n",
-			error);
+				error);
 		return error;
 	}
 
@@ -383,23 +437,29 @@ static int drv2667_probe(struct i2c_client *client,
 	i2c_set_clientdata(client, haptics);
 
 	haptics->regmap = devm_regmap_init_i2c(client, &drv2667_regmap_config);
-	if (IS_ERR(haptics->regmap)) {
+
+	if (IS_ERR(haptics->regmap))
+	{
 		error = PTR_ERR(haptics->regmap);
 		dev_err(&client->dev, "Failed to allocate register map: %d\n",
-			error);
+				error);
 		return error;
 	}
 
 	error = drv2667_init(haptics);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&client->dev, "Device init failed: %d\n", error);
 		return error;
 	}
 
 	error = input_register_device(haptics->input_dev);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&client->dev, "couldn't register input device: %d\n",
-			error);
+				error);
 		return error;
 	}
 
@@ -413,23 +473,29 @@ static int __maybe_unused drv2667_suspend(struct device *dev)
 
 	mutex_lock(&haptics->input_dev->mutex);
 
-	if (haptics->input_dev->users) {
+	if (haptics->input_dev->users)
+	{
 		ret = regmap_update_bits(haptics->regmap, DRV2667_CTRL_2,
-				DRV2667_STANDBY, 1);
-		if (ret) {
+								 DRV2667_STANDBY, 1);
+
+		if (ret)
+		{
 			dev_err(dev, "Failed to set standby mode\n");
 			regulator_disable(haptics->regulator);
 			goto out;
 		}
 
 		ret = regulator_disable(haptics->regulator);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev, "Failed to disable regulator\n");
 			regmap_update_bits(haptics->regmap,
-					   DRV2667_CTRL_2,
-					   DRV2667_STANDBY, 0);
+							   DRV2667_CTRL_2,
+							   DRV2667_STANDBY, 0);
 		}
 	}
+
 out:
 	mutex_unlock(&haptics->input_dev->mutex);
 	return ret;
@@ -442,16 +508,21 @@ static int __maybe_unused drv2667_resume(struct device *dev)
 
 	mutex_lock(&haptics->input_dev->mutex);
 
-	if (haptics->input_dev->users) {
+	if (haptics->input_dev->users)
+	{
 		ret = regulator_enable(haptics->regulator);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev, "Failed to enable regulator\n");
 			goto out;
 		}
 
 		ret = regmap_update_bits(haptics->regmap, DRV2667_CTRL_2,
-					 DRV2667_STANDBY, 0);
-		if (ret) {
+								 DRV2667_STANDBY, 0);
+
+		if (ret)
+		{
 			dev_err(dev, "Failed to unset standby mode\n");
 			regulator_disable(haptics->regulator);
 			goto out;
@@ -466,21 +537,24 @@ out:
 
 static SIMPLE_DEV_PM_OPS(drv2667_pm_ops, drv2667_suspend, drv2667_resume);
 
-static const struct i2c_device_id drv2667_id[] = {
+static const struct i2c_device_id drv2667_id[] =
+{
 	{ "drv2667", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, drv2667_id);
 
 #ifdef CONFIG_OF
-static const struct of_device_id drv2667_of_match[] = {
+static const struct of_device_id drv2667_of_match[] =
+{
 	{ .compatible = "ti,drv2667", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, drv2667_of_match);
 #endif
 
-static struct i2c_driver drv2667_driver = {
+static struct i2c_driver drv2667_driver =
+{
 	.probe		= drv2667_probe,
 	.driver		= {
 		.name	= "drv2667-haptics",

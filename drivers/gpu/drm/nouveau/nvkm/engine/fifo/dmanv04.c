@@ -45,7 +45,7 @@ nv04_fifo_dma_object_dtor(struct nvkm_fifo_chan *base, int cookie)
 
 static int
 nv04_fifo_dma_object_ctor(struct nvkm_fifo_chan *base,
-			  struct nvkm_object *object)
+						  struct nvkm_object *object)
 {
 	struct nv04_fifo_chan *chan = nv04_fifo_chan(base);
 	struct nvkm_instmem *imem = chan->fifo->base.engine.subdev.device->imem;
@@ -53,19 +53,23 @@ nv04_fifo_dma_object_ctor(struct nvkm_fifo_chan *base,
 	u32 handle  = object->handle;
 	int hash;
 
-	switch (object->engine->subdev.index) {
-	case NVKM_ENGINE_DMAOBJ:
-	case NVKM_ENGINE_SW    : context |= 0x00000000; break;
-	case NVKM_ENGINE_GR    : context |= 0x00010000; break;
-	case NVKM_ENGINE_MPEG  : context |= 0x00020000; break;
-	default:
-		WARN_ON(1);
-		return -EINVAL;
+	switch (object->engine->subdev.index)
+	{
+		case NVKM_ENGINE_DMAOBJ:
+		case NVKM_ENGINE_SW    : context |= 0x00000000; break;
+
+		case NVKM_ENGINE_GR    : context |= 0x00010000; break;
+
+		case NVKM_ENGINE_MPEG  : context |= 0x00020000; break;
+
+		default:
+			WARN_ON(1);
+			return -EINVAL;
 	}
 
 	mutex_lock(&chan->fifo->base.engine.subdev.mutex);
 	hash = nvkm_ramht_insert(imem->ramht, object, chan->base.chid, 4,
-				 handle, context);
+							 handle, context);
 	mutex_unlock(&chan->fifo->base.engine.subdev.mutex);
 	return hash;
 }
@@ -89,24 +93,32 @@ nv04_fifo_dma_fini(struct nvkm_fifo_chan *base)
 
 	/* if this channel is active, replace it with a null context */
 	chid = nvkm_rd32(device, NV03_PFIFO_CACHE1_PUSH1) & mask;
-	if (chid == chan->base.chid) {
+
+	if (chid == chan->base.chid)
+	{
 		nvkm_mask(device, NV04_PFIFO_CACHE1_DMA_PUSH, 0x00000001, 0);
 		nvkm_wr32(device, NV03_PFIFO_CACHE1_PUSH0, 0);
 		nvkm_mask(device, NV04_PFIFO_CACHE1_PULL0, 0x00000001, 0);
 
 		c = fifo->ramfc;
-		do {
+
+		do
+		{
 			u32 rm = ((1ULL << c->bits) - 1) << c->regs;
 			u32 cm = ((1ULL << c->bits) - 1) << c->ctxs;
 			u32 rv = (nvkm_rd32(device, c->regp) &  rm) >> c->regs;
 			u32 cv = (nvkm_ro32(fctx, c->ctxp + data) & ~cm);
 			nvkm_wo32(fctx, c->ctxp + data, cv | (rv << c->ctxs));
-		} while ((++c)->bits);
+		}
+		while ((++c)->bits);
 
 		c = fifo->ramfc;
-		do {
+
+		do
+		{
 			nvkm_wr32(device, c->regp, 0x00000000);
-		} while ((++c)->bits);
+		}
+		while ((++c)->bits);
 
 		nvkm_wr32(device, NV03_PFIFO_CACHE1_GET, 0);
 		nvkm_wr32(device, NV03_PFIFO_CACHE1_PUT, 0);
@@ -143,15 +155,20 @@ nv04_fifo_dma_dtor(struct nvkm_fifo_chan *base)
 	const struct nv04_fifo_ramfc *c = fifo->ramfc;
 
 	nvkm_kmap(imem->ramfc);
-	do {
+
+	do
+	{
 		nvkm_wo32(imem->ramfc, chan->ramfc + c->ctxp, 0x00000000);
-	} while ((++c)->bits);
+	}
+	while ((++c)->bits);
+
 	nvkm_done(imem->ramfc);
 	return chan;
 }
 
 const struct nvkm_fifo_chan_func
-nv04_fifo_dma_func = {
+	nv04_fifo_dma_func =
+{
 	.dtor = nv04_fifo_dma_dtor,
 	.init = nv04_fifo_dma_init,
 	.fini = nv04_fifo_dma_fini,
@@ -161,10 +178,11 @@ nv04_fifo_dma_func = {
 
 static int
 nv04_fifo_dma_new(struct nvkm_fifo *base, const struct nvkm_oclass *oclass,
-		  void *data, u32 size, struct nvkm_object **pobject)
+				  void *data, u32 size, struct nvkm_object **pobject)
 {
 	struct nvkm_object *parent = oclass->parent;
-	union {
+	union
+	{
 		struct nv03_channel_dma_v0 v0;
 	} *args = data;
 	struct nv04_fifo *fifo = nv04_fifo(base);
@@ -174,28 +192,42 @@ nv04_fifo_dma_new(struct nvkm_fifo *base, const struct nvkm_oclass *oclass,
 	int ret = -ENOSYS;
 
 	nvif_ioctl(parent, "create channel dma size %d\n", size);
-	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false))) {
+
+	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false)))
+	{
 		nvif_ioctl(parent, "create channel dma vers %d pushbuf %llx "
 				   "offset %08x\n", args->v0.version,
-			   args->v0.pushbuf, args->v0.offset);
+				   args->v0.pushbuf, args->v0.offset);
+
 		if (!args->v0.pushbuf)
+		{
 			return -EINVAL;
-	} else
+		}
+	}
+	else
+	{
 		return ret;
+	}
 
 	if (!(chan = kzalloc(sizeof(*chan), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	*pobject = &chan->base.object;
 
 	ret = nvkm_fifo_chan_ctor(&nv04_fifo_dma_func, &fifo->base,
-				  0x1000, 0x1000, false, 0, args->v0.pushbuf,
-				  (1ULL << NVKM_ENGINE_DMAOBJ) |
-				  (1ULL << NVKM_ENGINE_GR) |
-				  (1ULL << NVKM_ENGINE_SW),
-				  0, 0x800000, 0x10000, oclass, &chan->base);
+							  0x1000, 0x1000, false, 0, args->v0.pushbuf,
+							  (1ULL << NVKM_ENGINE_DMAOBJ) |
+							  (1ULL << NVKM_ENGINE_GR) |
+							  (1ULL << NVKM_ENGINE_SW),
+							  0, 0x800000, 0x10000, oclass, &chan->base);
 	chan->fifo = fifo;
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	args->v0.chid = chan->base.chid;
 	chan->ramfc = chan->base.chid * 32;
@@ -205,18 +237,19 @@ nv04_fifo_dma_new(struct nvkm_fifo *base, const struct nvkm_oclass *oclass,
 	nvkm_wo32(imem->ramfc, chan->ramfc + 0x04, args->v0.offset);
 	nvkm_wo32(imem->ramfc, chan->ramfc + 0x08, chan->base.push->addr >> 4);
 	nvkm_wo32(imem->ramfc, chan->ramfc + 0x10,
-			       NV_PFIFO_CACHE1_DMA_FETCH_TRIG_128_BYTES |
-			       NV_PFIFO_CACHE1_DMA_FETCH_SIZE_128_BYTES |
+			  NV_PFIFO_CACHE1_DMA_FETCH_TRIG_128_BYTES |
+			  NV_PFIFO_CACHE1_DMA_FETCH_SIZE_128_BYTES |
 #ifdef __BIG_ENDIAN
-			       NV_PFIFO_CACHE1_BIG_ENDIAN |
+			  NV_PFIFO_CACHE1_BIG_ENDIAN |
 #endif
-			       NV_PFIFO_CACHE1_DMA_FETCH_MAX_REQS_8);
+			  NV_PFIFO_CACHE1_DMA_FETCH_MAX_REQS_8);
 	nvkm_done(imem->ramfc);
 	return 0;
 }
 
 const struct nvkm_fifo_chan_oclass
-nv04_fifo_dma_oclass = {
+	nv04_fifo_dma_oclass =
+{
 	.base.oclass = NV03_CHANNEL_DMA,
 	.base.minver = 0,
 	.base.maxver = 0,

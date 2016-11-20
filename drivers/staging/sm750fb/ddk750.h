@@ -18,7 +18,7 @@
 #include "ddk750_power.h"
 #include "ddk750_help.h"
 #ifdef USE_HW_I2C
-#include "ddk750_hwi2c.h"
+	#include "ddk750_hwi2c.h"
 #endif
 #include "ddk750_swi2c.h"
 #endif

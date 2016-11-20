@@ -68,9 +68,10 @@
  * @groups:	An array of pin groups that may select this function.
  * @ngroups:	The number of entries in @groups.
  */
-struct tz1090_function {
+struct tz1090_function
+{
 	const char		*name;
-	const char * const	*groups;
+	const char *const	*groups;
 	unsigned int		ngroups;
 };
 
@@ -84,7 +85,8 @@ struct tz1090_function {
  * A representation of a group of signals (possibly just one signal) in the
  * TZ1090 which can be muxed to a set of functions or sub muxes.
  */
-struct tz1090_muxdesc {
+struct tz1090_muxdesc
+{
 	int	funcs[5];
 	u16	reg;
 	u8	bit;
@@ -108,7 +110,8 @@ struct tz1090_muxdesc {
  * pin controller. Each group allows some parameter or parameters to be
  * configured. The most common is mux function selection.
  */
-struct tz1090_pingroup {
+struct tz1090_pingroup
+{
 	const char		*name;
 	const unsigned int	*pins;
 	unsigned int		npins;
@@ -126,7 +129,8 @@ struct tz1090_pingroup {
  * These must match how the GPIO driver names/numbers its pins.
  */
 
-enum tz1090_pin {
+enum tz1090_pin
+{
 	/* GPIO pins */
 	TZ1090_PIN_SDIO_CLK,
 	TZ1090_PIN_SDIO_CMD,
@@ -233,7 +237,8 @@ enum tz1090_pin {
 
 /* Pin names */
 
-static const struct pinctrl_pin_desc tz1090_pins[] = {
+static const struct pinctrl_pin_desc tz1090_pins[] =
+{
 	/* GPIO pins */
 	PINCTRL_PIN(TZ1090_PIN_SDIO_CLK,	"sdio_clk"),
 	PINCTRL_PIN(TZ1090_PIN_SDIO_CMD,	"sdio_cmd"),
@@ -338,15 +343,18 @@ static const struct pinctrl_pin_desc tz1090_pins[] = {
 
 /* Pins in each pin group */
 
-static const unsigned int spi1_cs2_pins[] = {
+static const unsigned int spi1_cs2_pins[] =
+{
 	TZ1090_PIN_SPI1_CS2,
 };
 
-static const unsigned int pdm_d_pins[] = {
+static const unsigned int pdm_d_pins[] =
+{
 	TZ1090_PIN_PDM_D,
 };
 
-static const unsigned int tft_pins[] = {
+static const unsigned int tft_pins[] =
+{
 	TZ1090_PIN_TFT_RED0,
 	TZ1090_PIN_TFT_RED1,
 	TZ1090_PIN_TFT_RED2,
@@ -380,7 +388,8 @@ static const unsigned int tft_pins[] = {
 	TZ1090_PIN_TFT_PWRSAVE,
 };
 
-static const unsigned int afe_pins[] = {
+static const unsigned int afe_pins[] =
+{
 	TZ1090_PIN_TX_ON,
 	TZ1090_PIN_RX_ON,
 	TZ1090_PIN_PLL_ON,
@@ -398,7 +407,8 @@ static const unsigned int afe_pins[] = {
 	TZ1090_PIN_GAIN7,
 };
 
-static const unsigned int sdio_pins[] = {
+static const unsigned int sdio_pins[] =
+{
 	TZ1090_PIN_SDIO_CLK,
 	TZ1090_PIN_SDIO_CMD,
 	TZ1090_PIN_SDIO_D0,
@@ -407,13 +417,15 @@ static const unsigned int sdio_pins[] = {
 	TZ1090_PIN_SDIO_D3,
 };
 
-static const unsigned int sdh_pins[] = {
+static const unsigned int sdh_pins[] =
+{
 	TZ1090_PIN_SDH_CD,
 	TZ1090_PIN_SDH_WP,
 	TZ1090_PIN_SDH_CLK_IN,
 };
 
-static const unsigned int spi0_pins[] = {
+static const unsigned int spi0_pins[] =
+{
 	TZ1090_PIN_SPI0_MCLK,
 	TZ1090_PIN_SPI0_CS0,
 	TZ1090_PIN_SPI0_CS1,
@@ -422,7 +434,8 @@ static const unsigned int spi0_pins[] = {
 	TZ1090_PIN_SPI0_DIN,
 };
 
-static const unsigned int spi1_pins[] = {
+static const unsigned int spi1_pins[] =
+{
 	TZ1090_PIN_SPI1_MCLK,
 	TZ1090_PIN_SPI1_CS0,
 	TZ1090_PIN_SPI1_CS1,
@@ -431,19 +444,22 @@ static const unsigned int spi1_pins[] = {
 	TZ1090_PIN_SPI1_DIN,
 };
 
-static const unsigned int uart0_pins[] = {
+static const unsigned int uart0_pins[] =
+{
 	TZ1090_PIN_UART0_RTS,
 	TZ1090_PIN_UART0_CTS,
 	TZ1090_PIN_UART0_TXD,
 	TZ1090_PIN_UART0_RXD,
 };
 
-static const unsigned int uart1_pins[] = {
+static const unsigned int uart1_pins[] =
+{
 	TZ1090_PIN_UART1_TXD,
 	TZ1090_PIN_UART1_RXD,
 };
 
-static const unsigned int uart_pins[] = {
+static const unsigned int uart_pins[] =
+{
 	TZ1090_PIN_UART1_TXD,
 	TZ1090_PIN_UART1_RXD,
 	TZ1090_PIN_UART0_RTS,
@@ -452,22 +468,26 @@ static const unsigned int uart_pins[] = {
 	TZ1090_PIN_UART0_RXD,
 };
 
-static const unsigned int scb0_pins[] = {
+static const unsigned int scb0_pins[] =
+{
 	TZ1090_PIN_SCB0_SDAT,
 	TZ1090_PIN_SCB0_SCLK,
 };
 
-static const unsigned int scb1_pins[] = {
+static const unsigned int scb1_pins[] =
+{
 	TZ1090_PIN_SCB1_SDAT,
 	TZ1090_PIN_SCB1_SCLK,
 };
 
-static const unsigned int scb2_pins[] = {
+static const unsigned int scb2_pins[] =
+{
 	TZ1090_PIN_SCB2_SDAT,
 	TZ1090_PIN_SCB2_SCLK,
 };
 
-static const unsigned int i2s_pins[] = {
+static const unsigned int i2s_pins[] =
+{
 	TZ1090_PIN_I2S_MCLK,
 	TZ1090_PIN_I2S_BCLK_OUT,
 	TZ1090_PIN_I2S_LRCLK_OUT,
@@ -477,7 +497,8 @@ static const unsigned int i2s_pins[] = {
 	TZ1090_PIN_I2S_DIN,
 };
 
-static const unsigned int jtag_pins[] = {
+static const unsigned int jtag_pins[] =
+{
 	TZ1090_PIN_TCK,
 	TZ1090_PIN_TRST,
 	TZ1090_PIN_TDI,
@@ -487,7 +508,8 @@ static const unsigned int jtag_pins[] = {
 
 /* Pins in each drive pin group */
 
-static const unsigned int drive_sdio_pins[] = {
+static const unsigned int drive_sdio_pins[] =
+{
 	TZ1090_PIN_SDIO_CLK,
 	TZ1090_PIN_SDIO_CMD,
 	TZ1090_PIN_SDIO_D0,
@@ -499,7 +521,8 @@ static const unsigned int drive_sdio_pins[] = {
 	TZ1090_PIN_SDH_CLK_IN,
 };
 
-static const unsigned int drive_i2s_pins[] = {
+static const unsigned int drive_i2s_pins[] =
+{
 	TZ1090_PIN_CLK_OUT1,
 	TZ1090_PIN_I2S_DIN,
 	TZ1090_PIN_I2S_DOUT0,
@@ -510,14 +533,16 @@ static const unsigned int drive_i2s_pins[] = {
 	TZ1090_PIN_I2S_MCLK,
 };
 
-static const unsigned int drive_scb0_pins[] = {
+static const unsigned int drive_scb0_pins[] =
+{
 	TZ1090_PIN_SCB0_SCLK,
 	TZ1090_PIN_SCB0_SDAT,
 	TZ1090_PIN_PDM_D,
 	TZ1090_PIN_PDM_C,
 };
 
-static const unsigned int drive_pdm_pins[] = {
+static const unsigned int drive_pdm_pins[] =
+{
 	TZ1090_PIN_CLK_OUT0,
 	TZ1090_PIN_PDM_B,
 	TZ1090_PIN_PDM_A,
@@ -529,7 +554,8 @@ static const unsigned int drive_pdm_pins[] = {
  * The magic "perip" function allows otherwise non-muxing pins to be enabled in
  * peripheral mode.
  */
-static const char * const perip_groups[] = {
+static const char *const perip_groups[] =
+{
 	/* non-muxing convenient gpio pingroups */
 	"uart",
 	"uart0",
@@ -576,7 +602,8 @@ static const char * const perip_groups[] = {
 	"pdm_c",
 };
 
-static const char * const sdh_sdio_groups[] = {
+static const char *const sdh_sdio_groups[] =
+{
 	"sdh",
 	"sdio",
 	/* sdh pins */
@@ -592,20 +619,24 @@ static const char * const sdh_sdio_groups[] = {
 	"sdio_d3",
 };
 
-static const char * const spi1_cs2_groups[] = {
+static const char *const spi1_cs2_groups[] =
+{
 	"spi1_cs2",
 };
 
-static const char * const pdm_dac_groups[] = {
+static const char *const pdm_dac_groups[] =
+{
 	"pdm_d",
 };
 
-static const char * const usb_vbus_groups[] = {
+static const char *const usb_vbus_groups[] =
+{
 	"spi1_cs2",
 	"pdm_d",
 };
 
-static const char * const afe_groups[] = {
+static const char *const afe_groups[] =
+{
 	"afe",
 	/* afe pins */
 	"tx_on",
@@ -625,7 +656,8 @@ static const char * const afe_groups[] = {
 	"gain7",
 };
 
-static const char * const tft_groups[] = {
+static const char *const tft_groups[] =
+{
 	"tft",
 	/* tft pins */
 	"tft_red0",
@@ -663,7 +695,8 @@ static const char * const tft_groups[] = {
 
 /* Mux functions that can be used by a mux */
 
-enum tz1090_mux {
+enum tz1090_mux
+{
 	/* internal placeholder */
 	TZ1090_MUX_NA = -1,
 	/* magic per-non-muxing-GPIO-pin peripheral mode mux */
@@ -692,18 +725,19 @@ enum tz1090_mux {
 
 #define FUNCTION(mux, fname, group)			\
 	[(TZ1090_MUX_ ## mux)] = {			\
-		.name = #fname,				\
-		.groups = group##_groups,		\
-		.ngroups = ARRAY_SIZE(group##_groups),	\
-	}
+										.name = #fname,				\
+										.groups = group##_groups,		\
+										.ngroups = ARRAY_SIZE(group##_groups),	\
+							 }
 /* For intermediate functions with submuxes */
 #define NULL_FUNCTION(mux, fname)			\
 	[(TZ1090_MUX_ ## mux)] = {			\
-		.name = #fname,				\
-	}
+										.name = #fname,				\
+							 }
 
 /* Must correlate with enum tz1090_mux */
-static const struct tz1090_function tz1090_functions[] = {
+static const struct tz1090_function tz1090_functions[] =
+{
 	/*	 FUNCTION	function name	pingroups */
 	FUNCTION(PERIP,		perip,		perip),
 	FUNCTION(SDH,		sdh,		sdh_sdio),
@@ -739,15 +773,15 @@ static const struct tz1090_function tz1090_functions[] = {
 #define MUX(f0, f1, f2, f3, f4, mux_r, mux_b, mux_w)		\
 	{							\
 		.funcs = {					\
-			TZ1090_MUX_ ## f0,			\
-			TZ1090_MUX_ ## f1,			\
-			TZ1090_MUX_ ## f2,			\
-			TZ1090_MUX_ ## f3,			\
-			TZ1090_MUX_ ## f4,			\
-		},						\
-		.reg = (REG_PINCTRL_ ## mux_r),			\
-		.bit = (mux_b),					\
-		.width = (mux_w),				\
+									TZ1090_MUX_ ## f0,			\
+									TZ1090_MUX_ ## f1,			\
+									TZ1090_MUX_ ## f2,			\
+									TZ1090_MUX_ ## f3,			\
+									TZ1090_MUX_ ## f4,			\
+				 },						\
+				 .reg = (REG_PINCTRL_ ## mux_r),			\
+						.bit = (mux_b),					\
+							   .width = (mux_w),				\
 	}
 
 /**
@@ -774,7 +808,7 @@ static const struct tz1090_function tz1090_functions[] = {
  */
 #define DEFINE_SUBMUX(mux, f0, f1, f2, f3, f4, mux_r, mux_b, mux_w)	\
 	static struct tz1090_muxdesc mux ## _submux =			\
-		MUX(f0, f1, f2, f3, f4, mux_r, mux_b, mux_w)
+			MUX(f0, f1, f2, f3, f4, mux_r, mux_b, mux_w)
 
 /**
  * SUBMUX() - Link a submux to a function number.
@@ -800,14 +834,14 @@ static const struct tz1090_function tz1090_functions[] = {
  * @mux_w:	Width of mux field in register
  */
 #define MUX_PG(pg_name, f0, f1, f2, f3, f4,			\
-	       mux_r, mux_b, mux_w)				\
-	{							\
-		.name = #pg_name,				\
-		.pins = pg_name##_pins,				\
-		.npins = ARRAY_SIZE(pg_name##_pins),		\
-		.mux = MUX(f0, f1, f2, f3, f4,			\
-			   mux_r, mux_b, mux_w),		\
-	}
+			   mux_r, mux_b, mux_w)				\
+{							\
+	.name = #pg_name,				\
+			.pins = pg_name##_pins,				\
+					.npins = ARRAY_SIZE(pg_name##_pins),		\
+							 .mux = MUX(f0, f1, f2, f3, f4,			\
+										mux_r, mux_b, mux_w),		\
+}
 
 /**
  * SIMPLE_PG() - Initialise a simple convenience pin group
@@ -820,8 +854,8 @@ static const struct tz1090_function tz1090_functions[] = {
 #define SIMPLE_PG(pg_name)					\
 	{							\
 		.name = #pg_name,				\
-		.pins = pg_name##_pins,				\
-		.npins = ARRAY_SIZE(pg_name##_pins),		\
+				.pins = pg_name##_pins,				\
+						.npins = ARRAY_SIZE(pg_name##_pins),		\
 	}
 
 /**
@@ -833,10 +867,10 @@ static const struct tz1090_function tz1090_functions[] = {
 #define DRV_PG(pg_name, slw_b)					\
 	{							\
 		.name = #pg_name,				\
-		.pins = pg_name##_pins,				\
-		.npins = ARRAY_SIZE(pg_name##_pins),		\
-		.drv = true,					\
-		.slw_bit = (slw_b),				\
+				.pins = pg_name##_pins,				\
+						.npins = ARRAY_SIZE(pg_name##_pins),		\
+								 .drv = true,					\
+										.slw_bit = (slw_b),				\
 	}
 
 /*
@@ -849,7 +883,8 @@ static const struct tz1090_function tz1090_functions[] = {
 DEFINE_SUBMUX(ext_dac, DAC, NOT_IQADC_STB, IQDAC_STB, NA, NA, IF_CTL, 6, 2);
 
 /* bind submuxes to internal functions */
-static struct tz1090_muxdesc *tz1090_submux[] = {
+static struct tz1090_muxdesc *tz1090_submux[] =
+{
 	SUBMUX(EXT_DAC, ext_dac),
 };
 
@@ -858,7 +893,8 @@ static struct tz1090_muxdesc *tz1090_submux[] = {
  * pin individually so these groups are internal. The mapping of pins to pin mux
  * group is below (tz1090_mux_pins).
  */
-static struct tz1090_pingroup tz1090_mux_groups[] = {
+static struct tz1090_pingroup tz1090_mux_groups[] =
+{
 	/* Muxing pin groups */
 	/*     pg_name,  f0,       f1,       f2,       f3,        f4,          mux r/b/w */
 	MUX_PG(sdh,      SDH,      SDIO,     NA,       NA,        NA,          IF_CTL, 20, 2),
@@ -897,13 +933,18 @@ static void __init tz1090_init_mux_pins(void)
 	const unsigned int *pin;
 
 	for (p = 0; p < NUM_GPIOS; ++p)
+	{
 		tz1090_mux_pins[p] = TZ1090_MUX_GROUP_MAX;
+	}
 
 	grp = tz1090_mux_groups;
+
 	for (g = 0, grp = tz1090_mux_groups;
-	     g < ARRAY_SIZE(tz1090_mux_groups); ++g, ++grp)
+		 g < ARRAY_SIZE(tz1090_mux_groups); ++g, ++grp)
 		for (pin = grp->pins, p = 0; p < grp->npins; ++p, ++pin)
+		{
 			tz1090_mux_pins[*pin] = g;
+		}
 }
 
 /*
@@ -915,7 +956,8 @@ static void __init tz1090_init_mux_pins(void)
  * pin. Any group used for muxing must have all pins belonging to the same pin
  * mux group.
  */
-static struct tz1090_pingroup tz1090_groups[] = {
+static struct tz1090_pingroup tz1090_groups[] =
+{
 	/* Pin groups with drive control (with no out of place pins) */
 	/*     pg_name,		slw/schmitt/drv b */
 	DRV_PG(jtag,		11 /* 11, 22 */),
@@ -958,7 +1000,8 @@ static struct tz1090_pingroup tz1090_groups[] = {
  * @pin_en:	Pins that have been enabled (32 pins packed into each element)
  * @gpio_en:	GPIOs that have been enabled (32 pins packed into each element)
  */
-struct tz1090_pmx {
+struct tz1090_pmx
+{
 	struct device		*dev;
 	struct pinctrl_dev	*pctl;
 	void __iomem		*regs;
@@ -989,12 +1032,15 @@ static int tz1090_pinctrl_get_groups_count(struct pinctrl_dev *pctldev)
 }
 
 static const char *tz1090_pinctrl_get_group_name(struct pinctrl_dev *pctldev,
-						 unsigned int group)
+		unsigned int group)
 {
-	if (group < ARRAY_SIZE(tz1090_groups)) {
+	if (group < ARRAY_SIZE(tz1090_groups))
+	{
 		/* normal pingroup */
 		return tz1090_groups[group].name;
-	} else {
+	}
+	else
+	{
 		/* individual gpio pin pseudo-pingroup */
 		unsigned int pin = group - ARRAY_SIZE(tz1090_groups);
 		return tz1090_pins[pin].name;
@@ -1002,15 +1048,18 @@ static const char *tz1090_pinctrl_get_group_name(struct pinctrl_dev *pctldev,
 }
 
 static int tz1090_pinctrl_get_group_pins(struct pinctrl_dev *pctldev,
-					 unsigned int group,
-					 const unsigned int **pins,
-					 unsigned int *num_pins)
+		unsigned int group,
+		const unsigned int **pins,
+		unsigned int *num_pins)
 {
-	if (group < ARRAY_SIZE(tz1090_groups)) {
+	if (group < ARRAY_SIZE(tz1090_groups))
+	{
 		/* normal pingroup */
 		*pins = tz1090_groups[group].pins;
 		*num_pins = tz1090_groups[group].npins;
-	} else {
+	}
+	else
+	{
 		/* individual gpio pin pseudo-pingroup */
 		unsigned int pin = group - ARRAY_SIZE(tz1090_groups);
 		*pins = &tz1090_pins[pin].number;
@@ -1022,26 +1071,30 @@ static int tz1090_pinctrl_get_group_pins(struct pinctrl_dev *pctldev,
 
 #ifdef CONFIG_DEBUG_FS
 static void tz1090_pinctrl_pin_dbg_show(struct pinctrl_dev *pctldev,
-					struct seq_file *s,
-					unsigned int offset)
+										struct seq_file *s,
+										unsigned int offset)
 {
 	seq_printf(s, " %s", dev_name(pctldev->dev));
 }
 #endif
 
 static int reserve_map(struct device *dev, struct pinctrl_map **map,
-		       unsigned int *reserved_maps, unsigned int *num_maps,
-		       unsigned int reserve)
+					   unsigned int *reserved_maps, unsigned int *num_maps,
+					   unsigned int reserve)
 {
 	unsigned int old_num = *reserved_maps;
 	unsigned int new_num = *num_maps + reserve;
 	struct pinctrl_map *new_map;
 
 	if (old_num >= new_num)
+	{
 		return 0;
+	}
 
 	new_map = krealloc(*map, sizeof(*new_map) * new_num, GFP_KERNEL);
-	if (!new_map) {
+
+	if (!new_map)
+	{
 		dev_err(dev, "krealloc(map) failed\n");
 		return -ENOMEM;
 	}
@@ -1055,11 +1108,13 @@ static int reserve_map(struct device *dev, struct pinctrl_map **map,
 }
 
 static int add_map_mux(struct pinctrl_map **map, unsigned int *reserved_maps,
-		       unsigned int *num_maps, const char *group,
-		       const char *function)
+					   unsigned int *num_maps, const char *group,
+					   const char *function)
 {
 	if (WARN_ON(*num_maps == *reserved_maps))
+	{
 		return -ENOSPC;
+	}
 
 	(*map)[*num_maps].type = PIN_MAP_TYPE_MUX_GROUP;
 	(*map)[*num_maps].data.mux.group = group;
@@ -1070,19 +1125,23 @@ static int add_map_mux(struct pinctrl_map **map, unsigned int *reserved_maps,
 }
 
 static int add_map_configs(struct device *dev,
-			   struct pinctrl_map **map,
-			   unsigned int *reserved_maps, unsigned int *num_maps,
-			   const char *group, unsigned long *configs,
-			   unsigned int num_configs)
+						   struct pinctrl_map **map,
+						   unsigned int *reserved_maps, unsigned int *num_maps,
+						   const char *group, unsigned long *configs,
+						   unsigned int num_configs)
 {
 	unsigned long *dup_configs;
 
 	if (WARN_ON(*num_maps == *reserved_maps))
+	{
 		return -ENOSPC;
+	}
 
 	dup_configs = kmemdup(configs, num_configs * sizeof(*dup_configs),
-			      GFP_KERNEL);
-	if (!dup_configs) {
+						  GFP_KERNEL);
+
+	if (!dup_configs)
+	{
 		dev_err(dev, "kmemdup(configs) failed\n");
 		return -ENOMEM;
 	}
@@ -1097,23 +1156,25 @@ static int add_map_configs(struct device *dev,
 }
 
 static void tz1090_pinctrl_dt_free_map(struct pinctrl_dev *pctldev,
-				       struct pinctrl_map *map,
-				       unsigned int num_maps)
+									   struct pinctrl_map *map,
+									   unsigned int num_maps)
 {
 	int i;
 
 	for (i = 0; i < num_maps; i++)
 		if (map[i].type == PIN_MAP_TYPE_CONFIGS_GROUP)
+		{
 			kfree(map[i].data.configs.configs);
+		}
 
 	kfree(map);
 }
 
 static int tz1090_pinctrl_dt_subnode_to_map(struct device *dev,
-					    struct device_node *np,
-					    struct pinctrl_map **map,
-					    unsigned int *reserved_maps,
-					    unsigned int *num_maps)
+		struct device_node *np,
+		struct pinctrl_map **map,
+		unsigned int *reserved_maps,
+		unsigned int *num_maps)
 {
 	int ret;
 	const char *function;
@@ -1124,47 +1185,77 @@ static int tz1090_pinctrl_dt_subnode_to_map(struct device *dev,
 	const char *group;
 
 	ret = of_property_read_string(np, "tz1090,function", &function);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		/* EINVAL=missing, which is fine since it's optional */
 		if (ret != -EINVAL)
+		{
 			dev_err(dev, "could not parse property function\n");
+		}
+
 		function = NULL;
 	}
 
 	ret = pinconf_generic_parse_dt_config(np, NULL, &configs, &num_configs);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	reserve = 0;
+
 	if (function != NULL)
+	{
 		reserve++;
+	}
+
 	if (num_configs)
+	{
 		reserve++;
+	}
+
 	ret = of_property_count_strings(np, "tz1090,pins");
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "could not parse property pins\n");
 		goto exit;
 	}
+
 	reserve *= ret;
 
 	ret = reserve_map(dev, map, reserved_maps, num_maps, reserve);
-	if (ret < 0)
-		goto exit;
 
-	of_property_for_each_string(np, "tz1090,pins", prop, group) {
-		if (function) {
+	if (ret < 0)
+	{
+		goto exit;
+	}
+
+	of_property_for_each_string(np, "tz1090,pins", prop, group)
+	{
+		if (function)
+		{
 			ret = add_map_mux(map, reserved_maps, num_maps,
-					  group, function);
+							  group, function);
+
 			if (ret < 0)
+			{
 				goto exit;
+			}
 		}
 
-		if (num_configs) {
+		if (num_configs)
+		{
 			ret = add_map_configs(dev, map, reserved_maps,
-					      num_maps, group, configs,
-					      num_configs);
+								  num_maps, group, configs,
+								  num_configs);
+
 			if (ret < 0)
+			{
 				goto exit;
+			}
 		}
 	}
 
@@ -1176,9 +1267,9 @@ exit:
 }
 
 static int tz1090_pinctrl_dt_node_to_map(struct pinctrl_dev *pctldev,
-					 struct device_node *np_config,
-					 struct pinctrl_map **map,
-					 unsigned int *num_maps)
+		struct device_node *np_config,
+		struct pinctrl_map **map,
+		unsigned int *num_maps)
 {
 	unsigned int reserved_maps;
 	struct device_node *np;
@@ -1188,11 +1279,14 @@ static int tz1090_pinctrl_dt_node_to_map(struct pinctrl_dev *pctldev,
 	*map = NULL;
 	*num_maps = 0;
 
-	for_each_child_of_node(np_config, np) {
+	for_each_child_of_node(np_config, np)
+	{
 		ret = tz1090_pinctrl_dt_subnode_to_map(pctldev->dev, np, map,
-						       &reserved_maps,
-						       num_maps);
-		if (ret < 0) {
+											   &reserved_maps,
+											   num_maps);
+
+		if (ret < 0)
+		{
 			tz1090_pinctrl_dt_free_map(pctldev, *map, *num_maps);
 			return ret;
 		}
@@ -1201,7 +1295,8 @@ static int tz1090_pinctrl_dt_node_to_map(struct pinctrl_dev *pctldev,
 	return 0;
 }
 
-static struct pinctrl_ops tz1090_pinctrl_ops = {
+static struct pinctrl_ops tz1090_pinctrl_ops =
+{
 	.get_groups_count	= tz1090_pinctrl_get_groups_count,
 	.get_group_name		= tz1090_pinctrl_get_group_name,
 	.get_group_pins		= tz1090_pinctrl_get_group_pins,
@@ -1222,15 +1317,15 @@ static int tz1090_pinctrl_get_funcs_count(struct pinctrl_dev *pctldev)
 }
 
 static const char *tz1090_pinctrl_get_func_name(struct pinctrl_dev *pctldev,
-						unsigned int function)
+		unsigned int function)
 {
 	return tz1090_functions[function].name;
 }
 
 static int tz1090_pinctrl_get_func_groups(struct pinctrl_dev *pctldev,
-					  unsigned int function,
-					  const char * const **groups,
-					  unsigned int * const num_groups)
+		unsigned int function,
+		const char *const **groups,
+		unsigned int *const num_groups)
 {
 	/* pingroup functions */
 	*groups = tz1090_functions[function].groups;
@@ -1244,7 +1339,7 @@ static int tz1090_pinctrl_get_func_groups(struct pinctrl_dev *pctldev,
  * @pin:		Pin number (must be within GPIO range)
  */
 static void tz1090_pinctrl_select(struct tz1090_pmx *pmx,
-				  unsigned int pin)
+								  unsigned int pin)
 {
 	u32 reg, reg_shift, select, val;
 	unsigned int pmx_index, pmx_shift;
@@ -1256,10 +1351,10 @@ static void tz1090_pinctrl_select(struct tz1090_pmx *pmx,
 
 	/* select = !perip || gpio */
 	select = ((~pmx->pin_en[pmx_index] |
-		   pmx->gpio_en[pmx_index]) >> pmx_shift) & 1;
+			   pmx->gpio_en[pmx_index]) >> pmx_shift) & 1;
 
 	/* find register and bit offset (base 30) */
-	reg = REG_PINCTRL_SELECT + 4*(pin / 30);
+	reg = REG_PINCTRL_SELECT + 4 * (pin / 30);
 	reg_shift = pin % 30;
 
 	/* modify gpio select bit */
@@ -1282,14 +1377,16 @@ static void tz1090_pinctrl_select(struct tz1090_pmx *pmx,
  * doesn't override the SELECT register bit.
  */
 static void tz1090_pinctrl_gpio_select(struct tz1090_pmx *pmx,
-				       unsigned int pin,
-				       bool gpio_select)
+									   unsigned int pin,
+									   bool gpio_select)
 {
 	unsigned int index, shift;
 	u32 gpio_en;
 
 	if (pin >= NUM_GPIOS)
+	{
 		return;
+	}
 
 	/* uses base 32 instead of base 30 */
 	index = pin >> 5;
@@ -1300,8 +1397,12 @@ static void tz1090_pinctrl_gpio_select(struct tz1090_pmx *pmx,
 	/* keep a record whether gpio is selected */
 	gpio_en = pmx->gpio_en[index];
 	gpio_en &= ~BIT(shift);
+
 	if (gpio_select)
+	{
 		gpio_en |= BIT(shift);
+	}
+
 	pmx->gpio_en[index] = gpio_en;
 
 	/* update the select bit */
@@ -1321,14 +1422,16 @@ static void tz1090_pinctrl_gpio_select(struct tz1090_pmx *pmx,
  * be set appropriately when GPIO is disabled.
  */
 static void tz1090_pinctrl_perip_select(struct tz1090_pmx *pmx,
-					unsigned int pin,
-					bool perip_select)
+										unsigned int pin,
+										bool perip_select)
 {
 	unsigned int index, shift;
 	u32 pin_en;
 
 	if (pin >= NUM_GPIOS)
+	{
 		return;
+	}
 
 	/* uses base 32 instead of base 30 */
 	index = pin >> 5;
@@ -1339,8 +1442,12 @@ static void tz1090_pinctrl_perip_select(struct tz1090_pmx *pmx,
 	/* keep a record whether peripheral is selected */
 	pin_en = pmx->pin_en[index];
 	pin_en &= ~BIT(shift);
+
 	if (perip_select)
+	{
 		pin_en |= BIT(shift);
+	}
+
 	pmx->pin_en[index] = pin_en;
 
 	/* update the select bit */
@@ -1359,8 +1466,8 @@ static void tz1090_pinctrl_perip_select(struct tz1090_pmx *pmx,
  * are nested this function is recursive.
  */
 static int tz1090_pinctrl_enable_mux(struct tz1090_pmx *pmx,
-				     const struct tz1090_muxdesc *desc,
-				     unsigned int function)
+									 const struct tz1090_muxdesc *desc,
+									 unsigned int function)
 {
 	const int *fit;
 	unsigned long flags;
@@ -1370,18 +1477,26 @@ static int tz1090_pinctrl_enable_mux(struct tz1090_pmx *pmx,
 
 	/* find the mux value for this function, searching recursively */
 	for (mux = 0, fit = desc->funcs;
-	     mux < ARRAY_SIZE(desc->funcs); ++mux, ++fit) {
+		 mux < ARRAY_SIZE(desc->funcs); ++mux, ++fit)
+	{
 		func = *fit;
+
 		if (func == function)
+		{
 			goto found_mux;
+		}
 
 		/* maybe it's a sub-mux */
-		if (func < ARRAY_SIZE(tz1090_submux) && tz1090_submux[func]) {
+		if (func < ARRAY_SIZE(tz1090_submux) && tz1090_submux[func])
+		{
 			ret = tz1090_pinctrl_enable_mux(pmx,
-							tz1090_submux[func],
-							function);
+											tz1090_submux[func],
+											function);
+
 			if (!ret)
+			{
 				goto found_mux;
+			}
 		}
 	}
 
@@ -1389,7 +1504,8 @@ static int tz1090_pinctrl_enable_mux(struct tz1090_pmx *pmx,
 found_mux:
 
 	/* Set up the mux */
-	if (desc->width) {
+	if (desc->width)
+	{
 		mask = (BIT(desc->width) - 1) << desc->bit;
 		__global_lock2(flags);
 		reg = pmx_read(pmx, desc->reg);
@@ -1416,7 +1532,7 @@ found_mux:
  * group.
  */
 static int tz1090_pinctrl_set_mux(struct pinctrl_dev *pctldev,
-				  unsigned int function, unsigned int group)
+								  unsigned int function, unsigned int group)
 {
 	struct tz1090_pmx *pmx = pinctrl_dev_get_drvdata(pctldev);
 	struct tz1090_pingroup *grp;
@@ -1425,7 +1541,8 @@ static int tz1090_pinctrl_set_mux(struct pinctrl_dev *pctldev,
 	const unsigned int *pins;
 
 	/* group of pins? */
-	if (group < ARRAY_SIZE(tz1090_groups)) {
+	if (group < ARRAY_SIZE(tz1090_groups))
+	{
 		grp = &tz1090_groups[group];
 		npins = grp->npins;
 		pins = grp->pins;
@@ -1435,45 +1552,62 @@ static int tz1090_pinctrl_set_mux(struct pinctrl_dev *pctldev,
 		 * By explicitly listing permitted pingroups for each function
 		 * the pinmux core should ensure this is always the case.
 		 */
-	} else {
+	}
+	else
+	{
 		pin_num = group - ARRAY_SIZE(tz1090_groups);
 		npins = 1;
 		pins = &pin_num;
 	}
+
 	mux_group = tz1090_mux_pins[*pins];
 
 	/* no mux group, but can still be individually muxed to peripheral */
-	if (mux_group >= TZ1090_MUX_GROUP_MAX) {
+	if (mux_group >= TZ1090_MUX_GROUP_MAX)
+	{
 		if (function == TZ1090_MUX_PERIP)
+		{
 			goto mux_pins;
+		}
+
 		return -EINVAL;
 	}
 
 	/* mux group already set to a different function? */
 	grp = &tz1090_mux_groups[mux_group];
-	if (grp->func_count && grp->func != function) {
+
+	if (grp->func_count && grp->func != function)
+	{
 		dev_err(pctldev->dev,
-			"%s: can't mux pin(s) to '%s', group already muxed to '%s'\n",
-			__func__, tz1090_functions[function].name,
-			tz1090_functions[grp->func].name);
+				"%s: can't mux pin(s) to '%s', group already muxed to '%s'\n",
+				__func__, tz1090_functions[function].name,
+				tz1090_functions[grp->func].name);
 		return -EBUSY;
 	}
 
 	dev_dbg(pctldev->dev, "%s: muxing %u pin(s) in '%s' to '%s'\n",
-		__func__, npins, grp->name, tz1090_functions[function].name);
+			__func__, npins, grp->name, tz1090_functions[function].name);
 
 	/* if first pin in mux group to be enabled, enable the group mux */
-	if (!grp->func_count) {
+	if (!grp->func_count)
+	{
 		grp->func = function;
 		ret = tz1090_pinctrl_enable_mux(pmx, &grp->mux, function);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
+
 	/* add pins to ref count and mux individually to peripheral */
 	grp->func_count += npins;
 mux_pins:
+
 	for (i = 0; i < npins; ++i)
+	{
 		tz1090_pinctrl_perip_select(pmx, pins[i], true);
+	}
 
 	return 0;
 }
@@ -1488,8 +1622,8 @@ mux_pins:
  * disabled again.
  */
 static int tz1090_pinctrl_gpio_request_enable(struct pinctrl_dev *pctldev,
-					      struct pinctrl_gpio_range *range,
-					      unsigned int pin)
+		struct pinctrl_gpio_range *range,
+		unsigned int pin)
 {
 	struct tz1090_pmx *pmx = pinctrl_dev_get_drvdata(pctldev);
 	tz1090_pinctrl_gpio_select(pmx, pin, true);
@@ -1506,14 +1640,15 @@ static int tz1090_pinctrl_gpio_request_enable(struct pinctrl_dev *pctldev,
  * peripheral it will return to peripheral mode.
  */
 static void tz1090_pinctrl_gpio_disable_free(struct pinctrl_dev *pctldev,
-					     struct pinctrl_gpio_range *range,
-					     unsigned int pin)
+		struct pinctrl_gpio_range *range,
+		unsigned int pin)
 {
 	struct tz1090_pmx *pmx = pinctrl_dev_get_drvdata(pctldev);
 	tz1090_pinctrl_gpio_select(pmx, pin, false);
 }
 
-static struct pinmux_ops tz1090_pinmux_ops = {
+static struct pinmux_ops tz1090_pinmux_ops =
+{
 	.get_functions_count	= tz1090_pinctrl_get_funcs_count,
 	.get_function_name	= tz1090_pinctrl_get_func_name,
 	.get_function_groups	= tz1090_pinctrl_get_func_groups,
@@ -1526,13 +1661,15 @@ static struct pinmux_ops tz1090_pinmux_ops = {
  * Pin config operations
  */
 
-struct tz1090_pinconf_pullup {
+struct tz1090_pinconf_pullup
+{
 	unsigned char index;
 	unsigned char shift;
 };
 
 /* The mapping of pin to pull up/down register index and shift */
-static struct tz1090_pinconf_pullup tz1090_pinconf_pullup[] = {
+static struct tz1090_pinconf_pullup tz1090_pinconf_pullup[] =
+{
 	{5, 22}, /*  0 - TZ1090_PIN_SDIO_CLK */
 	{0, 14}, /*  1 - TZ1090_PIN_SDIO_CMD */
 	{0,  6}, /*  2 - TZ1090_PIN_SDIO_D0 */
@@ -1636,36 +1773,41 @@ static struct tz1090_pinconf_pullup tz1090_pinconf_pullup[] = {
 };
 
 static int tz1090_pinconf_reg(struct pinctrl_dev *pctldev,
-			      unsigned int pin,
-			      enum pin_config_param param,
-			      bool report_err,
-			      u32 *reg, u32 *width, u32 *mask, u32 *shift,
-			      u32 *val)
+							  unsigned int pin,
+							  enum pin_config_param param,
+							  bool report_err,
+							  u32 *reg, u32 *width, u32 *mask, u32 *shift,
+							  u32 *val)
 {
 	struct tz1090_pinconf_pullup *pu;
 
 	/* All supported pins have controllable input bias */
-	switch (param) {
-	case PIN_CONFIG_BIAS_DISABLE:
-	case PIN_CONFIG_BIAS_HIGH_IMPEDANCE:
-		*val = REG_PU_PD_TRISTATE;
-		break;
-	case PIN_CONFIG_BIAS_PULL_UP:
-		*val = REG_PU_PD_UP;
-		break;
-	case PIN_CONFIG_BIAS_PULL_DOWN:
-		*val = REG_PU_PD_DOWN;
-		break;
-	case PIN_CONFIG_BIAS_BUS_HOLD:
-		*val = REG_PU_PD_REPEATER;
-		break;
-	default:
-		return -ENOTSUPP;
+	switch (param)
+	{
+		case PIN_CONFIG_BIAS_DISABLE:
+		case PIN_CONFIG_BIAS_HIGH_IMPEDANCE:
+			*val = REG_PU_PD_TRISTATE;
+			break;
+
+		case PIN_CONFIG_BIAS_PULL_UP:
+			*val = REG_PU_PD_UP;
+			break;
+
+		case PIN_CONFIG_BIAS_PULL_DOWN:
+			*val = REG_PU_PD_DOWN;
+			break;
+
+		case PIN_CONFIG_BIAS_BUS_HOLD:
+			*val = REG_PU_PD_REPEATER;
+			break;
+
+		default:
+			return -ENOTSUPP;
 	}
 
 	/* Only input bias parameters supported */
 	pu = &tz1090_pinconf_pullup[pin];
-	*reg = REG_PINCTRL_PU_PD + 4*pu->index;
+	*reg = REG_PINCTRL_PU_PD + 4 * pu->index;
 	*shift = pu->shift;
 	*width = 2;
 
@@ -1676,7 +1818,7 @@ static int tz1090_pinconf_reg(struct pinctrl_dev *pctldev,
 }
 
 static int tz1090_pinconf_get(struct pinctrl_dev *pctldev,
-			      unsigned int pin, unsigned long *config)
+							  unsigned int pin, unsigned long *config)
 {
 	struct tz1090_pmx *pmx = pinctrl_dev_get_drvdata(pctldev);
 	enum pin_config_param param = pinconf_to_config_param(*config);
@@ -1685,9 +1827,12 @@ static int tz1090_pinconf_get(struct pinctrl_dev *pctldev,
 
 	/* Get register information */
 	ret = tz1090_pinconf_reg(pctldev, pin, param, true,
-				 &reg, &width, &mask, &shift, &val);
+							 &reg, &width, &mask, &shift, &val);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Extract field from register */
 	tmp = pmx_read(pmx, reg);
@@ -1695,7 +1840,9 @@ static int tz1090_pinconf_get(struct pinctrl_dev *pctldev,
 
 	/* Config not active */
 	if (!arg)
+	{
 		return -EINVAL;
+	}
 
 	/* And pack config */
 	*config = pinconf_to_config_packed(param, arg);
@@ -1704,8 +1851,8 @@ static int tz1090_pinconf_get(struct pinctrl_dev *pctldev,
 }
 
 static int tz1090_pinconf_set(struct pinctrl_dev *pctldev,
-			      unsigned int pin, unsigned long *configs,
-			      unsigned num_configs)
+							  unsigned int pin, unsigned long *configs,
+							  unsigned num_configs)
 {
 	struct tz1090_pmx *pmx = pinctrl_dev_get_drvdata(pctldev);
 	enum pin_config_param param;
@@ -1715,23 +1862,28 @@ static int tz1090_pinconf_set(struct pinctrl_dev *pctldev,
 	unsigned long flags;
 	int i;
 
-	for (i = 0; i < num_configs; i++) {
+	for (i = 0; i < num_configs; i++)
+	{
 		param = pinconf_to_config_param(configs[i]);
 		arg = pinconf_to_config_argument(configs[i]);
 
 		dev_dbg(pctldev->dev, "%s(pin=%s, config=%#lx)\n",
-			__func__, tz1090_pins[pin].name, configs[i]);
+				__func__, tz1090_pins[pin].name, configs[i]);
 
 		/* Get register information */
 		ret = tz1090_pinconf_reg(pctldev, pin, param, true,
-					 &reg, &width, &mask, &shift, &val);
+								 &reg, &width, &mask, &shift, &val);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		/* Unpack argument and range check it */
-		if (arg > 1) {
+		if (arg > 1)
+		{
 			dev_dbg(pctldev->dev, "%s: arg %u out of range\n",
-				__func__, arg);
+					__func__, arg);
 			return -EINVAL;
 		}
 
@@ -1739,8 +1891,12 @@ static int tz1090_pinconf_set(struct pinctrl_dev *pctldev,
 		__global_lock2(flags);
 		tmp = pmx_read(pmx, reg);
 		tmp &= ~mask;
+
 		if (arg)
+		{
 			tmp |= val << shift;
+		}
+
 		pmx_write(pmx, tmp, reg);
 		__global_unlock2(flags);
 	} /* for each config */
@@ -1748,12 +1904,14 @@ static int tz1090_pinconf_set(struct pinctrl_dev *pctldev,
 	return 0;
 }
 
-static const int tz1090_boolean_map[] = {
+static const int tz1090_boolean_map[] =
+{
 	[0]		= -EINVAL,
 	[1]		= 1,
 };
 
-static const int tz1090_dr_map[] = {
+static const int tz1090_dr_map[] =
+{
 	[REG_DR_2mA]	= 2,
 	[REG_DR_4mA]	= 4,
 	[REG_DR_8mA]	= 8,
@@ -1761,35 +1919,40 @@ static const int tz1090_dr_map[] = {
 };
 
 static int tz1090_pinconf_group_reg(struct pinctrl_dev *pctldev,
-				    const struct tz1090_pingroup *g,
-				    enum pin_config_param param,
-				    bool report_err,
-				    u32 *reg, u32 *width, u32 *mask, u32 *shift,
-				    const int **map)
+									const struct tz1090_pingroup *g,
+									enum pin_config_param param,
+									bool report_err,
+									u32 *reg, u32 *width, u32 *mask, u32 *shift,
+									const int **map)
 {
 	/* Drive configuration applies in groups, but not to all groups. */
-	if (!g->drv) {
+	if (!g->drv)
+	{
 		if (report_err)
 			dev_dbg(pctldev->dev,
-				"%s: group %s has no drive control\n",
-				__func__, g->name);
+					"%s: group %s has no drive control\n",
+					__func__, g->name);
+
 		return -ENOTSUPP;
 	}
 
 	/* Find information about drive parameter's register */
-	switch (param) {
-	case PIN_CONFIG_INPUT_SCHMITT_ENABLE:
-		*reg = REG_PINCTRL_SCHMITT;
-		*width = 1;
-		*map = tz1090_boolean_map;
-		break;
-	case PIN_CONFIG_DRIVE_STRENGTH:
-		*reg = REG_PINCTRL_DR;
-		*width = 2;
-		*map = tz1090_dr_map;
-		break;
-	default:
-		return -ENOTSUPP;
+	switch (param)
+	{
+		case PIN_CONFIG_INPUT_SCHMITT_ENABLE:
+			*reg = REG_PINCTRL_SCHMITT;
+			*width = 1;
+			*map = tz1090_boolean_map;
+			break;
+
+		case PIN_CONFIG_DRIVE_STRENGTH:
+			*reg = REG_PINCTRL_DR;
+			*width = 2;
+			*map = tz1090_dr_map;
+			break;
+
+		default:
+			return -ENOTSUPP;
 	}
 
 	/* Calculate field information */
@@ -1800,8 +1963,8 @@ static int tz1090_pinconf_group_reg(struct pinctrl_dev *pctldev,
 }
 
 static int tz1090_pinconf_group_get(struct pinctrl_dev *pctldev,
-				    unsigned int group,
-				    unsigned long *config)
+									unsigned int group,
+									unsigned long *config)
 {
 	struct tz1090_pmx *pmx = pinctrl_dev_get_drvdata(pctldev);
 	const struct tz1090_pingroup *g;
@@ -1811,30 +1974,42 @@ static int tz1090_pinconf_group_get(struct pinctrl_dev *pctldev,
 	u32 reg, width, mask, shift, val;
 	const int *map;
 
-	if (group >= ARRAY_SIZE(tz1090_groups)) {
+	if (group >= ARRAY_SIZE(tz1090_groups))
+	{
 		pin = group - ARRAY_SIZE(tz1090_groups);
 		return tz1090_pinconf_get(pctldev, pin, config);
 	}
 
 	g = &tz1090_groups[group];
-	if (g->npins == 1) {
+
+	if (g->npins == 1)
+	{
 		pin = g->pins[0];
 		ret = tz1090_pinconf_get(pctldev, pin, config);
+
 		if (ret != -ENOTSUPP)
+		{
 			return ret;
+		}
 	}
 
 	/* Get register information */
 	ret = tz1090_pinconf_group_reg(pctldev, g, param, true,
-				       &reg, &width, &mask, &shift, &map);
+								   &reg, &width, &mask, &shift, &map);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Extract field from register */
 	val = pmx_read(pmx, reg);
 	arg = map[(val & mask) >> shift];
+
 	if (arg < 0)
+	{
 		return arg;
+	}
 
 	/* And pack config */
 	*config = pinconf_to_config_packed(param, arg);
@@ -1843,8 +2018,8 @@ static int tz1090_pinconf_group_get(struct pinctrl_dev *pctldev,
 }
 
 static int tz1090_pinconf_group_set(struct pinctrl_dev *pctldev,
-				    unsigned int group, unsigned long *configs,
-				    unsigned num_configs)
+									unsigned int group, unsigned long *configs,
+									unsigned num_configs)
 {
 	struct tz1090_pmx *pmx = pinctrl_dev_get_drvdata(pctldev);
 	const struct tz1090_pingroup *g;
@@ -1857,47 +2032,64 @@ static int tz1090_pinconf_group_set(struct pinctrl_dev *pctldev,
 	const int *map;
 	int j;
 
-	if (group >= ARRAY_SIZE(tz1090_groups)) {
+	if (group >= ARRAY_SIZE(tz1090_groups))
+	{
 		pin = group - ARRAY_SIZE(tz1090_groups);
 		return tz1090_pinconf_set(pctldev, pin, configs, num_configs);
 	}
 
 	g = &tz1090_groups[group];
-	if (g->npins == 1) {
+
+	if (g->npins == 1)
+	{
 		pin = g->pins[0];
 		ret = tz1090_pinconf_set(pctldev, pin, configs, num_configs);
+
 		if (ret != -ENOTSUPP)
+		{
 			return ret;
+		}
 	}
 
-	for (j = 0; j < num_configs; j++) {
+	for (j = 0; j < num_configs; j++)
+	{
 		param = pinconf_to_config_param(configs[j]);
 
 		dev_dbg(pctldev->dev, "%s(group=%s, config=%#lx)\n",
-			__func__, g->name, configs[j]);
+				__func__, g->name, configs[j]);
 
 		/* Get register information */
 		ret = tz1090_pinconf_group_reg(pctldev, g, param, true, &reg,
-						&width, &mask, &shift, &map);
-		if (ret < 0) {
+									   &width, &mask, &shift, &map);
+
+		if (ret < 0)
+		{
 			/*
 			 * Maybe we're trying to set a per-pin configuration
 			 * of a group, so do the pins one by one. This is
 			 * mainly as a convenience.
 			 */
-			for (i = 0, pit = g->pins; i < g->npins; ++i, ++pit) {
+			for (i = 0, pit = g->pins; i < g->npins; ++i, ++pit)
+			{
 				ret = tz1090_pinconf_set(pctldev, *pit, configs,
-					num_configs);
+										 num_configs);
+
 				if (ret)
+				{
 					return ret;
+				}
 			}
+
 			return 0;
 		}
 
 		/* Unpack argument and map it to register value */
 		arg = pinconf_to_config_argument(configs[j]);
-		for (i = 0; i < BIT(width); ++i) {
-			if (map[i] == arg || (map[i] == -EINVAL && !arg)) {
+
+		for (i = 0; i < BIT(width); ++i)
+		{
+			if (map[i] == arg || (map[i] == -EINVAL && !arg))
+			{
 				/* Write register field */
 				__global_lock2(flags);
 				val = pmx_read(pmx, reg);
@@ -1910,7 +2102,7 @@ static int tz1090_pinconf_group_set(struct pinctrl_dev *pctldev,
 		}
 
 		dev_dbg(pctldev->dev, "%s: arg %u not supported\n",
-			__func__, arg);
+				__func__, arg);
 		return -EINVAL;
 
 next_config:
@@ -1920,7 +2112,8 @@ next_config:
 	return 0;
 }
 
-static struct pinconf_ops tz1090_pinconf_ops = {
+static struct pinconf_ops tz1090_pinconf_ops =
+{
 	.is_generic			= true,
 	.pin_config_get			= tz1090_pinconf_get,
 	.pin_config_set			= tz1090_pinconf_set,
@@ -1933,7 +2126,8 @@ static struct pinconf_ops tz1090_pinconf_ops = {
  * Pin control driver setup
  */
 
-static struct pinctrl_desc tz1090_pinctrl_desc = {
+static struct pinctrl_desc tz1090_pinctrl_desc =
+{
 	.pctlops	= &tz1090_pinctrl_ops,
 	.pmxops		= &tz1090_pinmux_ops,
 	.confops	= &tz1090_pinconf_ops,
@@ -1946,10 +2140,13 @@ static int tz1090_pinctrl_probe(struct platform_device *pdev)
 	struct resource *res;
 
 	pmx = devm_kzalloc(&pdev->dev, sizeof(*pmx), GFP_KERNEL);
-	if (!pmx) {
+
+	if (!pmx)
+	{
 		dev_err(&pdev->dev, "Can't alloc tz1090_pmx\n");
 		return -ENOMEM;
 	}
+
 	pmx->dev = &pdev->dev;
 	spin_lock_init(&pmx->lock);
 
@@ -1959,12 +2156,17 @@ static int tz1090_pinctrl_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	pmx->regs = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(pmx->regs))
+	{
 		return PTR_ERR(pmx->regs);
+	}
 
 	pmx->pctl = devm_pinctrl_register(&pdev->dev, &tz1090_pinctrl_desc,
-					  pmx);
-	if (IS_ERR(pmx->pctl)) {
+									  pmx);
+
+	if (IS_ERR(pmx->pctl))
+	{
 		dev_err(&pdev->dev, "Couldn't register pinctrl driver\n");
 		return PTR_ERR(pmx->pctl);
 	}
@@ -1976,12 +2178,14 @@ static int tz1090_pinctrl_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id tz1090_pinctrl_of_match[] = {
+static const struct of_device_id tz1090_pinctrl_of_match[] =
+{
 	{ .compatible = "img,tz1090-pinctrl", },
 	{ },
 };
 
-static struct platform_driver tz1090_pinctrl_driver = {
+static struct platform_driver tz1090_pinctrl_driver =
+{
 	.driver = {
 		.name		= "tz1090-pinctrl",
 		.of_match_table	= tz1090_pinctrl_of_match,

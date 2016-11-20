@@ -63,26 +63,41 @@ nouveau_fbcon_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
 	int ret;
 
 	if (info->state != FBINFO_STATE_RUNNING)
+	{
 		return;
+	}
 
 	ret = -ENODEV;
+
 	if (!in_interrupt() && !(info->flags & FBINFO_HWACCEL_DISABLED) &&
-	    mutex_trylock(&drm->client.mutex)) {
+		mutex_trylock(&drm->client.mutex))
+	{
 		if (device->info.family < NV_DEVICE_INFO_V0_TESLA)
+		{
 			ret = nv04_fbcon_fillrect(info, rect);
-		else
-		if (device->info.family < NV_DEVICE_INFO_V0_FERMI)
+		}
+		else if (device->info.family < NV_DEVICE_INFO_V0_FERMI)
+		{
 			ret = nv50_fbcon_fillrect(info, rect);
+		}
 		else
+		{
 			ret = nvc0_fbcon_fillrect(info, rect);
+		}
+
 		mutex_unlock(&drm->client.mutex);
 	}
 
 	if (ret == 0)
+	{
 		return;
+	}
 
 	if (ret != -ENODEV)
+	{
 		nouveau_fbcon_gpu_lockup(info);
+	}
+
 	drm_fb_helper_cfb_fillrect(info, rect);
 }
 
@@ -95,26 +110,41 @@ nouveau_fbcon_copyarea(struct fb_info *info, const struct fb_copyarea *image)
 	int ret;
 
 	if (info->state != FBINFO_STATE_RUNNING)
+	{
 		return;
+	}
 
 	ret = -ENODEV;
+
 	if (!in_interrupt() && !(info->flags & FBINFO_HWACCEL_DISABLED) &&
-	    mutex_trylock(&drm->client.mutex)) {
+		mutex_trylock(&drm->client.mutex))
+	{
 		if (device->info.family < NV_DEVICE_INFO_V0_TESLA)
+		{
 			ret = nv04_fbcon_copyarea(info, image);
-		else
-		if (device->info.family < NV_DEVICE_INFO_V0_FERMI)
+		}
+		else if (device->info.family < NV_DEVICE_INFO_V0_FERMI)
+		{
 			ret = nv50_fbcon_copyarea(info, image);
+		}
 		else
+		{
 			ret = nvc0_fbcon_copyarea(info, image);
+		}
+
 		mutex_unlock(&drm->client.mutex);
 	}
 
 	if (ret == 0)
+	{
 		return;
+	}
 
 	if (ret != -ENODEV)
+	{
 		nouveau_fbcon_gpu_lockup(info);
+	}
+
 	drm_fb_helper_cfb_copyarea(info, image);
 }
 
@@ -127,26 +157,41 @@ nouveau_fbcon_imageblit(struct fb_info *info, const struct fb_image *image)
 	int ret;
 
 	if (info->state != FBINFO_STATE_RUNNING)
+	{
 		return;
+	}
 
 	ret = -ENODEV;
+
 	if (!in_interrupt() && !(info->flags & FBINFO_HWACCEL_DISABLED) &&
-	    mutex_trylock(&drm->client.mutex)) {
+		mutex_trylock(&drm->client.mutex))
+	{
 		if (device->info.family < NV_DEVICE_INFO_V0_TESLA)
+		{
 			ret = nv04_fbcon_imageblit(info, image);
-		else
-		if (device->info.family < NV_DEVICE_INFO_V0_FERMI)
+		}
+		else if (device->info.family < NV_DEVICE_INFO_V0_FERMI)
+		{
 			ret = nv50_fbcon_imageblit(info, image);
+		}
 		else
+		{
 			ret = nvc0_fbcon_imageblit(info, image);
+		}
+
 		mutex_unlock(&drm->client.mutex);
 	}
 
 	if (ret == 0)
+	{
 		return;
+	}
 
 	if (ret != -ENODEV)
+	{
 		nouveau_fbcon_gpu_lockup(info);
+	}
+
 	drm_fb_helper_cfb_imageblit(info, image);
 }
 
@@ -159,16 +204,22 @@ nouveau_fbcon_sync(struct fb_info *info)
 	int ret;
 
 	if (!chan || !chan->accel_done || in_interrupt() ||
-	    info->state != FBINFO_STATE_RUNNING ||
-	    info->flags & FBINFO_HWACCEL_DISABLED)
+		info->state != FBINFO_STATE_RUNNING ||
+		info->flags & FBINFO_HWACCEL_DISABLED)
+	{
 		return 0;
+	}
 
 	if (!mutex_trylock(&drm->client.mutex))
+	{
 		return 0;
+	}
 
 	ret = nouveau_channel_idle(chan);
 	mutex_unlock(&drm->client.mutex);
-	if (ret) {
+
+	if (ret)
+	{
 		nouveau_fbcon_gpu_lockup(info);
 		return 0;
 	}
@@ -183,8 +234,12 @@ nouveau_fbcon_open(struct fb_info *info, int user)
 	struct nouveau_fbdev *fbcon = info->par;
 	struct nouveau_drm *drm = nouveau_drm(fbcon->dev);
 	int ret = pm_runtime_get_sync(drm->dev->dev);
+
 	if (ret < 0 && ret != -EACCES)
+	{
 		return ret;
+	}
+
 	return 0;
 }
 
@@ -197,7 +252,8 @@ nouveau_fbcon_release(struct fb_info *info, int user)
 	return 0;
 }
 
-static struct fb_ops nouveau_fbcon_ops = {
+static struct fb_ops nouveau_fbcon_ops =
+{
 	.owner = THIS_MODULE,
 	.fb_open = nouveau_fbcon_open,
 	.fb_release = nouveau_fbcon_release,
@@ -214,7 +270,8 @@ static struct fb_ops nouveau_fbcon_ops = {
 	.fb_debug_leave = drm_fb_helper_debug_leave,
 };
 
-static struct fb_ops nouveau_fbcon_sw_ops = {
+static struct fb_ops nouveau_fbcon_sw_ops =
+{
 	.owner = THIS_MODULE,
 	.fb_open = nouveau_fbcon_open,
 	.fb_release = nouveau_fbcon_release,
@@ -234,7 +291,9 @@ void
 nouveau_fbcon_accel_save_disable(struct drm_device *dev)
 {
 	struct nouveau_drm *drm = nouveau_drm(dev);
-	if (drm->fbcon) {
+
+	if (drm->fbcon)
+	{
 		drm->fbcon->saved_flags = drm->fbcon->helper.fbdev->flags;
 		drm->fbcon->helper.fbdev->flags |= FBINFO_HWACCEL_DISABLED;
 	}
@@ -244,7 +303,9 @@ void
 nouveau_fbcon_accel_restore(struct drm_device *dev)
 {
 	struct nouveau_drm *drm = nouveau_drm(dev);
-	if (drm->fbcon) {
+
+	if (drm->fbcon)
+	{
 		drm->fbcon->helper.fbdev->flags = drm->fbcon->saved_flags;
 	}
 }
@@ -254,7 +315,9 @@ nouveau_fbcon_accel_fini(struct drm_device *dev)
 {
 	struct nouveau_drm *drm = nouveau_drm(dev);
 	struct nouveau_fbdev *fbcon = drm->fbcon;
-	if (fbcon && drm->channel) {
+
+	if (fbcon && drm->channel)
+	{
 		console_lock();
 		fbcon->helper.fbdev->flags |= FBINFO_HWACCEL_DISABLED;
 		console_unlock();
@@ -278,19 +341,26 @@ nouveau_fbcon_accel_init(struct drm_device *dev)
 	int ret;
 
 	if (drm->device.info.family < NV_DEVICE_INFO_V0_TESLA)
+	{
 		ret = nv04_fbcon_accel_init(info);
-	else
-	if (drm->device.info.family < NV_DEVICE_INFO_V0_FERMI)
+	}
+	else if (drm->device.info.family < NV_DEVICE_INFO_V0_FERMI)
+	{
 		ret = nv50_fbcon_accel_init(info);
+	}
 	else
+	{
 		ret = nvc0_fbcon_accel_init(info);
+	}
 
 	if (ret == 0)
+	{
 		info->fbops = &nouveau_fbcon_ops;
+	}
 }
 
 static void nouveau_fbcon_gamma_set(struct drm_crtc *crtc, u16 red, u16 green,
-				    u16 blue, int regno)
+									u16 blue, int regno)
 {
 	struct nouveau_crtc *nv_crtc = nouveau_crtc(crtc);
 
@@ -300,7 +370,7 @@ static void nouveau_fbcon_gamma_set(struct drm_crtc *crtc, u16 red, u16 green,
 }
 
 static void nouveau_fbcon_gamma_get(struct drm_crtc *crtc, u16 *red, u16 *green,
-				    u16 *blue, int regno)
+									u16 *blue, int regno)
 {
 	struct nouveau_crtc *nv_crtc = nouveau_crtc(crtc);
 
@@ -329,7 +399,7 @@ nouveau_fbcon_zfill(struct drm_device *dev, struct nouveau_fbdev *fbcon)
 
 static int
 nouveau_fbcon_create(struct drm_fb_helper *helper,
-		     struct drm_fb_helper_surface_size *sizes)
+					 struct drm_fb_helper_surface_size *sizes)
 {
 	struct nouveau_fbdev *fbcon =
 		container_of(helper, struct nouveau_fbdev, helper);
@@ -351,45 +421,58 @@ nouveau_fbcon_create(struct drm_fb_helper *helper,
 	mode_cmd.pitches[0] = roundup(mode_cmd.pitches[0], 256);
 
 	mode_cmd.pixel_format = drm_mode_legacy_fb_format(sizes->surface_bpp,
-							  sizes->surface_depth);
+							sizes->surface_depth);
 
 	size = mode_cmd.pitches[0] * mode_cmd.height;
 	size = roundup(size, PAGE_SIZE);
 
 	ret = nouveau_gem_new(dev, size, 0, NOUVEAU_GEM_DOMAIN_VRAM,
-			      0, 0x0000, &nvbo);
-	if (ret) {
+						  0, 0x0000, &nvbo);
+
+	if (ret)
+	{
 		NV_ERROR(drm, "failed to allocate framebuffer\n");
 		goto out;
 	}
 
 	ret = nouveau_bo_pin(nvbo, TTM_PL_FLAG_VRAM, false);
-	if (ret) {
+
+	if (ret)
+	{
 		NV_ERROR(drm, "failed to pin fb: %d\n", ret);
 		goto out_unref;
 	}
 
 	ret = nouveau_bo_map(nvbo);
-	if (ret) {
+
+	if (ret)
+	{
 		NV_ERROR(drm, "failed to map fb: %d\n", ret);
 		goto out_unpin;
 	}
 
 	chan = nouveau_nofbaccel ? NULL : drm->channel;
-	if (chan && device->info.family >= NV_DEVICE_INFO_V0_TESLA) {
+
+	if (chan && device->info.family >= NV_DEVICE_INFO_V0_TESLA)
+	{
 		ret = nouveau_bo_vma_add(nvbo, drm->client.vm,
-					&fbcon->nouveau_fb.vma);
-		if (ret) {
+								 &fbcon->nouveau_fb.vma);
+
+		if (ret)
+		{
 			NV_ERROR(drm, "failed to map fb into chan: %d\n", ret);
 			chan = NULL;
 		}
 	}
 
 	info = drm_fb_helper_alloc_fbi(helper);
-	if (IS_ERR(info)) {
+
+	if (IS_ERR(info))
+	{
 		ret = PTR_ERR(info);
 		goto out_unlock;
 	}
+
 	info->skip_vt_switch = 1;
 
 	info->par = fbcon;
@@ -403,16 +486,20 @@ nouveau_fbcon_create(struct drm_fb_helper *helper,
 	fbcon->helper.fb = fb;
 
 	strcpy(info->fix.id, "nouveaufb");
+
 	if (!chan)
+	{
 		info->flags = FBINFO_DEFAULT | FBINFO_HWACCEL_DISABLED;
+	}
 	else
 		info->flags = FBINFO_DEFAULT | FBINFO_HWACCEL_COPYAREA |
-			      FBINFO_HWACCEL_FILLRECT |
-			      FBINFO_HWACCEL_IMAGEBLIT;
+					  FBINFO_HWACCEL_FILLRECT |
+					  FBINFO_HWACCEL_IMAGEBLIT;
+
 	info->flags |= FBINFO_CAN_FORCE_OUTPUT;
 	info->fbops = &nouveau_fbcon_sw_ops;
 	info->fix.smem_start = nvbo->bo.mem.bus.base +
-			       nvbo->bo.mem.bus.offset;
+						   nvbo->bo.mem.bus.offset;
 	info->fix.smem_len = size;
 
 	info->screen_base = nvbo_kmap_obj_iovirtual(nouveau_fb->nvbo);
@@ -424,20 +511,27 @@ nouveau_fbcon_create(struct drm_fb_helper *helper,
 	/* Use default scratch pixmap (info->pixmap.flags = FB_PIXMAP_SYSTEM) */
 
 	if (chan)
+	{
 		nouveau_fbcon_accel_init(dev);
+	}
+
 	nouveau_fbcon_zfill(dev, fbcon);
 
 	/* To allow resizeing without swapping buffers */
 	NV_INFO(drm, "allocated %dx%d fb: 0x%llx, bo %p\n",
-		nouveau_fb->base.width, nouveau_fb->base.height,
-		nvbo->bo.offset, nvbo);
+			nouveau_fb->base.width, nouveau_fb->base.height,
+			nvbo->bo.offset, nvbo);
 
 	vga_switcheroo_client_fb_set(dev->pdev, info);
 	return 0;
 
 out_unlock:
+
 	if (chan)
+	{
 		nouveau_bo_vma_del(nvbo, &fbcon->nouveau_fb.vma);
+	}
+
 	nouveau_bo_unmap(nvbo);
 out_unpin:
 	nouveau_bo_unpin(nvbo);
@@ -451,8 +545,11 @@ void
 nouveau_fbcon_output_poll_changed(struct drm_device *dev)
 {
 	struct nouveau_drm *drm = nouveau_drm(dev);
+
 	if (drm->fbcon)
+	{
 		drm_fb_helper_hotplug_event(&drm->fbcon->helper);
+	}
 }
 
 static int
@@ -463,13 +560,15 @@ nouveau_fbcon_destroy(struct drm_device *dev, struct nouveau_fbdev *fbcon)
 	drm_fb_helper_unregister_fbi(&fbcon->helper);
 	drm_fb_helper_release_fbi(&fbcon->helper);
 
-	if (nouveau_fb->nvbo) {
+	if (nouveau_fb->nvbo)
+	{
 		nouveau_bo_unmap(nouveau_fb->nvbo);
 		nouveau_bo_vma_del(nouveau_fb->nvbo, &nouveau_fb->vma);
 		nouveau_bo_unpin(nouveau_fb->nvbo);
 		drm_gem_object_unreference_unlocked(&nouveau_fb->nvbo->gem);
 		nouveau_fb->nvbo = NULL;
 	}
+
 	drm_fb_helper_fini(&fbcon->helper);
 	drm_framebuffer_unregister_private(&nouveau_fb->base);
 	drm_framebuffer_cleanup(&nouveau_fb->base);
@@ -485,7 +584,8 @@ void nouveau_fbcon_gpu_lockup(struct fb_info *info)
 	info->flags |= FBINFO_HWACCEL_DISABLED;
 }
 
-static const struct drm_fb_helper_funcs nouveau_fbcon_helper_funcs = {
+static const struct drm_fb_helper_funcs nouveau_fbcon_helper_funcs =
+{
 	.gamma_set = nouveau_fbcon_gamma_set,
 	.gamma_get = nouveau_fbcon_gamma_get,
 	.fb_probe = nouveau_fbcon_create,
@@ -495,13 +595,23 @@ void
 nouveau_fbcon_set_suspend(struct drm_device *dev, int state)
 {
 	struct nouveau_drm *drm = nouveau_drm(dev);
-	if (drm->fbcon) {
+
+	if (drm->fbcon)
+	{
 		console_lock();
+
 		if (state == FBINFO_STATE_RUNNING)
+		{
 			nouveau_fbcon_accel_restore(dev);
+		}
+
 		drm_fb_helper_set_suspend(&drm->fbcon->helper, state);
+
 		if (state != FBINFO_STATE_RUNNING)
+		{
 			nouveau_fbcon_accel_save_disable(dev);
+		}
+
 		console_unlock();
 	}
 }
@@ -515,12 +625,17 @@ nouveau_fbcon_init(struct drm_device *dev)
 	int ret;
 
 	if (!dev->mode_config.num_crtc ||
-	    (dev->pdev->class >> 8) != PCI_CLASS_DISPLAY_VGA)
+		(dev->pdev->class >> 8) != PCI_CLASS_DISPLAY_VGA)
+	{
 		return 0;
+	}
 
 	fbcon = kzalloc(sizeof(struct nouveau_fbdev), GFP_KERNEL);
+
 	if (!fbcon)
+	{
 		return -ENOMEM;
+	}
 
 	fbcon->dev = dev;
 	drm->fbcon = fbcon;
@@ -528,31 +643,48 @@ nouveau_fbcon_init(struct drm_device *dev)
 	drm_fb_helper_prepare(dev, &fbcon->helper, &nouveau_fbcon_helper_funcs);
 
 	ret = drm_fb_helper_init(dev, &fbcon->helper,
-				 dev->mode_config.num_crtc, 4);
+							 dev->mode_config.num_crtc, 4);
+
 	if (ret)
+	{
 		goto free;
+	}
 
 	ret = drm_fb_helper_single_add_all_connectors(&fbcon->helper);
+
 	if (ret)
+	{
 		goto fini;
+	}
 
 	if (drm->device.info.ram_size <= 32 * 1024 * 1024)
+	{
 		preferred_bpp = 8;
-	else
-	if (drm->device.info.ram_size <= 64 * 1024 * 1024)
+	}
+	else if (drm->device.info.ram_size <= 64 * 1024 * 1024)
+	{
 		preferred_bpp = 16;
+	}
 	else
+	{
 		preferred_bpp = 32;
+	}
 
 	/* disable all the possible outputs/crtcs before entering KMS mode */
 	drm_helper_disable_unused_functions(dev);
 
 	ret = drm_fb_helper_initial_config(&fbcon->helper, preferred_bpp);
+
 	if (ret)
+	{
 		goto fini;
+	}
 
 	if (fbcon->helper.fbdev)
+	{
 		fbcon->helper.fbdev->pixmap.buf_align = 4;
+	}
+
 	return 0;
 
 fini:
@@ -568,7 +700,9 @@ nouveau_fbcon_fini(struct drm_device *dev)
 	struct nouveau_drm *drm = nouveau_drm(dev);
 
 	if (!drm->fbcon)
+	{
 		return;
+	}
 
 	nouveau_fbcon_accel_fini(dev);
 	nouveau_fbcon_destroy(dev, drm->fbcon);

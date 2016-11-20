@@ -67,7 +67,8 @@
 #define  PM8941_WLED_REG_STR_CABC_MASK		BIT(7)
 #define  PM8941_WLED_REG_STR_CABC_EN		BIT(7)
 
-struct pm8941_wled_config {
+struct pm8941_wled_config
+{
 	u32 i_boost_limit;
 	u32 ovp;
 	u32 switch_freq;
@@ -78,7 +79,8 @@ struct pm8941_wled_config {
 	bool cabc_en;
 };
 
-struct pm8941_wled {
+struct pm8941_wled
+{
 	const char *name;
 	struct regmap *regmap;
 	u16 addr;
@@ -95,38 +97,52 @@ static int pm8941_wled_update_status(struct backlight_device *bl)
 	int i;
 
 	if (bl->props.power != FB_BLANK_UNBLANK ||
-	    bl->props.fb_blank != FB_BLANK_UNBLANK ||
-	    bl->props.state & BL_CORE_FBBLANK)
+		bl->props.fb_blank != FB_BLANK_UNBLANK ||
+		bl->props.state & BL_CORE_FBBLANK)
+	{
 		val = 0;
+	}
 
 	if (val != 0)
+	{
 		ctrl = PM8941_WLED_REG_MOD_EN_BIT;
-
-	rc = regmap_update_bits(wled->regmap,
-			wled->addr + PM8941_WLED_REG_MOD_EN,
-			PM8941_WLED_REG_MOD_EN_MASK, ctrl);
-	if (rc)
-		return rc;
-
-	for (i = 0; i < wled->cfg.num_strings; ++i) {
-		u8 v[2] = { val & 0xff, (val >> 8) & 0xf };
-
-		rc = regmap_bulk_write(wled->regmap,
-				wled->addr + PM8941_WLED_REG_VAL_BASE + 2 * i,
-				v, 2);
-		if (rc)
-			return rc;
 	}
 
 	rc = regmap_update_bits(wled->regmap,
-			wled->addr + PM8941_WLED_REG_SYNC,
-			PM8941_WLED_REG_SYNC_MASK, PM8941_WLED_REG_SYNC_ALL);
+							wled->addr + PM8941_WLED_REG_MOD_EN,
+							PM8941_WLED_REG_MOD_EN_MASK, ctrl);
+
 	if (rc)
+	{
 		return rc;
+	}
+
+	for (i = 0; i < wled->cfg.num_strings; ++i)
+	{
+		u8 v[2] = { val & 0xff, (val >> 8) & 0xf };
+
+		rc = regmap_bulk_write(wled->regmap,
+							   wled->addr + PM8941_WLED_REG_VAL_BASE + 2 * i,
+							   v, 2);
+
+		if (rc)
+		{
+			return rc;
+		}
+	}
 
 	rc = regmap_update_bits(wled->regmap,
-			wled->addr + PM8941_WLED_REG_SYNC,
-			PM8941_WLED_REG_SYNC_MASK, PM8941_WLED_REG_SYNC_CLEAR);
+							wled->addr + PM8941_WLED_REG_SYNC,
+							PM8941_WLED_REG_SYNC_MASK, PM8941_WLED_REG_SYNC_ALL);
+
+	if (rc)
+	{
+		return rc;
+	}
+
+	rc = regmap_update_bits(wled->regmap,
+							wled->addr + PM8941_WLED_REG_SYNC,
+							PM8941_WLED_REG_SYNC_MASK, PM8941_WLED_REG_SYNC_CLEAR);
 	return rc;
 }
 
@@ -136,73 +152,101 @@ static int pm8941_wled_setup(struct pm8941_wled *wled)
 	int i;
 
 	rc = regmap_update_bits(wled->regmap,
-			wled->addr + PM8941_WLED_REG_OVP,
-			PM8941_WLED_REG_OVP_MASK, wled->cfg.ovp);
+							wled->addr + PM8941_WLED_REG_OVP,
+							PM8941_WLED_REG_OVP_MASK, wled->cfg.ovp);
+
 	if (rc)
+	{
 		return rc;
-
-	rc = regmap_update_bits(wled->regmap,
-			wled->addr + PM8941_WLED_REG_BOOST,
-			PM8941_WLED_REG_BOOST_MASK, wled->cfg.i_boost_limit);
-	if (rc)
-		return rc;
-
-	rc = regmap_update_bits(wled->regmap,
-			wled->addr + PM8941_WLED_REG_FREQ,
-			PM8941_WLED_REG_FREQ_MASK, wled->cfg.switch_freq);
-	if (rc)
-		return rc;
-
-	if (wled->cfg.cs_out_en) {
-		u8 all = (BIT(wled->cfg.num_strings) - 1)
-				<< PM8941_WLED_REG_SINK_SHFT;
-
-		rc = regmap_update_bits(wled->regmap,
-				wled->addr + PM8941_WLED_REG_SINK,
-				PM8941_WLED_REG_SINK_MASK, all);
-		if (rc)
-			return rc;
 	}
 
-	for (i = 0; i < wled->cfg.num_strings; ++i) {
+	rc = regmap_update_bits(wled->regmap,
+							wled->addr + PM8941_WLED_REG_BOOST,
+							PM8941_WLED_REG_BOOST_MASK, wled->cfg.i_boost_limit);
+
+	if (rc)
+	{
+		return rc;
+	}
+
+	rc = regmap_update_bits(wled->regmap,
+							wled->addr + PM8941_WLED_REG_FREQ,
+							PM8941_WLED_REG_FREQ_MASK, wled->cfg.switch_freq);
+
+	if (rc)
+	{
+		return rc;
+	}
+
+	if (wled->cfg.cs_out_en)
+	{
+		u8 all = (BIT(wled->cfg.num_strings) - 1)
+				 << PM8941_WLED_REG_SINK_SHFT;
+
+		rc = regmap_update_bits(wled->regmap,
+								wled->addr + PM8941_WLED_REG_SINK,
+								PM8941_WLED_REG_SINK_MASK, all);
+
+		if (rc)
+		{
+			return rc;
+		}
+	}
+
+	for (i = 0; i < wled->cfg.num_strings; ++i)
+	{
 		u16 addr = wled->addr + PM8941_WLED_REG_STR_OFFSET * i;
 
 		rc = regmap_update_bits(wled->regmap,
-				addr + PM8941_WLED_REG_STR_MOD_EN_BASE,
-				PM8941_WLED_REG_STR_MOD_MASK,
-				PM8941_WLED_REG_STR_MOD_EN);
-		if (rc)
-			return rc;
+								addr + PM8941_WLED_REG_STR_MOD_EN_BASE,
+								PM8941_WLED_REG_STR_MOD_MASK,
+								PM8941_WLED_REG_STR_MOD_EN);
 
-		if (wled->cfg.ext_gen) {
+		if (rc)
+		{
+			return rc;
+		}
+
+		if (wled->cfg.ext_gen)
+		{
 			rc = regmap_update_bits(wled->regmap,
-					addr + PM8941_WLED_REG_STR_MOD_SRC_BASE,
-					PM8941_WLED_REG_STR_MOD_SRC_MASK,
-					PM8941_WLED_REG_STR_MOD_SRC_EXT);
+									addr + PM8941_WLED_REG_STR_MOD_SRC_BASE,
+									PM8941_WLED_REG_STR_MOD_SRC_MASK,
+									PM8941_WLED_REG_STR_MOD_SRC_EXT);
+
 			if (rc)
+			{
 				return rc;
+			}
 		}
 
 		rc = regmap_update_bits(wled->regmap,
-				addr + PM8941_WLED_REG_STR_SCALE_BASE,
-				PM8941_WLED_REG_STR_SCALE_MASK,
-				wled->cfg.i_limit);
+								addr + PM8941_WLED_REG_STR_SCALE_BASE,
+								PM8941_WLED_REG_STR_SCALE_MASK,
+								wled->cfg.i_limit);
+
 		if (rc)
+		{
 			return rc;
+		}
 
 		rc = regmap_update_bits(wled->regmap,
-				addr + PM8941_WLED_REG_STR_CABC_BASE,
-				PM8941_WLED_REG_STR_CABC_MASK,
-				wled->cfg.cabc_en ?
-					PM8941_WLED_REG_STR_CABC_EN : 0);
+								addr + PM8941_WLED_REG_STR_CABC_BASE,
+								PM8941_WLED_REG_STR_CABC_MASK,
+								wled->cfg.cabc_en ?
+								PM8941_WLED_REG_STR_CABC_EN : 0);
+
 		if (rc)
+		{
 			return rc;
+		}
 	}
 
 	return 0;
 }
 
-static const struct pm8941_wled_config pm8941_wled_config_defaults = {
+static const struct pm8941_wled_config pm8941_wled_config_defaults =
+{
 	.i_boost_limit = 3,
 	.i_limit = 20,
 	.ovp = 2,
@@ -213,26 +257,31 @@ static const struct pm8941_wled_config pm8941_wled_config_defaults = {
 	.cabc_en = false,
 };
 
-struct pm8941_wled_var_cfg {
+struct pm8941_wled_var_cfg
+{
 	const u32 *values;
 	u32 (*fn)(u32);
 	int size;
 };
 
-static const u32 pm8941_wled_i_boost_limit_values[] = {
+static const u32 pm8941_wled_i_boost_limit_values[] =
+{
 	105, 385, 525, 805, 980, 1260, 1400, 1680,
 };
 
-static const struct pm8941_wled_var_cfg pm8941_wled_i_boost_limit_cfg = {
+static const struct pm8941_wled_var_cfg pm8941_wled_i_boost_limit_cfg =
+{
 	.values = pm8941_wled_i_boost_limit_values,
 	.size = ARRAY_SIZE(pm8941_wled_i_boost_limit_values),
 };
 
-static const u32 pm8941_wled_ovp_values[] = {
+static const u32 pm8941_wled_ovp_values[] =
+{
 	35, 32, 29, 27,
 };
 
-static const struct pm8941_wled_var_cfg pm8941_wled_ovp_cfg = {
+static const struct pm8941_wled_var_cfg pm8941_wled_ovp_cfg =
+{
 	.values = pm8941_wled_ovp_values,
 	.size = ARRAY_SIZE(pm8941_wled_ovp_values),
 };
@@ -242,7 +291,8 @@ static u32 pm8941_wled_num_strings_values_fn(u32 idx)
 	return idx + 1;
 }
 
-static const struct pm8941_wled_var_cfg pm8941_wled_num_strings_cfg = {
+static const struct pm8941_wled_var_cfg pm8941_wled_num_strings_cfg =
+{
 	.fn = pm8941_wled_num_strings_values_fn,
 	.size = 3,
 };
@@ -252,23 +302,34 @@ static u32 pm8941_wled_switch_freq_values_fn(u32 idx)
 	return 19200 / (2 * (1 + idx));
 }
 
-static const struct pm8941_wled_var_cfg pm8941_wled_switch_freq_cfg = {
+static const struct pm8941_wled_var_cfg pm8941_wled_switch_freq_cfg =
+{
 	.fn = pm8941_wled_switch_freq_values_fn,
 	.size = 16,
 };
 
-static const struct pm8941_wled_var_cfg pm8941_wled_i_limit_cfg = {
+static const struct pm8941_wled_var_cfg pm8941_wled_i_limit_cfg =
+{
 	.size = 26,
 };
 
 static u32 pm8941_wled_values(const struct pm8941_wled_var_cfg *cfg, u32 idx)
 {
 	if (idx >= cfg->size)
+	{
 		return UINT_MAX;
+	}
+
 	if (cfg->fn)
+	{
 		return cfg->fn(idx);
+	}
+
 	if (cfg->values)
+	{
 		return cfg->values[idx];
+	}
+
 	return idx;
 }
 
@@ -281,11 +342,13 @@ static int pm8941_wled_configure(struct pm8941_wled *wled, struct device *dev)
 	int i;
 	int j;
 
-	const struct {
+	const struct
+	{
 		const char *name;
 		u32 *val_ptr;
 		const struct pm8941_wled_var_cfg *cfg;
-	} u32_opts[] = {
+	} u32_opts[] =
+	{
 		{
 			"qcom,current-boost-limit",
 			&cfg->i_boost_limit,
@@ -312,42 +375,60 @@ static int pm8941_wled_configure(struct pm8941_wled *wled, struct device *dev)
 			.cfg = &pm8941_wled_num_strings_cfg,
 		},
 	};
-	const struct {
+	const struct
+	{
 		const char *name;
 		bool *val_ptr;
-	} bool_opts[] = {
+	} bool_opts[] =
+	{
 		{ "qcom,cs-out", &cfg->cs_out_en, },
 		{ "qcom,ext-gen", &cfg->ext_gen, },
 		{ "qcom,cabc", &cfg->cabc_en, },
 	};
 
 	rc = of_property_read_u32(dev->of_node, "reg", &val);
-	if (rc || val > 0xffff) {
+
+	if (rc || val > 0xffff)
+	{
 		dev_err(dev, "invalid IO resources\n");
 		return rc ? rc : -EINVAL;
 	}
+
 	wled->addr = val;
 
 	rc = of_property_read_string(dev->of_node, "label", &wled->name);
+
 	if (rc)
+	{
 		wled->name = dev->of_node->name;
+	}
 
 	*cfg = pm8941_wled_config_defaults;
-	for (i = 0; i < ARRAY_SIZE(u32_opts); ++i) {
+
+	for (i = 0; i < ARRAY_SIZE(u32_opts); ++i)
+	{
 		rc = of_property_read_u32(dev->of_node, u32_opts[i].name, &val);
-		if (rc == -EINVAL) {
+
+		if (rc == -EINVAL)
+		{
 			continue;
-		} else if (rc) {
+		}
+		else if (rc)
+		{
 			dev_err(dev, "error reading '%s'\n", u32_opts[i].name);
 			return rc;
 		}
 
 		c = UINT_MAX;
-		for (j = 0; c != val; j++) {
+
+		for (j = 0; c != val; j++)
+		{
 			c = pm8941_wled_values(u32_opts[i].cfg, j);
-			if (c == UINT_MAX) {
+
+			if (c == UINT_MAX)
+			{
 				dev_err(dev, "invalid value for '%s'\n",
-					u32_opts[i].name);
+						u32_opts[i].name);
 				return -EINVAL;
 			}
 		}
@@ -356,9 +437,12 @@ static int pm8941_wled_configure(struct pm8941_wled *wled, struct device *dev)
 		*u32_opts[i].val_ptr = j;
 	}
 
-	for (i = 0; i < ARRAY_SIZE(bool_opts); ++i) {
+	for (i = 0; i < ARRAY_SIZE(bool_opts); ++i)
+	{
 		if (of_property_read_bool(dev->of_node, bool_opts[i].name))
+		{
 			*bool_opts[i].val_ptr = true;
+		}
 	}
 
 	cfg->num_strings = cfg->num_strings + 1;
@@ -366,7 +450,8 @@ static int pm8941_wled_configure(struct pm8941_wled *wled, struct device *dev)
 	return 0;
 }
 
-static const struct backlight_ops pm8941_wled_ops = {
+static const struct backlight_ops pm8941_wled_ops =
+{
 	.update_status = pm8941_wled_update_status,
 };
 
@@ -380,24 +465,35 @@ static int pm8941_wled_probe(struct platform_device *pdev)
 	int rc;
 
 	regmap = dev_get_regmap(pdev->dev.parent, NULL);
-	if (!regmap) {
+
+	if (!regmap)
+	{
 		dev_err(&pdev->dev, "Unable to get regmap\n");
 		return -EINVAL;
 	}
 
 	wled = devm_kzalloc(&pdev->dev, sizeof(*wled), GFP_KERNEL);
+
 	if (!wled)
+	{
 		return -ENOMEM;
+	}
 
 	wled->regmap = regmap;
 
 	rc = pm8941_wled_configure(wled, &pdev->dev);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = pm8941_wled_setup(wled);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	val = PM8941_WLED_DEFAULT_BRIGHTNESS;
 	of_property_read_u32(pdev->dev.of_node, "default-brightness", &val);
@@ -407,18 +503,20 @@ static int pm8941_wled_probe(struct platform_device *pdev)
 	props.brightness = val;
 	props.max_brightness = PM8941_WLED_REG_VAL_MAX;
 	bl = devm_backlight_device_register(&pdev->dev, wled->name,
-					    &pdev->dev, wled,
-					    &pm8941_wled_ops, &props);
+										&pdev->dev, wled,
+										&pm8941_wled_ops, &props);
 	return PTR_ERR_OR_ZERO(bl);
 };
 
-static const struct of_device_id pm8941_wled_match_table[] = {
+static const struct of_device_id pm8941_wled_match_table[] =
+{
 	{ .compatible = "qcom,pm8941-wled" },
 	{}
 };
 MODULE_DEVICE_TABLE(of, pm8941_wled_match_table);
 
-static struct platform_driver pm8941_wled_driver = {
+static struct platform_driver pm8941_wled_driver =
+{
 	.probe = pm8941_wled_probe,
 	.driver	= {
 		.name = "pm8941-wled",

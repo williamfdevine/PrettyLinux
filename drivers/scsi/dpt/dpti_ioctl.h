@@ -27,16 +27,16 @@
 // IOCTL interface commands
 
 #ifndef _IOWR
-# define _IOWR(x,y,z)	(((x)<<8)|y)
+	#define _IOWR(x,y,z)	(((x)<<8)|y)
 #endif
 #ifndef _IOW
-# define _IOW(x,y,z)	(((x)<<8)|y)
+	#define _IOW(x,y,z)	(((x)<<8)|y)
 #endif
 #ifndef _IOR
-# define _IOR(x,y,z)	(((x)<<8)|y)
+	#define _IOR(x,y,z)	(((x)<<8)|y)
 #endif
 #ifndef _IO
-# define _IO(x,y)	(((x)<<8)|y)
+	#define _IO(x,y)	(((x)<<8)|y)
 #endif
 /* EATA PassThrough Command	*/
 #define EATAUSRCMD      _IOWR('D',65,EATA_CP)
@@ -45,7 +45,7 @@
 /* Get Signature Structure	*/
 #define DPT_SIGNATURE   _IOR('D',67,dpt_sig_S)
 #if defined __bsdi__
-#define DPT_SIGNATURE_PACKED   _IOR('D',67,dpt_sig_S_Packed)
+	#define DPT_SIGNATURE_PACKED   _IOR('D',67,dpt_sig_S_Packed)
 #endif
 /* Get Number Of DPT Adapters	*/
 #define DPT_NUMCTRLS    _IOR('D',68,int)
@@ -79,9 +79,10 @@
 #define DPT_TARGET_BUSY	_IOR('D',79, TARGET_BUSY_T)
 
 
-  /* Structure Returned From Get Controller Info                             */
+/* Structure Returned From Get Controller Info                             */
 
-typedef struct {
+typedef struct
+{
 	uCHAR    state;            /* Operational state               */
 	uCHAR    id;               /* Host adapter SCSI id            */
 	int      vect;             /* Interrupt vector number         */
@@ -104,7 +105,8 @@ typedef struct {
 	uCHAR    flag2;            /* EATA Flags 2 (Byte 30)          */
 } CtrlInfo;
 
-typedef struct {
+typedef struct
+{
 	uSHORT length;		// Remaining length of this
 	uSHORT drvrHBAnum;	// Relative HBA # used by the driver
 	uINT baseAddr;		// Base I/O address
@@ -129,10 +131,10 @@ typedef struct {
 
 typedef struct TARGET_BUSY
 {
-  uLONG channel;
-  uLONG id;
-  uLONG lun;
-  uLONG isBusy;
+	uLONG channel;
+	uLONG id;
+	uLONG lun;
+	uLONG isBusy;
 } TARGET_BUSY_T;
 
 #endif

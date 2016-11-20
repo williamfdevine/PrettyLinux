@@ -36,11 +36,12 @@
   #define MAX_FRAME_SIZE	2048
 */
 
-struct hfc_chan {
+struct hfc_chan
+{
 	struct dchannel	*dch;	/* link if channel is a D-channel */
 	struct bchannel	*bch;	/* link if channel is a B-channel */
 	int		port;	/* the interface port this */
-				/* channel is associated with */
+	/* channel is associated with */
 	int		nt_timer; /* -1 if off, 0 if elapsed, >0 if running */
 	int		los, ais, slip_tx, slip_rx, rdi; /* current alarms */
 	int		jitter;
@@ -53,7 +54,7 @@ struct hfc_chan {
 	int		bank_rx;
 	int		conf;	/* conference setting of TX slot */
 	int		txpending;	/* if there is currently data in */
-					/* the FIFO 0=no, 1=yes, 2=splloop */
+	/* the FIFO 0=no, 1=yes, 2=splloop */
 	int		Zfill;	/* rx-fifo level on last hfcmulti_tx */
 	int		rx_off; /* set to turn fifo receive off */
 	int		coeff_count; /* curren coeff block */
@@ -61,7 +62,8 @@ struct hfc_chan {
 };
 
 
-struct hfcm_hw {
+struct hfcm_hw
+{
 	u_char	r_ctrl;
 	u_char	r_irq_ctrl;
 	u_char	r_cirm;
@@ -121,7 +123,8 @@ struct hfcm_hw {
 #define HFC_IO_MODE_EMBSD	0x03 /* direct access */
 
 /* table entry in the PCI devices list */
-struct hm_map {
+struct hm_map
+{
 	char *vendor_name;
 	char *card_name;
 	int type;
@@ -134,7 +137,8 @@ struct hm_map {
 	int irq;
 };
 
-struct hfc_multi {
+struct hfc_multi
+{
 	struct list_head	list;
 	struct hm_map	*mtyp;
 	int		id;
@@ -148,26 +152,26 @@ struct hfc_multi {
 	int		io_mode; /* selects mode */
 #ifdef HFC_REGISTER_DEBUG
 	void		(*HFC_outb)(struct hfc_multi *hc, u_char reg,
-				    u_char val, const char *function, int line);
+							u_char val, const char *function, int line);
 	void		(*HFC_outb_nodebug)(struct hfc_multi *hc, u_char reg,
-					    u_char val, const char *function, int line);
+									u_char val, const char *function, int line);
 	u_char		(*HFC_inb)(struct hfc_multi *hc, u_char reg,
-				   const char *function, int line);
+						   const char *function, int line);
 	u_char		(*HFC_inb_nodebug)(struct hfc_multi *hc, u_char reg,
-					   const char *function, int line);
+								   const char *function, int line);
 	u_short		(*HFC_inw)(struct hfc_multi *hc, u_char reg,
-				   const char *function, int line);
+						   const char *function, int line);
 	u_short		(*HFC_inw_nodebug)(struct hfc_multi *hc, u_char reg,
-					   const char *function, int line);
+								   const char *function, int line);
 	void		(*HFC_wait)(struct hfc_multi *hc,
-				    const char *function, int line);
+							const char *function, int line);
 	void		(*HFC_wait_nodebug)(struct hfc_multi *hc,
-					    const char *function, int line);
+									const char *function, int line);
 #else
 	void		(*HFC_outb)(struct hfc_multi *hc, u_char reg,
-				    u_char val);
+							u_char val);
 	void		(*HFC_outb_nodebug)(struct hfc_multi *hc, u_char reg,
-					    u_char val);
+									u_char val);
 	u_char		(*HFC_inb)(struct hfc_multi *hc, u_char reg);
 	u_char		(*HFC_inb_nodebug)(struct hfc_multi *hc, u_char reg);
 	u_short		(*HFC_inw)(struct hfc_multi *hc, u_char reg);
@@ -176,9 +180,9 @@ struct hfc_multi {
 	void		(*HFC_wait_nodebug)(struct hfc_multi *hc);
 #endif
 	void		(*read_fifo)(struct hfc_multi *hc, u_char *data,
-				     int len);
+							 int len);
 	void		(*write_fifo)(struct hfc_multi *hc, u_char *data,
-				      int len);
+							  int len);
 	u_long		pci_origmembase, plx_origmembase;
 	void __iomem	*pci_membase; /* PCI memory */
 	void __iomem	*plx_membase; /* PLX memory */
@@ -207,19 +211,19 @@ struct hfc_multi {
 	u_int		leds;	/* type of leds */
 	u_long		ledstate; /* save last state of leds */
 	int		opticalsupport; /* has the e1 board */
-					/* an optical Interface */
+	/* an optical Interface */
 
 	u_int		bmask[32]; /* bitmask of bchannels for port */
 	u_char		dnum[32]; /* array of used dchannel numbers for port */
 	u_char		created[32]; /* what port is created */
 	u_int		activity_tx; /* if there is data TX / RX */
 	u_int		activity_rx; /* bitmask according to port number */
-				     /* (will be cleared after */
-				     /* showing led-states) */
+	/* (will be cleared after */
+	/* showing led-states) */
 	u_int		flash[8]; /* counter for flashing 8 leds on activity */
 
 	u_long		wdcount;	/* every 500 ms we need to */
-					/* send the watchdog a signal */
+	/* send the watchdog a signal */
 	u_char		wdbyte; /* watchdog toggle byte */
 	int		e1_state; /* keep track of last state */
 	int		e1_getclock; /* if sync is retrieved from interface */
@@ -271,7 +275,7 @@ struct hfc_multi {
 #define PLX_DSP_RES_N		PLX_GPIO8
 /* GPIO4..8 Enable & Set to OUT, SLAVE_EN_N = 1 */
 #define PLX_GPIOC_INIT		(PLX_GPIO4_DIR | PLX_GPIO5_DIR | PLX_GPIO6_DIR \
-				 | PLX_GPIO7_DIR | PLX_GPIO8_DIR | PLX_SLAVE_EN_N)
+							 | PLX_GPIO7_DIR | PLX_GPIO8_DIR | PLX_SLAVE_EN_N)
 
 /* PLX Interrupt Control/STATUS */
 #define PLX_INTCSR_LINTI1_ENABLE 0x01
@@ -1086,10 +1090,12 @@ struct hfc_multi {
 /* map of all registers, used for debugging */
 
 #ifdef HFC_REGISTER_DEBUG
-struct hfc_register_names {
+struct hfc_register_names
+{
 	char *name;
 	u_char reg;
-} hfc_register_names[] = {
+} hfc_register_names[] =
+{
 	/* write registers */
 	{"R_CIRM",		0x00},
 	{"R_CTRL",		0x01},

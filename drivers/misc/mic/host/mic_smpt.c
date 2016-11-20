@@ -47,7 +47,7 @@ static inline u64 mic_smpt_offset(struct mic_device *mdev, dma_addr_t pa)
 static inline u64 mic_smpt_align_low(struct mic_device *mdev, dma_addr_t pa)
 {
 	return ALIGN(pa - mic_system_page_mask(mdev),
-		mdev->smpt->info.page_size);
+				 mdev->smpt->info.page_size);
 }
 
 static inline u64 mic_smpt_align_high(struct mic_device *mdev, dma_addr_t pa)
@@ -76,18 +76,21 @@ mic_is_system_addr(struct mic_device *mdev, dma_addr_t pa)
 
 /* Populate an SMPT entry and update the reference counts. */
 static void mic_add_smpt_entry(int spt, s64 *ref, u64 addr,
-			       int entries, struct mic_device *mdev)
+							   int entries, struct mic_device *mdev)
 {
 	struct mic_smpt_info *smpt_info = mdev->smpt;
 	int i;
 
 	for (i = spt; i < spt + entries; i++,
-		addr += smpt_info->info.page_size) {
+		 addr += smpt_info->info.page_size)
+	{
 		if (!smpt_info->entry[i].ref_count &&
-		    (smpt_info->entry[i].dma_addr != addr)) {
+			(smpt_info->entry[i].dma_addr != addr))
+		{
 			mdev->smpt_ops->set(mdev, addr, i);
 			smpt_info->entry[i].dma_addr = addr;
 		}
+
 		smpt_info->entry[i].ref_count += ref[i - spt];
 	}
 }
@@ -97,7 +100,7 @@ static void mic_add_smpt_entry(int spt, s64 *ref, u64 addr,
  * for a given DMA address and size.
  */
 static dma_addr_t mic_smpt_op(struct mic_device *mdev, u64 dma_addr,
-			      int entries, s64 *ref, size_t size)
+							  int entries, s64 *ref, size_t size)
 {
 	int spt;
 	int ae = 0;
@@ -110,22 +113,33 @@ static dma_addr_t mic_smpt_op(struct mic_device *mdev, u64 dma_addr,
 	spin_lock_irqsave(&smpt_info->smpt_lock, flags);
 
 	/* find existing entries */
-	for (i = 0; i < smpt_info->info.num_reg; i++) {
-		if (smpt_info->entry[i].dma_addr == addr) {
+	for (i = 0; i < smpt_info->info.num_reg; i++)
+	{
+		if (smpt_info->entry[i].dma_addr == addr)
+		{
 			ae++;
 			addr += smpt_info->info.page_size;
-		} else if (ae) /* cannot find contiguous entries */
+		}
+		else if (ae)   /* cannot find contiguous entries */
+		{
 			goto not_found;
+		}
 
 		if (ae == entries)
+		{
 			goto found;
+		}
 	}
 
 	/* find free entry */
-	for (ae = 0, i = 0; i < smpt_info->info.num_reg; i++) {
+	for (ae = 0, i = 0; i < smpt_info->info.num_reg; i++)
+	{
 		ae = (smpt_info->entry[i].ref_count == 0) ? ae + 1 : 0;
+
 		if (ae == entries)
+		{
 			goto found;
+		}
 	}
 
 not_found:
@@ -148,20 +162,23 @@ found:
  * and the starting smpt address
  */
 static int mic_get_smpt_ref_count(struct mic_device *mdev, dma_addr_t dma_addr,
-				  size_t size, s64 *ref,  u64 *smpt_start)
+								  size_t size, s64 *ref,  u64 *smpt_start)
 {
 	u64 start =  dma_addr;
 	u64 end = dma_addr + size;
 	int i = 0;
 
-	while (start < end) {
+	while (start < end)
+	{
 		ref[i++] = min(mic_smpt_align_high(mdev, start + 1),
-			end) - start;
+					   end) - start;
 		start = mic_smpt_align_high(mdev, start + 1);
 	}
 
 	if (smpt_start)
+	{
 		*smpt_start = mic_smpt_align_low(mdev, dma_addr);
+	}
 
 	return i;
 }
@@ -180,14 +197,16 @@ dma_addr_t mic_to_dma_addr(struct mic_device *mdev, dma_addr_t mic_addr)
 	int spt;
 	dma_addr_t dma_addr;
 
-	if (!mic_is_system_addr(mdev, mic_addr)) {
+	if (!mic_is_system_addr(mdev, mic_addr))
+	{
 		dev_err(&mdev->pdev->dev,
-			"mic_addr is invalid. mic_addr = 0x%llx\n", mic_addr);
+				"mic_addr is invalid. mic_addr = 0x%llx\n", mic_addr);
 		return -EINVAL;
 	}
+
 	spt = mic_sys_addr_to_smpt(mdev, mic_addr);
 	dma_addr = smpt_info->entry[spt].dma_addr +
-		mic_smpt_offset(mdev, mic_addr);
+			   mic_smpt_offset(mdev, mic_addr);
 	return dma_addr;
 }
 
@@ -211,14 +230,19 @@ dma_addr_t mic_map(struct mic_device *mdev, dma_addr_t dma_addr, size_t size)
 	u64 smpt_start;
 
 	if (!size || size > mic_max_system_memory(mdev))
+	{
 		return mic_addr;
+	}
 
 	ref = kmalloc_array(mdev->smpt->info.num_reg, sizeof(s64), GFP_ATOMIC);
+
 	if (!ref)
+	{
 		return mic_addr;
+	}
 
 	num_entries = mic_get_smpt_ref_count(mdev, dma_addr, size,
-					     ref, &smpt_start);
+										 ref, &smpt_start);
 
 	/* Set the smpt table appropriately and get 16G aligned mic address */
 	mic_addr = mic_smpt_op(mdev, smpt_start, num_entries, ref, size);
@@ -230,12 +254,15 @@ dma_addr_t mic_map(struct mic_device *mdev, dma_addr_t dma_addr, size_t size)
 	 * since mic_addr can never be zero.
 	 * else generate mic_addr by adding the 16G offset in dma_addr
 	 */
-	if (!mic_addr && MIC_FAMILY_X100 == mdev->family) {
+	if (!mic_addr && MIC_FAMILY_X100 == mdev->family)
+	{
 		dev_err(&mdev->pdev->dev,
-			"mic_map failed dma_addr 0x%llx size 0x%lx\n",
-			dma_addr, size);
+				"mic_map failed dma_addr 0x%llx size 0x%lx\n",
+				dma_addr, size);
 		return mic_addr;
-	} else {
+	}
+	else
+	{
 		return mic_addr + mic_smpt_offset(mdev, dma_addr);
 	}
 }
@@ -261,18 +288,24 @@ void mic_unmap(struct mic_device *mdev, dma_addr_t mic_addr, size_t size)
 	unsigned long flags;
 
 	if (!size)
+	{
 		return;
+	}
 
-	if (!mic_is_system_addr(mdev, mic_addr)) {
+	if (!mic_is_system_addr(mdev, mic_addr))
+	{
 		dev_err(&mdev->pdev->dev,
-			"invalid address: 0x%llx\n", mic_addr);
+				"invalid address: 0x%llx\n", mic_addr);
 		return;
 	}
 
 	spt = mic_sys_addr_to_smpt(mdev, mic_addr);
 	ref = kmalloc_array(mdev->smpt->info.num_reg, sizeof(s64), GFP_ATOMIC);
+
 	if (!ref)
+	{
 		return;
+	}
 
 	/* Get number of smpt entries to be mapped, ref count array */
 	num_smpt = mic_get_smpt_ref_count(mdev, mic_addr, size, ref, NULL);
@@ -281,12 +314,15 @@ void mic_unmap(struct mic_device *mdev, dma_addr_t mic_addr, size_t size)
 	smpt_info->unmap_count++;
 	smpt_info->ref_count -= (s64)size;
 
-	for (i = spt; i < spt + num_smpt; i++) {
+	for (i = spt; i < spt + num_smpt; i++)
+	{
 		smpt_info->entry[i].ref_count -= ref[i - spt];
+
 		if (smpt_info->entry[i].ref_count < 0)
 			dev_warn(&mdev->pdev->dev,
-				 "ref count for entry %d is negative\n", i);
+					 "ref count for entry %d is negative\n", i);
 	}
+
 	spin_unlock_irqrestore(&smpt_info->smpt_lock, flags);
 	kfree(ref);
 }
@@ -311,16 +347,20 @@ dma_addr_t mic_map_single(struct mic_device *mdev, void *va, size_t size)
 	dma_addr_t dma_addr =
 		pci_map_single(pdev, va, size, PCI_DMA_BIDIRECTIONAL);
 
-	if (!pci_dma_mapping_error(pdev, dma_addr)) {
+	if (!pci_dma_mapping_error(pdev, dma_addr))
+	{
 		mic_addr = mic_map(mdev, dma_addr, size);
-		if (!mic_addr) {
+
+		if (!mic_addr)
+		{
 			dev_err(&mdev->pdev->dev,
-				"mic_map failed dma_addr 0x%llx size 0x%lx\n",
-				dma_addr, size);
+					"mic_map failed dma_addr 0x%llx size 0x%lx\n",
+					dma_addr, size);
 			pci_unmap_single(pdev, dma_addr,
-					 size, PCI_DMA_BIDIRECTIONAL);
+							 size, PCI_DMA_BIDIRECTIONAL);
 		}
 	}
+
 	return mic_addr;
 }
 
@@ -358,24 +398,33 @@ int mic_smpt_init(struct mic_device *mdev)
 	struct mic_smpt_info *smpt_info;
 
 	mdev->smpt = kmalloc(sizeof(*mdev->smpt), GFP_KERNEL);
+
 	if (!mdev->smpt)
+	{
 		return -ENOMEM;
+	}
 
 	smpt_info = mdev->smpt;
 	mdev->smpt_ops->init(mdev);
 	smpt_info->entry = kmalloc_array(smpt_info->info.num_reg,
-					 sizeof(*smpt_info->entry), GFP_KERNEL);
-	if (!smpt_info->entry) {
+									 sizeof(*smpt_info->entry), GFP_KERNEL);
+
+	if (!smpt_info->entry)
+	{
 		err = -ENOMEM;
 		goto free_smpt;
 	}
+
 	spin_lock_init(&smpt_info->smpt_lock);
-	for (i = 0; i < smpt_info->info.num_reg; i++) {
+
+	for (i = 0; i < smpt_info->info.num_reg; i++)
+	{
 		dma_addr = i * smpt_info->info.page_size;
 		smpt_info->entry[i].dma_addr = dma_addr;
 		smpt_info->entry[i].ref_count = 0;
 		mdev->smpt_ops->set(mdev, dma_addr, i);
 	}
+
 	smpt_info->ref_count = 0;
 	smpt_info->map_count = 0;
 	smpt_info->unmap_count = 0;
@@ -398,19 +447,22 @@ void mic_smpt_uninit(struct mic_device *mdev)
 	int i;
 
 	dev_dbg(&mdev->pdev->dev,
-		"nodeid %d SMPT ref count %lld map %lld unmap %lld\n",
-		mdev->id, smpt_info->ref_count,
-		smpt_info->map_count, smpt_info->unmap_count);
+			"nodeid %d SMPT ref count %lld map %lld unmap %lld\n",
+			mdev->id, smpt_info->ref_count,
+			smpt_info->map_count, smpt_info->unmap_count);
 
-	for (i = 0; i < smpt_info->info.num_reg; i++) {
+	for (i = 0; i < smpt_info->info.num_reg; i++)
+	{
 		dev_dbg(&mdev->pdev->dev,
-			"SMPT entry[%d] dma_addr = 0x%llx ref_count = %lld\n",
-			i, smpt_info->entry[i].dma_addr,
-			smpt_info->entry[i].ref_count);
+				"SMPT entry[%d] dma_addr = 0x%llx ref_count = %lld\n",
+				i, smpt_info->entry[i].dma_addr,
+				smpt_info->entry[i].ref_count);
+
 		if (smpt_info->entry[i].ref_count)
 			dev_warn(&mdev->pdev->dev,
-				 "ref count for entry %d is not zero\n", i);
+					 "ref count for entry %d is not zero\n", i);
 	}
+
 	kfree(smpt_info->entry);
 	kfree(smpt_info);
 }
@@ -432,7 +484,8 @@ void mic_smpt_restore(struct mic_device *mdev)
 	int i;
 	dma_addr_t dma_addr;
 
-	for (i = 0; i < mdev->smpt->info.num_reg; i++) {
+	for (i = 0; i < mdev->smpt->info.num_reg; i++)
+	{
 		dma_addr = mdev->smpt->entry[i].dma_addr;
 		mdev->smpt_ops->set(mdev, dma_addr, i);
 	}

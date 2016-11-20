@@ -2,7 +2,8 @@
 #define US122L_H
 
 
-struct us122l {
+struct us122l
+{
 	struct usb_device	*dev;
 	int			card_index;
 	int			stride;

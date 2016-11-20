@@ -16,7 +16,8 @@
 /* Encore ENLTV-FM  - black plastic, white front cover with white glowing buttons
     Juan Pablo Sormani <sorman@gmail.com> */
 
-static struct rc_map_table encore_enltv[] = {
+static struct rc_map_table encore_enltv[] =
+{
 
 	/* Power button does nothing, neither in Windows app,
 	 although it sends data (used for BIOS wakeup?) */
@@ -87,7 +88,8 @@ static struct rc_map_table encore_enltv[] = {
 	{ 0x57, KEY_BLUE },		/* AP4 */
 };
 
-static struct rc_map_list encore_enltv_map = {
+static struct rc_map_list encore_enltv_map =
+{
 	.map = {
 		.scan    = encore_enltv,
 		.size    = ARRAY_SIZE(encore_enltv),

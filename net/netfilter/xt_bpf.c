@@ -28,7 +28,8 @@ static int bpf_mt_check(const struct xt_mtchk_param *par)
 	program.len = info->bpf_program_num_elem;
 	program.filter = info->bpf_program;
 
-	if (bpf_prog_create(&info->filter, &program)) {
+	if (bpf_prog_create(&info->filter, &program))
+	{
 		pr_info("bpf: check failed: parse error\n");
 		return -EINVAL;
 	}
@@ -49,7 +50,8 @@ static void bpf_mt_destroy(const struct xt_mtdtor_param *par)
 	bpf_prog_destroy(info->filter);
 }
 
-static struct xt_match bpf_mt_reg __read_mostly = {
+static struct xt_match bpf_mt_reg __read_mostly =
+{
 	.name		= "bpf",
 	.revision	= 0,
 	.family		= NFPROTO_UNSPEC,

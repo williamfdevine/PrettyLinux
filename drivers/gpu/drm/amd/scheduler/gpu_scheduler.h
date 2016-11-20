@@ -36,7 +36,8 @@ struct amd_sched_rq;
  * job queues to corresponding hardware ring based on scheduling
  * policy.
 */
-struct amd_sched_entity {
+struct amd_sched_entity
+{
 	struct list_head		list;
 	struct amd_sched_rq		*rq;
 	struct amd_gpu_scheduler	*sched;
@@ -56,13 +57,15 @@ struct amd_sched_entity {
  * one specific ring. It implements the scheduling policy that selects
  * the next entity to emit commands from.
 */
-struct amd_sched_rq {
+struct amd_sched_rq
+{
 	spinlock_t		lock;
 	struct list_head	entities;
 	struct amd_sched_entity	*current_entity;
 };
 
-struct amd_sched_fence {
+struct amd_sched_fence
+{
 	struct fence                    scheduled;
 	struct fence                    finished;
 	struct fence_cb                 cb;
@@ -72,7 +75,8 @@ struct amd_sched_fence {
 	void                            *owner;
 };
 
-struct amd_sched_job {
+struct amd_sched_job
+{
 	struct amd_gpu_scheduler        *sched;
 	struct amd_sched_entity         *s_entity;
 	struct amd_sched_fence          *s_fence;
@@ -87,10 +91,14 @@ extern const struct fence_ops amd_sched_fence_ops_finished;
 static inline struct amd_sched_fence *to_amd_sched_fence(struct fence *f)
 {
 	if (f->ops == &amd_sched_fence_ops_scheduled)
+	{
 		return container_of(f, struct amd_sched_fence, scheduled);
+	}
 
 	if (f->ops == &amd_sched_fence_ops_finished)
+	{
 		return container_of(f, struct amd_sched_fence, finished);
+	}
 
 	return NULL;
 }
@@ -99,14 +107,16 @@ static inline struct amd_sched_fence *to_amd_sched_fence(struct fence *f)
  * Define the backend operations called by the scheduler,
  * these functions should be implemented in driver side
 */
-struct amd_sched_backend_ops {
+struct amd_sched_backend_ops
+{
 	struct fence *(*dependency)(struct amd_sched_job *sched_job);
 	struct fence *(*run_job)(struct amd_sched_job *sched_job);
 	void (*timedout_job)(struct amd_sched_job *sched_job);
 	void (*free_job)(struct amd_sched_job *sched_job);
 };
 
-enum amd_sched_priority {
+enum amd_sched_priority
+{
 	AMD_SCHED_PRIORITY_KERNEL = 0,
 	AMD_SCHED_PRIORITY_NORMAL,
 	AMD_SCHED_MAX_PRIORITY
@@ -115,7 +125,8 @@ enum amd_sched_priority {
 /**
  * One scheduler is implemented for each hardware ring
 */
-struct amd_gpu_scheduler {
+struct amd_gpu_scheduler
+{
 	const struct amd_sched_backend_ops	*ops;
 	uint32_t			hw_submission_limit;
 	long				timeout;
@@ -130,16 +141,16 @@ struct amd_gpu_scheduler {
 };
 
 int amd_sched_init(struct amd_gpu_scheduler *sched,
-		   const struct amd_sched_backend_ops *ops,
-		   uint32_t hw_submission, long timeout, const char *name);
+				   const struct amd_sched_backend_ops *ops,
+				   uint32_t hw_submission, long timeout, const char *name);
 void amd_sched_fini(struct amd_gpu_scheduler *sched);
 
 int amd_sched_entity_init(struct amd_gpu_scheduler *sched,
-			  struct amd_sched_entity *entity,
-			  struct amd_sched_rq *rq,
-			  uint32_t jobs);
+						  struct amd_sched_entity *entity,
+						  struct amd_sched_rq *rq,
+						  uint32_t jobs);
 void amd_sched_entity_fini(struct amd_gpu_scheduler *sched,
-			   struct amd_sched_entity *entity);
+						   struct amd_sched_entity *entity);
 void amd_sched_entity_push_job(struct amd_sched_job *sched_job);
 
 int amd_sched_fence_slab_init(void);
@@ -150,9 +161,9 @@ struct amd_sched_fence *amd_sched_fence_create(
 void amd_sched_fence_scheduled(struct amd_sched_fence *fence);
 void amd_sched_fence_finished(struct amd_sched_fence *fence);
 int amd_sched_job_init(struct amd_sched_job *job,
-		       struct amd_gpu_scheduler *sched,
-		       struct amd_sched_entity *entity,
-		       void *owner);
+					   struct amd_gpu_scheduler *sched,
+					   struct amd_sched_entity *entity,
+					   void *owner);
 void amd_sched_hw_job_reset(struct amd_gpu_scheduler *sched);
 void amd_sched_job_recovery(struct amd_gpu_scheduler *sched);
 #endif

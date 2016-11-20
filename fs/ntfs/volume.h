@@ -33,7 +33,8 @@
 /*
  * The NTFS in memory super block structure.
  */
-typedef struct {
+typedef struct
+{
 	/*
 	 * FIXME: Reorder to have commonly used together element within the
 	 * same cache line, aiming at a cache line size of 32 bytes. Aim for
@@ -135,7 +136,8 @@ typedef struct {
 /*
  * Defined bits for the flags field in the ntfs_volume structure.
  */
-typedef enum {
+typedef enum
+{
 	NV_Errors,		/* 1: Volume has errors, prevent remount rw. */
 	NV_ShowSystemFiles,	/* 1: Return system files in ntfs_readdir(). */
 	NV_CaseSensitive,	/* 1: Treat file names as case sensitive and
@@ -153,18 +155,18 @@ typedef enum {
  * functions.
  */
 #define DEFINE_NVOL_BIT_OPS(flag)					\
-static inline int NVol##flag(ntfs_volume *vol)		\
-{							\
-	return test_bit(NV_##flag, &(vol)->flags);	\
-}							\
-static inline void NVolSet##flag(ntfs_volume *vol)	\
-{							\
-	set_bit(NV_##flag, &(vol)->flags);		\
-}							\
-static inline void NVolClear##flag(ntfs_volume *vol)	\
-{							\
-	clear_bit(NV_##flag, &(vol)->flags);		\
-}
+	static inline int NVol##flag(ntfs_volume *vol)		\
+	{							\
+		return test_bit(NV_##flag, &(vol)->flags);	\
+	}							\
+	static inline void NVolSet##flag(ntfs_volume *vol)	\
+	{							\
+		set_bit(NV_##flag, &(vol)->flags);		\
+	}							\
+	static inline void NVolClear##flag(ntfs_volume *vol)	\
+	{							\
+		clear_bit(NV_##flag, &(vol)->flags);		\
+	}
 
 /* Emit the ntfs volume bitops functions. */
 DEFINE_NVOL_BIT_OPS(Errors)

@@ -105,7 +105,8 @@
 #define UCB_MODE_DYN_VFLAG_ENA	(1 << 12)
 #define UCB_MODE_AUD_OFF_CAN	(1 << 13)
 
-enum ucb1x00_reset {
+enum ucb1x00_reset
+{
 	UCB_RST_PROBE,
 	UCB_RST_RESUME,
 	UCB_RST_SUSPEND,
@@ -113,14 +114,16 @@ enum ucb1x00_reset {
 	UCB_RST_PROBE_FAIL,
 };
 
-struct ucb1x00_plat_data {
+struct ucb1x00_plat_data
+{
 	void			(*reset)(enum ucb1x00_reset);
 	unsigned		irq_base;
 	int			gpio_base;
 	unsigned		can_wakeup;
 };
 
-struct ucb1x00 {
+struct ucb1x00
+{
 	raw_spinlock_t		irq_lock;
 	struct mcp		*mcp;
 	unsigned int		irq;
@@ -143,7 +146,8 @@ struct ucb1x00 {
 
 struct ucb1x00_driver;
 
-struct ucb1x00_dev {
+struct ucb1x00_dev
+{
 	struct list_head	dev_node;
 	struct list_head	drv_node;
 	struct ucb1x00		*ucb;
@@ -151,7 +155,8 @@ struct ucb1x00_dev {
 	void			*priv;
 };
 
-struct ucb1x00_driver {
+struct ucb1x00_driver
+{
 	struct list_head	node;
 	struct list_head	devs;
 	int	(*add)(struct ucb1x00_dev *dev);
@@ -227,7 +232,7 @@ static inline unsigned int ucb1x00_reg_read(struct ucb1x00 *ucb, unsigned int re
 	return mcp_reg_read(ucb->mcp, reg);
 }
 /**
- *	ucb1x00_set_audio_divisor - 
+ *	ucb1x00_set_audio_divisor -
  *	@ucb: UCB1x00 structure describing chip
  *	@div: SIB clock divisor
  */

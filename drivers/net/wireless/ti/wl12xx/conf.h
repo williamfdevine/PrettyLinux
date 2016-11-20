@@ -26,7 +26,8 @@
 #define CONF_TX_PWR_COMPENSATION_LEN_2 7
 #define CONF_TX_PWR_COMPENSATION_LEN_5 18
 
-struct wl12xx_conf_rf {
+struct wl12xx_conf_rf
+{
 	/*
 	 * Per channel power compensation for 2.4GHz
 	 *
@@ -42,12 +43,14 @@ struct wl12xx_conf_rf {
 	u8 tx_per_channel_power_compensation_5[CONF_TX_PWR_COMPENSATION_LEN_5];
 };
 
-struct wl12xx_priv_conf {
+struct wl12xx_priv_conf
+{
 	struct wl12xx_conf_rf rf;
 	struct conf_memory_settings mem_wl127x;
 };
 
-enum wl12xx_sg_params {
+enum wl12xx_sg_params
+{
 	/*
 	* Configure the min and max time BT gains the antenna
 	* in WLAN / BT master basic rate

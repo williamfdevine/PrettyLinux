@@ -6,12 +6,13 @@
 #include <linux/pstore.h>
 
 #if NR_CPUS <= 2 && defined(CONFIG_ARM_THUMB)
-#define PSTORE_CPU_IN_IP 0x1
+	#define PSTORE_CPU_IN_IP 0x1
 #elif NR_CPUS <= 4 && defined(CONFIG_ARM)
-#define PSTORE_CPU_IN_IP 0x3
+	#define PSTORE_CPU_IN_IP 0x3
 #endif
 
-struct pstore_ftrace_record {
+struct pstore_ftrace_record
+{
 	unsigned long ip;
 	unsigned long parent_ip;
 #ifndef PSTORE_CPU_IN_IP
@@ -60,9 +61,9 @@ extern struct pstore_info *psinfo;
 extern void	pstore_set_kmsg_bytes(int);
 extern void	pstore_get_records(int);
 extern int	pstore_mkfile(enum pstore_type_id, char *psname, u64 id,
-			      int count, char *data, bool compressed,
-			      size_t size, struct timespec time,
-			      struct pstore_info *psi);
+						  int count, char *data, bool compressed,
+						  size_t size, struct timespec time,
+						  struct pstore_info *psi);
 extern bool	pstore_is_mounted(void);
 
 #endif

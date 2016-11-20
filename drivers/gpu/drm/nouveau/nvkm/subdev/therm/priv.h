@@ -31,9 +31,10 @@
 #include <subdev/bios/perf.h>
 
 int nvkm_therm_new_(const struct nvkm_therm_func *, struct nvkm_device *,
-		    int index, struct nvkm_therm **);
+					int index, struct nvkm_therm **);
 
-struct nvkm_fan {
+struct nvkm_fan
+{
 	struct nvkm_therm *parent;
 	const char *type;
 
@@ -72,16 +73,17 @@ int  nvkm_therm_sensor_init(struct nvkm_therm *);
 int  nvkm_therm_sensor_fini(struct nvkm_therm *, bool suspend);
 void nvkm_therm_sensor_preinit(struct nvkm_therm *);
 void nvkm_therm_sensor_set_threshold_state(struct nvkm_therm *,
-					   enum nvkm_therm_thrs,
-					   enum nvkm_therm_thrs_state);
+		enum nvkm_therm_thrs,
+		enum nvkm_therm_thrs_state);
 enum nvkm_therm_thrs_state
 nvkm_therm_sensor_get_threshold_state(struct nvkm_therm *,
-				      enum nvkm_therm_thrs);
+									  enum nvkm_therm_thrs);
 void nvkm_therm_sensor_event(struct nvkm_therm *, enum nvkm_therm_thrs,
-			     enum nvkm_therm_thrs_direction);
+							 enum nvkm_therm_thrs_direction);
 void nvkm_therm_program_alarms_polling(struct nvkm_therm *);
 
-struct nvkm_therm_func {
+struct nvkm_therm_func
+{
 	void (*init)(struct nvkm_therm *);
 	void (*fini)(struct nvkm_therm *);
 	void (*intr)(struct nvkm_therm *);

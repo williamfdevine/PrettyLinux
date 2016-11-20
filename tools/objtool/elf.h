@@ -24,11 +24,12 @@
 #include <linux/hashtable.h>
 
 #ifdef LIBELF_USE_DEPRECATED
-# define elf_getshdrnum    elf_getshnum
-# define elf_getshdrstrndx elf_getshstrndx
+	#define elf_getshdrnum    elf_getshnum
+	#define elf_getshdrstrndx elf_getshstrndx
 #endif
 
-struct section {
+struct section
+{
 	struct list_head list;
 	GElf_Shdr sh;
 	struct list_head symbol_list;
@@ -44,7 +45,8 @@ struct section {
 	unsigned int len;
 };
 
-struct symbol {
+struct symbol
+{
 	struct list_head list;
 	struct hlist_node hash;
 	GElf_Sym sym;
@@ -56,7 +58,8 @@ struct symbol {
 	unsigned int len;
 };
 
-struct rela {
+struct rela
+{
 	struct list_head list;
 	struct hlist_node hash;
 	GElf_Rela rela;
@@ -66,7 +69,8 @@ struct rela {
 	int addend;
 };
 
-struct elf {
+struct elf
+{
 	Elf *elf;
 	GElf_Ehdr ehdr;
 	int fd;
@@ -81,7 +85,7 @@ struct section *find_section_by_name(struct elf *elf, const char *name);
 struct symbol *find_symbol_by_offset(struct section *sec, unsigned long offset);
 struct rela *find_rela_by_dest(struct section *sec, unsigned long offset);
 struct rela *find_rela_by_dest_range(struct section *sec, unsigned long offset,
-				     unsigned int len);
+									 unsigned int len);
 struct symbol *find_containing_func(struct section *sec, unsigned long offset);
 void elf_close(struct elf *elf);
 

@@ -27,15 +27,18 @@
 static unsigned char altstack_data[SIGSTKSZ];
 
 static void sethandler(int sig, void (*handler)(int, siginfo_t *, void *),
-		       int flags)
+					   int flags)
 {
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_sigaction = handler;
 	sa.sa_flags = SA_SIGINFO | flags;
 	sigemptyset(&sa.sa_mask);
+
 	if (sigaction(sig, &sa, 0))
+	{
 		err(1, "sigaction");
+	}
 }
 
 static volatile sig_atomic_t sig_traps;
@@ -45,13 +48,16 @@ static volatile sig_atomic_t n_errs;
 
 static void sigsegv(int sig, siginfo_t *info, void *ctx_void)
 {
-	ucontext_t *ctx = (ucontext_t*)ctx_void;
+	ucontext_t *ctx = (ucontext_t *)ctx_void;
 
-	if (ctx->uc_mcontext.gregs[REG_EAX] != -EFAULT) {
+	if (ctx->uc_mcontext.gregs[REG_EAX] != -EFAULT)
+	{
 		printf("[FAIL]\tAX had the wrong value: 0x%x\n",
-		       ctx->uc_mcontext.gregs[REG_EAX]);
+			   ctx->uc_mcontext.gregs[REG_EAX]);
 		n_errs++;
-	} else {
+	}
+	else
+	{
 		printf("[OK]\tSeems okay\n");
 	}
 
@@ -66,12 +72,16 @@ static void sigill(int sig, siginfo_t *info, void *ctx_void)
 
 int main()
 {
-	stack_t stack = {
+	stack_t stack =
+	{
 		.ss_sp = altstack_data,
 		.ss_size = SIGSTKSZ,
 	};
+
 	if (sigaltstack(&stack, NULL) != 0)
+	{
 		err(1, "sigaltstack");
+	}
 
 	sethandler(SIGSEGV, sigsegv, SA_ONSTACK);
 	sethandler(SIGILL, sigill, SA_ONSTACK);
@@ -96,7 +106,9 @@ int main()
 	 */
 
 	printf("[RUN]\tSYSENTER with invalid state\n");
-	if (sigsetjmp(jmpbuf, 1) == 0) {
+
+	if (sigsetjmp(jmpbuf, 1) == 0)
+	{
 		asm volatile (
 			"movl $-1, %%eax\n\t"
 			"movl $-1, %%ebx\n\t"
@@ -111,7 +123,9 @@ int main()
 	}
 
 	printf("[RUN]\tSYSCALL with invalid state\n");
-	if (sigsetjmp(jmpbuf, 1) == 0) {
+
+	if (sigsetjmp(jmpbuf, 1) == 0)
+	{
 		asm volatile (
 			"movl $-1, %%eax\n\t"
 			"movl $-1, %%ebx\n\t"

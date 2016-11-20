@@ -9,30 +9,37 @@
 
 #include "lkc.h"
 
-static char *escape(const char* text, char *bf, int len)
+static char *escape(const char *text, char *bf, int len)
 {
 	char *bfp = bf;
 	int multiline = strchr(text, '\n') != NULL;
 	int eol = 0;
 	int textlen = strlen(text);
 
-	if ((textlen > 0) && (text[textlen-1] == '\n'))
+	if ((textlen > 0) && (text[textlen - 1] == '\n'))
+	{
 		eol = 1;
+	}
 
 	*bfp++ = '"';
 	--len;
 
-	if (multiline) {
+	if (multiline)
+	{
 		*bfp++ = '"';
 		*bfp++ = '\n';
 		*bfp++ = '"';
 		len -= 3;
 	}
 
-	while (*text != '\0' && len > 1) {
+	while (*text != '\0' && len > 1)
+	{
 		if (*text == '"')
+		{
 			*bfp++ = '\\';
-		else if (*text == '\n') {
+		}
+		else if (*text == '\n')
+		{
 			*bfp++ = '\\';
 			*bfp++ = 'n';
 			*bfp++ = '"';
@@ -42,17 +49,21 @@ static char *escape(const char* text, char *bf, int len)
 			++text;
 			goto next;
 		}
-		else if (*text == '\\') {
+		else if (*text == '\\')
+		{
 			*bfp++ = '\\';
 			len--;
 		}
+
 		*bfp++ = *text++;
 next:
 		--len;
 	}
 
 	if (multiline && eol)
+	{
 		bfp -= 3;
+	}
 
 	*bfp++ = '"';
 	*bfp = '\0';
@@ -60,7 +71,8 @@ next:
 	return bf;
 }
 
-struct file_line {
+struct file_line
+{
 	struct file_line *next;
 	const char *file;
 	int lineno;
@@ -71,7 +83,9 @@ static struct file_line *file_line__new(const char *file, int lineno)
 	struct file_line *self = malloc(sizeof(*self));
 
 	if (self == NULL)
+	{
 		goto out;
+	}
 
 	self->file   = file;
 	self->lineno = lineno;
@@ -80,7 +94,8 @@ out:
 	return self;
 }
 
-struct message {
+struct message
+{
 	const char	 *msg;
 	const char	 *option;
 	struct message	 *next;
@@ -90,20 +105,28 @@ struct message {
 static struct message *message__list;
 
 static struct message *message__new(const char *msg, char *option,
-				    const char *file, int lineno)
+									const char *file, int lineno)
 {
 	struct message *self = malloc(sizeof(*self));
 
 	if (self == NULL)
+	{
 		goto out;
+	}
 
 	self->files = file_line__new(file, lineno);
+
 	if (self->files == NULL)
+	{
 		goto out_fail;
+	}
 
 	self->msg = strdup(msg);
+
 	if (self->msg == NULL)
+	{
 		goto out_fail_msg;
+	}
 
 	self->option = option;
 	self->next = NULL;
@@ -121,9 +144,13 @@ static struct message *mesage__find(const char *msg)
 {
 	struct message *m = message__list;
 
-	while (m != NULL) {
+	while (m != NULL)
+	{
 		if (strcmp(m->msg, msg) == 0)
+		{
 			break;
+		}
+
 		m = m->next;
 	}
 
@@ -131,13 +158,15 @@ static struct message *mesage__find(const char *msg)
 }
 
 static int message__add_file_line(struct message *self, const char *file,
-				  int lineno)
+								  int lineno)
 {
 	int rc = -1;
 	struct file_line *fl = file_line__new(file, lineno);
 
 	if (fl == NULL)
+	{
 		goto out;
+	}
 
 	fl->next    = self->files;
 	self->files = fl;
@@ -147,7 +176,7 @@ out:
 }
 
 static int message__add(const char *msg, char *option, const char *file,
-			int lineno)
+						int lineno)
 {
 	int rc = 0;
 	char bf[16384];
@@ -155,16 +184,24 @@ static int message__add(const char *msg, char *option, const char *file,
 	struct message *m = mesage__find(escaped);
 
 	if (m != NULL)
+	{
 		rc = message__add_file_line(m, file, lineno);
-	else {
+	}
+	else
+	{
 		m = message__new(escaped, option, file, lineno);
 
-		if (m != NULL) {
+		if (m != NULL)
+		{
 			m->next	      = message__list;
 			message__list = m;
-		} else
+		}
+		else
+		{
 			rc = -1;
+		}
 	}
+
 	return rc;
 }
 
@@ -173,17 +210,19 @@ static void menu_build_message_list(struct menu *menu)
 	struct menu *child;
 
 	message__add(menu_get_prompt(menu), NULL,
-		     menu->file == NULL ? "Root Menu" : menu->file->name,
-		     menu->lineno);
+				 menu->file == NULL ? "Root Menu" : menu->file->name,
+				 menu->lineno);
 
 	if (menu->sym != NULL && menu_has_help(menu))
 		message__add(menu_get_help(menu), menu->sym->name,
-			     menu->file == NULL ? "Root Menu" : menu->file->name,
-			     menu->lineno);
+					 menu->file == NULL ? "Root Menu" : menu->file->name,
+					 menu->lineno);
 
 	for (child = menu->list; child != NULL; child = child->next)
 		if (child->prompt != NULL)
+		{
 			menu_build_message_list(child);
+		}
 }
 
 static void message__print_file_lineno(struct message *self)
@@ -191,13 +230,17 @@ static void message__print_file_lineno(struct message *self)
 	struct file_line *fl = self->files;
 
 	putchar('\n');
+
 	if (self->option != NULL)
+	{
 		printf("# %s:00000\n", self->option);
+	}
 
 	printf("#: %s:%d", fl->file, fl->lineno);
 	fl = fl->next;
 
-	while (fl != NULL) {
+	while (fl != NULL)
+	{
 		printf(", %s:%d", fl->file, fl->lineno);
 		fl = fl->next;
 	}
@@ -210,17 +253,21 @@ static void message__print_gettext_msgid_msgstr(struct message *self)
 	message__print_file_lineno(self);
 
 	printf("msgid %s\n"
-	       "msgstr \"\"\n", self->msg);
+		   "msgstr \"\"\n", self->msg);
 }
 
 static void menu__xgettext(void)
 {
 	struct message *m = message__list;
 
-	while (m != NULL) {
+	while (m != NULL)
+	{
 		/* skip empty lines ("") */
 		if (strlen(m->msg) > sizeof("\"\""))
+		{
 			message__print_gettext_msgid_msgstr(m);
+		}
+
 		m = m->next;
 	}
 }

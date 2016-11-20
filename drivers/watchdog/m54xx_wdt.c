@@ -47,14 +47,18 @@ static void wdt_enable(void)
 
 	/* preserve GPIO usage, if any */
 	gms0 = __raw_readl(MCF_GPT_GMS0);
+
 	if (gms0 & MCF_GPT_GMS_TMS_GPIO)
 		gms0 &= (MCF_GPT_GMS_TMS_GPIO | MCF_GPT_GMS_GPIO_MASK
-							| MCF_GPT_GMS_OD);
+				 | MCF_GPT_GMS_OD);
 	else
+	{
 		gms0 = MCF_GPT_GMS_TMS_GPIO | MCF_GPT_GMS_OD;
+	}
+
 	__raw_writel(gms0, MCF_GPT_GMS0);
-	__raw_writel(MCF_GPT_GCIR_PRE(heartbeat*(MCF_BUSCLK/0xffff)) |
-			MCF_GPT_GCIR_CNT(0xffff), MCF_GPT_GCIR0);
+	__raw_writel(MCF_GPT_GCIR_PRE(heartbeat * (MCF_BUSCLK / 0xffff)) |
+				 MCF_GPT_GCIR_CNT(0xffff), MCF_GPT_GCIR0);
 	gms0 |= MCF_GPT_GMS_OCPW(0xA5) | MCF_GPT_GMS_WDEN | MCF_GPT_GMS_CE;
 	__raw_writel(gms0, MCF_GPT_GMS0);
 }
@@ -81,7 +85,9 @@ static void wdt_keepalive(void)
 static int m54xx_wdt_open(struct inode *inode, struct file *file)
 {
 	if (test_and_set_bit(WDT_IN_USE, &wdt_status))
+	{
 		return -EBUSY;
+	}
 
 	clear_bit(WDT_OK_TO_CLOSE, &wdt_status);
 	wdt_enable();
@@ -89,88 +95,110 @@ static int m54xx_wdt_open(struct inode *inode, struct file *file)
 }
 
 static ssize_t m54xx_wdt_write(struct file *file, const char *data,
-						size_t len, loff_t *ppos)
+							   size_t len, loff_t *ppos)
 {
-	if (len) {
-		if (!nowayout) {
+	if (len)
+	{
+		if (!nowayout)
+		{
 			size_t i;
 
 			clear_bit(WDT_OK_TO_CLOSE, &wdt_status);
 
-			for (i = 0; i != len; i++) {
+			for (i = 0; i != len; i++)
+			{
 				char c;
 
 				if (get_user(c, data + i))
+				{
 					return -EFAULT;
+				}
+
 				if (c == 'V')
+				{
 					set_bit(WDT_OK_TO_CLOSE, &wdt_status);
+				}
 			}
 		}
+
 		wdt_keepalive();
 	}
+
 	return len;
 }
 
-static const struct watchdog_info ident = {
+static const struct watchdog_info ident =
+{
 	.options	= WDIOF_MAGICCLOSE | WDIOF_SETTIMEOUT |
-				WDIOF_KEEPALIVEPING,
+	WDIOF_KEEPALIVEPING,
 	.identity	= "Coldfire M54xx Watchdog",
 };
 
 static long m54xx_wdt_ioctl(struct file *file, unsigned int cmd,
-							 unsigned long arg)
+							unsigned long arg)
 {
 	int ret = -ENOTTY;
 	int time;
 
-	switch (cmd) {
-	case WDIOC_GETSUPPORT:
-		ret = copy_to_user((struct watchdog_info *)arg, &ident,
-				   sizeof(ident)) ? -EFAULT : 0;
-		break;
-
-	case WDIOC_GETSTATUS:
-		ret = put_user(0, (int *)arg);
-		break;
-
-	case WDIOC_GETBOOTSTATUS:
-		ret = put_user(0, (int *)arg);
-		break;
-
-	case WDIOC_KEEPALIVE:
-		wdt_keepalive();
-		ret = 0;
-		break;
-
-	case WDIOC_SETTIMEOUT:
-		ret = get_user(time, (int *)arg);
-		if (ret)
+	switch (cmd)
+	{
+		case WDIOC_GETSUPPORT:
+			ret = copy_to_user((struct watchdog_info *)arg, &ident,
+							   sizeof(ident)) ? -EFAULT : 0;
 			break;
 
-		if (time <= 0 || time > 30) {
-			ret = -EINVAL;
+		case WDIOC_GETSTATUS:
+			ret = put_user(0, (int *)arg);
 			break;
-		}
 
-		heartbeat = time;
-		wdt_enable();
+		case WDIOC_GETBOOTSTATUS:
+			ret = put_user(0, (int *)arg);
+			break;
+
+		case WDIOC_KEEPALIVE:
+			wdt_keepalive();
+			ret = 0;
+			break;
+
+		case WDIOC_SETTIMEOUT:
+			ret = get_user(time, (int *)arg);
+
+			if (ret)
+			{
+				break;
+			}
+
+			if (time <= 0 || time > 30)
+			{
+				ret = -EINVAL;
+				break;
+			}
+
+			heartbeat = time;
+			wdt_enable();
+
 		/* Fall through */
 
-	case WDIOC_GETTIMEOUT:
-		ret = put_user(heartbeat, (int *)arg);
-		break;
+		case WDIOC_GETTIMEOUT:
+			ret = put_user(heartbeat, (int *)arg);
+			break;
 	}
+
 	return ret;
 }
 
 static int m54xx_wdt_release(struct inode *inode, struct file *file)
 {
 	if (test_bit(WDT_OK_TO_CLOSE, &wdt_status))
+	{
 		wdt_disable();
-	else {
+	}
+	else
+	{
 		pr_crit("Device closed unexpectedly - timer will not stop\n");
 		wdt_keepalive();
 	}
+
 	clear_bit(WDT_IN_USE, &wdt_status);
 	clear_bit(WDT_OK_TO_CLOSE, &wdt_status);
 
@@ -178,7 +206,8 @@ static int m54xx_wdt_release(struct inode *inode, struct file *file)
 }
 
 
-static const struct file_operations m54xx_wdt_fops = {
+static const struct file_operations m54xx_wdt_fops =
+{
 	.owner		= THIS_MODULE,
 	.llseek		= no_llseek,
 	.write		= m54xx_wdt_write,
@@ -187,7 +216,8 @@ static const struct file_operations m54xx_wdt_fops = {
 	.release	= m54xx_wdt_release,
 };
 
-static struct miscdevice m54xx_wdt_miscdev = {
+static struct miscdevice m54xx_wdt_miscdev =
+{
 	.minor		= WATCHDOG_MINOR,
 	.name		= "watchdog",
 	.fops		= &m54xx_wdt_fops,
@@ -195,10 +225,12 @@ static struct miscdevice m54xx_wdt_miscdev = {
 
 static int __init m54xx_wdt_init(void)
 {
-	if (!request_mem_region(MCF_GPT_GCIR0, 4, "Coldfire M54xx Watchdog")) {
+	if (!request_mem_region(MCF_GPT_GCIR0, 4, "Coldfire M54xx Watchdog"))
+	{
 		pr_warn("I/O region busy\n");
 		return -EBUSY;
 	}
+
 	pr_info("driver is loaded\n");
 
 	return misc_register(&m54xx_wdt_miscdev);

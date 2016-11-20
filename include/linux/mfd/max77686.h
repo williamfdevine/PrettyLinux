@@ -31,7 +31,8 @@
 #include <linux/regulator/consumer.h>
 
 /* MAX77686 regulator IDs */
-enum max77686_regulators {
+enum max77686_regulators
+{
 	MAX77686_LDO1 = 0,
 	MAX77686_LDO2,
 	MAX77686_LDO3,
@@ -72,7 +73,8 @@ enum max77686_regulators {
 };
 
 /* MAX77802 regulator IDs */
-enum max77802_regulators {
+enum max77802_regulators
+{
 	MAX77802_BUCK1 = 0,
 	MAX77802_BUCK2,
 	MAX77802_BUCK3,
@@ -119,7 +121,8 @@ enum max77802_regulators {
 	MAX77802_REG_MAX,
 };
 
-enum max77686_opmode {
+enum max77686_opmode
+{
 	MAX77686_OPMODE_NORMAL,
 	MAX77686_OPMODE_LP,
 	MAX77686_OPMODE_STANDBY,

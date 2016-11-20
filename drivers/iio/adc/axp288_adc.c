@@ -31,7 +31,8 @@
 #define AXP288_ADC_TS_PIN_GPADC		0xF2
 #define AXP288_ADC_TS_PIN_ON		0xF3
 
-enum axp288_adc_id {
+enum axp288_adc_id
+{
 	AXP288_ADC_TS,
 	AXP288_ADC_PMIC,
 	AXP288_ADC_GP,
@@ -41,12 +42,14 @@ enum axp288_adc_id {
 	AXP288_ADC_NR_CHAN,
 };
 
-struct axp288_adc_info {
+struct axp288_adc_info
+{
 	int irq;
 	struct regmap *regmap;
 };
 
-static const struct iio_chan_spec axp288_adc_channels[] = {
+static const struct iio_chan_spec axp288_adc_channels[] =
+{
 	{
 		.indexed = 1,
 		.type = IIO_TEMP,
@@ -93,15 +96,16 @@ static const struct iio_chan_spec axp288_adc_channels[] = {
 };
 
 #define AXP288_ADC_MAP(_adc_channel_label, _consumer_dev_name,	\
-		_consumer_channel)				\
-	{							\
-		.adc_channel_label = _adc_channel_label,	\
-		.consumer_dev_name = _consumer_dev_name,	\
-		.consumer_channel = _consumer_channel,		\
-	}
+					   _consumer_channel)				\
+{							\
+	.adc_channel_label = _adc_channel_label,	\
+						 .consumer_dev_name = _consumer_dev_name,	\
+								 .consumer_channel = _consumer_channel,		\
+}
 
 /* for consumer drivers */
-static struct iio_map axp288_adc_default_maps[] = {
+static struct iio_map axp288_adc_default_maps[] =
+{
 	AXP288_ADC_MAP("TS_PIN", "axp288-batt", "axp288-batt-temp"),
 	AXP288_ADC_MAP("PMIC_TEMP", "axp288-pmic", "axp288-pmic-temp"),
 	AXP288_ADC_MAP("GPADC", "axp288-gpadc", "axp288-system-temp"),
@@ -112,51 +116,66 @@ static struct iio_map axp288_adc_default_maps[] = {
 };
 
 static int axp288_adc_read_channel(int *val, unsigned long address,
-				struct regmap *regmap)
+								   struct regmap *regmap)
 {
 	u8 buf[2];
 
 	if (regmap_bulk_read(regmap, address, buf, 2))
+	{
 		return -EIO;
+	}
+
 	*val = (buf[0] << 4) + ((buf[1] >> 4) & 0x0F);
 
 	return IIO_VAL_INT;
 }
 
 static int axp288_adc_set_ts(struct regmap *regmap, unsigned int mode,
-				unsigned long address)
+							 unsigned long address)
 {
 	/* channels other than GPADC do not need to switch TS pin */
 	if (address != AXP288_GP_ADC_H)
+	{
 		return 0;
+	}
 
 	return regmap_write(regmap, AXP288_ADC_TS_PIN_CTRL, mode);
 }
 
 static int axp288_adc_read_raw(struct iio_dev *indio_dev,
-			struct iio_chan_spec const *chan,
-			int *val, int *val2, long mask)
+							   struct iio_chan_spec const *chan,
+							   int *val, int *val2, long mask)
 {
 	int ret;
 	struct axp288_adc_info *info = iio_priv(indio_dev);
 
 	mutex_lock(&indio_dev->mlock);
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		if (axp288_adc_set_ts(info->regmap, AXP288_ADC_TS_PIN_GPADC,
-					chan->address)) {
-			dev_err(&indio_dev->dev, "GPADC mode\n");
-			ret = -EINVAL;
+
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			if (axp288_adc_set_ts(info->regmap, AXP288_ADC_TS_PIN_GPADC,
+								  chan->address))
+			{
+				dev_err(&indio_dev->dev, "GPADC mode\n");
+				ret = -EINVAL;
+				break;
+			}
+
+			ret = axp288_adc_read_channel(val, chan->address, info->regmap);
+
+			if (axp288_adc_set_ts(info->regmap, AXP288_ADC_TS_PIN_ON,
+								  chan->address))
+			{
+				dev_err(&indio_dev->dev, "TS pin restore\n");
+			}
+
 			break;
-		}
-		ret = axp288_adc_read_channel(val, chan->address, info->regmap);
-		if (axp288_adc_set_ts(info->regmap, AXP288_ADC_TS_PIN_ON,
-						chan->address))
-			dev_err(&indio_dev->dev, "TS pin restore\n");
-		break;
-	default:
-		ret = -EINVAL;
+
+		default:
+			ret = -EINVAL;
 	}
+
 	mutex_unlock(&indio_dev->mlock);
 
 	return ret;
@@ -166,12 +185,15 @@ static int axp288_adc_set_state(struct regmap *regmap)
 {
 	/* ADC should be always enabled for internal FG to function */
 	if (regmap_write(regmap, AXP288_ADC_TS_PIN_CTRL, AXP288_ADC_TS_PIN_ON))
+	{
 		return -EIO;
+	}
 
 	return regmap_write(regmap, AXP20X_ADC_EN1, AXP288_ADC_EN_MASK);
 }
 
-static const struct iio_info axp288_adc_iio_info = {
+static const struct iio_info axp288_adc_iio_info =
+{
 	.read_raw = &axp288_adc_read_raw,
 	.driver_module = THIS_MODULE,
 };
@@ -184,15 +206,21 @@ static int axp288_adc_probe(struct platform_device *pdev)
 	struct axp20x_dev *axp20x = dev_get_drvdata(pdev->dev.parent);
 
 	indio_dev = devm_iio_device_alloc(&pdev->dev, sizeof(*info));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	info = iio_priv(indio_dev);
 	info->irq = platform_get_irq(pdev, 0);
-	if (info->irq < 0) {
+
+	if (info->irq < 0)
+	{
 		dev_err(&pdev->dev, "no irq resource?\n");
 		return info->irq;
 	}
+
 	platform_set_drvdata(pdev, indio_dev);
 	info->regmap = axp20x->regmap;
 	/*
@@ -200,7 +228,9 @@ static int axp288_adc_probe(struct platform_device *pdev)
 	 * otherwise internal fuel gauge functionality may be affected.
 	 */
 	ret = axp288_adc_set_state(axp20x->regmap);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to enable ADC device\n");
 		return ret;
 	}
@@ -212,14 +242,20 @@ static int axp288_adc_probe(struct platform_device *pdev)
 	indio_dev->info = &axp288_adc_iio_info;
 	indio_dev->modes = INDIO_DIRECT_MODE;
 	ret = iio_map_array_register(indio_dev, axp288_adc_default_maps);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = iio_device_register(indio_dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "unable to register iio device\n");
 		goto err_array_unregister;
 	}
+
 	return 0;
 
 err_array_unregister:
@@ -238,12 +274,14 @@ static int axp288_adc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct platform_device_id axp288_adc_id_table[] = {
+static const struct platform_device_id axp288_adc_id_table[] =
+{
 	{ .name = "axp288_adc" },
 	{},
 };
 
-static struct platform_driver axp288_adc_driver = {
+static struct platform_driver axp288_adc_driver =
+{
 	.probe = axp288_adc_probe,
 	.remove = axp288_adc_remove,
 	.id_table = axp288_adc_id_table,

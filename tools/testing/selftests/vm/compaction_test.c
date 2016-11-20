@@ -17,7 +17,8 @@
 
 #define MAP_SIZE 1048576
 
-struct map_list {
+struct map_list
+{
 	void *map;
 	struct map_list *next;
 };
@@ -28,7 +29,8 @@ int read_memory_info(unsigned long *memfree, unsigned long *hugepagesize)
 	char *cmd = "cat /proc/meminfo | grep -i memfree | grep -o '[0-9]*'";
 	FILE *cmdfile = popen(cmd, "r");
 
-	if (!(fgets(buffer, sizeof(buffer), cmdfile))) {
+	if (!(fgets(buffer, sizeof(buffer), cmdfile)))
+	{
 		perror("Failed to read meminfo\n");
 		return -1;
 	}
@@ -39,7 +41,8 @@ int read_memory_info(unsigned long *memfree, unsigned long *hugepagesize)
 	cmd = "cat /proc/meminfo | grep -i hugepagesize | grep -o '[0-9]*'";
 	cmdfile = popen(cmd, "r");
 
-	if (!(fgets(buffer, sizeof(buffer), cmdfile))) {
+	if (!(fgets(buffer, sizeof(buffer), cmdfile)))
+	{
 		perror("Failed to read meminfo\n");
 		return -1;
 	}
@@ -56,23 +59,29 @@ int prereq(void)
 	int fd;
 
 	fd = open("/proc/sys/vm/compact_unevictable_allowed",
-		  O_RDONLY | O_NONBLOCK);
-	if (fd < 0) {
+			  O_RDONLY | O_NONBLOCK);
+
+	if (fd < 0)
+	{
 		perror("Failed to open\n"
-		       "/proc/sys/vm/compact_unevictable_allowed\n");
+			   "/proc/sys/vm/compact_unevictable_allowed\n");
 		return -1;
 	}
 
-	if (read(fd, &allowed, sizeof(char)) != sizeof(char)) {
+	if (read(fd, &allowed, sizeof(char)) != sizeof(char))
+	{
 		perror("Failed to read from\n"
-		       "/proc/sys/vm/compact_unevictable_allowed\n");
+			   "/proc/sys/vm/compact_unevictable_allowed\n");
 		close(fd);
 		return -1;
 	}
 
 	close(fd);
+
 	if (allowed == '1')
+	{
 		return 0;
+	}
 
 	return -1;
 }
@@ -89,18 +98,22 @@ int check_compaction(unsigned long mem_free, unsigned int hugepage_size)
 	mem_free = mem_free * 0.8;
 
 	fd = open("/proc/sys/vm/nr_hugepages", O_RDWR | O_NONBLOCK);
-	if (fd < 0) {
+
+	if (fd < 0)
+	{
 		perror("Failed to open /proc/sys/vm/nr_hugepages");
 		return -1;
 	}
 
-	if (read(fd, initial_nr_hugepages, sizeof(initial_nr_hugepages)) <= 0) {
+	if (read(fd, initial_nr_hugepages, sizeof(initial_nr_hugepages)) <= 0)
+	{
 		perror("Failed to read from /proc/sys/vm/nr_hugepages");
 		goto close_fd;
 	}
 
 	/* Start with the initial condition of 0 huge pages*/
-	if (write(fd, "0", sizeof(char)) != sizeof(char)) {
+	if (write(fd, "0", sizeof(char)) != sizeof(char))
+	{
 		perror("Failed to write 0 to /proc/sys/vm/nr_hugepages\n");
 		goto close_fd;
 	}
@@ -109,35 +122,39 @@ int check_compaction(unsigned long mem_free, unsigned int hugepage_size)
 
 	/* Request a large number of huge pages. The Kernel will allocate
 	   as much as it can */
-	if (write(fd, "100000", (6*sizeof(char))) != (6*sizeof(char))) {
+	if (write(fd, "100000", (6 * sizeof(char))) != (6 * sizeof(char)))
+	{
 		perror("Failed to write 100000 to /proc/sys/vm/nr_hugepages\n");
 		goto close_fd;
 	}
 
 	lseek(fd, 0, SEEK_SET);
 
-	if (read(fd, nr_hugepages, sizeof(nr_hugepages)) <= 0) {
+	if (read(fd, nr_hugepages, sizeof(nr_hugepages)) <= 0)
+	{
 		perror("Failed to re-read from /proc/sys/vm/nr_hugepages\n");
 		goto close_fd;
 	}
 
 	/* We should have been able to request at least 1/3 rd of the memory in
 	   huge pages */
-	compaction_index = mem_free/(atoi(nr_hugepages) * hugepage_size);
+	compaction_index = mem_free / (atoi(nr_hugepages) * hugepage_size);
 
-	if (compaction_index > 3) {
+	if (compaction_index > 3)
+	{
 		printf("No of huge pages allocated = %d\n",
-		       (atoi(nr_hugepages)));
+			   (atoi(nr_hugepages)));
 		fprintf(stderr, "ERROR: Less that 1/%d of memory is available\n"
-			"as huge pages\n", compaction_index);
+				"as huge pages\n", compaction_index);
 		goto close_fd;
 	}
 
 	printf("No of huge pages allocated = %d\n",
-	       (atoi(nr_hugepages)));
+		   (atoi(nr_hugepages)));
 
 	if (write(fd, initial_nr_hugepages, strlen(initial_nr_hugepages))
-	    != strlen(initial_nr_hugepages)) {
+		!= strlen(initial_nr_hugepages))
+	{
 		perror("Failed to write value to /proc/sys/vm/nr_hugepages\n");
 		goto close_fd;
 	}
@@ -145,7 +162,7 @@ int check_compaction(unsigned long mem_free, unsigned int hugepage_size)
 	close(fd);
 	return 0;
 
- close_fd:
+close_fd:
 	close(fd);
 	printf("Not OK. Compaction test failed.");
 	return -1;
@@ -162,16 +179,19 @@ int main(int argc, char **argv)
 	unsigned long hugepage_size = 0;
 	unsigned long mem_fragmentable = 0;
 
-	if (prereq() != 0) {
+	if (prereq() != 0)
+	{
 		printf("Either the sysctl compact_unevictable_allowed is not\n"
-		       "set to 1 or couldn't read the proc file.\n"
-		       "Skipping the test\n");
+			   "set to 1 or couldn't read the proc file.\n"
+			   "Skipping the test\n");
 		return 0;
 	}
 
 	lim.rlim_cur = RLIM_INFINITY;
 	lim.rlim_max = RLIM_INFINITY;
-	if (setrlimit(RLIMIT_MEMLOCK, &lim)) {
+
+	if (setrlimit(RLIMIT_MEMLOCK, &lim))
+	{
 		perror("Failed to set rlimit:\n");
 		return -1;
 	}
@@ -180,24 +200,32 @@ int main(int argc, char **argv)
 
 	list = NULL;
 
-	if (read_memory_info(&mem_free, &hugepage_size) != 0) {
+	if (read_memory_info(&mem_free, &hugepage_size) != 0)
+	{
 		printf("ERROR: Cannot read meminfo\n");
 		return -1;
 	}
 
 	mem_fragmentable = mem_free * 0.8 / 1024;
 
-	while (mem_fragmentable > 0) {
+	while (mem_fragmentable > 0)
+	{
 		map = mmap(NULL, MAP_SIZE, PROT_READ | PROT_WRITE,
-			   MAP_ANONYMOUS | MAP_PRIVATE | MAP_LOCKED, -1, 0);
+				   MAP_ANONYMOUS | MAP_PRIVATE | MAP_LOCKED, -1, 0);
+
 		if (map == MAP_FAILED)
+		{
 			break;
+		}
 
 		entry = malloc(sizeof(struct map_list));
-		if (!entry) {
+
+		if (!entry)
+		{
 			munmap(map, MAP_SIZE);
 			break;
 		}
+
 		entry->map = map;
 		entry->next = list;
 		list = entry;
@@ -206,20 +234,29 @@ int main(int argc, char **argv)
 		 * ensure that KSM can't merge the mapped pages
 		 */
 		for (i = 0; i < MAP_SIZE; i += page_size)
+		{
 			*(unsigned long *)(map + i) = (unsigned long)map + i;
+		}
 
 		mem_fragmentable--;
 	}
 
-	for (entry = list; entry != NULL; entry = entry->next) {
+	for (entry = list; entry != NULL; entry = entry->next)
+	{
 		munmap(entry->map, MAP_SIZE);
+
 		if (!entry->next)
+		{
 			break;
+		}
+
 		entry = entry->next;
 	}
 
 	if (check_compaction(mem_free, hugepage_size) == 0)
+	{
 		return 0;
+	}
 
 	return -1;
 }

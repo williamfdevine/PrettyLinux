@@ -17,9 +17,9 @@
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * JEFF HARTMANN, OR ANY OTHER CONTRIBUTORS BE LIABLE FOR ANY CLAIM, 
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
+ * JEFF HARTMANN, OR ANY OTHER CONTRIBUTORS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
@@ -32,7 +32,8 @@
 
 #define AGPGART_MINOR 175
 
-struct agp_info {
+struct agp_info
+{
 	struct agp_version version;	/* version of the driver        */
 	u32 bridge_id;		/* bridge vendor/device         */
 	u32 agp_mode;		/* mode info of bridge          */
@@ -43,52 +44,60 @@ struct agp_info {
 	size_t pg_used;		/* current pages used           */
 };
 
-struct agp_setup {
+struct agp_setup
+{
 	u32 agp_mode;		/* mode info of bridge          */
 };
 
 /*
  * The "prot" down below needs still a "sleep" flag somehow ...
  */
-struct agp_segment {
+struct agp_segment
+{
 	off_t pg_start;		/* starting page to populate    */
 	size_t pg_count;	/* number of pages              */
 	int prot;		/* prot flags for mmap          */
 };
 
-struct agp_segment_priv {
+struct agp_segment_priv
+{
 	off_t pg_start;
 	size_t pg_count;
 	pgprot_t prot;
 };
 
-struct agp_region {
+struct agp_region
+{
 	pid_t pid;		/* pid of process               */
 	size_t seg_count;	/* number of segments           */
 	struct agp_segment *seg_list;
 };
 
-struct agp_allocate {
+struct agp_allocate
+{
 	int key;		/* tag of allocation            */
 	size_t pg_count;	/* number of pages              */
 	u32 type;		/* 0 == normal, other devspec   */
-	u32 physical;           /* device specific (some devices  
-				 * need a phys address of the     
-				 * actual page behind the gatt    
+	u32 physical;           /* device specific (some devices
+				 * need a phys address of the
+				 * actual page behind the gatt
 				 * table)                        */
 };
 
-struct agp_bind {
+struct agp_bind
+{
 	int key;		/* tag of allocation            */
 	off_t pg_start;		/* starting page to populate    */
 };
 
-struct agp_unbind {
+struct agp_unbind
+{
 	int key;		/* tag of allocation            */
 	u32 priority;		/* priority for paging out      */
 };
 
-struct agp_client {
+struct agp_client
+{
 	struct agp_client *next;
 	struct agp_client *prev;
 	pid_t pid;
@@ -96,7 +105,8 @@ struct agp_client {
 	struct agp_segment_priv **segments;
 };
 
-struct agp_controller {
+struct agp_controller
+{
 	struct agp_controller *next;
 	struct agp_controller *prev;
 	pid_t pid;
@@ -111,14 +121,16 @@ struct agp_controller {
 #define AGP_FF_IS_CONTROLLER		3
 #define AGP_FF_IS_VALID 		4
 
-struct agp_file_private {
+struct agp_file_private
+{
 	struct agp_file_private *next;
 	struct agp_file_private *prev;
 	pid_t my_pid;
 	unsigned long access_flags;	/* long req'd for set_bit --RR */
 };
 
-struct agp_front_data {
+struct agp_front_data
+{
 	struct mutex agp_mutex;
 	struct agp_controller *current_controller;
 	struct agp_controller *controllers;

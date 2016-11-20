@@ -47,36 +47,43 @@
 #include "lpfc_vport.h"
 
 inline void lpfc_vport_set_state(struct lpfc_vport *vport,
-				 enum fc_vport_state new_state)
+								 enum fc_vport_state new_state)
 {
 	struct fc_vport *fc_vport = vport->fc_vport;
 
-	if (fc_vport) {
+	if (fc_vport)
+	{
 		/*
 		 * When the transport defines fc_vport_set state we will replace
 		 * this code with the following line
 		 */
 		/* fc_vport_set_state(fc_vport, new_state); */
 		if (new_state != FC_VPORT_INITIALIZING)
+		{
 			fc_vport->vport_last_state = fc_vport->vport_state;
+		}
+
 		fc_vport->vport_state = new_state;
 	}
 
 	/* for all the error states we will set the invternal state to FAILED */
-	switch (new_state) {
-	case FC_VPORT_NO_FABRIC_SUPP:
-	case FC_VPORT_NO_FABRIC_RSCS:
-	case FC_VPORT_FABRIC_LOGOUT:
-	case FC_VPORT_FABRIC_REJ_WWN:
-	case FC_VPORT_FAILED:
-		vport->port_state = LPFC_VPORT_FAILED;
-		break;
-	case FC_VPORT_LINKDOWN:
-		vport->port_state = LPFC_VPORT_UNKNOWN;
-		break;
-	default:
-		/* do nothing */
-		break;
+	switch (new_state)
+	{
+		case FC_VPORT_NO_FABRIC_SUPP:
+		case FC_VPORT_NO_FABRIC_RSCS:
+		case FC_VPORT_FABRIC_LOGOUT:
+		case FC_VPORT_FABRIC_REJ_WWN:
+		case FC_VPORT_FAILED:
+			vport->port_state = LPFC_VPORT_FAILED;
+			break;
+
+		case FC_VPORT_LINKDOWN:
+			vport->port_state = LPFC_VPORT_UNKNOWN;
+			break;
+
+		default:
+			/* do nothing */
+			break;
 	}
 }
 
@@ -88,12 +95,21 @@ lpfc_alloc_vpi(struct lpfc_hba *phba)
 	spin_lock_irq(&phba->hbalock);
 	/* Start at bit 1 because vpi zero is reserved for the physical port */
 	vpi = find_next_zero_bit(phba->vpi_bmask, (phba->max_vpi + 1), 1);
+
 	if (vpi > phba->max_vpi)
+	{
 		vpi = 0;
+	}
 	else
+	{
 		set_bit(vpi, phba->vpi_bmask);
+	}
+
 	if (phba->sli_rev == LPFC_SLI_REV4)
+	{
 		phba->sli4_hba.max_cfg_param.vpi_used++;
+	}
+
 	spin_unlock_irq(&phba->hbalock);
 	return vpi;
 }
@@ -102,11 +118,18 @@ static void
 lpfc_free_vpi(struct lpfc_hba *phba, int vpi)
 {
 	if (vpi == 0)
+	{
 		return;
+	}
+
 	spin_lock_irq(&phba->hbalock);
 	clear_bit(vpi, phba->vpi_bmask);
+
 	if (phba->sli_rev == LPFC_SLI_REV4)
+	{
 		phba->sli4_hba.max_cfg_param.vpi_used--;
+	}
+
 	spin_unlock_irq(&phba->hbalock);
 }
 
@@ -119,13 +142,18 @@ lpfc_vport_sparm(struct lpfc_hba *phba, struct lpfc_vport *vport)
 	int  rc;
 
 	pmb = mempool_alloc(phba->mbox_mem_pool, GFP_KERNEL);
-	if (!pmb) {
+
+	if (!pmb)
+	{
 		return -ENOMEM;
 	}
+
 	mb = &pmb->u.mb;
 
 	rc = lpfc_read_sparam(phba, pmb, vport->vpi);
-	if (rc) {
+
+	if (rc)
+	{
 		mempool_free(pmb, phba->mbox_mem_pool);
 		return -ENOMEM;
 	}
@@ -139,34 +167,47 @@ lpfc_vport_sparm(struct lpfc_hba *phba, struct lpfc_vport *vport)
 
 	pmb->vport = vport;
 	rc = lpfc_sli_issue_mbox_wait(phba, pmb, phba->fc_ratov * 2);
-	if (rc != MBX_SUCCESS) {
-		if (signal_pending(current)) {
+
+	if (rc != MBX_SUCCESS)
+	{
+		if (signal_pending(current))
+		{
 			lpfc_printf_vlog(vport, KERN_ERR, LOG_INIT | LOG_VPORT,
-					 "1830 Signal aborted mbxCmd x%x\n",
-					 mb->mbxCommand);
+							 "1830 Signal aborted mbxCmd x%x\n",
+							 mb->mbxCommand);
 			lpfc_mbuf_free(phba, mp->virt, mp->phys);
 			kfree(mp);
+
 			if (rc != MBX_TIMEOUT)
+			{
 				mempool_free(pmb, phba->mbox_mem_pool);
+			}
+
 			return -EINTR;
-		} else {
+		}
+		else
+		{
 			lpfc_printf_vlog(vport, KERN_ERR, LOG_INIT | LOG_VPORT,
-					 "1818 VPort failed init, mbxCmd x%x "
-					 "READ_SPARM mbxStatus x%x, rc = x%x\n",
-					 mb->mbxCommand, mb->mbxStatus, rc);
+							 "1818 VPort failed init, mbxCmd x%x "
+							 "READ_SPARM mbxStatus x%x, rc = x%x\n",
+							 mb->mbxCommand, mb->mbxStatus, rc);
 			lpfc_mbuf_free(phba, mp->virt, mp->phys);
 			kfree(mp);
+
 			if (rc != MBX_TIMEOUT)
+			{
 				mempool_free(pmb, phba->mbox_mem_pool);
+			}
+
 			return -EIO;
 		}
 	}
 
 	memcpy(&vport->fc_sparam, mp->virt, sizeof (struct serv_parm));
 	memcpy(&vport->fc_nodename, &vport->fc_sparam.nodeName,
-	       sizeof (struct lpfc_name));
+		   sizeof (struct lpfc_name));
 	memcpy(&vport->fc_portname, &vport->fc_sparam.portName,
-	       sizeof (struct lpfc_name));
+		   sizeof (struct lpfc_name));
 
 	lpfc_mbuf_free(phba, mp->virt, mp->phys);
 	kfree(mp);
@@ -177,23 +218,25 @@ lpfc_vport_sparm(struct lpfc_hba *phba, struct lpfc_vport *vport)
 
 static int
 lpfc_valid_wwn_format(struct lpfc_hba *phba, struct lpfc_name *wwn,
-		      const char *name_type)
+					  const char *name_type)
 {
-				/* ensure that IEEE format 1 addresses
-				 * contain zeros in bits 59-48
-				 */
+	/* ensure that IEEE format 1 addresses
+	 * contain zeros in bits 59-48
+	 */
 	if (!((wwn->u.wwn[0] >> 4) == 1 &&
-	      ((wwn->u.wwn[0] & 0xf) != 0 || (wwn->u.wwn[1] & 0xf) != 0)))
+		  ((wwn->u.wwn[0] & 0xf) != 0 || (wwn->u.wwn[1] & 0xf) != 0)))
+	{
 		return 1;
+	}
 
 	lpfc_printf_log(phba, KERN_ERR, LOG_VPORT,
-			"1822 Invalid %s: %02x:%02x:%02x:%02x:"
-			"%02x:%02x:%02x:%02x\n",
-			name_type,
-			wwn->u.wwn[0], wwn->u.wwn[1],
-			wwn->u.wwn[2], wwn->u.wwn[3],
-			wwn->u.wwn[4], wwn->u.wwn[5],
-			wwn->u.wwn[6], wwn->u.wwn[7]);
+					"1822 Invalid %s: %02x:%02x:%02x:%02x:"
+					"%02x:%02x:%02x:%02x\n",
+					name_type,
+					wwn->u.wwn[0], wwn->u.wwn[1],
+					wwn->u.wwn[2], wwn->u.wwn[3],
+					wwn->u.wwn[4], wwn->u.wwn[5],
+					wwn->u.wwn[6], wwn->u.wwn[7]);
 	return 0;
 }
 
@@ -204,13 +247,18 @@ lpfc_unique_wwpn(struct lpfc_hba *phba, struct lpfc_vport *new_vport)
 	unsigned long flags;
 
 	spin_lock_irqsave(&phba->hbalock, flags);
-	list_for_each_entry(vport, &phba->port_list, listentry) {
+	list_for_each_entry(vport, &phba->port_list, listentry)
+	{
 		if (vport == new_vport)
+		{
 			continue;
+		}
+
 		/* If they match, return not unique */
 		if (memcmp(&vport->fc_sparam.portName,
-			   &new_vport->fc_sparam.portName,
-			   sizeof(struct lpfc_name)) == 0) {
+				   &new_vport->fc_sparam.portName,
+				   sizeof(struct lpfc_name)) == 0)
+		{
 			spin_unlock_irqrestore(&phba->hbalock, flags);
 			return 0;
 		}
@@ -242,7 +290,7 @@ static void lpfc_discovery_wait(struct lpfc_vport *vport)
 	unsigned long start_time;
 
 	wait_flags = FC_RSCN_MODE | FC_RSCN_DISCOVERY | FC_NLP_MORE |
-		     FC_RSCN_DEFERRED | FC_NDISC_ACTIVE | FC_DISC_TMO;
+				 FC_RSCN_DEFERRED | FC_NDISC_ACTIVE | FC_DISC_TMO;
 
 	/*
 	 * The time constraint on this loop is a balance between the
@@ -252,39 +300,44 @@ static void lpfc_discovery_wait(struct lpfc_vport *vport)
 	wait_time_max = msecs_to_jiffies(((phba->fc_ratov * 3) + 3) * 1000);
 	wait_time_max += jiffies;
 	start_time = jiffies;
-	while (time_before(jiffies, wait_time_max)) {
+
+	while (time_before(jiffies, wait_time_max))
+	{
 		if ((vport->num_disc_nodes > 0)    ||
-		    (vport->fc_flag & wait_flags)  ||
-		    ((vport->port_state > LPFC_VPORT_FAILED) &&
-		     (vport->port_state < LPFC_VPORT_READY))) {
+			(vport->fc_flag & wait_flags)  ||
+			((vport->port_state > LPFC_VPORT_FAILED) &&
+			 (vport->port_state < LPFC_VPORT_READY)))
+		{
 			lpfc_printf_vlog(vport, KERN_INFO, LOG_VPORT,
-					"1833 Vport discovery quiesce Wait:"
-					" state x%x fc_flags x%x"
-					" num_nodes x%x, waiting 1000 msecs"
-					" total wait msecs x%x\n",
-					vport->port_state, vport->fc_flag,
-					vport->num_disc_nodes,
-					jiffies_to_msecs(jiffies - start_time));
+							 "1833 Vport discovery quiesce Wait:"
+							 " state x%x fc_flags x%x"
+							 " num_nodes x%x, waiting 1000 msecs"
+							 " total wait msecs x%x\n",
+							 vport->port_state, vport->fc_flag,
+							 vport->num_disc_nodes,
+							 jiffies_to_msecs(jiffies - start_time));
 			msleep(1000);
-		} else {
+		}
+		else
+		{
 			/* Base case.  Wait variants satisfied.  Break out */
 			lpfc_printf_vlog(vport, KERN_INFO, LOG_VPORT,
-					 "1834 Vport discovery quiesced:"
-					 " state x%x fc_flags x%x"
-					 " wait msecs x%x\n",
-					 vport->port_state, vport->fc_flag,
-					 jiffies_to_msecs(jiffies
-						- start_time));
+							 "1834 Vport discovery quiesced:"
+							 " state x%x fc_flags x%x"
+							 " wait msecs x%x\n",
+							 vport->port_state, vport->fc_flag,
+							 jiffies_to_msecs(jiffies
+											  - start_time));
 			break;
 		}
 	}
 
 	if (time_after(jiffies, wait_time_max))
 		lpfc_printf_vlog(vport, KERN_ERR, LOG_VPORT,
-				"1835 Vport discovery quiesce failed:"
-				" state x%x fc_flags x%x wait msecs x%x\n",
-				vport->port_state, vport->fc_flag,
-				jiffies_to_msecs(jiffies - start_time));
+						 "1835 Vport discovery quiesce failed:"
+						 " state x%x fc_flags x%x wait msecs x%x\n",
+						 vport->port_state, vport->fc_flag,
+						 jiffies_to_msecs(jiffies - start_time));
 }
 
 int
@@ -300,39 +353,45 @@ lpfc_vport_create(struct fc_vport *fc_vport, bool disable)
 	int rc = VPORT_ERROR;
 	int status;
 
-	if ((phba->sli_rev < 3) || !(phba->cfg_enable_npiv)) {
+	if ((phba->sli_rev < 3) || !(phba->cfg_enable_npiv))
+	{
 		lpfc_printf_log(phba, KERN_ERR, LOG_VPORT,
-				"1808 Create VPORT failed: "
-				"NPIV is not enabled: SLImode:%d\n",
-				phba->sli_rev);
+						"1808 Create VPORT failed: "
+						"NPIV is not enabled: SLImode:%d\n",
+						phba->sli_rev);
 		rc = VPORT_INVAL;
 		goto error_out;
 	}
 
 	vpi = lpfc_alloc_vpi(phba);
-	if (vpi == 0) {
+
+	if (vpi == 0)
+	{
 		lpfc_printf_log(phba, KERN_ERR, LOG_VPORT,
-				"1809 Create VPORT failed: "
-				"Max VPORTs (%d) exceeded\n",
-				phba->max_vpi);
+						"1809 Create VPORT failed: "
+						"Max VPORTs (%d) exceeded\n",
+						phba->max_vpi);
 		rc = VPORT_NORESOURCES;
 		goto error_out;
 	}
 
 	/* Assign an unused board number */
-	if ((instance = lpfc_get_instance()) < 0) {
+	if ((instance = lpfc_get_instance()) < 0)
+	{
 		lpfc_printf_log(phba, KERN_ERR, LOG_VPORT,
-				"1810 Create VPORT failed: Cannot get "
-				"instance number\n");
+						"1810 Create VPORT failed: Cannot get "
+						"instance number\n");
 		lpfc_free_vpi(phba, vpi);
 		rc = VPORT_NORESOURCES;
 		goto error_out;
 	}
 
 	vport = lpfc_create_port(phba, instance, &fc_vport->dev);
-	if (!vport) {
+
+	if (!vport)
+	{
 		lpfc_printf_log(phba, KERN_ERR, LOG_VPORT,
-				"1811 Create VPORT failed: vpi x%x\n", vpi);
+						"1811 Create VPORT failed: vpi x%x\n", vpi);
 		lpfc_free_vpi(phba, vpi);
 		rc = VPORT_NORESOURCES;
 		goto error_out;
@@ -341,17 +400,22 @@ lpfc_vport_create(struct fc_vport *fc_vport, bool disable)
 	vport->vpi = vpi;
 	lpfc_debugfs_initialize(vport);
 
-	if ((status = lpfc_vport_sparm(phba, vport))) {
-		if (status == -EINTR) {
+	if ((status = lpfc_vport_sparm(phba, vport)))
+	{
+		if (status == -EINTR)
+		{
 			lpfc_printf_vlog(vport, KERN_ERR, LOG_VPORT,
-					 "1831 Create VPORT Interrupted.\n");
+							 "1831 Create VPORT Interrupted.\n");
 			rc = VPORT_ERROR;
-		} else {
+		}
+		else
+		{
 			lpfc_printf_vlog(vport, KERN_ERR, LOG_VPORT,
-					 "1813 Create VPORT failed. "
-					 "Cannot get sparam\n");
+							 "1813 Create VPORT failed. "
+							 "Cannot get sparam\n");
 			rc = VPORT_NORESOURCES;
 		}
+
 		lpfc_free_vpi(phba, vpi);
 		destroy_port(vport);
 		goto error_out;
@@ -364,20 +428,22 @@ lpfc_vport_create(struct fc_vport *fc_vport, bool disable)
 	memcpy(&vport->fc_sparam.nodeName, vport->fc_nodename.u.wwn, 8);
 
 	if (!lpfc_valid_wwn_format(phba, &vport->fc_sparam.nodeName, "WWNN") ||
-	    !lpfc_valid_wwn_format(phba, &vport->fc_sparam.portName, "WWPN")) {
+		!lpfc_valid_wwn_format(phba, &vport->fc_sparam.portName, "WWPN"))
+	{
 		lpfc_printf_vlog(vport, KERN_ERR, LOG_VPORT,
-				 "1821 Create VPORT failed. "
-				 "Invalid WWN format\n");
+						 "1821 Create VPORT failed. "
+						 "Invalid WWN format\n");
 		lpfc_free_vpi(phba, vpi);
 		destroy_port(vport);
 		rc = VPORT_INVAL;
 		goto error_out;
 	}
 
-	if (!lpfc_unique_wwpn(phba, vport)) {
+	if (!lpfc_unique_wwpn(phba, vport))
+	{
 		lpfc_printf_vlog(vport, KERN_ERR, LOG_VPORT,
-				 "1823 Create VPORT failed. "
-				 "Duplicate WWN on HBA\n");
+						 "1823 Create VPORT failed. "
+						 "Duplicate WWN on HBA\n");
 		lpfc_free_vpi(phba, vpi);
 		destroy_port(vport);
 		rc = VPORT_INVAL;
@@ -395,8 +461,10 @@ lpfc_vport_create(struct fc_vport *fc_vport, bool disable)
 
 	/* At this point we are fully registered with SCSI Layer.  */
 	vport->load_flag |= FC_ALLOW_FDMI;
+
 	if (phba->cfg_enable_SmartSAN ||
-	    (phba->cfg_fdmi_on == LPFC_FDMI_SUPPORT)) {
+		(phba->cfg_fdmi_on == LPFC_FDMI_SUPPORT))
+	{
 		/* Setup appropriate attribute masks */
 		vport->fdmi_hba_mask = phba->pport->fdmi_hba_mask;
 		vport->fdmi_port_mask = phba->pport->fdmi_port_mask;
@@ -407,17 +475,22 @@ lpfc_vport_create(struct fc_vport *fc_vport, bool disable)
 	 * by the port.
 	 */
 	if ((phba->sli_rev == LPFC_SLI_REV4) &&
-	    (pport->fc_flag & FC_VFI_REGISTERED)) {
+		(pport->fc_flag & FC_VFI_REGISTERED))
+	{
 		rc = lpfc_sli4_init_vpi(vport);
-		if (rc) {
+
+		if (rc)
+		{
 			lpfc_printf_log(phba, KERN_ERR, LOG_VPORT,
-					"1838 Failed to INIT_VPI on vpi %d "
-					"status %d\n", vpi, rc);
+							"1838 Failed to INIT_VPI on vpi %d "
+							"status %d\n", vpi, rc);
 			rc = VPORT_NORESOURCES;
 			lpfc_free_vpi(phba, vpi);
 			goto error_out;
 		}
-	} else if (phba->sli_rev == LPFC_SLI_REV4) {
+	}
+	else if (phba->sli_rev == LPFC_SLI_REV4)
+	{
 		/*
 		 * Driver cannot INIT_VPI now. Set the flags to
 		 * init_vpi when reg_vfi complete.
@@ -429,14 +502,16 @@ lpfc_vport_create(struct fc_vport *fc_vport, bool disable)
 	}
 
 	if ((phba->link_state < LPFC_LINK_UP) ||
-	    (pport->port_state < LPFC_FABRIC_CFG_LINK) ||
-	    (phba->fc_topology == LPFC_TOPOLOGY_LOOP)) {
+		(pport->port_state < LPFC_FABRIC_CFG_LINK) ||
+		(phba->fc_topology == LPFC_TOPOLOGY_LOOP))
+	{
 		lpfc_vport_set_state(vport, FC_VPORT_LINKDOWN);
 		rc = VPORT_OK;
 		goto out;
 	}
 
-	if (disable) {
+	if (disable)
+	{
 		lpfc_vport_set_state(vport, FC_VPORT_DISABLED);
 		rc = VPORT_OK;
 		goto out;
@@ -446,24 +521,32 @@ lpfc_vport_create(struct fc_vport *fc_vport, bool disable)
 	 * up and ready to FDISC.
 	 */
 	ndlp = lpfc_findnode_did(phba->pport, Fabric_DID);
+
 	if (ndlp && NLP_CHK_NODE_ACT(ndlp) &&
-	    ndlp->nlp_state == NLP_STE_UNMAPPED_NODE) {
-		if (phba->link_flag & LS_NPIV_FAB_SUPPORTED) {
+		ndlp->nlp_state == NLP_STE_UNMAPPED_NODE)
+	{
+		if (phba->link_flag & LS_NPIV_FAB_SUPPORTED)
+		{
 			lpfc_set_disctmo(vport);
 			lpfc_initial_fdisc(vport);
-		} else {
+		}
+		else
+		{
 			lpfc_vport_set_state(vport, FC_VPORT_NO_FABRIC_SUPP);
 			lpfc_printf_vlog(vport, KERN_ERR, LOG_ELS,
-					 "0262 No NPIV Fabric support\n");
+							 "0262 No NPIV Fabric support\n");
 		}
-	} else {
+	}
+	else
+	{
 		lpfc_vport_set_state(vport, FC_VPORT_FAILED);
 	}
+
 	rc = VPORT_OK;
 
 out:
 	lpfc_printf_vlog(vport, KERN_ERR, LOG_VPORT,
-			"1825 Vport Created.\n");
+					 "1825 Vport Created.\n");
 	lpfc_host_attrib_init(lpfc_shost_from_vport(vport));
 error_out:
 	return rc;
@@ -479,13 +562,18 @@ disable_vport(struct fc_vport *fc_vport)
 	struct Scsi_Host *shost = lpfc_shost_from_vport(vport);
 
 	ndlp = lpfc_findnode_did(vport, Fabric_DID);
+
 	if (ndlp && NLP_CHK_NODE_ACT(ndlp)
-	    && phba->link_state >= LPFC_LINK_UP) {
+		&& phba->link_state >= LPFC_LINK_UP)
+	{
 		vport->unreg_vpi_cmpl = VPORT_INVAL;
 		timeout = msecs_to_jiffies(phba->fc_ratov * 2000);
+
 		if (!lpfc_issue_els_npiv_logo(vport, ndlp))
 			while (vport->unreg_vpi_cmpl == VPORT_INVAL && timeout)
+			{
 				timeout = schedule_timeout(timeout);
+			}
 	}
 
 	lpfc_sli_host_down(vport);
@@ -493,13 +581,20 @@ disable_vport(struct fc_vport *fc_vport)
 	/* Mark all nodes for discovery so we can remove them by
 	 * calling lpfc_cleanup_rpis(vport, 1)
 	 */
-	list_for_each_entry_safe(ndlp, next_ndlp, &vport->fc_nodes, nlp_listp) {
+	list_for_each_entry_safe(ndlp, next_ndlp, &vport->fc_nodes, nlp_listp)
+	{
 		if (!NLP_CHK_NODE_ACT(ndlp))
+		{
 			continue;
+		}
+
 		if (ndlp->nlp_state == NLP_STE_UNUSED_NODE)
+		{
 			continue;
+		}
+
 		lpfc_disc_state_machine(vport, ndlp, NULL,
-					NLP_EVT_DEVICE_RECOVERY);
+								NLP_EVT_DEVICE_RECOVERY);
 	}
 	lpfc_cleanup_rpis(vport, 1);
 
@@ -517,7 +612,7 @@ disable_vport(struct fc_vport *fc_vport)
 
 	lpfc_vport_set_state(vport, FC_VPORT_DISABLED);
 	lpfc_printf_vlog(vport, KERN_ERR, LOG_VPORT,
-			 "1826 Vport Disabled.\n");
+					 "1826 Vport Disabled.\n");
 	return VPORT_OK;
 }
 
@@ -530,7 +625,8 @@ enable_vport(struct fc_vport *fc_vport)
 	struct Scsi_Host *shost = lpfc_shost_from_vport(vport);
 
 	if ((phba->link_state < LPFC_LINK_UP) ||
-	    (phba->fc_topology == LPFC_TOPOLOGY_LOOP)) {
+		(phba->fc_topology == LPFC_TOPOLOGY_LOOP))
+	{
 		lpfc_vport_set_state(vport, FC_VPORT_LINKDOWN);
 		return VPORT_OK;
 	}
@@ -544,21 +640,29 @@ enable_vport(struct fc_vport *fc_vport)
 	 * up and ready to FDISC.
 	 */
 	ndlp = lpfc_findnode_did(phba->pport, Fabric_DID);
+
 	if (ndlp && NLP_CHK_NODE_ACT(ndlp)
-	    && ndlp->nlp_state == NLP_STE_UNMAPPED_NODE) {
-		if (phba->link_flag & LS_NPIV_FAB_SUPPORTED) {
+		&& ndlp->nlp_state == NLP_STE_UNMAPPED_NODE)
+	{
+		if (phba->link_flag & LS_NPIV_FAB_SUPPORTED)
+		{
 			lpfc_set_disctmo(vport);
 			lpfc_initial_fdisc(vport);
-		} else {
+		}
+		else
+		{
 			lpfc_vport_set_state(vport, FC_VPORT_NO_FABRIC_SUPP);
 			lpfc_printf_vlog(vport, KERN_ERR, LOG_ELS,
-					 "0264 No NPIV Fabric support\n");
+							 "0264 No NPIV Fabric support\n");
 		}
-	} else {
+	}
+	else
+	{
 		lpfc_vport_set_state(vport, FC_VPORT_FAILED);
 	}
+
 	lpfc_printf_vlog(vport, KERN_ERR, LOG_VPORT,
-			 "1827 Vport Enabled.\n");
+					 "1827 Vport Enabled.\n");
 	return VPORT_OK;
 }
 
@@ -566,9 +670,13 @@ int
 lpfc_vport_disable(struct fc_vport *fc_vport, bool disable)
 {
 	if (disable)
+	{
 		return disable_vport(fc_vport);
+	}
 	else
+	{
 		return enable_vport(fc_vport);
+	}
 }
 
 
@@ -582,40 +690,51 @@ lpfc_vport_delete(struct fc_vport *fc_vport)
 	long timeout;
 	bool ns_ndlp_referenced = false;
 
-	if (vport->port_type == LPFC_PHYSICAL_PORT) {
+	if (vport->port_type == LPFC_PHYSICAL_PORT)
+	{
 		lpfc_printf_vlog(vport, KERN_ERR, LOG_VPORT,
-				 "1812 vport_delete failed: Cannot delete "
-				 "physical host\n");
+						 "1812 vport_delete failed: Cannot delete "
+						 "physical host\n");
 		return VPORT_ERROR;
 	}
 
 	/* If the vport is a static vport fail the deletion. */
 	if ((vport->vport_flag & STATIC_VPORT) &&
-		!(phba->pport->load_flag & FC_UNLOADING)) {
+		!(phba->pport->load_flag & FC_UNLOADING))
+	{
 		lpfc_printf_vlog(vport, KERN_ERR, LOG_VPORT,
-				 "1837 vport_delete failed: Cannot delete "
-				 "static vport.\n");
+						 "1837 vport_delete failed: Cannot delete "
+						 "static vport.\n");
 		return VPORT_ERROR;
 	}
+
 	spin_lock_irq(&phba->hbalock);
 	vport->load_flag |= FC_UNLOADING;
 	spin_unlock_irq(&phba->hbalock);
+
 	/*
 	 * If we are not unloading the driver then prevent the vport_delete
 	 * from happening until after this vport's discovery is finished.
 	 */
-	if (!(phba->pport->load_flag & FC_UNLOADING)) {
+	if (!(phba->pport->load_flag & FC_UNLOADING))
+	{
 		int check_count = 0;
+
 		while (check_count < ((phba->fc_ratov * 3) + 3) &&
-		       vport->port_state > LPFC_VPORT_FAILED &&
-		       vport->port_state < LPFC_VPORT_READY) {
+			   vport->port_state > LPFC_VPORT_FAILED &&
+			   vport->port_state < LPFC_VPORT_READY)
+		{
 			check_count++;
 			msleep(1000);
 		}
+
 		if (vport->port_state > LPFC_VPORT_FAILED &&
-		    vport->port_state < LPFC_VPORT_READY)
+			vport->port_state < LPFC_VPORT_READY)
+		{
 			return -EAGAIN;
+		}
 	}
+
 	/*
 	 * This is a bit of a mess.  We want to ensure the shost doesn't get
 	 * torn down until we're done with the embedded lpfc_vport structure.
@@ -632,11 +751,16 @@ lpfc_vport_delete(struct fc_vport *fc_vport)
 	 * with the port.
 	 */
 	if (!scsi_host_get(shost))
+	{
 		return VPORT_INVAL;
-	if (!scsi_host_get(shost)) {
+	}
+
+	if (!scsi_host_get(shost))
+	{
 		scsi_host_put(shost);
 		return VPORT_INVAL;
 	}
+
 	lpfc_free_sysfs_attr(vport);
 
 	lpfc_debugfs_terminate(vport);
@@ -648,7 +772,9 @@ lpfc_vport_delete(struct fc_vport *fc_vport)
 	 * being released.
 	 */
 	ndlp = lpfc_findnode_did(vport, NameServer_DID);
-	if (ndlp && NLP_CHK_NODE_ACT(ndlp)) {
+
+	if (ndlp && NLP_CHK_NODE_ACT(ndlp))
+	{
 		lpfc_nlp_get(ndlp);
 		ns_ndlp_referenced = true;
 	}
@@ -663,20 +789,30 @@ lpfc_vport_delete(struct fc_vport *fc_vport)
 	 * worker thread already stopped at this stage and, in this case, we
 	 * can safely skip the fabric logo.
 	 */
-	if (phba->pport->load_flag & FC_UNLOADING) {
+	if (phba->pport->load_flag & FC_UNLOADING)
+	{
 		if (ndlp && NLP_CHK_NODE_ACT(ndlp) &&
-		    ndlp->nlp_state == NLP_STE_UNMAPPED_NODE &&
-		    phba->link_state >= LPFC_LINK_UP) {
+			ndlp->nlp_state == NLP_STE_UNMAPPED_NODE &&
+			phba->link_state >= LPFC_LINK_UP)
+		{
 			/* First look for the Fabric ndlp */
 			ndlp = lpfc_findnode_did(vport, Fabric_DID);
+
 			if (!ndlp)
+			{
 				goto skip_logo;
-			else if (!NLP_CHK_NODE_ACT(ndlp)) {
-				ndlp = lpfc_enable_node(vport, ndlp,
-							NLP_STE_UNUSED_NODE);
-				if (!ndlp)
-					goto skip_logo;
 			}
+			else if (!NLP_CHK_NODE_ACT(ndlp))
+			{
+				ndlp = lpfc_enable_node(vport, ndlp,
+										NLP_STE_UNUSED_NODE);
+
+				if (!ndlp)
+				{
+					goto skip_logo;
+				}
+			}
+
 			/* Remove ndlp from vport npld list */
 			lpfc_dequeue_node(vport, ndlp);
 
@@ -687,54 +823,78 @@ lpfc_vport_delete(struct fc_vport *fc_vport)
 			/* Kick off release ndlp when it can be safely done */
 			lpfc_nlp_put(ndlp);
 		}
+
 		goto skip_logo;
 	}
 
 	/* Otherwise, we will perform fabric logo as needed */
 	if (ndlp && NLP_CHK_NODE_ACT(ndlp) &&
-	    ndlp->nlp_state == NLP_STE_UNMAPPED_NODE &&
-	    phba->link_state >= LPFC_LINK_UP &&
-	    phba->fc_topology != LPFC_TOPOLOGY_LOOP) {
-		if (vport->cfg_enable_da_id) {
+		ndlp->nlp_state == NLP_STE_UNMAPPED_NODE &&
+		phba->link_state >= LPFC_LINK_UP &&
+		phba->fc_topology != LPFC_TOPOLOGY_LOOP)
+	{
+		if (vport->cfg_enable_da_id)
+		{
 			timeout = msecs_to_jiffies(phba->fc_ratov * 2000);
+
 			if (!lpfc_ns_cmd(vport, SLI_CTNS_DA_ID, 0, 0))
 				while (vport->ct_flags && timeout)
+				{
 					timeout = schedule_timeout(timeout);
+				}
 			else
 				lpfc_printf_log(vport->phba, KERN_WARNING,
-						LOG_VPORT,
-						"1829 CT command failed to "
-						"delete objects on fabric\n");
+								LOG_VPORT,
+								"1829 CT command failed to "
+								"delete objects on fabric\n");
 		}
+
 		/* First look for the Fabric ndlp */
 		ndlp = lpfc_findnode_did(vport, Fabric_DID);
-		if (!ndlp) {
+
+		if (!ndlp)
+		{
 			/* Cannot find existing Fabric ndlp, allocate one */
 			ndlp = mempool_alloc(phba->nlp_mem_pool, GFP_KERNEL);
+
 			if (!ndlp)
+			{
 				goto skip_logo;
+			}
+
 			lpfc_nlp_init(vport, ndlp, Fabric_DID);
 			/* Indicate free memory when release */
 			NLP_SET_FREE_REQ(ndlp);
-		} else {
-			if (!NLP_CHK_NODE_ACT(ndlp)) {
+		}
+		else
+		{
+			if (!NLP_CHK_NODE_ACT(ndlp))
+			{
 				ndlp = lpfc_enable_node(vport, ndlp,
-						NLP_STE_UNUSED_NODE);
+										NLP_STE_UNUSED_NODE);
+
 				if (!ndlp)
+				{
 					goto skip_logo;
+				}
 			}
 
 			/* Remove ndlp from vport list */
 			lpfc_dequeue_node(vport, ndlp);
 			spin_lock_irq(&phba->ndlp_lock);
+
 			if (!NLP_CHK_FREE_REQ(ndlp))
 				/* Indicate free memory when release */
+			{
 				NLP_SET_FREE_REQ(ndlp);
-			else {
+			}
+			else
+			{
 				/* Skip this if ndlp is already in free mode */
 				spin_unlock_irq(&phba->ndlp_lock);
 				goto skip_logo;
 			}
+
 			spin_unlock_irq(&phba->ndlp_lock);
 		}
 
@@ -743,20 +903,26 @@ lpfc_vport_delete(struct fc_vport *fc_vport)
 		 * exist and there is no need for a ELS LOGO.  Just cleanup
 		 * the ndlp.
 		 */
-		if (!(vport->vpi_state & LPFC_VPI_REGISTERED)) {
+		if (!(vport->vpi_state & LPFC_VPI_REGISTERED))
+		{
 			lpfc_nlp_put(ndlp);
 			goto skip_logo;
 		}
 
 		vport->unreg_vpi_cmpl = VPORT_INVAL;
 		timeout = msecs_to_jiffies(phba->fc_ratov * 2000);
+
 		if (!lpfc_issue_els_npiv_logo(vport, ndlp))
 			while (vport->unreg_vpi_cmpl == VPORT_INVAL && timeout)
+			{
 				timeout = schedule_timeout(timeout);
+			}
 	}
 
 	if (!(phba->pport->load_flag & FC_UNLOADING))
+	{
 		lpfc_discovery_wait(vport);
+	}
 
 skip_logo:
 
@@ -764,7 +930,8 @@ skip_logo:
 	 * If the NameServer ndlp has been incremented to allow the DA_ID CT
 	 * command to be sent, decrement the ndlp now.
 	 */
-	if (ns_ndlp_referenced) {
+	if (ns_ndlp_referenced)
+	{
 		ndlp = lpfc_findnode_did(vport, NameServer_DID);
 		lpfc_nlp_put(ndlp);
 	}
@@ -774,18 +941,25 @@ skip_logo:
 
 	lpfc_stop_vport_timers(vport);
 
-	if (!(phba->pport->load_flag & FC_UNLOADING)) {
+	if (!(phba->pport->load_flag & FC_UNLOADING))
+	{
 		lpfc_unreg_all_rpis(vport);
 		lpfc_unreg_default_rpis(vport);
+
 		/*
 		 * Completion of unreg_vpi (lpfc_mbx_cmpl_unreg_vpi)
 		 * does the scsi_host_put() to release the vport.
 		 */
 		if (!(vport->vpi_state & LPFC_VPI_REGISTERED) ||
-				lpfc_mbx_unreg_vpi(vport))
+			lpfc_mbx_unreg_vpi(vport))
+		{
 			scsi_host_put(shost);
-	} else
+		}
+	}
+	else
+	{
 		scsi_host_put(shost);
+	}
 
 	lpfc_free_vpi(phba, vport->vpi);
 	vport->work_port_events = 0;
@@ -793,7 +967,7 @@ skip_logo:
 	list_del_init(&vport->listentry);
 	spin_unlock_irq(&phba->hbalock);
 	lpfc_printf_vlog(vport, KERN_ERR, LOG_VPORT,
-			 "1828 Vport Deleted.\n");
+					 "1828 Vport Deleted.\n");
 	scsi_host_put(shost);
 	return VPORT_OK;
 }
@@ -805,19 +979,29 @@ lpfc_create_vport_work_array(struct lpfc_hba *phba)
 	struct lpfc_vport **vports;
 	int index = 0;
 	vports = kzalloc((phba->max_vports + 1) * sizeof(struct lpfc_vport *),
-			 GFP_KERNEL);
+					 GFP_KERNEL);
+
 	if (vports == NULL)
+	{
 		return NULL;
+	}
+
 	spin_lock_irq(&phba->hbalock);
-	list_for_each_entry(port_iterator, &phba->port_list, listentry) {
+	list_for_each_entry(port_iterator, &phba->port_list, listentry)
+	{
 		if (port_iterator->load_flag & FC_UNLOADING)
-			continue;
-		if (!scsi_host_get(lpfc_shost_from_vport(port_iterator))) {
-			lpfc_printf_vlog(port_iterator, KERN_ERR, LOG_VPORT,
-					 "1801 Create vport work array FAILED: "
-					 "cannot do scsi_host_get\n");
+		{
 			continue;
 		}
+
+		if (!scsi_host_get(lpfc_shost_from_vport(port_iterator)))
+		{
+			lpfc_printf_vlog(port_iterator, KERN_ERR, LOG_VPORT,
+							 "1801 Create vport work array FAILED: "
+							 "cannot do scsi_host_get\n");
+			continue;
+		}
+
 		vports[index++] = port_iterator;
 	}
 	spin_unlock_irq(&phba->hbalock);
@@ -828,10 +1012,17 @@ void
 lpfc_destroy_vport_work_array(struct lpfc_hba *phba, struct lpfc_vport **vports)
 {
 	int i;
+
 	if (vports == NULL)
+	{
 		return;
+	}
+
 	for (i = 0; i <= phba->max_vports && vports[i] != NULL; i++)
+	{
 		scsi_host_put(lpfc_shost_from_vport(vports[i]));
+	}
+
 	kfree(vports);
 }
 
@@ -848,12 +1039,16 @@ lpfc_vport_reset_stat_data(struct lpfc_vport *vport)
 {
 	struct lpfc_nodelist *ndlp = NULL, *next_ndlp = NULL;
 
-	list_for_each_entry_safe(ndlp, next_ndlp, &vport->fc_nodes, nlp_listp) {
+	list_for_each_entry_safe(ndlp, next_ndlp, &vport->fc_nodes, nlp_listp)
+	{
 		if (!NLP_CHK_NODE_ACT(ndlp))
+		{
 			continue;
+		}
+
 		if (ndlp->lat_data)
 			memset(ndlp->lat_data, 0, LPFC_MAX_BUCKET_COUNT *
-				sizeof(struct lpfc_scsicmd_bkt));
+				   sizeof(struct lpfc_scsicmd_bkt));
 	}
 }
 
@@ -870,23 +1065,27 @@ lpfc_alloc_bucket(struct lpfc_vport *vport)
 {
 	struct lpfc_nodelist *ndlp = NULL, *next_ndlp = NULL;
 
-	list_for_each_entry_safe(ndlp, next_ndlp, &vport->fc_nodes, nlp_listp) {
+	list_for_each_entry_safe(ndlp, next_ndlp, &vport->fc_nodes, nlp_listp)
+	{
 		if (!NLP_CHK_NODE_ACT(ndlp))
+		{
 			continue;
+		}
 
 		kfree(ndlp->lat_data);
 		ndlp->lat_data = NULL;
 
-		if (ndlp->nlp_state == NLP_STE_MAPPED_NODE) {
+		if (ndlp->nlp_state == NLP_STE_MAPPED_NODE)
+		{
 			ndlp->lat_data = kcalloc(LPFC_MAX_BUCKET_COUNT,
-					 sizeof(struct lpfc_scsicmd_bkt),
-					 GFP_ATOMIC);
+									 sizeof(struct lpfc_scsicmd_bkt),
+									 GFP_ATOMIC);
 
 			if (!ndlp->lat_data)
 				lpfc_printf_vlog(vport, KERN_ERR, LOG_NODE,
-					"0287 lpfc_alloc_bucket failed to "
-					"allocate statistical data buffer DID "
-					"0x%x\n", ndlp->nlp_DID);
+								 "0287 lpfc_alloc_bucket failed to "
+								 "allocate statistical data buffer DID "
+								 "0x%x\n", ndlp->nlp_DID);
 		}
 	}
 }
@@ -903,9 +1102,12 @@ lpfc_free_bucket(struct lpfc_vport *vport)
 {
 	struct lpfc_nodelist *ndlp = NULL, *next_ndlp = NULL;
 
-	list_for_each_entry_safe(ndlp, next_ndlp, &vport->fc_nodes, nlp_listp) {
+	list_for_each_entry_safe(ndlp, next_ndlp, &vport->fc_nodes, nlp_listp)
+	{
 		if (!NLP_CHK_NODE_ACT(ndlp))
+		{
 			continue;
+		}
 
 		kfree(ndlp->lat_data);
 		ndlp->lat_data = NULL;

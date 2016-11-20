@@ -50,7 +50,8 @@
  *
  * Used by FSL_HV_IOCTL_PARTITION_RESTART
  */
-struct fsl_hv_ioctl_restart {
+struct fsl_hv_ioctl_restart
+{
 	__u32 ret;
 	__u32 partition;
 };
@@ -70,7 +71,8 @@ struct fsl_hv_ioctl_restart {
  *    2 = Starting
  *    3 = Stopping
  */
-struct fsl_hv_ioctl_status {
+struct fsl_hv_ioctl_status
+{
 	__u32 ret;
 	__u32 partition;
 	__u32 status;
@@ -85,7 +87,8 @@ struct fsl_hv_ioctl_status {
  *
  * Used by FSL_HV_IOCTL_PARTITION_START
  */
-struct fsl_hv_ioctl_start {
+struct fsl_hv_ioctl_start
+{
 	__u32 ret;
 	__u32 partition;
 	__u32 entry_point;
@@ -100,7 +103,8 @@ struct fsl_hv_ioctl_start {
  *
  * Used by FSL_HV_IOCTL_PARTITION_STOP
  */
-struct fsl_hv_ioctl_stop {
+struct fsl_hv_ioctl_stop
+{
 	__u32 ret;
 	__u32 partition;
 };
@@ -137,7 +141,8 @@ struct fsl_hv_ioctl_stop {
  * or
  *      source == remote and target == local
  */
-struct fsl_hv_ioctl_memcpy {
+struct fsl_hv_ioctl_memcpy
+{
 	__u32 ret;
 	__u32 source;
 	__u32 target;
@@ -154,7 +159,8 @@ struct fsl_hv_ioctl_memcpy {
  *
  * Used by FSL_HV_IOCTL_DOORBELL
  */
-struct fsl_hv_ioctl_doorbell {
+struct fsl_hv_ioctl_doorbell
+{
 	__u32 ret;
 	__u32 doorbell;
 };
@@ -171,7 +177,8 @@ struct fsl_hv_ioctl_doorbell {
  *
  * Used by FSL_HV_IOCTL_DOORBELL
  */
-struct fsl_hv_ioctl_prop {
+struct fsl_hv_ioctl_prop
+{
 	__u32 ret;
 	__u32 handle;
 	__u64 path;

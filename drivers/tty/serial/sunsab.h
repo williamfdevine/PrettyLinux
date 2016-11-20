@@ -6,7 +6,8 @@
 #ifndef _SUNSAB_H
 #define _SUNSAB_H
 
-struct sab82532_async_rd_regs {
+struct sab82532_async_rd_regs
+{
 	u8	rfifo[0x20];	/* Receive FIFO				*/
 	u8	star;		/* Status Register			*/
 	u8	__pad1;
@@ -37,7 +38,8 @@ struct sab82532_async_rd_regs {
 	u8	ccr4;		/* Channel Configuration Register 4	*/
 };
 
-struct sab82532_async_wr_regs {
+struct sab82532_async_wr_regs
+{
 	u8	xfifo[0x20];	/* Transmit FIFO			*/
 	u8	cmdr;		/* Command Register			*/
 	u8	__pad1;
@@ -73,7 +75,8 @@ struct sab82532_async_wr_regs {
 	u8	ccr4;
 };
 
-struct sab82532_async_rw_regs {	/* Read/Write registers			*/
+struct sab82532_async_rw_regs  	/* Read/Write registers			*/
+{
 	u8	__pad1[0x20];
 	u8	__pad2;
 	u8	__pad3;
@@ -109,15 +112,18 @@ struct sab82532_async_rw_regs {	/* Read/Write registers			*/
 	u8	ccr4;
 };
 
-union sab82532_async_regs {
+union sab82532_async_regs
+{
 	__volatile__ struct sab82532_async_rd_regs	r;
 	__volatile__ struct sab82532_async_wr_regs	w;
 	__volatile__ struct sab82532_async_rw_regs	rw;
 };
 
-union sab82532_irq_status {
+union sab82532_irq_status
+{
 	unsigned short			 stat;
-	struct {
+	struct
+	{
 		unsigned char		 isr0;
 		unsigned char		 isr1;
 	} sreg;

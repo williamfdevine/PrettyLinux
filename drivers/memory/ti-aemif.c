@@ -73,14 +73,14 @@
 #define ASIZE_16BIT	1
 
 #define CONFIG_MASK	(TA(TA_MAX) | \
-				RHOLD(RHOLD_MAX) | \
-				RSTROBE(RSTROBE_MAX) |	\
-				RSETUP(RSETUP_MAX) | \
-				WHOLD(WHOLD_MAX) | \
-				WSTROBE(WSTROBE_MAX) | \
-				WSETUP(WSETUP_MAX) | \
-				EW(EW_MAX) | SS(SS_MAX) | \
-				ASIZE_MAX)
+					 RHOLD(RHOLD_MAX) | \
+					 RSTROBE(RSTROBE_MAX) |	\
+					 RSETUP(RSETUP_MAX) | \
+					 WHOLD(WHOLD_MAX) | \
+					 WSTROBE(WSTROBE_MAX) | \
+					 WSETUP(WSETUP_MAX) | \
+					 EW(EW_MAX) | SS(SS_MAX) | \
+					 ASIZE_MAX)
 
 /**
  * struct aemif_cs_data: structure to hold cs parameters
@@ -96,7 +96,8 @@
  * @enable_ew: enable/disable extended wait mode
  * @asize: width of the asynchronous device's data bus
  */
-struct aemif_cs_data {
+struct aemif_cs_data
+{
 	u8	cs;
 	u16	wstrobe;
 	u16	rstrobe;
@@ -119,7 +120,8 @@ struct aemif_cs_data {
  * @cs_offset: start number of cs nodes
  * @cs_data: array of chip-select settings
  */
-struct aemif_device {
+struct aemif_device
+{
 	void __iomem *base;
 	struct clk *clk;
 	unsigned long clk_rate;
@@ -139,22 +141,26 @@ struct aemif_device {
  * programming into AEMIF timing registers, else negative errno.
  */
 static int aemif_calc_rate(struct platform_device *pdev, int wanted,
-			   unsigned long clk, int max)
+						   unsigned long clk, int max)
 {
 	int result;
 
 	result = DIV_ROUND_UP((wanted * clk), NSEC_PER_MSEC) - 1;
 
 	dev_dbg(&pdev->dev, "%s: result %d from %ld, %d\n", __func__, result,
-		clk, wanted);
+			clk, wanted);
 
 	/* It is generally OK to have a more relaxed timing than requested... */
 	if (result < 0)
+	{
 		result = 0;
+	}
 
 	/* ... But configuring tighter timings is not an option. */
 	else if (result > max)
+	{
 		result = -EINVAL;
+	}
 
 	return result;
 }
@@ -193,20 +199,27 @@ static int aemif_config_abus(struct platform_device *pdev, int csnum)
 	wsetup	= aemif_calc_rate(pdev, data->wsetup, clk_rate, WSETUP_MAX);
 
 	if (ta < 0 || rhold < 0 || rstrobe < 0 || rsetup < 0 ||
-	    whold < 0 || wstrobe < 0 || wsetup < 0) {
+		whold < 0 || wstrobe < 0 || wsetup < 0)
+	{
 		dev_err(&pdev->dev, "%s: cannot get suitable timings\n",
-			__func__);
+				__func__);
 		return -EINVAL;
 	}
 
 	set = TA(ta) | RHOLD(rhold) | RSTROBE(rstrobe) | RSETUP(rsetup) |
-		WHOLD(whold) | WSTROBE(wstrobe) | WSETUP(wsetup);
+		  WHOLD(whold) | WSTROBE(wstrobe) | WSETUP(wsetup);
 
 	set |= (data->asize & ACR_ASIZE_MASK);
+
 	if (data->enable_ew)
+	{
 		set |= ACR_EW_MASK;
+	}
+
 	if (data->enable_ss)
+	{
 		set |= ACR_SS_MASK;
+	}
 
 	val = readl(aemif->base + offset);
 	val &= ~CONFIG_MASK;
@@ -261,24 +274,27 @@ static void aemif_get_hw_params(struct platform_device *pdev, int csnum)
  * configured in a cs device binding node.
  */
 static int of_aemif_parse_abus_config(struct platform_device *pdev,
-				      struct device_node *np)
+									  struct device_node *np)
 {
 	struct aemif_device *aemif = platform_get_drvdata(pdev);
 	struct aemif_cs_data *data;
 	u32 cs;
 	u32 val;
 
-	if (of_property_read_u32(np, "ti,cs-chipselect", &cs)) {
+	if (of_property_read_u32(np, "ti,cs-chipselect", &cs))
+	{
 		dev_dbg(&pdev->dev, "cs property is required");
 		return -EINVAL;
 	}
 
-	if (cs - aemif->cs_offset >= NUM_CS || cs < aemif->cs_offset) {
+	if (cs - aemif->cs_offset >= NUM_CS || cs < aemif->cs_offset)
+	{
 		dev_dbg(&pdev->dev, "cs number is incorrect %d", cs);
 		return -EINVAL;
 	}
 
-	if (aemif->num_cs >= NUM_CS) {
+	if (aemif->num_cs >= NUM_CS)
+	{
 		dev_dbg(&pdev->dev, "cs count is more than %d", NUM_CS);
 		return -EINVAL;
 	}
@@ -291,35 +307,53 @@ static int of_aemif_parse_abus_config(struct platform_device *pdev,
 
 	/* override the values from device node */
 	if (!of_property_read_u32(np, "ti,cs-min-turnaround-ns", &val))
+	{
 		data->ta = val;
+	}
 
 	if (!of_property_read_u32(np, "ti,cs-read-hold-ns", &val))
+	{
 		data->rhold = val;
+	}
 
 	if (!of_property_read_u32(np, "ti,cs-read-strobe-ns", &val))
+	{
 		data->rstrobe = val;
+	}
 
 	if (!of_property_read_u32(np, "ti,cs-read-setup-ns", &val))
+	{
 		data->rsetup = val;
+	}
 
 	if (!of_property_read_u32(np, "ti,cs-write-hold-ns", &val))
+	{
 		data->whold = val;
+	}
 
 	if (!of_property_read_u32(np, "ti,cs-write-strobe-ns", &val))
+	{
 		data->wstrobe = val;
+	}
 
 	if (!of_property_read_u32(np, "ti,cs-write-setup-ns", &val))
+	{
 		data->wsetup = val;
+	}
 
 	if (!of_property_read_u32(np, "ti,cs-bus-width", &val))
 		if (val == 16)
+		{
 			data->asize = 1;
+		}
+
 	data->enable_ew = of_property_read_bool(np, "ti,cs-extended-wait-mode");
 	data->enable_ss = of_property_read_bool(np, "ti,cs-select-strobe-mode");
 	return 0;
 }
 
-static const struct of_device_id aemif_of_match[] = {
+static const struct of_device_id aemif_of_match[] =
+{
 	{ .compatible = "ti,davinci-aemif", },
 	{ .compatible = "ti,da850-aemif", },
 	{},
@@ -337,16 +371,23 @@ static int aemif_probe(struct platform_device *pdev)
 	struct aemif_device *aemif;
 
 	if (np == NULL)
+	{
 		return 0;
+	}
 
 	aemif = devm_kzalloc(dev, sizeof(*aemif), GFP_KERNEL);
+
 	if (!aemif)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, aemif);
 
 	aemif->clk = devm_clk_get(dev, NULL);
-	if (IS_ERR(aemif->clk)) {
+
+	if (IS_ERR(aemif->clk))
+	{
 		dev_err(dev, "cannot get clock 'aemif'\n");
 		return PTR_ERR(aemif->clk);
 	}
@@ -355,11 +396,15 @@ static int aemif_probe(struct platform_device *pdev)
 	aemif->clk_rate = clk_get_rate(aemif->clk) / MSEC_PER_SEC;
 
 	if (of_device_is_compatible(np, "ti,da850-aemif"))
+	{
 		aemif->cs_offset = 2;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	aemif->base = devm_ioremap_resource(dev, res);
-	if (IS_ERR(aemif->base)) {
+
+	if (IS_ERR(aemif->base))
+	{
 		ret = PTR_ERR(aemif->base);
 		goto error;
 	}
@@ -369,17 +414,24 @@ static int aemif_probe(struct platform_device *pdev)
 	 * describe the bus configuration parameters. This functions iterate
 	 * over these nodes and update the cs data array.
 	 */
-	for_each_available_child_of_node(np, child_np) {
+	for_each_available_child_of_node(np, child_np)
+	{
 		ret = of_aemif_parse_abus_config(pdev, child_np);
+
 		if (ret < 0)
+		{
 			goto error;
+		}
 	}
 
-	for (i = 0; i < aemif->num_cs; i++) {
+	for (i = 0; i < aemif->num_cs; i++)
+	{
 		ret = aemif_config_abus(pdev, i);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(dev, "Error configuring chip select %d\n",
-				aemif->cs_data[i].cs);
+					aemif->cs_data[i].cs);
 			goto error;
 		}
 	}
@@ -389,10 +441,14 @@ static int aemif_probe(struct platform_device *pdev)
 	 * guarantee that the child will be probed after the AEMIF timing
 	 * parameters are set.
 	 */
-	for_each_available_child_of_node(np, child_np) {
+	for_each_available_child_of_node(np, child_np)
+	{
 		ret = of_platform_populate(child_np, NULL, NULL, dev);
+
 		if (ret < 0)
+		{
 			goto error;
+		}
 	}
 
 	return 0;
@@ -409,7 +465,8 @@ static int aemif_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver aemif_driver = {
+static struct platform_driver aemif_driver =
+{
 	.probe = aemif_probe,
 	.remove = aemif_remove,
 	.driver = {

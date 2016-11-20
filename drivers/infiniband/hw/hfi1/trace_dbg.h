@@ -64,48 +64,48 @@
 #define MAX_MSG_LEN 512
 
 DECLARE_EVENT_CLASS(hfi1_trace_template,
-		    TP_PROTO(const char *function, struct va_format *vaf),
-		    TP_ARGS(function, vaf),
-		    TP_STRUCT__entry(__string(function, function)
-				     __dynamic_array(char, msg, MAX_MSG_LEN)
-				     ),
-		    TP_fast_assign(__assign_str(function, function);
-				   WARN_ON_ONCE(vsnprintf
-						(__get_dynamic_array(msg),
-						 MAX_MSG_LEN, vaf->fmt,
-						 *vaf->va) >=
-						MAX_MSG_LEN);
-				   ),
-		    TP_printk("(%s) %s",
-			      __get_str(function),
-			      __get_str(msg))
-);
+					TP_PROTO(const char *function, struct va_format *vaf),
+					TP_ARGS(function, vaf),
+					TP_STRUCT__entry(__string(function, function)
+									 __dynamic_array(char, msg, MAX_MSG_LEN)
+									),
+					TP_fast_assign(__assign_str(function, function);
+								   WARN_ON_ONCE(vsnprintf
+										   (__get_dynamic_array(msg),
+												   MAX_MSG_LEN, vaf->fmt,
+												   *vaf->va) >=
+										   MAX_MSG_LEN);
+								  ),
+					TP_printk("(%s) %s",
+							  __get_str(function),
+							  __get_str(msg))
+				   );
 
 /*
  * It may be nice to macroize the __hfi1_trace but the va_* stuff requires an
  * actual function to work and can not be in a macro.
  */
 #define __hfi1_trace_def(lvl) \
-void __hfi1_trace_##lvl(const char *funct, char *fmt, ...);		\
-									\
-DEFINE_EVENT(hfi1_trace_template, hfi1_ ##lvl,				\
-	TP_PROTO(const char *function, struct va_format *vaf),		\
-	TP_ARGS(function, vaf))
+	void __hfi1_trace_##lvl(const char *funct, char *fmt, ...);		\
+	\
+	DEFINE_EVENT(hfi1_trace_template, hfi1_ ##lvl,				\
+				 TP_PROTO(const char *function, struct va_format *vaf),		\
+				 TP_ARGS(function, vaf))
 
 #define __hfi1_trace_fn(lvl) \
-void __hfi1_trace_##lvl(const char *func, char *fmt, ...)		\
-{									\
-	struct va_format vaf = {					\
-		.fmt = fmt,						\
-	};								\
-	va_list args;							\
-									\
-	va_start(args, fmt);						\
-	vaf.va = &args;							\
-	trace_hfi1_ ##lvl(func, &vaf);					\
-	va_end(args);							\
-	return;								\
-}
+	void __hfi1_trace_##lvl(const char *func, char *fmt, ...)		\
+	{									\
+		struct va_format vaf = {					\
+			.fmt = fmt,						\
+		};								\
+		va_list args;							\
+		\
+		va_start(args, fmt);						\
+		vaf.va = &args;							\
+		trace_hfi1_ ##lvl(func, &vaf);					\
+		va_end(args);							\
+		return;								\
+	}
 
 /*
  * To create a new trace level simply define it below and as a __hfi1_trace_fn

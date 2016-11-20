@@ -14,7 +14,8 @@
 #define __FAN53555_H__
 
 /* VSEL ID */
-enum {
+enum
+{
 	FAN53555_VSEL_ID_0 = 0,
 	FAN53555_VSEL_ID_1,
 };
@@ -40,7 +41,8 @@ enum {
  *   111 |     0.50
  * -----------------------
  */
-enum {
+enum
+{
 	FAN53555_SLEW_RATE_64MV = 0,
 	FAN53555_SLEW_RATE_32MV,
 	FAN53555_SLEW_RATE_16MV,
@@ -51,7 +53,8 @@ enum {
 	FAN53555_SLEW_RATE_0_5MV,
 };
 
-struct fan53555_platform_data {
+struct fan53555_platform_data
+{
 	struct regulator_init_data *regulator;
 	unsigned int slew_rate;
 	/* Sleep VSEL ID */

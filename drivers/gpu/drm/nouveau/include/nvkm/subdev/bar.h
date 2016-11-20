@@ -3,7 +3,8 @@
 #include <core/subdev.h>
 struct nvkm_vma;
 
-struct nvkm_bar {
+struct nvkm_bar
+{
 	const struct nvkm_bar_func *func;
 	struct nvkm_subdev subdev;
 

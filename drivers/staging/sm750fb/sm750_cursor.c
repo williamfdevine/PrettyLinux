@@ -21,7 +21,7 @@
 
 
 #define POKE32(addr, data) \
-writel((data), cursor->mmio + (addr))
+	writel((data), cursor->mmio + (addr))
 
 /* cursor control for voyager and 718/750*/
 #define HWC_ADDRESS                         0x0
@@ -60,32 +60,32 @@ void hw_cursor_disable(struct lynx_cursor *cursor)
 }
 
 void hw_cursor_setSize(struct lynx_cursor *cursor,
-						int w, int h)
+					   int w, int h)
 {
 	cursor->w = w;
 	cursor->h = h;
 }
 void hw_cursor_setPos(struct lynx_cursor *cursor,
-						int x, int y)
+					  int x, int y)
 {
 	u32 reg;
 
 	reg = (((y << HWC_LOCATION_Y_SHIFT) & HWC_LOCATION_Y_MASK) |
-		(x & HWC_LOCATION_X_MASK));
+		   (x & HWC_LOCATION_X_MASK));
 	POKE32(HWC_LOCATION, reg);
 }
 void hw_cursor_setColor(struct lynx_cursor *cursor,
 						u32 fg, u32 bg)
 {
 	u32 reg = (fg << HWC_COLOR_12_2_RGB565_SHIFT) &
-		HWC_COLOR_12_2_RGB565_MASK;
+			  HWC_COLOR_12_2_RGB565_MASK;
 
 	POKE32(HWC_COLOR_12, reg | (bg & HWC_COLOR_12_1_RGB565_MASK));
 	POKE32(HWC_COLOR_3, 0xffe0);
 }
 
 void hw_cursor_setData(struct lynx_cursor *cursor,
-			u16 rop, const u8 *pcol, const u8 *pmsk)
+					   u16 rop, const u8 *pcol, const u8 *pmsk)
 {
 	int i, j, count, pitch, offset;
 	u8 color, mask, opr;
@@ -105,30 +105,41 @@ void hw_cursor_setData(struct lynx_cursor *cursor,
 	pstart = cursor->vstart;
 	pbuffer = pstart;
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		color = *pcol++;
 		mask = *pmsk++;
 		data = 0;
 
-		for (j = 0; j < 8; j++) {
-			if (mask & (0x80>>j)) {
+		for (j = 0; j < 8; j++)
+		{
+			if (mask & (0x80 >> j))
+			{
 				if (rop == ROP_XOR)
+				{
 					opr = mask ^ color;
+				}
 				else
+				{
 					opr = mask & color;
+				}
 
 				/* 2 stands for forecolor and 1 for backcolor */
-				data |= ((opr & (0x80>>j))?2:1)<<(j*2);
+				data |= ((opr & (0x80 >> j)) ? 2 : 1) << (j * 2);
 			}
 		}
+
 		iowrite16(data, pbuffer);
 
 		/* assume pitch is 1,2,4,8,...*/
-		if ((i + 1) % pitch == 0) {
+		if ((i + 1) % pitch == 0)
+		{
 			/* need a return */
 			pstart += offset;
 			pbuffer = pstart;
-		} else {
+		}
+		else
+		{
 			pbuffer += sizeof(u16);
 		}
 
@@ -139,7 +150,7 @@ void hw_cursor_setData(struct lynx_cursor *cursor,
 
 
 void hw_cursor_setData2(struct lynx_cursor *cursor,
-			u16 rop, const u8 *pcol, const u8 *pmsk)
+						u16 rop, const u8 *pcol, const u8 *pmsk)
 {
 	int i, j, count, pitch, offset;
 	u8 color, mask;
@@ -159,23 +170,31 @@ void hw_cursor_setData2(struct lynx_cursor *cursor,
 	pstart = cursor->vstart;
 	pbuffer = pstart;
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		color = *pcol++;
 		mask = *pmsk++;
 		data = 0;
 
-		for (j = 0; j < 8; j++) {
-			if (mask & (1<<j))
-				data |= ((color & (1<<j))?1:2)<<(j*2);
+		for (j = 0; j < 8; j++)
+		{
+			if (mask & (1 << j))
+			{
+				data |= ((color & (1 << j)) ? 1 : 2) << (j * 2);
+			}
 		}
+
 		iowrite16(data, pbuffer);
 
 		/* assume pitch is 1,2,4,8,...*/
-		if (!(i&(pitch-1))) {
+		if (!(i & (pitch - 1)))
+		{
 			/* need a return */
 			pstart += offset;
 			pbuffer = pstart;
-		} else {
+		}
+		else
+		{
 			pbuffer += sizeof(u16);
 		}
 

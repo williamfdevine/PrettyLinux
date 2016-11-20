@@ -40,23 +40,27 @@
  *   R E T U R N   V A L U E S
  ********************************/
 
-enum fw_fcoe_link_sub_op {
+enum fw_fcoe_link_sub_op
+{
 	FCOE_LINK_DOWN	= 0x0,
 	FCOE_LINK_UP	= 0x1,
 	FCOE_LINK_COND	= 0x2,
 };
 
-enum fw_fcoe_link_status {
+enum fw_fcoe_link_status
+{
 	FCOE_LINKDOWN	= 0x0,
 	FCOE_LINKUP	= 0x1,
 };
 
-enum fw_ofld_prot {
+enum fw_ofld_prot
+{
 	PROT_FCOE	= 0x1,
 	PROT_ISCSI	= 0x2,
 };
 
-enum rport_type_fcoe {
+enum rport_type_fcoe
+{
 	FLOGI_VFPORT	= 0x1,		/* 0xfffffe */
 	FDISC_VFPORT	= 0x2,		/* 0xfffffe */
 	NS_VNPORT	= 0x3,		/* 0xfffffc */
@@ -66,7 +70,8 @@ enum rport_type_fcoe {
 	FAB_CTLR_VNPORT	= 0x7,		/* 0xfffffd */
 };
 
-enum event_cause_fcoe {
+enum event_cause_fcoe
+{
 	PLOGI_ACC_RCVD		= 0x01,
 	PLOGI_RJT_RCVD		= 0x02,
 	PLOGI_RCVD		= 0x03,
@@ -95,14 +100,16 @@ enum event_cause_fcoe {
 	PROTO_ERR_IMPL_LOGO	= 0x1a,
 };
 
-enum fcoe_cmn_type {
+enum fcoe_cmn_type
+{
 	FCOE_ELS,
 	FCOE_CT,
 	FCOE_SCSI_CMD,
 	FCOE_UNSOL_ELS,
 };
 
-enum fw_wr_stor_opcodes {
+enum fw_wr_stor_opcodes
+{
 	FW_RDEV_WR                     = 0x38,
 	FW_FCOE_ELS_CT_WR              = 0x30,
 	FW_SCSI_WRITE_WR               = 0x31,
@@ -111,7 +118,8 @@ enum fw_wr_stor_opcodes {
 	FW_SCSI_ABRT_CLS_WR            = 0x34,
 };
 
-struct fw_rdev_wr {
+struct fw_rdev_wr
+{
 	__be32 op_to_immdlen;
 	__be32 alloc_to_len16;
 	__be64 cookie;
@@ -120,8 +128,10 @@ struct fw_rdev_wr {
 	u8     cur_state;
 	u8     prev_state;
 	__be32 flags_to_assoc_flowid;
-	union rdev_entry {
-		struct fcoe_rdev_entry {
+	union rdev_entry
+	{
+		struct fcoe_rdev_entry
+		{
 			__be32 flowid;
 			u8     protocol;
 			u8     event_cause;
@@ -140,7 +150,8 @@ struct fw_rdev_wr {
 			u8     fc_oui[3];
 			u8     r_id[3];
 		} fcoe_rdev;
-		struct iscsi_rdev_entry {
+		struct iscsi_rdev_entry
+		{
 			__be32 flowid;
 			u8     protocol;
 			u8     event_cause;
@@ -179,7 +190,8 @@ struct fw_rdev_wr {
 #define FW_RDEV_WR_INI_GET(x)		(((x) >> 1) & 0x1)
 #define FW_RDEV_WR_TGT_GET(x)		(((x) >> 0) & 0x1)
 
-struct fw_fcoe_els_ct_wr {
+struct fw_fcoe_els_ct_wr
+{
 	__be32 op_immdlen;
 	__be32 flowid_len16;
 	u64    cookie;
@@ -204,20 +216,24 @@ struct fw_fcoe_els_ct_wr {
 #define FW_FCOE_ELS_CT_WR_IMMDLEN_GET(x)	(((x) >> 0) & 0xff)
 #define FW_FCOE_ELS_CT_WR_SP(x)			((x) << 0)
 
-struct fw_scsi_write_wr {
+struct fw_scsi_write_wr
+{
 	__be32 op_immdlen;
 	__be32 flowid_len16;
 	u64    cookie;
 	__be16 iqid;
 	u8     tmo_val;
 	u8     use_xfer_cnt;
-	union fw_scsi_write_priv {
-		struct fcoe_write_priv {
+	union fw_scsi_write_priv
+	{
+		struct fcoe_write_priv
+		{
 			u8   ctl_pri;
 			u8   cp_en_class;
 			u8   r3_lo[2];
 		} fcoe;
-		struct iscsi_write_priv {
+		struct iscsi_write_priv
+		{
 			u8   r3[4];
 		} iscsi;
 	} u;
@@ -230,20 +246,24 @@ struct fw_scsi_write_wr {
 
 #define FW_SCSI_WRITE_WR_IMMDLEN(x)	((x) << 0)
 
-struct fw_scsi_read_wr {
+struct fw_scsi_read_wr
+{
 	__be32 op_immdlen;
 	__be32 flowid_len16;
 	u64    cookie;
 	__be16 iqid;
 	u8     tmo_val;
 	u8     use_xfer_cnt;
-	union fw_scsi_read_priv {
-		struct fcoe_read_priv {
+	union fw_scsi_read_priv
+	{
+		struct fcoe_read_priv
+		{
 			u8   ctl_pri;
 			u8   cp_en_class;
 			u8   r3_lo[2];
 		} fcoe;
-		struct iscsi_read_priv {
+		struct iscsi_read_priv
+		{
 			u8   r3[4];
 		} iscsi;
 	} u;
@@ -256,20 +276,24 @@ struct fw_scsi_read_wr {
 
 #define FW_SCSI_READ_WR_IMMDLEN(x)	((x) << 0)
 
-struct fw_scsi_cmd_wr {
+struct fw_scsi_cmd_wr
+{
 	__be32 op_immdlen;
 	__be32 flowid_len16;
 	u64    cookie;
 	__be16 iqid;
 	u8     tmo_val;
 	u8     r3;
-	union fw_scsi_cmd_priv {
-		struct fcoe_cmd_priv {
+	union fw_scsi_cmd_priv
+	{
+		struct fcoe_cmd_priv
+		{
 			u8   ctl_pri;
 			u8   cp_en_class;
 			u8   r4_lo[2];
 		} fcoe;
-		struct iscsi_cmd_priv {
+		struct iscsi_cmd_priv
+		{
 			u8   r4[4];
 		} iscsi;
 	} u;
@@ -284,7 +308,8 @@ struct fw_scsi_cmd_wr {
 #define SCSI_ABORT 0
 #define SCSI_CLOSE 1
 
-struct fw_scsi_abrt_cls_wr {
+struct fw_scsi_abrt_cls_wr
+{
 	__be32 op_immdlen;
 	__be32 flowid_len16;
 	u64    cookie;
@@ -299,7 +324,8 @@ struct fw_scsi_abrt_cls_wr {
 #define FW_SCSI_ABRT_CLS_WR_SUB_OPCODE_GET(x)	(((x) >> 2) & 0x3f)
 #define FW_SCSI_ABRT_CLS_WR_CHK_ALL_IO(x)	((x) << 0)
 
-enum fw_cmd_stor_opcodes {
+enum fw_cmd_stor_opcodes
+{
 	FW_FCOE_RES_INFO_CMD           = 0x31,
 	FW_FCOE_LINK_CMD               = 0x32,
 	FW_FCOE_VNP_CMD                = 0x33,
@@ -308,7 +334,8 @@ enum fw_cmd_stor_opcodes {
 	FW_FCOE_FCF_CMD                = 0x38,
 };
 
-struct fw_fcoe_res_info_cmd {
+struct fw_fcoe_res_info_cmd
+{
 	__be32 op_to_read;
 	__be32 retval_len16;
 	__be16 e_d_tov;
@@ -325,7 +352,8 @@ struct fw_fcoe_res_info_cmd {
 	__be32 used_vnps;
 };
 
-struct fw_fcoe_link_cmd {
+struct fw_fcoe_link_cmd
+{
 	__be32 op_to_portid;
 	__be32 retval_len16;
 	__be32 sub_opcode_fcfi;
@@ -349,7 +377,8 @@ struct fw_fcoe_link_cmd {
 #define FW_FCOE_LINK_CMD_FCFI_GET(x)	(((x) >> 0) & 0xffffff)
 #define FW_FCOE_LINK_CMD_VNPI_GET(x)	(((x) >> 0) & 0xfffff)
 
-struct fw_fcoe_vnp_cmd {
+struct fw_fcoe_vnp_cmd
+{
 	__be32 op_to_fcfi;
 	__be32 alloc_to_len16;
 	__be32 gen_wwn_to_vnpi;
@@ -371,7 +400,8 @@ struct fw_fcoe_vnp_cmd {
 #define FW_FCOE_VNP_CMD_VNPI(x)		((x) << 0)
 #define FW_FCOE_VNP_CMD_VNPI_GET(x)	(((x) >> 0) & 0xfffff)
 
-struct fw_fcoe_sparams_cmd {
+struct fw_fcoe_sparams_cmd
+{
 	__be32 op_to_portid;
 	__be32 retval_len16;
 	u8     r3[7];
@@ -384,11 +414,14 @@ struct fw_fcoe_sparams_cmd {
 
 #define FW_FCOE_SPARAMS_CMD_PORTID(x)	((x) << 0)
 
-struct fw_fcoe_stats_cmd {
+struct fw_fcoe_stats_cmd
+{
 	__be32 op_to_flowid;
 	__be32 free_to_len16;
-	union fw_fcoe_stats {
-		struct fw_fcoe_stats_ctl {
+	union fw_fcoe_stats
+	{
+		struct fw_fcoe_stats_ctl
+		{
 			u8   nstats_port;
 			u8   port_valid_ix;
 			__be16 r6;
@@ -400,7 +433,8 @@ struct fw_fcoe_stats_cmd {
 			__be64 stat4;
 			__be64 stat5;
 		} ctl;
-		struct fw_fcoe_port_stats {
+		struct fw_fcoe_port_stats
+		{
 			__be64 tx_bcast_bytes;
 			__be64 tx_bcast_frames;
 			__be64 tx_mcast_bytes;
@@ -418,7 +452,8 @@ struct fw_fcoe_stats_cmd {
 			__be64 rx_ucast_frames;
 			__be64 rx_err_frames;
 		} port_stats;
-		struct fw_fcoe_fcf_stats {
+		struct fw_fcoe_fcf_stats
+		{
 			__be32 fip_tx_bytes;
 			__be32 fip_tx_fr;
 			__be64 fcf_ka;
@@ -441,7 +476,8 @@ struct fw_fcoe_stats_cmd {
 			u8   no_fka_req;
 			u8   no_vnp;
 		} fcf_stats;
-		struct fw_fcoe_pcb_stats {
+		struct fw_fcoe_pcb_stats
+		{
 			__be64 tx_bytes;
 			__be64 tx_frames;
 			__be64 rx_bytes;
@@ -458,7 +494,8 @@ struct fw_fcoe_stats_cmd {
 			__be16 mac_flt_fail;
 			__be16 inv_fr_rcvd;
 		} pcb_stats;
-		struct fw_fcoe_scb_stats {
+		struct fw_fcoe_scb_stats
+		{
 			__be64 tx_bytes;
 			__be64 tx_frames;
 			__be64 rx_bytes;
@@ -509,7 +546,8 @@ struct fw_fcoe_stats_cmd {
 #define FW_FCOE_STATS_CMD_PORT_VALID	(1U << 7)
 #define FW_FCOE_STATS_CMD_IX(x)		((x) << 0)
 
-struct fw_fcoe_fcf_cmd {
+struct fw_fcoe_fcf_cmd
+{
 	__be32 op_to_fcfi;
 	__be32 retval_len16;
 	__be16 priority_pkd;

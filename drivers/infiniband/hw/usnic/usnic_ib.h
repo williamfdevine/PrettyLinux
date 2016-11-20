@@ -49,24 +49,28 @@
 
 extern unsigned int usnic_ib_share_vf;
 
-struct usnic_ib_ucontext {
+struct usnic_ib_ucontext
+{
 	struct ib_ucontext		ibucontext;
 	/* Protected by usnic_ib_dev->usdev_lock */
 	struct list_head		qp_grp_list;
 	struct list_head		link;
 };
 
-struct usnic_ib_pd {
+struct usnic_ib_pd
+{
 	struct ib_pd			ibpd;
 	struct usnic_uiom_pd		*umem_pd;
 };
 
-struct usnic_ib_mr {
+struct usnic_ib_mr
+{
 	struct ib_mr			ibmr;
 	struct usnic_uiom_reg		*umem;
 };
 
-struct usnic_ib_dev {
+struct usnic_ib_dev
+{
 	struct ib_device		ib_dev;
 	struct pci_dev			*pdev;
 	struct net_device		*netdev;
@@ -84,7 +88,8 @@ struct usnic_ib_dev {
 	struct kobject *qpn_kobj;
 };
 
-struct usnic_ib_vf {
+struct usnic_ib_vf
+{
 	struct usnic_ib_dev		*pf;
 	spinlock_t			lock;
 	struct usnic_vnic		*vnic;
@@ -125,9 +130,9 @@ struct usnic_ib_mr *to_umr(struct ib_mr *ibmr)
 void usnic_ib_log_vf(struct usnic_ib_vf *vf);
 
 #define UPDATE_PTR_LEFT(N, P, L)			\
-do {							\
-	L -= (N);					\
-	P += (N);					\
-} while (0)
+	do {							\
+		L -= (N);					\
+		P += (N);					\
+	} while (0)
 
 #endif /* USNIC_IB_H_ */

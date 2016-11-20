@@ -9,7 +9,8 @@
 
 struct device;
 
-enum tx3589x_block {
+enum tx3589x_block
+{
 	TC3589x_BLOCK_GPIO        = 1 << 0,
 	TC3589x_BLOCK_KEYPAD      = 1 << 1,
 };
@@ -112,7 +113,8 @@ enum tx3589x_block {
 
 #define TC3589x_NR_INTERNAL_IRQS	8
 
-struct tc3589x {
+struct tc3589x
+{
 	struct mutex lock;
 	struct device *dev;
 	struct i2c_client *i2c;
@@ -126,9 +128,9 @@ struct tc3589x {
 extern int tc3589x_reg_write(struct tc3589x *tc3589x, u8 reg, u8 data);
 extern int tc3589x_reg_read(struct tc3589x *tc3589x, u8 reg);
 extern int tc3589x_block_read(struct tc3589x *tc3589x, u8 reg, u8 length,
-			      u8 *values);
+							  u8 *values);
 extern int tc3589x_block_write(struct tc3589x *tc3589x, u8 reg, u8 length,
-			       const u8 *values);
+							   const u8 *values);
 extern int tc3589x_set_bits(struct tc3589x *tc3589x, u8 reg, u8 mask, u8 val);
 
 /*
@@ -145,7 +147,8 @@ extern int tc3589x_set_bits(struct tc3589x *tc3589x, u8 reg, u8 mask, u8 val);
  * struct tc3589x_platform_data - TC3589x platform data
  * @block: bitmask of blocks to enable (use TC3589x_BLOCK_*)
  */
-struct tc3589x_platform_data {
+struct tc3589x_platform_data
+{
 	unsigned int block;
 };
 

@@ -26,7 +26,8 @@
 
 #include <subdev/vga.h>
 
-struct nv50_i2c_bus {
+struct nv50_i2c_bus
+{
 	struct nvkm_i2c_bus base;
 	u32 addr;
 	u32 data;
@@ -37,8 +38,10 @@ nv50_i2c_bus_drive_scl(struct nvkm_i2c_bus *base, int state)
 {
 	struct nv50_i2c_bus *bus = nv50_i2c_bus(base);
 	struct nvkm_device *device = bus->base.pad->i2c->subdev.device;
-	if (state) bus->data |= 0x01;
-	else	   bus->data &= 0xfe;
+
+	if (state) { bus->data |= 0x01; }
+	else { bus->data &= 0xfe; }
+
 	nvkm_wr32(device, bus->addr, bus->data);
 }
 
@@ -47,8 +50,10 @@ nv50_i2c_bus_drive_sda(struct nvkm_i2c_bus *base, int state)
 {
 	struct nv50_i2c_bus *bus = nv50_i2c_bus(base);
 	struct nvkm_device *device = bus->base.pad->i2c->subdev.device;
-	if (state) bus->data |= 0x02;
-	else	   bus->data &= 0xfd;
+
+	if (state) { bus->data |= 0x02; }
+	else { bus->data &= 0xfd; }
+
 	nvkm_wr32(device, bus->addr, bus->data);
 }
 
@@ -77,7 +82,8 @@ nv50_i2c_bus_init(struct nvkm_i2c_bus *base)
 }
 
 static const struct nvkm_i2c_bus_func
-nv50_i2c_bus_func = {
+	nv50_i2c_bus_func =
+{
 	.init = nv50_i2c_bus_init,
 	.drive_scl = nv50_i2c_bus_drive_scl,
 	.drive_sda = nv50_i2c_bus_drive_sda,
@@ -88,22 +94,27 @@ nv50_i2c_bus_func = {
 
 int
 nv50_i2c_bus_new(struct nvkm_i2c_pad *pad, int id, u8 drive,
-		 struct nvkm_i2c_bus **pbus)
+				 struct nvkm_i2c_bus **pbus)
 {
-	static const u32 addr[] = {
+	static const u32 addr[] =
+	{
 		0x00e138, 0x00e150, 0x00e168, 0x00e180,
 		0x00e254, 0x00e274, 0x00e764, 0x00e780,
 		0x00e79c, 0x00e7b8
 	};
 	struct nv50_i2c_bus *bus;
 
-	if (drive >= ARRAY_SIZE(addr)) {
+	if (drive >= ARRAY_SIZE(addr))
+	{
 		nvkm_warn(&pad->i2c->subdev, "bus %d unknown\n", drive);
 		return -ENODEV;
 	}
 
 	if (!(bus = kzalloc(sizeof(*bus), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	*pbus = &bus->base;
 
 	nvkm_i2c_bus_ctor(&nv50_i2c_bus_func, pad, id, &bus->base);

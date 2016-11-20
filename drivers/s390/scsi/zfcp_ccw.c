@@ -24,8 +24,12 @@ struct zfcp_adapter *zfcp_ccw_adapter_by_cdev(struct ccw_device *cdev)
 
 	spin_lock_irqsave(&zfcp_ccw_adapter_ref_lock, flags);
 	adapter = dev_get_drvdata(&cdev->dev);
+
 	if (adapter)
+	{
 		kref_get(&adapter->ref);
+	}
+
 	spin_unlock_irqrestore(&zfcp_ccw_adapter_ref_lock, flags);
 	return adapter;
 }
@@ -50,12 +54,14 @@ static int zfcp_ccw_activate(struct ccw_device *cdev, int clear, char *tag)
 	struct zfcp_adapter *adapter = zfcp_ccw_adapter_by_cdev(cdev);
 
 	if (!adapter)
+	{
 		return 0;
+	}
 
 	zfcp_erp_clear_adapter_status(adapter, clear);
 	zfcp_erp_set_adapter_status(adapter, ZFCP_STATUS_COMMON_RUNNING);
 	zfcp_erp_adapter_reopen(adapter, ZFCP_STATUS_COMMON_ERP_FAILED,
-				tag);
+							tag);
 
 	/*
 	 * We want to scan ports here, with some random backoff and without
@@ -78,7 +84,8 @@ static int zfcp_ccw_activate(struct ccw_device *cdev, int clear, char *tag)
 	return 0;
 }
 
-static struct ccw_device_id zfcp_ccw_device_id[] = {
+static struct ccw_device_id zfcp_ccw_device_id[] =
+{
 	{ CCW_DEVICE_DEVTYPE(0x1731, 0x3, 0x1732, 0x3) },
 	{ CCW_DEVICE_DEVTYPE(0x1731, 0x3, 0x1732, ZFCP_MODEL_PRIV) },
 	{},
@@ -119,14 +126,18 @@ static void zfcp_ccw_remove(struct ccw_device *cdev)
 	ccw_device_set_offline(cdev);
 
 	adapter = zfcp_ccw_adapter_by_cdev(cdev);
+
 	if (!adapter)
+	{
 		return;
+	}
 
 	write_lock_irq(&adapter->port_list_lock);
-	list_for_each_entry_safe(port, p, &adapter->port_list, list) {
+	list_for_each_entry_safe(port, p, &adapter->port_list, list)
+	{
 		write_lock(&port->unit_list_lock);
 		list_for_each_entry_safe(unit, u, &port->unit_list, list)
-			list_move(&unit->list, &unit_remove_lh);
+		list_move(&unit->list, &unit_remove_lh);
 		write_unlock(&port->unit_list_lock);
 		list_move(&port->list, &port_remove_lh);
 	}
@@ -134,10 +145,10 @@ static void zfcp_ccw_remove(struct ccw_device *cdev)
 	zfcp_ccw_adapter_put(adapter); /* put from zfcp_ccw_adapter_by_cdev */
 
 	list_for_each_entry_safe(unit, u, &unit_remove_lh, list)
-		device_unregister(&unit->dev);
+	device_unregister(&unit->dev);
 
 	list_for_each_entry_safe(port, p, &port_remove_lh, list)
-		device_unregister(&port->dev);
+	device_unregister(&port->dev);
 
 	zfcp_adapter_unregister(adapter);
 }
@@ -159,15 +170,18 @@ static int zfcp_ccw_set_online(struct ccw_device *cdev)
 {
 	struct zfcp_adapter *adapter = zfcp_ccw_adapter_by_cdev(cdev);
 
-	if (!adapter) {
+	if (!adapter)
+	{
 		adapter = zfcp_adapter_enqueue(cdev);
 
-		if (IS_ERR(adapter)) {
+		if (IS_ERR(adapter))
+		{
 			dev_err(&cdev->dev,
-				"Setting up data structures for the "
-				"FCP adapter failed\n");
+					"Setting up data structures for the "
+					"FCP adapter failed\n");
 			return PTR_ERR(adapter);
 		}
+
 		kref_get(&adapter->ref);
 	}
 
@@ -207,7 +221,9 @@ static int zfcp_ccw_offline_sync(struct ccw_device *cdev, int set, char *tag)
 	struct zfcp_adapter *adapter = zfcp_ccw_adapter_by_cdev(cdev);
 
 	if (!adapter)
+	{
 		return 0;
+	}
 
 	zfcp_erp_set_adapter_status(adapter, set);
 	zfcp_erp_adapter_shutdown(adapter, 0, tag);
@@ -242,40 +258,50 @@ static int zfcp_ccw_notify(struct ccw_device *cdev, int event)
 	struct zfcp_adapter *adapter = zfcp_ccw_adapter_by_cdev(cdev);
 
 	if (!adapter)
+	{
 		return 1;
+	}
 
-	switch (event) {
-	case CIO_GONE:
-		if (atomic_read(&adapter->status) &
-		    ZFCP_STATUS_ADAPTER_SUSPENDED) { /* notification ignore */
-			zfcp_dbf_hba_basic("ccnigo1", adapter);
+	switch (event)
+	{
+		case CIO_GONE:
+			if (atomic_read(&adapter->status) &
+				ZFCP_STATUS_ADAPTER_SUSPENDED)   /* notification ignore */
+			{
+				zfcp_dbf_hba_basic("ccnigo1", adapter);
+				break;
+			}
+
+			dev_warn(&cdev->dev, "The FCP device has been detached\n");
+			zfcp_erp_adapter_shutdown(adapter, 0, "ccnoti1");
 			break;
-		}
-		dev_warn(&cdev->dev, "The FCP device has been detached\n");
-		zfcp_erp_adapter_shutdown(adapter, 0, "ccnoti1");
-		break;
-	case CIO_NO_PATH:
-		dev_warn(&cdev->dev,
-			 "The CHPID for the FCP device is offline\n");
-		zfcp_erp_adapter_shutdown(adapter, 0, "ccnoti2");
-		break;
-	case CIO_OPER:
-		if (atomic_read(&adapter->status) &
-		    ZFCP_STATUS_ADAPTER_SUSPENDED) { /* notification ignore */
-			zfcp_dbf_hba_basic("ccniop1", adapter);
+
+		case CIO_NO_PATH:
+			dev_warn(&cdev->dev,
+					 "The CHPID for the FCP device is offline\n");
+			zfcp_erp_adapter_shutdown(adapter, 0, "ccnoti2");
 			break;
-		}
-		dev_info(&cdev->dev, "The FCP device is operational again\n");
-		zfcp_erp_set_adapter_status(adapter,
-					    ZFCP_STATUS_COMMON_RUNNING);
-		zfcp_erp_adapter_reopen(adapter, ZFCP_STATUS_COMMON_ERP_FAILED,
-					"ccnoti4");
-		break;
-	case CIO_BOXED:
-		dev_warn(&cdev->dev, "The FCP device did not respond within "
-				     "the specified time\n");
-		zfcp_erp_adapter_shutdown(adapter, 0, "ccnoti5");
-		break;
+
+		case CIO_OPER:
+			if (atomic_read(&adapter->status) &
+				ZFCP_STATUS_ADAPTER_SUSPENDED)   /* notification ignore */
+			{
+				zfcp_dbf_hba_basic("ccniop1", adapter);
+				break;
+			}
+
+			dev_info(&cdev->dev, "The FCP device is operational again\n");
+			zfcp_erp_set_adapter_status(adapter,
+										ZFCP_STATUS_COMMON_RUNNING);
+			zfcp_erp_adapter_reopen(adapter, ZFCP_STATUS_COMMON_ERP_FAILED,
+									"ccnoti4");
+			break;
+
+		case CIO_BOXED:
+			dev_warn(&cdev->dev, "The FCP device did not respond within "
+					 "the specified time\n");
+			zfcp_erp_adapter_shutdown(adapter, 0, "ccnoti5");
+			break;
 	}
 
 	zfcp_ccw_adapter_put(adapter);
@@ -291,7 +317,9 @@ static void zfcp_ccw_shutdown(struct ccw_device *cdev)
 	struct zfcp_adapter *adapter = zfcp_ccw_adapter_by_cdev(cdev);
 
 	if (!adapter)
+	{
 		return;
+	}
 
 	zfcp_erp_adapter_shutdown(adapter, 0, "ccshut1");
 	zfcp_erp_wait(adapter);
@@ -322,7 +350,8 @@ static int zfcp_ccw_resume(struct ccw_device *cdev)
 	return 0;
 }
 
-struct ccw_driver zfcp_ccw_driver = {
+struct ccw_driver zfcp_ccw_driver =
+{
 	.driver = {
 		.owner	= THIS_MODULE,
 		.name	= "zfcp",

@@ -12,7 +12,8 @@
  * @hw_setup: Callback for setting up hardware such as gpios and vregs
  * @hw_shutdown: Callback for properly shutting down hardware
  */
-struct gp2a_platform_data {
+struct gp2a_platform_data
+{
 	int vout_gpio;
 	bool wakeup;
 	int (*hw_setup)(struct i2c_client *client);

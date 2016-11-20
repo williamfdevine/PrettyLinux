@@ -24,7 +24,8 @@
  * element in the queue, otherwise a buffer will need one element per
  * sg element.
  */
-struct virtqueue {
+struct virtqueue
+{
 	struct list_head list;
 	void (*callback)(struct virtqueue *vq);
 	const char *name;
@@ -35,21 +36,21 @@ struct virtqueue {
 };
 
 int virtqueue_add_outbuf(struct virtqueue *vq,
-			 struct scatterlist sg[], unsigned int num,
-			 void *data,
-			 gfp_t gfp);
+						 struct scatterlist sg[], unsigned int num,
+						 void *data,
+						 gfp_t gfp);
 
 int virtqueue_add_inbuf(struct virtqueue *vq,
-			struct scatterlist sg[], unsigned int num,
-			void *data,
-			gfp_t gfp);
+						struct scatterlist sg[], unsigned int num,
+						void *data,
+						gfp_t gfp);
 
 int virtqueue_add_sgs(struct virtqueue *vq,
-		      struct scatterlist *sgs[],
-		      unsigned int out_sgs,
-		      unsigned int in_sgs,
-		      void *data,
-		      gfp_t gfp);
+					  struct scatterlist *sgs[],
+					  unsigned int out_sgs,
+					  unsigned int in_sgs,
+					  void *data,
+					  gfp_t gfp);
 
 bool virtqueue_kick(struct virtqueue *vq);
 
@@ -112,7 +113,8 @@ static inline void *virtqueue_get_used(struct virtqueue *vq)
  * @features: the features supported by both driver and device.
  * @priv: private pointer for the driver's use.
  */
-struct virtio_device {
+struct virtio_device
+{
 	int index;
 	bool failed;
 	bool config_enabled;
@@ -139,8 +141,8 @@ void virtio_break_device(struct virtio_device *dev);
 
 void virtio_config_changed(struct virtio_device *dev);
 #ifdef CONFIG_PM_SLEEP
-int virtio_device_freeze(struct virtio_device *dev);
-int virtio_device_restore(struct virtio_device *dev);
+	int virtio_device_freeze(struct virtio_device *dev);
+	int virtio_device_restore(struct virtio_device *dev);
 #endif
 
 /**
@@ -156,7 +158,8 @@ int virtio_device_restore(struct virtio_device *dev);
  * @config_changed: optional function to call when the device configuration
  *    changes; may be called in interrupt context.
  */
-struct virtio_driver {
+struct virtio_driver
+{
 	struct device_driver driver;
 	const struct virtio_device_id *id_table;
 	const unsigned int *feature_table;
@@ -188,5 +191,5 @@ void unregister_virtio_driver(struct virtio_driver *drv);
  */
 #define module_virtio_driver(__virtio_driver) \
 	module_driver(__virtio_driver, register_virtio_driver, \
-			unregister_virtio_driver)
+				  unregister_virtio_driver)
 #endif /* _LINUX_VIRTIO_H */

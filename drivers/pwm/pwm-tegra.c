@@ -38,16 +38,18 @@
 #define PWM_SCALE_WIDTH	13
 #define PWM_SCALE_SHIFT	0
 
-struct tegra_pwm_soc {
+struct tegra_pwm_soc
+{
 	unsigned int num_channels;
 };
 
-struct tegra_pwm_chip {
+struct tegra_pwm_chip
+{
 	struct pwm_chip chip;
 	struct device *dev;
 
 	struct clk *clk;
-	struct reset_control*rst;
+	struct reset_control *rst;
 
 	void __iomem *regs;
 
@@ -65,13 +67,13 @@ static inline u32 pwm_readl(struct tegra_pwm_chip *chip, unsigned int num)
 }
 
 static inline void pwm_writel(struct tegra_pwm_chip *chip, unsigned int num,
-			     unsigned long val)
+							  unsigned long val)
 {
 	writel(val, chip->regs + (num << 4));
 }
 
 static int tegra_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
-			    int duty_ns, int period_ns)
+							int duty_ns, int period_ns)
 {
 	struct tegra_pwm_chip *pc = to_tegra_pwm_chip(chip);
 	unsigned long long c = duty_ns;
@@ -105,14 +107,18 @@ static int tegra_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 	 * write to the register.
 	 */
 	if (rate > 0)
+	{
 		rate--;
+	}
 
 	/*
 	 * Make sure that the rate will fit in the register's frequency
 	 * divider field.
 	 */
 	if (rate >> PWM_SCALE_WIDTH)
+	{
 		return -EINVAL;
+	}
 
 	val |= rate << PWM_SCALE_SHIFT;
 
@@ -120,12 +126,19 @@ static int tegra_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 	 * If the PWM channel is disabled, make sure to turn on the clock
 	 * before writing the register. Otherwise, keep it enabled.
 	 */
-	if (!pwm_is_enabled(pwm)) {
+	if (!pwm_is_enabled(pwm))
+	{
 		err = clk_prepare_enable(pc->clk);
+
 		if (err < 0)
+		{
 			return err;
-	} else
+		}
+	}
+	else
+	{
 		val |= PWM_ENABLE;
+	}
 
 	pwm_writel(pc, pwm->hwpwm, val);
 
@@ -133,7 +146,9 @@ static int tegra_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 	 * If the PWM is not enabled, turn the clock off again to save power.
 	 */
 	if (!pwm_is_enabled(pwm))
+	{
 		clk_disable_unprepare(pc->clk);
+	}
 
 	return 0;
 }
@@ -145,8 +160,11 @@ static int tegra_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
 	u32 val;
 
 	rc = clk_prepare_enable(pc->clk);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	val = pwm_readl(pc, pwm->hwpwm);
 	val |= PWM_ENABLE;
@@ -167,7 +185,8 @@ static void tegra_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
 	clk_disable_unprepare(pc->clk);
 }
 
-static const struct pwm_ops tegra_pwm_ops = {
+static const struct pwm_ops tegra_pwm_ops =
+{
 	.config = tegra_pwm_config,
 	.enable = tegra_pwm_enable,
 	.disable = tegra_pwm_disable,
@@ -181,25 +200,36 @@ static int tegra_pwm_probe(struct platform_device *pdev)
 	int ret;
 
 	pwm = devm_kzalloc(&pdev->dev, sizeof(*pwm), GFP_KERNEL);
+
 	if (!pwm)
+	{
 		return -ENOMEM;
+	}
 
 	pwm->soc = of_device_get_match_data(&pdev->dev);
 	pwm->dev = &pdev->dev;
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	pwm->regs = devm_ioremap_resource(&pdev->dev, r);
+
 	if (IS_ERR(pwm->regs))
+	{
 		return PTR_ERR(pwm->regs);
+	}
 
 	platform_set_drvdata(pdev, pwm);
 
 	pwm->clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(pwm->clk))
+	{
 		return PTR_ERR(pwm->clk);
+	}
 
 	pwm->rst = devm_reset_control_get(&pdev->dev, "pwm");
-	if (IS_ERR(pwm->rst)) {
+
+	if (IS_ERR(pwm->rst))
+	{
 		ret = PTR_ERR(pwm->rst);
 		dev_err(&pdev->dev, "Reset control is not found: %d\n", ret);
 		return ret;
@@ -213,7 +243,9 @@ static int tegra_pwm_probe(struct platform_device *pdev)
 	pwm->chip.npwm = pwm->soc->num_channels;
 
 	ret = pwmchip_add(&pwm->chip);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "pwmchip_add() failed: %d\n", ret);
 		reset_control_assert(pwm->rst);
 		return ret;
@@ -229,18 +261,26 @@ static int tegra_pwm_remove(struct platform_device *pdev)
 	int err;
 
 	if (WARN_ON(!pc))
+	{
 		return -ENODEV;
+	}
 
 	err = clk_prepare_enable(pc->clk);
-	if (err < 0)
-		return err;
 
-	for (i = 0; i < pc->chip.npwm; i++) {
+	if (err < 0)
+	{
+		return err;
+	}
+
+	for (i = 0; i < pc->chip.npwm; i++)
+	{
 		struct pwm_device *pwm = &pc->chip.pwms[i];
 
 		if (!pwm_is_enabled(pwm))
 			if (clk_prepare_enable(pc->clk) < 0)
+			{
 				continue;
+			}
 
 		pwm_writel(pc, i, 0);
 
@@ -253,15 +293,18 @@ static int tegra_pwm_remove(struct platform_device *pdev)
 	return pwmchip_remove(&pc->chip);
 }
 
-static const struct tegra_pwm_soc tegra20_pwm_soc = {
+static const struct tegra_pwm_soc tegra20_pwm_soc =
+{
 	.num_channels = 4,
 };
 
-static const struct tegra_pwm_soc tegra186_pwm_soc = {
+static const struct tegra_pwm_soc tegra186_pwm_soc =
+{
 	.num_channels = 1,
 };
 
-static const struct of_device_id tegra_pwm_of_match[] = {
+static const struct of_device_id tegra_pwm_of_match[] =
+{
 	{ .compatible = "nvidia,tegra20-pwm", .data = &tegra20_pwm_soc },
 	{ .compatible = "nvidia,tegra186-pwm", .data = &tegra186_pwm_soc },
 	{ }
@@ -269,7 +312,8 @@ static const struct of_device_id tegra_pwm_of_match[] = {
 
 MODULE_DEVICE_TABLE(of, tegra_pwm_of_match);
 
-static struct platform_driver tegra_pwm_driver = {
+static struct platform_driver tegra_pwm_driver =
+{
 	.driver = {
 		.name = "tegra-pwm",
 		.of_match_table = tegra_pwm_of_match,

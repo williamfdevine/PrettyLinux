@@ -28,65 +28,65 @@
 #include "vnic_cq_copy.h"
 
 static inline void fnic_queue_wq_desc(struct vnic_wq *wq,
-				      void *os_buf, dma_addr_t dma_addr,
-				      unsigned int len, unsigned int fc_eof,
-				      int vlan_tag_insert,
-				      unsigned int vlan_tag,
-				      int cq_entry, int sop, int eop)
+									  void *os_buf, dma_addr_t dma_addr,
+									  unsigned int len, unsigned int fc_eof,
+									  int vlan_tag_insert,
+									  unsigned int vlan_tag,
+									  int cq_entry, int sop, int eop)
 {
 	struct wq_enet_desc *desc = vnic_wq_next_desc(wq);
 
 	wq_enet_desc_enc(desc,
-			 (u64)dma_addr | VNIC_PADDR_TARGET,
-			 (u16)len,
-			 0, /* mss_or_csum_offset */
-			 (u16)fc_eof,
-			 0, /* offload_mode */
-			 (u8)eop, (u8)cq_entry,
-			 1, /* fcoe_encap */
-			 (u8)vlan_tag_insert,
-			 (u16)vlan_tag,
-			 0 /* loopback */);
+					 (u64)dma_addr | VNIC_PADDR_TARGET,
+					 (u16)len,
+					 0, /* mss_or_csum_offset */
+					 (u16)fc_eof,
+					 0, /* offload_mode */
+					 (u8)eop, (u8)cq_entry,
+					 1, /* fcoe_encap */
+					 (u8)vlan_tag_insert,
+					 (u16)vlan_tag,
+					 0 /* loopback */);
 
 	vnic_wq_post(wq, os_buf, dma_addr, len, sop, eop);
 }
 
 static inline void fnic_queue_wq_eth_desc(struct vnic_wq *wq,
-				      void *os_buf, dma_addr_t dma_addr,
-				      unsigned int len,
-				      int vlan_tag_insert,
-				      unsigned int vlan_tag,
-				      int cq_entry)
+		void *os_buf, dma_addr_t dma_addr,
+		unsigned int len,
+		int vlan_tag_insert,
+		unsigned int vlan_tag,
+		int cq_entry)
 {
 	struct wq_enet_desc *desc = vnic_wq_next_desc(wq);
 
 	wq_enet_desc_enc(desc,
-			 (u64)dma_addr | VNIC_PADDR_TARGET,
-			 (u16)len,
-			 0, /* mss_or_csum_offset */
-			 0, /* fc_eof */
-			 0, /* offload_mode */
-			 1, /* eop */
-			 (u8)cq_entry,
-			 0, /* fcoe_encap */
-			 (u8)vlan_tag_insert,
-			 (u16)vlan_tag,
-			 0 /* loopback */);
+					 (u64)dma_addr | VNIC_PADDR_TARGET,
+					 (u16)len,
+					 0, /* mss_or_csum_offset */
+					 0, /* fc_eof */
+					 0, /* offload_mode */
+					 1, /* eop */
+					 (u8)cq_entry,
+					 0, /* fcoe_encap */
+					 (u8)vlan_tag_insert,
+					 (u16)vlan_tag,
+					 0 /* loopback */);
 
 	vnic_wq_post(wq, os_buf, dma_addr, len, 1, 1);
 }
 
 static inline void fnic_queue_wq_copy_desc_icmnd_16(struct vnic_wq_copy *wq,
-						    u32 req_id,
-						    u32 lunmap_id, u8 spl_flags,
-						    u32 sgl_cnt, u32 sense_len,
-						    u64 sgl_addr, u64 sns_addr,
-						    u8 crn, u8 pri_ta,
-						    u8 flags, u8 *scsi_cdb,
-						    u8 cdb_len,
-						    u32 data_len, u8 *lun,
-						    u32 d_id, u16 mss,
-						    u32 ratov, u32 edtov)
+		u32 req_id,
+		u32 lunmap_id, u8 spl_flags,
+		u32 sgl_cnt, u32 sense_len,
+		u64 sgl_addr, u64 sns_addr,
+		u8 crn, u8 pri_ta,
+		u8 flags, u8 *scsi_cdb,
+		u8 cdb_len,
+		u32 data_len, u8 *lun,
+		u32 d_id, u16 mss,
+		u32 ratov, u32 edtov)
 {
 	struct fcpio_host_req *desc = vnic_wq_copy_next_desc(wq);
 
@@ -122,10 +122,10 @@ static inline void fnic_queue_wq_copy_desc_icmnd_16(struct vnic_wq_copy *wq,
 }
 
 static inline void fnic_queue_wq_copy_desc_itmf(struct vnic_wq_copy *wq,
-						u32 req_id, u32 lunmap_id,
-						u32 tm_req, u32 tm_id, u8 *lun,
-						u32 d_id, u32 r_a_tov,
-						u32 e_d_tov)
+		u32 req_id, u32 lunmap_id,
+		u32 tm_req, u32 tm_id, u8 *lun,
+		u32 d_id, u32 r_a_tov,
+		u32 e_d_tov)
 {
 	struct fcpio_host_req *desc = vnic_wq_copy_next_desc(wq);
 
@@ -148,8 +148,8 @@ static inline void fnic_queue_wq_copy_desc_itmf(struct vnic_wq_copy *wq,
 }
 
 static inline void fnic_queue_wq_copy_desc_flogi_reg(struct vnic_wq_copy *wq,
-						     u32 req_id, u8 format,
-						     u32 s_id, u8 *gw_mac)
+		u32 req_id, u8 format,
+		u32 s_id, u8 *gw_mac)
 {
 	struct fcpio_host_req *desc = vnic_wq_copy_next_desc(wq);
 
@@ -167,9 +167,9 @@ static inline void fnic_queue_wq_copy_desc_flogi_reg(struct vnic_wq_copy *wq,
 }
 
 static inline void fnic_queue_wq_copy_desc_fip_reg(struct vnic_wq_copy *wq,
-						   u32 req_id, u32 s_id,
-						   u8 *fcf_mac, u8 *ha_mac,
-						   u32 r_a_tov, u32 e_d_tov)
+		u32 req_id, u32 s_id,
+		u8 *fcf_mac, u8 *ha_mac,
+		u32 r_a_tov, u32 e_d_tov)
 {
 	struct fcpio_host_req *desc = vnic_wq_copy_next_desc(wq);
 
@@ -191,7 +191,7 @@ static inline void fnic_queue_wq_copy_desc_fip_reg(struct vnic_wq_copy *wq,
 }
 
 static inline void fnic_queue_wq_copy_desc_fw_reset(struct vnic_wq_copy *wq,
-						    u32 req_id)
+		u32 req_id)
 {
 	struct fcpio_host_req *desc = vnic_wq_copy_next_desc(wq);
 
@@ -204,8 +204,8 @@ static inline void fnic_queue_wq_copy_desc_fw_reset(struct vnic_wq_copy *wq,
 }
 
 static inline void fnic_queue_wq_copy_desc_lunmap(struct vnic_wq_copy *wq,
-						  u32 req_id, u64 lunmap_addr,
-						  u32 lunmap_len)
+		u32 req_id, u64 lunmap_addr,
+		u32 lunmap_len)
 {
 	struct fcpio_host_req *desc = vnic_wq_copy_next_desc(wq);
 
@@ -221,15 +221,15 @@ static inline void fnic_queue_wq_copy_desc_lunmap(struct vnic_wq_copy *wq,
 }
 
 static inline void fnic_queue_rq_desc(struct vnic_rq *rq,
-				      void *os_buf, dma_addr_t dma_addr,
-				      u16 len)
+									  void *os_buf, dma_addr_t dma_addr,
+									  u16 len)
 {
 	struct rq_enet_desc *desc = vnic_rq_next_desc(rq);
 
 	rq_enet_desc_enc(desc,
-		(u64)dma_addr | VNIC_PADDR_TARGET,
-		RQ_ENET_TYPE_ONLY_SOP,
-		(u16)len);
+					 (u64)dma_addr | VNIC_PADDR_TARGET,
+					 RQ_ENET_TYPE_ONLY_SOP,
+					 (u16)len);
 
 	vnic_rq_post(rq, os_buf, 0, dma_addr, len);
 }
@@ -242,8 +242,8 @@ int fnic_alloc_vnic_resources(struct fnic *);
 void fnic_free_vnic_resources(struct fnic *);
 void fnic_get_res_counts(struct fnic *);
 int fnic_set_nic_config(struct fnic *fnic, u8 rss_default_cpu,
-			u8 rss_hash_type, u8 rss_hash_bits, u8 rss_base_cpu,
-			u8 rss_enable, u8 tso_ipid_split_en,
-			u8 ig_vlan_strip_en);
+						u8 rss_hash_type, u8 rss_hash_bits, u8 rss_base_cpu,
+						u8 rss_enable, u8 tso_ipid_split_en,
+						u8 ig_vlan_strip_en);
 
 #endif /* _FNIC_RES_H_ */

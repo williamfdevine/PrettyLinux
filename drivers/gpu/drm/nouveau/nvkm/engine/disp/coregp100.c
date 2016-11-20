@@ -27,7 +27,8 @@
 #include <nvif/class.h>
 
 const struct nv50_disp_dmac_oclass
-gp100_disp_core_oclass = {
+	gp100_disp_core_oclass =
+{
 	.base.oclass = GP100_DISP_CORE_CHANNEL_DMA,
 	.base.minver = 0,
 	.base.maxver = 0,

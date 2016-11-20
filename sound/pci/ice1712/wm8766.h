@@ -98,11 +98,13 @@
 
 struct snd_wm8766;
 
-struct snd_wm8766_ops {
+struct snd_wm8766_ops
+{
 	void (*write)(struct snd_wm8766 *wm, u16 addr, u16 data);
 };
 
-enum snd_wm8766_ctl_id {
+enum snd_wm8766_ctl_id
+{
 	WM8766_CTL_CH1_VOL,
 	WM8766_CTL_CH2_VOL,
 	WM8766_CTL_CH3_VOL,
@@ -129,7 +131,8 @@ enum snd_wm8766_ctl_id {
 #define WM8766_FLAG_LIM		(1 << 3)
 #define WM8766_FLAG_ALC		(1 << 4)
 
-struct snd_wm8766_ctl {
+struct snd_wm8766_ctl
+{
 	struct snd_kcontrol *kctl;
 	const char *name;
 	snd_ctl_elem_type_t type;
@@ -142,7 +145,8 @@ struct snd_wm8766_ctl {
 
 enum snd_wm8766_agc_mode { WM8766_AGC_OFF, WM8766_AGC_LIM, WM8766_AGC_ALC };
 
-struct snd_wm8766 {
+struct snd_wm8766
+{
 	struct snd_card *card;
 	struct snd_wm8766_ctl ctl[WM8766_CTL_COUNT];
 	enum snd_wm8766_agc_mode agc_mode;

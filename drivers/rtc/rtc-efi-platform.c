@@ -17,7 +17,8 @@
 #include <linux/efi.h>
 #include <linux/platform_device.h>
 
-static struct platform_device rtc_efi_dev = {
+static struct platform_device rtc_efi_dev =
+{
 	.name = "rtc-efi",
 	.id = -1,
 };
@@ -26,7 +27,9 @@ static int __init rtc_init(void)
 {
 	if (efi_enabled(EFI_RUNTIME_SERVICES))
 		if (platform_device_register(&rtc_efi_dev) < 0)
+		{
 			pr_err("unable to register rtc device...\n");
+		}
 
 	/* not necessarily an error */
 	return 0;

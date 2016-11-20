@@ -29,10 +29,14 @@ static int smartconnect_acpi_init(struct acpi_device *acpi)
 	acpi_status status;
 
 	status = acpi_evaluate_integer(acpi->handle, "GAOS", NULL, &value);
-	if (!ACPI_SUCCESS(status))
-		return -EINVAL;
 
-	if (value & 0x1) {
+	if (!ACPI_SUCCESS(status))
+	{
+		return -EINVAL;
+	}
+
+	if (value & 0x1)
+	{
 		dev_info(&acpi->dev, "Disabling Intel Smart Connect\n");
 		status = acpi_execute_simple_method(acpi->handle, "SAOS", 0);
 	}
@@ -40,12 +44,14 @@ static int smartconnect_acpi_init(struct acpi_device *acpi)
 	return 0;
 }
 
-static const struct acpi_device_id smartconnect_ids[] = {
+static const struct acpi_device_id smartconnect_ids[] =
+{
 	{"INT33A0", 0},
 	{"", 0}
 };
 
-static struct acpi_driver smartconnect_driver = {
+static struct acpi_driver smartconnect_driver =
+{
 	.owner = THIS_MODULE,
 	.name = "intel_smart_connect",
 	.class = "intel_smart_connect",

@@ -30,7 +30,8 @@
 #define LTQ_PINCONF_UNPACK_PARAM(conf)		((conf) >> 16)
 #define LTQ_PINCONF_UNPACK_ARG(conf)		((conf) & 0xffff)
 
-enum ltq_pinconf_param {
+enum ltq_pinconf_param
+{
 	LTQ_PINCONF_PARAM_PULL,
 	LTQ_PINCONF_PARAM_OPEN_DRAIN,
 	LTQ_PINCONF_PARAM_DRIVE_CURRENT,
@@ -38,31 +39,36 @@ enum ltq_pinconf_param {
 	LTQ_PINCONF_PARAM_OUTPUT,
 };
 
-struct ltq_cfg_param {
+struct ltq_cfg_param
+{
 	const char *property;
 	enum ltq_pinconf_param param;
 };
 
-struct ltq_mfp_pin {
+struct ltq_mfp_pin
+{
 	const char *name;
 	const unsigned int pin;
 	const unsigned short func[LTQ_MAX_MUX];
 };
 
-struct ltq_pin_group {
+struct ltq_pin_group
+{
 	const char *name;
 	const unsigned mux;
 	const unsigned *pins;
 	const unsigned npins;
 };
 
-struct ltq_pmx_func {
+struct ltq_pmx_func
+{
 	const char *name;
-	const char * const *groups;
+	const char *const *groups;
 	const unsigned num_groups;
 };
 
-struct ltq_pinmux_info {
+struct ltq_pinmux_info
+{
 	struct device *dev;
 	struct pinctrl_dev *pctrl;
 
@@ -105,7 +111,8 @@ struct ltq_pinmux_info {
 	int (*apply_mux)(struct pinctrl_dev *pctrldev, int pin, int mux);
 };
 
-enum ltq_pin {
+enum ltq_pin
+{
 	GPIO0 = 0,
 	GPIO1,
 	GPIO2,
@@ -199,6 +206,6 @@ enum ltq_pin {
 };
 
 extern int ltq_pinctrl_register(struct platform_device *pdev,
-				   struct ltq_pinmux_info *info);
+								struct ltq_pinmux_info *info);
 extern int ltq_pinctrl_unregister(struct platform_device *pdev);
 #endif	/* __PINCTRL_LANTIQ_H */

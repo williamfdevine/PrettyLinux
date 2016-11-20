@@ -19,7 +19,8 @@
 #include <linux/mfd/da9062/registers.h>
 
 /* Interrupts */
-enum da9062_irqs {
+enum da9062_irqs
+{
 	/* IRQ A */
 	DA9062_IRQ_ONKEY,
 	DA9062_IRQ_ALARM,
@@ -41,7 +42,8 @@ enum da9062_irqs {
 	DA9062_NUM_IRQ,
 };
 
-struct da9062 {
+struct da9062
+{
 	struct device *dev;
 	struct regmap *regmap;
 	struct regmap_irq_chip_data *regmap_irq;

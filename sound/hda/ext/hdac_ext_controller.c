@@ -43,15 +43,20 @@ void snd_hdac_ext_bus_ppcap_enable(struct hdac_ext_bus *ebus, bool enable)
 {
 	struct hdac_bus *bus = &ebus->bus;
 
-	if (!bus->ppcap) {
+	if (!bus->ppcap)
+	{
 		dev_err(bus->dev, "Address of PP capability is NULL");
 		return;
 	}
 
 	if (enable)
+	{
 		snd_hdac_updatel(bus->ppcap, AZX_REG_PP_PPCTL, 0, AZX_PPCTL_GPROCEN);
+	}
 	else
+	{
 		snd_hdac_updatel(bus->ppcap, AZX_REG_PP_PPCTL, AZX_PPCTL_GPROCEN, 0);
+	}
 }
 EXPORT_SYMBOL_GPL(snd_hdac_ext_bus_ppcap_enable);
 
@@ -64,15 +69,20 @@ void snd_hdac_ext_bus_ppcap_int_enable(struct hdac_ext_bus *ebus, bool enable)
 {
 	struct hdac_bus *bus = &ebus->bus;
 
-	if (!bus->ppcap) {
+	if (!bus->ppcap)
+	{
 		dev_err(bus->dev, "Address of PP capability is NULL\n");
 		return;
 	}
 
 	if (enable)
+	{
 		snd_hdac_updatel(bus->ppcap, AZX_REG_PP_PPCTL, 0, AZX_PPCTL_PIE);
+	}
 	else
+	{
 		snd_hdac_updatel(bus->ppcap, AZX_REG_PP_PPCTL, AZX_PPCTL_PIE, 0);
+	}
 }
 EXPORT_SYMBOL_GPL(snd_hdac_ext_bus_ppcap_int_enable);
 
@@ -100,14 +110,19 @@ int snd_hdac_ext_bus_get_ml_capabilities(struct hdac_ext_bus *ebus)
 
 	dev_dbg(bus->dev, "In %s Link count: %d\n", __func__, link_count);
 
-	for (idx = 0; idx < link_count; idx++) {
+	for (idx = 0; idx < link_count; idx++)
+	{
 		hlink  = kzalloc(sizeof(*hlink), GFP_KERNEL);
+
 		if (!hlink)
+		{
 			return -ENOMEM;
+		}
+
 		hlink->index = idx;
 		hlink->bus = bus;
 		hlink->ml_addr = bus->mlcap + AZX_ML_BASE +
-					(AZX_ML_INTERVAL * idx);
+						 (AZX_ML_INTERVAL * idx);
 		hlink->lcaps  = readl(hlink->ml_addr + AZX_REG_ML_LCAP);
 		hlink->lsdiid = readw(hlink->ml_addr + AZX_REG_ML_LSDIID);
 
@@ -131,7 +146,8 @@ void snd_hdac_link_free_all(struct hdac_ext_bus *ebus)
 {
 	struct hdac_ext_link *l;
 
-	while (!list_empty(&ebus->hlink_list)) {
+	while (!list_empty(&ebus->hlink_list))
+	{
 		l = list_first_entry(&ebus->hlink_list, struct hdac_ext_link, list);
 		list_del(&l->list);
 		kfree(l);
@@ -145,21 +161,30 @@ EXPORT_SYMBOL_GPL(snd_hdac_link_free_all);
  * @codec_name: codec name
  */
 struct hdac_ext_link *snd_hdac_ext_bus_get_link(struct hdac_ext_bus *ebus,
-						 const char *codec_name)
+		const char *codec_name)
 {
 	int i;
 	struct hdac_ext_link *hlink = NULL;
 	int bus_idx, addr;
 
 	if (sscanf(codec_name, "ehdaudio%dD%d", &bus_idx, &addr) != 2)
+	{
 		return NULL;
-	if (ebus->idx != bus_idx)
-		return NULL;
+	}
 
-	list_for_each_entry(hlink, &ebus->hlink_list, list) {
-		for (i = 0; i < HDA_MAX_CODECS; i++) {
+	if (ebus->idx != bus_idx)
+	{
+		return NULL;
+	}
+
+	list_for_each_entry(hlink, &ebus->hlink_list, list)
+	{
+		for (i = 0; i < HDA_MAX_CODECS; i++)
+		{
 			if (hlink->lsdiid & (0x1 << addr))
+			{
 				return hlink;
+			}
 		}
 	}
 
@@ -176,17 +201,28 @@ static int check_hdac_link_power_active(struct hdac_ext_link *link, bool enable)
 	udelay(3);
 	timeout = 150;
 
-	do {
+	do
+	{
 		val = readl(link->ml_addr + AZX_REG_ML_LCTL);
-		if (enable) {
+
+		if (enable)
+		{
 			if (((val & mask) >> AZX_MLCTL_CPA))
+			{
 				return 0;
-		} else {
-			if (!((val & mask) >> AZX_MLCTL_CPA))
-				return 0;
+			}
 		}
+		else
+		{
+			if (!((val & mask) >> AZX_MLCTL_CPA))
+			{
+				return 0;
+			}
+		}
+
 		udelay(3);
-	} while (--timeout);
+	}
+	while (--timeout);
 
 	return -EIO;
 }
@@ -224,12 +260,16 @@ int snd_hdac_ext_bus_link_power_up_all(struct hdac_ext_bus *ebus)
 	struct hdac_ext_link *hlink = NULL;
 	int ret;
 
-	list_for_each_entry(hlink, &ebus->hlink_list, list) {
+	list_for_each_entry(hlink, &ebus->hlink_list, list)
+	{
 		snd_hdac_updatel(hlink->ml_addr,
-				AZX_REG_ML_LCTL, 0, AZX_MLCTL_SPA);
+						 AZX_REG_ML_LCTL, 0, AZX_MLCTL_SPA);
 		ret = check_hdac_link_power_active(hlink, true);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
@@ -245,11 +285,15 @@ int snd_hdac_ext_bus_link_power_down_all(struct hdac_ext_bus *ebus)
 	struct hdac_ext_link *hlink = NULL;
 	int ret;
 
-	list_for_each_entry(hlink, &ebus->hlink_list, list) {
+	list_for_each_entry(hlink, &ebus->hlink_list, list)
+	{
 		snd_hdac_updatel(hlink->ml_addr, AZX_REG_ML_LCTL, AZX_MLCTL_SPA, 0);
 		ret = check_hdac_link_power_active(hlink, false);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
@@ -257,7 +301,7 @@ int snd_hdac_ext_bus_link_power_down_all(struct hdac_ext_bus *ebus)
 EXPORT_SYMBOL_GPL(snd_hdac_ext_bus_link_power_down_all);
 
 int snd_hdac_ext_bus_link_get(struct hdac_ext_bus *ebus,
-				struct hdac_ext_link *link)
+							  struct hdac_ext_link *link)
 {
 	int ret = 0;
 
@@ -267,8 +311,10 @@ int snd_hdac_ext_bus_link_get(struct hdac_ext_bus *ebus,
 	 * if we move from 0 to 1, count will be 1 so power up this link
 	 * as well, also check the dma status and trigger that
 	 */
-	if (++link->ref_count == 1) {
-		if (!ebus->cmd_dma_state) {
+	if (++link->ref_count == 1)
+	{
+		if (!ebus->cmd_dma_state)
+		{
 			snd_hdac_bus_init_cmd_io(&ebus->bus);
 			ebus->cmd_dma_state = true;
 		}
@@ -282,7 +328,7 @@ int snd_hdac_ext_bus_link_get(struct hdac_ext_bus *ebus,
 EXPORT_SYMBOL_GPL(snd_hdac_ext_bus_link_get);
 
 int snd_hdac_ext_bus_link_put(struct hdac_ext_bus *ebus,
-				struct hdac_ext_link *link)
+							  struct hdac_ext_link *link)
 {
 	int ret = 0;
 	struct hdac_ext_link *hlink;
@@ -294,21 +340,25 @@ int snd_hdac_ext_bus_link_put(struct hdac_ext_bus *ebus,
 	 * if we move from 1 to 0, count will be 0
 	 * so power down this link as well
 	 */
-	if (--link->ref_count == 0) {
+	if (--link->ref_count == 0)
+	{
 		ret = snd_hdac_ext_bus_link_power_down(link);
 
 		/*
 		 * now check if all links are off, if so turn off
 		 * cmd dma as well
 		 */
-		list_for_each_entry(hlink, &ebus->hlink_list, list) {
-			if (hlink->ref_count) {
+		list_for_each_entry(hlink, &ebus->hlink_list, list)
+		{
+			if (hlink->ref_count)
+			{
 				link_up = true;
 				break;
 			}
 		}
 
-		if (!link_up) {
+		if (!link_up)
+		{
 			snd_hdac_bus_stop_cmd_io(&ebus->bus);
 			ebus->cmd_dma_state = false;
 		}

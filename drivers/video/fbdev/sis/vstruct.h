@@ -53,11 +53,13 @@
 #ifndef _VSTRUCT_H_
 #define _VSTRUCT_H_
 
-struct SiS_PanelDelayTbl {
- 	unsigned char timer[2];
+struct SiS_PanelDelayTbl
+{
+	unsigned char timer[2];
 };
 
-struct SiS_LCDData {
+struct SiS_LCDData
+{
 	unsigned short RVBHCMAX;
 	unsigned short RVBHCFACT;
 	unsigned short VGAHT;
@@ -66,7 +68,8 @@ struct SiS_LCDData {
 	unsigned short LCDVT;
 };
 
-struct SiS_TVData {
+struct SiS_TVData
+{
 	unsigned short RVBHCMAX;
 	unsigned short RVBHCFACT;
 	unsigned short VGAHT;
@@ -83,27 +86,32 @@ struct SiS_TVData {
 	unsigned char  RY4COE;
 };
 
-struct SiS_LVDSData {
+struct SiS_LVDSData
+{
 	unsigned short VGAHT;
 	unsigned short VGAVT;
 	unsigned short LCDHT;
 	unsigned short LCDVT;
 };
 
-struct SiS_LVDSDes {
+struct SiS_LVDSDes
+{
 	unsigned short LCDHDES;
 	unsigned short LCDVDES;
 };
 
-struct SiS_LVDSCRT1Data {
+struct SiS_LVDSCRT1Data
+{
 	unsigned char  CR[15];
 };
 
-struct SiS_CHTVRegData {
+struct SiS_CHTVRegData
+{
 	unsigned char  Reg[16];
 };
 
-struct SiS_St {
+struct SiS_St
+{
 	unsigned char  St_ModeID;
 	unsigned short St_ModeFlag;
 	unsigned char  St_StTableIndex;
@@ -115,7 +123,8 @@ struct SiS_St {
 	unsigned char  St_PDC;
 };
 
-struct SiS_VBMode {
+struct SiS_VBMode
+{
 	unsigned char  ModeID;
 	unsigned char  VB_TVDelayIndex;
 	unsigned char  VB_TVFlickerIndex;
@@ -126,7 +135,8 @@ struct SiS_VBMode {
 	unsigned char  _VB_LCDVIndex;
 };
 
-struct SiS_StandTable_S {
+struct SiS_StandTable_S
+{
 	unsigned char  CRT_COLS;
 	unsigned char  ROWS;
 	unsigned char  CHAR_HEIGHT;
@@ -138,7 +148,8 @@ struct SiS_StandTable_S {
 	unsigned char  GRC[9];
 };
 
-struct SiS_Ext {
+struct SiS_Ext
+{
 	unsigned char  Ext_ModeID;
 	unsigned short Ext_ModeFlag;
 	unsigned short Ext_VESAID;
@@ -151,7 +162,8 @@ struct SiS_Ext {
 	char           ROMMODEIDX661;
 };
 
-struct SiS_Ext2 {
+struct SiS_Ext2
+{
 	unsigned short Ext_InfoFlag;
 	unsigned char  Ext_CRT1CRTC;
 	unsigned char  Ext_CRTVCLK;
@@ -169,35 +181,42 @@ struct SiS_Ext2 {
 	unsigned char  Ext_CRTVCLK_WIDE;
 };
 
-struct SiS_Part2PortTbl {
- 	unsigned char  CR[12];
+struct SiS_Part2PortTbl
+{
+	unsigned char  CR[12];
 };
 
-struct SiS_CRT1Table {
+struct SiS_CRT1Table
+{
 	unsigned char  CR[17];
 };
 
-struct SiS_MCLKData {
-	unsigned char  SR28,SR29,SR2A;
+struct SiS_MCLKData
+{
+	unsigned char  SR28, SR29, SR2A;
 	unsigned short CLOCK;
 };
 
-struct SiS_VCLKData {
-	unsigned char  SR2B,SR2C;
+struct SiS_VCLKData
+{
+	unsigned char  SR2B, SR2C;
 	unsigned short CLOCK;
 };
 
-struct SiS_VBVCLKData {
-	unsigned char  Part4_A,Part4_B;
+struct SiS_VBVCLKData
+{
+	unsigned char  Part4_A, Part4_B;
 	unsigned short CLOCK;
 };
 
-struct SiS_StResInfo_S {
+struct SiS_StResInfo_S
+{
 	unsigned short HTotal;
 	unsigned short VTotal;
 };
 
-struct SiS_ModeResInfo_S {
+struct SiS_ModeResInfo_S
+{
 	unsigned short HTotal;
 	unsigned short VTotal;
 	unsigned char  XChar;
@@ -289,7 +308,7 @@ struct SiS_Private
 	bool				HaveEMI;
 	bool				HaveEMILCD;
 	bool				OverruleEMI;
-	unsigned char			EMI_30,EMI_31,EMI_32,EMI_33;
+	unsigned char			EMI_30, EMI_31, EMI_32, EMI_33;
 	unsigned short			SiS_EMIOffset;
 	unsigned short			SiS_PWDOffset;
 	short				PDC, PDCA;

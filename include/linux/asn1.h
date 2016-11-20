@@ -13,7 +13,8 @@
 #define _LINUX_ASN1_H
 
 /* Class */
-enum asn1_class {
+enum asn1_class
+{
 	ASN1_UNIV	= 0,	/* Universal */
 	ASN1_APPL	= 1,	/* Application */
 	ASN1_CONT	= 2,	/* Context */
@@ -22,14 +23,16 @@ enum asn1_class {
 #define ASN1_CLASS_BITS	0xc0
 
 
-enum asn1_method {
+enum asn1_method
+{
 	ASN1_PRIM	= 0,	/* Primitive */
 	ASN1_CONS	= 1	/* Constructed */
 };
 #define ASN1_CONS_BIT	0x20
 
 /* Tag */
-enum asn1_tag {
+enum asn1_tag
+{
 	ASN1_EOC	= 0,	/* End Of Contents or N/A */
 	ASN1_BOOL	= 1,	/* Boolean */
 	ASN1_INT	= 2,	/* Integer */

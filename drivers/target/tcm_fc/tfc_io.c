@@ -75,10 +75,14 @@ int ft_queue_data_in(struct se_cmd *se_cmd)
 	void *to = NULL;
 
 	if (cmd->aborted)
+	{
 		return 0;
+	}
 
 	if (se_cmd->scsi_status == SAM_STAT_TASK_SET_FULL)
+	{
 		goto queue_status;
+	}
 
 	ep = fc_seq_exch(cmd->seq);
 	lport = ep->lp;
@@ -90,7 +94,9 @@ int ft_queue_data_in(struct se_cmd *se_cmd)
 	 * Setup to use first mem list entry, unless no data.
 	 */
 	BUG_ON(remaining && !se_cmd->t_data_sg);
-	if (remaining) {
+
+	if (remaining)
+	{
 		sg = se_cmd->t_data_sg;
 		mem_len = sg->length;
 		mem_off = sg->offset;
@@ -100,32 +106,42 @@ int ft_queue_data_in(struct se_cmd *se_cmd)
 	/* no scatter/gather in skb for odd word length due to fc_seq_send() */
 	use_sg = !(remaining % 4);
 
-	while (remaining) {
+	while (remaining)
+	{
 		struct fc_seq *seq = cmd->seq;
 
-		if (!seq) {
+		if (!seq)
+		{
 			pr_debug("%s: Command aborted, xid 0x%x\n",
-				 __func__, ep->xid);
+					 __func__, ep->xid);
 			break;
 		}
-		if (!mem_len) {
+
+		if (!mem_len)
+		{
 			sg = sg_next(sg);
 			mem_len = min((size_t)sg->length, remaining);
 			mem_off = sg->offset;
 			page = sg_page(sg);
 		}
-		if (!frame_len) {
+
+		if (!frame_len)
+		{
 			/*
 			 * If lport's has capability of Large Send Offload LSO)
 			 * , then allow 'frame_len' to be as big as 'lso_max'
 			 * if indicated transfer length is >= lport->lso_max
 			 */
 			frame_len = (lport->seq_offload) ? lport->lso_max :
-							  cmd->sess->max_frame;
+						cmd->sess->max_frame;
 			frame_len = min(frame_len, remaining);
 			fp = fc_frame_alloc(lport, use_sg ? 0 : frame_len);
+
 			if (!fp)
+			{
 				return -ENOMEM;
+			}
+
 			to = fc_frame_payload_get(fp, 0);
 			fh_off = frame_off;
 			frame_off += frame_len;
@@ -137,26 +153,30 @@ int ft_queue_data_in(struct se_cmd *se_cmd)
 			 */
 			fr_max_payload(fp) = cmd->sess->max_frame;
 		}
+
 		tlen = min(mem_len, frame_len);
 
-		if (use_sg) {
+		if (use_sg)
+		{
 			off_in_page = mem_off;
 			BUG_ON(!page);
 			get_page(page);
 			skb_fill_page_desc(fp_skb(fp),
-					   skb_shinfo(fp_skb(fp))->nr_frags,
-					   page, off_in_page, tlen);
+							   skb_shinfo(fp_skb(fp))->nr_frags,
+							   page, off_in_page, tlen);
 			fr_len(fp) += tlen;
 			fp_skb(fp)->data_len += tlen;
 			fp_skb(fp)->truesize +=
-					PAGE_SIZE << compound_order(page);
-		} else {
+				PAGE_SIZE << compound_order(page);
+		}
+		else
+		{
 			BUG_ON(!page);
 			from = kmap_atomic(page + (mem_off >> PAGE_SHIFT));
 			page_addr = from;
 			from += offset_in_page(mem_off);
 			tlen = min(tlen, (size_t)(PAGE_SIZE -
-						offset_in_page(mem_off)));
+									  offset_in_page(mem_off)));
 			memcpy(to, from, tlen);
 			kunmap_atomic(page_addr);
 			to += tlen;
@@ -168,19 +188,27 @@ int ft_queue_data_in(struct se_cmd *se_cmd)
 		remaining -= tlen;
 
 		if (frame_len &&
-		    (skb_shinfo(fp_skb(fp))->nr_frags < FC_FRAME_SG_LEN))
+			(skb_shinfo(fp_skb(fp))->nr_frags < FC_FRAME_SG_LEN))
+		{
 			continue;
+		}
+
 		if (!remaining)
+		{
 			f_ctl |= FC_FC_END_SEQ;
+		}
+
 		fc_fill_fc_hdr(fp, FC_RCTL_DD_SOL_DATA, ep->did, ep->sid,
-			       FC_TYPE_FCP, f_ctl, fh_off);
+					   FC_TYPE_FCP, f_ctl, fh_off);
 		error = lport->tt.seq_send(lport, seq, fp);
-		if (error) {
+
+		if (error)
+		{
 			pr_info_ratelimited("%s: Failed to send frame %p, "
-						"xid <0x%x>, remaining %zu, "
-						"lso_max <0x%x>\n",
-						__func__, fp, ep->xid,
-						remaining, lport->lso_max);
+								"xid <0x%x>, remaining %zu, "
+								"lso_max <0x%x>\n",
+								__func__, fp, ep->xid,
+								remaining, lport->lso_max);
 			/*
 			 * Go ahead and set TASK_SET_FULL status ignoring the
 			 * rest of the DataIN, and immediately attempt to
@@ -192,6 +220,7 @@ int ft_queue_data_in(struct se_cmd *se_cmd)
 			break;
 		}
 	}
+
 queue_status:
 	return ft_queue_status(se_cmd);
 }
@@ -227,13 +256,18 @@ void ft_recv_write_data(struct ft_cmd *cmd, struct fc_frame *fp)
 	void *buf;
 
 	fh = fc_frame_header_get(fp);
+
 	if (!(ntoh24(fh->fh_f_ctl) & FC_FC_REL_OFF))
+	{
 		goto drop;
+	}
 
 	f_ctl = ntoh24(fh->fh_f_ctl);
 	ep = fc_seq_exch(seq);
 	lport = ep->lp;
-	if (cmd->was_ddp_setup) {
+
+	if (cmd->was_ddp_setup)
+	{
 		BUG_ON(!ep);
 		BUG_ON(!lport);
 		/*
@@ -241,14 +275,16 @@ void ft_recv_write_data(struct ft_cmd *cmd, struct fc_frame *fp)
 		 * payload is expected to be copied directly to user buffers.
 		 */
 		buf = fc_frame_payload_get(fp, 1);
+
 		if (buf)
 			pr_err("%s: xid 0x%x, f_ctl 0x%x, cmd->sg %p, "
-				"cmd->sg_cnt 0x%x. DDP was setup"
-				" hence not expected to receive frame with "
-				"payload, Frame will be dropped if"
-				"'Sequence Initiative' bit in f_ctl is"
-				"not set\n", __func__, ep->xid, f_ctl,
-				se_cmd->t_data_sg, se_cmd->t_data_nents);
+				   "cmd->sg_cnt 0x%x. DDP was setup"
+				   " hence not expected to receive frame with "
+				   "payload, Frame will be dropped if"
+				   "'Sequence Initiative' bit in f_ctl is"
+				   "not set\n", __func__, ep->xid, f_ctl,
+				   se_cmd->t_data_sg, se_cmd->t_data_nents);
+
 		/*
 		 * Invalidate HW DDP context if it was setup for respective
 		 * command. Invalidation of HW DDP context is requited in both
@@ -267,45 +303,66 @@ void ft_recv_write_data(struct ft_cmd *cmd, struct fc_frame *fp)
 		 * ABORTS from other end of exchange timer trigger the recovery.
 		 */
 		if (f_ctl & FC_FC_SEQ_INIT)
+		{
 			goto last_frame;
+		}
 		else
+		{
 			goto drop;
+		}
 	}
 
 	rel_off = ntohl(fh->fh_parm_offset);
 	frame_len = fr_len(fp);
+
 	if (frame_len <= sizeof(*fh))
+	{
 		goto drop;
+	}
+
 	frame_len -= sizeof(*fh);
 	from = fc_frame_payload_get(fp, 0);
+
 	if (rel_off >= se_cmd->data_length)
+	{
 		goto drop;
+	}
+
 	if (frame_len + rel_off > se_cmd->data_length)
+	{
 		frame_len = se_cmd->data_length - rel_off;
+	}
 
 	/*
 	 * Setup to use first mem list entry, unless no data.
 	 */
 	BUG_ON(frame_len && !se_cmd->t_data_sg);
-	if (frame_len) {
+
+	if (frame_len)
+	{
 		sg = se_cmd->t_data_sg;
 		mem_len = sg->length;
 		mem_off = sg->offset;
 		page = sg_page(sg);
 	}
 
-	while (frame_len) {
-		if (!mem_len) {
+	while (frame_len)
+	{
+		if (!mem_len)
+		{
 			sg = sg_next(sg);
 			mem_len = sg->length;
 			mem_off = sg->offset;
 			page = sg_page(sg);
 		}
-		if (rel_off >= mem_len) {
+
+		if (rel_off >= mem_len)
+		{
 			rel_off -= mem_len;
 			mem_len = 0;
 			continue;
 		}
+
 		mem_off += rel_off;
 		mem_len -= rel_off;
 		rel_off = 0;
@@ -316,7 +373,7 @@ void ft_recv_write_data(struct ft_cmd *cmd, struct fc_frame *fp)
 		page_addr = to;
 		to += offset_in_page(mem_off);
 		tlen = min(tlen, (size_t)(PAGE_SIZE -
-					  offset_in_page(mem_off)));
+								  offset_in_page(mem_off)));
 		memcpy(to, from, tlen);
 		kunmap_atomic(page_addr);
 
@@ -326,11 +383,15 @@ void ft_recv_write_data(struct ft_cmd *cmd, struct fc_frame *fp)
 		mem_len -= tlen;
 		cmd->write_data_len += tlen;
 	}
+
 last_frame:
-	if (cmd->write_data_len == se_cmd->data_length) {
+
+	if (cmd->write_data_len == se_cmd->data_length)
+	{
 		INIT_WORK(&cmd->work, ft_execute_work);
 		queue_work(cmd->sess->tport->tpg->workqueue, &cmd->work);
 	}
+
 drop:
 	fc_frame_free(fp);
 }
@@ -349,17 +410,22 @@ void ft_invl_hw_context(struct ft_cmd *cmd)
 	seq = cmd->seq;
 
 	/* Cleanup the DDP context in HW if DDP was setup */
-	if (cmd->was_ddp_setup && seq) {
+	if (cmd->was_ddp_setup && seq)
+	{
 		ep = fc_seq_exch(seq);
-		if (ep) {
+
+		if (ep)
+		{
 			lport = ep->lp;
-			if (lport && (ep->xid <= lport->lro_xid)) {
+
+			if (lport && (ep->xid <= lport->lro_xid))
+			{
 				/*
 				 * "ddp_done" trigger invalidation of HW
 				 * specific DDP context
 				 */
 				cmd->write_data_len = lport->tt.ddp_done(lport,
-								      ep->xid);
+									  ep->xid);
 
 				/*
 				 * Resetting same variable to indicate HW's

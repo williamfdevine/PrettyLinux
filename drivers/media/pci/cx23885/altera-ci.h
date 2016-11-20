@@ -30,7 +30,8 @@
 #define ALT_AD_RG	0x00000200
 #define ALT_CS		0x00000100
 
-struct altera_ci_config {
+struct altera_ci_config
+{
 	void *dev;/* main dev, for example cx23885_dev */
 	void *adapter;/* for CI to connect to */
 	struct dvb_demux *demux;/* for hardware PID filter to connect to */
@@ -72,7 +73,7 @@ static inline int altera_ci_tuner_reset(void *dev, int ci_nr)
 #endif
 #if 0
 static inline int altera_hw_filt_init(struct altera_ci_config *config,
-							int hw_filt_nr)
+									  int hw_filt_nr)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return 0;

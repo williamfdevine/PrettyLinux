@@ -73,8 +73,11 @@ static unsigned int calc_code_bit(unsigned int i, unsigned int *p_cache)
 
 	/* Use the cache if it is there */
 	if (p_cache)
+	{
 		p = *p_cache;
-        b += p;
+	}
+
+	b += p;
 
 	/*
 	 * For every power of two below our bit number, bump our bit.
@@ -85,10 +88,14 @@ static unsigned int calc_code_bit(unsigned int i, unsigned int *p_cache)
 	 * p is set above.
 	 */
 	for (; (1 << p) < (b + 1); p++)
+	{
 		b++;
+	}
 
 	if (p_cache)
+	{
 		*p_cache = p;
+	}
 
 	return b;
 }
@@ -164,7 +171,7 @@ u32 ocfs2_hamming_encode_block(void *data, unsigned int blocksize)
  * If you only have one hunk, use ocfs2_hamming_fix_block().
  */
 void ocfs2_hamming_fix(void *data, unsigned int d, unsigned int nr,
-		       unsigned int fix)
+					   unsigned int fix)
 {
 	unsigned int i, b;
 
@@ -175,14 +182,18 @@ void ocfs2_hamming_fix(void *data, unsigned int d, unsigned int nr,
 	 * busted parity bit is its own error.  Nothing to do here.
 	 */
 	if (hweight32(fix) == 1)
+	{
 		return;
+	}
 
 	/*
 	 * nr + d is the bit right past the data hunk we're looking at.
 	 * If fix after that, nothing to do
 	 */
 	if (fix >= calc_code_bit(nr + d, NULL))
+	{
 		return;
+	}
 
 	/*
 	 * nr is the offset in the data hunk we're starting at.  Let's
@@ -190,15 +201,20 @@ void ocfs2_hamming_fix(void *data, unsigned int d, unsigned int nr,
 	 * for a more detailed description of 'b'.
 	 */
 	b = calc_code_bit(nr, NULL);
+
 	/* If the fix is before this hunk, nothing to do */
 	if (fix < b)
+	{
 		return;
+	}
 
 	for (i = 0; i < d; i++, b++)
 	{
 		/* Skip past parity bits */
 		while (hweight32(b) == 1)
+		{
 			b++;
+		}
 
 		/*
 		 * i is the offset in this data hunk.
@@ -211,16 +227,21 @@ void ocfs2_hamming_fix(void *data, unsigned int d, unsigned int nr,
 		if (b == fix)
 		{
 			if (ocfs2_test_bit(i, data))
+			{
 				ocfs2_clear_bit(i, data);
+			}
 			else
+			{
 				ocfs2_set_bit(i, data);
+			}
+
 			break;
 		}
 	}
 }
 
 void ocfs2_hamming_fix_block(void *data, unsigned int blocksize,
-			     unsigned int fix)
+							 unsigned int fix)
 {
 	ocfs2_hamming_fix(data, blocksize * 8, 0, fix);
 }
@@ -240,16 +261,17 @@ static int blockcheck_u64_get(void *data, u64 *val)
 DEFINE_SIMPLE_ATTRIBUTE(blockcheck_fops, blockcheck_u64_get, NULL, "%llu\n");
 
 static struct dentry *blockcheck_debugfs_create(const char *name,
-						struct dentry *parent,
-						u64 *value)
+		struct dentry *parent,
+		u64 *value)
 {
 	return debugfs_create_file(name, S_IFREG | S_IRUSR, parent, value,
-				   &blockcheck_fops);
+							   &blockcheck_fops);
 }
 
 static void ocfs2_blockcheck_debug_remove(struct ocfs2_blockcheck_stats *stats)
 {
-	if (stats) {
+	if (stats)
+	{
 		debugfs_remove(stats->b_debug_check);
 		stats->b_debug_check = NULL;
 		debugfs_remove(stats->b_debug_failure);
@@ -262,43 +284,55 @@ static void ocfs2_blockcheck_debug_remove(struct ocfs2_blockcheck_stats *stats)
 }
 
 static int ocfs2_blockcheck_debug_install(struct ocfs2_blockcheck_stats *stats,
-					  struct dentry *parent)
+		struct dentry *parent)
 {
 	int rc = -EINVAL;
 
 	if (!stats)
+	{
 		goto out;
+	}
 
 	stats->b_debug_dir = debugfs_create_dir("blockcheck", parent);
+
 	if (!stats->b_debug_dir)
+	{
 		goto out;
+	}
 
 	stats->b_debug_check =
 		blockcheck_debugfs_create("blocks_checked",
-					  stats->b_debug_dir,
-					  &stats->b_check_count);
+								  stats->b_debug_dir,
+								  &stats->b_check_count);
 
 	stats->b_debug_failure =
 		blockcheck_debugfs_create("checksums_failed",
-					  stats->b_debug_dir,
-					  &stats->b_failure_count);
+								  stats->b_debug_dir,
+								  &stats->b_failure_count);
 
 	stats->b_debug_recover =
 		blockcheck_debugfs_create("ecc_recoveries",
-					  stats->b_debug_dir,
-					  &stats->b_recover_count);
+								  stats->b_debug_dir,
+								  &stats->b_recover_count);
+
 	if (stats->b_debug_check && stats->b_debug_failure &&
-	    stats->b_debug_recover)
+		stats->b_debug_recover)
+	{
 		rc = 0;
+	}
 
 out:
+
 	if (rc)
+	{
 		ocfs2_blockcheck_debug_remove(stats);
+	}
+
 	return rc;
 }
 #else
 static inline int ocfs2_blockcheck_debug_install(struct ocfs2_blockcheck_stats *stats,
-						 struct dentry *parent)
+		struct dentry *parent)
 {
 	return 0;
 }
@@ -310,7 +344,7 @@ static inline void ocfs2_blockcheck_debug_remove(struct ocfs2_blockcheck_stats *
 
 /* Always-called wrappers for starting and stopping the debugfs files */
 int ocfs2_blockcheck_stats_debugfs_install(struct ocfs2_blockcheck_stats *stats,
-					   struct dentry *parent)
+		struct dentry *parent)
 {
 	return ocfs2_blockcheck_debug_install(stats, parent);
 }
@@ -325,7 +359,9 @@ static void ocfs2_blockcheck_inc_check(struct ocfs2_blockcheck_stats *stats)
 	u64 new_count;
 
 	if (!stats)
+	{
 		return;
+	}
 
 	spin_lock(&stats->b_lock);
 	stats->b_check_count++;
@@ -333,7 +369,9 @@ static void ocfs2_blockcheck_inc_check(struct ocfs2_blockcheck_stats *stats)
 	spin_unlock(&stats->b_lock);
 
 	if (!new_count)
+	{
 		mlog(ML_NOTICE, "Block check count has wrapped\n");
+	}
 }
 
 static void ocfs2_blockcheck_inc_failure(struct ocfs2_blockcheck_stats *stats)
@@ -341,7 +379,9 @@ static void ocfs2_blockcheck_inc_failure(struct ocfs2_blockcheck_stats *stats)
 	u64 new_count;
 
 	if (!stats)
+	{
 		return;
+	}
 
 	spin_lock(&stats->b_lock);
 	stats->b_failure_count++;
@@ -349,7 +389,9 @@ static void ocfs2_blockcheck_inc_failure(struct ocfs2_blockcheck_stats *stats)
 	spin_unlock(&stats->b_lock);
 
 	if (!new_count)
+	{
 		mlog(ML_NOTICE, "Checksum failure count has wrapped\n");
+	}
 }
 
 static void ocfs2_blockcheck_inc_recover(struct ocfs2_blockcheck_stats *stats)
@@ -357,7 +399,9 @@ static void ocfs2_blockcheck_inc_recover(struct ocfs2_blockcheck_stats *stats)
 	u64 new_count;
 
 	if (!stats)
+	{
 		return;
+	}
 
 	spin_lock(&stats->b_lock);
 	stats->b_recover_count++;
@@ -365,7 +409,9 @@ static void ocfs2_blockcheck_inc_recover(struct ocfs2_blockcheck_stats *stats)
 	spin_unlock(&stats->b_lock);
 
 	if (!new_count)
+	{
 		mlog(ML_NOTICE, "ECC recovery count has wrapped\n");
+	}
 }
 
 
@@ -389,7 +435,7 @@ static void ocfs2_blockcheck_inc_recover(struct ocfs2_blockcheck_stats *stats)
  * disk.
  */
 void ocfs2_block_check_compute(void *data, size_t blocksize,
-			       struct ocfs2_block_check *bc)
+							   struct ocfs2_block_check *bc)
 {
 	u32 crc;
 	u32 ecc;
@@ -418,8 +464,8 @@ void ocfs2_block_check_compute(void *data, size_t blocksize,
  * Again, the data passed in should be the on-disk endian.
  */
 int ocfs2_block_check_validate(void *data, size_t blocksize,
-			       struct ocfs2_block_check *bc,
-			       struct ocfs2_blockcheck_stats *stats)
+							   struct ocfs2_block_check *bc,
+							   struct ocfs2_blockcheck_stats *stats)
 {
 	int rc = 0;
 	u32 bc_crc32e;
@@ -435,13 +481,16 @@ int ocfs2_block_check_validate(void *data, size_t blocksize,
 
 	/* Fast path - if the crc32 validates, we're good to go */
 	crc = crc32_le(~0, data, blocksize);
+
 	if (crc == bc_crc32e)
+	{
 		goto out;
+	}
 
 	ocfs2_blockcheck_inc_failure(stats);
 	mlog(ML_ERROR,
-	     "CRC32 failed: stored: 0x%x, computed 0x%x. Applying ECC.\n",
-	     (unsigned int)bc_crc32e, (unsigned int)crc);
+		 "CRC32 failed: stored: 0x%x, computed 0x%x. Applying ECC.\n",
+		 (unsigned int)bc_crc32e, (unsigned int)crc);
 
 	/* Ok, try ECC fixups */
 	ecc = ocfs2_hamming_encode_block(data, blocksize);
@@ -449,13 +498,15 @@ int ocfs2_block_check_validate(void *data, size_t blocksize,
 
 	/* And check the crc32 again */
 	crc = crc32_le(~0, data, blocksize);
-	if (crc == bc_crc32e) {
+
+	if (crc == bc_crc32e)
+	{
 		ocfs2_blockcheck_inc_recover(stats);
 		goto out;
 	}
 
 	mlog(ML_ERROR, "Fixed CRC32 failed: stored: 0x%x, computed 0x%x\n",
-	     (unsigned int)bc_crc32e, (unsigned int)crc);
+		 (unsigned int)bc_crc32e, (unsigned int)crc);
 
 	rc = -EIO;
 
@@ -481,7 +532,7 @@ out:
  * disk.
  */
 void ocfs2_block_check_compute_bhs(struct buffer_head **bhs, int nr,
-				   struct ocfs2_block_check *bc)
+								   struct ocfs2_block_check *bc)
 {
 	int i;
 	u32 crc, ecc;
@@ -489,11 +540,14 @@ void ocfs2_block_check_compute_bhs(struct buffer_head **bhs, int nr,
 	BUG_ON(nr < 0);
 
 	if (!nr)
+	{
 		return;
+	}
 
 	memset(bc, 0, sizeof(struct ocfs2_block_check));
 
-	for (i = 0, crc = ~0, ecc = 0; i < nr; i++) {
+	for (i = 0, crc = ~0, ecc = 0; i < nr; i++)
+	{
 		crc = crc32_le(crc, bhs[i]->b_data, bhs[i]->b_size);
 		/*
 		 * The number of bits in a buffer is obviously b_size*8.
@@ -501,8 +555,8 @@ void ocfs2_block_check_compute_bhs(struct buffer_head **bhs, int nr,
 		 * of this buffer is b_size*8*i.
 		 */
 		ecc = (u16)ocfs2_hamming_encode(ecc, bhs[i]->b_data,
-						bhs[i]->b_size * 8,
-						bhs[i]->b_size * 8 * i);
+										bhs[i]->b_size * 8,
+										bhs[i]->b_size * 8 * i);
 	}
 
 	/*
@@ -525,8 +579,8 @@ void ocfs2_block_check_compute_bhs(struct buffer_head **bhs, int nr,
  * Again, the data passed in should be the on-disk endian.
  */
 int ocfs2_block_check_validate_bhs(struct buffer_head **bhs, int nr,
-				   struct ocfs2_block_check *bc,
-				   struct ocfs2_blockcheck_stats *stats)
+								   struct ocfs2_block_check *bc,
+								   struct ocfs2_blockcheck_stats *stats)
 {
 	int i, rc = 0;
 	u32 bc_crc32e;
@@ -536,7 +590,9 @@ int ocfs2_block_check_validate_bhs(struct buffer_head **bhs, int nr,
 	BUG_ON(nr < 0);
 
 	if (!nr)
+	{
 		return 0;
+	}
 
 	ocfs2_blockcheck_inc_check(stats);
 
@@ -547,46 +603,59 @@ int ocfs2_block_check_validate_bhs(struct buffer_head **bhs, int nr,
 
 	/* Fast path - if the crc32 validates, we're good to go */
 	for (i = 0, crc = ~0; i < nr; i++)
+	{
 		crc = crc32_le(crc, bhs[i]->b_data, bhs[i]->b_size);
+	}
+
 	if (crc == bc_crc32e)
+	{
 		goto out;
+	}
 
 	ocfs2_blockcheck_inc_failure(stats);
 	mlog(ML_ERROR,
-	     "CRC32 failed: stored: %u, computed %u.  Applying ECC.\n",
-	     (unsigned int)bc_crc32e, (unsigned int)crc);
+		 "CRC32 failed: stored: %u, computed %u.  Applying ECC.\n",
+		 (unsigned int)bc_crc32e, (unsigned int)crc);
 
 	/* Ok, try ECC fixups */
-	for (i = 0, ecc = 0; i < nr; i++) {
+	for (i = 0, ecc = 0; i < nr; i++)
+	{
 		/*
 		 * The number of bits in a buffer is obviously b_size*8.
 		 * The offset of this buffer is b_size*i, so the bit offset
 		 * of this buffer is b_size*8*i.
 		 */
 		ecc = (u16)ocfs2_hamming_encode(ecc, bhs[i]->b_data,
-						bhs[i]->b_size * 8,
-						bhs[i]->b_size * 8 * i);
+										bhs[i]->b_size * 8,
+										bhs[i]->b_size * 8 * i);
 	}
+
 	fix = ecc ^ bc_ecc;
-	for (i = 0; i < nr; i++) {
+
+	for (i = 0; i < nr; i++)
+	{
 		/*
 		 * Try the fix against each buffer.  It will only affect
 		 * one of them.
 		 */
 		ocfs2_hamming_fix(bhs[i]->b_data, bhs[i]->b_size * 8,
-				  bhs[i]->b_size * 8 * i, fix);
+						  bhs[i]->b_size * 8 * i, fix);
 	}
 
 	/* And check the crc32 again */
 	for (i = 0, crc = ~0; i < nr; i++)
+	{
 		crc = crc32_le(crc, bhs[i]->b_data, bhs[i]->b_size);
-	if (crc == bc_crc32e) {
+	}
+
+	if (crc == bc_crc32e)
+	{
 		ocfs2_blockcheck_inc_recover(stats);
 		goto out;
 	}
 
 	mlog(ML_ERROR, "Fixed CRC32 failed: stored: %u, computed %u\n",
-	     (unsigned int)bc_crc32e, (unsigned int)crc);
+		 (unsigned int)bc_crc32e, (unsigned int)crc);
 
 	rc = -EIO;
 
@@ -604,43 +673,47 @@ out:
  * They expect the buffer(s) to be in disk format.
  */
 void ocfs2_compute_meta_ecc(struct super_block *sb, void *data,
-			    struct ocfs2_block_check *bc)
+							struct ocfs2_block_check *bc)
 {
 	if (ocfs2_meta_ecc(OCFS2_SB(sb)))
+	{
 		ocfs2_block_check_compute(data, sb->s_blocksize, bc);
+	}
 }
 
 int ocfs2_validate_meta_ecc(struct super_block *sb, void *data,
-			    struct ocfs2_block_check *bc)
+							struct ocfs2_block_check *bc)
 {
 	int rc = 0;
 	struct ocfs2_super *osb = OCFS2_SB(sb);
 
 	if (ocfs2_meta_ecc(osb))
 		rc = ocfs2_block_check_validate(data, sb->s_blocksize, bc,
-						&osb->osb_ecc_stats);
+										&osb->osb_ecc_stats);
 
 	return rc;
 }
 
 void ocfs2_compute_meta_ecc_bhs(struct super_block *sb,
-				struct buffer_head **bhs, int nr,
-				struct ocfs2_block_check *bc)
+								struct buffer_head **bhs, int nr,
+								struct ocfs2_block_check *bc)
 {
 	if (ocfs2_meta_ecc(OCFS2_SB(sb)))
+	{
 		ocfs2_block_check_compute_bhs(bhs, nr, bc);
+	}
 }
 
 int ocfs2_validate_meta_ecc_bhs(struct super_block *sb,
-				struct buffer_head **bhs, int nr,
-				struct ocfs2_block_check *bc)
+								struct buffer_head **bhs, int nr,
+								struct ocfs2_block_check *bc)
 {
 	int rc = 0;
 	struct ocfs2_super *osb = OCFS2_SB(sb);
 
 	if (ocfs2_meta_ecc(osb))
 		rc = ocfs2_block_check_validate_bhs(bhs, nr, bc,
-						    &osb->osb_ecc_stats);
+											&osb->osb_ecc_stats);
 
 	return rc;
 }

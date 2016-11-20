@@ -40,7 +40,9 @@ static int fm10k_dcbnl_ieee_getets(struct net_device *dev, struct ieee_ets *ets)
 
 	/* populate the prio map based on the netdev */
 	for (i = 0; i < IEEE_8021QAZ_MAX_TCS; i++)
+	{
 		ets->prio_tc[i] = netdev_get_prio_tc_map(dev, i);
+	}
 
 	return 0;
 }
@@ -56,32 +58,51 @@ static int fm10k_dcbnl_ieee_setets(struct net_device *dev, struct ieee_ets *ets)
 	int i, err;
 
 	/* verify type and determine num_tcs needed */
-	for (i = 0; i < IEEE_8021QAZ_MAX_TCS; i++) {
+	for (i = 0; i < IEEE_8021QAZ_MAX_TCS; i++)
+	{
 		if (ets->tc_tx_bw[i] || ets->tc_rx_bw[i])
+		{
 			return -EINVAL;
+		}
+
 		if (ets->tc_tsa[i] != IEEE_8021QAZ_TSA_STRICT)
+		{
 			return -EINVAL;
+		}
+
 		if (ets->prio_tc[i] > num_tc)
+		{
 			num_tc = ets->prio_tc[i];
+		}
 	}
 
 	/* if requested TC is greater than 0 then num_tcs is max + 1 */
 	if (num_tc)
+	{
 		num_tc++;
+	}
 
 	if (num_tc > IEEE_8021QAZ_MAX_TCS)
+	{
 		return -EINVAL;
+	}
 
 	/* update TC hardware mapping if necessary */
-	if (num_tc != netdev_get_num_tc(dev)) {
+	if (num_tc != netdev_get_num_tc(dev))
+	{
 		err = fm10k_setup_tc(dev, num_tc);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	/* update priority mapping */
 	for (i = 0; i < IEEE_8021QAZ_MAX_TCS; i++)
+	{
 		netdev_set_prio_tc_map(dev, i, ets->prio_tc[i]);
+	}
 
 	return 0;
 }
@@ -116,7 +137,9 @@ static int fm10k_dcbnl_ieee_setpfc(struct net_device *dev, struct ieee_pfc *pfc)
 
 	/* if we are running update the drop_en state for all queues */
 	if (netif_running(dev))
+	{
 		fm10k_update_rx_drop_en(interface);
+	}
 
 	return 0;
 }
@@ -144,7 +167,8 @@ static u8 fm10k_dcbnl_setdcbx(struct net_device __always_unused *dev, u8 mode)
 	return (mode != (DCB_CAP_DCBX_HOST | DCB_CAP_DCBX_VER_IEEE)) ? 1 : 0;
 }
 
-static const struct dcbnl_rtnl_ops fm10k_dcbnl_ops = {
+static const struct dcbnl_rtnl_ops fm10k_dcbnl_ops =
+{
 	.ieee_getets	= fm10k_dcbnl_ieee_getets,
 	.ieee_setets	= fm10k_dcbnl_ieee_setets,
 	.ieee_getpfc	= fm10k_dcbnl_ieee_getpfc,
@@ -166,5 +190,7 @@ void fm10k_dcbnl_set_ops(struct net_device *dev)
 	struct fm10k_hw *hw = &interface->hw;
 
 	if (hw->mac.type == fm10k_mac_pf)
+	{
 		dev->dcbnl_ops = &fm10k_dcbnl_ops;
+	}
 }

@@ -51,52 +51,61 @@ extern void __cifs_fscache_invalidate_page(struct page *, struct inode *);
 extern int cifs_fscache_release_page(struct page *page, gfp_t gfp);
 extern int __cifs_readpage_from_fscache(struct inode *, struct page *);
 extern int __cifs_readpages_from_fscache(struct inode *,
-					 struct address_space *,
-					 struct list_head *,
-					 unsigned *);
+		struct address_space *,
+		struct list_head *,
+		unsigned *);
 extern void __cifs_fscache_readpages_cancel(struct inode *, struct list_head *);
 
 extern void __cifs_readpage_to_fscache(struct inode *, struct page *);
 
 static inline void cifs_fscache_invalidate_page(struct page *page,
-					       struct inode *inode)
+		struct inode *inode)
 {
 	if (PageFsCache(page))
+	{
 		__cifs_fscache_invalidate_page(page, inode);
+	}
 }
 
 static inline int cifs_readpage_from_fscache(struct inode *inode,
-					     struct page *page)
+		struct page *page)
 {
 	if (CIFS_I(inode)->fscache)
+	{
 		return __cifs_readpage_from_fscache(inode, page);
+	}
 
 	return -ENOBUFS;
 }
 
 static inline int cifs_readpages_from_fscache(struct inode *inode,
-					      struct address_space *mapping,
-					      struct list_head *pages,
-					      unsigned *nr_pages)
+		struct address_space *mapping,
+		struct list_head *pages,
+		unsigned *nr_pages)
 {
 	if (CIFS_I(inode)->fscache)
 		return __cifs_readpages_from_fscache(inode, mapping, pages,
-						     nr_pages);
+											 nr_pages);
+
 	return -ENOBUFS;
 }
 
 static inline void cifs_readpage_to_fscache(struct inode *inode,
-					    struct page *page)
+		struct page *page)
 {
 	if (PageFsCache(page))
+	{
 		__cifs_readpage_to_fscache(inode, page);
+	}
 }
 
 static inline void cifs_fscache_readpages_cancel(struct inode *inode,
-						 struct list_head *pages)
+		struct list_head *pages)
 {
 	if (CIFS_I(inode)->fscache)
+	{
 		return __cifs_fscache_readpages_cancel(inode, pages);
+	}
 }
 
 #else /* CONFIG_CIFS_FSCACHE */
@@ -113,7 +122,7 @@ cifs_fscache_release_super_cookie(struct cifs_tcon *tcon) {}
 
 static inline void cifs_fscache_release_inode_cookie(struct inode *inode) {}
 static inline void cifs_fscache_set_inode_cookie(struct inode *inode,
-						 struct file *filp) {}
+		struct file *filp) {}
 static inline void cifs_fscache_reset_inode_cookie(struct inode *inode) {}
 static inline int cifs_fscache_release_page(struct page *page, gfp_t gfp)
 {
@@ -121,7 +130,7 @@ static inline int cifs_fscache_release_page(struct page *page, gfp_t gfp)
 }
 
 static inline void cifs_fscache_invalidate_page(struct page *page,
-			struct inode *inode) {}
+		struct inode *inode) {}
 static inline int
 cifs_readpage_from_fscache(struct inode *inode, struct page *page)
 {
@@ -129,18 +138,18 @@ cifs_readpage_from_fscache(struct inode *inode, struct page *page)
 }
 
 static inline int cifs_readpages_from_fscache(struct inode *inode,
-					      struct address_space *mapping,
-					      struct list_head *pages,
-					      unsigned *nr_pages)
+		struct address_space *mapping,
+		struct list_head *pages,
+		unsigned *nr_pages)
 {
 	return -ENOBUFS;
 }
 
 static inline void cifs_readpage_to_fscache(struct inode *inode,
-			struct page *page) {}
+		struct page *page) {}
 
 static inline void cifs_fscache_readpages_cancel(struct inode *inode,
-						 struct list_head *pages)
+		struct list_head *pages)
 {
 }
 

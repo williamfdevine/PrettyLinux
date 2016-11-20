@@ -19,13 +19,15 @@ typedef sector_t region_t;
 
 struct dm_dirty_log_type;
 
-struct dm_dirty_log {
+struct dm_dirty_log
+{
 	struct dm_dirty_log_type *type;
 	int (*flush_callback_fn)(struct dm_target *ti);
 	void *context;
 };
 
-struct dm_dirty_log_type {
+struct dm_dirty_log_type
+{
 	const char *name;
 	struct module *module;
 
@@ -33,7 +35,7 @@ struct dm_dirty_log_type {
 	struct list_head list;
 
 	int (*ctr)(struct dm_dirty_log *log, struct dm_target *ti,
-		   unsigned argc, char **argv);
+			   unsigned argc, char **argv);
 	void (*dtr)(struct dm_dirty_log *log);
 
 	/*
@@ -68,7 +70,7 @@ struct dm_dirty_log_type {
 	 * allowed to block.
 	 */
 	int (*in_sync)(struct dm_dirty_log *log, region_t region,
-		       int can_block);
+				   int can_block);
 
 	/*
 	 * Flush the current log state (eg, to disk).  This
@@ -105,7 +107,7 @@ struct dm_dirty_log_type {
 	 * list (if present).
 	 */
 	void (*set_region_sync)(struct dm_dirty_log *log,
-				region_t region, int in_sync);
+							region_t region, int in_sync);
 
 	/*
 	 * Returns the number of regions that are in sync.
@@ -116,7 +118,7 @@ struct dm_dirty_log_type {
 	 * Support function for mirror status requests.
 	 */
 	int (*status)(struct dm_dirty_log *log, status_type_t status_type,
-		      char *result, unsigned maxlen);
+				  char *result, unsigned maxlen);
 
 	/*
 	 * is_remote_recovering is necessary for cluster mirroring. It provides
@@ -137,9 +139,9 @@ int dm_dirty_log_type_unregister(struct dm_dirty_log_type *type);
  * type->constructor/destructor() directly.
  */
 struct dm_dirty_log *dm_dirty_log_create(const char *type_name,
-			struct dm_target *ti,
-			int (*flush_callback_fn)(struct dm_target *ti),
-			unsigned argc, char **argv);
+		struct dm_target *ti,
+		int (*flush_callback_fn)(struct dm_target *ti),
+		unsigned argc, char **argv);
 void dm_dirty_log_destroy(struct dm_dirty_log *log);
 
 #endif	/* __KERNEL__ */

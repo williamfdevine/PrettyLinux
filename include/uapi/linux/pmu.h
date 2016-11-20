@@ -86,7 +86,8 @@
 
 
 /* Kind of PMU (model) */
-enum {
+enum
+{
 	PMU_UNKNOWN,
 	PMU_OHARE_BASED,	/* 2400, 3400, 3500 (old G3 powerbook) */
 	PMU_HEATHROW_BASED,	/* PowerBook G3 series */
@@ -97,7 +98,8 @@ enum {
 };
 
 /* PMU PMU_POWER_EVENTS commands */
-enum {
+enum
+{
 	PMU_PWR_GET_POWERUP_EVENTS	= 0x00,
 	PMU_PWR_SET_POWERUP_EVENTS	= 0x01,
 	PMU_PWR_CLR_POWERUP_EVENTS	= 0x02,
@@ -107,14 +109,15 @@ enum {
 };
 
 /* Power events wakeup bits */
-enum {
+enum
+{
 	PMU_PWR_WAKEUP_KEY		= 0x01,	/* Wake on key press */
 	PMU_PWR_WAKEUP_AC_INSERT	= 0x02, /* Wake on AC adapter plug */
 	PMU_PWR_WAKEUP_AC_CHANGE	= 0x04,
 	PMU_PWR_WAKEUP_LID_OPEN		= 0x08,
 	PMU_PWR_WAKEUP_RING		= 0x10,
 };
-	
+
 /*
  * Ioctl commands for the /dev/pmu device
  */
@@ -129,11 +132,11 @@ enum {
 /* out param: u32*	PMU model */
 #define PMU_IOC_GET_MODEL	_IOR('B', 3, size_t)
 /* out param: u32*	has_adb: 0 or 1 */
-#define PMU_IOC_HAS_ADB		_IOR('B', 4, size_t) 
+#define PMU_IOC_HAS_ADB		_IOR('B', 4, size_t)
 /* out param: u32*	can_sleep: 0 or 1 */
-#define PMU_IOC_CAN_SLEEP	_IOR('B', 5, size_t) 
+#define PMU_IOC_CAN_SLEEP	_IOR('B', 5, size_t)
 /* no param, but historically was _IOR('B', 6, 0), meaning 4 bytes */
-#define PMU_IOC_GRAB_BACKLIGHT	_IOR('B', 6, size_t) 
+#define PMU_IOC_GRAB_BACKLIGHT	_IOR('B', 6, size_t)
 
 
 #endif /* _UAPI_LINUX_PMU_H */

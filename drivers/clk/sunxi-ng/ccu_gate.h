@@ -18,7 +18,8 @@
 
 #include "ccu_common.h"
 
-struct ccu_gate {
+struct ccu_gate
+{
 	u32			enable;
 
 	struct ccu_common	common;
@@ -27,13 +28,13 @@ struct ccu_gate {
 #define SUNXI_CCU_GATE(_struct, _name, _parent, _reg, _gate, _flags)	\
 	struct ccu_gate _struct = {					\
 		.enable	= _gate,					\
-		.common	= {						\
-			.reg		= _reg,				\
-			.hw.init	= CLK_HW_INIT(_name,		\
-						      _parent,		\
-						      &ccu_gate_ops,	\
-						      _flags),		\
-		}							\
+				  .common	= {						\
+												  .reg		= _reg,				\
+												  .hw.init	= CLK_HW_INIT(_name,		\
+														  _parent,		\
+														  &ccu_gate_ops,	\
+														  _flags),		\
+							}							\
 	}
 
 static inline struct ccu_gate *hw_to_ccu_gate(struct clk_hw *hw)

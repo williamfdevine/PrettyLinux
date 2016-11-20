@@ -26,7 +26,8 @@
 #include <pcmcia/cistpl.h>
 #include <pcmcia/ds.h>
 
-struct snd_vxpocket {
+struct snd_vxpocket
+{
 
 	struct vx_core core;
 

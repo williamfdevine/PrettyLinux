@@ -39,35 +39,36 @@ module_param(init_pcitm, int, 0);
  * driver_data
  * If you have an update for this please contact prism54-devel@prism54.org
  * The latest list can be found at http://wireless.kernel.org/en/users/Drivers/p54 */
-static const struct pci_device_id prism54_id_tbl[] = {
+static const struct pci_device_id prism54_id_tbl[] =
+{
 	/* Intersil PRISM Duette/Prism GT Wireless LAN adapter */
 	{
-	 0x1260, 0x3890,
-	 PCI_ANY_ID, PCI_ANY_ID,
-	 0, 0, 0
+		0x1260, 0x3890,
+		PCI_ANY_ID, PCI_ANY_ID,
+		0, 0, 0
 	},
 
 	/* 3COM 3CRWE154G72 Wireless LAN adapter */
 	{
-	 PCI_VDEVICE(3COM, 0x6001), 0
+		PCI_VDEVICE(3COM, 0x6001), 0
 	},
 
 	/* Intersil PRISM Indigo Wireless LAN adapter */
 	{
-	 0x1260, 0x3877,
-	 PCI_ANY_ID, PCI_ANY_ID,
-	 0, 0, 0
+		0x1260, 0x3877,
+		PCI_ANY_ID, PCI_ANY_ID,
+		0, 0, 0
 	},
 
 	/* Intersil PRISM Javelin/Xbow Wireless LAN adapter */
 	{
-	 0x1260, 0x3886,
-	 PCI_ANY_ID, PCI_ANY_ID,
-	 0, 0, 0
+		0x1260, 0x3886,
+		PCI_ANY_ID, PCI_ANY_ID,
+		0, 0, 0
 	},
 
 	/* End of list */
-	{0,0,0,0,0,0,0}
+	{0, 0, 0, 0, 0, 0, 0}
 };
 
 /* register the device with the Hotplug facilities of the kernel */
@@ -78,7 +79,8 @@ static void prism54_remove(struct pci_dev *);
 static int prism54_suspend(struct pci_dev *, pm_message_t state);
 static int prism54_resume(struct pci_dev *);
 
-static struct pci_driver prism54_driver = {
+static struct pci_driver prism54_driver =
+{
 	.name = DRV_NAME,
 	.id_table = prism54_id_tbl,
 	.probe = prism54_probe,
@@ -101,7 +103,8 @@ prism54_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	int rvalue;
 
 	/* Enable the pci device */
-	if (pci_enable_device(pdev)) {
+	if (pci_enable_device(pdev))
+	{
 		printk(KERN_ERR "%s: pci_enable_device() failed.\n", DRV_NAME);
 		return -ENODEV;
 	}
@@ -111,17 +114,20 @@ prism54_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 #if VERBOSE > SHOW_ERROR_MESSAGES
 	DEBUG(SHOW_TRACING, "latency timer: %x\n", latency_tmr);
 #endif
-	if (latency_tmr < PCIDEVICE_LATENCY_TIMER_MIN) {
+
+	if (latency_tmr < PCIDEVICE_LATENCY_TIMER_MIN)
+	{
 		/* set the latency timer */
 		pci_write_config_byte(pdev, PCI_LATENCY_TIMER,
-				      PCIDEVICE_LATENCY_TIMER_VAL);
+							  PCIDEVICE_LATENCY_TIMER_VAL);
 	}
 
 	/* enable PCI DMA */
-	if (pci_set_dma_mask(pdev, DMA_BIT_MASK(32))) {
+	if (pci_set_dma_mask(pdev, DMA_BIT_MASK(32)))
+	{
 		printk(KERN_ERR "%s: 32-bit PCI DMA not supported", DRV_NAME);
 		goto do_pci_disable_device;
-        }
+	}
 
 	/* 0x40 is the programmable timer to configure the response timeout (TRDY_TIMEOUT)
 	 * 0x41 is the programmable timer to configure the retry timeout (RETRY_TIMEOUT)
@@ -136,26 +142,33 @@ prism54_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	 *	*can* solve problems caused by devices that are slow to respond.
 	 *	Make this configurable - MSW
 	 */
-	if ( init_pcitm >= 0 ) {
+	if ( init_pcitm >= 0 )
+	{
 		pci_write_config_byte(pdev, 0x40, (u8)init_pcitm);
 		pci_write_config_byte(pdev, 0x41, (u8)init_pcitm);
-	} else {
+	}
+	else
+	{
 		printk(KERN_INFO "PCI TRDY/RETRY unchanged\n");
 	}
 
 	/* request the pci device I/O regions */
 	rvalue = pci_request_regions(pdev, DRV_NAME);
-	if (rvalue) {
+
+	if (rvalue)
+	{
 		printk(KERN_ERR "%s: pci_request_regions failure (rc=%d)\n",
-		       DRV_NAME, rvalue);
+			   DRV_NAME, rvalue);
 		goto do_pci_disable_device;
 	}
 
 	/* check if the memory window is indeed set */
 	rvalue = pci_read_config_dword(pdev, PCI_BASE_ADDRESS_0, &mem_addr);
-	if (rvalue || !mem_addr) {
+
+	if (rvalue || !mem_addr)
+	{
 		printk(KERN_ERR "%s: PCI device memory region not configured; fix your BIOS or CardBus bridge/drivers\n",
-		       DRV_NAME);
+			   DRV_NAME);
 		goto do_pci_release_regions;
 	}
 
@@ -167,10 +180,11 @@ prism54_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	pci_try_set_mwi(pdev);
 
 	/* setup the network device interface and its structure */
-	if (!(ndev = islpci_setup(pdev))) {
+	if (!(ndev = islpci_setup(pdev)))
+	{
 		/* error configuring the driver as a network device */
 		printk(KERN_ERR "%s: could not configure network device\n",
-		       DRV_NAME);
+			   DRV_NAME);
 		goto do_pci_clear_mwi;
 	}
 
@@ -182,12 +196,13 @@ prism54_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 
 	/* request for the interrupt before uploading the firmware */
 	rvalue = request_irq(pdev->irq, islpci_interrupt,
-			     IRQF_SHARED, ndev->name, priv);
+						 IRQF_SHARED, ndev->name, priv);
 
-	if (rvalue) {
+	if (rvalue)
+	{
 		/* error, could not hook the handler to the irq */
 		printk(KERN_ERR "%s: could not install IRQ handler\n",
-		       ndev->name);
+			   ndev->name);
 		goto do_unregister_netdev;
 	}
 
@@ -195,16 +210,16 @@ prism54_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 
 	return 0;
 
-      do_unregister_netdev:
+do_unregister_netdev:
 	unregister_netdev(ndev);
 	islpci_free_memory(priv);
 	free_netdev(ndev);
 	priv = NULL;
-      do_pci_clear_mwi:
+do_pci_clear_mwi:
 	pci_clear_mwi(pdev);
-      do_pci_release_regions:
+do_pci_release_regions:
 	pci_release_regions(pdev);
-      do_pci_disable_device:
+do_pci_disable_device:
 	pci_disable_device(pdev);
 	return -EIO;
 }
@@ -220,7 +235,8 @@ prism54_remove(struct pci_dev *pdev)
 	islpci_private *priv = ndev ? netdev_priv(ndev) : NULL;
 	BUG_ON(!priv);
 
-	if (!__in_cleanup_module) {
+	if (!__in_cleanup_module)
+	{
 		printk(KERN_DEBUG "%s: hot unplug detected\n", ndev->name);
 		islpci_set_state(priv, PRV_STATE_OFF);
 	}
@@ -231,7 +247,8 @@ prism54_remove(struct pci_dev *pdev)
 
 	/* free the interrupt request */
 
-	if (islpci_get_state(priv) != PRV_STATE_OFF) {
+	if (islpci_get_state(priv) != PRV_STATE_OFF)
+	{
 		isl38xx_disable_interrupts(priv->device_base);
 		islpci_set_state(priv, PRV_STATE_OFF);
 		/* This bellow causes a lockup at rmmod time. It might be
@@ -290,9 +307,11 @@ prism54_resume(struct pci_dev *pdev)
 	printk(KERN_NOTICE "%s: got resume request\n", ndev->name);
 
 	err = pci_enable_device(pdev);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR "%s: pci_enable_device failed on resume\n",
-		       ndev->name);
+			   ndev->name);
 		return err;
 	}
 
@@ -311,7 +330,7 @@ static int __init
 prism54_module_init(void)
 {
 	printk(KERN_INFO "Loaded %s driver, version %s\n",
-	       DRV_NAME, DRV_VERSION);
+		   DRV_NAME, DRV_VERSION);
 
 	__bug_on_wrong_struct_sizes ();
 

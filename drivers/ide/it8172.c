@@ -63,12 +63,18 @@ static void it8172_set_pio_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 	drive_enables |= 0x4000;
 
 	drive_enables &= drive->dn ? 0xc006 : 0xc060;
+
 	if (drive->media == ide_disk)
 		/* enable prefetch */
+	{
 		drive_enables |= 0x0004 << (drive->dn * 4);
+	}
+
 	if (ide_pio_need_iordy(drive, pio))
 		/* enable IORDY sample-point */
+	{
 		drive_enables |= 0x0002 << (drive->dn * 4);
+	}
 
 	drive_timing &= drive->dn ? 0x00003f00 : 0x000fc000;
 	drive_timing |= timings[pio] << (drive->dn * 6 + 8);
@@ -89,14 +95,17 @@ static void it8172_set_dma_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 	pci_read_config_byte(dev, 0x48, &reg48);
 	pci_read_config_byte(dev, 0x4a, &reg4a);
 
-	if (speed >= XFER_UDMA_0) {
+	if (speed >= XFER_UDMA_0)
+	{
 		u8 udma = speed - XFER_UDMA_0;
 		u_speed = udma << (drive->dn * 4);
 
 		pci_write_config_byte(dev, 0x48, reg48 | u_flag);
 		reg4a &= ~a_speed;
 		pci_write_config_byte(dev, 0x4a, reg4a | u_speed);
-	} else {
+	}
+	else
+	{
 		const u8 mwdma_to_pio[] = { 0, 3, 4 };
 
 		pci_write_config_byte(dev, 0x48, reg48 & ~u_flag);
@@ -110,12 +119,14 @@ static void it8172_set_dma_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 }
 
 
-static const struct ide_port_ops it8172_port_ops = {
+static const struct ide_port_ops it8172_port_ops =
+{
 	.set_pio_mode	= it8172_set_pio_mode,
 	.set_dma_mode	= it8172_set_dma_mode,
 };
 
-static const struct ide_port_info it8172_port_info = {
+static const struct ide_port_info it8172_port_info =
+{
 	.name		= DRV_NAME,
 	.port_ops	= &it8172_port_ops,
 	.enablebits	= { {0x41, 0x80, 0x80}, {0x00, 0x00, 0x00} },
@@ -128,17 +139,22 @@ static const struct ide_port_info it8172_port_info = {
 static int it8172_init_one(struct pci_dev *dev, const struct pci_device_id *id)
 {
 	if ((dev->class >> 8) != PCI_CLASS_STORAGE_IDE)
-		return -ENODEV; /* IT8172 is more than an IDE controller */
+	{
+		return -ENODEV;    /* IT8172 is more than an IDE controller */
+	}
+
 	return ide_pci_init_one(dev, &it8172_port_info, NULL);
 }
 
-static struct pci_device_id it8172_pci_tbl[] = {
+static struct pci_device_id it8172_pci_tbl[] =
+{
 	{ PCI_VDEVICE(ITE, PCI_DEVICE_ID_ITE_8172), 0 },
 	{ 0, },
 };
 MODULE_DEVICE_TABLE(pci, it8172_pci_tbl);
 
-static struct pci_driver it8172_pci_driver = {
+static struct pci_driver it8172_pci_driver =
+{
 	.name		= "IT8172_IDE",
 	.id_table	= it8172_pci_tbl,
 	.probe		= it8172_init_one,

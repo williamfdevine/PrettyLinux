@@ -509,12 +509,14 @@
 #define DA7213_PLL_INDIV_36_TO_54_MHZ_VAL	16
 #define DA7213_SRM_CHECK_RETRIES		8
 
-enum da7213_clk_src {
+enum da7213_clk_src
+{
 	DA7213_CLKSRC_MCLK = 0,
 	DA7213_CLKSRC_MCLK_SQR,
 };
 
-enum da7213_sys_clk {
+enum da7213_sys_clk
+{
 	DA7213_SYSCLK_MCLK = 0,
 	DA7213_SYSCLK_PLL,
 	DA7213_SYSCLK_PLL_SRM,
@@ -522,7 +524,8 @@ enum da7213_sys_clk {
 };
 
 /* Codec private data */
-struct da7213_priv {
+struct da7213_priv
+{
 	struct regmap *regmap;
 	struct clk *mclk;
 	unsigned int mclk_rate;

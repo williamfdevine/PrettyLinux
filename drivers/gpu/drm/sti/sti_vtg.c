@@ -84,7 +84,8 @@ static LIST_HEAD(vtg_lookup);
  *@top_v_hd: stores the VTG_TOP_V_HD_x register offset
  *@bot_v_hd: stores the VTG_BOT_V_HD_x register offset
  */
-struct sti_vtg_regs_offs {
+struct sti_vtg_regs_offs
+{
 	u32 h_hd;
 	u32 top_v_vd;
 	u32 bot_v_vd;
@@ -93,15 +94,24 @@ struct sti_vtg_regs_offs {
 };
 
 #define VTG_MAX_SYNC_OUTPUT 4
-static const struct sti_vtg_regs_offs vtg_regs_offs[VTG_MAX_SYNC_OUTPUT] = {
-	{ VTG_H_HD_1,
-	  VTG_TOP_V_VD_1, VTG_BOT_V_VD_1, VTG_TOP_V_HD_1, VTG_BOT_V_HD_1 },
-	{ VTG_H_HD_2,
-	  VTG_TOP_V_VD_2, VTG_BOT_V_VD_2, VTG_TOP_V_HD_2, VTG_BOT_V_HD_2 },
-	{ VTG_H_HD_3,
-	  VTG_TOP_V_VD_3, VTG_BOT_V_VD_3, VTG_TOP_V_HD_3, VTG_BOT_V_HD_3 },
-	{ VTG_H_HD_4,
-	  VTG_TOP_V_VD_4, VTG_BOT_V_VD_4, VTG_TOP_V_HD_4, VTG_BOT_V_HD_4 }
+static const struct sti_vtg_regs_offs vtg_regs_offs[VTG_MAX_SYNC_OUTPUT] =
+{
+	{
+		VTG_H_HD_1,
+		VTG_TOP_V_VD_1, VTG_BOT_V_VD_1, VTG_TOP_V_HD_1, VTG_BOT_V_HD_1
+	},
+	{
+		VTG_H_HD_2,
+		VTG_TOP_V_VD_2, VTG_BOT_V_VD_2, VTG_TOP_V_HD_2, VTG_BOT_V_HD_2
+	},
+	{
+		VTG_H_HD_3,
+		VTG_TOP_V_VD_3, VTG_BOT_V_VD_3, VTG_TOP_V_HD_3, VTG_BOT_V_HD_3
+	},
+	{
+		VTG_H_HD_4,
+		VTG_TOP_V_VD_4, VTG_BOT_V_VD_4, VTG_TOP_V_HD_4, VTG_BOT_V_HD_4
+	}
 };
 
 /*
@@ -113,7 +123,8 @@ static const struct sti_vtg_regs_offs vtg_regs_offs[VTG_MAX_SYNC_OUTPUT] = {
  *@vsync_off_top: vertical top field sample number rising and falling edge
  *@vsync_off_bot: vertical bottom field sample number rising and falling edge
  */
-struct sti_vtg_sync_params {
+struct sti_vtg_sync_params
+{
 	u32 hsync;
 	u32 vsync_line_top;
 	u32 vsync_line_bot;
@@ -135,7 +146,8 @@ struct sti_vtg_sync_params {
  * @slave: slave vtg
  * @link: List node to link the structure in lookup list
  */
-struct sti_vtg {
+struct sti_vtg
+{
 	struct device *dev;
 	struct device_node *np;
 	void __iomem *regs;
@@ -157,9 +169,12 @@ struct sti_vtg *of_vtg_find(struct device_node *np)
 {
 	struct sti_vtg *vtg;
 
-	list_for_each_entry(vtg, &vtg_lookup, link) {
+	list_for_each_entry(vtg, &vtg_lookup, link)
+	{
 		if (vtg->np == np)
+		{
 			return vtg;
+		}
 	}
 	return NULL;
 }
@@ -168,13 +183,15 @@ static void vtg_reset(struct sti_vtg *vtg)
 {
 	/* reset slave and then master */
 	if (vtg->slave)
+	{
 		vtg_reset(vtg->slave);
+	}
 
 	writel(1, vtg->regs + VTG_DRST_AUTOC);
 }
 
 static void vtg_set_output_window(void __iomem *regs,
-				  const struct drm_display_mode *mode)
+								  const struct drm_display_mode *mode)
 {
 	u32 video_top_field_start;
 	u32 video_top_field_stop;
@@ -200,8 +217,8 @@ static void vtg_set_output_window(void __iomem *regs,
 }
 
 static void vtg_set_hsync_vsync_pos(struct sti_vtg_sync_params *sync,
-				    int delay,
-				    const struct drm_display_mode *mode)
+									int delay,
+									const struct drm_display_mode *mode)
 {
 	long clocksperline, start, stop;
 	u32 risesync_top, fallsync_top;
@@ -217,26 +234,37 @@ static void vtg_set_hsync_vsync_pos(struct sti_vtg_sync_params *sync,
 	stop  += delay;
 
 	if (start < 0)
+	{
 		start += clocksperline;
+	}
 	else if (start >= clocksperline)
+	{
 		start -= clocksperline;
+	}
 
 	if (stop < 0)
+	{
 		stop += clocksperline;
+	}
 	else if (stop >= clocksperline)
+	{
 		stop -= clocksperline;
+	}
 
 	sync->hsync = (stop << 16) | start;
 
 	/* Get the vsync position */
-	if (delay >= 0) {
+	if (delay >= 0)
+	{
 		risesync_top = 1;
 		fallsync_top = risesync_top;
 		fallsync_top += mode->vsync_end - mode->vsync_start;
 
 		fallsync_offs_top = (u32)delay;
 		risesync_offs_top = (u32)delay;
-	} else {
+	}
+	else
+	{
 		risesync_top = mode->vtotal;
 		fallsync_top = mode->vsync_end - mode->vsync_start;
 
@@ -253,15 +281,15 @@ static void vtg_set_hsync_vsync_pos(struct sti_vtg_sync_params *sync,
 }
 
 static void vtg_set_mode(struct sti_vtg *vtg,
-			 int type,
-			 struct sti_vtg_sync_params *sync,
-			 const struct drm_display_mode *mode)
+						 int type,
+						 struct sti_vtg_sync_params *sync,
+						 const struct drm_display_mode *mode)
 {
 	unsigned int i;
 
 	if (vtg->slave)
 		vtg_set_mode(vtg->slave, VTG_MODE_SLAVE_BY_EXT0,
-			     vtg->sync_params, mode);
+					 vtg->sync_params, mode);
 
 	/* Set the number of clock cycles per line */
 	writel(mode->htotal, vtg->regs + VTG_CLKLN);
@@ -285,17 +313,18 @@ static void vtg_set_mode(struct sti_vtg *vtg,
 	vtg_set_hsync_vsync_pos(&sync[VTG_SYNC_ID_DVO - 1], DVO_DELAY, mode);
 
 	/* Progam the syncs outputs */
-	for (i = 0; i < VTG_MAX_SYNC_OUTPUT ; i++) {
+	for (i = 0; i < VTG_MAX_SYNC_OUTPUT ; i++)
+	{
 		writel(sync[i].hsync,
-		       vtg->regs + vtg_regs_offs[i].h_hd);
+			   vtg->regs + vtg_regs_offs[i].h_hd);
 		writel(sync[i].vsync_line_top,
-		       vtg->regs + vtg_regs_offs[i].top_v_vd);
+			   vtg->regs + vtg_regs_offs[i].top_v_vd);
 		writel(sync[i].vsync_line_bot,
-		       vtg->regs + vtg_regs_offs[i].bot_v_vd);
+			   vtg->regs + vtg_regs_offs[i].bot_v_vd);
 		writel(sync[i].vsync_off_top,
-		       vtg->regs + vtg_regs_offs[i].top_v_hd);
+			   vtg->regs + vtg_regs_offs[i].top_v_hd);
 		writel(sync[i].vsync_off_bot,
-		       vtg->regs + vtg_regs_offs[i].bot_v_hd);
+			   vtg->regs + vtg_regs_offs[i].bot_v_hd);
 	}
 
 	/* mode */
@@ -311,7 +340,7 @@ static void vtg_enable_irq(struct sti_vtg *vtg)
 }
 
 void sti_vtg_set_config(struct sti_vtg *vtg,
-		const struct drm_display_mode *mode)
+						const struct drm_display_mode *mode)
 {
 	/* write configuration */
 	vtg_set_mode(vtg, VTG_MODE_MASTER, vtg->sync_params, mode);
@@ -320,9 +349,13 @@ void sti_vtg_set_config(struct sti_vtg *vtg,
 
 	/* enable irq for the vtg vblank synchro */
 	if (vtg->slave)
+	{
 		vtg_enable_irq(vtg->slave);
+	}
 	else
+	{
 		vtg_enable_irq(vtg);
+	}
 }
 
 /**
@@ -342,7 +375,9 @@ u32 sti_vtg_get_line_number(struct drm_display_mode mode, int y)
 	u32 start_line = mode.vtotal - mode.vsync_start + 1;
 
 	if (mode.flags & DRM_MODE_FLAG_INTERLACE)
+	{
 		start_line *= 2;
+	}
 
 	return start_line + y;
 }
@@ -363,10 +398,12 @@ u32 sti_vtg_get_pixel_number(struct drm_display_mode mode, int x)
 }
 
 int sti_vtg_register_client(struct sti_vtg *vtg, struct notifier_block *nb,
-			    struct drm_crtc *crtc)
+							struct drm_crtc *crtc)
 {
 	if (vtg->slave)
+	{
 		return sti_vtg_register_client(vtg->slave, nb, crtc);
+	}
 
 	vtg->crtc = crtc;
 	return raw_notifier_chain_register(&vtg->notifier_list, nb);
@@ -375,7 +412,9 @@ int sti_vtg_register_client(struct sti_vtg *vtg, struct notifier_block *nb,
 int sti_vtg_unregister_client(struct sti_vtg *vtg, struct notifier_block *nb)
 {
 	if (vtg->slave)
+	{
 		return sti_vtg_unregister_client(vtg->slave, nb);
+	}
 
 	return raw_notifier_chain_unregister(&vtg->notifier_list, nb);
 }
@@ -386,7 +425,7 @@ static irqreturn_t vtg_irq_thread(int irq, void *arg)
 	u32 event;
 
 	event = (vtg->irq_status & VTG_IRQ_TOP) ?
-		VTG_TOP_FIELD_EVENT : VTG_BOTTOM_FIELD_EVENT;
+			VTG_TOP_FIELD_EVENT : VTG_BOTTOM_FIELD_EVENT;
 
 	raw_notifier_call_chain(&vtg->notifier_list, event, vtg->crtc);
 
@@ -416,30 +455,44 @@ static int vtg_probe(struct platform_device *pdev)
 	int ret;
 
 	vtg = devm_kzalloc(dev, sizeof(*vtg), GFP_KERNEL);
+
 	if (!vtg)
+	{
 		return -ENOMEM;
+	}
 
 	vtg->dev = dev;
 	vtg->np = pdev->dev.of_node;
 
 	/* Get Memory ressources */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		DRM_ERROR("Get memory resource failed\n");
 		return -ENOMEM;
 	}
+
 	vtg->regs = devm_ioremap_nocache(dev, res->start, resource_size(res));
 
 	np = of_parse_phandle(pdev->dev.of_node, "st,slave", 0);
-	if (np) {
+
+	if (np)
+	{
 		vtg->slave = of_vtg_find(np);
 		of_node_put(np);
 
 		if (!vtg->slave)
+		{
 			return -EPROBE_DEFER;
-	} else {
+		}
+	}
+	else
+	{
 		vtg->irq = platform_get_irq(pdev, 0);
-		if (vtg->irq < 0) {
+
+		if (vtg->irq < 0)
+		{
 			DRM_ERROR("Failed to get VTG interrupt\n");
 			return vtg->irq;
 		}
@@ -447,9 +500,11 @@ static int vtg_probe(struct platform_device *pdev)
 		RAW_INIT_NOTIFIER_HEAD(&vtg->notifier_list);
 
 		ret = devm_request_threaded_irq(dev, vtg->irq, vtg_irq,
-				vtg_irq_thread, IRQF_ONESHOT,
-				dev_name(dev), vtg);
-		if (ret < 0) {
+										vtg_irq_thread, IRQF_ONESHOT,
+										dev_name(dev), vtg);
+
+		if (ret < 0)
+		{
 			DRM_ERROR("Failed to register VTG interrupt\n");
 			return ret;
 		}
@@ -468,13 +523,15 @@ static int vtg_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id vtg_of_match[] = {
+static const struct of_device_id vtg_of_match[] =
+{
 	{ .compatible = "st,vtg", },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, vtg_of_match);
 
-struct platform_driver sti_vtg_driver = {
+struct platform_driver sti_vtg_driver =
+{
 	.driver = {
 		.name = "sti-vtg",
 		.owner = THIS_MODULE,

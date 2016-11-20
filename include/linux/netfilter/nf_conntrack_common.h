@@ -3,7 +3,8 @@
 
 #include <uapi/linux/netfilter/nf_conntrack_common.h>
 
-struct ip_conntrack_stat {
+struct ip_conntrack_stat
+{
 	unsigned int found;
 	unsigned int invalid;
 	unsigned int ignore;

@@ -51,9 +51,9 @@ typedef bool v4l2_check_dv_timings_fnc(const struct v4l2_dv_timings *t, void *ha
  * false otherwise.
  */
 bool v4l2_valid_dv_timings(const struct v4l2_dv_timings *t,
-			   const struct v4l2_dv_timings_cap *cap,
-			   v4l2_check_dv_timings_fnc fnc,
-			   void *fnc_handle);
+						   const struct v4l2_dv_timings_cap *cap,
+						   v4l2_check_dv_timings_fnc fnc,
+						   void *fnc_handle);
 
 /**
  * v4l2_enum_dv_timings_cap() - Helper function to enumerate possible DV
@@ -72,9 +72,9 @@ bool v4l2_valid_dv_timings(const struct v4l2_dv_timings *t,
  * return 0, otherwise it returns -EINVAL.
  */
 int v4l2_enum_dv_timings_cap(struct v4l2_enum_dv_timings *t,
-			     const struct v4l2_dv_timings_cap *cap,
-			     v4l2_check_dv_timings_fnc fnc,
-			     void *fnc_handle);
+							 const struct v4l2_dv_timings_cap *cap,
+							 v4l2_check_dv_timings_fnc fnc,
+							 void *fnc_handle);
 
 /**
  * v4l2_find_dv_timings_cap() - Find the closest timings struct
@@ -95,10 +95,10 @@ int v4l2_enum_dv_timings_cap(struct v4l2_enum_dv_timings *t,
  * On failure it will return false.
  */
 bool v4l2_find_dv_timings_cap(struct v4l2_dv_timings *t,
-			      const struct v4l2_dv_timings_cap *cap,
-			      unsigned pclock_delta,
-			      v4l2_check_dv_timings_fnc fnc,
-			      void *fnc_handle);
+							  const struct v4l2_dv_timings_cap *cap,
+							  unsigned pclock_delta,
+							  v4l2_check_dv_timings_fnc fnc,
+							  void *fnc_handle);
 
 /**
  * v4l2_match_dv_timings() - do two timings match?
@@ -113,8 +113,8 @@ bool v4l2_find_dv_timings_cap(struct v4l2_dv_timings *t,
  * Returns true if the two timings match, returns false otherwise.
  */
 bool v4l2_match_dv_timings(const struct v4l2_dv_timings *measured,
-			   const struct v4l2_dv_timings *standard,
-			   unsigned pclock_delta, bool match_reduced_fps);
+						   const struct v4l2_dv_timings *standard,
+						   unsigned pclock_delta, bool match_reduced_fps);
 
 /**
  * v4l2_print_dv_timings() - log the contents of a dv_timings struct
@@ -124,7 +124,7 @@ bool v4l2_match_dv_timings(const struct v4l2_dv_timings *measured,
  * @detailed:	if true, give a detailed log.
  */
 void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
-			   const struct v4l2_dv_timings *t, bool detailed);
+						   const struct v4l2_dv_timings *t, bool detailed);
 
 /**
  * v4l2_detect_cvt - detect if the given timings follow the CVT standard
@@ -145,8 +145,8 @@ void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
  * in with the found CVT timings.
  */
 bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
-		unsigned active_width, u32 polarities, bool interlaced,
-		struct v4l2_dv_timings *fmt);
+					 unsigned active_width, u32 polarities, bool interlaced,
+					 struct v4l2_dv_timings *fmt);
 
 /**
  * v4l2_detect_gtf - detect if the given timings follow the GTF standard
@@ -169,8 +169,8 @@ bool v4l2_detect_cvt(unsigned frame_height, unsigned hfreq, unsigned vsync,
  * in with the found GTF timings.
  */
 bool v4l2_detect_gtf(unsigned frame_height, unsigned hfreq, unsigned vsync,
-		u32 polarities, bool interlaced, struct v4l2_fract aspect,
-		struct v4l2_dv_timings *fmt);
+					 u32 polarities, bool interlaced, struct v4l2_fract aspect,
+					 struct v4l2_dv_timings *fmt);
 
 /**
  * v4l2_calc_aspect_ratio - calculate the aspect ratio based on bytes
@@ -196,11 +196,15 @@ struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait);
 static inline  bool can_reduce_fps(struct v4l2_bt_timings *bt)
 {
 	if ((bt->standards & V4L2_DV_BT_STD_CVT) && (bt->vsync == 8))
+	{
 		return true;
+	}
 
 	if ((bt->standards & V4L2_DV_BT_STD_CEA861) &&
-	    (bt->flags & V4L2_DV_FL_CAN_REDUCE_FPS))
+		(bt->flags & V4L2_DV_FL_CAN_REDUCE_FPS))
+	{
 		return true;
+	}
 
 	return false;
 }

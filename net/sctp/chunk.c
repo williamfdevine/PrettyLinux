@@ -63,10 +63,13 @@ static struct sctp_datamsg *sctp_datamsg_new(gfp_t gfp)
 {
 	struct sctp_datamsg *msg;
 	msg = kmalloc(sizeof(struct sctp_datamsg), gfp);
-	if (msg) {
+
+	if (msg)
+	{
 		sctp_datamsg_init(msg);
 		SCTP_DBG_OBJCNT_INC(datamsg);
 	}
+
 	return msg;
 }
 
@@ -78,7 +81,7 @@ void sctp_datamsg_free(struct sctp_datamsg *msg)
 	 * sctp_chunk_free() only drops the refs.
 	 */
 	list_for_each_entry(chunk, &msg->chunks, frag_list)
-		sctp_chunk_free(chunk);
+	sctp_chunk_free(chunk);
 
 	sctp_datamsg_put(msg);
 }
@@ -97,34 +100,51 @@ static void sctp_datamsg_destroy(struct sctp_datamsg *msg)
 	notify = msg->send_failed ? -1 : 0;
 
 	/* Release all references. */
-	list_for_each_safe(pos, temp, &msg->chunks) {
+	list_for_each_safe(pos, temp, &msg->chunks)
+	{
 		list_del_init(pos);
 		chunk = list_entry(pos, struct sctp_chunk, frag_list);
+
 		/* Check whether we _really_ need to notify. */
-		if (notify < 0) {
+		if (notify < 0)
+		{
 			asoc = chunk->asoc;
+
 			if (msg->send_error)
+			{
 				error = msg->send_error;
+			}
 			else
+			{
 				error = asoc->outqueue.error;
+			}
 
 			sp = sctp_sk(asoc->base.sk);
 			notify = sctp_ulpevent_type_enabled(SCTP_SEND_FAILED,
-							    &sp->subscribe);
+												&sp->subscribe);
 		}
 
 		/* Generate a SEND FAILED event only if enabled. */
-		if (notify > 0) {
+		if (notify > 0)
+		{
 			int sent;
+
 			if (chunk->has_tsn)
+			{
 				sent = SCTP_DATA_SENT;
+			}
 			else
+			{
 				sent = SCTP_DATA_UNSENT;
+			}
 
 			ev = sctp_ulpevent_make_send_failed(asoc, chunk, sent,
-							    error, GFP_ATOMIC);
+												error, GFP_ATOMIC);
+
 			if (ev)
+			{
 				sctp_ulpq_tail_event(&asoc->ulpq, ev);
+			}
 		}
 
 		sctp_chunk_put(chunk);
@@ -144,7 +164,9 @@ static void sctp_datamsg_hold(struct sctp_datamsg *msg)
 void sctp_datamsg_put(struct sctp_datamsg *msg)
 {
 	if (atomic_dec_and_test(&msg->refcnt))
+	{
 		sctp_datamsg_destroy(msg);
+	}
 }
 
 /* Assign a chunk to this datamsg. */
@@ -163,8 +185,8 @@ static void sctp_datamsg_assign(struct sctp_datamsg *msg, struct sctp_chunk *chu
  * soft-interrupt.
  */
 struct sctp_datamsg *sctp_datamsg_from_user(struct sctp_association *asoc,
-					    struct sctp_sndrcvinfo *sinfo,
-					    struct iov_iter *from)
+		struct sctp_sndrcvinfo *sinfo,
+		struct iov_iter *from)
 {
 	int max, whole, i, offset, over, err;
 	int len, first_len;
@@ -176,24 +198,28 @@ struct sctp_datamsg *sctp_datamsg_from_user(struct sctp_association *asoc,
 	__u8 frag;
 
 	msg = sctp_datamsg_new(GFP_KERNEL);
+
 	if (!msg)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	/* Note: Calculate this outside of the loop, so that all fragments
 	 * have the same expiration.
 	 */
-	if (sinfo->sinfo_timetolive) {
+	if (sinfo->sinfo_timetolive)
+	{
 		/* sinfo_timetolive is in milliseconds */
 		msg->expires_at = jiffies +
-				    msecs_to_jiffies(sinfo->sinfo_timetolive);
+						  msecs_to_jiffies(sinfo->sinfo_timetolive);
 		msg->can_abandon = 1;
 
 		pr_debug("%s: msg:%p expires_at:%ld jiffies:%ld\n", __func__,
-			 msg, msg->expires_at, jiffies);
+				 msg, msg->expires_at, jiffies);
 	}
 
 	if (asoc->peer.prsctp_capable &&
-	    SCTP_PR_TTL_ENABLED(sinfo->sinfo_flags))
+		SCTP_PR_TTL_ENABLED(sinfo->sinfo_flags))
 		msg->expires_at =
 			jiffies + msecs_to_jiffies(sinfo->sinfo_timetolive);
 
@@ -201,26 +227,30 @@ struct sctp_datamsg *sctp_datamsg_from_user(struct sctp_association *asoc,
 	 * the packet
 	 */
 	max_data = asoc->pathmtu -
-		   sctp_sk(asoc->base.sk)->pf->af->net_header_len -
-		   sizeof(struct sctphdr) - sizeof(struct sctp_data_chunk);
+			   sctp_sk(asoc->base.sk)->pf->af->net_header_len -
+			   sizeof(struct sctphdr) - sizeof(struct sctp_data_chunk);
 	max_data = SCTP_TRUNC4(max_data);
 
 	max = asoc->frag_point;
+
 	/* If the the peer requested that we authenticate DATA chunks
 	 * we need to account for bundling of the AUTH chunks along with
 	 * DATA.
 	 */
-	if (sctp_auth_send_cid(SCTP_CID_DATA, asoc)) {
+	if (sctp_auth_send_cid(SCTP_CID_DATA, asoc))
+	{
 		struct sctp_hmac *hmac_desc = sctp_auth_asoc_get_hmac(asoc);
 
 		if (hmac_desc)
 			max_data -= SCTP_PAD4(sizeof(sctp_auth_chunk_t) +
-					      hmac_desc->hmac_len);
+								  hmac_desc->hmac_len);
 	}
 
 	/* Now, check if we need to reduce our max */
 	if (max > max_data)
+	{
 		max = max_data;
+	}
 
 	whole = 0;
 	first_len = max;
@@ -232,21 +262,28 @@ struct sctp_datamsg *sctp_datamsg_from_user(struct sctp_association *asoc,
 	 * not have been fragmented.
 	 */
 	if (timer_pending(&asoc->timers[SCTP_EVENT_TIMEOUT_SACK]) &&
-	    asoc->outqueue.out_qlen == 0 &&
-	    list_empty(&asoc->outqueue.retransmit) &&
-	    msg_len > max)
+		asoc->outqueue.out_qlen == 0 &&
+		list_empty(&asoc->outqueue.retransmit) &&
+		msg_len > max)
+	{
 		max_data -= SCTP_PAD4(sizeof(sctp_sack_chunk_t));
+	}
 
 	/* Encourage Cookie-ECHO bundling. */
 	if (asoc->state < SCTP_STATE_COOKIE_ECHOED)
+	{
 		max_data -= SCTP_ARBITRARY_COOKIE_ECHO_LEN;
+	}
 
 	/* Now that we adjusted completely, reset first_len */
 	if (first_len > max_data)
+	{
 		first_len = max_data;
+	}
 
 	/* Account for a different sized first fragment */
-	if (msg_len >= first_len) {
+	if (msg_len >= first_len)
+	{
 		msg_len -= first_len;
 		whole = 1;
 		msg->can_delay = 0;
@@ -258,16 +295,22 @@ struct sctp_datamsg *sctp_datamsg_from_user(struct sctp_association *asoc,
 	offset = 0;
 
 	if ((whole > 1) || (whole && over))
+	{
 		SCTP_INC_STATS(sock_net(asoc->base.sk), SCTP_MIB_FRAGUSRMSGS);
+	}
 
 	/* Create chunks for all the full sized DATA chunks. */
-	for (i = 0, len = first_len; i < whole; i++) {
+	for (i = 0, len = first_len; i < whole; i++)
+	{
 		frag = SCTP_DATA_MIDDLE_FRAG;
 
 		if (0 == i)
+		{
 			frag |= SCTP_DATA_FIRST_FRAG;
+		}
 
-		if ((i == (whole - 1)) && !over) {
+		if ((i == (whole - 1)) && !over)
+		{
 			frag |= SCTP_DATA_LAST_FRAG;
 
 			/* The application requests to set the I-bit of the
@@ -275,25 +318,31 @@ struct sctp_datamsg *sctp_datamsg_from_user(struct sctp_association *asoc,
 			 * the user message to the SCTP implementation.
 			 */
 			if ((sinfo->sinfo_flags & SCTP_EOF) ||
-			    (sinfo->sinfo_flags & SCTP_SACK_IMMEDIATELY))
+				(sinfo->sinfo_flags & SCTP_SACK_IMMEDIATELY))
+			{
 				frag |= SCTP_DATA_SACK_IMM;
+			}
 		}
 
 		chunk = sctp_make_datafrag_empty(asoc, sinfo, len, frag,
-						 0, GFP_KERNEL);
+										 0, GFP_KERNEL);
 
-		if (!chunk) {
+		if (!chunk)
+		{
 			err = -ENOMEM;
 			goto errout;
 		}
 
 		err = sctp_user_addto_chunk(chunk, len, from);
+
 		if (err < 0)
+		{
 			goto errout_chunk_free;
+		}
 
 		/* Put the chunk->skb back into the form expected by send.  */
 		__skb_pull(chunk->skb, (__u8 *)chunk->chunk_hdr
-			   - (__u8 *)chunk->skb->data);
+				   - (__u8 *)chunk->skb->data);
 
 		sctp_datamsg_assign(msg, chunk);
 		list_add_tail(&chunk->frag_list, &msg->chunks);
@@ -302,24 +351,34 @@ struct sctp_datamsg *sctp_datamsg_from_user(struct sctp_association *asoc,
 		 * to allow bundling, so reset to full size.
 		 */
 		if (0 == i)
+		{
 			len = max;
+		}
 	}
 
 	/* .. now the leftover bytes. */
-	if (over) {
+	if (over)
+	{
 		if (!whole)
+		{
 			frag = SCTP_DATA_NOT_FRAG;
+		}
 		else
+		{
 			frag = SCTP_DATA_LAST_FRAG;
+		}
 
 		if ((sinfo->sinfo_flags & SCTP_EOF) ||
-		    (sinfo->sinfo_flags & SCTP_SACK_IMMEDIATELY))
+			(sinfo->sinfo_flags & SCTP_SACK_IMMEDIATELY))
+		{
 			frag |= SCTP_DATA_SACK_IMM;
+		}
 
 		chunk = sctp_make_datafrag_empty(asoc, sinfo, over, frag,
-						 0, GFP_KERNEL);
+										 0, GFP_KERNEL);
 
-		if (!chunk) {
+		if (!chunk)
+		{
 			err = -ENOMEM;
 			goto errout;
 		}
@@ -328,9 +387,12 @@ struct sctp_datamsg *sctp_datamsg_from_user(struct sctp_association *asoc,
 
 		/* Put the chunk->skb back into the form expected by send.  */
 		__skb_pull(chunk->skb, (__u8 *)chunk->chunk_hdr
-			   - (__u8 *)chunk->skb->data);
+				   - (__u8 *)chunk->skb->data);
+
 		if (err < 0)
+		{
 			goto errout_chunk_free;
+		}
 
 		sctp_datamsg_assign(msg, chunk);
 		list_add_tail(&chunk->frag_list, &msg->chunks);
@@ -342,7 +404,8 @@ errout_chunk_free:
 	sctp_chunk_free(chunk);
 
 errout:
-	list_for_each_safe(pos, temp, &msg->chunks) {
+	list_for_each_safe(pos, temp, &msg->chunks)
+	{
 		list_del_init(pos);
 		chunk = list_entry(pos, struct sctp_chunk, frag_list);
 		sctp_chunk_free(chunk);
@@ -355,30 +418,44 @@ errout:
 int sctp_chunk_abandoned(struct sctp_chunk *chunk)
 {
 	if (!chunk->asoc->peer.prsctp_capable ||
-	    !SCTP_PR_POLICY(chunk->sinfo.sinfo_flags)) {
+		!SCTP_PR_POLICY(chunk->sinfo.sinfo_flags))
+	{
 		struct sctp_datamsg *msg = chunk->msg;
 
 		if (!msg->can_abandon)
+		{
 			return 0;
+		}
 
 		if (time_after(jiffies, msg->expires_at))
+		{
 			return 1;
+		}
 
 		return 0;
 	}
 
 	if (SCTP_PR_TTL_ENABLED(chunk->sinfo.sinfo_flags) &&
-	    time_after(jiffies, chunk->msg->expires_at)) {
+		time_after(jiffies, chunk->msg->expires_at))
+	{
 		if (chunk->sent_count)
+		{
 			chunk->asoc->abandoned_sent[SCTP_PR_INDEX(TTL)]++;
+		}
 		else
+		{
 			chunk->asoc->abandoned_unsent[SCTP_PR_INDEX(TTL)]++;
+		}
+
 		return 1;
-	} else if (SCTP_PR_RTX_ENABLED(chunk->sinfo.sinfo_flags) &&
-		   chunk->sent_count > chunk->sinfo.sinfo_timetolive) {
+	}
+	else if (SCTP_PR_RTX_ENABLED(chunk->sinfo.sinfo_flags) &&
+			 chunk->sent_count > chunk->sinfo.sinfo_timetolive)
+	{
 		chunk->asoc->abandoned_sent[SCTP_PR_INDEX(RTX)]++;
 		return 1;
 	}
+
 	/* PRIO policy is processed by sendmsg, not here */
 
 	return 0;

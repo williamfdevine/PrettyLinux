@@ -43,22 +43,37 @@ g94_gpio_intr_mask(struct nvkm_gpio *gpio, u32 type, u32 mask, u32 data)
 	struct nvkm_device *device = gpio->subdev.device;
 	u32 inte0 = nvkm_rd32(device, 0x00e050);
 	u32 inte1 = nvkm_rd32(device, 0x00e070);
+
 	if (type & NVKM_GPIO_LO)
+	{
 		inte0 = (inte0 & ~(mask << 16)) | (data << 16);
+	}
+
 	if (type & NVKM_GPIO_HI)
+	{
 		inte0 = (inte0 & ~(mask & 0xffff)) | (data & 0xffff);
+	}
+
 	mask >>= 16;
 	data >>= 16;
+
 	if (type & NVKM_GPIO_LO)
+	{
 		inte1 = (inte1 & ~(mask << 16)) | (data << 16);
+	}
+
 	if (type & NVKM_GPIO_HI)
+	{
 		inte1 = (inte1 & ~mask) | data;
+	}
+
 	nvkm_wr32(device, 0x00e050, inte0);
 	nvkm_wr32(device, 0x00e070, inte1);
 }
 
 static const struct nvkm_gpio_func
-g94_gpio = {
+	g94_gpio =
+{
 	.lines = 32,
 	.intr_stat = g94_gpio_intr_stat,
 	.intr_mask = g94_gpio_intr_mask,

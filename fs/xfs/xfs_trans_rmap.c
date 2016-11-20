@@ -40,37 +40,53 @@ xfs_trans_set_rmap_flags(
 	xfs_exntst_t			state)
 {
 	rmap->me_flags = 0;
+
 	if (state == XFS_EXT_UNWRITTEN)
+	{
 		rmap->me_flags |= XFS_RMAP_EXTENT_UNWRITTEN;
+	}
+
 	if (whichfork == XFS_ATTR_FORK)
+	{
 		rmap->me_flags |= XFS_RMAP_EXTENT_ATTR_FORK;
-	switch (type) {
-	case XFS_RMAP_MAP:
-		rmap->me_flags |= XFS_RMAP_EXTENT_MAP;
-		break;
-	case XFS_RMAP_MAP_SHARED:
-		rmap->me_flags |= XFS_RMAP_EXTENT_MAP_SHARED;
-		break;
-	case XFS_RMAP_UNMAP:
-		rmap->me_flags |= XFS_RMAP_EXTENT_UNMAP;
-		break;
-	case XFS_RMAP_UNMAP_SHARED:
-		rmap->me_flags |= XFS_RMAP_EXTENT_UNMAP_SHARED;
-		break;
-	case XFS_RMAP_CONVERT:
-		rmap->me_flags |= XFS_RMAP_EXTENT_CONVERT;
-		break;
-	case XFS_RMAP_CONVERT_SHARED:
-		rmap->me_flags |= XFS_RMAP_EXTENT_CONVERT_SHARED;
-		break;
-	case XFS_RMAP_ALLOC:
-		rmap->me_flags |= XFS_RMAP_EXTENT_ALLOC;
-		break;
-	case XFS_RMAP_FREE:
-		rmap->me_flags |= XFS_RMAP_EXTENT_FREE;
-		break;
-	default:
-		ASSERT(0);
+	}
+
+	switch (type)
+	{
+		case XFS_RMAP_MAP:
+			rmap->me_flags |= XFS_RMAP_EXTENT_MAP;
+			break;
+
+		case XFS_RMAP_MAP_SHARED:
+			rmap->me_flags |= XFS_RMAP_EXTENT_MAP_SHARED;
+			break;
+
+		case XFS_RMAP_UNMAP:
+			rmap->me_flags |= XFS_RMAP_EXTENT_UNMAP;
+			break;
+
+		case XFS_RMAP_UNMAP_SHARED:
+			rmap->me_flags |= XFS_RMAP_EXTENT_UNMAP_SHARED;
+			break;
+
+		case XFS_RMAP_CONVERT:
+			rmap->me_flags |= XFS_RMAP_EXTENT_CONVERT;
+			break;
+
+		case XFS_RMAP_CONVERT_SHARED:
+			rmap->me_flags |= XFS_RMAP_EXTENT_CONVERT_SHARED;
+			break;
+
+		case XFS_RMAP_ALLOC:
+			rmap->me_flags |= XFS_RMAP_EXTENT_ALLOC;
+			break;
+
+		case XFS_RMAP_FREE:
+			rmap->me_flags |= XFS_RMAP_EXTENT_FREE;
+			break;
+
+		default:
+			ASSERT(0);
 	}
 }
 
@@ -107,7 +123,7 @@ xfs_trans_log_finish_rmap_update(
 	int				error;
 
 	error = xfs_rmap_finish_one(tp, type, owner, whichfork, startoff,
-			startblock, blockcount, state, pcur);
+								startblock, blockcount, state, pcur);
 
 	/*
 	 * Mark the transaction dirty, even on error. This ensures the
@@ -136,7 +152,7 @@ xfs_rmap_update_diff_items(
 	ra = container_of(a, struct xfs_rmap_intent, ri_list);
 	rb = container_of(b, struct xfs_rmap_intent, ri_list);
 	return  XFS_FSB_TO_AGNO(mp, ra->ri_bmap.br_startblock) -
-		XFS_FSB_TO_AGNO(mp, rb->ri_bmap.br_startblock);
+			XFS_FSB_TO_AGNO(mp, rb->ri_bmap.br_startblock);
 }
 
 /* Get an RUI. */
@@ -190,7 +206,7 @@ xfs_rmap_update_log_item(
 	map->me_startoff = rmap->ri_bmap.br_startoff;
 	map->me_len = rmap->ri_bmap.br_blockcount;
 	xfs_trans_set_rmap_flags(map, rmap->ri_type, rmap->ri_whichfork,
-			rmap->ri_bmap.br_state);
+							 rmap->ri_bmap.br_state);
 }
 
 /* Get an RUD so we can process all the deferred rmap updates. */
@@ -259,7 +275,8 @@ xfs_rmap_update_cancel_item(
 	kmem_free(rmap);
 }
 
-static const struct xfs_defer_op_type xfs_rmap_update_defer_type = {
+static const struct xfs_defer_op_type xfs_rmap_update_defer_type =
+{
 	.type		= XFS_DEFER_OPS_TYPE_RMAP,
 	.max_items	= XFS_RUI_MAX_FAST_EXTENTS,
 	.diff_items	= xfs_rmap_update_diff_items,

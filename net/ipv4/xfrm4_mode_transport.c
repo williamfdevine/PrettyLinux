@@ -25,7 +25,7 @@ static int xfrm4_transport_output(struct xfrm_state *x, struct sk_buff *skb)
 
 	skb_set_network_header(skb, -x->props.header_len);
 	skb->mac_header = skb->network_header +
-			  offsetof(struct iphdr, protocol);
+					  offsetof(struct iphdr, protocol);
 	skb->transport_header = skb->network_header + ihl;
 	__skb_pull(skb, ihl);
 	memmove(skb_network_header(skb), iph, ihl);
@@ -44,17 +44,20 @@ static int xfrm4_transport_input(struct xfrm_state *x, struct sk_buff *skb)
 {
 	int ihl = skb->data - skb_transport_header(skb);
 
-	if (skb->transport_header != skb->network_header) {
+	if (skb->transport_header != skb->network_header)
+	{
 		memmove(skb_transport_header(skb),
-			skb_network_header(skb), ihl);
+				skb_network_header(skb), ihl);
 		skb->network_header = skb->transport_header;
 	}
+
 	ip_hdr(skb)->tot_len = htons(skb->len + ihl);
 	skb_reset_transport_header(skb);
 	return 0;
 }
 
-static struct xfrm_mode xfrm4_transport_mode = {
+static struct xfrm_mode xfrm4_transport_mode =
+{
 	.input = xfrm4_transport_input,
 	.output = xfrm4_transport_output,
 	.owner = THIS_MODULE,

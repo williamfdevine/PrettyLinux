@@ -20,29 +20,34 @@
 
 #include <net/nfc/hci.h>
 
-struct gate_pipe_map {
+struct gate_pipe_map
+{
 	u8 gate;
 	u8 pipe;
 };
 
-struct hcp_message {
+struct hcp_message
+{
 	u8 header;		/* type -cmd,evt,rsp- + instruction */
 	u8 data[];
 } __packed;
 
-struct hcp_packet {
+struct hcp_packet
+{
 	u8 header;		/* cbit+pipe */
 	struct hcp_message message;
 } __packed;
 
-struct hcp_exec_waiter {
+struct hcp_exec_waiter
+{
 	wait_queue_head_t *wq;
 	bool exec_complete;
 	int exec_result;
 	struct sk_buff *result_skb;
 };
 
-struct hci_msg {
+struct hci_msg
+{
 	struct list_head msg_l;
 	struct sk_buff_head msg_frags;
 	bool wait_response;
@@ -51,13 +56,15 @@ struct hci_msg {
 	unsigned long completion_delay;
 };
 
-struct hci_create_pipe_params {
+struct hci_create_pipe_params
+{
 	u8 src_gate;
 	u8 dest_host;
 	u8 dest_gate;
 } __packed;
 
-struct hci_create_pipe_resp {
+struct hci_create_pipe_resp
+{
 	u8 src_host;
 	u8 src_gate;
 	u8 dest_host;
@@ -65,11 +72,13 @@ struct hci_create_pipe_resp {
 	u8 pipe;
 } __packed;
 
-struct hci_delete_pipe_noti {
+struct hci_delete_pipe_noti
+{
 	u8 pipe;
 } __packed;
 
-struct hci_all_pipe_cleared_noti {
+struct hci_all_pipe_cleared_noti
+{
 	u8 host;
 } __packed;
 
@@ -80,13 +89,13 @@ struct hci_all_pipe_cleared_noti {
 #define HCP_MSG_GET_CMD(header) (header & 0x3f)
 
 int nfc_hci_hcp_message_tx(struct nfc_hci_dev *hdev, u8 pipe,
-			   u8 type, u8 instruction,
-			   const u8 *payload, size_t payload_len,
-			   data_exchange_cb_t cb, void *cb_context,
-			   unsigned long completion_delay);
+						   u8 type, u8 instruction,
+						   const u8 *payload, size_t payload_len,
+						   data_exchange_cb_t cb, void *cb_context,
+						   unsigned long completion_delay);
 
 void nfc_hci_hcp_message_rx(struct nfc_hci_dev *hdev, u8 pipe, u8 type,
-			    u8 instruction, struct sk_buff *skb);
+							u8 instruction, struct sk_buff *skb);
 
 /* HCP headers */
 #define NFC_HCI_HCP_PACKET_HEADER_LEN	1

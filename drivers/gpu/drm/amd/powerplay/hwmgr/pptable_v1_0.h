@@ -97,7 +97,8 @@
 
 #define ATOM_Tonga_TABLE_REVISION_TONGA                 7
 
-typedef struct _ATOM_Tonga_POWERPLAYTABLE {
+typedef struct _ATOM_Tonga_POWERPLAYTABLE
+{
 	ATOM_COMMON_TABLE_HEADER sHeader;
 
 	UCHAR  ucTableRevision;
@@ -142,7 +143,8 @@ typedef struct _ATOM_Tonga_POWERPLAYTABLE {
 	USHORT	usReserved[6];					   /*TODO: modify reserved size to fit structure aligning */
 } ATOM_Tonga_POWERPLAYTABLE;
 
-typedef struct _ATOM_Tonga_State {
+typedef struct _ATOM_Tonga_State
+{
 	UCHAR  ucEngineClockIndexHigh;
 	UCHAR  ucEngineClockIndexLow;
 
@@ -161,13 +163,15 @@ typedef struct _ATOM_Tonga_State {
 	UCHAR  ucUnused[4];
 } ATOM_Tonga_State;
 
-typedef struct _ATOM_Tonga_State_Array {
+typedef struct _ATOM_Tonga_State_Array
+{
 	UCHAR ucRevId;
 	UCHAR ucNumEntries;		/* Number of entries. */
 	ATOM_Tonga_State entries[1];	/* Dynamically allocate entries. */
 } ATOM_Tonga_State_Array;
 
-typedef struct _ATOM_Tonga_MCLK_Dependency_Record {
+typedef struct _ATOM_Tonga_MCLK_Dependency_Record
+{
 	UCHAR  ucVddcInd;	/* Vddc voltage */
 	USHORT usVddci;
 	USHORT usVddgfxOffset;	/* Offset relative to Vddc voltage */
@@ -176,13 +180,15 @@ typedef struct _ATOM_Tonga_MCLK_Dependency_Record {
 	USHORT usReserved;
 } ATOM_Tonga_MCLK_Dependency_Record;
 
-typedef struct _ATOM_Tonga_MCLK_Dependency_Table {
+typedef struct _ATOM_Tonga_MCLK_Dependency_Table
+{
 	UCHAR ucRevId;
 	UCHAR ucNumEntries; 										/* Number of entries. */
 	ATOM_Tonga_MCLK_Dependency_Record entries[1];				/* Dynamically allocate entries. */
 } ATOM_Tonga_MCLK_Dependency_Table;
 
-typedef struct _ATOM_Tonga_SCLK_Dependency_Record {
+typedef struct _ATOM_Tonga_SCLK_Dependency_Record
+{
 	UCHAR  ucVddInd;											/* Base voltage */
 	USHORT usVddcOffset;										/* Offset relative to base voltage */
 	ULONG ulSclk;
@@ -191,13 +197,15 @@ typedef struct _ATOM_Tonga_SCLK_Dependency_Record {
 	UCHAR  ucCKSVOffsetandDisable;							  /* Bits 0~6: Voltage offset for CKS, Bit 7: Disable/enable for the SCLK level. */
 } ATOM_Tonga_SCLK_Dependency_Record;
 
-typedef struct _ATOM_Tonga_SCLK_Dependency_Table {
+typedef struct _ATOM_Tonga_SCLK_Dependency_Table
+{
 	UCHAR ucRevId;
 	UCHAR ucNumEntries; 										/* Number of entries. */
 	ATOM_Tonga_SCLK_Dependency_Record entries[1];				 /* Dynamically allocate entries. */
 } ATOM_Tonga_SCLK_Dependency_Table;
 
-typedef struct _ATOM_Polaris_SCLK_Dependency_Record {
+typedef struct _ATOM_Polaris_SCLK_Dependency_Record
+{
 	UCHAR  ucVddInd;											/* Base voltage */
 	USHORT usVddcOffset;										/* Offset relative to base voltage */
 	ULONG ulSclk;
@@ -207,39 +215,45 @@ typedef struct _ATOM_Polaris_SCLK_Dependency_Record {
 	ULONG  ulSclkOffset;
 } ATOM_Polaris_SCLK_Dependency_Record;
 
-typedef struct _ATOM_Polaris_SCLK_Dependency_Table {
+typedef struct _ATOM_Polaris_SCLK_Dependency_Table
+{
 	UCHAR ucRevId;
 	UCHAR ucNumEntries;							/* Number of entries. */
 	ATOM_Polaris_SCLK_Dependency_Record entries[1];				 /* Dynamically allocate entries. */
 } ATOM_Polaris_SCLK_Dependency_Table;
 
-typedef struct _ATOM_Tonga_PCIE_Record {
+typedef struct _ATOM_Tonga_PCIE_Record
+{
 	UCHAR ucPCIEGenSpeed;
 	UCHAR usPCIELaneWidth;
 	UCHAR ucReserved[2];
 } ATOM_Tonga_PCIE_Record;
 
-typedef struct _ATOM_Tonga_PCIE_Table {
+typedef struct _ATOM_Tonga_PCIE_Table
+{
 	UCHAR ucRevId;
 	UCHAR ucNumEntries; 										/* Number of entries. */
 	ATOM_Tonga_PCIE_Record entries[1];							/* Dynamically allocate entries. */
 } ATOM_Tonga_PCIE_Table;
 
-typedef struct _ATOM_Polaris10_PCIE_Record {
+typedef struct _ATOM_Polaris10_PCIE_Record
+{
 	UCHAR ucPCIEGenSpeed;
 	UCHAR usPCIELaneWidth;
 	UCHAR ucReserved[2];
 	ULONG ulPCIE_Sclk;
 } ATOM_Polaris10_PCIE_Record;
 
-typedef struct _ATOM_Polaris10_PCIE_Table {
+typedef struct _ATOM_Polaris10_PCIE_Table
+{
 	UCHAR ucRevId;
 	UCHAR ucNumEntries;                                         /* Number of entries. */
 	ATOM_Polaris10_PCIE_Record entries[1];                      /* Dynamically allocate entries. */
 } ATOM_Polaris10_PCIE_Table;
 
 
-typedef struct _ATOM_Tonga_MM_Dependency_Record {
+typedef struct _ATOM_Tonga_MM_Dependency_Record
+{
 	UCHAR   ucVddcInd;											 /* VDDC voltage */
 	USHORT  usVddgfxOffset;									  /* Offset relative to VDDC voltage */
 	ULONG  ulDClk;												/* UVD D-clock */
@@ -249,26 +263,30 @@ typedef struct _ATOM_Tonga_MM_Dependency_Record {
 	ULONG  ulSAMUClk;											/* SAMU clock */
 } ATOM_Tonga_MM_Dependency_Record;
 
-typedef struct _ATOM_Tonga_MM_Dependency_Table {
+typedef struct _ATOM_Tonga_MM_Dependency_Table
+{
 	UCHAR ucRevId;
 	UCHAR ucNumEntries; 										/* Number of entries. */
 	ATOM_Tonga_MM_Dependency_Record entries[1]; 			   /* Dynamically allocate entries. */
 } ATOM_Tonga_MM_Dependency_Table;
 
-typedef struct _ATOM_Tonga_Voltage_Lookup_Record {
+typedef struct _ATOM_Tonga_Voltage_Lookup_Record
+{
 	USHORT usVdd;											   /* Base voltage */
 	USHORT usCACLow;
 	USHORT usCACMid;
 	USHORT usCACHigh;
 } ATOM_Tonga_Voltage_Lookup_Record;
 
-typedef struct _ATOM_Tonga_Voltage_Lookup_Table {
+typedef struct _ATOM_Tonga_Voltage_Lookup_Table
+{
 	UCHAR ucRevId;
 	UCHAR ucNumEntries; 										/* Number of entries. */
 	ATOM_Tonga_Voltage_Lookup_Record entries[1];				/* Dynamically allocate entries. */
 } ATOM_Tonga_Voltage_Lookup_Table;
 
-typedef struct _ATOM_Tonga_Fan_Table {
+typedef struct _ATOM_Tonga_Fan_Table
+{
 	UCHAR   ucRevId;						 /* Change this if the table format changes or version changes so that the other fields are not the same. */
 	UCHAR   ucTHyst;						 /* Temperature hysteresis. Integer. */
 	USHORT  usTMin; 						 /* The temperature, in 0.01 centigrades, below which we just run at a minimal PWM. */
@@ -288,7 +306,8 @@ typedef struct _ATOM_Tonga_Fan_Table {
 	USHORT  usReserved;
 } ATOM_Tonga_Fan_Table;
 
-typedef struct _ATOM_Fiji_Fan_Table {
+typedef struct _ATOM_Fiji_Fan_Table
+{
 	UCHAR   ucRevId;						 /* Change this if the table format changes or version changes so that the other fields are not the same. */
 	UCHAR   ucTHyst;						 /* Temperature hysteresis. Integer. */
 	USHORT  usTMin; 						 /* The temperature, in 0.01 centigrades, below which we just run at a minimal PWM. */
@@ -315,7 +334,8 @@ typedef struct _ATOM_Fiji_Fan_Table {
 	USHORT  usReserved;
 } ATOM_Fiji_Fan_Table;
 
-typedef struct _ATOM_Tonga_Thermal_Controller {
+typedef struct _ATOM_Tonga_Thermal_Controller
+{
 	UCHAR ucRevId;
 	UCHAR ucType;		   /* one of ATOM_TONGA_PP_THERMALCONTROLLER_* */
 	UCHAR ucI2cLine;		/* as interpreted by DAL I2C */
@@ -327,20 +347,23 @@ typedef struct _ATOM_Tonga_Thermal_Controller {
 	UCHAR ucFlags;		   /* to be defined */
 } ATOM_Tonga_Thermal_Controller;
 
-typedef struct _ATOM_Tonga_VCE_State_Record {
+typedef struct _ATOM_Tonga_VCE_State_Record
+{
 	UCHAR  ucVCEClockIndex;	/*index into usVCEDependencyTableOffset of 'ATOM_Tonga_MM_Dependency_Table' type */
 	UCHAR  ucFlag;		/* 2 bits indicates memory p-states */
 	UCHAR  ucSCLKIndex;		/*index into ATOM_Tonga_SCLK_Dependency_Table */
 	UCHAR  ucMCLKIndex;		/*index into ATOM_Tonga_MCLK_Dependency_Table */
 } ATOM_Tonga_VCE_State_Record;
 
-typedef struct _ATOM_Tonga_VCE_State_Table {
+typedef struct _ATOM_Tonga_VCE_State_Table
+{
 	UCHAR ucRevId;
 	UCHAR ucNumEntries;
 	ATOM_Tonga_VCE_State_Record entries[1];
 } ATOM_Tonga_VCE_State_Table;
 
-typedef struct _ATOM_Tonga_PowerTune_Table {
+typedef struct _ATOM_Tonga_PowerTune_Table
+{
 	UCHAR  ucRevId;
 	USHORT usTDP;
 	USHORT usConfigurableTDP;
@@ -358,7 +381,8 @@ typedef struct _ATOM_Tonga_PowerTune_Table {
 	USHORT usReserve[2];
 } ATOM_Tonga_PowerTune_Table;
 
-typedef struct _ATOM_Fiji_PowerTune_Table {
+typedef struct _ATOM_Fiji_PowerTune_Table
+{
 	UCHAR  ucRevId;
 	USHORT usTDP;
 	USHORT usConfigurableTDP;
@@ -391,7 +415,8 @@ typedef struct _ATOM_Fiji_PowerTune_Table {
 
 #define ATOM_PPM_A_A    1
 #define ATOM_PPM_A_I    2
-typedef struct _ATOM_Tonga_PPM_Table {
+typedef struct _ATOM_Tonga_PPM_Table
+{
 	UCHAR   ucRevId;
 	UCHAR   ucPpmDesign;		  /*A+I or A+A */
 	USHORT  usCpuCoreNumber;
@@ -405,7 +430,8 @@ typedef struct _ATOM_Tonga_PPM_Table {
 	ULONG  ulTjmax;
 } ATOM_Tonga_PPM_Table;
 
-typedef struct _ATOM_Tonga_Hard_Limit_Record {
+typedef struct _ATOM_Tonga_Hard_Limit_Record
+{
 	ULONG  ulSCLKLimit;
 	ULONG  ulMCLKLimit;
 	USHORT  usVddcLimit;
@@ -413,19 +439,22 @@ typedef struct _ATOM_Tonga_Hard_Limit_Record {
 	USHORT  usVddgfxLimit;
 } ATOM_Tonga_Hard_Limit_Record;
 
-typedef struct _ATOM_Tonga_Hard_Limit_Table {
+typedef struct _ATOM_Tonga_Hard_Limit_Table
+{
 	UCHAR ucRevId;
 	UCHAR ucNumEntries;
 	ATOM_Tonga_Hard_Limit_Record entries[1];
 } ATOM_Tonga_Hard_Limit_Table;
 
-typedef struct _ATOM_Tonga_GPIO_Table {
+typedef struct _ATOM_Tonga_GPIO_Table
+{
 	UCHAR  ucRevId;
 	UCHAR  ucVRHotTriggeredSclkDpmIndex;		/* If VRHot signal is triggered SCLK will be limited to this DPM level */
 	UCHAR  ucReserve[5];
 } ATOM_Tonga_GPIO_Table;
 
-typedef struct _PPTable_Generic_SubTable_Header {
+typedef struct _PPTable_Generic_SubTable_Header
+{
 	UCHAR  ucRevId;
 } PPTable_Generic_SubTable_Header;
 

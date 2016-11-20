@@ -11,7 +11,7 @@
 #define __PERF_ALIGN_MASK(x, mask)	(((x)+(mask))&~(mask))
 
 #ifndef offsetof
-#define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+	#define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
 #endif
 
 #ifndef container_of
@@ -23,26 +23,26 @@
  *
  */
 #define container_of(ptr, type, member) ({			\
-	const typeof(((type *)0)->member) * __mptr = (ptr);	\
-	(type *)((char *)__mptr - offsetof(type, member)); })
+		const typeof(((type *)0)->member) * __mptr = (ptr);	\
+		(type *)((char *)__mptr - offsetof(type, member)); })
 #endif
 
 #define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:-!!(e); }))
 
 #ifndef max
 #define max(x, y) ({				\
-	typeof(x) _max1 = (x);			\
-	typeof(y) _max2 = (y);			\
-	(void) (&_max1 == &_max2);		\
-	_max1 > _max2 ? _max1 : _max2; })
+		typeof(x) _max1 = (x);			\
+		typeof(y) _max2 = (y);			\
+		(void) (&_max1 == &_max2);		\
+		_max1 > _max2 ? _max1 : _max2; })
 #endif
 
 #ifndef min
 #define min(x, y) ({				\
-	typeof(x) _min1 = (x);			\
-	typeof(y) _min2 = (y);			\
-	(void) (&_min1 == &_min2);		\
-	_min1 < _min2 ? _min1 : _min2; })
+		typeof(x) _min1 = (x);			\
+		typeof(y) _min2 = (y);			\
+		(void) (&_min1 == &_min2);		\
+		_min1 < _min2 ? _min1 : _min2; })
 #endif
 
 #ifndef roundup
@@ -51,15 +51,15 @@
 	const typeof(y) __y = y;		       \
 	(((x) + (__y - 1)) / __y) * __y;	       \
 }                                                      \
-)
+					  )
 #endif
 
 #ifndef BUG_ON
-#ifdef NDEBUG
-#define BUG_ON(cond) do { if (cond) {} } while (0)
-#else
-#define BUG_ON(cond) assert(!(cond))
-#endif
+	#ifdef NDEBUG
+		#define BUG_ON(cond) do { if (cond) {} } while (0)
+	#else
+		#define BUG_ON(cond) assert(!(cond))
+	#endif
 #endif
 
 /*
@@ -70,7 +70,7 @@
 #define cpu_to_le32(x)	(x)
 
 int vscnprintf(char *buf, size_t size, const char *fmt, va_list args);
-int scnprintf(char * buf, size_t size, const char * fmt, ...);
+int scnprintf(char *buf, size_t size, const char *fmt, ...);
 
 /*
  * This looks more complex than it should be. But we need to

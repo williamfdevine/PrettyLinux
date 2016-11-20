@@ -35,20 +35,28 @@ int x509_get_sig_params(struct x509_certificate *cert)
 	pr_devel("==>%s()\n", __func__);
 
 	if (!cert->pub->pkey_algo)
+	{
 		cert->unsupported_key = true;
+	}
 
 	if (!sig->pkey_algo)
+	{
 		cert->unsupported_sig = true;
+	}
 
 	/* We check the hash if we can - even if we can't then verify it */
-	if (!sig->hash_algo) {
+	if (!sig->hash_algo)
+	{
 		cert->unsupported_sig = true;
 		return 0;
 	}
 
 	sig->s = kmemdup(cert->raw_sig, cert->raw_sig_size, GFP_KERNEL);
+
 	if (!sig->s)
+	{
 		return -ENOMEM;
+	}
 
 	sig->s_size = cert->raw_sig_size;
 
@@ -56,11 +64,15 @@ int x509_get_sig_params(struct x509_certificate *cert)
 	 * big the hash operational data will be.
 	 */
 	tfm = crypto_alloc_shash(sig->hash_algo, 0, 0);
-	if (IS_ERR(tfm)) {
-		if (PTR_ERR(tfm) == -ENOENT) {
+
+	if (IS_ERR(tfm))
+	{
+		if (PTR_ERR(tfm) == -ENOENT)
+		{
 			cert->unsupported_sig = true;
 			return 0;
 		}
+
 		return PTR_ERR(tfm);
 	}
 
@@ -69,19 +81,29 @@ int x509_get_sig_params(struct x509_certificate *cert)
 
 	ret = -ENOMEM;
 	sig->digest = kmalloc(sig->digest_size, GFP_KERNEL);
+
 	if (!sig->digest)
+	{
 		goto error;
+	}
 
 	desc = kzalloc(desc_size, GFP_KERNEL);
+
 	if (!desc)
+	{
 		goto error;
+	}
 
 	desc->tfm = tfm;
 	desc->flags = CRYPTO_TFM_REQ_MAY_SLEEP;
 
 	ret = crypto_shash_init(desc);
+
 	if (ret < 0)
+	{
 		goto error_2;
+	}
+
 	might_sleep();
 	ret = crypto_shash_finup(desc, cert->tbs, cert->tbs_size, sig->digest);
 
@@ -104,11 +126,14 @@ int x509_check_for_self_signed(struct x509_certificate *cert)
 	pr_devel("==>%s()\n", __func__);
 
 	if (cert->raw_subject_size != cert->raw_issuer_size ||
-	    memcmp(cert->raw_subject, cert->raw_issuer,
-		   cert->raw_issuer_size) != 0)
+		memcmp(cert->raw_subject, cert->raw_issuer,
+			   cert->raw_issuer_size) != 0)
+	{
 		goto not_self_signed;
+	}
 
-	if (cert->sig->auth_ids[0] || cert->sig->auth_ids[1]) {
+	if (cert->sig->auth_ids[0] || cert->sig->auth_ids[1])
+	{
 		/* If the AKID is present it may have one or two parts.  If
 		 * both are supplied, both must match.
 		 */
@@ -116,24 +141,36 @@ int x509_check_for_self_signed(struct x509_certificate *cert)
 		bool b = asymmetric_key_id_same(cert->id, cert->sig->auth_ids[0]);
 
 		if (!a && !b)
+		{
 			goto not_self_signed;
+		}
 
 		ret = -EKEYREJECTED;
+
 		if (((a && !b) || (b && !a)) &&
-		    cert->sig->auth_ids[0] && cert->sig->auth_ids[1])
+			cert->sig->auth_ids[0] && cert->sig->auth_ids[1])
+		{
 			goto out;
+		}
 	}
 
 	ret = -EKEYREJECTED;
+
 	if (cert->pub->pkey_algo != cert->sig->pkey_algo)
+	{
 		goto out;
+	}
 
 	ret = public_key_verify_signature(cert->pub, cert->sig);
-	if (ret < 0) {
-		if (ret == -ENOPKG) {
+
+	if (ret < 0)
+	{
+		if (ret == -ENOPKG)
+		{
 			cert->unsupported_sig = true;
 			ret = 0;
 		}
+
 		goto out;
 	}
 
@@ -162,13 +199,17 @@ static int x509_key_preparse(struct key_preparsed_payload *prep)
 	int ret;
 
 	cert = x509_cert_parse(prep->data, prep->datalen);
+
 	if (IS_ERR(cert))
+	{
 		return PTR_ERR(cert);
+	}
 
 	pr_devel("Cert Issuer: %s\n", cert->issuer);
 	pr_devel("Cert Subject: %s\n", cert->subject);
 
-	if (cert->unsupported_key) {
+	if (cert->unsupported_key)
+	{
 		ret = -ENOPKG;
 		goto error_free_cert;
 	}
@@ -178,28 +219,39 @@ static int x509_key_preparse(struct key_preparsed_payload *prep)
 
 	cert->pub->id_type = "X509";
 
-	if (cert->unsupported_sig) {
+	if (cert->unsupported_sig)
+	{
 		public_key_signature_free(cert->sig);
 		cert->sig = NULL;
-	} else {
+	}
+	else
+	{
 		pr_devel("Cert Signature: %s + %s\n",
-			 cert->sig->pkey_algo, cert->sig->hash_algo);
+				 cert->sig->pkey_algo, cert->sig->hash_algo);
 	}
 
 	/* Propose a description */
 	sulen = strlen(cert->subject);
-	if (cert->raw_skid) {
+
+	if (cert->raw_skid)
+	{
 		srlen = cert->raw_skid_size;
 		q = cert->raw_skid;
-	} else {
+	}
+	else
+	{
 		srlen = cert->raw_serial_size;
 		q = cert->raw_serial;
 	}
 
 	ret = -ENOMEM;
 	desc = kmalloc(sulen + 2 + srlen * 2 + 1, GFP_KERNEL);
+
 	if (!desc)
+	{
 		goto error_free_cert;
+	}
+
 	p = memcpy(desc, cert->subject, sulen);
 	p += sulen;
 	*p++ = ':';
@@ -208,8 +260,12 @@ static int x509_key_preparse(struct key_preparsed_payload *prep)
 	*p = 0;
 
 	kids = kmalloc(sizeof(struct asymmetric_key_ids), GFP_KERNEL);
+
 	if (!kids)
+	{
 		goto error_free_desc;
+	}
+
 	kids->id[0] = cert->id;
 	kids->id[1] = cert->skid;
 
@@ -237,7 +293,8 @@ error_free_cert:
 	return ret;
 }
 
-static struct asymmetric_key_parser x509_key_parser = {
+static struct asymmetric_key_parser x509_key_parser =
+{
 	.owner	= THIS_MODULE,
 	.name	= "x509",
 	.parse	= x509_key_preparse,

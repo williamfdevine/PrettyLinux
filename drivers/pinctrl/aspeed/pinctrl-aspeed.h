@@ -257,19 +257,20 @@
 #define SCUA8           0xA8 /* Multi-function Pin Control #9 */
 #define HW_STRAP2       0xD0 /* Strapping */
 
- /**
-  * A signal descriptor, which describes the register, bits and the
-  * enable/disable values that should be compared or written.
-  *
-  * @reg: The register offset from base in bytes
-  * @mask: The mask to apply to the register. The lowest set bit of the mask is
-  *        used to derive the shift value.
-  * @enable: The value that enables the function. Value should be in the LSBs,
-  *          not at the position of the mask.
-  * @disable: The value that disables the function. Value should be in the
-  *           LSBs, not at the position of the mask.
-  */
-struct aspeed_sig_desc {
+/**
+ * A signal descriptor, which describes the register, bits and the
+ * enable/disable values that should be compared or written.
+ *
+ * @reg: The register offset from base in bytes
+ * @mask: The mask to apply to the register. The lowest set bit of the mask is
+ *        used to derive the shift value.
+ * @enable: The value that enables the function. Value should be in the LSBs,
+ *          not at the position of the mask.
+ * @disable: The value that disables the function. Value should be in the
+ *           LSBs, not at the position of the mask.
+ */
+struct aspeed_sig_desc
+{
 	unsigned int reg;
 	u32 mask;
 	u32 enable;
@@ -289,7 +290,8 @@ struct aspeed_sig_desc {
  * @descs: Pointer to an array of signal descriptors that comprise the
  *         function expression
  */
-struct aspeed_sig_expr {
+struct aspeed_sig_expr
+{
 	const char *signal;
 	const char *function;
 	int ndescs;
@@ -306,9 +308,10 @@ struct aspeed_sig_expr {
  * @prios: A pointer to an array of expression list pointers
  *
  */
-struct aspeed_pin_desc {
+struct aspeed_pin_desc
+{
 	const char *name;
-	const struct aspeed_sig_expr ***prios;
+	const struct aspeed_sig_expr ** *prios;
 };
 
 /* Macro hell */
@@ -335,17 +338,17 @@ struct aspeed_pin_desc {
 #define SIG_DESC_LIST_SYM(sig, func) sig_descs_ ## sig ## _ ## func
 #define SIG_DESC_LIST_DECL(sig, func, ...) \
 	static const struct aspeed_sig_desc SIG_DESC_LIST_SYM(sig, func)[] = \
-		{ __VA_ARGS__ }
+			{ __VA_ARGS__ }
 
 #define SIG_EXPR_SYM(sig, func) sig_expr_ ## sig ## _ ## func
 #define SIG_EXPR_DECL_(sig, func) \
 	static const struct aspeed_sig_expr SIG_EXPR_SYM(sig, func) = \
-	{ \
-		.signal = #sig, \
-		.function = #func, \
-		.ndescs = ARRAY_SIZE(SIG_DESC_LIST_SYM(sig, func)), \
-		.descs = &(SIG_DESC_LIST_SYM(sig, func))[0], \
-	}
+			{ \
+			  .signal = #sig, \
+			  .function = #func, \
+			  .ndescs = ARRAY_SIZE(SIG_DESC_LIST_SYM(sig, func)), \
+			  .descs = &(SIG_DESC_LIST_SYM(sig, func))[0], \
+			}
 
 /**
  * Declare a signal expression.
@@ -395,7 +398,7 @@ struct aspeed_pin_desc {
  */
 #define SIG_EXPR_LIST_DECL(sig, ...) \
 	static const struct aspeed_sig_expr *SIG_EXPR_LIST_SYM(sig)[] = \
-		{ __VA_ARGS__, NULL }
+			{ __VA_ARGS__, NULL }
 
 /**
  * A short-hand macro for declaring a function expression and an expression
@@ -424,9 +427,9 @@ struct aspeed_pin_desc {
 
 #define MS_PIN_DECL_(pin, ...) \
 	static const struct aspeed_sig_expr **PIN_EXPRS_SYM(pin)[] = \
-		{ __VA_ARGS__, NULL }; \
+			{ __VA_ARGS__, NULL }; \
 	static const struct aspeed_pin_desc PIN_SYM(pin) = \
-		{ #pin, PIN_EXPRS_PTR(pin) }
+			{ #pin, PIN_EXPRS_PTR(pin) }
 
 /**
  * Declare a multi-signal pin
@@ -450,9 +453,9 @@ struct aspeed_pin_desc {
 #define MS_PIN_DECL(pin, other, high, low) \
 	SIG_EXPR_LIST_DECL_SINGLE(other, other); \
 	MS_PIN_DECL_(pin, \
-			SIG_EXPR_LIST_PTR(high), \
-			SIG_EXPR_LIST_PTR(low), \
-			SIG_EXPR_LIST_PTR(other))
+				 SIG_EXPR_LIST_PTR(high), \
+				 SIG_EXPR_LIST_PTR(low), \
+				 SIG_EXPR_LIST_PTR(other))
 
 #define PIN_GROUP_SYM(func) pins_ ## func
 #define FUNC_GROUP_SYM(func) groups_ ## func
@@ -499,7 +502,8 @@ struct aspeed_pin_desc {
 	SIG_EXPR_LIST_DECL_SINGLE(gpio, gpio); \
 	MS_PIN_DECL_(pin, SIG_EXPR_LIST_PTR(gpio))
 
-struct aspeed_pinctrl_data {
+struct aspeed_pinctrl_data
+{
 	struct regmap *map;
 
 	const struct pinctrl_pin_desc *pins;
@@ -514,56 +518,58 @@ struct aspeed_pinctrl_data {
 
 #define ASPEED_PINCTRL_PIN(name_) \
 	[name_] = { \
-		.number = name_, \
-		.name = #name_, \
-		.drv_data = (void *) &(PIN_SYM(name_)) \
-	}
+				.number = name_, \
+				.name = #name_, \
+				.drv_data = (void *) &(PIN_SYM(name_)) \
+			  }
 
-struct aspeed_pin_group {
+struct aspeed_pin_group
+{
 	const char *name;
 	const unsigned int *pins;
 	const unsigned int npins;
 };
 
 #define ASPEED_PINCTRL_GROUP(name_) { \
-	.name = #name_, \
-	.pins = &(PIN_GROUP_SYM(name_))[0], \
-	.npins = ARRAY_SIZE(PIN_GROUP_SYM(name_)), \
-}
+		.name = #name_, \
+				.pins = &(PIN_GROUP_SYM(name_))[0], \
+						.npins = ARRAY_SIZE(PIN_GROUP_SYM(name_)), \
+	}
 
-struct aspeed_pin_function {
+struct aspeed_pin_function
+{
 	const char *name;
 	const char *const *groups;
 	unsigned int ngroups;
 };
 
 #define ASPEED_PINCTRL_FUNC(name_, ...) { \
-	.name = #name_, \
-	.groups = &FUNC_GROUP_SYM(name_)[0], \
-	.ngroups = ARRAY_SIZE(FUNC_GROUP_SYM(name_)), \
-}
+		.name = #name_, \
+				.groups = &FUNC_GROUP_SYM(name_)[0], \
+						  .ngroups = ARRAY_SIZE(FUNC_GROUP_SYM(name_)), \
+	}
 
 int aspeed_pinctrl_get_groups_count(struct pinctrl_dev *pctldev);
 const char *aspeed_pinctrl_get_group_name(struct pinctrl_dev *pctldev,
 		unsigned int group);
 int aspeed_pinctrl_get_group_pins(struct pinctrl_dev *pctldev,
-		unsigned int group, const unsigned int **pins,
-		unsigned int *npins);
+								  unsigned int group, const unsigned int **pins,
+								  unsigned int *npins);
 void aspeed_pinctrl_pin_dbg_show(struct pinctrl_dev *pctldev,
-		struct seq_file *s, unsigned int offset);
+								 struct seq_file *s, unsigned int offset);
 int aspeed_pinmux_get_fn_count(struct pinctrl_dev *pctldev);
 const char *aspeed_pinmux_get_fn_name(struct pinctrl_dev *pctldev,
-		unsigned int function);
+									  unsigned int function);
 int aspeed_pinmux_get_fn_groups(struct pinctrl_dev *pctldev,
-		unsigned int function, const char * const **groups,
-		unsigned int * const num_groups);
+								unsigned int function, const char *const **groups,
+								unsigned int *const num_groups);
 int aspeed_pinmux_set_mux(struct pinctrl_dev *pctldev, unsigned int function,
-		unsigned int group);
+						  unsigned int group);
 int aspeed_gpio_request_enable(struct pinctrl_dev *pctldev,
-		struct pinctrl_gpio_range *range,
-		unsigned int offset);
+							   struct pinctrl_gpio_range *range,
+							   unsigned int offset);
 int aspeed_pinctrl_probe(struct platform_device *pdev,
-		struct pinctrl_desc *pdesc,
-		struct aspeed_pinctrl_data *pdata);
+						 struct pinctrl_desc *pdesc,
+						 struct aspeed_pinctrl_data *pdata);
 
 #endif /* PINCTRL_ASPEED */

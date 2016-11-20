@@ -153,7 +153,8 @@ struct bkey_float;
 
 #define MAX_BSETS		4U
 
-struct bset_tree {
+struct bset_tree
+{
 	/*
 	 * We construct a binary tree in an array as if the array
 	 * started at 1, so that things line up on the same cachelines
@@ -185,17 +186,18 @@ struct bset_tree {
 	struct bset		*data;
 };
 
-struct btree_keys_ops {
+struct btree_keys_ops
+{
 	bool		(*sort_cmp)(struct btree_iter_set,
-				    struct btree_iter_set);
+							struct btree_iter_set);
 	struct bkey	*(*sort_fixup)(struct btree_iter *, struct bkey *);
 	bool		(*insert_fixup)(struct btree_keys *, struct bkey *,
-					struct btree_iter *, struct bkey *);
+								struct btree_iter *, struct bkey *);
 	bool		(*key_invalid)(struct btree_keys *,
-				       const struct bkey *);
+							   const struct bkey *);
 	bool		(*key_bad)(struct btree_keys *, const struct bkey *);
 	bool		(*key_merge)(struct btree_keys *,
-				     struct bkey *, struct bkey *);
+							 struct bkey *, struct bkey *);
 	void		(*key_to_text)(char *, size_t, const struct bkey *);
 	void		(*key_dump)(struct btree_keys *, const struct bkey *);
 
@@ -206,11 +208,12 @@ struct btree_keys_ops {
 	bool		is_extents;
 };
 
-struct btree_keys {
+struct btree_keys
+{
 	const struct btree_keys_ops	*ops;
 	uint8_t			page_order;
 	uint8_t			nsets;
-	unsigned		last_set_unwritten:1;
+	unsigned		last_set_unwritten: 1;
 	bool			*expensive_debug_checks;
 
 	/*
@@ -261,18 +264,20 @@ static inline size_t bch_btree_keys_u64s_remaining(struct btree_keys *b)
 	struct bset_tree *t = bset_tree_last(b);
 
 	BUG_ON((PAGE_SIZE << b->page_order) <
-	       (bset_byte_offset(b, t->data) + set_bytes(t->data)));
+		   (bset_byte_offset(b, t->data) + set_bytes(t->data)));
 
 	if (!b->last_set_unwritten)
+	{
 		return 0;
+	}
 
 	return ((PAGE_SIZE << b->page_order) -
-		(bset_byte_offset(b, t->data) + set_bytes(t->data))) /
-		sizeof(u64);
+			(bset_byte_offset(b, t->data) + set_bytes(t->data))) /
+		   sizeof(u64);
 }
 
 static inline struct bset *bset_next_set(struct btree_keys *b,
-					 unsigned block_bytes)
+		unsigned block_bytes)
 {
 	struct bset *i = bset_tree_last(b)->data;
 
@@ -282,7 +287,7 @@ static inline struct bset *bset_next_set(struct btree_keys *b,
 void bch_btree_keys_free(struct btree_keys *);
 int bch_btree_keys_alloc(struct btree_keys *, unsigned, gfp_t);
 void bch_btree_keys_init(struct btree_keys *, const struct btree_keys_ops *,
-			 bool *);
+						 bool *);
 
 void bch_bset_init_next(struct btree_keys *, struct bset *, uint64_t);
 void bch_bset_build_written_tree(struct btree_keys *);
@@ -290,9 +295,10 @@ void bch_bset_fix_invalidated_key(struct btree_keys *, struct bkey *);
 bool bch_bkey_try_merge(struct btree_keys *, struct bkey *, struct bkey *);
 void bch_bset_insert(struct btree_keys *, struct bkey *, struct bkey *);
 unsigned bch_btree_insert_key(struct btree_keys *, struct bkey *,
-			      struct bkey *);
+							  struct bkey *);
 
-enum {
+enum
+{
 	BTREE_INSERT_STATUS_NO_INSERT = 0,
 	BTREE_INSERT_STATUS_INSERT,
 	BTREE_INSERT_STATUS_BACK_MERGE,
@@ -302,12 +308,14 @@ enum {
 
 /* Btree key iteration */
 
-struct btree_iter {
+struct btree_iter
+{
 	size_t size, used;
 #ifdef CONFIG_BCACHE_DEBUG
 	struct btree_keys *b;
 #endif
-	struct btree_iter_set {
+	struct btree_iter_set
+	{
 		struct bkey *k, *end;
 	} data[MAX_BSETS];
 };
@@ -316,36 +324,37 @@ typedef bool (*ptr_filter_fn)(struct btree_keys *, const struct bkey *);
 
 struct bkey *bch_btree_iter_next(struct btree_iter *);
 struct bkey *bch_btree_iter_next_filter(struct btree_iter *,
-					struct btree_keys *, ptr_filter_fn);
+										struct btree_keys *, ptr_filter_fn);
 
 void bch_btree_iter_push(struct btree_iter *, struct bkey *, struct bkey *);
 struct bkey *bch_btree_iter_init(struct btree_keys *, struct btree_iter *,
-				 struct bkey *);
+								 struct bkey *);
 
 struct bkey *__bch_bset_search(struct btree_keys *, struct bset_tree *,
-			       const struct bkey *);
+							   const struct bkey *);
 
 /*
  * Returns the first key that is strictly greater than search
  */
 static inline struct bkey *bch_bset_search(struct btree_keys *b,
-					   struct bset_tree *t,
-					   const struct bkey *search)
+		struct bset_tree *t,
+		const struct bkey *search)
 {
 	return search ? __bch_bset_search(b, t, search) : t->data->start;
 }
 
 #define for_each_key_filter(b, k, iter, filter)				\
 	for (bch_btree_iter_init((b), (iter), NULL);			\
-	     ((k) = bch_btree_iter_next_filter((iter), (b), filter));)
+		 ((k) = bch_btree_iter_next_filter((iter), (b), filter));)
 
 #define for_each_key(b, k, iter)					\
 	for (bch_btree_iter_init((b), (iter), NULL);			\
-	     ((k) = bch_btree_iter_next(iter));)
+		 ((k) = bch_btree_iter_next(iter));)
 
 /* Sorting */
 
-struct bset_sort_state {
+struct bset_sort_state
+{
 	mempool_t		*pool;
 
 	unsigned		page_order;
@@ -358,19 +367,20 @@ void bch_bset_sort_state_free(struct bset_sort_state *);
 int bch_bset_sort_state_init(struct bset_sort_state *, unsigned);
 void bch_btree_sort_lazy(struct btree_keys *, struct bset_sort_state *);
 void bch_btree_sort_into(struct btree_keys *, struct btree_keys *,
-			 struct bset_sort_state *);
+						 struct bset_sort_state *);
 void bch_btree_sort_and_fix_extents(struct btree_keys *, struct btree_iter *,
-				    struct bset_sort_state *);
+									struct bset_sort_state *);
 void bch_btree_sort_partial(struct btree_keys *, unsigned,
-			    struct bset_sort_state *);
+							struct bset_sort_state *);
 
 static inline void bch_btree_sort(struct btree_keys *b,
-				  struct bset_sort_state *state)
+								  struct bset_sort_state *state)
 {
 	bch_btree_sort_partial(b, 0, state);
 }
 
-struct bset_stats {
+struct bset_stats
+{
 	size_t sets_written, sets_unwritten;
 	size_t bytes_written, bytes_unwritten;
 	size_t floats, failed;
@@ -393,15 +403,15 @@ static inline void bkey_init(struct bkey *k)
 }
 
 static __always_inline int64_t bkey_cmp(const struct bkey *l,
-					const struct bkey *r)
+										const struct bkey *r)
 {
 	return unlikely(KEY_INODE(l) != KEY_INODE(r))
-		? (int64_t) KEY_INODE(l) - (int64_t) KEY_INODE(r)
-		: (int64_t) KEY_OFFSET(l) - (int64_t) KEY_OFFSET(r);
+		   ? (int64_t) KEY_INODE(l) - (int64_t) KEY_INODE(r)
+		   : (int64_t) KEY_OFFSET(l) - (int64_t) KEY_OFFSET(r);
 }
 
 void bch_bkey_copy_single_ptr(struct bkey *, const struct bkey *,
-			      unsigned);
+							  unsigned);
 bool __bch_cut_front(const struct bkey *, struct bkey *);
 bool __bch_cut_back(const struct bkey *, struct bkey *);
 
@@ -418,19 +428,19 @@ static inline bool bch_cut_back(const struct bkey *where, struct bkey *k)
 }
 
 #define PRECEDING_KEY(_k)					\
-({								\
-	struct bkey *_ret = NULL;				\
-								\
-	if (KEY_INODE(_k) || KEY_OFFSET(_k)) {			\
-		_ret = &KEY(KEY_INODE(_k), KEY_OFFSET(_k), 0);	\
-								\
-		if (!_ret->low)					\
-			_ret->high--;				\
-		_ret->low--;					\
-	}							\
-								\
-	_ret;							\
-})
+	({								\
+		struct bkey *_ret = NULL;				\
+		\
+		if (KEY_INODE(_k) || KEY_OFFSET(_k)) {			\
+			_ret = &KEY(KEY_INODE(_k), KEY_OFFSET(_k), 0);	\
+			\
+			if (!_ret->low)					\
+				_ret->high--;				\
+			_ret->low--;					\
+		}							\
+		\
+		_ret;							\
+	})
 
 static inline bool bch_ptr_invalid(struct btree_keys *b, const struct bkey *k)
 {
@@ -443,27 +453,30 @@ static inline bool bch_ptr_bad(struct btree_keys *b, const struct bkey *k)
 }
 
 static inline void bch_bkey_to_text(struct btree_keys *b, char *buf,
-				    size_t size, const struct bkey *k)
+									size_t size, const struct bkey *k)
 {
 	return b->ops->key_to_text(buf, size, k);
 }
 
 static inline bool bch_bkey_equal_header(const struct bkey *l,
-					 const struct bkey *r)
+		const struct bkey *r)
 {
 	return (KEY_DIRTY(l) == KEY_DIRTY(r) &&
-		KEY_PTRS(l) == KEY_PTRS(r) &&
-		KEY_CSUM(l) == KEY_CSUM(r));
+			KEY_PTRS(l) == KEY_PTRS(r) &&
+			KEY_CSUM(l) == KEY_CSUM(r));
 }
 
 /* Keylists */
 
-struct keylist {
-	union {
+struct keylist
+{
+	union
+	{
 		struct bkey		*keys;
 		uint64_t		*keys_p;
 	};
-	union {
+	union
+	{
 		struct bkey		*top;
 		uint64_t		*top_p;
 	};
@@ -508,7 +521,9 @@ static inline void bch_keylist_reset(struct keylist *l)
 static inline void bch_keylist_free(struct keylist *l)
 {
 	if (l->keys_p != l->inline_keys)
+	{
 		kfree(l->keys_p);
+	}
 }
 
 static inline size_t bch_keylist_nkeys(struct keylist *l)
@@ -558,9 +573,9 @@ static inline int bch_count_data(struct btree_keys *b)
 }
 
 #define bch_check_keys(b, ...)						\
-do {									\
-	if (btree_keys_expensive_checks(b))				\
-		__bch_check_keys(b, __VA_ARGS__);			\
-} while (0)
+	do {									\
+		if (btree_keys_expensive_checks(b))				\
+			__bch_check_keys(b, __VA_ARGS__);			\
+	} while (0)
 
 #endif

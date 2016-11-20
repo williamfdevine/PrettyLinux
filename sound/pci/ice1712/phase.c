@@ -56,7 +56,8 @@
 #include <sound/tlv.h>
 
 /* AC97 register cache for Phase28 */
-struct phase28_spec {
+struct phase28_spec
+{
 	unsigned short master[2];
 	unsigned short vol[8];
 };
@@ -84,7 +85,8 @@ struct phase28_spec {
  * Logarithmic volume values for WM8770
  * Computed as 20 * Log10(255 / x)
  */
-static const unsigned char wm_vol[256] = {
+static const unsigned char wm_vol[256] =
+{
 	127, 48, 42, 39, 36, 34, 33, 31, 30, 29, 28, 27, 27, 26, 25, 25, 24,
 	24, 23, 23, 22, 22, 21, 21, 21, 20, 20, 20, 19, 19, 19, 18, 18, 18, 18,
 	17, 17, 17, 17, 16, 16, 16, 16, 15, 15, 15, 15, 15, 15, 14, 14, 14, 14,
@@ -102,13 +104,15 @@ static const unsigned char wm_vol[256] = {
 #define WM_VOL_MAX	(sizeof(wm_vol) - 1)
 #define WM_VOL_MUTE	0x8000
 
-static struct snd_akm4xxx akm_phase22 = {
+static struct snd_akm4xxx akm_phase22 =
+{
 	.type = SND_AK4524,
 	.num_dacs = 2,
 	.num_adcs = 2,
 };
 
-static struct snd_ak4xxx_private akm_phase22_priv = {
+static struct snd_ak4xxx_private akm_phase22_priv =
+{
 	.caddr =	2,
 	.cif =		1,
 	.data_mask =	1 << 4,
@@ -126,32 +130,44 @@ static int phase22_init(struct snd_ice1712 *ice)
 	int err;
 
 	/* Configure DAC/ADC description for generic part of ice1724 */
-	switch (ice->eeprom.subvendor) {
-	case VT1724_SUBDEVICE_PHASE22:
-	case VT1724_SUBDEVICE_TS22:
-		ice->num_total_dacs = 2;
-		ice->num_total_adcs = 2;
-		ice->vt1720 = 1; /* Envy24HT-S have 16 bit wide GPIO */
-		break;
-	default:
-		snd_BUG();
-		return -EINVAL;
+	switch (ice->eeprom.subvendor)
+	{
+		case VT1724_SUBDEVICE_PHASE22:
+		case VT1724_SUBDEVICE_TS22:
+			ice->num_total_dacs = 2;
+			ice->num_total_adcs = 2;
+			ice->vt1720 = 1; /* Envy24HT-S have 16 bit wide GPIO */
+			break;
+
+		default:
+			snd_BUG();
+			return -EINVAL;
 	}
 
 	/* Initialize analog chips */
 	ice->akm = kzalloc(sizeof(struct snd_akm4xxx), GFP_KERNEL);
 	ak = ice->akm;
+
 	if (!ak)
+	{
 		return -ENOMEM;
+	}
+
 	ice->akm_codecs = 1;
-	switch (ice->eeprom.subvendor) {
-	case VT1724_SUBDEVICE_PHASE22:
-	case VT1724_SUBDEVICE_TS22:
-		err = snd_ice1712_akm4xxx_init(ak, &akm_phase22,
-						&akm_phase22_priv, ice);
-		if (err < 0)
-			return err;
-		break;
+
+	switch (ice->eeprom.subvendor)
+	{
+		case VT1724_SUBDEVICE_PHASE22:
+		case VT1724_SUBDEVICE_TS22:
+			err = snd_ice1712_akm4xxx_init(ak, &akm_phase22,
+										   &akm_phase22_priv, ice);
+
+			if (err < 0)
+			{
+				return err;
+			}
+
+			break;
 	}
 
 	return 0;
@@ -161,17 +177,23 @@ static int phase22_add_controls(struct snd_ice1712 *ice)
 {
 	int err = 0;
 
-	switch (ice->eeprom.subvendor) {
-	case VT1724_SUBDEVICE_PHASE22:
-	case VT1724_SUBDEVICE_TS22:
-		err = snd_ice1712_akm4xxx_build_controls(ice);
-		if (err < 0)
-			return err;
+	switch (ice->eeprom.subvendor)
+	{
+		case VT1724_SUBDEVICE_PHASE22:
+		case VT1724_SUBDEVICE_TS22:
+			err = snd_ice1712_akm4xxx_build_controls(ice);
+
+			if (err < 0)
+			{
+				return err;
+			}
 	}
+
 	return 0;
 }
 
-static unsigned char phase22_eeprom[] = {
+static unsigned char phase22_eeprom[] =
+{
 	[ICE_EEP2_SYSCONF]     = 0x28,  /* clock 512, mpu 401,
 					spdif-in/1xADC, 1xDACs */
 	[ICE_EEP2_ACLINK]      = 0x80,	/* I2S */
@@ -188,7 +210,8 @@ static unsigned char phase22_eeprom[] = {
 	[ICE_EEP2_GPIO_STATE2] = 0x00,
 };
 
-static unsigned char phase28_eeprom[] = {
+static unsigned char phase28_eeprom[] =
+{
 	[ICE_EEP2_SYSCONF]     = 0x2b,  /* clock 512, mpu401,
 					spdif-in/1xADC, 4xDACs */
 	[ICE_EEP2_ACLINK]      = 0x80,	/* I2S */
@@ -209,28 +232,35 @@ static unsigned char phase28_eeprom[] = {
  * write data in the SPI mode
  */
 static void phase28_spi_write(struct snd_ice1712 *ice, unsigned int cs,
-				unsigned int data, int bits)
+							  unsigned int data, int bits)
 {
 	unsigned int tmp;
 	int i;
 
 	tmp = snd_ice1712_gpio_read(ice);
 
-	snd_ice1712_gpio_set_mask(ice, ~(PHASE28_WM_RW|PHASE28_SPI_MOSI|
-					PHASE28_SPI_CLK|PHASE28_WM_CS));
+	snd_ice1712_gpio_set_mask(ice, ~(PHASE28_WM_RW | PHASE28_SPI_MOSI |
+									 PHASE28_SPI_CLK | PHASE28_WM_CS));
 	tmp |= PHASE28_WM_RW;
 	tmp &= ~cs;
 	snd_ice1712_gpio_write(ice, tmp);
 	udelay(1);
 
-	for (i = bits - 1; i >= 0; i--) {
+	for (i = bits - 1; i >= 0; i--)
+	{
 		tmp &= ~PHASE28_SPI_CLK;
 		snd_ice1712_gpio_write(ice, tmp);
 		udelay(1);
+
 		if (data & (1 << i))
+		{
 			tmp |= PHASE28_SPI_MOSI;
+		}
 		else
+		{
 			tmp &= ~PHASE28_SPI_MOSI;
+		}
+
 		snd_ice1712_gpio_write(ice, tmp);
 		udelay(1);
 		tmp |= PHASE28_SPI_CLK;
@@ -254,7 +284,7 @@ static unsigned short wm_get(struct snd_ice1712 *ice, int reg)
 {
 	reg <<= 1;
 	return ((unsigned short)ice->akm[0].images[reg] << 8) |
-		ice->akm[0].images[reg + 1];
+		   ice->akm[0].images[reg + 1];
 }
 
 /*
@@ -277,15 +307,17 @@ static void wm_put(struct snd_ice1712 *ice, int reg, unsigned short val)
 }
 
 static void wm_set_vol(struct snd_ice1712 *ice, unsigned int index,
-			unsigned short vol, unsigned short master)
+					   unsigned short vol, unsigned short master)
 {
 	unsigned char nvol;
 
 	if ((master & WM_VOL_MUTE) || (vol & WM_VOL_MUTE))
+	{
 		nvol = 0;
+	}
 	else
 		nvol = 127 - wm_vol[(((vol & ~WM_VOL_MUTE) *
-			(master & ~WM_VOL_MUTE)) / 127) & WM_VOL_MAX];
+							  (master & ~WM_VOL_MUTE)) / 127) & WM_VOL_MAX];
 
 	wm_put(ice, index, nvol);
 	wm_put_nocache(ice, index, 0x180 | nvol);
@@ -297,19 +329,19 @@ static void wm_set_vol(struct snd_ice1712 *ice, unsigned int index,
 #define wm_pcm_mute_info	snd_ctl_boolean_mono_info
 
 static int wm_pcm_mute_get(struct snd_kcontrol *kcontrol,
-				struct snd_ctl_elem_value *ucontrol)
+						   struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 
 	mutex_lock(&ice->gpio_mutex);
 	ucontrol->value.integer.value[0] = (wm_get(ice, WM_MUTE) & 0x10) ?
-						0 : 1;
+									   0 : 1;
 	mutex_unlock(&ice->gpio_mutex);
 	return 0;
 }
 
 static int wm_pcm_mute_put(struct snd_kcontrol *kcontrol,
-				struct snd_ctl_elem_value *ucontrol)
+						   struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	unsigned short nval, oval;
@@ -319,8 +351,12 @@ static int wm_pcm_mute_put(struct snd_kcontrol *kcontrol,
 	oval = wm_get(ice, WM_MUTE);
 	nval = (oval & ~0x10) | (ucontrol->value.integer.value[0] ? 0 : 0x10);
 	change = (nval != oval);
+
 	if (change)
+	{
 		wm_put(ice, WM_MUTE, nval);
+	}
+
 	snd_ice1712_restore_gpio_status(ice);
 
 	return change;
@@ -330,7 +366,7 @@ static int wm_pcm_mute_put(struct snd_kcontrol *kcontrol,
  * Master volume attenuation mixer control
  */
 static int wm_master_vol_info(struct snd_kcontrol *kcontrol,
-				struct snd_ctl_elem_info *uinfo)
+							  struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	uinfo->count = 2;
@@ -340,47 +376,61 @@ static int wm_master_vol_info(struct snd_kcontrol *kcontrol,
 }
 
 static int wm_master_vol_get(struct snd_kcontrol *kcontrol,
-				struct snd_ctl_elem_value *ucontrol)
+							 struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	struct phase28_spec *spec = ice->spec;
 	int i;
+
 	for (i = 0; i < 2; i++)
 		ucontrol->value.integer.value[i] = spec->master[i] &
-							~WM_VOL_MUTE;
+										   ~WM_VOL_MUTE;
+
 	return 0;
 }
 
 static int wm_master_vol_put(struct snd_kcontrol *kcontrol,
-				struct snd_ctl_elem_value *ucontrol)
+							 struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	struct phase28_spec *spec = ice->spec;
 	int ch, change = 0;
 
 	snd_ice1712_save_gpio_status(ice);
-	for (ch = 0; ch < 2; ch++) {
+
+	for (ch = 0; ch < 2; ch++)
+	{
 		unsigned int vol = ucontrol->value.integer.value[ch];
+
 		if (vol > WM_VOL_MAX)
+		{
 			continue;
+		}
+
 		vol |= spec->master[ch] & WM_VOL_MUTE;
-		if (vol != spec->master[ch]) {
+
+		if (vol != spec->master[ch])
+		{
 			int dac;
 			spec->master[ch] = vol;
+
 			for (dac = 0; dac < ice->num_total_dacs; dac += 2)
 				wm_set_vol(ice, WM_DAC_ATTEN + dac + ch,
-					   spec->vol[dac + ch],
-					   spec->master[ch]);
+						   spec->vol[dac + ch],
+						   spec->master[ch]);
+
 			change = 1;
 		}
 	}
+
 	snd_ice1712_restore_gpio_status(ice);
 	return change;
 }
 
 static int phase28_init(struct snd_ice1712 *ice)
 {
-	static const unsigned short wm_inits_phase28[] = {
+	static const unsigned short wm_inits_phase28[] =
+	{
 		/* These come first to reduce init pop noise */
 		0x1b, 0x044,	/* ADC Mux (AC'97 source) */
 		0x1c, 0x00B,	/* Out Mux1 (VOUT1 = DAC+AUX, VOUT2 = DAC) */
@@ -414,7 +464,7 @@ static int phase28_init(struct snd_ice1712 *ice)
 		0x15, 0x000,	/* no deemphasis, no ZFLG */
 		0x19, 0x000,	/* -12dB ADC/L */
 		0x1a, 0x000,	/* -12dB ADC/R */
-		(unsigned short)-1
+		(unsigned short) - 1
 	};
 
 	unsigned int tmp;
@@ -427,23 +477,31 @@ static int phase28_init(struct snd_ice1712 *ice)
 	ice->num_total_adcs = 2;
 
 	spec = kzalloc(sizeof(*spec), GFP_KERNEL);
+
 	if (!spec)
+	{
 		return -ENOMEM;
+	}
+
 	ice->spec = spec;
 
 	/* Initialize analog chips */
 	ice->akm = kzalloc(sizeof(struct snd_akm4xxx), GFP_KERNEL);
 	ak = ice->akm;
+
 	if (!ak)
+	{
 		return -ENOMEM;
+	}
+
 	ice->akm_codecs = 1;
 
 	snd_ice1712_gpio_set_dir(ice, 0x5fffff); /* fix this for time being */
 
 	/* reset the wm codec as the SPI mode */
 	snd_ice1712_save_gpio_status(ice);
-	snd_ice1712_gpio_set_mask(ice, ~(PHASE28_WM_RESET|PHASE28_WM_CS|
-					PHASE28_HP_SEL));
+	snd_ice1712_gpio_set_mask(ice, ~(PHASE28_WM_RESET | PHASE28_WM_CS |
+									 PHASE28_HP_SEL));
 
 	tmp = snd_ice1712_gpio_read(ice);
 	tmp &= ~PHASE28_WM_RESET;
@@ -457,14 +515,19 @@ static int phase28_init(struct snd_ice1712 *ice)
 	udelay(1);
 
 	p = wm_inits_phase28;
-	for (; *p != (unsigned short)-1; p += 2)
+
+	for (; *p != (unsigned short) - 1; p += 2)
+	{
 		wm_put(ice, p[0], p[1]);
+	}
 
 	snd_ice1712_restore_gpio_status(ice);
 
 	spec->master[0] = WM_VOL_MUTE;
 	spec->master[1] = WM_VOL_MUTE;
-	for (i = 0; i < ice->num_total_dacs; i++) {
+
+	for (i = 0; i < ice->num_total_dacs; i++)
+	{
 		spec->vol[i] = WM_VOL_MUTE;
 		wm_set_vol(ice, i, spec->vol[i], spec->master[i % 2]);
 	}
@@ -476,7 +539,7 @@ static int phase28_init(struct snd_ice1712 *ice)
  * DAC volume attenuation mixer control
  */
 static int wm_vol_info(struct snd_kcontrol *kcontrol,
-			struct snd_ctl_elem_info *uinfo)
+					   struct snd_ctl_elem_info *uinfo)
 {
 	int voices = kcontrol->private_value >> 8;
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
@@ -487,7 +550,7 @@ static int wm_vol_info(struct snd_kcontrol *kcontrol,
 }
 
 static int wm_vol_get(struct snd_kcontrol *kcontrol,
-			struct snd_ctl_elem_value *ucontrol)
+					  struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	struct phase28_spec *spec = ice->spec;
@@ -495,14 +558,16 @@ static int wm_vol_get(struct snd_kcontrol *kcontrol,
 
 	voices = kcontrol->private_value >> 8;
 	ofs = kcontrol->private_value & 0xff;
+
 	for (i = 0; i < voices; i++)
 		ucontrol->value.integer.value[i] =
-			spec->vol[ofs+i] & ~WM_VOL_MUTE;
+			spec->vol[ofs + i] & ~WM_VOL_MUTE;
+
 	return 0;
 }
 
 static int wm_vol_put(struct snd_kcontrol *kcontrol,
-			struct snd_ctl_elem_value *ucontrol)
+					  struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	struct phase28_spec *spec = ice->spec;
@@ -512,20 +577,29 @@ static int wm_vol_put(struct snd_kcontrol *kcontrol,
 	voices = kcontrol->private_value >> 8;
 	ofs = kcontrol->private_value & 0xff;
 	snd_ice1712_save_gpio_status(ice);
-	for (i = 0; i < voices; i++) {
+
+	for (i = 0; i < voices; i++)
+	{
 		unsigned int vol;
 		vol = ucontrol->value.integer.value[i];
+
 		if (vol > 0x7f)
+		{
 			continue;
-		vol |= spec->vol[ofs+i] & WM_VOL_MUTE;
-		if (vol != spec->vol[ofs+i]) {
-			spec->vol[ofs+i] = vol;
+		}
+
+		vol |= spec->vol[ofs + i] & WM_VOL_MUTE;
+
+		if (vol != spec->vol[ofs + i])
+		{
+			spec->vol[ofs + i] = vol;
 			idx  = WM_DAC_ATTEN + ofs + i;
-			wm_set_vol(ice, idx, spec->vol[ofs+i],
-				   spec->master[i]);
+			wm_set_vol(ice, idx, spec->vol[ofs + i],
+					   spec->master[i]);
 			change = 1;
 		}
 	}
+
 	snd_ice1712_restore_gpio_status(ice);
 	return change;
 }
@@ -534,7 +608,8 @@ static int wm_vol_put(struct snd_kcontrol *kcontrol,
  * WM8770 mute control
  */
 static int wm_mute_info(struct snd_kcontrol *kcontrol,
-			struct snd_ctl_elem_info *uinfo) {
+						struct snd_ctl_elem_info *uinfo)
+{
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_BOOLEAN;
 	uinfo->count = kcontrol->private_value >> 8;
 	uinfo->value.integer.min = 0;
@@ -543,7 +618,7 @@ static int wm_mute_info(struct snd_kcontrol *kcontrol,
 }
 
 static int wm_mute_get(struct snd_kcontrol *kcontrol,
-			struct snd_ctl_elem_value *ucontrol)
+					   struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	struct phase28_spec *spec = ice->spec;
@@ -554,12 +629,13 @@ static int wm_mute_get(struct snd_kcontrol *kcontrol,
 
 	for (i = 0; i < voices; i++)
 		ucontrol->value.integer.value[i] =
-			(spec->vol[ofs+i] & WM_VOL_MUTE) ? 0 : 1;
+			(spec->vol[ofs + i] & WM_VOL_MUTE) ? 0 : 1;
+
 	return 0;
 }
 
 static int wm_mute_put(struct snd_kcontrol *kcontrol,
-			struct snd_ctl_elem_value *ucontrol)
+					   struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	struct phase28_spec *spec = ice->spec;
@@ -569,18 +645,23 @@ static int wm_mute_put(struct snd_kcontrol *kcontrol,
 	ofs = kcontrol->private_value & 0xFF;
 
 	snd_ice1712_save_gpio_status(ice);
-	for (i = 0; i < voices; i++) {
+
+	for (i = 0; i < voices; i++)
+	{
 		int val = (spec->vol[ofs + i] & WM_VOL_MUTE) ? 0 : 1;
-		if (ucontrol->value.integer.value[i] != val) {
+
+		if (ucontrol->value.integer.value[i] != val)
+		{
 			spec->vol[ofs + i] &= ~WM_VOL_MUTE;
 			spec->vol[ofs + i] |=
 				ucontrol->value.integer.value[i] ? 0 :
 				WM_VOL_MUTE;
 			wm_set_vol(ice, ofs + i, spec->vol[ofs + i],
-					spec->master[i]);
+					   spec->master[i]);
 			change = 1;
 		}
 	}
+
 	snd_ice1712_restore_gpio_status(ice);
 
 	return change;
@@ -592,7 +673,7 @@ static int wm_mute_put(struct snd_kcontrol *kcontrol,
 #define wm_master_mute_info		snd_ctl_boolean_stereo_info
 
 static int wm_master_mute_get(struct snd_kcontrol *kcontrol,
-				struct snd_ctl_elem_value *ucontrol)
+							  struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	struct phase28_spec *spec = ice->spec;
@@ -605,28 +686,35 @@ static int wm_master_mute_get(struct snd_kcontrol *kcontrol,
 }
 
 static int wm_master_mute_put(struct snd_kcontrol *kcontrol,
-				struct snd_ctl_elem_value *ucontrol)
+							  struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	struct phase28_spec *spec = ice->spec;
 	int change = 0, i;
 
 	snd_ice1712_save_gpio_status(ice);
-	for (i = 0; i < 2; i++) {
+
+	for (i = 0; i < 2; i++)
+	{
 		int val = (spec->master[i] & WM_VOL_MUTE) ? 0 : 1;
-		if (ucontrol->value.integer.value[i] != val) {
+
+		if (ucontrol->value.integer.value[i] != val)
+		{
 			int dac;
 			spec->master[i] &= ~WM_VOL_MUTE;
 			spec->master[i] |=
 				ucontrol->value.integer.value[i] ? 0 :
 				WM_VOL_MUTE;
+
 			for (dac = 0; dac < ice->num_total_dacs; dac += 2)
 				wm_set_vol(ice, WM_DAC_ATTEN + dac + i,
-						spec->vol[dac + i],
-						spec->master[i]);
+						   spec->vol[dac + i],
+						   spec->master[i]);
+
 			change = 1;
 		}
 	}
+
 	snd_ice1712_restore_gpio_status(ice);
 
 	return change;
@@ -637,7 +725,7 @@ static int wm_master_mute_put(struct snd_kcontrol *kcontrol,
 #define PCM_RES 128	/* -64dB */
 #define PCM_MIN (PCM_0dB - PCM_RES)
 static int wm_pcm_vol_info(struct snd_kcontrol *kcontrol,
-				struct snd_ctl_elem_info *uinfo)
+						   struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	uinfo->count = 1;
@@ -647,7 +735,7 @@ static int wm_pcm_vol_info(struct snd_kcontrol *kcontrol,
 }
 
 static int wm_pcm_vol_get(struct snd_kcontrol *kcontrol,
-				struct snd_ctl_elem_value *ucontrol)
+						  struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	unsigned short val;
@@ -661,24 +749,31 @@ static int wm_pcm_vol_get(struct snd_kcontrol *kcontrol,
 }
 
 static int wm_pcm_vol_put(struct snd_kcontrol *kcontrol,
-				struct snd_ctl_elem_value *ucontrol)
+						  struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	unsigned short ovol, nvol;
 	int change = 0;
 
 	nvol = ucontrol->value.integer.value[0];
+
 	if (nvol > PCM_RES)
+	{
 		return -EINVAL;
+	}
+
 	snd_ice1712_save_gpio_status(ice);
 	nvol = (nvol ? (nvol + PCM_MIN) : 0) & 0xff;
 	ovol = wm_get(ice, WM_DAC_DIG_MASTER_ATTEN) & 0xff;
-	if (ovol != nvol) {
+
+	if (ovol != nvol)
+	{
 		wm_put(ice, WM_DAC_DIG_MASTER_ATTEN, nvol); /* prelatch */
 		/* update */
 		wm_put_nocache(ice, WM_DAC_DIG_MASTER_ATTEN, nvol | 0x100);
 		change = 1;
 	}
+
 	snd_ice1712_restore_gpio_status(ice);
 	return change;
 }
@@ -689,29 +784,37 @@ static int wm_pcm_vol_put(struct snd_kcontrol *kcontrol,
 #define phase28_deemp_info	snd_ctl_boolean_mono_info
 
 static int phase28_deemp_get(struct snd_kcontrol *kcontrol,
-				struct snd_ctl_elem_value *ucontrol)
+							 struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	ucontrol->value.integer.value[0] = (wm_get(ice, WM_DAC_CTRL2) & 0xf) ==
-						0xf;
+									   0xf;
 	return 0;
 }
 
 static int phase28_deemp_put(struct snd_kcontrol *kcontrol,
-				struct snd_ctl_elem_value *ucontrol)
+							 struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	int temp, temp2;
 	temp = wm_get(ice, WM_DAC_CTRL2);
 	temp2 = temp;
+
 	if (ucontrol->value.integer.value[0])
+	{
 		temp |= 0xf;
+	}
 	else
+	{
 		temp &= ~0xf;
-	if (temp != temp2) {
+	}
+
+	if (temp != temp2)
+	{
 		wm_put(ice, WM_DAC_CTRL2, temp);
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -719,24 +822,24 @@ static int phase28_deemp_put(struct snd_kcontrol *kcontrol,
  * ADC Oversampling
  */
 static int phase28_oversampling_info(struct snd_kcontrol *k,
-					struct snd_ctl_elem_info *uinfo)
+									 struct snd_ctl_elem_info *uinfo)
 {
-	static const char * const texts[2] = { "128x", "64x"	};
+	static const char *const texts[2] = { "128x", "64x"	};
 
 	return snd_ctl_enum_info(uinfo, 1, 2, texts);
 }
 
 static int phase28_oversampling_get(struct snd_kcontrol *kcontrol,
-					struct snd_ctl_elem_value *ucontrol)
+									struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
 	ucontrol->value.enumerated.item[0] = (wm_get(ice, WM_MASTER) & 0x8) ==
-						0x8;
+										 0x8;
 	return 0;
 }
 
 static int phase28_oversampling_put(struct snd_kcontrol *kcontrol,
-					struct snd_ctl_elem_value *ucontrol)
+									struct snd_ctl_elem_value *ucontrol)
 {
 	int temp, temp2;
 	struct snd_ice1712 *ice = snd_kcontrol_chip(kcontrol);
@@ -745,21 +848,28 @@ static int phase28_oversampling_put(struct snd_kcontrol *kcontrol,
 	temp2 = temp;
 
 	if (ucontrol->value.enumerated.item[0])
+	{
 		temp |= 0x8;
+	}
 	else
+	{
 		temp &= ~0x8;
+	}
 
-	if (temp != temp2) {
+	if (temp != temp2)
+	{
 		wm_put(ice, WM_MASTER, temp);
 		return 1;
 	}
+
 	return 0;
 }
 
 static const DECLARE_TLV_DB_SCALE(db_scale_wm_dac, -12700, 100, 1);
 static const DECLARE_TLV_DB_SCALE(db_scale_wm_pcm, -6400, 50, 1);
 
-static struct snd_kcontrol_new phase28_dac_controls[] = {
+static struct snd_kcontrol_new phase28_dac_controls[] =
+{
 	{
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.name = "Master Playback Switch",
@@ -770,7 +880,7 @@ static struct snd_kcontrol_new phase28_dac_controls[] = {
 	{
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.access = (SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			   SNDRV_CTL_ELEM_ACCESS_TLV_READ),
+		SNDRV_CTL_ELEM_ACCESS_TLV_READ),
 		.name = "Master Playback Volume",
 		.info = wm_master_vol_info,
 		.get = wm_master_vol_get,
@@ -788,7 +898,7 @@ static struct snd_kcontrol_new phase28_dac_controls[] = {
 	{
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.access = (SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			   SNDRV_CTL_ELEM_ACCESS_TLV_READ),
+		SNDRV_CTL_ELEM_ACCESS_TLV_READ),
 		.name = "Front Playback Volume",
 		.info = wm_vol_info,
 		.get = wm_vol_get,
@@ -807,7 +917,7 @@ static struct snd_kcontrol_new phase28_dac_controls[] = {
 	{
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.access = (SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			   SNDRV_CTL_ELEM_ACCESS_TLV_READ),
+		SNDRV_CTL_ELEM_ACCESS_TLV_READ),
 		.name = "Rear Playback Volume",
 		.info = wm_vol_info,
 		.get = wm_vol_get,
@@ -826,7 +936,7 @@ static struct snd_kcontrol_new phase28_dac_controls[] = {
 	{
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.access = (SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			   SNDRV_CTL_ELEM_ACCESS_TLV_READ),
+		SNDRV_CTL_ELEM_ACCESS_TLV_READ),
 		.name = "Center Playback Volume",
 		.info = wm_vol_info,
 		.get = wm_vol_get,
@@ -845,7 +955,7 @@ static struct snd_kcontrol_new phase28_dac_controls[] = {
 	{
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.access = (SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			   SNDRV_CTL_ELEM_ACCESS_TLV_READ),
+		SNDRV_CTL_ELEM_ACCESS_TLV_READ),
 		.name = "LFE Playback Volume",
 		.info = wm_vol_info,
 		.get = wm_vol_get,
@@ -864,7 +974,7 @@ static struct snd_kcontrol_new phase28_dac_controls[] = {
 	{
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.access = (SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			   SNDRV_CTL_ELEM_ACCESS_TLV_READ),
+		SNDRV_CTL_ELEM_ACCESS_TLV_READ),
 		.name = "Side Playback Volume",
 		.info = wm_vol_info,
 		.get = wm_vol_get,
@@ -874,7 +984,8 @@ static struct snd_kcontrol_new phase28_dac_controls[] = {
 	}
 };
 
-static struct snd_kcontrol_new wm_controls[] = {
+static struct snd_kcontrol_new wm_controls[] =
+{
 	{
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.name = "PCM Playback Switch",
@@ -885,7 +996,7 @@ static struct snd_kcontrol_new wm_controls[] = {
 	{
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.access = (SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			   SNDRV_CTL_ELEM_ACCESS_TLV_READ),
+		SNDRV_CTL_ELEM_ACCESS_TLV_READ),
 		.name = "PCM Playback Volume",
 		.info = wm_pcm_vol_info,
 		.get = wm_pcm_vol_get,
@@ -914,25 +1025,35 @@ static int phase28_add_controls(struct snd_ice1712 *ice)
 	int err;
 
 	counts = ARRAY_SIZE(phase28_dac_controls);
-	for (i = 0; i < counts; i++) {
+
+	for (i = 0; i < counts; i++)
+	{
 		err = snd_ctl_add(ice->card,
-					snd_ctl_new1(&phase28_dac_controls[i],
-							ice));
+						  snd_ctl_new1(&phase28_dac_controls[i],
+									   ice));
+
 		if (err < 0)
+		{
 			return err;
+		}
 	}
 
-	for (i = 0; i < ARRAY_SIZE(wm_controls); i++) {
+	for (i = 0; i < ARRAY_SIZE(wm_controls); i++)
+	{
 		err = snd_ctl_add(ice->card,
-					snd_ctl_new1(&wm_controls[i], ice));
+						  snd_ctl_new1(&wm_controls[i], ice));
+
 		if (err < 0)
+		{
 			return err;
+		}
 	}
 
 	return 0;
 }
 
-struct snd_ice1712_card_info snd_vt1724_phase_cards[] = {
+struct snd_ice1712_card_info snd_vt1724_phase_cards[] =
+{
 	{
 		.subvendor = VT1724_SUBDEVICE_PHASE22,
 		.name = "Terratec PHASE 22",

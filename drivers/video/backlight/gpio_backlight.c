@@ -19,7 +19,8 @@
 #include <linux/platform_device.h>
 #include <linux/slab.h>
 
-struct gpio_backlight {
+struct gpio_backlight
+{
 	struct device *dev;
 	struct device *fbdev;
 
@@ -34,43 +35,49 @@ static int gpio_backlight_update_status(struct backlight_device *bl)
 	int brightness = bl->props.brightness;
 
 	if (bl->props.power != FB_BLANK_UNBLANK ||
-	    bl->props.fb_blank != FB_BLANK_UNBLANK ||
-	    bl->props.state & (BL_CORE_SUSPENDED | BL_CORE_FBBLANK))
+		bl->props.fb_blank != FB_BLANK_UNBLANK ||
+		bl->props.state & (BL_CORE_SUSPENDED | BL_CORE_FBBLANK))
+	{
 		brightness = 0;
+	}
 
 	gpio_set_value_cansleep(gbl->gpio,
-				brightness ? gbl->active : !gbl->active);
+							brightness ? gbl->active : !gbl->active);
 
 	return 0;
 }
 
 static int gpio_backlight_check_fb(struct backlight_device *bl,
-				   struct fb_info *info)
+								   struct fb_info *info)
 {
 	struct gpio_backlight *gbl = bl_get_data(bl);
 
 	return gbl->fbdev == NULL || gbl->fbdev == info->dev;
 }
 
-static const struct backlight_ops gpio_backlight_ops = {
+static const struct backlight_ops gpio_backlight_ops =
+{
 	.options	= BL_CORE_SUSPENDRESUME,
 	.update_status	= gpio_backlight_update_status,
 	.check_fb	= gpio_backlight_check_fb,
 };
 
 static int gpio_backlight_probe_dt(struct platform_device *pdev,
-				   struct gpio_backlight *gbl)
+								   struct gpio_backlight *gbl)
 {
 	struct device_node *np = pdev->dev.of_node;
 	enum of_gpio_flags gpio_flags;
 
 	gbl->gpio = of_get_gpio_flags(np, 0, &gpio_flags);
 
-	if (!gpio_is_valid(gbl->gpio)) {
-		if (gbl->gpio != -EPROBE_DEFER) {
+	if (!gpio_is_valid(gbl->gpio))
+	{
+		if (gbl->gpio != -EPROBE_DEFER)
+		{
 			dev_err(&pdev->dev,
-				"Error: The gpios parameter is missing or invalid.\n");
+					"Error: The gpios parameter is missing or invalid.\n");
 		}
+
 		return gbl->gpio;
 	}
 
@@ -92,23 +99,33 @@ static int gpio_backlight_probe(struct platform_device *pdev)
 	unsigned long flags = GPIOF_DIR_OUT;
 	int ret;
 
-	if (!pdata && !np) {
+	if (!pdata && !np)
+	{
 		dev_err(&pdev->dev,
-			"failed to find platform data or device tree node.\n");
+				"failed to find platform data or device tree node.\n");
 		return -ENODEV;
 	}
 
 	gbl = devm_kzalloc(&pdev->dev, sizeof(*gbl), GFP_KERNEL);
+
 	if (gbl == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	gbl->dev = &pdev->dev;
 
-	if (np) {
+	if (np)
+	{
 		ret = gpio_backlight_probe_dt(pdev, gbl);
+
 		if (ret)
+		{
 			return ret;
-	} else {
+		}
+	}
+	else
+	{
 		gbl->fbdev = pdata->fbdev;
 		gbl->gpio = pdata->gpio;
 		gbl->active = pdata->active_low ? 0 : 1;
@@ -116,13 +133,19 @@ static int gpio_backlight_probe(struct platform_device *pdev)
 	}
 
 	if (gbl->active)
+	{
 		flags |= gbl->def_value ? GPIOF_INIT_HIGH : GPIOF_INIT_LOW;
+	}
 	else
+	{
 		flags |= gbl->def_value ? GPIOF_INIT_LOW : GPIOF_INIT_HIGH;
+	}
 
 	ret = devm_gpio_request_one(gbl->dev, gbl->gpio, flags,
-				    pdata ? pdata->name : "backlight");
-	if (ret < 0) {
+								pdata ? pdata->name : "backlight");
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "unable to request GPIO\n");
 		return ret;
 	}
@@ -131,9 +154,11 @@ static int gpio_backlight_probe(struct platform_device *pdev)
 	props.type = BACKLIGHT_RAW;
 	props.max_brightness = 1;
 	bl = devm_backlight_device_register(&pdev->dev, dev_name(&pdev->dev),
-					&pdev->dev, gbl, &gpio_backlight_ops,
-					&props);
-	if (IS_ERR(bl)) {
+										&pdev->dev, gbl, &gpio_backlight_ops,
+										&props);
+
+	if (IS_ERR(bl))
+	{
 		dev_err(&pdev->dev, "failed to register backlight\n");
 		return PTR_ERR(bl);
 	}
@@ -146,7 +171,8 @@ static int gpio_backlight_probe(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static struct of_device_id gpio_backlight_of_match[] = {
+static struct of_device_id gpio_backlight_of_match[] =
+{
 	{ .compatible = "gpio-backlight" },
 	{ /* sentinel */ }
 };
@@ -154,7 +180,8 @@ static struct of_device_id gpio_backlight_of_match[] = {
 MODULE_DEVICE_TABLE(of, gpio_backlight_of_match);
 #endif
 
-static struct platform_driver gpio_backlight_driver = {
+static struct platform_driver gpio_backlight_driver =
+{
 	.driver		= {
 		.name		= "gpio-backlight",
 		.of_match_table = of_match_ptr(gpio_backlight_of_match),

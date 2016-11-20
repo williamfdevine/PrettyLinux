@@ -40,7 +40,8 @@
  * @MEDIA_GRAPH_INTF_DEVNODE:	Identify a media Kernel API interface via
  *				a device node
  */
-enum media_gobj_type {
+enum media_gobj_type
+{
 	MEDIA_GRAPH_ENTITY,
 	MEDIA_GRAPH_PAD,
 	MEDIA_GRAPH_LINK,
@@ -65,7 +66,8 @@ enum media_gobj_type {
  *
  * All objects on the media graph should have this struct embedded
  */
-struct media_gobj {
+struct media_gobj
+{
 	struct media_device	*mdev;
 	u32			id;
 	struct list_head	list;
@@ -80,7 +82,8 @@ struct media_gobj {
  *		media_entity->internal_idx.
  * @idx_max:	Number of bits in bmap
  */
-struct media_entity_enum {
+struct media_entity_enum
+{
 	unsigned long *bmap;
 	int idx_max;
 };
@@ -94,8 +97,10 @@ struct media_entity_enum {
  * @ent_enum:		Visited entities
  * @top:		The top of the stack
  */
-struct media_entity_graph {
-	struct {
+struct media_entity_graph
+{
+	struct
+	{
 		struct media_entity *entity;
 		struct list_head *link;
 	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
@@ -110,7 +115,8 @@ struct media_entity_graph {
  * @streaming_count:	Streaming start count - streaming stop count
  * @graph:		Media graph walk during pipeline start / stop
  */
-struct media_pipeline {
+struct media_pipeline
+{
 	int streaming_count;
 	struct media_entity_graph graph;
 };
@@ -138,15 +144,18 @@ struct media_pipeline {
  * @flags:	Link flags, as defined in uapi/media.h (MEDIA_LNK_FL_*)
  * @is_backlink: Indicate if the link is a backlink.
  */
-struct media_link {
+struct media_link
+{
 	struct media_gobj graph_obj;
 	struct list_head list;
-	union {
+	union
+	{
 		struct media_gobj *gobj0;
 		struct media_pad *source;
 		struct media_interface *intf;
 	};
-	union {
+	union
+	{
 		struct media_gobj *gobj1;
 		struct media_pad *sink;
 		struct media_entity *entity;
@@ -166,7 +175,8 @@ struct media_link {
  *		:ref:`include/uapi/linux/media.h <media_header>`
  *		(seek for ``MEDIA_PAD_FL_*``)
  */
-struct media_pad {
+struct media_pad
+{
 	struct media_gobj graph_obj;	/* must be first field in struct */
 	struct media_entity *entity;
 	u16 index;
@@ -187,10 +197,11 @@ struct media_pad {
  *    Those these callbacks are called with struct &media_device.graph_mutex
  *    mutex held.
  */
-struct media_entity_operations {
+struct media_entity_operations
+{
 	int (*link_setup)(struct media_entity *entity,
-			  const struct media_pad *local,
-			  const struct media_pad *remote, u32 flags);
+					  const struct media_pad *local,
+					  const struct media_pad *remote, u32 flags);
 	int (*link_validate)(struct media_link *link);
 };
 
@@ -215,7 +226,8 @@ struct media_entity_operations {
  * %MEDIA_ENTITY_TYPE_V4L2_SUBDEV and can safely be cast to a &v4l2_subdev
  * structure using the container_of() macro.
  */
-enum media_entity_type {
+enum media_entity_type
+{
 	MEDIA_ENTITY_TYPE_BASE,
 	MEDIA_ENTITY_TYPE_VIDEO_DEVICE,
 	MEDIA_ENTITY_TYPE_V4L2_SUBDEV,
@@ -258,7 +270,8 @@ enum media_entity_type {
  *    check can be used to detect reference count bugs that would make them
  *    negative.
  */
-struct media_entity {
+struct media_entity
+{
 	struct media_gobj graph_obj;	/* must be first field in struct */
 	const char *name;
 	enum media_entity_type obj_type;
@@ -280,8 +293,10 @@ struct media_entity {
 
 	struct media_pipeline *pipe;
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u32 major;
 			u32 minor;
 		} dev;
@@ -304,7 +319,8 @@ struct media_entity {
  *
  *    Currently, no flags for &media_interface is defined.
  */
-struct media_interface {
+struct media_interface
+{
 	struct media_gobj		graph_obj;
 	struct list_head		links;
 	u32				type;
@@ -318,7 +334,8 @@ struct media_interface {
  * @major:	Major number of a device node
  * @minor:	Minor number of a device node
  */
-struct media_intf_devnode {
+struct media_intf_devnode
+{
 	struct media_interface		intf;
 
 	/* Should match the fields at media_v2_intf_devnode */
@@ -407,7 +424,7 @@ static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
  * Return: Returns zero on success or a negative error code.
  */
 __must_check int __media_entity_enum_init(struct media_entity_enum *ent_enum,
-					  int idx_max);
+		int idx_max);
 
 /**
  * media_entity_enum_cleanup - Release resources of an entity enumeration
@@ -433,10 +450,12 @@ static inline void media_entity_enum_zero(struct media_entity_enum *ent_enum)
  * @entity: Entity to be marked
  */
 static inline void media_entity_enum_set(struct media_entity_enum *ent_enum,
-					 struct media_entity *entity)
+		struct media_entity *entity)
 {
 	if (WARN_ON(entity->internal_idx >= ent_enum->idx_max))
+	{
 		return;
+	}
 
 	__set_bit(entity->internal_idx, ent_enum->bmap);
 }
@@ -448,10 +467,12 @@ static inline void media_entity_enum_set(struct media_entity_enum *ent_enum,
  * @entity: Entity to be unmarked
  */
 static inline void media_entity_enum_clear(struct media_entity_enum *ent_enum,
-					   struct media_entity *entity)
+		struct media_entity *entity)
 {
 	if (WARN_ON(entity->internal_idx >= ent_enum->idx_max))
+	{
 		return;
+	}
 
 	__clear_bit(entity->internal_idx, ent_enum->bmap);
 }
@@ -465,10 +486,12 @@ static inline void media_entity_enum_clear(struct media_entity_enum *ent_enum,
  * Returns %true if the entity was marked.
  */
 static inline bool media_entity_enum_test(struct media_entity_enum *ent_enum,
-					  struct media_entity *entity)
+		struct media_entity *entity)
 {
 	if (WARN_ON(entity->internal_idx >= ent_enum->idx_max))
+	{
 		return true;
+	}
 
 	return test_bit(entity->internal_idx, ent_enum->bmap);
 }
@@ -484,10 +507,12 @@ static inline bool media_entity_enum_test(struct media_entity_enum *ent_enum,
  */
 static inline bool
 media_entity_enum_test_and_set(struct media_entity_enum *ent_enum,
-			       struct media_entity *entity)
+							   struct media_entity *entity)
 {
 	if (WARN_ON(entity->internal_idx >= ent_enum->idx_max))
+	{
 		return true;
+	}
 
 	return __test_and_set_bit(entity->internal_idx, ent_enum->bmap);
 }
@@ -520,7 +545,7 @@ static inline bool media_entity_enum_intersects(
 	WARN_ON(ent_enum1->idx_max != ent_enum2->idx_max);
 
 	return bitmap_intersects(ent_enum1->bmap, ent_enum2->bmap,
-				 min(ent_enum1->idx_max, ent_enum2->idx_max));
+							 min(ent_enum1->idx_max, ent_enum2->idx_max));
 }
 
 /**
@@ -530,7 +555,7 @@ static inline bool media_entity_enum_intersects(
  * @gobj: Pointer to the struct &media_gobj graph object
  */
 #define gobj_to_entity(gobj) \
-		container_of(gobj, struct media_entity, graph_obj)
+	container_of(gobj, struct media_entity, graph_obj)
 
 /**
  * gobj_to_pad - returns the struct &media_pad pointer from the
@@ -539,7 +564,7 @@ static inline bool media_entity_enum_intersects(
  * @gobj: Pointer to the struct &media_gobj graph object
  */
 #define gobj_to_pad(gobj) \
-		container_of(gobj, struct media_pad, graph_obj)
+	container_of(gobj, struct media_pad, graph_obj)
 
 /**
  * gobj_to_link - returns the struct &media_link pointer from the
@@ -548,7 +573,7 @@ static inline bool media_entity_enum_intersects(
  * @gobj: Pointer to the struct &media_gobj graph object
  */
 #define gobj_to_link(gobj) \
-		container_of(gobj, struct media_link, graph_obj)
+	container_of(gobj, struct media_link, graph_obj)
 
 /**
  * gobj_to_intf - returns the struct &media_interface pointer from the
@@ -557,7 +582,7 @@ static inline bool media_entity_enum_intersects(
  * @gobj: Pointer to the struct &media_gobj graph object
  */
 #define gobj_to_intf(gobj) \
-		container_of(gobj, struct media_interface, graph_obj)
+	container_of(gobj, struct media_interface, graph_obj)
 
 /**
  * intf_to_devnode - returns the struct media_intf_devnode pointer from the
@@ -566,7 +591,7 @@ static inline bool media_entity_enum_intersects(
  * @intf: Pointer to struct &media_intf_devnode
  */
 #define intf_to_devnode(intf) \
-		container_of(intf, struct media_intf_devnode, intf)
+	container_of(intf, struct media_intf_devnode, intf)
 
 /**
  *  media_gobj_create - Initialize a graph object
@@ -582,8 +607,8 @@ static inline bool media_entity_enum_intersects(
  * called before registering the object at the media controller.
  */
 void media_gobj_create(struct media_device *mdev,
-		    enum media_gobj_type type,
-		    struct media_gobj *gobj);
+					   enum media_gobj_type type,
+					   struct media_gobj *gobj);
 
 /**
  *  media_gobj_destroy - Stop using a graph object on a media device
@@ -618,7 +643,7 @@ void media_gobj_destroy(struct media_gobj *gobj);
  * media_entity_pads_init(). The function will initialize the other pads fields.
  */
 int media_entity_pads_init(struct media_entity *entity, u16 num_pads,
-		      struct media_pad *pads);
+						   struct media_pad *pads);
 
 /**
  * media_entity_cleanup() - free resources associated with an entity
@@ -659,8 +684,8 @@ static inline void media_entity_cleanup(struct media_entity *entity) {};
  *    media_device_register_entity() should be called previously for both ends.
  */
 __must_check int media_create_pad_link(struct media_entity *source,
-			u16 source_pad, struct media_entity *sink,
-			u16 sink_pad, u32 flags);
+									   u16 source_pad, struct media_entity *sink,
+									   u16 sink_pad, u32 flags);
 
 /**
  * media_create_pad_links() - creates a link between two entities.
@@ -706,14 +731,14 @@ __must_check int media_create_pad_link(struct media_entity *source,
  *    entities to be linked.
  */
 int media_create_pad_links(const struct media_device *mdev,
-			   const u32 source_function,
-			   struct media_entity *source,
-			   const u16 source_pad,
-			   const u32 sink_function,
-			   struct media_entity *sink,
-			   const u16 sink_pad,
-			   u32 flags,
-			   const bool allow_both_undefined);
+						   const u32 source_function,
+						   struct media_entity *source,
+						   const u16 source_pad,
+						   const u32 sink_function,
+						   struct media_entity *sink,
+						   const u16 sink_pad,
+						   u32 flags,
+						   const bool allow_both_undefined);
 
 void __media_entity_remove_links(struct media_entity *entity);
 
@@ -862,7 +887,7 @@ void media_entity_put(struct media_entity *entity);
  * using media_entity_graph_walk_cleanup().
  */
 void media_entity_graph_walk_start(struct media_entity_graph *graph,
-				   struct media_entity *entity);
+								   struct media_entity *entity);
 
 /**
  * media_entity_graph_walk_next - Get the next entity in the graph
@@ -894,7 +919,7 @@ media_entity_graph_walk_next(struct media_entity_graph *graph);
  * media_entity_pipeline_start().
  */
 __must_check int media_entity_pipeline_start(struct media_entity *entity,
-					     struct media_pipeline *pipe);
+		struct media_pipeline *pipe);
 /**
  * __media_entity_pipeline_start - Mark a pipeline as streaming
  *
@@ -904,7 +929,7 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
  * ..note:: This is the non-locking version of media_entity_pipeline_start()
  */
 __must_check int __media_entity_pipeline_start(struct media_entity *entity,
-					       struct media_pipeline *pipe);
+		struct media_pipeline *pipe);
 
 /**
  * media_entity_pipeline_stop - Mark a pipeline as not streaming
@@ -951,8 +976,8 @@ void __media_entity_pipeline_stop(struct media_entity *entity);
  */
 struct media_intf_devnode *
 __must_check media_devnode_create(struct media_device *mdev,
-				  u32 type, u32 flags,
-				  u32 major, u32 minor);
+								  u32 type, u32 flags,
+								  u32 major, u32 minor);
 /**
  * media_devnode_remove() - removes a device node interface
  *
@@ -994,8 +1019,8 @@ struct media_link *
  *    interface that will be part of the link.
  */
 __must_check media_create_intf_link(struct media_entity *entity,
-				    struct media_interface *intf,
-				    u32 flags);
+									struct media_interface *intf,
+									u32 flags);
 /**
  * __media_remove_intf_link() - remove a single interface link
  *

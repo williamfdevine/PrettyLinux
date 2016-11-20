@@ -42,7 +42,8 @@
 #include <media/videobuf2-dma-sg.h>
 
 /* read 512 bytes from endpoint 0x86 -> get header + blobs */
-struct sur40_header {
+struct sur40_header
+{
 
 	__le16 type;       /* always 0x0001 */
 	__le16 count;      /* count of blobs (if 0: continue prev. packet) */
@@ -54,7 +55,8 @@ struct sur40_header {
 
 } __packed;
 
-struct sur40_blob {
+struct sur40_blob
+{
 
 	__le16 blob_id;
 
@@ -86,14 +88,16 @@ struct sur40_blob {
 } __packed;
 
 /* combined header/blob data */
-struct sur40_data {
+struct sur40_data
+{
 	struct sur40_header header;
 	struct sur40_blob   blobs[];
 } __packed;
 
 /* read 512 bytes from endpoint 0x82 -> get header below
  * continue reading 16k blocks until header.size bytes read */
-struct sur40_image_header {
+struct sur40_image_header
+{
 	__le32 magic;     /* "SUBF" */
 	__le32 packet_id;
 	__le32 size;      /* always 0x0007e900 = 960x540 */
@@ -139,7 +143,8 @@ struct sur40_image_header {
 #define SUR40_GET_STATE   0xc5 /*  4 bytes state (?) */
 #define SUR40_GET_SENSORS 0xb1 /*  8 bytes sensors   */
 
-static const struct v4l2_pix_format sur40_pix_format[] = {
+static const struct v4l2_pix_format sur40_pix_format[] =
+{
 	{
 		.pixelformat = V4L2_TCH_FMT_TU08,
 		.width  = SENSOR_RES_X / 2,
@@ -147,7 +152,7 @@ static const struct v4l2_pix_format sur40_pix_format[] = {
 		.field = V4L2_FIELD_NONE,
 		.colorspace = V4L2_COLORSPACE_SRGB,
 		.bytesperline = SENSOR_RES_X / 2,
-		.sizeimage = (SENSOR_RES_X/2) * (SENSOR_RES_Y/2),
+		.sizeimage = (SENSOR_RES_X / 2) * (SENSOR_RES_Y / 2),
 	},
 	{
 		.pixelformat = V4L2_PIX_FMT_GREY,
@@ -156,12 +161,13 @@ static const struct v4l2_pix_format sur40_pix_format[] = {
 		.field = V4L2_FIELD_NONE,
 		.colorspace = V4L2_COLORSPACE_SRGB,
 		.bytesperline = SENSOR_RES_X / 2,
-		.sizeimage = (SENSOR_RES_X/2) * (SENSOR_RES_Y/2),
+		.sizeimage = (SENSOR_RES_X / 2) * (SENSOR_RES_Y / 2),
 	}
 };
 
 /* master device state */
-struct sur40_state {
+struct sur40_state
+{
 
 	struct usb_device *usbdev;
 	struct device *dev;
@@ -184,7 +190,8 @@ struct sur40_state {
 	char phys[64];
 };
 
-struct sur40_buffer {
+struct sur40_buffer
+{
 	struct vb2_v4l2_buffer vb;
 	struct list_head list;
 };
@@ -205,12 +212,12 @@ static void sur40_process_video(struct sur40_state *sur40);
 
 /* command wrapper */
 static int sur40_command(struct sur40_state *dev,
-			 u8 command, u16 index, void *buffer, u16 size)
+						 u8 command, u16 index, void *buffer, u16 size)
 {
 	return usb_control_msg(dev->usbdev, usb_rcvctrlpipe(dev->usbdev, 0),
-			       command,
-			       USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
-			       0x00, index, buffer, size, 1000);
+						   command,
+						   USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
+						   0x00, index, buffer, size, 1000);
 }
 
 /* Initialization routine, called from sur40_open */
@@ -220,31 +227,48 @@ static int sur40_init(struct sur40_state *dev)
 	u8 *buffer;
 
 	buffer = kmalloc(24, GFP_KERNEL);
-	if (!buffer) {
+
+	if (!buffer)
+	{
 		result = -ENOMEM;
 		goto error;
 	}
 
 	/* stupidly replay the original MS driver init sequence */
 	result = sur40_command(dev, SUR40_GET_VERSION, 0x00, buffer, 12);
+
 	if (result < 0)
+	{
 		goto error;
+	}
 
 	result = sur40_command(dev, SUR40_GET_VERSION, 0x01, buffer, 12);
+
 	if (result < 0)
+	{
 		goto error;
+	}
 
 	result = sur40_command(dev, SUR40_GET_VERSION, 0x02, buffer, 12);
+
 	if (result < 0)
+	{
 		goto error;
+	}
 
 	result = sur40_command(dev, SUR40_UNKNOWN2,    0x00, buffer, 24);
+
 	if (result < 0)
+	{
 		goto error;
+	}
 
 	result = sur40_command(dev, SUR40_UNKNOWN1,    0x00, buffer,  5);
+
 	if (result < 0)
+	{
 		goto error;
+	}
 
 	result = sur40_command(dev, SUR40_GET_VERSION, 0x03, buffer, 12);
 
@@ -300,8 +324,11 @@ static void sur40_report_blob(struct sur40_blob *blob, struct input_dev *input)
 	int ctr_y = le16_to_cpu(blob->ctr_y);
 
 	int slotnum = input_mt_get_slot_by_key(input, blob->blob_id);
+
 	if (slotnum < 0 || slotnum >= MAX_CONTACTS)
+	{
 		return;
+	}
 
 	input_mt_slot(input, slotnum);
 	input_mt_report_slot_state(input, MT_TOOL_FINGER, 1);
@@ -335,30 +362,34 @@ static void sur40_poll(struct input_polled_dev *polldev)
 
 	need_blobs = -1;
 
-	do {
+	do
+	{
 
 		/* perform a blocking bulk read to get data from the device */
 		result = usb_bulk_msg(sur40->usbdev,
-			usb_rcvbulkpipe(sur40->usbdev, sur40->bulk_in_epaddr),
-			sur40->bulk_in_buffer, sur40->bulk_in_size,
-			&bulk_read, 1000);
+							  usb_rcvbulkpipe(sur40->usbdev, sur40->bulk_in_epaddr),
+							  sur40->bulk_in_buffer, sur40->bulk_in_size,
+							  &bulk_read, 1000);
 
 		dev_dbg(sur40->dev, "received %d bytes\n", bulk_read);
 
-		if (result < 0) {
+		if (result < 0)
+		{
 			dev_err(sur40->dev, "error in usb_bulk_read\n");
 			return;
 		}
 
 		result = bulk_read - sizeof(struct sur40_header);
 
-		if (result % sizeof(struct sur40_blob) != 0) {
+		if (result % sizeof(struct sur40_blob) != 0)
+		{
 			dev_err(sur40->dev, "transfer size mismatch\n");
 			return;
 		}
 
 		/* first packet? */
-		if (need_blobs == -1) {
+		if (need_blobs == -1)
+		{
 			need_blobs = le16_to_cpu(header->count);
 			dev_dbg(sur40->dev, "need %d blobs\n", need_blobs);
 			packet_id = le32_to_cpu(header->packet_id);
@@ -370,22 +401,28 @@ static void sur40_poll(struct input_polled_dev *polldev)
 		 * instead of at the end.
 		 */
 		if (packet_id != header->packet_id)
+		{
 			dev_dbg(sur40->dev, "packet ID mismatch\n");
+		}
 
 		packet_blobs = result / sizeof(struct sur40_blob);
 		dev_dbg(sur40->dev, "received %d blobs\n", packet_blobs);
 
 		/* packets always contain at least 4 blobs, even if empty */
 		if (packet_blobs > need_blobs)
+		{
 			packet_blobs = need_blobs;
+		}
 
-		for (i = 0; i < packet_blobs; i++) {
+		for (i = 0; i < packet_blobs; i++)
+		{
 			need_blobs--;
 			dev_dbg(sur40->dev, "processing blob\n");
 			sur40_report_blob(&(inblob[i]), input);
 		}
 
-	} while (need_blobs > 0);
+	}
+	while (need_blobs > 0);
 
 	input_mt_sync_frame(input);
 	input_sync(input);
@@ -404,15 +441,20 @@ static void sur40_process_video(struct sur40_state *sur40)
 	int result, bulk_read;
 
 	if (!vb2_start_streaming_called(&sur40->queue))
+	{
 		return;
+	}
 
 	/* get a new buffer from the list */
 	spin_lock(&sur40->qlock);
-	if (list_empty(&sur40->buf_list)) {
+
+	if (list_empty(&sur40->buf_list))
+	{
 		dev_dbg(sur40->dev, "buffer queue empty\n");
 		spin_unlock(&sur40->qlock);
 		return;
 	}
+
 	new_buf = list_entry(sur40->buf_list.next, struct sur40_buffer, list);
 	list_del(&new_buf->list);
 	spin_unlock(&sur40->qlock);
@@ -421,27 +463,31 @@ static void sur40_process_video(struct sur40_state *sur40)
 
 	/* retrieve data via bulk read */
 	result = usb_bulk_msg(sur40->usbdev,
-			usb_rcvbulkpipe(sur40->usbdev, VIDEO_ENDPOINT),
-			sur40->bulk_in_buffer, sur40->bulk_in_size,
-			&bulk_read, 1000);
+						  usb_rcvbulkpipe(sur40->usbdev, VIDEO_ENDPOINT),
+						  sur40->bulk_in_buffer, sur40->bulk_in_size,
+						  &bulk_read, 1000);
 
-	if (result < 0) {
+	if (result < 0)
+	{
 		dev_err(sur40->dev, "error in usb_bulk_read\n");
 		goto err_poll;
 	}
 
-	if (bulk_read != sizeof(struct sur40_image_header)) {
+	if (bulk_read != sizeof(struct sur40_image_header))
+	{
 		dev_err(sur40->dev, "received %d bytes (%zd expected)\n",
-			bulk_read, sizeof(struct sur40_image_header));
+				bulk_read, sizeof(struct sur40_image_header));
 		goto err_poll;
 	}
 
-	if (le32_to_cpu(img->magic) != VIDEO_HEADER_MAGIC) {
+	if (le32_to_cpu(img->magic) != VIDEO_HEADER_MAGIC)
+	{
 		dev_err(sur40->dev, "image magic mismatch\n");
 		goto err_poll;
 	}
 
-	if (le32_to_cpu(img->size) != sur40->pix_fmt.sizeimage) {
+	if (le32_to_cpu(img->size) != sur40->pix_fmt.sizeimage)
+	{
 		dev_err(sur40->dev, "image size mismatch\n");
 		goto err_poll;
 	}
@@ -451,15 +497,19 @@ static void sur40_process_video(struct sur40_state *sur40)
 	sgt = vb2_dma_sg_plane_desc(&new_buf->vb.vb2_buf, 0);
 
 	result = usb_sg_init(&sgr, sur40->usbdev,
-		usb_rcvbulkpipe(sur40->usbdev, VIDEO_ENDPOINT), 0,
-		sgt->sgl, sgt->nents, sur40->pix_fmt.sizeimage, 0);
-	if (result < 0) {
+						 usb_rcvbulkpipe(sur40->usbdev, VIDEO_ENDPOINT), 0,
+						 sgt->sgl, sgt->nents, sur40->pix_fmt.sizeimage, 0);
+
+	if (result < 0)
+	{
 		dev_err(sur40->dev, "error %d in usb_sg_init\n", result);
 		goto err_poll;
 	}
 
 	usb_sg_wait(&sgr);
-	if (sgr.status < 0) {
+
+	if (sgr.status < 0)
+	{
 		dev_err(sur40->dev, "error %d in usb_sg_wait\n", sgr.status);
 		goto err_poll;
 	}
@@ -468,7 +518,9 @@ static void sur40_process_video(struct sur40_state *sur40)
 
 	/* return error if streaming was stopped in the meantime */
 	if (sur40->sequence == -1)
+	{
 		return;
+	}
 
 	/* mark as finished */
 	new_buf->vb.vb2_buf.timestamp = ktime_get_ns();
@@ -489,31 +541,31 @@ static void sur40_input_setup(struct input_dev *input_dev)
 	__set_bit(EV_ABS, input_dev->evbit);
 
 	input_set_abs_params(input_dev, ABS_MT_POSITION_X,
-			     0, SENSOR_RES_X, 0, 0);
+						 0, SENSOR_RES_X, 0, 0);
 	input_set_abs_params(input_dev, ABS_MT_POSITION_Y,
-			     0, SENSOR_RES_Y, 0, 0);
+						 0, SENSOR_RES_Y, 0, 0);
 
 	input_set_abs_params(input_dev, ABS_MT_TOOL_X,
-			     0, SENSOR_RES_X, 0, 0);
+						 0, SENSOR_RES_X, 0, 0);
 	input_set_abs_params(input_dev, ABS_MT_TOOL_Y,
-			     0, SENSOR_RES_Y, 0, 0);
+						 0, SENSOR_RES_Y, 0, 0);
 
 	/* max value unknown, but major/minor axis
 	 * can never be larger than screen */
 	input_set_abs_params(input_dev, ABS_MT_TOUCH_MAJOR,
-			     0, SENSOR_RES_X, 0, 0);
+						 0, SENSOR_RES_X, 0, 0);
 	input_set_abs_params(input_dev, ABS_MT_TOUCH_MINOR,
-			     0, SENSOR_RES_Y, 0, 0);
+						 0, SENSOR_RES_Y, 0, 0);
 
 	input_set_abs_params(input_dev, ABS_MT_ORIENTATION, 0, 1, 0, 0);
 
 	input_mt_init_slots(input_dev, MAX_CONTACTS,
-			    INPUT_MT_DIRECT | INPUT_MT_DROP_UNUSED);
+						INPUT_MT_DIRECT | INPUT_MT_DROP_UNUSED);
 }
 
 /* Check candidate USB interface. */
 static int sur40_probe(struct usb_interface *interface,
-		       const struct usb_device_id *id)
+					   const struct usb_device_id *id)
 {
 	struct usb_device *usbdev = interface_to_usbdev(interface);
 	struct sur40_state *sur40;
@@ -524,21 +576,32 @@ static int sur40_probe(struct usb_interface *interface,
 
 	/* Check if we really have the right interface. */
 	iface_desc = &interface->altsetting[0];
+
 	if (iface_desc->desc.bInterfaceClass != 0xFF)
+	{
 		return -ENODEV;
+	}
 
 	/* Use endpoint #4 (0x86). */
 	endpoint = &iface_desc->endpoint[4].desc;
+
 	if (endpoint->bEndpointAddress != TOUCH_ENDPOINT)
+	{
 		return -ENODEV;
+	}
 
 	/* Allocate memory for our device state and initialize it. */
 	sur40 = kzalloc(sizeof(struct sur40_state), GFP_KERNEL);
+
 	if (!sur40)
+	{
 		return -ENOMEM;
+	}
 
 	poll_dev = input_allocate_polled_device();
-	if (!poll_dev) {
+
+	if (!poll_dev)
+	{
 		error = -ENOMEM;
 		goto err_free_dev;
 	}
@@ -573,7 +636,9 @@ static int sur40_probe(struct usb_interface *interface,
 	sur40->bulk_in_size = usb_endpoint_maxp(endpoint);
 	sur40->bulk_in_epaddr = endpoint->bEndpointAddress;
 	sur40->bulk_in_buffer = kmalloc(sur40->bulk_in_size, GFP_KERNEL);
-	if (!sur40->bulk_in_buffer) {
+
+	if (!sur40->bulk_in_buffer)
+	{
 		dev_err(&interface->dev, "Unable to allocate input buffer.");
 		error = -ENOMEM;
 		goto err_free_polldev;
@@ -581,18 +646,22 @@ static int sur40_probe(struct usb_interface *interface,
 
 	/* register the polled input device */
 	error = input_register_polled_device(poll_dev);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&interface->dev,
-			"Unable to register polled input device.");
+				"Unable to register polled input device.");
 		goto err_free_buffer;
 	}
 
 	/* register the video master device */
 	snprintf(sur40->v4l2.name, sizeof(sur40->v4l2.name), "%s", DRIVER_LONG);
 	error = v4l2_device_register(sur40->dev, &sur40->v4l2);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&interface->dev,
-			"Unable to register video master device.");
+				"Unable to register video master device.");
 		goto err_unreg_v4l2;
 	}
 
@@ -604,8 +673,11 @@ static int sur40_probe(struct usb_interface *interface,
 
 	/* initialize the queue */
 	error = vb2_queue_init(&sur40->queue);
+
 	if (error)
+	{
 		goto err_unreg_v4l2;
+	}
 
 	sur40->pix_fmt = sur40_pix_format[0];
 	sur40->vdev = sur40_video_device;
@@ -615,9 +687,11 @@ static int sur40_probe(struct usb_interface *interface,
 	video_set_drvdata(&sur40->vdev, sur40);
 
 	error = video_register_device(&sur40->vdev, VFL_TYPE_TOUCH, -1);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&interface->dev,
-			"Unable to register video subdevice.");
+				"Unable to register video subdevice.");
 		goto err_unreg_video;
 	}
 
@@ -666,16 +740,20 @@ static void sur40_disconnect(struct usb_interface *interface)
  * queue and you need to have another available for userspace processing.
  */
 static int sur40_queue_setup(struct vb2_queue *q,
-		       unsigned int *nbuffers, unsigned int *nplanes,
-		       unsigned int sizes[], struct device *alloc_devs[])
+							 unsigned int *nbuffers, unsigned int *nplanes,
+							 unsigned int sizes[], struct device *alloc_devs[])
 {
 	struct sur40_state *sur40 = vb2_get_drv_priv(q);
 
 	if (q->num_buffers + *nbuffers < 3)
+	{
 		*nbuffers = 3 - q->num_buffers;
+	}
 
 	if (*nplanes)
+	{
 		return sizes[0] < sur40->pix_fmt.sizeimage ? -EINVAL : 0;
+	}
 
 	*nplanes = 1;
 	sizes[0] = sur40->pix_fmt.sizeimage;
@@ -692,9 +770,10 @@ static int sur40_buffer_prepare(struct vb2_buffer *vb)
 	struct sur40_state *sur40 = vb2_get_drv_priv(vb->vb2_queue);
 	unsigned long size = sur40->pix_fmt.sizeimage;
 
-	if (vb2_plane_size(vb, 0) < size) {
+	if (vb2_plane_size(vb, 0) < size)
+	{
 		dev_err(&sur40->usbdev->dev, "buffer too small (%lu < %lu)\n",
-			 vb2_plane_size(vb, 0), size);
+				vb2_plane_size(vb, 0), size);
 		return -EINVAL;
 	}
 
@@ -716,12 +795,13 @@ static void sur40_buffer_queue(struct vb2_buffer *vb)
 }
 
 static void return_all_buffers(struct sur40_state *sur40,
-			       enum vb2_buffer_state state)
+							   enum vb2_buffer_state state)
 {
 	struct sur40_buffer *buf, *node;
 
 	spin_lock(&sur40->qlock);
-	list_for_each_entry_safe(buf, node, &sur40->buf_list, list) {
+	list_for_each_entry_safe(buf, node, &sur40->buf_list, list)
+	{
 		vb2_buffer_done(&buf->vb.vb2_buf, state);
 		list_del(&buf->list);
 	}
@@ -758,7 +838,7 @@ static void sur40_stop_streaming(struct vb2_queue *vq)
 
 /* V4L ioctl */
 static int sur40_vidioc_querycap(struct file *file, void *priv,
-				 struct v4l2_capability *cap)
+								 struct v4l2_capability *cap)
 {
 	struct sur40_state *sur40 = video_drvdata(file);
 
@@ -766,17 +846,20 @@ static int sur40_vidioc_querycap(struct file *file, void *priv,
 	strlcpy(cap->card, DRIVER_LONG, sizeof(cap->card));
 	usb_make_path(sur40->usbdev, cap->bus_info, sizeof(cap->bus_info));
 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_TOUCH |
-		V4L2_CAP_READWRITE |
-		V4L2_CAP_STREAMING;
+					   V4L2_CAP_READWRITE |
+					   V4L2_CAP_STREAMING;
 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
 	return 0;
 }
 
 static int sur40_vidioc_enum_input(struct file *file, void *priv,
-				   struct v4l2_input *i)
+								   struct v4l2_input *i)
 {
 	if (i->index != 0)
+	{
 		return -EINVAL;
+	}
+
 	i->type = V4L2_INPUT_TYPE_TOUCH;
 	i->std = V4L2_STD_UNKNOWN;
 	strlcpy(i->name, "In-Cell Sensor", sizeof(i->name));
@@ -796,34 +879,36 @@ static int sur40_vidioc_g_input(struct file *file, void *priv, unsigned int *i)
 }
 
 static int sur40_vidioc_try_fmt(struct file *file, void *priv,
-			    struct v4l2_format *f)
+								struct v4l2_format *f)
 {
-	switch (f->fmt.pix.pixelformat) {
-	case V4L2_PIX_FMT_GREY:
-		f->fmt.pix = sur40_pix_format[1];
-		break;
+	switch (f->fmt.pix.pixelformat)
+	{
+		case V4L2_PIX_FMT_GREY:
+			f->fmt.pix = sur40_pix_format[1];
+			break;
 
-	default:
-		f->fmt.pix = sur40_pix_format[0];
-		break;
+		default:
+			f->fmt.pix = sur40_pix_format[0];
+			break;
 	}
 
 	return 0;
 }
 
 static int sur40_vidioc_s_fmt(struct file *file, void *priv,
-			    struct v4l2_format *f)
+							  struct v4l2_format *f)
 {
 	struct sur40_state *sur40 = video_drvdata(file);
 
-	switch (f->fmt.pix.pixelformat) {
-	case V4L2_PIX_FMT_GREY:
-		sur40->pix_fmt = sur40_pix_format[1];
-		break;
+	switch (f->fmt.pix.pixelformat)
+	{
+		case V4L2_PIX_FMT_GREY:
+			sur40->pix_fmt = sur40_pix_format[1];
+			break;
 
-	default:
-		sur40->pix_fmt = sur40_pix_format[0];
-		break;
+		default:
+			sur40->pix_fmt = sur40_pix_format[0];
+			break;
 	}
 
 	f->fmt.pix = sur40->pix_fmt;
@@ -831,7 +916,7 @@ static int sur40_vidioc_s_fmt(struct file *file, void *priv,
 }
 
 static int sur40_vidioc_g_fmt(struct file *file, void *priv,
-			    struct v4l2_format *f)
+							  struct v4l2_format *f)
 {
 	struct sur40_state *sur40 = video_drvdata(file);
 
@@ -840,10 +925,12 @@ static int sur40_vidioc_g_fmt(struct file *file, void *priv,
 }
 
 static int sur40_ioctl_parm(struct file *file, void *priv,
-			    struct v4l2_streamparm *p)
+							struct v4l2_streamparm *p)
 {
 	if (p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+	{
 		return -EINVAL;
+	}
 
 	p->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
 	p->parm.capture.timeperframe.numerator = 1;
@@ -853,10 +940,12 @@ static int sur40_ioctl_parm(struct file *file, void *priv,
 }
 
 static int sur40_vidioc_enum_fmt(struct file *file, void *priv,
-				 struct v4l2_fmtdesc *f)
+								 struct v4l2_fmtdesc *f)
 {
 	if (f->index >= ARRAY_SIZE(sur40_pix_format))
+	{
 		return -EINVAL;
+	}
 
 	f->pixelformat = sur40_pix_format[f->index].pixelformat;
 	f->flags = 0;
@@ -864,13 +953,15 @@ static int sur40_vidioc_enum_fmt(struct file *file, void *priv,
 }
 
 static int sur40_vidioc_enum_framesizes(struct file *file, void *priv,
-					struct v4l2_frmsizeenum *f)
+										struct v4l2_frmsizeenum *f)
 {
 	struct sur40_state *sur40 = video_drvdata(file);
 
 	if ((f->index != 0) || ((f->pixel_format != V4L2_TCH_FMT_TU08)
-		&& (f->pixel_format != V4L2_PIX_FMT_GREY)))
+							&& (f->pixel_format != V4L2_PIX_FMT_GREY)))
+	{
 		return -EINVAL;
+	}
 
 	f->type = V4L2_FRMSIZE_TYPE_DISCRETE;
 	f->discrete.width  = sur40->pix_fmt.width;
@@ -879,15 +970,17 @@ static int sur40_vidioc_enum_framesizes(struct file *file, void *priv,
 }
 
 static int sur40_vidioc_enum_frameintervals(struct file *file, void *priv,
-					    struct v4l2_frmivalenum *f)
+		struct v4l2_frmivalenum *f)
 {
 	struct sur40_state *sur40 = video_drvdata(file);
 
 	if ((f->index > 0) || ((f->pixel_format != V4L2_TCH_FMT_TU08)
-		&& (f->pixel_format != V4L2_PIX_FMT_GREY))
+						   && (f->pixel_format != V4L2_PIX_FMT_GREY))
 		|| (f->width  != sur40->pix_fmt.width)
 		|| (f->height != sur40->pix_fmt.height))
+	{
 		return -EINVAL;
+	}
 
 	f->type = V4L2_FRMIVAL_TYPE_DISCRETE;
 	f->discrete.denominator  = 60;
@@ -896,14 +989,16 @@ static int sur40_vidioc_enum_frameintervals(struct file *file, void *priv,
 }
 
 
-static const struct usb_device_id sur40_table[] = {
+static const struct usb_device_id sur40_table[] =
+{
 	{ USB_DEVICE(ID_MICROSOFT, ID_SUR40) },  /* Samsung SUR40 */
 	{ }                                      /* terminating null entry */
 };
 MODULE_DEVICE_TABLE(usb, sur40_table);
 
 /* V4L2 structures */
-static const struct vb2_ops sur40_queue_ops = {
+static const struct vb2_ops sur40_queue_ops =
+{
 	.queue_setup		= sur40_queue_setup,
 	.buf_prepare		= sur40_buffer_prepare,
 	.buf_queue		= sur40_buffer_queue,
@@ -913,7 +1008,8 @@ static const struct vb2_ops sur40_queue_ops = {
 	.wait_finish		= vb2_ops_wait_finish,
 };
 
-static const struct vb2_queue sur40_queue = {
+static const struct vb2_queue sur40_queue =
+{
 	.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
 	/*
 	 * VB2_USERPTR in currently not enabled: passing a user pointer to
@@ -928,7 +1024,8 @@ static const struct vb2_queue sur40_queue = {
 	.min_buffers_needed = 3,
 };
 
-static const struct v4l2_file_operations sur40_video_fops = {
+static const struct v4l2_file_operations sur40_video_fops =
+{
 	.owner = THIS_MODULE,
 	.open = v4l2_fh_open,
 	.release = vb2_fop_release,
@@ -938,7 +1035,8 @@ static const struct v4l2_file_operations sur40_video_fops = {
 	.poll = vb2_fop_poll,
 };
 
-static const struct v4l2_ioctl_ops sur40_video_ioctl_ops = {
+static const struct v4l2_ioctl_ops sur40_video_ioctl_ops =
+{
 
 	.vidioc_querycap	= sur40_vidioc_querycap,
 
@@ -968,7 +1066,8 @@ static const struct v4l2_ioctl_ops sur40_video_ioctl_ops = {
 	.vidioc_streamoff	= vb2_ioctl_streamoff,
 };
 
-static const struct video_device sur40_video_device = {
+static const struct video_device sur40_video_device =
+{
 	.name = DRIVER_LONG,
 	.fops = &sur40_video_fops,
 	.ioctl_ops = &sur40_video_ioctl_ops,
@@ -976,7 +1075,8 @@ static const struct video_device sur40_video_device = {
 };
 
 /* USB-specific object needed to register this driver with the USB subsystem. */
-static struct usb_driver sur40_driver = {
+static struct usb_driver sur40_driver =
+{
 	.name = DRIVER_SHORT,
 	.probe = sur40_probe,
 	.disconnect = sur40_disconnect,

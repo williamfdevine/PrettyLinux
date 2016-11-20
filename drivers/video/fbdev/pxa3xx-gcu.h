@@ -11,7 +11,8 @@
 
 #define PXA3XX_GCU_BATCH_WORDS   8192
 
-struct pxa3xx_gcu_shared {
+struct pxa3xx_gcu_shared
+{
 	u32            buffer[PXA3XX_GCU_BUFFER_WORDS];
 
 	bool           hw_running;

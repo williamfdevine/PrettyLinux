@@ -21,7 +21,8 @@
 
 #define REGS_PER_GTF		7
 
-struct GTM_buffer {
+struct GTM_buffer
+{
 	u32	PIO_speed0;
 	u32	DMA_speed0;
 	u32	PIO_speed1;
@@ -29,12 +30,14 @@ struct GTM_buffer {
 	u32	GTM_flags;
 };
 
-struct ide_acpi_drive_link {
+struct ide_acpi_drive_link
+{
 	acpi_handle	 obj_handle;
 	u8		 idbuff[512];
 };
 
-struct ide_acpi_hwif_link {
+struct ide_acpi_hwif_link
+{
 	ide_hwif_t			*hwif;
 	acpi_handle			 obj_handle;
 	struct GTM_buffer		 gtm;
@@ -46,7 +49,7 @@ struct ide_acpi_hwif_link {
 /* note: adds function name and KERN_DEBUG */
 #ifdef DEBUGGING
 #define DEBPRINT(fmt, args...)	\
-		printk(KERN_DEBUG "%s: " fmt, __func__, ## args)
+	printk(KERN_DEBUG "%s: " fmt, __func__, ## args)
 #else
 #define DEBPRINT(fmt, args...)	do {} while (0)
 #endif	/* DEBUGGING */
@@ -71,7 +74,8 @@ static int no_acpi_psx(const struct dmi_system_id *id)
 	return 0;
 }
 
-static const struct dmi_system_id ide_acpi_dmi_table[] = {
+static const struct dmi_system_id ide_acpi_dmi_table[] =
+{
 	/* Bug 9673. */
 	/* We should check if this is because ACPI NVS isn't save/restored. */
 	{
@@ -102,7 +106,9 @@ static acpi_handle acpi_get_child(acpi_handle handle, u64 addr)
 	struct acpi_device *adev;
 
 	if (!handle || acpi_bus_get_device(handle, &adev))
+	{
 		return NULL;
+	}
 
 	adev = acpi_find_child_device(adev, addr, false);
 	return adev ? adev->handle : NULL;
@@ -119,7 +125,7 @@ static acpi_handle acpi_get_child(acpi_handle handle, u64 addr)
  * Returns 0 on success, <0 on error.
  */
 static int ide_get_dev_handle(struct device *dev, acpi_handle *handle,
-			       u64 *pcidevfn)
+							  u64 *pcidevfn)
 {
 	struct pci_dev *pdev = to_pci_dev(dev);
 	unsigned int bus, devnum, func;
@@ -138,30 +144,38 @@ static int ide_get_dev_handle(struct device *dev, acpi_handle *handle,
 	DEBPRINT("ENTER: pci %02x:%02x.%01x\n", bus, devnum, func);
 
 	dev_handle = ACPI_HANDLE(dev);
-	if (!dev_handle) {
+
+	if (!dev_handle)
+	{
 		DEBPRINT("no acpi handle for device\n");
 		goto err;
 	}
 
 	status = acpi_get_object_info(dev_handle, &dinfo);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		DEBPRINT("get_object_info for device failed\n");
 		goto err;
 	}
+
 	if (dinfo && (dinfo->valid & ACPI_VALID_ADR) &&
-	    dinfo->address == addr) {
+		dinfo->address == addr)
+	{
 		*pcidevfn = addr;
 		*handle = dev_handle;
-	} else {
+	}
+	else
+	{
 		DEBPRINT("get_object_info for device has wrong "
-			" address: %llu, should be %u\n",
-			dinfo ? (unsigned long long)dinfo->address : -1ULL,
-			(unsigned int)addr);
+				 " address: %llu, should be %u\n",
+				 dinfo ? (unsigned long long)dinfo->address : -1ULL,
+				 (unsigned int)addr);
 		goto err;
 	}
 
 	DEBPRINT("for dev=0x%x.%x, addr=0x%llx, *handle=0x%p\n",
-		 devnum, func, (unsigned long long)addr, *handle);
+			 devnum, func, (unsigned long long)addr, *handle);
 	ret = 0;
 err:
 	kfree(dinfo);
@@ -186,13 +200,16 @@ static acpi_handle ide_acpi_hwif_get_handle(ide_hwif_t *hwif)
 
 	DEBPRINT("ENTER: device %s\n", hwif->name);
 
-	if (!dev) {
+	if (!dev)
+	{
 		DEBPRINT("no PCI device for %s\n", hwif->name);
 		return NULL;
 	}
 
 	err = ide_get_dev_handle(dev, &dev_handle, &pcidevfn);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		DEBPRINT("ide_get_dev_handle failed (%d)\n", err);
 		return NULL;
 	}
@@ -202,7 +219,7 @@ static acpi_handle ide_acpi_hwif_get_handle(ide_hwif_t *hwif)
 	/* channel is hwif->channel */
 	chan_handle = acpi_get_child(dev_handle, hwif->channel);
 	DEBPRINT("chan adr=%d: handle=0x%p\n",
-		 hwif->channel, chan_handle);
+			 hwif->channel, chan_handle);
 
 	return chan_handle;
 }
@@ -223,8 +240,8 @@ static acpi_handle ide_acpi_hwif_get_handle(ide_hwif_t *hwif)
  * function return value is 0.
  */
 static int do_drive_get_GTF(ide_drive_t *drive,
-		     unsigned int *gtf_length, unsigned long *gtf_address,
-		     unsigned long *obj_loc)
+							unsigned int *gtf_length, unsigned long *gtf_address,
+							unsigned long *obj_loc)
 {
 	acpi_status			status;
 	struct acpi_buffer		output;
@@ -235,7 +252,8 @@ static int do_drive_get_GTF(ide_drive_t *drive,
 	*gtf_address = 0UL;
 	*obj_loc = 0UL;
 
-	if (!drive->acpidata->obj_handle) {
+	if (!drive->acpidata->obj_handle)
+	{
 		DEBPRINT("No ACPI object found for %s\n", drive->name);
 		goto out;
 	}
@@ -247,38 +265,44 @@ static int do_drive_get_GTF(ide_drive_t *drive,
 	/* _GTF has no input parameters */
 	err = -EIO;
 	status = acpi_evaluate_object(drive->acpidata->obj_handle, "_GTF",
-				      NULL, &output);
-	if (ACPI_FAILURE(status)) {
+								  NULL, &output);
+
+	if (ACPI_FAILURE(status))
+	{
 		printk(KERN_DEBUG
-		       "%s: Run _GTF error: status = 0x%x\n",
-		       __func__, status);
+			   "%s: Run _GTF error: status = 0x%x\n",
+			   __func__, status);
 		goto out;
 	}
 
-	if (!output.length || !output.pointer) {
+	if (!output.length || !output.pointer)
+	{
 		DEBPRINT("Run _GTF: "
-		       "length or ptr is NULL (0x%llx, 0x%p)\n",
-		       (unsigned long long)output.length,
-		       output.pointer);
+				 "length or ptr is NULL (0x%llx, 0x%p)\n",
+				 (unsigned long long)output.length,
+				 output.pointer);
 		goto out;
 	}
 
 	out_obj = output.pointer;
-	if (out_obj->type != ACPI_TYPE_BUFFER) {
+
+	if (out_obj->type != ACPI_TYPE_BUFFER)
+	{
 		DEBPRINT("Run _GTF: error: "
-		       "expected object type of ACPI_TYPE_BUFFER, "
-		       "got 0x%x\n", out_obj->type);
+				 "expected object type of ACPI_TYPE_BUFFER, "
+				 "got 0x%x\n", out_obj->type);
 		err = -ENOENT;
 		kfree(output.pointer);
 		goto out;
 	}
 
 	if (!out_obj->buffer.length || !out_obj->buffer.pointer ||
-	    out_obj->buffer.length % REGS_PER_GTF) {
+		out_obj->buffer.length % REGS_PER_GTF)
+	{
 		printk(KERN_ERR
-		       "%s: unexpected GTF length (%d) or addr (0x%p)\n",
-		       __func__, out_obj->buffer.length,
-		       out_obj->buffer.pointer);
+			   "%s: unexpected GTF length (%d) or addr (0x%p)\n",
+			   __func__, out_obj->buffer.length,
+			   out_obj->buffer.pointer);
 		err = -ENOENT;
 		kfree(output.pointer);
 		goto out;
@@ -288,7 +312,7 @@ static int do_drive_get_GTF(ide_drive_t *drive,
 	*gtf_address = (unsigned long)out_obj->buffer.pointer;
 	*obj_loc = (unsigned long)out_obj;
 	DEBPRINT("returning gtf_length=%d, gtf_address=0x%lx, obj_loc=0x%lx\n",
-		 *gtf_length, *gtf_address, *obj_loc);
+			 *gtf_length, *gtf_address, *obj_loc);
 	err = 0;
 out:
 	return err;
@@ -304,27 +328,29 @@ out:
  * REGS_PER_GTF bytes.
  */
 static int do_drive_set_taskfiles(ide_drive_t *drive,
-				  unsigned int gtf_length,
-				  unsigned long gtf_address)
+								  unsigned int gtf_length,
+								  unsigned long gtf_address)
 {
 	int			rc = 0, err;
 	int			gtf_count = gtf_length / REGS_PER_GTF;
 	int			ix;
 
 	DEBPRINT("total GTF bytes=%u (0x%x), gtf_count=%d, addr=0x%lx\n",
-		 gtf_length, gtf_length, gtf_count, gtf_address);
+			 gtf_length, gtf_length, gtf_count, gtf_address);
 
 	/* send all taskfile registers (0x1f1-0x1f7) *in*that*order* */
-	for (ix = 0; ix < gtf_count; ix++) {
+	for (ix = 0; ix < gtf_count; ix++)
+	{
 		u8 *gtf = (u8 *)(gtf_address + ix * REGS_PER_GTF);
 		struct ide_cmd cmd;
 
 		DEBPRINT("(0x1f1-1f7): "
-			 "hex: %02x %02x %02x %02x %02x %02x %02x\n",
-			 gtf[0], gtf[1], gtf[2],
-			 gtf[3], gtf[4], gtf[5], gtf[6]);
+				 "hex: %02x %02x %02x %02x %02x %02x %02x\n",
+				 gtf[0], gtf[1], gtf[2],
+				 gtf[3], gtf[4], gtf[5], gtf[6]);
 
-		if (!ide_acpigtf) {
+		if (!ide_acpigtf)
+		{
 			DEBPRINT("_GTF execution disabled\n");
 			continue;
 		}
@@ -336,9 +362,11 @@ static int do_drive_set_taskfiles(ide_drive_t *drive,
 		cmd.valid.in.tf  = IDE_VALID_IN_TF  | IDE_VALID_DEVICE;
 
 		err = ide_no_data_taskfile(drive, &cmd);
-		if (err) {
+
+		if (err)
+		{
 			printk(KERN_ERR "%s: ide_no_data_taskfile failed: %u\n",
-					__func__, err);
+				   __func__, err);
 			rc = err;
 		}
 	}
@@ -368,7 +396,9 @@ int ide_acpi_exec_tfs(ide_drive_t *drive)
 	DEBPRINT("call get_GTF, drive=%s port=%d\n", drive->name, drive->dn);
 
 	ret = do_drive_get_GTF(drive, &gtf_length, &gtf_address, &obj_loc);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		DEBPRINT("get_GTF error (%d)\n", ret);
 		return ret;
 	}
@@ -377,7 +407,9 @@ int ide_acpi_exec_tfs(ide_drive_t *drive)
 
 	ret = do_drive_set_taskfiles(drive, gtf_length, gtf_address);
 	kfree((void *)obj_loc);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		DEBPRINT("set_taskfiles error (%d)\n", ret);
 	}
 
@@ -405,58 +437,63 @@ void ide_acpi_get_timing(ide_hwif_t *hwif)
 
 	/* _GTM has no input parameters */
 	status = acpi_evaluate_object(hwif->acpidata->obj_handle, "_GTM",
-				      NULL, &output);
+								  NULL, &output);
 
 	DEBPRINT("_GTM status: %d, outptr: 0x%p, outlen: 0x%llx\n",
-		 status, output.pointer,
-		 (unsigned long long)output.length);
+			 status, output.pointer,
+			 (unsigned long long)output.length);
 
-	if (ACPI_FAILURE(status)) {
+	if (ACPI_FAILURE(status))
+	{
 		DEBPRINT("Run _GTM error: status = 0x%x\n", status);
 		return;
 	}
 
-	if (!output.length || !output.pointer) {
+	if (!output.length || !output.pointer)
+	{
 		DEBPRINT("Run _GTM: length or ptr is NULL (0x%llx, 0x%p)\n",
-		       (unsigned long long)output.length,
-		       output.pointer);
+				 (unsigned long long)output.length,
+				 output.pointer);
 		kfree(output.pointer);
 		return;
 	}
 
 	out_obj = output.pointer;
-	if (out_obj->type != ACPI_TYPE_BUFFER) {
+
+	if (out_obj->type != ACPI_TYPE_BUFFER)
+	{
 		DEBPRINT("Run _GTM: error: "
-		       "expected object type of ACPI_TYPE_BUFFER, "
-		       "got 0x%x\n", out_obj->type);
+				 "expected object type of ACPI_TYPE_BUFFER, "
+				 "got 0x%x\n", out_obj->type);
 		kfree(output.pointer);
 		return;
 	}
 
 	if (!out_obj->buffer.length || !out_obj->buffer.pointer ||
-	    out_obj->buffer.length != sizeof(struct GTM_buffer)) {
+		out_obj->buffer.length != sizeof(struct GTM_buffer))
+	{
 		printk(KERN_ERR
-			"%s: unexpected _GTM length (0x%x)[should be 0x%zx] or "
-			"addr (0x%p)\n",
-			__func__, out_obj->buffer.length,
-			sizeof(struct GTM_buffer), out_obj->buffer.pointer);
+			   "%s: unexpected _GTM length (0x%x)[should be 0x%zx] or "
+			   "addr (0x%p)\n",
+			   __func__, out_obj->buffer.length,
+			   sizeof(struct GTM_buffer), out_obj->buffer.pointer);
 		kfree(output.pointer);
 		return;
 	}
 
 	memcpy(&hwif->acpidata->gtm, out_obj->buffer.pointer,
-	       sizeof(struct GTM_buffer));
+		   sizeof(struct GTM_buffer));
 
 	DEBPRINT("_GTM info: ptr: 0x%p, len: 0x%x, exp.len: 0x%Zx\n",
-		 out_obj->buffer.pointer, out_obj->buffer.length,
-		 sizeof(struct GTM_buffer));
+			 out_obj->buffer.pointer, out_obj->buffer.length,
+			 sizeof(struct GTM_buffer));
 
 	DEBPRINT("_GTM fields: 0x%x, 0x%x, 0x%x, 0x%x, 0x%x\n",
-		 hwif->acpidata->gtm.PIO_speed0,
-		 hwif->acpidata->gtm.DMA_speed0,
-		 hwif->acpidata->gtm.PIO_speed1,
-		 hwif->acpidata->gtm.DMA_speed1,
-		 hwif->acpidata->gtm.GTM_flags);
+			 hwif->acpidata->gtm.PIO_speed0,
+			 hwif->acpidata->gtm.DMA_speed0,
+			 hwif->acpidata->gtm.PIO_speed1,
+			 hwif->acpidata->gtm.DMA_speed1,
+			 hwif->acpidata->gtm.GTM_flags);
 
 	kfree(output.pointer);
 }
@@ -496,11 +533,13 @@ void ide_acpi_push_timing(ide_hwif_t *hwif)
 	/* Output buffer: _STM has no output */
 
 	status = acpi_evaluate_object(hwif->acpidata->obj_handle, "_STM",
-				      &input, NULL);
+								  &input, NULL);
 
-	if (ACPI_FAILURE(status)) {
+	if (ACPI_FAILURE(status))
+	{
 		DEBPRINT("Run _STM error: status = 0x%x\n", status);
 	}
+
 	DEBPRINT("_STM status: %d\n", status);
 }
 
@@ -518,23 +557,28 @@ void ide_acpi_set_state(ide_hwif_t *hwif, int on)
 	int i;
 
 	if (ide_noacpi_psx)
+	{
 		return;
+	}
 
 	DEBPRINT("ENTER:\n");
 
 	/* channel first and then drives for power on and verse versa for power off */
 	if (on)
+	{
 		acpi_bus_set_power(hwif->acpidata->obj_handle, ACPI_STATE_D0);
+	}
 
-	ide_port_for_each_present_dev(i, drive, hwif) {
+	ide_port_for_each_present_dev(i, drive, hwif)
+	{
 		if (drive->acpidata->obj_handle)
 			acpi_bus_set_power(drive->acpidata->obj_handle,
-				on ? ACPI_STATE_D0 : ACPI_STATE_D3_COLD);
+							   on ? ACPI_STATE_D0 : ACPI_STATE_D3_COLD);
 	}
 
 	if (!on)
 		acpi_bus_set_power(hwif->acpidata->obj_handle,
-				   ACPI_STATE_D3_COLD);
+						   ACPI_STATE_D3_COLD);
 }
 
 /**
@@ -551,11 +595,16 @@ void ide_acpi_set_state(ide_hwif_t *hwif, int on)
 void ide_acpi_init_port(ide_hwif_t *hwif)
 {
 	hwif->acpidata = kzalloc(sizeof(struct ide_acpi_hwif_link), GFP_KERNEL);
+
 	if (!hwif->acpidata)
+	{
 		return;
+	}
 
 	hwif->acpidata->obj_handle = ide_acpi_hwif_get_handle(hwif);
-	if (!hwif->acpidata->obj_handle) {
+
+	if (!hwif->acpidata->obj_handle)
+	{
 		DEBPRINT("no ACPI object for %s found\n", hwif->name);
 		kfree(hwif->acpidata);
 		hwif->acpidata = NULL;
@@ -568,7 +617,9 @@ void ide_acpi_port_init_devices(ide_hwif_t *hwif)
 	int i, err;
 
 	if (hwif->acpidata == NULL)
+	{
 		return;
+	}
 
 	/*
 	 * The ACPI spec mandates that we send information
@@ -579,15 +630,16 @@ void ide_acpi_port_init_devices(ide_hwif_t *hwif)
 	hwif->devices[1]->acpidata = &hwif->acpidata->slave;
 
 	/* get _ADR info for each device */
-	ide_port_for_each_present_dev(i, drive, hwif) {
+	ide_port_for_each_present_dev(i, drive, hwif)
+	{
 		acpi_handle dev_handle;
 
 		DEBPRINT("ENTER: %s at channel#: %d port#: %d\n",
-			 drive->name, hwif->channel, drive->dn & 1);
+				 drive->name, hwif->channel, drive->dn & 1);
 
 		/* TBD: could also check ACPI object VALID bits */
 		dev_handle = acpi_get_child(hwif->acpidata->obj_handle,
-					    drive->dn & 1);
+									drive->dn & 1);
 
 		DEBPRINT("drive %s handle 0x%p\n", drive->name, dev_handle);
 
@@ -595,14 +647,17 @@ void ide_acpi_port_init_devices(ide_hwif_t *hwif)
 	}
 
 	/* send IDENTIFY for each device */
-	ide_port_for_each_present_dev(i, drive, hwif) {
+	ide_port_for_each_present_dev(i, drive, hwif)
+	{
 		err = taskfile_lib_get_identify(drive, drive->acpidata->idbuff);
+
 		if (err)
 			DEBPRINT("identify device %s failed (%d)\n",
-				 drive->name, err);
+					 drive->name, err);
 	}
 
-	if (ide_noacpi || ide_acpionboot == 0) {
+	if (ide_noacpi || ide_acpionboot == 0)
+	{
 		DEBPRINT("ACPI methods disabled on boot\n");
 		return;
 	}
@@ -615,7 +670,8 @@ void ide_acpi_port_init_devices(ide_hwif_t *hwif)
 	ide_acpi_get_timing(hwif);
 	ide_acpi_push_timing(hwif);
 
-	ide_port_for_each_present_dev(i, drive, hwif) {
+	ide_port_for_each_present_dev(i, drive, hwif)
+	{
 		ide_acpi_exec_tfs(drive);
 	}
 }

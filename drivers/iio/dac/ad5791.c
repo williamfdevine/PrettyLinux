@@ -65,7 +65,8 @@
  * @get_lin_comp:	function pointer to the device specific function
  */
 
-struct ad5791_chip_info {
+struct ad5791_chip_info
+{
 	int (*get_lin_comp)	(unsigned int span);
 };
 
@@ -80,7 +81,8 @@ struct ad5791_chip_info {
  * @pwr_down_mode	current power down mode
  */
 
-struct ad5791_state {
+struct ad5791_state
+{
 	struct spi_device		*spi;
 	struct regulator		*reg_vdd;
 	struct regulator		*reg_vss;
@@ -91,7 +93,8 @@ struct ad5791_state {
 	unsigned			pwr_down_mode;
 	bool				pwr_down;
 
-	union {
+	union
+	{
 		__be32 d32;
 		u8 d8[4];
 	} data[3] ____cacheline_aligned;
@@ -101,7 +104,8 @@ struct ad5791_state {
  * ad5791_supported_device_ids:
  */
 
-enum ad5791_supported_device_ids {
+enum ad5791_supported_device_ids
+{
 	ID_AD5760,
 	ID_AD5780,
 	ID_AD5781,
@@ -111,8 +115,8 @@ enum ad5791_supported_device_ids {
 static int ad5791_spi_write(struct ad5791_state *st, u8 addr, u32 val)
 {
 	st->data[0].d32 = cpu_to_be32(AD5791_CMD_WRITE |
-			      AD5791_ADDR(addr) |
-			      (val & AD5791_DAC_MASK));
+								  AD5791_ADDR(addr) |
+								  (val & AD5791_DAC_MASK));
 
 	return spi_write(st->spi, &st->data[0].d8[1], 3);
 }
@@ -120,7 +124,8 @@ static int ad5791_spi_write(struct ad5791_state *st, u8 addr, u32 val)
 static int ad5791_spi_read(struct ad5791_state *st, u8 addr, u32 *val)
 {
 	int ret;
-	struct spi_transfer xfers[] = {
+	struct spi_transfer xfers[] =
+	{
 		{
 			.tx_buf = &st->data[0].d8[1],
 			.bits_per_word = 8,
@@ -135,7 +140,7 @@ static int ad5791_spi_read(struct ad5791_state *st, u8 addr, u32 *val)
 	};
 
 	st->data[0].d32 = cpu_to_be32(AD5791_CMD_READ |
-			      AD5791_ADDR(addr));
+								  AD5791_ADDR(addr));
 	st->data[1].d32 = cpu_to_be32(AD5791_ADDR(AD5791_ADDR_NOOP));
 
 	ret = spi_sync_transfer(st->spi, xfers, ARRAY_SIZE(xfers));
@@ -145,13 +150,14 @@ static int ad5791_spi_read(struct ad5791_state *st, u8 addr, u32 *val)
 	return ret;
 }
 
-static const char * const ad5791_powerdown_modes[] = {
+static const char *const ad5791_powerdown_modes[] =
+{
 	"6kohm_to_gnd",
 	"three_state",
 };
 
 static int ad5791_get_powerdown_mode(struct iio_dev *indio_dev,
-	const struct iio_chan_spec *chan)
+									 const struct iio_chan_spec *chan)
 {
 	struct ad5791_state *st = iio_priv(indio_dev);
 
@@ -159,7 +165,7 @@ static int ad5791_get_powerdown_mode(struct iio_dev *indio_dev,
 }
 
 static int ad5791_set_powerdown_mode(struct iio_dev *indio_dev,
-	const struct iio_chan_spec *chan, unsigned int mode)
+									 const struct iio_chan_spec *chan, unsigned int mode)
 {
 	struct ad5791_state *st = iio_priv(indio_dev);
 
@@ -168,7 +174,8 @@ static int ad5791_set_powerdown_mode(struct iio_dev *indio_dev,
 	return 0;
 }
 
-static const struct iio_enum ad5791_powerdown_mode_enum = {
+static const struct iio_enum ad5791_powerdown_mode_enum =
+{
 	.items = ad5791_powerdown_modes,
 	.num_items = ARRAY_SIZE(ad5791_powerdown_modes),
 	.get = ad5791_get_powerdown_mode,
@@ -176,7 +183,7 @@ static const struct iio_enum ad5791_powerdown_mode_enum = {
 };
 
 static ssize_t ad5791_read_dac_powerdown(struct iio_dev *indio_dev,
-	uintptr_t private, const struct iio_chan_spec *chan, char *buf)
+		uintptr_t private, const struct iio_chan_spec *chan, char *buf)
 {
 	struct ad5791_state *st = iio_priv(indio_dev);
 
@@ -184,25 +191,36 @@ static ssize_t ad5791_read_dac_powerdown(struct iio_dev *indio_dev,
 }
 
 static ssize_t ad5791_write_dac_powerdown(struct iio_dev *indio_dev,
-	 uintptr_t private, const struct iio_chan_spec *chan, const char *buf,
-	 size_t len)
+		uintptr_t private, const struct iio_chan_spec *chan, const char *buf,
+		size_t len)
 {
 	bool pwr_down;
 	int ret;
 	struct ad5791_state *st = iio_priv(indio_dev);
 
 	ret = strtobool(buf, &pwr_down);
-	if (ret)
-		return ret;
 
-	if (!pwr_down) {
-		st->ctrl &= ~(AD5791_CTRL_OPGND | AD5791_CTRL_DACTRI);
-	} else {
-		if (st->pwr_down_mode == AD5791_DAC_PWRDN_6K)
-			st->ctrl |= AD5791_CTRL_OPGND;
-		else if (st->pwr_down_mode == AD5791_DAC_PWRDN_3STATE)
-			st->ctrl |= AD5791_CTRL_DACTRI;
+	if (ret)
+	{
+		return ret;
 	}
+
+	if (!pwr_down)
+	{
+		st->ctrl &= ~(AD5791_CTRL_OPGND | AD5791_CTRL_DACTRI);
+	}
+	else
+	{
+		if (st->pwr_down_mode == AD5791_DAC_PWRDN_6K)
+		{
+			st->ctrl |= AD5791_CTRL_OPGND;
+		}
+		else if (st->pwr_down_mode == AD5791_DAC_PWRDN_3STATE)
+		{
+			st->ctrl |= AD5791_CTRL_DACTRI;
+		}
+	}
+
 	st->pwr_down = pwr_down;
 
 	ret = ad5791_spi_write(st, AD5791_ADDR_CTRL, st->ctrl);
@@ -213,25 +231,40 @@ static ssize_t ad5791_write_dac_powerdown(struct iio_dev *indio_dev,
 static int ad5791_get_lin_comp(unsigned int span)
 {
 	if (span <= 10000)
+	{
 		return AD5791_LINCOMP_0_10;
+	}
 	else if (span <= 12000)
+	{
 		return AD5791_LINCOMP_10_12;
+	}
 	else if (span <= 16000)
+	{
 		return AD5791_LINCOMP_12_16;
+	}
 	else if (span <= 19000)
+	{
 		return AD5791_LINCOMP_16_19;
+	}
 	else
+	{
 		return AD5791_LINCOMP_19_20;
+	}
 }
 
 static int ad5780_get_lin_comp(unsigned int span)
 {
 	if (span <= 10000)
+	{
 		return AD5780_LINCOMP_0_10;
+	}
 	else
+	{
 		return AD5780_LINCOMP_10_20;
+	}
 }
-static const struct ad5791_chip_info ad5791_chip_info_tbl[] = {
+static const struct ad5791_chip_info ad5791_chip_info_tbl[] =
+{
 	[ID_AD5760] = {
 		.get_lin_comp = ad5780_get_lin_comp,
 	},
@@ -247,39 +280,48 @@ static const struct ad5791_chip_info ad5791_chip_info_tbl[] = {
 };
 
 static int ad5791_read_raw(struct iio_dev *indio_dev,
-			   struct iio_chan_spec const *chan,
-			   int *val,
-			   int *val2,
-			   long m)
+						   struct iio_chan_spec const *chan,
+						   int *val,
+						   int *val2,
+						   long m)
 {
 	struct ad5791_state *st = iio_priv(indio_dev);
 	u64 val64;
 	int ret;
 
-	switch (m) {
-	case IIO_CHAN_INFO_RAW:
-		ret = ad5791_spi_read(st, chan->address, val);
-		if (ret)
-			return ret;
-		*val &= AD5791_DAC_MASK;
-		*val >>= chan->scan_type.shift;
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_SCALE:
-		*val = st->vref_mv;
-		*val2 = (1 << chan->scan_type.realbits) - 1;
-		return IIO_VAL_FRACTIONAL;
-	case IIO_CHAN_INFO_OFFSET:
-		val64 = (((u64)st->vref_neg_mv) << chan->scan_type.realbits);
-		do_div(val64, st->vref_mv);
-		*val = -val64;
-		return IIO_VAL_INT;
-	default:
-		return -EINVAL;
+	switch (m)
+	{
+		case IIO_CHAN_INFO_RAW:
+			ret = ad5791_spi_read(st, chan->address, val);
+
+			if (ret)
+			{
+				return ret;
+			}
+
+			*val &= AD5791_DAC_MASK;
+			*val >>= chan->scan_type.shift;
+			return IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_SCALE:
+			*val = st->vref_mv;
+			*val2 = (1 << chan->scan_type.realbits) - 1;
+			return IIO_VAL_FRACTIONAL;
+
+		case IIO_CHAN_INFO_OFFSET:
+			val64 = (((u64)st->vref_neg_mv) << chan->scan_type.realbits);
+			do_div(val64, st->vref_mv);
+			*val = -val64;
+			return IIO_VAL_INT;
+
+		default:
+			return -EINVAL;
 	}
 
 };
 
-static const struct iio_chan_spec_ext_info ad5791_ext_info[] = {
+static const struct iio_chan_spec_ext_info ad5791_ext_info[] =
+{
 	{
 		.name = "powerdown",
 		.shared = IIO_SHARED_BY_TYPE,
@@ -287,30 +329,31 @@ static const struct iio_chan_spec_ext_info ad5791_ext_info[] = {
 		.write = ad5791_write_dac_powerdown,
 	},
 	IIO_ENUM("powerdown_mode", IIO_SHARED_BY_TYPE,
-		 &ad5791_powerdown_mode_enum),
+	&ad5791_powerdown_mode_enum),
 	IIO_ENUM_AVAILABLE("powerdown_mode", &ad5791_powerdown_mode_enum),
 	{ },
 };
 
 #define AD5791_CHAN(bits, _shift) {			\
-	.type = IIO_VOLTAGE,				\
-	.output = 1,					\
-	.indexed = 1,					\
-	.address = AD5791_ADDR_DAC0,			\
-	.channel = 0,					\
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),	\
-	.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE) |	\
-		BIT(IIO_CHAN_INFO_OFFSET),		\
-	.scan_type = {					\
-		.sign = 'u',				\
-		.realbits = (bits),			\
-		.storagebits = 24,			\
-		.shift = (_shift),			\
-	},						\
-	.ext_info = ad5791_ext_info,			\
-}
+		.type = IIO_VOLTAGE,				\
+				.output = 1,					\
+						  .indexed = 1,					\
+									 .address = AD5791_ADDR_DAC0,			\
+												.channel = 0,					\
+														.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),	\
+																.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE) |	\
+																		BIT(IIO_CHAN_INFO_OFFSET),		\
+																		.scan_type = {					\
+																										.sign = 'u',				\
+																										.realbits = (bits),			\
+																										.storagebits = 24,			\
+																										.shift = (_shift),			\
+																					 },						\
+																				.ext_info = ad5791_ext_info,			\
+	}
 
-static const struct iio_chan_spec ad5791_channels[] = {
+static const struct iio_chan_spec ad5791_channels[] =
+{
 	[ID_AD5760] = AD5791_CHAN(16, 4),
 	[ID_AD5780] = AD5791_CHAN(18, 2),
 	[ID_AD5781] = AD5791_CHAN(18, 2),
@@ -318,26 +361,28 @@ static const struct iio_chan_spec ad5791_channels[] = {
 };
 
 static int ad5791_write_raw(struct iio_dev *indio_dev,
-			    struct iio_chan_spec const *chan,
-			    int val,
-			    int val2,
-			    long mask)
+							struct iio_chan_spec const *chan,
+							int val,
+							int val2,
+							long mask)
 {
 	struct ad5791_state *st = iio_priv(indio_dev);
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		val &= GENMASK(chan->scan_type.realbits - 1, 0);
-		val <<= chan->scan_type.shift;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			val &= GENMASK(chan->scan_type.realbits - 1, 0);
+			val <<= chan->scan_type.shift;
 
-		return ad5791_spi_write(st, chan->address, val);
+			return ad5791_spi_write(st, chan->address, val);
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 }
 
-static const struct iio_info ad5791_info = {
+static const struct iio_info ad5791_info =
+{
 	.read_raw = &ad5791_read_raw,
 	.write_raw = &ad5791_write_raw,
 	.driver_module = THIS_MODULE,
@@ -351,31 +396,51 @@ static int ad5791_probe(struct spi_device *spi)
 	int ret, pos_voltage_uv = 0, neg_voltage_uv = 0;
 
 	indio_dev = devm_iio_device_alloc(&spi->dev, sizeof(*st));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
+
 	st = iio_priv(indio_dev);
 	st->reg_vdd = devm_regulator_get(&spi->dev, "vdd");
-	if (!IS_ERR(st->reg_vdd)) {
+
+	if (!IS_ERR(st->reg_vdd))
+	{
 		ret = regulator_enable(st->reg_vdd);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		ret = regulator_get_voltage(st->reg_vdd);
+
 		if (ret < 0)
+		{
 			goto error_disable_reg_pos;
+		}
 
 		pos_voltage_uv = ret;
 	}
 
 	st->reg_vss = devm_regulator_get(&spi->dev, "vss");
-	if (!IS_ERR(st->reg_vss)) {
+
+	if (!IS_ERR(st->reg_vss))
+	{
 		ret = regulator_enable(st->reg_vss);
+
 		if (ret)
+		{
 			goto error_disable_reg_pos;
+		}
 
 		ret = regulator_get_voltage(st->reg_vss);
+
 		if (ret < 0)
+		{
 			goto error_disable_reg_neg;
+		}
 
 		neg_voltage_uv = ret;
 	}
@@ -383,32 +448,43 @@ static int ad5791_probe(struct spi_device *spi)
 	st->pwr_down = true;
 	st->spi = spi;
 
-	if (!IS_ERR(st->reg_vss) && !IS_ERR(st->reg_vdd)) {
+	if (!IS_ERR(st->reg_vss) && !IS_ERR(st->reg_vdd))
+	{
 		st->vref_mv = (pos_voltage_uv + neg_voltage_uv) / 1000;
 		st->vref_neg_mv = neg_voltage_uv / 1000;
-	} else if (pdata) {
+	}
+	else if (pdata)
+	{
 		st->vref_mv = pdata->vref_pos_mv + pdata->vref_neg_mv;
 		st->vref_neg_mv = pdata->vref_neg_mv;
-	} else {
+	}
+	else
+	{
 		dev_warn(&spi->dev, "reference voltage unspecified\n");
 	}
 
 	ret = ad5791_spi_write(st, AD5791_ADDR_SW_CTRL, AD5791_SWCTRL_RESET);
+
 	if (ret)
+	{
 		goto error_disable_reg_neg;
+	}
 
 	st->chip_info =	&ad5791_chip_info_tbl[spi_get_device_id(spi)
-					      ->driver_data];
+										  ->driver_data];
 
 
 	st->ctrl = AD5761_CTRL_LINCOMP(st->chip_info->get_lin_comp(st->vref_mv))
-		  | ((pdata && pdata->use_rbuf_gain2) ? 0 : AD5791_CTRL_RBUF) |
-		  AD5791_CTRL_BIN2SC;
+			   | ((pdata && pdata->use_rbuf_gain2) ? 0 : AD5791_CTRL_RBUF) |
+			   AD5791_CTRL_BIN2SC;
 
 	ret = ad5791_spi_write(st, AD5791_ADDR_CTRL, st->ctrl |
-		AD5791_CTRL_OPGND | AD5791_CTRL_DACTRI);
+						   AD5791_CTRL_OPGND | AD5791_CTRL_DACTRI);
+
 	if (ret)
+	{
 		goto error_disable_reg_neg;
+	}
 
 	spi_set_drvdata(spi, indio_dev);
 	indio_dev->dev.parent = &spi->dev;
@@ -419,17 +495,28 @@ static int ad5791_probe(struct spi_device *spi)
 	indio_dev->num_channels = 1;
 	indio_dev->name = spi_get_device_id(st->spi)->name;
 	ret = iio_device_register(indio_dev);
+
 	if (ret)
+	{
 		goto error_disable_reg_neg;
+	}
 
 	return 0;
 
 error_disable_reg_neg:
+
 	if (!IS_ERR(st->reg_vss))
+	{
 		regulator_disable(st->reg_vss);
+	}
+
 error_disable_reg_pos:
+
 	if (!IS_ERR(st->reg_vdd))
+	{
 		regulator_disable(st->reg_vdd);
+	}
+
 	return ret;
 }
 
@@ -439,16 +526,22 @@ static int ad5791_remove(struct spi_device *spi)
 	struct ad5791_state *st = iio_priv(indio_dev);
 
 	iio_device_unregister(indio_dev);
+
 	if (!IS_ERR(st->reg_vdd))
+	{
 		regulator_disable(st->reg_vdd);
+	}
 
 	if (!IS_ERR(st->reg_vss))
+	{
 		regulator_disable(st->reg_vss);
+	}
 
 	return 0;
 }
 
-static const struct spi_device_id ad5791_id[] = {
+static const struct spi_device_id ad5791_id[] =
+{
 	{"ad5760", ID_AD5760},
 	{"ad5780", ID_AD5780},
 	{"ad5781", ID_AD5781},
@@ -458,10 +551,11 @@ static const struct spi_device_id ad5791_id[] = {
 };
 MODULE_DEVICE_TABLE(spi, ad5791_id);
 
-static struct spi_driver ad5791_driver = {
+static struct spi_driver ad5791_driver =
+{
 	.driver = {
-		   .name = "ad5791",
-		   },
+		.name = "ad5791",
+	},
 	.probe = ad5791_probe,
 	.remove = ad5791_remove,
 	.id_table = ad5791_id,

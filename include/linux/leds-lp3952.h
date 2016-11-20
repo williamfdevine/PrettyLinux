@@ -40,7 +40,8 @@
 #define LP3952_LED_MASK_ALL                 0x3f
 
 /* Transition Time in ms */
-enum lp3952_tt {
+enum lp3952_tt
+{
 	TT0,
 	TT55,
 	TT110,
@@ -52,7 +53,8 @@ enum lp3952_tt {
 };
 
 /* Command Execution Time in ms */
-enum lp3952_cet {
+enum lp3952_cet
+{
 	CET197,
 	CET393,
 	CET590,
@@ -71,7 +73,8 @@ enum lp3952_cet {
 };
 
 /* Max Current in % */
-enum lp3952_colour_I_log_0 {
+enum lp3952_colour_I_log_0
+{
 	I0,
 	I7,
 	I14,
@@ -82,7 +85,8 @@ enum lp3952_colour_I_log_0 {
 	I100
 };
 
-enum lp3952_leds {
+enum lp3952_leds
+{
 	LP3952_BLUE_2,
 	LP3952_GREEN_2,
 	LP3952_RED_2,
@@ -92,30 +96,36 @@ enum lp3952_leds {
 	LP3952_LED_ALL
 };
 
-struct lp3952_ctrl_hdl {
+struct lp3952_ctrl_hdl
+{
 	struct led_classdev cdev;
 	char name[LP3952_LABEL_MAX_LEN];
 	enum lp3952_leds channel;
 	void *priv;
 };
 
-struct ptrn_gen_cmd {
-	union {
-		struct {
-			u16 tt:3;
-			u16 b:3;
-			u16 cet:4;
-			u16 g:3;
-			u16 r:3;
+struct ptrn_gen_cmd
+{
+	union
+	{
+		struct
+		{
+			u16 tt: 3;
+			u16 b: 3;
+			u16 cet: 4;
+			u16 g: 3;
+			u16 r: 3;
 		};
-		struct {
+		struct
+		{
 			u8 lsb;
 			u8 msb;
 		} bytes;
 	};
 } __packed;
 
-struct lp3952_led_array {
+struct lp3952_led_array
+{
 	struct regmap *regmap;
 	struct i2c_client *client;
 	struct gpio_desc *enable_gpio;

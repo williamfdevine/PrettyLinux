@@ -37,21 +37,21 @@
  * default to little endian
  */
 #ifndef ATOM_BIG_ENDIAN
-#error Endian not specified
+	#error Endian not specified
 #endif
 
 #ifdef _H2INC
-  #ifndef ULONG
-    typedef unsigned long ULONG;
-  #endif
+	#ifndef ULONG
+		typedef unsigned long ULONG;
+	#endif
 
-  #ifndef UCHAR
-    typedef unsigned char UCHAR;
-  #endif
+	#ifndef UCHAR
+		typedef unsigned char UCHAR;
+	#endif
 
-  #ifndef USHORT
-    typedef unsigned short USHORT;
-  #endif
+	#ifndef USHORT
+		typedef unsigned short USHORT;
+	#endif
 #endif
 
 #define ATOM_DAC_A            0
@@ -207,60 +207,60 @@
 
 typedef struct _ATOM_COMMON_TABLE_HEADER
 {
-  USHORT usStructureSize;
-  UCHAR  ucTableFormatRevision;   //Change it when the Parser is not backward compatible
-  UCHAR  ucTableContentRevision;  //Change it only when the table needs to change but the firmware
-                                  //Image can't be updated, while Driver needs to carry the new table!
-}ATOM_COMMON_TABLE_HEADER;
+	USHORT usStructureSize;
+	UCHAR  ucTableFormatRevision;   //Change it when the Parser is not backward compatible
+	UCHAR  ucTableContentRevision;  //Change it only when the table needs to change but the firmware
+	//Image can't be updated, while Driver needs to carry the new table!
+} ATOM_COMMON_TABLE_HEADER;
 
 /****************************************************************************/
 // Structure stores the ROM header.
 /****************************************************************************/
 typedef struct _ATOM_ROM_HEADER
 {
-  ATOM_COMMON_TABLE_HEADER      sHeader;
-  UCHAR  uaFirmWareSignature[4];    //Signature to distinguish between Atombios and non-atombios,
-                                    //atombios should init it as "ATOM", don't change the position
-  USHORT usBiosRuntimeSegmentAddress;
-  USHORT usProtectedModeInfoOffset;
-  USHORT usConfigFilenameOffset;
-  USHORT usCRC_BlockOffset;
-  USHORT usBIOS_BootupMessageOffset;
-  USHORT usInt10Offset;
-  USHORT usPciBusDevInitCode;
-  USHORT usIoBaseAddress;
-  USHORT usSubsystemVendorID;
-  USHORT usSubsystemID;
-  USHORT usPCI_InfoOffset;
-  USHORT usMasterCommandTableOffset;//Offest for SW to get all command table offsets, Don't change the position
-  USHORT usMasterDataTableOffset;   //Offest for SW to get all data table offsets, Don't change the position
-  UCHAR  ucExtendedFunctionCode;
-  UCHAR  ucReserved;
-}ATOM_ROM_HEADER;
+	ATOM_COMMON_TABLE_HEADER      sHeader;
+	UCHAR  uaFirmWareSignature[4];    //Signature to distinguish between Atombios and non-atombios,
+	//atombios should init it as "ATOM", don't change the position
+	USHORT usBiosRuntimeSegmentAddress;
+	USHORT usProtectedModeInfoOffset;
+	USHORT usConfigFilenameOffset;
+	USHORT usCRC_BlockOffset;
+	USHORT usBIOS_BootupMessageOffset;
+	USHORT usInt10Offset;
+	USHORT usPciBusDevInitCode;
+	USHORT usIoBaseAddress;
+	USHORT usSubsystemVendorID;
+	USHORT usSubsystemID;
+	USHORT usPCI_InfoOffset;
+	USHORT usMasterCommandTableOffset;//Offest for SW to get all command table offsets, Don't change the position
+	USHORT usMasterDataTableOffset;   //Offest for SW to get all data table offsets, Don't change the position
+	UCHAR  ucExtendedFunctionCode;
+	UCHAR  ucReserved;
+} ATOM_ROM_HEADER;
 
 
 typedef struct _ATOM_ROM_HEADER_V2_1
 {
-  ATOM_COMMON_TABLE_HEADER      sHeader;
-  UCHAR  uaFirmWareSignature[4];    //Signature to distinguish between Atombios and non-atombios,
-                                    //atombios should init it as "ATOM", don't change the position
-  USHORT usBiosRuntimeSegmentAddress;
-  USHORT usProtectedModeInfoOffset;
-  USHORT usConfigFilenameOffset;
-  USHORT usCRC_BlockOffset;
-  USHORT usBIOS_BootupMessageOffset;
-  USHORT usInt10Offset;
-  USHORT usPciBusDevInitCode;
-  USHORT usIoBaseAddress;
-  USHORT usSubsystemVendorID;
-  USHORT usSubsystemID;
-  USHORT usPCI_InfoOffset;
-  USHORT usMasterCommandTableOffset;//Offest for SW to get all command table offsets, Don't change the position
-  USHORT usMasterDataTableOffset;   //Offest for SW to get all data table offsets, Don't change the position
-  UCHAR  ucExtendedFunctionCode;
-  UCHAR  ucReserved;
-  ULONG  ulPSPDirTableOffset;
-}ATOM_ROM_HEADER_V2_1;
+	ATOM_COMMON_TABLE_HEADER      sHeader;
+	UCHAR  uaFirmWareSignature[4];    //Signature to distinguish between Atombios and non-atombios,
+	//atombios should init it as "ATOM", don't change the position
+	USHORT usBiosRuntimeSegmentAddress;
+	USHORT usProtectedModeInfoOffset;
+	USHORT usConfigFilenameOffset;
+	USHORT usCRC_BlockOffset;
+	USHORT usBIOS_BootupMessageOffset;
+	USHORT usInt10Offset;
+	USHORT usPciBusDevInitCode;
+	USHORT usIoBaseAddress;
+	USHORT usSubsystemVendorID;
+	USHORT usSubsystemID;
+	USHORT usPCI_InfoOffset;
+	USHORT usMasterCommandTableOffset;//Offest for SW to get all command table offsets, Don't change the position
+	USHORT usMasterDataTableOffset;   //Offest for SW to get all data table offsets, Don't change the position
+	UCHAR  ucExtendedFunctionCode;
+	UCHAR  ucReserved;
+	ULONG  ulPSPDirTableOffset;
+} ATOM_ROM_HEADER_V2_1;
 
 
 //==============================Command Table Portion====================================
@@ -269,89 +269,90 @@ typedef struct _ATOM_ROM_HEADER_V2_1
 /****************************************************************************/
 // Structures used in Command.mtb
 /****************************************************************************/
-typedef struct _ATOM_MASTER_LIST_OF_COMMAND_TABLES{
-  USHORT ASIC_Init;                              //Function Table, used by various SW components,latest version 1.1
-  USHORT GetDisplaySurfaceSize;                  //Atomic Table,  Used by Bios when enabling HW ICON
-  USHORT ASIC_RegistersInit;                     //Atomic Table,  indirectly used by various SW components,called from ASIC_Init
-  USHORT VRAM_BlockVenderDetection;              //Atomic Table,  used only by Bios
-  USHORT DIGxEncoderControl;                     //Only used by Bios
-  USHORT MemoryControllerInit;                   //Atomic Table,  indirectly used by various SW components,called from ASIC_Init
-  USHORT EnableCRTCMemReq;                       //Function Table,directly used by various SW components,latest version 2.1
-  USHORT MemoryParamAdjust;                      //Atomic Table,  indirectly used by various SW components,called from SetMemoryClock if needed
-  USHORT DVOEncoderControl;                      //Function Table,directly used by various SW components,latest version 1.2
-  USHORT GPIOPinControl;                         //Atomic Table,  only used by Bios
-  USHORT SetEngineClock;                         //Function Table,directly used by various SW components,latest version 1.1
-  USHORT SetMemoryClock;                         //Function Table,directly used by various SW components,latest version 1.1
-  USHORT SetPixelClock;                          //Function Table,directly used by various SW components,latest version 1.2
-  USHORT EnableDispPowerGating;                  //Atomic Table,  indirectly used by various SW components,called from ASIC_Init
-  USHORT ResetMemoryDLL;                         //Atomic Table,  indirectly used by various SW components,called from SetMemoryClock
-  USHORT ResetMemoryDevice;                      //Atomic Table,  indirectly used by various SW components,called from SetMemoryClock
-  USHORT MemoryPLLInit;                          //Atomic Table,  used only by Bios
-  USHORT AdjustDisplayPll;                       //Atomic Table,  used by various SW componentes.
-  USHORT AdjustMemoryController;                 //Atomic Table,  indirectly used by various SW components,called from SetMemoryClock
-  USHORT EnableASIC_StaticPwrMgt;                //Atomic Table,  only used by Bios
-  USHORT SetUniphyInstance;                      //Atomic Table,  only used by Bios
-  USHORT DAC_LoadDetection;                      //Atomic Table,  directly used by various SW components,latest version 1.2
-  USHORT LVTMAEncoderControl;                    //Atomic Table,directly used by various SW components,latest version 1.3
-  USHORT HW_Misc_Operation;                      //Atomic Table,  directly used by various SW components,latest version 1.1
-  USHORT DAC1EncoderControl;                     //Atomic Table,  directly used by various SW components,latest version 1.1
-  USHORT DAC2EncoderControl;                     //Atomic Table,  directly used by various SW components,latest version 1.1
-  USHORT DVOOutputControl;                       //Atomic Table,  directly used by various SW components,latest version 1.1
-  USHORT CV1OutputControl;                       //Atomic Table,  Atomic Table,  Obsolete from Ry6xx, use DAC2 Output instead
-  USHORT GetConditionalGoldenSetting;            //Only used by Bios
-  USHORT SMC_Init;                               //Function Table,directly used by various SW components,latest version 1.1
-  USHORT PatchMCSetting;                         //only used by BIOS
-  USHORT MC_SEQ_Control;                         //only used by BIOS
-  USHORT Gfx_Harvesting;                         //Atomic Table,  Obsolete from Ry6xx, Now only used by BIOS for GFX harvesting
-  USHORT EnableScaler;                           //Atomic Table,  used only by Bios
-  USHORT BlankCRTC;                              //Atomic Table,  directly used by various SW components,latest version 1.1
-  USHORT EnableCRTC;                             //Atomic Table,  directly used by various SW components,latest version 1.1
-  USHORT GetPixelClock;                          //Atomic Table,  directly used by various SW components,latest version 1.1
-  USHORT EnableVGA_Render;                       //Function Table,directly used by various SW components,latest version 1.1
-  USHORT GetSCLKOverMCLKRatio;                   //Atomic Table,  only used by Bios
-  USHORT SetCRTC_Timing;                         //Atomic Table,  directly used by various SW components,latest version 1.1
-  USHORT SetCRTC_OverScan;                       //Atomic Table,  used by various SW components,latest version 1.1
-  USHORT GetSMUClockInfo;                         //Atomic Table,  used only by Bios
-  USHORT SelectCRTC_Source;                      //Atomic Table,  directly used by various SW components,latest version 1.1
-  USHORT EnableGraphSurfaces;                    //Atomic Table,  used only by Bios
-  USHORT UpdateCRTC_DoubleBufferRegisters;       //Atomic Table,  used only by Bios
-  USHORT LUT_AutoFill;                           //Atomic Table,  only used by Bios
-  USHORT SetDCEClock;                            //Atomic Table,  start from DCE11.1, shared by driver and VBIOS, change DISPCLK and DPREFCLK
-  USHORT GetMemoryClock;                         //Atomic Table,  directly used by various SW components,latest version 1.1
-  USHORT GetEngineClock;                         //Atomic Table,  directly used by various SW components,latest version 1.1
-  USHORT SetCRTC_UsingDTDTiming;                 //Atomic Table,  directly used by various SW components,latest version 1.1
-  USHORT ExternalEncoderControl;                 //Atomic Table,  directly used by various SW components,latest version 2.1
-  USHORT LVTMAOutputControl;                     //Atomic Table,  directly used by various SW components,latest version 1.1
-  USHORT VRAM_BlockDetectionByStrap;             //Atomic Table,  used only by Bios
-  USHORT MemoryCleanUp;                          //Atomic Table,  only used by Bios
-  USHORT ProcessI2cChannelTransaction;           //Function Table,only used by Bios
-  USHORT WriteOneByteToHWAssistedI2C;            //Function Table,indirectly used by various SW components
-  USHORT ReadHWAssistedI2CStatus;                //Atomic Table,  indirectly used by various SW components
-  USHORT SpeedFanControl;                        //Function Table,indirectly used by various SW components,called from ASIC_Init
-  USHORT PowerConnectorDetection;                //Atomic Table,  directly used by various SW components,latest version 1.1
-  USHORT MC_Synchronization;                     //Atomic Table,  indirectly used by various SW components,called from SetMemoryClock
-  USHORT ComputeMemoryEnginePLL;                 //Atomic Table,  indirectly used by various SW components,called from SetMemory/EngineClock
-  USHORT Gfx_Init;                               //Atomic Table,  indirectly used by various SW components,called from SetMemory or SetEngineClock
-  USHORT VRAM_GetCurrentInfoBlock;               //Atomic Table,  used only by Bios
-  USHORT DynamicMemorySettings;                  //Atomic Table,  indirectly used by various SW components,called from SetMemoryClock
-  USHORT MemoryTraining;                         //Atomic Table,  used only by Bios
-  USHORT EnableSpreadSpectrumOnPPLL;             //Atomic Table,  directly used by various SW components,latest version 1.2
-  USHORT TMDSAOutputControl;                     //Atomic Table,  directly used by various SW components,latest version 1.1
-  USHORT SetVoltage;                             //Function Table,directly and/or indirectly used by various SW components,latest version 1.1
-  USHORT DAC1OutputControl;                      //Atomic Table,  directly used by various SW components,latest version 1.1
-  USHORT ReadEfuseValue;                         //Atomic Table,  directly used by various SW components,latest version 1.1
-  USHORT ComputeMemoryClockParam;                //Function Table,only used by Bios, obsolete soon.Switch to use "ReadEDIDFromHWAssistedI2C"
-  USHORT ClockSource;                            //Atomic Table,  indirectly used by various SW components,called from ASIC_Init
-  USHORT MemoryDeviceInit;                       //Atomic Table,  indirectly used by various SW components,called from SetMemoryClock
-  USHORT GetDispObjectInfo;                      //Atomic Table,  indirectly used by various SW components,called from EnableVGARender
-  USHORT DIG1EncoderControl;                     //Atomic Table,directly used by various SW components,latest version 1.1
-  USHORT DIG2EncoderControl;                     //Atomic Table,directly used by various SW components,latest version 1.1
-  USHORT DIG1TransmitterControl;                 //Atomic Table,directly used by various SW components,latest version 1.1
-  USHORT DIG2TransmitterControl;                 //Atomic Table,directly used by various SW components,latest version 1.1
-  USHORT ProcessAuxChannelTransaction;           //Function Table,only used by Bios
-  USHORT DPEncoderService;                       //Function Table,only used by Bios
-  USHORT GetVoltageInfo;                         //Function Table,only used by Bios since SI
-}ATOM_MASTER_LIST_OF_COMMAND_TABLES;
+typedef struct _ATOM_MASTER_LIST_OF_COMMAND_TABLES
+{
+	USHORT ASIC_Init;                              //Function Table, used by various SW components,latest version 1.1
+	USHORT GetDisplaySurfaceSize;                  //Atomic Table,  Used by Bios when enabling HW ICON
+	USHORT ASIC_RegistersInit;                     //Atomic Table,  indirectly used by various SW components,called from ASIC_Init
+	USHORT VRAM_BlockVenderDetection;              //Atomic Table,  used only by Bios
+	USHORT DIGxEncoderControl;                     //Only used by Bios
+	USHORT MemoryControllerInit;                   //Atomic Table,  indirectly used by various SW components,called from ASIC_Init
+	USHORT EnableCRTCMemReq;                       //Function Table,directly used by various SW components,latest version 2.1
+	USHORT MemoryParamAdjust;                      //Atomic Table,  indirectly used by various SW components,called from SetMemoryClock if needed
+	USHORT DVOEncoderControl;                      //Function Table,directly used by various SW components,latest version 1.2
+	USHORT GPIOPinControl;                         //Atomic Table,  only used by Bios
+	USHORT SetEngineClock;                         //Function Table,directly used by various SW components,latest version 1.1
+	USHORT SetMemoryClock;                         //Function Table,directly used by various SW components,latest version 1.1
+	USHORT SetPixelClock;                          //Function Table,directly used by various SW components,latest version 1.2
+	USHORT EnableDispPowerGating;                  //Atomic Table,  indirectly used by various SW components,called from ASIC_Init
+	USHORT ResetMemoryDLL;                         //Atomic Table,  indirectly used by various SW components,called from SetMemoryClock
+	USHORT ResetMemoryDevice;                      //Atomic Table,  indirectly used by various SW components,called from SetMemoryClock
+	USHORT MemoryPLLInit;                          //Atomic Table,  used only by Bios
+	USHORT AdjustDisplayPll;                       //Atomic Table,  used by various SW componentes.
+	USHORT AdjustMemoryController;                 //Atomic Table,  indirectly used by various SW components,called from SetMemoryClock
+	USHORT EnableASIC_StaticPwrMgt;                //Atomic Table,  only used by Bios
+	USHORT SetUniphyInstance;                      //Atomic Table,  only used by Bios
+	USHORT DAC_LoadDetection;                      //Atomic Table,  directly used by various SW components,latest version 1.2
+	USHORT LVTMAEncoderControl;                    //Atomic Table,directly used by various SW components,latest version 1.3
+	USHORT HW_Misc_Operation;                      //Atomic Table,  directly used by various SW components,latest version 1.1
+	USHORT DAC1EncoderControl;                     //Atomic Table,  directly used by various SW components,latest version 1.1
+	USHORT DAC2EncoderControl;                     //Atomic Table,  directly used by various SW components,latest version 1.1
+	USHORT DVOOutputControl;                       //Atomic Table,  directly used by various SW components,latest version 1.1
+	USHORT CV1OutputControl;                       //Atomic Table,  Atomic Table,  Obsolete from Ry6xx, use DAC2 Output instead
+	USHORT GetConditionalGoldenSetting;            //Only used by Bios
+	USHORT SMC_Init;                               //Function Table,directly used by various SW components,latest version 1.1
+	USHORT PatchMCSetting;                         //only used by BIOS
+	USHORT MC_SEQ_Control;                         //only used by BIOS
+	USHORT Gfx_Harvesting;                         //Atomic Table,  Obsolete from Ry6xx, Now only used by BIOS for GFX harvesting
+	USHORT EnableScaler;                           //Atomic Table,  used only by Bios
+	USHORT BlankCRTC;                              //Atomic Table,  directly used by various SW components,latest version 1.1
+	USHORT EnableCRTC;                             //Atomic Table,  directly used by various SW components,latest version 1.1
+	USHORT GetPixelClock;                          //Atomic Table,  directly used by various SW components,latest version 1.1
+	USHORT EnableVGA_Render;                       //Function Table,directly used by various SW components,latest version 1.1
+	USHORT GetSCLKOverMCLKRatio;                   //Atomic Table,  only used by Bios
+	USHORT SetCRTC_Timing;                         //Atomic Table,  directly used by various SW components,latest version 1.1
+	USHORT SetCRTC_OverScan;                       //Atomic Table,  used by various SW components,latest version 1.1
+	USHORT GetSMUClockInfo;                         //Atomic Table,  used only by Bios
+	USHORT SelectCRTC_Source;                      //Atomic Table,  directly used by various SW components,latest version 1.1
+	USHORT EnableGraphSurfaces;                    //Atomic Table,  used only by Bios
+	USHORT UpdateCRTC_DoubleBufferRegisters;       //Atomic Table,  used only by Bios
+	USHORT LUT_AutoFill;                           //Atomic Table,  only used by Bios
+	USHORT SetDCEClock;                            //Atomic Table,  start from DCE11.1, shared by driver and VBIOS, change DISPCLK and DPREFCLK
+	USHORT GetMemoryClock;                         //Atomic Table,  directly used by various SW components,latest version 1.1
+	USHORT GetEngineClock;                         //Atomic Table,  directly used by various SW components,latest version 1.1
+	USHORT SetCRTC_UsingDTDTiming;                 //Atomic Table,  directly used by various SW components,latest version 1.1
+	USHORT ExternalEncoderControl;                 //Atomic Table,  directly used by various SW components,latest version 2.1
+	USHORT LVTMAOutputControl;                     //Atomic Table,  directly used by various SW components,latest version 1.1
+	USHORT VRAM_BlockDetectionByStrap;             //Atomic Table,  used only by Bios
+	USHORT MemoryCleanUp;                          //Atomic Table,  only used by Bios
+	USHORT ProcessI2cChannelTransaction;           //Function Table,only used by Bios
+	USHORT WriteOneByteToHWAssistedI2C;            //Function Table,indirectly used by various SW components
+	USHORT ReadHWAssistedI2CStatus;                //Atomic Table,  indirectly used by various SW components
+	USHORT SpeedFanControl;                        //Function Table,indirectly used by various SW components,called from ASIC_Init
+	USHORT PowerConnectorDetection;                //Atomic Table,  directly used by various SW components,latest version 1.1
+	USHORT MC_Synchronization;                     //Atomic Table,  indirectly used by various SW components,called from SetMemoryClock
+	USHORT ComputeMemoryEnginePLL;                 //Atomic Table,  indirectly used by various SW components,called from SetMemory/EngineClock
+	USHORT Gfx_Init;                               //Atomic Table,  indirectly used by various SW components,called from SetMemory or SetEngineClock
+	USHORT VRAM_GetCurrentInfoBlock;               //Atomic Table,  used only by Bios
+	USHORT DynamicMemorySettings;                  //Atomic Table,  indirectly used by various SW components,called from SetMemoryClock
+	USHORT MemoryTraining;                         //Atomic Table,  used only by Bios
+	USHORT EnableSpreadSpectrumOnPPLL;             //Atomic Table,  directly used by various SW components,latest version 1.2
+	USHORT TMDSAOutputControl;                     //Atomic Table,  directly used by various SW components,latest version 1.1
+	USHORT SetVoltage;                             //Function Table,directly and/or indirectly used by various SW components,latest version 1.1
+	USHORT DAC1OutputControl;                      //Atomic Table,  directly used by various SW components,latest version 1.1
+	USHORT ReadEfuseValue;                         //Atomic Table,  directly used by various SW components,latest version 1.1
+	USHORT ComputeMemoryClockParam;                //Function Table,only used by Bios, obsolete soon.Switch to use "ReadEDIDFromHWAssistedI2C"
+	USHORT ClockSource;                            //Atomic Table,  indirectly used by various SW components,called from ASIC_Init
+	USHORT MemoryDeviceInit;                       //Atomic Table,  indirectly used by various SW components,called from SetMemoryClock
+	USHORT GetDispObjectInfo;                      //Atomic Table,  indirectly used by various SW components,called from EnableVGARender
+	USHORT DIG1EncoderControl;                     //Atomic Table,directly used by various SW components,latest version 1.1
+	USHORT DIG2EncoderControl;                     //Atomic Table,directly used by various SW components,latest version 1.1
+	USHORT DIG1TransmitterControl;                 //Atomic Table,directly used by various SW components,latest version 1.1
+	USHORT DIG2TransmitterControl;                 //Atomic Table,directly used by various SW components,latest version 1.1
+	USHORT ProcessAuxChannelTransaction;           //Function Table,only used by Bios
+	USHORT DPEncoderService;                       //Function Table,only used by Bios
+	USHORT GetVoltageInfo;                         //Function Table,only used by Bios since SI
+} ATOM_MASTER_LIST_OF_COMMAND_TABLES;
 
 // For backward compatible
 #define ReadEDIDFromHWAssistedI2C                ProcessI2cChannelTransaction
@@ -379,9 +380,9 @@ typedef struct _ATOM_MASTER_LIST_OF_COMMAND_TABLES{
 
 typedef struct _ATOM_MASTER_COMMAND_TABLE
 {
-  ATOM_COMMON_TABLE_HEADER           sHeader;
-  ATOM_MASTER_LIST_OF_COMMAND_TABLES ListOfCommandTables;
-}ATOM_MASTER_COMMAND_TABLE;
+	ATOM_COMMON_TABLE_HEADER           sHeader;
+	ATOM_MASTER_LIST_OF_COMMAND_TABLES ListOfCommandTables;
+} ATOM_MASTER_COMMAND_TABLE;
 
 /****************************************************************************/
 // Structures used in every command table
@@ -389,15 +390,15 @@ typedef struct _ATOM_MASTER_COMMAND_TABLE
 typedef struct _ATOM_TABLE_ATTRIBUTE
 {
 #if ATOM_BIG_ENDIAN
-  USHORT  UpdatedByUtility:1;         //[15]=Table updated by utility flag
-  USHORT  PS_SizeInBytes:7;           //[14:8]=Size of parameter space in Bytes (multiple of a dword),
-  USHORT  WS_SizeInBytes:8;           //[7:0]=Size of workspace in Bytes (in multiple of a dword),
+	USHORT  UpdatedByUtility: 1;        //[15]=Table updated by utility flag
+	USHORT  PS_SizeInBytes: 7;          //[14:8]=Size of parameter space in Bytes (multiple of a dword),
+	USHORT  WS_SizeInBytes: 8;          //[7:0]=Size of workspace in Bytes (in multiple of a dword),
 #else
-  USHORT  WS_SizeInBytes:8;           //[7:0]=Size of workspace in Bytes (in multiple of a dword),
-  USHORT  PS_SizeInBytes:7;           //[14:8]=Size of parameter space in Bytes (multiple of a dword),
-  USHORT  UpdatedByUtility:1;         //[15]=Table updated by utility flag
+	USHORT  WS_SizeInBytes: 8;          //[7:0]=Size of workspace in Bytes (in multiple of a dword),
+	USHORT  PS_SizeInBytes: 7;          //[14:8]=Size of parameter space in Bytes (multiple of a dword),
+	USHORT  UpdatedByUtility: 1;        //[15]=Table updated by utility flag
 #endif
-}ATOM_TABLE_ATTRIBUTE;
+} ATOM_TABLE_ATTRIBUTE;
 
 /****************************************************************************/
 // Common header for all command tables.
@@ -406,9 +407,9 @@ typedef struct _ATOM_TABLE_ATTRIBUTE
 /****************************************************************************/
 typedef struct _ATOM_COMMON_ROM_COMMAND_TABLE_HEADER
 {
-  ATOM_COMMON_TABLE_HEADER CommonHeader;
-  ATOM_TABLE_ATTRIBUTE     TableAttribute;
-}ATOM_COMMON_ROM_COMMAND_TABLE_HEADER;
+	ATOM_COMMON_TABLE_HEADER CommonHeader;
+	ATOM_TABLE_ATTRIBUTE     TableAttribute;
+} ATOM_COMMON_ROM_COMMAND_TABLE_HEADER;
 
 /****************************************************************************/
 // Structures used by ComputeMemoryEnginePLLTable
@@ -424,33 +425,35 @@ typedef struct _ATOM_COMMON_ROM_COMMAND_TABLE_HEADER
 typedef struct _ATOM_ADJUST_MEMORY_CLOCK_FREQ
 {
 #if ATOM_BIG_ENDIAN
-  ULONG ulPointerReturnFlag:1;      // BYTE_3[7]=1 - Return the pointer to the right Data Block; BYTE_3[7]=0 - Program the right Data Block
-  ULONG ulMemoryModuleNumber:7;     // BYTE_3[6:0]
-  ULONG ulClockFreq:24;
+ULONG ulPointerReturnFlag:
+	1;     // BYTE_3[7]=1 - Return the pointer to the right Data Block; BYTE_3[7]=0 - Program the right Data Block
+	ULONG ulMemoryModuleNumber: 7;    // BYTE_3[6:0]
+	ULONG ulClockFreq: 24;
 #else
-  ULONG ulClockFreq:24;
-  ULONG ulMemoryModuleNumber:7;     // BYTE_3[6:0]
-  ULONG ulPointerReturnFlag:1;      // BYTE_3[7]=1 - Return the pointer to the right Data Block; BYTE_3[7]=0 - Program the right Data Block
+	ULONG ulClockFreq: 24;
+	ULONG ulMemoryModuleNumber: 7;    // BYTE_3[6:0]
+ULONG ulPointerReturnFlag:
+	1;     // BYTE_3[7]=1 - Return the pointer to the right Data Block; BYTE_3[7]=0 - Program the right Data Block
 #endif
-}ATOM_ADJUST_MEMORY_CLOCK_FREQ;
+} ATOM_ADJUST_MEMORY_CLOCK_FREQ;
 #define POINTER_RETURN_FLAG             0x80
 
 typedef struct _COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS
 {
-  ULONG   ulClock;        //When returen, it's the re-calculated clock based on given Fb_div Post_Div and ref_div
-  UCHAR   ucAction;       //0:reserved //1:Memory //2:Engine
-  UCHAR   ucReserved;     //may expand to return larger Fbdiv later
-  UCHAR   ucFbDiv;        //return value
-  UCHAR   ucPostDiv;      //return value
-}COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS;
+	ULONG   ulClock;        //When returen, it's the re-calculated clock based on given Fb_div Post_Div and ref_div
+	UCHAR   ucAction;       //0:reserved //1:Memory //2:Engine
+	UCHAR   ucReserved;     //may expand to return larger Fbdiv later
+	UCHAR   ucFbDiv;        //return value
+	UCHAR   ucPostDiv;      //return value
+} COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS;
 
 typedef struct _COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS_V2
 {
-  ULONG   ulClock;        //When return, [23:0] return real clock
-  UCHAR   ucAction;       //0:reserved;COMPUTE_MEMORY_PLL_PARAM:Memory;COMPUTE_ENGINE_PLL_PARAM:Engine. it return ref_div to be written to register
-  USHORT  usFbDiv;          //return Feedback value to be written to register
-  UCHAR   ucPostDiv;      //return post div to be written to register
-}COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS_V2;
+	ULONG   ulClock;        //When return, [23:0] return real clock
+	UCHAR   ucAction;       //0:reserved;COMPUTE_MEMORY_PLL_PARAM:Memory;COMPUTE_ENGINE_PLL_PARAM:Engine. it return ref_div to be written to register
+	USHORT  usFbDiv;          //return Feedback value to be written to register
+	UCHAR   ucPostDiv;      //return post div to be written to register
+} COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS_V2;
 
 #define COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS_PS_ALLOCATION   COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS
 
@@ -475,33 +478,33 @@ typedef struct _COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS_V2
 typedef struct _ATOM_COMPUTE_CLOCK_FREQ
 {
 #if ATOM_BIG_ENDIAN
-  ULONG ulComputeClockFlag:8;                 // =1: COMPUTE_MEMORY_PLL_PARAM, =2: COMPUTE_ENGINE_PLL_PARAM
-  ULONG ulClockFreq:24;                       // in unit of 10kHz
+	ULONG ulComputeClockFlag: 8;                // =1: COMPUTE_MEMORY_PLL_PARAM, =2: COMPUTE_ENGINE_PLL_PARAM
+	ULONG ulClockFreq: 24;                      // in unit of 10kHz
 #else
-  ULONG ulClockFreq:24;                       // in unit of 10kHz
-  ULONG ulComputeClockFlag:8;                 // =1: COMPUTE_MEMORY_PLL_PARAM, =2: COMPUTE_ENGINE_PLL_PARAM
+	ULONG ulClockFreq: 24;                      // in unit of 10kHz
+	ULONG ulComputeClockFlag: 8;                // =1: COMPUTE_MEMORY_PLL_PARAM, =2: COMPUTE_ENGINE_PLL_PARAM
 #endif
-}ATOM_COMPUTE_CLOCK_FREQ;
+} ATOM_COMPUTE_CLOCK_FREQ;
 
 typedef struct _ATOM_S_MPLL_FB_DIVIDER
 {
-  USHORT usFbDivFrac;
-  USHORT usFbDiv;
-}ATOM_S_MPLL_FB_DIVIDER;
+	USHORT usFbDivFrac;
+	USHORT usFbDiv;
+} ATOM_S_MPLL_FB_DIVIDER;
 
 typedef struct _COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS_V3
 {
-  union
-  {
-    ATOM_COMPUTE_CLOCK_FREQ  ulClock;         //Input Parameter
-    ULONG ulClockParams;                      //ULONG access for BE
-    ATOM_S_MPLL_FB_DIVIDER   ulFbDiv;         //Output Parameter
-  };
-  UCHAR   ucRefDiv;                           //Output Parameter
-  UCHAR   ucPostDiv;                          //Output Parameter
-  UCHAR   ucCntlFlag;                         //Output Parameter
-  UCHAR   ucReserved;
-}COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS_V3;
+	union
+	{
+		ATOM_COMPUTE_CLOCK_FREQ  ulClock;         //Input Parameter
+		ULONG ulClockParams;                      //ULONG access for BE
+		ATOM_S_MPLL_FB_DIVIDER   ulFbDiv;         //Output Parameter
+	};
+	UCHAR   ucRefDiv;                           //Output Parameter
+	UCHAR   ucPostDiv;                          //Output Parameter
+	UCHAR   ucCntlFlag;                         //Output Parameter
+	UCHAR   ucReserved;
+} COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS_V3;
 
 // ucCntlFlag
 #define ATOM_PLL_CNTL_FLAG_PLL_POST_DIV_EN          1
@@ -514,38 +517,38 @@ typedef struct _COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS_V3
 typedef struct _COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS_V4
 {
 #if ATOM_BIG_ENDIAN
-  ULONG  ucPostDiv:8;        //return parameter: post divider which is used to program to register directly
-  ULONG  ulClock:24;         //Input= target clock, output = actual clock
+	ULONG  ucPostDiv: 8;       //return parameter: post divider which is used to program to register directly
+	ULONG  ulClock: 24;        //Input= target clock, output = actual clock
 #else
-  ULONG  ulClock:24;         //Input= target clock, output = actual clock
-  ULONG  ucPostDiv:8;        //return parameter: post divider which is used to program to register directly
+	ULONG  ulClock: 24;        //Input= target clock, output = actual clock
+	ULONG  ucPostDiv: 8;       //return parameter: post divider which is used to program to register directly
 #endif
-}COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS_V4;
+} COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS_V4;
 
 typedef struct _COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS_V5
 {
-  union
-  {
-    ATOM_COMPUTE_CLOCK_FREQ  ulClock;         //Input Parameter
-    ULONG ulClockParams;                      //ULONG access for BE
-    ATOM_S_MPLL_FB_DIVIDER   ulFbDiv;         //Output Parameter
-  };
-  UCHAR   ucRefDiv;                           //Output Parameter
-  UCHAR   ucPostDiv;                          //Output Parameter
-  union
-  {
-    UCHAR   ucCntlFlag;                       //Output Flags
-    UCHAR   ucInputFlag;                      //Input Flags. ucInputFlag[0] - Strobe(1)/Performance(0) mode
-  };
-  UCHAR   ucReserved;
-}COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS_V5;
+	union
+	{
+		ATOM_COMPUTE_CLOCK_FREQ  ulClock;         //Input Parameter
+		ULONG ulClockParams;                      //ULONG access for BE
+		ATOM_S_MPLL_FB_DIVIDER   ulFbDiv;         //Output Parameter
+	};
+	UCHAR   ucRefDiv;                           //Output Parameter
+	UCHAR   ucPostDiv;                          //Output Parameter
+	union
+	{
+		UCHAR   ucCntlFlag;                       //Output Flags
+		UCHAR   ucInputFlag;                      //Input Flags. ucInputFlag[0] - Strobe(1)/Performance(0) mode
+	};
+	UCHAR   ucReserved;
+} COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS_V5;
 
 
 typedef struct _COMPUTE_GPU_CLOCK_INPUT_PARAMETERS_V1_6
 {
-  ATOM_COMPUTE_CLOCK_FREQ  ulClock;         //Input Parameter
-  ULONG   ulReserved[2];
-}COMPUTE_GPU_CLOCK_INPUT_PARAMETERS_V1_6;
+	ATOM_COMPUTE_CLOCK_FREQ  ulClock;         //Input Parameter
+	ULONG   ulReserved[2];
+} COMPUTE_GPU_CLOCK_INPUT_PARAMETERS_V1_6;
 
 //ATOM_COMPUTE_CLOCK_FREQ.ulComputeClockFlag
 #define COMPUTE_GPUCLK_INPUT_FLAG_CLK_TYPE_MASK            0x0f
@@ -555,22 +558,22 @@ typedef struct _COMPUTE_GPU_CLOCK_INPUT_PARAMETERS_V1_6
 
 typedef struct _COMPUTE_GPU_CLOCK_OUTPUT_PARAMETERS_V1_6
 {
-  COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS_V4  ulClock;         //Output Parameter: ucPostDiv=DFS divider
-  ATOM_S_MPLL_FB_DIVIDER   ulFbDiv;         //Output Parameter: PLL FB divider
-  UCHAR   ucPllRefDiv;                      //Output Parameter: PLL ref divider
-  UCHAR   ucPllPostDiv;                     //Output Parameter: PLL post divider
-  UCHAR   ucPllCntlFlag;                    //Output Flags: control flag
-  UCHAR   ucReserved;
-}COMPUTE_GPU_CLOCK_OUTPUT_PARAMETERS_V1_6;
+	COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS_V4  ulClock;         //Output Parameter: ucPostDiv=DFS divider
+	ATOM_S_MPLL_FB_DIVIDER   ulFbDiv;         //Output Parameter: PLL FB divider
+	UCHAR   ucPllRefDiv;                      //Output Parameter: PLL ref divider
+	UCHAR   ucPllPostDiv;                     //Output Parameter: PLL post divider
+	UCHAR   ucPllCntlFlag;                    //Output Flags: control flag
+	UCHAR   ucReserved;
+} COMPUTE_GPU_CLOCK_OUTPUT_PARAMETERS_V1_6;
 
 //ucPllCntlFlag
 #define SPLL_CNTL_FLAG_VCO_MODE_MASK            0x03
 
 typedef struct _COMPUTE_GPU_CLOCK_INPUT_PARAMETERS_V1_7
 {
-  ATOM_COMPUTE_CLOCK_FREQ  ulClock;         //Input Parameter
-  ULONG   ulReserved[5];
-}COMPUTE_GPU_CLOCK_INPUT_PARAMETERS_V1_7;
+	ATOM_COMPUTE_CLOCK_FREQ  ulClock;         //Input Parameter
+	ULONG   ulReserved[5];
+} COMPUTE_GPU_CLOCK_INPUT_PARAMETERS_V1_7;
 
 //ATOM_COMPUTE_CLOCK_FREQ.ulComputeClockFlag
 #define COMPUTE_GPUCLK_INPUT_FLAG_CLK_TYPE_MASK            0x0f
@@ -579,20 +582,20 @@ typedef struct _COMPUTE_GPU_CLOCK_INPUT_PARAMETERS_V1_7
 
 typedef struct _COMPUTE_GPU_CLOCK_OUTPUT_PARAMETERS_V1_7
 {
-  COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS_V4  ulClock;         //Output Parameter: ucPostDiv=DFS divider
-  USHORT  usSclk_fcw_frac;                  //fractional divider of fcw = usSclk_fcw_frac/65536
-  USHORT  usSclk_fcw_int;                   //integer divider of fcwc
-  UCHAR   ucSclkPostDiv;                    //PLL post divider = 2^ucSclkPostDiv
-  UCHAR   ucSclkVcoMode;                    //0: 4G~8Ghz, 1:3G~6Ghz,3: 2G~4Ghz, 2:Reserved
-  UCHAR   ucSclkPllRange;                   //GreenTable SCLK PLL range entry index ( 0~7 )
-  UCHAR   ucSscEnable;
-  USHORT  usSsc_fcw1_frac;                  //fcw1_frac when SSC enable
-  USHORT  usSsc_fcw1_int;                   //fcw1_int when SSC enable
-  USHORT  usReserved;
-  USHORT  usPcc_fcw_int;
-  USHORT  usSsc_fcw_slew_frac;              //fcw_slew_frac when SSC enable
-  USHORT  usPcc_fcw_slew_frac;
-}COMPUTE_GPU_CLOCK_OUTPUT_PARAMETERS_V1_7;
+	COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS_V4  ulClock;         //Output Parameter: ucPostDiv=DFS divider
+	USHORT  usSclk_fcw_frac;                  //fractional divider of fcw = usSclk_fcw_frac/65536
+	USHORT  usSclk_fcw_int;                   //integer divider of fcwc
+	UCHAR   ucSclkPostDiv;                    //PLL post divider = 2^ucSclkPostDiv
+	UCHAR   ucSclkVcoMode;                    //0: 4G~8Ghz, 1:3G~6Ghz,3: 2G~4Ghz, 2:Reserved
+	UCHAR   ucSclkPllRange;                   //GreenTable SCLK PLL range entry index ( 0~7 )
+	UCHAR   ucSscEnable;
+	USHORT  usSsc_fcw1_frac;                  //fcw1_frac when SSC enable
+	USHORT  usSsc_fcw1_int;                   //fcw1_int when SSC enable
+	USHORT  usReserved;
+	USHORT  usPcc_fcw_int;
+	USHORT  usSsc_fcw_slew_frac;              //fcw_slew_frac when SSC enable
+	USHORT  usPcc_fcw_slew_frac;
+} COMPUTE_GPU_CLOCK_OUTPUT_PARAMETERS_V1_7;
 
 // ucInputFlag
 #define ATOM_PLL_INPUT_FLAG_PLL_STROBE_MODE_EN  1   // 1-StrobeMode, 0-PerformanceMode
@@ -600,19 +603,21 @@ typedef struct _COMPUTE_GPU_CLOCK_OUTPUT_PARAMETERS_V1_7
 // use for ComputeMemoryClockParamTable
 typedef struct _COMPUTE_MEMORY_CLOCK_PARAM_PARAMETERS_V2_1
 {
-  union
-  {
-    ULONG  ulClock;
-    ATOM_S_MPLL_FB_DIVIDER   ulFbDiv;         //Output:UPPER_WORD=FB_DIV_INTEGER,  LOWER_WORD=FB_DIV_FRAC shl (16-FB_FRACTION_BITS)
-  };
-  UCHAR   ucDllSpeed;                         //Output
-  UCHAR   ucPostDiv;                          //Output
-  union{
-    UCHAR   ucInputFlag;                      //Input : ATOM_PLL_INPUT_FLAG_PLL_STROBE_MODE_EN: 1-StrobeMode, 0-PerformanceMode
-    UCHAR   ucPllCntlFlag;                    //Output:
-  };
-  UCHAR   ucBWCntl;
-}COMPUTE_MEMORY_CLOCK_PARAM_PARAMETERS_V2_1;
+	union
+	{
+		ULONG  ulClock;
+		ATOM_S_MPLL_FB_DIVIDER
+		ulFbDiv;         //Output:UPPER_WORD=FB_DIV_INTEGER,  LOWER_WORD=FB_DIV_FRAC shl (16-FB_FRACTION_BITS)
+	};
+	UCHAR   ucDllSpeed;                         //Output
+	UCHAR   ucPostDiv;                          //Output
+	union
+	{
+		UCHAR   ucInputFlag;                      //Input : ATOM_PLL_INPUT_FLAG_PLL_STROBE_MODE_EN: 1-StrobeMode, 0-PerformanceMode
+		UCHAR   ucPllCntlFlag;                    //Output:
+	};
+	UCHAR   ucBWCntl;
+} COMPUTE_MEMORY_CLOCK_PARAM_PARAMETERS_V2_1;
 
 // definition of ucInputFlag
 #define MPLL_INPUT_FLAG_STROBE_MODE_EN          0x01
@@ -628,36 +633,36 @@ typedef struct _COMPUTE_MEMORY_CLOCK_PARAM_PARAMETERS_V2_1
 // use for ComputeMemoryClockParamTable
 typedef struct _COMPUTE_MEMORY_CLOCK_PARAM_PARAMETERS_V2_2
 {
-  COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS_V4 ulClock;
-  ULONG ulReserved;
-}COMPUTE_MEMORY_CLOCK_PARAM_PARAMETERS_V2_2;
+	COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS_V4 ulClock;
+	ULONG ulReserved;
+} COMPUTE_MEMORY_CLOCK_PARAM_PARAMETERS_V2_2;
 
 //Input parameter of DynamicMemorySettingsTable
 //when ATOM_COMPUTE_CLOCK_FREQ.ulComputeClockFlag = COMPUTE_MEMORY_PLL_PARAM
 typedef struct _DYNAMICE_MEMORY_SETTINGS_PARAMETER
 {
-  ATOM_COMPUTE_CLOCK_FREQ ulClock;
-  ULONG ulReserved[2];
-}DYNAMICE_MEMORY_SETTINGS_PARAMETER;
+	ATOM_COMPUTE_CLOCK_FREQ ulClock;
+	ULONG ulReserved[2];
+} DYNAMICE_MEMORY_SETTINGS_PARAMETER;
 
 //Input parameter of DynamicMemorySettingsTable
 //when ATOM_COMPUTE_CLOCK_FREQ.ulComputeClockFlag == COMPUTE_ENGINE_PLL_PARAM
 typedef struct _DYNAMICE_ENGINE_SETTINGS_PARAMETER
 {
-  ATOM_COMPUTE_CLOCK_FREQ ulClock;
-  ULONG ulMemoryClock;
-  ULONG ulReserved;
-}DYNAMICE_ENGINE_SETTINGS_PARAMETER;
+	ATOM_COMPUTE_CLOCK_FREQ ulClock;
+	ULONG ulMemoryClock;
+	ULONG ulReserved;
+} DYNAMICE_ENGINE_SETTINGS_PARAMETER;
 
 //Input parameter of DynamicMemorySettingsTable ver2.1 and above
 //when ATOM_COMPUTE_CLOCK_FREQ.ulComputeClockFlag == ADJUST_MC_SETTING_PARAM
 typedef struct _DYNAMICE_MC_DPM_SETTINGS_PARAMETER
 {
-  ATOM_COMPUTE_CLOCK_FREQ ulClock;
-  UCHAR ucMclkDPMState;
-  UCHAR ucReserved[3];
-  ULONG ulReserved;
-}DYNAMICE_MC_DPM_SETTINGS_PARAMETER;
+	ATOM_COMPUTE_CLOCK_FREQ ulClock;
+	UCHAR ucMclkDPMState;
+	UCHAR ucReserved[3];
+	ULONG ulReserved;
+} DYNAMICE_MC_DPM_SETTINGS_PARAMETER;
 
 //ucMclkDPMState
 #define DYNAMIC_MC_DPM_SETTING_LOW_DPM_STATE       0
@@ -666,10 +671,10 @@ typedef struct _DYNAMICE_MC_DPM_SETTINGS_PARAMETER
 
 typedef union _DYNAMICE_MEMORY_SETTINGS_PARAMETER_V2_1
 {
-  DYNAMICE_MEMORY_SETTINGS_PARAMETER asMCReg;
-  DYNAMICE_ENGINE_SETTINGS_PARAMETER asMCArbReg;
-  DYNAMICE_MC_DPM_SETTINGS_PARAMETER asDPMMCReg;
-}DYNAMICE_MEMORY_SETTINGS_PARAMETER_V2_1;
+	DYNAMICE_MEMORY_SETTINGS_PARAMETER asMCReg;
+	DYNAMICE_ENGINE_SETTINGS_PARAMETER asMCArbReg;
+	DYNAMICE_MC_DPM_SETTINGS_PARAMETER asDPMMCReg;
+} DYNAMICE_MEMORY_SETTINGS_PARAMETER_V2_1;
 
 
 /****************************************************************************/
@@ -677,20 +682,20 @@ typedef union _DYNAMICE_MEMORY_SETTINGS_PARAMETER_V2_1
 /****************************************************************************/
 typedef struct _SET_ENGINE_CLOCK_PARAMETERS
 {
-  ULONG ulTargetEngineClock;          //In 10Khz unit
-}SET_ENGINE_CLOCK_PARAMETERS;
+	ULONG ulTargetEngineClock;          //In 10Khz unit
+} SET_ENGINE_CLOCK_PARAMETERS;
 
 typedef struct _SET_ENGINE_CLOCK_PS_ALLOCATION
 {
-  ULONG ulTargetEngineClock;          //In 10Khz unit
-  COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS_PS_ALLOCATION sReserved;
-}SET_ENGINE_CLOCK_PS_ALLOCATION;
+	ULONG ulTargetEngineClock;          //In 10Khz unit
+	COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS_PS_ALLOCATION sReserved;
+} SET_ENGINE_CLOCK_PS_ALLOCATION;
 
 typedef struct _SET_ENGINE_CLOCK_PS_ALLOCATION_V1_2
 {
-  ULONG ulTargetEngineClock;          //In 10Khz unit
-  COMPUTE_GPU_CLOCK_INPUT_PARAMETERS_V1_7 sReserved;
-}SET_ENGINE_CLOCK_PS_ALLOCATION_V1_2;
+	ULONG ulTargetEngineClock;          //In 10Khz unit
+	COMPUTE_GPU_CLOCK_INPUT_PARAMETERS_V1_7 sReserved;
+} SET_ENGINE_CLOCK_PS_ALLOCATION_V1_2;
 
 
 /****************************************************************************/
@@ -698,56 +703,56 @@ typedef struct _SET_ENGINE_CLOCK_PS_ALLOCATION_V1_2
 /****************************************************************************/
 typedef struct _SET_MEMORY_CLOCK_PARAMETERS
 {
-  ULONG ulTargetMemoryClock;          //In 10Khz unit
-}SET_MEMORY_CLOCK_PARAMETERS;
+	ULONG ulTargetMemoryClock;          //In 10Khz unit
+} SET_MEMORY_CLOCK_PARAMETERS;
 
 typedef struct _SET_MEMORY_CLOCK_PS_ALLOCATION
 {
-  ULONG ulTargetMemoryClock;          //In 10Khz unit
-  COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS_PS_ALLOCATION sReserved;
-}SET_MEMORY_CLOCK_PS_ALLOCATION;
+	ULONG ulTargetMemoryClock;          //In 10Khz unit
+	COMPUTE_MEMORY_ENGINE_PLL_PARAMETERS_PS_ALLOCATION sReserved;
+} SET_MEMORY_CLOCK_PS_ALLOCATION;
 
 /****************************************************************************/
 // Structures used by ASIC_Init.ctb
 /****************************************************************************/
 typedef struct _ASIC_INIT_PARAMETERS
 {
-  ULONG ulDefaultEngineClock;         //In 10Khz unit
-  ULONG ulDefaultMemoryClock;         //In 10Khz unit
-}ASIC_INIT_PARAMETERS;
+	ULONG ulDefaultEngineClock;         //In 10Khz unit
+	ULONG ulDefaultMemoryClock;         //In 10Khz unit
+} ASIC_INIT_PARAMETERS;
 
 typedef struct _ASIC_INIT_PS_ALLOCATION
 {
-  ASIC_INIT_PARAMETERS sASICInitClocks;
-  SET_ENGINE_CLOCK_PS_ALLOCATION sReserved; //Caller doesn't need to init this structure
-}ASIC_INIT_PS_ALLOCATION;
+	ASIC_INIT_PARAMETERS sASICInitClocks;
+	SET_ENGINE_CLOCK_PS_ALLOCATION sReserved; //Caller doesn't need to init this structure
+} ASIC_INIT_PS_ALLOCATION;
 
 typedef struct _ASIC_INIT_CLOCK_PARAMETERS
 {
-  ULONG ulClkFreqIn10Khz:24;
-  ULONG ucClkFlag:8;
-}ASIC_INIT_CLOCK_PARAMETERS;
+	ULONG ulClkFreqIn10Khz: 24;
+	ULONG ucClkFlag: 8;
+} ASIC_INIT_CLOCK_PARAMETERS;
 
 typedef struct _ASIC_INIT_PARAMETERS_V1_2
 {
-  ASIC_INIT_CLOCK_PARAMETERS asSclkClock;         //In 10Khz unit
-  ASIC_INIT_CLOCK_PARAMETERS asMemClock;          //In 10Khz unit
-}ASIC_INIT_PARAMETERS_V1_2;
+	ASIC_INIT_CLOCK_PARAMETERS asSclkClock;         //In 10Khz unit
+	ASIC_INIT_CLOCK_PARAMETERS asMemClock;          //In 10Khz unit
+} ASIC_INIT_PARAMETERS_V1_2;
 
 typedef struct _ASIC_INIT_PS_ALLOCATION_V1_2
 {
-  ASIC_INIT_PARAMETERS_V1_2 sASICInitClocks;
-  ULONG ulReserved[8];
-}ASIC_INIT_PS_ALLOCATION_V1_2;
+	ASIC_INIT_PARAMETERS_V1_2 sASICInitClocks;
+	ULONG ulReserved[8];
+} ASIC_INIT_PS_ALLOCATION_V1_2;
 
 /****************************************************************************/
 // Structure used by DynamicClockGatingTable.ctb
 /****************************************************************************/
 typedef struct _DYNAMIC_CLOCK_GATING_PARAMETERS
 {
-  UCHAR ucEnable;                     // ATOM_ENABLE or ATOM_DISABLE
-  UCHAR ucPadding[3];
-}DYNAMIC_CLOCK_GATING_PARAMETERS;
+	UCHAR ucEnable;                     // ATOM_ENABLE or ATOM_DISABLE
+	UCHAR ucPadding[3];
+} DYNAMIC_CLOCK_GATING_PARAMETERS;
 #define  DYNAMIC_CLOCK_GATING_PS_ALLOCATION  DYNAMIC_CLOCK_GATING_PARAMETERS
 
 /****************************************************************************/
@@ -755,27 +760,27 @@ typedef struct _DYNAMIC_CLOCK_GATING_PARAMETERS
 /****************************************************************************/
 typedef struct _ENABLE_DISP_POWER_GATING_PARAMETERS_V2_1
 {
-  UCHAR ucDispPipeId;                 // ATOM_CRTC1, ATOM_CRTC2, ...
-  UCHAR ucEnable;                     // ATOM_ENABLE or ATOM_DISABLE
-  UCHAR ucPadding[2];
-}ENABLE_DISP_POWER_GATING_PARAMETERS_V2_1;
+	UCHAR ucDispPipeId;                 // ATOM_CRTC1, ATOM_CRTC2, ...
+	UCHAR ucEnable;                     // ATOM_ENABLE or ATOM_DISABLE
+	UCHAR ucPadding[2];
+} ENABLE_DISP_POWER_GATING_PARAMETERS_V2_1;
 
 typedef struct _ENABLE_DISP_POWER_GATING_PS_ALLOCATION
 {
-  UCHAR ucDispPipeId;                 // ATOM_CRTC1, ATOM_CRTC2, ...
-  UCHAR ucEnable;                     // ATOM_ENABLE/ATOM_DISABLE/ATOM_INIT
-  UCHAR ucPadding[2];
-  ULONG ulReserved[4];
-}ENABLE_DISP_POWER_GATING_PS_ALLOCATION;
+	UCHAR ucDispPipeId;                 // ATOM_CRTC1, ATOM_CRTC2, ...
+	UCHAR ucEnable;                     // ATOM_ENABLE/ATOM_DISABLE/ATOM_INIT
+	UCHAR ucPadding[2];
+	ULONG ulReserved[4];
+} ENABLE_DISP_POWER_GATING_PS_ALLOCATION;
 
 /****************************************************************************/
 // Structure used by EnableASIC_StaticPwrMgtTable.ctb
 /****************************************************************************/
 typedef struct _ENABLE_ASIC_STATIC_PWR_MGT_PARAMETERS
 {
-  UCHAR ucEnable;                     // ATOM_ENABLE or ATOM_DISABLE
-  UCHAR ucPadding[3];
-}ENABLE_ASIC_STATIC_PWR_MGT_PARAMETERS;
+	UCHAR ucEnable;                     // ATOM_ENABLE or ATOM_DISABLE
+	UCHAR ucPadding[3];
+} ENABLE_ASIC_STATIC_PWR_MGT_PARAMETERS;
 #define ENABLE_ASIC_STATIC_PWR_MGT_PS_ALLOCATION  ENABLE_ASIC_STATIC_PWR_MGT_PARAMETERS
 
 /****************************************************************************/
@@ -783,31 +788,31 @@ typedef struct _ENABLE_ASIC_STATIC_PWR_MGT_PARAMETERS
 /****************************************************************************/
 typedef struct _DAC_LOAD_DETECTION_PARAMETERS
 {
-  USHORT usDeviceID;                  //{ATOM_DEVICE_CRTx_SUPPORT,ATOM_DEVICE_TVx_SUPPORT,ATOM_DEVICE_CVx_SUPPORT}
-  UCHAR  ucDacType;                   //{ATOM_DAC_A,ATOM_DAC_B, ATOM_EXT_DAC}
-  UCHAR  ucMisc;                                 //Valid only when table revision =1.3 and above
-}DAC_LOAD_DETECTION_PARAMETERS;
+	USHORT usDeviceID;                  //{ATOM_DEVICE_CRTx_SUPPORT,ATOM_DEVICE_TVx_SUPPORT,ATOM_DEVICE_CVx_SUPPORT}
+	UCHAR  ucDacType;                   //{ATOM_DAC_A,ATOM_DAC_B, ATOM_EXT_DAC}
+	UCHAR  ucMisc;                                 //Valid only when table revision =1.3 and above
+} DAC_LOAD_DETECTION_PARAMETERS;
 
 // DAC_LOAD_DETECTION_PARAMETERS.ucMisc
 #define DAC_LOAD_MISC_YPrPb                  0x01
 
 typedef struct _DAC_LOAD_DETECTION_PS_ALLOCATION
 {
-  DAC_LOAD_DETECTION_PARAMETERS            sDacload;
-  ULONG                                    Reserved[2];// Don't set this one, allocation for EXT DAC
-}DAC_LOAD_DETECTION_PS_ALLOCATION;
+	DAC_LOAD_DETECTION_PARAMETERS            sDacload;
+	ULONG                                    Reserved[2];// Don't set this one, allocation for EXT DAC
+} DAC_LOAD_DETECTION_PS_ALLOCATION;
 
 /****************************************************************************/
 // Structures used by DAC1EncoderControlTable.ctb and DAC2EncoderControlTable.ctb
 /****************************************************************************/
 typedef struct _DAC_ENCODER_CONTROL_PARAMETERS
 {
-  USHORT usPixelClock;                // in 10KHz; for bios convenient
-  UCHAR  ucDacStandard;               // See definition of ATOM_DACx_xxx, For DEC3.0, bit 7 used as internal flag to indicate DAC2 (==1) or DAC1 (==0)
-  UCHAR  ucAction;                    // 0: turn off encoder
-                                      // 1: setup and turn on encoder
-                                      // 7: ATOM_ENCODER_INIT Initialize DAC
-}DAC_ENCODER_CONTROL_PARAMETERS;
+	USHORT usPixelClock;                // in 10KHz; for bios convenient
+	UCHAR  ucDacStandard;               // See definition of ATOM_DACx_xxx, For DEC3.0, bit 7 used as internal flag to indicate DAC2 (==1) or DAC1 (==0)
+	UCHAR  ucAction;                    // 0: turn off encoder
+	// 1: setup and turn on encoder
+	// 7: ATOM_ENCODER_INIT Initialize DAC
+} DAC_ENCODER_CONTROL_PARAMETERS;
 
 #define DAC_ENCODER_CONTROL_PS_ALLOCATION  DAC_ENCODER_CONTROL_PARAMETERS
 
@@ -818,26 +823,26 @@ typedef struct _DAC_ENCODER_CONTROL_PARAMETERS
 /****************************************************************************/
 typedef struct _DIG_ENCODER_CONTROL_PARAMETERS
 {
-  USHORT usPixelClock;      // in 10KHz; for bios convenient
-  UCHAR  ucConfig;
-                            // [2] Link Select:
-                            // =0: PHY linkA if bfLane<3
-                            // =1: PHY linkB if bfLanes<3
-                            // =0: PHY linkA+B if bfLanes=3
-                            // [3] Transmitter Sel
-                            // =0: UNIPHY or PCIEPHY
-                            // =1: LVTMA
-  UCHAR ucAction;           // =0: turn off encoder
-                            // =1: turn on encoder
-  UCHAR ucEncoderMode;
-                            // =0: DP   encoder
-                            // =1: LVDS encoder
-                            // =2: DVI  encoder
-                            // =3: HDMI encoder
-                            // =4: SDVO encoder
-  UCHAR ucLaneNum;          // how many lanes to enable
-  UCHAR ucReserved[2];
-}DIG_ENCODER_CONTROL_PARAMETERS;
+	USHORT usPixelClock;      // in 10KHz; for bios convenient
+	UCHAR  ucConfig;
+	// [2] Link Select:
+	// =0: PHY linkA if bfLane<3
+	// =1: PHY linkB if bfLanes<3
+	// =0: PHY linkA+B if bfLanes=3
+	// [3] Transmitter Sel
+	// =0: UNIPHY or PCIEPHY
+	// =1: LVTMA
+	UCHAR ucAction;           // =0: turn off encoder
+	// =1: turn on encoder
+	UCHAR ucEncoderMode;
+	// =0: DP   encoder
+	// =1: LVDS encoder
+	// =2: DVI  encoder
+	// =3: HDMI encoder
+	// =4: SDVO encoder
+	UCHAR ucLaneNum;          // how many lanes to enable
+	UCHAR ucReserved[2];
+} DIG_ENCODER_CONTROL_PARAMETERS;
 #define DIG_ENCODER_CONTROL_PS_ALLOCATION             DIG_ENCODER_CONTROL_PARAMETERS
 #define EXTERNAL_ENCODER_CONTROL_PARAMETER            DIG_ENCODER_CONTROL_PARAMETERS
 
@@ -879,36 +884,36 @@ typedef struct _DIG_ENCODER_CONTROL_PARAMETERS
 typedef struct _ATOM_DIG_ENCODER_CONFIG_V2
 {
 #if ATOM_BIG_ENDIAN
-    UCHAR ucReserved1:2;
-    UCHAR ucTransmitterSel:2;     // =0: UniphyAB, =1: UniphyCD  =2: UniphyEF
-    UCHAR ucLinkSel:1;            // =0: linkA/C/E =1: linkB/D/F
-    UCHAR ucReserved:1;
-    UCHAR ucDPLinkRate:1;         // =0: 1.62Ghz, =1: 2.7Ghz
+	UCHAR ucReserved1: 2;
+	UCHAR ucTransmitterSel: 2;    // =0: UniphyAB, =1: UniphyCD  =2: UniphyEF
+	UCHAR ucLinkSel: 1;           // =0: linkA/C/E =1: linkB/D/F
+	UCHAR ucReserved: 1;
+	UCHAR ucDPLinkRate: 1;        // =0: 1.62Ghz, =1: 2.7Ghz
 #else
-    UCHAR ucDPLinkRate:1;         // =0: 1.62Ghz, =1: 2.7Ghz
-    UCHAR ucReserved:1;
-    UCHAR ucLinkSel:1;            // =0: linkA/C/E =1: linkB/D/F
-    UCHAR ucTransmitterSel:2;     // =0: UniphyAB, =1: UniphyCD  =2: UniphyEF
-    UCHAR ucReserved1:2;
+	UCHAR ucDPLinkRate: 1;        // =0: 1.62Ghz, =1: 2.7Ghz
+	UCHAR ucReserved: 1;
+	UCHAR ucLinkSel: 1;           // =0: linkA/C/E =1: linkB/D/F
+	UCHAR ucTransmitterSel: 2;    // =0: UniphyAB, =1: UniphyCD  =2: UniphyEF
+	UCHAR ucReserved1: 2;
 #endif
-}ATOM_DIG_ENCODER_CONFIG_V2;
+} ATOM_DIG_ENCODER_CONFIG_V2;
 
 
 typedef struct _DIG_ENCODER_CONTROL_PARAMETERS_V2
 {
-  USHORT usPixelClock;      // in 10KHz; for bios convenient
-  ATOM_DIG_ENCODER_CONFIG_V2 acConfig;
-  UCHAR ucAction;
-  UCHAR ucEncoderMode;
-                            // =0: DP   encoder
-                            // =1: LVDS encoder
-                            // =2: DVI  encoder
-                            // =3: HDMI encoder
-                            // =4: SDVO encoder
-  UCHAR ucLaneNum;          // how many lanes to enable
-  UCHAR ucStatus;           // = DP_LINK_TRAINING_COMPLETE or DP_LINK_TRAINING_INCOMPLETE, only used by VBIOS with command ATOM_ENCODER_CMD_QUERY_DP_LINK_TRAINING_STATUS
-  UCHAR ucReserved;
-}DIG_ENCODER_CONTROL_PARAMETERS_V2;
+	USHORT usPixelClock;      // in 10KHz; for bios convenient
+	ATOM_DIG_ENCODER_CONFIG_V2 acConfig;
+	UCHAR ucAction;
+	UCHAR ucEncoderMode;
+	// =0: DP   encoder
+	// =1: LVDS encoder
+	// =2: DVI  encoder
+	// =3: HDMI encoder
+	// =4: SDVO encoder
+	UCHAR ucLaneNum;          // how many lanes to enable
+	UCHAR ucStatus;           // = DP_LINK_TRAINING_COMPLETE or DP_LINK_TRAINING_INCOMPLETE, only used by VBIOS with command ATOM_ENCODER_CMD_QUERY_DP_LINK_TRAINING_STATUS
+	UCHAR ucReserved;
+} DIG_ENCODER_CONTROL_PARAMETERS_V2;
 
 //ucConfig
 #define ATOM_ENCODER_CONFIG_V2_DPLINKRATE_MASK            0x01
@@ -952,17 +957,17 @@ typedef struct _DIG_ENCODER_CONTROL_PARAMETERS_V2
 typedef struct _ATOM_DIG_ENCODER_CONFIG_V3
 {
 #if ATOM_BIG_ENDIAN
-    UCHAR ucReserved1:1;
-    UCHAR ucDigSel:3;             // =0/1/2/3/4/5: DIG0/1/2/3/4/5 (In register spec also referred as DIGA/B/C/D/E/F)
-    UCHAR ucReserved:3;
-    UCHAR ucDPLinkRate:1;         // =0: 1.62Ghz, =1: 2.7Ghz
+	UCHAR ucReserved1: 1;
+	UCHAR ucDigSel: 3;            // =0/1/2/3/4/5: DIG0/1/2/3/4/5 (In register spec also referred as DIGA/B/C/D/E/F)
+	UCHAR ucReserved: 3;
+	UCHAR ucDPLinkRate: 1;        // =0: 1.62Ghz, =1: 2.7Ghz
 #else
-    UCHAR ucDPLinkRate:1;         // =0: 1.62Ghz, =1: 2.7Ghz
-    UCHAR ucReserved:3;
-    UCHAR ucDigSel:3;             // =0/1/2/3/4/5: DIG0/1/2/3/4/5 (In register spec also referred as DIGA/B/C/D/E/F)
-    UCHAR ucReserved1:1;
+	UCHAR ucDPLinkRate: 1;        // =0: 1.62Ghz, =1: 2.7Ghz
+	UCHAR ucReserved: 3;
+	UCHAR ucDigSel: 3;            // =0/1/2/3/4/5: DIG0/1/2/3/4/5 (In register spec also referred as DIGA/B/C/D/E/F)
+	UCHAR ucReserved1: 1;
 #endif
-}ATOM_DIG_ENCODER_CONFIG_V3;
+} ATOM_DIG_ENCODER_CONFIG_V3;
 
 #define ATOM_ENCODER_CONFIG_V3_DPLINKRATE_MASK            0x03
 #define ATOM_ENCODER_CONFIG_V3_DPLINKRATE_1_62GHZ        0x00
@@ -977,26 +982,27 @@ typedef struct _ATOM_DIG_ENCODER_CONFIG_V3
 
 typedef struct _DIG_ENCODER_CONTROL_PARAMETERS_V3
 {
-  USHORT usPixelClock;      // in 10KHz; for bios convenient
-  ATOM_DIG_ENCODER_CONFIG_V3 acConfig;
-  UCHAR ucAction;
-  union{
-    UCHAR ucEncoderMode;
-                            // =0: DP   encoder
-                            // =1: LVDS encoder
-                            // =2: DVI  encoder
-                            // =3: HDMI encoder
-                            // =4: SDVO encoder
-                            // =5: DP audio
-    UCHAR ucPanelMode;        // only valid when ucAction == ATOM_ENCODER_CMD_SETUP_PANEL_MODE
-                            // =0:     external DP
-                            // =0x1:   internal DP2
-                            // =0x11:  internal DP1 for NutMeg/Travis DP translator
-  };
-  UCHAR ucLaneNum;          // how many lanes to enable
-  UCHAR ucBitPerColor;      // only valid for DP mode when ucAction = ATOM_ENCODER_CMD_SETUP
-  UCHAR ucReserved;
-}DIG_ENCODER_CONTROL_PARAMETERS_V3;
+	USHORT usPixelClock;      // in 10KHz; for bios convenient
+	ATOM_DIG_ENCODER_CONFIG_V3 acConfig;
+	UCHAR ucAction;
+	union
+	{
+		UCHAR ucEncoderMode;
+		// =0: DP   encoder
+		// =1: LVDS encoder
+		// =2: DVI  encoder
+		// =3: HDMI encoder
+		// =4: SDVO encoder
+		// =5: DP audio
+		UCHAR ucPanelMode;        // only valid when ucAction == ATOM_ENCODER_CMD_SETUP_PANEL_MODE
+		// =0:     external DP
+		// =0x1:   internal DP2
+		// =0x11:  internal DP1 for NutMeg/Travis DP translator
+	};
+	UCHAR ucLaneNum;          // how many lanes to enable
+	UCHAR ucBitPerColor;      // only valid for DP mode when ucAction = ATOM_ENCODER_CMD_SETUP
+	UCHAR ucReserved;
+} DIG_ENCODER_CONTROL_PARAMETERS_V3;
 
 //ucTableFormatRevision=1
 //ucTableContentRevision=4
@@ -1005,17 +1011,17 @@ typedef struct _DIG_ENCODER_CONTROL_PARAMETERS_V3
 typedef struct _ATOM_DIG_ENCODER_CONFIG_V4
 {
 #if ATOM_BIG_ENDIAN
-    UCHAR ucReserved1:1;
-    UCHAR ucDigSel:3;             // =0/1/2/3/4/5: DIG0/1/2/3/4/5 (In register spec also referred as DIGA/B/C/D/E/F)
-    UCHAR ucReserved:2;
-    UCHAR ucDPLinkRate:2;         // =0: 1.62Ghz, =1: 2.7Ghz, 2=5.4Ghz    <= Changed comparing to previous version
+	UCHAR ucReserved1: 1;
+	UCHAR ucDigSel: 3;            // =0/1/2/3/4/5: DIG0/1/2/3/4/5 (In register spec also referred as DIGA/B/C/D/E/F)
+	UCHAR ucReserved: 2;
+	UCHAR ucDPLinkRate: 2;        // =0: 1.62Ghz, =1: 2.7Ghz, 2=5.4Ghz    <= Changed comparing to previous version
 #else
-    UCHAR ucDPLinkRate:2;         // =0: 1.62Ghz, =1: 2.7Ghz, 2=5.4Ghz    <= Changed comparing to previous version
-    UCHAR ucReserved:2;
-    UCHAR ucDigSel:3;             // =0/1/2/3/4/5: DIG0/1/2/3/4/5 (In register spec also referred as DIGA/B/C/D/E/F)
-    UCHAR ucReserved1:1;
+	UCHAR ucDPLinkRate: 2;        // =0: 1.62Ghz, =1: 2.7Ghz, 2=5.4Ghz    <= Changed comparing to previous version
+	UCHAR ucReserved: 2;
+	UCHAR ucDigSel: 3;            // =0/1/2/3/4/5: DIG0/1/2/3/4/5 (In register spec also referred as DIGA/B/C/D/E/F)
+	UCHAR ucReserved1: 1;
 #endif
-}ATOM_DIG_ENCODER_CONFIG_V4;
+} ATOM_DIG_ENCODER_CONFIG_V4;
 
 #define ATOM_ENCODER_CONFIG_V4_DPLINKRATE_MASK            0x03
 #define ATOM_ENCODER_CONFIG_V4_DPLINKRATE_1_62GHZ        0x00
@@ -1033,29 +1039,31 @@ typedef struct _ATOM_DIG_ENCODER_CONFIG_V4
 
 typedef struct _DIG_ENCODER_CONTROL_PARAMETERS_V4
 {
-  USHORT usPixelClock;      // in 10KHz; for bios convenient
-  union{
-  ATOM_DIG_ENCODER_CONFIG_V4 acConfig;
-  UCHAR ucConfig;
-  };
-  UCHAR ucAction;
-  union{
-    UCHAR ucEncoderMode;
-                            // =0: DP   encoder
-                            // =1: LVDS encoder
-                            // =2: DVI  encoder
-                            // =3: HDMI encoder
-                            // =4: SDVO encoder
-                            // =5: DP audio
-    UCHAR ucPanelMode;      // only valid when ucAction == ATOM_ENCODER_CMD_SETUP_PANEL_MODE
-                            // =0:     external DP
-                            // =0x1:   internal DP2
-                            // =0x11:  internal DP1 for NutMeg/Travis DP translator
-  };
-  UCHAR ucLaneNum;          // how many lanes to enable
-  UCHAR ucBitPerColor;      // only valid for DP mode when ucAction = ATOM_ENCODER_CMD_SETUP
-  UCHAR ucHPD_ID;           // HPD ID (1-6). =0 means to skip HDP programming. New comparing to previous version
-}DIG_ENCODER_CONTROL_PARAMETERS_V4;
+	USHORT usPixelClock;      // in 10KHz; for bios convenient
+	union
+	{
+		ATOM_DIG_ENCODER_CONFIG_V4 acConfig;
+		UCHAR ucConfig;
+	};
+	UCHAR ucAction;
+	union
+	{
+		UCHAR ucEncoderMode;
+		// =0: DP   encoder
+		// =1: LVDS encoder
+		// =2: DVI  encoder
+		// =3: HDMI encoder
+		// =4: SDVO encoder
+		// =5: DP audio
+		UCHAR ucPanelMode;      // only valid when ucAction == ATOM_ENCODER_CMD_SETUP_PANEL_MODE
+		// =0:     external DP
+		// =0x1:   internal DP2
+		// =0x11:  internal DP1 for NutMeg/Travis DP translator
+	};
+	UCHAR ucLaneNum;          // how many lanes to enable
+	UCHAR ucBitPerColor;      // only valid for DP mode when ucAction = ATOM_ENCODER_CMD_SETUP
+	UCHAR ucHPD_ID;           // HPD ID (1-6). =0 means to skip HDP programming. New comparing to previous version
+} DIG_ENCODER_CONTROL_PARAMETERS_V4;
 
 // define ucBitPerColor:
 #define PANEL_BPC_UNDEFINE                               0x00
@@ -1073,46 +1081,46 @@ typedef struct _DIG_ENCODER_CONTROL_PARAMETERS_V4
 
 typedef struct _ENCODER_STREAM_SETUP_PARAMETERS_V5
 {
-  UCHAR ucDigId;           // 0~6 map to DIG0~DIG6
-  UCHAR ucAction;          // =  ATOM_ENOCODER_CMD_STREAM_SETUP
-  UCHAR ucDigMode;         // ATOM_ENCODER_MODE_DP/ATOM_ENCODER_MODE_DVI/ATOM_ENCODER_MODE_HDMI
-  UCHAR ucLaneNum;         // Lane number
-  ULONG ulPixelClock;      // Pixel Clock in 10Khz
-  UCHAR ucBitPerColor;
-  UCHAR ucLinkRateIn270Mhz;//= DP link rate/270Mhz, =6: 1.62G  = 10: 2.7G, =20: 5.4Ghz, =30: 8.1Ghz etc
-  UCHAR ucReserved[2];
-}ENCODER_STREAM_SETUP_PARAMETERS_V5;
+	UCHAR ucDigId;           // 0~6 map to DIG0~DIG6
+	UCHAR ucAction;          // =  ATOM_ENOCODER_CMD_STREAM_SETUP
+	UCHAR ucDigMode;         // ATOM_ENCODER_MODE_DP/ATOM_ENCODER_MODE_DVI/ATOM_ENCODER_MODE_HDMI
+	UCHAR ucLaneNum;         // Lane number
+	ULONG ulPixelClock;      // Pixel Clock in 10Khz
+	UCHAR ucBitPerColor;
+	UCHAR ucLinkRateIn270Mhz;//= DP link rate/270Mhz, =6: 1.62G  = 10: 2.7G, =20: 5.4Ghz, =30: 8.1Ghz etc
+	UCHAR ucReserved[2];
+} ENCODER_STREAM_SETUP_PARAMETERS_V5;
 
 typedef struct _ENCODER_LINK_SETUP_PARAMETERS_V5
 {
-  UCHAR ucDigId;           // 0~6 map to DIG0~DIG6
-  UCHAR ucAction;          // =  ATOM_ENOCODER_CMD_LINK_SETUP
-  UCHAR ucDigMode;         // ATOM_ENCODER_MODE_DP/ATOM_ENCODER_MODE_DVI/ATOM_ENCODER_MODE_HDMI
-  UCHAR ucLaneNum;         // Lane number
-  ULONG ulSymClock;        // Symbol Clock in 10Khz
-  UCHAR ucHPDSel;
-  UCHAR ucDigEncoderSel;   // DIG stream( front-end ) selection, bit0 means DIG0 FE is enable,
-  UCHAR ucReserved[2];
-}ENCODER_LINK_SETUP_PARAMETERS_V5;
+	UCHAR ucDigId;           // 0~6 map to DIG0~DIG6
+	UCHAR ucAction;          // =  ATOM_ENOCODER_CMD_LINK_SETUP
+	UCHAR ucDigMode;         // ATOM_ENCODER_MODE_DP/ATOM_ENCODER_MODE_DVI/ATOM_ENCODER_MODE_HDMI
+	UCHAR ucLaneNum;         // Lane number
+	ULONG ulSymClock;        // Symbol Clock in 10Khz
+	UCHAR ucHPDSel;
+	UCHAR ucDigEncoderSel;   // DIG stream( front-end ) selection, bit0 means DIG0 FE is enable,
+	UCHAR ucReserved[2];
+} ENCODER_LINK_SETUP_PARAMETERS_V5;
 
 typedef struct _DP_PANEL_MODE_SETUP_PARAMETERS_V5
 {
-  UCHAR ucDigId;           // 0~6 map to DIG0~DIG6
-  UCHAR ucAction;          // = ATOM_ENCODER_CMD_DPLINK_SETUP
-  UCHAR ucPanelMode;       // =0:     external DP
-                           // =0x1:   internal DP2
-                           // =0x11:  internal DP1 NutMeg/Travis DP Translator
-  UCHAR ucReserved;
-  ULONG ulReserved[2];
-}DP_PANEL_MODE_SETUP_PARAMETERS_V5;
+	UCHAR ucDigId;           // 0~6 map to DIG0~DIG6
+	UCHAR ucAction;          // = ATOM_ENCODER_CMD_DPLINK_SETUP
+	UCHAR ucPanelMode;       // =0:     external DP
+	// =0x1:   internal DP2
+	// =0x11:  internal DP1 NutMeg/Travis DP Translator
+	UCHAR ucReserved;
+	ULONG ulReserved[2];
+} DP_PANEL_MODE_SETUP_PARAMETERS_V5;
 
 typedef struct _ENCODER_GENERIC_CMD_PARAMETERS_V5
 {
-  UCHAR ucDigId;           // 0~6 map to DIG0~DIG6
-  UCHAR ucAction;          // = rest of generic encoder command which does not carry any parameters
-  UCHAR ucReserved[2];
-  ULONG ulReserved[2];
-}ENCODER_GENERIC_CMD_PARAMETERS_V5;
+	UCHAR ucDigId;           // 0~6 map to DIG0~DIG6
+	UCHAR ucAction;          // = rest of generic encoder command which does not carry any parameters
+	UCHAR ucReserved[2];
+	ULONG ulReserved[2];
+} ENCODER_GENERIC_CMD_PARAMETERS_V5;
 
 //ucDigId
 #define ATOM_ENCODER_CONFIG_V5_DIG0_ENCODER                 0x00
@@ -1126,11 +1134,11 @@ typedef struct _ENCODER_GENERIC_CMD_PARAMETERS_V5
 
 typedef union _DIG_ENCODER_CONTROL_PARAMETERS_V5
 {
-  ENCODER_GENERIC_CMD_PARAMETERS_V5  asCmdParam;
-  ENCODER_STREAM_SETUP_PARAMETERS_V5 asStreamParam;
-  ENCODER_LINK_SETUP_PARAMETERS_V5  asLinkParam;
-  DP_PANEL_MODE_SETUP_PARAMETERS_V5 asDPPanelModeParam;
-}DIG_ENCODER_CONTROL_PARAMETERS_V5;
+	ENCODER_GENERIC_CMD_PARAMETERS_V5  asCmdParam;
+	ENCODER_STREAM_SETUP_PARAMETERS_V5 asStreamParam;
+	ENCODER_LINK_SETUP_PARAMETERS_V5  asLinkParam;
+	DP_PANEL_MODE_SETUP_PARAMETERS_V5 asDPPanelModeParam;
+} DIG_ENCODER_CONTROL_PARAMETERS_V5;
 
 
 /****************************************************************************/
@@ -1140,36 +1148,36 @@ typedef union _DIG_ENCODER_CONTROL_PARAMETERS_V5
 /****************************************************************************/
 typedef struct _ATOM_DP_VS_MODE
 {
-  UCHAR ucLaneSel;
-  UCHAR ucLaneSet;
-}ATOM_DP_VS_MODE;
+	UCHAR ucLaneSel;
+	UCHAR ucLaneSet;
+} ATOM_DP_VS_MODE;
 
 typedef struct _DIG_TRANSMITTER_CONTROL_PARAMETERS
 {
-   union
-   {
-  USHORT usPixelClock;      // in 10KHz; for bios convenient
-   USHORT usInitInfo;         // when init uniphy,lower 8bit is used for connector type defined in objectid.h
-  ATOM_DP_VS_MODE asMode; // DP Voltage swing mode
-   };
-  UCHAR ucConfig;
-                                       // [0]=0: 4 lane Link,
-                                       //    =1: 8 lane Link ( Dual Links TMDS )
-                          // [1]=0: InCoherent mode
-                                       //    =1: Coherent Mode
-                                       // [2] Link Select:
-                                      // =0: PHY linkA   if bfLane<3
-                                       // =1: PHY linkB   if bfLanes<3
-                                      // =0: PHY linkA+B if bfLanes=3
-                          // [5:4]PCIE lane Sel
-                          // =0: lane 0~3 or 0~7
-                          // =1: lane 4~7
-                          // =2: lane 8~11 or 8~15
-                          // =3: lane 12~15
-   UCHAR ucAction;              // =0: turn off encoder
-                           // =1: turn on encoder
-  UCHAR ucReserved[4];
-}DIG_TRANSMITTER_CONTROL_PARAMETERS;
+	union
+	{
+		USHORT usPixelClock;      // in 10KHz; for bios convenient
+		USHORT usInitInfo;         // when init uniphy,lower 8bit is used for connector type defined in objectid.h
+		ATOM_DP_VS_MODE asMode; // DP Voltage swing mode
+	};
+	UCHAR ucConfig;
+	// [0]=0: 4 lane Link,
+	//    =1: 8 lane Link ( Dual Links TMDS )
+	// [1]=0: InCoherent mode
+	//    =1: Coherent Mode
+	// [2] Link Select:
+	// =0: PHY linkA   if bfLane<3
+	// =1: PHY linkB   if bfLanes<3
+	// =0: PHY linkA+B if bfLanes=3
+	// [5:4]PCIE lane Sel
+	// =0: lane 0~3 or 0~7
+	// =1: lane 4~7
+	// =2: lane 8~11 or 8~15
+	// =3: lane 12~15
+	UCHAR ucAction;              // =0: turn off encoder
+	// =1: turn on encoder
+	UCHAR ucReserved[4];
+} DIG_TRANSMITTER_CONTROL_PARAMETERS;
 
 #define DIG_TRANSMITTER_CONTROL_PS_ALLOCATION      DIG_TRANSMITTER_CONTROL_PARAMETERS
 
@@ -1221,30 +1229,34 @@ typedef struct _DIG_TRANSMITTER_CONTROL_PARAMETERS
 typedef struct _ATOM_DIG_TRANSMITTER_CONFIG_V2
 {
 #if ATOM_BIG_ENDIAN
-  UCHAR ucTransmitterSel:2;         //bit7:6: =0 Dig Transmitter 1 ( Uniphy AB )
-                                    //        =1 Dig Transmitter 2 ( Uniphy CD )
-                                    //        =2 Dig Transmitter 3 ( Uniphy EF )
-  UCHAR ucReserved:1;
-  UCHAR fDPConnector:1;             //bit4=0: DP connector  =1: None DP connector
-  UCHAR ucEncoderSel:1;             //bit3=0: Data/Clk path source from DIGA( DIG inst0 ). =1: Data/clk path source from DIGB ( DIG inst1 )
-  UCHAR ucLinkSel:1;                //bit2=0: Uniphy LINKA or C or E when fDualLinkConnector=0. when fDualLinkConnector=1, it means master link of dual link is A or C or E
-                                    //    =1: Uniphy LINKB or D or F when fDualLinkConnector=0. when fDualLinkConnector=1, it means master link of dual link is B or D or F
+	UCHAR ucTransmitterSel: 2;        //bit7:6: =0 Dig Transmitter 1 ( Uniphy AB )
+	//        =1 Dig Transmitter 2 ( Uniphy CD )
+	//        =2 Dig Transmitter 3 ( Uniphy EF )
+	UCHAR ucReserved: 1;
+	UCHAR fDPConnector: 1;            //bit4=0: DP connector  =1: None DP connector
+UCHAR ucEncoderSel:
+	1;            //bit3=0: Data/Clk path source from DIGA( DIG inst0 ). =1: Data/clk path source from DIGB ( DIG inst1 )
+UCHAR ucLinkSel:
+	1;               //bit2=0: Uniphy LINKA or C or E when fDualLinkConnector=0. when fDualLinkConnector=1, it means master link of dual link is A or C or E
+	//    =1: Uniphy LINKB or D or F when fDualLinkConnector=0. when fDualLinkConnector=1, it means master link of dual link is B or D or F
 
-  UCHAR fCoherentMode:1;            //bit1=1: Coherent Mode ( for DVI/HDMI mode )
-  UCHAR fDualLinkConnector:1;       //bit0=1: Dual Link DVI connector
+	UCHAR fCoherentMode: 1;           //bit1=1: Coherent Mode ( for DVI/HDMI mode )
+	UCHAR fDualLinkConnector: 1;      //bit0=1: Dual Link DVI connector
 #else
-  UCHAR fDualLinkConnector:1;       //bit0=1: Dual Link DVI connector
-  UCHAR fCoherentMode:1;            //bit1=1: Coherent Mode ( for DVI/HDMI mode )
-  UCHAR ucLinkSel:1;                //bit2=0: Uniphy LINKA or C or E when fDualLinkConnector=0. when fDualLinkConnector=1, it means master link of dual link is A or C or E
-                                    //    =1: Uniphy LINKB or D or F when fDualLinkConnector=0. when fDualLinkConnector=1, it means master link of dual link is B or D or F
-  UCHAR ucEncoderSel:1;             //bit3=0: Data/Clk path source from DIGA( DIG inst0 ). =1: Data/clk path source from DIGB ( DIG inst1 )
-  UCHAR fDPConnector:1;             //bit4=0: DP connector  =1: None DP connector
-  UCHAR ucReserved:1;
-  UCHAR ucTransmitterSel:2;         //bit7:6: =0 Dig Transmitter 1 ( Uniphy AB )
-                                    //        =1 Dig Transmitter 2 ( Uniphy CD )
-                                    //        =2 Dig Transmitter 3 ( Uniphy EF )
+	UCHAR fDualLinkConnector: 1;      //bit0=1: Dual Link DVI connector
+	UCHAR fCoherentMode: 1;           //bit1=1: Coherent Mode ( for DVI/HDMI mode )
+UCHAR ucLinkSel:
+	1;               //bit2=0: Uniphy LINKA or C or E when fDualLinkConnector=0. when fDualLinkConnector=1, it means master link of dual link is A or C or E
+	//    =1: Uniphy LINKB or D or F when fDualLinkConnector=0. when fDualLinkConnector=1, it means master link of dual link is B or D or F
+UCHAR ucEncoderSel:
+	1;            //bit3=0: Data/Clk path source from DIGA( DIG inst0 ). =1: Data/clk path source from DIGB ( DIG inst1 )
+	UCHAR fDPConnector: 1;            //bit4=0: DP connector  =1: None DP connector
+	UCHAR ucReserved: 1;
+	UCHAR ucTransmitterSel: 2;        //bit7:6: =0 Dig Transmitter 1 ( Uniphy AB )
+	//        =1 Dig Transmitter 2 ( Uniphy CD )
+	//        =2 Dig Transmitter 3 ( Uniphy EF )
 #endif
-}ATOM_DIG_TRANSMITTER_CONFIG_V2;
+} ATOM_DIG_TRANSMITTER_CONFIG_V2;
 
 //ucConfig
 //Bit0
@@ -1274,56 +1286,58 @@ typedef struct _ATOM_DIG_TRANSMITTER_CONFIG_V2
 
 typedef struct _DIG_TRANSMITTER_CONTROL_PARAMETERS_V2
 {
-   union
-   {
-  USHORT usPixelClock;      // in 10KHz; for bios convenient
-   USHORT usInitInfo;         // when init uniphy,lower 8bit is used for connector type defined in objectid.h
-  ATOM_DP_VS_MODE asMode; // DP Voltage swing mode
-   };
-  ATOM_DIG_TRANSMITTER_CONFIG_V2 acConfig;
-   UCHAR ucAction;              // define as ATOM_TRANSMITER_ACTION_XXX
-  UCHAR ucReserved[4];
-}DIG_TRANSMITTER_CONTROL_PARAMETERS_V2;
+	union
+	{
+		USHORT usPixelClock;      // in 10KHz; for bios convenient
+		USHORT usInitInfo;         // when init uniphy,lower 8bit is used for connector type defined in objectid.h
+		ATOM_DP_VS_MODE asMode; // DP Voltage swing mode
+	};
+	ATOM_DIG_TRANSMITTER_CONFIG_V2 acConfig;
+	UCHAR ucAction;              // define as ATOM_TRANSMITER_ACTION_XXX
+	UCHAR ucReserved[4];
+} DIG_TRANSMITTER_CONTROL_PARAMETERS_V2;
 
 typedef struct _ATOM_DIG_TRANSMITTER_CONFIG_V3
 {
 #if ATOM_BIG_ENDIAN
-  UCHAR ucTransmitterSel:2;         //bit7:6: =0 Dig Transmitter 1 ( Uniphy AB )
-                                    //        =1 Dig Transmitter 2 ( Uniphy CD )
-                                    //        =2 Dig Transmitter 3 ( Uniphy EF )
-  UCHAR ucRefClkSource:2;           //bit5:4: PPLL1 =0, PPLL2=1, EXT_CLK=2
-  UCHAR ucEncoderSel:1;             //bit3=0: Data/Clk path source from DIGA/C/E. =1: Data/clk path source from DIGB/D/F
-  UCHAR ucLinkSel:1;                //bit2=0: Uniphy LINKA or C or E when fDualLinkConnector=0. when fDualLinkConnector=1, it means master link of dual link is A or C or E
-                                    //    =1: Uniphy LINKB or D or F when fDualLinkConnector=0. when fDualLinkConnector=1, it means master link of dual link is B or D or F
-  UCHAR fCoherentMode:1;            //bit1=1: Coherent Mode ( for DVI/HDMI mode )
-  UCHAR fDualLinkConnector:1;       //bit0=1: Dual Link DVI connector
+	UCHAR ucTransmitterSel: 2;        //bit7:6: =0 Dig Transmitter 1 ( Uniphy AB )
+	//        =1 Dig Transmitter 2 ( Uniphy CD )
+	//        =2 Dig Transmitter 3 ( Uniphy EF )
+	UCHAR ucRefClkSource: 2;          //bit5:4: PPLL1 =0, PPLL2=1, EXT_CLK=2
+	UCHAR ucEncoderSel: 1;            //bit3=0: Data/Clk path source from DIGA/C/E. =1: Data/clk path source from DIGB/D/F
+UCHAR ucLinkSel:
+	1;               //bit2=0: Uniphy LINKA or C or E when fDualLinkConnector=0. when fDualLinkConnector=1, it means master link of dual link is A or C or E
+	//    =1: Uniphy LINKB or D or F when fDualLinkConnector=0. when fDualLinkConnector=1, it means master link of dual link is B or D or F
+	UCHAR fCoherentMode: 1;           //bit1=1: Coherent Mode ( for DVI/HDMI mode )
+	UCHAR fDualLinkConnector: 1;      //bit0=1: Dual Link DVI connector
 #else
-  UCHAR fDualLinkConnector:1;       //bit0=1: Dual Link DVI connector
-  UCHAR fCoherentMode:1;            //bit1=1: Coherent Mode ( for DVI/HDMI mode )
-  UCHAR ucLinkSel:1;                //bit2=0: Uniphy LINKA or C or E when fDualLinkConnector=0. when fDualLinkConnector=1, it means master link of dual link is A or C or E
-                                    //    =1: Uniphy LINKB or D or F when fDualLinkConnector=0. when fDualLinkConnector=1, it means master link of dual link is B or D or F
-  UCHAR ucEncoderSel:1;             //bit3=0: Data/Clk path source from DIGA/C/E. =1: Data/clk path source from DIGB/D/F
-  UCHAR ucRefClkSource:2;           //bit5:4: PPLL1 =0, PPLL2=1, EXT_CLK=2
-  UCHAR ucTransmitterSel:2;         //bit7:6: =0 Dig Transmitter 1 ( Uniphy AB )
-                                    //        =1 Dig Transmitter 2 ( Uniphy CD )
-                                    //        =2 Dig Transmitter 3 ( Uniphy EF )
+	UCHAR fDualLinkConnector: 1;      //bit0=1: Dual Link DVI connector
+	UCHAR fCoherentMode: 1;           //bit1=1: Coherent Mode ( for DVI/HDMI mode )
+UCHAR ucLinkSel:
+	1;               //bit2=0: Uniphy LINKA or C or E when fDualLinkConnector=0. when fDualLinkConnector=1, it means master link of dual link is A or C or E
+	//    =1: Uniphy LINKB or D or F when fDualLinkConnector=0. when fDualLinkConnector=1, it means master link of dual link is B or D or F
+	UCHAR ucEncoderSel: 1;            //bit3=0: Data/Clk path source from DIGA/C/E. =1: Data/clk path source from DIGB/D/F
+	UCHAR ucRefClkSource: 2;          //bit5:4: PPLL1 =0, PPLL2=1, EXT_CLK=2
+	UCHAR ucTransmitterSel: 2;        //bit7:6: =0 Dig Transmitter 1 ( Uniphy AB )
+	//        =1 Dig Transmitter 2 ( Uniphy CD )
+	//        =2 Dig Transmitter 3 ( Uniphy EF )
 #endif
-}ATOM_DIG_TRANSMITTER_CONFIG_V3;
+} ATOM_DIG_TRANSMITTER_CONFIG_V3;
 
 
 typedef struct _DIG_TRANSMITTER_CONTROL_PARAMETERS_V3
 {
-   union
-   {
-    USHORT usPixelClock;      // in 10KHz; for bios convenient
-     USHORT usInitInfo;         // when init uniphy,lower 8bit is used for connector type defined in objectid.h
-    ATOM_DP_VS_MODE asMode; // DP Voltage swing mode
-   };
-  ATOM_DIG_TRANSMITTER_CONFIG_V3 acConfig;
-   UCHAR ucAction;                // define as ATOM_TRANSMITER_ACTION_XXX
-  UCHAR ucLaneNum;
-  UCHAR ucReserved[3];
-}DIG_TRANSMITTER_CONTROL_PARAMETERS_V3;
+	union
+	{
+		USHORT usPixelClock;      // in 10KHz; for bios convenient
+		USHORT usInitInfo;         // when init uniphy,lower 8bit is used for connector type defined in objectid.h
+		ATOM_DP_VS_MODE asMode; // DP Voltage swing mode
+	};
+	ATOM_DIG_TRANSMITTER_CONFIG_V3 acConfig;
+	UCHAR ucAction;                // define as ATOM_TRANSMITER_ACTION_XXX
+	UCHAR ucLaneNum;
+	UCHAR ucReserved[3];
+} DIG_TRANSMITTER_CONTROL_PARAMETERS_V3;
 
 //ucConfig
 //Bit0
@@ -1363,66 +1377,69 @@ typedef struct _DIG_TRANSMITTER_CONTROL_PARAMETERS_V3
 /****************************************************************************/
 typedef struct _ATOM_DP_VS_MODE_V4
 {
-  UCHAR ucLaneSel;
- 	union
+	UCHAR ucLaneSel;
+	union
 	{
- 	  UCHAR ucLaneSet;
- 	  struct {
+		UCHAR ucLaneSet;
+		struct
+		{
 #if ATOM_BIG_ENDIAN
- 		  UCHAR ucPOST_CURSOR2:2;         //Bit[7:6] Post Cursor2 Level      <= New in V4
- 		  UCHAR ucPRE_EMPHASIS:3;         //Bit[5:3] Pre-emphasis Level
- 		  UCHAR ucVOLTAGE_SWING:3;        //Bit[2:0] Voltage Swing Level
+			UCHAR ucPOST_CURSOR2: 2;        //Bit[7:6] Post Cursor2 Level      <= New in V4
+			UCHAR ucPRE_EMPHASIS: 3;        //Bit[5:3] Pre-emphasis Level
+			UCHAR ucVOLTAGE_SWING: 3;       //Bit[2:0] Voltage Swing Level
 #else
- 		  UCHAR ucVOLTAGE_SWING:3;        //Bit[2:0] Voltage Swing Level
- 		  UCHAR ucPRE_EMPHASIS:3;         //Bit[5:3] Pre-emphasis Level
- 		  UCHAR ucPOST_CURSOR2:2;         //Bit[7:6] Post Cursor2 Level      <= New in V4
+			UCHAR ucVOLTAGE_SWING: 3;       //Bit[2:0] Voltage Swing Level
+			UCHAR ucPRE_EMPHASIS: 3;        //Bit[5:3] Pre-emphasis Level
+			UCHAR ucPOST_CURSOR2: 2;        //Bit[7:6] Post Cursor2 Level      <= New in V4
 #endif
 		};
 	};
-}ATOM_DP_VS_MODE_V4;
+} ATOM_DP_VS_MODE_V4;
 
 typedef struct _ATOM_DIG_TRANSMITTER_CONFIG_V4
 {
 #if ATOM_BIG_ENDIAN
-  UCHAR ucTransmitterSel:2;         //bit7:6: =0 Dig Transmitter 1 ( Uniphy AB )
-                                    //        =1 Dig Transmitter 2 ( Uniphy CD )
-                                    //        =2 Dig Transmitter 3 ( Uniphy EF )
-  UCHAR ucRefClkSource:2;           //bit5:4: PPLL1 =0, PPLL2=1, DCPLL=2, EXT_CLK=3   <= New
-  UCHAR ucEncoderSel:1;             //bit3=0: Data/Clk path source from DIGA/C/E. =1: Data/clk path source from DIGB/D/F
-  UCHAR ucLinkSel:1;                //bit2=0: Uniphy LINKA or C or E when fDualLinkConnector=0. when fDualLinkConnector=1, it means master link of dual link is A or C or E
-                                    //    =1: Uniphy LINKB or D or F when fDualLinkConnector=0. when fDualLinkConnector=1, it means master link of dual link is B or D or F
-  UCHAR fCoherentMode:1;            //bit1=1: Coherent Mode ( for DVI/HDMI mode )
-  UCHAR fDualLinkConnector:1;       //bit0=1: Dual Link DVI connector
+	UCHAR ucTransmitterSel: 2;        //bit7:6: =0 Dig Transmitter 1 ( Uniphy AB )
+	//        =1 Dig Transmitter 2 ( Uniphy CD )
+	//        =2 Dig Transmitter 3 ( Uniphy EF )
+	UCHAR ucRefClkSource: 2;          //bit5:4: PPLL1 =0, PPLL2=1, DCPLL=2, EXT_CLK=3   <= New
+	UCHAR ucEncoderSel: 1;            //bit3=0: Data/Clk path source from DIGA/C/E. =1: Data/clk path source from DIGB/D/F
+UCHAR ucLinkSel:
+	1;               //bit2=0: Uniphy LINKA or C or E when fDualLinkConnector=0. when fDualLinkConnector=1, it means master link of dual link is A or C or E
+	//    =1: Uniphy LINKB or D or F when fDualLinkConnector=0. when fDualLinkConnector=1, it means master link of dual link is B or D or F
+	UCHAR fCoherentMode: 1;           //bit1=1: Coherent Mode ( for DVI/HDMI mode )
+	UCHAR fDualLinkConnector: 1;      //bit0=1: Dual Link DVI connector
 #else
-  UCHAR fDualLinkConnector:1;       //bit0=1: Dual Link DVI connector
-  UCHAR fCoherentMode:1;            //bit1=1: Coherent Mode ( for DVI/HDMI mode )
-  UCHAR ucLinkSel:1;                //bit2=0: Uniphy LINKA or C or E when fDualLinkConnector=0. when fDualLinkConnector=1, it means master link of dual link is A or C or E
-                                    //    =1: Uniphy LINKB or D or F when fDualLinkConnector=0. when fDualLinkConnector=1, it means master link of dual link is B or D or F
-  UCHAR ucEncoderSel:1;             //bit3=0: Data/Clk path source from DIGA/C/E. =1: Data/clk path source from DIGB/D/F
-  UCHAR ucRefClkSource:2;           //bit5:4: PPLL1 =0, PPLL2=1, DCPLL=2, EXT_CLK=3   <= New
-  UCHAR ucTransmitterSel:2;         //bit7:6: =0 Dig Transmitter 1 ( Uniphy AB )
-                                    //        =1 Dig Transmitter 2 ( Uniphy CD )
-                                    //        =2 Dig Transmitter 3 ( Uniphy EF )
+	UCHAR fDualLinkConnector: 1;      //bit0=1: Dual Link DVI connector
+	UCHAR fCoherentMode: 1;           //bit1=1: Coherent Mode ( for DVI/HDMI mode )
+UCHAR ucLinkSel:
+	1;               //bit2=0: Uniphy LINKA or C or E when fDualLinkConnector=0. when fDualLinkConnector=1, it means master link of dual link is A or C or E
+	//    =1: Uniphy LINKB or D or F when fDualLinkConnector=0. when fDualLinkConnector=1, it means master link of dual link is B or D or F
+	UCHAR ucEncoderSel: 1;            //bit3=0: Data/Clk path source from DIGA/C/E. =1: Data/clk path source from DIGB/D/F
+	UCHAR ucRefClkSource: 2;          //bit5:4: PPLL1 =0, PPLL2=1, DCPLL=2, EXT_CLK=3   <= New
+	UCHAR ucTransmitterSel: 2;        //bit7:6: =0 Dig Transmitter 1 ( Uniphy AB )
+	//        =1 Dig Transmitter 2 ( Uniphy CD )
+	//        =2 Dig Transmitter 3 ( Uniphy EF )
 #endif
-}ATOM_DIG_TRANSMITTER_CONFIG_V4;
+} ATOM_DIG_TRANSMITTER_CONFIG_V4;
 
 typedef struct _DIG_TRANSMITTER_CONTROL_PARAMETERS_V4
 {
-  union
-  {
-    USHORT usPixelClock;      // in 10KHz; for bios convenient
-    USHORT usInitInfo;         // when init uniphy,lower 8bit is used for connector type defined in objectid.h
-    ATOM_DP_VS_MODE_V4 asMode; // DP Voltage swing mode     Redefined comparing to previous version
-  };
-  union
-  {
-  ATOM_DIG_TRANSMITTER_CONFIG_V4 acConfig;
-  UCHAR ucConfig;
-  };
-  UCHAR ucAction;                // define as ATOM_TRANSMITER_ACTION_XXX
-  UCHAR ucLaneNum;
-  UCHAR ucReserved[3];
-}DIG_TRANSMITTER_CONTROL_PARAMETERS_V4;
+	union
+	{
+		USHORT usPixelClock;      // in 10KHz; for bios convenient
+		USHORT usInitInfo;         // when init uniphy,lower 8bit is used for connector type defined in objectid.h
+		ATOM_DP_VS_MODE_V4 asMode; // DP Voltage swing mode     Redefined comparing to previous version
+	};
+	union
+	{
+		ATOM_DIG_TRANSMITTER_CONFIG_V4 acConfig;
+		UCHAR ucConfig;
+	};
+	UCHAR ucAction;                // define as ATOM_TRANSMITER_ACTION_XXX
+	UCHAR ucLaneNum;
+	UCHAR ucReserved[3];
+} DIG_TRANSMITTER_CONTROL_PARAMETERS_V4;
 
 //ucConfig
 //Bit0
@@ -1453,37 +1470,38 @@ typedef struct _DIG_TRANSMITTER_CONTROL_PARAMETERS_V4
 typedef struct _ATOM_DIG_TRANSMITTER_CONFIG_V5
 {
 #if ATOM_BIG_ENDIAN
-  UCHAR ucReservd1:1;
-  UCHAR ucHPDSel:3;
-  UCHAR ucPhyClkSrcId:2;
-  UCHAR ucCoherentMode:1;
-  UCHAR ucReserved:1;
+	UCHAR ucReservd1: 1;
+	UCHAR ucHPDSel: 3;
+	UCHAR ucPhyClkSrcId: 2;
+	UCHAR ucCoherentMode: 1;
+	UCHAR ucReserved: 1;
 #else
-  UCHAR ucReserved:1;
-  UCHAR ucCoherentMode:1;
-  UCHAR ucPhyClkSrcId:2;
-  UCHAR ucHPDSel:3;
-  UCHAR ucReservd1:1;
+	UCHAR ucReserved: 1;
+	UCHAR ucCoherentMode: 1;
+	UCHAR ucPhyClkSrcId: 2;
+	UCHAR ucHPDSel: 3;
+	UCHAR ucReservd1: 1;
 #endif
-}ATOM_DIG_TRANSMITTER_CONFIG_V5;
+} ATOM_DIG_TRANSMITTER_CONFIG_V5;
 
 typedef struct _DIG_TRANSMITTER_CONTROL_PARAMETERS_V1_5
 {
-  USHORT usSymClock;              // Encoder Clock in 10kHz,(DP mode)= linkclock/10, (TMDS/LVDS/HDMI)= pixel clock,  (HDMI deep color), =pixel clock * deep_color_ratio
-  UCHAR  ucPhyId;                   // 0=UNIPHYA, 1=UNIPHYB, 2=UNIPHYC, 3=UNIPHYD, 4= UNIPHYE 5=UNIPHYF
-  UCHAR  ucAction;                // define as ATOM_TRANSMITER_ACTION_xxx
-  UCHAR  ucLaneNum;                 // indicate lane number 1-8
-  UCHAR  ucConnObjId;               // Connector Object Id defined in ObjectId.h
-  UCHAR  ucDigMode;                 // indicate DIG mode
-  union{
-  ATOM_DIG_TRANSMITTER_CONFIG_V5 asConfig;
-  UCHAR ucConfig;
-  };
-  UCHAR  ucDigEncoderSel;           // indicate DIG front end encoder
-  UCHAR  ucDPLaneSet;
-  UCHAR  ucReserved;
-  UCHAR  ucReserved1;
-}DIG_TRANSMITTER_CONTROL_PARAMETERS_V1_5;
+	USHORT usSymClock;              // Encoder Clock in 10kHz,(DP mode)= linkclock/10, (TMDS/LVDS/HDMI)= pixel clock,  (HDMI deep color), =pixel clock * deep_color_ratio
+	UCHAR  ucPhyId;                   // 0=UNIPHYA, 1=UNIPHYB, 2=UNIPHYC, 3=UNIPHYD, 4= UNIPHYE 5=UNIPHYF
+	UCHAR  ucAction;                // define as ATOM_TRANSMITER_ACTION_xxx
+	UCHAR  ucLaneNum;                 // indicate lane number 1-8
+	UCHAR  ucConnObjId;               // Connector Object Id defined in ObjectId.h
+	UCHAR  ucDigMode;                 // indicate DIG mode
+	union
+	{
+		ATOM_DIG_TRANSMITTER_CONFIG_V5 asConfig;
+		UCHAR ucConfig;
+	};
+	UCHAR  ucDigEncoderSel;           // indicate DIG front end encoder
+	UCHAR  ucDPLaneSet;
+	UCHAR  ucReserved;
+	UCHAR  ucReserved1;
+} DIG_TRANSMITTER_CONTROL_PARAMETERS_V1_5;
 
 //ucPhyId
 #define ATOM_PHY_ID_UNIPHYA                                 0
@@ -1551,21 +1569,21 @@ typedef struct _DIG_TRANSMITTER_CONTROL_PARAMETERS_V1_5
 
 typedef struct _DIG_TRANSMITTER_CONTROL_PARAMETERS_V1_6
 {
-  UCHAR ucPhyId;           // 0=UNIPHYA, 1=UNIPHYB, 2=UNIPHYC, 3=UNIPHYD, 4= UNIPHYE 5=UNIPHYF
-  UCHAR ucAction;          // define as ATOM_TRANSMITER_ACTION_xxx
-  union
-  {
-    UCHAR ucDigMode;       // ATOM_ENCODER_MODE_DP/ATOM_ENCODER_MODE_DVI/ATOM_ENCODER_MODE_HDMI
-    UCHAR ucDPLaneSet;     // DP voltage swing and pre-emphasis value defined in DPCD DP_LANE_SET, "DP_LANE_SET__xDB_y_zV"
-  };
-  UCHAR ucLaneNum;         // Lane number
-  ULONG ulSymClock;        // Symbol Clock in 10Khz
-  UCHAR ucHPDSel;          // =1: HPD1, =2: HPD2, .... =6: HPD6, =0: HPD is not assigned
-  UCHAR ucDigEncoderSel;   // DIG stream( front-end ) selection, bit0 means DIG0 FE is enable,
-  UCHAR ucConnObjId;       // Connector Object Id defined in ObjectId.h
-  UCHAR ucReserved;
-  ULONG ulReserved;
-}DIG_TRANSMITTER_CONTROL_PARAMETERS_V1_6;
+	UCHAR ucPhyId;           // 0=UNIPHYA, 1=UNIPHYB, 2=UNIPHYC, 3=UNIPHYD, 4= UNIPHYE 5=UNIPHYF
+	UCHAR ucAction;          // define as ATOM_TRANSMITER_ACTION_xxx
+	union
+	{
+		UCHAR ucDigMode;       // ATOM_ENCODER_MODE_DP/ATOM_ENCODER_MODE_DVI/ATOM_ENCODER_MODE_HDMI
+		UCHAR ucDPLaneSet;     // DP voltage swing and pre-emphasis value defined in DPCD DP_LANE_SET, "DP_LANE_SET__xDB_y_zV"
+	};
+	UCHAR ucLaneNum;         // Lane number
+	ULONG ulSymClock;        // Symbol Clock in 10Khz
+	UCHAR ucHPDSel;          // =1: HPD1, =2: HPD2, .... =6: HPD6, =0: HPD is not assigned
+	UCHAR ucDigEncoderSel;   // DIG stream( front-end ) selection, bit0 means DIG0 FE is enable,
+	UCHAR ucConnObjId;       // Connector Object Id defined in ObjectId.h
+	UCHAR ucReserved;
+	ULONG ulReserved;
+} DIG_TRANSMITTER_CONTROL_PARAMETERS_V1_6;
 
 
 // ucDigEncoderSel
@@ -1602,17 +1620,18 @@ typedef struct _DIG_TRANSMITTER_CONTROL_PARAMETERS_V1_6
 
 typedef struct _EXTERNAL_ENCODER_CONTROL_PARAMETERS_V3
 {
-  union{
-  USHORT usPixelClock;      // pixel clock in 10Khz, valid when ucAction=SETUP/ENABLE_OUTPUT
-  USHORT usConnectorId;     // connector id, valid when ucAction = INIT
-  };
-  UCHAR  ucConfig;          // indicate which encoder, and DP link rate when ucAction = SETUP/ENABLE_OUTPUT
-  UCHAR  ucAction;          //
-  UCHAR  ucEncoderMode;     // encoder mode, only used when ucAction = SETUP/ENABLE_OUTPUT
-  UCHAR  ucLaneNum;         // lane number, only used when ucAction = SETUP/ENABLE_OUTPUT
-  UCHAR  ucBitPerColor;     // output bit per color, only valid when ucAction = SETUP/ENABLE_OUTPUT and ucEncodeMode= DP
-  UCHAR  ucReserved;
-}EXTERNAL_ENCODER_CONTROL_PARAMETERS_V3;
+	union
+	{
+		USHORT usPixelClock;      // pixel clock in 10Khz, valid when ucAction=SETUP/ENABLE_OUTPUT
+		USHORT usConnectorId;     // connector id, valid when ucAction = INIT
+	};
+	UCHAR  ucConfig;          // indicate which encoder, and DP link rate when ucAction = SETUP/ENABLE_OUTPUT
+	UCHAR  ucAction;          //
+	UCHAR  ucEncoderMode;     // encoder mode, only used when ucAction = SETUP/ENABLE_OUTPUT
+	UCHAR  ucLaneNum;         // lane number, only used when ucAction = SETUP/ENABLE_OUTPUT
+	UCHAR  ucBitPerColor;     // output bit per color, only valid when ucAction = SETUP/ENABLE_OUTPUT and ucEncodeMode= DP
+	UCHAR  ucReserved;
+} EXTERNAL_ENCODER_CONTROL_PARAMETERS_V3;
 
 // ucAction
 #define EXTERANL_ENCODER_ACTION_V3_DISABLE_OUTPUT         0x00
@@ -1636,9 +1655,9 @@ typedef struct _EXTERNAL_ENCODER_CONTROL_PARAMETERS_V3
 
 typedef struct _EXTERNAL_ENCODER_CONTROL_PS_ALLOCATION_V3
 {
-  EXTERNAL_ENCODER_CONTROL_PARAMETERS_V3 sExtEncoder;
-  ULONG ulReserved[2];
-}EXTERNAL_ENCODER_CONTROL_PS_ALLOCATION_V3;
+	EXTERNAL_ENCODER_CONTROL_PARAMETERS_V3 sExtEncoder;
+	ULONG ulReserved[2];
+} EXTERNAL_ENCODER_CONTROL_PS_ALLOCATION_V3;
 
 
 /****************************************************************************/
@@ -1649,13 +1668,13 @@ typedef struct _EXTERNAL_ENCODER_CONTROL_PS_ALLOCATION_V3
 /****************************************************************************/
 typedef struct _DISPLAY_DEVICE_OUTPUT_CONTROL_PARAMETERS
 {
-  UCHAR  ucAction;                    // Possible input:ATOM_ENABLE||ATOMDISABLE
-                                      // When the display is LCD, in addition to above:
-                                      // ATOM_LCD_BLOFF|| ATOM_LCD_BLON ||ATOM_LCD_BL_BRIGHTNESS_CONTROL||ATOM_LCD_SELFTEST_START||
-                                      // ATOM_LCD_SELFTEST_STOP
+	UCHAR  ucAction;                    // Possible input:ATOM_ENABLE||ATOMDISABLE
+	// When the display is LCD, in addition to above:
+	// ATOM_LCD_BLOFF|| ATOM_LCD_BLON ||ATOM_LCD_BL_BRIGHTNESS_CONTROL||ATOM_LCD_SELFTEST_START||
+	// ATOM_LCD_SELFTEST_STOP
 
-  UCHAR  aucPadding[3];               // padding to DWORD aligned
-}DISPLAY_DEVICE_OUTPUT_CONTROL_PARAMETERS;
+	UCHAR  aucPadding[3];               // padding to DWORD aligned
+} DISPLAY_DEVICE_OUTPUT_CONTROL_PARAMETERS;
 
 #define DISPLAY_DEVICE_OUTPUT_CONTROL_PS_ALLOCATION DISPLAY_DEVICE_OUTPUT_CONTROL_PARAMETERS
 
@@ -1688,16 +1707,16 @@ typedef struct _DISPLAY_DEVICE_OUTPUT_CONTROL_PARAMETERS
 
 typedef struct _LVTMA_OUTPUT_CONTROL_PARAMETERS_V2
 {
-  // Possible value of ucAction
-  // ATOM_TRANSMITTER_ACTION_LCD_BLON
-  // ATOM_TRANSMITTER_ACTION_LCD_BLOFF
-  // ATOM_TRANSMITTER_ACTION_BL_BRIGHTNESS_CONTROL
-  // ATOM_TRANSMITTER_ACTION_POWER_ON
-  // ATOM_TRANSMITTER_ACTION_POWER_OFF
-  UCHAR  ucAction;
-  UCHAR  ucBriLevel;
-  USHORT usPwmFreq;                  // in unit of Hz, 200 means 200Hz
-}LVTMA_OUTPUT_CONTROL_PARAMETERS_V2;
+	// Possible value of ucAction
+	// ATOM_TRANSMITTER_ACTION_LCD_BLON
+	// ATOM_TRANSMITTER_ACTION_LCD_BLOFF
+	// ATOM_TRANSMITTER_ACTION_BL_BRIGHTNESS_CONTROL
+	// ATOM_TRANSMITTER_ACTION_POWER_ON
+	// ATOM_TRANSMITTER_ACTION_POWER_OFF
+	UCHAR  ucAction;
+	UCHAR  ucBriLevel;
+	USHORT usPwmFreq;                  // in unit of Hz, 200 means 200Hz
+} LVTMA_OUTPUT_CONTROL_PARAMETERS_V2;
 
 
 
@@ -1706,12 +1725,12 @@ typedef struct _LVTMA_OUTPUT_CONTROL_PARAMETERS_V2
 /****************************************************************************/
 typedef struct _BLANK_CRTC_PARAMETERS
 {
-  UCHAR  ucCRTC;                       // ATOM_CRTC1 or ATOM_CRTC2
-  UCHAR  ucBlanking;                  // ATOM_BLANKING or ATOM_BLANKINGOFF
-  USHORT usBlackColorRCr;
-  USHORT usBlackColorGY;
-  USHORT usBlackColorBCb;
-}BLANK_CRTC_PARAMETERS;
+	UCHAR  ucCRTC;                       // ATOM_CRTC1 or ATOM_CRTC2
+	UCHAR  ucBlanking;                  // ATOM_BLANKING or ATOM_BLANKINGOFF
+	USHORT usBlackColorRCr;
+	USHORT usBlackColorGY;
+	USHORT usBlackColorBCb;
+} BLANK_CRTC_PARAMETERS;
 #define BLANK_CRTC_PS_ALLOCATION    BLANK_CRTC_PARAMETERS
 
 /****************************************************************************/
@@ -1721,10 +1740,10 @@ typedef struct _BLANK_CRTC_PARAMETERS
 /****************************************************************************/
 typedef struct _ENABLE_CRTC_PARAMETERS
 {
-  UCHAR ucCRTC;                         // ATOM_CRTC1 or ATOM_CRTC2
-  UCHAR ucEnable;                     // ATOM_ENABLE or ATOM_DISABLE
-  UCHAR ucPadding[2];
-}ENABLE_CRTC_PARAMETERS;
+	UCHAR ucCRTC;                         // ATOM_CRTC1 or ATOM_CRTC2
+	UCHAR ucEnable;                     // ATOM_ENABLE or ATOM_DISABLE
+	UCHAR ucPadding[2];
+} ENABLE_CRTC_PARAMETERS;
 #define ENABLE_CRTC_PS_ALLOCATION   ENABLE_CRTC_PARAMETERS
 
 /****************************************************************************/
@@ -1732,13 +1751,13 @@ typedef struct _ENABLE_CRTC_PARAMETERS
 /****************************************************************************/
 typedef struct _SET_CRTC_OVERSCAN_PARAMETERS
 {
-  USHORT usOverscanRight;             // right
-  USHORT usOverscanLeft;              // left
-  USHORT usOverscanBottom;            // bottom
-  USHORT usOverscanTop;               // top
-  UCHAR  ucCRTC;                      // ATOM_CRTC1 or ATOM_CRTC2
-  UCHAR  ucPadding[3];
-}SET_CRTC_OVERSCAN_PARAMETERS;
+	USHORT usOverscanRight;             // right
+	USHORT usOverscanLeft;              // left
+	USHORT usOverscanBottom;            // bottom
+	USHORT usOverscanTop;               // top
+	UCHAR  ucCRTC;                      // ATOM_CRTC1 or ATOM_CRTC2
+	UCHAR  ucPadding[3];
+} SET_CRTC_OVERSCAN_PARAMETERS;
 #define SET_CRTC_OVERSCAN_PS_ALLOCATION  SET_CRTC_OVERSCAN_PARAMETERS
 
 /****************************************************************************/
@@ -1746,11 +1765,11 @@ typedef struct _SET_CRTC_OVERSCAN_PARAMETERS
 /****************************************************************************/
 typedef struct _SET_CRTC_REPLICATION_PARAMETERS
 {
-  UCHAR ucH_Replication;              // horizontal replication
-  UCHAR ucV_Replication;              // vertical replication
-  UCHAR usCRTC;                       // ATOM_CRTC1 or ATOM_CRTC2
-  UCHAR ucPadding;
-}SET_CRTC_REPLICATION_PARAMETERS;
+	UCHAR ucH_Replication;              // horizontal replication
+	UCHAR ucV_Replication;              // vertical replication
+	UCHAR usCRTC;                       // ATOM_CRTC1 or ATOM_CRTC2
+	UCHAR ucPadding;
+} SET_CRTC_REPLICATION_PARAMETERS;
 #define SET_CRTC_REPLICATION_PS_ALLOCATION  SET_CRTC_REPLICATION_PARAMETERS
 
 /****************************************************************************/
@@ -1758,19 +1777,19 @@ typedef struct _SET_CRTC_REPLICATION_PARAMETERS
 /****************************************************************************/
 typedef struct _SELECT_CRTC_SOURCE_PARAMETERS
 {
-  UCHAR ucCRTC;                         // ATOM_CRTC1 or ATOM_CRTC2
-  UCHAR ucDevice;                     // ATOM_DEVICE_CRT1|ATOM_DEVICE_CRT2|....
-  UCHAR ucPadding[2];
-}SELECT_CRTC_SOURCE_PARAMETERS;
+	UCHAR ucCRTC;                         // ATOM_CRTC1 or ATOM_CRTC2
+	UCHAR ucDevice;                     // ATOM_DEVICE_CRT1|ATOM_DEVICE_CRT2|....
+	UCHAR ucPadding[2];
+} SELECT_CRTC_SOURCE_PARAMETERS;
 #define SELECT_CRTC_SOURCE_PS_ALLOCATION  SELECT_CRTC_SOURCE_PARAMETERS
 
 typedef struct _SELECT_CRTC_SOURCE_PARAMETERS_V2
 {
-  UCHAR ucCRTC;                         // ATOM_CRTC1 or ATOM_CRTC2
-  UCHAR ucEncoderID;                  // DAC1/DAC2/TVOUT/DIG1/DIG2/DVO
-  UCHAR ucEncodeMode;                           // Encoding mode, only valid when using DIG1/DIG2/DVO
-  UCHAR ucPadding;
-}SELECT_CRTC_SOURCE_PARAMETERS_V2;
+	UCHAR ucCRTC;                         // ATOM_CRTC1 or ATOM_CRTC2
+	UCHAR ucEncoderID;                  // DAC1/DAC2/TVOUT/DIG1/DIG2/DVO
+	UCHAR ucEncodeMode;                           // Encoding mode, only valid when using DIG1/DIG2/DVO
+	UCHAR ucPadding;
+} SELECT_CRTC_SOURCE_PARAMETERS_V2;
 
 //ucEncoderID
 //#define ASIC_INT_DAC1_ENCODER_ID                      0x00
@@ -1795,11 +1814,11 @@ typedef struct _SELECT_CRTC_SOURCE_PARAMETERS_V2
 
 typedef struct _SELECT_CRTC_SOURCE_PARAMETERS_V3
 {
-  UCHAR ucCRTC;                         // ATOM_CRTC1 or ATOM_CRTC2
-  UCHAR ucEncoderID;                    // DAC1/DAC2/TVOUT/DIG1/DIG2/DVO
-  UCHAR ucEncodeMode;                   // Encoding mode, only valid when using DIG1/DIG2/DVO
-  UCHAR ucDstBpc;                       // PANEL_6/8/10/12BIT_PER_COLOR
-}SELECT_CRTC_SOURCE_PARAMETERS_V3;
+	UCHAR ucCRTC;                         // ATOM_CRTC1 or ATOM_CRTC2
+	UCHAR ucEncoderID;                    // DAC1/DAC2/TVOUT/DIG1/DIG2/DVO
+	UCHAR ucEncodeMode;                   // Encoding mode, only valid when using DIG1/DIG2/DVO
+	UCHAR ucDstBpc;                       // PANEL_6/8/10/12BIT_PER_COLOR
+} SELECT_CRTC_SOURCE_PARAMETERS_V3;
 
 
 /****************************************************************************/
@@ -1809,17 +1828,17 @@ typedef struct _SELECT_CRTC_SOURCE_PARAMETERS_V3
 //Major revision=1., Minor revision=1
 typedef struct _PIXEL_CLOCK_PARAMETERS
 {
-  USHORT usPixelClock;                // in 10kHz unit; for bios convenient = (RefClk*FB_Div)/(Ref_Div*Post_Div)
-                                      // 0 means disable PPLL
-  USHORT usRefDiv;                    // Reference divider
-  USHORT usFbDiv;                     // feedback divider
-  UCHAR  ucPostDiv;                   // post divider
-  UCHAR  ucFracFbDiv;                 // fractional feedback divider
-  UCHAR  ucPpll;                      // ATOM_PPLL1 or ATOM_PPL2
-  UCHAR  ucRefDivSrc;                 // ATOM_PJITTER or ATO_NONPJITTER
-  UCHAR  ucCRTC;                      // Which CRTC uses this Ppll
-  UCHAR  ucPadding;
-}PIXEL_CLOCK_PARAMETERS;
+	USHORT usPixelClock;                // in 10kHz unit; for bios convenient = (RefClk*FB_Div)/(Ref_Div*Post_Div)
+	// 0 means disable PPLL
+	USHORT usRefDiv;                    // Reference divider
+	USHORT usFbDiv;                     // feedback divider
+	UCHAR  ucPostDiv;                   // post divider
+	UCHAR  ucFracFbDiv;                 // fractional feedback divider
+	UCHAR  ucPpll;                      // ATOM_PPLL1 or ATOM_PPL2
+	UCHAR  ucRefDivSrc;                 // ATOM_PJITTER or ATO_NONPJITTER
+	UCHAR  ucCRTC;                      // Which CRTC uses this Ppll
+	UCHAR  ucPadding;
+} PIXEL_CLOCK_PARAMETERS;
 
 //Major revision=1., Minor revision=2, add ucMiscIfno
 //ucMiscInfo:
@@ -1829,17 +1848,17 @@ typedef struct _PIXEL_CLOCK_PARAMETERS
 
 typedef struct _PIXEL_CLOCK_PARAMETERS_V2
 {
-  USHORT usPixelClock;                // in 10kHz unit; for bios convenient = (RefClk*FB_Div)/(Ref_Div*Post_Div)
-                                      // 0 means disable PPLL
-  USHORT usRefDiv;                    // Reference divider
-  USHORT usFbDiv;                     // feedback divider
-  UCHAR  ucPostDiv;                   // post divider
-  UCHAR  ucFracFbDiv;                 // fractional feedback divider
-  UCHAR  ucPpll;                      // ATOM_PPLL1 or ATOM_PPL2
-  UCHAR  ucRefDivSrc;                 // ATOM_PJITTER or ATO_NONPJITTER
-  UCHAR  ucCRTC;                      // Which CRTC uses this Ppll
-  UCHAR  ucMiscInfo;                  // Different bits for different purpose, bit [7:4] as device index, bit[0]=Force prog
-}PIXEL_CLOCK_PARAMETERS_V2;
+	USHORT usPixelClock;                // in 10kHz unit; for bios convenient = (RefClk*FB_Div)/(Ref_Div*Post_Div)
+	// 0 means disable PPLL
+	USHORT usRefDiv;                    // Reference divider
+	USHORT usFbDiv;                     // feedback divider
+	UCHAR  ucPostDiv;                   // post divider
+	UCHAR  ucFracFbDiv;                 // fractional feedback divider
+	UCHAR  ucPpll;                      // ATOM_PPLL1 or ATOM_PPL2
+	UCHAR  ucRefDivSrc;                 // ATOM_PJITTER or ATO_NONPJITTER
+	UCHAR  ucCRTC;                      // Which CRTC uses this Ppll
+	UCHAR  ucMiscInfo;                  // Different bits for different purpose, bit [7:4] as device index, bit[0]=Force prog
+} PIXEL_CLOCK_PARAMETERS_V2;
 
 //Major revision=1., Minor revision=3, structure/definition change
 //ucEncoderMode:
@@ -1876,23 +1895,23 @@ typedef struct _PIXEL_CLOCK_PARAMETERS_V2
 
 typedef struct _PIXEL_CLOCK_PARAMETERS_V3
 {
-  USHORT usPixelClock;                // in 10kHz unit; for bios convenient = (RefClk*FB_Div)/(Ref_Div*Post_Div)
-                                      // 0 means disable PPLL. For VGA PPLL,make sure this value is not 0.
-  USHORT usRefDiv;                    // Reference divider
-  USHORT usFbDiv;                     // feedback divider
-  UCHAR  ucPostDiv;                   // post divider
-  UCHAR  ucFracFbDiv;                 // fractional feedback divider
-  UCHAR  ucPpll;                      // ATOM_PPLL1 or ATOM_PPL2
-  UCHAR  ucTransmitterId;             // graphic encoder id defined in objectId.h
-   union
-   {
-  UCHAR  ucEncoderMode;               // encoder type defined as ATOM_ENCODER_MODE_DP/DVI/HDMI/
-   UCHAR  ucDVOConfig;                           // when use DVO, need to know SDR/DDR, 12bit or 24bit
-   };
-  UCHAR  ucMiscInfo;                  // bit[0]=Force program, bit[1]= set pclk for VGA, b[2]= CRTC sel
-                                      // bit[3]=0:use PPLL for dispclk source, =1: use engine clock for dispclock source
-                                      // bit[4]=0:use XTALIN as the source of reference divider,=1 use the pre-defined clock as the source of reference divider
-}PIXEL_CLOCK_PARAMETERS_V3;
+	USHORT usPixelClock;                // in 10kHz unit; for bios convenient = (RefClk*FB_Div)/(Ref_Div*Post_Div)
+	// 0 means disable PPLL. For VGA PPLL,make sure this value is not 0.
+	USHORT usRefDiv;                    // Reference divider
+	USHORT usFbDiv;                     // feedback divider
+	UCHAR  ucPostDiv;                   // post divider
+	UCHAR  ucFracFbDiv;                 // fractional feedback divider
+	UCHAR  ucPpll;                      // ATOM_PPLL1 or ATOM_PPL2
+	UCHAR  ucTransmitterId;             // graphic encoder id defined in objectId.h
+	union
+	{
+		UCHAR  ucEncoderMode;               // encoder type defined as ATOM_ENCODER_MODE_DP/DVI/HDMI/
+		UCHAR  ucDVOConfig;                           // when use DVO, need to know SDR/DDR, 12bit or 24bit
+	};
+	UCHAR  ucMiscInfo;                  // bit[0]=Force program, bit[1]= set pclk for VGA, b[2]= CRTC sel
+	// bit[3]=0:use PPLL for dispclk source, =1: use engine clock for dispclock source
+	// bit[4]=0:use XTALIN as the source of reference divider,=1 use the pre-defined clock as the source of reference divider
+} PIXEL_CLOCK_PARAMETERS_V3;
 
 #define PIXEL_CLOCK_PARAMETERS_LAST                     PIXEL_CLOCK_PARAMETERS_V2
 #define GET_PIXEL_CLOCK_PS_ALLOCATION                  PIXEL_CLOCK_PARAMETERS_LAST
@@ -1900,32 +1919,33 @@ typedef struct _PIXEL_CLOCK_PARAMETERS_V3
 
 typedef struct _PIXEL_CLOCK_PARAMETERS_V5
 {
-  UCHAR  ucCRTC;             // ATOM_CRTC1~6, indicate the CRTC controller to
-                             // drive the pixel clock. not used for DCPLL case.
-  union{
-  UCHAR  ucReserved;
-  UCHAR  ucFracFbDiv;        // [gphan] temporary to prevent build problem.  remove it after driver code is changed.
-  };
-  USHORT usPixelClock;       // target the pixel clock to drive the CRTC timing
-                             // 0 means disable PPLL/DCPLL.
-  USHORT usFbDiv;            // feedback divider integer part.
-  UCHAR  ucPostDiv;          // post divider.
-  UCHAR  ucRefDiv;           // Reference divider
-  UCHAR  ucPpll;             // ATOM_PPLL1/ATOM_PPLL2/ATOM_DCPLL
-  UCHAR  ucTransmitterID;    // ASIC encoder id defined in objectId.h,
-                             // indicate which graphic encoder will be used.
-  UCHAR  ucEncoderMode;      // Encoder mode:
-  UCHAR  ucMiscInfo;         // bit[0]= Force program PPLL
-                             // bit[1]= when VGA timing is used.
-                             // bit[3:2]= HDMI panel bit depth: =0: 24bpp =1:30bpp, =2:32bpp
-                             // bit[4]= RefClock source for PPLL.
-                             // =0: XTLAIN( default mode )
-                              // =1: other external clock source, which is pre-defined
-                             //     by VBIOS depend on the feature required.
-                             // bit[7:5]: reserved.
-  ULONG  ulFbDivDecFrac;     // 20 bit feedback divider decimal fraction part, range from 1~999999 ( 0.000001 to 0.999999 )
+	UCHAR  ucCRTC;             // ATOM_CRTC1~6, indicate the CRTC controller to
+	// drive the pixel clock. not used for DCPLL case.
+	union
+	{
+		UCHAR  ucReserved;
+		UCHAR  ucFracFbDiv;        // [gphan] temporary to prevent build problem.  remove it after driver code is changed.
+	};
+	USHORT usPixelClock;       // target the pixel clock to drive the CRTC timing
+	// 0 means disable PPLL/DCPLL.
+	USHORT usFbDiv;            // feedback divider integer part.
+	UCHAR  ucPostDiv;          // post divider.
+	UCHAR  ucRefDiv;           // Reference divider
+	UCHAR  ucPpll;             // ATOM_PPLL1/ATOM_PPLL2/ATOM_DCPLL
+	UCHAR  ucTransmitterID;    // ASIC encoder id defined in objectId.h,
+	// indicate which graphic encoder will be used.
+	UCHAR  ucEncoderMode;      // Encoder mode:
+	UCHAR  ucMiscInfo;         // bit[0]= Force program PPLL
+	// bit[1]= when VGA timing is used.
+	// bit[3:2]= HDMI panel bit depth: =0: 24bpp =1:30bpp, =2:32bpp
+	// bit[4]= RefClock source for PPLL.
+	// =0: XTLAIN( default mode )
+	// =1: other external clock source, which is pre-defined
+	//     by VBIOS depend on the feature required.
+	// bit[7:5]: reserved.
+	ULONG  ulFbDivDecFrac;     // 20 bit feedback divider decimal fraction part, range from 1~999999 ( 0.000001 to 0.999999 )
 
-}PIXEL_CLOCK_PARAMETERS_V5;
+} PIXEL_CLOCK_PARAMETERS_V5;
 
 #define PIXEL_CLOCK_V5_MISC_FORCE_PROG_PPLL               0x01
 #define PIXEL_CLOCK_V5_MISC_VGA_MODE                        0x02
@@ -1938,42 +1958,43 @@ typedef struct _PIXEL_CLOCK_PARAMETERS_V5
 typedef struct _CRTC_PIXEL_CLOCK_FREQ
 {
 #if ATOM_BIG_ENDIAN
-  ULONG  ucCRTC:8;            // ATOM_CRTC1~6, indicate the CRTC controller to
-                              // drive the pixel clock. not used for DCPLL case.
-  ULONG  ulPixelClock:24;     // target the pixel clock to drive the CRTC timing.
-                              // 0 means disable PPLL/DCPLL. Expanded to 24 bits comparing to previous version.
+	ULONG  ucCRTC: 8;           // ATOM_CRTC1~6, indicate the CRTC controller to
+	// drive the pixel clock. not used for DCPLL case.
+	ULONG  ulPixelClock: 24;    // target the pixel clock to drive the CRTC timing.
+	// 0 means disable PPLL/DCPLL. Expanded to 24 bits comparing to previous version.
 #else
-  ULONG  ulPixelClock:24;     // target the pixel clock to drive the CRTC timing.
-                              // 0 means disable PPLL/DCPLL. Expanded to 24 bits comparing to previous version.
-  ULONG  ucCRTC:8;            // ATOM_CRTC1~6, indicate the CRTC controller to
-                              // drive the pixel clock. not used for DCPLL case.
+	ULONG  ulPixelClock: 24;    // target the pixel clock to drive the CRTC timing.
+	// 0 means disable PPLL/DCPLL. Expanded to 24 bits comparing to previous version.
+	ULONG  ucCRTC: 8;           // ATOM_CRTC1~6, indicate the CRTC controller to
+	// drive the pixel clock. not used for DCPLL case.
 #endif
-}CRTC_PIXEL_CLOCK_FREQ;
+} CRTC_PIXEL_CLOCK_FREQ;
 
 typedef struct _PIXEL_CLOCK_PARAMETERS_V6
 {
-  union{
-    CRTC_PIXEL_CLOCK_FREQ ulCrtcPclkFreq;    // pixel clock and CRTC id frequency
-    ULONG ulDispEngClkFreq;                  // dispclk frequency
-  };
-  USHORT usFbDiv;            // feedback divider integer part.
-  UCHAR  ucPostDiv;          // post divider.
-  UCHAR  ucRefDiv;           // Reference divider
-  UCHAR  ucPpll;             // ATOM_PPLL1/ATOM_PPLL2/ATOM_DCPLL
-  UCHAR  ucTransmitterID;    // ASIC encoder id defined in objectId.h,
-                             // indicate which graphic encoder will be used.
-  UCHAR  ucEncoderMode;      // Encoder mode:
-  UCHAR  ucMiscInfo;         // bit[0]= Force program PPLL
-                             // bit[1]= when VGA timing is used.
-                             // bit[3:2]= HDMI panel bit depth: =0: 24bpp =1:30bpp, =2:32bpp
-                             // bit[4]= RefClock source for PPLL.
-                             // =0: XTLAIN( default mode )
-                              // =1: other external clock source, which is pre-defined
-                             //     by VBIOS depend on the feature required.
-                             // bit[7:5]: reserved.
-  ULONG  ulFbDivDecFrac;     // 20 bit feedback divider decimal fraction part, range from 1~999999 ( 0.000001 to 0.999999 )
+	union
+	{
+		CRTC_PIXEL_CLOCK_FREQ ulCrtcPclkFreq;    // pixel clock and CRTC id frequency
+		ULONG ulDispEngClkFreq;                  // dispclk frequency
+	};
+	USHORT usFbDiv;            // feedback divider integer part.
+	UCHAR  ucPostDiv;          // post divider.
+	UCHAR  ucRefDiv;           // Reference divider
+	UCHAR  ucPpll;             // ATOM_PPLL1/ATOM_PPLL2/ATOM_DCPLL
+	UCHAR  ucTransmitterID;    // ASIC encoder id defined in objectId.h,
+	// indicate which graphic encoder will be used.
+	UCHAR  ucEncoderMode;      // Encoder mode:
+	UCHAR  ucMiscInfo;         // bit[0]= Force program PPLL
+	// bit[1]= when VGA timing is used.
+	// bit[3:2]= HDMI panel bit depth: =0: 24bpp =1:30bpp, =2:32bpp
+	// bit[4]= RefClock source for PPLL.
+	// =0: XTLAIN( default mode )
+	// =1: other external clock source, which is pre-defined
+	//     by VBIOS depend on the feature required.
+	// bit[7:5]: reserved.
+	ULONG  ulFbDivDecFrac;     // 20 bit feedback divider decimal fraction part, range from 1~999999 ( 0.000001 to 0.999999 )
 
-}PIXEL_CLOCK_PARAMETERS_V6;
+} PIXEL_CLOCK_PARAMETERS_V6;
 
 #define PIXEL_CLOCK_V6_MISC_FORCE_PROG_PPLL               0x01
 #define PIXEL_CLOCK_V6_MISC_VGA_MODE                        0x02
@@ -1990,40 +2011,40 @@ typedef struct _PIXEL_CLOCK_PARAMETERS_V6
 
 typedef struct _GET_DISP_PLL_STATUS_INPUT_PARAMETERS_V2
 {
-  PIXEL_CLOCK_PARAMETERS_V3 sDispClkInput;
-}GET_DISP_PLL_STATUS_INPUT_PARAMETERS_V2;
+	PIXEL_CLOCK_PARAMETERS_V3 sDispClkInput;
+} GET_DISP_PLL_STATUS_INPUT_PARAMETERS_V2;
 
 typedef struct _GET_DISP_PLL_STATUS_OUTPUT_PARAMETERS_V2
 {
-  UCHAR  ucStatus;
-  UCHAR  ucRefDivSrc;                 // =1: reference clock source from XTALIN, =0: source from PCIE ref clock
-  UCHAR  ucReserved[2];
-}GET_DISP_PLL_STATUS_OUTPUT_PARAMETERS_V2;
+	UCHAR  ucStatus;
+	UCHAR  ucRefDivSrc;                 // =1: reference clock source from XTALIN, =0: source from PCIE ref clock
+	UCHAR  ucReserved[2];
+} GET_DISP_PLL_STATUS_OUTPUT_PARAMETERS_V2;
 
 typedef struct _GET_DISP_PLL_STATUS_INPUT_PARAMETERS_V3
 {
-  PIXEL_CLOCK_PARAMETERS_V5 sDispClkInput;
-}GET_DISP_PLL_STATUS_INPUT_PARAMETERS_V3;
+	PIXEL_CLOCK_PARAMETERS_V5 sDispClkInput;
+} GET_DISP_PLL_STATUS_INPUT_PARAMETERS_V3;
 
 typedef struct _PIXEL_CLOCK_PARAMETERS_V7
 {
-    ULONG  ulPixelClock;               // target the pixel clock to drive the CRTC timing in unit of 100Hz.
+	ULONG  ulPixelClock;               // target the pixel clock to drive the CRTC timing in unit of 100Hz.
 
-    UCHAR  ucPpll;                     // ATOM_PHY_PLL0/ATOM_PHY_PLL1/ATOM_PPLL0
-    UCHAR  ucTransmitterID;            // ASIC encoder id defined in objectId.h,
-                                       // indicate which graphic encoder will be used.
-    UCHAR  ucEncoderMode;              // Encoder mode:
-    UCHAR  ucMiscInfo;                 // bit[0]= Force program PLL for pixclk
-                                       // bit[1]= Force program PHY PLL only ( internally used by VBIOS only in DP case which PHYPLL is programmed for SYMCLK, not Pixclk )
-                                       // bit[5:4]= RefClock source for PPLL.
-                                       //          =0: XTLAIN( default mode )
-                                       //          =1: pcie
-                                       //          =2: GENLK
-    UCHAR  ucCRTC;                     // ATOM_CRTC1~6, indicate the CRTC controller to
-    UCHAR  ucDeepColorRatio;           // HDMI panel bit depth: =0: 24bpp =1:30bpp, =2:36bpp
-    UCHAR  ucReserved[2];
-    ULONG  ulReserved;
-}PIXEL_CLOCK_PARAMETERS_V7;
+	UCHAR  ucPpll;                     // ATOM_PHY_PLL0/ATOM_PHY_PLL1/ATOM_PPLL0
+	UCHAR  ucTransmitterID;            // ASIC encoder id defined in objectId.h,
+	// indicate which graphic encoder will be used.
+	UCHAR  ucEncoderMode;              // Encoder mode:
+	UCHAR  ucMiscInfo;                 // bit[0]= Force program PLL for pixclk
+	// bit[1]= Force program PHY PLL only ( internally used by VBIOS only in DP case which PHYPLL is programmed for SYMCLK, not Pixclk )
+	// bit[5:4]= RefClock source for PPLL.
+	//          =0: XTLAIN( default mode )
+	//          =1: pcie
+	//          =2: GENLK
+	UCHAR  ucCRTC;                     // ATOM_CRTC1~6, indicate the CRTC controller to
+	UCHAR  ucDeepColorRatio;           // HDMI panel bit depth: =0: 24bpp =1:30bpp, =2:36bpp
+	UCHAR  ucReserved[2];
+	ULONG  ulReserved;
+} PIXEL_CLOCK_PARAMETERS_V7;
 
 //ucMiscInfo
 #define PIXEL_CLOCK_V7_MISC_FORCE_PROG_PPLL         0x01
@@ -2044,19 +2065,19 @@ typedef struct _PIXEL_CLOCK_PARAMETERS_V7
 // SetDCEClockTable input parameter for DCE11.1
 typedef struct _SET_DCE_CLOCK_PARAMETERS_V1_1
 {
-  ULONG  ulDISPClkFreq;       // target DISPCLK frquency in unit of 10kHz, return real DISPCLK frequency. when ucFlag[1]=1, in unit of 100Hz.
-  UCHAR  ucFlag;              // bit0=1: DPREFCLK bypass DFS bit0=0: DPREFCLK not bypass DFS
-  UCHAR  ucCrtc;              // use when enable DCCG pixel clock ucFlag[1]=1
-  UCHAR  ucPpllId;            // use when enable DCCG pixel clock ucFlag[1]=1
-  UCHAR  ucDeepColorRatio;    // use when enable DCCG pixel clock ucFlag[1]=1
-}SET_DCE_CLOCK_PARAMETERS_V1_1;
+	ULONG  ulDISPClkFreq;       // target DISPCLK frquency in unit of 10kHz, return real DISPCLK frequency. when ucFlag[1]=1, in unit of 100Hz.
+	UCHAR  ucFlag;              // bit0=1: DPREFCLK bypass DFS bit0=0: DPREFCLK not bypass DFS
+	UCHAR  ucCrtc;              // use when enable DCCG pixel clock ucFlag[1]=1
+	UCHAR  ucPpllId;            // use when enable DCCG pixel clock ucFlag[1]=1
+	UCHAR  ucDeepColorRatio;    // use when enable DCCG pixel clock ucFlag[1]=1
+} SET_DCE_CLOCK_PARAMETERS_V1_1;
 
 
 typedef struct _SET_DCE_CLOCK_PS_ALLOCATION_V1_1
 {
-  SET_DCE_CLOCK_PARAMETERS_V1_1 asParam;
-  ULONG ulReserved[2];
-}SET_DCE_CLOCK_PS_ALLOCATION_V1_1;
+	SET_DCE_CLOCK_PARAMETERS_V1_1 asParam;
+	ULONG ulReserved[2];
+} SET_DCE_CLOCK_PS_ALLOCATION_V1_1;
 
 //SET_DCE_CLOCK_PARAMETERS_V1_1.ucFlag
 #define SET_DCE_CLOCK_FLAG_GEN_DPREFCLK            0x01
@@ -2066,12 +2087,12 @@ typedef struct _SET_DCE_CLOCK_PS_ALLOCATION_V1_1
 // SetDCEClockTable input parameter for DCE11.2( POLARIS10 and POLARIS11 ) and above
 typedef struct _SET_DCE_CLOCK_PARAMETERS_V2_1
 {
-  ULONG  ulDCEClkFreq;                               // target DCE frequency in unit of 10KHZ, return real DISPCLK/DPREFCLK frequency.
-  UCHAR  ucDCEClkType;                               // =0: DISPCLK  =1: DPREFCLK  =2: PIXCLK
-  UCHAR  ucDCEClkSrc;                                // ATOM_PLL0 or ATOM_GCK_DFS or ATOM_FCH_CLK or ATOM_COMBOPHY_PLLx
-  UCHAR  ucDCEClkFlag;                               // Bit [1:0] = PPLL ref clock source ( when ucDCEClkSrc= ATOM_PPLL0 )
-  UCHAR  ucCRTC;                                     // ucDisp Pipe Id, ATOM_CRTC0/1/2/..., use only when ucDCEClkType = PIXCLK
-}SET_DCE_CLOCK_PARAMETERS_V2_1;
+	ULONG  ulDCEClkFreq;                               // target DCE frequency in unit of 10KHZ, return real DISPCLK/DPREFCLK frequency.
+	UCHAR  ucDCEClkType;                               // =0: DISPCLK  =1: DPREFCLK  =2: PIXCLK
+	UCHAR  ucDCEClkSrc;                                // ATOM_PLL0 or ATOM_GCK_DFS or ATOM_FCH_CLK or ATOM_COMBOPHY_PLLx
+	UCHAR  ucDCEClkFlag;                               // Bit [1:0] = PPLL ref clock source ( when ucDCEClkSrc= ATOM_PPLL0 )
+	UCHAR  ucCRTC;                                     // ucDisp Pipe Id, ATOM_CRTC0/1/2/..., use only when ucDCEClkType = PIXCLK
+} SET_DCE_CLOCK_PARAMETERS_V2_1;
 
 //ucDCEClkType
 #define DCE_CLOCK_TYPE_DISPCLK                        0
@@ -2095,9 +2116,9 @@ typedef struct _SET_DCE_CLOCK_PARAMETERS_V2_1
 
 typedef struct _SET_DCE_CLOCK_PS_ALLOCATION_V2_1
 {
-  SET_DCE_CLOCK_PARAMETERS_V2_1 asParam;
-  ULONG ulReserved[2];
-}SET_DCE_CLOCK_PS_ALLOCATION_V2_1;
+	SET_DCE_CLOCK_PARAMETERS_V2_1 asParam;
+	ULONG ulReserved[2];
+} SET_DCE_CLOCK_PS_ALLOCATION_V2_1;
 
 
 
@@ -2106,29 +2127,29 @@ typedef struct _SET_DCE_CLOCK_PS_ALLOCATION_V2_1
 /****************************************************************************/
 typedef struct _ADJUST_DISPLAY_PLL_PARAMETERS
 {
-   USHORT usPixelClock;
-   UCHAR ucTransmitterID;
-   UCHAR ucEncodeMode;
-   union
-   {
-      UCHAR ucDVOConfig;                           //if DVO, need passing link rate and output 12bitlow or 24bit
-      UCHAR ucConfig;                                 //if none DVO, not defined yet
-   };
-   UCHAR ucReserved[3];
-}ADJUST_DISPLAY_PLL_PARAMETERS;
+	USHORT usPixelClock;
+	UCHAR ucTransmitterID;
+	UCHAR ucEncodeMode;
+	union
+	{
+		UCHAR ucDVOConfig;                           //if DVO, need passing link rate and output 12bitlow or 24bit
+		UCHAR ucConfig;                                 //if none DVO, not defined yet
+	};
+	UCHAR ucReserved[3];
+} ADJUST_DISPLAY_PLL_PARAMETERS;
 
 #define ADJUST_DISPLAY_CONFIG_SS_ENABLE            0x10
 #define ADJUST_DISPLAY_PLL_PS_ALLOCATION              ADJUST_DISPLAY_PLL_PARAMETERS
 
 typedef struct _ADJUST_DISPLAY_PLL_INPUT_PARAMETERS_V3
 {
-   USHORT usPixelClock;                    // target pixel clock
-   UCHAR ucTransmitterID;                  // GPU transmitter id defined in objectid.h
-   UCHAR ucEncodeMode;                     // encoder mode: CRT, LVDS, DP, TMDS or HDMI
-  UCHAR ucDispPllConfig;                 // display pll configure parameter defined as following DISPPLL_CONFIG_XXXX
-  UCHAR ucExtTransmitterID;               // external encoder id.
-   UCHAR ucReserved[2];
-}ADJUST_DISPLAY_PLL_INPUT_PARAMETERS_V3;
+	USHORT usPixelClock;                    // target pixel clock
+	UCHAR ucTransmitterID;                  // GPU transmitter id defined in objectid.h
+	UCHAR ucEncodeMode;                     // encoder mode: CRT, LVDS, DP, TMDS or HDMI
+	UCHAR ucDispPllConfig;                 // display pll configure parameter defined as following DISPPLL_CONFIG_XXXX
+	UCHAR ucExtTransmitterID;               // external encoder id.
+	UCHAR ucReserved[2];
+} ADJUST_DISPLAY_PLL_INPUT_PARAMETERS_V3;
 
 // usDispPllConfig v1.2 for RoadRunner
 #define DISPPLL_CONFIG_DVO_RATE_SEL                0x0001     // need only when ucTransmitterID = DVO
@@ -2145,19 +2166,19 @@ typedef struct _ADJUST_DISPLAY_PLL_INPUT_PARAMETERS_V3
 
 typedef struct _ADJUST_DISPLAY_PLL_OUTPUT_PARAMETERS_V3
 {
-  ULONG ulDispPllFreq;                 // return display PPLL freq which is used to generate the pixclock, and related idclk, symclk etc
-  UCHAR ucRefDiv;                      // if it is none-zero, it is used to be calculated the other ppll parameter fb_divider and post_div ( if it is not given )
-  UCHAR ucPostDiv;                     // if it is none-zero, it is used to be calculated the other ppll parameter fb_divider
-  UCHAR ucReserved[2];
-}ADJUST_DISPLAY_PLL_OUTPUT_PARAMETERS_V3;
+	ULONG ulDispPllFreq;                 // return display PPLL freq which is used to generate the pixclock, and related idclk, symclk etc
+	UCHAR ucRefDiv;                      // if it is none-zero, it is used to be calculated the other ppll parameter fb_divider and post_div ( if it is not given )
+	UCHAR ucPostDiv;                     // if it is none-zero, it is used to be calculated the other ppll parameter fb_divider
+	UCHAR ucReserved[2];
+} ADJUST_DISPLAY_PLL_OUTPUT_PARAMETERS_V3;
 
 typedef struct _ADJUST_DISPLAY_PLL_PS_ALLOCATION_V3
 {
-  union
-  {
-    ADJUST_DISPLAY_PLL_INPUT_PARAMETERS_V3  sInput;
-    ADJUST_DISPLAY_PLL_OUTPUT_PARAMETERS_V3 sOutput;
-  };
+	union
+	{
+		ADJUST_DISPLAY_PLL_INPUT_PARAMETERS_V3  sInput;
+		ADJUST_DISPLAY_PLL_OUTPUT_PARAMETERS_V3 sOutput;
+	};
 } ADJUST_DISPLAY_PLL_PS_ALLOCATION_V3;
 
 /****************************************************************************/
@@ -2165,10 +2186,10 @@ typedef struct _ADJUST_DISPLAY_PLL_PS_ALLOCATION_V3
 /****************************************************************************/
 typedef struct _ENABLE_YUV_PARAMETERS
 {
-  UCHAR ucEnable;                     // ATOM_ENABLE:Enable YUV or ATOM_DISABLE:Disable YUV (RGB)
-  UCHAR ucCRTC;                       // Which CRTC needs this YUV or RGB format
-  UCHAR ucPadding[2];
-}ENABLE_YUV_PARAMETERS;
+	UCHAR ucEnable;                     // ATOM_ENABLE:Enable YUV or ATOM_DISABLE:Disable YUV (RGB)
+	UCHAR ucCRTC;                       // Which CRTC needs this YUV or RGB format
+	UCHAR ucPadding[2];
+} ENABLE_YUV_PARAMETERS;
 #define ENABLE_YUV_PS_ALLOCATION ENABLE_YUV_PARAMETERS
 
 /****************************************************************************/
@@ -2176,7 +2197,7 @@ typedef struct _ENABLE_YUV_PARAMETERS
 /****************************************************************************/
 typedef struct _GET_MEMORY_CLOCK_PARAMETERS
 {
-  ULONG ulReturnMemoryClock;          // current memory speed in 10KHz unit
+	ULONG ulReturnMemoryClock;          // current memory speed in 10KHz unit
 } GET_MEMORY_CLOCK_PARAMETERS;
 #define GET_MEMORY_CLOCK_PS_ALLOCATION  GET_MEMORY_CLOCK_PARAMETERS
 
@@ -2185,7 +2206,7 @@ typedef struct _GET_MEMORY_CLOCK_PARAMETERS
 /****************************************************************************/
 typedef struct _GET_ENGINE_CLOCK_PARAMETERS
 {
-  ULONG ulReturnEngineClock;          // current engine speed in 10KHz unit
+	ULONG ulReturnEngineClock;          // current engine speed in 10KHz unit
 } GET_ENGINE_CLOCK_PARAMETERS;
 #define GET_ENGINE_CLOCK_PS_ALLOCATION  GET_ENGINE_CLOCK_PARAMETERS
 
@@ -2196,13 +2217,13 @@ typedef struct _GET_ENGINE_CLOCK_PARAMETERS
 //Read operaion successeful when the paramter space is non-zero, otherwise read operation failed
 typedef struct _READ_EDID_FROM_HW_I2C_DATA_PARAMETERS
 {
-  USHORT    usPrescale;         //Ratio between Engine clock and I2C clock
-  USHORT    usVRAMAddress;      //Adress in Frame Buffer where to pace raw EDID
-  USHORT    usStatus;           //When use output: lower byte EDID checksum, high byte hardware status
-                                //WHen use input:  lower byte as 'byte to read':currently limited to 128byte or 1byte
-  UCHAR     ucSlaveAddr;        //Read from which slave
-  UCHAR     ucLineNumber;       //Read from which HW assisted line
-}READ_EDID_FROM_HW_I2C_DATA_PARAMETERS;
+	USHORT    usPrescale;         //Ratio between Engine clock and I2C clock
+	USHORT    usVRAMAddress;      //Adress in Frame Buffer where to pace raw EDID
+	USHORT    usStatus;           //When use output: lower byte EDID checksum, high byte hardware status
+	//WHen use input:  lower byte as 'byte to read':currently limited to 128byte or 1byte
+	UCHAR     ucSlaveAddr;        //Read from which slave
+	UCHAR     ucLineNumber;       //Read from which HW assisted line
+} READ_EDID_FROM_HW_I2C_DATA_PARAMETERS;
 #define READ_EDID_FROM_HW_I2C_DATA_PS_ALLOCATION  READ_EDID_FROM_HW_I2C_DATA_PARAMETERS
 
 
@@ -2214,28 +2235,28 @@ typedef struct _READ_EDID_FROM_HW_I2C_DATA_PARAMETERS
 
 typedef struct _WRITE_ONE_BYTE_HW_I2C_DATA_PARAMETERS
 {
-  USHORT    usPrescale;         //Ratio between Engine clock and I2C clock
-  USHORT    usByteOffset;       //Write to which byte
-                                //Upper portion of usByteOffset is Format of data
-                                //1bytePS+offsetPS
-                                //2bytesPS+offsetPS
-                                //blockID+offsetPS
-                                //blockID+offsetID
-                                //blockID+counterID+offsetID
-  UCHAR     ucData;             //PS data1
-  UCHAR     ucStatus;           //Status byte 1=success, 2=failure, Also is used as PS data2
-  UCHAR     ucSlaveAddr;        //Write to which slave
-  UCHAR     ucLineNumber;       //Write from which HW assisted line
-}WRITE_ONE_BYTE_HW_I2C_DATA_PARAMETERS;
+	USHORT    usPrescale;         //Ratio between Engine clock and I2C clock
+	USHORT    usByteOffset;       //Write to which byte
+	//Upper portion of usByteOffset is Format of data
+	//1bytePS+offsetPS
+	//2bytesPS+offsetPS
+	//blockID+offsetPS
+	//blockID+offsetID
+	//blockID+counterID+offsetID
+	UCHAR     ucData;             //PS data1
+	UCHAR     ucStatus;           //Status byte 1=success, 2=failure, Also is used as PS data2
+	UCHAR     ucSlaveAddr;        //Write to which slave
+	UCHAR     ucLineNumber;       //Write from which HW assisted line
+} WRITE_ONE_BYTE_HW_I2C_DATA_PARAMETERS;
 
 #define WRITE_ONE_BYTE_HW_I2C_DATA_PS_ALLOCATION  WRITE_ONE_BYTE_HW_I2C_DATA_PARAMETERS
 
 typedef struct _SET_UP_HW_I2C_DATA_PARAMETERS
 {
-  USHORT    usPrescale;         //Ratio between Engine clock and I2C clock
-  UCHAR     ucSlaveAddr;        //Write to which slave
-  UCHAR     ucLineNumber;       //Write from which HW assisted line
-}SET_UP_HW_I2C_DATA_PARAMETERS;
+	USHORT    usPrescale;         //Ratio between Engine clock and I2C clock
+	UCHAR     ucSlaveAddr;        //Write to which slave
+	UCHAR     ucLineNumber;       //Write from which HW assisted line
+} SET_UP_HW_I2C_DATA_PARAMETERS;
 
 /**************************************************************************/
 #define SPEED_FAN_CONTROL_PS_ALLOCATION   WRITE_ONE_BYTE_HW_I2C_DATA_PARAMETERS
@@ -2246,18 +2267,18 @@ typedef struct _SET_UP_HW_I2C_DATA_PARAMETERS
 /****************************************************************************/
 typedef struct   _POWER_CONNECTOR_DETECTION_PARAMETERS
 {
-  UCHAR   ucPowerConnectorStatus;      //Used for return value 0: detected, 1:not detected
-   UCHAR   ucPwrBehaviorId;
-   USHORT   usPwrBudget;                         //how much power currently boot to in unit of watt
-}POWER_CONNECTOR_DETECTION_PARAMETERS;
+	UCHAR   ucPowerConnectorStatus;      //Used for return value 0: detected, 1:not detected
+	UCHAR   ucPwrBehaviorId;
+	USHORT   usPwrBudget;                         //how much power currently boot to in unit of watt
+} POWER_CONNECTOR_DETECTION_PARAMETERS;
 
 typedef struct POWER_CONNECTOR_DETECTION_PS_ALLOCATION
 {
-  UCHAR   ucPowerConnectorStatus;      //Used for return value 0: detected, 1:not detected
-   UCHAR   ucReserved;
-   USHORT   usPwrBudget;                         //how much power currently boot to in unit of watt
-  WRITE_ONE_BYTE_HW_I2C_DATA_PS_ALLOCATION    sReserved;
-}POWER_CONNECTOR_DETECTION_PS_ALLOCATION;
+	UCHAR   ucPowerConnectorStatus;      //Used for return value 0: detected, 1:not detected
+	UCHAR   ucReserved;
+	USHORT   usPwrBudget;                         //how much power currently boot to in unit of watt
+	WRITE_ONE_BYTE_HW_I2C_DATA_PS_ALLOCATION    sReserved;
+} POWER_CONNECTOR_DETECTION_PS_ALLOCATION;
 
 
 /****************************LVDS SS Command Table Definitions**********************/
@@ -2267,48 +2288,48 @@ typedef struct POWER_CONNECTOR_DETECTION_PS_ALLOCATION
 /****************************************************************************/
 typedef struct   _ENABLE_LVDS_SS_PARAMETERS
 {
-  USHORT  usSpreadSpectrumPercentage;
-  UCHAR   ucSpreadSpectrumType;           //Bit1=0 Down Spread,=1 Center Spread. Bit1=1 Ext. =0 Int. Others:TBD
-  UCHAR   ucSpreadSpectrumStepSize_Delay; //bits3:2 SS_STEP_SIZE; bit 6:4 SS_DELAY
-  UCHAR   ucEnable;                       //ATOM_ENABLE or ATOM_DISABLE
-  UCHAR   ucPadding[3];
-}ENABLE_LVDS_SS_PARAMETERS;
+	USHORT  usSpreadSpectrumPercentage;
+	UCHAR   ucSpreadSpectrumType;           //Bit1=0 Down Spread,=1 Center Spread. Bit1=1 Ext. =0 Int. Others:TBD
+	UCHAR   ucSpreadSpectrumStepSize_Delay; //bits3:2 SS_STEP_SIZE; bit 6:4 SS_DELAY
+	UCHAR   ucEnable;                       //ATOM_ENABLE or ATOM_DISABLE
+	UCHAR   ucPadding[3];
+} ENABLE_LVDS_SS_PARAMETERS;
 
 //ucTableFormatRevision=1,ucTableContentRevision=2
 typedef struct   _ENABLE_LVDS_SS_PARAMETERS_V2
 {
-  USHORT  usSpreadSpectrumPercentage;
-  UCHAR   ucSpreadSpectrumType;           //Bit1=0 Down Spread,=1 Center Spread. Bit1=1 Ext. =0 Int. Others:TBD
-  UCHAR   ucSpreadSpectrumStep;           //
-  UCHAR   ucEnable;                       //ATOM_ENABLE or ATOM_DISABLE
-  UCHAR   ucSpreadSpectrumDelay;
-  UCHAR   ucSpreadSpectrumRange;
-  UCHAR   ucPadding;
-}ENABLE_LVDS_SS_PARAMETERS_V2;
+	USHORT  usSpreadSpectrumPercentage;
+	UCHAR   ucSpreadSpectrumType;           //Bit1=0 Down Spread,=1 Center Spread. Bit1=1 Ext. =0 Int. Others:TBD
+	UCHAR   ucSpreadSpectrumStep;           //
+	UCHAR   ucEnable;                       //ATOM_ENABLE or ATOM_DISABLE
+	UCHAR   ucSpreadSpectrumDelay;
+	UCHAR   ucSpreadSpectrumRange;
+	UCHAR   ucPadding;
+} ENABLE_LVDS_SS_PARAMETERS_V2;
 
 //This new structure is based on ENABLE_LVDS_SS_PARAMETERS but expands to SS on PPLL, so other devices can use SS.
 typedef struct   _ENABLE_SPREAD_SPECTRUM_ON_PPLL
 {
-  USHORT  usSpreadSpectrumPercentage;
-  UCHAR   ucSpreadSpectrumType;           // Bit1=0 Down Spread,=1 Center Spread. Bit1=1 Ext. =0 Int. Others:TBD
-  UCHAR   ucSpreadSpectrumStep;           //
-  UCHAR   ucEnable;                       // ATOM_ENABLE or ATOM_DISABLE
-  UCHAR   ucSpreadSpectrumDelay;
-  UCHAR   ucSpreadSpectrumRange;
-  UCHAR   ucPpll;                                      // ATOM_PPLL1/ATOM_PPLL2
-}ENABLE_SPREAD_SPECTRUM_ON_PPLL;
+	USHORT  usSpreadSpectrumPercentage;
+	UCHAR   ucSpreadSpectrumType;           // Bit1=0 Down Spread,=1 Center Spread. Bit1=1 Ext. =0 Int. Others:TBD
+	UCHAR   ucSpreadSpectrumStep;           //
+	UCHAR   ucEnable;                       // ATOM_ENABLE or ATOM_DISABLE
+	UCHAR   ucSpreadSpectrumDelay;
+	UCHAR   ucSpreadSpectrumRange;
+	UCHAR   ucPpll;                                      // ATOM_PPLL1/ATOM_PPLL2
+} ENABLE_SPREAD_SPECTRUM_ON_PPLL;
 
- typedef struct _ENABLE_SPREAD_SPECTRUM_ON_PPLL_V2
+typedef struct _ENABLE_SPREAD_SPECTRUM_ON_PPLL_V2
 {
-  USHORT  usSpreadSpectrumPercentage;
-  UCHAR   ucSpreadSpectrumType;           // Bit[0]: 0-Down Spread,1-Center Spread.
-                                        // Bit[1]: 1-Ext. 0-Int.
-                                        // Bit[3:2]: =0 P1PLL =1 P2PLL =2 DCPLL
-                                        // Bits[7:4] reserved
-  UCHAR   ucEnable;                       // ATOM_ENABLE or ATOM_DISABLE
-  USHORT  usSpreadSpectrumAmount;         // Includes SS_AMOUNT_FBDIV[7:0] and SS_AMOUNT_NFRAC_SLIP[11:8]
-  USHORT  usSpreadSpectrumStep;           // SS_STEP_SIZE_DSFRAC
-}ENABLE_SPREAD_SPECTRUM_ON_PPLL_V2;
+	USHORT  usSpreadSpectrumPercentage;
+	UCHAR   ucSpreadSpectrumType;           // Bit[0]: 0-Down Spread,1-Center Spread.
+	// Bit[1]: 1-Ext. 0-Int.
+	// Bit[3:2]: =0 P1PLL =1 P2PLL =2 DCPLL
+	// Bits[7:4] reserved
+	UCHAR   ucEnable;                       // ATOM_ENABLE or ATOM_DISABLE
+	USHORT  usSpreadSpectrumAmount;         // Includes SS_AMOUNT_FBDIV[7:0] and SS_AMOUNT_NFRAC_SLIP[11:8]
+	USHORT  usSpreadSpectrumStep;           // SS_STEP_SIZE_DSFRAC
+} ENABLE_SPREAD_SPECTRUM_ON_PPLL_V2;
 
 #define ATOM_PPLL_SS_TYPE_V2_DOWN_SPREAD      0x00
 #define ATOM_PPLL_SS_TYPE_V2_CENTRE_SPREAD    0x01
@@ -2323,17 +2344,17 @@ typedef struct   _ENABLE_SPREAD_SPECTRUM_ON_PPLL
 #define ATOM_PPLL_SS_AMOUNT_V2_NFRAC_SHIFT    8
 
 // Used by DCE5.0
- typedef struct _ENABLE_SPREAD_SPECTRUM_ON_PPLL_V3
+typedef struct _ENABLE_SPREAD_SPECTRUM_ON_PPLL_V3
 {
-  USHORT  usSpreadSpectrumAmountFrac;   // SS_AMOUNT_DSFRAC New in DCE5.0
-  UCHAR   ucSpreadSpectrumType;           // Bit[0]: 0-Down Spread,1-Center Spread.
-                                        // Bit[1]: 1-Ext. 0-Int.
-                                        // Bit[3:2]: =0 P1PLL =1 P2PLL =2 DCPLL
-                                        // Bits[7:4] reserved
-  UCHAR   ucEnable;                       // ATOM_ENABLE or ATOM_DISABLE
-  USHORT  usSpreadSpectrumAmount;         // Includes SS_AMOUNT_FBDIV[7:0] and SS_AMOUNT_NFRAC_SLIP[11:8]
-  USHORT  usSpreadSpectrumStep;           // SS_STEP_SIZE_DSFRAC
-}ENABLE_SPREAD_SPECTRUM_ON_PPLL_V3;
+	USHORT  usSpreadSpectrumAmountFrac;   // SS_AMOUNT_DSFRAC New in DCE5.0
+	UCHAR   ucSpreadSpectrumType;           // Bit[0]: 0-Down Spread,1-Center Spread.
+	// Bit[1]: 1-Ext. 0-Int.
+	// Bit[3:2]: =0 P1PLL =1 P2PLL =2 DCPLL
+	// Bits[7:4] reserved
+	UCHAR   ucEnable;                       // ATOM_ENABLE or ATOM_DISABLE
+	USHORT  usSpreadSpectrumAmount;         // Includes SS_AMOUNT_FBDIV[7:0] and SS_AMOUNT_NFRAC_SLIP[11:8]
+	USHORT  usSpreadSpectrumStep;           // SS_STEP_SIZE_DSFRAC
+} ENABLE_SPREAD_SPECTRUM_ON_PPLL_V3;
 
 
 #define ATOM_PPLL_SS_TYPE_V3_DOWN_SPREAD      0x00
@@ -2353,9 +2374,9 @@ typedef struct   _ENABLE_SPREAD_SPECTRUM_ON_PPLL
 
 typedef struct _SET_PIXEL_CLOCK_PS_ALLOCATION
 {
-  PIXEL_CLOCK_PARAMETERS sPCLKInput;
-  ENABLE_SPREAD_SPECTRUM_ON_PPLL sReserved;//Caller doesn't need to init this portion
-}SET_PIXEL_CLOCK_PS_ALLOCATION;
+	PIXEL_CLOCK_PARAMETERS sPCLKInput;
+	ENABLE_SPREAD_SPECTRUM_ON_PPLL sReserved;//Caller doesn't need to init this portion
+} SET_PIXEL_CLOCK_PS_ALLOCATION;
 
 
 
@@ -2366,16 +2387,16 @@ typedef struct _SET_PIXEL_CLOCK_PS_ALLOCATION
 /****************************************************************************/
 typedef struct   _MEMORY_TRAINING_PARAMETERS
 {
-  ULONG ulTargetMemoryClock;          //In 10Khz unit
-}MEMORY_TRAINING_PARAMETERS;
+	ULONG ulTargetMemoryClock;          //In 10Khz unit
+} MEMORY_TRAINING_PARAMETERS;
 #define MEMORY_TRAINING_PS_ALLOCATION MEMORY_TRAINING_PARAMETERS
 
 
 typedef struct   _MEMORY_TRAINING_PARAMETERS_V1_2
 {
-  USHORT usMemTrainingMode;
-  USHORT usReserved;
-}MEMORY_TRAINING_PARAMETERS_V1_2;
+	USHORT usMemTrainingMode;
+	USHORT usReserved;
+} MEMORY_TRAINING_PARAMETERS_V1_2;
 
 //usMemTrainingMode
 #define NORMAL_MEMORY_TRAINING_MODE       0
@@ -2392,14 +2413,14 @@ typedef struct   _MEMORY_TRAINING_PARAMETERS_V1_2
 /****************************************************************************/
 typedef struct _LVDS_ENCODER_CONTROL_PARAMETERS
 {
-  USHORT usPixelClock;  // in 10KHz; for bios convenient
-  UCHAR  ucMisc;        // bit0=0: Enable single link
-                        //     =1: Enable dual link
-                        // Bit1=0: 666RGB
-                        //     =1: 888RGB
-  UCHAR  ucAction;      // 0: turn off encoder
-                        // 1: setup and turn on encoder
-}LVDS_ENCODER_CONTROL_PARAMETERS;
+	USHORT usPixelClock;  // in 10KHz; for bios convenient
+	UCHAR  ucMisc;        // bit0=0: Enable single link
+	//     =1: Enable dual link
+	// Bit1=0: 666RGB
+	//     =1: 888RGB
+	UCHAR  ucAction;      // 0: turn off encoder
+	// 1: setup and turn on encoder
+} LVDS_ENCODER_CONTROL_PARAMETERS;
 
 #define LVDS_ENCODER_CONTROL_PS_ALLOCATION  LVDS_ENCODER_CONTROL_PARAMETERS
 
@@ -2412,33 +2433,33 @@ typedef struct _LVDS_ENCODER_CONTROL_PARAMETERS
 //ucTableFormatRevision=1,ucTableContentRevision=2
 typedef struct _LVDS_ENCODER_CONTROL_PARAMETERS_V2
 {
-  USHORT usPixelClock;  // in 10KHz; for bios convenient
-  UCHAR  ucMisc;        // see PANEL_ENCODER_MISC_xx defintions below
-  UCHAR  ucAction;      // 0: turn off encoder
-                        // 1: setup and turn on encoder
-  UCHAR  ucTruncate;    // bit0=0: Disable truncate
-                        //     =1: Enable truncate
-                        // bit4=0: 666RGB
-                        //     =1: 888RGB
-  UCHAR  ucSpatial;     // bit0=0: Disable spatial dithering
-                        //     =1: Enable spatial dithering
-                        // bit4=0: 666RGB
-                        //     =1: 888RGB
-  UCHAR  ucTemporal;    // bit0=0: Disable temporal dithering
-                        //     =1: Enable temporal dithering
-                        // bit4=0: 666RGB
-                        //     =1: 888RGB
-                        // bit5=0: Gray level 2
-                        //     =1: Gray level 4
-  UCHAR  ucFRC;         // bit4=0: 25FRC_SEL pattern E
-                        //     =1: 25FRC_SEL pattern F
-                        // bit6:5=0: 50FRC_SEL pattern A
-                        //       =1: 50FRC_SEL pattern B
-                        //       =2: 50FRC_SEL pattern C
-                        //       =3: 50FRC_SEL pattern D
-                        // bit7=0: 75FRC_SEL pattern E
-                        //     =1: 75FRC_SEL pattern F
-}LVDS_ENCODER_CONTROL_PARAMETERS_V2;
+	USHORT usPixelClock;  // in 10KHz; for bios convenient
+	UCHAR  ucMisc;        // see PANEL_ENCODER_MISC_xx defintions below
+	UCHAR  ucAction;      // 0: turn off encoder
+	// 1: setup and turn on encoder
+	UCHAR  ucTruncate;    // bit0=0: Disable truncate
+	//     =1: Enable truncate
+	// bit4=0: 666RGB
+	//     =1: 888RGB
+	UCHAR  ucSpatial;     // bit0=0: Disable spatial dithering
+	//     =1: Enable spatial dithering
+	// bit4=0: 666RGB
+	//     =1: 888RGB
+	UCHAR  ucTemporal;    // bit0=0: Disable temporal dithering
+	//     =1: Enable temporal dithering
+	// bit4=0: 666RGB
+	//     =1: 888RGB
+	// bit5=0: Gray level 2
+	//     =1: Gray level 4
+	UCHAR  ucFRC;         // bit4=0: 25FRC_SEL pattern E
+	//     =1: 25FRC_SEL pattern F
+	// bit6:5=0: 50FRC_SEL pattern A
+	//       =1: 50FRC_SEL pattern B
+	//       =2: 50FRC_SEL pattern C
+	//       =3: 50FRC_SEL pattern D
+	// bit7=0: 75FRC_SEL pattern E
+	//     =1: 75FRC_SEL pattern F
+} LVDS_ENCODER_CONTROL_PARAMETERS_V2;
 
 #define LVDS_ENCODER_CONTROL_PS_ALLOCATION_V2  LVDS_ENCODER_CONTROL_PARAMETERS_V2
 
@@ -2463,29 +2484,29 @@ typedef struct _LVDS_ENCODER_CONTROL_PARAMETERS_V2
 /****************************************************************************/
 typedef struct _ENABLE_EXTERNAL_TMDS_ENCODER_PARAMETERS
 {
-  UCHAR    ucEnable;            // Enable or Disable External TMDS encoder
-  UCHAR    ucMisc;              // Bit0=0:Enable Single link;=1:Enable Dual link;Bit1 {=0:666RGB, =1:888RGB}
-  UCHAR    ucPadding[2];
-}ENABLE_EXTERNAL_TMDS_ENCODER_PARAMETERS;
+	UCHAR    ucEnable;            // Enable or Disable External TMDS encoder
+	UCHAR    ucMisc;              // Bit0=0:Enable Single link;=1:Enable Dual link;Bit1 {=0:666RGB, =1:888RGB}
+	UCHAR    ucPadding[2];
+} ENABLE_EXTERNAL_TMDS_ENCODER_PARAMETERS;
 
 typedef struct _ENABLE_EXTERNAL_TMDS_ENCODER_PS_ALLOCATION
 {
-  ENABLE_EXTERNAL_TMDS_ENCODER_PARAMETERS    sXTmdsEncoder;
-  WRITE_ONE_BYTE_HW_I2C_DATA_PS_ALLOCATION   sReserved;     //Caller doesn't need to init this portion
-}ENABLE_EXTERNAL_TMDS_ENCODER_PS_ALLOCATION;
+	ENABLE_EXTERNAL_TMDS_ENCODER_PARAMETERS    sXTmdsEncoder;
+	WRITE_ONE_BYTE_HW_I2C_DATA_PS_ALLOCATION   sReserved;     //Caller doesn't need to init this portion
+} ENABLE_EXTERNAL_TMDS_ENCODER_PS_ALLOCATION;
 
 #define ENABLE_EXTERNAL_TMDS_ENCODER_PARAMETERS_V2  LVDS_ENCODER_CONTROL_PARAMETERS_V2
 typedef struct _ENABLE_EXTERNAL_TMDS_ENCODER_PS_ALLOCATION_V2
 {
-  ENABLE_EXTERNAL_TMDS_ENCODER_PARAMETERS_V2    sXTmdsEncoder;
-  WRITE_ONE_BYTE_HW_I2C_DATA_PS_ALLOCATION      sReserved;     //Caller doesn't need to init this portion
-}ENABLE_EXTERNAL_TMDS_ENCODER_PS_ALLOCATION_V2;
+	ENABLE_EXTERNAL_TMDS_ENCODER_PARAMETERS_V2    sXTmdsEncoder;
+	WRITE_ONE_BYTE_HW_I2C_DATA_PS_ALLOCATION      sReserved;     //Caller doesn't need to init this portion
+} ENABLE_EXTERNAL_TMDS_ENCODER_PS_ALLOCATION_V2;
 
 typedef struct _EXTERNAL_ENCODER_CONTROL_PS_ALLOCATION
 {
-  DIG_ENCODER_CONTROL_PARAMETERS            sDigEncoder;
-  WRITE_ONE_BYTE_HW_I2C_DATA_PS_ALLOCATION sReserved;
-}EXTERNAL_ENCODER_CONTROL_PS_ALLOCATION;
+	DIG_ENCODER_CONTROL_PARAMETERS            sDigEncoder;
+	WRITE_ONE_BYTE_HW_I2C_DATA_PS_ALLOCATION sReserved;
+} EXTERNAL_ENCODER_CONTROL_PS_ALLOCATION;
 
 /****************************************************************************/
 // Structures used by DVOEncoderControlTable
@@ -2502,21 +2523,21 @@ typedef struct _EXTERNAL_ENCODER_CONTROL_PS_ALLOCATION
 
 typedef struct _DVO_ENCODER_CONTROL_PARAMETERS_V3
 {
-  USHORT usPixelClock;
-  UCHAR  ucDVOConfig;
-  UCHAR  ucAction;                                          //ATOM_ENABLE/ATOM_DISABLE/ATOM_HPD_INIT
-  UCHAR  ucReseved[4];
-}DVO_ENCODER_CONTROL_PARAMETERS_V3;
+	USHORT usPixelClock;
+	UCHAR  ucDVOConfig;
+	UCHAR  ucAction;                                          //ATOM_ENABLE/ATOM_DISABLE/ATOM_HPD_INIT
+	UCHAR  ucReseved[4];
+} DVO_ENCODER_CONTROL_PARAMETERS_V3;
 #define DVO_ENCODER_CONTROL_PS_ALLOCATION_V3   DVO_ENCODER_CONTROL_PARAMETERS_V3
 
 typedef struct _DVO_ENCODER_CONTROL_PARAMETERS_V1_4
 {
-  USHORT usPixelClock;
-  UCHAR  ucDVOConfig;
-  UCHAR  ucAction;                                          //ATOM_ENABLE/ATOM_DISABLE/ATOM_HPD_INIT
-  UCHAR  ucBitPerColor;                       //please refer to definition of PANEL_xBIT_PER_COLOR
-  UCHAR  ucReseved[3];
-}DVO_ENCODER_CONTROL_PARAMETERS_V1_4;
+	USHORT usPixelClock;
+	UCHAR  ucDVOConfig;
+	UCHAR  ucAction;                                          //ATOM_ENABLE/ATOM_DISABLE/ATOM_HPD_INIT
+	UCHAR  ucBitPerColor;                       //please refer to definition of PANEL_xBIT_PER_COLOR
+	UCHAR  ucReseved[3];
+} DVO_ENCODER_CONTROL_PARAMETERS_V1_4;
 #define DVO_ENCODER_CONTROL_PS_ALLOCATION_V1_4   DVO_ENCODER_CONTROL_PARAMETERS_V1_4
 
 
@@ -2588,26 +2609,26 @@ typedef struct _DVO_ENCODER_CONTROL_PARAMETERS_V1_4
 
 typedef struct   _SET_VOLTAGE_PARAMETERS
 {
-  UCHAR    ucVoltageType;               // To tell which voltage to set up, VDDC/MVDDC/MVDDQ
-  UCHAR    ucVoltageMode;               // To set all, to set source A or source B or ...
-  UCHAR    ucVoltageIndex;              // An index to tell which voltage level
-  UCHAR    ucReserved;
-}SET_VOLTAGE_PARAMETERS;
+	UCHAR    ucVoltageType;               // To tell which voltage to set up, VDDC/MVDDC/MVDDQ
+	UCHAR    ucVoltageMode;               // To set all, to set source A or source B or ...
+	UCHAR    ucVoltageIndex;              // An index to tell which voltage level
+	UCHAR    ucReserved;
+} SET_VOLTAGE_PARAMETERS;
 
 typedef struct   _SET_VOLTAGE_PARAMETERS_V2
 {
-  UCHAR    ucVoltageType;               // To tell which voltage to set up, VDDC/MVDDC/MVDDQ
-  UCHAR    ucVoltageMode;               // Not used, maybe use for state machine for differen power mode
-  USHORT   usVoltageLevel;              // real voltage level
-}SET_VOLTAGE_PARAMETERS_V2;
+	UCHAR    ucVoltageType;               // To tell which voltage to set up, VDDC/MVDDC/MVDDQ
+	UCHAR    ucVoltageMode;               // Not used, maybe use for state machine for differen power mode
+	USHORT   usVoltageLevel;              // real voltage level
+} SET_VOLTAGE_PARAMETERS_V2;
 
 // used by both SetVoltageTable v1.3 and v1.4
 typedef struct   _SET_VOLTAGE_PARAMETERS_V1_3
 {
-  UCHAR    ucVoltageType;               // To tell which voltage to set up, VDDC/MVDDC/MVDDQ/VDDCI
-  UCHAR    ucVoltageMode;               // Indicate action: Set voltage level
-  USHORT   usVoltageLevel;              // real voltage level in unit of mv or Voltage Phase (0, 1, 2, .. )
-}SET_VOLTAGE_PARAMETERS_V1_3;
+	UCHAR    ucVoltageType;               // To tell which voltage to set up, VDDC/MVDDC/MVDDQ/VDDCI
+	UCHAR    ucVoltageMode;               // Indicate action: Set voltage level
+	USHORT   usVoltageLevel;              // real voltage level in unit of mv or Voltage Phase (0, 1, 2, .. )
+} SET_VOLTAGE_PARAMETERS_V1_3;
 
 //ucVoltageType
 #define VOLTAGE_TYPE_VDDC                    1
@@ -2653,33 +2674,33 @@ typedef struct   _SET_VOLTAGE_PARAMETERS_V1_3
 
 typedef struct _SET_VOLTAGE_PS_ALLOCATION
 {
-  SET_VOLTAGE_PARAMETERS sASICSetVoltage;
-  WRITE_ONE_BYTE_HW_I2C_DATA_PS_ALLOCATION sReserved;
-}SET_VOLTAGE_PS_ALLOCATION;
+	SET_VOLTAGE_PARAMETERS sASICSetVoltage;
+	WRITE_ONE_BYTE_HW_I2C_DATA_PS_ALLOCATION sReserved;
+} SET_VOLTAGE_PS_ALLOCATION;
 
 // New Added from SI for GetVoltageInfoTable, input parameter structure
 typedef struct  _GET_VOLTAGE_INFO_INPUT_PARAMETER_V1_1
 {
-  UCHAR    ucVoltageType;               // Input: To tell which voltage to set up, VDDC/MVDDC/MVDDQ/VDDCI
-  UCHAR    ucVoltageMode;               // Input: Indicate action: Get voltage info
-  USHORT   usVoltageLevel;              // Input: real voltage level in unit of mv or Voltage Phase (0, 1, 2, .. ) or Leakage Id
-  ULONG    ulReserved;
-}GET_VOLTAGE_INFO_INPUT_PARAMETER_V1_1;
+	UCHAR    ucVoltageType;               // Input: To tell which voltage to set up, VDDC/MVDDC/MVDDQ/VDDCI
+	UCHAR    ucVoltageMode;               // Input: Indicate action: Get voltage info
+	USHORT   usVoltageLevel;              // Input: real voltage level in unit of mv or Voltage Phase (0, 1, 2, .. ) or Leakage Id
+	ULONG    ulReserved;
+} GET_VOLTAGE_INFO_INPUT_PARAMETER_V1_1;
 
 // New Added from SI for GetVoltageInfoTable, output parameter structure when ucVotlageMode == ATOM_GET_VOLTAGE_VID
 typedef struct  _GET_VOLTAGE_INFO_OUTPUT_PARAMETER_V1_1
 {
-  ULONG    ulVotlageGpioState;
-  ULONG    ulVoltageGPioMask;
-}GET_VOLTAGE_INFO_OUTPUT_PARAMETER_V1_1;
+	ULONG    ulVotlageGpioState;
+	ULONG    ulVoltageGPioMask;
+} GET_VOLTAGE_INFO_OUTPUT_PARAMETER_V1_1;
 
 // New Added from SI for GetVoltageInfoTable, output parameter structure when ucVotlageMode == ATOM_GET_VOLTAGE_STATEx_LEAKAGE_VID
 typedef struct  _GET_LEAKAGE_VOLTAGE_INFO_OUTPUT_PARAMETER_V1_1
 {
-  USHORT   usVoltageLevel;
-  USHORT   usVoltageId;                                  // Voltage Id programmed in Voltage Regulator
-  ULONG    ulReseved;
-}GET_LEAKAGE_VOLTAGE_INFO_OUTPUT_PARAMETER_V1_1;
+	USHORT   usVoltageLevel;
+	USHORT   usVoltageId;                                  // Voltage Id programmed in Voltage Regulator
+	ULONG    ulReseved;
+} GET_LEAKAGE_VOLTAGE_INFO_OUTPUT_PARAMETER_V1_1;
 
 // GetVoltageInfo v1.1 ucVoltageMode
 #define ATOM_GET_VOLTAGE_VID                0x00
@@ -2699,11 +2720,11 @@ typedef struct  _GET_LEAKAGE_VOLTAGE_INFO_OUTPUT_PARAMETER_V1_1
 // New Added from CI Hawaii for GetVoltageInfoTable, input parameter structure
 typedef struct  _GET_VOLTAGE_INFO_INPUT_PARAMETER_V1_2
 {
-  UCHAR    ucVoltageType;               // Input: To tell which voltage to set up, VDDC/MVDDC/MVDDQ/VDDCI
-  UCHAR    ucVoltageMode;               // Input: Indicate action: Get voltage info
-  USHORT   usVoltageLevel;              // Input: real voltage level in unit of mv or Voltage Phase (0, 1, 2, .. ) or Leakage Id
-  ULONG    ulSCLKFreq;                  // Input: when ucVoltageMode= ATOM_GET_VOLTAGE_EVV_VOLTAGE, DPM state SCLK frequency, Define in PPTable SCLK/Voltage dependence table
-}GET_VOLTAGE_INFO_INPUT_PARAMETER_V1_2;
+	UCHAR    ucVoltageType;               // Input: To tell which voltage to set up, VDDC/MVDDC/MVDDQ/VDDCI
+	UCHAR    ucVoltageMode;               // Input: Indicate action: Get voltage info
+	USHORT   usVoltageLevel;              // Input: real voltage level in unit of mv or Voltage Phase (0, 1, 2, .. ) or Leakage Id
+	ULONG    ulSCLKFreq;                  // Input: when ucVoltageMode= ATOM_GET_VOLTAGE_EVV_VOLTAGE, DPM state SCLK frequency, Define in PPTable SCLK/Voltage dependence table
+} GET_VOLTAGE_INFO_INPUT_PARAMETER_V1_2;
 
 // New in GetVoltageInfo v1.2 ucVoltageMode
 #define ATOM_GET_VOLTAGE_EVV_VOLTAGE        0x09
@@ -2711,29 +2732,29 @@ typedef struct  _GET_VOLTAGE_INFO_INPUT_PARAMETER_V1_2
 // New Added from CI Hawaii for EVV feature
 typedef struct  _GET_EVV_VOLTAGE_INFO_OUTPUT_PARAMETER_V1_2
 {
-  USHORT   usVoltageLevel;                               // real voltage level in unit of mv
-  USHORT   usVoltageId;                                  // Voltage Id programmed in Voltage Regulator
-  USHORT   usTDP_Current;                                // TDP_Current in unit of  0.01A
-  USHORT   usTDP_Power;                                  // TDP_Current in unit  of 0.1W
-}GET_EVV_VOLTAGE_INFO_OUTPUT_PARAMETER_V1_2;
+	USHORT   usVoltageLevel;                               // real voltage level in unit of mv
+	USHORT   usVoltageId;                                  // Voltage Id programmed in Voltage Regulator
+	USHORT   usTDP_Current;                                // TDP_Current in unit of  0.01A
+	USHORT   usTDP_Power;                                  // TDP_Current in unit  of 0.1W
+} GET_EVV_VOLTAGE_INFO_OUTPUT_PARAMETER_V1_2;
 
 
 // New Added from CI Hawaii for GetVoltageInfoTable, input parameter structure
 typedef struct  _GET_VOLTAGE_INFO_INPUT_PARAMETER_V1_3
 {
-  UCHAR    ucVoltageType;               // Input: To tell which voltage to set up, VDDC/MVDDC/MVDDQ/VDDCI
-  UCHAR    ucVoltageMode;               // Input: Indicate action: Get voltage info
-  USHORT   usVoltageLevel;              // Input: real voltage level in unit of mv or Voltage Phase (0, 1, 2, .. ) or Leakage Id
-  ULONG    ulSCLKFreq;                  // Input: when ucVoltageMode= ATOM_GET_VOLTAGE_EVV_VOLTAGE, DPM state SCLK frequency, Define in PPTable SCLK/Voltage dependence table
-  ULONG    ulReserved[3];
-}GET_VOLTAGE_INFO_INPUT_PARAMETER_V1_3;
+	UCHAR    ucVoltageType;               // Input: To tell which voltage to set up, VDDC/MVDDC/MVDDQ/VDDCI
+	UCHAR    ucVoltageMode;               // Input: Indicate action: Get voltage info
+	USHORT   usVoltageLevel;              // Input: real voltage level in unit of mv or Voltage Phase (0, 1, 2, .. ) or Leakage Id
+	ULONG    ulSCLKFreq;                  // Input: when ucVoltageMode= ATOM_GET_VOLTAGE_EVV_VOLTAGE, DPM state SCLK frequency, Define in PPTable SCLK/Voltage dependence table
+	ULONG    ulReserved[3];
+} GET_VOLTAGE_INFO_INPUT_PARAMETER_V1_3;
 
 // New Added from CI Hawaii for EVV feature
 typedef struct  _GET_EVV_VOLTAGE_INFO_OUTPUT_PARAMETER_V1_3
 {
-  ULONG    ulVoltageLevel;                               // real voltage level in unit of 0.01mv
-  ULONG    ulReserved[4];
-}GET_EVV_VOLTAGE_INFO_OUTPUT_PARAMETER_V1_3;
+	ULONG    ulVoltageLevel;                               // real voltage level in unit of 0.01mv
+	ULONG    ulReserved[4];
+} GET_EVV_VOLTAGE_INFO_OUTPUT_PARAMETER_V1_3;
 
 
 /****************************************************************************/
@@ -2741,31 +2762,31 @@ typedef struct  _GET_EVV_VOLTAGE_INFO_OUTPUT_PARAMETER_V1_3
 /****************************************************************************/
 typedef struct  _GET_SMU_CLOCK_INFO_INPUT_PARAMETER_V2_1
 {
-  ULONG ulDfsPllOutputFreq:24;
-  ULONG ucDfsDivider:8;
-}GET_SMU_CLOCK_INFO_INPUT_PARAMETER_V2_1;
+	ULONG ulDfsPllOutputFreq: 24;
+	ULONG ucDfsDivider: 8;
+} GET_SMU_CLOCK_INFO_INPUT_PARAMETER_V2_1;
 
 typedef struct  _GET_SMU_CLOCK_INFO_OUTPUT_PARAMETER_V2_1
 {
-  ULONG ulDfsOutputFreq;
-}GET_SMU_CLOCK_INFO_OUTPUT_PARAMETER_V2_1;
+	ULONG ulDfsOutputFreq;
+} GET_SMU_CLOCK_INFO_OUTPUT_PARAMETER_V2_1;
 
 /****************************************************************************/
 // Structures used by TVEncoderControlTable
 /****************************************************************************/
 typedef struct _TV_ENCODER_CONTROL_PARAMETERS
 {
-  USHORT usPixelClock;                // in 10KHz; for bios convenient
-  UCHAR  ucTvStandard;                // See definition "ATOM_TV_NTSC ..."
-  UCHAR  ucAction;                    // 0: turn off encoder
-                                      // 1: setup and turn on encoder
-}TV_ENCODER_CONTROL_PARAMETERS;
+	USHORT usPixelClock;                // in 10KHz; for bios convenient
+	UCHAR  ucTvStandard;                // See definition "ATOM_TV_NTSC ..."
+	UCHAR  ucAction;                    // 0: turn off encoder
+	// 1: setup and turn on encoder
+} TV_ENCODER_CONTROL_PARAMETERS;
 
 typedef struct _TV_ENCODER_CONTROL_PS_ALLOCATION
 {
-  TV_ENCODER_CONTROL_PARAMETERS sTVEncoder;
-  WRITE_ONE_BYTE_HW_I2C_DATA_PS_ALLOCATION    sReserved; // Don't set this one
-}TV_ENCODER_CONTROL_PS_ALLOCATION;
+	TV_ENCODER_CONTROL_PARAMETERS sTVEncoder;
+	WRITE_ONE_BYTE_HW_I2C_DATA_PS_ALLOCATION    sReserved; // Don't set this one
+} TV_ENCODER_CONTROL_PS_ALLOCATION;
 
 //==============================Data Table Portion====================================
 
@@ -2775,48 +2796,53 @@ typedef struct _TV_ENCODER_CONTROL_PS_ALLOCATION
 /****************************************************************************/
 typedef struct _ATOM_MASTER_LIST_OF_DATA_TABLES
 {
-  USHORT        UtilityPipeLine;          // Offest for the utility to get parser info,Don't change this position!
-  USHORT        MultimediaCapabilityInfo; // Only used by MM Lib,latest version 1.1, not configuable from Bios, need to include the table to build Bios
-  USHORT        MultimediaConfigInfo;     // Only used by MM Lib,latest version 2.1, not configuable from Bios, need to include the table to build Bios
-  USHORT        StandardVESA_Timing;      // Only used by Bios
-  USHORT        FirmwareInfo;             // Shared by various SW components,latest version 1.4
-  USHORT        PaletteData;              // Only used by BIOS
-  USHORT        LCD_Info;                 // Shared by various SW components,latest version 1.3, was called LVDS_Info
-  USHORT        DIGTransmitterInfo;       // Internal used by VBIOS only version 3.1
-  USHORT        SMU_Info;                 // Shared by various SW components,latest version 1.1
-  USHORT        SupportedDevicesInfo;     // Will be obsolete from R600
-  USHORT        GPIO_I2C_Info;            // Shared by various SW components,latest version 1.2 will be used from R600
-  USHORT        VRAM_UsageByFirmware;     // Shared by various SW components,latest version 1.3 will be used from R600
-  USHORT        GPIO_Pin_LUT;             // Shared by various SW components,latest version 1.1
-  USHORT        VESA_ToInternalModeLUT;   // Only used by Bios
-  USHORT        GFX_Info;                 // Shared by various SW components,latest version 2.1 will be used from R600
-  USHORT        PowerPlayInfo;            // Shared by various SW components,latest version 2.1,new design from R600
-  USHORT        GPUVirtualizationInfo;    // Will be obsolete from R600
-  USHORT        SaveRestoreInfo;          // Only used by Bios
-  USHORT        PPLL_SS_Info;             // Shared by various SW components,latest version 1.2, used to call SS_Info, change to new name because of int ASIC SS info
-  USHORT        OemInfo;                  // Defined and used by external SW, should be obsolete soon
-  USHORT        XTMDS_Info;               // Will be obsolete from R600
-  USHORT        MclkSS_Info;              // Shared by various SW components,latest version 1.1, only enabled when ext SS chip is used
-  USHORT        Object_Header;            // Shared by various SW components,latest version 1.1
-  USHORT        IndirectIOAccess;         // Only used by Bios,this table position can't change at all!!
-  USHORT        MC_InitParameter;         // Only used by command table
-  USHORT        ASIC_VDDC_Info;           // Will be obsolete from R600
-  USHORT        ASIC_InternalSS_Info;     // New tabel name from R600, used to be called "ASIC_MVDDC_Info"
-  USHORT        TV_VideoMode;             // Only used by command table
-  USHORT        VRAM_Info;                // Only used by command table, latest version 1.3
-  USHORT        MemoryTrainingInfo;       // Used for VBIOS and Diag utility for memory training purpose since R600. the new table rev start from 2.1
-  USHORT        IntegratedSystemInfo;     // Shared by various SW components
-  USHORT        ASIC_ProfilingInfo;       // New table name from R600, used to be called "ASIC_VDDCI_Info" for pre-R600
-  USHORT        VoltageObjectInfo;        // Shared by various SW components, latest version 1.1
-  USHORT        PowerSourceInfo;          // Shared by various SW components, latest versoin 1.1
-  USHORT        ServiceInfo;
-}ATOM_MASTER_LIST_OF_DATA_TABLES;
+	USHORT        UtilityPipeLine;          // Offest for the utility to get parser info,Don't change this position!
+	USHORT
+	MultimediaCapabilityInfo; // Only used by MM Lib,latest version 1.1, not configuable from Bios, need to include the table to build Bios
+	USHORT
+	MultimediaConfigInfo;     // Only used by MM Lib,latest version 2.1, not configuable from Bios, need to include the table to build Bios
+	USHORT        StandardVESA_Timing;      // Only used by Bios
+	USHORT        FirmwareInfo;             // Shared by various SW components,latest version 1.4
+	USHORT        PaletteData;              // Only used by BIOS
+	USHORT        LCD_Info;                 // Shared by various SW components,latest version 1.3, was called LVDS_Info
+	USHORT        DIGTransmitterInfo;       // Internal used by VBIOS only version 3.1
+	USHORT        SMU_Info;                 // Shared by various SW components,latest version 1.1
+	USHORT        SupportedDevicesInfo;     // Will be obsolete from R600
+	USHORT        GPIO_I2C_Info;            // Shared by various SW components,latest version 1.2 will be used from R600
+	USHORT        VRAM_UsageByFirmware;     // Shared by various SW components,latest version 1.3 will be used from R600
+	USHORT        GPIO_Pin_LUT;             // Shared by various SW components,latest version 1.1
+	USHORT        VESA_ToInternalModeLUT;   // Only used by Bios
+	USHORT        GFX_Info;                 // Shared by various SW components,latest version 2.1 will be used from R600
+	USHORT        PowerPlayInfo;            // Shared by various SW components,latest version 2.1,new design from R600
+	USHORT        GPUVirtualizationInfo;    // Will be obsolete from R600
+	USHORT        SaveRestoreInfo;          // Only used by Bios
+	USHORT
+	PPLL_SS_Info;             // Shared by various SW components,latest version 1.2, used to call SS_Info, change to new name because of int ASIC SS info
+	USHORT        OemInfo;                  // Defined and used by external SW, should be obsolete soon
+	USHORT        XTMDS_Info;               // Will be obsolete from R600
+	USHORT
+	MclkSS_Info;              // Shared by various SW components,latest version 1.1, only enabled when ext SS chip is used
+	USHORT        Object_Header;            // Shared by various SW components,latest version 1.1
+	USHORT        IndirectIOAccess;         // Only used by Bios,this table position can't change at all!!
+	USHORT        MC_InitParameter;         // Only used by command table
+	USHORT        ASIC_VDDC_Info;           // Will be obsolete from R600
+	USHORT        ASIC_InternalSS_Info;     // New tabel name from R600, used to be called "ASIC_MVDDC_Info"
+	USHORT        TV_VideoMode;             // Only used by command table
+	USHORT        VRAM_Info;                // Only used by command table, latest version 1.3
+	USHORT
+	MemoryTrainingInfo;       // Used for VBIOS and Diag utility for memory training purpose since R600. the new table rev start from 2.1
+	USHORT        IntegratedSystemInfo;     // Shared by various SW components
+	USHORT        ASIC_ProfilingInfo;       // New table name from R600, used to be called "ASIC_VDDCI_Info" for pre-R600
+	USHORT        VoltageObjectInfo;        // Shared by various SW components, latest version 1.1
+	USHORT        PowerSourceInfo;          // Shared by various SW components, latest versoin 1.1
+	USHORT        ServiceInfo;
+} ATOM_MASTER_LIST_OF_DATA_TABLES;
 
 typedef struct _ATOM_MASTER_DATA_TABLE
 {
-  ATOM_COMMON_TABLE_HEADER sHeader;
-  ATOM_MASTER_LIST_OF_DATA_TABLES   ListOfDataTables;
-}ATOM_MASTER_DATA_TABLE;
+	ATOM_COMMON_TABLE_HEADER sHeader;
+	ATOM_MASTER_LIST_OF_DATA_TABLES   ListOfDataTables;
+} ATOM_MASTER_DATA_TABLE;
 
 // For backward compatible
 #define LVDS_Info                LCD_Info
@@ -2831,13 +2857,14 @@ typedef struct _ATOM_MASTER_DATA_TABLE
 /****************************************************************************/
 typedef struct _ATOM_MULTIMEDIA_CAPABILITY_INFO
 {
-  ATOM_COMMON_TABLE_HEADER sHeader;
-  ULONG                    ulSignature;      // HW info table signature string "$ATI"
-  UCHAR                    ucI2C_Type;       // I2C type (normal GP_IO, ImpactTV GP_IO, Dedicated I2C pin, etc)
-  UCHAR                    ucTV_OutInfo;     // Type of TV out supported (3:0) and video out crystal frequency (6:4) and TV data port (7)
-  UCHAR                    ucVideoPortInfo;  // Provides the video port capabilities
-  UCHAR                    ucHostPortInfo;   // Provides host port configuration information
-}ATOM_MULTIMEDIA_CAPABILITY_INFO;
+	ATOM_COMMON_TABLE_HEADER sHeader;
+	ULONG                    ulSignature;      // HW info table signature string "$ATI"
+	UCHAR                    ucI2C_Type;       // I2C type (normal GP_IO, ImpactTV GP_IO, Dedicated I2C pin, etc)
+	UCHAR
+	ucTV_OutInfo;     // Type of TV out supported (3:0) and video out crystal frequency (6:4) and TV data port (7)
+	UCHAR                    ucVideoPortInfo;  // Provides the video port capabilities
+	UCHAR                    ucHostPortInfo;   // Provides host port configuration information
+} ATOM_MULTIMEDIA_CAPABILITY_INFO;
 
 
 /****************************************************************************/
@@ -2845,21 +2872,29 @@ typedef struct _ATOM_MULTIMEDIA_CAPABILITY_INFO
 /****************************************************************************/
 typedef struct _ATOM_MULTIMEDIA_CONFIG_INFO
 {
-  ATOM_COMMON_TABLE_HEADER sHeader;
-  ULONG                    ulSignature;      // MM info table signature sting "$MMT"
-  UCHAR                    ucTunerInfo;      // Type of tuner installed on the adapter (4:0) and video input for tuner (7:5)
-  UCHAR                    ucAudioChipInfo;  // List the audio chip type (3:0) product type (4) and OEM revision (7:5)
-  UCHAR                    ucProductID;      // Defines as OEM ID or ATI board ID dependent on product type setting
-  UCHAR                    ucMiscInfo1;      // Tuner voltage (1:0) HW teletext support (3:2) FM audio decoder (5:4) reserved (6) audio scrambling (7)
-  UCHAR                    ucMiscInfo2;      // I2S input config (0) I2S output config (1) I2S Audio Chip (4:2) SPDIF Output Config (5) reserved (7:6)
-  UCHAR                    ucMiscInfo3;      // Video Decoder Type (3:0) Video In Standard/Crystal (7:4)
-  UCHAR                    ucMiscInfo4;      // Video Decoder Host Config (2:0) reserved (7:3)
-  UCHAR                    ucVideoInput0Info;// Video Input 0 Type (1:0) F/B setting (2) physical connector ID (5:3) reserved (7:6)
-  UCHAR                    ucVideoInput1Info;// Video Input 1 Type (1:0) F/B setting (2) physical connector ID (5:3) reserved (7:6)
-  UCHAR                    ucVideoInput2Info;// Video Input 2 Type (1:0) F/B setting (2) physical connector ID (5:3) reserved (7:6)
-  UCHAR                    ucVideoInput3Info;// Video Input 3 Type (1:0) F/B setting (2) physical connector ID (5:3) reserved (7:6)
-  UCHAR                    ucVideoInput4Info;// Video Input 4 Type (1:0) F/B setting (2) physical connector ID (5:3) reserved (7:6)
-}ATOM_MULTIMEDIA_CONFIG_INFO;
+	ATOM_COMMON_TABLE_HEADER sHeader;
+	ULONG                    ulSignature;      // MM info table signature sting "$MMT"
+	UCHAR
+	ucTunerInfo;      // Type of tuner installed on the adapter (4:0) and video input for tuner (7:5)
+	UCHAR                    ucAudioChipInfo;  // List the audio chip type (3:0) product type (4) and OEM revision (7:5)
+	UCHAR                    ucProductID;      // Defines as OEM ID or ATI board ID dependent on product type setting
+	UCHAR
+	ucMiscInfo1;      // Tuner voltage (1:0) HW teletext support (3:2) FM audio decoder (5:4) reserved (6) audio scrambling (7)
+	UCHAR
+	ucMiscInfo2;      // I2S input config (0) I2S output config (1) I2S Audio Chip (4:2) SPDIF Output Config (5) reserved (7:6)
+	UCHAR                    ucMiscInfo3;      // Video Decoder Type (3:0) Video In Standard/Crystal (7:4)
+	UCHAR                    ucMiscInfo4;      // Video Decoder Host Config (2:0) reserved (7:3)
+	UCHAR
+	ucVideoInput0Info;// Video Input 0 Type (1:0) F/B setting (2) physical connector ID (5:3) reserved (7:6)
+	UCHAR
+	ucVideoInput1Info;// Video Input 1 Type (1:0) F/B setting (2) physical connector ID (5:3) reserved (7:6)
+	UCHAR
+	ucVideoInput2Info;// Video Input 2 Type (1:0) F/B setting (2) physical connector ID (5:3) reserved (7:6)
+	UCHAR
+	ucVideoInput3Info;// Video Input 3 Type (1:0) F/B setting (2) physical connector ID (5:3) reserved (7:6)
+	UCHAR
+	ucVideoInput4Info;// Video Input 4 Type (1:0) F/B setting (2) physical connector ID (5:3) reserved (7:6)
+} ATOM_MULTIMEDIA_CONFIG_INFO;
 
 
 /****************************************************************************/
@@ -2893,235 +2928,236 @@ typedef struct _ATOM_MULTIMEDIA_CONFIG_INFO
 typedef struct _ATOM_FIRMWARE_CAPABILITY
 {
 #if ATOM_BIG_ENDIAN
-  USHORT Reserved:1;
-  USHORT SCL2Redefined:1;
-  USHORT PostWithoutModeSet:1;
-  USHORT HyperMemory_Size:4;
-  USHORT HyperMemory_Support:1;
-  USHORT PPMode_Assigned:1;
-  USHORT WMI_SUPPORT:1;
-  USHORT GPUControlsBL:1;
-  USHORT EngineClockSS_Support:1;
-  USHORT MemoryClockSS_Support:1;
-  USHORT ExtendedDesktopSupport:1;
-  USHORT DualCRTC_Support:1;
-  USHORT FirmwarePosted:1;
+	USHORT Reserved: 1;
+	USHORT SCL2Redefined: 1;
+	USHORT PostWithoutModeSet: 1;
+	USHORT HyperMemory_Size: 4;
+	USHORT HyperMemory_Support: 1;
+	USHORT PPMode_Assigned: 1;
+	USHORT WMI_SUPPORT: 1;
+	USHORT GPUControlsBL: 1;
+	USHORT EngineClockSS_Support: 1;
+	USHORT MemoryClockSS_Support: 1;
+	USHORT ExtendedDesktopSupport: 1;
+	USHORT DualCRTC_Support: 1;
+	USHORT FirmwarePosted: 1;
 #else
-  USHORT FirmwarePosted:1;
-  USHORT DualCRTC_Support:1;
-  USHORT ExtendedDesktopSupport:1;
-  USHORT MemoryClockSS_Support:1;
-  USHORT EngineClockSS_Support:1;
-  USHORT GPUControlsBL:1;
-  USHORT WMI_SUPPORT:1;
-  USHORT PPMode_Assigned:1;
-  USHORT HyperMemory_Support:1;
-  USHORT HyperMemory_Size:4;
-  USHORT PostWithoutModeSet:1;
-  USHORT SCL2Redefined:1;
-  USHORT Reserved:1;
+	USHORT FirmwarePosted: 1;
+	USHORT DualCRTC_Support: 1;
+	USHORT ExtendedDesktopSupport: 1;
+	USHORT MemoryClockSS_Support: 1;
+	USHORT EngineClockSS_Support: 1;
+	USHORT GPUControlsBL: 1;
+	USHORT WMI_SUPPORT: 1;
+	USHORT PPMode_Assigned: 1;
+	USHORT HyperMemory_Support: 1;
+	USHORT HyperMemory_Size: 4;
+	USHORT PostWithoutModeSet: 1;
+	USHORT SCL2Redefined: 1;
+	USHORT Reserved: 1;
 #endif
-}ATOM_FIRMWARE_CAPABILITY;
+} ATOM_FIRMWARE_CAPABILITY;
 
 typedef union _ATOM_FIRMWARE_CAPABILITY_ACCESS
 {
-  ATOM_FIRMWARE_CAPABILITY sbfAccess;
-  USHORT                   susAccess;
-}ATOM_FIRMWARE_CAPABILITY_ACCESS;
+	ATOM_FIRMWARE_CAPABILITY sbfAccess;
+	USHORT                   susAccess;
+} ATOM_FIRMWARE_CAPABILITY_ACCESS;
 
 #else
 
 typedef union _ATOM_FIRMWARE_CAPABILITY_ACCESS
 {
-  USHORT                   susAccess;
-}ATOM_FIRMWARE_CAPABILITY_ACCESS;
+	USHORT                   susAccess;
+} ATOM_FIRMWARE_CAPABILITY_ACCESS;
 
 #endif
 
 typedef struct _ATOM_FIRMWARE_INFO
 {
-  ATOM_COMMON_TABLE_HEADER        sHeader;
-  ULONG                           ulFirmwareRevision;
-  ULONG                           ulDefaultEngineClock;       //In 10Khz unit
-  ULONG                           ulDefaultMemoryClock;       //In 10Khz unit
-  ULONG                           ulDriverTargetEngineClock;  //In 10Khz unit
-  ULONG                           ulDriverTargetMemoryClock;  //In 10Khz unit
-  ULONG                           ulMaxEngineClockPLL_Output; //In 10Khz unit
-  ULONG                           ulMaxMemoryClockPLL_Output; //In 10Khz unit
-  ULONG                           ulMaxPixelClockPLL_Output;  //In 10Khz unit
-  ULONG                           ulASICMaxEngineClock;       //In 10Khz unit
-  ULONG                           ulASICMaxMemoryClock;       //In 10Khz unit
-  UCHAR                           ucASICMaxTemperature;
-  UCHAR                           ucPadding[3];               //Don't use them
-  ULONG                           aulReservedForBIOS[3];      //Don't use them
-  USHORT                          usMinEngineClockPLL_Input;  //In 10Khz unit
-  USHORT                          usMaxEngineClockPLL_Input;  //In 10Khz unit
-  USHORT                          usMinEngineClockPLL_Output; //In 10Khz unit
-  USHORT                          usMinMemoryClockPLL_Input;  //In 10Khz unit
-  USHORT                          usMaxMemoryClockPLL_Input;  //In 10Khz unit
-  USHORT                          usMinMemoryClockPLL_Output; //In 10Khz unit
-  USHORT                          usMaxPixelClock;            //In 10Khz unit, Max.  Pclk
-  USHORT                          usMinPixelClockPLL_Input;   //In 10Khz unit
-  USHORT                          usMaxPixelClockPLL_Input;   //In 10Khz unit
-  USHORT                          usMinPixelClockPLL_Output;  //In 10Khz unit, the definitions above can't change!!!
-  ATOM_FIRMWARE_CAPABILITY_ACCESS usFirmwareCapability;
-  USHORT                          usReferenceClock;           //In 10Khz unit
-  USHORT                          usPM_RTS_Location;          //RTS PM4 starting location in ROM in 1Kb unit
-  UCHAR                           ucPM_RTS_StreamSize;        //RTS PM4 packets in Kb unit
-  UCHAR                           ucDesign_ID;                //Indicate what is the board design
-  UCHAR                           ucMemoryModule_ID;          //Indicate what is the board design
-}ATOM_FIRMWARE_INFO;
+	ATOM_COMMON_TABLE_HEADER        sHeader;
+	ULONG                           ulFirmwareRevision;
+	ULONG                           ulDefaultEngineClock;       //In 10Khz unit
+	ULONG                           ulDefaultMemoryClock;       //In 10Khz unit
+	ULONG                           ulDriverTargetEngineClock;  //In 10Khz unit
+	ULONG                           ulDriverTargetMemoryClock;  //In 10Khz unit
+	ULONG                           ulMaxEngineClockPLL_Output; //In 10Khz unit
+	ULONG                           ulMaxMemoryClockPLL_Output; //In 10Khz unit
+	ULONG                           ulMaxPixelClockPLL_Output;  //In 10Khz unit
+	ULONG                           ulASICMaxEngineClock;       //In 10Khz unit
+	ULONG                           ulASICMaxMemoryClock;       //In 10Khz unit
+	UCHAR                           ucASICMaxTemperature;
+	UCHAR                           ucPadding[3];               //Don't use them
+	ULONG                           aulReservedForBIOS[3];      //Don't use them
+	USHORT                          usMinEngineClockPLL_Input;  //In 10Khz unit
+	USHORT                          usMaxEngineClockPLL_Input;  //In 10Khz unit
+	USHORT                          usMinEngineClockPLL_Output; //In 10Khz unit
+	USHORT                          usMinMemoryClockPLL_Input;  //In 10Khz unit
+	USHORT                          usMaxMemoryClockPLL_Input;  //In 10Khz unit
+	USHORT                          usMinMemoryClockPLL_Output; //In 10Khz unit
+	USHORT                          usMaxPixelClock;            //In 10Khz unit, Max.  Pclk
+	USHORT                          usMinPixelClockPLL_Input;   //In 10Khz unit
+	USHORT                          usMaxPixelClockPLL_Input;   //In 10Khz unit
+	USHORT                          usMinPixelClockPLL_Output;  //In 10Khz unit, the definitions above can't change!!!
+	ATOM_FIRMWARE_CAPABILITY_ACCESS usFirmwareCapability;
+	USHORT                          usReferenceClock;           //In 10Khz unit
+	USHORT                          usPM_RTS_Location;          //RTS PM4 starting location in ROM in 1Kb unit
+	UCHAR                           ucPM_RTS_StreamSize;        //RTS PM4 packets in Kb unit
+	UCHAR                           ucDesign_ID;                //Indicate what is the board design
+	UCHAR                           ucMemoryModule_ID;          //Indicate what is the board design
+} ATOM_FIRMWARE_INFO;
 
 typedef struct _ATOM_FIRMWARE_INFO_V1_2
 {
-  ATOM_COMMON_TABLE_HEADER        sHeader;
-  ULONG                           ulFirmwareRevision;
-  ULONG                           ulDefaultEngineClock;       //In 10Khz unit
-  ULONG                           ulDefaultMemoryClock;       //In 10Khz unit
-  ULONG                           ulDriverTargetEngineClock;  //In 10Khz unit
-  ULONG                           ulDriverTargetMemoryClock;  //In 10Khz unit
-  ULONG                           ulMaxEngineClockPLL_Output; //In 10Khz unit
-  ULONG                           ulMaxMemoryClockPLL_Output; //In 10Khz unit
-  ULONG                           ulMaxPixelClockPLL_Output;  //In 10Khz unit
-  ULONG                           ulASICMaxEngineClock;       //In 10Khz unit
-  ULONG                           ulASICMaxMemoryClock;       //In 10Khz unit
-  UCHAR                           ucASICMaxTemperature;
-  UCHAR                           ucMinAllowedBL_Level;
-  UCHAR                           ucPadding[2];               //Don't use them
-  ULONG                           aulReservedForBIOS[2];      //Don't use them
-  ULONG                           ulMinPixelClockPLL_Output;  //In 10Khz unit
-  USHORT                          usMinEngineClockPLL_Input;  //In 10Khz unit
-  USHORT                          usMaxEngineClockPLL_Input;  //In 10Khz unit
-  USHORT                          usMinEngineClockPLL_Output; //In 10Khz unit
-  USHORT                          usMinMemoryClockPLL_Input;  //In 10Khz unit
-  USHORT                          usMaxMemoryClockPLL_Input;  //In 10Khz unit
-  USHORT                          usMinMemoryClockPLL_Output; //In 10Khz unit
-  USHORT                          usMaxPixelClock;            //In 10Khz unit, Max.  Pclk
-  USHORT                          usMinPixelClockPLL_Input;   //In 10Khz unit
-  USHORT                          usMaxPixelClockPLL_Input;   //In 10Khz unit
-  USHORT                          usMinPixelClockPLL_Output;  //In 10Khz unit - lower 16bit of ulMinPixelClockPLL_Output
-  ATOM_FIRMWARE_CAPABILITY_ACCESS usFirmwareCapability;
-  USHORT                          usReferenceClock;           //In 10Khz unit
-  USHORT                          usPM_RTS_Location;          //RTS PM4 starting location in ROM in 1Kb unit
-  UCHAR                           ucPM_RTS_StreamSize;        //RTS PM4 packets in Kb unit
-  UCHAR                           ucDesign_ID;                //Indicate what is the board design
-  UCHAR                           ucMemoryModule_ID;          //Indicate what is the board design
-}ATOM_FIRMWARE_INFO_V1_2;
+	ATOM_COMMON_TABLE_HEADER        sHeader;
+	ULONG                           ulFirmwareRevision;
+	ULONG                           ulDefaultEngineClock;       //In 10Khz unit
+	ULONG                           ulDefaultMemoryClock;       //In 10Khz unit
+	ULONG                           ulDriverTargetEngineClock;  //In 10Khz unit
+	ULONG                           ulDriverTargetMemoryClock;  //In 10Khz unit
+	ULONG                           ulMaxEngineClockPLL_Output; //In 10Khz unit
+	ULONG                           ulMaxMemoryClockPLL_Output; //In 10Khz unit
+	ULONG                           ulMaxPixelClockPLL_Output;  //In 10Khz unit
+	ULONG                           ulASICMaxEngineClock;       //In 10Khz unit
+	ULONG                           ulASICMaxMemoryClock;       //In 10Khz unit
+	UCHAR                           ucASICMaxTemperature;
+	UCHAR                           ucMinAllowedBL_Level;
+	UCHAR                           ucPadding[2];               //Don't use them
+	ULONG                           aulReservedForBIOS[2];      //Don't use them
+	ULONG                           ulMinPixelClockPLL_Output;  //In 10Khz unit
+	USHORT                          usMinEngineClockPLL_Input;  //In 10Khz unit
+	USHORT                          usMaxEngineClockPLL_Input;  //In 10Khz unit
+	USHORT                          usMinEngineClockPLL_Output; //In 10Khz unit
+	USHORT                          usMinMemoryClockPLL_Input;  //In 10Khz unit
+	USHORT                          usMaxMemoryClockPLL_Input;  //In 10Khz unit
+	USHORT                          usMinMemoryClockPLL_Output; //In 10Khz unit
+	USHORT                          usMaxPixelClock;            //In 10Khz unit, Max.  Pclk
+	USHORT                          usMinPixelClockPLL_Input;   //In 10Khz unit
+	USHORT                          usMaxPixelClockPLL_Input;   //In 10Khz unit
+	USHORT                          usMinPixelClockPLL_Output;  //In 10Khz unit - lower 16bit of ulMinPixelClockPLL_Output
+	ATOM_FIRMWARE_CAPABILITY_ACCESS usFirmwareCapability;
+	USHORT                          usReferenceClock;           //In 10Khz unit
+	USHORT                          usPM_RTS_Location;          //RTS PM4 starting location in ROM in 1Kb unit
+	UCHAR                           ucPM_RTS_StreamSize;        //RTS PM4 packets in Kb unit
+	UCHAR                           ucDesign_ID;                //Indicate what is the board design
+	UCHAR                           ucMemoryModule_ID;          //Indicate what is the board design
+} ATOM_FIRMWARE_INFO_V1_2;
 
 typedef struct _ATOM_FIRMWARE_INFO_V1_3
 {
-  ATOM_COMMON_TABLE_HEADER        sHeader;
-  ULONG                           ulFirmwareRevision;
-  ULONG                           ulDefaultEngineClock;       //In 10Khz unit
-  ULONG                           ulDefaultMemoryClock;       //In 10Khz unit
-  ULONG                           ulDriverTargetEngineClock;  //In 10Khz unit
-  ULONG                           ulDriverTargetMemoryClock;  //In 10Khz unit
-  ULONG                           ulMaxEngineClockPLL_Output; //In 10Khz unit
-  ULONG                           ulMaxMemoryClockPLL_Output; //In 10Khz unit
-  ULONG                           ulMaxPixelClockPLL_Output;  //In 10Khz unit
-  ULONG                           ulASICMaxEngineClock;       //In 10Khz unit
-  ULONG                           ulASICMaxMemoryClock;       //In 10Khz unit
-  UCHAR                           ucASICMaxTemperature;
-  UCHAR                           ucMinAllowedBL_Level;
-  UCHAR                           ucPadding[2];               //Don't use them
-  ULONG                           aulReservedForBIOS;         //Don't use them
-  ULONG                           ul3DAccelerationEngineClock;//In 10Khz unit
-  ULONG                           ulMinPixelClockPLL_Output;  //In 10Khz unit
-  USHORT                          usMinEngineClockPLL_Input;  //In 10Khz unit
-  USHORT                          usMaxEngineClockPLL_Input;  //In 10Khz unit
-  USHORT                          usMinEngineClockPLL_Output; //In 10Khz unit
-  USHORT                          usMinMemoryClockPLL_Input;  //In 10Khz unit
-  USHORT                          usMaxMemoryClockPLL_Input;  //In 10Khz unit
-  USHORT                          usMinMemoryClockPLL_Output; //In 10Khz unit
-  USHORT                          usMaxPixelClock;            //In 10Khz unit, Max.  Pclk
-  USHORT                          usMinPixelClockPLL_Input;   //In 10Khz unit
-  USHORT                          usMaxPixelClockPLL_Input;   //In 10Khz unit
-  USHORT                          usMinPixelClockPLL_Output;  //In 10Khz unit - lower 16bit of ulMinPixelClockPLL_Output
-  ATOM_FIRMWARE_CAPABILITY_ACCESS usFirmwareCapability;
-  USHORT                          usReferenceClock;           //In 10Khz unit
-  USHORT                          usPM_RTS_Location;          //RTS PM4 starting location in ROM in 1Kb unit
-  UCHAR                           ucPM_RTS_StreamSize;        //RTS PM4 packets in Kb unit
-  UCHAR                           ucDesign_ID;                //Indicate what is the board design
-  UCHAR                           ucMemoryModule_ID;          //Indicate what is the board design
-}ATOM_FIRMWARE_INFO_V1_3;
+	ATOM_COMMON_TABLE_HEADER        sHeader;
+	ULONG                           ulFirmwareRevision;
+	ULONG                           ulDefaultEngineClock;       //In 10Khz unit
+	ULONG                           ulDefaultMemoryClock;       //In 10Khz unit
+	ULONG                           ulDriverTargetEngineClock;  //In 10Khz unit
+	ULONG                           ulDriverTargetMemoryClock;  //In 10Khz unit
+	ULONG                           ulMaxEngineClockPLL_Output; //In 10Khz unit
+	ULONG                           ulMaxMemoryClockPLL_Output; //In 10Khz unit
+	ULONG                           ulMaxPixelClockPLL_Output;  //In 10Khz unit
+	ULONG                           ulASICMaxEngineClock;       //In 10Khz unit
+	ULONG                           ulASICMaxMemoryClock;       //In 10Khz unit
+	UCHAR                           ucASICMaxTemperature;
+	UCHAR                           ucMinAllowedBL_Level;
+	UCHAR                           ucPadding[2];               //Don't use them
+	ULONG                           aulReservedForBIOS;         //Don't use them
+	ULONG                           ul3DAccelerationEngineClock;//In 10Khz unit
+	ULONG                           ulMinPixelClockPLL_Output;  //In 10Khz unit
+	USHORT                          usMinEngineClockPLL_Input;  //In 10Khz unit
+	USHORT                          usMaxEngineClockPLL_Input;  //In 10Khz unit
+	USHORT                          usMinEngineClockPLL_Output; //In 10Khz unit
+	USHORT                          usMinMemoryClockPLL_Input;  //In 10Khz unit
+	USHORT                          usMaxMemoryClockPLL_Input;  //In 10Khz unit
+	USHORT                          usMinMemoryClockPLL_Output; //In 10Khz unit
+	USHORT                          usMaxPixelClock;            //In 10Khz unit, Max.  Pclk
+	USHORT                          usMinPixelClockPLL_Input;   //In 10Khz unit
+	USHORT                          usMaxPixelClockPLL_Input;   //In 10Khz unit
+	USHORT                          usMinPixelClockPLL_Output;  //In 10Khz unit - lower 16bit of ulMinPixelClockPLL_Output
+	ATOM_FIRMWARE_CAPABILITY_ACCESS usFirmwareCapability;
+	USHORT                          usReferenceClock;           //In 10Khz unit
+	USHORT                          usPM_RTS_Location;          //RTS PM4 starting location in ROM in 1Kb unit
+	UCHAR                           ucPM_RTS_StreamSize;        //RTS PM4 packets in Kb unit
+	UCHAR                           ucDesign_ID;                //Indicate what is the board design
+	UCHAR                           ucMemoryModule_ID;          //Indicate what is the board design
+} ATOM_FIRMWARE_INFO_V1_3;
 
 typedef struct _ATOM_FIRMWARE_INFO_V1_4
 {
-  ATOM_COMMON_TABLE_HEADER        sHeader;
-  ULONG                           ulFirmwareRevision;
-  ULONG                           ulDefaultEngineClock;       //In 10Khz unit
-  ULONG                           ulDefaultMemoryClock;       //In 10Khz unit
-  ULONG                           ulDriverTargetEngineClock;  //In 10Khz unit
-  ULONG                           ulDriverTargetMemoryClock;  //In 10Khz unit
-  ULONG                           ulMaxEngineClockPLL_Output; //In 10Khz unit
-  ULONG                           ulMaxMemoryClockPLL_Output; //In 10Khz unit
-  ULONG                           ulMaxPixelClockPLL_Output;  //In 10Khz unit
-  ULONG                           ulASICMaxEngineClock;       //In 10Khz unit
-  ULONG                           ulASICMaxMemoryClock;       //In 10Khz unit
-  UCHAR                           ucASICMaxTemperature;
-  UCHAR                           ucMinAllowedBL_Level;
-  USHORT                          usBootUpVDDCVoltage;        //In MV unit
-  USHORT                          usLcdMinPixelClockPLL_Output; // In MHz unit
-  USHORT                          usLcdMaxPixelClockPLL_Output; // In MHz unit
-  ULONG                           ul3DAccelerationEngineClock;//In 10Khz unit
-  ULONG                           ulMinPixelClockPLL_Output;  //In 10Khz unit
-  USHORT                          usMinEngineClockPLL_Input;  //In 10Khz unit
-  USHORT                          usMaxEngineClockPLL_Input;  //In 10Khz unit
-  USHORT                          usMinEngineClockPLL_Output; //In 10Khz unit
-  USHORT                          usMinMemoryClockPLL_Input;  //In 10Khz unit
-  USHORT                          usMaxMemoryClockPLL_Input;  //In 10Khz unit
-  USHORT                          usMinMemoryClockPLL_Output; //In 10Khz unit
-  USHORT                          usMaxPixelClock;            //In 10Khz unit, Max.  Pclk
-  USHORT                          usMinPixelClockPLL_Input;   //In 10Khz unit
-  USHORT                          usMaxPixelClockPLL_Input;   //In 10Khz unit
-  USHORT                          usMinPixelClockPLL_Output;  //In 10Khz unit - lower 16bit of ulMinPixelClockPLL_Output
-  ATOM_FIRMWARE_CAPABILITY_ACCESS usFirmwareCapability;
-  USHORT                          usReferenceClock;           //In 10Khz unit
-  USHORT                          usPM_RTS_Location;          //RTS PM4 starting location in ROM in 1Kb unit
-  UCHAR                           ucPM_RTS_StreamSize;        //RTS PM4 packets in Kb unit
-  UCHAR                           ucDesign_ID;                //Indicate what is the board design
-  UCHAR                           ucMemoryModule_ID;          //Indicate what is the board design
-}ATOM_FIRMWARE_INFO_V1_4;
+	ATOM_COMMON_TABLE_HEADER        sHeader;
+	ULONG                           ulFirmwareRevision;
+	ULONG                           ulDefaultEngineClock;       //In 10Khz unit
+	ULONG                           ulDefaultMemoryClock;       //In 10Khz unit
+	ULONG                           ulDriverTargetEngineClock;  //In 10Khz unit
+	ULONG                           ulDriverTargetMemoryClock;  //In 10Khz unit
+	ULONG                           ulMaxEngineClockPLL_Output; //In 10Khz unit
+	ULONG                           ulMaxMemoryClockPLL_Output; //In 10Khz unit
+	ULONG                           ulMaxPixelClockPLL_Output;  //In 10Khz unit
+	ULONG                           ulASICMaxEngineClock;       //In 10Khz unit
+	ULONG                           ulASICMaxMemoryClock;       //In 10Khz unit
+	UCHAR                           ucASICMaxTemperature;
+	UCHAR                           ucMinAllowedBL_Level;
+	USHORT                          usBootUpVDDCVoltage;        //In MV unit
+	USHORT                          usLcdMinPixelClockPLL_Output; // In MHz unit
+	USHORT                          usLcdMaxPixelClockPLL_Output; // In MHz unit
+	ULONG                           ul3DAccelerationEngineClock;//In 10Khz unit
+	ULONG                           ulMinPixelClockPLL_Output;  //In 10Khz unit
+	USHORT                          usMinEngineClockPLL_Input;  //In 10Khz unit
+	USHORT                          usMaxEngineClockPLL_Input;  //In 10Khz unit
+	USHORT                          usMinEngineClockPLL_Output; //In 10Khz unit
+	USHORT                          usMinMemoryClockPLL_Input;  //In 10Khz unit
+	USHORT                          usMaxMemoryClockPLL_Input;  //In 10Khz unit
+	USHORT                          usMinMemoryClockPLL_Output; //In 10Khz unit
+	USHORT                          usMaxPixelClock;            //In 10Khz unit, Max.  Pclk
+	USHORT                          usMinPixelClockPLL_Input;   //In 10Khz unit
+	USHORT                          usMaxPixelClockPLL_Input;   //In 10Khz unit
+	USHORT                          usMinPixelClockPLL_Output;  //In 10Khz unit - lower 16bit of ulMinPixelClockPLL_Output
+	ATOM_FIRMWARE_CAPABILITY_ACCESS usFirmwareCapability;
+	USHORT                          usReferenceClock;           //In 10Khz unit
+	USHORT                          usPM_RTS_Location;          //RTS PM4 starting location in ROM in 1Kb unit
+	UCHAR                           ucPM_RTS_StreamSize;        //RTS PM4 packets in Kb unit
+	UCHAR                           ucDesign_ID;                //Indicate what is the board design
+	UCHAR                           ucMemoryModule_ID;          //Indicate what is the board design
+} ATOM_FIRMWARE_INFO_V1_4;
 
 //the structure below to be used from Cypress
 typedef struct _ATOM_FIRMWARE_INFO_V2_1
 {
-  ATOM_COMMON_TABLE_HEADER        sHeader;
-  ULONG                           ulFirmwareRevision;
-  ULONG                           ulDefaultEngineClock;       //In 10Khz unit
-  ULONG                           ulDefaultMemoryClock;       //In 10Khz unit
-  ULONG                           ulReserved1;
-  ULONG                           ulReserved2;
-  ULONG                           ulMaxEngineClockPLL_Output; //In 10Khz unit
-  ULONG                           ulMaxMemoryClockPLL_Output; //In 10Khz unit
-  ULONG                           ulMaxPixelClockPLL_Output;  //In 10Khz unit
-  ULONG                           ulBinaryAlteredInfo;        //Was ulASICMaxEngineClock
-  ULONG                           ulDefaultDispEngineClkFreq; //In 10Khz unit
-  UCHAR                           ucReserved1;                //Was ucASICMaxTemperature;
-  UCHAR                           ucMinAllowedBL_Level;
-  USHORT                          usBootUpVDDCVoltage;        //In MV unit
-  USHORT                          usLcdMinPixelClockPLL_Output; // In MHz unit
-  USHORT                          usLcdMaxPixelClockPLL_Output; // In MHz unit
-  ULONG                           ulReserved4;                //Was ulAsicMaximumVoltage
-  ULONG                           ulMinPixelClockPLL_Output;  //In 10Khz unit
-  USHORT                          usMinEngineClockPLL_Input;  //In 10Khz unit
-  USHORT                          usMaxEngineClockPLL_Input;  //In 10Khz unit
-  USHORT                          usMinEngineClockPLL_Output; //In 10Khz unit
-  USHORT                          usMinMemoryClockPLL_Input;  //In 10Khz unit
-  USHORT                          usMaxMemoryClockPLL_Input;  //In 10Khz unit
-  USHORT                          usMinMemoryClockPLL_Output; //In 10Khz unit
-  USHORT                          usMaxPixelClock;            //In 10Khz unit, Max.  Pclk
-  USHORT                          usMinPixelClockPLL_Input;   //In 10Khz unit
-  USHORT                          usMaxPixelClockPLL_Input;   //In 10Khz unit
-  USHORT                          usMinPixelClockPLL_Output;  //In 10Khz unit - lower 16bit of ulMinPixelClockPLL_Output
-  ATOM_FIRMWARE_CAPABILITY_ACCESS usFirmwareCapability;
-  USHORT                          usCoreReferenceClock;       //In 10Khz unit
-  USHORT                          usMemoryReferenceClock;     //In 10Khz unit
-  USHORT                          usUniphyDPModeExtClkFreq;   //In 10Khz unit, if it is 0, In DP Mode Uniphy Input clock from internal PPLL, otherwise Input clock from external Spread clock
-  UCHAR                           ucMemoryModule_ID;          //Indicate what is the board design
-  UCHAR                           ucReserved4[3];
+	ATOM_COMMON_TABLE_HEADER        sHeader;
+	ULONG                           ulFirmwareRevision;
+	ULONG                           ulDefaultEngineClock;       //In 10Khz unit
+	ULONG                           ulDefaultMemoryClock;       //In 10Khz unit
+	ULONG                           ulReserved1;
+	ULONG                           ulReserved2;
+	ULONG                           ulMaxEngineClockPLL_Output; //In 10Khz unit
+	ULONG                           ulMaxMemoryClockPLL_Output; //In 10Khz unit
+	ULONG                           ulMaxPixelClockPLL_Output;  //In 10Khz unit
+	ULONG                           ulBinaryAlteredInfo;        //Was ulASICMaxEngineClock
+	ULONG                           ulDefaultDispEngineClkFreq; //In 10Khz unit
+	UCHAR                           ucReserved1;                //Was ucASICMaxTemperature;
+	UCHAR                           ucMinAllowedBL_Level;
+	USHORT                          usBootUpVDDCVoltage;        //In MV unit
+	USHORT                          usLcdMinPixelClockPLL_Output; // In MHz unit
+	USHORT                          usLcdMaxPixelClockPLL_Output; // In MHz unit
+	ULONG                           ulReserved4;                //Was ulAsicMaximumVoltage
+	ULONG                           ulMinPixelClockPLL_Output;  //In 10Khz unit
+	USHORT                          usMinEngineClockPLL_Input;  //In 10Khz unit
+	USHORT                          usMaxEngineClockPLL_Input;  //In 10Khz unit
+	USHORT                          usMinEngineClockPLL_Output; //In 10Khz unit
+	USHORT                          usMinMemoryClockPLL_Input;  //In 10Khz unit
+	USHORT                          usMaxMemoryClockPLL_Input;  //In 10Khz unit
+	USHORT                          usMinMemoryClockPLL_Output; //In 10Khz unit
+	USHORT                          usMaxPixelClock;            //In 10Khz unit, Max.  Pclk
+	USHORT                          usMinPixelClockPLL_Input;   //In 10Khz unit
+	USHORT                          usMaxPixelClockPLL_Input;   //In 10Khz unit
+	USHORT                          usMinPixelClockPLL_Output;  //In 10Khz unit - lower 16bit of ulMinPixelClockPLL_Output
+	ATOM_FIRMWARE_CAPABILITY_ACCESS usFirmwareCapability;
+	USHORT                          usCoreReferenceClock;       //In 10Khz unit
+	USHORT                          usMemoryReferenceClock;     //In 10Khz unit
+	USHORT
+	usUniphyDPModeExtClkFreq;   //In 10Khz unit, if it is 0, In DP Mode Uniphy Input clock from internal PPLL, otherwise Input clock from external Spread clock
+	UCHAR                           ucMemoryModule_ID;          //Indicate what is the board design
+	UCHAR                           ucReserved4[3];
 
-}ATOM_FIRMWARE_INFO_V2_1;
+} ATOM_FIRMWARE_INFO_V2_1;
 
 //the structure below to be used from NI
 //ucTableFormatRevision=2
@@ -3129,51 +3165,58 @@ typedef struct _ATOM_FIRMWARE_INFO_V2_1
 
 typedef struct _PRODUCT_BRANDING
 {
-    UCHAR     ucEMBEDDED_CAP:2;          // Bit[1:0] Embedded feature level
-    UCHAR     ucReserved:2;              // Bit[3:2] Reserved
-    UCHAR     ucBRANDING_ID:4;           // Bit[7:4] Branding ID
-}PRODUCT_BRANDING;
+	UCHAR     ucEMBEDDED_CAP: 2;         // Bit[1:0] Embedded feature level
+	UCHAR     ucReserved: 2;             // Bit[3:2] Reserved
+	UCHAR     ucBRANDING_ID: 4;          // Bit[7:4] Branding ID
+} PRODUCT_BRANDING;
 
 typedef struct _ATOM_FIRMWARE_INFO_V2_2
 {
-  ATOM_COMMON_TABLE_HEADER        sHeader;
-  ULONG                           ulFirmwareRevision;
-  ULONG                           ulDefaultEngineClock;       //In 10Khz unit
-  ULONG                           ulDefaultMemoryClock;       //In 10Khz unit
-  ULONG                           ulSPLL_OutputFreq;          //In 10Khz unit
-  ULONG                           ulGPUPLL_OutputFreq;        //In 10Khz unit
-  ULONG                           ulReserved1;                //Was ulMaxEngineClockPLL_Output; //In 10Khz unit*
-  ULONG                           ulReserved2;                //Was ulMaxMemoryClockPLL_Output; //In 10Khz unit*
-  ULONG                           ulMaxPixelClockPLL_Output;  //In 10Khz unit
-  ULONG                           ulBinaryAlteredInfo;        //Was ulASICMaxEngineClock  ?
-  ULONG                           ulDefaultDispEngineClkFreq; //In 10Khz unit. This is the frequency before DCDTO, corresponding to usBootUpVDDCVoltage.
-  UCHAR                           ucReserved3;                //Was ucASICMaxTemperature;
-  UCHAR                           ucMinAllowedBL_Level;
-  USHORT                          usBootUpVDDCVoltage;        //In MV unit
-  USHORT                          usLcdMinPixelClockPLL_Output; // In MHz unit
-  USHORT                          usLcdMaxPixelClockPLL_Output; // In MHz unit
-  ULONG                           ulReserved4;                //Was ulAsicMaximumVoltage
-  ULONG                           ulMinPixelClockPLL_Output;  //In 10Khz unit
-  UCHAR                           ucRemoteDisplayConfig;
-  UCHAR                           ucReserved5[3];             //Was usMinEngineClockPLL_Input and usMaxEngineClockPLL_Input
-  ULONG                           ulReserved6;                //Was usMinEngineClockPLL_Output and usMinMemoryClockPLL_Input
-  ULONG                           ulReserved7;                //Was usMaxMemoryClockPLL_Input and usMinMemoryClockPLL_Output
-  USHORT                          usReserved11;               //Was usMaxPixelClock;  //In 10Khz unit, Max.  Pclk used only for DAC
-  USHORT                          usMinPixelClockPLL_Input;   //In 10Khz unit
-  USHORT                          usMaxPixelClockPLL_Input;   //In 10Khz unit
-  USHORT                          usBootUpVDDCIVoltage;       //In unit of mv; Was usMinPixelClockPLL_Output;
-  ATOM_FIRMWARE_CAPABILITY_ACCESS usFirmwareCapability;
-  USHORT                          usCoreReferenceClock;       //In 10Khz unit
-  USHORT                          usMemoryReferenceClock;     //In 10Khz unit
-  USHORT                          usUniphyDPModeExtClkFreq;   //In 10Khz unit, if it is 0, In DP Mode Uniphy Input clock from internal PPLL, otherwise Input clock from external Spread clock
-  UCHAR                           ucMemoryModule_ID;          //Indicate what is the board design
-  UCHAR                           ucCoolingSolution_ID;       //0: Air cooling; 1: Liquid cooling ... [COOLING_SOLUTION]
-  PRODUCT_BRANDING                ucProductBranding;          // Bit[7:4]ucBRANDING_ID: Branding ID, Bit[3:2]ucReserved: Reserved, Bit[1:0]ucEMBEDDED_CAP: Embedded feature level.
-  UCHAR                           ucReserved9;
-  USHORT                          usBootUpMVDDCVoltage;       //In unit of mv; Was usMinPixelClockPLL_Output;
-  USHORT                          usBootUpVDDGFXVoltage;      //In unit of mv;
-  ULONG                           ulReserved10[3];            // New added comparing to previous version
-}ATOM_FIRMWARE_INFO_V2_2;
+	ATOM_COMMON_TABLE_HEADER        sHeader;
+	ULONG                           ulFirmwareRevision;
+	ULONG                           ulDefaultEngineClock;       //In 10Khz unit
+	ULONG                           ulDefaultMemoryClock;       //In 10Khz unit
+	ULONG                           ulSPLL_OutputFreq;          //In 10Khz unit
+	ULONG                           ulGPUPLL_OutputFreq;        //In 10Khz unit
+	ULONG                           ulReserved1;                //Was ulMaxEngineClockPLL_Output; //In 10Khz unit*
+	ULONG                           ulReserved2;                //Was ulMaxMemoryClockPLL_Output; //In 10Khz unit*
+	ULONG                           ulMaxPixelClockPLL_Output;  //In 10Khz unit
+	ULONG                           ulBinaryAlteredInfo;        //Was ulASICMaxEngineClock  ?
+	ULONG
+	ulDefaultDispEngineClkFreq; //In 10Khz unit. This is the frequency before DCDTO, corresponding to usBootUpVDDCVoltage.
+	UCHAR                           ucReserved3;                //Was ucASICMaxTemperature;
+	UCHAR                           ucMinAllowedBL_Level;
+	USHORT                          usBootUpVDDCVoltage;        //In MV unit
+	USHORT                          usLcdMinPixelClockPLL_Output; // In MHz unit
+	USHORT                          usLcdMaxPixelClockPLL_Output; // In MHz unit
+	ULONG                           ulReserved4;                //Was ulAsicMaximumVoltage
+	ULONG                           ulMinPixelClockPLL_Output;  //In 10Khz unit
+	UCHAR                           ucRemoteDisplayConfig;
+	UCHAR
+	ucReserved5[3];             //Was usMinEngineClockPLL_Input and usMaxEngineClockPLL_Input
+	ULONG
+	ulReserved6;                //Was usMinEngineClockPLL_Output and usMinMemoryClockPLL_Input
+	ULONG
+	ulReserved7;                //Was usMaxMemoryClockPLL_Input and usMinMemoryClockPLL_Output
+	USHORT
+	usReserved11;               //Was usMaxPixelClock;  //In 10Khz unit, Max.  Pclk used only for DAC
+	USHORT                          usMinPixelClockPLL_Input;   //In 10Khz unit
+	USHORT                          usMaxPixelClockPLL_Input;   //In 10Khz unit
+	USHORT                          usBootUpVDDCIVoltage;       //In unit of mv; Was usMinPixelClockPLL_Output;
+	ATOM_FIRMWARE_CAPABILITY_ACCESS usFirmwareCapability;
+	USHORT                          usCoreReferenceClock;       //In 10Khz unit
+	USHORT                          usMemoryReferenceClock;     //In 10Khz unit
+	USHORT
+	usUniphyDPModeExtClkFreq;   //In 10Khz unit, if it is 0, In DP Mode Uniphy Input clock from internal PPLL, otherwise Input clock from external Spread clock
+	UCHAR                           ucMemoryModule_ID;          //Indicate what is the board design
+	UCHAR                           ucCoolingSolution_ID;       //0: Air cooling; 1: Liquid cooling ... [COOLING_SOLUTION]
+	PRODUCT_BRANDING
+	ucProductBranding;          // Bit[7:4]ucBRANDING_ID: Branding ID, Bit[3:2]ucReserved: Reserved, Bit[1:0]ucEMBEDDED_CAP: Embedded feature level.
+	UCHAR                           ucReserved9;
+	USHORT                          usBootUpMVDDCVoltage;       //In unit of mv; Was usMinPixelClockPLL_Output;
+	USHORT                          usBootUpVDDGFXVoltage;      //In unit of mv;
+	ULONG                           ulReserved10[3];            // New added comparing to previous version
+} ATOM_FIRMWARE_INFO_V2_2;
 
 #define ATOM_FIRMWARE_INFO_LAST  ATOM_FIRMWARE_INFO_V2_2
 
@@ -3192,35 +3235,37 @@ typedef struct _ATOM_FIRMWARE_INFO_V2_2
 
 typedef struct _ATOM_INTEGRATED_SYSTEM_INFO
 {
-  ATOM_COMMON_TABLE_HEADER        sHeader;
-  ULONG                           ulBootUpEngineClock;          //in 10kHz unit
-  ULONG                           ulBootUpMemoryClock;          //in 10kHz unit
-  ULONG                           ulMaxSystemMemoryClock;       //in 10kHz unit
-  ULONG                           ulMinSystemMemoryClock;       //in 10kHz unit
-  UCHAR                           ucNumberOfCyclesInPeriodHi;
-  UCHAR                           ucLCDTimingSel;             //=0:not valid.!=0 sel this timing descriptor from LCD EDID.
-  USHORT                          usReserved1;
-  USHORT                          usInterNBVoltageLow;        //An intermidiate PMW value to set the voltage
-  USHORT                          usInterNBVoltageHigh;       //Another intermidiate PMW value to set the voltage
-  ULONG                           ulReserved[2];
+	ATOM_COMMON_TABLE_HEADER        sHeader;
+	ULONG                           ulBootUpEngineClock;          //in 10kHz unit
+	ULONG                           ulBootUpMemoryClock;          //in 10kHz unit
+	ULONG                           ulMaxSystemMemoryClock;       //in 10kHz unit
+	ULONG                           ulMinSystemMemoryClock;       //in 10kHz unit
+	UCHAR                           ucNumberOfCyclesInPeriodHi;
+	UCHAR                           ucLCDTimingSel;             //=0:not valid.!=0 sel this timing descriptor from LCD EDID.
+	USHORT                          usReserved1;
+	USHORT                          usInterNBVoltageLow;        //An intermidiate PMW value to set the voltage
+	USHORT                          usInterNBVoltageHigh;       //Another intermidiate PMW value to set the voltage
+	ULONG                           ulReserved[2];
 
-  USHORT                          usFSBClock;                     //In MHz unit
-  USHORT                          usCapabilityFlag;              //Bit0=1 indicates the fake HDMI support,Bit1=0/1 for Dynamic clocking dis/enable
-                                                                              //Bit[3:2]== 0:No PCIE card, 1:AC card, 2:SDVO card
-                                                              //Bit[4]==1: P/2 mode, ==0: P/1 mode
-  USHORT                          usPCIENBCfgReg7;                //bit[7:0]=MUX_Sel, bit[9:8]=MUX_SEL_LEVEL2, bit[10]=Lane_Reversal
-  USHORT                          usK8MemoryClock;            //in MHz unit
-  USHORT                          usK8SyncStartDelay;         //in 0.01 us unit
-  USHORT                          usK8DataReturnTime;         //in 0.01 us unit
-  UCHAR                           ucMaxNBVoltage;
-  UCHAR                           ucMinNBVoltage;
-  UCHAR                           ucMemoryType;                     //[7:4]=1:DDR1;=2:DDR2;=3:DDR3.[3:0] is reserved
-  UCHAR                           ucNumberOfCyclesInPeriod;      //CG.FVTHROT_PWM_CTRL_REG0.NumberOfCyclesInPeriod
-  UCHAR                           ucStartingPWM_HighTime;     //CG.FVTHROT_PWM_CTRL_REG0.StartingPWM_HighTime
-  UCHAR                           ucHTLinkWidth;              //16 bit vs. 8 bit
-  UCHAR                           ucMaxNBVoltageHigh;
-  UCHAR                           ucMinNBVoltageHigh;
-}ATOM_INTEGRATED_SYSTEM_INFO;
+	USHORT                          usFSBClock;                     //In MHz unit
+	USHORT
+	usCapabilityFlag;              //Bit0=1 indicates the fake HDMI support,Bit1=0/1 for Dynamic clocking dis/enable
+	//Bit[3:2]== 0:No PCIE card, 1:AC card, 2:SDVO card
+	//Bit[4]==1: P/2 mode, ==0: P/1 mode
+	USHORT
+	usPCIENBCfgReg7;                //bit[7:0]=MUX_Sel, bit[9:8]=MUX_SEL_LEVEL2, bit[10]=Lane_Reversal
+	USHORT                          usK8MemoryClock;            //in MHz unit
+	USHORT                          usK8SyncStartDelay;         //in 0.01 us unit
+	USHORT                          usK8DataReturnTime;         //in 0.01 us unit
+	UCHAR                           ucMaxNBVoltage;
+	UCHAR                           ucMinNBVoltage;
+	UCHAR                           ucMemoryType;                     //[7:4]=1:DDR1;=2:DDR2;=3:DDR3.[3:0] is reserved
+	UCHAR                           ucNumberOfCyclesInPeriod;      //CG.FVTHROT_PWM_CTRL_REG0.NumberOfCyclesInPeriod
+	UCHAR                           ucStartingPWM_HighTime;     //CG.FVTHROT_PWM_CTRL_REG0.StartingPWM_HighTime
+	UCHAR                           ucHTLinkWidth;              //16 bit vs. 8 bit
+	UCHAR                           ucMaxNBVoltageHigh;
+	UCHAR                           ucMinNBVoltageHigh;
+} ATOM_INTEGRATED_SYSTEM_INFO;
 
 /* Explanation on entries in ATOM_INTEGRATED_SYSTEM_INFO
 ulBootUpMemoryClock:    For Intel IGP,it's the UMA system memory clock
@@ -3264,45 +3309,47 @@ SW components can access the IGP system infor structure in the same way as befor
 
 typedef struct _ATOM_INTEGRATED_SYSTEM_INFO_V2
 {
-  ATOM_COMMON_TABLE_HEADER   sHeader;
-  ULONG                      ulBootUpEngineClock;       //in 10kHz unit
-  ULONG                      ulReserved1[2];            //must be 0x0 for the reserved
-  ULONG                      ulBootUpUMAClock;          //in 10kHz unit
-  ULONG                      ulBootUpSidePortClock;     //in 10kHz unit
-  ULONG                      ulMinSidePortClock;        //in 10kHz unit
-  ULONG                      ulReserved2[6];            //must be 0x0 for the reserved
-  ULONG                      ulSystemConfig;            //see explanation below
-  ULONG                      ulBootUpReqDisplayVector;
-  ULONG                      ulOtherDisplayMisc;
-  ULONG                      ulDDISlot1Config;
-  ULONG                      ulDDISlot2Config;
-  UCHAR                      ucMemoryType;              //[3:0]=1:DDR1;=2:DDR2;=3:DDR3.[7:4] is reserved
-  UCHAR                      ucUMAChannelNumber;
-  UCHAR                      ucDockingPinBit;
-  UCHAR                      ucDockingPinPolarity;
-  ULONG                      ulDockingPinCFGInfo;
-  ULONG                      ulCPUCapInfo;
-  USHORT                     usNumberOfCyclesInPeriod;
-  USHORT                     usMaxNBVoltage;
-  USHORT                     usMinNBVoltage;
-  USHORT                     usBootUpNBVoltage;
-  ULONG                      ulHTLinkFreq;              //in 10Khz
-  USHORT                     usMinHTLinkWidth;
-  USHORT                     usMaxHTLinkWidth;
-  USHORT                     usUMASyncStartDelay;
-  USHORT                     usUMADataReturnTime;
-  USHORT                     usLinkStatusZeroTime;
-  USHORT                     usDACEfuse;            //for storing badgap value (for RS880 only)
-  ULONG                      ulHighVoltageHTLinkFreq;     // in 10Khz
-  ULONG                      ulLowVoltageHTLinkFreq;      // in 10Khz
-  USHORT                     usMaxUpStreamHTLinkWidth;
-  USHORT                     usMaxDownStreamHTLinkWidth;
-  USHORT                     usMinUpStreamHTLinkWidth;
-  USHORT                     usMinDownStreamHTLinkWidth;
-  USHORT                     usFirmwareVersion;         //0 means FW is not supported. Otherwise it's the FW version loaded by SBIOS and driver should enable FW.
-  USHORT                     usFullT0Time;             // Input to calculate minimum HT link change time required by NB P-State. Unit is 0.01us.
-  ULONG                      ulReserved3[96];          //must be 0x0
-}ATOM_INTEGRATED_SYSTEM_INFO_V2;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	ULONG                      ulBootUpEngineClock;       //in 10kHz unit
+	ULONG                      ulReserved1[2];            //must be 0x0 for the reserved
+	ULONG                      ulBootUpUMAClock;          //in 10kHz unit
+	ULONG                      ulBootUpSidePortClock;     //in 10kHz unit
+	ULONG                      ulMinSidePortClock;        //in 10kHz unit
+	ULONG                      ulReserved2[6];            //must be 0x0 for the reserved
+	ULONG                      ulSystemConfig;            //see explanation below
+	ULONG                      ulBootUpReqDisplayVector;
+	ULONG                      ulOtherDisplayMisc;
+	ULONG                      ulDDISlot1Config;
+	ULONG                      ulDDISlot2Config;
+	UCHAR                      ucMemoryType;              //[3:0]=1:DDR1;=2:DDR2;=3:DDR3.[7:4] is reserved
+	UCHAR                      ucUMAChannelNumber;
+	UCHAR                      ucDockingPinBit;
+	UCHAR                      ucDockingPinPolarity;
+	ULONG                      ulDockingPinCFGInfo;
+	ULONG                      ulCPUCapInfo;
+	USHORT                     usNumberOfCyclesInPeriod;
+	USHORT                     usMaxNBVoltage;
+	USHORT                     usMinNBVoltage;
+	USHORT                     usBootUpNBVoltage;
+	ULONG                      ulHTLinkFreq;              //in 10Khz
+	USHORT                     usMinHTLinkWidth;
+	USHORT                     usMaxHTLinkWidth;
+	USHORT                     usUMASyncStartDelay;
+	USHORT                     usUMADataReturnTime;
+	USHORT                     usLinkStatusZeroTime;
+	USHORT                     usDACEfuse;            //for storing badgap value (for RS880 only)
+	ULONG                      ulHighVoltageHTLinkFreq;     // in 10Khz
+	ULONG                      ulLowVoltageHTLinkFreq;      // in 10Khz
+	USHORT                     usMaxUpStreamHTLinkWidth;
+	USHORT                     usMaxDownStreamHTLinkWidth;
+	USHORT                     usMinUpStreamHTLinkWidth;
+	USHORT                     usMinDownStreamHTLinkWidth;
+	USHORT
+	usFirmwareVersion;         //0 means FW is not supported. Otherwise it's the FW version loaded by SBIOS and driver should enable FW.
+	USHORT
+	usFullT0Time;             // Input to calculate minimum HT link change time required by NB P-State. Unit is 0.01us.
+	ULONG                      ulReserved3[96];          //must be 0x0
+} ATOM_INTEGRATED_SYSTEM_INFO_V2;
 
 /*
 ulBootUpEngineClock:   Boot-up Engine Clock in 10Khz;
@@ -3438,37 +3485,44 @@ usMinDownStreamHTLinkWidth:  same as above.
 // IntegratedSystemInfoTable new Rev is V5 after V2, because of the real rev of V2 is v1.4. This rev is used for RR
 typedef struct _ATOM_INTEGRATED_SYSTEM_INFO_V5
 {
-  ATOM_COMMON_TABLE_HEADER   sHeader;
-  ULONG                        ulBootUpEngineClock;       //in 10kHz unit
-  ULONG                      ulDentistVCOFreq;          //Dentist VCO clock in 10kHz unit, the source of GPU SCLK, LCLK, UCLK and VCLK.
-  ULONG                      ulLClockFreq;              //GPU Lclk freq in 10kHz unit, have relationship with NCLK in NorthBridge
-  ULONG                        ulBootUpUMAClock;          //in 10kHz unit
-  ULONG                      ulReserved1[8];            //must be 0x0 for the reserved
-  ULONG                      ulBootUpReqDisplayVector;
-  ULONG                      ulOtherDisplayMisc;
-  ULONG                      ulReserved2[4];            //must be 0x0 for the reserved
-  ULONG                      ulSystemConfig;            //TBD
-  ULONG                      ulCPUCapInfo;              //TBD
-  USHORT                     usMaxNBVoltage;            //high NB voltage, calculated using current VDDNB (D24F2xDC) and VDDNB offset fuse;
-  USHORT                     usMinNBVoltage;            //low NB voltage, calculated using current VDDNB (D24F2xDC) and VDDNB offset fuse;
-  USHORT                     usBootUpNBVoltage;         //boot up NB voltage
-  UCHAR                      ucHtcTmpLmt;               //bit [22:16] of D24F3x64 Hardware Thermal Control (HTC) Register, may not be needed, TBD
-  UCHAR                      ucTjOffset;                //bit [28:22] of D24F3xE4 Thermtrip Status Register,may not be needed, TBD
-  ULONG                      ulReserved3[4];            //must be 0x0 for the reserved
-  ULONG                      ulDDISlot1Config;          //see above ulDDISlot1Config definition
-  ULONG                      ulDDISlot2Config;
-  ULONG                      ulDDISlot3Config;
-  ULONG                      ulDDISlot4Config;
-  ULONG                      ulReserved4[4];            //must be 0x0 for the reserved
-  UCHAR                      ucMemoryType;              //[3:0]=1:DDR1;=2:DDR2;=3:DDR3.[7:4] is reserved
-  UCHAR                      ucUMAChannelNumber;
-  USHORT                     usReserved;
-  ULONG                      ulReserved5[4];            //must be 0x0 for the reserved
-  ULONG                      ulCSR_M3_ARB_CNTL_DEFAULT[10];//arrays with values for CSR M3 arbiter for default
-  ULONG                      ulCSR_M3_ARB_CNTL_UVD[10]; //arrays with values for CSR M3 arbiter for UVD playback
-  ULONG                      ulCSR_M3_ARB_CNTL_FS3D[10];//arrays with values for CSR M3 arbiter for Full Screen 3D applications
-  ULONG                      ulReserved6[61];           //must be 0x0
-}ATOM_INTEGRATED_SYSTEM_INFO_V5;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	ULONG                        ulBootUpEngineClock;       //in 10kHz unit
+	ULONG
+	ulDentistVCOFreq;          //Dentist VCO clock in 10kHz unit, the source of GPU SCLK, LCLK, UCLK and VCLK.
+	ULONG
+	ulLClockFreq;              //GPU Lclk freq in 10kHz unit, have relationship with NCLK in NorthBridge
+	ULONG                        ulBootUpUMAClock;          //in 10kHz unit
+	ULONG                      ulReserved1[8];            //must be 0x0 for the reserved
+	ULONG                      ulBootUpReqDisplayVector;
+	ULONG                      ulOtherDisplayMisc;
+	ULONG                      ulReserved2[4];            //must be 0x0 for the reserved
+	ULONG                      ulSystemConfig;            //TBD
+	ULONG                      ulCPUCapInfo;              //TBD
+	USHORT
+	usMaxNBVoltage;            //high NB voltage, calculated using current VDDNB (D24F2xDC) and VDDNB offset fuse;
+	USHORT
+	usMinNBVoltage;            //low NB voltage, calculated using current VDDNB (D24F2xDC) and VDDNB offset fuse;
+	USHORT                     usBootUpNBVoltage;         //boot up NB voltage
+	UCHAR
+	ucHtcTmpLmt;               //bit [22:16] of D24F3x64 Hardware Thermal Control (HTC) Register, may not be needed, TBD
+	UCHAR
+	ucTjOffset;                //bit [28:22] of D24F3xE4 Thermtrip Status Register,may not be needed, TBD
+	ULONG                      ulReserved3[4];            //must be 0x0 for the reserved
+	ULONG                      ulDDISlot1Config;          //see above ulDDISlot1Config definition
+	ULONG                      ulDDISlot2Config;
+	ULONG                      ulDDISlot3Config;
+	ULONG                      ulDDISlot4Config;
+	ULONG                      ulReserved4[4];            //must be 0x0 for the reserved
+	UCHAR                      ucMemoryType;              //[3:0]=1:DDR1;=2:DDR2;=3:DDR3.[7:4] is reserved
+	UCHAR                      ucUMAChannelNumber;
+	USHORT                     usReserved;
+	ULONG                      ulReserved5[4];            //must be 0x0 for the reserved
+	ULONG                      ulCSR_M3_ARB_CNTL_DEFAULT[10];//arrays with values for CSR M3 arbiter for default
+	ULONG                      ulCSR_M3_ARB_CNTL_UVD[10]; //arrays with values for CSR M3 arbiter for UVD playback
+	ULONG
+	ulCSR_M3_ARB_CNTL_FS3D[10];//arrays with values for CSR M3 arbiter for Full Screen 3D applications
+	ULONG                      ulReserved6[61];           //must be 0x0
+} ATOM_INTEGRATED_SYSTEM_INFO_V5;
 
 
 
@@ -3477,19 +3531,19 @@ typedef struct _ATOM_INTEGRATED_SYSTEM_INFO_V5
 /****************************************************************************/
 typedef struct _ATOM_GPU_VIRTUALIZATION_INFO_V2_1
 {
-  ATOM_COMMON_TABLE_HEADER   sHeader;
-  ULONG ulMCUcodeRomStartAddr;
-  ULONG ulMCUcodeLength;
-  ULONG ulSMCUcodeRomStartAddr;
-  ULONG ulSMCUcodeLength;
-  ULONG ulRLCVUcodeRomStartAddr;
-  ULONG ulRLCVUcodeLength;
-  ULONG ulTOCUcodeStartAddr;
-  ULONG ulTOCUcodeLength;
-  ULONG ulSMCPatchTableStartAddr;
-  ULONG ulSmcPatchTableLength;
-  ULONG ulSystemFlag;
-}ATOM_GPU_VIRTUALIZATION_INFO_V2_1;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	ULONG ulMCUcodeRomStartAddr;
+	ULONG ulMCUcodeLength;
+	ULONG ulSMCUcodeRomStartAddr;
+	ULONG ulSMCUcodeLength;
+	ULONG ulRLCVUcodeRomStartAddr;
+	ULONG ulRLCVUcodeLength;
+	ULONG ulTOCUcodeStartAddr;
+	ULONG ulTOCUcodeLength;
+	ULONG ulSMCPatchTableStartAddr;
+	ULONG ulSmcPatchTableLength;
+	ULONG ulSystemFlag;
+} ATOM_GPU_VIRTUALIZATION_INFO_V2_1;
 
 
 #define ATOM_CRT_INT_ENCODER1_INDEX                       0x00000000
@@ -3651,21 +3705,21 @@ typedef struct _ATOM_GPU_VIRTUALIZATION_INFO_V2_1
 typedef struct _ATOM_I2C_ID_CONFIG
 {
 #if ATOM_BIG_ENDIAN
-  UCHAR   bfHW_Capable:1;
-  UCHAR   bfHW_EngineID:3;
-  UCHAR   bfI2C_LineMux:4;
+	UCHAR   bfHW_Capable: 1;
+	UCHAR   bfHW_EngineID: 3;
+	UCHAR   bfI2C_LineMux: 4;
 #else
-  UCHAR   bfI2C_LineMux:4;
-  UCHAR   bfHW_EngineID:3;
-  UCHAR   bfHW_Capable:1;
+	UCHAR   bfI2C_LineMux: 4;
+	UCHAR   bfHW_EngineID: 3;
+	UCHAR   bfHW_Capable: 1;
 #endif
-}ATOM_I2C_ID_CONFIG;
+} ATOM_I2C_ID_CONFIG;
 
 typedef union _ATOM_I2C_ID_CONFIG_ACCESS
 {
-  ATOM_I2C_ID_CONFIG sbfAccess;
-  UCHAR              ucAccess;
-}ATOM_I2C_ID_CONFIG_ACCESS;
+	ATOM_I2C_ID_CONFIG sbfAccess;
+	UCHAR              ucAccess;
+} ATOM_I2C_ID_CONFIG_ACCESS;
 
 
 /****************************************************************************/
@@ -3673,32 +3727,32 @@ typedef union _ATOM_I2C_ID_CONFIG_ACCESS
 /****************************************************************************/
 typedef struct _ATOM_GPIO_I2C_ASSIGMENT
 {
-  USHORT                    usClkMaskRegisterIndex;
-  USHORT                    usClkEnRegisterIndex;
-  USHORT                    usClkY_RegisterIndex;
-  USHORT                    usClkA_RegisterIndex;
-  USHORT                    usDataMaskRegisterIndex;
-  USHORT                    usDataEnRegisterIndex;
-  USHORT                    usDataY_RegisterIndex;
-  USHORT                    usDataA_RegisterIndex;
-  ATOM_I2C_ID_CONFIG_ACCESS sucI2cId;
-  UCHAR                     ucClkMaskShift;
-  UCHAR                     ucClkEnShift;
-  UCHAR                     ucClkY_Shift;
-  UCHAR                     ucClkA_Shift;
-  UCHAR                     ucDataMaskShift;
-  UCHAR                     ucDataEnShift;
-  UCHAR                     ucDataY_Shift;
-  UCHAR                     ucDataA_Shift;
-  UCHAR                     ucReserved1;
-  UCHAR                     ucReserved2;
-}ATOM_GPIO_I2C_ASSIGMENT;
+	USHORT                    usClkMaskRegisterIndex;
+	USHORT                    usClkEnRegisterIndex;
+	USHORT                    usClkY_RegisterIndex;
+	USHORT                    usClkA_RegisterIndex;
+	USHORT                    usDataMaskRegisterIndex;
+	USHORT                    usDataEnRegisterIndex;
+	USHORT                    usDataY_RegisterIndex;
+	USHORT                    usDataA_RegisterIndex;
+	ATOM_I2C_ID_CONFIG_ACCESS sucI2cId;
+	UCHAR                     ucClkMaskShift;
+	UCHAR                     ucClkEnShift;
+	UCHAR                     ucClkY_Shift;
+	UCHAR                     ucClkA_Shift;
+	UCHAR                     ucDataMaskShift;
+	UCHAR                     ucDataEnShift;
+	UCHAR                     ucDataY_Shift;
+	UCHAR                     ucDataA_Shift;
+	UCHAR                     ucReserved1;
+	UCHAR                     ucReserved2;
+} ATOM_GPIO_I2C_ASSIGMENT;
 
 typedef struct _ATOM_GPIO_I2C_INFO
 {
-  ATOM_COMMON_TABLE_HEADER   sHeader;
-  ATOM_GPIO_I2C_ASSIGMENT   asGPIO_Info[ATOM_MAX_SUPPORTED_DEVICE];
-}ATOM_GPIO_I2C_INFO;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	ATOM_GPIO_I2C_ASSIGMENT   asGPIO_Info[ATOM_MAX_SUPPORTED_DEVICE];
+} ATOM_GPIO_I2C_INFO;
 
 /****************************************************************************/
 // Common Structure used in other structures
@@ -3710,44 +3764,44 @@ typedef struct _ATOM_GPIO_I2C_INFO
 typedef struct _ATOM_MODE_MISC_INFO
 {
 #if ATOM_BIG_ENDIAN
-  USHORT Reserved:6;
-  USHORT RGB888:1;
-  USHORT DoubleClock:1;
-  USHORT Interlace:1;
-  USHORT CompositeSync:1;
-  USHORT V_ReplicationBy2:1;
-  USHORT H_ReplicationBy2:1;
-  USHORT VerticalCutOff:1;
-  USHORT VSyncPolarity:1;      //0=Active High, 1=Active Low
-  USHORT HSyncPolarity:1;      //0=Active High, 1=Active Low
-  USHORT HorizontalCutOff:1;
+	USHORT Reserved: 6;
+	USHORT RGB888: 1;
+	USHORT DoubleClock: 1;
+	USHORT Interlace: 1;
+	USHORT CompositeSync: 1;
+	USHORT V_ReplicationBy2: 1;
+	USHORT H_ReplicationBy2: 1;
+	USHORT VerticalCutOff: 1;
+	USHORT VSyncPolarity: 1;     //0=Active High, 1=Active Low
+	USHORT HSyncPolarity: 1;     //0=Active High, 1=Active Low
+	USHORT HorizontalCutOff: 1;
 #else
-  USHORT HorizontalCutOff:1;
-  USHORT HSyncPolarity:1;      //0=Active High, 1=Active Low
-  USHORT VSyncPolarity:1;      //0=Active High, 1=Active Low
-  USHORT VerticalCutOff:1;
-  USHORT H_ReplicationBy2:1;
-  USHORT V_ReplicationBy2:1;
-  USHORT CompositeSync:1;
-  USHORT Interlace:1;
-  USHORT DoubleClock:1;
-  USHORT RGB888:1;
-  USHORT Reserved:6;
+	USHORT HorizontalCutOff: 1;
+	USHORT HSyncPolarity: 1;     //0=Active High, 1=Active Low
+	USHORT VSyncPolarity: 1;     //0=Active High, 1=Active Low
+	USHORT VerticalCutOff: 1;
+	USHORT H_ReplicationBy2: 1;
+	USHORT V_ReplicationBy2: 1;
+	USHORT CompositeSync: 1;
+	USHORT Interlace: 1;
+	USHORT DoubleClock: 1;
+	USHORT RGB888: 1;
+	USHORT Reserved: 6;
 #endif
-}ATOM_MODE_MISC_INFO;
+} ATOM_MODE_MISC_INFO;
 
 typedef union _ATOM_MODE_MISC_INFO_ACCESS
 {
-  ATOM_MODE_MISC_INFO sbfAccess;
-  USHORT              usAccess;
-}ATOM_MODE_MISC_INFO_ACCESS;
+	ATOM_MODE_MISC_INFO sbfAccess;
+	USHORT              usAccess;
+} ATOM_MODE_MISC_INFO_ACCESS;
 
 #else
 
 typedef union _ATOM_MODE_MISC_INFO_ACCESS
 {
-  USHORT              usAccess;
-}ATOM_MODE_MISC_INFO_ACCESS;
+	USHORT              usAccess;
+} ATOM_MODE_MISC_INFO_ACCESS;
 
 #endif
 
@@ -3791,42 +3845,42 @@ typedef union _ATOM_MODE_MISC_INFO_ACCESS
 /****************************************************************************/
 typedef struct _SET_CRTC_USING_DTD_TIMING_PARAMETERS
 {
-  USHORT  usH_Size;
-  USHORT  usH_Blanking_Time;
-  USHORT  usV_Size;
-  USHORT  usV_Blanking_Time;
-  USHORT  usH_SyncOffset;
-  USHORT  usH_SyncWidth;
-  USHORT  usV_SyncOffset;
-  USHORT  usV_SyncWidth;
-  ATOM_MODE_MISC_INFO_ACCESS  susModeMiscInfo;
-  UCHAR   ucH_Border;         // From DFP EDID
-  UCHAR   ucV_Border;
-  UCHAR   ucCRTC;             // ATOM_CRTC1 or ATOM_CRTC2
-  UCHAR   ucPadding[3];
-}SET_CRTC_USING_DTD_TIMING_PARAMETERS;
+	USHORT  usH_Size;
+	USHORT  usH_Blanking_Time;
+	USHORT  usV_Size;
+	USHORT  usV_Blanking_Time;
+	USHORT  usH_SyncOffset;
+	USHORT  usH_SyncWidth;
+	USHORT  usV_SyncOffset;
+	USHORT  usV_SyncWidth;
+	ATOM_MODE_MISC_INFO_ACCESS  susModeMiscInfo;
+	UCHAR   ucH_Border;         // From DFP EDID
+	UCHAR   ucV_Border;
+	UCHAR   ucCRTC;             // ATOM_CRTC1 or ATOM_CRTC2
+	UCHAR   ucPadding[3];
+} SET_CRTC_USING_DTD_TIMING_PARAMETERS;
 
 /****************************************************************************/
 // Structure used in SetCRTC_TimingTable
 /****************************************************************************/
 typedef struct _SET_CRTC_TIMING_PARAMETERS
 {
-  USHORT                      usH_Total;        // horizontal total
-  USHORT                      usH_Disp;         // horizontal display
-  USHORT                      usH_SyncStart;    // horozontal Sync start
-  USHORT                      usH_SyncWidth;    // horizontal Sync width
-  USHORT                      usV_Total;        // vertical total
-  USHORT                      usV_Disp;         // vertical display
-  USHORT                      usV_SyncStart;    // vertical Sync start
-  USHORT                      usV_SyncWidth;    // vertical Sync width
-  ATOM_MODE_MISC_INFO_ACCESS  susModeMiscInfo;
-  UCHAR                       ucCRTC;           // ATOM_CRTC1 or ATOM_CRTC2
-  UCHAR                       ucOverscanRight;  // right
-  UCHAR                       ucOverscanLeft;   // left
-  UCHAR                       ucOverscanBottom; // bottom
-  UCHAR                       ucOverscanTop;    // top
-  UCHAR                       ucReserved;
-}SET_CRTC_TIMING_PARAMETERS;
+	USHORT                      usH_Total;        // horizontal total
+	USHORT                      usH_Disp;         // horizontal display
+	USHORT                      usH_SyncStart;    // horozontal Sync start
+	USHORT                      usH_SyncWidth;    // horizontal Sync width
+	USHORT                      usV_Total;        // vertical total
+	USHORT                      usV_Disp;         // vertical display
+	USHORT                      usV_SyncStart;    // vertical Sync start
+	USHORT                      usV_SyncWidth;    // vertical Sync width
+	ATOM_MODE_MISC_INFO_ACCESS  susModeMiscInfo;
+	UCHAR                       ucCRTC;           // ATOM_CRTC1 or ATOM_CRTC2
+	UCHAR                       ucOverscanRight;  // right
+	UCHAR                       ucOverscanLeft;   // left
+	UCHAR                       ucOverscanBottom; // bottom
+	UCHAR                       ucOverscanTop;    // top
+	UCHAR                       ucReserved;
+} SET_CRTC_TIMING_PARAMETERS;
 #define SET_CRTC_TIMING_PARAMETERS_PS_ALLOCATION SET_CRTC_TIMING_PARAMETERS
 
 
@@ -3837,44 +3891,44 @@ typedef struct _SET_CRTC_TIMING_PARAMETERS
 /****************************************************************************/
 typedef struct _ATOM_MODE_TIMING
 {
-  USHORT  usCRTC_H_Total;
-  USHORT  usCRTC_H_Disp;
-  USHORT  usCRTC_H_SyncStart;
-  USHORT  usCRTC_H_SyncWidth;
-  USHORT  usCRTC_V_Total;
-  USHORT  usCRTC_V_Disp;
-  USHORT  usCRTC_V_SyncStart;
-  USHORT  usCRTC_V_SyncWidth;
-  USHORT  usPixelClock;                                //in 10Khz unit
-  ATOM_MODE_MISC_INFO_ACCESS  susModeMiscInfo;
-  USHORT  usCRTC_OverscanRight;
-  USHORT  usCRTC_OverscanLeft;
-  USHORT  usCRTC_OverscanBottom;
-  USHORT  usCRTC_OverscanTop;
-  USHORT  usReserve;
-  UCHAR   ucInternalModeNumber;
-  UCHAR   ucRefreshRate;
-}ATOM_MODE_TIMING;
+	USHORT  usCRTC_H_Total;
+	USHORT  usCRTC_H_Disp;
+	USHORT  usCRTC_H_SyncStart;
+	USHORT  usCRTC_H_SyncWidth;
+	USHORT  usCRTC_V_Total;
+	USHORT  usCRTC_V_Disp;
+	USHORT  usCRTC_V_SyncStart;
+	USHORT  usCRTC_V_SyncWidth;
+	USHORT  usPixelClock;                                //in 10Khz unit
+	ATOM_MODE_MISC_INFO_ACCESS  susModeMiscInfo;
+	USHORT  usCRTC_OverscanRight;
+	USHORT  usCRTC_OverscanLeft;
+	USHORT  usCRTC_OverscanBottom;
+	USHORT  usCRTC_OverscanTop;
+	USHORT  usReserve;
+	UCHAR   ucInternalModeNumber;
+	UCHAR   ucRefreshRate;
+} ATOM_MODE_TIMING;
 
 typedef struct _ATOM_DTD_FORMAT
 {
-  USHORT  usPixClk;
-  USHORT  usHActive;
-  USHORT  usHBlanking_Time;
-  USHORT  usVActive;
-  USHORT  usVBlanking_Time;
-  USHORT  usHSyncOffset;
-  USHORT  usHSyncWidth;
-  USHORT  usVSyncOffset;
-  USHORT  usVSyncWidth;
-  USHORT  usImageHSize;
-  USHORT  usImageVSize;
-  UCHAR   ucHBorder;
-  UCHAR   ucVBorder;
-  ATOM_MODE_MISC_INFO_ACCESS susModeMiscInfo;
-  UCHAR   ucInternalModeNumber;
-  UCHAR   ucRefreshRate;
-}ATOM_DTD_FORMAT;
+	USHORT  usPixClk;
+	USHORT  usHActive;
+	USHORT  usHBlanking_Time;
+	USHORT  usVActive;
+	USHORT  usVBlanking_Time;
+	USHORT  usHSyncOffset;
+	USHORT  usHSyncWidth;
+	USHORT  usVSyncOffset;
+	USHORT  usVSyncWidth;
+	USHORT  usImageHSize;
+	USHORT  usImageVSize;
+	UCHAR   ucHBorder;
+	UCHAR   ucVBorder;
+	ATOM_MODE_MISC_INFO_ACCESS susModeMiscInfo;
+	UCHAR   ucInternalModeNumber;
+	UCHAR   ucRefreshRate;
+} ATOM_DTD_FORMAT;
 
 /****************************************************************************/
 // Structure used in LVDS_InfoTable
@@ -3890,46 +3944,49 @@ typedef struct _ATOM_DTD_FORMAT
 //ucTableContentRevision=1
 typedef struct _ATOM_LVDS_INFO
 {
-  ATOM_COMMON_TABLE_HEADER sHeader;
-  ATOM_DTD_FORMAT     sLCDTiming;
-  USHORT              usModePatchTableOffset;
-  USHORT              usSupportedRefreshRate;     //Refer to panel info table in ATOMBIOS extension Spec.
-  USHORT              usOffDelayInMs;
-  UCHAR               ucPowerSequenceDigOntoDEin10Ms;
-  UCHAR               ucPowerSequenceDEtoBLOnin10Ms;
-  UCHAR               ucLVDS_Misc;               // Bit0:{=0:single, =1:dual},Bit1 {=0:666RGB, =1:888RGB},Bit2:3:{Grey level}
-                                                 // Bit4:{=0:LDI format for RGB888, =1 FPDI format for RGB888}
-                                                 // Bit5:{=0:Spatial Dithering disabled;1 Spatial Dithering enabled}
-                                                 // Bit6:{=0:Temporal Dithering disabled;1 Temporal Dithering enabled}
-  UCHAR               ucPanelDefaultRefreshRate;
-  UCHAR               ucPanelIdentification;
-  UCHAR               ucSS_Id;
-}ATOM_LVDS_INFO;
+	ATOM_COMMON_TABLE_HEADER sHeader;
+	ATOM_DTD_FORMAT     sLCDTiming;
+	USHORT              usModePatchTableOffset;
+	USHORT              usSupportedRefreshRate;     //Refer to panel info table in ATOMBIOS extension Spec.
+	USHORT              usOffDelayInMs;
+	UCHAR               ucPowerSequenceDigOntoDEin10Ms;
+	UCHAR               ucPowerSequenceDEtoBLOnin10Ms;
+	UCHAR
+	ucLVDS_Misc;               // Bit0:{=0:single, =1:dual},Bit1 {=0:666RGB, =1:888RGB},Bit2:3:{Grey level}
+	// Bit4:{=0:LDI format for RGB888, =1 FPDI format for RGB888}
+	// Bit5:{=0:Spatial Dithering disabled;1 Spatial Dithering enabled}
+	// Bit6:{=0:Temporal Dithering disabled;1 Temporal Dithering enabled}
+	UCHAR               ucPanelDefaultRefreshRate;
+	UCHAR               ucPanelIdentification;
+	UCHAR               ucSS_Id;
+} ATOM_LVDS_INFO;
 
 //ucTableFormatRevision=1
 //ucTableContentRevision=2
 typedef struct _ATOM_LVDS_INFO_V12
 {
-  ATOM_COMMON_TABLE_HEADER sHeader;
-  ATOM_DTD_FORMAT     sLCDTiming;
-  USHORT              usExtInfoTableOffset;
-  USHORT              usSupportedRefreshRate;     //Refer to panel info table in ATOMBIOS extension Spec.
-  USHORT              usOffDelayInMs;
-  UCHAR               ucPowerSequenceDigOntoDEin10Ms;
-  UCHAR               ucPowerSequenceDEtoBLOnin10Ms;
-  UCHAR               ucLVDS_Misc;               // Bit0:{=0:single, =1:dual},Bit1 {=0:666RGB, =1:888RGB},Bit2:3:{Grey level}
-                                                 // Bit4:{=0:LDI format for RGB888, =1 FPDI format for RGB888}
-                                                 // Bit5:{=0:Spatial Dithering disabled;1 Spatial Dithering enabled}
-                                                 // Bit6:{=0:Temporal Dithering disabled;1 Temporal Dithering enabled}
-  UCHAR               ucPanelDefaultRefreshRate;
-  UCHAR               ucPanelIdentification;
-  UCHAR               ucSS_Id;
-  USHORT              usLCDVenderID;
-  USHORT              usLCDProductID;
-  UCHAR               ucLCDPanel_SpecialHandlingCap;
-   UCHAR                        ucPanelInfoSize;               //  start from ATOM_DTD_FORMAT to end of panel info, include ExtInfoTable
-  UCHAR               ucReserved[2];
-}ATOM_LVDS_INFO_V12;
+	ATOM_COMMON_TABLE_HEADER sHeader;
+	ATOM_DTD_FORMAT     sLCDTiming;
+	USHORT              usExtInfoTableOffset;
+	USHORT              usSupportedRefreshRate;     //Refer to panel info table in ATOMBIOS extension Spec.
+	USHORT              usOffDelayInMs;
+	UCHAR               ucPowerSequenceDigOntoDEin10Ms;
+	UCHAR               ucPowerSequenceDEtoBLOnin10Ms;
+	UCHAR
+	ucLVDS_Misc;               // Bit0:{=0:single, =1:dual},Bit1 {=0:666RGB, =1:888RGB},Bit2:3:{Grey level}
+	// Bit4:{=0:LDI format for RGB888, =1 FPDI format for RGB888}
+	// Bit5:{=0:Spatial Dithering disabled;1 Spatial Dithering enabled}
+	// Bit6:{=0:Temporal Dithering disabled;1 Temporal Dithering enabled}
+	UCHAR               ucPanelDefaultRefreshRate;
+	UCHAR               ucPanelIdentification;
+	UCHAR               ucSS_Id;
+	USHORT              usLCDVenderID;
+	USHORT              usLCDProductID;
+	UCHAR               ucLCDPanel_SpecialHandlingCap;
+	UCHAR
+	ucPanelInfoSize;               //  start from ATOM_DTD_FORMAT to end of panel info, include ExtInfoTable
+	UCHAR               ucReserved[2];
+} ATOM_LVDS_INFO_V12;
 
 //Definitions for ucLCDPanel_SpecialHandlingCap:
 
@@ -3948,14 +4005,14 @@ typedef struct _ATOM_LVDS_INFO_V12
 
 //Color Bit Depth definition in EDID V1.4 @BYTE 14h
 //Bit 6  5  4
-                              //      0  0  0  -  Color bit depth is undefined
-                              //      0  0  1  -  6 Bits per Primary Color
-                              //      0  1  0  -  8 Bits per Primary Color
-                              //      0  1  1  - 10 Bits per Primary Color
-                              //      1  0  0  - 12 Bits per Primary Color
-                              //      1  0  1  - 14 Bits per Primary Color
-                              //      1  1  0  - 16 Bits per Primary Color
-                              //      1  1  1  - Reserved
+//      0  0  0  -  Color bit depth is undefined
+//      0  0  1  -  6 Bits per Primary Color
+//      0  1  0  -  8 Bits per Primary Color
+//      0  1  1  - 10 Bits per Primary Color
+//      1  0  0  - 12 Bits per Primary Color
+//      1  0  1  - 14 Bits per Primary Color
+//      1  1  0  - 16 Bits per Primary Color
+//      1  1  1  - Reserved
 
 #define PANEL_COLOR_BIT_DEPTH_MASK    0x70
 
@@ -3968,9 +4025,9 @@ typedef struct _ATOM_LVDS_INFO_V12
 
 typedef struct _ATOM_LCD_REFRESH_RATE_SUPPORT
 {
-    UCHAR ucSupportedRefreshRate;
-    UCHAR ucMinRefreshRateForDRR;
-}ATOM_LCD_REFRESH_RATE_SUPPORT;
+	UCHAR ucSupportedRefreshRate;
+	UCHAR ucMinRefreshRateForDRR;
+} ATOM_LCD_REFRESH_RATE_SUPPORT;
 
 /****************************************************************************/
 // Structures used by LCD_InfoTable V1.3    Note: previous version was called ATOM_LVDS_INFO_V12
@@ -3980,54 +4037,55 @@ typedef struct _ATOM_LCD_REFRESH_RATE_SUPPORT
 /****************************************************************************/
 typedef struct _ATOM_LCD_INFO_V13
 {
-  ATOM_COMMON_TABLE_HEADER sHeader;
-  ATOM_DTD_FORMAT     sLCDTiming;
-  USHORT              usExtInfoTableOffset;
-  union
-  {
-    USHORT            usSupportedRefreshRate;
-    ATOM_LCD_REFRESH_RATE_SUPPORT sRefreshRateSupport;
-  };
-  ULONG               ulReserved0;
-  UCHAR               ucLCD_Misc;                // Reorganized in V13
-                                                 // Bit0: {=0:single, =1:dual},
-                                                 // Bit1: {=0:LDI format for RGB888, =1 FPDI format for RGB888}  // was {=0:666RGB, =1:888RGB},
-                                                 // Bit3:2: {Grey level}
-                                                 // Bit6:4 Color Bit Depth definition (see below definition in EDID V1.4 @BYTE 14h)
-                                                 // Bit7   Reserved.  was for ATOM_PANEL_MISC_API_ENABLED, still need it?
-  UCHAR               ucPanelDefaultRefreshRate;
-  UCHAR               ucPanelIdentification;
-  UCHAR               ucSS_Id;
-  USHORT              usLCDVenderID;
-  USHORT              usLCDProductID;
-  UCHAR               ucLCDPanel_SpecialHandlingCap;  // Reorganized in V13
-                                                 // Bit0: Once DAL sees this CAP is set, it will read EDID from LCD on its own
-                                                 // Bit1: See LCDPANEL_CAP_DRR_SUPPORTED
-                                                 // Bit2: a quick reference whether an embadded panel (LCD1 ) is LVDS (0) or eDP (1)
-                                                 // Bit7-3: Reserved
-  UCHAR               ucPanelInfoSize;                //  start from ATOM_DTD_FORMAT to end of panel info, include ExtInfoTable
-  USHORT              usBacklightPWM;            //  Backlight PWM in Hz. New in _V13
+	ATOM_COMMON_TABLE_HEADER sHeader;
+	ATOM_DTD_FORMAT     sLCDTiming;
+	USHORT              usExtInfoTableOffset;
+	union
+	{
+		USHORT            usSupportedRefreshRate;
+		ATOM_LCD_REFRESH_RATE_SUPPORT sRefreshRateSupport;
+	};
+	ULONG               ulReserved0;
+	UCHAR               ucLCD_Misc;                // Reorganized in V13
+	// Bit0: {=0:single, =1:dual},
+	// Bit1: {=0:LDI format for RGB888, =1 FPDI format for RGB888}  // was {=0:666RGB, =1:888RGB},
+	// Bit3:2: {Grey level}
+	// Bit6:4 Color Bit Depth definition (see below definition in EDID V1.4 @BYTE 14h)
+	// Bit7   Reserved.  was for ATOM_PANEL_MISC_API_ENABLED, still need it?
+	UCHAR               ucPanelDefaultRefreshRate;
+	UCHAR               ucPanelIdentification;
+	UCHAR               ucSS_Id;
+	USHORT              usLCDVenderID;
+	USHORT              usLCDProductID;
+	UCHAR               ucLCDPanel_SpecialHandlingCap;  // Reorganized in V13
+	// Bit0: Once DAL sees this CAP is set, it will read EDID from LCD on its own
+	// Bit1: See LCDPANEL_CAP_DRR_SUPPORTED
+	// Bit2: a quick reference whether an embadded panel (LCD1 ) is LVDS (0) or eDP (1)
+	// Bit7-3: Reserved
+	UCHAR
+	ucPanelInfoSize;                //  start from ATOM_DTD_FORMAT to end of panel info, include ExtInfoTable
+	USHORT              usBacklightPWM;            //  Backlight PWM in Hz. New in _V13
 
-  UCHAR               ucPowerSequenceDIGONtoDE_in4Ms;
-  UCHAR               ucPowerSequenceDEtoVARY_BL_in4Ms;
-  UCHAR               ucPowerSequenceVARY_BLtoDE_in4Ms;
-  UCHAR               ucPowerSequenceDEtoDIGON_in4Ms;
+	UCHAR               ucPowerSequenceDIGONtoDE_in4Ms;
+	UCHAR               ucPowerSequenceDEtoVARY_BL_in4Ms;
+	UCHAR               ucPowerSequenceVARY_BLtoDE_in4Ms;
+	UCHAR               ucPowerSequenceDEtoDIGON_in4Ms;
 
-  UCHAR               ucOffDelay_in4Ms;
-  UCHAR               ucPowerSequenceVARY_BLtoBLON_in4Ms;
-  UCHAR               ucPowerSequenceBLONtoVARY_BL_in4Ms;
-  UCHAR               ucReserved1;
+	UCHAR               ucOffDelay_in4Ms;
+	UCHAR               ucPowerSequenceVARY_BLtoBLON_in4Ms;
+	UCHAR               ucPowerSequenceBLONtoVARY_BL_in4Ms;
+	UCHAR               ucReserved1;
 
-  UCHAR               ucDPCD_eDP_CONFIGURATION_CAP;     // dpcd 0dh
-  UCHAR               ucDPCD_MAX_LINK_RATE;             // dpcd 01h
-  UCHAR               ucDPCD_MAX_LANE_COUNT;            // dpcd 02h
-  UCHAR               ucDPCD_MAX_DOWNSPREAD;            // dpcd 03h
+	UCHAR               ucDPCD_eDP_CONFIGURATION_CAP;     // dpcd 0dh
+	UCHAR               ucDPCD_MAX_LINK_RATE;             // dpcd 01h
+	UCHAR               ucDPCD_MAX_LANE_COUNT;            // dpcd 02h
+	UCHAR               ucDPCD_MAX_DOWNSPREAD;            // dpcd 03h
 
-  USHORT              usMaxPclkFreqInSingleLink;        // Max PixelClock frequency in single link mode.
-  UCHAR               uceDPToLVDSRxId;
-  UCHAR               ucLcdReservd;
-  ULONG               ulReserved[2];
-}ATOM_LCD_INFO_V13;
+	USHORT              usMaxPclkFreqInSingleLink;        // Max PixelClock frequency in single link mode.
+	UCHAR               uceDPToLVDSRxId;
+	UCHAR               ucLcdReservd;
+	ULONG               ulReserved[2];
+} ATOM_LCD_INFO_V13;
 
 #define ATOM_LCD_INFO_LAST  ATOM_LCD_INFO_V13
 
@@ -4042,14 +4100,14 @@ typedef struct _ATOM_LCD_INFO_V13
 
 //Color Bit Depth definition in EDID V1.4 @BYTE 14h
 //Bit 6  5  4
-                              //      0  0  0  -  Color bit depth is undefined
-                              //      0  0  1  -  6 Bits per Primary Color
-                              //      0  1  0  -  8 Bits per Primary Color
-                              //      0  1  1  - 10 Bits per Primary Color
-                              //      1  0  0  - 12 Bits per Primary Color
-                              //      1  0  1  - 14 Bits per Primary Color
-                              //      1  1  0  - 16 Bits per Primary Color
-                              //      1  1  1  - Reserved
+//      0  0  0  -  Color bit depth is undefined
+//      0  0  1  -  6 Bits per Primary Color
+//      0  1  0  -  8 Bits per Primary Color
+//      0  1  1  - 10 Bits per Primary Color
+//      1  0  0  - 12 Bits per Primary Color
+//      1  0  1  - 14 Bits per Primary Color
+//      1  1  0  - 16 Bits per Primary Color
+//      1  1  1  - Reserved
 
 //Definitions for ucLCDPanel_SpecialHandlingCap:
 
@@ -4072,24 +4130,24 @@ typedef struct _ATOM_LCD_INFO_V13
 
 typedef struct  _ATOM_PATCH_RECORD_MODE
 {
-  UCHAR     ucRecordType;
-  USHORT    usHDisp;
-  USHORT    usVDisp;
-}ATOM_PATCH_RECORD_MODE;
+	UCHAR     ucRecordType;
+	USHORT    usHDisp;
+	USHORT    usVDisp;
+} ATOM_PATCH_RECORD_MODE;
 
 typedef struct  _ATOM_LCD_RTS_RECORD
 {
-  UCHAR     ucRecordType;
-  UCHAR     ucRTSValue;
-}ATOM_LCD_RTS_RECORD;
+	UCHAR     ucRecordType;
+	UCHAR     ucRTSValue;
+} ATOM_LCD_RTS_RECORD;
 
 //!! If the record below exits, it shoud always be the first record for easy use in command table!!!
 // The record below is only used when LVDS_Info is present. From ATOM_LVDS_INFO_V12, use ucLCDPanel_SpecialHandlingCap instead.
 typedef struct  _ATOM_LCD_MODE_CONTROL_CAP
 {
-  UCHAR     ucRecordType;
-  USHORT    usLCDCap;
-}ATOM_LCD_MODE_CONTROL_CAP;
+	UCHAR     ucRecordType;
+	USHORT    usLCDCap;
+} ATOM_LCD_MODE_CONTROL_CAP;
 
 #define LCD_MODE_CAP_BL_OFF                   1
 #define LCD_MODE_CAP_CRTC_OFF                 2
@@ -4098,17 +4156,17 @@ typedef struct  _ATOM_LCD_MODE_CONTROL_CAP
 
 typedef struct _ATOM_FAKE_EDID_PATCH_RECORD
 {
-  UCHAR ucRecordType;
-  UCHAR ucFakeEDIDLength;       // = 128 means EDID lenght is 128 bytes, otherwise the EDID length = ucFakeEDIDLength*128
-  UCHAR ucFakeEDIDString[1];    // This actually has ucFakeEdidLength elements.
+	UCHAR ucRecordType;
+	UCHAR ucFakeEDIDLength;       // = 128 means EDID lenght is 128 bytes, otherwise the EDID length = ucFakeEDIDLength*128
+	UCHAR ucFakeEDIDString[1];    // This actually has ucFakeEdidLength elements.
 } ATOM_FAKE_EDID_PATCH_RECORD;
 
 typedef struct  _ATOM_PANEL_RESOLUTION_PATCH_RECORD
 {
-   UCHAR    ucRecordType;
-   USHORT      usHSize;
-   USHORT      usVSize;
-}ATOM_PANEL_RESOLUTION_PATCH_RECORD;
+	UCHAR    ucRecordType;
+	USHORT      usHSize;
+	USHORT      usVSize;
+} ATOM_PANEL_RESOLUTION_PATCH_RECORD;
 
 #define LCD_MODE_PATCH_RECORD_MODE_TYPE       1
 #define LCD_RTS_RECORD_TYPE                   2
@@ -4124,14 +4182,15 @@ typedef struct  _ATOM_PANEL_RESOLUTION_PATCH_RECORD
 //ucTableContentRevision=2
 typedef struct _ATOM_SPREAD_SPECTRUM_ASSIGNMENT
 {
-  USHORT              usSpreadSpectrumPercentage;
-  UCHAR               ucSpreadSpectrumType;       //Bit1=0 Down Spread,=1 Center Spread. Bit1=1 Ext. =0 Int. Bit2=1: PCIE REFCLK SS =0 iternal PPLL SS  Others:TBD
-  UCHAR               ucSS_Step;
-  UCHAR               ucSS_Delay;
-  UCHAR               ucSS_Id;
-  UCHAR               ucRecommendedRef_Div;
-  UCHAR               ucSS_Range;               //it was reserved for V11
-}ATOM_SPREAD_SPECTRUM_ASSIGNMENT;
+	USHORT              usSpreadSpectrumPercentage;
+	UCHAR
+	ucSpreadSpectrumType;       //Bit1=0 Down Spread,=1 Center Spread. Bit1=1 Ext. =0 Int. Bit2=1: PCIE REFCLK SS =0 iternal PPLL SS  Others:TBD
+	UCHAR               ucSS_Step;
+	UCHAR               ucSS_Delay;
+	UCHAR               ucSS_Id;
+	UCHAR               ucRecommendedRef_Div;
+	UCHAR               ucSS_Range;               //it was reserved for V11
+} ATOM_SPREAD_SPECTRUM_ASSIGNMENT;
 
 #define ATOM_MAX_SS_ENTRY                      16
 #define ATOM_DP_SS_ID1                                     0x0f1         // SS ID for internal DP stream at 2.7Ghz. if ATOM_DP_SS_ID2 does not exist in SS_InfoTable, it is used for internal DP stream at 1.62Ghz as well.
@@ -4153,9 +4212,9 @@ typedef struct _ATOM_SPREAD_SPECTRUM_ASSIGNMENT
 
 typedef struct _ATOM_SPREAD_SPECTRUM_INFO
 {
-  ATOM_COMMON_TABLE_HEADER   sHeader;
-  ATOM_SPREAD_SPECTRUM_ASSIGNMENT   asSS_Info[ATOM_MAX_SS_ENTRY];
-}ATOM_SPREAD_SPECTRUM_INFO;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	ATOM_SPREAD_SPECTRUM_ASSIGNMENT   asSS_Info[ATOM_MAX_SS_ENTRY];
+} ATOM_SPREAD_SPECTRUM_INFO;
 
 
 /****************************************************************************/
@@ -4187,21 +4246,21 @@ typedef struct _ATOM_SPREAD_SPECTRUM_INFO
 
 typedef struct _ATOM_ANALOG_TV_INFO
 {
-  ATOM_COMMON_TABLE_HEADER sHeader;
-  UCHAR                    ucTV_SuppportedStandard;
-  UCHAR                    ucTV_BootUpDefaultStandard;
-  UCHAR                    ucExt_TV_ASIC_ID;
-  UCHAR                    ucExt_TV_ASIC_SlaveAddr;
-  ATOM_DTD_FORMAT          aModeTimings[MAX_SUPPORTED_TV_TIMING];
-}ATOM_ANALOG_TV_INFO;
+	ATOM_COMMON_TABLE_HEADER sHeader;
+	UCHAR                    ucTV_SuppportedStandard;
+	UCHAR                    ucTV_BootUpDefaultStandard;
+	UCHAR                    ucExt_TV_ASIC_ID;
+	UCHAR                    ucExt_TV_ASIC_SlaveAddr;
+	ATOM_DTD_FORMAT          aModeTimings[MAX_SUPPORTED_TV_TIMING];
+} ATOM_ANALOG_TV_INFO;
 
 typedef struct _ATOM_DPCD_INFO
 {
-  UCHAR   ucRevisionNumber;        //10h : Revision 1.0; 11h : Revision 1.1
-  UCHAR   ucMaxLinkRate;           //06h : 1.62Gbps per lane; 0Ah = 2.7Gbps per lane
-  UCHAR   ucMaxLane;               //Bits 4:0 = MAX_LANE_COUNT (1/2/4). Bit 7 = ENHANCED_FRAME_CAP
-  UCHAR   ucMaxDownSpread;         //Bit0 = 0: No Down spread; Bit0 = 1: 0.5% (Subject to change according to DP spec)
-}ATOM_DPCD_INFO;
+	UCHAR   ucRevisionNumber;        //10h : Revision 1.0; 11h : Revision 1.1
+	UCHAR   ucMaxLinkRate;           //06h : 1.62Gbps per lane; 0Ah = 2.7Gbps per lane
+	UCHAR   ucMaxLane;               //Bits 4:0 = MAX_LANE_COUNT (1/2/4). Bit 7 = ENHANCED_FRAME_CAP
+	UCHAR   ucMaxDownSpread;         //Bit0 = 0: No Down spread; Bit0 = 1: 0.5% (Subject to change according to DP spec)
+} ATOM_DPCD_INFO;
 
 #define ATOM_DPCD_MAX_LANE_MASK    0x1F
 
@@ -4322,40 +4381,40 @@ CAIL needs to claim an reserved area defined by FBAccessAreaOffset and usFBUsedb
 
 typedef struct _ATOM_FIRMWARE_VRAM_RESERVE_INFO
 {
-  ULONG   ulStartAddrUsedByFirmware;
-  USHORT  usFirmwareUseInKb;
-  USHORT  usReserved;
-}ATOM_FIRMWARE_VRAM_RESERVE_INFO;
+	ULONG   ulStartAddrUsedByFirmware;
+	USHORT  usFirmwareUseInKb;
+	USHORT  usReserved;
+} ATOM_FIRMWARE_VRAM_RESERVE_INFO;
 
 typedef struct _ATOM_VRAM_USAGE_BY_FIRMWARE
 {
-  ATOM_COMMON_TABLE_HEADER sHeader;
-  ATOM_FIRMWARE_VRAM_RESERVE_INFO   asFirmwareVramReserveInfo[ATOM_MAX_FIRMWARE_VRAM_USAGE_INFO];
-}ATOM_VRAM_USAGE_BY_FIRMWARE;
+	ATOM_COMMON_TABLE_HEADER sHeader;
+	ATOM_FIRMWARE_VRAM_RESERVE_INFO   asFirmwareVramReserveInfo[ATOM_MAX_FIRMWARE_VRAM_USAGE_INFO];
+} ATOM_VRAM_USAGE_BY_FIRMWARE;
 
 // change verion to 1.5, when allow driver to allocate the vram area for command table access.
 typedef struct _ATOM_FIRMWARE_VRAM_RESERVE_INFO_V1_5
 {
-  ULONG   ulStartAddrUsedByFirmware;
-  USHORT  usFirmwareUseInKb;
-  USHORT  usFBUsedByDrvInKb;
-}ATOM_FIRMWARE_VRAM_RESERVE_INFO_V1_5;
+	ULONG   ulStartAddrUsedByFirmware;
+	USHORT  usFirmwareUseInKb;
+	USHORT  usFBUsedByDrvInKb;
+} ATOM_FIRMWARE_VRAM_RESERVE_INFO_V1_5;
 
 typedef struct _ATOM_VRAM_USAGE_BY_FIRMWARE_V1_5
 {
-  ATOM_COMMON_TABLE_HEADER sHeader;
-  ATOM_FIRMWARE_VRAM_RESERVE_INFO_V1_5   asFirmwareVramReserveInfo[ATOM_MAX_FIRMWARE_VRAM_USAGE_INFO];
-}ATOM_VRAM_USAGE_BY_FIRMWARE_V1_5;
+	ATOM_COMMON_TABLE_HEADER sHeader;
+	ATOM_FIRMWARE_VRAM_RESERVE_INFO_V1_5   asFirmwareVramReserveInfo[ATOM_MAX_FIRMWARE_VRAM_USAGE_INFO];
+} ATOM_VRAM_USAGE_BY_FIRMWARE_V1_5;
 
 /****************************************************************************/
 // Structure used in GPIO_Pin_LUTTable
 /****************************************************************************/
 typedef struct _ATOM_GPIO_PIN_ASSIGNMENT
 {
-  USHORT                   usGpioPin_AIndex;
-  UCHAR                    ucGpioPinBitShift;
-  UCHAR                    ucGPIO_ID;
-}ATOM_GPIO_PIN_ASSIGNMENT;
+	USHORT                   usGpioPin_AIndex;
+	UCHAR                    ucGpioPinBitShift;
+	UCHAR                    ucGPIO_ID;
+} ATOM_GPIO_PIN_ASSIGNMENT;
 
 //ucGPIO_ID pre-define id for multiple usage
 // GPIO use to control PCIE_VDDC in certain SLT board
@@ -4377,9 +4436,9 @@ typedef struct _ATOM_GPIO_PIN_ASSIGNMENT
 
 typedef struct _ATOM_GPIO_PIN_LUT
 {
-  ATOM_COMMON_TABLE_HEADER  sHeader;
-  ATOM_GPIO_PIN_ASSIGNMENT   asGPIO_Pin[1];
-}ATOM_GPIO_PIN_LUT;
+	ATOM_COMMON_TABLE_HEADER  sHeader;
+	ATOM_GPIO_PIN_ASSIGNMENT   asGPIO_Pin[1];
+} ATOM_GPIO_PIN_LUT;
 
 /****************************************************************************/
 // Structure used in ComponentVideoInfoTable
@@ -4394,10 +4453,10 @@ typedef struct _ATOM_GPIO_PIN_LUT
 
 typedef struct _ATOM_GPIO_INFO
 {
-  USHORT  usAOffset;
-  UCHAR   ucSettings;
-  UCHAR   ucReserved;
-}ATOM_GPIO_INFO;
+	USHORT  usAOffset;
+	UCHAR   ucSettings;
+	UCHAR   ucReserved;
+} ATOM_GPIO_INFO;
 
 // definitions for ATOM_COMPONENT_VIDEO_INFO.ucMiscInfo (bit vector)
 #define ATOM_CV_RESTRICT_FORMAT_SELECTION           0x2
@@ -4433,42 +4492,42 @@ typedef struct _ATOM_GPIO_INFO
 
 typedef struct _ATOM_COMPONENT_VIDEO_INFO
 {
-  ATOM_COMMON_TABLE_HEADER sHeader;
-  USHORT             usMask_PinRegisterIndex;
-  USHORT             usEN_PinRegisterIndex;
-  USHORT             usY_PinRegisterIndex;
-  USHORT             usA_PinRegisterIndex;
-  UCHAR              ucBitShift;
-  UCHAR              ucPinActiveState;  //ucPinActiveState: Bit0=1 active high, =0 active low
-  ATOM_DTD_FORMAT    sReserved;         // must be zeroed out
-  UCHAR              ucMiscInfo;
-  UCHAR              uc480i;
-  UCHAR              uc480p;
-  UCHAR              uc720p;
-  UCHAR              uc1080i;
-  UCHAR              ucLetterBoxMode;
-  UCHAR              ucReserved[3];
-  UCHAR              ucNumOfWbGpioBlocks; //For Component video D-Connector support. If zere, NTSC type connector
-  ATOM_GPIO_INFO     aWbGpioStateBlock[MAX_SUPPORTED_CV_STANDARDS];
-  ATOM_DTD_FORMAT    aModeTimings[MAX_SUPPORTED_CV_STANDARDS];
-}ATOM_COMPONENT_VIDEO_INFO;
+	ATOM_COMMON_TABLE_HEADER sHeader;
+	USHORT             usMask_PinRegisterIndex;
+	USHORT             usEN_PinRegisterIndex;
+	USHORT             usY_PinRegisterIndex;
+	USHORT             usA_PinRegisterIndex;
+	UCHAR              ucBitShift;
+	UCHAR              ucPinActiveState;  //ucPinActiveState: Bit0=1 active high, =0 active low
+	ATOM_DTD_FORMAT    sReserved;         // must be zeroed out
+	UCHAR              ucMiscInfo;
+	UCHAR              uc480i;
+	UCHAR              uc480p;
+	UCHAR              uc720p;
+	UCHAR              uc1080i;
+	UCHAR              ucLetterBoxMode;
+	UCHAR              ucReserved[3];
+	UCHAR              ucNumOfWbGpioBlocks; //For Component video D-Connector support. If zere, NTSC type connector
+	ATOM_GPIO_INFO     aWbGpioStateBlock[MAX_SUPPORTED_CV_STANDARDS];
+	ATOM_DTD_FORMAT    aModeTimings[MAX_SUPPORTED_CV_STANDARDS];
+} ATOM_COMPONENT_VIDEO_INFO;
 
 //ucTableFormatRevision=2
 //ucTableContentRevision=1
 typedef struct _ATOM_COMPONENT_VIDEO_INFO_V21
 {
-  ATOM_COMMON_TABLE_HEADER sHeader;
-  UCHAR              ucMiscInfo;
-  UCHAR              uc480i;
-  UCHAR              uc480p;
-  UCHAR              uc720p;
-  UCHAR              uc1080i;
-  UCHAR              ucReserved;
-  UCHAR              ucLetterBoxMode;
-  UCHAR              ucNumOfWbGpioBlocks; //For Component video D-Connector support. If zere, NTSC type connector
-  ATOM_GPIO_INFO     aWbGpioStateBlock[MAX_SUPPORTED_CV_STANDARDS];
-  ATOM_DTD_FORMAT    aModeTimings[MAX_SUPPORTED_CV_STANDARDS];
-}ATOM_COMPONENT_VIDEO_INFO_V21;
+	ATOM_COMMON_TABLE_HEADER sHeader;
+	UCHAR              ucMiscInfo;
+	UCHAR              uc480i;
+	UCHAR              uc480p;
+	UCHAR              uc720p;
+	UCHAR              uc1080i;
+	UCHAR              ucReserved;
+	UCHAR              ucLetterBoxMode;
+	UCHAR              ucNumOfWbGpioBlocks; //For Component video D-Connector support. If zere, NTSC type connector
+	ATOM_GPIO_INFO     aWbGpioStateBlock[MAX_SUPPORTED_CV_STANDARDS];
+	ATOM_DTD_FORMAT    aModeTimings[MAX_SUPPORTED_CV_STANDARDS];
+} ATOM_COMPONENT_VIDEO_INFO_V21;
 
 #define ATOM_COMPONENT_VIDEO_INFO_LAST  ATOM_COMPONENT_VIDEO_INFO_V21
 
@@ -4477,76 +4536,77 @@ typedef struct _ATOM_COMPONENT_VIDEO_INFO_V21
 /****************************************************************************/
 typedef struct _ATOM_OBJECT_HEADER
 {
-  ATOM_COMMON_TABLE_HEADER   sHeader;
-  USHORT                    usDeviceSupport;
-  USHORT                    usConnectorObjectTableOffset;
-  USHORT                    usRouterObjectTableOffset;
-  USHORT                    usEncoderObjectTableOffset;
-  USHORT                    usProtectionObjectTableOffset; //only available when Protection block is independent.
-  USHORT                    usDisplayPathTableOffset;
-}ATOM_OBJECT_HEADER;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	USHORT                    usDeviceSupport;
+	USHORT                    usConnectorObjectTableOffset;
+	USHORT                    usRouterObjectTableOffset;
+	USHORT                    usEncoderObjectTableOffset;
+	USHORT                    usProtectionObjectTableOffset; //only available when Protection block is independent.
+	USHORT                    usDisplayPathTableOffset;
+} ATOM_OBJECT_HEADER;
 
 typedef struct _ATOM_OBJECT_HEADER_V3
 {
-  ATOM_COMMON_TABLE_HEADER   sHeader;
-  USHORT                    usDeviceSupport;
-  USHORT                    usConnectorObjectTableOffset;
-  USHORT                    usRouterObjectTableOffset;
-  USHORT                    usEncoderObjectTableOffset;
-  USHORT                    usProtectionObjectTableOffset; //only available when Protection block is independent.
-  USHORT                    usDisplayPathTableOffset;
-  USHORT                    usMiscObjectTableOffset;
-}ATOM_OBJECT_HEADER_V3;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	USHORT                    usDeviceSupport;
+	USHORT                    usConnectorObjectTableOffset;
+	USHORT                    usRouterObjectTableOffset;
+	USHORT                    usEncoderObjectTableOffset;
+	USHORT                    usProtectionObjectTableOffset; //only available when Protection block is independent.
+	USHORT                    usDisplayPathTableOffset;
+	USHORT                    usMiscObjectTableOffset;
+} ATOM_OBJECT_HEADER_V3;
 
 
 typedef struct  _ATOM_DISPLAY_OBJECT_PATH
 {
-  USHORT    usDeviceTag;                                   //supported device
-  USHORT    usSize;                                        //the size of ATOM_DISPLAY_OBJECT_PATH
-  USHORT    usConnObjectId;                                //Connector Object ID
-  USHORT    usGPUObjectId;                                 //GPU ID
-  USHORT    usGraphicObjIds[1];                            //1st Encoder Obj source from GPU to last Graphic Obj destinate to connector.
-}ATOM_DISPLAY_OBJECT_PATH;
+	USHORT    usDeviceTag;                                   //supported device
+	USHORT    usSize;                                        //the size of ATOM_DISPLAY_OBJECT_PATH
+	USHORT    usConnObjectId;                                //Connector Object ID
+	USHORT    usGPUObjectId;                                 //GPU ID
+	USHORT    usGraphicObjIds[1];                            //1st Encoder Obj source from GPU to last Graphic Obj destinate to connector.
+} ATOM_DISPLAY_OBJECT_PATH;
 
 typedef struct  _ATOM_DISPLAY_EXTERNAL_OBJECT_PATH
 {
-  USHORT    usDeviceTag;                                   //supported device
-  USHORT    usSize;                                        //the size of ATOM_DISPLAY_OBJECT_PATH
-  USHORT    usConnObjectId;                                //Connector Object ID
-  USHORT    usGPUObjectId;                                 //GPU ID
-  USHORT    usGraphicObjIds[2];                            //usGraphicObjIds[0]= GPU internal encoder, usGraphicObjIds[1]= external encoder
-}ATOM_DISPLAY_EXTERNAL_OBJECT_PATH;
+	USHORT    usDeviceTag;                                   //supported device
+	USHORT    usSize;                                        //the size of ATOM_DISPLAY_OBJECT_PATH
+	USHORT    usConnObjectId;                                //Connector Object ID
+	USHORT    usGPUObjectId;                                 //GPU ID
+	USHORT    usGraphicObjIds[2];                            //usGraphicObjIds[0]= GPU internal encoder, usGraphicObjIds[1]= external encoder
+} ATOM_DISPLAY_EXTERNAL_OBJECT_PATH;
 
 typedef struct _ATOM_DISPLAY_OBJECT_PATH_TABLE
 {
-  UCHAR                           ucNumOfDispPath;
-  UCHAR                           ucVersion;
-  UCHAR                           ucPadding[2];
-  ATOM_DISPLAY_OBJECT_PATH        asDispPath[1];
-}ATOM_DISPLAY_OBJECT_PATH_TABLE;
+	UCHAR                           ucNumOfDispPath;
+	UCHAR                           ucVersion;
+	UCHAR                           ucPadding[2];
+	ATOM_DISPLAY_OBJECT_PATH        asDispPath[1];
+} ATOM_DISPLAY_OBJECT_PATH_TABLE;
 
 typedef struct _ATOM_OBJECT                                //each object has this structure
 {
-  USHORT              usObjectID;
-  USHORT              usSrcDstTableOffset;
-  USHORT              usRecordOffset;                     //this pointing to a bunch of records defined below
-  USHORT              usReserved;
-}ATOM_OBJECT;
+	USHORT              usObjectID;
+	USHORT              usSrcDstTableOffset;
+	USHORT              usRecordOffset;                     //this pointing to a bunch of records defined below
+	USHORT              usReserved;
+} ATOM_OBJECT;
 
-typedef struct _ATOM_OBJECT_TABLE                         //Above 4 object table offset pointing to a bunch of objects all have this structure
+typedef struct
+	_ATOM_OBJECT_TABLE                         //Above 4 object table offset pointing to a bunch of objects all have this structure
 {
-  UCHAR               ucNumberOfObjects;
-  UCHAR               ucPadding[3];
-  ATOM_OBJECT         asObjects[1];
-}ATOM_OBJECT_TABLE;
+	UCHAR               ucNumberOfObjects;
+	UCHAR               ucPadding[3];
+	ATOM_OBJECT         asObjects[1];
+} ATOM_OBJECT_TABLE;
 
 typedef struct _ATOM_SRC_DST_TABLE_FOR_ONE_OBJECT         //usSrcDstTableOffset pointing to this structure
 {
-  UCHAR               ucNumberOfSrc;
-  USHORT              usSrcObjectID[1];
-  UCHAR               ucNumberOfDst;
-  USHORT              usDstObjectID[1];
-}ATOM_SRC_DST_TABLE_FOR_ONE_OBJECT;
+	UCHAR               ucNumberOfSrc;
+	USHORT              usSrcObjectID[1];
+	UCHAR               ucNumberOfDst;
+	USHORT              usDstObjectID[1];
+} ATOM_SRC_DST_TABLE_FOR_ONE_OBJECT;
 
 
 //Two definitions below are for OPM on MXM module designs
@@ -4580,17 +4640,17 @@ typedef struct _ATOM_SRC_DST_TABLE_FOR_ONE_OBJECT         //usSrcDstTableOffset 
 typedef struct _ATOM_DP_CONN_CHANNEL_MAPPING
 {
 #if ATOM_BIG_ENDIAN
-  UCHAR ucDP_Lane3_Source:2;
-  UCHAR ucDP_Lane2_Source:2;
-  UCHAR ucDP_Lane1_Source:2;
-  UCHAR ucDP_Lane0_Source:2;
+	UCHAR ucDP_Lane3_Source: 2;
+	UCHAR ucDP_Lane2_Source: 2;
+	UCHAR ucDP_Lane1_Source: 2;
+	UCHAR ucDP_Lane0_Source: 2;
 #else
-  UCHAR ucDP_Lane0_Source:2;
-  UCHAR ucDP_Lane1_Source:2;
-  UCHAR ucDP_Lane2_Source:2;
-  UCHAR ucDP_Lane3_Source:2;
+	UCHAR ucDP_Lane0_Source: 2;
+	UCHAR ucDP_Lane1_Source: 2;
+	UCHAR ucDP_Lane2_Source: 2;
+	UCHAR ucDP_Lane3_Source: 2;
 #endif
-}ATOM_DP_CONN_CHANNEL_MAPPING;
+} ATOM_DP_CONN_CHANNEL_MAPPING;
 
 //for DVI/HDMI, in dual link case, both links have to have same mapping.
 //Bit[1:0]: Define which pin connect to DVI connector data Lane2, =0: source from GPU pin TX0, =1: from GPU pin TX1, =2: from GPU pin TX2, =3 from GPU pin TX3
@@ -4600,35 +4660,36 @@ typedef struct _ATOM_DP_CONN_CHANNEL_MAPPING
 typedef struct _ATOM_DVI_CONN_CHANNEL_MAPPING
 {
 #if ATOM_BIG_ENDIAN
-  UCHAR ucDVI_CLK_Source:2;
-  UCHAR ucDVI_DATA0_Source:2;
-  UCHAR ucDVI_DATA1_Source:2;
-  UCHAR ucDVI_DATA2_Source:2;
+	UCHAR ucDVI_CLK_Source: 2;
+	UCHAR ucDVI_DATA0_Source: 2;
+	UCHAR ucDVI_DATA1_Source: 2;
+	UCHAR ucDVI_DATA2_Source: 2;
 #else
-  UCHAR ucDVI_DATA2_Source:2;
-  UCHAR ucDVI_DATA1_Source:2;
-  UCHAR ucDVI_DATA0_Source:2;
-  UCHAR ucDVI_CLK_Source:2;
+	UCHAR ucDVI_DATA2_Source: 2;
+	UCHAR ucDVI_DATA1_Source: 2;
+	UCHAR ucDVI_DATA0_Source: 2;
+	UCHAR ucDVI_CLK_Source: 2;
 #endif
-}ATOM_DVI_CONN_CHANNEL_MAPPING;
+} ATOM_DVI_CONN_CHANNEL_MAPPING;
 
 typedef struct _EXT_DISPLAY_PATH
 {
-  USHORT  usDeviceTag;                    //A bit vector to show what devices are supported
-  USHORT  usDeviceACPIEnum;               //16bit device ACPI id.
-  USHORT  usDeviceConnector;              //A physical connector for displays to plug in, using object connector definitions
-  UCHAR   ucExtAUXDDCLutIndex;            //An index into external AUX/DDC channel LUT
-  UCHAR   ucExtHPDPINLutIndex;            //An index into external HPD pin LUT
-  USHORT  usExtEncoderObjId;              //external encoder object id
-  union{
-    UCHAR   ucChannelMapping;                  // if ucChannelMapping=0, using default one to one mapping
-    ATOM_DP_CONN_CHANNEL_MAPPING asDPMapping;
-    ATOM_DVI_CONN_CHANNEL_MAPPING asDVIMapping;
-  };
-  UCHAR   ucChPNInvert;                   // bit vector for up to 8 lanes, =0: P and N is not invert, =1 P and N is inverted
-  USHORT  usCaps;
-  USHORT  usReserved;
-}EXT_DISPLAY_PATH;
+	USHORT  usDeviceTag;                    //A bit vector to show what devices are supported
+	USHORT  usDeviceACPIEnum;               //16bit device ACPI id.
+	USHORT  usDeviceConnector;              //A physical connector for displays to plug in, using object connector definitions
+	UCHAR   ucExtAUXDDCLutIndex;            //An index into external AUX/DDC channel LUT
+	UCHAR   ucExtHPDPINLutIndex;            //An index into external HPD pin LUT
+	USHORT  usExtEncoderObjId;              //external encoder object id
+	union
+	{
+		UCHAR   ucChannelMapping;                  // if ucChannelMapping=0, using default one to one mapping
+		ATOM_DP_CONN_CHANNEL_MAPPING asDPMapping;
+		ATOM_DVI_CONN_CHANNEL_MAPPING asDVIMapping;
+	};
+	UCHAR   ucChPNInvert;                   // bit vector for up to 8 lanes, =0: P and N is not invert, =1 P and N is inverted
+	USHORT  usCaps;
+	USHORT  usReserved;
+} EXT_DISPLAY_PATH;
 
 #define NUMBER_OF_UCHAR_FOR_GUID          16
 #define MAX_NUMBER_OF_EXT_DISPLAY_PATH    7
@@ -4646,23 +4707,24 @@ typedef struct _EXT_DISPLAY_PATH
 
 typedef  struct _ATOM_EXTERNAL_DISPLAY_CONNECTION_INFO
 {
-  ATOM_COMMON_TABLE_HEADER sHeader;
-  UCHAR                    ucGuid [NUMBER_OF_UCHAR_FOR_GUID];     // a GUID is a 16 byte long string
-  EXT_DISPLAY_PATH         sPath[MAX_NUMBER_OF_EXT_DISPLAY_PATH]; // total of fixed 7 entries.
-  UCHAR                    ucChecksum;                            // a simple Checksum of the sum of whole structure equal to 0x0.
-  UCHAR                    uc3DStereoPinId;                       // use for eDP panel
-  UCHAR                    ucRemoteDisplayConfig;
-  UCHAR                    uceDPToLVDSRxId;
-  UCHAR                    ucFixDPVoltageSwing;                   // usCaps[1]=1, this indicate DP_LANE_SET value
-  UCHAR                    Reserved[3];                           // for potential expansion
-}ATOM_EXTERNAL_DISPLAY_CONNECTION_INFO;
+	ATOM_COMMON_TABLE_HEADER sHeader;
+	UCHAR                    ucGuid [NUMBER_OF_UCHAR_FOR_GUID];     // a GUID is a 16 byte long string
+	EXT_DISPLAY_PATH         sPath[MAX_NUMBER_OF_EXT_DISPLAY_PATH]; // total of fixed 7 entries.
+	UCHAR
+	ucChecksum;                            // a simple Checksum of the sum of whole structure equal to 0x0.
+	UCHAR                    uc3DStereoPinId;                       // use for eDP panel
+	UCHAR                    ucRemoteDisplayConfig;
+	UCHAR                    uceDPToLVDSRxId;
+	UCHAR                    ucFixDPVoltageSwing;                   // usCaps[1]=1, this indicate DP_LANE_SET value
+	UCHAR                    Reserved[3];                           // for potential expansion
+} ATOM_EXTERNAL_DISPLAY_CONNECTION_INFO;
 
 //Related definitions, all records are differnt but they have a commond header
 typedef struct _ATOM_COMMON_RECORD_HEADER
 {
-  UCHAR               ucRecordType;                      //An emun to indicate the record type
-  UCHAR               ucRecordSize;                      //The size of the whole record in byte
-}ATOM_COMMON_RECORD_HEADER;
+	UCHAR               ucRecordType;                      //An emun to indicate the record type
+	UCHAR               ucRecordSize;                      //The size of the whole record in byte
+} ATOM_COMMON_RECORD_HEADER;
 
 
 #define ATOM_I2C_RECORD_TYPE                           1
@@ -4693,100 +4755,103 @@ typedef struct _ATOM_COMMON_RECORD_HEADER
 
 typedef struct  _ATOM_I2C_RECORD
 {
-  ATOM_COMMON_RECORD_HEADER   sheader;
-  ATOM_I2C_ID_CONFIG          sucI2cId;
-  UCHAR                       ucI2CAddr;              //The slave address, it's 0 when the record is attached to connector for DDC
-}ATOM_I2C_RECORD;
+	ATOM_COMMON_RECORD_HEADER   sheader;
+	ATOM_I2C_ID_CONFIG          sucI2cId;
+	UCHAR
+	ucI2CAddr;              //The slave address, it's 0 when the record is attached to connector for DDC
+} ATOM_I2C_RECORD;
 
 typedef struct  _ATOM_HPD_INT_RECORD
 {
-  ATOM_COMMON_RECORD_HEADER   sheader;
-  UCHAR                       ucHPDIntGPIOID;         //Corresponding block in GPIO_PIN_INFO table gives the pin info
-  UCHAR                       ucPlugged_PinState;
-}ATOM_HPD_INT_RECORD;
+	ATOM_COMMON_RECORD_HEADER   sheader;
+	UCHAR                       ucHPDIntGPIOID;         //Corresponding block in GPIO_PIN_INFO table gives the pin info
+	UCHAR                       ucPlugged_PinState;
+} ATOM_HPD_INT_RECORD;
 
 
 typedef struct  _ATOM_OUTPUT_PROTECTION_RECORD
 {
-  ATOM_COMMON_RECORD_HEADER   sheader;
-  UCHAR                       ucProtectionFlag;
-  UCHAR                       ucReserved;
-}ATOM_OUTPUT_PROTECTION_RECORD;
+	ATOM_COMMON_RECORD_HEADER   sheader;
+	UCHAR                       ucProtectionFlag;
+	UCHAR                       ucReserved;
+} ATOM_OUTPUT_PROTECTION_RECORD;
 
 typedef struct  _ATOM_CONNECTOR_DEVICE_TAG
 {
-  ULONG                       ulACPIDeviceEnum;       //Reserved for now
-  USHORT                      usDeviceID;             //This Id is same as "ATOM_DEVICE_XXX_SUPPORT"
-  USHORT                      usPadding;
-}ATOM_CONNECTOR_DEVICE_TAG;
+	ULONG                       ulACPIDeviceEnum;       //Reserved for now
+	USHORT                      usDeviceID;             //This Id is same as "ATOM_DEVICE_XXX_SUPPORT"
+	USHORT                      usPadding;
+} ATOM_CONNECTOR_DEVICE_TAG;
 
 typedef struct  _ATOM_CONNECTOR_DEVICE_TAG_RECORD
 {
-  ATOM_COMMON_RECORD_HEADER   sheader;
-  UCHAR                       ucNumberOfDevice;
-  UCHAR                       ucReserved;
-  ATOM_CONNECTOR_DEVICE_TAG   asDeviceTag[1];         //This Id is same as "ATOM_DEVICE_XXX_SUPPORT", 1 is only for allocation
-}ATOM_CONNECTOR_DEVICE_TAG_RECORD;
+	ATOM_COMMON_RECORD_HEADER   sheader;
+	UCHAR                       ucNumberOfDevice;
+	UCHAR                       ucReserved;
+	ATOM_CONNECTOR_DEVICE_TAG
+	asDeviceTag[1];         //This Id is same as "ATOM_DEVICE_XXX_SUPPORT", 1 is only for allocation
+} ATOM_CONNECTOR_DEVICE_TAG_RECORD;
 
 
 typedef struct  _ATOM_CONNECTOR_DVI_EXT_INPUT_RECORD
 {
-  ATOM_COMMON_RECORD_HEADER   sheader;
-  UCHAR                              ucConfigGPIOID;
-  UCHAR                              ucConfigGPIOState;       //Set to 1 when it's active high to enable external flow in
-  UCHAR                       ucFlowinGPIPID;
-  UCHAR                       ucExtInGPIPID;
-}ATOM_CONNECTOR_DVI_EXT_INPUT_RECORD;
+	ATOM_COMMON_RECORD_HEADER   sheader;
+	UCHAR                              ucConfigGPIOID;
+	UCHAR                              ucConfigGPIOState;       //Set to 1 when it's active high to enable external flow in
+	UCHAR                       ucFlowinGPIPID;
+	UCHAR                       ucExtInGPIPID;
+} ATOM_CONNECTOR_DVI_EXT_INPUT_RECORD;
 
 typedef struct  _ATOM_ENCODER_FPGA_CONTROL_RECORD
 {
-  ATOM_COMMON_RECORD_HEADER   sheader;
-  UCHAR                       ucCTL1GPIO_ID;
-  UCHAR                       ucCTL1GPIOState;        //Set to 1 when it's active high
-  UCHAR                       ucCTL2GPIO_ID;
-  UCHAR                       ucCTL2GPIOState;        //Set to 1 when it's active high
-  UCHAR                       ucCTL3GPIO_ID;
-  UCHAR                       ucCTL3GPIOState;        //Set to 1 when it's active high
-  UCHAR                       ucCTLFPGA_IN_ID;
-  UCHAR                       ucPadding[3];
-}ATOM_ENCODER_FPGA_CONTROL_RECORD;
+	ATOM_COMMON_RECORD_HEADER   sheader;
+	UCHAR                       ucCTL1GPIO_ID;
+	UCHAR                       ucCTL1GPIOState;        //Set to 1 when it's active high
+	UCHAR                       ucCTL2GPIO_ID;
+	UCHAR                       ucCTL2GPIOState;        //Set to 1 when it's active high
+	UCHAR                       ucCTL3GPIO_ID;
+	UCHAR                       ucCTL3GPIOState;        //Set to 1 when it's active high
+	UCHAR                       ucCTLFPGA_IN_ID;
+	UCHAR                       ucPadding[3];
+} ATOM_ENCODER_FPGA_CONTROL_RECORD;
 
 typedef struct  _ATOM_CONNECTOR_CVTV_SHARE_DIN_RECORD
 {
-  ATOM_COMMON_RECORD_HEADER   sheader;
-  UCHAR                       ucGPIOID;               //Corresponding block in GPIO_PIN_INFO table gives the pin info
-  UCHAR                       ucTVActiveState;        //Indicating when the pin==0 or 1 when TV is connected
-}ATOM_CONNECTOR_CVTV_SHARE_DIN_RECORD;
+	ATOM_COMMON_RECORD_HEADER   sheader;
+	UCHAR                       ucGPIOID;               //Corresponding block in GPIO_PIN_INFO table gives the pin info
+	UCHAR                       ucTVActiveState;        //Indicating when the pin==0 or 1 when TV is connected
+} ATOM_CONNECTOR_CVTV_SHARE_DIN_RECORD;
 
 typedef struct  _ATOM_JTAG_RECORD
 {
-  ATOM_COMMON_RECORD_HEADER   sheader;
-  UCHAR                       ucTMSGPIO_ID;
-  UCHAR                       ucTMSGPIOState;         //Set to 1 when it's active high
-  UCHAR                       ucTCKGPIO_ID;
-  UCHAR                       ucTCKGPIOState;         //Set to 1 when it's active high
-  UCHAR                       ucTDOGPIO_ID;
-  UCHAR                       ucTDOGPIOState;         //Set to 1 when it's active high
-  UCHAR                       ucTDIGPIO_ID;
-  UCHAR                       ucTDIGPIOState;         //Set to 1 when it's active high
-  UCHAR                       ucPadding[2];
-}ATOM_JTAG_RECORD;
+	ATOM_COMMON_RECORD_HEADER   sheader;
+	UCHAR                       ucTMSGPIO_ID;
+	UCHAR                       ucTMSGPIOState;         //Set to 1 when it's active high
+	UCHAR                       ucTCKGPIO_ID;
+	UCHAR                       ucTCKGPIOState;         //Set to 1 when it's active high
+	UCHAR                       ucTDOGPIO_ID;
+	UCHAR                       ucTDOGPIOState;         //Set to 1 when it's active high
+	UCHAR                       ucTDIGPIO_ID;
+	UCHAR                       ucTDIGPIOState;         //Set to 1 when it's active high
+	UCHAR                       ucPadding[2];
+} ATOM_JTAG_RECORD;
 
 
 //The following generic object gpio pin control record type will replace JTAG_RECORD/FPGA_CONTROL_RECORD/DVI_EXT_INPUT_RECORD above gradually
 typedef struct _ATOM_GPIO_PIN_CONTROL_PAIR
 {
-  UCHAR                       ucGPIOID;               // GPIO_ID, find the corresponding ID in GPIO_LUT table
-  UCHAR                       ucGPIO_PinState;        // Pin state showing how to set-up the pin
-}ATOM_GPIO_PIN_CONTROL_PAIR;
+	UCHAR                       ucGPIOID;               // GPIO_ID, find the corresponding ID in GPIO_LUT table
+	UCHAR                       ucGPIO_PinState;        // Pin state showing how to set-up the pin
+} ATOM_GPIO_PIN_CONTROL_PAIR;
 
 typedef struct  _ATOM_OBJECT_GPIO_CNTL_RECORD
 {
-  ATOM_COMMON_RECORD_HEADER   sheader;
-  UCHAR                       ucFlags;                // Future expnadibility
-  UCHAR                       ucNumberOfPins;         // Number of GPIO pins used to control the object
-  ATOM_GPIO_PIN_CONTROL_PAIR  asGpio[1];              // the real gpio pin pair determined by number of pins ucNumberOfPins
-}ATOM_OBJECT_GPIO_CNTL_RECORD;
+	ATOM_COMMON_RECORD_HEADER   sheader;
+	UCHAR                       ucFlags;                // Future expnadibility
+	UCHAR                       ucNumberOfPins;         // Number of GPIO pins used to control the object
+	ATOM_GPIO_PIN_CONTROL_PAIR
+	asGpio[1];              // the real gpio pin pair determined by number of pins ucNumberOfPins
+} ATOM_OBJECT_GPIO_CNTL_RECORD;
 
 //Definitions for GPIO pin state
 #define GPIO_PIN_TYPE_INPUT             0x00
@@ -4814,10 +4879,10 @@ typedef struct  _ATOM_OBJECT_GPIO_CNTL_RECORD
 
 typedef struct  _ATOM_ENCODER_DVO_CF_RECORD
 {
-  ATOM_COMMON_RECORD_HEADER   sheader;
-  ULONG                       ulStrengthControl;      // DVOA strength control for CF
-  UCHAR                       ucPadding[2];
-}ATOM_ENCODER_DVO_CF_RECORD;
+	ATOM_COMMON_RECORD_HEADER   sheader;
+	ULONG                       ulStrengthControl;      // DVOA strength control for CF
+	UCHAR                       ucPadding[2];
+} ATOM_ENCODER_DVO_CF_RECORD;
 
 // Bit maps for ATOM_ENCODER_CAP_RECORD.usEncoderCap
 #define ATOM_ENCODER_CAP_RECORD_HBR2                  0x01         // DP1.2 HBR2 is supported by HW encoder, it is retired in NI. the real meaning from SI is MST_EN
@@ -4828,46 +4893,52 @@ typedef struct  _ATOM_ENCODER_DVO_CF_RECORD
 
 typedef struct  _ATOM_ENCODER_CAP_RECORD
 {
-  ATOM_COMMON_RECORD_HEADER   sheader;
-  union {
-    USHORT                    usEncoderCap;
-    struct {
+	ATOM_COMMON_RECORD_HEADER   sheader;
+	union
+	{
+		USHORT                    usEncoderCap;
+		struct
+		{
 #if ATOM_BIG_ENDIAN
-      USHORT                  usReserved:14;        // Bit1-15 may be defined for other capability in future
-      USHORT                  usHBR2En:1;           // Bit1 is for DP1.2 HBR2 enable
-      USHORT                  usHBR2Cap:1;          // Bit0 is for DP1.2 HBR2 capability.
+			USHORT                  usReserved: 14;       // Bit1-15 may be defined for other capability in future
+			USHORT                  usHBR2En: 1;          // Bit1 is for DP1.2 HBR2 enable
+			USHORT                  usHBR2Cap: 1;         // Bit0 is for DP1.2 HBR2 capability.
 #else
-      USHORT                  usHBR2Cap:1;          // Bit0 is for DP1.2 HBR2 capability.
-      USHORT                  usHBR2En:1;           // Bit1 is for DP1.2 HBR2 enable
-      USHORT                  usReserved:14;        // Bit1-15 may be defined for other capability in future
+			USHORT                  usHBR2Cap: 1;         // Bit0 is for DP1.2 HBR2 capability.
+			USHORT                  usHBR2En: 1;          // Bit1 is for DP1.2 HBR2 enable
+			USHORT                  usReserved: 14;       // Bit1-15 may be defined for other capability in future
 #endif
-    };
-  };
-}ATOM_ENCODER_CAP_RECORD;
+		};
+	};
+} ATOM_ENCODER_CAP_RECORD;
 
 // Used after SI
 typedef struct  _ATOM_ENCODER_CAP_RECORD_V2
 {
-  ATOM_COMMON_RECORD_HEADER   sheader;
-  union {
-    USHORT                    usEncoderCap;
-    struct {
+	ATOM_COMMON_RECORD_HEADER   sheader;
+	union
+	{
+		USHORT                    usEncoderCap;
+		struct
+		{
 #if ATOM_BIG_ENDIAN
-      USHORT                  usReserved:12;        // Bit4-15 may be defined for other capability in future
-      USHORT                  usHBR3En:1;           // bit3 is for DP1.3 HBR3 enable
-      USHORT                  usHDMI6GEn:1;         // Bit2 is for HDMI6Gbps enable, this bit is used starting from CZ( APU) Ellemere (dGPU)
-      USHORT                  usHBR2En:1;           // Bit1 is for DP1.2 HBR2 enable
-      USHORT                  usMSTEn:1;            // Bit0 is for DP1.2 MST enable
+			USHORT                  usReserved: 12;       // Bit4-15 may be defined for other capability in future
+			USHORT                  usHBR3En: 1;          // bit3 is for DP1.3 HBR3 enable
+USHORT                  usHDMI6GEn:
+			1;        // Bit2 is for HDMI6Gbps enable, this bit is used starting from CZ( APU) Ellemere (dGPU)
+			USHORT                  usHBR2En: 1;          // Bit1 is for DP1.2 HBR2 enable
+			USHORT                  usMSTEn: 1;           // Bit0 is for DP1.2 MST enable
 #else
-      USHORT                  usMSTEn:1;            // Bit0 is for DP1.2 MST enable
-      USHORT                  usHBR2En:1;           // Bit1 is for DP1.2 HBR2 enable
-      USHORT                  usHDMI6GEn:1;         // Bit2 is for HDMI6Gbps enable, this bit is used starting from CZ( APU) Ellemere (dGPU)
-      USHORT                  usHBR3En:1;           // bit3 is for DP1.3 HBR3 enable
-      USHORT                  usReserved:12;        // Bit4-15 may be defined for other capability in future
+			USHORT                  usMSTEn: 1;           // Bit0 is for DP1.2 MST enable
+			USHORT                  usHBR2En: 1;          // Bit1 is for DP1.2 HBR2 enable
+USHORT                  usHDMI6GEn:
+			1;        // Bit2 is for HDMI6Gbps enable, this bit is used starting from CZ( APU) Ellemere (dGPU)
+			USHORT                  usHBR3En: 1;          // bit3 is for DP1.3 HBR3 enable
+			USHORT                  usReserved: 12;       // Bit4-15 may be defined for other capability in future
 #endif
-    };
-  };
-}ATOM_ENCODER_CAP_RECORD_V2;
+		};
+	};
+} ATOM_ENCODER_CAP_RECORD_V2;
 
 
 // value for ATOM_CONNECTOR_CF_RECORD.ucConnectedDvoBundle
@@ -4876,43 +4947,45 @@ typedef struct  _ATOM_ENCODER_CAP_RECORD_V2
 
 typedef struct  _ATOM_CONNECTOR_CF_RECORD
 {
-  ATOM_COMMON_RECORD_HEADER   sheader;
-  USHORT                      usMaxPixClk;
-  UCHAR                       ucFlowCntlGpioId;
-  UCHAR                       ucSwapCntlGpioId;
-  UCHAR                       ucConnectedDvoBundle;
-  UCHAR                       ucPadding;
-}ATOM_CONNECTOR_CF_RECORD;
+	ATOM_COMMON_RECORD_HEADER   sheader;
+	USHORT                      usMaxPixClk;
+	UCHAR                       ucFlowCntlGpioId;
+	UCHAR                       ucSwapCntlGpioId;
+	UCHAR                       ucConnectedDvoBundle;
+	UCHAR                       ucPadding;
+} ATOM_CONNECTOR_CF_RECORD;
 
 typedef struct  _ATOM_CONNECTOR_HARDCODE_DTD_RECORD
 {
-  ATOM_COMMON_RECORD_HEADER   sheader;
-   ATOM_DTD_FORMAT                     asTiming;
-}ATOM_CONNECTOR_HARDCODE_DTD_RECORD;
+	ATOM_COMMON_RECORD_HEADER   sheader;
+	ATOM_DTD_FORMAT                     asTiming;
+} ATOM_CONNECTOR_HARDCODE_DTD_RECORD;
 
 typedef struct _ATOM_CONNECTOR_PCIE_SUBCONNECTOR_RECORD
 {
-  ATOM_COMMON_RECORD_HEADER   sheader;                //ATOM_CONNECTOR_PCIE_SUBCONNECTOR_RECORD_TYPE
-  UCHAR                       ucSubConnectorType;     //CONNECTOR_OBJECT_ID_SINGLE_LINK_DVI_D|X_ID_DUAL_LINK_DVI_D|HDMI_TYPE_A
-  UCHAR                       ucReserved;
-}ATOM_CONNECTOR_PCIE_SUBCONNECTOR_RECORD;
+	ATOM_COMMON_RECORD_HEADER   sheader;                //ATOM_CONNECTOR_PCIE_SUBCONNECTOR_RECORD_TYPE
+	UCHAR
+	ucSubConnectorType;     //CONNECTOR_OBJECT_ID_SINGLE_LINK_DVI_D|X_ID_DUAL_LINK_DVI_D|HDMI_TYPE_A
+	UCHAR                       ucReserved;
+} ATOM_CONNECTOR_PCIE_SUBCONNECTOR_RECORD;
 
 
 typedef struct _ATOM_ROUTER_DDC_PATH_SELECT_RECORD
 {
-   ATOM_COMMON_RECORD_HEADER   sheader;
-   UCHAR                                    ucMuxType;                     //decide the number of ucMuxState, =0, no pin state, =1: single state with complement, >1: multiple state
-   UCHAR                                    ucMuxControlPin;
-   UCHAR                                    ucMuxState[2];               //for alligment purpose
-}ATOM_ROUTER_DDC_PATH_SELECT_RECORD;
+	ATOM_COMMON_RECORD_HEADER   sheader;
+	UCHAR
+	ucMuxType;                     //decide the number of ucMuxState, =0, no pin state, =1: single state with complement, >1: multiple state
+	UCHAR                                    ucMuxControlPin;
+	UCHAR                                    ucMuxState[2];               //for alligment purpose
+} ATOM_ROUTER_DDC_PATH_SELECT_RECORD;
 
 typedef struct _ATOM_ROUTER_DATA_CLOCK_PATH_SELECT_RECORD
 {
-   ATOM_COMMON_RECORD_HEADER   sheader;
-   UCHAR                                    ucMuxType;
-   UCHAR                                    ucMuxControlPin;
-   UCHAR                                    ucMuxState[2];               //for alligment purpose
-}ATOM_ROUTER_DATA_CLOCK_PATH_SELECT_RECORD;
+	ATOM_COMMON_RECORD_HEADER   sheader;
+	UCHAR                                    ucMuxType;
+	UCHAR                                    ucMuxControlPin;
+	UCHAR                                    ucMuxState[2];               //for alligment purpose
+} ATOM_ROUTER_DATA_CLOCK_PATH_SELECT_RECORD;
 
 // define ucMuxType
 #define ATOM_ROUTER_MUX_PIN_STATE_MASK                        0x0f
@@ -4920,44 +4993,46 @@ typedef struct _ATOM_ROUTER_DATA_CLOCK_PATH_SELECT_RECORD
 
 typedef struct _ATOM_CONNECTOR_HPDPIN_LUT_RECORD     //record for ATOM_CONNECTOR_HPDPIN_LUT_RECORD_TYPE
 {
-  ATOM_COMMON_RECORD_HEADER   sheader;
-  UCHAR                       ucHPDPINMap[MAX_NUMBER_OF_EXT_HPDPIN_LUT_ENTRIES];  //An fixed size array which maps external pins to internal GPIO_PIN_INFO table
-}ATOM_CONNECTOR_HPDPIN_LUT_RECORD;
+	ATOM_COMMON_RECORD_HEADER   sheader;
+	UCHAR
+	ucHPDPINMap[MAX_NUMBER_OF_EXT_HPDPIN_LUT_ENTRIES];  //An fixed size array which maps external pins to internal GPIO_PIN_INFO table
+} ATOM_CONNECTOR_HPDPIN_LUT_RECORD;
 
 typedef struct _ATOM_CONNECTOR_AUXDDC_LUT_RECORD  //record for ATOM_CONNECTOR_AUXDDC_LUT_RECORD_TYPE
 {
-  ATOM_COMMON_RECORD_HEADER   sheader;
-  ATOM_I2C_ID_CONFIG          ucAUXDDCMap[MAX_NUMBER_OF_EXT_AUXDDC_LUT_ENTRIES];  //An fixed size array which maps external pins to internal DDC ID
-}ATOM_CONNECTOR_AUXDDC_LUT_RECORD;
+	ATOM_COMMON_RECORD_HEADER   sheader;
+	ATOM_I2C_ID_CONFIG
+	ucAUXDDCMap[MAX_NUMBER_OF_EXT_AUXDDC_LUT_ENTRIES];  //An fixed size array which maps external pins to internal DDC ID
+} ATOM_CONNECTOR_AUXDDC_LUT_RECORD;
 
 typedef struct _ATOM_OBJECT_LINK_RECORD
 {
-  ATOM_COMMON_RECORD_HEADER   sheader;
-  USHORT                      usObjectID;         //could be connector, encorder or other object in object.h
-}ATOM_OBJECT_LINK_RECORD;
+	ATOM_COMMON_RECORD_HEADER   sheader;
+	USHORT                      usObjectID;         //could be connector, encorder or other object in object.h
+} ATOM_OBJECT_LINK_RECORD;
 
 typedef struct _ATOM_CONNECTOR_REMOTE_CAP_RECORD
 {
-  ATOM_COMMON_RECORD_HEADER   sheader;
-  USHORT                      usReserved;
-}ATOM_CONNECTOR_REMOTE_CAP_RECORD;
+	ATOM_COMMON_RECORD_HEADER   sheader;
+	USHORT                      usReserved;
+} ATOM_CONNECTOR_REMOTE_CAP_RECORD;
 
 
 typedef struct  _ATOM_CONNECTOR_FORCED_TMDS_CAP_RECORD
 {
-  ATOM_COMMON_RECORD_HEADER   sheader;
-  // override TMDS capability on this connector when it operate in TMDS mode.  usMaxTmdsClkRate = max TMDS Clock in Mhz/2.5
-  UCHAR                       ucMaxTmdsClkRateIn2_5Mhz;
-  UCHAR                       ucReserved;
+	ATOM_COMMON_RECORD_HEADER   sheader;
+	// override TMDS capability on this connector when it operate in TMDS mode.  usMaxTmdsClkRate = max TMDS Clock in Mhz/2.5
+	UCHAR                       ucMaxTmdsClkRateIn2_5Mhz;
+	UCHAR                       ucReserved;
 } ATOM_CONNECTOR_FORCED_TMDS_CAP_RECORD;
 
 
 typedef struct  _ATOM_CONNECTOR_LAYOUT_INFO
 {
-   USHORT usConnectorObjectId;
-   UCHAR  ucConnectorType;
-   UCHAR  ucPosition;
-}ATOM_CONNECTOR_LAYOUT_INFO;
+	USHORT usConnectorObjectId;
+	UCHAR  ucConnectorType;
+	UCHAR  ucPosition;
+} ATOM_CONNECTOR_LAYOUT_INFO;
 
 // define ATOM_CONNECTOR_LAYOUT_INFO.ucConnectorType to describe the display connector size
 #define CONNECTOR_TYPE_DVI_D                 1
@@ -4969,13 +5044,13 @@ typedef struct  _ATOM_CONNECTOR_LAYOUT_INFO
 
 typedef struct  _ATOM_BRACKET_LAYOUT_RECORD
 {
-  ATOM_COMMON_RECORD_HEADER   sheader;
-  UCHAR                       ucLength;
-  UCHAR                       ucWidth;
-  UCHAR                       ucConnNum;
-  UCHAR                       ucReserved;
-  ATOM_CONNECTOR_LAYOUT_INFO  asConnInfo[1];
-}ATOM_BRACKET_LAYOUT_RECORD;
+	ATOM_COMMON_RECORD_HEADER   sheader;
+	UCHAR                       ucLength;
+	UCHAR                       ucWidth;
+	UCHAR                       ucConnNum;
+	UCHAR                       ucReserved;
+	ATOM_CONNECTOR_LAYOUT_INFO  asConnInfo[1];
+} ATOM_BRACKET_LAYOUT_RECORD;
 
 
 /****************************************************************************/
@@ -4983,59 +5058,60 @@ typedef struct  _ATOM_BRACKET_LAYOUT_RECORD
 /****************************************************************************/
 typedef struct  _ATOM_VOLTAGE_INFO_HEADER
 {
-   USHORT   usVDDCBaseLevel;                //In number of 50mv unit
-   USHORT   usReserved;                     //For possible extension table offset
-   UCHAR    ucNumOfVoltageEntries;
-   UCHAR    ucBytesPerVoltageEntry;
-   UCHAR    ucVoltageStep;                  //Indicating in how many mv increament is one step, 0.5mv unit
-   UCHAR    ucDefaultVoltageEntry;
-   UCHAR    ucVoltageControlI2cLine;
-   UCHAR    ucVoltageControlAddress;
-   UCHAR    ucVoltageControlOffset;
-}ATOM_VOLTAGE_INFO_HEADER;
+	USHORT   usVDDCBaseLevel;                //In number of 50mv unit
+	USHORT   usReserved;                     //For possible extension table offset
+	UCHAR    ucNumOfVoltageEntries;
+	UCHAR    ucBytesPerVoltageEntry;
+	UCHAR    ucVoltageStep;                  //Indicating in how many mv increament is one step, 0.5mv unit
+	UCHAR    ucDefaultVoltageEntry;
+	UCHAR    ucVoltageControlI2cLine;
+	UCHAR    ucVoltageControlAddress;
+	UCHAR    ucVoltageControlOffset;
+} ATOM_VOLTAGE_INFO_HEADER;
 
 typedef struct  _ATOM_VOLTAGE_INFO
 {
-   ATOM_COMMON_TABLE_HEADER   sHeader;
-   ATOM_VOLTAGE_INFO_HEADER viHeader;
-   UCHAR    ucVoltageEntries[64];            //64 is for allocation, the actual number of entry is present at ucNumOfVoltageEntries*ucBytesPerVoltageEntry
-}ATOM_VOLTAGE_INFO;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	ATOM_VOLTAGE_INFO_HEADER viHeader;
+	UCHAR    ucVoltageEntries[64];            //64 is for allocation, the actual number of entry is present at ucNumOfVoltageEntries*ucBytesPerVoltageEntry
+} ATOM_VOLTAGE_INFO;
 
 
 typedef struct  _ATOM_VOLTAGE_FORMULA
 {
-   USHORT   usVoltageBaseLevel;             // In number of 1mv unit
-   USHORT   usVoltageStep;                  // Indicating in how many mv increament is one step, 1mv unit
-   UCHAR    ucNumOfVoltageEntries;          // Number of Voltage Entry, which indicate max Voltage
-   UCHAR    ucFlag;                         // bit0=0 :step is 1mv =1 0.5mv
-   UCHAR    ucBaseVID;                      // if there is no lookup table, VID= BaseVID + ( Vol - BaseLevle ) /VoltageStep
-   UCHAR    ucReserved;
-   UCHAR    ucVIDAdjustEntries[32];         // 32 is for allocation, the actual number of entry is present at ucNumOfVoltageEntries
-}ATOM_VOLTAGE_FORMULA;
+	USHORT   usVoltageBaseLevel;             // In number of 1mv unit
+	USHORT   usVoltageStep;                  // Indicating in how many mv increament is one step, 1mv unit
+	UCHAR    ucNumOfVoltageEntries;          // Number of Voltage Entry, which indicate max Voltage
+	UCHAR    ucFlag;                         // bit0=0 :step is 1mv =1 0.5mv
+	UCHAR    ucBaseVID;                      // if there is no lookup table, VID= BaseVID + ( Vol - BaseLevle ) /VoltageStep
+	UCHAR    ucReserved;
+	UCHAR    ucVIDAdjustEntries[32];         // 32 is for allocation, the actual number of entry is present at ucNumOfVoltageEntries
+} ATOM_VOLTAGE_FORMULA;
 
 typedef struct  _VOLTAGE_LUT_ENTRY
 {
-    USHORT     usVoltageCode;               // The Voltage ID, either GPIO or I2C code
-    USHORT     usVoltageValue;              // The corresponding Voltage Value, in mV
-}VOLTAGE_LUT_ENTRY;
+	USHORT     usVoltageCode;               // The Voltage ID, either GPIO or I2C code
+	USHORT     usVoltageValue;              // The corresponding Voltage Value, in mV
+} VOLTAGE_LUT_ENTRY;
 
 typedef struct  _ATOM_VOLTAGE_FORMULA_V2
 {
-    UCHAR      ucNumOfVoltageEntries;               // Number of Voltage Entry, which indicate max Voltage
-    UCHAR      ucReserved[3];
-    VOLTAGE_LUT_ENTRY asVIDAdjustEntries[32];// 32 is for allocation, the actual number of entries is in ucNumOfVoltageEntries
-}ATOM_VOLTAGE_FORMULA_V2;
+	UCHAR      ucNumOfVoltageEntries;               // Number of Voltage Entry, which indicate max Voltage
+	UCHAR      ucReserved[3];
+	VOLTAGE_LUT_ENTRY
+	asVIDAdjustEntries[32];// 32 is for allocation, the actual number of entries is in ucNumOfVoltageEntries
+} ATOM_VOLTAGE_FORMULA_V2;
 
 typedef struct _ATOM_VOLTAGE_CONTROL
 {
-  UCHAR    ucVoltageControlId;                     //Indicate it is controlled by I2C or GPIO or HW state machine
-  UCHAR    ucVoltageControlI2cLine;
-  UCHAR    ucVoltageControlAddress;
-  UCHAR    ucVoltageControlOffset;
-  USHORT   usGpioPin_AIndex;                       //GPIO_PAD register index
-  UCHAR    ucGpioPinBitShift[9];                   //at most 8 pin support 255 VIDs, termintate with 0xff
-  UCHAR    ucReserved;
-}ATOM_VOLTAGE_CONTROL;
+	UCHAR    ucVoltageControlId;                     //Indicate it is controlled by I2C or GPIO or HW state machine
+	UCHAR    ucVoltageControlI2cLine;
+	UCHAR    ucVoltageControlAddress;
+	UCHAR    ucVoltageControlOffset;
+	USHORT   usGpioPin_AIndex;                       //GPIO_PAD register index
+	UCHAR    ucGpioPinBitShift[9];                   //at most 8 pin support 255 VIDs, termintate with 0xff
+	UCHAR    ucReserved;
+} ATOM_VOLTAGE_CONTROL;
 
 // Define ucVoltageControlId
 #define VOLTAGE_CONTROLLED_BY_HW              0x00
@@ -5066,44 +5142,45 @@ typedef struct _ATOM_VOLTAGE_CONTROL
 
 typedef struct  _ATOM_VOLTAGE_OBJECT
 {
-   UCHAR      ucVoltageType;                           //Indicate Voltage Source: VDDC, MVDDC, MVDDQ or MVDDCI
-   UCHAR      ucSize;                                       //Size of Object
-   ATOM_VOLTAGE_CONTROL         asControl;         //describ how to control
-   ATOM_VOLTAGE_FORMULA         asFormula;         //Indicate How to convert real Voltage to VID
-}ATOM_VOLTAGE_OBJECT;
+	UCHAR      ucVoltageType;                           //Indicate Voltage Source: VDDC, MVDDC, MVDDQ or MVDDCI
+	UCHAR      ucSize;                                       //Size of Object
+	ATOM_VOLTAGE_CONTROL         asControl;         //describ how to control
+	ATOM_VOLTAGE_FORMULA         asFormula;         //Indicate How to convert real Voltage to VID
+} ATOM_VOLTAGE_OBJECT;
 
 typedef struct  _ATOM_VOLTAGE_OBJECT_V2
 {
-    UCHAR ucVoltageType;                      //Indicate Voltage Source: VDDC, MVDDC, MVDDQ or MVDDCI
-    UCHAR ucSize;                             //Size of Object
-    ATOM_VOLTAGE_CONTROL    asControl;        //describ how to control
-    ATOM_VOLTAGE_FORMULA_V2 asFormula;        //Indicate How to convert real Voltage to VID
-}ATOM_VOLTAGE_OBJECT_V2;
+	UCHAR ucVoltageType;                      //Indicate Voltage Source: VDDC, MVDDC, MVDDQ or MVDDCI
+	UCHAR ucSize;                             //Size of Object
+	ATOM_VOLTAGE_CONTROL    asControl;        //describ how to control
+	ATOM_VOLTAGE_FORMULA_V2 asFormula;        //Indicate How to convert real Voltage to VID
+} ATOM_VOLTAGE_OBJECT_V2;
 
 typedef struct  _ATOM_VOLTAGE_OBJECT_INFO
 {
-   ATOM_COMMON_TABLE_HEADER   sHeader;
-   ATOM_VOLTAGE_OBJECT        asVoltageObj[3];   //Info for Voltage control
-}ATOM_VOLTAGE_OBJECT_INFO;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	ATOM_VOLTAGE_OBJECT        asVoltageObj[3];   //Info for Voltage control
+} ATOM_VOLTAGE_OBJECT_INFO;
 
 typedef struct  _ATOM_VOLTAGE_OBJECT_INFO_V2
 {
-   ATOM_COMMON_TABLE_HEADER   sHeader;
-    ATOM_VOLTAGE_OBJECT_V2    asVoltageObj[3];   //Info for Voltage control
-}ATOM_VOLTAGE_OBJECT_INFO_V2;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	ATOM_VOLTAGE_OBJECT_V2    asVoltageObj[3];   //Info for Voltage control
+} ATOM_VOLTAGE_OBJECT_INFO_V2;
 
 typedef struct  _ATOM_LEAKID_VOLTAGE
 {
-   UCHAR    ucLeakageId;
-   UCHAR    ucReserved;
-   USHORT   usVoltage;
-}ATOM_LEAKID_VOLTAGE;
+	UCHAR    ucLeakageId;
+	UCHAR    ucReserved;
+	USHORT   usVoltage;
+} ATOM_LEAKID_VOLTAGE;
 
-typedef struct _ATOM_VOLTAGE_OBJECT_HEADER_V3{
-   UCHAR    ucVoltageType;                            //Indicate Voltage Source: VDDC, MVDDC, MVDDQ or MVDDCI
-   UCHAR    ucVoltageMode;                            //Indicate voltage control mode: Init/Set/Leakage/Set phase
-   USHORT   usSize;                                   //Size of Object
-}ATOM_VOLTAGE_OBJECT_HEADER_V3;
+typedef struct _ATOM_VOLTAGE_OBJECT_HEADER_V3
+{
+	UCHAR    ucVoltageType;                            //Indicate Voltage Source: VDDC, MVDDC, MVDDQ or MVDDCI
+	UCHAR    ucVoltageMode;                            //Indicate voltage control mode: Init/Set/Leakage/Set phase
+	USHORT   usSize;                                   //Size of Object
+} ATOM_VOLTAGE_OBJECT_HEADER_V3;
 
 // ATOM_VOLTAGE_OBJECT_HEADER_V3.ucVoltageMode
 #define VOLTAGE_OBJ_GPIO_LUT                 0        //VOLTAGE and GPIO Lookup table ->ATOM_GPIO_VOLTAGE_OBJECT_V3
@@ -5117,29 +5194,29 @@ typedef struct _ATOM_VOLTAGE_OBJECT_HEADER_V3{
 
 typedef struct  _VOLTAGE_LUT_ENTRY_V2
 {
-  ULONG   ulVoltageId;                       // The Voltage ID which is used to program GPIO register
-  USHORT  usVoltageValue;                    // The corresponding Voltage Value, in mV
-}VOLTAGE_LUT_ENTRY_V2;
+	ULONG   ulVoltageId;                       // The Voltage ID which is used to program GPIO register
+	USHORT  usVoltageValue;                    // The corresponding Voltage Value, in mV
+} VOLTAGE_LUT_ENTRY_V2;
 
 typedef struct  _LEAKAGE_VOLTAGE_LUT_ENTRY_V2
 {
-  USHORT  usVoltageLevel;                    // The Voltage ID which is used to program GPIO register
-  USHORT  usVoltageId;
-  USHORT  usLeakageId;                       // The corresponding Voltage Value, in mV
-}LEAKAGE_VOLTAGE_LUT_ENTRY_V2;
+	USHORT  usVoltageLevel;                    // The Voltage ID which is used to program GPIO register
+	USHORT  usVoltageId;
+	USHORT  usLeakageId;                       // The corresponding Voltage Value, in mV
+} LEAKAGE_VOLTAGE_LUT_ENTRY_V2;
 
 
 typedef struct  _ATOM_I2C_VOLTAGE_OBJECT_V3
 {
-   ATOM_VOLTAGE_OBJECT_HEADER_V3 sHeader;    // voltage mode = VOLTAGE_OBJ_VR_I2C_INIT_SEQ
-   UCHAR  ucVoltageRegulatorId;              //Indicate Voltage Regulator Id
-   UCHAR  ucVoltageControlI2cLine;
-   UCHAR  ucVoltageControlAddress;
-   UCHAR  ucVoltageControlOffset;
-   UCHAR  ucVoltageControlFlag;              // Bit0: 0 - One byte data; 1 - Two byte data
-   UCHAR  ulReserved[3];
-   VOLTAGE_LUT_ENTRY asVolI2cLut[1];         // end with 0xff
-}ATOM_I2C_VOLTAGE_OBJECT_V3;
+	ATOM_VOLTAGE_OBJECT_HEADER_V3 sHeader;    // voltage mode = VOLTAGE_OBJ_VR_I2C_INIT_SEQ
+	UCHAR  ucVoltageRegulatorId;              //Indicate Voltage Regulator Id
+	UCHAR  ucVoltageControlI2cLine;
+	UCHAR  ucVoltageControlAddress;
+	UCHAR  ucVoltageControlOffset;
+	UCHAR  ucVoltageControlFlag;              // Bit0: 0 - One byte data; 1 - Two byte data
+	UCHAR  ulReserved[3];
+	VOLTAGE_LUT_ENTRY asVolI2cLut[1];         // end with 0xff
+} ATOM_I2C_VOLTAGE_OBJECT_V3;
 
 // ATOM_I2C_VOLTAGE_OBJECT_V3.ucVoltageControlFlag
 #define VOLTAGE_DATA_ONE_BYTE                0
@@ -5147,91 +5224,92 @@ typedef struct  _ATOM_I2C_VOLTAGE_OBJECT_V3
 
 typedef struct  _ATOM_GPIO_VOLTAGE_OBJECT_V3
 {
-   ATOM_VOLTAGE_OBJECT_HEADER_V3 sHeader;    // voltage mode = VOLTAGE_OBJ_GPIO_LUT or VOLTAGE_OBJ_PHASE_LUT
-   UCHAR  ucVoltageGpioCntlId;               // default is 0 which indicate control through CG VID mode
-   UCHAR  ucGpioEntryNum;                    // indiate the entry numbers of Votlage/Gpio value Look up table
-   UCHAR  ucPhaseDelay;                      // phase delay in unit of micro second
-   UCHAR  ucReserved;
-   ULONG  ulGpioMaskVal;                     // GPIO Mask value
-   VOLTAGE_LUT_ENTRY_V2 asVolGpioLut[1];
-}ATOM_GPIO_VOLTAGE_OBJECT_V3;
+	ATOM_VOLTAGE_OBJECT_HEADER_V3 sHeader;    // voltage mode = VOLTAGE_OBJ_GPIO_LUT or VOLTAGE_OBJ_PHASE_LUT
+	UCHAR  ucVoltageGpioCntlId;               // default is 0 which indicate control through CG VID mode
+	UCHAR  ucGpioEntryNum;                    // indiate the entry numbers of Votlage/Gpio value Look up table
+	UCHAR  ucPhaseDelay;                      // phase delay in unit of micro second
+	UCHAR  ucReserved;
+	ULONG  ulGpioMaskVal;                     // GPIO Mask value
+	VOLTAGE_LUT_ENTRY_V2 asVolGpioLut[1];
+} ATOM_GPIO_VOLTAGE_OBJECT_V3;
 
 typedef struct  _ATOM_LEAKAGE_VOLTAGE_OBJECT_V3
 {
-   ATOM_VOLTAGE_OBJECT_HEADER_V3 sHeader;    // voltage mode = 0x10/0x11/0x12
-   UCHAR    ucLeakageCntlId;                 // default is 0
-   UCHAR    ucLeakageEntryNum;               // indicate the entry number of LeakageId/Voltage Lut table
-   UCHAR    ucReserved[2];
-   ULONG    ulMaxVoltageLevel;
-   LEAKAGE_VOLTAGE_LUT_ENTRY_V2 asLeakageIdLut[1];
-}ATOM_LEAKAGE_VOLTAGE_OBJECT_V3;
+	ATOM_VOLTAGE_OBJECT_HEADER_V3 sHeader;    // voltage mode = 0x10/0x11/0x12
+	UCHAR    ucLeakageCntlId;                 // default is 0
+	UCHAR    ucLeakageEntryNum;               // indicate the entry number of LeakageId/Voltage Lut table
+	UCHAR    ucReserved[2];
+	ULONG    ulMaxVoltageLevel;
+	LEAKAGE_VOLTAGE_LUT_ENTRY_V2 asLeakageIdLut[1];
+} ATOM_LEAKAGE_VOLTAGE_OBJECT_V3;
 
 
 typedef struct  _ATOM_SVID2_VOLTAGE_OBJECT_V3
 {
-   ATOM_VOLTAGE_OBJECT_HEADER_V3 sHeader;    // voltage mode = VOLTAGE_OBJ_SVID2
-// 14:7 � PSI0_VID
-// 6 � PSI0_EN
-// 5 � PSI1
-// 4:2 � load line slope trim.
-// 1:0 � offset trim,
-   USHORT   usLoadLine_PSI;
-// GPU GPIO pin Id to SVID2 regulator VRHot pin. possible value 0~31. 0 means GPIO0, 31 means GPIO31
-   UCHAR    ucSVDGpioId;     //0~31 indicate GPIO0~31
-   UCHAR    ucSVCGpioId;     //0~31 indicate GPIO0~31
-   ULONG    ulReserved;
-}ATOM_SVID2_VOLTAGE_OBJECT_V3;
+	ATOM_VOLTAGE_OBJECT_HEADER_V3 sHeader;    // voltage mode = VOLTAGE_OBJ_SVID2
+	// 14:7 � PSI0_VID
+	// 6 � PSI0_EN
+	// 5 � PSI1
+	// 4:2 � load line slope trim.
+	// 1:0 � offset trim,
+	USHORT   usLoadLine_PSI;
+	// GPU GPIO pin Id to SVID2 regulator VRHot pin. possible value 0~31. 0 means GPIO0, 31 means GPIO31
+	UCHAR    ucSVDGpioId;     //0~31 indicate GPIO0~31
+	UCHAR    ucSVCGpioId;     //0~31 indicate GPIO0~31
+	ULONG    ulReserved;
+} ATOM_SVID2_VOLTAGE_OBJECT_V3;
 
 
 
 typedef struct  _ATOM_MERGED_VOLTAGE_OBJECT_V3
 {
-   ATOM_VOLTAGE_OBJECT_HEADER_V3 sHeader;    // voltage mode = VOLTAGE_OBJ_MERGED_POWER
-   UCHAR    ucMergedVType;                   // VDDC/VDCCI/....
-   UCHAR    ucReserved[3];
-}ATOM_MERGED_VOLTAGE_OBJECT_V3;
+	ATOM_VOLTAGE_OBJECT_HEADER_V3 sHeader;    // voltage mode = VOLTAGE_OBJ_MERGED_POWER
+	UCHAR    ucMergedVType;                   // VDDC/VDCCI/....
+	UCHAR    ucReserved[3];
+} ATOM_MERGED_VOLTAGE_OBJECT_V3;
 
 
 typedef struct _ATOM_EVV_DPM_INFO
 {
-  ULONG ulDPMSclk;            // DPM state SCLK
-  USHORT usVAdjOffset;        // Adjust Voltage offset in unit of mv
-  UCHAR ucDPMTblVIndex;       // Voltage Index in SMC_DPM_Table structure VddcTable/VddGfxTable
-  UCHAR ucDPMState;           // DPMState0~7
+	ULONG ulDPMSclk;            // DPM state SCLK
+	USHORT usVAdjOffset;        // Adjust Voltage offset in unit of mv
+	UCHAR ucDPMTblVIndex;       // Voltage Index in SMC_DPM_Table structure VddcTable/VddGfxTable
+	UCHAR ucDPMState;           // DPMState0~7
 } ATOM_EVV_DPM_INFO;
 
 // ucVoltageMode = VOLTAGE_OBJ_EVV
 typedef struct  _ATOM_EVV_VOLTAGE_OBJECT_V3
 {
-  ATOM_VOLTAGE_OBJECT_HEADER_V3 sHeader;    // voltage mode = VOLTAGE_OBJ_SVID2
-  ATOM_EVV_DPM_INFO asEvvDpmList[8];
-}ATOM_EVV_VOLTAGE_OBJECT_V3;
+	ATOM_VOLTAGE_OBJECT_HEADER_V3 sHeader;    // voltage mode = VOLTAGE_OBJ_SVID2
+	ATOM_EVV_DPM_INFO asEvvDpmList[8];
+} ATOM_EVV_VOLTAGE_OBJECT_V3;
 
 
-typedef union _ATOM_VOLTAGE_OBJECT_V3{
-  ATOM_GPIO_VOLTAGE_OBJECT_V3 asGpioVoltageObj;
-  ATOM_I2C_VOLTAGE_OBJECT_V3 asI2cVoltageObj;
-  ATOM_LEAKAGE_VOLTAGE_OBJECT_V3 asLeakageObj;
-  ATOM_SVID2_VOLTAGE_OBJECT_V3 asSVID2Obj;
-  ATOM_EVV_VOLTAGE_OBJECT_V3 asEvvObj;
-}ATOM_VOLTAGE_OBJECT_V3;
+typedef union _ATOM_VOLTAGE_OBJECT_V3
+{
+	ATOM_GPIO_VOLTAGE_OBJECT_V3 asGpioVoltageObj;
+	ATOM_I2C_VOLTAGE_OBJECT_V3 asI2cVoltageObj;
+	ATOM_LEAKAGE_VOLTAGE_OBJECT_V3 asLeakageObj;
+	ATOM_SVID2_VOLTAGE_OBJECT_V3 asSVID2Obj;
+	ATOM_EVV_VOLTAGE_OBJECT_V3 asEvvObj;
+} ATOM_VOLTAGE_OBJECT_V3;
 
 typedef struct  _ATOM_VOLTAGE_OBJECT_INFO_V3_1
 {
-  ATOM_COMMON_TABLE_HEADER   sHeader;
-  ATOM_VOLTAGE_OBJECT_V3     asVoltageObj[3];   //Info for Voltage control
-}ATOM_VOLTAGE_OBJECT_INFO_V3_1;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	ATOM_VOLTAGE_OBJECT_V3     asVoltageObj[3];   //Info for Voltage control
+} ATOM_VOLTAGE_OBJECT_INFO_V3_1;
 
 
 typedef struct  _ATOM_ASIC_PROFILE_VOLTAGE
 {
-   UCHAR    ucProfileId;
-   UCHAR    ucReserved;
-   USHORT   usSize;
-   USHORT   usEfuseSpareStartAddr;
-   USHORT   usFuseIndex[8];                                    //from LSB to MSB, Max 8bit,end of 0xffff if less than 8 efuse id,
-   ATOM_LEAKID_VOLTAGE               asLeakVol[2];         //Leakid and relatd voltage
-}ATOM_ASIC_PROFILE_VOLTAGE;
+	UCHAR    ucProfileId;
+	UCHAR    ucReserved;
+	USHORT   usSize;
+	USHORT   usEfuseSpareStartAddr;
+	USHORT   usFuseIndex[8];                                    //from LSB to MSB, Max 8bit,end of 0xffff if less than 8 efuse id,
+	ATOM_LEAKID_VOLTAGE               asLeakVol[2];         //Leakid and relatd voltage
+} ATOM_ASIC_PROFILE_VOLTAGE;
 
 //ucProfileId
 #define   ATOM_ASIC_PROFILE_ID_EFUSE_VOLTAGE                     1
@@ -5240,433 +5318,435 @@ typedef struct  _ATOM_ASIC_PROFILE_VOLTAGE
 
 typedef struct  _ATOM_ASIC_PROFILING_INFO
 {
-  ATOM_COMMON_TABLE_HEADER         asHeader;
-  ATOM_ASIC_PROFILE_VOLTAGE        asVoltage;
-}ATOM_ASIC_PROFILING_INFO;
+	ATOM_COMMON_TABLE_HEADER         asHeader;
+	ATOM_ASIC_PROFILE_VOLTAGE        asVoltage;
+} ATOM_ASIC_PROFILING_INFO;
 
 typedef struct  _ATOM_ASIC_PROFILING_INFO_V2_1
 {
-  ATOM_COMMON_TABLE_HEADER         asHeader;
-  UCHAR  ucLeakageBinNum;                // indicate the entry number of LeakageId/Voltage Lut table
-  USHORT usLeakageBinArrayOffset;        // offset of USHORT Leakage Bin list array ( from lower LeakageId to higher)
+	ATOM_COMMON_TABLE_HEADER         asHeader;
+	UCHAR  ucLeakageBinNum;                // indicate the entry number of LeakageId/Voltage Lut table
+	USHORT usLeakageBinArrayOffset;        // offset of USHORT Leakage Bin list array ( from lower LeakageId to higher)
 
-  UCHAR  ucElbVDDC_Num;
-  USHORT usElbVDDC_IdArrayOffset;        // offset of USHORT virtual VDDC voltage id ( 0xff01~0xff08 )
-  USHORT usElbVDDC_LevelArrayOffset;     // offset of 2 dimension voltage level USHORT array
+	UCHAR  ucElbVDDC_Num;
+	USHORT usElbVDDC_IdArrayOffset;        // offset of USHORT virtual VDDC voltage id ( 0xff01~0xff08 )
+	USHORT usElbVDDC_LevelArrayOffset;     // offset of 2 dimension voltage level USHORT array
 
-  UCHAR  ucElbVDDCI_Num;
-  USHORT usElbVDDCI_IdArrayOffset;       // offset of USHORT virtual VDDCI voltage id ( 0xff01~0xff08 )
-  USHORT usElbVDDCI_LevelArrayOffset;    // offset of 2 dimension voltage level USHORT array
-}ATOM_ASIC_PROFILING_INFO_V2_1;
+	UCHAR  ucElbVDDCI_Num;
+	USHORT usElbVDDCI_IdArrayOffset;       // offset of USHORT virtual VDDCI voltage id ( 0xff01~0xff08 )
+	USHORT usElbVDDCI_LevelArrayOffset;    // offset of 2 dimension voltage level USHORT array
+} ATOM_ASIC_PROFILING_INFO_V2_1;
 
 
 //Here is parameter to convert Efuse value to Measure value
 //Measured = LN((2^Bitsize-1)/EFUSE-1)*(Range)/(-alpha)+(Max+Min)/2
 typedef struct _EFUSE_LOGISTIC_FUNC_PARAM
 {
-  USHORT usEfuseIndex;                  // Efuse Index in DWORD address, for example Index 911, usEuseIndex=112
-  UCHAR  ucEfuseBitLSB;                 // Efuse bit LSB in DWORD address, for example Index 911, usEfuseBitLSB= 911-112*8=15
-  UCHAR  ucEfuseLength;                 // Efuse bits length,
-  ULONG  ulEfuseEncodeRange;            // Range = Max - Min, bit31 indicate the efuse is negative number
-  ULONG  ulEfuseEncodeAverage;          // Average = ( Max + Min )/2
-}EFUSE_LOGISTIC_FUNC_PARAM;
+	USHORT usEfuseIndex;                  // Efuse Index in DWORD address, for example Index 911, usEuseIndex=112
+	UCHAR  ucEfuseBitLSB;                 // Efuse bit LSB in DWORD address, for example Index 911, usEfuseBitLSB= 911-112*8=15
+	UCHAR  ucEfuseLength;                 // Efuse bits length,
+	ULONG  ulEfuseEncodeRange;            // Range = Max - Min, bit31 indicate the efuse is negative number
+	ULONG  ulEfuseEncodeAverage;          // Average = ( Max + Min )/2
+} EFUSE_LOGISTIC_FUNC_PARAM;
 
 //Linear Function: Measured = Round ( Efuse * ( Max-Min )/(2^BitSize -1 ) + Min )
 typedef struct _EFUSE_LINEAR_FUNC_PARAM
 {
-  USHORT usEfuseIndex;                  // Efuse Index in DWORD address, for example Index 911, usEuseIndex=112
-  UCHAR  ucEfuseBitLSB;                 // Efuse bit LSB in DWORD address, for example Index 911, usEfuseBitLSB= 911-112*8=15
-  UCHAR  ucEfuseLength;                 // Efuse bits length,
-  ULONG  ulEfuseEncodeRange;            // Range = Max - Min, bit31 indicate the efuse is negative number
-  ULONG  ulEfuseMin;                    // Min
-}EFUSE_LINEAR_FUNC_PARAM;
+	USHORT usEfuseIndex;                  // Efuse Index in DWORD address, for example Index 911, usEuseIndex=112
+	UCHAR  ucEfuseBitLSB;                 // Efuse bit LSB in DWORD address, for example Index 911, usEfuseBitLSB= 911-112*8=15
+	UCHAR  ucEfuseLength;                 // Efuse bits length,
+	ULONG  ulEfuseEncodeRange;            // Range = Max - Min, bit31 indicate the efuse is negative number
+	ULONG  ulEfuseMin;                    // Min
+} EFUSE_LINEAR_FUNC_PARAM;
 
 
 typedef struct  _ATOM_ASIC_PROFILING_INFO_V3_1
 {
-  ATOM_COMMON_TABLE_HEADER         asHeader;
-  ULONG  ulEvvDerateTdp;
-  ULONG  ulEvvDerateTdc;
-  ULONG  ulBoardCoreTemp;
-  ULONG  ulMaxVddc;
-  ULONG  ulMinVddc;
-  ULONG  ulLoadLineSlop;
-  ULONG  ulLeakageTemp;
-  ULONG  ulLeakageVoltage;
-  EFUSE_LINEAR_FUNC_PARAM sCACm;
-  EFUSE_LINEAR_FUNC_PARAM sCACb;
-  EFUSE_LOGISTIC_FUNC_PARAM sKt_b;
-  EFUSE_LOGISTIC_FUNC_PARAM sKv_m;
-  EFUSE_LOGISTIC_FUNC_PARAM sKv_b;
-  USHORT usLkgEuseIndex;
-  UCHAR  ucLkgEfuseBitLSB;
-  UCHAR  ucLkgEfuseLength;
-  ULONG  ulLkgEncodeLn_MaxDivMin;
-  ULONG  ulLkgEncodeMax;
-  ULONG  ulLkgEncodeMin;
-  ULONG  ulEfuseLogisticAlpha;
-  USHORT usPowerDpm0;
-  USHORT usCurrentDpm0;
-  USHORT usPowerDpm1;
-  USHORT usCurrentDpm1;
-  USHORT usPowerDpm2;
-  USHORT usCurrentDpm2;
-  USHORT usPowerDpm3;
-  USHORT usCurrentDpm3;
-  USHORT usPowerDpm4;
-  USHORT usCurrentDpm4;
-  USHORT usPowerDpm5;
-  USHORT usCurrentDpm5;
-  USHORT usPowerDpm6;
-  USHORT usCurrentDpm6;
-  USHORT usPowerDpm7;
-  USHORT usCurrentDpm7;
-}ATOM_ASIC_PROFILING_INFO_V3_1;
+	ATOM_COMMON_TABLE_HEADER         asHeader;
+	ULONG  ulEvvDerateTdp;
+	ULONG  ulEvvDerateTdc;
+	ULONG  ulBoardCoreTemp;
+	ULONG  ulMaxVddc;
+	ULONG  ulMinVddc;
+	ULONG  ulLoadLineSlop;
+	ULONG  ulLeakageTemp;
+	ULONG  ulLeakageVoltage;
+	EFUSE_LINEAR_FUNC_PARAM sCACm;
+	EFUSE_LINEAR_FUNC_PARAM sCACb;
+	EFUSE_LOGISTIC_FUNC_PARAM sKt_b;
+	EFUSE_LOGISTIC_FUNC_PARAM sKv_m;
+	EFUSE_LOGISTIC_FUNC_PARAM sKv_b;
+	USHORT usLkgEuseIndex;
+	UCHAR  ucLkgEfuseBitLSB;
+	UCHAR  ucLkgEfuseLength;
+	ULONG  ulLkgEncodeLn_MaxDivMin;
+	ULONG  ulLkgEncodeMax;
+	ULONG  ulLkgEncodeMin;
+	ULONG  ulEfuseLogisticAlpha;
+	USHORT usPowerDpm0;
+	USHORT usCurrentDpm0;
+	USHORT usPowerDpm1;
+	USHORT usCurrentDpm1;
+	USHORT usPowerDpm2;
+	USHORT usCurrentDpm2;
+	USHORT usPowerDpm3;
+	USHORT usCurrentDpm3;
+	USHORT usPowerDpm4;
+	USHORT usCurrentDpm4;
+	USHORT usPowerDpm5;
+	USHORT usCurrentDpm5;
+	USHORT usPowerDpm6;
+	USHORT usCurrentDpm6;
+	USHORT usPowerDpm7;
+	USHORT usCurrentDpm7;
+} ATOM_ASIC_PROFILING_INFO_V3_1;
 
 
 typedef struct  _ATOM_ASIC_PROFILING_INFO_V3_2
 {
-  ATOM_COMMON_TABLE_HEADER         asHeader;
-  ULONG  ulEvvLkgFactor;
-  ULONG  ulBoardCoreTemp;
-  ULONG  ulMaxVddc;
-  ULONG  ulMinVddc;
-  ULONG  ulLoadLineSlop;
-  ULONG  ulLeakageTemp;
-  ULONG  ulLeakageVoltage;
-  EFUSE_LINEAR_FUNC_PARAM sCACm;
-  EFUSE_LINEAR_FUNC_PARAM sCACb;
-  EFUSE_LOGISTIC_FUNC_PARAM sKt_b;
-  EFUSE_LOGISTIC_FUNC_PARAM sKv_m;
-  EFUSE_LOGISTIC_FUNC_PARAM sKv_b;
-  USHORT usLkgEuseIndex;
-  UCHAR  ucLkgEfuseBitLSB;
-  UCHAR  ucLkgEfuseLength;
-  ULONG  ulLkgEncodeLn_MaxDivMin;
-  ULONG  ulLkgEncodeMax;
-  ULONG  ulLkgEncodeMin;
-  ULONG  ulEfuseLogisticAlpha;
-  USHORT usPowerDpm0;
-  USHORT usPowerDpm1;
-  USHORT usPowerDpm2;
-  USHORT usPowerDpm3;
-  USHORT usPowerDpm4;
-  USHORT usPowerDpm5;
-  USHORT usPowerDpm6;
-  USHORT usPowerDpm7;
-  ULONG  ulTdpDerateDPM0;
-  ULONG  ulTdpDerateDPM1;
-  ULONG  ulTdpDerateDPM2;
-  ULONG  ulTdpDerateDPM3;
-  ULONG  ulTdpDerateDPM4;
-  ULONG  ulTdpDerateDPM5;
-  ULONG  ulTdpDerateDPM6;
-  ULONG  ulTdpDerateDPM7;
-}ATOM_ASIC_PROFILING_INFO_V3_2;
+	ATOM_COMMON_TABLE_HEADER         asHeader;
+	ULONG  ulEvvLkgFactor;
+	ULONG  ulBoardCoreTemp;
+	ULONG  ulMaxVddc;
+	ULONG  ulMinVddc;
+	ULONG  ulLoadLineSlop;
+	ULONG  ulLeakageTemp;
+	ULONG  ulLeakageVoltage;
+	EFUSE_LINEAR_FUNC_PARAM sCACm;
+	EFUSE_LINEAR_FUNC_PARAM sCACb;
+	EFUSE_LOGISTIC_FUNC_PARAM sKt_b;
+	EFUSE_LOGISTIC_FUNC_PARAM sKv_m;
+	EFUSE_LOGISTIC_FUNC_PARAM sKv_b;
+	USHORT usLkgEuseIndex;
+	UCHAR  ucLkgEfuseBitLSB;
+	UCHAR  ucLkgEfuseLength;
+	ULONG  ulLkgEncodeLn_MaxDivMin;
+	ULONG  ulLkgEncodeMax;
+	ULONG  ulLkgEncodeMin;
+	ULONG  ulEfuseLogisticAlpha;
+	USHORT usPowerDpm0;
+	USHORT usPowerDpm1;
+	USHORT usPowerDpm2;
+	USHORT usPowerDpm3;
+	USHORT usPowerDpm4;
+	USHORT usPowerDpm5;
+	USHORT usPowerDpm6;
+	USHORT usPowerDpm7;
+	ULONG  ulTdpDerateDPM0;
+	ULONG  ulTdpDerateDPM1;
+	ULONG  ulTdpDerateDPM2;
+	ULONG  ulTdpDerateDPM3;
+	ULONG  ulTdpDerateDPM4;
+	ULONG  ulTdpDerateDPM5;
+	ULONG  ulTdpDerateDPM6;
+	ULONG  ulTdpDerateDPM7;
+} ATOM_ASIC_PROFILING_INFO_V3_2;
 
 
 // for Tonga/Fiji speed EVV algorithm
 typedef struct  _ATOM_ASIC_PROFILING_INFO_V3_3
 {
-  ATOM_COMMON_TABLE_HEADER         asHeader;
-  ULONG  ulEvvLkgFactor;
-  ULONG  ulBoardCoreTemp;
-  ULONG  ulMaxVddc;
-  ULONG  ulMinVddc;
-  ULONG  ulLoadLineSlop;
-  ULONG  ulLeakageTemp;
-  ULONG  ulLeakageVoltage;
-  EFUSE_LINEAR_FUNC_PARAM sCACm;
-  EFUSE_LINEAR_FUNC_PARAM sCACb;
-  EFUSE_LOGISTIC_FUNC_PARAM sKt_b;
-  EFUSE_LOGISTIC_FUNC_PARAM sKv_m;
-  EFUSE_LOGISTIC_FUNC_PARAM sKv_b;
-  USHORT usLkgEuseIndex;
-  UCHAR  ucLkgEfuseBitLSB;
-  UCHAR  ucLkgEfuseLength;
-  ULONG  ulLkgEncodeLn_MaxDivMin;
-  ULONG  ulLkgEncodeMax;
-  ULONG  ulLkgEncodeMin;
-  ULONG  ulEfuseLogisticAlpha;
+	ATOM_COMMON_TABLE_HEADER         asHeader;
+	ULONG  ulEvvLkgFactor;
+	ULONG  ulBoardCoreTemp;
+	ULONG  ulMaxVddc;
+	ULONG  ulMinVddc;
+	ULONG  ulLoadLineSlop;
+	ULONG  ulLeakageTemp;
+	ULONG  ulLeakageVoltage;
+	EFUSE_LINEAR_FUNC_PARAM sCACm;
+	EFUSE_LINEAR_FUNC_PARAM sCACb;
+	EFUSE_LOGISTIC_FUNC_PARAM sKt_b;
+	EFUSE_LOGISTIC_FUNC_PARAM sKv_m;
+	EFUSE_LOGISTIC_FUNC_PARAM sKv_b;
+	USHORT usLkgEuseIndex;
+	UCHAR  ucLkgEfuseBitLSB;
+	UCHAR  ucLkgEfuseLength;
+	ULONG  ulLkgEncodeLn_MaxDivMin;
+	ULONG  ulLkgEncodeMax;
+	ULONG  ulLkgEncodeMin;
+	ULONG  ulEfuseLogisticAlpha;
 
-  union{
-  USHORT usPowerDpm0;
-  USHORT usParamNegFlag;          //bit0 =1 :indicate ulRoBeta is Negative, bit1=1 indicate Kv_m  max is postive
-  };
-  USHORT usPowerDpm1;
-  USHORT usPowerDpm2;
-  USHORT usPowerDpm3;
-  USHORT usPowerDpm4;
-  USHORT usPowerDpm5;
-  USHORT usPowerDpm6;
-  USHORT usPowerDpm7;
-  ULONG  ulTdpDerateDPM0;
-  ULONG  ulTdpDerateDPM1;
-  ULONG  ulTdpDerateDPM2;
-  ULONG  ulTdpDerateDPM3;
-  ULONG  ulTdpDerateDPM4;
-  ULONG  ulTdpDerateDPM5;
-  ULONG  ulTdpDerateDPM6;
-  ULONG  ulTdpDerateDPM7;
-  EFUSE_LINEAR_FUNC_PARAM sRoFuse;
-  ULONG  ulRoAlpha;
-  ULONG  ulRoBeta;
-  ULONG  ulRoGamma;
-  ULONG  ulRoEpsilon;
-  ULONG  ulATermRo;
-  ULONG  ulBTermRo;
-  ULONG  ulCTermRo;
-  ULONG  ulSclkMargin;
-  ULONG  ulFmaxPercent;
-  ULONG  ulCRPercent;
-  ULONG  ulSFmaxPercent;
-  ULONG  ulSCRPercent;
-  ULONG  ulSDCMargine;
-}ATOM_ASIC_PROFILING_INFO_V3_3;
+	union
+	{
+		USHORT usPowerDpm0;
+		USHORT usParamNegFlag;          //bit0 =1 :indicate ulRoBeta is Negative, bit1=1 indicate Kv_m  max is postive
+	};
+	USHORT usPowerDpm1;
+	USHORT usPowerDpm2;
+	USHORT usPowerDpm3;
+	USHORT usPowerDpm4;
+	USHORT usPowerDpm5;
+	USHORT usPowerDpm6;
+	USHORT usPowerDpm7;
+	ULONG  ulTdpDerateDPM0;
+	ULONG  ulTdpDerateDPM1;
+	ULONG  ulTdpDerateDPM2;
+	ULONG  ulTdpDerateDPM3;
+	ULONG  ulTdpDerateDPM4;
+	ULONG  ulTdpDerateDPM5;
+	ULONG  ulTdpDerateDPM6;
+	ULONG  ulTdpDerateDPM7;
+	EFUSE_LINEAR_FUNC_PARAM sRoFuse;
+	ULONG  ulRoAlpha;
+	ULONG  ulRoBeta;
+	ULONG  ulRoGamma;
+	ULONG  ulRoEpsilon;
+	ULONG  ulATermRo;
+	ULONG  ulBTermRo;
+	ULONG  ulCTermRo;
+	ULONG  ulSclkMargin;
+	ULONG  ulFmaxPercent;
+	ULONG  ulCRPercent;
+	ULONG  ulSFmaxPercent;
+	ULONG  ulSCRPercent;
+	ULONG  ulSDCMargine;
+} ATOM_ASIC_PROFILING_INFO_V3_3;
 
 // for Fiji speed EVV algorithm
 typedef struct  _ATOM_ASIC_PROFILING_INFO_V3_4
 {
-  ATOM_COMMON_TABLE_HEADER         asHeader;
-  ULONG  ulEvvLkgFactor;
-  ULONG  ulBoardCoreTemp;
-  ULONG  ulMaxVddc;
-  ULONG  ulMinVddc;
-  ULONG  ulLoadLineSlop;
-  ULONG  ulLeakageTemp;
-  ULONG  ulLeakageVoltage;
-  EFUSE_LINEAR_FUNC_PARAM sCACm;
-  EFUSE_LINEAR_FUNC_PARAM sCACb;
-  EFUSE_LOGISTIC_FUNC_PARAM sKt_b;
-  EFUSE_LOGISTIC_FUNC_PARAM sKv_m;
-  EFUSE_LOGISTIC_FUNC_PARAM sKv_b;
-  USHORT usLkgEuseIndex;
-  UCHAR  ucLkgEfuseBitLSB;
-  UCHAR  ucLkgEfuseLength;
-  ULONG  ulLkgEncodeLn_MaxDivMin;
-  ULONG  ulLkgEncodeMax;
-  ULONG  ulLkgEncodeMin;
-  ULONG  ulEfuseLogisticAlpha;
-  USHORT usPowerDpm0;
-  USHORT usPowerDpm1;
-  USHORT usPowerDpm2;
-  USHORT usPowerDpm3;
-  USHORT usPowerDpm4;
-  USHORT usPowerDpm5;
-  USHORT usPowerDpm6;
-  USHORT usPowerDpm7;
-  ULONG  ulTdpDerateDPM0;
-  ULONG  ulTdpDerateDPM1;
-  ULONG  ulTdpDerateDPM2;
-  ULONG  ulTdpDerateDPM3;
-  ULONG  ulTdpDerateDPM4;
-  ULONG  ulTdpDerateDPM5;
-  ULONG  ulTdpDerateDPM6;
-  ULONG  ulTdpDerateDPM7;
-  EFUSE_LINEAR_FUNC_PARAM sRoFuse;
-  ULONG  ulEvvDefaultVddc;
-  ULONG  ulEvvNoCalcVddc;
-  USHORT usParamNegFlag;
-  USHORT usSpeed_Model;
-  ULONG  ulSM_A0;
-  ULONG  ulSM_A1;
-  ULONG  ulSM_A2;
-  ULONG  ulSM_A3;
-  ULONG  ulSM_A4;
-  ULONG  ulSM_A5;
-  ULONG  ulSM_A6;
-  ULONG  ulSM_A7;
-  UCHAR  ucSM_A0_sign;
-  UCHAR  ucSM_A1_sign;
-  UCHAR  ucSM_A2_sign;
-  UCHAR  ucSM_A3_sign;
-  UCHAR  ucSM_A4_sign;
-  UCHAR  ucSM_A5_sign;
-  UCHAR  ucSM_A6_sign;
-  UCHAR  ucSM_A7_sign;
-  ULONG ulMargin_RO_a;
-  ULONG ulMargin_RO_b;
-  ULONG ulMargin_RO_c;
-  ULONG ulMargin_fixed;
-  ULONG ulMargin_Fmax_mean;
-  ULONG ulMargin_plat_mean;
-  ULONG ulMargin_Fmax_sigma;
-  ULONG ulMargin_plat_sigma;
-  ULONG ulMargin_DC_sigma;
-  ULONG ulReserved[8];            // Reserved for future ASIC
-}ATOM_ASIC_PROFILING_INFO_V3_4;
+	ATOM_COMMON_TABLE_HEADER         asHeader;
+	ULONG  ulEvvLkgFactor;
+	ULONG  ulBoardCoreTemp;
+	ULONG  ulMaxVddc;
+	ULONG  ulMinVddc;
+	ULONG  ulLoadLineSlop;
+	ULONG  ulLeakageTemp;
+	ULONG  ulLeakageVoltage;
+	EFUSE_LINEAR_FUNC_PARAM sCACm;
+	EFUSE_LINEAR_FUNC_PARAM sCACb;
+	EFUSE_LOGISTIC_FUNC_PARAM sKt_b;
+	EFUSE_LOGISTIC_FUNC_PARAM sKv_m;
+	EFUSE_LOGISTIC_FUNC_PARAM sKv_b;
+	USHORT usLkgEuseIndex;
+	UCHAR  ucLkgEfuseBitLSB;
+	UCHAR  ucLkgEfuseLength;
+	ULONG  ulLkgEncodeLn_MaxDivMin;
+	ULONG  ulLkgEncodeMax;
+	ULONG  ulLkgEncodeMin;
+	ULONG  ulEfuseLogisticAlpha;
+	USHORT usPowerDpm0;
+	USHORT usPowerDpm1;
+	USHORT usPowerDpm2;
+	USHORT usPowerDpm3;
+	USHORT usPowerDpm4;
+	USHORT usPowerDpm5;
+	USHORT usPowerDpm6;
+	USHORT usPowerDpm7;
+	ULONG  ulTdpDerateDPM0;
+	ULONG  ulTdpDerateDPM1;
+	ULONG  ulTdpDerateDPM2;
+	ULONG  ulTdpDerateDPM3;
+	ULONG  ulTdpDerateDPM4;
+	ULONG  ulTdpDerateDPM5;
+	ULONG  ulTdpDerateDPM6;
+	ULONG  ulTdpDerateDPM7;
+	EFUSE_LINEAR_FUNC_PARAM sRoFuse;
+	ULONG  ulEvvDefaultVddc;
+	ULONG  ulEvvNoCalcVddc;
+	USHORT usParamNegFlag;
+	USHORT usSpeed_Model;
+	ULONG  ulSM_A0;
+	ULONG  ulSM_A1;
+	ULONG  ulSM_A2;
+	ULONG  ulSM_A3;
+	ULONG  ulSM_A4;
+	ULONG  ulSM_A5;
+	ULONG  ulSM_A6;
+	ULONG  ulSM_A7;
+	UCHAR  ucSM_A0_sign;
+	UCHAR  ucSM_A1_sign;
+	UCHAR  ucSM_A2_sign;
+	UCHAR  ucSM_A3_sign;
+	UCHAR  ucSM_A4_sign;
+	UCHAR  ucSM_A5_sign;
+	UCHAR  ucSM_A6_sign;
+	UCHAR  ucSM_A7_sign;
+	ULONG ulMargin_RO_a;
+	ULONG ulMargin_RO_b;
+	ULONG ulMargin_RO_c;
+	ULONG ulMargin_fixed;
+	ULONG ulMargin_Fmax_mean;
+	ULONG ulMargin_plat_mean;
+	ULONG ulMargin_Fmax_sigma;
+	ULONG ulMargin_plat_sigma;
+	ULONG ulMargin_DC_sigma;
+	ULONG ulReserved[8];            // Reserved for future ASIC
+} ATOM_ASIC_PROFILING_INFO_V3_4;
 
 // for  Polaris10/Polaris11 speed EVV algorithm
 typedef struct  _ATOM_ASIC_PROFILING_INFO_V3_5
 {
-  ATOM_COMMON_TABLE_HEADER         asHeader;
-  ULONG  ulMaxVddc;               //Maximum voltage for all parts, in unit of 0.01mv
-  ULONG  ulMinVddc;               //Minimum voltage for all parts, in unit of 0.01mv
-  USHORT usLkgEuseIndex;          //Efuse Lkg_FT address ( BYTE address )
-  UCHAR  ucLkgEfuseBitLSB;        //Efuse Lkg_FT bit shift in 32bit DWORD
-  UCHAR  ucLkgEfuseLength;        //Efuse Lkg_FT length
-  ULONG  ulLkgEncodeLn_MaxDivMin; //value of ln(Max_Lkg_Ft/Min_Lkg_Ft ) in unit of 0.00001 ( unit=100000 )
-  ULONG  ulLkgEncodeMax;          //Maximum Lkg_Ft measured value ( or efuse decode value ), in unit of 0.00001 ( unit=100000 )
-  ULONG  ulLkgEncodeMin;          //Minimum Lkg_Ft measured value ( or efuse decode value ), in unit of 0.00001 ( unit=100000 )
-  EFUSE_LINEAR_FUNC_PARAM sRoFuse;//Efuse RO info: DWORD address, bit shift, length, max/min measure value. in unit of 1.
-  ULONG  ulEvvDefaultVddc;        //def="EVV_DEFAULT_VDDC" descr="return default VDDC(v) when Efuse not cut" unit="100000"/>
-  ULONG  ulEvvNoCalcVddc;         //def="EVV_NOCALC_VDDC" descr="return VDDC(v) when Calculation is bad" unit="100000"/>
-  ULONG  ulSpeed_Model;           //def="EVV_SPEED_MODEL" descr="0 = Greek model, 1 = multivariate model" unit="1"/>
-  ULONG  ulSM_A0;                 //def="EVV_SM_A0" descr="Leakage coeff(Multivariant Mode)." unit="100000"/>
-  ULONG  ulSM_A1;                 //def="EVV_SM_A1" descr="Leakage/SCLK coeff(Multivariant Mode)." unit="1000000"/>
-  ULONG  ulSM_A2;                 //def="EVV_SM_A2" descr="Alpha( Greek Mode ) or VDDC/SCLK coeff(Multivariant Mode)." unit="100000"/>
-  ULONG  ulSM_A3;                 //def="EVV_SM_A3" descr="Beta( Greek Mode ) or SCLK coeff(Multivariant Mode)." unit="100000"/>
-  ULONG  ulSM_A4;                 //def="EVV_SM_A4" descr="VDDC^2/SCLK coeff(Multivariant Mode)." unit="100000"/>
-  ULONG  ulSM_A5;                 //def="EVV_SM_A5" descr="VDDC^2 coeff(Multivariant Mode)." unit="100000"/>
-  ULONG  ulSM_A6;                 //def="EVV_SM_A6" descr="Gamma( Greek Mode ) or VDDC coeff(Multivariant Mode)." unit="100000"/>
-  ULONG  ulSM_A7;                 //def="EVV_SM_A7" descr="Epsilon( Greek Mode ) or constant(Multivariant Mode)." unit="100000"/>
-  UCHAR  ucSM_A0_sign;            //def="EVV_SM_A0_SIGN" descr="=0 SM_A0 is postive. =1: SM_A0 is negative" unit="1"/>
-  UCHAR  ucSM_A1_sign;            //def="EVV_SM_A1_SIGN" descr="=0 SM_A1 is postive. =1: SM_A1 is negative" unit="1"/>
-  UCHAR  ucSM_A2_sign;            //def="EVV_SM_A2_SIGN" descr="=0 SM_A2 is postive. =1: SM_A2 is negative" unit="1"/>
-  UCHAR  ucSM_A3_sign;            //def="EVV_SM_A3_SIGN" descr="=0 SM_A3 is postive. =1: SM_A3 is negative" unit="1"/>
-  UCHAR  ucSM_A4_sign;            //def="EVV_SM_A4_SIGN" descr="=0 SM_A4 is postive. =1: SM_A4 is negative" unit="1"/>
-  UCHAR  ucSM_A5_sign;            //def="EVV_SM_A5_SIGN" descr="=0 SM_A5 is postive. =1: SM_A5 is negative" unit="1"/>
-  UCHAR  ucSM_A6_sign;            //def="EVV_SM_A6_SIGN" descr="=0 SM_A6 is postive. =1: SM_A6 is negative" unit="1"/>
-  UCHAR  ucSM_A7_sign;            //def="EVV_SM_A7_SIGN" descr="=0 SM_A7 is postive. =1: SM_A7 is negative" unit="1"/>
-  ULONG  ulMargin_RO_a;           //def="EVV_MARGIN_RO_A" descr="A Term to represent RO equation in Ax2+Bx+C, unit=1"
-  ULONG  ulMargin_RO_b;           //def="EVV_MARGIN_RO_B" descr="B Term to represent RO equation in Ax2+Bx+C, unit=1"
-  ULONG  ulMargin_RO_c;           //def="EVV_MARGIN_RO_C" descr="C Term to represent RO equation in Ax2+Bx+C, unit=1"
-  ULONG  ulMargin_fixed;          //def="EVV_MARGIN_FIXED" descr="Fixed MHz to add to SCLK margin, unit=1" unit="1"/>
-  ULONG  ulMargin_Fmax_mean;      //def="EVV_MARGIN_FMAX_MEAN" descr="Percentage to add for Fmas mean margin unit=10000" unit="10000"/>
-  ULONG  ulMargin_plat_mean;      //def="EVV_MARGIN_PLAT_MEAN" descr="Percentage to add for platform mean margin unit=10000" unit="10000"/>
-  ULONG  ulMargin_Fmax_sigma;     //def="EVV_MARGIN_FMAX_SIGMA" descr="Percentage to add for Fmax sigma margin unit=10000" unit="10000"/>
-  ULONG  ulMargin_plat_sigma;     //def="EVV_MARGIN_PLAT_SIGMA" descr="Percentage to add for platform sigma margin unit=10000" unit="10000"/>
-  ULONG  ulMargin_DC_sigma;       //def="EVV_MARGIN_DC_SIGMA" descr="Regulator DC tolerance margin (mV) unit=100" unit="100"/>
-  ULONG  ulReserved[12];
-}ATOM_ASIC_PROFILING_INFO_V3_5;
+	ATOM_COMMON_TABLE_HEADER         asHeader;
+	ULONG  ulMaxVddc;               //Maximum voltage for all parts, in unit of 0.01mv
+	ULONG  ulMinVddc;               //Minimum voltage for all parts, in unit of 0.01mv
+	USHORT usLkgEuseIndex;          //Efuse Lkg_FT address ( BYTE address )
+	UCHAR  ucLkgEfuseBitLSB;        //Efuse Lkg_FT bit shift in 32bit DWORD
+	UCHAR  ucLkgEfuseLength;        //Efuse Lkg_FT length
+	ULONG  ulLkgEncodeLn_MaxDivMin; //value of ln(Max_Lkg_Ft/Min_Lkg_Ft ) in unit of 0.00001 ( unit=100000 )
+	ULONG  ulLkgEncodeMax;          //Maximum Lkg_Ft measured value ( or efuse decode value ), in unit of 0.00001 ( unit=100000 )
+	ULONG  ulLkgEncodeMin;          //Minimum Lkg_Ft measured value ( or efuse decode value ), in unit of 0.00001 ( unit=100000 )
+	EFUSE_LINEAR_FUNC_PARAM sRoFuse;//Efuse RO info: DWORD address, bit shift, length, max/min measure value. in unit of 1.
+	ULONG  ulEvvDefaultVddc;        //def="EVV_DEFAULT_VDDC" descr="return default VDDC(v) when Efuse not cut" unit="100000"/>
+	ULONG  ulEvvNoCalcVddc;         //def="EVV_NOCALC_VDDC" descr="return VDDC(v) when Calculation is bad" unit="100000"/>
+	ULONG  ulSpeed_Model;           //def="EVV_SPEED_MODEL" descr="0 = Greek model, 1 = multivariate model" unit="1"/>
+	ULONG  ulSM_A0;                 //def="EVV_SM_A0" descr="Leakage coeff(Multivariant Mode)." unit="100000"/>
+	ULONG  ulSM_A1;                 //def="EVV_SM_A1" descr="Leakage/SCLK coeff(Multivariant Mode)." unit="1000000"/>
+	ULONG  ulSM_A2;                 //def="EVV_SM_A2" descr="Alpha( Greek Mode ) or VDDC/SCLK coeff(Multivariant Mode)." unit="100000"/>
+	ULONG  ulSM_A3;                 //def="EVV_SM_A3" descr="Beta( Greek Mode ) or SCLK coeff(Multivariant Mode)." unit="100000"/>
+	ULONG  ulSM_A4;                 //def="EVV_SM_A4" descr="VDDC^2/SCLK coeff(Multivariant Mode)." unit="100000"/>
+	ULONG  ulSM_A5;                 //def="EVV_SM_A5" descr="VDDC^2 coeff(Multivariant Mode)." unit="100000"/>
+	ULONG  ulSM_A6;                 //def="EVV_SM_A6" descr="Gamma( Greek Mode ) or VDDC coeff(Multivariant Mode)." unit="100000"/>
+	ULONG  ulSM_A7;                 //def="EVV_SM_A7" descr="Epsilon( Greek Mode ) or constant(Multivariant Mode)." unit="100000"/>
+	UCHAR  ucSM_A0_sign;            //def="EVV_SM_A0_SIGN" descr="=0 SM_A0 is postive. =1: SM_A0 is negative" unit="1"/>
+	UCHAR  ucSM_A1_sign;            //def="EVV_SM_A1_SIGN" descr="=0 SM_A1 is postive. =1: SM_A1 is negative" unit="1"/>
+	UCHAR  ucSM_A2_sign;            //def="EVV_SM_A2_SIGN" descr="=0 SM_A2 is postive. =1: SM_A2 is negative" unit="1"/>
+	UCHAR  ucSM_A3_sign;            //def="EVV_SM_A3_SIGN" descr="=0 SM_A3 is postive. =1: SM_A3 is negative" unit="1"/>
+	UCHAR  ucSM_A4_sign;            //def="EVV_SM_A4_SIGN" descr="=0 SM_A4 is postive. =1: SM_A4 is negative" unit="1"/>
+	UCHAR  ucSM_A5_sign;            //def="EVV_SM_A5_SIGN" descr="=0 SM_A5 is postive. =1: SM_A5 is negative" unit="1"/>
+	UCHAR  ucSM_A6_sign;            //def="EVV_SM_A6_SIGN" descr="=0 SM_A6 is postive. =1: SM_A6 is negative" unit="1"/>
+	UCHAR  ucSM_A7_sign;            //def="EVV_SM_A7_SIGN" descr="=0 SM_A7 is postive. =1: SM_A7 is negative" unit="1"/>
+	ULONG  ulMargin_RO_a;           //def="EVV_MARGIN_RO_A" descr="A Term to represent RO equation in Ax2+Bx+C, unit=1"
+	ULONG  ulMargin_RO_b;           //def="EVV_MARGIN_RO_B" descr="B Term to represent RO equation in Ax2+Bx+C, unit=1"
+	ULONG  ulMargin_RO_c;           //def="EVV_MARGIN_RO_C" descr="C Term to represent RO equation in Ax2+Bx+C, unit=1"
+	ULONG  ulMargin_fixed;          //def="EVV_MARGIN_FIXED" descr="Fixed MHz to add to SCLK margin, unit=1" unit="1"/>
+	ULONG  ulMargin_Fmax_mean;      //def="EVV_MARGIN_FMAX_MEAN" descr="Percentage to add for Fmas mean margin unit=10000" unit="10000"/>
+	ULONG  ulMargin_plat_mean;      //def="EVV_MARGIN_PLAT_MEAN" descr="Percentage to add for platform mean margin unit=10000" unit="10000"/>
+	ULONG  ulMargin_Fmax_sigma;     //def="EVV_MARGIN_FMAX_SIGMA" descr="Percentage to add for Fmax sigma margin unit=10000" unit="10000"/>
+	ULONG  ulMargin_plat_sigma;     //def="EVV_MARGIN_PLAT_SIGMA" descr="Percentage to add for platform sigma margin unit=10000" unit="10000"/>
+	ULONG  ulMargin_DC_sigma;       //def="EVV_MARGIN_DC_SIGMA" descr="Regulator DC tolerance margin (mV) unit=100" unit="100"/>
+	ULONG  ulReserved[12];
+} ATOM_ASIC_PROFILING_INFO_V3_5;
 
 /* for Polars10/11 AVFS parameters */
 typedef struct  _ATOM_ASIC_PROFILING_INFO_V3_6
 {
-  ATOM_COMMON_TABLE_HEADER         asHeader;
-  ULONG  ulMaxVddc;
-  ULONG  ulMinVddc;
-  USHORT usLkgEuseIndex;
-  UCHAR  ucLkgEfuseBitLSB;
-  UCHAR  ucLkgEfuseLength;
-  ULONG  ulLkgEncodeLn_MaxDivMin;
-  ULONG  ulLkgEncodeMax;
-  ULONG  ulLkgEncodeMin;
-  EFUSE_LINEAR_FUNC_PARAM sRoFuse;
-  ULONG  ulEvvDefaultVddc;
-  ULONG  ulEvvNoCalcVddc;
-  ULONG  ulSpeed_Model;
-  ULONG  ulSM_A0;
-  ULONG  ulSM_A1;
-  ULONG  ulSM_A2;
-  ULONG  ulSM_A3;
-  ULONG  ulSM_A4;
-  ULONG  ulSM_A5;
-  ULONG  ulSM_A6;
-  ULONG  ulSM_A7;
-  UCHAR  ucSM_A0_sign;
-  UCHAR  ucSM_A1_sign;
-  UCHAR  ucSM_A2_sign;
-  UCHAR  ucSM_A3_sign;
-  UCHAR  ucSM_A4_sign;
-  UCHAR  ucSM_A5_sign;
-  UCHAR  ucSM_A6_sign;
-  UCHAR  ucSM_A7_sign;
-  ULONG  ulMargin_RO_a;
-  ULONG  ulMargin_RO_b;
-  ULONG  ulMargin_RO_c;
-  ULONG  ulMargin_fixed;
-  ULONG  ulMargin_Fmax_mean;
-  ULONG  ulMargin_plat_mean;
-  ULONG  ulMargin_Fmax_sigma;
-  ULONG  ulMargin_plat_sigma;
-  ULONG  ulMargin_DC_sigma;
-  ULONG  ulLoadLineSlop;
-  ULONG  ulaTDClimitPerDPM[8];
-  ULONG  ulaNoCalcVddcPerDPM[8];
-  ULONG  ulAVFS_meanNsigma_Acontant0;
-  ULONG  ulAVFS_meanNsigma_Acontant1;
-  ULONG  ulAVFS_meanNsigma_Acontant2;
-  USHORT usAVFS_meanNsigma_DC_tol_sigma;
-  USHORT usAVFS_meanNsigma_Platform_mean;
-  USHORT usAVFS_meanNsigma_Platform_sigma;
-  ULONG  ulGB_VDROOP_TABLE_CKSOFF_a0;
-  ULONG  ulGB_VDROOP_TABLE_CKSOFF_a1;
-  ULONG  ulGB_VDROOP_TABLE_CKSOFF_a2;
-  ULONG  ulGB_VDROOP_TABLE_CKSON_a0;
-  ULONG  ulGB_VDROOP_TABLE_CKSON_a1;
-  ULONG  ulGB_VDROOP_TABLE_CKSON_a2;
-  ULONG  ulAVFSGB_FUSE_TABLE_CKSOFF_m1;
-  USHORT usAVFSGB_FUSE_TABLE_CKSOFF_m2;
-  ULONG  ulAVFSGB_FUSE_TABLE_CKSOFF_b;
-  ULONG  ulAVFSGB_FUSE_TABLE_CKSON_m1;
-  USHORT usAVFSGB_FUSE_TABLE_CKSON_m2;
-  ULONG  ulAVFSGB_FUSE_TABLE_CKSON_b;
-  USHORT usMaxVoltage_0_25mv;
-  UCHAR  ucEnableGB_VDROOP_TABLE_CKSOFF;
-  UCHAR  ucEnableGB_VDROOP_TABLE_CKSON;
-  UCHAR  ucEnableGB_FUSE_TABLE_CKSOFF;
-  UCHAR  ucEnableGB_FUSE_TABLE_CKSON;
-  USHORT usPSM_Age_ComFactor;
-  UCHAR  ucEnableApplyAVFS_CKS_OFF_Voltage;
-  UCHAR  ucReserved;
-}ATOM_ASIC_PROFILING_INFO_V3_6;
+	ATOM_COMMON_TABLE_HEADER         asHeader;
+	ULONG  ulMaxVddc;
+	ULONG  ulMinVddc;
+	USHORT usLkgEuseIndex;
+	UCHAR  ucLkgEfuseBitLSB;
+	UCHAR  ucLkgEfuseLength;
+	ULONG  ulLkgEncodeLn_MaxDivMin;
+	ULONG  ulLkgEncodeMax;
+	ULONG  ulLkgEncodeMin;
+	EFUSE_LINEAR_FUNC_PARAM sRoFuse;
+	ULONG  ulEvvDefaultVddc;
+	ULONG  ulEvvNoCalcVddc;
+	ULONG  ulSpeed_Model;
+	ULONG  ulSM_A0;
+	ULONG  ulSM_A1;
+	ULONG  ulSM_A2;
+	ULONG  ulSM_A3;
+	ULONG  ulSM_A4;
+	ULONG  ulSM_A5;
+	ULONG  ulSM_A6;
+	ULONG  ulSM_A7;
+	UCHAR  ucSM_A0_sign;
+	UCHAR  ucSM_A1_sign;
+	UCHAR  ucSM_A2_sign;
+	UCHAR  ucSM_A3_sign;
+	UCHAR  ucSM_A4_sign;
+	UCHAR  ucSM_A5_sign;
+	UCHAR  ucSM_A6_sign;
+	UCHAR  ucSM_A7_sign;
+	ULONG  ulMargin_RO_a;
+	ULONG  ulMargin_RO_b;
+	ULONG  ulMargin_RO_c;
+	ULONG  ulMargin_fixed;
+	ULONG  ulMargin_Fmax_mean;
+	ULONG  ulMargin_plat_mean;
+	ULONG  ulMargin_Fmax_sigma;
+	ULONG  ulMargin_plat_sigma;
+	ULONG  ulMargin_DC_sigma;
+	ULONG  ulLoadLineSlop;
+	ULONG  ulaTDClimitPerDPM[8];
+	ULONG  ulaNoCalcVddcPerDPM[8];
+	ULONG  ulAVFS_meanNsigma_Acontant0;
+	ULONG  ulAVFS_meanNsigma_Acontant1;
+	ULONG  ulAVFS_meanNsigma_Acontant2;
+	USHORT usAVFS_meanNsigma_DC_tol_sigma;
+	USHORT usAVFS_meanNsigma_Platform_mean;
+	USHORT usAVFS_meanNsigma_Platform_sigma;
+	ULONG  ulGB_VDROOP_TABLE_CKSOFF_a0;
+	ULONG  ulGB_VDROOP_TABLE_CKSOFF_a1;
+	ULONG  ulGB_VDROOP_TABLE_CKSOFF_a2;
+	ULONG  ulGB_VDROOP_TABLE_CKSON_a0;
+	ULONG  ulGB_VDROOP_TABLE_CKSON_a1;
+	ULONG  ulGB_VDROOP_TABLE_CKSON_a2;
+	ULONG  ulAVFSGB_FUSE_TABLE_CKSOFF_m1;
+	USHORT usAVFSGB_FUSE_TABLE_CKSOFF_m2;
+	ULONG  ulAVFSGB_FUSE_TABLE_CKSOFF_b;
+	ULONG  ulAVFSGB_FUSE_TABLE_CKSON_m1;
+	USHORT usAVFSGB_FUSE_TABLE_CKSON_m2;
+	ULONG  ulAVFSGB_FUSE_TABLE_CKSON_b;
+	USHORT usMaxVoltage_0_25mv;
+	UCHAR  ucEnableGB_VDROOP_TABLE_CKSOFF;
+	UCHAR  ucEnableGB_VDROOP_TABLE_CKSON;
+	UCHAR  ucEnableGB_FUSE_TABLE_CKSOFF;
+	UCHAR  ucEnableGB_FUSE_TABLE_CKSON;
+	USHORT usPSM_Age_ComFactor;
+	UCHAR  ucEnableApplyAVFS_CKS_OFF_Voltage;
+	UCHAR  ucReserved;
+} ATOM_ASIC_PROFILING_INFO_V3_6;
 
 
-typedef struct _ATOM_SCLK_FCW_RANGE_ENTRY_V1{
-  ULONG  ulMaxSclkFreq;
-  UCHAR  ucVco_setting;      // 1: 3-6GHz, 3: 2-4GHz
-  UCHAR  ucPostdiv;          // divide by 2^n
-  USHORT ucFcw_pcc;
-  USHORT ucFcw_trans_upper;
-  USHORT ucRcw_trans_lower;
-}ATOM_SCLK_FCW_RANGE_ENTRY_V1;
+typedef struct _ATOM_SCLK_FCW_RANGE_ENTRY_V1
+{
+	ULONG  ulMaxSclkFreq;
+	UCHAR  ucVco_setting;      // 1: 3-6GHz, 3: 2-4GHz
+	UCHAR  ucPostdiv;          // divide by 2^n
+	USHORT ucFcw_pcc;
+	USHORT ucFcw_trans_upper;
+	USHORT ucRcw_trans_lower;
+} ATOM_SCLK_FCW_RANGE_ENTRY_V1;
 
 
 // SMU_InfoTable for  Polaris10/Polaris11
 typedef struct  _ATOM_SMU_INFO_V2_1
 {
-  ATOM_COMMON_TABLE_HEADER         asHeader;
-  UCHAR ucSclkEntryNum;            // for potential future extend, indicate the number of ATOM_SCLK_FCW_RANGE_ENTRY_V1
-  UCHAR ucReserved[3];
-  ATOM_SCLK_FCW_RANGE_ENTRY_V1     asSclkFcwRangeEntry[8];
-}ATOM_SMU_INFO_V2_1;
+	ATOM_COMMON_TABLE_HEADER         asHeader;
+	UCHAR ucSclkEntryNum;            // for potential future extend, indicate the number of ATOM_SCLK_FCW_RANGE_ENTRY_V1
+	UCHAR ucReserved[3];
+	ATOM_SCLK_FCW_RANGE_ENTRY_V1     asSclkFcwRangeEntry[8];
+} ATOM_SMU_INFO_V2_1;
 
 
 // GFX_InfoTable for Polaris10/Polaris11
 typedef struct  _ATOM_GFX_INFO_V2_1
 {
-  ATOM_COMMON_TABLE_HEADER asHeader;
-  UCHAR GfxIpMinVer;
-  UCHAR GfxIpMajVer;
-  UCHAR max_shader_engines;
-  UCHAR max_tile_pipes;
-  UCHAR max_cu_per_sh;
-  UCHAR max_sh_per_se;
-  UCHAR max_backends_per_se;
-  UCHAR max_texture_channel_caches;
-}ATOM_GFX_INFO_V2_1;
+	ATOM_COMMON_TABLE_HEADER asHeader;
+	UCHAR GfxIpMinVer;
+	UCHAR GfxIpMajVer;
+	UCHAR max_shader_engines;
+	UCHAR max_tile_pipes;
+	UCHAR max_cu_per_sh;
+	UCHAR max_sh_per_se;
+	UCHAR max_backends_per_se;
+	UCHAR max_texture_channel_caches;
+} ATOM_GFX_INFO_V2_1;
 
 
 typedef struct _ATOM_POWER_SOURCE_OBJECT
 {
-   UCHAR  ucPwrSrcId;                                   // Power source
-   UCHAR  ucPwrSensorType;                              // GPIO, I2C or none
-   UCHAR  ucPwrSensId;                                  // if GPIO detect, it is GPIO id,  if I2C detect, it is I2C id
-   UCHAR  ucPwrSensSlaveAddr;                           // Slave address if I2C detect
-   UCHAR  ucPwrSensRegIndex;                            // I2C register Index if I2C detect
-   UCHAR  ucPwrSensRegBitMask;                          // detect which bit is used if I2C detect
-   UCHAR  ucPwrSensActiveState;                         // high active or low active
-   UCHAR  ucReserve[3];                                 // reserve
-   USHORT usSensPwr;                                    // in unit of watt
-}ATOM_POWER_SOURCE_OBJECT;
+	UCHAR  ucPwrSrcId;                                   // Power source
+	UCHAR  ucPwrSensorType;                              // GPIO, I2C or none
+	UCHAR  ucPwrSensId;                                  // if GPIO detect, it is GPIO id,  if I2C detect, it is I2C id
+	UCHAR  ucPwrSensSlaveAddr;                           // Slave address if I2C detect
+	UCHAR  ucPwrSensRegIndex;                            // I2C register Index if I2C detect
+	UCHAR  ucPwrSensRegBitMask;                          // detect which bit is used if I2C detect
+	UCHAR  ucPwrSensActiveState;                         // high active or low active
+	UCHAR  ucReserve[3];                                 // reserve
+	USHORT usSensPwr;                                    // in unit of watt
+} ATOM_POWER_SOURCE_OBJECT;
 
 typedef struct _ATOM_POWER_SOURCE_INFO
 {
-      ATOM_COMMON_TABLE_HEADER      asHeader;
-      UCHAR                                    asPwrbehave[16];
-      ATOM_POWER_SOURCE_OBJECT      asPwrObj[1];
-}ATOM_POWER_SOURCE_INFO;
+	ATOM_COMMON_TABLE_HEADER      asHeader;
+	UCHAR                                    asPwrbehave[16];
+	ATOM_POWER_SOURCE_OBJECT      asPwrObj[1];
+} ATOM_POWER_SOURCE_INFO;
 
 
 //Define ucPwrSrcId
@@ -5683,23 +5763,24 @@ typedef struct _ATOM_POWER_SOURCE_INFO
 
 typedef struct _ATOM_CLK_VOLT_CAPABILITY
 {
-  ULONG      ulVoltageIndex;                      // The Voltage Index indicated by FUSE, same voltage index shared with SCLK DPM fuse table
-  ULONG      ulMaximumSupportedCLK;               // Maximum clock supported with specified voltage index, unit in 10kHz
-}ATOM_CLK_VOLT_CAPABILITY;
+	ULONG
+	ulVoltageIndex;                      // The Voltage Index indicated by FUSE, same voltage index shared with SCLK DPM fuse table
+	ULONG      ulMaximumSupportedCLK;               // Maximum clock supported with specified voltage index, unit in 10kHz
+} ATOM_CLK_VOLT_CAPABILITY;
 
 
 typedef struct _ATOM_CLK_VOLT_CAPABILITY_V2
 {
-  USHORT     usVoltageLevel;                      // The real Voltage Level round up value in unit of mv,
-  ULONG      ulMaximumSupportedCLK;               // Maximum clock supported with specified voltage index, unit in 10kHz
-}ATOM_CLK_VOLT_CAPABILITY_V2;
+	USHORT     usVoltageLevel;                      // The real Voltage Level round up value in unit of mv,
+	ULONG      ulMaximumSupportedCLK;               // Maximum clock supported with specified voltage index, unit in 10kHz
+} ATOM_CLK_VOLT_CAPABILITY_V2;
 
 typedef struct _ATOM_AVAILABLE_SCLK_LIST
 {
-  ULONG      ulSupportedSCLK;               // Maximum clock supported with specified voltage index,  unit in 10kHz
-  USHORT     usVoltageIndex;                // The Voltage Index indicated by FUSE for specified SCLK
-  USHORT     usVoltageID;                   // The Voltage ID indicated by FUSE for specified SCLK
-}ATOM_AVAILABLE_SCLK_LIST;
+	ULONG      ulSupportedSCLK;               // Maximum clock supported with specified voltage index,  unit in 10kHz
+	USHORT     usVoltageIndex;                // The Voltage Index indicated by FUSE for specified SCLK
+	USHORT     usVoltageID;                   // The Voltage ID indicated by FUSE for specified SCLK
+} ATOM_AVAILABLE_SCLK_LIST;
 
 // ATOM_INTEGRATED_SYSTEM_INFO_V6 ulSystemConfig cap definition
 #define ATOM_IGP_INFO_V6_SYSTEM_CONFIG__PCIE_POWER_GATING_ENABLE             1       // refer to ulSystemConfig bit[0]
@@ -5707,59 +5788,59 @@ typedef struct _ATOM_AVAILABLE_SCLK_LIST
 // this IntegrateSystemInfoTable is used for Liano/Ontario APU
 typedef struct _ATOM_INTEGRATED_SYSTEM_INFO_V6
 {
-  ATOM_COMMON_TABLE_HEADER   sHeader;
-  ULONG  ulBootUpEngineClock;
-  ULONG  ulDentistVCOFreq;
-  ULONG  ulBootUpUMAClock;
-  ATOM_CLK_VOLT_CAPABILITY   sDISPCLK_Voltage[4];
-  ULONG  ulBootUpReqDisplayVector;
-  ULONG  ulOtherDisplayMisc;
-  ULONG  ulGPUCapInfo;
-  ULONG  ulSB_MMIO_Base_Addr;
-  USHORT usRequestedPWMFreqInHz;
-  UCHAR  ucHtcTmpLmt;
-  UCHAR  ucHtcHystLmt;
-  ULONG  ulMinEngineClock;
-  ULONG  ulSystemConfig;
-  ULONG  ulCPUCapInfo;
-  USHORT usNBP0Voltage;
-  USHORT usNBP1Voltage;
-  USHORT usBootUpNBVoltage;
-  USHORT usExtDispConnInfoOffset;
-  USHORT usPanelRefreshRateRange;
-  UCHAR  ucMemoryType;
-  UCHAR  ucUMAChannelNumber;
-  ULONG  ulCSR_M3_ARB_CNTL_DEFAULT[10];
-  ULONG  ulCSR_M3_ARB_CNTL_UVD[10];
-  ULONG  ulCSR_M3_ARB_CNTL_FS3D[10];
-  ATOM_AVAILABLE_SCLK_LIST   sAvail_SCLK[5];
-  ULONG  ulGMCRestoreResetTime;
-  ULONG  ulMinimumNClk;
-  ULONG  ulIdleNClk;
-  ULONG  ulDDR_DLL_PowerUpTime;
-  ULONG  ulDDR_PLL_PowerUpTime;
-  USHORT usPCIEClkSSPercentage;
-  USHORT usPCIEClkSSType;
-  USHORT usLvdsSSPercentage;
-  USHORT usLvdsSSpreadRateIn10Hz;
-  USHORT usHDMISSPercentage;
-  USHORT usHDMISSpreadRateIn10Hz;
-  USHORT usDVISSPercentage;
-  USHORT usDVISSpreadRateIn10Hz;
-  ULONG  SclkDpmBoostMargin;
-  ULONG  SclkDpmThrottleMargin;
-  USHORT SclkDpmTdpLimitPG;
-  USHORT SclkDpmTdpLimitBoost;
-  ULONG  ulBoostEngineCLock;
-  UCHAR  ulBoostVid_2bit;
-  UCHAR  EnableBoost;
-  USHORT GnbTdpLimit;
-  USHORT usMaxLVDSPclkFreqInSingleLink;
-  UCHAR  ucLvdsMisc;
-  UCHAR  ucLVDSReserved;
-  ULONG  ulReserved3[15];
-  ATOM_EXTERNAL_DISPLAY_CONNECTION_INFO sExtDispConnInfo;
-}ATOM_INTEGRATED_SYSTEM_INFO_V6;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	ULONG  ulBootUpEngineClock;
+	ULONG  ulDentistVCOFreq;
+	ULONG  ulBootUpUMAClock;
+	ATOM_CLK_VOLT_CAPABILITY   sDISPCLK_Voltage[4];
+	ULONG  ulBootUpReqDisplayVector;
+	ULONG  ulOtherDisplayMisc;
+	ULONG  ulGPUCapInfo;
+	ULONG  ulSB_MMIO_Base_Addr;
+	USHORT usRequestedPWMFreqInHz;
+	UCHAR  ucHtcTmpLmt;
+	UCHAR  ucHtcHystLmt;
+	ULONG  ulMinEngineClock;
+	ULONG  ulSystemConfig;
+	ULONG  ulCPUCapInfo;
+	USHORT usNBP0Voltage;
+	USHORT usNBP1Voltage;
+	USHORT usBootUpNBVoltage;
+	USHORT usExtDispConnInfoOffset;
+	USHORT usPanelRefreshRateRange;
+	UCHAR  ucMemoryType;
+	UCHAR  ucUMAChannelNumber;
+	ULONG  ulCSR_M3_ARB_CNTL_DEFAULT[10];
+	ULONG  ulCSR_M3_ARB_CNTL_UVD[10];
+	ULONG  ulCSR_M3_ARB_CNTL_FS3D[10];
+	ATOM_AVAILABLE_SCLK_LIST   sAvail_SCLK[5];
+	ULONG  ulGMCRestoreResetTime;
+	ULONG  ulMinimumNClk;
+	ULONG  ulIdleNClk;
+	ULONG  ulDDR_DLL_PowerUpTime;
+	ULONG  ulDDR_PLL_PowerUpTime;
+	USHORT usPCIEClkSSPercentage;
+	USHORT usPCIEClkSSType;
+	USHORT usLvdsSSPercentage;
+	USHORT usLvdsSSpreadRateIn10Hz;
+	USHORT usHDMISSPercentage;
+	USHORT usHDMISSpreadRateIn10Hz;
+	USHORT usDVISSPercentage;
+	USHORT usDVISSpreadRateIn10Hz;
+	ULONG  SclkDpmBoostMargin;
+	ULONG  SclkDpmThrottleMargin;
+	USHORT SclkDpmTdpLimitPG;
+	USHORT SclkDpmTdpLimitBoost;
+	ULONG  ulBoostEngineCLock;
+	UCHAR  ulBoostVid_2bit;
+	UCHAR  EnableBoost;
+	USHORT GnbTdpLimit;
+	USHORT usMaxLVDSPclkFreqInSingleLink;
+	UCHAR  ucLvdsMisc;
+	UCHAR  ucLVDSReserved;
+	ULONG  ulReserved3[15];
+	ATOM_EXTERNAL_DISPLAY_CONNECTION_INFO sExtDispConnInfo;
+} ATOM_INTEGRATED_SYSTEM_INFO_V6;
 
 // ulGPUCapInfo
 #define INTEGRATED_SYSTEM_INFO_V6_GPUCAPINFO__TMDSHDMI_COHERENT_SINGLEPLL_MODE       0x01
@@ -5870,31 +5951,31 @@ ucLVDSMisc:                       [bit0] LVDS 888bit panel mode =0: LVDS 888 pan
 // this Table is used for Liano/Ontario APU
 typedef struct _ATOM_FUSION_SYSTEM_INFO_V1
 {
-  ATOM_INTEGRATED_SYSTEM_INFO_V6    sIntegratedSysInfo;
-  ULONG  ulPowerplayTable[128];
-}ATOM_FUSION_SYSTEM_INFO_V1;
+	ATOM_INTEGRATED_SYSTEM_INFO_V6    sIntegratedSysInfo;
+	ULONG  ulPowerplayTable[128];
+} ATOM_FUSION_SYSTEM_INFO_V1;
 
 
 typedef struct _ATOM_TDP_CONFIG_BITS
 {
 #if ATOM_BIG_ENDIAN
-  ULONG   uReserved:2;
-  ULONG   uTDP_Value:14;  // Original TDP value in tens of milli watts
-  ULONG   uCTDP_Value:14; // Override value in tens of milli watts
-  ULONG   uCTDP_Enable:2; // = (uCTDP_Value > uTDP_Value? 2: (uCTDP_Value < uTDP_Value))
+	ULONG   uReserved: 2;
+	ULONG   uTDP_Value: 14; // Original TDP value in tens of milli watts
+	ULONG   uCTDP_Value: 14; // Override value in tens of milli watts
+	ULONG   uCTDP_Enable: 2; // = (uCTDP_Value > uTDP_Value? 2: (uCTDP_Value < uTDP_Value))
 #else
-  ULONG   uCTDP_Enable:2; // = (uCTDP_Value > uTDP_Value? 2: (uCTDP_Value < uTDP_Value))
-  ULONG   uCTDP_Value:14; // Override value in tens of milli watts
-  ULONG   uTDP_Value:14;  // Original TDP value in tens of milli watts
-  ULONG   uReserved:2;
+	ULONG   uCTDP_Enable: 2; // = (uCTDP_Value > uTDP_Value? 2: (uCTDP_Value < uTDP_Value))
+	ULONG   uCTDP_Value: 14; // Override value in tens of milli watts
+	ULONG   uTDP_Value: 14; // Original TDP value in tens of milli watts
+	ULONG   uReserved: 2;
 #endif
-}ATOM_TDP_CONFIG_BITS;
+} ATOM_TDP_CONFIG_BITS;
 
 typedef union _ATOM_TDP_CONFIG
 {
-  ATOM_TDP_CONFIG_BITS TDP_config;
-  ULONG            TDP_config_all;
-}ATOM_TDP_CONFIG;
+	ATOM_TDP_CONFIG_BITS TDP_config;
+	ULONG            TDP_config_all;
+} ATOM_TDP_CONFIG;
 
 /**********************************************************************************************************************
   ATOM_FUSION_SYSTEM_INFO_V1 Description
@@ -5905,81 +5986,81 @@ ulPowerplayTable[128]:            This 512 bytes memory is used to save ATOM_PPL
 // this IntegrateSystemInfoTable is used for Trinity APU
 typedef struct _ATOM_INTEGRATED_SYSTEM_INFO_V1_7
 {
-  ATOM_COMMON_TABLE_HEADER   sHeader;
-  ULONG  ulBootUpEngineClock;
-  ULONG  ulDentistVCOFreq;
-  ULONG  ulBootUpUMAClock;
-  ATOM_CLK_VOLT_CAPABILITY   sDISPCLK_Voltage[4];
-  ULONG  ulBootUpReqDisplayVector;
-  ULONG  ulOtherDisplayMisc;
-  ULONG  ulGPUCapInfo;
-  ULONG  ulSB_MMIO_Base_Addr;
-  USHORT usRequestedPWMFreqInHz;
-  UCHAR  ucHtcTmpLmt;
-  UCHAR  ucHtcHystLmt;
-  ULONG  ulMinEngineClock;
-  ULONG  ulSystemConfig;
-  ULONG  ulCPUCapInfo;
-  USHORT usNBP0Voltage;
-  USHORT usNBP1Voltage;
-  USHORT usBootUpNBVoltage;
-  USHORT usExtDispConnInfoOffset;
-  USHORT usPanelRefreshRateRange;
-  UCHAR  ucMemoryType;
-  UCHAR  ucUMAChannelNumber;
-  UCHAR  strVBIOSMsg[40];
-  ATOM_TDP_CONFIG  asTdpConfig;
-  ULONG  ulReserved[19];
-  ATOM_AVAILABLE_SCLK_LIST   sAvail_SCLK[5];
-  ULONG  ulGMCRestoreResetTime;
-  ULONG  ulMinimumNClk;
-  ULONG  ulIdleNClk;
-  ULONG  ulDDR_DLL_PowerUpTime;
-  ULONG  ulDDR_PLL_PowerUpTime;
-  USHORT usPCIEClkSSPercentage;
-  USHORT usPCIEClkSSType;
-  USHORT usLvdsSSPercentage;
-  USHORT usLvdsSSpreadRateIn10Hz;
-  USHORT usHDMISSPercentage;
-  USHORT usHDMISSpreadRateIn10Hz;
-  USHORT usDVISSPercentage;
-  USHORT usDVISSpreadRateIn10Hz;
-  ULONG  SclkDpmBoostMargin;
-  ULONG  SclkDpmThrottleMargin;
-  USHORT SclkDpmTdpLimitPG;
-  USHORT SclkDpmTdpLimitBoost;
-  ULONG  ulBoostEngineCLock;
-  UCHAR  ulBoostVid_2bit;
-  UCHAR  EnableBoost;
-  USHORT GnbTdpLimit;
-  USHORT usMaxLVDSPclkFreqInSingleLink;
-  UCHAR  ucLvdsMisc;
-  UCHAR  ucTravisLVDSVolAdjust;
-  UCHAR  ucLVDSPwrOnSeqDIGONtoDE_in4Ms;
-  UCHAR  ucLVDSPwrOnSeqDEtoVARY_BL_in4Ms;
-  UCHAR  ucLVDSPwrOffSeqVARY_BLtoDE_in4Ms;
-  UCHAR  ucLVDSPwrOffSeqDEtoDIGON_in4Ms;
-  UCHAR  ucLVDSOffToOnDelay_in4Ms;
-  UCHAR  ucLVDSPwrOnSeqVARY_BLtoBLON_in4Ms;
-  UCHAR  ucLVDSPwrOffSeqBLONtoVARY_BL_in4Ms;
-  UCHAR  ucMinAllowedBL_Level;
-  ULONG  ulLCDBitDepthControlVal;
-  ULONG  ulNbpStateMemclkFreq[4];
-  USHORT usNBP2Voltage;
-  USHORT usNBP3Voltage;
-  ULONG  ulNbpStateNClkFreq[4];
-  UCHAR  ucNBDPMEnable;
-  UCHAR  ucReserved[3];
-  UCHAR  ucDPMState0VclkFid;
-  UCHAR  ucDPMState0DclkFid;
-  UCHAR  ucDPMState1VclkFid;
-  UCHAR  ucDPMState1DclkFid;
-  UCHAR  ucDPMState2VclkFid;
-  UCHAR  ucDPMState2DclkFid;
-  UCHAR  ucDPMState3VclkFid;
-  UCHAR  ucDPMState3DclkFid;
-  ATOM_EXTERNAL_DISPLAY_CONNECTION_INFO sExtDispConnInfo;
-}ATOM_INTEGRATED_SYSTEM_INFO_V1_7;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	ULONG  ulBootUpEngineClock;
+	ULONG  ulDentistVCOFreq;
+	ULONG  ulBootUpUMAClock;
+	ATOM_CLK_VOLT_CAPABILITY   sDISPCLK_Voltage[4];
+	ULONG  ulBootUpReqDisplayVector;
+	ULONG  ulOtherDisplayMisc;
+	ULONG  ulGPUCapInfo;
+	ULONG  ulSB_MMIO_Base_Addr;
+	USHORT usRequestedPWMFreqInHz;
+	UCHAR  ucHtcTmpLmt;
+	UCHAR  ucHtcHystLmt;
+	ULONG  ulMinEngineClock;
+	ULONG  ulSystemConfig;
+	ULONG  ulCPUCapInfo;
+	USHORT usNBP0Voltage;
+	USHORT usNBP1Voltage;
+	USHORT usBootUpNBVoltage;
+	USHORT usExtDispConnInfoOffset;
+	USHORT usPanelRefreshRateRange;
+	UCHAR  ucMemoryType;
+	UCHAR  ucUMAChannelNumber;
+	UCHAR  strVBIOSMsg[40];
+	ATOM_TDP_CONFIG  asTdpConfig;
+	ULONG  ulReserved[19];
+	ATOM_AVAILABLE_SCLK_LIST   sAvail_SCLK[5];
+	ULONG  ulGMCRestoreResetTime;
+	ULONG  ulMinimumNClk;
+	ULONG  ulIdleNClk;
+	ULONG  ulDDR_DLL_PowerUpTime;
+	ULONG  ulDDR_PLL_PowerUpTime;
+	USHORT usPCIEClkSSPercentage;
+	USHORT usPCIEClkSSType;
+	USHORT usLvdsSSPercentage;
+	USHORT usLvdsSSpreadRateIn10Hz;
+	USHORT usHDMISSPercentage;
+	USHORT usHDMISSpreadRateIn10Hz;
+	USHORT usDVISSPercentage;
+	USHORT usDVISSpreadRateIn10Hz;
+	ULONG  SclkDpmBoostMargin;
+	ULONG  SclkDpmThrottleMargin;
+	USHORT SclkDpmTdpLimitPG;
+	USHORT SclkDpmTdpLimitBoost;
+	ULONG  ulBoostEngineCLock;
+	UCHAR  ulBoostVid_2bit;
+	UCHAR  EnableBoost;
+	USHORT GnbTdpLimit;
+	USHORT usMaxLVDSPclkFreqInSingleLink;
+	UCHAR  ucLvdsMisc;
+	UCHAR  ucTravisLVDSVolAdjust;
+	UCHAR  ucLVDSPwrOnSeqDIGONtoDE_in4Ms;
+	UCHAR  ucLVDSPwrOnSeqDEtoVARY_BL_in4Ms;
+	UCHAR  ucLVDSPwrOffSeqVARY_BLtoDE_in4Ms;
+	UCHAR  ucLVDSPwrOffSeqDEtoDIGON_in4Ms;
+	UCHAR  ucLVDSOffToOnDelay_in4Ms;
+	UCHAR  ucLVDSPwrOnSeqVARY_BLtoBLON_in4Ms;
+	UCHAR  ucLVDSPwrOffSeqBLONtoVARY_BL_in4Ms;
+	UCHAR  ucMinAllowedBL_Level;
+	ULONG  ulLCDBitDepthControlVal;
+	ULONG  ulNbpStateMemclkFreq[4];
+	USHORT usNBP2Voltage;
+	USHORT usNBP3Voltage;
+	ULONG  ulNbpStateNClkFreq[4];
+	UCHAR  ucNBDPMEnable;
+	UCHAR  ucReserved[3];
+	UCHAR  ucDPMState0VclkFid;
+	UCHAR  ucDPMState0DclkFid;
+	UCHAR  ucDPMState1VclkFid;
+	UCHAR  ucDPMState1DclkFid;
+	UCHAR  ucDPMState2VclkFid;
+	UCHAR  ucDPMState2DclkFid;
+	UCHAR  ucDPMState3VclkFid;
+	UCHAR  ucDPMState3DclkFid;
+	ATOM_EXTERNAL_DISPLAY_CONNECTION_INFO sExtDispConnInfo;
+} ATOM_INTEGRATED_SYSTEM_INFO_V1_7;
 
 // ulOtherDisplayMisc
 #define INTEGRATED_SYSTEM_INFO__GET_EDID_CALLBACK_FUNC_SUPPORT            0x01
@@ -6137,68 +6218,68 @@ ulNbpStateMemclkFreq[4]:          system memory clock frequncey in unit of 10Khz
 // this IntegrateSystemInfoTable is used for Kaveri & Kabini APU
 typedef struct _ATOM_INTEGRATED_SYSTEM_INFO_V1_8
 {
-  ATOM_COMMON_TABLE_HEADER   sHeader;
-  ULONG  ulBootUpEngineClock;
-  ULONG  ulDentistVCOFreq;
-  ULONG  ulBootUpUMAClock;
-  ATOM_CLK_VOLT_CAPABILITY   sDISPCLK_Voltage[4];
-  ULONG  ulBootUpReqDisplayVector;
-  ULONG  ulVBIOSMisc;
-  ULONG  ulGPUCapInfo;
-  ULONG  ulDISP_CLK2Freq;
-  USHORT usRequestedPWMFreqInHz;
-  UCHAR  ucHtcTmpLmt;
-  UCHAR  ucHtcHystLmt;
-  ULONG  ulReserved2;
-  ULONG  ulSystemConfig;
-  ULONG  ulCPUCapInfo;
-  ULONG  ulReserved3;
-  USHORT usGPUReservedSysMemSize;
-  USHORT usExtDispConnInfoOffset;
-  USHORT usPanelRefreshRateRange;
-  UCHAR  ucMemoryType;
-  UCHAR  ucUMAChannelNumber;
-  UCHAR  strVBIOSMsg[40];
-  ATOM_TDP_CONFIG  asTdpConfig;
-  ULONG  ulReserved[19];
-  ATOM_AVAILABLE_SCLK_LIST   sAvail_SCLK[5];
-  ULONG  ulGMCRestoreResetTime;
-  ULONG  ulReserved4;
-  ULONG  ulIdleNClk;
-  ULONG  ulDDR_DLL_PowerUpTime;
-  ULONG  ulDDR_PLL_PowerUpTime;
-  USHORT usPCIEClkSSPercentage;
-  USHORT usPCIEClkSSType;
-  USHORT usLvdsSSPercentage;
-  USHORT usLvdsSSpreadRateIn10Hz;
-  USHORT usHDMISSPercentage;
-  USHORT usHDMISSpreadRateIn10Hz;
-  USHORT usDVISSPercentage;
-  USHORT usDVISSpreadRateIn10Hz;
-  ULONG  ulGPUReservedSysMemBaseAddrLo;
-  ULONG  ulGPUReservedSysMemBaseAddrHi;
-  ATOM_CLK_VOLT_CAPABILITY   s5thDISPCLK_Voltage;
-  ULONG  ulReserved5;
-  USHORT usMaxLVDSPclkFreqInSingleLink;
-  UCHAR  ucLvdsMisc;
-  UCHAR  ucTravisLVDSVolAdjust;
-  UCHAR  ucLVDSPwrOnSeqDIGONtoDE_in4Ms;
-  UCHAR  ucLVDSPwrOnSeqDEtoVARY_BL_in4Ms;
-  UCHAR  ucLVDSPwrOffSeqVARY_BLtoDE_in4Ms;
-  UCHAR  ucLVDSPwrOffSeqDEtoDIGON_in4Ms;
-  UCHAR  ucLVDSOffToOnDelay_in4Ms;
-  UCHAR  ucLVDSPwrOnSeqVARY_BLtoBLON_in4Ms;
-  UCHAR  ucLVDSPwrOffSeqBLONtoVARY_BL_in4Ms;
-  UCHAR  ucMinAllowedBL_Level;
-  ULONG  ulLCDBitDepthControlVal;
-  ULONG  ulNbpStateMemclkFreq[4];
-  ULONG  ulPSPVersion;
-  ULONG  ulNbpStateNClkFreq[4];
-  USHORT usNBPStateVoltage[4];
-  USHORT usBootUpNBVoltage;
-  USHORT usReserved2;
-  ATOM_EXTERNAL_DISPLAY_CONNECTION_INFO sExtDispConnInfo;
-}ATOM_INTEGRATED_SYSTEM_INFO_V1_8;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	ULONG  ulBootUpEngineClock;
+	ULONG  ulDentistVCOFreq;
+	ULONG  ulBootUpUMAClock;
+	ATOM_CLK_VOLT_CAPABILITY   sDISPCLK_Voltage[4];
+	ULONG  ulBootUpReqDisplayVector;
+	ULONG  ulVBIOSMisc;
+	ULONG  ulGPUCapInfo;
+	ULONG  ulDISP_CLK2Freq;
+	USHORT usRequestedPWMFreqInHz;
+	UCHAR  ucHtcTmpLmt;
+	UCHAR  ucHtcHystLmt;
+	ULONG  ulReserved2;
+	ULONG  ulSystemConfig;
+	ULONG  ulCPUCapInfo;
+	ULONG  ulReserved3;
+	USHORT usGPUReservedSysMemSize;
+	USHORT usExtDispConnInfoOffset;
+	USHORT usPanelRefreshRateRange;
+	UCHAR  ucMemoryType;
+	UCHAR  ucUMAChannelNumber;
+	UCHAR  strVBIOSMsg[40];
+	ATOM_TDP_CONFIG  asTdpConfig;
+	ULONG  ulReserved[19];
+	ATOM_AVAILABLE_SCLK_LIST   sAvail_SCLK[5];
+	ULONG  ulGMCRestoreResetTime;
+	ULONG  ulReserved4;
+	ULONG  ulIdleNClk;
+	ULONG  ulDDR_DLL_PowerUpTime;
+	ULONG  ulDDR_PLL_PowerUpTime;
+	USHORT usPCIEClkSSPercentage;
+	USHORT usPCIEClkSSType;
+	USHORT usLvdsSSPercentage;
+	USHORT usLvdsSSpreadRateIn10Hz;
+	USHORT usHDMISSPercentage;
+	USHORT usHDMISSpreadRateIn10Hz;
+	USHORT usDVISSPercentage;
+	USHORT usDVISSpreadRateIn10Hz;
+	ULONG  ulGPUReservedSysMemBaseAddrLo;
+	ULONG  ulGPUReservedSysMemBaseAddrHi;
+	ATOM_CLK_VOLT_CAPABILITY   s5thDISPCLK_Voltage;
+	ULONG  ulReserved5;
+	USHORT usMaxLVDSPclkFreqInSingleLink;
+	UCHAR  ucLvdsMisc;
+	UCHAR  ucTravisLVDSVolAdjust;
+	UCHAR  ucLVDSPwrOnSeqDIGONtoDE_in4Ms;
+	UCHAR  ucLVDSPwrOnSeqDEtoVARY_BL_in4Ms;
+	UCHAR  ucLVDSPwrOffSeqVARY_BLtoDE_in4Ms;
+	UCHAR  ucLVDSPwrOffSeqDEtoDIGON_in4Ms;
+	UCHAR  ucLVDSOffToOnDelay_in4Ms;
+	UCHAR  ucLVDSPwrOnSeqVARY_BLtoBLON_in4Ms;
+	UCHAR  ucLVDSPwrOffSeqBLONtoVARY_BL_in4Ms;
+	UCHAR  ucMinAllowedBL_Level;
+	ULONG  ulLCDBitDepthControlVal;
+	ULONG  ulNbpStateMemclkFreq[4];
+	ULONG  ulPSPVersion;
+	ULONG  ulNbpStateNClkFreq[4];
+	USHORT usNBPStateVoltage[4];
+	USHORT usBootUpNBVoltage;
+	USHORT usReserved2;
+	ATOM_EXTERNAL_DISPLAY_CONNECTION_INFO sExtDispConnInfo;
+} ATOM_INTEGRATED_SYSTEM_INFO_V1_8;
 
 /**********************************************************************************************************************
   ATOM_INTEGRATED_SYSTEM_INFO_V1_8 Description
@@ -6348,79 +6429,79 @@ sExtDispConnInfo:                 Display connector information table provided t
 
 typedef struct _ATOM_I2C_REG_INFO
 {
-  UCHAR ucI2cRegIndex;
-  UCHAR ucI2cRegVal;
-}ATOM_I2C_REG_INFO;
+	UCHAR ucI2cRegIndex;
+	UCHAR ucI2cRegVal;
+} ATOM_I2C_REG_INFO;
 
 // this IntegrateSystemInfoTable is used for Carrizo
 typedef struct _ATOM_INTEGRATED_SYSTEM_INFO_V1_9
 {
-  ATOM_COMMON_TABLE_HEADER   sHeader;
-  ULONG  ulBootUpEngineClock;
-  ULONG  ulDentistVCOFreq;
-  ULONG  ulBootUpUMAClock;
-  ATOM_CLK_VOLT_CAPABILITY   sDISPCLK_Voltage[4];       // no longer used, keep it as is to avoid driver compiling error
-  ULONG  ulBootUpReqDisplayVector;
-  ULONG  ulVBIOSMisc;
-  ULONG  ulGPUCapInfo;
-  ULONG  ulDISP_CLK2Freq;
-  USHORT usRequestedPWMFreqInHz;
-  UCHAR  ucHtcTmpLmt;
-  UCHAR  ucHtcHystLmt;
-  ULONG  ulReserved2;
-  ULONG  ulSystemConfig;
-  ULONG  ulCPUCapInfo;
-  ULONG  ulReserved3;
-  USHORT usGPUReservedSysMemSize;
-  USHORT usExtDispConnInfoOffset;
-  USHORT usPanelRefreshRateRange;
-  UCHAR  ucMemoryType;
-  UCHAR  ucUMAChannelNumber;
-  UCHAR  strVBIOSMsg[40];
-  ATOM_TDP_CONFIG  asTdpConfig;
-  UCHAR  ucExtHDMIReDrvSlvAddr;
-  UCHAR  ucExtHDMIReDrvRegNum;
-  ATOM_I2C_REG_INFO asExtHDMIRegSetting[9];
-  ULONG  ulReserved[2];
-  ATOM_CLK_VOLT_CAPABILITY_V2   sDispClkVoltageMapping[8];
-  ATOM_AVAILABLE_SCLK_LIST   sAvail_SCLK[5];            // no longer used, keep it as is to avoid driver compiling error
-  ULONG  ulGMCRestoreResetTime;
-  ULONG  ulReserved4;
-  ULONG  ulIdleNClk;
-  ULONG  ulDDR_DLL_PowerUpTime;
-  ULONG  ulDDR_PLL_PowerUpTime;
-  USHORT usPCIEClkSSPercentage;
-  USHORT usPCIEClkSSType;
-  USHORT usLvdsSSPercentage;
-  USHORT usLvdsSSpreadRateIn10Hz;
-  USHORT usHDMISSPercentage;
-  USHORT usHDMISSpreadRateIn10Hz;
-  USHORT usDVISSPercentage;
-  USHORT usDVISSpreadRateIn10Hz;
-  ULONG  ulGPUReservedSysMemBaseAddrLo;
-  ULONG  ulGPUReservedSysMemBaseAddrHi;
-  ULONG  ulReserved5[3];
-  USHORT usMaxLVDSPclkFreqInSingleLink;
-  UCHAR  ucLvdsMisc;
-  UCHAR  ucTravisLVDSVolAdjust;
-  UCHAR  ucLVDSPwrOnSeqDIGONtoDE_in4Ms;
-  UCHAR  ucLVDSPwrOnSeqDEtoVARY_BL_in4Ms;
-  UCHAR  ucLVDSPwrOffSeqVARY_BLtoDE_in4Ms;
-  UCHAR  ucLVDSPwrOffSeqDEtoDIGON_in4Ms;
-  UCHAR  ucLVDSOffToOnDelay_in4Ms;
-  UCHAR  ucLVDSPwrOnSeqVARY_BLtoBLON_in4Ms;
-  UCHAR  ucLVDSPwrOffSeqBLONtoVARY_BL_in4Ms;
-  UCHAR  ucMinAllowedBL_Level;
-  ULONG  ulLCDBitDepthControlVal;
-  ULONG  ulNbpStateMemclkFreq[4];          // only 2 level is changed.
-  ULONG  ulPSPVersion;
-  ULONG  ulNbpStateNClkFreq[4];
-  USHORT usNBPStateVoltage[4];
-  USHORT usBootUpNBVoltage;
-  UCHAR  ucEDPv1_4VSMode;
-  UCHAR  ucReserved2;
-  ATOM_EXTERNAL_DISPLAY_CONNECTION_INFO sExtDispConnInfo;
-}ATOM_INTEGRATED_SYSTEM_INFO_V1_9;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	ULONG  ulBootUpEngineClock;
+	ULONG  ulDentistVCOFreq;
+	ULONG  ulBootUpUMAClock;
+	ATOM_CLK_VOLT_CAPABILITY   sDISPCLK_Voltage[4];       // no longer used, keep it as is to avoid driver compiling error
+	ULONG  ulBootUpReqDisplayVector;
+	ULONG  ulVBIOSMisc;
+	ULONG  ulGPUCapInfo;
+	ULONG  ulDISP_CLK2Freq;
+	USHORT usRequestedPWMFreqInHz;
+	UCHAR  ucHtcTmpLmt;
+	UCHAR  ucHtcHystLmt;
+	ULONG  ulReserved2;
+	ULONG  ulSystemConfig;
+	ULONG  ulCPUCapInfo;
+	ULONG  ulReserved3;
+	USHORT usGPUReservedSysMemSize;
+	USHORT usExtDispConnInfoOffset;
+	USHORT usPanelRefreshRateRange;
+	UCHAR  ucMemoryType;
+	UCHAR  ucUMAChannelNumber;
+	UCHAR  strVBIOSMsg[40];
+	ATOM_TDP_CONFIG  asTdpConfig;
+	UCHAR  ucExtHDMIReDrvSlvAddr;
+	UCHAR  ucExtHDMIReDrvRegNum;
+	ATOM_I2C_REG_INFO asExtHDMIRegSetting[9];
+	ULONG  ulReserved[2];
+	ATOM_CLK_VOLT_CAPABILITY_V2   sDispClkVoltageMapping[8];
+	ATOM_AVAILABLE_SCLK_LIST   sAvail_SCLK[5];            // no longer used, keep it as is to avoid driver compiling error
+	ULONG  ulGMCRestoreResetTime;
+	ULONG  ulReserved4;
+	ULONG  ulIdleNClk;
+	ULONG  ulDDR_DLL_PowerUpTime;
+	ULONG  ulDDR_PLL_PowerUpTime;
+	USHORT usPCIEClkSSPercentage;
+	USHORT usPCIEClkSSType;
+	USHORT usLvdsSSPercentage;
+	USHORT usLvdsSSpreadRateIn10Hz;
+	USHORT usHDMISSPercentage;
+	USHORT usHDMISSpreadRateIn10Hz;
+	USHORT usDVISSPercentage;
+	USHORT usDVISSpreadRateIn10Hz;
+	ULONG  ulGPUReservedSysMemBaseAddrLo;
+	ULONG  ulGPUReservedSysMemBaseAddrHi;
+	ULONG  ulReserved5[3];
+	USHORT usMaxLVDSPclkFreqInSingleLink;
+	UCHAR  ucLvdsMisc;
+	UCHAR  ucTravisLVDSVolAdjust;
+	UCHAR  ucLVDSPwrOnSeqDIGONtoDE_in4Ms;
+	UCHAR  ucLVDSPwrOnSeqDEtoVARY_BL_in4Ms;
+	UCHAR  ucLVDSPwrOffSeqVARY_BLtoDE_in4Ms;
+	UCHAR  ucLVDSPwrOffSeqDEtoDIGON_in4Ms;
+	UCHAR  ucLVDSOffToOnDelay_in4Ms;
+	UCHAR  ucLVDSPwrOnSeqVARY_BLtoBLON_in4Ms;
+	UCHAR  ucLVDSPwrOffSeqBLONtoVARY_BL_in4Ms;
+	UCHAR  ucMinAllowedBL_Level;
+	ULONG  ulLCDBitDepthControlVal;
+	ULONG  ulNbpStateMemclkFreq[4];          // only 2 level is changed.
+	ULONG  ulPSPVersion;
+	ULONG  ulNbpStateNClkFreq[4];
+	USHORT usNBPStateVoltage[4];
+	USHORT usBootUpNBVoltage;
+	UCHAR  ucEDPv1_4VSMode;
+	UCHAR  ucReserved2;
+	ATOM_EXTERNAL_DISPLAY_CONNECTION_INFO sExtDispConnInfo;
+} ATOM_INTEGRATED_SYSTEM_INFO_V1_9;
 
 
 // definition for ucEDPv1_4VSMode
@@ -6445,120 +6526,122 @@ typedef struct _ATOM_INTEGRATED_SYSTEM_INFO_V1_9
 
 typedef struct _DPHY_TIMING_PARA
 {
-    UCHAR  ucProfileID;       // SENSOR_PROFILES
-    ULONG  ucPara;
+	UCHAR  ucProfileID;       // SENSOR_PROFILES
+	ULONG  ucPara;
 } DPHY_TIMING_PARA;
 
 typedef struct _DPHY_ELEC_PARA
 {
-    USHORT  usPara[3];
+	USHORT  usPara[3];
 } DPHY_ELEC_PARA;
 
 typedef struct _CAMERA_MODULE_INFO
 {
-    UCHAR    ucID;                    // 0: Rear, 1: Front right of user, 2: Front left of user
-    UCHAR    strModuleName[8];
-    DPHY_TIMING_PARA asTimingPara[6]; // Exact number is under estimation and confirmation from sensor vendor
+	UCHAR    ucID;                    // 0: Rear, 1: Front right of user, 2: Front left of user
+	UCHAR    strModuleName[8];
+	DPHY_TIMING_PARA asTimingPara[6]; // Exact number is under estimation and confirmation from sensor vendor
 } CAMERA_MODULE_INFO;
 
 typedef struct _FLASHLIGHT_INFO
 {
-    UCHAR    ucID;         // 0: Rear, 1: Front
-    UCHAR    strName[8];
+	UCHAR    ucID;         // 0: Rear, 1: Front
+	UCHAR    strName[8];
 } FLASHLIGHT_INFO;
 
 typedef struct _CAMERA_DATA
 {
-    ULONG                   ulVersionCode;
-    CAMERA_MODULE_INFO      asCameraInfo[3];     // Assuming 3 camera sensors max
-    FLASHLIGHT_INFO         asFlashInfo;      // Assuming 1 flashlight max
-    DPHY_ELEC_PARA          asDphyElecPara;
-    ULONG                   ulCrcVal;         // CRC
-}CAMERA_DATA;
+	ULONG                   ulVersionCode;
+	CAMERA_MODULE_INFO      asCameraInfo[3];     // Assuming 3 camera sensors max
+	FLASHLIGHT_INFO         asFlashInfo;      // Assuming 1 flashlight max
+	DPHY_ELEC_PARA          asDphyElecPara;
+	ULONG                   ulCrcVal;         // CRC
+} CAMERA_DATA;
 
 typedef struct _ATOM_INTEGRATED_SYSTEM_INFO_V1_10
 {
-  ATOM_COMMON_TABLE_HEADER   sHeader;
-  ULONG  ulBootUpEngineClock;
-  ULONG  ulDentistVCOFreq;
-  ULONG  ulBootUpUMAClock;
-  ULONG  ulReserved0[8];
-  ULONG  ulBootUpReqDisplayVector;
-  ULONG  ulVBIOSMisc;
-  ULONG  ulGPUCapInfo;
-  ULONG  ulReserved1;
-  USHORT usRequestedPWMFreqInHz;
-  UCHAR  ucHtcTmpLmt;
-  UCHAR  ucHtcHystLmt;
-  ULONG  ulReserved2;
-  ULONG  ulSystemConfig;
-  ULONG  ulCPUCapInfo;
-  ULONG  ulReserved3;
-  USHORT usGPUReservedSysMemSize;
-  USHORT usExtDispConnInfoOffset;
-  USHORT usPanelRefreshRateRange;
-  UCHAR  ucMemoryType;
-  UCHAR  ucUMAChannelNumber;
-  ULONG  ulMsgReserved[10];
-  ATOM_TDP_CONFIG  asTdpConfig;
-  ULONG  ulReserved[7];
-  ATOM_CLK_VOLT_CAPABILITY_V2   sDispClkVoltageMapping[8];
-  ULONG  ulReserved6[10];
-  ULONG  ulGMCRestoreResetTime;
-  ULONG  ulReserved4;
-  ULONG  ulIdleNClk;
-  ULONG  ulDDR_DLL_PowerUpTime;
-  ULONG  ulDDR_PLL_PowerUpTime;
-  USHORT usPCIEClkSSPercentage;
-  USHORT usPCIEClkSSType;
-  USHORT usLvdsSSPercentage;
-  USHORT usLvdsSSpreadRateIn10Hz;
-  USHORT usHDMISSPercentage;
-  USHORT usHDMISSpreadRateIn10Hz;
-  USHORT usDVISSPercentage;
-  USHORT usDVISSpreadRateIn10Hz;
-  ULONG  ulGPUReservedSysMemBaseAddrLo;
-  ULONG  ulGPUReservedSysMemBaseAddrHi;
-  ULONG  ulReserved5[3];
-  USHORT usMaxLVDSPclkFreqInSingleLink;
-  UCHAR  ucLvdsMisc;
-  UCHAR  ucTravisLVDSVolAdjust;
-  UCHAR  ucLVDSPwrOnSeqDIGONtoDE_in4Ms;
-  UCHAR  ucLVDSPwrOnSeqDEtoVARY_BL_in4Ms;
-  UCHAR  ucLVDSPwrOffSeqVARY_BLtoDE_in4Ms;
-  UCHAR  ucLVDSPwrOffSeqDEtoDIGON_in4Ms;
-  UCHAR  ucLVDSOffToOnDelay_in4Ms;
-  UCHAR  ucLVDSPwrOnSeqVARY_BLtoBLON_in4Ms;
-  UCHAR  ucLVDSPwrOffSeqBLONtoVARY_BL_in4Ms;
-  UCHAR  ucMinAllowedBL_Level;
-  ULONG  ulLCDBitDepthControlVal;
-  ULONG  ulNbpStateMemclkFreq[2];
-  ULONG  ulReserved7[2];
-  ULONG  ulPSPVersion;
-  ULONG  ulNbpStateNClkFreq[4];
-  USHORT usNBPStateVoltage[4];
-  USHORT usBootUpNBVoltage;
-  UCHAR  ucEDPv1_4VSMode;
-  UCHAR  ucReserved2;
-  ATOM_EXTERNAL_DISPLAY_CONNECTION_INFO sExtDispConnInfo;
-  CAMERA_DATA asCameraInfo;
-  ULONG  ulReserved8[29];
-}ATOM_INTEGRATED_SYSTEM_INFO_V1_10;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	ULONG  ulBootUpEngineClock;
+	ULONG  ulDentistVCOFreq;
+	ULONG  ulBootUpUMAClock;
+	ULONG  ulReserved0[8];
+	ULONG  ulBootUpReqDisplayVector;
+	ULONG  ulVBIOSMisc;
+	ULONG  ulGPUCapInfo;
+	ULONG  ulReserved1;
+	USHORT usRequestedPWMFreqInHz;
+	UCHAR  ucHtcTmpLmt;
+	UCHAR  ucHtcHystLmt;
+	ULONG  ulReserved2;
+	ULONG  ulSystemConfig;
+	ULONG  ulCPUCapInfo;
+	ULONG  ulReserved3;
+	USHORT usGPUReservedSysMemSize;
+	USHORT usExtDispConnInfoOffset;
+	USHORT usPanelRefreshRateRange;
+	UCHAR  ucMemoryType;
+	UCHAR  ucUMAChannelNumber;
+	ULONG  ulMsgReserved[10];
+	ATOM_TDP_CONFIG  asTdpConfig;
+	ULONG  ulReserved[7];
+	ATOM_CLK_VOLT_CAPABILITY_V2   sDispClkVoltageMapping[8];
+	ULONG  ulReserved6[10];
+	ULONG  ulGMCRestoreResetTime;
+	ULONG  ulReserved4;
+	ULONG  ulIdleNClk;
+	ULONG  ulDDR_DLL_PowerUpTime;
+	ULONG  ulDDR_PLL_PowerUpTime;
+	USHORT usPCIEClkSSPercentage;
+	USHORT usPCIEClkSSType;
+	USHORT usLvdsSSPercentage;
+	USHORT usLvdsSSpreadRateIn10Hz;
+	USHORT usHDMISSPercentage;
+	USHORT usHDMISSpreadRateIn10Hz;
+	USHORT usDVISSPercentage;
+	USHORT usDVISSpreadRateIn10Hz;
+	ULONG  ulGPUReservedSysMemBaseAddrLo;
+	ULONG  ulGPUReservedSysMemBaseAddrHi;
+	ULONG  ulReserved5[3];
+	USHORT usMaxLVDSPclkFreqInSingleLink;
+	UCHAR  ucLvdsMisc;
+	UCHAR  ucTravisLVDSVolAdjust;
+	UCHAR  ucLVDSPwrOnSeqDIGONtoDE_in4Ms;
+	UCHAR  ucLVDSPwrOnSeqDEtoVARY_BL_in4Ms;
+	UCHAR  ucLVDSPwrOffSeqVARY_BLtoDE_in4Ms;
+	UCHAR  ucLVDSPwrOffSeqDEtoDIGON_in4Ms;
+	UCHAR  ucLVDSOffToOnDelay_in4Ms;
+	UCHAR  ucLVDSPwrOnSeqVARY_BLtoBLON_in4Ms;
+	UCHAR  ucLVDSPwrOffSeqBLONtoVARY_BL_in4Ms;
+	UCHAR  ucMinAllowedBL_Level;
+	ULONG  ulLCDBitDepthControlVal;
+	ULONG  ulNbpStateMemclkFreq[2];
+	ULONG  ulReserved7[2];
+	ULONG  ulPSPVersion;
+	ULONG  ulNbpStateNClkFreq[4];
+	USHORT usNBPStateVoltage[4];
+	USHORT usBootUpNBVoltage;
+	UCHAR  ucEDPv1_4VSMode;
+	UCHAR  ucReserved2;
+	ATOM_EXTERNAL_DISPLAY_CONNECTION_INFO sExtDispConnInfo;
+	CAMERA_DATA asCameraInfo;
+	ULONG  ulReserved8[29];
+} ATOM_INTEGRATED_SYSTEM_INFO_V1_10;
 
 
 // this Table is used for Kaveri/Kabini APU
 typedef struct _ATOM_FUSION_SYSTEM_INFO_V2
 {
-  ATOM_INTEGRATED_SYSTEM_INFO_V1_8    sIntegratedSysInfo;       // refer to ATOM_INTEGRATED_SYSTEM_INFO_V1_8 definition
-  ULONG                               ulPowerplayTable[128];    // Update comments here to link new powerplay table definition structure
-}ATOM_FUSION_SYSTEM_INFO_V2;
+	ATOM_INTEGRATED_SYSTEM_INFO_V1_8    sIntegratedSysInfo;       // refer to ATOM_INTEGRATED_SYSTEM_INFO_V1_8 definition
+	ULONG
+	ulPowerplayTable[128];    // Update comments here to link new powerplay table definition structure
+} ATOM_FUSION_SYSTEM_INFO_V2;
 
 
 typedef struct _ATOM_FUSION_SYSTEM_INFO_V3
 {
-  ATOM_INTEGRATED_SYSTEM_INFO_V1_10   sIntegratedSysInfo;           // refer to ATOM_INTEGRATED_SYSTEM_INFO_V1_8 definition
-  ULONG                               ulPowerplayTable[192];        // Reserve 768 bytes space for PowerPlayInfoTable
-}ATOM_FUSION_SYSTEM_INFO_V3;
+	ATOM_INTEGRATED_SYSTEM_INFO_V1_10
+	sIntegratedSysInfo;           // refer to ATOM_INTEGRATED_SYSTEM_INFO_V1_8 definition
+	ULONG                               ulPowerplayTable[192];        // Reserve 768 bytes space for PowerPlayInfoTable
+} ATOM_FUSION_SYSTEM_INFO_V3;
 
 #define FUSION_V3_OFFSET_FROM_TOP_OF_FB 0x800
 
@@ -6572,27 +6655,29 @@ typedef struct _ATOM_FUSION_SYSTEM_INFO_V3
 //Define one structure to inform SW a "block of data" writing to external SS chip via I2C protocol
 typedef struct _ATOM_I2C_DATA_RECORD
 {
-  UCHAR         ucNunberOfBytes;                                              //Indicates how many bytes SW needs to write to the external ASIC for one block, besides to "Start" and "Stop"
-  UCHAR         ucI2CData[1];                                                 //I2C data in bytes, should be less than 16 bytes usually
-}ATOM_I2C_DATA_RECORD;
+	UCHAR
+	ucNunberOfBytes;                                              //Indicates how many bytes SW needs to write to the external ASIC for one block, besides to "Start" and "Stop"
+	UCHAR
+	ucI2CData[1];                                                 //I2C data in bytes, should be less than 16 bytes usually
+} ATOM_I2C_DATA_RECORD;
 
 
 //Define one structure to inform SW how many blocks of data writing to external SS chip via I2C protocol, in addition to other information
 typedef struct _ATOM_I2C_DEVICE_SETUP_INFO
 {
-  ATOM_I2C_ID_CONFIG_ACCESS       sucI2cId;               //I2C line and HW/SW assisted cap.
-  UCHAR                              ucSSChipID;             //SS chip being used
-  UCHAR                              ucSSChipSlaveAddr;      //Slave Address to set up this SS chip
-  UCHAR                           ucNumOfI2CDataRecords;  //number of data block
-  ATOM_I2C_DATA_RECORD            asI2CData[1];
-}ATOM_I2C_DEVICE_SETUP_INFO;
+	ATOM_I2C_ID_CONFIG_ACCESS       sucI2cId;               //I2C line and HW/SW assisted cap.
+	UCHAR                              ucSSChipID;             //SS chip being used
+	UCHAR                              ucSSChipSlaveAddr;      //Slave Address to set up this SS chip
+	UCHAR                           ucNumOfI2CDataRecords;  //number of data block
+	ATOM_I2C_DATA_RECORD            asI2CData[1];
+} ATOM_I2C_DEVICE_SETUP_INFO;
 
 //==========================================================================================
 typedef struct  _ATOM_ASIC_MVDD_INFO
 {
-  ATOM_COMMON_TABLE_HEADER         sHeader;
-  ATOM_I2C_DEVICE_SETUP_INFO      asI2CSetup[1];
-}ATOM_ASIC_MVDD_INFO;
+	ATOM_COMMON_TABLE_HEADER         sHeader;
+	ATOM_I2C_DEVICE_SETUP_INFO      asI2CSetup[1];
+} ATOM_ASIC_MVDD_INFO;
 
 //==========================================================================================
 #define ATOM_MCLK_SS_INFO         ATOM_ASIC_MVDD_INFO
@@ -6602,13 +6687,13 @@ typedef struct  _ATOM_ASIC_MVDD_INFO
 
 typedef struct _ATOM_ASIC_SS_ASSIGNMENT
 {
-   ULONG                        ulTargetClockRange;                  //Clock Out frequence (VCO ), in unit of 10Khz
-  USHORT              usSpreadSpectrumPercentage;      //in unit of 0.01%
-   USHORT                     usSpreadRateInKhz;                  //in unit of kHz, modulation freq
-  UCHAR               ucClockIndication;                 //Indicate which clock source needs SS
-   UCHAR                        ucSpreadSpectrumMode;               //Bit1=0 Down Spread,=1 Center Spread.
-   UCHAR                        ucReserved[2];
-}ATOM_ASIC_SS_ASSIGNMENT;
+	ULONG                        ulTargetClockRange;                  //Clock Out frequence (VCO ), in unit of 10Khz
+	USHORT              usSpreadSpectrumPercentage;      //in unit of 0.01%
+	USHORT                     usSpreadRateInKhz;                  //in unit of kHz, modulation freq
+	UCHAR               ucClockIndication;                 //Indicate which clock source needs SS
+	UCHAR                        ucSpreadSpectrumMode;               //Bit1=0 Down Spread,=1 Center Spread.
+	UCHAR                        ucReserved[2];
+} ATOM_ASIC_SS_ASSIGNMENT;
 
 //Define ucClockIndication, SW uses the IDs below to search if the SS is requried/enabled on a clock branch/signal type.
 //SS is not required or enabled if a match is not found.
@@ -6627,14 +6712,16 @@ typedef struct _ATOM_ASIC_SS_ASSIGNMENT
 
 typedef struct _ATOM_ASIC_SS_ASSIGNMENT_V2
 {
-   ULONG                        ulTargetClockRange;                  //For mem/engine/uvd, Clock Out frequence (VCO ), in unit of 10Khz
-                                                    //For TMDS/HDMI/LVDS, it is pixel clock , for DP, it is link clock ( 27000 or 16200 )
-  USHORT              usSpreadSpectrumPercentage;      //in unit of 0.01%
-   USHORT                     usSpreadRateIn10Hz;                  //in unit of 10Hz, modulation freq
-  UCHAR               ucClockIndication;                 //Indicate which clock source needs SS
-   UCHAR                        ucSpreadSpectrumMode;               //Bit0=0 Down Spread,=1 Center Spread, bit1=0: internal SS bit1=1: external SS
-   UCHAR                        ucReserved[2];
-}ATOM_ASIC_SS_ASSIGNMENT_V2;
+	ULONG
+	ulTargetClockRange;                  //For mem/engine/uvd, Clock Out frequence (VCO ), in unit of 10Khz
+	//For TMDS/HDMI/LVDS, it is pixel clock , for DP, it is link clock ( 27000 or 16200 )
+	USHORT              usSpreadSpectrumPercentage;      //in unit of 0.01%
+	USHORT                     usSpreadRateIn10Hz;                  //in unit of 10Hz, modulation freq
+	UCHAR               ucClockIndication;                 //Indicate which clock source needs SS
+	UCHAR
+	ucSpreadSpectrumMode;               //Bit0=0 Down Spread,=1 Center Spread, bit1=0: internal SS bit1=1: external SS
+	UCHAR                        ucReserved[2];
+} ATOM_ASIC_SS_ASSIGNMENT_V2;
 
 //ucSpreadSpectrumMode
 //#define ATOM_SS_DOWN_SPREAD_MODE_MASK          0x00000000
@@ -6646,26 +6733,28 @@ typedef struct _ATOM_ASIC_SS_ASSIGNMENT_V2
 
 typedef struct _ATOM_ASIC_INTERNAL_SS_INFO
 {
-  ATOM_COMMON_TABLE_HEADER         sHeader;
-  ATOM_ASIC_SS_ASSIGNMENT            asSpreadSpectrum[4];
-}ATOM_ASIC_INTERNAL_SS_INFO;
+	ATOM_COMMON_TABLE_HEADER         sHeader;
+	ATOM_ASIC_SS_ASSIGNMENT            asSpreadSpectrum[4];
+} ATOM_ASIC_INTERNAL_SS_INFO;
 
 typedef struct _ATOM_ASIC_INTERNAL_SS_INFO_V2
 {
-  ATOM_COMMON_TABLE_HEADER         sHeader;
-  ATOM_ASIC_SS_ASSIGNMENT_V2        asSpreadSpectrum[1];      //this is point only.
-}ATOM_ASIC_INTERNAL_SS_INFO_V2;
+	ATOM_COMMON_TABLE_HEADER         sHeader;
+	ATOM_ASIC_SS_ASSIGNMENT_V2        asSpreadSpectrum[1];      //this is point only.
+} ATOM_ASIC_INTERNAL_SS_INFO_V2;
 
 typedef struct _ATOM_ASIC_SS_ASSIGNMENT_V3
 {
-   ULONG                        ulTargetClockRange;                  //For mem/engine/uvd, Clock Out frequence (VCO ), in unit of 10Khz
-                                                    //For TMDS/HDMI/LVDS, it is pixel clock , for DP, it is link clock ( 27000 or 16200 )
-  USHORT              usSpreadSpectrumPercentage;      //in unit of 0.01% or 0.001%, decided by ucSpreadSpectrumMode bit4
-   USHORT                     usSpreadRateIn10Hz;                  //in unit of 10Hz, modulation freq
-  UCHAR               ucClockIndication;                 //Indicate which clock source needs SS
-   UCHAR                        ucSpreadSpectrumMode;               //Bit0=0 Down Spread,=1 Center Spread, bit1=0: internal SS bit1=1: external SS
-   UCHAR                        ucReserved[2];
-}ATOM_ASIC_SS_ASSIGNMENT_V3;
+	ULONG
+	ulTargetClockRange;                  //For mem/engine/uvd, Clock Out frequence (VCO ), in unit of 10Khz
+	//For TMDS/HDMI/LVDS, it is pixel clock , for DP, it is link clock ( 27000 or 16200 )
+	USHORT              usSpreadSpectrumPercentage;      //in unit of 0.01% or 0.001%, decided by ucSpreadSpectrumMode bit4
+	USHORT                     usSpreadRateIn10Hz;                  //in unit of 10Hz, modulation freq
+	UCHAR               ucClockIndication;                 //Indicate which clock source needs SS
+	UCHAR
+	ucSpreadSpectrumMode;               //Bit0=0 Down Spread,=1 Center Spread, bit1=0: internal SS bit1=1: external SS
+	UCHAR                        ucReserved[2];
+} ATOM_ASIC_SS_ASSIGNMENT_V3;
 
 //ATOM_ASIC_SS_ASSIGNMENT_V3.ucSpreadSpectrumMode
 #define SS_MODE_V3_CENTRE_SPREAD_MASK             0x01
@@ -6674,9 +6763,9 @@ typedef struct _ATOM_ASIC_SS_ASSIGNMENT_V3
 
 typedef struct _ATOM_ASIC_INTERNAL_SS_INFO_V3
 {
-  ATOM_COMMON_TABLE_HEADER         sHeader;
-  ATOM_ASIC_SS_ASSIGNMENT_V3        asSpreadSpectrum[1];      //this is pointer only.
-}ATOM_ASIC_INTERNAL_SS_INFO_V3;
+	ATOM_COMMON_TABLE_HEADER         sHeader;
+	ATOM_ASIC_SS_ASSIGNMENT_V3        asSpreadSpectrum[1];      //this is pointer only.
+} ATOM_ASIC_INTERNAL_SS_INFO_V3;
 
 
 //==============================Scratch Pad Definition Portion===============================
@@ -6732,7 +6821,7 @@ typedef struct _ATOM_ASIC_INTERNAL_SS_INFO_V3
 #define ATOM_S0_DFP_MASK                ATOM_S0_DFP1 | ATOM_S0_DFP2 | ATOM_S0_DFP3 | ATOM_S0_DFP4 | ATOM_S0_DFP5 | ATOM_S0_DFP6
 
 #define ATOM_S0_FAD_REGISTER_BUG        0x02000000L // If set, indicates we are running a PCIE asic with
-                                                    // the FAD/HDP reg access bug.  Bit is read by DAL, this is obsolete from RV5xx
+// the FAD/HDP reg access bug.  Bit is read by DAL, this is obsolete from RV5xx
 
 #define ATOM_S0_THERMAL_STATE_MASK      0x1C000000L
 #define ATOM_S0_THERMAL_STATE_SHIFT     26
@@ -6942,7 +7031,7 @@ typedef struct _ATOM_ASIC_INTERNAL_SS_INFO_V3
 #define ATOM_S5_DOS_FORCE_CRT2b2        ATOM_S5_DOS_REQ_CRT2b0
 #define ATOM_S5_DOS_FORCE_CVb3          ATOM_S5_DOS_REQ_CVb1
 #define ATOM_S5_DOS_FORCE_DEVICEw1      (ATOM_S5_DOS_FORCE_CRT1b2+ATOM_S5_DOS_FORCE_TV1b2+ATOM_S5_DOS_FORCE_CRT2b2+\
-                                        (ATOM_S5_DOS_FORCE_CVb3<<8))
+		(ATOM_S5_DOS_FORCE_CVb3<<8))
 // BIOS_6_SCRATCH Definition
 #define ATOM_S6_DEVICE_CHANGE           0x00000001L
 #define ATOM_S6_SCALER_CHANGE           0x00000002L
@@ -7060,16 +7149,16 @@ typedef struct _ATOM_ASIC_INTERNAL_SS_INFO_V3
 
 // BIOS_9_SCRATCH Definition
 #ifndef ATOM_S9_I2C_CHANNEL_COMPLETED_MASK
-#define ATOM_S9_I2C_CHANNEL_COMPLETED_MASK  0x0000FFFF
+	#define ATOM_S9_I2C_CHANNEL_COMPLETED_MASK  0x0000FFFF
 #endif
 #ifndef ATOM_S9_I2C_CHANNEL_ABORTED_MASK
-#define ATOM_S9_I2C_CHANNEL_ABORTED_MASK    0xFFFF0000
+	#define ATOM_S9_I2C_CHANNEL_ABORTED_MASK    0xFFFF0000
 #endif
 #ifndef ATOM_S9_I2C_CHANNEL_COMPLETED_SHIFT
-#define ATOM_S9_I2C_CHANNEL_COMPLETED_SHIFT 0
+	#define ATOM_S9_I2C_CHANNEL_COMPLETED_SHIFT 0
 #endif
 #ifndef ATOM_S9_I2C_CHANNEL_ABORTED_SHIFT
-#define ATOM_S9_I2C_CHANNEL_ABORTED_SHIFT   16
+	#define ATOM_S9_I2C_CHANNEL_ABORTED_SHIFT   16
 #endif
 
 
@@ -7117,15 +7206,15 @@ typedef struct _ATOM_ASIC_INTERNAL_SS_INFO_V3
 // Macros used by driver
 
 #ifdef __cplusplus
-#define GetIndexIntoMasterTable(MasterOrData, FieldName) ((reinterpret_cast<char*>(&(static_cast<ATOM_MASTER_LIST_OF_##MasterOrData##_TABLES*>(0))->FieldName)-static_cast<char*>(0))/sizeof(USHORT))
+	#define GetIndexIntoMasterTable(MasterOrData, FieldName) ((reinterpret_cast<char*>(&(static_cast<ATOM_MASTER_LIST_OF_##MasterOrData##_TABLES*>(0))->FieldName)-static_cast<char*>(0))/sizeof(USHORT))
 
-#define GET_COMMAND_TABLE_COMMANDSET_REVISION(TABLE_HEADER_OFFSET) (((static_cast<ATOM_COMMON_TABLE_HEADER*>(TABLE_HEADER_OFFSET))->ucTableFormatRevision )&0x3F)
-#define GET_COMMAND_TABLE_PARAMETER_REVISION(TABLE_HEADER_OFFSET)  (((static_cast<ATOM_COMMON_TABLE_HEADER*>(TABLE_HEADER_OFFSET))->ucTableContentRevision)&0x3F)
+	#define GET_COMMAND_TABLE_COMMANDSET_REVISION(TABLE_HEADER_OFFSET) (((static_cast<ATOM_COMMON_TABLE_HEADER*>(TABLE_HEADER_OFFSET))->ucTableFormatRevision )&0x3F)
+	#define GET_COMMAND_TABLE_PARAMETER_REVISION(TABLE_HEADER_OFFSET)  (((static_cast<ATOM_COMMON_TABLE_HEADER*>(TABLE_HEADER_OFFSET))->ucTableContentRevision)&0x3F)
 #else // not __cplusplus
-#define   GetIndexIntoMasterTable(MasterOrData, FieldName) (((char*)(&((ATOM_MASTER_LIST_OF_##MasterOrData##_TABLES*)0)->FieldName)-(char*)0)/sizeof(USHORT))
+	#define   GetIndexIntoMasterTable(MasterOrData, FieldName) (((char*)(&((ATOM_MASTER_LIST_OF_##MasterOrData##_TABLES*)0)->FieldName)-(char*)0)/sizeof(USHORT))
 
-#define GET_COMMAND_TABLE_COMMANDSET_REVISION(TABLE_HEADER_OFFSET) ((((ATOM_COMMON_TABLE_HEADER*)TABLE_HEADER_OFFSET)->ucTableFormatRevision)&0x3F)
-#define GET_COMMAND_TABLE_PARAMETER_REVISION(TABLE_HEADER_OFFSET)  ((((ATOM_COMMON_TABLE_HEADER*)TABLE_HEADER_OFFSET)->ucTableContentRevision)&0x3F)
+	#define GET_COMMAND_TABLE_COMMANDSET_REVISION(TABLE_HEADER_OFFSET) ((((ATOM_COMMON_TABLE_HEADER*)TABLE_HEADER_OFFSET)->ucTableFormatRevision)&0x3F)
+	#define GET_COMMAND_TABLE_PARAMETER_REVISION(TABLE_HEADER_OFFSET)  ((((ATOM_COMMON_TABLE_HEADER*)TABLE_HEADER_OFFSET)->ucTableContentRevision)&0x3F)
 #endif // __cplusplus
 
 #define GET_DATA_TABLE_MAJOR_REVISION GET_COMMAND_TABLE_COMMANDSET_REVISION
@@ -7142,12 +7231,12 @@ typedef struct _ATOM_ASIC_INTERNAL_SS_INFO_V3
 
 typedef struct _MEMORY_PLLINIT_PARAMETERS
 {
-  ULONG ulTargetMemoryClock; //In 10Khz unit
-  UCHAR   ucAction;                //not define yet
-  UCHAR   ucFbDiv_Hi;             //Fbdiv Hi byte
-  UCHAR   ucFbDiv;                //FB value
-  UCHAR   ucPostDiv;             //Post div
-}MEMORY_PLLINIT_PARAMETERS;
+	ULONG ulTargetMemoryClock; //In 10Khz unit
+	UCHAR   ucAction;                //not define yet
+	UCHAR   ucFbDiv_Hi;             //Fbdiv Hi byte
+	UCHAR   ucFbDiv;                //FB value
+	UCHAR   ucPostDiv;             //Post div
+} MEMORY_PLLINIT_PARAMETERS;
 
 #define MEMORY_PLLINIT_PS_ALLOCATION  MEMORY_PLLINIT_PARAMETERS
 
@@ -7157,19 +7246,19 @@ typedef struct _MEMORY_PLLINIT_PARAMETERS
 
 typedef struct  _GPIO_PIN_CONTROL_PARAMETERS
 {
-  UCHAR ucGPIO_ID;           //return value, read from GPIO pins
-  UCHAR ucGPIOBitShift;        //define which bit in uGPIOBitVal need to be update
-   UCHAR ucGPIOBitVal;           //Set/Reset corresponding bit defined in ucGPIOBitMask
-  UCHAR ucAction;                 //=GPIO_PIN_WRITE: Read; =GPIO_PIN_READ: Write
-}GPIO_PIN_CONTROL_PARAMETERS;
+	UCHAR ucGPIO_ID;           //return value, read from GPIO pins
+	UCHAR ucGPIOBitShift;        //define which bit in uGPIOBitVal need to be update
+	UCHAR ucGPIOBitVal;           //Set/Reset corresponding bit defined in ucGPIOBitMask
+	UCHAR ucAction;                 //=GPIO_PIN_WRITE: Read; =GPIO_PIN_READ: Write
+} GPIO_PIN_CONTROL_PARAMETERS;
 
 typedef struct _ENABLE_SCALER_PARAMETERS
 {
-  UCHAR ucScaler;            // ATOM_SCALER1, ATOM_SCALER2
-  UCHAR ucEnable;            // ATOM_SCALER_DISABLE or ATOM_SCALER_CENTER or ATOM_SCALER_EXPANSION
-  UCHAR ucTVStandard;        //
-  UCHAR ucPadding[1];
-}ENABLE_SCALER_PARAMETERS;
+	UCHAR ucScaler;            // ATOM_SCALER1, ATOM_SCALER2
+	UCHAR ucEnable;            // ATOM_SCALER_DISABLE or ATOM_SCALER_CENTER or ATOM_SCALER_EXPANSION
+	UCHAR ucTVStandard;        //
+	UCHAR ucPadding[1];
+} ENABLE_SCALER_PARAMETERS;
 #define ENABLE_SCALER_PS_ALLOCATION ENABLE_SCALER_PARAMETERS
 
 //ucEnable:
@@ -7180,57 +7269,57 @@ typedef struct _ENABLE_SCALER_PARAMETERS
 
 typedef struct _ENABLE_HARDWARE_ICON_CURSOR_PARAMETERS
 {
-  ULONG  usHWIconHorzVertPosn;        // Hardware Icon Vertical position
-  UCHAR  ucHWIconVertOffset;          // Hardware Icon Vertical offset
-  UCHAR  ucHWIconHorzOffset;          // Hardware Icon Horizontal offset
-  UCHAR  ucSelection;                 // ATOM_CURSOR1 or ATOM_ICON1 or ATOM_CURSOR2 or ATOM_ICON2
-  UCHAR  ucEnable;                    // ATOM_ENABLE or ATOM_DISABLE
-}ENABLE_HARDWARE_ICON_CURSOR_PARAMETERS;
+	ULONG  usHWIconHorzVertPosn;        // Hardware Icon Vertical position
+	UCHAR  ucHWIconVertOffset;          // Hardware Icon Vertical offset
+	UCHAR  ucHWIconHorzOffset;          // Hardware Icon Horizontal offset
+	UCHAR  ucSelection;                 // ATOM_CURSOR1 or ATOM_ICON1 or ATOM_CURSOR2 or ATOM_ICON2
+	UCHAR  ucEnable;                    // ATOM_ENABLE or ATOM_DISABLE
+} ENABLE_HARDWARE_ICON_CURSOR_PARAMETERS;
 
 typedef struct _ENABLE_HARDWARE_ICON_CURSOR_PS_ALLOCATION
 {
-  ENABLE_HARDWARE_ICON_CURSOR_PARAMETERS  sEnableIcon;
-  ENABLE_CRTC_PARAMETERS                  sReserved;
-}ENABLE_HARDWARE_ICON_CURSOR_PS_ALLOCATION;
+	ENABLE_HARDWARE_ICON_CURSOR_PARAMETERS  sEnableIcon;
+	ENABLE_CRTC_PARAMETERS                  sReserved;
+} ENABLE_HARDWARE_ICON_CURSOR_PS_ALLOCATION;
 
 typedef struct _ENABLE_GRAPH_SURFACE_PARAMETERS
 {
-  USHORT usHight;                     // Image Hight
-  USHORT usWidth;                     // Image Width
-  UCHAR  ucSurface;                   // Surface 1 or 2
-  UCHAR  ucPadding[3];
-}ENABLE_GRAPH_SURFACE_PARAMETERS;
+	USHORT usHight;                     // Image Hight
+	USHORT usWidth;                     // Image Width
+	UCHAR  ucSurface;                   // Surface 1 or 2
+	UCHAR  ucPadding[3];
+} ENABLE_GRAPH_SURFACE_PARAMETERS;
 
 typedef struct _ENABLE_GRAPH_SURFACE_PARAMETERS_V1_2
 {
-  USHORT usHight;                     // Image Hight
-  USHORT usWidth;                     // Image Width
-  UCHAR  ucSurface;                   // Surface 1 or 2
-  UCHAR  ucEnable;                    // ATOM_ENABLE or ATOM_DISABLE
-  UCHAR  ucPadding[2];
-}ENABLE_GRAPH_SURFACE_PARAMETERS_V1_2;
+	USHORT usHight;                     // Image Hight
+	USHORT usWidth;                     // Image Width
+	UCHAR  ucSurface;                   // Surface 1 or 2
+	UCHAR  ucEnable;                    // ATOM_ENABLE or ATOM_DISABLE
+	UCHAR  ucPadding[2];
+} ENABLE_GRAPH_SURFACE_PARAMETERS_V1_2;
 
 typedef struct _ENABLE_GRAPH_SURFACE_PARAMETERS_V1_3
 {
-  USHORT usHight;                     // Image Hight
-  USHORT usWidth;                     // Image Width
-  UCHAR  ucSurface;                   // Surface 1 or 2
-  UCHAR  ucEnable;                    // ATOM_ENABLE or ATOM_DISABLE
-  USHORT usDeviceId;                  // Active Device Id for this surface. If no device, set to 0.
-}ENABLE_GRAPH_SURFACE_PARAMETERS_V1_3;
+	USHORT usHight;                     // Image Hight
+	USHORT usWidth;                     // Image Width
+	UCHAR  ucSurface;                   // Surface 1 or 2
+	UCHAR  ucEnable;                    // ATOM_ENABLE or ATOM_DISABLE
+	USHORT usDeviceId;                  // Active Device Id for this surface. If no device, set to 0.
+} ENABLE_GRAPH_SURFACE_PARAMETERS_V1_3;
 
 typedef struct _ENABLE_GRAPH_SURFACE_PARAMETERS_V1_4
 {
-  USHORT usHight;                     // Image Hight
-  USHORT usWidth;                     // Image Width
-  USHORT usGraphPitch;
-  UCHAR  ucColorDepth;
-  UCHAR  ucPixelFormat;
-  UCHAR  ucSurface;                   // Surface 1 or 2
-  UCHAR  ucEnable;                    // ATOM_ENABLE or ATOM_DISABLE
-  UCHAR  ucModeType;
-  UCHAR  ucReserved;
-}ENABLE_GRAPH_SURFACE_PARAMETERS_V1_4;
+	USHORT usHight;                     // Image Hight
+	USHORT usWidth;                     // Image Width
+	USHORT usGraphPitch;
+	UCHAR  ucColorDepth;
+	UCHAR  ucPixelFormat;
+	UCHAR  ucSurface;                   // Surface 1 or 2
+	UCHAR  ucEnable;                    // ATOM_ENABLE or ATOM_DISABLE
+	UCHAR  ucModeType;
+	UCHAR  ucReserved;
+} ENABLE_GRAPH_SURFACE_PARAMETERS_V1_4;
 
 // ucEnable
 #define ATOM_GRAPH_CONTROL_SET_PITCH             0x0f
@@ -7238,44 +7327,45 @@ typedef struct _ENABLE_GRAPH_SURFACE_PARAMETERS_V1_4
 
 typedef struct _ENABLE_GRAPH_SURFACE_PS_ALLOCATION
 {
-  ENABLE_GRAPH_SURFACE_PARAMETERS sSetSurface;
-  ENABLE_YUV_PS_ALLOCATION        sReserved; // Don't set this one
-}ENABLE_GRAPH_SURFACE_PS_ALLOCATION;
+	ENABLE_GRAPH_SURFACE_PARAMETERS sSetSurface;
+	ENABLE_YUV_PS_ALLOCATION        sReserved; // Don't set this one
+} ENABLE_GRAPH_SURFACE_PS_ALLOCATION;
 
 typedef struct _MEMORY_CLEAN_UP_PARAMETERS
 {
-  USHORT  usMemoryStart;                //in 8Kb boundry, offset from memory base address
-  USHORT  usMemorySize;                 //8Kb blocks aligned
-}MEMORY_CLEAN_UP_PARAMETERS;
+	USHORT  usMemoryStart;                //in 8Kb boundry, offset from memory base address
+	USHORT  usMemorySize;                 //8Kb blocks aligned
+} MEMORY_CLEAN_UP_PARAMETERS;
 
 #define MEMORY_CLEAN_UP_PS_ALLOCATION MEMORY_CLEAN_UP_PARAMETERS
 
 typedef struct  _GET_DISPLAY_SURFACE_SIZE_PARAMETERS
 {
-  USHORT  usX_Size;                     //When use as input parameter, usX_Size indicates which CRTC
-  USHORT  usY_Size;
-}GET_DISPLAY_SURFACE_SIZE_PARAMETERS;
+	USHORT  usX_Size;                     //When use as input parameter, usX_Size indicates which CRTC
+	USHORT  usY_Size;
+} GET_DISPLAY_SURFACE_SIZE_PARAMETERS;
 
 typedef struct  _GET_DISPLAY_SURFACE_SIZE_PARAMETERS_V2
 {
-  union{
-    USHORT  usX_Size;                     //When use as input parameter, usX_Size indicates which CRTC
-    USHORT  usSurface;
-  };
-  USHORT usY_Size;
-  USHORT usDispXStart;
-  USHORT usDispYStart;
-}GET_DISPLAY_SURFACE_SIZE_PARAMETERS_V2;
+	union
+	{
+		USHORT  usX_Size;                     //When use as input parameter, usX_Size indicates which CRTC
+		USHORT  usSurface;
+	};
+	USHORT usY_Size;
+	USHORT usDispXStart;
+	USHORT usDispYStart;
+} GET_DISPLAY_SURFACE_SIZE_PARAMETERS_V2;
 
 
 typedef struct _PALETTE_DATA_CONTROL_PARAMETERS_V3
 {
-  UCHAR  ucLutId;
-  UCHAR  ucAction;
-  USHORT usLutStartIndex;
-  USHORT usLutLength;
-  USHORT usLutOffsetInVram;
-}PALETTE_DATA_CONTROL_PARAMETERS_V3;
+	UCHAR  ucLutId;
+	UCHAR  ucAction;
+	USHORT usLutStartIndex;
+	USHORT usLutLength;
+	USHORT usLutOffsetInVram;
+} PALETTE_DATA_CONTROL_PARAMETERS_V3;
 
 // ucAction:
 #define PALETTE_DATA_AUTO_FILL            1
@@ -7285,11 +7375,11 @@ typedef struct _PALETTE_DATA_CONTROL_PARAMETERS_V3
 
 typedef struct _INTERRUPT_SERVICE_PARAMETERS_V2
 {
-  UCHAR  ucInterruptId;
-  UCHAR  ucServiceId;
-  UCHAR  ucStatus;
-  UCHAR  ucReserved;
-}INTERRUPT_SERVICE_PARAMETER_V2;
+	UCHAR  ucInterruptId;
+	UCHAR  ucServiceId;
+	UCHAR  ucStatus;
+	UCHAR  ucReserved;
+} INTERRUPT_SERVICE_PARAMETER_V2;
 
 // ucInterruptId
 #define HDP1_INTERRUPT_ID                 1
@@ -7304,28 +7394,28 @@ typedef struct _INTERRUPT_SERVICE_PARAMETERS_V2
 #define INTERRUPT_SERVICE_GEN_SW_INT      1
 #define INTERRUPT_SERVICE_GET_STATUS      2
 
- // ucStatus
+// ucStatus
 #define INTERRUPT_STATUS__INT_TRIGGER     1
 #define INTERRUPT_STATUS__HPD_HIGH        2
 
 typedef struct _EFUSE_INPUT_PARAMETER
 {
-  USHORT usEfuseIndex;
-  UCHAR  ucBitShift;
-  UCHAR  ucBitLength;
-}EFUSE_INPUT_PARAMETER;
+	USHORT usEfuseIndex;
+	UCHAR  ucBitShift;
+	UCHAR  ucBitLength;
+} EFUSE_INPUT_PARAMETER;
 
 // ReadEfuseValue command table input/output parameter
 typedef union _READ_EFUSE_VALUE_PARAMETER
 {
-  EFUSE_INPUT_PARAMETER sEfuse;
-  ULONG                 ulEfuseValue;
-}READ_EFUSE_VALUE_PARAMETER;
+	EFUSE_INPUT_PARAMETER sEfuse;
+	ULONG                 ulEfuseValue;
+} READ_EFUSE_VALUE_PARAMETER;
 
 typedef struct _INDIRECT_IO_ACCESS
 {
-  ATOM_COMMON_TABLE_HEADER sHeader;
-  UCHAR                    IOAccessSequence[256];
+	ATOM_COMMON_TABLE_HEADER sHeader;
+	UCHAR                    IOAccessSequence[256];
 } INDIRECT_IO_ACCESS;
 
 #define INDIRECT_READ              0x00
@@ -7355,106 +7445,111 @@ typedef struct _INDIRECT_IO_ACCESS
 
 typedef struct _ATOM_OEM_INFO
 {
-  ATOM_COMMON_TABLE_HEADER   sHeader;
-  ATOM_I2C_ID_CONFIG_ACCESS sucI2cId;
-}ATOM_OEM_INFO;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	ATOM_I2C_ID_CONFIG_ACCESS sucI2cId;
+} ATOM_OEM_INFO;
 
 typedef struct _ATOM_TV_MODE
 {
-   UCHAR   ucVMode_Num;           //Video mode number
-   UCHAR   ucTV_Mode_Num;         //Internal TV mode number
-}ATOM_TV_MODE;
+	UCHAR   ucVMode_Num;           //Video mode number
+	UCHAR   ucTV_Mode_Num;         //Internal TV mode number
+} ATOM_TV_MODE;
 
 typedef struct _ATOM_BIOS_INT_TVSTD_MODE
 {
-  ATOM_COMMON_TABLE_HEADER sHeader;
-   USHORT   usTV_Mode_LUT_Offset;   // Pointer to standard to internal number conversion table
-   USHORT   usTV_FIFO_Offset;        // Pointer to FIFO entry table
-   USHORT   usNTSC_Tbl_Offset;      // Pointer to SDTV_Mode_NTSC table
-   USHORT   usPAL_Tbl_Offset;        // Pointer to SDTV_Mode_PAL table
-   USHORT   usCV_Tbl_Offset;        // Pointer to SDTV_Mode_PAL table
-}ATOM_BIOS_INT_TVSTD_MODE;
+	ATOM_COMMON_TABLE_HEADER sHeader;
+	USHORT   usTV_Mode_LUT_Offset;   // Pointer to standard to internal number conversion table
+	USHORT   usTV_FIFO_Offset;        // Pointer to FIFO entry table
+	USHORT   usNTSC_Tbl_Offset;      // Pointer to SDTV_Mode_NTSC table
+	USHORT   usPAL_Tbl_Offset;        // Pointer to SDTV_Mode_PAL table
+	USHORT   usCV_Tbl_Offset;        // Pointer to SDTV_Mode_PAL table
+} ATOM_BIOS_INT_TVSTD_MODE;
 
 
 typedef struct _ATOM_TV_MODE_SCALER_PTR
 {
-   USHORT   ucFilter0_Offset;      //Pointer to filter format 0 coefficients
-   USHORT   usFilter1_Offset;      //Pointer to filter format 0 coefficients
-   UCHAR   ucTV_Mode_Num;
-}ATOM_TV_MODE_SCALER_PTR;
+	USHORT   ucFilter0_Offset;      //Pointer to filter format 0 coefficients
+	USHORT   usFilter1_Offset;      //Pointer to filter format 0 coefficients
+	UCHAR   ucTV_Mode_Num;
+} ATOM_TV_MODE_SCALER_PTR;
 
 typedef struct _ATOM_STANDARD_VESA_TIMING
 {
-  ATOM_COMMON_TABLE_HEADER sHeader;
-  ATOM_DTD_FORMAT              aModeTimings[16];      // 16 is not the real array number, just for initial allocation
-}ATOM_STANDARD_VESA_TIMING;
+	ATOM_COMMON_TABLE_HEADER sHeader;
+	ATOM_DTD_FORMAT              aModeTimings[16];      // 16 is not the real array number, just for initial allocation
+} ATOM_STANDARD_VESA_TIMING;
 
 
 typedef struct _ATOM_STD_FORMAT
 {
-  USHORT    usSTD_HDisp;
-  USHORT    usSTD_VDisp;
-  USHORT    usSTD_RefreshRate;
-  USHORT    usReserved;
-}ATOM_STD_FORMAT;
+	USHORT    usSTD_HDisp;
+	USHORT    usSTD_VDisp;
+	USHORT    usSTD_RefreshRate;
+	USHORT    usReserved;
+} ATOM_STD_FORMAT;
 
 typedef struct _ATOM_VESA_TO_EXTENDED_MODE
 {
-  USHORT  usVESA_ModeNumber;
-  USHORT  usExtendedModeNumber;
-}ATOM_VESA_TO_EXTENDED_MODE;
+	USHORT  usVESA_ModeNumber;
+	USHORT  usExtendedModeNumber;
+} ATOM_VESA_TO_EXTENDED_MODE;
 
 typedef struct _ATOM_VESA_TO_INTENAL_MODE_LUT
 {
-  ATOM_COMMON_TABLE_HEADER   sHeader;
-  ATOM_VESA_TO_EXTENDED_MODE asVESA_ToExtendedModeInfo[76];
-}ATOM_VESA_TO_INTENAL_MODE_LUT;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	ATOM_VESA_TO_EXTENDED_MODE asVESA_ToExtendedModeInfo[76];
+} ATOM_VESA_TO_INTENAL_MODE_LUT;
 
 /*************** ATOM Memory Related Data Structure ***********************/
-typedef struct _ATOM_MEMORY_VENDOR_BLOCK{
-   UCHAR                                    ucMemoryType;
-   UCHAR                                    ucMemoryVendor;
-   UCHAR                                    ucAdjMCId;
-   UCHAR                                    ucDynClkId;
-   ULONG                                    ulDllResetClkRange;
-}ATOM_MEMORY_VENDOR_BLOCK;
+typedef struct _ATOM_MEMORY_VENDOR_BLOCK
+{
+	UCHAR                                    ucMemoryType;
+	UCHAR                                    ucMemoryVendor;
+	UCHAR                                    ucAdjMCId;
+	UCHAR                                    ucDynClkId;
+	ULONG                                    ulDllResetClkRange;
+} ATOM_MEMORY_VENDOR_BLOCK;
 
 
-typedef struct _ATOM_MEMORY_SETTING_ID_CONFIG{
+typedef struct _ATOM_MEMORY_SETTING_ID_CONFIG
+{
 #if ATOM_BIG_ENDIAN
-	ULONG												ucMemBlkId:8;
-	ULONG												ulMemClockRange:24;
+	ULONG												ucMemBlkId: 8;
+	ULONG												ulMemClockRange: 24;
 #else
-	ULONG												ulMemClockRange:24;
-	ULONG												ucMemBlkId:8;
+	ULONG												ulMemClockRange: 24;
+	ULONG												ucMemBlkId: 8;
 #endif
-}ATOM_MEMORY_SETTING_ID_CONFIG;
+} ATOM_MEMORY_SETTING_ID_CONFIG;
 
 typedef union _ATOM_MEMORY_SETTING_ID_CONFIG_ACCESS
 {
-  ATOM_MEMORY_SETTING_ID_CONFIG slAccess;
-  ULONG                         ulAccess;
-}ATOM_MEMORY_SETTING_ID_CONFIG_ACCESS;
+	ATOM_MEMORY_SETTING_ID_CONFIG slAccess;
+	ULONG                         ulAccess;
+} ATOM_MEMORY_SETTING_ID_CONFIG_ACCESS;
 
 
-typedef struct _ATOM_MEMORY_SETTING_DATA_BLOCK{
-   ATOM_MEMORY_SETTING_ID_CONFIG_ACCESS  ulMemoryID;
-   ULONG                                 aulMemData[1];
-}ATOM_MEMORY_SETTING_DATA_BLOCK;
+typedef struct _ATOM_MEMORY_SETTING_DATA_BLOCK
+{
+	ATOM_MEMORY_SETTING_ID_CONFIG_ACCESS  ulMemoryID;
+	ULONG                                 aulMemData[1];
+} ATOM_MEMORY_SETTING_DATA_BLOCK;
 
 
-typedef struct _ATOM_INIT_REG_INDEX_FORMAT{
-    USHORT usRegIndex;                                     // MC register index
-    UCHAR  ucPreRegDataLength;                             // offset in ATOM_INIT_REG_DATA_BLOCK.saRegDataBuf
-}ATOM_INIT_REG_INDEX_FORMAT;
+typedef struct _ATOM_INIT_REG_INDEX_FORMAT
+{
+	USHORT usRegIndex;                                     // MC register index
+	UCHAR  ucPreRegDataLength;                             // offset in ATOM_INIT_REG_DATA_BLOCK.saRegDataBuf
+} ATOM_INIT_REG_INDEX_FORMAT;
 
 
-typedef struct _ATOM_INIT_REG_BLOCK{
-   USHORT                           usRegIndexTblSize;          //size of asRegIndexBuf
-   USHORT                           usRegDataBlkSize;           //size of ATOM_MEMORY_SETTING_DATA_BLOCK
-   ATOM_INIT_REG_INDEX_FORMAT       asRegIndexBuf[1];
-   ATOM_MEMORY_SETTING_DATA_BLOCK   asRegDataBuf[1];
-}ATOM_INIT_REG_BLOCK;
+typedef struct _ATOM_INIT_REG_BLOCK
+{
+	USHORT                           usRegIndexTblSize;          //size of asRegIndexBuf
+	USHORT                           usRegDataBlkSize;           //size of ATOM_MEMORY_SETTING_DATA_BLOCK
+	ATOM_INIT_REG_INDEX_FORMAT       asRegIndexBuf[1];
+	ATOM_MEMORY_SETTING_DATA_BLOCK   asRegDataBuf[1];
+} ATOM_INIT_REG_BLOCK;
 
 #define END_OF_REG_INDEX_BLOCK  0x0ffff
 #define END_OF_REG_DATA_BLOCK   0x00000000
@@ -7474,32 +7569,34 @@ typedef struct _ATOM_INIT_REG_BLOCK{
 
 typedef struct _ATOM_MC_INIT_PARAM_TABLE
 {
-  ATOM_COMMON_TABLE_HEADER      sHeader;
-  USHORT                        usAdjustARB_SEQDataOffset;
-  USHORT                        usMCInitMemTypeTblOffset;
-  USHORT                        usMCInitCommonTblOffset;
-  USHORT                        usMCInitPowerDownTblOffset;
-  ULONG                         ulARB_SEQDataBuf[32];
-  ATOM_INIT_REG_BLOCK           asMCInitMemType;
-  ATOM_INIT_REG_BLOCK           asMCInitCommon;
-}ATOM_MC_INIT_PARAM_TABLE;
+	ATOM_COMMON_TABLE_HEADER      sHeader;
+	USHORT                        usAdjustARB_SEQDataOffset;
+	USHORT                        usMCInitMemTypeTblOffset;
+	USHORT                        usMCInitCommonTblOffset;
+	USHORT                        usMCInitPowerDownTblOffset;
+	ULONG                         ulARB_SEQDataBuf[32];
+	ATOM_INIT_REG_BLOCK           asMCInitMemType;
+	ATOM_INIT_REG_BLOCK           asMCInitCommon;
+} ATOM_MC_INIT_PARAM_TABLE;
 
 
 typedef struct _ATOM_REG_INIT_SETTING
 {
-  USHORT  usRegIndex;
-  ULONG   ulRegValue;
-}ATOM_REG_INIT_SETTING;
+	USHORT  usRegIndex;
+	ULONG   ulRegValue;
+} ATOM_REG_INIT_SETTING;
 
 typedef struct _ATOM_MC_INIT_PARAM_TABLE_V2_1
 {
-  ATOM_COMMON_TABLE_HEADER      sHeader;
-  ULONG                         ulMCUcodeVersion;
-  ULONG                         ulMCUcodeRomStartAddr;
-  ULONG                         ulMCUcodeLength;
-  USHORT                        usMcRegInitTableOffset;     // offset of ATOM_REG_INIT_SETTING array for MC core register settings.
-  USHORT                        usReserved;                 // offset of ATOM_INIT_REG_BLOCK for MC SEQ/PHY register setting
-}ATOM_MC_INIT_PARAM_TABLE_V2_1;
+	ATOM_COMMON_TABLE_HEADER      sHeader;
+	ULONG                         ulMCUcodeVersion;
+	ULONG                         ulMCUcodeRomStartAddr;
+	ULONG                         ulMCUcodeLength;
+	USHORT
+	usMcRegInitTableOffset;     // offset of ATOM_REG_INIT_SETTING array for MC core register settings.
+	USHORT
+	usReserved;                 // offset of ATOM_INIT_REG_BLOCK for MC SEQ/PHY register setting
+} ATOM_MC_INIT_PARAM_TABLE_V2_1;
 
 
 #define _4Mx16              0x2
@@ -7554,15 +7651,15 @@ typedef struct _ATOM_MC_INIT_PARAM_TABLE_V2_1
 
 typedef struct _MCuCodeHeader
 {
-  ULONG  ulSignature;
-  UCHAR  ucRevision;
-  UCHAR  ucChecksum;
-  UCHAR  ucReserved1;
-  UCHAR  ucReserved2;
-  USHORT usParametersLength;
-  USHORT usUCodeLength;
-  USHORT usReserved1;
-  USHORT usReserved2;
+	ULONG  ulSignature;
+	UCHAR  ucRevision;
+	UCHAR  ucChecksum;
+	UCHAR  ucReserved1;
+	UCHAR  ucReserved2;
+	USHORT usParametersLength;
+	USHORT usUCodeLength;
+	USHORT usReserved1;
+	USHORT usReserved2;
 } MCuCodeHeader;
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -7572,204 +7669,233 @@ typedef struct _MCuCodeHeader
 #define ATOM_VRAM_MODULE_MEMORY_VENDOR_ID_MASK   0xF
 typedef struct _ATOM_VRAM_MODULE_V1
 {
-  ULONG                      ulReserved;
-  USHORT                     usEMRSValue;
-  USHORT                     usMRSValue;
-  USHORT                     usReserved;
-  UCHAR                      ucExtMemoryID;     // An external indicator (by hardcode, callback or pin) to tell what is the current memory module
-  UCHAR                      ucMemoryType;      // [7:4]=0x1:DDR1;=0x2:DDR2;=0x3:DDR3;=0x4:DDR4;[3:0] reserved;
-  UCHAR                      ucMemoryVenderID;  // Predefined,never change across designs or memory type/vender
-  UCHAR                      ucMemoryDeviceCfg; // [7:4]=0x0:4M;=0x1:8M;=0x2:16M;0x3:32M....[3:0]=0x0:x4;=0x1:x8;=0x2:x16;=0x3:x32...
-  UCHAR                      ucRow;             // Number of Row,in power of 2;
-  UCHAR                      ucColumn;          // Number of Column,in power of 2;
-  UCHAR                      ucBank;            // Nunber of Bank;
-  UCHAR                      ucRank;            // Number of Rank, in power of 2
-  UCHAR                      ucChannelNum;      // Number of channel;
-  UCHAR                      ucChannelConfig;   // [3:0]=Indication of what channel combination;[4:7]=Channel bit width, in number of 2
-  UCHAR                      ucDefaultMVDDQ_ID; // Default MVDDQ setting for this memory block, ID linking to MVDDQ info table to find real set-up data;
-  UCHAR                      ucDefaultMVDDC_ID; // Default MVDDC setting for this memory block, ID linking to MVDDC info table to find real set-up data;
-  UCHAR                      ucReserved[2];
-}ATOM_VRAM_MODULE_V1;
+	ULONG                      ulReserved;
+	USHORT                     usEMRSValue;
+	USHORT                     usMRSValue;
+	USHORT                     usReserved;
+	UCHAR
+	ucExtMemoryID;     // An external indicator (by hardcode, callback or pin) to tell what is the current memory module
+	UCHAR                      ucMemoryType;      // [7:4]=0x1:DDR1;=0x2:DDR2;=0x3:DDR3;=0x4:DDR4;[3:0] reserved;
+	UCHAR                      ucMemoryVenderID;  // Predefined,never change across designs or memory type/vender
+	UCHAR
+	ucMemoryDeviceCfg; // [7:4]=0x0:4M;=0x1:8M;=0x2:16M;0x3:32M....[3:0]=0x0:x4;=0x1:x8;=0x2:x16;=0x3:x32...
+	UCHAR                      ucRow;             // Number of Row,in power of 2;
+	UCHAR                      ucColumn;          // Number of Column,in power of 2;
+	UCHAR                      ucBank;            // Nunber of Bank;
+	UCHAR                      ucRank;            // Number of Rank, in power of 2
+	UCHAR                      ucChannelNum;      // Number of channel;
+	UCHAR
+	ucChannelConfig;   // [3:0]=Indication of what channel combination;[4:7]=Channel bit width, in number of 2
+	UCHAR
+	ucDefaultMVDDQ_ID; // Default MVDDQ setting for this memory block, ID linking to MVDDQ info table to find real set-up data;
+	UCHAR
+	ucDefaultMVDDC_ID; // Default MVDDC setting for this memory block, ID linking to MVDDC info table to find real set-up data;
+	UCHAR                      ucReserved[2];
+} ATOM_VRAM_MODULE_V1;
 
 
 typedef struct _ATOM_VRAM_MODULE_V2
 {
-  ULONG                      ulReserved;
-  ULONG                      ulFlags;              // To enable/disable functionalities based on memory type
-  ULONG                      ulEngineClock;     // Override of default engine clock for particular memory type
-  ULONG                      ulMemoryClock;     // Override of default memory clock for particular memory type
-  USHORT                     usEMRS2Value;      // EMRS2 Value is used for GDDR2 and GDDR4 memory type
-  USHORT                     usEMRS3Value;      // EMRS3 Value is used for GDDR2 and GDDR4 memory type
-  USHORT                     usEMRSValue;
-  USHORT                     usMRSValue;
-  USHORT                     usReserved;
-  UCHAR                      ucExtMemoryID;     // An external indicator (by hardcode, callback or pin) to tell what is the current memory module
-  UCHAR                      ucMemoryType;      // [7:4]=0x1:DDR1;=0x2:DDR2;=0x3:DDR3;=0x4:DDR4;[3:0] - must not be used for now;
-  UCHAR                      ucMemoryVenderID;  // Predefined,never change across designs or memory type/vender. If not predefined, vendor detection table gets executed
-  UCHAR                      ucMemoryDeviceCfg; // [7:4]=0x0:4M;=0x1:8M;=0x2:16M;0x3:32M....[3:0]=0x0:x4;=0x1:x8;=0x2:x16;=0x3:x32...
-  UCHAR                      ucRow;             // Number of Row,in power of 2;
-  UCHAR                      ucColumn;          // Number of Column,in power of 2;
-  UCHAR                      ucBank;            // Nunber of Bank;
-  UCHAR                      ucRank;            // Number of Rank, in power of 2
-  UCHAR                      ucChannelNum;      // Number of channel;
-  UCHAR                      ucChannelConfig;   // [3:0]=Indication of what channel combination;[4:7]=Channel bit width, in number of 2
-  UCHAR                      ucDefaultMVDDQ_ID; // Default MVDDQ setting for this memory block, ID linking to MVDDQ info table to find real set-up data;
-  UCHAR                      ucDefaultMVDDC_ID; // Default MVDDC setting for this memory block, ID linking to MVDDC info table to find real set-up data;
-  UCHAR                      ucRefreshRateFactor;
-  UCHAR                      ucReserved[3];
-}ATOM_VRAM_MODULE_V2;
+	ULONG                      ulReserved;
+	ULONG                      ulFlags;              // To enable/disable functionalities based on memory type
+	ULONG                      ulEngineClock;     // Override of default engine clock for particular memory type
+	ULONG                      ulMemoryClock;     // Override of default memory clock for particular memory type
+	USHORT                     usEMRS2Value;      // EMRS2 Value is used for GDDR2 and GDDR4 memory type
+	USHORT                     usEMRS3Value;      // EMRS3 Value is used for GDDR2 and GDDR4 memory type
+	USHORT                     usEMRSValue;
+	USHORT                     usMRSValue;
+	USHORT                     usReserved;
+	UCHAR
+	ucExtMemoryID;     // An external indicator (by hardcode, callback or pin) to tell what is the current memory module
+	UCHAR
+	ucMemoryType;      // [7:4]=0x1:DDR1;=0x2:DDR2;=0x3:DDR3;=0x4:DDR4;[3:0] - must not be used for now;
+	UCHAR
+	ucMemoryVenderID;  // Predefined,never change across designs or memory type/vender. If not predefined, vendor detection table gets executed
+	UCHAR
+	ucMemoryDeviceCfg; // [7:4]=0x0:4M;=0x1:8M;=0x2:16M;0x3:32M....[3:0]=0x0:x4;=0x1:x8;=0x2:x16;=0x3:x32...
+	UCHAR                      ucRow;             // Number of Row,in power of 2;
+	UCHAR                      ucColumn;          // Number of Column,in power of 2;
+	UCHAR                      ucBank;            // Nunber of Bank;
+	UCHAR                      ucRank;            // Number of Rank, in power of 2
+	UCHAR                      ucChannelNum;      // Number of channel;
+	UCHAR
+	ucChannelConfig;   // [3:0]=Indication of what channel combination;[4:7]=Channel bit width, in number of 2
+	UCHAR
+	ucDefaultMVDDQ_ID; // Default MVDDQ setting for this memory block, ID linking to MVDDQ info table to find real set-up data;
+	UCHAR
+	ucDefaultMVDDC_ID; // Default MVDDC setting for this memory block, ID linking to MVDDC info table to find real set-up data;
+	UCHAR                      ucRefreshRateFactor;
+	UCHAR                      ucReserved[3];
+} ATOM_VRAM_MODULE_V2;
 
 
 typedef   struct _ATOM_MEMORY_TIMING_FORMAT
 {
-   ULONG                     ulClkRange;            // memory clock in 10kHz unit, when target memory clock is below this clock, use this memory timing
-  union{
-    USHORT                   usMRS;                 // mode register
-    USHORT                   usDDR3_MR0;
-  };
-  union{
-    USHORT                   usEMRS;                  // extended mode register
-    USHORT                   usDDR3_MR1;
-  };
-   UCHAR                     ucCL;                    // CAS latency
-   UCHAR                     ucWL;                    // WRITE Latency
-   UCHAR                     uctRAS;                  // tRAS
-   UCHAR                     uctRC;                   // tRC
-   UCHAR                     uctRFC;                  // tRFC
-   UCHAR                     uctRCDR;                 // tRCDR
-   UCHAR                     uctRCDW;                 // tRCDW
-   UCHAR                     uctRP;                   // tRP
-   UCHAR                     uctRRD;                  // tRRD
-   UCHAR                     uctWR;                   // tWR
-   UCHAR                     uctWTR;                  // tWTR
-   UCHAR                     uctPDIX;                 // tPDIX
-   UCHAR                     uctFAW;                  // tFAW
-   UCHAR                     uctAOND;                 // tAOND
-  union
-  {
-    struct {
-       UCHAR                                  ucflag;                  // flag to control memory timing calculation. bit0= control EMRS2 Infineon
-       UCHAR                                  ucReserved;
-    };
-    USHORT                   usDDR3_MR2;
-  };
-}ATOM_MEMORY_TIMING_FORMAT;
+	ULONG
+	ulClkRange;            // memory clock in 10kHz unit, when target memory clock is below this clock, use this memory timing
+	union
+	{
+		USHORT                   usMRS;                 // mode register
+		USHORT                   usDDR3_MR0;
+	};
+	union
+	{
+		USHORT                   usEMRS;                  // extended mode register
+		USHORT                   usDDR3_MR1;
+	};
+	UCHAR                     ucCL;                    // CAS latency
+	UCHAR                     ucWL;                    // WRITE Latency
+	UCHAR                     uctRAS;                  // tRAS
+	UCHAR                     uctRC;                   // tRC
+	UCHAR                     uctRFC;                  // tRFC
+	UCHAR                     uctRCDR;                 // tRCDR
+	UCHAR                     uctRCDW;                 // tRCDW
+	UCHAR                     uctRP;                   // tRP
+	UCHAR                     uctRRD;                  // tRRD
+	UCHAR                     uctWR;                   // tWR
+	UCHAR                     uctWTR;                  // tWTR
+	UCHAR                     uctPDIX;                 // tPDIX
+	UCHAR                     uctFAW;                  // tFAW
+	UCHAR                     uctAOND;                 // tAOND
+	union
+	{
+		struct
+		{
+			UCHAR
+			ucflag;                  // flag to control memory timing calculation. bit0= control EMRS2 Infineon
+			UCHAR                                  ucReserved;
+		};
+		USHORT                   usDDR3_MR2;
+	};
+} ATOM_MEMORY_TIMING_FORMAT;
 
 
 typedef   struct _ATOM_MEMORY_TIMING_FORMAT_V1
 {
-   ULONG                      ulClkRange;            // memory clock in 10kHz unit, when target memory clock is below this clock, use this memory timing
-   USHORT                     usMRS;                 // mode register
-   USHORT                     usEMRS;                // extended mode register
-   UCHAR                      ucCL;                  // CAS latency
-   UCHAR                      ucWL;                  // WRITE Latency
-   UCHAR                      uctRAS;                // tRAS
-   UCHAR                      uctRC;                 // tRC
-   UCHAR                      uctRFC;                // tRFC
-   UCHAR                      uctRCDR;               // tRCDR
-   UCHAR                      uctRCDW;               // tRCDW
-   UCHAR                      uctRP;                 // tRP
-   UCHAR                      uctRRD;                // tRRD
-   UCHAR                      uctWR;                 // tWR
-   UCHAR                      uctWTR;                // tWTR
-   UCHAR                      uctPDIX;               // tPDIX
-   UCHAR                      uctFAW;                // tFAW
-   UCHAR                      uctAOND;               // tAOND
-   UCHAR                      ucflag;                // flag to control memory timing calculation. bit0= control EMRS2 Infineon
-////////////////////////////////////GDDR parameters///////////////////////////////////
-   UCHAR                      uctCCDL;               //
-   UCHAR                      uctCRCRL;              //
-   UCHAR                      uctCRCWL;              //
-   UCHAR                      uctCKE;                //
-   UCHAR                      uctCKRSE;              //
-   UCHAR                      uctCKRSX;              //
-   UCHAR                      uctFAW32;              //
-   UCHAR                      ucMR5lo;               //
-   UCHAR                      ucMR5hi;               //
-   UCHAR                      ucTerminator;
-}ATOM_MEMORY_TIMING_FORMAT_V1;
+	ULONG
+	ulClkRange;            // memory clock in 10kHz unit, when target memory clock is below this clock, use this memory timing
+	USHORT                     usMRS;                 // mode register
+	USHORT                     usEMRS;                // extended mode register
+	UCHAR                      ucCL;                  // CAS latency
+	UCHAR                      ucWL;                  // WRITE Latency
+	UCHAR                      uctRAS;                // tRAS
+	UCHAR                      uctRC;                 // tRC
+	UCHAR                      uctRFC;                // tRFC
+	UCHAR                      uctRCDR;               // tRCDR
+	UCHAR                      uctRCDW;               // tRCDW
+	UCHAR                      uctRP;                 // tRP
+	UCHAR                      uctRRD;                // tRRD
+	UCHAR                      uctWR;                 // tWR
+	UCHAR                      uctWTR;                // tWTR
+	UCHAR                      uctPDIX;               // tPDIX
+	UCHAR                      uctFAW;                // tFAW
+	UCHAR                      uctAOND;               // tAOND
+	UCHAR
+	ucflag;                // flag to control memory timing calculation. bit0= control EMRS2 Infineon
+	////////////////////////////////////GDDR parameters///////////////////////////////////
+	UCHAR                      uctCCDL;               //
+	UCHAR                      uctCRCRL;              //
+	UCHAR                      uctCRCWL;              //
+	UCHAR                      uctCKE;                //
+	UCHAR                      uctCKRSE;              //
+	UCHAR                      uctCKRSX;              //
+	UCHAR                      uctFAW32;              //
+	UCHAR                      ucMR5lo;               //
+	UCHAR                      ucMR5hi;               //
+	UCHAR                      ucTerminator;
+} ATOM_MEMORY_TIMING_FORMAT_V1;
 
 
 
 
 typedef   struct _ATOM_MEMORY_TIMING_FORMAT_V2
 {
-   ULONG                                  ulClkRange;            // memory clock in 10kHz unit, when target memory clock is below this clock, use this memory timing
-   USHORT                               usMRS;                     // mode register
-   USHORT                               usEMRS;                  // extended mode register
-   UCHAR                                  ucCL;                     // CAS latency
-   UCHAR                                  ucWL;                     // WRITE Latency
-   UCHAR                                  uctRAS;                  // tRAS
-   UCHAR                                  uctRC;                     // tRC
-   UCHAR                                  uctRFC;                  // tRFC
-   UCHAR                                  uctRCDR;                  // tRCDR
-   UCHAR                                  uctRCDW;                  // tRCDW
-   UCHAR                                  uctRP;                     // tRP
-   UCHAR                                  uctRRD;                  // tRRD
-   UCHAR                                  uctWR;                     // tWR
-   UCHAR                                  uctWTR;                  // tWTR
-   UCHAR                                  uctPDIX;                  // tPDIX
-   UCHAR                                  uctFAW;                  // tFAW
-   UCHAR                                  uctAOND;                  // tAOND
-   UCHAR                                  ucflag;                  // flag to control memory timing calculation. bit0= control EMRS2 Infineon
-////////////////////////////////////GDDR parameters///////////////////////////////////
-   UCHAR                                  uctCCDL;                  //
-   UCHAR                                  uctCRCRL;                  //
-   UCHAR                                  uctCRCWL;                  //
-   UCHAR                                  uctCKE;                  //
-   UCHAR                                  uctCKRSE;                  //
-   UCHAR                                  uctCKRSX;                  //
-   UCHAR                                  uctFAW32;                  //
-   UCHAR                                  ucMR4lo;               //
-   UCHAR                                  ucMR4hi;               //
-   UCHAR                                  ucMR5lo;               //
-   UCHAR                                  ucMR5hi;               //
-   UCHAR                                  ucTerminator;
-   UCHAR                                  ucReserved;
-}ATOM_MEMORY_TIMING_FORMAT_V2;
+	ULONG
+	ulClkRange;            // memory clock in 10kHz unit, when target memory clock is below this clock, use this memory timing
+	USHORT                               usMRS;                     // mode register
+	USHORT                               usEMRS;                  // extended mode register
+	UCHAR                                  ucCL;                     // CAS latency
+	UCHAR                                  ucWL;                     // WRITE Latency
+	UCHAR                                  uctRAS;                  // tRAS
+	UCHAR                                  uctRC;                     // tRC
+	UCHAR                                  uctRFC;                  // tRFC
+	UCHAR                                  uctRCDR;                  // tRCDR
+	UCHAR                                  uctRCDW;                  // tRCDW
+	UCHAR                                  uctRP;                     // tRP
+	UCHAR                                  uctRRD;                  // tRRD
+	UCHAR                                  uctWR;                     // tWR
+	UCHAR                                  uctWTR;                  // tWTR
+	UCHAR                                  uctPDIX;                  // tPDIX
+	UCHAR                                  uctFAW;                  // tFAW
+	UCHAR                                  uctAOND;                  // tAOND
+	UCHAR
+	ucflag;                  // flag to control memory timing calculation. bit0= control EMRS2 Infineon
+	////////////////////////////////////GDDR parameters///////////////////////////////////
+	UCHAR                                  uctCCDL;                  //
+	UCHAR                                  uctCRCRL;                  //
+	UCHAR                                  uctCRCWL;                  //
+	UCHAR                                  uctCKE;                  //
+	UCHAR                                  uctCKRSE;                  //
+	UCHAR                                  uctCKRSX;                  //
+	UCHAR                                  uctFAW32;                  //
+	UCHAR                                  ucMR4lo;               //
+	UCHAR                                  ucMR4hi;               //
+	UCHAR                                  ucMR5lo;               //
+	UCHAR                                  ucMR5hi;               //
+	UCHAR                                  ucTerminator;
+	UCHAR                                  ucReserved;
+} ATOM_MEMORY_TIMING_FORMAT_V2;
 
 
 typedef   struct _ATOM_MEMORY_FORMAT
 {
-   ULONG                       ulDllDisClock;     // memory DLL will be disable when target memory clock is below this clock
-  union{
-    USHORT                     usEMRS2Value;      // EMRS2 Value is used for GDDR2 and GDDR4 memory type
-    USHORT                     usDDR3_Reserved;   // Not used for DDR3 memory
-  };
-  union{
-    USHORT                     usEMRS3Value;      // EMRS3 Value is used for GDDR2 and GDDR4 memory type
-    USHORT                     usDDR3_MR3;        // Used for DDR3 memory
-  };
-  UCHAR                        ucMemoryType;      // [7:4]=0x1:DDR1;=0x2:DDR2;=0x3:DDR3;=0x4:DDR4;[3:0] - must not be used for now;
-  UCHAR                        ucMemoryVenderID;  // Predefined,never change across designs or memory type/vender. If not predefined, vendor detection table gets executed
-  UCHAR                        ucRow;             // Number of Row,in power of 2;
-  UCHAR                        ucColumn;          // Number of Column,in power of 2;
-  UCHAR                        ucBank;            // Nunber of Bank;
-  UCHAR                        ucRank;            // Number of Rank, in power of 2
-  UCHAR                        ucBurstSize;           // burst size, 0= burst size=4  1= burst size=8
-  UCHAR                        ucDllDisBit;           // position of DLL Enable/Disable bit in EMRS ( Extended Mode Register )
-  UCHAR                        ucRefreshRateFactor;   // memory refresh rate in unit of ms
-  UCHAR                        ucDensity;             // _8Mx32, _16Mx32, _16Mx16, _32Mx16
-  UCHAR                        ucPreamble;            // [7:4] Write Preamble, [3:0] Read Preamble
-  UCHAR                        ucMemAttrib;           // Memory Device Addribute, like RDBI/WDBI etc
-  ATOM_MEMORY_TIMING_FORMAT    asMemTiming[5];        // Memory Timing block sort from lower clock to higher clock
-}ATOM_MEMORY_FORMAT;
+	ULONG
+	ulDllDisClock;     // memory DLL will be disable when target memory clock is below this clock
+	union
+	{
+		USHORT                     usEMRS2Value;      // EMRS2 Value is used for GDDR2 and GDDR4 memory type
+		USHORT                     usDDR3_Reserved;   // Not used for DDR3 memory
+	};
+	union
+	{
+		USHORT                     usEMRS3Value;      // EMRS3 Value is used for GDDR2 and GDDR4 memory type
+		USHORT                     usDDR3_MR3;        // Used for DDR3 memory
+	};
+	UCHAR
+	ucMemoryType;      // [7:4]=0x1:DDR1;=0x2:DDR2;=0x3:DDR3;=0x4:DDR4;[3:0] - must not be used for now;
+	UCHAR
+	ucMemoryVenderID;  // Predefined,never change across designs or memory type/vender. If not predefined, vendor detection table gets executed
+	UCHAR                        ucRow;             // Number of Row,in power of 2;
+	UCHAR                        ucColumn;          // Number of Column,in power of 2;
+	UCHAR                        ucBank;            // Nunber of Bank;
+	UCHAR                        ucRank;            // Number of Rank, in power of 2
+	UCHAR                        ucBurstSize;           // burst size, 0= burst size=4  1= burst size=8
+	UCHAR
+	ucDllDisBit;           // position of DLL Enable/Disable bit in EMRS ( Extended Mode Register )
+	UCHAR                        ucRefreshRateFactor;   // memory refresh rate in unit of ms
+	UCHAR                        ucDensity;             // _8Mx32, _16Mx32, _16Mx16, _32Mx16
+	UCHAR                        ucPreamble;            // [7:4] Write Preamble, [3:0] Read Preamble
+	UCHAR                        ucMemAttrib;           // Memory Device Addribute, like RDBI/WDBI etc
+	ATOM_MEMORY_TIMING_FORMAT    asMemTiming[5];        // Memory Timing block sort from lower clock to higher clock
+} ATOM_MEMORY_FORMAT;
 
 
 typedef struct _ATOM_VRAM_MODULE_V3
 {
-  ULONG                      ulChannelMapCfg;     // board dependent paramenter:Channel combination
-  USHORT                     usSize;              // size of ATOM_VRAM_MODULE_V3
-  USHORT                     usDefaultMVDDQ;      // board dependent parameter:Default Memory Core Voltage
-  USHORT                     usDefaultMVDDC;      // board dependent parameter:Default Memory IO Voltage
-  UCHAR                      ucExtMemoryID;       // An external indicator (by hardcode, callback or pin) to tell what is the current memory module
-  UCHAR                      ucChannelNum;        // board dependent parameter:Number of channel;
-  UCHAR                      ucChannelSize;       // board dependent parameter:32bit or 64bit
-  UCHAR                      ucVREFI;             // board dependnt parameter: EXT or INT +160mv to -140mv
-  UCHAR                      ucNPL_RT;            // board dependent parameter:NPL round trip delay, used for calculate memory timing parameters
-  UCHAR                      ucFlag;              // To enable/disable functionalities based on memory type
-  ATOM_MEMORY_FORMAT         asMemory;            // describ all of video memory parameters from memory spec
-}ATOM_VRAM_MODULE_V3;
+	ULONG                      ulChannelMapCfg;     // board dependent paramenter:Channel combination
+	USHORT                     usSize;              // size of ATOM_VRAM_MODULE_V3
+	USHORT                     usDefaultMVDDQ;      // board dependent parameter:Default Memory Core Voltage
+	USHORT                     usDefaultMVDDC;      // board dependent parameter:Default Memory IO Voltage
+	UCHAR
+	ucExtMemoryID;       // An external indicator (by hardcode, callback or pin) to tell what is the current memory module
+	UCHAR                      ucChannelNum;        // board dependent parameter:Number of channel;
+	UCHAR                      ucChannelSize;       // board dependent parameter:32bit or 64bit
+	UCHAR                      ucVREFI;             // board dependnt parameter: EXT or INT +160mv to -140mv
+	UCHAR
+	ucNPL_RT;            // board dependent parameter:NPL round trip delay, used for calculate memory timing parameters
+	UCHAR                      ucFlag;              // To enable/disable functionalities based on memory type
+	ATOM_MEMORY_FORMAT         asMemory;            // describ all of video memory parameters from memory spec
+} ATOM_VRAM_MODULE_V3;
 
 
 //ATOM_VRAM_MODULE_V3.ucNPL_RT
@@ -7780,39 +7906,41 @@ typedef struct _ATOM_VRAM_MODULE_V3
 
 typedef struct _ATOM_VRAM_MODULE_V4
 {
-  ULONG     ulChannelMapCfg;                   // board dependent parameter: Channel combination
-  USHORT  usModuleSize;                     // size of ATOM_VRAM_MODULE_V4, make it easy for VBIOS to look for next entry of VRAM_MODULE
-  USHORT  usPrivateReserved;                // BIOS internal reserved space to optimize code size, updated by the compiler, shouldn't be modified manually!!
-                                            // MC_ARB_RAMCFG (includes NOOFBANK,NOOFRANKS,NOOFROWS,NOOFCOLS)
-  USHORT  usReserved;
-  UCHAR   ucExtMemoryID;                      // An external indicator (by hardcode, callback or pin) to tell what is the current memory module
-  UCHAR   ucMemoryType;                     // [7:4]=0x1:DDR1;=0x2:DDR2;=0x3:DDR3;=0x4:DDR4; 0x5:DDR5 [3:0] - Must be 0x0 for now;
-  UCHAR   ucChannelNum;                     // Number of channels present in this module config
-  UCHAR   ucChannelWidth;                   // 0 - 32 bits; 1 - 64 bits
-   UCHAR   ucDensity;                        // _8Mx32, _16Mx32, _16Mx16, _32Mx16
-   UCHAR     ucFlag;                                  // To enable/disable functionalities based on memory type
-   UCHAR     ucMisc;                                  // bit0: 0 - single rank; 1 - dual rank;   bit2: 0 - burstlength 4, 1 - burstlength 8
-  UCHAR      ucVREFI;                          // board dependent parameter
-  UCHAR   ucNPL_RT;                         // board dependent parameter:NPL round trip delay, used for calculate memory timing parameters
-  UCHAR      ucPreamble;                       // [7:4] Write Preamble, [3:0] Read Preamble
-  UCHAR   ucMemorySize;                     // BIOS internal reserved space to optimize code size, updated by the compiler, shouldn't be modified manually!!
-                                            // Total memory size in unit of 16MB for CONFIG_MEMSIZE - bit[23:0] zeros
-  UCHAR   ucReserved[3];
+	ULONG     ulChannelMapCfg;                   // board dependent parameter: Channel combination
+	USHORT  usModuleSize;                     // size of ATOM_VRAM_MODULE_V4, make it easy for VBIOS to look for next entry of VRAM_MODULE
+	USHORT  usPrivateReserved;                // BIOS internal reserved space to optimize code size, updated by the compiler, shouldn't be modified manually!!
+	// MC_ARB_RAMCFG (includes NOOFBANK,NOOFRANKS,NOOFROWS,NOOFCOLS)
+	USHORT  usReserved;
+	UCHAR   ucExtMemoryID;                      // An external indicator (by hardcode, callback or pin) to tell what is the current memory module
+	UCHAR   ucMemoryType;                     // [7:4]=0x1:DDR1;=0x2:DDR2;=0x3:DDR3;=0x4:DDR4; 0x5:DDR5 [3:0] - Must be 0x0 for now;
+	UCHAR   ucChannelNum;                     // Number of channels present in this module config
+	UCHAR   ucChannelWidth;                   // 0 - 32 bits; 1 - 64 bits
+	UCHAR   ucDensity;                        // _8Mx32, _16Mx32, _16Mx16, _32Mx16
+	UCHAR     ucFlag;                                  // To enable/disable functionalities based on memory type
+	UCHAR     ucMisc;                                  // bit0: 0 - single rank; 1 - dual rank;   bit2: 0 - burstlength 4, 1 - burstlength 8
+	UCHAR      ucVREFI;                          // board dependent parameter
+	UCHAR   ucNPL_RT;                         // board dependent parameter:NPL round trip delay, used for calculate memory timing parameters
+	UCHAR      ucPreamble;                       // [7:4] Write Preamble, [3:0] Read Preamble
+	UCHAR   ucMemorySize;                     // BIOS internal reserved space to optimize code size, updated by the compiler, shouldn't be modified manually!!
+	// Total memory size in unit of 16MB for CONFIG_MEMSIZE - bit[23:0] zeros
+	UCHAR   ucReserved[3];
 
-//compare with V3, we flat the struct by merging ATOM_MEMORY_FORMAT (as is) into V4 as the same level
-  union{
-    USHORT   usEMRS2Value;                   // EMRS2 Value is used for GDDR2 and GDDR4 memory type
-    USHORT  usDDR3_Reserved;
-  };
-  union{
-    USHORT   usEMRS3Value;                   // EMRS3 Value is used for GDDR2 and GDDR4 memory type
-    USHORT  usDDR3_MR3;                     // Used for DDR3 memory
-  };
-  UCHAR   ucMemoryVenderID;                    // Predefined, If not predefined, vendor detection table gets executed
-  UCHAR     ucRefreshRateFactor;              // [1:0]=RefreshFactor (00=8ms, 01=16ms, 10=32ms,11=64ms)
-  UCHAR   ucReserved2[2];
-  ATOM_MEMORY_TIMING_FORMAT  asMemTiming[5];//Memory Timing block sort from lower clock to higher clock
-}ATOM_VRAM_MODULE_V4;
+	//compare with V3, we flat the struct by merging ATOM_MEMORY_FORMAT (as is) into V4 as the same level
+	union
+	{
+		USHORT   usEMRS2Value;                   // EMRS2 Value is used for GDDR2 and GDDR4 memory type
+		USHORT  usDDR3_Reserved;
+	};
+	union
+	{
+		USHORT   usEMRS3Value;                   // EMRS3 Value is used for GDDR2 and GDDR4 memory type
+		USHORT  usDDR3_MR3;                     // Used for DDR3 memory
+	};
+	UCHAR   ucMemoryVenderID;                    // Predefined, If not predefined, vendor detection table gets executed
+	UCHAR     ucRefreshRateFactor;              // [1:0]=RefreshFactor (00=8ms, 01=16ms, 10=32ms,11=64ms)
+	UCHAR   ucReserved2[2];
+	ATOM_MEMORY_TIMING_FORMAT  asMemTiming[5];//Memory Timing block sort from lower clock to higher clock
+} ATOM_VRAM_MODULE_V4;
 
 #define VRAM_MODULE_V4_MISC_RANK_MASK       0x3
 #define VRAM_MODULE_V4_MISC_DUAL_RANK       0x1
@@ -7822,256 +7950,276 @@ typedef struct _ATOM_VRAM_MODULE_V4
 
 typedef struct _ATOM_VRAM_MODULE_V5
 {
-  ULONG     ulChannelMapCfg;                   // board dependent parameter: Channel combination
-  USHORT  usModuleSize;                     // size of ATOM_VRAM_MODULE_V4, make it easy for VBIOS to look for next entry of VRAM_MODULE
-  USHORT  usPrivateReserved;                // BIOS internal reserved space to optimize code size, updated by the compiler, shouldn't be modified manually!!
-                                            // MC_ARB_RAMCFG (includes NOOFBANK,NOOFRANKS,NOOFROWS,NOOFCOLS)
-  USHORT  usReserved;
-  UCHAR   ucExtMemoryID;                      // An external indicator (by hardcode, callback or pin) to tell what is the current memory module
-  UCHAR   ucMemoryType;                     // [7:4]=0x1:DDR1;=0x2:DDR2;=0x3:DDR3;=0x4:DDR4; 0x5:DDR5 [3:0] - Must be 0x0 for now;
-  UCHAR   ucChannelNum;                     // Number of channels present in this module config
-  UCHAR   ucChannelWidth;                   // 0 - 32 bits; 1 - 64 bits
-   UCHAR   ucDensity;                        // _8Mx32, _16Mx32, _16Mx16, _32Mx16
-   UCHAR     ucFlag;                                  // To enable/disable functionalities based on memory type
-   UCHAR     ucMisc;                                  // bit0: 0 - single rank; 1 - dual rank;   bit2: 0 - burstlength 4, 1 - burstlength 8
-  UCHAR      ucVREFI;                          // board dependent parameter
-  UCHAR   ucNPL_RT;                         // board dependent parameter:NPL round trip delay, used for calculate memory timing parameters
-  UCHAR      ucPreamble;                       // [7:4] Write Preamble, [3:0] Read Preamble
-  UCHAR   ucMemorySize;                     // BIOS internal reserved space to optimize code size, updated by the compiler, shouldn't be modified manually!!
-                                            // Total memory size in unit of 16MB for CONFIG_MEMSIZE - bit[23:0] zeros
-  UCHAR   ucReserved[3];
+	ULONG     ulChannelMapCfg;                   // board dependent parameter: Channel combination
+	USHORT  usModuleSize;                     // size of ATOM_VRAM_MODULE_V4, make it easy for VBIOS to look for next entry of VRAM_MODULE
+	USHORT  usPrivateReserved;                // BIOS internal reserved space to optimize code size, updated by the compiler, shouldn't be modified manually!!
+	// MC_ARB_RAMCFG (includes NOOFBANK,NOOFRANKS,NOOFROWS,NOOFCOLS)
+	USHORT  usReserved;
+	UCHAR   ucExtMemoryID;                      // An external indicator (by hardcode, callback or pin) to tell what is the current memory module
+	UCHAR   ucMemoryType;                     // [7:4]=0x1:DDR1;=0x2:DDR2;=0x3:DDR3;=0x4:DDR4; 0x5:DDR5 [3:0] - Must be 0x0 for now;
+	UCHAR   ucChannelNum;                     // Number of channels present in this module config
+	UCHAR   ucChannelWidth;                   // 0 - 32 bits; 1 - 64 bits
+	UCHAR   ucDensity;                        // _8Mx32, _16Mx32, _16Mx16, _32Mx16
+	UCHAR     ucFlag;                                  // To enable/disable functionalities based on memory type
+	UCHAR     ucMisc;                                  // bit0: 0 - single rank; 1 - dual rank;   bit2: 0 - burstlength 4, 1 - burstlength 8
+	UCHAR      ucVREFI;                          // board dependent parameter
+	UCHAR   ucNPL_RT;                         // board dependent parameter:NPL round trip delay, used for calculate memory timing parameters
+	UCHAR      ucPreamble;                       // [7:4] Write Preamble, [3:0] Read Preamble
+	UCHAR   ucMemorySize;                     // BIOS internal reserved space to optimize code size, updated by the compiler, shouldn't be modified manually!!
+	// Total memory size in unit of 16MB for CONFIG_MEMSIZE - bit[23:0] zeros
+	UCHAR   ucReserved[3];
 
-//compare with V3, we flat the struct by merging ATOM_MEMORY_FORMAT (as is) into V4 as the same level
-  USHORT   usEMRS2Value;                        // EMRS2 Value is used for GDDR2 and GDDR4 memory type
-  USHORT   usEMRS3Value;                        // EMRS3 Value is used for GDDR2 and GDDR4 memory type
-  UCHAR   ucMemoryVenderID;                    // Predefined, If not predefined, vendor detection table gets executed
-  UCHAR     ucRefreshRateFactor;              // [1:0]=RefreshFactor (00=8ms, 01=16ms, 10=32ms,11=64ms)
-  UCHAR     ucFIFODepth;                         // FIFO depth supposes to be detected during vendor detection, but if we dont do vendor detection we have to hardcode FIFO Depth
-  UCHAR   ucCDR_Bandwidth;         // [0:3]=Read CDR bandwidth, [4:7] - Write CDR Bandwidth
-  ATOM_MEMORY_TIMING_FORMAT_V1  asMemTiming[5];//Memory Timing block sort from lower clock to higher clock
-}ATOM_VRAM_MODULE_V5;
+	//compare with V3, we flat the struct by merging ATOM_MEMORY_FORMAT (as is) into V4 as the same level
+	USHORT   usEMRS2Value;                        // EMRS2 Value is used for GDDR2 and GDDR4 memory type
+	USHORT   usEMRS3Value;                        // EMRS3 Value is used for GDDR2 and GDDR4 memory type
+	UCHAR   ucMemoryVenderID;                    // Predefined, If not predefined, vendor detection table gets executed
+	UCHAR     ucRefreshRateFactor;              // [1:0]=RefreshFactor (00=8ms, 01=16ms, 10=32ms,11=64ms)
+	UCHAR     ucFIFODepth;                         // FIFO depth supposes to be detected during vendor detection, but if we dont do vendor detection we have to hardcode FIFO Depth
+	UCHAR   ucCDR_Bandwidth;         // [0:3]=Read CDR bandwidth, [4:7] - Write CDR Bandwidth
+	ATOM_MEMORY_TIMING_FORMAT_V1  asMemTiming[5];//Memory Timing block sort from lower clock to higher clock
+} ATOM_VRAM_MODULE_V5;
 
 
 typedef struct _ATOM_VRAM_MODULE_V6
 {
-  ULONG     ulChannelMapCfg;                   // board dependent parameter: Channel combination
-  USHORT  usModuleSize;                     // size of ATOM_VRAM_MODULE_V4, make it easy for VBIOS to look for next entry of VRAM_MODULE
-  USHORT  usPrivateReserved;                // BIOS internal reserved space to optimize code size, updated by the compiler, shouldn't be modified manually!!
-                                            // MC_ARB_RAMCFG (includes NOOFBANK,NOOFRANKS,NOOFROWS,NOOFCOLS)
-  USHORT  usReserved;
-  UCHAR   ucExtMemoryID;                      // An external indicator (by hardcode, callback or pin) to tell what is the current memory module
-  UCHAR   ucMemoryType;                     // [7:4]=0x1:DDR1;=0x2:DDR2;=0x3:DDR3;=0x4:DDR4; 0x5:DDR5 [3:0] - Must be 0x0 for now;
-  UCHAR   ucChannelNum;                     // Number of channels present in this module config
-  UCHAR   ucChannelWidth;                   // 0 - 32 bits; 1 - 64 bits
-   UCHAR   ucDensity;                        // _8Mx32, _16Mx32, _16Mx16, _32Mx16
-   UCHAR     ucFlag;                                  // To enable/disable functionalities based on memory type
-   UCHAR     ucMisc;                                  // bit0: 0 - single rank; 1 - dual rank;   bit2: 0 - burstlength 4, 1 - burstlength 8
-  UCHAR      ucVREFI;                          // board dependent parameter
-  UCHAR   ucNPL_RT;                         // board dependent parameter:NPL round trip delay, used for calculate memory timing parameters
-  UCHAR      ucPreamble;                       // [7:4] Write Preamble, [3:0] Read Preamble
-  UCHAR   ucMemorySize;                     // BIOS internal reserved space to optimize code size, updated by the compiler, shouldn't be modified manually!!
-                                            // Total memory size in unit of 16MB for CONFIG_MEMSIZE - bit[23:0] zeros
-  UCHAR   ucReserved[3];
+	ULONG     ulChannelMapCfg;                   // board dependent parameter: Channel combination
+	USHORT  usModuleSize;                     // size of ATOM_VRAM_MODULE_V4, make it easy for VBIOS to look for next entry of VRAM_MODULE
+	USHORT  usPrivateReserved;                // BIOS internal reserved space to optimize code size, updated by the compiler, shouldn't be modified manually!!
+	// MC_ARB_RAMCFG (includes NOOFBANK,NOOFRANKS,NOOFROWS,NOOFCOLS)
+	USHORT  usReserved;
+	UCHAR   ucExtMemoryID;                      // An external indicator (by hardcode, callback or pin) to tell what is the current memory module
+	UCHAR   ucMemoryType;                     // [7:4]=0x1:DDR1;=0x2:DDR2;=0x3:DDR3;=0x4:DDR4; 0x5:DDR5 [3:0] - Must be 0x0 for now;
+	UCHAR   ucChannelNum;                     // Number of channels present in this module config
+	UCHAR   ucChannelWidth;                   // 0 - 32 bits; 1 - 64 bits
+	UCHAR   ucDensity;                        // _8Mx32, _16Mx32, _16Mx16, _32Mx16
+	UCHAR     ucFlag;                                  // To enable/disable functionalities based on memory type
+	UCHAR     ucMisc;                                  // bit0: 0 - single rank; 1 - dual rank;   bit2: 0 - burstlength 4, 1 - burstlength 8
+	UCHAR      ucVREFI;                          // board dependent parameter
+	UCHAR   ucNPL_RT;                         // board dependent parameter:NPL round trip delay, used for calculate memory timing parameters
+	UCHAR      ucPreamble;                       // [7:4] Write Preamble, [3:0] Read Preamble
+	UCHAR   ucMemorySize;                     // BIOS internal reserved space to optimize code size, updated by the compiler, shouldn't be modified manually!!
+	// Total memory size in unit of 16MB for CONFIG_MEMSIZE - bit[23:0] zeros
+	UCHAR   ucReserved[3];
 
-//compare with V3, we flat the struct by merging ATOM_MEMORY_FORMAT (as is) into V4 as the same level
-  USHORT   usEMRS2Value;                        // EMRS2 Value is used for GDDR2 and GDDR4 memory type
-  USHORT   usEMRS3Value;                        // EMRS3 Value is used for GDDR2 and GDDR4 memory type
-  UCHAR   ucMemoryVenderID;                    // Predefined, If not predefined, vendor detection table gets executed
-  UCHAR     ucRefreshRateFactor;              // [1:0]=RefreshFactor (00=8ms, 01=16ms, 10=32ms,11=64ms)
-  UCHAR     ucFIFODepth;                         // FIFO depth supposes to be detected during vendor detection, but if we dont do vendor detection we have to hardcode FIFO Depth
-  UCHAR   ucCDR_Bandwidth;         // [0:3]=Read CDR bandwidth, [4:7] - Write CDR Bandwidth
-  ATOM_MEMORY_TIMING_FORMAT_V2  asMemTiming[5];//Memory Timing block sort from lower clock to higher clock
-}ATOM_VRAM_MODULE_V6;
+	//compare with V3, we flat the struct by merging ATOM_MEMORY_FORMAT (as is) into V4 as the same level
+	USHORT   usEMRS2Value;                        // EMRS2 Value is used for GDDR2 and GDDR4 memory type
+	USHORT   usEMRS3Value;                        // EMRS3 Value is used for GDDR2 and GDDR4 memory type
+	UCHAR   ucMemoryVenderID;                    // Predefined, If not predefined, vendor detection table gets executed
+	UCHAR     ucRefreshRateFactor;              // [1:0]=RefreshFactor (00=8ms, 01=16ms, 10=32ms,11=64ms)
+	UCHAR     ucFIFODepth;                         // FIFO depth supposes to be detected during vendor detection, but if we dont do vendor detection we have to hardcode FIFO Depth
+	UCHAR   ucCDR_Bandwidth;         // [0:3]=Read CDR bandwidth, [4:7] - Write CDR Bandwidth
+	ATOM_MEMORY_TIMING_FORMAT_V2  asMemTiming[5];//Memory Timing block sort from lower clock to higher clock
+} ATOM_VRAM_MODULE_V6;
 
 typedef struct _ATOM_VRAM_MODULE_V7
 {
-// Design Specific Values
-  ULONG   ulChannelMapCfg;                   // mmMC_SHARED_CHREMAP
-  USHORT  usModuleSize;                     // Size of ATOM_VRAM_MODULE_V7
-  USHORT  usPrivateReserved;                // MC_ARB_RAMCFG (includes NOOFBANK,NOOFRANKS,NOOFROWS,NOOFCOLS)
-  USHORT  usEnableChannels;                 // bit vector which indicate which channels are enabled
-  UCHAR   ucExtMemoryID;                    // Current memory module ID
-  UCHAR   ucMemoryType;                     // MEM_TYPE_DDR2/DDR3/GDDR3/GDDR5
-  UCHAR   ucChannelNum;                     // Number of mem. channels supported in this module
-  UCHAR   ucChannelWidth;                   // CHANNEL_16BIT/CHANNEL_32BIT/CHANNEL_64BIT
-  UCHAR   ucDensity;                        // _8Mx32, _16Mx32, _16Mx16, _32Mx16
-  UCHAR   ucReserve;                        // In MC7x, the lower 4 bits are used as bit8-11 of memory size. In other MC code, it's not used.
-  UCHAR   ucMisc;                           // RANK_OF_THISMEMORY etc.
-  UCHAR   ucVREFI;                          // Not used.
-  UCHAR   ucNPL_RT;                         // Round trip delay (MC_SEQ_CAS_TIMING [28:24]:TCL=CL+NPL_RT-2). Always 2.
-  UCHAR   ucPreamble;                       // [7:4] Write Preamble, [3:0] Read Preamble
-  UCHAR   ucMemorySize;                     // Total memory size in unit of 16MB for CONFIG_MEMSIZE - bit[23:0] zeros
-  USHORT  usSEQSettingOffset;
-  UCHAR   ucReserved;
-// Memory Module specific values
-  USHORT  usEMRS2Value;                     // EMRS2/MR2 Value.
-  USHORT  usEMRS3Value;                     // EMRS3/MR3 Value.
-  UCHAR   ucMemoryVenderID;                 // [7:4] Revision, [3:0] Vendor code
-  UCHAR   ucRefreshRateFactor;              // [1:0]=RefreshFactor (00=8ms, 01=16ms, 10=32ms,11=64ms)
-  UCHAR   ucFIFODepth;                      // FIFO depth can be detected during vendor detection, here is hardcoded per memory
-  UCHAR   ucCDR_Bandwidth;                  // [0:3]=Read CDR bandwidth, [4:7] - Write CDR Bandwidth
-  char    strMemPNString[20];               // part number end with '0'.
-}ATOM_VRAM_MODULE_V7;
+	// Design Specific Values
+	ULONG   ulChannelMapCfg;                   // mmMC_SHARED_CHREMAP
+	USHORT  usModuleSize;                     // Size of ATOM_VRAM_MODULE_V7
+	USHORT  usPrivateReserved;                // MC_ARB_RAMCFG (includes NOOFBANK,NOOFRANKS,NOOFROWS,NOOFCOLS)
+	USHORT  usEnableChannels;                 // bit vector which indicate which channels are enabled
+	UCHAR   ucExtMemoryID;                    // Current memory module ID
+	UCHAR   ucMemoryType;                     // MEM_TYPE_DDR2/DDR3/GDDR3/GDDR5
+	UCHAR   ucChannelNum;                     // Number of mem. channels supported in this module
+	UCHAR   ucChannelWidth;                   // CHANNEL_16BIT/CHANNEL_32BIT/CHANNEL_64BIT
+	UCHAR   ucDensity;                        // _8Mx32, _16Mx32, _16Mx16, _32Mx16
+	UCHAR   ucReserve;                        // In MC7x, the lower 4 bits are used as bit8-11 of memory size. In other MC code, it's not used.
+	UCHAR   ucMisc;                           // RANK_OF_THISMEMORY etc.
+	UCHAR   ucVREFI;                          // Not used.
+	UCHAR   ucNPL_RT;                         // Round trip delay (MC_SEQ_CAS_TIMING [28:24]:TCL=CL+NPL_RT-2). Always 2.
+	UCHAR   ucPreamble;                       // [7:4] Write Preamble, [3:0] Read Preamble
+	UCHAR   ucMemorySize;                     // Total memory size in unit of 16MB for CONFIG_MEMSIZE - bit[23:0] zeros
+	USHORT  usSEQSettingOffset;
+	UCHAR   ucReserved;
+	// Memory Module specific values
+	USHORT  usEMRS2Value;                     // EMRS2/MR2 Value.
+	USHORT  usEMRS3Value;                     // EMRS3/MR3 Value.
+	UCHAR   ucMemoryVenderID;                 // [7:4] Revision, [3:0] Vendor code
+	UCHAR   ucRefreshRateFactor;              // [1:0]=RefreshFactor (00=8ms, 01=16ms, 10=32ms,11=64ms)
+	UCHAR   ucFIFODepth;                      // FIFO depth can be detected during vendor detection, here is hardcoded per memory
+	UCHAR   ucCDR_Bandwidth;                  // [0:3]=Read CDR bandwidth, [4:7] - Write CDR Bandwidth
+	char    strMemPNString[20];               // part number end with '0'.
+} ATOM_VRAM_MODULE_V7;
 
 
 typedef struct _ATOM_VRAM_MODULE_V8
 {
-// Design Specific Values
-  ULONG   ulChannelMapCfg;                  // mmMC_SHARED_CHREMAP
-  USHORT  usModuleSize;                     // Size of ATOM_VRAM_MODULE_V7
-  USHORT  usMcRamCfg;                       // MC_ARB_RAMCFG (includes NOOFBANK,NOOFRANKS,NOOFROWS,NOOFCOLS)
-  USHORT  usEnableChannels;                 // bit vector which indicate which channels are enabled
-  UCHAR   ucExtMemoryID;                    // Current memory module ID
-  UCHAR   ucMemoryType;                     // MEM_TYPE_DDR2/DDR3/GDDR3/GDDR5
-  UCHAR   ucChannelNum;                     // Number of mem. channels supported in this module
-  UCHAR   ucChannelWidth;                   // CHANNEL_16BIT/CHANNEL_32BIT/CHANNEL_64BIT
-  UCHAR   ucDensity;                        // _8Mx32, _16Mx32, _16Mx16, _32Mx16
-  UCHAR   ucBankCol;                        // bit[3:2]= BANK ( =2:16bank, =1:8bank, =0:4bank ) bit[1:0]=Col ( =2: 10 bit, =1:9bit, =0:8bit )
-  UCHAR   ucMisc;                           // RANK_OF_THISMEMORY etc.
-  UCHAR   ucVREFI;                          // Not used.
-  USHORT  usReserved;                       // Not used
-  USHORT  usMemorySize;                     // Total memory size in unit of MB for CONFIG_MEMSIZE zeros
-  UCHAR   ucMcTunningSetId;                 // MC phy registers set per.
-  UCHAR   ucRowNum;
-// Memory Module specific values
-  USHORT  usEMRS2Value;                     // EMRS2/MR2 Value.
-  USHORT  usEMRS3Value;                     // EMRS3/MR3 Value.
-  UCHAR   ucMemoryVenderID;                 // [7:4] Revision, [3:0] Vendor code
-  UCHAR   ucRefreshRateFactor;              // [1:0]=RefreshFactor (00=8ms, 01=16ms, 10=32ms,11=64ms)
-  UCHAR   ucFIFODepth;                      // FIFO depth can be detected during vendor detection, here is hardcoded per memory
-  UCHAR   ucCDR_Bandwidth;                  // [0:3]=Read CDR bandwidth, [4:7] - Write CDR Bandwidth
+	// Design Specific Values
+	ULONG   ulChannelMapCfg;                  // mmMC_SHARED_CHREMAP
+	USHORT  usModuleSize;                     // Size of ATOM_VRAM_MODULE_V7
+	USHORT  usMcRamCfg;                       // MC_ARB_RAMCFG (includes NOOFBANK,NOOFRANKS,NOOFROWS,NOOFCOLS)
+	USHORT  usEnableChannels;                 // bit vector which indicate which channels are enabled
+	UCHAR   ucExtMemoryID;                    // Current memory module ID
+	UCHAR   ucMemoryType;                     // MEM_TYPE_DDR2/DDR3/GDDR3/GDDR5
+	UCHAR   ucChannelNum;                     // Number of mem. channels supported in this module
+	UCHAR   ucChannelWidth;                   // CHANNEL_16BIT/CHANNEL_32BIT/CHANNEL_64BIT
+	UCHAR   ucDensity;                        // _8Mx32, _16Mx32, _16Mx16, _32Mx16
+	UCHAR   ucBankCol;                        // bit[3:2]= BANK ( =2:16bank, =1:8bank, =0:4bank ) bit[1:0]=Col ( =2: 10 bit, =1:9bit, =0:8bit )
+	UCHAR   ucMisc;                           // RANK_OF_THISMEMORY etc.
+	UCHAR   ucVREFI;                          // Not used.
+	USHORT  usReserved;                       // Not used
+	USHORT  usMemorySize;                     // Total memory size in unit of MB for CONFIG_MEMSIZE zeros
+	UCHAR   ucMcTunningSetId;                 // MC phy registers set per.
+	UCHAR   ucRowNum;
+	// Memory Module specific values
+	USHORT  usEMRS2Value;                     // EMRS2/MR2 Value.
+	USHORT  usEMRS3Value;                     // EMRS3/MR3 Value.
+	UCHAR   ucMemoryVenderID;                 // [7:4] Revision, [3:0] Vendor code
+	UCHAR   ucRefreshRateFactor;              // [1:0]=RefreshFactor (00=8ms, 01=16ms, 10=32ms,11=64ms)
+	UCHAR   ucFIFODepth;                      // FIFO depth can be detected during vendor detection, here is hardcoded per memory
+	UCHAR   ucCDR_Bandwidth;                  // [0:3]=Read CDR bandwidth, [4:7] - Write CDR Bandwidth
 
-  ULONG   ulChannelMapCfg1;                 // channel mapping for channel8~15
-  ULONG   ulBankMapCfg;
-  ULONG   ulReserved;
-  char    strMemPNString[20];               // part number end with '0'.
-}ATOM_VRAM_MODULE_V8;
+	ULONG   ulChannelMapCfg1;                 // channel mapping for channel8~15
+	ULONG   ulBankMapCfg;
+	ULONG   ulReserved;
+	char    strMemPNString[20];               // part number end with '0'.
+} ATOM_VRAM_MODULE_V8;
 
 
 typedef struct _ATOM_VRAM_INFO_V2
 {
-  ATOM_COMMON_TABLE_HEADER   sHeader;
-  UCHAR                      ucNumOfVRAMModule;
-  ATOM_VRAM_MODULE           aVramInfo[ATOM_MAX_NUMBER_OF_VRAM_MODULE];      // just for allocation, real number of blocks is in ucNumOfVRAMModule;
-}ATOM_VRAM_INFO_V2;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	UCHAR                      ucNumOfVRAMModule;
+	ATOM_VRAM_MODULE
+	aVramInfo[ATOM_MAX_NUMBER_OF_VRAM_MODULE];      // just for allocation, real number of blocks is in ucNumOfVRAMModule;
+} ATOM_VRAM_INFO_V2;
 
 typedef struct _ATOM_VRAM_INFO_V3
 {
-  ATOM_COMMON_TABLE_HEADER  sHeader;
-  USHORT                    usMemAdjustTblOffset;                            // offset of ATOM_INIT_REG_BLOCK structure for memory vendor specific MC adjust setting
-  USHORT                    usMemClkPatchTblOffset;                          // offset of ATOM_INIT_REG_BLOCK structure for memory clock specific MC setting
-  USHORT                    usRerseved;
-  UCHAR                     aVID_PinsShift[9];                               // 8 bit strap maximum+terminator
-  UCHAR                     ucNumOfVRAMModule;
-  ATOM_VRAM_MODULE          aVramInfo[ATOM_MAX_NUMBER_OF_VRAM_MODULE];       // just for allocation, real number of blocks is in ucNumOfVRAMModule;
-  ATOM_INIT_REG_BLOCK       asMemPatch;                                      // for allocation
+	ATOM_COMMON_TABLE_HEADER  sHeader;
+	USHORT
+	usMemAdjustTblOffset;                            // offset of ATOM_INIT_REG_BLOCK structure for memory vendor specific MC adjust setting
+	USHORT
+	usMemClkPatchTblOffset;                          // offset of ATOM_INIT_REG_BLOCK structure for memory clock specific MC setting
+	USHORT                    usRerseved;
+	UCHAR                     aVID_PinsShift[9];                               // 8 bit strap maximum+terminator
+	UCHAR                     ucNumOfVRAMModule;
+	ATOM_VRAM_MODULE
+	aVramInfo[ATOM_MAX_NUMBER_OF_VRAM_MODULE];       // just for allocation, real number of blocks is in ucNumOfVRAMModule;
+	ATOM_INIT_REG_BLOCK       asMemPatch;                                      // for allocation
 
-}ATOM_VRAM_INFO_V3;
+} ATOM_VRAM_INFO_V3;
 
 #define   ATOM_VRAM_INFO_LAST        ATOM_VRAM_INFO_V3
 
 typedef struct _ATOM_VRAM_INFO_V4
 {
-  ATOM_COMMON_TABLE_HEADER   sHeader;
-  USHORT                     usMemAdjustTblOffset;                           // offset of ATOM_INIT_REG_BLOCK structure for memory vendor specific MC adjust setting
-  USHORT                     usMemClkPatchTblOffset;                         // offset of ATOM_INIT_REG_BLOCK structure for memory clock specific MC setting
-  USHORT                     usRerseved;
-  UCHAR                      ucMemDQ7_0ByteRemap;                            // DQ line byte remap, =0: Memory Data line BYTE0, =1: BYTE1, =2: BYTE2, =3: BYTE3
-  ULONG                      ulMemDQ7_0BitRemap;                             // each DQ line ( 7~0) use 3bits, like: DQ0=Bit[2:0], DQ1:[5:3], ... DQ7:[23:21]
-  UCHAR                      ucReservde[4];
-  UCHAR                      ucNumOfVRAMModule;
-  ATOM_VRAM_MODULE_V4        aVramInfo[ATOM_MAX_NUMBER_OF_VRAM_MODULE];      // just for allocation, real number of blocks is in ucNumOfVRAMModule;
-  ATOM_INIT_REG_BLOCK        asMemPatch;                                     // for allocation
-}ATOM_VRAM_INFO_V4;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	USHORT
+	usMemAdjustTblOffset;                           // offset of ATOM_INIT_REG_BLOCK structure for memory vendor specific MC adjust setting
+	USHORT
+	usMemClkPatchTblOffset;                         // offset of ATOM_INIT_REG_BLOCK structure for memory clock specific MC setting
+	USHORT                     usRerseved;
+	UCHAR
+	ucMemDQ7_0ByteRemap;                            // DQ line byte remap, =0: Memory Data line BYTE0, =1: BYTE1, =2: BYTE2, =3: BYTE3
+	ULONG
+	ulMemDQ7_0BitRemap;                             // each DQ line ( 7~0) use 3bits, like: DQ0=Bit[2:0], DQ1:[5:3], ... DQ7:[23:21]
+	UCHAR                      ucReservde[4];
+	UCHAR                      ucNumOfVRAMModule;
+	ATOM_VRAM_MODULE_V4
+	aVramInfo[ATOM_MAX_NUMBER_OF_VRAM_MODULE];      // just for allocation, real number of blocks is in ucNumOfVRAMModule;
+	ATOM_INIT_REG_BLOCK        asMemPatch;                                     // for allocation
+} ATOM_VRAM_INFO_V4;
 
 typedef struct _ATOM_VRAM_INFO_HEADER_V2_1
 {
-  ATOM_COMMON_TABLE_HEADER   sHeader;
-  USHORT                     usMemAdjustTblOffset;                           // offset of ATOM_INIT_REG_BLOCK structure for memory vendor specific MC adjust setting
-  USHORT                     usMemClkPatchTblOffset;                         // offset of ATOM_INIT_REG_BLOCK structure for memory clock specific MC setting
-  USHORT                     usPerBytePresetOffset;                          // offset of ATOM_INIT_REG_BLOCK structure for Per Byte Offset Preset Settings
-  USHORT                     usReserved[3];
-  UCHAR                      ucNumOfVRAMModule;                              // indicate number of VRAM module
-  UCHAR                      ucMemoryClkPatchTblVer;                         // version of memory AC timing register list
-  UCHAR                      ucVramModuleVer;                                // indicate ATOM_VRAM_MODUE version
-  UCHAR                      ucReserved;
-  ATOM_VRAM_MODULE_V7        aVramInfo[ATOM_MAX_NUMBER_OF_VRAM_MODULE];      // just for allocation, real number of blocks is in ucNumOfVRAMModule;
-}ATOM_VRAM_INFO_HEADER_V2_1;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	USHORT
+	usMemAdjustTblOffset;                           // offset of ATOM_INIT_REG_BLOCK structure for memory vendor specific MC adjust setting
+	USHORT
+	usMemClkPatchTblOffset;                         // offset of ATOM_INIT_REG_BLOCK structure for memory clock specific MC setting
+	USHORT
+	usPerBytePresetOffset;                          // offset of ATOM_INIT_REG_BLOCK structure for Per Byte Offset Preset Settings
+	USHORT                     usReserved[3];
+	UCHAR                      ucNumOfVRAMModule;                              // indicate number of VRAM module
+	UCHAR                      ucMemoryClkPatchTblVer;                         // version of memory AC timing register list
+	UCHAR                      ucVramModuleVer;                                // indicate ATOM_VRAM_MODUE version
+	UCHAR                      ucReserved;
+	ATOM_VRAM_MODULE_V7
+	aVramInfo[ATOM_MAX_NUMBER_OF_VRAM_MODULE];      // just for allocation, real number of blocks is in ucNumOfVRAMModule;
+} ATOM_VRAM_INFO_HEADER_V2_1;
 
 typedef struct _ATOM_VRAM_INFO_HEADER_V2_2
 {
-  ATOM_COMMON_TABLE_HEADER   sHeader;
-  USHORT                     usMemAdjustTblOffset;                           // offset of ATOM_INIT_REG_BLOCK structure for memory vendor specific MC adjust setting
-  USHORT                     usMemClkPatchTblOffset;                         // offset of ATOM_INIT_REG_BLOCK structure for memory clock specific MC setting
-  USHORT                     usMcAdjustPerTileTblOffset;                     // offset of ATOM_INIT_REG_BLOCK structure for Per Byte Offset Preset Settings
-  USHORT                     usMcPhyInitTableOffset;                         // offset of ATOM_INIT_REG_BLOCK structure for MC phy init set
-  USHORT                     usDramDataRemapTblOffset;                       // offset of ATOM_DRAM_DATA_REMAP array to indicate DRAM data lane to GPU mapping
-  USHORT                     usReserved1;
-  UCHAR                      ucNumOfVRAMModule;                              // indicate number of VRAM module
-  UCHAR                      ucMemoryClkPatchTblVer;                         // version of memory AC timing register list
-  UCHAR                      ucVramModuleVer;                                // indicate ATOM_VRAM_MODUE version
-  UCHAR                      ucMcPhyTileNum;                                 // indicate the MCD tile number which use in DramDataRemapTbl and usMcAdjustPerTileTblOffset
-  ATOM_VRAM_MODULE_V8        aVramInfo[ATOM_MAX_NUMBER_OF_VRAM_MODULE];      // just for allocation, real number of blocks is in ucNumOfVRAMModule;
-}ATOM_VRAM_INFO_HEADER_V2_2;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	USHORT
+	usMemAdjustTblOffset;                           // offset of ATOM_INIT_REG_BLOCK structure for memory vendor specific MC adjust setting
+	USHORT
+	usMemClkPatchTblOffset;                         // offset of ATOM_INIT_REG_BLOCK structure for memory clock specific MC setting
+	USHORT
+	usMcAdjustPerTileTblOffset;                     // offset of ATOM_INIT_REG_BLOCK structure for Per Byte Offset Preset Settings
+	USHORT
+	usMcPhyInitTableOffset;                         // offset of ATOM_INIT_REG_BLOCK structure for MC phy init set
+	USHORT
+	usDramDataRemapTblOffset;                       // offset of ATOM_DRAM_DATA_REMAP array to indicate DRAM data lane to GPU mapping
+	USHORT                     usReserved1;
+	UCHAR                      ucNumOfVRAMModule;                              // indicate number of VRAM module
+	UCHAR                      ucMemoryClkPatchTblVer;                         // version of memory AC timing register list
+	UCHAR                      ucVramModuleVer;                                // indicate ATOM_VRAM_MODUE version
+	UCHAR
+	ucMcPhyTileNum;                                 // indicate the MCD tile number which use in DramDataRemapTbl and usMcAdjustPerTileTblOffset
+	ATOM_VRAM_MODULE_V8
+	aVramInfo[ATOM_MAX_NUMBER_OF_VRAM_MODULE];      // just for allocation, real number of blocks is in ucNumOfVRAMModule;
+} ATOM_VRAM_INFO_HEADER_V2_2;
 
 
 typedef struct _ATOM_DRAM_DATA_REMAP
 {
-  UCHAR ucByteRemapCh0;
-  UCHAR ucByteRemapCh1;
-  ULONG ulByte0BitRemapCh0;
-  ULONG ulByte1BitRemapCh0;
-  ULONG ulByte2BitRemapCh0;
-  ULONG ulByte3BitRemapCh0;
-  ULONG ulByte0BitRemapCh1;
-  ULONG ulByte1BitRemapCh1;
-  ULONG ulByte2BitRemapCh1;
-  ULONG ulByte3BitRemapCh1;
-}ATOM_DRAM_DATA_REMAP;
+	UCHAR ucByteRemapCh0;
+	UCHAR ucByteRemapCh1;
+	ULONG ulByte0BitRemapCh0;
+	ULONG ulByte1BitRemapCh0;
+	ULONG ulByte2BitRemapCh0;
+	ULONG ulByte3BitRemapCh0;
+	ULONG ulByte0BitRemapCh1;
+	ULONG ulByte1BitRemapCh1;
+	ULONG ulByte2BitRemapCh1;
+	ULONG ulByte3BitRemapCh1;
+} ATOM_DRAM_DATA_REMAP;
 
 typedef struct _ATOM_VRAM_GPIO_DETECTION_INFO
 {
-  ATOM_COMMON_TABLE_HEADER   sHeader;
-  UCHAR                      aVID_PinsShift[9];                              // 8 bit strap maximum+terminator
-}ATOM_VRAM_GPIO_DETECTION_INFO;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	UCHAR                      aVID_PinsShift[9];                              // 8 bit strap maximum+terminator
+} ATOM_VRAM_GPIO_DETECTION_INFO;
 
 
 typedef struct _ATOM_MEMORY_TRAINING_INFO
 {
-   ATOM_COMMON_TABLE_HEADER   sHeader;
-   UCHAR                                  ucTrainingLoop;
-   UCHAR                                  ucReserved[3];
-   ATOM_INIT_REG_BLOCK             asMemTrainingSetting;
-}ATOM_MEMORY_TRAINING_INFO;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	UCHAR                                  ucTrainingLoop;
+	UCHAR                                  ucReserved[3];
+	ATOM_INIT_REG_BLOCK             asMemTrainingSetting;
+} ATOM_MEMORY_TRAINING_INFO;
 
 
 typedef struct _ATOM_MEMORY_TRAINING_INFO_V3_1
 {
-   ATOM_COMMON_TABLE_HEADER   sHeader;
-   ULONG                      ulMCUcodeVersion;
-   USHORT                     usMCIOInitLen;         //len of ATOM_REG_INIT_SETTING array
-   USHORT                     usMCUcodeLen;          //len of ATOM_MC_UCODE_DATA array
-   USHORT                     usMCIORegInitOffset;   //point of offset of ATOM_REG_INIT_SETTING array
-   USHORT                     usMCUcodeOffset;       //point of offset of MC uCode ULONG array.
-}ATOM_MEMORY_TRAINING_INFO_V3_1;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	ULONG                      ulMCUcodeVersion;
+	USHORT                     usMCIOInitLen;         //len of ATOM_REG_INIT_SETTING array
+	USHORT                     usMCUcodeLen;          //len of ATOM_MC_UCODE_DATA array
+	USHORT                     usMCIORegInitOffset;   //point of offset of ATOM_REG_INIT_SETTING array
+	USHORT                     usMCUcodeOffset;       //point of offset of MC uCode ULONG array.
+} ATOM_MEMORY_TRAINING_INFO_V3_1;
 
 
 typedef struct SW_I2C_CNTL_DATA_PARAMETERS
 {
-  UCHAR    ucControl;
-  UCHAR    ucData;
-  UCHAR    ucSatus;
-  UCHAR    ucTemp;
+	UCHAR    ucControl;
+	UCHAR    ucData;
+	UCHAR    ucSatus;
+	UCHAR    ucTemp;
 } SW_I2C_CNTL_DATA_PARAMETERS;
 
 #define SW_I2C_CNTL_DATA_PS_ALLOCATION  SW_I2C_CNTL_DATA_PARAMETERS
 
 typedef struct _SW_I2C_IO_DATA_PARAMETERS
 {
-  USHORT   GPIO_Info;
-  UCHAR    ucAct;
-  UCHAR    ucData;
- } SW_I2C_IO_DATA_PARAMETERS;
+	USHORT   GPIO_Info;
+	UCHAR    ucAct;
+	UCHAR    ucData;
+} SW_I2C_IO_DATA_PARAMETERS;
 
 #define SW_I2C_IO_DATA_PS_ALLOCATION  SW_I2C_IO_DATA_PARAMETERS
 
@@ -8104,119 +8252,119 @@ typedef struct _SW_I2C_IO_DATA_PARAMETERS
 
 typedef struct _PTR_32_BIT_STRUCTURE
 {
-   USHORT   Offset16;
-   USHORT   Segment16;
+	USHORT   Offset16;
+	USHORT   Segment16;
 } PTR_32_BIT_STRUCTURE;
 
 typedef union _PTR_32_BIT_UNION
 {
-   PTR_32_BIT_STRUCTURE   SegmentOffset;
-   ULONG                       Ptr32_Bit;
+	PTR_32_BIT_STRUCTURE   SegmentOffset;
+	ULONG                       Ptr32_Bit;
 } PTR_32_BIT_UNION;
 
 typedef struct _VBE_1_2_INFO_BLOCK_UPDATABLE
 {
-   UCHAR                  VbeSignature[4];
-   USHORT                VbeVersion;
-   PTR_32_BIT_UNION   OemStringPtr;
-   UCHAR                  Capabilities[4];
-   PTR_32_BIT_UNION   VideoModePtr;
-   USHORT                TotalMemory;
+	UCHAR                  VbeSignature[4];
+	USHORT                VbeVersion;
+	PTR_32_BIT_UNION   OemStringPtr;
+	UCHAR                  Capabilities[4];
+	PTR_32_BIT_UNION   VideoModePtr;
+	USHORT                TotalMemory;
 } VBE_1_2_INFO_BLOCK_UPDATABLE;
 
 
 typedef struct _VBE_2_0_INFO_BLOCK_UPDATABLE
 {
-   VBE_1_2_INFO_BLOCK_UPDATABLE   CommonBlock;
-   USHORT                         OemSoftRev;
-   PTR_32_BIT_UNION            OemVendorNamePtr;
-   PTR_32_BIT_UNION            OemProductNamePtr;
-   PTR_32_BIT_UNION            OemProductRevPtr;
+	VBE_1_2_INFO_BLOCK_UPDATABLE   CommonBlock;
+	USHORT                         OemSoftRev;
+	PTR_32_BIT_UNION            OemVendorNamePtr;
+	PTR_32_BIT_UNION            OemProductNamePtr;
+	PTR_32_BIT_UNION            OemProductRevPtr;
 } VBE_2_0_INFO_BLOCK_UPDATABLE;
 
 typedef union _VBE_VERSION_UNION
 {
-   VBE_2_0_INFO_BLOCK_UPDATABLE   VBE_2_0_InfoBlock;
-   VBE_1_2_INFO_BLOCK_UPDATABLE   VBE_1_2_InfoBlock;
+	VBE_2_0_INFO_BLOCK_UPDATABLE   VBE_2_0_InfoBlock;
+	VBE_1_2_INFO_BLOCK_UPDATABLE   VBE_1_2_InfoBlock;
 } VBE_VERSION_UNION;
 
 typedef struct _VBE_INFO_BLOCK
 {
-   VBE_VERSION_UNION         UpdatableVBE_Info;
-   UCHAR                        Reserved[222];
-   UCHAR                        OemData[256];
+	VBE_VERSION_UNION         UpdatableVBE_Info;
+	UCHAR                        Reserved[222];
+	UCHAR                        OemData[256];
 } VBE_INFO_BLOCK;
 
 typedef struct _VBE_FP_INFO
 {
-  USHORT   HSize;
-  USHORT   VSize;
-  USHORT   FPType;
-  UCHAR    RedBPP;
-  UCHAR    GreenBPP;
-  UCHAR    BlueBPP;
-  UCHAR    ReservedBPP;
-  ULONG    RsvdOffScrnMemSize;
-  ULONG    RsvdOffScrnMEmPtr;
-  UCHAR    Reserved[14];
+	USHORT   HSize;
+	USHORT   VSize;
+	USHORT   FPType;
+	UCHAR    RedBPP;
+	UCHAR    GreenBPP;
+	UCHAR    BlueBPP;
+	UCHAR    ReservedBPP;
+	ULONG    RsvdOffScrnMemSize;
+	ULONG    RsvdOffScrnMEmPtr;
+	UCHAR    Reserved[14];
 } VBE_FP_INFO;
 
 typedef struct _VESA_MODE_INFO_BLOCK
 {
-// Mandatory information for all VBE revisions
-  USHORT   ModeAttributes;  //         dw   ?   ; mode attributes
-  UCHAR    WinAAttributes;  //         db   ?   ; window A attributes
-  UCHAR    WinBAttributes;  //         db   ?   ; window B attributes
-  USHORT   WinGranularity;  //         dw   ?   ; window granularity
-  USHORT   WinSize;         //         dw   ?   ; window size
-  USHORT   WinASegment;     //         dw   ?   ; window A start segment
-  USHORT   WinBSegment;     //         dw   ?   ; window B start segment
-  ULONG    WinFuncPtr;      //         dd   ?   ; real mode pointer to window function
-  USHORT   BytesPerScanLine;//         dw   ?   ; bytes per scan line
+	// Mandatory information for all VBE revisions
+	USHORT   ModeAttributes;  //         dw   ?   ; mode attributes
+	UCHAR    WinAAttributes;  //         db   ?   ; window A attributes
+	UCHAR    WinBAttributes;  //         db   ?   ; window B attributes
+	USHORT   WinGranularity;  //         dw   ?   ; window granularity
+	USHORT   WinSize;         //         dw   ?   ; window size
+	USHORT   WinASegment;     //         dw   ?   ; window A start segment
+	USHORT   WinBSegment;     //         dw   ?   ; window B start segment
+	ULONG    WinFuncPtr;      //         dd   ?   ; real mode pointer to window function
+	USHORT   BytesPerScanLine;//         dw   ?   ; bytes per scan line
 
-//; Mandatory information for VBE 1.2 and above
-  USHORT   XResolution;      //         dw   ?   ; horizontal resolution in pixels or characters
-  USHORT   YResolution;      //         dw   ?   ; vertical resolution in pixels or characters
-  UCHAR    XCharSize;        //         db   ?   ; character cell width in pixels
-  UCHAR    YCharSize;        //         db   ?   ; character cell height in pixels
-  UCHAR    NumberOfPlanes;   //         db   ?   ; number of memory planes
-  UCHAR    BitsPerPixel;     //         db   ?   ; bits per pixel
-  UCHAR    NumberOfBanks;    //         db   ?   ; number of banks
-  UCHAR    MemoryModel;      //         db   ?   ; memory model type
-  UCHAR    BankSize;         //         db   ?   ; bank size in KB
-  UCHAR    NumberOfImagePages;//        db   ?   ; number of images
-  UCHAR    ReservedForPageFunction;//db   1   ; reserved for page function
+	//; Mandatory information for VBE 1.2 and above
+	USHORT   XResolution;      //         dw   ?   ; horizontal resolution in pixels or characters
+	USHORT   YResolution;      //         dw   ?   ; vertical resolution in pixels or characters
+	UCHAR    XCharSize;        //         db   ?   ; character cell width in pixels
+	UCHAR    YCharSize;        //         db   ?   ; character cell height in pixels
+	UCHAR    NumberOfPlanes;   //         db   ?   ; number of memory planes
+	UCHAR    BitsPerPixel;     //         db   ?   ; bits per pixel
+	UCHAR    NumberOfBanks;    //         db   ?   ; number of banks
+	UCHAR    MemoryModel;      //         db   ?   ; memory model type
+	UCHAR    BankSize;         //         db   ?   ; bank size in KB
+	UCHAR    NumberOfImagePages;//        db   ?   ; number of images
+	UCHAR    ReservedForPageFunction;//db   1   ; reserved for page function
 
-//; Direct Color fields(required for direct/6 and YUV/7 memory models)
-  UCHAR    RedMaskSize;        //      db   ?   ; size of direct color red mask in bits
-  UCHAR    RedFieldPosition;   //      db   ?   ; bit position of lsb of red mask
-  UCHAR    GreenMaskSize;      //      db   ?   ; size of direct color green mask in bits
-  UCHAR    GreenFieldPosition; //      db   ?   ; bit position of lsb of green mask
-  UCHAR    BlueMaskSize;       //      db   ?   ; size of direct color blue mask in bits
-  UCHAR    BlueFieldPosition;  //      db   ?   ; bit position of lsb of blue mask
-  UCHAR    RsvdMaskSize;       //      db   ?   ; size of direct color reserved mask in bits
-  UCHAR    RsvdFieldPosition;  //      db   ?   ; bit position of lsb of reserved mask
-  UCHAR    DirectColorModeInfo;//      db   ?   ; direct color mode attributes
+	//; Direct Color fields(required for direct/6 and YUV/7 memory models)
+	UCHAR    RedMaskSize;        //      db   ?   ; size of direct color red mask in bits
+	UCHAR    RedFieldPosition;   //      db   ?   ; bit position of lsb of red mask
+	UCHAR    GreenMaskSize;      //      db   ?   ; size of direct color green mask in bits
+	UCHAR    GreenFieldPosition; //      db   ?   ; bit position of lsb of green mask
+	UCHAR    BlueMaskSize;       //      db   ?   ; size of direct color blue mask in bits
+	UCHAR    BlueFieldPosition;  //      db   ?   ; bit position of lsb of blue mask
+	UCHAR    RsvdMaskSize;       //      db   ?   ; size of direct color reserved mask in bits
+	UCHAR    RsvdFieldPosition;  //      db   ?   ; bit position of lsb of reserved mask
+	UCHAR    DirectColorModeInfo;//      db   ?   ; direct color mode attributes
 
-//; Mandatory information for VBE 2.0 and above
-  ULONG    PhysBasePtr;        //      dd   ?   ; physical address for flat memory frame buffer
-  ULONG    Reserved_1;         //      dd   0   ; reserved - always set to 0
-  USHORT   Reserved_2;         //     dw   0   ; reserved - always set to 0
+	//; Mandatory information for VBE 2.0 and above
+	ULONG    PhysBasePtr;        //      dd   ?   ; physical address for flat memory frame buffer
+	ULONG    Reserved_1;         //      dd   0   ; reserved - always set to 0
+	USHORT   Reserved_2;         //     dw   0   ; reserved - always set to 0
 
-//; Mandatory information for VBE 3.0 and above
-  USHORT   LinBytesPerScanLine;  //   dw   ?   ; bytes per scan line for linear modes
-  UCHAR    BnkNumberOfImagePages;//   db   ?   ; number of images for banked modes
-  UCHAR    LinNumberOfImagPages; //   db   ?   ; number of images for linear modes
-  UCHAR    LinRedMaskSize;       //   db   ?   ; size of direct color red mask(linear modes)
-  UCHAR    LinRedFieldPosition;  //   db   ?   ; bit position of lsb of red mask(linear modes)
-  UCHAR    LinGreenMaskSize;     //   db   ?   ; size of direct color green mask(linear modes)
-  UCHAR    LinGreenFieldPosition;//   db   ?   ; bit position of lsb of green mask(linear modes)
-  UCHAR    LinBlueMaskSize;      //   db   ?   ; size of direct color blue mask(linear modes)
-  UCHAR    LinBlueFieldPosition; //   db   ?   ; bit position of lsb of blue mask(linear modes)
-  UCHAR    LinRsvdMaskSize;      //   db   ?   ; size of direct color reserved mask(linear modes)
-  UCHAR    LinRsvdFieldPosition; //   db   ?   ; bit position of lsb of reserved mask(linear modes)
-  ULONG    MaxPixelClock;        //   dd   ?   ; maximum pixel clock(in Hz) for graphics mode
-  UCHAR    Reserved;             //   db   190 dup (0)
+	//; Mandatory information for VBE 3.0 and above
+	USHORT   LinBytesPerScanLine;  //   dw   ?   ; bytes per scan line for linear modes
+	UCHAR    BnkNumberOfImagePages;//   db   ?   ; number of images for banked modes
+	UCHAR    LinNumberOfImagPages; //   db   ?   ; number of images for linear modes
+	UCHAR    LinRedMaskSize;       //   db   ?   ; size of direct color red mask(linear modes)
+	UCHAR    LinRedFieldPosition;  //   db   ?   ; bit position of lsb of red mask(linear modes)
+	UCHAR    LinGreenMaskSize;     //   db   ?   ; size of direct color green mask(linear modes)
+	UCHAR    LinGreenFieldPosition;//   db   ?   ; bit position of lsb of green mask(linear modes)
+	UCHAR    LinBlueMaskSize;      //   db   ?   ; size of direct color blue mask(linear modes)
+	UCHAR    LinBlueFieldPosition; //   db   ?   ; bit position of lsb of blue mask(linear modes)
+	UCHAR    LinRsvdMaskSize;      //   db   ?   ; size of direct color reserved mask(linear modes)
+	UCHAR    LinRsvdFieldPosition; //   db   ?   ; bit position of lsb of reserved mask(linear modes)
+	ULONG    MaxPixelClock;        //   dd   ?   ; maximum pixel clock(in Hz) for graphics mode
+	UCHAR    Reserved;             //   db   190 dup (0)
 } VESA_MODE_INFO_BLOCK;
 
 // BIOS function CALLS
@@ -8270,15 +8418,15 @@ typedef struct _VESA_MODE_INFO_BLOCK
 //DispOutInfoTable
 typedef struct _ASIC_TRANSMITTER_INFO
 {
-   USHORT usTransmitterObjId;
-   USHORT usSupportDevice;
-   UCHAR  ucTransmitterCmdTblId;
-   UCHAR  ucConfig;
-   UCHAR  ucEncoderID;                //available 1st encoder ( default )
-   UCHAR  ucOptionEncoderID;    //available 2nd encoder ( optional )
-   UCHAR  uc2ndEncoderID;
-   UCHAR  ucReserved;
-}ASIC_TRANSMITTER_INFO;
+	USHORT usTransmitterObjId;
+	USHORT usSupportDevice;
+	UCHAR  ucTransmitterCmdTblId;
+	UCHAR  ucConfig;
+	UCHAR  ucEncoderID;                //available 1st encoder ( default )
+	UCHAR  ucOptionEncoderID;    //available 2nd encoder ( optional )
+	UCHAR  uc2ndEncoderID;
+	UCHAR  ucReserved;
+} ASIC_TRANSMITTER_INFO;
 
 #define ASIC_TRANSMITTER_INFO_CONFIG__DVO_SDR_MODE          0x01
 #define ASIC_TRANSMITTER_INFO_CONFIG__COHERENT_MODE         0x02
@@ -8292,36 +8440,37 @@ typedef struct _ASIC_TRANSMITTER_INFO
 
 typedef struct _ASIC_ENCODER_INFO
 {
-   UCHAR ucEncoderID;
-   UCHAR ucEncoderConfig;
-  USHORT usEncoderCmdTblId;
-}ASIC_ENCODER_INFO;
+	UCHAR ucEncoderID;
+	UCHAR ucEncoderConfig;
+	USHORT usEncoderCmdTblId;
+} ASIC_ENCODER_INFO;
 
 typedef struct _ATOM_DISP_OUT_INFO
 {
-  ATOM_COMMON_TABLE_HEADER sHeader;
-   USHORT ptrTransmitterInfo;
-   USHORT ptrEncoderInfo;
-   ASIC_TRANSMITTER_INFO  asTransmitterInfo[1];
-   ASIC_ENCODER_INFO      asEncoderInfo[1];
-}ATOM_DISP_OUT_INFO;
+	ATOM_COMMON_TABLE_HEADER sHeader;
+	USHORT ptrTransmitterInfo;
+	USHORT ptrEncoderInfo;
+	ASIC_TRANSMITTER_INFO  asTransmitterInfo[1];
+	ASIC_ENCODER_INFO      asEncoderInfo[1];
+} ATOM_DISP_OUT_INFO;
 
 
 typedef struct _ATOM_DISP_OUT_INFO_V2
 {
-  ATOM_COMMON_TABLE_HEADER sHeader;
-   USHORT ptrTransmitterInfo;
-   USHORT ptrEncoderInfo;
-  USHORT ptrMainCallParserFar;                  // direct address of main parser call in VBIOS binary.
-   ASIC_TRANSMITTER_INFO  asTransmitterInfo[1];
-   ASIC_ENCODER_INFO      asEncoderInfo[1];
-}ATOM_DISP_OUT_INFO_V2;
+	ATOM_COMMON_TABLE_HEADER sHeader;
+	USHORT ptrTransmitterInfo;
+	USHORT ptrEncoderInfo;
+	USHORT ptrMainCallParserFar;                  // direct address of main parser call in VBIOS binary.
+	ASIC_TRANSMITTER_INFO  asTransmitterInfo[1];
+	ASIC_ENCODER_INFO      asEncoderInfo[1];
+} ATOM_DISP_OUT_INFO_V2;
 
 
-typedef struct _ATOM_DISP_CLOCK_ID {
-  UCHAR ucPpllId;
-  UCHAR ucPpllAttribute;
-}ATOM_DISP_CLOCK_ID;
+typedef struct _ATOM_DISP_CLOCK_ID
+{
+	UCHAR ucPpllId;
+	UCHAR ucPpllAttribute;
+} ATOM_DISP_CLOCK_ID;
 
 // ucPpllAttribute
 #define CLOCK_SOURCE_SHAREABLE            0x01
@@ -8331,79 +8480,80 @@ typedef struct _ATOM_DISP_CLOCK_ID {
 //DispOutInfoTable
 typedef struct _ASIC_TRANSMITTER_INFO_V2
 {
-   USHORT usTransmitterObjId;
-   USHORT usDispClkIdOffset;    // point to clock source id list supported by Encoder Object
-  UCHAR  ucTransmitterCmdTblId;
-   UCHAR  ucConfig;
-   UCHAR  ucEncoderID;                // available 1st encoder ( default )
-   UCHAR  ucOptionEncoderID;    // available 2nd encoder ( optional )
-   UCHAR  uc2ndEncoderID;
-   UCHAR  ucReserved;
-}ASIC_TRANSMITTER_INFO_V2;
+	USHORT usTransmitterObjId;
+	USHORT usDispClkIdOffset;    // point to clock source id list supported by Encoder Object
+	UCHAR  ucTransmitterCmdTblId;
+	UCHAR  ucConfig;
+	UCHAR  ucEncoderID;                // available 1st encoder ( default )
+	UCHAR  ucOptionEncoderID;    // available 2nd encoder ( optional )
+	UCHAR  uc2ndEncoderID;
+	UCHAR  ucReserved;
+} ASIC_TRANSMITTER_INFO_V2;
 
 typedef struct _ATOM_DISP_OUT_INFO_V3
 {
-  ATOM_COMMON_TABLE_HEADER sHeader;
-  USHORT ptrTransmitterInfo;
-  USHORT ptrEncoderInfo;
-  USHORT ptrMainCallParserFar;                  // direct address of main parser call in VBIOS binary.
-  USHORT usReserved;
-  UCHAR  ucDCERevision;
-  UCHAR  ucMaxDispEngineNum;
-  UCHAR  ucMaxActiveDispEngineNum;
-  UCHAR  ucMaxPPLLNum;
-  UCHAR  ucCoreRefClkSource;                    // value of CORE_REF_CLK_SOURCE
-  UCHAR  ucDispCaps;
-  UCHAR  ucReserved[2];
-  ASIC_TRANSMITTER_INFO_V2  asTransmitterInfo[1];     // for alligment only
-}ATOM_DISP_OUT_INFO_V3;
+	ATOM_COMMON_TABLE_HEADER sHeader;
+	USHORT ptrTransmitterInfo;
+	USHORT ptrEncoderInfo;
+	USHORT ptrMainCallParserFar;                  // direct address of main parser call in VBIOS binary.
+	USHORT usReserved;
+	UCHAR  ucDCERevision;
+	UCHAR  ucMaxDispEngineNum;
+	UCHAR  ucMaxActiveDispEngineNum;
+	UCHAR  ucMaxPPLLNum;
+	UCHAR  ucCoreRefClkSource;                    // value of CORE_REF_CLK_SOURCE
+	UCHAR  ucDispCaps;
+	UCHAR  ucReserved[2];
+	ASIC_TRANSMITTER_INFO_V2  asTransmitterInfo[1];     // for alligment only
+} ATOM_DISP_OUT_INFO_V3;
 
 //ucDispCaps
 #define DISPLAY_CAPS__DP_PCLK_FROM_PPLL        0x01
 #define DISPLAY_CAPS__FORCE_DISPDEV_CONNECTED  0x02
 
-typedef enum CORE_REF_CLK_SOURCE{
-  CLOCK_SRC_XTALIN=0,
-  CLOCK_SRC_XO_IN=1,
-  CLOCK_SRC_XO_IN2=2,
-}CORE_REF_CLK_SOURCE;
+typedef enum CORE_REF_CLK_SOURCE
+{
+	CLOCK_SRC_XTALIN = 0,
+	CLOCK_SRC_XO_IN = 1,
+	CLOCK_SRC_XO_IN2 = 2,
+} CORE_REF_CLK_SOURCE;
 
 // DispDevicePriorityInfo
 typedef struct _ATOM_DISPLAY_DEVICE_PRIORITY_INFO
 {
-  ATOM_COMMON_TABLE_HEADER sHeader;
-   USHORT asDevicePriority[16];
-}ATOM_DISPLAY_DEVICE_PRIORITY_INFO;
+	ATOM_COMMON_TABLE_HEADER sHeader;
+	USHORT asDevicePriority[16];
+} ATOM_DISPLAY_DEVICE_PRIORITY_INFO;
 
 //ProcessAuxChannelTransactionTable
 typedef struct _PROCESS_AUX_CHANNEL_TRANSACTION_PARAMETERS
 {
-   USHORT  lpAuxRequest;
-   USHORT  lpDataOut;
-   UCHAR   ucChannelID;
-   union
-   {
-  UCHAR   ucReplyStatus;
-   UCHAR   ucDelay;
-   };
-  UCHAR   ucDataOutLen;
-   UCHAR   ucReserved;
-}PROCESS_AUX_CHANNEL_TRANSACTION_PARAMETERS;
+	USHORT  lpAuxRequest;
+	USHORT  lpDataOut;
+	UCHAR   ucChannelID;
+	union
+	{
+		UCHAR   ucReplyStatus;
+		UCHAR   ucDelay;
+	};
+	UCHAR   ucDataOutLen;
+	UCHAR   ucReserved;
+} PROCESS_AUX_CHANNEL_TRANSACTION_PARAMETERS;
 
 //ProcessAuxChannelTransactionTable
 typedef struct _PROCESS_AUX_CHANNEL_TRANSACTION_PARAMETERS_V2
 {
-   USHORT   lpAuxRequest;
-   USHORT  lpDataOut;
-   UCHAR      ucChannelID;
-   union
-   {
-  UCHAR   ucReplyStatus;
-   UCHAR   ucDelay;
-   };
-  UCHAR   ucDataOutLen;
-   UCHAR   ucHPD_ID;                                       //=0: HPD1, =1: HPD2, =2: HPD3, =3: HPD4, =4: HPD5, =5: HPD6
-}PROCESS_AUX_CHANNEL_TRANSACTION_PARAMETERS_V2;
+	USHORT   lpAuxRequest;
+	USHORT  lpDataOut;
+	UCHAR      ucChannelID;
+	union
+	{
+		UCHAR   ucReplyStatus;
+		UCHAR   ucDelay;
+	};
+	UCHAR   ucDataOutLen;
+	UCHAR   ucHPD_ID;                                       //=0: HPD1, =1: HPD2, =2: HPD3, =3: HPD4, =4: HPD5, =5: HPD6
+} PROCESS_AUX_CHANNEL_TRANSACTION_PARAMETERS_V2;
 
 #define PROCESS_AUX_CHANNEL_TRANSACTION_PS_ALLOCATION         PROCESS_AUX_CHANNEL_TRANSACTION_PARAMETERS
 
@@ -8411,17 +8561,17 @@ typedef struct _PROCESS_AUX_CHANNEL_TRANSACTION_PARAMETERS_V2
 
 typedef struct _DP_ENCODER_SERVICE_PARAMETERS
 {
-   USHORT ucLinkClock;
-   union
-   {
-   UCHAR ucConfig;            // for DP training command
-   UCHAR ucI2cId;            // use for GET_SINK_TYPE command
-   };
-   UCHAR ucAction;
-   UCHAR ucStatus;
-   UCHAR ucLaneNum;
-   UCHAR ucReserved[2];
-}DP_ENCODER_SERVICE_PARAMETERS;
+	USHORT ucLinkClock;
+	union
+	{
+		UCHAR ucConfig;            // for DP training command
+		UCHAR ucI2cId;            // use for GET_SINK_TYPE command
+	};
+	UCHAR ucAction;
+	UCHAR ucStatus;
+	UCHAR ucLaneNum;
+	UCHAR ucReserved[2];
+} DP_ENCODER_SERVICE_PARAMETERS;
 
 // ucAction
 #define ATOM_DP_ACTION_GET_SINK_TYPE                     0x01
@@ -8431,19 +8581,19 @@ typedef struct _DP_ENCODER_SERVICE_PARAMETERS
 
 typedef struct _DP_ENCODER_SERVICE_PARAMETERS_V2
 {
-   USHORT usExtEncoderObjId;   // External Encoder Object Id, output parameter only, use when ucAction = DP_SERVICE_V2_ACTION_DET_EXT_CONNECTION
-  UCHAR  ucAuxId;
-  UCHAR  ucAction;
-  UCHAR  ucSinkType;          // Iput and Output parameters.
-  UCHAR  ucHPDId;             // Input parameter, used when ucAction = DP_SERVICE_V2_ACTION_DET_EXT_CONNECTION
-   UCHAR  ucReserved[2];
-}DP_ENCODER_SERVICE_PARAMETERS_V2;
+	USHORT usExtEncoderObjId;   // External Encoder Object Id, output parameter only, use when ucAction = DP_SERVICE_V2_ACTION_DET_EXT_CONNECTION
+	UCHAR  ucAuxId;
+	UCHAR  ucAction;
+	UCHAR  ucSinkType;          // Iput and Output parameters.
+	UCHAR  ucHPDId;             // Input parameter, used when ucAction = DP_SERVICE_V2_ACTION_DET_EXT_CONNECTION
+	UCHAR  ucReserved[2];
+} DP_ENCODER_SERVICE_PARAMETERS_V2;
 
 typedef struct _DP_ENCODER_SERVICE_PS_ALLOCATION_V2
 {
-  DP_ENCODER_SERVICE_PARAMETERS_V2 asDPServiceParam;
-  PROCESS_AUX_CHANNEL_TRANSACTION_PARAMETERS_V2 asAuxParam;
-}DP_ENCODER_SERVICE_PS_ALLOCATION_V2;
+	DP_ENCODER_SERVICE_PARAMETERS_V2 asDPServiceParam;
+	PROCESS_AUX_CHANNEL_TRANSACTION_PARAMETERS_V2 asAuxParam;
+} DP_ENCODER_SERVICE_PS_ALLOCATION_V2;
 
 // ucAction
 #define DP_SERVICE_V2_ACTION_GET_SINK_TYPE                     0x01
@@ -8468,18 +8618,18 @@ typedef struct _DP_ENCODER_SERVICE_PS_ALLOCATION_V2
 
 typedef struct _PROCESS_I2C_CHANNEL_TRANSACTION_PARAMETERS
 {
-   UCHAR   ucI2CSpeed;
-    union
-   {
-   UCHAR ucRegIndex;
-   UCHAR ucStatus;
-   };
-   USHORT  lpI2CDataOut;
-  UCHAR   ucFlag;
-  UCHAR   ucTransBytes;
-  UCHAR   ucSlaveAddr;
-  UCHAR   ucLineNumber;
-}PROCESS_I2C_CHANNEL_TRANSACTION_PARAMETERS;
+	UCHAR   ucI2CSpeed;
+	union
+	{
+		UCHAR ucRegIndex;
+		UCHAR ucStatus;
+	};
+	USHORT  lpI2CDataOut;
+	UCHAR   ucFlag;
+	UCHAR   ucTransBytes;
+	UCHAR   ucSlaveAddr;
+	UCHAR   ucLineNumber;
+} PROCESS_I2C_CHANNEL_TRANSACTION_PARAMETERS;
 
 #define PROCESS_I2C_CHANNEL_TRANSACTION_PS_ALLOCATION       PROCESS_I2C_CHANNEL_TRANSACTION_PARAMETERS
 
@@ -8493,17 +8643,17 @@ typedef struct _PROCESS_I2C_CHANNEL_TRANSACTION_PARAMETERS
 /****************************************************************************/
 typedef struct  _ATOM_HW_MISC_OPERATION_INPUT_PARAMETER_V1_1
 {
-  UCHAR  ucCmd;                //  Input: To tell which action to take
-  UCHAR  ucReserved[3];
-  ULONG  ulReserved;
-}ATOM_HW_MISC_OPERATION_INPUT_PARAMETER_V1_1;
+	UCHAR  ucCmd;                //  Input: To tell which action to take
+	UCHAR  ucReserved[3];
+	ULONG  ulReserved;
+} ATOM_HW_MISC_OPERATION_INPUT_PARAMETER_V1_1;
 
 typedef struct  _ATOM_HW_MISC_OPERATION_OUTPUT_PARAMETER_V1_1
 {
-  UCHAR  ucReturnCode;        // Output: Return value base on action was taken
-  UCHAR  ucReserved[3];
-  ULONG  ulReserved;
-}ATOM_HW_MISC_OPERATION_OUTPUT_PARAMETER_V1_1;
+	UCHAR  ucReturnCode;        // Output: Return value base on action was taken
+	UCHAR  ucReserved[3];
+	ULONG  ulReserved;
+} ATOM_HW_MISC_OPERATION_OUTPUT_PARAMETER_V1_1;
 
 // Actions code
 #define  ATOM_GET_SDI_SUPPORT              0xF0
@@ -8515,17 +8665,17 @@ typedef struct  _ATOM_HW_MISC_OPERATION_OUTPUT_PARAMETER_V1_1
 
 typedef struct _ATOM_HW_MISC_OPERATION_PS_ALLOCATION
 {
-   ATOM_HW_MISC_OPERATION_INPUT_PARAMETER_V1_1        sInput_Output;
-   PROCESS_I2C_CHANNEL_TRANSACTION_PARAMETERS         sReserved;
-}ATOM_HW_MISC_OPERATION_PS_ALLOCATION;
+	ATOM_HW_MISC_OPERATION_INPUT_PARAMETER_V1_1        sInput_Output;
+	PROCESS_I2C_CHANNEL_TRANSACTION_PARAMETERS         sReserved;
+} ATOM_HW_MISC_OPERATION_PS_ALLOCATION;
 
 /****************************************************************************/
 
 typedef struct _SET_HWBLOCK_INSTANCE_PARAMETER_V2
 {
-   UCHAR ucHWBlkInst;                // HW block instance, 0, 1, 2, ...
-   UCHAR ucReserved[3];
-}SET_HWBLOCK_INSTANCE_PARAMETER_V2;
+	UCHAR ucHWBlkInst;                // HW block instance, 0, 1, 2, ...
+	UCHAR ucReserved[3];
+} SET_HWBLOCK_INSTANCE_PARAMETER_V2;
 
 #define HWBLKINST_INSTANCE_MASK       0x07
 #define HWBLKINST_HWBLK_MASK          0xF0
@@ -8542,106 +8692,119 @@ typedef struct _SET_HWBLOCK_INSTANCE_PARAMETER_V2
 #define SELECT_VGA_BLK                8
 
 // DIGTransmitterInfoTable structure used to program UNIPHY settings
-typedef struct _DIG_TRANSMITTER_INFO_HEADER_V3_1{
-  ATOM_COMMON_TABLE_HEADER sHeader;
-  USHORT usDPVsPreEmphSettingOffset;     // offset of PHY_ANALOG_SETTING_INFO * with DP Voltage Swing and Pre-Emphasis for each Link clock
-  USHORT usPhyAnalogRegListOffset;       // offset of CLOCK_CONDITION_REGESTER_INFO* with None-DP mode Analog Setting's register Info
-  USHORT usPhyAnalogSettingOffset;       // offset of CLOCK_CONDITION_SETTING_ENTRY* with None-DP mode Analog Setting for each link clock range
-  USHORT usPhyPllRegListOffset;          // offset of CLOCK_CONDITION_REGESTER_INFO* with Phy Pll register Info
-  USHORT usPhyPllSettingOffset;          // offset of CLOCK_CONDITION_SETTING_ENTRY* with Phy Pll Settings
-}DIG_TRANSMITTER_INFO_HEADER_V3_1;
+typedef struct _DIG_TRANSMITTER_INFO_HEADER_V3_1
+{
+	ATOM_COMMON_TABLE_HEADER sHeader;
+	USHORT usDPVsPreEmphSettingOffset;     // offset of PHY_ANALOG_SETTING_INFO * with DP Voltage Swing and Pre-Emphasis for each Link clock
+	USHORT usPhyAnalogRegListOffset;       // offset of CLOCK_CONDITION_REGESTER_INFO* with None-DP mode Analog Setting's register Info
+	USHORT usPhyAnalogSettingOffset;       // offset of CLOCK_CONDITION_SETTING_ENTRY* with None-DP mode Analog Setting for each link clock range
+	USHORT usPhyPllRegListOffset;          // offset of CLOCK_CONDITION_REGESTER_INFO* with Phy Pll register Info
+	USHORT usPhyPllSettingOffset;          // offset of CLOCK_CONDITION_SETTING_ENTRY* with Phy Pll Settings
+} DIG_TRANSMITTER_INFO_HEADER_V3_1;
 
-typedef struct _DIG_TRANSMITTER_INFO_HEADER_V3_2{
-  ATOM_COMMON_TABLE_HEADER sHeader;
-  USHORT usDPVsPreEmphSettingOffset;     // offset of PHY_ANALOG_SETTING_INFO * with DP Voltage Swing and Pre-Emphasis for each Link clock
-  USHORT usPhyAnalogRegListOffset;       // offset of CLOCK_CONDITION_REGESTER_INFO* with None-DP mode Analog Setting's register Info
-  USHORT usPhyAnalogSettingOffset;       // offset of CLOCK_CONDITION_SETTING_ENTRY* with None-DP mode Analog Setting for each link clock range
-  USHORT usPhyPllRegListOffset;          // offset of CLOCK_CONDITION_REGESTER_INFO* with Phy Pll register Info
-  USHORT usPhyPllSettingOffset;          // offset of CLOCK_CONDITION_SETTING_ENTRY* with Phy Pll Settings
-  USHORT usDPSSRegListOffset;            // offset of CLOCK_CONDITION_REGESTER_INFO* with Phy SS Pll register Info
-  USHORT usDPSSSettingOffset;            // offset of CLOCK_CONDITION_SETTING_ENTRY* with Phy SS Pll Settings
-}DIG_TRANSMITTER_INFO_HEADER_V3_2;
-
-
-typedef struct _DIG_TRANSMITTER_INFO_HEADER_V3_3{
-  ATOM_COMMON_TABLE_HEADER sHeader;
-  USHORT usDPVsPreEmphSettingOffset;     // offset of PHY_ANALOG_SETTING_INFO * with DP Voltage Swing and Pre-Emphasis for each Link clock
-  USHORT usPhyAnalogRegListOffset;       // offset of CLOCK_CONDITION_REGESTER_INFO* with None-DP mode Analog Setting's register Info
-  USHORT usPhyAnalogSettingOffset;       // offset of CLOCK_CONDITION_SETTING_ENTRY* with None-DP mode Analog Setting for each link clock range
-  USHORT usPhyPllRegListOffset;          // offset of CLOCK_CONDITION_REGESTER_INFO* with Phy Pll register Info
-  USHORT usPhyPllSettingOffset;          // offset of CLOCK_CONDITION_SETTING_ENTRY* with Phy Pll Settings
-  USHORT usDPSSRegListOffset;            // offset of CLOCK_CONDITION_REGESTER_INFO* with Phy SS Pll register Info
-  USHORT usDPSSSettingOffset;            // offset of CLOCK_CONDITION_SETTING_ENTRY* with Phy SS Pll Settings
-  USHORT usEDPVsLegacyModeOffset;        // offset of PHY_ANALOG_SETTING_INFO * with eDP Legacy Mode Voltage Swing and Pre-Emphasis for each Link clock
-  USHORT useDPVsLowVdiffModeOffset;      // offset of PHY_ANALOG_SETTING_INFO * with eDP Low VDiff Mode Voltage Swing and Pre-Emphasis for each Link clock
-  USHORT useDPVsHighVdiffModeOffset;     // offset of PHY_ANALOG_SETTING_INFO * with eDP High VDiff Mode Voltage Swing and Pre-Emphasis for each Link clock
-  USHORT useDPVsStretchModeOffset;       // offset of PHY_ANALOG_SETTING_INFO * with eDP Stretch Mode Voltage Swing and Pre-Emphasis for each Link clock
-  USHORT useDPVsSingleVdiffModeOffset;   // offset of PHY_ANALOG_SETTING_INFO * with eDP Single Vdiff Mode Voltage Swing and Pre-Emphasis for each Link clock
-  USHORT useDPVsVariablePremModeOffset;  // offset of PHY_ANALOG_SETTING_INFO * with eDP Single Vidff+Variable PreEmphasis Voltage Swing and Pre-Emphasis for each Link clock
-}DIG_TRANSMITTER_INFO_HEADER_V3_3;
+typedef struct _DIG_TRANSMITTER_INFO_HEADER_V3_2
+{
+	ATOM_COMMON_TABLE_HEADER sHeader;
+	USHORT usDPVsPreEmphSettingOffset;     // offset of PHY_ANALOG_SETTING_INFO * with DP Voltage Swing and Pre-Emphasis for each Link clock
+	USHORT usPhyAnalogRegListOffset;       // offset of CLOCK_CONDITION_REGESTER_INFO* with None-DP mode Analog Setting's register Info
+	USHORT usPhyAnalogSettingOffset;       // offset of CLOCK_CONDITION_SETTING_ENTRY* with None-DP mode Analog Setting for each link clock range
+	USHORT usPhyPllRegListOffset;          // offset of CLOCK_CONDITION_REGESTER_INFO* with Phy Pll register Info
+	USHORT usPhyPllSettingOffset;          // offset of CLOCK_CONDITION_SETTING_ENTRY* with Phy Pll Settings
+	USHORT usDPSSRegListOffset;            // offset of CLOCK_CONDITION_REGESTER_INFO* with Phy SS Pll register Info
+	USHORT usDPSSSettingOffset;            // offset of CLOCK_CONDITION_SETTING_ENTRY* with Phy SS Pll Settings
+} DIG_TRANSMITTER_INFO_HEADER_V3_2;
 
 
-typedef struct _CLOCK_CONDITION_REGESTER_INFO{
-  USHORT usRegisterIndex;
-  UCHAR  ucStartBit;
-  UCHAR  ucEndBit;
-}CLOCK_CONDITION_REGESTER_INFO;
-
-typedef struct _CLOCK_CONDITION_SETTING_ENTRY{
-  USHORT usMaxClockFreq;
-  UCHAR  ucEncodeMode;
-  UCHAR  ucPhySel;
-  ULONG  ulAnalogSetting[1];
-}CLOCK_CONDITION_SETTING_ENTRY;
-
-typedef struct _CLOCK_CONDITION_SETTING_INFO{
-  USHORT usEntrySize;
-  CLOCK_CONDITION_SETTING_ENTRY asClkCondSettingEntry[1];
-}CLOCK_CONDITION_SETTING_INFO;
-
-typedef struct _PHY_CONDITION_REG_VAL{
-  ULONG  ulCondition;
-  ULONG  ulRegVal;
-}PHY_CONDITION_REG_VAL;
-
-typedef struct _PHY_CONDITION_REG_VAL_V2{
-  ULONG  ulCondition;
-  UCHAR  ucCondition2;
-  ULONG  ulRegVal;
-}PHY_CONDITION_REG_VAL_V2;
-
-typedef struct _PHY_CONDITION_REG_INFO{
-  USHORT usRegIndex;
-  USHORT usSize;
-  PHY_CONDITION_REG_VAL asRegVal[1];
-}PHY_CONDITION_REG_INFO;
-
-typedef struct _PHY_CONDITION_REG_INFO_V2{
-  USHORT usRegIndex;
-  USHORT usSize;
-  PHY_CONDITION_REG_VAL_V2 asRegVal[1];
-}PHY_CONDITION_REG_INFO_V2;
-
-typedef struct _PHY_ANALOG_SETTING_INFO{
-  UCHAR  ucEncodeMode;
-  UCHAR  ucPhySel;
-  USHORT usSize;
-  PHY_CONDITION_REG_INFO  asAnalogSetting[1];
-}PHY_ANALOG_SETTING_INFO;
-
-typedef struct _PHY_ANALOG_SETTING_INFO_V2{
-  UCHAR  ucEncodeMode;
-  UCHAR  ucPhySel;
-  USHORT usSize;
-  PHY_CONDITION_REG_INFO_V2  asAnalogSetting[1];
-}PHY_ANALOG_SETTING_INFO_V2;
+typedef struct _DIG_TRANSMITTER_INFO_HEADER_V3_3
+{
+	ATOM_COMMON_TABLE_HEADER sHeader;
+	USHORT usDPVsPreEmphSettingOffset;     // offset of PHY_ANALOG_SETTING_INFO * with DP Voltage Swing and Pre-Emphasis for each Link clock
+	USHORT usPhyAnalogRegListOffset;       // offset of CLOCK_CONDITION_REGESTER_INFO* with None-DP mode Analog Setting's register Info
+	USHORT usPhyAnalogSettingOffset;       // offset of CLOCK_CONDITION_SETTING_ENTRY* with None-DP mode Analog Setting for each link clock range
+	USHORT usPhyPllRegListOffset;          // offset of CLOCK_CONDITION_REGESTER_INFO* with Phy Pll register Info
+	USHORT usPhyPllSettingOffset;          // offset of CLOCK_CONDITION_SETTING_ENTRY* with Phy Pll Settings
+	USHORT usDPSSRegListOffset;            // offset of CLOCK_CONDITION_REGESTER_INFO* with Phy SS Pll register Info
+	USHORT usDPSSSettingOffset;            // offset of CLOCK_CONDITION_SETTING_ENTRY* with Phy SS Pll Settings
+	USHORT usEDPVsLegacyModeOffset;        // offset of PHY_ANALOG_SETTING_INFO * with eDP Legacy Mode Voltage Swing and Pre-Emphasis for each Link clock
+	USHORT useDPVsLowVdiffModeOffset;      // offset of PHY_ANALOG_SETTING_INFO * with eDP Low VDiff Mode Voltage Swing and Pre-Emphasis for each Link clock
+	USHORT useDPVsHighVdiffModeOffset;     // offset of PHY_ANALOG_SETTING_INFO * with eDP High VDiff Mode Voltage Swing and Pre-Emphasis for each Link clock
+	USHORT useDPVsStretchModeOffset;       // offset of PHY_ANALOG_SETTING_INFO * with eDP Stretch Mode Voltage Swing and Pre-Emphasis for each Link clock
+	USHORT useDPVsSingleVdiffModeOffset;   // offset of PHY_ANALOG_SETTING_INFO * with eDP Single Vdiff Mode Voltage Swing and Pre-Emphasis for each Link clock
+	USHORT useDPVsVariablePremModeOffset;  // offset of PHY_ANALOG_SETTING_INFO * with eDP Single Vidff+Variable PreEmphasis Voltage Swing and Pre-Emphasis for each Link clock
+} DIG_TRANSMITTER_INFO_HEADER_V3_3;
 
 
-typedef struct _GFX_HAVESTING_PARAMETERS {
-  UCHAR ucGfxBlkId;                        //GFX blk id to be harvested, like CU, RB or PRIM
-  UCHAR ucReserved;                        //reserved
-  UCHAR ucActiveUnitNumPerSH;              //requested active CU/RB/PRIM number per shader array
-  UCHAR ucMaxUnitNumPerSH;                 //max CU/RB/PRIM number per shader array
+typedef struct _CLOCK_CONDITION_REGESTER_INFO
+{
+	USHORT usRegisterIndex;
+	UCHAR  ucStartBit;
+	UCHAR  ucEndBit;
+} CLOCK_CONDITION_REGESTER_INFO;
+
+typedef struct _CLOCK_CONDITION_SETTING_ENTRY
+{
+	USHORT usMaxClockFreq;
+	UCHAR  ucEncodeMode;
+	UCHAR  ucPhySel;
+	ULONG  ulAnalogSetting[1];
+} CLOCK_CONDITION_SETTING_ENTRY;
+
+typedef struct _CLOCK_CONDITION_SETTING_INFO
+{
+	USHORT usEntrySize;
+	CLOCK_CONDITION_SETTING_ENTRY asClkCondSettingEntry[1];
+} CLOCK_CONDITION_SETTING_INFO;
+
+typedef struct _PHY_CONDITION_REG_VAL
+{
+	ULONG  ulCondition;
+	ULONG  ulRegVal;
+} PHY_CONDITION_REG_VAL;
+
+typedef struct _PHY_CONDITION_REG_VAL_V2
+{
+	ULONG  ulCondition;
+	UCHAR  ucCondition2;
+	ULONG  ulRegVal;
+} PHY_CONDITION_REG_VAL_V2;
+
+typedef struct _PHY_CONDITION_REG_INFO
+{
+	USHORT usRegIndex;
+	USHORT usSize;
+	PHY_CONDITION_REG_VAL asRegVal[1];
+} PHY_CONDITION_REG_INFO;
+
+typedef struct _PHY_CONDITION_REG_INFO_V2
+{
+	USHORT usRegIndex;
+	USHORT usSize;
+	PHY_CONDITION_REG_VAL_V2 asRegVal[1];
+} PHY_CONDITION_REG_INFO_V2;
+
+typedef struct _PHY_ANALOG_SETTING_INFO
+{
+	UCHAR  ucEncodeMode;
+	UCHAR  ucPhySel;
+	USHORT usSize;
+	PHY_CONDITION_REG_INFO  asAnalogSetting[1];
+} PHY_ANALOG_SETTING_INFO;
+
+typedef struct _PHY_ANALOG_SETTING_INFO_V2
+{
+	UCHAR  ucEncodeMode;
+	UCHAR  ucPhySel;
+	USHORT usSize;
+	PHY_CONDITION_REG_INFO_V2  asAnalogSetting[1];
+} PHY_ANALOG_SETTING_INFO_V2;
+
+
+typedef struct _GFX_HAVESTING_PARAMETERS
+{
+	UCHAR ucGfxBlkId;                        //GFX blk id to be harvested, like CU, RB or PRIM
+	UCHAR ucReserved;                        //reserved
+	UCHAR ucActiveUnitNumPerSH;              //requested active CU/RB/PRIM number per shader array
+	UCHAR ucMaxUnitNumPerSH;                 //max CU/RB/PRIM number per shader array
 } GFX_HAVESTING_PARAMETERS;
 
 //ucGfxBlkId
@@ -8650,33 +8813,34 @@ typedef struct _GFX_HAVESTING_PARAMETERS {
 #define GFX_HARVESTING_PRIM_ID             2
 
 
-typedef struct _VBIOS_ROM_HEADER{
-  UCHAR  PciRomSignature[2];
-  UCHAR  ucPciRomSizeIn512bytes;
-  UCHAR  ucJumpCoreMainInitBIOS;
-  USHORT usLabelCoreMainInitBIOS;
-  UCHAR  PciReservedSpace[18];
-  USHORT usPciDataStructureOffset;
-  UCHAR  Rsvd1d_1a[4];
-  char   strIbm[3];
-  UCHAR  CheckSum[14];
-  UCHAR  ucBiosMsgNumber;
-  char   str761295520[16];
-  USHORT usLabelCoreVPOSTNoMode;
-  USHORT usSpecialPostOffset;
-  UCHAR  ucSpeicalPostImageSizeIn512Bytes;
-  UCHAR  Rsved47_45[3];
-  USHORT usROM_HeaderInformationTableOffset;
-  UCHAR  Rsved4f_4a[6];
-  char   strBuildTimeStamp[20];
-  UCHAR  ucJumpCoreXFuncFarHandler;
-  USHORT usCoreXFuncFarHandlerOffset;
-  UCHAR  ucRsved67;
-  UCHAR  ucJumpCoreVFuncFarHandler;
-  USHORT usCoreVFuncFarHandlerOffset;
-  UCHAR  Rsved6d_6b[3];
-  USHORT usATOM_BIOS_MESSAGE_Offset;
-}VBIOS_ROM_HEADER;
+typedef struct _VBIOS_ROM_HEADER
+{
+	UCHAR  PciRomSignature[2];
+	UCHAR  ucPciRomSizeIn512bytes;
+	UCHAR  ucJumpCoreMainInitBIOS;
+	USHORT usLabelCoreMainInitBIOS;
+	UCHAR  PciReservedSpace[18];
+	USHORT usPciDataStructureOffset;
+	UCHAR  Rsvd1d_1a[4];
+	char   strIbm[3];
+	UCHAR  CheckSum[14];
+	UCHAR  ucBiosMsgNumber;
+	char   str761295520[16];
+	USHORT usLabelCoreVPOSTNoMode;
+	USHORT usSpecialPostOffset;
+	UCHAR  ucSpeicalPostImageSizeIn512Bytes;
+	UCHAR  Rsved47_45[3];
+	USHORT usROM_HeaderInformationTableOffset;
+	UCHAR  Rsved4f_4a[6];
+	char   strBuildTimeStamp[20];
+	UCHAR  ucJumpCoreXFuncFarHandler;
+	USHORT usCoreXFuncFarHandlerOffset;
+	UCHAR  ucRsved67;
+	UCHAR  ucJumpCoreVFuncFarHandler;
+	USHORT usCoreVFuncFarHandlerOffset;
+	UCHAR  Rsved6d_6b[3];
+	USHORT usATOM_BIOS_MESSAGE_Offset;
+} VBIOS_ROM_HEADER;
 
 /****************************************************************************/
 //Portion VI: Definitinos for vbios MC scratch registers that driver used
@@ -8707,40 +8871,40 @@ typedef struct _VBIOS_ROM_HEADER{
 //Remove the definitions below when driver is ready!
 typedef struct _ATOM_DAC_INFO
 {
-  ATOM_COMMON_TABLE_HEADER sHeader;
-  USHORT                   usMaxFrequency;      // in 10kHz unit
-  USHORT                   usReserved;
-}ATOM_DAC_INFO;
+	ATOM_COMMON_TABLE_HEADER sHeader;
+	USHORT                   usMaxFrequency;      // in 10kHz unit
+	USHORT                   usReserved;
+} ATOM_DAC_INFO;
 
 
 typedef struct  _COMPASSIONATE_DATA
 {
-  ATOM_COMMON_TABLE_HEADER sHeader;
+	ATOM_COMMON_TABLE_HEADER sHeader;
 
-  //==============================  DAC1 portion
-  UCHAR   ucDAC1_BG_Adjustment;
-  UCHAR   ucDAC1_DAC_Adjustment;
-  USHORT  usDAC1_FORCE_Data;
-  //==============================  DAC2 portion
-  UCHAR   ucDAC2_CRT2_BG_Adjustment;
-  UCHAR   ucDAC2_CRT2_DAC_Adjustment;
-  USHORT  usDAC2_CRT2_FORCE_Data;
-  USHORT  usDAC2_CRT2_MUX_RegisterIndex;
-  UCHAR   ucDAC2_CRT2_MUX_RegisterInfo;     //Bit[4:0]=Bit position,Bit[7]=1:Active High;=0 Active Low
-  UCHAR   ucDAC2_NTSC_BG_Adjustment;
-  UCHAR   ucDAC2_NTSC_DAC_Adjustment;
-  USHORT  usDAC2_TV1_FORCE_Data;
-  USHORT  usDAC2_TV1_MUX_RegisterIndex;
-  UCHAR   ucDAC2_TV1_MUX_RegisterInfo;      //Bit[4:0]=Bit position,Bit[7]=1:Active High;=0 Active Low
-  UCHAR   ucDAC2_CV_BG_Adjustment;
-  UCHAR   ucDAC2_CV_DAC_Adjustment;
-  USHORT  usDAC2_CV_FORCE_Data;
-  USHORT  usDAC2_CV_MUX_RegisterIndex;
-  UCHAR   ucDAC2_CV_MUX_RegisterInfo;       //Bit[4:0]=Bit position,Bit[7]=1:Active High;=0 Active Low
-  UCHAR   ucDAC2_PAL_BG_Adjustment;
-  UCHAR   ucDAC2_PAL_DAC_Adjustment;
-  USHORT  usDAC2_TV2_FORCE_Data;
-}COMPASSIONATE_DATA;
+	//==============================  DAC1 portion
+	UCHAR   ucDAC1_BG_Adjustment;
+	UCHAR   ucDAC1_DAC_Adjustment;
+	USHORT  usDAC1_FORCE_Data;
+	//==============================  DAC2 portion
+	UCHAR   ucDAC2_CRT2_BG_Adjustment;
+	UCHAR   ucDAC2_CRT2_DAC_Adjustment;
+	USHORT  usDAC2_CRT2_FORCE_Data;
+	USHORT  usDAC2_CRT2_MUX_RegisterIndex;
+	UCHAR   ucDAC2_CRT2_MUX_RegisterInfo;     //Bit[4:0]=Bit position,Bit[7]=1:Active High;=0 Active Low
+	UCHAR   ucDAC2_NTSC_BG_Adjustment;
+	UCHAR   ucDAC2_NTSC_DAC_Adjustment;
+	USHORT  usDAC2_TV1_FORCE_Data;
+	USHORT  usDAC2_TV1_MUX_RegisterIndex;
+	UCHAR   ucDAC2_TV1_MUX_RegisterInfo;      //Bit[4:0]=Bit position,Bit[7]=1:Active High;=0 Active Low
+	UCHAR   ucDAC2_CV_BG_Adjustment;
+	UCHAR   ucDAC2_CV_DAC_Adjustment;
+	USHORT  usDAC2_CV_FORCE_Data;
+	USHORT  usDAC2_CV_MUX_RegisterIndex;
+	UCHAR   ucDAC2_CV_MUX_RegisterInfo;       //Bit[4:0]=Bit position,Bit[7]=1:Active High;=0 Active Low
+	UCHAR   ucDAC2_PAL_BG_Adjustment;
+	UCHAR   ucDAC2_PAL_DAC_Adjustment;
+	USHORT  usDAC2_TV2_FORCE_Data;
+} COMPASSIONATE_DATA;
 
 /****************************Supported Device Info Table Definitions**********************/
 //  ucConnectInfo:
@@ -8769,56 +8933,56 @@ typedef struct  _COMPASSIONATE_DATA
 typedef struct _ATOM_CONNECTOR_INFO
 {
 #if ATOM_BIG_ENDIAN
-  UCHAR   bfConnectorType:4;
-  UCHAR   bfAssociatedDAC:4;
+	UCHAR   bfConnectorType: 4;
+	UCHAR   bfAssociatedDAC: 4;
 #else
-  UCHAR   bfAssociatedDAC:4;
-  UCHAR   bfConnectorType:4;
+	UCHAR   bfAssociatedDAC: 4;
+	UCHAR   bfConnectorType: 4;
 #endif
-}ATOM_CONNECTOR_INFO;
+} ATOM_CONNECTOR_INFO;
 
 typedef union _ATOM_CONNECTOR_INFO_ACCESS
 {
-  ATOM_CONNECTOR_INFO sbfAccess;
-  UCHAR               ucAccess;
-}ATOM_CONNECTOR_INFO_ACCESS;
+	ATOM_CONNECTOR_INFO sbfAccess;
+	UCHAR               ucAccess;
+} ATOM_CONNECTOR_INFO_ACCESS;
 
 typedef struct _ATOM_CONNECTOR_INFO_I2C
 {
-  ATOM_CONNECTOR_INFO_ACCESS sucConnectorInfo;
-  ATOM_I2C_ID_CONFIG_ACCESS  sucI2cId;
-}ATOM_CONNECTOR_INFO_I2C;
+	ATOM_CONNECTOR_INFO_ACCESS sucConnectorInfo;
+	ATOM_I2C_ID_CONFIG_ACCESS  sucI2cId;
+} ATOM_CONNECTOR_INFO_I2C;
 
 
 typedef struct _ATOM_SUPPORTED_DEVICES_INFO
 {
-  ATOM_COMMON_TABLE_HEADER   sHeader;
-  USHORT                    usDeviceSupport;
-  ATOM_CONNECTOR_INFO_I2C   asConnInfo[ATOM_MAX_SUPPORTED_DEVICE_INFO];
-}ATOM_SUPPORTED_DEVICES_INFO;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	USHORT                    usDeviceSupport;
+	ATOM_CONNECTOR_INFO_I2C   asConnInfo[ATOM_MAX_SUPPORTED_DEVICE_INFO];
+} ATOM_SUPPORTED_DEVICES_INFO;
 
 #define NO_INT_SRC_MAPPED       0xFF
 
 typedef struct _ATOM_CONNECTOR_INC_SRC_BITMAP
 {
-  UCHAR   ucIntSrcBitmap;
-}ATOM_CONNECTOR_INC_SRC_BITMAP;
+	UCHAR   ucIntSrcBitmap;
+} ATOM_CONNECTOR_INC_SRC_BITMAP;
 
 typedef struct _ATOM_SUPPORTED_DEVICES_INFO_2
 {
-  ATOM_COMMON_TABLE_HEADER      sHeader;
-  USHORT                        usDeviceSupport;
-  ATOM_CONNECTOR_INFO_I2C       asConnInfo[ATOM_MAX_SUPPORTED_DEVICE_INFO_2];
-  ATOM_CONNECTOR_INC_SRC_BITMAP asIntSrcInfo[ATOM_MAX_SUPPORTED_DEVICE_INFO_2];
-}ATOM_SUPPORTED_DEVICES_INFO_2;
+	ATOM_COMMON_TABLE_HEADER      sHeader;
+	USHORT                        usDeviceSupport;
+	ATOM_CONNECTOR_INFO_I2C       asConnInfo[ATOM_MAX_SUPPORTED_DEVICE_INFO_2];
+	ATOM_CONNECTOR_INC_SRC_BITMAP asIntSrcInfo[ATOM_MAX_SUPPORTED_DEVICE_INFO_2];
+} ATOM_SUPPORTED_DEVICES_INFO_2;
 
 typedef struct _ATOM_SUPPORTED_DEVICES_INFO_2d1
 {
-  ATOM_COMMON_TABLE_HEADER      sHeader;
-  USHORT                        usDeviceSupport;
-  ATOM_CONNECTOR_INFO_I2C       asConnInfo[ATOM_MAX_SUPPORTED_DEVICE];
-  ATOM_CONNECTOR_INC_SRC_BITMAP asIntSrcInfo[ATOM_MAX_SUPPORTED_DEVICE];
-}ATOM_SUPPORTED_DEVICES_INFO_2d1;
+	ATOM_COMMON_TABLE_HEADER      sHeader;
+	USHORT                        usDeviceSupport;
+	ATOM_CONNECTOR_INFO_I2C       asConnInfo[ATOM_MAX_SUPPORTED_DEVICE];
+	ATOM_CONNECTOR_INC_SRC_BITMAP asIntSrcInfo[ATOM_MAX_SUPPORTED_DEVICE];
+} ATOM_SUPPORTED_DEVICES_INFO_2d1;
 
 #define ATOM_SUPPORTED_DEVICES_INFO_LAST ATOM_SUPPORTED_DEVICES_INFO_2d1
 
@@ -8826,57 +8990,57 @@ typedef struct _ATOM_SUPPORTED_DEVICES_INFO_2d1
 
 typedef struct _ATOM_MISC_CONTROL_INFO
 {
-   USHORT usFrequency;
-   UCHAR  ucPLL_ChargePump;                            // PLL charge-pump gain control
-   UCHAR  ucPLL_DutyCycle;                            // PLL duty cycle control
-   UCHAR  ucPLL_VCO_Gain;                              // PLL VCO gain control
-   UCHAR  ucPLL_VoltageSwing;                         // PLL driver voltage swing control
-}ATOM_MISC_CONTROL_INFO;
+	USHORT usFrequency;
+	UCHAR  ucPLL_ChargePump;                            // PLL charge-pump gain control
+	UCHAR  ucPLL_DutyCycle;                            // PLL duty cycle control
+	UCHAR  ucPLL_VCO_Gain;                              // PLL VCO gain control
+	UCHAR  ucPLL_VoltageSwing;                         // PLL driver voltage swing control
+} ATOM_MISC_CONTROL_INFO;
 
 
 #define ATOM_MAX_MISC_INFO       4
 
 typedef struct _ATOM_TMDS_INFO
 {
-  ATOM_COMMON_TABLE_HEADER sHeader;
-  USHORT                     usMaxFrequency;             // in 10Khz
-  ATOM_MISC_CONTROL_INFO            asMiscInfo[ATOM_MAX_MISC_INFO];
-}ATOM_TMDS_INFO;
+	ATOM_COMMON_TABLE_HEADER sHeader;
+	USHORT                     usMaxFrequency;             // in 10Khz
+	ATOM_MISC_CONTROL_INFO            asMiscInfo[ATOM_MAX_MISC_INFO];
+} ATOM_TMDS_INFO;
 
 
 typedef struct _ATOM_ENCODER_ANALOG_ATTRIBUTE
 {
-  UCHAR ucTVStandard;     //Same as TV standards defined above,
-  UCHAR ucPadding[1];
-}ATOM_ENCODER_ANALOG_ATTRIBUTE;
+	UCHAR ucTVStandard;     //Same as TV standards defined above,
+	UCHAR ucPadding[1];
+} ATOM_ENCODER_ANALOG_ATTRIBUTE;
 
 typedef struct _ATOM_ENCODER_DIGITAL_ATTRIBUTE
 {
-  UCHAR ucAttribute;      //Same as other digital encoder attributes defined above
-  UCHAR ucPadding[1];
-}ATOM_ENCODER_DIGITAL_ATTRIBUTE;
+	UCHAR ucAttribute;      //Same as other digital encoder attributes defined above
+	UCHAR ucPadding[1];
+} ATOM_ENCODER_DIGITAL_ATTRIBUTE;
 
 typedef union _ATOM_ENCODER_ATTRIBUTE
 {
-  ATOM_ENCODER_ANALOG_ATTRIBUTE sAlgAttrib;
-  ATOM_ENCODER_DIGITAL_ATTRIBUTE sDigAttrib;
-}ATOM_ENCODER_ATTRIBUTE;
+	ATOM_ENCODER_ANALOG_ATTRIBUTE sAlgAttrib;
+	ATOM_ENCODER_DIGITAL_ATTRIBUTE sDigAttrib;
+} ATOM_ENCODER_ATTRIBUTE;
 
 
 typedef struct _DVO_ENCODER_CONTROL_PARAMETERS
 {
-  USHORT usPixelClock;
-  USHORT usEncoderID;
-  UCHAR  ucDeviceType;                                    //Use ATOM_DEVICE_xxx1_Index to indicate device type only.
-  UCHAR  ucAction;                                          //ATOM_ENABLE/ATOM_DISABLE/ATOM_HPD_INIT
-  ATOM_ENCODER_ATTRIBUTE usDevAttr;
-}DVO_ENCODER_CONTROL_PARAMETERS;
+	USHORT usPixelClock;
+	USHORT usEncoderID;
+	UCHAR  ucDeviceType;                                    //Use ATOM_DEVICE_xxx1_Index to indicate device type only.
+	UCHAR  ucAction;                                          //ATOM_ENABLE/ATOM_DISABLE/ATOM_HPD_INIT
+	ATOM_ENCODER_ATTRIBUTE usDevAttr;
+} DVO_ENCODER_CONTROL_PARAMETERS;
 
 typedef struct _DVO_ENCODER_CONTROL_PS_ALLOCATION
 {
-  DVO_ENCODER_CONTROL_PARAMETERS    sDVOEncoder;
-  WRITE_ONE_BYTE_HW_I2C_DATA_PS_ALLOCATION      sReserved;     //Caller doesn't need to init this portion
-}DVO_ENCODER_CONTROL_PS_ALLOCATION;
+	DVO_ENCODER_CONTROL_PARAMETERS    sDVOEncoder;
+	WRITE_ONE_BYTE_HW_I2C_DATA_PS_ALLOCATION      sReserved;     //Caller doesn't need to init this portion
+} DVO_ENCODER_CONTROL_PS_ALLOCATION;
 
 
 #define ATOM_XTMDS_ASIC_SI164_ID        1
@@ -8889,23 +9053,24 @@ typedef struct _DVO_ENCODER_CONTROL_PS_ALLOCATION
 
 typedef struct _ATOM_XTMDS_INFO
 {
-  ATOM_COMMON_TABLE_HEADER   sHeader;
-  USHORT                     usSingleLinkMaxFrequency;
-  ATOM_I2C_ID_CONFIG_ACCESS  sucI2cId;           //Point the ID on which I2C is used to control external chip
-  UCHAR                      ucXtransimitterID;
-  UCHAR                      ucSupportedLink;    // Bit field, bit0=1, single link supported;bit1=1,dual link supported
-  UCHAR                      ucSequnceAlterID;   // Even with the same external TMDS asic, it's possible that the program seqence alters
-                                                 // due to design. This ID is used to alert driver that the sequence is not "standard"!
-  UCHAR                      ucMasterAddress;    // Address to control Master xTMDS Chip
-  UCHAR                      ucSlaveAddress;     // Address to control Slave xTMDS Chip
-}ATOM_XTMDS_INFO;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	USHORT                     usSingleLinkMaxFrequency;
+	ATOM_I2C_ID_CONFIG_ACCESS  sucI2cId;           //Point the ID on which I2C is used to control external chip
+	UCHAR                      ucXtransimitterID;
+	UCHAR                      ucSupportedLink;    // Bit field, bit0=1, single link supported;bit1=1,dual link supported
+	UCHAR
+	ucSequnceAlterID;   // Even with the same external TMDS asic, it's possible that the program seqence alters
+	// due to design. This ID is used to alert driver that the sequence is not "standard"!
+	UCHAR                      ucMasterAddress;    // Address to control Master xTMDS Chip
+	UCHAR                      ucSlaveAddress;     // Address to control Slave xTMDS Chip
+} ATOM_XTMDS_INFO;
 
 typedef struct _DFP_DPMS_STATUS_CHANGE_PARAMETERS
 {
-  UCHAR ucEnable;                     // ATOM_ENABLE=On or ATOM_DISABLE=Off
-  UCHAR ucDevice;                     // ATOM_DEVICE_DFP1_INDEX....
-  UCHAR ucPadding[2];
-}DFP_DPMS_STATUS_CHANGE_PARAMETERS;
+	UCHAR ucEnable;                     // ATOM_ENABLE=On or ATOM_DISABLE=Off
+	UCHAR ucDevice;                     // ATOM_DEVICE_DFP1_INDEX....
+	UCHAR ucPadding[2];
+} DFP_DPMS_STATUS_CHANGE_PARAMETERS;
 
 /****************************Legacy Power Play Table Definitions **********************/
 
@@ -8958,7 +9123,7 @@ typedef struct _DFP_DPMS_STATUS_CHANGE_PARAMETERS
 #define ATOM_PM_MISCINFO2_FORCEDLOWPWR_MODE              0x00000010L
 #define ATOM_PM_MISCINFO2_VDDCI_DYNAMIC_VOLTAGE_EN       0x00000020L
 #define ATOM_PM_MISCINFO2_VIDEO_PLAYBACK_CAPABLE         0x00000040L  //If this bit is set in multi-pp mode, then driver will pack up one with the minior power consumption.
-                                                                      //If it's not set in any pp mode, driver will use its default logic to pick a pp mode in video playback
+//If it's not set in any pp mode, driver will use its default logic to pick a pp mode in video playback
 #define ATOM_PM_MISCINFO2_NOT_VALID_ON_DC                0x00000080L
 #define ATOM_PM_MISCINFO2_STUTTER_MODE_EN                0x00000100L
 #define ATOM_PM_MISCINFO2_UVD_SUPPORT_MODE               0x00000200L
@@ -8967,48 +9132,48 @@ typedef struct _DFP_DPMS_STATUS_CHANGE_PARAMETERS
 //ucTableContentRevision=1
 typedef struct  _ATOM_POWERMODE_INFO
 {
-  ULONG     ulMiscInfo;                 //The power level should be arranged in ascending order
-  ULONG     ulReserved1;                // must set to 0
-  ULONG     ulReserved2;                // must set to 0
-  USHORT    usEngineClock;
-  USHORT    usMemoryClock;
-  UCHAR     ucVoltageDropIndex;         // index to GPIO table
-  UCHAR     ucSelectedPanel_RefreshRate;// panel refresh rate
-  UCHAR     ucMinTemperature;
-  UCHAR     ucMaxTemperature;
-  UCHAR     ucNumPciELanes;             // number of PCIE lanes
-}ATOM_POWERMODE_INFO;
+	ULONG     ulMiscInfo;                 //The power level should be arranged in ascending order
+	ULONG     ulReserved1;                // must set to 0
+	ULONG     ulReserved2;                // must set to 0
+	USHORT    usEngineClock;
+	USHORT    usMemoryClock;
+	UCHAR     ucVoltageDropIndex;         // index to GPIO table
+	UCHAR     ucSelectedPanel_RefreshRate;// panel refresh rate
+	UCHAR     ucMinTemperature;
+	UCHAR     ucMaxTemperature;
+	UCHAR     ucNumPciELanes;             // number of PCIE lanes
+} ATOM_POWERMODE_INFO;
 
 //ucTableFormatRevision=2
 //ucTableContentRevision=1
 typedef struct  _ATOM_POWERMODE_INFO_V2
 {
-  ULONG     ulMiscInfo;                 //The power level should be arranged in ascending order
-  ULONG     ulMiscInfo2;
-  ULONG     ulEngineClock;
-  ULONG     ulMemoryClock;
-  UCHAR     ucVoltageDropIndex;         // index to GPIO table
-  UCHAR     ucSelectedPanel_RefreshRate;// panel refresh rate
-  UCHAR     ucMinTemperature;
-  UCHAR     ucMaxTemperature;
-  UCHAR     ucNumPciELanes;             // number of PCIE lanes
-}ATOM_POWERMODE_INFO_V2;
+	ULONG     ulMiscInfo;                 //The power level should be arranged in ascending order
+	ULONG     ulMiscInfo2;
+	ULONG     ulEngineClock;
+	ULONG     ulMemoryClock;
+	UCHAR     ucVoltageDropIndex;         // index to GPIO table
+	UCHAR     ucSelectedPanel_RefreshRate;// panel refresh rate
+	UCHAR     ucMinTemperature;
+	UCHAR     ucMaxTemperature;
+	UCHAR     ucNumPciELanes;             // number of PCIE lanes
+} ATOM_POWERMODE_INFO_V2;
 
 //ucTableFormatRevision=2
 //ucTableContentRevision=2
 typedef struct  _ATOM_POWERMODE_INFO_V3
 {
-  ULONG     ulMiscInfo;                 //The power level should be arranged in ascending order
-  ULONG     ulMiscInfo2;
-  ULONG     ulEngineClock;
-  ULONG     ulMemoryClock;
-  UCHAR     ucVoltageDropIndex;         // index to Core (VDDC) votage table
-  UCHAR     ucSelectedPanel_RefreshRate;// panel refresh rate
-  UCHAR     ucMinTemperature;
-  UCHAR     ucMaxTemperature;
-  UCHAR     ucNumPciELanes;             // number of PCIE lanes
-  UCHAR     ucVDDCI_VoltageDropIndex;   // index to VDDCI votage table
-}ATOM_POWERMODE_INFO_V3;
+	ULONG     ulMiscInfo;                 //The power level should be arranged in ascending order
+	ULONG     ulMiscInfo2;
+	ULONG     ulEngineClock;
+	ULONG     ulMemoryClock;
+	UCHAR     ucVoltageDropIndex;         // index to Core (VDDC) votage table
+	UCHAR     ucSelectedPanel_RefreshRate;// panel refresh rate
+	UCHAR     ucMinTemperature;
+	UCHAR     ucMaxTemperature;
+	UCHAR     ucNumPciELanes;             // number of PCIE lanes
+	UCHAR     ucVDDCI_VoltageDropIndex;   // index to VDDCI votage table
+} ATOM_POWERMODE_INFO_V3;
 
 
 #define ATOM_MAX_NUMBEROF_POWER_BLOCK  8
@@ -9027,39 +9192,39 @@ typedef struct  _ATOM_POWERMODE_INFO_V3
 
 typedef struct  _ATOM_POWERPLAY_INFO
 {
-  ATOM_COMMON_TABLE_HEADER   sHeader;
-  UCHAR    ucOverdriveThermalController;
-  UCHAR    ucOverdriveI2cLine;
-  UCHAR    ucOverdriveIntBitmap;
-  UCHAR    ucOverdriveControllerAddress;
-  UCHAR    ucSizeOfPowerModeEntry;
-  UCHAR    ucNumOfPowerModeEntries;
-  ATOM_POWERMODE_INFO asPowerPlayInfo[ATOM_MAX_NUMBEROF_POWER_BLOCK];
-}ATOM_POWERPLAY_INFO;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	UCHAR    ucOverdriveThermalController;
+	UCHAR    ucOverdriveI2cLine;
+	UCHAR    ucOverdriveIntBitmap;
+	UCHAR    ucOverdriveControllerAddress;
+	UCHAR    ucSizeOfPowerModeEntry;
+	UCHAR    ucNumOfPowerModeEntries;
+	ATOM_POWERMODE_INFO asPowerPlayInfo[ATOM_MAX_NUMBEROF_POWER_BLOCK];
+} ATOM_POWERPLAY_INFO;
 
 typedef struct  _ATOM_POWERPLAY_INFO_V2
 {
-  ATOM_COMMON_TABLE_HEADER   sHeader;
-  UCHAR    ucOverdriveThermalController;
-  UCHAR    ucOverdriveI2cLine;
-  UCHAR    ucOverdriveIntBitmap;
-  UCHAR    ucOverdriveControllerAddress;
-  UCHAR    ucSizeOfPowerModeEntry;
-  UCHAR    ucNumOfPowerModeEntries;
-  ATOM_POWERMODE_INFO_V2 asPowerPlayInfo[ATOM_MAX_NUMBEROF_POWER_BLOCK];
-}ATOM_POWERPLAY_INFO_V2;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	UCHAR    ucOverdriveThermalController;
+	UCHAR    ucOverdriveI2cLine;
+	UCHAR    ucOverdriveIntBitmap;
+	UCHAR    ucOverdriveControllerAddress;
+	UCHAR    ucSizeOfPowerModeEntry;
+	UCHAR    ucNumOfPowerModeEntries;
+	ATOM_POWERMODE_INFO_V2 asPowerPlayInfo[ATOM_MAX_NUMBEROF_POWER_BLOCK];
+} ATOM_POWERPLAY_INFO_V2;
 
 typedef struct  _ATOM_POWERPLAY_INFO_V3
 {
-  ATOM_COMMON_TABLE_HEADER   sHeader;
-  UCHAR    ucOverdriveThermalController;
-  UCHAR    ucOverdriveI2cLine;
-  UCHAR    ucOverdriveIntBitmap;
-  UCHAR    ucOverdriveControllerAddress;
-  UCHAR    ucSizeOfPowerModeEntry;
-  UCHAR    ucNumOfPowerModeEntries;
-  ATOM_POWERMODE_INFO_V3 asPowerPlayInfo[ATOM_MAX_NUMBEROF_POWER_BLOCK];
-}ATOM_POWERPLAY_INFO_V3;
+	ATOM_COMMON_TABLE_HEADER   sHeader;
+	UCHAR    ucOverdriveThermalController;
+	UCHAR    ucOverdriveI2cLine;
+	UCHAR    ucOverdriveIntBitmap;
+	UCHAR    ucOverdriveControllerAddress;
+	UCHAR    ucSizeOfPowerModeEntry;
+	UCHAR    ucNumOfPowerModeEntries;
+	ATOM_POWERMODE_INFO_V3 asPowerPlayInfo[ATOM_MAX_NUMBEROF_POWER_BLOCK];
+} ATOM_POWERPLAY_INFO_V3;
 
 
 
@@ -9188,26 +9353,26 @@ typedef struct _ATOM_HOLE_INFO
 {
 	USHORT	usOffset;		// offset of the hole ( from the start of the binary )
 	USHORT	usLength;		// length of the hole ( in bytes )
-}ATOM_HOLE_INFO;
+} ATOM_HOLE_INFO;
 
 typedef struct _ATOM_SERVICE_DESCRIPTION
 {
-   UCHAR   ucRevision;                               // Holes set revision
-   UCHAR   ucAlgorithm;                              // Hash algorithm
-   UCHAR   ucSignatureType;							 // Signature type ( 0 - no signature, 1 - test, 2 - production )
-   UCHAR   ucReserved;
-   USHORT  usSigOffset;							     // Signature offset ( from the start of the binary )
-   USHORT  usSigLength;                              // Signature length
-}ATOM_SERVICE_DESCRIPTION;
+	UCHAR   ucRevision;                               // Holes set revision
+	UCHAR   ucAlgorithm;                              // Hash algorithm
+	UCHAR   ucSignatureType;							 // Signature type ( 0 - no signature, 1 - test, 2 - production )
+	UCHAR   ucReserved;
+	USHORT  usSigOffset;							     // Signature offset ( from the start of the binary )
+	USHORT  usSigLength;                              // Signature length
+} ATOM_SERVICE_DESCRIPTION;
 
 
 typedef struct _ATOM_SERVICE_INFO
 {
-      ATOM_COMMON_TABLE_HEADER      asHeader;
-      ATOM_SERVICE_DESCRIPTION		asDescr;
-	  UCHAR							ucholesNo;		// number of holes that follow
-	  ATOM_HOLE_INFO				holes[1];       // array of hole descriptions
-}ATOM_SERVICE_INFO;
+	ATOM_COMMON_TABLE_HEADER      asHeader;
+	ATOM_SERVICE_DESCRIPTION		asDescr;
+	UCHAR							ucholesNo;		// number of holes that follow
+	ATOM_HOLE_INFO				holes[1];       // array of hole descriptions
+} ATOM_SERVICE_INFO;
 
 
 
@@ -9218,16 +9383,17 @@ typedef struct _ATOM_SERVICE_INFO
 //
 #pragma pack(1)
 
-typedef struct {
-  ULONG Signature;
-  ULONG TableLength;      //Length
-  UCHAR Revision;
-  UCHAR Checksum;
-  UCHAR OemId[6];
-  UCHAR OemTableId[8];    //UINT64  OemTableId;
-  ULONG OemRevision;
-  ULONG CreatorId;
-  ULONG CreatorRevision;
+typedef struct
+{
+	ULONG Signature;
+	ULONG TableLength;      //Length
+	UCHAR Revision;
+	UCHAR Checksum;
+	UCHAR OemId[6];
+	UCHAR OemTableId[8];    //UINT64  OemTableId;
+	ULONG OemRevision;
+	ULONG CreatorId;
+	ULONG CreatorRevision;
 } AMD_ACPI_DESCRIPTION_HEADER;
 /*
 //EFI_ACPI_DESCRIPTION_HEADER from AcpiCommon.h
@@ -9243,36 +9409,40 @@ typedef struct {
   UINT32  CreatorRevision; //0x20
 }EFI_ACPI_DESCRIPTION_HEADER;
 */
-typedef struct {
-  AMD_ACPI_DESCRIPTION_HEADER SHeader;
-  UCHAR TableUUID[16];    //0x24
-  ULONG VBIOSImageOffset; //0x34. Offset to the first GOP_VBIOS_CONTENT block from the beginning of the stucture.
-  ULONG Lib1ImageOffset;  //0x38. Offset to the first GOP_LIB1_CONTENT block from the beginning of the stucture.
-  ULONG Reserved[4];      //0x3C
-}UEFI_ACPI_VFCT;
+typedef struct
+{
+	AMD_ACPI_DESCRIPTION_HEADER SHeader;
+	UCHAR TableUUID[16];    //0x24
+	ULONG VBIOSImageOffset; //0x34. Offset to the first GOP_VBIOS_CONTENT block from the beginning of the stucture.
+	ULONG Lib1ImageOffset;  //0x38. Offset to the first GOP_LIB1_CONTENT block from the beginning of the stucture.
+	ULONG Reserved[4];      //0x3C
+} UEFI_ACPI_VFCT;
 
-typedef struct {
-  ULONG  PCIBus;          //0x4C
-  ULONG  PCIDevice;       //0x50
-  ULONG  PCIFunction;     //0x54
-  USHORT VendorID;        //0x58
-  USHORT DeviceID;        //0x5A
-  USHORT SSVID;           //0x5C
-  USHORT SSID;            //0x5E
-  ULONG  Revision;        //0x60
-  ULONG  ImageLength;     //0x64
-}VFCT_IMAGE_HEADER;
+typedef struct
+{
+	ULONG  PCIBus;          //0x4C
+	ULONG  PCIDevice;       //0x50
+	ULONG  PCIFunction;     //0x54
+	USHORT VendorID;        //0x58
+	USHORT DeviceID;        //0x5A
+	USHORT SSVID;           //0x5C
+	USHORT SSID;            //0x5E
+	ULONG  Revision;        //0x60
+	ULONG  ImageLength;     //0x64
+} VFCT_IMAGE_HEADER;
 
 
-typedef struct {
-  VFCT_IMAGE_HEADER   VbiosHeader;
-  UCHAR   VbiosContent[1];
-}GOP_VBIOS_CONTENT;
+typedef struct
+{
+	VFCT_IMAGE_HEADER   VbiosHeader;
+	UCHAR   VbiosContent[1];
+} GOP_VBIOS_CONTENT;
 
-typedef struct {
-  VFCT_IMAGE_HEADER   Lib1Header;
-  UCHAR   Lib1Content[1];
-}GOP_LIB1_CONTENT;
+typedef struct
+{
+	VFCT_IMAGE_HEADER   Lib1Header;
+	UCHAR   Lib1Content[1];
+} GOP_LIB1_CONTENT;
 
 #pragma pack()
 

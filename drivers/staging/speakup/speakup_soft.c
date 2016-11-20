@@ -41,7 +41,8 @@ static struct miscdevice synth_device;
 static int init_pos;
 static int misc_registered;
 
-static struct var_t vars[] = {
+static struct var_t vars[] =
+{
 	{ CAPS_START, .u.s = {"\x01+3p" } },
 	{ CAPS_STOP, .u.s = {"\x01-3p" } },
 	{ RATE, .u.n = {"\x01%ds", 2, 0, 9, 0, 0, NULL } },
@@ -59,23 +60,23 @@ static struct var_t vars[] = {
  * These attributes will appear in /sys/accessibility/speakup/soft.
  */
 static struct kobj_attribute caps_start_attribute =
-	__ATTR(caps_start, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(caps_start, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute caps_stop_attribute =
-	__ATTR(caps_stop, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(caps_stop, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute freq_attribute =
-	__ATTR(freq, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(freq, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute pitch_attribute =
-	__ATTR(pitch, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(pitch, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute punct_attribute =
-	__ATTR(punct, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(punct, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute rate_attribute =
-	__ATTR(rate, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(rate, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute tone_attribute =
-	__ATTR(tone, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(tone, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute voice_attribute =
-	__ATTR(voice, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(voice, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute vol_attribute =
-	__ATTR(vol, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(vol, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 
 /*
  * We should uncomment the following definition, when we agree on a
@@ -85,25 +86,26 @@ static struct kobj_attribute vol_attribute =
  */
 
 static struct kobj_attribute delay_time_attribute =
-	__ATTR(delay_time, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(delay_time, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute direct_attribute =
-	__ATTR(direct, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(direct, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute full_time_attribute =
-	__ATTR(full_time, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(full_time, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute jiffy_delta_attribute =
-	__ATTR(jiffy_delta, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(jiffy_delta, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute trigger_time_attribute =
-	__ATTR(trigger_time, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(trigger_time, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 
 /*
  * Create a group of attributes so that we can create and destroy them all
  * at once.
  */
-static struct attribute *synth_attrs[] = {
+static struct attribute *synth_attrs[] =
+{
 	&caps_start_attribute.attr,
 	&caps_stop_attribute.attr,
 	&freq_attribute.attr,
-/*	&lang_attribute.attr, */
+	/*	&lang_attribute.attr, */
 	&pitch_attribute.attr,
 	&punct_attribute.attr,
 	&rate_attribute.attr,
@@ -118,7 +120,8 @@ static struct attribute *synth_attrs[] = {
 	NULL,	/* need to NULL terminate the list of attributes */
 };
 
-static struct spk_synth synth_soft = {
+static struct spk_synth synth_soft =
+{
 	.name = "soft",
 	.version = DRV_VERSION,
 	.long_name = "software synth",
@@ -161,13 +164,17 @@ static char *get_initstring(void)
 	memset(buf, 0, sizeof(buf));
 	cp = buf;
 	var = synth_soft.vars;
-	while (var->var_id != MAXVARS) {
+
+	while (var->var_id != MAXVARS)
+	{
 		if (var->var_id != CAPS_START && var->var_id != CAPS_STOP
 			&& var->var_id != DIRECT)
 			cp = cp + sprintf(cp, var->u.n.synth_fmt,
-					  var->u.n.value);
+							  var->u.n.value);
+
 		var++;
 	}
+
 	cp = cp + sprintf(cp, "\n");
 	return buf;
 }
@@ -178,10 +185,13 @@ static int softsynth_open(struct inode *inode, struct file *fp)
 	/*if ((fp->f_flags & O_ACCMODE) != O_RDONLY) */
 	/*	return -EPERM; */
 	spin_lock_irqsave(&speakup_info.spinlock, flags);
-	if (synth_soft.alive) {
+
+	if (synth_soft.alive)
+	{
 		spin_unlock_irqrestore(&speakup_info.spinlock, flags);
 		return -EBUSY;
 	}
+
 	synth_soft.alive = 1;
 	spin_unlock_irqrestore(&speakup_info.spinlock, flags);
 	return 0;
@@ -201,7 +211,7 @@ static int softsynth_close(struct inode *inode, struct file *fp)
 }
 
 static ssize_t softsynth_read(struct file *fp, char __user *buf, size_t count,
-			      loff_t *pos)
+							  loff_t *pos)
 {
 	int chars_sent = 0;
 	char __user *cp;
@@ -212,58 +222,88 @@ static ssize_t softsynth_read(struct file *fp, char __user *buf, size_t count,
 	DEFINE_WAIT(wait);
 
 	spin_lock_irqsave(&speakup_info.spinlock, flags);
-	while (1) {
+
+	while (1)
+	{
 		prepare_to_wait(&speakup_event, &wait, TASK_INTERRUPTIBLE);
+
 		if (!synth_buffer_empty() || speakup_info.flushing)
+		{
 			break;
+		}
+
 		spin_unlock_irqrestore(&speakup_info.spinlock, flags);
-		if (fp->f_flags & O_NONBLOCK) {
+
+		if (fp->f_flags & O_NONBLOCK)
+		{
 			finish_wait(&speakup_event, &wait);
 			return -EAGAIN;
 		}
-		if (signal_pending(current)) {
+
+		if (signal_pending(current))
+		{
 			finish_wait(&speakup_event, &wait);
 			return -ERESTARTSYS;
 		}
+
 		schedule();
 		spin_lock_irqsave(&speakup_info.spinlock, flags);
 	}
+
 	finish_wait(&speakup_event, &wait);
 
 	cp = buf;
 	init = get_initstring();
-	while (chars_sent < count) {
-		if (speakup_info.flushing) {
+
+	while (chars_sent < count)
+	{
+		if (speakup_info.flushing)
+		{
 			speakup_info.flushing = 0;
 			ch = '\x18';
-		} else if (synth_buffer_empty()) {
+		}
+		else if (synth_buffer_empty())
+		{
 			break;
-		} else if (init[init_pos]) {
+		}
+		else if (init[init_pos])
+		{
 			ch = init[init_pos++];
-		} else {
+		}
+		else
+		{
 			ch = synth_buffer_getc();
 		}
+
 		spin_unlock_irqrestore(&speakup_info.spinlock, flags);
+
 		if (copy_to_user(cp, &ch, 1))
+		{
 			return -EFAULT;
+		}
+
 		spin_lock_irqsave(&speakup_info.spinlock, flags);
 		chars_sent++;
 		cp++;
 	}
+
 	*pos += chars_sent;
 	empty = synth_buffer_empty();
 	spin_unlock_irqrestore(&speakup_info.spinlock, flags);
-	if (empty) {
+
+	if (empty)
+	{
 		speakup_start_ttys();
 		*pos = 0;
 	}
+
 	return chars_sent;
 }
 
 static int last_index;
 
 static ssize_t softsynth_write(struct file *fp, const char __user *buf,
-			       size_t count, loff_t *pos)
+							   size_t count, loff_t *pos)
 {
 	unsigned long supplied_index = 0;
 	int converted;
@@ -271,14 +311,16 @@ static ssize_t softsynth_write(struct file *fp, const char __user *buf,
 	converted = kstrtoul_from_user(buf, count, 0, &supplied_index);
 
 	if (converted < 0)
+	{
 		return converted;
+	}
 
 	last_index = supplied_index;
 	return count;
 }
 
 static unsigned int softsynth_poll(struct file *fp,
-		struct poll_table_struct *wait)
+								   struct poll_table_struct *wait)
 {
 	unsigned long flags;
 	int ret = 0;
@@ -286,8 +328,12 @@ static unsigned int softsynth_poll(struct file *fp,
 	poll_wait(fp, &speakup_event, wait);
 
 	spin_lock_irqsave(&speakup_info.spinlock, flags);
+
 	if (!synth_buffer_empty() || speakup_info.flushing)
+	{
 		ret = POLLIN | POLLRDNORM;
+	}
+
 	spin_unlock_irqrestore(&speakup_info.spinlock, flags);
 	return ret;
 }
@@ -301,7 +347,8 @@ static unsigned char get_index(void)
 	return rv;
 }
 
-static const struct file_operations softsynth_fops = {
+static const struct file_operations softsynth_fops =
+{
 	.owner = THIS_MODULE,
 	.poll = softsynth_poll,
 	.read = softsynth_read,
@@ -315,12 +362,17 @@ static int softsynth_probe(struct spk_synth *synth)
 {
 
 	if (misc_registered != 0)
+	{
 		return 0;
+	}
+
 	memset(&synth_device, 0, sizeof(synth_device));
 	synth_device.minor = SOFTSYNTH_MINOR;
 	synth_device.name = "softsynth";
 	synth_device.fops = &softsynth_fops;
-	if (misc_register(&synth_device)) {
+
+	if (misc_register(&synth_device))
+	{
 		pr_warn("Couldn't initialize miscdevice /dev/softsynth.\n");
 		return -ENODEV;
 	}
@@ -340,7 +392,10 @@ static void softsynth_release(void)
 static int softsynth_is_alive(struct spk_synth *synth)
 {
 	if (synth_soft.alive)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 

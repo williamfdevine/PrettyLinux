@@ -38,10 +38,10 @@
 
 
 static int pvr2_encoder_write_words(struct pvr2_hdw *hdw,
-				    unsigned int offs,
-				    const u32 *data, unsigned int dlen)
+									unsigned int offs,
+									const u32 *data, unsigned int dlen)
 {
-	unsigned int idx,addr;
+	unsigned int idx, addr;
 	unsigned int bAddr;
 	int ret;
 	unsigned int chunkCnt;
@@ -56,24 +56,32 @@ static int pvr2_encoder_write_words(struct pvr2_hdw *hdw,
 	adjusted accordingly.
 
 	*/
-	while (dlen) {
+	while (dlen)
+	{
 		chunkCnt = 8;
-		if (chunkCnt > dlen) chunkCnt = dlen;
-		memset(hdw->cmd_buffer,0,sizeof(hdw->cmd_buffer));
+
+		if (chunkCnt > dlen) { chunkCnt = dlen; }
+
+		memset(hdw->cmd_buffer, 0, sizeof(hdw->cmd_buffer));
 		bAddr = 0;
 		hdw->cmd_buffer[bAddr++] = FX2CMD_MEM_WRITE_DWORD;
-		for (idx = 0; idx < chunkCnt; idx++) {
+
+		for (idx = 0; idx < chunkCnt; idx++)
+		{
 			addr = idx + offs;
-			hdw->cmd_buffer[bAddr+6] = (addr & 0xffu);
-			hdw->cmd_buffer[bAddr+5] = ((addr>>8) & 0xffu);
-			hdw->cmd_buffer[bAddr+4] = ((addr>>16) & 0xffu);
-			PVR2_DECOMPOSE_LE(hdw->cmd_buffer, bAddr,data[idx]);
+			hdw->cmd_buffer[bAddr + 6] = (addr & 0xffu);
+			hdw->cmd_buffer[bAddr + 5] = ((addr >> 8) & 0xffu);
+			hdw->cmd_buffer[bAddr + 4] = ((addr >> 16) & 0xffu);
+			PVR2_DECOMPOSE_LE(hdw->cmd_buffer, bAddr, data[idx]);
 			bAddr += 7;
 		}
+
 		ret = pvr2_send_request(hdw,
-					hdw->cmd_buffer,1+(chunkCnt*7),
-					NULL,0);
-		if (ret) return ret;
+								hdw->cmd_buffer, 1 + (chunkCnt * 7),
+								NULL, 0);
+
+		if (ret) { return ret; }
+
 		data += chunkCnt;
 		dlen -= chunkCnt;
 		offs += chunkCnt;
@@ -84,8 +92,8 @@ static int pvr2_encoder_write_words(struct pvr2_hdw *hdw,
 
 
 static int pvr2_encoder_read_words(struct pvr2_hdw *hdw,
-				   unsigned int offs,
-				   u32 *data, unsigned int dlen)
+								   unsigned int offs,
+								   u32 *data, unsigned int dlen)
 {
 	unsigned int idx;
 	int ret;
@@ -101,10 +109,14 @@ static int pvr2_encoder_read_words(struct pvr2_hdw *hdw,
 
 	*/
 
-	while (dlen) {
+	while (dlen)
+	{
 		chunkCnt = 16;
-		if (chunkCnt > dlen) chunkCnt = dlen;
-		if (chunkCnt < 16) chunkCnt = 1;
+
+		if (chunkCnt > dlen) { chunkCnt = dlen; }
+
+		if (chunkCnt < 16) { chunkCnt = 1; }
+
 		hdw->cmd_buffer[0] =
 			((chunkCnt == 1) ?
 			 FX2CMD_MEM_READ_DWORD : FX2CMD_MEM_READ_64BYTES);
@@ -112,18 +124,21 @@ static int pvr2_encoder_read_words(struct pvr2_hdw *hdw,
 		hdw->cmd_buffer[2] = 0;
 		hdw->cmd_buffer[3] = 0;
 		hdw->cmd_buffer[4] = 0;
-		hdw->cmd_buffer[5] = ((offs>>16) & 0xffu);
-		hdw->cmd_buffer[6] = ((offs>>8) & 0xffu);
+		hdw->cmd_buffer[5] = ((offs >> 16) & 0xffu);
+		hdw->cmd_buffer[6] = ((offs >> 8) & 0xffu);
 		hdw->cmd_buffer[7] = (offs & 0xffu);
 		ret = pvr2_send_request(hdw,
-					hdw->cmd_buffer,8,
-					hdw->cmd_buffer,
-					(chunkCnt == 1 ? 4 : 16 * 4));
-		if (ret) return ret;
+								hdw->cmd_buffer, 8,
+								hdw->cmd_buffer,
+								(chunkCnt == 1 ? 4 : 16 * 4));
 
-		for (idx = 0; idx < chunkCnt; idx++) {
-			data[idx] = PVR2_COMPOSE_LE(hdw->cmd_buffer,idx*4);
+		if (ret) { return ret; }
+
+		for (idx = 0; idx < chunkCnt; idx++)
+		{
+			data[idx] = PVR2_COMPOSE_LE(hdw->cmd_buffer, idx * 4);
 		}
+
 		data += chunkCnt;
 		dlen -= chunkCnt;
 		offs += chunkCnt;
@@ -139,10 +154,10 @@ static int pvr2_encoder_read_words(struct pvr2_hdw *hdw,
    cx2341x.ko to write to our encoder (by handing it a pointer to this
    function).  For earlier kernels this doesn't really matter. */
 static int pvr2_encoder_cmd(void *ctxt,
-			    u32 cmd,
-			    int arg_cnt_send,
-			    int arg_cnt_recv,
-			    u32 *argp)
+							u32 cmd,
+							int arg_cnt_send,
+							int arg_cnt_recv,
+							u32 *argp)
 {
 	unsigned int poll_count;
 	unsigned int try_count = 0;
@@ -185,7 +200,8 @@ static int pvr2_encoder_cmd(void *ctxt,
 
 	*/
 
-	if (arg_cnt_send > (ARRAY_SIZE(wrData) - 4)) {
+	if (arg_cnt_send > (ARRAY_SIZE(wrData) - 4))
+	{
 		pvr2_trace(
 			PVR2_TRACE_ERROR_LEGS,
 			"Failed to write cx23416 command"
@@ -195,7 +211,8 @@ static int pvr2_encoder_cmd(void *ctxt,
 		return -EINVAL;
 	}
 
-	if (arg_cnt_recv > (ARRAY_SIZE(rdData) - 4)) {
+	if (arg_cnt_recv > (ARRAY_SIZE(rdData) - 4))
+	{
 		pvr2_trace(
 			PVR2_TRACE_ERROR_LEGS,
 			"Failed to write cx23416 command"
@@ -206,9 +223,13 @@ static int pvr2_encoder_cmd(void *ctxt,
 	}
 
 
-	LOCK_TAKE(hdw->ctl_lock); do {
+	LOCK_TAKE(hdw->ctl_lock);
 
-		if (!hdw->state_encoder_ok) {
+	do
+	{
+
+		if (!hdw->state_encoder_ok)
+		{
 			ret = -EIO;
 			break;
 		}
@@ -220,77 +241,108 @@ static int pvr2_encoder_cmd(void *ctxt,
 		wrData[1] = cmd;
 		wrData[2] = 0;
 		wrData[3] = 0x00060000;
-		for (idx = 0; idx < arg_cnt_send; idx++) {
-			wrData[idx+4] = argp[idx];
-		}
-		for (; idx < ARRAY_SIZE(wrData) - 4; idx++) {
-			wrData[idx+4] = 0;
+
+		for (idx = 0; idx < arg_cnt_send; idx++)
+		{
+			wrData[idx + 4] = argp[idx];
 		}
 
-		ret = pvr2_encoder_write_words(hdw,MBOX_BASE,wrData,idx);
-		if (ret) break;
-		wrData[0] = IVTV_MBOX_DRIVER_DONE|IVTV_MBOX_DRIVER_BUSY;
-		ret = pvr2_encoder_write_words(hdw,MBOX_BASE,wrData,1);
-		if (ret) break;
+		for (; idx < ARRAY_SIZE(wrData) - 4; idx++)
+		{
+			wrData[idx + 4] = 0;
+		}
+
+		ret = pvr2_encoder_write_words(hdw, MBOX_BASE, wrData, idx);
+
+		if (ret) { break; }
+
+		wrData[0] = IVTV_MBOX_DRIVER_DONE | IVTV_MBOX_DRIVER_BUSY;
+		ret = pvr2_encoder_write_words(hdw, MBOX_BASE, wrData, 1);
+
+		if (ret) { break; }
+
 		poll_count = 0;
-		while (1) {
+
+		while (1)
+		{
 			poll_count++;
-			ret = pvr2_encoder_read_words(hdw,MBOX_BASE,rdData,
-						      arg_cnt_recv+4);
-			if (ret) {
+			ret = pvr2_encoder_read_words(hdw, MBOX_BASE, rdData,
+										  arg_cnt_recv + 4);
+
+			if (ret)
+			{
 				break;
 			}
-			if (rdData[0] & IVTV_MBOX_FIRMWARE_DONE) {
+
+			if (rdData[0] & IVTV_MBOX_FIRMWARE_DONE)
+			{
 				break;
 			}
-			if (rdData[0] && (poll_count < 1000)) continue;
-			if (!rdData[0]) {
+
+			if (rdData[0] && (poll_count < 1000)) { continue; }
+
+			if (!rdData[0])
+			{
 				retry_flag = !0;
 				pvr2_trace(
 					PVR2_TRACE_ERROR_LEGS,
 					"Encoder timed out waiting for us"
 					"; arranging to retry");
-			} else {
+			}
+			else
+			{
 				pvr2_trace(
 					PVR2_TRACE_ERROR_LEGS,
 					"***WARNING*** device's encoder"
 					" appears to be stuck"
-					" (status=0x%08x)",rdData[0]);
+					" (status=0x%08x)", rdData[0]);
 			}
+
 			pvr2_trace(
 				PVR2_TRACE_ERROR_LEGS,
-				"Encoder command: 0x%02x",cmd);
-			for (idx = 4; idx < arg_cnt_send; idx++) {
+				"Encoder command: 0x%02x", cmd);
+
+			for (idx = 4; idx < arg_cnt_send; idx++)
+			{
 				pvr2_trace(
 					PVR2_TRACE_ERROR_LEGS,
 					"Encoder arg%d: 0x%08x",
-					idx-3,wrData[idx]);
+					idx - 3, wrData[idx]);
 			}
+
 			ret = -EBUSY;
 			break;
 		}
-		if (retry_flag) {
-			if (try_count < 20) continue;
+
+		if (retry_flag)
+		{
+			if (try_count < 20) { continue; }
+
 			pvr2_trace(
 				PVR2_TRACE_ERROR_LEGS,
 				"Too many retries...");
 			ret = -EBUSY;
 		}
-		if (ret) {
+
+		if (ret)
+		{
 			del_timer_sync(&hdw->encoder_run_timer);
 			hdw->state_encoder_ok = 0;
 			pvr2_trace(PVR2_TRACE_STBITS,
-				   "State bit %s <-- %s",
-				   "state_encoder_ok",
-				   (hdw->state_encoder_ok ? "true" : "false"));
-			if (hdw->state_encoder_runok) {
+					   "State bit %s <-- %s",
+					   "state_encoder_ok",
+					   (hdw->state_encoder_ok ? "true" : "false"));
+
+			if (hdw->state_encoder_runok)
+			{
 				hdw->state_encoder_runok = 0;
 				pvr2_trace(PVR2_TRACE_STBITS,
-				   "State bit %s <-- %s",
-					   "state_encoder_runok",
-					   (hdw->state_encoder_runok ?
-					    "true" : "false"));
+						   "State bit %s <-- %s",
+						   "state_encoder_runok",
+						   (hdw->state_encoder_runok ?
+							"true" : "false"));
 			}
+
 			pvr2_trace(
 				PVR2_TRACE_ERROR_LEGS,
 				"Giving up on command."
@@ -300,29 +352,35 @@ static int pvr2_encoder_cmd(void *ctxt,
 				" and rapidly.");
 			break;
 		}
+
 		wrData[0] = 0x7;
-		for (idx = 0; idx < arg_cnt_recv; idx++) {
-			argp[idx] = rdData[idx+4];
+
+		for (idx = 0; idx < arg_cnt_recv; idx++)
+		{
+			argp[idx] = rdData[idx + 4];
 		}
 
 		wrData[0] = 0x0;
-		ret = pvr2_encoder_write_words(hdw,MBOX_BASE,wrData,1);
-		if (ret) break;
+		ret = pvr2_encoder_write_words(hdw, MBOX_BASE, wrData, 1);
 
-	} while(0); LOCK_GIVE(hdw->ctl_lock);
+		if (ret) { break; }
+
+	}
+	while (0); LOCK_GIVE(hdw->ctl_lock);
 
 	return ret;
 }
 
 
 static int pvr2_encoder_vcmd(struct pvr2_hdw *hdw, int cmd,
-			     int args, ...)
+							 int args, ...)
 {
 	va_list vl;
 	unsigned int idx;
 	u32 data[12];
 
-	if (args > ARRAY_SIZE(data)) {
+	if (args > ARRAY_SIZE(data))
+	{
 		pvr2_trace(
 			PVR2_TRACE_ERROR_LEGS,
 			"Failed to write cx23416 command"
@@ -333,12 +391,15 @@ static int pvr2_encoder_vcmd(struct pvr2_hdw *hdw, int cmd,
 	}
 
 	va_start(vl, args);
-	for (idx = 0; idx < args; idx++) {
+
+	for (idx = 0; idx < args; idx++)
+	{
 		data[idx] = va_arg(vl, u32);
 	}
+
 	va_end(vl);
 
-	return pvr2_encoder_cmd(hdw,cmd,args,0,data);
+	return pvr2_encoder_cmd(hdw, cmd, args, 0, data);
 }
 
 
@@ -355,12 +416,17 @@ static int pvr2_encoder_prep_config(struct pvr2_hdw *hdw)
 	   currently see no difference in behavior with or without
 	   this stuff.  Leave this here as a note of its existence,
 	   but don't use it. */
-	LOCK_TAKE(hdw->ctl_lock); do {
+	LOCK_TAKE(hdw->ctl_lock);
+
+	do
+	{
 		u32 dat[1];
 		dat[0] = 0x80000640;
-		pvr2_encoder_write_words(hdw,0x01fe,dat,1);
-		pvr2_encoder_write_words(hdw,0x023e,dat,1);
-	} while(0); LOCK_GIVE(hdw->ctl_lock);
+		pvr2_encoder_write_words(hdw, 0x01fe, dat, 1);
+		pvr2_encoder_write_words(hdw, 0x023e, dat, 1);
+	}
+	while (0); LOCK_GIVE(hdw->ctl_lock);
+
 #endif
 
 	/* Mike Isely <isely@pobox.com> 26-Jan-2006 The windows driver
@@ -375,7 +441,7 @@ static int pvr2_encoder_prep_config(struct pvr2_hdw *hdw)
 	/* This ENC_MISC(5,0) command seems to hurt 29xxx sync
 	   performance on channel changes, but is not a problem on
 	   24xxx devices. */
-	ret |= pvr2_encoder_vcmd(hdw, CX2341X_ENC_MISC,4, 5,0,0,0);
+	ret |= pvr2_encoder_vcmd(hdw, CX2341X_ENC_MISC, 4, 5, 0, 0, 0);
 #endif
 
 	/* This ENC_MISC(3,encMisc3Arg) command is critical - without
@@ -383,15 +449,19 @@ static int pvr2_encoder_prep_config(struct pvr2_hdw *hdw)
 	   saa7115 case is strange - the Windows driver is passing 1
 	   regardless of device type but if we have 1 for saa7115
 	   devices the video turns sluggish.  */
-	if (hdw->hdw_desc->flag_has_cx25840) {
+	if (hdw->hdw_desc->flag_has_cx25840)
+	{
 		encMisc3Arg = 1;
-	} else {
+	}
+	else
+	{
 		encMisc3Arg = 0;
 	}
-	ret |= pvr2_encoder_vcmd(hdw, CX2341X_ENC_MISC,4, 3,
-				 encMisc3Arg,0,0);
 
-	ret |= pvr2_encoder_vcmd(hdw, CX2341X_ENC_MISC,4, 8,0,0,0);
+	ret |= pvr2_encoder_vcmd(hdw, CX2341X_ENC_MISC, 4, 3,
+							 encMisc3Arg, 0, 0);
+
+	ret |= pvr2_encoder_vcmd(hdw, CX2341X_ENC_MISC, 4, 8, 0, 0, 0);
 
 #if 0
 	/* This ENC_MISC(4,1) command is poisonous, so it is commented
@@ -399,11 +469,11 @@ static int pvr2_encoder_prep_config(struct pvr2_hdw *hdw)
 	   existence in the Windows driver.  The effect of this
 	   command is that apps displaying the stream become sluggish
 	   with stuttering video. */
-	ret |= pvr2_encoder_vcmd(hdw, CX2341X_ENC_MISC,4, 4,1,0,0);
+	ret |= pvr2_encoder_vcmd(hdw, CX2341X_ENC_MISC, 4, 4, 1, 0, 0);
 #endif
 
-	ret |= pvr2_encoder_vcmd(hdw, CX2341X_ENC_MISC,4, 0,3,0,0);
-	ret |= pvr2_encoder_vcmd(hdw, CX2341X_ENC_MISC,4,15,0,0,0);
+	ret |= pvr2_encoder_vcmd(hdw, CX2341X_ENC_MISC, 4, 0, 3, 0, 0);
+	ret |= pvr2_encoder_vcmd(hdw, CX2341X_ENC_MISC, 4, 15, 0, 0, 0);
 
 	/* prevent the PTSs from slowly drifting away in the generated
 	   MPEG stream */
@@ -415,16 +485,21 @@ static int pvr2_encoder_prep_config(struct pvr2_hdw *hdw)
 int pvr2_encoder_adjust(struct pvr2_hdw *hdw)
 {
 	int ret;
-	ret = cx2341x_update(hdw,pvr2_encoder_cmd,
-			     (hdw->enc_cur_valid ? &hdw->enc_cur_state : NULL),
-			     &hdw->enc_ctl_state);
-	if (ret) {
+	ret = cx2341x_update(hdw, pvr2_encoder_cmd,
+						 (hdw->enc_cur_valid ? &hdw->enc_cur_state : NULL),
+						 &hdw->enc_ctl_state);
+
+	if (ret)
+	{
 		pvr2_trace(PVR2_TRACE_ERROR_LEGS,
-			   "Error from cx2341x module code=%d",ret);
-	} else {
+				   "Error from cx2341x module code=%d", ret);
+	}
+	else
+	{
 		hdw->enc_cur_state = hdw->enc_ctl_state;
 		hdw->enc_cur_valid = !0;
 	}
+
 	return ret;
 }
 
@@ -433,13 +508,13 @@ int pvr2_encoder_configure(struct pvr2_hdw *hdw)
 {
 	int ret;
 	int val;
-	pvr2_trace(PVR2_TRACE_ENCODER,"pvr2_encoder_configure"
-		   " (cx2341x module)");
+	pvr2_trace(PVR2_TRACE_ENCODER, "pvr2_encoder_configure"
+			   " (cx2341x module)");
 	hdw->enc_ctl_state.port = CX2341X_PORT_STREAMING;
 	hdw->enc_ctl_state.width = hdw->res_hor_val;
 	hdw->enc_ctl_state.height = hdw->res_ver_val;
 	hdw->enc_ctl_state.is_50hz = ((hdw->std_mask_cur & V4L2_STD_525_60) ?
-				      0 : 1);
+								  0 : 1);
 
 	ret = 0;
 
@@ -447,39 +522,44 @@ int pvr2_encoder_configure(struct pvr2_hdw *hdw)
 
 	/* saa7115: 0xf0 */
 	val = 0xf0;
-	if (hdw->hdw_desc->flag_has_cx25840) {
+
+	if (hdw->hdw_desc->flag_has_cx25840)
+	{
 		/* ivtv cx25840: 0x140 */
 		val = 0x140;
 	}
 
 	if (!ret) ret = pvr2_encoder_vcmd(
-		hdw,CX2341X_ENC_SET_NUM_VSYNC_LINES, 2,
-		val, val);
+							hdw, CX2341X_ENC_SET_NUM_VSYNC_LINES, 2,
+							val, val);
 
 	/* setup firmware to notify us about some events (don't know why...) */
 	if (!ret) ret = pvr2_encoder_vcmd(
-		hdw,CX2341X_ENC_SET_EVENT_NOTIFICATION, 4,
-		0, 0, 0x10000000, 0xffffffff);
+							hdw, CX2341X_ENC_SET_EVENT_NOTIFICATION, 4,
+							0, 0, 0x10000000, 0xffffffff);
 
 	if (!ret) ret = pvr2_encoder_vcmd(
-		hdw,CX2341X_ENC_SET_VBI_LINE, 5,
-		0xffffffff,0,0,0,0);
+							hdw, CX2341X_ENC_SET_VBI_LINE, 5,
+							0xffffffff, 0, 0, 0, 0);
 
-	if (ret) {
+	if (ret)
+	{
 		pvr2_trace(PVR2_TRACE_ERROR_LEGS,
-			   "Failed to configure cx23416");
+				   "Failed to configure cx23416");
 		return ret;
 	}
 
 	ret = pvr2_encoder_adjust(hdw);
-	if (ret) return ret;
+
+	if (ret) { return ret; }
 
 	ret = pvr2_encoder_vcmd(
-		hdw, CX2341X_ENC_INITIALIZE_INPUT, 0);
+			  hdw, CX2341X_ENC_INITIALIZE_INPUT, 0);
 
-	if (ret) {
+	if (ret)
+	{
 		pvr2_trace(PVR2_TRACE_ERROR_LEGS,
-			   "Failed to initialize cx23416 video input");
+				   "Failed to initialize cx23416 video input");
 		return ret;
 	}
 
@@ -494,23 +574,27 @@ int pvr2_encoder_start(struct pvr2_hdw *hdw)
 	/* unmask some interrupts */
 	pvr2_write_register(hdw, 0x0048, 0xbfffffff);
 
-	pvr2_encoder_vcmd(hdw,CX2341X_ENC_MUTE_VIDEO,1,
-			  hdw->input_val == PVR2_CVAL_INPUT_RADIO ? 1 : 0);
+	pvr2_encoder_vcmd(hdw, CX2341X_ENC_MUTE_VIDEO, 1,
+					  hdw->input_val == PVR2_CVAL_INPUT_RADIO ? 1 : 0);
 
-	switch (hdw->active_stream_type) {
-	case pvr2_config_vbi:
-		status = pvr2_encoder_vcmd(hdw,CX2341X_ENC_START_CAPTURE,2,
-					   0x01,0x14);
-		break;
-	case pvr2_config_mpeg:
-		status = pvr2_encoder_vcmd(hdw,CX2341X_ENC_START_CAPTURE,2,
-					   0,0x13);
-		break;
-	default: /* Unhandled cases for now */
-		status = pvr2_encoder_vcmd(hdw,CX2341X_ENC_START_CAPTURE,2,
-					   0,0x13);
-		break;
+	switch (hdw->active_stream_type)
+	{
+		case pvr2_config_vbi:
+			status = pvr2_encoder_vcmd(hdw, CX2341X_ENC_START_CAPTURE, 2,
+									   0x01, 0x14);
+			break;
+
+		case pvr2_config_mpeg:
+			status = pvr2_encoder_vcmd(hdw, CX2341X_ENC_START_CAPTURE, 2,
+									   0, 0x13);
+			break;
+
+		default: /* Unhandled cases for now */
+			status = pvr2_encoder_vcmd(hdw, CX2341X_ENC_START_CAPTURE, 2,
+									   0, 0x13);
+			break;
 	}
+
 	return status;
 }
 
@@ -521,19 +605,22 @@ int pvr2_encoder_stop(struct pvr2_hdw *hdw)
 	/* mask all interrupts */
 	pvr2_write_register(hdw, 0x0048, 0xffffffff);
 
-	switch (hdw->active_stream_type) {
-	case pvr2_config_vbi:
-		status = pvr2_encoder_vcmd(hdw,CX2341X_ENC_STOP_CAPTURE,3,
-					   0x01,0x01,0x14);
-		break;
-	case pvr2_config_mpeg:
-		status = pvr2_encoder_vcmd(hdw,CX2341X_ENC_STOP_CAPTURE,3,
-					   0x01,0,0x13);
-		break;
-	default: /* Unhandled cases for now */
-		status = pvr2_encoder_vcmd(hdw,CX2341X_ENC_STOP_CAPTURE,3,
-					   0x01,0,0x13);
-		break;
+	switch (hdw->active_stream_type)
+	{
+		case pvr2_config_vbi:
+			status = pvr2_encoder_vcmd(hdw, CX2341X_ENC_STOP_CAPTURE, 3,
+									   0x01, 0x01, 0x14);
+			break;
+
+		case pvr2_config_mpeg:
+			status = pvr2_encoder_vcmd(hdw, CX2341X_ENC_STOP_CAPTURE, 3,
+									   0x01, 0, 0x13);
+			break;
+
+		default: /* Unhandled cases for now */
+			status = pvr2_encoder_vcmd(hdw, CX2341X_ENC_STOP_CAPTURE, 3,
+									   0x01, 0, 0x13);
+			break;
 	}
 
 	return status;

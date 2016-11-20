@@ -1,5 +1,5 @@
 /*********************************************************************
- *                
+ *
  * Filename:      irlmp.h
  * Version:       0.9
  * Description:   IrDA Link Management Protocol (LMP) layer
@@ -8,18 +8,18 @@
  * Created at:    Sun Aug 17 20:54:32 1997
  * Modified at:   Fri Dec 10 13:23:01 1999
  * Modified by:   Dag Brattli <dagb@cs.uit.no>
- * 
- *     Copyright (c) 1998-1999 Dag Brattli <dagb@cs.uit.no>, 
+ *
+ *     Copyright (c) 1998-1999 Dag Brattli <dagb@cs.uit.no>,
  *     All Rights Reserved.
  *     Copyright (c) 2000-2002 Jean Tourrilhes <jt@hpl.hp.com>
- *     
- *     This program is free software; you can redistribute it and/or 
- *     modify it under the terms of the GNU General Public License as 
- *     published by the Free Software Foundation; either version 2 of 
+ *
+ *     This program is free software; you can redistribute it and/or
+ *     modify it under the terms of the GNU General Public License as
+ *     published by the Free Software Foundation; either version 2 of
  *     the License, or (at your option) any later version.
  *
  *     Neither Dag Brattli nor University of Tromsø admit liability nor
- *     provide warranty for any of this software. This material is 
+ *     provide warranty for any of this software. This material is
  *     provided "AS-IS" and at no charge.
  *
  ********************************************************************/
@@ -56,7 +56,8 @@
 
 #define LM_IDLE_TIMEOUT     2*HZ /* 2 seconds for now */
 
-typedef enum {
+typedef enum
+{
 	S_PNP = 0,
 	S_PDA,
 	S_COMPUTER,
@@ -76,13 +77,15 @@ typedef void (*DISCOVERY_CALLBACK1) (discinfo_t *, DISCOVERY_MODE, void *);
 /* For expiry (the same) */
 typedef void (*DISCOVERY_CALLBACK2) (discinfo_t *, DISCOVERY_MODE, void *);
 
-typedef struct {
+typedef struct
+{
 	irda_queue_t queue; /* Must be first */
 
 	__u16_host_order hints; /* Hint bits */
 } irlmp_service_t;
 
-typedef struct {
+typedef struct
+{
 	irda_queue_t queue; /* Must be first */
 
 	__u16_host_order hint_mask;
@@ -95,7 +98,8 @@ typedef struct {
 /*
  *  Information about each logical LSAP connection
  */
-struct lsap_cb {
+struct lsap_cb
+{
 	irda_queue_t queue;      /* Must be first */
 	magic_t magic;
 
@@ -125,7 +129,8 @@ struct lsap_cb {
  * we are associated with a specific LAP (which implies it).
  * Jean II
  */
-typedef struct {
+typedef struct
+{
 	int valid;
 
 	__u8 slsap_sel;
@@ -136,7 +141,8 @@ typedef struct {
 /*
  *  Information about each registered IrLAP layer
  */
-struct lap_cb {
+struct lap_cb
+{
 	irda_queue_t queue; /* Must be first */
 	magic_t magic;
 
@@ -149,12 +155,12 @@ struct lap_cb {
 	struct lsap_cb *flow_next;	/* Next lsap to be polled for Tx */
 
 	__u8  caddr;  /* Connection address */
- 	__u32 saddr;  /* Source device address */
- 	__u32 daddr;  /* Destination device address */
-	
+	__u32 saddr;  /* Source device address */
+	__u32 daddr;  /* Destination device address */
+
 	struct qos_info *qos;  /* LAP QoS for this session */
 	struct timer_list idle_timer;
-	
+
 #ifdef CONFIG_IRDA_CACHE_LAST_LSAP
 	/* The lsap cache was moved from struct irlmp_cb to here because
 	 * it must be associated with the specific LAP. Also, this
@@ -166,11 +172,12 @@ struct lap_cb {
 /*
  *  Main structure for IrLMP
  */
-struct irlmp_cb {
+struct irlmp_cb
+{
 	magic_t magic;
 
 	__u8 conflict_flag;
-	
+
 	discovery_t discovery_cmd; /* Discovery command to use by IrLAP */
 	discovery_t discovery_rsp; /* Discovery response to use by IrLAP */
 
@@ -179,9 +186,9 @@ struct irlmp_cb {
 
 	struct timer_list discovery_timer;
 
- 	hashbin_t *links;         /* IrLAP connection table */
+	hashbin_t *links;         /* IrLAP connection table */
 	hashbin_t *unconnected_lsaps;
- 	hashbin_t *clients;
+	hashbin_t *clients;
 	hashbin_t *services;
 
 	hashbin_t *cachelog;	/* Current discovery log */
@@ -201,25 +208,25 @@ __u16 irlmp_service_to_hint(int service);
 void *irlmp_register_service(__u16 hints);
 int irlmp_unregister_service(void *handle);
 void *irlmp_register_client(__u16 hint_mask, DISCOVERY_CALLBACK1 disco_clb,
-			    DISCOVERY_CALLBACK2 expir_clb, void *priv);
+							DISCOVERY_CALLBACK2 expir_clb, void *priv);
 int irlmp_unregister_client(void *handle);
-int irlmp_update_client(void *handle, __u16 hint_mask, 
-			DISCOVERY_CALLBACK1 disco_clb,
-			DISCOVERY_CALLBACK2 expir_clb, void *priv);
+int irlmp_update_client(void *handle, __u16 hint_mask,
+						DISCOVERY_CALLBACK1 disco_clb,
+						DISCOVERY_CALLBACK2 expir_clb, void *priv);
 
 void irlmp_register_link(struct irlap_cb *, __u32 saddr, notify_t *);
 void irlmp_unregister_link(__u32 saddr);
 
-int  irlmp_connect_request(struct lsap_cb *, __u8 dlsap_sel, 
-			   __u32 saddr, __u32 daddr,
-			   struct qos_info *, struct sk_buff *);
+int  irlmp_connect_request(struct lsap_cb *, __u8 dlsap_sel,
+						   __u32 saddr, __u32 daddr,
+						   struct qos_info *, struct sk_buff *);
 void irlmp_connect_indication(struct lsap_cb *self, struct sk_buff *skb);
 int  irlmp_connect_response(struct lsap_cb *, struct sk_buff *);
 void irlmp_connect_confirm(struct lsap_cb *, struct sk_buff *);
 struct lsap_cb *irlmp_dup(struct lsap_cb *self, void *instance);
 
-void irlmp_disconnect_indication(struct lsap_cb *self, LM_REASON reason, 
-				 struct sk_buff *userdata);
+void irlmp_disconnect_indication(struct lsap_cb *self, LM_REASON reason,
+								 struct sk_buff *userdata);
 int  irlmp_disconnect_request(struct lsap_cb *, struct sk_buff *userdata);
 
 void irlmp_discovery_confirm(hashbin_t *discovery_log, DISCOVERY_MODE mode);
@@ -237,8 +244,8 @@ int  irlmp_udata_request(struct lsap_cb *, struct sk_buff *);
 void irlmp_udata_indication(struct lsap_cb *, struct sk_buff *);
 
 #ifdef CONFIG_IRDA_ULTRA
-int  irlmp_connless_data_request(struct lsap_cb *, struct sk_buff *, __u8);
-void irlmp_connless_data_indication(struct lsap_cb *, struct sk_buff *);
+	int  irlmp_connless_data_request(struct lsap_cb *, struct sk_buff *, __u8);
+	void irlmp_connless_data_indication(struct lsap_cb *, struct sk_buff *);
 #endif /* CONFIG_IRDA_ULTRA */
 
 void irlmp_status_indication(struct lap_cb *, LINK_STATUS link, LOCK_STATUS lock);
@@ -269,11 +276,19 @@ extern struct irlmp_cb *irlmp;
 static inline int irlmp_lap_tx_queue_full(struct lsap_cb *self)
 {
 	if (self == NULL)
+	{
 		return 0;
+	}
+
 	if (self->lap == NULL)
+	{
 		return 0;
+	}
+
 	if (self->lap->irlap == NULL)
+	{
 		return 0;
+	}
 
 	return IRLAP_GET_TX_QUEUE_LEN(self->lap->irlap) >= LAP_HIGH_THRESHOLD;
 }

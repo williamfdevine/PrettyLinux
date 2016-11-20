@@ -149,9 +149,9 @@
 #define  BCM_APD_SINGLELP_EN	0x0100 /* Bit 8 */
 
 #define BCM5482_SHD_LEDS1	0x0d	/* 01101: LED Selector 1 */
-					/* LED3 / ~LINKSPD[2] selector */
+/* LED3 / ~LINKSPD[2] selector */
 #define BCM5482_SHD_LEDS1_LED3(src)	((src & 0xf) << 4)
-					/* LED1 / ~LINKSPD[1] selector */
+/* LED1 / ~LINKSPD[1] selector */
 #define BCM5482_SHD_LEDS1_LED1(src)	((src & 0xf) << 0)
 #define BCM54XX_SHD_RGMII_MODE	0x0b	/* 01011: RGMII Mode Selector */
 #define BCM5482_SHD_SSD		0x14	/* 10100: Secondary SerDes control */

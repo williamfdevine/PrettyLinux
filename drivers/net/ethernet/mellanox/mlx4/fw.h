@@ -38,12 +38,14 @@
 #include "mlx4.h"
 #include "icm.h"
 
-struct mlx4_mod_stat_cfg {
+struct mlx4_mod_stat_cfg
+{
 	u8 log_pg_sz;
 	u8 log_pg_sz_m;
 };
 
-struct mlx4_port_cap {
+struct mlx4_port_cap
+{
 	u8  link_state;
 	u8  supported_port_types;
 	u8  suggested_type;
@@ -65,7 +67,8 @@ struct mlx4_port_cap {
 	u8 dmfs_optimized_state;
 };
 
-struct mlx4_dev_cap {
+struct mlx4_dev_cap
+{
 	int max_srq_sz;
 	int max_qp_sz;
 	int reserved_qps;
@@ -131,7 +134,8 @@ struct mlx4_dev_cap {
 	struct mlx4_port_cap port_cap[MLX4_MAX_PORTS + 1];
 };
 
-struct mlx4_func_cap {
+struct mlx4_func_cap
+{
 	u8	num_ports;
 	u8	flags;
 	u32	pf_context_behaviour;
@@ -156,7 +160,8 @@ struct mlx4_func_cap {
 	u32	extra_flags;
 };
 
-struct mlx4_func {
+struct mlx4_func
+{
 	int	bus;
 	int	device;
 	int	function;
@@ -166,12 +171,14 @@ struct mlx4_func {
 	int	rsvd_uars;
 };
 
-struct mlx4_adapter {
+struct mlx4_adapter
+{
 	char board_id[MLX4_BOARD_ID_LEN];
 	u8   inta_pin;
 };
 
-struct mlx4_init_hca_param {
+struct mlx4_init_hca_param
+{
 	u64 qpc_base;
 	u64 rdmarc_base;
 	u64 auxc_base;
@@ -207,7 +214,8 @@ struct mlx4_init_hca_param {
 	u8 phv_check_en; /* for QUERY_HCA */
 };
 
-struct mlx4_init_ib_param {
+struct mlx4_init_ib_param
+{
 	int port_width;
 	int vl_cap;
 	int mtu_cap;
@@ -221,7 +229,8 @@ struct mlx4_init_ib_param {
 	u64 si_guid;
 };
 
-struct mlx4_set_ib_param {
+struct mlx4_set_ib_param
+{
 	int set_si_guid;
 	int reset_qkey_viol;
 	u64 si_guid;
@@ -232,12 +241,12 @@ void mlx4_dev_cap_dump(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap);
 int mlx4_QUERY_DEV_CAP(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap);
 int mlx4_QUERY_PORT(struct mlx4_dev *dev, int port, struct mlx4_port_cap *port_cap);
 int mlx4_QUERY_FUNC_CAP(struct mlx4_dev *dev, u8 gen_or_port,
-			struct mlx4_func_cap *func_cap);
+						struct mlx4_func_cap *func_cap);
 int mlx4_QUERY_FUNC_CAP_wrapper(struct mlx4_dev *dev, int slave,
-				struct mlx4_vhcr *vhcr,
-				struct mlx4_cmd_mailbox *inbox,
-				struct mlx4_cmd_mailbox *outbox,
-				struct mlx4_cmd_info *cmd);
+								struct mlx4_vhcr *vhcr,
+								struct mlx4_cmd_mailbox *inbox,
+								struct mlx4_cmd_mailbox *outbox,
+								struct mlx4_cmd_info *cmd);
 int mlx4_QUERY_FUNC(struct mlx4_dev *dev, struct mlx4_func *func, int slave);
 int mlx4_MAP_FA(struct mlx4_dev *dev, struct mlx4_icm *icm);
 int mlx4_UNMAP_FA(struct mlx4_dev *dev);

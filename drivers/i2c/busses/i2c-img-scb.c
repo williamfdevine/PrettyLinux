@@ -168,22 +168,22 @@
 #define INT_ENABLE_MASK_RAW		INT_TIMING
 
 #define INT_ENABLE_MASK_ATOMIC		(INT_TRANSACTION_DONE | \
-					 INT_SLAVE_EVENT      | \
-					 INT_ADDR_ACK_ERR     | \
-					 INT_WRITE_ACK_ERR)
+									 INT_SLAVE_EVENT      | \
+									 INT_ADDR_ACK_ERR     | \
+									 INT_WRITE_ACK_ERR)
 
 #define INT_ENABLE_MASK_AUTOMATIC	(INT_SCLK_LOW_TIMEOUT | \
-					 INT_ADDR_ACK_ERR     | \
-					 INT_WRITE_ACK_ERR    | \
-					 INT_FIFO_FULL        | \
-					 INT_FIFO_FILLING     | \
-					 INT_FIFO_EMPTY       | \
-					 INT_MASTER_HALTED    | \
-					 INT_STOP_DETECTED)
+									 INT_ADDR_ACK_ERR     | \
+									 INT_WRITE_ACK_ERR    | \
+									 INT_FIFO_FULL        | \
+									 INT_FIFO_FILLING     | \
+									 INT_FIFO_EMPTY       | \
+									 INT_MASTER_HALTED    | \
+									 INT_STOP_DETECTED)
 
 #define INT_ENABLE_MASK_WAITSTOP	(INT_SLAVE_EVENT      | \
-					 INT_ADDR_ACK_ERR     | \
-					 INT_WRITE_ACK_ERR)
+									 INT_ADDR_ACK_ERR     | \
+									 INT_WRITE_ACK_ERR)
 
 /* SCB_STATUS_REG fields */
 
@@ -227,15 +227,15 @@
 #define OVERRIDE_DATA_SHIFT		24
 
 #define OVERRIDE_SCLK_DOWN		(OVERRIDE_LINE_OVR_EN | \
-					 OVERRIDE_SCLKEN_OVR)
+								 OVERRIDE_SCLKEN_OVR)
 #define OVERRIDE_SCLK_UP		(OVERRIDE_LINE_OVR_EN | \
-					 OVERRIDE_SCLKEN_OVR | \
-					 OVERRIDE_SCLK_OVR)
+								 OVERRIDE_SCLKEN_OVR | \
+								 OVERRIDE_SCLK_OVR)
 #define OVERRIDE_SDAT_DOWN		(OVERRIDE_LINE_OVR_EN | \
-					 OVERRIDE_SDATEN_OVR)
+								 OVERRIDE_SDATEN_OVR)
 #define OVERRIDE_SDAT_UP		(OVERRIDE_LINE_OVR_EN | \
-					 OVERRIDE_SDATEN_OVR | \
-					 OVERRIDE_SDAT_OVR)
+								 OVERRIDE_SDATEN_OVR | \
+								 OVERRIDE_SDAT_OVR)
 
 /* OVERRIDE_CMD values */
 
@@ -280,7 +280,8 @@
 #define ISR_COMPLETE(err)	(ISR_COMPLETE_M | (ISR_STATUS_M & (err)))
 #define ISR_FATAL(err)		(ISR_COMPLETE(err) | ISR_FATAL_M)
 
-enum img_i2c_mode {
+enum img_i2c_mode
+{
 	MODE_INACTIVE,
 	MODE_RAW,
 	MODE_ATOMIC,
@@ -292,7 +293,8 @@ enum img_i2c_mode {
 };
 
 /* Timing parameters for i2c modes (in ns) */
-struct img_i2c_timings {
+struct img_i2c_timings
+{
 	const char *name;
 	unsigned int max_bitrate;
 	unsigned int tckh, tckl, tsdh, tsdl;
@@ -300,7 +302,8 @@ struct img_i2c_timings {
 };
 
 /* The timings array must be ordered from slower to faster */
-static struct img_i2c_timings timings[] = {
+static struct img_i2c_timings timings[] =
+{
 	/* Standard mode */
 	{
 		.name = "standard",
@@ -329,17 +332,20 @@ static struct img_i2c_timings timings[] = {
 
 /* Reset dance */
 static u8 img_i2c_reset_seq[] = { CMD_GEN_START,
-				  CMD_GEN_DATA, 0xff,
-				  CMD_RET_ACK,
-				  CMD_GEN_START,
-				  CMD_GEN_STOP,
-				  0 };
+								  CMD_GEN_DATA, 0xff,
+								  CMD_RET_ACK,
+								  CMD_GEN_START,
+								  CMD_GEN_STOP,
+								  0
+								};
 /* Just issue a stop (after an abort condition) */
 static u8 img_i2c_stop_seq[] = {  CMD_GEN_STOP,
-				  0 };
+								  0
+							   };
 
 /* We're interested in different interrupts depending on the mode */
-static unsigned int img_i2c_int_enable_by_mode[] = {
+static unsigned int img_i2c_int_enable_by_mode[] =
+{
 	[MODE_INACTIVE]  = INT_ENABLE_MASK_INACTIVE,
 	[MODE_RAW]       = INT_ENABLE_MASK_RAW,
 	[MODE_ATOMIC]    = INT_ENABLE_MASK_ATOMIC,
@@ -351,7 +357,8 @@ static unsigned int img_i2c_int_enable_by_mode[] = {
 };
 
 /* Atomic command names */
-static const char * const img_i2c_atomic_cmd_names[] = {
+static const char *const img_i2c_atomic_cmd_names[] =
+{
 	[CMD_PAUSE]	= "PAUSE",
 	[CMD_GEN_DATA]	= "GEN_DATA",
 	[CMD_GEN_START]	= "GEN_START",
@@ -362,7 +369,8 @@ static const char * const img_i2c_atomic_cmd_names[] = {
 	[CMD_RET_ACK]	= "RET_ACK",
 };
 
-struct img_i2c {
+struct img_i2c
+{
 	struct i2c_adapter adap;
 
 	void __iomem *base;
@@ -432,7 +440,8 @@ static u32 img_i2c_readl(struct img_i2c *i2c, u32 offset)
  */
 static void img_i2c_wr_rd_fence(struct img_i2c *i2c)
 {
-	if (i2c->need_wr_rd_fence) {
+	if (i2c->need_wr_rd_fence)
+	{
 		img_i2c_writel(i2c, SCB_CORE_REV_REG, 0);
 		img_i2c_writel(i2c, SCB_CORE_REV_REG, 0);
 	}
@@ -449,19 +458,22 @@ static void img_i2c_raw_op(struct img_i2c *i2c)
 {
 	i2c->raw_timeout = 0;
 	img_i2c_writel(i2c, SCB_OVERRIDE_REG,
-		OVERRIDE_SCLKEN_OVR |
-		OVERRIDE_SDATEN_OVR |
-		OVERRIDE_MASTER |
-		OVERRIDE_LINE_OVR_EN |
-		OVERRIDE_DIRECT |
-		((i2c->at_cur_cmd & OVERRIDE_CMD_MASK) << OVERRIDE_CMD_SHIFT) |
-		(i2c->at_cur_data << OVERRIDE_DATA_SHIFT));
+				   OVERRIDE_SCLKEN_OVR |
+				   OVERRIDE_SDATEN_OVR |
+				   OVERRIDE_MASTER |
+				   OVERRIDE_LINE_OVR_EN |
+				   OVERRIDE_DIRECT |
+				   ((i2c->at_cur_cmd & OVERRIDE_CMD_MASK) << OVERRIDE_CMD_SHIFT) |
+				   (i2c->at_cur_data << OVERRIDE_DATA_SHIFT));
 }
 
 static const char *img_i2c_atomic_op_name(unsigned int cmd)
 {
 	if (unlikely(cmd >= ARRAY_SIZE(img_i2c_atomic_cmd_names)))
+	{
 		return "UNKNOWN";
+	}
+
 	return img_i2c_atomic_cmd_names[cmd];
 }
 
@@ -472,10 +484,12 @@ static void img_i2c_atomic_op(struct img_i2c *i2c, int cmd, u8 data)
 	i2c->at_cur_data = data;
 
 	/* work around lack of data setup time when generating data */
-	if (cmd == CMD_GEN_DATA && i2c->mode == MODE_ATOMIC) {
+	if (cmd == CMD_GEN_DATA && i2c->mode == MODE_ATOMIC)
+	{
 		u32 line_status = img_i2c_readl(i2c, SCB_STATUS_REG);
 
-		if (line_status & LINESTAT_SDAT_LINE_STATUS && !(data & 0x80)) {
+		if (line_status & LINESTAT_SDAT_LINE_STATUS && !(data & 0x80))
+		{
 			/* hold the data line down for a moment */
 			img_i2c_switch_mode(i2c, MODE_RAW);
 			img_i2c_raw_op(i2c);
@@ -484,17 +498,17 @@ static void img_i2c_atomic_op(struct img_i2c *i2c, int cmd, u8 data)
 	}
 
 	dev_dbg(i2c->adap.dev.parent,
-		"atomic cmd=%s (%d) data=%#x\n",
-		img_i2c_atomic_op_name(cmd), cmd, data);
+			"atomic cmd=%s (%d) data=%#x\n",
+			img_i2c_atomic_op_name(cmd), cmd, data);
 	i2c->at_t_done = (cmd == CMD_RET_DATA || cmd == CMD_RET_ACK);
 	i2c->at_slave_event = false;
 	i2c->line_status = 0;
 
 	img_i2c_writel(i2c, SCB_OVERRIDE_REG,
-		((cmd & OVERRIDE_CMD_MASK) << OVERRIDE_CMD_SHIFT) |
-		OVERRIDE_MASTER |
-		OVERRIDE_DIRECT |
-		(data << OVERRIDE_DATA_SHIFT));
+				   ((cmd & OVERRIDE_CMD_MASK) << OVERRIDE_CMD_SHIFT) |
+				   OVERRIDE_MASTER |
+				   OVERRIDE_DIRECT |
+				   (data << OVERRIDE_DATA_SHIFT));
 }
 
 /* Start a transaction in atomic mode */
@@ -510,7 +524,7 @@ static void img_i2c_soft_reset(struct img_i2c *i2c)
 	i2c->t_halt = false;
 	img_i2c_writel(i2c, SCB_CONTROL_REG, 0);
 	img_i2c_writel(i2c, SCB_CONTROL_REG,
-		       SCB_CONTROL_CLK_ENABLE | SCB_CONTROL_SOFT_RESET);
+				   SCB_CONTROL_CLK_ENABLE | SCB_CONTROL_SOFT_RESET);
 }
 
 /*
@@ -529,27 +543,40 @@ static void img_i2c_transaction_halt(struct img_i2c *i2c, bool t_halt)
 	u32 val;
 
 	if (i2c->t_halt == t_halt)
+	{
 		return;
+	}
+
 	i2c->t_halt = t_halt;
 	val = img_i2c_readl(i2c, SCB_CONTROL_REG);
+
 	if (t_halt)
+	{
 		val |= SCB_CONTROL_TRANSACTION_HALT;
+	}
 	else
+	{
 		val &= ~SCB_CONTROL_TRANSACTION_HALT;
+	}
+
 	img_i2c_writel(i2c, SCB_CONTROL_REG, val);
 }
 
 /* Drain data from the FIFO into the buffer (automatic mode) */
 static void img_i2c_read_fifo(struct img_i2c *i2c)
 {
-	while (i2c->msg.len) {
+	while (i2c->msg.len)
+	{
 		u32 fifo_status;
 		u8 data;
 
 		img_i2c_wr_rd_fence(i2c);
 		fifo_status = img_i2c_readl(i2c, SCB_FIFO_STATUS_REG);
+
 		if (fifo_status & FIFO_READ_EMPTY)
+		{
 			break;
+		}
 
 		data = img_i2c_readl(i2c, SCB_READ_DATA_REG);
 		*i2c->msg.buf = data;
@@ -563,13 +590,17 @@ static void img_i2c_read_fifo(struct img_i2c *i2c)
 /* Fill the FIFO with data from the buffer (automatic mode) */
 static void img_i2c_write_fifo(struct img_i2c *i2c)
 {
-	while (i2c->msg.len) {
+	while (i2c->msg.len)
+	{
 		u32 fifo_status;
 
 		img_i2c_wr_rd_fence(i2c);
 		fifo_status = img_i2c_readl(i2c, SCB_FIFO_STATUS_REG);
+
 		if (fifo_status & FIFO_WRITE_FULL)
+		{
 			break;
+		}
 
 		img_i2c_writel(i2c, SCB_WRITE_DATA_REG, *i2c->msg.buf);
 		i2c->msg.len--;
@@ -578,15 +609,20 @@ static void img_i2c_write_fifo(struct img_i2c *i2c)
 
 	/* Disable fifo emptying interrupt if nothing more to write */
 	if (!i2c->msg.len)
+	{
 		i2c->int_enable &= ~INT_FIFO_EMPTYING;
+	}
 }
 
 /* Start a read transaction in automatic mode */
 static void img_i2c_read(struct img_i2c *i2c)
 {
 	img_i2c_switch_mode(i2c, MODE_AUTOMATIC);
+
 	if (!i2c->last_msg)
+	{
 		i2c->int_enable |= INT_SLAVE_EVENT;
+	}
 
 	img_i2c_writel(i2c, SCB_INT_MASK_REG, i2c->int_enable);
 	img_i2c_writel(i2c, SCB_READ_ADDR_REG, i2c->msg.addr);
@@ -599,8 +635,11 @@ static void img_i2c_read(struct img_i2c *i2c)
 static void img_i2c_write(struct img_i2c *i2c)
 {
 	img_i2c_switch_mode(i2c, MODE_AUTOMATIC);
+
 	if (!i2c->last_msg)
+	{
 		i2c->int_enable |= INT_SLAVE_EVENT;
+	}
 
 	img_i2c_writel(i2c, SCB_WRITE_ADDR_REG, i2c->msg.addr);
 	img_i2c_writel(i2c, SCB_WRITE_COUNT_REG, i2c->msg.len);
@@ -620,15 +659,18 @@ static void img_i2c_write(struct img_i2c *i2c)
 static void img_i2c_complete_transaction(struct img_i2c *i2c, int status)
 {
 	img_i2c_switch_mode(i2c, MODE_INACTIVE);
-	if (status) {
+
+	if (status)
+	{
 		i2c->msg_status = status;
 		img_i2c_transaction_halt(i2c, false);
 	}
+
 	complete(&i2c->msg_complete);
 }
 
 static unsigned int img_i2c_raw_atomic_delay_handler(struct img_i2c *i2c,
-					u32 int_status, u32 line_status)
+		u32 int_status, u32 line_status)
 {
 	/* Stay in raw mode for this, so we don't just loop infinitely */
 	img_i2c_atomic_op(i2c, i2c->at_cur_cmd, i2c->at_cur_data);
@@ -637,20 +679,24 @@ static unsigned int img_i2c_raw_atomic_delay_handler(struct img_i2c *i2c,
 }
 
 static unsigned int img_i2c_raw(struct img_i2c *i2c, u32 int_status,
-				u32 line_status)
+								u32 line_status)
 {
-	if (int_status & INT_TIMING) {
+	if (int_status & INT_TIMING)
+	{
 		if (i2c->raw_timeout == 0)
 			return img_i2c_raw_atomic_delay_handler(i2c,
-				int_status, line_status);
+													int_status, line_status);
+
 		--i2c->raw_timeout;
 	}
+
 	return 0;
 }
 
 static unsigned int img_i2c_sequence(struct img_i2c *i2c, u32 int_status)
 {
-	static const unsigned int continue_bits[] = {
+	static const unsigned int continue_bits[] =
+	{
 		[CMD_GEN_START] = LINESTAT_START_BIT_DET,
 		[CMD_GEN_DATA]  = LINESTAT_INPUT_HELD_V,
 		[CMD_RET_ACK]   = LINESTAT_ACK_DET | LINESTAT_NACK_DET,
@@ -661,37 +707,54 @@ static unsigned int img_i2c_sequence(struct img_i2c *i2c, u32 int_status)
 	u8 next_data = 0x00;
 
 	if (int_status & INT_SLAVE_EVENT)
+	{
 		i2c->at_slave_event = true;
+	}
+
 	if (int_status & INT_TRANSACTION_DONE)
+	{
 		i2c->at_t_done = true;
+	}
 
 	if (!i2c->at_slave_event || !i2c->at_t_done)
+	{
 		return 0;
+	}
 
 	/* wait if no continue bits are set */
 	if (i2c->at_cur_cmd >= 0 &&
-	    i2c->at_cur_cmd < ARRAY_SIZE(continue_bits)) {
+		i2c->at_cur_cmd < ARRAY_SIZE(continue_bits))
+	{
 		unsigned int cont_bits = continue_bits[i2c->at_cur_cmd];
 
-		if (cont_bits) {
+		if (cont_bits)
+		{
 			cont_bits |= LINESTAT_ABORT_DET;
+
 			if (!(i2c->line_status & cont_bits))
+			{
 				return 0;
+			}
 		}
 	}
 
 	/* follow the sequence of commands in i2c->seq */
 	next_cmd = *i2c->seq;
+
 	/* stop on a nil */
-	if (!next_cmd) {
+	if (!next_cmd)
+	{
 		img_i2c_writel(i2c, SCB_OVERRIDE_REG, 0);
 		return ISR_COMPLETE(0);
 	}
+
 	/* when generating data, the next byte is the data */
-	if (next_cmd == CMD_GEN_DATA) {
+	if (next_cmd == CMD_GEN_DATA)
+	{
 		++i2c->seq;
 		next_data = *i2c->seq;
 	}
+
 	++i2c->seq;
 	img_i2c_atomic_op(i2c, next_cmd, next_data);
 
@@ -727,20 +790,29 @@ static void img_i2c_stop_start(struct img_i2c *i2c)
 }
 
 static unsigned int img_i2c_atomic(struct img_i2c *i2c,
-				   u32 int_status,
-				   u32 line_status)
+								   u32 int_status,
+								   u32 line_status)
 {
 	int next_cmd = -1;
 	u8 next_data = 0x00;
 
 	if (int_status & INT_SLAVE_EVENT)
+	{
 		i2c->at_slave_event = true;
+	}
+
 	if (int_status & INT_TRANSACTION_DONE)
+	{
 		i2c->at_t_done = true;
+	}
 
 	if (!i2c->at_slave_event || !i2c->at_t_done)
+	{
 		goto next_atomic_cmd;
-	if (i2c->line_status & LINESTAT_ABORT_DET) {
+	}
+
+	if (i2c->line_status & LINESTAT_ABORT_DET)
+	{
 		dev_dbg(i2c->adap.dev.parent, "abort condition detected\n");
 		next_cmd = CMD_GEN_STOP;
 		i2c->msg_status = -EIO;
@@ -748,77 +820,114 @@ static unsigned int img_i2c_atomic(struct img_i2c *i2c,
 	}
 
 	/* i2c->at_cur_cmd may have completed */
-	switch (i2c->at_cur_cmd) {
-	case CMD_GEN_START:
-		next_cmd = CMD_GEN_DATA;
-		next_data = i2c_8bit_addr_from_msg(&i2c->msg);
-		break;
-	case CMD_GEN_DATA:
-		if (i2c->line_status & LINESTAT_INPUT_HELD_V)
-			next_cmd = CMD_RET_ACK;
-		break;
-	case CMD_RET_ACK:
-		if (i2c->line_status & LINESTAT_ACK_DET ||
-		    (i2c->line_status & LINESTAT_NACK_DET &&
-		    i2c->msg.flags & I2C_M_IGNORE_NAK)) {
-			if (i2c->msg.len == 0) {
+	switch (i2c->at_cur_cmd)
+	{
+		case CMD_GEN_START:
+			next_cmd = CMD_GEN_DATA;
+			next_data = i2c_8bit_addr_from_msg(&i2c->msg);
+			break;
+
+		case CMD_GEN_DATA:
+			if (i2c->line_status & LINESTAT_INPUT_HELD_V)
+			{
+				next_cmd = CMD_RET_ACK;
+			}
+
+			break;
+
+		case CMD_RET_ACK:
+			if (i2c->line_status & LINESTAT_ACK_DET ||
+				(i2c->line_status & LINESTAT_NACK_DET &&
+				 i2c->msg.flags & I2C_M_IGNORE_NAK))
+			{
+				if (i2c->msg.len == 0)
+				{
+					next_cmd = CMD_GEN_STOP;
+				}
+				else if (i2c->msg.flags & I2C_M_RD)
+				{
+					next_cmd = CMD_RET_DATA;
+				}
+				else
+				{
+					next_cmd = CMD_GEN_DATA;
+					next_data = *i2c->msg.buf;
+					--i2c->msg.len;
+					++i2c->msg.buf;
+				}
+			}
+			else if (i2c->line_status & LINESTAT_NACK_DET)
+			{
+				i2c->msg_status = -EIO;
 				next_cmd = CMD_GEN_STOP;
-			} else if (i2c->msg.flags & I2C_M_RD) {
-				next_cmd = CMD_RET_DATA;
-			} else {
-				next_cmd = CMD_GEN_DATA;
-				next_data = *i2c->msg.buf;
+			}
+
+			break;
+
+		case CMD_RET_DATA:
+			if (i2c->line_status & LINESTAT_INPUT_HELD_V)
+			{
+				*i2c->msg.buf = (i2c->line_status &
+								 LINESTAT_INPUT_DATA)
+								>> LINESTAT_INPUT_DATA_SHIFT;
 				--i2c->msg.len;
 				++i2c->msg.buf;
+
+				if (i2c->msg.len)
+				{
+					next_cmd = CMD_GEN_ACK;
+				}
+				else
+				{
+					next_cmd = CMD_GEN_NACK;
+				}
 			}
-		} else if (i2c->line_status & LINESTAT_NACK_DET) {
-			i2c->msg_status = -EIO;
-			next_cmd = CMD_GEN_STOP;
-		}
-		break;
-	case CMD_RET_DATA:
-		if (i2c->line_status & LINESTAT_INPUT_HELD_V) {
-			*i2c->msg.buf = (i2c->line_status &
-						LINESTAT_INPUT_DATA)
-					>> LINESTAT_INPUT_DATA_SHIFT;
-			--i2c->msg.len;
-			++i2c->msg.buf;
-			if (i2c->msg.len)
-				next_cmd = CMD_GEN_ACK;
+
+			break;
+
+		case CMD_GEN_ACK:
+			if (i2c->line_status & LINESTAT_ACK_DET)
+			{
+				next_cmd = CMD_RET_DATA;
+			}
 			else
-				next_cmd = CMD_GEN_NACK;
-		}
-		break;
-	case CMD_GEN_ACK:
-		if (i2c->line_status & LINESTAT_ACK_DET) {
-			next_cmd = CMD_RET_DATA;
-		} else {
+			{
+				i2c->msg_status = -EIO;
+				next_cmd = CMD_GEN_STOP;
+			}
+
+			break;
+
+		case CMD_GEN_NACK:
+			next_cmd = CMD_GEN_STOP;
+			break;
+
+		case CMD_GEN_STOP:
+			img_i2c_writel(i2c, SCB_OVERRIDE_REG, 0);
+			return ISR_COMPLETE(0);
+
+		default:
+			dev_err(i2c->adap.dev.parent, "bad atomic command %d\n",
+					i2c->at_cur_cmd);
 			i2c->msg_status = -EIO;
 			next_cmd = CMD_GEN_STOP;
-		}
-		break;
-	case CMD_GEN_NACK:
-		next_cmd = CMD_GEN_STOP;
-		break;
-	case CMD_GEN_STOP:
-		img_i2c_writel(i2c, SCB_OVERRIDE_REG, 0);
-		return ISR_COMPLETE(0);
-	default:
-		dev_err(i2c->adap.dev.parent, "bad atomic command %d\n",
-			i2c->at_cur_cmd);
-		i2c->msg_status = -EIO;
-		next_cmd = CMD_GEN_STOP;
-		break;
+			break;
 	}
 
 next_atomic_cmd:
-	if (next_cmd != -1) {
+
+	if (next_cmd != -1)
+	{
 		/* don't actually stop unless we're the last transaction */
 		if (next_cmd == CMD_GEN_STOP && !i2c->msg_status &&
-						!i2c->last_msg)
+			!i2c->last_msg)
+		{
 			return ISR_COMPLETE(0);
+		}
+
 		img_i2c_atomic_op(i2c, next_cmd, next_data);
 	}
+
 	return 0;
 }
 
@@ -836,30 +945,38 @@ static void img_i2c_check_timer(unsigned long arg)
 	line_status = img_i2c_readl(i2c, SCB_STATUS_REG);
 
 	/* check for an abort condition */
-	if (line_status & LINESTAT_ABORT_DET) {
+	if (line_status & LINESTAT_ABORT_DET)
+	{
 		dev_dbg(i2c->adap.dev.parent,
-			"abort condition detected by check timer\n");
+				"abort condition detected by check timer\n");
 		/* enable slave event interrupt mask to trigger irq */
 		img_i2c_writel(i2c, SCB_INT_MASK_REG,
-			       i2c->int_enable | INT_SLAVE_EVENT);
+					   i2c->int_enable | INT_SLAVE_EVENT);
 	}
 
 	spin_unlock_irqrestore(&i2c->lock, flags);
 }
 
 static unsigned int img_i2c_auto(struct img_i2c *i2c,
-				 unsigned int int_status,
-				 unsigned int line_status)
+								 unsigned int int_status,
+								 unsigned int line_status)
 {
 	if (int_status & (INT_WRITE_ACK_ERR | INT_ADDR_ACK_ERR))
+	{
 		return ISR_COMPLETE(EIO);
+	}
 
-	if (line_status & LINESTAT_ABORT_DET) {
+	if (line_status & LINESTAT_ABORT_DET)
+	{
 		dev_dbg(i2c->adap.dev.parent, "abort condition detected\n");
+
 		/* empty the read fifo */
 		if ((i2c->msg.flags & I2C_M_RD) &&
-		    (int_status & INT_FIFO_FULL_FILLING))
+			(int_status & INT_FIFO_FULL_FILLING))
+		{
 			img_i2c_read_fifo(i2c);
+		}
+
 		/* use atomic mode and try to force a stop bit */
 		i2c->msg_status = -EIO;
 		img_i2c_stop_start(i2c);
@@ -867,7 +984,8 @@ static unsigned int img_i2c_auto(struct img_i2c *i2c,
 	}
 
 	/* Enable transaction halt on start bit */
-	if (!i2c->last_msg && line_status & LINESTAT_START_BIT_DET) {
+	if (!i2c->last_msg && line_status & LINESTAT_START_BIT_DET)
+	{
 		img_i2c_transaction_halt(i2c, !i2c->last_msg);
 		/* we're no longer interested in the slave event */
 		i2c->int_enable &= ~INT_SLAVE_EVENT;
@@ -875,28 +993,45 @@ static unsigned int img_i2c_auto(struct img_i2c *i2c,
 
 	mod_timer(&i2c->check_timer, jiffies + msecs_to_jiffies(1));
 
-	if (int_status & INT_STOP_DETECTED) {
+	if (int_status & INT_STOP_DETECTED)
+	{
 		/* Drain remaining data in FIFO and complete transaction */
 		if (i2c->msg.flags & I2C_M_RD)
+		{
 			img_i2c_read_fifo(i2c);
+		}
+
 		return ISR_COMPLETE(0);
 	}
 
-	if (i2c->msg.flags & I2C_M_RD) {
-		if (int_status & (INT_FIFO_FULL_FILLING | INT_MASTER_HALTED)) {
+	if (i2c->msg.flags & I2C_M_RD)
+	{
+		if (int_status & (INT_FIFO_FULL_FILLING | INT_MASTER_HALTED))
+		{
 			img_i2c_read_fifo(i2c);
+
 			if (i2c->msg.len == 0)
+			{
 				return ISR_WAITSTOP;
+			}
 		}
-	} else {
-		if (int_status & (INT_FIFO_EMPTY | INT_MASTER_HALTED)) {
+	}
+	else
+	{
+		if (int_status & (INT_FIFO_EMPTY | INT_MASTER_HALTED))
+		{
 			if ((int_status & INT_FIFO_EMPTY) &&
-			    i2c->msg.len == 0)
+				i2c->msg.len == 0)
+			{
 				return ISR_WAITSTOP;
+			}
+
 			img_i2c_write_fifo(i2c);
 		}
 	}
-	if (int_status & INT_MASTER_HALTED) {
+
+	if (int_status & INT_MASTER_HALTED)
+	{
 		/*
 		 * Release and then enable transaction halt, to
 		 * allow only a single byte to proceed.
@@ -925,10 +1060,12 @@ static irqreturn_t img_i2c_isr(int irq, void *dev_id)
 	 * to be careful not to lose any line status bits that get latched.
 	 */
 	line_status = img_i2c_readl(i2c, SCB_STATUS_REG);
-	if (line_status & LINESTAT_LATCHED) {
+
+	if (line_status & LINESTAT_LATCHED)
+	{
 		img_i2c_writel(i2c, SCB_CLEAR_REG,
-			      (line_status & LINESTAT_LATCHED)
-				>> LINESTAT_CLEAR_SHIFT);
+					   (line_status & LINESTAT_LATCHED)
+					   >> LINESTAT_CLEAR_SHIFT);
 		img_i2c_wr_rd_fence(i2c);
 	}
 
@@ -943,53 +1080,76 @@ static irqreturn_t img_i2c_isr(int irq, void *dev_id)
 	 * a problem. If any of these are set, just continue.
 	 */
 	if ((int_status & INT_SCLK_LOW_TIMEOUT) &&
-	    !(int_status & (INT_SLAVE_EVENT |
-			    INT_FIFO_EMPTY |
-			    INT_FIFO_FULL))) {
+		!(int_status & (INT_SLAVE_EVENT |
+						INT_FIFO_EMPTY |
+						INT_FIFO_FULL)))
+	{
 		dev_crit(i2c->adap.dev.parent,
-			 "fatal: clock low timeout occurred %s addr 0x%02x\n",
-			 (i2c->msg.flags & I2C_M_RD) ? "reading" : "writing",
-			 i2c->msg.addr);
+				 "fatal: clock low timeout occurred %s addr 0x%02x\n",
+				 (i2c->msg.flags & I2C_M_RD) ? "reading" : "writing",
+				 i2c->msg.addr);
 		hret = ISR_FATAL(EIO);
 		goto out;
 	}
 
 	if (i2c->mode == MODE_ATOMIC)
+	{
 		hret = img_i2c_atomic(i2c, int_status, line_status);
+	}
 	else if (i2c->mode == MODE_AUTOMATIC)
+	{
 		hret = img_i2c_auto(i2c, int_status, line_status);
+	}
 	else if (i2c->mode == MODE_SEQUENCE)
+	{
 		hret = img_i2c_sequence(i2c, int_status);
+	}
 	else if (i2c->mode == MODE_WAITSTOP && (int_status & INT_SLAVE_EVENT) &&
 			 (line_status & LINESTAT_STOP_BIT_DET))
+	{
 		hret = ISR_COMPLETE(0);
+	}
 	else if (i2c->mode == MODE_RAW)
+	{
 		hret = img_i2c_raw(i2c, int_status, line_status);
+	}
 	else
+	{
 		hret = 0;
+	}
 
 	/* Clear detected level interrupts. */
 	img_i2c_writel(i2c, SCB_INT_CLEAR_REG, int_status & INT_LEVEL);
 
 out:
-	if (hret & ISR_WAITSTOP) {
+
+	if (hret & ISR_WAITSTOP)
+	{
 		/*
 		 * Only wait for stop on last message.
 		 * Also we may already have detected the stop bit.
 		 */
 		if (!i2c->last_msg || i2c->line_status & LINESTAT_STOP_BIT_DET)
+		{
 			hret = ISR_COMPLETE(0);
+		}
 		else
+		{
 			img_i2c_switch_mode(i2c, MODE_WAITSTOP);
+		}
 	}
 
 	/* now we've finished using regs, handle transaction completion */
-	if (hret & ISR_COMPLETE_M) {
+	if (hret & ISR_COMPLETE_M)
+	{
 		int status = -(hret & ISR_STATUS_M);
 
 		img_i2c_complete_transaction(i2c, status);
+
 		if (hret & ISR_FATAL_M)
+		{
 			img_i2c_switch_mode(i2c, MODE_FATAL);
+		}
 	}
 
 	/* Enable interrupts (int_enable may be altered by changing mode) */
@@ -1012,35 +1172,46 @@ static int img_i2c_reset_bus(struct img_i2c *i2c)
 	spin_unlock_irqrestore(&i2c->lock, flags);
 
 	time_left = wait_for_completion_timeout(&i2c->msg_complete,
-					      IMG_I2C_TIMEOUT);
+											IMG_I2C_TIMEOUT);
+
 	if (time_left == 0)
+	{
 		return -ETIMEDOUT;
+	}
+
 	return 0;
 }
 
 static int img_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs,
-			int num)
+						int num)
 {
 	struct img_i2c *i2c = i2c_get_adapdata(adap);
 	bool atomic = false;
 	int i, ret;
 	unsigned long time_left;
 
-	if (i2c->mode == MODE_SUSPEND) {
+	if (i2c->mode == MODE_SUSPEND)
+	{
 		WARN(1, "refusing to service transaction in suspended state\n");
 		return -EIO;
 	}
 
 	if (i2c->mode == MODE_FATAL)
+	{
 		return -EIO;
+	}
 
-	for (i = 0; i < num; i++) {
+	for (i = 0; i < num; i++)
+	{
 		/*
 		 * 0 byte reads are not possible because the slave could try
 		 * and pull the data line low, preventing a stop bit.
 		 */
 		if (!msgs[i].len && msgs[i].flags & I2C_M_RD)
+		{
 			return -EIO;
+		}
+
 		/*
 		 * 0 byte writes are possible and used for probing, but we
 		 * cannot do them in automatic mode, so use atomic mode
@@ -1050,15 +1221,21 @@ static int img_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs,
 		 * in atomic mode.
 		 */
 		if (!msgs[i].len ||
-		    (msgs[i].flags & I2C_M_IGNORE_NAK))
+			(msgs[i].flags & I2C_M_IGNORE_NAK))
+		{
 			atomic = true;
+		}
 	}
 
 	ret = clk_prepare_enable(i2c->scb_clk);
-	if (ret)
-		return ret;
 
-	for (i = 0; i < num; i++) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	for (i = 0; i < num; i++)
+	{
 		struct i2c_msg *msg = &msgs[i];
 		unsigned long flags;
 
@@ -1090,9 +1267,12 @@ static int img_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs,
 		img_i2c_writel(i2c, SCB_INT_CLEAR_REG, ~0);
 		img_i2c_writel(i2c, SCB_CLEAR_REG, ~0);
 
-		if (atomic) {
+		if (atomic)
+		{
 			img_i2c_atomic_start(i2c);
-		} else {
+		}
+		else
+		{
 			/*
 			 * Enable transaction halt if not the last message in
 			 * the queue so that we can control repeated starts.
@@ -1100,9 +1280,13 @@ static int img_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs,
 			img_i2c_transaction_halt(i2c, !i2c->last_msg);
 
 			if (msg->flags & I2C_M_RD)
+			{
 				img_i2c_read(i2c);
+			}
 			else
+			{
 				img_i2c_write(i2c);
+			}
 
 			/*
 			 * Release and then enable transaction halt, to
@@ -1115,20 +1299,24 @@ static int img_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs,
 			img_i2c_transaction_halt(i2c, false);
 			img_i2c_transaction_halt(i2c, !i2c->last_msg);
 		}
+
 		spin_unlock_irqrestore(&i2c->lock, flags);
 
 		time_left = wait_for_completion_timeout(&i2c->msg_complete,
-						      IMG_I2C_TIMEOUT);
+												IMG_I2C_TIMEOUT);
 		del_timer_sync(&i2c->check_timer);
 
-		if (time_left == 0) {
+		if (time_left == 0)
+		{
 			dev_err(adap->dev.parent, "i2c transfer timed out\n");
 			i2c->msg_status = -ETIMEDOUT;
 			break;
 		}
 
 		if (i2c->msg_status)
+		{
 			break;
+		}
 	}
 
 	clk_disable_unprepare(i2c->scb_clk);
@@ -1141,7 +1329,8 @@ static u32 img_i2c_func(struct i2c_adapter *adap)
 	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
 }
 
-static const struct i2c_algorithm img_i2c_algo = {
+static const struct i2c_algorithm img_i2c_algo =
+{
 	.master_xfer = img_i2c_xfer,
 	.functionality = img_i2c_func,
 };
@@ -1154,15 +1343,20 @@ static int img_i2c_init(struct img_i2c *i2c)
 	u32 rev;
 
 	ret = clk_prepare_enable(i2c->scb_clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	rev = img_i2c_readl(i2c, SCB_CORE_REV_REG);
-	if ((rev & 0x00ffffff) < 0x00020200) {
+
+	if ((rev & 0x00ffffff) < 0x00020200)
+	{
 		dev_info(i2c->adap.dev.parent,
-			 "Unknown hardware revision (%d.%d.%d.%d)\n",
-			 (rev >> 24) & 0xff, (rev >> 16) & 0xff,
-			 (rev >> 8) & 0xff, rev & 0xff);
+				 "Unknown hardware revision (%d.%d.%d.%d)\n",
+				 (rev >> 24) & 0xff, (rev >> 16) & 0xff,
+				 (rev >> 8) & 0xff, rev & 0xff);
 		clk_disable_unprepare(i2c->scb_clk);
 		return -EINVAL;
 	}
@@ -1172,17 +1366,22 @@ static int img_i2c_init(struct img_i2c *i2c)
 
 	/* Determine what mode we're in from the bitrate */
 	timing = timings[0];
-	for (i = 0; i < ARRAY_SIZE(timings); i++) {
-		if (i2c->bitrate <= timings[i].max_bitrate) {
+
+	for (i = 0; i < ARRAY_SIZE(timings); i++)
+	{
+		if (i2c->bitrate <= timings[i].max_bitrate)
+		{
 			timing = timings[i];
 			break;
 		}
 	}
-	if (i2c->bitrate > timings[ARRAY_SIZE(timings) - 1].max_bitrate) {
+
+	if (i2c->bitrate > timings[ARRAY_SIZE(timings) - 1].max_bitrate)
+	{
 		dev_warn(i2c->adap.dev.parent,
-			 "requested bitrate (%u) is higher than the max bitrate supported (%u)\n",
-			 i2c->bitrate,
-			 timings[ARRAY_SIZE(timings) - 1].max_bitrate);
+				 "requested bitrate (%u) is higher than the max bitrate supported (%u)\n",
+				 i2c->bitrate,
+				 timings[ARRAY_SIZE(timings) - 1].max_bitrate);
 		timing = timings[ARRAY_SIZE(timings) - 1];
 		i2c->bitrate = timing.max_bitrate;
 	}
@@ -1206,23 +1405,33 @@ static int img_i2c_init(struct img_i2c *i2c)
 	 * If it's between the 20-40 MHz range, there's no need to divide
 	 * the clock to get a filter.
 	 */
-	if (clk_khz < 20000) {
+	if (clk_khz < 20000)
+	{
 		filt = SCB_FILT_DISABLE;
-	} else if (clk_khz < 40000) {
+	}
+	else if (clk_khz < 40000)
+	{
 		filt = SCB_FILT_BYPASS;
-	} else {
+	}
+	else
+	{
 		/* Calculate filter clock */
 		filt = (64000 / ((clk_khz / 1000) * SCB_FILT_GLITCH));
 
 		/* Scale up if needed */
 		if (64000 % ((clk_khz / 1000) * SCB_FILT_GLITCH))
+		{
 			inc++;
+		}
 
 		if (filt > SCB_FILT_INC_MASK)
+		{
 			filt = SCB_FILT_INC_MASK;
+		}
 
 		filt = (filt & SCB_FILT_INC_MASK) << SCB_FILT_INC_SHIFT;
 	}
+
 	data = filt | ((inc & SCB_INC_MASK) << SCB_INC_SHIFT) | (prescale - 1);
 	img_i2c_writel(i2c, SCB_CLK_SET_REG, data);
 
@@ -1231,9 +1440,12 @@ static int img_i2c_init(struct img_i2c *i2c)
 
 	/* Calculate the bitrate in terms of internal clock pulses */
 	int_bitrate = 1000000 / (bitrate_khz * clk_period);
+
 	if ((1000000 % (bitrate_khz * clk_period)) >=
-	    ((bitrate_khz * clk_period) / 2))
+		((bitrate_khz * clk_period) / 2))
+	{
 		int_bitrate++;
+	}
 
 	/*
 	 * Setup clock duty cycle, start with 50% and adjust TCKH and TCKL
@@ -1245,16 +1457,21 @@ static int img_i2c_init(struct img_i2c *i2c)
 	/* Adjust TCKH and TCKL values */
 	data = DIV_ROUND_UP(timing.tckl, clk_period);
 
-	if (tckl < data) {
+	if (tckl < data)
+	{
 		tckl = data;
 		tckh = int_bitrate - tckl;
 	}
 
 	if (tckh > 0)
+	{
 		--tckh;
+	}
 
 	if (tckl > 0)
+	{
 		--tckl;
+	}
 
 	img_i2c_writel(i2c, SCB_TIME_TCKH_REG, tckh);
 	img_i2c_writel(i2c, SCB_TIME_TCKL_REG, tckl);
@@ -1263,9 +1480,14 @@ static int img_i2c_init(struct img_i2c *i2c)
 	tsdh = DIV_ROUND_UP(timing.tsdh, clk_period);
 
 	if (tsdh > 1)
+	{
 		data = tsdh - 1;
+	}
 	else
+	{
 		data = 0x01;
+	}
+
 	img_i2c_writel(i2c, SCB_TIME_TSDH_REG, data);
 
 	/* This value is used later */
@@ -1273,14 +1495,22 @@ static int img_i2c_init(struct img_i2c *i2c)
 
 	/* Setup TPL value */
 	data = timing.tpl / clk_period;
+
 	if (data > 0)
+	{
 		--data;
+	}
+
 	img_i2c_writel(i2c, SCB_TIME_TPL_REG, data);
 
 	/* Setup TPH value */
 	data = timing.tph / clk_period;
+
 	if (data > 0)
+	{
 		--data;
+	}
+
 	img_i2c_writel(i2c, SCB_TIME_TPH_REG, data);
 
 	/* Setup TSDL value to TPL + TSDH + 2 */
@@ -1288,8 +1518,12 @@ static int img_i2c_init(struct img_i2c *i2c)
 
 	/* Setup TP2S value */
 	data = timing.tp2s / clk_period;
+
 	if (data > 0)
+	{
 		--data;
+	}
+
 	img_i2c_writel(i2c, SCB_TIME_TP2S_REG, data);
 
 	img_i2c_writel(i2c, SCB_TIME_TBI_REG, TIMEOUT_TBI);
@@ -1328,35 +1562,49 @@ static int img_i2c_probe(struct platform_device *pdev)
 	u32 val;
 
 	i2c = devm_kzalloc(&pdev->dev, sizeof(struct img_i2c), GFP_KERNEL);
+
 	if (!i2c)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	i2c->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(i2c->base))
+	{
 		return PTR_ERR(i2c->base);
+	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "can't get irq number\n");
 		return irq;
 	}
 
 	i2c->sys_clk = devm_clk_get(&pdev->dev, "sys");
-	if (IS_ERR(i2c->sys_clk)) {
+
+	if (IS_ERR(i2c->sys_clk))
+	{
 		dev_err(&pdev->dev, "can't get system clock\n");
 		return PTR_ERR(i2c->sys_clk);
 	}
 
 	i2c->scb_clk = devm_clk_get(&pdev->dev, "scb");
-	if (IS_ERR(i2c->scb_clk)) {
+
+	if (IS_ERR(i2c->scb_clk))
+	{
 		dev_err(&pdev->dev, "can't get core clock\n");
 		return PTR_ERR(i2c->scb_clk);
 	}
 
 	ret = devm_request_irq(&pdev->dev, irq, img_i2c_isr, 0,
-			       pdev->name, i2c);
-	if (ret) {
+						   pdev->name, i2c);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "can't request irq %d\n", irq);
 		return ret;
 	}
@@ -1367,8 +1615,11 @@ static int img_i2c_probe(struct platform_device *pdev)
 	i2c->check_timer.data = (unsigned long)i2c;
 
 	i2c->bitrate = timings[0].max_bitrate;
+
 	if (!of_property_read_u32(node, "clock-frequency", &val))
+	{
 		i2c->bitrate = val;
+	}
 
 	i2c_set_adapdata(&i2c->adap, i2c);
 	i2c->adap.dev.parent = &pdev->dev;
@@ -1386,16 +1637,25 @@ static int img_i2c_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, i2c);
 
 	ret = clk_prepare_enable(i2c->sys_clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = img_i2c_init(i2c);
+
 	if (ret)
+	{
 		goto disable_clk;
+	}
 
 	ret = i2c_add_numbered_adapter(&i2c->adap);
+
 	if (ret < 0)
+	{
 		goto disable_clk;
+	}
 
 	return 0;
 
@@ -1432,8 +1692,11 @@ static int img_i2c_resume(struct device *dev)
 	int ret;
 
 	ret = clk_prepare_enable(i2c->sys_clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	img_i2c_init(i2c);
 
@@ -1443,13 +1706,15 @@ static int img_i2c_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(img_i2c_pm, img_i2c_suspend, img_i2c_resume);
 
-static const struct of_device_id img_scb_i2c_match[] = {
+static const struct of_device_id img_scb_i2c_match[] =
+{
 	{ .compatible = "img,scb-i2c" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, img_scb_i2c_match);
 
-static struct platform_driver img_scb_i2c_driver = {
+static struct platform_driver img_scb_i2c_driver =
+{
 	.driver = {
 		.name		= "img-i2c-scb",
 		.of_match_table	= img_scb_i2c_match,

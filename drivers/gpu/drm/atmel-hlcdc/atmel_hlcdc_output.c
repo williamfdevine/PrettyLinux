@@ -36,7 +36,8 @@
  * @dc: pointer to the atmel_hlcdc_dc structure
  * @panel: panel connected on the RGB output
  */
-struct atmel_hlcdc_rgb_output {
+struct atmel_hlcdc_rgb_output
+{
 	struct drm_connector connector;
 	struct drm_encoder encoder;
 	struct atmel_hlcdc_dc *dc;
@@ -47,7 +48,7 @@ static inline struct atmel_hlcdc_rgb_output *
 drm_connector_to_atmel_hlcdc_rgb_output(struct drm_connector *connector)
 {
 	return container_of(connector, struct atmel_hlcdc_rgb_output,
-			    connector);
+						connector);
 }
 
 static inline struct atmel_hlcdc_rgb_output *
@@ -59,9 +60,10 @@ drm_encoder_to_atmel_hlcdc_rgb_output(struct drm_encoder *encoder)
 static void atmel_hlcdc_rgb_encoder_enable(struct drm_encoder *encoder)
 {
 	struct atmel_hlcdc_rgb_output *rgb =
-			drm_encoder_to_atmel_hlcdc_rgb_output(encoder);
+		drm_encoder_to_atmel_hlcdc_rgb_output(encoder);
 
-	if (rgb->panel) {
+	if (rgb->panel)
+	{
 		drm_panel_prepare(rgb->panel);
 		drm_panel_enable(rgb->panel);
 	}
@@ -70,15 +72,17 @@ static void atmel_hlcdc_rgb_encoder_enable(struct drm_encoder *encoder)
 static void atmel_hlcdc_rgb_encoder_disable(struct drm_encoder *encoder)
 {
 	struct atmel_hlcdc_rgb_output *rgb =
-			drm_encoder_to_atmel_hlcdc_rgb_output(encoder);
+		drm_encoder_to_atmel_hlcdc_rgb_output(encoder);
 
-	if (rgb->panel) {
+	if (rgb->panel)
+	{
 		drm_panel_disable(rgb->panel);
 		drm_panel_unprepare(rgb->panel);
 	}
 }
 
-static const struct drm_encoder_helper_funcs atmel_hlcdc_panel_encoder_helper_funcs = {
+static const struct drm_encoder_helper_funcs atmel_hlcdc_panel_encoder_helper_funcs =
+{
 	.disable = atmel_hlcdc_rgb_encoder_disable,
 	.enable = atmel_hlcdc_rgb_encoder_enable,
 };
@@ -89,31 +93,35 @@ static void atmel_hlcdc_rgb_encoder_destroy(struct drm_encoder *encoder)
 	memset(encoder, 0, sizeof(*encoder));
 }
 
-static const struct drm_encoder_funcs atmel_hlcdc_panel_encoder_funcs = {
+static const struct drm_encoder_funcs atmel_hlcdc_panel_encoder_funcs =
+{
 	.destroy = atmel_hlcdc_rgb_encoder_destroy,
 };
 
 static int atmel_hlcdc_panel_get_modes(struct drm_connector *connector)
 {
 	struct atmel_hlcdc_rgb_output *rgb =
-			drm_connector_to_atmel_hlcdc_rgb_output(connector);
+		drm_connector_to_atmel_hlcdc_rgb_output(connector);
 
 	if (rgb->panel)
+	{
 		return rgb->panel->funcs->get_modes(rgb->panel);
+	}
 
 	return 0;
 }
 
 static int atmel_hlcdc_rgb_mode_valid(struct drm_connector *connector,
-				      struct drm_display_mode *mode)
+									  struct drm_display_mode *mode)
 {
 	struct atmel_hlcdc_rgb_output *rgb =
-			drm_connector_to_atmel_hlcdc_rgb_output(connector);
+		drm_connector_to_atmel_hlcdc_rgb_output(connector);
 
 	return atmel_hlcdc_dc_mode_valid(rgb->dc, mode);
 }
 
-static const struct drm_connector_helper_funcs atmel_hlcdc_panel_connector_helper_funcs = {
+static const struct drm_connector_helper_funcs atmel_hlcdc_panel_connector_helper_funcs =
+{
 	.get_modes = atmel_hlcdc_panel_get_modes,
 	.mode_valid = atmel_hlcdc_rgb_mode_valid,
 };
@@ -122,10 +130,12 @@ static enum drm_connector_status
 atmel_hlcdc_panel_connector_detect(struct drm_connector *connector, bool force)
 {
 	struct atmel_hlcdc_rgb_output *rgb =
-			drm_connector_to_atmel_hlcdc_rgb_output(connector);
+		drm_connector_to_atmel_hlcdc_rgb_output(connector);
 
 	if (rgb->panel)
+	{
 		return connector_status_connected;
+	}
 
 	return connector_status_disconnected;
 }
@@ -134,15 +144,18 @@ static void
 atmel_hlcdc_panel_connector_destroy(struct drm_connector *connector)
 {
 	struct atmel_hlcdc_rgb_output *rgb =
-			drm_connector_to_atmel_hlcdc_rgb_output(connector);
+		drm_connector_to_atmel_hlcdc_rgb_output(connector);
 
 	if (rgb->panel)
+	{
 		drm_panel_detach(rgb->panel);
+	}
 
 	drm_connector_cleanup(connector);
 }
 
-static const struct drm_connector_funcs atmel_hlcdc_panel_connector_funcs = {
+static const struct drm_connector_funcs atmel_hlcdc_panel_connector_funcs =
+{
 	.dpms = drm_atomic_helper_connector_dpms,
 	.detect = atmel_hlcdc_panel_connector_detect,
 	.fill_modes = drm_helper_probe_single_connector_modes,
@@ -153,7 +166,7 @@ static const struct drm_connector_funcs atmel_hlcdc_panel_connector_funcs = {
 };
 
 static int atmel_hlcdc_check_endpoint(struct drm_device *dev,
-				      const struct of_endpoint *ep)
+									  const struct of_endpoint *ep)
 {
 	struct device_node *np;
 	void *obj;
@@ -161,8 +174,11 @@ static int atmel_hlcdc_check_endpoint(struct drm_device *dev,
 	np = of_graph_get_remote_port_parent(ep->local_node);
 
 	obj = of_drm_find_panel(np);
+
 	if (!obj)
+	{
 		obj = of_drm_find_bridge(np);
+	}
 
 	of_node_put(np);
 
@@ -170,7 +186,7 @@ static int atmel_hlcdc_check_endpoint(struct drm_device *dev,
 }
 
 static int atmel_hlcdc_attach_endpoint(struct drm_device *dev,
-				       const struct of_endpoint *ep)
+									   const struct of_endpoint *ep)
 {
 	struct atmel_hlcdc_dc *dc = dev->dev_private;
 	struct atmel_hlcdc_rgb_output *output;
@@ -180,18 +196,24 @@ static int atmel_hlcdc_attach_endpoint(struct drm_device *dev,
 	int ret;
 
 	output = devm_kzalloc(dev->dev, sizeof(*output), GFP_KERNEL);
+
 	if (!output)
+	{
 		return -EINVAL;
+	}
 
 	output->dc = dc;
 
 	drm_encoder_helper_add(&output->encoder,
-			       &atmel_hlcdc_panel_encoder_helper_funcs);
+						   &atmel_hlcdc_panel_encoder_helper_funcs);
 	ret = drm_encoder_init(dev, &output->encoder,
-			       &atmel_hlcdc_panel_encoder_funcs,
-			       DRM_MODE_ENCODER_NONE, NULL);
+						   &atmel_hlcdc_panel_encoder_funcs,
+						   DRM_MODE_ENCODER_NONE, NULL);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	output->encoder.possible_crtcs = 0x1;
 
@@ -200,23 +222,30 @@ static int atmel_hlcdc_attach_endpoint(struct drm_device *dev,
 	ret = -EPROBE_DEFER;
 
 	panel = of_drm_find_panel(np);
-	if (panel) {
+
+	if (panel)
+	{
 		of_node_put(np);
 		output->connector.dpms = DRM_MODE_DPMS_OFF;
 		output->connector.polled = DRM_CONNECTOR_POLL_CONNECT;
 		drm_connector_helper_add(&output->connector,
-				&atmel_hlcdc_panel_connector_helper_funcs);
+								 &atmel_hlcdc_panel_connector_helper_funcs);
 		ret = drm_connector_init(dev, &output->connector,
-					 &atmel_hlcdc_panel_connector_funcs,
-					 DRM_MODE_CONNECTOR_Unknown);
+								 &atmel_hlcdc_panel_connector_funcs,
+								 DRM_MODE_CONNECTOR_Unknown);
+
 		if (ret)
+		{
 			goto err_encoder_cleanup;
+		}
 
 		drm_mode_connector_attach_encoder(&output->connector,
-						  &output->encoder);
+										  &output->encoder);
 
 		ret = drm_panel_attach(panel, &output->connector);
-		if (ret) {
+
+		if (ret)
+		{
 			drm_connector_cleanup(&output->connector);
 			goto err_encoder_cleanup;
 		}
@@ -229,12 +258,16 @@ static int atmel_hlcdc_attach_endpoint(struct drm_device *dev,
 	bridge = of_drm_find_bridge(np);
 	of_node_put(np);
 
-	if (bridge) {
+	if (bridge)
+	{
 		output->encoder.bridge = bridge;
 		bridge->encoder = &output->encoder;
 		ret = drm_bridge_attach(dev, bridge);
+
 		if (!ret)
+		{
 			return 0;
+		}
 	}
 
 err_encoder_cleanup:
@@ -249,23 +282,33 @@ int atmel_hlcdc_create_outputs(struct drm_device *dev)
 	struct of_endpoint ep;
 	int ret;
 
-	for_each_endpoint_of_node(dev->dev->of_node, ep_np) {
+	for_each_endpoint_of_node(dev->dev->of_node, ep_np)
+	{
 		ret = of_graph_parse_endpoint(ep_np, &ep);
-		if (!ret)
-			ret = atmel_hlcdc_check_endpoint(dev, &ep);
 
-		if (ret) {
+		if (!ret)
+		{
+			ret = atmel_hlcdc_check_endpoint(dev, &ep);
+		}
+
+		if (ret)
+		{
 			of_node_put(ep_np);
 			return ret;
 		}
 	}
 
-	for_each_endpoint_of_node(dev->dev->of_node, ep_np) {
+	for_each_endpoint_of_node(dev->dev->of_node, ep_np)
+	{
 		ret = of_graph_parse_endpoint(ep_np, &ep);
-		if (!ret)
-			ret = atmel_hlcdc_attach_endpoint(dev, &ep);
 
-		if (ret) {
+		if (!ret)
+		{
+			ret = atmel_hlcdc_attach_endpoint(dev, &ep);
+		}
+
+		if (ret)
+		{
 			of_node_put(ep_np);
 			return ret;
 		}

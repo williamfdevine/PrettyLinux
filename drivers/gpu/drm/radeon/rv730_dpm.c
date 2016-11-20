@@ -38,8 +38,8 @@ struct rv7xx_ps *rv770_get_ps(struct radeon_ps *rps);
 struct rv7xx_power_info *rv770_get_pi(struct radeon_device *rdev);
 
 int rv730_populate_sclk_value(struct radeon_device *rdev,
-			      u32 engine_clock,
-			      RV770_SMC_SCLK_VALUE *sclk)
+							  u32 engine_clock,
+							  RV770_SMC_SCLK_VALUE *sclk)
 {
 	struct rv7xx_power_info *pi = rv770_get_pi(rdev);
 	struct atom_clock_dividers dividers;
@@ -55,17 +55,22 @@ int rv730_populate_sclk_value(struct radeon_device *rdev,
 	int ret;
 
 	ret = radeon_atom_get_clock_dividers(rdev, COMPUTE_ENGINE_PLL_PARAM,
-					     engine_clock, false, &dividers);
+										 engine_clock, false, &dividers);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	reference_divider = 1 + dividers.ref_div;
 
 	if (dividers.enable_post_div)
 		post_divider = ((dividers.post_div >> 4) & 0xf) +
-			(dividers.post_div & 0xf) + 2;
+					   (dividers.post_div & 0xf) + 2;
 	else
+	{
 		post_divider = 1;
+	}
 
 	tmp = (u64) engine_clock * reference_divider * post_divider * 16384;
 	do_div(tmp, reference_clock);
@@ -73,9 +78,14 @@ int rv730_populate_sclk_value(struct radeon_device *rdev,
 
 	/* set up registers */
 	if (dividers.enable_post_div)
+	{
 		spll_func_cntl |= SPLL_DIVEN;
+	}
 	else
+	{
 		spll_func_cntl &= ~SPLL_DIVEN;
+	}
+
 	spll_func_cntl &= ~(SPLL_HILEN_MASK | SPLL_LOLEN_MASK | SPLL_REF_DIV_MASK);
 	spll_func_cntl |= SPLL_REF_DIV(dividers.ref_div);
 	spll_func_cntl |= SPLL_HILEN((dividers.post_div >> 4) & 0xf);
@@ -88,12 +98,14 @@ int rv730_populate_sclk_value(struct radeon_device *rdev,
 	spll_func_cntl_3 |= SPLL_FB_DIV(fbdiv);
 	spll_func_cntl_3 |= SPLL_DITHEN;
 
-	if (pi->sclk_ss) {
+	if (pi->sclk_ss)
+	{
 		struct radeon_atom_ss ss;
 		u32 vco_freq = engine_clock * post_divider;
 
 		if (radeon_atombios_get_asic_ss_info(rdev, &ss,
-						     ASIC_INTERNAL_ENGINE_SS, vco_freq)) {
+											 ASIC_INTERNAL_ENGINE_SS, vco_freq))
+		{
 			u32 clk_s = reference_clock * 5 / (reference_divider * ss.rate);
 			u32 clk_v = ss.percentage * fbdiv / (clk_s * 10000);
 
@@ -117,8 +129,8 @@ int rv730_populate_sclk_value(struct radeon_device *rdev,
 }
 
 int rv730_populate_mclk_value(struct radeon_device *rdev,
-			      u32 engine_clock, u32 memory_clock,
-			      LPRV7XX_SMC_MCLK_VALUE mclk)
+							  u32 engine_clock, u32 memory_clock,
+							  LPRV7XX_SMC_MCLK_VALUE mclk)
 {
 	struct rv7xx_power_info *pi = rv770_get_pi(rdev);
 	u32 mclk_pwrmgt_cntl = pi->clk_regs.rv730.mclk_pwrmgt_cntl;
@@ -133,23 +145,32 @@ int rv730_populate_mclk_value(struct radeon_device *rdev,
 	int ret;
 
 	ret = radeon_atom_get_clock_dividers(rdev, COMPUTE_MEMORY_PLL_PARAM,
-					     memory_clock, false, &dividers);
+										 memory_clock, false, &dividers);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	reference_divider = dividers.ref_div + 1;
 
 	if (dividers.enable_post_div)
 		post_divider = ((dividers.post_div >> 4) & 0xf) +
-			(dividers.post_div & 0xf) + 2;
+					   (dividers.post_div & 0xf) + 2;
 	else
+	{
 		post_divider = 1;
+	}
 
 	/* setup the registers */
 	if (dividers.enable_post_div)
+	{
 		mpll_func_cntl |= MPLL_DIVEN;
+	}
 	else
+	{
 		mpll_func_cntl &= ~MPLL_DIVEN;
+	}
 
 	mpll_func_cntl &= ~(MPLL_REF_DIV_MASK | MPLL_HILEN_MASK | MPLL_LOLEN_MASK);
 	mpll_func_cntl |= MPLL_REF_DIV(dividers.ref_div);
@@ -158,17 +179,24 @@ int rv730_populate_mclk_value(struct radeon_device *rdev,
 
 	mpll_func_cntl_3 &= ~MPLL_FB_DIV_MASK;
 	mpll_func_cntl_3 |= MPLL_FB_DIV(dividers.fb_div);
-	if (dividers.enable_dithen)
-		mpll_func_cntl_3 |= MPLL_DITHEN;
-	else
-		mpll_func_cntl_3 &= ~MPLL_DITHEN;
 
-	if (pi->mclk_ss) {
+	if (dividers.enable_dithen)
+	{
+		mpll_func_cntl_3 |= MPLL_DITHEN;
+	}
+	else
+	{
+		mpll_func_cntl_3 &= ~MPLL_DITHEN;
+	}
+
+	if (pi->mclk_ss)
+	{
 		struct radeon_atom_ss ss;
 		u32 vco_freq = memory_clock * post_divider;
 
 		if (radeon_atombios_get_asic_ss_info(rdev, &ss,
-						     ASIC_INTERNAL_MEMORY_SS, vco_freq)) {
+											 ASIC_INTERNAL_MEMORY_SS, vco_freq))
+		{
 			u32 reference_clock = rdev->clock.mpll.reference_freq;
 			u32 clk_s = reference_clock * 5 / (reference_divider * ss.rate);
 			u32 clk_v = ss.percentage * dividers.fb_div / (clk_s * 10000);
@@ -227,7 +255,7 @@ void rv730_read_clock_registers(struct radeon_device *rdev)
 }
 
 int rv730_populate_smc_acpi_state(struct radeon_device *rdev,
-				  RV770_SMC_STATETABLE *table)
+								  RV770_SMC_STATETABLE *table)
 {
 	struct rv7xx_power_info *pi = rv770_get_pi(rdev);
 	u32 mpll_func_cntl = 0;
@@ -242,16 +270,19 @@ int rv730_populate_smc_acpi_state(struct radeon_device *rdev,
 	table->ACPIState = table->initialState;
 	table->ACPIState.flags &= ~PPSMC_SWSTATE_FLAG_DC;
 
-	if (pi->acpi_vddc) {
+	if (pi->acpi_vddc)
+	{
 		rv770_populate_vddc_value(rdev, pi->acpi_vddc,
-					  &table->ACPIState.levels[0].vddc);
+								  &table->ACPIState.levels[0].vddc);
 		table->ACPIState.levels[0].gen2PCIE = pi->pcie_gen2 ?
-			pi->acpi_pcie_gen2 : 0;
+											  pi->acpi_pcie_gen2 : 0;
 		table->ACPIState.levels[0].gen2XSP =
 			pi->acpi_pcie_gen2;
-	} else {
+	}
+	else
+	{
 		rv770_populate_vddc_value(rdev, pi->min_vddc_in_table,
-					  &table->ACPIState.levels[0].vddc);
+								  &table->ACPIState.levels[0].vddc);
 		table->ACPIState.levels[0].gen2PCIE = 0;
 	}
 
@@ -266,21 +297,21 @@ int rv730_populate_smc_acpi_state(struct radeon_device *rdev,
 	mpll_func_cntl_2 |= MCLK_MUX_SEL(1);
 
 	mclk_pwrmgt_cntl = (MRDCKA_RESET |
-			    MRDCKB_RESET |
-			    MRDCKC_RESET |
-			    MRDCKD_RESET |
-			    MRDCKE_RESET |
-			    MRDCKF_RESET |
-			    MRDCKG_RESET |
-			    MRDCKH_RESET |
-			    MRDCKA_SLEEP |
-			    MRDCKB_SLEEP |
-			    MRDCKC_SLEEP |
-			    MRDCKD_SLEEP |
-			    MRDCKE_SLEEP |
-			    MRDCKF_SLEEP |
-			    MRDCKG_SLEEP |
-			    MRDCKH_SLEEP);
+						MRDCKB_RESET |
+						MRDCKC_RESET |
+						MRDCKD_RESET |
+						MRDCKE_RESET |
+						MRDCKF_RESET |
+						MRDCKG_RESET |
+						MRDCKH_RESET |
+						MRDCKA_SLEEP |
+						MRDCKB_SLEEP |
+						MRDCKC_SLEEP |
+						MRDCKD_SLEEP |
+						MRDCKE_SLEEP |
+						MRDCKF_SLEEP |
+						MRDCKG_SLEEP |
+						MRDCKH_SLEEP);
 
 	dll_cntl = 0xff000000;
 
@@ -317,8 +348,8 @@ int rv730_populate_smc_acpi_state(struct radeon_device *rdev,
 }
 
 int rv730_populate_smc_initial_state(struct radeon_device *rdev,
-				     struct radeon_ps *radeon_state,
-				     RV770_SMC_STATETABLE *table)
+									 struct radeon_ps *radeon_state,
+									 RV770_SMC_STATETABLE *table)
 {
 	struct rv7xx_ps *initial_state = rv770_get_ps(radeon_state);
 	struct rv7xx_power_info *pi = rv770_get_pi(rdev);
@@ -362,10 +393,10 @@ int rv730_populate_smc_initial_state(struct radeon_device *rdev,
 		rv770_get_seq_value(rdev, &initial_state->low);
 
 	rv770_populate_vddc_value(rdev,
-				  initial_state->low.vddc,
-				  &table->initialState.levels[0].vddc);
+							  initial_state->low.vddc,
+							  &table->initialState.levels[0].vddc);
 	rv770_populate_initial_mvdd_value(rdev,
-					  &table->initialState.levels[0].mvdd);
+									  &table->initialState.levels[0].mvdd);
 
 	a_t = CG_R(0xffff) | CG_L(0);
 
@@ -374,13 +405,22 @@ int rv730_populate_smc_initial_state(struct radeon_device *rdev,
 	table->initialState.levels[0].bSP = cpu_to_be32(pi->dsp);
 
 	if (pi->boot_in_gen2)
+	{
 		table->initialState.levels[0].gen2PCIE = 1;
+	}
 	else
+	{
 		table->initialState.levels[0].gen2PCIE = 0;
+	}
+
 	if (initial_state->low.flags & ATOM_PPLIB_R600_FLAGS_PCIEGEN2)
+	{
 		table->initialState.levels[0].gen2XSP = 1;
+	}
 	else
+	{
 		table->initialState.levels[0].gen2XSP = 0;
+	}
 
 	table->initialState.levels[1] = table->initialState.levels[0];
 	table->initialState.levels[2] = table->initialState.levels[0];
@@ -391,7 +431,7 @@ int rv730_populate_smc_initial_state(struct radeon_device *rdev,
 }
 
 void rv730_program_memory_timing_parameters(struct radeon_device *rdev,
-					    struct radeon_ps *radeon_state)
+		struct radeon_ps *radeon_state)
 {
 	struct rv7xx_ps *state = rv770_get_ps(radeon_state);
 	u32 arb_refresh_rate = 0;
@@ -401,7 +441,7 @@ void rv730_program_memory_timing_parameters(struct radeon_device *rdev,
 	u32 old_dram_timing2 = 0;
 
 	arb_refresh_rate = RREG32(MC_ARB_RFSH_RATE) &
-		~(POWERMODE1_MASK | POWERMODE2_MASK | POWERMODE3_MASK);
+					   ~(POWERMODE1_MASK | POWERMODE2_MASK | POWERMODE3_MASK);
 	arb_refresh_rate |=
 		(POWERMODE1(rv770_calculate_memory_refresh_rate(rdev, state->low.sclk)) |
 		 POWERMODE2(rv770_calculate_memory_refresh_rate(rdev, state->medium.sclk)) |
@@ -413,8 +453,8 @@ void rv730_program_memory_timing_parameters(struct radeon_device *rdev,
 	old_dram_timing2 = RREG32(MC_ARB_DRAM_TIMING2);
 
 	radeon_atom_set_engine_dram_timings(rdev,
-					    state->high.sclk,
-					    state->high.mclk);
+										state->high.sclk,
+										state->high.mclk);
 
 	dram_timing = RREG32(MC_ARB_DRAM_TIMING);
 	dram_timing2 = RREG32(MC_ARB_DRAM_TIMING2);
@@ -423,8 +463,8 @@ void rv730_program_memory_timing_parameters(struct radeon_device *rdev,
 	WREG32(MC_ARB_DRAM_TIMING2_3, dram_timing2);
 
 	radeon_atom_set_engine_dram_timings(rdev,
-					    state->medium.sclk,
-					    state->medium.mclk);
+										state->medium.sclk,
+										state->medium.mclk);
 
 	dram_timing = RREG32(MC_ARB_DRAM_TIMING);
 	dram_timing2 = RREG32(MC_ARB_DRAM_TIMING2);
@@ -433,8 +473,8 @@ void rv730_program_memory_timing_parameters(struct radeon_device *rdev,
 	WREG32(MC_ARB_DRAM_TIMING2_2, dram_timing2);
 
 	radeon_atom_set_engine_dram_timings(rdev,
-					    state->low.sclk,
-					    state->low.mclk);
+										state->low.sclk,
+										state->low.mclk);
 
 	dram_timing = RREG32(MC_ARB_DRAM_TIMING);
 	dram_timing2 = RREG32(MC_ARB_DRAM_TIMING2);
@@ -464,7 +504,9 @@ void rv730_stop_dpm(struct radeon_device *rdev)
 	result = rv770_send_msg_to_smc(rdev, PPSMC_MSG_TwoLevelsDisabled);
 
 	if (result != PPSMC_Result_OK)
+	{
 		DRM_DEBUG("Could not force DPM to low\n");
+	}
 
 	WREG32_P(GENERAL_PWRMGT, 0, ~GLOBAL_PWRMGT_EN);
 

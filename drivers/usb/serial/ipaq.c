@@ -32,11 +32,12 @@ static int initial_wait;
 
 /* Function prototypes for an ipaq */
 static int  ipaq_open(struct tty_struct *tty,
-			struct usb_serial_port *port);
+					  struct usb_serial_port *port);
 static int  ipaq_calc_num_ports(struct usb_serial *serial);
 static int  ipaq_startup(struct usb_serial *serial);
 
-static const struct usb_device_id ipaq_id_table[] = {
+static const struct usb_device_id ipaq_id_table[] =
+{
 	{ USB_DEVICE(0x0104, 0x00BE) }, /* Socket USB Sync */
 	{ USB_DEVICE(0x03F0, 0x1016) }, /* HP USB Sync */
 	{ USB_DEVICE(0x03F0, 0x1116) }, /* HP USB Sync 1611 */
@@ -497,7 +498,8 @@ MODULE_DEVICE_TABLE(usb, ipaq_id_table);
 
 
 /* All of the device info needed for the Compaq iPAQ */
-static struct usb_serial_driver ipaq_device = {
+static struct usb_serial_driver ipaq_device =
+{
 	.driver = {
 		.owner =	THIS_MODULE,
 		.name =		"ipaq",
@@ -511,18 +513,19 @@ static struct usb_serial_driver ipaq_device = {
 	.calc_num_ports =	ipaq_calc_num_ports,
 };
 
-static struct usb_serial_driver * const serial_drivers[] = {
+static struct usb_serial_driver *const serial_drivers[] =
+{
 	&ipaq_device, NULL
 };
 
 static int ipaq_open(struct tty_struct *tty,
-			struct usb_serial_port *port)
+					 struct usb_serial_port *port)
 {
 	struct usb_serial	*serial = port->serial;
 	int			result = 0;
 	int			retries = connect_retries;
 
-	msleep(1000*initial_wait);
+	msleep(1000 * initial_wait);
 
 	/*
 	 * Send out control message observed in win98 sniffs. Not sure what
@@ -531,19 +534,25 @@ static int ipaq_open(struct tty_struct *tty,
 	 * through. Since this has a reasonably high failure rate, we retry
 	 * several times.
 	 */
-	while (retries) {
+	while (retries)
+	{
 		retries--;
 		result = usb_control_msg(serial->dev,
-				usb_sndctrlpipe(serial->dev, 0), 0x22, 0x21,
-				0x1, 0, NULL, 0, 100);
+								 usb_sndctrlpipe(serial->dev, 0), 0x22, 0x21,
+								 0x1, 0, NULL, 0, 100);
+
 		if (!result)
+		{
 			break;
+		}
 
 		msleep(1000);
 	}
-	if (!retries && result) {
+
+	if (!retries && result)
+	{
 		dev_err(&port->dev, "%s - failed doing control urb, error %d\n",
-							__func__, result);
+				__func__, result);
 		return result;
 	}
 
@@ -560,7 +569,7 @@ static int ipaq_calc_num_ports(struct usb_serial *serial)
 	int ipaq_num_ports = 1;
 
 	dev_dbg(&serial->dev->dev, "%s - numberofendpoints: %d\n", __func__,
-		(int)serial->interface->cur_altsetting->desc.bNumEndpoints);
+			(int)serial->interface->cur_altsetting->desc.bNumEndpoints);
 
 	/*
 	 * a few devices have 4 endpoints, seemingly Yakuma devices,
@@ -568,7 +577,8 @@ static int ipaq_calc_num_ports(struct usb_serial *serial)
 	 *
 	 * TODO: can we drop port 1 ?
 	 */
-	if (serial->interface->cur_altsetting->desc.bNumEndpoints > 3) {
+	if (serial->interface->cur_altsetting->desc.bNumEndpoints > 3)
+	{
 		ipaq_num_ports = 2;
 	}
 
@@ -583,23 +593,26 @@ static int ipaq_startup(struct usb_serial *serial)
 	 * some obviously invalid possibilities.
 	 */
 	if (serial->num_bulk_in < serial->num_ports ||
-			serial->num_bulk_out < serial->num_ports)
+		serial->num_bulk_out < serial->num_ports)
+	{
 		return -ENODEV;
+	}
 
-	if (serial->dev->actconfig->desc.bConfigurationValue != 1) {
+	if (serial->dev->actconfig->desc.bConfigurationValue != 1)
+	{
 		/*
 		 * FIXME: HP iPaq rx3715, possibly others, have 1 config that
 		 * is labeled as 2
 		 */
 
 		dev_err(&serial->dev->dev, "active config #%d != 1 ??\n",
-			serial->dev->actconfig->desc.bConfigurationValue);
+				serial->dev->actconfig->desc.bConfigurationValue);
 		return -ENODEV;
 	}
 
 	dev_dbg(&serial->dev->dev,
-		"%s - iPAQ module configured for %d ports\n", __func__,
-		serial->num_ports);
+			"%s - iPAQ module configured for %d ports\n", __func__,
+			serial->num_ports);
 
 	return usb_reset_configuration(serial->dev);
 }
@@ -610,10 +623,10 @@ MODULE_AUTHOR(DRIVER_AUTHOR);
 MODULE_DESCRIPTION(DRIVER_DESC);
 MODULE_LICENSE("GPL");
 
-module_param(connect_retries, int, S_IRUGO|S_IWUSR);
+module_param(connect_retries, int, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(connect_retries,
-		"Maximum number of connect retries (one second each)");
+				 "Maximum number of connect retries (one second each)");
 
-module_param(initial_wait, int, S_IRUGO|S_IWUSR);
+module_param(initial_wait, int, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(initial_wait,
-		"Time to wait before attempting a connection (in seconds)");
+				 "Time to wait before attempting a connection (in seconds)");

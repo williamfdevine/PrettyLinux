@@ -28,7 +28,7 @@
  * @size: rect containing the width and height fields you need.
  */
 static inline void v4l2_rect_set_size_to(struct v4l2_rect *r,
-					 const struct v4l2_rect *size)
+		const struct v4l2_rect *size)
 {
 	r->width = size->width;
 	r->height = size->height;
@@ -40,12 +40,17 @@ static inline void v4l2_rect_set_size_to(struct v4l2_rect *r,
  * @min_size: rect containing the minimal width and height
  */
 static inline void v4l2_rect_set_min_size(struct v4l2_rect *r,
-					  const struct v4l2_rect *min_size)
+		const struct v4l2_rect *min_size)
 {
 	if (r->width < min_size->width)
+	{
 		r->width = min_size->width;
+	}
+
 	if (r->height < min_size->height)
+	{
 		r->height = min_size->height;
+	}
 }
 
 /**
@@ -54,12 +59,17 @@ static inline void v4l2_rect_set_min_size(struct v4l2_rect *r,
  * @max_size: rect containing the maximum width and height
  */
 static inline void v4l2_rect_set_max_size(struct v4l2_rect *r,
-					  const struct v4l2_rect *max_size)
+		const struct v4l2_rect *max_size)
 {
 	if (r->width > max_size->width)
+	{
 		r->width = max_size->width;
+	}
+
 	if (r->height > max_size->height)
+	{
 		r->height = max_size->height;
+	}
 }
 
 /**
@@ -68,17 +78,29 @@ static inline void v4l2_rect_set_max_size(struct v4l2_rect *r,
  * @boundary: rect containing the boundary for @r
  */
 static inline void v4l2_rect_map_inside(struct v4l2_rect *r,
-					const struct v4l2_rect *boundary)
+										const struct v4l2_rect *boundary)
 {
 	v4l2_rect_set_max_size(r, boundary);
+
 	if (r->left < boundary->left)
+	{
 		r->left = boundary->left;
+	}
+
 	if (r->top < boundary->top)
+	{
 		r->top = boundary->top;
+	}
+
 	if (r->left + r->width > boundary->width)
+	{
 		r->left = boundary->width - r->width;
+	}
+
 	if (r->top + r->height > boundary->height)
+	{
 		r->top = boundary->height - r->height;
+	}
 }
 
 /**
@@ -89,7 +111,7 @@ static inline void v4l2_rect_map_inside(struct v4l2_rect *r,
  * Return true if both rectangles have the same size.
  */
 static inline bool v4l2_rect_same_size(const struct v4l2_rect *r1,
-				       const struct v4l2_rect *r2)
+									   const struct v4l2_rect *r2)
 {
 	return r1->width == r2->width && r1->height == r2->height;
 }
@@ -101,8 +123,8 @@ static inline bool v4l2_rect_same_size(const struct v4l2_rect *r1,
  * @r2: rectangle.
  */
 static inline void v4l2_rect_intersect(struct v4l2_rect *r,
-				       const struct v4l2_rect *r1,
-				       const struct v4l2_rect *r2)
+									   const struct v4l2_rect *r1,
+									   const struct v4l2_rect *r2)
 {
 	int right, bottom;
 
@@ -128,13 +150,15 @@ static inline void v4l2_rect_intersect(struct v4l2_rect *r,
  * be the scaled rectangle inside @to.
  */
 static inline void v4l2_rect_scale(struct v4l2_rect *r,
-				   const struct v4l2_rect *from,
-				   const struct v4l2_rect *to)
+								   const struct v4l2_rect *from,
+								   const struct v4l2_rect *to)
 {
-	if (from->width == 0 || from->height == 0) {
+	if (from->width == 0 || from->height == 0)
+	{
 		r->left = r->top = r->width = r->height = 0;
 		return;
 	}
+
 	r->left = (((r->left - from->left) * to->width) / from->width) & ~1;
 	r->width = ((r->width * to->width) / from->width) & ~1;
 	r->top = ((r->top - from->top) * to->height) / from->height;
@@ -149,7 +173,7 @@ static inline void v4l2_rect_scale(struct v4l2_rect *r,
  * Returns true if @r1 and @r2 overlap.
  */
 static inline bool v4l2_rect_overlap(const struct v4l2_rect *r1,
-				     const struct v4l2_rect *r2)
+									 const struct v4l2_rect *r2)
 {
 	/*
 	 * IF the left side of r1 is to the right of the right side of r2 OR
@@ -157,16 +181,22 @@ static inline bool v4l2_rect_overlap(const struct v4l2_rect *r1,
 	 * they do not overlap.
 	 */
 	if (r1->left >= r2->left + r2->width ||
-	    r2->left >= r1->left + r1->width)
+		r2->left >= r1->left + r1->width)
+	{
 		return false;
+	}
+
 	/*
 	 * IF the top side of r1 is below the bottom of r2 OR
 	 *    the top side of r2 is below the bottom of r1 THEN
 	 * they do not overlap.
 	 */
 	if (r1->top >= r2->top + r2->height ||
-	    r2->top >= r1->top + r1->height)
+		r2->top >= r1->top + r1->height)
+	{
 		return false;
+	}
+
 	return true;
 }
 

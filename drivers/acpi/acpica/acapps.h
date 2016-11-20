@@ -45,7 +45,7 @@
 #define _ACAPPS
 
 #ifdef ACPI_USE_STANDARD_HEADERS
-#include <sys/stat.h>
+	#include <sys/stat.h>
 #endif				/* ACPI_USE_STANDARD_HEADERS */
 
 /* Common info for tool signons */
@@ -54,14 +54,14 @@
 #define ACPICA_COPYRIGHT            "Copyright (c) 2000 - 2016 Intel Corporation"
 
 #if ACPI_MACHINE_WIDTH == 64
-#define ACPI_WIDTH          "-64"
+	#define ACPI_WIDTH          "-64"
 
 #elif ACPI_MACHINE_WIDTH == 32
-#define ACPI_WIDTH          "-32"
+	#define ACPI_WIDTH          "-32"
 
 #else
-#error unknown ACPI_MACHINE_WIDTH
-#define ACPI_WIDTH          "-??"
+	#error unknown ACPI_MACHINE_WIDTH
+	#define ACPI_WIDTH          "-??"
 
 #endif
 
@@ -97,7 +97,7 @@
 	if (status != expected) \
 	{ \
 		acpi_os_printf ("Unexpected %s from %s (%s-%d)\n", \
-			acpi_format_exception (status), #name, _acpi_module_name, __LINE__); \
+						acpi_format_exception (status), #name, _acpi_module_name, __LINE__); \
 	}
 
 /* Check for unexpected non-AE_OK errors */
@@ -111,12 +111,12 @@
 
 acpi_status
 ac_get_all_tables_from_file(char *filename,
-			    u8 get_only_aml_tables,
-			    struct acpi_new_table_desc **return_list_head);
+							u8 get_only_aml_tables,
+							struct acpi_new_table_desc **return_list_head);
 
-u8 ac_is_file_binary(FILE * file);
+u8 ac_is_file_binary(FILE *file);
 
-acpi_status ac_validate_table_header(FILE * file, long table_offset);
+acpi_status ac_validate_table_header(FILE *file, long table_offset);
 
 /* Values for get_only_aml_tables */
 
@@ -145,8 +145,8 @@ u32 cm_get_file_size(ACPI_FILE file);
  */
 void
 acpi_dm_cross_reference_namespace(union acpi_parse_object *parse_tree_root,
-				  struct acpi_namespace_node *namespace_root,
-				  acpi_owner_id owner_id);
+								  struct acpi_namespace_node *namespace_root,
+								  acpi_owner_id owner_id);
 
 void acpi_dm_dump_tree(union acpi_parse_object *origin);
 
@@ -154,12 +154,12 @@ void acpi_dm_find_orphan_methods(union acpi_parse_object *origin);
 
 void
 acpi_dm_finish_namespace_load(union acpi_parse_object *parse_tree_root,
-			      struct acpi_namespace_node *namespace_root,
-			      acpi_owner_id owner_id);
+							  struct acpi_namespace_node *namespace_root,
+							  acpi_owner_id owner_id);
 
 void
 acpi_dm_convert_resource_indexes(union acpi_parse_object *parse_tree_root,
-				 struct acpi_namespace_node *namespace_root);
+								 struct acpi_namespace_node *namespace_root);
 
 /*
  * adfile
@@ -170,12 +170,12 @@ char *fl_generate_filename(char *input_filename, char *suffix);
 
 acpi_status
 fl_split_input_pathname(char *input_path,
-			char **out_directory_path, char **out_filename);
+						char **out_directory_path, char **out_filename);
 
 char *ad_generate_filename(char *prefix, char *table_id);
 
 void
 ad_write_table(struct acpi_table_header *table,
-	       u32 length, char *table_name, char *oem_table_id);
+			   u32 length, char *table_name, char *oem_table_id);
 
 #endif				/* _ACAPPS */

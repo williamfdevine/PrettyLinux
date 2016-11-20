@@ -2,10 +2,12 @@
 #define __NVKM_GRCTX_H__
 #include <core/gpuobj.h>
 
-struct nvkm_grctx {
+struct nvkm_grctx
+{
 	struct nvkm_device *device;
 
-	enum {
+	enum
+	{
 		NVKM_GRCTX_PROG,
 		NVKM_GRCTX_VALS
 	} mode;
@@ -26,7 +28,9 @@ cp_out(struct nvkm_grctx *ctx, u32 inst)
 	u32 *ctxprog = ctx->ucode;
 
 	if (ctx->mode != NVKM_GRCTX_PROG)
+	{
 		return;
+	}
 
 	BUG_ON(ctx->ctxprog_len == ctx->ctxprog_max);
 	ctxprog[ctx->ctxprog_len++] = inst;
@@ -46,7 +50,8 @@ cp_ctx(struct nvkm_grctx *ctx, u32 reg, u32 length)
 	ctx->ctxvals_base = ctx->ctxvals_pos;
 	ctx->ctxvals_pos = ctx->ctxvals_base + length;
 
-	if (length > (CP_CTX_COUNT >> CP_CTX_COUNT_SHIFT)) {
+	if (length > (CP_CTX_COUNT >> CP_CTX_COUNT_SHIFT))
+	{
 		cp_lsr(ctx, length);
 		length = 0;
 	}
@@ -61,16 +66,26 @@ cp_name(struct nvkm_grctx *ctx, int name)
 	int i;
 
 	if (ctx->mode != NVKM_GRCTX_PROG)
+	{
 		return;
+	}
 
 	ctx->ctxprog_label[name] = ctx->ctxprog_len;
-	for (i = 0; i < ctx->ctxprog_len; i++) {
+
+	for (i = 0; i < ctx->ctxprog_len; i++)
+	{
 		if ((ctxprog[i] & 0xfff00000) != 0xff400000)
+		{
 			continue;
+		}
+
 		if ((ctxprog[i] & CP_BRA_IP) != ((name) << CP_BRA_IP_SHIFT))
+		{
 			continue;
+		}
+
 		ctxprog[i] = (ctxprog[i] & 0x00ff00ff) |
-			     (ctx->ctxprog_len << CP_BRA_IP_SHIFT);
+					 (ctx->ctxprog_len << CP_BRA_IP_SHIFT);
 	}
 }
 
@@ -79,14 +94,18 @@ _cp_bra(struct nvkm_grctx *ctx, u32 mod, int flag, int state, int name)
 {
 	int ip = 0;
 
-	if (mod != 2) {
+	if (mod != 2)
+	{
 		ip = ctx->ctxprog_label[name] << CP_BRA_IP_SHIFT;
+
 		if (ip == 0)
+		{
 			ip = 0xff000000 | (name << CP_BRA_IP_SHIFT);
+		}
 	}
 
 	cp_out(ctx, CP_BRA | (mod << 18) | ip | flag |
-		    (state ? 0 : CP_BRA_IF_CLEAR));
+		   (state ? 0 : CP_BRA_IF_CLEAR));
 }
 #define cp_bra(c, f, s, n) _cp_bra((c), 0, CP_FLAG_##f, CP_FLAG_##f##_##s, n)
 #define cp_cal(c, f, s, n) _cp_bra((c), 1, CP_FLAG_##f, CP_FLAG_##f##_##s, n)
@@ -120,7 +139,9 @@ static inline void
 gr_def(struct nvkm_grctx *ctx, u32 reg, u32 val)
 {
 	if (ctx->mode != NVKM_GRCTX_VALS)
+	{
 		return;
+	}
 
 	reg = (reg - 0x00400000) / 4;
 	reg = (reg - ctx->ctxprog_reg) + ctx->ctxvals_base;

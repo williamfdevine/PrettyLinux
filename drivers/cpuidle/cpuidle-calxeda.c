@@ -43,8 +43,8 @@ static int calxeda_idle_finish(unsigned long val)
 }
 
 static int calxeda_pwrdown_idle(struct cpuidle_device *dev,
-				struct cpuidle_driver *drv,
-				int index)
+								struct cpuidle_driver *drv,
+								int index)
 {
 	cpu_pm_enter();
 	cpu_suspend(0, calxeda_idle_finish);
@@ -53,7 +53,8 @@ static int calxeda_pwrdown_idle(struct cpuidle_device *dev,
 	return index;
 }
 
-static struct cpuidle_driver calxeda_idle_driver = {
+static struct cpuidle_driver calxeda_idle_driver =
+{
 	.name = "calxeda_idle",
 	.states = {
 		ARM_CPUIDLE_WFI_STATE,
@@ -74,10 +75,11 @@ static int calxeda_cpuidle_probe(struct platform_device *pdev)
 	return cpuidle_register(&calxeda_idle_driver, NULL);
 }
 
-static struct platform_driver calxeda_cpuidle_plat_driver = {
-        .driver = {
-                .name = "cpuidle-calxeda",
-        },
-        .probe = calxeda_cpuidle_probe,
+static struct platform_driver calxeda_cpuidle_plat_driver =
+{
+	.driver = {
+		.name = "cpuidle-calxeda",
+	},
+	.probe = calxeda_cpuidle_probe,
 };
 builtin_platform_driver(calxeda_cpuidle_plat_driver);

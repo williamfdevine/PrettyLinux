@@ -29,7 +29,8 @@ int host1x_channel_list_init(struct host1x *host)
 	INIT_LIST_HEAD(&host->chlist.list);
 	mutex_init(&host->chlist_mutex);
 
-	if (host->info->nb_channels > BITS_PER_LONG) {
+	if (host->info->nb_channels > BITS_PER_LONG)
+	{
 		WARN(1, "host1x hardware has more channels than supported by the driver\n");
 		return -ENOSYS;
 	}
@@ -52,10 +53,14 @@ struct host1x_channel *host1x_channel_get(struct host1x_channel *channel)
 	mutex_lock(&channel->reflock);
 
 	if (channel->refcount == 0)
+	{
 		err = host1x_cdma_init(&channel->cdma);
+	}
 
 	if (!err)
+	{
 		channel->refcount++;
+	}
 
 	mutex_unlock(&channel->reflock);
 
@@ -67,7 +72,8 @@ void host1x_channel_put(struct host1x_channel *channel)
 {
 	mutex_lock(&channel->reflock);
 
-	if (channel->refcount == 1) {
+	if (channel->refcount == 1)
+	{
 		struct host1x *host = dev_get_drvdata(channel->dev->parent);
 
 		host1x_hw_cdma_stop(host, &channel->cdma);
@@ -91,16 +97,25 @@ struct host1x_channel *host1x_channel_request(struct device *dev)
 	mutex_lock(&host->chlist_mutex);
 
 	index = find_first_zero_bit(&host->allocated_channels, max_channels);
+
 	if (index >= max_channels)
+	{
 		goto fail;
+	}
 
 	channel = kzalloc(sizeof(*channel), GFP_KERNEL);
+
 	if (!channel)
+	{
 		goto fail;
+	}
 
 	err = host1x_hw_channel_init(host, channel, index);
+
 	if (err < 0)
+	{
 		goto fail;
+	}
 
 	/* Link device to host1x_channel */
 	channel->dev = dev;

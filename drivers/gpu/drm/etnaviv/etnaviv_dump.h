@@ -20,7 +20,8 @@
 
 #include <linux/types.h>
 
-enum {
+enum
+{
 	ETDUMP_MAGIC = 0x414e5445,
 	ETDUMP_BUF_REG = 0,
 	ETDUMP_BUF_MMU,
@@ -31,7 +32,8 @@ enum {
 	ETDUMP_BUF_END,
 };
 
-struct etnaviv_dump_object_header {
+struct etnaviv_dump_object_header
+{
 	__le32 magic;
 	__le32 type;
 	__le32 file_offset;
@@ -41,14 +43,15 @@ struct etnaviv_dump_object_header {
 };
 
 /* Registers object, an array of these */
-struct etnaviv_dump_registers {
+struct etnaviv_dump_registers
+{
 	__le32 reg;
 	__le32 value;
 };
 
 #ifdef __KERNEL__
-struct etnaviv_gpu;
-void etnaviv_core_dump(struct etnaviv_gpu *gpu);
+	struct etnaviv_gpu;
+	void etnaviv_core_dump(struct etnaviv_gpu *gpu);
 #endif
 
 #endif

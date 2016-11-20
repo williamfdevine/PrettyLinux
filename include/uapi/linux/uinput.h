@@ -45,14 +45,16 @@
 #define UINPUT_VERSION		5
 #define UINPUT_MAX_NAME_SIZE	80
 
-struct uinput_ff_upload {
+struct uinput_ff_upload
+{
 	__u32			request_id;
 	__s32			retval;
 	struct ff_effect	effect;
 	struct ff_effect	old;
 };
 
-struct uinput_ff_erase {
+struct uinput_ff_erase
+{
 	__u32			request_id;
 	__s32			retval;
 	__u32			effect_id;
@@ -63,7 +65,8 @@ struct uinput_ff_erase {
 #define UI_DEV_CREATE		_IO(UINPUT_IOCTL_BASE, 1)
 #define UI_DEV_DESTROY		_IO(UINPUT_IOCTL_BASE, 2)
 
-struct uinput_setup {
+struct uinput_setup
+{
 	struct input_id id;
 	char name[UINPUT_MAX_NAME_SIZE];
 	__u32 ff_effects_max;
@@ -98,7 +101,8 @@ struct uinput_setup {
  */
 #define UI_DEV_SETUP _IOW(UINPUT_IOCTL_BASE, 3, struct uinput_setup)
 
-struct uinput_abs_setup {
+struct uinput_abs_setup
+{
 	__u16  code; /* axis code */
 	/* __u16 filler; */
 	struct input_absinfo absinfo;
@@ -219,7 +223,8 @@ struct uinput_abs_setup {
 #define UI_FF_UPLOAD		1
 #define UI_FF_ERASE		2
 
-struct uinput_user_dev {
+struct uinput_user_dev
+{
 	char name[UINPUT_MAX_NAME_SIZE];
 	struct input_id id;
 	__u32 ff_effects_max;

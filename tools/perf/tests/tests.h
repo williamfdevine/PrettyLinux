@@ -4,32 +4,35 @@
 #include <stdbool.h>
 
 #define TEST_ASSERT_VAL(text, cond)					 \
-do {									 \
-	if (!(cond)) {							 \
-		pr_debug("FAILED %s:%d %s\n", __FILE__, __LINE__, text); \
-		return -1;						 \
-	}								 \
-} while (0)
+	do {									 \
+		if (!(cond)) {							 \
+			pr_debug("FAILED %s:%d %s\n", __FILE__, __LINE__, text); \
+			return -1;						 \
+		}								 \
+	} while (0)
 
 #define TEST_ASSERT_EQUAL(text, val, expected)				 \
-do {									 \
-	if (val != expected) {						 \
-		pr_debug("FAILED %s:%d %s (%d != %d)\n",		 \
-			 __FILE__, __LINE__, text, val, expected);	 \
-		return -1;						 \
-	}								 \
-} while (0)
+	do {									 \
+		if (val != expected) {						 \
+			pr_debug("FAILED %s:%d %s (%d != %d)\n",		 \
+					 __FILE__, __LINE__, text, val, expected);	 \
+			return -1;						 \
+		}								 \
+	} while (0)
 
-enum {
+enum
+{
 	TEST_OK   =  0,
 	TEST_FAIL = -1,
 	TEST_SKIP = -2,
 };
 
-struct test {
+struct test
+{
 	const char *desc;
 	int (*func)(int subtest);
-	struct {
+	struct
+	{
 		bool skip_if_fail;
 		int (*get_nr)(void);
 		const char *(*get_desc)(int subtest);
@@ -97,7 +100,7 @@ int test__bitmap_print(int subtest);
 struct thread;
 struct perf_sample;
 int test__arch_unwind_sample(struct perf_sample *sample,
-			     struct thread *thread);
+							 struct thread *thread);
 #endif
 #endif
 #endif /* TESTS_H */

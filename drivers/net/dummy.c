@@ -48,28 +48,34 @@ static void set_multicast_list(struct net_device *dev)
 {
 }
 
-struct pcpu_dstats {
+struct pcpu_dstats
+{
 	u64			tx_packets;
 	u64			tx_bytes;
 	struct u64_stats_sync	syncp;
 };
 
 static struct rtnl_link_stats64 *dummy_get_stats64(struct net_device *dev,
-						   struct rtnl_link_stats64 *stats)
+		struct rtnl_link_stats64 *stats)
 {
 	int i;
 
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		const struct pcpu_dstats *dstats;
 		u64 tbytes, tpackets;
 		unsigned int start;
 
 		dstats = per_cpu_ptr(dev->dstats, i);
-		do {
+
+		do
+		{
 			start = u64_stats_fetch_begin_irq(&dstats->syncp);
 			tbytes = dstats->tx_bytes;
 			tpackets = dstats->tx_packets;
-		} while (u64_stats_fetch_retry_irq(&dstats->syncp, start));
+		}
+		while (u64_stats_fetch_retry_irq(&dstats->syncp, start));
+
 		stats->tx_bytes += tbytes;
 		stats->tx_packets += tpackets;
 	}
@@ -92,8 +98,11 @@ static netdev_tx_t dummy_xmit(struct sk_buff *skb, struct net_device *dev)
 static int dummy_dev_init(struct net_device *dev)
 {
 	dev->dstats = netdev_alloc_pcpu_stats(struct pcpu_dstats);
+
 	if (!dev->dstats)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -106,13 +115,19 @@ static void dummy_dev_uninit(struct net_device *dev)
 static int dummy_change_carrier(struct net_device *dev, bool new_carrier)
 {
 	if (new_carrier)
+	{
 		netif_carrier_on(dev);
+	}
 	else
+	{
 		netif_carrier_off(dev);
+	}
+
 	return 0;
 }
 
-static const struct net_device_ops dummy_netdev_ops = {
+static const struct net_device_ops dummy_netdev_ops =
+{
 	.ndo_init		= dummy_dev_init,
 	.ndo_uninit		= dummy_dev_uninit,
 	.ndo_start_xmit		= dummy_xmit,
@@ -124,13 +139,14 @@ static const struct net_device_ops dummy_netdev_ops = {
 };
 
 static void dummy_get_drvinfo(struct net_device *dev,
-			      struct ethtool_drvinfo *info)
+							  struct ethtool_drvinfo *info)
 {
 	strlcpy(info->driver, DRV_NAME, sizeof(info->driver));
 	strlcpy(info->version, DRV_VERSION, sizeof(info->version));
 }
 
-static const struct ethtool_ops dummy_ethtool_ops = {
+static const struct ethtool_ops dummy_ethtool_ops =
+{
 	.get_drvinfo            = dummy_get_drvinfo,
 };
 
@@ -158,16 +174,24 @@ static void dummy_setup(struct net_device *dev)
 
 static int dummy_validate(struct nlattr *tb[], struct nlattr *data[])
 {
-	if (tb[IFLA_ADDRESS]) {
+	if (tb[IFLA_ADDRESS])
+	{
 		if (nla_len(tb[IFLA_ADDRESS]) != ETH_ALEN)
+		{
 			return -EINVAL;
+		}
+
 		if (!is_valid_ether_addr(nla_data(tb[IFLA_ADDRESS])))
+		{
 			return -EADDRNOTAVAIL;
+		}
 	}
+
 	return 0;
 }
 
-static struct rtnl_link_ops dummy_link_ops __read_mostly = {
+static struct rtnl_link_ops dummy_link_ops __read_mostly =
+{
 	.kind		= DRV_NAME,
 	.setup		= dummy_setup,
 	.validate	= dummy_validate,
@@ -183,13 +207,20 @@ static int __init dummy_init_one(void)
 	int err;
 
 	dev_dummy = alloc_netdev(0, "dummy%d", NET_NAME_UNKNOWN, dummy_setup);
+
 	if (!dev_dummy)
+	{
 		return -ENOMEM;
+	}
 
 	dev_dummy->rtnl_link_ops = &dummy_link_ops;
 	err = register_netdevice(dev_dummy);
+
 	if (err < 0)
+	{
 		goto err;
+	}
+
 	return 0;
 
 err:
@@ -203,15 +234,22 @@ static int __init dummy_init_module(void)
 
 	rtnl_lock();
 	err = __rtnl_link_register(&dummy_link_ops);
-	if (err < 0)
-		goto out;
 
-	for (i = 0; i < numdummies && !err; i++) {
+	if (err < 0)
+	{
+		goto out;
+	}
+
+	for (i = 0; i < numdummies && !err; i++)
+	{
 		err = dummy_init_one();
 		cond_resched();
 	}
+
 	if (err < 0)
+	{
 		__rtnl_link_unregister(&dummy_link_ops);
+	}
 
 out:
 	rtnl_unlock();

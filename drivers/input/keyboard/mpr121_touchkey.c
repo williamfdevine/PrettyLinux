@@ -56,7 +56,8 @@
 /* MPR121 has 12 keys */
 #define MPR121_MAX_KEY_COUNT		12
 
-struct mpr121_touchkey {
+struct mpr121_touchkey
+{
 	struct i2c_client	*client;
 	struct input_dev	*input_dev;
 	unsigned int		key_val;
@@ -65,12 +66,14 @@ struct mpr121_touchkey {
 	u16			keycodes[MPR121_MAX_KEY_COUNT];
 };
 
-struct mpr121_init_register {
+struct mpr121_init_register
+{
 	int addr;
 	u8 val;
 };
 
-static const struct mpr121_init_register init_reg_table[] = {
+static const struct mpr121_init_register init_reg_table[] =
+{
 	{ MHD_RISING_ADDR,	0x1 },
 	{ NHD_RISING_ADDR,	0x1 },
 	{ MHD_FALLING_ADDR,	0x1 },
@@ -91,14 +94,18 @@ static irqreturn_t mpr_touchkey_interrupt(int irq, void *dev_id)
 	int reg;
 
 	reg = i2c_smbus_read_byte_data(client, ELE_TOUCH_STATUS_1_ADDR);
-	if (reg < 0) {
+
+	if (reg < 0)
+	{
 		dev_err(&client->dev, "i2c read error [%d]\n", reg);
 		goto out;
 	}
 
 	reg <<= 8;
 	reg |= i2c_smbus_read_byte_data(client, ELE_TOUCH_STATUS_0_ADDR);
-	if (reg < 0) {
+
+	if (reg < 0)
+	{
 		dev_err(&client->dev, "i2c read error [%d]\n", reg);
 		goto out;
 	}
@@ -116,38 +123,50 @@ static irqreturn_t mpr_touchkey_interrupt(int irq, void *dev_id)
 	input_sync(input);
 
 	dev_dbg(&client->dev, "key %d %d %s\n", key_num, key_val,
-		pressed ? "pressed" : "released");
+			pressed ? "pressed" : "released");
 
 out:
 	return IRQ_HANDLED;
 }
 
 static int mpr121_phys_init(const struct mpr121_platform_data *pdata,
-				      struct mpr121_touchkey *mpr121,
-				      struct i2c_client *client)
+							struct mpr121_touchkey *mpr121,
+							struct i2c_client *client)
 {
 	const struct mpr121_init_register *reg;
 	unsigned char usl, lsl, tl, eleconf;
 	int i, t, vdd, ret;
 
 	/* Set up touch/release threshold for ele0-ele11 */
-	for (i = 0; i <= MPR121_MAX_KEY_COUNT; i++) {
+	for (i = 0; i <= MPR121_MAX_KEY_COUNT; i++)
+	{
 		t = ELE0_TOUCH_THRESHOLD_ADDR + (i * 2);
 		ret = i2c_smbus_write_byte_data(client, t, TOUCH_THRESHOLD);
+
 		if (ret < 0)
+		{
 			goto err_i2c_write;
+		}
+
 		ret = i2c_smbus_write_byte_data(client, t + 1,
-						RELEASE_THRESHOLD);
+										RELEASE_THRESHOLD);
+
 		if (ret < 0)
+		{
 			goto err_i2c_write;
+		}
 	}
 
 	/* Set up init register */
-	for (i = 0; i < ARRAY_SIZE(init_reg_table); i++) {
+	for (i = 0; i < ARRAY_SIZE(init_reg_table); i++)
+	{
 		reg = &init_reg_table[i];
 		ret = i2c_smbus_write_byte_data(client, reg->addr, reg->val);
+
 		if (ret < 0)
+		{
 			goto err_i2c_write;
+		}
 	}
 
 
@@ -171,9 +190,12 @@ static int mpr121_phys_init(const struct mpr121_platform_data *pdata,
 	 */
 	eleconf = mpr121->keycount | ELECTRODE_CONF_QUICK_CHARGE;
 	ret |= i2c_smbus_write_byte_data(client, ELECTRODE_CONF_ADDR,
-					 eleconf);
+									 eleconf);
+
 	if (ret != 0)
+	{
 		goto err_i2c_write;
+	}
 
 	dev_dbg(&client->dev, "set up with %x keys.\n", mpr121->keycount);
 
@@ -185,43 +207,53 @@ err_i2c_write:
 }
 
 static int mpr_touchkey_probe(struct i2c_client *client,
-			      const struct i2c_device_id *id)
+							  const struct i2c_device_id *id)
 {
 	const struct mpr121_platform_data *pdata =
-			dev_get_platdata(&client->dev);
+		dev_get_platdata(&client->dev);
 	struct mpr121_touchkey *mpr121;
 	struct input_dev *input_dev;
 	int error;
 	int i;
 
-	if (!pdata) {
+	if (!pdata)
+	{
 		dev_err(&client->dev, "no platform data defined\n");
 		return -EINVAL;
 	}
 
-	if (!pdata->keymap || !pdata->keymap_size) {
+	if (!pdata->keymap || !pdata->keymap_size)
+	{
 		dev_err(&client->dev, "missing keymap data\n");
 		return -EINVAL;
 	}
 
-	if (pdata->keymap_size > MPR121_MAX_KEY_COUNT) {
+	if (pdata->keymap_size > MPR121_MAX_KEY_COUNT)
+	{
 		dev_err(&client->dev, "too many keys defined\n");
 		return -EINVAL;
 	}
 
-	if (!client->irq) {
+	if (!client->irq)
+	{
 		dev_err(&client->dev, "irq number should not be zero\n");
 		return -EINVAL;
 	}
 
 	mpr121 = devm_kzalloc(&client->dev, sizeof(*mpr121),
-			      GFP_KERNEL);
+						  GFP_KERNEL);
+
 	if (!mpr121)
+	{
 		return -ENOMEM;
+	}
 
 	input_dev = devm_input_allocate_device(&client->dev);
+
 	if (!input_dev)
+	{
 		return -ENOMEM;
+	}
 
 	mpr121->client = client;
 	mpr121->input_dev = input_dev;
@@ -236,29 +268,37 @@ static int mpr_touchkey_probe(struct i2c_client *client,
 	input_dev->keycodesize = sizeof(mpr121->keycodes[0]);
 	input_dev->keycodemax = mpr121->keycount;
 
-	for (i = 0; i < pdata->keymap_size; i++) {
+	for (i = 0; i < pdata->keymap_size; i++)
+	{
 		input_set_capability(input_dev, EV_KEY, pdata->keymap[i]);
 		mpr121->keycodes[i] = pdata->keymap[i];
 	}
 
 	error = mpr121_phys_init(pdata, mpr121, client);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&client->dev, "Failed to init register\n");
 		return error;
 	}
 
 	error = devm_request_threaded_irq(&client->dev, client->irq, NULL,
-				     mpr_touchkey_interrupt,
-				     IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
-				     client->dev.driver->name, mpr121);
-	if (error) {
+									  mpr_touchkey_interrupt,
+									  IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+									  client->dev.driver->name, mpr121);
+
+	if (error)
+	{
 		dev_err(&client->dev, "Failed to register interrupt\n");
 		return error;
 	}
 
 	error = input_register_device(input_dev);
+
 	if (error)
+	{
 		return error;
+	}
 
 	i2c_set_clientdata(client, mpr121);
 	device_init_wakeup(&client->dev, pdata->wakeup);
@@ -272,7 +312,9 @@ static int mpr_suspend(struct device *dev)
 	struct i2c_client *client = to_i2c_client(dev);
 
 	if (device_may_wakeup(&client->dev))
+	{
 		enable_irq_wake(client->irq);
+	}
 
 	i2c_smbus_write_byte_data(client, ELECTRODE_CONF_ADDR, 0x00);
 
@@ -285,10 +327,12 @@ static int mpr_resume(struct device *dev)
 	struct mpr121_touchkey *mpr121 = i2c_get_clientdata(client);
 
 	if (device_may_wakeup(&client->dev))
+	{
 		disable_irq_wake(client->irq);
+	}
 
 	i2c_smbus_write_byte_data(client, ELECTRODE_CONF_ADDR,
-				  mpr121->keycount);
+							  mpr121->keycount);
 
 	return 0;
 }
@@ -296,13 +340,15 @@ static int mpr_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(mpr121_touchkey_pm_ops, mpr_suspend, mpr_resume);
 
-static const struct i2c_device_id mpr121_id[] = {
+static const struct i2c_device_id mpr121_id[] =
+{
 	{ "mpr121_touchkey", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, mpr121_id);
 
-static struct i2c_driver mpr_touchkey_driver = {
+static struct i2c_driver mpr_touchkey_driver =
+{
 	.driver = {
 		.name	= "mpr121",
 		.pm	= &mpr121_touchkey_pm_ops,

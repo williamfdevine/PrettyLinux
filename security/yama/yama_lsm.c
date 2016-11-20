@@ -31,7 +31,8 @@
 static int ptrace_scope = YAMA_SCOPE_RELATIONAL;
 
 /* describe a ptrace relationship for potential exception */
-struct ptrace_relation {
+struct ptrace_relation
+{
 	struct task_struct *tracer;
 	struct task_struct *tracee;
 	bool invalid;
@@ -45,7 +46,8 @@ static DEFINE_SPINLOCK(ptracer_relations_lock);
 static void yama_relation_cleanup(struct work_struct *work);
 static DECLARE_WORK(yama_relation_work, yama_relation_cleanup);
 
-struct access_report_info {
+struct access_report_info
+{
 	struct callback_head work;
 	const char *access;
 	struct task_struct *target;
@@ -76,35 +78,43 @@ static void __report_access(struct callback_head *work)
 
 /* defers execution because cmdline access can sleep */
 static void report_access(const char *access, struct task_struct *target,
-				struct task_struct *agent)
+						  struct task_struct *agent)
 {
 	struct access_report_info *info;
 	char agent_comm[sizeof(agent->comm)];
 
 	assert_spin_locked(&target->alloc_lock); /* for target->comm */
 
-	if (current->flags & PF_KTHREAD) {
+	if (current->flags & PF_KTHREAD)
+	{
 		/* I don't think kthreads call task_work_run() before exiting.
 		 * Imagine angry ranting about procfs here.
 		 */
 		pr_notice_ratelimited(
-		    "ptrace %s of \"%s\"[%d] was attempted by \"%s\"[%d]\n",
-		    access, target->comm, target->pid,
-		    get_task_comm(agent_comm, agent), agent->pid);
+			"ptrace %s of \"%s\"[%d] was attempted by \"%s\"[%d]\n",
+			access, target->comm, target->pid,
+			get_task_comm(agent_comm, agent), agent->pid);
 		return;
 	}
 
 	info = kmalloc(sizeof(*info), GFP_ATOMIC);
+
 	if (!info)
+	{
 		return;
+	}
+
 	init_task_work(&info->work, __report_access);
 	get_task_struct(target);
 	get_task_struct(agent);
 	info->access = access;
 	info->target = target;
 	info->agent = agent;
+
 	if (task_work_add(current, &info->work, true) == 0)
-		return; /* success */
+	{
+		return;    /* success */
+	}
 
 	WARN(1, "report_access called from exiting task");
 	put_task_struct(target);
@@ -122,8 +132,10 @@ static void yama_relation_cleanup(struct work_struct *work)
 
 	spin_lock(&ptracer_relations_lock);
 	rcu_read_lock();
-	list_for_each_entry_rcu(relation, &ptracer_relations, node) {
-		if (relation->invalid) {
+	list_for_each_entry_rcu(relation, &ptracer_relations, node)
+	{
+		if (relation->invalid)
+		{
 			list_del_rcu(&relation->node);
 			kfree_rcu(relation, rcu);
 		}
@@ -143,13 +155,16 @@ static void yama_relation_cleanup(struct work_struct *work)
  * Returns 0 if relationship was added, -ve on error.
  */
 static int yama_ptracer_add(struct task_struct *tracer,
-			    struct task_struct *tracee)
+							struct task_struct *tracee)
 {
 	struct ptrace_relation *relation, *added;
 
 	added = kmalloc(sizeof(*added), GFP_KERNEL);
+
 	if (!added)
+	{
 		return -ENOMEM;
+	}
 
 	added->tracee = tracee;
 	added->tracer = tracer;
@@ -157,10 +172,15 @@ static int yama_ptracer_add(struct task_struct *tracer,
 
 	spin_lock(&ptracer_relations_lock);
 	rcu_read_lock();
-	list_for_each_entry_rcu(relation, &ptracer_relations, node) {
+	list_for_each_entry_rcu(relation, &ptracer_relations, node)
+	{
 		if (relation->invalid)
+		{
 			continue;
-		if (relation->tracee == tracee) {
+		}
+
+		if (relation->tracee == tracee)
+		{
 			list_replace_rcu(&relation->node, &added->node);
 			kfree_rcu(relation, rcu);
 			goto out;
@@ -181,17 +201,22 @@ out:
  * @tracee: remove any relation where tracee task matches
  */
 static void yama_ptracer_del(struct task_struct *tracer,
-			     struct task_struct *tracee)
+							 struct task_struct *tracee)
 {
 	struct ptrace_relation *relation;
 	bool marked = false;
 
 	rcu_read_lock();
-	list_for_each_entry_rcu(relation, &ptracer_relations, node) {
+	list_for_each_entry_rcu(relation, &ptracer_relations, node)
+	{
 		if (relation->invalid)
+		{
 			continue;
+		}
+
 		if (relation->tracee == tracee ||
-		    (tracer && relation->tracer == tracer)) {
+			(tracer && relation->tracer == tracer))
+		{
 			relation->invalid = true;
 			marked = true;
 		}
@@ -199,7 +224,9 @@ static void yama_ptracer_del(struct task_struct *tracer,
 	rcu_read_unlock();
 
 	if (marked)
+	{
 		schedule_work(&yama_relation_work);
+	}
 }
 
 /**
@@ -223,49 +250,66 @@ void yama_task_free(struct task_struct *task)
  * does not handle the given option.
  */
 int yama_task_prctl(int option, unsigned long arg2, unsigned long arg3,
-			   unsigned long arg4, unsigned long arg5)
+					unsigned long arg4, unsigned long arg5)
 {
 	int rc = -ENOSYS;
 	struct task_struct *myself = current;
 
-	switch (option) {
-	case PR_SET_PTRACER:
-		/* Since a thread can call prctl(), find the group leader
-		 * before calling _add() or _del() on it, since we want
-		 * process-level granularity of control. The tracer group
-		 * leader checking is handled later when walking the ancestry
-		 * at the time of PTRACE_ATTACH check.
-		 */
-		rcu_read_lock();
-		if (!thread_group_leader(myself))
-			myself = rcu_dereference(myself->group_leader);
-		get_task_struct(myself);
-		rcu_read_unlock();
-
-		if (arg2 == 0) {
-			yama_ptracer_del(NULL, myself);
-			rc = 0;
-		} else if (arg2 == PR_SET_PTRACER_ANY || (int)arg2 == -1) {
-			rc = yama_ptracer_add(NULL, myself);
-		} else {
-			struct task_struct *tracer;
-
+	switch (option)
+	{
+		case PR_SET_PTRACER:
+			/* Since a thread can call prctl(), find the group leader
+			 * before calling _add() or _del() on it, since we want
+			 * process-level granularity of control. The tracer group
+			 * leader checking is handled later when walking the ancestry
+			 * at the time of PTRACE_ATTACH check.
+			 */
 			rcu_read_lock();
-			tracer = find_task_by_vpid(arg2);
-			if (tracer)
-				get_task_struct(tracer);
-			else
-				rc = -EINVAL;
+
+			if (!thread_group_leader(myself))
+			{
+				myself = rcu_dereference(myself->group_leader);
+			}
+
+			get_task_struct(myself);
 			rcu_read_unlock();
 
-			if (tracer) {
-				rc = yama_ptracer_add(tracer, myself);
-				put_task_struct(tracer);
+			if (arg2 == 0)
+			{
+				yama_ptracer_del(NULL, myself);
+				rc = 0;
 			}
-		}
+			else if (arg2 == PR_SET_PTRACER_ANY || (int)arg2 == -1)
+			{
+				rc = yama_ptracer_add(NULL, myself);
+			}
+			else
+			{
+				struct task_struct *tracer;
 
-		put_task_struct(myself);
-		break;
+				rcu_read_lock();
+				tracer = find_task_by_vpid(arg2);
+
+				if (tracer)
+				{
+					get_task_struct(tracer);
+				}
+				else
+				{
+					rc = -EINVAL;
+				}
+
+				rcu_read_unlock();
+
+				if (tracer)
+				{
+					rc = yama_ptracer_add(tracer, myself);
+					put_task_struct(tracer);
+				}
+			}
+
+			put_task_struct(myself);
+			break;
 	}
 
 	return rc;
@@ -279,26 +323,39 @@ int yama_task_prctl(int option, unsigned long arg2, unsigned long arg3,
  * Returns 1 if child is a descendant of parent, 0 if not.
  */
 static int task_is_descendant(struct task_struct *parent,
-			      struct task_struct *child)
+							  struct task_struct *child)
 {
 	int rc = 0;
 	struct task_struct *walker = child;
 
 	if (!parent || !child)
+	{
 		return 0;
+	}
 
 	rcu_read_lock();
+
 	if (!thread_group_leader(parent))
+	{
 		parent = rcu_dereference(parent->group_leader);
-	while (walker->pid > 0) {
+	}
+
+	while (walker->pid > 0)
+	{
 		if (!thread_group_leader(walker))
+		{
 			walker = rcu_dereference(walker->group_leader);
-		if (walker == parent) {
+		}
+
+		if (walker == parent)
+		{
 			rc = 1;
 			break;
 		}
+
 		walker = rcu_dereference(walker->real_parent);
 	}
+
 	rcu_read_unlock();
 
 	return rc;
@@ -312,7 +369,7 @@ static int task_is_descendant(struct task_struct *parent,
  * Returns 1 if tracer has is ptracer exception ancestor for tracee.
  */
 static int ptracer_exception_found(struct task_struct *tracer,
-				   struct task_struct *tracee)
+								   struct task_struct *tracee)
 {
 	int rc = 0;
 	struct ptrace_relation *relation;
@@ -320,12 +377,21 @@ static int ptracer_exception_found(struct task_struct *tracer,
 	bool found = false;
 
 	rcu_read_lock();
+
 	if (!thread_group_leader(tracee))
+	{
 		tracee = rcu_dereference(tracee->group_leader);
-	list_for_each_entry_rcu(relation, &ptracer_relations, node) {
+	}
+
+	list_for_each_entry_rcu(relation, &ptracer_relations, node)
+	{
 		if (relation->invalid)
+		{
 			continue;
-		if (relation->tracee == tracee) {
+		}
+
+		if (relation->tracee == tracee)
+		{
 			parent = relation->tracer;
 			found = true;
 			break;
@@ -333,7 +399,10 @@ static int ptracer_exception_found(struct task_struct *tracer,
 	}
 
 	if (found && (parent == NULL || task_is_descendant(parent, tracer)))
+	{
 		rc = 1;
+	}
+
 	rcu_read_unlock();
 
 	return rc;
@@ -347,39 +416,54 @@ static int ptracer_exception_found(struct task_struct *tracer,
  * Returns 0 if following the ptrace is allowed, -ve on error.
  */
 static int yama_ptrace_access_check(struct task_struct *child,
-				    unsigned int mode)
+									unsigned int mode)
 {
 	int rc = 0;
 
 	/* require ptrace target be a child of ptracer on attach */
-	if (mode & PTRACE_MODE_ATTACH) {
-		switch (ptrace_scope) {
-		case YAMA_SCOPE_DISABLED:
-			/* No additional restrictions. */
-			break;
-		case YAMA_SCOPE_RELATIONAL:
-			rcu_read_lock();
-			if (!task_is_descendant(current, child) &&
-			    !ptracer_exception_found(current, child) &&
-			    !ns_capable(__task_cred(child)->user_ns, CAP_SYS_PTRACE))
+	if (mode & PTRACE_MODE_ATTACH)
+	{
+		switch (ptrace_scope)
+		{
+			case YAMA_SCOPE_DISABLED:
+				/* No additional restrictions. */
+				break;
+
+			case YAMA_SCOPE_RELATIONAL:
+				rcu_read_lock();
+
+				if (!task_is_descendant(current, child) &&
+					!ptracer_exception_found(current, child) &&
+					!ns_capable(__task_cred(child)->user_ns, CAP_SYS_PTRACE))
+				{
+					rc = -EPERM;
+				}
+
+				rcu_read_unlock();
+				break;
+
+			case YAMA_SCOPE_CAPABILITY:
+				rcu_read_lock();
+
+				if (!ns_capable(__task_cred(child)->user_ns, CAP_SYS_PTRACE))
+				{
+					rc = -EPERM;
+				}
+
+				rcu_read_unlock();
+				break;
+
+			case YAMA_SCOPE_NO_ATTACH:
+			default:
 				rc = -EPERM;
-			rcu_read_unlock();
-			break;
-		case YAMA_SCOPE_CAPABILITY:
-			rcu_read_lock();
-			if (!ns_capable(__task_cred(child)->user_ns, CAP_SYS_PTRACE))
-				rc = -EPERM;
-			rcu_read_unlock();
-			break;
-		case YAMA_SCOPE_NO_ATTACH:
-		default:
-			rc = -EPERM;
-			break;
+				break;
 		}
 	}
 
 	if (rc && (mode & PTRACE_MODE_NOAUDIT) == 0)
+	{
 		report_access("attach", child, current);
+	}
 
 	return rc;
 }
@@ -395,17 +479,23 @@ int yama_ptrace_traceme(struct task_struct *parent)
 	int rc = 0;
 
 	/* Only disallow PTRACE_TRACEME on more aggressive settings. */
-	switch (ptrace_scope) {
-	case YAMA_SCOPE_CAPABILITY:
-		if (!has_ns_capability(parent, current_user_ns(), CAP_SYS_PTRACE))
+	switch (ptrace_scope)
+	{
+		case YAMA_SCOPE_CAPABILITY:
+			if (!has_ns_capability(parent, current_user_ns(), CAP_SYS_PTRACE))
+			{
+				rc = -EPERM;
+			}
+
+			break;
+
+		case YAMA_SCOPE_NO_ATTACH:
 			rc = -EPERM;
-		break;
-	case YAMA_SCOPE_NO_ATTACH:
-		rc = -EPERM;
-		break;
+			break;
 	}
 
-	if (rc) {
+	if (rc)
+	{
 		task_lock(current);
 		report_access("traceme", current, parent);
 		task_unlock(current);
@@ -414,7 +504,8 @@ int yama_ptrace_traceme(struct task_struct *parent)
 	return rc;
 }
 
-static struct security_hook_list yama_hooks[] = {
+static struct security_hook_list yama_hooks[] =
+{
 	LSM_HOOK_INIT(ptrace_access_check, yama_ptrace_access_check),
 	LSM_HOOK_INIT(ptrace_traceme, yama_ptrace_traceme),
 	LSM_HOOK_INIT(task_prctl, yama_task_prctl),
@@ -423,17 +514,22 @@ static struct security_hook_list yama_hooks[] = {
 
 #ifdef CONFIG_SYSCTL
 static int yama_dointvec_minmax(struct ctl_table *table, int write,
-				void __user *buffer, size_t *lenp, loff_t *ppos)
+								void __user *buffer, size_t *lenp, loff_t *ppos)
 {
 	struct ctl_table table_copy;
 
 	if (write && !capable(CAP_SYS_PTRACE))
+	{
 		return -EPERM;
+	}
 
 	/* Lock the max value if it ever gets set. */
 	table_copy = *table;
+
 	if (*(int *)table_copy.data == *(int *)table_copy.extra2)
+	{
 		table_copy.extra1 = table_copy.extra2;
+	}
 
 	return proc_dointvec_minmax(&table_copy, write, buffer, lenp, ppos);
 }
@@ -441,13 +537,15 @@ static int yama_dointvec_minmax(struct ctl_table *table, int write,
 static int zero;
 static int max_scope = YAMA_SCOPE_NO_ATTACH;
 
-struct ctl_path yama_sysctl_path[] = {
+struct ctl_path yama_sysctl_path[] =
+{
 	{ .procname = "kernel", },
 	{ .procname = "yama", },
 	{ }
 };
 
-static struct ctl_table yama_sysctl_table[] = {
+static struct ctl_table yama_sysctl_table[] =
+{
 	{
 		.procname       = "ptrace_scope",
 		.data           = &ptrace_scope,
@@ -462,7 +560,9 @@ static struct ctl_table yama_sysctl_table[] = {
 static void __init yama_init_sysctl(void)
 {
 	if (!register_sysctl_paths(yama_sysctl_path, yama_sysctl_table))
+	{
 		panic("Yama: sysctl registration failed.\n");
+	}
 }
 #else
 static inline void yama_init_sysctl(void) { }

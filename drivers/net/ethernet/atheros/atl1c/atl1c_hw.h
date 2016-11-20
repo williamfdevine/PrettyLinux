@@ -27,8 +27,8 @@
 
 #define FIELD_GETX(_x, _name)   ((_x) >> (_name##_SHIFT) & (_name##_MASK))
 #define FIELD_SETX(_x, _name, _v) \
-(((_x) & ~((_name##_MASK) << (_name##_SHIFT))) |\
-(((_v) & (_name##_MASK)) << (_name##_SHIFT)))
+	(((_x) & ~((_name##_MASK) << (_name##_SHIFT))) |\
+	 (((_v) & (_name##_MASK)) << (_name##_SHIFT)))
 #define FIELDX(_name, _v) (((_v) & (_name##_MASK)) << (_name##_SHIFT))
 
 struct atl1c_adapter;
@@ -54,13 +54,13 @@ bool atl1c_wait_mdio_idle(struct atl1c_hw *hw);
 void atl1c_stop_phy_polling(struct atl1c_hw *hw);
 void atl1c_start_phy_polling(struct atl1c_hw *hw, u16 clk_sel);
 int atl1c_read_phy_core(struct atl1c_hw *hw, bool ext, u8 dev,
-			u16 reg, u16 *phy_data);
+						u16 reg, u16 *phy_data);
 int atl1c_write_phy_core(struct atl1c_hw *hw, bool ext, u8 dev,
-			u16 reg, u16 phy_data);
+						 u16 reg, u16 phy_data);
 int atl1c_read_phy_ext(struct atl1c_hw *hw, u8 dev_addr,
-			u16 reg_addr, u16 *phy_data);
+					   u16 reg_addr, u16 *phy_data);
 int atl1c_write_phy_ext(struct atl1c_hw *hw, u8 dev_addr,
-			u16 reg_addr, u16 phy_data);
+						u16 reg_addr, u16 phy_data);
 int atl1c_read_phy_dbg(struct atl1c_hw *hw, u16 reg_addr, u16 *phy_data);
 int atl1c_write_phy_dbg(struct atl1c_hw *hw, u16 reg_addr, u16 phy_data);
 void atl1c_post_phy_linkchg(struct atl1c_hw *hw, u16 link_speed);
@@ -257,9 +257,9 @@ void atl1c_post_phy_linkchg(struct atl1c_hw *hw, u16 link_speed);
 #define GPHY_CTRL_EXT_RESET		BIT(0)	/* 1:out of DSP RST status */
 #define GPHY_CTRL_EXT_RST_TO		80	/* 800us atmost */
 #define GPHY_CTRL_CLS			(\
-	GPHY_CTRL_LED_MODE		|\
-	GPHY_CTRL_100AB_EN		|\
-	GPHY_CTRL_PHY_PLL_ON)
+								 GPHY_CTRL_LED_MODE		|\
+								 GPHY_CTRL_100AB_EN		|\
+								 GPHY_CTRL_PHY_PLL_ON)
 
 /* Block IDLE Status Register */
 #define REG_IDLE_STATUS			0x1410
@@ -275,10 +275,10 @@ void atl1c_post_phy_linkchg(struct atl1c_hw *hw, u16 link_speed);
 #define IDLE_STATUS_TXMAC_BUSY		BIT(1)
 #define IDLE_STATUS_RXMAC_BUSY		BIT(0)
 #define IDLE_STATUS_MASK		(\
-	IDLE_STATUS_TXQ_BUSY		|\
-	IDLE_STATUS_RXQ_BUSY		|\
-	IDLE_STATUS_TXMAC_BUSY		|\
-	IDLE_STATUS_RXMAC_BUSY)
+								 IDLE_STATUS_TXQ_BUSY		|\
+								 IDLE_STATUS_RXQ_BUSY		|\
+								 IDLE_STATUS_TXMAC_BUSY		|\
+								 IDLE_STATUS_RXMAC_BUSY)
 
 /* MDIO Control Register */
 #define REG_MDIO_CTRL           	0x1414
@@ -567,16 +567,16 @@ void atl1c_post_phy_linkchg(struct atl1c_hw *hw, u16 link_speed);
 #define TXQ_NUM_TPD_BURST_SHIFT         0
 #define TXQ_NUM_TPD_BURST_DEF           5
 #define TXQ_CFGV			(\
-	FIELDX(TXQ_NUM_TPD_BURST, TXQ_NUM_TPD_BURST_DEF) |\
-	TXQ_CTRL_ENH_MODE |\
-	TXQ_CTRL_LS_8023_EN |\
-	TXQ_CTRL_IP_OPTION_EN)
+							 FIELDX(TXQ_NUM_TPD_BURST, TXQ_NUM_TPD_BURST_DEF) |\
+							 TXQ_CTRL_ENH_MODE |\
+							 TXQ_CTRL_LS_8023_EN |\
+							 TXQ_CTRL_IP_OPTION_EN)
 #define L1C_TXQ_CFGV			(\
-	TXQ_CFGV |\
-	FIELDX(TXQ_TXF_BURST_NUM, L1C_TXQ_TXF_BURST_PREF))
+								 TXQ_CFGV |\
+								 FIELDX(TXQ_TXF_BURST_NUM, L1C_TXQ_TXF_BURST_PREF))
 #define L2CB_TXQ_CFGV			(\
-	TXQ_CFGV |\
-	FIELDX(TXQ_TXF_BURST_NUM, L2CB_TXQ_TXF_BURST_PREF))
+								 TXQ_CFGV |\
+								 FIELDX(TXQ_TXF_BURST_NUM, L2CB_TXQ_TXF_BURST_PREF))
 
 
 /* Jumbo packet Threshold for task offload */
@@ -717,38 +717,38 @@ void atl1c_post_phy_linkchg(struct atl1c_hw *hw, u16 link_speed);
 #define REG_IMR				0x1604
 
 #define IMR_NORMAL_MASK		(\
-		ISR_MANUAL	|\
-		ISR_HW_RXF_OV	|\
-		ISR_RFD0_UR	|\
-		ISR_TXF_UR	|\
-		ISR_DMAR_TO_RST	|\
-		ISR_TXQ_TO_RST  |\
-		ISR_DMAW_TO_RST	|\
-		ISR_GPHY	|\
-		ISR_TX_PKT	|\
-		ISR_RX_PKT_0	|\
-		ISR_GPHY_LPW    |\
-		ISR_PHY_LINKDOWN)
+							 ISR_MANUAL	|\
+							 ISR_HW_RXF_OV	|\
+							 ISR_RFD0_UR	|\
+							 ISR_TXF_UR	|\
+							 ISR_DMAR_TO_RST	|\
+							 ISR_TXQ_TO_RST  |\
+							 ISR_DMAW_TO_RST	|\
+							 ISR_GPHY	|\
+							 ISR_TX_PKT	|\
+							 ISR_RX_PKT_0	|\
+							 ISR_GPHY_LPW    |\
+							 ISR_PHY_LINKDOWN)
 
 #define ISR_RX_PKT 	(\
-	ISR_RX_PKT_0    |\
-	ISR_RX_PKT_1    |\
-	ISR_RX_PKT_2    |\
-	ISR_RX_PKT_3)
+					 ISR_RX_PKT_0    |\
+					 ISR_RX_PKT_1    |\
+					 ISR_RX_PKT_2    |\
+					 ISR_RX_PKT_3)
 
 #define ISR_OVER	(\
-	ISR_RFD0_UR 	|\
-	ISR_RFD1_UR	|\
-	ISR_RFD2_UR	|\
-	ISR_RFD3_UR	|\
-	ISR_HW_RXF_OV	|\
-	ISR_TXF_UR)
+					 ISR_RFD0_UR 	|\
+					 ISR_RFD1_UR	|\
+					 ISR_RFD2_UR	|\
+					 ISR_RFD3_UR	|\
+					 ISR_HW_RXF_OV	|\
+					 ISR_TXF_UR)
 
 #define ISR_ERROR	(\
-	ISR_DMAR_TO_RST	|\
-	ISR_TXQ_TO_RST  |\
-	ISR_DMAW_TO_RST	|\
-	ISR_PHY_LINKDOWN)
+					 ISR_DMAR_TO_RST	|\
+					 ISR_TXQ_TO_RST  |\
+					 ISR_DMAW_TO_RST	|\
+					 ISR_PHY_LINKDOWN)
 
 #define REG_INT_RETRIG_TIMER		0x1608
 #define INT_RETRIG_TIMER_MASK		0xFFFF
@@ -767,11 +767,11 @@ void atl1c_post_phy_linkchg(struct atl1c_hw *hw, u16 link_speed);
 #define CLK_GATING_RXMAC_EN		0x0020
 
 #define CLK_GATING_EN_ALL	(CLK_GATING_DMAW_EN |\
-				 CLK_GATING_DMAR_EN |\
-				 CLK_GATING_TXQ_EN  |\
-				 CLK_GATING_RXQ_EN  |\
-				 CLK_GATING_TXMAC_EN|\
-				 CLK_GATING_RXMAC_EN)
+							 CLK_GATING_DMAR_EN |\
+							 CLK_GATING_TXQ_EN  |\
+							 CLK_GATING_RXQ_EN  |\
+							 CLK_GATING_TXMAC_EN|\
+							 CLK_GATING_RXMAC_EN)
 
 /* DEBUG ADDR */
 #define REG_DEBUG_DATA0 		0x1900

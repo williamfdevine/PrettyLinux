@@ -17,7 +17,8 @@
 
 #include "brcmnand.h"
 
-static const struct of_device_id brcmstb_nand_of_match[] = {
+static const struct of_device_id brcmstb_nand_of_match[] =
+{
 	{ .compatible = "brcm,brcmnand" },
 	{},
 };
@@ -28,7 +29,8 @@ static int brcmstb_nand_probe(struct platform_device *pdev)
 	return brcmnand_probe(pdev, NULL);
 }
 
-static struct platform_driver brcmstb_nand_driver = {
+static struct platform_driver brcmstb_nand_driver =
+{
 	.probe			= brcmstb_nand_probe,
 	.remove			= brcmnand_remove,
 	.driver = {

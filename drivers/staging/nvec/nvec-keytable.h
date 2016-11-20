@@ -21,7 +21,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-static unsigned short code_tab_102us[] = {
+static unsigned short code_tab_102us[] =
+{
 	/* 0x00 */
 	KEY_GRAVE,
 	KEY_ESC,
@@ -161,7 +162,8 @@ static unsigned short code_tab_102us[] = {
 	KEY_KP9,
 };
 
-static unsigned short extcode_tab_us102[] = {
+static unsigned short extcode_tab_us102[] =
+{
 	0,
 	0,
 	0,

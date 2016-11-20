@@ -32,9 +32,9 @@
 #include <video/omapvrfb.h>
 
 #ifdef DEBUG
-#define DBG(format, ...) pr_debug("VRFB: " format, ## __VA_ARGS__)
+	#define DBG(format, ...) pr_debug("VRFB: " format, ## __VA_ARGS__)
 #else
-#define DBG(format, ...)
+	#define DBG(format, ...)
 #endif
 
 #define SMS_ROT_CONTROL(context)	(0x0 + 0x10 * context)
@@ -57,7 +57,8 @@
 /* bitmap of reserved contexts */
 static unsigned long ctx_map;
 
-struct vrfb_ctx {
+struct vrfb_ctx
+{
 	u32 base;
 	u32 physical_ba;
 	u32 control;
@@ -106,7 +107,7 @@ static u32 get_image_width_roundup(u16 width, u8 bytespp)
 {
 	unsigned long stride = width * bytespp;
 	unsigned long ceil_pages_per_stride = (stride / VRFB_PAGE_WIDTH) +
-		(stride % VRFB_PAGE_WIDTH != 0);
+										  (stride % VRFB_PAGE_WIDTH != 0);
 
 	return ceil_pages_per_stride * VRFB_PAGE_WIDTH / bytespp;
 }
@@ -119,7 +120,7 @@ static u32 get_image_width_roundup(u16 width, u8 bytespp)
 static inline u32 get_extra_physical_size(u16 image_width_roundup, u8 bytespp)
 {
 	return (OMAP_VRFB_LINE_LEN - image_width_roundup) * VRFB_PAGE_HEIGHT *
-		bytespp;
+		   bytespp;
 }
 
 void omap_vrfb_restore_context(void)
@@ -127,7 +128,8 @@ void omap_vrfb_restore_context(void)
 	int i;
 	unsigned long map = ctx_map;
 
-	for (i = ffs(map); i; i = ffs(map)) {
+	for (i = ffs(map); i; i = ffs(map))
+	{
 		/* i=1..32 */
 		i--;
 		map &= ~(1 << i);
@@ -136,7 +138,7 @@ void omap_vrfb_restore_context(void)
 }
 
 void omap_vrfb_adjust_size(u16 *width, u16 *height,
-		u8 bytespp)
+						   u8 bytespp)
 {
 	*width = ALIGN(*width * bytespp, VRFB_PAGE_WIDTH) / bytespp;
 	*height = ALIGN(*height, VRFB_PAGE_HEIGHT);
@@ -146,30 +148,36 @@ EXPORT_SYMBOL(omap_vrfb_adjust_size);
 u32 omap_vrfb_min_phys_size(u16 width, u16 height, u8 bytespp)
 {
 	unsigned long image_width_roundup = get_image_width_roundup(width,
-		bytespp);
+										bytespp);
 
 	if (image_width_roundup > OMAP_VRFB_LINE_LEN)
+	{
 		return 0;
+	}
 
 	return (width * height * bytespp) + get_extra_physical_size(
-		image_width_roundup, bytespp);
+			   image_width_roundup, bytespp);
 }
 EXPORT_SYMBOL(omap_vrfb_min_phys_size);
 
 u16 omap_vrfb_max_height(u32 phys_size, u16 width, u8 bytespp)
 {
 	unsigned long image_width_roundup = get_image_width_roundup(width,
-		bytespp);
+										bytespp);
 	unsigned long height;
 	unsigned long extra;
 
 	if (image_width_roundup > OMAP_VRFB_LINE_LEN)
+	{
 		return 0;
+	}
 
 	extra = get_extra_physical_size(image_width_roundup, bytespp);
 
 	if (phys_size < extra)
+	{
 		return 0;
+	}
 
 	height = (phys_size - extra) / (width * bytespp);
 
@@ -179,8 +187,8 @@ u16 omap_vrfb_max_height(u32 phys_size, u16 width, u8 bytespp)
 EXPORT_SYMBOL(omap_vrfb_max_height);
 
 void omap_vrfb_setup(struct vrfb *vrfb, unsigned long paddr,
-		u16 width, u16 height,
-		unsigned bytespp, bool yuv_mode)
+					 u16 width, u16 height,
+					 unsigned bytespp, bool yuv_mode)
 {
 	unsigned pixel_size_exp;
 	u16 vrfb_width;
@@ -190,20 +198,26 @@ void omap_vrfb_setup(struct vrfb *vrfb, unsigned long paddr,
 	u32 control;
 
 	DBG("omapfb_set_vrfb(%d, %lx, %dx%d, %d, %d)\n", ctx, paddr,
-			width, height, bytespp, yuv_mode);
+		width, height, bytespp, yuv_mode);
 
 	/* For YUV2 and UYVY modes VRFB needs to handle pixels a bit
 	 * differently. See TRM. */
-	if (yuv_mode) {
+	if (yuv_mode)
+	{
 		bytespp *= 2;
 		width /= 2;
 	}
 
 	if (bytespp == 4)
+	{
 		pixel_size_exp = 2;
+	}
 	else if (bytespp == 2)
+	{
 		pixel_size_exp = 1;
-	else {
+	}
+	else
+	{
 		BUG();
 		return;
 	}
@@ -229,7 +243,7 @@ void omap_vrfb_setup(struct vrfb *vrfb, unsigned long paddr,
 	omap2_sms_write_rot_control(control, ctx);
 
 	DBG("vrfb offset pixels %d, %d\n",
-			vrfb_width - width, vrfb_height - height);
+		vrfb_width - width, vrfb_height - height);
 
 	vrfb->xres = width;
 	vrfb->yres = height;
@@ -246,7 +260,8 @@ int omap_vrfb_map_angle(struct vrfb *vrfb, u16 height, u8 rot)
 
 	vrfb->vaddr[rot] = ioremap_wc(vrfb->paddr[rot], size);
 
-	if (!vrfb->vaddr[rot]) {
+	if (!vrfb->vaddr[rot])
+	{
 		printk(KERN_ERR "vrfb: ioremap failed\n");
 		return -ENOMEM;
 	}
@@ -264,7 +279,9 @@ void omap_vrfb_release_ctx(struct vrfb *vrfb)
 	int ctx = vrfb->context;
 
 	if (ctx == 0xff)
+	{
 		return;
+	}
 
 	DBG("release ctx %d\n", ctx);
 
@@ -274,8 +291,10 @@ void omap_vrfb_release_ctx(struct vrfb *vrfb)
 
 	clear_bit(ctx, &ctx_map);
 
-	for (rot = 0; rot < 4; ++rot) {
-		if (vrfb->paddr[rot]) {
+	for (rot = 0; rot < 4; ++rot)
+	{
+		if (vrfb->paddr[rot])
+		{
 			release_mem_region(vrfb->paddr[rot], OMAP_VRFB_SIZE);
 			vrfb->paddr[rot] = 0;
 		}
@@ -300,9 +319,12 @@ int omap_vrfb_request_ctx(struct vrfb *vrfb)
 
 	for (ctx = 0; ctx < num_ctxs; ++ctx)
 		if ((ctx_map & (1 << ctx)) == 0)
+		{
 			break;
+		}
 
-	if (ctx == num_ctxs) {
+	if (ctx == num_ctxs)
+	{
 		pr_err("vrfb: no free contexts\n");
 		r = -EBUSY;
 		goto out;
@@ -316,12 +338,15 @@ int omap_vrfb_request_ctx(struct vrfb *vrfb)
 
 	vrfb->context = ctx;
 
-	for (rot = 0; rot < 4; ++rot) {
+	for (rot = 0; rot < 4; ++rot)
+	{
 		paddr = ctxs[ctx].base + SMS_ROT_VIRT_BASE(rot);
-		if (!request_mem_region(paddr, OMAP_VRFB_SIZE, "vrfb")) {
+
+		if (!request_mem_region(paddr, OMAP_VRFB_SIZE, "vrfb"))
+		{
 			pr_err("vrfb: failed to reserve VRFB "
-					"area for ctx %d, rotation %d\n",
-					ctx, rot * 90);
+				   "area for ctx %d, rotation %d\n",
+				   ctx, rot * 90);
 			omap_vrfb_release_ctx(vrfb);
 			r = -ENOMEM;
 			goto out;
@@ -329,7 +354,7 @@ int omap_vrfb_request_ctx(struct vrfb *vrfb)
 
 		vrfb->paddr[rot] = paddr;
 
-		DBG("VRFB %d/%d: %lx\n", ctx, rot*90, vrfb->paddr[rot]);
+		DBG("VRFB %d/%d: %lx\n", ctx, rot * 90, vrfb->paddr[rot]);
 	}
 
 	r = 0;
@@ -354,21 +379,29 @@ static int __init vrfb_probe(struct platform_device *pdev)
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	vrfb_base = devm_ioremap_resource(&pdev->dev, mem);
+
 	if (IS_ERR(vrfb_base))
+	{
 		return PTR_ERR(vrfb_base);
+	}
 
 	num_ctxs = pdev->num_resources - 1;
 
 	ctxs = devm_kzalloc(&pdev->dev,
-			sizeof(struct vrfb_ctx) * num_ctxs,
-			GFP_KERNEL);
+						sizeof(struct vrfb_ctx) * num_ctxs,
+						GFP_KERNEL);
 
 	if (!ctxs)
+	{
 		return -ENOMEM;
+	}
 
-	for (i = 0; i < num_ctxs; ++i) {
+	for (i = 0; i < num_ctxs; ++i)
+	{
 		mem = platform_get_resource(pdev, IORESOURCE_MEM, 1 + i);
-		if (!mem) {
+
+		if (!mem)
+		{
 			dev_err(&pdev->dev, "can't get vrfb ctx %d address\n",
 					i);
 			return -EINVAL;
@@ -387,7 +420,8 @@ static void __exit vrfb_remove(struct platform_device *pdev)
 	vrfb_loaded = false;
 }
 
-static struct platform_driver vrfb_driver = {
+static struct platform_driver vrfb_driver =
+{
 	.driver.name	= "omapvrfb",
 	.remove		= __exit_p(vrfb_remove),
 };

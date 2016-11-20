@@ -36,7 +36,8 @@
 #define WM8962_GPIO_FN_MICD            21
 #define WM8962_GPIO_FN_MICSCD          22
 
-struct wm8962_pdata {
+struct wm8962_pdata
+{
 	struct clk *mclk;
 	int gpio_base;
 	u32 gpio_init[WM8962_MAX_GPIO];

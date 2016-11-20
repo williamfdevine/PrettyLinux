@@ -30,10 +30,16 @@ gp100_ltc_intr(struct nvkm_ltc *ltc)
 	u32 mask;
 
 	mask = nvkm_rd32(device, 0x0001c0);
-	while (mask) {
+
+	while (mask)
+	{
 		u32 s, c = __ffs(mask);
+
 		for (s = 0; s < ltc->lts_nr; s++)
+		{
 			gm107_ltc_intr_lts(ltc, c, s);
+		}
+
 		mask &= ~(1 << c);
 	}
 }
@@ -55,7 +61,8 @@ gp100_ltc_init(struct nvkm_ltc *ltc)
 }
 
 static const struct nvkm_ltc_func
-gp100_ltc = {
+	gp100_ltc =
+{
 	.oneinit = gp100_ltc_oneinit,
 	.init = gp100_ltc_init,
 	.intr = gp100_ltc_intr,

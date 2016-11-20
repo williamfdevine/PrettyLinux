@@ -79,29 +79,29 @@
 
 #ifdef __KERNEL__
 
-#define PAGE_BITS (PAGE_SIZE << 3)
-#define PAGE_BIT_SHIFT (PAGE_SHIFT + 3)
+	#define PAGE_BITS (PAGE_SIZE << 3)
+	#define PAGE_BIT_SHIFT (PAGE_SHIFT + 3)
 
-typedef __u16 bitmap_counter_t;
-#define COUNTER_BITS 16
-#define COUNTER_BIT_SHIFT 4
-#define COUNTER_BYTE_SHIFT (COUNTER_BIT_SHIFT - 3)
+	typedef __u16 bitmap_counter_t;
+	#define COUNTER_BITS 16
+	#define COUNTER_BIT_SHIFT 4
+	#define COUNTER_BYTE_SHIFT (COUNTER_BIT_SHIFT - 3)
 
-#define NEEDED_MASK ((bitmap_counter_t) (1 << (COUNTER_BITS - 1)))
-#define RESYNC_MASK ((bitmap_counter_t) (1 << (COUNTER_BITS - 2)))
-#define COUNTER_MAX ((bitmap_counter_t) RESYNC_MASK - 1)
-#define NEEDED(x) (((bitmap_counter_t) x) & NEEDED_MASK)
-#define RESYNC(x) (((bitmap_counter_t) x) & RESYNC_MASK)
-#define COUNTER(x) (((bitmap_counter_t) x) & COUNTER_MAX)
+	#define NEEDED_MASK ((bitmap_counter_t) (1 << (COUNTER_BITS - 1)))
+	#define RESYNC_MASK ((bitmap_counter_t) (1 << (COUNTER_BITS - 2)))
+	#define COUNTER_MAX ((bitmap_counter_t) RESYNC_MASK - 1)
+	#define NEEDED(x) (((bitmap_counter_t) x) & NEEDED_MASK)
+	#define RESYNC(x) (((bitmap_counter_t) x) & RESYNC_MASK)
+	#define COUNTER(x) (((bitmap_counter_t) x) & COUNTER_MAX)
 
-/* how many counters per page? */
-#define PAGE_COUNTER_RATIO (PAGE_BITS / COUNTER_BITS)
-/* same, except a shift value for more efficient bitops */
-#define PAGE_COUNTER_SHIFT (PAGE_BIT_SHIFT - COUNTER_BIT_SHIFT)
-/* same, except a mask value for more efficient bitops */
-#define PAGE_COUNTER_MASK  (PAGE_COUNTER_RATIO - 1)
+	/* how many counters per page? */
+	#define PAGE_COUNTER_RATIO (PAGE_BITS / COUNTER_BITS)
+	/* same, except a shift value for more efficient bitops */
+	#define PAGE_COUNTER_SHIFT (PAGE_BIT_SHIFT - COUNTER_BIT_SHIFT)
+	/* same, except a mask value for more efficient bitops */
+	#define PAGE_COUNTER_MASK  (PAGE_COUNTER_RATIO - 1)
 
-#define BITMAP_BLOCK_SHIFT 9
+	#define BITMAP_BLOCK_SHIFT 9
 
 #endif
 
@@ -112,14 +112,16 @@ typedef __u16 bitmap_counter_t;
 #define BITMAP_MAGIC 0x6d746962
 
 /* use these for bitmap->flags and bitmap->sb->state bit-fields */
-enum bitmap_state {
+enum bitmap_state
+{
 	BITMAP_STALE	   = 1,  /* the bitmap file is out of date or had -EIO */
 	BITMAP_WRITE_ERROR = 2, /* A write error has occurred */
-	BITMAP_HOSTENDIAN  =15,
+	BITMAP_HOSTENDIAN  = 15,
 };
 
 /* the superblock at the front of the bitmap file -- little endian */
-typedef struct bitmap_super_s {
+typedef struct bitmap_super_s
+{
 	__le32 magic;        /*  0  BITMAP_MAGIC */
 	__le32 version;      /*  4  the bitmap major for now, could change... */
 	__u8  uuid[16];      /*  8  128 bit uuid - must match md device uuid */
@@ -154,7 +156,8 @@ typedef struct bitmap_super_s {
 #ifdef __KERNEL__
 
 /* the in-memory bitmap is represented by bitmap_pages */
-struct bitmap_page {
+struct bitmap_page
+{
 	/*
 	 * map points to the actual memory page
 	 */
@@ -163,22 +166,24 @@ struct bitmap_page {
 	 * in emergencies (when map cannot be alloced), hijack the map
 	 * pointer and use it as two counters itself
 	 */
-	unsigned int hijacked:1;
+	unsigned int hijacked: 1;
 	/*
 	 * If any counter in this page is '1' or '2' - and so could be
 	 * cleared then that page is marked as 'pending'
 	 */
-	unsigned int pending:1;
+	unsigned int pending: 1;
 	/*
 	 * count of dirty bits on the page
 	 */
-	unsigned int  count:30;
+	unsigned int  count: 30;
 };
 
 /* the main bitmap structure - one per mddev */
-struct bitmap {
+struct bitmap
+{
 
-	struct bitmap_counts {
+	struct bitmap_counts
+	{
 		spinlock_t lock;
 		struct bitmap_page *bp;
 		unsigned long pages;		/* total number of pages
@@ -196,7 +201,8 @@ struct bitmap {
 	__u64	events_cleared;
 	int need_sync;
 
-	struct bitmap_storage {
+	struct bitmap_storage
+	{
 		struct file *file;		/* backing disk file */
 		struct page *sb_page;		/* cached copy of the bitmap
 						 * file superblock */
@@ -251,24 +257,24 @@ void bitmap_dirty_bits(struct bitmap *bitmap, unsigned long s, unsigned long e);
 
 /* these are exported */
 int bitmap_startwrite(struct bitmap *bitmap, sector_t offset,
-			unsigned long sectors, int behind);
+					  unsigned long sectors, int behind);
 void bitmap_endwrite(struct bitmap *bitmap, sector_t offset,
-			unsigned long sectors, int success, int behind);
+					 unsigned long sectors, int success, int behind);
 int bitmap_start_sync(struct bitmap *bitmap, sector_t offset, sector_t *blocks, int degraded);
 void bitmap_end_sync(struct bitmap *bitmap, sector_t offset, sector_t *blocks, int aborted);
 void bitmap_close_sync(struct bitmap *bitmap);
 void bitmap_cond_end_sync(struct bitmap *bitmap, sector_t sector, bool force);
 void bitmap_sync_with_cluster(struct mddev *mddev,
-			      sector_t old_lo, sector_t old_hi,
-			      sector_t new_lo, sector_t new_hi);
+							  sector_t old_lo, sector_t old_hi,
+							  sector_t new_lo, sector_t new_hi);
 
 void bitmap_unplug(struct bitmap *bitmap);
 void bitmap_daemon_work(struct mddev *mddev);
 
 int bitmap_resize(struct bitmap *bitmap, sector_t blocks,
-		  int chunksize, int init);
+				  int chunksize, int init);
 int bitmap_copy_from_slot(struct mddev *mddev, int slot,
-				sector_t *lo, sector_t *hi, bool clear_bits);
+						  sector_t *lo, sector_t *hi, bool clear_bits);
 #endif
 
 #endif

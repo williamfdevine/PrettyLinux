@@ -429,7 +429,8 @@
 #define REG_INDEXED_THRESHOLD	(1 << 5)
 
 /* DRIVER DATA STRUCTURES and UTILITIES */
-struct net2272_ep {
+struct net2272_ep
+{
 	struct usb_ep ep;
 	struct net2272 *dev;
 	unsigned long irqs;
@@ -437,17 +438,18 @@ struct net2272_ep {
 	/* analogous to a host-side qh */
 	struct list_head queue;
 	const struct usb_endpoint_descriptor *desc;
-	unsigned num:8,
-	         fifo_size:12,
-	         stopped:1,
-	         wedged:1,
-	         is_in:1,
-	         is_iso:1,
-	         dma:1,
-	         not_empty:1;
+	unsigned num: 8,
+			 fifo_size: 12,
+			 stopped: 1,
+			 wedged: 1,
+			 is_in: 1,
+			 is_iso: 1,
+			 dma: 1,
+			 not_empty: 1;
 };
 
-struct net2272 {
+struct net2272
+{
 	/* each device provides one gadget, several endpoints */
 	struct usb_gadget gadget;
 	struct device *dev;
@@ -456,13 +458,13 @@ struct net2272 {
 	spinlock_t lock;
 	struct net2272_ep ep[4];
 	struct usb_gadget_driver *driver;
-	unsigned protocol_stall:1,
-	         softconnect:1,
-	         wakeup:1,
-	         dma_eot_polarity:1,
-	         dma_dack_polarity:1,
-	         dma_dreq_polarity:1,
-	         dma_busy:1;
+	unsigned protocol_stall: 1,
+			 softconnect: 1,
+			 wakeup: 1,
+			 dma_eot_polarity: 1,
+			 dma_dack_polarity: 1,
+			 dma_dreq_polarity: 1,
+			 dma_busy: 1;
 	u16 chiprev;
 	u8 pagesel;
 
@@ -471,13 +473,16 @@ struct net2272 {
 
 	unsigned int base_shift;
 	u16 __iomem *base_addr;
-	union {
+	union
+	{
 #ifdef CONFIG_PCI
-		struct {
+		struct
+		{
 			void __iomem *plx9054_base_addr;
 			void __iomem *epld_base_addr;
 		} rdk1;
-		struct {
+		struct
+		{
 			/* Bar0, Bar1 is base_addr both mem-mapped */
 			void __iomem *fpga_base_addr;
 		} rdk2;
@@ -494,7 +499,8 @@ net2272_reg_addr(struct net2272 *dev, unsigned int reg)
 static void
 net2272_write(struct net2272 *dev, unsigned int reg, u8 value)
 {
-	if (reg >= REG_INDEXED_THRESHOLD) {
+	if (reg >= REG_INDEXED_THRESHOLD)
+	{
 		/*
 		 * Indexed register; use REGADDRPTR/REGDATA
 		 *  - Save and restore REGADDRPTR. This prevents REGADDRPTR from
@@ -506,8 +512,11 @@ net2272_write(struct net2272 *dev, unsigned int reg, u8 value)
 		writeb((u8)reg, net2272_reg_addr(dev, REGADDRPTR));
 		writeb(value, net2272_reg_addr(dev, REGDATA));
 		/* writeb(tmp, net2272_reg_addr(dev, REGADDRPTR)); */
-	} else
+	}
+	else
+	{
 		writeb(value, net2272_reg_addr(dev, reg));
+	}
 }
 
 static u8
@@ -515,7 +524,8 @@ net2272_read(struct net2272 *dev, unsigned int reg)
 {
 	u8 ret;
 
-	if (reg >= REG_INDEXED_THRESHOLD) {
+	if (reg >= REG_INDEXED_THRESHOLD)
+	{
 		/*
 		 * Indexed register; use REGADDRPTR/REGDATA
 		 *  - Save and restore REGADDRPTR. This prevents REGADDRPTR from
@@ -527,8 +537,11 @@ net2272_read(struct net2272 *dev, unsigned int reg)
 		writeb((u8)reg, net2272_reg_addr(dev, REGADDRPTR));
 		ret = readb(net2272_reg_addr(dev, REGDATA));
 		/* writeb(tmp, net2272_reg_addr(dev, REGADDRPTR)); */
-	} else
+	}
+	else
+	{
 		ret = readb(net2272_reg_addr(dev, reg));
+	}
 
 	return ret;
 }
@@ -538,10 +551,12 @@ net2272_ep_write(struct net2272_ep *ep, unsigned int reg, u8 value)
 {
 	struct net2272 *dev = ep->dev;
 
-	if (dev->pagesel != ep->num) {
+	if (dev->pagesel != ep->num)
+	{
 		net2272_write(dev, PAGESEL, ep->num);
 		dev->pagesel = ep->num;
 	}
+
 	net2272_write(dev, reg, value);
 }
 
@@ -550,10 +565,12 @@ net2272_ep_read(struct net2272_ep *ep, unsigned int reg)
 {
 	struct net2272 *dev = ep->dev;
 
-	if (dev->pagesel != ep->num) {
+	if (dev->pagesel != ep->num)
+	{
 		net2272_write(dev, PAGESEL, ep->num);
 		dev->pagesel = ep->num;
 	}
+
 	return net2272_read(dev, reg);
 }
 
@@ -561,9 +578,9 @@ static void allow_status(struct net2272_ep *ep)
 {
 	/* ep0 only */
 	net2272_ep_write(ep, EP_RSPCLR,
-		(1 << CONTROL_STATUS_PHASE_HANDSHAKE) |
-		(1 << ALT_NAK_OUT_PACKETS) |
-		(1 << NAK_OUT_PACKETS_MODE));
+					 (1 << CONTROL_STATUS_PHASE_HANDSHAKE) |
+					 (1 << ALT_NAK_OUT_PACKETS) |
+					 (1 << NAK_OUT_PACKETS_MODE));
 	ep->stopped = 1;
 }
 
@@ -578,7 +595,7 @@ static void clear_halt(struct net2272_ep *ep)
 {
 	/* ep0 and bulk/intr endpoints */
 	net2272_ep_write(ep, EP_RSPCLR,
-		(1 << ENDPOINT_HALT) | (1 << ENDPOINT_TOGGLE));
+					 (1 << ENDPOINT_HALT) | (1 << ENDPOINT_TOGGLE));
 }
 
 /* count (<= 4) bytes in the next fifo write will be valid */
@@ -590,11 +607,12 @@ static void set_fifo_bytecount(struct net2272_ep *ep, unsigned count)
 	net2272_ep_write(ep, EP_TRANSFER0, count);
 }
 
-struct net2272_request {
+struct net2272_request
+{
 	struct usb_request req;
 	struct list_head queue;
-	unsigned mapped:1,
-	         valid:1;
+	unsigned mapped: 1,
+			 valid: 1;
 };
 
 #endif

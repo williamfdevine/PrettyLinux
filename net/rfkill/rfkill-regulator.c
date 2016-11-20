@@ -20,7 +20,8 @@
 #include <linux/rfkill.h>
 #include <linux/rfkill-regulator.h>
 
-struct rfkill_regulator_data {
+struct rfkill_regulator_data
+{
 	struct rfkill *rf_kill;
 	bool reg_enabled;
 
@@ -34,26 +35,35 @@ static int rfkill_regulator_set_block(void *data, bool blocked)
 
 	pr_debug("%s: blocked: %d\n", __func__, blocked);
 
-	if (blocked) {
-		if (rfkill_data->reg_enabled) {
+	if (blocked)
+	{
+		if (rfkill_data->reg_enabled)
+		{
 			regulator_disable(rfkill_data->vcc);
 			rfkill_data->reg_enabled = false;
 		}
-	} else {
-		if (!rfkill_data->reg_enabled) {
+	}
+	else
+	{
+		if (!rfkill_data->reg_enabled)
+		{
 			ret = regulator_enable(rfkill_data->vcc);
+
 			if (!ret)
+			{
 				rfkill_data->reg_enabled = true;
+			}
 		}
 	}
 
 	pr_debug("%s: regulator_is_enabled after set_block: %d\n", __func__,
-		regulator_is_enabled(rfkill_data->vcc));
+			 regulator_is_enabled(rfkill_data->vcc));
 
 	return ret;
 }
 
-static struct rfkill_ops rfkill_regulator_ops = {
+static struct rfkill_ops rfkill_regulator_ops =
+{
 	.set_block = rfkill_regulator_set_block,
 };
 
@@ -65,46 +75,58 @@ static int rfkill_regulator_probe(struct platform_device *pdev)
 	struct rfkill *rf_kill;
 	int ret = 0;
 
-	if (pdata == NULL) {
+	if (pdata == NULL)
+	{
 		dev_err(&pdev->dev, "no platform data\n");
 		return -ENODEV;
 	}
 
-	if (pdata->name == NULL || pdata->type == 0) {
+	if (pdata->name == NULL || pdata->type == 0)
+	{
 		dev_err(&pdev->dev, "invalid name or type in platform data\n");
 		return -EINVAL;
 	}
 
 	vcc = regulator_get_exclusive(&pdev->dev, "vrfkill");
-	if (IS_ERR(vcc)) {
+
+	if (IS_ERR(vcc))
+	{
 		dev_err(&pdev->dev, "Cannot get vcc for %s\n", pdata->name);
 		ret = PTR_ERR(vcc);
 		goto out;
 	}
 
 	rfkill_data = kzalloc(sizeof(*rfkill_data), GFP_KERNEL);
-	if (rfkill_data == NULL) {
+
+	if (rfkill_data == NULL)
+	{
 		ret = -ENOMEM;
 		goto err_data_alloc;
 	}
 
 	rf_kill = rfkill_alloc(pdata->name, &pdev->dev,
-				pdata->type,
-				&rfkill_regulator_ops, rfkill_data);
-	if (rf_kill == NULL) {
+						   pdata->type,
+						   &rfkill_regulator_ops, rfkill_data);
+
+	if (rf_kill == NULL)
+	{
 		ret = -ENOMEM;
 		goto err_rfkill_alloc;
 	}
 
-	if (regulator_is_enabled(vcc)) {
+	if (regulator_is_enabled(vcc))
+	{
 		dev_dbg(&pdev->dev, "Regulator already enabled\n");
 		rfkill_data->reg_enabled = true;
 	}
+
 	rfkill_data->vcc = vcc;
 	rfkill_data->rf_kill = rf_kill;
 
 	ret = rfkill_register(rf_kill);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Cannot register rfkill device\n");
 		goto err_rfkill_register;
 	}
@@ -137,7 +159,8 @@ static int rfkill_regulator_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver rfkill_regulator_driver = {
+static struct platform_driver rfkill_regulator_driver =
+{
 	.probe = rfkill_regulator_probe,
 	.remove = rfkill_regulator_remove,
 	.driver = {

@@ -41,39 +41,51 @@ static inline void print_err_status(struct cx231xx *dev, int packet, int status)
 {
 	char *errmsg = "Unknown";
 
-	switch (status) {
-	case -ENOENT:
-		errmsg = "unlinked synchronuously";
-		break;
-	case -ECONNRESET:
-		errmsg = "unlinked asynchronuously";
-		break;
-	case -ENOSR:
-		errmsg = "Buffer error (overrun)";
-		break;
-	case -EPIPE:
-		errmsg = "Stalled (device not responding)";
-		break;
-	case -EOVERFLOW:
-		errmsg = "Babble (bad cable?)";
-		break;
-	case -EPROTO:
-		errmsg = "Bit-stuff error (bad cable?)";
-		break;
-	case -EILSEQ:
-		errmsg = "CRC/Timeout (could be anything)";
-		break;
-	case -ETIME:
-		errmsg = "Device does not respond";
-		break;
+	switch (status)
+	{
+		case -ENOENT:
+			errmsg = "unlinked synchronuously";
+			break;
+
+		case -ECONNRESET:
+			errmsg = "unlinked asynchronuously";
+			break;
+
+		case -ENOSR:
+			errmsg = "Buffer error (overrun)";
+			break;
+
+		case -EPIPE:
+			errmsg = "Stalled (device not responding)";
+			break;
+
+		case -EOVERFLOW:
+			errmsg = "Babble (bad cable?)";
+			break;
+
+		case -EPROTO:
+			errmsg = "Bit-stuff error (bad cable?)";
+			break;
+
+		case -EILSEQ:
+			errmsg = "CRC/Timeout (could be anything)";
+			break;
+
+		case -ETIME:
+			errmsg = "Device does not respond";
+			break;
 	}
-	if (packet < 0) {
+
+	if (packet < 0)
+	{
 		dev_err(dev->dev,
-			"URB status %d [%s].\n", status, errmsg);
-	} else {
+				"URB status %d [%s].\n", status, errmsg);
+	}
+	else
+	{
 		dev_err(dev->dev,
-			"URB packet %d, status %d [%s].\n",
-			packet, status, errmsg);
+				"URB packet %d, status %d [%s].\n",
+				packet, status, errmsg);
 	}
 }
 
@@ -89,66 +101,83 @@ static inline int cx231xx_isoc_vbi_copy(struct cx231xx *dev, struct urb *urb)
 	u8 sav_eav = 0;
 
 	if (!dev)
+	{
 		return 0;
+	}
 
 	if (dev->state & DEV_DISCONNECTED)
+	{
 		return 0;
+	}
 
-	if (urb->status < 0) {
+	if (urb->status < 0)
+	{
 		print_err_status(dev, -1, urb->status);
+
 		if (urb->status == -ENOENT)
+		{
 			return 0;
+		}
 	}
 
 	/* get buffer pointer and length */
 	p_buffer = urb->transfer_buffer;
 	buffer_size = urb->actual_length;
 
-	if (buffer_size > 0) {
+	if (buffer_size > 0)
+	{
 		bytes_parsed = 0;
 
-		if (dma_q->is_partial_line) {
+		if (dma_q->is_partial_line)
+		{
 			/* Handle the case where we were working on a partial
 			   line */
 			sav_eav = dma_q->last_sav;
-		} else {
+		}
+		else
+		{
 			/* Check for a SAV/EAV overlapping the
 			   buffer boundary */
 
 			sav_eav = cx231xx_find_boundary_SAV_EAV(p_buffer,
-							  dma_q->partial_buf,
-							  &bytes_parsed);
+													dma_q->partial_buf,
+													&bytes_parsed);
 		}
 
 		sav_eav &= 0xF0;
+
 		/* Get the first line if we have some portion of an SAV/EAV from
 		   the last buffer or a partial line */
-		if (sav_eav) {
+		if (sav_eav)
+		{
 			bytes_parsed += cx231xx_get_vbi_line(dev, dma_q,
-				sav_eav,		       /* SAV/EAV */
-				p_buffer + bytes_parsed,       /* p_buffer */
-				buffer_size - bytes_parsed);   /* buffer size */
+												 sav_eav,		       /* SAV/EAV */
+												 p_buffer + bytes_parsed,       /* p_buffer */
+												 buffer_size - bytes_parsed);   /* buffer size */
 		}
 
 		/* Now parse data that is completely in this buffer */
 		dma_q->is_partial_line = 0;
 
-		while (bytes_parsed < buffer_size) {
+		while (bytes_parsed < buffer_size)
+		{
 			u32 bytes_used = 0;
 
 			sav_eav = cx231xx_find_next_SAV_EAV(
-				p_buffer + bytes_parsed,	/* p_buffer */
-				buffer_size - bytes_parsed, /* buffer size */
-				&bytes_used);	/* bytes used to get SAV/EAV */
+						  p_buffer + bytes_parsed,	/* p_buffer */
+						  buffer_size - bytes_parsed, /* buffer size */
+						  &bytes_used);	/* bytes used to get SAV/EAV */
 
 			bytes_parsed += bytes_used;
 
 			sav_eav &= 0xF0;
-			if (sav_eav && (bytes_parsed < buffer_size)) {
+
+			if (sav_eav && (bytes_parsed < buffer_size))
+			{
 				bytes_parsed += cx231xx_get_vbi_line(dev,
-					dma_q, sav_eav,	/* SAV/EAV */
-					p_buffer+bytes_parsed, /* p_buffer */
-					buffer_size-bytes_parsed);/*buf size*/
+													 dma_q, sav_eav,	/* SAV/EAV */
+													 p_buffer + bytes_parsed, /* p_buffer */
+													 buffer_size - bytes_parsed); /*buf size*/
 			}
 		}
 
@@ -167,21 +196,26 @@ static inline int cx231xx_isoc_vbi_copy(struct cx231xx *dev, struct urb *urb)
 
 static int
 vbi_buffer_setup(struct videobuf_queue *vq, unsigned int *count,
-		 unsigned int *size)
+				 unsigned int *size)
 {
 	struct cx231xx_fh *fh = vq->priv_data;
 	struct cx231xx *dev = fh->dev;
 	u32 height = 0;
 
 	height = ((dev->norm & V4L2_STD_625_50) ?
-		  PAL_VBI_LINES : NTSC_VBI_LINES);
+			  PAL_VBI_LINES : NTSC_VBI_LINES);
 
 	*size = (dev->width * height * 2 * 2);
+
 	if (0 == *count)
+	{
 		*count = CX231XX_DEF_VBI_BUF;
+	}
 
 	if (*count < CX231XX_MIN_BUF)
+	{
 		*count = CX231XX_MIN_BUF;
+	}
 
 	return 0;
 }
@@ -204,8 +238,12 @@ static void free_buffer(struct videobuf_queue *vq, struct cx231xx_buffer *buf)
 	   VIDEOBUF_ACTIVE, it won't be, though.
 	 */
 	spin_lock_irqsave(&dev->vbi_mode.slock, flags);
+
 	if (dev->vbi_mode.bulk_ctl.buf == buf)
+	{
 		dev->vbi_mode.bulk_ctl.buf = NULL;
+	}
+
 	spin_unlock_irqrestore(&dev->vbi_mode.slock, flags);
 
 	videobuf_vmalloc_free(&buf->vb);
@@ -214,43 +252,55 @@ static void free_buffer(struct videobuf_queue *vq, struct cx231xx_buffer *buf)
 
 static int
 vbi_buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
-		   enum v4l2_field field)
+				   enum v4l2_field field)
 {
 	struct cx231xx_fh *fh = vq->priv_data;
 	struct cx231xx_buffer *buf =
-	    container_of(vb, struct cx231xx_buffer, vb);
+		container_of(vb, struct cx231xx_buffer, vb);
 	struct cx231xx *dev = fh->dev;
 	int rc = 0, urb_init = 0;
 	u32 height = 0;
 
 	height = ((dev->norm & V4L2_STD_625_50) ?
-		  PAL_VBI_LINES : NTSC_VBI_LINES);
+			  PAL_VBI_LINES : NTSC_VBI_LINES);
 	buf->vb.size = ((dev->width << 1) * height * 2);
 
 	if (0 != buf->vb.baddr && buf->vb.bsize < buf->vb.size)
+	{
 		return -EINVAL;
+	}
 
 	buf->vb.width = dev->width;
 	buf->vb.height = height;
 	buf->vb.field = field;
 	buf->vb.field = V4L2_FIELD_SEQ_TB;
 
-	if (VIDEOBUF_NEEDS_INIT == buf->vb.state) {
+	if (VIDEOBUF_NEEDS_INIT == buf->vb.state)
+	{
 		rc = videobuf_iolock(vq, &buf->vb, NULL);
+
 		if (rc < 0)
+		{
 			goto fail;
+		}
 	}
 
 	if (!dev->vbi_mode.bulk_ctl.num_bufs)
+	{
 		urb_init = 1;
+	}
 
-	if (urb_init) {
+	if (urb_init)
+	{
 		rc = cx231xx_init_vbi_isoc(dev, CX231XX_NUM_VBI_PACKETS,
-					   CX231XX_NUM_VBI_BUFS,
-					   dev->vbi_mode.alt_max_pkt_size[0],
-					   cx231xx_isoc_vbi_copy);
+								   CX231XX_NUM_VBI_BUFS,
+								   dev->vbi_mode.alt_max_pkt_size[0],
+								   cx231xx_isoc_vbi_copy);
+
 		if (rc < 0)
+		{
 			goto fail;
+		}
 	}
 
 	buf->vb.state = VIDEOBUF_PREPARED;
@@ -265,7 +315,7 @@ static void
 vbi_buffer_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
 {
 	struct cx231xx_buffer *buf =
-	    container_of(vb, struct cx231xx_buffer, vb);
+		container_of(vb, struct cx231xx_buffer, vb);
 	struct cx231xx_fh *fh = vq->priv_data;
 	struct cx231xx *dev = fh->dev;
 	struct cx231xx_dmaqueue *vidq = &dev->vbi_mode.vidq;
@@ -276,16 +326,17 @@ vbi_buffer_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
 }
 
 static void vbi_buffer_release(struct videobuf_queue *vq,
-			       struct videobuf_buffer *vb)
+							   struct videobuf_buffer *vb)
 {
 	struct cx231xx_buffer *buf =
-	    container_of(vb, struct cx231xx_buffer, vb);
+		container_of(vb, struct cx231xx_buffer, vb);
 
 
 	free_buffer(vq, buf);
 }
 
-struct videobuf_queue_ops cx231xx_vbi_qops = {
+struct videobuf_queue_ops cx231xx_vbi_qops =
+{
 	.buf_setup   = vbi_buffer_setup,
 	.buf_prepare = vbi_buffer_prepare,
 	.buf_queue   = vbi_buffer_queue,
@@ -303,21 +354,24 @@ static void cx231xx_irq_vbi_callback(struct urb *urb)
 {
 	struct cx231xx_dmaqueue *dma_q = urb->context;
 	struct cx231xx_video_mode *vmode =
-	    container_of(dma_q, struct cx231xx_video_mode, vidq);
+		container_of(dma_q, struct cx231xx_video_mode, vidq);
 	struct cx231xx *dev = container_of(vmode, struct cx231xx, vbi_mode);
 
-	switch (urb->status) {
-	case 0:		/* success */
-	case -ETIMEDOUT:	/* NAK */
-		break;
-	case -ECONNRESET:	/* kill */
-	case -ENOENT:
-	case -ESHUTDOWN:
-		return;
-	default:		/* error */
-		dev_err(dev->dev,
-			"urb completition error %d.\n",	urb->status);
-		break;
+	switch (urb->status)
+	{
+		case 0:		/* success */
+		case -ETIMEDOUT:	/* NAK */
+			break;
+
+		case -ECONNRESET:	/* kill */
+		case -ENOENT:
+		case -ESHUTDOWN:
+			return;
+
+		default:		/* error */
+			dev_err(dev->dev,
+					"urb completition error %d.\n",	urb->status);
+			break;
 	}
 
 	/* Copy data from URB */
@@ -329,9 +383,11 @@ static void cx231xx_irq_vbi_callback(struct urb *urb)
 	urb->status = 0;
 
 	urb->status = usb_submit_urb(urb, GFP_ATOMIC);
-	if (urb->status) {
+
+	if (urb->status)
+	{
 		dev_err(dev->dev, "urb resubmit failed (error=%i)\n",
-			urb->status);
+				urb->status);
 	}
 }
 
@@ -346,24 +402,35 @@ void cx231xx_uninit_vbi_isoc(struct cx231xx *dev)
 	dev_dbg(dev->dev, "called cx231xx_uninit_vbi_isoc\n");
 
 	dev->vbi_mode.bulk_ctl.nfields = -1;
-	for (i = 0; i < dev->vbi_mode.bulk_ctl.num_bufs; i++) {
-		urb = dev->vbi_mode.bulk_ctl.urb[i];
-		if (urb) {
-			if (!irqs_disabled())
-				usb_kill_urb(urb);
-			else
-				usb_unlink_urb(urb);
 
-			if (dev->vbi_mode.bulk_ctl.transfer_buffer[i]) {
+	for (i = 0; i < dev->vbi_mode.bulk_ctl.num_bufs; i++)
+	{
+		urb = dev->vbi_mode.bulk_ctl.urb[i];
+
+		if (urb)
+		{
+			if (!irqs_disabled())
+			{
+				usb_kill_urb(urb);
+			}
+			else
+			{
+				usb_unlink_urb(urb);
+			}
+
+			if (dev->vbi_mode.bulk_ctl.transfer_buffer[i])
+			{
 
 				kfree(dev->vbi_mode.bulk_ctl.
-				      transfer_buffer[i]);
+					  transfer_buffer[i]);
 				dev->vbi_mode.bulk_ctl.transfer_buffer[i] =
-				    NULL;
+					NULL;
 			}
+
 			usb_free_urb(urb);
 			dev->vbi_mode.bulk_ctl.urb[i] = NULL;
 		}
+
 		dev->vbi_mode.bulk_ctl.transfer_buffer[i] = NULL;
 	}
 
@@ -382,9 +449,9 @@ EXPORT_SYMBOL_GPL(cx231xx_uninit_vbi_isoc);
  * Allocate URBs and start IRQ
  */
 int cx231xx_init_vbi_isoc(struct cx231xx *dev, int max_packets,
-			  int num_bufs, int max_pkt_size,
-			  int (*bulk_copy) (struct cx231xx *dev,
-					    struct urb *urb))
+						  int num_bufs, int max_pkt_size,
+						  int (*bulk_copy) (struct cx231xx *dev,
+								  struct urb *urb))
 {
 	struct cx231xx_dmaqueue *dma_q = &dev->vbi_mode.vidq;
 	int i;
@@ -399,8 +466,8 @@ int cx231xx_init_vbi_isoc(struct cx231xx *dev, int max_packets,
 
 	/* clear if any halt */
 	usb_clear_halt(dev->udev,
-		       usb_rcvbulkpipe(dev->udev,
-				       dev->vbi_mode.end_point_addr));
+				   usb_rcvbulkpipe(dev->udev,
+								   dev->vbi_mode.end_point_addr));
 
 	dev->vbi_mode.bulk_ctl.bulk_copy = bulk_copy;
 	dev->vbi_mode.bulk_ctl.num_bufs = num_bufs;
@@ -410,24 +477,31 @@ int cx231xx_init_vbi_isoc(struct cx231xx *dev, int max_packets,
 	dma_q->current_field = -1;
 	dma_q->bytes_left_in_line = dev->width << 1;
 	dma_q->lines_per_field = ((dev->norm & V4L2_STD_625_50) ?
-				  PAL_VBI_LINES : NTSC_VBI_LINES);
+							  PAL_VBI_LINES : NTSC_VBI_LINES);
 	dma_q->lines_completed = 0;
+
 	for (i = 0; i < 8; i++)
+	{
 		dma_q->partial_buf[i] = 0;
+	}
 
 	dev->vbi_mode.bulk_ctl.urb = kzalloc(sizeof(void *) * num_bufs,
-					     GFP_KERNEL);
-	if (!dev->vbi_mode.bulk_ctl.urb) {
+										 GFP_KERNEL);
+
+	if (!dev->vbi_mode.bulk_ctl.urb)
+	{
 		dev_err(dev->dev,
-			"cannot alloc memory for usb buffers\n");
+				"cannot alloc memory for usb buffers\n");
 		return -ENOMEM;
 	}
 
 	dev->vbi_mode.bulk_ctl.transfer_buffer =
-	    kzalloc(sizeof(void *) * num_bufs, GFP_KERNEL);
-	if (!dev->vbi_mode.bulk_ctl.transfer_buffer) {
+		kzalloc(sizeof(void *) * num_bufs, GFP_KERNEL);
+
+	if (!dev->vbi_mode.bulk_ctl.transfer_buffer)
+	{
 		dev_err(dev->dev,
-			"cannot allocate memory for usbtransfer\n");
+				"cannot allocate memory for usbtransfer\n");
 		kfree(dev->vbi_mode.bulk_ctl.urb);
 		return -ENOMEM;
 	}
@@ -438,41 +512,50 @@ int cx231xx_init_vbi_isoc(struct cx231xx *dev, int max_packets,
 	sb_size = max_packets * dev->vbi_mode.bulk_ctl.max_pkt_size;
 
 	/* allocate urbs and transfer buffers */
-	for (i = 0; i < dev->vbi_mode.bulk_ctl.num_bufs; i++) {
+	for (i = 0; i < dev->vbi_mode.bulk_ctl.num_bufs; i++)
+	{
 
 		urb = usb_alloc_urb(0, GFP_KERNEL);
-		if (!urb) {
+
+		if (!urb)
+		{
 			cx231xx_uninit_vbi_isoc(dev);
 			return -ENOMEM;
 		}
+
 		dev->vbi_mode.bulk_ctl.urb[i] = urb;
 		urb->transfer_flags = 0;
 
 		dev->vbi_mode.bulk_ctl.transfer_buffer[i] =
-		    kzalloc(sb_size, GFP_KERNEL);
-		if (!dev->vbi_mode.bulk_ctl.transfer_buffer[i]) {
+			kzalloc(sb_size, GFP_KERNEL);
+
+		if (!dev->vbi_mode.bulk_ctl.transfer_buffer[i])
+		{
 			dev_err(dev->dev,
-				"unable to allocate %i bytes for transfer buffer %i%s\n",
-				sb_size, i,
-				in_interrupt() ? " while in int" : "");
+					"unable to allocate %i bytes for transfer buffer %i%s\n",
+					sb_size, i,
+					in_interrupt() ? " while in int" : "");
 			cx231xx_uninit_vbi_isoc(dev);
 			return -ENOMEM;
 		}
 
 		pipe = usb_rcvbulkpipe(dev->udev, dev->vbi_mode.end_point_addr);
 		usb_fill_bulk_urb(urb, dev->udev, pipe,
-				  dev->vbi_mode.bulk_ctl.transfer_buffer[i],
-				  sb_size, cx231xx_irq_vbi_callback, dma_q);
+						  dev->vbi_mode.bulk_ctl.transfer_buffer[i],
+						  sb_size, cx231xx_irq_vbi_callback, dma_q);
 	}
 
 	init_waitqueue_head(&dma_q->wq);
 
 	/* submit urbs and enables IRQ */
-	for (i = 0; i < dev->vbi_mode.bulk_ctl.num_bufs; i++) {
+	for (i = 0; i < dev->vbi_mode.bulk_ctl.num_bufs; i++)
+	{
 		rc = usb_submit_urb(dev->vbi_mode.bulk_ctl.urb[i], GFP_ATOMIC);
-		if (rc) {
+
+		if (rc)
+		{
 			dev_err(dev->dev,
-				"submit of urb %i failed (error=%i)\n", i, rc);
+					"submit of urb %i failed (error=%i)\n", i, rc);
 			cx231xx_uninit_vbi_isoc(dev);
 			return rc;
 		}
@@ -485,32 +568,36 @@ int cx231xx_init_vbi_isoc(struct cx231xx *dev, int max_packets,
 EXPORT_SYMBOL_GPL(cx231xx_init_vbi_isoc);
 
 u32 cx231xx_get_vbi_line(struct cx231xx *dev, struct cx231xx_dmaqueue *dma_q,
-			 u8 sav_eav, u8 *p_buffer, u32 buffer_size)
+						 u8 sav_eav, u8 *p_buffer, u32 buffer_size)
 {
 	u32 bytes_copied = 0;
 	int current_field = -1;
 
-	switch (sav_eav) {
+	switch (sav_eav)
+	{
 
-	case SAV_VBI_FIELD1:
-		current_field = 1;
-		break;
+		case SAV_VBI_FIELD1:
+			current_field = 1;
+			break;
 
-	case SAV_VBI_FIELD2:
-		current_field = 2;
-		break;
-	default:
-		break;
+		case SAV_VBI_FIELD2:
+			current_field = 2;
+			break;
+
+		default:
+			break;
 	}
 
 	if (current_field < 0)
+	{
 		return bytes_copied;
+	}
 
 	dma_q->last_sav = sav_eav;
 
 	bytes_copied =
-	    cx231xx_copy_vbi_line(dev, dma_q, p_buffer, buffer_size,
-				  current_field);
+		cx231xx_copy_vbi_line(dev, dma_q, p_buffer, buffer_size,
+							  current_field);
 
 	return bytes_copied;
 }
@@ -519,8 +606,8 @@ u32 cx231xx_get_vbi_line(struct cx231xx *dev, struct cx231xx_dmaqueue *dma_q,
  * Announces that a buffer were filled and request the next
  */
 static inline void vbi_buffer_filled(struct cx231xx *dev,
-				     struct cx231xx_dmaqueue *dma_q,
-				     struct cx231xx_buffer *buf)
+									 struct cx231xx_dmaqueue *dma_q,
+									 struct cx231xx_buffer *buf)
 {
 	/* Advice that buffer was filled */
 	/* dev_dbg(dev->dev, "[%p/%d] wakeup\n", buf, buf->vb.i); */
@@ -536,19 +623,22 @@ static inline void vbi_buffer_filled(struct cx231xx *dev,
 }
 
 u32 cx231xx_copy_vbi_line(struct cx231xx *dev, struct cx231xx_dmaqueue *dma_q,
-			  u8 *p_line, u32 length, int field_number)
+						  u8 *p_line, u32 length, int field_number)
 {
 	u32 bytes_to_copy;
 	struct cx231xx_buffer *buf;
 	u32 _line_size = dev->width * 2;
 
-	if (dma_q->current_field == -1) {
+	if (dma_q->current_field == -1)
+	{
 		/* Just starting up */
 		cx231xx_reset_vbi_buffer(dev, dma_q);
 	}
 
 	if (dma_q->current_field != field_number)
+	{
 		dma_q->lines_completed = 0;
+	}
 
 	/* get the buffer pointer */
 	buf = dev->vbi_mode.bulk_ctl.buf;
@@ -557,13 +647,17 @@ u32 cx231xx_copy_vbi_line(struct cx231xx *dev, struct cx231xx_dmaqueue *dma_q,
 	dma_q->current_field = field_number;
 
 	bytes_to_copy = dma_q->bytes_left_in_line;
-	if (bytes_to_copy > length)
-		bytes_to_copy = length;
 
-	if (dma_q->lines_completed >= dma_q->lines_per_field) {
+	if (bytes_to_copy > length)
+	{
+		bytes_to_copy = length;
+	}
+
+	if (dma_q->lines_completed >= dma_q->lines_per_field)
+	{
 		dma_q->bytes_left_in_line -= bytes_to_copy;
 		dma_q->is_partial_line =
-		    (dma_q->bytes_left_in_line == 0) ? 0 : 1;
+			(dma_q->bytes_left_in_line == 0) ? 0 : 1;
 		return 0;
 	}
 
@@ -571,10 +665,11 @@ u32 cx231xx_copy_vbi_line(struct cx231xx *dev, struct cx231xx_dmaqueue *dma_q,
 
 	/* If we don't have a buffer, just return the number of bytes we would
 	   have copied if we had a buffer. */
-	if (!buf) {
+	if (!buf)
+	{
 		dma_q->bytes_left_in_line -= bytes_to_copy;
 		dma_q->is_partial_line =
-		    (dma_q->bytes_left_in_line == 0) ? 0 : 1;
+			(dma_q->bytes_left_in_line == 0) ? 0 : 1;
 		return bytes_to_copy;
 	}
 
@@ -584,13 +679,15 @@ u32 cx231xx_copy_vbi_line(struct cx231xx *dev, struct cx231xx_dmaqueue *dma_q,
 	dma_q->pos += bytes_to_copy;
 	dma_q->bytes_left_in_line -= bytes_to_copy;
 
-	if (dma_q->bytes_left_in_line == 0) {
+	if (dma_q->bytes_left_in_line == 0)
+	{
 
 		dma_q->bytes_left_in_line = _line_size;
 		dma_q->lines_completed++;
 		dma_q->is_partial_line = 0;
 
-		if (cx231xx_is_vbi_buffer_done(dev, dma_q) && buf) {
+		if (cx231xx_is_vbi_buffer_done(dev, dma_q) && buf)
+		{
 
 			vbi_buffer_filled(dev, dma_q, buf);
 
@@ -607,14 +704,15 @@ u32 cx231xx_copy_vbi_line(struct cx231xx *dev, struct cx231xx_dmaqueue *dma_q,
  * video-buf generic routine to get the next available buffer
  */
 static inline void get_next_vbi_buf(struct cx231xx_dmaqueue *dma_q,
-				    struct cx231xx_buffer **buf)
+									struct cx231xx_buffer **buf)
 {
 	struct cx231xx_video_mode *vmode =
-	    container_of(dma_q, struct cx231xx_video_mode, vidq);
+		container_of(dma_q, struct cx231xx_video_mode, vidq);
 	struct cx231xx *dev = container_of(vmode, struct cx231xx, vbi_mode);
 	char *outp;
 
-	if (list_empty(&dma_q->active)) {
+	if (list_empty(&dma_q->active))
+	{
 		dev_err(dev->dev, "No active queue to serve\n");
 		dev->vbi_mode.bulk_ctl.buf = NULL;
 		*buf = NULL;
@@ -634,13 +732,14 @@ static inline void get_next_vbi_buf(struct cx231xx_dmaqueue *dma_q,
 }
 
 void cx231xx_reset_vbi_buffer(struct cx231xx *dev,
-			      struct cx231xx_dmaqueue *dma_q)
+							  struct cx231xx_dmaqueue *dma_q)
 {
 	struct cx231xx_buffer *buf;
 
 	buf = dev->vbi_mode.bulk_ctl.buf;
 
-	if (buf == NULL) {
+	if (buf == NULL)
+	{
 		/* first try to get the buffer */
 		get_next_vbi_buf(dma_q, &buf);
 
@@ -653,7 +752,7 @@ void cx231xx_reset_vbi_buffer(struct cx231xx *dev,
 }
 
 int cx231xx_do_vbi_copy(struct cx231xx *dev, struct cx231xx_dmaqueue *dma_q,
-			u8 *p_buffer, u32 bytes_to_copy)
+						u8 *p_buffer, u32 bytes_to_copy)
 {
 	u8 *p_out_buffer = NULL;
 	u32 current_line_bytes_copied = 0;
@@ -665,19 +764,23 @@ int cx231xx_do_vbi_copy(struct cx231xx *dev, struct cx231xx_dmaqueue *dma_q,
 	buf = dev->vbi_mode.bulk_ctl.buf;
 
 	if (buf == NULL)
+	{
 		return -EINVAL;
+	}
 
 	p_out_buffer = videobuf_to_vmalloc(&buf->vb);
 
-	if (dma_q->bytes_left_in_line != _line_size) {
+	if (dma_q->bytes_left_in_line != _line_size)
+	{
 		current_line_bytes_copied =
-		    _line_size - dma_q->bytes_left_in_line;
+			_line_size - dma_q->bytes_left_in_line;
 	}
 
 	offset = (dma_q->lines_completed * _line_size) +
-		 current_line_bytes_copied;
+			 current_line_bytes_copied;
 
-	if (dma_q->current_field == 2) {
+	if (dma_q->current_field == 2)
+	{
 		/* Populate the second half of the frame */
 		offset += (dev->width * 2 * dma_q->lines_per_field);
 	}
@@ -686,7 +789,7 @@ int cx231xx_do_vbi_copy(struct cx231xx *dev, struct cx231xx_dmaqueue *dma_q,
 	startwrite = p_out_buffer + offset;
 
 	lencopy = dma_q->bytes_left_in_line > bytes_to_copy ?
-		  bytes_to_copy : dma_q->bytes_left_in_line;
+			  bytes_to_copy : dma_q->bytes_left_in_line;
 
 	memcpy(startwrite, p_buffer, lencopy);
 
@@ -694,14 +797,19 @@ int cx231xx_do_vbi_copy(struct cx231xx *dev, struct cx231xx_dmaqueue *dma_q,
 }
 
 u8 cx231xx_is_vbi_buffer_done(struct cx231xx *dev,
-			      struct cx231xx_dmaqueue *dma_q)
+							  struct cx231xx_dmaqueue *dma_q)
 {
 	u32 height = 0;
 
 	height = ((dev->norm & V4L2_STD_625_50) ?
-		  PAL_VBI_LINES : NTSC_VBI_LINES);
+			  PAL_VBI_LINES : NTSC_VBI_LINES);
+
 	if (dma_q->lines_completed == height && dma_q->current_field == 2)
+	{
 		return 1;
+	}
 	else
+	{
 		return 0;
+	}
 }

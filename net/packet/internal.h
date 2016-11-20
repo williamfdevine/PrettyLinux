@@ -1,7 +1,8 @@
 #ifndef __PACKET_INTERNAL_H__
 #define __PACKET_INTERNAL_H__
 
-struct packet_mclist {
+struct packet_mclist
+{
 	struct packet_mclist	*next;
 	int			ifindex;
 	int			count;
@@ -11,7 +12,8 @@ struct packet_mclist {
 };
 
 /* kbdq - kernel block descriptor queue */
-struct tpacket_kbdq_core {
+struct tpacket_kbdq_core
+{
 	struct pgv	*pkbdq;
 	unsigned int	feature_req_word;
 	unsigned int	hdrlen;
@@ -49,11 +51,13 @@ struct tpacket_kbdq_core {
 	struct timer_list retire_blk_timer;
 };
 
-struct pgv {
+struct pgv
+{
 	char *buffer;
 };
 
-struct packet_ring_buffer {
+struct packet_ring_buffer
+{
 	struct pgv		*pg_vec;
 
 	unsigned int		head;
@@ -73,13 +77,15 @@ struct packet_ring_buffer {
 extern struct mutex fanout_mutex;
 #define PACKET_FANOUT_MAX	256
 
-struct packet_fanout {
+struct packet_fanout
+{
 	possible_net_t		net;
 	unsigned int		num_members;
 	u16			id;
 	u8			type;
 	u8			flags;
-	union {
+	union
+	{
 		atomic_t		rr_cur;
 		struct bpf_prog __rcu	*bpf_prog;
 	};
@@ -90,7 +96,8 @@ struct packet_fanout {
 	struct packet_type	prot_hook ____cacheline_aligned_in_smp;
 };
 
-struct packet_rollover {
+struct packet_rollover
+{
 	int			sock;
 	struct rcu_head		rcu;
 	atomic_long_t		num;
@@ -100,7 +107,8 @@ struct packet_rollover {
 	u32			history[ROLLOVER_HLEN] ____cacheline_aligned;
 } ____cacheline_aligned_in_smp;
 
-struct packet_sock {
+struct packet_sock
+{
 	/* struct sock has to be the first member of packet_sock */
 	struct sock		sk;
 	struct packet_fanout	*fanout;
@@ -110,10 +118,10 @@ struct packet_sock {
 	int			copy_thresh;
 	spinlock_t		bind_lock;
 	struct mutex		pg_vec_lock;
-	unsigned int		running:1,	/* prot_hook is attached*/
-				auxdata:1,
-				origdev:1,
-				has_vnet_hdr:1;
+	unsigned int		running: 1,	/* prot_hook is attached*/
+				   auxdata: 1,
+				   origdev: 1,
+				   has_vnet_hdr: 1;
 	int			pressure;
 	int			ifindex;	/* bound device		*/
 	__be16			num;
@@ -123,8 +131,8 @@ struct packet_sock {
 	enum tpacket_versions	tp_version;
 	unsigned int		tp_hdrlen;
 	unsigned int		tp_reserve;
-	unsigned int		tp_loss:1;
-	unsigned int		tp_tx_has_off:1;
+	unsigned int		tp_loss: 1;
+	unsigned int		tp_tx_has_off: 1;
 	unsigned int		tp_tstamp;
 	struct net_device __rcu	*cached_dev;
 	int			(*xmit)(struct sk_buff *skb);

@@ -35,7 +35,8 @@
 #ifndef _T4FW_INTERFACE_H_
 #define _T4FW_INTERFACE_H_
 
-enum fw_retval {
+enum fw_retval
+{
 	FW_SUCCESS		= 0,	/* completed successfully */
 	FW_EPERM		= 1,	/* operation not permitted */
 	FW_ENOENT		= 2,	/* no such file or directory */
@@ -82,7 +83,8 @@ enum fw_retval {
 #define FW_T4VF_MBDATA_BASE_ADDR   0x0240
 #define FW_T4VF_CIM_BASE_ADDR      0x0300
 
-enum fw_wr_opcodes {
+enum fw_wr_opcodes
+{
 	FW_FILTER_WR                   = 0x02,
 	FW_ULPTX_WR                    = 0x04,
 	FW_TP_WR                       = 0x05,
@@ -107,7 +109,8 @@ enum fw_wr_opcodes {
 	FW_LASTC2E_WR                  = 0x70
 };
 
-struct fw_wr_hdr {
+struct fw_wr_hdr
+{
 	__be32 hi;
 	__be32 lo;
 };
@@ -160,7 +163,8 @@ struct fw_wr_hdr {
 #define HW_TPL_FR_MT_PR_OV_P_FC         0X327
 
 /* filter wr reply code in cookie in CPL_SET_TCB_RPL */
-enum fw_filter_wr_cookie {
+enum fw_filter_wr_cookie
+{
 	FW_FILTER_WR_SUCCESS,
 	FW_FILTER_WR_FLT_ADDED,
 	FW_FILTER_WR_FLT_DELETED,
@@ -168,7 +172,8 @@ enum fw_filter_wr_cookie {
 	FW_FILTER_WR_EINVAL,
 };
 
-struct fw_filter_wr {
+struct fw_filter_wr
+{
 	__be32 op_pkd;
 	__be32 len16_pkd;
 	__be64 r3;
@@ -434,45 +439,53 @@ struct fw_filter_wr {
 #define FW_FILTER_WR_MATCHTYPEM_G(x)    \
 	(((x) >> FW_FILTER_WR_MATCHTYPEM_S) & FW_FILTER_WR_MATCHTYPEM_M)
 
-struct fw_ulptx_wr {
+struct fw_ulptx_wr
+{
 	__be32 op_to_compl;
 	__be32 flowid_len16;
 	u64 cookie;
 };
 
-struct fw_tp_wr {
+struct fw_tp_wr
+{
 	__be32 op_to_immdlen;
 	__be32 flowid_len16;
 	u64 cookie;
 };
 
-struct fw_eth_tx_pkt_wr {
+struct fw_eth_tx_pkt_wr
+{
 	__be32 op_immdlen;
 	__be32 equiq_to_len16;
 	__be64 r3;
 };
 
-struct fw_ofld_connection_wr {
+struct fw_ofld_connection_wr
+{
 	__be32 op_compl;
 	__be32 len16_pkd;
 	__u64  cookie;
 	__be64 r2;
 	__be64 r3;
-	struct fw_ofld_connection_le {
+	struct fw_ofld_connection_le
+	{
 		__be32 version_cpl;
 		__be32 filter;
 		__be32 r1;
 		__be16 lport;
 		__be16 pport;
-		union fw_ofld_connection_leip {
-			struct fw_ofld_connection_le_ipv4 {
+		union fw_ofld_connection_leip
+		{
+			struct fw_ofld_connection_le_ipv4
+			{
 				__be32 pip;
 				__be32 lip;
 				__be64 r0;
 				__be64 r1;
 				__be64 r2;
 			} ipv4;
-			struct fw_ofld_connection_le_ipv6 {
+			struct fw_ofld_connection_le_ipv6
+			{
 				__be64 pip_hi;
 				__be64 pip_lo;
 				__be64 lip_hi;
@@ -480,7 +493,8 @@ struct fw_ofld_connection_wr {
 			} ipv6;
 		} u;
 	} le;
-	struct fw_ofld_connection_tcb {
+	struct fw_ofld_connection_tcb
+	{
 		__be32 t_state_to_astid;
 		__be16 cplrxdataack_cplpassacceptrpl;
 		__be16 rcv_adv;
@@ -500,7 +514,7 @@ struct fw_ofld_connection_wr {
 	((x) << FW_OFLD_CONNECTION_WR_VERSION_S)
 #define FW_OFLD_CONNECTION_WR_VERSION_G(x)     \
 	(((x) >> FW_OFLD_CONNECTION_WR_VERSION_S) & \
-	FW_OFLD_CONNECTION_WR_VERSION_M)
+	 FW_OFLD_CONNECTION_WR_VERSION_M)
 #define FW_OFLD_CONNECTION_WR_VERSION_F        \
 	FW_OFLD_CONNECTION_WR_VERSION_V(1U)
 
@@ -517,7 +531,7 @@ struct fw_ofld_connection_wr {
 	((x) << FW_OFLD_CONNECTION_WR_T_STATE_S)
 #define FW_OFLD_CONNECTION_WR_T_STATE_G(x)     \
 	(((x) >> FW_OFLD_CONNECTION_WR_T_STATE_S) & \
-	FW_OFLD_CONNECTION_WR_T_STATE_M)
+	 FW_OFLD_CONNECTION_WR_T_STATE_M)
 
 #define FW_OFLD_CONNECTION_WR_RCV_SCALE_S      24
 #define FW_OFLD_CONNECTION_WR_RCV_SCALE_M      0xf
@@ -525,7 +539,7 @@ struct fw_ofld_connection_wr {
 	((x) << FW_OFLD_CONNECTION_WR_RCV_SCALE_S)
 #define FW_OFLD_CONNECTION_WR_RCV_SCALE_G(x)   \
 	(((x) >> FW_OFLD_CONNECTION_WR_RCV_SCALE_S) & \
-	FW_OFLD_CONNECTION_WR_RCV_SCALE_M)
+	 FW_OFLD_CONNECTION_WR_RCV_SCALE_M)
 
 #define FW_OFLD_CONNECTION_WR_ASTID_S          0
 #define FW_OFLD_CONNECTION_WR_ASTID_M          0xffffff
@@ -540,7 +554,7 @@ struct fw_ofld_connection_wr {
 	((x) << FW_OFLD_CONNECTION_WR_CPLRXDATAACK_S)
 #define FW_OFLD_CONNECTION_WR_CPLRXDATAACK_G(x)        \
 	(((x) >> FW_OFLD_CONNECTION_WR_CPLRXDATAACK_S) & \
-	FW_OFLD_CONNECTION_WR_CPLRXDATAACK_M)
+	 FW_OFLD_CONNECTION_WR_CPLRXDATAACK_M)
 #define FW_OFLD_CONNECTION_WR_CPLRXDATAACK_F   \
 	FW_OFLD_CONNECTION_WR_CPLRXDATAACK_V(1U)
 
@@ -550,11 +564,12 @@ struct fw_ofld_connection_wr {
 	((x) << FW_OFLD_CONNECTION_WR_CPLPASSACCEPTRPL_S)
 #define FW_OFLD_CONNECTION_WR_CPLPASSACCEPTRPL_G(x)    \
 	(((x) >> FW_OFLD_CONNECTION_WR_CPLPASSACCEPTRPL_S) & \
-	FW_OFLD_CONNECTION_WR_CPLPASSACCEPTRPL_M)
+	 FW_OFLD_CONNECTION_WR_CPLPASSACCEPTRPL_M)
 #define FW_OFLD_CONNECTION_WR_CPLPASSACCEPTRPL_F       \
 	FW_OFLD_CONNECTION_WR_CPLPASSACCEPTRPL_V(1U)
 
-enum fw_flowc_mnem {
+enum fw_flowc_mnem
+{
 	FW_FLOWC_MNEM_PFNVFN,		/* PFN [15:8] VFN [7:0] */
 	FW_FLOWC_MNEM_CH,
 	FW_FLOWC_MNEM_PORT,
@@ -572,13 +587,15 @@ enum fw_flowc_mnem {
 	FW_FLOWC_MNEM_RCV_SCALE,
 };
 
-struct fw_flowc_mnemval {
+struct fw_flowc_mnemval
+{
 	u8 mnemonic;
 	u8 r4[3];
 	__be32 val;
 };
 
-struct fw_flowc_wr {
+struct fw_flowc_wr
+{
 	__be32 op_to_nparams;
 	__be32 flowid_len16;
 	struct fw_flowc_mnemval mnemval[0];
@@ -587,7 +604,8 @@ struct fw_flowc_wr {
 #define FW_FLOWC_WR_NPARAMS_S           0
 #define FW_FLOWC_WR_NPARAMS_V(x)        ((x) << FW_FLOWC_WR_NPARAMS_S)
 
-struct fw_ofld_tx_data_wr {
+struct fw_ofld_tx_data_wr
+{
 	__be32 op_to_immdlen;
 	__be32 flowid_len16;
 	__be32 plen;
@@ -621,7 +639,8 @@ struct fw_ofld_tx_data_wr {
 #define FW_OFLD_TX_DATA_WR_ULPSUBMODE_V(x)      \
 	((x) << FW_OFLD_TX_DATA_WR_ULPSUBMODE_S)
 
-struct fw_cmd_wr {
+struct fw_cmd_wr
+{
 	__be32 op_dma;
 	__be32 len16_pkd;
 	__be64 cookie_daddr;
@@ -630,7 +649,8 @@ struct fw_cmd_wr {
 #define FW_CMD_WR_DMA_S         17
 #define FW_CMD_WR_DMA_V(x)      ((x) << FW_CMD_WR_DMA_S)
 
-struct fw_eth_tx_pkt_vm_wr {
+struct fw_eth_tx_pkt_vm_wr
+{
 	__be32 op_immdlen;
 	__be32 equiq_to_len16;
 	__be32 r3[2];
@@ -653,7 +673,8 @@ struct fw_eth_tx_pkt_vm_wr {
 #define FW_CMD_HELLO_RETRIES	3
 
 
-enum fw_cmd_opcodes {
+enum fw_cmd_opcodes
+{
 	FW_LDST_CMD                    = 0x01,
 	FW_RESET_CMD                   = 0x03,
 	FW_HELLO_CMD                   = 0x04,
@@ -690,7 +711,8 @@ enum fw_cmd_opcodes {
 	FW_DEBUG_CMD                   = 0x81,
 };
 
-enum fw_cmd_cap {
+enum fw_cmd_cap
+{
 	FW_CMD_CAP_PF                  = 0x01,
 	FW_CMD_CAP_DMAQ                = 0x02,
 	FW_CMD_CAP_PORT                = 0x04,
@@ -702,7 +724,8 @@ enum fw_cmd_cap {
 /*
  * Generic command header flit0
  */
-struct fw_cmd_hdr {
+struct fw_cmd_hdr
+{
 	__be32 hi;
 	__be32 lo;
 };
@@ -741,7 +764,8 @@ struct fw_cmd_hdr {
 
 #define FW_LEN16(fw_struct)	FW_CMD_LEN16_V(sizeof(fw_struct) / 16)
 
-enum fw_ldst_addrspc {
+enum fw_ldst_addrspc
+{
 	FW_LDST_ADDRSPC_FIRMWARE  = 0x0001,
 	FW_LDST_ADDRSPC_SGE_EGRC  = 0x0008,
 	FW_LDST_ADDRSPC_SGE_INGC  = 0x0009,
@@ -756,29 +780,36 @@ enum fw_ldst_addrspc {
 	FW_LDST_ADDRSPC_FUNC_PCIE = 0x0029,
 };
 
-enum fw_ldst_mps_fid {
+enum fw_ldst_mps_fid
+{
 	FW_LDST_MPS_ATRB,
 	FW_LDST_MPS_RPLC
 };
 
-enum fw_ldst_func_access_ctl {
+enum fw_ldst_func_access_ctl
+{
 	FW_LDST_FUNC_ACC_CTL_VIID,
 	FW_LDST_FUNC_ACC_CTL_FID
 };
 
-enum fw_ldst_func_mod_index {
+enum fw_ldst_func_mod_index
+{
 	FW_LDST_FUNC_MPS
 };
 
-struct fw_ldst_cmd {
+struct fw_ldst_cmd
+{
 	__be32 op_to_addrspace;
 	__be32 cycles_to_len16;
-	union fw_ldst {
-		struct fw_ldst_addrval {
+	union fw_ldst
+	{
+		struct fw_ldst_addrval
+		{
 			__be32 addr;
 			__be32 val;
 		} addrval;
-		struct fw_ldst_idctxt {
+		struct fw_ldst_idctxt
+		{
 			__be32 physid;
 			__be32 msg_ctxtflush;
 			__be32 ctxt_data7;
@@ -790,21 +821,25 @@ struct fw_ldst_cmd {
 			__be32 ctxt_data1;
 			__be32 ctxt_data0;
 		} idctxt;
-		struct fw_ldst_mdio {
+		struct fw_ldst_mdio
+		{
 			__be16 paddr_mmd;
 			__be16 raddr;
 			__be16 vctl;
 			__be16 rval;
 		} mdio;
-		struct fw_ldst_cim_rq {
+		struct fw_ldst_cim_rq
+		{
 			u8 req_first64[8];
 			u8 req_second64[8];
 			u8 resp_first64[8];
 			u8 resp_second64[8];
 			__be32 r3[2];
 		} cim_rq;
-		union fw_ldst_mps {
-			struct fw_ldst_mps_rplc {
+		union fw_ldst_mps
+		{
+			struct fw_ldst_mps_rplc
+			{
 				__be16 fid_idx;
 				__be16 rplcpf_pkd;
 				__be32 rplc255_224;
@@ -816,7 +851,8 @@ struct fw_ldst_cmd {
 				__be32 rplc63_32;
 				__be32 rplc31_0;
 			} rplc;
-			struct fw_ldst_mps_atrb {
+			struct fw_ldst_mps_atrb
+			{
 				__be16 fid_mpsid;
 				__be16 r2[3];
 				__be32 r3[2];
@@ -825,7 +861,8 @@ struct fw_ldst_cmd {
 				__be16 vlan[16];
 			} atrb;
 		} mps;
-		struct fw_ldst_func {
+		struct fw_ldst_func
+		{
 			u8 access_ctl;
 			u8 mod_index;
 			__be16 ctl_id;
@@ -833,7 +870,8 @@ struct fw_ldst_cmd {
 			__be64 data0;
 			__be64 data1;
 		} func;
-		struct fw_ldst_pcie {
+		struct fw_ldst_pcie
+		{
 			u8 ctrl_to_fn;
 			u8 bnum;
 			u8 r;
@@ -843,14 +881,16 @@ struct fw_ldst_cmd {
 			__be16 nset_pkd;
 			__be32 data[12];
 		} pcie;
-		struct fw_ldst_i2c_deprecated {
+		struct fw_ldst_i2c_deprecated
+		{
 			u8 pid_pkd;
 			u8 base;
 			u8 boffset;
 			u8 data;
 			__be32 r9;
 		} i2c_deprecated;
-		struct fw_ldst_i2c {
+		struct fw_ldst_i2c
+		{
 			u8 pid;
 			u8 did;
 			u8 boffset;
@@ -858,7 +898,8 @@ struct fw_ldst_cmd {
 			__be32 r9;
 			__u8   data[48];
 		} i2c;
-		struct fw_ldst_le {
+		struct fw_ldst_le
+		{
 			__be32 index;
 			__be32 r9;
 			u8 val[33];
@@ -902,7 +943,8 @@ struct fw_ldst_cmd {
 #define FW_LDST_CMD_NACCESS_S           0
 #define FW_LDST_CMD_NACCESS_V(x)	((x) << FW_LDST_CMD_NACCESS_S)
 
-struct fw_reset_cmd {
+struct fw_reset_cmd
+{
 	__be32 op_to_write;
 	__be32 retval_len16;
 	__be32 val;
@@ -916,11 +958,13 @@ struct fw_reset_cmd {
 	(((x) >> FW_RESET_CMD_HALT_S) & FW_RESET_CMD_HALT_M)
 #define FW_RESET_CMD_HALT_F	FW_RESET_CMD_HALT_V(1U)
 
-enum fw_hellow_cmd {
+enum fw_hellow_cmd
+{
 	fw_hello_cmd_stage_os		= 0x0
 };
 
-struct fw_hello_cmd {
+struct fw_hello_cmd
+{
 	__be32 op_to_write;
 	__be32 retval_len16;
 	__be32 err_to_clearinit;
@@ -960,19 +1004,22 @@ struct fw_hello_cmd {
 #define FW_HELLO_CMD_CLEARINIT_V(x)     ((x) << FW_HELLO_CMD_CLEARINIT_S)
 #define FW_HELLO_CMD_CLEARINIT_F	FW_HELLO_CMD_CLEARINIT_V(1U)
 
-struct fw_bye_cmd {
+struct fw_bye_cmd
+{
 	__be32 op_to_write;
 	__be32 retval_len16;
 	__be64 r3;
 };
 
-struct fw_initialize_cmd {
+struct fw_initialize_cmd
+{
 	__be32 op_to_write;
 	__be32 retval_len16;
 	__be64 r3;
 };
 
-enum fw_caps_config_hm {
+enum fw_caps_config_hm
+{
 	FW_CAPS_CONFIG_HM_PCIE		= 0x00000001,
 	FW_CAPS_CONFIG_HM_PL		= 0x00000002,
 	FW_CAPS_CONFIG_HM_SGE		= 0x00000004,
@@ -999,50 +1046,59 @@ enum fw_caps_config_hm {
 	FW_CAPS_CONFIG_HM_SF		= 0x00800000,
 };
 
-enum fw_caps_config_nbm {
+enum fw_caps_config_nbm
+{
 	FW_CAPS_CONFIG_NBM_IPMI		= 0x00000001,
 	FW_CAPS_CONFIG_NBM_NCSI		= 0x00000002,
 };
 
-enum fw_caps_config_link {
+enum fw_caps_config_link
+{
 	FW_CAPS_CONFIG_LINK_PPP		= 0x00000001,
 	FW_CAPS_CONFIG_LINK_QFC		= 0x00000002,
 	FW_CAPS_CONFIG_LINK_DCBX	= 0x00000004,
 };
 
-enum fw_caps_config_switch {
+enum fw_caps_config_switch
+{
 	FW_CAPS_CONFIG_SWITCH_INGRESS	= 0x00000001,
 	FW_CAPS_CONFIG_SWITCH_EGRESS	= 0x00000002,
 };
 
-enum fw_caps_config_nic {
+enum fw_caps_config_nic
+{
 	FW_CAPS_CONFIG_NIC		= 0x00000001,
 	FW_CAPS_CONFIG_NIC_VM		= 0x00000002,
 };
 
-enum fw_caps_config_ofld {
+enum fw_caps_config_ofld
+{
 	FW_CAPS_CONFIG_OFLD		= 0x00000001,
 };
 
-enum fw_caps_config_rdma {
+enum fw_caps_config_rdma
+{
 	FW_CAPS_CONFIG_RDMA_RDDP	= 0x00000001,
 	FW_CAPS_CONFIG_RDMA_RDMAC	= 0x00000002,
 };
 
-enum fw_caps_config_iscsi {
+enum fw_caps_config_iscsi
+{
 	FW_CAPS_CONFIG_ISCSI_INITIATOR_PDU = 0x00000001,
 	FW_CAPS_CONFIG_ISCSI_TARGET_PDU = 0x00000002,
 	FW_CAPS_CONFIG_ISCSI_INITIATOR_CNXOFLD = 0x00000004,
 	FW_CAPS_CONFIG_ISCSI_TARGET_CNXOFLD = 0x00000008,
 };
 
-enum fw_caps_config_fcoe {
+enum fw_caps_config_fcoe
+{
 	FW_CAPS_CONFIG_FCOE_INITIATOR	= 0x00000001,
 	FW_CAPS_CONFIG_FCOE_TARGET	= 0x00000002,
 	FW_CAPS_CONFIG_FCOE_CTRL_OFLD	= 0x00000004,
 };
 
-enum fw_memtype_cf {
+enum fw_memtype_cf
+{
 	FW_MEMTYPE_CF_EDC0		= 0x0,
 	FW_MEMTYPE_CF_EDC1		= 0x1,
 	FW_MEMTYPE_CF_EXTMEM		= 0x2,
@@ -1051,7 +1107,8 @@ enum fw_memtype_cf {
 	FW_MEMTYPE_CF_EXTMEM1           = 0x6,
 };
 
-struct fw_caps_config_cmd {
+struct fw_caps_config_cmd
+{
 	__be32 op_to_write;
 	__be32 cfvalid_to_len16;
 	__be32 r2;
@@ -1086,7 +1143,8 @@ struct fw_caps_config_cmd {
 /*
  * params command mnemonics
  */
-enum fw_params_mnem {
+enum fw_params_mnem
+{
 	FW_PARAMS_MNEM_DEV		= 1,	/* device params */
 	FW_PARAMS_MNEM_PFVF		= 2,	/* function params */
 	FW_PARAMS_MNEM_REG		= 3,	/* limited register access */
@@ -1098,7 +1156,8 @@ enum fw_params_mnem {
 /*
  * device parameters
  */
-enum fw_params_param_dev {
+enum fw_params_param_dev
+{
 	FW_PARAMS_PARAM_DEV_CCLK	= 0x00, /* chip core clock in khz */
 	FW_PARAMS_PARAM_DEV_PORTVEC	= 0x01, /* the port vector */
 	FW_PARAMS_PARAM_DEV_NTID	= 0x02, /* reads the number of TIDs
@@ -1128,7 +1187,8 @@ enum fw_params_param_dev {
 /*
  * physical and virtual function parameters
  */
-enum fw_params_param_pfvf {
+enum fw_params_param_pfvf
+{
 	FW_PARAMS_PARAM_PFVF_RWXCAPS	= 0x00,
 	FW_PARAMS_PARAM_PFVF_ROUTE_START = 0x01,
 	FW_PARAMS_PARAM_PFVF_ROUTE_END = 0x02,
@@ -1173,7 +1233,8 @@ enum fw_params_param_pfvf {
 /*
  * dma queue parameters
  */
-enum fw_params_param_dmaq {
+enum fw_params_param_dmaq
+{
 	FW_PARAMS_PARAM_DMAQ_IQ_DCAEN_DCACPU = 0x00,
 	FW_PARAMS_PARAM_DMAQ_IQ_INTCNTTHRESH = 0x01,
 	FW_PARAMS_PARAM_DMAQ_EQ_CMPLIQID_MNGT = 0x10,
@@ -1183,17 +1244,20 @@ enum fw_params_param_dmaq {
 	FW_PARAMS_PARAM_DMAQ_CONM_CTXT = 0x20,
 };
 
-enum fw_params_param_dev_phyfw {
+enum fw_params_param_dev_phyfw
+{
 	FW_PARAMS_PARAM_DEV_PHYFW_DOWNLOAD = 0x00,
 	FW_PARAMS_PARAM_DEV_PHYFW_VERSION = 0x01,
 };
 
-enum fw_params_param_dev_diag {
+enum fw_params_param_dev_diag
+{
 	FW_PARAM_DEV_DIAG_TMP		= 0x00,
 	FW_PARAM_DEV_DIAG_VDD		= 0x01,
 };
 
-enum fw_params_param_dev_fwcache {
+enum fw_params_param_dev_fwcache
+{
 	FW_PARAM_DEV_FWCACHE_FLUSH      = 0x00,
 	FW_PARAM_DEV_FWCACHE_FLUSHINV   = 0x01,
 };
@@ -1208,13 +1272,13 @@ enum fw_params_param_dev_fwcache {
 #define FW_PARAMS_PARAM_Y_M	0xffU
 #define FW_PARAMS_PARAM_Y_V(x)	((x) << FW_PARAMS_PARAM_Y_S)
 #define FW_PARAMS_PARAM_Y_G(x)	(((x) >> FW_PARAMS_PARAM_Y_S) &\
-		FW_PARAMS_PARAM_Y_M)
+								 FW_PARAMS_PARAM_Y_M)
 
 #define FW_PARAMS_PARAM_Z_S	0
 #define FW_PARAMS_PARAM_Z_M	0xffu
 #define FW_PARAMS_PARAM_Z_V(x)	((x) << FW_PARAMS_PARAM_Z_S)
 #define FW_PARAMS_PARAM_Z_G(x)	(((x) >> FW_PARAMS_PARAM_Z_S) &\
-		FW_PARAMS_PARAM_Z_M)
+								 FW_PARAMS_PARAM_Z_M)
 
 #define FW_PARAMS_PARAM_XYZ_S		0
 #define FW_PARAMS_PARAM_XYZ_V(x)	((x) << FW_PARAMS_PARAM_XYZ_S)
@@ -1222,10 +1286,12 @@ enum fw_params_param_dev_fwcache {
 #define FW_PARAMS_PARAM_YZ_S		0
 #define FW_PARAMS_PARAM_YZ_V(x)		((x) << FW_PARAMS_PARAM_YZ_S)
 
-struct fw_params_cmd {
+struct fw_params_cmd
+{
 	__be32 op_to_vfn;
 	__be32 retval_len16;
-	struct fw_params_param {
+	struct fw_params_param
+	{
 		__be32 mnem;
 		__be32 val;
 	} param[7];
@@ -1237,7 +1303,8 @@ struct fw_params_cmd {
 #define FW_PARAMS_CMD_VFN_S     0
 #define FW_PARAMS_CMD_VFN_V(x)	((x) << FW_PARAMS_CMD_VFN_S)
 
-struct fw_pfvf_cmd {
+struct fw_pfvf_cmd
+{
 	__be32 op_to_vfn;
 	__be32 retval_len16;
 	__be32 niqflint_niq;
@@ -1326,12 +1393,14 @@ struct fw_pfvf_cmd {
 #define FW_PFVF_CMD_NETHCTRL_G(x)	\
 	(((x) >> FW_PFVF_CMD_NETHCTRL_S) & FW_PFVF_CMD_NETHCTRL_M)
 
-enum fw_iq_type {
+enum fw_iq_type
+{
 	FW_IQ_TYPE_FL_INT_CAP,
 	FW_IQ_TYPE_NO_FL_INT_CAP
 };
 
-struct fw_iq_cmd {
+struct fw_iq_cmd
+{
 	__be32 op_to_vfn;
 	__be32 alloc_to_len16;
 	__be16 physiqid;
@@ -1588,7 +1657,8 @@ struct fw_iq_cmd {
 #define FW_IQ_CMD_FL1CIDXFTHRESH_S	0
 #define FW_IQ_CMD_FL1CIDXFTHRESH_V(x)	((x) << FW_IQ_CMD_FL1CIDXFTHRESH_S)
 
-struct fw_eq_eth_cmd {
+struct fw_eq_eth_cmd
+{
 	__be32 op_to_vfn;
 	__be32 alloc_to_len16;
 	__be32 eqid_pkd;
@@ -1699,7 +1769,8 @@ struct fw_eq_eth_cmd {
 #define FW_EQ_ETH_CMD_VIID_S	16
 #define FW_EQ_ETH_CMD_VIID_V(x)	((x) << FW_EQ_ETH_CMD_VIID_S)
 
-struct fw_eq_ctrl_cmd {
+struct fw_eq_ctrl_cmd
+{
 	__be32 op_to_vfn;
 	__be32 alloc_to_len16;
 	__be32 cmpliqid_eqid;
@@ -1806,7 +1877,8 @@ struct fw_eq_ctrl_cmd {
 #define FW_EQ_CTRL_CMD_EQSIZE_S		0
 #define FW_EQ_CTRL_CMD_EQSIZE_V(x)	((x) << FW_EQ_CTRL_CMD_EQSIZE_S)
 
-struct fw_eq_ofld_cmd {
+struct fw_eq_ofld_cmd
+{
 	__be32 op_to_vfn;
 	__be32 alloc_to_len16;
 	__be32 eqid_pkd;
@@ -1923,7 +1995,8 @@ struct fw_eq_ofld_cmd {
 #define FW_VIID_VIN_M		0x7F
 #define FW_VIID_VIN_G(x)	(((x) >> FW_VIID_VIN_S) & FW_VIID_VIN_M)
 
-struct fw_vi_cmd {
+struct fw_vi_cmd
+{
 	__be32 op_to_vfn;
 	__be32 alloc_to_len16;
 	__be16 type_viid;
@@ -1977,29 +2050,35 @@ struct fw_vi_cmd {
 #define FW_VI_MAC_MAC_BASED_FREE	0x3FD
 #define FW_CLS_TCAM_NUM_ENTRIES		336
 
-enum fw_vi_mac_smac {
+enum fw_vi_mac_smac
+{
 	FW_VI_MAC_MPS_TCAM_ENTRY,
 	FW_VI_MAC_MPS_TCAM_ONLY,
 	FW_VI_MAC_SMT_ONLY,
 	FW_VI_MAC_SMT_AND_MPSTCAM
 };
 
-enum fw_vi_mac_result {
+enum fw_vi_mac_result
+{
 	FW_VI_MAC_R_SUCCESS,
 	FW_VI_MAC_R_F_NONEXISTENT_NOMEM,
 	FW_VI_MAC_R_SMAC_FAIL,
 	FW_VI_MAC_R_F_ACL_CHECK
 };
 
-struct fw_vi_mac_cmd {
+struct fw_vi_mac_cmd
+{
 	__be32 op_to_viid;
 	__be32 freemacs_to_len16;
-	union fw_vi_mac {
-		struct fw_vi_mac_exact {
+	union fw_vi_mac
+	{
+		struct fw_vi_mac_exact
+		{
 			__be16 valid_to_idx;
 			u8 macaddr[6];
 		} exact[7];
-		struct fw_vi_mac_hash {
+		struct fw_vi_mac_hash
+		{
 			__be64 hashvec;
 		} hash;
 	} u;
@@ -2039,7 +2118,8 @@ struct fw_vi_mac_cmd {
 
 #define FW_RXMODE_MTU_NO_CHG	65535
 
-struct fw_vi_rxmode_cmd {
+struct fw_vi_rxmode_cmd
+{
 	__be32 op_to_viid;
 	__be32 retval_len16;
 	__be32 mtu_to_vlanexen;
@@ -2071,7 +2151,8 @@ struct fw_vi_rxmode_cmd {
 #define FW_VI_RXMODE_CMD_VLANEXEN_M	0x3
 #define FW_VI_RXMODE_CMD_VLANEXEN_V(x)	((x) << FW_VI_RXMODE_CMD_VLANEXEN_S)
 
-struct fw_vi_enable_cmd {
+struct fw_vi_enable_cmd
+{
 	__be32 op_to_viid;
 	__be32 ien_to_len16;
 	__be16 blinkdur;
@@ -2097,7 +2178,8 @@ struct fw_vi_enable_cmd {
 
 /* VI VF stats offset definitions */
 #define VI_VF_NUM_STATS	16
-enum fw_vi_stats_vf_index {
+enum fw_vi_stats_vf_index
+{
 	FW_VI_VF_STAT_TX_BCAST_BYTES_IX,
 	FW_VI_VF_STAT_TX_BCAST_FRAMES_IX,
 	FW_VI_VF_STAT_TX_MCAST_BYTES_IX,
@@ -2118,7 +2200,8 @@ enum fw_vi_stats_vf_index {
 
 /* VI PF stats offset definitions */
 #define VI_PF_NUM_STATS	17
-enum fw_vi_stats_pf_index {
+enum fw_vi_stats_pf_index
+{
 	FW_VI_PF_STAT_TX_BCAST_BYTES_IX,
 	FW_VI_PF_STAT_TX_BCAST_FRAMES_IX,
 	FW_VI_PF_STAT_TX_MCAST_BYTES_IX,
@@ -2138,11 +2221,14 @@ enum fw_vi_stats_pf_index {
 	FW_VI_PF_STAT_RX_ERR_FRAMES_IX
 };
 
-struct fw_vi_stats_cmd {
+struct fw_vi_stats_cmd
+{
 	__be32 op_to_viid;
 	__be32 retval_len16;
-	union fw_vi_stats {
-		struct fw_vi_stats_ctl {
+	union fw_vi_stats
+	{
+		struct fw_vi_stats_ctl
+		{
 			__be16 nstats_ix;
 			__be16 r6;
 			__be32 r7;
@@ -2153,7 +2239,8 @@ struct fw_vi_stats_cmd {
 			__be64 stat4;
 			__be64 stat5;
 		} ctl;
-		struct fw_vi_stats_pf {
+		struct fw_vi_stats_pf
+		{
 			__be64 tx_bcast_bytes;
 			__be64 tx_bcast_frames;
 			__be64 tx_mcast_bytes;
@@ -2172,7 +2259,8 @@ struct fw_vi_stats_cmd {
 			__be64 rx_ucast_frames;
 			__be64 rx_err_frames;
 		} pf;
-		struct fw_vi_stats_vf {
+		struct fw_vi_stats_vf
+		{
 			__be64 tx_bcast_bytes;
 			__be64 tx_bcast_frames;
 			__be64 tx_mcast_bytes;
@@ -2202,7 +2290,8 @@ struct fw_vi_stats_cmd {
 #define FW_VI_STATS_CMD_IX_S	0
 #define FW_VI_STATS_CMD_IX_V(x)	((x) << FW_VI_STATS_CMD_IX_S)
 
-struct fw_acl_mac_cmd {
+struct fw_acl_mac_cmd
+{
 	__be32 op_to_vfn;
 	__be32 en_to_len16;
 	u8 nmac;
@@ -2226,7 +2315,8 @@ struct fw_acl_mac_cmd {
 #define FW_ACL_MAC_CMD_EN_S	31
 #define FW_ACL_MAC_CMD_EN_V(x)	((x) << FW_ACL_MAC_CMD_EN_S)
 
-struct fw_acl_vlan_cmd {
+struct fw_acl_vlan_cmd
+{
 	__be32 op_to_vfn;
 	__be32 en_to_len16;
 	u8 nvlan;
@@ -2250,7 +2340,8 @@ struct fw_acl_vlan_cmd {
 #define FW_ACL_VLAN_CMD_FM_S	6
 #define FW_ACL_VLAN_CMD_FM_V(x)	((x) << FW_ACL_VLAN_CMD_FM_S)
 
-enum fw_port_cap {
+enum fw_port_cap
+{
 	FW_PORT_CAP_SPEED_100M		= 0x0001,
 	FW_PORT_CAP_SPEED_1G		= 0x0002,
 	FW_PORT_CAP_SPEED_25G		= 0x0004,
@@ -2275,7 +2366,8 @@ enum fw_port_cap {
 #define FW_PORT_CAP_SPEED_G(x) \
 	(((x) >> FW_PORT_CAP_SPEED_S) & FW_PORT_CAP_SPEED_M)
 
-enum fw_port_mdi {
+enum fw_port_mdi
+{
 	FW_PORT_CAP_MDI_UNCHANGED,
 	FW_PORT_CAP_MDI_AUTO,
 	FW_PORT_CAP_MDI_F_STRAIGHT,
@@ -2285,7 +2377,8 @@ enum fw_port_mdi {
 #define FW_PORT_CAP_MDI_S 9
 #define FW_PORT_CAP_MDI_V(x) ((x) << FW_PORT_CAP_MDI_S)
 
-enum fw_port_action {
+enum fw_port_action
+{
 	FW_PORT_ACTION_L1_CFG		= 0x0001,
 	FW_PORT_ACTION_L2_CFG		= 0x0002,
 	FW_PORT_ACTION_GET_PORT_INFO	= 0x0003,
@@ -2311,7 +2404,8 @@ enum fw_port_action {
 	FW_PORT_ACTION_AN_RESET		= 0x0045
 };
 
-enum fw_port_l2cfg_ctlbf {
+enum fw_port_l2cfg_ctlbf
+{
 	FW_PORT_L2_CTLBF_OVLAN0	= 0x01,
 	FW_PORT_L2_CTLBF_OVLAN1	= 0x02,
 	FW_PORT_L2_CTLBF_OVLAN2	= 0x04,
@@ -2320,7 +2414,8 @@ enum fw_port_l2cfg_ctlbf {
 	FW_PORT_L2_CTLBF_TXIPG	= 0x20
 };
 
-enum fw_port_dcb_versions {
+enum fw_port_dcb_versions
+{
 	FW_PORT_DCB_VER_UNKNOWN,
 	FW_PORT_DCB_VER_CEE1D0,
 	FW_PORT_DCB_VER_CEE1D01,
@@ -2328,18 +2423,21 @@ enum fw_port_dcb_versions {
 	FW_PORT_DCB_VER_AUTO = 7
 };
 
-enum fw_port_dcb_cfg {
+enum fw_port_dcb_cfg
+{
 	FW_PORT_DCB_CFG_PG	= 0x01,
 	FW_PORT_DCB_CFG_PFC	= 0x02,
 	FW_PORT_DCB_CFG_APPL	= 0x04
 };
 
-enum fw_port_dcb_cfg_rc {
+enum fw_port_dcb_cfg_rc
+{
 	FW_PORT_DCB_CFG_SUCCESS	= 0x0,
 	FW_PORT_DCB_CFG_ERROR	= 0x1
 };
 
-enum fw_port_dcb_type {
+enum fw_port_dcb_type
+{
 	FW_PORT_DCB_TYPE_PGID		= 0x00,
 	FW_PORT_DCB_TYPE_PGRATE		= 0x01,
 	FW_PORT_DCB_TYPE_PRIORATE	= 0x02,
@@ -2348,22 +2446,27 @@ enum fw_port_dcb_type {
 	FW_PORT_DCB_TYPE_CONTROL	= 0x05,
 };
 
-enum fw_port_dcb_feature_state {
+enum fw_port_dcb_feature_state
+{
 	FW_PORT_DCB_FEATURE_STATE_PENDING = 0x0,
 	FW_PORT_DCB_FEATURE_STATE_SUCCESS = 0x1,
 	FW_PORT_DCB_FEATURE_STATE_ERROR	= 0x2,
 	FW_PORT_DCB_FEATURE_STATE_TIMEOUT = 0x3,
 };
 
-struct fw_port_cmd {
+struct fw_port_cmd
+{
 	__be32 op_to_portid;
 	__be32 action_to_len16;
-	union fw_port {
-		struct fw_port_l1cfg {
+	union fw_port
+	{
+		struct fw_port_l1cfg
+		{
 			__be32 rcap;
 			__be32 r;
 		} l1cfg;
-		struct fw_port_l2cfg {
+		struct fw_port_l2cfg
+		{
 			__u8   ctlbf;
 			__u8   ovlan3_to_ivlan0;
 			__be16 ivlantype;
@@ -2378,7 +2481,8 @@ struct fw_port_cmd {
 			__be16 ovlan3mask;
 			__be16 ovlan3type;
 		} l2cfg;
-		struct fw_port_info {
+		struct fw_port_info
+		{
 			__be32 lstatus_to_modtype;
 			__be16 pcap;
 			__be16 acap;
@@ -2390,20 +2494,24 @@ struct fw_port_cmd {
 			__be16 lpacap;
 			__be64 r9;
 		} info;
-		struct fw_port_diags {
+		struct fw_port_diags
+		{
 			__u8   diagop;
 			__u8   r[3];
 			__be32 diagval;
 		} diags;
-		union fw_port_dcb {
-			struct fw_port_dcb_pgid {
+		union fw_port_dcb
+		{
+			struct fw_port_dcb_pgid
+			{
 				__u8   type;
 				__u8   apply_pkd;
 				__u8   r10_lo[2];
 				__be32 pgid;
 				__be64 r11;
 			} pgid;
-			struct fw_port_dcb_pgrate {
+			struct fw_port_dcb_pgrate
+			{
 				__u8   type;
 				__u8   apply_pkd;
 				__u8   r10_lo[5];
@@ -2411,20 +2519,23 @@ struct fw_port_cmd {
 				__u8   pgrate[8];
 				__u8   tsa[8];
 			} pgrate;
-			struct fw_port_dcb_priorate {
+			struct fw_port_dcb_priorate
+			{
 				__u8   type;
 				__u8   apply_pkd;
 				__u8   r10_lo[6];
 				__u8   strict_priorate[8];
 			} priorate;
-			struct fw_port_dcb_pfc {
+			struct fw_port_dcb_pfc
+			{
 				__u8   type;
 				__u8   pfcen;
 				__u8   r10[5];
 				__u8   max_pfc_tcs;
 				__be64 r11;
 			} pfc;
-			struct fw_port_app_priority {
+			struct fw_port_app_priority
+			{
 				__u8   type;
 				__u8   r10[2];
 				__u8   idx;
@@ -2433,7 +2544,8 @@ struct fw_port_cmd {
 				__be16 protocolid;
 				__be64 r12;
 			} app_priority;
-			struct fw_port_dcb_control {
+			struct fw_port_dcb_control
+			{
 				__u8   type;
 				__u8   all_syncd_pkd;
 				__be16 dcb_version_to_app_state;
@@ -2549,7 +2661,8 @@ struct fw_port_cmd {
 #define FW_PORT_CMD_DCB_VERSION_G(x)	\
 	(((x) >> FW_PORT_CMD_DCB_VERSION_S) & FW_PORT_CMD_DCB_VERSION_M)
 
-enum fw_port_type {
+enum fw_port_type
+{
 	FW_PORT_TYPE_FIBER_XFI,
 	FW_PORT_TYPE_FIBER_XAUI,
 	FW_PORT_TYPE_BT_SGMII,
@@ -2575,7 +2688,8 @@ enum fw_port_type {
 	FW_PORT_TYPE_NONE = FW_PORT_CMD_PTYPE_M
 };
 
-enum fw_port_module_type {
+enum fw_port_module_type
+{
 	FW_PORT_MOD_TYPE_NA,
 	FW_PORT_MOD_TYPE_LR,
 	FW_PORT_MOD_TYPE_SR,
@@ -2590,7 +2704,8 @@ enum fw_port_module_type {
 	FW_PORT_MOD_TYPE_NONE = FW_PORT_CMD_MODTYPE_M
 };
 
-enum fw_port_mod_sub_type {
+enum fw_port_mod_sub_type
+{
 	FW_PORT_MOD_SUB_TYPE_NA,
 	FW_PORT_MOD_SUB_TYPE_MV88E114X = 0x1,
 	FW_PORT_MOD_SUB_TYPE_TN8022 = 0x2,
@@ -2609,7 +2724,8 @@ enum fw_port_mod_sub_type {
 	FW_PORT_MOD_SUB_TYPE_TWINAX_7 = 0xC,
 };
 
-enum fw_port_stats_tx_index {
+enum fw_port_stats_tx_index
+{
 	FW_STAT_TX_PORT_BYTES_IX = 0,
 	FW_STAT_TX_PORT_FRAMES_IX,
 	FW_STAT_TX_PORT_BCAST_IX,
@@ -2636,7 +2752,8 @@ enum fw_port_stats_tx_index {
 	FW_NUM_PORT_TX_STATS
 };
 
-enum fw_port_stat_rx_index {
+enum fw_port_stat_rx_index
+{
 	FW_STAT_RX_PORT_BYTES_IX = 0,
 	FW_STAT_RX_PORT_FRAMES_IX,
 	FW_STAT_RX_PORT_BCAST_IX,
@@ -2671,11 +2788,14 @@ enum fw_port_stat_rx_index {
 /* port stats */
 #define FW_NUM_PORT_STATS (FW_NUM_PORT_TX_STATS + FW_NUM_PORT_RX_STATS)
 
-struct fw_port_stats_cmd {
+struct fw_port_stats_cmd
+{
 	__be32 op_to_portid;
 	__be32 retval_len16;
-	union fw_port_stats {
-		struct fw_port_stats_ctl {
+	union fw_port_stats
+	{
+		struct fw_port_stats_ctl
+		{
 			u8 nstats_bg_bm;
 			u8 tx_ix;
 			__be16 r6;
@@ -2687,7 +2807,8 @@ struct fw_port_stats_cmd {
 			__be64 stat4;
 			__be64 stat5;
 		} ctl;
-		struct fw_port_stats_all {
+		struct fw_port_stats_all
+		{
 			__be64 tx_bytes;
 			__be64 tx_frames;
 			__be64 tx_bcast;
@@ -2746,7 +2867,8 @@ struct fw_port_stats_cmd {
 
 /* port loopback stats */
 #define FW_NUM_LB_STATS 16
-enum fw_port_lb_stats_index {
+enum fw_port_lb_stats_index
+{
 	FW_STAT_LB_PORT_BYTES_IX,
 	FW_STAT_LB_PORT_FRAMES_IX,
 	FW_STAT_LB_PORT_BCAST_IX,
@@ -2763,11 +2885,14 @@ enum fw_port_lb_stats_index {
 	FW_STAT_LB_PORT_DROP_FRAMES_IX
 };
 
-struct fw_port_lb_stats_cmd {
+struct fw_port_lb_stats_cmd
+{
 	__be32 op_to_lbport;
 	__be32 retval_len16;
-	union fw_port_lb_stats {
-		struct fw_port_lb_stats_ctl {
+	union fw_port_lb_stats
+	{
+		struct fw_port_lb_stats_ctl
+		{
 			u8 nstats_bg_bm;
 			u8 ix_pkd;
 			__be16 r6;
@@ -2779,7 +2904,8 @@ struct fw_port_lb_stats_cmd {
 			__be64 stat4;
 			__be64 stat5;
 		} ctl;
-		struct fw_port_lb_stats_all {
+		struct fw_port_lb_stats_all
+		{
 			__be64 tx_bytes;
 			__be64 tx_frames;
 			__be64 tx_bcast;
@@ -2799,7 +2925,8 @@ struct fw_port_lb_stats_cmd {
 	} u;
 };
 
-struct fw_rss_ind_tbl_cmd {
+struct fw_rss_ind_tbl_cmd
+{
 	__be32 op_to_viid;
 	__be32 retval_len16;
 	__be16 niqid;
@@ -2831,17 +2958,21 @@ struct fw_rss_ind_tbl_cmd {
 #define FW_RSS_IND_TBL_CMD_IQ2_S	0
 #define FW_RSS_IND_TBL_CMD_IQ2_V(x)	((x) << FW_RSS_IND_TBL_CMD_IQ2_S)
 
-struct fw_rss_glb_config_cmd {
+struct fw_rss_glb_config_cmd
+{
 	__be32 op_to_write;
 	__be32 retval_len16;
-	union fw_rss_glb_config {
-		struct fw_rss_glb_config_manual {
+	union fw_rss_glb_config
+	{
+		struct fw_rss_glb_config_manual
+		{
 			__be32 mode_pkd;
 			__be32 r3;
 			__be64 r4;
 			__be64 r5;
 		} manual;
-		struct fw_rss_glb_config_basicvirtual {
+		struct fw_rss_glb_config_basicvirtual
+		{
 			__be32 mode_pkd;
 			__be32 synmapen_to_hashtoeplitz;
 			__be64 r8;
@@ -2913,17 +3044,21 @@ struct fw_rss_glb_config_cmd {
 #define FW_RSS_GLB_CONFIG_CMD_HASHTOEPLITZ_F	\
 	FW_RSS_GLB_CONFIG_CMD_HASHTOEPLITZ_V(1U)
 
-struct fw_rss_vi_config_cmd {
+struct fw_rss_vi_config_cmd
+{
 	__be32 op_to_viid;
 #define FW_RSS_VI_CONFIG_CMD_VIID(x) ((x) << 0)
 	__be32 retval_len16;
-	union fw_rss_vi_config {
-		struct fw_rss_vi_config_manual {
+	union fw_rss_vi_config
+	{
+		struct fw_rss_vi_config_manual
+		{
 			__be64 r3;
 			__be64 r4;
 			__be64 r5;
 		} manual;
-		struct fw_rss_vi_config_basicvirtual {
+		struct fw_rss_vi_config_basicvirtual
+		{
 			__be32 r6;
 			__be32 defaultq_to_udpen;
 			__be64 r9;
@@ -2971,15 +3106,19 @@ struct fw_rss_vi_config_cmd {
 #define FW_RSS_VI_CONFIG_CMD_UDPEN_V(x)	((x) << FW_RSS_VI_CONFIG_CMD_UDPEN_S)
 #define FW_RSS_VI_CONFIG_CMD_UDPEN_F	FW_RSS_VI_CONFIG_CMD_UDPEN_V(1U)
 
-enum fw_sched_sc {
+enum fw_sched_sc
+{
 	FW_SCHED_SC_PARAMS		= 1,
 };
 
-struct fw_sched_cmd {
+struct fw_sched_cmd
+{
 	__be32 op_to_write;
 	__be32 retval_len16;
-	union fw_sched {
-		struct fw_sched_config {
+	union fw_sched
+	{
+		struct fw_sched_config
+		{
 			__u8   sc;
 			__u8   type;
 			__u8   minmaxen;
@@ -2987,7 +3126,8 @@ struct fw_sched_cmd {
 			__u8   nclasses[4];
 			__be32 r4;
 		} config;
-		struct fw_sched_params {
+		struct fw_sched_params
+		{
 			__u8   sc;
 			__u8   type;
 			__u8   level;
@@ -3006,7 +3146,8 @@ struct fw_sched_cmd {
 	} u;
 };
 
-struct fw_clip_cmd {
+struct fw_clip_cmd
+{
 	__be32 op_to_write;
 	__be32 alloc_to_len16;
 	__be64 ip_hi;
@@ -3022,31 +3163,38 @@ struct fw_clip_cmd {
 #define FW_CLIP_CMD_FREE_V(x)   ((x) << FW_CLIP_CMD_FREE_S)
 #define FW_CLIP_CMD_FREE_F      FW_CLIP_CMD_FREE_V(1U)
 
-enum fw_error_type {
+enum fw_error_type
+{
 	FW_ERROR_TYPE_EXCEPTION		= 0x0,
 	FW_ERROR_TYPE_HWMODULE		= 0x1,
 	FW_ERROR_TYPE_WR		= 0x2,
 	FW_ERROR_TYPE_ACL		= 0x3,
 };
 
-struct fw_error_cmd {
+struct fw_error_cmd
+{
 	__be32 op_to_type;
 	__be32 len16_pkd;
-	union fw_error {
-		struct fw_error_exception {
+	union fw_error
+	{
+		struct fw_error_exception
+		{
 			__be32 info[6];
 		} exception;
-		struct fw_error_hwmodule {
+		struct fw_error_hwmodule
+		{
 			__be32 regaddr;
 			__be32 regval;
 		} hwmodule;
-		struct fw_error_wr {
+		struct fw_error_wr
+		{
 			__be16 cidx;
 			__be16 pfn_vfn;
 			__be32 eqid;
 			u8 wrhdr[16];
 		} wr;
-		struct fw_error_acl {
+		struct fw_error_acl
+		{
 			__be16 cidx;
 			__be16 pfn_vfn;
 			__be32 eqid;
@@ -3057,11 +3205,14 @@ struct fw_error_cmd {
 	} u;
 };
 
-struct fw_debug_cmd {
+struct fw_debug_cmd
+{
 	__be32 op_type;
 	__be32 len16_pkd;
-	union fw_debug {
-		struct fw_debug_assert {
+	union fw_debug
+	{
+		struct fw_debug_assert
+		{
 			__be32 fcid;
 			__be32 line;
 			__be32 x;
@@ -3070,7 +3221,8 @@ struct fw_debug_cmd {
 			u8 filename_8_15[8];
 			__be64 r3;
 		} assert;
-		struct fw_debug_prt {
+		struct fw_debug_prt
+		{
 			__be16 dprtstridx;
 			__be16 r3[3];
 			__be32 dprtstrparam0;
@@ -3111,7 +3263,8 @@ struct fw_debug_cmd {
 #define PCIE_FW_MASTER_V(x)	((x) << PCIE_FW_MASTER_S)
 #define PCIE_FW_MASTER_G(x)	(((x) >> PCIE_FW_MASTER_S) & PCIE_FW_MASTER_M)
 
-struct fw_hdr {
+struct fw_hdr
+{
 	u8 ver;
 	u8 chip;			/* terminator chip type */
 	__be16	len512;			/* bin length in units of 512-bytes */
@@ -3132,7 +3285,8 @@ struct fw_hdr {
 	__be32  reserved6[23];
 };
 
-enum fw_hdr_chip {
+enum fw_hdr_chip
+{
 	FW_HDR_CHIP_T4,
 	FW_HDR_CHIP_T5,
 	FW_HDR_CHIP_T6
@@ -3166,7 +3320,8 @@ enum fw_hdr_chip {
 #define FW_HDR_FW_VER_BUILD_G(x) \
 	(((x) >> FW_HDR_FW_VER_BUILD_S) & FW_HDR_FW_VER_BUILD_M)
 
-enum fw_hdr_intfver {
+enum fw_hdr_intfver
+{
 	FW_HDR_INTFVER_NIC      = 0x00,
 	FW_HDR_INTFVER_VNIC     = 0x00,
 	FW_HDR_INTFVER_OFLD     = 0x00,
@@ -3177,7 +3332,8 @@ enum fw_hdr_intfver {
 	FW_HDR_INTFVER_FCOE     = 0x00,
 };
 
-enum fw_hdr_flags {
+enum fw_hdr_flags
+{
 	FW_HDR_FLAGS_RESET_HALT = 0x00000001,
 };
 
@@ -3188,7 +3344,8 @@ enum fw_hdr_flags {
 #define FW_DEVLOG_FMT_PARAMS_NUM 8
 
 /* priority levels */
-enum fw_devlog_level {
+enum fw_devlog_level
+{
 	FW_DEVLOG_LEVEL_EMERG	= 0x0,
 	FW_DEVLOG_LEVEL_CRIT	= 0x1,
 	FW_DEVLOG_LEVEL_ERR	= 0x2,
@@ -3199,7 +3356,8 @@ enum fw_devlog_level {
 };
 
 /* facilities that may send a log message */
-enum fw_devlog_facility {
+enum fw_devlog_facility
+{
 	FW_DEVLOG_FACILITY_CORE		= 0x00,
 	FW_DEVLOG_FACILITY_CF		= 0x01,
 	FW_DEVLOG_FACILITY_SCHED	= 0x02,
@@ -3229,7 +3387,8 @@ enum fw_devlog_facility {
 };
 
 /* log message format */
-struct fw_devlog_e {
+struct fw_devlog_e
+{
 	__be64	timestamp;
 	__be32	seqno;
 	__be16	reserved1;
@@ -3240,7 +3399,8 @@ struct fw_devlog_e {
 	__be32	reserved3[4];
 };
 
-struct fw_devlog_cmd {
+struct fw_devlog_cmd
+{
 	__be32 op_to_write;
 	__be32 retval_len16;
 	__u8   level;
@@ -3296,7 +3456,8 @@ struct fw_devlog_cmd {
 
 #define MAX_IMM_OFLD_TX_DATA_WR_LEN (0xff + sizeof(struct fw_ofld_tx_data_wr))
 
-struct fw_crypto_lookaside_wr {
+struct fw_crypto_lookaside_wr
+{
 	__be32 op_to_cctx_size;
 	__be32 len16_pkd;
 	__be32 session_id;

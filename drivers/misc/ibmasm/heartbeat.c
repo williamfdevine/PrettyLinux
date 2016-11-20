@@ -58,15 +58,18 @@ void ibmasm_register_panic_notifier(void)
 void ibmasm_unregister_panic_notifier(void)
 {
 	atomic_notifier_chain_unregister(&panic_notifier_list,
-			&panic_notifier);
+									 &panic_notifier);
 }
 
 
 int ibmasm_heartbeat_init(struct service_processor *sp)
 {
 	sp->heartbeat = ibmasm_new_command(sp, HEARTBEAT_BUFFER_SIZE);
+
 	if (sp->heartbeat == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -89,8 +92,11 @@ void ibmasm_receive_heartbeat(struct service_processor *sp,  void *message, size
 	char tsbuf[32];
 
 	dbg("%s:%d at %s\n", __func__, __LINE__, get_timestamp(tsbuf));
+
 	if (suspend_heartbeats)
+	{
 		return;
+	}
 
 	/* return the received dot command to sender */
 	cmd->status = IBMASM_CMD_PENDING;

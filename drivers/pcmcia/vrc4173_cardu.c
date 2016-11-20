@@ -49,8 +49,8 @@ static int vrc4173_cardu_slots;
 static vrc4173_socket_t cardu_sockets[CARDU_MAX_SOCKETS];
 
 extern struct socket_info_t *pcmcia_register_socket (int slot,
-                                                     struct pccard_operations *vtable,
-                                                     int use_bus_pm);
+		struct pccard_operations *vtable,
+		int use_bus_pm);
 extern void pcmcia_unregister_socket(struct socket_info_t *s);
 
 static inline uint8_t exca_readb(vrc4173_socket_t *socket, uint16_t offset)
@@ -105,13 +105,13 @@ static void cardu_pciregs_init(struct pci_dev *dev)
 	pci_write_config_word(dev, BRGCNT, brgcnt);
 
 	pci_read_config_dword(dev, SYSCNT, &syscnt);
-	syscnt &= ~(BAD_VCC_REQ_DISB|PCPCI_EN|CH_ASSIGN_MASK|SUB_ID_WR_EN|PCI_CLK_RIN);
-	syscnt |= (CH_ASSIGN_NODMA|ASYN_INT_MODE);
+	syscnt &= ~(BAD_VCC_REQ_DISB | PCPCI_EN | CH_ASSIGN_MASK | SUB_ID_WR_EN | PCI_CLK_RIN);
+	syscnt |= (CH_ASSIGN_NODMA | ASYN_INT_MODE);
 	pci_write_config_dword(dev, SYSCNT, syscnt);
 
 	pci_read_config_byte(dev, DEVCNT, &devcnt);
-	devcnt &= ~(ZOOM_VIDEO_EN|SR_PCI_INT_SEL_MASK|PCI_INT_MODE|IRQ_MODE);
-	devcnt |= (SR_PCI_INT_SEL_NONE|IFG);
+	devcnt &= ~(ZOOM_VIDEO_EN | SR_PCI_INT_SEL_MASK | PCI_INT_MODE | IRQ_MODE);
+	devcnt |= (SR_PCI_INT_SEL_NONE | IFG);
 	pci_write_config_byte(dev, DEVCNT, devcnt);
 
 	pci_write_config_byte(dev, CHIPCNT, S_PREF_DISB);
@@ -136,14 +136,14 @@ static int cardu_init(unsigned int slot)
 	spin_lock_init(socket->event_lock);
 
 	/* Enable PC Card status interrupts */
-	exca_writeb(socket, CARD_SCI, CARD_DT_EN|RDY_EN|BAT_WAR_EN|BAT_DEAD_EN);
+	exca_writeb(socket, CARD_SCI, CARD_DT_EN | RDY_EN | BAT_WAR_EN | BAT_DEAD_EN);
 
 	return 0;
 }
 
 static int cardu_register_callback(unsigned int sock,
-                                           void (*handler)(void *, unsigned int),
-                                           void * info)
+								   void (*handler)(void *, unsigned int),
+								   void *info)
 {
 	vrc4173_socket_t *socket = &cardu_sockets[sock];
 
@@ -170,28 +170,46 @@ static int cardu_get_status(unsigned int sock, u_int *value)
 	u_int val = 0;
 
 	status = exca_readb(socket, IF_STATUS);
-	if (status & CARD_PWR) val |= SS_POWERON;
-	if (status & READY) val |= SS_READY;
-	if (status & CARD_WP) val |= SS_WRPROT;
-	if ((status & (CARD_DETECT1|CARD_DETECT2)) == (CARD_DETECT1|CARD_DETECT2))
+
+	if (status & CARD_PWR) { val |= SS_POWERON; }
+
+	if (status & READY) { val |= SS_READY; }
+
+	if (status & CARD_WP) { val |= SS_WRPROT; }
+
+	if ((status & (CARD_DETECT1 | CARD_DETECT2)) == (CARD_DETECT1 | CARD_DETECT2))
+	{
 		val |= SS_DETECT;
-	if (exca_readb(socket, INT_GEN_CNT) & CARD_TYPE_IO) {
-		if (status & STSCHG) val |= SS_STSCHG;
-	} else {
+	}
+
+	if (exca_readb(socket, INT_GEN_CNT) & CARD_TYPE_IO)
+	{
+		if (status & STSCHG) { val |= SS_STSCHG; }
+	}
+	else
+	{
 		status &= BV_DETECT_MASK;
-		if (status != BV_DETECT_GOOD) {
-			if (status == BV_DETECT_WARN) val |= SS_BATWARN;
-			else val |= SS_BATDEAD;
+
+		if (status != BV_DETECT_GOOD)
+		{
+			if (status == BV_DETECT_WARN) { val |= SS_BATWARN; }
+			else { val |= SS_BATDEAD; }
 		}
 	}
 
 	state = cardbus_socket_readl(socket, SKT_PRE_STATE);
-	if (state & VOL_3V_CARD_DT) val |= SS_3VCARD;
-	if (state & VOL_XV_CARD_DT) val |= SS_XVCARD;
-	if (state & CB_CARD_DT) val |= SS_CARDBUS;
+
+	if (state & VOL_3V_CARD_DT) { val |= SS_3VCARD; }
+
+	if (state & VOL_XV_CARD_DT) { val |= SS_XVCARD; }
+
+	if (state & CB_CARD_DT) { val |= SS_CARDBUS; }
+
 	if (!(state &
-	      (VOL_YV_CARD_DT|VOL_XV_CARD_DT|VOL_3V_CARD_DT|VOL_5V_CARD_DT|CCD20|CCD10)))
+		  (VOL_YV_CARD_DT | VOL_XV_CARD_DT | VOL_3V_CARD_DT | VOL_5V_CARD_DT | CCD20 | CCD10)))
+	{
 		val |= SS_PENDING;
+	}
 
 	*value = val;
 
@@ -200,11 +218,13 @@ static int cardu_get_status(unsigned int sock, u_int *value)
 
 static inline uint8_t set_Vcc_value(u_char Vcc)
 {
-	switch (Vcc) {
-	case 33:
-		return VCC_3V;
-	case 50:
-		return VCC_5V;
+	switch (Vcc)
+	{
+		case 33:
+			return VCC_3V;
+
+		case 50:
+			return VCC_5V;
 	}
 
 	return VCC_0V;
@@ -212,12 +232,14 @@ static inline uint8_t set_Vcc_value(u_char Vcc)
 
 static inline uint8_t set_Vpp_value(u_char Vpp)
 {
-	switch (Vpp) {
-	case 33:
-	case 50:
-		return VPP_VCC;
-	case 120:
-		return VPP_12V;
+	switch (Vpp)
+	{
+		case 33:
+		case 50:
+			return VPP_VCC;
+
+		case 120:
+			return VPP_12V;
 	}
 
 	return VPP_0V;
@@ -229,17 +251,24 @@ static int cardu_set_socket(unsigned int sock, socket_state_t *state)
 	uint8_t val;
 
 	if (((state->Vpp == 33) || (state->Vpp == 50)) && (state->Vpp != state->Vcc))
-			return -EINVAL;
+	{
+		return -EINVAL;
+	}
 
 	val = set_Vcc_value(state->Vcc);
 	val |= set_Vpp_value(state->Vpp);
-	if (state->flags & SS_OUTPUT_ENA) val |= CARD_OUT_EN;
+
+	if (state->flags & SS_OUTPUT_ENA) { val |= CARD_OUT_EN; }
+
 	exca_writeb(socket, PWR_CNT, val);
 
 	val = exca_readb(socket, INT_GEN_CNT) & CARD_REST0;
-	if (state->flags & SS_RESET) val &= ~CARD_REST0;
-	else val |= CARD_REST0;
-	if (state->flags & SS_IOCARD) val |= CARD_TYPE_IO;
+
+	if (state->flags & SS_RESET) { val &= ~CARD_REST0; }
+	else { val |= CARD_REST0; }
+
+	if (state->flags & SS_IOCARD) { val |= CARD_TYPE_IO; }
+
 	exca_writeb(socket, INT_GEN_CNT, val);
 
 	return 0;
@@ -252,8 +281,11 @@ static int cardu_get_io_map(unsigned int sock, struct pccard_io_map *io)
 	u_char map;
 
 	map = io->map;
+
 	if (map > 1)
+	{
 		return -EINVAL;
+	}
 
 	io->start = exca_readw(socket, IO_WIN_SA(map));
 	io->stop = exca_readw(socket, IO_WIN_EA(map));
@@ -261,10 +293,15 @@ static int cardu_get_io_map(unsigned int sock, struct pccard_io_map *io)
 	ioctl = exca_readb(socket, IO_WIN_CNT);
 	window = exca_readb(socket, ADR_WIN_EN);
 	io->flags  = (window & IO_WIN_EN(map)) ? MAP_ACTIVE : 0;
+
 	if (ioctl & IO_WIN_DATA_AUTOSZ(map))
+	{
 		io->flags |= MAP_AUTOSZ;
+	}
 	else if (ioctl & IO_WIN_DATA_16BIT(map))
+	{
 		io->flags |= MAP_16BIT;
+	}
 
 	return 0;
 }
@@ -277,13 +314,17 @@ static int cardu_set_io_map(unsigned int sock, struct pccard_io_map *io)
 	u_char map;
 
 	map = io->map;
+
 	if (map > 1)
+	{
 		return -EINVAL;
+	}
 
 	window = exca_readb(socket, ADR_WIN_EN);
 	enable = IO_WIN_EN(map);
 
-	if (window & enable) {
+	if (window & enable)
+	{
 		window &= ~enable;
 		exca_writeb(socket, ADR_WIN_EN, window);
 	}
@@ -292,12 +333,16 @@ static int cardu_set_io_map(unsigned int sock, struct pccard_io_map *io)
 	exca_writew(socket, IO_WIN_EA(map), io->stop);
 
 	ioctl = exca_readb(socket, IO_WIN_CNT) & ~IO_WIN_CNT_MASK(map);
-	if (io->flags & MAP_AUTOSZ) ioctl |= IO_WIN_DATA_AUTOSZ(map);
-	else if (io->flags & MAP_16BIT) ioctl |= IO_WIN_DATA_16BIT(map);
+
+	if (io->flags & MAP_AUTOSZ) { ioctl |= IO_WIN_DATA_AUTOSZ(map); }
+	else if (io->flags & MAP_16BIT) { ioctl |= IO_WIN_DATA_16BIT(map); }
+
 	exca_writeb(socket, IO_WIN_CNT, ioctl);
 
 	if (io->flags & MAP_ACTIVE)
+	{
 		exca_writeb(socket, ADR_WIN_EN, window | enable);
+	}
 
 	return 0;
 }
@@ -310,8 +355,11 @@ static int cardu_get_mem_map(unsigned int sock, struct pccard_mem_map *mem)
 	u_char map;
 
 	map = mem->map;
+
 	if (map > 4)
+	{
 		return -EINVAL;
+	}
 
 	window = exca_readb(socket, ADR_WIN_EN);
 	mem->flags = (window & MEM_WIN_EN(map)) ? MAP_ACTIVE : 0;
@@ -350,12 +398,16 @@ static int cardu_set_mem_map(unsigned int sock, struct pccard_mem_map *mem)
 	card_start = mem->card_start;
 
 	if (map > 4 || sys_start > sys_stop || ((sys_start ^ sys_stop) >> 24) ||
-	    (card_start >> 26))
+		(card_start >> 26))
+	{
 		return -EINVAL;
+	}
 
 	window = exca_readb(socket, ADR_WIN_EN);
 	enable = MEM_WIN_EN(map);
-	if (window & enable) {
+
+	if (window & enable)
+	{
 		window &= ~enable;
 		exca_writeb(socket, ADR_WIN_EN, window);
 	}
@@ -363,19 +415,26 @@ static int cardu_set_mem_map(unsigned int sock, struct pccard_mem_map *mem)
 	exca_writeb(socket, MEM_WIN_SAU(map), sys_start >> 24);
 
 	value = (sys_start >> 12) & 0x0fff;
-	if (mem->flags & MAP_16BIT) value |= MEM_WIN_DSIZE;
+
+	if (mem->flags & MAP_16BIT) { value |= MEM_WIN_DSIZE; }
+
 	exca_writew(socket, MEM_WIN_SA(map), value);
 
 	value = (sys_stop >> 12) & 0x0fff;
 	exca_writew(socket, MEM_WIN_EA(map), value);
 
 	value = ((card_start - sys_start) >> 12) & 0x3fff;
-	if (mem->flags & MAP_WRPROT) value |= MEM_WIN_WP;
-	if (mem->flags & MAP_ATTRIB) value |= MEM_WIN_REGSET;
+
+	if (mem->flags & MAP_WRPROT) { value |= MEM_WIN_WP; }
+
+	if (mem->flags & MAP_ATTRIB) { value |= MEM_WIN_REGSET; }
+
 	exca_writew(socket, MEM_WIN_OA(map), value);
 
 	if (mem->flags & MAP_ACTIVE)
+	{
 		exca_writeb(socket, ADR_WIN_EN, window | enable);
+	}
 
 	return 0;
 }
@@ -384,7 +443,8 @@ static void cardu_proc_setup(unsigned int sock, struct proc_dir_entry *base)
 {
 }
 
-static struct pccard_operations cardu_operations = {
+static struct pccard_operations cardu_operations =
+{
 	.init			= cardu_init,
 	.register_callback	= cardu_register_callback,
 	.inquire_socket		= cardu_inquire_socket,
@@ -408,7 +468,9 @@ static void cardu_bh(void *data)
 	spin_unlock_irq(&socket->event_lock);
 
 	if (socket->handler)
+	{
 		socket->handler(socket->info, events);
+	}
 }
 
 static uint16_t get_events(vrc4173_socket_t *socket)
@@ -418,21 +480,33 @@ static uint16_t get_events(vrc4173_socket_t *socket)
 
 	status = exca_readb(socket, IF_STATUS);
 	csc = exca_readb(socket, CARD_SC);
+
 	if ((csc & CARD_DT_CHG) &&
-	    ((status & (CARD_DETECT1|CARD_DETECT2)) == (CARD_DETECT1|CARD_DETECT2)))
+		((status & (CARD_DETECT1 | CARD_DETECT2)) == (CARD_DETECT1 | CARD_DETECT2)))
+	{
 		events |= SS_DETECT;
+	}
 
 	if ((csc & RDY_CHG) && (status & READY))
+	{
 		events |= SS_READY;
+	}
 
-	if (exca_readb(socket, INT_GEN_CNT) & CARD_TYPE_IO) {
+	if (exca_readb(socket, INT_GEN_CNT) & CARD_TYPE_IO)
+	{
 		if ((csc & BAT_DEAD_ST_CHG) && (status & STSCHG))
+		{
 			events |= SS_STSCHG;
-	} else {
-		if (csc & (BAT_WAR_CHG|BAT_DEAD_ST_CHG)) {
-			if ((status & BV_DETECT_MASK) != BV_DETECT_GOOD) {
-				if (status == BV_DETECT_WARN) events |= SS_BATWARN;
-				else events |= SS_BATDEAD;
+		}
+	}
+	else
+	{
+		if (csc & (BAT_WAR_CHG | BAT_DEAD_ST_CHG))
+		{
+			if ((status & BV_DETECT_MASK) != BV_DETECT_GOOD)
+			{
+				if (status == BV_DETECT_WARN) { events |= SS_BATWARN; }
+				else { events |= SS_BATDEAD; }
 			}
 		}
 	}
@@ -448,7 +522,9 @@ static void cardu_interrupt(int irq, void *dev_id)
 	INIT_WORK(&socket->tq_work, cardu_bh, socket);
 
 	events = get_events(socket);
-	if (events) {
+
+	if (events)
+	{
 		spin_lock(&socket->event_lock);
 		socket->events |= events;
 		spin_unlock(&socket->event_lock);
@@ -457,7 +533,7 @@ static void cardu_interrupt(int irq, void *dev_id)
 }
 
 static int vrc4173_cardu_probe(struct pci_dev *dev,
-                                         const struct pci_device_id *ent)
+							   const struct pci_device_id *ent)
 {
 	vrc4173_socket_t *socket;
 	unsigned long start, len, flags;
@@ -465,40 +541,55 @@ static int vrc4173_cardu_probe(struct pci_dev *dev,
 
 	slot = vrc4173_cardu_slots++;
 	socket = &cardu_sockets[slot];
-	if (socket->noprobe != 0)
-		return -EBUSY;
 
-	sprintf(socket->name, "NEC VRC4173 CARDU%1d", slot+1);
+	if (socket->noprobe != 0)
+	{
+		return -EBUSY;
+	}
+
+	sprintf(socket->name, "NEC VRC4173 CARDU%1d", slot + 1);
 
 	if ((err = pci_enable_device(dev)) < 0)
+	{
 		return err;
+	}
 
 	start = pci_resource_start(dev, 0);
-	if (start == 0) {
+
+	if (start == 0)
+	{
 		ret = -ENODEV;
 		goto disable;
 	}
 
 	len = pci_resource_len(dev, 0);
-	if (len == 0) {
+
+	if (len == 0)
+	{
 		ret = -ENODEV;
 		goto disable;
 	}
 
 	flags = pci_resource_flags(dev, 0);
-	if ((flags & IORESOURCE_MEM) == 0) {
+
+	if ((flags & IORESOURCE_MEM) == 0)
+	{
 		ret = -EBUSY;
 		goto disable;
 	}
 
 	err = pci_request_regions(dev, socket->name);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		ret = err;
 		goto disable;
 	}
 
 	socket->base = ioremap(start, len);
-	if (socket->base == NULL) {
+
+	if (socket->base == NULL)
+	{
 		ret = -ENODEV;
 		goto release;
 	}
@@ -506,12 +597,15 @@ static int vrc4173_cardu_probe(struct pci_dev *dev,
 	socket->dev = dev;
 
 	socket->pcmcia_socket = pcmcia_register_socket(slot, &cardu_operations, 1);
-	if (socket->pcmcia_socket == NULL) {
+
+	if (socket->pcmcia_socket == NULL)
+	{
 		ret =  -ENOMEM;
 		goto unmap;
 	}
 
-	if (request_irq(dev->irq, cardu_interrupt, IRQF_SHARED, socket->name, socket) < 0) {
+	if (request_irq(dev->irq, cardu_interrupt, IRQF_SHARED, socket->name, socket) < 0)
+	{
 		ret = -EBUSY;
 		goto unregister;
 	}
@@ -536,26 +630,41 @@ disable:
 static int vrc4173_cardu_setup(char *options)
 {
 	if (options == NULL || *options == '\0')
+	{
 		return 1;
+	}
 
-	if (strncmp(options, "cardu1:", 7) == 0) {
+	if (strncmp(options, "cardu1:", 7) == 0)
+	{
 		options += 7;
-		if (*options != '\0') {
-			if (strncmp(options, "noprobe", 7) == 0) {
+
+		if (*options != '\0')
+		{
+			if (strncmp(options, "noprobe", 7) == 0)
+			{
 				cardu_sockets[CARDU1].noprobe = 1;
 				options += 7;
 			}
 
 			if (*options != ',')
+			{
 				return 1;
-		} else
+			}
+		}
+		else
+		{
 			return 1;
+		}
 	}
 
-	if (strncmp(options, "cardu2:", 7) == 0) {
+	if (strncmp(options, "cardu2:", 7) == 0)
+	{
 		options += 7;
+
 		if ((*options != '\0') && (strncmp(options, "noprobe", 7) == 0))
+		{
 			cardu_sockets[CARDU2].noprobe = 1;
+		}
 	}
 
 	return 1;
@@ -563,12 +672,14 @@ static int vrc4173_cardu_setup(char *options)
 
 __setup("vrc4173_cardu=", vrc4173_cardu_setup);
 
-static const struct pci_device_id vrc4173_cardu_id_table[] = {
+static const struct pci_device_id vrc4173_cardu_id_table[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_NEC, PCI_DEVICE_ID_NEC_NAPCCARD) },
-        {0, }
+	{0, }
 };
 
-static struct pci_driver vrc4173_cardu_driver = {
+static struct pci_driver vrc4173_cardu_driver =
+{
 	.name		= "NEC VRC4173 CARDU",
 	.probe		= vrc4173_cardu_probe,
 	.id_table	= vrc4173_cardu_id_table,

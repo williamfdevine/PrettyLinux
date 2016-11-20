@@ -66,7 +66,8 @@
 #define GPIO_DRV_STRENGTH_BITS       3
 #define GPIO_DRV_STRENGTH_BIT_MASK   ((1 << GPIO_DRV_STRENGTH_BITS) - 1)
 
-enum iproc_pinconf_param {
+enum iproc_pinconf_param
+{
 	IPROC_PINCONF_DRIVE_STRENGTH = 0,
 	IPROC_PINCONF_BIAS_DISABLE,
 	IPROC_PINCONF_BIAS_PULL_UP,
@@ -93,7 +94,8 @@ enum iproc_pinconf_param {
  * @pctl: pointer to pinctrl_dev
  * @pctldesc: pinctrl descriptor
  */
-struct iproc_gpio {
+struct iproc_gpio
+{
 	struct device *dev;
 
 	void __iomem *base;
@@ -131,22 +133,28 @@ static inline unsigned iproc_pin_to_gpio(unsigned pin)
  *  @set: set or clear
  */
 static inline void iproc_set_bit(struct iproc_gpio *chip, unsigned int reg,
-				  unsigned gpio, bool set)
+								 unsigned gpio, bool set)
 {
 	unsigned int offset = IPROC_GPIO_REG(gpio, reg);
 	unsigned int shift = IPROC_GPIO_SHIFT(gpio);
 	u32 val;
 
 	val = readl(chip->base + offset);
+
 	if (set)
+	{
 		val |= BIT(shift);
+	}
 	else
+	{
 		val &= ~BIT(shift);
+	}
+
 	writel(val, chip->base + offset);
 }
 
 static inline bool iproc_get_bit(struct iproc_gpio *chip, unsigned int reg,
-				  unsigned gpio)
+								 unsigned gpio)
 {
 	unsigned int offset = IPROC_GPIO_REG(gpio, reg);
 	unsigned int shift = IPROC_GPIO_SHIFT(gpio);
@@ -164,11 +172,13 @@ static void iproc_gpio_irq_handler(struct irq_desc *desc)
 	chained_irq_enter(irq_chip, desc);
 
 	/* go through the entire GPIO banks and handle all interrupts */
-	for (i = 0; i < chip->num_banks; i++) {
+	for (i = 0; i < chip->num_banks; i++)
+	{
 		unsigned long val = readl(chip->base + (i * GPIO_BANK_SIZE) +
-					  IPROC_GPIO_INT_MSTAT_OFFSET);
+								  IPROC_GPIO_INT_MSTAT_OFFSET);
 
-		for_each_set_bit(bit, &val, NGPIOS_PER_BANK) {
+		for_each_set_bit(bit, &val, NGPIOS_PER_BANK)
+		{
 			unsigned pin = NGPIOS_PER_BANK * i + bit;
 			int child_irq = irq_find_mapping(gc->irqdomain, pin);
 
@@ -177,7 +187,7 @@ static void iproc_gpio_irq_handler(struct irq_desc *desc)
 			 * handler, so we do not leave any window
 			 */
 			writel(BIT(bit), chip->base + (i * GPIO_BANK_SIZE) +
-			       IPROC_GPIO_INT_CLR_OFFSET);
+				   IPROC_GPIO_INT_CLR_OFFSET);
 
 			generic_handle_irq(child_irq);
 		}
@@ -193,7 +203,7 @@ static void iproc_gpio_irq_ack(struct irq_data *d)
 	struct iproc_gpio *chip = gpiochip_get_data(gc);
 	unsigned gpio = d->hwirq;
 	unsigned int offset = IPROC_GPIO_REG(gpio,
-			IPROC_GPIO_INT_CLR_OFFSET);
+										 IPROC_GPIO_INT_CLR_OFFSET);
 	unsigned int shift = IPROC_GPIO_SHIFT(gpio);
 	u32 val = BIT(shift);
 
@@ -247,49 +257,51 @@ static int iproc_gpio_irq_set_type(struct irq_data *d, unsigned int type)
 	bool rising_or_high = false;
 	unsigned long flags;
 
-	switch (type & IRQ_TYPE_SENSE_MASK) {
-	case IRQ_TYPE_EDGE_RISING:
-		rising_or_high = true;
-		break;
+	switch (type & IRQ_TYPE_SENSE_MASK)
+	{
+		case IRQ_TYPE_EDGE_RISING:
+			rising_or_high = true;
+			break;
 
-	case IRQ_TYPE_EDGE_FALLING:
-		break;
+		case IRQ_TYPE_EDGE_FALLING:
+			break;
 
-	case IRQ_TYPE_EDGE_BOTH:
-		dual_edge = true;
-		break;
+		case IRQ_TYPE_EDGE_BOTH:
+			dual_edge = true;
+			break;
 
-	case IRQ_TYPE_LEVEL_HIGH:
-		level_triggered = true;
-		rising_or_high = true;
-		break;
+		case IRQ_TYPE_LEVEL_HIGH:
+			level_triggered = true;
+			rising_or_high = true;
+			break;
 
-	case IRQ_TYPE_LEVEL_LOW:
-		level_triggered = true;
-		break;
+		case IRQ_TYPE_LEVEL_LOW:
+			level_triggered = true;
+			break;
 
-	default:
-		dev_err(chip->dev, "invalid GPIO IRQ type 0x%x\n",
-			type);
-		return -EINVAL;
+		default:
+			dev_err(chip->dev, "invalid GPIO IRQ type 0x%x\n",
+					type);
+			return -EINVAL;
 	}
 
 	spin_lock_irqsave(&chip->lock, flags);
 	iproc_set_bit(chip, IPROC_GPIO_INT_TYPE_OFFSET, gpio,
-		       level_triggered);
+				  level_triggered);
 	iproc_set_bit(chip, IPROC_GPIO_INT_DE_OFFSET, gpio, dual_edge);
 	iproc_set_bit(chip, IPROC_GPIO_INT_EDGE_OFFSET, gpio,
-		       rising_or_high);
+				  rising_or_high);
 	spin_unlock_irqrestore(&chip->lock, flags);
 
 	dev_dbg(chip->dev,
-		"gpio:%u level_triggered:%d dual_edge:%d rising_or_high:%d\n",
-		gpio, level_triggered, dual_edge, rising_or_high);
+			"gpio:%u level_triggered:%d dual_edge:%d rising_or_high:%d\n",
+			gpio, level_triggered, dual_edge, rising_or_high);
 
 	return 0;
 }
 
-static struct irq_chip iproc_gpio_irq_chip = {
+static struct irq_chip iproc_gpio_irq_chip =
+{
 	.name = "bcm-iproc-gpio",
 	.irq_ack = iproc_gpio_irq_ack,
 	.irq_mask = iproc_gpio_irq_mask,
@@ -307,7 +319,9 @@ static int iproc_gpio_request(struct gpio_chip *gc, unsigned offset)
 
 	/* not all Iproc GPIO pins can be muxed individually */
 	if (!chip->pinmux_is_supported)
+	{
 		return 0;
+	}
 
 	return pinctrl_request_gpio(gpio);
 }
@@ -318,7 +332,9 @@ static void iproc_gpio_free(struct gpio_chip *gc, unsigned offset)
 	unsigned gpio = gc->base + offset;
 
 	if (!chip->pinmux_is_supported)
+	{
 		return;
+	}
 
 	pinctrl_free_gpio(gpio);
 }
@@ -338,7 +354,7 @@ static int iproc_gpio_direction_input(struct gpio_chip *gc, unsigned gpio)
 }
 
 static int iproc_gpio_direction_output(struct gpio_chip *gc, unsigned gpio,
-					int val)
+									   int val)
 {
 	struct iproc_gpio *chip = gpiochip_get_data(gc);
 	unsigned long flags;
@@ -369,7 +385,7 @@ static int iproc_gpio_get(struct gpio_chip *gc, unsigned gpio)
 {
 	struct iproc_gpio *chip = gpiochip_get_data(gc);
 	unsigned int offset = IPROC_GPIO_REG(gpio,
-					      IPROC_GPIO_DATA_IN_OFFSET);
+										 IPROC_GPIO_DATA_IN_OFFSET);
 	unsigned int shift = IPROC_GPIO_SHIFT(gpio);
 
 	return !!(readl(chip->base + offset) & BIT(shift));
@@ -379,7 +395,8 @@ static int iproc_gpio_get(struct gpio_chip *gc, unsigned gpio)
  * Mapping of the iProc PINCONF parameters to the generic pin configuration
  * parameters
  */
-static const enum pin_config_param iproc_pinconf_disable_map[] = {
+static const enum pin_config_param iproc_pinconf_disable_map[] =
+{
 	[IPROC_PINCONF_DRIVE_STRENGTH] = PIN_CONFIG_DRIVE_STRENGTH,
 	[IPROC_PINCONF_BIAS_DISABLE] = PIN_CONFIG_BIAS_DISABLE,
 	[IPROC_PINCONF_BIAS_PULL_UP] = PIN_CONFIG_BIAS_PULL_UP,
@@ -387,49 +404,58 @@ static const enum pin_config_param iproc_pinconf_disable_map[] = {
 };
 
 static bool iproc_pinconf_param_is_disabled(struct iproc_gpio *chip,
-					    enum pin_config_param param)
+		enum pin_config_param param)
 {
 	unsigned int i;
 
 	if (!chip->nr_pinconf_disable)
+	{
 		return false;
+	}
 
 	for (i = 0; i < chip->nr_pinconf_disable; i++)
 		if (chip->pinconf_disable[i] == param)
+		{
 			return true;
+		}
 
 	return false;
 }
 
 static int iproc_pinconf_disable_map_create(struct iproc_gpio *chip,
-					    unsigned long disable_mask)
+		unsigned long disable_mask)
 {
 	unsigned int map_size = ARRAY_SIZE(iproc_pinconf_disable_map);
 	unsigned int bit, nbits = 0;
 
 	/* figure out total number of PINCONF parameters to disable */
 	for_each_set_bit(bit, &disable_mask, map_size)
-		nbits++;
+	nbits++;
 
 	if (!nbits)
+	{
 		return 0;
+	}
 
 	/*
 	 * Allocate an array to store PINCONF parameters that need to be
 	 * disabled
 	 */
 	chip->pinconf_disable = devm_kcalloc(chip->dev, nbits,
-					     sizeof(*chip->pinconf_disable),
-					     GFP_KERNEL);
+										 sizeof(*chip->pinconf_disable),
+										 GFP_KERNEL);
+
 	if (!chip->pinconf_disable)
+	{
 		return -ENOMEM;
+	}
 
 	chip->nr_pinconf_disable = nbits;
 
 	/* now store these parameters */
 	nbits = 0;
 	for_each_set_bit(bit, &disable_mask, map_size)
-		chip->pinconf_disable[nbits++] = iproc_pinconf_disable_map[bit];
+	chip->pinconf_disable[nbits++] = iproc_pinconf_disable_map[bit];
 
 	return 0;
 }
@@ -444,12 +470,13 @@ static int iproc_get_groups_count(struct pinctrl_dev *pctldev)
  * GPIO specific PINCONF configurations
  */
 static const char *iproc_get_group_name(struct pinctrl_dev *pctldev,
-					 unsigned selector)
+										unsigned selector)
 {
 	return "gpio_grp";
 }
 
-static const struct pinctrl_ops iproc_pctrl_ops = {
+static const struct pinctrl_ops iproc_pctrl_ops =
+{
 	.get_groups_count = iproc_get_groups_count,
 	.get_group_name = iproc_get_group_name,
 	.dt_node_to_map = pinconf_generic_dt_node_to_map_pin,
@@ -457,17 +484,20 @@ static const struct pinctrl_ops iproc_pctrl_ops = {
 };
 
 static int iproc_gpio_set_pull(struct iproc_gpio *chip, unsigned gpio,
-				bool disable, bool pull_up)
+							   bool disable, bool pull_up)
 {
 	unsigned long flags;
 
 	spin_lock_irqsave(&chip->lock, flags);
 
-	if (disable) {
+	if (disable)
+	{
 		iproc_set_bit(chip, IPROC_GPIO_RES_EN_OFFSET, gpio, false);
-	} else {
+	}
+	else
+	{
 		iproc_set_bit(chip, IPROC_GPIO_PAD_RES_OFFSET, gpio,
-			       pull_up);
+					  pull_up);
 		iproc_set_bit(chip, IPROC_GPIO_RES_EN_OFFSET, gpio, true);
 	}
 
@@ -479,7 +509,7 @@ static int iproc_gpio_set_pull(struct iproc_gpio *chip, unsigned gpio,
 }
 
 static void iproc_gpio_get_pull(struct iproc_gpio *chip, unsigned gpio,
-				 bool *disable, bool *pull_up)
+								bool *disable, bool *pull_up)
 {
 	unsigned long flags;
 
@@ -490,7 +520,7 @@ static void iproc_gpio_get_pull(struct iproc_gpio *chip, unsigned gpio,
 }
 
 static int iproc_gpio_set_strength(struct iproc_gpio *chip, unsigned gpio,
-				    unsigned strength)
+								   unsigned strength)
 {
 	void __iomem *base;
 	unsigned int i, offset, shift;
@@ -499,58 +529,71 @@ static int iproc_gpio_set_strength(struct iproc_gpio *chip, unsigned gpio,
 
 	/* make sure drive strength is supported */
 	if (strength < 2 ||  strength > 16 || (strength % 2))
+	{
 		return -ENOTSUPP;
+	}
 
-	if (chip->io_ctrl) {
+	if (chip->io_ctrl)
+	{
 		base = chip->io_ctrl;
 		offset = IPROC_GPIO_DRV0_CTRL_OFFSET;
-	} else {
+	}
+	else
+	{
 		base = chip->base;
 		offset = IPROC_GPIO_REG(gpio,
-					 IPROC_GPIO_ASIU_DRV0_CTRL_OFFSET);
+								IPROC_GPIO_ASIU_DRV0_CTRL_OFFSET);
 	}
 
 	shift = IPROC_GPIO_SHIFT(gpio);
 
 	dev_dbg(chip->dev, "gpio:%u set drive strength:%d mA\n", gpio,
-		strength);
+			strength);
 
 	spin_lock_irqsave(&chip->lock, flags);
 	strength = (strength / 2) - 1;
-	for (i = 0; i < GPIO_DRV_STRENGTH_BITS; i++) {
+
+	for (i = 0; i < GPIO_DRV_STRENGTH_BITS; i++)
+	{
 		val = readl(base + offset);
 		val &= ~BIT(shift);
 		val |= ((strength >> i) & 0x1) << shift;
 		writel(val, base + offset);
 		offset += 4;
 	}
+
 	spin_unlock_irqrestore(&chip->lock, flags);
 
 	return 0;
 }
 
 static int iproc_gpio_get_strength(struct iproc_gpio *chip, unsigned gpio,
-				    u16 *strength)
+								   u16 *strength)
 {
 	void __iomem *base;
 	unsigned int i, offset, shift;
 	u32 val;
 	unsigned long flags;
 
-	if (chip->io_ctrl) {
+	if (chip->io_ctrl)
+	{
 		base = chip->io_ctrl;
 		offset = IPROC_GPIO_DRV0_CTRL_OFFSET;
-	} else {
+	}
+	else
+	{
 		base = chip->base;
 		offset = IPROC_GPIO_REG(gpio,
-					 IPROC_GPIO_ASIU_DRV0_CTRL_OFFSET);
+								IPROC_GPIO_ASIU_DRV0_CTRL_OFFSET);
 	}
 
 	shift = IPROC_GPIO_SHIFT(gpio);
 
 	spin_lock_irqsave(&chip->lock, flags);
 	*strength = 0;
-	for (i = 0; i < GPIO_DRV_STRENGTH_BITS; i++) {
+
+	for (i = 0; i < GPIO_DRV_STRENGTH_BITS; i++)
+	{
 		val = readl(base + offset) & BIT(shift);
 		val >>= shift;
 		*strength += (val << i);
@@ -565,7 +608,7 @@ static int iproc_gpio_get_strength(struct iproc_gpio *chip, unsigned gpio,
 }
 
 static int iproc_pin_config_get(struct pinctrl_dev *pctldev, unsigned pin,
-				 unsigned long *config)
+								unsigned long *config)
 {
 	struct iproc_gpio *chip = pinctrl_dev_get_drvdata(pctldev);
 	enum pin_config_param param = pinconf_to_config_param(*config);
@@ -575,47 +618,69 @@ static int iproc_pin_config_get(struct pinctrl_dev *pctldev, unsigned pin,
 	int ret;
 
 	if (iproc_pinconf_param_is_disabled(chip, param))
+	{
 		return -ENOTSUPP;
+	}
 
-	switch (param) {
-	case PIN_CONFIG_BIAS_DISABLE:
-		iproc_gpio_get_pull(chip, gpio, &disable, &pull_up);
-		if (disable)
+	switch (param)
+	{
+		case PIN_CONFIG_BIAS_DISABLE:
+			iproc_gpio_get_pull(chip, gpio, &disable, &pull_up);
+
+			if (disable)
+			{
+				return 0;
+			}
+			else
+			{
+				return -EINVAL;
+			}
+
+		case PIN_CONFIG_BIAS_PULL_UP:
+			iproc_gpio_get_pull(chip, gpio, &disable, &pull_up);
+
+			if (!disable && pull_up)
+			{
+				return 0;
+			}
+			else
+			{
+				return -EINVAL;
+			}
+
+		case PIN_CONFIG_BIAS_PULL_DOWN:
+			iproc_gpio_get_pull(chip, gpio, &disable, &pull_up);
+
+			if (!disable && !pull_up)
+			{
+				return 0;
+			}
+			else
+			{
+				return -EINVAL;
+			}
+
+		case PIN_CONFIG_DRIVE_STRENGTH:
+			ret = iproc_gpio_get_strength(chip, gpio, &arg);
+
+			if (ret)
+			{
+				return ret;
+			}
+
+			*config = pinconf_to_config_packed(param, arg);
+
 			return 0;
-		else
-			return -EINVAL;
 
-	case PIN_CONFIG_BIAS_PULL_UP:
-		iproc_gpio_get_pull(chip, gpio, &disable, &pull_up);
-		if (!disable && pull_up)
-			return 0;
-		else
-			return -EINVAL;
-
-	case PIN_CONFIG_BIAS_PULL_DOWN:
-		iproc_gpio_get_pull(chip, gpio, &disable, &pull_up);
-		if (!disable && !pull_up)
-			return 0;
-		else
-			return -EINVAL;
-
-	case PIN_CONFIG_DRIVE_STRENGTH:
-		ret = iproc_gpio_get_strength(chip, gpio, &arg);
-		if (ret)
-			return ret;
-		*config = pinconf_to_config_packed(param, arg);
-
-		return 0;
-
-	default:
-		return -ENOTSUPP;
+		default:
+			return -ENOTSUPP;
 	}
 
 	return -ENOTSUPP;
 }
 
 static int iproc_pin_config_set(struct pinctrl_dev *pctldev, unsigned pin,
-				 unsigned long *configs, unsigned num_configs)
+								unsigned long *configs, unsigned num_configs)
 {
 	struct iproc_gpio *chip = pinctrl_dev_get_drvdata(pctldev);
 	enum pin_config_param param;
@@ -623,42 +688,62 @@ static int iproc_pin_config_set(struct pinctrl_dev *pctldev, unsigned pin,
 	unsigned i, gpio = iproc_pin_to_gpio(pin);
 	int ret = -ENOTSUPP;
 
-	for (i = 0; i < num_configs; i++) {
+	for (i = 0; i < num_configs; i++)
+	{
 		param = pinconf_to_config_param(configs[i]);
 
 		if (iproc_pinconf_param_is_disabled(chip, param))
+		{
 			return -ENOTSUPP;
+		}
 
 		arg = pinconf_to_config_argument(configs[i]);
 
-		switch (param) {
-		case PIN_CONFIG_BIAS_DISABLE:
-			ret = iproc_gpio_set_pull(chip, gpio, true, false);
-			if (ret < 0)
-				goto out;
-			break;
+		switch (param)
+		{
+			case PIN_CONFIG_BIAS_DISABLE:
+				ret = iproc_gpio_set_pull(chip, gpio, true, false);
 
-		case PIN_CONFIG_BIAS_PULL_UP:
-			ret = iproc_gpio_set_pull(chip, gpio, false, true);
-			if (ret < 0)
-				goto out;
-			break;
+				if (ret < 0)
+				{
+					goto out;
+				}
 
-		case PIN_CONFIG_BIAS_PULL_DOWN:
-			ret = iproc_gpio_set_pull(chip, gpio, false, false);
-			if (ret < 0)
-				goto out;
-			break;
+				break;
 
-		case PIN_CONFIG_DRIVE_STRENGTH:
-			ret = iproc_gpio_set_strength(chip, gpio, arg);
-			if (ret < 0)
-				goto out;
-			break;
+			case PIN_CONFIG_BIAS_PULL_UP:
+				ret = iproc_gpio_set_pull(chip, gpio, false, true);
 
-		default:
-			dev_err(chip->dev, "invalid configuration\n");
-			return -ENOTSUPP;
+				if (ret < 0)
+				{
+					goto out;
+				}
+
+				break;
+
+			case PIN_CONFIG_BIAS_PULL_DOWN:
+				ret = iproc_gpio_set_pull(chip, gpio, false, false);
+
+				if (ret < 0)
+				{
+					goto out;
+				}
+
+				break;
+
+			case PIN_CONFIG_DRIVE_STRENGTH:
+				ret = iproc_gpio_set_strength(chip, gpio, arg);
+
+				if (ret < 0)
+				{
+					goto out;
+				}
+
+				break;
+
+			default:
+				dev_err(chip->dev, "invalid configuration\n");
+				return -ENOTSUPP;
 		}
 	} /* for each config */
 
@@ -666,7 +751,8 @@ out:
 	return ret;
 }
 
-static const struct pinconf_ops iproc_pconf_ops = {
+static const struct pinconf_ops iproc_pconf_ops =
+{
 	.is_generic = true,
 	.pin_config_get = iproc_pin_config_get,
 	.pin_config_set = iproc_pin_config_set,
@@ -687,15 +773,22 @@ static int iproc_gpio_register_pinconf(struct iproc_gpio *chip)
 	int i;
 
 	pins = devm_kcalloc(chip->dev, gc->ngpio, sizeof(*pins), GFP_KERNEL);
-	if (!pins)
-		return -ENOMEM;
 
-	for (i = 0; i < gc->ngpio; i++) {
+	if (!pins)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < gc->ngpio; i++)
+	{
 		pins[i].number = i;
 		pins[i].name = devm_kasprintf(chip->dev, GFP_KERNEL,
-					      "gpio-%d", i);
+									  "gpio-%d", i);
+
 		if (!pins[i].name)
+		{
 			return -ENOMEM;
+		}
 	}
 
 	pctldesc->name = dev_name(chip->dev);
@@ -705,7 +798,9 @@ static int iproc_gpio_register_pinconf(struct iproc_gpio *chip)
 	pctldesc->confops = &iproc_pconf_ops;
 
 	chip->pctl = devm_pinctrl_register(chip->dev, pctldesc, chip);
-	if (IS_ERR(chip->pctl)) {
+
+	if (IS_ERR(chip->pctl))
+	{
 		dev_err(chip->dev, "unable to register pinctrl device\n");
 		return PTR_ERR(chip->pctl);
 	}
@@ -713,7 +808,8 @@ static int iproc_gpio_register_pinconf(struct iproc_gpio *chip)
 	return 0;
 }
 
-static const struct of_device_id iproc_gpio_of_match[] = {
+static const struct of_device_id iproc_gpio_of_match[] =
+{
 	{ .compatible = "brcm,iproc-gpio" },
 	{ .compatible = "brcm,cygnus-ccm-gpio" },
 	{ .compatible = "brcm,cygnus-asiu-gpio" },
@@ -735,36 +831,50 @@ static int iproc_gpio_probe(struct platform_device *pdev)
 
 	/* NSP does not support drive strength config */
 	if (of_device_is_compatible(dev->of_node, "brcm,iproc-nsp-gpio"))
+	{
 		pinconf_disable_mask = BIT(IPROC_PINCONF_DRIVE_STRENGTH);
+	}
 	/* Stingray does not support pinconf in this controller */
 	else if (of_device_is_compatible(dev->of_node,
-					 "brcm,iproc-stingray-gpio"))
+									 "brcm,iproc-stingray-gpio"))
+	{
 		no_pinconf = true;
+	}
 
 	chip = devm_kzalloc(dev, sizeof(*chip), GFP_KERNEL);
+
 	if (!chip)
+	{
 		return -ENOMEM;
+	}
 
 	chip->dev = dev;
 	platform_set_drvdata(pdev, chip);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	chip->base = devm_ioremap_resource(dev, res);
-	if (IS_ERR(chip->base)) {
+
+	if (IS_ERR(chip->base))
+	{
 		dev_err(dev, "unable to map I/O memory\n");
 		return PTR_ERR(chip->base);
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-	if (res) {
+
+	if (res)
+	{
 		chip->io_ctrl = devm_ioremap_resource(dev, res);
-		if (IS_ERR(chip->io_ctrl)) {
+
+		if (IS_ERR(chip->io_ctrl))
+		{
 			dev_err(dev, "unable to map I/O memory\n");
 			return PTR_ERR(chip->io_ctrl);
 		}
 	}
 
-	if (of_property_read_u32(dev->of_node, "ngpios", &ngpios)) {
+	if (of_property_read_u32(dev->of_node, "ngpios", &ngpios))
+	{
 		dev_err(&pdev->dev, "missing ngpios DT property\n");
 		return -ENODEV;
 	}
@@ -786,27 +896,35 @@ static int iproc_gpio_probe(struct platform_device *pdev)
 	gc->get = iproc_gpio_get;
 
 	chip->pinmux_is_supported = of_property_read_bool(dev->of_node,
-							"gpio-ranges");
+								"gpio-ranges");
 
 	ret = gpiochip_add_data(gc, chip);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "unable to add GPIO chip\n");
 		return ret;
 	}
 
-	if (!no_pinconf) {
+	if (!no_pinconf)
+	{
 		ret = iproc_gpio_register_pinconf(chip);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev, "unable to register pinconf\n");
 			goto err_rm_gpiochip;
 		}
 
-		if (pinconf_disable_mask) {
+		if (pinconf_disable_mask)
+		{
 			ret = iproc_pinconf_disable_map_create(chip,
-							 pinconf_disable_mask);
-			if (ret) {
+												   pinconf_disable_mask);
+
+			if (ret)
+			{
 				dev_err(dev,
-					"unable to create pinconf disable map\n");
+						"unable to create pinconf disable map\n");
 				goto err_rm_gpiochip;
 			}
 		}
@@ -814,16 +932,20 @@ static int iproc_gpio_probe(struct platform_device *pdev)
 
 	/* optional GPIO interrupt support */
 	irq = platform_get_irq(pdev, 0);
-	if (irq) {
+
+	if (irq)
+	{
 		ret = gpiochip_irqchip_add(gc, &iproc_gpio_irq_chip, 0,
-					   handle_simple_irq, IRQ_TYPE_NONE);
-		if (ret) {
+								   handle_simple_irq, IRQ_TYPE_NONE);
+
+		if (ret)
+		{
 			dev_err(dev, "no GPIO irqchip\n");
 			goto err_rm_gpiochip;
 		}
 
 		gpiochip_set_chained_irqchip(gc, &iproc_gpio_irq_chip, irq,
-					     iproc_gpio_irq_handler);
+									 iproc_gpio_irq_handler);
 	}
 
 	return 0;
@@ -834,7 +956,8 @@ err_rm_gpiochip:
 	return ret;
 }
 
-static struct platform_driver iproc_gpio_driver = {
+static struct platform_driver iproc_gpio_driver =
+{
 	.driver = {
 		.name = "iproc-gpio",
 		.of_match_table = iproc_gpio_of_match,

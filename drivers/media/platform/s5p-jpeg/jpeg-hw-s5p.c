@@ -23,8 +23,10 @@ void s5p_jpeg_reset(void __iomem *regs)
 
 	writel(1, regs + S5P_JPG_SW_RESET);
 	reg = readl(regs + S5P_JPG_SW_RESET);
+
 	/* no other way but polling for when JPEG IP becomes operational */
-	while (reg != 0) {
+	while (reg != 0)
+	{
 		cpu_relax();
 		reg = readl(regs + S5P_JPG_SW_RESET);
 	}
@@ -40,10 +42,15 @@ void s5p_jpeg_input_raw_mode(void __iomem *regs, unsigned long mode)
 	unsigned long reg, m;
 
 	m = S5P_MOD_SEL_565;
+
 	if (mode == S5P_JPEG_RAW_IN_565)
+	{
 		m = S5P_MOD_SEL_565;
+	}
 	else if (mode == S5P_JPEG_RAW_IN_422)
+	{
 		m = S5P_MOD_SEL_422;
+	}
 
 	reg = readl(regs + S5P_JPGCMOD);
 	reg &= ~S5P_MOD_SEL_MASK;
@@ -56,10 +63,16 @@ void s5p_jpeg_proc_mode(void __iomem *regs, unsigned long mode)
 	unsigned long reg, m;
 
 	m = S5P_PROC_MODE_DECOMPR;
+
 	if (mode == S5P_JPEG_ENCODE)
+	{
 		m = S5P_PROC_MODE_COMPR;
+	}
 	else
+	{
 		m = S5P_PROC_MODE_DECOMPR;
+	}
+
 	reg = readl(regs + S5P_JPGMOD);
 	reg &= ~S5P_PROC_MODE_MASK;
 	reg |= m;
@@ -71,9 +84,13 @@ void s5p_jpeg_subsampling_mode(void __iomem *regs, unsigned int mode)
 	unsigned long reg, m;
 
 	if (mode == V4L2_JPEG_CHROMA_SUBSAMPLING_420)
+	{
 		m = S5P_SUBSAMPLING_MODE_420;
+	}
 	else
+	{
 		m = S5P_SUBSAMPLING_MODE_422;
+	}
 
 	reg = readl(regs + S5P_JPGMOD);
 	reg &= ~S5P_SUBSAMPLING_MODE_MASK;
@@ -169,8 +186,12 @@ void s5p_jpeg_rst_int_enable(void __iomem *regs, bool enable)
 
 	reg = readl(regs + S5P_JPGINTSE);
 	reg &= ~S5P_RSTm_INT_EN_MASK;
+
 	if (enable)
+	{
 		reg |= S5P_RSTm_INT_EN;
+	}
+
 	writel(reg, regs + S5P_JPGINTSE);
 }
 
@@ -180,8 +201,12 @@ void s5p_jpeg_data_num_int_enable(void __iomem *regs, bool enable)
 
 	reg = readl(regs + S5P_JPGINTSE);
 	reg &= ~S5P_DATA_NUM_INT_EN_MASK;
+
 	if (enable)
+	{
 		reg |= S5P_DATA_NUM_INT_EN;
+	}
+
 	writel(reg, regs + S5P_JPGINTSE);
 }
 
@@ -191,15 +216,19 @@ void s5p_jpeg_final_mcu_num_int_enable(void __iomem *regs, bool enbl)
 
 	reg = readl(regs + S5P_JPGINTSE);
 	reg &= ~S5P_FINAL_MCU_NUM_INT_EN_MASK;
+
 	if (enbl)
+	{
 		reg |= S5P_FINAL_MCU_NUM_INT_EN;
+	}
+
 	writel(reg, regs + S5P_JPGINTSE);
 }
 
 int s5p_jpeg_timer_stat(void __iomem *regs)
 {
 	return (int)((readl(regs + S5P_JPG_TIMER_ST) & S5P_TIMER_INT_STAT_MASK)
-		     >> S5P_TIMER_INT_STAT_SHIFT);
+				 >> S5P_TIMER_INT_STAT_SHIFT);
 }
 
 void s5p_jpeg_clear_timer_stat(void __iomem *regs)
@@ -225,7 +254,7 @@ void s5p_jpeg_enc_stream_int(void __iomem *regs, unsigned long size)
 int s5p_jpeg_enc_stream_stat(void __iomem *regs)
 {
 	return (int)(readl(regs + S5P_JPG_ENC_STREAM_INTST) &
-		     S5P_ENC_STREAM_INT_STAT_MASK);
+				 S5P_ENC_STREAM_INT_STAT_MASK);
 }
 
 void s5p_jpeg_clear_enc_stream_stat(void __iomem *regs)
@@ -242,10 +271,16 @@ void s5p_jpeg_outform_raw(void __iomem *regs, unsigned long format)
 	unsigned long reg, f;
 
 	f = S5P_DEC_OUT_FORMAT_422;
+
 	if (format == S5P_JPEG_RAW_OUT_422)
+	{
 		f = S5P_DEC_OUT_FORMAT_422;
+	}
 	else if (format == S5P_JPEG_RAW_OUT_420)
+	{
 		f = S5P_DEC_OUT_FORMAT_420;
+	}
+
 	reg = readl(regs + S5P_JPG_OUTFORM);
 	reg &= ~S5P_DEC_OUT_FORMAT_MASK;
 	reg |= f;
@@ -263,7 +298,7 @@ void s5p_jpeg_imgadr(void __iomem *regs, unsigned long addr)
 }
 
 void s5p_jpeg_coef(void __iomem *regs, unsigned int i,
-			     unsigned int j, unsigned int coef)
+				   unsigned int j, unsigned int coef)
 {
 	unsigned long reg;
 
@@ -281,13 +316,13 @@ void s5p_jpeg_start(void __iomem *regs)
 int s5p_jpeg_result_stat_ok(void __iomem *regs)
 {
 	return (int)((readl(regs + S5P_JPGINTST) & S5P_RESULT_STAT_MASK)
-		     >> S5P_RESULT_STAT_SHIFT);
+				 >> S5P_RESULT_STAT_SHIFT);
 }
 
 int s5p_jpeg_stream_stat_ok(void __iomem *regs)
 {
 	return !(int)((readl(regs + S5P_JPGINTST) & S5P_STREAM_STAT_MASK)
-		      >> S5P_STREAM_STAT_SHIFT);
+				  >> S5P_STREAM_STAT_SHIFT);
 }
 
 void s5p_jpeg_clear_int(void __iomem *regs)

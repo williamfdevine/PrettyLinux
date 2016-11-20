@@ -8,7 +8,8 @@
  * be sure that Linux (re)initializes this as needed ... after losing
  * backup power, and potentially on the first boot.
  */
-struct ds1305_platform_data {
+struct ds1305_platform_data
+{
 
 	/* Trickle charge configuration:  it's OK to leave out the MAGIC
 	 * bitmask; mask in either DS1 or DS2, and then one of 2K/4k/8K.

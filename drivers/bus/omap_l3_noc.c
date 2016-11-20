@@ -56,7 +56,7 @@
  *	secure software and hence need not be implemented here.
  */
 static int l3_handle_target(struct omap_l3 *l3, void __iomem *base,
-			    struct l3_flagmux_data *flag_mux, int err_src)
+							struct l3_flagmux_data *flag_mux, int err_src)
 {
 	int k;
 	u32 std_err_main, clear, masterid;
@@ -74,16 +74,21 @@ static int l3_handle_target(struct omap_l3 *l3, void __iomem *base,
 	/* We DONOT expect err_src to go out of bounds */
 	BUG_ON(err_src > MAX_CLKDM_TARGETS);
 
-	if (err_src < flag_mux->num_targ_data) {
+	if (err_src < flag_mux->num_targ_data)
+	{
 		l3_targ_inst = &flag_mux->l3_targ[err_src];
 		target_name = l3_targ_inst->name;
 		l3_targ_base = base + l3_targ_inst->offset;
-	} else {
+	}
+	else
+	{
 		target_name = L3_TARGET_NOT_SUPPORTED;
 	}
 
 	if (target_name == L3_TARGET_NOT_SUPPORTED)
+	{
 		return -ENODEV;
+	}
 
 	/* Read the stderrlog_main_source from clk domain */
 	l3_targ_stderr = l3_targ_base + L3_TARG_STDERRLOG_MAIN;
@@ -91,39 +96,42 @@ static int l3_handle_target(struct omap_l3 *l3, void __iomem *base,
 
 	std_err_main = readl_relaxed(l3_targ_stderr);
 
-	switch (std_err_main & CUSTOM_ERROR) {
-	case STANDARD_ERROR:
-		err_description = "Standard";
-		snprintf(err_string, sizeof(err_string),
-			 ": At Address: 0x%08X ",
-			 readl_relaxed(l3_targ_slvofslsb));
+	switch (std_err_main & CUSTOM_ERROR)
+	{
+		case STANDARD_ERROR:
+			err_description = "Standard";
+			snprintf(err_string, sizeof(err_string),
+					 ": At Address: 0x%08X ",
+					 readl_relaxed(l3_targ_slvofslsb));
 
-		l3_targ_mstaddr = l3_targ_base + L3_TARG_STDERRLOG_MSTADDR;
-		l3_targ_hdr = l3_targ_base + L3_TARG_STDERRLOG_HDR;
-		l3_targ_info = l3_targ_base + L3_TARG_STDERRLOG_INFO;
-		break;
+			l3_targ_mstaddr = l3_targ_base + L3_TARG_STDERRLOG_MSTADDR;
+			l3_targ_hdr = l3_targ_base + L3_TARG_STDERRLOG_HDR;
+			l3_targ_info = l3_targ_base + L3_TARG_STDERRLOG_INFO;
+			break;
 
-	case CUSTOM_ERROR:
-		err_description = "Custom";
+		case CUSTOM_ERROR:
+			err_description = "Custom";
 
-		l3_targ_mstaddr = l3_targ_base +
-				  L3_TARG_STDERRLOG_CINFO_MSTADDR;
-		l3_targ_hdr = l3_targ_base + L3_TARG_STDERRLOG_CINFO_OPCODE;
-		l3_targ_info = l3_targ_base + L3_TARG_STDERRLOG_CINFO_INFO;
-		break;
+			l3_targ_mstaddr = l3_targ_base +
+							  L3_TARG_STDERRLOG_CINFO_MSTADDR;
+			l3_targ_hdr = l3_targ_base + L3_TARG_STDERRLOG_CINFO_OPCODE;
+			l3_targ_info = l3_targ_base + L3_TARG_STDERRLOG_CINFO_INFO;
+			break;
 
-	default:
-		/* Nothing to be handled here as of now */
-		return 0;
+		default:
+			/* Nothing to be handled here as of now */
+			return 0;
 	}
 
 	/* STDERRLOG_MSTADDR Stores the NTTP master address. */
 	masterid = (readl_relaxed(l3_targ_mstaddr) &
-		    l3->mst_addr_mask) >> __ffs(l3->mst_addr_mask);
+				l3->mst_addr_mask) >> __ffs(l3->mst_addr_mask);
 
 	for (k = 0, master = l3->l3_masters; k < l3->num_masters;
-	     k++, master++) {
-		if (masterid == master->id) {
+		 k++, master++)
+	{
+		if (masterid == master->id)
+		{
 			master_name = master->name;
 			break;
 		}
@@ -133,18 +141,18 @@ static int l3_handle_target(struct omap_l3 *l3, void __iomem *base,
 
 	m_req_info = readl_relaxed(l3_targ_info) & 0xF;
 	snprintf(info_string, sizeof(info_string),
-		 ": %s in %s mode during %s access",
-		 (m_req_info & BIT(0)) ? "Opcode Fetch" : "Data Access",
-		 (m_req_info & BIT(1)) ? "Supervisor" : "User",
-		 (m_req_info & BIT(3)) ? "Debug" : "Functional");
+			 ": %s in %s mode during %s access",
+			 (m_req_info & BIT(0)) ? "Opcode Fetch" : "Data Access",
+			 (m_req_info & BIT(1)) ? "Supervisor" : "User",
+			 (m_req_info & BIT(3)) ? "Debug" : "Functional");
 
 	WARN(true,
-	     "%s:L3 %s Error: MASTER %s TARGET %s (%s)%s%s\n",
-	     dev_name(l3->dev),
-	     err_description,
-	     master_name, target_name,
-	     l3_transaction_type[op_code],
-	     err_string, info_string);
+		 "%s:L3 %s Error: MASTER %s TARGET %s (%s)%s%s\n",
+		 dev_name(l3->dev),
+		 err_description,
+		 master_name, target_name,
+		 l3_transaction_type[op_code],
+		 err_string, info_string);
 
 	/* clear the std error log*/
 	clear = std_err_main | CLEAR_STDERR_LOG;
@@ -176,7 +184,8 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
 	/* Get the Type of interrupt */
 	inttype = irq == l3->app_irq ? L3_APPLICATION_ERROR : L3_DEBUG_ERROR;
 
-	for (i = 0; i < l3->num_modules; i++) {
+	for (i = 0; i < l3->num_modules; i++)
+	{
 		/*
 		 * Read the regerr register of the clock domain
 		 * to determine the source
@@ -184,13 +193,14 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
 		base = l3->l3_base[i];
 		flag_mux = l3->l3_flagmux[i];
 		err_reg = readl_relaxed(base + flag_mux->offset +
-					L3_FLAGMUX_REGERR0 + (inttype << 3));
+								L3_FLAGMUX_REGERR0 + (inttype << 3));
 
 		err_reg &= ~(inttype ? flag_mux->mask_app_bits :
-				flag_mux->mask_dbg_bits);
+					 flag_mux->mask_dbg_bits);
 
 		/* Get the corresponding error and analyse */
-		if (err_reg) {
+		if (err_reg)
+		{
 			/* Identify the source from control status register */
 			err_src = __ffs(err_reg);
 
@@ -202,23 +212,28 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
 			 * here. Just mask it off to prevent the error from
 			 * reoccuring and locking up the system.
 			 */
-			if (ret) {
+			if (ret)
+			{
 				dev_err(l3->dev,
-					"L3 %s error: target %d mod:%d %s\n",
-					inttype ? "debug" : "application",
-					err_src, i, "(unclearable)");
+						"L3 %s error: target %d mod:%d %s\n",
+						inttype ? "debug" : "application",
+						err_src, i, "(unclearable)");
 
 				mask_reg = base + flag_mux->offset +
-					   L3_FLAGMUX_MASK0 + (inttype << 3);
+						   L3_FLAGMUX_MASK0 + (inttype << 3);
 				mask_val = readl_relaxed(mask_reg);
 				mask_val &= ~(1 << err_src);
 				writel_relaxed(mask_val, mask_reg);
 
 				/* Mark these bits as to be ignored */
 				if (inttype)
+				{
 					flag_mux->mask_app_bits |= 1 << err_src;
+				}
 				else
+				{
 					flag_mux->mask_dbg_bits |= 1 << err_src;
+				}
 			}
 
 			/* Error found so break the for loop */
@@ -227,12 +242,13 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
 	}
 
 	dev_err(l3->dev, "L3 %s IRQ not handled!!\n",
-		inttype ? "debug" : "application");
+			inttype ? "debug" : "application");
 
 	return IRQ_NONE;
 }
 
-static const struct of_device_id l3_noc_match[] = {
+static const struct of_device_id l3_noc_match[] =
+{
 	{.compatible = "ti,omap4-l3-noc", .data = &omap4_l3_data},
 	{.compatible = "ti,omap5-l3-noc", .data = &omap5_l3_data},
 	{.compatible = "ti,dra7-l3-noc", .data = &dra_l3_data},
@@ -248,35 +264,46 @@ static int omap_l3_probe(struct platform_device *pdev)
 	int ret, i, res_idx;
 
 	of_id = of_match_device(l3_noc_match, &pdev->dev);
-	if (!of_id) {
+
+	if (!of_id)
+	{
 		dev_err(&pdev->dev, "OF data missing\n");
 		return -EINVAL;
 	}
 
 	l3 = devm_kzalloc(&pdev->dev, sizeof(*l3), GFP_KERNEL);
+
 	if (!l3)
+	{
 		return -ENOMEM;
+	}
 
 	memcpy(l3, of_id->data, sizeof(*l3));
 	l3->dev = &pdev->dev;
 	platform_set_drvdata(pdev, l3);
 
 	/* Get mem resources */
-	for (i = 0, res_idx = 0; i < l3->num_modules; i++) {
+	for (i = 0, res_idx = 0; i < l3->num_modules; i++)
+	{
 		struct resource	*res;
 
-		if (l3->l3_base[i] == L3_BASE_IS_SUBMODULE) {
+		if (l3->l3_base[i] == L3_BASE_IS_SUBMODULE)
+		{
 			/* First entry cannot be submodule */
 			BUG_ON(i == 0);
 			l3->l3_base[i] = l3->l3_base[i - 1];
 			continue;
 		}
+
 		res = platform_get_resource(pdev, IORESOURCE_MEM, res_idx);
 		l3->l3_base[i] = devm_ioremap_resource(&pdev->dev, res);
-		if (IS_ERR(l3->l3_base[i])) {
+
+		if (IS_ERR(l3->l3_base[i]))
+		{
 			dev_err(l3->dev, "ioremap %d failed\n", i);
 			return PTR_ERR(l3->l3_base[i]);
 		}
+
 		res_idx++;
 	}
 
@@ -285,18 +312,23 @@ static int omap_l3_probe(struct platform_device *pdev)
 	 */
 	l3->debug_irq = platform_get_irq(pdev, 0);
 	ret = devm_request_irq(l3->dev, l3->debug_irq, l3_interrupt_handler,
-			       0x0, "l3-dbg-irq", l3);
-	if (ret) {
+						   0x0, "l3-dbg-irq", l3);
+
+	if (ret)
+	{
 		dev_err(l3->dev, "request_irq failed for %d\n",
-			l3->debug_irq);
+				l3->debug_irq);
 		return ret;
 	}
 
 	l3->app_irq = platform_get_irq(pdev, 1);
 	ret = devm_request_irq(l3->dev, l3->app_irq, l3_interrupt_handler,
-			       0x0, "l3-app-irq", l3);
+						   0x0, "l3-app-irq", l3);
+
 	if (ret)
+	{
 		dev_err(l3->dev, "request_irq failed for %d\n", l3->app_irq);
+	}
 
 	return ret;
 }
@@ -319,20 +351,24 @@ static int l3_resume_noirq(struct device *dev)
 	void __iomem *base, *mask_regx = NULL;
 	u32 mask_val;
 
-	for (i = 0; i < l3->num_modules; i++) {
+	for (i = 0; i < l3->num_modules; i++)
+	{
 		base = l3->l3_base[i];
 		flag_mux = l3->l3_flagmux[i];
+
 		if (!flag_mux->mask_app_bits && !flag_mux->mask_dbg_bits)
+		{
 			continue;
+		}
 
 		mask_regx = base + flag_mux->offset + L3_FLAGMUX_MASK0 +
-			   (L3_APPLICATION_ERROR << 3);
+					(L3_APPLICATION_ERROR << 3);
 		mask_val = readl_relaxed(mask_regx);
 		mask_val &= ~(flag_mux->mask_app_bits);
 
 		writel_relaxed(mask_val, mask_regx);
 		mask_regx = base + flag_mux->offset + L3_FLAGMUX_MASK0 +
-			   (L3_DEBUG_ERROR << 3);
+					(L3_DEBUG_ERROR << 3);
 		mask_val = readl_relaxed(mask_regx);
 		mask_val &= ~(flag_mux->mask_dbg_bits);
 
@@ -341,12 +377,15 @@ static int l3_resume_noirq(struct device *dev)
 
 	/* Dummy read to force OCP barrier */
 	if (mask_regx)
+	{
 		(void)readl(mask_regx);
+	}
 
 	return 0;
 }
 
-static const struct dev_pm_ops l3_dev_pm_ops = {
+static const struct dev_pm_ops l3_dev_pm_ops =
+{
 	SET_NOIRQ_SYSTEM_SLEEP_PM_OPS(NULL, l3_resume_noirq)
 };
 
@@ -355,7 +394,8 @@ static const struct dev_pm_ops l3_dev_pm_ops = {
 #define L3_DEV_PM_OPS NULL
 #endif
 
-static struct platform_driver omap_l3_driver = {
+static struct platform_driver omap_l3_driver =
+{
 	.probe		= omap_l3_probe,
 	.driver		= {
 		.name		= "omap_l3_noc",

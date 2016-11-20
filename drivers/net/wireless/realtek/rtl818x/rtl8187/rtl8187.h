@@ -39,12 +39,14 @@
 
 #define RETRY_COUNT		7
 
-struct rtl8187_rx_info {
+struct rtl8187_rx_info
+{
 	struct urb *urb;
 	struct ieee80211_hw *dev;
 };
 
-struct rtl8187_rx_hdr {
+struct rtl8187_rx_hdr
+{
 	__le32 flags;
 	u8 noise;
 	u8 signal;
@@ -53,7 +55,8 @@ struct rtl8187_rx_hdr {
 	__le64 mac_time;
 } __packed;
 
-struct rtl8187b_rx_hdr {
+struct rtl8187b_rx_hdr
+{
 	__le32 flags;
 	__le64 mac_time;
 	u8 sq;
@@ -67,14 +70,16 @@ struct rtl8187b_rx_hdr {
 
 /* {rtl8187,rtl8187b}_tx_info is in skb */
 
-struct rtl8187_tx_hdr {
+struct rtl8187_tx_hdr
+{
 	__le32 flags;
 	__le16 rts_duration;
 	__le16 len;
 	__le32 retry;
 } __packed;
 
-struct rtl8187b_tx_hdr {
+struct rtl8187b_tx_hdr
+{
 	__le32 flags;
 	__le16 rts_duration;
 	__le16 len;
@@ -86,12 +91,14 @@ struct rtl8187b_tx_hdr {
 	__le32 unused_4[2];
 } __packed;
 
-enum {
+enum
+{
 	DEVICE_RTL8187,
 	DEVICE_RTL8187B
 };
 
-struct rtl8187_vif {
+struct rtl8187_vif
+{
 	struct ieee80211_hw *dev;
 
 	/* beaconing */
@@ -99,7 +106,8 @@ struct rtl8187_vif {
 	bool enable_beacon;
 };
 
-struct rtl8187_priv {
+struct rtl8187_priv
+{
 	/* common between rtl818x drivers */
 	struct rtl818x_csr *map;
 	const struct rtl818x_rf_ops *rf;
@@ -129,7 +137,8 @@ struct rtl8187_priv {
 	u16 txpwr_base;
 	u8 asic_rev;
 	u8 is_rtl8187b;
-	enum {
+	enum
+	{
 		RTL8187BvB,
 		RTL8187BvD,
 		RTL8187BvE
@@ -140,15 +149,18 @@ struct rtl8187_priv {
 	u8 slot_time;
 	u8 aifsn[4];
 	u8 rfkill_mask;
-	struct {
-		union {
+	struct
+	{
+		union
+		{
 			__le64 buf;
 			u8 dummy1[L1_CACHE_BYTES];
 		} ____cacheline_aligned;
 		struct sk_buff_head queue;
 	} b_tx_status; /* This queue is used by both -b and non-b devices */
 	struct mutex io_mutex;
-	union {
+	union
+	{
 		u8 bits8;
 		__le16 bits16;
 		__le32 bits32;
@@ -161,7 +173,7 @@ struct rtl8187_priv {
 void rtl8187_write_phy(struct ieee80211_hw *dev, u8 addr, u32 data);
 
 u8 rtl818x_ioread8_idx(struct rtl8187_priv *priv,
-				u8 *addr, u8 idx);
+					   u8 *addr, u8 idx);
 
 static inline u8 rtl818x_ioread8(struct rtl8187_priv *priv, u8 *addr)
 {
@@ -169,7 +181,7 @@ static inline u8 rtl818x_ioread8(struct rtl8187_priv *priv, u8 *addr)
 }
 
 u16 rtl818x_ioread16_idx(struct rtl8187_priv *priv,
-				__le16 *addr, u8 idx);
+						 __le16 *addr, u8 idx);
 
 static inline u16 rtl818x_ioread16(struct rtl8187_priv *priv, __le16 *addr)
 {
@@ -177,7 +189,7 @@ static inline u16 rtl818x_ioread16(struct rtl8187_priv *priv, __le16 *addr)
 }
 
 u32 rtl818x_ioread32_idx(struct rtl8187_priv *priv,
-				__le32 *addr, u8 idx);
+						 __le32 *addr, u8 idx);
 
 static inline u32 rtl818x_ioread32(struct rtl8187_priv *priv, __le32 *addr)
 {
@@ -185,7 +197,7 @@ static inline u32 rtl818x_ioread32(struct rtl8187_priv *priv, __le32 *addr)
 }
 
 void rtl818x_iowrite8_idx(struct rtl8187_priv *priv,
-				u8 *addr, u8 val, u8 idx);
+						  u8 *addr, u8 val, u8 idx);
 
 static inline void rtl818x_iowrite8(struct rtl8187_priv *priv, u8 *addr, u8 val)
 {
@@ -193,19 +205,19 @@ static inline void rtl818x_iowrite8(struct rtl8187_priv *priv, u8 *addr, u8 val)
 }
 
 void rtl818x_iowrite16_idx(struct rtl8187_priv *priv,
-				__le16 *addr, u16 val, u8 idx);
+						   __le16 *addr, u16 val, u8 idx);
 
 static inline void rtl818x_iowrite16(struct rtl8187_priv *priv, __le16 *addr,
-				     u16 val)
+									 u16 val)
 {
 	rtl818x_iowrite16_idx(priv, addr, val, 0);
 }
 
 void rtl818x_iowrite32_idx(struct rtl8187_priv *priv,
-				__le32 *addr, u32 val, u8 idx);
+						   __le32 *addr, u32 val, u8 idx);
 
 static inline void rtl818x_iowrite32(struct rtl8187_priv *priv, __le32 *addr,
-				     u32 val)
+									 u32 val)
 {
 	rtl818x_iowrite32_idx(priv, addr, val, 0);
 }

@@ -28,7 +28,8 @@
 
 #include "../common/mic_dev.h"
 
-struct vop_device_id {
+struct vop_device_id
+{
 	u32 device;
 	u32 vendor;
 };
@@ -51,7 +52,8 @@ struct vop_device_id {
  * @dma_ch - DMA channel
  * @index: unique position on the vop bus
  */
-struct vop_device {
+struct vop_device
+{
 	struct vop_hw_ops *hw_ops;
 	struct vop_device_id id;
 	struct device dev;
@@ -68,7 +70,8 @@ struct vop_device {
  * @probe: the function to call when a device is found.  Returns 0 or -errno.
  * @remove: the function to call when a device is removed.
  */
-struct vop_driver {
+struct vop_driver
+{
 	struct device_driver driver;
 	const struct vop_device_id *id_table;
 	int (*probe)(struct vop_device *dev);
@@ -92,28 +95,29 @@ struct vop_driver {
  * @dma_filter: The DMA filter function to use for obtaining access to
  *		a DMA channel on the peer node.
  */
-struct vop_hw_ops {
+struct vop_hw_ops
+{
 	int (*next_db)(struct vop_device *vpdev);
 	struct mic_irq *(*request_irq)(struct vop_device *vpdev,
-				       irqreturn_t (*func)(int irq, void *data),
-				       const char *name, void *data,
-				       int intr_src);
+								   irqreturn_t (*func)(int irq, void *data),
+								   const char *name, void *data,
+								   int intr_src);
 	void (*free_irq)(struct vop_device *vpdev,
-			 struct mic_irq *cookie, void *data);
+					 struct mic_irq *cookie, void *data);
 	void (*ack_interrupt)(struct vop_device *vpdev, int num);
-	void __iomem * (*get_remote_dp)(struct vop_device *vpdev);
-	void * (*get_dp)(struct vop_device *vpdev);
+	void __iomem *(*get_remote_dp)(struct vop_device *vpdev);
+	void *(*get_dp)(struct vop_device *vpdev);
 	void (*send_intr)(struct vop_device *vpdev, int db);
-	void __iomem * (*ioremap)(struct vop_device *vpdev,
-				  dma_addr_t pa, size_t len);
+	void __iomem *(*ioremap)(struct vop_device *vpdev,
+							 dma_addr_t pa, size_t len);
 	void (*iounmap)(struct vop_device *vpdev, void __iomem *va);
 };
 
 struct vop_device *
 vop_register_device(struct device *pdev, int id,
-		    const struct dma_map_ops *dma_ops,
-		    struct vop_hw_ops *hw_ops, u8 dnode, struct mic_mw *aper,
-		    struct dma_chan *chan);
+					const struct dma_map_ops *dma_ops,
+					struct vop_hw_ops *hw_ops, u8 dnode, struct mic_mw *aper,
+					struct dma_chan *chan);
 void vop_unregister_device(struct vop_device *dev);
 int vop_register_driver(struct vop_driver *drv);
 void vop_unregister_driver(struct vop_driver *drv);
@@ -126,7 +130,7 @@ void vop_unregister_driver(struct vop_driver *drv);
  */
 #define module_vop_driver(__vop_driver) \
 	module_driver(__vop_driver, vop_register_driver, \
-			vop_unregister_driver)
+				  vop_unregister_driver)
 
 static inline struct vop_device *dev_to_vop(struct device *dev)
 {

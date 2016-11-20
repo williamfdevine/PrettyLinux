@@ -26,7 +26,7 @@ typedef unsigned int RING_IDX;
  */
 #define __CONST_RING_SIZE(_s, _sz)				\
 	(__RD32(((_sz) - offsetof(struct _s##_sring, ring)) /	\
-		sizeof(((struct _s##_sring *)0)->ring[0])))
+			sizeof(((struct _s##_sring *)0)->ring[0])))
 
 /*
  * The same for passing in an actual pointer instead of a name tag.
@@ -69,36 +69,36 @@ typedef unsigned int RING_IDX;
  */
 
 #define DEFINE_RING_TYPES(__name, __req_t, __rsp_t)			\
-									\
-/* Shared ring entry */							\
-union __name##_sring_entry {						\
-    __req_t req;							\
-    __rsp_t rsp;							\
-};									\
-									\
-/* Shared ring page */							\
-struct __name##_sring {							\
-    RING_IDX req_prod, req_event;					\
-    RING_IDX rsp_prod, rsp_event;					\
-    uint8_t  pad[48];							\
-    union __name##_sring_entry ring[1]; /* variable-length */		\
-};									\
-									\
-/* "Front" end's private variables */					\
-struct __name##_front_ring {						\
-    RING_IDX req_prod_pvt;						\
-    RING_IDX rsp_cons;							\
-    unsigned int nr_ents;						\
-    struct __name##_sring *sring;					\
-};									\
-									\
-/* "Back" end's private variables */					\
-struct __name##_back_ring {						\
-    RING_IDX rsp_prod_pvt;						\
-    RING_IDX req_cons;							\
-    unsigned int nr_ents;						\
-    struct __name##_sring *sring;					\
-};
+	\
+	/* Shared ring entry */							\
+	union __name##_sring_entry {						\
+		__req_t req;							\
+		__rsp_t rsp;							\
+	};									\
+	\
+	/* Shared ring page */							\
+	struct __name##_sring {							\
+		RING_IDX req_prod, req_event;					\
+		RING_IDX rsp_prod, rsp_event;					\
+		uint8_t  pad[48];							\
+		union __name##_sring_entry ring[1]; /* variable-length */		\
+	};									\
+	\
+	/* "Front" end's private variables */					\
+	struct __name##_front_ring {						\
+		RING_IDX req_prod_pvt;						\
+		RING_IDX rsp_cons;							\
+		unsigned int nr_ents;						\
+		struct __name##_sring *sring;					\
+	};									\
+	\
+	/* "Back" end's private variables */					\
+	struct __name##_back_ring {						\
+		RING_IDX rsp_prod_pvt;						\
+		RING_IDX req_cons;							\
+		unsigned int nr_ents;						\
+		struct __name##_sring *sring;					\
+	};
 
 /*
  * Macros for manipulating rings.
@@ -117,69 +117,69 @@ struct __name##_back_ring {						\
 
 /* Initialising empty rings */
 #define SHARED_RING_INIT(_s) do {					\
-    (_s)->req_prod  = (_s)->rsp_prod  = 0;				\
-    (_s)->req_event = (_s)->rsp_event = 1;				\
-    memset((_s)->pad, 0, sizeof((_s)->pad));				\
-} while(0)
+		(_s)->req_prod  = (_s)->rsp_prod  = 0;				\
+		(_s)->req_event = (_s)->rsp_event = 1;				\
+		memset((_s)->pad, 0, sizeof((_s)->pad));				\
+	} while(0)
 
 #define FRONT_RING_INIT(_r, _s, __size) do {				\
-    (_r)->req_prod_pvt = 0;						\
-    (_r)->rsp_cons = 0;							\
-    (_r)->nr_ents = __RING_SIZE(_s, __size);				\
-    (_r)->sring = (_s);							\
-} while (0)
+		(_r)->req_prod_pvt = 0;						\
+		(_r)->rsp_cons = 0;							\
+		(_r)->nr_ents = __RING_SIZE(_s, __size);				\
+		(_r)->sring = (_s);							\
+	} while (0)
 
 #define BACK_RING_INIT(_r, _s, __size) do {				\
-    (_r)->rsp_prod_pvt = 0;						\
-    (_r)->req_cons = 0;							\
-    (_r)->nr_ents = __RING_SIZE(_s, __size);				\
-    (_r)->sring = (_s);							\
-} while (0)
+		(_r)->rsp_prod_pvt = 0;						\
+		(_r)->req_cons = 0;							\
+		(_r)->nr_ents = __RING_SIZE(_s, __size);				\
+		(_r)->sring = (_s);							\
+	} while (0)
 
 /* Initialize to existing shared indexes -- for recovery */
 #define FRONT_RING_ATTACH(_r, _s, __size) do {				\
-    (_r)->sring = (_s);							\
-    (_r)->req_prod_pvt = (_s)->req_prod;				\
-    (_r)->rsp_cons = (_s)->rsp_prod;					\
-    (_r)->nr_ents = __RING_SIZE(_s, __size);				\
-} while (0)
+		(_r)->sring = (_s);							\
+		(_r)->req_prod_pvt = (_s)->req_prod;				\
+		(_r)->rsp_cons = (_s)->rsp_prod;					\
+		(_r)->nr_ents = __RING_SIZE(_s, __size);				\
+	} while (0)
 
 #define BACK_RING_ATTACH(_r, _s, __size) do {				\
-    (_r)->sring = (_s);							\
-    (_r)->rsp_prod_pvt = (_s)->rsp_prod;				\
-    (_r)->req_cons = (_s)->req_prod;					\
-    (_r)->nr_ents = __RING_SIZE(_s, __size);				\
-} while (0)
+		(_r)->sring = (_s);							\
+		(_r)->rsp_prod_pvt = (_s)->rsp_prod;				\
+		(_r)->req_cons = (_s)->req_prod;					\
+		(_r)->nr_ents = __RING_SIZE(_s, __size);				\
+	} while (0)
 
 /* How big is this ring? */
 #define RING_SIZE(_r)							\
-    ((_r)->nr_ents)
+	((_r)->nr_ents)
 
 /* Number of free requests (for use on front side only). */
 #define RING_FREE_REQUESTS(_r)						\
-    (RING_SIZE(_r) - ((_r)->req_prod_pvt - (_r)->rsp_cons))
+	(RING_SIZE(_r) - ((_r)->req_prod_pvt - (_r)->rsp_cons))
 
 /* Test if there is an empty slot available on the front ring.
  * (This is only meaningful from the front. )
  */
 #define RING_FULL(_r)							\
-    (RING_FREE_REQUESTS(_r) == 0)
+	(RING_FREE_REQUESTS(_r) == 0)
 
 /* Test if there are outstanding messages to be processed on a ring. */
 #define RING_HAS_UNCONSUMED_RESPONSES(_r)				\
-    ((_r)->sring->rsp_prod - (_r)->rsp_cons)
+	((_r)->sring->rsp_prod - (_r)->rsp_cons)
 
 #define RING_HAS_UNCONSUMED_REQUESTS(_r)				\
-    ({									\
-	unsigned int req = (_r)->sring->req_prod - (_r)->req_cons;	\
-	unsigned int rsp = RING_SIZE(_r) -				\
-			   ((_r)->req_cons - (_r)->rsp_prod_pvt);	\
-	req < rsp ? req : rsp;						\
-    })
+	({									\
+		unsigned int req = (_r)->sring->req_prod - (_r)->req_cons;	\
+		unsigned int rsp = RING_SIZE(_r) -				\
+						   ((_r)->req_cons - (_r)->rsp_prod_pvt);	\
+		req < rsp ? req : rsp;						\
+	})
 
 /* Direct access to individual ring elements, by index. */
 #define RING_GET_REQUEST(_r, _idx)					\
-    (&((_r)->sring->ring[((_idx) & (RING_SIZE(_r) - 1))].req))
+	(&((_r)->sring->ring[((_idx) & (RING_SIZE(_r) - 1))].req))
 
 /*
  * Get a local copy of a request.
@@ -191,31 +191,31 @@ struct __name##_back_ring {						\
  * to be ineffective where _req is a struct which consists of only bitfields.
  */
 #define RING_COPY_REQUEST(_r, _idx, _req) do {				\
-	/* Use volatile to force the copy into _req. */			\
-	*(_req) = *(volatile typeof(_req))RING_GET_REQUEST(_r, _idx);	\
-} while (0)
+		/* Use volatile to force the copy into _req. */			\
+		*(_req) = *(volatile typeof(_req))RING_GET_REQUEST(_r, _idx);	\
+	} while (0)
 
 #define RING_GET_RESPONSE(_r, _idx)					\
-    (&((_r)->sring->ring[((_idx) & (RING_SIZE(_r) - 1))].rsp))
+	(&((_r)->sring->ring[((_idx) & (RING_SIZE(_r) - 1))].rsp))
 
 /* Loop termination condition: Would the specified index overflow the ring? */
 #define RING_REQUEST_CONS_OVERFLOW(_r, _cons)				\
-    (((_cons) - (_r)->rsp_prod_pvt) >= RING_SIZE(_r))
+	(((_cons) - (_r)->rsp_prod_pvt) >= RING_SIZE(_r))
 
 /* Ill-behaved frontend determination: Can there be this many requests? */
 #define RING_REQUEST_PROD_OVERFLOW(_r, _prod)               \
-    (((_prod) - (_r)->rsp_prod_pvt) > RING_SIZE(_r))
+	(((_prod) - (_r)->rsp_prod_pvt) > RING_SIZE(_r))
 
 
 #define RING_PUSH_REQUESTS(_r) do {					\
-    virt_wmb(); /* back sees requests /before/ updated producer index */	\
-    (_r)->sring->req_prod = (_r)->req_prod_pvt;				\
-} while (0)
+		virt_wmb(); /* back sees requests /before/ updated producer index */	\
+		(_r)->sring->req_prod = (_r)->req_prod_pvt;				\
+	} while (0)
 
 #define RING_PUSH_RESPONSES(_r) do {					\
-    virt_wmb(); /* front sees responses /before/ updated producer index */	\
-    (_r)->sring->rsp_prod = (_r)->rsp_prod_pvt;				\
-} while (0)
+		virt_wmb(); /* front sees responses /before/ updated producer index */	\
+		(_r)->sring->rsp_prod = (_r)->rsp_prod_pvt;				\
+	} while (0)
 
 /*
  * Notification hold-off (req_event and rsp_event):
@@ -248,39 +248,39 @@ struct __name##_back_ring {						\
  */
 
 #define RING_PUSH_REQUESTS_AND_CHECK_NOTIFY(_r, _notify) do {		\
-    RING_IDX __old = (_r)->sring->req_prod;				\
-    RING_IDX __new = (_r)->req_prod_pvt;				\
-    virt_wmb(); /* back sees requests /before/ updated producer index */	\
-    (_r)->sring->req_prod = __new;					\
-    virt_mb(); /* back sees new requests /before/ we check req_event */	\
-    (_notify) = ((RING_IDX)(__new - (_r)->sring->req_event) <		\
-		 (RING_IDX)(__new - __old));				\
-} while (0)
+		RING_IDX __old = (_r)->sring->req_prod;				\
+		RING_IDX __new = (_r)->req_prod_pvt;				\
+		virt_wmb(); /* back sees requests /before/ updated producer index */	\
+		(_r)->sring->req_prod = __new;					\
+		virt_mb(); /* back sees new requests /before/ we check req_event */	\
+		(_notify) = ((RING_IDX)(__new - (_r)->sring->req_event) <		\
+					 (RING_IDX)(__new - __old));				\
+	} while (0)
 
 #define RING_PUSH_RESPONSES_AND_CHECK_NOTIFY(_r, _notify) do {		\
-    RING_IDX __old = (_r)->sring->rsp_prod;				\
-    RING_IDX __new = (_r)->rsp_prod_pvt;				\
-    virt_wmb(); /* front sees responses /before/ updated producer index */	\
-    (_r)->sring->rsp_prod = __new;					\
-    virt_mb(); /* front sees new responses /before/ we check rsp_event */	\
-    (_notify) = ((RING_IDX)(__new - (_r)->sring->rsp_event) <		\
-		 (RING_IDX)(__new - __old));				\
-} while (0)
+		RING_IDX __old = (_r)->sring->rsp_prod;				\
+		RING_IDX __new = (_r)->rsp_prod_pvt;				\
+		virt_wmb(); /* front sees responses /before/ updated producer index */	\
+		(_r)->sring->rsp_prod = __new;					\
+		virt_mb(); /* front sees new responses /before/ we check rsp_event */	\
+		(_notify) = ((RING_IDX)(__new - (_r)->sring->rsp_event) <		\
+					 (RING_IDX)(__new - __old));				\
+	} while (0)
 
 #define RING_FINAL_CHECK_FOR_REQUESTS(_r, _work_to_do) do {		\
-    (_work_to_do) = RING_HAS_UNCONSUMED_REQUESTS(_r);			\
-    if (_work_to_do) break;						\
-    (_r)->sring->req_event = (_r)->req_cons + 1;			\
-    virt_mb();								\
-    (_work_to_do) = RING_HAS_UNCONSUMED_REQUESTS(_r);			\
-} while (0)
+		(_work_to_do) = RING_HAS_UNCONSUMED_REQUESTS(_r);			\
+		if (_work_to_do) break;						\
+		(_r)->sring->req_event = (_r)->req_cons + 1;			\
+		virt_mb();								\
+		(_work_to_do) = RING_HAS_UNCONSUMED_REQUESTS(_r);			\
+	} while (0)
 
 #define RING_FINAL_CHECK_FOR_RESPONSES(_r, _work_to_do) do {		\
-    (_work_to_do) = RING_HAS_UNCONSUMED_RESPONSES(_r);			\
-    if (_work_to_do) break;						\
-    (_r)->sring->rsp_event = (_r)->rsp_cons + 1;			\
-    virt_mb();								\
-    (_work_to_do) = RING_HAS_UNCONSUMED_RESPONSES(_r);			\
-} while (0)
+		(_work_to_do) = RING_HAS_UNCONSUMED_RESPONSES(_r);			\
+		if (_work_to_do) break;						\
+		(_r)->sring->rsp_event = (_r)->rsp_cons + 1;			\
+		virt_mb();								\
+		(_work_to_do) = RING_HAS_UNCONSUMED_RESPONSES(_r);			\
+	} while (0)
 
 #endif /* __XEN_PUBLIC_IO_RING_H__ */

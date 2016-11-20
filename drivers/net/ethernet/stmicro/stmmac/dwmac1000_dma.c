@@ -36,46 +36,59 @@ static void dwmac1000_dma_axi(void __iomem *ioaddr, struct stmmac_axi *axi)
 	int i;
 
 	pr_info("dwmac1000: Master AXI performs %s burst length\n",
-		!(value & DMA_AXI_UNDEF) ? "fixed" : "any");
+			!(value & DMA_AXI_UNDEF) ? "fixed" : "any");
 
 	if (axi->axi_lpi_en)
+	{
 		value |= DMA_AXI_EN_LPI;
+	}
+
 	if (axi->axi_xit_frm)
+	{
 		value |= DMA_AXI_LPI_XIT_FRM;
+	}
 
 	value |= (axi->axi_wr_osr_lmt & DMA_AXI_WR_OSR_LMT_MASK) <<
-		 DMA_AXI_WR_OSR_LMT_SHIFT;
+			 DMA_AXI_WR_OSR_LMT_SHIFT;
 
 	value |= (axi->axi_rd_osr_lmt & DMA_AXI_RD_OSR_LMT_MASK) <<
-		 DMA_AXI_RD_OSR_LMT_SHIFT;
+			 DMA_AXI_RD_OSR_LMT_SHIFT;
 
 	/* Depending on the UNDEF bit the Master AXI will perform any burst
 	 * length according to the BLEN programmed (by default all BLEN are
 	 * set).
 	 */
-	for (i = 0; i < AXI_BLEN; i++) {
-		switch (axi->axi_blen[i]) {
-		case 256:
-			value |= DMA_AXI_BLEN256;
-			break;
-		case 128:
-			value |= DMA_AXI_BLEN128;
-			break;
-		case 64:
-			value |= DMA_AXI_BLEN64;
-			break;
-		case 32:
-			value |= DMA_AXI_BLEN32;
-			break;
-		case 16:
-			value |= DMA_AXI_BLEN16;
-			break;
-		case 8:
-			value |= DMA_AXI_BLEN8;
-			break;
-		case 4:
-			value |= DMA_AXI_BLEN4;
-			break;
+	for (i = 0; i < AXI_BLEN; i++)
+	{
+		switch (axi->axi_blen[i])
+		{
+			case 256:
+				value |= DMA_AXI_BLEN256;
+				break;
+
+			case 128:
+				value |= DMA_AXI_BLEN128;
+				break;
+
+			case 64:
+				value |= DMA_AXI_BLEN64;
+				break;
+
+			case 32:
+				value |= DMA_AXI_BLEN32;
+				break;
+
+			case 16:
+				value |= DMA_AXI_BLEN16;
+				break;
+
+			case 8:
+				value |= DMA_AXI_BLEN8;
+				break;
+
+			case 4:
+				value |= DMA_AXI_BLEN4;
+				break;
 		}
 	}
 
@@ -83,7 +96,7 @@ static void dwmac1000_dma_axi(void __iomem *ioaddr, struct stmmac_axi *axi)
 }
 
 static void dwmac1000_dma_init(void __iomem *ioaddr, int pbl, int fb, int mb,
-			       int aal, u32 dma_tx, u32 dma_rx, int atds)
+							   int aal, u32 dma_tx, u32 dma_rx, int atds)
 {
 	u32 value = readl(ioaddr + DMA_BUS_MODE);
 
@@ -103,17 +116,25 @@ static void dwmac1000_dma_init(void __iomem *ioaddr, int pbl, int fb, int mb,
 
 	/* Set the Fixed burst mode */
 	if (fb)
+	{
 		value |= DMA_BUS_MODE_FB;
+	}
 
 	/* Mixed Burst has no effect when fb is set */
 	if (mb)
+	{
 		value |= DMA_BUS_MODE_MB;
+	}
 
 	if (atds)
+	{
 		value |= DMA_BUS_MODE_ATDS;
+	}
 
 	if (aal)
+	{
 		value |= DMA_BUS_MODE_AAL;
+	}
 
 	writel(value, ioaddr + DMA_BUS_MODE);
 
@@ -136,24 +157,29 @@ static u32 dwmac1000_configure_fc(u32 csr6, int rxfifosz)
 	 * 4K or 0. Otherwise, send XOFF when fifo is 1K less than full,
 	 * and send XON when 2K less than full.
 	 */
-	if (rxfifosz < 4096) {
+	if (rxfifosz < 4096)
+	{
 		csr6 &= ~DMA_CONTROL_EFC;
 		pr_debug("GMAC: disabling flow control, rxfifo too small(%d)\n",
-			 rxfifosz);
-	} else {
+				 rxfifosz);
+	}
+	else
+	{
 		csr6 |= DMA_CONTROL_EFC;
 		csr6 |= RFA_FULL_MINUS_1K;
 		csr6 |= RFD_FULL_MINUS_2K;
 	}
+
 	return csr6;
 }
 
 static void dwmac1000_dma_operation_mode(void __iomem *ioaddr, int txmode,
-					 int rxmode, int rxfifosz)
+		int rxmode, int rxfifosz)
 {
 	u32 csr6 = readl(ioaddr + DMA_CONTROL);
 
-	if (txmode == SF_DMA_MODE) {
+	if (txmode == SF_DMA_MODE)
+	{
 		pr_debug("GMAC: enable TX store and forward mode\n");
 		/* Transmit COE type 2 cannot be done in cut-through mode. */
 		csr6 |= DMA_CONTROL_TSF;
@@ -161,38 +187,63 @@ static void dwmac1000_dma_operation_mode(void __iomem *ioaddr, int txmode,
 		 * especially when transmit store-and-forward is used.
 		 */
 		csr6 |= DMA_CONTROL_OSF;
-	} else {
+	}
+	else
+	{
 		pr_debug("GMAC: disabling TX SF (threshold %d)\n", txmode);
 		csr6 &= ~DMA_CONTROL_TSF;
 		csr6 &= DMA_CONTROL_TC_TX_MASK;
+
 		/* Set the transmit threshold */
 		if (txmode <= 32)
+		{
 			csr6 |= DMA_CONTROL_TTC_32;
+		}
 		else if (txmode <= 64)
+		{
 			csr6 |= DMA_CONTROL_TTC_64;
+		}
 		else if (txmode <= 128)
+		{
 			csr6 |= DMA_CONTROL_TTC_128;
+		}
 		else if (txmode <= 192)
+		{
 			csr6 |= DMA_CONTROL_TTC_192;
+		}
 		else
+		{
 			csr6 |= DMA_CONTROL_TTC_256;
+		}
 	}
 
-	if (rxmode == SF_DMA_MODE) {
+	if (rxmode == SF_DMA_MODE)
+	{
 		pr_debug("GMAC: enable RX store and forward mode\n");
 		csr6 |= DMA_CONTROL_RSF;
-	} else {
+	}
+	else
+	{
 		pr_debug("GMAC: disable RX SF mode (threshold %d)\n", rxmode);
 		csr6 &= ~DMA_CONTROL_RSF;
 		csr6 &= DMA_CONTROL_TC_RX_MASK;
+
 		if (rxmode <= 32)
+		{
 			csr6 |= DMA_CONTROL_RTC_32;
+		}
 		else if (rxmode <= 64)
+		{
 			csr6 |= DMA_CONTROL_RTC_64;
+		}
 		else if (rxmode <= 96)
+		{
 			csr6 |= DMA_CONTROL_RTC_96;
+		}
 		else
+		{
 			csr6 |= DMA_CONTROL_RTC_128;
+		}
 	}
 
 	/* Configure flow control based on rx fifo size */
@@ -205,18 +256,21 @@ static void dwmac1000_dump_dma_regs(void __iomem *ioaddr)
 {
 	int i;
 	pr_info(" DMA registers\n");
-	for (i = 0; i < 22; i++) {
-		if ((i < 9) || (i > 17)) {
+
+	for (i = 0; i < 22; i++)
+	{
+		if ((i < 9) || (i > 17))
+		{
 			int offset = i * 4;
 			pr_err("\t Reg No. %d (offset 0x%x): 0x%08x\n", i,
-			       (DMA_BUS_MODE + offset),
-			       readl(ioaddr + DMA_BUS_MODE + offset));
+				   (DMA_BUS_MODE + offset),
+				   readl(ioaddr + DMA_BUS_MODE + offset));
 		}
 	}
 }
 
 static void dwmac1000_get_hw_feature(void __iomem *ioaddr,
-				     struct dma_features *dma_cap)
+									 struct dma_features *dma_cap)
 {
 	u32 hw_cap = readl(ioaddr + DMA_HW_FEATURE);
 
@@ -233,7 +287,7 @@ static void dwmac1000_get_hw_feature(void __iomem *ioaddr,
 	dma_cap->rmon = (hw_cap & DMA_HW_FEAT_MMCSEL) >> 11;
 	/* IEEE 1588-2002 */
 	dma_cap->time_stamp =
-	    (hw_cap & DMA_HW_FEAT_TSVER1SEL) >> 12;
+		(hw_cap & DMA_HW_FEAT_TSVER1SEL) >> 12;
 	/* IEEE 1588-2008 */
 	dma_cap->atime_stamp = (hw_cap & DMA_HW_FEAT_TSVER2SEL) >> 13;
 	/* 802.3az - Energy-Efficient Ethernet (EEE) */
@@ -256,7 +310,8 @@ static void dwmac1000_rx_watchdog(void __iomem *ioaddr, u32 riwt)
 	writel(riwt, ioaddr + DMA_RX_WATCHDOG);
 }
 
-const struct stmmac_dma_ops dwmac1000_dma_ops = {
+const struct stmmac_dma_ops dwmac1000_dma_ops =
+{
 	.reset = dwmac_dma_reset,
 	.init = dwmac1000_dma_init,
 	.axi = dwmac1000_dma_axi,

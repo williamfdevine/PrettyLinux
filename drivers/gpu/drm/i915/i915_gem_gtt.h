@@ -83,7 +83,7 @@ typedef uint64_t gen8_ppgtt_pml4e_t;
  * 3:1 of the PTE, while the fourth bit is stored in bit 11 of the PTE.
  */
 #define HSW_CACHEABILITY_CONTROL(bits)	((((bits) & 0x7) << 1) | \
-					 (((bits) & 0x8) << (11 - 3)))
+		(((bits) & 0x8) << (11 - 3)))
 #define HSW_WB_LLC_AGE3			HSW_CACHEABILITY_CONTROL(0x2)
 #define HSW_WB_LLC_AGE0			HSW_CACHEABILITY_CONTROL(0x3)
 #define HSW_WB_ELLC_LLC_AGE3		HSW_CACHEABILITY_CONTROL(0x8)
@@ -119,7 +119,7 @@ typedef uint64_t gen8_ppgtt_pml4e_t;
 #define GEN8_PTES			I915_PTES(sizeof(gen8_pte_t))
 
 #define I915_PDPES_PER_PDP(dev) (USES_FULL_48BIT_PPGTT(dev) ?\
-				 GEN8_PML4ES_PER_PML4 : GEN8_LEGACY_PDPES)
+								 GEN8_PML4ES_PER_PML4 : GEN8_LEGACY_PDPES)
 
 #define PPAT_UNCACHED_INDEX		(_PAGE_PWT | _PAGE_PCD)
 #define PPAT_CACHED_PDE_INDEX		0 /* WB LLC */
@@ -138,24 +138,30 @@ typedef uint64_t gen8_ppgtt_pml4e_t;
 #define GEN8_PPAT_ELLC_OVERRIDE		(0<<2)
 #define GEN8_PPAT(i, x)			((uint64_t) (x) << ((i) * 8))
 
-enum i915_ggtt_view_type {
+enum i915_ggtt_view_type
+{
 	I915_GGTT_VIEW_NORMAL = 0,
 	I915_GGTT_VIEW_ROTATED,
 	I915_GGTT_VIEW_PARTIAL,
 };
 
-struct intel_rotation_info {
-	struct {
+struct intel_rotation_info
+{
+	struct
+	{
 		/* tiles */
 		unsigned int width, height, stride, offset;
 	} plane[2];
 };
 
-struct i915_ggtt_view {
+struct i915_ggtt_view
+{
 	enum i915_ggtt_view_type type;
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u64 offset;
 			unsigned int size;
 		} partial;
@@ -176,7 +182,8 @@ enum i915_cache_level;
  * To make things as simple as possible (ie. no refcounting), a VMA's lifetime
  * will always be <= an objects lifetime. So object refcounting should cover us.
  */
-struct i915_vma {
+struct i915_vma
+{
 	struct drm_mm_node node;
 	struct drm_i915_gem_object *obj;
 	struct i915_address_space *vm;
@@ -240,8 +247,8 @@ struct i915_vma {
 
 struct i915_vma *
 i915_vma_create(struct drm_i915_gem_object *obj,
-		struct i915_address_space *vm,
-		const struct i915_ggtt_view *view);
+				struct i915_address_space *vm,
+				const struct i915_ggtt_view *view);
 void i915_vma_unpin_and_release(struct i915_vma **p_vma);
 
 static inline bool i915_vma_is_ggtt(const struct i915_vma *vma)
@@ -270,19 +277,19 @@ static inline bool i915_vma_is_active(const struct i915_vma *vma)
 }
 
 static inline void i915_vma_set_active(struct i915_vma *vma,
-				       unsigned int engine)
+									   unsigned int engine)
 {
 	vma->active |= BIT(engine);
 }
 
 static inline void i915_vma_clear_active(struct i915_vma *vma,
-					 unsigned int engine)
+		unsigned int engine)
 {
 	vma->active &= ~BIT(engine);
 }
 
 static inline bool i915_vma_has_active_engine(const struct i915_vma *vma,
-					      unsigned int engine)
+		unsigned int engine)
 {
 	return vma->active & BIT(engine);
 }
@@ -296,9 +303,11 @@ static inline u32 i915_ggtt_offset(const struct i915_vma *vma)
 	return lower_32_bits(vma->node.start);
 }
 
-struct i915_page_dma {
+struct i915_page_dma
+{
 	struct page *page;
-	union {
+	union
+	{
 		dma_addr_t daddr;
 
 		/* For gen6/gen7 only. This is the offset in the GGTT
@@ -312,34 +321,39 @@ struct i915_page_dma {
 #define px_page(px) (px_base(px)->page)
 #define px_dma(px) (px_base(px)->daddr)
 
-struct i915_page_table {
+struct i915_page_table
+{
 	struct i915_page_dma base;
 
 	unsigned long *used_ptes;
 };
 
-struct i915_page_directory {
+struct i915_page_directory
+{
 	struct i915_page_dma base;
 
 	unsigned long *used_pdes;
 	struct i915_page_table *page_table[I915_PDES]; /* PDEs */
 };
 
-struct i915_page_directory_pointer {
+struct i915_page_directory_pointer
+{
 	struct i915_page_dma base;
 
 	unsigned long *used_pdpes;
 	struct i915_page_directory **page_directory;
 };
 
-struct i915_pml4 {
+struct i915_pml4
+{
 	struct i915_page_dma base;
 
 	DECLARE_BITMAP(used_pml4es, GEN8_PML4ES_PER_PML4);
 	struct i915_page_directory_pointer *pdps[GEN8_PML4ES_PER_PML4];
 };
 
-struct i915_address_space {
+struct i915_address_space
+{
 	struct drm_mm mm;
 	struct drm_device *dev;
 	/* Every address space belongs to a struct file - except for the global
@@ -394,34 +408,34 @@ struct i915_address_space {
 
 	/* FIXME: Need a more generic return type */
 	gen6_pte_t (*pte_encode)(dma_addr_t addr,
-				 enum i915_cache_level level,
-				 bool valid, u32 flags); /* Create a valid PTE */
+							 enum i915_cache_level level,
+							 bool valid, u32 flags); /* Create a valid PTE */
 	/* flags for pte_encode */
 #define PTE_READ_ONLY	(1<<0)
 	int (*allocate_va_range)(struct i915_address_space *vm,
-				 uint64_t start,
-				 uint64_t length);
+							 uint64_t start,
+							 uint64_t length);
 	void (*clear_range)(struct i915_address_space *vm,
-			    uint64_t start,
-			    uint64_t length,
-			    bool use_scratch);
+						uint64_t start,
+						uint64_t length,
+						bool use_scratch);
 	void (*insert_page)(struct i915_address_space *vm,
-			    dma_addr_t addr,
-			    uint64_t offset,
-			    enum i915_cache_level cache_level,
-			    u32 flags);
+						dma_addr_t addr,
+						uint64_t offset,
+						enum i915_cache_level cache_level,
+						u32 flags);
 	void (*insert_entries)(struct i915_address_space *vm,
-			       struct sg_table *st,
-			       uint64_t start,
-			       enum i915_cache_level cache_level, u32 flags);
+						   struct sg_table *st,
+						   uint64_t start,
+						   enum i915_cache_level cache_level, u32 flags);
 	void (*cleanup)(struct i915_address_space *vm);
 	/** Unmap an object from an address space. This usually consists of
 	 * setting the valid PTE entries to a reserved scratch page. */
 	void (*unbind_vma)(struct i915_vma *vma);
 	/* Map an object into an address space with the given cache flags. */
 	int (*bind_vma)(struct i915_vma *vma,
-			enum i915_cache_level cache_level,
-			u32 flags);
+					enum i915_cache_level cache_level,
+					u32 flags);
 };
 
 #define i915_is_ggtt(V) (!(V)->file)
@@ -433,7 +447,8 @@ struct i915_address_space {
  * and correct (in cases like swizzling). That region is referred to as GMADR in
  * the spec.
  */
-struct i915_ggtt {
+struct i915_ggtt
+{
 	struct i915_address_space base;
 	struct io_mapping mappable;	/* Mapping to our CPU mappable region */
 
@@ -452,12 +467,14 @@ struct i915_ggtt {
 	int mtrr;
 };
 
-struct i915_hw_ppgtt {
+struct i915_hw_ppgtt
+{
 	struct i915_address_space base;
 	struct kref ref;
 	struct drm_mm_node node;
 	unsigned long pd_dirty_rings;
-	union {
+	union
+	{
 		struct i915_pml4 pml4;		/* GEN8+ & 48b PPGTT */
 		struct i915_page_directory_pointer pdp;	/* GEN8+ */
 		struct i915_page_directory pd;		/* GEN6-7 */
@@ -467,7 +484,7 @@ struct i915_hw_ppgtt {
 
 	int (*enable)(struct i915_hw_ppgtt *ppgtt);
 	int (*switch_mm)(struct i915_hw_ppgtt *ppgtt,
-			 struct drm_i915_gem_request *req);
+					 struct drm_i915_gem_request *req);
 	void (*debug_dump)(struct i915_hw_ppgtt *ppgtt, struct seq_file *m);
 };
 
@@ -481,17 +498,17 @@ struct i915_hw_ppgtt {
  */
 #define gen6_for_each_pde(pt, pd, start, length, iter)			\
 	for (iter = gen6_pde_index(start);				\
-	     length > 0 && iter < I915_PDES &&				\
-		(pt = (pd)->page_table[iter], true);			\
-	     ({ u32 temp = ALIGN(start+1, 1 << GEN6_PDE_SHIFT);		\
-		    temp = min(temp - start, length);			\
-		    start += temp, length -= temp; }), ++iter)
+		 length > 0 && iter < I915_PDES &&				\
+		 (pt = (pd)->page_table[iter], true);			\
+	({ u32 temp = ALIGN(start+1, 1 << GEN6_PDE_SHIFT);		\
+		temp = min(temp - start, length);			\
+		start += temp, length -= temp; }), ++iter)
 
 #define gen6_for_all_pdes(pt, pd, iter)					\
 	for (iter = 0;							\
-	     iter < I915_PDES &&					\
-		(pt = (pd)->page_table[iter], true);			\
-	     ++iter)
+		 iter < I915_PDES &&					\
+		 (pt = (pd)->page_table[iter], true);			\
+		 ++iter)
 
 static inline uint32_t i915_pte_index(uint64_t address, uint32_t pde_shift)
 {
@@ -505,18 +522,20 @@ static inline uint32_t i915_pte_index(uint64_t address, uint32_t pde_shift)
  * GEN6_PTES for GEN6, and GEN8_PTES for GEN8.
 */
 static inline uint32_t i915_pte_count(uint64_t addr, size_t length,
-				      uint32_t pde_shift)
+									  uint32_t pde_shift)
 {
 	const uint64_t mask = ~((1ULL << pde_shift) - 1);
 	uint64_t end;
 
 	WARN_ON(length == 0);
-	WARN_ON(offset_in_page(addr|length));
+	WARN_ON(offset_in_page(addr | length));
 
 	end = addr + length;
 
 	if ((addr & mask) != (end & mask))
+	{
 		return NUM_PTE(pde_shift) - i915_pte_index(addr, pde_shift);
+	}
 
 	return i915_pte_index(end, pde_shift) - i915_pte_index(addr, pde_shift);
 }
@@ -547,27 +566,27 @@ static inline uint32_t gen6_pde_index(uint32_t addr)
  */
 #define gen8_for_each_pde(pt, pd, start, length, iter)			\
 	for (iter = gen8_pde_index(start);				\
-	     length > 0 && iter < I915_PDES &&				\
-		(pt = (pd)->page_table[iter], true);			\
-	     ({ u64 temp = ALIGN(start+1, 1 << GEN8_PDE_SHIFT);		\
-		    temp = min(temp - start, length);			\
-		    start += temp, length -= temp; }), ++iter)
+		 length > 0 && iter < I915_PDES &&				\
+		 (pt = (pd)->page_table[iter], true);			\
+	({ u64 temp = ALIGN(start+1, 1 << GEN8_PDE_SHIFT);		\
+		temp = min(temp - start, length);			\
+		start += temp, length -= temp; }), ++iter)
 
 #define gen8_for_each_pdpe(pd, pdp, start, length, iter)		\
 	for (iter = gen8_pdpe_index(start);				\
-	     length > 0 && iter < I915_PDPES_PER_PDP(dev) &&		\
-		(pd = (pdp)->page_directory[iter], true);		\
-	     ({ u64 temp = ALIGN(start+1, 1 << GEN8_PDPE_SHIFT);	\
-		    temp = min(temp - start, length);			\
-		    start += temp, length -= temp; }), ++iter)
+		 length > 0 && iter < I915_PDPES_PER_PDP(dev) &&		\
+		 (pd = (pdp)->page_directory[iter], true);		\
+	({ u64 temp = ALIGN(start+1, 1 << GEN8_PDPE_SHIFT);	\
+		temp = min(temp - start, length);			\
+		start += temp, length -= temp; }), ++iter)
 
 #define gen8_for_each_pml4e(pdp, pml4, start, length, iter)		\
 	for (iter = gen8_pml4e_index(start);				\
-	     length > 0 && iter < GEN8_PML4ES_PER_PML4 &&		\
-		(pdp = (pml4)->pdps[iter], true);			\
-	     ({ u64 temp = ALIGN(start+1, 1ULL << GEN8_PML4E_SHIFT);	\
-		    temp = min(temp - start, length);			\
-		    start += temp, length -= temp; }), ++iter)
+		 length > 0 && iter < GEN8_PML4ES_PER_PML4 &&		\
+		 (pdp = (pml4)->pdps[iter], true);			\
+	({ u64 temp = ALIGN(start+1, 1ULL << GEN8_PML4E_SHIFT);	\
+		temp = min(temp - start, length);			\
+		start += temp, length -= temp; }), ++iter)
 
 static inline uint32_t gen8_pte_index(uint64_t address)
 {
@@ -598,8 +617,8 @@ static inline dma_addr_t
 i915_page_dir_dma_addr(const struct i915_hw_ppgtt *ppgtt, const unsigned n)
 {
 	return test_bit(n, ppgtt->pdp.used_pdpes) ?
-		px_dma(ppgtt->pdp.page_directory[n]) :
-		px_dma(ppgtt->base.scratch_pd);
+		   px_dma(ppgtt->pdp.page_directory[n]) :
+		   px_dma(ppgtt->base.scratch_pd);
 }
 
 int i915_ggtt_probe_hw(struct drm_i915_private *dev_priv);
@@ -611,16 +630,20 @@ void i915_ggtt_cleanup_hw(struct drm_i915_private *dev_priv);
 int i915_ppgtt_init_hw(struct drm_device *dev);
 void i915_ppgtt_release(struct kref *kref);
 struct i915_hw_ppgtt *i915_ppgtt_create(struct drm_i915_private *dev_priv,
-					struct drm_i915_file_private *fpriv);
+										struct drm_i915_file_private *fpriv);
 static inline void i915_ppgtt_get(struct i915_hw_ppgtt *ppgtt)
 {
 	if (ppgtt)
+	{
 		kref_get(&ppgtt->ref);
+	}
 }
 static inline void i915_ppgtt_put(struct i915_hw_ppgtt *ppgtt)
 {
 	if (ppgtt)
+	{
 		kref_put(&ppgtt->ref, i915_ppgtt_release);
+	}
 }
 
 void i915_check_and_clear_faults(struct drm_i915_private *dev_priv);
@@ -647,7 +670,7 @@ void i915_gem_gtt_finish_object(struct drm_i915_gem_object *obj);
 #define PIN_OFFSET_MASK		(~4095)
 
 int __i915_vma_do_pin(struct i915_vma *vma,
-		      u64 size, u64 alignment, u64 flags);
+					  u64 size, u64 alignment, u64 flags);
 static inline int __must_check
 i915_vma_pin(struct i915_vma *vma, u64 size, u64 alignment, u64 flags)
 {
@@ -659,7 +682,9 @@ i915_vma_pin(struct i915_vma *vma, u64 size, u64 alignment, u64 flags)
 	 * our vma as we insert and bind.
 	 */
 	if (likely(((++vma->flags ^ flags) & I915_VMA_BIND_MASK) == 0))
+	{
 		return 0;
+	}
 
 	return __i915_vma_do_pin(vma, size, alignment, flags);
 }

@@ -25,7 +25,8 @@
 #define LED_BLINK_FASTER_INTERVAL_ALPHA		50
 #define LED_BLINK_WPS_SUCCESS_INTERVAL_ALPHA	5000
 
-enum LED_CTL_MODE {
+enum LED_CTL_MODE
+{
 	LED_CTL_POWER_ON,
 	LED_CTL_LINK,
 	LED_CTL_NO_LINK,
@@ -40,7 +41,8 @@ enum LED_CTL_MODE {
 	LED_CTL_STOP_WPS_FAIL
 };
 
-enum LED_STATE_871x {
+enum LED_STATE_871x
+{
 	LED_UNKNOWN,
 	RTW_LED_ON,
 	RTW_LED_OFF,
@@ -53,7 +55,8 @@ enum LED_STATE_871x {
 	LED_BLINK_WPS_STOP
 };
 
-struct LED_871x {
+struct LED_871x
+{
 	struct adapter *padapter;
 
 	enum LED_STATE_871x	CurrLedState; /*  Current LED state. */
@@ -83,17 +86,18 @@ struct LED_871x {
 
 #define IS_LED_WPS_BLINKING(_LED_871x)					\
 	(((struct LED_871x *)_LED_871x)->CurrLedState == LED_BLINK_WPS || \
-	((struct LED_871x *)_LED_871x)->CurrLedState == LED_BLINK_WPS_STOP || \
-	((struct LED_871x *)_LED_871x)->bLedWPSBlinkInProgress)
+	 ((struct LED_871x *)_LED_871x)->CurrLedState == LED_BLINK_WPS_STOP || \
+	 ((struct LED_871x *)_LED_871x)->bLedWPSBlinkInProgress)
 
 void LedControl8188eu(struct adapter *padapter, enum LED_CTL_MODE	LedAction);
 
-struct led_priv {
+struct led_priv
+{
 	/* add for led control */
 	struct LED_871x			SwLed0;
 	u8	bRegUseLed;
 	void (*LedControlHandler)(struct adapter *padapter,
-				  enum LED_CTL_MODE LedAction);
+							  enum LED_CTL_MODE LedAction);
 	/* add for led control */
 };
 

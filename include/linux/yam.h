@@ -56,7 +56,8 @@
 
 #define YAM_FPGA_SIZE	5302
 
-struct yamcfg {
+struct yamcfg
+{
 	unsigned int mask;		/* Mask of commands */
 	unsigned int iobase;	/* IO Base of COM port */
 	unsigned int irq;		/* IRQ of COM port */
@@ -70,12 +71,14 @@ struct yamcfg {
 	unsigned int holddly;	/* PTT delay in FullDuplex 2 mode */
 };
 
-struct yamdrv_ioctl_cfg {
+struct yamdrv_ioctl_cfg
+{
 	int cmd;
 	struct yamcfg cfg;
 };
 
-struct yamdrv_ioctl_mcs {
+struct yamdrv_ioctl_mcs
+{
 	int cmd;
 	unsigned int bitrate;
 	unsigned char bits[YAM_FPGA_SIZE];

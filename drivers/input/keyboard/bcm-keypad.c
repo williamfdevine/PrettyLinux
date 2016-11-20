@@ -73,7 +73,8 @@
 #define BIT_TO_COL(bit_nr)		((bit_nr) % 8)
 
 /* Structure representing various run-time entities */
-struct bcm_kp {
+struct bcm_kp
+{
 	void __iomem *base;
 	int irq;
 	struct clk *clk;
@@ -115,7 +116,8 @@ static void bcm_kp_report_keys(struct bcm_kp *kp, int reg_num, int pull_mode)
 	change = kp->last_state[reg_num] ^ state;
 	kp->last_state[reg_num] = state;
 
-	for_each_set_bit(bit_nr, &change, BITS_PER_LONG) {
+	for_each_set_bit(bit_nr, &change, BITS_PER_LONG)
+	{
 		key_press = state & BIT(bit_nr);
 		/* The meaning of SSR register depends on pull mode. */
 		key_press = pull_mode ? !key_press : key_press;
@@ -133,7 +135,9 @@ static irqreturn_t bcm_kp_isr_thread(int irq, void *dev_id)
 	int reg_num;
 
 	for (reg_num = 0; reg_num <= 1; reg_num++)
+	{
 		bcm_kp_report_keys(kp, reg_num, pull_mode);
+	}
 
 	input_sync(kp->input_dev);
 
@@ -144,10 +148,14 @@ static int bcm_kp_start(struct bcm_kp *kp)
 {
 	int error;
 
-	if (kp->clk) {
+	if (kp->clk)
+	{
 		error = clk_prepare_enable(kp->clk);
+
 		if (error)
+		{
 			return error;
+		}
 	}
 
 	writel(kp->kpior, kp->base + KPIOR_OFFSET);
@@ -184,7 +192,9 @@ static void bcm_kp_stop(const struct bcm_kp *kp)
 	writel(0xFFFFFFFF, kp->base + KPICR1_OFFSET);
 
 	if (kp->clk)
+	{
 		clk_disable_unprepare(kp->clk);
+	}
 }
 
 static int bcm_kp_open(struct input_dev *dev)
@@ -214,7 +224,9 @@ static int bcm_kp_matrix_key_parse_dt(struct bcm_kp *kp)
 	kp->kpcr = KPCR_STATUSFILTERENABLE | KPCR_COLFILTERENABLE;
 
 	error = matrix_keypad_parse_of_params(dev, &kp->n_rows, &kp->n_cols);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(dev, "failed to parse kp params\n");
 		return error;
 	}
@@ -239,22 +251,33 @@ static int bcm_kp_matrix_key_parse_dt(struct bcm_kp *kp)
 	kp->imr0_val = col_mask;
 
 	rows_set = 1;
+
 	while (--num_rows && rows_set++ < 4)
+	{
 		kp->imr0_val |= kp->imr0_val << MAX_COLS;
+	}
 
 	/* Set column bits in rows 4 to 7 in IMR1 */
 	kp->imr1_val = 0;
-	if (num_rows) {
+
+	if (num_rows)
+	{
 		kp->imr1_val = col_mask;
+
 		while (--num_rows)
+		{
 			kp->imr1_val |= kp->imr1_val << MAX_COLS;
+		}
 	}
 
 	/* Initialize the KPEMR Keypress Edge Mode Registers */
 	/* Trigger on both edges */
 	kp->kpemr = 0;
+
 	for (i = 0; i <= 30; i += 2)
+	{
 		kp->kpemr |= (KPEMR_EDGETYPE_BOTH << i);
+	}
 
 	/*
 	 * Obtain the Status filter debounce value and verify against the
@@ -262,9 +285,10 @@ static int bcm_kp_matrix_key_parse_dt(struct bcm_kp *kp)
 	 */
 	of_property_read_u32(np, "status-debounce-filter-period", &dt_val);
 
-	if (dt_val > KPCR_STATUSFILTERTYPE_MAX) {
+	if (dt_val > KPCR_STATUSFILTERTYPE_MAX)
+	{
 		dev_err(dev, "Invalid Status filter debounce value %d\n",
-			dt_val);
+				dt_val);
 		return -EINVAL;
 	}
 
@@ -276,9 +300,10 @@ static int bcm_kp_matrix_key_parse_dt(struct bcm_kp *kp)
 	 */
 	of_property_read_u32(np, "col-debounce-filter-period", &dt_val);
 
-	if (dt_val > KPCR_COLFILTERTYPE_MAX) {
+	if (dt_val > KPCR_COLFILTERTYPE_MAX)
+	{
 		dev_err(dev, "Invalid Column filter debounce value %d\n",
-			dt_val);
+				dt_val);
 		return -EINVAL;
 	}
 
@@ -288,27 +313,32 @@ static int bcm_kp_matrix_key_parse_dt(struct bcm_kp *kp)
 	 * Determine between the row and column,
 	 * which should be configured as output.
 	 */
-	if (of_property_read_bool(np, "row-output-enabled")) {
+	if (of_property_read_bool(np, "row-output-enabled"))
+	{
 		/*
 		* Set RowOContrl or ColumnOContrl in KPIOR
 		* to the number of pins to drive as outputs
 		*/
 		kp->kpior = ((1 << kp->n_rows) - 1) <<
-				KPIOR_ROWOCONTRL_SHIFT;
-	} else {
+					KPIOR_ROWOCONTRL_SHIFT;
+	}
+	else
+	{
 		kp->kpior = ((1 << kp->n_cols) - 1) <<
-				KPIOR_COLUMNOCONTRL_SHIFT;
+					KPIOR_COLUMNOCONTRL_SHIFT;
 	}
 
 	/*
 	 * Determine if the scan pull up needs to be enabled
 	 */
 	if (of_property_read_bool(np, "pull-up-enabled"))
+	{
 		kp->kpcr |= KPCR_MODE;
+	}
 
 	dev_dbg(dev, "n_rows=%d n_col=%d kpcr=%x kpior=%x kpemr=%x\n",
-		kp->n_rows, kp->n_cols,
-		kp->kpcr, kp->kpior, kp->kpemr);
+			kp->n_rows, kp->n_cols,
+			kp->kpcr, kp->kpior, kp->kpemr);
 
 	return 0;
 }
@@ -322,11 +352,16 @@ static int bcm_kp_probe(struct platform_device *pdev)
 	int error;
 
 	kp = devm_kzalloc(&pdev->dev, sizeof(*kp), GFP_KERNEL);
+
 	if (!kp)
+	{
 		return -ENOMEM;
+	}
 
 	input_dev = devm_input_allocate_device(&pdev->dev);
-	if (!input_dev) {
+
+	if (!input_dev)
+	{
 		dev_err(&pdev->dev, "failed to allocate the input device\n");
 		return -ENOMEM;
 	}
@@ -335,7 +370,9 @@ static int bcm_kp_probe(struct platform_device *pdev)
 
 	/* Enable auto repeat feature of Linux input subsystem */
 	if (of_property_read_bool(pdev->dev.of_node, "autorepeat"))
+	{
 		__set_bit(EV_REP, input_dev->evbit);
+	}
 
 	input_dev->name = pdev->name;
 	input_dev->phys = "keypad/input0";
@@ -355,81 +392,119 @@ static int bcm_kp_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, kp);
 
 	error = bcm_kp_matrix_key_parse_dt(kp);
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = matrix_keypad_build_keymap(NULL, NULL,
-					   kp->n_rows, kp->n_cols,
-					   NULL, input_dev);
-	if (error) {
+									   kp->n_rows, kp->n_cols,
+									   NULL, input_dev);
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "failed to build keymap\n");
 		return error;
 	}
 
 	/* Get the KEYPAD base address */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "Missing keypad base address resource\n");
 		return -ENODEV;
 	}
 
 	kp->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(kp->base))
+	{
 		return PTR_ERR(kp->base);
+	}
 
 	/* Enable clock */
 	kp->clk = devm_clk_get(&pdev->dev, "peri_clk");
-	if (IS_ERR(kp->clk)) {
+
+	if (IS_ERR(kp->clk))
+	{
 		error = PTR_ERR(kp->clk);
-		if (error != -ENOENT) {
+
+		if (error != -ENOENT)
+		{
 			if (error != -EPROBE_DEFER)
+			{
 				dev_err(&pdev->dev, "Failed to get clock\n");
+			}
+
 			return error;
 		}
+
 		dev_dbg(&pdev->dev,
-			"No clock specified. Assuming it's enabled\n");
+				"No clock specified. Assuming it's enabled\n");
 		kp->clk = NULL;
-	} else {
+	}
+	else
+	{
 		unsigned int desired_rate;
 		long actual_rate;
 
 		error = of_property_read_u32(pdev->dev.of_node,
-					     "clock-frequency", &desired_rate);
+									 "clock-frequency", &desired_rate);
+
 		if (error < 0)
+		{
 			desired_rate = DEFAULT_CLK_HZ;
+		}
 
 		actual_rate = clk_round_rate(kp->clk, desired_rate);
+
 		if (actual_rate <= 0)
+		{
 			return -EINVAL;
+		}
 
 		error = clk_set_rate(kp->clk, actual_rate);
+
 		if (error)
+		{
 			return error;
+		}
 
 		error = clk_prepare_enable(kp->clk);
+
 		if (error)
+		{
 			return error;
+		}
 	}
 
 	/* Put the kp into a known sane state */
 	bcm_kp_stop(kp);
 
 	kp->irq = platform_get_irq(pdev, 0);
-	if (kp->irq < 0) {
+
+	if (kp->irq < 0)
+	{
 		dev_err(&pdev->dev, "no IRQ specified\n");
 		return -EINVAL;
 	}
 
 	error = devm_request_threaded_irq(&pdev->dev, kp->irq,
-					  NULL, bcm_kp_isr_thread,
-					  IRQF_ONESHOT, pdev->name, kp);
-	if (error) {
+									  NULL, bcm_kp_isr_thread,
+									  IRQF_ONESHOT, pdev->name, kp);
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "failed to request IRQ\n");
 		return error;
 	}
 
 	error = input_register_device(input_dev);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "failed to register input device\n");
 		return error;
 	}
@@ -437,13 +512,15 @@ static int bcm_kp_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id bcm_kp_of_match[] = {
+static const struct of_device_id bcm_kp_of_match[] =
+{
 	{ .compatible = "brcm,bcm-keypad" },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, bcm_kp_of_match);
 
-static struct platform_driver bcm_kp_device_driver = {
+static struct platform_driver bcm_kp_device_driver =
+{
 	.probe		= bcm_kp_probe,
 	.driver		= {
 		.name	= "bcm-keypad",

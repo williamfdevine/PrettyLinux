@@ -28,15 +28,15 @@
 #include "client.h"
 
 #define MEI_UUID_NFC_INFO UUID_LE(0xd2de1625, 0x382d, 0x417d, \
-			0x48, 0xa4, 0xef, 0xab, 0xba, 0x8a, 0x12, 0x06)
+								  0x48, 0xa4, 0xef, 0xab, 0xba, 0x8a, 0x12, 0x06)
 
 static const uuid_le mei_nfc_info_guid = MEI_UUID_NFC_INFO;
 
 #define MEI_UUID_NFC_HCI UUID_LE(0x0bb17a78, 0x2a8e, 0x4c50, \
-			0x94, 0xd4, 0x50, 0x26, 0x67, 0x23, 0x77, 0x5c)
+								 0x94, 0xd4, 0x50, 0x26, 0x67, 0x23, 0x77, 0x5c)
 
 #define MEI_UUID_WD UUID_LE(0x05B79A6F, 0x4628, 0x4D7F, \
-			    0x89, 0x9D, 0xA9, 0x15, 0x14, 0xCB, 0x32, 0xAB)
+							0x89, 0x9D, 0xA9, 0x15, 0x14, 0xCB, 0x32, 0xAB)
 
 #define MEI_UUID_ANY NULL_UUID_LE
 
@@ -54,7 +54,9 @@ static void number_of_connections(struct mei_cl_device *cldev)
 	dev_dbg(&cldev->dev, "running hook %s\n", __func__);
 
 	if (cldev->me_cl->props.max_number_of_connections > 1)
+	{
 		cldev->do_match = 0;
+	}
 }
 
 /**
@@ -83,10 +85,13 @@ static void mei_wd(struct mei_cl_device *cldev)
 	struct pci_dev *pdev = to_pci_dev(cldev->dev.parent);
 
 	dev_dbg(&cldev->dev, "running hook %s\n", __func__);
+
 	if (pdev->device == MEI_DEV_ID_WPT_LP ||
-	    pdev->device == MEI_DEV_ID_SPT ||
-	    pdev->device == MEI_DEV_ID_SPT_H)
+		pdev->device == MEI_DEV_ID_SPT ||
+		pdev->device == MEI_DEV_ID_SPT_H)
+	{
 		cldev->me_cl->props.protocol_version = 0x2;
+	}
 
 	cldev->do_match = 1;
 }
@@ -94,7 +99,8 @@ static void mei_wd(struct mei_cl_device *cldev)
 static inline void mei_wd(struct mei_cl_device *cldev) {}
 #endif /* CONFIG_INTEL_MEI_ME */
 
-struct mei_nfc_cmd {
+struct mei_nfc_cmd
+{
 	u8 command;
 	u8 status;
 	u16 req_id;
@@ -104,7 +110,8 @@ struct mei_nfc_cmd {
 	u8 data[];
 } __packed;
 
-struct mei_nfc_reply {
+struct mei_nfc_reply
+{
 	u8 command;
 	u8 status;
 	u16 req_id;
@@ -115,7 +122,8 @@ struct mei_nfc_reply {
 	u8 data[];
 } __packed;
 
-struct mei_nfc_if_version {
+struct mei_nfc_if_version
+{
 	u8 radio_version_sw[3];
 	u8 reserved[3];
 	u8 radio_version_hw[3];
@@ -146,10 +154,11 @@ struct mei_nfc_if_version {
  * Return: 0 on success; < 0 otherwise
  */
 static int mei_nfc_if_version(struct mei_cl *cl,
-			      struct mei_nfc_if_version *ver)
+							  struct mei_nfc_if_version *ver)
 {
 	struct mei_device *bus;
-	struct mei_nfc_cmd cmd = {
+	struct mei_nfc_cmd cmd =
+	{
 		.command = MEI_NFC_CMD_MAINTENANCE,
 		.data_size = 1,
 		.sub_command = MEI_NFC_SUBCMD_IF_VERSION,
@@ -163,22 +172,29 @@ static int mei_nfc_if_version(struct mei_cl *cl,
 	WARN_ON(mutex_is_locked(&bus->device_lock));
 
 	ret = __mei_cl_send(cl, (u8 *)&cmd, sizeof(struct mei_nfc_cmd), 1);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(bus->dev, "Could not send IF version cmd\n");
 		return ret;
 	}
 
 	/* to be sure on the stack we alloc memory */
 	if_version_length = sizeof(struct mei_nfc_reply) +
-		sizeof(struct mei_nfc_if_version);
+						sizeof(struct mei_nfc_if_version);
 
 	reply = kzalloc(if_version_length, GFP_KERNEL);
+
 	if (!reply)
+	{
 		return -ENOMEM;
+	}
 
 	ret = 0;
 	bytes_recv = __mei_cl_recv(cl, (u8 *)reply, if_version_length);
-	if (bytes_recv < if_version_length) {
+
+	if (bytes_recv < if_version_length)
+	{
 		dev_err(bus->dev, "Could not read IF version\n");
 		ret = -EIO;
 		goto err;
@@ -187,7 +203,7 @@ static int mei_nfc_if_version(struct mei_cl *cl,
 	memcpy(ver, reply->data, sizeof(struct mei_nfc_if_version));
 
 	dev_info(bus->dev, "NFC MEI VERSION: IVN 0x%x Vendor ID 0x%x Type 0x%x\n",
-		ver->fw_ivn, ver->vendor_id, ver->radio_type);
+			 ver->fw_ivn, ver->vendor_id, ver->radio_type);
 
 err:
 	kfree(reply);
@@ -204,14 +220,20 @@ err:
 static const char *mei_nfc_radio_name(struct mei_nfc_if_version *ver)
 {
 
-	if (ver->vendor_id == MEI_NFC_VENDOR_INSIDE) {
+	if (ver->vendor_id == MEI_NFC_VENDOR_INSIDE)
+	{
 		if (ver->radio_type == MEI_NFC_VENDOR_INSIDE_UREAD)
+		{
 			return "microread";
+		}
 	}
 
-	if (ver->vendor_id == MEI_NFC_VENDOR_NXP) {
+	if (ver->vendor_id == MEI_NFC_VENDOR_NXP)
+	{
 		if (ver->radio_type == MEI_NFC_VENDOR_NXP_PN544)
+		{
 			return "pn544";
+		}
 	}
 
 	return NULL;
@@ -240,7 +262,9 @@ static void mei_nfc(struct mei_cl_device *cldev)
 	mutex_lock(&bus->device_lock);
 	/* we need to connect to INFO GUID */
 	cl = mei_cl_alloc_linked(bus);
-	if (IS_ERR(cl)) {
+
+	if (IS_ERR(cl))
+	{
 		ret = PTR_ERR(cl);
 		cl = NULL;
 		dev_err(bus->dev, "nfc hook alloc failed %d\n", ret);
@@ -248,31 +272,39 @@ static void mei_nfc(struct mei_cl_device *cldev)
 	}
 
 	me_cl = mei_me_cl_by_uuid(bus, &mei_nfc_info_guid);
-	if (!me_cl) {
+
+	if (!me_cl)
+	{
 		ret = -ENOTTY;
 		dev_err(bus->dev, "Cannot find nfc info %d\n", ret);
 		goto out;
 	}
 
 	ret = mei_cl_connect(cl, me_cl, NULL);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&cldev->dev, "Can't connect to the NFC INFO ME ret = %d\n",
-			ret);
+				ret);
 		goto out;
 	}
 
 	mutex_unlock(&bus->device_lock);
 
 	ret = mei_nfc_if_version(cl, &ver);
+
 	if (ret)
+	{
 		goto disconnect;
+	}
 
 	radio_name = mei_nfc_radio_name(&ver);
 
-	if (!radio_name) {
+	if (!radio_name)
+	{
 		ret = -ENOENT;
 		dev_err(&cldev->dev, "Can't get the NFC interface version ret = %d\n",
-			ret);
+				ret);
 		goto disconnect;
 	}
 
@@ -281,8 +313,11 @@ static void mei_nfc(struct mei_cl_device *cldev)
 
 disconnect:
 	mutex_lock(&bus->device_lock);
+
 	if (mei_cl_disconnect(cl) < 0)
+	{
 		dev_err(bus->dev, "Can't disconnect the NFC INFO ME\n");
+	}
 
 	mei_cl_flush_queues(cl, NULL);
 
@@ -293,18 +328,22 @@ out:
 	kfree(cl);
 
 	if (ret)
+	{
 		cldev->do_match = 0;
+	}
 
 	dev_dbg(bus->dev, "end of fixup match = %d\n", cldev->do_match);
 }
 
 #define MEI_FIXUP(_uuid, _hook) { _uuid, _hook }
 
-static struct mei_fixup {
+static struct mei_fixup
+{
 
 	const uuid_le uuid;
 	void (*hook)(struct mei_cl_device *cldev);
-} mei_fixups[] = {
+} mei_fixups[] =
+{
 	MEI_FIXUP(MEI_UUID_ANY, number_of_connections),
 	MEI_FIXUP(MEI_UUID_NFC_INFO, blacklist),
 	MEI_FIXUP(MEI_UUID_NFC_HCI, mei_nfc),
@@ -322,12 +361,16 @@ void mei_cl_bus_dev_fixup(struct mei_cl_device *cldev)
 	const uuid_le *uuid = mei_me_cl_uuid(cldev->me_cl);
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(mei_fixups); i++) {
+	for (i = 0; i < ARRAY_SIZE(mei_fixups); i++)
+	{
 
 		f = &mei_fixups[i];
+
 		if (uuid_le_cmp(f->uuid, MEI_UUID_ANY) == 0 ||
-		    uuid_le_cmp(f->uuid, *uuid) == 0)
+			uuid_le_cmp(f->uuid, *uuid) == 0)
+		{
 			f->hook(cldev);
+		}
 	}
 }
 

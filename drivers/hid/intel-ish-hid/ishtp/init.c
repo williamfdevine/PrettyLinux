@@ -31,23 +31,31 @@
  */
 const char *ishtp_dev_state_str(int state)
 {
-	switch (state) {
-	case ISHTP_DEV_INITIALIZING:
-		return	"INITIALIZING";
-	case ISHTP_DEV_INIT_CLIENTS:
-		return	"INIT_CLIENTS";
-	case ISHTP_DEV_ENABLED:
-		return	"ENABLED";
-	case ISHTP_DEV_RESETTING:
-		return	"RESETTING";
-	case ISHTP_DEV_DISABLED:
-		return	"DISABLED";
-	case ISHTP_DEV_POWER_DOWN:
-		return	"POWER_DOWN";
-	case ISHTP_DEV_POWER_UP:
-		return	"POWER_UP";
-	default:
-		return "unknown";
+	switch (state)
+	{
+		case ISHTP_DEV_INITIALIZING:
+			return	"INITIALIZING";
+
+		case ISHTP_DEV_INIT_CLIENTS:
+			return	"INIT_CLIENTS";
+
+		case ISHTP_DEV_ENABLED:
+			return	"ENABLED";
+
+		case ISHTP_DEV_RESETTING:
+			return	"RESETTING";
+
+		case ISHTP_DEV_DISABLED:
+			return	"DISABLED";
+
+		case ISHTP_DEV_POWER_DOWN:
+			return	"POWER_DOWN";
+
+		case ISHTP_DEV_POWER_UP:
+			return	"POWER_UP";
+
+		default:
+			return "unknown";
 	}
 }
 
@@ -98,7 +106,8 @@ EXPORT_SYMBOL(ishtp_device_init);
  */
 int ishtp_start(struct ishtp_device *dev)
 {
-	if (ishtp_hbm_start_wait(dev)) {
+	if (ishtp_hbm_start_wait(dev))
+	{
 		dev_err(dev->devc, "HBM haven't started");
 		goto err;
 	}

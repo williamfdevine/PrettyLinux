@@ -29,11 +29,11 @@
 
 int
 gf119_disp_dmac_bind(struct nv50_disp_dmac *chan,
-		     struct nvkm_object *object, u32 handle)
+					 struct nvkm_object *object, u32 handle)
 {
 	return nvkm_ramht_insert(chan->base.root->ramht, object,
-				 chan->base.chid, -9, handle,
-				 chan->base.chid << 27 | 0x00000001);
+							 chan->base.chid, -9, handle,
+							 chan->base.chid << 27 | 0x00000001);
 }
 
 void
@@ -47,13 +47,15 @@ gf119_disp_dmac_fini(struct nv50_disp_dmac *chan)
 	/* deactivate channel */
 	nvkm_mask(device, 0x610490 + (chid * 0x0010), 0x00001010, 0x00001000);
 	nvkm_mask(device, 0x610490 + (chid * 0x0010), 0x00000003, 0x00000000);
+
 	if (nvkm_msec(device, 2000,
-		if (!(nvkm_rd32(device, 0x610490 + (chid * 0x10)) & 0x001e0000))
-			break;
-	) < 0) {
-		nvkm_error(subdev, "ch %d fini: %08x\n", chid,
-			   nvkm_rd32(device, 0x610490 + (chid * 0x10)));
-	}
+				  if (!(nvkm_rd32(device, 0x610490 + (chid * 0x10)) & 0x001e0000))
+					  break;
+					 ) < 0)
+		{
+			nvkm_error(subdev, "ch %d fini: %08x\n", chid,
+					   nvkm_rd32(device, 0x610490 + (chid * 0x10)));
+		}
 
 	/* disable error reporting and completion notification */
 	nvkm_mask(device, 0x610090, 0x00000001 << chid, 0x00000000);
@@ -81,19 +83,21 @@ gf119_disp_dmac_init(struct nv50_disp_dmac *chan)
 
 	/* wait for it to go inactive */
 	if (nvkm_msec(device, 2000,
-		if (!(nvkm_rd32(device, 0x610490 + (chid * 0x10)) & 0x80000000))
-			break;
-	) < 0) {
-		nvkm_error(subdev, "ch %d init: %08x\n", chid,
-			   nvkm_rd32(device, 0x610490 + (chid * 0x10)));
-		return -EBUSY;
-	}
+				  if (!(nvkm_rd32(device, 0x610490 + (chid * 0x10)) & 0x80000000))
+					  break;
+					 ) < 0)
+		{
+			nvkm_error(subdev, "ch %d init: %08x\n", chid,
+					   nvkm_rd32(device, 0x610490 + (chid * 0x10)));
+			return -EBUSY;
+		}
 
 	return 0;
 }
 
 const struct nv50_disp_dmac_func
-gf119_disp_dmac_func = {
+	gf119_disp_dmac_func =
+{
 	.init = gf119_disp_dmac_init,
 	.fini = gf119_disp_dmac_fini,
 	.bind = gf119_disp_dmac_bind,

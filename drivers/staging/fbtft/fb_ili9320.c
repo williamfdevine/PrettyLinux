@@ -27,7 +27,7 @@
 #define WIDTH		240
 #define HEIGHT		320
 #define DEFAULT_GAMMA	"07 07 6 0 0 0 5 5 4 0\n" \
-			"07 08 4 7 5 1 2 0 7 7"
+	"07 08 4 7 5 1 2 0 7 7"
 
 static unsigned int read_devicecode(struct fbtft_par *par)
 {
@@ -47,11 +47,12 @@ static int init_display(struct fbtft_par *par)
 
 	devcode = read_devicecode(par);
 	fbtft_par_dbg(DEBUG_INIT_DISPLAY, par, "Device code: 0x%04X\n",
-		      devcode);
+				  devcode);
+
 	if ((devcode != 0x0000) && (devcode != 0x9320))
 		dev_warn(par->info->device,
-			 "Unrecognized Device code: 0x%04X (expected 0x9320)\n",
-			devcode);
+				 "Unrecognized Device code: 0x%04X (expected 0x9320)\n",
+				 devcode);
 
 	/* Initialization sequence from ILI9320 Application Notes */
 
@@ -173,45 +174,55 @@ static int init_display(struct fbtft_par *par)
 
 static void set_addr_win(struct fbtft_par *par, int xs, int ys, int xe, int ye)
 {
-	switch (par->info->var.rotate) {
-	/* R20h = Horizontal GRAM Start Address */
-	/* R21h = Vertical GRAM Start Address */
-	case 0:
-		write_reg(par, 0x0020, xs);
-		write_reg(par, 0x0021, ys);
-		break;
-	case 180:
-		write_reg(par, 0x0020, WIDTH - 1 - xs);
-		write_reg(par, 0x0021, HEIGHT - 1 - ys);
-		break;
-	case 270:
-		write_reg(par, 0x0020, WIDTH - 1 - ys);
-		write_reg(par, 0x0021, xs);
-		break;
-	case 90:
-		write_reg(par, 0x0020, ys);
-		write_reg(par, 0x0021, HEIGHT - 1 - xs);
-		break;
+	switch (par->info->var.rotate)
+	{
+		/* R20h = Horizontal GRAM Start Address */
+		/* R21h = Vertical GRAM Start Address */
+		case 0:
+			write_reg(par, 0x0020, xs);
+			write_reg(par, 0x0021, ys);
+			break;
+
+		case 180:
+			write_reg(par, 0x0020, WIDTH - 1 - xs);
+			write_reg(par, 0x0021, HEIGHT - 1 - ys);
+			break;
+
+		case 270:
+			write_reg(par, 0x0020, WIDTH - 1 - ys);
+			write_reg(par, 0x0021, xs);
+			break;
+
+		case 90:
+			write_reg(par, 0x0020, ys);
+			write_reg(par, 0x0021, HEIGHT - 1 - xs);
+			break;
 	}
+
 	write_reg(par, 0x0022); /* Write Data to GRAM */
 }
 
 static int set_var(struct fbtft_par *par)
 {
-	switch (par->info->var.rotate) {
-	case 0:
-		write_reg(par, 0x3, (par->bgr << 12) | 0x30);
-		break;
-	case 270:
-		write_reg(par, 0x3, (par->bgr << 12) | 0x28);
-		break;
-	case 180:
-		write_reg(par, 0x3, (par->bgr << 12) | 0x00);
-		break;
-	case 90:
-		write_reg(par, 0x3, (par->bgr << 12) | 0x18);
-		break;
+	switch (par->info->var.rotate)
+	{
+		case 0:
+			write_reg(par, 0x3, (par->bgr << 12) | 0x30);
+			break;
+
+		case 270:
+			write_reg(par, 0x3, (par->bgr << 12) | 0x28);
+			break;
+
+		case 180:
+			write_reg(par, 0x3, (par->bgr << 12) | 0x00);
+			break;
+
+		case 90:
+			write_reg(par, 0x3, (par->bgr << 12) | 0x18);
+			break;
 	}
+
 	return 0;
 }
 
@@ -223,7 +234,8 @@ static int set_var(struct fbtft_par *par)
 #define CURVE(num, idx)  curves[num * par->gamma.num_values + idx]
 static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 {
-	unsigned long mask[] = {
+	unsigned long mask[] =
+	{
 		0x1f, 0x1f, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
 		0x1f, 0x1f, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
 	};
@@ -232,7 +244,9 @@ static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 	/* apply mask */
 	for (i = 0; i < 2; i++)
 		for (j = 0; j < 10; j++)
+		{
 			CURVE(i, j) &= mask[i * par->gamma.num_values + j];
+		}
 
 	write_reg(par, 0x0030, CURVE(0, 5) << 8 | CURVE(0, 4));
 	write_reg(par, 0x0031, CURVE(0, 7) << 8 | CURVE(0, 6));
@@ -251,7 +265,8 @@ static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 
 #undef CURVE
 
-static struct fbtft_display display = {
+static struct fbtft_display display =
+{
 	.regwidth = 16,
 	.width = WIDTH,
 	.height = HEIGHT,

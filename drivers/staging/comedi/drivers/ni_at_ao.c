@@ -98,12 +98,14 @@
 #define ATAO_2_RTSISHFT_RSI	(1 << 0)
 #define ATAO_2_RTSISTRB_REG	0x07
 
-struct atao_board {
+struct atao_board
+{
 	const char *name;
 	int n_ao_chans;
 };
 
-static const struct atao_board atao_boards[] = {
+static const struct atao_board atao_boards[] =
+{
 	{
 		.name		= "at-ao-6",
 		.n_ao_chans	= 6,
@@ -113,7 +115,8 @@ static const struct atao_board atao_boards[] = {
 	},
 };
 
-struct atao_private {
+struct atao_private
+{
 	unsigned short cfg1;
 	unsigned short cfg3;
 
@@ -126,46 +129,59 @@ static void atao_select_reg_group(struct comedi_device *dev, int group)
 	struct atao_private *devpriv = dev->private;
 
 	if (group)
+	{
 		devpriv->cfg1 |= ATAO_CFG1_GRP2WR;
+	}
 	else
+	{
 		devpriv->cfg1 &= ~ATAO_CFG1_GRP2WR;
+	}
+
 	outw(devpriv->cfg1, dev->iobase + ATAO_CFG1_REG);
 }
 
 static int atao_ao_insn_write(struct comedi_device *dev,
-			      struct comedi_subdevice *s,
-			      struct comedi_insn *insn,
-			      unsigned int *data)
+							  struct comedi_subdevice *s,
+							  struct comedi_insn *insn,
+							  unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	unsigned int val = s->readback[chan];
 	int i;
 
 	if (chan == 0)
+	{
 		atao_select_reg_group(dev, 1);
+	}
 
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		val = data[i];
 
 		/* the hardware expects two's complement values */
 		outw(comedi_offset_munge(s, val),
-		     dev->iobase + ATAO_AO_REG(chan));
+			 dev->iobase + ATAO_AO_REG(chan));
 	}
+
 	s->readback[chan] = val;
 
 	if (chan == 0)
+	{
 		atao_select_reg_group(dev, 0);
+	}
 
 	return insn->n;
 }
 
 static int atao_dio_insn_bits(struct comedi_device *dev,
-			      struct comedi_subdevice *s,
-			      struct comedi_insn *insn,
-			      unsigned int *data)
+							  struct comedi_subdevice *s,
+							  struct comedi_insn *insn,
+							  unsigned int *data)
 {
 	if (comedi_dio_update_state(s, data))
+	{
 		outw(s->state, dev->iobase + ATAO_DIO_REG);
+	}
 
 	data[1] = inw(dev->iobase + ATAO_DIO_REG);
 
@@ -173,9 +189,9 @@ static int atao_dio_insn_bits(struct comedi_device *dev,
 }
 
 static int atao_dio_insn_config(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_insn *insn,
-				unsigned int *data)
+								struct comedi_subdevice *s,
+								struct comedi_insn *insn,
+								unsigned int *data)
 {
 	struct atao_private *devpriv = dev->private;
 	unsigned int chan = CR_CHAN(insn->chanspec);
@@ -183,22 +199,38 @@ static int atao_dio_insn_config(struct comedi_device *dev,
 	int ret;
 
 	if (chan < 4)
+	{
 		mask = 0x0f;
+	}
 	else
+	{
 		mask = 0xf0;
+	}
 
 	ret = comedi_dio_insn_config(dev, s, insn, data, mask);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (s->io_bits & 0x0f)
+	{
 		devpriv->cfg3 |= ATAO_CFG3_DOUTEN1;
+	}
 	else
+	{
 		devpriv->cfg3 &= ~ATAO_CFG3_DOUTEN1;
+	}
+
 	if (s->io_bits & 0xf0)
+	{
 		devpriv->cfg3 |= ATAO_CFG3_DOUTEN2;
+	}
 	else
+	{
 		devpriv->cfg3 &= ~ATAO_CFG3_DOUTEN2;
+	}
 
 	outw(devpriv->cfg3, dev->iobase + ATAO_CFG3_REG);
 
@@ -239,13 +271,14 @@ static int atao_dio_insn_config(struct comedi_device *dev,
  *        DAC2 Chan 7    0x47   Reserved
  */
 static int atao_calib_insn_write(struct comedi_device *dev,
-				 struct comedi_subdevice *s,
-				 struct comedi_insn *insn,
-				 unsigned int *data)
+								 struct comedi_subdevice *s,
+								 struct comedi_insn *insn,
+								 unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 
-	if (insn->n) {
+	if (insn->n)
+	{
 		unsigned int val = data[insn->n - 1];
 		unsigned int bitstring = ((chan & 0x7) << 8) | val;
 		unsigned int bits;
@@ -253,12 +286,13 @@ static int atao_calib_insn_write(struct comedi_device *dev,
 
 		/* write the channel and last data value to the caldac */
 		/* clock the bitstring to the caldac; MSB -> LSB */
-		for (bit = 1 << 10; bit; bit >>= 1) {
+		for (bit = 1 << 10; bit; bit >>= 1)
+		{
 			bits = (bit & bitstring) ? ATAO_CFG2_SDATA : 0;
 
 			outw(bits, dev->iobase + ATAO_CFG2_REG);
 			outw(bits | ATAO_CFG2_SCLK,
-			     dev->iobase + ATAO_CFG2_REG);
+				 dev->iobase + ATAO_CFG2_REG);
 		}
 
 		/* strobe the caldac to load the value */
@@ -307,21 +341,33 @@ static int atao_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	int ret;
 
 	ret = comedi_request_region(dev, it->options[0], 0x20);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	devpriv = comedi_alloc_devpriv(dev, sizeof(*devpriv));
+
 	if (!devpriv)
+	{
 		return -ENOMEM;
+	}
 
 	dev->pacer = comedi_8254_init(dev->iobase + ATAO_82C53_BASE,
-				      0, I8254_IO8, 0);
+								  0, I8254_IO8, 0);
+
 	if (!dev->pacer)
+	{
 		return -ENOMEM;
+	}
 
 	ret = comedi_alloc_subdevices(dev, 4);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Analog Output subdevice */
 	s = &dev->subdevices[0];
@@ -333,8 +379,11 @@ static int atao_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	s->insn_write	= atao_ao_insn_write;
 
 	ret = comedi_alloc_subdev_readback(s);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Digital I/O subdevice */
 	s = &dev->subdevices[1];
@@ -355,8 +404,11 @@ static int atao_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	s->insn_write	= atao_calib_insn_write;
 
 	ret = comedi_alloc_subdev_readback(s);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* EEPROM subdevice */
 	s = &dev->subdevices[3];
@@ -367,7 +419,8 @@ static int atao_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	return 0;
 }
 
-static struct comedi_driver ni_at_ao_driver = {
+static struct comedi_driver ni_at_ao_driver =
+{
 	.driver_name	= "ni_at_ao",
 	.module		= THIS_MODULE,
 	.attach		= atao_attach,

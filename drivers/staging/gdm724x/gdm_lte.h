@@ -23,19 +23,22 @@
 #define MAX_RX_SUBMIT_COUNT	3
 #define DRIVER_VERSION		"3.7.17.0"
 
-enum TX_ERROR_CODE {
+enum TX_ERROR_CODE
+{
 	TX_NO_ERROR = 0,
 	TX_NO_DEV,
 	TX_NO_SPC,
 	TX_NO_BUFFER,
 };
 
-enum CALLBACK_CONTEXT {
+enum CALLBACK_CONTEXT
+{
 	KERNEL_THREAD = 0,
 	USB_COMPLETE,
 };
 
-struct pdn_table {
+struct pdn_table
+{
 	u8 activate;
 	u32 dft_eps_id;
 	u32 nic_type;
@@ -43,23 +46,25 @@ struct pdn_table {
 
 struct nic;
 
-struct phy_dev {
+struct phy_dev
+{
 	void	*priv_dev;
 	struct net_device *dev[MAX_NIC_TYPE];
 	int	(*send_hci_func)(void *priv_dev, void *data, int len,
-			void (*cb)(void *cb_data), void *cb_data);
+						 void (*cb)(void *cb_data), void *cb_data);
 	int	(*send_sdu_func)(void *priv_dev, void *data, int len,
-			unsigned int dftEpsId, unsigned int epsId,
-			void (*cb)(void *cb_data), void *cb_data,
-			int dev_idx, int nic_type);
+						 unsigned int dftEpsId, unsigned int epsId,
+						 void (*cb)(void *cb_data), void *cb_data,
+						 int dev_idx, int nic_type);
 	int	(*rcv_func)(void *priv_dev,
-			int (*cb)(void *cb_data, void *data, int len,
-				  int context),
-			void *cb_data, int context);
-	struct gdm_endian * (*get_endian)(void *priv_dev);
+					int (*cb)(void *cb_data, void *data, int len,
+							  int context),
+					void *cb_data, int context);
+	struct gdm_endian *(*get_endian)(void *priv_dev);
 };
 
-struct nic {
+struct nic
+{
 	struct net_device *netdev;
 	struct phy_dev *phy_dev;
 	struct net_device_stats stats;
@@ -75,7 +80,7 @@ void gdm_lte_event_exit(void);
 
 void start_rx_proc(struct phy_dev *phy_dev);
 int register_lte_device(struct phy_dev *phy_dev, struct device *dev,
-			u8 *mac_address);
+						u8 *mac_address);
 void unregister_lte_device(struct phy_dev *phy_dev);
 
 #endif /* _GDM_LTE_H_ */

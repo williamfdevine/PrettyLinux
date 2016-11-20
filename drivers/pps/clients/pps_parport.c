@@ -45,13 +45,14 @@
 
 static unsigned int clear_wait = 100;
 MODULE_PARM_DESC(clear_wait,
-	"Maximum number of port reads when polling for signal clear,"
-	" zero turns clear edge capture off entirely");
+				 "Maximum number of port reads when polling for signal clear,"
+				 " zero turns clear edge capture off entirely");
 module_param(clear_wait, uint, 0);
 
 
 /* internal per port structure */
-struct pps_client_pp {
+struct pps_client_pp
+{
 	struct pardevice *pardev;	/* parport device */
 	struct pps_device *pps;		/* PPS device */
 	unsigned int cw;		/* port clear timeout */
@@ -77,7 +78,9 @@ static void parport_irq(void *handle)
 
 	if (dev->cw == 0)
 		/* clear edge capture disabled */
+	{
 		goto out_assert;
+	}
 
 	/* try capture the clear edge */
 
@@ -92,8 +95,10 @@ static void parport_irq(void *handle)
 	 * kept rather low. So it should never be an issue.
 	 */
 	local_irq_save(flags);
+
 	/* check the signal (no signal means the pulse is lost this time) */
-	if (!signal_is_set(port)) {
+	if (!signal_is_set(port))
+	{
 		local_irq_restore(flags);
 		dev_err(dev->pps->dev, "lost the signal\n");
 		goto out_assert;
@@ -101,17 +106,21 @@ static void parport_irq(void *handle)
 
 	/* poll the port until the signal is unset */
 	for (i = dev->cw; i; i--)
-		if (!signal_is_set(port)) {
+		if (!signal_is_set(port))
+		{
 			pps_get_ts(&ts_clear);
 			local_irq_restore(flags);
 			dev->cw_err = 0;
 			goto out_both;
 		}
+
 	local_irq_restore(flags);
 
 	/* timeout */
 	dev->cw_err++;
-	if (dev->cw_err >= CLEAR_WAIT_MAX_ERRORS) {
+
+	if (dev->cw_err >= CLEAR_WAIT_MAX_ERRORS)
+	{
 		dev_err(dev->pps->dev, "disabled clear edge capture after %d"
 				" timeouts\n", dev->cw_err);
 		dev->cw = 0;
@@ -121,54 +130,62 @@ static void parport_irq(void *handle)
 out_assert:
 	/* fire assert event */
 	pps_event(dev->pps, &ts_assert,
-			PPS_CAPTUREASSERT, NULL);
+			  PPS_CAPTUREASSERT, NULL);
 	return;
 
 out_both:
 	/* fire assert event */
 	pps_event(dev->pps, &ts_assert,
-			PPS_CAPTUREASSERT, NULL);
+			  PPS_CAPTUREASSERT, NULL);
 	/* fire clear event */
 	pps_event(dev->pps, &ts_clear,
-			PPS_CAPTURECLEAR, NULL);
+			  PPS_CAPTURECLEAR, NULL);
 	return;
 }
 
 static void parport_attach(struct parport *port)
 {
 	struct pps_client_pp *device;
-	struct pps_source_info info = {
+	struct pps_source_info info =
+	{
 		.name		= KBUILD_MODNAME,
 		.path		= "",
 		.mode		= PPS_CAPTUREBOTH | \
-				  PPS_OFFSETASSERT | PPS_OFFSETCLEAR | \
-				  PPS_ECHOASSERT | PPS_ECHOCLEAR | \
-				  PPS_CANWAIT | PPS_TSFMT_TSPEC,
+		PPS_OFFSETASSERT | PPS_OFFSETCLEAR | \
+		PPS_ECHOASSERT | PPS_ECHOCLEAR | \
+		PPS_CANWAIT | PPS_TSFMT_TSPEC,
 		.owner		= THIS_MODULE,
 		.dev		= NULL
 	};
 
 	device = kzalloc(sizeof(struct pps_client_pp), GFP_KERNEL);
-	if (!device) {
+
+	if (!device)
+	{
 		pr_err("memory allocation failed, not attaching\n");
 		return;
 	}
 
 	device->pardev = parport_register_device(port, KBUILD_MODNAME,
-			NULL, NULL, parport_irq, PARPORT_FLAG_EXCL, device);
-	if (!device->pardev) {
+					 NULL, NULL, parport_irq, PARPORT_FLAG_EXCL, device);
+
+	if (!device->pardev)
+	{
 		pr_err("couldn't register with %s\n", port->name);
 		goto err_free;
 	}
 
-	if (parport_claim_or_block(device->pardev) < 0) {
+	if (parport_claim_or_block(device->pardev) < 0)
+	{
 		pr_err("couldn't claim %s\n", port->name);
 		goto err_unregister_dev;
 	}
 
 	device->pps = pps_register_source(&info,
-			PPS_CAPTUREBOTH | PPS_OFFSETASSERT | PPS_OFFSETCLEAR);
-	if (device->pps == NULL) {
+									  PPS_CAPTUREBOTH | PPS_OFFSETASSERT | PPS_OFFSETCLEAR);
+
+	if (device->pps == NULL)
+	{
 		pr_err("couldn't register PPS source\n");
 		goto err_release_dev;
 	}
@@ -197,7 +214,9 @@ static void parport_detach(struct parport *port)
 	/* FIXME: oooh, this is ugly! */
 	if (!pardev || strcmp(pardev->name, KBUILD_MODNAME))
 		/* not our port */
+	{
 		return;
+	}
 
 	device = pardev->private;
 
@@ -208,7 +227,8 @@ static void parport_detach(struct parport *port)
 	kfree(device);
 }
 
-static struct parport_driver pps_parport_driver = {
+static struct parport_driver pps_parport_driver =
+{
 	.name = KBUILD_MODNAME,
 	.attach = parport_attach,
 	.detach = parport_detach,
@@ -222,14 +242,17 @@ static int __init pps_parport_init(void)
 
 	pr_info(DRVDESC "\n");
 
-	if (clear_wait > CLEAR_WAIT_MAX) {
+	if (clear_wait > CLEAR_WAIT_MAX)
+	{
 		pr_err("clear_wait value should be not greater"
-				" then %d\n", CLEAR_WAIT_MAX);
+			   " then %d\n", CLEAR_WAIT_MAX);
 		return -EINVAL;
 	}
 
 	ret = parport_register_driver(&pps_parport_driver);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("unable to register with parport\n");
 		return ret;
 	}

@@ -17,7 +17,8 @@
  *              so we have to support the internal chipselects.
  * @num_chipselect: ARRAY_SIZE(chipselect)
  */
-struct spi_imx_master {
+struct spi_imx_master
+{
 	int	*chipselect;
 	int	num_chipselect;
 };

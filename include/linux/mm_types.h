@@ -17,7 +17,7 @@
 #include <asm/mmu.h>
 
 #ifndef AT_VECTOR_SIZE_ARCH
-#define AT_VECTOR_SIZE_ARCH 0
+	#define AT_VECTOR_SIZE_ARCH 0
 #endif
 #define AT_VECTOR_SIZE (2*(AT_VECTOR_SIZE_ARCH + AT_VECTOR_SIZE_BASE + 1))
 
@@ -26,7 +26,7 @@ struct mem_cgroup;
 
 #define USE_SPLIT_PTE_PTLOCKS	(NR_CPUS >= CONFIG_SPLIT_PTLOCK_CPUS)
 #define USE_SPLIT_PMD_PTLOCKS	(USE_SPLIT_PTE_PTLOCKS && \
-		IS_ENABLED(CONFIG_ARCH_ENABLE_SPLIT_PMD_PTLOCK))
+								 IS_ENABLED(CONFIG_ARCH_ENABLE_SPLIT_PMD_PTLOCK))
 #define ALLOC_SPLIT_PTLOCKS	(SPINLOCK_SIZE > BITS_PER_LONG/8)
 
 /*
@@ -42,139 +42,151 @@ struct mem_cgroup;
  * allows the use of atomic double word operations on the flags/mapping
  * and lru list pointers also.
  */
-struct page {
-	/* First double word block */
-	unsigned long flags;		/* Atomic flags, some possibly
+struct page
+{
+		/* First double word block */
+		unsigned long flags;		/* Atomic flags, some possibly
 					 * updated asynchronously */
-	union {
-		struct address_space *mapping;	/* If low bit clear, points to
+		union
+		{
+			struct address_space *mapping;	/* If low bit clear, points to
 						 * inode address_space, or NULL.
 						 * If page mapped as anonymous
 						 * memory, low bit is set, and
 						 * it points to anon_vma object:
 						 * see PAGE_MAPPING_ANON below.
 						 */
-		void *s_mem;			/* slab first object */
-		atomic_t compound_mapcount;	/* first tail page */
-		/* page_deferred_list().next	 -- second tail page */
-	};
+			void *s_mem;			/* slab first object */
+			atomic_t compound_mapcount;	/* first tail page */
+			/* page_deferred_list().next	 -- second tail page */
+		};
 
-	/* Second double word */
-	union {
-		pgoff_t index;		/* Our offset within mapping. */
-		void *freelist;		/* sl[aou]b first free object */
-		/* page_deferred_list().prev	-- second tail page */
-	};
+		/* Second double word */
+		union
+		{
+			pgoff_t index;		/* Our offset within mapping. */
+			void *freelist;		/* sl[aou]b first free object */
+			/* page_deferred_list().prev	-- second tail page */
+		};
 
-	union {
+		union
+		{
 #if defined(CONFIG_HAVE_CMPXCHG_DOUBLE) && \
 	defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
-		/* Used for cmpxchg_double in slub */
-		unsigned long counters;
+			/* Used for cmpxchg_double in slub */
+			unsigned long counters;
 #else
-		/*
-		 * Keep _refcount separate from slub cmpxchg_double data.
-		 * As the rest of the double word is protected by slab_lock
-		 * but _refcount is not.
-		 */
-		unsigned counters;
-#endif
-		struct {
-
-			union {
-				/*
-				 * Count of ptes mapped in mms, to show when
-				 * page is mapped & limit reverse map searches.
-				 *
-				 * Extra information about page type may be
-				 * stored here for pages that are never mapped,
-				 * in which case the value MUST BE <= -2.
-				 * See page-flags.h for more details.
-				 */
-				atomic_t _mapcount;
-
-				unsigned int active;		/* SLAB */
-				struct {			/* SLUB */
-					unsigned inuse:16;
-					unsigned objects:15;
-					unsigned frozen:1;
-				};
-				int units;			/* SLOB */
-			};
 			/*
-			 * Usage count, *USE WRAPPER FUNCTION* when manual
-			 * accounting. See page_ref.h
+			 * Keep _refcount separate from slub cmpxchg_double data.
+			 * As the rest of the double word is protected by slab_lock
+			 * but _refcount is not.
 			 */
-			atomic_t _refcount;
-		};
-	};
+			unsigned counters;
+#endif
+			struct
+			{
 
-	/*
-	 * Third double word block
-	 *
-	 * WARNING: bit 0 of the first word encode PageTail(). That means
-	 * the rest users of the storage space MUST NOT use the bit to
-	 * avoid collision and false-positive PageTail().
-	 */
-	union {
-		struct list_head lru;	/* Pageout list, eg. active_list
+				union
+				{
+					/*
+					 * Count of ptes mapped in mms, to show when
+					 * page is mapped & limit reverse map searches.
+					 *
+					 * Extra information about page type may be
+					 * stored here for pages that are never mapped,
+					 * in which case the value MUST BE <= -2.
+					 * See page-flags.h for more details.
+					 */
+					atomic_t _mapcount;
+
+					unsigned int active;		/* SLAB */
+					struct  			/* SLUB */
+					{
+						unsigned inuse: 16;
+						unsigned objects: 15;
+						unsigned frozen: 1;
+					};
+					int units;			/* SLOB */
+				};
+				/*
+				 * Usage count, *USE WRAPPER FUNCTION* when manual
+				 * accounting. See page_ref.h
+				 */
+				atomic_t _refcount;
+			};
+		};
+
+		/*
+		 * Third double word block
+		 *
+		 * WARNING: bit 0 of the first word encode PageTail(). That means
+		 * the rest users of the storage space MUST NOT use the bit to
+		 * avoid collision and false-positive PageTail().
+		 */
+		union
+		{
+			struct list_head lru;	/* Pageout list, eg. active_list
 					 * protected by zone_lru_lock !
 					 * Can be used as a generic list
 					 * by the page owner.
 					 */
-		struct dev_pagemap *pgmap; /* ZONE_DEVICE pages are never on an
+			struct dev_pagemap *pgmap; /* ZONE_DEVICE pages are never on an
 					    * lru or handled by a slab
 					    * allocator, this points to the
 					    * hosting device page map.
 					    */
-		struct {		/* slub per cpu partial pages */
-			struct page *next;	/* Next partial slab */
+			struct  		/* slub per cpu partial pages */
+			{
+				struct page *next;	/* Next partial slab */
 #ifdef CONFIG_64BIT
-			int pages;	/* Nr of partial slabs left */
-			int pobjects;	/* Approximate # of objects */
+				int pages;	/* Nr of partial slabs left */
+				int pobjects;	/* Approximate # of objects */
 #else
-			short int pages;
-			short int pobjects;
+				short int pages;
+				short int pobjects;
 #endif
-		};
+			};
 
-		struct rcu_head rcu_head;	/* Used by SLAB
+			struct rcu_head rcu_head;	/* Used by SLAB
 						 * when destroying via RCU
 						 */
-		/* Tail pages of compound page */
-		struct {
-			unsigned long compound_head; /* If bit zero is set */
+			/* Tail pages of compound page */
+			struct
+			{
+				unsigned long compound_head; /* If bit zero is set */
 
-			/* First tail page only */
+				/* First tail page only */
 #ifdef CONFIG_64BIT
-			/*
-			 * On 64 bit system we have enough space in struct page
-			 * to encode compound_dtor and compound_order with
-			 * unsigned int. It can help compiler generate better or
-			 * smaller code on some archtectures.
-			 */
-			unsigned int compound_dtor;
-			unsigned int compound_order;
+				/*
+				 * On 64 bit system we have enough space in struct page
+				 * to encode compound_dtor and compound_order with
+				 * unsigned int. It can help compiler generate better or
+				 * smaller code on some archtectures.
+				 */
+				unsigned int compound_dtor;
+				unsigned int compound_order;
 #else
-			unsigned short int compound_dtor;
-			unsigned short int compound_order;
+				unsigned short int compound_dtor;
+				unsigned short int compound_order;
 #endif
-		};
+			};
 
 #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && USE_SPLIT_PMD_PTLOCKS
-		struct {
-			unsigned long __pad;	/* do not overlay pmd_huge_pte
+			struct
+			{
+				unsigned long __pad;	/* do not overlay pmd_huge_pte
 						 * with compound_head to avoid
 						 * possible bit 0 collision.
 						 */
-			pgtable_t pmd_huge_pte; /* protected by page->ptl */
-		};
+				pgtable_t pmd_huge_pte; /* protected by page->ptl */
+			};
 #endif
-	};
+		};
 
-	/* Remainder is not double word aligned */
-	union {
-		unsigned long private;		/* Mapping-private opaque data:
+		/* Remainder is not double word aligned */
+		union
+		{
+			unsigned long private;		/* Mapping-private opaque data:
 					 	 * usually used for buffer_heads
 						 * if PagePrivate set; used for
 						 * swp_entry_t if PageSwapCache;
@@ -183,43 +195,43 @@ struct page {
 						 */
 #if USE_SPLIT_PTE_PTLOCKS
 #if ALLOC_SPLIT_PTLOCKS
-		spinlock_t *ptl;
+			spinlock_t *ptl;
 #else
-		spinlock_t ptl;
+			spinlock_t ptl;
 #endif
 #endif
-		struct kmem_cache *slab_cache;	/* SL[AU]B: Pointer to slab */
-	};
+			struct kmem_cache *slab_cache;	/* SL[AU]B: Pointer to slab */
+		};
 
 #ifdef CONFIG_MEMCG
-	struct mem_cgroup *mem_cgroup;
+		struct mem_cgroup *mem_cgroup;
 #endif
 
-	/*
-	 * On machines where all RAM is mapped into kernel address space,
-	 * we can simply calculate the virtual address. On machines with
-	 * highmem some memory is mapped into kernel virtual memory
-	 * dynamically, so we need a place to store that address.
-	 * Note that this field could be 16 bits on x86 ... ;)
-	 *
-	 * Architectures with slow multiplication can define
-	 * WANT_PAGE_VIRTUAL in asm/page.h
-	 */
+		/*
+		 * On machines where all RAM is mapped into kernel address space,
+		 * we can simply calculate the virtual address. On machines with
+		 * highmem some memory is mapped into kernel virtual memory
+		 * dynamically, so we need a place to store that address.
+		 * Note that this field could be 16 bits on x86 ... ;)
+		 *
+		 * Architectures with slow multiplication can define
+		 * WANT_PAGE_VIRTUAL in asm/page.h
+		 */
 #if defined(WANT_PAGE_VIRTUAL)
-	void *virtual;			/* Kernel virtual address (NULL if
+		void *virtual;			/* Kernel virtual address (NULL if
 					   not kmapped, ie. highmem) */
 #endif /* WANT_PAGE_VIRTUAL */
 
 #ifdef CONFIG_KMEMCHECK
-	/*
-	 * kmemcheck wants to track the status of each byte in a page; this
-	 * is a pointer to such a status block. NULL if not tracked.
-	 */
-	void *shadow;
+		/*
+		 * kmemcheck wants to track the status of each byte in a page; this
+		 * is a pointer to such a status block. NULL if not tracked.
+		 */
+		void *shadow;
 #endif
 
 #ifdef LAST_CPUPID_NOT_IN_PAGE_FLAGS
-	int _last_cpupid;
+		int _last_cpupid;
 #endif
 }
 /*
@@ -231,7 +243,8 @@ struct page {
 #endif
 ;
 
-struct page_frag {
+struct page_frag
+{
 	struct page *page;
 #if (BITS_PER_LONG > 32) || (PAGE_SIZE >= 65536)
 	__u32 offset;
@@ -245,8 +258,9 @@ struct page_frag {
 #define PAGE_FRAG_CACHE_MAX_SIZE	__ALIGN_MASK(32768, ~PAGE_MASK)
 #define PAGE_FRAG_CACHE_MAX_ORDER	get_order(PAGE_FRAG_CACHE_MAX_SIZE)
 
-struct page_frag_cache {
-	void * va;
+struct page_frag_cache
+{
+	void *va;
 #if (PAGE_SIZE < PAGE_FRAG_CACHE_MAX_SIZE)
 	__u16 offset;
 	__u16 size;
@@ -267,7 +281,8 @@ typedef unsigned long vm_flags_t;
  * conditions.  These are held in a global tree and are pinned by the VMAs that
  * map parts of them.
  */
-struct vm_region {
+struct vm_region
+{
 	struct rb_node	vm_rb;		/* link in global region tree */
 	vm_flags_t	vm_flags;	/* VMA vm_flags */
 	unsigned long	vm_start;	/* start address of region */
@@ -283,7 +298,8 @@ struct vm_region {
 
 #ifdef CONFIG_USERFAULTFD
 #define NULL_VM_UFFD_CTX ((struct vm_userfaultfd_ctx) { NULL, })
-struct vm_userfaultfd_ctx {
+struct vm_userfaultfd_ctx
+{
 	struct userfaultfd_ctx *ctx;
 };
 #else /* CONFIG_USERFAULTFD */
@@ -297,7 +313,8 @@ struct vm_userfaultfd_ctx {};
  * space that has a special rule for the page-fault handlers (ie a shared
  * library, the executable area etc).
  */
-struct vm_area_struct {
+struct vm_area_struct
+{
 	/* The first cache line has the info for VMA tree walking. */
 
 	unsigned long vm_start;		/* Our start address within vm_mm. */
@@ -327,7 +344,8 @@ struct vm_area_struct {
 	 * For areas with an address space and backing store,
 	 * linkage into the address_space->i_mmap interval tree.
 	 */
-	struct {
+	struct
+	{
 		struct rb_node rb;
 		unsigned long rb_subtree_last;
 	} shared;
@@ -348,8 +366,8 @@ struct vm_area_struct {
 	/* Information about our backing store: */
 	unsigned long vm_pgoff;		/* Offset (within vm_file) in PAGE_SIZE
 					   units */
-	struct file * vm_file;		/* File we map to (can be NULL). */
-	void * vm_private_data;		/* was vm_pte (shared mem) */
+	struct file *vm_file;		/* File we map to (can be NULL). */
+	void *vm_private_data;		/* was vm_pte (shared mem) */
 
 #ifndef CONFIG_MMU
 	struct vm_region *vm_region;	/* NOMMU mapping region */
@@ -360,18 +378,21 @@ struct vm_area_struct {
 	struct vm_userfaultfd_ctx vm_userfaultfd_ctx;
 };
 
-struct core_thread {
+struct core_thread
+{
 	struct task_struct *task;
 	struct core_thread *next;
 };
 
-struct core_state {
+struct core_state
+{
 	atomic_t nr_threads;
 	struct core_thread dumper;
 	struct completion startup;
 };
 
-enum {
+enum
+{
 	MM_FILEPAGES,	/* Resident file mapping pages */
 	MM_ANONPAGES,	/* Resident anonymous pages */
 	MM_SWAPENTS,	/* Anonymous swap entries */
@@ -382,31 +403,34 @@ enum {
 #if USE_SPLIT_PTE_PTLOCKS && defined(CONFIG_MMU)
 #define SPLIT_RSS_COUNTING
 /* per-thread cached information, */
-struct task_rss_stat {
+struct task_rss_stat
+{
 	int events;	/* for synchronization threshold */
 	int count[NR_MM_COUNTERS];
 };
 #endif /* USE_SPLIT_PTE_PTLOCKS */
 
-struct mm_rss_stat {
+struct mm_rss_stat
+{
 	atomic_long_t count[NR_MM_COUNTERS];
 };
 
 struct kioctx_table;
-struct mm_struct {
+struct mm_struct
+{
 	struct vm_area_struct *mmap;		/* list of VMAs */
 	struct rb_root mm_rb;
 	u32 vmacache_seqnum;                   /* per-thread vmacache */
 #ifdef CONFIG_MMU
 	unsigned long (*get_unmapped_area) (struct file *filp,
-				unsigned long addr, unsigned long len,
-				unsigned long pgoff, unsigned long flags);
+										unsigned long addr, unsigned long len,
+										unsigned long pgoff, unsigned long flags);
 #endif
 	unsigned long mmap_base;		/* base of mmap area */
 	unsigned long mmap_legacy_base;         /* base of mmap area in bottom-up allocations */
 	unsigned long task_size;		/* size of task vm space */
 	unsigned long highest_vm_end;		/* highest vma end address */
-	pgd_t * pgd;
+	pgd_t *pgd;
 	atomic_t mm_users;			/* How many users with user space? */
 	atomic_t mm_count;			/* How many references to "struct mm_struct" (users count as 1) */
 	atomic_long_t nr_ptes;			/* PTE page table pages */
@@ -575,7 +599,8 @@ static inline void clear_tlb_flush_pending(struct mm_struct *mm)
 
 struct vm_fault;
 
-struct vm_special_mapping {
+struct vm_special_mapping
+{
 	const char *name;	/* The name, e.g. "[vdso]". */
 
 	/*
@@ -591,14 +616,15 @@ struct vm_special_mapping {
 	 * on the special mapping.  If used, .pages is not checked.
 	 */
 	int (*fault)(const struct vm_special_mapping *sm,
-		     struct vm_area_struct *vma,
-		     struct vm_fault *vmf);
+				 struct vm_area_struct *vma,
+				 struct vm_fault *vmf);
 
 	int (*mremap)(const struct vm_special_mapping *sm,
-		     struct vm_area_struct *new_vma);
+				  struct vm_area_struct *new_vma);
 };
 
-enum tlb_flush_reason {
+enum tlb_flush_reason
+{
 	TLB_FLUSH_ON_TASK_SWITCH,
 	TLB_REMOTE_SHOOTDOWN,
 	TLB_LOCAL_SHOOTDOWN,
@@ -607,11 +633,12 @@ enum tlb_flush_reason {
 	NR_TLB_FLUSH_REASONS,
 };
 
- /*
-  * A swap entry has to fit into a "unsigned long", as the entry is hidden
-  * in the "index" field of the swapper address space.
-  */
-typedef struct {
+/*
+ * A swap entry has to fit into a "unsigned long", as the entry is hidden
+ * in the "index" field of the swapper address space.
+ */
+typedef struct
+{
 	unsigned long val;
 } swp_entry_t;
 

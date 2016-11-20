@@ -9,11 +9,12 @@
 #ifndef _WM8940_H
 #define _WM8940_H
 
-struct wm8940_setup_data {
+struct wm8940_setup_data
+{
 	/* Vref to analogue output resistance */
 #define WM8940_VROI_1K 0
 #define WM8940_VROI_30K 1
-	unsigned int vroi:1;
+	unsigned int vroi: 1;
 };
 
 /* WM8940 register space */

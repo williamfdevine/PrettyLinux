@@ -48,8 +48,9 @@ int rds_trans_register(struct rds_transport *trans)
 
 	if (transports[trans->t_type])
 		printk(KERN_ERR "RDS Transport type %d already registered\n",
-			trans->t_type);
-	else {
+			   trans->t_type);
+	else
+	{
 		transports[trans->t_type] = trans;
 		printk(KERN_INFO "Registered RDS/%s transport\n", trans->t_name);
 	}
@@ -74,7 +75,9 @@ EXPORT_SYMBOL_GPL(rds_trans_unregister);
 void rds_trans_put(struct rds_transport *trans)
 {
 	if (trans)
+	{
 		module_put(trans->t_owner);
+	}
 }
 
 struct rds_transport *rds_trans_get_preferred(struct net *net, __be32 addr)
@@ -84,18 +87,24 @@ struct rds_transport *rds_trans_get_preferred(struct net *net, __be32 addr)
 	unsigned int i;
 
 	if (IN_LOOPBACK(ntohl(addr)))
+	{
 		return &rds_loop_transport;
+	}
 
 	down_read(&rds_trans_sem);
-	for (i = 0; i < RDS_TRANS_COUNT; i++) {
+
+	for (i = 0; i < RDS_TRANS_COUNT; i++)
+	{
 		trans = transports[i];
 
 		if (trans && (trans->laddr_check(net, addr) == 0) &&
-		    (!trans->t_owner || try_module_get(trans->t_owner))) {
+			(!trans->t_owner || try_module_get(trans->t_owner)))
+		{
 			ret = trans;
 			break;
 		}
 	}
+
 	up_read(&rds_trans_sem);
 
 	return ret;
@@ -108,15 +117,19 @@ struct rds_transport *rds_trans_get(int t_type)
 	unsigned int i;
 
 	down_read(&rds_trans_sem);
-	for (i = 0; i < RDS_TRANS_COUNT; i++) {
+
+	for (i = 0; i < RDS_TRANS_COUNT; i++)
+	{
 		trans = transports[i];
 
 		if (trans && trans->t_type == t_type &&
-		    (!trans->t_owner || try_module_get(trans->t_owner))) {
+			(!trans->t_owner || try_module_get(trans->t_owner)))
+		{
 			ret = trans;
 			break;
 		}
 	}
+
 	up_read(&rds_trans_sem);
 
 	return ret;
@@ -129,7 +142,7 @@ struct rds_transport *rds_trans_get(int t_type)
  * holding the lock.
  */
 unsigned int rds_trans_stats_info_copy(struct rds_info_iterator *iter,
-				       unsigned int avail)
+									   unsigned int avail)
 
 {
 	struct rds_transport *trans;
@@ -140,10 +153,14 @@ unsigned int rds_trans_stats_info_copy(struct rds_info_iterator *iter,
 	rds_info_iter_unmap(iter);
 	down_read(&rds_trans_sem);
 
-	for (i = 0; i < RDS_TRANS_COUNT; i++) {
+	for (i = 0; i < RDS_TRANS_COUNT; i++)
+	{
 		trans = transports[i];
+
 		if (!trans || !trans->stats_info_copy)
+		{
 			continue;
+		}
 
 		part = trans->stats_info_copy(iter, avail);
 		avail -= min(avail, part);

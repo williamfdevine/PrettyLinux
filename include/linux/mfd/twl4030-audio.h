@@ -259,7 +259,8 @@
 #define TWL4030_VIBRA_DIR_SEL		0x20
 
 /* TWL4030 codec resource IDs */
-enum twl4030_audio_res {
+enum twl4030_audio_res
+{
 	TWL4030_AUDIO_RES_POWER = 0,
 	TWL4030_AUDIO_RES_APLL,
 	TWL4030_AUDIO_RES_MAX,

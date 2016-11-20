@@ -23,23 +23,35 @@ static void rtc_timer_remove(struct rtc_device *rtc, struct rtc_timer *timer);
 static int __rtc_read_time(struct rtc_device *rtc, struct rtc_time *tm)
 {
 	int err;
+
 	if (!rtc->ops)
+	{
 		err = -ENODEV;
+	}
 	else if (!rtc->ops->read_time)
+	{
 		err = -EINVAL;
-	else {
+	}
+	else
+	{
 		memset(tm, 0, sizeof(struct rtc_time));
 		err = rtc->ops->read_time(rtc->dev.parent, tm);
-		if (err < 0) {
+
+		if (err < 0)
+		{
 			dev_dbg(&rtc->dev, "read_time: fail to read: %d\n",
-				err);
+					err);
 			return err;
 		}
 
 		err = rtc_valid_tm(tm);
+
 		if (err < 0)
+		{
 			dev_dbg(&rtc->dev, "read_time: rtc_time isn't valid\n");
+		}
 	}
+
 	return err;
 }
 
@@ -48,8 +60,11 @@ int rtc_read_time(struct rtc_device *rtc, struct rtc_time *tm)
 	int err;
 
 	err = mutex_lock_interruptible(&rtc->ops_lock);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = __rtc_read_time(rtc, tm);
 	mutex_unlock(&rtc->ops_lock);
@@ -62,26 +77,42 @@ int rtc_set_time(struct rtc_device *rtc, struct rtc_time *tm)
 	int err;
 
 	err = rtc_valid_tm(tm);
+
 	if (err != 0)
+	{
 		return err;
+	}
 
 	err = mutex_lock_interruptible(&rtc->ops_lock);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (!rtc->ops)
+	{
 		err = -ENODEV;
+	}
 	else if (rtc->ops->set_time)
+	{
 		err = rtc->ops->set_time(rtc->dev.parent, tm);
-	else if (rtc->ops->set_mmss64) {
+	}
+	else if (rtc->ops->set_mmss64)
+	{
 		time64_t secs64 = rtc_tm_to_time64(tm);
 
 		err = rtc->ops->set_mmss64(rtc->dev.parent, secs64);
-	} else if (rtc->ops->set_mmss) {
+	}
+	else if (rtc->ops->set_mmss)
+	{
 		time64_t secs64 = rtc_tm_to_time64(tm);
 		err = rtc->ops->set_mmss(rtc->dev.parent, secs64);
-	} else
+	}
+	else
+	{
 		err = -EINVAL;
+	}
 
 	pm_stay_awake(rtc->dev.parent);
 	mutex_unlock(&rtc->ops_lock);
@@ -96,14 +127,22 @@ static int rtc_read_alarm_internal(struct rtc_device *rtc, struct rtc_wkalrm *al
 	int err;
 
 	err = mutex_lock_interruptible(&rtc->ops_lock);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (rtc->ops == NULL)
+	{
 		err = -ENODEV;
+	}
 	else if (!rtc->ops->read_alarm)
+	{
 		err = -EINVAL;
-	else {
+	}
+	else
+	{
 		alarm->enabled = 0;
 		alarm->pending = 0;
 		alarm->time.tm_sec = -1;
@@ -174,118 +213,171 @@ int __rtc_read_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
 
 	/* Get the "before" timestamp */
 	err = rtc_read_time(rtc, &before);
+
 	if (err < 0)
+	{
 		return err;
-	do {
+	}
+
+	do
+	{
 		if (!first_time)
+		{
 			memcpy(&before, &now, sizeof(struct rtc_time));
+		}
+
 		first_time = 0;
 
 		/* get the RTC alarm values, which may be incomplete */
 		err = rtc_read_alarm_internal(rtc, alarm);
+
 		if (err)
+		{
 			return err;
+		}
 
 		/* full-function RTCs won't have such missing fields */
 		if (rtc_valid_tm(&alarm->time) == 0)
+		{
 			return 0;
+		}
 
 		/* get the "after" timestamp, to detect wrapped fields */
 		err = rtc_read_time(rtc, &now);
+
 		if (err < 0)
+		{
 			return err;
+		}
 
 		/* note that tm_sec is a "don't care" value here: */
-	} while (   before.tm_min   != now.tm_min
-		 || before.tm_hour  != now.tm_hour
-		 || before.tm_mon   != now.tm_mon
-		 || before.tm_year  != now.tm_year);
+	}
+	while (   before.tm_min   != now.tm_min
+			  || before.tm_hour  != now.tm_hour
+			  || before.tm_mon   != now.tm_mon
+			  || before.tm_year  != now.tm_year);
 
 	/* Fill in the missing alarm fields using the timestamp; we
 	 * know there's at least one since alarm->time is invalid.
 	 */
 	if (alarm->time.tm_sec == -1)
+	{
 		alarm->time.tm_sec = now.tm_sec;
+	}
+
 	if (alarm->time.tm_min == -1)
+	{
 		alarm->time.tm_min = now.tm_min;
+	}
+
 	if (alarm->time.tm_hour == -1)
+	{
 		alarm->time.tm_hour = now.tm_hour;
+	}
 
 	/* For simplicity, only support date rollover for now */
-	if (alarm->time.tm_mday < 1 || alarm->time.tm_mday > 31) {
+	if (alarm->time.tm_mday < 1 || alarm->time.tm_mday > 31)
+	{
 		alarm->time.tm_mday = now.tm_mday;
 		missing = day;
 	}
-	if ((unsigned)alarm->time.tm_mon >= 12) {
+
+	if ((unsigned)alarm->time.tm_mon >= 12)
+	{
 		alarm->time.tm_mon = now.tm_mon;
+
 		if (missing == none)
+		{
 			missing = month;
+		}
 	}
-	if (alarm->time.tm_year == -1) {
+
+	if (alarm->time.tm_year == -1)
+	{
 		alarm->time.tm_year = now.tm_year;
+
 		if (missing == none)
+		{
 			missing = year;
+		}
 	}
 
 	/* with luck, no rollover is needed */
 	t_now = rtc_tm_to_time64(&now);
 	t_alm = rtc_tm_to_time64(&alarm->time);
+
 	if (t_now < t_alm)
+	{
 		goto done;
+	}
 
-	switch (missing) {
+	switch (missing)
+	{
 
-	/* 24 hour rollover ... if it's now 10am Monday, an alarm that
-	 * that will trigger at 5am will do so at 5am Tuesday, which
-	 * could also be in the next month or year.  This is a common
-	 * case, especially for PCs.
-	 */
-	case day:
-		dev_dbg(&rtc->dev, "alarm rollover: %s\n", "day");
-		t_alm += 24 * 60 * 60;
-		rtc_time64_to_tm(t_alm, &alarm->time);
-		break;
+		/* 24 hour rollover ... if it's now 10am Monday, an alarm that
+		 * that will trigger at 5am will do so at 5am Tuesday, which
+		 * could also be in the next month or year.  This is a common
+		 * case, especially for PCs.
+		 */
+		case day:
+			dev_dbg(&rtc->dev, "alarm rollover: %s\n", "day");
+			t_alm += 24 * 60 * 60;
+			rtc_time64_to_tm(t_alm, &alarm->time);
+			break;
 
-	/* Month rollover ... if it's the 31th, an alarm on the 3rd will
-	 * be next month.  An alarm matching on the 30th, 29th, or 28th
-	 * may end up in the month after that!  Many newer PCs support
-	 * this type of alarm.
-	 */
-	case month:
-		dev_dbg(&rtc->dev, "alarm rollover: %s\n", "month");
-		do {
-			if (alarm->time.tm_mon < 11)
-				alarm->time.tm_mon++;
-			else {
-				alarm->time.tm_mon = 0;
+		/* Month rollover ... if it's the 31th, an alarm on the 3rd will
+		 * be next month.  An alarm matching on the 30th, 29th, or 28th
+		 * may end up in the month after that!  Many newer PCs support
+		 * this type of alarm.
+		 */
+		case month:
+			dev_dbg(&rtc->dev, "alarm rollover: %s\n", "month");
+
+			do
+			{
+				if (alarm->time.tm_mon < 11)
+				{
+					alarm->time.tm_mon++;
+				}
+				else
+				{
+					alarm->time.tm_mon = 0;
+					alarm->time.tm_year++;
+				}
+
+				days = rtc_month_days(alarm->time.tm_mon,
+									  alarm->time.tm_year);
+			}
+			while (days < alarm->time.tm_mday);
+
+			break;
+
+		/* Year rollover ... easy except for leap years! */
+		case year:
+			dev_dbg(&rtc->dev, "alarm rollover: %s\n", "year");
+
+			do
+			{
 				alarm->time.tm_year++;
 			}
-			days = rtc_month_days(alarm->time.tm_mon,
-					alarm->time.tm_year);
-		} while (days < alarm->time.tm_mday);
-		break;
+			while (!is_leap_year(alarm->time.tm_year + 1900)
+				   && rtc_valid_tm(&alarm->time) != 0);
 
-	/* Year rollover ... easy except for leap years! */
-	case year:
-		dev_dbg(&rtc->dev, "alarm rollover: %s\n", "year");
-		do {
-			alarm->time.tm_year++;
-		} while (!is_leap_year(alarm->time.tm_year + 1900)
-			&& rtc_valid_tm(&alarm->time) != 0);
-		break;
+			break;
 
-	default:
-		dev_warn(&rtc->dev, "alarm rollover not handled\n");
+		default:
+			dev_warn(&rtc->dev, "alarm rollover not handled\n");
 	}
 
 done:
 	err = rtc_valid_tm(&alarm->time);
 
-	if (err) {
+	if (err)
+	{
 		dev_warn(&rtc->dev, "invalid alarm value: %d-%d-%d %d:%d:%d\n",
-			alarm->time.tm_year + 1900, alarm->time.tm_mon + 1,
-			alarm->time.tm_mday, alarm->time.tm_hour, alarm->time.tm_min,
-			alarm->time.tm_sec);
+				 alarm->time.tm_year + 1900, alarm->time.tm_mon + 1,
+				 alarm->time.tm_mday, alarm->time.tm_hour, alarm->time.tm_min,
+				 alarm->time.tm_sec);
 	}
 
 	return err;
@@ -296,17 +388,27 @@ int rtc_read_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
 	int err;
 
 	err = mutex_lock_interruptible(&rtc->ops_lock);
+
 	if (err)
+	{
 		return err;
+	}
+
 	if (rtc->ops == NULL)
+	{
 		err = -ENODEV;
+	}
 	else if (!rtc->ops->read_alarm)
+	{
 		err = -EINVAL;
-	else {
+	}
+	else
+	{
 		memset(alarm, 0, sizeof(struct rtc_wkalrm));
 		alarm->enabled = rtc->aie_timer.enabled;
 		alarm->time = rtc_ktime_to_tm(rtc->aie_timer.node.expires);
 	}
+
 	mutex_unlock(&rtc->ops_lock);
 
 	return err;
@@ -320,17 +422,29 @@ static int __rtc_set_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
 	int err;
 
 	err = rtc_valid_tm(&alarm->time);
+
 	if (err)
+	{
 		return err;
+	}
+
 	scheduled = rtc_tm_to_time64(&alarm->time);
 
 	/* Make sure we're not setting alarms in the past */
 	err = __rtc_read_time(rtc, &tm);
+
 	if (err)
+	{
 		return err;
+	}
+
 	now = rtc_tm_to_time64(&tm);
+
 	if (scheduled <= now)
+	{
 		return -ETIME;
+	}
+
 	/*
 	 * XXX - We just checked to make sure the alarm time is not
 	 * in the past, but there is still a race window where if
@@ -339,11 +453,17 @@ static int __rtc_set_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
 	 */
 
 	if (!rtc->ops)
+	{
 		err = -ENODEV;
+	}
 	else if (!rtc->ops->set_alarm)
+	{
 		err = -EINVAL;
+	}
 	else
+	{
 		err = rtc->ops->set_alarm(rtc->dev.parent, alarm);
+	}
 
 	return err;
 }
@@ -353,19 +473,31 @@ int rtc_set_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
 	int err;
 
 	err = rtc_valid_tm(&alarm->time);
+
 	if (err != 0)
+	{
 		return err;
+	}
 
 	err = mutex_lock_interruptible(&rtc->ops_lock);
+
 	if (err)
+	{
 		return err;
+	}
+
 	if (rtc->aie_timer.enabled)
+	{
 		rtc_timer_remove(rtc, &rtc->aie_timer);
+	}
 
 	rtc->aie_timer.node.expires = rtc_tm_to_ktime(alarm->time);
 	rtc->aie_timer.period = ktime_set(0, 0);
+
 	if (alarm->enabled)
+	{
 		err = rtc_timer_enqueue(rtc, &rtc->aie_timer);
+	}
 
 	mutex_unlock(&rtc->ops_lock);
 	return err;
@@ -379,27 +511,38 @@ int rtc_initialize_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
 	struct rtc_time now;
 
 	err = rtc_valid_tm(&alarm->time);
+
 	if (err != 0)
+	{
 		return err;
+	}
 
 	err = rtc_read_time(rtc, &now);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = mutex_lock_interruptible(&rtc->ops_lock);
+
 	if (err)
+	{
 		return err;
+	}
 
 	rtc->aie_timer.node.expires = rtc_tm_to_ktime(alarm->time);
 	rtc->aie_timer.period = ktime_set(0, 0);
 
 	/* Alarm has to be enabled & in the future for us to enqueue it */
 	if (alarm->enabled && (rtc_tm_to_ktime(now).tv64 <
-			 rtc->aie_timer.node.expires.tv64)) {
+						   rtc->aie_timer.node.expires.tv64))
+	{
 
 		rtc->aie_timer.enabled = 1;
 		timerqueue_add(&rtc->timerqueue, &rtc->aie_timer.node);
 	}
+
 	mutex_unlock(&rtc->ops_lock);
 	return err;
 }
@@ -408,24 +551,38 @@ EXPORT_SYMBOL_GPL(rtc_initialize_alarm);
 int rtc_alarm_irq_enable(struct rtc_device *rtc, unsigned int enabled)
 {
 	int err = mutex_lock_interruptible(&rtc->ops_lock);
-	if (err)
-		return err;
 
-	if (rtc->aie_timer.enabled != enabled) {
+	if (err)
+	{
+		return err;
+	}
+
+	if (rtc->aie_timer.enabled != enabled)
+	{
 		if (enabled)
+		{
 			err = rtc_timer_enqueue(rtc, &rtc->aie_timer);
+		}
 		else
+		{
 			rtc_timer_remove(rtc, &rtc->aie_timer);
+		}
 	}
 
 	if (err)
 		/* nothing */;
 	else if (!rtc->ops)
+	{
 		err = -ENODEV;
+	}
 	else if (!rtc->ops->alarm_irq_enable)
+	{
 		err = -EINVAL;
+	}
 	else
+	{
 		err = rtc->ops->alarm_irq_enable(rtc->dev.parent, enabled);
+	}
 
 	mutex_unlock(&rtc->ops_lock);
 	return err;
@@ -435,25 +592,36 @@ EXPORT_SYMBOL_GPL(rtc_alarm_irq_enable);
 int rtc_update_irq_enable(struct rtc_device *rtc, unsigned int enabled)
 {
 	int err = mutex_lock_interruptible(&rtc->ops_lock);
+
 	if (err)
+	{
 		return err;
+	}
 
 #ifdef CONFIG_RTC_INTF_DEV_UIE_EMUL
-	if (enabled == 0 && rtc->uie_irq_active) {
+
+	if (enabled == 0 && rtc->uie_irq_active)
+	{
 		mutex_unlock(&rtc->ops_lock);
 		return rtc_dev_update_irq_enable_emul(rtc, 0);
 	}
+
 #endif
+
 	/* make sure we're changing state */
 	if (rtc->uie_rtctimer.enabled == enabled)
+	{
 		goto out;
+	}
 
-	if (rtc->uie_unsupported) {
+	if (rtc->uie_unsupported)
+	{
 		err = -EINVAL;
 		goto out;
 	}
 
-	if (enabled) {
+	if (enabled)
+	{
 		struct rtc_time tm;
 		ktime_t now, onesec;
 
@@ -463,12 +631,16 @@ int rtc_update_irq_enable(struct rtc_device *rtc, unsigned int enabled)
 		rtc->uie_rtctimer.node.expires = ktime_add(now, onesec);
 		rtc->uie_rtctimer.period = ktime_set(1, 0);
 		err = rtc_timer_enqueue(rtc, &rtc->uie_rtctimer);
-	} else
+	}
+	else
+	{
 		rtc_timer_remove(rtc, &rtc->uie_rtctimer);
+	}
 
 out:
 	mutex_unlock(&rtc->ops_lock);
 #ifdef CONFIG_RTC_INTF_DEV_UIE_EMUL
+
 	/*
 	 * Enable emulation if the driver did not provide
 	 * the update_irq_enable function pointer or if returned
@@ -476,7 +648,10 @@ out:
 	 * interrupts or that are not available at the moment.
 	 */
 	if (err == -EINVAL)
+	{
 		err = rtc_dev_update_irq_enable_emul(rtc, enabled);
+	}
+
 #endif
 	return err;
 
@@ -499,13 +674,17 @@ void rtc_handle_legacy_irq(struct rtc_device *rtc, int num, int mode)
 
 	/* mark one irq of the appropriate mode */
 	spin_lock_irqsave(&rtc->irq_lock, flags);
-	rtc->irq_data = (rtc->irq_data + (num << 8)) | (RTC_IRQF|mode);
+	rtc->irq_data = (rtc->irq_data + (num << 8)) | (RTC_IRQF | mode);
 	spin_unlock_irqrestore(&rtc->irq_lock, flags);
 
 	/* call the task func */
 	spin_lock_irqsave(&rtc->irq_task_lock, flags);
+
 	if (rtc->irq_task)
+	{
 		rtc->irq_task->func(rtc->irq_task->private_data);
+	}
+
 	spin_unlock_irqrestore(&rtc->irq_task_lock, flags);
 
 	wake_up_interruptible(&rtc->irq_queue);
@@ -554,7 +733,7 @@ enum hrtimer_restart rtc_pie_update_irq(struct hrtimer *timer)
 	int count;
 	rtc = container_of(timer, struct rtc_device, pie_timer);
 
-	period = ktime_set(0, NSEC_PER_SEC/rtc->irq_freq);
+	period = ktime_set(0, NSEC_PER_SEC / rtc->irq_freq);
 	count = hrtimer_forward_now(timer, period);
 
 	rtc_handle_legacy_irq(rtc, count, RTC_PF);
@@ -570,10 +749,12 @@ enum hrtimer_restart rtc_pie_update_irq(struct hrtimer *timer)
  * Context: any
  */
 void rtc_update_irq(struct rtc_device *rtc,
-		unsigned long num, unsigned long events)
+					unsigned long num, unsigned long events)
 {
 	if (IS_ERR_OR_NULL(rtc))
+	{
 		return;
+	}
 
 	pm_stay_awake(rtc->dev.parent);
 	schedule_work(&rtc->irqwork);
@@ -585,7 +766,10 @@ static int __rtc_match(struct device *dev, const void *data)
 	const char *name = data;
 
 	if (strcmp(dev_name(dev), name) == 0)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -595,11 +779,16 @@ struct rtc_device *rtc_class_open(const char *name)
 	struct rtc_device *rtc = NULL;
 
 	dev = class_find_device(rtc_class, NULL, name, __rtc_match);
-	if (dev)
-		rtc = to_rtc_device(dev);
 
-	if (rtc) {
-		if (!try_module_get(rtc->owner)) {
+	if (dev)
+	{
+		rtc = to_rtc_device(dev);
+	}
+
+	if (rtc)
+	{
+		if (!try_module_get(rtc->owner))
+		{
 			put_device(dev);
 			rtc = NULL;
 		}
@@ -621,17 +810,24 @@ int rtc_irq_register(struct rtc_device *rtc, struct rtc_task *task)
 	int retval = -EBUSY;
 
 	if (task == NULL || task->func == NULL)
+	{
 		return -EINVAL;
+	}
 
 	/* Cannot register while the char dev is in use */
 	if (test_and_set_bit_lock(RTC_DEV_BUSY, &rtc->flags))
+	{
 		return -EBUSY;
+	}
 
 	spin_lock_irq(&rtc->irq_task_lock);
-	if (rtc->irq_task == NULL) {
+
+	if (rtc->irq_task == NULL)
+	{
 		rtc->irq_task = task;
 		retval = 0;
 	}
+
 	spin_unlock_irq(&rtc->irq_task_lock);
 
 	clear_bit_unlock(RTC_DEV_BUSY, &rtc->flags);
@@ -643,8 +839,12 @@ EXPORT_SYMBOL_GPL(rtc_irq_register);
 void rtc_irq_unregister(struct rtc_device *rtc, struct rtc_task *task)
 {
 	spin_lock_irq(&rtc->irq_task_lock);
+
 	if (rtc->irq_task == task)
+	{
 		rtc->irq_task = NULL;
+	}
+
 	spin_unlock_irq(&rtc->irq_task_lock);
 }
 EXPORT_SYMBOL_GPL(rtc_irq_unregister);
@@ -662,13 +862,17 @@ static int rtc_update_hrtimer(struct rtc_device *rtc, int enabled)
 	 * would spin forever.
 	 */
 	if (hrtimer_try_to_cancel(&rtc->pie_timer) < 0)
+	{
 		return -1;
+	}
 
-	if (enabled) {
+	if (enabled)
+	{
 		ktime_t period = ktime_set(0, NSEC_PER_SEC / rtc->irq_freq);
 
 		hrtimer_start(&rtc->pie_timer, period, HRTIMER_MODE_REL);
 	}
+
 	return 0;
 }
 
@@ -689,18 +893,27 @@ int rtc_irq_set_state(struct rtc_device *rtc, struct rtc_task *task, int enabled
 
 retry:
 	spin_lock_irqsave(&rtc->irq_task_lock, flags);
+
 	if (rtc->irq_task != NULL && task == NULL)
+	{
 		err = -EBUSY;
+	}
 	else if (rtc->irq_task != task)
+	{
 		err = -EACCES;
-	else {
-		if (rtc_update_hrtimer(rtc, enabled) < 0) {
+	}
+	else
+	{
+		if (rtc_update_hrtimer(rtc, enabled) < 0)
+		{
 			spin_unlock_irqrestore(&rtc->irq_task_lock, flags);
 			cpu_relax();
 			goto retry;
 		}
+
 		rtc->pie_enabled = enabled;
 	}
+
 	spin_unlock_irqrestore(&rtc->irq_task_lock, flags);
 	return err;
 }
@@ -722,21 +935,33 @@ int rtc_irq_set_freq(struct rtc_device *rtc, struct rtc_task *task, int freq)
 	unsigned long flags;
 
 	if (freq <= 0 || freq > RTC_MAX_FREQ)
+	{
 		return -EINVAL;
+	}
+
 retry:
 	spin_lock_irqsave(&rtc->irq_task_lock, flags);
+
 	if (rtc->irq_task != NULL && task == NULL)
+	{
 		err = -EBUSY;
+	}
 	else if (rtc->irq_task != task)
+	{
 		err = -EACCES;
-	else {
+	}
+	else
+	{
 		rtc->irq_freq = freq;
-		if (rtc->pie_enabled && rtc_update_hrtimer(rtc, 1) < 0) {
+
+		if (rtc->pie_enabled && rtc_update_hrtimer(rtc, 1) < 0)
+		{
 			spin_unlock_irqrestore(&rtc->irq_task_lock, flags);
 			cpu_relax();
 			goto retry;
 		}
 	}
+
 	spin_unlock_irqrestore(&rtc->irq_task_lock, flags);
 	return err;
 }
@@ -765,35 +990,48 @@ static int rtc_timer_enqueue(struct rtc_device *rtc, struct rtc_timer *timer)
 	now = rtc_tm_to_ktime(tm);
 
 	/* Skip over expired timers */
-	while (next) {
+	while (next)
+	{
 		if (next->expires.tv64 >= now.tv64)
+		{
 			break;
+		}
+
 		next = timerqueue_iterate_next(next);
 	}
 
 	timerqueue_add(&rtc->timerqueue, &timer->node);
-	if (!next) {
+
+	if (!next)
+	{
 		struct rtc_wkalrm alarm;
 		int err;
 		alarm.time = rtc_ktime_to_tm(timer->node.expires);
 		alarm.enabled = 1;
 		err = __rtc_set_alarm(rtc, &alarm);
-		if (err == -ETIME) {
+
+		if (err == -ETIME)
+		{
 			pm_stay_awake(rtc->dev.parent);
 			schedule_work(&rtc->irqwork);
-		} else if (err) {
+		}
+		else if (err)
+		{
 			timerqueue_del(&rtc->timerqueue, &timer->node);
 			timer->enabled = 0;
 			return err;
 		}
 	}
+
 	return 0;
 }
 
 static void rtc_alarm_disable(struct rtc_device *rtc)
 {
 	if (!rtc->ops || !rtc->ops->alarm_irq_enable)
+	{
 		return;
+	}
 
 	rtc->ops->alarm_irq_enable(rtc->dev.parent, false);
 }
@@ -815,18 +1053,25 @@ static void rtc_timer_remove(struct rtc_device *rtc, struct rtc_timer *timer)
 	struct timerqueue_node *next = timerqueue_getnext(&rtc->timerqueue);
 	timerqueue_del(&rtc->timerqueue, &timer->node);
 	timer->enabled = 0;
-	if (next == &timer->node) {
+
+	if (next == &timer->node)
+	{
 		struct rtc_wkalrm alarm;
 		int err;
 		next = timerqueue_getnext(&rtc->timerqueue);
-		if (!next) {
+
+		if (!next)
+		{
 			rtc_alarm_disable(rtc);
 			return;
 		}
+
 		alarm.time = rtc_ktime_to_tm(next->expires);
 		alarm.enabled = 1;
 		err = __rtc_set_alarm(rtc, &alarm);
-		if (err == -ETIME) {
+
+		if (err == -ETIME)
+		{
 			pm_stay_awake(rtc->dev.parent);
 			schedule_work(&rtc->irqwork);
 		}
@@ -857,28 +1102,37 @@ void rtc_timer_do_work(struct work_struct *work)
 again:
 	__rtc_read_time(rtc, &tm);
 	now = rtc_tm_to_ktime(tm);
-	while ((next = timerqueue_getnext(&rtc->timerqueue))) {
+
+	while ((next = timerqueue_getnext(&rtc->timerqueue)))
+	{
 		if (next->expires.tv64 > now.tv64)
+		{
 			break;
+		}
 
 		/* expire timer */
 		timer = container_of(next, struct rtc_timer, node);
 		timerqueue_del(&rtc->timerqueue, &timer->node);
 		timer->enabled = 0;
+
 		if (timer->task.func)
+		{
 			timer->task.func(timer->task.private_data);
+		}
 
 		/* Re-add/fwd periodic timers */
-		if (ktime_to_ns(timer->period)) {
+		if (ktime_to_ns(timer->period))
+		{
 			timer->node.expires = ktime_add(timer->node.expires,
-							timer->period);
+											timer->period);
 			timer->enabled = 1;
 			timerqueue_add(&rtc->timerqueue, &timer->node);
 		}
 	}
 
 	/* Set next alarm */
-	if (next) {
+	if (next)
+	{
 		struct rtc_wkalrm alarm;
 		int err;
 		int retry = 3;
@@ -887,11 +1141,17 @@ again:
 		alarm.enabled = 1;
 reprogram:
 		err = __rtc_set_alarm(rtc, &alarm);
+
 		if (err == -ETIME)
+		{
 			goto again;
-		else if (err) {
+		}
+		else if (err)
+		{
 			if (retry-- > 0)
+			{
 				goto reprogram;
+			}
 
 			timer = container_of(next, struct rtc_timer, node);
 			timerqueue_del(&rtc->timerqueue, &timer->node);
@@ -899,8 +1159,11 @@ reprogram:
 			dev_err(&rtc->dev, "__rtc_set_alarm: err=%d\n", err);
 			goto again;
 		}
-	} else
+	}
+	else
+	{
 		rtc_alarm_disable(rtc);
+	}
 
 	pm_relax(rtc->dev.parent);
 	mutex_unlock(&rtc->ops_lock);
@@ -931,12 +1194,15 @@ void rtc_timer_init(struct rtc_timer *timer, void (*f)(void *p), void *data)
  * Kernel interface to set an rtc_timer
  */
 int rtc_timer_start(struct rtc_device *rtc, struct rtc_timer *timer,
-			ktime_t expires, ktime_t period)
+					ktime_t expires, ktime_t period)
 {
 	int ret = 0;
 	mutex_lock(&rtc->ops_lock);
+
 	if (timer->enabled)
+	{
 		rtc_timer_remove(rtc, timer);
+	}
 
 	timer->node.expires = expires;
 	timer->period = period;
@@ -956,8 +1222,12 @@ int rtc_timer_start(struct rtc_device *rtc, struct rtc_timer *timer,
 void rtc_timer_cancel(struct rtc_device *rtc, struct rtc_timer *timer)
 {
 	mutex_lock(&rtc->ops_lock);
+
 	if (timer->enabled)
+	{
 		rtc_timer_remove(rtc, timer);
+	}
+
 	mutex_unlock(&rtc->ops_lock);
 }
 
@@ -977,10 +1247,14 @@ int rtc_read_offset(struct rtc_device *rtc, long *offset)
 	int ret;
 
 	if (!rtc->ops)
+	{
 		return -ENODEV;
+	}
 
 	if (!rtc->ops->read_offset)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&rtc->ops_lock);
 	ret = rtc->ops->read_offset(rtc->dev.parent, offset);
@@ -1006,10 +1280,14 @@ int rtc_set_offset(struct rtc_device *rtc, long offset)
 	int ret;
 
 	if (!rtc->ops)
+	{
 		return -ENODEV;
+	}
 
 	if (!rtc->ops->set_offset)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&rtc->ops_lock);
 	ret = rtc->ops->set_offset(rtc->dev.parent, offset);

@@ -242,10 +242,10 @@
 void rtl92ee_dm_init(struct ieee80211_hw *hw);
 void rtl92ee_dm_watchdog(struct ieee80211_hw *hw);
 void rtl92ee_dm_write_cck_cca_thres(struct ieee80211_hw *hw,
-				    u8 cur_thres);
+									u8 cur_thres);
 void rtl92ee_dm_write_dig(struct ieee80211_hw *hw, u8 current_igi);
 void rtl92ee_dm_init_edca_turbo(struct ieee80211_hw *hw);
 void rtl92ee_dm_init_rate_adaptive_mask(struct ieee80211_hw *hw);
 void rtl92ee_dm_dynamic_arfb_select(struct ieee80211_hw *hw,
-				    u8 rate, bool collision_state);
+									u8 rate, bool collision_state);
 #endif

@@ -60,7 +60,8 @@
 /* QCA7K Framing. */
 #define QCAFRM_ERR_BASE -1000
 
-enum qcafrm_state {
+enum qcafrm_state
+{
 	QCAFRM_HW_LEN0 = 0x8000,
 	QCAFRM_HW_LEN1 = QCAFRM_HW_LEN0 - 1,
 	QCAFRM_HW_LEN2 = QCAFRM_HW_LEN1 - 1,
@@ -98,7 +99,8 @@ enum qcafrm_state {
 
 /*   Structure to maintain the frame decoding during reception. */
 
-struct qcafrm_handle {
+struct qcafrm_handle
+{
 	/*  Current decoding state */
 	enum qcafrm_state state;
 

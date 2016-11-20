@@ -48,7 +48,8 @@
 #define MLXSW_EMAD_EH_PROTO_VERSION 0
 
 /* EMAD TLV Types */
-enum {
+enum
+{
 	MLXSW_EMAD_TLV_TYPE_END,
 	MLXSW_EMAD_TLV_TYPE_OP,
 	MLXSW_EMAD_TLV_TYPE_DR,
@@ -60,12 +61,14 @@ enum {
 /* OP TLV */
 #define MLXSW_EMAD_OP_TLV_LEN 4		/* Length in u32 */
 
-enum {
+enum
+{
 	MLXSW_EMAD_OP_TLV_CLASS_REG_ACCESS = 1,
 	MLXSW_EMAD_OP_TLV_CLASS_IPC = 2,
 };
 
-enum mlxsw_emad_op_tlv_status {
+enum mlxsw_emad_op_tlv_status
+{
 	MLXSW_EMAD_OP_TLV_STATUS_SUCCESS,
 	MLXSW_EMAD_OP_TLV_STATUS_BUSY,
 	MLXSW_EMAD_OP_TLV_STATUS_VERSION_NOT_SUPPORTED,
@@ -81,40 +84,54 @@ enum mlxsw_emad_op_tlv_status {
 
 static inline char *mlxsw_emad_op_tlv_status_str(u8 status)
 {
-	switch (status) {
-	case MLXSW_EMAD_OP_TLV_STATUS_SUCCESS:
-		return "operation performed";
-	case MLXSW_EMAD_OP_TLV_STATUS_BUSY:
-		return "device is busy";
-	case MLXSW_EMAD_OP_TLV_STATUS_VERSION_NOT_SUPPORTED:
-		return "version not supported";
-	case MLXSW_EMAD_OP_TLV_STATUS_UNKNOWN_TLV:
-		return "unknown TLV";
-	case MLXSW_EMAD_OP_TLV_STATUS_REGISTER_NOT_SUPPORTED:
-		return "register not supported";
-	case MLXSW_EMAD_OP_TLV_STATUS_CLASS_NOT_SUPPORTED:
-		return "class not supported";
-	case MLXSW_EMAD_OP_TLV_STATUS_METHOD_NOT_SUPPORTED:
-		return "method not supported";
-	case MLXSW_EMAD_OP_TLV_STATUS_BAD_PARAMETER:
-		return "bad parameter";
-	case MLXSW_EMAD_OP_TLV_STATUS_RESOURCE_NOT_AVAILABLE:
-		return "resource not available";
-	case MLXSW_EMAD_OP_TLV_STATUS_MESSAGE_RECEIPT_ACK:
-		return "acknowledged. retransmit";
-	case MLXSW_EMAD_OP_TLV_STATUS_INTERNAL_ERROR:
-		return "internal error";
-	default:
-		return "*UNKNOWN*";
+	switch (status)
+	{
+		case MLXSW_EMAD_OP_TLV_STATUS_SUCCESS:
+			return "operation performed";
+
+		case MLXSW_EMAD_OP_TLV_STATUS_BUSY:
+			return "device is busy";
+
+		case MLXSW_EMAD_OP_TLV_STATUS_VERSION_NOT_SUPPORTED:
+			return "version not supported";
+
+		case MLXSW_EMAD_OP_TLV_STATUS_UNKNOWN_TLV:
+			return "unknown TLV";
+
+		case MLXSW_EMAD_OP_TLV_STATUS_REGISTER_NOT_SUPPORTED:
+			return "register not supported";
+
+		case MLXSW_EMAD_OP_TLV_STATUS_CLASS_NOT_SUPPORTED:
+			return "class not supported";
+
+		case MLXSW_EMAD_OP_TLV_STATUS_METHOD_NOT_SUPPORTED:
+			return "method not supported";
+
+		case MLXSW_EMAD_OP_TLV_STATUS_BAD_PARAMETER:
+			return "bad parameter";
+
+		case MLXSW_EMAD_OP_TLV_STATUS_RESOURCE_NOT_AVAILABLE:
+			return "resource not available";
+
+		case MLXSW_EMAD_OP_TLV_STATUS_MESSAGE_RECEIPT_ACK:
+			return "acknowledged. retransmit";
+
+		case MLXSW_EMAD_OP_TLV_STATUS_INTERNAL_ERROR:
+			return "internal error";
+
+		default:
+			return "*UNKNOWN*";
 	}
 }
 
-enum {
+enum
+{
 	MLXSW_EMAD_OP_TLV_REQUEST,
 	MLXSW_EMAD_OP_TLV_RESPONSE
 };
 
-enum {
+enum
+{
 	MLXSW_EMAD_OP_TLV_METHOD_QUERY = 1,
 	MLXSW_EMAD_OP_TLV_METHOD_WRITE = 2,
 	MLXSW_EMAD_OP_TLV_METHOD_SEND = 3,

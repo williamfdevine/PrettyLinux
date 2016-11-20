@@ -27,30 +27,33 @@
 #include "../wlcore/acx.h"
 
 #define WL12XX_ACX_ALL_EVENTS_VECTOR	(WL1271_ACX_INTR_WATCHDOG      | \
-					WL1271_ACX_INTR_INIT_COMPLETE | \
-					WL1271_ACX_INTR_EVENT_A       | \
-					WL1271_ACX_INTR_EVENT_B       | \
-					WL1271_ACX_INTR_CMD_COMPLETE  | \
-					WL1271_ACX_INTR_HW_AVAILABLE  | \
-					WL1271_ACX_INTR_DATA)
+		WL1271_ACX_INTR_INIT_COMPLETE | \
+		WL1271_ACX_INTR_EVENT_A       | \
+		WL1271_ACX_INTR_EVENT_B       | \
+		WL1271_ACX_INTR_CMD_COMPLETE  | \
+		WL1271_ACX_INTR_HW_AVAILABLE  | \
+		WL1271_ACX_INTR_DATA)
 
 #define WL12XX_INTR_MASK		(WL1271_ACX_INTR_WATCHDOG      | \
-					WL1271_ACX_INTR_EVENT_A       | \
-					WL1271_ACX_INTR_EVENT_B       | \
-					WL1271_ACX_INTR_HW_AVAILABLE  | \
-					WL1271_ACX_INTR_DATA)
+								 WL1271_ACX_INTR_EVENT_A       | \
+								 WL1271_ACX_INTR_EVENT_B       | \
+								 WL1271_ACX_INTR_HW_AVAILABLE  | \
+								 WL1271_ACX_INTR_DATA)
 
-struct wl1271_acx_host_config_bitmap {
+struct wl1271_acx_host_config_bitmap
+{
 	struct acx_header header;
 
 	__le32 host_cfg_bitmap;
 } __packed;
 
-struct wl12xx_acx_tx_statistics {
+struct wl12xx_acx_tx_statistics
+{
 	__le32 internal_desc_overflow;
 }  __packed;
 
-struct wl12xx_acx_rx_statistics {
+struct wl12xx_acx_rx_statistics
+{
 	__le32 out_of_mem;
 	__le32 hdr_overflow;
 	__le32 hw_stuck;
@@ -61,14 +64,16 @@ struct wl12xx_acx_rx_statistics {
 	__le32 reset_counter;
 } __packed;
 
-struct wl12xx_acx_dma_statistics {
+struct wl12xx_acx_dma_statistics
+{
 	__le32 rx_requested;
 	__le32 rx_errors;
 	__le32 tx_requested;
 	__le32 tx_errors;
 }  __packed;
 
-struct wl12xx_acx_isr_statistics {
+struct wl12xx_acx_isr_statistics
+{
 	/* host command complete */
 	__le32 cmd_cmplt;
 
@@ -127,7 +132,8 @@ struct wl12xx_acx_isr_statistics {
 	__le32 low_rssi;
 } __packed;
 
-struct wl12xx_acx_wep_statistics {
+struct wl12xx_acx_wep_statistics
+{
 	/* WEP address keys configured */
 	__le32 addr_key_count;
 
@@ -151,7 +157,8 @@ struct wl12xx_acx_wep_statistics {
 
 #define ACX_MISSED_BEACONS_SPREAD 10
 
-struct wl12xx_acx_pwr_statistics {
+struct wl12xx_acx_pwr_statistics
+{
 	/* the amount of enters into power save mode (both PD & ELP) */
 	__le32 ps_enter;
 
@@ -209,12 +216,14 @@ struct wl12xx_acx_pwr_statistics {
 	__le32 rcvd_awake_beacons;
 } __packed;
 
-struct wl12xx_acx_mic_statistics {
+struct wl12xx_acx_mic_statistics
+{
 	__le32 rx_pkts;
 	__le32 calc_failure;
 } __packed;
 
-struct wl12xx_acx_aes_statistics {
+struct wl12xx_acx_aes_statistics
+{
 	__le32 encrypt_fail;
 	__le32 decrypt_fail;
 	__le32 encrypt_packets;
@@ -223,7 +232,8 @@ struct wl12xx_acx_aes_statistics {
 	__le32 decrypt_interrupt;
 } __packed;
 
-struct wl12xx_acx_event_statistics {
+struct wl12xx_acx_event_statistics
+{
 	__le32 heart_beat;
 	__le32 calibration;
 	__le32 rx_mismatch;
@@ -234,7 +244,8 @@ struct wl12xx_acx_event_statistics {
 	__le32 tx_stuck;
 } __packed;
 
-struct wl12xx_acx_ps_statistics {
+struct wl12xx_acx_ps_statistics
+{
 	__le32 pspoll_timeouts;
 	__le32 upsd_timeouts;
 	__le32 upsd_max_sptime;
@@ -244,7 +255,8 @@ struct wl12xx_acx_ps_statistics {
 	__le32 upsd_utilization;
 } __packed;
 
-struct wl12xx_acx_rxpipe_statistics {
+struct wl12xx_acx_rxpipe_statistics
+{
 	__le32 rx_prep_beacon_drop;
 	__le32 descr_host_int_trig_rx_data;
 	__le32 beacon_buffer_thres_host_int_trig_rx_data;
@@ -252,7 +264,8 @@ struct wl12xx_acx_rxpipe_statistics {
 	__le32 tx_xfr_host_int_trig_rx_data;
 } __packed;
 
-struct wl12xx_acx_statistics {
+struct wl12xx_acx_statistics
+{
 	struct acx_header header;
 
 	struct wl12xx_acx_tx_statistics tx;

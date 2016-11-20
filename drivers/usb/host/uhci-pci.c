@@ -37,7 +37,7 @@ static void uhci_pci_reset_hc(struct uhci_hcd *uhci)
 static int uhci_pci_check_and_reset_hc(struct uhci_hcd *uhci)
 {
 	return uhci_check_and_reset_hc(to_pci_dev(uhci_dev(uhci)),
-				uhci->io_addr);
+								   uhci->io_addr);
 }
 
 /*
@@ -53,38 +53,47 @@ static void uhci_pci_configure_hc(struct uhci_hcd *uhci)
 
 	/* Disable platform-specific non-PME# wakeup */
 	if (pdev->vendor == PCI_VENDOR_ID_INTEL)
+	{
 		pci_write_config_byte(pdev, USBRES_INTEL, 0);
+	}
 }
 
 static int uhci_pci_resume_detect_interrupts_are_broken(struct uhci_hcd *uhci)
 {
 	int port;
 
-	switch (to_pci_dev(uhci_dev(uhci))->vendor) {
-	default:
-		break;
+	switch (to_pci_dev(uhci_dev(uhci))->vendor)
+	{
+		default:
+			break;
 
-	case PCI_VENDOR_ID_GENESYS:
-		/* Genesys Logic's GL880S controllers don't generate
-		 * resume-detect interrupts.
-		 */
-		return 1;
+		case PCI_VENDOR_ID_GENESYS:
+			/* Genesys Logic's GL880S controllers don't generate
+			 * resume-detect interrupts.
+			 */
+			return 1;
 
-	case PCI_VENDOR_ID_INTEL:
-		/* Some of Intel's USB controllers have a bug that causes
-		 * resume-detect interrupts if any port has an over-current
-		 * condition.  To make matters worse, some motherboards
-		 * hardwire unused USB ports' over-current inputs active!
-		 * To prevent problems, we will not enable resume-detect
-		 * interrupts if any ports are OC.
-		 */
-		for (port = 0; port < uhci->rh_numports; ++port) {
-			if (inw(uhci->io_addr + USBPORTSC1 + port * 2) &
+		case PCI_VENDOR_ID_INTEL:
+
+			/* Some of Intel's USB controllers have a bug that causes
+			 * resume-detect interrupts if any port has an over-current
+			 * condition.  To make matters worse, some motherboards
+			 * hardwire unused USB ports' over-current inputs active!
+			 * To prevent problems, we will not enable resume-detect
+			 * interrupts if any ports are OC.
+			 */
+			for (port = 0; port < uhci->rh_numports; ++port)
+			{
+				if (inw(uhci->io_addr + USBPORTSC1 + port * 2) &
 					USBPORTSC_OC)
-				return 1;
-		}
-		break;
+				{
+					return 1;
+				}
+			}
+
+			break;
 	}
+
 	return 0;
 }
 
@@ -99,11 +108,16 @@ static int uhci_pci_global_suspend_mode_is_broken(struct uhci_hcd *uhci)
 	 * are connected.  In such cases we will not set EGSM.
 	 */
 	sys_info = dmi_get_system_info(DMI_BOARD_NAME);
-	if (sys_info && !strcmp(sys_info, bad_Asus_board)) {
-		for (port = 0; port < uhci->rh_numports; ++port) {
+
+	if (sys_info && !strcmp(sys_info, bad_Asus_board))
+	{
+		for (port = 0; port < uhci->rh_numports; ++port)
+		{
 			if (inw(uhci->io_addr + USBPORTSC1 + port * 2) &
-					USBPORTSC_CCS)
+				USBPORTSC_CCS)
+			{
 				return 1;
+			}
 		}
 	}
 
@@ -123,11 +137,15 @@ static int uhci_pci_init(struct usb_hcd *hcd)
 	 * bit value.  (It's not standardized in the UHCI spec.)
 	 */
 	if (to_pci_dev(uhci_dev(uhci))->vendor == PCI_VENDOR_ID_VIA)
+	{
 		uhci->oc_low = 1;
+	}
 
 	/* HP's server management chip requires a longer port reset delay. */
 	if (to_pci_dev(uhci_dev(uhci))->vendor == PCI_VENDOR_ID_HP)
+	{
 		uhci->wait_for_hp = 1;
+	}
 
 	/* Set up pointers to PCI-specific functions */
 	uhci->reset_hc = uhci_pci_reset_hc;
@@ -173,8 +191,11 @@ static int uhci_pci_suspend(struct usb_hcd *hcd, bool do_wakeup)
 	dev_dbg(uhci_dev(uhci), "%s\n", __func__);
 
 	spin_lock_irq(&uhci->lock);
+
 	if (!HCD_HW_ACCESSIBLE(hcd) || uhci->dead)
-		goto done_okay;		/* Already suspended or dead */
+	{
+		goto done_okay;    /* Already suspended or dead */
+	}
 
 	/* All PCI host controllers are required to disable IRQ generation
 	 * at the source, so we must turn off PIRQ.
@@ -183,10 +204,11 @@ static int uhci_pci_suspend(struct usb_hcd *hcd, bool do_wakeup)
 	clear_bit(HCD_FLAG_POLL_RH, &hcd->flags);
 
 	/* Enable platform-specific non-PME# wakeup */
-	if (do_wakeup) {
+	if (do_wakeup)
+	{
 		if (pdev->vendor == PCI_VENDOR_ID_INTEL)
 			pci_write_config_byte(pdev, USBRES_INTEL,
-					USBPORT1EN | USBPORT2EN);
+								  USBPORT1EN | USBPORT2EN);
 	}
 
 done_okay:
@@ -196,10 +218,12 @@ done_okay:
 	synchronize_irq(hcd->irq);
 
 	/* Check for race with a wakeup request */
-	if (do_wakeup && HCD_WAKEUP_PENDING(hcd)) {
+	if (do_wakeup && HCD_WAKEUP_PENDING(hcd))
+	{
 		uhci_pci_resume(hcd, false);
 		rc = -EBUSY;
 	}
+
 	return rc;
 }
 
@@ -217,7 +241,8 @@ static int uhci_pci_resume(struct usb_hcd *hcd, bool hibernated)
 	spin_lock_irq(&uhci->lock);
 
 	/* Make sure resume from hibernation re-enumerates everything */
-	if (hibernated) {
+	if (hibernated)
+	{
 		uhci->reset_hc(uhci);
 		finish_reset(uhci);
 	}
@@ -225,14 +250,18 @@ static int uhci_pci_resume(struct usb_hcd *hcd, bool hibernated)
 	/* The firmware may have changed the controller settings during
 	 * a system wakeup.  Check it and reconfigure to avoid problems.
 	 */
-	else {
+	else
+	{
 		check_and_reset_hc(uhci);
 	}
+
 	configure_hc(uhci);
 
 	/* Tell the core if the controller had to be reset */
 	if (uhci->rh_state == UHCI_RH_RESET)
+	{
 		usb_root_hub_lost_power(hcd->self.root_hub);
+	}
 
 	spin_unlock_irq(&uhci->lock);
 
@@ -240,7 +269,9 @@ static int uhci_pci_resume(struct usb_hcd *hcd, bool hibernated)
 	 * the suspended root hub needs to be polled.
 	 */
 	if (!uhci->RD_enable && hcd->self.root_hub->do_remote_wakeup)
+	{
 		set_bit(HCD_FLAG_POLL_RH, &hcd->flags);
+	}
 
 	/* Does the root hub have a port wakeup pending? */
 	usb_hcd_poll_rh_status(hcd);
@@ -249,7 +280,8 @@ static int uhci_pci_resume(struct usb_hcd *hcd, bool hibernated)
 
 #endif
 
-static const struct hc_driver uhci_driver = {
+static const struct hc_driver uhci_driver =
+{
 	.description =		hcd_name,
 	.product_desc =		"UHCI Host Controller",
 	.hcd_priv_size =	sizeof(struct uhci_hcd),
@@ -280,15 +312,16 @@ static const struct hc_driver uhci_driver = {
 };
 
 static const struct pci_device_id uhci_pci_ids[] = { {
-	/* handle any USB UHCI controller */
-	PCI_DEVICE_CLASS(PCI_CLASS_SERIAL_USB_UHCI, ~0),
-	.driver_data =	(unsigned long) &uhci_driver,
+		/* handle any USB UHCI controller */
+		PCI_DEVICE_CLASS(PCI_CLASS_SERIAL_USB_UHCI, ~0),
+		.driver_data =	(unsigned long) &uhci_driver,
 	}, { /* end: all zeroes */ }
 };
 
 MODULE_DEVICE_TABLE(pci, uhci_pci_ids);
 
-static struct pci_driver uhci_pci_driver = {
+static struct pci_driver uhci_pci_driver =
+{
 	.name =		(char *)hcd_name,
 	.id_table =	uhci_pci_ids,
 

@@ -46,7 +46,8 @@
 #define XCV_INBND_STATUS	0x80
 #define XCV_BATCH_CRD_RET	0x100
 
-struct xcv {
+struct xcv
+{
 	void __iomem		*reg_base;
 	struct pci_dev		*pdev;
 };
@@ -54,7 +55,8 @@ struct xcv {
 static struct xcv *xcv;
 
 /* Supported devices */
-static const struct pci_device_id xcv_id_table[] = {
+static const struct pci_device_id xcv_id_table[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_CAVIUM, 0xA056) },
 	{ 0, }  /* end of table */
 };
@@ -115,18 +117,24 @@ void xcv_setup_link(bool link_up, int link_speed)
 	u64  cfg;
 	int speed = 2;
 
-	if (!xcv) {
+	if (!xcv)
+	{
 		dev_err(&xcv->pdev->dev,
-			"XCV init not done, probe may have failed\n");
+				"XCV init not done, probe may have failed\n");
 		return;
 	}
 
 	if (link_speed == 100)
+	{
 		speed = 1;
+	}
 	else if (link_speed == 10)
+	{
 		speed = 0;
+	}
 
-	if (link_up) {
+	if (link_up)
+	{
 		/* set operating speed */
 		cfg = readq_relaxed(xcv->reg_base + XCV_CTL);
 		cfg &= ~0x03;
@@ -145,7 +153,9 @@ void xcv_setup_link(bool link_up, int link_speed)
 
 		/* Return credits to RGX */
 		writeq_relaxed(0x01, xcv->reg_base + XCV_BATCH_CRD_RET);
-	} else {
+	}
+	else
+	{
 		/* Disable packet flow */
 		cfg = readq_relaxed(xcv->reg_base + XCV_RESET);
 		cfg &= ~(TX_PKT_RESET | RX_PKT_RESET);
@@ -161,27 +171,37 @@ static int xcv_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	struct device *dev = &pdev->dev;
 
 	xcv = devm_kzalloc(dev, sizeof(struct xcv), GFP_KERNEL);
+
 	if (!xcv)
+	{
 		return -ENOMEM;
+	}
+
 	xcv->pdev = pdev;
 
 	pci_set_drvdata(pdev, xcv);
 
 	err = pci_enable_device(pdev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(dev, "Failed to enable PCI device\n");
 		goto err_kfree;
 	}
 
 	err = pci_request_regions(pdev, DRV_NAME);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(dev, "PCI request regions failed 0x%x\n", err);
 		goto err_disable_device;
 	}
 
 	/* MAP configuration registers */
 	xcv->reg_base = pcim_iomap(pdev, PCI_CFG_REG_BAR_NUM, 0);
-	if (!xcv->reg_base) {
+
+	if (!xcv->reg_base)
+	{
 		dev_err(dev, "XCV: Cannot map CSR memory space, aborting\n");
 		err = -ENOMEM;
 		goto err_release_regions;
@@ -203,7 +223,8 @@ static void xcv_remove(struct pci_dev *pdev)
 {
 	struct device *dev = &pdev->dev;
 
-	if (xcv) {
+	if (xcv)
+	{
 		devm_kfree(dev, xcv);
 		xcv = NULL;
 	}
@@ -212,7 +233,8 @@ static void xcv_remove(struct pci_dev *pdev)
 	pci_disable_device(pdev);
 }
 
-static struct pci_driver xcv_driver = {
+static struct pci_driver xcv_driver =
+{
 	.name = DRV_NAME,
 	.id_table = xcv_id_table,
 	.probe = xcv_probe,

@@ -49,8 +49,12 @@ static unsigned exofs_last_byte(struct inode *inode, unsigned long page_nr)
 	loff_t last_byte = inode->i_size;
 
 	last_byte -= page_nr << PAGE_SHIFT;
+
 	if (last_byte > PAGE_SIZE)
+	{
 		last_byte = PAGE_SIZE;
+	}
+
 	return last_byte;
 }
 
@@ -63,18 +67,26 @@ static int exofs_commit_chunk(struct page *page, loff_t pos, unsigned len)
 	dir->i_version++;
 
 	if (!PageUptodate(page))
+	{
 		SetPageUptodate(page);
+	}
 
-	if (pos+len > dir->i_size) {
-		i_size_write(dir, pos+len);
+	if (pos + len > dir->i_size)
+	{
+		i_size_write(dir, pos + len);
 		mark_inode_dirty(dir);
 	}
+
 	set_page_dirty(page);
 
 	if (IS_DIRSYNC(dir))
+	{
 		err = write_one_page(page, 1);
+	}
 	else
+	{
 		unlock_page(page);
+	}
 
 	return err;
 }
@@ -90,37 +102,61 @@ static bool exofs_check_page(struct page *page)
 	char *error;
 
 	/* if the page is the last one in the directory */
-	if ((dir->i_size >> PAGE_SHIFT) == page->index) {
+	if ((dir->i_size >> PAGE_SHIFT) == page->index)
+	{
 		limit = dir->i_size & ~PAGE_MASK;
+
 		if (limit & (chunk_size - 1))
+		{
 			goto Ebadsize;
+		}
+
 		if (!limit)
+		{
 			goto out;
+		}
 	}
-	for (offs = 0; offs <= limit - EXOFS_DIR_REC_LEN(1); offs += rec_len) {
+
+	for (offs = 0; offs <= limit - EXOFS_DIR_REC_LEN(1); offs += rec_len)
+	{
 		p = (struct exofs_dir_entry *)(kaddr + offs);
 		rec_len = le16_to_cpu(p->rec_len);
 
 		if (rec_len < EXOFS_DIR_REC_LEN(1))
+		{
 			goto Eshort;
+		}
+
 		if (rec_len & 3)
+		{
 			goto Ealign;
+		}
+
 		if (rec_len < EXOFS_DIR_REC_LEN(p->name_len))
+		{
 			goto Enamelen;
-		if (((offs + rec_len - 1) ^ offs) & ~(chunk_size-1))
+		}
+
+		if (((offs + rec_len - 1) ^ offs) & ~(chunk_size - 1))
+		{
 			goto Espan;
+		}
 	}
+
 	if (offs != limit)
+	{
 		goto Eend;
+	}
+
 out:
 	SetPageChecked(page);
 	return true;
 
 Ebadsize:
 	EXOFS_ERR("ERROR [exofs_check_page]: "
-		"size of directory(0x%lx) is not a multiple of chunk size\n",
-		dir->i_ino
-	);
+			  "size of directory(0x%lx) is not a multiple of chunk size\n",
+			  dir->i_ino
+			 );
 	goto fail;
 Eshort:
 	error = "rec_len is smaller than minimal";
@@ -138,17 +174,17 @@ bad_entry:
 	EXOFS_ERR(
 		"ERROR [exofs_check_page]: bad entry in directory(0x%lx): %s - "
 		"offset=%lu, inode=0x%llx, rec_len=%d, name_len=%d\n",
-		dir->i_ino, error, (page->index<<PAGE_SHIFT)+offs,
+		dir->i_ino, error, (page->index << PAGE_SHIFT) + offs,
 		_LLU(le64_to_cpu(p->inode_no)),
 		rec_len, p->name_len);
 	goto fail;
 Eend:
 	p = (struct exofs_dir_entry *)(kaddr + offs);
 	EXOFS_ERR("ERROR [exofs_check_page]: "
-		"entry in directory(0x%lx) spans the page boundary"
-		"offset=%lu, inode=0x%llx\n",
-		dir->i_ino, (page->index<<PAGE_SHIFT)+offs,
-		_LLU(le64_to_cpu(p->inode_no)));
+			  "entry in directory(0x%lx) spans the page boundary"
+			  "offset=%lu, inode=0x%llx\n",
+			  dir->i_ino, (page->index << PAGE_SHIFT) + offs,
+			  _LLU(le64_to_cpu(p->inode_no)));
 fail:
 	SetPageError(page);
 	return false;
@@ -159,13 +195,19 @@ static struct page *exofs_get_page(struct inode *dir, unsigned long n)
 	struct address_space *mapping = dir->i_mapping;
 	struct page *page = read_mapping_page(mapping, n, NULL);
 
-	if (!IS_ERR(page)) {
+	if (!IS_ERR(page))
+	{
 		kmap(page);
-		if (unlikely(!PageChecked(page))) {
+
+		if (unlikely(!PageChecked(page)))
+		{
 			if (PageError(page) || !exofs_check_page(page))
+			{
 				goto fail;
+			}
 		}
 	}
+
 	return page;
 
 fail:
@@ -174,12 +216,18 @@ fail:
 }
 
 static inline int exofs_match(int len, const unsigned char *name,
-					struct exofs_dir_entry *de)
+							  struct exofs_dir_entry *de)
 {
 	if (len != de->name_len)
+	{
 		return 0;
+	}
+
 	if (!de->inode_no)
+	{
 		return 0;
+	}
+
 	return !memcmp(name, de->name, len);
 }
 
@@ -194,16 +242,23 @@ exofs_validate_entry(char *base, unsigned offset, unsigned mask)
 {
 	struct exofs_dir_entry *de = (struct exofs_dir_entry *)(base + offset);
 	struct exofs_dir_entry *p =
-			(struct exofs_dir_entry *)(base + (offset&mask));
-	while ((char *)p < (char *)de) {
+		(struct exofs_dir_entry *)(base + (offset & mask));
+
+	while ((char *)p < (char *)de)
+	{
 		if (p->rec_len == 0)
+		{
 			break;
+		}
+
 		p = exofs_next_entry(p);
 	}
+
 	return (char *)p - base;
 }
 
-static unsigned char exofs_filetype_table[EXOFS_FT_MAX] = {
+static unsigned char exofs_filetype_table[EXOFS_FT_MAX] =
+{
 	[EXOFS_FT_UNKNOWN]	= DT_UNKNOWN,
 	[EXOFS_FT_REG_FILE]	= DT_REG,
 	[EXOFS_FT_DIR]		= DT_DIR,
@@ -215,7 +270,8 @@ static unsigned char exofs_filetype_table[EXOFS_FT_MAX] = {
 };
 
 #define S_SHIFT 12
-static unsigned char exofs_type_by_mode[S_IFMT >> S_SHIFT] = {
+static unsigned char exofs_type_by_mode[S_IFMT >> S_SHIFT] =
+{
 	[S_IFREG >> S_SHIFT]	= EXOFS_FT_REG_FILE,
 	[S_IFDIR >> S_SHIFT]	= EXOFS_FT_DIR,
 	[S_IFCHR >> S_SHIFT]	= EXOFS_FT_CHRDEV,
@@ -240,68 +296,91 @@ exofs_readdir(struct file *file, struct dir_context *ctx)
 	unsigned int offset = pos & ~PAGE_MASK;
 	unsigned long n = pos >> PAGE_SHIFT;
 	unsigned long npages = dir_pages(inode);
-	unsigned chunk_mask = ~(exofs_chunk_size(inode)-1);
+	unsigned chunk_mask = ~(exofs_chunk_size(inode) - 1);
 	int need_revalidate = (file->f_version != inode->i_version);
 
 	if (pos > inode->i_size - EXOFS_DIR_REC_LEN(1))
+	{
 		return 0;
+	}
 
-	for ( ; n < npages; n++, offset = 0) {
+	for ( ; n < npages; n++, offset = 0)
+	{
 		char *kaddr, *limit;
 		struct exofs_dir_entry *de;
 		struct page *page = exofs_get_page(inode, n);
 
-		if (IS_ERR(page)) {
+		if (IS_ERR(page))
+		{
 			EXOFS_ERR("ERROR: bad page in directory(0x%lx)\n",
-				  inode->i_ino);
+					  inode->i_ino);
 			ctx->pos += PAGE_SIZE - offset;
 			return PTR_ERR(page);
 		}
+
 		kaddr = page_address(page);
-		if (unlikely(need_revalidate)) {
-			if (offset) {
+
+		if (unlikely(need_revalidate))
+		{
+			if (offset)
+			{
 				offset = exofs_validate_entry(kaddr, offset,
-								chunk_mask);
-				ctx->pos = (n<<PAGE_SHIFT) + offset;
+											  chunk_mask);
+				ctx->pos = (n << PAGE_SHIFT) + offset;
 			}
+
 			file->f_version = inode->i_version;
 			need_revalidate = 0;
 		}
+
 		de = (struct exofs_dir_entry *)(kaddr + offset);
 		limit = kaddr + exofs_last_byte(inode, n) -
-							EXOFS_DIR_REC_LEN(1);
-		for (; (char *)de <= limit; de = exofs_next_entry(de)) {
-			if (de->rec_len == 0) {
+				EXOFS_DIR_REC_LEN(1);
+
+		for (; (char *)de <= limit; de = exofs_next_entry(de))
+		{
+			if (de->rec_len == 0)
+			{
 				EXOFS_ERR("ERROR: "
-				     "zero-length entry in directory(0x%lx)\n",
-				     inode->i_ino);
+						  "zero-length entry in directory(0x%lx)\n",
+						  inode->i_ino);
 				exofs_put_page(page);
 				return -EIO;
 			}
-			if (de->inode_no) {
+
+			if (de->inode_no)
+			{
 				unsigned char t;
 
 				if (de->file_type < EXOFS_FT_MAX)
+				{
 					t = exofs_filetype_table[de->file_type];
+				}
 				else
+				{
 					t = DT_UNKNOWN;
+				}
 
 				if (!dir_emit(ctx, de->name, de->name_len,
-						le64_to_cpu(de->inode_no),
-						t)) {
+							  le64_to_cpu(de->inode_no),
+							  t))
+				{
 					exofs_put_page(page);
 					return 0;
 				}
 			}
+
 			ctx->pos += le16_to_cpu(de->rec_len);
 		}
+
 		exofs_put_page(page);
 	}
+
 	return 0;
 }
 
 struct exofs_dir_entry *exofs_find_entry(struct inode *dir,
-			struct dentry *dentry, struct page **res_page)
+		struct dentry *dentry, struct page **res_page)
 {
 	const unsigned char *name = dentry->d_name.name;
 	int namelen = dentry->d_name.len;
@@ -313,38 +392,61 @@ struct exofs_dir_entry *exofs_find_entry(struct inode *dir,
 	struct exofs_dir_entry *de;
 
 	if (npages == 0)
+	{
 		goto out;
+	}
 
 	*res_page = NULL;
 
 	start = oi->i_dir_start_lookup;
+
 	if (start >= npages)
+	{
 		start = 0;
+	}
+
 	n = start;
-	do {
+
+	do
+	{
 		char *kaddr;
 		page = exofs_get_page(dir, n);
-		if (!IS_ERR(page)) {
+
+		if (!IS_ERR(page))
+		{
 			kaddr = page_address(page);
 			de = (struct exofs_dir_entry *) kaddr;
 			kaddr += exofs_last_byte(dir, n) - reclen;
-			while ((char *) de <= kaddr) {
-				if (de->rec_len == 0) {
+
+			while ((char *) de <= kaddr)
+			{
+				if (de->rec_len == 0)
+				{
 					EXOFS_ERR("ERROR: zero-length entry in "
-						  "directory(0x%lx)\n",
-						  dir->i_ino);
+							  "directory(0x%lx)\n",
+							  dir->i_ino);
 					exofs_put_page(page);
 					goto out;
 				}
+
 				if (exofs_match(namelen, name, de))
+				{
 					goto found;
+				}
+
 				de = exofs_next_entry(de);
 			}
+
 			exofs_put_page(page);
 		}
+
 		if (++n >= npages)
+		{
 			n = 0;
-	} while (n != start);
+		}
+	}
+	while (n != start);
+
 out:
 	return NULL;
 
@@ -359,11 +461,13 @@ struct exofs_dir_entry *exofs_dotdot(struct inode *dir, struct page **p)
 	struct page *page = exofs_get_page(dir, 0);
 	struct exofs_dir_entry *de = NULL;
 
-	if (!IS_ERR(page)) {
+	if (!IS_ERR(page))
+	{
 		de = exofs_next_entry(
-				(struct exofs_dir_entry *)page_address(page));
+				 (struct exofs_dir_entry *)page_address(page));
 		*p = page;
 	}
+
 	return de;
 }
 
@@ -374,8 +478,11 @@ ino_t exofs_parent_ino(struct dentry *child)
 	ino_t ino;
 
 	de = exofs_dotdot(d_inode(child), &page);
+
 	if (!de)
+	{
 		return 0;
+	}
 
 	ino = le64_to_cpu(de->inode_no);
 	exofs_put_page(page);
@@ -389,32 +496,40 @@ ino_t exofs_inode_by_name(struct inode *dir, struct dentry *dentry)
 	struct page *page;
 
 	de = exofs_find_entry(dir, dentry, &page);
-	if (de) {
+
+	if (de)
+	{
 		res = le64_to_cpu(de->inode_no);
 		exofs_put_page(page);
 	}
+
 	return res;
 }
 
 int exofs_set_link(struct inode *dir, struct exofs_dir_entry *de,
-			struct page *page, struct inode *inode)
+				   struct page *page, struct inode *inode)
 {
 	loff_t pos = page_offset(page) +
-			(char *) de - (char *) page_address(page);
+				 (char *) de - (char *) page_address(page);
 	unsigned len = le16_to_cpu(de->rec_len);
 	int err;
 
 	lock_page(page);
 	err = exofs_write_begin(NULL, page->mapping, pos, len,
-				AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
+							AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
+
 	if (err)
 		EXOFS_ERR("exofs_set_link: exofs_write_begin FAILED => %d\n",
-			  err);
+				  err);
 
 	de->inode_no = cpu_to_le64(inode->i_ino);
 	exofs_set_de_type(de, inode);
+
 	if (likely(!err))
+	{
 		err = exofs_commit_chunk(page, pos, len);
+	}
+
 	exofs_put_page(page);
 	dir->i_mtime = dir->i_ctime = current_time(dir);
 	mark_inode_dirty(dir);
@@ -438,66 +553,95 @@ int exofs_add_link(struct dentry *dentry, struct inode *inode)
 	loff_t pos;
 	int err;
 
-	for (n = 0; n <= npages; n++) {
+	for (n = 0; n <= npages; n++)
+	{
 		char *dir_end;
 
 		page = exofs_get_page(dir, n);
 		err = PTR_ERR(page);
+
 		if (IS_ERR(page))
+		{
 			goto out;
+		}
+
 		lock_page(page);
 		kaddr = page_address(page);
 		dir_end = kaddr + exofs_last_byte(dir, n);
 		de = (struct exofs_dir_entry *)kaddr;
 		kaddr += PAGE_SIZE - reclen;
-		while ((char *)de <= kaddr) {
-			if ((char *)de == dir_end) {
+
+		while ((char *)de <= kaddr)
+		{
+			if ((char *)de == dir_end)
+			{
 				name_len = 0;
 				rec_len = chunk_size;
 				de->rec_len = cpu_to_le16(chunk_size);
 				de->inode_no = 0;
 				goto got_it;
 			}
-			if (de->rec_len == 0) {
+
+			if (de->rec_len == 0)
+			{
 				EXOFS_ERR("ERROR: exofs_add_link: "
-				      "zero-length entry in directory(0x%lx)\n",
-				      inode->i_ino);
+						  "zero-length entry in directory(0x%lx)\n",
+						  inode->i_ino);
 				err = -EIO;
 				goto out_unlock;
 			}
+
 			err = -EEXIST;
+
 			if (exofs_match(namelen, name, de))
+			{
 				goto out_unlock;
+			}
+
 			name_len = EXOFS_DIR_REC_LEN(de->name_len);
 			rec_len = le16_to_cpu(de->rec_len);
+
 			if (!de->inode_no && rec_len >= reclen)
+			{
 				goto got_it;
+			}
+
 			if (rec_len >= name_len + reclen)
+			{
 				goto got_it;
+			}
+
 			de = (struct exofs_dir_entry *) ((char *) de + rec_len);
 		}
+
 		unlock_page(page);
 		exofs_put_page(page);
 	}
 
 	EXOFS_ERR("exofs_add_link: BAD dentry=%p or inode=0x%lx\n",
-		  dentry, inode->i_ino);
+			  dentry, inode->i_ino);
 	return -EINVAL;
 
 got_it:
 	pos = page_offset(page) +
-		(char *)de - (char *)page_address(page);
+		  (char *)de - (char *)page_address(page);
 	err = exofs_write_begin(NULL, page->mapping, pos, rec_len, 0,
 							&page, NULL);
+
 	if (err)
+	{
 		goto out_unlock;
-	if (de->inode_no) {
+	}
+
+	if (de->inode_no)
+	{
 		struct exofs_dir_entry *de1 =
 			(struct exofs_dir_entry *)((char *)de + name_len);
 		de1->rec_len = cpu_to_le16(rec_len - name_len);
 		de->rec_len = cpu_to_le16(name_len);
 		de = de1;
 	}
+
 	de->name_len = namelen;
 	memcpy(de->name, name, namelen);
 	de->inode_no = cpu_to_le64(inode->i_ino);
@@ -522,38 +666,54 @@ int exofs_delete_entry(struct exofs_dir_entry *dir, struct page *page)
 	struct inode *inode = mapping->host;
 	struct exofs_sb_info *sbi = inode->i_sb->s_fs_info;
 	char *kaddr = page_address(page);
-	unsigned from = ((char *)dir - kaddr) & ~(exofs_chunk_size(inode)-1);
+	unsigned from = ((char *)dir - kaddr) & ~(exofs_chunk_size(inode) - 1);
 	unsigned to = ((char *)dir - kaddr) + le16_to_cpu(dir->rec_len);
 	loff_t pos;
 	struct exofs_dir_entry *pde = NULL;
 	struct exofs_dir_entry *de = (struct exofs_dir_entry *) (kaddr + from);
 	int err;
 
-	while (de < dir) {
-		if (de->rec_len == 0) {
+	while (de < dir)
+	{
+		if (de->rec_len == 0)
+		{
 			EXOFS_ERR("ERROR: exofs_delete_entry:"
-				  "zero-length entry in directory(0x%lx)\n",
-				  inode->i_ino);
+					  "zero-length entry in directory(0x%lx)\n",
+					  inode->i_ino);
 			err = -EIO;
 			goto out;
 		}
+
 		pde = de;
 		de = exofs_next_entry(de);
 	}
+
 	if (pde)
+	{
 		from = (char *)pde - (char *)page_address(page);
+	}
+
 	pos = page_offset(page) + from;
 	lock_page(page);
 	err = exofs_write_begin(NULL, page->mapping, pos, to - from, 0,
 							&page, NULL);
+
 	if (err)
 		EXOFS_ERR("exofs_delete_entry: exofs_write_begin FAILED => %d\n",
-			  err);
+				  err);
+
 	if (pde)
+	{
 		pde->rec_len = cpu_to_le16(to - from);
+	}
+
 	dir->inode_no = 0;
+
 	if (likely(!err))
+	{
 		err = exofs_commit_chunk(page, pos, to - from);
+	}
+
 	inode->i_ctime = inode->i_mtime = current_time(inode);
 	mark_inode_dirty(inode);
 	sbi->s_numfiles--;
@@ -576,11 +736,15 @@ int exofs_make_empty(struct inode *inode, struct inode *parent)
 	void *kaddr;
 
 	if (!page)
+	{
 		return -ENOMEM;
+	}
 
 	err = exofs_write_begin(NULL, page->mapping, 0, chunk_size, 0,
 							&page, NULL);
-	if (err) {
+
+	if (err)
+	{
 		unlock_page(page);
 		goto fail;
 	}
@@ -611,42 +775,64 @@ int exofs_empty_dir(struct inode *inode)
 	struct page *page = NULL;
 	unsigned long i, npages = dir_pages(inode);
 
-	for (i = 0; i < npages; i++) {
+	for (i = 0; i < npages; i++)
+	{
 		char *kaddr;
 		struct exofs_dir_entry *de;
 		page = exofs_get_page(inode, i);
 
 		if (IS_ERR(page))
+		{
 			continue;
+		}
 
 		kaddr = page_address(page);
 		de = (struct exofs_dir_entry *)kaddr;
 		kaddr += exofs_last_byte(inode, i) - EXOFS_DIR_REC_LEN(1);
 
-		while ((char *)de <= kaddr) {
-			if (de->rec_len == 0) {
+		while ((char *)de <= kaddr)
+		{
+			if (de->rec_len == 0)
+			{
 				EXOFS_ERR("ERROR: exofs_empty_dir: "
-					  "zero-length directory entry"
-					  "kaddr=%p, de=%p\n", kaddr, de);
+						  "zero-length directory entry"
+						  "kaddr=%p, de=%p\n", kaddr, de);
 				goto not_empty;
 			}
-			if (de->inode_no != 0) {
+
+			if (de->inode_no != 0)
+			{
 				/* check for . and .. */
 				if (de->name[0] != '.')
+				{
 					goto not_empty;
+				}
+
 				if (de->name_len > 2)
+				{
 					goto not_empty;
-				if (de->name_len < 2) {
+				}
+
+				if (de->name_len < 2)
+				{
 					if (le64_to_cpu(de->inode_no) !=
-					    inode->i_ino)
+						inode->i_ino)
+					{
 						goto not_empty;
-				} else if (de->name[1] != '.')
+					}
+				}
+				else if (de->name[1] != '.')
+				{
 					goto not_empty;
+				}
 			}
+
 			de = exofs_next_entry(de);
 		}
+
 		exofs_put_page(page);
 	}
+
 	return 1;
 
 not_empty:
@@ -654,7 +840,8 @@ not_empty:
 	return 0;
 }
 
-const struct file_operations exofs_dir_operations = {
+const struct file_operations exofs_dir_operations =
+{
 	.llseek		= generic_file_llseek,
 	.read		= generic_read_dir,
 	.iterate_shared	= exofs_readdir,

@@ -28,7 +28,8 @@
 #include <linux/seq_file.h>
 
 /* Global control variables for rcupdate callback mechanism. */
-struct rcu_ctrlblk {
+struct rcu_ctrlblk
+{
 	struct rcu_head *rcucblist;	/* List of pending callbacks (CBs). */
 	struct rcu_head **donetail;	/* ->next pointer of last "done" CB. */
 	struct rcu_head **curtail;	/* ->next pointer of last CB. */
@@ -40,13 +41,15 @@ struct rcu_ctrlblk {
 };
 
 /* Definition for rcupdate control block. */
-static struct rcu_ctrlblk rcu_sched_ctrlblk = {
+static struct rcu_ctrlblk rcu_sched_ctrlblk =
+{
 	.donetail	= &rcu_sched_ctrlblk.rcucblist,
 	.curtail	= &rcu_sched_ctrlblk.rcucblist,
 	RCU_TRACE(.name = "rcu_sched")
 };
 
-static struct rcu_ctrlblk rcu_bh_ctrlblk = {
+static struct rcu_ctrlblk rcu_bh_ctrlblk =
+{
 	.donetail	= &rcu_bh_ctrlblk.rcucblist,
 	.curtail	= &rcu_bh_ctrlblk.rcucblist,
 	RCU_TRACE(.name = "rcu_bh")
@@ -96,7 +99,8 @@ static int show_tiny_stats_open(struct inode *inode, struct file *file)
 	return single_open(file, show_tiny_stats, NULL);
 }
 
-static const struct file_operations show_tiny_stats_fops = {
+static const struct file_operations show_tiny_stats_fops =
+{
 	.owner = THIS_MODULE,
 	.open = show_tiny_stats_open,
 	.read = seq_read,
@@ -111,12 +115,20 @@ static int __init rcutiny_trace_init(void)
 	struct dentry *retval;
 
 	rcudir = debugfs_create_dir("rcu", NULL);
+
 	if (!rcudir)
+	{
 		goto free_out;
+	}
+
 	retval = debugfs_create_file("rcudata", 0444, rcudir,
-				     NULL, &show_tiny_stats_fops);
+								 NULL, &show_tiny_stats_fops);
+
 	if (!retval)
+	{
 		goto free_out;
+	}
+
 	return 0;
 free_out:
 	debugfs_remove_recursive(rcudir);
@@ -130,20 +142,27 @@ static void check_cpu_stall(struct rcu_ctrlblk *rcp)
 	unsigned long js;
 
 	if (rcu_cpu_stall_suppress)
+	{
 		return;
+	}
+
 	rcp->ticks_this_gp++;
 	j = jiffies;
 	js = READ_ONCE(rcp->jiffies_stall);
-	if (rcp->rcucblist && ULONG_CMP_GE(j, js)) {
+
+	if (rcp->rcucblist && ULONG_CMP_GE(j, js))
+	{
 		pr_err("INFO: %s stall on CPU (%lu ticks this GP) idle=%llx (t=%lu jiffies q=%ld)\n",
-		       rcp->name, rcp->ticks_this_gp, DYNTICK_TASK_EXIT_IDLE,
-		       jiffies - rcp->gp_start, rcp->qlen);
+			   rcp->name, rcp->ticks_this_gp, DYNTICK_TASK_EXIT_IDLE,
+			   jiffies - rcp->gp_start, rcp->qlen);
 		dump_stack();
 		WRITE_ONCE(rcp->jiffies_stall,
-			   jiffies + 3 * rcu_jiffies_till_stall_check() + 3);
-	} else if (ULONG_CMP_GE(j, js)) {
+				   jiffies + 3 * rcu_jiffies_till_stall_check() + 3);
+	}
+	else if (ULONG_CMP_GE(j, js))
+	{
 		WRITE_ONCE(rcp->jiffies_stall,
-			   jiffies + rcu_jiffies_till_stall_check());
+				   jiffies + rcu_jiffies_till_stall_check());
 	}
 }
 
@@ -152,7 +171,7 @@ static void reset_cpu_stall_ticks(struct rcu_ctrlblk *rcp)
 	rcp->ticks_this_gp = 0;
 	rcp->gp_start = jiffies;
 	WRITE_ONCE(rcp->jiffies_stall,
-		   jiffies + rcu_jiffies_till_stall_check());
+			   jiffies + rcu_jiffies_till_stall_check());
 }
 
 static void check_cpu_stalls(void)

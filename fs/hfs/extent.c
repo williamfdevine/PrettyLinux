@@ -54,15 +54,25 @@ int hfs_ext_keycmp(const btree_key *key1, const btree_key *key2)
 
 	fnum1 = key1->ext.FNum;
 	fnum2 = key2->ext.FNum;
+
 	if (fnum1 != fnum2)
+	{
 		return be32_to_cpu(fnum1) < be32_to_cpu(fnum2) ? -1 : 1;
+	}
+
 	if (key1->ext.FkType != key2->ext.FkType)
+	{
 		return key1->ext.FkType < key2->ext.FkType ? -1 : 1;
+	}
 
 	block1 = key1->ext.FABN;
 	block2 = key2->ext.FABN;
+
 	if (block1 == block2)
+	{
 		return 0;
+	}
+
 	return be16_to_cpu(block1) < be16_to_cpu(block2) ? -1 : 1;
 }
 
@@ -76,12 +86,18 @@ static u16 hfs_ext_find_block(struct hfs_extent *ext, u16 off)
 	int i;
 	u16 count;
 
-	for (i = 0; i < 3; ext++, i++) {
+	for (i = 0; i < 3; ext++, i++)
+	{
 		count = be16_to_cpu(ext->count);
+
 		if (off < count)
+		{
 			return be16_to_cpu(ext->block) + off;
+		}
+
 		off -= count;
 	}
+
 	/* panic? */
 	return 0;
 }
@@ -92,7 +108,10 @@ static int hfs_ext_block_count(struct hfs_extent *ext)
 	u16 count = 0;
 
 	for (i = 0; i < 3; ext++, i++)
+	{
 		count += be16_to_cpu(ext->count);
+	}
+
 	return count;
 }
 
@@ -101,9 +120,13 @@ static u16 hfs_ext_lastblock(struct hfs_extent *ext)
 	int i;
 
 	ext += 2;
+
 	for (i = 0; i < 2; ext--, i++)
 		if (ext->count)
+		{
 			break;
+		}
+
 	return be16_to_cpu(ext->block) + be16_to_cpu(ext->count);
 }
 
@@ -112,19 +135,30 @@ static int __hfs_ext_write_extent(struct inode *inode, struct hfs_find_data *fd)
 	int res;
 
 	hfs_ext_build_key(fd->search_key, inode->i_ino, HFS_I(inode)->cached_start,
-			  HFS_IS_RSRC(inode) ?  HFS_FK_RSRC : HFS_FK_DATA);
+					  HFS_IS_RSRC(inode) ?  HFS_FK_RSRC : HFS_FK_DATA);
 	res = hfs_brec_find(fd);
-	if (HFS_I(inode)->flags & HFS_FLG_EXT_NEW) {
+
+	if (HFS_I(inode)->flags & HFS_FLG_EXT_NEW)
+	{
 		if (res != -ENOENT)
+		{
 			return res;
+		}
+
 		hfs_brec_insert(fd, HFS_I(inode)->cached_extents, sizeof(hfs_extent_rec));
-		HFS_I(inode)->flags &= ~(HFS_FLG_EXT_DIRTY|HFS_FLG_EXT_NEW);
-	} else {
+		HFS_I(inode)->flags &= ~(HFS_FLG_EXT_DIRTY | HFS_FLG_EXT_NEW);
+	}
+	else
+	{
 		if (res)
+		{
 			return res;
+		}
+
 		hfs_bnode_write(fd->bnode, HFS_I(inode)->cached_extents, fd->entryoffset, fd->entrylength);
 		HFS_I(inode)->flags &= ~HFS_FLG_EXT_DIRTY;
 	}
+
 	return 0;
 }
 
@@ -133,31 +167,47 @@ int hfs_ext_write_extent(struct inode *inode)
 	struct hfs_find_data fd;
 	int res = 0;
 
-	if (HFS_I(inode)->flags & HFS_FLG_EXT_DIRTY) {
+	if (HFS_I(inode)->flags & HFS_FLG_EXT_DIRTY)
+	{
 		res = hfs_find_init(HFS_SB(inode->i_sb)->ext_tree, &fd);
+
 		if (res)
+		{
 			return res;
+		}
+
 		res = __hfs_ext_write_extent(inode, &fd);
 		hfs_find_exit(&fd);
 	}
+
 	return res;
 }
 
 static inline int __hfs_ext_read_extent(struct hfs_find_data *fd, struct hfs_extent *extent,
-					u32 cnid, u32 block, u8 type)
+										u32 cnid, u32 block, u8 type)
 {
 	int res;
 
 	hfs_ext_build_key(fd->search_key, cnid, block, type);
 	fd->key->ext.FNum = 0;
 	res = hfs_brec_find(fd);
+
 	if (res && res != -ENOENT)
+	{
 		return res;
+	}
+
 	if (fd->key->ext.FNum != fd->search_key->ext.FNum ||
-	    fd->key->ext.FkType != fd->search_key->ext.FkType)
+		fd->key->ext.FkType != fd->search_key->ext.FkType)
+	{
 		return -ENOENT;
+	}
+
 	if (fd->entrylength != sizeof(hfs_extent_rec))
+	{
 		return -EIO;
+	}
+
 	hfs_bnode_read(fd->bnode, extent, fd->entryoffset, sizeof(hfs_extent_rec));
 	return 0;
 }
@@ -166,21 +216,30 @@ static inline int __hfs_ext_cache_extent(struct hfs_find_data *fd, struct inode 
 {
 	int res;
 
-	if (HFS_I(inode)->flags & HFS_FLG_EXT_DIRTY) {
+	if (HFS_I(inode)->flags & HFS_FLG_EXT_DIRTY)
+	{
 		res = __hfs_ext_write_extent(inode, fd);
+
 		if (res)
+		{
 			return res;
+		}
 	}
 
 	res = __hfs_ext_read_extent(fd, HFS_I(inode)->cached_extents, inode->i_ino,
-				    block, HFS_IS_RSRC(inode) ? HFS_FK_RSRC : HFS_FK_DATA);
-	if (!res) {
+								block, HFS_IS_RSRC(inode) ? HFS_FK_RSRC : HFS_FK_DATA);
+
+	if (!res)
+	{
 		HFS_I(inode)->cached_start = be16_to_cpu(fd->key->ext.FABN);
 		HFS_I(inode)->cached_blocks = hfs_ext_block_count(HFS_I(inode)->cached_extents);
-	} else {
-		HFS_I(inode)->cached_start = HFS_I(inode)->cached_blocks = 0;
-		HFS_I(inode)->flags &= ~(HFS_FLG_EXT_DIRTY|HFS_FLG_EXT_NEW);
 	}
+	else
+	{
+		HFS_I(inode)->cached_start = HFS_I(inode)->cached_blocks = 0;
+		HFS_I(inode)->flags &= ~(HFS_FLG_EXT_DIRTY | HFS_FLG_EXT_NEW);
+	}
+
 	return res;
 }
 
@@ -190,14 +249,19 @@ static int hfs_ext_read_extent(struct inode *inode, u16 block)
 	int res;
 
 	if (block >= HFS_I(inode)->cached_start &&
-	    block < HFS_I(inode)->cached_start + HFS_I(inode)->cached_blocks)
+		block < HFS_I(inode)->cached_start + HFS_I(inode)->cached_blocks)
+	{
 		return 0;
+	}
 
 	res = hfs_find_init(HFS_SB(inode->i_sb)->ext_tree, &fd);
-	if (!res) {
+
+	if (!res)
+	{
 		res = __hfs_ext_cache_extent(&fd, inode, block);
 		hfs_find_exit(&fd);
 	}
+
 	return res;
 }
 
@@ -206,74 +270,113 @@ static void hfs_dump_extent(struct hfs_extent *extent)
 	int i;
 
 	hfs_dbg(EXTENT, "   ");
+
 	for (i = 0; i < 3; i++)
 		hfs_dbg_cont(EXTENT, " %u:%u",
-			     be16_to_cpu(extent[i].block),
-			     be16_to_cpu(extent[i].count));
+					 be16_to_cpu(extent[i].block),
+					 be16_to_cpu(extent[i].count));
+
 	hfs_dbg_cont(EXTENT, "\n");
 }
 
 static int hfs_add_extent(struct hfs_extent *extent, u16 offset,
-			  u16 alloc_block, u16 block_count)
+						  u16 alloc_block, u16 block_count)
 {
 	u16 count, start;
 	int i;
 
 	hfs_dump_extent(extent);
-	for (i = 0; i < 3; extent++, i++) {
+
+	for (i = 0; i < 3; extent++, i++)
+	{
 		count = be16_to_cpu(extent->count);
-		if (offset == count) {
+
+		if (offset == count)
+		{
 			start = be16_to_cpu(extent->block);
-			if (alloc_block != start + count) {
+
+			if (alloc_block != start + count)
+			{
 				if (++i >= 3)
+				{
 					return -ENOSPC;
+				}
+
 				extent++;
 				extent->block = cpu_to_be16(alloc_block);
-			} else
+			}
+			else
+			{
 				block_count += count;
+			}
+
 			extent->count = cpu_to_be16(block_count);
 			return 0;
-		} else if (offset < count)
+		}
+		else if (offset < count)
+		{
 			break;
+		}
+
 		offset -= count;
 	}
+
 	/* panic? */
 	return -EIO;
 }
 
 static int hfs_free_extents(struct super_block *sb, struct hfs_extent *extent,
-			    u16 offset, u16 block_nr)
+							u16 offset, u16 block_nr)
 {
 	u16 count, start;
 	int i;
 
 	hfs_dump_extent(extent);
-	for (i = 0; i < 3; extent++, i++) {
+
+	for (i = 0; i < 3; extent++, i++)
+	{
 		count = be16_to_cpu(extent->count);
+
 		if (offset == count)
+		{
 			goto found;
+		}
 		else if (offset < count)
+		{
 			break;
+		}
+
 		offset -= count;
 	}
+
 	/* panic? */
 	return -EIO;
 found:
-	for (;;) {
+
+	for (;;)
+	{
 		start = be16_to_cpu(extent->block);
-		if (count <= block_nr) {
+
+		if (count <= block_nr)
+		{
 			hfs_clear_vbm_bits(sb, start, count);
 			extent->block = 0;
 			extent->count = 0;
 			block_nr -= count;
-		} else {
+		}
+		else
+		{
 			count -= block_nr;
 			hfs_clear_vbm_bits(sb, start + count, block_nr);
 			extent->count = cpu_to_be16(count);
 			block_nr = 0;
 		}
+
 		if (!block_nr || !i)
+		{
 			return 0;
+		}
+
 		i--;
 		extent--;
 		count = be16_to_cpu(extent->count);
@@ -288,39 +391,66 @@ int hfs_free_fork(struct super_block *sb, struct hfs_cat_file *file, int type)
 	struct hfs_extent *extent;
 	int res, i;
 
-	if (type == HFS_FK_DATA) {
+	if (type == HFS_FK_DATA)
+	{
 		total_blocks = be32_to_cpu(file->PyLen);
 		extent = file->ExtRec;
-	} else {
+	}
+	else
+	{
 		total_blocks = be32_to_cpu(file->RPyLen);
 		extent = file->RExtRec;
 	}
+
 	total_blocks /= HFS_SB(sb)->alloc_blksz;
+
 	if (!total_blocks)
+	{
 		return 0;
+	}
 
 	blocks = 0;
+
 	for (i = 0; i < 3; extent++, i++)
+	{
 		blocks += be16_to_cpu(extent[i].count);
+	}
 
 	res = hfs_free_extents(sb, extent, blocks, blocks);
+
 	if (res)
+	{
 		return res;
+	}
+
 	if (total_blocks == blocks)
+	{
 		return 0;
+	}
 
 	res = hfs_find_init(HFS_SB(sb)->ext_tree, &fd);
+
 	if (res)
+	{
 		return res;
-	do {
+	}
+
+	do
+	{
 		res = __hfs_ext_read_extent(&fd, extent, cnid, total_blocks, type);
+
 		if (res)
+		{
 			break;
+		}
+
 		start = be16_to_cpu(fd.key->ext.FABN);
 		hfs_free_extents(sb, extent, total_blocks - start, total_blocks);
 		hfs_brec_remove(&fd);
 		total_blocks = start;
-	} while (total_blocks > blocks);
+	}
+	while (total_blocks > blocks);
+
 	hfs_find_exit(&fd);
 
 	return res;
@@ -330,7 +460,7 @@ int hfs_free_fork(struct super_block *sb, struct hfs_cat_file *file, int type)
  * hfs_get_block
  */
 int hfs_get_block(struct inode *inode, sector_t block,
-		  struct buffer_head *bh_result, int create)
+				  struct buffer_head *bh_result, int create)
 {
 	struct super_block *sb;
 	u16 dblock, ablock;
@@ -340,45 +470,62 @@ int hfs_get_block(struct inode *inode, sector_t block,
 	/* Convert inode block to disk allocation block */
 	ablock = (u32)block / HFS_SB(sb)->fs_div;
 
-	if (block >= HFS_I(inode)->fs_blocks) {
+	if (block >= HFS_I(inode)->fs_blocks)
+	{
 		if (block > HFS_I(inode)->fs_blocks || !create)
+		{
 			return -EIO;
-		if (ablock >= HFS_I(inode)->alloc_blocks) {
-			res = hfs_extend_file(inode);
-			if (res)
-				return res;
 		}
-	} else
-		create = 0;
 
-	if (ablock < HFS_I(inode)->first_blocks) {
+		if (ablock >= HFS_I(inode)->alloc_blocks)
+		{
+			res = hfs_extend_file(inode);
+
+			if (res)
+			{
+				return res;
+			}
+		}
+	}
+	else
+	{
+		create = 0;
+	}
+
+	if (ablock < HFS_I(inode)->first_blocks)
+	{
 		dblock = hfs_ext_find_block(HFS_I(inode)->first_extents, ablock);
 		goto done;
 	}
 
 	mutex_lock(&HFS_I(inode)->extents_lock);
 	res = hfs_ext_read_extent(inode, ablock);
+
 	if (!res)
 		dblock = hfs_ext_find_block(HFS_I(inode)->cached_extents,
-					    ablock - HFS_I(inode)->cached_start);
-	else {
+									ablock - HFS_I(inode)->cached_start);
+	else
+	{
 		mutex_unlock(&HFS_I(inode)->extents_lock);
 		return -EIO;
 	}
+
 	mutex_unlock(&HFS_I(inode)->extents_lock);
 
 done:
 	map_bh(bh_result, sb, HFS_SB(sb)->fs_start +
-	       dblock * HFS_SB(sb)->fs_div +
-	       (u32)block % HFS_SB(sb)->fs_div);
+		   dblock * HFS_SB(sb)->fs_div +
+		   (u32)block % HFS_SB(sb)->fs_div);
 
-	if (create) {
+	if (create)
+	{
 		set_buffer_new(bh_result);
 		HFS_I(inode)->phys_size += sb->s_blocksize;
 		HFS_I(inode)->fs_blocks++;
 		inode_add_bytes(inode, sb->s_blocksize);
 		mark_inode_dirty(inode);
 	}
+
 	return 0;
 }
 
@@ -389,77 +536,115 @@ int hfs_extend_file(struct inode *inode)
 	int res;
 
 	mutex_lock(&HFS_I(inode)->extents_lock);
+
 	if (HFS_I(inode)->alloc_blocks == HFS_I(inode)->first_blocks)
+	{
 		goal = hfs_ext_lastblock(HFS_I(inode)->first_extents);
-	else {
+	}
+	else
+	{
 		res = hfs_ext_read_extent(inode, HFS_I(inode)->alloc_blocks);
+
 		if (res)
+		{
 			goto out;
+		}
+
 		goal = hfs_ext_lastblock(HFS_I(inode)->cached_extents);
 	}
 
 	len = HFS_I(inode)->clump_blocks;
 	start = hfs_vbm_search_free(sb, goal, &len);
-	if (!len) {
+
+	if (!len)
+	{
 		res = -ENOSPC;
 		goto out;
 	}
 
 	hfs_dbg(EXTENT, "extend %lu: %u,%u\n", inode->i_ino, start, len);
-	if (HFS_I(inode)->alloc_blocks == HFS_I(inode)->first_blocks) {
-		if (!HFS_I(inode)->first_blocks) {
+
+	if (HFS_I(inode)->alloc_blocks == HFS_I(inode)->first_blocks)
+	{
+		if (!HFS_I(inode)->first_blocks)
+		{
 			hfs_dbg(EXTENT, "first extents\n");
 			/* no extents yet */
 			HFS_I(inode)->first_extents[0].block = cpu_to_be16(start);
 			HFS_I(inode)->first_extents[0].count = cpu_to_be16(len);
 			res = 0;
-		} else {
+		}
+		else
+		{
 			/* try to append to extents in inode */
 			res = hfs_add_extent(HFS_I(inode)->first_extents,
-					     HFS_I(inode)->alloc_blocks,
-					     start, len);
+								 HFS_I(inode)->alloc_blocks,
+								 start, len);
+
 			if (res == -ENOSPC)
+			{
 				goto insert_extent;
+			}
 		}
-		if (!res) {
+
+		if (!res)
+		{
 			hfs_dump_extent(HFS_I(inode)->first_extents);
 			HFS_I(inode)->first_blocks += len;
 		}
-	} else {
+	}
+	else
+	{
 		res = hfs_add_extent(HFS_I(inode)->cached_extents,
-				     HFS_I(inode)->alloc_blocks -
-				     HFS_I(inode)->cached_start,
-				     start, len);
-		if (!res) {
+							 HFS_I(inode)->alloc_blocks -
+							 HFS_I(inode)->cached_start,
+							 start, len);
+
+		if (!res)
+		{
 			hfs_dump_extent(HFS_I(inode)->cached_extents);
 			HFS_I(inode)->flags |= HFS_FLG_EXT_DIRTY;
 			HFS_I(inode)->cached_blocks += len;
-		} else if (res == -ENOSPC)
+		}
+		else if (res == -ENOSPC)
+		{
 			goto insert_extent;
+		}
 	}
+
 out:
 	mutex_unlock(&HFS_I(inode)->extents_lock);
-	if (!res) {
+
+	if (!res)
+	{
 		HFS_I(inode)->alloc_blocks += len;
 		mark_inode_dirty(inode);
+
 		if (inode->i_ino < HFS_FIRSTUSER_CNID)
+		{
 			set_bit(HFS_FLG_ALT_MDB_DIRTY, &HFS_SB(sb)->flags);
+		}
+
 		set_bit(HFS_FLG_MDB_DIRTY, &HFS_SB(sb)->flags);
 		hfs_mark_mdb_dirty(sb);
 	}
+
 	return res;
 
 insert_extent:
 	hfs_dbg(EXTENT, "insert new extent\n");
 	res = hfs_ext_write_extent(inode);
+
 	if (res)
+	{
 		goto out;
+	}
 
 	memset(HFS_I(inode)->cached_extents, 0, sizeof(hfs_extent_rec));
 	HFS_I(inode)->cached_extents[0].block = cpu_to_be16(start);
 	HFS_I(inode)->cached_extents[0].count = cpu_to_be16(len);
 	hfs_dump_extent(HFS_I(inode)->cached_extents);
-	HFS_I(inode)->flags |= HFS_FLG_EXT_DIRTY|HFS_FLG_EXT_NEW;
+	HFS_I(inode)->flags |= HFS_FLG_EXT_DIRTY | HFS_FLG_EXT_NEW;
 	HFS_I(inode)->cached_start = HFS_I(inode)->alloc_blocks;
 	HFS_I(inode)->cached_blocks = len;
 
@@ -476,63 +661,92 @@ void hfs_file_truncate(struct inode *inode)
 	int res;
 
 	hfs_dbg(INODE, "truncate: %lu, %Lu -> %Lu\n",
-		inode->i_ino, (long long)HFS_I(inode)->phys_size,
-		inode->i_size);
-	if (inode->i_size > HFS_I(inode)->phys_size) {
+			inode->i_ino, (long long)HFS_I(inode)->phys_size,
+			inode->i_size);
+
+	if (inode->i_size > HFS_I(inode)->phys_size)
+	{
 		struct address_space *mapping = inode->i_mapping;
 		void *fsdata;
 		struct page *page;
 
 		/* XXX: Can use generic_cont_expand? */
 		size = inode->i_size - 1;
-		res = pagecache_write_begin(NULL, mapping, size+1, 0,
-				AOP_FLAG_UNINTERRUPTIBLE, &page, &fsdata);
-		if (!res) {
-			res = pagecache_write_end(NULL, mapping, size+1, 0, 0,
-					page, fsdata);
+		res = pagecache_write_begin(NULL, mapping, size + 1, 0,
+									AOP_FLAG_UNINTERRUPTIBLE, &page, &fsdata);
+
+		if (!res)
+		{
+			res = pagecache_write_end(NULL, mapping, size + 1, 0, 0,
+									  page, fsdata);
 		}
+
 		if (res)
+		{
 			inode->i_size = HFS_I(inode)->phys_size;
+		}
+
 		return;
-	} else if (inode->i_size == HFS_I(inode)->phys_size)
+	}
+	else if (inode->i_size == HFS_I(inode)->phys_size)
+	{
 		return;
+	}
+
 	size = inode->i_size + HFS_SB(sb)->alloc_blksz - 1;
 	blk_cnt = size / HFS_SB(sb)->alloc_blksz;
 	alloc_cnt = HFS_I(inode)->alloc_blocks;
+
 	if (blk_cnt == alloc_cnt)
+	{
 		goto out;
+	}
 
 	mutex_lock(&HFS_I(inode)->extents_lock);
 	res = hfs_find_init(HFS_SB(sb)->ext_tree, &fd);
-	if (res) {
+
+	if (res)
+	{
 		mutex_unlock(&HFS_I(inode)->extents_lock);
 		/* XXX: We lack error handling of hfs_file_truncate() */
 		return;
 	}
-	while (1) {
-		if (alloc_cnt == HFS_I(inode)->first_blocks) {
+
+	while (1)
+	{
+		if (alloc_cnt == HFS_I(inode)->first_blocks)
+		{
 			hfs_free_extents(sb, HFS_I(inode)->first_extents,
-					 alloc_cnt, alloc_cnt - blk_cnt);
+							 alloc_cnt, alloc_cnt - blk_cnt);
 			hfs_dump_extent(HFS_I(inode)->first_extents);
 			HFS_I(inode)->first_blocks = blk_cnt;
 			break;
 		}
+
 		res = __hfs_ext_cache_extent(&fd, inode, alloc_cnt);
+
 		if (res)
+		{
 			break;
+		}
+
 		start = HFS_I(inode)->cached_start;
 		hfs_free_extents(sb, HFS_I(inode)->cached_extents,
-				 alloc_cnt - start, alloc_cnt - blk_cnt);
+						 alloc_cnt - start, alloc_cnt - blk_cnt);
 		hfs_dump_extent(HFS_I(inode)->cached_extents);
-		if (blk_cnt > start) {
+
+		if (blk_cnt > start)
+		{
 			HFS_I(inode)->flags |= HFS_FLG_EXT_DIRTY;
 			break;
 		}
+
 		alloc_cnt = start;
 		HFS_I(inode)->cached_start = HFS_I(inode)->cached_blocks = 0;
-		HFS_I(inode)->flags &= ~(HFS_FLG_EXT_DIRTY|HFS_FLG_EXT_NEW);
+		HFS_I(inode)->flags &= ~(HFS_FLG_EXT_DIRTY | HFS_FLG_EXT_NEW);
 		hfs_brec_remove(&fd);
 	}
+
 	hfs_find_exit(&fd);
 	mutex_unlock(&HFS_I(inode)->extents_lock);
 

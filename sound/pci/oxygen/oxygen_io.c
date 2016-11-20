@@ -65,7 +65,7 @@ void oxygen_write32(struct oxygen *chip, unsigned int reg, u32 value)
 EXPORT_SYMBOL(oxygen_write32);
 
 void oxygen_write8_masked(struct oxygen *chip, unsigned int reg,
-			  u8 value, u8 mask)
+						  u8 value, u8 mask)
 {
 	u8 tmp = inb(chip->addr + reg);
 	tmp &= ~mask;
@@ -76,7 +76,7 @@ void oxygen_write8_masked(struct oxygen *chip, unsigned int reg,
 EXPORT_SYMBOL(oxygen_write8_masked);
 
 void oxygen_write16_masked(struct oxygen *chip, unsigned int reg,
-			   u16 value, u16 mask)
+						   u16 value, u16 mask)
 {
 	u16 tmp = inw(chip->addr + reg);
 	tmp &= ~mask;
@@ -87,7 +87,7 @@ void oxygen_write16_masked(struct oxygen *chip, unsigned int reg,
 EXPORT_SYMBOL(oxygen_write16_masked);
 
 void oxygen_write32_masked(struct oxygen *chip, unsigned int reg,
-			   u32 value, u32 mask)
+						   u32 value, u32 mask)
 {
 	u32 tmp = inl(chip->addr + reg);
 	tmp &= ~mask;
@@ -106,9 +106,10 @@ static int oxygen_ac97_wait(struct oxygen *chip, unsigned int mask)
 	 * the read bits in status.
 	 */
 	wait_event_timeout(chip->ac97_waitqueue,
-			   ({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);
-			      status & mask; }),
-			   msecs_to_jiffies(1) + 1);
+					   ({ status |= oxygen_read8(chip, OXYGEN_AC97_INTERRUPT_STATUS);
+						  status &mask;
+						}),
+					   msecs_to_jiffies(1) + 1);
 	/*
 	 * Check even after a timeout because this function should not require
 	 * the AC'97 interrupt to be enabled.
@@ -127,7 +128,7 @@ static int oxygen_ac97_wait(struct oxygen *chip, unsigned int mask)
  */
 
 void oxygen_write_ac97(struct oxygen *chip, unsigned int codec,
-		       unsigned int index, u16 data)
+					   unsigned int index, u16 data)
 {
 	unsigned int count, succeeded;
 	u32 reg;
@@ -137,22 +138,27 @@ void oxygen_write_ac97(struct oxygen *chip, unsigned int codec,
 	reg |= OXYGEN_AC97_REG_DIR_WRITE;
 	reg |= codec << OXYGEN_AC97_REG_CODEC_SHIFT;
 	succeeded = 0;
-	for (count = 5; count > 0; --count) {
+
+	for (count = 5; count > 0; --count)
+	{
 		udelay(5);
 		oxygen_write32(chip, OXYGEN_AC97_REGS, reg);
+
 		/* require two "completed" writes, just to be sure */
 		if (oxygen_ac97_wait(chip, OXYGEN_AC97_INT_WRITE_DONE) >= 0 &&
-		    ++succeeded >= 2) {
+			++succeeded >= 2)
+		{
 			chip->saved_ac97_registers[codec][index / 2] = data;
 			return;
 		}
 	}
+
 	dev_err(chip->card->dev, "AC'97 write timeout\n");
 }
 EXPORT_SYMBOL(oxygen_write_ac97);
 
 u16 oxygen_read_ac97(struct oxygen *chip, unsigned int codec,
-		     unsigned int index)
+					 unsigned int index)
 {
 	unsigned int count;
 	unsigned int last_read = UINT_MAX;
@@ -161,15 +167,23 @@ u16 oxygen_read_ac97(struct oxygen *chip, unsigned int codec,
 	reg = index << OXYGEN_AC97_REG_ADDR_SHIFT;
 	reg |= OXYGEN_AC97_REG_DIR_READ;
 	reg |= codec << OXYGEN_AC97_REG_CODEC_SHIFT;
-	for (count = 5; count > 0; --count) {
+
+	for (count = 5; count > 0; --count)
+	{
 		udelay(5);
 		oxygen_write32(chip, OXYGEN_AC97_REGS, reg);
 		udelay(10);
-		if (oxygen_ac97_wait(chip, OXYGEN_AC97_INT_READ_DONE) >= 0) {
+
+		if (oxygen_ac97_wait(chip, OXYGEN_AC97_INT_READ_DONE) >= 0)
+		{
 			u16 value = oxygen_read16(chip, OXYGEN_AC97_REGS);
+
 			/* we require two consecutive reads of the same value */
 			if (value == last_read)
+			{
 				return value;
+			}
+
 			last_read = value;
 			/*
 			 * Invert the register value bits to make sure that two
@@ -179,13 +193,14 @@ u16 oxygen_read_ac97(struct oxygen *chip, unsigned int codec,
 			reg ^= 0xffff;
 		}
 	}
+
 	dev_err(chip->card->dev, "AC'97 read timeout on codec %u\n", codec);
 	return 0;
 }
 EXPORT_SYMBOL(oxygen_read_ac97);
 
 void oxygen_write_ac97_masked(struct oxygen *chip, unsigned int codec,
-			      unsigned int index, u16 data, u16 mask)
+							  unsigned int index, u16 data, u16 mask)
 {
 	u16 value = oxygen_read_ac97(chip, codec, index);
 	value &= ~mask;
@@ -202,12 +217,17 @@ static int oxygen_wait_spi(struct oxygen *chip)
 	 * Higher timeout to be sure: 200 us;
 	 * actual transaction should not need more than 40 us.
 	 */
-	for (count = 50; count > 0; count--) {
+	for (count = 50; count > 0; count--)
+	{
 		udelay(4);
+
 		if ((oxygen_read8(chip, OXYGEN_SPI_CONTROL) &
-						OXYGEN_SPI_BUSY) == 0)
+			 OXYGEN_SPI_BUSY) == 0)
+		{
 			return 0;
+		}
 	}
+
 	dev_err(chip->card->dev, "oxygen: SPI wait timeout\n");
 	return -EIO;
 }
@@ -220,8 +240,12 @@ int oxygen_write_spi(struct oxygen *chip, u8 control, unsigned int data)
 	 */
 	oxygen_write8(chip, OXYGEN_SPI_DATA1, data);
 	oxygen_write8(chip, OXYGEN_SPI_DATA2, data >> 8);
+
 	if (control & OXYGEN_SPI_DATA_LENGTH_3)
+	{
 		oxygen_write8(chip, OXYGEN_SPI_DATA3, data >> 16);
+	}
+
 	oxygen_write8(chip, OXYGEN_SPI_CONTROL, control);
 	return oxygen_wait_spi(chip);
 }
@@ -235,14 +259,17 @@ void oxygen_write_i2c(struct oxygen *chip, u8 device, u8 map, u8 data)
 	oxygen_write8(chip, OXYGEN_2WIRE_MAP, map);
 	oxygen_write8(chip, OXYGEN_2WIRE_DATA, data);
 	oxygen_write8(chip, OXYGEN_2WIRE_CONTROL,
-		      device | OXYGEN_2WIRE_DIR_WRITE);
+				  device | OXYGEN_2WIRE_DIR_WRITE);
 }
 EXPORT_SYMBOL(oxygen_write_i2c);
 
 static void _write_uart(struct oxygen *chip, unsigned int port, u8 data)
 {
 	if (oxygen_read8(chip, OXYGEN_MPU401 + 1) & MPU401_TX_FULL)
+	{
 		msleep(1);
+	}
+
 	oxygen_write8(chip, OXYGEN_MPU401 + port, data);
 }
 
@@ -265,13 +292,19 @@ u16 oxygen_read_eeprom(struct oxygen *chip, unsigned int index)
 	unsigned int timeout;
 
 	oxygen_write8(chip, OXYGEN_EEPROM_CONTROL,
-		      index | OXYGEN_EEPROM_DIR_READ);
-	for (timeout = 0; timeout < 100; ++timeout) {
+				  index | OXYGEN_EEPROM_DIR_READ);
+
+	for (timeout = 0; timeout < 100; ++timeout)
+	{
 		udelay(1);
+
 		if (!(oxygen_read8(chip, OXYGEN_EEPROM_STATUS)
-		      & OXYGEN_EEPROM_BUSY))
+			  & OXYGEN_EEPROM_BUSY))
+		{
 			break;
+		}
 	}
+
 	return oxygen_read16(chip, OXYGEN_EEPROM_DATA);
 }
 
@@ -281,12 +314,18 @@ void oxygen_write_eeprom(struct oxygen *chip, unsigned int index, u16 value)
 
 	oxygen_write16(chip, OXYGEN_EEPROM_DATA, value);
 	oxygen_write8(chip, OXYGEN_EEPROM_CONTROL,
-		      index | OXYGEN_EEPROM_DIR_WRITE);
-	for (timeout = 0; timeout < 10; ++timeout) {
+				  index | OXYGEN_EEPROM_DIR_WRITE);
+
+	for (timeout = 0; timeout < 10; ++timeout)
+	{
 		msleep(1);
+
 		if (!(oxygen_read8(chip, OXYGEN_EEPROM_STATUS)
-		      & OXYGEN_EEPROM_BUSY))
+			  & OXYGEN_EEPROM_BUSY))
+		{
 			return;
+		}
 	}
+
 	dev_err(chip->card->dev, "EEPROM write timeout\n");
 }

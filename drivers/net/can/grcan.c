@@ -45,7 +45,8 @@
 
 #define GRCAN_RESERVE_SIZE(slot1, slot2) (((slot2) - (slot1)) / 4 - 1)
 
-struct grcan_registers {
+struct grcan_registers
+{
 	u32 conf;	/* 0x00 */
 	u32 stat;	/* 0x04 */
 	u32 ctrl;	/* 0x08 */
@@ -172,10 +173,10 @@ struct grcan_registers {
 	 | GRCAN_IRQ_TXLOSS)
 
 #define GRCAN_IRQ_ERRCTR_RELATED (GRCAN_IRQ_RXERRCTR | GRCAN_IRQ_TXERRCTR \
-				  | GRCAN_IRQ_PASS | GRCAN_IRQ_OFF)
+								  | GRCAN_IRQ_PASS | GRCAN_IRQ_OFF)
 #define GRCAN_IRQ_ERRORS (GRCAN_IRQ_ERRCTR_RELATED | GRCAN_IRQ_OR	\
-			  | GRCAN_IRQ_TXAHBERR | GRCAN_IRQ_RXAHBERR	\
-			  | GRCAN_IRQ_TXLOSS)
+						  | GRCAN_IRQ_TXAHBERR | GRCAN_IRQ_RXAHBERR	\
+						  | GRCAN_IRQ_TXLOSS)
 #define GRCAN_IRQ_DEFAULT (GRCAN_IRQ_RX | GRCAN_IRQ_TX | GRCAN_IRQ_ERRORS)
 
 #define GRCAN_MSG_SIZE		16
@@ -211,16 +212,18 @@ struct grcan_registers {
 	((s) == 0 || ((s) & ~GRCAN_VALID_TR_SIZE_MASK))
 
 #if GRCAN_INVALID_BUFFER_SIZE(GRCAN_DEFAULT_BUFFER_SIZE)
-#error "Invalid default buffer size"
+	#error "Invalid default buffer size"
 #endif
 
-struct grcan_dma_buffer {
+struct grcan_dma_buffer
+{
 	size_t size;
 	void *buf;
 	dma_addr_t handle;
 };
 
-struct grcan_dma {
+struct grcan_dma
+{
 	size_t base_size;
 	void *base_buf;
 	dma_addr_t base_handle;
@@ -229,7 +232,8 @@ struct grcan_dma {
 };
 
 /* GRCAN configuration parameters */
-struct grcan_device_config {
+struct grcan_device_config
+{
 	unsigned short enable0;
 	unsigned short enable1;
 	unsigned short select;
@@ -239,17 +243,18 @@ struct grcan_device_config {
 
 #define GRCAN_DEFAULT_DEVICE_CONFIG {				\
 		.enable0	= 0,				\
-		.enable1	= 0,				\
-		.select		= 0,				\
-		.txsize		= GRCAN_DEFAULT_BUFFER_SIZE,	\
-		.rxsize		= GRCAN_DEFAULT_BUFFER_SIZE,	\
-		}
+					  .enable1	= 0,				\
+									.select		= 0,				\
+											.txsize		= GRCAN_DEFAULT_BUFFER_SIZE,	\
+													.rxsize		= GRCAN_DEFAULT_BUFFER_SIZE,	\
+	}
 
 #define GRCAN_TXBUG_SAFE_GRLIB_VERSION	0x4100
 #define GRLIB_VERSION_MASK		0xffff
 
 /* GRCAN private data structure */
-struct grcan_priv {
+struct grcan_priv
+{
 	struct can_priv can;	/* must be the first member */
 	struct net_device *dev;
 	struct napi_struct napi;
@@ -368,9 +373,13 @@ static inline u32 grcan_ring_add(u32 a, u32 b, u32 size)
 	u32 sum = a + b;
 
 	if (sum < size)
+	{
 		return sum;
+	}
 	else
+	{
 		return sum - size;
+	}
 }
 
 /* a and b should both be in [0,size) */
@@ -390,9 +399,10 @@ static inline u32 grcan_txspace(size_t txsize, u32 txwr, u32 eskbp)
 
 /* Configuration parameters that can be set via module parameters */
 static struct grcan_device_config grcan_module_config =
-	GRCAN_DEFAULT_DEVICE_CONFIG;
+		GRCAN_DEFAULT_DEVICE_CONFIG;
 
-static const struct can_bittiming_const grcan_bittiming_const = {
+static const struct can_bittiming_const grcan_bittiming_const =
+{
 	.name		= DRV_NAME,
 	.tseg1_min	= GRCAN_CONF_PS1_MIN + 1,
 	.tseg1_max	= GRCAN_CONF_PS1_MAX + 1,
@@ -416,7 +426,9 @@ static int grcan_set_bittiming(struct net_device *dev)
 	 * device is up
 	 */
 	if (grcan_read_bits(&regs->ctrl, GRCAN_CTRL_ENABLE))
+	{
 		return -EBUSY;
+	}
 
 	bpr = 0; /* Note bpr and brp are different concepts */
 	rsj = bt->sjw;
@@ -424,15 +436,19 @@ static int grcan_set_bittiming(struct net_device *dev)
 	ps2 = bt->phase_seg2;
 	scaler = (bt->brp - 1);
 	netdev_dbg(dev, "Request for BPR=%d, RSJ=%d, PS1=%d, PS2=%d, SCALER=%d",
-		   bpr, rsj, ps1, ps2, scaler);
-	if (!(ps1 > ps2)) {
+			   bpr, rsj, ps1, ps2, scaler);
+
+	if (!(ps1 > ps2))
+	{
 		netdev_err(dev, "PS1 > PS2 must hold: PS1=%d, PS2=%d\n",
-			   ps1, ps2);
+				   ps1, ps2);
 		return -EINVAL;
 	}
-	if (!(ps2 >= rsj)) {
+
+	if (!(ps2 >= rsj))
+	{
 		netdev_err(dev, "PS2 >= RSJ must hold: PS2=%d, RSJ=%d\n",
-			   ps2, rsj);
+				   ps2, rsj);
 		return -EINVAL;
 	}
 
@@ -448,7 +464,7 @@ static int grcan_set_bittiming(struct net_device *dev)
 }
 
 static int grcan_get_berr_counter(const struct net_device *dev,
-				  struct can_berr_counter *bec)
+								  struct can_berr_counter *bec)
 {
 	struct grcan_priv *priv = netdev_priv(dev);
 	struct grcan_registers __iomem *regs = priv->regs;
@@ -512,25 +528,34 @@ static int catch_up_echo_skb(struct net_device *dev, int budget, bool echo)
 	 */
 	u32 txrd = grcan_read_reg(&regs->txrd);
 
-	for (work_done = 0; work_done < budget || budget < 0; work_done++) {
+	for (work_done = 0; work_done < budget || budget < 0; work_done++)
+	{
 		if (priv->eskbp == txrd)
+		{
 			break;
+		}
+
 		i = priv->eskbp / GRCAN_MSG_SIZE;
-		if (echo) {
+
+		if (echo)
+		{
 			/* Normal echo of messages */
 			stats->tx_packets++;
 			stats->tx_bytes += priv->txdlc[i];
 			priv->txdlc[i] = 0;
 			can_get_echo_skb(dev, i);
-		} else {
+		}
+		else
+		{
 			/* For cleanup of untransmitted messages */
 			can_free_echo_skb(dev, i);
 		}
 
 		priv->eskbp = grcan_ring_add(priv->eskbp, GRCAN_MSG_SIZE,
-					     dma->tx.size);
+									 dma->tx.size);
 		txrd = grcan_read_reg(&regs->txrd);
 	}
+
 	return work_done;
 }
 
@@ -546,10 +571,13 @@ static void grcan_lost_one_shot_frame(struct net_device *dev)
 
 	catch_up_echo_skb(dev, -1, true);
 
-	if (unlikely(grcan_read_bits(&regs->txctrl, GRCAN_TXCTRL_ENABLE))) {
+	if (unlikely(grcan_read_bits(&regs->txctrl, GRCAN_TXCTRL_ENABLE)))
+	{
 		/* Should never happen */
 		netdev_err(dev, "TXCTRL enabled at TXLOSS in one shot mode\n");
-	} else {
+	}
+	else
+	{
 		/* By the time an GRCAN_IRQ_TXLOSS is generated in
 		 * one-shot mode there is no problem in writing
 		 * to TXRD even in versions of the hardware in
@@ -564,7 +592,8 @@ static void grcan_lost_one_shot_frame(struct net_device *dev)
 		catch_up_echo_skb(dev, -1, false);
 
 		if (!priv->resetting && !priv->closing &&
-		    !(priv->can.ctrlmode & CAN_CTRLMODE_LISTENONLY)) {
+			!(priv->can.ctrlmode & CAN_CTRLMODE_LISTENONLY))
+		{
 			netif_wake_queue(dev);
 			grcan_set_bits(&regs->txctrl, GRCAN_TXCTRL_ENABLE);
 		}
@@ -590,15 +619,19 @@ static void grcan_err(struct net_device *dev, u32 sources, u32 status)
 	 * arbitration errors can not be singled out, no error frames are
 	 * generated reporting this event as an arbitration error.
 	 */
-	if (sources & GRCAN_IRQ_TXLOSS) {
+	if (sources & GRCAN_IRQ_TXLOSS)
+	{
 		/* Take care of failed one-shot transmit */
 		if (priv->can.ctrlmode & CAN_CTRLMODE_ONE_SHOT)
+		{
 			grcan_lost_one_shot_frame(dev);
+		}
 
 		/* Stop printing as soon as error passive or bus off is in
 		 * effect to limit the amount of txloss debug printouts.
 		 */
-		if (!(status & GRCAN_STAT_ERRCTR_RELATED)) {
+		if (!(status & GRCAN_STAT_ERRCTR_RELATED))
+		{
 			netdev_dbg(dev, "tx message lost\n");
 			stats->tx_errors++;
 		}
@@ -609,81 +642,109 @@ static void grcan_err(struct net_device *dev, u32 sources, u32 status)
 	 * counters.
 	 */
 	if ((sources & GRCAN_IRQ_ERRCTR_RELATED) ||
-	    (status & GRCAN_STAT_ERRCTR_RELATED)) {
+		(status & GRCAN_STAT_ERRCTR_RELATED))
+	{
 		enum can_state state = priv->can.state;
 		enum can_state oldstate = state;
 		u32 txerr = (status & GRCAN_STAT_TXERRCNT)
-			>> GRCAN_STAT_TXERRCNT_BIT;
+					>> GRCAN_STAT_TXERRCNT_BIT;
 		u32 rxerr = (status & GRCAN_STAT_RXERRCNT)
-			>> GRCAN_STAT_RXERRCNT_BIT;
+					>> GRCAN_STAT_RXERRCNT_BIT;
 
 		/* Figure out current state */
-		if (status & GRCAN_STAT_OFF) {
+		if (status & GRCAN_STAT_OFF)
+		{
 			state = CAN_STATE_BUS_OFF;
-		} else if (status & GRCAN_STAT_PASS) {
+		}
+		else if (status & GRCAN_STAT_PASS)
+		{
 			state = CAN_STATE_ERROR_PASSIVE;
-		} else if (txerr >= GRCAN_STAT_ERRCNT_WARNING_LIMIT ||
-			   rxerr >= GRCAN_STAT_ERRCNT_WARNING_LIMIT) {
+		}
+		else if (txerr >= GRCAN_STAT_ERRCNT_WARNING_LIMIT ||
+				 rxerr >= GRCAN_STAT_ERRCNT_WARNING_LIMIT)
+		{
 			state = CAN_STATE_ERROR_WARNING;
-		} else {
+		}
+		else
+		{
 			state = CAN_STATE_ERROR_ACTIVE;
 		}
 
 		/* Handle and report state changes */
-		if (state != oldstate) {
-			switch (state) {
-			case CAN_STATE_BUS_OFF:
-				netdev_dbg(dev, "bus-off\n");
-				netif_carrier_off(dev);
-				priv->can.can_stats.bus_off++;
+		if (state != oldstate)
+		{
+			switch (state)
+			{
+				case CAN_STATE_BUS_OFF:
+					netdev_dbg(dev, "bus-off\n");
+					netif_carrier_off(dev);
+					priv->can.can_stats.bus_off++;
 
-				/* Prevent the hardware from recovering from bus
-				 * off on its own if restart is disabled.
-				 */
-				if (!priv->can.restart_ms)
-					grcan_stop_hardware(dev);
+					/* Prevent the hardware from recovering from bus
+					 * off on its own if restart is disabled.
+					 */
+					if (!priv->can.restart_ms)
+					{
+						grcan_stop_hardware(dev);
+					}
 
-				cf.can_id |= CAN_ERR_BUSOFF;
-				break;
+					cf.can_id |= CAN_ERR_BUSOFF;
+					break;
 
-			case CAN_STATE_ERROR_PASSIVE:
-				netdev_dbg(dev, "Error passive condition\n");
-				priv->can.can_stats.error_passive++;
+				case CAN_STATE_ERROR_PASSIVE:
+					netdev_dbg(dev, "Error passive condition\n");
+					priv->can.can_stats.error_passive++;
 
-				cf.can_id |= CAN_ERR_CRTL;
-				if (txerr >= GRCAN_STAT_ERRCNT_PASSIVE_LIMIT)
-					cf.data[1] |= CAN_ERR_CRTL_TX_PASSIVE;
-				if (rxerr >= GRCAN_STAT_ERRCNT_PASSIVE_LIMIT)
-					cf.data[1] |= CAN_ERR_CRTL_RX_PASSIVE;
-				break;
+					cf.can_id |= CAN_ERR_CRTL;
 
-			case CAN_STATE_ERROR_WARNING:
-				netdev_dbg(dev, "Error warning condition\n");
-				priv->can.can_stats.error_warning++;
+					if (txerr >= GRCAN_STAT_ERRCNT_PASSIVE_LIMIT)
+					{
+						cf.data[1] |= CAN_ERR_CRTL_TX_PASSIVE;
+					}
 
-				cf.can_id |= CAN_ERR_CRTL;
-				if (txerr >= GRCAN_STAT_ERRCNT_WARNING_LIMIT)
-					cf.data[1] |= CAN_ERR_CRTL_TX_WARNING;
-				if (rxerr >= GRCAN_STAT_ERRCNT_WARNING_LIMIT)
-					cf.data[1] |= CAN_ERR_CRTL_RX_WARNING;
-				break;
+					if (rxerr >= GRCAN_STAT_ERRCNT_PASSIVE_LIMIT)
+					{
+						cf.data[1] |= CAN_ERR_CRTL_RX_PASSIVE;
+					}
 
-			case CAN_STATE_ERROR_ACTIVE:
-				netdev_dbg(dev, "Error active condition\n");
-				cf.can_id |= CAN_ERR_CRTL;
-				break;
+					break;
 
-			default:
-				/* There are no others at this point */
-				break;
+				case CAN_STATE_ERROR_WARNING:
+					netdev_dbg(dev, "Error warning condition\n");
+					priv->can.can_stats.error_warning++;
+
+					cf.can_id |= CAN_ERR_CRTL;
+
+					if (txerr >= GRCAN_STAT_ERRCNT_WARNING_LIMIT)
+					{
+						cf.data[1] |= CAN_ERR_CRTL_TX_WARNING;
+					}
+
+					if (rxerr >= GRCAN_STAT_ERRCNT_WARNING_LIMIT)
+					{
+						cf.data[1] |= CAN_ERR_CRTL_RX_WARNING;
+					}
+
+					break;
+
+				case CAN_STATE_ERROR_ACTIVE:
+					netdev_dbg(dev, "Error active condition\n");
+					cf.can_id |= CAN_ERR_CRTL;
+					break;
+
+				default:
+					/* There are no others at this point */
+					break;
 			}
+
 			cf.data[6] = txerr;
 			cf.data[7] = rxerr;
 			priv->can.state = state;
 		}
 
 		/* Report automatic restarts */
-		if (priv->can.restart_ms && oldstate == CAN_STATE_BUS_OFF) {
+		if (priv->can.restart_ms && oldstate == CAN_STATE_BUS_OFF)
+		{
 			unsigned long flags;
 
 			cf.can_id |= CAN_ERR_RESTARTED;
@@ -693,12 +754,15 @@ static void grcan_err(struct net_device *dev, u32 sources, u32 status)
 
 			spin_lock_irqsave(&priv->lock, flags);
 
-			if (!priv->resetting && !priv->closing) {
+			if (!priv->resetting && !priv->closing)
+			{
 				u32 txwr = grcan_read_reg(&regs->txwr);
 
 				if (grcan_txspace(dma->tx.size, txwr,
-						  priv->eskbp))
+								  priv->eskbp))
+				{
 					netif_wake_queue(dev);
+				}
 			}
 
 			spin_unlock_irqrestore(&priv->lock, flags);
@@ -706,7 +770,8 @@ static void grcan_err(struct net_device *dev, u32 sources, u32 status)
 	}
 
 	/* Data overrun interrupt */
-	if ((sources & GRCAN_IRQ_OR) || (status & GRCAN_STAT_OR)) {
+	if ((sources & GRCAN_IRQ_OR) || (status & GRCAN_STAT_OR))
+	{
 		netdev_dbg(dev, "got data overrun interrupt\n");
 		stats->rx_over_errors++;
 		stats->rx_errors++;
@@ -719,19 +784,24 @@ static void grcan_err(struct net_device *dev, u32 sources, u32 status)
 	 * device.
 	 */
 	if (sources & (GRCAN_IRQ_TXAHBERR | GRCAN_IRQ_RXAHBERR) ||
-	    (status & GRCAN_STAT_AHBERR)) {
+		(status & GRCAN_STAT_AHBERR))
+	{
 		char *txrx = "";
 		unsigned long flags;
 
-		if (sources & GRCAN_IRQ_TXAHBERR) {
+		if (sources & GRCAN_IRQ_TXAHBERR)
+		{
 			txrx = "on tx ";
 			stats->tx_errors++;
-		} else if (sources & GRCAN_IRQ_RXAHBERR) {
+		}
+		else if (sources & GRCAN_IRQ_RXAHBERR)
+		{
 			txrx = "on rx ";
 			stats->rx_errors++;
 		}
+
 		netdev_err(dev, "Fatal AHB buss error %s- halting device\n",
-			   txrx);
+				   txrx);
 
 		spin_lock_irqsave(&priv->lock, flags);
 
@@ -747,14 +817,17 @@ static void grcan_err(struct net_device *dev, u32 sources, u32 status)
 	/* Pass on error frame if something to report,
 	 * i.e. id contains some information
 	 */
-	if (cf.can_id) {
+	if (cf.can_id)
+	{
 		struct can_frame *skb_cf;
 		struct sk_buff *skb = alloc_can_err_skb(dev, &skb_cf);
 
-		if (skb == NULL) {
+		if (skb == NULL)
+		{
 			netdev_dbg(dev, "could not allocate error frame\n");
 			return;
 		}
+
 		skb_cf->can_id |= cf.can_id;
 		memcpy(skb_cf->data, cf.data, sizeof(cf.data));
 
@@ -771,8 +844,12 @@ static irqreturn_t grcan_interrupt(int irq, void *dev_id)
 
 	/* Find out the source */
 	sources = grcan_read_reg(&regs->pimsr);
+
 	if (!sources)
+	{
 		return IRQ_NONE;
+	}
+
 	grcan_write_reg(&regs->picr, sources);
 	status = grcan_read_reg(&regs->stat);
 
@@ -780,12 +857,14 @@ static irqreturn_t grcan_interrupt(int irq, void *dev_id)
 	 * so disable the hang timer
 	 */
 	if (priv->need_txbug_workaround &&
-	    (sources & (GRCAN_IRQ_TX | GRCAN_IRQ_TXLOSS))) {
+		(sources & (GRCAN_IRQ_TX | GRCAN_IRQ_TXLOSS)))
+	{
 		del_timer(&priv->hang_timer);
 	}
 
 	/* Frame(s) received or transmitted */
-	if (sources & (GRCAN_IRQ_TX | GRCAN_IRQ_RX)) {
+	if (sources & (GRCAN_IRQ_TX | GRCAN_IRQ_RX))
+	{
 		/* Disable tx/rx interrupts and schedule poll(). No need for
 		 * locking as interference from a running reset at worst leads
 		 * to an extra interrupt.
@@ -796,7 +875,9 @@ static irqreturn_t grcan_interrupt(int irq, void *dev_id)
 
 	/* (Potential) error conditions to take care of */
 	if (sources & GRCAN_IRQ_ERRORS)
+	{
 		grcan_err(dev, sources, status);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -823,7 +904,8 @@ static void grcan_running_reset(unsigned long data)
 	del_timer(&priv->hang_timer);
 	del_timer(&priv->rr_timer);
 
-	if (!priv->closing) {
+	if (!priv->closing)
+	{
 		/* Save and reset - config register preserved by grcan_reset */
 		u32 imr = grcan_read_reg(&regs->imr);
 
@@ -856,8 +938,8 @@ static void grcan_running_reset(unsigned long data)
 		grcan_write_reg(&regs->imr, imr);
 		priv->can.state = CAN_STATE_ERROR_ACTIVE;
 		grcan_write_reg(&regs->txctrl, GRCAN_TXCTRL_ENABLE
-				| (priv->can.ctrlmode & CAN_CTRLMODE_ONE_SHOT
-				   ? GRCAN_TXCTRL_SINGLE : 0));
+						| (priv->can.ctrlmode & CAN_CTRLMODE_ONE_SHOT
+						   ? GRCAN_TXCTRL_SINGLE : 0));
 		grcan_write_reg(&regs->rxctrl, GRCAN_RXCTRL_ENABLE);
 		grcan_write_reg(&regs->ctrl, GRCAN_CTRL_ENABLE);
 
@@ -865,8 +947,10 @@ static void grcan_running_reset(unsigned long data)
 		 * enabled
 		 */
 		if (grcan_txspace(priv->dma.tx.size, txwr, priv->eskbp) &&
-		    !(priv->can.ctrlmode & CAN_CTRLMODE_LISTENONLY))
+			!(priv->can.ctrlmode & CAN_CTRLMODE_LISTENONLY))
+		{
 			netif_wake_queue(dev);
+		}
 	}
 
 	spin_unlock_irqrestore(&priv->lock, flags);
@@ -912,7 +996,8 @@ static void grcan_initiate_running_reset(unsigned long data)
 	/* The main body of this function must never be executed again
 	 * until after an execution of grcan_running_reset
 	 */
-	if (!priv->resetting && !priv->closing) {
+	if (!priv->resetting && !priv->closing)
+	{
 		priv->resetting = true;
 		netif_stop_queue(dev);
 		grcan_clear_bits(&regs->txctrl, GRCAN_TXCTRL_ENABLE);
@@ -929,12 +1014,12 @@ static void grcan_free_dma_buffers(struct net_device *dev)
 	struct grcan_dma *dma = &priv->dma;
 
 	dma_free_coherent(&dev->dev, dma->base_size, dma->base_buf,
-			  dma->base_handle);
+					  dma->base_handle);
 	memset(dma, 0, sizeof(*dma));
 }
 
 static int grcan_allocate_dma_buffers(struct net_device *dev,
-				      size_t tsize, size_t rsize)
+									  size_t tsize, size_t rsize)
 {
 	struct grcan_priv *priv = netdev_priv(dev);
 	struct grcan_dma *dma = &priv->dma;
@@ -954,12 +1039,14 @@ static int grcan_allocate_dma_buffers(struct net_device *dev,
 	/* Extra GRCAN_BUFFER_ALIGNMENT to allow for alignment */
 	dma->base_size = lsize + ssize + GRCAN_BUFFER_ALIGNMENT;
 	dma->base_buf = dma_alloc_coherent(&dev->dev,
-					   dma->base_size,
-					   &dma->base_handle,
-					   GFP_KERNEL);
+									   dma->base_size,
+									   &dma->base_handle,
+									   GFP_KERNEL);
 
 	if (!dma->base_buf)
+	{
 		return -ENOMEM;
+	}
 
 	dma->tx.size = tsize;
 	dma->rx.size = rsize;
@@ -997,17 +1084,17 @@ static int grcan_start(struct net_device *dev)
 
 	/* Enable interfaces, channels and device */
 	confop = GRCAN_CONF_ABORT
-		| (priv->config.enable0 ? GRCAN_CONF_ENABLE0 : 0)
-		| (priv->config.enable1 ? GRCAN_CONF_ENABLE1 : 0)
-		| (priv->config.select ? GRCAN_CONF_SELECT : 0)
-		| (priv->can.ctrlmode & CAN_CTRLMODE_LISTENONLY ?
-		   GRCAN_CONF_SILENT : 0)
-		| (priv->can.ctrlmode & CAN_CTRLMODE_3_SAMPLES ?
-		   GRCAN_CONF_SAM : 0);
+			 | (priv->config.enable0 ? GRCAN_CONF_ENABLE0 : 0)
+			 | (priv->config.enable1 ? GRCAN_CONF_ENABLE1 : 0)
+			 | (priv->config.select ? GRCAN_CONF_SELECT : 0)
+			 | (priv->can.ctrlmode & CAN_CTRLMODE_LISTENONLY ?
+				GRCAN_CONF_SILENT : 0)
+			 | (priv->can.ctrlmode & CAN_CTRLMODE_3_SAMPLES ?
+				GRCAN_CONF_SAM : 0);
 	grcan_write_bits(&regs->conf, confop, GRCAN_CONF_OPERATION);
 	txctrl = GRCAN_TXCTRL_ENABLE
-		| (priv->can.ctrlmode & CAN_CTRLMODE_ONE_SHOT
-		   ? GRCAN_TXCTRL_SINGLE : 0);
+			 | (priv->can.ctrlmode & CAN_CTRLMODE_ONE_SHOT
+				? GRCAN_TXCTRL_SINGLE : 0);
 	grcan_write_reg(&regs->txctrl, txctrl);
 	grcan_write_reg(&regs->rxctrl, GRCAN_RXCTRL_ENABLE);
 	grcan_write_reg(&regs->ctrl, GRCAN_CTRL_ENABLE);
@@ -1023,22 +1110,32 @@ static int grcan_set_mode(struct net_device *dev, enum can_mode mode)
 	unsigned long flags;
 	int err = 0;
 
-	if (mode == CAN_MODE_START) {
+	if (mode == CAN_MODE_START)
+	{
 		/* This might be called to restart the device to recover from
 		 * bus off errors
 		 */
 		spin_lock_irqsave(&priv->lock, flags);
-		if (priv->closing || priv->resetting) {
+
+		if (priv->closing || priv->resetting)
+		{
 			err = -EBUSY;
-		} else {
+		}
+		else
+		{
 			netdev_info(dev, "Restarting device\n");
 			grcan_start(dev);
+
 			if (!(priv->can.ctrlmode & CAN_CTRLMODE_LISTENONLY))
+			{
 				netif_wake_queue(dev);
+			}
 		}
+
 		spin_unlock_irqrestore(&priv->lock, flags);
 		return err;
 	}
+
 	return -EOPNOTSUPP;
 }
 
@@ -1051,43 +1148,60 @@ static int grcan_open(struct net_device *dev)
 
 	/* Allocate memory */
 	err = grcan_allocate_dma_buffers(dev, priv->config.txsize,
-					 priv->config.rxsize);
-	if (err) {
+									 priv->config.rxsize);
+
+	if (err)
+	{
 		netdev_err(dev, "could not allocate DMA buffers\n");
 		return err;
 	}
 
 	priv->echo_skb = kzalloc(dma->tx.size * sizeof(*priv->echo_skb),
-				 GFP_KERNEL);
-	if (!priv->echo_skb) {
+							 GFP_KERNEL);
+
+	if (!priv->echo_skb)
+	{
 		err = -ENOMEM;
 		goto exit_free_dma_buffers;
 	}
+
 	priv->can.echo_skb_max = dma->tx.size;
 	priv->can.echo_skb = priv->echo_skb;
 
 	priv->txdlc = kzalloc(dma->tx.size * sizeof(*priv->txdlc), GFP_KERNEL);
-	if (!priv->txdlc) {
+
+	if (!priv->txdlc)
+	{
 		err = -ENOMEM;
 		goto exit_free_echo_skb;
 	}
 
 	/* Get can device up */
 	err = open_candev(dev);
+
 	if (err)
+	{
 		goto exit_free_txdlc;
+	}
 
 	err = request_irq(dev->irq, grcan_interrupt, IRQF_SHARED,
-			  dev->name, dev);
+					  dev->name, dev);
+
 	if (err)
+	{
 		goto exit_close_candev;
+	}
 
 	spin_lock_irqsave(&priv->lock, flags);
 
 	napi_enable(&priv->napi);
 	grcan_start(dev);
+
 	if (!(priv->can.ctrlmode & CAN_CTRLMODE_LISTENONLY))
+	{
 		netif_start_queue(dev);
+	}
+
 	priv->resetting = false;
 	priv->closing = false;
 
@@ -1116,10 +1230,13 @@ static int grcan_close(struct net_device *dev)
 	spin_lock_irqsave(&priv->lock, flags);
 
 	priv->closing = true;
-	if (priv->need_txbug_workaround) {
+
+	if (priv->need_txbug_workaround)
+	{
 		del_timer_sync(&priv->hang_timer);
 		del_timer_sync(&priv->rr_timer);
 	}
+
 	netif_stop_queue(dev);
 	grcan_stop_hardware(dev);
 	priv->can.state = CAN_STATE_STOPPED;
@@ -1147,16 +1264,22 @@ static int grcan_transmit_catch_up(struct net_device *dev, int budget)
 	spin_lock_irqsave(&priv->lock, flags);
 
 	work_done = catch_up_echo_skb(dev, budget, true);
-	if (work_done) {
+
+	if (work_done)
+	{
 		if (!priv->resetting && !priv->closing &&
-		    !(priv->can.ctrlmode & CAN_CTRLMODE_LISTENONLY))
+			!(priv->can.ctrlmode & CAN_CTRLMODE_LISTENONLY))
+		{
 			netif_wake_queue(dev);
+		}
 
 		/* With napi we don't get TX interrupts for a while,
 		 * so prevent a running reset while catching up
 		 */
 		if (priv->need_txbug_workaround)
+		{
 			del_timer(&priv->hang_timer);
+		}
 	}
 
 	spin_unlock_irqrestore(&priv->lock, flags);
@@ -1179,17 +1302,24 @@ static int grcan_receive(struct net_device *dev, int budget)
 
 	rd = grcan_read_reg(&regs->rxrd);
 	startrd = rd;
-	for (work_done = 0; work_done < budget; work_done++) {
+
+	for (work_done = 0; work_done < budget; work_done++)
+	{
 		/* Check for packet to receive */
 		wr = grcan_read_reg(&regs->rxwr);
+
 		if (rd == wr)
+		{
 			break;
+		}
 
 		/* Take care of packet */
 		skb = alloc_can_skb(dev, &cf);
-		if (skb == NULL) {
+
+		if (skb == NULL)
+		{
 			netdev_err(dev,
-				   "dropping frame: skb allocation failed\n");
+					   "dropping frame: skb allocation failed\n");
 			stats->rx_dropped++;
 			continue;
 		}
@@ -1197,20 +1327,30 @@ static int grcan_receive(struct net_device *dev, int budget)
 		slot = dma->rx.buf + rd;
 		eff = slot[0] & GRCAN_MSG_IDE;
 		rtr = slot[0] & GRCAN_MSG_RTR;
-		if (eff) {
+
+		if (eff)
+		{
 			cf->can_id = ((slot[0] & GRCAN_MSG_EID)
-				      >> GRCAN_MSG_EID_BIT);
+						  >> GRCAN_MSG_EID_BIT);
 			cf->can_id |= CAN_EFF_FLAG;
-		} else {
-			cf->can_id = ((slot[0] & GRCAN_MSG_BID)
-				      >> GRCAN_MSG_BID_BIT);
 		}
+		else
+		{
+			cf->can_id = ((slot[0] & GRCAN_MSG_BID)
+						  >> GRCAN_MSG_BID_BIT);
+		}
+
 		cf->can_dlc = get_can_dlc((slot[1] & GRCAN_MSG_DLC)
-					  >> GRCAN_MSG_DLC_BIT);
-		if (rtr) {
+								  >> GRCAN_MSG_DLC_BIT);
+
+		if (rtr)
+		{
 			cf->can_id |= CAN_RTR_FLAG;
-		} else {
-			for (i = 0; i < cf->can_dlc; i++) {
+		}
+		else
+		{
+			for (i = 0; i < cf->can_dlc; i++)
+			{
 				j = GRCAN_MSG_DATA_SLOT_INDEX(i);
 				shift = GRCAN_MSG_DATA_SHIFT(i);
 				cf->data[i] = (u8)(slot[j] >> shift);
@@ -1232,7 +1372,9 @@ static int grcan_receive(struct net_device *dev, int budget)
 
 	/* Update read pointer - no need to check for ongoing */
 	if (likely(rd != startrd))
+	{
 		grcan_write_reg(&regs->rxrd, rd);
+	}
 
 	return work_done;
 }
@@ -1255,7 +1397,8 @@ static int grcan_poll(struct napi_struct *napi, int budget)
 	 */
 	tx_work_done = grcan_transmit_catch_up(dev, tx_budget);
 
-	if (rx_work_done < rx_budget && tx_work_done < tx_budget) {
+	if (rx_work_done < rx_budget && tx_work_done < tx_budget)
+	{
 		napi_complete(napi);
 
 		/* Guarantee no interference with a running reset that otherwise
@@ -1282,8 +1425,8 @@ static int grcan_poll(struct napi_struct *napi, int budget)
  * value that should be returned by grcan_start_xmit when aborting the xmit.
  */
 static int grcan_txbug_workaround(struct net_device *dev, struct sk_buff *skb,
-				  u32 txwr, u32 oneshotmode,
-				  netdev_tx_t *netdev_tx_status)
+								  u32 txwr, u32 oneshotmode,
+								  netdev_tx_t *netdev_tx_status)
 {
 	struct grcan_priv *priv = netdev_priv(dev);
 	struct grcan_registers __iomem *regs = priv->regs;
@@ -1296,28 +1439,38 @@ static int grcan_txbug_workaround(struct net_device *dev, struct sk_buff *skb,
 	 * GRCAN in which ONGOING is not cleared properly one-shot mode when a
 	 * transmission fails.
 	 */
-	for (i = 0; i < GRCAN_SHORTWAIT_USECS; i++) {
+	for (i = 0; i < GRCAN_SHORTWAIT_USECS; i++)
+	{
 		udelay(1);
+
 		if (!grcan_read_bits(&regs->txctrl, GRCAN_TXCTRL_ONGOING) ||
-		    grcan_read_reg(&regs->txrd) == txwr) {
+			grcan_read_reg(&regs->txrd) == txwr)
+		{
 			return 0;
 		}
 	}
 
 	/* Clean up, in case the situation was not resolved */
 	spin_lock_irqsave(&priv->lock, flags);
-	if (!priv->resetting && !priv->closing) {
+
+	if (!priv->resetting && !priv->closing)
+	{
 		/* Queue might have been stopped earlier in grcan_start_xmit */
 		if (grcan_txspace(dma->tx.size, txwr, priv->eskbp))
+		{
 			netif_wake_queue(dev);
+		}
+
 		/* Set a timer to resolve a hanged tx controller */
 		if (!timer_pending(&priv->hang_timer))
 			grcan_reset_timer(&priv->hang_timer,
-					  priv->can.bittiming.bitrate);
+							  priv->can.bittiming.bitrate);
 	}
+
 	spin_unlock_irqrestore(&priv->lock, flags);
 
-	if (oneshotmode) {
+	if (oneshotmode)
+	{
 		/* In one-shot mode we should never end up here because
 		 * then the interrupt handler increases txrd on TXLOSS,
 		 * but it is consistent with one-shot mode to drop the
@@ -1325,13 +1478,16 @@ static int grcan_txbug_workaround(struct net_device *dev, struct sk_buff *skb,
 		 */
 		kfree_skb(skb);
 		*netdev_tx_status = NETDEV_TX_OK;
-	} else {
+	}
+	else
+	{
 		/* In normal mode the socket-can transmission queue get
 		 * to keep the frame so that it can be retransmitted
 		 * later
 		 */
 		*netdev_tx_status = NETDEV_TX_BUSY;
 	}
+
 	return -EBUSY;
 }
 
@@ -1350,7 +1506,7 @@ static int grcan_txbug_workaround(struct net_device *dev, struct sk_buff *skb,
  * priv->eskbp reaches regs->txrd
  */
 static netdev_tx_t grcan_start_xmit(struct sk_buff *skb,
-				    struct net_device *dev)
+									struct net_device *dev)
 {
 	struct grcan_priv *priv = netdev_priv(dev);
 	struct grcan_registers __iomem *regs = priv->regs;
@@ -1365,13 +1521,17 @@ static netdev_tx_t grcan_start_xmit(struct sk_buff *skb,
 	u32 oneshotmode = priv->can.ctrlmode & CAN_CTRLMODE_ONE_SHOT;
 
 	if (can_dropped_invalid_skb(dev, skb))
+	{
 		return NETDEV_TX_OK;
+	}
 
 	/* Trying to transmit in silent mode will generate error interrupts, but
 	 * this should never happen - the queue should not have been started.
 	 */
 	if (priv->can.ctrlmode & CAN_CTRLMODE_LISTENONLY)
+	{
 		return NETDEV_TX_BUSY;
+	}
 
 	/* Reads of priv->eskbp and shut-downs of the queue needs to
 	 * be atomic towards the updates to priv->eskbp and wake-ups
@@ -1386,7 +1546,9 @@ static netdev_tx_t grcan_start_xmit(struct sk_buff *skb,
 	slot = dma->tx.buf + txwr;
 
 	if (unlikely(space == 1))
+	{
 		netif_stop_queue(dev);
+	}
 
 	spin_unlock_irqrestore(&priv->lock, flags);
 	/* End of critical section*/
@@ -1394,7 +1556,8 @@ static netdev_tx_t grcan_start_xmit(struct sk_buff *skb,
 	/* This should never happen. If circular buffer is full, the
 	 * netif_stop_queue should have been stopped already.
 	 */
-	if (unlikely(!space)) {
+	if (unlikely(!space))
+	{
 		netdev_err(dev, "No buffer space, but queue is non-stopped.\n");
 		return NETDEV_TX_BUSY;
 	}
@@ -1404,16 +1567,24 @@ static netdev_tx_t grcan_start_xmit(struct sk_buff *skb,
 	rtr = cf->can_id & CAN_RTR_FLAG;
 	id = cf->can_id & (eff ? CAN_EFF_MASK : CAN_SFF_MASK);
 	dlc = cf->can_dlc;
+
 	if (eff)
+	{
 		tmp = (id << GRCAN_MSG_EID_BIT) & GRCAN_MSG_EID;
+	}
 	else
+	{
 		tmp = (id << GRCAN_MSG_BID_BIT) & GRCAN_MSG_BID;
+	}
+
 	slot[0] = (eff ? GRCAN_MSG_IDE : 0) | (rtr ? GRCAN_MSG_RTR : 0) | tmp;
 
 	slot[1] = ((dlc << GRCAN_MSG_DLC_BIT) & GRCAN_MSG_DLC);
 	slot[2] = 0;
 	slot[3] = 0;
-	for (i = 0; i < dlc; i++) {
+
+	for (i = 0; i < dlc; i++)
+	{
 		j = GRCAN_MSG_DATA_SLOT_INDEX(i);
 		shift = GRCAN_MSG_DATA_SHIFT(i);
 		slot[j] |= cf->data[i] << shift;
@@ -1423,25 +1594,36 @@ static netdev_tx_t grcan_start_xmit(struct sk_buff *skb,
 	 * should never happen
 	 */
 	txctrl = grcan_read_reg(&regs->txctrl);
+
 	if (!(txctrl & GRCAN_TXCTRL_ENABLE))
+	{
 		netdev_err(dev, "tx channel spuriously disabled\n");
+	}
 
 	if (oneshotmode && !(txctrl & GRCAN_TXCTRL_SINGLE))
+	{
 		netdev_err(dev, "one-shot mode spuriously disabled\n");
+	}
 
 	/* Bug workaround for old version of grcan where updating txwr
 	 * in the same clock cycle as the controller updates txrd to
 	 * the current txwr could hang the can controller
 	 */
-	if (priv->need_txbug_workaround) {
+	if (priv->need_txbug_workaround)
+	{
 		txrd = grcan_read_reg(&regs->txrd);
-		if (unlikely(grcan_ring_sub(txwr, txrd, dma->tx.size) == 1)) {
+
+		if (unlikely(grcan_ring_sub(txwr, txrd, dma->tx.size) == 1))
+		{
 			netdev_tx_t txstatus;
 
 			err = grcan_txbug_workaround(dev, skb, txwr,
-						     oneshotmode, &txstatus);
+										 oneshotmode, &txstatus);
+
 			if (err)
+			{
 				return txstatus;
+			}
 		}
 	}
 
@@ -1461,7 +1643,7 @@ static netdev_tx_t grcan_start_xmit(struct sk_buff *skb,
 
 	/* Update write pointer to start transmission */
 	grcan_write_reg(&regs->txwr,
-			grcan_ring_add(txwr, GRCAN_MSG_SIZE, dma->tx.size));
+					grcan_ring_add(txwr, GRCAN_MSG_SIZE, dma->tx.size));
 
 	return NETDEV_TX_OK;
 }
@@ -1474,24 +1656,24 @@ static netdev_tx_t grcan_start_xmit(struct sk_buff *skb,
 	static void grcan_sanitize_##name(struct platform_device *pd)	\
 	{								\
 		struct grcan_device_config grcan_default_config		\
-			= GRCAN_DEFAULT_DEVICE_CONFIG;			\
+				= GRCAN_DEFAULT_DEVICE_CONFIG;			\
 		if (valcheckf(grcan_module_config.name)) {		\
 			dev_err(&pd->dev,				\
-				"Invalid module parameter value for "	\
-				#name " - setting default\n");		\
+					"Invalid module parameter value for "	\
+					#name " - setting default\n");		\
 			grcan_module_config.name =			\
-				grcan_default_config.name;		\
+												grcan_default_config.name;		\
 		}							\
 	}								\
 	module_param_named(name, grcan_module_config.name,		\
-			   mtype, S_IRUGO);				\
+					   mtype, S_IRUGO);				\
 	MODULE_PARM_DESC(name, desc)
 
 #define GRCAN_CONFIG_ATTR(name, desc)					\
 	static ssize_t grcan_store_##name(struct device *sdev,		\
-					  struct device_attribute *att,	\
-					  const char *buf,		\
-					  size_t count)			\
+									  struct device_attribute *att,	\
+									  const char *buf,		\
+									  size_t count)			\
 	{								\
 		struct net_device *dev = to_net_dev(sdev);		\
 		struct grcan_priv *priv = netdev_priv(dev);		\
@@ -1506,16 +1688,16 @@ static netdev_tx_t grcan_start_xmit(struct sk_buff *skb,
 		return count;						\
 	}								\
 	static ssize_t grcan_show_##name(struct device *sdev,		\
-					 struct device_attribute *att,	\
-					 char *buf)			\
+									 struct device_attribute *att,	\
+									 char *buf)			\
 	{								\
 		struct net_device *dev = to_net_dev(sdev);		\
 		struct grcan_priv *priv = netdev_priv(dev);		\
 		return sprintf(buf, "%d\n", priv->config.name);		\
 	}								\
 	static DEVICE_ATTR(name, S_IRUGO | S_IWUSR,			\
-			   grcan_show_##name,				\
-			   grcan_store_##name);				\
+					   grcan_show_##name,				\
+					   grcan_store_##name);				\
 	GRCAN_MODULE_PARAM(name, ushort, GRCAN_NOT_BOOL, desc)
 
 /* The following configuration options are made available both via module
@@ -1523,30 +1705,30 @@ static netdev_tx_t grcan_start_xmit(struct sk_buff *skb,
  * documentation for the GRLIB VHDL library for further details.
  */
 GRCAN_CONFIG_ATTR(enable0,
-		  "Configuration of physical interface 0. Determines\n"	\
-		  "the \"Enable 0\" bit of the configuration register.\n" \
-		  "Format: 0 | 1\nDefault: 0\n");
+				  "Configuration of physical interface 0. Determines\n"	\
+				  "the \"Enable 0\" bit of the configuration register.\n" \
+				  "Format: 0 | 1\nDefault: 0\n");
 
 GRCAN_CONFIG_ATTR(enable1,
-		  "Configuration of physical interface 1. Determines\n"	\
-		  "the \"Enable 1\" bit of the configuration register.\n" \
-		  "Format: 0 | 1\nDefault: 0\n");
+				  "Configuration of physical interface 1. Determines\n"	\
+				  "the \"Enable 1\" bit of the configuration register.\n" \
+				  "Format: 0 | 1\nDefault: 0\n");
 
 GRCAN_CONFIG_ATTR(select,
-		  "Select which physical interface to use.\n"	\
-		  "Format: 0 | 1\nDefault: 0\n");
+				  "Select which physical interface to use.\n"	\
+				  "Format: 0 | 1\nDefault: 0\n");
 
 /* The tx and rx buffer size configuration options are only available via module
  * parameters.
  */
 GRCAN_MODULE_PARAM(txsize, uint, GRCAN_INVALID_BUFFER_SIZE,
-		   "Sets the size of the tx buffer.\n"			\
-		   "Format: <unsigned int> where (txsize & ~0x1fffc0) == 0\n" \
-		   "Default: 1024\n");
+				   "Sets the size of the tx buffer.\n"			\
+				   "Format: <unsigned int> where (txsize & ~0x1fffc0) == 0\n" \
+				   "Default: 1024\n");
 GRCAN_MODULE_PARAM(rxsize, uint, GRCAN_INVALID_BUFFER_SIZE,
-		   "Sets the size of the rx buffer.\n"			\
-		   "Format: <unsigned int> where (size & ~0x1fffc0) == 0\n" \
-		   "Default: 1024\n");
+				   "Sets the size of the rx buffer.\n"			\
+				   "Format: <unsigned int> where (size & ~0x1fffc0) == 0\n" \
+				   "Default: 1024\n");
 
 /* Function that makes sure that configuration done using
  * module parameters are set to valid values
@@ -1560,7 +1742,8 @@ static void grcan_sanitize_module_config(struct platform_device *ofdev)
 	grcan_sanitize_rxsize(ofdev);
 }
 
-static const struct attribute *const sysfs_grcan_attrs[] = {
+static const struct attribute *const sysfs_grcan_attrs[] =
+{
 	/* Config attrs */
 	&dev_attr_enable0.attr,
 	&dev_attr_enable1.attr,
@@ -1568,14 +1751,16 @@ static const struct attribute *const sysfs_grcan_attrs[] = {
 	NULL,
 };
 
-static const struct attribute_group sysfs_grcan_group = {
+static const struct attribute_group sysfs_grcan_group =
+{
 	.name	= "grcan",
 	.attrs	= (struct attribute **)sysfs_grcan_attrs,
 };
 
 /* ========== Setting up the driver ========== */
 
-static const struct net_device_ops grcan_netdev_ops = {
+static const struct net_device_ops grcan_netdev_ops =
+{
 	.ndo_open	= grcan_open,
 	.ndo_stop	= grcan_close,
 	.ndo_start_xmit	= grcan_start_xmit,
@@ -1583,8 +1768,8 @@ static const struct net_device_ops grcan_netdev_ops = {
 };
 
 static int grcan_setup_netdev(struct platform_device *ofdev,
-			      void __iomem *base,
-			      int irq, u32 ambafreq, bool txbug)
+							  void __iomem *base,
+							  int irq, u32 ambafreq, bool txbug)
 {
 	struct net_device *dev;
 	struct grcan_priv *priv;
@@ -1592,8 +1777,11 @@ static int grcan_setup_netdev(struct platform_device *ofdev,
 	int err;
 
 	dev = alloc_candev(sizeof(struct grcan_priv), 0);
+
 	if (!dev)
+	{
 		return -ENOMEM;
+	}
 
 	dev->irq = irq;
 	dev->flags |= IFF_ECHO;
@@ -1602,7 +1790,7 @@ static int grcan_setup_netdev(struct platform_device *ofdev,
 
 	priv = netdev_priv(dev);
 	memcpy(&priv->config, &grcan_module_config,
-	       sizeof(struct grcan_device_config));
+		   sizeof(struct grcan_device_config));
 	priv->dev = dev;
 	priv->regs = base;
 	priv->can.bittiming_const = &grcan_bittiming_const;
@@ -1618,14 +1806,17 @@ static int grcan_setup_netdev(struct platform_device *ofdev,
 	regs = priv->regs;
 	grcan_set_bits(&regs->ctrl, GRCAN_CTRL_RESET);
 	grcan_set_bits(&regs->conf, GRCAN_CONF_SAM);
-	if (grcan_read_bits(&regs->conf, GRCAN_CONF_SAM)) {
+
+	if (grcan_read_bits(&regs->conf, GRCAN_CONF_SAM))
+	{
 		priv->can.ctrlmode_supported |= CAN_CTRLMODE_3_SAMPLES;
 		dev_dbg(&ofdev->dev, "Hardware supports triple-sampling\n");
 	}
 
 	spin_lock_init(&priv->lock);
 
-	if (priv->need_txbug_workaround) {
+	if (priv->need_txbug_workaround)
+	{
 		init_timer(&priv->rr_timer);
 		priv->rr_timer.function = grcan_running_reset;
 		priv->rr_timer.data = (unsigned long)dev;
@@ -1639,11 +1830,14 @@ static int grcan_setup_netdev(struct platform_device *ofdev,
 
 	SET_NETDEV_DEV(dev, &ofdev->dev);
 	dev_info(&ofdev->dev, "regs=0x%p, irq=%d, clock=%d\n",
-		 priv->regs, dev->irq, priv->can.clock.freq);
+			 priv->regs, dev->irq, priv->can.clock.freq);
 
 	err = register_candev(dev);
+
 	if (err)
+	{
 		goto exit_free_candev;
+	}
 
 	platform_set_drvdata(ofdev, dev);
 
@@ -1671,25 +1865,34 @@ static int grcan_probe(struct platform_device *ofdev)
 	 * have the tx bug (see start_xmit)
 	 */
 	err = of_property_read_u32(np, "systemid", &sysid);
+
 	if (!err && ((sysid & GRLIB_VERSION_MASK)
-		     >= GRCAN_TXBUG_SAFE_GRLIB_VERSION))
+				 >= GRCAN_TXBUG_SAFE_GRLIB_VERSION))
+	{
 		txbug = false;
+	}
 
 	err = of_property_read_u32(np, "freq", &ambafreq);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&ofdev->dev, "unable to fetch \"freq\" property\n");
 		goto exit_error;
 	}
 
 	res = platform_get_resource(ofdev, IORESOURCE_MEM, 0);
 	base = devm_ioremap_resource(&ofdev->dev, res);
-	if (IS_ERR(base)) {
+
+	if (IS_ERR(base))
+	{
 		err = PTR_ERR(base);
 		goto exit_error;
 	}
 
 	irq = irq_of_parse_and_map(np, GRCAN_IRQIX_IRQ);
-	if (!irq) {
+
+	if (!irq)
+	{
 		dev_err(&ofdev->dev, "no irq found\n");
 		err = -ENODEV;
 		goto exit_error;
@@ -1698,8 +1901,11 @@ static int grcan_probe(struct platform_device *ofdev)
 	grcan_sanitize_module_config(ofdev);
 
 	err = grcan_setup_netdev(ofdev, base, irq, ambafreq, txbug);
+
 	if (err)
+	{
 		goto exit_dispose_irq;
+	}
 
 	return 0;
 
@@ -1707,8 +1913,8 @@ exit_dispose_irq:
 	irq_dispose_mapping(irq);
 exit_error:
 	dev_err(&ofdev->dev,
-		"%s socket CAN driver initialization failed with error %d\n",
-		DRV_NAME, err);
+			"%s socket CAN driver initialization failed with error %d\n",
+			DRV_NAME, err);
 	return err;
 }
 
@@ -1726,7 +1932,8 @@ static int grcan_remove(struct platform_device *ofdev)
 	return 0;
 }
 
-static const struct of_device_id grcan_match[] = {
+static const struct of_device_id grcan_match[] =
+{
 	{.name = "GAISLER_GRCAN"},
 	{.name = "01_03d"},
 	{.name = "GAISLER_GRHCAN"},
@@ -1736,7 +1943,8 @@ static const struct of_device_id grcan_match[] = {
 
 MODULE_DEVICE_TABLE(of, grcan_match);
 
-static struct platform_driver grcan_driver = {
+static struct platform_driver grcan_driver =
+{
 	.driver = {
 		.name = DRV_NAME,
 		.of_match_table = grcan_match,

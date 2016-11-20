@@ -39,7 +39,8 @@ MODULE_LICENSE("GPL v2");
 #define DRV_NAME  "peak_pci"
 
 struct peak_pciec_card;
-struct peak_pci_chan {
+struct peak_pci_chan
+{
 	void __iomem *cfg_base;		/* Common for all channels */
 	struct net_device *prev_dev;	/* Chain of network devices */
 	u16 icr_mask;			/* Interrupt mask for fast ack */
@@ -75,11 +76,13 @@ struct peak_pci_chan {
 
 #define PEAK_PCI_CHAN_MAX	4
 
-static const u16 peak_pci_icr_masks[PEAK_PCI_CHAN_MAX] = {
+static const u16 peak_pci_icr_masks[PEAK_PCI_CHAN_MAX] =
+{
 	0x02, 0x01, 0x40, 0x80
 };
 
-static const struct pci_device_id peak_pci_tbl[] = {
+static const struct pci_device_id peak_pci_tbl[] =
+{
 	{PEAK_PCI_VENDOR_ID, PEAK_PCI_DEVICE_ID, PCI_ANY_ID, PCI_ANY_ID,},
 	{PEAK_PCI_VENDOR_ID, PEAK_PCIE_DEVICE_ID, PCI_ANY_ID, PCI_ANY_ID,},
 	{PEAK_PCI_VENDOR_ID, PEAK_MPCI_DEVICE_ID, PCI_ANY_ID, PCI_ANY_ID,},
@@ -114,7 +117,8 @@ MODULE_DEVICE_TABLE(pci, peak_pci_tbl);
 #define PCA9553_1_SLAVEADDR	(0xC4 >> 1)
 
 /* PCA9553 LS0 fields values */
-enum {
+enum
+{
 	PCA9553_LOW,
 	PCA9553_HIGHZ,
 	PCA9553_PWM0,
@@ -140,13 +144,15 @@ enum {
 
 #define PCA9553_LS0_INIT	0x40 /* initial value (!= from 0x00) */
 
-struct peak_pciec_chan {
+struct peak_pciec_chan
+{
 	struct net_device *netdev;
 	unsigned long prev_rx_bytes;
 	unsigned long prev_tx_bytes;
 };
 
-struct peak_pciec_card {
+struct peak_pciec_card
+{
 	void __iomem *cfg_base;		/* Common for all channels */
 	void __iomem *reg_base;		/* first channel base address */
 	u8 led_cache;			/* leds state cache */
@@ -161,7 +167,7 @@ struct peak_pciec_card {
 
 /* "normal" pci register write callback is overloaded for leds control */
 static void peak_pci_write_reg(const struct sja1000_priv *priv,
-			       int port, u8 val);
+							   int port, u8 val);
 
 static inline void pita_set_scl_highz(struct peak_pciec_card *card)
 {
@@ -193,10 +199,15 @@ static void pita_setsda(void *data, int state)
 
 	/* control output sda with GPOEN */
 	gp_outen = readb(card->cfg_base + PITA_GPOEN);
+
 	if (state)
+	{
 		gp_outen &= ~PITA_GPIN_SDA;
+	}
 	else
+	{
 		gp_outen |= PITA_GPIN_SDA;
+	}
 
 	writeb(gp_outen, card->cfg_base + PITA_GPOEN);
 }
@@ -212,10 +223,15 @@ static void pita_setscl(void *data, int state)
 
 	/* control output scl with GPOEN */
 	gp_outen = readb(card->cfg_base + PITA_GPOEN);
+
 	if (state)
+	{
 		gp_outen &= ~PITA_GPIN_SCL;
+	}
 	else
+	{
 		gp_outen |= PITA_GPIN_SCL;
+	}
 
 	writeb(gp_outen, card->cfg_base + PITA_GPOEN);
 }
@@ -244,13 +260,15 @@ static int pita_getscl(void *data)
  * write commands to the LED chip though the I2C-bus of the PCAN-PCIeC
  */
 static int peak_pciec_write_pca9553(struct peak_pciec_card *card,
-				    u8 offset, u8 data)
+									u8 offset, u8 data)
 {
-	u8 buffer[2] = {
+	u8 buffer[2] =
+	{
 		offset,
 		data
 	};
-	struct i2c_msg msg = {
+	struct i2c_msg msg =
+	{
 		.addr = PCA9553_1_SLAVEADDR,
 		.len = 2,
 		.buf = buffer,
@@ -259,14 +277,21 @@ static int peak_pciec_write_pca9553(struct peak_pciec_card *card,
 
 	/* cache led mask */
 	if ((offset == 5) && (data == card->led_cache))
+	{
 		return 0;
+	}
 
 	ret = i2c_transfer(&card->led_chip, &msg, 1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	if (offset == 5)
+	{
 		card->led_cache = data;
+	}
 
 	return 0;
 }
@@ -283,14 +308,18 @@ static void peak_pciec_led_work(struct work_struct *work)
 	int i, up_count = 0;
 
 	/* first check what is to do */
-	for (i = 0; i < card->chan_count; i++) {
+	for (i = 0; i < card->chan_count; i++)
+	{
 		/* default is: not configured */
 		new_led &= ~PCA9553_LED_MASK(i);
 		new_led |= PCA9553_LED_ON(i);
 
 		netdev = card->channel[i].netdev;
+
 		if (!netdev || !(netdev->flags & IFF_UP))
+		{
 			continue;
+		}
 
 		up_count++;
 
@@ -299,12 +328,15 @@ static void peak_pciec_led_work(struct work_struct *work)
 		new_led |= PCA9553_LED_SLOW(i);
 
 		/* if bytes counters changed, set fast blinking led */
-		if (netdev->stats.rx_bytes != card->channel[i].prev_rx_bytes) {
+		if (netdev->stats.rx_bytes != card->channel[i].prev_rx_bytes)
+		{
 			card->channel[i].prev_rx_bytes = netdev->stats.rx_bytes;
 			new_led &= ~PCA9553_LED_MASK(i);
 			new_led |= PCA9553_LED_FAST(i);
 		}
-		if (netdev->stats.tx_bytes != card->channel[i].prev_tx_bytes) {
+
+		if (netdev->stats.tx_bytes != card->channel[i].prev_tx_bytes)
+		{
 			card->channel[i].prev_tx_bytes = netdev->stats.tx_bytes;
 			new_led &= ~PCA9553_LED_MASK(i);
 			new_led |= PCA9553_LED_FAST(i);
@@ -316,7 +348,9 @@ static void peak_pciec_led_work(struct work_struct *work)
 
 	/* restart timer (except if no more configured channels) */
 	if (up_count)
+	{
 		schedule_delayed_work(&card->led_work, HZ);
+	}
 }
 
 /*
@@ -329,7 +363,8 @@ static void peak_pciec_set_leds(struct peak_pciec_card *card, u8 led_mask, u8 s)
 
 	/* first check what is to do */
 	for (i = 0; i < card->chan_count; i++)
-		if (led_mask & PCA9553_LED(i)) {
+		if (led_mask & PCA9553_LED(i))
+		{
 			new_led &= ~PCA9553_LED_MASK(i);
 			new_led |= PCA9553_LED_STATE(s, i);
 		}
@@ -363,23 +398,35 @@ static int peak_pciec_init_leds(struct peak_pciec_card *card)
 
 	/* prescaler for frequency 0: "SLOW" = 1 Hz = "44" */
 	err = peak_pciec_write_pca9553(card, 1, 44 / 1);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* duty cycle 0: 50% */
 	err = peak_pciec_write_pca9553(card, 2, 0x80);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* prescaler for frequency 1: "FAST" = 5 Hz */
 	err = peak_pciec_write_pca9553(card, 3, 44 / 5);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* duty cycle 1: 50% */
 	err = peak_pciec_write_pca9553(card, 4, 0x80);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* switch LEDs to initial state */
 	return peak_pciec_write_pca9553(card, 5, PCA9553_LS0_INIT);
@@ -399,7 +446,7 @@ static void peak_pciec_leds_exit(struct peak_pciec_card *card)
  * is started or stopped, to control leds
  */
 static void peak_pciec_write_reg(const struct sja1000_priv *priv,
-				 int port, u8 val)
+								 int port, u8 val)
 {
 	struct peak_pci_chan *chan = priv->priv;
 	struct peak_pciec_card *card = chan->pciec_card;
@@ -407,25 +454,29 @@ static void peak_pciec_write_reg(const struct sja1000_priv *priv,
 
 	/* sja1000 register changes control the leds state */
 	if (port == SJA1000_MOD)
-		switch (val) {
-		case MOD_RM:
-			/* Reset Mode: set led on */
-			peak_pciec_set_leds(card, PCA9553_LED(c), PCA9553_ON);
-			break;
-		case 0x00:
-			/* Normal Mode: led slow blinking and start led timer */
-			peak_pciec_set_leds(card, PCA9553_LED(c), PCA9553_SLOW);
-			peak_pciec_start_led_work(card);
-			break;
-		default:
-			break;
+		switch (val)
+		{
+			case MOD_RM:
+				/* Reset Mode: set led on */
+				peak_pciec_set_leds(card, PCA9553_LED(c), PCA9553_ON);
+				break;
+
+			case 0x00:
+				/* Normal Mode: led slow blinking and start led timer */
+				peak_pciec_set_leds(card, PCA9553_LED(c), PCA9553_SLOW);
+				peak_pciec_start_led_work(card);
+				break;
+
+			default:
+				break;
 		}
 
 	/* call base function */
 	peak_pci_write_reg(priv, port, val);
 }
 
-static struct i2c_algo_bit_data peak_pciec_i2c_bit_ops = {
+static struct i2c_algo_bit_data peak_pciec_i2c_bit_ops =
+{
 	.setsda	= pita_setsda,
 	.setscl	= pita_setscl,
 	.getsda	= pita_getsda,
@@ -442,20 +493,29 @@ static int peak_pciec_probe(struct pci_dev *pdev, struct net_device *dev)
 	int err;
 
 	/* copy i2c object address from 1st channel */
-	if (chan->prev_dev) {
+	if (chan->prev_dev)
+	{
 		struct sja1000_priv *prev_priv = netdev_priv(chan->prev_dev);
 		struct peak_pci_chan *prev_chan = prev_priv->priv;
 
 		card = prev_chan->pciec_card;
-		if (!card)
-			return -ENODEV;
 
-	/* channel is the first one: do the init part */
-	} else {
+		if (!card)
+		{
+			return -ENODEV;
+		}
+
+		/* channel is the first one: do the init part */
+	}
+	else
+	{
 		/* create the bit banging I2C adapter structure */
 		card = kzalloc(sizeof(struct peak_pciec_card), GFP_KERNEL);
+
 		if (!card)
+		{
 			return -ENOMEM;
+		}
 
 		card->cfg_base = chan->cfg_base;
 		card->reg_base = priv->reg_base;
@@ -464,7 +524,7 @@ static int peak_pciec_probe(struct pci_dev *pdev, struct net_device *dev)
 		card->led_chip.dev.parent = &pdev->dev;
 		card->led_chip.algo_data = &card->i2c_bit;
 		strncpy(card->led_chip.name, "peak_i2c",
-			sizeof(card->led_chip.name));
+				sizeof(card->led_chip.name));
 
 		card->i2c_bit = peak_pciec_i2c_bit_ops;
 		card->i2c_bit.udelay = 10;
@@ -474,13 +534,17 @@ static int peak_pciec_probe(struct pci_dev *pdev, struct net_device *dev)
 		peak_pciec_init_pita_gpio(card);
 
 		err = i2c_bit_add_bus(&card->led_chip);
-		if (err) {
+
+		if (err)
+		{
 			dev_err(&pdev->dev, "i2c init failed\n");
 			goto pciec_init_err_1;
 		}
 
 		err = peak_pciec_init_leds(card);
-		if (err) {
+
+		if (err)
+		{
 			dev_err(&pdev->dev, "leds hardware init failed\n");
 			goto pciec_init_err_2;
 		}
@@ -535,7 +599,7 @@ static u8 peak_pci_read_reg(const struct sja1000_priv *priv, int port)
 }
 
 static void peak_pci_write_reg(const struct sja1000_priv *priv,
-			       int port, u8 val)
+							   int port, u8 val)
 {
 	writeb(val, priv->reg_base + (port << 2));
 }
@@ -547,8 +611,11 @@ static void peak_pci_post_irq(const struct sja1000_priv *priv)
 
 	/* Select and clear in PITA stored interrupt */
 	icr = readw(chan->cfg_base + PITA_ICR);
+
 	if (icr & chan->icr_mask)
+	{
 		writew(chan->icr_mask, chan->cfg_base + PITA_ICR);
+	}
 }
 
 static int peak_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
@@ -561,42 +628,66 @@ static int peak_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	int i, err, channels;
 
 	err = pci_enable_device(pdev);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = pci_request_regions(pdev, DRV_NAME);
+
 	if (err)
+	{
 		goto failure_disable_pci;
+	}
 
 	err = pci_read_config_word(pdev, 0x2e, &sub_sys_id);
+
 	if (err)
+	{
 		goto failure_release_regions;
+	}
 
 	dev_dbg(&pdev->dev, "probing device %04x:%04x:%04x\n",
-		pdev->vendor, pdev->device, sub_sys_id);
+			pdev->vendor, pdev->device, sub_sys_id);
 
 	err = pci_write_config_word(pdev, 0x44, 0);
+
 	if (err)
+	{
 		goto failure_release_regions;
+	}
 
 	if (sub_sys_id >= 12)
+	{
 		channels = 4;
+	}
 	else if (sub_sys_id >= 10)
+	{
 		channels = 3;
+	}
 	else if (sub_sys_id >= 4)
+	{
 		channels = 2;
+	}
 	else
+	{
 		channels = 1;
+	}
 
 	cfg_base = pci_iomap(pdev, 0, PEAK_PCI_CFG_SIZE);
-	if (!cfg_base) {
+
+	if (!cfg_base)
+	{
 		dev_err(&pdev->dev, "failed to map PCI resource #0\n");
 		err = -ENOMEM;
 		goto failure_release_regions;
 	}
 
 	reg_base = pci_iomap(pdev, 1, PEAK_PCI_CHAN_SIZE * channels);
-	if (!reg_base) {
+
+	if (!reg_base)
+	{
 		dev_err(&pdev->dev, "failed to map PCI resource #1\n");
 		err = -ENOMEM;
 		goto failure_unmap_cfg_base;
@@ -614,9 +705,12 @@ static int peak_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	icr = readw(cfg_base + PITA_ICR + 2);
 
-	for (i = 0; i < channels; i++) {
+	for (i = 0; i < channels; i++)
+	{
 		dev = alloc_sja1000dev(sizeof(struct peak_pci_chan));
-		if (!dev) {
+
+		if (!dev)
+		{
 			err = -ENOMEM;
 			goto failure_remove_channels;
 		}
@@ -634,9 +728,12 @@ static int peak_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 		priv->can.clock.freq = PEAK_PCI_CAN_CLOCK;
 		priv->ocr = PEAK_PCI_OCR;
 		priv->cdr = PEAK_PCI_CDR;
+
 		/* Neither a slave nor a single device distributes the clock */
 		if (channels == 1 || i > 0)
+		{
 			priv->cdr |= CDR_CLK_OFF;
+		}
 
 		/* Setup interrupt handling */
 		priv->irq_flags = IRQF_SHARED;
@@ -658,25 +755,30 @@ static int peak_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 		 * *after* devices linkage
 		 */
 		if (pdev->device == PEAK_PCIEC_DEVICE_ID ||
-		    pdev->device == PEAK_PCIEC34_DEVICE_ID) {
+			pdev->device == PEAK_PCIEC34_DEVICE_ID)
+		{
 			err = peak_pciec_probe(pdev, dev);
-			if (err) {
+
+			if (err)
+			{
 				dev_err(&pdev->dev,
-					"failed to probe device (err %d)\n",
-					err);
+						"failed to probe device (err %d)\n",
+						err);
 				goto failure_free_dev;
 			}
 		}
 
 		err = register_sja1000dev(dev);
-		if (err) {
+
+		if (err)
+		{
 			dev_err(&pdev->dev, "failed to register device\n");
 			goto failure_free_dev;
 		}
 
 		dev_info(&pdev->dev,
-			 "%s at reg_base=0x%p cfg_base=0x%p irq=%d\n",
-			 dev->name, priv->reg_base, chan->cfg_base, dev->irq);
+				 "%s at reg_base=0x%p cfg_base=0x%p irq=%d\n",
+				 dev->name, priv->reg_base, chan->cfg_base, dev->irq);
 	}
 
 	/* Enable interrupts */
@@ -693,7 +795,9 @@ failure_remove_channels:
 	writew(0x0, cfg_base + PITA_ICR + 2);
 
 	chan = NULL;
-	for (dev = pci_get_drvdata(pdev); dev; dev = prev_dev) {
+
+	for (dev = pci_get_drvdata(pdev); dev; dev = prev_dev)
+	{
 		priv = netdev_priv(dev);
 		chan = priv->priv;
 		prev_dev = chan->prev_dev;
@@ -704,7 +808,9 @@ failure_remove_channels:
 
 	/* free any PCIeC resources too */
 	if (chan && chan->pciec_card)
+	{
 		peak_pciec_remove(chan->pciec_card);
+	}
 
 	pci_iounmap(pdev, reg_base);
 
@@ -732,7 +838,8 @@ static void peak_pci_remove(struct pci_dev *pdev)
 	writew(0x0, cfg_base + PITA_ICR + 2);
 
 	/* Loop over all registered devices */
-	while (1) {
+	while (1)
+	{
 		struct net_device *prev_dev = chan->prev_dev;
 
 		dev_info(&pdev->dev, "removing device %s\n", dev->name);
@@ -740,12 +847,17 @@ static void peak_pci_remove(struct pci_dev *pdev)
 		free_sja1000dev(dev);
 		dev = prev_dev;
 
-		if (!dev) {
+		if (!dev)
+		{
 			/* do that only for first channel */
 			if (chan->pciec_card)
+			{
 				peak_pciec_remove(chan->pciec_card);
+			}
+
 			break;
 		}
+
 		priv = netdev_priv(dev);
 		chan = priv->priv;
 	}
@@ -756,7 +868,8 @@ static void peak_pci_remove(struct pci_dev *pdev)
 	pci_disable_device(pdev);
 }
 
-static struct pci_driver peak_pci_driver = {
+static struct pci_driver peak_pci_driver =
+{
 	.name = DRV_NAME,
 	.id_table = peak_pci_tbl,
 	.probe = peak_pci_probe,

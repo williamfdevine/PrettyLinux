@@ -58,26 +58,39 @@ isdnloop_bchan_send(isdnloop_card *card, int ch)
 	struct sk_buff *skb;
 	isdn_ctrl cmd;
 
-	while (card->sndcount[ch]) {
+	while (card->sndcount[ch])
+	{
 		skb = skb_dequeue(&card->bqueue[ch]);
-		if (skb) {
+
+		if (skb)
+		{
 			len = skb->len;
 			card->sndcount[ch] -= len;
 			ack = *(skb->head); /* used as scratch area */
 			cmd.driver = card->myid;
 			cmd.arg = ch;
-			if (rcard) {
+
+			if (rcard)
+			{
 				rcard->interface.rcvcallb_skb(rcard->myid, rch, skb);
-			} else {
+			}
+			else
+			{
 				printk(KERN_WARNING "isdnloop: no rcard, skb dropped\n");
 				dev_kfree_skb(skb);
 
 			};
+
 			cmd.command = ISDN_STAT_BSENT;
+
 			cmd.parm.length = len;
+
 			card->interface.statcallb(&cmd);
-		} else
+		}
+		else
+		{
 			card->sndcount[ch] = 0;
+		}
 	}
 }
 
@@ -96,18 +109,28 @@ isdnloop_pollbchan(unsigned long data)
 	unsigned long flags;
 
 	if (card->flags & ISDNLOOP_FLAGS_B1ACTIVE)
+	{
 		isdnloop_bchan_send(card, 0);
+	}
+
 	if (card->flags & ISDNLOOP_FLAGS_B2ACTIVE)
+	{
 		isdnloop_bchan_send(card, 1);
-	if (card->flags & (ISDNLOOP_FLAGS_B1ACTIVE | ISDNLOOP_FLAGS_B2ACTIVE)) {
+	}
+
+	if (card->flags & (ISDNLOOP_FLAGS_B1ACTIVE | ISDNLOOP_FLAGS_B2ACTIVE))
+	{
 		/* schedule b-channel polling again */
 		spin_lock_irqsave(&card->isdnloop_lock, flags);
 		card->rb_timer.expires = jiffies + ISDNLOOP_TIMER_BCREAD;
 		add_timer(&card->rb_timer);
 		card->flags |= ISDNLOOP_FLAGS_RBTIMER;
 		spin_unlock_irqrestore(&card->isdnloop_lock, flags);
-	} else
+	}
+	else
+	{
 		card->flags &= ~ISDNLOOP_FLAGS_RBTIMER;
+	}
 }
 
 /*
@@ -128,23 +151,34 @@ isdnloop_parse_setup(char *setup, isdn_ctrl *cmd)
 	strlcpy(cmd->parm.setup.phone, t, sizeof(cmd->parm.setup.phone));
 	s = strchr(t = s, ',');
 	*s++ = '\0';
+
 	if (!strlen(t))
+	{
 		cmd->parm.setup.si1 = 0;
+	}
 	else
+	{
 		cmd->parm.setup.si1 = simple_strtoul(t, NULL, 10);
+	}
+
 	s = strchr(t = s, ',');
 	*s++ = '\0';
+
 	if (!strlen(t))
+	{
 		cmd->parm.setup.si2 = 0;
+	}
 	else
 		cmd->parm.setup.si2 =
 			simple_strtoul(t, NULL, 10);
+
 	strlcpy(cmd->parm.setup.eazmsn, s, sizeof(cmd->parm.setup.eazmsn));
 	cmd->parm.setup.plan = 0;
 	cmd->parm.setup.screen = 0;
 }
 
-typedef struct isdnloop_stat {
+typedef struct isdnloop_stat
+{
 	char *statstr;
 	int command;
 	int action;
@@ -188,83 +222,104 @@ isdnloop_parse_status(u_char *status, int channel, isdnloop_card *card)
 	int action = -1;
 	isdn_ctrl cmd;
 
-	while (s->statstr) {
-		if (!strncmp(status, s->statstr, strlen(s->statstr))) {
+	while (s->statstr)
+	{
+		if (!strncmp(status, s->statstr, strlen(s->statstr)))
+		{
 			cmd.command = s->command;
 			action = s->action;
 			break;
 		}
+
 		s++;
 	}
+
 	if (action == -1)
+	{
 		return;
+	}
+
 	cmd.driver = card->myid;
 	cmd.arg = channel;
-	switch (action) {
-	case 1:
-		/* BCON_x */
-		card->flags |= (channel) ?
-			ISDNLOOP_FLAGS_B2ACTIVE : ISDNLOOP_FLAGS_B1ACTIVE;
-		break;
-	case 2:
-		/* BDIS_x */
-		card->flags &= ~((channel) ?
-				 ISDNLOOP_FLAGS_B2ACTIVE : ISDNLOOP_FLAGS_B1ACTIVE);
-		isdnloop_free_queue(card, channel);
-		break;
-	case 3:
-		/* DCAL_I and DSCA_I */
-		isdnloop_parse_setup(status + 6, &cmd);
-		break;
-	case 4:
-		/* FCALL */
-		sprintf(cmd.parm.setup.phone, "LEASED%d", card->myid);
-		sprintf(cmd.parm.setup.eazmsn, "%d", channel + 1);
-		cmd.parm.setup.si1 = 7;
-		cmd.parm.setup.si2 = 0;
-		cmd.parm.setup.plan = 0;
-		cmd.parm.setup.screen = 0;
-		break;
-	case 5:
-		/* CIF */
-		strlcpy(cmd.parm.num, status + 3, sizeof(cmd.parm.num));
-		break;
-	case 6:
-		/* AOC */
-		snprintf(cmd.parm.num, sizeof(cmd.parm.num), "%d",
-			 (int) simple_strtoul(status + 7, NULL, 16));
-		break;
-	case 7:
-		/* CAU */
-		status += 3;
-		if (strlen(status) == 4)
-			snprintf(cmd.parm.num, sizeof(cmd.parm.num), "%s%c%c",
-				 status + 2, *status, *(status + 1));
-		else
-			strlcpy(cmd.parm.num, status + 1, sizeof(cmd.parm.num));
-		break;
-	case 8:
-		/* Misc Errors on L1 and L2 */
-		card->flags &= ~ISDNLOOP_FLAGS_B1ACTIVE;
-		isdnloop_free_queue(card, 0);
-		cmd.arg = 0;
-		cmd.driver = card->myid;
-		card->interface.statcallb(&cmd);
-		cmd.command = ISDN_STAT_DHUP;
-		cmd.arg = 0;
-		cmd.driver = card->myid;
-		card->interface.statcallb(&cmd);
-		cmd.command = ISDN_STAT_BHUP;
-		card->flags &= ~ISDNLOOP_FLAGS_B2ACTIVE;
-		isdnloop_free_queue(card, 1);
-		cmd.arg = 1;
-		cmd.driver = card->myid;
-		card->interface.statcallb(&cmd);
-		cmd.command = ISDN_STAT_DHUP;
-		cmd.arg = 1;
-		cmd.driver = card->myid;
-		break;
+
+	switch (action)
+	{
+		case 1:
+			/* BCON_x */
+			card->flags |= (channel) ?
+						   ISDNLOOP_FLAGS_B2ACTIVE : ISDNLOOP_FLAGS_B1ACTIVE;
+			break;
+
+		case 2:
+			/* BDIS_x */
+			card->flags &= ~((channel) ?
+							 ISDNLOOP_FLAGS_B2ACTIVE : ISDNLOOP_FLAGS_B1ACTIVE);
+			isdnloop_free_queue(card, channel);
+			break;
+
+		case 3:
+			/* DCAL_I and DSCA_I */
+			isdnloop_parse_setup(status + 6, &cmd);
+			break;
+
+		case 4:
+			/* FCALL */
+			sprintf(cmd.parm.setup.phone, "LEASED%d", card->myid);
+			sprintf(cmd.parm.setup.eazmsn, "%d", channel + 1);
+			cmd.parm.setup.si1 = 7;
+			cmd.parm.setup.si2 = 0;
+			cmd.parm.setup.plan = 0;
+			cmd.parm.setup.screen = 0;
+			break;
+
+		case 5:
+			/* CIF */
+			strlcpy(cmd.parm.num, status + 3, sizeof(cmd.parm.num));
+			break;
+
+		case 6:
+			/* AOC */
+			snprintf(cmd.parm.num, sizeof(cmd.parm.num), "%d",
+					 (int) simple_strtoul(status + 7, NULL, 16));
+			break;
+
+		case 7:
+			/* CAU */
+			status += 3;
+
+			if (strlen(status) == 4)
+				snprintf(cmd.parm.num, sizeof(cmd.parm.num), "%s%c%c",
+						 status + 2, *status, *(status + 1));
+			else
+			{
+				strlcpy(cmd.parm.num, status + 1, sizeof(cmd.parm.num));
+			}
+
+			break;
+
+		case 8:
+			/* Misc Errors on L1 and L2 */
+			card->flags &= ~ISDNLOOP_FLAGS_B1ACTIVE;
+			isdnloop_free_queue(card, 0);
+			cmd.arg = 0;
+			cmd.driver = card->myid;
+			card->interface.statcallb(&cmd);
+			cmd.command = ISDN_STAT_DHUP;
+			cmd.arg = 0;
+			cmd.driver = card->myid;
+			card->interface.statcallb(&cmd);
+			cmd.command = ISDN_STAT_BHUP;
+			card->flags &= ~ISDNLOOP_FLAGS_B2ACTIVE;
+			isdnloop_free_queue(card, 1);
+			cmd.arg = 1;
+			cmd.driver = card->myid;
+			card->interface.statcallb(&cmd);
+			cmd.command = ISDN_STAT_DHUP;
+			cmd.arg = 1;
+			cmd.driver = card->myid;
+			break;
 	}
+
 	card->interface.statcallb(&cmd);
 }
 
@@ -282,12 +337,20 @@ isdnloop_putmsg(isdnloop_card *card, unsigned char c)
 
 	spin_lock_irqsave(&card->isdnloop_lock, flags);
 	*card->msg_buf_write++ = (c == 0xff) ? '\n' : c;
-	if (card->msg_buf_write == card->msg_buf_read) {
+
+	if (card->msg_buf_write == card->msg_buf_read)
+	{
 		if (++card->msg_buf_read > card->msg_buf_end)
+		{
 			card->msg_buf_read = card->msg_buf;
+		}
 	}
+
 	if (card->msg_buf_write > card->msg_buf_end)
+	{
 		card->msg_buf_write = card->msg_buf;
+	}
+
 	spin_unlock_irqrestore(&card->isdnloop_lock, flags);
 }
 
@@ -318,57 +381,84 @@ isdnloop_polldchan(unsigned long data)
 	isdn_ctrl cmd;
 
 	skb = skb_dequeue(&card->dqueue);
+
 	if (skb)
+	{
 		avail = skb->len;
+	}
 	else
+	{
 		avail = 0;
-	for (left = avail; left > 0; left--) {
+	}
+
+	for (left = avail; left > 0; left--)
+	{
 		c = *skb->data;
 		skb_pull(skb, 1);
 		isdnloop_putmsg(card, c);
 		card->imsg[card->iptr] = c;
+
 		if (card->iptr < 59)
+		{
 			card->iptr++;
-		if (!skb->len) {
+		}
+
+		if (!skb->len)
+		{
 			avail++;
 			isdnloop_putmsg(card, '\n');
 			card->imsg[card->iptr] = 0;
 			card->iptr = 0;
+
 			if (card->imsg[0] == '0' && card->imsg[1] >= '0' &&
-			    card->imsg[1] <= '2' && card->imsg[2] == ';') {
+				card->imsg[1] <= '2' && card->imsg[2] == ';')
+			{
 				ch = (card->imsg[1] - '0') - 1;
 				p = &card->imsg[3];
 				isdnloop_parse_status(p, ch, card);
-			} else {
+			}
+			else
+			{
 				p = card->imsg;
-				if (!strncmp(p, "DRV1.", 5)) {
+
+				if (!strncmp(p, "DRV1.", 5))
+				{
 					printk(KERN_INFO "isdnloop: (%s) %s\n", CID, p);
-					if (!strncmp(p + 7, "TC", 2)) {
+
+					if (!strncmp(p + 7, "TC", 2))
+					{
 						card->ptype = ISDN_PTYPE_1TR6;
 						card->interface.features |= ISDN_FEATURE_P_1TR6;
 						printk(KERN_INFO
-						       "isdnloop: (%s) 1TR6-Protocol loaded and running\n", CID);
+							   "isdnloop: (%s) 1TR6-Protocol loaded and running\n", CID);
 					}
-					if (!strncmp(p + 7, "EC", 2)) {
+
+					if (!strncmp(p + 7, "EC", 2))
+					{
 						card->ptype = ISDN_PTYPE_EURO;
 						card->interface.features |= ISDN_FEATURE_P_EURO;
 						printk(KERN_INFO
-						       "isdnloop: (%s) Euro-Protocol loaded and running\n", CID);
+							   "isdnloop: (%s) Euro-Protocol loaded and running\n", CID);
 					}
+
 					continue;
 
 				}
 			}
 		}
 	}
-	if (avail) {
+
+	if (avail)
+	{
 		cmd.command = ISDN_STAT_STAVAIL;
 		cmd.driver = card->myid;
 		cmd.arg = avail;
 		card->interface.statcallb(&cmd);
 	}
+
 	if (card->flags & (ISDNLOOP_FLAGS_B1ACTIVE | ISDNLOOP_FLAGS_B2ACTIVE))
-		if (!(card->flags & ISDNLOOP_FLAGS_RBTIMER)) {
+		if (!(card->flags & ISDNLOOP_FLAGS_RBTIMER))
+		{
 			/* schedule b-channel polling */
 			card->flags |= ISDNLOOP_FLAGS_RBTIMER;
 			spin_lock_irqsave(&card->isdnloop_lock, flags);
@@ -379,6 +469,7 @@ isdnloop_polldchan(unsigned long data)
 			add_timer(&card->rb_timer);
 			spin_unlock_irqrestore(&card->isdnloop_lock, flags);
 		}
+
 	/* schedule again */
 	spin_lock_irqsave(&card->isdnloop_lock, flags);
 	card->st_timer.expires = jiffies + ISDNLOOP_TIMER_DCREAD;
@@ -403,28 +494,44 @@ isdnloop_sendbuf(int channel, struct sk_buff *skb, isdnloop_card *card)
 	unsigned long flags;
 	struct sk_buff *nskb;
 
-	if (len > 4000) {
+	if (len > 4000)
+	{
 		printk(KERN_WARNING
-		       "isdnloop: Send packet too large\n");
+			   "isdnloop: Send packet too large\n");
 		return -EINVAL;
 	}
-	if (len) {
+
+	if (len)
+	{
 		if (!(card->flags & (channel) ? ISDNLOOP_FLAGS_B2ACTIVE : ISDNLOOP_FLAGS_B1ACTIVE))
+		{
 			return 0;
+		}
+
 		if (card->sndcount[channel] > ISDNLOOP_MAX_SQUEUE)
+		{
 			return 0;
+		}
+
 		spin_lock_irqsave(&card->isdnloop_lock, flags);
 		nskb = dev_alloc_skb(skb->len);
-		if (nskb) {
+
+		if (nskb)
+		{
 			skb_copy_from_linear_data(skb,
-						  skb_put(nskb, len), len);
+									  skb_put(nskb, len), len);
 			skb_queue_tail(&card->bqueue[channel], nskb);
 			dev_kfree_skb(skb);
-		} else
+		}
+		else
+		{
 			len = 0;
+		}
+
 		card->sndcount[channel] += len;
 		spin_unlock_irqrestore(&card->isdnloop_lock, flags);
 	}
+
 	return len;
 }
 
@@ -445,14 +552,24 @@ isdnloop_readstatus(u_char __user *buf, int len, isdnloop_card *card)
 	int count;
 	u_char __user *p;
 
-	for (p = buf, count = 0; count < len; p++, count++) {
+	for (p = buf, count = 0; count < len; p++, count++)
+	{
 		if (card->msg_buf_read == card->msg_buf_write)
+		{
 			return count;
+		}
+
 		if (put_user(*card->msg_buf_read++, p))
+		{
 			return -EFAULT;
+		}
+
 		if (card->msg_buf_read > card->msg_buf_end)
+		{
 			card->msg_buf_read = card->msg_buf;
+		}
 	}
+
 	return count;
 }
 
@@ -473,12 +590,18 @@ isdnloop_fake(isdnloop_card *card, char *s, int ch)
 	struct sk_buff *skb;
 	int len = strlen(s) + ((ch >= 0) ? 3 : 0);
 	skb = dev_alloc_skb(len);
-	if (!skb) {
+
+	if (!skb)
+	{
 		printk(KERN_WARNING "isdnloop: Out of memory in isdnloop_fake\n");
 		return 1;
 	}
+
 	if (ch >= 0)
+	{
 		sprintf(skb_put(skb, 3), "%02d;", ch);
+	}
+
 	memcpy(skb_put(skb, strlen(s)), s, strlen(s));
 	skb_queue_tail(&card->dqueue, skb);
 	return 0;
@@ -544,16 +667,20 @@ isdnloop_unicause(isdnloop_card *card, int loc, int cau)
 {
 	static char buf[6];
 
-	switch (card->ptype) {
-	case ISDN_PTYPE_EURO:
-		sprintf(buf, "E%02X%02X", (loc) ? 4 : 2, ctable_eu[cau]);
-		break;
-	case ISDN_PTYPE_1TR6:
-		sprintf(buf, "%02X44", ctable_1t[cau]);
-		break;
-	default:
-		return "0000";
+	switch (card->ptype)
+	{
+		case ISDN_PTYPE_EURO:
+			sprintf(buf, "E%02X%02X", (loc) ? 4 : 2, ctable_eu[cau]);
+			break;
+
+		case ISDN_PTYPE_1TR6:
+			sprintf(buf, "%02X44", ctable_1t[cau]);
+			break;
+
+		default:
+			return "0000";
 	}
+
 	return buf;
 }
 
@@ -572,11 +699,14 @@ isdnloop_atimeout(isdnloop_card *card, int ch)
 	char buf[60];
 
 	spin_lock_irqsave(&card->isdnloop_lock, flags);
-	if (card->rcard) {
+
+	if (card->rcard)
+	{
 		isdnloop_fake(card->rcard[ch], "DDIS_I", card->rch[ch] + 1);
 		card->rcard[ch]->rcard[card->rch[ch]] = NULL;
 		card->rcard[ch] = NULL;
 	}
+
 	isdnloop_fake(card, "DDIS_I", ch + 1);
 	/* No user responding */
 	sprintf(buf, "CAU%s", isdnloop_unicause(card, 1, 3));
@@ -619,10 +749,16 @@ isdnloop_start_ctimer(isdnloop_card *card, int ch)
 	spin_lock_irqsave(&card->isdnloop_lock, flags);
 	init_timer(&card->c_timer[ch]);
 	card->c_timer[ch].expires = jiffies + ISDNLOOP_TIMER_ALERTWAIT;
+
 	if (ch)
+	{
 		card->c_timer[ch].function = isdnloop_atimeout1;
+	}
 	else
+	{
 		card->c_timer[ch].function = isdnloop_atimeout0;
+	}
+
 	card->c_timer[ch].data = (unsigned long) card;
 	add_timer(&card->c_timer[ch]);
 	spin_unlock_irqrestore(&card->isdnloop_lock, flags);
@@ -674,36 +810,60 @@ isdnloop_try_call(isdnloop_card *card, char *p, int lch, isdn_ctrl *cmd)
 	char nbuf[32];
 
 	isdnloop_parse_setup(p, cmd);
-	while (cc) {
-		for (ch = 0; ch < 2; ch++) {
+
+	while (cc)
+	{
+		for (ch = 0; ch < 2; ch++)
+		{
 			/* Exclude ourself */
 			if ((cc == card) && (ch == lch))
+			{
 				continue;
-			num_match = 0;
-			switch (cc->ptype) {
-			case ISDN_PTYPE_EURO:
-				for (i = 0; i < 3; i++)
-					if (!(strcmp(cc->s0num[i], cmd->parm.setup.phone)))
-						num_match = 1;
-				break;
-			case ISDN_PTYPE_1TR6:
-				e = cc->eazlist[ch];
-				while (*e) {
-					sprintf(nbuf, "%s%c", cc->s0num[0], *e);
-					if (!(strcmp(nbuf, cmd->parm.setup.phone)))
-						num_match = 1;
-					e++;
-				}
 			}
-			if (num_match) {
+
+			num_match = 0;
+
+			switch (cc->ptype)
+			{
+				case ISDN_PTYPE_EURO:
+					for (i = 0; i < 3; i++)
+						if (!(strcmp(cc->s0num[i], cmd->parm.setup.phone)))
+						{
+							num_match = 1;
+						}
+
+					break;
+
+				case ISDN_PTYPE_1TR6:
+					e = cc->eazlist[ch];
+
+					while (*e)
+					{
+						sprintf(nbuf, "%s%c", cc->s0num[0], *e);
+
+						if (!(strcmp(nbuf, cmd->parm.setup.phone)))
+						{
+							num_match = 1;
+						}
+
+						e++;
+					}
+			}
+
+			if (num_match)
+			{
 				spin_lock_irqsave(&card->isdnloop_lock, flags);
+
 				/* channel idle? */
-				if (!(cc->rcard[ch])) {
+				if (!(cc->rcard[ch]))
+				{
 					/* Check SI */
-					if (!(si2bit[cmd->parm.setup.si1] & cc->sil[ch])) {
+					if (!(si2bit[cmd->parm.setup.si1] & cc->sil[ch]))
+					{
 						spin_unlock_irqrestore(&card->isdnloop_lock, flags);
 						return 3;
 					}
+
 					/* ch is idle, si and number matches */
 					cc->rcard[ch] = card;
 					cc->rch[ch] = lch;
@@ -711,16 +871,23 @@ isdnloop_try_call(isdnloop_card *card, char *p, int lch, isdn_ctrl *cmd)
 					card->rch[lch] = ch;
 					spin_unlock_irqrestore(&card->isdnloop_lock, flags);
 					return 0;
-				} else {
+				}
+				else
+				{
 					spin_unlock_irqrestore(&card->isdnloop_lock, flags);
+
 					/* num matches, but busy */
 					if (ch == 1)
+					{
 						return 1;
+					}
 				}
 			}
 		}
+
 		cc = cc->next;
 	}
+
 	return 2;
 }
 
@@ -741,28 +908,43 @@ isdnloop_vstphone(isdnloop_card *card, char *phone, int caller)
 	int i;
 	static char nphone[30];
 
-	if (!card) {
+	if (!card)
+	{
 		printk("BUG!!!\n");
 		return "";
 	}
-	switch (card->ptype) {
-	case ISDN_PTYPE_EURO:
-		if (caller) {
-			for (i = 0; i < 2; i++)
-				if (!(strcmp(card->s0num[i], phone)))
-					return phone;
-			return card->s0num[0];
-		}
-		return phone;
-		break;
-	case ISDN_PTYPE_1TR6:
-		if (caller) {
-			sprintf(nphone, "%s%c", card->s0num[0], phone[0]);
-			return nphone;
-		} else
-			return &phone[strlen(phone) - 1];
-		break;
+
+	switch (card->ptype)
+	{
+		case ISDN_PTYPE_EURO:
+			if (caller)
+			{
+				for (i = 0; i < 2; i++)
+					if (!(strcmp(card->s0num[i], phone)))
+					{
+						return phone;
+					}
+
+				return card->s0num[0];
+			}
+
+			return phone;
+			break;
+
+		case ISDN_PTYPE_1TR6:
+			if (caller)
+			{
+				sprintf(nphone, "%s%c", card->s0num[0], phone[0]);
+				return nphone;
+			}
+			else
+			{
+				return &phone[strlen(phone) - 1];
+			}
+
+			break;
 	}
+
 	return "";
 }
 
@@ -784,167 +966,240 @@ isdnloop_parse_cmd(isdnloop_card *card)
 	int i;
 	int ch;
 
-	if ((card->omsg[0] != '0') && (card->omsg[2] != ';')) {
+	if ((card->omsg[0] != '0') && (card->omsg[2] != ';'))
+	{
 		isdnloop_fake_err(card);
 		return;
 	}
+
 	ch = card->omsg[1] - '0';
-	if ((ch < 0) || (ch > 2)) {
+
+	if ((ch < 0) || (ch > 2))
+	{
 		isdnloop_fake_err(card);
 		return;
 	}
+
 	p += 3;
-	while (s->statstr) {
-		if (!strncmp(p, s->statstr, strlen(s->statstr))) {
+
+	while (s->statstr)
+	{
+		if (!strncmp(p, s->statstr, strlen(s->statstr)))
+		{
 			action = s->action;
-			if (s->command && (ch != 0)) {
+
+			if (s->command && (ch != 0))
+			{
 				isdnloop_fake_err(card);
 				return;
 			}
+
 			break;
 		}
+
 		s++;
 	}
+
 	if (action == -1)
+	{
 		return;
-	switch (action) {
-	case 1:
-		/* 0x;BCON_R */
-		if (card->rcard[ch - 1]) {
-			isdnloop_fake(card->rcard[ch - 1], "BCON_I",
-				      card->rch[ch - 1] + 1);
-			isdnloop_fake(card, "BCON_C", ch);
-		}
-		break;
-	case 17:
-		/* 0x;BCON_I */
-		if (card->rcard[ch - 1]) {
-			isdnloop_fake(card->rcard[ch - 1], "BCON_C",
-				      card->rch[ch - 1] + 1);
-		}
-		break;
-	case 2:
-		/* 0x;BDIS_R */
-		isdnloop_fake(card, "BDIS_C", ch);
-		if (card->rcard[ch - 1]) {
-			isdnloop_fake(card->rcard[ch - 1], "BDIS_I",
-				      card->rch[ch - 1] + 1);
-		}
-		break;
-	case 16:
-		/* 0x;DCON_R */
-		isdnloop_kill_ctimer(card, ch - 1);
-		if (card->rcard[ch - 1]) {
-			isdnloop_kill_ctimer(card->rcard[ch - 1], card->rch[ch - 1]);
-			isdnloop_fake(card->rcard[ch - 1], "DCON_C",
-				      card->rch[ch - 1] + 1);
-			isdnloop_fake(card, "DCON_C", ch);
-		}
-		break;
-	case 3:
-		/* 0x;DDIS_R */
-		isdnloop_kill_ctimer(card, ch - 1);
-		if (card->rcard[ch - 1]) {
-			isdnloop_kill_ctimer(card->rcard[ch - 1], card->rch[ch - 1]);
-			isdnloop_fake(card->rcard[ch - 1], "DDIS_I",
-				      card->rch[ch - 1] + 1);
-			card->rcard[ch - 1] = NULL;
-		}
-		isdnloop_fake(card, "DDIS_C", ch);
-		break;
-	case 4:
-		/* 0x;DSCA_Rdd,yy,zz,oo */
-		if (card->ptype != ISDN_PTYPE_1TR6) {
-			isdnloop_fake_err(card);
-			return;
-		}
-		/* Fall through */
-	case 5:
-		/* 0x;DCAL_Rdd,yy,zz,oo */
-		p += 6;
-		switch (isdnloop_try_call(card, p, ch - 1, &cmd)) {
-		case 0:
-			/* Alerting */
-			sprintf(buf, "D%s_I%s,%02d,%02d,%s",
-				(action == 4) ? "SCA" : "CAL",
-				isdnloop_vstphone(card, cmd.parm.setup.eazmsn, 1),
-				cmd.parm.setup.si1,
-				cmd.parm.setup.si2,
-				isdnloop_vstphone(card->rcard[ch - 1],
-						  cmd.parm.setup.phone, 0));
-			isdnloop_fake(card->rcard[ch - 1], buf, card->rch[ch - 1] + 1);
-			/* Fall through */
-		case 3:
-			/* si1 does not match, don't alert but start timer */
-			isdnloop_start_ctimer(card, ch - 1);
-			break;
+	}
+
+	switch (action)
+	{
 		case 1:
-			/* Remote busy */
-			isdnloop_fake(card, "DDIS_I", ch);
-			sprintf(buf, "CAU%s", isdnloop_unicause(card, 1, 1));
-			isdnloop_fake(card, buf, ch);
+
+			/* 0x;BCON_R */
+			if (card->rcard[ch - 1])
+			{
+				isdnloop_fake(card->rcard[ch - 1], "BCON_I",
+							  card->rch[ch - 1] + 1);
+				isdnloop_fake(card, "BCON_C", ch);
+			}
+
 			break;
+
+		case 17:
+
+			/* 0x;BCON_I */
+			if (card->rcard[ch - 1])
+			{
+				isdnloop_fake(card->rcard[ch - 1], "BCON_C",
+							  card->rch[ch - 1] + 1);
+			}
+
+			break;
+
 		case 2:
-			/* No such user */
-			isdnloop_fake(card, "DDIS_I", ch);
-			sprintf(buf, "CAU%s", isdnloop_unicause(card, 1, 2));
-			isdnloop_fake(card, buf, ch);
+			/* 0x;BDIS_R */
+			isdnloop_fake(card, "BDIS_C", ch);
+
+			if (card->rcard[ch - 1])
+			{
+				isdnloop_fake(card->rcard[ch - 1], "BDIS_I",
+							  card->rch[ch - 1] + 1);
+			}
+
 			break;
-		}
-		break;
-	case 6:
-		/* 0x;EAZC */
-		card->eazlist[ch - 1][0] = '\0';
-		break;
-	case 7:
-		/* 0x;EAZ */
-		p += 3;
-		if (strlen(p) >= sizeof(card->eazlist[0]))
+
+		case 16:
+			/* 0x;DCON_R */
+			isdnloop_kill_ctimer(card, ch - 1);
+
+			if (card->rcard[ch - 1])
+			{
+				isdnloop_kill_ctimer(card->rcard[ch - 1], card->rch[ch - 1]);
+				isdnloop_fake(card->rcard[ch - 1], "DCON_C",
+							  card->rch[ch - 1] + 1);
+				isdnloop_fake(card, "DCON_C", ch);
+			}
+
 			break;
-		strcpy(card->eazlist[ch - 1], p);
-		break;
-	case 8:
-		/* 0x;SEEAZ */
-		sprintf(buf, "EAZ-LIST: %s", card->eazlist[ch - 1]);
-		isdnloop_fake(card, buf, ch + 1);
-		break;
-	case 9:
-		/* 0x;MSN */
-		break;
-	case 10:
-		/* 0x;MSNALL */
-		break;
-	case 11:
-		/* 0x;SETSIL */
-		p += 6;
-		i = 0;
-		while (strchr("0157", *p)) {
-			if (i)
-				card->sil[ch - 1] |= si2bit[*p - '0'];
-			i = (*p++ == '0');
-		}
-		if (*p)
-			isdnloop_fake_err(card);
-		break;
-	case 12:
-		/* 0x;SEESIL */
-		sprintf(buf, "SIN-LIST: ");
-		p = buf + 10;
-		for (i = 0; i < 3; i++)
-			if (card->sil[ch - 1] & (1 << i))
-				p += sprintf(p, "%02d", bit2si[i]);
-		isdnloop_fake(card, buf, ch + 1);
-		break;
-	case 13:
-		/* 0x;SILC */
-		card->sil[ch - 1] = 0;
-		break;
-	case 14:
-		/* 00;FV2ON */
-		break;
-	case 15:
-		/* 00;FV2OFF */
-		break;
+
+		case 3:
+			/* 0x;DDIS_R */
+			isdnloop_kill_ctimer(card, ch - 1);
+
+			if (card->rcard[ch - 1])
+			{
+				isdnloop_kill_ctimer(card->rcard[ch - 1], card->rch[ch - 1]);
+				isdnloop_fake(card->rcard[ch - 1], "DDIS_I",
+							  card->rch[ch - 1] + 1);
+				card->rcard[ch - 1] = NULL;
+			}
+
+			isdnloop_fake(card, "DDIS_C", ch);
+			break;
+
+		case 4:
+
+			/* 0x;DSCA_Rdd,yy,zz,oo */
+			if (card->ptype != ISDN_PTYPE_1TR6)
+			{
+				isdnloop_fake_err(card);
+				return;
+			}
+
+		/* Fall through */
+		case 5:
+			/* 0x;DCAL_Rdd,yy,zz,oo */
+			p += 6;
+
+			switch (isdnloop_try_call(card, p, ch - 1, &cmd))
+			{
+				case 0:
+					/* Alerting */
+					sprintf(buf, "D%s_I%s,%02d,%02d,%s",
+							(action == 4) ? "SCA" : "CAL",
+							isdnloop_vstphone(card, cmd.parm.setup.eazmsn, 1),
+							cmd.parm.setup.si1,
+							cmd.parm.setup.si2,
+							isdnloop_vstphone(card->rcard[ch - 1],
+											  cmd.parm.setup.phone, 0));
+					isdnloop_fake(card->rcard[ch - 1], buf, card->rch[ch - 1] + 1);
+
+				/* Fall through */
+				case 3:
+					/* si1 does not match, don't alert but start timer */
+					isdnloop_start_ctimer(card, ch - 1);
+					break;
+
+				case 1:
+					/* Remote busy */
+					isdnloop_fake(card, "DDIS_I", ch);
+					sprintf(buf, "CAU%s", isdnloop_unicause(card, 1, 1));
+					isdnloop_fake(card, buf, ch);
+					break;
+
+				case 2:
+					/* No such user */
+					isdnloop_fake(card, "DDIS_I", ch);
+					sprintf(buf, "CAU%s", isdnloop_unicause(card, 1, 2));
+					isdnloop_fake(card, buf, ch);
+					break;
+			}
+
+			break;
+
+		case 6:
+			/* 0x;EAZC */
+			card->eazlist[ch - 1][0] = '\0';
+			break;
+
+		case 7:
+			/* 0x;EAZ */
+			p += 3;
+
+			if (strlen(p) >= sizeof(card->eazlist[0]))
+			{
+				break;
+			}
+
+			strcpy(card->eazlist[ch - 1], p);
+			break;
+
+		case 8:
+			/* 0x;SEEAZ */
+			sprintf(buf, "EAZ-LIST: %s", card->eazlist[ch - 1]);
+			isdnloop_fake(card, buf, ch + 1);
+			break;
+
+		case 9:
+			/* 0x;MSN */
+			break;
+
+		case 10:
+			/* 0x;MSNALL */
+			break;
+
+		case 11:
+			/* 0x;SETSIL */
+			p += 6;
+			i = 0;
+
+			while (strchr("0157", *p))
+			{
+				if (i)
+				{
+					card->sil[ch - 1] |= si2bit[*p - '0'];
+				}
+
+				i = (*p++ == '0');
+			}
+
+			if (*p)
+			{
+				isdnloop_fake_err(card);
+			}
+
+			break;
+
+		case 12:
+			/* 0x;SEESIL */
+			sprintf(buf, "SIN-LIST: ");
+			p = buf + 10;
+
+			for (i = 0; i < 3; i++)
+				if (card->sil[ch - 1] & (1 << i))
+				{
+					p += sprintf(p, "%02d", bit2si[i]);
+				}
+
+			isdnloop_fake(card, buf, ch + 1);
+			break;
+
+		case 13:
+			/* 0x;SILC */
+			card->sil[ch - 1] = 0;
+			break;
+
+		case 14:
+			/* 00;FV2ON */
+			break;
+
+		case 15:
+			/* 00;FV2OFF */
+			break;
 	}
 }
 
@@ -969,39 +1224,62 @@ isdnloop_writecmd(const u_char *buf, int len, int user, isdnloop_card *card)
 	int ocount = 1;
 	isdn_ctrl cmd;
 
-	while (len) {
+	while (len)
+	{
 		int count = len;
 		u_char *p;
 		u_char msg[0x100];
 
 		if (count > 255)
+		{
 			count = 255;
-		if (user) {
+		}
+
+		if (user)
+		{
 			if (copy_from_user(msg, buf, count))
+			{
 				return -EFAULT;
-		} else
+			}
+		}
+		else
+		{
 			memcpy(msg, buf, count);
+		}
+
 		isdnloop_putmsg(card, '>');
-		for (p = msg; count > 0; count--, p++) {
+
+		for (p = msg; count > 0; count--, p++)
+		{
 			len--;
 			xcount++;
 			isdnloop_putmsg(card, *p);
 			card->omsg[card->optr] = *p;
-			if (*p == '\n') {
+
+			if (*p == '\n')
+			{
 				card->omsg[card->optr] = '\0';
 				card->optr = 0;
 				isdnloop_parse_cmd(card);
-				if (len) {
+
+				if (len)
+				{
 					isdnloop_putmsg(card, '>');
 					ocount++;
 				}
-			} else {
-				if (card->optr < 59)
-					card->optr++;
 			}
+			else
+			{
+				if (card->optr < 59)
+				{
+					card->optr++;
+				}
+			}
+
 			ocount++;
 		}
 	}
+
 	cmd.command = ISDN_STAT_STAVAIL;
 	cmd.driver = card->myid;
 	cmd.arg = ocount;
@@ -1019,7 +1297,9 @@ isdnloop_stopcard(isdnloop_card *card)
 	isdn_ctrl cmd;
 
 	spin_lock_irqsave(&card->isdnloop_lock, flags);
-	if (card->flags & ISDNLOOP_FLAGS_RUNNING) {
+
+	if (card->flags & ISDNLOOP_FLAGS_RUNNING)
+	{
 		card->flags &= ~ISDNLOOP_FLAGS_RUNNING;
 		del_timer(&card->st_timer);
 		del_timer(&card->rb_timer);
@@ -1029,6 +1309,7 @@ isdnloop_stopcard(isdnloop_card *card)
 		cmd.driver = card->myid;
 		card->interface.statcallb(&cmd);
 	}
+
 	spin_unlock_irqrestore(&card->isdnloop_lock, flags);
 }
 
@@ -1040,7 +1321,8 @@ isdnloop_stopallcards(void)
 {
 	isdnloop_card *p = cards;
 
-	while (p) {
+	while (p)
+	{
 		isdnloop_stopcard(p);
 		p = p->next;
 	}
@@ -1065,54 +1347,79 @@ isdnloop_start(isdnloop_card *card, isdnloop_sdef *sdefp)
 	int i;
 
 	if (card->flags & ISDNLOOP_FLAGS_RUNNING)
+	{
 		return -EBUSY;
-	if (copy_from_user((char *) &sdef, (char *) sdefp, sizeof(sdef)))
-		return -EFAULT;
+	}
 
-	for (i = 0; i < 3; i++) {
+	if (copy_from_user((char *) &sdef, (char *) sdefp, sizeof(sdef)))
+	{
+		return -EFAULT;
+	}
+
+	for (i = 0; i < 3; i++)
+	{
 		if (!memchr(sdef.num[i], 0, sizeof(sdef.num[i])))
+		{
 			return -EINVAL;
+		}
 	}
 
 	spin_lock_irqsave(&card->isdnloop_lock, flags);
-	switch (sdef.ptype) {
-	case ISDN_PTYPE_EURO:
-		if (isdnloop_fake(card, "DRV1.23EC-Q.931-CAPI-CNS-BASIS-20.02.96",
-				  -1)) {
+
+	switch (sdef.ptype)
+	{
+		case ISDN_PTYPE_EURO:
+			if (isdnloop_fake(card, "DRV1.23EC-Q.931-CAPI-CNS-BASIS-20.02.96",
+							  -1))
+			{
+				spin_unlock_irqrestore(&card->isdnloop_lock, flags);
+				return -ENOMEM;
+			}
+
+			card->sil[0] = card->sil[1] = 4;
+
+			if (isdnloop_fake(card, "TEI OK", 0))
+			{
+				spin_unlock_irqrestore(&card->isdnloop_lock, flags);
+				return -ENOMEM;
+			}
+
+			for (i = 0; i < 3; i++)
+			{
+				strlcpy(card->s0num[i], sdef.num[i],
+						sizeof(card->s0num[0]));
+			}
+
+			break;
+
+		case ISDN_PTYPE_1TR6:
+			if (isdnloop_fake(card, "DRV1.04TC-1TR6-CAPI-CNS-BASIS-29.11.95",
+							  -1))
+			{
+				spin_unlock_irqrestore(&card->isdnloop_lock, flags);
+				return -ENOMEM;
+			}
+
+			card->sil[0] = card->sil[1] = 4;
+
+			if (isdnloop_fake(card, "TEI OK", 0))
+			{
+				spin_unlock_irqrestore(&card->isdnloop_lock, flags);
+				return -ENOMEM;
+			}
+
+			strlcpy(card->s0num[0], sdef.num[0], sizeof(card->s0num[0]));
+			card->s0num[1][0] = '\0';
+			card->s0num[2][0] = '\0';
+			break;
+
+		default:
 			spin_unlock_irqrestore(&card->isdnloop_lock, flags);
-			return -ENOMEM;
-		}
-		card->sil[0] = card->sil[1] = 4;
-		if (isdnloop_fake(card, "TEI OK", 0)) {
-			spin_unlock_irqrestore(&card->isdnloop_lock, flags);
-			return -ENOMEM;
-		}
-		for (i = 0; i < 3; i++) {
-			strlcpy(card->s0num[i], sdef.num[i],
-				sizeof(card->s0num[0]));
-		}
-		break;
-	case ISDN_PTYPE_1TR6:
-		if (isdnloop_fake(card, "DRV1.04TC-1TR6-CAPI-CNS-BASIS-29.11.95",
-				  -1)) {
-			spin_unlock_irqrestore(&card->isdnloop_lock, flags);
-			return -ENOMEM;
-		}
-		card->sil[0] = card->sil[1] = 4;
-		if (isdnloop_fake(card, "TEI OK", 0)) {
-			spin_unlock_irqrestore(&card->isdnloop_lock, flags);
-			return -ENOMEM;
-		}
-		strlcpy(card->s0num[0], sdef.num[0], sizeof(card->s0num[0]));
-		card->s0num[1][0] = '\0';
-		card->s0num[2][0] = '\0';
-		break;
-	default:
-		spin_unlock_irqrestore(&card->isdnloop_lock, flags);
-		printk(KERN_WARNING "isdnloop: Illegal D-channel protocol %d\n",
-		       sdef.ptype);
-		return -EINVAL;
+			printk(KERN_WARNING "isdnloop: Illegal D-channel protocol %d\n",
+				   sdef.ptype);
+			return -EINVAL;
 	}
+
 	init_timer(&card->st_timer);
 	card->st_timer.expires = jiffies + ISDNLOOP_TIMER_DCREAD;
 	card->st_timer.function = isdnloop_polldchan;
@@ -1135,216 +1442,336 @@ isdnloop_command(isdn_ctrl *c, isdnloop_card *card)
 	isdn_ctrl cmd;
 	isdnloop_cdef cdef;
 
-	switch (c->command) {
-	case ISDN_CMD_IOCTL:
-		memcpy(&a, c->parm.num, sizeof(ulong));
-		switch (c->arg) {
-		case ISDNLOOP_IOCTL_DEBUGVAR:
-			return (ulong) card;
-		case ISDNLOOP_IOCTL_STARTUP:
-			if (!access_ok(VERIFY_READ, (void *) a, sizeof(isdnloop_sdef)))
-				return -EFAULT;
-			return isdnloop_start(card, (isdnloop_sdef *) a);
-			break;
-		case ISDNLOOP_IOCTL_ADDCARD:
-			if (copy_from_user((char *)&cdef,
-					   (char *)a,
-					   sizeof(cdef)))
-				return -EFAULT;
-			return isdnloop_addcard(cdef.id1);
-			break;
-		case ISDNLOOP_IOCTL_LEASEDCFG:
-			if (a) {
-				if (!card->leased) {
-					card->leased = 1;
-					while (card->ptype == ISDN_PTYPE_UNKNOWN)
-						schedule_timeout_interruptible(10);
-					schedule_timeout_interruptible(10);
-					sprintf(cbuf, "00;FV2ON\n01;EAZ1\n02;EAZ2\n");
-					i = isdnloop_writecmd(cbuf, strlen(cbuf), 0, card);
-					printk(KERN_INFO
-					       "isdnloop: (%s) Leased-line mode enabled\n",
-					       CID);
-					cmd.command = ISDN_STAT_RUN;
-					cmd.driver = card->myid;
-					cmd.arg = 0;
-					card->interface.statcallb(&cmd);
-				}
-			} else {
-				if (card->leased) {
-					card->leased = 0;
-					sprintf(cbuf, "00;FV2OFF\n");
-					i = isdnloop_writecmd(cbuf, strlen(cbuf), 0, card);
-					printk(KERN_INFO
-					       "isdnloop: (%s) Leased-line mode disabled\n",
-					       CID);
-					cmd.command = ISDN_STAT_RUN;
-					cmd.driver = card->myid;
-					cmd.arg = 0;
-					card->interface.statcallb(&cmd);
-				}
-			}
-			return 0;
-		default:
-			return -EINVAL;
-		}
-		break;
-	case ISDN_CMD_DIAL:
-		if (!(card->flags & ISDNLOOP_FLAGS_RUNNING))
-			return -ENODEV;
-		if (card->leased)
-			break;
-		if ((c->arg & 255) < ISDNLOOP_BCH) {
-			char *p;
-			char dcode[4];
+	switch (c->command)
+	{
+		case ISDN_CMD_IOCTL:
+			memcpy(&a, c->parm.num, sizeof(ulong));
 
-			a = c->arg;
-			p = c->parm.setup.phone;
-			if (*p == 's' || *p == 'S') {
-				/* Dial for SPV */
-				p++;
-				strcpy(dcode, "SCA");
-			} else
-				/* Normal Dial */
-				strcpy(dcode, "CAL");
-			snprintf(cbuf, sizeof(cbuf),
-				 "%02d;D%s_R%s,%02d,%02d,%s\n", (int) (a + 1),
-				 dcode, p, c->parm.setup.si1,
-				 c->parm.setup.si2, c->parm.setup.eazmsn);
-			i = isdnloop_writecmd(cbuf, strlen(cbuf), 0, card);
-		}
-		break;
-	case ISDN_CMD_ACCEPTD:
-		if (!(card->flags & ISDNLOOP_FLAGS_RUNNING))
-			return -ENODEV;
-		if (c->arg < ISDNLOOP_BCH) {
-			a = c->arg + 1;
-			cbuf[0] = 0;
-			switch (card->l2_proto[a - 1]) {
-			case ISDN_PROTO_L2_X75I:
-				sprintf(cbuf, "%02d;BX75\n", (int) a);
-				break;
-#ifdef CONFIG_ISDN_X25
-			case ISDN_PROTO_L2_X25DTE:
-				sprintf(cbuf, "%02d;BX2T\n", (int) a);
-				break;
-			case ISDN_PROTO_L2_X25DCE:
-				sprintf(cbuf, "%02d;BX2C\n", (int) a);
-				break;
-#endif
-			case ISDN_PROTO_L2_HDLC:
-				sprintf(cbuf, "%02d;BTRA\n", (int) a);
-				break;
-			}
-			if (strlen(cbuf))
-				i = isdnloop_writecmd(cbuf, strlen(cbuf), 0, card);
-			sprintf(cbuf, "%02d;DCON_R\n", (int) a);
-			i = isdnloop_writecmd(cbuf, strlen(cbuf), 0, card);
-		}
-		break;
-	case ISDN_CMD_ACCEPTB:
-		if (!(card->flags & ISDNLOOP_FLAGS_RUNNING))
-			return -ENODEV;
-		if (c->arg < ISDNLOOP_BCH) {
-			a = c->arg + 1;
-			switch (card->l2_proto[a - 1]) {
-			case ISDN_PROTO_L2_X75I:
-				sprintf(cbuf, "%02d;BCON_R,BX75\n", (int) a);
-				break;
-#ifdef CONFIG_ISDN_X25
-			case ISDN_PROTO_L2_X25DTE:
-				sprintf(cbuf, "%02d;BCON_R,BX2T\n", (int) a);
-				break;
-			case ISDN_PROTO_L2_X25DCE:
-				sprintf(cbuf, "%02d;BCON_R,BX2C\n", (int) a);
-				break;
-#endif
-			case ISDN_PROTO_L2_HDLC:
-				sprintf(cbuf, "%02d;BCON_R,BTRA\n", (int) a);
-				break;
-			default:
-				sprintf(cbuf, "%02d;BCON_R\n", (int) a);
-			}
-			printk(KERN_DEBUG "isdnloop writecmd '%s'\n", cbuf);
-			i = isdnloop_writecmd(cbuf, strlen(cbuf), 0, card);
-			break;
-		case ISDN_CMD_HANGUP:
-			if (!(card->flags & ISDNLOOP_FLAGS_RUNNING))
-				return -ENODEV;
-			if (c->arg < ISDNLOOP_BCH) {
-				a = c->arg + 1;
-				sprintf(cbuf, "%02d;BDIS_R\n%02d;DDIS_R\n", (int) a, (int) a);
-				i = isdnloop_writecmd(cbuf, strlen(cbuf), 0, card);
-			}
-			break;
-		case ISDN_CMD_SETEAZ:
-			if (!(card->flags & ISDNLOOP_FLAGS_RUNNING))
-				return -ENODEV;
-			if (card->leased)
-				break;
-			if (c->arg < ISDNLOOP_BCH) {
-				a = c->arg + 1;
-				if (card->ptype == ISDN_PTYPE_EURO) {
-					sprintf(cbuf, "%02d;MS%s%s\n", (int) a,
-						c->parm.num[0] ? "N" : "ALL", c->parm.num);
-				} else
-					sprintf(cbuf, "%02d;EAZ%s\n", (int) a,
-						c->parm.num[0] ? c->parm.num : (u_char *) "0123456789");
-				i = isdnloop_writecmd(cbuf, strlen(cbuf), 0, card);
-			}
-			break;
-		case ISDN_CMD_CLREAZ:
-			if (!(card->flags & ISDNLOOP_FLAGS_RUNNING))
-				return -ENODEV;
-			if (card->leased)
-				break;
-			if (c->arg < ISDNLOOP_BCH) {
-				a = c->arg + 1;
-				if (card->ptype == ISDN_PTYPE_EURO)
-					sprintf(cbuf, "%02d;MSNC\n", (int) a);
-				else
-					sprintf(cbuf, "%02d;EAZC\n", (int) a);
-				i = isdnloop_writecmd(cbuf, strlen(cbuf), 0, card);
-			}
-			break;
-		case ISDN_CMD_SETL2:
-			if (!(card->flags & ISDNLOOP_FLAGS_RUNNING))
-				return -ENODEV;
-			if ((c->arg & 255) < ISDNLOOP_BCH) {
-				a = c->arg;
-				switch (a >> 8) {
-				case ISDN_PROTO_L2_X75I:
-					sprintf(cbuf, "%02d;BX75\n", (int) (a & 255) + 1);
+			switch (c->arg)
+			{
+				case ISDNLOOP_IOCTL_DEBUGVAR:
+					return (ulong) card;
+
+				case ISDNLOOP_IOCTL_STARTUP:
+					if (!access_ok(VERIFY_READ, (void *) a, sizeof(isdnloop_sdef)))
+					{
+						return -EFAULT;
+					}
+
+					return isdnloop_start(card, (isdnloop_sdef *) a);
 					break;
-#ifdef CONFIG_ISDN_X25
-				case ISDN_PROTO_L2_X25DTE:
-					sprintf(cbuf, "%02d;BX2T\n", (int) (a & 255) + 1);
+
+				case ISDNLOOP_IOCTL_ADDCARD:
+					if (copy_from_user((char *)&cdef,
+									   (char *)a,
+									   sizeof(cdef)))
+					{
+						return -EFAULT;
+					}
+
+					return isdnloop_addcard(cdef.id1);
 					break;
-				case ISDN_PROTO_L2_X25DCE:
-					sprintf(cbuf, "%02d;BX2C\n", (int) (a & 255) + 1);
-					break;
-#endif
-				case ISDN_PROTO_L2_HDLC:
-					sprintf(cbuf, "%02d;BTRA\n", (int) (a & 255) + 1);
-					break;
-				case ISDN_PROTO_L2_TRANS:
-					sprintf(cbuf, "%02d;BTRA\n", (int) (a & 255) + 1);
-					break;
+
+				case ISDNLOOP_IOCTL_LEASEDCFG:
+					if (a)
+					{
+						if (!card->leased)
+						{
+							card->leased = 1;
+
+							while (card->ptype == ISDN_PTYPE_UNKNOWN)
+							{
+								schedule_timeout_interruptible(10);
+							}
+
+							schedule_timeout_interruptible(10);
+							sprintf(cbuf, "00;FV2ON\n01;EAZ1\n02;EAZ2\n");
+							i = isdnloop_writecmd(cbuf, strlen(cbuf), 0, card);
+							printk(KERN_INFO
+								   "isdnloop: (%s) Leased-line mode enabled\n",
+								   CID);
+							cmd.command = ISDN_STAT_RUN;
+							cmd.driver = card->myid;
+							cmd.arg = 0;
+							card->interface.statcallb(&cmd);
+						}
+					}
+					else
+					{
+						if (card->leased)
+						{
+							card->leased = 0;
+							sprintf(cbuf, "00;FV2OFF\n");
+							i = isdnloop_writecmd(cbuf, strlen(cbuf), 0, card);
+							printk(KERN_INFO
+								   "isdnloop: (%s) Leased-line mode disabled\n",
+								   CID);
+							cmd.command = ISDN_STAT_RUN;
+							cmd.driver = card->myid;
+							cmd.arg = 0;
+							card->interface.statcallb(&cmd);
+						}
+					}
+
+					return 0;
+
 				default:
 					return -EINVAL;
-				}
-				i = isdnloop_writecmd(cbuf, strlen(cbuf), 0, card);
-				card->l2_proto[a & 255] = (a >> 8);
 			}
+
 			break;
-		case ISDN_CMD_SETL3:
+
+		case ISDN_CMD_DIAL:
 			if (!(card->flags & ISDNLOOP_FLAGS_RUNNING))
+			{
 				return -ENODEV;
-			return 0;
-		default:
-			return -EINVAL;
-		}
+			}
+
+			if (card->leased)
+			{
+				break;
+			}
+
+			if ((c->arg & 255) < ISDNLOOP_BCH)
+			{
+				char *p;
+				char dcode[4];
+
+				a = c->arg;
+				p = c->parm.setup.phone;
+
+				if (*p == 's' || *p == 'S')
+				{
+					/* Dial for SPV */
+					p++;
+					strcpy(dcode, "SCA");
+				}
+				else
+					/* Normal Dial */
+				{
+					strcpy(dcode, "CAL");
+				}
+
+				snprintf(cbuf, sizeof(cbuf),
+						 "%02d;D%s_R%s,%02d,%02d,%s\n", (int) (a + 1),
+						 dcode, p, c->parm.setup.si1,
+						 c->parm.setup.si2, c->parm.setup.eazmsn);
+				i = isdnloop_writecmd(cbuf, strlen(cbuf), 0, card);
+			}
+
+			break;
+
+		case ISDN_CMD_ACCEPTD:
+			if (!(card->flags & ISDNLOOP_FLAGS_RUNNING))
+			{
+				return -ENODEV;
+			}
+
+			if (c->arg < ISDNLOOP_BCH)
+			{
+				a = c->arg + 1;
+				cbuf[0] = 0;
+
+				switch (card->l2_proto[a - 1])
+				{
+					case ISDN_PROTO_L2_X75I:
+						sprintf(cbuf, "%02d;BX75\n", (int) a);
+						break;
+#ifdef CONFIG_ISDN_X25
+
+					case ISDN_PROTO_L2_X25DTE:
+						sprintf(cbuf, "%02d;BX2T\n", (int) a);
+						break;
+
+					case ISDN_PROTO_L2_X25DCE:
+						sprintf(cbuf, "%02d;BX2C\n", (int) a);
+						break;
+#endif
+
+					case ISDN_PROTO_L2_HDLC:
+						sprintf(cbuf, "%02d;BTRA\n", (int) a);
+						break;
+				}
+
+				if (strlen(cbuf))
+				{
+					i = isdnloop_writecmd(cbuf, strlen(cbuf), 0, card);
+				}
+
+				sprintf(cbuf, "%02d;DCON_R\n", (int) a);
+				i = isdnloop_writecmd(cbuf, strlen(cbuf), 0, card);
+			}
+
+			break;
+
+		case ISDN_CMD_ACCEPTB:
+			if (!(card->flags & ISDNLOOP_FLAGS_RUNNING))
+			{
+				return -ENODEV;
+			}
+
+			if (c->arg < ISDNLOOP_BCH)
+			{
+				a = c->arg + 1;
+
+				switch (card->l2_proto[a - 1])
+				{
+					case ISDN_PROTO_L2_X75I:
+						sprintf(cbuf, "%02d;BCON_R,BX75\n", (int) a);
+						break;
+#ifdef CONFIG_ISDN_X25
+
+					case ISDN_PROTO_L2_X25DTE:
+						sprintf(cbuf, "%02d;BCON_R,BX2T\n", (int) a);
+						break;
+
+					case ISDN_PROTO_L2_X25DCE:
+						sprintf(cbuf, "%02d;BCON_R,BX2C\n", (int) a);
+						break;
+#endif
+
+					case ISDN_PROTO_L2_HDLC:
+						sprintf(cbuf, "%02d;BCON_R,BTRA\n", (int) a);
+						break;
+
+					default:
+						sprintf(cbuf, "%02d;BCON_R\n", (int) a);
+				}
+
+				printk(KERN_DEBUG "isdnloop writecmd '%s'\n", cbuf);
+				i = isdnloop_writecmd(cbuf, strlen(cbuf), 0, card);
+				break;
+
+			case ISDN_CMD_HANGUP:
+				if (!(card->flags & ISDNLOOP_FLAGS_RUNNING))
+				{
+					return -ENODEV;
+				}
+
+				if (c->arg < ISDNLOOP_BCH)
+				{
+					a = c->arg + 1;
+					sprintf(cbuf, "%02d;BDIS_R\n%02d;DDIS_R\n", (int) a, (int) a);
+					i = isdnloop_writecmd(cbuf, strlen(cbuf), 0, card);
+				}
+
+				break;
+
+			case ISDN_CMD_SETEAZ:
+				if (!(card->flags & ISDNLOOP_FLAGS_RUNNING))
+				{
+					return -ENODEV;
+				}
+
+				if (card->leased)
+				{
+					break;
+				}
+
+				if (c->arg < ISDNLOOP_BCH)
+				{
+					a = c->arg + 1;
+
+					if (card->ptype == ISDN_PTYPE_EURO)
+					{
+						sprintf(cbuf, "%02d;MS%s%s\n", (int) a,
+								c->parm.num[0] ? "N" : "ALL", c->parm.num);
+					}
+					else
+						sprintf(cbuf, "%02d;EAZ%s\n", (int) a,
+								c->parm.num[0] ? c->parm.num : (u_char *) "0123456789");
+
+					i = isdnloop_writecmd(cbuf, strlen(cbuf), 0, card);
+				}
+
+				break;
+
+			case ISDN_CMD_CLREAZ:
+				if (!(card->flags & ISDNLOOP_FLAGS_RUNNING))
+				{
+					return -ENODEV;
+				}
+
+				if (card->leased)
+				{
+					break;
+				}
+
+				if (c->arg < ISDNLOOP_BCH)
+				{
+					a = c->arg + 1;
+
+					if (card->ptype == ISDN_PTYPE_EURO)
+					{
+						sprintf(cbuf, "%02d;MSNC\n", (int) a);
+					}
+					else
+					{
+						sprintf(cbuf, "%02d;EAZC\n", (int) a);
+					}
+
+					i = isdnloop_writecmd(cbuf, strlen(cbuf), 0, card);
+				}
+
+				break;
+
+			case ISDN_CMD_SETL2:
+				if (!(card->flags & ISDNLOOP_FLAGS_RUNNING))
+				{
+					return -ENODEV;
+				}
+
+				if ((c->arg & 255) < ISDNLOOP_BCH)
+				{
+					a = c->arg;
+
+					switch (a >> 8)
+					{
+						case ISDN_PROTO_L2_X75I:
+							sprintf(cbuf, "%02d;BX75\n", (int) (a & 255) + 1);
+							break;
+#ifdef CONFIG_ISDN_X25
+
+						case ISDN_PROTO_L2_X25DTE:
+							sprintf(cbuf, "%02d;BX2T\n", (int) (a & 255) + 1);
+							break;
+
+						case ISDN_PROTO_L2_X25DCE:
+							sprintf(cbuf, "%02d;BX2C\n", (int) (a & 255) + 1);
+							break;
+#endif
+
+						case ISDN_PROTO_L2_HDLC:
+							sprintf(cbuf, "%02d;BTRA\n", (int) (a & 255) + 1);
+							break;
+
+						case ISDN_PROTO_L2_TRANS:
+							sprintf(cbuf, "%02d;BTRA\n", (int) (a & 255) + 1);
+							break;
+
+						default:
+							return -EINVAL;
+					}
+
+					i = isdnloop_writecmd(cbuf, strlen(cbuf), 0, card);
+					card->l2_proto[a & 255] = (a >> 8);
+				}
+
+				break;
+
+			case ISDN_CMD_SETL3:
+				if (!(card->flags & ISDNLOOP_FLAGS_RUNNING))
+				{
+					return -ENODEV;
+				}
+
+				return 0;
+
+			default:
+				return -EINVAL;
+			}
 	}
+
 	return 0;
 }
 
@@ -1356,11 +1783,16 @@ isdnloop_findcard(int driverid)
 {
 	isdnloop_card *p = cards;
 
-	while (p) {
+	while (p)
+	{
 		if (p->myid == driverid)
+		{
 			return p;
+		}
+
 		p = p->next;
 	}
+
 	return (isdnloop_card *) 0;
 }
 
@@ -1373,9 +1805,12 @@ if_command(isdn_ctrl *c)
 	isdnloop_card *card = isdnloop_findcard(c->driver);
 
 	if (card)
+	{
 		return isdnloop_command(c, card);
+	}
+
 	printk(KERN_ERR
-	       "isdnloop: if_command called with invalid driverId!\n");
+		   "isdnloop: if_command called with invalid driverId!\n");
 	return -ENODEV;
 }
 
@@ -1384,13 +1819,18 @@ if_writecmd(const u_char __user *buf, int len, int id, int channel)
 {
 	isdnloop_card *card = isdnloop_findcard(id);
 
-	if (card) {
+	if (card)
+	{
 		if (!(card->flags & ISDNLOOP_FLAGS_RUNNING))
+		{
 			return -ENODEV;
+		}
+
 		return isdnloop_writecmd(buf, len, 1, card);
 	}
+
 	printk(KERN_ERR
-	       "isdnloop: if_writecmd called with invalid driverId!\n");
+		   "isdnloop: if_writecmd called with invalid driverId!\n");
 	return -ENODEV;
 }
 
@@ -1399,13 +1839,18 @@ if_readstatus(u_char __user *buf, int len, int id, int channel)
 {
 	isdnloop_card *card = isdnloop_findcard(id);
 
-	if (card) {
+	if (card)
+	{
 		if (!(card->flags & ISDNLOOP_FLAGS_RUNNING))
+		{
 			return -ENODEV;
+		}
+
 		return isdnloop_readstatus(buf, len, card);
 	}
+
 	printk(KERN_ERR
-	       "isdnloop: if_readstatus called with invalid driverId!\n");
+		   "isdnloop: if_readstatus called with invalid driverId!\n");
 	return -ENODEV;
 }
 
@@ -1414,15 +1859,20 @@ if_sendbuf(int id, int channel, int ack, struct sk_buff *skb)
 {
 	isdnloop_card *card = isdnloop_findcard(id);
 
-	if (card) {
+	if (card)
+	{
 		if (!(card->flags & ISDNLOOP_FLAGS_RUNNING))
+		{
 			return -ENODEV;
+		}
+
 		/* ack request stored in skb scratch area */
 		*(skb->head) = ack;
 		return isdnloop_sendbuf(channel, skb, card);
 	}
+
 	printk(KERN_ERR
-	       "isdnloop: if_sendbuf called with invalid driverId!\n");
+		   "isdnloop: if_sendbuf called with invalid driverId!\n");
 	return -ENODEV;
 }
 
@@ -1436,11 +1886,14 @@ isdnloop_initcard(char *id)
 	isdnloop_card *card;
 	int i;
 	card = kzalloc(sizeof(isdnloop_card), GFP_KERNEL);
-	if (!card) {
+
+	if (!card)
+	{
 		printk(KERN_WARNING
-		       "isdnloop: (%s) Could not allocate card-struct.\n", id);
+			   "isdnloop: (%s) Could not allocate card-struct.\n", id);
 		return (isdnloop_card *) 0;
 	}
+
 	card->interface.owner = THIS_MODULE;
 	card->interface.channels = ISDNLOOP_BCH;
 	card->interface.hl_hdrlen  = 1; /* scratch area for storing ack flag*/
@@ -1451,32 +1904,38 @@ isdnloop_initcard(char *id)
 	card->interface.readstat = if_readstatus;
 	card->interface.features = ISDN_FEATURE_L2_X75I |
 #ifdef CONFIG_ISDN_X25
-		ISDN_FEATURE_L2_X25DTE |
-		ISDN_FEATURE_L2_X25DCE |
+							   ISDN_FEATURE_L2_X25DTE |
+							   ISDN_FEATURE_L2_X25DCE |
 #endif
-		ISDN_FEATURE_L2_HDLC |
-		ISDN_FEATURE_L3_TRANS |
-		ISDN_FEATURE_P_UNKNOWN;
+							   ISDN_FEATURE_L2_HDLC |
+							   ISDN_FEATURE_L3_TRANS |
+							   ISDN_FEATURE_P_UNKNOWN;
 	card->ptype = ISDN_PTYPE_UNKNOWN;
 	strlcpy(card->interface.id, id, sizeof(card->interface.id));
 	card->msg_buf_write = card->msg_buf;
 	card->msg_buf_read = card->msg_buf;
 	card->msg_buf_end = &card->msg_buf[sizeof(card->msg_buf) - 1];
-	for (i = 0; i < ISDNLOOP_BCH; i++) {
+
+	for (i = 0; i < ISDNLOOP_BCH; i++)
+	{
 		card->l2_proto[i] = ISDN_PROTO_L2_X75I;
 		skb_queue_head_init(&card->bqueue[i]);
 	}
+
 	skb_queue_head_init(&card->dqueue);
 	spin_lock_init(&card->isdnloop_lock);
 	card->next = cards;
 	cards = card;
-	if (!register_isdn(&card->interface)) {
+
+	if (!register_isdn(&card->interface))
+	{
 		cards = cards->next;
 		printk(KERN_WARNING
-		       "isdnloop: Unable to register %s\n", id);
+			   "isdnloop: Unable to register %s\n", id);
 		kfree(card);
 		return (isdnloop_card *) 0;
 	}
+
 	card->myid = card->interface.channels;
 	return card;
 }
@@ -1486,12 +1945,15 @@ isdnloop_addcard(char *id1)
 {
 	isdnloop_card *card;
 	card = isdnloop_initcard(id1);
-	if (!card) {
+
+	if (!card)
+	{
 		return -EIO;
 	}
+
 	printk(KERN_INFO
-	       "isdnloop: (%s) virtual card added\n",
-	       card->interface.id);
+		   "isdnloop: (%s) virtual card added\n",
+		   card->interface.id);
 	return 0;
 }
 
@@ -1499,7 +1961,9 @@ static int __init
 isdnloop_init(void)
 {
 	if (isdnloop_id)
+	{
 		return isdnloop_addcard(isdnloop_id);
+	}
 
 	return 0;
 }
@@ -1513,21 +1977,31 @@ isdnloop_exit(void)
 	int i;
 
 	isdnloop_stopallcards();
-	while (card) {
+
+	while (card)
+	{
 		cmd.command = ISDN_STAT_UNLOAD;
 		cmd.driver = card->myid;
 		card->interface.statcallb(&cmd);
+
 		for (i = 0; i < ISDNLOOP_BCH; i++)
+		{
 			isdnloop_free_queue(card, i);
+		}
+
 		card = card->next;
 	}
+
 	card = cards;
-	while (card) {
+
+	while (card)
+	{
 		last = card;
 		skb_queue_purge(&card->dqueue);
 		card = card->next;
 		kfree(last);
 	}
+
 	printk(KERN_NOTICE "isdnloop-ISDN-driver unloaded\n");
 }
 

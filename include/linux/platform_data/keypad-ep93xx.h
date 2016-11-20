@@ -18,7 +18,8 @@ struct matrix_keymap_data;
  * @prescale:		row/column counter pre-scaler load value
  * @flags:		see above
  */
-struct ep93xx_keypad_platform_data {
+struct ep93xx_keypad_platform_data
+{
 	struct matrix_keymap_data *keymap_data;
 	unsigned int	debounce;
 	unsigned int	prescale;

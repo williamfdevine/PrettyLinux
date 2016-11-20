@@ -28,7 +28,8 @@
 /* Watchdog timer values in seconds */
 #define RETU_WDT_MAX_TIMER	63
 
-struct retu_wdt_dev {
+struct retu_wdt_dev
+{
 	struct retu_dev		*rdev;
 	struct device		*dev;
 	struct delayed_work	ping_work;
@@ -43,7 +44,7 @@ static void retu_wdt_ping_enable(struct retu_wdt_dev *wdev)
 {
 	retu_write(wdev->rdev, RETU_REG_WATCHDOG, RETU_WDT_MAX_TIMER);
 	schedule_delayed_work(&wdev->ping_work,
-			round_jiffies_relative(RETU_WDT_MAX_TIMER * HZ / 2));
+						  round_jiffies_relative(RETU_WDT_MAX_TIMER * HZ / 2));
 }
 
 static void retu_wdt_ping_disable(struct retu_wdt_dev *wdev)
@@ -55,7 +56,7 @@ static void retu_wdt_ping_disable(struct retu_wdt_dev *wdev)
 static void retu_wdt_ping_work(struct work_struct *work)
 {
 	struct retu_wdt_dev *wdev = container_of(to_delayed_work(work),
-						struct retu_wdt_dev, ping_work);
+								struct retu_wdt_dev, ping_work);
 	retu_wdt_ping_enable(wdev);
 }
 
@@ -85,7 +86,7 @@ static int retu_wdt_ping(struct watchdog_device *wdog)
 }
 
 static int retu_wdt_set_timeout(struct watchdog_device *wdog,
-				unsigned int timeout)
+								unsigned int timeout)
 {
 	struct retu_wdt_dev *wdev = watchdog_get_drvdata(wdog);
 
@@ -93,12 +94,14 @@ static int retu_wdt_set_timeout(struct watchdog_device *wdog,
 	return retu_write(wdev->rdev, RETU_REG_WATCHDOG, wdog->timeout);
 }
 
-static const struct watchdog_info retu_wdt_info = {
+static const struct watchdog_info retu_wdt_info =
+{
 	.options = WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE | WDIOF_KEEPALIVEPING,
 	.identity = "Retu watchdog",
 };
 
-static const struct watchdog_ops retu_wdt_ops = {
+static const struct watchdog_ops retu_wdt_ops =
+{
 	.owner		= THIS_MODULE,
 	.start		= retu_wdt_start,
 	.stop		= retu_wdt_stop,
@@ -115,12 +118,18 @@ static int retu_wdt_probe(struct platform_device *pdev)
 	int ret;
 
 	retu_wdt = devm_kzalloc(&pdev->dev, sizeof(*retu_wdt), GFP_KERNEL);
+
 	if (!retu_wdt)
+	{
 		return -ENOMEM;
+	}
 
 	wdev = devm_kzalloc(&pdev->dev, sizeof(*wdev), GFP_KERNEL);
+
 	if (!wdev)
+	{
 		return -ENOMEM;
+	}
 
 	retu_wdt->info		= &retu_wdt_info;
 	retu_wdt->ops		= &retu_wdt_ops;
@@ -138,13 +147,20 @@ static int retu_wdt_probe(struct platform_device *pdev)
 	INIT_DELAYED_WORK(&wdev->ping_work, retu_wdt_ping_work);
 
 	ret = watchdog_register_device(retu_wdt);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	if (nowayout)
+	{
 		retu_wdt_ping(retu_wdt);
+	}
 	else
+	{
 		retu_wdt_ping_enable(wdev);
+	}
 
 	platform_set_drvdata(pdev, retu_wdt);
 
@@ -162,7 +178,8 @@ static int retu_wdt_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver retu_wdt_driver = {
+static struct platform_driver retu_wdt_driver =
+{
 	.probe		= retu_wdt_probe,
 	.remove		= retu_wdt_remove,
 	.driver		= {

@@ -31,7 +31,9 @@
 void mantis_input_process(struct mantis_pci *mantis, int scancode)
 {
 	if (mantis->rc)
+	{
 		rc_keydown(mantis->rc, RC_TYPE_UNKNOWN, scancode, 0);
+	}
 }
 
 int mantis_input_init(struct mantis_pci *mantis)
@@ -40,16 +42,18 @@ int mantis_input_init(struct mantis_pci *mantis)
 	int err;
 
 	dev = rc_allocate_device();
-	if (!dev) {
+
+	if (!dev)
+	{
 		dprintk(MANTIS_ERROR, 1, "Remote device allocation failed");
 		err = -ENOMEM;
 		goto out;
 	}
 
 	snprintf(mantis->input_name, sizeof(mantis->input_name),
-		 "Mantis %s IR receiver", mantis->hwconfig->model_name);
+			 "Mantis %s IR receiver", mantis->hwconfig->model_name);
 	snprintf(mantis->input_phys, sizeof(mantis->input_phys),
-		 "pci-%s/ir0", pci_name(mantis->pdev));
+			 "pci-%s/ir0", pci_name(mantis->pdev));
 
 	dev->input_name         = mantis->input_name;
 	dev->input_phys         = mantis->input_phys;
@@ -62,7 +66,9 @@ int mantis_input_init(struct mantis_pci *mantis)
 	dev->dev.parent         = &mantis->pdev->dev;
 
 	err = rc_register_device(dev);
-	if (err) {
+
+	if (err)
+	{
 		dprintk(MANTIS_ERROR, 1, "IR device registration failed, ret = %d", err);
 		goto out_dev;
 	}

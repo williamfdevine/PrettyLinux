@@ -46,8 +46,11 @@ static int extend_netdev_table(struct net_device *dev, u32 target_idx)
 
 	/* is the existing priomap large enough? */
 	old = rtnl_dereference(dev->priomap);
+
 	if (old && old->priomap_len > target_idx)
+	{
 		return 0;
+	}
 
 	/*
 	 * Determine the new size.  Let's keep it power-of-two.  We start
@@ -55,32 +58,48 @@ static int extend_netdev_table(struct net_device *dev, u32 target_idx)
 	 * accommodate @target_idx.
 	 */
 	new_sz = PRIOMAP_MIN_SZ;
-	while (true) {
+
+	while (true)
+	{
 		new_len = (new_sz - offsetof(struct netprio_map, priomap)) /
-			sizeof(new->priomap[0]);
+				  sizeof(new->priomap[0]);
+
 		if (new_len > target_idx)
+		{
 			break;
+		}
+
 		new_sz *= 2;
+
 		/* overflowed? */
 		if (WARN_ON(new_sz < PRIOMAP_MIN_SZ))
+		{
 			return -ENOSPC;
+		}
 	}
 
 	/* allocate & copy */
 	new = kzalloc(new_sz, GFP_KERNEL);
+
 	if (!new)
+	{
 		return -ENOMEM;
+	}
 
 	if (old)
 		memcpy(new->priomap, old->priomap,
-		       old->priomap_len * sizeof(old->priomap[0]));
+			   old->priomap_len * sizeof(old->priomap[0]));
 
 	new->priomap_len = new_len;
 
 	/* install the new priomap */
 	rcu_assign_pointer(dev->priomap, new);
+
 	if (old)
+	{
 		kfree_rcu(old, rcu);
+	}
+
 	return 0;
 }
 
@@ -97,7 +116,10 @@ static u32 netprio_prio(struct cgroup_subsys_state *css, struct net_device *dev)
 	int id = css->cgroup->id;
 
 	if (map && id < map->priomap_len)
+	{
 		return map->priomap[id];
+	}
+
 	return 0;
 }
 
@@ -111,7 +133,7 @@ static u32 netprio_prio(struct cgroup_subsys_state *css, struct net_device *dev)
  * lock and may fail under memory pressure for non-zero @prio.
  */
 static int netprio_set_prio(struct cgroup_subsys_state *css,
-			    struct net_device *dev, u32 prio)
+							struct net_device *dev, u32 prio)
 {
 	struct netprio_map *map;
 	int id = css->cgroup->id;
@@ -119,12 +141,18 @@ static int netprio_set_prio(struct cgroup_subsys_state *css,
 
 	/* avoid extending priomap for zero writes */
 	map = rtnl_dereference(dev->priomap);
+
 	if (!prio && (!map || map->priomap_len <= id))
+	{
 		return 0;
+	}
 
 	ret = extend_netdev_table(dev, id);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	map = rtnl_dereference(dev->priomap);
 	map->priomap[id] = prio;
@@ -137,8 +165,11 @@ cgrp_css_alloc(struct cgroup_subsys_state *parent_css)
 	struct cgroup_subsys_state *css;
 
 	css = kzalloc(sizeof(*css), GFP_KERNEL);
+
 	if (!css)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	return css;
 }
@@ -150,22 +181,30 @@ static int cgrp_css_online(struct cgroup_subsys_state *css)
 	int ret = 0;
 
 	if (css->id > NETPRIO_ID_MAX)
+	{
 		return -ENOSPC;
+	}
 
 	if (!parent_css)
+	{
 		return 0;
+	}
 
 	rtnl_lock();
 	/*
 	 * Inherit prios from the parent.  As all prios are set during
 	 * onlining, there is no need to clear them on offline.
 	 */
-	for_each_netdev(&init_net, dev) {
+	for_each_netdev(&init_net, dev)
+	{
 		u32 prio = netprio_prio(parent_css, dev);
 
 		ret = netprio_set_prio(css, dev, prio);
+
 		if (ret)
+		{
 			break;
+		}
 	}
 	rtnl_unlock();
 	return ret;
@@ -187,14 +226,14 @@ static int read_priomap(struct seq_file *sf, void *v)
 
 	rcu_read_lock();
 	for_each_netdev_rcu(&init_net, dev)
-		seq_printf(sf, "%s %u\n", dev->name,
+	seq_printf(sf, "%s %u\n", dev->name,
 			   netprio_prio(seq_css(sf), dev));
 	rcu_read_unlock();
 	return 0;
 }
 
 static ssize_t write_priomap(struct kernfs_open_file *of,
-			     char *buf, size_t nbytes, loff_t off)
+							 char *buf, size_t nbytes, loff_t off)
 {
 	char devname[IFNAMSIZ + 1];
 	struct net_device *dev;
@@ -202,11 +241,16 @@ static ssize_t write_priomap(struct kernfs_open_file *of,
 	int ret;
 
 	if (sscanf(buf, "%"__stringify(IFNAMSIZ)"s %u", devname, &prio) != 2)
+	{
 		return -EINVAL;
+	}
 
 	dev = dev_get_by_name(&init_net, devname);
+
 	if (!dev)
+	{
 		return -ENODEV;
+	}
 
 	cgroup_sk_alloc_disable();
 
@@ -216,19 +260,22 @@ static ssize_t write_priomap(struct kernfs_open_file *of,
 
 	rtnl_unlock();
 	dev_put(dev);
-	return ret ?: nbytes;
+	return ret ? : nbytes;
 }
 
 static int update_netprio(const void *v, struct file *file, unsigned n)
 {
 	int err;
 	struct socket *sock = sock_from_file(file, &err);
-	if (sock) {
+
+	if (sock)
+	{
 		spin_lock(&cgroup_sk_update_lock);
 		sock_cgroup_set_prioidx(&sock->sk->sk_cgrp_data,
-					(unsigned long)v);
+								(unsigned long)v);
 		spin_unlock(&cgroup_sk_update_lock);
 	}
+
 	return 0;
 }
 
@@ -237,7 +284,8 @@ static void net_prio_attach(struct cgroup_taskset *tset)
 	struct task_struct *p;
 	struct cgroup_subsys_state *css;
 
-	cgroup_taskset_for_each(p, css, tset) {
+	cgroup_taskset_for_each(p, css, tset)
+	{
 		void *v = (void *)(unsigned long)css->cgroup->id;
 
 		task_lock(p);
@@ -246,7 +294,8 @@ static void net_prio_attach(struct cgroup_taskset *tset)
 	}
 }
 
-static struct cftype ss_files[] = {
+static struct cftype ss_files[] =
+{
 	{
 		.name = "prioidx",
 		.read_u64 = read_prioidx,
@@ -259,7 +308,8 @@ static struct cftype ss_files[] = {
 	{ }	/* terminate */
 };
 
-struct cgroup_subsys net_prio_cgrp_subsys = {
+struct cgroup_subsys net_prio_cgrp_subsys =
+{
 	.css_alloc	= cgrp_css_alloc,
 	.css_online	= cgrp_css_online,
 	.css_free	= cgrp_css_free,
@@ -268,7 +318,7 @@ struct cgroup_subsys net_prio_cgrp_subsys = {
 };
 
 static int netprio_device_event(struct notifier_block *unused,
-				unsigned long event, void *ptr)
+								unsigned long event, void *ptr)
 {
 	struct net_device *dev = netdev_notifier_info_to_dev(ptr);
 	struct netprio_map *old;
@@ -278,18 +328,25 @@ static int netprio_device_event(struct notifier_block *unused,
 	 * protection on our rcu assignments
 	 */
 
-	switch (event) {
-	case NETDEV_UNREGISTER:
-		old = rtnl_dereference(dev->priomap);
-		RCU_INIT_POINTER(dev->priomap, NULL);
-		if (old)
-			kfree_rcu(old, rcu);
-		break;
+	switch (event)
+	{
+		case NETDEV_UNREGISTER:
+			old = rtnl_dereference(dev->priomap);
+			RCU_INIT_POINTER(dev->priomap, NULL);
+
+			if (old)
+			{
+				kfree_rcu(old, rcu);
+			}
+
+			break;
 	}
+
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block netprio_device_notifier = {
+static struct notifier_block netprio_device_notifier =
+{
 	.notifier_call = netprio_device_event
 };
 

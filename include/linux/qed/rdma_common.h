@@ -32,12 +32,14 @@
 
 #define RDMA_TASK_TYPE (PROTOCOLID_ROCE)
 
-struct rdma_srq_id {
+struct rdma_srq_id
+{
 	__le16 srq_idx;
 	__le16 opaque_fid;
 };
 
-struct rdma_srq_producers {
+struct rdma_srq_producers
+{
 	__le32 sge_prod;
 	__le32 wqe_prod;
 };

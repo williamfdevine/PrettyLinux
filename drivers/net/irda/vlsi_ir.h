@@ -7,9 +7,9 @@
  *
  *	Copyright (c) 2001-2003 Martin Diehl
  *
- *	This program is free software; you can redistribute it and/or 
- *	modify it under the terms of the GNU General Public License as 
- *	published by the Free Software Foundation; either version 2 of 
+ *	This program is free software; you can redistribute it and/or
+ *	modify it under the terms of the GNU General Public License as
+ *	published by the Free Software Foundation; either version 2 of
  *	the License, or (at your option) any later version.
  *
  *	This program is distributed in the hope that it will be useful,
@@ -17,7 +17,7 @@
  *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  *	GNU General Public License for more details.
  *
- *	You should have received a copy of the GNU General Public License 
+ *	You should have received a copy of the GNU General Public License
  *	along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
  ********************************************************************/
@@ -32,18 +32,19 @@
 /* definitions not present in pci_ids.h */
 
 #ifndef PCI_CLASS_WIRELESS_IRDA
-#define PCI_CLASS_WIRELESS_IRDA		0x0d00
+	#define PCI_CLASS_WIRELESS_IRDA		0x0d00
 #endif
 
 #ifndef PCI_CLASS_SUBCLASS_MASK
-#define PCI_CLASS_SUBCLASS_MASK		0xffff
+	#define PCI_CLASS_SUBCLASS_MASK		0xffff
 #endif
 
 /* ================================================================ */
 
 /* non-standard PCI registers */
 
-enum vlsi_pci_regs {
+enum vlsi_pci_regs
+{
 	VLSI_PCI_CLKCTL		= 0x40,		/* chip clock input control */
 	VLSI_PCI_MSTRPAGE	= 0x41,		/* addr [31:24] for all busmaster cycles */
 	VLSI_PCI_IRMISC		= 0x42		/* mainly legacy UART related */
@@ -66,7 +67,8 @@ enum vlsi_pci_regs {
  * At least this is what makes the driver working for me.
  */
 
-enum vlsi_pci_clkctl {
+enum vlsi_pci_clkctl
+{
 
 	/* PLL control */
 
@@ -94,37 +96,37 @@ enum vlsi_pci_clkctl {
 #define DMA_MASK_MSTRPAGE	0x00ffffff
 #define MSTRPAGE_VALUE		(DMA_MASK_MSTRPAGE >> 24)
 
-	/* PCI busmastering is somewhat special for this guy - in short:
-	 *
-	 * We select to operate using fixed MSTRPAGE=0, use ISA DMA
-	 * address restrictions to make the PCI BM api aware of this,
-	 * but ensure the hardware is dealing with real 32bit access.
-	 *
-	 * In detail:
-	 * The chip executes normal 32bit busmaster cycles, i.e.
-	 * drives all 32 address lines. These addresses however are
-	 * composed of [0:23] taken from various busaddr-pointers
-	 * and [24:31] taken from the MSTRPAGE register in the VLSI82C147
-	 * config space. Therefore _all_ busmastering must be
-	 * targeted to/from one single 16MB (busaddr-) superpage!
-	 * The point is to make sure all the allocations for memory
-	 * locations with busmaster access (ring descriptors, buffers)
-	 * are indeed bus-mappable to the same 16MB range (for x86 this
-	 * means they must reside in the same 16MB physical memory address
-	 * range). The only constraint we have which supports "several objects
-	 * mappable to common 16MB range" paradigma, is the old ISA DMA
-	 * restriction to the first 16MB of physical address range.
-	 * Hence the approach here is to enable PCI busmaster support using
-	 * the correct 32bit dma-mask used by the chip. Afterwards the device's
-	 * dma-mask gets restricted to 24bit, which must be honoured somehow by
-	 * all allocations for memory areas to be exposed to the chip ...
-	 *
-	 * Note:
-	 * Don't be surprised to get "Setting latency timer..." messages every
-	 * time when PCI busmastering is enabled for the chip.
-	 * The chip has its PCI latency timer RO fixed at 0 - which is not a
-	 * problem here, because it is never requesting _burst_ transactions.
-	 */
+/* PCI busmastering is somewhat special for this guy - in short:
+ *
+ * We select to operate using fixed MSTRPAGE=0, use ISA DMA
+ * address restrictions to make the PCI BM api aware of this,
+ * but ensure the hardware is dealing with real 32bit access.
+ *
+ * In detail:
+ * The chip executes normal 32bit busmaster cycles, i.e.
+ * drives all 32 address lines. These addresses however are
+ * composed of [0:23] taken from various busaddr-pointers
+ * and [24:31] taken from the MSTRPAGE register in the VLSI82C147
+ * config space. Therefore _all_ busmastering must be
+ * targeted to/from one single 16MB (busaddr-) superpage!
+ * The point is to make sure all the allocations for memory
+ * locations with busmaster access (ring descriptors, buffers)
+ * are indeed bus-mappable to the same 16MB range (for x86 this
+ * means they must reside in the same 16MB physical memory address
+ * range). The only constraint we have which supports "several objects
+ * mappable to common 16MB range" paradigma, is the old ISA DMA
+ * restriction to the first 16MB of physical address range.
+ * Hence the approach here is to enable PCI busmaster support using
+ * the correct 32bit dma-mask used by the chip. Afterwards the device's
+ * dma-mask gets restricted to 24bit, which must be honoured somehow by
+ * all allocations for memory areas to be exposed to the chip ...
+ *
+ * Note:
+ * Don't be surprised to get "Setting latency timer..." messages every
+ * time when PCI busmastering is enabled for the chip.
+ * The chip has its PCI latency timer RO fixed at 0 - which is not a
+ * problem here, because it is never requesting _burst_ transactions.
+ */
 
 /* ------------------------------------------ */
 
@@ -140,7 +142,8 @@ enum vlsi_pci_clkctl {
  *	- IRENABLE_PHYANDCLOCK must be asserted 0->1 (and hence IRENABLE_SIR_ON)
  */
 
-enum vlsi_pci_irmisc {
+enum vlsi_pci_irmisc
+{
 
 	/* IR transceiver control */
 
@@ -172,7 +175,8 @@ enum vlsi_pci_irmisc {
  *	 access when using the wrong addressing mode!
  */
 
-enum vlsi_pio_regs {
+enum vlsi_pio_regs
+{
 	VLSI_PIO_IRINTR		= 0x00,		/* interrupt enable/request (u8, rw) */
 	VLSI_PIO_RINGPTR	= 0x02,		/* rx/tx ring pointer (u16, ro) */
 	VLSI_PIO_RINGBASE	= 0x04,		/* [23:10] of ring address (u16, rw) */
@@ -186,7 +190,7 @@ enum vlsi_pio_regs {
 	VLSI_PIO_NPHYCTL	= 0x18,		/* next physical layer select (u16, rw) */
 	VLSI_PIO_MAXPKT		= 0x1a,		/* [11:0] max len for packet receive (u16, rw) */
 	VLSI_PIO_RCVBCNT	= 0x1c		/* current receive-FIFO byte count (u16, ro) */
-	/* 0x1e-0x1f: reserved / duplicated UART regs */
+						  /* 0x1e-0x1f: reserved / duplicated UART regs */
 };
 
 /* ------------------------------------------ */
@@ -203,7 +207,8 @@ enum vlsi_pio_regs {
  * note: RPKTINT and TPKTINT behave different in legacy UART mode (which we don't use :-)
  */
 
-enum vlsi_pio_irintr {
+enum vlsi_pio_irintr
+{
 	IRINTR_ACTEN	= 0x80,	/* activity interrupt enable */
 	IRINTR_ACTIVITY	= 0x40,	/* activity monitor (traffic detected) */
 	IRINTR_RPKTEN	= 0x20,	/* receive packet interrupt enable*/
@@ -311,7 +316,8 @@ enum vlsi_pio_irintr {
  *	  was already checked or we should do it before passing the packet to IrLAP?
  */
 
-enum vlsi_pio_ircfg {
+enum vlsi_pio_ircfg
+{
 	IRCFG_LOOP	= 0x4000,	/* enable loopback test mode */
 	IRCFG_ENTX	= 0x1000,	/* transmit enable */
 	IRCFG_ENRX	= 0x0800,	/* receive enable */
@@ -347,7 +353,8 @@ enum vlsi_pio_ircfg {
  *	- ENRXST = IRCFG_ENRX && (!IRCFG_ENTX || IRCFG_LOOP)
  */
 
-enum vlsi_pio_irenable {
+enum vlsi_pio_irenable
+{
 	IRENABLE_PHYANDCLOCK	= 0x8000,  /* enable IR phy and gate the mode config (rw) */
 	IRENABLE_CFGER		= 0x4000,  /* mode configuration error (ro) */
 	IRENABLE_FIR_ON		= 0x2000,  /* FIR on status (ro) */
@@ -416,8 +423,8 @@ enum vlsi_pio_irenable {
 #define PHYCTL_TO_PREAMB(bwp)	(((bwp)&PHYCTL_PREAMB_MASK)>>PHYCTL_PREAMB_SHIFT)
 
 #define BWP_TO_PHYCTL(b,w,p)	((((b)<<PHYCTL_BAUD_SHIFT)&PHYCTL_BAUD_MASK) \
-				 | (((w)<<PHYCTL_PLSWID_SHIFT)&PHYCTL_PLSWID_MASK) \
-				 | (((p)<<PHYCTL_PREAMB_SHIFT)&PHYCTL_PREAMB_MASK))
+								 | (((w)<<PHYCTL_PLSWID_SHIFT)&PHYCTL_PLSWID_MASK) \
+								 | (((p)<<PHYCTL_PREAMB_SHIFT)&PHYCTL_PREAMB_MASK))
 
 #define BAUD_BITS(br)		((115200/(br))-1)
 
@@ -427,13 +434,15 @@ calc_width_bits(unsigned baudrate, unsigned widthselect, unsigned clockselect)
 	unsigned	tmp;
 
 	if (widthselect)	/* nominal 3/16 puls width */
+	{
 		return (clockselect) ? 12 : 24;
+	}
 
-	tmp = ((clockselect) ? 12 : 24) / (BAUD_BITS(baudrate)+1);
+	tmp = ((clockselect) ? 12 : 24) / (BAUD_BITS(baudrate) + 1);
 
 	/* intermediate result of integer division needed here */
 
-	return (tmp>0) ? (tmp-1) : 0;
+	return (tmp > 0) ? (tmp - 1) : 0;
 }
 
 #define PHYCTL_SIR(br,ws,cs)	BWP_TO_PHYCTL(BAUD_BITS(br),calc_width_bits((br),(ws),(cs)),0)
@@ -534,12 +543,15 @@ calc_width_bits(unsigned baudrate, unsigned widthselect, unsigned clockselect)
  * ### FIXME: depends on endianess (but there ain't no non-i586 ob800 ;-)
  */
 
-struct ring_descr_hw {
+struct ring_descr_hw
+{
 	volatile __le16	rd_count;	/* tx/rx count [11:0] */
 	__le16		reserved;
-	union {
+	union
+	{
 		__le32	addr;		/* [23:0] of the buffer's busaddress */
-		struct {
+		struct
+		{
 			u8		addr_res[3];
 			volatile u8	status;		/* descriptor status */
 		} __packed rd_s;
@@ -581,7 +593,8 @@ struct ring_descr_hw {
  * associated skb and a pointer to the hw entry descriptor
  */
 
-struct ring_descr {
+struct ring_descr
+{
 	struct ring_descr_hw	*hw;
 	struct sk_buff		*skb;
 	void			*buf;
@@ -614,9 +627,10 @@ static inline void rd_set_addr_status(struct ring_descr *rd, dma_addr_t a, u8 s)
 	 *    case status has RD_ACTIVE set
 	 */
 
-	if ((a & ~DMA_MASK_MSTRPAGE)>>24 != MSTRPAGE_VALUE) {
+	if ((a & ~DMA_MASK_MSTRPAGE) >> 24 != MSTRPAGE_VALUE)
+	{
 		net_err_ratelimited("%s: pci busaddr inconsistency!\n",
-				    __func__);
+							__func__);
 		dump_stack();
 		return;
 	}
@@ -665,7 +679,8 @@ static inline u16 rd_get_count(struct ring_descr *rd)
  * ring is empty if head==tail / full if (tail+1)==head
  */
 
-struct vlsi_ring {
+struct vlsi_ring
+{
 	struct pci_dev		*pdev;
 	int			dir;
 	unsigned		len;
@@ -682,7 +697,7 @@ static inline struct ring_descr *ring_last(struct vlsi_ring *r)
 	int t;
 
 	t = atomic_read(&r->tail) & r->mask;
-	return (((t+1) & r->mask) == (atomic_read(&r->head) & r->mask)) ? NULL : &r->rd[t];
+	return (((t + 1) & r->mask) == (atomic_read(&r->head) & r->mask)) ? NULL : &r->rd[t];
 }
 
 static inline struct ring_descr *ring_put(struct vlsi_ring *r)
@@ -709,7 +724,8 @@ static inline struct ring_descr *ring_get(struct vlsi_ring *r)
 
 /* our private compound VLSI-PCI-IRDA device information */
 
-typedef struct vlsi_irda_dev {
+typedef struct vlsi_irda_dev
+{
 	struct pci_dev		*pdev;
 
 	struct irlap_cb		*irlap;
@@ -728,7 +744,7 @@ typedef struct vlsi_irda_dev {
 	spinlock_t		lock;
 	struct mutex		mtx;
 
-	u8			resume_ok;	
+	u8			resume_ok;
 	struct proc_dir_entry	*proc_entry;
 
 } vlsi_irda_dev_t;

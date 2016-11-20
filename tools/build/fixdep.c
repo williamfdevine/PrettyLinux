@@ -53,23 +53,35 @@ static void parse_dep_file(void *map, size_t len)
 	int saw_any_target = 0;
 	int is_first_dep = 0;
 
-	while (m < end) {
+	while (m < end)
+	{
 		/* Skip any "white space" */
 		while (m < end && (*m == ' ' || *m == '\\' || *m == '\n'))
+		{
 			m++;
+		}
+
 		/* Find next "white space" */
 		p = m;
+
 		while (p < end && *p != ' ' && *p != '\\' && *p != '\n')
+		{
 			p++;
+		}
+
 		/* Is the token we found a target name? */
-		is_target = (*(p-1) == ':');
+		is_target = (*(p - 1) == ':');
+
 		/* Don't write any target names into the dependency file */
-		if (is_target) {
+		if (is_target)
+		{
 			/* The /next/ file is the first dependency */
 			is_first_dep = 1;
-		} else {
+		}
+		else
+		{
 			/* Save this token/filename */
-			memcpy(s, m, p-m);
+			memcpy(s, m, p - m);
 			s[p - m] = 0;
 
 			/*
@@ -79,7 +91,8 @@ static void parse_dep_file(void *map, size_t len)
 			 * it in source_* is needed for modpost to
 			 * compute srcversions.
 			 */
-			if (is_first_dep) {
+			if (is_first_dep)
+			{
 				/*
 				 * If processing the concatenation of
 				 * multiple dependency files, only
@@ -89,17 +102,23 @@ static void parse_dep_file(void *map, size_t len)
 				 * which will be intermediate temporary
 				 * files.
 				 */
-				if (!saw_any_target) {
+				if (!saw_any_target)
+				{
 					saw_any_target = 1;
 					printf("source_%s := %s\n\n",
-						target, s);
+						   target, s);
 					printf("deps_%s := \\\n",
-						target);
+						   target);
 				}
+
 				is_first_dep = 0;
-			} else
+			}
+			else
+			{
 				printf("  %s \\\n", s);
+			}
 		}
+
 		/*
 		 * Start searching for next token immediately after the first
 		 * "whitespace" character that follows this token.
@@ -107,7 +126,8 @@ static void parse_dep_file(void *map, size_t len)
 		m = p + 1;
 	}
 
-	if (!saw_any_target) {
+	if (!saw_any_target)
+	{
 		fprintf(stderr, "fixdep: parse error; no targets found\n");
 		exit(1);
 	}
@@ -123,23 +143,32 @@ static void print_deps(void)
 	void *map;
 
 	fd = open(depfile, O_RDONLY);
-	if (fd < 0) {
+
+	if (fd < 0)
+	{
 		fprintf(stderr, "fixdep: error opening depfile: ");
 		perror(depfile);
 		exit(2);
 	}
-	if (fstat(fd, &st) < 0) {
+
+	if (fstat(fd, &st) < 0)
+	{
 		fprintf(stderr, "fixdep: error fstat'ing depfile: ");
 		perror(depfile);
 		exit(2);
 	}
-	if (st.st_size == 0) {
+
+	if (st.st_size == 0)
+	{
 		fprintf(stderr, "fixdep: %s is empty\n", depfile);
 		close(fd);
 		return;
 	}
+
 	map = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-	if ((long) map == -1) {
+
+	if ((long) map == -1)
+	{
 		perror("fixdep: mmap");
 		close(fd);
 		return;
@@ -155,7 +184,9 @@ static void print_deps(void)
 int main(int argc, char **argv)
 {
 	if (argc != 4)
+	{
 		usage();
+	}
 
 	depfile = argv[1];
 	target  = argv[2];

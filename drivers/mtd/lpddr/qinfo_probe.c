@@ -35,9 +35,10 @@ static int lpddr_chip_setup(struct map_info *map, struct lpddr_private *lpddr);
 struct mtd_info *lpddr_probe(struct map_info *map);
 static struct lpddr_private *lpddr_probe_chip(struct map_info *map);
 static int lpddr_pfow_present(struct map_info *map,
-			struct lpddr_private *lpddr);
+							  struct lpddr_private *lpddr);
 
-static struct qinfo_query_info qinfo_array[] = {
+static struct qinfo_query_info qinfo_array[] =
+{
 	/* General device info */
 	{0, 0, "DevSizeShift", "Device size 2^n bytes"},
 	{0, 3, "BufSizeShift", "Program buffer size 2^n bytes"},
@@ -62,13 +63,16 @@ static long lpddr_get_qinforec_pos(struct map_info *map, char *id_str)
 	int bankwidth = map_bankwidth(map) * 8;
 	int major, minor;
 
-	for (i = 0; i < qinfo_lines; i++) {
-		if (strcmp(id_str, qinfo_array[i].id_str) == 0) {
+	for (i = 0; i < qinfo_lines; i++)
+	{
+		if (strcmp(id_str, qinfo_array[i].id_str) == 0)
+		{
 			major = qinfo_array[i].major & ((1 << bankwidth) - 1);
 			minor = qinfo_array[i].minor & ((1 << bankwidth) - 1);
 			return minor | (major << bankwidth);
 		}
 	}
+
 	printk(KERN_ERR"%s qinfo id string is wrong! \n", map->name);
 	BUG();
 	return -1;
@@ -83,18 +87,23 @@ static uint16_t lpddr_info_query(struct map_info *map, char *id_str)
 
 	/* Write a request for the PFOW record */
 	map_write(map, CMD(LPDDR_INFO_QUERY),
-			map->pfow_base + PFOW_COMMAND_CODE);
+			  map->pfow_base + PFOW_COMMAND_CODE);
 	map_write(map, CMD(adr & ((1 << bits_per_chip) - 1)),
-			map->pfow_base + PFOW_COMMAND_ADDRESS_L);
+			  map->pfow_base + PFOW_COMMAND_ADDRESS_L);
 	map_write(map, CMD(adr >> bits_per_chip),
-			map->pfow_base + PFOW_COMMAND_ADDRESS_H);
+			  map->pfow_base + PFOW_COMMAND_ADDRESS_H);
 	map_write(map, CMD(LPDDR_START_EXECUTION),
-			map->pfow_base + PFOW_COMMAND_EXECUTE);
+			  map->pfow_base + PFOW_COMMAND_EXECUTE);
 
-	while ((attempts--) > 0) {
+	while ((attempts--) > 0)
+	{
 		dsr = CMDVAL(map_read(map, map->pfow_base + PFOW_DSR));
+
 		if (dsr & DSR_READY_STATUS)
+		{
 			break;
+		}
+
 		udelay(10);
 	}
 
@@ -113,21 +122,29 @@ static int lpddr_pfow_present(struct map_info *map, struct lpddr_private *lpddr)
 	pfow_val[3] = map_read(map, map->pfow_base + PFOW_QUERY_STRING_W);
 
 	if (!map_word_equal(map, CMD('P'), pfow_val[0]))
+	{
 		goto out;
+	}
 
 	if (!map_word_equal(map, CMD('F'), pfow_val[1]))
+	{
 		goto out;
+	}
 
 	if (!map_word_equal(map, CMD('O'), pfow_val[2]))
+	{
 		goto out;
+	}
 
 	if (!map_word_equal(map, CMD('W'), pfow_val[3]))
+	{
 		goto out;
+	}
 
 	return 1;	/* "PFOW" is found */
 out:
 	printk(KERN_WARNING"%s: PFOW string at 0x%lx is not found \n",
-					map->name, map->pfow_base);
+		   map->name, map->pfow_base);
 	return 0;
 }
 
@@ -135,8 +152,11 @@ static int lpddr_chip_setup(struct map_info *map, struct lpddr_private *lpddr)
 {
 
 	lpddr->qinfo = kzalloc(sizeof(struct qinfo_chip), GFP_KERNEL);
+
 	if (!lpddr->qinfo)
+	{
 		return 0;
+	}
 
 	/* Get the ManuID */
 	lpddr->ManufactId = CMDVAL(map_read(map, map->pfow_base + PFOW_MANUFACTURER_ID));
@@ -148,10 +168,10 @@ static int lpddr_chip_setup(struct map_info *map, struct lpddr_private *lpddr)
 	lpddr->qinfo->BufSizeShift = lpddr_info_query(map, "BufSizeShift");
 	lpddr->qinfo->HWPartsNum = lpddr_info_query(map, "HWPartsNum");
 	lpddr->qinfo->UniformBlockSizeShift =
-				lpddr_info_query(map, "UniformBlockSizeShift");
+		lpddr_info_query(map, "UniformBlockSizeShift");
 	lpddr->qinfo->SuspEraseSupp = lpddr_info_query(map, "SuspEraseSupp");
 	lpddr->qinfo->SingleWordProgTime =
-				lpddr_info_query(map, "SingleWordProgTime");
+		lpddr_info_query(map, "SingleWordProgTime");
 	lpddr->qinfo->ProgBufferTime = lpddr_info_query(map, "ProgBufferTime");
 	lpddr->qinfo->BlockEraseTime = lpddr_info_query(map, "BlockEraseTime");
 	return 1;
@@ -163,18 +183,25 @@ static struct lpddr_private *lpddr_probe_chip(struct map_info *map)
 	int numvirtchips;
 
 
-	if ((map->pfow_base + 0x1000) >= map->size) {
+	if ((map->pfow_base + 0x1000) >= map->size)
+	{
 		printk(KERN_NOTICE"%s Probe at base (0x%08lx) past the end of"
-				"the map(0x%08lx)\n", map->name,
-				(unsigned long)map->pfow_base, map->size - 1);
+			   "the map(0x%08lx)\n", map->name,
+			   (unsigned long)map->pfow_base, map->size - 1);
 		return NULL;
 	}
+
 	memset(&lpddr, 0, sizeof(struct lpddr_private));
+
 	if (!lpddr_pfow_present(map, &lpddr))
+	{
 		return NULL;
+	}
 
 	if (!lpddr_chip_setup(map, &lpddr))
+	{
 		return NULL;
+	}
 
 	/* Ok so we found a chip */
 	lpddr.chipshift = lpddr.qinfo->DevSizeShift;
@@ -182,15 +209,18 @@ static struct lpddr_private *lpddr_probe_chip(struct map_info *map)
 
 	numvirtchips = lpddr.numchips * lpddr.qinfo->HWPartsNum;
 	retlpddr = kzalloc(sizeof(struct lpddr_private) +
-			numvirtchips * sizeof(struct flchip), GFP_KERNEL);
+					   numvirtchips * sizeof(struct flchip), GFP_KERNEL);
+
 	if (!retlpddr)
+	{
 		return NULL;
+	}
 
 	memcpy(retlpddr, &lpddr, sizeof(struct lpddr_private));
 
 	retlpddr->numchips = numvirtchips;
 	retlpddr->chipshift = retlpddr->qinfo->DevSizeShift -
-				__ffs(retlpddr->qinfo->HWPartsNum);
+						  __ffs(retlpddr->qinfo->HWPartsNum);
 
 	return retlpddr;
 }
@@ -202,18 +232,25 @@ struct mtd_info *lpddr_probe(struct map_info *map)
 
 	/* First probe the map to see if we havecan open PFOW here */
 	lpddr = lpddr_probe_chip(map);
+
 	if (!lpddr)
+	{
 		return NULL;
+	}
 
 	map->fldrv_priv = lpddr;
 	mtd = lpddr_cmdset(map);
-	if (mtd) {
-		if (mtd->size > map->size) {
+
+	if (mtd)
+	{
+		if (mtd->size > map->size)
+		{
 			printk(KERN_WARNING "Reducing visibility of %ldKiB chip"
-				"to %ldKiB\n", (unsigned long)mtd->size >> 10,
-				(unsigned long)map->size >> 10);
+				   "to %ldKiB\n", (unsigned long)mtd->size >> 10,
+				   (unsigned long)map->size >> 10);
 			mtd->size = map->size;
 		}
+
 		return mtd;
 	}
 
@@ -223,7 +260,8 @@ struct mtd_info *lpddr_probe(struct map_info *map)
 	return NULL;
 }
 
-static struct mtd_chip_driver lpddr_chipdrv = {
+static struct mtd_chip_driver lpddr_chipdrv =
+{
 	.probe		= lpddr_probe,
 	.name		= "qinfo_probe",
 	.module		= THIS_MODULE

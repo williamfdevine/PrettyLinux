@@ -1,5 +1,5 @@
 /* -*- linux-c -*- ------------------------------------------------------- *
- *   
+ *
  *   Copyright 2001 H. Peter Anvin - All Rights Reserved
  *
  *   This program is free software; you can redistribute it and/or modify
@@ -41,9 +41,9 @@ static DEFINE_MUTEX(zisofs_zlib_lock);
  * entries. Start storing at offset @poffset of the first page.
  */
 static loff_t zisofs_uncompress_block(struct inode *inode, loff_t block_start,
-				      loff_t block_end, int pcount,
-				      struct page **pages, unsigned poffset,
-				      int *errp)
+									  loff_t block_end, int pcount,
+									  struct page **pages, unsigned poffset,
+									  int *errp)
 {
 	unsigned int zisofs_block_shift = ISOFS_I(inode)->i_format_parm[1];
 	unsigned int bufsize = ISOFS_BUFFER_SIZE(inode);
@@ -51,29 +51,38 @@ static loff_t zisofs_uncompress_block(struct inode *inode, loff_t block_start,
 	unsigned int bufmask = bufsize - 1;
 	int i, block_size = block_end - block_start;
 	z_stream stream = { .total_out = 0,
-			    .avail_in = 0,
-			    .avail_out = 0, };
+						.avail_in = 0,
+						.avail_out = 0,
+					  };
 	int zerr;
 	int needblocks = (block_size + (block_start & bufmask) + bufmask)
-				>> bufshift;
+					 >> bufshift;
 	int haveblocks;
 	blkcnt_t blocknum;
 	struct buffer_head *bhs[needblocks + 1];
 	int curbh, curpage;
 
-	if (block_size > deflateBound(1UL << zisofs_block_shift)) {
+	if (block_size > deflateBound(1UL << zisofs_block_shift))
+	{
 		*errp = -EIO;
 		return 0;
 	}
+
 	/* Empty block? */
-	if (block_size == 0) {
-		for ( i = 0 ; i < pcount ; i++ ) {
+	if (block_size == 0)
+	{
+		for ( i = 0 ; i < pcount ; i++ )
+		{
 			if (!pages[i])
+			{
 				continue;
+			}
+
 			memset(page_address(pages[i]), 0, PAGE_SIZE);
 			flush_dcache_page(pages[i]);
 			SetPageUptodate(pages[i]);
 		}
+
 		return ((loff_t)pcount) << PAGE_SHIFT;
 	}
 
@@ -93,93 +102,134 @@ static loff_t zisofs_uncompress_block(struct inode *inode, loff_t block_start,
 	 */
 
 	if (!bhs[0])
+	{
 		goto b_eio;
+	}
 
 	wait_on_buffer(bhs[0]);
-	if (!buffer_uptodate(bhs[0])) {
+
+	if (!buffer_uptodate(bhs[0]))
+	{
 		*errp = -EIO;
 		goto b_eio;
 	}
 
 	stream.workspace = zisofs_zlib_workspace;
 	mutex_lock(&zisofs_zlib_lock);
-		
+
 	zerr = zlib_inflateInit(&stream);
-	if (zerr != Z_OK) {
+
+	if (zerr != Z_OK)
+	{
 		if (zerr == Z_MEM_ERROR)
+		{
 			*errp = -ENOMEM;
+		}
 		else
+		{
 			*errp = -EIO;
+		}
+
 		printk(KERN_DEBUG "zisofs: zisofs_inflateInit returned %d\n",
-			       zerr);
+			   zerr);
 		goto z_eio;
 	}
 
 	while (curpage < pcount && curbh < haveblocks &&
-	       zerr != Z_STREAM_END) {
-		if (!stream.avail_out) {
-			if (pages[curpage]) {
+		   zerr != Z_STREAM_END)
+	{
+		if (!stream.avail_out)
+		{
+			if (pages[curpage])
+			{
 				stream.next_out = page_address(pages[curpage])
-						+ poffset;
+								  + poffset;
 				stream.avail_out = PAGE_SIZE - poffset;
 				poffset = 0;
-			} else {
+			}
+			else
+			{
 				stream.next_out = (void *)&zisofs_sink_page;
 				stream.avail_out = PAGE_SIZE;
 			}
 		}
-		if (!stream.avail_in) {
+
+		if (!stream.avail_in)
+		{
 			wait_on_buffer(bhs[curbh]);
-			if (!buffer_uptodate(bhs[curbh])) {
+
+			if (!buffer_uptodate(bhs[curbh]))
+			{
 				*errp = -EIO;
 				break;
 			}
+
 			stream.next_in  = bhs[curbh]->b_data +
-						(block_start & bufmask);
+							  (block_start & bufmask);
 			stream.avail_in = min_t(unsigned, bufsize -
-						(block_start & bufmask),
-						block_size);
+									(block_start & bufmask),
+									block_size);
 			block_size -= stream.avail_in;
 			block_start = 0;
 		}
 
-		while (stream.avail_out && stream.avail_in) {
+		while (stream.avail_out && stream.avail_in)
+		{
 			zerr = zlib_inflate(&stream, Z_SYNC_FLUSH);
+
 			if (zerr == Z_BUF_ERROR && stream.avail_in == 0)
+			{
 				break;
+			}
+
 			if (zerr == Z_STREAM_END)
+			{
 				break;
-			if (zerr != Z_OK) {
+			}
+
+			if (zerr != Z_OK)
+			{
 				/* EOF, error, or trying to read beyond end of input */
 				if (zerr == Z_MEM_ERROR)
+				{
 					*errp = -ENOMEM;
-				else {
+				}
+				else
+				{
 					printk(KERN_DEBUG
-					       "zisofs: zisofs_inflate returned"
-					       " %d, inode = %lu,"
-					       " page idx = %d, bh idx = %d,"
-					       " avail_in = %ld,"
-					       " avail_out = %ld\n",
-					       zerr, inode->i_ino, curpage,
-					       curbh, stream.avail_in,
-					       stream.avail_out);
+						   "zisofs: zisofs_inflate returned"
+						   " %d, inode = %lu,"
+						   " page idx = %d, bh idx = %d,"
+						   " avail_in = %ld,"
+						   " avail_out = %ld\n",
+						   zerr, inode->i_ino, curpage,
+						   curbh, stream.avail_in,
+						   stream.avail_out);
 					*errp = -EIO;
 				}
+
 				goto inflate_out;
 			}
 		}
 
-		if (!stream.avail_out) {
+		if (!stream.avail_out)
+		{
 			/* This page completed */
-			if (pages[curpage]) {
+			if (pages[curpage])
+			{
 				flush_dcache_page(pages[curpage]);
 				SetPageUptodate(pages[curpage]);
 			}
+
 			curpage++;
 		}
+
 		if (!stream.avail_in)
+		{
 			curbh++;
+		}
 	}
+
 inflate_out:
 	zlib_inflateEnd(&stream);
 
@@ -187,8 +237,12 @@ z_eio:
 	mutex_unlock(&zisofs_zlib_lock);
 
 b_eio:
+
 	for (i = 0; i < haveblocks; i++)
+	{
 		brelse(bhs[i]);
+	}
+
 	return stream.total_out;
 }
 
@@ -197,7 +251,7 @@ b_eio:
  * fills in other pages if we have data for them.
  */
 static int zisofs_fill_pages(struct inode *inode, int full_page, int pcount,
-			     struct page **pages)
+							 struct page **pages)
 {
 	loff_t start_off, end_off;
 	loff_t block_start, block_end;
@@ -224,55 +278,74 @@ static int zisofs_fill_pages(struct inode *inode, int full_page, int pcount,
 
 	cstart_block = start_off >> zisofs_block_shift;
 	cend_block = (end_off + (1 << zisofs_block_shift) - 1)
-			>> zisofs_block_shift;
+				 >> zisofs_block_shift;
 
 	WARN_ON(start_off - (full_page << PAGE_SHIFT) !=
-		((cstart_block << zisofs_block_shift) & PAGE_MASK));
+			((cstart_block << zisofs_block_shift) & PAGE_MASK));
 
 	/* Find the pointer to this specific chunk */
 	/* Note: we're not using isonum_731() here because the data is known aligned */
 	/* Note: header_size is in 32-bit words (4 bytes) */
 	blockptr = (header_size + cstart_block) << 2;
 	bh = isofs_bread(inode, blockptr >> blkbits);
-	if (!bh)
-		return -EIO;
-	block_start = le32_to_cpu(*(__le32 *)
-				(bh->b_data + (blockptr & (blksize - 1))));
 
-	while (cstart_block < cend_block && pcount > 0) {
+	if (!bh)
+	{
+		return -EIO;
+	}
+
+	block_start = le32_to_cpu(*(__le32 *)
+							  (bh->b_data + (blockptr & (blksize - 1))));
+
+	while (cstart_block < cend_block && pcount > 0)
+	{
 		/* Load end of the compressed block in the file */
 		blockptr += 4;
+
 		/* Traversed to next block? */
-		if (!(blockptr & (blksize - 1))) {
+		if (!(blockptr & (blksize - 1)))
+		{
 			brelse(bh);
 
 			bh = isofs_bread(inode, blockptr >> blkbits);
+
 			if (!bh)
+			{
 				return -EIO;
+			}
 		}
+
 		block_end = le32_to_cpu(*(__le32 *)
-				(bh->b_data + (blockptr & (blksize - 1))));
-		if (block_start > block_end) {
+								(bh->b_data + (blockptr & (blksize - 1))));
+
+		if (block_start > block_end)
+		{
 			brelse(bh);
 			return -EIO;
 		}
+
 		err = 0;
 		ret = zisofs_uncompress_block(inode, block_start, block_end,
-					      pcount, pages, poffset, &err);
+									  pcount, pages, poffset, &err);
 		poffset += ret;
 		pages += poffset >> PAGE_SHIFT;
 		pcount -= poffset >> PAGE_SHIFT;
 		full_page -= poffset >> PAGE_SHIFT;
 		poffset &= ~PAGE_MASK;
 
-		if (err) {
+		if (err)
+		{
 			brelse(bh);
+
 			/*
 			 * Did we finish reading the page we really wanted
 			 * to read?
 			 */
 			if (full_page < 0)
+			{
 				return 0;
+			}
+
 			return err;
 		}
 
@@ -280,12 +353,14 @@ static int zisofs_fill_pages(struct inode *inode, int full_page, int pcount,
 		cstart_block++;
 	}
 
-	if (poffset && *pages) {
+	if (poffset && *pages)
+	{
 		memset(page_address(*pages) + poffset, 0,
-		       PAGE_SIZE - poffset);
+			   PAGE_SIZE - poffset);
 		flush_dcache_page(*pages);
 		SetPageUptodate(*pages);
 	}
+
 	return 0;
 }
 
@@ -308,33 +383,44 @@ static int zisofs_readpage(struct file *file, struct page *page)
 	pgoff_t index = page->index, end_index;
 
 	end_index = (inode->i_size + PAGE_SIZE - 1) >> PAGE_SHIFT;
+
 	/*
 	 * If this page is wholly outside i_size we just return zero;
 	 * do_generic_file_read() will handle this for us
 	 */
-	if (index >= end_index) {
+	if (index >= end_index)
+	{
 		SetPageUptodate(page);
 		unlock_page(page);
 		return 0;
 	}
 
-	if (PAGE_SHIFT <= zisofs_block_shift) {
+	if (PAGE_SHIFT <= zisofs_block_shift)
+	{
 		/* We have already been given one page, this is the one
 		   we must do. */
 		full_page = index & (zisofs_pages_per_cblock - 1);
 		pcount = min_t(int, zisofs_pages_per_cblock,
-			end_index - (index & ~(zisofs_pages_per_cblock - 1)));
+					   end_index - (index & ~(zisofs_pages_per_cblock - 1)));
 		index -= full_page;
-	} else {
+	}
+	else
+	{
 		full_page = 0;
 		pcount = 1;
 	}
+
 	pages[full_page] = page;
 
-	for (i = 0; i < pcount; i++, index++) {
+	for (i = 0; i < pcount; i++, index++)
+	{
 		if (i != full_page)
+		{
 			pages[i] = grab_cache_page_nowait(mapping, index);
-		if (pages[i]) {
+		}
+
+		if (pages[i])
+		{
 			ClearPageError(pages[i]);
 			kmap(pages[i]);
 		}
@@ -343,23 +429,33 @@ static int zisofs_readpage(struct file *file, struct page *page)
 	err = zisofs_fill_pages(inode, full_page, pcount, pages);
 
 	/* Release any residual pages, do not SetPageUptodate */
-	for (i = 0; i < pcount; i++) {
-		if (pages[i]) {
+	for (i = 0; i < pcount; i++)
+	{
+		if (pages[i])
+		{
 			flush_dcache_page(pages[i]);
+
 			if (i == full_page && err)
+			{
 				SetPageError(pages[i]);
+			}
+
 			kunmap(pages[i]);
 			unlock_page(pages[i]);
+
 			if (i != full_page)
+			{
 				put_page(pages[i]);
+			}
 		}
-	}			
+	}
 
 	/* At this point, err contains 0 or -EIO depending on the "critical" page */
 	return err;
 }
 
-const struct address_space_operations zisofs_aops = {
+const struct address_space_operations zisofs_aops =
+{
 	.readpage = zisofs_readpage,
 	/* No bmap operation supported */
 };
@@ -367,8 +463,11 @@ const struct address_space_operations zisofs_aops = {
 int __init zisofs_init(void)
 {
 	zisofs_zlib_workspace = vmalloc(zlib_inflate_workspacesize());
+
 	if ( !zisofs_zlib_workspace )
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }

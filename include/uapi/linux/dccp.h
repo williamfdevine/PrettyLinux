@@ -17,28 +17,29 @@
  * @dccph_type - packet type, see DCCP_PKT_ prefixed macros
  * @dccph_seq - sequence number high or low order 24 bits, depends on dccph_x
  */
-struct dccp_hdr {
+struct dccp_hdr
+{
 	__be16	dccph_sport,
-		dccph_dport;
+			dccph_dport;
 	__u8	dccph_doff;
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	__u8	dccph_cscov:4,
-		dccph_ccval:4;
+	__u8	dccph_cscov: 4,
+			dccph_ccval: 4;
 #elif defined(__BIG_ENDIAN_BITFIELD)
-	__u8	dccph_ccval:4,
-		dccph_cscov:4;
+	__u8	dccph_ccval: 4,
+			dccph_cscov: 4;
 #else
 #error  "Adjust your <asm/byteorder.h> defines"
 #endif
 	__sum16	dccph_checksum;
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	__u8	dccph_x:1,
-		dccph_type:4,
-		dccph_reserved:3;
+	__u8	dccph_x: 1,
+			dccph_type: 4,
+			dccph_reserved: 3;
 #elif defined(__BIG_ENDIAN_BITFIELD)
-	__u8	dccph_reserved:3,
-		dccph_type:4,
-		dccph_x:1;
+	__u8	dccph_reserved: 3,
+			dccph_type: 4,
+			dccph_x: 1;
 #else
 #error  "Adjust your <asm/byteorder.h> defines"
 #endif
@@ -51,7 +52,8 @@ struct dccp_hdr {
  *
  * @dccph_seq_low - low 24 bits of a 48 bit seq packet
  */
-struct dccp_hdr_ext {
+struct dccp_hdr_ext
+{
 	__be32	dccph_seq_low;
 };
 
@@ -60,7 +62,8 @@ struct dccp_hdr_ext {
  *
  * @dccph_req_service - Service to which the client app wants to connect
  */
-struct dccp_hdr_request {
+struct dccp_hdr_request
+{
 	__be32	dccph_req_service;
 };
 /**
@@ -69,7 +72,8 @@ struct dccp_hdr_request {
  * @dccph_resp_ack_nr_high - 48 bit ack number high order bits, contains GSR
  * @dccph_resp_ack_nr_low - 48 bit ack number low order bits, contains GSR
  */
-struct dccp_hdr_ack_bits {
+struct dccp_hdr_ack_bits
+{
 	__be16	dccph_reserved1;
 	__be16	dccph_ack_nr_high;
 	__be32	dccph_ack_nr_low;
@@ -80,7 +84,8 @@ struct dccp_hdr_ack_bits {
  * @dccph_resp_ack - 48 bit Acknowledgment Number Subheader (5.3)
  * @dccph_resp_service - Echoes the Service Code on a received DCCP-Request
  */
-struct dccp_hdr_response {
+struct dccp_hdr_response
+{
 	struct dccp_hdr_ack_bits	dccph_resp_ack;
 	__be32				dccph_resp_service;
 };
@@ -92,13 +97,15 @@ struct dccp_hdr_response {
  * @dccph_reset_code - one of %dccp_reset_codes
  * @dccph_reset_data - the Data 1 ... Data 3 fields from 5.6
  */
-struct dccp_hdr_reset {
+struct dccp_hdr_reset
+{
 	struct dccp_hdr_ack_bits	dccph_reset_ack;
 	__u8				dccph_reset_code,
-					dccph_reset_data[3];
+						dccph_reset_data[3];
 };
 
-enum dccp_pkt_type {
+enum dccp_pkt_type
+{
 	DCCP_PKT_REQUEST = 0,
 	DCCP_PKT_RESPONSE,
 	DCCP_PKT_DATA,
@@ -117,21 +124,34 @@ enum dccp_pkt_type {
 static inline unsigned int dccp_packet_hdr_len(const __u8 type)
 {
 	if (type == DCCP_PKT_DATA)
+	{
 		return 0;
+	}
+
 	if (type == DCCP_PKT_DATAACK	||
-	    type == DCCP_PKT_ACK	||
-	    type == DCCP_PKT_SYNC	||
-	    type == DCCP_PKT_SYNCACK	||
-	    type == DCCP_PKT_CLOSE	||
-	    type == DCCP_PKT_CLOSEREQ)
+		type == DCCP_PKT_ACK	||
+		type == DCCP_PKT_SYNC	||
+		type == DCCP_PKT_SYNCACK	||
+		type == DCCP_PKT_CLOSE	||
+		type == DCCP_PKT_CLOSEREQ)
+	{
 		return sizeof(struct dccp_hdr_ack_bits);
+	}
+
 	if (type == DCCP_PKT_REQUEST)
+	{
 		return sizeof(struct dccp_hdr_request);
+	}
+
 	if (type == DCCP_PKT_RESPONSE)
+	{
 		return sizeof(struct dccp_hdr_response);
+	}
+
 	return sizeof(struct dccp_hdr_reset);
 }
-enum dccp_reset_codes {
+enum dccp_reset_codes
+{
 	DCCP_RESET_CODE_UNSPECIFIED = 0,
 	DCCP_RESET_CODE_CLOSED,
 	DCCP_RESET_CODE_ABORTED,
@@ -149,7 +169,8 @@ enum dccp_reset_codes {
 };
 
 /* DCCP options */
-enum {
+enum
+{
 	DCCPO_PADDING = 0,
 	DCCPO_MANDATORY = 1,
 	DCCPO_MIN_RESERVED = 3,
@@ -174,13 +195,15 @@ enum {
 #define DCCP_SINGLE_OPT_MAXLEN	253
 
 /* DCCP CCIDS */
-enum {
+enum
+{
 	DCCPC_CCID2 = 2,
 	DCCPC_CCID3 = 3,
 };
 
 /* DCCP features (RFC 4340 section 6.4) */
-enum dccp_feature_numbers {
+enum dccp_feature_numbers
+{
 	DCCPF_RESERVED = 0,
 	DCCPF_CCID = 1,
 	DCCPF_SHORT_SEQNOS = 2,
@@ -198,7 +221,8 @@ enum dccp_feature_numbers {
 };
 
 /* DCCP socket control message types for cmsg */
-enum dccp_cmsg_type {
+enum dccp_cmsg_type
+{
 	DCCP_SCM_PRIORITY = 1,
 	DCCP_SCM_QPOLICY_MAX = 0xFFFF,
 	/* ^-- Up to here reserved exclusively for qpolicy parameters */
@@ -206,7 +230,8 @@ enum dccp_cmsg_type {
 };
 
 /* DCCP priorities for outgoing/queued packets */
-enum dccp_packet_dequeueing_policy {
+enum dccp_packet_dequeueing_policy
+{
 	DCCPQ_POLICY_SIMPLE,
 	DCCPQ_POLICY_PRIO,
 	DCCPQ_POLICY_MAX

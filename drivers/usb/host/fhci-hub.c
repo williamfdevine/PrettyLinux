@@ -28,7 +28,8 @@
 #include "fhci.h"
 
 /* virtual root hub specific descriptor */
-static u8 root_hub_des[] = {
+static u8 root_hub_des[] =
+{
 	0x09, /* blength */
 	USB_DT_HUB, /* bDescriptorType;hub-descriptor */
 	0x01, /* bNbrPorts */
@@ -46,34 +47,41 @@ static void fhci_gpio_set_value(struct fhci_hcd *fhci, int gpio_nr, bool on)
 	bool alow = fhci->alow_gpios[gpio_nr];
 
 	if (!gpio_is_valid(gpio))
+	{
 		return;
+	}
 
 	gpio_set_value(gpio, on ^ alow);
 	mdelay(5);
 }
 
 void fhci_config_transceiver(struct fhci_hcd *fhci,
-			     enum fhci_port_status status)
+							 enum fhci_port_status status)
 {
 	fhci_dbg(fhci, "-> %s: %d\n", __func__, status);
 
-	switch (status) {
-	case FHCI_PORT_POWER_OFF:
-		fhci_gpio_set_value(fhci, GPIO_POWER, false);
-		break;
-	case FHCI_PORT_DISABLED:
-	case FHCI_PORT_WAITING:
-		fhci_gpio_set_value(fhci, GPIO_POWER, true);
-		break;
-	case FHCI_PORT_LOW:
-		fhci_gpio_set_value(fhci, GPIO_SPEED, false);
-		break;
-	case FHCI_PORT_FULL:
-		fhci_gpio_set_value(fhci, GPIO_SPEED, true);
-		break;
-	default:
-		WARN_ON(1);
-		break;
+	switch (status)
+	{
+		case FHCI_PORT_POWER_OFF:
+			fhci_gpio_set_value(fhci, GPIO_POWER, false);
+			break;
+
+		case FHCI_PORT_DISABLED:
+		case FHCI_PORT_WAITING:
+			fhci_gpio_set_value(fhci, GPIO_POWER, true);
+			break;
+
+		case FHCI_PORT_LOW:
+			fhci_gpio_set_value(fhci, GPIO_SPEED, false);
+			break;
+
+		case FHCI_PORT_FULL:
+			fhci_gpio_set_value(fhci, GPIO_SPEED, true);
+			break;
+
+		default:
+			WARN_ON(1);
+			break;
 	}
 
 	fhci_dbg(fhci, "<- %s: %d\n", __func__, status);
@@ -101,7 +109,10 @@ void fhci_port_disable(struct fhci_hcd *fhci)
 
 	/* check if during the disconnection process attached new device */
 	if (port_status == FHCI_PORT_WAITING)
+	{
 		fhci_device_connected_interrupt(fhci);
+	}
+
 	usb->vroot_hub->port.wPortStatus &= ~USB_PORT_STAT_ENABLE;
 	usb->vroot_hub->port.wPortChange |= USB_PORT_STAT_C_ENABLE;
 	fhci_usb_enable_interrupt((struct fhci_usb *)fhci->usb_lld);
@@ -120,8 +131,10 @@ void fhci_port_enable(void *lld)
 	fhci_config_transceiver(fhci, usb->port_status);
 
 	if ((usb->port_status != FHCI_PORT_FULL) &&
-			(usb->port_status != FHCI_PORT_LOW))
+		(usb->port_status != FHCI_PORT_LOW))
+	{
 		fhci_start_sof_timer(fhci);
+	}
 
 	usb->vroot_hub->port.wPortStatus |= USB_PORT_STAT_ENABLE;
 	usb->vroot_hub->port.wPortChange |= USB_PORT_STAT_C_ENABLE;
@@ -190,7 +203,8 @@ int fhci_hub_status_data(struct usb_hcd *hcd, char *buf)
 
 	if (fhci->vroot_hub->port.wPortChange & (USB_PORT_STAT_C_CONNECTION |
 			USB_PORT_STAT_C_ENABLE | USB_PORT_STAT_C_SUSPEND |
-			USB_PORT_STAT_C_RESET | USB_PORT_STAT_C_OVERCURRENT)) {
+			USB_PORT_STAT_C_RESET | USB_PORT_STAT_C_OVERCURRENT))
+	{
 		*buf = 1 << 1;
 		ret = 1;
 		fhci_dbg(fhci, "-- %s\n", __func__);
@@ -204,7 +218,7 @@ int fhci_hub_status_data(struct usb_hcd *hcd, char *buf)
 }
 
 int fhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
-			    u16 wIndex, char *buf, u16 wLength)
+					 u16 wIndex, char *buf, u16 wLength)
 {
 	struct fhci_hcd *fhci = hcd_to_fhci(hcd);
 	int retval = 0;
@@ -216,120 +230,150 @@ int fhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 
 	fhci_dbg(fhci, "-> %s\n", __func__);
 
-	switch (typeReq) {
-	case ClearHubFeature:
-		switch (wValue) {
-		case C_HUB_LOCAL_POWER:
-		case C_HUB_OVER_CURRENT:
-			break;
-		default:
-			goto error;
-		}
-		break;
-	case ClearPortFeature:
-		fhci->vroot_hub->feature &= (1 << wValue);
+	switch (typeReq)
+	{
+		case ClearHubFeature:
+			switch (wValue)
+			{
+				case C_HUB_LOCAL_POWER:
+				case C_HUB_OVER_CURRENT:
+					break;
 
-		switch (wValue) {
-		case USB_PORT_FEAT_ENABLE:
-			fhci->vroot_hub->port.wPortStatus &=
-			    ~USB_PORT_STAT_ENABLE;
-			fhci_port_disable(fhci);
-			break;
-		case USB_PORT_FEAT_C_ENABLE:
-			fhci->vroot_hub->port.wPortChange &=
-			    ~USB_PORT_STAT_C_ENABLE;
-			break;
-		case USB_PORT_FEAT_SUSPEND:
-			fhci->vroot_hub->port.wPortStatus &=
-			    ~USB_PORT_STAT_SUSPEND;
-			fhci_stop_sof_timer(fhci);
-			break;
-		case USB_PORT_FEAT_C_SUSPEND:
-			fhci->vroot_hub->port.wPortChange &=
-			    ~USB_PORT_STAT_C_SUSPEND;
-			break;
-		case USB_PORT_FEAT_POWER:
-			fhci->vroot_hub->port.wPortStatus &=
-			    ~USB_PORT_STAT_POWER;
-			fhci_config_transceiver(fhci, FHCI_PORT_POWER_OFF);
-			break;
-		case USB_PORT_FEAT_C_CONNECTION:
-			fhci->vroot_hub->port.wPortChange &=
-			    ~USB_PORT_STAT_C_CONNECTION;
-			break;
-		case USB_PORT_FEAT_C_OVER_CURRENT:
-			fhci->vroot_hub->port.wPortChange &=
-			    ~USB_PORT_STAT_C_OVERCURRENT;
-			break;
-		case USB_PORT_FEAT_C_RESET:
-			fhci->vroot_hub->port.wPortChange &=
-			    ~USB_PORT_STAT_C_RESET;
-			break;
-		default:
-			goto error;
-		}
-		break;
-	case GetHubDescriptor:
-		memcpy(buf, root_hub_des, sizeof(root_hub_des));
-		break;
-	case GetHubStatus:
-		hub_status = (struct usb_hub_status *)buf;
-		hub_status->wHubStatus =
-		    cpu_to_le16(fhci->vroot_hub->hub.wHubStatus);
-		hub_status->wHubChange =
-		    cpu_to_le16(fhci->vroot_hub->hub.wHubChange);
-		break;
-	case GetPortStatus:
-		port_status = (struct usb_port_status *)buf;
-		port_status->wPortStatus =
-		    cpu_to_le16(fhci->vroot_hub->port.wPortStatus);
-		port_status->wPortChange =
-		    cpu_to_le16(fhci->vroot_hub->port.wPortChange);
-		break;
-	case SetHubFeature:
-		switch (wValue) {
-		case C_HUB_OVER_CURRENT:
-		case C_HUB_LOCAL_POWER:
-			break;
-		default:
-			goto error;
-		}
-		break;
-	case SetPortFeature:
-		fhci->vroot_hub->feature |= (1 << wValue);
+				default:
+					goto error;
+			}
 
-		switch (wValue) {
-		case USB_PORT_FEAT_ENABLE:
-			fhci->vroot_hub->port.wPortStatus |=
-			    USB_PORT_STAT_ENABLE;
-			fhci_port_enable(fhci->usb_lld);
 			break;
-		case USB_PORT_FEAT_SUSPEND:
-			fhci->vroot_hub->port.wPortStatus |=
-			    USB_PORT_STAT_SUSPEND;
-			fhci_stop_sof_timer(fhci);
+
+		case ClearPortFeature:
+			fhci->vroot_hub->feature &= (1 << wValue);
+
+			switch (wValue)
+			{
+				case USB_PORT_FEAT_ENABLE:
+					fhci->vroot_hub->port.wPortStatus &=
+						~USB_PORT_STAT_ENABLE;
+					fhci_port_disable(fhci);
+					break;
+
+				case USB_PORT_FEAT_C_ENABLE:
+					fhci->vroot_hub->port.wPortChange &=
+						~USB_PORT_STAT_C_ENABLE;
+					break;
+
+				case USB_PORT_FEAT_SUSPEND:
+					fhci->vroot_hub->port.wPortStatus &=
+						~USB_PORT_STAT_SUSPEND;
+					fhci_stop_sof_timer(fhci);
+					break;
+
+				case USB_PORT_FEAT_C_SUSPEND:
+					fhci->vroot_hub->port.wPortChange &=
+						~USB_PORT_STAT_C_SUSPEND;
+					break;
+
+				case USB_PORT_FEAT_POWER:
+					fhci->vroot_hub->port.wPortStatus &=
+						~USB_PORT_STAT_POWER;
+					fhci_config_transceiver(fhci, FHCI_PORT_POWER_OFF);
+					break;
+
+				case USB_PORT_FEAT_C_CONNECTION:
+					fhci->vroot_hub->port.wPortChange &=
+						~USB_PORT_STAT_C_CONNECTION;
+					break;
+
+				case USB_PORT_FEAT_C_OVER_CURRENT:
+					fhci->vroot_hub->port.wPortChange &=
+						~USB_PORT_STAT_C_OVERCURRENT;
+					break;
+
+				case USB_PORT_FEAT_C_RESET:
+					fhci->vroot_hub->port.wPortChange &=
+						~USB_PORT_STAT_C_RESET;
+					break;
+
+				default:
+					goto error;
+			}
+
 			break;
-		case USB_PORT_FEAT_RESET:
-			fhci->vroot_hub->port.wPortStatus |=
-			    USB_PORT_STAT_RESET;
-			fhci_port_reset(fhci->usb_lld);
-			fhci->vroot_hub->port.wPortStatus |=
-			    USB_PORT_STAT_ENABLE;
-			fhci->vroot_hub->port.wPortStatus &=
-			    ~USB_PORT_STAT_RESET;
+
+		case GetHubDescriptor:
+			memcpy(buf, root_hub_des, sizeof(root_hub_des));
 			break;
-		case USB_PORT_FEAT_POWER:
-			fhci->vroot_hub->port.wPortStatus |=
-			    USB_PORT_STAT_POWER;
-			fhci_config_transceiver(fhci, FHCI_PORT_WAITING);
+
+		case GetHubStatus:
+			hub_status = (struct usb_hub_status *)buf;
+			hub_status->wHubStatus =
+				cpu_to_le16(fhci->vroot_hub->hub.wHubStatus);
+			hub_status->wHubChange =
+				cpu_to_le16(fhci->vroot_hub->hub.wHubChange);
 			break;
+
+		case GetPortStatus:
+			port_status = (struct usb_port_status *)buf;
+			port_status->wPortStatus =
+				cpu_to_le16(fhci->vroot_hub->port.wPortStatus);
+			port_status->wPortChange =
+				cpu_to_le16(fhci->vroot_hub->port.wPortChange);
+			break;
+
+		case SetHubFeature:
+			switch (wValue)
+			{
+				case C_HUB_OVER_CURRENT:
+				case C_HUB_LOCAL_POWER:
+					break;
+
+				default:
+					goto error;
+			}
+
+			break;
+
+		case SetPortFeature:
+			fhci->vroot_hub->feature |= (1 << wValue);
+
+			switch (wValue)
+			{
+				case USB_PORT_FEAT_ENABLE:
+					fhci->vroot_hub->port.wPortStatus |=
+						USB_PORT_STAT_ENABLE;
+					fhci_port_enable(fhci->usb_lld);
+					break;
+
+				case USB_PORT_FEAT_SUSPEND:
+					fhci->vroot_hub->port.wPortStatus |=
+						USB_PORT_STAT_SUSPEND;
+					fhci_stop_sof_timer(fhci);
+					break;
+
+				case USB_PORT_FEAT_RESET:
+					fhci->vroot_hub->port.wPortStatus |=
+						USB_PORT_STAT_RESET;
+					fhci_port_reset(fhci->usb_lld);
+					fhci->vroot_hub->port.wPortStatus |=
+						USB_PORT_STAT_ENABLE;
+					fhci->vroot_hub->port.wPortStatus &=
+						~USB_PORT_STAT_RESET;
+					break;
+
+				case USB_PORT_FEAT_POWER:
+					fhci->vroot_hub->port.wPortStatus |=
+						USB_PORT_STAT_POWER;
+					fhci_config_transceiver(fhci, FHCI_PORT_WAITING);
+					break;
+
+				default:
+					goto error;
+			}
+
+			break;
+
 		default:
-			goto error;
-		}
-		break;
-	default:
 error:
-		retval = -EPIPE;
+			retval = -EPIPE;
 	}
 
 	fhci_dbg(fhci, "<- %s\n", __func__);

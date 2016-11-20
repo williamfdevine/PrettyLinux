@@ -13,12 +13,13 @@
 #include <linux/iio/buffer.h>
 #include <linux/iio/consumer.h>
 
-struct iio_cb_buffer {
-	struct iio_buffer buffer;
-	int (*cb)(const void *data, void *private);
-	void *private;
-	struct iio_channel *channels;
-	struct iio_dev *indio_dev;
+struct iio_cb_buffer
+{
+		struct iio_buffer buffer;
+		int (*cb)(const void *data, void *private);
+		void *private;
+		struct iio_channel *channels;
+		struct iio_dev *indio_dev;
 };
 
 static struct iio_cb_buffer *buffer_to_cb_buffer(struct iio_buffer *buffer)
@@ -39,7 +40,8 @@ static void iio_buffer_cb_release(struct iio_buffer *buffer)
 	kfree(cb_buff);
 }
 
-static const struct iio_buffer_access_funcs iio_cb_access = {
+static const struct iio_buffer_access_funcs iio_cb_access =
+{
 	.store_to = &iio_buffer_cb_store_to,
 	.release = &iio_buffer_cb_release,
 
@@ -47,17 +49,20 @@ static const struct iio_buffer_access_funcs iio_cb_access = {
 };
 
 struct iio_cb_buffer *iio_channel_get_all_cb(struct device *dev,
-					     int (*cb)(const void *data,
-						       void *private),
-					     void *private)
+		int (*cb)(const void *data,
+				  void *private),
+		void *private)
 {
 	int ret;
 	struct iio_cb_buffer *cb_buff;
 	struct iio_channel *chan;
 
 	cb_buff = kzalloc(sizeof(*cb_buff), GFP_KERNEL);
+
 	if (cb_buff == NULL)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	iio_buffer_init(&cb_buff->buffer);
 
@@ -67,7 +72,9 @@ struct iio_cb_buffer *iio_channel_get_all_cb(struct device *dev,
 	INIT_LIST_HEAD(&cb_buff->buffer.demux_list);
 
 	cb_buff->channels = iio_channel_get_all(dev);
-	if (IS_ERR(cb_buff->channels)) {
+
+	if (IS_ERR(cb_buff->channels))
+	{
 		ret = PTR_ERR(cb_buff->channels);
 		goto error_free_cb_buff;
 	}
@@ -75,19 +82,26 @@ struct iio_cb_buffer *iio_channel_get_all_cb(struct device *dev,
 	cb_buff->indio_dev = cb_buff->channels[0].indio_dev;
 	cb_buff->buffer.scan_mask
 		= kcalloc(BITS_TO_LONGS(cb_buff->indio_dev->masklength),
-			  sizeof(long), GFP_KERNEL);
-	if (cb_buff->buffer.scan_mask == NULL) {
+				  sizeof(long), GFP_KERNEL);
+
+	if (cb_buff->buffer.scan_mask == NULL)
+	{
 		ret = -ENOMEM;
 		goto error_release_channels;
 	}
+
 	chan = &cb_buff->channels[0];
-	while (chan->indio_dev) {
-		if (chan->indio_dev != cb_buff->indio_dev) {
+
+	while (chan->indio_dev)
+	{
+		if (chan->indio_dev != cb_buff->indio_dev)
+		{
 			ret = -EINVAL;
 			goto error_free_scan_mask;
 		}
+
 		set_bit(chan->channel->scan_index,
-			cb_buff->buffer.scan_mask);
+				cb_buff->buffer.scan_mask);
 		chan++;
 	}
 
@@ -106,7 +120,7 @@ EXPORT_SYMBOL_GPL(iio_channel_get_all_cb);
 int iio_channel_start_all_cb(struct iio_cb_buffer *cb_buff)
 {
 	return iio_update_buffers(cb_buff->indio_dev, &cb_buff->buffer,
-				  NULL);
+							  NULL);
 }
 EXPORT_SYMBOL_GPL(iio_channel_start_all_cb);
 

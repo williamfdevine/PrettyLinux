@@ -42,36 +42,43 @@ nv50_devinit_pll_set(struct nvkm_devinit *init, u32 type, u32 freq)
 	int ret;
 
 	ret = nvbios_pll_parse(bios, type, &info);
-	if (ret) {
+
+	if (ret)
+	{
 		nvkm_error(subdev, "failed to retrieve pll data, %d\n", ret);
 		return ret;
 	}
 
 	ret = nv04_pll_calc(subdev, &info, freq, &N1, &M1, &N2, &M2, &P);
-	if (!ret) {
+
+	if (!ret)
+	{
 		nvkm_error(subdev, "failed pll calculation\n");
 		return ret;
 	}
 
-	switch (info.type) {
-	case PLL_VPLL0:
-	case PLL_VPLL1:
-		nvkm_wr32(device, info.reg + 0, 0x10000611);
-		nvkm_mask(device, info.reg + 4, 0x00ff00ff, (M1 << 16) | N1);
-		nvkm_mask(device, info.reg + 8, 0x7fff00ff, (P  << 28) |
-							    (M2 << 16) | N2);
-		break;
-	case PLL_MEMORY:
-		nvkm_mask(device, info.reg + 0, 0x01ff0000,
-					        (P << 22) |
-						(info.bias_p << 19) |
-						(P << 16));
-		nvkm_wr32(device, info.reg + 4, (N1 << 8) | M1);
-		break;
-	default:
-		nvkm_mask(device, info.reg + 0, 0x00070000, (P << 16));
-		nvkm_wr32(device, info.reg + 4, (N1 << 8) | M1);
-		break;
+	switch (info.type)
+	{
+		case PLL_VPLL0:
+		case PLL_VPLL1:
+			nvkm_wr32(device, info.reg + 0, 0x10000611);
+			nvkm_mask(device, info.reg + 4, 0x00ff00ff, (M1 << 16) | N1);
+			nvkm_mask(device, info.reg + 8, 0x7fff00ff, (P  << 28) |
+					  (M2 << 16) | N2);
+			break;
+
+		case PLL_MEMORY:
+			nvkm_mask(device, info.reg + 0, 0x01ff0000,
+					  (P << 22) |
+					  (info.bias_p << 19) |
+					  (P << 16));
+			nvkm_wr32(device, info.reg + 4, (N1 << 8) | M1);
+			break;
+
+		default:
+			nvkm_mask(device, info.reg + 0, 0x00070000, (P << 16));
+			nvkm_wr32(device, info.reg + 4, (N1 << 8) | M1);
+			break;
 	}
 
 	return 0;
@@ -85,7 +92,9 @@ nv50_devinit_disable(struct nvkm_devinit *init)
 	u64 disable = 0ULL;
 
 	if (!(r001540 & 0x40000000))
+	{
 		disable |= (1ULL << NVKM_ENGINE_MPEG);
+	}
 
 	return disable;
 }
@@ -100,18 +109,24 @@ nv50_devinit_preinit(struct nvkm_devinit *base)
 	 * devinit scripts executed or not if the display engine is
 	 * missing, assume it's a secondary gpu which requires post
 	 */
-	if (!base->post) {
+	if (!base->post)
+	{
 		u64 disable = nvkm_devinit_disable(base);
+
 		if (disable & (1ULL << NVKM_ENGINE_DISP))
+		{
 			base->post = true;
+		}
 	}
 
 	/* magic to detect whether or not x86 vbios code has executed
 	 * the devinit scripts to initialise the board
 	 */
-	if (!base->post) {
+	if (!base->post)
+	{
 		if (!nvkm_rdvgac(device, 0, 0x00) &&
-		    !nvkm_rdvgac(device, 0, 0x1a)) {
+			!nvkm_rdvgac(device, 0, 0x1a))
+		{
 			nvkm_debug(subdev, "adaptor not initialised\n");
 			base->post = true;
 		}
@@ -134,10 +149,13 @@ nv50_devinit_init(struct nvkm_devinit *base)
 	 * pointer of each dcb entry's display encoder table in order
 	 * to properly initialise each encoder.
 	 */
-	while (init->base.post && dcb_outp_parse(bios, i, &ver, &hdr, &outp)) {
+	while (init->base.post && dcb_outp_parse(bios, i, &ver, &hdr, &outp))
+	{
 		if (nvbios_outp_match(bios, outp.hasht, outp.hashm,
-				      &ver, &hdr, &cnt, &len, &info)) {
-			struct nvbios_init exec = {
+							  &ver, &hdr, &cnt, &len, &info))
+		{
+			struct nvbios_init exec =
+			{
 				.subdev = subdev,
 				.bios = bios,
 				.offset = info.script[0],
@@ -148,19 +166,23 @@ nv50_devinit_init(struct nvkm_devinit *base)
 
 			nvbios_exec(&exec);
 		}
+
 		i++;
 	}
 }
 
 int
 nv50_devinit_new_(const struct nvkm_devinit_func *func,
-		  struct nvkm_device *device, int index,
-		  struct nvkm_devinit **pinit)
+				  struct nvkm_device *device, int index,
+				  struct nvkm_devinit **pinit)
 {
 	struct nv50_devinit *init;
 
 	if (!(init = kzalloc(sizeof(*init), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	*pinit = &init->base;
 
 	nvkm_devinit_ctor(func, device, index, &init->base);
@@ -168,7 +190,8 @@ nv50_devinit_new_(const struct nvkm_devinit_func *func,
 }
 
 static const struct nvkm_devinit_func
-nv50_devinit = {
+	nv50_devinit =
+{
 	.preinit = nv50_devinit_preinit,
 	.init = nv50_devinit_init,
 	.post = nv04_devinit_post,
@@ -178,7 +201,7 @@ nv50_devinit = {
 
 int
 nv50_devinit_new(struct nvkm_device *device, int index,
-		 struct nvkm_devinit **pinit)
+				 struct nvkm_devinit **pinit)
 {
 	return nv50_devinit_new_(&nv50_devinit, device, index, pinit);
 }

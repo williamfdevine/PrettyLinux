@@ -29,7 +29,8 @@ MODULE_DESCRIPTION("Etoms USB Camera Driver");
 MODULE_LICENSE("GPL");
 
 /* specific webcam descriptor */
-struct sd {
+struct sd
+{
 	struct gspca_dev gspca_dev;	/* !! must be the first item */
 
 	unsigned char autogain;
@@ -41,30 +42,38 @@ struct sd {
 #define AG_CNT_START 13
 };
 
-static const struct v4l2_pix_format vga_mode[] = {
-	{320, 240, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
+static const struct v4l2_pix_format vga_mode[] =
+{
+	{
+		320, 240, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
 		.bytesperline = 320,
 		.sizeimage = 320 * 240,
 		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 1},
-/*	{640, 480, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
-		.bytesperline = 640,
-		.sizeimage = 640 * 480,
-		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 0}, */
+		.priv = 1
+	},
+	/*	{640, 480, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
+			.bytesperline = 640,
+			.sizeimage = 640 * 480,
+			.colorspace = V4L2_COLORSPACE_SRGB,
+			.priv = 0}, */
 };
 
-static const struct v4l2_pix_format sif_mode[] = {
-	{176, 144, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
+static const struct v4l2_pix_format sif_mode[] =
+{
+	{
+		176, 144, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
 		.bytesperline = 176,
 		.sizeimage = 176 * 144,
 		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 1},
-	{352, 288, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
+		.priv = 1
+	},
+	{
+		352, 288, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
 		.bytesperline = 352,
 		.sizeimage = 352 * 288,
 		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 0},
+		.priv = 0
+	},
 };
 
 #define ETOMS_ALT_SIZE_1000   12
@@ -158,89 +167,96 @@ static const __u8 I2c4[] = { 0x41, 0x08 };
 
 /* read 'len' bytes to gspca_dev->usb_buf */
 static void reg_r(struct gspca_dev *gspca_dev,
-		  __u16 index,
-		  __u16 len)
+				  __u16 index,
+				  __u16 len)
 {
 	struct usb_device *dev = gspca_dev->dev;
 
-	if (len > USB_BUF_SZ) {
+	if (len > USB_BUF_SZ)
+	{
 		PERR("reg_r: buffer overflow\n");
 		return;
 	}
 
 	usb_control_msg(dev,
-			usb_rcvctrlpipe(dev, 0),
-			0,
-			USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
-			0,
-			index, gspca_dev->usb_buf, len, 500);
+					usb_rcvctrlpipe(dev, 0),
+					0,
+					USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
+					0,
+					index, gspca_dev->usb_buf, len, 500);
 	PDEBUG(D_USBI, "reg read [%02x] -> %02x ..",
-			index, gspca_dev->usb_buf[0]);
+		   index, gspca_dev->usb_buf[0]);
 }
 
 static void reg_w_val(struct gspca_dev *gspca_dev,
-			__u16 index,
-			__u8 val)
+					  __u16 index,
+					  __u8 val)
 {
 	struct usb_device *dev = gspca_dev->dev;
 
 	gspca_dev->usb_buf[0] = val;
 	usb_control_msg(dev,
-			usb_sndctrlpipe(dev, 0),
-			0,
-			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
-			0,
-			index, gspca_dev->usb_buf, 1, 500);
+					usb_sndctrlpipe(dev, 0),
+					0,
+					USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
+					0,
+					index, gspca_dev->usb_buf, 1, 500);
 }
 
 static void reg_w(struct gspca_dev *gspca_dev,
-		  __u16 index,
-		  const __u8 *buffer,
-		  __u16 len)
+				  __u16 index,
+				  const __u8 *buffer,
+				  __u16 len)
 {
 	struct usb_device *dev = gspca_dev->dev;
 
-	if (len > USB_BUF_SZ) {
+	if (len > USB_BUF_SZ)
+	{
 		pr_err("reg_w: buffer overflow\n");
 		return;
 	}
+
 	PDEBUG(D_USBO, "reg write [%02x] = %02x..", index, *buffer);
 
 	memcpy(gspca_dev->usb_buf, buffer, len);
 	usb_control_msg(dev,
-			usb_sndctrlpipe(dev, 0),
-			0,
-			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
-			0, index, gspca_dev->usb_buf, len, 500);
+					usb_sndctrlpipe(dev, 0),
+					0,
+					USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_INTERFACE,
+					0, index, gspca_dev->usb_buf, len, 500);
 }
 
 static int i2c_w(struct gspca_dev *gspca_dev,
-		 __u8 reg,
-		 const __u8 *buffer,
-		 int len, __u8 mode)
+				 __u8 reg,
+				 const __u8 *buffer,
+				 int len, __u8 mode)
 {
 	/* buffer should be [D0..D7] */
 	__u8 ptchcount;
 
 	/* set the base address */
 	reg_w_val(gspca_dev, ET_I2C_BASE, 0x40);
-					 /* sensor base for the pas106 */
+	/* sensor base for the pas106 */
 	/* set count and prefetch */
 	ptchcount = ((len & 0x07) << 4) | (mode & 0x03);
 	reg_w_val(gspca_dev, ET_I2C_COUNT, ptchcount);
 	/* set the register base */
 	reg_w_val(gspca_dev, ET_I2C_REG, reg);
+
 	while (--len >= 0)
+	{
 		reg_w_val(gspca_dev, ET_I2C_DATA0 + len, buffer[len]);
+	}
+
 	return 0;
 }
 
 static int i2c_r(struct gspca_dev *gspca_dev,
-			__u8 reg)
+				 __u8 reg)
 {
 	/* set the base address */
 	reg_w_val(gspca_dev, ET_I2C_BASE, 0x40);
-					/* sensor base for the pas106 */
+	/* sensor base for the pas106 */
 	/* set count and prefetch (cnd: 4 bits - mode: 4 bits) */
 	reg_w_val(gspca_dev, ET_I2C_COUNT, 0x11);
 	reg_w_val(gspca_dev, ET_I2C_REG, reg);	/* set the register base */
@@ -254,25 +270,34 @@ static int Et_WaitStatus(struct gspca_dev *gspca_dev)
 {
 	int retry = 10;
 
-	while (retry--) {
+	while (retry--)
+	{
 		reg_r(gspca_dev, ET_ClCK, 1);
+
 		if (gspca_dev->usb_buf[0] != 0)
+		{
 			return 1;
+		}
 	}
+
 	return 0;
 }
 
 static int et_video(struct gspca_dev *gspca_dev,
-		    int on)
+					int on)
 {
 	int ret;
 
 	reg_w_val(gspca_dev, ET_GPIO_OUT,
-		  on ? 0x10		/* startvideo - set Bit5 */
-		     : 0);		/* stopvideo */
+			  on ? 0x10		/* startvideo - set Bit5 */
+			  : 0);		/* stopvideo */
 	ret = Et_WaitStatus(gspca_dev);
+
 	if (ret != 0)
+	{
 		PERR("timeout video on/off");
+	}
+
 	return ret;
 }
 
@@ -290,9 +315,14 @@ static void Et_init2(struct gspca_dev *gspca_dev)
 
 	/*  compression et subsampling */
 	if (gspca_dev->cam.cam_mode[(int) gspca_dev->curr_mode].priv)
-		value = ET_COMP_VAL1;	/* 320 */
+	{
+		value = ET_COMP_VAL1;    /* 320 */
+	}
 	else
-		value = ET_COMP_VAL0;	/* 640 */
+	{
+		value = ET_COMP_VAL0;    /* 640 */
+	}
+
 	reg_w_val(gspca_dev, ET_COMP, value);
 	reg_w_val(gspca_dev, ET_MAXQt, 0x1f);
 	reg_w_val(gspca_dev, ET_MINQt, 0x04);
@@ -362,13 +392,18 @@ static void Et_init2(struct gspca_dev *gspca_dev)
 	reg_w_val(gspca_dev, 0x03, 0x08);
 	/********************************************/
 
-/*	reg_r(gspca_dev, ET_I2C_BASE, 1);
-					 always 0x40 as the pas106 ??? */
+	/*	reg_r(gspca_dev, ET_I2C_BASE, 1);
+						 always 0x40 as the pas106 ??? */
 	/* set the sensor */
 	if (gspca_dev->cam.cam_mode[(int) gspca_dev->curr_mode].priv)
-		value = 0x04;		/* 320 */
+	{
+		value = 0x04;    /* 320 */
+	}
 	else				/* 640 */
-		value = 0x1e;	/* 0x17	 * setting PixelClock
+	{
+		value = 0x1e;
+	}	/* 0x17	 * setting PixelClock
+
 					 * 0x03 mean 24/(3+1) = 6 Mhz
 					 * 0x05 -> 24/(5+1) = 4 Mhz
 					 * 0x0b -> 24/(11+1) = 2 Mhz
@@ -394,7 +429,9 @@ static void setbrightness(struct gspca_dev *gspca_dev, s32 val)
 	int i;
 
 	for (i = 0; i < 4; i++)
+	{
 		reg_w_val(gspca_dev, ET_O_RED + i, val);
+	}
 }
 
 static void setcontrast(struct gspca_dev *gspca_dev, s32 val)
@@ -414,25 +451,30 @@ static void setcolors(struct gspca_dev *gspca_dev, s32 val)
 
 	I2cc[3] = val;	/* red */
 	I2cc[0] = 15 - val;	/* blue */
+
 	/* green = 15 - ((((7*I2cc[0]) >> 2 ) + I2cc[3]) >> 1); */
 	/* I2cc[1] = I2cc[2] = green; */
-	if (sd->sensor == SENSOR_PAS106) {
+	if (sd->sensor == SENSOR_PAS106)
+	{
 		i2c_w(gspca_dev, PAS106_REG13, &i2cflags, 1, 3);
 		i2c_w(gspca_dev, PAS106_REG9, I2cc, sizeof I2cc, 1);
 	}
-/*	PDEBUG(D_CONF , "Etoms red %d blue %d green %d",
-		I2cc[3], I2cc[0], green); */
+
+	/*	PDEBUG(D_CONF , "Etoms red %d blue %d green %d",
+			I2cc[3], I2cc[0], green); */
 }
 
 static s32 getcolors(struct gspca_dev *gspca_dev)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 
-	if (sd->sensor == SENSOR_PAS106) {
-/*		i2c_r(gspca_dev, PAS106_REG9);		 * blue */
+	if (sd->sensor == SENSOR_PAS106)
+	{
+		/*		i2c_r(gspca_dev, PAS106_REG9);		 * blue */
 		i2c_r(gspca_dev, PAS106_REG9 + 3);	/* red */
 		return gspca_dev->usb_buf[0] & 0x0f;
 	}
+
 	return 0;
 }
 
@@ -441,19 +483,23 @@ static void setautogain(struct gspca_dev *gspca_dev)
 	struct sd *sd = (struct sd *) gspca_dev;
 
 	if (sd->autogain)
+	{
 		sd->ag_cnt = AG_CNT_START;
+	}
 	else
+	{
 		sd->ag_cnt = -1;
+	}
 }
 
 static void Et_init1(struct gspca_dev *gspca_dev)
 {
 	__u8 value;
-/*	__u8 I2c0 [] = {0x0a, 0x12, 0x05, 0x22, 0xac, 0x00, 0x01, 0x00}; */
+	/*	__u8 I2c0 [] = {0x0a, 0x12, 0x05, 0x22, 0xac, 0x00, 0x01, 0x00}; */
 	__u8 I2c0[] = { 0x0a, 0x12, 0x05, 0x6d, 0xcd, 0x00, 0x01, 0x00 };
-						/* try 1/120 0x6d 0xcd 0x40 */
-/*	__u8 I2c0 [] = {0x0a, 0x12, 0x05, 0xfe, 0xfe, 0xc0, 0x01, 0x00};
-						 * 1/60000 hmm ?? */
+	/* try 1/120 0x6d 0xcd 0x40 */
+	/*	__u8 I2c0 [] = {0x0a, 0x12, 0x05, 0xfe, 0xfe, 0xc0, 0x01, 0x00};
+							 * 1/60000 hmm ?? */
 
 	PDEBUG(D_STREAM, "Open Init1 ET");
 	reg_w_val(gspca_dev, ET_GPIO_DIR_CTRL, 7);
@@ -462,14 +508,20 @@ static void Et_init1(struct gspca_dev *gspca_dev)
 	reg_w_val(gspca_dev, ET_RESET_ALL, 0);
 	reg_w_val(gspca_dev, ET_ClCK, 0x10);
 	reg_w_val(gspca_dev, ET_CTRL, 0x19);
+
 	/*   compression et subsampling */
 	if (gspca_dev->cam.cam_mode[(int) gspca_dev->curr_mode].priv)
+	{
 		value = ET_COMP_VAL1;
+	}
 	else
+	{
 		value = ET_COMP_VAL0;
+	}
+
 	PDEBUG(D_STREAM, "Open mode %d Compression %d",
-	       gspca_dev->cam.cam_mode[(int) gspca_dev->curr_mode].priv,
-	       value);
+		   gspca_dev->cam.cam_mode[(int) gspca_dev->curr_mode].priv,
+		   value);
 	reg_w_val(gspca_dev, ET_COMP, value);
 	reg_w_val(gspca_dev, ET_MAXQt, 0x1d);
 	reg_w_val(gspca_dev, ET_MINQt, 0x02);
@@ -508,8 +560,10 @@ static void Et_init1(struct gspca_dev *gspca_dev)
 	reg_w_val(gspca_dev, ET_REG75, 0x0a);
 	reg_w_val(gspca_dev, ET_I2C_CLK, 0x04);
 	reg_w_val(gspca_dev, ET_PXL_CLK, 0x01);
+
 	/* set the sensor */
-	if (gspca_dev->cam.cam_mode[(int) gspca_dev->curr_mode].priv) {
+	if (gspca_dev->cam.cam_mode[(int) gspca_dev->curr_mode].priv)
+	{
 		I2c0[0] = 0x06;
 		i2c_w(gspca_dev, PAS106_REG2, I2c0, sizeof I2c0, 1);
 		i2c_w(gspca_dev, PAS106_REG9, I2c2, sizeof I2c2, 1);
@@ -519,7 +573,9 @@ static void Et_init1(struct gspca_dev *gspca_dev)
 		/* value = 0x1f; */
 		value = 0x04;
 		i2c_w(gspca_dev, PAS106_REG0e, &value, 1, 1);
-	} else {
+	}
+	else
+	{
 		I2c0[0] = 0x0a;
 
 		i2c_w(gspca_dev, PAS106_REG2, I2c0, sizeof I2c0, 1);
@@ -536,9 +592,9 @@ static void Et_init1(struct gspca_dev *gspca_dev)
 		 */
 	}
 
-/*	value = 0x01; */
-/*	value = 0x22; */
-/*	i2c_w(gspca_dev, PAS106_REG5, &value, 1, 1); */
+	/*	value = 0x01; */
+	/*	value = 0x22; */
+	/*	i2c_w(gspca_dev, PAS106_REG5, &value, 1, 1); */
 	/* magnetude and sign bit for DAC */
 	i2c_w(gspca_dev, PAS106_REG7, I2c4, sizeof I2c4, 1);
 	/* now set by fifo the whole colors setting */
@@ -548,20 +604,25 @@ static void Et_init1(struct gspca_dev *gspca_dev)
 
 /* this function is called at probe time */
 static int sd_config(struct gspca_dev *gspca_dev,
-		     const struct usb_device_id *id)
+					 const struct usb_device_id *id)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 	struct cam *cam;
 
 	cam = &gspca_dev->cam;
 	sd->sensor = id->driver_info;
-	if (sd->sensor == SENSOR_PAS106) {
+
+	if (sd->sensor == SENSOR_PAS106)
+	{
 		cam->cam_mode = sif_mode;
 		cam->nmodes = ARRAY_SIZE(sif_mode);
-	} else {
+	}
+	else
+	{
 		cam->cam_mode = vga_mode;
 		cam->nmodes = ARRAY_SIZE(vga_mode);
 	}
+
 	sd->ag_cnt = -1;
 	return 0;
 }
@@ -572,9 +633,14 @@ static int sd_init(struct gspca_dev *gspca_dev)
 	struct sd *sd = (struct sd *) gspca_dev;
 
 	if (sd->sensor == SENSOR_PAS106)
+	{
 		Et_init1(gspca_dev);
+	}
 	else
+	{
 		Et_init2(gspca_dev);
+	}
+
 	reg_w_val(gspca_dev, ET_RESET_ALL, 0x08);
 	et_video(gspca_dev, 0);		/* video off */
 	return 0;
@@ -586,9 +652,13 @@ static int sd_start(struct gspca_dev *gspca_dev)
 	struct sd *sd = (struct sd *) gspca_dev;
 
 	if (sd->sensor == SENSOR_PAS106)
+	{
 		Et_init1(gspca_dev);
+	}
 	else
+	{
 		Et_init2(gspca_dev);
+	}
 
 	setautogain(gspca_dev);
 
@@ -606,11 +676,13 @@ static __u8 Et_getgainG(struct gspca_dev *gspca_dev)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 
-	if (sd->sensor == SENSOR_PAS106) {
+	if (sd->sensor == SENSOR_PAS106)
+	{
 		i2c_r(gspca_dev, PAS106_REG0e);
 		PDEBUG(D_CONF, "Etoms gain G %d", gspca_dev->usb_buf[0]);
 		return gspca_dev->usb_buf[0];
 	}
+
 	return 0x1f;
 }
 
@@ -618,7 +690,8 @@ static void Et_setgainG(struct gspca_dev *gspca_dev, __u8 gain)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 
-	if (sd->sensor == SENSOR_PAS106) {
+	if (sd->sensor == SENSOR_PAS106)
+	{
 		__u8 i2cflags = 0x01;
 
 		i2c_w(gspca_dev, PAS106_REG13, &i2cflags, 1, 3);
@@ -642,9 +715,15 @@ static void do_autogain(struct gspca_dev *gspca_dev)
 	__u8 r, g, b;
 
 	if (sd->ag_cnt < 0)
+	{
 		return;
+	}
+
 	if (--sd->ag_cnt >= 0)
+	{
 		return;
+	}
+
 	sd->ag_cnt = AG_CNT_START;
 
 	Gbright = Et_getgainG(gspca_dev);
@@ -657,7 +736,9 @@ static void do_autogain(struct gspca_dev *gspca_dev)
 	g = ((g << 9) + (g << 7) + (g << 5)) >> 10;
 	luma = LIMIT(r + g + b);
 	PDEBUG(D_FRAM, "Etoms luma G %d", luma);
-	if (luma < luma_mean - luma_delta || luma > luma_mean + luma_delta) {
+
+	if (luma < luma_mean - luma_delta || luma > luma_mean + luma_delta)
+	{
 		Gbright += (luma_mean - luma) >> spring;
 		Gbright = BLIMIT(Gbright);
 		PDEBUG(D_FRAM, "Etoms Gbright %d", Gbright);
@@ -669,28 +750,34 @@ static void do_autogain(struct gspca_dev *gspca_dev)
 #undef LIMIT
 
 static void sd_pkt_scan(struct gspca_dev *gspca_dev,
-			u8 *data,			/* isoc packet */
-			int len)			/* iso packet length */
+						u8 *data,			/* isoc packet */
+						int len)			/* iso packet length */
 {
 	int seqframe;
 
 	seqframe = data[0] & 0x3f;
 	len = (int) (((data[0] & 0xc0) << 2) | data[1]);
-	if (seqframe == 0x3f) {
+
+	if (seqframe == 0x3f)
+	{
 		PDEBUG(D_FRAM,
-		       "header packet found datalength %d !!", len);
+			   "header packet found datalength %d !!", len);
 		PDEBUG(D_FRAM, "G %d R %d G %d B %d",
-		       data[2], data[3], data[4], data[5]);
+			   data[2], data[3], data[4], data[5]);
 		data += 30;
 		/* don't change datalength as the chips provided it */
 		gspca_frame_add(gspca_dev, LAST_PACKET, NULL, 0);
 		gspca_frame_add(gspca_dev, FIRST_PACKET, data, len);
 		return;
 	}
-	if (len) {
+
+	if (len)
+	{
 		data += 8;
 		gspca_frame_add(gspca_dev, INTER_PACKET, data, len);
-	} else {			/* Drop Packet */
+	}
+	else  			/* Drop Packet */
+	{
 		gspca_dev->last_packet_type = DISCARD_PACKET;
 	}
 }
@@ -704,27 +791,35 @@ static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
 	gspca_dev->usb_err = 0;
 
 	if (!gspca_dev->streaming)
+	{
 		return 0;
-
-	switch (ctrl->id) {
-	case V4L2_CID_BRIGHTNESS:
-		setbrightness(gspca_dev, ctrl->val);
-		break;
-	case V4L2_CID_CONTRAST:
-		setcontrast(gspca_dev, ctrl->val);
-		break;
-	case V4L2_CID_SATURATION:
-		setcolors(gspca_dev, ctrl->val);
-		break;
-	case V4L2_CID_AUTOGAIN:
-		sd->autogain = ctrl->val;
-		setautogain(gspca_dev);
-		break;
 	}
+
+	switch (ctrl->id)
+	{
+		case V4L2_CID_BRIGHTNESS:
+			setbrightness(gspca_dev, ctrl->val);
+			break;
+
+		case V4L2_CID_CONTRAST:
+			setcontrast(gspca_dev, ctrl->val);
+			break;
+
+		case V4L2_CID_SATURATION:
+			setcolors(gspca_dev, ctrl->val);
+			break;
+
+		case V4L2_CID_AUTOGAIN:
+			sd->autogain = ctrl->val;
+			setautogain(gspca_dev);
+			break;
+	}
+
 	return gspca_dev->usb_err;
 }
 
-static const struct v4l2_ctrl_ops sd_ctrl_ops = {
+static const struct v4l2_ctrl_ops sd_ctrl_ops =
+{
 	.s_ctrl = sd_s_ctrl,
 };
 
@@ -736,23 +831,29 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
 	gspca_dev->vdev.ctrl_handler = hdl;
 	v4l2_ctrl_handler_init(hdl, 4);
 	v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-			V4L2_CID_BRIGHTNESS, 1, 127, 1, 63);
+					  V4L2_CID_BRIGHTNESS, 1, 127, 1, 63);
 	v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-			V4L2_CID_CONTRAST, 0, 255, 1, 127);
+					  V4L2_CID_CONTRAST, 0, 255, 1, 127);
+
 	if (sd->sensor == SENSOR_PAS106)
 		v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-			V4L2_CID_SATURATION, 0, 15, 1, 7);
+						  V4L2_CID_SATURATION, 0, 15, 1, 7);
+
 	v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-			V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
-	if (hdl->error) {
+					  V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
+
+	if (hdl->error)
+	{
 		pr_err("Could not initialize controls\n");
 		return hdl->error;
 	}
+
 	return 0;
 }
 
 /* sub-driver description */
-static const struct sd_desc sd_desc = {
+static const struct sd_desc sd_desc =
+{
 	.name = MODULE_NAME,
 	.config = sd_config,
 	.init = sd_init,
@@ -764,7 +865,8 @@ static const struct sd_desc sd_desc = {
 };
 
 /* -- module initialisation -- */
-static const struct usb_device_id device_table[] = {
+static const struct usb_device_id device_table[] =
+{
 	{USB_DEVICE(0x102c, 0x6151), .driver_info = SENSOR_PAS106},
 	{USB_DEVICE(0x102c, 0x6251), .driver_info = SENSOR_TAS5130CXX},
 	{}
@@ -774,13 +876,14 @@ MODULE_DEVICE_TABLE(usb, device_table);
 
 /* -- device connect -- */
 static int sd_probe(struct usb_interface *intf,
-		    const struct usb_device_id *id)
+					const struct usb_device_id *id)
 {
 	return gspca_dev_probe(intf, id, &sd_desc, sizeof(struct sd),
-			       THIS_MODULE);
+						   THIS_MODULE);
 }
 
-static struct usb_driver sd_driver = {
+static struct usb_driver sd_driver =
+{
 	.name = MODULE_NAME,
 	.id_table = device_table,
 	.probe = sd_probe,

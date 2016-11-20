@@ -30,7 +30,8 @@
 #define	XFS_DIR2_LEAF1_MAGIC	0xd2f1	/* magic number: v2 dirlf single blks */
 #define	XFS_DIR2_LEAFN_MAGIC	0xd2ff	/* magic number: v2 dirlf multi blks */
 
-typedef struct xfs_da_blkinfo {
+typedef struct xfs_da_blkinfo
+{
 	__be32		forw;			/* previous block in list */
 	__be32		back;			/* following block in list */
 	__be16		magic;			/* validity check on block */
@@ -50,7 +51,8 @@ typedef struct xfs_da_blkinfo {
 #define	XFS_DIR3_LEAF1_MAGIC	0x3df1	/* magic number: v2 dirlf single blks */
 #define	XFS_DIR3_LEAFN_MAGIC	0x3dff	/* magic number: v2 dirlf multi blks */
 
-struct xfs_da3_blkinfo {
+struct xfs_da3_blkinfo
+{
 	/*
 	 * the node link manipulation code relies on the fact that the first
 	 * element of this structure is the struct xfs_da_blkinfo so it can
@@ -75,13 +77,15 @@ struct xfs_da3_blkinfo {
  */
 #define	XFS_DA_NODE_MAXDEPTH	5	/* max depth of Btree */
 
-typedef struct xfs_da_node_hdr {
+typedef struct xfs_da_node_hdr
+{
 	struct xfs_da_blkinfo	info;	/* block type, links, etc. */
 	__be16			__count; /* count of active entries */
 	__be16			__level; /* level above leaves (leaf == 0) */
 } xfs_da_node_hdr_t;
 
-struct xfs_da3_node_hdr {
+struct xfs_da3_node_hdr
+{
 	struct xfs_da3_blkinfo	info;	/* block type, links, etc. */
 	__be16			__count; /* count of active entries */
 	__be16			__level; /* level above leaves (leaf == 0) */
@@ -90,17 +94,20 @@ struct xfs_da3_node_hdr {
 
 #define XFS_DA3_NODE_CRC_OFF	(offsetof(struct xfs_da3_node_hdr, info.crc))
 
-typedef struct xfs_da_node_entry {
+typedef struct xfs_da_node_entry
+{
 	__be32	hashval;	/* hash value for this descendant */
 	__be32	before;		/* Btree block before this key */
 } xfs_da_node_entry_t;
 
-typedef struct xfs_da_intnode {
+typedef struct xfs_da_intnode
+{
 	struct xfs_da_node_hdr	hdr;
 	struct xfs_da_node_entry __btree[];
 } xfs_da_intnode_t;
 
-struct xfs_da3_intnode {
+struct xfs_da3_intnode
+{
 	struct xfs_da3_node_hdr	hdr;
 	struct xfs_da_node_entry __btree[];
 };
@@ -110,7 +117,8 @@ struct xfs_da3_intnode {
  * v3 disk format of the headers. Callers need to convert to/from disk format as
  * appropriate.
  */
-struct xfs_da3_icnode_hdr {
+struct xfs_da3_icnode_hdr
+{
 	__uint32_t	forw;
 	__uint32_t	back;
 	__uint16_t	magic;
@@ -225,13 +233,15 @@ typedef	__uint32_t	xfs_dir2_db_t;
  * variable length, and the accessors in this file should be used to iterate
  * over them.
  */
-typedef struct xfs_dir2_sf_hdr {
+typedef struct xfs_dir2_sf_hdr
+{
 	__uint8_t		count;		/* count of entries */
 	__uint8_t		i8count;	/* count of 8-byte inode #s */
 	__uint8_t		parent[8];	/* parent dir inode number */
 } __packed xfs_dir2_sf_hdr_t;
 
-typedef struct xfs_dir2_sf_entry {
+typedef struct xfs_dir2_sf_entry
+{
 	__u8			namelen;	/* actual name length */
 	__u8			offset[2];	/* saved offset */
 	__u8			name[];		/* name, variable size */
@@ -247,7 +257,7 @@ typedef struct xfs_dir2_sf_entry {
 static inline int xfs_dir2_sf_hdr_size(int i8count)
 {
 	return sizeof(struct xfs_dir2_sf_hdr) -
-		(i8count == 0) * XFS_INO64_DIFF;
+		   (i8count == 0) * XFS_INO64_DIFF;
 }
 
 static inline xfs_dir2_data_aoff_t
@@ -266,7 +276,7 @@ static inline struct xfs_dir2_sf_entry *
 xfs_dir2_sf_firstentry(struct xfs_dir2_sf_hdr *hdr)
 {
 	return (struct xfs_dir2_sf_entry *)
-		((char *)hdr + xfs_dir2_sf_hdr_size(hdr->i8count));
+		   ((char *)hdr + xfs_dir2_sf_hdr_size(hdr->i8count));
 }
 
 /*
@@ -311,7 +321,8 @@ xfs_dir2_sf_firstentry(struct xfs_dir2_sf_hdr *hdr)
  *
  * The freespace will be formatted as a xfs_dir2_data_unused_t.
  */
-typedef struct xfs_dir2_data_free {
+typedef struct xfs_dir2_data_free
+{
 	__be16			offset;		/* start of freespace */
 	__be16			length;		/* length of freespace */
 } xfs_dir2_data_free_t;
@@ -321,9 +332,10 @@ typedef struct xfs_dir2_data_free {
  *
  * The code knows that XFS_DIR2_DATA_FD_COUNT is 3.
  */
-typedef struct xfs_dir2_data_hdr {
+typedef struct xfs_dir2_data_hdr
+{
 	__be32			magic;		/* XFS_DIR2_DATA_MAGIC or */
-						/* XFS_DIR2_BLOCK_MAGIC */
+	/* XFS_DIR2_BLOCK_MAGIC */
 	xfs_dir2_data_free_t	bestfree[XFS_DIR2_DATA_FD_COUNT];
 } xfs_dir2_data_hdr_t;
 
@@ -333,7 +345,8 @@ typedef struct xfs_dir2_data_hdr {
  * The magic number must be the first entry to align with all the dir2
  * structures so we determine how to decode them just by the magic number.
  */
-struct xfs_dir3_blk_hdr {
+struct xfs_dir3_blk_hdr
+{
 	__be32			magic;	/* magic number */
 	__be32			crc;	/* CRC of block */
 	__be64			blkno;	/* first block of the buffer */
@@ -342,7 +355,8 @@ struct xfs_dir3_blk_hdr {
 	__be64			owner;	/* inode that owns the block */
 };
 
-struct xfs_dir3_data_hdr {
+struct xfs_dir3_data_hdr
+{
 	struct xfs_dir3_blk_hdr	hdr;
 	xfs_dir2_data_free_t	best_free[XFS_DIR2_DATA_FD_COUNT];
 	__be32			pad;	/* 64 bit alignment */
@@ -361,12 +375,13 @@ struct xfs_dir3_data_hdr {
  * the end of the name so any padding for rounding is between the file type and
  * the tag.
  */
-typedef struct xfs_dir2_data_entry {
+typedef struct xfs_dir2_data_entry
+{
 	__be64			inumber;	/* inode number */
 	__u8			namelen;	/* name length */
 	__u8			name[];		/* name bytes, no null */
-     /* __u8			filetype; */	/* type of inode we point to */
-     /*	__be16                  tag; */		/* starting offset of us */
+	/* __u8			filetype; */	/* type of inode we point to */
+	/*	__be16                  tag; */		/* starting offset of us */
 } xfs_dir2_data_entry_t;
 
 /*
@@ -375,10 +390,11 @@ typedef struct xfs_dir2_data_entry {
  * Aligned to 8 bytes.  Tag appears as the last 2 bytes and must be accessed
  * using xfs_dir2_data_unused_tag_p.
  */
-typedef struct xfs_dir2_data_unused {
+typedef struct xfs_dir2_data_unused
+{
 	__be16			freetag;	/* XFS_DIR2_DATA_FREE_TAG */
 	__be16			length;		/* total free length */
-						/* variable offset */
+	/* variable offset */
 	__be16			tag;		/* starting offset of us */
 } xfs_dir2_data_unused_t;
 
@@ -389,7 +405,7 @@ static inline __be16 *
 xfs_dir2_data_unused_tag_p(struct xfs_dir2_data_unused *dup)
 {
 	return (__be16 *)((char *)dup +
-			be16_to_cpu(dup->length) - sizeof(__be16));
+					  be16_to_cpu(dup->length) - sizeof(__be16));
 }
 
 /*
@@ -433,20 +449,23 @@ xfs_dir2_data_unused_tag_p(struct xfs_dir2_data_unused *dup)
 /*
  * Leaf block header.
  */
-typedef struct xfs_dir2_leaf_hdr {
+typedef struct xfs_dir2_leaf_hdr
+{
 	xfs_da_blkinfo_t	info;		/* header for da routines */
 	__be16			count;		/* count of entries */
 	__be16			stale;		/* count of stale entries */
 } xfs_dir2_leaf_hdr_t;
 
-struct xfs_dir3_leaf_hdr {
+struct xfs_dir3_leaf_hdr
+{
 	struct xfs_da3_blkinfo	info;		/* header for da routines */
 	__be16			count;		/* count of entries */
 	__be16			stale;		/* count of stale entries */
 	__be32			pad;		/* 64 bit alignment */
 };
 
-struct xfs_dir3_icleaf_hdr {
+struct xfs_dir3_icleaf_hdr
+{
 	__uint32_t		forw;
 	__uint32_t		back;
 	__uint16_t		magic;
@@ -457,7 +476,8 @@ struct xfs_dir3_icleaf_hdr {
 /*
  * Leaf block entry.
  */
-typedef struct xfs_dir2_leaf_entry {
+typedef struct xfs_dir2_leaf_entry
+{
 	__be32			hashval;	/* hash value of name */
 	__be32			address;	/* address of data entry */
 } xfs_dir2_leaf_entry_t;
@@ -465,19 +485,22 @@ typedef struct xfs_dir2_leaf_entry {
 /*
  * Leaf block tail.
  */
-typedef struct xfs_dir2_leaf_tail {
+typedef struct xfs_dir2_leaf_tail
+{
 	__be32			bestcount;
 } xfs_dir2_leaf_tail_t;
 
 /*
  * Leaf block.
  */
-typedef struct xfs_dir2_leaf {
+typedef struct xfs_dir2_leaf
+{
 	xfs_dir2_leaf_hdr_t	hdr;			/* leaf header */
 	xfs_dir2_leaf_entry_t	__ents[];		/* entries */
 } xfs_dir2_leaf_t;
 
-struct xfs_dir3_leaf {
+struct xfs_dir3_leaf
+{
 	struct xfs_dir3_leaf_hdr	hdr;		/* leaf header */
 	struct xfs_dir2_leaf_entry	__ents[];	/* entries */
 };
@@ -503,20 +526,23 @@ xfs_dir2_leaf_bests_p(struct xfs_dir2_leaf_tail *ltp)
 #define	XFS_DIR2_FREE_SPACE	2
 #define	XFS_DIR2_FREE_OFFSET	(XFS_DIR2_FREE_SPACE * XFS_DIR2_SPACE_SIZE)
 
-typedef	struct xfs_dir2_free_hdr {
+typedef	struct xfs_dir2_free_hdr
+{
 	__be32			magic;		/* XFS_DIR2_FREE_MAGIC */
 	__be32			firstdb;	/* db of first entry */
 	__be32			nvalid;		/* count of valid entries */
 	__be32			nused;		/* count of used entries */
 } xfs_dir2_free_hdr_t;
 
-typedef struct xfs_dir2_free {
+typedef struct xfs_dir2_free
+{
 	xfs_dir2_free_hdr_t	hdr;		/* block header */
 	__be16			bests[];	/* best free counts */
-						/* unused entries are -1 */
+	/* unused entries are -1 */
 } xfs_dir2_free_t;
 
-struct xfs_dir3_free_hdr {
+struct xfs_dir3_free_hdr
+{
 	struct xfs_dir3_blk_hdr	hdr;
 	__be32			firstdb;	/* db of first entry */
 	__be32			nvalid;		/* count of valid entries */
@@ -524,10 +550,11 @@ struct xfs_dir3_free_hdr {
 	__be32			pad;		/* 64 bit alignment */
 };
 
-struct xfs_dir3_free {
+struct xfs_dir3_free
+{
 	struct xfs_dir3_free_hdr hdr;
 	__be16			bests[];	/* best free counts */
-						/* unused entries are -1 */
+	/* unused entries are -1 */
 };
 
 #define XFS_DIR3_FREE_CRC_OFF  offsetof(struct xfs_dir3_free, hdr.hdr.crc)
@@ -537,7 +564,8 @@ struct xfs_dir3_free {
  * differences. Use this in the code, and convert to/from the disk version using
  * xfs_dir3_free_hdr_from_disk/xfs_dir3_free_hdr_to_disk.
  */
-struct xfs_dir3_icfree_hdr {
+struct xfs_dir3_icfree_hdr
+{
 	__uint32_t	magic;
 	__uint32_t	firstdb;
 	__uint32_t	nvalid;
@@ -571,7 +599,8 @@ struct xfs_dir3_icfree_hdr {
  * be used to iterate over them.
  */
 
-typedef struct xfs_dir2_block_tail {
+typedef struct xfs_dir2_block_tail
+{
 	__be32		count;			/* count of leaf entries */
 	__be32		stale;			/* count of stale lf entries */
 } xfs_dir2_block_tail_t;
@@ -625,13 +654,16 @@ xfs_dir2_block_leaf_p(struct xfs_dir2_block_tail *btp)
 /*
  * Entries are packed toward the top as tight as possible.
  */
-typedef struct xfs_attr_shortform {
-	struct xfs_attr_sf_hdr {	/* constant-structure header block */
+typedef struct xfs_attr_shortform
+{
+	struct xfs_attr_sf_hdr  	/* constant-structure header block */
+	{
 		__be16	totsize;	/* total bytes in shortform list */
 		__u8	count;	/* count of active entries */
 		__u8	padding;
 	} hdr;
-	struct xfs_attr_sf_entry {
+	struct xfs_attr_sf_entry
+	{
 		__uint8_t namelen;	/* actual length of name (no NULL) */
 		__uint8_t valuelen;	/* actual length of value (no NULL) */
 		__uint8_t flags;	/* flags bits (see xfs_attr_leaf.h) */
@@ -639,12 +671,14 @@ typedef struct xfs_attr_shortform {
 	} list[1];			/* variable sized array */
 } xfs_attr_shortform_t;
 
-typedef struct xfs_attr_leaf_map {	/* RLE map of free bytes */
+typedef struct xfs_attr_leaf_map  	/* RLE map of free bytes */
+{
 	__be16	base;			  /* base of free region */
 	__be16	size;			  /* length of free region */
 } xfs_attr_leaf_map_t;
 
-typedef struct xfs_attr_leaf_hdr {	/* constant-structure header block */
+typedef struct xfs_attr_leaf_hdr  	/* constant-structure header block */
+{
 	xfs_da_blkinfo_t info;		/* block type, links, etc. */
 	__be16	count;			/* count of active leaf_entry's */
 	__be16	usedbytes;		/* num bytes of names/values stored */
@@ -652,30 +686,34 @@ typedef struct xfs_attr_leaf_hdr {	/* constant-structure header block */
 	__u8	holes;			/* != 0 if blk needs compaction */
 	__u8	pad1;
 	xfs_attr_leaf_map_t freemap[XFS_ATTR_LEAF_MAPSIZE];
-					/* N largest free regions */
+	/* N largest free regions */
 } xfs_attr_leaf_hdr_t;
 
-typedef struct xfs_attr_leaf_entry {	/* sorted on key, not name */
+typedef struct xfs_attr_leaf_entry  	/* sorted on key, not name */
+{
 	__be32	hashval;		/* hash value of name */
 	__be16	nameidx;		/* index into buffer of name/value */
 	__u8	flags;			/* LOCAL/ROOT/SECURE/INCOMPLETE flag */
 	__u8	pad2;			/* unused pad byte */
 } xfs_attr_leaf_entry_t;
 
-typedef struct xfs_attr_leaf_name_local {
+typedef struct xfs_attr_leaf_name_local
+{
 	__be16	valuelen;		/* number of bytes in value */
 	__u8	namelen;		/* length of name bytes */
 	__u8	nameval[1];		/* name/value bytes */
 } xfs_attr_leaf_name_local_t;
 
-typedef struct xfs_attr_leaf_name_remote {
+typedef struct xfs_attr_leaf_name_remote
+{
 	__be32	valueblk;		/* block number of value bytes */
 	__be32	valuelen;		/* number of bytes in value */
 	__u8	namelen;		/* length of name bytes */
 	__u8	name[1];		/* name bytes */
 } xfs_attr_leaf_name_remote_t;
 
-typedef struct xfs_attr_leafblock {
+typedef struct xfs_attr_leafblock
+{
 	xfs_attr_leaf_hdr_t	hdr;	/* constant-structure header block */
 	xfs_attr_leaf_entry_t	entries[1];	/* sorted on key, not name */
 	/*
@@ -694,7 +732,8 @@ typedef struct xfs_attr_leafblock {
  * version number of the directory and dablk structures for this feature, and
  * attr2 is already taken by the variable inode attribute fork size feature.
  */
-struct xfs_attr3_leaf_hdr {
+struct xfs_attr3_leaf_hdr
+{
 	struct xfs_da3_blkinfo	info;
 	__be16			count;
 	__be16			usedbytes;
@@ -707,7 +746,8 @@ struct xfs_attr3_leaf_hdr {
 
 #define XFS_ATTR3_LEAF_CRC_OFF	(offsetof(struct xfs_attr3_leaf_hdr, info.crc))
 
-struct xfs_attr3_leafblock {
+struct xfs_attr3_leafblock
+{
 	struct xfs_attr3_leaf_hdr	hdr;
 	struct xfs_attr_leaf_entry	entries[1];
 
@@ -724,7 +764,8 @@ struct xfs_attr3_leafblock {
 /*
  * incore, neutral version of the attribute leaf header
  */
-struct xfs_attr3_icleaf_hdr {
+struct xfs_attr3_icleaf_hdr
+{
 	__uint32_t	forw;
 	__uint32_t	back;
 	__uint16_t	magic;
@@ -738,7 +779,8 @@ struct xfs_attr3_icleaf_hdr {
 	 */
 	__uint32_t	firstused;
 	__u8		holes;
-	struct {
+	struct
+	{
 		__uint16_t	base;
 		__uint16_t	size;
 	} freemap[XFS_ATTR_LEAF_MAPSIZE];
@@ -773,9 +815,9 @@ struct xfs_attr3_icleaf_hdr {
 #define XFS_ATTR_NSP_ONDISK(flags)	((flags) & XFS_ATTR_NSP_ONDISK_MASK)
 #define XFS_ATTR_NSP_ARGS(flags)	((flags) & XFS_ATTR_NSP_ARGS_MASK)
 #define XFS_ATTR_NSP_ARGS_TO_ONDISK(x)	(((x) & ATTR_ROOT ? XFS_ATTR_ROOT : 0) |\
-					 ((x) & ATTR_SECURE ? XFS_ATTR_SECURE : 0))
+		((x) & ATTR_SECURE ? XFS_ATTR_SECURE : 0))
 #define XFS_ATTR_NSP_ONDISK_TO_ARGS(x)	(((x) & XFS_ATTR_ROOT ? ATTR_ROOT : 0) |\
-					 ((x) & XFS_ATTR_SECURE ? ATTR_SECURE : 0))
+		((x) & XFS_ATTR_SECURE ? ATTR_SECURE : 0))
 
 /*
  * Alignment for namelist and valuelist entries (since they are mixed
@@ -787,7 +829,10 @@ static inline int
 xfs_attr3_leaf_hdr_size(struct xfs_attr_leafblock *leafp)
 {
 	if (leafp->hdr.info.magic == cpu_to_be16(XFS_ATTR3_LEAF_MAGIC))
+	{
 		return sizeof(struct xfs_attr3_leaf_hdr);
+	}
+
 	return sizeof(struct xfs_attr_leaf_hdr);
 }
 
@@ -795,7 +840,10 @@ static inline struct xfs_attr_leaf_entry *
 xfs_attr3_leaf_entryp(xfs_attr_leafblock_t *leafp)
 {
 	if (leafp->hdr.info.magic == cpu_to_be16(XFS_ATTR3_LEAF_MAGIC))
+	{
 		return &((struct xfs_attr3_leafblock *)leafp)->entries[0];
+	}
+
 	return &leafp->entries[0];
 }
 
@@ -830,13 +878,13 @@ xfs_attr3_leaf_name_local(xfs_attr_leafblock_t *leafp, int idx)
 static inline int xfs_attr_leaf_entsize_remote(int nlen)
 {
 	return ((uint)sizeof(xfs_attr_leaf_name_remote_t) - 1 + (nlen) + \
-		XFS_ATTR_LEAF_NAME_ALIGN - 1) & ~(XFS_ATTR_LEAF_NAME_ALIGN - 1);
+			XFS_ATTR_LEAF_NAME_ALIGN - 1) & ~(XFS_ATTR_LEAF_NAME_ALIGN - 1);
 }
 
 static inline int xfs_attr_leaf_entsize_local(int nlen, int vlen)
 {
 	return ((uint)sizeof(xfs_attr_leaf_name_local_t) - 1 + (nlen) + (vlen) +
-		XFS_ATTR_LEAF_NAME_ALIGN - 1) & ~(XFS_ATTR_LEAF_NAME_ALIGN - 1);
+			XFS_ATTR_LEAF_NAME_ALIGN - 1) & ~(XFS_ATTR_LEAF_NAME_ALIGN - 1);
 }
 
 static inline int xfs_attr_leaf_entsize_local_max(int bsize)
@@ -858,7 +906,8 @@ static inline int xfs_attr_leaf_entsize_local_max(int bsize)
  */
 #define XFS_ATTR3_RMT_MAGIC	0x5841524d	/* XARM */
 
-struct xfs_attr3_rmt_hdr {
+struct xfs_attr3_rmt_hdr
+{
 	__be32	rm_magic;
 	__be32	rm_offset;
 	__be32	rm_bytes;
@@ -873,6 +922,6 @@ struct xfs_attr3_rmt_hdr {
 
 #define XFS_ATTR3_RMT_BUF_SPACE(mp, bufsize)	\
 	((bufsize) - (xfs_sb_version_hascrc(&(mp)->m_sb) ? \
-			sizeof(struct xfs_attr3_rmt_hdr) : 0))
+				  sizeof(struct xfs_attr3_rmt_hdr) : 0))
 
 #endif /* __XFS_DA_FORMAT_H__ */

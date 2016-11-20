@@ -79,7 +79,7 @@
 #define IFC_AMASK_MASK			0xFFFF0000
 #define IFC_AMASK_SHIFT			16
 #define IFC_AMASK(n)			(IFC_AMASK_MASK << \
-					(__ilog2(n) - IFC_AMASK_SHIFT))
+								 (__ilog2(n) - IFC_AMASK_SHIFT))
 
 /*
  * Chip Select Option Register IFC_NAND Machine
@@ -360,7 +360,8 @@
  * Instruction opcodes to be programmed
  * in FIR registers- 6bits
  */
-enum ifc_nand_fir_opcodes {
+enum ifc_nand_fir_opcodes
+{
 	IFC_FIR_OP_NOP,
 	IFC_FIR_OP_CA0,
 	IFC_FIR_OP_CA1,
@@ -688,7 +689,8 @@ enum ifc_nand_fir_opcodes {
 /*
  * IFC Controller NAND Machine registers
  */
-struct fsl_ifc_nand {
+struct fsl_ifc_nand
+{
 	__be32 ncfgr;
 	u32 res1[0x4];
 	__be32 nand_fcr0;
@@ -752,7 +754,8 @@ struct fsl_ifc_nand {
 /*
  * IFC controller NOR Machine registers
  */
-struct fsl_ifc_nor {
+struct fsl_ifc_nor
+{
 	__be32 nor_evter_stat;
 	u32 res1[0x2];
 	__be32 nor_evter_en;
@@ -770,7 +773,8 @@ struct fsl_ifc_nor {
 /*
  * IFC controller GPCM Machine registers
  */
-struct fsl_ifc_gpcm {
+struct fsl_ifc_gpcm
+{
 	__be32 gpcm_evter_stat;
 	u32 res1[0x2];
 	__be32 gpcm_evter_en;
@@ -786,27 +790,32 @@ struct fsl_ifc_gpcm {
 /*
  * IFC Controller Registers
  */
-struct fsl_ifc_global {
+struct fsl_ifc_global
+{
 	__be32 ifc_rev;
 	u32 res1[0x2];
-	struct {
+	struct
+	{
 		__be32 cspr_ext;
 		__be32 cspr;
 		u32 res2;
 	} cspr_cs[FSL_IFC_BANK_COUNT];
 	u32 res3[0xd];
-	struct {
+	struct
+	{
 		__be32 amask;
 		u32 res4[0x2];
 	} amask_cs[FSL_IFC_BANK_COUNT];
 	u32 res5[0xc];
-	struct {
+	struct
+	{
 		__be32 csor;
 		__be32 csor_ext;
 		u32 res6;
 	} csor_cs[FSL_IFC_BANK_COUNT];
 	u32 res7[0xc];
-	struct {
+	struct
+	{
 		__be32 ftim[4];
 		u32 res8[0x8];
 	} ftim_cs[FSL_IFC_BANK_COUNT];
@@ -831,7 +840,8 @@ struct fsl_ifc_global {
 };
 
 
-struct fsl_ifc_runtime {
+struct fsl_ifc_runtime
+{
 	struct fsl_ifc_nand ifc_nand;
 	struct fsl_ifc_nor ifc_nor;
 	struct fsl_ifc_gpcm ifc_gpcm;
@@ -842,7 +852,8 @@ extern int fsl_ifc_find(phys_addr_t addr_base);
 
 /* overview of the fsl ifc controller */
 
-struct fsl_ifc_ctrl {
+struct fsl_ifc_ctrl
+{
 	/* device info */
 	struct device			*dev;
 	struct fsl_ifc_global __iomem	*gregs;
@@ -866,9 +877,13 @@ static inline u32 ifc_in32(void __iomem *addr)
 	u32 val;
 
 	if (fsl_ifc_ctrl_dev->little_endian)
+	{
 		val = ioread32(addr);
+	}
 	else
+	{
 		val = ioread32be(addr);
+	}
 
 	return val;
 }
@@ -878,9 +893,13 @@ static inline u16 ifc_in16(void __iomem *addr)
 	u16 val;
 
 	if (fsl_ifc_ctrl_dev->little_endian)
+	{
 		val = ioread16(addr);
+	}
 	else
+	{
 		val = ioread16be(addr);
+	}
 
 	return val;
 }
@@ -893,17 +912,25 @@ static inline u8 ifc_in8(void __iomem *addr)
 static inline void ifc_out32(u32 val, void __iomem *addr)
 {
 	if (fsl_ifc_ctrl_dev->little_endian)
+	{
 		iowrite32(val, addr);
+	}
 	else
+	{
 		iowrite32be(val, addr);
+	}
 }
 
 static inline void ifc_out16(u16 val, void __iomem *addr)
 {
 	if (fsl_ifc_ctrl_dev->little_endian)
+	{
 		iowrite16(val, addr);
+	}
 	else
+	{
 		iowrite16be(val, addr);
+	}
 }
 
 static inline void ifc_out8(u8 val, void __iomem *addr)

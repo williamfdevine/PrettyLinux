@@ -40,16 +40,24 @@ static DEFINE_SPINLOCK(freezer_lock);
 bool freezing_slow_path(struct task_struct *p)
 {
 	if (p->flags & (PF_NOFREEZE | PF_SUSPEND_TASK))
+	{
 		return false;
+	}
 
 	if (test_tsk_thread_flag(p, TIF_MEMDIE))
+	{
 		return false;
+	}
 
 	if (pm_nosig_freezing || cgroup_freezing(p))
+	{
 		return true;
+	}
 
 	if (pm_freezing && !(p->flags & PF_KTHREAD))
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -65,18 +73,26 @@ bool __refrigerator(bool check_kthr_stop)
 
 	pr_debug("%s entered refrigerator\n", current->comm);
 
-	for (;;) {
+	for (;;)
+	{
 		set_current_state(TASK_UNINTERRUPTIBLE);
 
 		spin_lock_irq(&freezer_lock);
 		current->flags |= PF_FROZEN;
+
 		if (!freezing(current) ||
-		    (check_kthr_stop && kthread_should_stop()))
+			(check_kthr_stop && kthread_should_stop()))
+		{
 			current->flags &= ~PF_FROZEN;
+		}
+
 		spin_unlock_irq(&freezer_lock);
 
 		if (!(current->flags & PF_FROZEN))
+		{
 			break;
+		}
+
 		was_frozen = true;
 		schedule();
 	}
@@ -98,7 +114,8 @@ static void fake_signal_wake_up(struct task_struct *p)
 {
 	unsigned long flags;
 
-	if (lock_task_sighand(p, &flags)) {
+	if (lock_task_sighand(p, &flags))
+	{
 		signal_wake_up(p, 0);
 		unlock_task_sighand(p, &flags);
 	}
@@ -129,18 +146,26 @@ bool freeze_task(struct task_struct *p)
 	 * normally.
 	 */
 	if (freezer_should_skip(p))
+	{
 		return false;
+	}
 
 	spin_lock_irqsave(&freezer_lock, flags);
-	if (!freezing(p) || frozen(p)) {
+
+	if (!freezing(p) || frozen(p))
+	{
 		spin_unlock_irqrestore(&freezer_lock, flags);
 		return false;
 	}
 
 	if (!(p->flags & PF_KTHREAD))
+	{
 		fake_signal_wake_up(p);
+	}
 	else
+	{
 		wake_up_state(p, TASK_INTERRUPTIBLE);
+	}
 
 	spin_unlock_irqrestore(&freezer_lock, flags);
 	return true;
@@ -151,8 +176,12 @@ void __thaw_task(struct task_struct *p)
 	unsigned long flags;
 
 	spin_lock_irqsave(&freezer_lock, flags);
+
 	if (frozen(p))
+	{
 		wake_up_process(p);
+	}
+
 	spin_unlock_irqrestore(&freezer_lock, flags);
 }
 

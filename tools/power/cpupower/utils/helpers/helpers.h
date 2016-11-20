@@ -19,16 +19,16 @@
 /* Internationalization ****************************/
 #ifdef NLS
 
-#define _(String) gettext(String)
-#ifndef gettext_noop
-#define gettext_noop(String) String
-#endif
-#define N_(String) gettext_noop(String)
+	#define _(String) gettext(String)
+	#ifndef gettext_noop
+		#define gettext_noop(String) String
+	#endif
+	#define N_(String) gettext_noop(String)
 
 #else /* !NLS */
 
-#define _(String) String
-#define N_(String) String
+	#define _(String) String
+	#define N_(String) String
 
 #endif
 /* Internationalization ****************************/
@@ -49,7 +49,7 @@ extern int be_verbose;
 #define dprint(fmt, ...) {					\
 		if (be_verbose) {				\
 			fprintf(stderr, "%s: " fmt,		\
-				__func__, ##__VA_ARGS__);	\
+					__func__, ##__VA_ARGS__);	\
 		}						\
 	}
 #else
@@ -60,7 +60,8 @@ extern int be_verbose;
 
 /* cpuid and cpuinfo helpers  **************************/
 enum cpupower_cpu_vendor {X86_VENDOR_UNKNOWN = 0, X86_VENDOR_INTEL,
-			  X86_VENDOR_AMD, X86_VENDOR_MAX};
+						  X86_VENDOR_AMD, X86_VENDOR_MAX
+						 };
 
 #define CPUPOWER_CAP_INV_TSC		0x00000001
 #define CPUPOWER_CAP_APERF		0x00000002
@@ -72,7 +73,8 @@ enum cpupower_cpu_vendor {X86_VENDOR_UNKNOWN = 0, X86_VENDOR_INTEL,
 
 #define MAX_HW_PSTATES 10
 
-struct cpupower_cpu_info {
+struct cpupower_cpu_info
+{
 	enum cpupower_cpu_vendor vendor;
 	unsigned int family;
 	unsigned int model;
@@ -111,22 +113,22 @@ extern unsigned long long msr_intel_get_turbo_ratio(unsigned int cpu);
 /* PCI stuff ****************************/
 extern int amd_pci_get_num_boost_states(int *active, int *states);
 extern struct pci_dev *pci_acc_init(struct pci_access **pacc, int domain,
-				    int bus, int slot, int func, int vendor,
-				    int dev);
+									int bus, int slot, int func, int vendor,
+									int dev);
 extern struct pci_dev *pci_slot_func_init(struct pci_access **pacc,
-					      int slot, int func);
+		int slot, int func);
 
 /* PCI stuff ****************************/
 
 /* AMD HW pstate decoding **************************/
 
 extern int decode_pstates(unsigned int cpu, unsigned int cpu_family,
-			  int boost_states, unsigned long *pstates, int *no);
+						  int boost_states, unsigned long *pstates, int *no);
 
 /* AMD HW pstate decoding **************************/
 
 extern int cpufreq_has_boost_support(unsigned int cpu, int *support,
-				     int *active, int * states);
+									 int *active, int *states);
 /*
  * CPUID functions returning a single datum
  */
@@ -139,8 +141,8 @@ unsigned int cpuid_edx(unsigned int op);
 /* X86 ONLY ********************************************/
 #else
 static inline int decode_pstates(unsigned int cpu, unsigned int cpu_family,
-				 int boost_states, unsigned long *pstates,
-				 int *no)
+								 int boost_states, unsigned long *pstates,
+								 int *no)
 { return -1; };
 
 static inline int read_msr(int cpu, unsigned int idx, unsigned long long *val)
@@ -157,7 +159,7 @@ static inline unsigned long long msr_intel_get_turbo_ratio(unsigned int cpu)
 /* Read/Write msr ****************************/
 
 static inline int cpufreq_has_boost_support(unsigned int cpu, int *support,
-					    int *active, int * states)
+		int *active, int *states)
 { return -1; }
 
 /* cpuid and cpuinfo helpers  **************************/

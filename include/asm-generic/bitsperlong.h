@@ -5,9 +5,9 @@
 
 
 #ifdef CONFIG_64BIT
-#define BITS_PER_LONG 64
+	#define BITS_PER_LONG 64
 #else
-#define BITS_PER_LONG 32
+	#define BITS_PER_LONG 32
 #endif /* CONFIG_64BIT */
 
 /*
@@ -15,11 +15,11 @@
  * temporarily disabled. Please fix x86-64 and reenable
  */
 #if 0 && BITS_PER_LONG != __BITS_PER_LONG
-#error Inconsistent word size. Check asm/bitsperlong.h
+	#error Inconsistent word size. Check asm/bitsperlong.h
 #endif
 
 #ifndef BITS_PER_LONG_LONG
-#define BITS_PER_LONG_LONG 64
+	#define BITS_PER_LONG_LONG 64
 #endif
 
 #endif /* __ASM_GENERIC_BITS_PER_LONG */

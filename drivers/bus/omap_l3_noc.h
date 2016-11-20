@@ -43,7 +43,8 @@
 
 #define L3_BASE_IS_SUBMODULE		((void __iomem *)(1 << 0))
 
-static const char * const l3_transaction_type[] = {
+static const char *const l3_transaction_type[] =
+{
 	/* 0 0 0 */ "Idle",
 	/* 0 0 1 */ "Write",
 	/* 0 1 0 */ "Read",
@@ -59,7 +60,8 @@ static const char * const l3_transaction_type[] = {
  * @id:		ID of the L3 Master
  * @name:	master name
  */
-struct l3_masters_data {
+struct l3_masters_data
+{
 	u32 id;
 	char *name;
 };
@@ -71,7 +73,8 @@ struct l3_masters_data {
  *
  * Target information is organized indexed by bit field definitions.
  */
-struct l3_target_data {
+struct l3_target_data
+{
 	u32 offset;
 	char *name;
 };
@@ -86,7 +89,8 @@ struct l3_target_data {
  * @mask_app_bits: ignore these from raw application irq status
  * @mask_dbg_bits: ignore these from raw debug irq status
  */
-struct l3_flagmux_data {
+struct l3_flagmux_data
+{
 	u32 offset;
 	struct l3_target_data *l3_targ;
 	u8 num_targ_data;
@@ -112,7 +116,8 @@ struct l3_flagmux_data {
  * @debug_irq:	irq number of the debug interrupt (populated runtime)
  * @app_irq:	irq number of the application interrupt (populated runtime)
  */
-struct omap_l3 {
+struct omap_l3
+{
 	struct device *dev;
 
 	void __iomem *l3_base[MAX_L3_MODULES];
@@ -127,7 +132,8 @@ struct omap_l3 {
 	int app_irq;
 };
 
-static struct l3_target_data omap_l3_target_data_clk1[] = {
+static struct l3_target_data omap_l3_target_data_clk1[] =
+{
 	{0x100,	"DMM1",},
 	{0x200,	"DMM2",},
 	{0x300,	"ABE",},
@@ -137,14 +143,16 @@ static struct l3_target_data omap_l3_target_data_clk1[] = {
 	{0x900,	"L4WAKEUP",},
 };
 
-static struct l3_flagmux_data omap_l3_flagmux_clk1 = {
+static struct l3_flagmux_data omap_l3_flagmux_clk1 =
+{
 	.offset = 0x500,
 	.l3_targ = omap_l3_target_data_clk1,
 	.num_targ_data = ARRAY_SIZE(omap_l3_target_data_clk1),
 };
 
 
-static struct l3_target_data omap_l3_target_data_clk2[] = {
+static struct l3_target_data omap_l3_target_data_clk2[] =
+{
 	{0x500,	"CORTEXM3",},
 	{0x300,	"DSS",},
 	{0x100,	"GPMC",},
@@ -168,24 +176,28 @@ static struct l3_target_data omap_l3_target_data_clk2[] = {
 	{0x1700, "LLI",},
 };
 
-static struct l3_flagmux_data omap_l3_flagmux_clk2 = {
+static struct l3_flagmux_data omap_l3_flagmux_clk2 =
+{
 	.offset = 0x1000,
 	.l3_targ = omap_l3_target_data_clk2,
 	.num_targ_data = ARRAY_SIZE(omap_l3_target_data_clk2),
 };
 
 
-static struct l3_target_data omap4_l3_target_data_clk3[] = {
+static struct l3_target_data omap4_l3_target_data_clk3[] =
+{
 	{0x0100, "DEBUGSS",},
 };
 
-static struct l3_flagmux_data omap4_l3_flagmux_clk3 = {
+static struct l3_flagmux_data omap4_l3_flagmux_clk3 =
+{
 	.offset = 0x0200,
 	.l3_targ = omap4_l3_target_data_clk3,
 	.num_targ_data = ARRAY_SIZE(omap4_l3_target_data_clk3),
 };
 
-static struct l3_masters_data omap_l3_masters[] = {
+static struct l3_masters_data omap_l3_masters[] =
+{
 	{ 0x00, "MPU"},
 	{ 0x04, "CS_ADP"},
 	{ 0x05, "xxx"},
@@ -213,13 +225,15 @@ static struct l3_masters_data omap_l3_masters[] = {
 	{ 0x32, "USBHOSTFS"}
 };
 
-static struct l3_flagmux_data *omap4_l3_flagmux[] = {
+static struct l3_flagmux_data *omap4_l3_flagmux[] =
+{
 	&omap_l3_flagmux_clk1,
 	&omap_l3_flagmux_clk2,
 	&omap4_l3_flagmux_clk3,
 };
 
-static const struct omap_l3 omap4_l3_data = {
+static const struct omap_l3 omap4_l3_data =
+{
 	.l3_flagmux = omap4_l3_flagmux,
 	.num_modules = ARRAY_SIZE(omap4_l3_flagmux),
 	.l3_masters = omap_l3_masters,
@@ -229,25 +243,29 @@ static const struct omap_l3 omap4_l3_data = {
 };
 
 /* OMAP5 data */
-static struct l3_target_data omap5_l3_target_data_clk3[] = {
+static struct l3_target_data omap5_l3_target_data_clk3[] =
+{
 	{0x0100, "L3INSTR",},
 	{0x0300, "DEBUGSS",},
 	{0x0,	 "HOSTCLK3",},
 };
 
-static struct l3_flagmux_data omap5_l3_flagmux_clk3 = {
+static struct l3_flagmux_data omap5_l3_flagmux_clk3 =
+{
 	.offset = 0x0200,
 	.l3_targ = omap5_l3_target_data_clk3,
 	.num_targ_data = ARRAY_SIZE(omap5_l3_target_data_clk3),
 };
 
-static struct l3_flagmux_data *omap5_l3_flagmux[] = {
+static struct l3_flagmux_data *omap5_l3_flagmux[] =
+{
 	&omap_l3_flagmux_clk1,
 	&omap_l3_flagmux_clk2,
 	&omap5_l3_flagmux_clk3,
 };
 
-static const struct omap_l3 omap5_l3_data = {
+static const struct omap_l3 omap5_l3_data =
+{
 	.l3_flagmux = omap5_l3_flagmux,
 	.num_modules = ARRAY_SIZE(omap5_l3_flagmux),
 	.l3_masters = omap_l3_masters,
@@ -257,7 +275,8 @@ static const struct omap_l3 omap5_l3_data = {
 };
 
 /* DRA7 data */
-static struct l3_target_data dra_l3_target_data_clk1[] = {
+static struct l3_target_data dra_l3_target_data_clk1[] =
+{
 	{0x2a00, "AES1",},
 	{0x0200, "DMM_P1",},
 	{0x0600, "DSP2_SDMA",},
@@ -292,13 +311,15 @@ static struct l3_target_data dra_l3_target_data_clk1[] = {
 	{0x0800, "VCP1",},
 };
 
-static struct l3_flagmux_data dra_l3_flagmux_clk1 = {
+static struct l3_flagmux_data dra_l3_flagmux_clk1 =
+{
 	.offset = 0x803500,
 	.l3_targ = dra_l3_target_data_clk1,
 	.num_targ_data = ARRAY_SIZE(dra_l3_target_data_clk1),
 };
 
-static struct l3_target_data dra_l3_target_data_clk2[] = {
+static struct l3_target_data dra_l3_target_data_clk2[] =
+{
 	{0x0,	"HOST CLK1",},
 	{0x800000, "HOST CLK2",},
 	{0xdead, L3_TARGET_NOT_SUPPORTED,},
@@ -323,25 +344,29 @@ static struct l3_target_data dra_l3_target_data_clk2[] = {
 	{0x3900, "QSPI",},
 };
 
-static struct l3_flagmux_data dra_l3_flagmux_clk2 = {
+static struct l3_flagmux_data dra_l3_flagmux_clk2 =
+{
 	.offset = 0x803600,
 	.l3_targ = dra_l3_target_data_clk2,
 	.num_targ_data = ARRAY_SIZE(dra_l3_target_data_clk2),
 };
 
-static struct l3_target_data dra_l3_target_data_clk3[] = {
+static struct l3_target_data dra_l3_target_data_clk3[] =
+{
 	{0x0100, "L3_INSTR"},
 	{0x0300, "DEBUGSS_CT_TBR"},
 	{0x0,	 "HOST CLK3"},
 };
 
-static struct l3_flagmux_data dra_l3_flagmux_clk3 = {
+static struct l3_flagmux_data dra_l3_flagmux_clk3 =
+{
 	.offset = 0x200,
 	.l3_targ = dra_l3_target_data_clk3,
 	.num_targ_data = ARRAY_SIZE(dra_l3_target_data_clk3),
 };
 
-static struct l3_masters_data dra_l3_masters[] = {
+static struct l3_masters_data dra_l3_masters[] =
+{
 	{ 0x0, "MPU" },
 	{ 0x4, "CS_DAP" },
 	{ 0x5, "IEEE1500_2_OCP" },
@@ -391,13 +416,15 @@ static struct l3_masters_data dra_l3_masters[] = {
 	{ 0x37, "EVE4_P2" }
 };
 
-static struct l3_flagmux_data *dra_l3_flagmux[] = {
+static struct l3_flagmux_data *dra_l3_flagmux[] =
+{
 	&dra_l3_flagmux_clk1,
 	&dra_l3_flagmux_clk2,
 	&dra_l3_flagmux_clk3,
 };
 
-static const struct omap_l3 dra_l3_data = {
+static const struct omap_l3 dra_l3_data =
+{
 	.l3_base = { [1] = L3_BASE_IS_SUBMODULE },
 	.l3_flagmux = dra_l3_flagmux,
 	.num_modules = ARRAY_SIZE(dra_l3_flagmux),
@@ -408,7 +435,8 @@ static const struct omap_l3 dra_l3_data = {
 };
 
 /* AM4372 data */
-static struct l3_target_data am4372_l3_target_data_200f[] = {
+static struct l3_target_data am4372_l3_target_data_200f[] =
+{
 	{0xf00,  "EMIF",},
 	{0x1200, "DES",},
 	{0x400,  "OCMCRAM",},
@@ -426,13 +454,15 @@ static struct l3_target_data am4372_l3_target_data_200f[] = {
 	{0x100,  "ICSS",},
 };
 
-static struct l3_flagmux_data am4372_l3_flagmux_200f = {
+static struct l3_flagmux_data am4372_l3_flagmux_200f =
+{
 	.offset = 0x1000,
 	.l3_targ = am4372_l3_target_data_200f,
 	.num_targ_data = ARRAY_SIZE(am4372_l3_target_data_200f),
 };
 
-static struct l3_target_data am4372_l3_target_data_100s[] = {
+static struct l3_target_data am4372_l3_target_data_100s[] =
+{
 	{0x100, "L4_PER_0",},
 	{0x200, "L4_PER_1",},
 	{0x300, "L4_PER_2",},
@@ -448,13 +478,15 @@ static struct l3_target_data am4372_l3_target_data_100s[] = {
 	{0xA00, "MAG_CARD",},
 };
 
-static struct l3_flagmux_data am4372_l3_flagmux_100s = {
+static struct l3_flagmux_data am4372_l3_flagmux_100s =
+{
 	.offset = 0x600,
 	.l3_targ = am4372_l3_target_data_100s,
 	.num_targ_data = ARRAY_SIZE(am4372_l3_target_data_100s),
 };
 
-static struct l3_masters_data am4372_l3_masters[] = {
+static struct l3_masters_data am4372_l3_masters[] =
+{
 	{ 0x0, "M1 (128-bit)"},
 	{ 0x1, "M2 (64-bit)"},
 	{ 0x4, "DAP"},
@@ -484,12 +516,14 @@ static struct l3_masters_data am4372_l3_masters[] = {
 	{ 0x37, "USB1 WR"},
 };
 
-static struct l3_flagmux_data *am4372_l3_flagmux[] = {
+static struct l3_flagmux_data *am4372_l3_flagmux[] =
+{
 	&am4372_l3_flagmux_200f,
 	&am4372_l3_flagmux_100s,
 };
 
-static const struct omap_l3 am4372_l3_data = {
+static const struct omap_l3 am4372_l3_data =
+{
 	.l3_flagmux = am4372_l3_flagmux,
 	.num_modules = ARRAY_SIZE(am4372_l3_flagmux),
 	.l3_masters = am4372_l3_masters,

@@ -59,7 +59,7 @@ void qedr_inc_sw_gsi_cons(struct qedr_qp_hwq_info *info)
 }
 
 void qedr_store_gsi_qp_cq(struct qedr_dev *dev, struct qedr_qp *qp,
-			  struct ib_qp_init_attr *attrs)
+						  struct ib_qp_init_attr *attrs)
 {
 	dev->gsi_qp_created = 1;
 	dev->gsi_sqcq = get_qedr_cq(attrs->send_cq);
@@ -75,19 +75,20 @@ void qedr_ll2_tx_cb(void *_qdev, struct qed_roce_ll2_packet *pkt)
 	unsigned long flags;
 
 	DP_DEBUG(dev, QEDR_MSG_GSI,
-		 "LL2 TX CB: gsi_sqcq=%p, gsi_rqcq=%p, gsi_cons=%d, ibcq_comp=%s\n",
-		 dev->gsi_sqcq, dev->gsi_rqcq, qp->sq.gsi_cons,
-		 cq->ibcq.comp_handler ? "Yes" : "No");
+			 "LL2 TX CB: gsi_sqcq=%p, gsi_rqcq=%p, gsi_cons=%d, ibcq_comp=%s\n",
+			 dev->gsi_sqcq, dev->gsi_rqcq, qp->sq.gsi_cons,
+			 cq->ibcq.comp_handler ? "Yes" : "No");
 
 	dma_free_coherent(&dev->pdev->dev, pkt->header.len, pkt->header.vaddr,
-			  pkt->header.baddr);
+					  pkt->header.baddr);
 	kfree(pkt);
 
 	spin_lock_irqsave(&qp->q_lock, flags);
 	qedr_inc_sw_gsi_cons(&qp->sq);
 	spin_unlock_irqrestore(&qp->q_lock, flags);
 
-	if (cq->ibcq.comp_handler) {
+	if (cq->ibcq.comp_handler)
+	{
 		spin_lock_irqsave(&cq->comp_handler_lock, flags);
 		(*cq->ibcq.comp_handler) (&cq->ibcq, cq->ibcq.cq_context);
 		spin_unlock_irqrestore(&cq->comp_handler_lock, flags);
@@ -95,7 +96,7 @@ void qedr_ll2_tx_cb(void *_qdev, struct qed_roce_ll2_packet *pkt)
 }
 
 void qedr_ll2_rx_cb(void *_dev, struct qed_roce_ll2_packet *pkt,
-		    struct qed_roce_ll2_rx_params *params)
+					struct qed_roce_ll2_rx_params *params)
 {
 	struct qedr_dev *dev = (struct qedr_dev *)_dev;
 	struct qedr_cq *cq = dev->gsi_rqcq;
@@ -113,7 +114,8 @@ void qedr_ll2_rx_cb(void *_dev, struct qed_roce_ll2_packet *pkt,
 
 	spin_unlock_irqrestore(&qp->q_lock, flags);
 
-	if (cq->ibcq.comp_handler) {
+	if (cq->ibcq.comp_handler)
+	{
 		spin_lock_irqsave(&cq->comp_handler_lock, flags);
 		(*cq->ibcq.comp_handler) (&cq->ibcq, cq->ibcq.cq_context);
 		spin_unlock_irqrestore(&cq->comp_handler_lock, flags);
@@ -121,7 +123,7 @@ void qedr_ll2_rx_cb(void *_dev, struct qed_roce_ll2_packet *pkt,
 }
 
 static void qedr_destroy_gsi_cq(struct qedr_dev *dev,
-				struct ib_qp_init_attr *attrs)
+								struct ib_qp_init_attr *attrs)
 {
 	struct qed_rdma_destroy_cq_in_params iparams;
 	struct qed_rdma_destroy_cq_out_params oparams;
@@ -133,8 +135,10 @@ static void qedr_destroy_gsi_cq(struct qedr_dev *dev,
 	dev->ops->common->chain_free(dev->cdev, &cq->pbl);
 
 	cq = get_qedr_cq(attrs->recv_cq);
+
 	/* if a dedicated recv_cq was used, delete it too */
-	if (iparams.icid != cq->icid) {
+	if (iparams.icid != cq->icid)
+	{
 		iparams.icid = cq->icid;
 		dev->ops->rdma_destroy_cq(dev->rdma_ctx, &iparams, &oparams);
 		dev->ops->common->chain_free(dev->cdev, &cq->pbl);
@@ -142,26 +146,29 @@ static void qedr_destroy_gsi_cq(struct qedr_dev *dev,
 }
 
 static inline int qedr_check_gsi_qp_attrs(struct qedr_dev *dev,
-					  struct ib_qp_init_attr *attrs)
+		struct ib_qp_init_attr *attrs)
 {
-	if (attrs->cap.max_recv_sge > QEDR_GSI_MAX_RECV_SGE) {
+	if (attrs->cap.max_recv_sge > QEDR_GSI_MAX_RECV_SGE)
+	{
 		DP_ERR(dev,
-		       " create gsi qp: failed. max_recv_sge is larger the max %d>%d\n",
-		       attrs->cap.max_recv_sge, QEDR_GSI_MAX_RECV_SGE);
+			   " create gsi qp: failed. max_recv_sge is larger the max %d>%d\n",
+			   attrs->cap.max_recv_sge, QEDR_GSI_MAX_RECV_SGE);
 		return -EINVAL;
 	}
 
-	if (attrs->cap.max_recv_wr > QEDR_GSI_MAX_RECV_WR) {
+	if (attrs->cap.max_recv_wr > QEDR_GSI_MAX_RECV_WR)
+	{
 		DP_ERR(dev,
-		       " create gsi qp: failed. max_recv_wr is too large %d>%d\n",
-		       attrs->cap.max_recv_wr, QEDR_GSI_MAX_RECV_WR);
+			   " create gsi qp: failed. max_recv_wr is too large %d>%d\n",
+			   attrs->cap.max_recv_wr, QEDR_GSI_MAX_RECV_WR);
 		return -EINVAL;
 	}
 
-	if (attrs->cap.max_send_wr > QEDR_GSI_MAX_SEND_WR) {
+	if (attrs->cap.max_send_wr > QEDR_GSI_MAX_SEND_WR)
+	{
 		DP_ERR(dev,
-		       " create gsi qp: failed. max_send_wr is too large %d>%d\n",
-		       attrs->cap.max_send_wr, QEDR_GSI_MAX_SEND_WR);
+			   " create gsi qp: failed. max_send_wr is too large %d>%d\n",
+			   attrs->cap.max_send_wr, QEDR_GSI_MAX_SEND_WR);
 		return -EINVAL;
 	}
 
@@ -169,15 +176,18 @@ static inline int qedr_check_gsi_qp_attrs(struct qedr_dev *dev,
 }
 
 struct ib_qp *qedr_create_gsi_qp(struct qedr_dev *dev,
-				 struct ib_qp_init_attr *attrs,
-				 struct qedr_qp *qp)
+								 struct ib_qp_init_attr *attrs,
+								 struct qedr_qp *qp)
 {
 	struct qed_roce_ll2_params ll2_params;
 	int rc;
 
 	rc = qedr_check_gsi_qp_attrs(dev, attrs);
+
 	if (rc)
+	{
 		return ERR_PTR(rc);
+	}
 
 	/* configure and start LL2 */
 	memset(&ll2_params, 0, sizeof(ll2_params));
@@ -189,7 +199,9 @@ struct ib_qp *qedr_create_gsi_qp(struct qedr_dev *dev,
 	ll2_params.mtu = dev->ndev->mtu;
 	ether_addr_copy(ll2_params.mac_address, dev->ndev->dev_addr);
 	rc = dev->ops->roce_ll2_start(dev->cdev, &ll2_params);
-	if (rc) {
+
+	if (rc)
+	{
 		DP_ERR(dev, "create gsi qp: failed on ll2 start. rc=%d\n", rc);
 		return ERR_PTR(rc);
 	}
@@ -200,13 +212,20 @@ struct ib_qp *qedr_create_gsi_qp(struct qedr_dev *dev,
 	qp->sq.max_wr = attrs->cap.max_send_wr;
 
 	qp->rqe_wr_id = kcalloc(qp->rq.max_wr, sizeof(*qp->rqe_wr_id),
-				GFP_KERNEL);
+							GFP_KERNEL);
+
 	if (!qp->rqe_wr_id)
+	{
 		goto err;
+	}
+
 	qp->wqe_wr_id = kcalloc(qp->sq.max_wr, sizeof(*qp->wqe_wr_id),
-				GFP_KERNEL);
+							GFP_KERNEL);
+
 	if (!qp->wqe_wr_id)
+	{
 		goto err;
+	}
 
 	qedr_store_gsi_qp_cq(dev, qp, attrs);
 	ether_addr_copy(dev->gsi_ll2_mac_address, dev->ndev->dev_addr);
@@ -224,8 +243,11 @@ err:
 	kfree(qp->rqe_wr_id);
 
 	rc = dev->ops->roce_ll2_stop(dev->cdev);
+
 	if (rc)
+	{
 		DP_ERR(dev, "create gsi qp: failed destroy on create\n");
+	}
 
 	return ERR_PTR(-ENOMEM);
 }
@@ -235,10 +257,15 @@ int qedr_destroy_gsi_qp(struct qedr_dev *dev)
 	int rc;
 
 	rc = dev->ops->roce_ll2_stop(dev->cdev);
+
 	if (rc)
+	{
 		DP_ERR(dev, "destroy gsi qp: failed (rc=%d)\n", rc);
+	}
 	else
+	{
 		DP_DEBUG(dev, QEDR_MSG_GSI, "destroy gsi qp: success\n");
+	}
 
 	return rc;
 }
@@ -246,10 +273,10 @@ int qedr_destroy_gsi_qp(struct qedr_dev *dev)
 #define QEDR_MAX_UD_HEADER_SIZE	(100)
 #define QEDR_GSI_QPN		(1)
 static inline int qedr_gsi_build_header(struct qedr_dev *dev,
-					struct qedr_qp *qp,
-					struct ib_send_wr *swr,
-					struct ib_ud_header *udh,
-					int *roce_mode)
+										struct qedr_qp *qp,
+										struct ib_send_wr *swr,
+										struct ib_ud_header *udh,
+										int *roce_mode)
 {
 	bool has_vlan = false, has_grh_ipv6 = true;
 	struct ib_ah_attr *ah_attr = &get_qedr_ah(ud_wr(swr)->ah)->attr;
@@ -266,42 +293,60 @@ static inline int qedr_gsi_build_header(struct qedr_dev *dev,
 	int i;
 
 	send_size = 0;
+
 	for (i = 0; i < swr->num_sge; ++i)
+	{
 		send_size += swr->sg_list[i].length;
+	}
 
 	rc = ib_get_cached_gid(qp->ibqp.device, ah_attr->port_num,
-			       grh->sgid_index, &sgid, &sgid_attr);
-	if (rc) {
+						   grh->sgid_index, &sgid, &sgid_attr);
+
+	if (rc)
+	{
 		DP_ERR(dev,
-		       "gsi post send: failed to get cached GID (port=%d, ix=%d)\n",
-		       ah_attr->port_num, grh->sgid_index);
+			   "gsi post send: failed to get cached GID (port=%d, ix=%d)\n",
+			   ah_attr->port_num, grh->sgid_index);
 		return rc;
 	}
 
 	vlan_id = rdma_vlan_dev_vlan_id(sgid_attr.ndev);
-	if (vlan_id < VLAN_CFI_MASK)
-		has_vlan = true;
-	if (sgid_attr.ndev)
-		dev_put(sgid_attr.ndev);
 
-	if (!memcmp(&sgid, &zgid, sizeof(sgid))) {
+	if (vlan_id < VLAN_CFI_MASK)
+	{
+		has_vlan = true;
+	}
+
+	if (sgid_attr.ndev)
+	{
+		dev_put(sgid_attr.ndev);
+	}
+
+	if (!memcmp(&sgid, &zgid, sizeof(sgid)))
+	{
 		DP_ERR(dev, "gsi post send: GID not found GID index %d\n",
-		       ah_attr->grh.sgid_index);
+			   ah_attr->grh.sgid_index);
 		return -ENOENT;
 	}
 
 	has_udp = (sgid_attr.gid_type == IB_GID_TYPE_ROCE_UDP_ENCAP);
-	if (!has_udp) {
+
+	if (!has_udp)
+	{
 		/* RoCE v1 */
 		ether_type = ETH_P_ROCE;
 		*roce_mode = ROCE_V1;
-	} else if (ipv6_addr_v4mapped((struct in6_addr *)&sgid)) {
+	}
+	else if (ipv6_addr_v4mapped((struct in6_addr *)&sgid))
+	{
 		/* RoCE v2 IPv4 */
 		ip_ver = 4;
 		ether_type = ETH_P_IP;
 		has_grh_ipv6 = false;
 		*roce_mode = ROCE_V2_IPV4;
-	} else {
+	}
+	else
+	{
 		/* RoCE v2 IPv6 */
 		ip_ver = 6;
 		ether_type = ETH_P_IPV6;
@@ -309,8 +354,10 @@ static inline int qedr_gsi_build_header(struct qedr_dev *dev,
 	}
 
 	rc = ib_ud_header_init(send_size, false, true, has_vlan,
-			       has_grh_ipv6, ip_ver, has_udp, 0, udh);
-	if (rc) {
+						   has_grh_ipv6, ip_ver, has_udp, 0, udh);
+
+	if (rc)
+	{
 		DP_ERR(dev, "gsi post send: failed to init header\n");
 		return rc;
 	}
@@ -318,11 +365,15 @@ static inline int qedr_gsi_build_header(struct qedr_dev *dev,
 	/* ENET + VLAN headers */
 	ether_addr_copy(udh->eth.dmac_h, ah_attr->dmac);
 	ether_addr_copy(udh->eth.smac_h, dev->ndev->dev_addr);
-	if (has_vlan) {
+
+	if (has_vlan)
+	{
 		udh->eth.type = htons(ETH_P_8021Q);
 		udh->vlan.tag = htons(vlan_id);
 		udh->vlan.type = htons(ether_type);
-	} else {
+	}
+	else
+	{
 		udh->eth.type = htons(ether_type);
 	}
 
@@ -337,15 +388,18 @@ static inline int qedr_gsi_build_header(struct qedr_dev *dev,
 	udh->deth.qkey = htonl(0x80010000);
 	udh->deth.source_qpn = htonl(QEDR_GSI_QPN);
 
-	if (has_grh_ipv6) {
+	if (has_grh_ipv6)
+	{
 		/* GRH / IPv6 header */
 		udh->grh.traffic_class = grh->traffic_class;
 		udh->grh.flow_label = grh->flow_label;
 		udh->grh.hop_limit = grh->hop_limit;
 		udh->grh.destination_gid = grh->dgid;
 		memcpy(&udh->grh.source_gid.raw, &sgid.raw,
-		       sizeof(udh->grh.source_gid.raw));
-	} else {
+			   sizeof(udh->grh.source_gid.raw));
+	}
+	else
+	{
 		/* IPv4 header */
 		u32 ipv4_addr;
 
@@ -362,19 +416,21 @@ static inline int qedr_gsi_build_header(struct qedr_dev *dev,
 	}
 
 	/* UDP */
-	if (has_udp) {
+	if (has_udp)
+	{
 		udh->udp.sport = htons(QEDR_ROCE_V2_UDP_SPORT);
 		udh->udp.dport = htons(ROCE_V2_UDP_DPORT);
 		udh->udp.csum = 0;
 		/* UDP length is untouched hence is zero */
 	}
+
 	return 0;
 }
 
 static inline int qedr_gsi_build_packet(struct qedr_dev *dev,
-					struct qedr_qp *qp,
-					struct ib_send_wr *swr,
-					struct qed_roce_ll2_packet **p_packet)
+										struct qedr_qp *qp,
+										struct ib_send_wr *swr,
+										struct qed_roce_ll2_packet **p_packet)
 {
 	u8 ud_header_buffer[QEDR_MAX_UD_HEADER_SIZE];
 	struct qed_roce_ll2_packet *packet;
@@ -386,33 +442,47 @@ static inline int qedr_gsi_build_packet(struct qedr_dev *dev,
 	*p_packet = NULL;
 
 	rc = qedr_gsi_build_header(dev, qp, swr, &udh, &roce_mode);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	header_size = ib_ud_header_pack(&udh, &ud_header_buffer);
 
 	packet = kzalloc(sizeof(*packet), GFP_ATOMIC);
+
 	if (!packet)
+	{
 		return -ENOMEM;
+	}
 
 	packet->header.vaddr = dma_alloc_coherent(&pdev->dev, header_size,
-						  &packet->header.baddr,
-						  GFP_ATOMIC);
-	if (!packet->header.vaddr) {
+						   &packet->header.baddr,
+						   GFP_ATOMIC);
+
+	if (!packet->header.vaddr)
+	{
 		kfree(packet);
 		return -ENOMEM;
 	}
 
 	if (ether_addr_equal(udh.eth.smac_h, udh.eth.dmac_h))
+	{
 		packet->tx_dest = QED_ROCE_LL2_TX_DEST_NW;
+	}
 	else
+	{
 		packet->tx_dest = QED_ROCE_LL2_TX_DEST_LB;
+	}
 
 	packet->roce_mode = roce_mode;
 	memcpy(packet->header.vaddr, ud_header_buffer, header_size);
 	packet->header.len = header_size;
 	packet->n_seg = swr->num_sge;
-	for (i = 0; i < packet->n_seg; i++) {
+
+	for (i = 0; i < packet->n_seg; i++)
+	{
 		packet->payload[i].baddr = swr->sg_list[i].addr;
 		packet->payload[i].len = swr->sg_list[i].length;
 	}
@@ -423,7 +493,7 @@ static inline int qedr_gsi_build_packet(struct qedr_dev *dev,
 }
 
 int qedr_gsi_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
-		       struct ib_send_wr **bad_wr)
+					   struct ib_send_wr **bad_wr)
 {
 	struct qed_roce_ll2_packet *pkt = NULL;
 	struct qedr_qp *qp = get_qedr_qp(ibqp);
@@ -432,25 +502,28 @@ int qedr_gsi_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
 	unsigned long flags;
 	int rc;
 
-	if (qp->state != QED_ROCE_QP_STATE_RTS) {
+	if (qp->state != QED_ROCE_QP_STATE_RTS)
+	{
 		*bad_wr = wr;
 		DP_ERR(dev,
-		       "gsi post recv: failed to post rx buffer. state is %d and not QED_ROCE_QP_STATE_RTS\n",
-		       qp->state);
+			   "gsi post recv: failed to post rx buffer. state is %d and not QED_ROCE_QP_STATE_RTS\n",
+			   qp->state);
 		return -EINVAL;
 	}
 
-	if (wr->num_sge > RDMA_MAX_SGE_PER_SQ_WQE) {
+	if (wr->num_sge > RDMA_MAX_SGE_PER_SQ_WQE)
+	{
 		DP_ERR(dev, "gsi post send: num_sge is too large (%d>%d)\n",
-		       wr->num_sge, RDMA_MAX_SGE_PER_SQ_WQE);
+			   wr->num_sge, RDMA_MAX_SGE_PER_SQ_WQE);
 		rc = -EINVAL;
 		goto err;
 	}
 
-	if (wr->opcode != IB_WR_SEND) {
+	if (wr->opcode != IB_WR_SEND)
+	{
 		DP_ERR(dev,
-		       "gsi post send: failed due to unsupported opcode %d\n",
-		       wr->opcode);
+			   "gsi post send: failed due to unsupported opcode %d\n",
+			   wr->opcode);
 		rc = -EINVAL;
 		goto err;
 	}
@@ -460,25 +533,34 @@ int qedr_gsi_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
 	spin_lock_irqsave(&qp->q_lock, flags);
 
 	rc = qedr_gsi_build_packet(dev, qp, wr, &pkt);
-	if (rc) {
+
+	if (rc)
+	{
 		spin_unlock_irqrestore(&qp->q_lock, flags);
 		goto err;
 	}
 
 	rc = dev->ops->roce_ll2_tx(dev->cdev, pkt, &params);
-	if (!rc) {
+
+	if (!rc)
+	{
 		qp->wqe_wr_id[qp->sq.prod].wr_id = wr->wr_id;
 		qedr_inc_sw_prod(&qp->sq);
 		DP_DEBUG(qp->dev, QEDR_MSG_GSI,
-			 "gsi post send: opcode=%d, in_irq=%ld, irqs_disabled=%d, wr_id=%llx\n",
-			 wr->opcode, in_irq(), irqs_disabled(), wr->wr_id);
-	} else {
-		if (rc == QED_ROCE_TX_HEAD_FAILURE) {
+				 "gsi post send: opcode=%d, in_irq=%ld, irqs_disabled=%d, wr_id=%llx\n",
+				 wr->opcode, in_irq(), irqs_disabled(), wr->wr_id);
+	}
+	else
+	{
+		if (rc == QED_ROCE_TX_HEAD_FAILURE)
+		{
 			/* TX failed while posting header - release resources */
 			dma_free_coherent(&dev->pdev->dev, pkt->header.len,
-					  pkt->header.vaddr, pkt->header.baddr);
+							  pkt->header.vaddr, pkt->header.baddr);
 			kfree(pkt);
-		} else if (rc == QED_ROCE_TX_FRAG_FAILURE) {
+		}
+		else if (rc == QED_ROCE_TX_FRAG_FAILURE)
+		{
 			/* NTD since TX failed while posting a fragment. We will
 			 * release the resources on TX callback
 			 */
@@ -491,9 +573,10 @@ int qedr_gsi_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
 
 	spin_unlock_irqrestore(&qp->q_lock, flags);
 
-	if (wr->next) {
+	if (wr->next)
+	{
 		DP_ERR(dev,
-		       "gsi post send: failed second WR. Only one WR may be passed at a time\n");
+			   "gsi post send: failed second WR. Only one WR may be passed at a time\n");
 		*bad_wr = wr->next;
 		rc = -EINVAL;
 	}
@@ -506,7 +589,7 @@ err:
 }
 
 int qedr_gsi_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
-		       struct ib_recv_wr **bad_wr)
+					   struct ib_recv_wr **bad_wr)
 {
 	struct qedr_dev *dev = get_qedr_dev(ibqp->device);
 	struct qedr_qp *qp = get_qedr_qp(ibqp);
@@ -516,11 +599,12 @@ int qedr_gsi_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
 	int rc;
 
 	if ((qp->state != QED_ROCE_QP_STATE_RTR) &&
-	    (qp->state != QED_ROCE_QP_STATE_RTS)) {
+		(qp->state != QED_ROCE_QP_STATE_RTS))
+	{
 		*bad_wr = wr;
 		DP_ERR(dev,
-		       "gsi post recv: failed to post rx buffer. state is %d and not QED_ROCE_QP_STATE_RTR/S\n",
-		       qp->state);
+			   "gsi post recv: failed to post rx buffer. state is %d and not QED_ROCE_QP_STATE_RTR/S\n",
+			   qp->state);
 		return -EINVAL;
 	}
 
@@ -528,11 +612,13 @@ int qedr_gsi_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
 
 	spin_lock_irqsave(&qp->q_lock, flags);
 
-	while (wr) {
-		if (wr->num_sge > QEDR_GSI_MAX_RECV_SGE) {
+	while (wr)
+	{
+		if (wr->num_sge > QEDR_GSI_MAX_RECV_SGE)
+		{
 			DP_ERR(dev,
-			       "gsi post recv: failed to post rx buffer. too many sges %d>%d\n",
-			       wr->num_sge, QEDR_GSI_MAX_RECV_SGE);
+				   "gsi post recv: failed to post rx buffer. too many sges %d>%d\n",
+				   wr->num_sge, QEDR_GSI_MAX_RECV_SGE);
 			goto err;
 		}
 
@@ -540,15 +626,17 @@ int qedr_gsi_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
 		buf.len = wr->sg_list[0].length;
 
 		rc = dev->ops->roce_ll2_post_rx_buffer(dev->cdev, &buf, 0, 1);
-		if (rc) {
+
+		if (rc)
+		{
 			DP_ERR(dev,
-			       "gsi post recv: failed to post rx buffer (rc=%d)\n",
-			       rc);
+				   "gsi post recv: failed to post rx buffer (rc=%d)\n",
+				   rc);
 			goto err;
 		}
 
 		memset(&qp->rqe_wr_id[qp->rq.prod], 0,
-		       sizeof(qp->rqe_wr_id[qp->rq.prod]));
+			   sizeof(qp->rqe_wr_id[qp->rq.prod]));
 		qp->rqe_wr_id[qp->rq.prod].sg_list[0] = wr->sg_list[0];
 		qp->rqe_wr_id[qp->rq.prod].wr_id = wr->wr_id;
 
@@ -576,7 +664,8 @@ int qedr_gsi_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc)
 
 	spin_lock_irqsave(&cq->cq_lock, flags);
 
-	while (i < num_entries && qp->rq.cons != qp->rq.gsi_cons) {
+	while (i < num_entries && qp->rq.cons != qp->rq.gsi_cons)
+	{
 		memset(&wc[i], 0, sizeof(*wc));
 
 		wc[i].qp = &qp->ibqp;
@@ -584,13 +673,15 @@ int qedr_gsi_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc)
 		wc[i].opcode = IB_WC_RECV;
 		wc[i].pkey_index = 0;
 		wc[i].status = (qp->rqe_wr_id[qp->rq.cons].rc) ?
-		    IB_WC_GENERAL_ERR : IB_WC_SUCCESS;
+					   IB_WC_GENERAL_ERR : IB_WC_SUCCESS;
 		/* 0 - currently only one recv sg is supported */
 		wc[i].byte_len = qp->rqe_wr_id[qp->rq.cons].sg_list[0].length;
 		wc[i].wc_flags |= IB_WC_GRH | IB_WC_IP_CSUM_OK;
 		ether_addr_copy(wc[i].smac, qp->rqe_wr_id[qp->rq.cons].smac);
 		wc[i].wc_flags |= IB_WC_WITH_SMAC;
-		if (qp->rqe_wr_id[qp->rq.cons].vlan_id) {
+
+		if (qp->rqe_wr_id[qp->rq.cons].vlan_id)
+		{
 			wc[i].wc_flags |= IB_WC_WITH_VLAN;
 			wc[i].vlan_id = qp->rqe_wr_id[qp->rq.cons].vlan_id;
 		}
@@ -599,7 +690,8 @@ int qedr_gsi_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc)
 		i++;
 	}
 
-	while (i < num_entries && qp->sq.cons != qp->sq.gsi_cons) {
+	while (i < num_entries && qp->sq.cons != qp->sq.gsi_cons)
+	{
 		memset(&wc[i], 0, sizeof(*wc));
 
 		wc[i].qp = &qp->ibqp;
@@ -614,9 +706,9 @@ int qedr_gsi_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc)
 	spin_unlock_irqrestore(&cq->cq_lock, flags);
 
 	DP_DEBUG(dev, QEDR_MSG_GSI,
-		 "gsi poll_cq: requested entries=%d, actual=%d, qp->rq.cons=%d, qp->rq.gsi_cons=%x, qp->sq.cons=%d, qp->sq.gsi_cons=%d, qp_num=%d\n",
-		 num_entries, i, qp->rq.cons, qp->rq.gsi_cons, qp->sq.cons,
-		 qp->sq.gsi_cons, qp->ibqp.qp_num);
+			 "gsi poll_cq: requested entries=%d, actual=%d, qp->rq.cons=%d, qp->rq.gsi_cons=%x, qp->sq.cons=%d, qp->sq.gsi_cons=%d, qp_num=%d\n",
+			 num_entries, i, qp->rq.cons, qp->rq.gsi_cons, qp->sq.cons,
+			 qp->sq.gsi_cons, qp->ibqp.qp_num);
 
 	return i;
 }

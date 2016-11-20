@@ -34,23 +34,23 @@
  * Dumps error in case bad packet is received
  */
 static void report_bad_packet(struct ishtp_cl *hid_ishtp_cl, void *recv_buf,
-			      size_t cur_pos,  size_t payload_len)
+							  size_t cur_pos,  size_t payload_len)
 {
 	struct hostif_msg *recv_msg = recv_buf;
 	struct ishtp_cl_data *client_data = hid_ishtp_cl->client_data;
 
 	dev_err(&client_data->cl_device->dev, "[hid-ish]: BAD packet %02X\n"
-		"total_bad=%u cur_pos=%u\n"
-		"[%02X %02X %02X %02X]\n"
-		"payload_len=%u\n"
-		"multi_packet_cnt=%u\n"
-		"is_response=%02X\n",
-		recv_msg->hdr.command, client_data->bad_recv_cnt,
-		(unsigned int)cur_pos,
-		((unsigned char *)recv_msg)[0], ((unsigned char *)recv_msg)[1],
-		((unsigned char *)recv_msg)[2], ((unsigned char *)recv_msg)[3],
-		(unsigned int)payload_len, client_data->multi_packet_cnt,
-		recv_msg->hdr.command & ~CMD_MASK);
+			"total_bad=%u cur_pos=%u\n"
+			"[%02X %02X %02X %02X]\n"
+			"payload_len=%u\n"
+			"multi_packet_cnt=%u\n"
+			"is_response=%02X\n",
+			recv_msg->hdr.command, client_data->bad_recv_cnt,
+			(unsigned int)cur_pos,
+			((unsigned char *)recv_msg)[0], ((unsigned char *)recv_msg)[1],
+			((unsigned char *)recv_msg)[2], ((unsigned char *)recv_msg)[3],
+			(unsigned int)payload_len, client_data->multi_packet_cnt,
+			recv_msg->hdr.command & ~CMD_MASK);
 }
 
 /**
@@ -63,7 +63,7 @@ static void report_bad_packet(struct ishtp_cl *hid_ishtp_cl, void *recv_buf,
  * per instance flags and wake up the caller waiting to for the response.
  */
 static void process_recv(struct ishtp_cl *hid_ishtp_cl, void *recv_buf,
-			 size_t data_len)
+						 size_t data_len)
 {
 	struct hostif_msg *recv_msg;
 	unsigned char *payload;
@@ -77,11 +77,12 @@ static void process_recv(struct ishtp_cl *hid_ishtp_cl, void *recv_buf,
 	struct ishtp_cl_data *client_data = hid_ishtp_cl->client_data;
 	int curr_hid_dev = client_data->cur_hid_dev;
 
-	if (data_len < sizeof(struct hostif_msg_hdr)) {
+	if (data_len < sizeof(struct hostif_msg_hdr))
+	{
 		dev_err(&client_data->cl_device->dev,
-			"[hid-ish]: error, received %u which is less than data header %u\n",
-			(unsigned int)data_len,
-			(unsigned int)sizeof(struct hostif_msg_hdr));
+				"[hid-ish]: error, received %u which is less than data header %u\n",
+				(unsigned int)data_len,
+				(unsigned int)sizeof(struct hostif_msg_hdr));
 		++client_data->bad_recv_cnt;
 		ish_hw_reset(hid_ishtp_cl->dev);
 		return;
@@ -91,224 +92,265 @@ static void process_recv(struct ishtp_cl *hid_ishtp_cl, void *recv_buf,
 	total_len = data_len;
 	cur_pos = 0;
 
-	do {
+	do
+	{
 		recv_msg = (struct hostif_msg *)(recv_buf + cur_pos);
 		payload_len = recv_msg->hdr.size;
 
 		/* Sanity checks */
 		if (cur_pos + payload_len + sizeof(struct hostif_msg) >
-				total_len) {
+			total_len)
+		{
 			++client_data->bad_recv_cnt;
 			report_bad_packet(hid_ishtp_cl, recv_msg, cur_pos,
-					  payload_len);
+							  payload_len);
 			ish_hw_reset(hid_ishtp_cl->dev);
 			break;
 		}
 
 		hid_ishtp_trace(client_data,  "%s %d\n",
-				__func__, recv_msg->hdr.command & CMD_MASK);
+						__func__, recv_msg->hdr.command & CMD_MASK);
 
-		switch (recv_msg->hdr.command & CMD_MASK) {
-		case HOSTIF_DM_ENUM_DEVICES:
-			if ((!(recv_msg->hdr.command & ~CMD_MASK) ||
-					client_data->init_done)) {
-				++client_data->bad_recv_cnt;
-				report_bad_packet(hid_ishtp_cl, recv_msg,
-						  cur_pos,
-						  payload_len);
-				ish_hw_reset(hid_ishtp_cl->dev);
-				break;
-			}
-			client_data->hid_dev_count = (unsigned int)*payload;
-			if (!client_data->hid_devices)
-				client_data->hid_devices = devm_kzalloc(
-						&client_data->cl_device->dev,
-						client_data->hid_dev_count *
-						sizeof(struct device_info),
-						GFP_KERNEL);
-			if (!client_data->hid_devices) {
-				dev_err(&client_data->cl_device->dev,
-				"Mem alloc failed for hid device info\n");
-				wake_up_interruptible(&client_data->init_wait);
-				break;
-			}
-			for (i = 0; i < client_data->hid_dev_count; ++i) {
-				if (1 + sizeof(struct device_info) * i >=
-						payload_len) {
-					dev_err(&client_data->cl_device->dev,
-						"[hid-ish]: [ENUM_DEVICES]: content size %lu is bigger than payload_len %u\n",
-						1 + sizeof(struct device_info)
-						* i,
-						(unsigned int)payload_len);
+		switch (recv_msg->hdr.command & CMD_MASK)
+		{
+			case HOSTIF_DM_ENUM_DEVICES:
+				if ((!(recv_msg->hdr.command & ~CMD_MASK) ||
+					 client_data->init_done))
+				{
+					++client_data->bad_recv_cnt;
+					report_bad_packet(hid_ishtp_cl, recv_msg,
+									  cur_pos,
+									  payload_len);
+					ish_hw_reset(hid_ishtp_cl->dev);
+					break;
 				}
 
-				if (1 + sizeof(struct device_info) * i >=
-						data_len)
+				client_data->hid_dev_count = (unsigned int) * payload;
+
+				if (!client_data->hid_devices)
+					client_data->hid_devices = devm_kzalloc(
+												   &client_data->cl_device->dev,
+												   client_data->hid_dev_count *
+												   sizeof(struct device_info),
+												   GFP_KERNEL);
+
+				if (!client_data->hid_devices)
+				{
+					dev_err(&client_data->cl_device->dev,
+							"Mem alloc failed for hid device info\n");
+					wake_up_interruptible(&client_data->init_wait);
 					break;
+				}
 
-				dev_info = (struct device_info *)(payload + 1 +
-					sizeof(struct device_info) * i);
-				if (client_data->hid_devices)
-					memcpy(client_data->hid_devices + i,
-					       dev_info,
-					       sizeof(struct device_info));
-			}
+				for (i = 0; i < client_data->hid_dev_count; ++i)
+				{
+					if (1 + sizeof(struct device_info) * i >=
+						payload_len)
+					{
+						dev_err(&client_data->cl_device->dev,
+								"[hid-ish]: [ENUM_DEVICES]: content size %lu is bigger than payload_len %u\n",
+								1 + sizeof(struct device_info)
+								* i,
+								(unsigned int)payload_len);
+					}
 
-			client_data->enum_devices_done = true;
-			wake_up_interruptible(&client_data->init_wait);
+					if (1 + sizeof(struct device_info) * i >=
+						data_len)
+					{
+						break;
+					}
 
-			break;
+					dev_info = (struct device_info *)(payload + 1 +
+													  sizeof(struct device_info) * i);
 
-		case HOSTIF_GET_HID_DESCRIPTOR:
-			if ((!(recv_msg->hdr.command & ~CMD_MASK) ||
-					client_data->init_done)) {
-				++client_data->bad_recv_cnt;
-				report_bad_packet(hid_ishtp_cl, recv_msg,
-						  cur_pos,
-						  payload_len);
-				ish_hw_reset(hid_ishtp_cl->dev);
+					if (client_data->hid_devices)
+						memcpy(client_data->hid_devices + i,
+							   dev_info,
+							   sizeof(struct device_info));
+				}
+
+				client_data->enum_devices_done = true;
+				wake_up_interruptible(&client_data->init_wait);
+
 				break;
-			}
-			if (!client_data->hid_descr[curr_hid_dev])
-				client_data->hid_descr[curr_hid_dev] =
-				devm_kmalloc(&client_data->cl_device->dev,
-					     payload_len, GFP_KERNEL);
-			if (client_data->hid_descr[curr_hid_dev]) {
-				memcpy(client_data->hid_descr[curr_hid_dev],
-				       payload, payload_len);
-				client_data->hid_descr_size[curr_hid_dev] =
-					payload_len;
-				client_data->hid_descr_done = true;
-			}
-			wake_up_interruptible(&client_data->init_wait);
 
-			break;
+			case HOSTIF_GET_HID_DESCRIPTOR:
+				if ((!(recv_msg->hdr.command & ~CMD_MASK) ||
+					 client_data->init_done))
+				{
+					++client_data->bad_recv_cnt;
+					report_bad_packet(hid_ishtp_cl, recv_msg,
+									  cur_pos,
+									  payload_len);
+					ish_hw_reset(hid_ishtp_cl->dev);
+					break;
+				}
 
-		case HOSTIF_GET_REPORT_DESCRIPTOR:
-			if ((!(recv_msg->hdr.command & ~CMD_MASK) ||
-					client_data->init_done)) {
-				++client_data->bad_recv_cnt;
-				report_bad_packet(hid_ishtp_cl, recv_msg,
-						  cur_pos,
-						  payload_len);
-				ish_hw_reset(hid_ishtp_cl->dev);
+				if (!client_data->hid_descr[curr_hid_dev])
+					client_data->hid_descr[curr_hid_dev] =
+						devm_kmalloc(&client_data->cl_device->dev,
+									 payload_len, GFP_KERNEL);
+
+				if (client_data->hid_descr[curr_hid_dev])
+				{
+					memcpy(client_data->hid_descr[curr_hid_dev],
+						   payload, payload_len);
+					client_data->hid_descr_size[curr_hid_dev] =
+						payload_len;
+					client_data->hid_descr_done = true;
+				}
+
+				wake_up_interruptible(&client_data->init_wait);
+
 				break;
-			}
-			if (!client_data->report_descr[curr_hid_dev])
-				client_data->report_descr[curr_hid_dev] =
-				devm_kmalloc(&client_data->cl_device->dev,
-					     payload_len, GFP_KERNEL);
-			if (client_data->report_descr[curr_hid_dev])  {
-				memcpy(client_data->report_descr[curr_hid_dev],
-				       payload,
-				       payload_len);
-				client_data->report_descr_size[curr_hid_dev] =
-					payload_len;
-				client_data->report_descr_done = true;
-			}
-			wake_up_interruptible(&client_data->init_wait);
 
-			break;
+			case HOSTIF_GET_REPORT_DESCRIPTOR:
+				if ((!(recv_msg->hdr.command & ~CMD_MASK) ||
+					 client_data->init_done))
+				{
+					++client_data->bad_recv_cnt;
+					report_bad_packet(hid_ishtp_cl, recv_msg,
+									  cur_pos,
+									  payload_len);
+					ish_hw_reset(hid_ishtp_cl->dev);
+					break;
+				}
 
-		case HOSTIF_GET_FEATURE_REPORT:
-			report_type = HID_FEATURE_REPORT;
-			goto	do_get_report;
+				if (!client_data->report_descr[curr_hid_dev])
+					client_data->report_descr[curr_hid_dev] =
+						devm_kmalloc(&client_data->cl_device->dev,
+									 payload_len, GFP_KERNEL);
 
-		case HOSTIF_GET_INPUT_REPORT:
-			report_type = HID_INPUT_REPORT;
+				if (client_data->report_descr[curr_hid_dev])
+				{
+					memcpy(client_data->report_descr[curr_hid_dev],
+						   payload,
+						   payload_len);
+					client_data->report_descr_size[curr_hid_dev] =
+						payload_len;
+					client_data->report_descr_done = true;
+				}
+
+				wake_up_interruptible(&client_data->init_wait);
+
+				break;
+
+			case HOSTIF_GET_FEATURE_REPORT:
+				report_type = HID_FEATURE_REPORT;
+				goto	do_get_report;
+
+			case HOSTIF_GET_INPUT_REPORT:
+				report_type = HID_INPUT_REPORT;
 do_get_report:
-			/* Get index of device that matches this id */
-			for (i = 0; i < client_data->num_hid_devices; ++i) {
-				if (recv_msg->hdr.device_id ==
-					client_data->hid_devices[i].dev_id)
-					if (client_data->hid_sensor_hubs[i]) {
-						hid_input_report(
-						client_data->hid_sensor_hubs[
-									i],
-						report_type, payload,
-						payload_len, 0);
-						ishtp_hid_wakeup(
-						client_data->hid_sensor_hubs[
-							i]);
-						break;
-					}
-			}
-			break;
 
-		case HOSTIF_SET_FEATURE_REPORT:
-			/* Get index of device that matches this id */
-			for (i = 0; i < client_data->num_hid_devices; ++i) {
-				if (recv_msg->hdr.device_id ==
-					client_data->hid_devices[i].dev_id)
-					if (client_data->hid_sensor_hubs[i]) {
-						ishtp_hid_wakeup(
-						client_data->hid_sensor_hubs[
-							i]);
-						break;
-					}
-			}
-			break;
-
-		case HOSTIF_PUBLISH_INPUT_REPORT:
-			report_type = HID_INPUT_REPORT;
-			for (i = 0; i < client_data->num_hid_devices; ++i)
-				if (recv_msg->hdr.device_id ==
-					client_data->hid_devices[i].dev_id)
-					if (client_data->hid_sensor_hubs[i])
-						hid_input_report(
-						client_data->hid_sensor_hubs[
-									i],
-						report_type, payload,
-						payload_len, 0);
-			break;
-
-		case HOSTIF_PUBLISH_INPUT_REPORT_LIST:
-			report_type = HID_INPUT_REPORT;
-			reports_list = (struct report_list *)payload;
-			reports = (char *)reports_list->reports;
-
-			for (j = 0; j < reports_list->num_of_reports; j++) {
-				recv_msg = (struct hostif_msg *)(reports +
-					sizeof(uint16_t));
-				report_len = *(uint16_t *)reports;
-				payload = reports + sizeof(uint16_t) +
-					sizeof(struct hostif_msg_hdr);
-				payload_len = report_len -
-					sizeof(struct hostif_msg_hdr);
-
-				for (i = 0; i < client_data->num_hid_devices;
-				     ++i)
+				/* Get index of device that matches this id */
+				for (i = 0; i < client_data->num_hid_devices; ++i)
+				{
 					if (recv_msg->hdr.device_id ==
-					client_data->hid_devices[i].dev_id &&
-					client_data->hid_sensor_hubs[i]) {
-						hid_input_report(
-						client_data->hid_sensor_hubs[
+						client_data->hid_devices[i].dev_id)
+						if (client_data->hid_sensor_hubs[i])
+						{
+							hid_input_report(
+								client_data->hid_sensor_hubs[
 									i],
-						report_type,
-						payload, payload_len,
-						0);
-					}
+								report_type, payload,
+								payload_len, 0);
+							ishtp_hid_wakeup(
+								client_data->hid_sensor_hubs[
+									i]);
+							break;
+						}
+				}
 
-				reports += sizeof(uint16_t) + report_len;
-			}
-			break;
-		default:
-			++client_data->bad_recv_cnt;
-			report_bad_packet(hid_ishtp_cl, recv_msg, cur_pos,
-					  payload_len);
-			ish_hw_reset(hid_ishtp_cl->dev);
-			break;
+				break;
+
+			case HOSTIF_SET_FEATURE_REPORT:
+
+				/* Get index of device that matches this id */
+				for (i = 0; i < client_data->num_hid_devices; ++i)
+				{
+					if (recv_msg->hdr.device_id ==
+						client_data->hid_devices[i].dev_id)
+						if (client_data->hid_sensor_hubs[i])
+						{
+							ishtp_hid_wakeup(
+								client_data->hid_sensor_hubs[
+									i]);
+							break;
+						}
+				}
+
+				break;
+
+			case HOSTIF_PUBLISH_INPUT_REPORT:
+				report_type = HID_INPUT_REPORT;
+
+				for (i = 0; i < client_data->num_hid_devices; ++i)
+					if (recv_msg->hdr.device_id ==
+						client_data->hid_devices[i].dev_id)
+						if (client_data->hid_sensor_hubs[i])
+							hid_input_report(
+								client_data->hid_sensor_hubs[
+									i],
+								report_type, payload,
+								payload_len, 0);
+
+				break;
+
+			case HOSTIF_PUBLISH_INPUT_REPORT_LIST:
+				report_type = HID_INPUT_REPORT;
+				reports_list = (struct report_list *)payload;
+				reports = (char *)reports_list->reports;
+
+				for (j = 0; j < reports_list->num_of_reports; j++)
+				{
+					recv_msg = (struct hostif_msg *)(reports +
+													 sizeof(uint16_t));
+					report_len = *(uint16_t *)reports;
+					payload = reports + sizeof(uint16_t) +
+							  sizeof(struct hostif_msg_hdr);
+					payload_len = report_len -
+								  sizeof(struct hostif_msg_hdr);
+
+					for (i = 0; i < client_data->num_hid_devices;
+						 ++i)
+						if (recv_msg->hdr.device_id ==
+							client_data->hid_devices[i].dev_id &&
+							client_data->hid_sensor_hubs[i])
+						{
+							hid_input_report(
+								client_data->hid_sensor_hubs[
+									i],
+								report_type,
+								payload, payload_len,
+								0);
+						}
+
+					reports += sizeof(uint16_t) + report_len;
+				}
+
+				break;
+
+			default:
+				++client_data->bad_recv_cnt;
+				report_bad_packet(hid_ishtp_cl, recv_msg, cur_pos,
+								  payload_len);
+				ish_hw_reset(hid_ishtp_cl->dev);
+				break;
 
 		}
 
 		if (!cur_pos && cur_pos + payload_len +
-				sizeof(struct hostif_msg) < total_len)
+			sizeof(struct hostif_msg) < total_len)
+		{
 			++client_data->multi_packet_cnt;
+		}
 
 		cur_pos += payload_len + sizeof(struct hostif_msg);
 		payload += payload_len + sizeof(struct hostif_msg);
 
-	} while (cur_pos < total_len);
+	}
+	while (cur_pos < total_len);
 }
 
 /**
@@ -327,19 +369,25 @@ static void ish_cl_event_cb(struct ishtp_cl_device *device)
 	unsigned long flags;
 
 	if (!hid_ishtp_cl)
+	{
 		return;
+	}
 
 	spin_lock_irqsave(&hid_ishtp_cl->in_process_spinlock, flags);
-	while (!list_empty(&hid_ishtp_cl->in_process_list.list)) {
+
+	while (!list_empty(&hid_ishtp_cl->in_process_list.list))
+	{
 		rb_in_proc = list_entry(
-			hid_ishtp_cl->in_process_list.list.next,
-			struct ishtp_cl_rb, list);
+						 hid_ishtp_cl->in_process_list.list.next,
+						 struct ishtp_cl_rb, list);
 		list_del_init(&rb_in_proc->list);
 		spin_unlock_irqrestore(&hid_ishtp_cl->in_process_spinlock,
-			flags);
+							   flags);
 
 		if (!rb_in_proc->buffer.data)
+		{
 			return;
+		}
 
 		r_length = rb_in_proc->buf_idx;
 
@@ -349,6 +397,7 @@ static void ish_cl_event_cb(struct ishtp_cl_device *device)
 		ishtp_cl_io_rb_recycle(rb_in_proc);
 		spin_lock_irqsave(&hid_ishtp_cl->in_process_spinlock, flags);
 	}
+
 	spin_unlock_irqrestore(&hid_ishtp_cl->in_process_spinlock, flags);
 }
 
@@ -363,7 +412,7 @@ static void ish_cl_event_cb(struct ishtp_cl_device *device)
  * for response.
  */
 void hid_ishtp_set_feature(struct hid_device *hid, char *buf, unsigned int len,
-			   int report_id)
+						   int report_id)
 {
 	struct ishtp_hid_data *hid_data =  hid->driver_data;
 	struct ishtp_cl_data *client_data = hid_data->client_data;
@@ -374,16 +423,21 @@ void hid_ishtp_set_feature(struct hid_device *hid, char *buf, unsigned int len,
 	hid_ishtp_trace(client_data,  "%s hid %p\n", __func__, hid);
 
 	rv = ishtp_hid_link_ready_wait(client_data);
-	if (rv) {
+
+	if (rv)
+	{
 		hid_ishtp_trace(client_data,  "%s hid %p link not ready\n",
-				__func__, hid);
+						__func__, hid);
 		return;
 	}
 
 	memset(msg, 0, sizeof(struct hostif_msg));
 	msg->hdr.command = HOSTIF_SET_FEATURE_REPORT;
-	for (i = 0; i < client_data->num_hid_devices; ++i) {
-		if (hid == client_data->hid_sensor_hubs[i]) {
+
+	for (i = 0; i < client_data->num_hid_devices; ++i)
+	{
+		if (hid == client_data->hid_sensor_hubs[i])
+		{
 			msg->hdr.device_id =
 				client_data->hid_devices[i].dev_id;
 			break;
@@ -391,12 +445,15 @@ void hid_ishtp_set_feature(struct hid_device *hid, char *buf, unsigned int len,
 	}
 
 	if (i == client_data->num_hid_devices)
+	{
 		return;
+	}
 
 	rv = ishtp_cl_send(client_data->hid_ishtp_cl, buf, len);
+
 	if (rv)
 		hid_ishtp_trace(client_data,  "%s hid %p send failed\n",
-				__func__, hid);
+						__func__, hid);
 }
 
 /**
@@ -409,7 +466,7 @@ void hid_ishtp_set_feature(struct hid_device *hid, char *buf, unsigned int len,
  * request to FW and return without waiting for response.
  */
 void hid_ishtp_get_report(struct hid_device *hid, int report_id,
-			  int report_type)
+						  int report_type)
 {
 	struct ishtp_hid_data *hid_data =  hid->driver_data;
 	struct ishtp_cl_data *client_data = hid_data->client_data;
@@ -421,9 +478,11 @@ void hid_ishtp_get_report(struct hid_device *hid, int report_id,
 
 	hid_ishtp_trace(client_data,  "%s hid %p\n", __func__, hid);
 	rv = ishtp_hid_link_ready_wait(client_data);
-	if (rv) {
+
+	if (rv)
+	{
 		hid_ishtp_trace(client_data,  "%s hid %p link not ready\n",
-				__func__, hid);
+						__func__, hid);
 		return;
 	}
 
@@ -431,9 +490,12 @@ void hid_ishtp_get_report(struct hid_device *hid, int report_id,
 
 	memset(msg, 0, sizeof(struct hostif_msg_to_sensor));
 	msg->hdr.command = (report_type == HID_FEATURE_REPORT) ?
-		HOSTIF_GET_FEATURE_REPORT : HOSTIF_GET_INPUT_REPORT;
-	for (i = 0; i < client_data->num_hid_devices; ++i) {
-		if (hid == client_data->hid_sensor_hubs[i]) {
+					   HOSTIF_GET_FEATURE_REPORT : HOSTIF_GET_INPUT_REPORT;
+
+	for (i = 0; i < client_data->num_hid_devices; ++i)
+	{
+		if (hid == client_data->hid_sensor_hubs[i])
+		{
 			msg->hdr.device_id =
 				client_data->hid_devices[i].dev_id;
 			break;
@@ -441,13 +503,16 @@ void hid_ishtp_get_report(struct hid_device *hid, int report_id,
 	}
 
 	if (i == client_data->num_hid_devices)
+	{
 		return;
+	}
 
 	msg->report_id = report_id;
 	rv = ishtp_cl_send(client_data->hid_ishtp_cl, buf, len);
+
 	if (rv)
 		hid_ishtp_trace(client_data,  "%s hid %p send failed\n",
-				__func__, hid);
+						__func__, hid);
 }
 
 /**
@@ -463,17 +528,20 @@ int ishtp_hid_link_ready_wait(struct ishtp_cl_data *client_data)
 {
 	int rc;
 
-	if (client_data->suspended) {
+	if (client_data->suspended)
+	{
 		hid_ishtp_trace(client_data,  "wait for link ready\n");
 		rc = wait_event_interruptible_timeout(
-					client_data->ishtp_resume_wait,
-					!client_data->suspended,
-					5 * HZ);
+				 client_data->ishtp_resume_wait,
+				 !client_data->suspended,
+				 5 * HZ);
 
-		if (rc == 0) {
+		if (rc == 0)
+		{
 			hid_ishtp_trace(client_data,  "link not ready\n");
 			return -EIO;
 		}
+
 		hid_ishtp_trace(client_data,  "link ready\n");
 	}
 
@@ -499,38 +567,48 @@ static int ishtp_enum_enum_devices(struct ishtp_cl *hid_ishtp_cl)
 	memset(&msg, 0, sizeof(struct hostif_msg));
 	msg.hdr.command = HOSTIF_DM_ENUM_DEVICES;
 	rv = ishtp_cl_send(hid_ishtp_cl, (unsigned char *)&msg,
-			   sizeof(struct hostif_msg));
+					   sizeof(struct hostif_msg));
+
 	if (rv)
+	{
 		return rv;
+	}
 
 	retry_count = 0;
+
 	while (!client_data->enum_devices_done &&
-	       retry_count < 10) {
+		   retry_count < 10)
+	{
 		wait_event_interruptible_timeout(client_data->init_wait,
-					 client_data->enum_devices_done,
-					 3 * HZ);
+										 client_data->enum_devices_done,
+										 3 * HZ);
 		++retry_count;
+
 		if (!client_data->enum_devices_done)
 			/* Send HOSTIF_DM_ENUM_DEVICES */
 			rv = ishtp_cl_send(hid_ishtp_cl,
-					   (unsigned char *) &msg,
-					   sizeof(struct hostif_msg));
+							   (unsigned char *) &msg,
+							   sizeof(struct hostif_msg));
 	}
-	if (!client_data->enum_devices_done) {
+
+	if (!client_data->enum_devices_done)
+	{
 		dev_err(&client_data->cl_device->dev,
-			"[hid-ish]: timed out waiting for enum_devices\n");
+				"[hid-ish]: timed out waiting for enum_devices\n");
 		return -ETIMEDOUT;
 	}
-	if (!client_data->hid_devices) {
+
+	if (!client_data->hid_devices)
+	{
 		dev_err(&client_data->cl_device->dev,
-			"[hid-ish]: failed to allocate HID dev structures\n");
+				"[hid-ish]: failed to allocate HID dev structures\n");
 		return -ENOMEM;
 	}
 
 	client_data->num_hid_devices = client_data->hid_dev_count;
 	dev_info(&hid_ishtp_cl->device->dev,
-		"[hid-ish]: enum_devices_done OK, num_hid_devices=%d\n",
-		client_data->num_hid_devices);
+			 "[hid-ish]: enum_devices_done OK, num_hid_devices=%d\n",
+			 client_data->num_hid_devices);
 
 	return	0;
 }
@@ -556,23 +634,30 @@ static int ishtp_get_hid_descriptor(struct ishtp_cl *hid_ishtp_cl, int index)
 	msg.hdr.command = HOSTIF_GET_HID_DESCRIPTOR;
 	msg.hdr.device_id = client_data->hid_devices[index].dev_id;
 	rv = ishtp_cl_send(hid_ishtp_cl, (unsigned char *) &msg,
-			   sizeof(struct hostif_msg));
-	if (rv)
-		return rv;
+					   sizeof(struct hostif_msg));
 
-	if (!client_data->hid_descr_done) {
+	if (rv)
+	{
+		return rv;
+	}
+
+	if (!client_data->hid_descr_done)
+	{
 		wait_event_interruptible_timeout(client_data->init_wait,
-						 client_data->hid_descr_done,
-						 3 * HZ);
-		if (!client_data->hid_descr_done) {
+										 client_data->hid_descr_done,
+										 3 * HZ);
+
+		if (!client_data->hid_descr_done)
+		{
 			dev_err(&client_data->cl_device->dev,
-				"[hid-ish]: timed out for hid_descr_done\n");
+					"[hid-ish]: timed out for hid_descr_done\n");
 			return -EIO;
 		}
 
-		if (!client_data->hid_descr[index]) {
+		if (!client_data->hid_descr[index])
+		{
 			dev_err(&client_data->cl_device->dev,
-				"[hid-ish]: allocation HID desc fail\n");
+					"[hid-ish]: allocation HID desc fail\n");
 			return -ENOMEM;
 		}
 	}
@@ -591,7 +676,7 @@ static int ishtp_get_hid_descriptor(struct ishtp_cl *hid_ishtp_cl, int index)
  * Return: 0 on success, non zero on error
  */
 static int ishtp_get_report_descriptor(struct ishtp_cl *hid_ishtp_cl,
-				       int index)
+									   int index)
 {
 	struct hostif_msg msg;
 	struct ishtp_cl_data *client_data = hid_ishtp_cl->client_data;
@@ -603,22 +688,29 @@ static int ishtp_get_report_descriptor(struct ishtp_cl *hid_ishtp_cl,
 	msg.hdr.command = HOSTIF_GET_REPORT_DESCRIPTOR;
 	msg.hdr.device_id = client_data->hid_devices[index].dev_id;
 	rv = ishtp_cl_send(hid_ishtp_cl, (unsigned char *) &msg,
-			   sizeof(struct hostif_msg));
+					   sizeof(struct hostif_msg));
+
 	if (rv)
+	{
 		return rv;
+	}
 
 	if (!client_data->report_descr_done)
 		wait_event_interruptible_timeout(client_data->init_wait,
-					 client_data->report_descr_done,
-					 3 * HZ);
-	if (!client_data->report_descr_done) {
+										 client_data->report_descr_done,
+										 3 * HZ);
+
+	if (!client_data->report_descr_done)
+	{
 		dev_err(&client_data->cl_device->dev,
 				"[hid-ish]: timed out for report descr\n");
 		return -EIO;
 	}
-	if (!client_data->report_descr[index]) {
+
+	if (!client_data->report_descr[index])
+	{
 		dev_err(&client_data->cl_device->dev,
-			"[hid-ish]: failed to alloc report descr\n");
+				"[hid-ish]: failed to alloc report descr\n");
 		return -ENOMEM;
 	}
 
@@ -651,9 +743,11 @@ static int hid_ishtp_cl_init(struct ishtp_cl *hid_ishtp_cl, int reset)
 	hid_ishtp_trace(client_data,  "%s reset flag: %d\n", __func__, reset);
 
 	rv = ishtp_cl_link(hid_ishtp_cl, ISHTP_HOST_CLIENT_ID_ANY);
-	if (rv) {
+
+	if (rv)
+	{
 		dev_err(&client_data->cl_device->dev,
-			"ishtp_cl_link failed\n");
+				"ishtp_cl_link failed\n");
 		return	-ENOMEM;
 	}
 
@@ -667,20 +761,25 @@ static int hid_ishtp_cl_init(struct ishtp_cl *hid_ishtp_cl, int reset)
 
 	spin_lock_irqsave(&dev->fw_clients_lock, flags);
 	i = ishtp_fw_cl_by_uuid(dev, &hid_ishtp_guid);
-	if (i < 0) {
+
+	if (i < 0)
+	{
 		spin_unlock_irqrestore(&dev->fw_clients_lock, flags);
 		dev_err(&client_data->cl_device->dev,
-			"ish client uuid not found\n");
+				"ish client uuid not found\n");
 		return i;
 	}
+
 	hid_ishtp_cl->fw_client_id = dev->fw_clients[i].client_id;
 	spin_unlock_irqrestore(&dev->fw_clients_lock, flags);
 	hid_ishtp_cl->state = ISHTP_CL_CONNECTING;
 
 	rv = ishtp_cl_connect(hid_ishtp_cl);
-	if (rv) {
+
+	if (rv)
+	{
 		dev_err(&client_data->cl_device->dev,
-			"client connect fail\n");
+				"client connect fail\n");
 		goto err_cl_unlink;
 	}
 
@@ -690,29 +789,42 @@ static int hid_ishtp_cl_init(struct ishtp_cl *hid_ishtp_cl, int reset)
 	ishtp_register_event_cb(hid_ishtp_cl->device, ish_cl_event_cb);
 
 	rv = ishtp_enum_enum_devices(hid_ishtp_cl);
+
 	if (rv)
+	{
 		goto err_cl_disconnect;
+	}
 
 	hid_ishtp_trace(client_data,  "%s enumerated device count %d\n",
-			__func__, client_data->num_hid_devices);
+					__func__, client_data->num_hid_devices);
 
-	for (i = 0; i < client_data->num_hid_devices; ++i) {
+	for (i = 0; i < client_data->num_hid_devices; ++i)
+	{
 		client_data->cur_hid_dev = i;
 
 		rv = ishtp_get_hid_descriptor(hid_ishtp_cl, i);
+
 		if (rv)
+		{
 			goto err_cl_disconnect;
+		}
 
 		rv = ishtp_get_report_descriptor(hid_ishtp_cl, i);
-		if (rv)
-			goto err_cl_disconnect;
 
-		if (!reset) {
+		if (rv)
+		{
+			goto err_cl_disconnect;
+		}
+
+		if (!reset)
+		{
 			rv = ishtp_hid_probe(i, client_data);
-			if (rv) {
+
+			if (rv)
+			{
 				dev_err(&client_data->cl_device->dev,
-				"[hid-ish]: HID probe for #%u failed: %d\n",
-				i, rv);
+						"[hid-ish]: HID probe for #%u failed: %d\n",
+						i, rv);
 				goto err_cl_disconnect;
 			}
 		}
@@ -761,14 +873,17 @@ static void hid_ishtp_cl_reset_handler(struct work_struct *work)
 	cl_device = client_data->cl_device;
 
 	hid_ishtp_trace(client_data, "%s hid_ishtp_cl %p\n", __func__,
-			hid_ishtp_cl);
+					hid_ishtp_cl);
 	dev_dbg(&cl_device->dev, "%s\n", __func__);
 
 	hid_ishtp_cl_deinit(hid_ishtp_cl);
 
 	hid_ishtp_cl = ishtp_cl_allocate(cl_device->ishtp_dev);
+
 	if (!hid_ishtp_cl)
+	{
 		return;
+	}
 
 	cl_device->driver_data = hid_ishtp_cl;
 	hid_ishtp_cl->client_data = client_data;
@@ -776,16 +891,23 @@ static void hid_ishtp_cl_reset_handler(struct work_struct *work)
 
 	client_data->num_hid_devices = 0;
 
-	for (retry = 0; retry < 3; ++retry) {
+	for (retry = 0; retry < 3; ++retry)
+	{
 		rv = hid_ishtp_cl_init(hid_ishtp_cl, 1);
+
 		if (!rv)
+		{
 			break;
+		}
+
 		dev_err(&client_data->cl_device->dev, "Retry reset init\n");
 	}
-	if (rv) {
+
+	if (rv)
+	{
 		dev_err(&client_data->cl_device->dev, "Reset Failed\n");
 		hid_ishtp_trace(client_data, "%s Failed hid_ishtp_cl %p\n",
-				__func__, hid_ishtp_cl);
+						__func__, hid_ishtp_cl);
 	}
 }
 
@@ -804,20 +926,30 @@ static int hid_ishtp_cl_probe(struct ishtp_cl_device *cl_device)
 	int rv;
 
 	if (!cl_device)
+	{
 		return	-ENODEV;
+	}
 
 	if (uuid_le_cmp(hid_ishtp_guid,
-			cl_device->fw_client->props.protocol_name) != 0)
+					cl_device->fw_client->props.protocol_name) != 0)
+	{
 		return	-ENODEV;
+	}
 
 	client_data = devm_kzalloc(&cl_device->dev, sizeof(*client_data),
-				   GFP_KERNEL);
+							   GFP_KERNEL);
+
 	if (!client_data)
+	{
 		return -ENOMEM;
+	}
 
 	hid_ishtp_cl = ishtp_cl_allocate(cl_device->ishtp_dev);
+
 	if (!hid_ishtp_cl)
+	{
 		return -ENOMEM;
+	}
 
 	cl_device->driver_data = hid_ishtp_cl;
 	hid_ishtp_cl->client_data = client_data;
@@ -830,10 +962,13 @@ static int hid_ishtp_cl_probe(struct ishtp_cl_device *cl_device)
 	INIT_WORK(&client_data->work, hid_ishtp_cl_reset_handler);
 
 	rv = hid_ishtp_cl_init(hid_ishtp_cl, 0);
-	if (rv) {
+
+	if (rv)
+	{
 		ishtp_cl_free(hid_ishtp_cl);
 		return rv;
 	}
+
 	ishtp_get_device(cl_device);
 
 	return 0;
@@ -853,7 +988,7 @@ static int hid_ishtp_cl_remove(struct ishtp_cl_device *cl_device)
 	struct ishtp_cl_data *client_data = hid_ishtp_cl->client_data;
 
 	hid_ishtp_trace(client_data, "%s hid_ishtp_cl %p\n", __func__,
-			hid_ishtp_cl);
+					hid_ishtp_cl);
 
 	dev_dbg(&cl_device->dev, "%s\n", __func__);
 	hid_ishtp_cl->state = ISHTP_CL_DISCONNECTING;
@@ -883,7 +1018,7 @@ static int hid_ishtp_cl_reset(struct ishtp_cl_device *cl_device)
 	struct ishtp_cl_data *client_data = hid_ishtp_cl->client_data;
 
 	hid_ishtp_trace(client_data, "%s hid_ishtp_cl %p\n", __func__,
-			hid_ishtp_cl);
+					hid_ishtp_cl);
 
 	schedule_work(&client_data->work);
 
@@ -907,7 +1042,7 @@ static int hid_ishtp_cl_suspend(struct device *device)
 	struct ishtp_cl_data *client_data = hid_ishtp_cl->client_data;
 
 	hid_ishtp_trace(client_data, "%s hid_ishtp_cl %p\n", __func__,
-			hid_ishtp_cl);
+					hid_ishtp_cl);
 	client_data->suspended = true;
 
 	return 0;
@@ -928,17 +1063,19 @@ static int hid_ishtp_cl_resume(struct device *device)
 	struct ishtp_cl_data *client_data = hid_ishtp_cl->client_data;
 
 	hid_ishtp_trace(client_data, "%s hid_ishtp_cl %p\n", __func__,
-			hid_ishtp_cl);
+					hid_ishtp_cl);
 	client_data->suspended = false;
 	return 0;
 }
 
-static const struct dev_pm_ops hid_ishtp_pm_ops = {
+static const struct dev_pm_ops hid_ishtp_pm_ops =
+{
 	.suspend = hid_ishtp_cl_suspend,
 	.resume = hid_ishtp_cl_resume,
 };
 
-static struct ishtp_cl_driver	hid_ishtp_cl_driver = {
+static struct ishtp_cl_driver	hid_ishtp_cl_driver =
+{
 	.name = "ish-hid",
 	.probe = hid_ishtp_cl_probe,
 	.remove = hid_ishtp_cl_remove,

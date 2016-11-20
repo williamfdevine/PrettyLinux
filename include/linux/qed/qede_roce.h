@@ -36,25 +36,28 @@ struct qedr_dev;
 struct qed_dev;
 struct qede_dev;
 
-enum qede_roce_event {
+enum qede_roce_event
+{
 	QEDE_UP,
 	QEDE_DOWN,
 	QEDE_CHANGE_ADDR,
 	QEDE_CLOSE
 };
 
-struct qede_roce_event_work {
+struct qede_roce_event_work
+{
 	struct list_head list;
 	struct work_struct work;
 	void *ptr;
 	enum qede_roce_event event;
 };
 
-struct qedr_driver {
+struct qedr_driver
+{
 	unsigned char name[32];
 
-	struct qedr_dev* (*add)(struct qed_dev *, struct pci_dev *,
-				struct net_device *);
+	struct qedr_dev *(*add)(struct qed_dev *, struct pci_dev *,
+							struct net_device *);
 
 	void (*remove)(struct qedr_dev *);
 	void (*notify)(struct qedr_dev *, enum qede_roce_event);

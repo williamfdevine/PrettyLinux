@@ -41,7 +41,8 @@
 #define MBOX_SWSCI     (1<<1)
 #define MBOX_ASLE      (1<<2)
 
-struct opregion_header {
+struct opregion_header
+{
 	u8 signature[16];
 	u32 size;
 	u32 opregion_ver;
@@ -53,7 +54,8 @@ struct opregion_header {
 } __packed;
 
 /* OpRegion mailbox #1: public ACPI methods */
-struct opregion_acpi {
+struct opregion_acpi
+{
 	u32 drdy;	/* driver readiness */
 	u32 csts;	/* notification status */
 	u32 cevt;	/* current event */
@@ -75,12 +77,14 @@ struct opregion_acpi {
 } __packed;
 
 /* OpRegion mailbox #2: SWSCI */
-struct opregion_swsci {
+struct opregion_swsci
+{
 	/*FIXME: add it later*/
 } __packed;
 
 /* OpRegion mailbox #3: ASLE */
-struct opregion_asle {
+struct opregion_asle
+{
 	u32 ardy;	/* driver readiness */
 	u32 aslc;	/* ASLE interrupt command */
 	u32 tche;	/* technology enabled indicator */
@@ -154,14 +158,21 @@ static u32 asle_set_backlight(struct drm_device *dev, u32 bclp)
 	DRM_DEBUG_DRIVER("asle set backlight %x\n", bclp);
 
 	if (!(bclp & ASLE_BCLP_VALID))
+	{
 		return ASLE_BACKLIGHT_FAILED;
+	}
 
 	if (bd == NULL)
+	{
 		return ASLE_BACKLIGHT_FAILED;
+	}
 
 	bclp &= ASLE_BCLP_MSK;
+
 	if (bclp > 255)
+	{
 		return ASLE_BACKLIGHT_FAILED;
+	}
 
 	gma_backlight_set(dev, bclp * bd->props.max_brightness / 255);
 
@@ -181,16 +192,22 @@ static void psb_intel_opregion_asle_work(struct work_struct *work)
 	u32 asle_req;
 
 	if (!asle)
+	{
 		return;
+	}
 
 	asle_req = asle->aslc & ASLE_REQ_MSK;
-	if (!asle_req) {
+
+	if (!asle_req)
+	{
 		DRM_DEBUG_DRIVER("non asle set request??\n");
 		return;
 	}
 
 	if (asle_req & ASLE_SET_BACKLIGHT)
+	{
 		asle_stat |= asle_set_backlight(dev_priv->dev, asle->bclp);
+	}
 
 	asle->aslc = asle_stat;
 
@@ -201,7 +218,9 @@ void psb_intel_opregion_asle_intr(struct drm_device *dev)
 	struct drm_psb_private *dev_priv = dev->dev_private;
 
 	if (dev_priv->opregion.asle)
+	{
 		schedule_work(&dev_priv->opregion.asle_work);
+	}
 }
 
 #define ASLE_ALS_EN    (1<<0)
@@ -214,14 +233,15 @@ void psb_intel_opregion_enable_asle(struct drm_device *dev)
 	struct drm_psb_private *dev_priv = dev->dev_private;
 	struct opregion_asle *asle = dev_priv->opregion.asle;
 
-	if (asle && system_opregion ) {
+	if (asle && system_opregion )
+	{
 		/* Don't do this on Medfield or other non PC like devices, they
 		   use the bit for something different altogether */
 		psb_enable_pipestat(dev_priv, 0, PIPE_LEGACY_BLC_EVENT_ENABLE);
 		psb_enable_pipestat(dev_priv, 1, PIPE_LEGACY_BLC_EVENT_ENABLE);
 
 		asle->tche = ASLE_ALS_EN | ASLE_BLC_EN | ASLE_PFIT_EN
-								| ASLE_PFMB_EN;
+					 | ASLE_PFMB_EN;
 		asle->ardy = 1;
 	}
 }
@@ -232,7 +252,7 @@ void psb_intel_opregion_enable_asle(struct drm_device *dev)
 
 
 static int psb_intel_opregion_video_event(struct notifier_block *nb,
-					  unsigned long val, void *data)
+		unsigned long val, void *data)
 {
 	/* The only video events relevant to opregion are 0x80. These indicate
 	   either a docking event, lid switch or display switch request. In
@@ -244,7 +264,9 @@ static int psb_intel_opregion_video_event(struct notifier_block *nb,
 	struct opregion_acpi *acpi;
 
 	if (!system_opregion)
+	{
 		return NOTIFY_DONE;
+	}
 
 	acpi = system_opregion->acpi;
 	acpi->csts = 0;
@@ -252,7 +274,8 @@ static int psb_intel_opregion_video_event(struct notifier_block *nb,
 	return NOTIFY_OK;
 }
 
-static struct notifier_block psb_intel_opregion_notifier = {
+static struct notifier_block psb_intel_opregion_notifier =
+{
 	.notifier_call = psb_intel_opregion_video_event,
 };
 
@@ -262,9 +285,12 @@ void psb_intel_opregion_init(struct drm_device *dev)
 	struct psb_intel_opregion *opregion = &dev_priv->opregion;
 
 	if (!opregion->header)
+	{
 		return;
+	}
 
-	if (opregion->acpi) {
+	if (opregion->acpi)
+	{
 		/* Notify BIOS we are ready to handle ACPI video ext notifs.
 		 * Right now, all the events are handled by the ACPI video
 		 * module. We don't actually need to do anything with them. */
@@ -282,9 +308,12 @@ void psb_intel_opregion_fini(struct drm_device *dev)
 	struct psb_intel_opregion *opregion = &dev_priv->opregion;
 
 	if (!opregion->header)
+	{
 		return;
+	}
 
-	if (opregion->acpi) {
+	if (opregion->acpi)
+	{
 		opregion->acpi->drdy = 0;
 
 		system_opregion = NULL;
@@ -311,7 +340,9 @@ int psb_intel_opregion_setup(struct drm_device *dev)
 	int err = 0;
 
 	pci_read_config_dword(dev->pdev, PCI_ASLS, &opregion_phy);
-	if (opregion_phy == 0) {
+
+	if (opregion_phy == 0)
+	{
 		DRM_DEBUG_DRIVER("ACPI Opregion not supported\n");
 		return -ENOTSUPP;
 	}
@@ -319,11 +350,15 @@ int psb_intel_opregion_setup(struct drm_device *dev)
 	INIT_WORK(&opregion->asle_work, psb_intel_opregion_asle_work);
 
 	DRM_DEBUG("OpRegion detected at 0x%8x\n", opregion_phy);
-	base = acpi_os_ioremap(opregion_phy, 8*1024);
-	if (!base)
-		return -ENOMEM;
+	base = acpi_os_ioremap(opregion_phy, 8 * 1024);
 
-	if (memcmp(base, OPREGION_SIGNATURE, 16)) {
+	if (!base)
+	{
+		return -ENOMEM;
+	}
+
+	if (memcmp(base, OPREGION_SIGNATURE, 16))
+	{
 		DRM_DEBUG_DRIVER("opregion signature mismatch\n");
 		err = -EINVAL;
 		goto err_out;
@@ -335,12 +370,15 @@ int psb_intel_opregion_setup(struct drm_device *dev)
 	opregion->lid_state = base + ACPI_CLID;
 
 	mboxes = opregion->header->mboxes;
-	if (mboxes & MBOX_ACPI) {
+
+	if (mboxes & MBOX_ACPI)
+	{
 		DRM_DEBUG_DRIVER("Public ACPI methods supported\n");
 		opregion->acpi = base + OPREGION_ACPI_OFFSET;
 	}
 
-	if (mboxes & MBOX_ASLE) {
+	if (mboxes & MBOX_ASLE)
+	{
 		DRM_DEBUG_DRIVER("ASLE supported\n");
 		opregion->asle = base + OPREGION_ASLE_OFFSET;
 	}

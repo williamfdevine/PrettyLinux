@@ -15,7 +15,8 @@
  * @node: rb-tree node used to store the lock in a global tree
  * @name: a unique name for the lock
  */
-struct lock_lookup {
+struct lock_lookup
+{
 	void *orig; /* Original pthread lock, used for lookups */
 	struct lockdep_map dep_map; /* Since all locks are dynamic, we need
 				     * a dep_map and a key for each lock */
@@ -40,20 +41,20 @@ static pthread_rwlock_t locks_rwlock = PTHREAD_RWLOCK_INITIALIZER;
 /* pthread mutex API */
 
 #ifdef __GLIBC__
-extern int __pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr);
-extern int __pthread_mutex_lock(pthread_mutex_t *mutex);
-extern int __pthread_mutex_trylock(pthread_mutex_t *mutex);
-extern int __pthread_mutex_unlock(pthread_mutex_t *mutex);
-extern int __pthread_mutex_destroy(pthread_mutex_t *mutex);
+	extern int __pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr);
+	extern int __pthread_mutex_lock(pthread_mutex_t *mutex);
+	extern int __pthread_mutex_trylock(pthread_mutex_t *mutex);
+	extern int __pthread_mutex_unlock(pthread_mutex_t *mutex);
+	extern int __pthread_mutex_destroy(pthread_mutex_t *mutex);
 #else
-#define __pthread_mutex_init	NULL
-#define __pthread_mutex_lock	NULL
-#define __pthread_mutex_trylock	NULL
-#define __pthread_mutex_unlock	NULL
-#define __pthread_mutex_destroy	NULL
+	#define __pthread_mutex_init	NULL
+	#define __pthread_mutex_lock	NULL
+	#define __pthread_mutex_trylock	NULL
+	#define __pthread_mutex_unlock	NULL
+	#define __pthread_mutex_destroy	NULL
 #endif
 static int (*ll_pthread_mutex_init)(pthread_mutex_t *mutex,
-			const pthread_mutexattr_t *attr)	= __pthread_mutex_init;
+									const pthread_mutexattr_t *attr)	= __pthread_mutex_init;
 static int (*ll_pthread_mutex_lock)(pthread_mutex_t *mutex)	= __pthread_mutex_lock;
 static int (*ll_pthread_mutex_trylock)(pthread_mutex_t *mutex)	= __pthread_mutex_trylock;
 static int (*ll_pthread_mutex_unlock)(pthread_mutex_t *mutex)	= __pthread_mutex_unlock;
@@ -62,25 +63,25 @@ static int (*ll_pthread_mutex_destroy)(pthread_mutex_t *mutex)	= __pthread_mutex
 /* pthread rwlock API */
 
 #ifdef __GLIBC__
-extern int __pthread_rwlock_init(pthread_rwlock_t *rwlock, const pthread_rwlockattr_t *attr);
-extern int __pthread_rwlock_destroy(pthread_rwlock_t *rwlock);
-extern int __pthread_rwlock_wrlock(pthread_rwlock_t *rwlock);
-extern int __pthread_rwlock_trywrlock(pthread_rwlock_t *rwlock);
-extern int __pthread_rwlock_rdlock(pthread_rwlock_t *rwlock);
-extern int __pthread_rwlock_tryrdlock(pthread_rwlock_t *rwlock);
-extern int __pthread_rwlock_unlock(pthread_rwlock_t *rwlock);
+	extern int __pthread_rwlock_init(pthread_rwlock_t *rwlock, const pthread_rwlockattr_t *attr);
+	extern int __pthread_rwlock_destroy(pthread_rwlock_t *rwlock);
+	extern int __pthread_rwlock_wrlock(pthread_rwlock_t *rwlock);
+	extern int __pthread_rwlock_trywrlock(pthread_rwlock_t *rwlock);
+	extern int __pthread_rwlock_rdlock(pthread_rwlock_t *rwlock);
+	extern int __pthread_rwlock_tryrdlock(pthread_rwlock_t *rwlock);
+	extern int __pthread_rwlock_unlock(pthread_rwlock_t *rwlock);
 #else
-#define __pthread_rwlock_init		NULL
-#define __pthread_rwlock_destroy	NULL
-#define __pthread_rwlock_wrlock		NULL
-#define __pthread_rwlock_trywrlock	NULL
-#define __pthread_rwlock_rdlock		NULL
-#define __pthread_rwlock_tryrdlock	NULL
-#define __pthread_rwlock_unlock		NULL
+	#define __pthread_rwlock_init		NULL
+	#define __pthread_rwlock_destroy	NULL
+	#define __pthread_rwlock_wrlock		NULL
+	#define __pthread_rwlock_trywrlock	NULL
+	#define __pthread_rwlock_rdlock		NULL
+	#define __pthread_rwlock_tryrdlock	NULL
+	#define __pthread_rwlock_unlock		NULL
 #endif
 
 static int (*ll_pthread_rwlock_init)(pthread_rwlock_t *rwlock,
-			const pthread_rwlockattr_t *attr)		= __pthread_rwlock_init;
+									 const pthread_rwlockattr_t *attr)		= __pthread_rwlock_init;
 static int (*ll_pthread_rwlock_destroy)(pthread_rwlock_t *rwlock)	= __pthread_rwlock_destroy;
 static int (*ll_pthread_rwlock_rdlock)(pthread_rwlock_t *rwlock)	= __pthread_rwlock_rdlock;
 static int (*ll_pthread_rwlock_tryrdlock)(pthread_rwlock_t *rwlock)	= __pthread_rwlock_tryrdlock;
@@ -93,7 +94,9 @@ static void init_preload(void);
 static void try_init_preload(void)
 {
 	if (__init_state != done)
+	{
 		init_preload();
+	}
 }
 
 static struct rb_node **__get_lock_node(void *lock, struct rb_node **parent)
@@ -103,23 +106,31 @@ static struct rb_node **__get_lock_node(void *lock, struct rb_node **parent)
 
 	*parent = NULL;
 
-	while (*node) {
+	while (*node)
+	{
 		l = rb_entry(*node, struct lock_lookup, node);
 
 		*parent = *node;
+
 		if (lock < l->orig)
+		{
 			node = &l->node.rb_left;
+		}
 		else if (lock > l->orig)
+		{
 			node = &l->node.rb_right;
+		}
 		else
+		{
 			return node;
+		}
 	}
 
 	return node;
 }
 
 #ifndef LIBLOCKDEP_STATIC_ENTRIES
-#define LIBLOCKDEP_STATIC_ENTRIES	1024
+	#define LIBLOCKDEP_STATIC_ENTRIES	1024
 #endif
 
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
@@ -134,7 +145,8 @@ static inline bool is_static_lock(struct lock_lookup *lock)
 
 static struct lock_lookup *alloc_lock(void)
 {
-	if (__init_state != done) {
+	if (__init_state != done)
+	{
 		/*
 		 * Some programs attempt to initialize and use locks in their
 		 * allocation path. This means that a call to malloc() would
@@ -148,11 +160,14 @@ static struct lock_lookup *alloc_lock(void)
 		 */
 
 		int idx = __locks_nr++;
-		if (idx >= ARRAY_SIZE(__locks)) {
+
+		if (idx >= ARRAY_SIZE(__locks))
+		{
 			fprintf(stderr,
-		"LOCKDEP error: insufficient LIBLOCKDEP_STATIC_ENTRIES\n");
+					"LOCKDEP error: insufficient LIBLOCKDEP_STATIC_ENTRIES\n");
 			exit(EX_UNAVAILABLE);
 		}
+
 		return __locks + idx;
 	}
 
@@ -162,7 +177,9 @@ static struct lock_lookup *alloc_lock(void)
 static inline void free_lock(struct lock_lookup *lock)
 {
 	if (likely(!is_static_lock(lock)))
+	{
 		free(lock);
+	}
 }
 
 /**
@@ -180,14 +197,19 @@ static struct lock_lookup *__get_lock(void *lock)
 	ll_pthread_rwlock_rdlock(&locks_rwlock);
 	node = __get_lock_node(lock, &parent);
 	ll_pthread_rwlock_unlock(&locks_rwlock);
-	if (*node) {
+
+	if (*node)
+	{
 		return rb_entry(*node, struct lock_lookup, node);
 	}
 
 	/* We didn't find the lock, let's create it */
 	l = alloc_lock();
+
 	if (l == NULL)
+	{
 		return NULL;
+	}
 
 	l->orig = lock;
 	/*
@@ -218,7 +240,7 @@ static void __del_lock(struct lock_lookup *lock)
 }
 
 int pthread_mutex_init(pthread_mutex_t *mutex,
-			const pthread_mutexattr_t *attr)
+					   const pthread_mutexattr_t *attr)
 {
 	int r;
 
@@ -235,13 +257,16 @@ int pthread_mutex_init(pthread_mutex_t *mutex,
 	try_init_preload();
 
 	r = ll_pthread_mutex_init(mutex, attr);
+
 	if (r == 0)
 		/*
 		 * We do a dummy initialization here so that lockdep could
 		 * warn us if something fishy is going on - such as
 		 * initializing a held lock.
 		 */
+	{
 		__get_lock(mutex);
+	}
 
 	return r;
 }
@@ -253,7 +278,7 @@ int pthread_mutex_lock(pthread_mutex_t *mutex)
 	try_init_preload();
 
 	lock_acquire(&__get_lock(mutex)->dep_map, 0, 0, 0, 1, NULL,
-			(unsigned long)_RET_IP_);
+				 (unsigned long)_RET_IP_);
 	/*
 	 * Here's the thing with pthread mutexes: unlike the kernel variant,
 	 * they can fail.
@@ -269,8 +294,11 @@ int pthread_mutex_lock(pthread_mutex_t *mutex)
 	 * state by releasing it.
 	 */
 	r = ll_pthread_mutex_lock(mutex);
+
 	if (r)
+	{
 		lock_release(&__get_lock(mutex)->dep_map, 0, (unsigned long)_RET_IP_);
+	}
 
 	return r;
 }
@@ -283,8 +311,11 @@ int pthread_mutex_trylock(pthread_mutex_t *mutex)
 
 	lock_acquire(&__get_lock(mutex)->dep_map, 0, 1, 0, 1, NULL, (unsigned long)_RET_IP_);
 	r = ll_pthread_mutex_trylock(mutex);
+
 	if (r)
+	{
 		lock_release(&__get_lock(mutex)->dep_map, 0, (unsigned long)_RET_IP_);
+	}
 
 	return r;
 }
@@ -302,8 +333,11 @@ int pthread_mutex_unlock(pthread_mutex_t *mutex)
 	 * If we fail releasing the lock, tell lockdep we're holding it again.
 	 */
 	r = ll_pthread_mutex_unlock(mutex);
+
 	if (r)
+	{
 		lock_acquire(&__get_lock(mutex)->dep_map, 0, 0, 0, 1, NULL, (unsigned long)_RET_IP_);
+	}
 
 	return r;
 }
@@ -324,15 +358,18 @@ int pthread_mutex_destroy(pthread_mutex_t *mutex)
 
 /* This is the rwlock part, very similar to what happened with mutex above */
 int pthread_rwlock_init(pthread_rwlock_t *rwlock,
-			const pthread_rwlockattr_t *attr)
+						const pthread_rwlockattr_t *attr)
 {
 	int r;
 
 	try_init_preload();
 
 	r = ll_pthread_rwlock_init(rwlock, attr);
+
 	if (r == 0)
+	{
 		__get_lock(rwlock);
+	}
 
 	return r;
 }
@@ -350,12 +387,15 @@ int pthread_rwlock_rdlock(pthread_rwlock_t *rwlock)
 {
 	int r;
 
-        init_preload();
+	init_preload();
 
 	lock_acquire(&__get_lock(rwlock)->dep_map, 0, 0, 2, 1, NULL, (unsigned long)_RET_IP_);
 	r = ll_pthread_rwlock_rdlock(rwlock);
+
 	if (r)
+	{
 		lock_release(&__get_lock(rwlock)->dep_map, 0, (unsigned long)_RET_IP_);
+	}
 
 	return r;
 }
@@ -364,12 +404,15 @@ int pthread_rwlock_tryrdlock(pthread_rwlock_t *rwlock)
 {
 	int r;
 
-        init_preload();
+	init_preload();
 
 	lock_acquire(&__get_lock(rwlock)->dep_map, 0, 1, 2, 1, NULL, (unsigned long)_RET_IP_);
 	r = ll_pthread_rwlock_tryrdlock(rwlock);
+
 	if (r)
+	{
 		lock_release(&__get_lock(rwlock)->dep_map, 0, (unsigned long)_RET_IP_);
+	}
 
 	return r;
 }
@@ -378,12 +421,15 @@ int pthread_rwlock_trywrlock(pthread_rwlock_t *rwlock)
 {
 	int r;
 
-        init_preload();
+	init_preload();
 
 	lock_acquire(&__get_lock(rwlock)->dep_map, 0, 1, 0, 1, NULL, (unsigned long)_RET_IP_);
 	r = ll_pthread_rwlock_trywrlock(rwlock);
+
 	if (r)
-                lock_release(&__get_lock(rwlock)->dep_map, 0, (unsigned long)_RET_IP_);
+	{
+		lock_release(&__get_lock(rwlock)->dep_map, 0, (unsigned long)_RET_IP_);
+	}
 
 	return r;
 }
@@ -392,12 +438,15 @@ int pthread_rwlock_wrlock(pthread_rwlock_t *rwlock)
 {
 	int r;
 
-        init_preload();
+	init_preload();
 
 	lock_acquire(&__get_lock(rwlock)->dep_map, 0, 0, 0, 1, NULL, (unsigned long)_RET_IP_);
 	r = ll_pthread_rwlock_wrlock(rwlock);
+
 	if (r)
+	{
 		lock_release(&__get_lock(rwlock)->dep_map, 0, (unsigned long)_RET_IP_);
+	}
 
 	return r;
 }
@@ -406,12 +455,15 @@ int pthread_rwlock_unlock(pthread_rwlock_t *rwlock)
 {
 	int r;
 
-        init_preload();
+	init_preload();
 
 	lock_release(&__get_lock(rwlock)->dep_map, 0, (unsigned long)_RET_IP_);
 	r = ll_pthread_rwlock_unlock(rwlock);
+
 	if (r)
+	{
 		lock_acquire(&__get_lock(rwlock)->dep_map, 0, 0, 0, 1, NULL, (unsigned long)_RET_IP_);
+	}
 
 	return r;
 }
@@ -419,7 +471,9 @@ int pthread_rwlock_unlock(pthread_rwlock_t *rwlock)
 __attribute__((constructor)) static void init_preload(void)
 {
 	if (__init_state == done)
+	{
 		return;
+	}
 
 #ifndef __GLIBC__
 	__init_state = prepare;

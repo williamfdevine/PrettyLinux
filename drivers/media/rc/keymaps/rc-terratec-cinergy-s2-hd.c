@@ -9,7 +9,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table terratec_cinergy_s2_hd[] = {
+static struct rc_map_table terratec_cinergy_s2_hd[] =
+{
 	{ 0x03, KEY_NEXT},               /* >| */
 	{ 0x07, KEY_RECORD},
 	{ 0x0b, KEY_PREVIOUS},           /* |< */
@@ -61,7 +62,8 @@ static struct rc_map_table terratec_cinergy_s2_hd[] = {
 
 };
 
-static struct rc_map_list terratec_cinergy_s2_hd_map = {
+static struct rc_map_list terratec_cinergy_s2_hd_map =
+{
 	.map = {
 		.scan    = terratec_cinergy_s2_hd,
 		.size    = ARRAY_SIZE(terratec_cinergy_s2_hd),

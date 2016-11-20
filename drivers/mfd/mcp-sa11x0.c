@@ -27,7 +27,8 @@
 
 #define DRIVER_NAME "sa11x0-mcp"
 
-struct mcp_sa11x0 {
+struct mcp_sa11x0
+{
 	void __iomem	*base0;
 	void __iomem	*base1;
 	u32		mccr0;
@@ -83,16 +84,21 @@ mcp_sa11x0_write(struct mcp *mcp, unsigned int reg, unsigned int val)
 
 	writel_relaxed(reg << 17 | MCDR2_Wr | (val & 0xffff), MCDR2(m));
 
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		udelay(mcp->rw_timeout);
-		if (readl_relaxed(MCSR(m)) & MCSR_CWC) {
+
+		if (readl_relaxed(MCSR(m)) & MCSR_CWC)
+		{
 			ret = 0;
 			break;
 		}
 	}
 
 	if (ret < 0)
+	{
 		printk(KERN_WARNING "mcp: write timed out\n");
+	}
 }
 
 /*
@@ -110,16 +116,21 @@ mcp_sa11x0_read(struct mcp *mcp, unsigned int reg)
 
 	writel_relaxed(reg << 17 | MCDR2_Rd, MCDR2(m));
 
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		udelay(mcp->rw_timeout);
-		if (readl_relaxed(MCSR(m)) & MCSR_CRC) {
+
+		if (readl_relaxed(MCSR(m)) & MCSR_CRC)
+		{
 			ret = readl_relaxed(MCDR2(m)) & 0xffff;
 			break;
 		}
 	}
 
 	if (ret < 0)
+	{
 		printk(KERN_WARNING "mcp: read timed out\n");
+	}
 
 	return ret;
 }
@@ -144,7 +155,8 @@ static void mcp_sa11x0_disable(struct mcp *mcp)
 /*
  * Our methods.
  */
-static struct mcp_ops mcp_sa11x0 = {
+static struct mcp_ops mcp_sa11x0 =
+{
 	.set_telecom_divisor	= mcp_sa11x0_set_telecom_divisor,
 	.set_audio_divisor	= mcp_sa11x0_set_audio_divisor,
 	.reg_write		= mcp_sa11x0_write,
@@ -162,27 +174,36 @@ static int mcp_sa11x0_probe(struct platform_device *dev)
 	int ret;
 
 	if (!data)
+	{
 		return -ENODEV;
+	}
 
 	mem0 = platform_get_resource(dev, IORESOURCE_MEM, 0);
 	mem1 = platform_get_resource(dev, IORESOURCE_MEM, 1);
+
 	if (!mem0 || !mem1)
+	{
 		return -ENXIO;
+	}
 
 	if (!request_mem_region(mem0->start, resource_size(mem0),
-				DRIVER_NAME)) {
+							DRIVER_NAME))
+	{
 		ret = -EBUSY;
 		goto err_mem0;
 	}
 
 	if (!request_mem_region(mem1->start, resource_size(mem1),
-				DRIVER_NAME)) {
+							DRIVER_NAME))
+	{
 		ret = -EBUSY;
 		goto err_mem1;
 	}
 
 	mcp = mcp_host_alloc(&dev->dev, sizeof(struct mcp_sa11x0));
-	if (!mcp) {
+
+	if (!mcp)
+	{
 		ret = -ENOMEM;
 		goto err_alloc;
 	}
@@ -197,7 +218,9 @@ static int mcp_sa11x0_probe(struct platform_device *dev)
 
 	m->base0 = ioremap(mem0->start, resource_size(mem0));
 	m->base1 = ioremap(mem1->start, resource_size(mem1));
-	if (!m->base0 || !m->base1) {
+
+	if (!m->base0 || !m->base1)
+	{
 		ret = -ENOMEM;
 		goto err_ioremap;
 	}
@@ -218,21 +241,24 @@ static int mcp_sa11x0_probe(struct platform_device *dev)
 	 * round this time up.
 	 */
 	mcp->rw_timeout = (64 * 3 * 1000000 + mcp->sclk_rate - 1) /
-			  mcp->sclk_rate;
+					  mcp->sclk_rate;
 
 	ret = mcp_host_add(mcp, data->codec_pdata);
-	if (ret == 0)
-		return 0;
 
- err_ioremap:
+	if (ret == 0)
+	{
+		return 0;
+	}
+
+err_ioremap:
 	iounmap(m->base1);
 	iounmap(m->base0);
 	mcp_host_free(mcp);
- err_alloc:
+err_alloc:
 	release_mem_region(mem1->start, resource_size(mem1));
- err_mem1:
+err_mem1:
 	release_mem_region(mem0->start, resource_size(mem0));
- err_mem0:
+err_mem0:
 	return ret;
 }
 
@@ -244,7 +270,7 @@ static int mcp_sa11x0_remove(struct platform_device *dev)
 
 	if (m->mccr0 & MCCR0_MCE)
 		dev_warn(&dev->dev,
-			 "device left active (missing disable call?)\n");
+				 "device left active (missing disable call?)\n");
 
 	mem0 = platform_get_resource(dev, IORESOURCE_MEM, 0);
 	mem1 = platform_get_resource(dev, IORESOURCE_MEM, 1);
@@ -265,7 +291,9 @@ static int mcp_sa11x0_suspend(struct device *dev)
 	struct mcp_sa11x0 *m = priv(dev_get_drvdata(dev));
 
 	if (m->mccr0 & MCCR0_MCE)
+	{
 		dev_warn(dev, "device left active (missing disable call?)\n");
+	}
 
 	writel(m->mccr0 & ~MCCR0_MCE, MCCR0(m));
 
@@ -283,7 +311,8 @@ static int mcp_sa11x0_resume(struct device *dev)
 }
 #endif
 
-static const struct dev_pm_ops mcp_sa11x0_pm_ops = {
+static const struct dev_pm_ops mcp_sa11x0_pm_ops =
+{
 #ifdef CONFIG_PM_SLEEP
 	.suspend = mcp_sa11x0_suspend,
 	.freeze = mcp_sa11x0_suspend,
@@ -294,7 +323,8 @@ static const struct dev_pm_ops mcp_sa11x0_pm_ops = {
 #endif
 };
 
-static struct platform_driver mcp_sa11x0_driver = {
+static struct platform_driver mcp_sa11x0_driver =
+{
 	.probe		= mcp_sa11x0_probe,
 	.remove		= mcp_sa11x0_remove,
 	.driver		= {

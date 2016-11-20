@@ -74,7 +74,7 @@
 
 #define ADP5588_DEVICE_ID_MASK	0xF
 
- /* Configuration Register1 */
+/* Configuration Register1 */
 #define ADP5588_AUTO_INC	(1 << 7)
 #define ADP5588_GPIEM_CFG	(1 << 6)
 #define ADP5588_OVR_FLOW_M	(1 << 5)
@@ -134,18 +134,20 @@
 
 #define ADP5588_GPIMAPSIZE_MAX (GPI_PIN_END - GPI_PIN_BASE + 1)
 
-struct adp5588_gpi_map {
+struct adp5588_gpi_map
+{
 	unsigned short pin;
 	unsigned short sw_evt;
 };
 
-struct adp5588_kpad_platform_data {
+struct adp5588_kpad_platform_data
+{
 	int rows;			/* Number of rows */
 	int cols;			/* Number of columns */
 	const unsigned short *keymap;	/* Pointer to keymap */
 	unsigned short keymapsize;	/* Keymap size */
-	unsigned repeat:1;		/* Enable key repeat */
-	unsigned en_keylock:1;		/* Enable Key Lock feature */
+	unsigned repeat: 1;		/* Enable key repeat */
+	unsigned en_keylock: 1;		/* Enable Key Lock feature */
 	unsigned short unlock_key1;	/* Unlock Key 1 */
 	unsigned short unlock_key2;	/* Unlock Key 2 */
 	const struct adp5588_gpi_map *gpimap;
@@ -155,17 +157,18 @@ struct adp5588_kpad_platform_data {
 
 struct i2c_client; /* forward declaration */
 
-struct adp5588_gpio_platform_data {
+struct adp5588_gpio_platform_data
+{
 	int gpio_start;		/* GPIO Chip base # */
 	const char *const *names;
 	unsigned irq_base;	/* interrupt base # */
 	unsigned pullup_dis_mask; /* Pull-Up Disable Mask */
 	int	(*setup)(struct i2c_client *client,
-				unsigned gpio, unsigned ngpio,
-				void *context);
+				 unsigned gpio, unsigned ngpio,
+				 void *context);
 	int	(*teardown)(struct i2c_client *client,
-				unsigned gpio, unsigned ngpio,
-				void *context);
+					unsigned gpio, unsigned ngpio,
+					void *context);
 	void	*context;
 };
 

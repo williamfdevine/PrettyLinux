@@ -50,7 +50,7 @@ void s5p_jpeg_outform_raw(void __iomem *regs, unsigned long format);
 void s5p_jpeg_jpgadr(void __iomem *regs, unsigned long addr);
 void s5p_jpeg_imgadr(void __iomem *regs, unsigned long addr);
 void s5p_jpeg_coef(void __iomem *regs, unsigned int i,
-			     unsigned int j, unsigned int coef);
+				   unsigned int j, unsigned int coef);
 void s5p_jpeg_start(void __iomem *regs);
 int s5p_jpeg_result_stat_ok(void __iomem *regs);
 int s5p_jpeg_stream_stat_ok(void __iomem *regs);

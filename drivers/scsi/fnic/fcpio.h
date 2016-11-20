@@ -36,7 +36,8 @@
 /*
  * Command entry type
  */
-enum fcpio_type {
+enum fcpio_type
+{
 	/*
 	 * Initiator request types
 	 */
@@ -80,7 +81,8 @@ enum fcpio_type {
 /*
  * Header status codes from the firmware
  */
-enum fcpio_status {
+enum fcpio_status
+{
 	FCPIO_SUCCESS = 0,              /* request was successful */
 
 	/*
@@ -123,10 +125,13 @@ enum fcpio_status {
  * requests.  These two requests do not have corresponding host requests
  * since they come directly from the FC initiator on the network.
  */
-struct fcpio_tag {
-	union {
+struct fcpio_tag
+{
+	union
+	{
 		u32 req_id;
-		struct {
+		struct
+		{
 			u16 rx_id;
 			u16 ox_id;
 		} ex_id;
@@ -163,7 +168,8 @@ fcpio_tag_exid_dec(struct fcpio_tag *tag, u16 *ox_id, u16 *rx_id)
  * The header for an fcpio request, whether from the firmware or from the
  * host driver
  */
-struct fcpio_header {
+struct fcpio_header
+{
 	u8            type;           /* enum fcpio_type */
 	u8            status;         /* header status entry */
 	u16           _resvd;         /* reserved */
@@ -172,8 +178,8 @@ struct fcpio_header {
 
 static inline void
 fcpio_header_enc(struct fcpio_header *hdr,
-		 u8 type, u8 status,
-		 struct fcpio_tag tag)
+				 u8 type, u8 status,
+				 struct fcpio_tag tag)
 {
 	hdr->type = type;
 	hdr->status = status;
@@ -183,8 +189,8 @@ fcpio_header_enc(struct fcpio_header *hdr,
 
 static inline void
 fcpio_header_dec(struct fcpio_header *hdr,
-		 u8 *type, u8 *status,
-		 struct fcpio_tag *tag)
+				 u8 *type, u8 *status,
+				 struct fcpio_tag *tag)
 {
 	*type = hdr->type;
 	*status = hdr->status;
@@ -200,7 +206,8 @@ fcpio_header_dec(struct fcpio_header *hdr,
  *
  * used for sending out an initiator SCSI 16-byte command
  */
-struct fcpio_icmnd_16 {
+struct fcpio_icmnd_16
+{
 	u32	  lunmap_id;		/* index into lunmap table */
 	u8	  special_req_flags;	/* special exchange request flags */
 	u8	  _resvd0[3];	        /* reserved */
@@ -248,7 +255,8 @@ struct fcpio_icmnd_16 {
  *
  * used for sending out an initiator SCSI 32-byte command
  */
-struct fcpio_icmnd_32 {
+struct fcpio_icmnd_32
+{
 	u32   lunmap_id;              /* index into lunmap table */
 	u8    special_req_flags;      /* special exchange request flags */
 	u8    _resvd0[3];             /* reserved */
@@ -279,7 +287,8 @@ struct fcpio_icmnd_32 {
  *
  * The t_tag field is only needed when the request type is ABT_TASK.
  */
-struct fcpio_itmf {
+struct fcpio_itmf
+{
 	u32   lunmap_id;              /* index into lunmap table */
 	u32   tm_req;                 /* SCSI Task Management request */
 	u32   t_tag;                  /* header tag of fcpio to be aborted */
@@ -294,7 +303,8 @@ struct fcpio_itmf {
 /*
  * Task Management request
  */
-enum fcpio_itmf_tm_req_type {
+enum fcpio_itmf_tm_req_type
+{
 	FCPIO_ITMF_ABT_TASK_TERM = 0x01,    /* abort task and terminate */
 	FCPIO_ITMF_ABT_TASK,                /* abort task and issue abts */
 	FCPIO_ITMF_ABT_TASK_SET,            /* abort task set */
@@ -309,7 +319,8 @@ enum fcpio_itmf_tm_req_type {
  * used for requesting the firmware to send out a read data transfer for a
  * target command
  */
-struct fcpio_tdata {
+struct fcpio_tdata
+{
 	u16   rx_id;                  /* FC rx_id of target command */
 	u16   flags;                  /* command flags */
 	u32   rel_offset;             /* data sequence relative offset */
@@ -329,7 +340,8 @@ struct fcpio_tdata {
  * used for requesting the firmware to send out a write data transfer for a
  * target command
  */
-struct fcpio_txrdy {
+struct fcpio_txrdy
+{
 	u16   rx_id;                  /* FC rx_id of target command */
 	u16   _resvd0;                /* reserved */
 	u32   rel_offset;             /* data sequence relative offset */
@@ -344,7 +356,8 @@ struct fcpio_txrdy {
  * used for requesting the firmware to send out a response for a target
  * command
  */
-struct fcpio_trsp {
+struct fcpio_trsp
+{
 	u16   rx_id;                  /* FC rx_id of target command */
 	u16   _resvd0;                /* reserved */
 	u32   sense_len;              /* sense data buffer length */
@@ -367,7 +380,8 @@ struct fcpio_trsp {
  * used by the host to indicate to the firmware it has received and processed
  * the target tmf request
  */
-struct fcpio_ttmf_ack {
+struct fcpio_ttmf_ack
+{
 	u16   rx_id;                  /* FC rx_id of target command */
 	u16   _resvd0;                /* reserved */
 	u32   tmf_status;             /* SCSI task management status */
@@ -379,7 +393,8 @@ struct fcpio_ttmf_ack {
  * used by the host to request the firmware to abort a target request that was
  * received by the firmware
  */
-struct fcpio_tabort {
+struct fcpio_tabort
+{
 	u16   rx_id;                  /* rx_id of the target request */
 };
 
@@ -389,11 +404,13 @@ struct fcpio_tabort {
  * used by the host to signal a reset of the driver to the firmware
  * and to request firmware to clean up all outstanding I/O
  */
-struct fcpio_reset {
+struct fcpio_reset
+{
 	u32   _resvd;
 };
 
-enum fcpio_flogi_reg_format_type {
+enum fcpio_flogi_reg_format_type
+{
 	FCPIO_FLOGI_REG_DEF_DEST = 0,    /* Use the oui | s_id mac format */
 	FCPIO_FLOGI_REG_GW_DEST,         /* Use the fixed gateway mac */
 };
@@ -405,7 +422,8 @@ enum fcpio_flogi_reg_format_type {
  * used by the host to notify the firmware of the lif's s_id
  * and destination mac address format
  */
-struct fcpio_flogi_reg {
+struct fcpio_flogi_reg
+{
 	u8 format;
 	u8 s_id[3];			/* FC vNIC only: Source S_ID */
 	u8 gateway_mac[ETH_ALEN];	/* Destination gateway mac */
@@ -419,7 +437,8 @@ struct fcpio_flogi_reg {
  *
  * sends a heartbeat echo request to the firmware
  */
-struct fcpio_echo {
+struct fcpio_echo
+{
 	u32 _resvd;
 };
 
@@ -429,7 +448,8 @@ struct fcpio_echo {
  * scsi vnic only
  * sends a request to retrieve the lunmap table for scsi vnics
  */
-struct fcpio_lunmap_req {
+struct fcpio_lunmap_req
+{
 	u64 addr;                     /* address of the buffer */
 	u32 len;                      /* len of the buffer */
 };
@@ -441,7 +461,8 @@ struct fcpio_lunmap_req {
  * used by the host to notify the firmware of the lif's s_id
  * and destination mac address format
  */
-struct fcpio_flogi_fip_reg {
+struct fcpio_flogi_fip_reg
+{
 	u8    _resvd0;
 	u8     s_id[3];               /* FC vNIC only: Source S_ID */
 	u8     fcf_mac[ETH_ALEN];     /* FCF Target destination mac */
@@ -458,10 +479,12 @@ struct fcpio_flogi_fip_reg {
  */
 #define FCPIO_HOST_REQ_LEN      128     /* expected length of host requests */
 
-struct fcpio_host_req {
+struct fcpio_host_req
+{
 	struct fcpio_header hdr;
 
-	union {
+	union
+	{
 		/*
 		 * Defines space needed for request
 		 */
@@ -499,7 +522,8 @@ struct fcpio_host_req {
  *
  * used for sending the host a response to an initiator command
  */
-struct fcpio_icmnd_cmpl {
+struct fcpio_icmnd_cmpl
+{
 	u8    _resvd0[6];             /* reserved */
 	u8    flags;                  /* response flags */
 	u8    scsi_status;            /* SCSI status */
@@ -518,7 +542,8 @@ struct fcpio_icmnd_cmpl {
  *
  * used for sending the host a response for a itmf request
  */
-struct fcpio_itmf_cmpl {
+struct fcpio_itmf_cmpl
+{
 	u32    _resvd;                /* reserved */
 };
 
@@ -528,7 +553,8 @@ struct fcpio_itmf_cmpl {
  * used by the firmware to notify the host of an incoming target SCSI 16-Byte
  * request
  */
-struct fcpio_tcmnd_16 {
+struct fcpio_tcmnd_16
+{
 	u8    lun[LUN_ADDRESS];       /* FC vNIC only: LUN address */
 	u8    crn;                    /* SCSI Command Reference No. */
 	u8    pri_ta;                 /* SCSI Priority and Task attribute */
@@ -561,7 +587,8 @@ struct fcpio_tcmnd_16 {
  * used by the firmware to notify the host of an incoming target SCSI 32-Byte
  * request
  */
-struct fcpio_tcmnd_32 {
+struct fcpio_tcmnd_32
+{
 	u8    lun[LUN_ADDRESS];       /* FC vNIC only: LUN address */
 	u8    crn;                    /* SCSI Command Reference No. */
 	u8    pri_ta;                 /* SCSI Priority and Task attribute */
@@ -579,7 +606,8 @@ struct fcpio_tcmnd_32 {
  * used by the firmware to notify the host of a response to a host target
  * command
  */
-struct fcpio_tdrsp_cmpl {
+struct fcpio_tdrsp_cmpl
+{
 	u16   rx_id;                  /* rx_id of the target request */
 	u16   _resvd0;                /* reserved */
 };
@@ -590,7 +618,8 @@ struct fcpio_tdrsp_cmpl {
  * used by the firmware to notify the host of an incoming task management
  * function request
  */
-struct fcpio_ttmf {
+struct fcpio_ttmf
+{
 	u8    _resvd0;                /* reserved */
 	u8    s_id[3];		      /* FC vNIC only: Source S_ID */
 	u8    lun[LUN_ADDRESS];       /* FC vNIC only: LUN address */
@@ -613,7 +642,8 @@ struct fcpio_ttmf {
  *
  * used by the firmware to respond to a host's tabort request
  */
-struct fcpio_tabort_cmpl {
+struct fcpio_tabort_cmpl
+{
 	u16   rx_id;                  /* rx_id of the target request */
 	u16   _resvd0;                /* reserved */
 };
@@ -623,7 +653,8 @@ struct fcpio_tabort_cmpl {
  *
  * used by firmware to notify the host of the last work request received
  */
-struct fcpio_ack {
+struct fcpio_ack
+{
 	u16  request_out;             /* last host entry received */
 	u16  _resvd;
 };
@@ -633,7 +664,8 @@ struct fcpio_ack {
  *
  * use by firmware to respond to the host's reset request
  */
-struct fcpio_reset_cmpl {
+struct fcpio_reset_cmpl
+{
 	u16   vnic_id;
 };
 
@@ -643,7 +675,8 @@ struct fcpio_reset_cmpl {
  * fc vnic only
  * response to the fcpio_flogi_reg request
  */
-struct fcpio_flogi_reg_cmpl {
+struct fcpio_flogi_reg_cmpl
+{
 	u32 _resvd;
 };
 
@@ -652,7 +685,8 @@ struct fcpio_flogi_reg_cmpl {
  *
  * response to the fcpio_echo request
  */
-struct fcpio_echo_cmpl {
+struct fcpio_echo_cmpl
+{
 	u32 _resvd;
 };
 
@@ -662,7 +696,8 @@ struct fcpio_echo_cmpl {
  * scsi vnic only
  * notifies the host that the lunmap tables have changed
  */
-struct fcpio_lunmap_chng {
+struct fcpio_lunmap_chng
+{
 	u32 _resvd;
 };
 
@@ -672,7 +707,8 @@ struct fcpio_lunmap_chng {
  * scsi vnic only
  * response for lunmap table request from the host
  */
-struct fcpio_lunmap_req_cmpl {
+struct fcpio_lunmap_req_cmpl
+{
 	u32 _resvd;
 };
 
@@ -681,10 +717,12 @@ struct fcpio_lunmap_req_cmpl {
  * the host.  They are 64 bytes per structure.
  */
 #define FCPIO_FW_REQ_LEN        64      /* expected length of fw requests */
-struct fcpio_fw_req {
+struct fcpio_fw_req
+{
 	struct fcpio_header hdr;
 
-	union {
+	union
+	{
 		/*
 		 * Defines space needed for request
 		 */
@@ -734,9 +772,13 @@ static inline void fcpio_color_enc(struct fcpio_fw_req *fw_req, u8 color)
 	u8 *c = ((u8 *) fw_req) + sizeof(struct fcpio_fw_req) - 1;
 
 	if (color)
+	{
 		*c |= 0x80;
+	}
 	else
+	{
 		*c &= ~0x80;
+	}
 }
 
 static inline void fcpio_color_dec(struct fcpio_fw_req *fw_req, u8 *color)
@@ -763,7 +805,8 @@ static inline void fcpio_color_dec(struct fcpio_fw_req *fw_req, u8 *color)
 #define FCPIO_LUNMAP_TABLE_SIZE     256
 #define FCPIO_FLAGS_LUNMAP_VALID    0x80
 #define FCPIO_FLAGS_BOOT            0x01
-struct fcpio_lunmap_entry {
+struct fcpio_lunmap_entry
+{
 	u8    bus;
 	u8    target;
 	u8    lun;
@@ -772,7 +815,8 @@ struct fcpio_lunmap_entry {
 	u16   update_cnt;
 };
 
-struct fcpio_lunmap_tbl {
+struct fcpio_lunmap_tbl
+{
 	u32                   update_cnt;
 	struct fcpio_lunmap_entry   lunmaps[FCPIO_LUNMAP_TABLE_SIZE];
 };

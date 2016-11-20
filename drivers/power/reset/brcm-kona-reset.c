@@ -26,7 +26,7 @@
 static void __iomem *kona_reset_base;
 
 static int kona_reset_handler(struct notifier_block *this,
-				unsigned long mode, void *cmd)
+							  unsigned long mode, void *cmd)
 {
 	/*
 	 * A soft reset is triggered by writing a 0 to bit 0 of the soft reset
@@ -34,14 +34,15 @@ static int kona_reset_handler(struct notifier_block *this,
 	 * and the enable bit in the write access enable register.
 	 */
 	writel((RSTMGR_WR_PASSWORD << RSTMGR_WR_PASSWORD_SHIFT) |
-		RSTMGR_WR_ACCESS_ENABLE,
-		kona_reset_base + RSTMGR_REG_WR_ACCESS_OFFSET);
+		   RSTMGR_WR_ACCESS_ENABLE,
+		   kona_reset_base + RSTMGR_REG_WR_ACCESS_OFFSET);
 	writel(0, kona_reset_base + RSTMGR_REG_CHIP_SOFT_RST_OFFSET);
 
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block kona_reset_nb = {
+static struct notifier_block kona_reset_nb =
+{
 	.notifier_call = kona_reset_handler,
 	.priority = 128,
 };
@@ -51,18 +52,23 @@ static int kona_reset_probe(struct platform_device *pdev)
 	struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 
 	kona_reset_base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(kona_reset_base))
+	{
 		return PTR_ERR(kona_reset_base);
+	}
 
 	return register_restart_handler(&kona_reset_nb);
 }
 
-static const struct of_device_id of_match[] = {
+static const struct of_device_id of_match[] =
+{
 	{ .compatible = "brcm,bcm21664-resetmgr" },
 	{},
 };
 
-static struct platform_driver bcm_kona_reset_driver = {
+static struct platform_driver bcm_kona_reset_driver =
+{
 	.probe = kona_reset_probe,
 	.driver = {
 		.name = "brcm-kona-reset",

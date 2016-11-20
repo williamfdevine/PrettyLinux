@@ -34,7 +34,8 @@
    structure for quadro card management (obsolete for
    systems that do provide per card load event)
    -------------------------------------------------------------------------- */
-typedef struct {
+typedef struct
+{
 	dword         Num;
 	DEVICE_NAME   DeviceName[4];
 	PISDN_ADAPTER QuadroAdapter[4];
@@ -43,7 +44,8 @@ typedef struct {
    Special OS memory support structures
    -------------------------------------------------------------------------- */
 #define MAX_MAPPED_ENTRIES 8
-typedef struct {
+typedef struct
+{
 	void *Address;
 	dword    Length;
 } ADAPTER_MEMORY;
@@ -52,13 +54,15 @@ typedef struct {
    -------------------------------------------------------------------------- */
 #define DIVA_XDI_CAPI_CFG_1_DYNAMIC_L1_ON      0x01
 #define DIVA_XDI_CAPI_CFG_1_GROUP_POPTIMIZATION_ON 0x02
-typedef struct _diva_xdi_capi_cfg {
+typedef struct _diva_xdi_capi_cfg
+{
 	byte cfg_1;
 } diva_xdi_capi_cfg_t;
 /* --------------------------------------------------------------------------
    Main data structure kept per adapter
    -------------------------------------------------------------------------- */
-struct _ISDN_ADAPTER {
+struct _ISDN_ADAPTER
+{
 	void (*DIRequest)(PISDN_ADAPTER, ENTITY *);
 	int State; /* from NT4 1.srv, a good idea, but  a poor achievement */
 	int Initialized;
@@ -228,7 +232,8 @@ struct _ISDN_ADAPTER {
 /* ---------------------------------------------------------------------
    Entity table
    --------------------------------------------------------------------- */
-struct e_info_s {
+struct e_info_s
+{
 	ENTITY *e;
 	byte          next;                   /* chaining index           */
 	word          assign_ref;             /* assign reference         */
@@ -236,7 +241,8 @@ struct e_info_s {
 /* ---------------------------------------------------------------------
    S-cards shared ram structure for loading
    --------------------------------------------------------------------- */
-struct s_load {
+struct s_load
+{
 	byte ctrl;
 	byte card;
 	byte msize;
@@ -271,9 +277,9 @@ void io_outw(ADAPTER *a, void *adr, word data);
 void io_out_buffer(ADAPTER *a, void *adr, void *P, word length);
 void io_inc(ADAPTER *a, void *adr);
 void bri_in_buffer(PISDN_ADAPTER IoAdapter, dword Pos,
-		   void *Buf, dword Len);
+				   void *Buf, dword Len);
 int bri_out_buffer(PISDN_ADAPTER IoAdapter, dword Pos,
-		   void *Buf, dword Len, int Verify);
+				   void *Buf, dword Len, int Verify);
 /* ---------------------------------------------------------------------
    ram access functions for memory mapped cards
    --------------------------------------------------------------------- */
@@ -292,12 +298,13 @@ void mem_out_dw(ADAPTER *a, void *addr, const dword *data, int dwords);
    --------------------------------------------------------------------- */
 extern IDI_CALL Requests[MAX_ADAPTER];
 extern void     DIDpcRoutine(struct _diva_os_soft_isr *psoft_isr,
-			     void *context);
+							 void *context);
 extern void     request(PISDN_ADAPTER, ENTITY *);
 /* ---------------------------------------------------------------------
    trapFn helpers, used to recover debug trace from dead card
    --------------------------------------------------------------------- */
-typedef struct {
+typedef struct
+{
 	word *buf;
 	word  cnt;
 	word  out;

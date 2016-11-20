@@ -21,7 +21,8 @@
 
 #define TCFV	0x10
 
-struct tpu_priv {
+struct tpu_priv
+{
 	struct clocksource cs;
 	void __iomem *mapbase1;
 	void __iomem *mapbase2;
@@ -46,14 +47,16 @@ static int tpu_get_counter(struct tpu_priv *p, unsigned long long *val)
 	o1 = ioread8(p->mapbase1 + TSR) & TCFV;
 
 	/* Make sure the timer value is stable. Stolen from acpi_pm.c */
-	do {
+	do
+	{
 		o2 = o1;
 		v1 = read_tcnt32(p);
 		v2 = read_tcnt32(p);
 		v3 = read_tcnt32(p);
 		o1 = ioread8(p->mapbase1 + TSR) & TCFV;
-	} while (unlikely((o1 != o2) || (v1 > v2 && v1 < v3)
-			  || (v2 > v3 && v2 < v1) || (v3 > v1 && v3 < v2)));
+	}
+	while (unlikely((o1 != o2) || (v1 > v2 && v1 < v3)
+					|| (v2 > v3 && v2 < v1) || (v3 > v1 && v3 < v2)));
 
 	*val = v2;
 	return o1;
@@ -71,8 +74,12 @@ static cycle_t tpu_clocksource_read(struct clocksource *cs)
 	unsigned long long value;
 
 	raw_spin_lock_irqsave(&p->lock, flags);
+
 	if (tpu_get_counter(p, &value))
+	{
 		value += 0x100000000;
+	}
+
 	raw_spin_unlock_irqrestore(&p->lock, flags);
 
 	return value;
@@ -104,7 +111,8 @@ static void tpu_clocksource_disable(struct clocksource *cs)
 	p->cs_enabled = false;
 }
 
-static struct tpu_priv tpu_priv = {
+static struct tpu_priv tpu_priv =
+{
 	.cs = {
 		.name = "H8S_TPU",
 		.rating = 200,
@@ -126,18 +134,25 @@ static int __init h8300_tpu_init(struct device_node *node)
 	int ret = -ENXIO;
 
 	clk = of_clk_get(node, 0);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		pr_err("failed to get clock for clocksource\n");
 		return PTR_ERR(clk);
 	}
 
 	base[CH_L] = of_iomap(node, CH_L);
-	if (!base[CH_L]) {
+
+	if (!base[CH_L])
+	{
 		pr_err("failed to map registers for clocksource\n");
 		goto free_clk;
 	}
+
 	base[CH_H] = of_iomap(node, CH_H);
-	if (!base[CH_H]) {
+
+	if (!base[CH_H])
+	{
 		pr_err("failed to map registers for clocksource\n");
 		goto unmap_L;
 	}

@@ -69,7 +69,8 @@
 /* COMMAND_FIFO_STATUS */
 #define CMD_STS_MASK	0x100
 
-struct olpc_apsp {
+struct olpc_apsp
+{
 	struct device *dev;
 	struct serio *kbio;
 	struct serio *padio;
@@ -85,24 +86,33 @@ static int olpc_apsp_write(struct serio *port, unsigned char val)
 	u32 which = 0;
 
 	if (port == priv->padio)
+	{
 		which = TOUCHPAD_PORT << PORT_SHIFT;
+	}
 	else
+	{
 		which = KEYBOARD_PORT << PORT_SHIFT;
+	}
 
 	dev_dbg(priv->dev, "olpc_apsp_write which=%x val=%x\n", which, val);
-	for (i = 0; i < 50; i++) {
+
+	for (i = 0; i < 50; i++)
+	{
 		u32 sts = readl(priv->base + COMMAND_FIFO_STATUS);
-		if ((sts & CMD_CNTR_MASK) < MAX_PENDING_CMDS) {
+
+		if ((sts & CMD_CNTR_MASK) < MAX_PENDING_CMDS)
+		{
 			writel(which | val,
-			       priv->base + SECURE_PROCESSOR_COMMAND);
+				   priv->base + SECURE_PROCESSOR_COMMAND);
 			return 0;
 		}
+
 		/* SP busy. This has not been seen in practice. */
 		mdelay(1);
 	}
 
 	dev_dbg(priv->dev, "olpc_apsp_write timeout, status=%x\n",
-		readl(priv->base + COMMAND_FIFO_STATUS));
+			readl(priv->base + COMMAND_FIFO_STATUS));
 
 	return -ETIMEDOUT;
 }
@@ -118,7 +128,9 @@ static irqreturn_t olpc_apsp_rx(int irq, void *dev_id)
 	 * Write 0xff00 to SECURE_PROCESSOR_COMMAND.
 	 */
 	tmp = readl(priv->base + PJ_RST_INTERRUPT);
-	if (!(tmp & SP_COMMAND_COMPLETE_RESET)) {
+
+	if (!(tmp & SP_COMMAND_COMPLETE_RESET))
+	{
 		dev_warn(priv->dev, "spurious interrupt?\n");
 		return IRQ_NONE;
 	}
@@ -127,9 +139,13 @@ static irqreturn_t olpc_apsp_rx(int irq, void *dev_id)
 	dev_dbg(priv->dev, "olpc_apsp_rx %x\n", w);
 
 	if (w >> PORT_SHIFT == KEYBOARD_PORT)
+	{
 		serio = priv->kbio;
+	}
 	else
+	{
 		serio = priv->padio;
+	}
 
 	serio_interrupt(serio, w & DATA_MASK, 0);
 
@@ -146,7 +162,8 @@ static int olpc_apsp_open(struct serio *port)
 	struct olpc_apsp *priv = port->port_data;
 	unsigned int tmp;
 
-	if (priv->open_count++ == 0) {
+	if (priv->open_count++ == 0)
+	{
 		/* Enable interrupt 0 by clearing its bit */
 		tmp = readl(priv->base + PJ_INTERRUPT_MASK);
 		writel(tmp & ~INT_0, priv->base + PJ_INTERRUPT_MASK);
@@ -160,7 +177,8 @@ static void olpc_apsp_close(struct serio *port)
 	struct olpc_apsp *priv = port->port_data;
 	unsigned int tmp;
 
-	if (--priv->open_count == 0) {
+	if (--priv->open_count == 0)
+	{
 		/* Disable interrupt 0 */
 		tmp = readl(priv->base + PJ_INTERRUPT_MASK);
 		writel(tmp | INT_0, priv->base + PJ_INTERRUPT_MASK);
@@ -177,31 +195,45 @@ static int olpc_apsp_probe(struct platform_device *pdev)
 	int error;
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(struct olpc_apsp), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	np = pdev->dev.of_node;
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->base = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(priv->base)) {
+
+	if (IS_ERR(priv->base))
+	{
 		dev_err(&pdev->dev, "Failed to map WTM registers\n");
 		return PTR_ERR(priv->base);
 	}
 
 	priv->irq = platform_get_irq(pdev, 0);
+
 	if (priv->irq < 0)
+	{
 		return priv->irq;
+	}
 
 	l = readl(priv->base + COMMAND_FIFO_STATUS);
-	if (!(l & CMD_STS_MASK)) {
+
+	if (!(l & CMD_STS_MASK))
+	{
 		dev_err(&pdev->dev, "SP cannot accept commands.\n");
 		return -EIO;
 	}
 
 	/* KEYBOARD */
 	kb_serio = kzalloc(sizeof(struct serio), GFP_KERNEL);
+
 	if (!kb_serio)
+	{
 		return -ENOMEM;
+	}
+
 	kb_serio->id.type	= SERIO_8042_XL;
 	kb_serio->write		= olpc_apsp_write;
 	kb_serio->open		= olpc_apsp_open;
@@ -215,10 +247,13 @@ static int olpc_apsp_probe(struct platform_device *pdev)
 
 	/* TOUCHPAD */
 	pad_serio = kzalloc(sizeof(struct serio), GFP_KERNEL);
-	if (!pad_serio) {
+
+	if (!pad_serio)
+	{
 		error = -ENOMEM;
 		goto err_pad;
 	}
+
 	pad_serio->id.type	= SERIO_8042;
 	pad_serio->write	= olpc_apsp_write;
 	pad_serio->open		= olpc_apsp_open;
@@ -231,7 +266,9 @@ static int olpc_apsp_probe(struct platform_device *pdev)
 	serio_register_port(pad_serio);
 
 	error = request_irq(priv->irq, olpc_apsp_rx, 0, "olpc-apsp", priv);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "Failed to request IRQ\n");
 		goto err_irq;
 	}
@@ -262,13 +299,15 @@ static int olpc_apsp_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id olpc_apsp_dt_ids[] = {
+static const struct of_device_id olpc_apsp_dt_ids[] =
+{
 	{ .compatible = "olpc,ap-sp", },
 	{}
 };
 MODULE_DEVICE_TABLE(of, olpc_apsp_dt_ids);
 
-static struct platform_driver olpc_apsp_driver = {
+static struct platform_driver olpc_apsp_driver =
+{
 	.probe		= olpc_apsp_probe,
 	.remove		= olpc_apsp_remove,
 	.driver		= {

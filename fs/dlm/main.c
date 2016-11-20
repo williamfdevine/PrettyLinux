@@ -24,50 +24,71 @@ static int __init init_dlm(void)
 	int error;
 
 	error = dlm_memory_init();
+
 	if (error)
+	{
 		goto out;
+	}
 
 	error = dlm_lockspace_init();
+
 	if (error)
+	{
 		goto out_mem;
+	}
 
 	error = dlm_config_init();
+
 	if (error)
+	{
 		goto out_lockspace;
+	}
 
 	error = dlm_register_debugfs();
+
 	if (error)
+	{
 		goto out_config;
+	}
 
 	error = dlm_user_init();
+
 	if (error)
+	{
 		goto out_debug;
+	}
 
 	error = dlm_netlink_init();
+
 	if (error)
+	{
 		goto out_user;
+	}
 
 	error = dlm_plock_init();
+
 	if (error)
+	{
 		goto out_netlink;
+	}
 
 	printk("DLM installed\n");
 
 	return 0;
 
- out_netlink:
+out_netlink:
 	dlm_netlink_exit();
- out_user:
+out_user:
 	dlm_user_exit();
- out_debug:
+out_debug:
 	dlm_unregister_debugfs();
- out_config:
+out_config:
 	dlm_config_exit();
- out_lockspace:
+out_lockspace:
 	dlm_lockspace_exit();
- out_mem:
+out_mem:
 	dlm_memory_exit();
- out:
+out:
 	return error;
 }
 

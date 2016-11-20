@@ -69,64 +69,89 @@ static void media_devnode_release(struct device *cd)
 
 	/* Release media_devnode and perform other cleanups as needed. */
 	if (devnode->release)
+	{
 		devnode->release(devnode);
+	}
 
 	kfree(devnode);
 	pr_debug("%s: Media Devnode Deallocated\n", __func__);
 }
 
-static struct bus_type media_bus_type = {
+static struct bus_type media_bus_type =
+{
 	.name = MEDIA_NAME,
 };
 
 static ssize_t media_read(struct file *filp, char __user *buf,
-		size_t sz, loff_t *off)
+						  size_t sz, loff_t *off)
 {
 	struct media_devnode *devnode = media_devnode_data(filp);
 
 	if (!devnode->fops->read)
+	{
 		return -EINVAL;
+	}
+
 	if (!media_devnode_is_registered(devnode))
+	{
 		return -EIO;
+	}
+
 	return devnode->fops->read(filp, buf, sz, off);
 }
 
 static ssize_t media_write(struct file *filp, const char __user *buf,
-		size_t sz, loff_t *off)
+						   size_t sz, loff_t *off)
 {
 	struct media_devnode *devnode = media_devnode_data(filp);
 
 	if (!devnode->fops->write)
+	{
 		return -EINVAL;
+	}
+
 	if (!media_devnode_is_registered(devnode))
+	{
 		return -EIO;
+	}
+
 	return devnode->fops->write(filp, buf, sz, off);
 }
 
 static unsigned int media_poll(struct file *filp,
-			       struct poll_table_struct *poll)
+							   struct poll_table_struct *poll)
 {
 	struct media_devnode *devnode = media_devnode_data(filp);
 
 	if (!media_devnode_is_registered(devnode))
+	{
 		return POLLERR | POLLHUP;
+	}
+
 	if (!devnode->fops->poll)
+	{
 		return DEFAULT_POLLMASK;
+	}
+
 	return devnode->fops->poll(filp, poll);
 }
 
 static long
 __media_ioctl(struct file *filp, unsigned int cmd, unsigned long arg,
-	      long (*ioctl_func)(struct file *filp, unsigned int cmd,
-				 unsigned long arg))
+			  long (*ioctl_func)(struct file *filp, unsigned int cmd,
+								 unsigned long arg))
 {
 	struct media_devnode *devnode = media_devnode_data(filp);
 
 	if (!ioctl_func)
+	{
 		return -ENOTTY;
+	}
 
 	if (!media_devnode_is_registered(devnode))
+	{
 		return -EIO;
+	}
 
 	return ioctl_func(filp, cmd, arg);
 }
@@ -141,7 +166,7 @@ static long media_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 #ifdef CONFIG_COMPAT
 
 static long media_compat_ioctl(struct file *filp, unsigned int cmd,
-			       unsigned long arg)
+							   unsigned long arg)
 {
 	struct media_devnode *devnode = media_devnode_data(filp);
 
@@ -164,21 +189,27 @@ static int media_open(struct inode *inode, struct file *filp)
 	 */
 	mutex_lock(&media_devnode_lock);
 	devnode = container_of(inode->i_cdev, struct media_devnode, cdev);
+
 	/* return ENXIO if the media device has been removed
 	   already or if it is not registered anymore. */
-	if (!media_devnode_is_registered(devnode)) {
+	if (!media_devnode_is_registered(devnode))
+	{
 		mutex_unlock(&media_devnode_lock);
 		return -ENXIO;
 	}
+
 	/* and increase the device refcount */
 	get_device(&devnode->dev);
 	mutex_unlock(&media_devnode_lock);
 
 	filp->private_data = devnode;
 
-	if (devnode->fops->open) {
+	if (devnode->fops->open)
+	{
 		ret = devnode->fops->open(filp);
-		if (ret) {
+
+		if (ret)
+		{
 			put_device(&devnode->dev);
 			filp->private_data = NULL;
 			return ret;
@@ -194,7 +225,9 @@ static int media_release(struct inode *inode, struct file *filp)
 	struct media_devnode *devnode = media_devnode_data(filp);
 
 	if (devnode->fops->release)
+	{
 		devnode->fops->release(filp);
+	}
 
 	filp->private_data = NULL;
 
@@ -206,7 +239,8 @@ static int media_release(struct inode *inode, struct file *filp)
 	return 0;
 }
 
-static const struct file_operations media_devnode_fops = {
+static const struct file_operations media_devnode_fops =
+{
 	.owner = THIS_MODULE,
 	.read = media_read,
 	.write = media_write,
@@ -221,8 +255,8 @@ static const struct file_operations media_devnode_fops = {
 };
 
 int __must_check media_devnode_register(struct media_device *mdev,
-					struct media_devnode *devnode,
-					struct module *owner)
+										struct media_devnode *devnode,
+										struct module *owner)
 {
 	int minor;
 	int ret;
@@ -230,7 +264,9 @@ int __must_check media_devnode_register(struct media_device *mdev,
 	/* Part 1: Find a free minor number */
 	mutex_lock(&media_devnode_lock);
 	minor = find_next_zero_bit(media_devnode_nums, MEDIA_NUM_DEVICES, 0);
-	if (minor == MEDIA_NUM_DEVICES) {
+
+	if (minor == MEDIA_NUM_DEVICES)
+	{
 		mutex_unlock(&media_devnode_lock);
 		pr_err("could not get a free minor\n");
 		kfree(devnode);
@@ -247,8 +283,12 @@ int __must_check media_devnode_register(struct media_device *mdev,
 	devnode->dev.bus = &media_bus_type;
 	devnode->dev.devt = MKDEV(MAJOR(media_dev_t), devnode->minor);
 	devnode->dev.release = media_devnode_release;
+
 	if (devnode->parent)
+	{
 		devnode->dev.parent = devnode->parent;
+	}
+
 	dev_set_name(&devnode->dev, "media%d", devnode->minor);
 	device_initialize(&devnode->dev);
 
@@ -258,14 +298,18 @@ int __must_check media_devnode_register(struct media_device *mdev,
 	devnode->cdev.kobj.parent = &devnode->dev.kobj;
 
 	ret = cdev_add(&devnode->cdev, MKDEV(MAJOR(media_dev_t), devnode->minor), 1);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("%s: cdev_add failed\n", __func__);
 		goto cdev_add_error;
 	}
 
 	/* Part 3: Add the media device */
 	ret = device_add(&devnode->dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("%s: device_add failed\n", __func__);
 		goto device_add_error;
 	}
@@ -291,7 +335,9 @@ void media_devnode_unregister_prepare(struct media_devnode *devnode)
 {
 	/* Check if devnode was ever registered at all */
 	if (!media_devnode_is_registered(devnode))
+	{
 		return;
+	}
 
 	mutex_lock(&media_devnode_lock);
 	clear_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
@@ -318,14 +364,18 @@ static int __init media_devnode_init(void)
 
 	pr_info("Linux media interface: v0.10\n");
 	ret = alloc_chrdev_region(&media_dev_t, 0, MEDIA_NUM_DEVICES,
-				  MEDIA_NAME);
-	if (ret < 0) {
+							  MEDIA_NAME);
+
+	if (ret < 0)
+	{
 		pr_warn("unable to allocate major\n");
 		return ret;
 	}
 
 	ret = bus_register(&media_bus_type);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		unregister_chrdev_region(media_dev_t, MEDIA_NUM_DEVICES);
 		pr_warn("bus_register failed\n");
 		return -EIO;

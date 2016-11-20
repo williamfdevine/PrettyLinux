@@ -5,7 +5,8 @@
  *  http://www.gnu.org/licenses/gpl.html
  */
 
-struct powernow_k8_data {
+struct powernow_k8_data
+{
 	unsigned int cpu;
 
 	u32 numps;  /* number of p-states */
@@ -160,7 +161,8 @@ struct powernow_k8_data {
 
 #define PSB_VERSION_1_4  0x14
 
-struct psb_s {
+struct psb_s
+{
 	u8 signature[10];
 	u8 tableversion;
 	u8 flags1;
@@ -175,13 +177,14 @@ struct psb_s {
 };
 
 /* Pairs of fid/vid values are appended to the version 1.4 PSB table. */
-struct pst_s {
+struct pst_s
+{
 	u8 fid;
 	u8 vid;
 };
 
 static int core_voltage_pre_transition(struct powernow_k8_data *data,
-	u32 reqvid, u32 regfid);
+									   u32 reqvid, u32 regfid);
 static int core_voltage_post_transition(struct powernow_k8_data *data, u32 reqvid);
 static int core_frequency_transition(struct powernow_k8_data *data, u32 reqfid);
 

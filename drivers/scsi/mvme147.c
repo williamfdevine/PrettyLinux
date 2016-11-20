@@ -21,9 +21,14 @@ static irqreturn_t mvme147_intr(int irq, void *data)
 	struct Scsi_Host *instance = data;
 
 	if (irq == MVME147_IRQ_SCSI_PORT)
+	{
 		wd33c93_intr(instance);
+	}
 	else
-		m147_pcc->dma_intr = 0x89;	/* Ack and enable ints */
+	{
+		m147_pcc->dma_intr = 0x89;    /* Ack and enable ints */
+	}
+
 	return IRQ_HANDLED;
 }
 
@@ -36,15 +41,20 @@ static int dma_setup(struct scsi_cmnd *cmd, int dir_in)
 
 	/* setup dma direction */
 	if (!dir_in)
+	{
 		flags |= 0x04;
+	}
 
 	/* remember direction */
 	hdata->dma_dir = dir_in;
 
-	if (dir_in) {
+	if (dir_in)
+	{
 		/* invalidate any cache */
 		cache_clear(addr, cmd->SCp.this_residual);
-	} else {
+	}
+	else
+	{
 		/* push any dirty cache */
 		cache_push(addr, cmd->SCp.this_residual);
 	}
@@ -59,7 +69,7 @@ static int dma_setup(struct scsi_cmnd *cmd, int dir_in)
 }
 
 static void dma_stop(struct Scsi_Host *instance, struct scsi_cmnd *SCpnt,
-		     int status)
+					 int status)
 {
 	m147_pcc->dma_cntrl = 0;
 }
@@ -72,16 +82,22 @@ int mvme147_detect(struct scsi_host_template *tpnt)
 	struct WD33C93_hostdata *hdata;
 
 	if (!MACH_IS_MVME147 || called)
+	{
 		return 0;
+	}
+
 	called++;
 
 	tpnt->proc_name = "MVME147";
 	tpnt->show_info = wd33c93_show_info,
-	tpnt->write_info = wd33c93_write_info,
+		  tpnt->write_info = wd33c93_write_info,
 
-	instance = scsi_register(tpnt, sizeof(struct WD33C93_hostdata));
+				instance = scsi_register(tpnt, sizeof(struct WD33C93_hostdata));
+
 	if (!instance)
+	{
 		goto err_out;
+	}
 
 	instance->base = 0xfffe4000;
 	instance->irq = MVME147_IRQ_SCSI_PORT;
@@ -94,11 +110,17 @@ int mvme147_detect(struct scsi_host_template *tpnt)
 	wd33c93_init(instance, regs, dma_setup, dma_stop, WD33C93_FS_8_10);
 
 	if (request_irq(MVME147_IRQ_SCSI_PORT, mvme147_intr, 0,
-			"MVME147 SCSI PORT", instance))
+					"MVME147 SCSI PORT", instance))
+	{
 		goto err_unregister;
+	}
+
 	if (request_irq(MVME147_IRQ_SCSI_DMA, mvme147_intr, 0,
-			"MVME147 SCSI DMA", instance))
+					"MVME147 SCSI DMA", instance))
+	{
 		goto err_free_irq;
+	}
+
 #if 0	/* Disabled; causes problems booting */
 	m147_pcc->scsi_interrupt = 0x10;	/* Assert SCSI bus reset */
 	udelay(100);
@@ -136,7 +158,8 @@ static int mvme147_bus_reset(struct scsi_cmnd *cmd)
 }
 
 
-static struct scsi_host_template driver_template = {
+static struct scsi_host_template driver_template =
+{
 	.proc_name		= "MVME147",
 	.name			= "MVME147 built-in SCSI",
 	.detect			= mvme147_detect,

@@ -59,77 +59,103 @@ gf100_sw_chan_mthd(struct nvkm_sw_chan *base, int subc, u32 mthd, u32 data)
 	struct nv50_sw_chan *chan = nv50_sw_chan(base);
 	struct nvkm_engine *engine = chan->base.object.engine;
 	struct nvkm_device *device = engine->subdev.device;
-	switch (mthd) {
-	case 0x0400:
-		chan->vblank.offset &= 0x00ffffffffULL;
-		chan->vblank.offset |= (u64)data << 32;
-		return true;
-	case 0x0404:
-		chan->vblank.offset &= 0xff00000000ULL;
-		chan->vblank.offset |= data;
-		return true;
-	case 0x0408:
-		chan->vblank.value = data;
-		return true;
-	case 0x040c:
-		if (data < device->disp->vblank.index_nr) {
-			nvkm_notify_get(&chan->vblank.notify[data]);
+
+	switch (mthd)
+	{
+		case 0x0400:
+			chan->vblank.offset &= 0x00ffffffffULL;
+			chan->vblank.offset |= (u64)data << 32;
 			return true;
-		}
-		break;
-	case 0x600: /* MP.PM_UNK000 */
-		nvkm_wr32(device, 0x419e00, data);
-		return true;
-	case 0x644: /* MP.TRAP_WARP_ERROR_EN */
-		if (!(data & ~0x001ffffe)) {
-			nvkm_wr32(device, 0x419e44, data);
+
+		case 0x0404:
+			chan->vblank.offset &= 0xff00000000ULL;
+			chan->vblank.offset |= data;
 			return true;
-		}
-		break;
-	case 0x6ac: /* MP.PM_UNK0AC */
-		nvkm_wr32(device, 0x419eac, data);
-		return true;
-	default:
-		break;
+
+		case 0x0408:
+			chan->vblank.value = data;
+			return true;
+
+		case 0x040c:
+			if (data < device->disp->vblank.index_nr)
+			{
+				nvkm_notify_get(&chan->vblank.notify[data]);
+				return true;
+			}
+
+			break;
+
+		case 0x600: /* MP.PM_UNK000 */
+			nvkm_wr32(device, 0x419e00, data);
+			return true;
+
+		case 0x644: /* MP.TRAP_WARP_ERROR_EN */
+			if (!(data & ~0x001ffffe))
+			{
+				nvkm_wr32(device, 0x419e44, data);
+				return true;
+			}
+
+			break;
+
+		case 0x6ac: /* MP.PM_UNK0AC */
+			nvkm_wr32(device, 0x419eac, data);
+			return true;
+
+		default:
+			break;
 	}
+
 	return false;
 }
 
 static const struct nvkm_sw_chan_func
-gf100_sw_chan = {
+	gf100_sw_chan =
+{
 	.dtor = nv50_sw_chan_dtor,
 	.mthd = gf100_sw_chan_mthd,
 };
 
 static int
 gf100_sw_chan_new(struct nvkm_sw *sw, struct nvkm_fifo_chan *fifoch,
-		  const struct nvkm_oclass *oclass,
-		  struct nvkm_object **pobject)
+				  const struct nvkm_oclass *oclass,
+				  struct nvkm_object **pobject)
 {
 	struct nvkm_disp *disp = sw->engine.subdev.device->disp;
 	struct nv50_sw_chan *chan;
 	int ret, i;
 
 	if (!(chan = kzalloc(sizeof(*chan), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	*pobject = &chan->base.object;
 
 	ret = nvkm_sw_chan_ctor(&gf100_sw_chan, sw, fifoch, oclass,
-				&chan->base);
-	if (ret)
-		return ret;
+							&chan->base);
 
-	for (i = 0; disp && i < disp->vblank.index_nr; i++) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	for (i = 0; disp && i < disp->vblank.index_nr; i++)
+	{
 		ret = nvkm_notify_init(NULL, &disp->vblank,
-				       gf100_sw_chan_vblsem_release, false,
-				       &(struct nvif_notify_head_req_v0) {
-					.head = i,
-				       },
-				       sizeof(struct nvif_notify_head_req_v0),
-				       sizeof(struct nvif_notify_head_rep_v0),
-				       &chan->vblank.notify[i]);
+							   gf100_sw_chan_vblsem_release, false,
+							   &(struct nvif_notify_head_req_v0)
+		{
+			.head = i,
+		},
+		sizeof(struct nvif_notify_head_req_v0),
+		sizeof(struct nvif_notify_head_rep_v0),
+		&chan->vblank.notify[i]);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
@@ -140,7 +166,8 @@ gf100_sw_chan_new(struct nvkm_sw *sw, struct nvkm_fifo_chan *fifoch,
  ******************************************************************************/
 
 static const struct nvkm_sw_func
-gf100_sw = {
+	gf100_sw =
+{
 	.chan_new = gf100_sw_chan_new,
 	.sclass = {
 		{ nvkm_nvsw_new, { -1, -1, NVIF_CLASS_SW_GF100 } },

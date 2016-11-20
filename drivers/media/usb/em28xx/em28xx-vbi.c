@@ -32,19 +32,25 @@
 /* ------------------------------------------------------------------ */
 
 static int vbi_queue_setup(struct vb2_queue *vq,
-			   unsigned int *nbuffers, unsigned int *nplanes,
-			   unsigned int sizes[], struct device *alloc_devs[])
+						   unsigned int *nbuffers, unsigned int *nplanes,
+						   unsigned int sizes[], struct device *alloc_devs[])
 {
 	struct em28xx *dev = vb2_get_drv_priv(vq);
 	struct em28xx_v4l2 *v4l2 = dev->v4l2;
 	unsigned long size = v4l2->vbi_width * v4l2->vbi_height * 2;
 
 	if (*nbuffers < 2)
+	{
 		*nbuffers = 2;
+	}
 
-	if (*nplanes) {
+	if (*nplanes)
+	{
 		if (sizes[0] < size)
+		{
 			return -EINVAL;
+		}
+
 		size = sizes[0];
 	}
 
@@ -62,11 +68,13 @@ static int vbi_buffer_prepare(struct vb2_buffer *vb)
 
 	size = v4l2->vbi_width * v4l2->vbi_height * 2;
 
-	if (vb2_plane_size(vb, 0) < size) {
+	if (vb2_plane_size(vb, 0) < size)
+	{
 		printk(KERN_INFO "%s data will not fit into plane (%lu < %lu)\n",
-		       __func__, vb2_plane_size(vb, 0), size);
+			   __func__, vb2_plane_size(vb, 0), size);
 		return -EINVAL;
 	}
+
 	vb2_set_plane_payload(vb, 0, size);
 
 	return 0;
@@ -90,7 +98,8 @@ vbi_buffer_queue(struct vb2_buffer *vb)
 	spin_unlock_irqrestore(&dev->slock, flags);
 }
 
-struct vb2_ops em28xx_vbi_qops = {
+struct vb2_ops em28xx_vbi_qops =
+{
 	.queue_setup    = vbi_queue_setup,
 	.buf_prepare    = vbi_buffer_prepare,
 	.buf_queue      = vbi_buffer_queue,

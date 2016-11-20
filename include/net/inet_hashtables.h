@@ -39,7 +39,8 @@
  * The 'e' prefix stands for Establish, but we really put all sockets
  * but LISTEN ones.
  */
-struct inet_ehash_bucket {
+struct inet_ehash_bucket
+{
 	struct hlist_nulls_head chain;
 };
 
@@ -74,7 +75,8 @@ struct inet_ehash_bucket {
  * users logged onto your box, isn't it nice to know that new data
  * ports are created in O(1) time?  I thought so. ;-)	-DaveM
  */
-struct inet_bind_bucket {
+struct inet_bind_bucket
+{
 	possible_net_t		ib_net;
 	unsigned short		port;
 	signed char		fastreuse;
@@ -93,7 +95,8 @@ static inline struct net *ib_net(struct inet_bind_bucket *ib)
 #define inet_bind_bucket_for_each(tb, head) \
 	hlist_for_each_entry(tb, head, node)
 
-struct inet_bind_hashbucket {
+struct inet_bind_hashbucket
+{
 	spinlock_t		lock;
 	struct hlist_head	chain;
 };
@@ -101,7 +104,8 @@ struct inet_bind_hashbucket {
 /*
  * Sockets can be hashed in established or listening table
  */
-struct inet_listen_hashbucket {
+struct inet_listen_hashbucket
+{
 	spinlock_t		lock;
 	struct hlist_head	head;
 };
@@ -109,7 +113,8 @@ struct inet_listen_hashbucket {
 /* This is for listening sockets, thus all sockets which possess wildcards. */
 #define INET_LHTABLE_SIZE	32	/* Yes, really, this is all you need. */
 
-struct inet_hashinfo {
+struct inet_hashinfo
+{
 	/* This is for sockets with full identity only.  Sockets here will
 	 * always be without wildcards and will have the following invariant:
 	 *
@@ -142,7 +147,7 @@ struct inet_hashinfo {
 	 * is just local port number.
 	 */
 	struct inet_listen_hashbucket	listening_hash[INET_LHTABLE_SIZE]
-					____cacheline_aligned_in_smp;
+		____cacheline_aligned_in_smp;
 };
 
 static inline struct inet_ehash_bucket *inet_ehash_bucket(
@@ -169,19 +174,19 @@ static inline void inet_ehash_locks_free(struct inet_hashinfo *hashinfo)
 
 struct inet_bind_bucket *
 inet_bind_bucket_create(struct kmem_cache *cachep, struct net *net,
-			struct inet_bind_hashbucket *head,
-			const unsigned short snum);
+						struct inet_bind_hashbucket *head,
+						const unsigned short snum);
 void inet_bind_bucket_destroy(struct kmem_cache *cachep,
-			      struct inet_bind_bucket *tb);
+							  struct inet_bind_bucket *tb);
 
 static inline u32 inet_bhashfn(const struct net *net, const __u16 lport,
-			       const u32 bhash_size)
+							   const u32 bhash_size)
 {
 	return (lport + net_hash_mix(net)) & (bhash_size - 1);
 }
 
 void inet_bind_hash(struct sock *sk, struct inet_bind_bucket *tb,
-		    const unsigned short snum);
+					const unsigned short snum);
 
 /* These can have wildcards, don't try too hard. */
 static inline u32 inet_lhashfn(const struct net *net, const unsigned short num)
@@ -204,19 +209,19 @@ void inet_hashinfo_init(struct inet_hashinfo *h);
 bool inet_ehash_insert(struct sock *sk, struct sock *osk);
 bool inet_ehash_nolisten(struct sock *sk, struct sock *osk);
 int __inet_hash(struct sock *sk, struct sock *osk,
-		int (*saddr_same)(const struct sock *sk1,
-				  const struct sock *sk2,
-				  bool match_wildcard));
+				int (*saddr_same)(const struct sock *sk1,
+								  const struct sock *sk2,
+								  bool match_wildcard));
 int inet_hash(struct sock *sk);
 void inet_unhash(struct sock *sk);
 
 struct sock *__inet_lookup_listener(struct net *net,
-				    struct inet_hashinfo *hashinfo,
-				    struct sk_buff *skb, int doff,
-				    const __be32 saddr, const __be16 sport,
-				    const __be32 daddr,
-				    const unsigned short hnum,
-				    const int dif);
+									struct inet_hashinfo *hashinfo,
+									struct sk_buff *skb, int doff,
+									const __be32 saddr, const __be16 sport,
+									const __be32 daddr,
+									const unsigned short hnum,
+									const int dif);
 
 static inline struct sock *inet_lookup_listener(struct net *net,
 		struct inet_hashinfo *hashinfo,
@@ -225,7 +230,7 @@ static inline struct sock *inet_lookup_listener(struct net *net,
 		__be32 daddr, __be16 dport, int dif)
 {
 	return __inet_lookup_listener(net, hashinfo, skb, doff, saddr, sport,
-				      daddr, ntohs(dport), dif);
+								  daddr, ntohs(dport), dif);
 }
 
 /* Socket demux engine toys. */
@@ -249,19 +254,19 @@ static inline struct sock *inet_lookup_listener(struct net *net,
 #ifdef __BIG_ENDIAN
 #define INET_ADDR_COOKIE(__name, __saddr, __daddr) \
 	const __addrpair __name = (__force __addrpair) ( \
-				   (((__force __u64)(__be32)(__saddr)) << 32) | \
-				   ((__force __u64)(__be32)(__daddr)))
+							  (((__force __u64)(__be32)(__saddr)) << 32) | \
+							  ((__force __u64)(__be32)(__daddr)))
 #else /* __LITTLE_ENDIAN */
 #define INET_ADDR_COOKIE(__name, __saddr, __daddr) \
 	const __addrpair __name = (__force __addrpair) ( \
-				   (((__force __u64)(__be32)(__daddr)) << 32) | \
-				   ((__force __u64)(__be32)(__saddr)))
+							  (((__force __u64)(__be32)(__daddr)) << 32) | \
+							  ((__force __u64)(__be32)(__saddr)))
 #endif /* __BIG_ENDIAN */
 #define INET_MATCH(__sk, __net, __cookie, __saddr, __daddr, __ports, __dif)	\
 	(((__sk)->sk_portpair == (__ports))			&&	\
 	 ((__sk)->sk_addrpair == (__cookie))			&&	\
 	 (!(__sk)->sk_bound_dev_if	||				\
-	   ((__sk)->sk_bound_dev_if == (__dif))) 		&& 	\
+	  ((__sk)->sk_bound_dev_if == (__dif))) 		&& 	\
 	 net_eq(sock_net(__sk), (__net)))
 #else /* 32-bit arch */
 #define INET_ADDR_COOKIE(__name, __saddr, __daddr) \
@@ -272,7 +277,7 @@ static inline struct sock *inet_lookup_listener(struct net *net,
 	 ((__sk)->sk_daddr	== (__saddr))		&&		\
 	 ((__sk)->sk_rcv_saddr	== (__daddr))		&&		\
 	 (!(__sk)->sk_bound_dev_if	||				\
-	   ((__sk)->sk_bound_dev_if == (__dif))) 	&&		\
+	  ((__sk)->sk_bound_dev_if == (__dif))) 	&&		\
 	 net_eq(sock_net(__sk), (__net)))
 #endif /* 64-bit arch */
 
@@ -280,84 +285,94 @@ static inline struct sock *inet_lookup_listener(struct net *net,
  * not check it for lookups anymore, thanks Alexey. -DaveM
  */
 struct sock *__inet_lookup_established(struct net *net,
-				       struct inet_hashinfo *hashinfo,
-				       const __be32 saddr, const __be16 sport,
-				       const __be32 daddr, const u16 hnum,
-				       const int dif);
+									   struct inet_hashinfo *hashinfo,
+									   const __be32 saddr, const __be16 sport,
+									   const __be32 daddr, const u16 hnum,
+									   const int dif);
 
 static inline struct sock *
-	inet_lookup_established(struct net *net, struct inet_hashinfo *hashinfo,
-				const __be32 saddr, const __be16 sport,
-				const __be32 daddr, const __be16 dport,
-				const int dif)
+inet_lookup_established(struct net *net, struct inet_hashinfo *hashinfo,
+						const __be32 saddr, const __be16 sport,
+						const __be32 daddr, const __be16 dport,
+						const int dif)
 {
 	return __inet_lookup_established(net, hashinfo, saddr, sport, daddr,
-					 ntohs(dport), dif);
+									 ntohs(dport), dif);
 }
 
 static inline struct sock *__inet_lookup(struct net *net,
-					 struct inet_hashinfo *hashinfo,
-					 struct sk_buff *skb, int doff,
-					 const __be32 saddr, const __be16 sport,
-					 const __be32 daddr, const __be16 dport,
-					 const int dif,
-					 bool *refcounted)
+		struct inet_hashinfo *hashinfo,
+		struct sk_buff *skb, int doff,
+		const __be32 saddr, const __be16 sport,
+		const __be32 daddr, const __be16 dport,
+		const int dif,
+		bool *refcounted)
 {
 	u16 hnum = ntohs(dport);
 	struct sock *sk;
 
 	sk = __inet_lookup_established(net, hashinfo, saddr, sport,
-				       daddr, hnum, dif);
+								   daddr, hnum, dif);
 	*refcounted = true;
+
 	if (sk)
+	{
 		return sk;
+	}
+
 	*refcounted = false;
 	return __inet_lookup_listener(net, hashinfo, skb, doff, saddr,
-				      sport, daddr, hnum, dif);
+								  sport, daddr, hnum, dif);
 }
 
 static inline struct sock *inet_lookup(struct net *net,
-				       struct inet_hashinfo *hashinfo,
-				       struct sk_buff *skb, int doff,
-				       const __be32 saddr, const __be16 sport,
-				       const __be32 daddr, const __be16 dport,
-				       const int dif)
+									   struct inet_hashinfo *hashinfo,
+									   struct sk_buff *skb, int doff,
+									   const __be32 saddr, const __be16 sport,
+									   const __be32 daddr, const __be16 dport,
+									   const int dif)
 {
 	struct sock *sk;
 	bool refcounted;
 
 	sk = __inet_lookup(net, hashinfo, skb, doff, saddr, sport, daddr,
-			   dport, dif, &refcounted);
+					   dport, dif, &refcounted);
 
 	if (sk && !refcounted && !atomic_inc_not_zero(&sk->sk_refcnt))
+	{
 		sk = NULL;
+	}
+
 	return sk;
 }
 
 static inline struct sock *__inet_lookup_skb(struct inet_hashinfo *hashinfo,
-					     struct sk_buff *skb,
-					     int doff,
-					     const __be16 sport,
-					     const __be16 dport,
-					     bool *refcounted)
+		struct sk_buff *skb,
+		int doff,
+		const __be16 sport,
+		const __be16 dport,
+		bool *refcounted)
 {
 	struct sock *sk = skb_steal_sock(skb);
 	const struct iphdr *iph = ip_hdr(skb);
 
 	*refcounted = true;
+
 	if (sk)
+	{
 		return sk;
+	}
 
 	return __inet_lookup(dev_net(skb_dst(skb)->dev), hashinfo, skb,
-			     doff, iph->saddr, sport,
-			     iph->daddr, dport, inet_iif(skb),
-			     refcounted);
+						 doff, iph->saddr, sport,
+						 iph->daddr, dport, inet_iif(skb),
+						 refcounted);
 }
 
 u32 sk_ehashfn(const struct sock *sk);
 u32 inet6_ehashfn(const struct net *net,
-		  const struct in6_addr *laddr, const u16 lport,
-		  const struct in6_addr *faddr, const __be16 fport);
+				  const struct in6_addr *laddr, const u16 lport,
+				  const struct in6_addr *faddr, const __be16 fport);
 
 static inline void sk_daddr_set(struct sock *sk, __be32 addr)
 {
@@ -376,11 +391,11 @@ static inline void sk_rcv_saddr_set(struct sock *sk, __be32 addr)
 }
 
 int __inet_hash_connect(struct inet_timewait_death_row *death_row,
-			struct sock *sk, u32 port_offset,
-			int (*check_established)(struct inet_timewait_death_row *,
-						 struct sock *, __u16,
-						 struct inet_timewait_sock **));
+						struct sock *sk, u32 port_offset,
+						int (*check_established)(struct inet_timewait_death_row *,
+								struct sock *, __u16,
+								struct inet_timewait_sock **));
 
 int inet_hash_connect(struct inet_timewait_death_row *death_row,
-		      struct sock *sk);
+					  struct sock *sk);
 #endif /* _INET_HASHTABLES_H */

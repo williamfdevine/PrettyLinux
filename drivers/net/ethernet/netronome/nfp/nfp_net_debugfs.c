@@ -51,11 +51,17 @@ static int nfp_net_debugfs_rx_q_read(struct seq_file *file, void *data)
 	rtnl_lock();
 
 	if (!r_vec->nfp_net || !r_vec->rx_ring)
+	{
 		goto out;
+	}
+
 	nn = r_vec->nfp_net;
 	rx_ring = r_vec->rx_ring;
+
 	if (!netif_running(nn->netdev))
+	{
 		goto out;
+	}
 
 	rxd_cnt = rx_ring->cnt;
 
@@ -65,38 +71,58 @@ static int nfp_net_debugfs_rx_q_read(struct seq_file *file, void *data)
 	rx_wr_p = nfp_qcp_wr_ptr_read(rx_ring->qcp_rx);
 
 	seq_printf(file, "RX[%02d]: H_RD=%d H_WR=%d FL_RD=%d FL_WR=%d RX_RD=%d RX_WR=%d\n",
-		   rx_ring->idx, rx_ring->rd_p, rx_ring->wr_p,
-		   fl_rd_p, fl_wr_p, rx_rd_p, rx_wr_p);
+			   rx_ring->idx, rx_ring->rd_p, rx_ring->wr_p,
+			   fl_rd_p, fl_wr_p, rx_rd_p, rx_wr_p);
 
-	for (i = 0; i < rxd_cnt; i++) {
+	for (i = 0; i < rxd_cnt; i++)
+	{
 		rxd = &rx_ring->rxds[i];
 		seq_printf(file, "%04d: 0x%08x 0x%08x", i,
-			   rxd->vals[0], rxd->vals[1]);
+				   rxd->vals[0], rxd->vals[1]);
 
 		skb = READ_ONCE(rx_ring->rxbufs[i].skb);
+
 		if (skb)
 			seq_printf(file, " skb->head=%p skb->data=%p",
-				   skb->head, skb->data);
+					   skb->head, skb->data);
 
 		if (rx_ring->rxbufs[i].dma_addr)
 			seq_printf(file, " dma_addr=%pad",
-				   &rx_ring->rxbufs[i].dma_addr);
+					   &rx_ring->rxbufs[i].dma_addr);
 
 		if (i == rx_ring->rd_p % rxd_cnt)
+		{
 			seq_puts(file, " H_RD ");
+		}
+
 		if (i == rx_ring->wr_p % rxd_cnt)
+		{
 			seq_puts(file, " H_WR ");
+		}
+
 		if (i == fl_rd_p % rxd_cnt)
+		{
 			seq_puts(file, " FL_RD");
+		}
+
 		if (i == fl_wr_p % rxd_cnt)
+		{
 			seq_puts(file, " FL_WR");
+		}
+
 		if (i == rx_rd_p % rxd_cnt)
+		{
 			seq_puts(file, " RX_RD");
+		}
+
 		if (i == rx_wr_p % rxd_cnt)
+		{
 			seq_puts(file, " RX_WR");
+		}
 
 		seq_putc(file, '\n');
 	}
+
 out:
 	rtnl_unlock();
 	return 0;
@@ -107,7 +133,8 @@ static int nfp_net_debugfs_rx_q_open(struct inode *inode, struct file *f)
 	return single_open(f, nfp_net_debugfs_rx_q_read, inode->i_private);
 }
 
-static const struct file_operations nfp_rx_q_fops = {
+static const struct file_operations nfp_rx_q_fops =
+{
 	.owner = THIS_MODULE,
 	.open = nfp_net_debugfs_rx_q_open,
 	.release = single_release,
@@ -128,11 +155,17 @@ static int nfp_net_debugfs_tx_q_read(struct seq_file *file, void *data)
 	rtnl_lock();
 
 	if (!r_vec->nfp_net || !r_vec->tx_ring)
+	{
 		goto out;
+	}
+
 	nn = r_vec->nfp_net;
 	tx_ring = r_vec->tx_ring;
+
 	if (!netif_running(nn->netdev))
+	{
 		goto out;
+	}
 
 	txd_cnt = tx_ring->cnt;
 
@@ -140,33 +173,48 @@ static int nfp_net_debugfs_tx_q_read(struct seq_file *file, void *data)
 	d_wr_p = nfp_qcp_wr_ptr_read(tx_ring->qcp_q);
 
 	seq_printf(file, "TX[%02d]: H_RD=%d H_WR=%d D_RD=%d D_WR=%d\n",
-		   tx_ring->idx, tx_ring->rd_p, tx_ring->wr_p, d_rd_p, d_wr_p);
+			   tx_ring->idx, tx_ring->rd_p, tx_ring->wr_p, d_rd_p, d_wr_p);
 
-	for (i = 0; i < txd_cnt; i++) {
+	for (i = 0; i < txd_cnt; i++)
+	{
 		txd = &tx_ring->txds[i];
 		seq_printf(file, "%04d: 0x%08x 0x%08x 0x%08x 0x%08x", i,
-			   txd->vals[0], txd->vals[1],
-			   txd->vals[2], txd->vals[3]);
+				   txd->vals[0], txd->vals[1],
+				   txd->vals[2], txd->vals[3]);
 
 		skb = READ_ONCE(tx_ring->txbufs[i].skb);
+
 		if (skb)
 			seq_printf(file, " skb->head=%p skb->data=%p",
-				   skb->head, skb->data);
+					   skb->head, skb->data);
+
 		if (tx_ring->txbufs[i].dma_addr)
 			seq_printf(file, " dma_addr=%pad",
-				   &tx_ring->txbufs[i].dma_addr);
+					   &tx_ring->txbufs[i].dma_addr);
 
 		if (i == tx_ring->rd_p % txd_cnt)
+		{
 			seq_puts(file, " H_RD");
+		}
+
 		if (i == tx_ring->wr_p % txd_cnt)
+		{
 			seq_puts(file, " H_WR");
+		}
+
 		if (i == d_rd_p % txd_cnt)
+		{
 			seq_puts(file, " D_RD");
+		}
+
 		if (i == d_wr_p % txd_cnt)
+		{
 			seq_puts(file, " D_WR");
+		}
 
 		seq_putc(file, '\n');
 	}
+
 out:
 	rtnl_unlock();
 	return 0;
@@ -177,7 +225,8 @@ static int nfp_net_debugfs_tx_q_open(struct inode *inode, struct file *f)
 	return single_open(f, nfp_net_debugfs_tx_q_read, inode->i_private);
 }
 
-static const struct file_operations nfp_tx_q_fops = {
+static const struct file_operations nfp_tx_q_fops =
+{
 	.owner = THIS_MODULE,
 	.open = nfp_net_debugfs_tx_q_open,
 	.release = single_release,
@@ -192,32 +241,45 @@ void nfp_net_debugfs_adapter_add(struct nfp_net *nn)
 	int i;
 
 	if (IS_ERR_OR_NULL(nfp_dir))
+	{
 		return;
+	}
 
 	nn->debugfs_dir = debugfs_create_dir(pci_name(nn->pdev), nfp_dir);
+
 	if (IS_ERR_OR_NULL(nn->debugfs_dir))
+	{
 		return;
+	}
 
 	/* Create queue debugging sub-tree */
 	queues = debugfs_create_dir("queue", nn->debugfs_dir);
+
 	if (IS_ERR_OR_NULL(queues))
+	{
 		return;
+	}
 
 	rx = debugfs_create_dir("rx", queues);
 	tx = debugfs_create_dir("tx", queues);
-	if (IS_ERR_OR_NULL(rx) || IS_ERR_OR_NULL(tx))
-		return;
 
-	for (i = 0; i < nn->num_rx_rings; i++) {
-		sprintf(int_name, "%d", i);
-		debugfs_create_file(int_name, S_IRUSR, rx,
-				    &nn->r_vecs[i], &nfp_rx_q_fops);
+	if (IS_ERR_OR_NULL(rx) || IS_ERR_OR_NULL(tx))
+	{
+		return;
 	}
 
-	for (i = 0; i < nn->num_tx_rings; i++) {
+	for (i = 0; i < nn->num_rx_rings; i++)
+	{
+		sprintf(int_name, "%d", i);
+		debugfs_create_file(int_name, S_IRUSR, rx,
+							&nn->r_vecs[i], &nfp_rx_q_fops);
+	}
+
+	for (i = 0; i < nn->num_tx_rings; i++)
+	{
 		sprintf(int_name, "%d", i);
 		debugfs_create_file(int_name, S_IRUSR, tx,
-				    &nn->r_vecs[i], &nfp_tx_q_fops);
+							&nn->r_vecs[i], &nfp_tx_q_fops);
 	}
 }
 

@@ -42,9 +42,12 @@ void *nouveau_gem_prime_vmap(struct drm_gem_object *obj)
 	int ret;
 
 	ret = ttm_bo_kmap(&nvbo->bo, 0, nvbo->bo.num_pages,
-			  &nvbo->dma_buf_vmap);
+					  &nvbo->dma_buf_vmap);
+
 	if (ret)
+	{
 		return ERR_PTR(ret);
+	}
 
 	return nvbo->dma_buf_vmap.virtual;
 }
@@ -57,8 +60,8 @@ void nouveau_gem_prime_vunmap(struct drm_gem_object *obj, void *vaddr)
 }
 
 struct drm_gem_object *nouveau_gem_prime_import_sg_table(struct drm_device *dev,
-							 struct dma_buf_attachment *attach,
-							 struct sg_table *sg)
+		struct dma_buf_attachment *attach,
+		struct sg_table *sg)
 {
 	struct nouveau_bo *nvbo;
 	struct reservation_object *robj = attach->dmabuf->resv;
@@ -69,17 +72,22 @@ struct drm_gem_object *nouveau_gem_prime_import_sg_table(struct drm_device *dev,
 
 	ww_mutex_lock(&robj->lock, NULL);
 	ret = nouveau_bo_new(dev, attach->dmabuf->size, 0, flags, 0, 0,
-			     sg, robj, &nvbo);
+						 sg, robj, &nvbo);
 	ww_mutex_unlock(&robj->lock);
+
 	if (ret)
+	{
 		return ERR_PTR(ret);
+	}
 
 	nvbo->valid_domains = NOUVEAU_GEM_DOMAIN_GART;
 
 	/* Initialize the embedded gem-object. We return a single gem-reference
 	 * to the caller, instead of a normal nouveau_bo ttm reference. */
 	ret = drm_gem_object_init(dev, &nvbo->gem, nvbo->bo.mem.size);
-	if (ret) {
+
+	if (ret)
+	{
 		nouveau_bo_ref(NULL, &nvbo);
 		return ERR_PTR(-ENOMEM);
 	}
@@ -94,8 +102,11 @@ int nouveau_gem_prime_pin(struct drm_gem_object *obj)
 
 	/* pin buffer into GTT */
 	ret = nouveau_bo_pin(nvbo, TTM_PL_FLAG_TT, false);
+
 	if (ret)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }

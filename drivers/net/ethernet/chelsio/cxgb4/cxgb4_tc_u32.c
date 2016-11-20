@@ -41,45 +41,61 @@
 
 /* Fill ch_filter_specification with parsed match value/mask pair. */
 static int fill_match_fields(struct adapter *adap,
-			     struct ch_filter_specification *fs,
-			     struct tc_cls_u32_offload *cls,
-			     const struct cxgb4_match_field *entry,
-			     bool next_header)
+							 struct ch_filter_specification *fs,
+							 struct tc_cls_u32_offload *cls,
+							 const struct cxgb4_match_field *entry,
+							 bool next_header)
 {
 	unsigned int i, j;
 	u32 val, mask;
 	int off, err;
 	bool found;
 
-	for (i = 0; i < cls->knode.sel->nkeys; i++) {
+	for (i = 0; i < cls->knode.sel->nkeys; i++)
+	{
 		off = cls->knode.sel->keys[i].off;
 		val = cls->knode.sel->keys[i].val;
 		mask = cls->knode.sel->keys[i].mask;
 
-		if (next_header) {
+		if (next_header)
+		{
 			/* For next headers, parse only keys with offmask */
 			if (!cls->knode.sel->keys[i].offmask)
+			{
 				continue;
-		} else {
+			}
+		}
+		else
+		{
 			/* For the remaining, parse only keys without offmask */
 			if (cls->knode.sel->keys[i].offmask)
+			{
 				continue;
+			}
 		}
 
 		found = false;
 
-		for (j = 0; entry[j].val; j++) {
-			if (off == entry[j].off) {
+		for (j = 0; entry[j].val; j++)
+		{
+			if (off == entry[j].off)
+			{
 				found = true;
 				err = entry[j].val(fs, val, mask);
+
 				if (err)
+				{
 					return err;
+				}
+
 				break;
 			}
 		}
 
 		if (!found)
+		{
 			return -EINVAL;
+		}
 	}
 
 	return 0;
@@ -87,8 +103,8 @@ static int fill_match_fields(struct adapter *adap,
 
 /* Fill ch_filter_specification with parsed action. */
 static int fill_action_fields(struct adapter *adap,
-			      struct ch_filter_specification *fs,
-			      struct tc_cls_u32_offload *cls)
+							  struct ch_filter_specification *fs,
+							  struct tc_cls_u32_offload *cls)
 {
 	unsigned int num_actions = 0;
 	const struct tc_action *a;
@@ -96,32 +112,43 @@ static int fill_action_fields(struct adapter *adap,
 	LIST_HEAD(actions);
 
 	exts = cls->knode.exts;
+
 	if (tc_no_actions(exts))
+	{
 		return -EINVAL;
+	}
 
 	tcf_exts_to_list(exts, &actions);
-	list_for_each_entry(a, &actions, list) {
+	list_for_each_entry(a, &actions, list)
+	{
 		/* Don't allow more than one action per rule. */
 		if (num_actions)
+		{
 			return -EINVAL;
+		}
 
 		/* Drop in hardware. */
-		if (is_tcf_gact_shot(a)) {
+		if (is_tcf_gact_shot(a))
+		{
 			fs->action = FILTER_DROP;
 			num_actions++;
 			continue;
 		}
 
 		/* Re-direct to specified port in hardware. */
-		if (is_tcf_mirred_redirect(a)) {
+		if (is_tcf_mirred_redirect(a))
+		{
 			struct net_device *n_dev;
 			unsigned int i, index;
 			bool found = false;
 
 			index = tcf_mirred_ifindex(a);
-			for_each_port(adap, i) {
+			for_each_port(adap, i)
+			{
 				n_dev = adap->port[i];
-				if (index == n_dev->ifindex) {
+
+				if (index == n_dev->ifindex)
+				{
 					fs->action = FILTER_SWITCH;
 					fs->eport = i;
 					found = true;
@@ -133,7 +160,9 @@ static int fill_action_fields(struct adapter *adap,
 			 * the underlying hardware.
 			 */
 			if (!found)
+			{
 				return -EINVAL;
+			}
 
 			num_actions++;
 			continue;
@@ -147,7 +176,7 @@ static int fill_action_fields(struct adapter *adap,
 }
 
 int cxgb4_config_knode(struct net_device *dev, __be16 protocol,
-		       struct tc_cls_u32_offload *cls)
+					   struct tc_cls_u32_offload *cls)
 {
 	const struct cxgb4_match_field *start, *link_start = NULL;
 	struct adapter *adapter = netdev2adap(dev);
@@ -160,18 +189,23 @@ int cxgb4_config_knode(struct net_device *dev, __be16 protocol,
 	int ret;
 
 	if (!can_tc_u32_offload(dev))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	if (protocol != htons(ETH_P_IP) && protocol != htons(ETH_P_IPV6))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	/* Fetch the location to insert the filter. */
 	filter_id = cls->knode.handle & 0xFFFFF;
 
-	if (filter_id > adapter->tids.nftids) {
+	if (filter_id > adapter->tids.nftids)
+	{
 		dev_err(adapter->pdev_dev,
-			"Location %d out of range for insertion. Max: %d\n",
-			filter_id, adapter->tids.nftids);
+				"Location %d out of range for insertion. Max: %d\n",
+				filter_id, adapter->tids.nftids);
 		return -ERANGE;
 	}
 
@@ -183,79 +217,101 @@ int cxgb4_config_knode(struct net_device *dev, __be16 protocol,
 	 * or a a valid linked bucket.
 	 */
 	if (uhtid != 0x800 && uhtid >= t->size)
+	{
 		return -EINVAL;
+	}
 
 	/* Ensure link handle uhtid is sane, if specified. */
 	if (link_uhtid >= t->size)
+	{
 		return -EINVAL;
+	}
 
 	memset(&fs, 0, sizeof(fs));
 
-	if (protocol == htons(ETH_P_IPV6)) {
+	if (protocol == htons(ETH_P_IPV6))
+	{
 		start = cxgb4_ipv6_fields;
 		is_ipv6 = true;
-	} else {
+	}
+	else
+	{
 		start = cxgb4_ipv4_fields;
 		is_ipv6 = false;
 	}
 
-	if (uhtid != 0x800) {
+	if (uhtid != 0x800)
+	{
 		/* Link must exist from root node before insertion. */
 		if (!t->table[uhtid - 1].link_handle)
+		{
 			return -EINVAL;
+		}
 
 		/* Link must have a valid supported next header. */
 		link_start = t->table[uhtid - 1].match_field;
+
 		if (!link_start)
+		{
 			return -EINVAL;
+		}
 	}
 
 	/* Parse links and record them for subsequent jumps to valid
 	 * next headers.
 	 */
-	if (link_uhtid) {
+	if (link_uhtid)
+	{
 		const struct cxgb4_next_header *next;
 		bool found = false;
 		unsigned int i, j;
 		u32 val, mask;
 		int off;
 
-		if (t->table[link_uhtid - 1].link_handle) {
+		if (t->table[link_uhtid - 1].link_handle)
+		{
 			dev_err(adapter->pdev_dev,
-				"Link handle exists for: 0x%x\n",
-				link_uhtid);
+					"Link handle exists for: 0x%x\n",
+					link_uhtid);
 			return -EINVAL;
 		}
 
 		next = is_ipv6 ? cxgb4_ipv6_jumps : cxgb4_ipv4_jumps;
 
 		/* Try to find matches that allow jumps to next header. */
-		for (i = 0; next[i].jump; i++) {
+		for (i = 0; next[i].jump; i++)
+		{
 			if (next[i].offoff != cls->knode.sel->offoff ||
-			    next[i].shift != cls->knode.sel->offshift ||
-			    next[i].mask != cls->knode.sel->offmask ||
-			    next[i].offset != cls->knode.sel->off)
+				next[i].shift != cls->knode.sel->offshift ||
+				next[i].mask != cls->knode.sel->offmask ||
+				next[i].offset != cls->knode.sel->off)
+			{
 				continue;
+			}
 
 			/* Found a possible candidate.  Find a key that
 			 * matches the corresponding offset, value, and
 			 * mask to jump to next header.
 			 */
-			for (j = 0; j < cls->knode.sel->nkeys; j++) {
+			for (j = 0; j < cls->knode.sel->nkeys; j++)
+			{
 				off = cls->knode.sel->keys[j].off;
 				val = cls->knode.sel->keys[j].val;
 				mask = cls->knode.sel->keys[j].mask;
 
 				if (next[i].match_off == off &&
-				    next[i].match_val == val &&
-				    next[i].match_mask == mask) {
+					next[i].match_val == val &&
+					next[i].match_mask == mask)
+				{
 					found = true;
 					break;
 				}
 			}
 
 			if (!found)
-				continue; /* Try next candidate. */
+			{
+				continue;    /* Try next candidate. */
+			}
 
 			/* Candidate to jump to next header found.
 			 * Translate all keys to internal specification
@@ -263,9 +319,12 @@ int cxgb4_config_knode(struct net_device *dev, __be16 protocol,
 			 * later to set the actual filters.
 			 */
 			ret = fill_match_fields(adapter, &fs, cls,
-						start, false);
+									start, false);
+
 			if (ret)
+			{
 				goto out;
+			}
 
 			link = &t->table[link_uhtid - 1];
 			link->match_field = next[i].jump;
@@ -276,7 +335,9 @@ int cxgb4_config_knode(struct net_device *dev, __be16 protocol,
 
 		/* No candidate found to jump to next header. */
 		if (!found)
+		{
 			return -EINVAL;
+		}
 
 		return 0;
 	}
@@ -285,25 +346,35 @@ int cxgb4_config_knode(struct net_device *dev, __be16 protocol,
 	 * Copy the linked spec (if any) first.  And then update the spec as
 	 * needed.
 	 */
-	if (uhtid != 0x800 && t->table[uhtid - 1].link_handle) {
+	if (uhtid != 0x800 && t->table[uhtid - 1].link_handle)
+	{
 		/* Copy linked ch_filter_specification */
 		memcpy(&fs, &t->table[uhtid - 1].fs, sizeof(fs));
 		ret = fill_match_fields(adapter, &fs, cls,
-					link_start, true);
+								link_start, true);
+
 		if (ret)
+		{
 			goto out;
+		}
 	}
 
 	ret = fill_match_fields(adapter, &fs, cls, start, false);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/* Fill ch_filter_specification action fields to be shipped to
 	 * hardware.
 	 */
 	ret = fill_action_fields(adapter, &fs, cls);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/* The filter spec has been completely built from the info
 	 * provided from u32.  We now set some default fields in the
@@ -324,22 +395,27 @@ int cxgb4_config_knode(struct net_device *dev, __be16 protocol,
 
 	/* Set the filter */
 	ret = cxgb4_set_filter(dev, filter_id, &fs);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/* If this is a linked bucket, then set the corresponding
 	 * entry in the bitmap to mark it as belonging to this linked
 	 * bucket.
 	 */
 	if (uhtid != 0x800 && t->table[uhtid - 1].link_handle)
+	{
 		set_bit(filter_id, t->table[uhtid - 1].tid_map);
+	}
 
 out:
 	return ret;
 }
 
 int cxgb4_delete_knode(struct net_device *dev, __be16 protocol,
-		       struct tc_cls_u32_offload *cls)
+					   struct tc_cls_u32_offload *cls)
 {
 	struct adapter *adapter = netdev2adap(dev);
 	unsigned int filter_id, max_tids, i, j;
@@ -349,15 +425,18 @@ int cxgb4_delete_knode(struct net_device *dev, __be16 protocol,
 	int ret;
 
 	if (!can_tc_u32_offload(dev))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	/* Fetch the location to delete the filter. */
 	filter_id = cls->knode.handle & 0xFFFFF;
 
-	if (filter_id > adapter->tids.nftids) {
+	if (filter_id > adapter->tids.nftids)
+	{
 		dev_err(adapter->pdev_dev,
-			"Location %d out of range for deletion. Max: %d\n",
-			filter_id, adapter->tids.nftids);
+				"Location %d out of range for deletion. Max: %d\n",
+				filter_id, adapter->tids.nftids);
 		return -ERANGE;
 	}
 
@@ -369,40 +448,62 @@ int cxgb4_delete_knode(struct net_device *dev, __be16 protocol,
 	 * or a a valid linked bucket.
 	 */
 	if (uhtid != 0x800 && uhtid >= t->size)
+	{
 		return -EINVAL;
+	}
 
 	/* Delete the specified filter */
-	if (uhtid != 0x800) {
+	if (uhtid != 0x800)
+	{
 		link = &t->table[uhtid - 1];
+
 		if (!link->link_handle)
+		{
 			return -EINVAL;
+		}
 
 		if (!test_bit(filter_id, link->tid_map))
+		{
 			return -EINVAL;
+		}
 	}
 
 	ret = cxgb4_del_filter(dev, filter_id);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	if (link)
+	{
 		clear_bit(filter_id, link->tid_map);
+	}
 
 	/* If a link is being deleted, then delete all filters
 	 * associated with the link.
 	 */
 	max_tids = adapter->tids.nftids;
-	for (i = 0; i < t->size; i++) {
+
+	for (i = 0; i < t->size; i++)
+	{
 		link = &t->table[i];
 
-		if (link->link_handle == handle) {
-			for (j = 0; j < max_tids; j++) {
+		if (link->link_handle == handle)
+		{
+			for (j = 0; j < max_tids; j++)
+			{
 				if (!test_bit(j, link->tid_map))
+				{
 					continue;
+				}
 
 				ret = __cxgb4_del_filter(dev, j, NULL);
+
 				if (ret)
+				{
 					goto out;
+				}
 
 				clear_bit(j, link->tid_map);
 			}
@@ -425,35 +526,46 @@ void cxgb4_cleanup_tc_u32(struct adapter *adap)
 	unsigned int i;
 
 	if (!adap->tc_u32)
+	{
 		return;
+	}
 
 	/* Free up all allocated memory. */
 	t = adap->tc_u32;
-	for (i = 0; i < t->size; i++) {
+
+	for (i = 0; i < t->size; i++)
+	{
 		struct cxgb4_link *link = &t->table[i];
 
 		t4_free_mem(link->tid_map);
 	}
+
 	t4_free_mem(adap->tc_u32);
 }
 
 struct cxgb4_tc_u32_table *cxgb4_init_tc_u32(struct adapter *adap,
-					     unsigned int size)
+		unsigned int size)
 {
 	struct cxgb4_tc_u32_table *t;
 	unsigned int i;
 
 	if (!size)
+	{
 		return NULL;
+	}
 
 	t = t4_alloc_mem(sizeof(*t) +
-			 (size * sizeof(struct cxgb4_link)));
+					 (size * sizeof(struct cxgb4_link)));
+
 	if (!t)
+	{
 		return NULL;
+	}
 
 	t->size = size;
 
-	for (i = 0; i < t->size; i++) {
+	for (i = 0; i < t->size; i++)
+	{
 		struct cxgb4_link *link = &t->table[i];
 		unsigned int bmap_size;
 		unsigned int max_tids;
@@ -461,23 +573,33 @@ struct cxgb4_tc_u32_table *cxgb4_init_tc_u32(struct adapter *adap,
 		max_tids = adap->tids.nftids;
 		bmap_size = BITS_TO_LONGS(max_tids);
 		link->tid_map = t4_alloc_mem(sizeof(unsigned long) * bmap_size);
+
 		if (!link->tid_map)
+		{
 			goto out_no_mem;
+		}
+
 		bitmap_zero(link->tid_map, max_tids);
 	}
 
 	return t;
 
 out_no_mem:
-	for (i = 0; i < t->size; i++) {
+
+	for (i = 0; i < t->size; i++)
+	{
 		struct cxgb4_link *link = &t->table[i];
 
 		if (link->tid_map)
+		{
 			t4_free_mem(link->tid_map);
+		}
 	}
 
 	if (t)
+	{
 		t4_free_mem(t);
+	}
 
 	return NULL;
 }

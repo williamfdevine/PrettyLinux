@@ -20,7 +20,8 @@
 #define SHIFT_LUT_F_Y_LEGACY    8
 #define SHIFT_LUT_F_C_LEGACY    8
 
-static const u32 coef_lut_a_legacy[NB_COEF] = {
+static const u32 coef_lut_a_legacy[NB_COEF] =
+{
 	0x0000ffff, 0x00010000, 0x000100ff, 0x00000000,
 	0x00000000, 0x00050000, 0xfffc00ff, 0x00000000,
 	0x00000000, 0x00090000, 0xfff900fe, 0x00000000,
@@ -55,7 +56,8 @@ static const u32 coef_lut_a_legacy[NB_COEF] = {
 	0x00000000, 0x00fffffc, 0x00000005, 0x00000000
 };
 
-static const u32 coef_lut_b[NB_COEF] = {
+static const u32 coef_lut_b[NB_COEF] =
+{
 	0x00000000, 0x00000000, 0x00000100, 0x00000000,
 	0x00000000, 0x00000000, 0x00000100, 0x00000000,
 	0x00000000, 0x00000000, 0x00000100, 0x00000000,
@@ -90,7 +92,8 @@ static const u32 coef_lut_b[NB_COEF] = {
 	0x00000000, 0x00000000, 0x00000100, 0x00000000
 };
 
-static const u32 coef_lut_c_y_legacy[NB_COEF] = {
+static const u32 coef_lut_c_y_legacy[NB_COEF] =
+{
 	0x00060004, 0x0038ffe1, 0x003800be, 0x0006ffe1,
 	0x00050005, 0x0042ffe1, 0x003800b3, 0x0007ffe1,
 	0x00040006, 0x0046ffe1, 0x003300b2, 0x0008ffe2,
@@ -125,7 +128,8 @@ static const u32 coef_lut_c_y_legacy[NB_COEF] = {
 	0xffe10007, 0x00b30038, 0xffe10042, 0x00050005
 };
 
-static const u32 coef_lut_c_c_legacy[NB_COEF] = {
+static const u32 coef_lut_c_c_legacy[NB_COEF] =
+{
 	0x0001fff3, 0x003afffb, 0x003a00a1, 0x0001fffb,
 	0x0001fff5, 0x0041fffb, 0x0038009a, 0x0001fffb,
 	0x0001fff5, 0x0046fffb, 0x00340099, 0x0001fffb,
@@ -160,7 +164,8 @@ static const u32 coef_lut_c_c_legacy[NB_COEF] = {
 	0xfffb0001, 0x009a0038, 0xfffb0041, 0xfff50001
 };
 
-static const u32 coef_lut_d_y_legacy[NB_COEF] = {
+static const u32 coef_lut_d_y_legacy[NB_COEF] =
+{
 	0xfff80009, 0x0046ffec, 0x004600a3, 0xfff8ffec,
 	0xfff70009, 0x004effed, 0x0044009d, 0xfff9ffeb,
 	0xfff6000a, 0x0052ffee, 0x003f009d, 0xfffaffea,
@@ -195,7 +200,8 @@ static const u32 coef_lut_d_y_legacy[NB_COEF] = {
 	0xffebfff9, 0x009d0044, 0xffed004e, 0x0009fff7
 };
 
-static const u32 coef_lut_d_c_legacy[NB_COEF] = {
+static const u32 coef_lut_d_c_legacy[NB_COEF] =
+{
 	0xfffeffff, 0x003fffff, 0x003f0089, 0xfffeffff,
 	0xfffe0000, 0x00460000, 0x0042007d, 0xfffffffe,
 	0xfffe0000, 0x00490001, 0x003f007d, 0xfffffffd,
@@ -230,7 +236,8 @@ static const u32 coef_lut_d_c_legacy[NB_COEF] = {
 	0xfffeffff, 0x007d0042, 0x00000046, 0x0000fffe
 };
 
-static const u32 coef_lut_e_y_legacy[NB_COEF] = {
+static const u32 coef_lut_e_y_legacy[NB_COEF] =
+{
 	0xfff10001, 0x00490004, 0x00490083, 0xfff10004,
 	0xfff10000, 0x00500006, 0x004b007b, 0xfff10002,
 	0xfff10000, 0x00530007, 0x0048007b, 0xfff10001,
@@ -265,7 +272,8 @@ static const u32 coef_lut_e_y_legacy[NB_COEF] = {
 	0x0002fff1, 0x007b004b, 0x00060050, 0x0000fff1
 };
 
-static const u32 coef_lut_e_c_legacy[NB_COEF] = {
+static const u32 coef_lut_e_c_legacy[NB_COEF] =
+{
 	0xfffa0001, 0x003f0010, 0x003f006d, 0xfffa0010,
 	0xfffb0002, 0x00440011, 0x00440062, 0xfffa000e,
 	0xfffb0001, 0x00460013, 0x00420062, 0xfffa000d,
@@ -300,7 +308,8 @@ static const u32 coef_lut_e_c_legacy[NB_COEF] = {
 	0x000efffa, 0x00620044, 0x00110044, 0x0002fffb
 };
 
-static const u32 coef_lut_f_y_legacy[NB_COEF] = {
+static const u32 coef_lut_f_y_legacy[NB_COEF] =
+{
 	0xfff6fff0, 0x00490012, 0x0049006e, 0xfff60012,
 	0xfff7fff1, 0x004e0013, 0x00490068, 0xfff60010,
 	0xfff7fff2, 0x004f0015, 0x00470067, 0xfff6000f,
@@ -335,7 +344,8 @@ static const u32 coef_lut_f_y_legacy[NB_COEF] = {
 	0x0010fff6, 0x00680049, 0x0013004e, 0xfff1fff7
 };
 
-static const u32 coef_lut_f_c_legacy[NB_COEF] = {
+static const u32 coef_lut_f_c_legacy[NB_COEF] =
+{
 	0x0000fffb, 0x003a001a, 0x003a005d, 0x0000001a,
 	0x0001fffb, 0x003f001b, 0x00400051, 0x00000019,
 	0x0001fffc, 0x0040001c, 0x003f0051, 0x00000017,

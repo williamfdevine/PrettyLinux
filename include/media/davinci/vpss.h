@@ -27,25 +27,29 @@
 #define _VPSS_H
 
 /* selector for ccdc input selection on DM355 */
-enum vpss_ccdc_source_sel {
+enum vpss_ccdc_source_sel
+{
 	VPSS_CCDCIN,
 	VPSS_HSSIIN,
 	VPSS_PGLPBK,	/* for DM365 only */
 	VPSS_CCDCPG	/* for DM365 only */
 };
 
-struct vpss_sync_pol {
-	unsigned int ccdpg_hdpol:1;
-	unsigned int ccdpg_vdpol:1;
+struct vpss_sync_pol
+{
+	unsigned int ccdpg_hdpol: 1;
+	unsigned int ccdpg_vdpol: 1;
 };
 
-struct vpss_pg_frame_size {
+struct vpss_pg_frame_size
+{
 	short hlpfr;
 	short pplen;
 };
 
 /* Used for enable/disable VPSS Clock */
-enum vpss_clock_sel {
+enum vpss_clock_sel
+{
 	/* DM355/DM365 */
 	VPSS_CCDC_CLOCK,
 	VPSS_IPIPE_CLOCK,
@@ -93,7 +97,8 @@ void dm365_vpss_set_sync_pol(struct vpss_sync_pol);
 void dm365_vpss_set_pg_frame_size(struct vpss_pg_frame_size);
 
 /* wbl reset for dm644x */
-enum vpss_wbl_sel {
+enum vpss_wbl_sel
+{
 	VPSS_PCR_AEW_WBL_0 = 16,
 	VPSS_PCR_AF_WBL_0,
 	VPSS_PCR_RSZ4_WBL_0,

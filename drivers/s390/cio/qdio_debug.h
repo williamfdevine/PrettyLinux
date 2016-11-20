@@ -33,7 +33,8 @@ extern debug_info_t *qdio_dbf_error;
 
 static inline void DBF_HEX(void *addr, int len)
 {
-	while (len > 0) {
+	while (len > 0)
+	{
 		debug_event(qdio_dbf_setup, DBF_ERR, addr, len);
 		len -= qdio_dbf_setup->buf_size;
 		addr += qdio_dbf_setup->buf_size;
@@ -49,7 +50,8 @@ static inline void DBF_HEX(void *addr, int len)
 
 static inline void DBF_ERROR_HEX(void *addr, int len)
 {
-	while (len > 0) {
+	while (len > 0)
+	{
 		debug_event(qdio_dbf_error, DBF_ERR, addr, len);
 		len -= qdio_dbf_error->buf_size;
 		addr += qdio_dbf_error->buf_size;
@@ -66,9 +68,10 @@ static inline void DBF_ERROR_HEX(void *addr, int len)
 	} while (0)
 
 static inline void DBF_DEV_HEX(struct qdio_irq *dev, void *addr,
-			       int len, int level)
+							   int len, int level)
 {
-	while (len > 0) {
+	while (len > 0)
+	{
 		debug_event(dev->debug_area, level, addr, len);
 		len -= dev->debug_area->buf_size;
 		addr += dev->debug_area->buf_size;
@@ -76,9 +79,9 @@ static inline void DBF_DEV_HEX(struct qdio_irq *dev, void *addr,
 }
 
 int qdio_allocate_dbf(struct qdio_initialize *init_data,
-		       struct qdio_irq *irq_ptr);
+					  struct qdio_irq *irq_ptr);
 void qdio_setup_debug_entries(struct qdio_irq *irq_ptr,
-			      struct ccw_device *cdev);
+							  struct ccw_device *cdev);
 void qdio_shutdown_debug_entries(struct qdio_irq *irq_ptr);
 int qdio_debug_init(void);
 void qdio_debug_exit(void);

@@ -22,7 +22,8 @@
 #include <net/act_api.h>
 #include <linux/tc_act/tc_skbedit.h>
 
-struct tcf_skbedit {
+struct tcf_skbedit
+{
 	struct tc_action	common;
 	u32		flags;
 	u32		priority;
@@ -36,8 +37,12 @@ struct tcf_skbedit {
 static inline bool is_tcf_skbedit_mark(const struct tc_action *a)
 {
 #ifdef CONFIG_NET_CLS_ACT
+
 	if (a->ops && a->ops->type == TCA_ACT_SKBEDIT)
+	{
 		return to_skbedit(a)->flags == SKBEDIT_F_MARK;
+	}
+
 #endif
 	return false;
 }

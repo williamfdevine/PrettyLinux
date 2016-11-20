@@ -9,12 +9,13 @@
 #include <linux/kernel.h>
 #include <crypto/cryptd.h>
 
-struct async_helper_ctx {
+struct async_helper_ctx
+{
 	struct cryptd_ablkcipher *cryptd_tfm;
 };
 
 extern int ablk_set_key(struct crypto_ablkcipher *tfm, const u8 *key,
-			unsigned int key_len);
+						unsigned int key_len);
 
 extern int __ablk_encrypt(struct ablkcipher_request *req);
 

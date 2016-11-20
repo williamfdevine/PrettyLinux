@@ -30,7 +30,8 @@
 /*
  * Mobility Header
  */
-struct ip6_mh {
+struct ip6_mh
+{
 	__u8	ip6mh_proto;
 	__u8	ip6mh_hdrlen;
 	__u8	ip6mh_type;

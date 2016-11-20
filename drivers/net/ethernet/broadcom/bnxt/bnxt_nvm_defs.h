@@ -10,7 +10,8 @@
 #ifndef _BNXT_NVM_DEFS_H_
 #define _BNXT_NVM_DEFS_H_
 
-enum bnxt_nvm_directory_type {
+enum bnxt_nvm_directory_type
+{
 	BNX_DIR_TYPE_UNUSED = 0,
 	BNX_DIR_TYPE_PKG_LOG = 1,
 	BNX_DIR_TYPE_UPDATE = 2,
@@ -61,7 +62,8 @@ enum bnxt_nvm_directory_type {
 
 #define BNX_PKG_LOG_MAX_LENGTH			4096
 
-enum bnxnvm_pkglog_field_index {
+enum bnxnvm_pkglog_field_index
+{
 	BNX_PKG_LOG_FIELD_IDX_INSTALLED_TIMESTAMP	= 0,
 	BNX_PKG_LOG_FIELD_IDX_PKG_DESCRIPTION		= 1,
 	BNX_PKG_LOG_FIELD_IDX_PKG_VERSION		= 2,

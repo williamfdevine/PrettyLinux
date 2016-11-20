@@ -22,7 +22,7 @@
 #include <net/netfilter/nf_conntrack_zones.h>
 #include <net/netfilter/nf_log.h>
 
-static unsigned int nf_ct_icmp_timeout __read_mostly = 30*HZ;
+static unsigned int nf_ct_icmp_timeout __read_mostly = 30 * HZ;
 
 static inline struct nf_icmp_net *icmp_pernet(struct net *net)
 {
@@ -30,14 +30,17 @@ static inline struct nf_icmp_net *icmp_pernet(struct net *net)
 }
 
 static bool icmp_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
-			      struct net *net, struct nf_conntrack_tuple *tuple)
+							  struct net *net, struct nf_conntrack_tuple *tuple)
 {
 	const struct icmphdr *hp;
 	struct icmphdr _hdr;
 
 	hp = skb_header_pointer(skb, dataoff, sizeof(_hdr), &_hdr);
+
 	if (hp == NULL)
+	{
 		return false;
+	}
 
 	tuple->dst.u.icmp.type = hp->type;
 	tuple->src.u.icmp.id = hp->un.echo.id;
@@ -47,7 +50,8 @@ static bool icmp_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
 }
 
 /* Add 1; spaces filled with 0. */
-static const u_int8_t invmap[] = {
+static const u_int8_t invmap[] =
+{
 	[ICMP_ECHO] = ICMP_ECHOREPLY + 1,
 	[ICMP_ECHOREPLY] = ICMP_ECHO + 1,
 	[ICMP_TIMESTAMP] = ICMP_TIMESTAMPREPLY + 1,
@@ -59,11 +63,13 @@ static const u_int8_t invmap[] = {
 };
 
 static bool icmp_invert_tuple(struct nf_conntrack_tuple *tuple,
-			      const struct nf_conntrack_tuple *orig)
+							  const struct nf_conntrack_tuple *orig)
 {
 	if (orig->dst.u.icmp.type >= sizeof(invmap) ||
-	    !invmap[orig->dst.u.icmp.type])
+		!invmap[orig->dst.u.icmp.type])
+	{
 		return false;
+	}
 
 	tuple->src.u.icmp.id = orig->src.u.icmp.id;
 	tuple->dst.u.icmp.type = invmap[orig->dst.u.icmp.type] - 1;
@@ -73,12 +79,12 @@ static bool icmp_invert_tuple(struct nf_conntrack_tuple *tuple,
 
 /* Print out the per-protocol part of the tuple. */
 static void icmp_print_tuple(struct seq_file *s,
-			    const struct nf_conntrack_tuple *tuple)
+							 const struct nf_conntrack_tuple *tuple)
 {
 	seq_printf(s, "type=%u code=%u id=%u ",
-		   tuple->dst.u.icmp.type,
-		   tuple->dst.u.icmp.code,
-		   ntohs(tuple->src.u.icmp.id));
+			   tuple->dst.u.icmp.type,
+			   tuple->dst.u.icmp.code,
+			   ntohs(tuple->src.u.icmp.id));
 }
 
 static unsigned int *icmp_get_timeouts(struct net *net)
@@ -88,12 +94,12 @@ static unsigned int *icmp_get_timeouts(struct net *net)
 
 /* Returns verdict for packet, or -1 for invalid. */
 static int icmp_packet(struct nf_conn *ct,
-		       const struct sk_buff *skb,
-		       unsigned int dataoff,
-		       enum ip_conntrack_info ctinfo,
-		       u_int8_t pf,
-		       unsigned int hooknum,
-		       unsigned int *timeout)
+					   const struct sk_buff *skb,
+					   unsigned int dataoff,
+					   enum ip_conntrack_info ctinfo,
+					   u_int8_t pf,
+					   unsigned int hooknum,
+					   unsigned int *timeout)
 {
 	/* Do not immediately delete the connection after the first
 	   successful reply to avoid excessive conntrackd traffic
@@ -105,9 +111,10 @@ static int icmp_packet(struct nf_conn *ct,
 
 /* Called when a new connection for this protocol found. */
 static bool icmp_new(struct nf_conn *ct, const struct sk_buff *skb,
-		     unsigned int dataoff, unsigned int *timeouts)
+					 unsigned int dataoff, unsigned int *timeouts)
 {
-	static const u_int8_t valid_new[] = {
+	static const u_int8_t valid_new[] =
+	{
 		[ICMP_ECHO] = 1,
 		[ICMP_TIMESTAMP] = 1,
 		[ICMP_INFO_REQUEST] = 1,
@@ -115,21 +122,23 @@ static bool icmp_new(struct nf_conn *ct, const struct sk_buff *skb,
 	};
 
 	if (ct->tuplehash[0].tuple.dst.u.icmp.type >= sizeof(valid_new) ||
-	    !valid_new[ct->tuplehash[0].tuple.dst.u.icmp.type]) {
+		!valid_new[ct->tuplehash[0].tuple.dst.u.icmp.type])
+	{
 		/* Can't create a new ICMP `conn' with this. */
 		pr_debug("icmp: can't create new conn with type %u\n",
-			 ct->tuplehash[0].tuple.dst.u.icmp.type);
+				 ct->tuplehash[0].tuple.dst.u.icmp.type);
 		nf_ct_dump_tuple_ip(&ct->tuplehash[0].tuple);
 		return false;
 	}
+
 	return true;
 }
 
 /* Returns conntrack if it dealt with ICMP, and filled in skb fields */
 static int
 icmp_error_message(struct net *net, struct nf_conn *tmpl, struct sk_buff *skb,
-		 enum ip_conntrack_info *ctinfo,
-		 unsigned int hooknum)
+				   enum ip_conntrack_info *ctinfo,
+				   unsigned int hooknum)
 {
 	struct nf_conntrack_tuple innertuple, origtuple;
 	const struct nf_conntrack_l4proto *innerproto;
@@ -142,9 +151,10 @@ icmp_error_message(struct net *net, struct nf_conn *tmpl, struct sk_buff *skb,
 
 	/* Are they talking about one of our connections? */
 	if (!nf_ct_get_tuplepr(skb,
-			       skb_network_offset(skb) + ip_hdrlen(skb)
-						       + sizeof(struct icmphdr),
-			       PF_INET, net, &origtuple)) {
+						   skb_network_offset(skb) + ip_hdrlen(skb)
+						   + sizeof(struct icmphdr),
+						   PF_INET, net, &origtuple))
+	{
 		pr_debug("icmp_error_message: failed to get tuple\n");
 		return -NF_ACCEPT;
 	}
@@ -155,7 +165,8 @@ icmp_error_message(struct net *net, struct nf_conn *tmpl, struct sk_buff *skb,
 	/* Ordinarily, we'd expect the inverted tupleproto, but it's
 	   been preserved inside the ICMP. */
 	if (!nf_ct_invert_tuple(&innertuple, &origtuple,
-				&nf_conntrack_l3proto_ipv4, innerproto)) {
+							&nf_conntrack_l3proto_ipv4, innerproto))
+	{
 		pr_debug("icmp_error_message: no match\n");
 		return -NF_ACCEPT;
 	}
@@ -163,13 +174,17 @@ icmp_error_message(struct net *net, struct nf_conn *tmpl, struct sk_buff *skb,
 	*ctinfo = IP_CT_RELATED;
 
 	h = nf_conntrack_find_get(net, zone, &innertuple);
-	if (!h) {
+
+	if (!h)
+	{
 		pr_debug("icmp_error_message: no match\n");
 		return -NF_ACCEPT;
 	}
 
 	if (NF_CT_DIRECTION(h) == IP_CT_DIR_REPLY)
+	{
 		*ctinfo += IP_CT_IS_REPLY;
+	}
 
 	/* Update skb to refer to this connection */
 	skb->nfct = &nf_ct_tuplehash_to_ctrack(h)->ct_general;
@@ -180,27 +195,32 @@ icmp_error_message(struct net *net, struct nf_conn *tmpl, struct sk_buff *skb,
 /* Small and modified version of icmp_rcv */
 static int
 icmp_error(struct net *net, struct nf_conn *tmpl,
-	   struct sk_buff *skb, unsigned int dataoff,
-	   enum ip_conntrack_info *ctinfo, u_int8_t pf, unsigned int hooknum)
+		   struct sk_buff *skb, unsigned int dataoff,
+		   enum ip_conntrack_info *ctinfo, u_int8_t pf, unsigned int hooknum)
 {
 	const struct icmphdr *icmph;
 	struct icmphdr _ih;
 
 	/* Not enough header? */
 	icmph = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(_ih), &_ih);
-	if (icmph == NULL) {
+
+	if (icmph == NULL)
+	{
 		if (LOG_INVALID(net, IPPROTO_ICMP))
 			nf_log_packet(net, PF_INET, 0, skb, NULL, NULL,
-				      NULL, "nf_ct_icmp: short packet ");
+						  NULL, "nf_ct_icmp: short packet ");
+
 		return -NF_ACCEPT;
 	}
 
 	/* See ip_conntrack_proto_tcp.c */
 	if (net->ct.sysctl_checksum && hooknum == NF_INET_PRE_ROUTING &&
-	    nf_ip_checksum(skb, hooknum, dataoff, 0)) {
+		nf_ip_checksum(skb, hooknum, dataoff, 0))
+	{
 		if (LOG_INVALID(net, IPPROTO_ICMP))
 			nf_log_packet(net, PF_INET, 0, skb, NULL, NULL, NULL,
-				      "nf_ct_icmp: bad HW ICMP checksum ");
+						  "nf_ct_icmp: bad HW ICMP checksum ");
+
 		return -NF_ACCEPT;
 	}
 
@@ -210,20 +230,24 @@ icmp_error(struct net *net, struct nf_conn *tmpl,
 	 *	RFC 1122: 3.2.2  Unknown ICMP messages types MUST be silently
 	 *		  discarded.
 	 */
-	if (icmph->type > NR_ICMP_TYPES) {
+	if (icmph->type > NR_ICMP_TYPES)
+	{
 		if (LOG_INVALID(net, IPPROTO_ICMP))
 			nf_log_packet(net, PF_INET, 0, skb, NULL, NULL, NULL,
-				      "nf_ct_icmp: invalid ICMP type ");
+						  "nf_ct_icmp: invalid ICMP type ");
+
 		return -NF_ACCEPT;
 	}
 
 	/* Need to track icmp error message? */
 	if (icmph->type != ICMP_DEST_UNREACH &&
-	    icmph->type != ICMP_SOURCE_QUENCH &&
-	    icmph->type != ICMP_TIME_EXCEEDED &&
-	    icmph->type != ICMP_PARAMETERPROB &&
-	    icmph->type != ICMP_REDIRECT)
+		icmph->type != ICMP_SOURCE_QUENCH &&
+		icmph->type != ICMP_TIME_EXCEEDED &&
+		icmph->type != ICMP_PARAMETERPROB &&
+		icmph->type != ICMP_REDIRECT)
+	{
 		return NF_ACCEPT;
+	}
 
 	return icmp_error_message(net, tmpl, skb, ctinfo, hooknum);
 }
@@ -234,39 +258,47 @@ icmp_error(struct net *net, struct nf_conn *tmpl,
 #include <linux/netfilter/nfnetlink_conntrack.h>
 
 static int icmp_tuple_to_nlattr(struct sk_buff *skb,
-				const struct nf_conntrack_tuple *t)
+								const struct nf_conntrack_tuple *t)
 {
 	if (nla_put_be16(skb, CTA_PROTO_ICMP_ID, t->src.u.icmp.id) ||
-	    nla_put_u8(skb, CTA_PROTO_ICMP_TYPE, t->dst.u.icmp.type) ||
-	    nla_put_u8(skb, CTA_PROTO_ICMP_CODE, t->dst.u.icmp.code))
+		nla_put_u8(skb, CTA_PROTO_ICMP_TYPE, t->dst.u.icmp.type) ||
+		nla_put_u8(skb, CTA_PROTO_ICMP_CODE, t->dst.u.icmp.code))
+	{
 		goto nla_put_failure;
+	}
+
 	return 0;
 
 nla_put_failure:
 	return -1;
 }
 
-static const struct nla_policy icmp_nla_policy[CTA_PROTO_MAX+1] = {
+static const struct nla_policy icmp_nla_policy[CTA_PROTO_MAX + 1] =
+{
 	[CTA_PROTO_ICMP_TYPE]	= { .type = NLA_U8 },
 	[CTA_PROTO_ICMP_CODE]	= { .type = NLA_U8 },
 	[CTA_PROTO_ICMP_ID]	= { .type = NLA_U16 },
 };
 
 static int icmp_nlattr_to_tuple(struct nlattr *tb[],
-				struct nf_conntrack_tuple *tuple)
+								struct nf_conntrack_tuple *tuple)
 {
 	if (!tb[CTA_PROTO_ICMP_TYPE] ||
-	    !tb[CTA_PROTO_ICMP_CODE] ||
-	    !tb[CTA_PROTO_ICMP_ID])
+		!tb[CTA_PROTO_ICMP_CODE] ||
+		!tb[CTA_PROTO_ICMP_ID])
+	{
 		return -EINVAL;
+	}
 
 	tuple->dst.u.icmp.type = nla_get_u8(tb[CTA_PROTO_ICMP_TYPE]);
 	tuple->dst.u.icmp.code = nla_get_u8(tb[CTA_PROTO_ICMP_CODE]);
 	tuple->src.u.icmp.id = nla_get_be16(tb[CTA_PROTO_ICMP_ID]);
 
 	if (tuple->dst.u.icmp.type >= sizeof(invmap) ||
-	    !invmap[tuple->dst.u.icmp.type])
+		!invmap[tuple->dst.u.icmp.type])
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -283,18 +315,22 @@ static int icmp_nlattr_tuple_size(void)
 #include <linux/netfilter/nfnetlink_cttimeout.h>
 
 static int icmp_timeout_nlattr_to_obj(struct nlattr *tb[],
-				      struct net *net, void *data)
+									  struct net *net, void *data)
 {
 	unsigned int *timeout = data;
 	struct nf_icmp_net *in = icmp_pernet(net);
 
-	if (tb[CTA_TIMEOUT_ICMP_TIMEOUT]) {
+	if (tb[CTA_TIMEOUT_ICMP_TIMEOUT])
+	{
 		*timeout =
 			ntohl(nla_get_be32(tb[CTA_TIMEOUT_ICMP_TIMEOUT])) * HZ;
-	} else {
+	}
+	else
+	{
 		/* Set default ICMP timeout. */
 		*timeout = in->timeout;
 	}
+
 	return 0;
 }
 
@@ -304,7 +340,10 @@ icmp_timeout_obj_to_nlattr(struct sk_buff *skb, const void *data)
 	const unsigned int *timeout = data;
 
 	if (nla_put_be32(skb, CTA_TIMEOUT_ICMP_TIMEOUT, htonl(*timeout / HZ)))
+	{
 		goto nla_put_failure;
+	}
+
 	return 0;
 
 nla_put_failure:
@@ -312,13 +351,15 @@ nla_put_failure:
 }
 
 static const struct nla_policy
-icmp_timeout_nla_policy[CTA_TIMEOUT_ICMP_MAX+1] = {
+	icmp_timeout_nla_policy[CTA_TIMEOUT_ICMP_MAX + 1] =
+{
 	[CTA_TIMEOUT_ICMP_TIMEOUT]	= { .type = NLA_U32 },
 };
 #endif /* CONFIG_NF_CT_NETLINK_TIMEOUT */
 
 #ifdef CONFIG_SYSCTL
-static struct ctl_table icmp_sysctl_table[] = {
+static struct ctl_table icmp_sysctl_table[] =
+{
 	{
 		.procname	= "nf_conntrack_icmp_timeout",
 		.maxlen		= sizeof(unsigned int),
@@ -330,14 +371,17 @@ static struct ctl_table icmp_sysctl_table[] = {
 #endif /* CONFIG_SYSCTL */
 
 static int icmp_kmemdup_sysctl_table(struct nf_proto_net *pn,
-				     struct nf_icmp_net *in)
+									 struct nf_icmp_net *in)
 {
 #ifdef CONFIG_SYSCTL
 	pn->ctl_table = kmemdup(icmp_sysctl_table,
-				sizeof(icmp_sysctl_table),
-				GFP_KERNEL);
+							sizeof(icmp_sysctl_table),
+							GFP_KERNEL);
+
 	if (!pn->ctl_table)
+	{
 		return -ENOMEM;
+	}
 
 	pn->ctl_table[0].data = &in->timeout;
 #endif

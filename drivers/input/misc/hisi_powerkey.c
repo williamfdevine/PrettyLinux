@@ -60,10 +60,12 @@ static irqreturn_t hi65xx_restart_toggle_isr(int irq, void *q)
 	return IRQ_HANDLED;
 }
 
-static const struct {
+static const struct
+{
 	const char *name;
 	irqreturn_t (*handler)(int irq, void *q);
-} hi65xx_irq_info[] = {
+} hi65xx_irq_info[] =
+{
 	{ "down", hi65xx_power_press_isr },
 	{ "up", hi65xx_power_release_isr },
 	{ "hold 4s", hi65xx_restart_toggle_isr },
@@ -76,7 +78,9 @@ static int hi65xx_powerkey_probe(struct platform_device *pdev)
 	int irq, i, error;
 
 	input = devm_input_allocate_device(&pdev->dev);
-	if (!input) {
+
+	if (!input)
+	{
 		dev_err(&pdev->dev, "failed to allocate input device\n");
 		return -ENOMEM;
 	}
@@ -87,32 +91,39 @@ static int hi65xx_powerkey_probe(struct platform_device *pdev)
 	input_set_capability(input, EV_KEY, KEY_POWER);
 	input_set_capability(input, EV_KEY, KEY_RESTART);
 
-	for (i = 0; i < ARRAY_SIZE(hi65xx_irq_info); i++) {
+	for (i = 0; i < ARRAY_SIZE(hi65xx_irq_info); i++)
+	{
 
 		irq = platform_get_irq_byname(pdev, hi65xx_irq_info[i].name);
-		if (irq < 0) {
+
+		if (irq < 0)
+		{
 			error = irq;
 			dev_err(dev, "couldn't get irq %s: %d\n",
-				hi65xx_irq_info[i].name, error);
+					hi65xx_irq_info[i].name, error);
 			return error;
 		}
 
 		error = devm_request_any_context_irq(dev, irq,
-						     hi65xx_irq_info[i].handler,
-						     IRQF_ONESHOT,
-						     hi65xx_irq_info[i].name,
-						     input);
-		if (error < 0) {
+											 hi65xx_irq_info[i].handler,
+											 IRQF_ONESHOT,
+											 hi65xx_irq_info[i].name,
+											 input);
+
+		if (error < 0)
+		{
 			dev_err(dev, "couldn't request irq %s: %d\n",
-				hi65xx_irq_info[i].name, error);
+					hi65xx_irq_info[i].name, error);
 			return error;
 		}
 	}
 
 	error = input_register_device(input);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "failed to register input device: %d\n",
-			error);
+				error);
 		return error;
 	}
 
@@ -128,7 +139,8 @@ static int hi65xx_powerkey_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver hi65xx_powerkey_driver = {
+static struct platform_driver hi65xx_powerkey_driver =
+{
 	.driver = {
 		.name = "hi65xx-powerkey",
 	},

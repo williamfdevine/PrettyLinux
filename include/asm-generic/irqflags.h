@@ -6,18 +6,18 @@
  * usually inline assembly will be the best way.
  */
 #ifndef ARCH_IRQ_DISABLED
-#define ARCH_IRQ_DISABLED 0
-#define ARCH_IRQ_ENABLED 1
+	#define ARCH_IRQ_DISABLED 0
+	#define ARCH_IRQ_ENABLED 1
 #endif
 
 /* read interrupt enabled status */
 #ifndef arch_local_save_flags
-unsigned long arch_local_save_flags(void);
+	unsigned long arch_local_save_flags(void);
 #endif
 
 /* set interrupt enabled status */
 #ifndef arch_local_irq_restore
-void arch_local_irq_restore(unsigned long flags);
+	void arch_local_irq_restore(unsigned long flags);
 #endif
 
 /* get status and disable interrupts */

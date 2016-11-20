@@ -10,7 +10,8 @@
 #include <stdbool.h>
 #include <linux/types.h>
 
-enum map_type {
+enum map_type
+{
 	MAP__FUNCTION = 0,
 	MAP__VARIABLE,
 };
@@ -26,8 +27,10 @@ struct map_groups;
 struct machine;
 struct perf_evsel;
 
-struct map {
-	union {
+struct map
+{
+	union
+	{
 		struct rb_node	rb_node;
 		struct list_head node;
 	};
@@ -54,17 +57,20 @@ struct map {
 	atomic_t		refcnt;
 };
 
-struct kmap {
+struct kmap
+{
 	struct ref_reloc_sym	*ref_reloc_sym;
 	struct map_groups	*kmaps;
 };
 
-struct maps {
+struct maps
+{
 	struct rb_root	 entries;
 	pthread_rwlock_t lock;
 };
 
-struct map_groups {
+struct map_groups
+{
 	struct maps	 maps[MAP__NR_TYPES];
 	struct machine	 *machine;
 	atomic_t	 refcnt;
@@ -77,7 +83,10 @@ bool map_groups__empty(struct map_groups *mg);
 static inline struct map_groups *map_groups__get(struct map_groups *mg)
 {
 	if (mg)
+	{
 		atomic_inc(&mg->refcnt);
+	}
+
 	return mg;
 }
 
@@ -130,19 +139,19 @@ struct thread;
  */
 #define __map__for_each_symbol_by_name(map, sym_name, pos)	\
 	for (pos = map__find_symbol_by_name(map, sym_name);	\
-	     pos && arch__compare_symbol_names(pos->name, sym_name) == 0;	\
-	     pos = symbol__next_by_name(pos))
+		 pos && arch__compare_symbol_names(pos->name, sym_name) == 0;	\
+		 pos = symbol__next_by_name(pos))
 
 #define map__for_each_symbol_by_name(map, sym_name, pos)		\
 	__map__for_each_symbol_by_name(map, sym_name, (pos))
 
 int arch__compare_symbol_names(const char *namea, const char *nameb);
 void map__init(struct map *map, enum map_type type,
-	       u64 start, u64 end, u64 pgoff, struct dso *dso);
+			   u64 start, u64 end, u64 pgoff, struct dso *dso);
 struct map *map__new(struct machine *machine, u64 start, u64 len,
-		     u64 pgoff, u32 pid, u32 d_maj, u32 d_min, u64 ino,
-		     u64 ino_gen, u32 prot, u32 flags,
-		     char *filename, enum map_type type, struct thread *thread);
+					 u64 pgoff, u32 pid, u32 d_maj, u32 d_min, u64 ino,
+					 u64 ino_gen, u32 prot, u32 flags,
+					 char *filename, enum map_type type, struct thread *thread);
 struct map *map__new2(u64 start, struct dso *dso, enum map_type type);
 void map__delete(struct map *map);
 struct map *map__clone(struct map *map);
@@ -150,7 +159,10 @@ struct map *map__clone(struct map *map);
 static inline struct map *map__get(struct map *map)
 {
 	if (map)
+	{
 		atomic_inc(&map->refcnt);
+	}
+
 	return map;
 }
 
@@ -168,7 +180,7 @@ int map__overlap(struct map *l, struct map *r);
 size_t map__fprintf(struct map *map, FILE *fp);
 size_t map__fprintf_dsoname(struct map *map, FILE *fp);
 int map__fprintf_srcline(struct map *map, u64 addr, const char *prefix,
-			 FILE *fp);
+						 FILE *fp);
 
 int map__load(struct map *map);
 struct symbol *map__find_symbol(struct map *map, u64 addr);
@@ -179,22 +191,22 @@ void map__fixup_end(struct map *map);
 void map__reloc_vmlinux(struct map *map);
 
 size_t __map_groups__fprintf_maps(struct map_groups *mg, enum map_type type,
-				  FILE *fp);
+								  FILE *fp);
 void maps__insert(struct maps *maps, struct map *map);
 void maps__remove(struct maps *maps, struct map *map);
 struct map *maps__find(struct maps *maps, u64 addr);
 struct map *maps__first(struct maps *maps);
 struct map *map__next(struct map *map);
 struct symbol *maps__find_symbol_by_name(struct maps *maps, const char *name,
-                                         struct map **mapp);
+		struct map **mapp);
 void map_groups__init(struct map_groups *mg, struct machine *machine);
 void map_groups__exit(struct map_groups *mg);
 int map_groups__clone(struct thread *thread,
-		      struct map_groups *parent, enum map_type type);
+					  struct map_groups *parent, enum map_type type);
 size_t map_groups__fprintf(struct map_groups *mg, FILE *fp);
 
 int maps__set_kallsyms_ref_reloc_sym(struct map **maps, const char *symbol_name,
-				     u64 addr);
+									 u64 addr);
 
 static inline void map_groups__insert(struct map_groups *mg, struct map *map)
 {
@@ -208,13 +220,13 @@ static inline void map_groups__remove(struct map_groups *mg, struct map *map)
 }
 
 static inline struct map *map_groups__find(struct map_groups *mg,
-					   enum map_type type, u64 addr)
+		enum map_type type, u64 addr)
 {
 	return maps__find(&mg->maps[type], addr);
 }
 
 static inline struct map *map_groups__first(struct map_groups *mg,
-					    enum map_type type)
+		enum map_type type)
 {
 	return maps__first(&mg->maps[type]);
 }
@@ -225,13 +237,13 @@ static inline struct map *map_groups__next(struct map *map)
 }
 
 struct symbol *map_groups__find_symbol(struct map_groups *mg,
-				       enum map_type type, u64 addr,
-				       struct map **mapp);
+									   enum map_type type, u64 addr,
+									   struct map **mapp);
 
 struct symbol *map_groups__find_symbol_by_name(struct map_groups *mg,
-					       enum map_type type,
-					       const char *name,
-					       struct map **mapp);
+		enum map_type type,
+		const char *name,
+		struct map **mapp);
 
 struct addr_map_symbol;
 
@@ -239,16 +251,16 @@ int map_groups__find_ams(struct addr_map_symbol *ams);
 
 static inline
 struct symbol *map_groups__find_function_by_name(struct map_groups *mg,
-						 const char *name, struct map **mapp)
+		const char *name, struct map **mapp)
 {
 	return map_groups__find_symbol_by_name(mg, MAP__FUNCTION, name, mapp);
 }
 
 int map_groups__fixup_overlappings(struct map_groups *mg, struct map *map,
-				   FILE *fp);
+								   FILE *fp);
 
 struct map *map_groups__find_by_name(struct map_groups *mg,
-				     enum map_type type, const char *name);
+									 enum map_type type, const char *name);
 
 bool __map__is_kernel(const struct map *map);
 

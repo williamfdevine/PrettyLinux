@@ -5,7 +5,7 @@
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option) 
+ * Software Foundation; either version 2 of the License, or (at your option)
  * any later version.
  *
  */
@@ -23,7 +23,8 @@ struct module;
 struct rtattr;
 struct seq_file;
 
-struct crypto_type {
+struct crypto_type
+{
 	unsigned int (*ctxsize)(struct crypto_alg *alg, u32 type, u32 mask);
 	unsigned int (*extsize)(struct crypto_alg *alg);
 	int (*init)(struct crypto_tfm *tfm, u32 type, u32 mask);
@@ -39,7 +40,8 @@ struct crypto_type {
 	unsigned int tfmsize;
 };
 
-struct crypto_instance {
+struct crypto_instance
+{
 	struct crypto_alg alg;
 
 	struct crypto_template *tmpl;
@@ -48,7 +50,8 @@ struct crypto_instance {
 	void *__ctx[] CRYPTO_MINALIGN_ATTR;
 };
 
-struct crypto_template {
+struct crypto_template
+{
 	struct list_head list;
 	struct hlist_head instances;
 	struct module *module;
@@ -60,7 +63,8 @@ struct crypto_template {
 	char name[CRYPTO_MAX_ALG_NAME];
 };
 
-struct crypto_spawn {
+struct crypto_spawn
+{
 	struct list_head list;
 	struct crypto_alg *alg;
 	struct crypto_instance *inst;
@@ -68,7 +72,8 @@ struct crypto_spawn {
 	u32 mask;
 };
 
-struct crypto_queue {
+struct crypto_queue
+{
 	struct list_head list;
 	struct list_head *backlog;
 
@@ -76,19 +81,24 @@ struct crypto_queue {
 	unsigned int max_qlen;
 };
 
-struct scatter_walk {
+struct scatter_walk
+{
 	struct scatterlist *sg;
 	unsigned int offset;
 };
 
-struct blkcipher_walk {
-	union {
-		struct {
+struct blkcipher_walk
+{
+	union
+	{
+		struct
+		{
 			struct page *page;
 			unsigned long offset;
 		} phys;
 
-		struct {
+		struct
+		{
 			u8 *page;
 			u8 *addr;
 		} virt;
@@ -111,8 +121,10 @@ struct blkcipher_walk {
 	unsigned int alignmask;
 };
 
-struct ablkcipher_walk {
-	struct {
+struct ablkcipher_walk
+{
+	struct
+	{
 		struct page *page;
 		unsigned int offset;
 	} src, dst;
@@ -138,24 +150,24 @@ void crypto_unregister_template(struct crypto_template *tmpl);
 struct crypto_template *crypto_lookup_template(const char *name);
 
 int crypto_register_instance(struct crypto_template *tmpl,
-			     struct crypto_instance *inst);
+							 struct crypto_instance *inst);
 int crypto_unregister_instance(struct crypto_instance *inst);
 
 int crypto_init_spawn(struct crypto_spawn *spawn, struct crypto_alg *alg,
-		      struct crypto_instance *inst, u32 mask);
+					  struct crypto_instance *inst, u32 mask);
 int crypto_init_spawn2(struct crypto_spawn *spawn, struct crypto_alg *alg,
-		       struct crypto_instance *inst,
-		       const struct crypto_type *frontend);
+					   struct crypto_instance *inst,
+					   const struct crypto_type *frontend);
 int crypto_grab_spawn(struct crypto_spawn *spawn, const char *name,
-		      u32 type, u32 mask);
+					  u32 type, u32 mask);
 
 void crypto_drop_spawn(struct crypto_spawn *spawn);
 struct crypto_tfm *crypto_spawn_tfm(struct crypto_spawn *spawn, u32 type,
-				    u32 mask);
+									u32 mask);
 void *crypto_spawn_tfm2(struct crypto_spawn *spawn);
 
 static inline void crypto_set_spawn(struct crypto_spawn *spawn,
-				    struct crypto_instance *inst)
+									struct crypto_instance *inst)
 {
 	spawn->inst = inst;
 }
@@ -164,26 +176,26 @@ struct crypto_attr_type *crypto_get_attr_type(struct rtattr **tb);
 int crypto_check_attr_type(struct rtattr **tb, u32 type);
 const char *crypto_attr_alg_name(struct rtattr *rta);
 struct crypto_alg *crypto_attr_alg2(struct rtattr *rta,
-				    const struct crypto_type *frontend,
-				    u32 type, u32 mask);
+									const struct crypto_type *frontend,
+									u32 type, u32 mask);
 
 static inline struct crypto_alg *crypto_attr_alg(struct rtattr *rta,
-						 u32 type, u32 mask)
+		u32 type, u32 mask)
 {
 	return crypto_attr_alg2(rta, NULL, type, mask);
 }
 
 int crypto_attr_u32(struct rtattr *rta, u32 *num);
 int crypto_inst_setname(struct crypto_instance *inst, const char *name,
-			struct crypto_alg *alg);
+						struct crypto_alg *alg);
 void *crypto_alloc_instance2(const char *name, struct crypto_alg *alg,
-			     unsigned int head);
+							 unsigned int head);
 struct crypto_instance *crypto_alloc_instance(const char *name,
-					      struct crypto_alg *alg);
+		struct crypto_alg *alg);
 
 void crypto_init_queue(struct crypto_queue *queue, unsigned int max_qlen);
 int crypto_enqueue_request(struct crypto_queue *queue,
-			   struct crypto_async_request *request);
+						   struct crypto_async_request *request);
 struct crypto_async_request *crypto_dequeue_request(struct crypto_queue *queue);
 int crypto_tfm_in_queue(struct crypto_queue *queue, struct crypto_tfm *tfm);
 static inline unsigned int crypto_queue_len(struct crypto_queue *queue)
@@ -196,29 +208,29 @@ void crypto_inc(u8 *a, unsigned int size);
 void crypto_xor(u8 *dst, const u8 *src, unsigned int size);
 
 int blkcipher_walk_done(struct blkcipher_desc *desc,
-			struct blkcipher_walk *walk, int err);
+						struct blkcipher_walk *walk, int err);
 int blkcipher_walk_virt(struct blkcipher_desc *desc,
-			struct blkcipher_walk *walk);
+						struct blkcipher_walk *walk);
 int blkcipher_walk_phys(struct blkcipher_desc *desc,
-			struct blkcipher_walk *walk);
+						struct blkcipher_walk *walk);
 int blkcipher_walk_virt_block(struct blkcipher_desc *desc,
-			      struct blkcipher_walk *walk,
-			      unsigned int blocksize);
+							  struct blkcipher_walk *walk,
+							  unsigned int blocksize);
 int blkcipher_aead_walk_virt_block(struct blkcipher_desc *desc,
-				   struct blkcipher_walk *walk,
-				   struct crypto_aead *tfm,
-				   unsigned int blocksize);
+								   struct blkcipher_walk *walk,
+								   struct crypto_aead *tfm,
+								   unsigned int blocksize);
 
 int ablkcipher_walk_done(struct ablkcipher_request *req,
-			 struct ablkcipher_walk *walk, int err);
+						 struct ablkcipher_walk *walk, int err);
 int ablkcipher_walk_phys(struct ablkcipher_request *req,
-			 struct ablkcipher_walk *walk);
+						 struct ablkcipher_walk *walk);
 void __ablkcipher_walk_complete(struct ablkcipher_walk *walk);
 
 static inline void *crypto_tfm_ctx_aligned(struct crypto_tfm *tfm)
 {
 	return PTR_ALIGN(crypto_tfm_ctx(tfm),
-			 crypto_tfm_alg_alignmask(tfm) + 1);
+					 crypto_tfm_alg_alignmask(tfm) + 1);
 }
 
 static inline struct crypto_instance *crypto_tfm_alg_instance(
@@ -282,9 +294,9 @@ static inline struct cipher_alg *crypto_cipher_alg(struct crypto_cipher *tfm)
 }
 
 static inline void blkcipher_walk_init(struct blkcipher_walk *walk,
-				       struct scatterlist *dst,
-				       struct scatterlist *src,
-				       unsigned int nbytes)
+									   struct scatterlist *dst,
+									   struct scatterlist *src,
+									   unsigned int nbytes)
 {
 	walk->in.sg = src;
 	walk->out.sg = dst;
@@ -292,9 +304,9 @@ static inline void blkcipher_walk_init(struct blkcipher_walk *walk,
 }
 
 static inline void ablkcipher_walk_init(struct ablkcipher_walk *walk,
-					struct scatterlist *dst,
-					struct scatterlist *src,
-					unsigned int nbytes)
+										struct scatterlist *dst,
+										struct scatterlist *src,
+										unsigned int nbytes)
 {
 	walk->in.sg = src;
 	walk->out.sg = dst;
@@ -305,18 +317,20 @@ static inline void ablkcipher_walk_init(struct ablkcipher_walk *walk,
 static inline void ablkcipher_walk_complete(struct ablkcipher_walk *walk)
 {
 	if (unlikely(!list_empty(&walk->buffers)))
+	{
 		__ablkcipher_walk_complete(walk);
+	}
 }
 
 static inline struct crypto_async_request *crypto_get_backlog(
 	struct crypto_queue *queue)
 {
 	return queue->backlog == &queue->list ? NULL :
-	       container_of(queue->backlog, struct crypto_async_request, list);
+		   container_of(queue->backlog, struct crypto_async_request, list);
 }
 
 static inline int ablkcipher_enqueue_request(struct crypto_queue *queue,
-					     struct ablkcipher_request *request)
+		struct ablkcipher_request *request)
 {
 	return crypto_enqueue_request(queue, &request->base);
 }
@@ -333,13 +347,13 @@ static inline void *ablkcipher_request_ctx(struct ablkcipher_request *req)
 }
 
 static inline int ablkcipher_tfm_in_queue(struct crypto_queue *queue,
-					  struct crypto_ablkcipher *tfm)
+		struct crypto_ablkcipher *tfm)
 {
 	return crypto_tfm_in_queue(queue, crypto_ablkcipher_tfm(tfm));
 }
 
 static inline struct crypto_alg *crypto_get_attr_alg(struct rtattr **tb,
-						     u32 type, u32 mask)
+		u32 type, u32 mask)
 {
 	return crypto_attr_alg(tb[1], type, mask);
 }
@@ -373,8 +387,12 @@ static inline int crypto_memneq(const void *a, const void *b, size_t size)
 static inline void crypto_yield(u32 flags)
 {
 #if !defined(CONFIG_PREEMPT) || defined(CONFIG_PREEMPT_VOLUNTARY)
+
 	if (flags & CRYPTO_TFM_REQ_MAY_SLEEP)
+	{
 		cond_resched();
+	}
+
 #endif
 }
 

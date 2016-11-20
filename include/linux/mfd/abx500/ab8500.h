@@ -20,7 +20,8 @@ struct device;
  * non-supported multi-byte I2C access via PRCMU. Set to 0x00 to ease the
  * print of version string.
  */
-enum ab8500_version {
+enum ab8500_version
+{
 	AB8500_VERSION_AB8500 = 0x0,
 	AB8500_VERSION_AB8505 = 0x1,
 	AB8500_VERSION_AB9540 = 0x2,
@@ -344,7 +345,8 @@ enum ab8500_version {
  * irq_reg_offset
  * @irq_reg_offset: Array of offsets into IRQ registers
  */
-struct ab8500 {
+struct ab8500
+{
 	struct device	*dev;
 	struct mutex	lock;
 	struct mutex	irq_lock;
@@ -378,7 +380,8 @@ struct ab8500_sysctrl_platform_data;
  * @init: board-specific initialization after detection of ab8500
  * @regulator: machine-specific constraints for regulators
  */
-struct ab8500_platform_data {
+struct ab8500_platform_data
+{
 	void (*init) (struct ab8500 *);
 	struct ab8500_regulator_platform_data *regulator;
 	struct ab8500_codec_platform_data *codec;
@@ -386,7 +389,7 @@ struct ab8500_platform_data {
 };
 
 extern int ab8500_init(struct ab8500 *ab8500,
-				 enum ab8500_version version);
+					   enum ab8500_version version);
 extern int ab8500_exit(struct ab8500 *ab8500);
 
 extern int ab8500_suspend(struct ab8500 *ab8500);

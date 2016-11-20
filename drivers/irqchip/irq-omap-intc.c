@@ -58,7 +58,8 @@
 
 #define INTC_PROTECTION_ENABLE	(1 << 0)
 
-struct omap_intc_regs {
+struct omap_intc_regs
+{
 	u32 sysconfig;
 	u32 protection;
 	u32 idle;
@@ -99,6 +100,7 @@ void omap_intc_save_context(void)
 	for (i = 0; i < omap_nr_irqs; i++)
 		intc_context.ilr[i] =
 			intc_readl((INTC_ILR0 + 0x4 * i));
+
 	for (i = 0; i < INTCPS_NR_MIR_REGS; i++)
 		intc_context.mir[i] =
 			intc_readl(INTC_MIR0 + (0x20 * i));
@@ -115,11 +117,12 @@ void omap_intc_restore_context(void)
 
 	for (i = 0; i < omap_nr_irqs; i++)
 		intc_writel(INTC_ILR0 + 0x4 * i,
-				intc_context.ilr[i]);
+					intc_context.ilr[i]);
 
 	for (i = 0; i < INTCPS_NR_MIR_REGS; i++)
 		intc_writel(INTC_MIR0 + 0x20 * i,
-			intc_context.mir[i]);
+					intc_context.mir[i]);
+
 	/* MIRs are saved and restore with other PRCM registers */
 }
 
@@ -159,7 +162,7 @@ static void __init omap_irq_soft_reset(void)
 	tmp = intc_readl(INTC_REVISION) & 0xff;
 
 	pr_info("IRQ: Found an INTC at 0x%p (revision %ld.%ld) with %d interrupts\n",
-		omap_irq_base, tmp >> 4, tmp & 0xf, omap_nr_irqs);
+			omap_irq_base, tmp >> 4, tmp & 0xf, omap_nr_irqs);
 
 	tmp = intc_readl(INTC_SYSCONFIG);
 	tmp |= 1 << 1;	/* soft reset */
@@ -178,7 +181,10 @@ int omap_irq_pending(void)
 
 	for (i = 0; i < omap_nr_pending; i++)
 		if (intc_readl(INTC_PENDING_IRQ0 + (0x20 * i)))
+		{
 			return 1;
+		}
+
 	return 0;
 }
 
@@ -194,14 +200,17 @@ static int __init omap_alloc_gc_of(struct irq_domain *d, void __iomem *base)
 	int i;
 
 	ret = irq_alloc_domain_generic_chips(d, 32, 1, "INTC",
-			handle_level_irq, IRQ_NOREQUEST | IRQ_NOPROBE,
-			IRQ_LEVEL, 0);
-	if (ret) {
+										 handle_level_irq, IRQ_NOREQUEST | IRQ_NOPROBE,
+										 IRQ_LEVEL, 0);
+
+	if (ret)
+	{
 		pr_warn("Failed to allocate irq chips\n");
 		return ret;
 	}
 
-	for (i = 0; i < omap_nr_pending; i++) {
+	for (i = 0; i < omap_nr_pending; i++)
+	{
 		struct irq_chip_generic *gc;
 		struct irq_chip_type *ct;
 
@@ -225,13 +234,13 @@ static int __init omap_alloc_gc_of(struct irq_domain *d, void __iomem *base)
 }
 
 static void __init omap_alloc_gc_legacy(void __iomem *base,
-		unsigned int irq_start, unsigned int num)
+										unsigned int irq_start, unsigned int num)
 {
 	struct irq_chip_generic *gc;
 	struct irq_chip_type *ct;
 
 	gc = irq_alloc_generic_chip("INTC", 1, irq_start, base,
-			handle_level_irq);
+								handle_level_irq);
 	ct = gc->chip_types;
 	ct->chip.irq_ack = omap_mask_ack_irq;
 	ct->chip.irq_mask = irq_gc_mask_disable_reg;
@@ -241,7 +250,7 @@ static void __init omap_alloc_gc_legacy(void __iomem *base,
 	ct->regs.enable = INTC_MIR_CLEAR0;
 	ct->regs.disable = INTC_MIR_SET0;
 	irq_setup_generic_chip(gc, IRQ_MSK(num), IRQ_GC_INIT_MASK_CACHE,
-			IRQ_NOREQUEST | IRQ_NOPROBE, 0);
+						   IRQ_NOREQUEST | IRQ_NOPROBE, 0);
 }
 
 static int __init omap_init_irq_of(struct device_node *node)
@@ -249,17 +258,23 @@ static int __init omap_init_irq_of(struct device_node *node)
 	int ret;
 
 	omap_irq_base = of_iomap(node, 0);
+
 	if (WARN_ON(!omap_irq_base))
+	{
 		return -ENOMEM;
+	}
 
 	domain = irq_domain_add_linear(node, omap_nr_irqs,
-			&irq_generic_chip_ops, NULL);
+								   &irq_generic_chip_ops, NULL);
 
 	omap_irq_soft_reset();
 
 	ret = omap_alloc_gc_of(domain, omap_irq_base);
+
 	if (ret < 0)
+	{
 		irq_domain_remove(domain);
+	}
 
 	return ret;
 }
@@ -269,22 +284,29 @@ static int __init omap_init_irq_legacy(u32 base, struct device_node *node)
 	int j, irq_base;
 
 	omap_irq_base = ioremap(base, SZ_4K);
+
 	if (WARN_ON(!omap_irq_base))
+	{
 		return -ENOMEM;
+	}
 
 	irq_base = irq_alloc_descs(-1, 0, omap_nr_irqs, 0);
-	if (irq_base < 0) {
+
+	if (irq_base < 0)
+	{
 		pr_warn("Couldn't allocate IRQ numbers\n");
 		irq_base = 0;
 	}
 
 	domain = irq_domain_add_legacy(node, omap_nr_irqs, irq_base, 0,
-			&irq_domain_simple_ops, NULL);
+								   &irq_domain_simple_ops, NULL);
 
 	omap_irq_soft_reset();
 
 	for (j = 0; j < omap_nr_irqs; j += 32)
+	{
 		omap_alloc_gc_legacy(omap_irq_base + j, j + irq_base, 32);
+	}
 
 	return 0;
 }
@@ -309,22 +331,31 @@ static int __init omap_init_irq(u32 base, struct device_node *node)
 	 * linear IRQ Domain until that driver is finally fixed.
 	 */
 	if (of_device_is_compatible(node, "ti,omap2-intc") ||
-			of_device_is_compatible(node, "ti,omap3-intc")) {
+		of_device_is_compatible(node, "ti,omap3-intc"))
+	{
 		struct resource res;
 
 		if (of_address_to_resource(node, 0, &res))
+		{
 			return -ENOMEM;
+		}
 
 		base = res.start;
 		ret = omap_init_irq_legacy(base, node);
-	} else if (node) {
+	}
+	else if (node)
+	{
 		ret = omap_init_irq_of(node);
-	} else {
+	}
+	else
+	{
 		ret = omap_init_irq_legacy(base, NULL);
 	}
 
 	if (ret == 0)
+	{
 		omap_irq_enable_protection();
+	}
 
 	return ret;
 }
@@ -353,7 +384,8 @@ omap_intc_handle_irq(struct pt_regs *regs)
 	 * IRQ occurred. Pay attention to those device drivers if you
 	 * run into hitting the spurious IRQ condition below.
 	 */
-	if (unlikely((irqnr & SPURIOUSIRQ_MASK) == SPURIOUSIRQ_MASK)) {
+	if (unlikely((irqnr & SPURIOUSIRQ_MASK) == SPURIOUSIRQ_MASK))
+	{
 		pr_err_once("%s: spurious irq!\n", __func__);
 		irq_err_count++;
 		omap_ack_irq(NULL);
@@ -373,7 +405,7 @@ void __init omap3_init_irq(void)
 }
 
 static int __init intc_of_init(struct device_node *node,
-			     struct device_node *parent)
+							   struct device_node *parent)
 {
 	int ret;
 
@@ -381,18 +413,24 @@ static int __init intc_of_init(struct device_node *node,
 	omap_nr_irqs = 96;
 
 	if (WARN_ON(!node))
+	{
 		return -ENODEV;
+	}
 
 	if (of_device_is_compatible(node, "ti,dm814-intc") ||
-	    of_device_is_compatible(node, "ti,dm816-intc") ||
-	    of_device_is_compatible(node, "ti,am33xx-intc")) {
+		of_device_is_compatible(node, "ti,dm816-intc") ||
+		of_device_is_compatible(node, "ti,am33xx-intc"))
+	{
 		omap_nr_irqs = 128;
 		omap_nr_pending = 4;
 	}
 
 	ret = omap_init_irq(-1, of_node_get(node));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	set_handle_irq(omap_intc_handle_irq);
 

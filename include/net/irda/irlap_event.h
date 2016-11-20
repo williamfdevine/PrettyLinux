@@ -1,32 +1,32 @@
 /*********************************************************************
- *                
- *                
+ *
+ *
  * Filename:      irlap_event.h
  * Version:       0.1
- * Description:   
+ * Description:
  * Status:        Experimental.
  * Author:        Dag Brattli <dagb@cs.uit.no>
  * Created at:    Sat Aug 16 00:59:29 1997
  * Modified at:   Tue Dec 21 11:20:30 1999
  * Modified by:   Dag Brattli <dagb@cs.uit.no>
- * 
- *     Copyright (c) 1998-1999 Dag Brattli <dagb@cs.uit.no>, 
+ *
+ *     Copyright (c) 1998-1999 Dag Brattli <dagb@cs.uit.no>,
  *     All Rights Reserved.
  *     Copyright (c) 2000-2002 Jean Tourrilhes <jt@hpl.hp.com>
- *     
- *     This program is free software; you can redistribute it and/or 
- *     modify it under the terms of the GNU General Public License as 
- *     published by the Free Software Foundation; either version 2 of 
+ *
+ *     This program is free software; you can redistribute it and/or
+ *     modify it under the terms of the GNU General Public License as
+ *     published by the Free Software Foundation; either version 2 of
  *     the License, or (at your option) any later version.
- * 
+ *
  *     This program is distributed in the hope that it will be useful,
  *     but WITHOUT ANY WARRANTY; without even the implied warranty of
  *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  *     GNU General Public License for more details.
- * 
- *     You should have received a copy of the GNU General Public License 
+ *
+ *     You should have received a copy of the GNU General Public License
  *     along with this program; if not, see <http://www.gnu.org/licenses/>.
- *     
+ *
  ********************************************************************/
 
 #ifndef IRLAP_EVENT_H
@@ -39,7 +39,8 @@ struct irlap_cb;
 struct irlap_info;
 
 /* IrLAP States */
-typedef enum {
+typedef enum
+{
 	LAP_NDM,         /* Normal disconnected mode */
 	LAP_QUERY,
 	LAP_REPLY,
@@ -58,7 +59,8 @@ typedef enum {
 } IRLAP_STATE;
 
 /* IrLAP Events */
-typedef enum {
+typedef enum
+{
 	/* Services events */
 	DISCOVERY_REQUEST,
 	CONNECT_REQUEST,
@@ -109,8 +111,9 @@ typedef enum {
 /*
  * Disconnect reason code
  */
-typedef enum { /* FIXME check the two first reason codes */
-	LAP_DISC_INDICATION=1, /* Received a disconnect request from peer */
+typedef enum   /* FIXME check the two first reason codes */
+{
+	LAP_DISC_INDICATION = 1, /* Received a disconnect request from peer */
 	LAP_NO_RESPONSE,       /* To many retransmits without response */
 	LAP_RESET_INDICATION,  /* To many retransmits, or invalid nr/ns */
 	LAP_FOUND_NONE,        /* No devices were discovered */
@@ -120,8 +123,8 @@ typedef enum { /* FIXME check the two first reason codes */
 
 extern const char *const irlap_state[];
 
-void irlap_do_event(struct irlap_cb *self, IRLAP_EVENT event, 
-		    struct sk_buff *skb, struct irlap_info *info);
+void irlap_do_event(struct irlap_cb *self, IRLAP_EVENT event,
+					struct sk_buff *skb, struct irlap_info *info);
 void irlap_print_event(IRLAP_EVENT event);
 
 int irlap_qos_negotiate(struct irlap_cb *self, struct sk_buff *skb);

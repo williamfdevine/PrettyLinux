@@ -39,7 +39,8 @@ struct i2c_adapter;
 #define MI_EXT	    0x60
 #define DISPLAYID_EXT 0x70
 
-struct est_timings {
+struct est_timings
+{
 	u8 t1;
 	u8 t2;
 	u8 mfg_rsvd;
@@ -53,7 +54,8 @@ struct est_timings {
 #define EDID_TIMING_VFREQ_SHIFT  0
 #define EDID_TIMING_VFREQ_MASK   (0x3f << EDID_TIMING_VFREQ_SHIFT)
 
-struct std_timing {
+struct std_timing
+{
 	u8 hsize; /* need to multiply by 8 then add 248 */
 	u8 vfreq_aspect;
 } __attribute__((packed));
@@ -65,7 +67,8 @@ struct std_timing {
 #define DRM_EDID_PT_INTERLACED     (1 << 7)
 
 /* If detailed data is pixel timing */
-struct detailed_pixel_timing {
+struct detailed_pixel_timing
+{
 	u8 hactive_lo;
 	u8 hblank_lo;
 	u8 hactive_hblank_hi;
@@ -85,19 +88,23 @@ struct detailed_pixel_timing {
 } __attribute__((packed));
 
 /* If it's not pixel timing, it'll be one of the below */
-struct detailed_data_string {
+struct detailed_data_string
+{
 	u8 str[13];
 } __attribute__((packed));
 
-struct detailed_data_monitor_range {
+struct detailed_data_monitor_range
+{
 	u8 min_vfreq;
 	u8 max_vfreq;
 	u8 min_hfreq_khz;
 	u8 max_hfreq_khz;
 	u8 pixel_clock_mhz; /* need to multiply by 10 */
 	u8 flags;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u8 reserved;
 			u8 hfreq_start_khz; /* need to multiply by 2 */
 			u8 c; /* need to divide by 2 */
@@ -105,7 +112,8 @@ struct detailed_data_monitor_range {
 			u8 k;
 			u8 j; /* need to divide by 2 */
 		} __attribute__((packed)) gtf2;
-		struct {
+		struct
+		{
 			u8 version;
 			u8 data1; /* high 6 bits: extra clock resolution */
 			u8 data2; /* plus low 2 of above: max hactive */
@@ -117,31 +125,36 @@ struct detailed_data_monitor_range {
 	} formula;
 } __attribute__((packed));
 
-struct detailed_data_wpindex {
+struct detailed_data_wpindex
+{
 	u8 white_yx_lo; /* Lower 2 bits each */
 	u8 white_x_hi;
 	u8 white_y_hi;
 	u8 gamma; /* need to divide by 100 then add 1 */
 } __attribute__((packed));
 
-struct detailed_data_color_point {
+struct detailed_data_color_point
+{
 	u8 windex1;
 	u8 wpindex1[3];
 	u8 windex2;
 	u8 wpindex2[3];
 } __attribute__((packed));
 
-struct cvt_timing {
+struct cvt_timing
+{
 	u8 code[3];
 } __attribute__((packed));
 
-struct detailed_non_pixel {
+struct detailed_non_pixel
+{
 	u8 pad1;
 	u8 type; /* ff=serial, fe=string, fd=monitor range, fc=monitor name
 		    fb=color point data, fa=standard timing data,
 		    f9=undefined, f8=mfg. reserved */
 	u8 pad2;
-	union {
+	union
+	{
 		struct detailed_data_string str;
 		struct detailed_data_monitor_range range;
 		struct detailed_data_wpindex color;
@@ -160,9 +173,11 @@ struct detailed_non_pixel {
 #define EDID_DETAIL_MONITOR_STRING 0xfe
 #define EDID_DETAIL_MONITOR_SERIAL 0xff
 
-struct detailed_timing {
+struct detailed_timing
+{
 	__le16 pixel_clock; /* need to multiply by 10 KHz */
-	union {
+	union
+	{
 		struct detailed_pixel_timing pixel_data;
 		struct detailed_non_pixel other_data;
 	} data;
@@ -269,7 +284,8 @@ struct detailed_timing {
 
 #define DRM_ELD_CEA_SAD(mnl, sad)	(20 + (mnl) + 3 * (sad))
 
-struct edid {
+struct edid
+{
 	u8 header[8];
 	/* Vendor & product info */
 	u8 mfg_id[2];
@@ -312,7 +328,8 @@ struct edid {
 #define EDID_PRODUCT_ID(e) ((e)->prod_code[0] | ((e)->prod_code[1] << 8))
 
 /* Short Audio Descriptor */
-struct cea_sad {
+struct cea_sad
+{
 	u8 format;
 	u8 channels; /* max number of channels - 1 */
 	u8 freq;
@@ -329,7 +346,7 @@ void drm_edid_to_eld(struct drm_connector *connector, struct edid *edid);
 int drm_edid_to_sad(struct edid *edid, struct cea_sad **sads);
 int drm_edid_to_speaker_allocation(struct edid *edid, u8 **sadb);
 int drm_av_sync_delay(struct drm_connector *connector,
-		      const struct drm_display_mode *mode);
+					  const struct drm_display_mode *mode);
 struct drm_connector *drm_select_eld(struct drm_encoder *encoder);
 
 #ifdef CONFIG_DRM_LOAD_EDID_FIRMWARE
@@ -343,10 +360,10 @@ static inline int drm_load_edid_firmware(struct drm_connector *connector)
 
 int
 drm_hdmi_avi_infoframe_from_display_mode(struct hdmi_avi_infoframe *frame,
-					 const struct drm_display_mode *mode);
+		const struct drm_display_mode *mode);
 int
 drm_hdmi_vendor_infoframe_from_display_mode(struct hdmi_vendor_infoframe *frame,
-					    const struct drm_display_mode *mode);
+		const struct drm_display_mode *mode);
 
 /**
  * drm_eld_mnl - Get ELD monitor name length in bytes.
@@ -366,12 +383,18 @@ static inline const uint8_t *drm_eld_sad(const uint8_t *eld)
 	unsigned int ver, mnl;
 
 	ver = (eld[DRM_ELD_VER] & DRM_ELD_VER_MASK) >> DRM_ELD_VER_SHIFT;
+
 	if (ver != 2 && ver != 31)
+	{
 		return NULL;
+	}
 
 	mnl = drm_eld_mnl(eld);
+
 	if (mnl > 16)
+	{
 		return NULL;
+	}
 
 	return eld + DRM_ELD_CEA_SAD(mnl, 0);
 }
@@ -383,7 +406,7 @@ static inline const uint8_t *drm_eld_sad(const uint8_t *eld)
 static inline int drm_eld_sad_count(const uint8_t *eld)
 {
 	return (eld[DRM_ELD_SAD_COUNT_CONN_TYPE] & DRM_ELD_SAD_COUNT_MASK) >>
-		DRM_ELD_SAD_COUNT_SHIFT;
+		   DRM_ELD_SAD_COUNT_SHIFT;
 }
 
 /**
@@ -396,7 +419,7 @@ static inline int drm_eld_sad_count(const uint8_t *eld)
 static inline int drm_eld_calc_baseline_block_size(const uint8_t *eld)
 {
 	return DRM_ELD_MONITOR_NAME_STRING - DRM_ELD_HEADER_BLOCK_SIZE +
-		drm_eld_mnl(eld) + drm_eld_sad_count(eld) * 3;
+		   drm_eld_mnl(eld) + drm_eld_sad_count(eld) * 3;
 }
 
 /**
@@ -428,13 +451,13 @@ static inline u8 drm_eld_get_conn_type(const uint8_t *eld)
 
 bool drm_probe_ddc(struct i2c_adapter *adapter);
 struct edid *drm_do_get_edid(struct drm_connector *connector,
-	int (*get_edid_block)(void *data, u8 *buf, unsigned int block,
-			      size_t len),
-	void *data);
+							 int (*get_edid_block)(void *data, u8 *buf, unsigned int block,
+									 size_t len),
+							 void *data);
 struct edid *drm_get_edid(struct drm_connector *connector,
-			  struct i2c_adapter *adapter);
+						  struct i2c_adapter *adapter);
 struct edid *drm_get_edid_switcheroo(struct drm_connector *connector,
-				     struct i2c_adapter *adapter);
+									 struct i2c_adapter *adapter);
 struct edid *drm_edid_duplicate(const struct edid *edid);
 int drm_add_edid_modes(struct drm_connector *connector, struct edid *edid);
 
@@ -444,18 +467,18 @@ bool drm_detect_hdmi_monitor(struct edid *edid);
 bool drm_detect_monitor_audio(struct edid *edid);
 bool drm_rgb_quant_range_selectable(struct edid *edid);
 int drm_add_modes_noedid(struct drm_connector *connector,
-			 int hdisplay, int vdisplay);
+						 int hdisplay, int vdisplay);
 void drm_set_preferred_mode(struct drm_connector *connector,
-			    int hpref, int vpref);
+							int hpref, int vpref);
 
 int drm_edid_header_is_valid(const u8 *raw_edid);
 bool drm_edid_block_valid(u8 *raw_edid, int block, bool print_bad_edid,
-			  bool *edid_corrupt);
+						  bool *edid_corrupt);
 bool drm_edid_is_valid(struct edid *edid);
 void drm_edid_get_monitor_name(struct edid *edid, char *name,
-			       int buflen);
+							   int buflen);
 struct drm_display_mode *drm_mode_find_dmt(struct drm_device *dev,
-					   int hsize, int vsize, int fresh,
-					   bool rb);
+		int hsize, int vsize, int fresh,
+		bool rb);
 
 #endif /* __DRM_EDID_H__ */

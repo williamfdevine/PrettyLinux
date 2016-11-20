@@ -25,7 +25,8 @@ __visible int plugin_is_GPL_compatible;
 
 tree sancov_fndecl;
 
-static struct plugin_info sancov_plugin_info = {
+static struct plugin_info sancov_plugin_info =
+{
 	.version	= "20160402",
 	.help		= "sancov plugin\n",
 };
@@ -39,13 +40,16 @@ static unsigned int sancov_execute(void)
 		return 0;
 	*/
 
-	FOR_EACH_BB_FN(bb, cfun) {
+	FOR_EACH_BB_FN(bb, cfun)
+	{
 		const_gimple stmt;
 		gcall *gcall;
 		gimple_stmt_iterator gsi = gsi_after_labels(bb);
 
 		if (gsi_end_p(gsi))
+		{
 			continue;
+		}
 
 		stmt = gsi_stmt(gsi);
 		gcall = as_a_gcall(gimple_build_call(sancov_fndecl, 0));
@@ -90,12 +94,13 @@ __visible int plugin_init(struct plugin_name_args *plugin_info, struct plugin_gc
 {
 	int i;
 	struct register_pass_info sancov_plugin_pass_info;
-	const char * const plugin_name = plugin_info->base_name;
+	const char *const plugin_name = plugin_info->base_name;
 	const int argc = plugin_info->argc;
-	const struct plugin_argument * const argv = plugin_info->argv;
+	const struct plugin_argument *const argv = plugin_info->argv;
 	bool enable = true;
 
-	static const struct ggc_root_tab gt_ggc_r_gt_sancov[] = {
+	static const struct ggc_root_tab gt_ggc_r_gt_sancov[] =
+	{
 		{
 			.base = &sancov_fndecl,
 			.nelt = 1,
@@ -116,23 +121,29 @@ __visible int plugin_init(struct plugin_name_args *plugin_info, struct plugin_gc
 	sancov_plugin_pass_info.ref_pass_instance_number	= 0;
 	sancov_plugin_pass_info.pos_op				= PASS_POS_INSERT_BEFORE;
 
-	if (!plugin_default_version_check(version, &gcc_version)) {
+	if (!plugin_default_version_check(version, &gcc_version))
+	{
 		error(G_("incompatible gcc/plugin versions"));
 		return 1;
 	}
 
-	for (i = 0; i < argc; ++i) {
-		if (!strcmp(argv[i].key, "no-sancov")) {
+	for (i = 0; i < argc; ++i)
+	{
+		if (!strcmp(argv[i].key, "no-sancov"))
+		{
 			enable = false;
 			continue;
 		}
+
 		error(G_("unkown option '-fplugin-arg-%s-%s'"), plugin_name, argv[i].key);
 	}
 
 	register_callback(plugin_name, PLUGIN_INFO, NULL, &sancov_plugin_info);
 
 	if (!enable)
+	{
 		return 0;
+	}
 
 #if BUILDING_GCC_VERSION < 6000
 	register_callback(plugin_name, PLUGIN_START_UNIT, &sancov_start_unit, NULL);

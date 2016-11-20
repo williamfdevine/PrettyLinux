@@ -25,7 +25,8 @@
  * VMCINotifyResourceInfo: Used to create and destroy doorbells, and
  * generate a notification for a doorbell or queue pair.
  */
-struct vmci_dbell_notify_resource_info {
+struct vmci_dbell_notify_resource_info
+{
 	struct vmci_handle handle;
 	u16 resource;
 	u16 action;
@@ -37,7 +38,8 @@ struct vmci_dbell_notify_resource_info {
  * written to the checkpoint as is, so changing this structure will
  * break checkpoint compatibility.
  */
-struct dbell_cpt_state {
+struct dbell_cpt_state
+{
 	struct vmci_handle handle;
 	u64 bitmap_idx;
 };

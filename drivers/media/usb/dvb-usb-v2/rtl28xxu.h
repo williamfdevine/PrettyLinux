@@ -70,7 +70,8 @@
 #define CMD_I2C_DA_WR    0x0610
 
 
-struct rtl28xxu_dev {
+struct rtl28xxu_dev
+{
 	u8 buf[128];
 	u8 chip_id;
 	u8 tuner;
@@ -83,25 +84,28 @@ struct rtl28xxu_dev {
 	struct i2c_client *i2c_client_tuner;
 	struct i2c_client *i2c_client_slave_demod;
 	struct platform_device *platform_device_sdr;
-	#define SLAVE_DEMOD_NONE           0
-	#define SLAVE_DEMOD_MN88472        1
-	#define SLAVE_DEMOD_MN88473        2
-	#define SLAVE_DEMOD_SI2168         3
-	unsigned int slave_demod:2;
-	union {
+#define SLAVE_DEMOD_NONE           0
+#define SLAVE_DEMOD_MN88472        1
+#define SLAVE_DEMOD_MN88473        2
+#define SLAVE_DEMOD_SI2168         3
+	unsigned int slave_demod: 2;
+	union
+	{
 		struct rtl2830_platform_data rtl2830_platform_data;
 		struct rtl2832_platform_data rtl2832_platform_data;
 	};
 };
 
-enum rtl28xxu_chip_id {
+enum rtl28xxu_chip_id
+{
 	CHIP_ID_NONE,
 	CHIP_ID_RTL2831U,
 	CHIP_ID_RTL2832U,
 };
 
 /* XXX: Hack. This must be keep sync with rtl2832 demod driver. */
-enum rtl28xxu_tuner {
+enum rtl28xxu_tuner
+{
 	TUNER_NONE,
 
 	TUNER_RTL2830_QT1010          = 0x10,
@@ -123,19 +127,22 @@ enum rtl28xxu_tuner {
 	TUNER_RTL2832_SI2157,
 };
 
-struct rtl28xxu_req {
+struct rtl28xxu_req
+{
 	u16 value;
 	u16 index;
 	u16 size;
 	u8 *data;
 };
 
-struct rtl28xxu_reg_val {
+struct rtl28xxu_reg_val
+{
 	u16 reg;
 	u8 val;
 };
 
-struct rtl28xxu_reg_val_mask {
+struct rtl28xxu_reg_val_mask
+{
 	u16 reg;
 	u8 val;
 	u8 mask;

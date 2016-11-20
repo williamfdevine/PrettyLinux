@@ -5,7 +5,8 @@
 
 static char big_buffer[BIG_BUFFER_SIZE];
 
-struct mbxfb_debugfs_data {
+struct mbxfb_debugfs_data
+{
 	struct dentry *dir;
 	struct dentry *sysconf;
 	struct dentry *clock;
@@ -22,15 +23,15 @@ static int open_file_generic(struct inode *inode, struct file *file)
 }
 
 static ssize_t write_file_dummy(struct file *file, const char __user *buf,
-				size_t count, loff_t *ppos)
+								size_t count, loff_t *ppos)
 {
 	return count;
 }
 
 static ssize_t sysconf_read_file(struct file *file, char __user *userbuf,
-				 size_t count, loff_t *ppos)
+								 size_t count, loff_t *ppos)
 {
-	char * s = big_buffer;
+	char *s = big_buffer;
 
 	s += sprintf(s, "SYSCFG = %08x\n", readl(SYSCFG));
 	s += sprintf(s, "PFBASE = %08x\n", readl(PFBASE));
@@ -39,14 +40,14 @@ static ssize_t sysconf_read_file(struct file *file, char __user *userbuf,
 	s += sprintf(s, "SYSRST = %08x\n", readl(SYSRST));
 
 	return  simple_read_from_buffer(userbuf, count, ppos,
-					big_buffer, s-big_buffer);
+									big_buffer, s - big_buffer);
 }
 
 
 static ssize_t gsctl_read_file(struct file *file, char __user *userbuf,
-			       size_t count, loff_t *ppos)
+							   size_t count, loff_t *ppos)
 {
-	char * s = big_buffer;
+	char *s = big_buffer;
 
 	s += sprintf(s, "GSCTRL = %08x\n", readl(GSCTRL));
 	s += sprintf(s, "VSCTRL = %08x\n", readl(VSCTRL));
@@ -68,13 +69,13 @@ static ssize_t gsctl_read_file(struct file *file, char __user *userbuf,
 	s += sprintf(s, "GPLUT = %08x\n", readl(GPLUT));
 
 	return  simple_read_from_buffer(userbuf, count, ppos,
-					big_buffer, s-big_buffer);
+									big_buffer, s - big_buffer);
 }
 
 static ssize_t display_read_file(struct file *file, char __user *userbuf,
-				 size_t count, loff_t *ppos)
+								 size_t count, loff_t *ppos)
 {
-	char * s = big_buffer;
+	char *s = big_buffer;
 
 	s += sprintf(s, "DSCTRL = %08x\n", readl(DSCTRL));
 	s += sprintf(s, "DHT01 = %08x\n", readl(DHT01));
@@ -108,13 +109,13 @@ static ssize_t display_read_file(struct file *file, char __user *userbuf,
 	s += sprintf(s, "CSC05 = %08x\n", readl(CSC05));
 
 	return  simple_read_from_buffer(userbuf, count, ppos,
-					big_buffer, s-big_buffer);
+									big_buffer, s - big_buffer);
 }
 
 static ssize_t clock_read_file(struct file *file, char __user *userbuf,
-			       size_t count, loff_t *ppos)
+							   size_t count, loff_t *ppos)
 {
-	char * s = big_buffer;
+	char *s = big_buffer;
 
 	s += sprintf(s, "SYSCLKSRC = %08x\n", readl(SYSCLKSRC));
 	s += sprintf(s, "PIXCLKSRC = %08x\n", readl(PIXCLKSRC));
@@ -131,13 +132,13 @@ static ssize_t clock_read_file(struct file *file, char __user *userbuf,
 	s += sprintf(s, "PIXCLKDIV = %08x\n", readl(PIXCLKDIV));
 
 	return  simple_read_from_buffer(userbuf, count, ppos,
-					big_buffer, s-big_buffer);
+									big_buffer, s - big_buffer);
 }
 
 static ssize_t sdram_read_file(struct file *file, char __user *userbuf,
-			       size_t count, loff_t *ppos)
+							   size_t count, loff_t *ppos)
 {
-	char * s = big_buffer;
+	char *s = big_buffer;
 
 	s += sprintf(s, "LMRST = %08x\n", readl(LMRST));
 	s += sprintf(s, "LMCFG = %08x\n", readl(LMCFG));
@@ -153,13 +154,13 @@ static ssize_t sdram_read_file(struct file *file, char __user *userbuf,
 	s += sprintf(s, "LMPROTERR = %08x\n", readl(LMPROTERR));
 
 	return  simple_read_from_buffer(userbuf, count, ppos,
-					big_buffer, s-big_buffer);
+									big_buffer, s - big_buffer);
 }
 
 static ssize_t misc_read_file(struct file *file, char __user *userbuf,
-			       size_t count, loff_t *ppos)
+							  size_t count, loff_t *ppos)
 {
-	char * s = big_buffer;
+	char *s = big_buffer;
 
 	s += sprintf(s, "LCD_CONFIG = %08x\n", readl(LCD_CONFIG));
 	s += sprintf(s, "ODFBPWR = %08x\n", readl(ODFBPWR));
@@ -167,46 +168,52 @@ static ssize_t misc_read_file(struct file *file, char __user *userbuf,
 	s += sprintf(s, "ID = %08x\n", readl(ID));
 
 	return  simple_read_from_buffer(userbuf, count, ppos,
-					big_buffer, s-big_buffer);
+									big_buffer, s - big_buffer);
 }
 
 
-static const struct file_operations sysconf_fops = {
+static const struct file_operations sysconf_fops =
+{
 	.read = sysconf_read_file,
 	.write = write_file_dummy,
 	.open = open_file_generic,
 	.llseek = default_llseek,
 };
 
-static const struct file_operations clock_fops = {
+static const struct file_operations clock_fops =
+{
 	.read = clock_read_file,
 	.write = write_file_dummy,
 	.open = open_file_generic,
 	.llseek = default_llseek,
 };
 
-static const struct file_operations display_fops = {
+static const struct file_operations display_fops =
+{
 	.read = display_read_file,
 	.write = write_file_dummy,
 	.open = open_file_generic,
 	.llseek = default_llseek,
 };
 
-static const struct file_operations gsctl_fops = {
+static const struct file_operations gsctl_fops =
+{
 	.read = gsctl_read_file,
 	.write = write_file_dummy,
 	.open = open_file_generic,
 	.llseek = default_llseek,
 };
 
-static const struct file_operations sdram_fops = {
+static const struct file_operations sdram_fops =
+{
 	.read = sdram_read_file,
 	.write = write_file_dummy,
 	.open = open_file_generic,
 	.llseek = default_llseek,
 };
 
-static const struct file_operations misc_fops = {
+static const struct file_operations misc_fops =
+{
 	.read = misc_read_file,
 	.write = write_file_dummy,
 	.open = open_file_generic,
@@ -223,17 +230,17 @@ static void mbxfb_debugfs_init(struct fb_info *fbi)
 
 	dbg->dir = debugfs_create_dir("mbxfb", NULL);
 	dbg->sysconf = debugfs_create_file("sysconf", 0444, dbg->dir,
-				      fbi, &sysconf_fops);
+									   fbi, &sysconf_fops);
 	dbg->clock = debugfs_create_file("clock", 0444, dbg->dir,
-				    fbi, &clock_fops);
+									 fbi, &clock_fops);
 	dbg->display = debugfs_create_file("display", 0444, dbg->dir,
-				      fbi, &display_fops);
+									   fbi, &display_fops);
 	dbg->gsctl = debugfs_create_file("gsctl", 0444, dbg->dir,
-				    fbi, &gsctl_fops);
+									 fbi, &gsctl_fops);
 	dbg->sdram = debugfs_create_file("sdram", 0444, dbg->dir,
-					fbi, &sdram_fops);
+									 fbi, &sdram_fops);
 	dbg->misc = debugfs_create_file("misc", 0444, dbg->dir,
-					fbi, &misc_fops);
+									fbi, &misc_fops);
 }
 
 static void mbxfb_debugfs_remove(struct fb_info *fbi)

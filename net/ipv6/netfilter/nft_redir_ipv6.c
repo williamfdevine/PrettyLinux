@@ -18,19 +18,21 @@
 #include <net/netfilter/nf_nat_redirect.h>
 
 static void nft_redir_ipv6_eval(const struct nft_expr *expr,
-				struct nft_regs *regs,
-				const struct nft_pktinfo *pkt)
+								struct nft_regs *regs,
+								const struct nft_pktinfo *pkt)
 {
 	struct nft_redir *priv = nft_expr_priv(expr);
 	struct nf_nat_range range;
 
 	memset(&range, 0, sizeof(range));
-	if (priv->sreg_proto_min) {
+
+	if (priv->sreg_proto_min)
+	{
 		range.min_proto.all =
 			*(__be16 *)&regs->data[priv->sreg_proto_min],
-		range.max_proto.all =
-			*(__be16 *)&regs->data[priv->sreg_proto_max],
-		range.flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
+			range.max_proto.all =
+				*(__be16 *)&regs->data[priv->sreg_proto_max],
+				range.flags |= NF_NAT_RANGE_PROTO_SPECIFIED;
 	}
 
 	range.flags |= priv->flags;
@@ -39,7 +41,8 @@ static void nft_redir_ipv6_eval(const struct nft_expr *expr,
 }
 
 static struct nft_expr_type nft_redir_ipv6_type;
-static const struct nft_expr_ops nft_redir_ipv6_ops = {
+static const struct nft_expr_ops nft_redir_ipv6_ops =
+{
 	.type		= &nft_redir_ipv6_type,
 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_redir)),
 	.eval		= nft_redir_ipv6_eval,
@@ -48,7 +51,8 @@ static const struct nft_expr_ops nft_redir_ipv6_ops = {
 	.validate	= nft_redir_validate,
 };
 
-static struct nft_expr_type nft_redir_ipv6_type __read_mostly = {
+static struct nft_expr_type nft_redir_ipv6_type __read_mostly =
+{
 	.family		= NFPROTO_IPV6,
 	.name		= "redir",
 	.ops		= &nft_redir_ipv6_ops,

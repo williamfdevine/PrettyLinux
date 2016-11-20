@@ -105,20 +105,23 @@
 #define SOCFPGA_RESUME_TIMEOUT 3
 
 /* In power-up order. Reverse for power-down. */
-static const char *supply_names[SOCFPGA_FPGMGR_NUM_SUPPLIES] __maybe_unused = {
+static const char *supply_names[SOCFPGA_FPGMGR_NUM_SUPPLIES] __maybe_unused =
+{
 	"FPGA-1.5V",
 	"FPGA-1.1V",
 	"FPGA-2.5V",
 };
 
-struct socfpga_fpga_priv {
+struct socfpga_fpga_priv
+{
 	void __iomem *fpga_base_addr;
 	void __iomem *fpga_data_addr;
 	struct completion status_complete;
 	int irq;
 };
 
-struct cfgmgr_mode {
+struct cfgmgr_mode
+{
 	/* Values to set in the CTRL register */
 	u32 ctrl;
 
@@ -127,7 +130,8 @@ struct cfgmgr_mode {
 };
 
 /* For SOCFPGA_FPGMGR_STAT_MSEL field */
-static struct cfgmgr_mode cfgmgr_modes[] = {
+static struct cfgmgr_mode cfgmgr_modes[] =
+{
 	[MSEL_PP16_FAST_NOAES_NODC] = { CFGWDTH_16 | CDRATIO_X1, 1 },
 	[MSEL_PP16_FAST_AES_NODC] =   { CFGWDTH_16 | CDRATIO_X2, 1 },
 	[MSEL_PP16_FAST_AESOPT_DC] =  { CFGWDTH_16 | CDRATIO_X4, 1 },
@@ -148,19 +152,19 @@ static u32 socfpga_fpga_readl(struct socfpga_fpga_priv *priv, u32 reg_offset)
 }
 
 static void socfpga_fpga_writel(struct socfpga_fpga_priv *priv, u32 reg_offset,
-				u32 value)
+								u32 value)
 {
 	writel(value, priv->fpga_base_addr + reg_offset);
 }
 
 static u32 socfpga_fpga_raw_readl(struct socfpga_fpga_priv *priv,
-				  u32 reg_offset)
+								  u32 reg_offset)
 {
 	return __raw_readl(priv->fpga_base_addr + reg_offset);
 }
 
 static void socfpga_fpga_raw_writel(struct socfpga_fpga_priv *priv,
-				    u32 reg_offset, u32 value)
+									u32 reg_offset, u32 value)
 {
 	__raw_writel(value, priv->fpga_base_addr + reg_offset);
 }
@@ -171,7 +175,7 @@ static void socfpga_fpga_data_writel(struct socfpga_fpga_priv *priv, u32 value)
 }
 
 static inline void socfpga_fpga_set_bitsl(struct socfpga_fpga_priv *priv,
-					  u32 offset, u32 bits)
+		u32 offset, u32 bits)
 {
 	u32 val;
 
@@ -181,7 +185,7 @@ static inline void socfpga_fpga_set_bitsl(struct socfpga_fpga_priv *priv,
 }
 
 static inline void socfpga_fpga_clr_bitsl(struct socfpga_fpga_priv *priv,
-					  u32 offset, u32 bits)
+		u32 offset, u32 bits)
 {
 	u32 val;
 
@@ -193,7 +197,7 @@ static inline void socfpga_fpga_clr_bitsl(struct socfpga_fpga_priv *priv,
 static u32 socfpga_fpga_mon_status_get(struct socfpga_fpga_priv *priv)
 {
 	return socfpga_fpga_readl(priv, SOCFPGA_FPGMGR_GPIO_EXT_PORTA_OFST) &
-		SOCFPGA_FPGMGR_MON_STATUS_MASK;
+		   SOCFPGA_FPGMGR_MON_STATUS_MASK;
 }
 
 static u32 socfpga_fpga_state_get(struct socfpga_fpga_priv *priv)
@@ -201,16 +205,18 @@ static u32 socfpga_fpga_state_get(struct socfpga_fpga_priv *priv)
 	u32 status = socfpga_fpga_mon_status_get(priv);
 
 	if ((status & SOCFPGA_FPGMGR_MON_FPGA_POWER_ON) == 0)
+	{
 		return SOCFPGA_FPGMGR_STAT_POWER_OFF;
+	}
 
 	return socfpga_fpga_readl(priv, SOCFPGA_FPGMGR_STAT_OFST) &
-		SOCFPGA_FPGMGR_STAT_STATE_MASK;
+		   SOCFPGA_FPGMGR_STAT_STATE_MASK;
 }
 
 static void socfpga_fpga_clear_done_status(struct socfpga_fpga_priv *priv)
 {
 	socfpga_fpga_writel(priv, SOCFPGA_FPGMGR_DCLKSTAT_OFST,
-			    SOCFPGA_FPGMGR_DCLKSTAT_DCNTDONE_E_DONE);
+						SOCFPGA_FPGMGR_DCLKSTAT_DCNTDONE_E_DONE);
 }
 
 /*
@@ -218,33 +224,40 @@ static void socfpga_fpga_clear_done_status(struct socfpga_fpga_priv *priv)
  * the complete status.
  */
 static int socfpga_fpga_dclk_set_and_wait_clear(struct socfpga_fpga_priv *priv,
-						u32 count)
+		u32 count)
 {
 	int timeout = 2;
 	u32 done;
 
 	/* Clear any existing DONE status. */
 	if (socfpga_fpga_readl(priv, SOCFPGA_FPGMGR_DCLKSTAT_OFST))
+	{
 		socfpga_fpga_clear_done_status(priv);
+	}
 
 	/* Issue the DCLK count. */
 	socfpga_fpga_writel(priv, SOCFPGA_FPGMGR_DCLKCNT_OFST, count);
 
 	/* Poll DCLKSTAT to see if it completed in the timeout period. */
-	do {
+	do
+	{
 		done = socfpga_fpga_readl(priv, SOCFPGA_FPGMGR_DCLKSTAT_OFST);
-		if (done == SOCFPGA_FPGMGR_DCLKSTAT_DCNTDONE_E_DONE) {
+
+		if (done == SOCFPGA_FPGMGR_DCLKSTAT_DCNTDONE_E_DONE)
+		{
 			socfpga_fpga_clear_done_status(priv);
 			return 0;
 		}
+
 		udelay(1);
-	} while (timeout--);
+	}
+	while (timeout--);
 
 	return -ETIMEDOUT;
 }
 
 static int socfpga_fpga_wait_for_state(struct socfpga_fpga_priv *priv,
-				       u32 state)
+									   u32 state)
 {
 	int timeout = 2;
 
@@ -252,11 +265,16 @@ static int socfpga_fpga_wait_for_state(struct socfpga_fpga_priv *priv,
 	 * HW doesn't support an interrupt for changes in state, so poll to see
 	 * if it matches the requested state within the timeout period.
 	 */
-	do {
+	do
+	{
 		if ((socfpga_fpga_state_get(priv) & state) != 0)
+		{
 			return 0;
+		}
+
 		msleep(20);
-	} while (timeout--);
+	}
+	while (timeout--);
 
 	return -ETIMEDOUT;
 }
@@ -300,10 +318,11 @@ static irqreturn_t socfpga_fpga_isr(int irq, void *dev_id)
 	nstatus = (st & SOCFPGA_FPGMGR_MON_NSTATUS) != 0;
 
 	/* success */
-	if (conf_done && nstatus) {
+	if (conf_done && nstatus)
+	{
 		/* disable irqs */
 		socfpga_fpga_raw_writel(priv,
-					SOCFPGA_FPGMGR_GPIO_INTEN_OFST, 0);
+								SOCFPGA_FPGMGR_GPIO_INTEN_OFST, 0);
 		complete(&priv->status_complete);
 	}
 
@@ -319,10 +338,13 @@ static int socfpga_fpga_wait_for_config_done(struct socfpga_fpga_priv *priv)
 	socfpga_fpga_enable_irqs(priv, SOCFPGA_FPGMGR_MON_CONF_DONE);
 
 	timeout = wait_for_completion_interruptible_timeout(
-						&priv->status_complete,
-						msecs_to_jiffies(10));
+				  &priv->status_complete,
+				  msecs_to_jiffies(10));
+
 	if (timeout == 0)
+	{
 		ret = -ETIMEDOUT;
+	}
 
 	socfpga_fpga_disable_irqs(priv);
 	return ret;
@@ -338,7 +360,9 @@ static int socfpga_fpga_cfg_mode_get(struct socfpga_fpga_priv *priv)
 
 	/* Check that this MSEL setting is supported */
 	if ((msel >= ARRAY_SIZE(cfgmgr_modes)) || !cfgmgr_modes[msel].valid)
+	{
 		return -EINVAL;
+	}
 
 	return msel;
 }
@@ -350,8 +374,11 @@ static int socfpga_fpga_cfg_mode_set(struct socfpga_fpga_priv *priv)
 
 	/* get value from MSEL pins */
 	mode = socfpga_fpga_cfg_mode_get(priv);
+
 	if (mode < 0)
+	{
 		return mode;
+	}
 
 	/* Adjust CTRL for the CDRATIO */
 	ctrl_reg = socfpga_fpga_readl(priv, SOCFPGA_FPGMGR_CTL_OFST);
@@ -378,12 +405,15 @@ static int socfpga_fpga_reset(struct fpga_manager *mgr)
 	 *  - Set CTRL.NCE to 0
 	 */
 	ret = socfpga_fpga_cfg_mode_set(priv);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Step 2: Set CTRL.EN to 1 */
 	socfpga_fpga_set_bitsl(priv, SOCFPGA_FPGMGR_CTL_OFST,
-			       SOCFPGA_FPGMGR_CTL_EN);
+						   SOCFPGA_FPGMGR_CTL_EN);
 
 	/* Step 3: Set CTRL.NCONFIGPULL to 1 to put FPGA in reset */
 	ctrl_reg = socfpga_fpga_readl(priv, SOCFPGA_FPGMGR_CTL_OFST);
@@ -399,7 +429,9 @@ static int socfpga_fpga_reset(struct fpga_manager *mgr)
 
 	/* Timeout waiting for reset */
 	if (status)
+	{
 		return -ETIMEDOUT;
+	}
 
 	return 0;
 }
@@ -408,31 +440,38 @@ static int socfpga_fpga_reset(struct fpga_manager *mgr)
  * Prepare the FPGA to receive the configuration data.
  */
 static int socfpga_fpga_ops_configure_init(struct fpga_manager *mgr, u32 flags,
-					   const char *buf, size_t count)
+		const char *buf, size_t count)
 {
 	struct socfpga_fpga_priv *priv = mgr->priv;
 	int ret;
 
-	if (flags & FPGA_MGR_PARTIAL_RECONFIG) {
+	if (flags & FPGA_MGR_PARTIAL_RECONFIG)
+	{
 		dev_err(&mgr->dev, "Partial reconfiguration not supported.\n");
 		return -EINVAL;
 	}
+
 	/* Steps 1 - 5: Reset the FPGA */
 	ret = socfpga_fpga_reset(mgr);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Step 6: Wait for FPGA to enter configuration phase */
 	if (socfpga_fpga_wait_for_state(priv, SOCFPGA_FPGMGR_STAT_CFG))
+	{
 		return -ETIMEDOUT;
+	}
 
 	/* Step 7: Clear nSTATUS interrupt */
 	socfpga_fpga_writel(priv, SOCFPGA_FPGMGR_GPIO_PORTA_EOI_OFST,
-			    SOCFPGA_FPGMGR_MON_NSTATUS);
+						SOCFPGA_FPGMGR_MON_NSTATUS);
 
 	/* Step 8: Set CTRL.AXICFGEN to 1 to enable transfer of config data */
 	socfpga_fpga_set_bitsl(priv, SOCFPGA_FPGMGR_CTL_OFST,
-			       SOCFPGA_FPGMGR_CTL_AXICFGEN);
+						   SOCFPGA_FPGMGR_CTL_AXICFGEN);
 
 	return 0;
 }
@@ -441,44 +480,52 @@ static int socfpga_fpga_ops_configure_init(struct fpga_manager *mgr, u32 flags,
  * Step 9: write data to the FPGA data register
  */
 static int socfpga_fpga_ops_configure_write(struct fpga_manager *mgr,
-					    const char *buf, size_t count)
+		const char *buf, size_t count)
 {
 	struct socfpga_fpga_priv *priv = mgr->priv;
 	u32 *buffer_32 = (u32 *)buf;
 	size_t i = 0;
 
 	if (count <= 0)
+	{
 		return -EINVAL;
+	}
 
 	/* Write out the complete 32-bit chunks. */
-	while (count >= sizeof(u32)) {
+	while (count >= sizeof(u32))
+	{
 		socfpga_fpga_data_writel(priv, buffer_32[i++]);
 		count -= sizeof(u32);
 	}
 
 	/* Write out remaining non 32-bit chunks. */
-	switch (count) {
-	case 3:
-		socfpga_fpga_data_writel(priv, buffer_32[i++] & 0x00ffffff);
-		break;
-	case 2:
-		socfpga_fpga_data_writel(priv, buffer_32[i++] & 0x0000ffff);
-		break;
-	case 1:
-		socfpga_fpga_data_writel(priv, buffer_32[i++] & 0x000000ff);
-		break;
-	case 0:
-		break;
-	default:
-		/* This will never happen. */
-		return -EFAULT;
+	switch (count)
+	{
+		case 3:
+			socfpga_fpga_data_writel(priv, buffer_32[i++] & 0x00ffffff);
+			break;
+
+		case 2:
+			socfpga_fpga_data_writel(priv, buffer_32[i++] & 0x0000ffff);
+			break;
+
+		case 1:
+			socfpga_fpga_data_writel(priv, buffer_32[i++] & 0x000000ff);
+			break;
+
+		case 0:
+			break;
+
+		default:
+			/* This will never happen. */
+			return -EFAULT;
 	}
 
 	return 0;
 }
 
 static int socfpga_fpga_ops_configure_complete(struct fpga_manager *mgr,
-					       u32 flags)
+		u32 flags)
 {
 	struct socfpga_fpga_priv *priv = mgr->priv;
 	u32 status;
@@ -490,12 +537,15 @@ static int socfpga_fpga_ops_configure_complete(struct fpga_manager *mgr,
 	 *  - if CONF_DONE = 0 and nSTATUS = 0, configuration failed
 	 */
 	status = socfpga_fpga_wait_for_config_done(priv);
+
 	if (status)
+	{
 		return status;
+	}
 
 	/* Step 11: Clear CTRL.AXICFGEN to disable transfer of config data */
 	socfpga_fpga_clr_bitsl(priv, SOCFPGA_FPGMGR_CTL_OFST,
-			       SOCFPGA_FPGMGR_CTL_AXICFGEN);
+						   SOCFPGA_FPGMGR_CTL_AXICFGEN);
 
 	/*
 	 * Step 12:
@@ -504,21 +554,26 @@ static int socfpga_fpga_ops_configure_complete(struct fpga_manager *mgr,
 	 *  - Clear W1C bit in STATUS.DCNTDONE
 	 */
 	if (socfpga_fpga_dclk_set_and_wait_clear(priv, 4))
+	{
 		return -ETIMEDOUT;
+	}
 
 	/* Step 13: Wait for STATUS.MODE to report USER MODE */
 	if (socfpga_fpga_wait_for_state(priv, SOCFPGA_FPGMGR_STAT_USER_MODE))
+	{
 		return -ETIMEDOUT;
+	}
 
 	/* Step 14: Set CTRL.EN to 0 */
 	socfpga_fpga_clr_bitsl(priv, SOCFPGA_FPGMGR_CTL_OFST,
-			       SOCFPGA_FPGMGR_CTL_EN);
+						   SOCFPGA_FPGMGR_CTL_EN);
 
 	return 0;
 }
 
 /* Translate state register values to FPGA framework state */
-static const enum fpga_mgr_states socfpga_state_to_framework_state[] = {
+static const enum fpga_mgr_states socfpga_state_to_framework_state[] =
+{
 	[SOCFPGA_FPGMGR_STAT_POWER_OFF] = FPGA_MGR_STATE_POWER_OFF,
 	[SOCFPGA_FPGMGR_STAT_RESET] = FPGA_MGR_STATE_RESET,
 	[SOCFPGA_FPGMGR_STAT_CFG] = FPGA_MGR_STATE_WRITE_INIT,
@@ -536,14 +591,19 @@ static enum fpga_mgr_states socfpga_fpga_ops_state(struct fpga_manager *mgr)
 	state = socfpga_fpga_state_get(priv);
 
 	if (state < ARRAY_SIZE(socfpga_state_to_framework_state))
+	{
 		ret = socfpga_state_to_framework_state[state];
+	}
 	else
+	{
 		ret = FPGA_MGR_STATE_UNKNOWN;
+	}
 
 	return ret;
 }
 
-static const struct fpga_manager_ops socfpga_fpga_ops = {
+static const struct fpga_manager_ops socfpga_fpga_ops =
+{
 	.state = socfpga_fpga_ops_state,
 	.write_init = socfpga_fpga_ops_configure_init,
 	.write = socfpga_fpga_ops_configure_write,
@@ -558,30 +618,45 @@ static int socfpga_fpga_probe(struct platform_device *pdev)
 	int ret;
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->fpga_base_addr = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(priv->fpga_base_addr))
+	{
 		return PTR_ERR(priv->fpga_base_addr);
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 	priv->fpga_data_addr = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(priv->fpga_data_addr))
+	{
 		return PTR_ERR(priv->fpga_data_addr);
+	}
 
 	priv->irq = platform_get_irq(pdev, 0);
+
 	if (priv->irq < 0)
+	{
 		return priv->irq;
+	}
 
 	ret = devm_request_irq(dev, priv->irq, socfpga_fpga_isr, 0,
-			       dev_name(dev), priv);
+						   dev_name(dev), priv);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return fpga_mgr_register(dev, "Altera SOCFPGA FPGA Manager",
-				 &socfpga_fpga_ops, priv);
+							 &socfpga_fpga_ops, priv);
 }
 
 static int socfpga_fpga_remove(struct platform_device *pdev)
@@ -592,7 +667,8 @@ static int socfpga_fpga_remove(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id socfpga_fpga_of_match[] = {
+static const struct of_device_id socfpga_fpga_of_match[] =
+{
 	{ .compatible = "altr,socfpga-fpga-mgr", },
 	{},
 };
@@ -600,7 +676,8 @@ static const struct of_device_id socfpga_fpga_of_match[] = {
 MODULE_DEVICE_TABLE(of, socfpga_fpga_of_match);
 #endif
 
-static struct platform_driver socfpga_fpga_driver = {
+static struct platform_driver socfpga_fpga_driver =
+{
 	.probe = socfpga_fpga_probe,
 	.remove = socfpga_fpga_remove,
 	.driver = {

@@ -35,9 +35,11 @@
  */
 static int diag210_to_senseid(struct senseid *senseid, struct diag210 *diag)
 {
-	static struct {
+	static struct
+	{
 		int class, type, cu_type;
-	} vm_devices[] = {
+	} vm_devices[] =
+	{
 		{ 0x08, 0x01, 0x3480 },
 		{ 0x08, 0x02, 0x3430 },
 		{ 0x08, 0x10, 0x3420 },
@@ -71,15 +73,19 @@ static int diag210_to_senseid(struct senseid *senseid, struct diag210 *diag)
 	int i;
 
 	/* Special case for osa devices. */
-	if (diag->vrdcvcla == 0x02 && diag->vrdcvtyp == 0x20) {
+	if (diag->vrdcvcla == 0x02 && diag->vrdcvtyp == 0x20)
+	{
 		senseid->cu_type = 0x3088;
 		senseid->cu_model = 0x60;
 		senseid->reserved = 0xff;
 		return 0;
 	}
-	for (i = 0; i < ARRAY_SIZE(vm_devices); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(vm_devices); i++)
+	{
 		if (diag->vrdcvcla == vm_devices[i].class &&
-		    diag->vrdcvtyp == vm_devices[i].type) {
+			diag->vrdcvtyp == vm_devices[i].type)
+		{
 			senseid->cu_type = vm_devices[i].cu_type;
 			senseid->reserved = 0xff;
 			return 0;
@@ -103,7 +109,10 @@ static int diag210_get_dev_info(struct ccw_device *cdev)
 	int rc;
 
 	if (dev_id->ssid != 0)
+	{
 		return -ENODEV;
+	}
+
 	memset(&diag_data, 0, sizeof(diag_data));
 	diag_data.vrdcdvno	= dev_id->devno;
 	diag_data.vrdclen	= sizeof(diag_data);
@@ -111,19 +120,26 @@ static int diag210_get_dev_info(struct ccw_device *cdev)
 	CIO_TRACE_EVENT(4, "diag210");
 	CIO_HEX_EVENT(4, &rc, sizeof(rc));
 	CIO_HEX_EVENT(4, &diag_data, sizeof(diag_data));
+
 	if (rc != 0 && rc != 2)
+	{
 		goto err_failed;
+	}
+
 	if (diag210_to_senseid(senseid, &diag_data))
+	{
 		goto err_unknown;
+	}
+
 	return 0;
 
 err_unknown:
 	CIO_MSG_EVENT(0, "snsid: device 0.%x.%04x: unknown diag210 data\n",
-		      dev_id->ssid, dev_id->devno);
+				  dev_id->ssid, dev_id->devno);
 	return -ENODEV;
 err_failed:
 	CIO_MSG_EVENT(0, "snsid: device 0.%x.%04x: diag210 failed (rc=%d)\n",
-		      dev_id->ssid, dev_id->devno, rc);
+				  dev_id->ssid, dev_id->devno, rc);
 	return -ENODEV;
 }
 
@@ -147,15 +163,27 @@ static int snsid_check(struct ccw_device *cdev, void *data)
 
 	/* Check for incomplete SENSE ID data. */
 	if (len < SENSE_ID_MIN_LEN)
+	{
 		goto out_restart;
+	}
+
 	if (cdev->private->senseid.cu_type == 0xffff)
+	{
 		goto out_restart;
+	}
+
 	/* Check for incompatible SENSE ID data. */
 	if (cdev->private->senseid.reserved != 0xff)
+	{
 		return -EOPNOTSUPP;
+	}
+
 	/* Check for extended-identification information. */
 	if (len > SENSE_ID_BASIC_LEN)
+	{
 		cdev->private->flags.esid = 1;
+	}
+
 	return 0;
 
 out_restart:
@@ -172,18 +200,22 @@ static void snsid_callback(struct ccw_device *cdev, void *data, int rc)
 	struct senseid *senseid = &cdev->private->senseid;
 	int vm = 0;
 
-	if (rc && MACHINE_IS_VM) {
+	if (rc && MACHINE_IS_VM)
+	{
 		/* Try diag 0x210 fallback on z/VM. */
 		snsid_init(cdev);
-		if (diag210_get_dev_info(cdev) == 0) {
+
+		if (diag210_get_dev_info(cdev) == 0)
+		{
 			rc = 0;
 			vm = 1;
 		}
 	}
+
 	CIO_MSG_EVENT(2, "snsid: device 0.%x.%04x: rc=%d %04x/%02x "
-		      "%04x/%02x%s\n", id->ssid, id->devno, rc,
-		      senseid->cu_type, senseid->cu_model, senseid->dev_type,
-		      senseid->dev_model, vm ? " (diag210)" : "");
+				  "%04x/%02x%s\n", id->ssid, id->devno, rc,
+				  senseid->cu_type, senseid->cu_model, senseid->dev_type,
+				  senseid->dev_model, vm ? " (diag210)" : "");
 	ccw_device_sense_id_done(cdev, rc);
 }
 

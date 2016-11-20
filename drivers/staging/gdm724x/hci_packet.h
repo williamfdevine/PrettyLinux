@@ -35,19 +35,22 @@
 #define NIC_TYPE_F_NDP		0x00080000
 #define NIC_TYPE_F_VLAN		0x00100000
 
-struct hci_packet {
+struct hci_packet
+{
 	u16 cmd_evt;
 	u16 len;
 	u8 data[0];
 } __packed;
 
-struct tlv {
+struct tlv
+{
 	u8 type;
 	u8 len;
 	u8 *data[1];
 } __packed;
 
-struct sdu_header {
+struct sdu_header
+{
 	u16 cmd_evt;
 	u16 len;
 	u32 dftEpsId;
@@ -55,7 +58,8 @@ struct sdu_header {
 	u32 nic_type;
 } __packed;
 
-struct sdu {
+struct sdu
+{
 	u16 cmd_evt;
 	u16 len;
 	u32 dft_eps_ID;
@@ -64,7 +68,8 @@ struct sdu {
 	u8 data[0];
 } __packed;
 
-struct multi_sdu {
+struct multi_sdu
+{
 	u16 cmd_evt;
 	u16 len;
 	u16 num_packet;
@@ -72,7 +77,8 @@ struct multi_sdu {
 	u8 data[0];
 } __packed;
 
-struct hci_pdn_table_ind {
+struct hci_pdn_table_ind
+{
 	u16 cmd_evt;
 	u16 len;
 	u8 activate;
@@ -83,7 +89,8 @@ struct hci_pdn_table_ind {
 	u8 ipv6_intf_id[8];
 } __packed;
 
-struct hci_connect_ind {
+struct hci_connect_ind
+{
 	u16 cmd_evt;
 	u16 len;
 	u32 connect;

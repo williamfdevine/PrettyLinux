@@ -31,7 +31,8 @@
  */
 static inline void hlist_nulls_del_init_rcu(struct hlist_nulls_node *n)
 {
-	if (!hlist_nulls_unhashed(n)) {
+	if (!hlist_nulls_unhashed(n))
+	{
 		__hlist_nulls_del(n);
 		n->pprev = NULL;
 	}
@@ -88,15 +89,18 @@ static inline void hlist_nulls_del_rcu(struct hlist_nulls_node *n)
  * list-traversal primitive must be guarded by rcu_read_lock().
  */
 static inline void hlist_nulls_add_head_rcu(struct hlist_nulls_node *n,
-					struct hlist_nulls_head *h)
+		struct hlist_nulls_head *h)
 {
 	struct hlist_nulls_node *first = h->first;
 
 	n->next = first;
 	n->pprev = &h->first;
 	rcu_assign_pointer(hlist_nulls_first_rcu(h), n);
+
 	if (!is_a_nulls(first))
+	{
 		first->pprev = &n->next;
+	}
 }
 
 /**
@@ -120,19 +124,24 @@ static inline void hlist_nulls_add_head_rcu(struct hlist_nulls_node *n,
  * list-traversal primitive must be guarded by rcu_read_lock().
  */
 static inline void hlist_nulls_add_tail_rcu(struct hlist_nulls_node *n,
-					struct hlist_nulls_head *h)
+		struct hlist_nulls_head *h)
 {
 	struct hlist_nulls_node *i, *last = NULL;
 
 	for (i = hlist_nulls_first_rcu(h); !is_a_nulls(i);
-	     i = hlist_nulls_next_rcu(i))
+		 i = hlist_nulls_next_rcu(i))
+	{
 		last = i;
+	}
 
-	if (last) {
+	if (last)
+	{
 		n->next = last->next;
 		n->pprev = &last->next;
 		rcu_assign_pointer(hlist_nulls_next_rcu(last), n);
-	} else {
+	}
+	else
+	{
 		hlist_nulls_add_head_rcu(n, h);
 	}
 }
@@ -151,10 +160,10 @@ static inline void hlist_nulls_add_tail_rcu(struct hlist_nulls_node *n,
  */
 #define hlist_nulls_for_each_entry_rcu(tpos, pos, head, member)			\
 	for (({barrier();}),							\
-	     pos = rcu_dereference_raw(hlist_nulls_first_rcu(head));		\
-		(!is_a_nulls(pos)) &&						\
-		({ tpos = hlist_nulls_entry(pos, typeof(*tpos), member); 1; }); \
-		pos = rcu_dereference_raw(hlist_nulls_next_rcu(pos)))
+	pos = rcu_dereference_raw(hlist_nulls_first_rcu(head));		\
+		  (!is_a_nulls(pos)) &&						\
+	({ tpos = hlist_nulls_entry(pos, typeof(*tpos), member); 1; }); \
+	pos = rcu_dereference_raw(hlist_nulls_next_rcu(pos)))
 
 #endif
 #endif

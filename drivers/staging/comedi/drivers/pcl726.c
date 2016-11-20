@@ -74,7 +74,8 @@
 #define PCL727_DO_MSB_REG	0x18
 #define PCL727_DO_LSB_REG	0x19
 
-static const struct comedi_lrange *const rangelist_726[] = {
+static const struct comedi_lrange *const rangelist_726[] =
+{
 	&range_unipolar5,
 	&range_unipolar10,
 	&range_bipolar5,
@@ -83,14 +84,16 @@ static const struct comedi_lrange *const rangelist_726[] = {
 	&range_unknown
 };
 
-static const struct comedi_lrange *const rangelist_727[] = {
+static const struct comedi_lrange *const rangelist_727[] =
+{
 	&range_unipolar5,
 	&range_unipolar10,
 	&range_bipolar5,
 	&range_4_20mA
 };
 
-static const struct comedi_lrange *const rangelist_728[] = {
+static const struct comedi_lrange *const rangelist_728[] =
+{
 	&range_unipolar5,
 	&range_unipolar10,
 	&range_bipolar5,
@@ -99,18 +102,20 @@ static const struct comedi_lrange *const rangelist_728[] = {
 	&range_0_20mA
 };
 
-struct pcl726_board {
+struct pcl726_board
+{
 	const char *name;
 	unsigned long io_len;
 	unsigned int irq_mask;
 	const struct comedi_lrange *const *ao_ranges;
 	int ao_num_ranges;
 	int ao_nchan;
-	unsigned int have_dio:1;
-	unsigned int is_pcl727:1;
+	unsigned int have_dio: 1;
+	unsigned int is_pcl727: 1;
 };
 
-static const struct pcl726_board pcl726_boards[] = {
+static const struct pcl726_board pcl726_boards[] =
+{
 	{
 		.name		= "pcl726",
 		.io_len		= 0x10,
@@ -149,23 +154,24 @@ static const struct pcl726_board pcl726_boards[] = {
 	},
 };
 
-struct pcl726_private {
+struct pcl726_private
+{
 	const struct comedi_lrange *rangelist[12];
-	unsigned int cmd_running:1;
+	unsigned int cmd_running: 1;
 };
 
 static int pcl726_intr_insn_bits(struct comedi_device *dev,
-				 struct comedi_subdevice *s,
-				 struct comedi_insn *insn,
-				 unsigned int *data)
+								 struct comedi_subdevice *s,
+								 struct comedi_insn *insn,
+								 unsigned int *data)
 {
 	data[1] = 0;
 	return insn->n;
 }
 
 static int pcl726_intr_cmdtest(struct comedi_device *dev,
-			       struct comedi_subdevice *s,
-			       struct comedi_cmd *cmd)
+							   struct comedi_subdevice *s,
+							   struct comedi_cmd *cmd)
 {
 	int err = 0;
 
@@ -178,7 +184,9 @@ static int pcl726_intr_cmdtest(struct comedi_device *dev,
 	err |= comedi_check_trigger_src(&cmd->stop_src, TRIG_NONE);
 
 	if (err)
+	{
 		return 1;
+	}
 
 	/* Step 2a : make sure trigger sources are unique */
 	/* Step 2b : and mutually compatible */
@@ -189,11 +197,13 @@ static int pcl726_intr_cmdtest(struct comedi_device *dev,
 	err |= comedi_check_trigger_arg_is(&cmd->scan_begin_arg, 0);
 	err |= comedi_check_trigger_arg_is(&cmd->convert_arg, 0);
 	err |= comedi_check_trigger_arg_is(&cmd->scan_end_arg,
-					   cmd->chanlist_len);
+									   cmd->chanlist_len);
 	err |= comedi_check_trigger_arg_is(&cmd->stop_arg, 0);
 
 	if (err)
+	{
 		return 3;
+	}
 
 	/* Step 4: fix up any arguments */
 
@@ -203,7 +213,7 @@ static int pcl726_intr_cmdtest(struct comedi_device *dev,
 }
 
 static int pcl726_intr_cmd(struct comedi_device *dev,
-			   struct comedi_subdevice *s)
+						   struct comedi_subdevice *s)
 {
 	struct pcl726_private *devpriv = dev->private;
 
@@ -213,7 +223,7 @@ static int pcl726_intr_cmd(struct comedi_device *dev,
 }
 
 static int pcl726_intr_cancel(struct comedi_device *dev,
-			      struct comedi_subdevice *s)
+							  struct comedi_subdevice *s)
 {
 	struct pcl726_private *devpriv = dev->private;
 
@@ -228,7 +238,8 @@ static irqreturn_t pcl726_interrupt(int irq, void *d)
 	struct comedi_subdevice *s = dev->read_subdev;
 	struct pcl726_private *devpriv = dev->private;
 
-	if (devpriv->cmd_running) {
+	if (devpriv->cmd_running)
+	{
 		pcl726_intr_cancel(dev, s);
 
 		comedi_buf_write_samples(s, &s->state, 1);
@@ -239,22 +250,25 @@ static irqreturn_t pcl726_interrupt(int irq, void *d)
 }
 
 static int pcl726_ao_insn_write(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_insn *insn,
-				unsigned int *data)
+								struct comedi_subdevice *s,
+								struct comedi_insn *insn,
+								unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	unsigned int range = CR_RANGE(insn->chanspec);
 	int i;
 
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		unsigned int val = data[i];
 
 		s->readback[chan] = val;
 
 		/* bipolar data to the DAC is two's complement */
 		if (comedi_chan_range_is_bipolar(s, chan, range))
+		{
 			val = comedi_offset_munge(s, val);
+		}
 
 		/* order is important, MSB then LSB */
 		outb((val >> 8) & 0xff, dev->iobase + PCL726_AO_MSB_REG(chan));
@@ -265,17 +279,20 @@ static int pcl726_ao_insn_write(struct comedi_device *dev,
 }
 
 static int pcl726_di_insn_bits(struct comedi_device *dev,
-			       struct comedi_subdevice *s,
-			       struct comedi_insn *insn,
-			       unsigned int *data)
+							   struct comedi_subdevice *s,
+							   struct comedi_insn *insn,
+							   unsigned int *data)
 {
 	const struct pcl726_board *board = dev->board_ptr;
 	unsigned int val;
 
-	if (board->is_pcl727) {
+	if (board->is_pcl727)
+	{
 		val = inb(dev->iobase + PCL727_DI_LSB_REG);
 		val |= (inb(dev->iobase + PCL727_DI_MSB_REG) << 8);
-	} else {
+	}
+	else
+	{
 		val = inb(dev->iobase + PCL726_DI_LSB_REG);
 		val |= (inb(dev->iobase + PCL726_DI_MSB_REG) << 8);
 	}
@@ -286,26 +303,41 @@ static int pcl726_di_insn_bits(struct comedi_device *dev,
 }
 
 static int pcl726_do_insn_bits(struct comedi_device *dev,
-			       struct comedi_subdevice *s,
-			       struct comedi_insn *insn,
-			       unsigned int *data)
+							   struct comedi_subdevice *s,
+							   struct comedi_insn *insn,
+							   unsigned int *data)
 {
 	const struct pcl726_board *board = dev->board_ptr;
 	unsigned long io = dev->iobase;
 	unsigned int mask;
 
 	mask = comedi_dio_update_state(s, data);
-	if (mask) {
-		if (board->is_pcl727) {
+
+	if (mask)
+	{
+		if (board->is_pcl727)
+		{
 			if (mask & 0x00ff)
+			{
 				outb(s->state & 0xff, io + PCL727_DO_LSB_REG);
+			}
+
 			if (mask & 0xff00)
+			{
 				outb((s->state >> 8), io + PCL727_DO_MSB_REG);
-		} else {
+			}
+		}
+		else
+		{
 			if (mask & 0x00ff)
+			{
 				outb(s->state & 0xff, io + PCL726_DO_LSB_REG);
+			}
+
 			if (mask & 0xff00)
+			{
 				outb((s->state >> 8), io + PCL726_DO_MSB_REG);
+			}
 		}
 	}
 
@@ -315,7 +347,7 @@ static int pcl726_do_insn_bits(struct comedi_device *dev,
 }
 
 static int pcl726_attach(struct comedi_device *dev,
-			 struct comedi_devconfig *it)
+						 struct comedi_devconfig *it)
 {
 	const struct pcl726_board *board = dev->board_ptr;
 	struct pcl726_private *devpriv;
@@ -325,42 +357,63 @@ static int pcl726_attach(struct comedi_device *dev,
 	int i;
 
 	ret = comedi_request_region(dev, it->options[0], board->io_len);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	devpriv = comedi_alloc_devpriv(dev, sizeof(*devpriv));
+
 	if (!devpriv)
+	{
 		return -ENOMEM;
+	}
 
 	/*
 	 * Hook up the external trigger source interrupt only if the
 	 * user config option is valid and the board supports interrupts.
 	 */
-	if (it->options[1] && (board->irq_mask & (1 << it->options[1]))) {
+	if (it->options[1] && (board->irq_mask & (1 << it->options[1])))
+	{
 		ret = request_irq(it->options[1], pcl726_interrupt, 0,
-				  dev->board_name, dev);
-		if (ret == 0) {
+						  dev->board_name, dev);
+
+		if (ret == 0)
+		{
 			/* External trigger source is from Pin-17 of CN3 */
 			dev->irq = it->options[1];
 		}
 	}
 
 	/* setup the per-channel analog output range_table_list */
-	for (i = 0; i < 12; i++) {
+	for (i = 0; i < 12; i++)
+	{
 		unsigned int opt = it->options[2 + i];
 
 		if (opt < board->ao_num_ranges && i < board->ao_nchan)
+		{
 			devpriv->rangelist[i] = board->ao_ranges[opt];
+		}
 		else
+		{
 			devpriv->rangelist[i] = &range_unknown;
+		}
 	}
 
 	subdev = board->have_dio ? 3 : 1;
+
 	if (dev->irq)
+	{
 		subdev++;
+	}
+
 	ret = comedi_alloc_subdevices(dev, subdev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	subdev = 0;
 
@@ -374,10 +427,14 @@ static int pcl726_attach(struct comedi_device *dev,
 	s->insn_write	= pcl726_ao_insn_write;
 
 	ret = comedi_alloc_subdev_readback(s);
-	if (ret)
-		return ret;
 
-	if (board->have_dio) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (board->have_dio)
+	{
 		/* Digital Input subdevice */
 		s = &dev->subdevices[subdev++];
 		s->type		= COMEDI_SUBD_DI;
@@ -397,7 +454,8 @@ static int pcl726_attach(struct comedi_device *dev,
 		s->range_table	= &range_digital;
 	}
 
-	if (dev->irq) {
+	if (dev->irq)
+	{
 		/* Digial Input subdevice - Interrupt support */
 		s = &dev->subdevices[subdev++];
 		dev->read_subdev = s;
@@ -416,7 +474,8 @@ static int pcl726_attach(struct comedi_device *dev,
 	return 0;
 }
 
-static struct comedi_driver pcl726_driver = {
+static struct comedi_driver pcl726_driver =
+{
 	.driver_name	= "pcl726",
 	.module		= THIS_MODULE,
 	.attach		= pcl726_attach,

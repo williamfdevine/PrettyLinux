@@ -30,19 +30,21 @@
 #ifdef NVEC_PS2_DEBUG
 #define NVEC_PHD(str, buf, len) \
 	print_hex_dump(KERN_DEBUG, str, DUMP_PREFIX_NONE, \
-			16, 1, buf, len, false)
+				   16, 1, buf, len, false)
 #else
 #define NVEC_PHD(str, buf, len)
 #endif
 
-enum ps2_subcmds {
+enum ps2_subcmds
+{
 	SEND_COMMAND = 1,
 	RECEIVE_N,
 	AUTO_RECEIVE_N,
 	CANCEL_AUTO_RECEIVE,
 };
 
-struct nvec_ps2 {
+struct nvec_ps2
+{
 	struct serio *ser_dev;
 	struct notifier_block notifier;
 	struct nvec_chip *nvec;
@@ -75,28 +77,39 @@ static int ps2_sendcommand(struct serio *ser_dev, unsigned char cmd)
 }
 
 static int nvec_ps2_notifier(struct notifier_block *nb,
-			     unsigned long event_type, void *data)
+							 unsigned long event_type, void *data)
 {
 	int i;
 	unsigned char *msg = data;
 
-	switch (event_type) {
-	case NVEC_PS2_EVT:
-		for (i = 0; i < msg[1]; i++)
-			serio_interrupt(ps2_dev.ser_dev, msg[2 + i], 0);
-		NVEC_PHD("ps/2 mouse event: ", &msg[2], msg[1]);
-		return NOTIFY_STOP;
+	switch (event_type)
+	{
+		case NVEC_PS2_EVT:
+			for (i = 0; i < msg[1]; i++)
+			{
+				serio_interrupt(ps2_dev.ser_dev, msg[2 + i], 0);
+			}
 
-	case NVEC_PS2:
-		if (msg[2] == 1) {
-			for (i = 0; i < (msg[1] - 2); i++)
-				serio_interrupt(ps2_dev.ser_dev, msg[i + 4], 0);
-			NVEC_PHD("ps/2 mouse reply: ", &msg[4], msg[1] - 2);
-		}
+			NVEC_PHD("ps/2 mouse event: ", &msg[2], msg[1]);
+			return NOTIFY_STOP;
 
-		else if (msg[1] != 2) /* !ack */
-			NVEC_PHD("unhandled mouse event: ", msg, msg[1] + 2);
-		return NOTIFY_STOP;
+		case NVEC_PS2:
+			if (msg[2] == 1)
+			{
+				for (i = 0; i < (msg[1] - 2); i++)
+				{
+					serio_interrupt(ps2_dev.ser_dev, msg[i + 4], 0);
+				}
+
+				NVEC_PHD("ps/2 mouse reply: ", &msg[4], msg[1] - 2);
+			}
+
+			else if (msg[1] != 2) /* !ack */
+			{
+				NVEC_PHD("unhandled mouse event: ", msg, msg[1] + 2);
+			}
+
+			return NOTIFY_STOP;
 	}
 
 	return NOTIFY_DONE;
@@ -108,8 +121,11 @@ static int nvec_mouse_probe(struct platform_device *pdev)
 	struct serio *ser_dev;
 
 	ser_dev = kzalloc(sizeof(struct serio), GFP_KERNEL);
+
 	if (!ser_dev)
+	{
 		return -ENOMEM;
+	}
 
 	ser_dev->id.type = SERIO_8042;
 	ser_dev->write = ps2_sendcommand;
@@ -166,9 +182,10 @@ static int nvec_mouse_resume(struct device *dev)
 #endif
 
 static SIMPLE_DEV_PM_OPS(nvec_mouse_pm_ops, nvec_mouse_suspend,
-			 nvec_mouse_resume);
+						 nvec_mouse_resume);
 
-static struct platform_driver nvec_mouse_driver = {
+static struct platform_driver nvec_mouse_driver =
+{
 	.probe  = nvec_mouse_probe,
 	.remove = nvec_mouse_remove,
 	.driver = {

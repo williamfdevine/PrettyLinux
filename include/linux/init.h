@@ -4,7 +4,7 @@
 #include <linux/compiler.h>
 #include <linux/types.h>
 
-/* These macros are used to mark some functions or 
+/* These macros are used to mark some functions or
  * initialized data (doesn't apply to uninitialized data)
  * as `initialization' functions. The kernel can take this
  * as hint that the function is used only during the initialization
@@ -12,7 +12,7 @@
  *
  * Usage:
  * For functions:
- * 
+ *
  * You should add __init immediately before the function name, like:
  *
  * static void __init initme(int x, int y)
@@ -67,16 +67,16 @@
 #define __refconst       __section(.ref.rodata)
 
 #ifdef MODULE
-#define __exitused
+	#define __exitused
 #else
-#define __exitused  __used
+	#define __exitused  __used
 #endif
 
 #define __exit          __section(.exit.text) __exitused __cold notrace
 
 /* Used for MEMORY_HOTPLUG */
 #define __meminit        __section(.meminit.text) __cold notrace \
-						  __latent_entropy
+	__latent_entropy
 #define __meminitdata    __section(.meminit.data)
 #define __meminitconst   __section(.meminit.rodata)
 #define __memexit        __section(.memexit.text) __exitused __cold notrace
@@ -102,40 +102,40 @@
 #define __REFCONST       .section       ".ref.rodata", "a"
 
 #ifndef __ASSEMBLY__
-/*
- * Used for initialization calls..
- */
-typedef int (*initcall_t)(void);
-typedef void (*exitcall_t)(void);
+	/*
+	* Used for initialization calls..
+	*/
+	typedef int (*initcall_t)(void);
+	typedef void (*exitcall_t)(void);
 
-extern initcall_t __con_initcall_start[], __con_initcall_end[];
-extern initcall_t __security_initcall_start[], __security_initcall_end[];
+	extern initcall_t __con_initcall_start[], __con_initcall_end[];
+	extern initcall_t __security_initcall_start[], __security_initcall_end[];
 
-/* Used for contructor calls. */
-typedef void (*ctor_fn_t)(void);
+	/* Used for contructor calls. */
+	typedef void (*ctor_fn_t)(void);
 
-/* Defined in init/main.c */
-extern int do_one_initcall(initcall_t fn);
-extern char __initdata boot_command_line[];
-extern char *saved_command_line;
-extern unsigned int reset_devices;
+	/* Defined in init/main.c */
+	extern int do_one_initcall(initcall_t fn);
+	extern char __initdata boot_command_line[];
+	extern char *saved_command_line;
+	extern unsigned int reset_devices;
 
-/* used by init/main.c */
-void setup_arch(char **);
-void prepare_namespace(void);
-void __init load_default_modules(void);
-int __init init_rootfs(void);
+	/* used by init/main.c */
+	void setup_arch(char **);
+	void prepare_namespace(void);
+	void __init load_default_modules(void);
+	int __init init_rootfs(void);
 
-#ifdef CONFIG_DEBUG_RODATA
-void mark_rodata_ro(void);
+	#ifdef CONFIG_DEBUG_RODATA
+		void mark_rodata_ro(void);
+	#endif
+
+	extern void (*late_time_init)(void);
+
+	extern bool initcall_debug;
+
 #endif
 
-extern void (*late_time_init)(void);
-
-extern bool initcall_debug;
-
-#endif
-  
 #ifndef MODULE
 
 #ifndef __ASSEMBLY__
@@ -143,8 +143,8 @@ extern bool initcall_debug;
 /*
  * initcalls are now grouped by functionality into separate
  * subsections. Ordering inside the subsections is determined
- * by link order. 
- * For backwards compatibility, initcall() puts the call in 
+ * by link order.
+ * For backwards compatibility, initcall() puts the call in
  * the device init subsection.
  *
  * The `id' arg to __define_initcall() is needed so that multiple initcalls
@@ -205,7 +205,8 @@ extern bool initcall_debug;
 	static initcall_t __initcall_##fn			\
 	__used __section(.security_initcall.init) = fn
 
-struct obs_kernel_param {
+struct obs_kernel_param
+{
 	const char *str;
 	int (*setup_func)(char *);
 	int early;
@@ -219,10 +220,10 @@ struct obs_kernel_param {
  */
 #define __setup_param(str, unique_id, fn, early)			\
 	static const char __setup_str_##unique_id[] __initconst		\
-		__aligned(1) = str; 					\
+	__aligned(1) = str; 					\
 	static struct obs_kernel_param __setup_##unique_id		\
-		__used __section(.init.setup)				\
-		__attribute__((aligned((sizeof(long)))))		\
+	__used __section(.init.setup)				\
+	__attribute__((aligned((sizeof(long)))))		\
 		= { __setup_str_##unique_id, fn, early }
 
 #define __setup(str, fn)						\
@@ -236,16 +237,16 @@ struct obs_kernel_param {
 	__setup_param(str, fn, fn, 1)
 
 #define early_param_on_off(str_on, str_off, var, config)		\
-									\
+	\
 	int var = IS_ENABLED(config);					\
-									\
+	\
 	static int __init parse_##var##_on(char *arg)			\
 	{								\
 		var = 1;						\
 		return 0;						\
 	}								\
 	__setup_param(str_on, parse_##var##_on, parse_##var##_on, 1);	\
-									\
+	\
 	static int __init parse_##var##_off(char *arg)			\
 	{								\
 		var = 0;						\
@@ -268,9 +269,9 @@ void __init parse_early_options(char *cmdline);
 #define __nosavedata __section(.data..nosave)
 
 #ifdef MODULE
-#define __exit_p(x) x
+	#define __exit_p(x) x
 #else
-#define __exit_p(x) NULL
+	#define __exit_p(x) NULL
 #endif
 
 #endif /* _LINUX_INIT_H */

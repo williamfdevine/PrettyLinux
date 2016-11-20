@@ -5,7 +5,7 @@
  */
 
 #ifndef _NETROM_H
-#define _NETROM_H 
+#define _NETROM_H
 
 #include <linux/netrom.h>
 #include <linux/list.h>
@@ -31,7 +31,8 @@
 #define	NR_MORE_FLAG			0x20
 
 /* Define Link State constants. */
-enum {
+enum
+{
 	NR_STATE_0,
 	NR_STATE_1,
 	NR_STATE_2,
@@ -60,7 +61,8 @@ enum {
 #define NR_MAX_WINDOW_SIZE		127			/* Maximum Window Allowable - 127 */
 #define	NR_MAX_PACKET_SIZE		236			/* Maximum Packet Length - 236 */
 
-struct nr_sock {
+struct nr_sock
+{
 	struct sock		sock;
 	ax25_address		user_addr, source_addr, dest_addr;
 	struct net_device		*device;
@@ -82,7 +84,8 @@ struct nr_sock {
 
 #define nr_sk(sk) ((struct nr_sock *)(sk))
 
-struct nr_neigh {
+struct nr_neigh
+{
 	struct hlist_node	neigh_node;
 	ax25_address		callsign;
 	ax25_digi		*digipeat;
@@ -96,13 +99,15 @@ struct nr_neigh {
 	atomic_t		refcount;
 };
 
-struct nr_route {
+struct nr_route
+{
 	unsigned char   quality;
 	unsigned char   obs_count;
 	struct nr_neigh *neighbour;
 };
 
-struct nr_node {
+struct nr_node
+{
 	struct hlist_node	node_node;
 	ax25_address		callsign;
 	char			mnemonic[7];
@@ -122,7 +127,8 @@ struct nr_node {
 
 static __inline__ void nr_node_put(struct nr_node *nr_node)
 {
-	if (atomic_dec_and_test(&nr_node->refcount)) {
+	if (atomic_dec_and_test(&nr_node->refcount))
+	{
 		kfree(nr_node);
 	}
 }
@@ -132,9 +138,13 @@ static __inline__ void nr_node_put(struct nr_node *nr_node)
 
 static __inline__ void nr_neigh_put(struct nr_neigh *nr_neigh)
 {
-	if (atomic_dec_and_test(&nr_neigh->refcount)) {
+	if (atomic_dec_and_test(&nr_neigh->refcount))
+	{
 		if (nr_neigh->ax25)
+		{
 			ax25_cb_put(nr_neigh->ax25);
+		}
+
 		kfree(nr_neigh->digipeat);
 		kfree(nr_neigh);
 	}
@@ -233,18 +243,18 @@ void __nr_transmit_reply(struct sk_buff *skb, int mine, unsigned char cmdflags);
  * set is needed to refuse a connection.
  */
 #define nr_transmit_refusal(skb, mine)					\
-do {									\
-	__nr_transmit_reply((skb), (mine), NR_CONNACK | NR_CHOKE_FLAG);	\
-} while (0)
+	do {									\
+		__nr_transmit_reply((skb), (mine), NR_CONNACK | NR_CHOKE_FLAG);	\
+	} while (0)
 
 /*
  * This routine is called when we don't have a circuit matching an incoming
  * NET/ROM packet.  This is an G8PZT Xrouter extension.
  */
 #define nr_transmit_reset(skb, mine)					\
-do {									\
-	__nr_transmit_reply((skb), (mine), NR_RESET);			\
-} while (0)
+	do {									\
+		__nr_transmit_reply((skb), (mine), NR_RESET);			\
+	} while (0)
 
 void nr_disconnect(struct sock *, int);
 

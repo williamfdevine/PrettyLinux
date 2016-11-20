@@ -26,7 +26,8 @@
 #ifndef LGS8913_PRIV_H
 #define LGS8913_PRIV_H
 
-struct lgs8gxx_state {
+struct lgs8gxx_state
+{
 	struct i2c_adapter *i2c;
 	/* configuration settings */
 	const struct lgs8gxx_config *config;

@@ -32,7 +32,8 @@ MODULE_ALIAS_LDISC(N_MOUSE);
 #define SERPORT_ACTIVE	2
 #define SERPORT_DEAD	3
 
-struct serport {
+struct serport
+{
 	struct tty_struct *tty;
 	wait_queue_head_t wait;
 	struct serio *serio;
@@ -84,11 +85,16 @@ static int serport_ldisc_open(struct tty_struct *tty)
 	struct serport *serport;
 
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EPERM;
+	}
 
 	serport = kzalloc(sizeof(struct serport), GFP_KERNEL);
+
 	if (!serport)
+	{
 		return -ENOMEM;
+	}
 
 	serport->tty = tty;
 	spin_lock_init(&serport->lock);
@@ -120,7 +126,7 @@ static void serport_ldisc_close(struct tty_struct *tty)
 
 static void serport_ldisc_receive(struct tty_struct *tty, const unsigned char *cp, char *fp, int count)
 {
-	struct serport *serport = (struct serport*) tty->disc_data;
+	struct serport *serport = (struct serport *) tty->disc_data;
 	unsigned long flags;
 	unsigned int ch_flags = 0;
 	int i;
@@ -128,22 +134,27 @@ static void serport_ldisc_receive(struct tty_struct *tty, const unsigned char *c
 	spin_lock_irqsave(&serport->lock, flags);
 
 	if (!test_bit(SERPORT_ACTIVE, &serport->flags))
+	{
 		goto out;
+	}
 
-	for (i = 0; i < count; i++) {
-		if (fp) {
-			switch (fp[i]) {
-			case TTY_FRAME:
-				ch_flags = SERIO_FRAME;
-				break;
+	for (i = 0; i < count; i++)
+	{
+		if (fp)
+		{
+			switch (fp[i])
+			{
+				case TTY_FRAME:
+					ch_flags = SERIO_FRAME;
+					break;
 
-			case TTY_PARITY:
-				ch_flags = SERIO_PARITY;
-				break;
+				case TTY_PARITY:
+					ch_flags = SERIO_PARITY;
+					break;
 
-			default:
-				ch_flags = 0;
-				break;
+				default:
+					ch_flags = 0;
+					break;
 			}
 		}
 
@@ -160,17 +171,22 @@ out:
  * returning 0 characters.
  */
 
-static ssize_t serport_ldisc_read(struct tty_struct * tty, struct file * file, unsigned char __user * buf, size_t nr)
+static ssize_t serport_ldisc_read(struct tty_struct *tty, struct file *file, unsigned char __user *buf, size_t nr)
 {
-	struct serport *serport = (struct serport*) tty->disc_data;
+	struct serport *serport = (struct serport *) tty->disc_data;
 	struct serio *serio;
 
 	if (test_and_set_bit(SERPORT_BUSY, &serport->flags))
+	{
 		return -EBUSY;
+	}
 
 	serport->serio = serio = kzalloc(sizeof(struct serio), GFP_KERNEL);
+
 	if (!serio)
+	{
 		return -ENOMEM;
+	}
 
 	strlcpy(serio->name, "Serial port", sizeof(serio->name));
 	snprintf(serio->phys, sizeof(serio->phys), "%s/serio0", tty_name(tty));
@@ -209,13 +225,16 @@ static void serport_set_type(struct tty_struct *tty, unsigned long type)
  */
 
 static int serport_ldisc_ioctl(struct tty_struct *tty, struct file *file,
-			       unsigned int cmd, unsigned long arg)
+							   unsigned int cmd, unsigned long arg)
 {
-	if (cmd == SPIOCSTYPE) {
+	if (cmd == SPIOCSTYPE)
+	{
 		unsigned long type;
 
 		if (get_user(type, (unsigned long __user *) arg))
+		{
 			return -EFAULT;
+		}
 
 		serport_set_type(tty, type);
 		return 0;
@@ -227,15 +246,18 @@ static int serport_ldisc_ioctl(struct tty_struct *tty, struct file *file,
 #ifdef CONFIG_COMPAT
 #define COMPAT_SPIOCSTYPE	_IOW('q', 0x01, compat_ulong_t)
 static long serport_ldisc_compat_ioctl(struct tty_struct *tty,
-				       struct file *file,
-				       unsigned int cmd, unsigned long arg)
+									   struct file *file,
+									   unsigned int cmd, unsigned long arg)
 {
-	if (cmd == COMPAT_SPIOCSTYPE) {
+	if (cmd == COMPAT_SPIOCSTYPE)
+	{
 		void __user *uarg = compat_ptr(arg);
 		compat_ulong_t compat_type;
 
 		if (get_user(compat_type, (compat_ulong_t __user *)uarg))
+		{
 			return -EFAULT;
+		}
 
 		serport_set_type(tty, compat_type);
 		return 0;
@@ -258,14 +280,18 @@ static int serport_ldisc_hangup(struct tty_struct *tty)
 	return 0;
 }
 
-static void serport_ldisc_write_wakeup(struct tty_struct * tty)
+static void serport_ldisc_write_wakeup(struct tty_struct *tty)
 {
 	struct serport *serport = (struct serport *) tty->disc_data;
 	unsigned long flags;
 
 	spin_lock_irqsave(&serport->lock, flags);
+
 	if (test_bit(SERPORT_ACTIVE, &serport->flags))
+	{
 		serio_drv_write_wakeup(serport->serio);
+	}
+
 	spin_unlock_irqrestore(&serport->lock, flags);
 }
 
@@ -273,7 +299,8 @@ static void serport_ldisc_write_wakeup(struct tty_struct * tty)
  * The line discipline structure.
  */
 
-static struct tty_ldisc_ops serport_ldisc = {
+static struct tty_ldisc_ops serport_ldisc =
+{
 	.owner =	THIS_MODULE,
 	.name =		"input",
 	.open =		serport_ldisc_open,
@@ -296,8 +323,11 @@ static int __init serport_init(void)
 {
 	int retval;
 	retval = tty_register_ldisc(N_MOUSE, &serport_ldisc);
+
 	if (retval)
+	{
 		printk(KERN_ERR "serport.c: Error registering line discipline.\n");
+	}
 
 	return  retval;
 }

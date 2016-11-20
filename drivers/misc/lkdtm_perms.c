@@ -49,11 +49,13 @@ static noinline void execute_location(void *dst, bool write)
 	pr_info("attempting ok execution at %p\n", do_nothing);
 	do_nothing();
 
-	if (write == CODE_WRITE) {
+	if (write == CODE_WRITE)
+	{
 		memcpy(dst, do_nothing, EXEC_SIZE);
 		flush_icache_range((unsigned long)dst,
-				   (unsigned long)dst + EXEC_SIZE);
+						   (unsigned long)dst + EXEC_SIZE);
 	}
+
 	pr_info("attempting bad execution at %p\n", func);
 	func();
 }
@@ -67,7 +69,10 @@ static void execute_user_location(void *dst)
 	do_nothing();
 
 	if (copy_to_user((void __user *)dst, do_nothing, EXEC_SIZE))
+	{
 		return;
+	}
+
 	flush_icache_range((unsigned long)dst, (unsigned long)dst + EXEC_SIZE);
 	pr_info("attempting bad execution at %p\n", func);
 	func();
@@ -91,7 +96,8 @@ void lkdtm_WRITE_RO_AFTER_INIT(void)
 	 * is considered a "success", a failure is to just skip the
 	 * real test.
 	 */
-	if ((*ptr & 0xAA) != 0xAA) {
+	if ((*ptr & 0xAA) != 0xAA)
+	{
 		pr_info("%p was NOT written during init!?\n", ptr);
 		return;
 	}
@@ -150,12 +156,15 @@ void lkdtm_EXEC_USERSPACE(void)
 	unsigned long user_addr;
 
 	user_addr = vm_mmap(NULL, 0, PAGE_SIZE,
-			    PROT_READ | PROT_WRITE | PROT_EXEC,
-			    MAP_ANONYMOUS | MAP_PRIVATE, 0);
-	if (user_addr >= TASK_SIZE) {
+						PROT_READ | PROT_WRITE | PROT_EXEC,
+						MAP_ANONYMOUS | MAP_PRIVATE, 0);
+
+	if (user_addr >= TASK_SIZE)
+	{
 		pr_warn("Failed to allocate user memory\n");
 		return;
 	}
+
 	execute_user_location((void *)user_addr);
 	vm_munmap(user_addr, PAGE_SIZE);
 }
@@ -166,14 +175,17 @@ void lkdtm_ACCESS_USERSPACE(void)
 	unsigned long *ptr;
 
 	user_addr = vm_mmap(NULL, 0, PAGE_SIZE,
-			    PROT_READ | PROT_WRITE | PROT_EXEC,
-			    MAP_ANONYMOUS | MAP_PRIVATE, 0);
-	if (user_addr >= TASK_SIZE) {
+						PROT_READ | PROT_WRITE | PROT_EXEC,
+						MAP_ANONYMOUS | MAP_PRIVATE, 0);
+
+	if (user_addr >= TASK_SIZE)
+	{
 		pr_warn("Failed to allocate user memory\n");
 		return;
 	}
 
-	if (copy_to_user((void __user *)user_addr, &tmp, sizeof(tmp))) {
+	if (copy_to_user((void __user *)user_addr, &tmp, sizeof(tmp)))
+	{
 		pr_warn("copy_to_user failed\n");
 		vm_munmap(user_addr, PAGE_SIZE);
 		return;

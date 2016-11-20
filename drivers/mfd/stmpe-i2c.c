@@ -39,21 +39,23 @@ static int i2c_block_read(struct stmpe *stmpe, u8 reg, u8 length, u8 *values)
 }
 
 static int i2c_block_write(struct stmpe *stmpe, u8 reg, u8 length,
-		const u8 *values)
+						   const u8 *values)
 {
 	struct i2c_client *i2c = stmpe->client;
 
 	return i2c_smbus_write_i2c_block_data(i2c, reg, length, values);
 }
 
-static struct stmpe_client_info i2c_ci = {
+static struct stmpe_client_info i2c_ci =
+{
 	.read_byte = i2c_reg_read,
 	.write_byte = i2c_reg_write,
 	.read_block = i2c_block_read,
 	.write_block = i2c_block_write,
 };
 
-static const struct of_device_id stmpe_of_match[] = {
+static const struct of_device_id stmpe_of_match[] =
+{
 	{ .compatible = "st,stmpe610", .data = (void *)STMPE610, },
 	{ .compatible = "st,stmpe801", .data = (void *)STMPE801, },
 	{ .compatible = "st,stmpe811", .data = (void *)STMPE811, },
@@ -78,15 +80,20 @@ stmpe_i2c_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
 	i2c_ci.dev = &i2c->dev;
 
 	of_id = of_match_device(stmpe_of_match, &i2c->dev);
-	if (!of_id) {
+
+	if (!of_id)
+	{
 		/*
 		 * This happens when the I2C ID matches the node name
 		 * but no real compatible string has been given.
 		 */
 		dev_info(&i2c->dev, "matching on node name, compatible is preferred\n");
 		partnum = id->driver_data;
-	} else
+	}
+	else
+	{
 		partnum = (enum stmpe_partnum)of_id->data;
+	}
 
 	return stmpe_probe(&i2c_ci, partnum);
 }
@@ -98,7 +105,8 @@ static int stmpe_i2c_remove(struct i2c_client *i2c)
 	return stmpe_remove(stmpe);
 }
 
-static const struct i2c_device_id stmpe_i2c_id[] = {
+static const struct i2c_device_id stmpe_i2c_id[] =
+{
 	{ "stmpe610", STMPE610 },
 	{ "stmpe801", STMPE801 },
 	{ "stmpe811", STMPE811 },
@@ -111,7 +119,8 @@ static const struct i2c_device_id stmpe_i2c_id[] = {
 };
 MODULE_DEVICE_TABLE(i2c, stmpe_id);
 
-static struct i2c_driver stmpe_i2c_driver = {
+static struct i2c_driver stmpe_i2c_driver =
+{
 	.driver = {
 		.name = "stmpe-i2c",
 #ifdef CONFIG_PM

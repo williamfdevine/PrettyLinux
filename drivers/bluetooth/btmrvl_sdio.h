@@ -37,9 +37,9 @@
 	(HCI_MAX_FRAME_SIZE + FW_EXTRA_LEN)
 
 #define ALLOC_BUF_SIZE	(((max_t (int, MRVDRV_BT_RX_PACKET_BUFFER_SIZE, \
-			MRVDRV_SIZE_OF_CMD_BUFFER) + SDIO_HEADER_LEN \
-			+ SDIO_BLOCK_SIZE - 1) / SDIO_BLOCK_SIZE) \
-			* SDIO_BLOCK_SIZE)
+								  MRVDRV_SIZE_OF_CMD_BUFFER) + SDIO_HEADER_LEN \
+						   + SDIO_BLOCK_SIZE - 1) / SDIO_BLOCK_SIZE) \
+						 * SDIO_BLOCK_SIZE)
 
 /* The number of times to try when polling for status */
 #define MAX_POLL_TRIES			100
@@ -62,12 +62,14 @@
 
 #define FIRMWARE_READY				0xfedc
 
-struct btmrvl_plt_wake_cfg {
+struct btmrvl_plt_wake_cfg
+{
 	int irq_bt;
 	bool wake_by_bt;
 };
 
-struct btmrvl_sdio_card_reg {
+struct btmrvl_sdio_card_reg
+{
 	u8 cfg;
 	u8 host_int_mask;
 	u8 host_intstatus;
@@ -90,7 +92,8 @@ struct btmrvl_sdio_card_reg {
 	u8 fw_dump_end;
 };
 
-struct btmrvl_sdio_card {
+struct btmrvl_sdio_card
+{
 	struct sdio_func *func;
 	u32 ioport;
 	const char *helper;
@@ -105,7 +108,8 @@ struct btmrvl_sdio_card {
 	struct btmrvl_plt_wake_cfg *plt_wake_cfg;
 };
 
-struct btmrvl_sdio_device {
+struct btmrvl_sdio_device
+{
 	const char *helper;
 	const char *firmware;
 	const struct btmrvl_sdio_card_reg *reg;
@@ -125,4 +129,4 @@ struct btmrvl_sdio_device {
 /* Macros for Data Alignment : address */
 #define ALIGN_ADDR(p, a)	\
 	((((unsigned long)(p)) + (((unsigned long)(a)) - 1)) & \
-					~(((unsigned long)(a)) - 1))
+	 ~(((unsigned long)(a)) - 1))

@@ -7,7 +7,8 @@
  * start addresses of the different functions in the physical
  * address space of the SDMA engine.
  */
-struct sdma_script_start_addrs {
+struct sdma_script_start_addrs
+{
 	s32 ap_2_ap_addr;
 	s32 ap_2_bp_addr;
 	s32 ap_2_ap_fixed_addr;
@@ -59,7 +60,8 @@ struct sdma_script_start_addrs {
  * @fw_name		The firmware name
  * @script_addrs	SDMA scripts addresses in SDMA ROM
  */
-struct sdma_platform_data {
+struct sdma_platform_data
+{
 	char *fw_name;
 	struct sdma_script_start_addrs *script_addrs;
 };

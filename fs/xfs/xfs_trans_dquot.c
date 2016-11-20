@@ -95,7 +95,9 @@ xfs_trans_dup_dqinfo(
 	ulong		blk_res_used;
 
 	if (!otp->t_dqinfo)
+	{
 		return;
+	}
 
 	xfs_trans_alloc_dqinfo(ntp);
 
@@ -104,21 +106,31 @@ xfs_trans_dup_dqinfo(
 	 * it is also necessary to carry forward the DQ_DIRTY flag.
 	 */
 	if (otp->t_flags & XFS_TRANS_DQ_DIRTY)
+	{
 		ntp->t_flags |= XFS_TRANS_DQ_DIRTY;
+	}
 
-	for (j = 0; j < XFS_QM_TRANS_DQTYPES; j++) {
+	for (j = 0; j < XFS_QM_TRANS_DQTYPES; j++)
+	{
 		oqa = otp->t_dqinfo->dqs[j];
 		nqa = ntp->t_dqinfo->dqs[j];
-		for (i = 0; i < XFS_QM_TRANS_MAXDQS; i++) {
+
+		for (i = 0; i < XFS_QM_TRANS_MAXDQS; i++)
+		{
 			blk_res_used = 0;
 
 			if (oqa[i].qt_dquot == NULL)
+			{
 				break;
+			}
+
 			oq = &oqa[i];
 			nq = &nqa[i];
 
 			if (oq->qt_blk_res && oq->qt_bcount_delta > 0)
+			{
 				blk_res_used = oq->qt_bcount_delta;
+			}
 
 			nq->qt_dquot = oq->qt_dquot;
 			nq->qt_bcount_delta = nq->qt_icount_delta = 0;
@@ -131,7 +143,7 @@ xfs_trans_dup_dqinfo(
 			oq->qt_blk_res = blk_res_used;
 
 			nq->qt_rtblk_res = oq->qt_rtblk_res -
-				oq->qt_rtblk_res_used;
+							   oq->qt_rtblk_res_used;
 			oq->qt_rtblk_res = oq->qt_rtblk_res_used;
 
 			nq->qt_ino_res = oq->qt_ino_res - oq->qt_ino_res_used;
@@ -154,19 +166,31 @@ xfs_trans_mod_dquot_byino(
 	xfs_mount_t	*mp = tp->t_mountp;
 
 	if (!XFS_IS_QUOTA_RUNNING(mp) ||
-	    !XFS_IS_QUOTA_ON(mp) ||
-	    xfs_is_quota_inode(&mp->m_sb, ip->i_ino))
+		!XFS_IS_QUOTA_ON(mp) ||
+		xfs_is_quota_inode(&mp->m_sb, ip->i_ino))
+	{
 		return;
+	}
 
 	if (tp->t_dqinfo == NULL)
+	{
 		xfs_trans_alloc_dqinfo(tp);
+	}
 
 	if (XFS_IS_UQUOTA_ON(mp) && ip->i_udquot)
+	{
 		(void) xfs_trans_mod_dquot(tp, ip->i_udquot, field, delta);
+	}
+
 	if (XFS_IS_GQUOTA_ON(mp) && ip->i_gdquot)
+	{
 		(void) xfs_trans_mod_dquot(tp, ip->i_gdquot, field, delta);
+	}
+
 	if (XFS_IS_PQUOTA_ON(mp) && ip->i_pdquot)
+	{
 		(void) xfs_trans_mod_dquot(tp, ip->i_pdquot, field, delta);
+	}
 }
 
 STATIC struct xfs_dqtrx *
@@ -178,18 +202,29 @@ xfs_trans_get_dqtrx(
 	struct xfs_dqtrx	*qa;
 
 	if (XFS_QM_ISUDQ(dqp))
+	{
 		qa = tp->t_dqinfo->dqs[XFS_QM_TRANS_USR];
+	}
 	else if (XFS_QM_ISGDQ(dqp))
+	{
 		qa = tp->t_dqinfo->dqs[XFS_QM_TRANS_GRP];
+	}
 	else if (XFS_QM_ISPDQ(dqp))
+	{
 		qa = tp->t_dqinfo->dqs[XFS_QM_TRANS_PRJ];
+	}
 	else
+	{
 		return NULL;
+	}
 
-	for (i = 0; i < XFS_QM_TRANS_MAXDQS; i++) {
+	for (i = 0; i < XFS_QM_TRANS_MAXDQS; i++)
+	{
 		if (qa[i].qt_dquot == NULL ||
-		    qa[i].qt_dquot == dqp)
+			qa[i].qt_dquot == dqp)
+		{
 			return &qa[i];
+		}
 	}
 
 	return NULL;
@@ -215,79 +250,91 @@ xfs_trans_mod_dquot(
 	qtrx = NULL;
 
 	if (tp->t_dqinfo == NULL)
+	{
 		xfs_trans_alloc_dqinfo(tp);
+	}
+
 	/*
 	 * Find either the first free slot or the slot that belongs
 	 * to this dquot.
 	 */
 	qtrx = xfs_trans_get_dqtrx(tp, dqp);
 	ASSERT(qtrx);
-	if (qtrx->qt_dquot == NULL)
-		qtrx->qt_dquot = dqp;
 
-	switch (field) {
+	if (qtrx->qt_dquot == NULL)
+	{
+		qtrx->qt_dquot = dqp;
+	}
+
+	switch (field)
+	{
 
 		/*
 		 * regular disk blk reservation
 		 */
-	      case XFS_TRANS_DQ_RES_BLKS:
-		qtrx->qt_blk_res += (ulong)delta;
-		break;
+		case XFS_TRANS_DQ_RES_BLKS:
+			qtrx->qt_blk_res += (ulong)delta;
+			break;
 
 		/*
 		 * inode reservation
 		 */
-	      case XFS_TRANS_DQ_RES_INOS:
-		qtrx->qt_ino_res += (ulong)delta;
-		break;
+		case XFS_TRANS_DQ_RES_INOS:
+			qtrx->qt_ino_res += (ulong)delta;
+			break;
 
 		/*
 		 * disk blocks used.
 		 */
-	      case XFS_TRANS_DQ_BCOUNT:
-		qtrx->qt_bcount_delta += delta;
-		break;
+		case XFS_TRANS_DQ_BCOUNT:
+			qtrx->qt_bcount_delta += delta;
+			break;
 
-	      case XFS_TRANS_DQ_DELBCOUNT:
-		qtrx->qt_delbcnt_delta += delta;
-		break;
+		case XFS_TRANS_DQ_DELBCOUNT:
+			qtrx->qt_delbcnt_delta += delta;
+			break;
 
 		/*
 		 * Inode Count
 		 */
-	      case XFS_TRANS_DQ_ICOUNT:
-		if (qtrx->qt_ino_res && delta > 0) {
-			qtrx->qt_ino_res_used += (ulong)delta;
-			ASSERT(qtrx->qt_ino_res >= qtrx->qt_ino_res_used);
-		}
-		qtrx->qt_icount_delta += delta;
-		break;
+		case XFS_TRANS_DQ_ICOUNT:
+			if (qtrx->qt_ino_res && delta > 0)
+			{
+				qtrx->qt_ino_res_used += (ulong)delta;
+				ASSERT(qtrx->qt_ino_res >= qtrx->qt_ino_res_used);
+			}
+
+			qtrx->qt_icount_delta += delta;
+			break;
 
 		/*
 		 * rtblk reservation
 		 */
-	      case XFS_TRANS_DQ_RES_RTBLKS:
-		qtrx->qt_rtblk_res += (ulong)delta;
-		break;
+		case XFS_TRANS_DQ_RES_RTBLKS:
+			qtrx->qt_rtblk_res += (ulong)delta;
+			break;
 
 		/*
 		 * rtblk count
 		 */
-	      case XFS_TRANS_DQ_RTBCOUNT:
-		if (qtrx->qt_rtblk_res && delta > 0) {
-			qtrx->qt_rtblk_res_used += (ulong)delta;
-			ASSERT(qtrx->qt_rtblk_res >= qtrx->qt_rtblk_res_used);
-		}
-		qtrx->qt_rtbcount_delta += delta;
-		break;
+		case XFS_TRANS_DQ_RTBCOUNT:
+			if (qtrx->qt_rtblk_res && delta > 0)
+			{
+				qtrx->qt_rtblk_res_used += (ulong)delta;
+				ASSERT(qtrx->qt_rtblk_res >= qtrx->qt_rtblk_res_used);
+			}
 
-	      case XFS_TRANS_DQ_DELRTBCOUNT:
-		qtrx->qt_delrtb_delta += delta;
-		break;
+			qtrx->qt_rtbcount_delta += delta;
+			break;
 
-	      default:
-		ASSERT(0);
+		case XFS_TRANS_DQ_DELRTBCOUNT:
+			qtrx->qt_delrtb_delta += delta;
+			break;
+
+		default:
+			ASSERT(0);
 	}
+
 	tp->t_flags |= XFS_TRANS_DQ_DIRTY;
 }
 
@@ -304,10 +351,14 @@ xfs_trans_dqlockedjoin(
 	xfs_dqtrx_t	*q)
 {
 	ASSERT(q[0].qt_dquot != NULL);
-	if (q[1].qt_dquot == NULL) {
+
+	if (q[1].qt_dquot == NULL)
+	{
 		xfs_dqlock(q[0].qt_dquot);
 		xfs_trans_dqjoin(tp, q[0].qt_dquot);
-	} else {
+	}
+	else
+	{
 		ASSERT(XFS_QM_TRANS_MAXDQS == 2);
 		xfs_dqlock2(q[0].qt_dquot, q[1].qt_dquot);
 		xfs_trans_dqjoin(tp, q[0].qt_dquot);
@@ -336,27 +387,38 @@ xfs_trans_apply_dquot_deltas(
 	long			totalrtbdelta;
 
 	if (!(tp->t_flags & XFS_TRANS_DQ_DIRTY))
+	{
 		return;
+	}
 
 	ASSERT(tp->t_dqinfo);
-	for (j = 0; j < XFS_QM_TRANS_DQTYPES; j++) {
+
+	for (j = 0; j < XFS_QM_TRANS_DQTYPES; j++)
+	{
 		qa = tp->t_dqinfo->dqs[j];
+
 		if (qa[0].qt_dquot == NULL)
+		{
 			continue;
+		}
 
 		/*
 		 * Lock all of the dquots and join them to the transaction.
 		 */
 		xfs_trans_dqlockedjoin(tp, qa);
 
-		for (i = 0; i < XFS_QM_TRANS_MAXDQS; i++) {
+		for (i = 0; i < XFS_QM_TRANS_MAXDQS; i++)
+		{
 			qtrx = &qa[i];
+
 			/*
 			 * The array of dquots is filled
 			 * sequentially, not sparsely.
 			 */
 			if ((dqp = qtrx->qt_dquot) == NULL)
+			{
 				break;
+			}
 
 			ASSERT(XFS_DQ_IS_LOCKED(dqp));
 			ASSERT(dqp->q_transp == tp);
@@ -380,36 +442,46 @@ xfs_trans_apply_dquot_deltas(
 			 * quota reservations.
 			 */
 			totalbdelta = qtrx->qt_bcount_delta +
-				qtrx->qt_delbcnt_delta;
+						  qtrx->qt_delbcnt_delta;
 			totalrtbdelta = qtrx->qt_rtbcount_delta +
-				qtrx->qt_delrtb_delta;
+							qtrx->qt_delrtb_delta;
 #ifdef DEBUG
+
 			if (totalbdelta < 0)
 				ASSERT(be64_to_cpu(d->d_bcount) >=
-				       -totalbdelta);
+					   -totalbdelta);
 
 			if (totalrtbdelta < 0)
 				ASSERT(be64_to_cpu(d->d_rtbcount) >=
-				       -totalrtbdelta);
+					   -totalrtbdelta);
 
 			if (qtrx->qt_icount_delta < 0)
 				ASSERT(be64_to_cpu(d->d_icount) >=
-				       -qtrx->qt_icount_delta);
+					   -qtrx->qt_icount_delta);
+
 #endif
+
 			if (totalbdelta)
+			{
 				be64_add_cpu(&d->d_bcount, (xfs_qcnt_t)totalbdelta);
+			}
 
 			if (qtrx->qt_icount_delta)
+			{
 				be64_add_cpu(&d->d_icount, (xfs_qcnt_t)qtrx->qt_icount_delta);
+			}
 
 			if (totalrtbdelta)
+			{
 				be64_add_cpu(&d->d_rtbcount, (xfs_qcnt_t)totalrtbdelta);
+			}
 
 			/*
 			 * Get any default limits in use.
 			 * Start/reset the timer(s) if needed.
 			 */
-			if (d->d_id) {
+			if (d->d_id)
+			{
 				xfs_qm_adjust_dqlimits(tp->t_mountp, dqp);
 				xfs_qm_adjust_dqtimers(tp->t_mountp, d);
 			}
@@ -419,28 +491,35 @@ xfs_trans_apply_dquot_deltas(
 			 * add this to the list of items to get logged
 			 */
 			xfs_trans_log_dquot(tp, dqp);
+
 			/*
 			 * Take off what's left of the original reservation.
 			 * In case of delayed allocations, there's no
 			 * reservation that a transaction structure knows of.
 			 */
-			if (qtrx->qt_blk_res != 0) {
+			if (qtrx->qt_blk_res != 0)
+			{
 				ulong blk_res_used = 0;
 
 				if (qtrx->qt_bcount_delta > 0)
+				{
 					blk_res_used = qtrx->qt_bcount_delta;
+				}
 
-				if (qtrx->qt_blk_res != blk_res_used) {
+				if (qtrx->qt_blk_res != blk_res_used)
+				{
 					if (qtrx->qt_blk_res > blk_res_used)
 						dqp->q_res_bcount -= (xfs_qcnt_t)
-							(qtrx->qt_blk_res -
-							 blk_res_used);
+											 (qtrx->qt_blk_res -
+											  blk_res_used);
 					else
 						dqp->q_res_bcount -= (xfs_qcnt_t)
-							(blk_res_used -
-							 qtrx->qt_blk_res);
+											 (blk_res_used -
+											  qtrx->qt_blk_res);
 				}
-			} else {
+			}
+			else
+			{
 				/*
 				 * These blks were never reserved, either inside
 				 * a transaction or outside one (in a delayed
@@ -448,54 +527,64 @@ xfs_trans_apply_dquot_deltas(
 				 * negative number since we sometimes
 				 * deliberately skip quota reservations.
 				 */
-				if (qtrx->qt_bcount_delta) {
+				if (qtrx->qt_bcount_delta)
+				{
 					dqp->q_res_bcount +=
-					      (xfs_qcnt_t)qtrx->qt_bcount_delta;
+						(xfs_qcnt_t)qtrx->qt_bcount_delta;
 				}
 			}
+
 			/*
 			 * Adjust the RT reservation.
 			 */
-			if (qtrx->qt_rtblk_res != 0) {
-				if (qtrx->qt_rtblk_res != qtrx->qt_rtblk_res_used) {
+			if (qtrx->qt_rtblk_res != 0)
+			{
+				if (qtrx->qt_rtblk_res != qtrx->qt_rtblk_res_used)
+				{
 					if (qtrx->qt_rtblk_res >
-					    qtrx->qt_rtblk_res_used)
-					       dqp->q_res_rtbcount -= (xfs_qcnt_t)
-						       (qtrx->qt_rtblk_res -
-							qtrx->qt_rtblk_res_used);
+						qtrx->qt_rtblk_res_used)
+						dqp->q_res_rtbcount -= (xfs_qcnt_t)
+											   (qtrx->qt_rtblk_res -
+												qtrx->qt_rtblk_res_used);
 					else
-					       dqp->q_res_rtbcount -= (xfs_qcnt_t)
-						       (qtrx->qt_rtblk_res_used -
-							qtrx->qt_rtblk_res);
+						dqp->q_res_rtbcount -= (xfs_qcnt_t)
+											   (qtrx->qt_rtblk_res_used -
+												qtrx->qt_rtblk_res);
 				}
-			} else {
+			}
+			else
+			{
 				if (qtrx->qt_rtbcount_delta)
 					dqp->q_res_rtbcount +=
-					    (xfs_qcnt_t)qtrx->qt_rtbcount_delta;
+						(xfs_qcnt_t)qtrx->qt_rtbcount_delta;
 			}
 
 			/*
 			 * Adjust the inode reservation.
 			 */
-			if (qtrx->qt_ino_res != 0) {
+			if (qtrx->qt_ino_res != 0)
+			{
 				ASSERT(qtrx->qt_ino_res >=
-				       qtrx->qt_ino_res_used);
+					   qtrx->qt_ino_res_used);
+
 				if (qtrx->qt_ino_res > qtrx->qt_ino_res_used)
 					dqp->q_res_icount -= (xfs_qcnt_t)
-						(qtrx->qt_ino_res -
-						 qtrx->qt_ino_res_used);
-			} else {
+										 (qtrx->qt_ino_res -
+										  qtrx->qt_ino_res_used);
+			}
+			else
+			{
 				if (qtrx->qt_icount_delta)
 					dqp->q_res_icount +=
-					    (xfs_qcnt_t)qtrx->qt_icount_delta;
+						(xfs_qcnt_t)qtrx->qt_icount_delta;
 			}
 
 			ASSERT(dqp->q_res_bcount >=
-				be64_to_cpu(dqp->q_core.d_bcount));
+				   be64_to_cpu(dqp->q_core.d_bcount));
 			ASSERT(dqp->q_res_icount >=
-				be64_to_cpu(dqp->q_core.d_icount));
+				   be64_to_cpu(dqp->q_core.d_icount));
 			ASSERT(dqp->q_res_rtbcount >=
-				be64_to_cpu(dqp->q_core.d_rtbcount));
+				   be64_to_cpu(dqp->q_core.d_rtbcount));
 		}
 	}
 }
@@ -517,50 +606,70 @@ xfs_trans_unreserve_and_mod_dquots(
 	bool                    locked;
 
 	if (!tp->t_dqinfo || !(tp->t_flags & XFS_TRANS_DQ_DIRTY))
+	{
 		return;
+	}
 
-	for (j = 0; j < XFS_QM_TRANS_DQTYPES; j++) {
+	for (j = 0; j < XFS_QM_TRANS_DQTYPES; j++)
+	{
 		qa = tp->t_dqinfo->dqs[j];
 
-		for (i = 0; i < XFS_QM_TRANS_MAXDQS; i++) {
+		for (i = 0; i < XFS_QM_TRANS_MAXDQS; i++)
+		{
 			qtrx = &qa[i];
+
 			/*
 			 * We assume that the array of dquots is filled
 			 * sequentially, not sparsely.
 			 */
 			if ((dqp = qtrx->qt_dquot) == NULL)
+			{
 				break;
+			}
+
 			/*
 			 * Unreserve the original reservation. We don't care
 			 * about the number of blocks used field, or deltas.
 			 * Also we don't bother to zero the fields.
 			 */
 			locked = false;
-			if (qtrx->qt_blk_res) {
+
+			if (qtrx->qt_blk_res)
+			{
 				xfs_dqlock(dqp);
 				locked = true;
 				dqp->q_res_bcount -=
 					(xfs_qcnt_t)qtrx->qt_blk_res;
 			}
-			if (qtrx->qt_ino_res) {
-				if (!locked) {
+
+			if (qtrx->qt_ino_res)
+			{
+				if (!locked)
+				{
 					xfs_dqlock(dqp);
 					locked = true;
 				}
+
 				dqp->q_res_icount -=
 					(xfs_qcnt_t)qtrx->qt_ino_res;
 			}
 
-			if (qtrx->qt_rtblk_res) {
-				if (!locked) {
+			if (qtrx->qt_rtblk_res)
+			{
+				if (!locked)
+				{
 					xfs_dqlock(dqp);
 					locked = true;
 				}
+
 				dqp->q_res_rtbcount -=
 					(xfs_qcnt_t)qtrx->qt_rtblk_res;
 			}
+
 			if (locked)
+			{
 				xfs_dqunlock(dqp);
+			}
 
 		}
 	}
@@ -575,15 +684,21 @@ xfs_quota_warn(
 	enum quota_type qtype;
 
 	if (dqp->dq_flags & XFS_DQ_PROJ)
+	{
 		qtype = PRJQUOTA;
+	}
 	else if (dqp->dq_flags & XFS_DQ_USER)
+	{
 		qtype = USRQUOTA;
+	}
 	else
+	{
 		qtype = GRPQUOTA;
+	}
 
 	quota_send_warning(make_kqid(&init_user_ns, qtype,
-				     be32_to_cpu(dqp->q_core.d_id)),
-			   mp->m_super->s_dev, type);
+								 be32_to_cpu(dqp->q_core.d_id)),
+					   mp->m_super->s_dev, type);
 }
 
 /*
@@ -616,25 +731,44 @@ xfs_trans_dqresv(
 
 	defq = xfs_get_defquota(dqp, q);
 
-	if (flags & XFS_TRANS_DQ_RES_BLKS) {
+	if (flags & XFS_TRANS_DQ_RES_BLKS)
+	{
 		hardlimit = be64_to_cpu(dqp->q_core.d_blk_hardlimit);
+
 		if (!hardlimit)
+		{
 			hardlimit = defq->bhardlimit;
+		}
+
 		softlimit = be64_to_cpu(dqp->q_core.d_blk_softlimit);
+
 		if (!softlimit)
+		{
 			softlimit = defq->bsoftlimit;
+		}
+
 		timer = be32_to_cpu(dqp->q_core.d_btimer);
 		warns = be16_to_cpu(dqp->q_core.d_bwarns);
 		warnlimit = dqp->q_mount->m_quotainfo->qi_bwarnlimit;
 		resbcountp = &dqp->q_res_bcount;
-	} else {
+	}
+	else
+	{
 		ASSERT(flags & XFS_TRANS_DQ_RES_RTBLKS);
 		hardlimit = be64_to_cpu(dqp->q_core.d_rtb_hardlimit);
+
 		if (!hardlimit)
+		{
 			hardlimit = defq->rtbhardlimit;
+		}
+
 		softlimit = be64_to_cpu(dqp->q_core.d_rtb_softlimit);
+
 		if (!softlimit)
+		{
 			softlimit = defq->rtbsoftlimit;
+		}
+
 		timer = be32_to_cpu(dqp->q_core.d_rtbtimer);
 		warns = be16_to_cpu(dqp->q_core.d_rtbwarns);
 		warnlimit = dqp->q_mount->m_quotainfo->qi_rtbwarnlimit;
@@ -642,55 +776,76 @@ xfs_trans_dqresv(
 	}
 
 	if ((flags & XFS_QMOPT_FORCE_RES) == 0 &&
-	    dqp->q_core.d_id &&
-	    ((XFS_IS_UQUOTA_ENFORCED(dqp->q_mount) && XFS_QM_ISUDQ(dqp)) ||
-	     (XFS_IS_GQUOTA_ENFORCED(dqp->q_mount) && XFS_QM_ISGDQ(dqp)) ||
-	     (XFS_IS_PQUOTA_ENFORCED(dqp->q_mount) && XFS_QM_ISPDQ(dqp)))) {
-		if (nblks > 0) {
+		dqp->q_core.d_id &&
+		((XFS_IS_UQUOTA_ENFORCED(dqp->q_mount) && XFS_QM_ISUDQ(dqp)) ||
+		 (XFS_IS_GQUOTA_ENFORCED(dqp->q_mount) && XFS_QM_ISGDQ(dqp)) ||
+		 (XFS_IS_PQUOTA_ENFORCED(dqp->q_mount) && XFS_QM_ISPDQ(dqp))))
+	{
+		if (nblks > 0)
+		{
 			/*
 			 * dquot is locked already. See if we'd go over the
 			 * hardlimit or exceed the timelimit if we allocate
 			 * nblks.
 			 */
 			total_count = *resbcountp + nblks;
-			if (hardlimit && total_count > hardlimit) {
+
+			if (hardlimit && total_count > hardlimit)
+			{
 				xfs_quota_warn(mp, dqp, QUOTA_NL_BHARDWARN);
 				goto error_return;
 			}
-			if (softlimit && total_count > softlimit) {
+
+			if (softlimit && total_count > softlimit)
+			{
 				if ((timer != 0 && get_seconds() > timer) ||
-				    (warns != 0 && warns >= warnlimit)) {
+					(warns != 0 && warns >= warnlimit))
+				{
 					xfs_quota_warn(mp, dqp,
-						       QUOTA_NL_BSOFTLONGWARN);
+								   QUOTA_NL_BSOFTLONGWARN);
 					goto error_return;
 				}
 
 				xfs_quota_warn(mp, dqp, QUOTA_NL_BSOFTWARN);
 			}
 		}
-		if (ninos > 0) {
+
+		if (ninos > 0)
+		{
 			total_count = be64_to_cpu(dqp->q_core.d_icount) + ninos;
 			timer = be32_to_cpu(dqp->q_core.d_itimer);
 			warns = be16_to_cpu(dqp->q_core.d_iwarns);
 			warnlimit = dqp->q_mount->m_quotainfo->qi_iwarnlimit;
 			hardlimit = be64_to_cpu(dqp->q_core.d_ino_hardlimit);
-			if (!hardlimit)
-				hardlimit = defq->ihardlimit;
-			softlimit = be64_to_cpu(dqp->q_core.d_ino_softlimit);
-			if (!softlimit)
-				softlimit = defq->isoftlimit;
 
-			if (hardlimit && total_count > hardlimit) {
+			if (!hardlimit)
+			{
+				hardlimit = defq->ihardlimit;
+			}
+
+			softlimit = be64_to_cpu(dqp->q_core.d_ino_softlimit);
+
+			if (!softlimit)
+			{
+				softlimit = defq->isoftlimit;
+			}
+
+			if (hardlimit && total_count > hardlimit)
+			{
 				xfs_quota_warn(mp, dqp, QUOTA_NL_IHARDWARN);
 				goto error_return;
 			}
-			if (softlimit && total_count > softlimit) {
+
+			if (softlimit && total_count > softlimit)
+			{
 				if  ((timer != 0 && get_seconds() > timer) ||
-				     (warns != 0 && warns >= warnlimit)) {
+					 (warns != 0 && warns >= warnlimit))
+				{
 					xfs_quota_warn(mp, dqp,
-						       QUOTA_NL_ISOFTLONGWARN);
+								   QUOTA_NL_ISOFTLONGWARN);
 					goto error_return;
 				}
+
 				xfs_quota_warn(mp, dqp, QUOTA_NL_ISOFTWARN);
 			}
 		}
@@ -701,8 +856,11 @@ xfs_trans_dqresv(
 	 * Note that q_res_bcount = q_core.d_bcount + resv
 	 */
 	(*resbcountp) += (xfs_qcnt_t)nblks;
+
 	if (ninos != 0)
+	{
 		dqp->q_res_icount += (xfs_qcnt_t)ninos;
+	}
 
 	/*
 	 * note the reservation amt in the trans struct too,
@@ -711,18 +869,22 @@ xfs_trans_dqresv(
 	 * We don't do this when we are reserving for a delayed allocation,
 	 * because we don't have the luxury of a transaction envelope then.
 	 */
-	if (tp) {
+	if (tp)
+	{
 		ASSERT(tp->t_dqinfo);
 		ASSERT(flags & XFS_QMOPT_RESBLK_MASK);
+
 		if (nblks != 0)
 			xfs_trans_mod_dquot(tp, dqp,
-					    flags & XFS_QMOPT_RESBLK_MASK,
-					    nblks);
+								flags & XFS_QMOPT_RESBLK_MASK,
+								nblks);
+
 		if (ninos != 0)
 			xfs_trans_mod_dquot(tp, dqp,
-					    XFS_TRANS_DQ_RES_INOS,
-					    ninos);
+								XFS_TRANS_DQ_RES_INOS,
+								ninos);
 	}
+
 	ASSERT(dqp->q_res_bcount >= be64_to_cpu(dqp->q_core.d_bcount));
 	ASSERT(dqp->q_res_rtbcount >= be64_to_cpu(dqp->q_core.d_rtbcount));
 	ASSERT(dqp->q_res_icount >= be64_to_cpu(dqp->q_core.d_icount));
@@ -732,8 +894,12 @@ xfs_trans_dqresv(
 
 error_return:
 	xfs_dqunlock(dqp);
+
 	if (flags & XFS_QMOPT_ENOSPC)
+	{
 		return -ENOSPC;
+	}
+
 	return -EDQUOT;
 }
 
@@ -764,30 +930,46 @@ xfs_trans_reserve_quota_bydquots(
 	int		error;
 
 	if (!XFS_IS_QUOTA_RUNNING(mp) || !XFS_IS_QUOTA_ON(mp))
+	{
 		return 0;
+	}
 
 	if (tp && tp->t_dqinfo == NULL)
+	{
 		xfs_trans_alloc_dqinfo(tp);
+	}
 
 	ASSERT(flags & XFS_QMOPT_RESBLK_MASK);
 
-	if (udqp) {
+	if (udqp)
+	{
 		error = xfs_trans_dqresv(tp, mp, udqp, nblks, ninos,
-					(flags & ~XFS_QMOPT_ENOSPC));
+								 (flags & ~XFS_QMOPT_ENOSPC));
+
 		if (error)
+		{
 			return error;
+		}
 	}
 
-	if (gdqp) {
+	if (gdqp)
+	{
 		error = xfs_trans_dqresv(tp, mp, gdqp, nblks, ninos, flags);
+
 		if (error)
+		{
 			goto unwind_usr;
+		}
 	}
 
-	if (pdqp) {
+	if (pdqp)
+	{
 		error = xfs_trans_dqresv(tp, mp, pdqp, nblks, ninos, flags);
+
 		if (error)
+		{
 			goto unwind_grp;
+		}
 	}
 
 	/*
@@ -797,12 +979,20 @@ xfs_trans_reserve_quota_bydquots(
 
 unwind_grp:
 	flags |= XFS_QMOPT_FORCE_RES;
+
 	if (gdqp)
+	{
 		xfs_trans_dqresv(tp, mp, gdqp, -nblks, -ninos, flags);
+	}
+
 unwind_usr:
 	flags |= XFS_QMOPT_FORCE_RES;
+
 	if (udqp)
+	{
 		xfs_trans_dqresv(tp, mp, udqp, -nblks, -ninos, flags);
+	}
+
 	return error;
 }
 
@@ -823,25 +1013,30 @@ xfs_trans_reserve_quota_nblks(
 	struct xfs_mount	*mp = ip->i_mount;
 
 	if (!XFS_IS_QUOTA_RUNNING(mp) || !XFS_IS_QUOTA_ON(mp))
+	{
 		return 0;
+	}
+
 	if (XFS_IS_PQUOTA_ON(mp))
+	{
 		flags |= XFS_QMOPT_ENOSPC;
+	}
 
 	ASSERT(!xfs_is_quota_inode(&mp->m_sb, ip->i_ino));
 
 	ASSERT(xfs_isilocked(ip, XFS_ILOCK_EXCL));
 	ASSERT((flags & ~(XFS_QMOPT_FORCE_RES | XFS_QMOPT_ENOSPC)) ==
-				XFS_TRANS_DQ_RES_RTBLKS ||
-	       (flags & ~(XFS_QMOPT_FORCE_RES | XFS_QMOPT_ENOSPC)) ==
-				XFS_TRANS_DQ_RES_BLKS);
+		   XFS_TRANS_DQ_RES_RTBLKS ||
+		   (flags & ~(XFS_QMOPT_FORCE_RES | XFS_QMOPT_ENOSPC)) ==
+		   XFS_TRANS_DQ_RES_BLKS);
 
 	/*
 	 * Reserve nblks against these dquots, with trans as the mediator.
 	 */
 	return xfs_trans_reserve_quota_bydquots(tp, mp,
-						ip->i_udquot, ip->i_gdquot,
-						ip->i_pdquot,
-						nblks, ninos, flags);
+											ip->i_udquot, ip->i_gdquot,
+											ip->i_pdquot,
+											nblks, ninos, flags);
 }
 
 /*
@@ -894,7 +1089,10 @@ xfs_trans_free_dqinfo(
 	xfs_trans_t	*tp)
 {
 	if (!tp->t_dqinfo)
+	{
 		return;
+	}
+
 	kmem_zone_free(xfs_qm_dqtrxzone, tp->t_dqinfo);
 	tp->t_dqinfo = NULL;
 }

@@ -28,7 +28,8 @@
 #define SYSRQ_ENABLE_BOOT	0x0080
 #define SYSRQ_ENABLE_RTNICE	0x0100
 
-struct sysrq_key_op {
+struct sysrq_key_op
+{
 	void (*handler)(int);
 	char *help_msg;
 	char *action_msg;

@@ -17,24 +17,28 @@
 #include <sound/tlv.h>
 #include "max98925.h"
 
-static const char *const dai_text[] = {
+static const char *const dai_text[] =
+{
 	"Left", "Right", "LeftRight", "LeftRightDiv2",
 };
 
-static const char * const max98925_boost_voltage_text[] = {
+static const char *const max98925_boost_voltage_text[] =
+{
 	"8.5V", "8.25V", "8.0V", "7.75V", "7.5V", "7.25V", "7.0V", "6.75V",
 	"6.5V", "6.5V", "6.5V", "6.5V", "6.5V", "6.5V",	"6.5V", "6.5V"
 };
 
 static SOC_ENUM_SINGLE_DECL(max98925_boost_voltage,
-	MAX98925_CONFIGURATION, M98925_BST_VOUT_SHIFT,
-	max98925_boost_voltage_text);
+							MAX98925_CONFIGURATION, M98925_BST_VOUT_SHIFT,
+							max98925_boost_voltage_text);
 
-static const char *const hpf_text[] = {
+static const char *const hpf_text[] =
+{
 	"Disable", "DC Block", "100Hz",	"200Hz", "400Hz", "800Hz",
 };
 
-static const struct reg_default max98925_reg[] = {
+static const struct reg_default max98925_reg[] =
+{
 	{ 0x0B, 0x00 }, /* IRQ Enable0 */
 	{ 0x0C, 0x00 }, /* IRQ Enable1 */
 	{ 0x0D, 0x00 }, /* IRQ Enable2 */
@@ -97,46 +101,52 @@ static const struct snd_kcontrol_new max98925_dai_sel_mux =
 	SOC_DAPM_ENUM("DAI IN MUX Mux", max98925_dai_enum);
 
 static int max98925_dac_event(struct snd_soc_dapm_widget *w,
-		struct snd_kcontrol *kcontrol, int event)
+							  struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
 	struct max98925_priv *max98925 = snd_soc_codec_get_drvdata(codec);
 
-	switch (event) {
-	case SND_SOC_DAPM_PRE_PMU:
-		regmap_update_bits(max98925->regmap,
-			MAX98925_BLOCK_ENABLE,
-			M98925_BST_EN_MASK |
-			M98925_ADC_IMON_EN_MASK | M98925_ADC_VMON_EN_MASK,
-			M98925_BST_EN_MASK |
-			M98925_ADC_IMON_EN_MASK | M98925_ADC_VMON_EN_MASK);
-		break;
-	case SND_SOC_DAPM_POST_PMD:
-		regmap_update_bits(max98925->regmap,
-			MAX98925_BLOCK_ENABLE, M98925_BST_EN_MASK |
-			M98925_ADC_IMON_EN_MASK | M98925_ADC_VMON_EN_MASK, 0);
-		break;
-	default:
-		return 0;
+	switch (event)
+	{
+		case SND_SOC_DAPM_PRE_PMU:
+			regmap_update_bits(max98925->regmap,
+							   MAX98925_BLOCK_ENABLE,
+							   M98925_BST_EN_MASK |
+							   M98925_ADC_IMON_EN_MASK | M98925_ADC_VMON_EN_MASK,
+							   M98925_BST_EN_MASK |
+							   M98925_ADC_IMON_EN_MASK | M98925_ADC_VMON_EN_MASK);
+			break;
+
+		case SND_SOC_DAPM_POST_PMD:
+			regmap_update_bits(max98925->regmap,
+							   MAX98925_BLOCK_ENABLE, M98925_BST_EN_MASK |
+							   M98925_ADC_IMON_EN_MASK | M98925_ADC_VMON_EN_MASK, 0);
+			break;
+
+		default:
+			return 0;
 	}
+
 	return 0;
 }
 
-static const struct snd_soc_dapm_widget max98925_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget max98925_dapm_widgets[] =
+{
 	SND_SOC_DAPM_AIF_IN("DAI_OUT", "HiFi Playback", 0, SND_SOC_NOPM, 0, 0),
 	SND_SOC_DAPM_MUX("DAI IN MUX", SND_SOC_NOPM, 0, 0,
-				&max98925_dai_sel_mux),
+	&max98925_dai_sel_mux),
 	SND_SOC_DAPM_MUX("Rc Filter MUX", SND_SOC_NOPM, 0, 0,
-				&max98925_hpf_sel_mux),
+	&max98925_hpf_sel_mux),
 	SND_SOC_DAPM_DAC_E("Amp Enable", NULL, MAX98925_BLOCK_ENABLE,
-			M98925_SPK_EN_SHIFT, 0, max98925_dac_event,
-			SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD),
+	M98925_SPK_EN_SHIFT, 0, max98925_dac_event,
+	SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD),
 	SND_SOC_DAPM_SUPPLY("Global Enable", MAX98925_GLOBAL_ENABLE,
-			M98925_EN_SHIFT, 0, NULL, 0),
+	M98925_EN_SHIFT, 0, NULL, 0),
 	SND_SOC_DAPM_OUTPUT("BE_OUT"),
 };
 
-static const struct snd_soc_dapm_route max98925_audio_map[] = {
+static const struct snd_soc_dapm_route max98925_audio_map[] =
+{
 	{"DAI IN MUX", "Left", "DAI_OUT"},
 	{"DAI IN MUX", "Right", "DAI_OUT"},
 	{"DAI IN MUX", "LeftRight", "DAI_OUT"},
@@ -154,61 +164,68 @@ static const struct snd_soc_dapm_route max98925_audio_map[] = {
 
 static bool max98925_volatile_register(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case MAX98925_VBAT_DATA:
-	case MAX98925_VBST_DATA:
-	case MAX98925_LIVE_STATUS0:
-	case MAX98925_LIVE_STATUS1:
-	case MAX98925_LIVE_STATUS2:
-	case MAX98925_STATE0:
-	case MAX98925_STATE1:
-	case MAX98925_STATE2:
-	case MAX98925_FLAG0:
-	case MAX98925_FLAG1:
-	case MAX98925_FLAG2:
-	case MAX98925_REV_VERSION:
-		return true;
-	default:
-		return false;
+	switch (reg)
+	{
+		case MAX98925_VBAT_DATA:
+		case MAX98925_VBST_DATA:
+		case MAX98925_LIVE_STATUS0:
+		case MAX98925_LIVE_STATUS1:
+		case MAX98925_LIVE_STATUS2:
+		case MAX98925_STATE0:
+		case MAX98925_STATE1:
+		case MAX98925_STATE2:
+		case MAX98925_FLAG0:
+		case MAX98925_FLAG1:
+		case MAX98925_FLAG2:
+		case MAX98925_REV_VERSION:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
 static bool max98925_readable_register(struct device *dev, unsigned int reg)
 {
-	switch (reg) {
-	case MAX98925_IRQ_CLEAR0:
-	case MAX98925_IRQ_CLEAR1:
-	case MAX98925_IRQ_CLEAR2:
-	case MAX98925_ALC_HOLD_RLS:
-		return false;
-	default:
-		return true;
+	switch (reg)
+	{
+		case MAX98925_IRQ_CLEAR0:
+		case MAX98925_IRQ_CLEAR1:
+		case MAX98925_IRQ_CLEAR2:
+		case MAX98925_ALC_HOLD_RLS:
+			return false;
+
+		default:
+			return true;
 	}
 }
 
 static DECLARE_TLV_DB_SCALE(max98925_spk_tlv, -600, 100, 0);
 
-static const struct snd_kcontrol_new max98925_snd_controls[] = {
+static const struct snd_kcontrol_new max98925_snd_controls[] =
+{
 	SOC_SINGLE_TLV("Speaker Volume", MAX98925_GAIN,
-		M98925_SPK_GAIN_SHIFT, (1<<M98925_SPK_GAIN_WIDTH)-1, 0,
-		max98925_spk_tlv),
+	M98925_SPK_GAIN_SHIFT, (1 << M98925_SPK_GAIN_WIDTH) - 1, 0,
+	max98925_spk_tlv),
 	SOC_SINGLE("Ramp Switch", MAX98925_GAIN_RAMPING,
-				M98925_SPK_RMP_EN_SHIFT, 1, 0),
+	M98925_SPK_RMP_EN_SHIFT, 1, 0),
 	SOC_SINGLE("ZCD Switch", MAX98925_GAIN_RAMPING,
-				M98925_SPK_ZCD_EN_SHIFT, 1, 0),
+	M98925_SPK_ZCD_EN_SHIFT, 1, 0),
 	SOC_SINGLE("ALC Switch", MAX98925_THRESHOLD,
-				M98925_ALC_EN_SHIFT, 1, 0),
+	M98925_ALC_EN_SHIFT, 1, 0),
 	SOC_SINGLE("ALC Threshold", MAX98925_THRESHOLD, M98925_ALC_TH_SHIFT,
-				(1<<M98925_ALC_TH_WIDTH)-1, 0),
+	(1 << M98925_ALC_TH_WIDTH) - 1, 0),
 	SOC_ENUM("Boost Output Voltage", max98925_boost_voltage),
 };
 
 /* codec sample rate and n/m dividers parameter table */
-static const struct {
+static const struct
+{
 	int rate;
 	int  sr;
 	int divisors[3][2];
-} rate_table[] = {
+} rate_table[] =
+{
 	{
 		.rate = 8000,
 		.sr = 0,
@@ -257,13 +274,15 @@ static const struct {
 };
 
 static inline int max98925_rate_value(struct snd_soc_codec *codec,
-		int rate, int clock, int *value, int *n, int *m)
+									  int rate, int clock, int *value, int *n, int *m)
 {
 	int ret = -EINVAL;
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(rate_table); i++) {
-		if (rate_table[i].rate >= rate) {
+	for (i = 0; i < ARRAY_SIZE(rate_table); i++)
+	{
+		if (rate_table[i].rate >= rate)
+		{
 			*value = rate_table[i].sr;
 			*n = rate_table[i].divisors[clock][0];
 			*m = rate_table[i].divisors[clock][1];
@@ -271,6 +290,7 @@ static inline int max98925_rate_value(struct snd_soc_codec *codec,
 			break;
 		}
 	}
+
 	return ret;
 }
 
@@ -278,78 +298,87 @@ static void max98925_set_sense_data(struct max98925_priv *max98925)
 {
 	/* set VMON slots */
 	regmap_update_bits(max98925->regmap,
-		MAX98925_DOUT_CFG_VMON,
-		M98925_DAI_VMON_EN_MASK, M98925_DAI_VMON_EN_MASK);
+					   MAX98925_DOUT_CFG_VMON,
+					   M98925_DAI_VMON_EN_MASK, M98925_DAI_VMON_EN_MASK);
 	regmap_update_bits(max98925->regmap,
-		MAX98925_DOUT_CFG_VMON,
-		M98925_DAI_VMON_SLOT_MASK,
-		max98925->v_slot << M98925_DAI_VMON_SLOT_SHIFT);
+					   MAX98925_DOUT_CFG_VMON,
+					   M98925_DAI_VMON_SLOT_MASK,
+					   max98925->v_slot << M98925_DAI_VMON_SLOT_SHIFT);
 	/* set IMON slots */
 	regmap_update_bits(max98925->regmap,
-		MAX98925_DOUT_CFG_IMON,
-		M98925_DAI_IMON_EN_MASK, M98925_DAI_IMON_EN_MASK);
+					   MAX98925_DOUT_CFG_IMON,
+					   M98925_DAI_IMON_EN_MASK, M98925_DAI_IMON_EN_MASK);
 	regmap_update_bits(max98925->regmap,
-		MAX98925_DOUT_CFG_IMON,
-		M98925_DAI_IMON_SLOT_MASK,
-		max98925->i_slot << M98925_DAI_IMON_SLOT_SHIFT);
+					   MAX98925_DOUT_CFG_IMON,
+					   M98925_DAI_IMON_SLOT_MASK,
+					   max98925->i_slot << M98925_DAI_IMON_SLOT_SHIFT);
 }
 
 static int max98925_dai_set_fmt(struct snd_soc_dai *codec_dai,
-				 unsigned int fmt)
+								unsigned int fmt)
 {
 	struct snd_soc_codec *codec = codec_dai->codec;
 	struct max98925_priv *max98925 = snd_soc_codec_get_drvdata(codec);
 	unsigned int invert = 0;
 
 	dev_dbg(codec->dev, "%s: fmt 0x%08X\n", __func__, fmt);
-	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
-	case SND_SOC_DAIFMT_CBS_CFS:
-		/* set DAI to slave mode */
-		regmap_update_bits(max98925->regmap,
-			MAX98925_DAI_CLK_MODE2,
-			M98925_DAI_MAS_MASK, 0);
-		max98925_set_sense_data(max98925);
-		break;
-	case SND_SOC_DAIFMT_CBM_CFM:
-		/*
-		 * set left channel DAI to master mode,
-		 * right channel always slave
-		 */
-		regmap_update_bits(max98925->regmap,
-			MAX98925_DAI_CLK_MODE2,
-			M98925_DAI_MAS_MASK, M98925_DAI_MAS_MASK);
-		break;
-	case SND_SOC_DAIFMT_CBS_CFM:
-	case SND_SOC_DAIFMT_CBM_CFS:
-	default:
-		dev_err(codec->dev, "DAI clock mode unsupported");
-		return -EINVAL;
+
+	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK)
+	{
+		case SND_SOC_DAIFMT_CBS_CFS:
+			/* set DAI to slave mode */
+			regmap_update_bits(max98925->regmap,
+							   MAX98925_DAI_CLK_MODE2,
+							   M98925_DAI_MAS_MASK, 0);
+			max98925_set_sense_data(max98925);
+			break;
+
+		case SND_SOC_DAIFMT_CBM_CFM:
+			/*
+			 * set left channel DAI to master mode,
+			 * right channel always slave
+			 */
+			regmap_update_bits(max98925->regmap,
+							   MAX98925_DAI_CLK_MODE2,
+							   M98925_DAI_MAS_MASK, M98925_DAI_MAS_MASK);
+			break;
+
+		case SND_SOC_DAIFMT_CBS_CFM:
+		case SND_SOC_DAIFMT_CBM_CFS:
+		default:
+			dev_err(codec->dev, "DAI clock mode unsupported");
+			return -EINVAL;
 	}
 
-	switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
-	case SND_SOC_DAIFMT_NB_NF:
-		break;
-	case SND_SOC_DAIFMT_NB_IF:
-		invert = M98925_DAI_WCI_MASK;
-		break;
-	case SND_SOC_DAIFMT_IB_NF:
-		invert = M98925_DAI_BCI_MASK;
-		break;
-	case SND_SOC_DAIFMT_IB_IF:
-		invert = M98925_DAI_BCI_MASK | M98925_DAI_WCI_MASK;
-		break;
-	default:
-		dev_err(codec->dev, "DAI invert mode unsupported");
-		return -EINVAL;
+	switch (fmt & SND_SOC_DAIFMT_INV_MASK)
+	{
+		case SND_SOC_DAIFMT_NB_NF:
+			break;
+
+		case SND_SOC_DAIFMT_NB_IF:
+			invert = M98925_DAI_WCI_MASK;
+			break;
+
+		case SND_SOC_DAIFMT_IB_NF:
+			invert = M98925_DAI_BCI_MASK;
+			break;
+
+		case SND_SOC_DAIFMT_IB_IF:
+			invert = M98925_DAI_BCI_MASK | M98925_DAI_WCI_MASK;
+			break;
+
+		default:
+			dev_err(codec->dev, "DAI invert mode unsupported");
+			return -EINVAL;
 	}
 
 	regmap_update_bits(max98925->regmap, MAX98925_FORMAT,
-			M98925_DAI_BCI_MASK | M98925_DAI_WCI_MASK, invert);
+					   M98925_DAI_BCI_MASK | M98925_DAI_WCI_MASK, invert);
 	return 0;
 }
 
 static int max98925_set_clock(struct max98925_priv *max98925,
-		struct snd_pcm_hw_params *params)
+							  struct snd_pcm_hw_params *params)
 {
 	unsigned int dai_sr = 0, clock, mdll, n, m;
 	struct snd_soc_codec *codec = max98925->codec;
@@ -357,145 +386,167 @@ static int max98925_set_clock(struct max98925_priv *max98925,
 	/* BCLK/LRCLK ratio calculation */
 	int blr_clk_ratio = params_channels(params) * max98925->ch_size;
 
-	switch (blr_clk_ratio) {
-	case 32:
-		regmap_update_bits(max98925->regmap,
-			MAX98925_DAI_CLK_MODE2,
-			M98925_DAI_BSEL_MASK, M98925_DAI_BSEL_32);
-		break;
-	case 48:
-		regmap_update_bits(max98925->regmap,
-			MAX98925_DAI_CLK_MODE2,
-			M98925_DAI_BSEL_MASK, M98925_DAI_BSEL_48);
-		break;
-	case 64:
-		regmap_update_bits(max98925->regmap,
-			MAX98925_DAI_CLK_MODE2,
-			M98925_DAI_BSEL_MASK, M98925_DAI_BSEL_64);
-		break;
-	default:
-		return -EINVAL;
+	switch (blr_clk_ratio)
+	{
+		case 32:
+			regmap_update_bits(max98925->regmap,
+							   MAX98925_DAI_CLK_MODE2,
+							   M98925_DAI_BSEL_MASK, M98925_DAI_BSEL_32);
+			break;
+
+		case 48:
+			regmap_update_bits(max98925->regmap,
+							   MAX98925_DAI_CLK_MODE2,
+							   M98925_DAI_BSEL_MASK, M98925_DAI_BSEL_48);
+			break;
+
+		case 64:
+			regmap_update_bits(max98925->regmap,
+							   MAX98925_DAI_CLK_MODE2,
+							   M98925_DAI_BSEL_MASK, M98925_DAI_BSEL_64);
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
-	switch (max98925->sysclk) {
-	case 6000000:
-		clock = 0;
-		mdll  = M98925_MDLL_MULT_MCLKx16;
-		break;
-	case 11289600:
-		clock = 1;
-		mdll  = M98925_MDLL_MULT_MCLKx8;
-		break;
-	case 12000000:
-		clock = 0;
-		mdll  = M98925_MDLL_MULT_MCLKx8;
-		break;
-	case 12288000:
-		clock = 2;
-		mdll  = M98925_MDLL_MULT_MCLKx8;
-		break;
-	default:
-		dev_info(max98925->codec->dev, "unsupported sysclk %d\n",
-					max98925->sysclk);
-		return -EINVAL;
+	switch (max98925->sysclk)
+	{
+		case 6000000:
+			clock = 0;
+			mdll  = M98925_MDLL_MULT_MCLKx16;
+			break;
+
+		case 11289600:
+			clock = 1;
+			mdll  = M98925_MDLL_MULT_MCLKx8;
+			break;
+
+		case 12000000:
+			clock = 0;
+			mdll  = M98925_MDLL_MULT_MCLKx8;
+			break;
+
+		case 12288000:
+			clock = 2;
+			mdll  = M98925_MDLL_MULT_MCLKx8;
+			break;
+
+		default:
+			dev_info(max98925->codec->dev, "unsupported sysclk %d\n",
+					 max98925->sysclk);
+			return -EINVAL;
 	}
 
 	if (max98925_rate_value(codec, rate, clock, &dai_sr, &n, &m))
+	{
 		return -EINVAL;
+	}
 
 	/* set DAI_SR to correct LRCLK frequency */
 	regmap_update_bits(max98925->regmap,
-			MAX98925_DAI_CLK_MODE2,
-			M98925_DAI_SR_MASK, dai_sr << M98925_DAI_SR_SHIFT);
+					   MAX98925_DAI_CLK_MODE2,
+					   M98925_DAI_SR_MASK, dai_sr << M98925_DAI_SR_SHIFT);
 	/* set DAI m divider */
 	regmap_write(max98925->regmap,
-		MAX98925_DAI_CLK_DIV_M_MSBS, m >> 8);
+				 MAX98925_DAI_CLK_DIV_M_MSBS, m >> 8);
 	regmap_write(max98925->regmap,
-		MAX98925_DAI_CLK_DIV_M_LSBS, m & 0xFF);
+				 MAX98925_DAI_CLK_DIV_M_LSBS, m & 0xFF);
 	/* set DAI n divider */
 	regmap_write(max98925->regmap,
-		MAX98925_DAI_CLK_DIV_N_MSBS, n >> 8);
+				 MAX98925_DAI_CLK_DIV_N_MSBS, n >> 8);
 	regmap_write(max98925->regmap,
-		MAX98925_DAI_CLK_DIV_N_LSBS, n & 0xFF);
+				 MAX98925_DAI_CLK_DIV_N_LSBS, n & 0xFF);
 	/* set MDLL */
 	regmap_update_bits(max98925->regmap, MAX98925_DAI_CLK_MODE1,
-			M98925_MDLL_MULT_MASK, mdll << M98925_MDLL_MULT_SHIFT);
+					   M98925_MDLL_MULT_MASK, mdll << M98925_MDLL_MULT_SHIFT);
 	return 0;
 }
 
 static int max98925_dai_hw_params(struct snd_pcm_substream *substream,
-				   struct snd_pcm_hw_params *params,
-				   struct snd_soc_dai *dai)
+								  struct snd_pcm_hw_params *params,
+								  struct snd_soc_dai *dai)
 {
 	struct snd_soc_codec *codec = dai->codec;
 	struct max98925_priv *max98925 = snd_soc_codec_get_drvdata(codec);
 
-	switch (params_width(params)) {
-	case 16:
-		regmap_update_bits(max98925->regmap,
-				MAX98925_FORMAT,
-				M98925_DAI_CHANSZ_MASK, M98925_DAI_CHANSZ_16);
-		max98925->ch_size = 16;
-		break;
-	case 24:
-		regmap_update_bits(max98925->regmap,
-				MAX98925_FORMAT,
-				M98925_DAI_CHANSZ_MASK, M98925_DAI_CHANSZ_24);
-		max98925->ch_size = 24;
-		break;
-	case 32:
-		regmap_update_bits(max98925->regmap,
-				MAX98925_FORMAT,
-				M98925_DAI_CHANSZ_MASK, M98925_DAI_CHANSZ_32);
-		max98925->ch_size = 32;
-		break;
-	default:
-		pr_err("%s: format unsupported %d",
-				__func__, params_format(params));
-		return -EINVAL;
+	switch (params_width(params))
+	{
+		case 16:
+			regmap_update_bits(max98925->regmap,
+							   MAX98925_FORMAT,
+							   M98925_DAI_CHANSZ_MASK, M98925_DAI_CHANSZ_16);
+			max98925->ch_size = 16;
+			break;
+
+		case 24:
+			regmap_update_bits(max98925->regmap,
+							   MAX98925_FORMAT,
+							   M98925_DAI_CHANSZ_MASK, M98925_DAI_CHANSZ_24);
+			max98925->ch_size = 24;
+			break;
+
+		case 32:
+			regmap_update_bits(max98925->regmap,
+							   MAX98925_FORMAT,
+							   M98925_DAI_CHANSZ_MASK, M98925_DAI_CHANSZ_32);
+			max98925->ch_size = 32;
+			break;
+
+		default:
+			pr_err("%s: format unsupported %d",
+				   __func__, params_format(params));
+			return -EINVAL;
 	}
+
 	dev_dbg(codec->dev, "%s: format supported %d",
-				__func__, params_format(params));
+			__func__, params_format(params));
 	return max98925_set_clock(max98925, params);
 }
 
 static int max98925_dai_set_sysclk(struct snd_soc_dai *dai,
-				   int clk_id, unsigned int freq, int dir)
+								   int clk_id, unsigned int freq, int dir)
 {
 	struct snd_soc_codec *codec = dai->codec;
 	struct max98925_priv *max98925 = snd_soc_codec_get_drvdata(codec);
 
-	switch (clk_id) {
-	case 0:
-		/* use MCLK for Left channel, right channel always BCLK */
-		regmap_update_bits(max98925->regmap,
-				MAX98925_DAI_CLK_MODE1,
-				M98925_DAI_CLK_SOURCE_MASK, 0);
-		break;
-	case 1:
-		/* configure dai clock source to BCLK instead of MCLK */
-		regmap_update_bits(max98925->regmap,
-				MAX98925_DAI_CLK_MODE1,
-				M98925_DAI_CLK_SOURCE_MASK,
-				M98925_DAI_CLK_SOURCE_MASK);
-		break;
-	default:
-		return -EINVAL;
+	switch (clk_id)
+	{
+		case 0:
+			/* use MCLK for Left channel, right channel always BCLK */
+			regmap_update_bits(max98925->regmap,
+							   MAX98925_DAI_CLK_MODE1,
+							   M98925_DAI_CLK_SOURCE_MASK, 0);
+			break;
+
+		case 1:
+			/* configure dai clock source to BCLK instead of MCLK */
+			regmap_update_bits(max98925->regmap,
+							   MAX98925_DAI_CLK_MODE1,
+							   M98925_DAI_CLK_SOURCE_MASK,
+							   M98925_DAI_CLK_SOURCE_MASK);
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	max98925->sysclk = freq;
 	return 0;
 }
 
 #define MAX98925_FORMATS (SNDRV_PCM_FMTBIT_S16_LE | \
-			SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S32_LE)
+						  SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S32_LE)
 
-static const struct snd_soc_dai_ops max98925_dai_ops = {
+static const struct snd_soc_dai_ops max98925_dai_ops =
+{
 	.set_sysclk = max98925_dai_set_sysclk,
 	.set_fmt = max98925_dai_set_fmt,
 	.hw_params = max98925_dai_hw_params,
 };
 
-static struct snd_soc_dai_driver max98925_dai[] = {
+static struct snd_soc_dai_driver max98925_dai[] =
+{
 	{
 		.name = "max98925-aif1",
 		.playback = {
@@ -524,7 +575,7 @@ static int max98925_probe(struct snd_soc_codec *codec)
 	regmap_write(max98925->regmap, MAX98925_GLOBAL_ENABLE, 0x00);
 	/* It's not the default but we need to set DAI_DLY */
 	regmap_write(max98925->regmap,
-			MAX98925_FORMAT, M98925_DAI_DLY_MASK);
+				 MAX98925_FORMAT, M98925_DAI_DLY_MASK);
 	regmap_write(max98925->regmap, MAX98925_TDM_SLOT_SELECT, 0xC8);
 	regmap_write(max98925->regmap, MAX98925_DOUT_HIZ_CFG1, 0xFF);
 	regmap_write(max98925->regmap, MAX98925_DOUT_HIZ_CFG2, 0xFF);
@@ -538,7 +589,8 @@ static int max98925_probe(struct snd_soc_codec *codec)
 	return 0;
 }
 
-static const struct snd_soc_codec_driver soc_codec_dev_max98925 = {
+static const struct snd_soc_codec_driver soc_codec_dev_max98925 =
+{
 	.probe            = max98925_probe,
 	.component_driver = {
 		.controls		= max98925_snd_controls,
@@ -550,7 +602,8 @@ static const struct snd_soc_codec_driver soc_codec_dev_max98925 = {
 	},
 };
 
-static const struct regmap_config max98925_regmap = {
+static const struct regmap_config max98925_regmap =
+{
 	.reg_bits         = 8,
 	.val_bits         = 8,
 	.max_register     = MAX98925_REV_VERSION,
@@ -562,57 +615,75 @@ static const struct regmap_config max98925_regmap = {
 };
 
 static int max98925_i2c_probe(struct i2c_client *i2c,
-			     const struct i2c_device_id *id)
+							  const struct i2c_device_id *id)
 {
 	int ret, reg;
 	u32 value;
 	struct max98925_priv *max98925;
 
 	max98925 = devm_kzalloc(&i2c->dev,
-			sizeof(*max98925), GFP_KERNEL);
+							sizeof(*max98925), GFP_KERNEL);
+
 	if (!max98925)
+	{
 		return -ENOMEM;
+	}
 
 	i2c_set_clientdata(i2c, max98925);
 	max98925->regmap = devm_regmap_init_i2c(i2c, &max98925_regmap);
-	if (IS_ERR(max98925->regmap)) {
+
+	if (IS_ERR(max98925->regmap))
+	{
 		ret = PTR_ERR(max98925->regmap);
 		dev_err(&i2c->dev,
 				"Failed to allocate regmap: %d\n", ret);
 		goto err_out;
 	}
 
-	if (!of_property_read_u32(i2c->dev.of_node, "vmon-slot-no", &value)) {
-		if (value > M98925_DAI_VMON_SLOT_1E_1F) {
+	if (!of_property_read_u32(i2c->dev.of_node, "vmon-slot-no", &value))
+	{
+		if (value > M98925_DAI_VMON_SLOT_1E_1F)
+		{
 			dev_err(&i2c->dev, "vmon slot number is wrong:\n");
 			return -EINVAL;
 		}
+
 		max98925->v_slot = value;
 	}
-	if (!of_property_read_u32(i2c->dev.of_node, "imon-slot-no", &value)) {
-		if (value > M98925_DAI_IMON_SLOT_1E_1F) {
+
+	if (!of_property_read_u32(i2c->dev.of_node, "imon-slot-no", &value))
+	{
+		if (value > M98925_DAI_IMON_SLOT_1E_1F)
+		{
 			dev_err(&i2c->dev, "imon slot number is wrong:\n");
 			return -EINVAL;
 		}
+
 		max98925->i_slot = value;
 	}
+
 	ret = regmap_read(max98925->regmap,
-			MAX98925_REV_VERSION, &reg);
+					  MAX98925_REV_VERSION, &reg);
+
 	if ((ret < 0) ||
 		((reg != MAX98925_VERSION) &&
-		(reg != MAX98925_VERSION1))) {
+		 (reg != MAX98925_VERSION1)))
+	{
 		dev_err(&i2c->dev,
-			"device initialization error (%d 0x%02X)\n",
-			ret, reg);
+				"device initialization error (%d 0x%02X)\n",
+				ret, reg);
 		goto err_out;
 	}
+
 	dev_info(&i2c->dev, "device version 0x%02X\n", reg);
 
 	ret = snd_soc_register_codec(&i2c->dev, &soc_codec_dev_max98925,
-			max98925_dai, ARRAY_SIZE(max98925_dai));
+								 max98925_dai, ARRAY_SIZE(max98925_dai));
+
 	if (ret < 0)
 		dev_err(&i2c->dev,
 				"Failed to register codec: %d\n", ret);
+
 err_out:
 	return ret;
 }
@@ -623,19 +694,22 @@ static int max98925_i2c_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id max98925_i2c_id[] = {
+static const struct i2c_device_id max98925_i2c_id[] =
+{
 	{ "max98925", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, max98925_i2c_id);
 
-static const struct of_device_id max98925_of_match[] = {
+static const struct of_device_id max98925_of_match[] =
+{
 	{ .compatible = "maxim,max98925", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, max98925_of_match);
 
-static struct i2c_driver max98925_i2c_driver = {
+static struct i2c_driver max98925_i2c_driver =
+{
 	.driver = {
 		.name = "max98925",
 		.of_match_table = of_match_ptr(max98925_of_match),

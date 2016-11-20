@@ -19,17 +19,18 @@ struct smsdvb_debugfs;
 struct smsdvb_client_t;
 
 typedef void (*sms_prt_dvb_stats_t)(struct smsdvb_debugfs *debug_data,
-				    struct sms_stats *p);
+									struct sms_stats *p);
 
 typedef void (*sms_prt_isdb_stats_t)(struct smsdvb_debugfs *debug_data,
-				     struct sms_isdbt_stats *p);
+									 struct sms_isdbt_stats *p);
 
 typedef void (*sms_prt_isdb_stats_ex_t)
-			(struct smsdvb_debugfs *debug_data,
-			 struct sms_isdbt_stats_ex *p);
+(struct smsdvb_debugfs *debug_data,
+ struct sms_isdbt_stats_ex *p);
 
 
-struct smsdvb_client_t {
+struct smsdvb_client_t
+{
 	struct list_head entry;
 
 	struct smscore_device_t *coredev;
@@ -72,7 +73,8 @@ struct smsdvb_client_t {
  * struct sms_srvm_signal_status.
  * It was obtained by comparing the way it was filled by the original code
  */
-struct RECEPTION_STATISTICS_PER_SLICES_S {
+struct RECEPTION_STATISTICS_PER_SLICES_S
+{
 	u32 result;
 	u32 snr;
 	s32 in_band_power;

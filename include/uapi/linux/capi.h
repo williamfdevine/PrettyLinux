@@ -1,9 +1,9 @@
 /* $Id: capi.h,v 1.4.6.1 2001/09/23 22:25:05 kai Exp $
- * 
+ *
  * CAPI 2.0 Interface for Linux
- * 
+ *
  * Copyright 1997 by Carsten Paeth (calle@calle.in-berlin.de)
- * 
+ *
  * This software may be used and distributed according to the terms
  * of the GNU General Public License, incorporated herein by reference.
  *
@@ -15,14 +15,15 @@
 #include <linux/types.h>
 #include <linux/ioctl.h>
 #ifndef __KERNEL__
-#include <linux/kernelcapi.h>
+	#include <linux/kernelcapi.h>
 #endif
 
 /*
  * CAPI_REGISTER
  */
 
-typedef struct capi_register_params {	/* CAPI_REGISTER */
+typedef struct capi_register_params  	/* CAPI_REGISTER */
+{
 	__u32 level3cnt;	/* No. of simulatneous user data connections */
 	__u32 datablkcnt;	/* No. of buffered data messages */
 	__u32 datablklen;	/* Size of buffered data messages */
@@ -42,7 +43,8 @@ typedef struct capi_register_params {	/* CAPI_REGISTER */
  * CAPI_GET_VERSION
  */
 
-typedef struct capi_version {
+typedef struct capi_version
+{
 	__u32 majorversion;
 	__u32 minorversion;
 	__u32 majormanuversion;
@@ -62,7 +64,8 @@ typedef struct capi_version {
  * CAPI_GET_PROFILE
  */
 
-typedef struct capi_profile {
+typedef struct capi_profile
+{
 	__u16 ncontroller;	/* number of installed controller */
 	__u16 nbchannel;	/* number of B-Channels */
 	__u32 goptions;		/* global options */
@@ -75,7 +78,8 @@ typedef struct capi_profile {
 
 #define CAPI_GET_PROFILE	_IOWR('C',0x09,struct capi_profile)
 
-typedef struct capi_manufacturer_cmd {
+typedef struct capi_manufacturer_cmd
+{
 	unsigned long cmd;
 	void __user *data;
 } capi_manufacturer_cmd;
@@ -105,7 +109,8 @@ typedef struct capi_manufacturer_cmd {
  * CAPI_GET_MANUFACTURER, CAPI_GET_VERSION, CAPI_GET_SERIAL
  * and CAPI_GET_PROFILE
  */
-typedef union capi_ioctl_struct {
+typedef union capi_ioctl_struct
+{
 	__u32 contr;
 	capi_register_params rparams;
 	__u8 manufacturer[CAPI_MANUFACTURER_LEN];

@@ -58,7 +58,8 @@
  * @layers: a layer description table describing available layers
  * @nlayers: layer description table size
  */
-struct atmel_hlcdc_dc_desc {
+struct atmel_hlcdc_dc_desc
+{
 	int min_width;
 	int min_height;
 	int max_width;
@@ -79,7 +80,8 @@ struct atmel_hlcdc_dc_desc {
  * @alpha: alpha blending (or transparency) property
  * @rotation: rotation property
  */
-struct atmel_hlcdc_plane_properties {
+struct atmel_hlcdc_plane_properties
+{
 	struct drm_property *alpha;
 };
 
@@ -91,7 +93,8 @@ struct atmel_hlcdc_plane_properties {
  * @properties: pointer to the property definitions structure
  * @rotation: current rotation status
  */
-struct atmel_hlcdc_plane {
+struct atmel_hlcdc_plane
+{
 	struct drm_plane base;
 	struct atmel_hlcdc_layer layer;
 	struct atmel_hlcdc_plane_properties *properties;
@@ -120,7 +123,8 @@ atmel_hlcdc_layer_to_plane(struct atmel_hlcdc_layer *l)
  * @overlays: overlay plane table
  * @noverlays: number of overlay planes
  */
-struct atmel_hlcdc_planes {
+struct atmel_hlcdc_planes
+{
 	struct atmel_hlcdc_plane *primary;
 	struct atmel_hlcdc_plane *cursor;
 	struct atmel_hlcdc_plane **overlays;
@@ -139,7 +143,8 @@ struct atmel_hlcdc_planes {
  * @wq: display controller workqueue
  * @commit: used for async commit handling
  */
-struct atmel_hlcdc_dc {
+struct atmel_hlcdc_dc
+{
 	const struct atmel_hlcdc_dc_desc *desc;
 	struct atmel_hlcdc *hlcdc;
 	struct drm_fbdev_cma *fbdev;
@@ -147,7 +152,8 @@ struct atmel_hlcdc_dc {
 	struct atmel_hlcdc_planes *planes;
 	struct atmel_hlcdc_layer *layers[ATMEL_HLCDC_MAX_LAYERS];
 	struct workqueue_struct *wq;
-	struct {
+	struct
+	{
 		wait_queue_head_t wait;
 		bool pending;
 	} commit;
@@ -157,7 +163,7 @@ extern struct atmel_hlcdc_formats atmel_hlcdc_plane_rgb_formats;
 extern struct atmel_hlcdc_formats atmel_hlcdc_plane_rgb_and_yuv_formats;
 
 int atmel_hlcdc_dc_mode_valid(struct atmel_hlcdc_dc *dc,
-			      struct drm_display_mode *mode);
+							  struct drm_display_mode *mode);
 
 struct atmel_hlcdc_planes *
 atmel_hlcdc_create_planes(struct drm_device *dev);

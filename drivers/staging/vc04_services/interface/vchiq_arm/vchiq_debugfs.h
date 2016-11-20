@@ -38,7 +38,7 @@
 
 typedef struct vchiq_debugfs_node_struct
 {
-    struct dentry *dentry;
+	struct dentry *dentry;
 } VCHIQ_DEBUGFS_NODE_T;
 
 int vchiq_debugfs_init(void);

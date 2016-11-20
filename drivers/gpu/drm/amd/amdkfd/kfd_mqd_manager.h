@@ -60,29 +60,30 @@
  *
  */
 
-struct mqd_manager {
+struct mqd_manager
+{
 	int	(*init_mqd)(struct mqd_manager *mm, void **mqd,
-			struct kfd_mem_obj **mqd_mem_obj, uint64_t *gart_addr,
-			struct queue_properties *q);
+					struct kfd_mem_obj **mqd_mem_obj, uint64_t *gart_addr,
+					struct queue_properties *q);
 
 	int	(*load_mqd)(struct mqd_manager *mm, void *mqd,
-				uint32_t pipe_id, uint32_t queue_id,
-				uint32_t __user *wptr);
+					uint32_t pipe_id, uint32_t queue_id,
+					uint32_t __user *wptr);
 
 	int	(*update_mqd)(struct mqd_manager *mm, void *mqd,
-				struct queue_properties *q);
+					  struct queue_properties *q);
 
 	int	(*destroy_mqd)(struct mqd_manager *mm, void *mqd,
-				enum kfd_preempt_type type,
-				unsigned int timeout, uint32_t pipe_id,
-				uint32_t queue_id);
+					   enum kfd_preempt_type type,
+					   unsigned int timeout, uint32_t pipe_id,
+					   uint32_t queue_id);
 
 	void	(*uninit_mqd)(struct mqd_manager *mm, void *mqd,
-				struct kfd_mem_obj *mqd_mem_obj);
+						  struct kfd_mem_obj *mqd_mem_obj);
 
 	bool	(*is_occupied)(struct mqd_manager *mm, void *mqd,
-				uint64_t queue_address,	uint32_t pipe_id,
-				uint32_t queue_id);
+						   uint64_t queue_address,	uint32_t pipe_id,
+						   uint32_t queue_id);
 
 	struct mutex	mqd_mutex;
 	struct kfd_dev	*dev;

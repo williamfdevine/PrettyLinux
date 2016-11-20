@@ -79,7 +79,8 @@ MODULE_FIRMWARE("ea/layla24_2S_asic.fw");
 #define FW_LAYLA24_2A_ASIC	3
 #define FW_LAYLA24_2S_ASIC	4
 
-static const struct firmware card_fw[] = {
+static const struct firmware card_fw[] =
+{
 	{0, "loader_dsp.fw"},
 	{0, "layla24_dsp.fw"},
 	{0, "layla24_1_asic.fw"},
@@ -87,23 +88,25 @@ static const struct firmware card_fw[] = {
 	{0, "layla24_2S_asic.fw"}
 };
 
-static const struct pci_device_id snd_echo_ids[] = {
+static const struct pci_device_id snd_echo_ids[] =
+{
 	{0x1057, 0x3410, 0xECC0, 0x0060, 0, 0, 0},	/* DSP 56361 Layla24 rev.0 */
 	{0,}
 };
 
-static struct snd_pcm_hardware pcm_hardware_skel = {
+static struct snd_pcm_hardware pcm_hardware_skel =
+{
 	.info = SNDRV_PCM_INFO_MMAP |
-		SNDRV_PCM_INFO_INTERLEAVED |
-		SNDRV_PCM_INFO_BLOCK_TRANSFER |
-		SNDRV_PCM_INFO_MMAP_VALID |
-		SNDRV_PCM_INFO_PAUSE |
-		SNDRV_PCM_INFO_SYNC_START,
+	SNDRV_PCM_INFO_INTERLEAVED |
+	SNDRV_PCM_INFO_BLOCK_TRANSFER |
+	SNDRV_PCM_INFO_MMAP_VALID |
+	SNDRV_PCM_INFO_PAUSE |
+	SNDRV_PCM_INFO_SYNC_START,
 	.formats =	SNDRV_PCM_FMTBIT_U8 |
-			SNDRV_PCM_FMTBIT_S16_LE |
-			SNDRV_PCM_FMTBIT_S24_3LE |
-			SNDRV_PCM_FMTBIT_S32_LE |
-			SNDRV_PCM_FMTBIT_S32_BE,
+	SNDRV_PCM_FMTBIT_S16_LE |
+	SNDRV_PCM_FMTBIT_S24_3LE |
+	SNDRV_PCM_FMTBIT_S32_LE |
+	SNDRV_PCM_FMTBIT_S32_BE,
 	.rates =	SNDRV_PCM_RATE_8000_96000,
 	.rate_min = 8000,
 	.rate_max = 100000,

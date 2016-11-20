@@ -29,21 +29,29 @@ static int __ib_process_cq(struct ib_cq *cq, int budget)
 {
 	int i, n, completed = 0;
 
-	while ((n = ib_poll_cq(cq, IB_POLL_BATCH, cq->wc)) > 0) {
-		for (i = 0; i < n; i++) {
+	while ((n = ib_poll_cq(cq, IB_POLL_BATCH, cq->wc)) > 0)
+	{
+		for (i = 0; i < n; i++)
+		{
 			struct ib_wc *wc = &cq->wc[i];
 
 			if (wc->wr_cqe)
+			{
 				wc->wr_cqe->done(cq, wc);
+			}
 			else
+			{
 				WARN_ON_ONCE(wc->status == IB_WC_SUCCESS);
+			}
 		}
 
 		completed += n;
 
 		if (n != IB_POLL_BATCH ||
-		    (budget != -1 && completed >= budget))
+			(budget != -1 && completed >= budget))
+		{
 			break;
+		}
 	}
 
 	return completed;
@@ -80,10 +88,15 @@ static int ib_poll_handler(struct irq_poll *iop, int budget)
 	int completed;
 
 	completed = __ib_process_cq(cq, budget);
-	if (completed < budget) {
+
+	if (completed < budget)
+	{
 		irq_poll_complete(&cq->iop);
+
 		if (ib_req_notify_cq(cq, IB_POLL_FLAGS) > 0)
+		{
 			irq_poll_sched(&cq->iop);
+		}
 	}
 
 	return completed;
@@ -100,9 +113,12 @@ static void ib_cq_poll_work(struct work_struct *work)
 	int completed;
 
 	completed = __ib_process_cq(cq, IB_POLL_BUDGET_WORKQUEUE);
+
 	if (completed >= IB_POLL_BUDGET_WORKQUEUE ||
-	    ib_req_notify_cq(cq, IB_POLL_FLAGS) > 0)
+		ib_req_notify_cq(cq, IB_POLL_FLAGS) > 0)
+	{
 		queue_work(ib_comp_wq, &cq->work);
+	}
 }
 
 static void ib_cq_completion_workqueue(struct ib_cq *cq, void *private)
@@ -124,9 +140,10 @@ static void ib_cq_completion_workqueue(struct ib_cq *cq, void *private)
  * to use this CQ abstraction.
  */
 struct ib_cq *ib_alloc_cq(struct ib_device *dev, void *private,
-		int nr_cqe, int comp_vector, enum ib_poll_context poll_ctx)
+						  int nr_cqe, int comp_vector, enum ib_poll_context poll_ctx)
 {
-	struct ib_cq_init_attr cq_attr = {
+	struct ib_cq_init_attr cq_attr =
+	{
 		.cqe		= nr_cqe,
 		.comp_vector	= comp_vector,
 	};
@@ -134,8 +151,11 @@ struct ib_cq *ib_alloc_cq(struct ib_device *dev, void *private,
 	int ret = -ENOMEM;
 
 	cq = dev->create_cq(dev, &cq_attr, NULL, NULL);
+
 	if (IS_ERR(cq))
+	{
 		return cq;
+	}
 
 	cq->device = dev;
 	cq->uobject = NULL;
@@ -145,27 +165,34 @@ struct ib_cq *ib_alloc_cq(struct ib_device *dev, void *private,
 	atomic_set(&cq->usecnt, 0);
 
 	cq->wc = kmalloc_array(IB_POLL_BATCH, sizeof(*cq->wc), GFP_KERNEL);
+
 	if (!cq->wc)
+	{
 		goto out_destroy_cq;
+	}
 
-	switch (cq->poll_ctx) {
-	case IB_POLL_DIRECT:
-		cq->comp_handler = ib_cq_completion_direct;
-		break;
-	case IB_POLL_SOFTIRQ:
-		cq->comp_handler = ib_cq_completion_softirq;
+	switch (cq->poll_ctx)
+	{
+		case IB_POLL_DIRECT:
+			cq->comp_handler = ib_cq_completion_direct;
+			break;
 
-		irq_poll_init(&cq->iop, IB_POLL_BUDGET_IRQ, ib_poll_handler);
-		ib_req_notify_cq(cq, IB_CQ_NEXT_COMP);
-		break;
-	case IB_POLL_WORKQUEUE:
-		cq->comp_handler = ib_cq_completion_workqueue;
-		INIT_WORK(&cq->work, ib_cq_poll_work);
-		ib_req_notify_cq(cq, IB_CQ_NEXT_COMP);
-		break;
-	default:
-		ret = -EINVAL;
-		goto out_free_wc;
+		case IB_POLL_SOFTIRQ:
+			cq->comp_handler = ib_cq_completion_softirq;
+
+			irq_poll_init(&cq->iop, IB_POLL_BUDGET_IRQ, ib_poll_handler);
+			ib_req_notify_cq(cq, IB_CQ_NEXT_COMP);
+			break;
+
+		case IB_POLL_WORKQUEUE:
+			cq->comp_handler = ib_cq_completion_workqueue;
+			INIT_WORK(&cq->work, ib_cq_poll_work);
+			ib_req_notify_cq(cq, IB_CQ_NEXT_COMP);
+			break;
+
+		default:
+			ret = -EINVAL;
+			goto out_free_wc;
 	}
 
 	return cq;
@@ -187,19 +214,25 @@ void ib_free_cq(struct ib_cq *cq)
 	int ret;
 
 	if (WARN_ON_ONCE(atomic_read(&cq->usecnt)))
+	{
 		return;
+	}
 
-	switch (cq->poll_ctx) {
-	case IB_POLL_DIRECT:
-		break;
-	case IB_POLL_SOFTIRQ:
-		irq_poll_disable(&cq->iop);
-		break;
-	case IB_POLL_WORKQUEUE:
-		flush_work(&cq->work);
-		break;
-	default:
-		WARN_ON_ONCE(1);
+	switch (cq->poll_ctx)
+	{
+		case IB_POLL_DIRECT:
+			break;
+
+		case IB_POLL_SOFTIRQ:
+			irq_poll_disable(&cq->iop);
+			break;
+
+		case IB_POLL_WORKQUEUE:
+			flush_work(&cq->work);
+			break;
+
+		default:
+			WARN_ON_ONCE(1);
 	}
 
 	kfree(cq->wc);

@@ -36,7 +36,8 @@
 #include <linux/of_address.h>
 #include <linux/of_irq.h>
 
-enum {
+enum
+{
 	TIMER_A,
 	TIMER_B,
 	TIMER_C,
@@ -56,7 +57,8 @@ enum {
 #define CONTROL_MODE_ONESHOT	CONTROL_MODE(1)
 #define CONTROL_MODE_PERIODIC	CONTROL_MODE(2)
 
-struct digicolor_timer {
+struct digicolor_timer
+{
 	struct clock_event_device ce;
 	void __iomem *base;
 	u32 ticks_per_jiffy;
@@ -81,7 +83,7 @@ static inline void dc_timer_enable(struct clock_event_device *ce, u32 mode)
 }
 
 static inline void dc_timer_set_count(struct clock_event_device *ce,
-				      unsigned long count)
+									  unsigned long count)
 {
 	struct digicolor_timer *dt = dc_timer(ce);
 	writel(count, dt->base + COUNT(dt->timer_id));
@@ -111,7 +113,7 @@ static int digicolor_clkevt_set_periodic(struct clock_event_device *ce)
 }
 
 static int digicolor_clkevt_next_event(unsigned long evt,
-				       struct clock_event_device *ce)
+									   struct clock_event_device *ce)
 {
 	dc_timer_disable(ce);
 	dc_timer_set_count(ce, evt);
@@ -120,7 +122,8 @@ static int digicolor_clkevt_next_event(unsigned long evt,
 	return 0;
 }
 
-static struct digicolor_timer dc_timer_dev = {
+static struct digicolor_timer dc_timer_dev =
+{
 	.ce = {
 		.name = "digicolor_tick",
 		.rating = 340,
@@ -159,22 +162,29 @@ static int __init digicolor_timer_init(struct device_node *node)
 	 * don't map exclusively
 	 */
 	dc_timer_dev.base = of_iomap(node, 0);
-	if (!dc_timer_dev.base) {
+
+	if (!dc_timer_dev.base)
+	{
 		pr_err("Can't map registers");
 		return -ENXIO;
 	}
 
 	irq = irq_of_parse_and_map(node, dc_timer_dev.timer_id);
-	if (irq <= 0) {
+
+	if (irq <= 0)
+	{
 		pr_err("Can't parse IRQ");
 		return -EINVAL;
 	}
 
 	clk = of_clk_get(node, 0);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		pr_err("Can't get timer clock");
 		return PTR_ERR(clk);
 	}
+
 	clk_prepare_enable(clk);
 	rate = clk_get_rate(clk);
 	dc_timer_dev.ticks_per_jiffy = DIV_ROUND_UP(rate, HZ);
@@ -185,12 +195,14 @@ static int __init digicolor_timer_init(struct device_node *node)
 
 	sched_clock_register(digicolor_timer_sched_read, 32, rate);
 	clocksource_mmio_init(dc_timer_dev.base + COUNT(TIMER_B), node->name,
-			      rate, 340, 32, clocksource_mmio_readl_down);
+						  rate, 340, 32, clocksource_mmio_readl_down);
 
 	ret = request_irq(irq, digicolor_timer_interrupt,
-			  IRQF_TIMER | IRQF_IRQPOLL, "digicolor_timerC",
-			  &dc_timer_dev.ce);
-	if (ret) {
+					  IRQF_TIMER | IRQF_IRQPOLL, "digicolor_timerC",
+					  &dc_timer_dev.ce);
+
+	if (ret)
+	{
 		pr_warn("request of timer irq %d failed (%d)\n", irq, ret);
 		return ret;
 	}
@@ -203,4 +215,4 @@ static int __init digicolor_timer_init(struct device_node *node)
 	return 0;
 }
 CLOCKSOURCE_OF_DECLARE(conexant_digicolor, "cnxt,cx92755-timer",
-		       digicolor_timer_init);
+					   digicolor_timer_init);

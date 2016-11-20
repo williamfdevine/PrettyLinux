@@ -26,21 +26,24 @@
 #define EXT4_XATTR_INDEX_ENCRYPTION		9
 #define EXT4_XATTR_INDEX_HURD			10 /* Reserved for Hurd */
 
-struct ext4_xattr_header {
+struct ext4_xattr_header
+{
 	__le32	h_magic;	/* magic number for identification */
 	__le32	h_refcount;	/* reference count */
 	__le32	h_blocks;	/* number of disk blocks used */
 	__le32	h_hash;		/* hash value of all attributes */
 	__le32	h_checksum;	/* crc32c(uuid+id+xattrblock) */
-				/* id = inum if refcount=1, blknum otherwise */
+	/* id = inum if refcount=1, blknum otherwise */
 	__u32	h_reserved[3];	/* zero right now */
 };
 
-struct ext4_xattr_ibody_header {
+struct ext4_xattr_ibody_header
+{
 	__le32	h_magic;	/* magic number for identification */
 };
 
-struct ext4_xattr_entry {
+struct ext4_xattr_entry
+{
 	__u8	e_name_len;	/* length of name */
 	__u8	e_name_index;	/* attribute name index */
 	__le16	e_value_offs;	/* offset in disk block of value */
@@ -55,18 +58,18 @@ struct ext4_xattr_entry {
 #define EXT4_XATTR_ROUND		(EXT4_XATTR_PAD-1)
 #define EXT4_XATTR_LEN(name_len) \
 	(((name_len) + EXT4_XATTR_ROUND + \
-	sizeof(struct ext4_xattr_entry)) & ~EXT4_XATTR_ROUND)
+	  sizeof(struct ext4_xattr_entry)) & ~EXT4_XATTR_ROUND)
 #define EXT4_XATTR_NEXT(entry) \
 	((struct ext4_xattr_entry *)( \
-	 (char *)(entry) + EXT4_XATTR_LEN((entry)->e_name_len)))
+								  (char *)(entry) + EXT4_XATTR_LEN((entry)->e_name_len)))
 #define EXT4_XATTR_SIZE(size) \
 	(((size) + EXT4_XATTR_ROUND) & ~EXT4_XATTR_ROUND)
 
 #define IHDR(inode, raw_inode) \
 	((struct ext4_xattr_ibody_header *) \
-		((void *)raw_inode + \
-		EXT4_GOOD_OLD_INODE_SIZE + \
-		EXT4_I(inode)->i_extra_isize))
+	 ((void *)raw_inode + \
+	  EXT4_GOOD_OLD_INODE_SIZE + \
+	  EXT4_I(inode)->i_extra_isize))
 #define IFIRST(hdr) ((struct ext4_xattr_entry *)((hdr)+1))
 
 #define BHDR(bh) ((struct ext4_xattr_header *)((bh)->b_data))
@@ -76,14 +79,16 @@ struct ext4_xattr_entry {
 
 #define EXT4_ZERO_XATTR_VALUE ((void *)-1)
 
-struct ext4_xattr_info {
+struct ext4_xattr_info
+{
 	int name_index;
 	const char *name;
 	const void *value;
 	size_t value_len;
 };
 
-struct ext4_xattr_search {
+struct ext4_xattr_search
+{
 	struct ext4_xattr_entry *first;
 	void *base;
 	void *end;
@@ -91,7 +96,8 @@ struct ext4_xattr_search {
 	int not_found;
 };
 
-struct ext4_xattr_ibody_find {
+struct ext4_xattr_ibody_find
+{
 	struct ext4_xattr_search s;
 	struct ext4_iloc iloc;
 };
@@ -111,28 +117,28 @@ extern int ext4_xattr_set_handle(handle_t *, struct inode *, int, const char *, 
 extern void ext4_xattr_delete_inode(handle_t *, struct inode *);
 
 extern int ext4_expand_extra_isize_ea(struct inode *inode, int new_extra_isize,
-			    struct ext4_inode *raw_inode, handle_t *handle);
+									  struct ext4_inode *raw_inode, handle_t *handle);
 
 extern const struct xattr_handler *ext4_xattr_handlers[];
 
 extern int ext4_xattr_ibody_find(struct inode *inode, struct ext4_xattr_info *i,
-				 struct ext4_xattr_ibody_find *is);
+								 struct ext4_xattr_ibody_find *is);
 extern int ext4_xattr_ibody_get(struct inode *inode, int name_index,
-				const char *name,
-				void *buffer, size_t buffer_size);
+								const char *name,
+								void *buffer, size_t buffer_size);
 extern int ext4_xattr_ibody_inline_set(handle_t *handle, struct inode *inode,
-				       struct ext4_xattr_info *i,
-				       struct ext4_xattr_ibody_find *is);
+									   struct ext4_xattr_info *i,
+									   struct ext4_xattr_ibody_find *is);
 
 extern struct mb_cache *ext4_xattr_create_cache(void);
 extern void ext4_xattr_destroy_cache(struct mb_cache *);
 
 #ifdef CONFIG_EXT4_FS_SECURITY
 extern int ext4_init_security(handle_t *handle, struct inode *inode,
-			      struct inode *dir, const struct qstr *qstr);
+							  struct inode *dir, const struct qstr *qstr);
 #else
 static inline int ext4_init_security(handle_t *handle, struct inode *inode,
-				     struct inode *dir, const struct qstr *qstr)
+									 struct inode *dir, const struct qstr *qstr)
 {
 	return 0;
 }

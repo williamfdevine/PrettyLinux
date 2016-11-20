@@ -91,28 +91,31 @@
 #define	MINIMUS_INTERRUPTUS \
 	(AT91_UDP_ENDBUSRES | AT91_UDP_RXRSM | AT91_UDP_RXSUSP)
 
-struct at91_ep {
+struct at91_ep
+{
 	struct usb_ep			ep;
 	struct list_head		queue;
 	struct at91_udc			*udc;
 	void __iomem			*creg;
 
-	unsigned			maxpacket:16;
+	unsigned			maxpacket: 16;
 	u8				int_mask;
-	unsigned			is_pingpong:1;
+	unsigned			is_pingpong: 1;
 
-	unsigned			stopped:1;
-	unsigned			is_in:1;
-	unsigned			is_iso:1;
-	unsigned			fifo_bank:1;
+	unsigned			stopped: 1;
+	unsigned			is_in: 1;
+	unsigned			is_iso: 1;
+	unsigned			fifo_bank: 1;
 };
 
-struct at91_udc_caps {
+struct at91_udc_caps
+{
 	int (*init)(struct at91_udc *udc);
 	void (*pullup)(struct at91_udc *udc, int is_on);
 };
 
-struct at91_udc_data {
+struct at91_udc_data
+{
 	int	vbus_pin;		/* high == host powering us */
 	u8	vbus_active_low;	/* vbus polarity */
 	u8	vbus_polled;		/* Use polling, not interrupt */
@@ -124,19 +127,20 @@ struct at91_udc_data {
  * driver is non-SMP, and just blocks IRQs whenever it needs
  * access protection for chip registers or driver state
  */
-struct at91_udc {
+struct at91_udc
+{
 	struct usb_gadget		gadget;
 	struct at91_ep			ep[NUM_ENDPOINTS];
 	struct usb_gadget_driver	*driver;
 	const struct at91_udc_caps	*caps;
-	unsigned			vbus:1;
-	unsigned			enabled:1;
-	unsigned			clocked:1;
-	unsigned			suspended:1;
-	unsigned			req_pending:1;
-	unsigned			wait_for_addr_ack:1;
-	unsigned			wait_for_config_ack:1;
-	unsigned			active_suspend:1;
+	unsigned			vbus: 1;
+	unsigned			enabled: 1;
+	unsigned			clocked: 1;
+	unsigned			suspended: 1;
+	unsigned			req_pending: 1;
+	unsigned			wait_for_addr_ack: 1;
+	unsigned			wait_for_config_ack: 1;
+	unsigned			active_suspend: 1;
 	u8				addr;
 	struct at91_udc_data		board;
 	struct clk			*iclk, *fclk;
@@ -155,7 +159,8 @@ static inline struct at91_udc *to_udc(struct usb_gadget *g)
 	return container_of(g, struct at91_udc, gadget);
 }
 
-struct at91_request {
+struct at91_request
+{
 	struct usb_request		req;
 	struct list_head		queue;
 };
@@ -163,15 +168,15 @@ struct at91_request {
 /*-------------------------------------------------------------------------*/
 
 #ifdef VERBOSE_DEBUG
-#    define VDBG		DBG
+	#define VDBG		DBG
 #else
-#    define VDBG(stuff...)	do{}while(0)
+	#define VDBG(stuff...)	do{}while(0)
 #endif
 
 #ifdef PACKET_TRACE
-#    define PACKET		VDBG
+	#define PACKET		VDBG
 #else
-#    define PACKET(stuff...)	do{}while(0)
+	#define PACKET(stuff...)	do{}while(0)
 #endif
 
 #define ERR(stuff...)		pr_err("udc: " stuff)

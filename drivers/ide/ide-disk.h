@@ -14,12 +14,12 @@ ide_decl_devset(acoustic);
 
 /* ide-disk_ioctl.c */
 int ide_disk_ioctl(ide_drive_t *, struct block_device *, fmode_t, unsigned int,
-		   unsigned long);
+				   unsigned long);
 
 #ifdef CONFIG_IDE_PROC_FS
-/* ide-disk_proc.c */
-extern ide_proc_entry_t ide_disk_proc[];
-extern const struct ide_proc_devset ide_disk_settings[];
+	/* ide-disk_proc.c */
+	extern ide_proc_entry_t ide_disk_proc[];
+	extern const struct ide_proc_devset ide_disk_settings[];
 #endif
 #else
 #define ide_disk_proc		NULL

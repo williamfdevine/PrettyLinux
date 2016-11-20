@@ -48,7 +48,7 @@ static inline int ntfs_bitmap_set_bits_in_run(struct inode *vi,
 		const s64 start_bit, const s64 count, const u8 value)
 {
 	return __ntfs_bitmap_set_bits_in_run(vi, start_bit, count, value,
-			false);
+										 false);
 }
 
 /**
@@ -63,7 +63,7 @@ static inline int ntfs_bitmap_set_bits_in_run(struct inode *vi,
  * Return 0 on success and -errno on error.
  */
 static inline int ntfs_bitmap_set_run(struct inode *vi, const s64 start_bit,
-		const s64 count)
+									  const s64 count)
 {
 	return ntfs_bitmap_set_bits_in_run(vi, start_bit, count, 1);
 }
@@ -80,7 +80,7 @@ static inline int ntfs_bitmap_set_run(struct inode *vi, const s64 start_bit,
  * Return 0 on success and -errno on error.
  */
 static inline int ntfs_bitmap_clear_run(struct inode *vi, const s64 start_bit,
-		const s64 count)
+										const s64 count)
 {
 	return ntfs_bitmap_set_bits_in_run(vi, start_bit, count, 0);
 }

@@ -59,9 +59,9 @@
  * @idlest_reg and @idlest_bit.  No return value.
  */
 static void omap3430es2_clk_ssi_find_idlest(struct clk_hw_omap *clk,
-					    void __iomem **idlest_reg,
-					    u8 *idlest_bit,
-					    u8 *idlest_val)
+		void __iomem **idlest_reg,
+		u8 *idlest_bit,
+		u8 *idlest_val)
 {
 	u32 r;
 
@@ -71,7 +71,8 @@ static void omap3430es2_clk_ssi_find_idlest(struct clk_hw_omap *clk,
 	*idlest_val = OMAP34XX_CM_IDLEST_VAL;
 }
 
-const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_ssi_wait = {
+const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_ssi_wait =
+{
 	.allow_idle	= omap2_clkt_iclk_allow_idle,
 	.deny_idle	= omap2_clkt_iclk_deny_idle,
 	.find_idlest	= omap3430es2_clk_ssi_find_idlest,
@@ -93,9 +94,9 @@ const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_ssi_wait = {
  * position.)  No return value.
  */
 static void omap3430es2_clk_dss_usbhost_find_idlest(struct clk_hw_omap *clk,
-						    void __iomem **idlest_reg,
-						    u8 *idlest_bit,
-						    u8 *idlest_val)
+		void __iomem **idlest_reg,
+		u8 *idlest_bit,
+		u8 *idlest_val)
 {
 	u32 r;
 
@@ -106,12 +107,14 @@ static void omap3430es2_clk_dss_usbhost_find_idlest(struct clk_hw_omap *clk,
 	*idlest_val = OMAP34XX_CM_IDLEST_VAL;
 }
 
-const struct clk_hw_omap_ops clkhwops_omap3430es2_dss_usbhost_wait = {
+const struct clk_hw_omap_ops clkhwops_omap3430es2_dss_usbhost_wait =
+{
 	.find_idlest	= omap3430es2_clk_dss_usbhost_find_idlest,
 	.find_companion	= omap2_clk_dflt_find_companion,
 };
 
-const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_dss_usbhost_wait = {
+const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_dss_usbhost_wait =
+{
 	.allow_idle	= omap2_clkt_iclk_allow_idle,
 	.deny_idle	= omap2_clkt_iclk_deny_idle,
 	.find_idlest	= omap3430es2_clk_dss_usbhost_find_idlest,
@@ -130,9 +133,9 @@ const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_dss_usbhost_wait = {
  * @idlest_reg and @idlest_bit.  No return value.
  */
 static void omap3430es2_clk_hsotgusb_find_idlest(struct clk_hw_omap *clk,
-						 void __iomem **idlest_reg,
-						 u8 *idlest_bit,
-						 u8 *idlest_val)
+		void __iomem **idlest_reg,
+		u8 *idlest_bit,
+		u8 *idlest_val)
 {
 	u32 r;
 
@@ -142,7 +145,8 @@ static void omap3430es2_clk_hsotgusb_find_idlest(struct clk_hw_omap *clk,
 	*idlest_val = OMAP34XX_CM_IDLEST_VAL;
 }
 
-const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_hsotgusb_wait = {
+const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_hsotgusb_wait =
+{
 	.allow_idle	= omap2_clkt_iclk_allow_idle,
 	.deny_idle	= omap2_clkt_iclk_deny_idle,
 	.find_idlest	= omap3430es2_clk_hsotgusb_find_idlest,
@@ -161,9 +165,9 @@ const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_hsotgusb_wait = {
  * bit. A value of 1 indicates that clock is enabled.
  */
 static void am35xx_clk_find_idlest(struct clk_hw_omap *clk,
-				   void __iomem **idlest_reg,
-				   u8 *idlest_bit,
-				   u8 *idlest_val)
+								   void __iomem **idlest_reg,
+								   u8 *idlest_bit,
+								   u8 *idlest_val)
 {
 	*idlest_reg = (__force void __iomem *)(clk->enable_reg);
 	*idlest_bit = clk->enable_bit + AM35XX_IPSS_ICK_EN_ACK_OFFSET;
@@ -185,17 +189,23 @@ static void am35xx_clk_find_idlest(struct clk_hw_omap *clk,
  * avoid this issue, and remove the casts.  No return value.
  */
 static void am35xx_clk_find_companion(struct clk_hw_omap *clk,
-				      void __iomem **other_reg,
-				      u8 *other_bit)
+									  void __iomem **other_reg,
+									  u8 *other_bit)
 {
 	*other_reg = (__force void __iomem *)(clk->enable_reg);
+
 	if (clk->enable_bit & AM35XX_IPSS_ICK_MASK)
+	{
 		*other_bit = clk->enable_bit + AM35XX_IPSS_ICK_FCK_OFFSET;
+	}
 	else
-	*other_bit = clk->enable_bit - AM35XX_IPSS_ICK_FCK_OFFSET;
+	{
+		*other_bit = clk->enable_bit - AM35XX_IPSS_ICK_FCK_OFFSET;
+	}
 }
 
-const struct clk_hw_omap_ops clkhwops_am35xx_ipss_module_wait = {
+const struct clk_hw_omap_ops clkhwops_am35xx_ipss_module_wait =
+{
 	.find_idlest	= am35xx_clk_find_idlest,
 	.find_companion	= am35xx_clk_find_companion,
 };
@@ -212,9 +222,9 @@ const struct clk_hw_omap_ops clkhwops_am35xx_ipss_module_wait = {
  * and @idlest_bit.  No return value.
  */
 static void am35xx_clk_ipss_find_idlest(struct clk_hw_omap *clk,
-					void __iomem **idlest_reg,
-					u8 *idlest_bit,
-					u8 *idlest_val)
+										void __iomem **idlest_reg,
+										u8 *idlest_bit,
+										u8 *idlest_val)
 {
 	u32 r;
 
@@ -224,14 +234,16 @@ static void am35xx_clk_ipss_find_idlest(struct clk_hw_omap *clk,
 	*idlest_val = OMAP34XX_CM_IDLEST_VAL;
 }
 
-const struct clk_hw_omap_ops clkhwops_am35xx_ipss_wait = {
+const struct clk_hw_omap_ops clkhwops_am35xx_ipss_wait =
+{
 	.allow_idle	= omap2_clkt_iclk_allow_idle,
 	.deny_idle	= omap2_clkt_iclk_deny_idle,
 	.find_idlest	= am35xx_clk_ipss_find_idlest,
 	.find_companion	= omap2_clk_dflt_find_companion,
 };
 
-static struct ti_dt_clk omap3xxx_clks[] = {
+static struct ti_dt_clk omap3xxx_clks[] =
+{
 	DT_CLK(NULL, "apb_pclk", "dummy_apb_pclk"),
 	DT_CLK(NULL, "omap_32k_fck", "omap_32k_fck"),
 	DT_CLK(NULL, "virt_12m_ck", "virt_12m_ck"),
@@ -409,7 +421,8 @@ static struct ti_dt_clk omap3xxx_clks[] = {
 	{ .node_name = NULL },
 };
 
-static struct ti_dt_clk omap34xx_omap36xx_clks[] = {
+static struct ti_dt_clk omap34xx_omap36xx_clks[] =
+{
 	DT_CLK(NULL, "aes1_ick", "aes1_ick"),
 	DT_CLK("omap_rng", "ick", "rng_ick"),
 	DT_CLK("omap3-rom-rng", "ick", "rng_ick"),
@@ -443,7 +456,8 @@ static struct ti_dt_clk omap34xx_omap36xx_clks[] = {
 	{ .node_name = NULL },
 };
 
-static struct ti_dt_clk omap36xx_omap3430es2plus_clks[] = {
+static struct ti_dt_clk omap36xx_omap3430es2plus_clks[] =
+{
 	DT_CLK(NULL, "ssi_ssr_fck", "ssi_ssr_fck_3430es2"),
 	DT_CLK(NULL, "ssi_sst_fck", "ssi_sst_fck_3430es2"),
 	DT_CLK("musb-omap2430", "ick", "hsotgusb_ick_3430es2"),
@@ -454,7 +468,8 @@ static struct ti_dt_clk omap36xx_omap3430es2plus_clks[] = {
 	{ .node_name = NULL },
 };
 
-static struct ti_dt_clk omap3430es1_clks[] = {
+static struct ti_dt_clk omap3430es1_clks[] =
+{
 	DT_CLK(NULL, "gfx_l3_ck", "gfx_l3_ck"),
 	DT_CLK(NULL, "gfx_l3_fck", "gfx_l3_fck"),
 	DT_CLK(NULL, "gfx_l3_ick", "gfx_l3_ick"),
@@ -475,7 +490,8 @@ static struct ti_dt_clk omap3430es1_clks[] = {
 	{ .node_name = NULL },
 };
 
-static struct ti_dt_clk omap36xx_am35xx_omap3430es2plus_clks[] = {
+static struct ti_dt_clk omap36xx_am35xx_omap3430es2plus_clks[] =
+{
 	DT_CLK(NULL, "virt_16_8m_ck", "virt_16_8m_ck"),
 	DT_CLK(NULL, "dpll5_ck", "dpll5_ck"),
 	DT_CLK(NULL, "dpll5_m2_ck", "dpll5_m2_ck"),
@@ -497,7 +513,8 @@ static struct ti_dt_clk omap36xx_am35xx_omap3430es2plus_clks[] = {
 	{ .node_name = NULL },
 };
 
-static struct ti_dt_clk am35xx_clks[] = {
+static struct ti_dt_clk am35xx_clks[] =
+{
 	DT_CLK(NULL, "ipss_ick", "ipss_ick"),
 	DT_CLK(NULL, "rmii_ck", "rmii_ck"),
 	DT_CLK(NULL, "pclk_ck", "pclk_ck"),
@@ -515,20 +532,23 @@ static struct ti_dt_clk am35xx_clks[] = {
 	{ .node_name = NULL },
 };
 
-static struct ti_dt_clk omap36xx_clks[] = {
+static struct ti_dt_clk omap36xx_clks[] =
+{
 	DT_CLK(NULL, "omap_192m_alwon_fck", "omap_192m_alwon_fck"),
 	DT_CLK(NULL, "uart4_fck", "uart4_fck"),
 	DT_CLK(NULL, "uart4_ick", "uart4_ick"),
 	{ .node_name = NULL },
 };
 
-static const char *enable_init_clks[] = {
+static const char *enable_init_clks[] =
+{
 	"sdrc_ick",
 	"gpmc_fck",
 	"omapctrl_ick",
 };
 
-enum {
+enum
+{
 	OMAP3_SOC_AM35XX,
 	OMAP3_SOC_OMAP3430_ES1,
 	OMAP3_SOC_OMAP3430_ES2_PLUS,
@@ -562,45 +582,61 @@ void __init omap3_clk_lock_dpll5(void)
 static int __init omap3xxx_dt_clk_init(int soc_type)
 {
 	if (soc_type == OMAP3_SOC_AM35XX || soc_type == OMAP3_SOC_OMAP3630 ||
-	    soc_type == OMAP3_SOC_OMAP3430_ES1 ||
-	    soc_type == OMAP3_SOC_OMAP3430_ES2_PLUS)
+		soc_type == OMAP3_SOC_OMAP3430_ES1 ||
+		soc_type == OMAP3_SOC_OMAP3430_ES2_PLUS)
+	{
 		ti_dt_clocks_register(omap3xxx_clks);
+	}
 
 	if (soc_type == OMAP3_SOC_AM35XX)
+	{
 		ti_dt_clocks_register(am35xx_clks);
+	}
 
 	if (soc_type == OMAP3_SOC_OMAP3630 || soc_type == OMAP3_SOC_AM35XX ||
-	    soc_type == OMAP3_SOC_OMAP3430_ES2_PLUS)
+		soc_type == OMAP3_SOC_OMAP3430_ES2_PLUS)
+	{
 		ti_dt_clocks_register(omap36xx_am35xx_omap3430es2plus_clks);
+	}
 
 	if (soc_type == OMAP3_SOC_OMAP3430_ES1)
+	{
 		ti_dt_clocks_register(omap3430es1_clks);
+	}
 
 	if (soc_type == OMAP3_SOC_OMAP3430_ES2_PLUS ||
-	    soc_type == OMAP3_SOC_OMAP3630)
+		soc_type == OMAP3_SOC_OMAP3630)
+	{
 		ti_dt_clocks_register(omap36xx_omap3430es2plus_clks);
+	}
 
 	if (soc_type == OMAP3_SOC_OMAP3430_ES1 ||
-	    soc_type == OMAP3_SOC_OMAP3430_ES2_PLUS ||
-	    soc_type == OMAP3_SOC_OMAP3630)
+		soc_type == OMAP3_SOC_OMAP3430_ES2_PLUS ||
+		soc_type == OMAP3_SOC_OMAP3630)
+	{
 		ti_dt_clocks_register(omap34xx_omap36xx_clks);
+	}
 
 	if (soc_type == OMAP3_SOC_OMAP3630)
+	{
 		ti_dt_clocks_register(omap36xx_clks);
+	}
 
 	omap2_clk_disable_autoidle_all();
 
 	omap2_clk_enable_init_clocks(enable_init_clks,
-				     ARRAY_SIZE(enable_init_clks));
+								 ARRAY_SIZE(enable_init_clks));
 
 	pr_info("Clocking rate (Crystal/Core/MPU): %ld.%01ld/%ld/%ld MHz\n",
-		(clk_get_rate(clk_get_sys(NULL, "osc_sys_ck")) / 1000000),
-		(clk_get_rate(clk_get_sys(NULL, "osc_sys_ck")) / 100000) % 10,
-		(clk_get_rate(clk_get_sys(NULL, "core_ck")) / 1000000),
-		(clk_get_rate(clk_get_sys(NULL, "arm_fck")) / 1000000));
+			(clk_get_rate(clk_get_sys(NULL, "osc_sys_ck")) / 1000000),
+			(clk_get_rate(clk_get_sys(NULL, "osc_sys_ck")) / 100000) % 10,
+			(clk_get_rate(clk_get_sys(NULL, "core_ck")) / 1000000),
+			(clk_get_rate(clk_get_sys(NULL, "arm_fck")) / 1000000));
 
 	if (soc_type != OMAP3_SOC_OMAP3430_ES1)
+	{
 		omap3_clk_lock_dpll5();
+	}
 
 	return 0;
 }

@@ -82,7 +82,8 @@ acpi_hw_validate_io_request(acpi_io_address address, u32 bit_width);
  *  ELCR:  PIC edge/level registers
  *  PCI:   PCI configuration space
  */
-static const struct acpi_port_info acpi_protected_ports[] = {
+static const struct acpi_port_info acpi_protected_ports[] =
+{
 	{"DMA", 0x0000, 0x000F, ACPI_OSI_WIN_XP},
 	{"PIC0", 0x0020, 0x0021, ACPI_ALWAYS_ILLEGAL},
 	{"PIT1", 0x0040, 0x0043, ACPI_OSI_WIN_XP},
@@ -132,9 +133,10 @@ acpi_hw_validate_io_request(acpi_io_address address, u32 bit_width)
 
 	/* Supported widths are 8/16/32 */
 
-	if ((bit_width != 8) && (bit_width != 16) && (bit_width != 32)) {
+	if ((bit_width != 8) && (bit_width != 16) && (bit_width != 32))
+	{
 		ACPI_ERROR((AE_INFO,
-			    "Bad BitWidth parameter: %8.8X", bit_width));
+					"Bad BitWidth parameter: %8.8X", bit_width));
 		return (AE_BAD_PARAMETER);
 	}
 
@@ -143,28 +145,31 @@ acpi_hw_validate_io_request(acpi_io_address address, u32 bit_width)
 	last_address = address + byte_width - 1;
 
 	ACPI_DEBUG_PRINT((ACPI_DB_IO,
-			  "Address %8.8X%8.8X LastAddress %8.8X%8.8X Length %X",
-			  ACPI_FORMAT_UINT64(address),
-			  ACPI_FORMAT_UINT64(last_address), byte_width));
+					  "Address %8.8X%8.8X LastAddress %8.8X%8.8X Length %X",
+					  ACPI_FORMAT_UINT64(address),
+					  ACPI_FORMAT_UINT64(last_address), byte_width));
 
 	/* Maximum 16-bit address in I/O space */
 
-	if (last_address > ACPI_UINT16_MAX) {
+	if (last_address > ACPI_UINT16_MAX)
+	{
 		ACPI_ERROR((AE_INFO,
-			    "Illegal I/O port address/length above 64K: %8.8X%8.8X/0x%X",
-			    ACPI_FORMAT_UINT64(address), byte_width));
+					"Illegal I/O port address/length above 64K: %8.8X%8.8X/0x%X",
+					ACPI_FORMAT_UINT64(address), byte_width));
 		return_ACPI_STATUS(AE_LIMIT);
 	}
 
 	/* Exit if requested address is not within the protected port table */
 
-	if (address > acpi_protected_ports[ACPI_PORT_INFO_ENTRIES - 1].end) {
+	if (address > acpi_protected_ports[ACPI_PORT_INFO_ENTRIES - 1].end)
+	{
 		return_ACPI_STATUS(AE_OK);
 	}
 
 	/* Check request against the list of protected I/O ports */
 
-	for (i = 0; i < ACPI_PORT_INFO_ENTRIES; i++, port_info++) {
+	for (i = 0; i < ACPI_PORT_INFO_ENTRIES; i++, port_info++)
+	{
 		/*
 		 * Check if the requested address range will write to a reserved
 		 * port. Four cases to consider:
@@ -175,17 +180,19 @@ acpi_hw_validate_io_request(acpi_io_address address, u32 bit_width)
 		 * 4) Address range completely encompasses the port range
 		 */
 		if ((address <= port_info->end)
-		    && (last_address >= port_info->start)) {
+			&& (last_address >= port_info->start))
+		{
 
 			/* Port illegality may depend on the _OSI calls made by the BIOS */
 
-			if (acpi_gbl_osi_data >= port_info->osi_dependency) {
+			if (acpi_gbl_osi_data >= port_info->osi_dependency)
+			{
 				ACPI_DEBUG_PRINT((ACPI_DB_IO,
-						  "Denied AML access to port 0x%8.8X%8.8X/%X (%s 0x%.4X-0x%.4X)",
-						  ACPI_FORMAT_UINT64(address),
-						  byte_width, port_info->name,
-						  port_info->start,
-						  port_info->end));
+								  "Denied AML access to port 0x%8.8X%8.8X/%X (%s 0x%.4X-0x%.4X)",
+								  ACPI_FORMAT_UINT64(address),
+								  byte_width, port_info->name,
+								  port_info->start,
+								  port_info->end));
 
 				return_ACPI_STATUS(AE_AML_ILLEGAL_ADDRESS);
 			}
@@ -193,7 +200,8 @@ acpi_hw_validate_io_request(acpi_io_address address, u32 bit_width)
 
 		/* Finished if address range ends before the end of this port */
 
-		if (last_address <= port_info->end) {
+		if (last_address <= port_info->end)
+		{
 			break;
 		}
 	}
@@ -225,19 +233,23 @@ acpi_status acpi_hw_read_port(acpi_io_address address, u32 *value, u32 width)
 
 	/* Truncate address to 16 bits if requested */
 
-	if (acpi_gbl_truncate_io_addresses) {
+	if (acpi_gbl_truncate_io_addresses)
+	{
 		address &= ACPI_UINT16_MAX;
 	}
 
 	/* Validate the entire request and perform the I/O */
 
 	status = acpi_hw_validate_io_request(address, width);
-	if (ACPI_SUCCESS(status)) {
+
+	if (ACPI_SUCCESS(status))
+	{
 		status = acpi_os_read_port(address, value, width);
 		return (status);
 	}
 
-	if (status != AE_AML_ILLEGAL_ADDRESS) {
+	if (status != AE_AML_ILLEGAL_ADDRESS)
+	{
 		return (status);
 	}
 
@@ -246,13 +258,17 @@ acpi_status acpi_hw_read_port(acpi_io_address address, u32 *value, u32 width)
 	 * back to byte granularity port I/O and ignore the failing bytes.
 	 * This provides Windows compatibility.
 	 */
-	for (i = 0, *value = 0; i < width; i += 8) {
+	for (i = 0, *value = 0; i < width; i += 8)
+	{
 
 		/* Validate and read one byte */
 
-		if (acpi_hw_validate_io_request(address, 8) == AE_OK) {
+		if (acpi_hw_validate_io_request(address, 8) == AE_OK)
+		{
 			status = acpi_os_read_port(address, &one_byte, 8);
-			if (ACPI_FAILURE(status)) {
+
+			if (ACPI_FAILURE(status))
+			{
 				return (status);
 			}
 
@@ -288,19 +304,23 @@ acpi_status acpi_hw_write_port(acpi_io_address address, u32 value, u32 width)
 
 	/* Truncate address to 16 bits if requested */
 
-	if (acpi_gbl_truncate_io_addresses) {
+	if (acpi_gbl_truncate_io_addresses)
+	{
 		address &= ACPI_UINT16_MAX;
 	}
 
 	/* Validate the entire request and perform the I/O */
 
 	status = acpi_hw_validate_io_request(address, width);
-	if (ACPI_SUCCESS(status)) {
+
+	if (ACPI_SUCCESS(status))
+	{
 		status = acpi_os_write_port(address, value, width);
 		return (status);
 	}
 
-	if (status != AE_AML_ILLEGAL_ADDRESS) {
+	if (status != AE_AML_ILLEGAL_ADDRESS)
+	{
 		return (status);
 	}
 
@@ -309,14 +329,18 @@ acpi_status acpi_hw_write_port(acpi_io_address address, u32 value, u32 width)
 	 * back to byte granularity port I/O and ignore the failing bytes.
 	 * This provides Windows compatibility.
 	 */
-	for (i = 0; i < width; i += 8) {
+	for (i = 0; i < width; i += 8)
+	{
 
 		/* Validate and write one byte */
 
-		if (acpi_hw_validate_io_request(address, 8) == AE_OK) {
+		if (acpi_hw_validate_io_request(address, 8) == AE_OK)
+		{
 			status =
-			    acpi_os_write_port(address, (value >> i) & 0xFF, 8);
-			if (ACPI_FAILURE(status)) {
+				acpi_os_write_port(address, (value >> i) & 0xFF, 8);
+
+			if (ACPI_FAILURE(status))
+			{
 				return (status);
 			}
 		}

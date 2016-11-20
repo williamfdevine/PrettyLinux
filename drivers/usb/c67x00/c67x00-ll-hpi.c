@@ -30,7 +30,8 @@
 
 #define COMM_REGS 14
 
-struct c67x00_lcp_int_data {
+struct c67x00_lcp_int_data
+{
 	u16 regs[COMM_REGS];
 };
 
@@ -130,7 +131,7 @@ static void hpi_write_word(struct c67x00_device *dev, u16 reg, u16 value)
  * Only data is little endian, addr has cpu endianess
  */
 static void hpi_write_words_le16(struct c67x00_device *dev, u16 addr,
-				 __le16 *data, u16 count)
+								 __le16 *data, u16 count)
 {
 	unsigned long flags;
 	int i;
@@ -138,8 +139,11 @@ static void hpi_write_words_le16(struct c67x00_device *dev, u16 addr,
 	spin_lock_irqsave(&dev->hpi.lock, flags);
 
 	hpi_write_reg(dev, HPI_ADDR, addr);
+
 	for (i = 0; i < count; i++)
+	{
 		hpi_write_reg(dev, HPI_DATA, le16_to_cpu(*data++));
+	}
 
 	spin_unlock_irqrestore(&dev->hpi.lock, flags);
 }
@@ -148,15 +152,18 @@ static void hpi_write_words_le16(struct c67x00_device *dev, u16 addr,
  * Only data is little endian, addr has cpu endianess
  */
 static void hpi_read_words_le16(struct c67x00_device *dev, u16 addr,
-				__le16 *data, u16 count)
+								__le16 *data, u16 count)
 {
 	unsigned long flags;
 	int i;
 
 	spin_lock_irqsave(&dev->hpi.lock, flags);
 	hpi_write_reg(dev, HPI_ADDR, addr);
+
 	for (i = 0; i < count; i++)
+	{
 		*data++ = cpu_to_le16(hpi_read_reg(dev, HPI_DATA));
+	}
 
 	spin_unlock_irqrestore(&dev->hpi.lock, flags);
 }
@@ -226,7 +233,8 @@ void c67x00_ll_hpi_reg_init(struct c67x00_device *dev)
 	c67x00_ll_hpi_status(dev);
 	hpi_write_word(dev, HPI_IRQ_ROUTING_REG, 0);
 
-	for (i = 0; i < C67X00_SIES; i++) {
+	for (i = 0; i < C67X00_SIES; i++)
+	{
 		hpi_write_word(dev, SIEMSG_REG(i), 0);
 		hpi_read_word(dev, SIEMSG_REG(i));
 	}
@@ -235,13 +243,13 @@ void c67x00_ll_hpi_reg_init(struct c67x00_device *dev)
 void c67x00_ll_hpi_enable_sofeop(struct c67x00_sie *sie)
 {
 	hpi_set_bits(sie->dev, HPI_IRQ_ROUTING_REG,
-		     SOFEOP_TO_HPI_EN(sie->sie_num));
+				 SOFEOP_TO_HPI_EN(sie->sie_num));
 }
 
 void c67x00_ll_hpi_disable_sofeop(struct c67x00_sie *sie)
 {
 	hpi_clear_bits(sie->dev, HPI_IRQ_ROUTING_REG,
-		       SOFEOP_TO_HPI_EN(sie->sie_num));
+				   SOFEOP_TO_HPI_EN(sie->sie_num));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -292,14 +300,18 @@ u16 c67x00_ll_usb_get_status(struct c67x00_sie *sie)
 /* -------------------------------------------------------------------------- */
 
 static int c67x00_comm_exec_int(struct c67x00_device *dev, u16 nr,
-				struct c67x00_lcp_int_data *data)
+								struct c67x00_lcp_int_data *data)
 {
 	int i, rc;
 
 	mutex_lock(&dev->hpi.lcp.mutex);
 	hpi_write_word(dev, COMM_INT_NUM, nr);
+
 	for (i = 0; i < COMM_REGS; i++)
+	{
 		hpi_write_word(dev, COMM_R(i), data->regs[i]);
+	}
+
 	hpi_send_mbox(dev, COMM_EXEC_INT);
 	rc = ll_recv_msg(dev);
 	mutex_unlock(&dev->hpi.lcp.mutex);
@@ -361,10 +373,11 @@ void c67x00_ll_husb_init_host_port(struct c67x00_sie *sie)
 	c67x00_ll_husb_sie_init(sie);
 	/* Clear interrupts */
 	c67x00_ll_usb_clear_status(sie, HOST_STAT_MASK);
+
 	/* Check */
 	if (!(hpi_read_word(sie->dev, USB_CTL_REG(sie->sie_num)) & HOST_MODE))
 		dev_warn(sie_dev(sie),
-			 "SIE %d not set to host mode\n", sie->sie_num);
+				 "SIE %d not set to host mode\n", sie->sie_num);
 }
 
 void c67x00_ll_husb_reset_port(struct c67x00_sie *sie, int port)
@@ -374,9 +387,9 @@ void c67x00_ll_husb_reset_port(struct c67x00_sie *sie, int port)
 
 	/* Enable interrupts */
 	hpi_set_bits(sie->dev, HPI_IRQ_ROUTING_REG,
-		     SOFEOP_TO_CPU_EN(sie->sie_num));
+				 SOFEOP_TO_CPU_EN(sie->sie_num));
 	hpi_set_bits(sie->dev, HOST_IRQ_EN_REG(sie->sie_num),
-		     SOF_EOP_IRQ_EN | DONE_IRQ_EN);
+				 SOF_EOP_IRQ_EN | DONE_IRQ_EN);
 
 	/* Enable pull down transistors */
 	hpi_set_bits(sie->dev, USB_CTL_REG(sie->sie_num), PORT_RES_EN(port));
@@ -387,7 +400,9 @@ void c67x00_ll_husb_reset_port(struct c67x00_sie *sie, int port)
 void c67x00_ll_irq(struct c67x00_device *dev, u16 int_status)
 {
 	if ((int_status & MBX_OUT_FLG) == 0)
+	{
 		return;
+	}
 
 	dev->hpi.lcp.last_msg = hpi_recv_mbox(dev);
 	complete(&dev->hpi.lcp.msg_received);
@@ -414,18 +429,20 @@ int c67x00_ll_reset(struct c67x00_device *dev)
  * Only data is little endian, addr has cpu endianess.
  */
 void c67x00_ll_write_mem_le16(struct c67x00_device *dev, u16 addr,
-			      void *data, int len)
+							  void *data, int len)
 {
 	u8 *buf = data;
 
 	/* Sanity check */
-	if (addr + len > 0xffff) {
+	if (addr + len > 0xffff)
+	{
 		dev_err(&dev->pdev->dev,
-			"Trying to write beyond writable region!\n");
+				"Trying to write beyond writable region!\n");
 		return;
 	}
 
-	if (addr & 0x01) {
+	if (addr & 0x01)
+	{
 		/* unaligned access */
 		u16 tmp;
 		tmp = hpi_read_word(dev, addr - 1);
@@ -440,7 +457,8 @@ void c67x00_ll_write_mem_le16(struct c67x00_device *dev, u16 addr,
 	addr += len & ~0x01;
 	len &= 0x01;
 
-	if (len) {
+	if (len)
+	{
 		u16 tmp;
 		tmp = hpi_read_word(dev, addr);
 		tmp = (tmp & 0xff00) | *buf;
@@ -453,11 +471,12 @@ void c67x00_ll_write_mem_le16(struct c67x00_device *dev, u16 addr,
  * Only data is little endian, addr has cpu endianess.
  */
 void c67x00_ll_read_mem_le16(struct c67x00_device *dev, u16 addr,
-			     void *data, int len)
+							 void *data, int len)
 {
 	u8 *buf = data;
 
-	if (addr & 0x01) {
+	if (addr & 0x01)
+	{
 		/* unaligned access */
 		u16 tmp;
 		tmp = hpi_read_word(dev, addr - 1);
@@ -471,7 +490,8 @@ void c67x00_ll_read_mem_le16(struct c67x00_device *dev, u16 addr,
 	addr += len & ~0x01;
 	len &= 0x01;
 
-	if (len) {
+	if (len)
+	{
 		u16 tmp;
 		tmp = hpi_read_word(dev, addr);
 		*buf = tmp & 0x00ff;

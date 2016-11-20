@@ -8,7 +8,8 @@
 
 #include <linux/device.h>
 
-struct soc_device_attribute {
+struct soc_device_attribute
+{
 	const char *machine;
 	const char *family;
 	const char *revision;

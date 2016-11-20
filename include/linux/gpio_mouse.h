@@ -39,12 +39,15 @@
  * It is used by the gpio_mouse driver to setup GPIO lines and to
  * calculate mouse movement.
  */
-struct gpio_mouse_platform_data {
+struct gpio_mouse_platform_data
+{
 	int scan_ms;
 	int polarity;
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			int up;
 			int down;
 			int left;

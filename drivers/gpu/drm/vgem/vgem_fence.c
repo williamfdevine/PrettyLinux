@@ -27,7 +27,8 @@
 
 #define VGEM_FENCE_TIMEOUT (10*HZ)
 
-struct vgem_fence {
+struct vgem_fence
+{
 	struct fence base;
 	struct spinlock lock;
 	struct timer_list timer;
@@ -67,12 +68,13 @@ static void vgem_fence_value_str(struct fence *fence, char *str, int size)
 }
 
 static void vgem_fence_timeline_value_str(struct fence *fence, char *str,
-					  int size)
+		int size)
 {
 	snprintf(str, size, "%u", fence_is_signaled(fence) ? fence->seqno : 0);
 }
 
-static const struct fence_ops vgem_fence_ops = {
+static const struct fence_ops vgem_fence_ops =
+{
 	.get_driver_name = vgem_fence_get_driver_name,
 	.get_timeline_name = vgem_fence_get_timeline_name,
 	.enable_signaling = vgem_fence_enable_signaling,
@@ -92,17 +94,20 @@ static void vgem_fence_timeout(unsigned long data)
 }
 
 static struct fence *vgem_fence_create(struct vgem_file *vfile,
-				       unsigned int flags)
+									   unsigned int flags)
 {
 	struct vgem_fence *fence;
 
 	fence = kzalloc(sizeof(*fence), GFP_KERNEL);
+
 	if (!fence)
+	{
 		return NULL;
+	}
 
 	spin_lock_init(&fence->lock);
 	fence_init(&fence->base, &vgem_fence_ops, &fence->lock,
-		   fence_context_alloc(1), 1);
+			   fence_context_alloc(1), 1);
 
 	setup_timer(&fence->timer, vgem_fence_timeout, (unsigned long)fence);
 
@@ -113,16 +118,21 @@ static struct fence *vgem_fence_create(struct vgem_file *vfile,
 }
 
 static int attach_dmabuf(struct drm_device *dev,
-			 struct drm_gem_object *obj)
+						 struct drm_gem_object *obj)
 {
 	struct dma_buf *dmabuf;
 
 	if (obj->dma_buf)
+	{
 		return 0;
+	}
 
 	dmabuf = dev->driver->gem_prime_export(dev, obj, 0);
+
 	if (IS_ERR(dmabuf))
+	{
 		return PTR_ERR(dmabuf);
+	}
 
 	obj->dma_buf = dmabuf;
 	drm_gem_object_reference(obj);
@@ -150,8 +160,8 @@ static int attach_dmabuf(struct drm_device *dev,
  * If the vGEM handle does not exist, vgem_fence_attach_ioctl returns -ENOENT.
  */
 int vgem_fence_attach_ioctl(struct drm_device *dev,
-			    void *data,
-			    struct drm_file *file)
+							void *data,
+							struct drm_file *file)
 {
 	struct drm_vgem_fence_attach *arg = data;
 	struct vgem_file *vfile = file->driver_priv;
@@ -161,29 +171,43 @@ int vgem_fence_attach_ioctl(struct drm_device *dev,
 	int ret;
 
 	if (arg->flags & ~VGEM_FENCE_WRITE)
+	{
 		return -EINVAL;
+	}
 
 	if (arg->pad)
+	{
 		return -EINVAL;
+	}
 
 	obj = drm_gem_object_lookup(file, arg->handle);
+
 	if (!obj)
+	{
 		return -ENOENT;
+	}
 
 	ret = attach_dmabuf(dev, obj);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	fence = vgem_fence_create(vfile, arg->flags);
-	if (!fence) {
+
+	if (!fence)
+	{
 		ret = -ENOMEM;
 		goto err;
 	}
 
 	/* Check for a conflicting fence */
 	resv = obj->dma_buf->resv;
+
 	if (!reservation_object_test_signaled_rcu(resv,
-						  arg->flags & VGEM_FENCE_WRITE)) {
+			arg->flags & VGEM_FENCE_WRITE))
+	{
 		ret = -EBUSY;
 		goto err_fence;
 	}
@@ -191,27 +215,40 @@ int vgem_fence_attach_ioctl(struct drm_device *dev,
 	/* Expose the fence via the dma-buf */
 	ret = 0;
 	mutex_lock(&resv->lock.base);
+
 	if (arg->flags & VGEM_FENCE_WRITE)
+	{
 		reservation_object_add_excl_fence(resv, fence);
+	}
 	else if ((ret = reservation_object_reserve_shared(resv)) == 0)
+	{
 		reservation_object_add_shared_fence(resv, fence);
+	}
+
 	mutex_unlock(&resv->lock.base);
 
 	/* Record the fence in our idr for later signaling */
-	if (ret == 0) {
+	if (ret == 0)
+	{
 		mutex_lock(&vfile->fence_mutex);
 		ret = idr_alloc(&vfile->fence_idr, fence, 1, 0, GFP_KERNEL);
 		mutex_unlock(&vfile->fence_mutex);
-		if (ret > 0) {
+
+		if (ret > 0)
+		{
 			arg->out_fence = ret;
 			ret = 0;
 		}
 	}
+
 err_fence:
-	if (ret) {
+
+	if (ret)
+	{
 		fence_signal(fence);
 		fence_put(fence);
 	}
+
 err:
 	drm_gem_object_unreference_unlocked(obj);
 	return ret;
@@ -234,8 +271,8 @@ err:
  * vgem_fence_signal_ioctl returns -ENOENT.
  */
 int vgem_fence_signal_ioctl(struct drm_device *dev,
-			    void *data,
-			    struct drm_file *file)
+							void *data,
+							struct drm_file *file)
 {
 	struct vgem_file *vfile = file->driver_priv;
 	struct drm_vgem_fence_signal *arg = data;
@@ -243,18 +280,28 @@ int vgem_fence_signal_ioctl(struct drm_device *dev,
 	int ret = 0;
 
 	if (arg->flags)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&vfile->fence_mutex);
 	fence = idr_replace(&vfile->fence_idr, NULL, arg->fence);
 	mutex_unlock(&vfile->fence_mutex);
+
 	if (!fence)
+	{
 		return -ENOENT;
+	}
+
 	if (IS_ERR(fence))
+	{
 		return PTR_ERR(fence);
+	}
 
 	if (fence_is_signaled(fence))
+	{
 		ret = -ETIMEDOUT;
+	}
 
 	fence_signal(fence);
 	fence_put(fence);

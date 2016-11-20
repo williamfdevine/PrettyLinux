@@ -1,7 +1,8 @@
 #ifndef _BCACHE_STATS_H_
 #define _BCACHE_STATS_H_
 
-struct cache_stat_collector {
+struct cache_stat_collector
+{
 	atomic_t cache_hits;
 	atomic_t cache_misses;
 	atomic_t cache_bypass_hits;
@@ -11,7 +12,8 @@ struct cache_stat_collector {
 	atomic_t sectors_bypassed;
 };
 
-struct cache_stats {
+struct cache_stats
+{
 	struct kobject		kobj;
 
 	unsigned long cache_hits;
@@ -25,7 +27,8 @@ struct cache_stats {
 	unsigned		rescale;
 };
 
-struct cache_accounting {
+struct cache_accounting
+{
 	struct closure		cl;
 	struct timer_list	timer;
 	atomic_t		closing;
@@ -43,17 +46,17 @@ struct cached_dev;
 struct bcache_device;
 
 void bch_cache_accounting_init(struct cache_accounting *acc,
-			       struct closure *parent);
+							   struct closure *parent);
 
 int bch_cache_accounting_add_kobjs(struct cache_accounting *acc,
-				   struct kobject *parent);
+								   struct kobject *parent);
 
 void bch_cache_accounting_clear(struct cache_accounting *acc);
 
 void bch_cache_accounting_destroy(struct cache_accounting *acc);
 
 void bch_mark_cache_accounting(struct cache_set *, struct bcache_device *,
-			       bool, bool);
+							   bool, bool);
 void bch_mark_cache_readahead(struct cache_set *, struct bcache_device *);
 void bch_mark_cache_miss_collision(struct cache_set *, struct bcache_device *);
 void bch_mark_sectors_bypassed(struct cache_set *, struct cached_dev *, int);

@@ -35,17 +35,20 @@
 #define HSI_MSG_WRITE	1
 
 /* HSI configuration values */
-enum {
+enum
+{
 	HSI_MODE_STREAM	= 1,
 	HSI_MODE_FRAME,
 };
 
-enum {
+enum
+{
 	HSI_FLOW_SYNC,	/* Synchronized flow */
 	HSI_FLOW_PIPE,	/* Pipelined flow */
 };
 
-enum {
+enum
+{
 	HSI_ARB_RR,	/* Round-robin arbitration */
 	HSI_ARB_PRIO,	/* Channel priority arbitration */
 };
@@ -53,7 +56,8 @@ enum {
 #define HSI_MAX_CHANNELS	16
 
 /* HSI message status codes */
-enum {
+enum
+{
 	HSI_STATUS_COMPLETED,	/* Message transfer is completed */
 	HSI_STATUS_PENDING,	/* Message pending to be read/write (POLL) */
 	HSI_STATUS_PROCEEDING,	/* Message transfer is ongoing */
@@ -62,7 +66,8 @@ enum {
 };
 
 /* HSI port event codes */
-enum {
+enum
+{
 	HSI_EVENT_START_RX,
 	HSI_EVENT_STOP_RX,
 };
@@ -72,7 +77,8 @@ enum {
  * @id: Channel number
  * @name: Channel name
  */
-struct hsi_channel {
+struct hsi_channel
+{
 	unsigned int	id;
 	const char	*name;
 };
@@ -87,13 +93,15 @@ struct hsi_channel {
  * @flow: RX flow type (SYNCHRONIZED or PIPELINE)
  * @arb_mode: Arbitration mode for TX frame (Round robin, priority)
  */
-struct hsi_config {
+struct hsi_config
+{
 	unsigned int		mode;
 	struct hsi_channel	*channels;
 	unsigned int		num_channels;
 	unsigned int		num_hw_channels;
 	unsigned int		speed;
-	union {
+	union
+	{
 		unsigned int	flow;		/* RX only */
 		unsigned int	arb_mode;	/* TX only */
 	};
@@ -109,7 +117,8 @@ struct hsi_config {
  * @platform_data: Platform related data
  * @archdata: Architecture-dependent device data
  */
-struct hsi_board_info {
+struct hsi_board_info
+{
 	const char		*name;
 	unsigned int		hsi_id;
 	unsigned int		port;
@@ -121,10 +130,10 @@ struct hsi_board_info {
 
 #ifdef CONFIG_HSI_BOARDINFO
 extern int hsi_register_board_info(struct hsi_board_info const *info,
-							unsigned int len);
+								   unsigned int len);
 #else
 static inline int hsi_register_board_info(struct hsi_board_info const *info,
-							unsigned int len)
+		unsigned int len)
 {
 	return 0;
 }
@@ -136,13 +145,14 @@ static inline int hsi_register_board_info(struct hsi_board_info const *info,
  * @tx_cfg: HSI TX configuration
  * @rx_cfg: HSI RX configuration
  */
-struct hsi_client {
+struct hsi_client
+{
 	struct device		device;
 	struct hsi_config	tx_cfg;
 	struct hsi_config	rx_cfg;
 	/* private: */
 	void			(*ehandler)(struct hsi_client *, unsigned long);
-	unsigned int		pclaimed:1;
+	unsigned int		pclaimed: 1;
 	struct notifier_block	nb;
 };
 
@@ -159,19 +169,20 @@ static inline void *hsi_client_drvdata(struct hsi_client *cl)
 }
 
 int hsi_register_port_event(struct hsi_client *cl,
-			void (*handler)(struct hsi_client *, unsigned long));
+							void (*handler)(struct hsi_client *, unsigned long));
 int hsi_unregister_port_event(struct hsi_client *cl);
 
 /**
  * struct hsi_client_driver - Driver associated to an HSI client
  * @driver: Driver model representation of the driver
  */
-struct hsi_client_driver {
+struct hsi_client_driver
+{
 	struct device_driver	driver;
 };
 
 #define to_hsi_client_driver(drv) container_of(drv, struct hsi_client_driver,\
-									driver)
+		driver)
 
 int hsi_register_client_driver(struct hsi_client_driver *drv);
 
@@ -195,7 +206,8 @@ static inline void hsi_unregister_client_driver(struct hsi_client_driver *drv)
  * @break_frame: if true HSI will send/receive a break frame. Data buffers are
  *		ignored in the request.
  */
-struct hsi_msg {
+struct hsi_msg
+{
 	struct list_head	link;
 	struct hsi_client	*cl;
 	struct sg_table		sgt;
@@ -207,8 +219,8 @@ struct hsi_msg {
 	int			status;
 	unsigned int		actual_len;
 	unsigned int		channel;
-	unsigned int		ttype:1;
-	unsigned int		break_frame:1;
+	unsigned int		ttype: 1;
+	unsigned int		break_frame: 1;
 };
 
 struct hsi_msg *hsi_alloc_msg(unsigned int n_frag, gfp_t flags);
@@ -231,12 +243,13 @@ void hsi_free_msg(struct hsi_msg *msg);
  * @release: Callback to inform that a client no longer uses the port
  * @n_head: Notifier chain for signaling port events to the clients.
  */
-struct hsi_port {
+struct hsi_port
+{
 	struct device			device;
 	struct hsi_config		tx_cfg;
 	struct hsi_config		rx_cfg;
 	unsigned int			num;
-	unsigned int			shared:1;
+	unsigned int			shared: 1;
 	int				claimed;
 	struct mutex			lock;
 	int				(*async)(struct hsi_msg *msg);
@@ -279,7 +292,8 @@ static inline void *hsi_port_drvdata(struct hsi_port *port)
  * @num_ports: Number of ports in the HSI controller
  * @port: Array of HSI ports
  */
-struct hsi_controller {
+struct hsi_controller
+{
 	struct device		device;
 	struct module		*owner;
 	unsigned int		id;
@@ -294,23 +308,23 @@ void hsi_put_controller(struct hsi_controller *hsi);
 int hsi_register_controller(struct hsi_controller *hsi);
 void hsi_unregister_controller(struct hsi_controller *hsi);
 struct hsi_client *hsi_new_client(struct hsi_port *port,
-						struct hsi_board_info *info);
+								  struct hsi_board_info *info);
 int hsi_remove_client(struct device *dev, void *data);
 void hsi_port_unregister_clients(struct hsi_port *port);
 
 #ifdef CONFIG_OF
 void hsi_add_clients_from_dt(struct hsi_port *port,
-			     struct device_node *clients);
+							 struct device_node *clients);
 #else
 static inline void hsi_add_clients_from_dt(struct hsi_port *port,
-					   struct device_node *clients)
+		struct device_node *clients)
 {
 	return;
 }
 #endif
 
 static inline void hsi_controller_set_drvdata(struct hsi_controller *hsi,
-								void *data)
+		void *data)
 {
 	dev_set_drvdata(&hsi->device, data);
 }
@@ -321,7 +335,7 @@ static inline void *hsi_controller_drvdata(struct hsi_controller *hsi)
 }
 
 static inline struct hsi_port *hsi_find_port_num(struct hsi_controller *hsi,
-							unsigned int num)
+		unsigned int num)
 {
 	return (num < hsi->num_ports) ? hsi->port[num] : NULL;
 }
@@ -367,7 +381,10 @@ static inline unsigned int hsi_port_id(struct hsi_client *cl)
 static inline int hsi_setup(struct hsi_client *cl)
 {
 	if (!hsi_port_claimed(cl))
+	{
 		return -EACCES;
+	}
+
 	return	hsi_get_port(cl)->setup(cl);
 }
 
@@ -383,7 +400,10 @@ static inline int hsi_setup(struct hsi_client *cl)
 static inline int hsi_flush(struct hsi_client *cl)
 {
 	if (!hsi_port_claimed(cl))
+	{
 		return -EACCES;
+	}
+
 	return hsi_get_port(cl)->flush(cl);
 }
 
@@ -422,7 +442,10 @@ static inline int hsi_async_write(struct hsi_client *cl, struct hsi_msg *msg)
 static inline int hsi_start_tx(struct hsi_client *cl)
 {
 	if (!hsi_port_claimed(cl))
+	{
 		return -EACCES;
+	}
+
 	return hsi_get_port(cl)->start_tx(cl);
 }
 
@@ -435,7 +458,10 @@ static inline int hsi_start_tx(struct hsi_client *cl)
 static inline int hsi_stop_tx(struct hsi_client *cl)
 {
 	if (!hsi_port_claimed(cl))
+	{
 		return -EACCES;
+	}
+
 	return hsi_get_port(cl)->stop_tx(cl);
 }
 #endif /* __LINUX_HSI_H__ */

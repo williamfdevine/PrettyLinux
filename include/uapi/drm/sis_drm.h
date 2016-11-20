@@ -55,18 +55,21 @@ extern "C" {
 #define DRM_IOCTL_SIS_FLIP_FINAL	DRM_IO(  0x50)
 */
 
-typedef struct {
+typedef struct
+{
 	int context;
 	unsigned long offset;
 	unsigned long size;
 	unsigned long free;
 } drm_sis_mem_t;
 
-typedef struct {
+typedef struct
+{
 	unsigned long offset, size;
 } drm_sis_agp_t;
 
-typedef struct {
+typedef struct
+{
 	unsigned long offset, size;
 } drm_sis_fb_t;
 

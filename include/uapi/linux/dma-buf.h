@@ -22,7 +22,8 @@
 #include <linux/types.h>
 
 /* begin/end dma-buf functions used for userspace mmap. */
-struct dma_buf_sync {
+struct dma_buf_sync
+{
 	__u64 flags;
 };
 

@@ -74,20 +74,27 @@ static void get_asm_insns(uint8_t *image, size_t len, int opcodes)
 	disassemble = disassembler(bfdf);
 	assert(disassemble);
 
-	do {
+	do
+	{
 		printf("%4x:\t", pc);
 
 		count = disassemble(pc, &info);
 
-		if (opcodes) {
+		if (opcodes)
+		{
 			printf("\n\t");
+
 			for (i = 0; i < count; ++i)
+			{
 				printf("%02x ", (uint8_t) image[pc + i]);
+			}
 		}
+
 		printf("\n");
 
 		pc += count;
-	} while(count > 0 && pc < len);
+	}
+	while (count > 0 && pc < len);
 
 	bfd_close(bfdf);
 }
@@ -98,15 +105,23 @@ static char *get_klog_buff(unsigned int *klen)
 	char *buff;
 
 	len = klogctl(CMD_ACTION_SIZE_BUFFER, NULL, 0);
+
 	if (len < 0)
+	{
 		return NULL;
+	}
 
 	buff = malloc(len);
+
 	if (!buff)
+	{
 		return NULL;
+	}
 
 	ret = klogctl(CMD_ACTION_READ_ALL, buff, len);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		free(buff);
 		return NULL;
 	}
@@ -122,22 +137,34 @@ static char *get_flog_buff(const char *file, unsigned int *klen)
 	char *buff;
 
 	fd = open(file, O_RDONLY);
+
 	if (fd < 0)
+	{
 		return NULL;
+	}
 
 	ret = fstat(fd, &fi);
+
 	if (ret < 0 || !S_ISREG(fi.st_mode))
+	{
 		goto out;
+	}
 
 	len = fi.st_size + 1;
 	buff = malloc(len);
+
 	if (!buff)
+	{
 		goto out;
+	}
 
 	memset(buff, 0, len);
 	ret = read(fd, buff, len - 1);
+
 	if (ret <= 0)
+	{
 		goto out_free;
+	}
 
 	close(fd);
 	*klen = ret;
@@ -160,7 +187,7 @@ static void put_log_buff(char *buff)
 }
 
 static unsigned int get_last_jit_image(char *haystack, size_t hlen,
-				       uint8_t *image, size_t ilen)
+									   uint8_t *image, size_t ilen)
 {
 	char *ptr, *pptr, *tmp;
 	off_t off = 0;
@@ -170,55 +197,81 @@ static unsigned int get_last_jit_image(char *haystack, size_t hlen,
 	regex_t regex;
 
 	if (hlen == 0)
+	{
 		return 0;
+	}
 
 	ret = regcomp(&regex, "flen=[[:alnum:]]+ proglen=[[:digit:]]+ "
-		      "pass=[[:digit:]]+ image=[[:xdigit:]]+", REG_EXTENDED);
+				  "pass=[[:digit:]]+ image=[[:xdigit:]]+", REG_EXTENDED);
 	assert(ret == 0);
 
 	ptr = haystack;
 	memset(pmatch, 0, sizeof(pmatch));
 
-	while (1) {
+	while (1)
+	{
 		ret = regexec(&regex, ptr, 1, pmatch, 0);
-		if (ret == 0) {
+
+		if (ret == 0)
+		{
 			ptr += pmatch[0].rm_eo;
 			off += pmatch[0].rm_eo;
 			assert(off < hlen);
-		} else
+		}
+		else
+		{
 			break;
+		}
 	}
 
 	ptr = haystack + off - (pmatch[0].rm_eo - pmatch[0].rm_so);
 	ret = sscanf(ptr, "flen=%d proglen=%d pass=%d image=%lx",
-		     &flen, &proglen, &pass, &base);
-	if (ret != 4) {
+				 &flen, &proglen, &pass, &base);
+
+	if (ret != 4)
+	{
 		regfree(&regex);
 		return 0;
 	}
 
 	tmp = ptr = haystack + off;
-	while ((ptr = strtok(tmp, "\n")) != NULL && ulen < ilen) {
+
+	while ((ptr = strtok(tmp, "\n")) != NULL && ulen < ilen)
+	{
 		tmp = NULL;
+
 		if (!strstr(ptr, "JIT code"))
+		{
 			continue;
+		}
+
 		pptr = ptr;
+
 		while ((ptr = strstr(pptr, ":")))
+		{
 			pptr = ptr + 1;
+		}
+
 		ptr = pptr;
-		do {
+
+		do
+		{
 			image[ulen++] = (uint8_t) strtoul(pptr, &pptr, 16);
-			if (ptr == pptr || ulen >= ilen) {
+
+			if (ptr == pptr || ulen >= ilen)
+			{
 				ulen--;
 				break;
 			}
+
 			ptr = pptr;
-		} while (1);
+		}
+		while (1);
 	}
 
 	assert(ulen == proglen);
 	printf("%d bytes emitted from JIT compiler (pass:%d, flen:%d)\n",
-	       proglen, pass, flen);
+		   proglen, pass, flen);
 	printf("%lx + <x>:\n", base);
 
 	regfree(&regex);
@@ -239,17 +292,21 @@ int main(int argc, char **argv)
 	static uint8_t image[32768];
 	char *kbuff, *file = NULL;
 
-	while ((opt = getopt(argc, argv, "of:")) != -1) {
-		switch (opt) {
-		case 'o':
-			opcodes = 1;
-			break;
-		case 'f':
-			file = optarg;
-			break;
-		default:
-			usage();
-			return -1;
+	while ((opt = getopt(argc, argv, "of:")) != -1)
+	{
+		switch (opt)
+		{
+			case 'o':
+				opcodes = 1;
+				break;
+
+			case 'f':
+				file = optarg;
+				break;
+
+			default:
+				usage();
+				return -1;
 		}
 	}
 
@@ -257,16 +314,23 @@ int main(int argc, char **argv)
 	memset(image, 0, sizeof(image));
 
 	kbuff = get_log_buff(file, &klen);
-	if (!kbuff) {
+
+	if (!kbuff)
+	{
 		fprintf(stderr, "Could not retrieve log buffer!\n");
 		return -1;
 	}
 
 	len = get_last_jit_image(kbuff, klen, image, sizeof(image));
+
 	if (len > 0)
+	{
 		get_asm_insns(image, len, opcodes);
+	}
 	else
+	{
 		fprintf(stderr, "No JIT image found!\n");
+	}
 
 	put_log_buff(kbuff);
 	return 0;

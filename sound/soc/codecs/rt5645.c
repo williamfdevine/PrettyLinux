@@ -44,7 +44,8 @@
 
 #define RT5645_HWEQ_NUM 57
 
-static const struct regmap_range_cfg rt5645_ranges[] = {
+static const struct regmap_range_cfg rt5645_ranges[] =
+{
 	{
 		.name = "PR",
 		.range_min = RT5645_PR_BASE,
@@ -57,7 +58,8 @@ static const struct regmap_range_cfg rt5645_ranges[] = {
 	},
 };
 
-static const struct reg_sequence init_list[] = {
+static const struct reg_sequence init_list[] =
+{
 	{RT5645_PR_BASE + 0x3d,	0x3600},
 	{RT5645_PR_BASE + 0x1c,	0xfd20},
 	{RT5645_PR_BASE + 0x20,	0x611f},
@@ -66,11 +68,13 @@ static const struct reg_sequence init_list[] = {
 	{RT5645_ASRC_4, 0x0120},
 };
 
-static const struct reg_sequence rt5650_init_list[] = {
+static const struct reg_sequence rt5650_init_list[] =
+{
 	{0xf6,	0x0100},
 };
 
-static const struct reg_default rt5645_reg[] = {
+static const struct reg_default rt5645_reg[] =
+{
 	{ 0x00, 0x0000 },
 	{ 0x01, 0xc8c8 },
 	{ 0x02, 0xc8c8 },
@@ -226,7 +230,8 @@ static const struct reg_default rt5645_reg[] = {
 	{ 0xff, 0x6308 },
 };
 
-static const struct reg_default rt5650_reg[] = {
+static const struct reg_default rt5650_reg[] =
+{
 	{ 0x00, 0x0000 },
 	{ 0x01, 0xc8c8 },
 	{ 0x02, 0xc8c8 },
@@ -383,17 +388,20 @@ static const struct reg_default rt5650_reg[] = {
 	{ 0xff, 0x6308 },
 };
 
-struct rt5645_eq_param_s {
+struct rt5645_eq_param_s
+{
 	unsigned short reg;
 	unsigned short val;
 };
 
-static const char *const rt5645_supply_names[] = {
+static const char *const rt5645_supply_names[] =
+{
 	"avdd",
 	"cpvdd",
 };
 
-struct rt5645_priv {
+struct rt5645_priv
+{
 	struct snd_soc_codec *codec;
 	struct rt5645_platform_data pdata;
 	struct regmap *regmap;
@@ -432,35 +440,39 @@ static bool rt5645_volatile_register(struct device *dev, unsigned int reg)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(rt5645_ranges); i++) {
+	for (i = 0; i < ARRAY_SIZE(rt5645_ranges); i++)
+	{
 		if (reg >= rt5645_ranges[i].range_min &&
-			reg <= rt5645_ranges[i].range_max) {
+			reg <= rt5645_ranges[i].range_max)
+		{
 			return true;
 		}
 	}
 
-	switch (reg) {
-	case RT5645_RESET:
-	case RT5645_PRIV_INDEX:
-	case RT5645_PRIV_DATA:
-	case RT5645_IN1_CTRL1:
-	case RT5645_IN1_CTRL2:
-	case RT5645_IN1_CTRL3:
-	case RT5645_A_JD_CTRL1:
-	case RT5645_ADC_EQ_CTRL1:
-	case RT5645_EQ_CTRL1:
-	case RT5645_ALC_CTRL_1:
-	case RT5645_IRQ_CTRL2:
-	case RT5645_IRQ_CTRL3:
-	case RT5645_INT_IRQ_ST:
-	case RT5645_IL_CMD:
-	case RT5650_4BTN_IL_CMD1:
-	case RT5645_VENDOR_ID:
-	case RT5645_VENDOR_ID1:
-	case RT5645_VENDOR_ID2:
-		return true;
-	default:
-		return false;
+	switch (reg)
+	{
+		case RT5645_RESET:
+		case RT5645_PRIV_INDEX:
+		case RT5645_PRIV_DATA:
+		case RT5645_IN1_CTRL1:
+		case RT5645_IN1_CTRL2:
+		case RT5645_IN1_CTRL3:
+		case RT5645_A_JD_CTRL1:
+		case RT5645_ADC_EQ_CTRL1:
+		case RT5645_EQ_CTRL1:
+		case RT5645_ALC_CTRL_1:
+		case RT5645_IRQ_CTRL2:
+		case RT5645_IRQ_CTRL3:
+		case RT5645_INT_IRQ_ST:
+		case RT5645_IL_CMD:
+		case RT5650_4BTN_IL_CMD1:
+		case RT5645_VENDOR_ID:
+		case RT5645_VENDOR_ID1:
+		case RT5645_VENDOR_ID2:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
@@ -468,154 +480,158 @@ static bool rt5645_readable_register(struct device *dev, unsigned int reg)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(rt5645_ranges); i++) {
+	for (i = 0; i < ARRAY_SIZE(rt5645_ranges); i++)
+	{
 		if (reg >= rt5645_ranges[i].range_min &&
-			reg <= rt5645_ranges[i].range_max) {
+			reg <= rt5645_ranges[i].range_max)
+		{
 			return true;
 		}
 	}
 
-	switch (reg) {
-	case RT5645_RESET:
-	case RT5645_SPK_VOL:
-	case RT5645_HP_VOL:
-	case RT5645_LOUT1:
-	case RT5645_IN1_CTRL1:
-	case RT5645_IN1_CTRL2:
-	case RT5645_IN1_CTRL3:
-	case RT5645_IN2_CTRL:
-	case RT5645_INL1_INR1_VOL:
-	case RT5645_SPK_FUNC_LIM:
-	case RT5645_ADJ_HPF_CTRL:
-	case RT5645_DAC1_DIG_VOL:
-	case RT5645_DAC2_DIG_VOL:
-	case RT5645_DAC_CTRL:
-	case RT5645_STO1_ADC_DIG_VOL:
-	case RT5645_MONO_ADC_DIG_VOL:
-	case RT5645_ADC_BST_VOL1:
-	case RT5645_ADC_BST_VOL2:
-	case RT5645_STO1_ADC_MIXER:
-	case RT5645_MONO_ADC_MIXER:
-	case RT5645_AD_DA_MIXER:
-	case RT5645_STO_DAC_MIXER:
-	case RT5645_MONO_DAC_MIXER:
-	case RT5645_DIG_MIXER:
-	case RT5650_A_DAC_SOUR:
-	case RT5645_DIG_INF1_DATA:
-	case RT5645_PDM_OUT_CTRL:
-	case RT5645_REC_L1_MIXER:
-	case RT5645_REC_L2_MIXER:
-	case RT5645_REC_R1_MIXER:
-	case RT5645_REC_R2_MIXER:
-	case RT5645_HPMIXL_CTRL:
-	case RT5645_HPOMIXL_CTRL:
-	case RT5645_HPMIXR_CTRL:
-	case RT5645_HPOMIXR_CTRL:
-	case RT5645_HPO_MIXER:
-	case RT5645_SPK_L_MIXER:
-	case RT5645_SPK_R_MIXER:
-	case RT5645_SPO_MIXER:
-	case RT5645_SPO_CLSD_RATIO:
-	case RT5645_OUT_L1_MIXER:
-	case RT5645_OUT_R1_MIXER:
-	case RT5645_OUT_L_GAIN1:
-	case RT5645_OUT_L_GAIN2:
-	case RT5645_OUT_R_GAIN1:
-	case RT5645_OUT_R_GAIN2:
-	case RT5645_LOUT_MIXER:
-	case RT5645_HAPTIC_CTRL1:
-	case RT5645_HAPTIC_CTRL2:
-	case RT5645_HAPTIC_CTRL3:
-	case RT5645_HAPTIC_CTRL4:
-	case RT5645_HAPTIC_CTRL5:
-	case RT5645_HAPTIC_CTRL6:
-	case RT5645_HAPTIC_CTRL7:
-	case RT5645_HAPTIC_CTRL8:
-	case RT5645_HAPTIC_CTRL9:
-	case RT5645_HAPTIC_CTRL10:
-	case RT5645_PWR_DIG1:
-	case RT5645_PWR_DIG2:
-	case RT5645_PWR_ANLG1:
-	case RT5645_PWR_ANLG2:
-	case RT5645_PWR_MIXER:
-	case RT5645_PWR_VOL:
-	case RT5645_PRIV_INDEX:
-	case RT5645_PRIV_DATA:
-	case RT5645_I2S1_SDP:
-	case RT5645_I2S2_SDP:
-	case RT5645_ADDA_CLK1:
-	case RT5645_ADDA_CLK2:
-	case RT5645_DMIC_CTRL1:
-	case RT5645_DMIC_CTRL2:
-	case RT5645_TDM_CTRL_1:
-	case RT5645_TDM_CTRL_2:
-	case RT5645_TDM_CTRL_3:
-	case RT5650_TDM_CTRL_4:
-	case RT5645_GLB_CLK:
-	case RT5645_PLL_CTRL1:
-	case RT5645_PLL_CTRL2:
-	case RT5645_ASRC_1:
-	case RT5645_ASRC_2:
-	case RT5645_ASRC_3:
-	case RT5645_ASRC_4:
-	case RT5645_DEPOP_M1:
-	case RT5645_DEPOP_M2:
-	case RT5645_DEPOP_M3:
-	case RT5645_CHARGE_PUMP:
-	case RT5645_MICBIAS:
-	case RT5645_A_JD_CTRL1:
-	case RT5645_VAD_CTRL4:
-	case RT5645_CLSD_OUT_CTRL:
-	case RT5645_ADC_EQ_CTRL1:
-	case RT5645_ADC_EQ_CTRL2:
-	case RT5645_EQ_CTRL1:
-	case RT5645_EQ_CTRL2:
-	case RT5645_ALC_CTRL_1:
-	case RT5645_ALC_CTRL_2:
-	case RT5645_ALC_CTRL_3:
-	case RT5645_ALC_CTRL_4:
-	case RT5645_ALC_CTRL_5:
-	case RT5645_JD_CTRL:
-	case RT5645_IRQ_CTRL1:
-	case RT5645_IRQ_CTRL2:
-	case RT5645_IRQ_CTRL3:
-	case RT5645_INT_IRQ_ST:
-	case RT5645_GPIO_CTRL1:
-	case RT5645_GPIO_CTRL2:
-	case RT5645_GPIO_CTRL3:
-	case RT5645_BASS_BACK:
-	case RT5645_MP3_PLUS1:
-	case RT5645_MP3_PLUS2:
-	case RT5645_ADJ_HPF1:
-	case RT5645_ADJ_HPF2:
-	case RT5645_HP_CALIB_AMP_DET:
-	case RT5645_SV_ZCD1:
-	case RT5645_SV_ZCD2:
-	case RT5645_IL_CMD:
-	case RT5645_IL_CMD2:
-	case RT5645_IL_CMD3:
-	case RT5650_4BTN_IL_CMD1:
-	case RT5650_4BTN_IL_CMD2:
-	case RT5645_DRC1_HL_CTRL1:
-	case RT5645_DRC2_HL_CTRL1:
-	case RT5645_ADC_MONO_HP_CTRL1:
-	case RT5645_ADC_MONO_HP_CTRL2:
-	case RT5645_DRC2_CTRL1:
-	case RT5645_DRC2_CTRL2:
-	case RT5645_DRC2_CTRL3:
-	case RT5645_DRC2_CTRL4:
-	case RT5645_DRC2_CTRL5:
-	case RT5645_JD_CTRL3:
-	case RT5645_JD_CTRL4:
-	case RT5645_GEN_CTRL1:
-	case RT5645_GEN_CTRL2:
-	case RT5645_GEN_CTRL3:
-	case RT5645_VENDOR_ID:
-	case RT5645_VENDOR_ID1:
-	case RT5645_VENDOR_ID2:
-		return true;
-	default:
-		return false;
+	switch (reg)
+	{
+		case RT5645_RESET:
+		case RT5645_SPK_VOL:
+		case RT5645_HP_VOL:
+		case RT5645_LOUT1:
+		case RT5645_IN1_CTRL1:
+		case RT5645_IN1_CTRL2:
+		case RT5645_IN1_CTRL3:
+		case RT5645_IN2_CTRL:
+		case RT5645_INL1_INR1_VOL:
+		case RT5645_SPK_FUNC_LIM:
+		case RT5645_ADJ_HPF_CTRL:
+		case RT5645_DAC1_DIG_VOL:
+		case RT5645_DAC2_DIG_VOL:
+		case RT5645_DAC_CTRL:
+		case RT5645_STO1_ADC_DIG_VOL:
+		case RT5645_MONO_ADC_DIG_VOL:
+		case RT5645_ADC_BST_VOL1:
+		case RT5645_ADC_BST_VOL2:
+		case RT5645_STO1_ADC_MIXER:
+		case RT5645_MONO_ADC_MIXER:
+		case RT5645_AD_DA_MIXER:
+		case RT5645_STO_DAC_MIXER:
+		case RT5645_MONO_DAC_MIXER:
+		case RT5645_DIG_MIXER:
+		case RT5650_A_DAC_SOUR:
+		case RT5645_DIG_INF1_DATA:
+		case RT5645_PDM_OUT_CTRL:
+		case RT5645_REC_L1_MIXER:
+		case RT5645_REC_L2_MIXER:
+		case RT5645_REC_R1_MIXER:
+		case RT5645_REC_R2_MIXER:
+		case RT5645_HPMIXL_CTRL:
+		case RT5645_HPOMIXL_CTRL:
+		case RT5645_HPMIXR_CTRL:
+		case RT5645_HPOMIXR_CTRL:
+		case RT5645_HPO_MIXER:
+		case RT5645_SPK_L_MIXER:
+		case RT5645_SPK_R_MIXER:
+		case RT5645_SPO_MIXER:
+		case RT5645_SPO_CLSD_RATIO:
+		case RT5645_OUT_L1_MIXER:
+		case RT5645_OUT_R1_MIXER:
+		case RT5645_OUT_L_GAIN1:
+		case RT5645_OUT_L_GAIN2:
+		case RT5645_OUT_R_GAIN1:
+		case RT5645_OUT_R_GAIN2:
+		case RT5645_LOUT_MIXER:
+		case RT5645_HAPTIC_CTRL1:
+		case RT5645_HAPTIC_CTRL2:
+		case RT5645_HAPTIC_CTRL3:
+		case RT5645_HAPTIC_CTRL4:
+		case RT5645_HAPTIC_CTRL5:
+		case RT5645_HAPTIC_CTRL6:
+		case RT5645_HAPTIC_CTRL7:
+		case RT5645_HAPTIC_CTRL8:
+		case RT5645_HAPTIC_CTRL9:
+		case RT5645_HAPTIC_CTRL10:
+		case RT5645_PWR_DIG1:
+		case RT5645_PWR_DIG2:
+		case RT5645_PWR_ANLG1:
+		case RT5645_PWR_ANLG2:
+		case RT5645_PWR_MIXER:
+		case RT5645_PWR_VOL:
+		case RT5645_PRIV_INDEX:
+		case RT5645_PRIV_DATA:
+		case RT5645_I2S1_SDP:
+		case RT5645_I2S2_SDP:
+		case RT5645_ADDA_CLK1:
+		case RT5645_ADDA_CLK2:
+		case RT5645_DMIC_CTRL1:
+		case RT5645_DMIC_CTRL2:
+		case RT5645_TDM_CTRL_1:
+		case RT5645_TDM_CTRL_2:
+		case RT5645_TDM_CTRL_3:
+		case RT5650_TDM_CTRL_4:
+		case RT5645_GLB_CLK:
+		case RT5645_PLL_CTRL1:
+		case RT5645_PLL_CTRL2:
+		case RT5645_ASRC_1:
+		case RT5645_ASRC_2:
+		case RT5645_ASRC_3:
+		case RT5645_ASRC_4:
+		case RT5645_DEPOP_M1:
+		case RT5645_DEPOP_M2:
+		case RT5645_DEPOP_M3:
+		case RT5645_CHARGE_PUMP:
+		case RT5645_MICBIAS:
+		case RT5645_A_JD_CTRL1:
+		case RT5645_VAD_CTRL4:
+		case RT5645_CLSD_OUT_CTRL:
+		case RT5645_ADC_EQ_CTRL1:
+		case RT5645_ADC_EQ_CTRL2:
+		case RT5645_EQ_CTRL1:
+		case RT5645_EQ_CTRL2:
+		case RT5645_ALC_CTRL_1:
+		case RT5645_ALC_CTRL_2:
+		case RT5645_ALC_CTRL_3:
+		case RT5645_ALC_CTRL_4:
+		case RT5645_ALC_CTRL_5:
+		case RT5645_JD_CTRL:
+		case RT5645_IRQ_CTRL1:
+		case RT5645_IRQ_CTRL2:
+		case RT5645_IRQ_CTRL3:
+		case RT5645_INT_IRQ_ST:
+		case RT5645_GPIO_CTRL1:
+		case RT5645_GPIO_CTRL2:
+		case RT5645_GPIO_CTRL3:
+		case RT5645_BASS_BACK:
+		case RT5645_MP3_PLUS1:
+		case RT5645_MP3_PLUS2:
+		case RT5645_ADJ_HPF1:
+		case RT5645_ADJ_HPF2:
+		case RT5645_HP_CALIB_AMP_DET:
+		case RT5645_SV_ZCD1:
+		case RT5645_SV_ZCD2:
+		case RT5645_IL_CMD:
+		case RT5645_IL_CMD2:
+		case RT5645_IL_CMD3:
+		case RT5650_4BTN_IL_CMD1:
+		case RT5650_4BTN_IL_CMD2:
+		case RT5645_DRC1_HL_CTRL1:
+		case RT5645_DRC2_HL_CTRL1:
+		case RT5645_ADC_MONO_HP_CTRL1:
+		case RT5645_ADC_MONO_HP_CTRL2:
+		case RT5645_DRC2_CTRL1:
+		case RT5645_DRC2_CTRL2:
+		case RT5645_DRC2_CTRL3:
+		case RT5645_DRC2_CTRL4:
+		case RT5645_DRC2_CTRL5:
+		case RT5645_JD_CTRL3:
+		case RT5645_JD_CTRL4:
+		case RT5645_GEN_CTRL1:
+		case RT5645_GEN_CTRL2:
+		case RT5645_GEN_CTRL3:
+		case RT5645_VENDOR_ID:
+		case RT5645_VENDOR_ID1:
+		case RT5645_VENDOR_ID2:
+			return true;
+
+		default:
+			return false;
 	}
 }
 
@@ -627,25 +643,25 @@ static const DECLARE_TLV_DB_SCALE(adc_bst_tlv, 0, 1200, 0);
 
 /* {0, +20, +24, +30, +35, +40, +44, +50, +52} dB */
 static const DECLARE_TLV_DB_RANGE(bst_tlv,
-	0, 0, TLV_DB_SCALE_ITEM(0, 0, 0),
-	1, 1, TLV_DB_SCALE_ITEM(2000, 0, 0),
-	2, 2, TLV_DB_SCALE_ITEM(2400, 0, 0),
-	3, 5, TLV_DB_SCALE_ITEM(3000, 500, 0),
-	6, 6, TLV_DB_SCALE_ITEM(4400, 0, 0),
-	7, 7, TLV_DB_SCALE_ITEM(5000, 0, 0),
-	8, 8, TLV_DB_SCALE_ITEM(5200, 0, 0)
-);
+								  0, 0, TLV_DB_SCALE_ITEM(0, 0, 0),
+								  1, 1, TLV_DB_SCALE_ITEM(2000, 0, 0),
+								  2, 2, TLV_DB_SCALE_ITEM(2400, 0, 0),
+								  3, 5, TLV_DB_SCALE_ITEM(3000, 500, 0),
+								  6, 6, TLV_DB_SCALE_ITEM(4400, 0, 0),
+								  7, 7, TLV_DB_SCALE_ITEM(5000, 0, 0),
+								  8, 8, TLV_DB_SCALE_ITEM(5200, 0, 0)
+								 );
 
 /* {-6, -4.5, -3, -1.5, 0, 0.82, 1.58, 2.28} dB */
 static const DECLARE_TLV_DB_RANGE(spk_clsd_tlv,
-	0, 4, TLV_DB_SCALE_ITEM(-600, 150, 0),
-	5, 5, TLV_DB_SCALE_ITEM(82, 0, 0),
-	6, 6, TLV_DB_SCALE_ITEM(158, 0, 0),
-	7, 7, TLV_DB_SCALE_ITEM(228, 0, 0)
-);
+								  0, 4, TLV_DB_SCALE_ITEM(-600, 150, 0),
+								  5, 5, TLV_DB_SCALE_ITEM(82, 0, 0),
+								  6, 6, TLV_DB_SCALE_ITEM(158, 0, 0),
+								  7, 7, TLV_DB_SCALE_ITEM(228, 0, 0)
+								 );
 
 static int rt5645_hweq_info(struct snd_kcontrol *kcontrol,
-			 struct snd_ctl_elem_info *uinfo)
+							struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_BYTES;
 	uinfo->count = RT5645_HWEQ_NUM * sizeof(struct rt5645_eq_param_s);
@@ -654,7 +670,7 @@ static int rt5645_hweq_info(struct snd_kcontrol *kcontrol,
 }
 
 static int rt5645_hweq_get(struct snd_kcontrol *kcontrol,
-			struct snd_ctl_elem_value *ucontrol)
+						   struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_component *component = snd_kcontrol_chip(kcontrol);
 	struct rt5645_priv *rt5645 = snd_soc_component_get_drvdata(component);
@@ -662,7 +678,8 @@ static int rt5645_hweq_get(struct snd_kcontrol *kcontrol,
 		(struct rt5645_eq_param_s *)ucontrol->value.bytes.data;
 	int i;
 
-	for (i = 0; i < RT5645_HWEQ_NUM; i++) {
+	for (i = 0; i < RT5645_HWEQ_NUM; i++)
+	{
 		eq_param[i].reg = cpu_to_be16(rt5645->eq_param[i].reg);
 		eq_param[i].val = cpu_to_be16(rt5645->eq_param[i].val);
 	}
@@ -674,13 +691,15 @@ static bool rt5645_validate_hweq(unsigned short reg)
 {
 	if ((reg >= 0x1a4 && reg <= 0x1cd) | (reg >= 0x1e5 && reg <= 0x1f8) |
 		(reg == RT5645_EQ_CTRL2))
+	{
 		return true;
+	}
 
 	return false;
 }
 
 static int rt5645_hweq_put(struct snd_kcontrol *kcontrol,
-			struct snd_ctl_elem_value *ucontrol)
+						   struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_component *component = snd_kcontrol_chip(kcontrol);
 	struct rt5645_priv *rt5645 = snd_soc_component_get_drvdata(component);
@@ -688,61 +707,75 @@ static int rt5645_hweq_put(struct snd_kcontrol *kcontrol,
 		(struct rt5645_eq_param_s *)ucontrol->value.bytes.data;
 	int i;
 
-	for (i = 0; i < RT5645_HWEQ_NUM; i++) {
+	for (i = 0; i < RT5645_HWEQ_NUM; i++)
+	{
 		eq_param[i].reg = be16_to_cpu(eq_param[i].reg);
 		eq_param[i].val = be16_to_cpu(eq_param[i].val);
 	}
 
 	/* The final setting of the table should be RT5645_EQ_CTRL2 */
-	for (i = RT5645_HWEQ_NUM - 1; i >= 0; i--) {
+	for (i = RT5645_HWEQ_NUM - 1; i >= 0; i--)
+	{
 		if (eq_param[i].reg == 0)
+		{
 			continue;
+		}
 		else if (eq_param[i].reg != RT5645_EQ_CTRL2)
+		{
 			return 0;
+		}
 		else
+		{
 			break;
+		}
 	}
 
-	for (i = 0; i < RT5645_HWEQ_NUM; i++) {
+	for (i = 0; i < RT5645_HWEQ_NUM; i++)
+	{
 		if (!rt5645_validate_hweq(eq_param[i].reg) &&
 			eq_param[i].reg != 0)
+		{
 			return 0;
+		}
 		else if (eq_param[i].reg == 0)
+		{
 			break;
+		}
 	}
 
 	memcpy(rt5645->eq_param, eq_param,
-		RT5645_HWEQ_NUM * sizeof(struct rt5645_eq_param_s));
+		   RT5645_HWEQ_NUM * sizeof(struct rt5645_eq_param_s));
 
 	return 0;
 }
 
 #define RT5645_HWEQ(xname) \
-{	.iface = SNDRV_CTL_ELEM_IFACE_MIXER, .name = xname, \
-	.info = rt5645_hweq_info, \
-	.get = rt5645_hweq_get, \
-	.put = rt5645_hweq_put \
-}
+	{	.iface = SNDRV_CTL_ELEM_IFACE_MIXER, .name = xname, \
+				 .info = rt5645_hweq_info, \
+						 .get = rt5645_hweq_get, \
+								.put = rt5645_hweq_put \
+	}
 
 static int rt5645_spk_put_volsw(struct snd_kcontrol *kcontrol,
-		struct snd_ctl_elem_value *ucontrol)
+								struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_component *component = snd_kcontrol_chip(kcontrol);
 	struct rt5645_priv *rt5645 = snd_soc_component_get_drvdata(component);
 	int ret;
 
 	regmap_update_bits(rt5645->regmap, RT5645_MICBIAS,
-		RT5645_PWR_CLK25M_MASK, RT5645_PWR_CLK25M_PU);
+					   RT5645_PWR_CLK25M_MASK, RT5645_PWR_CLK25M_PU);
 
 	ret = snd_soc_put_volsw(kcontrol, ucontrol);
 
 	mod_delayed_work(system_power_efficient_wq, &rt5645->rcclock_work,
-		msecs_to_jiffies(200));
+					 msecs_to_jiffies(200));
 
 	return ret;
 }
 
-static const char * const rt5645_dac1_vol_ctrl_mode_text[] = {
+static const char *const rt5645_dac1_vol_ctrl_mode_text[] =
+{
 	"immediately", "zero crossing", "soft ramp"
 };
 
@@ -750,71 +783,72 @@ static SOC_ENUM_SINGLE_DECL(
 	rt5645_dac1_vol_ctrl_mode, RT5645_PR_BASE,
 	RT5645_DA1_ZDET_SFT, rt5645_dac1_vol_ctrl_mode_text);
 
-static const struct snd_kcontrol_new rt5645_snd_controls[] = {
+static const struct snd_kcontrol_new rt5645_snd_controls[] =
+{
 	/* Speaker Output Volume */
 	SOC_DOUBLE("Speaker Channel Switch", RT5645_SPK_VOL,
-		RT5645_VOL_L_SFT, RT5645_VOL_R_SFT, 1, 1),
+	RT5645_VOL_L_SFT, RT5645_VOL_R_SFT, 1, 1),
 	SOC_DOUBLE_EXT_TLV("Speaker Playback Volume", RT5645_SPK_VOL,
-		RT5645_L_VOL_SFT, RT5645_R_VOL_SFT, 39, 1, snd_soc_get_volsw,
-		rt5645_spk_put_volsw, out_vol_tlv),
+	RT5645_L_VOL_SFT, RT5645_R_VOL_SFT, 39, 1, snd_soc_get_volsw,
+	rt5645_spk_put_volsw, out_vol_tlv),
 
 	/* ClassD modulator Speaker Gain Ratio */
 	SOC_SINGLE_TLV("Speaker ClassD Playback Volume", RT5645_SPO_CLSD_RATIO,
-		RT5645_SPK_G_CLSD_SFT, 7, 0, spk_clsd_tlv),
+	RT5645_SPK_G_CLSD_SFT, 7, 0, spk_clsd_tlv),
 
 	/* Headphone Output Volume */
 	SOC_DOUBLE("Headphone Channel Switch", RT5645_HP_VOL,
-		RT5645_VOL_L_SFT, RT5645_VOL_R_SFT, 1, 1),
+	RT5645_VOL_L_SFT, RT5645_VOL_R_SFT, 1, 1),
 	SOC_DOUBLE_TLV("Headphone Playback Volume", RT5645_HP_VOL,
-		RT5645_L_VOL_SFT, RT5645_R_VOL_SFT, 39, 1, out_vol_tlv),
+	RT5645_L_VOL_SFT, RT5645_R_VOL_SFT, 39, 1, out_vol_tlv),
 
 	/* OUTPUT Control */
 	SOC_DOUBLE("OUT Playback Switch", RT5645_LOUT1,
-		RT5645_L_MUTE_SFT, RT5645_R_MUTE_SFT, 1, 1),
+	RT5645_L_MUTE_SFT, RT5645_R_MUTE_SFT, 1, 1),
 	SOC_DOUBLE("OUT Channel Switch", RT5645_LOUT1,
-		RT5645_VOL_L_SFT, RT5645_VOL_R_SFT, 1, 1),
+	RT5645_VOL_L_SFT, RT5645_VOL_R_SFT, 1, 1),
 	SOC_DOUBLE_TLV("OUT Playback Volume", RT5645_LOUT1,
-		RT5645_L_VOL_SFT, RT5645_R_VOL_SFT, 39, 1, out_vol_tlv),
+	RT5645_L_VOL_SFT, RT5645_R_VOL_SFT, 39, 1, out_vol_tlv),
 
 	/* DAC Digital Volume */
 	SOC_DOUBLE("DAC2 Playback Switch", RT5645_DAC_CTRL,
-		RT5645_M_DAC_L2_VOL_SFT, RT5645_M_DAC_R2_VOL_SFT, 1, 1),
+	RT5645_M_DAC_L2_VOL_SFT, RT5645_M_DAC_R2_VOL_SFT, 1, 1),
 	SOC_DOUBLE_TLV("DAC1 Playback Volume", RT5645_DAC1_DIG_VOL,
-		RT5645_L_VOL_SFT + 1, RT5645_R_VOL_SFT + 1, 87, 0, dac_vol_tlv),
+	RT5645_L_VOL_SFT + 1, RT5645_R_VOL_SFT + 1, 87, 0, dac_vol_tlv),
 	SOC_DOUBLE_TLV("Mono DAC Playback Volume", RT5645_DAC2_DIG_VOL,
-		RT5645_L_VOL_SFT + 1, RT5645_R_VOL_SFT + 1, 87, 0, dac_vol_tlv),
+	RT5645_L_VOL_SFT + 1, RT5645_R_VOL_SFT + 1, 87, 0, dac_vol_tlv),
 
 	/* IN1/IN2 Control */
 	SOC_SINGLE_TLV("IN1 Boost", RT5645_IN1_CTRL1,
-		RT5645_BST_SFT1, 12, 0, bst_tlv),
+	RT5645_BST_SFT1, 12, 0, bst_tlv),
 	SOC_SINGLE_TLV("IN2 Boost", RT5645_IN2_CTRL,
-		RT5645_BST_SFT2, 8, 0, bst_tlv),
+	RT5645_BST_SFT2, 8, 0, bst_tlv),
 
 	/* INL/INR Volume Control */
 	SOC_DOUBLE_TLV("IN Capture Volume", RT5645_INL1_INR1_VOL,
-		RT5645_INL_VOL_SFT, RT5645_INR_VOL_SFT, 31, 1, in_vol_tlv),
+	RT5645_INL_VOL_SFT, RT5645_INR_VOL_SFT, 31, 1, in_vol_tlv),
 
 	/* ADC Digital Volume Control */
 	SOC_DOUBLE("ADC Capture Switch", RT5645_STO1_ADC_DIG_VOL,
-		RT5645_L_MUTE_SFT, RT5645_R_MUTE_SFT, 1, 1),
+	RT5645_L_MUTE_SFT, RT5645_R_MUTE_SFT, 1, 1),
 	SOC_DOUBLE_TLV("ADC Capture Volume", RT5645_STO1_ADC_DIG_VOL,
-		RT5645_L_VOL_SFT + 1, RT5645_R_VOL_SFT + 1, 63, 0, adc_vol_tlv),
+	RT5645_L_VOL_SFT + 1, RT5645_R_VOL_SFT + 1, 63, 0, adc_vol_tlv),
 	SOC_DOUBLE("Mono ADC Capture Switch", RT5645_MONO_ADC_DIG_VOL,
-		RT5645_L_MUTE_SFT, RT5645_R_MUTE_SFT, 1, 1),
+	RT5645_L_MUTE_SFT, RT5645_R_MUTE_SFT, 1, 1),
 	SOC_DOUBLE_TLV("Mono ADC Capture Volume", RT5645_MONO_ADC_DIG_VOL,
-		RT5645_L_VOL_SFT + 1, RT5645_R_VOL_SFT + 1, 63, 0, adc_vol_tlv),
+	RT5645_L_VOL_SFT + 1, RT5645_R_VOL_SFT + 1, 63, 0, adc_vol_tlv),
 
 	/* ADC Boost Volume Control */
 	SOC_DOUBLE_TLV("ADC Boost Capture Volume", RT5645_ADC_BST_VOL1,
-		RT5645_STO1_ADC_L_BST_SFT, RT5645_STO1_ADC_R_BST_SFT, 3, 0,
-		adc_bst_tlv),
+	RT5645_STO1_ADC_L_BST_SFT, RT5645_STO1_ADC_R_BST_SFT, 3, 0,
+	adc_bst_tlv),
 	SOC_DOUBLE_TLV("Mono ADC Boost Capture Volume", RT5645_ADC_BST_VOL2,
-		RT5645_MONO_ADC_L_BST_SFT, RT5645_MONO_ADC_R_BST_SFT, 3, 0,
-		adc_bst_tlv),
+	RT5645_MONO_ADC_L_BST_SFT, RT5645_MONO_ADC_R_BST_SFT, 3, 0,
+	adc_bst_tlv),
 
 	/* I2S2 function select */
 	SOC_SINGLE("I2S2 Func Switch", RT5645_GPIO_CTRL1, RT5645_I2S2_SEL_SFT,
-		1, 1),
+	1, 1),
 	RT5645_HWEQ("Speaker HWEQ"),
 
 	/* Digital Soft Volume Control */
@@ -830,81 +864,100 @@ static const struct snd_kcontrol_new rt5645_snd_controls[] = {
  *
  */
 static int set_dmic_clk(struct snd_soc_dapm_widget *w,
-	struct snd_kcontrol *kcontrol, int event)
+						struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
 	struct rt5645_priv *rt5645 = snd_soc_codec_get_drvdata(codec);
 	int idx, rate;
 
 	rate = rt5645->sysclk / rl6231_get_pre_div(rt5645->regmap,
-		RT5645_ADDA_CLK1, RT5645_I2S_PD1_SFT);
+			RT5645_ADDA_CLK1, RT5645_I2S_PD1_SFT);
 	idx = rl6231_calc_dmic_clk(rate);
+
 	if (idx < 0)
+	{
 		dev_err(codec->dev, "Failed to set DMIC clock\n");
+	}
 	else
 		snd_soc_update_bits(codec, RT5645_DMIC_CTRL1,
-			RT5645_DMIC_CLK_MASK, idx << RT5645_DMIC_CLK_SFT);
+							RT5645_DMIC_CLK_MASK, idx << RT5645_DMIC_CLK_SFT);
+
 	return idx;
 }
 
 static int is_sys_clk_from_pll(struct snd_soc_dapm_widget *source,
-			 struct snd_soc_dapm_widget *sink)
+							   struct snd_soc_dapm_widget *sink)
 {
 	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(source->dapm);
 	unsigned int val;
 
 	val = snd_soc_read(codec, RT5645_GLB_CLK);
 	val &= RT5645_SCLK_SRC_MASK;
+
 	if (val == RT5645_SCLK_SRC_PLL1)
+	{
 		return 1;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 static int is_using_asrc(struct snd_soc_dapm_widget *source,
-			 struct snd_soc_dapm_widget *sink)
+						 struct snd_soc_dapm_widget *sink)
 {
 	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(source->dapm);
 	unsigned int reg, shift, val;
 
-	switch (source->shift) {
-	case 0:
-		reg = RT5645_ASRC_3;
-		shift = 0;
-		break;
-	case 1:
-		reg = RT5645_ASRC_3;
-		shift = 4;
-		break;
-	case 3:
-		reg = RT5645_ASRC_2;
-		shift = 0;
-		break;
-	case 8:
-		reg = RT5645_ASRC_2;
-		shift = 4;
-		break;
-	case 9:
-		reg = RT5645_ASRC_2;
-		shift = 8;
-		break;
-	case 10:
-		reg = RT5645_ASRC_2;
-		shift = 12;
-		break;
-	default:
-		return 0;
+	switch (source->shift)
+	{
+		case 0:
+			reg = RT5645_ASRC_3;
+			shift = 0;
+			break;
+
+		case 1:
+			reg = RT5645_ASRC_3;
+			shift = 4;
+			break;
+
+		case 3:
+			reg = RT5645_ASRC_2;
+			shift = 0;
+			break;
+
+		case 8:
+			reg = RT5645_ASRC_2;
+			shift = 4;
+			break;
+
+		case 9:
+			reg = RT5645_ASRC_2;
+			shift = 8;
+			break;
+
+		case 10:
+			reg = RT5645_ASRC_2;
+			shift = 12;
+			break;
+
+		default:
+			return 0;
 	}
 
 	val = (snd_soc_read(codec, reg) >> shift) & 0xf;
-	switch (val) {
-	case 1:
-	case 2:
-	case 3:
-	case 4:
-		return 1;
-	default:
-		return 0;
+
+	switch (val)
+	{
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+			return 1;
+
+		default:
+			return 0;
 	}
 
 }
@@ -914,12 +967,15 @@ static int rt5645_enable_hweq(struct snd_soc_codec *codec)
 	struct rt5645_priv *rt5645 = snd_soc_codec_get_drvdata(codec);
 	int i;
 
-	for (i = 0; i < RT5645_HWEQ_NUM; i++) {
+	for (i = 0; i < RT5645_HWEQ_NUM; i++)
+	{
 		if (rt5645_validate_hweq(rt5645->eq_param[i].reg))
 			regmap_write(rt5645->regmap, rt5645->eq_param[i].reg,
-					rt5645->eq_param[i].val);
+						 rt5645->eq_param[i].val);
 		else
+		{
 			break;
+		}
 	}
 
 	return 0;
@@ -940,300 +996,332 @@ static int rt5645_enable_hweq(struct snd_soc_codec *codec)
  * for these filters if ASRC is selected as their clock source.
  */
 int rt5645_sel_asrc_clk_src(struct snd_soc_codec *codec,
-		unsigned int filter_mask, unsigned int clk_src)
+							unsigned int filter_mask, unsigned int clk_src)
 {
 	unsigned int asrc2_mask = 0;
 	unsigned int asrc2_value = 0;
 	unsigned int asrc3_mask = 0;
 	unsigned int asrc3_value = 0;
 
-	switch (clk_src) {
-	case RT5645_CLK_SEL_SYS:
-	case RT5645_CLK_SEL_I2S1_ASRC:
-	case RT5645_CLK_SEL_I2S2_ASRC:
-	case RT5645_CLK_SEL_SYS2:
-		break;
+	switch (clk_src)
+	{
+		case RT5645_CLK_SEL_SYS:
+		case RT5645_CLK_SEL_I2S1_ASRC:
+		case RT5645_CLK_SEL_I2S2_ASRC:
+		case RT5645_CLK_SEL_SYS2:
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
-	if (filter_mask & RT5645_DA_STEREO_FILTER) {
+	if (filter_mask & RT5645_DA_STEREO_FILTER)
+	{
 		asrc2_mask |= RT5645_DA_STO_CLK_SEL_MASK;
 		asrc2_value = (asrc2_value & ~RT5645_DA_STO_CLK_SEL_MASK)
-			| (clk_src << RT5645_DA_STO_CLK_SEL_SFT);
+					  | (clk_src << RT5645_DA_STO_CLK_SEL_SFT);
 	}
 
-	if (filter_mask & RT5645_DA_MONO_L_FILTER) {
+	if (filter_mask & RT5645_DA_MONO_L_FILTER)
+	{
 		asrc2_mask |= RT5645_DA_MONOL_CLK_SEL_MASK;
 		asrc2_value = (asrc2_value & ~RT5645_DA_MONOL_CLK_SEL_MASK)
-			| (clk_src << RT5645_DA_MONOL_CLK_SEL_SFT);
+					  | (clk_src << RT5645_DA_MONOL_CLK_SEL_SFT);
 	}
 
-	if (filter_mask & RT5645_DA_MONO_R_FILTER) {
+	if (filter_mask & RT5645_DA_MONO_R_FILTER)
+	{
 		asrc2_mask |= RT5645_DA_MONOR_CLK_SEL_MASK;
 		asrc2_value = (asrc2_value & ~RT5645_DA_MONOR_CLK_SEL_MASK)
-			| (clk_src << RT5645_DA_MONOR_CLK_SEL_SFT);
+					  | (clk_src << RT5645_DA_MONOR_CLK_SEL_SFT);
 	}
 
-	if (filter_mask & RT5645_AD_STEREO_FILTER) {
+	if (filter_mask & RT5645_AD_STEREO_FILTER)
+	{
 		asrc2_mask |= RT5645_AD_STO1_CLK_SEL_MASK;
 		asrc2_value = (asrc2_value & ~RT5645_AD_STO1_CLK_SEL_MASK)
-			| (clk_src << RT5645_AD_STO1_CLK_SEL_SFT);
+					  | (clk_src << RT5645_AD_STO1_CLK_SEL_SFT);
 	}
 
-	if (filter_mask & RT5645_AD_MONO_L_FILTER) {
+	if (filter_mask & RT5645_AD_MONO_L_FILTER)
+	{
 		asrc3_mask |= RT5645_AD_MONOL_CLK_SEL_MASK;
 		asrc3_value = (asrc3_value & ~RT5645_AD_MONOL_CLK_SEL_MASK)
-			| (clk_src << RT5645_AD_MONOL_CLK_SEL_SFT);
+					  | (clk_src << RT5645_AD_MONOL_CLK_SEL_SFT);
 	}
 
-	if (filter_mask & RT5645_AD_MONO_R_FILTER)  {
+	if (filter_mask & RT5645_AD_MONO_R_FILTER)
+	{
 		asrc3_mask |= RT5645_AD_MONOR_CLK_SEL_MASK;
 		asrc3_value = (asrc3_value & ~RT5645_AD_MONOR_CLK_SEL_MASK)
-			| (clk_src << RT5645_AD_MONOR_CLK_SEL_SFT);
+					  | (clk_src << RT5645_AD_MONOR_CLK_SEL_SFT);
 	}
 
 	if (asrc2_mask)
 		snd_soc_update_bits(codec, RT5645_ASRC_2,
-			asrc2_mask, asrc2_value);
+							asrc2_mask, asrc2_value);
 
 	if (asrc3_mask)
 		snd_soc_update_bits(codec, RT5645_ASRC_3,
-			asrc3_mask, asrc3_value);
+							asrc3_mask, asrc3_value);
 
 	return 0;
 }
 EXPORT_SYMBOL_GPL(rt5645_sel_asrc_clk_src);
 
 /* Digital Mixer */
-static const struct snd_kcontrol_new rt5645_sto1_adc_l_mix[] = {
+static const struct snd_kcontrol_new rt5645_sto1_adc_l_mix[] =
+{
 	SOC_DAPM_SINGLE("ADC1 Switch", RT5645_STO1_ADC_MIXER,
-			RT5645_M_ADC_L1_SFT, 1, 1),
+	RT5645_M_ADC_L1_SFT, 1, 1),
 	SOC_DAPM_SINGLE("ADC2 Switch", RT5645_STO1_ADC_MIXER,
-			RT5645_M_ADC_L2_SFT, 1, 1),
+	RT5645_M_ADC_L2_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5645_sto1_adc_r_mix[] = {
+static const struct snd_kcontrol_new rt5645_sto1_adc_r_mix[] =
+{
 	SOC_DAPM_SINGLE("ADC1 Switch", RT5645_STO1_ADC_MIXER,
-			RT5645_M_ADC_R1_SFT, 1, 1),
+	RT5645_M_ADC_R1_SFT, 1, 1),
 	SOC_DAPM_SINGLE("ADC2 Switch", RT5645_STO1_ADC_MIXER,
-			RT5645_M_ADC_R2_SFT, 1, 1),
+	RT5645_M_ADC_R2_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5645_mono_adc_l_mix[] = {
+static const struct snd_kcontrol_new rt5645_mono_adc_l_mix[] =
+{
 	SOC_DAPM_SINGLE("ADC1 Switch", RT5645_MONO_ADC_MIXER,
-			RT5645_M_MONO_ADC_L1_SFT, 1, 1),
+	RT5645_M_MONO_ADC_L1_SFT, 1, 1),
 	SOC_DAPM_SINGLE("ADC2 Switch", RT5645_MONO_ADC_MIXER,
-			RT5645_M_MONO_ADC_L2_SFT, 1, 1),
+	RT5645_M_MONO_ADC_L2_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5645_mono_adc_r_mix[] = {
+static const struct snd_kcontrol_new rt5645_mono_adc_r_mix[] =
+{
 	SOC_DAPM_SINGLE("ADC1 Switch", RT5645_MONO_ADC_MIXER,
-			RT5645_M_MONO_ADC_R1_SFT, 1, 1),
+	RT5645_M_MONO_ADC_R1_SFT, 1, 1),
 	SOC_DAPM_SINGLE("ADC2 Switch", RT5645_MONO_ADC_MIXER,
-			RT5645_M_MONO_ADC_R2_SFT, 1, 1),
+	RT5645_M_MONO_ADC_R2_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5645_dac_l_mix[] = {
+static const struct snd_kcontrol_new rt5645_dac_l_mix[] =
+{
 	SOC_DAPM_SINGLE("Stereo ADC Switch", RT5645_AD_DA_MIXER,
-			RT5645_M_ADCMIX_L_SFT, 1, 1),
+	RT5645_M_ADCMIX_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE_AUTODISABLE("DAC1 Switch", RT5645_AD_DA_MIXER,
-			RT5645_M_DAC1_L_SFT, 1, 1),
+	RT5645_M_DAC1_L_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5645_dac_r_mix[] = {
+static const struct snd_kcontrol_new rt5645_dac_r_mix[] =
+{
 	SOC_DAPM_SINGLE("Stereo ADC Switch", RT5645_AD_DA_MIXER,
-			RT5645_M_ADCMIX_R_SFT, 1, 1),
+	RT5645_M_ADCMIX_R_SFT, 1, 1),
 	SOC_DAPM_SINGLE_AUTODISABLE("DAC1 Switch", RT5645_AD_DA_MIXER,
-			RT5645_M_DAC1_R_SFT, 1, 1),
+	RT5645_M_DAC1_R_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5645_sto_dac_l_mix[] = {
+static const struct snd_kcontrol_new rt5645_sto_dac_l_mix[] =
+{
 	SOC_DAPM_SINGLE("DAC L1 Switch", RT5645_STO_DAC_MIXER,
-			RT5645_M_DAC_L1_SFT, 1, 1),
+	RT5645_M_DAC_L1_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC L2 Switch", RT5645_STO_DAC_MIXER,
-			RT5645_M_DAC_L2_SFT, 1, 1),
+	RT5645_M_DAC_L2_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC R1 Switch", RT5645_STO_DAC_MIXER,
-			RT5645_M_DAC_R1_STO_L_SFT, 1, 1),
+	RT5645_M_DAC_R1_STO_L_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5645_sto_dac_r_mix[] = {
+static const struct snd_kcontrol_new rt5645_sto_dac_r_mix[] =
+{
 	SOC_DAPM_SINGLE("DAC R1 Switch", RT5645_STO_DAC_MIXER,
-			RT5645_M_DAC_R1_SFT, 1, 1),
+	RT5645_M_DAC_R1_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC R2 Switch", RT5645_STO_DAC_MIXER,
-			RT5645_M_DAC_R2_SFT, 1, 1),
+	RT5645_M_DAC_R2_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC L1 Switch", RT5645_STO_DAC_MIXER,
-			RT5645_M_DAC_L1_STO_R_SFT, 1, 1),
+	RT5645_M_DAC_L1_STO_R_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5645_mono_dac_l_mix[] = {
+static const struct snd_kcontrol_new rt5645_mono_dac_l_mix[] =
+{
 	SOC_DAPM_SINGLE("DAC L1 Switch", RT5645_MONO_DAC_MIXER,
-			RT5645_M_DAC_L1_MONO_L_SFT, 1, 1),
+	RT5645_M_DAC_L1_MONO_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC L2 Switch", RT5645_MONO_DAC_MIXER,
-			RT5645_M_DAC_L2_MONO_L_SFT, 1, 1),
+	RT5645_M_DAC_L2_MONO_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC R2 Switch", RT5645_MONO_DAC_MIXER,
-			RT5645_M_DAC_R2_MONO_L_SFT, 1, 1),
+	RT5645_M_DAC_R2_MONO_L_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5645_mono_dac_r_mix[] = {
+static const struct snd_kcontrol_new rt5645_mono_dac_r_mix[] =
+{
 	SOC_DAPM_SINGLE("DAC R1 Switch", RT5645_MONO_DAC_MIXER,
-			RT5645_M_DAC_R1_MONO_R_SFT, 1, 1),
+	RT5645_M_DAC_R1_MONO_R_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC R2 Switch", RT5645_MONO_DAC_MIXER,
-			RT5645_M_DAC_R2_MONO_R_SFT, 1, 1),
+	RT5645_M_DAC_R2_MONO_R_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC L2 Switch", RT5645_MONO_DAC_MIXER,
-			RT5645_M_DAC_L2_MONO_R_SFT, 1, 1),
+	RT5645_M_DAC_L2_MONO_R_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5645_dig_l_mix[] = {
+static const struct snd_kcontrol_new rt5645_dig_l_mix[] =
+{
 	SOC_DAPM_SINGLE("Sto DAC Mix L Switch", RT5645_DIG_MIXER,
-			RT5645_M_STO_L_DAC_L_SFT, 1, 1),
+	RT5645_M_STO_L_DAC_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC L2 Switch", RT5645_DIG_MIXER,
-			RT5645_M_DAC_L2_DAC_L_SFT, 1, 1),
+	RT5645_M_DAC_L2_DAC_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC R2 Switch", RT5645_DIG_MIXER,
-			RT5645_M_DAC_R2_DAC_L_SFT, 1, 1),
+	RT5645_M_DAC_R2_DAC_L_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5645_dig_r_mix[] = {
+static const struct snd_kcontrol_new rt5645_dig_r_mix[] =
+{
 	SOC_DAPM_SINGLE("Sto DAC Mix R Switch", RT5645_DIG_MIXER,
-			RT5645_M_STO_R_DAC_R_SFT, 1, 1),
+	RT5645_M_STO_R_DAC_R_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC R2 Switch", RT5645_DIG_MIXER,
-			RT5645_M_DAC_R2_DAC_R_SFT, 1, 1),
+	RT5645_M_DAC_R2_DAC_R_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC L2 Switch", RT5645_DIG_MIXER,
-			RT5645_M_DAC_L2_DAC_R_SFT, 1, 1),
+	RT5645_M_DAC_L2_DAC_R_SFT, 1, 1),
 };
 
 /* Analog Input Mixer */
-static const struct snd_kcontrol_new rt5645_rec_l_mix[] = {
+static const struct snd_kcontrol_new rt5645_rec_l_mix[] =
+{
 	SOC_DAPM_SINGLE("HPOL Switch", RT5645_REC_L2_MIXER,
-			RT5645_M_HP_L_RM_L_SFT, 1, 1),
+	RT5645_M_HP_L_RM_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("INL Switch", RT5645_REC_L2_MIXER,
-			RT5645_M_IN_L_RM_L_SFT, 1, 1),
+	RT5645_M_IN_L_RM_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("BST2 Switch", RT5645_REC_L2_MIXER,
-			RT5645_M_BST2_RM_L_SFT, 1, 1),
+	RT5645_M_BST2_RM_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("BST1 Switch", RT5645_REC_L2_MIXER,
-			RT5645_M_BST1_RM_L_SFT, 1, 1),
+	RT5645_M_BST1_RM_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("OUT MIXL Switch", RT5645_REC_L2_MIXER,
-			RT5645_M_OM_L_RM_L_SFT, 1, 1),
+	RT5645_M_OM_L_RM_L_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5645_rec_r_mix[] = {
+static const struct snd_kcontrol_new rt5645_rec_r_mix[] =
+{
 	SOC_DAPM_SINGLE("HPOR Switch", RT5645_REC_R2_MIXER,
-			RT5645_M_HP_R_RM_R_SFT, 1, 1),
+	RT5645_M_HP_R_RM_R_SFT, 1, 1),
 	SOC_DAPM_SINGLE("INR Switch", RT5645_REC_R2_MIXER,
-			RT5645_M_IN_R_RM_R_SFT, 1, 1),
+	RT5645_M_IN_R_RM_R_SFT, 1, 1),
 	SOC_DAPM_SINGLE("BST2 Switch", RT5645_REC_R2_MIXER,
-			RT5645_M_BST2_RM_R_SFT, 1, 1),
+	RT5645_M_BST2_RM_R_SFT, 1, 1),
 	SOC_DAPM_SINGLE("BST1 Switch", RT5645_REC_R2_MIXER,
-			RT5645_M_BST1_RM_R_SFT, 1, 1),
+	RT5645_M_BST1_RM_R_SFT, 1, 1),
 	SOC_DAPM_SINGLE("OUT MIXR Switch", RT5645_REC_R2_MIXER,
-			RT5645_M_OM_R_RM_R_SFT, 1, 1),
+	RT5645_M_OM_R_RM_R_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5645_spk_l_mix[] = {
+static const struct snd_kcontrol_new rt5645_spk_l_mix[] =
+{
 	SOC_DAPM_SINGLE("DAC L1 Switch", RT5645_SPK_L_MIXER,
-			RT5645_M_DAC_L1_SM_L_SFT, 1, 1),
+	RT5645_M_DAC_L1_SM_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC L2 Switch", RT5645_SPK_L_MIXER,
-			RT5645_M_DAC_L2_SM_L_SFT, 1, 1),
+	RT5645_M_DAC_L2_SM_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("INL Switch", RT5645_SPK_L_MIXER,
-			RT5645_M_IN_L_SM_L_SFT, 1, 1),
+	RT5645_M_IN_L_SM_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("BST1 Switch", RT5645_SPK_L_MIXER,
-			RT5645_M_BST1_L_SM_L_SFT, 1, 1),
+	RT5645_M_BST1_L_SM_L_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5645_spk_r_mix[] = {
+static const struct snd_kcontrol_new rt5645_spk_r_mix[] =
+{
 	SOC_DAPM_SINGLE("DAC R1 Switch", RT5645_SPK_R_MIXER,
-			RT5645_M_DAC_R1_SM_R_SFT, 1, 1),
+	RT5645_M_DAC_R1_SM_R_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC R2 Switch", RT5645_SPK_R_MIXER,
-			RT5645_M_DAC_R2_SM_R_SFT, 1, 1),
+	RT5645_M_DAC_R2_SM_R_SFT, 1, 1),
 	SOC_DAPM_SINGLE("INR Switch", RT5645_SPK_R_MIXER,
-			RT5645_M_IN_R_SM_R_SFT, 1, 1),
+	RT5645_M_IN_R_SM_R_SFT, 1, 1),
 	SOC_DAPM_SINGLE("BST2 Switch", RT5645_SPK_R_MIXER,
-			RT5645_M_BST2_R_SM_R_SFT, 1, 1),
+	RT5645_M_BST2_R_SM_R_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5645_out_l_mix[] = {
+static const struct snd_kcontrol_new rt5645_out_l_mix[] =
+{
 	SOC_DAPM_SINGLE("BST1 Switch", RT5645_OUT_L1_MIXER,
-			RT5645_M_BST1_OM_L_SFT, 1, 1),
+	RT5645_M_BST1_OM_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("INL Switch", RT5645_OUT_L1_MIXER,
-			RT5645_M_IN_L_OM_L_SFT, 1, 1),
+	RT5645_M_IN_L_OM_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC L2 Switch", RT5645_OUT_L1_MIXER,
-			RT5645_M_DAC_L2_OM_L_SFT, 1, 1),
+	RT5645_M_DAC_L2_OM_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC L1 Switch", RT5645_OUT_L1_MIXER,
-			RT5645_M_DAC_L1_OM_L_SFT, 1, 1),
+	RT5645_M_DAC_L1_OM_L_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5645_out_r_mix[] = {
+static const struct snd_kcontrol_new rt5645_out_r_mix[] =
+{
 	SOC_DAPM_SINGLE("BST2 Switch", RT5645_OUT_R1_MIXER,
-			RT5645_M_BST2_OM_R_SFT, 1, 1),
+	RT5645_M_BST2_OM_R_SFT, 1, 1),
 	SOC_DAPM_SINGLE("INR Switch", RT5645_OUT_R1_MIXER,
-			RT5645_M_IN_R_OM_R_SFT, 1, 1),
+	RT5645_M_IN_R_OM_R_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC R2 Switch", RT5645_OUT_R1_MIXER,
-			RT5645_M_DAC_R2_OM_R_SFT, 1, 1),
+	RT5645_M_DAC_R2_OM_R_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC R1 Switch", RT5645_OUT_R1_MIXER,
-			RT5645_M_DAC_R1_OM_R_SFT, 1, 1),
+	RT5645_M_DAC_R1_OM_R_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5645_spo_l_mix[] = {
+static const struct snd_kcontrol_new rt5645_spo_l_mix[] =
+{
 	SOC_DAPM_SINGLE("DAC R1 Switch", RT5645_SPO_MIXER,
-			RT5645_M_DAC_R1_SPM_L_SFT, 1, 1),
+	RT5645_M_DAC_R1_SPM_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC L1 Switch", RT5645_SPO_MIXER,
-			RT5645_M_DAC_L1_SPM_L_SFT, 1, 1),
+	RT5645_M_DAC_L1_SPM_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("SPKVOL R Switch", RT5645_SPO_MIXER,
-			RT5645_M_SV_R_SPM_L_SFT, 1, 1),
+	RT5645_M_SV_R_SPM_L_SFT, 1, 1),
 	SOC_DAPM_SINGLE("SPKVOL L Switch", RT5645_SPO_MIXER,
-			RT5645_M_SV_L_SPM_L_SFT, 1, 1),
+	RT5645_M_SV_L_SPM_L_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5645_spo_r_mix[] = {
+static const struct snd_kcontrol_new rt5645_spo_r_mix[] =
+{
 	SOC_DAPM_SINGLE("DAC R1 Switch", RT5645_SPO_MIXER,
-			RT5645_M_DAC_R1_SPM_R_SFT, 1, 1),
+	RT5645_M_DAC_R1_SPM_R_SFT, 1, 1),
 	SOC_DAPM_SINGLE("SPKVOL R Switch", RT5645_SPO_MIXER,
-			RT5645_M_SV_R_SPM_R_SFT, 1, 1),
+	RT5645_M_SV_R_SPM_R_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5645_hpo_mix[] = {
+static const struct snd_kcontrol_new rt5645_hpo_mix[] =
+{
 	SOC_DAPM_SINGLE("DAC1 Switch", RT5645_HPO_MIXER,
-			RT5645_M_DAC1_HM_SFT, 1, 1),
+	RT5645_M_DAC1_HM_SFT, 1, 1),
 	SOC_DAPM_SINGLE("HPVOL Switch", RT5645_HPO_MIXER,
-			RT5645_M_HPVOL_HM_SFT, 1, 1),
+	RT5645_M_HPVOL_HM_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5645_hpvoll_mix[] = {
+static const struct snd_kcontrol_new rt5645_hpvoll_mix[] =
+{
 	SOC_DAPM_SINGLE("DAC1 Switch", RT5645_HPOMIXL_CTRL,
-			RT5645_M_DAC1_HV_SFT, 1, 1),
+	RT5645_M_DAC1_HV_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC2 Switch", RT5645_HPOMIXL_CTRL,
-			RT5645_M_DAC2_HV_SFT, 1, 1),
+	RT5645_M_DAC2_HV_SFT, 1, 1),
 	SOC_DAPM_SINGLE("INL Switch", RT5645_HPOMIXL_CTRL,
-			RT5645_M_IN_HV_SFT, 1, 1),
+	RT5645_M_IN_HV_SFT, 1, 1),
 	SOC_DAPM_SINGLE("BST1 Switch", RT5645_HPOMIXL_CTRL,
-			RT5645_M_BST1_HV_SFT, 1, 1),
+	RT5645_M_BST1_HV_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5645_hpvolr_mix[] = {
+static const struct snd_kcontrol_new rt5645_hpvolr_mix[] =
+{
 	SOC_DAPM_SINGLE("DAC1 Switch", RT5645_HPOMIXR_CTRL,
-			RT5645_M_DAC1_HV_SFT, 1, 1),
+	RT5645_M_DAC1_HV_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC2 Switch", RT5645_HPOMIXR_CTRL,
-			RT5645_M_DAC2_HV_SFT, 1, 1),
+	RT5645_M_DAC2_HV_SFT, 1, 1),
 	SOC_DAPM_SINGLE("INR Switch", RT5645_HPOMIXR_CTRL,
-			RT5645_M_IN_HV_SFT, 1, 1),
+	RT5645_M_IN_HV_SFT, 1, 1),
 	SOC_DAPM_SINGLE("BST2 Switch", RT5645_HPOMIXR_CTRL,
-			RT5645_M_BST2_HV_SFT, 1, 1),
+	RT5645_M_BST2_HV_SFT, 1, 1),
 };
 
-static const struct snd_kcontrol_new rt5645_lout_mix[] = {
+static const struct snd_kcontrol_new rt5645_lout_mix[] =
+{
 	SOC_DAPM_SINGLE("DAC L1 Switch", RT5645_LOUT_MIXER,
-			RT5645_M_DAC_L1_LM_SFT, 1, 1),
+	RT5645_M_DAC_L1_LM_SFT, 1, 1),
 	SOC_DAPM_SINGLE("DAC R1 Switch", RT5645_LOUT_MIXER,
-			RT5645_M_DAC_R1_LM_SFT, 1, 1),
+	RT5645_M_DAC_R1_LM_SFT, 1, 1),
 	SOC_DAPM_SINGLE("OUTMIX L Switch", RT5645_LOUT_MIXER,
-			RT5645_M_OV_L_LM_SFT, 1, 1),
+	RT5645_M_OV_L_LM_SFT, 1, 1),
 	SOC_DAPM_SINGLE("OUTMIX R Switch", RT5645_LOUT_MIXER,
-			RT5645_M_OV_R_LM_SFT, 1, 1),
+	RT5645_M_OV_R_LM_SFT, 1, 1),
 };
 
 /*DAC1 L/R source*/ /* MX-29 [9:8] [11:10] */
-static const char * const rt5645_dac1_src[] = {
+static const char *const rt5645_dac1_src[] =
+{
 	"IF1 DAC", "IF2 DAC", "IF3 DAC"
 };
 
@@ -1252,7 +1340,8 @@ static const struct snd_kcontrol_new rt5645_dac1r_mux =
 	SOC_DAPM_ENUM("DAC1 R source", rt5645_dac1r_enum);
 
 /*DAC2 L/R source*/ /* MX-1B [6:4] [2:0] */
-static const char * const rt5645_dac12_src[] = {
+static const char *const rt5645_dac12_src[] =
+{
 	"IF1 DAC", "IF2 DAC", "IF3 DAC", "Mono ADC", "VAD_ADC"
 };
 
@@ -1263,7 +1352,8 @@ static SOC_ENUM_SINGLE_DECL(
 static const struct snd_kcontrol_new rt5645_dac_l2_mux =
 	SOC_DAPM_ENUM("DAC2 L source", rt5645_dac2l_enum);
 
-static const char * const rt5645_dacr2_src[] = {
+static const char *const rt5645_dacr2_src[] =
+{
 	"IF1 DAC", "IF2 DAC", "IF3 DAC", "Mono ADC", "Haptic"
 };
 
@@ -1276,7 +1366,8 @@ static const struct snd_kcontrol_new rt5645_dac_r2_mux =
 
 
 /* INL/R source */
-static const char * const rt5645_inl_src[] = {
+static const char *const rt5645_inl_src[] =
+{
 	"IN2P", "MonoP"
 };
 
@@ -1287,7 +1378,8 @@ static SOC_ENUM_SINGLE_DECL(
 static const struct snd_kcontrol_new rt5645_inl_mux =
 	SOC_DAPM_ENUM("INL source", rt5645_inl_enum);
 
-static const char * const rt5645_inr_src[] = {
+static const char *const rt5645_inr_src[] =
+{
 	"IN2N", "MonoN"
 };
 
@@ -1300,7 +1392,8 @@ static const struct snd_kcontrol_new rt5645_inr_mux =
 
 /* Stereo1 ADC source */
 /* MX-27 [12] */
-static const char * const rt5645_stereo_adc1_src[] = {
+static const char *const rt5645_stereo_adc1_src[] =
+{
 	"DAC MIX", "ADC"
 };
 
@@ -1312,7 +1405,8 @@ static const struct snd_kcontrol_new rt5645_sto_adc1_mux =
 	SOC_DAPM_ENUM("Stereo1 ADC1 Mux", rt5645_stereo1_adc1_enum);
 
 /* MX-27 [11] */
-static const char * const rt5645_stereo_adc2_src[] = {
+static const char *const rt5645_stereo_adc2_src[] =
+{
 	"DAC MIX", "DMIC"
 };
 
@@ -1324,7 +1418,8 @@ static const struct snd_kcontrol_new rt5645_sto_adc2_mux =
 	SOC_DAPM_ENUM("Stereo1 ADC2 Mux", rt5645_stereo1_adc2_enum);
 
 /* MX-27 [8] */
-static const char * const rt5645_stereo_dmic_src[] = {
+static const char *const rt5645_stereo_dmic_src[] =
+{
 	"DMIC1", "DMIC2"
 };
 
@@ -1337,7 +1432,8 @@ static const struct snd_kcontrol_new rt5645_sto1_dmic_mux =
 
 /* Mono ADC source */
 /* MX-28 [12] */
-static const char * const rt5645_mono_adc_l1_src[] = {
+static const char *const rt5645_mono_adc_l1_src[] =
+{
 	"Mono DAC MIXL", "ADC"
 };
 
@@ -1348,7 +1444,8 @@ static SOC_ENUM_SINGLE_DECL(
 static const struct snd_kcontrol_new rt5645_mono_adc_l1_mux =
 	SOC_DAPM_ENUM("Mono ADC1 left source", rt5645_mono_adc_l1_enum);
 /* MX-28 [11] */
-static const char * const rt5645_mono_adc_l2_src[] = {
+static const char *const rt5645_mono_adc_l2_src[] =
+{
 	"Mono DAC MIXL", "DMIC"
 };
 
@@ -1360,7 +1457,8 @@ static const struct snd_kcontrol_new rt5645_mono_adc_l2_mux =
 	SOC_DAPM_ENUM("Mono ADC2 left source", rt5645_mono_adc_l2_enum);
 
 /* MX-28 [8] */
-static const char * const rt5645_mono_dmic_src[] = {
+static const char *const rt5645_mono_dmic_src[] =
+{
 	"DMIC1", "DMIC2"
 };
 
@@ -1378,7 +1476,8 @@ static SOC_ENUM_SINGLE_DECL(
 static const struct snd_kcontrol_new rt5645_mono_dmic_r_mux =
 	SOC_DAPM_ENUM("Mono DMIC Right source", rt5645_mono_dmic_r_enum);
 /* MX-28 [4] */
-static const char * const rt5645_mono_adc_r1_src[] = {
+static const char *const rt5645_mono_adc_r1_src[] =
+{
 	"Mono DAC MIXR", "ADC"
 };
 
@@ -1389,7 +1488,8 @@ static SOC_ENUM_SINGLE_DECL(
 static const struct snd_kcontrol_new rt5645_mono_adc_r1_mux =
 	SOC_DAPM_ENUM("Mono ADC1 right source", rt5645_mono_adc_r1_enum);
 /* MX-28 [3] */
-static const char * const rt5645_mono_adc_r2_src[] = {
+static const char *const rt5645_mono_adc_r2_src[] =
+{
 	"Mono DAC MIXR", "DMIC"
 };
 
@@ -1401,7 +1501,8 @@ static const struct snd_kcontrol_new rt5645_mono_adc_r2_mux =
 	SOC_DAPM_ENUM("Mono ADC2 right source", rt5645_mono_adc_r2_enum);
 
 /* MX-77 [9:8] */
-static const char * const rt5645_if1_adc_in_src[] = {
+static const char *const rt5645_if1_adc_in_src[] =
+{
 	"IF_ADC1/IF_ADC2/VAD_ADC", "IF_ADC2/IF_ADC1/VAD_ADC",
 	"VAD_ADC/IF_ADC1/IF_ADC2", "VAD_ADC/IF_ADC2/IF_ADC1"
 };
@@ -1414,7 +1515,8 @@ static const struct snd_kcontrol_new rt5645_if1_adc_in_mux =
 	SOC_DAPM_ENUM("IF1 ADC IN source", rt5645_if1_adc_in_enum);
 
 /* MX-78 [4:0] */
-static const char * const rt5650_if1_adc_in_src[] = {
+static const char *const rt5650_if1_adc_in_src[] =
+{
 	"IF_ADC1/IF_ADC2/DAC_REF/Null",
 	"IF_ADC1/IF_ADC2/Null/DAC_REF",
 	"IF_ADC1/DAC_REF/IF_ADC2/Null",
@@ -1452,103 +1554,106 @@ static const struct snd_kcontrol_new rt5650_if1_adc_in_mux =
 	SOC_DAPM_ENUM("IF1 ADC IN source", rt5650_if1_adc_in_enum);
 
 /* MX-78 [15:14][13:12][11:10] */
-static const char * const rt5645_tdm_adc_swap_select[] = {
+static const char *const rt5645_tdm_adc_swap_select[] =
+{
 	"L/R", "R/L", "L/L", "R/R"
 };
 
 static SOC_ENUM_SINGLE_DECL(rt5650_tdm_adc_slot0_1_enum,
-	RT5645_TDM_CTRL_2, 14, rt5645_tdm_adc_swap_select);
+							RT5645_TDM_CTRL_2, 14, rt5645_tdm_adc_swap_select);
 
 static const struct snd_kcontrol_new rt5650_if1_adc1_in_mux =
 	SOC_DAPM_ENUM("IF1 ADC1 IN source", rt5650_tdm_adc_slot0_1_enum);
 
 static SOC_ENUM_SINGLE_DECL(rt5650_tdm_adc_slot2_3_enum,
-	RT5645_TDM_CTRL_2, 12, rt5645_tdm_adc_swap_select);
+							RT5645_TDM_CTRL_2, 12, rt5645_tdm_adc_swap_select);
 
 static const struct snd_kcontrol_new rt5650_if1_adc2_in_mux =
 	SOC_DAPM_ENUM("IF1 ADC2 IN source", rt5650_tdm_adc_slot2_3_enum);
 
 static SOC_ENUM_SINGLE_DECL(rt5650_tdm_adc_slot4_5_enum,
-	RT5645_TDM_CTRL_2, 10, rt5645_tdm_adc_swap_select);
+							RT5645_TDM_CTRL_2, 10, rt5645_tdm_adc_swap_select);
 
 static const struct snd_kcontrol_new rt5650_if1_adc3_in_mux =
 	SOC_DAPM_ENUM("IF1 ADC3 IN source", rt5650_tdm_adc_slot4_5_enum);
 
 /* MX-77 [7:6][5:4][3:2] */
 static SOC_ENUM_SINGLE_DECL(rt5645_tdm_adc_slot0_1_enum,
-	RT5645_TDM_CTRL_1, 6, rt5645_tdm_adc_swap_select);
+							RT5645_TDM_CTRL_1, 6, rt5645_tdm_adc_swap_select);
 
 static const struct snd_kcontrol_new rt5645_if1_adc1_in_mux =
 	SOC_DAPM_ENUM("IF1 ADC1 IN source", rt5645_tdm_adc_slot0_1_enum);
 
 static SOC_ENUM_SINGLE_DECL(rt5645_tdm_adc_slot2_3_enum,
-	RT5645_TDM_CTRL_1, 4, rt5645_tdm_adc_swap_select);
+							RT5645_TDM_CTRL_1, 4, rt5645_tdm_adc_swap_select);
 
 static const struct snd_kcontrol_new rt5645_if1_adc2_in_mux =
 	SOC_DAPM_ENUM("IF1 ADC2 IN source", rt5645_tdm_adc_slot2_3_enum);
 
 static SOC_ENUM_SINGLE_DECL(rt5645_tdm_adc_slot4_5_enum,
-	RT5645_TDM_CTRL_1, 2, rt5645_tdm_adc_swap_select);
+							RT5645_TDM_CTRL_1, 2, rt5645_tdm_adc_swap_select);
 
 static const struct snd_kcontrol_new rt5645_if1_adc3_in_mux =
 	SOC_DAPM_ENUM("IF1 ADC3 IN source", rt5645_tdm_adc_slot4_5_enum);
 
 /* MX-79 [14:12][10:8][6:4][2:0] */
-static const char * const rt5645_tdm_dac_swap_select[] = {
+static const char *const rt5645_tdm_dac_swap_select[] =
+{
 	"Slot0", "Slot1", "Slot2", "Slot3"
 };
 
 static SOC_ENUM_SINGLE_DECL(rt5645_tdm_dac0_enum,
-	RT5645_TDM_CTRL_3, 12, rt5645_tdm_dac_swap_select);
+							RT5645_TDM_CTRL_3, 12, rt5645_tdm_dac_swap_select);
 
 static const struct snd_kcontrol_new rt5645_if1_dac0_tdm_sel_mux =
 	SOC_DAPM_ENUM("IF1 DAC0 source", rt5645_tdm_dac0_enum);
 
 static SOC_ENUM_SINGLE_DECL(rt5645_tdm_dac1_enum,
-	RT5645_TDM_CTRL_3, 8, rt5645_tdm_dac_swap_select);
+							RT5645_TDM_CTRL_3, 8, rt5645_tdm_dac_swap_select);
 
 static const struct snd_kcontrol_new rt5645_if1_dac1_tdm_sel_mux =
 	SOC_DAPM_ENUM("IF1 DAC1 source", rt5645_tdm_dac1_enum);
 
 static SOC_ENUM_SINGLE_DECL(rt5645_tdm_dac2_enum,
-	RT5645_TDM_CTRL_3, 4, rt5645_tdm_dac_swap_select);
+							RT5645_TDM_CTRL_3, 4, rt5645_tdm_dac_swap_select);
 
 static const struct snd_kcontrol_new rt5645_if1_dac2_tdm_sel_mux =
 	SOC_DAPM_ENUM("IF1 DAC2 source", rt5645_tdm_dac2_enum);
 
 static SOC_ENUM_SINGLE_DECL(rt5645_tdm_dac3_enum,
-	RT5645_TDM_CTRL_3, 0, rt5645_tdm_dac_swap_select);
+							RT5645_TDM_CTRL_3, 0, rt5645_tdm_dac_swap_select);
 
 static const struct snd_kcontrol_new rt5645_if1_dac3_tdm_sel_mux =
 	SOC_DAPM_ENUM("IF1 DAC3 source", rt5645_tdm_dac3_enum);
 
 /* MX-7a [14:12][10:8][6:4][2:0] */
 static SOC_ENUM_SINGLE_DECL(rt5650_tdm_dac0_enum,
-	RT5650_TDM_CTRL_4, 12, rt5645_tdm_dac_swap_select);
+							RT5650_TDM_CTRL_4, 12, rt5645_tdm_dac_swap_select);
 
 static const struct snd_kcontrol_new rt5650_if1_dac0_tdm_sel_mux =
 	SOC_DAPM_ENUM("IF1 DAC0 source", rt5650_tdm_dac0_enum);
 
 static SOC_ENUM_SINGLE_DECL(rt5650_tdm_dac1_enum,
-	RT5650_TDM_CTRL_4, 8, rt5645_tdm_dac_swap_select);
+							RT5650_TDM_CTRL_4, 8, rt5645_tdm_dac_swap_select);
 
 static const struct snd_kcontrol_new rt5650_if1_dac1_tdm_sel_mux =
 	SOC_DAPM_ENUM("IF1 DAC1 source", rt5650_tdm_dac1_enum);
 
 static SOC_ENUM_SINGLE_DECL(rt5650_tdm_dac2_enum,
-	RT5650_TDM_CTRL_4, 4, rt5645_tdm_dac_swap_select);
+							RT5650_TDM_CTRL_4, 4, rt5645_tdm_dac_swap_select);
 
 static const struct snd_kcontrol_new rt5650_if1_dac2_tdm_sel_mux =
 	SOC_DAPM_ENUM("IF1 DAC2 source", rt5650_tdm_dac2_enum);
 
 static SOC_ENUM_SINGLE_DECL(rt5650_tdm_dac3_enum,
-	RT5650_TDM_CTRL_4, 0, rt5645_tdm_dac_swap_select);
+							RT5650_TDM_CTRL_4, 0, rt5645_tdm_dac_swap_select);
 
 static const struct snd_kcontrol_new rt5650_if1_dac3_tdm_sel_mux =
 	SOC_DAPM_ENUM("IF1 DAC3 source", rt5650_tdm_dac3_enum);
 
 /* MX-2d [3] [2] */
-static const char * const rt5650_a_dac1_src[] = {
+static const char *const rt5650_a_dac1_src[] =
+{
 	"DAC1", "Stereo DAC Mixer"
 };
 
@@ -1567,7 +1672,8 @@ static const struct snd_kcontrol_new rt5650_a_dac1_r_mux =
 	SOC_DAPM_ENUM("A DAC1 R source", rt5650_a_dac1_r_enum);
 
 /* MX-2d [1] [0] */
-static const char * const rt5650_a_dac2_src[] = {
+static const char *const rt5650_a_dac2_src[] =
+{
 	"Stereo DAC Mixer", "Mono DAC Mixer"
 };
 
@@ -1586,7 +1692,8 @@ static const struct snd_kcontrol_new rt5650_a_dac2_r_mux =
 	SOC_DAPM_ENUM("A DAC2 R source", rt5650_a_dac2_r_enum);
 
 /* MX-2F [13:12] */
-static const char * const rt5645_if2_adc_in_src[] = {
+static const char *const rt5645_if2_adc_in_src[] =
+{
 	"IF_ADC1", "IF_ADC2", "VAD_ADC"
 };
 
@@ -1598,7 +1705,8 @@ static const struct snd_kcontrol_new rt5645_if2_adc_in_mux =
 	SOC_DAPM_ENUM("IF2 ADC IN source", rt5645_if2_adc_in_enum);
 
 /* MX-2F [1:0] */
-static const char * const rt5645_if3_adc_in_src[] = {
+static const char *const rt5645_if3_adc_in_src[] =
+{
 	"IF_ADC1", "IF_ADC2", "VAD_ADC"
 };
 
@@ -1610,7 +1718,8 @@ static const struct snd_kcontrol_new rt5645_if3_adc_in_mux =
 	SOC_DAPM_ENUM("IF3 ADC IN source", rt5645_if3_adc_in_enum);
 
 /* MX-31 [15] [13] [11] [9] */
-static const char * const rt5645_pdm_src[] = {
+static const char *const rt5645_pdm_src[] =
+{
 	"Mono DAC", "Stereo DAC"
 };
 
@@ -1629,7 +1738,8 @@ static const struct snd_kcontrol_new rt5645_pdm1_r_mux =
 	SOC_DAPM_ENUM("PDM1 R source", rt5645_pdm1_r_enum);
 
 /* MX-9D [9:8] */
-static const char * const rt5645_vad_adc_src[] = {
+static const char *const rt5645_vad_adc_src[] =
+{
 	"Sto1 ADC L", "Mono ADC L", "Mono ADC R"
 };
 
@@ -1642,334 +1752,361 @@ static const struct snd_kcontrol_new rt5645_vad_adc_mux =
 
 static const struct snd_kcontrol_new spk_l_vol_control =
 	SOC_DAPM_SINGLE_AUTODISABLE("Switch", RT5645_SPK_VOL,
-		RT5645_L_MUTE_SFT, 1, 1);
+								RT5645_L_MUTE_SFT, 1, 1);
 
 static const struct snd_kcontrol_new spk_r_vol_control =
 	SOC_DAPM_SINGLE_AUTODISABLE("Switch", RT5645_SPK_VOL,
-		RT5645_R_MUTE_SFT, 1, 1);
+								RT5645_R_MUTE_SFT, 1, 1);
 
 static const struct snd_kcontrol_new hp_l_vol_control =
 	SOC_DAPM_SINGLE_AUTODISABLE("Switch", RT5645_HP_VOL,
-		RT5645_L_MUTE_SFT, 1, 1);
+								RT5645_L_MUTE_SFT, 1, 1);
 
 static const struct snd_kcontrol_new hp_r_vol_control =
 	SOC_DAPM_SINGLE_AUTODISABLE("Switch", RT5645_HP_VOL,
-		RT5645_R_MUTE_SFT, 1, 1);
+								RT5645_R_MUTE_SFT, 1, 1);
 
 static const struct snd_kcontrol_new pdm1_l_vol_control =
 	SOC_DAPM_SINGLE_AUTODISABLE("Switch", RT5645_PDM_OUT_CTRL,
-		RT5645_M_PDM1_L, 1, 1);
+								RT5645_M_PDM1_L, 1, 1);
 
 static const struct snd_kcontrol_new pdm1_r_vol_control =
 	SOC_DAPM_SINGLE_AUTODISABLE("Switch", RT5645_PDM_OUT_CTRL,
-		RT5645_M_PDM1_R, 1, 1);
+								RT5645_M_PDM1_R, 1, 1);
 
 static void hp_amp_power(struct snd_soc_codec *codec, int on)
 {
 	static int hp_amp_power_count;
 	struct rt5645_priv *rt5645 = snd_soc_codec_get_drvdata(codec);
 
-	if (on) {
-		if (hp_amp_power_count <= 0) {
-			if (rt5645->codec_type == CODEC_TYPE_RT5650) {
+	if (on)
+	{
+		if (hp_amp_power_count <= 0)
+		{
+			if (rt5645->codec_type == CODEC_TYPE_RT5650)
+			{
 				snd_soc_write(codec, RT5645_DEPOP_M2, 0x3100);
 				snd_soc_write(codec, RT5645_CHARGE_PUMP,
-					0x0e06);
+							  0x0e06);
 				snd_soc_write(codec, RT5645_DEPOP_M1, 0x000d);
 				regmap_write(rt5645->regmap, RT5645_PR_BASE +
-					RT5645_HP_DCC_INT1, 0x9f01);
+							 RT5645_HP_DCC_INT1, 0x9f01);
 				msleep(20);
 				snd_soc_update_bits(codec, RT5645_DEPOP_M1,
-					RT5645_HP_CO_MASK, RT5645_HP_CO_EN);
+									RT5645_HP_CO_MASK, RT5645_HP_CO_EN);
 				regmap_write(rt5645->regmap, RT5645_PR_BASE +
-					0x3e, 0x7400);
+							 0x3e, 0x7400);
 				snd_soc_write(codec, RT5645_DEPOP_M3, 0x0737);
 				regmap_write(rt5645->regmap, RT5645_PR_BASE +
-					RT5645_MAMP_INT_REG2, 0xfc00);
+							 RT5645_MAMP_INT_REG2, 0xfc00);
 				snd_soc_write(codec, RT5645_DEPOP_M2, 0x1140);
 				msleep(90);
 				rt5645->hp_on = true;
-			} else {
+			}
+			else
+			{
 				/* depop parameters */
 				snd_soc_update_bits(codec, RT5645_DEPOP_M2,
-					RT5645_DEPOP_MASK, RT5645_DEPOP_MAN);
+									RT5645_DEPOP_MASK, RT5645_DEPOP_MAN);
 				snd_soc_write(codec, RT5645_DEPOP_M1, 0x000d);
 				regmap_write(rt5645->regmap, RT5645_PR_BASE +
-					RT5645_HP_DCC_INT1, 0x9f01);
+							 RT5645_HP_DCC_INT1, 0x9f01);
 				mdelay(150);
 				/* headphone amp power on */
 				snd_soc_update_bits(codec, RT5645_PWR_ANLG1,
-					RT5645_PWR_FV1 | RT5645_PWR_FV2, 0);
+									RT5645_PWR_FV1 | RT5645_PWR_FV2, 0);
 				snd_soc_update_bits(codec, RT5645_PWR_VOL,
-					RT5645_PWR_HV_L | RT5645_PWR_HV_R,
-					RT5645_PWR_HV_L | RT5645_PWR_HV_R);
+									RT5645_PWR_HV_L | RT5645_PWR_HV_R,
+									RT5645_PWR_HV_L | RT5645_PWR_HV_R);
 				snd_soc_update_bits(codec, RT5645_PWR_ANLG1,
-					RT5645_PWR_HP_L | RT5645_PWR_HP_R |
-					RT5645_PWR_HA,
-					RT5645_PWR_HP_L | RT5645_PWR_HP_R |
-					RT5645_PWR_HA);
+									RT5645_PWR_HP_L | RT5645_PWR_HP_R |
+									RT5645_PWR_HA,
+									RT5645_PWR_HP_L | RT5645_PWR_HP_R |
+									RT5645_PWR_HA);
 				mdelay(5);
 				snd_soc_update_bits(codec, RT5645_PWR_ANLG1,
-					RT5645_PWR_FV1 | RT5645_PWR_FV2,
-					RT5645_PWR_FV1 | RT5645_PWR_FV2);
+									RT5645_PWR_FV1 | RT5645_PWR_FV2,
+									RT5645_PWR_FV1 | RT5645_PWR_FV2);
 
 				snd_soc_update_bits(codec, RT5645_DEPOP_M1,
-					RT5645_HP_CO_MASK | RT5645_HP_SG_MASK,
-					RT5645_HP_CO_EN | RT5645_HP_SG_EN);
+									RT5645_HP_CO_MASK | RT5645_HP_SG_MASK,
+									RT5645_HP_CO_EN | RT5645_HP_SG_EN);
 				regmap_write(rt5645->regmap, RT5645_PR_BASE +
-					0x14, 0x1aaa);
+							 0x14, 0x1aaa);
 				regmap_write(rt5645->regmap, RT5645_PR_BASE +
-					0x24, 0x0430);
+							 0x24, 0x0430);
 			}
 		}
+
 		hp_amp_power_count++;
-	} else {
+	}
+	else
+	{
 		hp_amp_power_count--;
-		if (hp_amp_power_count <= 0) {
-			if (rt5645->codec_type == CODEC_TYPE_RT5650) {
+
+		if (hp_amp_power_count <= 0)
+		{
+			if (rt5645->codec_type == CODEC_TYPE_RT5650)
+			{
 				regmap_write(rt5645->regmap, RT5645_PR_BASE +
-					0x3e, 0x7400);
+							 0x3e, 0x7400);
 				snd_soc_write(codec, RT5645_DEPOP_M3, 0x0737);
 				regmap_write(rt5645->regmap, RT5645_PR_BASE +
-					RT5645_MAMP_INT_REG2, 0xfc00);
+							 RT5645_MAMP_INT_REG2, 0xfc00);
 				snd_soc_write(codec, RT5645_DEPOP_M2, 0x1140);
 				msleep(100);
 				snd_soc_write(codec, RT5645_DEPOP_M1, 0x0001);
 
-			} else {
+			}
+			else
+			{
 				snd_soc_update_bits(codec, RT5645_DEPOP_M1,
-					RT5645_HP_SG_MASK |
-					RT5645_HP_L_SMT_MASK |
-					RT5645_HP_R_SMT_MASK,
-					RT5645_HP_SG_DIS |
-					RT5645_HP_L_SMT_DIS |
-					RT5645_HP_R_SMT_DIS);
+									RT5645_HP_SG_MASK |
+									RT5645_HP_L_SMT_MASK |
+									RT5645_HP_R_SMT_MASK,
+									RT5645_HP_SG_DIS |
+									RT5645_HP_L_SMT_DIS |
+									RT5645_HP_R_SMT_DIS);
 				/* headphone amp power down */
 				snd_soc_write(codec, RT5645_DEPOP_M1, 0x0000);
 				snd_soc_update_bits(codec, RT5645_PWR_ANLG1,
-					RT5645_PWR_HP_L | RT5645_PWR_HP_R |
-					RT5645_PWR_HA, 0);
+									RT5645_PWR_HP_L | RT5645_PWR_HP_R |
+									RT5645_PWR_HA, 0);
 				snd_soc_update_bits(codec, RT5645_DEPOP_M2,
-					RT5645_DEPOP_MASK, 0);
+									RT5645_DEPOP_MASK, 0);
 			}
 		}
 	}
 }
 
 static int rt5645_hp_event(struct snd_soc_dapm_widget *w,
-	struct snd_kcontrol *kcontrol, int event)
+						   struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
 	struct rt5645_priv *rt5645 = snd_soc_codec_get_drvdata(codec);
 
-	switch (event) {
-	case SND_SOC_DAPM_POST_PMU:
-		hp_amp_power(codec, 1);
-		/* headphone unmute sequence */
-		if (rt5645->codec_type == CODEC_TYPE_RT5645) {
-			snd_soc_update_bits(codec, RT5645_DEPOP_M3,
-				RT5645_CP_FQ1_MASK | RT5645_CP_FQ2_MASK |
-				RT5645_CP_FQ3_MASK,
-				(RT5645_CP_FQ_192_KHZ << RT5645_CP_FQ1_SFT) |
-				(RT5645_CP_FQ_12_KHZ << RT5645_CP_FQ2_SFT) |
-				(RT5645_CP_FQ_192_KHZ << RT5645_CP_FQ3_SFT));
-			regmap_write(rt5645->regmap, RT5645_PR_BASE +
-				RT5645_MAMP_INT_REG2, 0xfc00);
-			snd_soc_update_bits(codec, RT5645_DEPOP_M1,
-				RT5645_SMT_TRIG_MASK, RT5645_SMT_TRIG_EN);
-			snd_soc_update_bits(codec, RT5645_DEPOP_M1,
-				RT5645_RSTN_MASK, RT5645_RSTN_EN);
-			snd_soc_update_bits(codec, RT5645_DEPOP_M1,
-				RT5645_RSTN_MASK | RT5645_HP_L_SMT_MASK |
-				RT5645_HP_R_SMT_MASK, RT5645_RSTN_DIS |
-				RT5645_HP_L_SMT_EN | RT5645_HP_R_SMT_EN);
-			msleep(40);
-			snd_soc_update_bits(codec, RT5645_DEPOP_M1,
-				RT5645_HP_SG_MASK | RT5645_HP_L_SMT_MASK |
-				RT5645_HP_R_SMT_MASK, RT5645_HP_SG_DIS |
-				RT5645_HP_L_SMT_DIS | RT5645_HP_R_SMT_DIS);
-		}
-		break;
+	switch (event)
+	{
+		case SND_SOC_DAPM_POST_PMU:
+			hp_amp_power(codec, 1);
 
-	case SND_SOC_DAPM_PRE_PMD:
-		/* headphone mute sequence */
-		if (rt5645->codec_type == CODEC_TYPE_RT5645) {
-			snd_soc_update_bits(codec, RT5645_DEPOP_M3,
-				RT5645_CP_FQ1_MASK | RT5645_CP_FQ2_MASK |
-				RT5645_CP_FQ3_MASK,
-				(RT5645_CP_FQ_96_KHZ << RT5645_CP_FQ1_SFT) |
-				(RT5645_CP_FQ_12_KHZ << RT5645_CP_FQ2_SFT) |
-				(RT5645_CP_FQ_96_KHZ << RT5645_CP_FQ3_SFT));
-			regmap_write(rt5645->regmap, RT5645_PR_BASE +
-				RT5645_MAMP_INT_REG2, 0xfc00);
-			snd_soc_update_bits(codec, RT5645_DEPOP_M1,
-				RT5645_HP_SG_MASK, RT5645_HP_SG_EN);
-			snd_soc_update_bits(codec, RT5645_DEPOP_M1,
-				RT5645_RSTP_MASK, RT5645_RSTP_EN);
-			snd_soc_update_bits(codec, RT5645_DEPOP_M1,
-				RT5645_RSTP_MASK | RT5645_HP_L_SMT_MASK |
-				RT5645_HP_R_SMT_MASK, RT5645_RSTP_DIS |
-				RT5645_HP_L_SMT_EN | RT5645_HP_R_SMT_EN);
-			msleep(30);
-		}
-		hp_amp_power(codec, 0);
-		break;
+			/* headphone unmute sequence */
+			if (rt5645->codec_type == CODEC_TYPE_RT5645)
+			{
+				snd_soc_update_bits(codec, RT5645_DEPOP_M3,
+									RT5645_CP_FQ1_MASK | RT5645_CP_FQ2_MASK |
+									RT5645_CP_FQ3_MASK,
+									(RT5645_CP_FQ_192_KHZ << RT5645_CP_FQ1_SFT) |
+									(RT5645_CP_FQ_12_KHZ << RT5645_CP_FQ2_SFT) |
+									(RT5645_CP_FQ_192_KHZ << RT5645_CP_FQ3_SFT));
+				regmap_write(rt5645->regmap, RT5645_PR_BASE +
+							 RT5645_MAMP_INT_REG2, 0xfc00);
+				snd_soc_update_bits(codec, RT5645_DEPOP_M1,
+									RT5645_SMT_TRIG_MASK, RT5645_SMT_TRIG_EN);
+				snd_soc_update_bits(codec, RT5645_DEPOP_M1,
+									RT5645_RSTN_MASK, RT5645_RSTN_EN);
+				snd_soc_update_bits(codec, RT5645_DEPOP_M1,
+									RT5645_RSTN_MASK | RT5645_HP_L_SMT_MASK |
+									RT5645_HP_R_SMT_MASK, RT5645_RSTN_DIS |
+									RT5645_HP_L_SMT_EN | RT5645_HP_R_SMT_EN);
+				msleep(40);
+				snd_soc_update_bits(codec, RT5645_DEPOP_M1,
+									RT5645_HP_SG_MASK | RT5645_HP_L_SMT_MASK |
+									RT5645_HP_R_SMT_MASK, RT5645_HP_SG_DIS |
+									RT5645_HP_L_SMT_DIS | RT5645_HP_R_SMT_DIS);
+			}
 
-	default:
-		return 0;
+			break;
+
+		case SND_SOC_DAPM_PRE_PMD:
+
+			/* headphone mute sequence */
+			if (rt5645->codec_type == CODEC_TYPE_RT5645)
+			{
+				snd_soc_update_bits(codec, RT5645_DEPOP_M3,
+									RT5645_CP_FQ1_MASK | RT5645_CP_FQ2_MASK |
+									RT5645_CP_FQ3_MASK,
+									(RT5645_CP_FQ_96_KHZ << RT5645_CP_FQ1_SFT) |
+									(RT5645_CP_FQ_12_KHZ << RT5645_CP_FQ2_SFT) |
+									(RT5645_CP_FQ_96_KHZ << RT5645_CP_FQ3_SFT));
+				regmap_write(rt5645->regmap, RT5645_PR_BASE +
+							 RT5645_MAMP_INT_REG2, 0xfc00);
+				snd_soc_update_bits(codec, RT5645_DEPOP_M1,
+									RT5645_HP_SG_MASK, RT5645_HP_SG_EN);
+				snd_soc_update_bits(codec, RT5645_DEPOP_M1,
+									RT5645_RSTP_MASK, RT5645_RSTP_EN);
+				snd_soc_update_bits(codec, RT5645_DEPOP_M1,
+									RT5645_RSTP_MASK | RT5645_HP_L_SMT_MASK |
+									RT5645_HP_R_SMT_MASK, RT5645_RSTP_DIS |
+									RT5645_HP_L_SMT_EN | RT5645_HP_R_SMT_EN);
+				msleep(30);
+			}
+
+			hp_amp_power(codec, 0);
+			break;
+
+		default:
+			return 0;
 	}
 
 	return 0;
 }
 
 static int rt5645_spk_event(struct snd_soc_dapm_widget *w,
-	struct snd_kcontrol *kcontrol, int event)
+							struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
 
-	switch (event) {
-	case SND_SOC_DAPM_POST_PMU:
-		rt5645_enable_hweq(codec);
-		snd_soc_update_bits(codec, RT5645_PWR_DIG1,
-			RT5645_PWR_CLS_D | RT5645_PWR_CLS_D_R |
-			RT5645_PWR_CLS_D_L,
-			RT5645_PWR_CLS_D | RT5645_PWR_CLS_D_R |
-			RT5645_PWR_CLS_D_L);
-		snd_soc_update_bits(codec, RT5645_GEN_CTRL3,
-			RT5645_DET_CLK_MASK, RT5645_DET_CLK_MODE1);
-		break;
+	switch (event)
+	{
+		case SND_SOC_DAPM_POST_PMU:
+			rt5645_enable_hweq(codec);
+			snd_soc_update_bits(codec, RT5645_PWR_DIG1,
+								RT5645_PWR_CLS_D | RT5645_PWR_CLS_D_R |
+								RT5645_PWR_CLS_D_L,
+								RT5645_PWR_CLS_D | RT5645_PWR_CLS_D_R |
+								RT5645_PWR_CLS_D_L);
+			snd_soc_update_bits(codec, RT5645_GEN_CTRL3,
+								RT5645_DET_CLK_MASK, RT5645_DET_CLK_MODE1);
+			break;
 
-	case SND_SOC_DAPM_PRE_PMD:
-		snd_soc_update_bits(codec, RT5645_GEN_CTRL3,
-			RT5645_DET_CLK_MASK, RT5645_DET_CLK_DIS);
-		snd_soc_write(codec, RT5645_EQ_CTRL2, 0);
-		snd_soc_update_bits(codec, RT5645_PWR_DIG1,
-			RT5645_PWR_CLS_D | RT5645_PWR_CLS_D_R |
-			RT5645_PWR_CLS_D_L, 0);
-		break;
+		case SND_SOC_DAPM_PRE_PMD:
+			snd_soc_update_bits(codec, RT5645_GEN_CTRL3,
+								RT5645_DET_CLK_MASK, RT5645_DET_CLK_DIS);
+			snd_soc_write(codec, RT5645_EQ_CTRL2, 0);
+			snd_soc_update_bits(codec, RT5645_PWR_DIG1,
+								RT5645_PWR_CLS_D | RT5645_PWR_CLS_D_R |
+								RT5645_PWR_CLS_D_L, 0);
+			break;
 
-	default:
-		return 0;
+		default:
+			return 0;
 	}
 
 	return 0;
 }
 
 static int rt5645_lout_event(struct snd_soc_dapm_widget *w,
-	struct snd_kcontrol *kcontrol, int event)
+							 struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
 
-	switch (event) {
-	case SND_SOC_DAPM_POST_PMU:
-		hp_amp_power(codec, 1);
-		snd_soc_update_bits(codec, RT5645_PWR_ANLG1,
-			RT5645_PWR_LM, RT5645_PWR_LM);
-		snd_soc_update_bits(codec, RT5645_LOUT1,
-			RT5645_L_MUTE | RT5645_R_MUTE, 0);
-		break;
+	switch (event)
+	{
+		case SND_SOC_DAPM_POST_PMU:
+			hp_amp_power(codec, 1);
+			snd_soc_update_bits(codec, RT5645_PWR_ANLG1,
+								RT5645_PWR_LM, RT5645_PWR_LM);
+			snd_soc_update_bits(codec, RT5645_LOUT1,
+								RT5645_L_MUTE | RT5645_R_MUTE, 0);
+			break;
 
-	case SND_SOC_DAPM_PRE_PMD:
-		snd_soc_update_bits(codec, RT5645_LOUT1,
-			RT5645_L_MUTE | RT5645_R_MUTE,
-			RT5645_L_MUTE | RT5645_R_MUTE);
-		snd_soc_update_bits(codec, RT5645_PWR_ANLG1,
-			RT5645_PWR_LM, 0);
-		hp_amp_power(codec, 0);
-		break;
+		case SND_SOC_DAPM_PRE_PMD:
+			snd_soc_update_bits(codec, RT5645_LOUT1,
+								RT5645_L_MUTE | RT5645_R_MUTE,
+								RT5645_L_MUTE | RT5645_R_MUTE);
+			snd_soc_update_bits(codec, RT5645_PWR_ANLG1,
+								RT5645_PWR_LM, 0);
+			hp_amp_power(codec, 0);
+			break;
 
-	default:
-		return 0;
+		default:
+			return 0;
 	}
 
 	return 0;
 }
 
 static int rt5645_bst2_event(struct snd_soc_dapm_widget *w,
-	struct snd_kcontrol *kcontrol, int event)
+							 struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
 
-	switch (event) {
-	case SND_SOC_DAPM_POST_PMU:
-		snd_soc_update_bits(codec, RT5645_PWR_ANLG2,
-			RT5645_PWR_BST2_P, RT5645_PWR_BST2_P);
-		break;
+	switch (event)
+	{
+		case SND_SOC_DAPM_POST_PMU:
+			snd_soc_update_bits(codec, RT5645_PWR_ANLG2,
+								RT5645_PWR_BST2_P, RT5645_PWR_BST2_P);
+			break;
 
-	case SND_SOC_DAPM_PRE_PMD:
-		snd_soc_update_bits(codec, RT5645_PWR_ANLG2,
-			RT5645_PWR_BST2_P, 0);
-		break;
+		case SND_SOC_DAPM_PRE_PMD:
+			snd_soc_update_bits(codec, RT5645_PWR_ANLG2,
+								RT5645_PWR_BST2_P, 0);
+			break;
 
-	default:
-		return 0;
+		default:
+			return 0;
 	}
 
 	return 0;
 }
 
 static int rt5650_hp_event(struct snd_soc_dapm_widget *w,
-		struct snd_kcontrol *k, int  event)
+						   struct snd_kcontrol *k, int  event)
 {
 	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
 	struct rt5645_priv *rt5645 = snd_soc_codec_get_drvdata(codec);
 
-	switch (event) {
-	case SND_SOC_DAPM_POST_PMU:
-		if (rt5645->hp_on) {
-			msleep(100);
-			rt5645->hp_on = false;
-		}
-		break;
+	switch (event)
+	{
+		case SND_SOC_DAPM_POST_PMU:
+			if (rt5645->hp_on)
+			{
+				msleep(100);
+				rt5645->hp_on = false;
+			}
 
-	default:
-		return 0;
+			break;
+
+		default:
+			return 0;
 	}
 
 	return 0;
 }
 
-static const struct snd_soc_dapm_widget rt5645_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget rt5645_dapm_widgets[] =
+{
 	SND_SOC_DAPM_SUPPLY("LDO2", RT5645_PWR_MIXER,
-		RT5645_PWR_LDO2_BIT, 0, NULL, 0),
+	RT5645_PWR_LDO2_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY("PLL1", RT5645_PWR_ANLG2,
-		RT5645_PWR_PLL_BIT, 0, NULL, 0),
+	RT5645_PWR_PLL_BIT, 0, NULL, 0),
 
 	SND_SOC_DAPM_SUPPLY("JD Power", RT5645_PWR_ANLG2,
-		RT5645_PWR_JD1_BIT, 0, NULL, 0),
+	RT5645_PWR_JD1_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY("Mic Det Power", RT5645_PWR_VOL,
-		RT5645_PWR_MIC_DET_BIT, 0, NULL, 0),
+	RT5645_PWR_MIC_DET_BIT, 0, NULL, 0),
 
 	/* ASRC */
 	SND_SOC_DAPM_SUPPLY_S("I2S1 ASRC", 1, RT5645_ASRC_1,
-			      11, 0, NULL, 0),
+	11, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY_S("I2S2 ASRC", 1, RT5645_ASRC_1,
-			      12, 0, NULL, 0),
+	12, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY_S("DAC STO ASRC", 1, RT5645_ASRC_1,
-			      10, 0, NULL, 0),
+	10, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY_S("DAC MONO L ASRC", 1, RT5645_ASRC_1,
-			      9, 0, NULL, 0),
+	9, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY_S("DAC MONO R ASRC", 1, RT5645_ASRC_1,
-			      8, 0, NULL, 0),
+	8, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY_S("DMIC STO1 ASRC", 1, RT5645_ASRC_1,
-			      7, 0, NULL, 0),
+	7, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY_S("DMIC MONO L ASRC", 1, RT5645_ASRC_1,
-			      5, 0, NULL, 0),
+	5, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY_S("DMIC MONO R ASRC", 1, RT5645_ASRC_1,
-			      4, 0, NULL, 0),
+	4, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY_S("ADC STO1 ASRC", 1, RT5645_ASRC_1,
-			      3, 0, NULL, 0),
+	3, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY_S("ADC MONO L ASRC", 1, RT5645_ASRC_1,
-			      1, 0, NULL, 0),
+	1, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY_S("ADC MONO R ASRC", 1, RT5645_ASRC_1,
-			      0, 0, NULL, 0),
+	0, 0, NULL, 0),
 
 	/* Input Side */
 	/* micbias */
 	SND_SOC_DAPM_MICBIAS("micbias1", RT5645_PWR_ANLG2,
-			RT5645_PWR_MB1_BIT, 0),
+	RT5645_PWR_MB1_BIT, 0),
 	SND_SOC_DAPM_MICBIAS("micbias2", RT5645_PWR_ANLG2,
-			RT5645_PWR_MB2_BIT, 0),
+	RT5645_PWR_MB2_BIT, 0),
 	/* Input Lines */
 	SND_SOC_DAPM_INPUT("DMIC L1"),
 	SND_SOC_DAPM_INPUT("DMIC R1"),
@@ -1986,79 +2123,79 @@ static const struct snd_soc_dapm_widget rt5645_dapm_widgets[] = {
 	SND_SOC_DAPM_PGA("DMIC1", SND_SOC_NOPM, 0, 0, NULL, 0),
 	SND_SOC_DAPM_PGA("DMIC2", SND_SOC_NOPM, 0, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY("DMIC CLK", SND_SOC_NOPM, 0, 0,
-		set_dmic_clk, SND_SOC_DAPM_PRE_PMU),
+	set_dmic_clk, SND_SOC_DAPM_PRE_PMU),
 	SND_SOC_DAPM_SUPPLY("DMIC1 Power", RT5645_DMIC_CTRL1,
-		RT5645_DMIC_1_EN_SFT, 0, NULL, 0),
+	RT5645_DMIC_1_EN_SFT, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY("DMIC2 Power", RT5645_DMIC_CTRL1,
-		RT5645_DMIC_2_EN_SFT, 0, NULL, 0),
+	RT5645_DMIC_2_EN_SFT, 0, NULL, 0),
 	/* Boost */
 	SND_SOC_DAPM_PGA("BST1", RT5645_PWR_ANLG2,
-		RT5645_PWR_BST1_BIT, 0, NULL, 0),
+	RT5645_PWR_BST1_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_PGA_E("BST2", RT5645_PWR_ANLG2,
-		RT5645_PWR_BST2_BIT, 0, NULL, 0, rt5645_bst2_event,
-		SND_SOC_DAPM_PRE_PMD | SND_SOC_DAPM_POST_PMU),
+	RT5645_PWR_BST2_BIT, 0, NULL, 0, rt5645_bst2_event,
+	SND_SOC_DAPM_PRE_PMD | SND_SOC_DAPM_POST_PMU),
 	/* Input Volume */
 	SND_SOC_DAPM_PGA("INL VOL", RT5645_PWR_VOL,
-		RT5645_PWR_IN_L_BIT, 0, NULL, 0),
+	RT5645_PWR_IN_L_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_PGA("INR VOL", RT5645_PWR_VOL,
-		RT5645_PWR_IN_R_BIT, 0, NULL, 0),
+	RT5645_PWR_IN_R_BIT, 0, NULL, 0),
 	/* REC Mixer */
 	SND_SOC_DAPM_MIXER("RECMIXL", RT5645_PWR_MIXER, RT5645_PWR_RM_L_BIT,
-			0, rt5645_rec_l_mix, ARRAY_SIZE(rt5645_rec_l_mix)),
+	0, rt5645_rec_l_mix, ARRAY_SIZE(rt5645_rec_l_mix)),
 	SND_SOC_DAPM_MIXER("RECMIXR", RT5645_PWR_MIXER, RT5645_PWR_RM_R_BIT,
-			0, rt5645_rec_r_mix, ARRAY_SIZE(rt5645_rec_r_mix)),
+	0, rt5645_rec_r_mix, ARRAY_SIZE(rt5645_rec_r_mix)),
 	/* ADCs */
 	SND_SOC_DAPM_ADC("ADC L", NULL, SND_SOC_NOPM, 0, 0),
 	SND_SOC_DAPM_ADC("ADC R", NULL, SND_SOC_NOPM, 0, 0),
 
 	SND_SOC_DAPM_SUPPLY("ADC L power", RT5645_PWR_DIG1,
-		RT5645_PWR_ADC_L_BIT, 0, NULL, 0),
+	RT5645_PWR_ADC_L_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY("ADC R power", RT5645_PWR_DIG1,
-		RT5645_PWR_ADC_R_BIT, 0, NULL, 0),
+	RT5645_PWR_ADC_R_BIT, 0, NULL, 0),
 
 	/* ADC Mux */
 	SND_SOC_DAPM_MUX("Stereo1 DMIC Mux", SND_SOC_NOPM, 0, 0,
-		&rt5645_sto1_dmic_mux),
+	&rt5645_sto1_dmic_mux),
 	SND_SOC_DAPM_MUX("Stereo1 ADC L2 Mux", SND_SOC_NOPM, 0, 0,
-		&rt5645_sto_adc2_mux),
+	&rt5645_sto_adc2_mux),
 	SND_SOC_DAPM_MUX("Stereo1 ADC R2 Mux", SND_SOC_NOPM, 0, 0,
-		&rt5645_sto_adc2_mux),
+	&rt5645_sto_adc2_mux),
 	SND_SOC_DAPM_MUX("Stereo1 ADC L1 Mux", SND_SOC_NOPM, 0, 0,
-		&rt5645_sto_adc1_mux),
+	&rt5645_sto_adc1_mux),
 	SND_SOC_DAPM_MUX("Stereo1 ADC R1 Mux", SND_SOC_NOPM, 0, 0,
-		&rt5645_sto_adc1_mux),
+	&rt5645_sto_adc1_mux),
 	SND_SOC_DAPM_MUX("Mono DMIC L Mux", SND_SOC_NOPM, 0, 0,
-		&rt5645_mono_dmic_l_mux),
+	&rt5645_mono_dmic_l_mux),
 	SND_SOC_DAPM_MUX("Mono DMIC R Mux", SND_SOC_NOPM, 0, 0,
-		&rt5645_mono_dmic_r_mux),
+	&rt5645_mono_dmic_r_mux),
 	SND_SOC_DAPM_MUX("Mono ADC L2 Mux", SND_SOC_NOPM, 0, 0,
-		&rt5645_mono_adc_l2_mux),
+	&rt5645_mono_adc_l2_mux),
 	SND_SOC_DAPM_MUX("Mono ADC L1 Mux", SND_SOC_NOPM, 0, 0,
-		&rt5645_mono_adc_l1_mux),
+	&rt5645_mono_adc_l1_mux),
 	SND_SOC_DAPM_MUX("Mono ADC R1 Mux", SND_SOC_NOPM, 0, 0,
-		&rt5645_mono_adc_r1_mux),
+	&rt5645_mono_adc_r1_mux),
 	SND_SOC_DAPM_MUX("Mono ADC R2 Mux", SND_SOC_NOPM, 0, 0,
-		&rt5645_mono_adc_r2_mux),
+	&rt5645_mono_adc_r2_mux),
 	/* ADC Mixer */
 
 	SND_SOC_DAPM_SUPPLY_S("adc stereo1 filter", 1, RT5645_PWR_DIG2,
-		RT5645_PWR_ADC_S1F_BIT, 0, NULL, 0),
+	RT5645_PWR_ADC_S1F_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_MIXER_E("Sto1 ADC MIXL", SND_SOC_NOPM, 0, 0,
-		rt5645_sto1_adc_l_mix, ARRAY_SIZE(rt5645_sto1_adc_l_mix),
-		NULL, 0),
+	rt5645_sto1_adc_l_mix, ARRAY_SIZE(rt5645_sto1_adc_l_mix),
+	NULL, 0),
 	SND_SOC_DAPM_MIXER_E("Sto1 ADC MIXR", SND_SOC_NOPM, 0, 0,
-		rt5645_sto1_adc_r_mix, ARRAY_SIZE(rt5645_sto1_adc_r_mix),
-		NULL, 0),
+	rt5645_sto1_adc_r_mix, ARRAY_SIZE(rt5645_sto1_adc_r_mix),
+	NULL, 0),
 	SND_SOC_DAPM_SUPPLY_S("adc mono left filter", 1, RT5645_PWR_DIG2,
-		RT5645_PWR_ADC_MF_L_BIT, 0, NULL, 0),
+	RT5645_PWR_ADC_MF_L_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_MIXER_E("Mono ADC MIXL", SND_SOC_NOPM, 0, 0,
-		rt5645_mono_adc_l_mix, ARRAY_SIZE(rt5645_mono_adc_l_mix),
-		NULL, 0),
+	rt5645_mono_adc_l_mix, ARRAY_SIZE(rt5645_mono_adc_l_mix),
+	NULL, 0),
 	SND_SOC_DAPM_SUPPLY_S("adc mono right filter", 1, RT5645_PWR_DIG2,
-		RT5645_PWR_ADC_MF_R_BIT, 0, NULL, 0),
+	RT5645_PWR_ADC_MF_R_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_MIXER_E("Mono ADC MIXR", SND_SOC_NOPM, 0, 0,
-		rt5645_mono_adc_r_mix, ARRAY_SIZE(rt5645_mono_adc_r_mix),
-		NULL, 0),
+	rt5645_mono_adc_r_mix, ARRAY_SIZE(rt5645_mono_adc_r_mix),
+	NULL, 0),
 
 	/* ADC PGA */
 	SND_SOC_DAPM_PGA("Stereo1 ADC MIXL", SND_SOC_NOPM, 0, 0, NULL, 0),
@@ -2074,11 +2211,11 @@ static const struct snd_soc_dapm_widget rt5645_dapm_widgets[] = {
 
 	/* IF1 2 Mux */
 	SND_SOC_DAPM_MUX("IF2 ADC Mux", SND_SOC_NOPM,
-		0, 0, &rt5645_if2_adc_in_mux),
+	0, 0, &rt5645_if2_adc_in_mux),
 
 	/* Digital Interface */
 	SND_SOC_DAPM_SUPPLY("I2S1", RT5645_PWR_DIG1,
-		RT5645_PWR_I2S1_BIT, 0, NULL, 0),
+	RT5645_PWR_I2S1_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_PGA("IF1 DAC0", SND_SOC_NOPM, 0, 0, NULL, 0),
 	SND_SOC_DAPM_PGA("IF1 DAC1", SND_SOC_NOPM, 0, 0, NULL, 0),
 	SND_SOC_DAPM_PGA("IF1 DAC2", SND_SOC_NOPM, 0, 0, NULL, 0),
@@ -2087,7 +2224,7 @@ static const struct snd_soc_dapm_widget rt5645_dapm_widgets[] = {
 	SND_SOC_DAPM_PGA("IF1 ADC L", SND_SOC_NOPM, 0, 0, NULL, 0),
 	SND_SOC_DAPM_PGA("IF1 ADC R", SND_SOC_NOPM, 0, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY("I2S2", RT5645_PWR_DIG1,
-		RT5645_PWR_I2S2_BIT, 0, NULL, 0),
+	RT5645_PWR_I2S2_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_PGA("IF2 DAC", SND_SOC_NOPM, 0, 0, NULL, 0),
 	SND_SOC_DAPM_PGA("IF2 DAC L", SND_SOC_NOPM, 0, 0, NULL, 0),
 	SND_SOC_DAPM_PGA("IF2 DAC R", SND_SOC_NOPM, 0, 0, NULL, 0),
@@ -2095,7 +2232,7 @@ static const struct snd_soc_dapm_widget rt5645_dapm_widgets[] = {
 
 	/* Digital Interface Select */
 	SND_SOC_DAPM_MUX("VAD ADC Mux", SND_SOC_NOPM,
-		0, 0, &rt5645_vad_adc_mux),
+	0, 0, &rt5645_vad_adc_mux),
 
 	/* Audio Interface */
 	SND_SOC_DAPM_AIF_IN("AIF1RX", "AIF1 Playback", 0, SND_SOC_NOPM, 0, 0),
@@ -2106,72 +2243,72 @@ static const struct snd_soc_dapm_widget rt5645_dapm_widgets[] = {
 	/* Output Side */
 	/* DAC mixer before sound effect  */
 	SND_SOC_DAPM_MIXER("DAC1 MIXL", SND_SOC_NOPM, 0, 0,
-		rt5645_dac_l_mix, ARRAY_SIZE(rt5645_dac_l_mix)),
+	rt5645_dac_l_mix, ARRAY_SIZE(rt5645_dac_l_mix)),
 	SND_SOC_DAPM_MIXER("DAC1 MIXR", SND_SOC_NOPM, 0, 0,
-		rt5645_dac_r_mix, ARRAY_SIZE(rt5645_dac_r_mix)),
+	rt5645_dac_r_mix, ARRAY_SIZE(rt5645_dac_r_mix)),
 
 	/* DAC2 channel Mux */
 	SND_SOC_DAPM_MUX("DAC L2 Mux", SND_SOC_NOPM, 0, 0, &rt5645_dac_l2_mux),
 	SND_SOC_DAPM_MUX("DAC R2 Mux", SND_SOC_NOPM, 0, 0, &rt5645_dac_r2_mux),
 	SND_SOC_DAPM_PGA("DAC L2 Volume", RT5645_PWR_DIG1,
-		RT5645_PWR_DAC_L2_BIT, 0, NULL, 0),
+	RT5645_PWR_DAC_L2_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_PGA("DAC R2 Volume", RT5645_PWR_DIG1,
-		RT5645_PWR_DAC_R2_BIT, 0, NULL, 0),
+	RT5645_PWR_DAC_R2_BIT, 0, NULL, 0),
 
 	SND_SOC_DAPM_MUX("DAC1 L Mux", SND_SOC_NOPM, 0, 0, &rt5645_dac1l_mux),
 	SND_SOC_DAPM_MUX("DAC1 R Mux", SND_SOC_NOPM, 0, 0, &rt5645_dac1r_mux),
 
 	/* DAC Mixer */
 	SND_SOC_DAPM_SUPPLY_S("dac stereo1 filter", 1, RT5645_PWR_DIG2,
-		RT5645_PWR_DAC_S1F_BIT, 0, NULL, 0),
+	RT5645_PWR_DAC_S1F_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY_S("dac mono left filter", 1, RT5645_PWR_DIG2,
-		RT5645_PWR_DAC_MF_L_BIT, 0, NULL, 0),
+	RT5645_PWR_DAC_MF_L_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY_S("dac mono right filter", 1, RT5645_PWR_DIG2,
-		RT5645_PWR_DAC_MF_R_BIT, 0, NULL, 0),
+	RT5645_PWR_DAC_MF_R_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_MIXER("Stereo DAC MIXL", SND_SOC_NOPM, 0, 0,
-		rt5645_sto_dac_l_mix, ARRAY_SIZE(rt5645_sto_dac_l_mix)),
+	rt5645_sto_dac_l_mix, ARRAY_SIZE(rt5645_sto_dac_l_mix)),
 	SND_SOC_DAPM_MIXER("Stereo DAC MIXR", SND_SOC_NOPM, 0, 0,
-		rt5645_sto_dac_r_mix, ARRAY_SIZE(rt5645_sto_dac_r_mix)),
+	rt5645_sto_dac_r_mix, ARRAY_SIZE(rt5645_sto_dac_r_mix)),
 	SND_SOC_DAPM_MIXER("Mono DAC MIXL", SND_SOC_NOPM, 0, 0,
-		rt5645_mono_dac_l_mix, ARRAY_SIZE(rt5645_mono_dac_l_mix)),
+	rt5645_mono_dac_l_mix, ARRAY_SIZE(rt5645_mono_dac_l_mix)),
 	SND_SOC_DAPM_MIXER("Mono DAC MIXR", SND_SOC_NOPM, 0, 0,
-		rt5645_mono_dac_r_mix, ARRAY_SIZE(rt5645_mono_dac_r_mix)),
+	rt5645_mono_dac_r_mix, ARRAY_SIZE(rt5645_mono_dac_r_mix)),
 	SND_SOC_DAPM_MIXER("DAC MIXL", SND_SOC_NOPM, 0, 0,
-		rt5645_dig_l_mix, ARRAY_SIZE(rt5645_dig_l_mix)),
+	rt5645_dig_l_mix, ARRAY_SIZE(rt5645_dig_l_mix)),
 	SND_SOC_DAPM_MIXER("DAC MIXR", SND_SOC_NOPM, 0, 0,
-		rt5645_dig_r_mix, ARRAY_SIZE(rt5645_dig_r_mix)),
+	rt5645_dig_r_mix, ARRAY_SIZE(rt5645_dig_r_mix)),
 
 	/* DACs */
 	SND_SOC_DAPM_DAC("DAC L1", NULL, RT5645_PWR_DIG1, RT5645_PWR_DAC_L1_BIT,
-		0),
+	0),
 	SND_SOC_DAPM_DAC("DAC L2", NULL, RT5645_PWR_DIG1, RT5645_PWR_DAC_L2_BIT,
-		0),
+	0),
 	SND_SOC_DAPM_DAC("DAC R1", NULL, RT5645_PWR_DIG1, RT5645_PWR_DAC_R1_BIT,
-		0),
+	0),
 	SND_SOC_DAPM_DAC("DAC R2", NULL, RT5645_PWR_DIG1, RT5645_PWR_DAC_R2_BIT,
-		0),
+	0),
 	/* OUT Mixer */
 	SND_SOC_DAPM_MIXER("SPK MIXL", RT5645_PWR_MIXER, RT5645_PWR_SM_L_BIT,
-		0, rt5645_spk_l_mix, ARRAY_SIZE(rt5645_spk_l_mix)),
+	0, rt5645_spk_l_mix, ARRAY_SIZE(rt5645_spk_l_mix)),
 	SND_SOC_DAPM_MIXER("SPK MIXR", RT5645_PWR_MIXER, RT5645_PWR_SM_R_BIT,
-		0, rt5645_spk_r_mix, ARRAY_SIZE(rt5645_spk_r_mix)),
+	0, rt5645_spk_r_mix, ARRAY_SIZE(rt5645_spk_r_mix)),
 	SND_SOC_DAPM_MIXER("OUT MIXL", RT5645_PWR_MIXER, RT5645_PWR_OM_L_BIT,
-		0, rt5645_out_l_mix, ARRAY_SIZE(rt5645_out_l_mix)),
+	0, rt5645_out_l_mix, ARRAY_SIZE(rt5645_out_l_mix)),
 	SND_SOC_DAPM_MIXER("OUT MIXR", RT5645_PWR_MIXER, RT5645_PWR_OM_R_BIT,
-		0, rt5645_out_r_mix, ARRAY_SIZE(rt5645_out_r_mix)),
+	0, rt5645_out_r_mix, ARRAY_SIZE(rt5645_out_r_mix)),
 	/* Ouput Volume */
 	SND_SOC_DAPM_SWITCH("SPKVOL L", RT5645_PWR_VOL, RT5645_PWR_SV_L_BIT, 0,
-		&spk_l_vol_control),
+	&spk_l_vol_control),
 	SND_SOC_DAPM_SWITCH("SPKVOL R", RT5645_PWR_VOL, RT5645_PWR_SV_R_BIT, 0,
-		&spk_r_vol_control),
+	&spk_r_vol_control),
 	SND_SOC_DAPM_MIXER("HPOVOL MIXL", RT5645_PWR_VOL, RT5645_PWR_HV_L_BIT,
-		0, rt5645_hpvoll_mix, ARRAY_SIZE(rt5645_hpvoll_mix)),
+	0, rt5645_hpvoll_mix, ARRAY_SIZE(rt5645_hpvoll_mix)),
 	SND_SOC_DAPM_MIXER("HPOVOL MIXR", RT5645_PWR_VOL, RT5645_PWR_HV_R_BIT,
-		0, rt5645_hpvolr_mix, ARRAY_SIZE(rt5645_hpvolr_mix)),
+	0, rt5645_hpvolr_mix, ARRAY_SIZE(rt5645_hpvolr_mix)),
 	SND_SOC_DAPM_SUPPLY("HPOVOL MIXL Power", RT5645_PWR_MIXER,
-		RT5645_PWR_HM_L_BIT, 0, NULL, 0),
+	RT5645_PWR_HM_L_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_SUPPLY("HPOVOL MIXR Power", RT5645_PWR_MIXER,
-		RT5645_PWR_HM_R_BIT, 0, NULL, 0),
+	RT5645_PWR_HM_R_BIT, 0, NULL, 0),
 	SND_SOC_DAPM_PGA("DAC 1", SND_SOC_NOPM, 0, 0, NULL, 0),
 	SND_SOC_DAPM_PGA("DAC 2", SND_SOC_NOPM, 0, 0, NULL, 0),
 	SND_SOC_DAPM_PGA("HPOVOL", SND_SOC_NOPM, 0, 0, NULL, 0),
@@ -2180,24 +2317,24 @@ static const struct snd_soc_dapm_widget rt5645_dapm_widgets[] = {
 
 	/* HPO/LOUT/Mono Mixer */
 	SND_SOC_DAPM_MIXER("SPOL MIX", SND_SOC_NOPM, 0, 0, rt5645_spo_l_mix,
-		ARRAY_SIZE(rt5645_spo_l_mix)),
+	ARRAY_SIZE(rt5645_spo_l_mix)),
 	SND_SOC_DAPM_MIXER("SPOR MIX", SND_SOC_NOPM, 0, 0, rt5645_spo_r_mix,
-		ARRAY_SIZE(rt5645_spo_r_mix)),
+	ARRAY_SIZE(rt5645_spo_r_mix)),
 	SND_SOC_DAPM_MIXER("HPO MIX", SND_SOC_NOPM, 0, 0, rt5645_hpo_mix,
-		ARRAY_SIZE(rt5645_hpo_mix)),
+	ARRAY_SIZE(rt5645_hpo_mix)),
 	SND_SOC_DAPM_MIXER("LOUT MIX", SND_SOC_NOPM, 0, 0, rt5645_lout_mix,
-		ARRAY_SIZE(rt5645_lout_mix)),
+	ARRAY_SIZE(rt5645_lout_mix)),
 
 	SND_SOC_DAPM_PGA_S("HP amp", 1, SND_SOC_NOPM, 0, 0, rt5645_hp_event,
-		SND_SOC_DAPM_PRE_PMD | SND_SOC_DAPM_POST_PMU),
+	SND_SOC_DAPM_PRE_PMD | SND_SOC_DAPM_POST_PMU),
 	SND_SOC_DAPM_PGA_S("LOUT amp", 1, SND_SOC_NOPM, 0, 0, rt5645_lout_event,
-		SND_SOC_DAPM_PRE_PMD | SND_SOC_DAPM_POST_PMU),
+	SND_SOC_DAPM_PRE_PMD | SND_SOC_DAPM_POST_PMU),
 	SND_SOC_DAPM_PGA_S("SPK amp", 2, SND_SOC_NOPM, 0, 0, rt5645_spk_event,
-		SND_SOC_DAPM_PRE_PMD | SND_SOC_DAPM_POST_PMU),
+	SND_SOC_DAPM_PRE_PMD | SND_SOC_DAPM_POST_PMU),
 
 	/* PDM */
 	SND_SOC_DAPM_SUPPLY("PDM1 Power", RT5645_PWR_DIG2, RT5645_PWR_PDM1_BIT,
-		0, NULL, 0),
+	0, NULL, 0),
 	SND_SOC_DAPM_MUX("PDM1 L Mux", SND_SOC_NOPM, 0, 0, &rt5645_pdm1_l_mux),
 	SND_SOC_DAPM_MUX("PDM1 R Mux", SND_SOC_NOPM, 0, 0, &rt5645_pdm1_r_mux),
 
@@ -2216,55 +2353,58 @@ static const struct snd_soc_dapm_widget rt5645_dapm_widgets[] = {
 	SND_SOC_DAPM_POST("DAPM_POST", rt5650_hp_event),
 };
 
-static const struct snd_soc_dapm_widget rt5645_specific_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget rt5645_specific_dapm_widgets[] =
+{
 	SND_SOC_DAPM_MUX("RT5645 IF1 DAC1 L Mux", SND_SOC_NOPM, 0, 0,
-		&rt5645_if1_dac0_tdm_sel_mux),
+	&rt5645_if1_dac0_tdm_sel_mux),
 	SND_SOC_DAPM_MUX("RT5645 IF1 DAC1 R Mux", SND_SOC_NOPM, 0, 0,
-		&rt5645_if1_dac1_tdm_sel_mux),
+	&rt5645_if1_dac1_tdm_sel_mux),
 	SND_SOC_DAPM_MUX("RT5645 IF1 DAC2 L Mux", SND_SOC_NOPM, 0, 0,
-		&rt5645_if1_dac2_tdm_sel_mux),
+	&rt5645_if1_dac2_tdm_sel_mux),
 	SND_SOC_DAPM_MUX("RT5645 IF1 DAC2 R Mux", SND_SOC_NOPM, 0, 0,
-		&rt5645_if1_dac3_tdm_sel_mux),
+	&rt5645_if1_dac3_tdm_sel_mux),
 	SND_SOC_DAPM_MUX("RT5645 IF1 ADC Mux", SND_SOC_NOPM,
-		0, 0, &rt5645_if1_adc_in_mux),
+	0, 0, &rt5645_if1_adc_in_mux),
 	SND_SOC_DAPM_MUX("RT5645 IF1 ADC1 Swap Mux", SND_SOC_NOPM,
-		0, 0, &rt5645_if1_adc1_in_mux),
+	0, 0, &rt5645_if1_adc1_in_mux),
 	SND_SOC_DAPM_MUX("RT5645 IF1 ADC2 Swap Mux", SND_SOC_NOPM,
-		0, 0, &rt5645_if1_adc2_in_mux),
+	0, 0, &rt5645_if1_adc2_in_mux),
 	SND_SOC_DAPM_MUX("RT5645 IF1 ADC3 Swap Mux", SND_SOC_NOPM,
-		0, 0, &rt5645_if1_adc3_in_mux),
+	0, 0, &rt5645_if1_adc3_in_mux),
 };
 
-static const struct snd_soc_dapm_widget rt5650_specific_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget rt5650_specific_dapm_widgets[] =
+{
 	SND_SOC_DAPM_MUX("A DAC1 L Mux", SND_SOC_NOPM,
-		0, 0, &rt5650_a_dac1_l_mux),
+	0, 0, &rt5650_a_dac1_l_mux),
 	SND_SOC_DAPM_MUX("A DAC1 R Mux", SND_SOC_NOPM,
-		0, 0, &rt5650_a_dac1_r_mux),
+	0, 0, &rt5650_a_dac1_r_mux),
 	SND_SOC_DAPM_MUX("A DAC2 L Mux", SND_SOC_NOPM,
-		0, 0, &rt5650_a_dac2_l_mux),
+	0, 0, &rt5650_a_dac2_l_mux),
 	SND_SOC_DAPM_MUX("A DAC2 R Mux", SND_SOC_NOPM,
-		0, 0, &rt5650_a_dac2_r_mux),
+	0, 0, &rt5650_a_dac2_r_mux),
 
 	SND_SOC_DAPM_MUX("RT5650 IF1 ADC1 Swap Mux", SND_SOC_NOPM,
-		0, 0, &rt5650_if1_adc1_in_mux),
+	0, 0, &rt5650_if1_adc1_in_mux),
 	SND_SOC_DAPM_MUX("RT5650 IF1 ADC2 Swap Mux", SND_SOC_NOPM,
-		0, 0, &rt5650_if1_adc2_in_mux),
+	0, 0, &rt5650_if1_adc2_in_mux),
 	SND_SOC_DAPM_MUX("RT5650 IF1 ADC3 Swap Mux", SND_SOC_NOPM,
-		0, 0, &rt5650_if1_adc3_in_mux),
+	0, 0, &rt5650_if1_adc3_in_mux),
 	SND_SOC_DAPM_MUX("RT5650 IF1 ADC Mux", SND_SOC_NOPM,
-		0, 0, &rt5650_if1_adc_in_mux),
+	0, 0, &rt5650_if1_adc_in_mux),
 
 	SND_SOC_DAPM_MUX("RT5650 IF1 DAC1 L Mux", SND_SOC_NOPM, 0, 0,
-		&rt5650_if1_dac0_tdm_sel_mux),
+	&rt5650_if1_dac0_tdm_sel_mux),
 	SND_SOC_DAPM_MUX("RT5650 IF1 DAC1 R Mux", SND_SOC_NOPM, 0, 0,
-		&rt5650_if1_dac1_tdm_sel_mux),
+	&rt5650_if1_dac1_tdm_sel_mux),
 	SND_SOC_DAPM_MUX("RT5650 IF1 DAC2 L Mux", SND_SOC_NOPM, 0, 0,
-		&rt5650_if1_dac2_tdm_sel_mux),
+	&rt5650_if1_dac2_tdm_sel_mux),
 	SND_SOC_DAPM_MUX("RT5650 IF1 DAC2 R Mux", SND_SOC_NOPM, 0, 0,
-		&rt5650_if1_dac3_tdm_sel_mux),
+	&rt5650_if1_dac3_tdm_sel_mux),
 };
 
-static const struct snd_soc_dapm_route rt5645_dapm_routes[] = {
+static const struct snd_soc_dapm_route rt5645_dapm_routes[] =
+{
 	{ "adc stereo1 filter", NULL, "ADC STO1 ASRC", is_using_asrc },
 	{ "adc mono left filter", NULL, "ADC MONO L ASRC", is_using_asrc },
 	{ "adc mono right filter", NULL, "ADC MONO R ASRC", is_using_asrc },
@@ -2547,7 +2687,8 @@ static const struct snd_soc_dapm_route rt5645_dapm_routes[] = {
 	{ "SPOR", NULL, "SPK amp" },
 };
 
-static const struct snd_soc_dapm_route rt5650_specific_dapm_routes[] = {
+static const struct snd_soc_dapm_route rt5650_specific_dapm_routes[] =
+{
 	{ "A DAC1 L Mux", "DAC1",  "DAC1 MIXL"},
 	{ "A DAC1 L Mux", "Stereo DAC Mixer", "Stereo DAC MIXL"},
 	{ "A DAC1 R Mux", "DAC1",  "DAC1 MIXR"},
@@ -2638,7 +2779,8 @@ static const struct snd_soc_dapm_route rt5650_specific_dapm_routes[] = {
 	{ "DAC R2 Mux", "IF1 DAC", "RT5650 IF1 DAC2 R Mux" },
 };
 
-static const struct snd_soc_dapm_route rt5645_specific_dapm_routes[] = {
+static const struct snd_soc_dapm_route rt5645_specific_dapm_routes[] =
+{
 	{ "DAC L1", NULL, "Stereo DAC MIXL" },
 	{ "DAC R1", NULL, "Stereo DAC MIXR" },
 	{ "DAC L2", NULL, "Mono DAC MIXL" },
@@ -2697,7 +2839,7 @@ static const struct snd_soc_dapm_route rt5645_specific_dapm_routes[] = {
 };
 
 static int rt5645_hw_params(struct snd_pcm_substream *substream,
-	struct snd_pcm_hw_params *params, struct snd_soc_dai *dai)
+							struct snd_pcm_hw_params *params, struct snd_soc_dai *dai)
 {
 	struct snd_soc_codec *codec = dai->codec;
 	struct rt5645_priv *rt5645 = snd_soc_codec_get_drvdata(codec);
@@ -2706,68 +2848,83 @@ static int rt5645_hw_params(struct snd_pcm_substream *substream,
 
 	rt5645->lrck[dai->id] = params_rate(params);
 	pre_div = rl6231_get_clk_info(rt5645->sysclk, rt5645->lrck[dai->id]);
-	if (pre_div < 0) {
+
+	if (pre_div < 0)
+	{
 		dev_err(codec->dev, "Unsupported clock setting\n");
 		return -EINVAL;
 	}
+
 	frame_size = snd_soc_params_to_frame_size(params);
-	if (frame_size < 0) {
+
+	if (frame_size < 0)
+	{
 		dev_err(codec->dev, "Unsupported frame size: %d\n", frame_size);
 		return -EINVAL;
 	}
 
-	switch (rt5645->codec_type) {
-	case CODEC_TYPE_RT5650:
-		dl_sft = 4;
-		break;
-	default:
-		dl_sft = 2;
-		break;
+	switch (rt5645->codec_type)
+	{
+		case CODEC_TYPE_RT5650:
+			dl_sft = 4;
+			break;
+
+		default:
+			dl_sft = 2;
+			break;
 	}
 
 	bclk_ms = frame_size > 32;
 	rt5645->bclk[dai->id] = rt5645->lrck[dai->id] * (32 << bclk_ms);
 
 	dev_dbg(dai->dev, "bclk is %dHz and lrck is %dHz\n",
-		rt5645->bclk[dai->id], rt5645->lrck[dai->id]);
+			rt5645->bclk[dai->id], rt5645->lrck[dai->id]);
 	dev_dbg(dai->dev, "bclk_ms is %d and pre_div is %d for iis %d\n",
-				bclk_ms, pre_div, dai->id);
+			bclk_ms, pre_div, dai->id);
 
-	switch (params_width(params)) {
-	case 16:
-		break;
-	case 20:
-		val_len = 0x1;
-		break;
-	case 24:
-		val_len = 0x2;
-		break;
-	case 8:
-		val_len = 0x3;
-		break;
-	default:
-		return -EINVAL;
+	switch (params_width(params))
+	{
+		case 16:
+			break;
+
+		case 20:
+			val_len = 0x1;
+			break;
+
+		case 24:
+			val_len = 0x2;
+			break;
+
+		case 8:
+			val_len = 0x3;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
-	switch (dai->id) {
-	case RT5645_AIF1:
-		mask_clk = RT5645_I2S_PD1_MASK;
-		val_clk = pre_div << RT5645_I2S_PD1_SFT;
-		snd_soc_update_bits(codec, RT5645_I2S1_SDP,
-			(0x3 << dl_sft), (val_len << dl_sft));
-		snd_soc_update_bits(codec, RT5645_ADDA_CLK1, mask_clk, val_clk);
-		break;
-	case  RT5645_AIF2:
-		mask_clk = RT5645_I2S_BCLK_MS2_MASK | RT5645_I2S_PD2_MASK;
-		val_clk = bclk_ms << RT5645_I2S_BCLK_MS2_SFT |
-			pre_div << RT5645_I2S_PD2_SFT;
-		snd_soc_update_bits(codec, RT5645_I2S2_SDP,
-			(0x3 << dl_sft), (val_len << dl_sft));
-		snd_soc_update_bits(codec, RT5645_ADDA_CLK1, mask_clk, val_clk);
-		break;
-	default:
-		dev_err(codec->dev, "Invalid dai->id: %d\n", dai->id);
-		return -EINVAL;
+	switch (dai->id)
+	{
+		case RT5645_AIF1:
+			mask_clk = RT5645_I2S_PD1_MASK;
+			val_clk = pre_div << RT5645_I2S_PD1_SFT;
+			snd_soc_update_bits(codec, RT5645_I2S1_SDP,
+								(0x3 << dl_sft), (val_len << dl_sft));
+			snd_soc_update_bits(codec, RT5645_ADDA_CLK1, mask_clk, val_clk);
+			break;
+
+		case  RT5645_AIF2:
+			mask_clk = RT5645_I2S_BCLK_MS2_MASK | RT5645_I2S_PD2_MASK;
+			val_clk = bclk_ms << RT5645_I2S_BCLK_MS2_SFT |
+					  pre_div << RT5645_I2S_PD2_SFT;
+			snd_soc_update_bits(codec, RT5645_I2S2_SDP,
+								(0x3 << dl_sft), (val_len << dl_sft));
+			snd_soc_update_bits(codec, RT5645_ADDA_CLK1, mask_clk, val_clk);
+			break;
+
+		default:
+			dev_err(codec->dev, "Invalid dai->id: %d\n", dai->id);
+			return -EINVAL;
 	}
 
 	return 0;
@@ -2779,96 +2936,121 @@ static int rt5645_set_dai_fmt(struct snd_soc_dai *dai, unsigned int fmt)
 	struct rt5645_priv *rt5645 = snd_soc_codec_get_drvdata(codec);
 	unsigned int reg_val = 0, pol_sft;
 
-	switch (rt5645->codec_type) {
-	case CODEC_TYPE_RT5650:
-		pol_sft = 8;
-		break;
-	default:
-		pol_sft = 7;
-		break;
+	switch (rt5645->codec_type)
+	{
+		case CODEC_TYPE_RT5650:
+			pol_sft = 8;
+			break;
+
+		default:
+			pol_sft = 7;
+			break;
 	}
 
-	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
-	case SND_SOC_DAIFMT_CBM_CFM:
-		rt5645->master[dai->id] = 1;
-		break;
-	case SND_SOC_DAIFMT_CBS_CFS:
-		reg_val |= RT5645_I2S_MS_S;
-		rt5645->master[dai->id] = 0;
-		break;
-	default:
-		return -EINVAL;
+	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK)
+	{
+		case SND_SOC_DAIFMT_CBM_CFM:
+			rt5645->master[dai->id] = 1;
+			break;
+
+		case SND_SOC_DAIFMT_CBS_CFS:
+			reg_val |= RT5645_I2S_MS_S;
+			rt5645->master[dai->id] = 0;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
-	switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
-	case SND_SOC_DAIFMT_NB_NF:
-		break;
-	case SND_SOC_DAIFMT_IB_NF:
-		reg_val |= (1 << pol_sft);
-		break;
-	default:
-		return -EINVAL;
+	switch (fmt & SND_SOC_DAIFMT_INV_MASK)
+	{
+		case SND_SOC_DAIFMT_NB_NF:
+			break;
+
+		case SND_SOC_DAIFMT_IB_NF:
+			reg_val |= (1 << pol_sft);
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
-	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
-	case SND_SOC_DAIFMT_I2S:
-		break;
-	case SND_SOC_DAIFMT_LEFT_J:
-		reg_val |= RT5645_I2S_DF_LEFT;
-		break;
-	case SND_SOC_DAIFMT_DSP_A:
-		reg_val |= RT5645_I2S_DF_PCM_A;
-		break;
-	case SND_SOC_DAIFMT_DSP_B:
-		reg_val |= RT5645_I2S_DF_PCM_B;
-		break;
-	default:
-		return -EINVAL;
+	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK)
+	{
+		case SND_SOC_DAIFMT_I2S:
+			break;
+
+		case SND_SOC_DAIFMT_LEFT_J:
+			reg_val |= RT5645_I2S_DF_LEFT;
+			break;
+
+		case SND_SOC_DAIFMT_DSP_A:
+			reg_val |= RT5645_I2S_DF_PCM_A;
+			break;
+
+		case SND_SOC_DAIFMT_DSP_B:
+			reg_val |= RT5645_I2S_DF_PCM_B;
+			break;
+
+		default:
+			return -EINVAL;
 	}
-	switch (dai->id) {
-	case RT5645_AIF1:
-		snd_soc_update_bits(codec, RT5645_I2S1_SDP,
-			RT5645_I2S_MS_MASK | (1 << pol_sft) |
-			RT5645_I2S_DF_MASK, reg_val);
-		break;
-	case RT5645_AIF2:
-		snd_soc_update_bits(codec, RT5645_I2S2_SDP,
-			RT5645_I2S_MS_MASK | (1 << pol_sft) |
-			RT5645_I2S_DF_MASK, reg_val);
-		break;
-	default:
-		dev_err(codec->dev, "Invalid dai->id: %d\n", dai->id);
-		return -EINVAL;
+
+	switch (dai->id)
+	{
+		case RT5645_AIF1:
+			snd_soc_update_bits(codec, RT5645_I2S1_SDP,
+								RT5645_I2S_MS_MASK | (1 << pol_sft) |
+								RT5645_I2S_DF_MASK, reg_val);
+			break;
+
+		case RT5645_AIF2:
+			snd_soc_update_bits(codec, RT5645_I2S2_SDP,
+								RT5645_I2S_MS_MASK | (1 << pol_sft) |
+								RT5645_I2S_DF_MASK, reg_val);
+			break;
+
+		default:
+			dev_err(codec->dev, "Invalid dai->id: %d\n", dai->id);
+			return -EINVAL;
 	}
+
 	return 0;
 }
 
 static int rt5645_set_dai_sysclk(struct snd_soc_dai *dai,
-		int clk_id, unsigned int freq, int dir)
+								 int clk_id, unsigned int freq, int dir)
 {
 	struct snd_soc_codec *codec = dai->codec;
 	struct rt5645_priv *rt5645 = snd_soc_codec_get_drvdata(codec);
 	unsigned int reg_val = 0;
 
 	if (freq == rt5645->sysclk && clk_id == rt5645->sysclk_src)
+	{
 		return 0;
-
-	switch (clk_id) {
-	case RT5645_SCLK_S_MCLK:
-		reg_val |= RT5645_SCLK_SRC_MCLK;
-		break;
-	case RT5645_SCLK_S_PLL1:
-		reg_val |= RT5645_SCLK_SRC_PLL1;
-		break;
-	case RT5645_SCLK_S_RCCLK:
-		reg_val |= RT5645_SCLK_SRC_RCCLK;
-		break;
-	default:
-		dev_err(codec->dev, "Invalid clock id (%d)\n", clk_id);
-		return -EINVAL;
 	}
+
+	switch (clk_id)
+	{
+		case RT5645_SCLK_S_MCLK:
+			reg_val |= RT5645_SCLK_SRC_MCLK;
+			break;
+
+		case RT5645_SCLK_S_PLL1:
+			reg_val |= RT5645_SCLK_SRC_PLL1;
+			break;
+
+		case RT5645_SCLK_S_RCCLK:
+			reg_val |= RT5645_SCLK_SRC_RCCLK;
+			break;
+
+		default:
+			dev_err(codec->dev, "Invalid clock id (%d)\n", clk_id);
+			return -EINVAL;
+	}
+
 	snd_soc_update_bits(codec, RT5645_GLB_CLK,
-		RT5645_SCLK_SRC_MASK, reg_val);
+						RT5645_SCLK_SRC_MASK, reg_val);
 	rt5645->sysclk = freq;
 	rt5645->sysclk_src = clk_id;
 
@@ -2878,7 +3060,7 @@ static int rt5645_set_dai_sysclk(struct snd_soc_dai *dai,
 }
 
 static int rt5645_set_dai_pll(struct snd_soc_dai *dai, int pll_id, int source,
-			unsigned int freq_in, unsigned int freq_out)
+							  unsigned int freq_in, unsigned int freq_out)
 {
 	struct snd_soc_codec *codec = dai->codec;
 	struct rt5645_priv *rt5645 = snd_soc_codec_get_drvdata(codec);
@@ -2886,60 +3068,72 @@ static int rt5645_set_dai_pll(struct snd_soc_dai *dai, int pll_id, int source,
 	int ret;
 
 	if (source == rt5645->pll_src && freq_in == rt5645->pll_in &&
-	    freq_out == rt5645->pll_out)
+		freq_out == rt5645->pll_out)
+	{
 		return 0;
+	}
 
-	if (!freq_in || !freq_out) {
+	if (!freq_in || !freq_out)
+	{
 		dev_dbg(codec->dev, "PLL disabled\n");
 
 		rt5645->pll_in = 0;
 		rt5645->pll_out = 0;
 		snd_soc_update_bits(codec, RT5645_GLB_CLK,
-			RT5645_SCLK_SRC_MASK, RT5645_SCLK_SRC_MCLK);
+							RT5645_SCLK_SRC_MASK, RT5645_SCLK_SRC_MCLK);
 		return 0;
 	}
 
-	switch (source) {
-	case RT5645_PLL1_S_MCLK:
-		snd_soc_update_bits(codec, RT5645_GLB_CLK,
-			RT5645_PLL1_SRC_MASK, RT5645_PLL1_SRC_MCLK);
-		break;
-	case RT5645_PLL1_S_BCLK1:
-	case RT5645_PLL1_S_BCLK2:
-		switch (dai->id) {
-		case RT5645_AIF1:
+	switch (source)
+	{
+		case RT5645_PLL1_S_MCLK:
 			snd_soc_update_bits(codec, RT5645_GLB_CLK,
-				RT5645_PLL1_SRC_MASK, RT5645_PLL1_SRC_BCLK1);
+								RT5645_PLL1_SRC_MASK, RT5645_PLL1_SRC_MCLK);
 			break;
-		case  RT5645_AIF2:
-			snd_soc_update_bits(codec, RT5645_GLB_CLK,
-				RT5645_PLL1_SRC_MASK, RT5645_PLL1_SRC_BCLK2);
+
+		case RT5645_PLL1_S_BCLK1:
+		case RT5645_PLL1_S_BCLK2:
+			switch (dai->id)
+			{
+				case RT5645_AIF1:
+					snd_soc_update_bits(codec, RT5645_GLB_CLK,
+										RT5645_PLL1_SRC_MASK, RT5645_PLL1_SRC_BCLK1);
+					break;
+
+				case  RT5645_AIF2:
+					snd_soc_update_bits(codec, RT5645_GLB_CLK,
+										RT5645_PLL1_SRC_MASK, RT5645_PLL1_SRC_BCLK2);
+					break;
+
+				default:
+					dev_err(codec->dev, "Invalid dai->id: %d\n", dai->id);
+					return -EINVAL;
+			}
+
 			break;
+
 		default:
-			dev_err(codec->dev, "Invalid dai->id: %d\n", dai->id);
+			dev_err(codec->dev, "Unknown PLL source %d\n", source);
 			return -EINVAL;
-		}
-		break;
-	default:
-		dev_err(codec->dev, "Unknown PLL source %d\n", source);
-		return -EINVAL;
 	}
 
 	ret = rl6231_pll_calc(freq_in, freq_out, &pll_code);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(codec->dev, "Unsupport input clock %d\n", freq_in);
 		return ret;
 	}
 
 	dev_dbg(codec->dev, "bypass=%d m=%d n=%d k=%d\n",
-		pll_code.m_bp, (pll_code.m_bp ? 0 : pll_code.m_code),
-		pll_code.n_code, pll_code.k_code);
+			pll_code.m_bp, (pll_code.m_bp ? 0 : pll_code.m_code),
+			pll_code.n_code, pll_code.k_code);
 
 	snd_soc_write(codec, RT5645_PLL_CTRL1,
-		pll_code.n_code << RT5645_PLL_N_SFT | pll_code.k_code);
+				  pll_code.n_code << RT5645_PLL_N_SFT | pll_code.k_code);
 	snd_soc_write(codec, RT5645_PLL_CTRL2,
-		(pll_code.m_bp ? 0 : pll_code.m_code) << RT5645_PLL_M_SFT |
-		pll_code.m_bp << RT5645_PLL_M_BP_SFT);
+				  (pll_code.m_bp ? 0 : pll_code.m_code) << RT5645_PLL_M_SFT |
+				  pll_code.m_bp << RT5645_PLL_M_BP_SFT);
 
 	rt5645->pll_in = freq_in;
 	rt5645->pll_out = freq_out;
@@ -2949,64 +3143,77 @@ static int rt5645_set_dai_pll(struct snd_soc_dai *dai, int pll_id, int source,
 }
 
 static int rt5645_set_tdm_slot(struct snd_soc_dai *dai, unsigned int tx_mask,
-			unsigned int rx_mask, int slots, int slot_width)
+							   unsigned int rx_mask, int slots, int slot_width)
 {
 	struct snd_soc_codec *codec = dai->codec;
 	struct rt5645_priv *rt5645 = snd_soc_codec_get_drvdata(codec);
 	unsigned int i_slot_sft, o_slot_sft, i_width_sht, o_width_sht, en_sft;
 	unsigned int mask, val = 0;
 
-	switch (rt5645->codec_type) {
-	case CODEC_TYPE_RT5650:
-		en_sft = 15;
-		i_slot_sft = 10;
-		o_slot_sft = 8;
-		i_width_sht = 6;
-		o_width_sht = 4;
-		mask = 0x8ff0;
-		break;
-	default:
-		en_sft = 14;
-		i_slot_sft = o_slot_sft = 12;
-		i_width_sht = o_width_sht = 10;
-		mask = 0x7c00;
-		break;
+	switch (rt5645->codec_type)
+	{
+		case CODEC_TYPE_RT5650:
+			en_sft = 15;
+			i_slot_sft = 10;
+			o_slot_sft = 8;
+			i_width_sht = 6;
+			o_width_sht = 4;
+			mask = 0x8ff0;
+			break;
+
+		default:
+			en_sft = 14;
+			i_slot_sft = o_slot_sft = 12;
+			i_width_sht = o_width_sht = 10;
+			mask = 0x7c00;
+			break;
 	}
-	if (rx_mask || tx_mask) {
+
+	if (rx_mask || tx_mask)
+	{
 		val |= (1 << en_sft);
+
 		if (rt5645->codec_type == CODEC_TYPE_RT5645)
 			snd_soc_update_bits(codec, RT5645_BASS_BACK,
-				RT5645_G_BB_BST_MASK, RT5645_G_BB_BST_25DB);
+								RT5645_G_BB_BST_MASK, RT5645_G_BB_BST_25DB);
 	}
 
-	switch (slots) {
-	case 4:
-		val |= (1 << i_slot_sft) | (1 << o_slot_sft);
-		break;
-	case 6:
-		val |= (2 << i_slot_sft) | (2 << o_slot_sft);
-		break;
-	case 8:
-		val |= (3 << i_slot_sft) | (3 << o_slot_sft);
-		break;
-	case 2:
-	default:
-		break;
+	switch (slots)
+	{
+		case 4:
+			val |= (1 << i_slot_sft) | (1 << o_slot_sft);
+			break;
+
+		case 6:
+			val |= (2 << i_slot_sft) | (2 << o_slot_sft);
+			break;
+
+		case 8:
+			val |= (3 << i_slot_sft) | (3 << o_slot_sft);
+			break;
+
+		case 2:
+		default:
+			break;
 	}
 
-	switch (slot_width) {
-	case 20:
-		val |= (1 << i_width_sht) | (1 << o_width_sht);
-		break;
-	case 24:
-		val |= (2 << i_width_sht) | (2 << o_width_sht);
-		break;
-	case 32:
-		val |= (3 << i_width_sht) | (3 << o_width_sht);
-		break;
-	case 16:
-	default:
-		break;
+	switch (slot_width)
+	{
+		case 20:
+			val |= (1 << i_width_sht) | (1 << o_width_sht);
+			break;
+
+		case 24:
+			val |= (2 << i_width_sht) | (2 << o_width_sht);
+			break;
+
+		case 32:
+			val |= (3 << i_width_sht) | (3 << o_width_sht);
+			break;
+
+		case 16:
+		default:
+			break;
 	}
 
 	snd_soc_update_bits(codec, RT5645_TDM_CTRL_1, mask, val);
@@ -3015,84 +3222,96 @@ static int rt5645_set_tdm_slot(struct snd_soc_dai *dai, unsigned int tx_mask,
 }
 
 static int rt5645_set_bias_level(struct snd_soc_codec *codec,
-			enum snd_soc_bias_level level)
+								 enum snd_soc_bias_level level)
 {
 	struct rt5645_priv *rt5645 = snd_soc_codec_get_drvdata(codec);
 
-	switch (level) {
-	case SND_SOC_BIAS_PREPARE:
-		if (SND_SOC_BIAS_STANDBY == snd_soc_codec_get_bias_level(codec)) {
+	switch (level)
+	{
+		case SND_SOC_BIAS_PREPARE:
+			if (SND_SOC_BIAS_STANDBY == snd_soc_codec_get_bias_level(codec))
+			{
+				snd_soc_update_bits(codec, RT5645_PWR_ANLG1,
+									RT5645_PWR_VREF1 | RT5645_PWR_MB |
+									RT5645_PWR_BG | RT5645_PWR_VREF2,
+									RT5645_PWR_VREF1 | RT5645_PWR_MB |
+									RT5645_PWR_BG | RT5645_PWR_VREF2);
+				mdelay(10);
+				snd_soc_update_bits(codec, RT5645_PWR_ANLG1,
+									RT5645_PWR_FV1 | RT5645_PWR_FV2,
+									RT5645_PWR_FV1 | RT5645_PWR_FV2);
+				snd_soc_update_bits(codec, RT5645_GEN_CTRL1,
+									RT5645_DIG_GATE_CTRL, RT5645_DIG_GATE_CTRL);
+			}
+
+			break;
+
+		case SND_SOC_BIAS_STANDBY:
 			snd_soc_update_bits(codec, RT5645_PWR_ANLG1,
-				RT5645_PWR_VREF1 | RT5645_PWR_MB |
-				RT5645_PWR_BG | RT5645_PWR_VREF2,
-				RT5645_PWR_VREF1 | RT5645_PWR_MB |
-				RT5645_PWR_BG | RT5645_PWR_VREF2);
+								RT5645_PWR_VREF1 | RT5645_PWR_MB |
+								RT5645_PWR_BG | RT5645_PWR_VREF2,
+								RT5645_PWR_VREF1 | RT5645_PWR_MB |
+								RT5645_PWR_BG | RT5645_PWR_VREF2);
 			mdelay(10);
 			snd_soc_update_bits(codec, RT5645_PWR_ANLG1,
-				RT5645_PWR_FV1 | RT5645_PWR_FV2,
-				RT5645_PWR_FV1 | RT5645_PWR_FV2);
-			snd_soc_update_bits(codec, RT5645_GEN_CTRL1,
-				RT5645_DIG_GATE_CTRL, RT5645_DIG_GATE_CTRL);
-		}
-		break;
+								RT5645_PWR_FV1 | RT5645_PWR_FV2,
+								RT5645_PWR_FV1 | RT5645_PWR_FV2);
 
-	case SND_SOC_BIAS_STANDBY:
-		snd_soc_update_bits(codec, RT5645_PWR_ANLG1,
-			RT5645_PWR_VREF1 | RT5645_PWR_MB |
-			RT5645_PWR_BG | RT5645_PWR_VREF2,
-			RT5645_PWR_VREF1 | RT5645_PWR_MB |
-			RT5645_PWR_BG | RT5645_PWR_VREF2);
-		mdelay(10);
-		snd_soc_update_bits(codec, RT5645_PWR_ANLG1,
-			RT5645_PWR_FV1 | RT5645_PWR_FV2,
-			RT5645_PWR_FV1 | RT5645_PWR_FV2);
-		if (snd_soc_codec_get_bias_level(codec) == SND_SOC_BIAS_OFF) {
-			snd_soc_write(codec, RT5645_DEPOP_M2, 0x1140);
-			msleep(40);
-			if (rt5645->en_button_func)
-				queue_delayed_work(system_power_efficient_wq,
-					&rt5645->jack_detect_work,
-					msecs_to_jiffies(0));
-		}
-		break;
+			if (snd_soc_codec_get_bias_level(codec) == SND_SOC_BIAS_OFF)
+			{
+				snd_soc_write(codec, RT5645_DEPOP_M2, 0x1140);
+				msleep(40);
 
-	case SND_SOC_BIAS_OFF:
-		snd_soc_write(codec, RT5645_DEPOP_M2, 0x1100);
-		if (!rt5645->en_button_func)
-			snd_soc_update_bits(codec, RT5645_GEN_CTRL1,
-					RT5645_DIG_GATE_CTRL, 0);
-		snd_soc_update_bits(codec, RT5645_PWR_ANLG1,
-				RT5645_PWR_VREF1 | RT5645_PWR_MB |
-				RT5645_PWR_BG | RT5645_PWR_VREF2 |
-				RT5645_PWR_FV1 | RT5645_PWR_FV2, 0x0);
-		break;
+				if (rt5645->en_button_func)
+					queue_delayed_work(system_power_efficient_wq,
+									   &rt5645->jack_detect_work,
+									   msecs_to_jiffies(0));
+			}
 
-	default:
-		break;
+			break;
+
+		case SND_SOC_BIAS_OFF:
+			snd_soc_write(codec, RT5645_DEPOP_M2, 0x1100);
+
+			if (!rt5645->en_button_func)
+				snd_soc_update_bits(codec, RT5645_GEN_CTRL1,
+									RT5645_DIG_GATE_CTRL, 0);
+
+			snd_soc_update_bits(codec, RT5645_PWR_ANLG1,
+								RT5645_PWR_VREF1 | RT5645_PWR_MB |
+								RT5645_PWR_BG | RT5645_PWR_VREF2 |
+								RT5645_PWR_FV1 | RT5645_PWR_FV2, 0x0);
+			break;
+
+		default:
+			break;
 	}
 
 	return 0;
 }
 
 static void rt5645_enable_push_button_irq(struct snd_soc_codec *codec,
-	bool enable)
+		bool enable)
 {
 	struct snd_soc_dapm_context *dapm = snd_soc_codec_get_dapm(codec);
 
-	if (enable) {
+	if (enable)
+	{
 		snd_soc_dapm_force_enable_pin(dapm, "ADC L power");
 		snd_soc_dapm_force_enable_pin(dapm, "ADC R power");
 		snd_soc_dapm_sync(dapm);
 
 		snd_soc_update_bits(codec, RT5650_4BTN_IL_CMD1, 0x3, 0x3);
 		snd_soc_update_bits(codec,
-					RT5645_INT_IRQ_ST, 0x8, 0x8);
+							RT5645_INT_IRQ_ST, 0x8, 0x8);
 		snd_soc_update_bits(codec,
-					RT5650_4BTN_IL_CMD2, 0x8000, 0x8000);
+							RT5650_4BTN_IL_CMD2, 0x8000, 0x8000);
 		snd_soc_read(codec, RT5650_4BTN_IL_CMD1);
 		pr_debug("%s read %x = %x\n", __func__, RT5650_4BTN_IL_CMD1,
-			snd_soc_read(codec, RT5650_4BTN_IL_CMD1));
-	} else {
+				 snd_soc_read(codec, RT5650_4BTN_IL_CMD1));
+	}
+	else
+	{
 		snd_soc_update_bits(codec, RT5650_4BTN_IL_CMD2, 0x8000, 0x0);
 		snd_soc_update_bits(codec, RT5645_INT_IRQ_ST, 0x8, 0x0);
 
@@ -3108,73 +3327,90 @@ static int rt5645_jack_detect(struct snd_soc_codec *codec, int jack_insert)
 	struct rt5645_priv *rt5645 = snd_soc_codec_get_drvdata(codec);
 	unsigned int val;
 
-	if (jack_insert) {
+	if (jack_insert)
+	{
 		regmap_write(rt5645->regmap, RT5645_CHARGE_PUMP, 0x0006);
 
 		/* for jack type detect */
 		snd_soc_dapm_force_enable_pin(dapm, "LDO2");
 		snd_soc_dapm_force_enable_pin(dapm, "Mic Det Power");
 		snd_soc_dapm_sync(dapm);
-		if (!dapm->card->instantiated) {
+
+		if (!dapm->card->instantiated)
+		{
 			/* Power up necessary bits for JD if dapm is
 			   not ready yet */
 			regmap_update_bits(rt5645->regmap, RT5645_PWR_ANLG1,
-				RT5645_PWR_MB | RT5645_PWR_VREF2,
-				RT5645_PWR_MB | RT5645_PWR_VREF2);
+							   RT5645_PWR_MB | RT5645_PWR_VREF2,
+							   RT5645_PWR_MB | RT5645_PWR_VREF2);
 			regmap_update_bits(rt5645->regmap, RT5645_PWR_MIXER,
-				RT5645_PWR_LDO2, RT5645_PWR_LDO2);
+							   RT5645_PWR_LDO2, RT5645_PWR_LDO2);
 			regmap_update_bits(rt5645->regmap, RT5645_PWR_VOL,
-				RT5645_PWR_MIC_DET, RT5645_PWR_MIC_DET);
+							   RT5645_PWR_MIC_DET, RT5645_PWR_MIC_DET);
 		}
 
 		regmap_write(rt5645->regmap, RT5645_JD_CTRL3, 0x00f0);
 		regmap_update_bits(rt5645->regmap, RT5645_IN1_CTRL2,
-			RT5645_CBJ_MN_JD, RT5645_CBJ_MN_JD);
+						   RT5645_CBJ_MN_JD, RT5645_CBJ_MN_JD);
 		regmap_update_bits(rt5645->regmap, RT5645_IN1_CTRL1,
-			RT5645_CBJ_BST1_EN, RT5645_CBJ_BST1_EN);
+						   RT5645_CBJ_BST1_EN, RT5645_CBJ_BST1_EN);
 		msleep(100);
 		regmap_update_bits(rt5645->regmap, RT5645_IN1_CTRL2,
-			RT5645_CBJ_MN_JD, 0);
+						   RT5645_CBJ_MN_JD, 0);
 
 		msleep(600);
 		regmap_read(rt5645->regmap, RT5645_IN1_CTRL3, &val);
 		val &= 0x7;
 		dev_dbg(codec->dev, "val = %d\n", val);
 
-		if (val == 1 || val == 2) {
+		if (val == 1 || val == 2)
+		{
 			rt5645->jack_type = SND_JACK_HEADSET;
-			if (rt5645->en_button_func) {
+
+			if (rt5645->en_button_func)
+			{
 				rt5645_enable_push_button_irq(codec, true);
 			}
-		} else {
+		}
+		else
+		{
 			snd_soc_dapm_disable_pin(dapm, "Mic Det Power");
 			snd_soc_dapm_sync(dapm);
 			rt5645->jack_type = SND_JACK_HEADPHONE;
 		}
+
 		if (rt5645->pdata.jd_invert)
 			regmap_update_bits(rt5645->regmap, RT5645_IRQ_CTRL2,
-				RT5645_JD_1_1_MASK, RT5645_JD_1_1_NOR);
-	} else { /* jack out */
+							   RT5645_JD_1_1_MASK, RT5645_JD_1_1_NOR);
+	}
+	else     /* jack out */
+	{
 		rt5645->jack_type = 0;
 
 		regmap_update_bits(rt5645->regmap, RT5645_HP_VOL,
-			RT5645_L_MUTE | RT5645_R_MUTE,
-			RT5645_L_MUTE | RT5645_R_MUTE);
+						   RT5645_L_MUTE | RT5645_R_MUTE,
+						   RT5645_L_MUTE | RT5645_R_MUTE);
 		regmap_update_bits(rt5645->regmap, RT5645_IN1_CTRL2,
-			RT5645_CBJ_MN_JD, RT5645_CBJ_MN_JD);
+						   RT5645_CBJ_MN_JD, RT5645_CBJ_MN_JD);
 		regmap_update_bits(rt5645->regmap, RT5645_IN1_CTRL1,
-			RT5645_CBJ_BST1_EN, 0);
+						   RT5645_CBJ_BST1_EN, 0);
 
 		if (rt5645->en_button_func)
+		{
 			rt5645_enable_push_button_irq(codec, false);
+		}
 
 		if (rt5645->pdata.jd_mode == 0)
+		{
 			snd_soc_dapm_disable_pin(dapm, "LDO2");
+		}
+
 		snd_soc_dapm_disable_pin(dapm, "Mic Det Power");
 		snd_soc_dapm_sync(dapm);
+
 		if (rt5645->pdata.jd_invert)
 			regmap_update_bits(rt5645->regmap, RT5645_IRQ_CTRL2,
-				RT5645_JD_1_1_MASK, RT5645_JD_1_1_INV);
+							   RT5645_JD_1_1_MASK, RT5645_JD_1_1_INV);
 	}
 
 	return rt5645->jack_type;
@@ -3195,21 +3431,24 @@ static int rt5645_button_detect(struct snd_soc_codec *codec)
 static irqreturn_t rt5645_irq(int irq, void *data);
 
 int rt5645_set_jack_detect(struct snd_soc_codec *codec,
-	struct snd_soc_jack *hp_jack, struct snd_soc_jack *mic_jack,
-	struct snd_soc_jack *btn_jack)
+						   struct snd_soc_jack *hp_jack, struct snd_soc_jack *mic_jack,
+						   struct snd_soc_jack *btn_jack)
 {
 	struct rt5645_priv *rt5645 = snd_soc_codec_get_drvdata(codec);
 
 	rt5645->hp_jack = hp_jack;
 	rt5645->mic_jack = mic_jack;
 	rt5645->btn_jack = btn_jack;
-	if (rt5645->btn_jack && rt5645->codec_type == CODEC_TYPE_RT5650) {
+
+	if (rt5645->btn_jack && rt5645->codec_type == CODEC_TYPE_RT5650)
+	{
 		rt5645->en_button_func = true;
 		regmap_update_bits(rt5645->regmap, RT5645_GPIO_CTRL1,
-				RT5645_GP1_PIN_IRQ, RT5645_GP1_PIN_IRQ);
+						   RT5645_GP1_PIN_IRQ, RT5645_GP1_PIN_IRQ);
 		regmap_update_bits(rt5645->regmap, RT5645_GEN_CTRL1,
-				RT5645_DIG_GATE_CTRL, RT5645_DIG_GATE_CTRL);
+						   RT5645_DIG_GATE_CTRL, RT5645_DIG_GATE_CTRL);
 	}
+
 	rt5645_irq(0, rt5645);
 
 	return 0;
@@ -3223,106 +3462,132 @@ static void rt5645_jack_detect_work(struct work_struct *work)
 	int val, btn_type, gpio_state = 0, report = 0;
 
 	if (!rt5645->codec)
+	{
 		return;
+	}
 
-	switch (rt5645->pdata.jd_mode) {
-	case 0: /* Not using rt5645 JD */
-		if (rt5645->gpiod_hp_det) {
-			gpio_state = gpiod_get_value(rt5645->gpiod_hp_det);
-			dev_dbg(rt5645->codec->dev, "gpio_state = %d\n",
-				gpio_state);
-			report = rt5645_jack_detect(rt5645->codec, gpio_state);
-		}
-		snd_soc_jack_report(rt5645->hp_jack,
-				    report, SND_JACK_HEADPHONE);
-		snd_soc_jack_report(rt5645->mic_jack,
-				    report, SND_JACK_MICROPHONE);
-		return;
-	case 1: /* 2 port */
-		val = snd_soc_read(rt5645->codec, RT5645_A_JD_CTRL1) & 0x0070;
-		break;
-	default: /* 1 port */
-		val = snd_soc_read(rt5645->codec, RT5645_A_JD_CTRL1) & 0x0020;
-		break;
+	switch (rt5645->pdata.jd_mode)
+	{
+		case 0: /* Not using rt5645 JD */
+			if (rt5645->gpiod_hp_det)
+			{
+				gpio_state = gpiod_get_value(rt5645->gpiod_hp_det);
+				dev_dbg(rt5645->codec->dev, "gpio_state = %d\n",
+						gpio_state);
+				report = rt5645_jack_detect(rt5645->codec, gpio_state);
+			}
+
+			snd_soc_jack_report(rt5645->hp_jack,
+								report, SND_JACK_HEADPHONE);
+			snd_soc_jack_report(rt5645->mic_jack,
+								report, SND_JACK_MICROPHONE);
+			return;
+
+		case 1: /* 2 port */
+			val = snd_soc_read(rt5645->codec, RT5645_A_JD_CTRL1) & 0x0070;
+			break;
+
+		default: /* 1 port */
+			val = snd_soc_read(rt5645->codec, RT5645_A_JD_CTRL1) & 0x0020;
+			break;
 
 	}
 
-	switch (val) {
-	/* jack in */
-	case 0x30: /* 2 port */
-	case 0x0: /* 1 port or 2 port */
-		if (rt5645->jack_type == 0) {
-			report = rt5645_jack_detect(rt5645->codec, 1);
-			/* for push button and jack out */
-			break;
-		}
-		btn_type = 0;
-		if (snd_soc_read(rt5645->codec, RT5645_INT_IRQ_ST) & 0x4) {
-			/* button pressed */
-			report = SND_JACK_HEADSET;
-			btn_type = rt5645_button_detect(rt5645->codec);
-			/* rt5650 can report three kinds of button behavior,
-			   one click, double click and hold. However,
-			   currently we will report button pressed/released
-			   event. So all the three button behaviors are
-			   treated as button pressed. */
-			switch (btn_type) {
-			case 0x8000:
-			case 0x4000:
-			case 0x2000:
-				report |= SND_JACK_BTN_0;
-				break;
-			case 0x1000:
-			case 0x0800:
-			case 0x0400:
-				report |= SND_JACK_BTN_1;
-				break;
-			case 0x0200:
-			case 0x0100:
-			case 0x0080:
-				report |= SND_JACK_BTN_2;
-				break;
-			case 0x0040:
-			case 0x0020:
-			case 0x0010:
-				report |= SND_JACK_BTN_3;
-				break;
-			case 0x0000: /* unpressed */
-				break;
-			default:
-				dev_err(rt5645->codec->dev,
-					"Unexpected button code 0x%04x\n",
-					btn_type);
+	switch (val)
+	{
+		/* jack in */
+		case 0x30: /* 2 port */
+		case 0x0: /* 1 port or 2 port */
+			if (rt5645->jack_type == 0)
+			{
+				report = rt5645_jack_detect(rt5645->codec, 1);
+				/* for push button and jack out */
 				break;
 			}
-		}
-		if (btn_type == 0)/* button release */
-			report =  rt5645->jack_type;
-		else {
-			mod_timer(&rt5645->btn_check_timer,
-				msecs_to_jiffies(100));
-		}
 
-		break;
-	/* jack out */
-	case 0x70: /* 2 port */
-	case 0x10: /* 2 port */
-	case 0x20: /* 1 port */
-		report = 0;
-		snd_soc_update_bits(rt5645->codec,
-				    RT5645_INT_IRQ_ST, 0x1, 0x0);
-		rt5645_jack_detect(rt5645->codec, 0);
-		break;
-	default:
-		break;
+			btn_type = 0;
+
+			if (snd_soc_read(rt5645->codec, RT5645_INT_IRQ_ST) & 0x4)
+			{
+				/* button pressed */
+				report = SND_JACK_HEADSET;
+				btn_type = rt5645_button_detect(rt5645->codec);
+
+				/* rt5650 can report three kinds of button behavior,
+				   one click, double click and hold. However,
+				   currently we will report button pressed/released
+				   event. So all the three button behaviors are
+				   treated as button pressed. */
+				switch (btn_type)
+				{
+					case 0x8000:
+					case 0x4000:
+					case 0x2000:
+						report |= SND_JACK_BTN_0;
+						break;
+
+					case 0x1000:
+					case 0x0800:
+					case 0x0400:
+						report |= SND_JACK_BTN_1;
+						break;
+
+					case 0x0200:
+					case 0x0100:
+					case 0x0080:
+						report |= SND_JACK_BTN_2;
+						break;
+
+					case 0x0040:
+					case 0x0020:
+					case 0x0010:
+						report |= SND_JACK_BTN_3;
+						break;
+
+					case 0x0000: /* unpressed */
+						break;
+
+					default:
+						dev_err(rt5645->codec->dev,
+								"Unexpected button code 0x%04x\n",
+								btn_type);
+						break;
+				}
+			}
+
+			if (btn_type == 0)/* button release */
+			{
+				report =  rt5645->jack_type;
+			}
+			else
+			{
+				mod_timer(&rt5645->btn_check_timer,
+						  msecs_to_jiffies(100));
+			}
+
+			break;
+
+		/* jack out */
+		case 0x70: /* 2 port */
+		case 0x10: /* 2 port */
+		case 0x20: /* 1 port */
+			report = 0;
+			snd_soc_update_bits(rt5645->codec,
+								RT5645_INT_IRQ_ST, 0x1, 0x0);
+			rt5645_jack_detect(rt5645->codec, 0);
+			break;
+
+		default:
+			break;
 	}
 
 	snd_soc_jack_report(rt5645->hp_jack, report, SND_JACK_HEADPHONE);
 	snd_soc_jack_report(rt5645->mic_jack, report, SND_JACK_MICROPHONE);
+
 	if (rt5645->en_button_func)
 		snd_soc_jack_report(rt5645->btn_jack,
-			report, SND_JACK_BTN_0 | SND_JACK_BTN_1 |
-				SND_JACK_BTN_2 | SND_JACK_BTN_3);
+							report, SND_JACK_BTN_0 | SND_JACK_BTN_1 |
+							SND_JACK_BTN_2 | SND_JACK_BTN_3);
 }
 
 static void rt5645_rcclock_work(struct work_struct *work)
@@ -3331,7 +3596,7 @@ static void rt5645_rcclock_work(struct work_struct *work)
 		container_of(work, struct rt5645_priv, rcclock_work.work);
 
 	regmap_update_bits(rt5645->regmap, RT5645_MICBIAS,
-		RT5645_PWR_CLK25M_MASK, RT5645_PWR_CLK25M_PD);
+					   RT5645_PWR_CLK25M_MASK, RT5645_PWR_CLK25M_PD);
 }
 
 static irqreturn_t rt5645_irq(int irq, void *data)
@@ -3339,7 +3604,7 @@ static irqreturn_t rt5645_irq(int irq, void *data)
 	struct rt5645_priv *rt5645 = data;
 
 	queue_delayed_work(system_power_efficient_wq,
-			   &rt5645->jack_detect_work, msecs_to_jiffies(250));
+					   &rt5645->jack_detect_work, msecs_to_jiffies(250));
 
 	return IRQ_HANDLED;
 }
@@ -3349,7 +3614,7 @@ static void rt5645_btn_check_callback(unsigned long data)
 	struct rt5645_priv *rt5645 = (struct rt5645_priv *)data;
 
 	queue_delayed_work(system_power_efficient_wq,
-		   &rt5645->jack_detect_work, msecs_to_jiffies(5));
+					   &rt5645->jack_detect_work, msecs_to_jiffies(5));
 }
 
 static int rt5645_probe(struct snd_soc_codec *codec)
@@ -3359,36 +3624,39 @@ static int rt5645_probe(struct snd_soc_codec *codec)
 
 	rt5645->codec = codec;
 
-	switch (rt5645->codec_type) {
-	case CODEC_TYPE_RT5645:
-		snd_soc_dapm_new_controls(dapm,
-			rt5645_specific_dapm_widgets,
-			ARRAY_SIZE(rt5645_specific_dapm_widgets));
-		snd_soc_dapm_add_routes(dapm,
-			rt5645_specific_dapm_routes,
-			ARRAY_SIZE(rt5645_specific_dapm_routes));
-		break;
-	case CODEC_TYPE_RT5650:
-		snd_soc_dapm_new_controls(dapm,
-			rt5650_specific_dapm_widgets,
-			ARRAY_SIZE(rt5650_specific_dapm_widgets));
-		snd_soc_dapm_add_routes(dapm,
-			rt5650_specific_dapm_routes,
-			ARRAY_SIZE(rt5650_specific_dapm_routes));
-		break;
+	switch (rt5645->codec_type)
+	{
+		case CODEC_TYPE_RT5645:
+			snd_soc_dapm_new_controls(dapm,
+									  rt5645_specific_dapm_widgets,
+									  ARRAY_SIZE(rt5645_specific_dapm_widgets));
+			snd_soc_dapm_add_routes(dapm,
+									rt5645_specific_dapm_routes,
+									ARRAY_SIZE(rt5645_specific_dapm_routes));
+			break;
+
+		case CODEC_TYPE_RT5650:
+			snd_soc_dapm_new_controls(dapm,
+									  rt5650_specific_dapm_widgets,
+									  ARRAY_SIZE(rt5650_specific_dapm_widgets));
+			snd_soc_dapm_add_routes(dapm,
+									rt5650_specific_dapm_routes,
+									ARRAY_SIZE(rt5650_specific_dapm_routes));
+			break;
 	}
 
 	snd_soc_codec_force_bias_level(codec, SND_SOC_BIAS_OFF);
 
 	/* for JD function */
-	if (rt5645->pdata.jd_mode) {
+	if (rt5645->pdata.jd_mode)
+	{
 		snd_soc_dapm_force_enable_pin(dapm, "JD Power");
 		snd_soc_dapm_force_enable_pin(dapm, "LDO2");
 		snd_soc_dapm_sync(dapm);
 	}
 
 	rt5645->eq_param = devm_kzalloc(codec->dev,
-		RT5645_HWEQ_NUM * sizeof(struct rt5645_eq_param_s), GFP_KERNEL);
+									RT5645_HWEQ_NUM * sizeof(struct rt5645_eq_param_s), GFP_KERNEL);
 
 	return 0;
 }
@@ -3426,9 +3694,10 @@ static int rt5645_resume(struct snd_soc_codec *codec)
 
 #define RT5645_STEREO_RATES SNDRV_PCM_RATE_8000_96000
 #define RT5645_FORMATS (SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S20_3LE | \
-			SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S8)
+						SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S8)
 
-static const struct snd_soc_dai_ops rt5645_aif_dai_ops = {
+static const struct snd_soc_dai_ops rt5645_aif_dai_ops =
+{
 	.hw_params = rt5645_hw_params,
 	.set_fmt = rt5645_set_dai_fmt,
 	.set_sysclk = rt5645_set_dai_sysclk,
@@ -3436,7 +3705,8 @@ static const struct snd_soc_dai_ops rt5645_aif_dai_ops = {
 	.set_pll = rt5645_set_dai_pll,
 };
 
-static struct snd_soc_dai_driver rt5645_dai[] = {
+static struct snd_soc_dai_driver rt5645_dai[] =
+{
 	{
 		.name = "rt5645-aif1",
 		.id = RT5645_AIF1,
@@ -3477,7 +3747,8 @@ static struct snd_soc_dai_driver rt5645_dai[] = {
 	},
 };
 
-static struct snd_soc_codec_driver soc_codec_dev_rt5645 = {
+static struct snd_soc_codec_driver soc_codec_dev_rt5645 =
+{
 	.probe = rt5645_probe,
 	.remove = rt5645_remove,
 	.suspend = rt5645_suspend,
@@ -3494,12 +3765,13 @@ static struct snd_soc_codec_driver soc_codec_dev_rt5645 = {
 	},
 };
 
-static const struct regmap_config rt5645_regmap = {
+static const struct regmap_config rt5645_regmap =
+{
 	.reg_bits = 8,
 	.val_bits = 16,
 	.use_single_rw = true,
 	.max_register = RT5645_VENDOR_ID2 + 1 + (ARRAY_SIZE(rt5645_ranges) *
-					       RT5645_PR_SPACING),
+	RT5645_PR_SPACING),
 	.volatile_reg = rt5645_volatile_register,
 	.readable_reg = rt5645_readable_register,
 
@@ -3510,12 +3782,13 @@ static const struct regmap_config rt5645_regmap = {
 	.num_ranges = ARRAY_SIZE(rt5645_ranges),
 };
 
-static const struct regmap_config rt5650_regmap = {
+static const struct regmap_config rt5650_regmap =
+{
 	.reg_bits = 8,
 	.val_bits = 16,
 	.use_single_rw = true,
 	.max_register = RT5645_VENDOR_ID2 + 1 + (ARRAY_SIZE(rt5645_ranges) *
-					       RT5645_PR_SPACING),
+	RT5645_PR_SPACING),
 	.volatile_reg = rt5645_volatile_register,
 	.readable_reg = rt5645_readable_register,
 
@@ -3526,8 +3799,9 @@ static const struct regmap_config rt5650_regmap = {
 	.num_ranges = ARRAY_SIZE(rt5645_ranges),
 };
 
-static const struct regmap_config temp_regmap = {
-	.name="nocache",
+static const struct regmap_config temp_regmap =
+{
+	.name = "nocache",
 	.reg_bits = 8,
 	.val_bits = 16,
 	.use_single_rw = true,
@@ -3535,7 +3809,8 @@ static const struct regmap_config temp_regmap = {
 	.cache_type = REGCACHE_NONE,
 };
 
-static const struct i2c_device_id rt5645_i2c_id[] = {
+static const struct i2c_device_id rt5645_i2c_id[] =
+{
 	{ "rt5645", 0 },
 	{ "rt5650", 0 },
 	{ }
@@ -3543,7 +3818,8 @@ static const struct i2c_device_id rt5645_i2c_id[] = {
 MODULE_DEVICE_TABLE(i2c, rt5645_i2c_id);
 
 #ifdef CONFIG_ACPI
-static const struct acpi_device_id rt5645_acpi_match[] = {
+static const struct acpi_device_id rt5645_acpi_match[] =
+{
 	{ "10EC5645", 0 },
 	{ "10EC5650", 0 },
 	{ "10EC5640", 0 },
@@ -3552,13 +3828,15 @@ static const struct acpi_device_id rt5645_acpi_match[] = {
 MODULE_DEVICE_TABLE(acpi, rt5645_acpi_match);
 #endif
 
-static struct rt5645_platform_data general_platform_data = {
+static struct rt5645_platform_data general_platform_data =
+{
 	.dmic1_data_pin = RT5645_DMIC1_DISABLE,
 	.dmic2_data_pin = RT5645_DMIC_DATA_IN2P,
 	.jd_mode = 3,
 };
 
-static const struct dmi_system_id dmi_platform_intel_braswell[] = {
+static const struct dmi_system_id dmi_platform_intel_braswell[] =
+{
 	{
 		.ident = "Intel Strago",
 		.matches = {
@@ -3586,14 +3864,16 @@ static const struct dmi_system_id dmi_platform_intel_braswell[] = {
 	{ }
 };
 
-static struct rt5645_platform_data buddy_platform_data = {
+static struct rt5645_platform_data buddy_platform_data =
+{
 	.dmic1_data_pin = RT5645_DMIC_DATA_GPIO5,
 	.dmic2_data_pin = RT5645_DMIC_DATA_IN2P,
 	.jd_mode = 3,
 	.jd_invert = true,
 };
 
-static struct dmi_system_id dmi_platform_intel_broadwell[] = {
+static struct dmi_system_id dmi_platform_intel_broadwell[] =
+{
 	{
 		.ident = "Chrome Buddy",
 		.matches = {
@@ -3609,7 +3889,9 @@ static bool rt5645_check_dp(struct device *dev)
 		device_property_present(dev, "realtek,dmic1-data-pin") ||
 		device_property_present(dev, "realtek,dmic2-data-pin") ||
 		device_property_present(dev, "realtek,jd-mode"))
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -3617,19 +3899,19 @@ static bool rt5645_check_dp(struct device *dev)
 static int rt5645_parse_dt(struct rt5645_priv *rt5645, struct device *dev)
 {
 	rt5645->pdata.in2_diff = device_property_read_bool(dev,
-		"realtek,in2-differential");
+							 "realtek,in2-differential");
 	device_property_read_u32(dev,
-		"realtek,dmic1-data-pin", &rt5645->pdata.dmic1_data_pin);
+							 "realtek,dmic1-data-pin", &rt5645->pdata.dmic1_data_pin);
 	device_property_read_u32(dev,
-		"realtek,dmic2-data-pin", &rt5645->pdata.dmic2_data_pin);
+							 "realtek,dmic2-data-pin", &rt5645->pdata.dmic2_data_pin);
 	device_property_read_u32(dev,
-		"realtek,jd-mode", &rt5645->pdata.jd_mode);
+							 "realtek,jd-mode", &rt5645->pdata.jd_mode);
 
 	return 0;
 }
 
 static int rt5645_i2c_probe(struct i2c_client *i2c,
-		    const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	struct rt5645_platform_data *pdata = dev_get_platdata(&i2c->dev);
 	struct rt5645_priv *rt5645;
@@ -3638,231 +3920,283 @@ static int rt5645_i2c_probe(struct i2c_client *i2c,
 	struct regmap *regmap;
 
 	rt5645 = devm_kzalloc(&i2c->dev, sizeof(struct rt5645_priv),
-				GFP_KERNEL);
+						  GFP_KERNEL);
+
 	if (rt5645 == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	rt5645->i2c = i2c;
 	i2c_set_clientdata(i2c, rt5645);
 
 	if (pdata)
+	{
 		rt5645->pdata = *pdata;
+	}
 	else if (dmi_check_system(dmi_platform_intel_broadwell))
+	{
 		rt5645->pdata = buddy_platform_data;
+	}
 	else if (rt5645_check_dp(&i2c->dev))
+	{
 		rt5645_parse_dt(rt5645, &i2c->dev);
+	}
 	else if (dmi_check_system(dmi_platform_intel_braswell))
+	{
 		rt5645->pdata = general_platform_data;
+	}
 
 	rt5645->gpiod_hp_det = devm_gpiod_get_optional(&i2c->dev, "hp-detect",
-						       GPIOD_IN);
+						   GPIOD_IN);
 
-	if (IS_ERR(rt5645->gpiod_hp_det)) {
+	if (IS_ERR(rt5645->gpiod_hp_det))
+	{
 		dev_err(&i2c->dev, "failed to initialize gpiod\n");
 		return PTR_ERR(rt5645->gpiod_hp_det);
 	}
 
 	for (i = 0; i < ARRAY_SIZE(rt5645->supplies); i++)
+	{
 		rt5645->supplies[i].supply = rt5645_supply_names[i];
+	}
 
 	ret = devm_regulator_bulk_get(&i2c->dev,
-				      ARRAY_SIZE(rt5645->supplies),
-				      rt5645->supplies);
-	if (ret) {
+								  ARRAY_SIZE(rt5645->supplies),
+								  rt5645->supplies);
+
+	if (ret)
+	{
 		dev_err(&i2c->dev, "Failed to request supplies: %d\n", ret);
 		return ret;
 	}
 
 	ret = regulator_bulk_enable(ARRAY_SIZE(rt5645->supplies),
-				    rt5645->supplies);
-	if (ret) {
+								rt5645->supplies);
+
+	if (ret)
+	{
 		dev_err(&i2c->dev, "Failed to enable supplies: %d\n", ret);
 		return ret;
 	}
 
 	regmap = devm_regmap_init_i2c(i2c, &temp_regmap);
-	if (IS_ERR(regmap)) {
+
+	if (IS_ERR(regmap))
+	{
 		ret = PTR_ERR(regmap);
 		dev_err(&i2c->dev, "Failed to allocate temp register map: %d\n",
-			ret);
+				ret);
 		return ret;
 	}
+
 	regmap_read(regmap, RT5645_VENDOR_ID2, &val);
 
-	switch (val) {
-	case RT5645_DEVICE_ID:
-		rt5645->regmap = devm_regmap_init_i2c(i2c, &rt5645_regmap);
-		rt5645->codec_type = CODEC_TYPE_RT5645;
-		break;
-	case RT5650_DEVICE_ID:
-		rt5645->regmap = devm_regmap_init_i2c(i2c, &rt5650_regmap);
-		rt5645->codec_type = CODEC_TYPE_RT5650;
-		break;
-	default:
-		dev_err(&i2c->dev,
-			"Device with ID register %#x is not rt5645 or rt5650\n",
-			val);
-		ret = -ENODEV;
-		goto err_enable;
+	switch (val)
+	{
+		case RT5645_DEVICE_ID:
+			rt5645->regmap = devm_regmap_init_i2c(i2c, &rt5645_regmap);
+			rt5645->codec_type = CODEC_TYPE_RT5645;
+			break;
+
+		case RT5650_DEVICE_ID:
+			rt5645->regmap = devm_regmap_init_i2c(i2c, &rt5650_regmap);
+			rt5645->codec_type = CODEC_TYPE_RT5650;
+			break;
+
+		default:
+			dev_err(&i2c->dev,
+					"Device with ID register %#x is not rt5645 or rt5650\n",
+					val);
+			ret = -ENODEV;
+			goto err_enable;
 	}
 
-	if (IS_ERR(rt5645->regmap)) {
+	if (IS_ERR(rt5645->regmap))
+	{
 		ret = PTR_ERR(rt5645->regmap);
 		dev_err(&i2c->dev, "Failed to allocate register map: %d\n",
-			ret);
+				ret);
 		return ret;
 	}
 
 	regmap_write(rt5645->regmap, RT5645_RESET, 0);
 
 	ret = regmap_register_patch(rt5645->regmap, init_list,
-				    ARRAY_SIZE(init_list));
-	if (ret != 0)
-		dev_warn(&i2c->dev, "Failed to apply regmap patch: %d\n", ret);
+								ARRAY_SIZE(init_list));
 
-	if (rt5645->codec_type == CODEC_TYPE_RT5650) {
+	if (ret != 0)
+	{
+		dev_warn(&i2c->dev, "Failed to apply regmap patch: %d\n", ret);
+	}
+
+	if (rt5645->codec_type == CODEC_TYPE_RT5650)
+	{
 		ret = regmap_register_patch(rt5645->regmap, rt5650_init_list,
-				    ARRAY_SIZE(rt5650_init_list));
+									ARRAY_SIZE(rt5650_init_list));
+
 		if (ret != 0)
 			dev_warn(&i2c->dev, "Apply rt5650 patch failed: %d\n",
-					   ret);
+					 ret);
 	}
 
 	if (rt5645->pdata.in2_diff)
 		regmap_update_bits(rt5645->regmap, RT5645_IN2_CTRL,
-					RT5645_IN_DF2, RT5645_IN_DF2);
+						   RT5645_IN_DF2, RT5645_IN_DF2);
 
-	if (rt5645->pdata.dmic1_data_pin || rt5645->pdata.dmic2_data_pin) {
+	if (rt5645->pdata.dmic1_data_pin || rt5645->pdata.dmic2_data_pin)
+	{
 		regmap_update_bits(rt5645->regmap, RT5645_GPIO_CTRL1,
-			RT5645_GP2_PIN_MASK, RT5645_GP2_PIN_DMIC1_SCL);
-	}
-	switch (rt5645->pdata.dmic1_data_pin) {
-	case RT5645_DMIC_DATA_IN2N:
-		regmap_update_bits(rt5645->regmap, RT5645_DMIC_CTRL1,
-			RT5645_DMIC_1_DP_MASK, RT5645_DMIC_1_DP_IN2N);
-		break;
-
-	case RT5645_DMIC_DATA_GPIO5:
-		regmap_update_bits(rt5645->regmap, RT5645_GPIO_CTRL1,
-			RT5645_I2S2_DAC_PIN_MASK, RT5645_I2S2_DAC_PIN_GPIO);
-		regmap_update_bits(rt5645->regmap, RT5645_DMIC_CTRL1,
-			RT5645_DMIC_1_DP_MASK, RT5645_DMIC_1_DP_GPIO5);
-		regmap_update_bits(rt5645->regmap, RT5645_GPIO_CTRL1,
-			RT5645_GP5_PIN_MASK, RT5645_GP5_PIN_DMIC1_SDA);
-		break;
-
-	case RT5645_DMIC_DATA_GPIO11:
-		regmap_update_bits(rt5645->regmap, RT5645_DMIC_CTRL1,
-			RT5645_DMIC_1_DP_MASK, RT5645_DMIC_1_DP_GPIO11);
-		regmap_update_bits(rt5645->regmap, RT5645_GPIO_CTRL1,
-			RT5645_GP11_PIN_MASK,
-			RT5645_GP11_PIN_DMIC1_SDA);
-		break;
-
-	default:
-		break;
+						   RT5645_GP2_PIN_MASK, RT5645_GP2_PIN_DMIC1_SCL);
 	}
 
-	switch (rt5645->pdata.dmic2_data_pin) {
-	case RT5645_DMIC_DATA_IN2P:
-		regmap_update_bits(rt5645->regmap, RT5645_DMIC_CTRL1,
-			RT5645_DMIC_2_DP_MASK, RT5645_DMIC_2_DP_IN2P);
-		break;
-
-	case RT5645_DMIC_DATA_GPIO6:
-		regmap_update_bits(rt5645->regmap, RT5645_DMIC_CTRL1,
-			RT5645_DMIC_2_DP_MASK, RT5645_DMIC_2_DP_GPIO6);
-		regmap_update_bits(rt5645->regmap, RT5645_GPIO_CTRL1,
-			RT5645_GP6_PIN_MASK, RT5645_GP6_PIN_DMIC2_SDA);
-		break;
-
-	case RT5645_DMIC_DATA_GPIO10:
-		regmap_update_bits(rt5645->regmap, RT5645_DMIC_CTRL1,
-			RT5645_DMIC_2_DP_MASK, RT5645_DMIC_2_DP_GPIO10);
-		regmap_update_bits(rt5645->regmap, RT5645_GPIO_CTRL1,
-			RT5645_GP10_PIN_MASK,
-			RT5645_GP10_PIN_DMIC2_SDA);
-		break;
-
-	case RT5645_DMIC_DATA_GPIO12:
-		regmap_update_bits(rt5645->regmap, RT5645_DMIC_CTRL1,
-			RT5645_DMIC_2_DP_MASK, RT5645_DMIC_2_DP_GPIO12);
-		regmap_update_bits(rt5645->regmap, RT5645_GPIO_CTRL1,
-			RT5645_GP12_PIN_MASK,
-			RT5645_GP12_PIN_DMIC2_SDA);
-		break;
-
-	default:
-		break;
-	}
-
-	if (rt5645->pdata.jd_mode) {
-		regmap_update_bits(rt5645->regmap, RT5645_GEN_CTRL3,
-				   RT5645_IRQ_CLK_GATE_CTRL,
-				   RT5645_IRQ_CLK_GATE_CTRL);
-		regmap_update_bits(rt5645->regmap, RT5645_MICBIAS,
-				   RT5645_IRQ_CLK_INT, RT5645_IRQ_CLK_INT);
-		regmap_update_bits(rt5645->regmap, RT5645_IRQ_CTRL2,
-				   RT5645_IRQ_JD_1_1_EN, RT5645_IRQ_JD_1_1_EN);
-		regmap_update_bits(rt5645->regmap, RT5645_GEN_CTRL3,
-				   RT5645_JD_PSV_MODE, RT5645_JD_PSV_MODE);
-		regmap_update_bits(rt5645->regmap, RT5645_HPO_MIXER,
-				   RT5645_IRQ_PSV_MODE, RT5645_IRQ_PSV_MODE);
-		regmap_update_bits(rt5645->regmap, RT5645_MICBIAS,
-				   RT5645_MIC2_OVCD_EN, RT5645_MIC2_OVCD_EN);
-		regmap_update_bits(rt5645->regmap, RT5645_GPIO_CTRL1,
-				   RT5645_GP1_PIN_IRQ, RT5645_GP1_PIN_IRQ);
-		switch (rt5645->pdata.jd_mode) {
-		case 1:
-			regmap_update_bits(rt5645->regmap, RT5645_A_JD_CTRL1,
-					   RT5645_JD1_MODE_MASK,
-					   RT5645_JD1_MODE_0);
+	switch (rt5645->pdata.dmic1_data_pin)
+	{
+		case RT5645_DMIC_DATA_IN2N:
+			regmap_update_bits(rt5645->regmap, RT5645_DMIC_CTRL1,
+							   RT5645_DMIC_1_DP_MASK, RT5645_DMIC_1_DP_IN2N);
 			break;
-		case 2:
-			regmap_update_bits(rt5645->regmap, RT5645_A_JD_CTRL1,
-					   RT5645_JD1_MODE_MASK,
-					   RT5645_JD1_MODE_1);
+
+		case RT5645_DMIC_DATA_GPIO5:
+			regmap_update_bits(rt5645->regmap, RT5645_GPIO_CTRL1,
+							   RT5645_I2S2_DAC_PIN_MASK, RT5645_I2S2_DAC_PIN_GPIO);
+			regmap_update_bits(rt5645->regmap, RT5645_DMIC_CTRL1,
+							   RT5645_DMIC_1_DP_MASK, RT5645_DMIC_1_DP_GPIO5);
+			regmap_update_bits(rt5645->regmap, RT5645_GPIO_CTRL1,
+							   RT5645_GP5_PIN_MASK, RT5645_GP5_PIN_DMIC1_SDA);
 			break;
-		case 3:
-			regmap_update_bits(rt5645->regmap, RT5645_A_JD_CTRL1,
-					   RT5645_JD1_MODE_MASK,
-					   RT5645_JD1_MODE_2);
+
+		case RT5645_DMIC_DATA_GPIO11:
+			regmap_update_bits(rt5645->regmap, RT5645_DMIC_CTRL1,
+							   RT5645_DMIC_1_DP_MASK, RT5645_DMIC_1_DP_GPIO11);
+			regmap_update_bits(rt5645->regmap, RT5645_GPIO_CTRL1,
+							   RT5645_GP11_PIN_MASK,
+							   RT5645_GP11_PIN_DMIC1_SDA);
 			break;
+
 		default:
 			break;
+	}
+
+	switch (rt5645->pdata.dmic2_data_pin)
+	{
+		case RT5645_DMIC_DATA_IN2P:
+			regmap_update_bits(rt5645->regmap, RT5645_DMIC_CTRL1,
+							   RT5645_DMIC_2_DP_MASK, RT5645_DMIC_2_DP_IN2P);
+			break;
+
+		case RT5645_DMIC_DATA_GPIO6:
+			regmap_update_bits(rt5645->regmap, RT5645_DMIC_CTRL1,
+							   RT5645_DMIC_2_DP_MASK, RT5645_DMIC_2_DP_GPIO6);
+			regmap_update_bits(rt5645->regmap, RT5645_GPIO_CTRL1,
+							   RT5645_GP6_PIN_MASK, RT5645_GP6_PIN_DMIC2_SDA);
+			break;
+
+		case RT5645_DMIC_DATA_GPIO10:
+			regmap_update_bits(rt5645->regmap, RT5645_DMIC_CTRL1,
+							   RT5645_DMIC_2_DP_MASK, RT5645_DMIC_2_DP_GPIO10);
+			regmap_update_bits(rt5645->regmap, RT5645_GPIO_CTRL1,
+							   RT5645_GP10_PIN_MASK,
+							   RT5645_GP10_PIN_DMIC2_SDA);
+			break;
+
+		case RT5645_DMIC_DATA_GPIO12:
+			regmap_update_bits(rt5645->regmap, RT5645_DMIC_CTRL1,
+							   RT5645_DMIC_2_DP_MASK, RT5645_DMIC_2_DP_GPIO12);
+			regmap_update_bits(rt5645->regmap, RT5645_GPIO_CTRL1,
+							   RT5645_GP12_PIN_MASK,
+							   RT5645_GP12_PIN_DMIC2_SDA);
+			break;
+
+		default:
+			break;
+	}
+
+	if (rt5645->pdata.jd_mode)
+	{
+		regmap_update_bits(rt5645->regmap, RT5645_GEN_CTRL3,
+						   RT5645_IRQ_CLK_GATE_CTRL,
+						   RT5645_IRQ_CLK_GATE_CTRL);
+		regmap_update_bits(rt5645->regmap, RT5645_MICBIAS,
+						   RT5645_IRQ_CLK_INT, RT5645_IRQ_CLK_INT);
+		regmap_update_bits(rt5645->regmap, RT5645_IRQ_CTRL2,
+						   RT5645_IRQ_JD_1_1_EN, RT5645_IRQ_JD_1_1_EN);
+		regmap_update_bits(rt5645->regmap, RT5645_GEN_CTRL3,
+						   RT5645_JD_PSV_MODE, RT5645_JD_PSV_MODE);
+		regmap_update_bits(rt5645->regmap, RT5645_HPO_MIXER,
+						   RT5645_IRQ_PSV_MODE, RT5645_IRQ_PSV_MODE);
+		regmap_update_bits(rt5645->regmap, RT5645_MICBIAS,
+						   RT5645_MIC2_OVCD_EN, RT5645_MIC2_OVCD_EN);
+		regmap_update_bits(rt5645->regmap, RT5645_GPIO_CTRL1,
+						   RT5645_GP1_PIN_IRQ, RT5645_GP1_PIN_IRQ);
+
+		switch (rt5645->pdata.jd_mode)
+		{
+			case 1:
+				regmap_update_bits(rt5645->regmap, RT5645_A_JD_CTRL1,
+								   RT5645_JD1_MODE_MASK,
+								   RT5645_JD1_MODE_0);
+				break;
+
+			case 2:
+				regmap_update_bits(rt5645->regmap, RT5645_A_JD_CTRL1,
+								   RT5645_JD1_MODE_MASK,
+								   RT5645_JD1_MODE_1);
+				break;
+
+			case 3:
+				regmap_update_bits(rt5645->regmap, RT5645_A_JD_CTRL1,
+								   RT5645_JD1_MODE_MASK,
+								   RT5645_JD1_MODE_2);
+				break;
+
+			default:
+				break;
 		}
 	}
 
-	if (rt5645->pdata.jd_invert) {
+	if (rt5645->pdata.jd_invert)
+	{
 		regmap_update_bits(rt5645->regmap, RT5645_IRQ_CTRL2,
-			RT5645_JD_1_1_MASK, RT5645_JD_1_1_INV);
+						   RT5645_JD_1_1_MASK, RT5645_JD_1_1_INV);
 	}
+
 	setup_timer(&rt5645->btn_check_timer,
-		rt5645_btn_check_callback, (unsigned long)rt5645);
+				rt5645_btn_check_callback, (unsigned long)rt5645);
 
 	INIT_DELAYED_WORK(&rt5645->jack_detect_work, rt5645_jack_detect_work);
 	INIT_DELAYED_WORK(&rt5645->rcclock_work, rt5645_rcclock_work);
 
-	if (rt5645->i2c->irq) {
+	if (rt5645->i2c->irq)
+	{
 		ret = request_threaded_irq(rt5645->i2c->irq, NULL, rt5645_irq,
-			IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING
-			| IRQF_ONESHOT, "rt5645", rt5645);
-		if (ret) {
+								   IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING
+								   | IRQF_ONESHOT, "rt5645", rt5645);
+
+		if (ret)
+		{
 			dev_err(&i2c->dev, "Failed to reguest IRQ: %d\n", ret);
 			goto err_enable;
 		}
 	}
 
 	ret = snd_soc_register_codec(&i2c->dev, &soc_codec_dev_rt5645,
-				     rt5645_dai, ARRAY_SIZE(rt5645_dai));
+								 rt5645_dai, ARRAY_SIZE(rt5645_dai));
+
 	if (ret)
+	{
 		goto err_irq;
+	}
 
 	return 0;
 
 err_irq:
+
 	if (rt5645->i2c->irq)
+	{
 		free_irq(rt5645->i2c->irq, rt5645);
+	}
+
 err_enable:
 	regulator_bulk_disable(ARRAY_SIZE(rt5645->supplies), rt5645->supplies);
 	return ret;
@@ -3873,7 +4207,9 @@ static int rt5645_i2c_remove(struct i2c_client *i2c)
 	struct rt5645_priv *rt5645 = i2c_get_clientdata(i2c);
 
 	if (i2c->irq)
+	{
 		free_irq(i2c->irq, rt5645);
+	}
 
 	cancel_delayed_work_sync(&rt5645->jack_detect_work);
 	cancel_delayed_work_sync(&rt5645->rcclock_work);
@@ -3889,16 +4225,17 @@ static void rt5645_i2c_shutdown(struct i2c_client *i2c)
 	struct rt5645_priv *rt5645 = i2c_get_clientdata(i2c);
 
 	regmap_update_bits(rt5645->regmap, RT5645_GEN_CTRL3,
-		RT5645_RING2_SLEEVE_GND, RT5645_RING2_SLEEVE_GND);
+					   RT5645_RING2_SLEEVE_GND, RT5645_RING2_SLEEVE_GND);
 	regmap_update_bits(rt5645->regmap, RT5645_IN1_CTRL2, RT5645_CBJ_MN_JD,
-		RT5645_CBJ_MN_JD);
+					   RT5645_CBJ_MN_JD);
 	regmap_update_bits(rt5645->regmap, RT5645_IN1_CTRL1, RT5645_CBJ_BST1_EN,
-		0);
+					   0);
 	msleep(20);
 	regmap_write(rt5645->regmap, RT5645_RESET, 0);
 }
 
-static struct i2c_driver rt5645_i2c_driver = {
+static struct i2c_driver rt5645_i2c_driver =
+{
 	.driver = {
 		.name = "rt5645",
 		.acpi_match_table = ACPI_PTR(rt5645_acpi_match),

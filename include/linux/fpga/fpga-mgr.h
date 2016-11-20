@@ -39,7 +39,8 @@ struct fpga_manager;
  * @FPGA_MGR_STATE_WRITE_COMPLETE_ERR: Error during WRITE_COMPLETE
  * @FPGA_MGR_STATE_OPERATING: FPGA is programmed and operating
  */
-enum fpga_mgr_states {
+enum fpga_mgr_states
+{
 	/* default FPGA states */
 	FPGA_MGR_STATE_UNKNOWN,
 	FPGA_MGR_STATE_POWER_OFF,
@@ -80,10 +81,11 @@ enum fpga_mgr_states {
  * fpga manager driver.  The optional ones are tested for NULL before being
  * called, so leaving them out is fine.
  */
-struct fpga_manager_ops {
+struct fpga_manager_ops
+{
 	enum fpga_mgr_states (*state)(struct fpga_manager *mgr);
 	int (*write_init)(struct fpga_manager *mgr, u32 flags,
-			  const char *buf, size_t count);
+					  const char *buf, size_t count);
 	int (*write)(struct fpga_manager *mgr, const char *buf, size_t count);
 	int (*write_complete)(struct fpga_manager *mgr, u32 flags);
 	void (*fpga_remove)(struct fpga_manager *mgr);
@@ -98,7 +100,8 @@ struct fpga_manager_ops {
  * @mops: pointer to struct of fpga manager ops
  * @priv: low level driver private date
  */
-struct fpga_manager {
+struct fpga_manager
+{
 	const char *name;
 	struct device dev;
 	struct mutex ref_mutex;
@@ -110,17 +113,17 @@ struct fpga_manager {
 #define to_fpga_manager(d) container_of(d, struct fpga_manager, dev)
 
 int fpga_mgr_buf_load(struct fpga_manager *mgr, u32 flags,
-		      const char *buf, size_t count);
+					  const char *buf, size_t count);
 
 int fpga_mgr_firmware_load(struct fpga_manager *mgr, u32 flags,
-			   const char *image_name);
+						   const char *image_name);
 
 struct fpga_manager *of_fpga_mgr_get(struct device_node *node);
 
 void fpga_mgr_put(struct fpga_manager *mgr);
 
 int fpga_mgr_register(struct device *dev, const char *name,
-		      const struct fpga_manager_ops *mops, void *priv);
+					  const struct fpga_manager_ops *mops, void *priv);
 
 void fpga_mgr_unregister(struct device *dev);
 

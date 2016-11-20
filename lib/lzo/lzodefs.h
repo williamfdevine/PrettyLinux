@@ -13,24 +13,24 @@
 
 
 #define COPY4(dst, src)	\
-		put_unaligned(get_unaligned((const u32 *)(src)), (u32 *)(dst))
+	put_unaligned(get_unaligned((const u32 *)(src)), (u32 *)(dst))
 #if defined(__x86_64__)
 #define COPY8(dst, src)	\
-		put_unaligned(get_unaligned((const u64 *)(src)), (u64 *)(dst))
+	put_unaligned(get_unaligned((const u64 *)(src)), (u64 *)(dst))
 #else
 #define COPY8(dst, src)	\
-		COPY4(dst, src); COPY4((dst) + 4, (src) + 4)
+	COPY4(dst, src); COPY4((dst) + 4, (src) + 4)
 #endif
 
 #if defined(__BIG_ENDIAN) && defined(__LITTLE_ENDIAN)
-#error "conflicting endian definitions"
+	#error "conflicting endian definitions"
 #elif defined(__x86_64__)
-#define LZO_USE_CTZ64	1
-#define LZO_USE_CTZ32	1
+	#define LZO_USE_CTZ64	1
+	#define LZO_USE_CTZ32	1
 #elif defined(__i386__) || defined(__powerpc__)
-#define LZO_USE_CTZ32	1
+	#define LZO_USE_CTZ32	1
 #elif defined(__arm__) && (__LINUX_ARM_ARCH__ >= 5)
-#define LZO_USE_CTZ32	1
+	#define LZO_USE_CTZ32	1
 #endif
 
 #define M1_MAX_OFFSET	0x0400

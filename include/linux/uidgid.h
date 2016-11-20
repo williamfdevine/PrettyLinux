@@ -17,12 +17,14 @@
 struct user_namespace;
 extern struct user_namespace init_user_ns;
 
-typedef struct {
+typedef struct
+{
 	uid_t val;
 } kuid_t;
 
 
-typedef struct {
+typedef struct
+{
 	gid_t val;
 } kgid_t;
 
@@ -109,12 +111,12 @@ static inline bool gid_lte(kgid_t left, kgid_t right)
 
 static inline bool uid_valid(kuid_t uid)
 {
-	return __kuid_val(uid) != (uid_t) -1;
+	return __kuid_val(uid) != (uid_t) - 1;
 }
 
 static inline bool gid_valid(kgid_t gid)
 {
-	return __kgid_val(gid) != (gid_t) -1;
+	return __kgid_val(gid) != (gid_t) - 1;
 }
 
 #ifdef CONFIG_USER_NS
@@ -129,12 +131,12 @@ extern gid_t from_kgid_munged(struct user_namespace *to, kgid_t gid);
 
 static inline bool kuid_has_mapping(struct user_namespace *ns, kuid_t uid)
 {
-	return from_kuid(ns, uid) != (uid_t) -1;
+	return from_kuid(ns, uid) != (uid_t) - 1;
 }
 
 static inline bool kgid_has_mapping(struct user_namespace *ns, kgid_t gid)
 {
-	return from_kgid(ns, gid) != (gid_t) -1;
+	return from_kgid(ns, gid) != (gid_t) - 1;
 }
 
 #else
@@ -162,16 +164,24 @@ static inline gid_t from_kgid(struct user_namespace *to, kgid_t kgid)
 static inline uid_t from_kuid_munged(struct user_namespace *to, kuid_t kuid)
 {
 	uid_t uid = from_kuid(to, kuid);
-	if (uid == (uid_t)-1)
+
+	if (uid == (uid_t) - 1)
+	{
 		uid = overflowuid;
+	}
+
 	return uid;
 }
 
 static inline gid_t from_kgid_munged(struct user_namespace *to, kgid_t kgid)
 {
 	gid_t gid = from_kgid(to, kgid);
-	if (gid == (gid_t)-1)
+
+	if (gid == (gid_t) - 1)
+	{
 		gid = overflowgid;
+	}
+
 	return gid;
 }
 

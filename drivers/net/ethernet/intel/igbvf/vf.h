@@ -56,30 +56,39 @@ struct e1000_hw;
 #define E1000_RAR_ENTRIES_VF	1
 
 /* Receive Descriptor - Advanced */
-union e1000_adv_rx_desc {
-	struct {
+union e1000_adv_rx_desc
+{
+	struct
+	{
 		u64 pkt_addr; /* Packet buffer address */
 		u64 hdr_addr; /* Header buffer address */
 	} read;
-	struct {
-		struct {
-			union {
+	struct
+	{
+		struct
+		{
+			union
+			{
 				u32 data;
-				struct {
+				struct
+				{
 					u16 pkt_info; /* RSS/Packet type */
 					/* Split Header, hdr buffer length */
 					u16 hdr_info;
 				} hs_rss;
 			} lo_dword;
-			union {
+			union
+			{
 				u32 rss; /* RSS Hash */
-				struct {
+				struct
+				{
 					u16 ip_id; /* IP id */
 					u16 csum;  /* Packet Checksum */
 				} csum_ip;
 			} hi_dword;
 		} lower;
-		struct {
+		struct
+		{
 			u32 status_error; /* ext status/error */
 			u16 length; /* Packet length */
 			u16 vlan;   /* VLAN tag */
@@ -91,13 +100,16 @@ union e1000_adv_rx_desc {
 #define E1000_RXDADV_HDRBUFLEN_SHIFT	5
 
 /* Transmit Descriptor - Advanced */
-union e1000_adv_tx_desc {
-	struct {
+union e1000_adv_tx_desc
+{
+	struct
+	{
 		u64 buffer_addr; /* Address of descriptor's data buf */
 		u32 cmd_type_len;
 		u32 olinfo_status;
 	} read;
-	struct {
+	struct
+	{
 		u64 rsvd; /* Reserved */
 		u32 nxtseq_seed;
 		u32 status;
@@ -116,7 +128,8 @@ union e1000_adv_tx_desc {
 #define E1000_ADVTXD_PAYLEN_SHIFT	14 /* Adv desc PAYLEN shift */
 
 /* Context descriptors */
-struct e1000_adv_tx_context_desc {
+struct e1000_adv_tx_context_desc
+{
 	u32 vlan_macip_lens;
 	u32 seqnum_seed;
 	u32 type_tucmd_mlhl;
@@ -130,14 +143,16 @@ struct e1000_adv_tx_context_desc {
 #define E1000_ADVTXD_L4LEN_SHIFT	8  /* Adv ctxt L4LEN shift */
 #define E1000_ADVTXD_MSS_SHIFT		16 /* Adv ctxt MSS shift */
 
-enum e1000_mac_type {
+enum e1000_mac_type
+{
 	e1000_undefined = 0,
 	e1000_vfadapt,
 	e1000_vfadapt_i350,
 	e1000_num_macs  /* List is 1-based, so subtract 1 for true count. */
 };
 
-struct e1000_vf_stats {
+struct e1000_vf_stats
+{
 	u64 base_gprc;
 	u64 base_gptc;
 	u64 base_gorc;
@@ -171,7 +186,8 @@ struct e1000_vf_stats {
 
 #include "mbx.h"
 
-struct e1000_mac_operations {
+struct e1000_mac_operations
+{
 	/* Function pointers for the MAC. */
 	s32  (*init_params)(struct e1000_hw *);
 	s32  (*check_for_link)(struct e1000_hw *);
@@ -184,12 +200,13 @@ struct e1000_mac_operations {
 	s32  (*setup_link)(struct e1000_hw *);
 	void (*write_vfta)(struct e1000_hw *, u32, u32);
 	void (*mta_set)(struct e1000_hw *, u32);
-	void (*rar_set)(struct e1000_hw *, u8*, u32);
+	void (*rar_set)(struct e1000_hw *, u8 *, u32);
 	s32  (*read_mac_addr)(struct e1000_hw *);
 	s32  (*set_vfta)(struct e1000_hw *, u16, bool);
 };
 
-struct e1000_mac_info {
+struct e1000_mac_info
+{
 	struct e1000_mac_operations ops;
 	u8 addr[6];
 	u8 perm_addr[6];
@@ -202,7 +219,8 @@ struct e1000_mac_info {
 	bool get_link_status;
 };
 
-struct e1000_mbx_operations {
+struct e1000_mbx_operations
+{
 	s32 (*init_params)(struct e1000_hw *hw);
 	s32 (*read)(struct e1000_hw *, u32 *, u16);
 	s32 (*write)(struct e1000_hw *, u32 *, u16);
@@ -213,7 +231,8 @@ struct e1000_mbx_operations {
 	s32 (*check_for_rst)(struct e1000_hw *);
 };
 
-struct e1000_mbx_stats {
+struct e1000_mbx_stats
+{
 	u32 msgs_tx;
 	u32 msgs_rx;
 
@@ -222,7 +241,8 @@ struct e1000_mbx_stats {
 	u32 rsts;
 };
 
-struct e1000_mbx_info {
+struct e1000_mbx_info
+{
 	struct e1000_mbx_operations ops;
 	struct e1000_mbx_stats stats;
 	u32 timeout;
@@ -230,12 +250,14 @@ struct e1000_mbx_info {
 	u16 size;
 };
 
-struct e1000_dev_spec_vf {
+struct e1000_dev_spec_vf
+{
 	u32 vf_number;
 	u32 v2p_mailbox;
 };
 
-struct e1000_hw {
+struct e1000_hw
+{
 	void *back;
 
 	u8 __iomem *hw_addr;
@@ -245,7 +267,8 @@ struct e1000_hw {
 	struct e1000_mac_info  mac;
 	struct e1000_mbx_info mbx;
 
-	union {
+	union
+	{
 		struct e1000_dev_spec_vf vf;
 	} dev_spec;
 

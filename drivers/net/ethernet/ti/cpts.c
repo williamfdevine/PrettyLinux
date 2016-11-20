@@ -50,12 +50,14 @@ static int cpts_fifo_pop(struct cpts *cpts, u32 *high, u32 *low)
 {
 	u32 r = cpts_read32(cpts, intstat_raw);
 
-	if (r & TS_PEND_RAW) {
+	if (r & TS_PEND_RAW)
+	{
 		*high = cpts_read32(cpts, event_high);
 		*low  = cpts_read32(cpts, event_low);
 		cpts_write32(cpts, EVENT_POP, event_pop);
 		return 0;
 	}
+
 	return -1;
 }
 
@@ -68,36 +70,50 @@ static int cpts_fifo_read(struct cpts *cpts, int match)
 	u32 hi, lo;
 	struct cpts_event *event;
 
-	for (i = 0; i < CPTS_FIFO_DEPTH; i++) {
+	for (i = 0; i < CPTS_FIFO_DEPTH; i++)
+	{
 		if (cpts_fifo_pop(cpts, &hi, &lo))
+		{
 			break;
-		if (list_empty(&cpts->pool)) {
+		}
+
+		if (list_empty(&cpts->pool))
+		{
 			pr_err("cpts: event pool is empty\n");
 			return -1;
 		}
+
 		event = list_first_entry(&cpts->pool, struct cpts_event, list);
 		event->tmo = jiffies + 2;
 		event->high = hi;
 		event->low = lo;
 		type = event_type(event);
-		switch (type) {
-		case CPTS_EV_PUSH:
-		case CPTS_EV_RX:
-		case CPTS_EV_TX:
-			list_del_init(&event->list);
-			list_add_tail(&event->list, &cpts->events);
-			break;
-		case CPTS_EV_ROLL:
-		case CPTS_EV_HALF:
-		case CPTS_EV_HW:
-			break;
-		default:
-			pr_err("cpts: unknown event type\n");
+
+		switch (type)
+		{
+			case CPTS_EV_PUSH:
+			case CPTS_EV_RX:
+			case CPTS_EV_TX:
+				list_del_init(&event->list);
+				list_add_tail(&event->list, &cpts->events);
+				break;
+
+			case CPTS_EV_ROLL:
+			case CPTS_EV_HALF:
+			case CPTS_EV_HW:
+				break;
+
+			default:
+				pr_err("cpts: unknown event type\n");
+				break;
+		}
+
+		if (type == match)
+		{
 			break;
 		}
-		if (type == match)
-			break;
 	}
+
 	return type == match ? 0 : -1;
 }
 
@@ -109,12 +125,18 @@ static cycle_t cpts_systim_read(const struct cyclecounter *cc)
 	struct cpts *cpts = container_of(cc, struct cpts, cc);
 
 	cpts_write32(cpts, TS_PUSH, ts_push);
-	if (cpts_fifo_read(cpts, CPTS_EV_PUSH))
-		pr_err("cpts: unable to obtain a time stamp\n");
 
-	list_for_each_safe(this, next, &cpts->events) {
+	if (cpts_fifo_read(cpts, CPTS_EV_PUSH))
+	{
+		pr_err("cpts: unable to obtain a time stamp\n");
+	}
+
+	list_for_each_safe(this, next, &cpts->events)
+	{
 		event = list_entry(this, struct cpts_event, list);
-		if (event_type(event) == CPTS_EV_PUSH) {
+
+		if (event_type(event) == CPTS_EV_PUSH)
+		{
 			list_del_init(&event->list);
 			list_add(&event->list, &cpts->pool);
 			val = event->low;
@@ -135,10 +157,12 @@ static int cpts_ptp_adjfreq(struct ptp_clock_info *ptp, s32 ppb)
 	unsigned long flags;
 	struct cpts *cpts = container_of(ptp, struct cpts, info);
 
-	if (ppb < 0) {
+	if (ppb < 0)
+	{
 		neg_adj = 1;
 		ppb = -ppb;
 	}
+
 	mult = cpts->cc_mult;
 	adj = mult;
 	adj *= ppb;
@@ -183,7 +207,7 @@ static int cpts_ptp_gettime(struct ptp_clock_info *ptp, struct timespec64 *ts)
 }
 
 static int cpts_ptp_settime(struct ptp_clock_info *ptp,
-			    const struct timespec64 *ts)
+							const struct timespec64 *ts)
 {
 	u64 ns;
 	unsigned long flags;
@@ -199,12 +223,13 @@ static int cpts_ptp_settime(struct ptp_clock_info *ptp,
 }
 
 static int cpts_ptp_enable(struct ptp_clock_info *ptp,
-			   struct ptp_clock_request *rq, int on)
+						   struct ptp_clock_request *rq, int on)
 {
 	return -EOPNOTSUPP;
 }
 
-static struct ptp_clock_info cpts_info = {
+static struct ptp_clock_info cpts_info =
+{
 	.owner		= THIS_MODULE,
 	.name		= "CTPS timer",
 	.max_adj	= 1000000,
@@ -233,11 +258,14 @@ static void cpts_overflow_check(struct work_struct *work)
 static void cpts_clk_init(struct device *dev, struct cpts *cpts)
 {
 	cpts->refclk = devm_clk_get(dev, "cpts");
-	if (IS_ERR(cpts->refclk)) {
+
+	if (IS_ERR(cpts->refclk))
+	{
 		dev_err(dev, "Failed to get cpts refclk\n");
 		cpts->refclk = NULL;
 		return;
 	}
+
 	clk_prepare_enable(cpts->refclk);
 }
 
@@ -247,36 +275,48 @@ static void cpts_clk_release(struct cpts *cpts)
 }
 
 static int cpts_match(struct sk_buff *skb, unsigned int ptp_class,
-		      u16 ts_seqid, u8 ts_msgtype)
+					  u16 ts_seqid, u8 ts_msgtype)
 {
 	u16 *seqid;
 	unsigned int offset = 0;
 	u8 *msgtype, *data = skb->data;
 
 	if (ptp_class & PTP_CLASS_VLAN)
+	{
 		offset += VLAN_HLEN;
+	}
 
-	switch (ptp_class & PTP_CLASS_PMASK) {
-	case PTP_CLASS_IPV4:
-		offset += ETH_HLEN + IPV4_HLEN(data + offset) + UDP_HLEN;
-		break;
-	case PTP_CLASS_IPV6:
-		offset += ETH_HLEN + IP6_HLEN + UDP_HLEN;
-		break;
-	case PTP_CLASS_L2:
-		offset += ETH_HLEN;
-		break;
-	default:
-		return 0;
+	switch (ptp_class & PTP_CLASS_PMASK)
+	{
+		case PTP_CLASS_IPV4:
+			offset += ETH_HLEN + IPV4_HLEN(data + offset) + UDP_HLEN;
+			break;
+
+		case PTP_CLASS_IPV6:
+			offset += ETH_HLEN + IP6_HLEN + UDP_HLEN;
+			break;
+
+		case PTP_CLASS_L2:
+			offset += ETH_HLEN;
+			break;
+
+		default:
+			return 0;
 	}
 
 	if (skb->len + ETH_HLEN < offset + OFF_PTP_SEQUENCE_ID + sizeof(*seqid))
+	{
 		return 0;
+	}
 
 	if (unlikely(ptp_class & PTP_CLASS_V1))
+	{
 		msgtype = data + offset + OFF_PTP_CONTROL;
+	}
 	else
+	{
 		msgtype = data + offset;
+	}
 
 	seqid = (u16 *)(data + offset + OFF_PTP_SEQUENCE_ID);
 
@@ -294,21 +334,29 @@ static u64 cpts_find_ts(struct cpts *cpts, struct sk_buff *skb, int ev_type)
 	u8 mtype;
 
 	if (class == PTP_CLASS_NONE)
+	{
 		return 0;
+	}
 
 	spin_lock_irqsave(&cpts->lock, flags);
 	cpts_fifo_read(cpts, CPTS_EV_PUSH);
-	list_for_each_safe(this, next, &cpts->events) {
+	list_for_each_safe(this, next, &cpts->events)
+	{
 		event = list_entry(this, struct cpts_event, list);
-		if (event_expired(event)) {
+
+		if (event_expired(event))
+		{
 			list_del_init(&event->list);
 			list_add(&event->list, &cpts->pool);
 			continue;
 		}
+
 		mtype = (event->high >> MESSAGE_TYPE_SHIFT) & MESSAGE_TYPE_MASK;
 		seqid = (event->high >> SEQUENCE_ID_SHIFT) & SEQUENCE_ID_MASK;
+
 		if (ev_type == event_type(event) &&
-		    cpts_match(skb, class, seqid, mtype)) {
+			cpts_match(skb, class, seqid, mtype))
+		{
 			ns = timecounter_cyc2time(&cpts->tc, event->low);
 			list_del_init(&event->list);
 			list_add(&event->list, &cpts->pool);
@@ -326,10 +374,17 @@ void cpts_rx_timestamp(struct cpts *cpts, struct sk_buff *skb)
 	struct skb_shared_hwtstamps *ssh;
 
 	if (!cpts->rx_enable)
+	{
 		return;
+	}
+
 	ns = cpts_find_ts(cpts, skb, CPTS_EV_RX);
+
 	if (!ns)
+	{
 		return;
+	}
+
 	ssh = skb_hwtstamps(skb);
 	memset(ssh, 0, sizeof(*ssh));
 	ssh->hwtstamp = ns_to_ktime(ns);
@@ -341,10 +396,17 @@ void cpts_tx_timestamp(struct cpts *cpts, struct sk_buff *skb)
 	struct skb_shared_hwtstamps ssh;
 
 	if (!(skb_shinfo(skb)->tx_flags & SKBTX_IN_PROGRESS))
+	{
 		return;
+	}
+
 	ns = cpts_find_ts(cpts, skb, CPTS_EV_TX);
+
 	if (!ns)
+	{
 		return;
+	}
+
 	memset(&ssh, 0, sizeof(ssh));
 	ssh.hwtstamp = ns_to_ktime(ns);
 	skb_tstamp_tx(skb, &ssh);
@@ -353,7 +415,7 @@ void cpts_tx_timestamp(struct cpts *cpts, struct sk_buff *skb)
 #endif /*CONFIG_TI_CPTS*/
 
 int cpts_register(struct device *dev, struct cpts *cpts,
-		  u32 mult, u32 shift)
+				  u32 mult, u32 shift)
 {
 #ifdef CONFIG_TI_CPTS
 	int err, i;
@@ -361,11 +423,14 @@ int cpts_register(struct device *dev, struct cpts *cpts,
 
 	cpts->info = cpts_info;
 	cpts->clock = ptp_clock_register(&cpts->info, dev);
-	if (IS_ERR(cpts->clock)) {
+
+	if (IS_ERR(cpts->clock))
+	{
 		err = PTR_ERR(cpts->clock);
 		cpts->clock = NULL;
 		return err;
 	}
+
 	spin_lock_init(&cpts->lock);
 
 	cpts->cc.read = cpts_systim_read;
@@ -376,8 +441,11 @@ int cpts_register(struct device *dev, struct cpts *cpts,
 
 	INIT_LIST_HEAD(&cpts->events);
 	INIT_LIST_HEAD(&cpts->pool);
+
 	for (i = 0; i < CPTS_MAX_EVENTS; i++)
+	{
 		list_add(&cpts->pool_data[i].list, &cpts->pool);
+	}
 
 	cpts_clk_init(dev, cpts);
 	cpts_write32(cpts, CPTS_EN, control);
@@ -398,11 +466,17 @@ int cpts_register(struct device *dev, struct cpts *cpts,
 void cpts_unregister(struct cpts *cpts)
 {
 #ifdef CONFIG_TI_CPTS
-	if (cpts->clock) {
+
+	if (cpts->clock)
+	{
 		ptp_clock_unregister(cpts->clock);
 		cancel_delayed_work_sync(&cpts->overflow_work);
 	}
+
 	if (cpts->refclk)
+	{
 		cpts_clk_release(cpts);
+	}
+
 #endif
 }

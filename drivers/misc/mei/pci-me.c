@@ -42,7 +42,8 @@
 #include "hw-me.h"
 
 /* mei_pci_tbl - PCI Device ID Table */
-static const struct pci_device_id mei_me_pci_tbl[] = {
+static const struct pci_device_id mei_me_pci_tbl[] =
+{
 	{MEI_PCI_DEVICE(MEI_DEV_ID_82946GZ, mei_me_legacy_cfg)},
 	{MEI_PCI_DEVICE(MEI_DEV_ID_82G35, mei_me_legacy_cfg)},
 	{MEI_PCI_DEVICE(MEI_DEV_ID_82Q965, mei_me_legacy_cfg)},
@@ -117,9 +118,10 @@ static inline void mei_me_unset_pm_domain(struct mei_device *dev) {}
  * Return: true if ME Interface is valid, false otherwise
  */
 static bool mei_me_quirk_probe(struct pci_dev *pdev,
-				const struct mei_cfg *cfg)
+							   const struct mei_cfg *cfg)
 {
-	if (cfg->quirk_probe && cfg->quirk_probe(pdev)) {
+	if (cfg->quirk_probe && cfg->quirk_probe(pdev))
+	{
 		dev_info(&pdev->dev, "Device doesn't have valid ME Interface\n");
 		return false;
 	}
@@ -145,32 +147,43 @@ static int mei_me_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 
 	if (!mei_me_quirk_probe(pdev, cfg))
+	{
 		return -ENODEV;
+	}
 
 	/* enable pci dev */
 	err = pci_enable_device(pdev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "failed to enable pci device.\n");
 		goto end;
 	}
+
 	/* set PCI host mastering  */
 	pci_set_master(pdev);
 	/* pci request regions for mei driver */
 	err = pci_request_regions(pdev, KBUILD_MODNAME);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "failed to get pci regions.\n");
 		goto disable_device;
 	}
 
 	if (dma_set_mask(&pdev->dev, DMA_BIT_MASK(64)) ||
-	    dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(64))) {
+		dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(64)))
+	{
 
 		err = dma_set_mask(&pdev->dev, DMA_BIT_MASK(32));
+
 		if (err)
 			err = dma_set_coherent_mask(&pdev->dev,
-						    DMA_BIT_MASK(32));
+										DMA_BIT_MASK(32));
 	}
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "No usable DMA configuration, aborting\n");
 		goto release_regions;
 	}
@@ -178,34 +191,43 @@ static int mei_me_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	/* allocates and initializes the mei dev structure */
 	dev = mei_me_dev_init(pdev, cfg);
-	if (!dev) {
+
+	if (!dev)
+	{
 		err = -ENOMEM;
 		goto release_regions;
 	}
+
 	hw = to_me_hw(dev);
 	/* mapping  IO device memory */
 	hw->mem_addr = pci_iomap(pdev, 0, 0);
-	if (!hw->mem_addr) {
+
+	if (!hw->mem_addr)
+	{
 		dev_err(&pdev->dev, "mapping I/O device memory failure.\n");
 		err = -ENOMEM;
 		goto free_device;
 	}
+
 	pci_enable_msi(pdev);
 
-	 /* request and enable interrupt */
+	/* request and enable interrupt */
 	irqflags = pci_dev_msi_enabled(pdev) ? IRQF_ONESHOT : IRQF_SHARED;
 
 	err = request_threaded_irq(pdev->irq,
-			mei_me_irq_quick_handler,
-			mei_me_irq_thread_handler,
-			irqflags, KBUILD_MODNAME, dev);
-	if (err) {
+							   mei_me_irq_quick_handler,
+							   mei_me_irq_thread_handler,
+							   irqflags, KBUILD_MODNAME, dev);
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "request_threaded_irq failure. irq = %d\n",
-		       pdev->irq);
+				pdev->irq);
 		goto disable_msi;
 	}
 
-	if (mei_start(dev)) {
+	if (mei_start(dev))
+	{
 		dev_err(&pdev->dev, "init hw failure.\n");
 		err = -ENODEV;
 		goto release_irq;
@@ -215,8 +237,11 @@ static int mei_me_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	pm_runtime_use_autosuspend(&pdev->dev);
 
 	err = mei_register(dev, &pdev->dev);
+
 	if (err)
+	{
 		goto stop;
+	}
 
 	pci_set_drvdata(pdev, dev);
 
@@ -226,10 +251,14 @@ static int mei_me_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	* Use domain runtime pm callbacks instead.
 	*/
 	if (!pci_dev_run_wake(pdev))
+	{
 		mei_me_set_pm_domain(dev);
+	}
 
 	if (mei_pg_is_enabled(dev))
+	{
 		pm_runtime_put_noidle(&pdev->dev);
+	}
 
 	dev_dbg(&pdev->dev, "initialization successful.\n");
 
@@ -269,11 +298,16 @@ static void mei_me_remove(struct pci_dev *pdev)
 	struct mei_me_hw *hw;
 
 	dev = pci_get_drvdata(pdev);
+
 	if (!dev)
+	{
 		return;
+	}
 
 	if (mei_pg_is_enabled(dev))
+	{
 		pm_runtime_get_noresume(&pdev->dev);
+	}
 
 	hw = to_me_hw(dev);
 
@@ -282,7 +316,9 @@ static void mei_me_remove(struct pci_dev *pdev)
 	mei_stop(dev);
 
 	if (!pci_dev_run_wake(pdev))
+	{
 		mei_me_unset_pm_domain(dev);
+	}
 
 	/* disable interrupts */
 	mei_disable_interrupts(dev);
@@ -291,7 +327,9 @@ static void mei_me_remove(struct pci_dev *pdev)
 	pci_disable_msi(pdev);
 
 	if (hw->mem_addr)
+	{
 		pci_iounmap(pdev, hw->mem_addr);
+	}
 
 	mei_deregister(dev);
 
@@ -309,7 +347,9 @@ static int mei_me_pci_suspend(struct device *device)
 	struct mei_device *dev = pci_get_drvdata(pdev);
 
 	if (!dev)
+	{
 		return -ENODEV;
+	}
 
 	dev_dbg(&pdev->dev, "suspend\n");
 
@@ -331,8 +371,11 @@ static int mei_me_pci_resume(struct device *device)
 	int err;
 
 	dev = pci_get_drvdata(pdev);
+
 	if (!dev)
+	{
 		return -ENODEV;
+	}
 
 	pci_enable_msi(pdev);
 
@@ -340,19 +383,23 @@ static int mei_me_pci_resume(struct device *device)
 
 	/* request and enable interrupt */
 	err = request_threaded_irq(pdev->irq,
-			mei_me_irq_quick_handler,
-			mei_me_irq_thread_handler,
-			irqflags, KBUILD_MODNAME, dev);
+							   mei_me_irq_quick_handler,
+							   mei_me_irq_thread_handler,
+							   irqflags, KBUILD_MODNAME, dev);
 
-	if (err) {
+	if (err)
+	{
 		dev_err(&pdev->dev, "request_threaded_irq failed: irq = %d.\n",
 				pdev->irq);
 		return err;
 	}
 
 	err = mei_restart(dev);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* Start timer if stopped in suspend */
 	schedule_delayed_work(&dev->timer_work, HZ);
@@ -370,10 +417,16 @@ static int mei_me_pm_runtime_idle(struct device *device)
 	dev_dbg(&pdev->dev, "rpm: me: runtime_idle\n");
 
 	dev = pci_get_drvdata(pdev);
+
 	if (!dev)
+	{
 		return -ENODEV;
+	}
+
 	if (mei_write_is_idle(dev))
+	{
 		pm_runtime_autosuspend(device);
+	}
 
 	return -EBUSY;
 }
@@ -387,22 +440,31 @@ static int mei_me_pm_runtime_suspend(struct device *device)
 	dev_dbg(&pdev->dev, "rpm: me: runtime suspend\n");
 
 	dev = pci_get_drvdata(pdev);
+
 	if (!dev)
+	{
 		return -ENODEV;
+	}
 
 	mutex_lock(&dev->device_lock);
 
 	if (mei_write_is_idle(dev))
+	{
 		ret = mei_me_pg_enter_sync(dev);
+	}
 	else
+	{
 		ret = -EAGAIN;
+	}
 
 	mutex_unlock(&dev->device_lock);
 
 	dev_dbg(&pdev->dev, "rpm: me: runtime suspend ret=%d\n", ret);
 
 	if (ret && ret != -EAGAIN)
+	{
 		schedule_work(&dev->reset_work);
+	}
 
 	return ret;
 }
@@ -416,8 +478,11 @@ static int mei_me_pm_runtime_resume(struct device *device)
 	dev_dbg(&pdev->dev, "rpm: me: runtime resume\n");
 
 	dev = pci_get_drvdata(pdev);
+
 	if (!dev)
+	{
 		return -ENODEV;
+	}
 
 	mutex_lock(&dev->device_lock);
 
@@ -428,7 +493,9 @@ static int mei_me_pm_runtime_resume(struct device *device)
 	dev_dbg(&pdev->dev, "rpm: me: runtime resume ret = %d\n", ret);
 
 	if (ret)
+	{
 		schedule_work(&dev->reset_work);
+	}
 
 	return ret;
 }
@@ -442,7 +509,8 @@ static inline void mei_me_set_pm_domain(struct mei_device *dev)
 {
 	struct pci_dev *pdev  = to_pci_dev(dev->dev);
 
-	if (pdev->dev.bus && pdev->dev.bus->pm) {
+	if (pdev->dev.bus && pdev->dev.bus->pm)
+	{
 		dev->pg_domain.ops = *pdev->dev.bus->pm;
 
 		dev->pg_domain.ops.runtime_suspend = mei_me_pm_runtime_suspend;
@@ -464,9 +532,10 @@ static inline void mei_me_unset_pm_domain(struct mei_device *dev)
 	dev_pm_domain_set(dev->dev, NULL);
 }
 
-static const struct dev_pm_ops mei_me_pm_ops = {
+static const struct dev_pm_ops mei_me_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(mei_me_pci_suspend,
-				mei_me_pci_resume)
+	mei_me_pci_resume)
 	SET_RUNTIME_PM_OPS(
 		mei_me_pm_runtime_suspend,
 		mei_me_pm_runtime_resume,
@@ -480,7 +549,8 @@ static const struct dev_pm_ops mei_me_pm_ops = {
 /*
  *  PCI driver structure
  */
-static struct pci_driver mei_me_driver = {
+static struct pci_driver mei_me_driver =
+{
 	.name = KBUILD_MODNAME,
 	.id_table = mei_me_pci_tbl,
 	.probe = mei_me_probe,

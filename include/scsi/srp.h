@@ -44,7 +44,8 @@
 #include <linux/types.h>
 #include <scsi/scsi.h>
 
-enum {
+enum
+{
 	SRP_LOGIN_REQ	= 0x00,
 	SRP_TSK_MGMT	= 0x01,
 	SRP_CMD		= 0x02,
@@ -59,18 +60,21 @@ enum {
 	SRP_AER_RSP	= 0x42
 };
 
-enum {
+enum
+{
 	SRP_BUF_FORMAT_DIRECT	= 1 << 1,
 	SRP_BUF_FORMAT_INDIRECT	= 1 << 2
 };
 
-enum {
+enum
+{
 	SRP_NO_DATA_DESC	= 0,
 	SRP_DATA_DESC_DIRECT	= 1,
 	SRP_DATA_DESC_INDIRECT	= 2
 };
 
-enum {
+enum
+{
 	SRP_TSK_ABORT_TASK	= 0x01,
 	SRP_TSK_ABORT_TASK_SET	= 0x02,
 	SRP_TSK_CLEAR_TASK_SET	= 0x04,
@@ -78,7 +82,8 @@ enum {
 	SRP_TSK_CLEAR_ACA	= 0x40
 };
 
-enum srp_login_rej_reason {
+enum srp_login_rej_reason
+{
 	SRP_LOGIN_REJ_UNABLE_ESTABLISH_CHANNEL		= 0x00010000,
 	SRP_LOGIN_REJ_INSUFFICIENT_RESOURCES		= 0x00010001,
 	SRP_LOGIN_REJ_REQ_IT_IU_LENGTH_TOO_LARGE	= 0x00010002,
@@ -88,12 +93,14 @@ enum srp_login_rej_reason {
 	SRP_LOGIN_REJ_CHANNEL_LIMIT_REACHED		= 0x00010006
 };
 
-enum {
+enum
+{
 	SRP_REV10_IB_IO_CLASS	= 0xff00,
 	SRP_REV16A_IB_IO_CLASS	= 0x0100
 };
 
-struct srp_direct_buf {
+struct srp_direct_buf
+{
 	__be64	va;
 	__be32	key;
 	__be32  len;
@@ -105,18 +112,21 @@ struct srp_direct_buf {
  * struct srp_direct_buf.  The whole structure must be packed to avoid
  * having the 20-byte structure padded to 24 bytes on 64-bit architectures.
  */
-struct srp_indirect_buf {
+struct srp_indirect_buf
+{
 	struct srp_direct_buf	table_desc;
 	__be32			len;
 	struct srp_direct_buf	desc_list[0];
 } __attribute__((packed));
 
-enum {
+enum
+{
 	SRP_MULTICHAN_SINGLE = 0,
 	SRP_MULTICHAN_MULTI  = 1
 };
 
-struct srp_login_req {
+struct srp_login_req
+{
 	u8	opcode;
 	u8	reserved1[7];
 	u64	tag;
@@ -134,7 +144,8 @@ struct srp_login_req {
  * bytes, so it needs to be packed to avoid having it padded to 56
  * bytes on 64-bit architectures.
  */
-struct srp_login_rsp {
+struct srp_login_rsp
+{
 	u8	opcode;
 	u8	reserved1[3];
 	__be32	req_lim_delta;
@@ -146,7 +157,8 @@ struct srp_login_rsp {
 	u8	reserved2[25];
 } __attribute__((packed));
 
-struct srp_login_rej {
+struct srp_login_rej
+{
 	u8	opcode;
 	u8	reserved1[3];
 	__be32	reason;
@@ -156,13 +168,15 @@ struct srp_login_rej {
 	u8	reserved3[6];
 };
 
-struct srp_i_logout {
+struct srp_i_logout
+{
 	u8	opcode;
 	u8	reserved[7];
 	u64	tag;
 };
 
-struct srp_t_logout {
+struct srp_t_logout
+{
 	u8	opcode;
 	u8	sol_not;
 	u8	reserved[2];
@@ -174,7 +188,8 @@ struct srp_t_logout {
  * We need the packed attribute because the SRP spec only aligns the
  * 8-byte LUN field to 4 bytes.
  */
-struct srp_tsk_mgmt {
+struct srp_tsk_mgmt
+{
 	u8	opcode;
 	u8	sol_not;
 	u8	reserved1[6];
@@ -192,7 +207,8 @@ struct srp_tsk_mgmt {
  * We need the packed attribute because the SRP spec only aligns the
  * 8-byte LUN field to 4 bytes.
  */
-struct srp_cmd {
+struct srp_cmd
+{
 	u8	opcode;
 	u8	sol_not;
 	u8	reserved1[3];
@@ -210,7 +226,8 @@ struct srp_cmd {
 	u8	add_data[0];
 };
 
-enum {
+enum
+{
 	SRP_RSP_FLAG_RSPVALID = 1 << 0,
 	SRP_RSP_FLAG_SNSVALID = 1 << 1,
 	SRP_RSP_FLAG_DOOVER   = 1 << 2,
@@ -224,7 +241,8 @@ enum {
  * so it needs to be packed to avoid having it padded to 40 bytes on
  * 64-bit architectures.
  */
-struct srp_rsp {
+struct srp_rsp
+{
 	u8	opcode;
 	u8	sol_not;
 	u8	reserved1[2];
@@ -240,7 +258,8 @@ struct srp_rsp {
 	u8	data[0];
 } __attribute__((packed));
 
-struct srp_cred_req {
+struct srp_cred_req
+{
 	u8	opcode;
 	u8	sol_not;
 	u8	reserved[2];
@@ -248,7 +267,8 @@ struct srp_cred_req {
 	u64	tag;
 };
 
-struct srp_cred_rsp {
+struct srp_cred_rsp
+{
 	u8	opcode;
 	u8	reserved[7];
 	u64	tag;
@@ -259,7 +279,8 @@ struct srp_cred_rsp {
  * 36 bytes, so it needs to be packed to avoid having it padded to 40 bytes
  * on 64-bit architectures.
  */
-struct srp_aer_req {
+struct srp_aer_req
+{
 	u8	opcode;
 	u8	sol_not;
 	u8	reserved[2];
@@ -272,7 +293,8 @@ struct srp_aer_req {
 	u8	sense_data[0];
 } __attribute__((packed));
 
-struct srp_aer_rsp {
+struct srp_aer_rsp
+{
 	u8	opcode;
 	u8	reserved[7];
 	u64	tag;

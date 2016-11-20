@@ -1,5 +1,5 @@
 /*********************************************************************
- *                
+ *
  * Filename:      litelink.c
  * Version:       1.1
  * Description:   Driver for the Parallax LiteLink dongle
@@ -8,22 +8,22 @@
  * Created at:    Fri May  7 12:50:33 1999
  * Modified at:   Fri Dec 17 09:14:23 1999
  * Modified by:   Dag Brattli <dagb@cs.uit.no>
- * 
+ *
  *     Copyright (c) 1999 Dag Brattli, All Rights Reserved.
- *     
- *     This program is free software; you can redistribute it and/or 
- *     modify it under the terms of the GNU General Public License as 
- *     published by the Free Software Foundation; either version 2 of 
+ *
+ *     This program is free software; you can redistribute it and/or
+ *     modify it under the terms of the GNU General Public License as
+ *     published by the Free Software Foundation; either version 2 of
  *     the License, or (at your option) any later version.
- * 
+ *
  *     This program is distributed in the hope that it will be useful,
  *     but WITHOUT ANY WARRANTY; without even the implied warranty of
  *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  *     GNU General Public License for more details.
- * 
- *     You should have received a copy of the GNU General Public License 
+ *
+ *     You should have received a copy of the GNU General Public License
  *     along with this program; if not, see <http://www.gnu.org/licenses/>.
- *     
+ *
  ********************************************************************/
 
 /*
@@ -52,7 +52,8 @@ static int litelink_reset(struct sir_dev *dev);
 /* These are the baudrates supported - 9600 must be last one! */
 static unsigned baud_rates[] = { 115200, 57600, 38400, 19200, 9600 };
 
-static struct dongle_driver litelink = {
+static struct dongle_driver litelink =
+{
 	.owner		= THIS_MODULE,
 	.driver_name	= "Parallax LiteLink",
 	.type		= IRDA_LITELINK_DONGLE,
@@ -80,7 +81,7 @@ static int litelink_open(struct sir_dev *dev)
 	sirdev_set_dtr_rts(dev, TRUE, TRUE);
 
 	/* Set the speeds we can accept */
-	qos->baud_rate.bits &= IR_115200|IR_57600|IR_38400|IR_19200|IR_9600;
+	qos->baud_rate.bits &= IR_115200 | IR_57600 | IR_38400 | IR_19200 | IR_9600;
 	qos->min_turn_time.bits = 0x7f; /* Needs 0.01 ms */
 	irda_qos_bits_to_value(qos);
 
@@ -100,23 +101,26 @@ static int litelink_close(struct sir_dev *dev)
 /*
  * Function litelink_change_speed (task)
  *
- *    Change speed of the Litelink dongle. To cycle through the available 
- *    baud rates, pulse RTS low for a few ms.  
+ *    Change speed of the Litelink dongle. To cycle through the available
+ *    baud rates, pulse RTS low for a few ms.
  */
 static int litelink_change_speed(struct sir_dev *dev, unsigned speed)
 {
-        int i;
+	int i;
 
 	/* dongle already reset by irda-thread - current speed (dongle and
 	 * port) is the default speed (115200 for litelink!)
 	 */
 
 	/* Cycle through avaiable baudrates until we reach the correct one */
-	for (i = 0; baud_rates[i] != speed; i++) {
+	for (i = 0; baud_rates[i] != speed; i++)
+	{
 
 		/* end-of-list reached due to invalid speed request */
 		if (baud_rates[i] == 9600)
+		{
 			break;
+		}
 
 		/* Set DTR, clear RTS */
 		sirdev_set_dtr_rts(dev, FALSE, TRUE);
@@ -129,7 +133,7 @@ static int litelink_change_speed(struct sir_dev *dev, unsigned speed)
 
 		/* Sleep a minimum of 15 us */
 		udelay(MIN_DELAY);
-        }
+	}
 
 	dev->speed = baud_rates[i];
 
@@ -178,7 +182,7 @@ static int litelink_reset(struct sir_dev *dev)
 }
 
 MODULE_AUTHOR("Dag Brattli <dagb@cs.uit.no>");
-MODULE_DESCRIPTION("Parallax Litelink dongle driver");	
+MODULE_DESCRIPTION("Parallax Litelink dongle driver");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("irda-dongle-5"); /* IRDA_LITELINK_DONGLE */
 

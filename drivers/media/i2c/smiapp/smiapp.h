@@ -46,7 +46,7 @@
 #define SMIAPP_RESET_DELAY_CLOCKS	2400
 #define SMIAPP_RESET_DELAY(clk)				\
 	(1000 +	(SMIAPP_RESET_DELAY_CLOCKS * 1000	\
-		 + (clk) / 1000 - 1) / ((clk) / 1000))
+			 + (clk) / 1000 - 1) / ((clk) / 1000))
 
 #define SMIAPP_COLOUR_COMPONENTS	4
 
@@ -56,7 +56,8 @@ struct smiapp_quirk;
 
 #define SMIAPP_MODULE_IDENT_FLAG_REV_LE		(1 << 0)
 
-struct smiapp_module_ident {
+struct smiapp_module_ident
+{
 	u8 manufacturer_id;
 	u16 model_id;
 	u8 revision_number_major;
@@ -67,7 +68,8 @@ struct smiapp_module_ident {
 	const struct smiapp_quirk *quirk;
 };
 
-struct smiapp_module_info {
+struct smiapp_module_info
+{
 	u32 manufacturer_id;
 	u32 model_id;
 	u32 revision_number_major;
@@ -93,50 +95,52 @@ struct smiapp_module_info {
 
 #define SMIAPP_IDENT_FQ(manufacturer, model, rev, fl, _name, _quirk)	\
 	{ .manufacturer_id = manufacturer,				\
-	  .model_id = model,						\
-	  .revision_number_major = rev,					\
-	  .flags = fl,							\
-	  .name = _name,						\
-	  .quirk = _quirk, }
+						 .model_id = model,						\
+									 .revision_number_major = rev,					\
+											 .flags = fl,							\
+													 .name = _name,						\
+															 .quirk = _quirk, }
 
 #define SMIAPP_IDENT_LQ(manufacturer, model, rev, _name, _quirk)	\
 	{ .manufacturer_id = manufacturer,				\
-	  .model_id = model,						\
-	  .revision_number_major = rev,					\
-	  .flags = SMIAPP_MODULE_IDENT_FLAG_REV_LE,			\
-	  .name = _name,						\
-	  .quirk = _quirk, }
+						 .model_id = model,						\
+									 .revision_number_major = rev,					\
+											 .flags = SMIAPP_MODULE_IDENT_FLAG_REV_LE,			\
+													 .name = _name,						\
+															 .quirk = _quirk, }
 
 #define SMIAPP_IDENT_L(manufacturer, model, rev, _name)			\
 	{ .manufacturer_id = manufacturer,				\
-	  .model_id = model,						\
-	  .revision_number_major = rev,					\
-	  .flags = SMIAPP_MODULE_IDENT_FLAG_REV_LE,			\
-	  .name = _name, }
+						 .model_id = model,						\
+									 .revision_number_major = rev,					\
+											 .flags = SMIAPP_MODULE_IDENT_FLAG_REV_LE,			\
+													 .name = _name, }
 
 #define SMIAPP_IDENT_Q(manufacturer, model, rev, _name, _quirk)		\
 	{ .manufacturer_id = manufacturer,				\
-	  .model_id = model,						\
-	  .revision_number_major = rev,					\
-	  .flags = 0,							\
-	  .name = _name,						\
-	  .quirk = _quirk, }
+						 .model_id = model,						\
+									 .revision_number_major = rev,					\
+											 .flags = 0,							\
+													 .name = _name,						\
+															 .quirk = _quirk, }
 
 #define SMIAPP_IDENT(manufacturer, model, rev, _name)			\
 	{ .manufacturer_id = manufacturer,				\
-	  .model_id = model,						\
-	  .revision_number_major = rev,					\
-	  .flags = 0,							\
-	  .name = _name, }
+						 .model_id = model,						\
+									 .revision_number_major = rev,					\
+											 .flags = 0,							\
+													 .name = _name, }
 
-struct smiapp_reg_limits {
+struct smiapp_reg_limits
+{
 	u32 addr;
 	char *what;
 };
 
 extern struct smiapp_reg_limits smiapp_reg_limits[];
 
-struct smiapp_csi_data_format {
+struct smiapp_csi_data_format
+{
 	u32 code;
 	u8 width;
 	u8 compressed;
@@ -153,14 +157,16 @@ struct smiapp_csi_data_format {
 #define SMIAPP_COMPRESSED_BASE		8
 #define SMIAPP_COMPRESSED_MAX		16
 #define SMIAPP_NR_OF_COMPRESSED		(SMIAPP_COMPRESSED_MAX - \
-					 SMIAPP_COMPRESSED_BASE + 1)
+									 SMIAPP_COMPRESSED_BASE + 1)
 
-struct smiapp_binning_subtype {
-	u8 horizontal:4;
-	u8 vertical:4;
+struct smiapp_binning_subtype
+{
+	u8 horizontal: 4;
+	u8 vertical: 4;
 } __packed;
 
-struct smiapp_subdev {
+struct smiapp_subdev
+{
 	struct v4l2_subdev sd;
 	struct media_pad pads[2];
 	struct v4l2_rect sink_fmt;
@@ -176,7 +182,8 @@ struct smiapp_subdev {
 /*
  * struct smiapp_sensor - Main device structure
  */
-struct smiapp_sensor {
+struct smiapp_sensor
+{
 	/*
 	 * "mutex" is used to serialise access to all fields here
 	 * except v4l2_ctrls at the end of the struct. "mutex" is also

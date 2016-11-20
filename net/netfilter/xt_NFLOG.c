@@ -35,10 +35,12 @@ nflog_tg(struct sk_buff *skb, const struct xt_action_param *par)
 	li.u.ulog.flags	     = 0;
 
 	if (info->flags & XT_NFLOG_F_COPY_LEN)
+	{
 		li.u.ulog.flags |= NF_LOG_F_COPY_LEN;
+	}
 
 	nfulnl_log_packet(net, par->family, par->hooknum, skb, par->in,
-			  par->out, &li, info->prefix);
+					  par->out, &li, info->prefix);
 	return XT_CONTINUE;
 }
 
@@ -47,13 +49,20 @@ static int nflog_tg_check(const struct xt_tgchk_param *par)
 	const struct xt_nflog_info *info = par->targinfo;
 
 	if (info->flags & ~XT_NFLOG_MASK)
+	{
 		return -EINVAL;
+	}
+
 	if (info->prefix[sizeof(info->prefix) - 1] != '\0')
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
-static struct xt_target nflog_tg_reg __read_mostly = {
+static struct xt_target nflog_tg_reg __read_mostly =
+{
 	.name       = "NFLOG",
 	.revision   = 0,
 	.family     = NFPROTO_UNSPEC,

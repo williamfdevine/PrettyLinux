@@ -29,7 +29,8 @@ static unsigned int vudc_number = 1;
 module_param_named(num, vudc_number, uint, S_IRUGO);
 MODULE_PARM_DESC(num, "number of emulated controllers");
 
-static struct platform_driver vudc_driver = {
+static struct platform_driver vudc_driver =
+{
 	.probe		= vudc_probe,
 	.remove		= vudc_remove,
 	.driver		= {
@@ -46,32 +47,45 @@ static int __init init(void)
 	struct vudc_device *udc_dev = NULL, *udc_dev2 = NULL;
 
 	if (usb_disabled())
+	{
 		return -ENODEV;
+	}
 
-	if (vudc_number < 1) {
+	if (vudc_number < 1)
+	{
 		pr_err("Number of emulated UDC must be no less than 1");
 		return -EINVAL;
 	}
 
 	retval = platform_driver_register(&vudc_driver);
-	if (retval < 0)
-		goto out;
 
-	for (i = 0; i < vudc_number; i++) {
+	if (retval < 0)
+	{
+		goto out;
+	}
+
+	for (i = 0; i < vudc_number; i++)
+	{
 		udc_dev = alloc_vudc_device(i);
-		if (!udc_dev) {
+
+		if (!udc_dev)
+		{
 			retval = -ENOMEM;
 			goto cleanup;
 		}
 
 		retval = platform_device_add(udc_dev->pdev);
-		if (retval < 0) {
+
+		if (retval < 0)
+		{
 			put_vudc_device(udc_dev);
 			goto cleanup;
 		}
 
 		list_add_tail(&udc_dev->dev_entry, &vudc_devices);
-		if (!platform_get_drvdata(udc_dev->pdev)) {
+
+		if (!platform_get_drvdata(udc_dev->pdev))
+		{
 			/*
 			 * The udc was added successfully but its probe
 			 * function failed for some reason.
@@ -80,10 +94,12 @@ static int __init init(void)
 			goto cleanup;
 		}
 	}
+
 	goto out;
 
 cleanup:
-	list_for_each_entry_safe(udc_dev, udc_dev2, &vudc_devices, dev_entry) {
+	list_for_each_entry_safe(udc_dev, udc_dev2, &vudc_devices, dev_entry)
+	{
 		list_del(&udc_dev->dev_entry);
 		platform_device_del(udc_dev->pdev);
 		put_vudc_device(udc_dev);
@@ -99,7 +115,8 @@ static void __exit cleanup(void)
 {
 	struct vudc_device *udc_dev = NULL, *udc_dev2 = NULL;
 
-	list_for_each_entry_safe(udc_dev, udc_dev2, &vudc_devices, dev_entry) {
+	list_for_each_entry_safe(udc_dev, udc_dev2, &vudc_devices, dev_entry)
+	{
 		list_del(&udc_dev->dev_entry);
 		platform_device_unregister(udc_dev->pdev);
 		put_vudc_device(udc_dev);

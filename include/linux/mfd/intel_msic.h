@@ -378,7 +378,8 @@
  * struct intel_msic_gpio_pdata - platform data for the MSIC GPIO driver
  * @gpio_base: base number for the GPIOs
  */
-struct intel_msic_gpio_pdata {
+struct intel_msic_gpio_pdata
+{
 	unsigned	gpio_base;
 };
 
@@ -389,12 +390,14 @@ struct intel_msic_gpio_pdata {
  * The MSIC MFD driver converts @gpio into an IRQ number and passes it to
  * the OCD driver as %IORESOURCE_IRQ.
  */
-struct intel_msic_ocd_pdata {
+struct intel_msic_ocd_pdata
+{
 	unsigned	gpio;
 };
 
 /* MSIC embedded blocks (subdevices) */
-enum intel_msic_block {
+enum intel_msic_block
+{
 	INTEL_MSIC_BLOCK_TOUCH,
 	INTEL_MSIC_BLOCK_ADC,
 	INTEL_MSIC_BLOCK_BATTERY,
@@ -425,7 +428,8 @@ enum intel_msic_block {
  * Interrupt numbers are passed to the subdevices via %IORESOURCE_IRQ
  * resources of the created platform device.
  */
-struct intel_msic_platform_data {
+struct intel_msic_platform_data
+{
 	int				irq[INTEL_MSIC_BLOCK_LAST];
 	struct intel_msic_gpio_pdata	*gpio;
 	struct intel_msic_ocd_pdata	*ocd;
@@ -451,6 +455,6 @@ extern int intel_msic_bulk_write(unsigned short *reg, u8 *buf, size_t count);
 #define pdev_to_intel_msic(pdev)	(dev_get_drvdata(pdev->dev.parent))
 
 extern int intel_msic_irq_read(struct intel_msic *msic, unsigned short reg,
-			       u8 *val);
+							   u8 *val);
 
 #endif /* __LINUX_MFD_INTEL_MSIC_H__ */

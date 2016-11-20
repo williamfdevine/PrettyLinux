@@ -37,9 +37,9 @@
 
 #define MBCS_DEBUG 0
 #if MBCS_DEBUG
-#define DBG(fmt...)    printk(KERN_ALERT fmt)
+	#define DBG(fmt...)    printk(KERN_ALERT fmt)
 #else
-#define DBG(fmt...)
+	#define DBG(fmt...)
 #endif
 static DEFINE_MUTEX(mbcs_mutex);
 static int mbcs_major;
@@ -49,7 +49,8 @@ static LIST_HEAD(soft_list);
 /*
  * file operations
  */
-static const struct file_operations mbcs_ops = {
+static const struct file_operations mbcs_ops =
+{
 	.open = mbcs_open,
 	.llseek = mbcs_sram_llseek,
 	.read = mbcs_sram_read,
@@ -57,7 +58,8 @@ static const struct file_operations mbcs_ops = {
 	.mmap = mbcs_gscr_mmap,
 };
 
-struct mbcs_callback_arg {
+struct mbcs_callback_arg
+{
 	int minor;
 	struct cx_dev *cx_dev;
 };
@@ -80,16 +82,16 @@ static inline void mbcs_algo_init(struct algoblock *algo_soft)
 }
 
 static inline void mbcs_getdma_set(void *mmr,
-		       uint64_t hostAddr,
-		       uint64_t localAddr,
-		       uint64_t localRamSel,
-		       uint64_t numPkts,
-		       uint64_t amoEnable,
-		       uint64_t intrEnable,
-		       uint64_t peerIO,
-		       uint64_t amoHostDest,
-		       uint64_t amoModType, uint64_t intrHostDest,
-		       uint64_t intrVector)
+								   uint64_t hostAddr,
+								   uint64_t localAddr,
+								   uint64_t localRamSel,
+								   uint64_t numPkts,
+								   uint64_t amoEnable,
+								   uint64_t intrEnable,
+								   uint64_t peerIO,
+								   uint64_t amoHostDest,
+								   uint64_t amoModType, uint64_t intrHostDest,
+								   uint64_t intrVector)
 {
 	union dma_control rdma_control;
 	union dma_amo_dest amo_dest;
@@ -127,16 +129,16 @@ static inline void mbcs_getdma_set(void *mmr,
 }
 
 static inline void mbcs_putdma_set(void *mmr,
-		       uint64_t hostAddr,
-		       uint64_t localAddr,
-		       uint64_t localRamSel,
-		       uint64_t numPkts,
-		       uint64_t amoEnable,
-		       uint64_t intrEnable,
-		       uint64_t peerIO,
-		       uint64_t amoHostDest,
-		       uint64_t amoModType,
-		       uint64_t intrHostDest, uint64_t intrVector)
+								   uint64_t hostAddr,
+								   uint64_t localAddr,
+								   uint64_t localRamSel,
+								   uint64_t numPkts,
+								   uint64_t amoEnable,
+								   uint64_t intrEnable,
+								   uint64_t peerIO,
+								   uint64_t amoHostDest,
+								   uint64_t amoModType,
+								   uint64_t intrHostDest, uint64_t intrVector)
 {
 	union dma_control wdma_control;
 	union dma_amo_dest amo_dest;
@@ -174,10 +176,10 @@ static inline void mbcs_putdma_set(void *mmr,
 }
 
 static inline void mbcs_algo_set(void *mmr,
-		     uint64_t amoHostDest,
-		     uint64_t amoModType,
-		     uint64_t intrHostDest,
-		     uint64_t intrVector, uint64_t algoStepCount)
+								 uint64_t amoHostDest,
+								 uint64_t amoModType,
+								 uint64_t intrHostDest,
+								 uint64_t intrVector, uint64_t algoStepCount)
 {
 	union dma_amo_dest amo_dest;
 	union intr_dest intr_dest;
@@ -211,24 +213,26 @@ static inline int mbcs_getdma_start(struct mbcs_soft *soft)
 
 	/* check that host address got setup */
 	if (!gdma->hostAddr)
+	{
 		return -1;
+	}
 
 	numPkts =
-	    (gdma->bytes + (MBCS_CACHELINE_SIZE - 1)) / MBCS_CACHELINE_SIZE;
+		(gdma->bytes + (MBCS_CACHELINE_SIZE - 1)) / MBCS_CACHELINE_SIZE;
 
 	/* program engine */
 	mbcs_getdma_set(mmr_base, tiocx_dma_addr(gdma->hostAddr),
-		   gdma->localAddr,
-		   (gdma->localAddr < MB2) ? 0 :
-		   (gdma->localAddr < MB4) ? 1 :
-		   (gdma->localAddr < MB6) ? 2 : 3,
-		   numPkts,
-		   gdma->DoneAmoEnable,
-		   gdma->DoneIntEnable,
-		   gdma->peerIO,
-		   gdma->amoHostDest,
-		   gdma->amoModType,
-		   gdma->intrHostDest, gdma->intrVector);
+					gdma->localAddr,
+					(gdma->localAddr < MB2) ? 0 :
+					(gdma->localAddr < MB4) ? 1 :
+					(gdma->localAddr < MB6) ? 2 : 3,
+					numPkts,
+					gdma->DoneAmoEnable,
+					gdma->DoneIntEnable,
+					gdma->peerIO,
+					gdma->amoHostDest,
+					gdma->amoModType,
+					gdma->intrHostDest, gdma->intrVector);
 
 	/* start engine */
 	cm_control.cm_control_reg = MBCS_MMR_GET(mmr_base, MBCS_CM_CONTROL);
@@ -251,24 +255,26 @@ static inline int mbcs_putdma_start(struct mbcs_soft *soft)
 
 	/* check that host address got setup */
 	if (!pdma->hostAddr)
+	{
 		return -1;
+	}
 
 	numPkts =
-	    (pdma->bytes + (MBCS_CACHELINE_SIZE - 1)) / MBCS_CACHELINE_SIZE;
+		(pdma->bytes + (MBCS_CACHELINE_SIZE - 1)) / MBCS_CACHELINE_SIZE;
 
 	/* program engine */
 	mbcs_putdma_set(mmr_base, tiocx_dma_addr(pdma->hostAddr),
-		   pdma->localAddr,
-		   (pdma->localAddr < MB2) ? 0 :
-		   (pdma->localAddr < MB4) ? 1 :
-		   (pdma->localAddr < MB6) ? 2 : 3,
-		   numPkts,
-		   pdma->DoneAmoEnable,
-		   pdma->DoneIntEnable,
-		   pdma->peerIO,
-		   pdma->amoHostDest,
-		   pdma->amoModType,
-		   pdma->intrHostDest, pdma->intrVector);
+					pdma->localAddr,
+					(pdma->localAddr < MB2) ? 0 :
+					(pdma->localAddr < MB4) ? 1 :
+					(pdma->localAddr < MB6) ? 2 : 3,
+					numPkts,
+					pdma->DoneAmoEnable,
+					pdma->DoneIntEnable,
+					pdma->peerIO,
+					pdma->amoHostDest,
+					pdma->amoModType,
+					pdma->intrHostDest, pdma->intrVector);
 
 	/* start engine */
 	cm_control.cm_control_reg = MBCS_MMR_GET(mmr_base, MBCS_CM_CONTROL);
@@ -286,15 +292,17 @@ static inline int mbcs_algo_start(struct mbcs_soft *soft)
 	union cm_control cm_control;
 
 	if (mutex_lock_interruptible(&soft->algolock))
+	{
 		return -ERESTARTSYS;
+	}
 
 	atomic_set(&soft->algo_done, 0);
 
 	mbcs_algo_set(mmr_base,
-		 algo_soft->amoHostDest,
-		 algo_soft->amoModType,
-		 algo_soft->intrHostDest,
-		 algo_soft->intrVector, algo_soft->algoStepCount);
+				  algo_soft->amoHostDest,
+				  algo_soft->amoModType,
+				  algo_soft->intrHostDest,
+				  algo_soft->intrVector, algo_soft->algoStepCount);
 
 	/* start algorithm */
 	cm_control.cm_control_reg = MBCS_MMR_GET(mmr_base, MBCS_CM_CONTROL);
@@ -309,12 +317,14 @@ static inline int mbcs_algo_start(struct mbcs_soft *soft)
 
 static inline ssize_t
 do_mbcs_sram_dmawrite(struct mbcs_soft *soft, uint64_t hostAddr,
-		      size_t len, loff_t * off)
+					  size_t len, loff_t *off)
 {
 	int rv = 0;
 
 	if (mutex_lock_interruptible(&soft->dmawritelock))
+	{
 		return -ERESTARTSYS;
+	}
 
 	atomic_set(&soft->dmawrite_done, 0);
 
@@ -322,15 +332,17 @@ do_mbcs_sram_dmawrite(struct mbcs_soft *soft, uint64_t hostAddr,
 	soft->putdma.localAddr = *off;
 	soft->putdma.bytes = len;
 
-	if (mbcs_putdma_start(soft) < 0) {
+	if (mbcs_putdma_start(soft) < 0)
+	{
 		DBG(KERN_ALERT "do_mbcs_sram_dmawrite: "
-					"mbcs_putdma_start failed\n");
+			"mbcs_putdma_start failed\n");
 		rv = -EAGAIN;
 		goto dmawrite_exit;
 	}
 
 	if (wait_event_interruptible(soft->dmawrite_queue,
-					atomic_read(&soft->dmawrite_done))) {
+								 atomic_read(&soft->dmawrite_done)))
+	{
 		rv = -ERESTARTSYS;
 		goto dmawrite_exit;
 	}
@@ -346,12 +358,14 @@ dmawrite_exit:
 
 static inline ssize_t
 do_mbcs_sram_dmaread(struct mbcs_soft *soft, uint64_t hostAddr,
-		     size_t len, loff_t * off)
+					 size_t len, loff_t *off)
 {
 	int rv = 0;
 
 	if (mutex_lock_interruptible(&soft->dmareadlock))
+	{
 		return -ERESTARTSYS;
+	}
 
 	atomic_set(&soft->dmawrite_done, 0);
 
@@ -359,14 +373,16 @@ do_mbcs_sram_dmaread(struct mbcs_soft *soft, uint64_t hostAddr,
 	soft->getdma.localAddr = *off;
 	soft->getdma.bytes = len;
 
-	if (mbcs_getdma_start(soft) < 0) {
+	if (mbcs_getdma_start(soft) < 0)
+	{
 		DBG(KERN_ALERT "mbcs_strategy: mbcs_getdma_start failed\n");
 		rv = -EAGAIN;
 		goto dmaread_exit;
 	}
 
 	if (wait_event_interruptible(soft->dmaread_queue,
-					atomic_read(&soft->dmaread_done))) {
+								 atomic_read(&soft->dmaread_done)))
+	{
 		rv = -ERESTARTSYS;
 		goto dmaread_exit;
 	}
@@ -389,8 +405,10 @@ static int mbcs_open(struct inode *ip, struct file *fp)
 	minor = iminor(ip);
 
 	/* Nothing protects access to this list... */
-	list_for_each_entry(soft, &soft_list, list) {
-		if (soft->nasid == minor) {
+	list_for_each_entry(soft, &soft_list, list)
+	{
+		if (soft->nasid == minor)
+		{
 			fp->private_data = soft->cxdev;
 			mutex_unlock(&mbcs_mutex);
 			return 0;
@@ -401,7 +419,7 @@ static int mbcs_open(struct inode *ip, struct file *fp)
 	return -ENODEV;
 }
 
-static ssize_t mbcs_sram_read(struct file * fp, char __user *buf, size_t len, loff_t * off)
+static ssize_t mbcs_sram_read(struct file *fp, char __user *buf, size_t len, loff_t *off)
 {
 	struct cx_dev *cx_dev = fp->private_data;
 	struct mbcs_soft *soft = cx_dev->soft;
@@ -409,24 +427,32 @@ static ssize_t mbcs_sram_read(struct file * fp, char __user *buf, size_t len, lo
 	int rv = 0;
 
 	hostAddr = __get_dma_pages(GFP_KERNEL, get_order(len));
+
 	if (hostAddr == 0)
+	{
 		return -ENOMEM;
+	}
 
 	rv = do_mbcs_sram_dmawrite(soft, hostAddr, len, off);
+
 	if (rv < 0)
+	{
 		goto exit;
+	}
 
 	if (copy_to_user(buf, (void *)hostAddr, len))
+	{
 		rv = -EFAULT;
+	}
 
-      exit:
+exit:
 	free_pages(hostAddr, get_order(len));
 
 	return rv;
 }
 
 static ssize_t
-mbcs_sram_write(struct file * fp, const char __user *buf, size_t len, loff_t * off)
+mbcs_sram_write(struct file *fp, const char __user *buf, size_t len, loff_t *off)
 {
 	struct cx_dev *cx_dev = fp->private_data;
 	struct mbcs_soft *soft = cx_dev->soft;
@@ -434,26 +460,30 @@ mbcs_sram_write(struct file * fp, const char __user *buf, size_t len, loff_t * o
 	int rv = 0;
 
 	hostAddr = __get_dma_pages(GFP_KERNEL, get_order(len));
-	if (hostAddr == 0)
-		return -ENOMEM;
 
-	if (copy_from_user((void *)hostAddr, buf, len)) {
+	if (hostAddr == 0)
+	{
+		return -ENOMEM;
+	}
+
+	if (copy_from_user((void *)hostAddr, buf, len))
+	{
 		rv = -EFAULT;
 		goto exit;
 	}
 
 	rv = do_mbcs_sram_dmaread(soft, hostAddr, len, off);
 
-      exit:
+exit:
 	free_pages(hostAddr, get_order(len));
 
 	return rv;
 }
 
-static loff_t mbcs_sram_llseek(struct file * filp, loff_t off, int whence)
+static loff_t mbcs_sram_llseek(struct file *filp, loff_t off, int whence)
 {
 	return generic_file_llseek_size(filp, off, whence, MAX_LFS_FILESIZE,
-					MBCS_SRAM_SIZE);
+									MBCS_SRAM_SIZE);
 }
 
 static uint64_t mbcs_pioaddr(struct mbcs_soft *soft, uint64_t offset)
@@ -481,17 +511,21 @@ static int mbcs_gscr_mmap(struct file *fp, struct vm_area_struct *vma)
 	struct mbcs_soft *soft = cx_dev->soft;
 
 	if (vma->vm_pgoff != 0)
+	{
 		return -EINVAL;
+	}
 
 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
 
 	/* Remap-pfn-range will mark the range VM_IO */
 	if (remap_pfn_range(vma,
-			    vma->vm_start,
-			    __pa(soft->gscr_addr) >> PAGE_SHIFT,
-			    PAGE_SIZE,
-			    vma->vm_page_prot))
+						vma->vm_start,
+						__pa(soft->gscr_addr) >> PAGE_SHIFT,
+						PAGE_SIZE,
+						vma->vm_page_prot))
+	{
 		return -EAGAIN;
+	}
 
 	return 0;
 }
@@ -513,33 +547,38 @@ mbcs_completion_intr_handler(int irq, void *arg)
 	mmr_base = soft->mmr_base;
 	cm_status.cm_status_reg = MBCS_MMR_GET(mmr_base, MBCS_CM_STATUS);
 
-	if (cm_status.rd_dma_done) {
+	if (cm_status.rd_dma_done)
+	{
 		/* stop dma-read engine, clear status */
 		cm_control.cm_control_reg =
-		    MBCS_MMR_GET(mmr_base, MBCS_CM_CONTROL);
+			MBCS_MMR_GET(mmr_base, MBCS_CM_CONTROL);
 		cm_control.rd_dma_clr = 1;
 		MBCS_MMR_SET(mmr_base, MBCS_CM_CONTROL,
-			     cm_control.cm_control_reg);
+					 cm_control.cm_control_reg);
 		atomic_set(&soft->dmaread_done, 1);
 		wake_up(&soft->dmaread_queue);
 	}
-	if (cm_status.wr_dma_done) {
+
+	if (cm_status.wr_dma_done)
+	{
 		/* stop dma-write engine, clear status */
 		cm_control.cm_control_reg =
-		    MBCS_MMR_GET(mmr_base, MBCS_CM_CONTROL);
+			MBCS_MMR_GET(mmr_base, MBCS_CM_CONTROL);
 		cm_control.wr_dma_clr = 1;
 		MBCS_MMR_SET(mmr_base, MBCS_CM_CONTROL,
-			     cm_control.cm_control_reg);
+					 cm_control.cm_control_reg);
 		atomic_set(&soft->dmawrite_done, 1);
 		wake_up(&soft->dmawrite_queue);
 	}
-	if (cm_status.alg_done) {
+
+	if (cm_status.alg_done)
+	{
 		/* clear status */
 		cm_control.cm_control_reg =
-		    MBCS_MMR_GET(mmr_base, MBCS_CM_CONTROL);
+			MBCS_MMR_GET(mmr_base, MBCS_CM_CONTROL);
 		cm_control.alg_done_clr = 1;
 		MBCS_MMR_SET(mmr_base, MBCS_CM_CONTROL,
-			     cm_control.cm_control_reg);
+					 cm_control.cm_control_reg);
 		atomic_set(&soft->algo_done, 1);
 		wake_up(&soft->algo_queue);
 	}
@@ -570,30 +609,41 @@ static int mbcs_intr_alloc(struct cx_dev *dev)
 	soft->algo_sn_irq = NULL;
 
 	sn_irq = tiocx_irq_alloc(dev->cx_id.nasid, TIOCX_CORELET, -1, -1, -1);
+
 	if (sn_irq == NULL)
+	{
 		return -EAGAIN;
+	}
+
 	soft->get_sn_irq = sn_irq;
 	getdma->intrHostDest = sn_irq->irq_xtalkaddr;
 	getdma->intrVector = sn_irq->irq_irq;
+
 	if (request_irq(sn_irq->irq_irq,
-			(void *)mbcs_completion_intr_handler, IRQF_SHARED,
-			"MBCS get intr", (void *)soft)) {
+					(void *)mbcs_completion_intr_handler, IRQF_SHARED,
+					"MBCS get intr", (void *)soft))
+	{
 		tiocx_irq_free(soft->get_sn_irq);
 		return -EAGAIN;
 	}
 
 	sn_irq = tiocx_irq_alloc(dev->cx_id.nasid, TIOCX_CORELET, -1, -1, -1);
-	if (sn_irq == NULL) {
+
+	if (sn_irq == NULL)
+	{
 		free_irq(soft->get_sn_irq->irq_irq, soft);
 		tiocx_irq_free(soft->get_sn_irq);
 		return -EAGAIN;
 	}
+
 	soft->put_sn_irq = sn_irq;
 	putdma->intrHostDest = sn_irq->irq_xtalkaddr;
 	putdma->intrVector = sn_irq->irq_irq;
+
 	if (request_irq(sn_irq->irq_irq,
-			(void *)mbcs_completion_intr_handler, IRQF_SHARED,
-			"MBCS put intr", (void *)soft)) {
+					(void *)mbcs_completion_intr_handler, IRQF_SHARED,
+					"MBCS put intr", (void *)soft))
+	{
 		tiocx_irq_free(soft->put_sn_irq);
 		free_irq(soft->get_sn_irq->irq_irq, soft);
 		tiocx_irq_free(soft->get_sn_irq);
@@ -601,19 +651,24 @@ static int mbcs_intr_alloc(struct cx_dev *dev)
 	}
 
 	sn_irq = tiocx_irq_alloc(dev->cx_id.nasid, TIOCX_CORELET, -1, -1, -1);
-	if (sn_irq == NULL) {
+
+	if (sn_irq == NULL)
+	{
 		free_irq(soft->put_sn_irq->irq_irq, soft);
 		tiocx_irq_free(soft->put_sn_irq);
 		free_irq(soft->get_sn_irq->irq_irq, soft);
 		tiocx_irq_free(soft->get_sn_irq);
 		return -EAGAIN;
 	}
+
 	soft->algo_sn_irq = sn_irq;
 	algo->intrHostDest = sn_irq->irq_xtalkaddr;
 	algo->intrVector = sn_irq->irq_irq;
+
 	if (request_irq(sn_irq->irq_irq,
-			(void *)mbcs_completion_intr_handler, IRQF_SHARED,
-			"MBCS algo intr", (void *)soft)) {
+					(void *)mbcs_completion_intr_handler, IRQF_SHARED,
+					"MBCS algo intr", (void *)soft))
+	{
 		tiocx_irq_free(soft->algo_sn_irq);
 		free_irq(soft->put_sn_irq->irq_irq, soft);
 		tiocx_irq_free(soft->put_sn_irq);
@@ -652,11 +707,11 @@ static inline int mbcs_hw_init(struct mbcs_soft *soft)
 	uint64_t err_stat;
 
 	cm_req_timeout.cm_req_timeout_reg =
-	    MBCS_MMR_GET(mmr_base, MBCS_CM_REQ_TOUT);
+		MBCS_MMR_GET(mmr_base, MBCS_CM_REQ_TOUT);
 
 	cm_req_timeout.time_out = MBCS_CM_CONTROL_REQ_TOUT_MASK;
 	MBCS_MMR_SET(mmr_base, MBCS_CM_REQ_TOUT,
-		     cm_req_timeout.cm_req_timeout_reg);
+				 cm_req_timeout.cm_req_timeout_reg);
 
 	mbcs_gscr_pioaddr_set(soft);
 	mbcs_debug_pioaddr_set(soft);
@@ -695,7 +750,7 @@ static ssize_t show_algo(struct device *dev, struct device_attribute *attr, char
 	debug0 = *(uint64_t *) soft->debug_addr;
 
 	return sprintf(buf, "0x%x 0x%x\n",
-		       upper_32_bits(debug0), lower_32_bits(debug0));
+				   upper_32_bits(debug0), lower_32_bits(debug0));
 }
 
 static ssize_t store_algo(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
@@ -705,15 +760,21 @@ static ssize_t store_algo(struct device *dev, struct device_attribute *attr, con
 	struct mbcs_soft *soft = cx_dev->soft;
 
 	if (count <= 0)
+	{
 		return 0;
+	}
 
 	n = simple_strtoul(buf, NULL, 0);
 
-	if (n == 1) {
+	if (n == 1)
+	{
 		mbcs_algo_start(soft);
+
 		if (wait_event_interruptible(soft->algo_queue,
-					atomic_read(&soft->algo_done)))
+									 atomic_read(&soft->algo_done)))
+		{
 			return -ERESTARTSYS;
+		}
 	}
 
 	return count;
@@ -734,8 +795,11 @@ static int mbcs_probe(struct cx_dev *dev, const struct cx_device_id *id)
 	dev->soft = NULL;
 
 	soft = kzalloc(sizeof(struct mbcs_soft), GFP_KERNEL);
+
 	if (soft == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	soft->nasid = dev->cx_id.nasid;
 	list_add(&soft->list, &soft_list);
@@ -767,7 +831,8 @@ static int mbcs_probe(struct cx_dev *dev, const struct cx_device_id *id)
 
 static int mbcs_remove(struct cx_dev *dev)
 {
-	if (dev->soft) {
+	if (dev->soft)
+	{
 		mbcs_intr_dealloc(dev);
 		kfree(dev->soft);
 	}
@@ -777,21 +842,23 @@ static int mbcs_remove(struct cx_dev *dev)
 	return 0;
 }
 
-static const struct cx_device_id mbcs_id_table[] = {
+static const struct cx_device_id mbcs_id_table[] =
+{
 	{
-	 .part_num = MBCS_PART_NUM,
-	 .mfg_num = MBCS_MFG_NUM,
-	 },
+		.part_num = MBCS_PART_NUM,
+		.mfg_num = MBCS_MFG_NUM,
+	},
 	{
-	 .part_num = MBCS_PART_NUM_ALG0,
-	 .mfg_num = MBCS_MFG_NUM,
-	 },
+		.part_num = MBCS_PART_NUM_ALG0,
+		.mfg_num = MBCS_MFG_NUM,
+	},
 	{0, 0}
 };
 
 MODULE_DEVICE_TABLE(cx, mbcs_id_table);
 
-static struct cx_drv mbcs_driver = {
+static struct cx_drv mbcs_driver =
+{
 	.name = DEVICE_NAME,
 	.id_table = mbcs_id_table,
 	.probe = mbcs_probe,
@@ -809,14 +876,19 @@ static int __init mbcs_init(void)
 	int rv;
 
 	if (!ia64_platform_is("sn2"))
+	{
 		return -ENODEV;
+	}
 
 	// Put driver into chrdevs[].  Get major number.
 	rv = register_chrdev(mbcs_major, DEVICE_NAME, &mbcs_ops);
-	if (rv < 0) {
+
+	if (rv < 0)
+	{
 		DBG(KERN_ALERT "mbcs_init: can't get major number. %d\n", rv);
 		return rv;
 	}
+
 	mbcs_major = rv;
 
 	return cx_driver_register(&mbcs_driver);

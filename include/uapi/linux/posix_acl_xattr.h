@@ -25,13 +25,15 @@
 /* An undefined entry e_id value */
 #define ACL_UNDEFINED_ID	(-1)
 
-struct posix_acl_xattr_entry {
+struct posix_acl_xattr_entry
+{
 	__le16			e_tag;
 	__le16			e_perm;
 	__le32			e_id;
 };
 
-struct posix_acl_xattr_header {
+struct posix_acl_xattr_header
+{
 	__le32			a_version;
 };
 

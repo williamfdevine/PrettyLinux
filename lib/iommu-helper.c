@@ -7,8 +7,8 @@
 #include <linux/bug.h>
 
 int iommu_is_span_boundary(unsigned int index, unsigned int nr,
-			   unsigned long shift,
-			   unsigned long boundary_size)
+						   unsigned long shift,
+						   unsigned long boundary_size)
 {
 	BUG_ON(!is_power_of_2(boundary_size));
 
@@ -17,9 +17,9 @@ int iommu_is_span_boundary(unsigned int index, unsigned int nr,
 }
 
 unsigned long iommu_area_alloc(unsigned long *map, unsigned long size,
-			       unsigned long start, unsigned int nr,
-			       unsigned long shift, unsigned long boundary_size,
-			       unsigned long align_mask)
+							   unsigned long start, unsigned int nr,
+							   unsigned long shift, unsigned long boundary_size,
+							   unsigned long align_mask)
 {
 	unsigned long index;
 
@@ -27,14 +27,19 @@ unsigned long iommu_area_alloc(unsigned long *map, unsigned long size,
 	size -= 1;
 again:
 	index = bitmap_find_next_zero_area(map, size, start, nr, align_mask);
-	if (index < size) {
-		if (iommu_is_span_boundary(index, nr, shift, boundary_size)) {
+
+	if (index < size)
+	{
+		if (iommu_is_span_boundary(index, nr, shift, boundary_size))
+		{
 			start = ALIGN(shift + index, boundary_size) - shift;
 			goto again;
 		}
+
 		bitmap_set(map, index, nr);
 		return index;
 	}
+
 	return -1;
 }
 EXPORT_SYMBOL(iommu_area_alloc);

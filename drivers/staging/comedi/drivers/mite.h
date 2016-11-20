@@ -28,21 +28,24 @@ struct comedi_subdevice;
 struct device;
 struct pci_dev;
 
-struct mite_dma_desc {
+struct mite_dma_desc
+{
 	__le32 count;
 	__le32 addr;
 	__le32 next;
 	u32 dar;
 };
 
-struct mite_ring {
+struct mite_ring
+{
 	struct device *hw_dev;
 	unsigned int n_links;
 	struct mite_dma_desc *descs;
 	dma_addr_t dma_addr;
 };
 
-struct mite_channel {
+struct mite_channel
+{
 	struct mite *mite;
 	unsigned int channel;
 	int dir;
@@ -50,7 +53,8 @@ struct mite_channel {
 	struct mite_ring *ring;
 };
 
-struct mite {
+struct mite
+{
 	struct pci_dev *pcidev;
 	void __iomem *mmio;
 	struct mite_channel channels[MAX_MITE_DMA_CHANNELS];
@@ -64,24 +68,24 @@ u32 mite_bytes_in_transit(struct mite_channel *);
 
 void mite_sync_dma(struct mite_channel *, struct comedi_subdevice *);
 void mite_ack_linkc(struct mite_channel *, struct comedi_subdevice *s,
-		    bool sync);
+					bool sync);
 int mite_done(struct mite_channel *);
 
 void mite_dma_arm(struct mite_channel *);
 void mite_dma_disarm(struct mite_channel *);
 
 void mite_prep_dma(struct mite_channel *,
-		   unsigned int num_device_bits, unsigned int num_memory_bits);
+				   unsigned int num_device_bits, unsigned int num_memory_bits);
 
 struct mite_channel *mite_request_channel_in_range(struct mite *,
-						   struct mite_ring *,
-						   unsigned int min_channel,
-						   unsigned int max_channel);
+		struct mite_ring *,
+		unsigned int min_channel,
+		unsigned int max_channel);
 struct mite_channel *mite_request_channel(struct mite *, struct mite_ring *);
 void mite_release_channel(struct mite_channel *);
 
 int mite_init_ring_descriptors(struct mite_ring *, struct comedi_subdevice *,
-			       unsigned int nbytes);
+							   unsigned int nbytes);
 int mite_buf_change(struct mite_ring *, struct comedi_subdevice *);
 
 struct mite_ring *mite_alloc_ring(struct mite *);

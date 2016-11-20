@@ -35,12 +35,13 @@ static inline int copy_SCp_to_sg(struct scatterlist *sg, struct scsi_pointer *SC
 
 	sg_set_buf(sg, SCp->ptr, SCp->this_residual);
 
-	if (bufs) {
+	if (bufs)
+	{
 		struct scatterlist *src_sg;
 		unsigned i;
 
 		for_each_sg(sg_next(SCp->buffer), src_sg, bufs, i)
-			*(++sg) = *src_sg;
+		*(++sg) = *src_sg;
 		sg_mark_end(sg);
 	}
 
@@ -50,15 +51,20 @@ static inline int copy_SCp_to_sg(struct scatterlist *sg, struct scsi_pointer *SC
 static inline int next_SCp(struct scsi_pointer *SCp)
 {
 	int ret = SCp->buffers_residual;
-	if (ret) {
+
+	if (ret)
+	{
 		SCp->buffer = sg_next(SCp->buffer);
 		SCp->buffers_residual--;
 		SCp->ptr = sg_virt(SCp->buffer);
 		SCp->this_residual = SCp->buffer->length;
-	} else {
+	}
+	else
+	{
 		SCp->ptr = NULL;
 		SCp->this_residual = 0;
 	}
+
 	return ret;
 }
 
@@ -83,7 +89,8 @@ static inline void init_SCp(struct scsi_cmnd *SCpnt)
 {
 	memset(&SCpnt->SCp, 0, sizeof(struct scsi_pointer));
 
-	if (scsi_bufflen(SCpnt)) {
+	if (scsi_bufflen(SCpnt))
+	{
 		unsigned long len = 0;
 
 		SCpnt->SCp.buffer = scsi_sglist(SCpnt);
@@ -93,7 +100,8 @@ static inline void init_SCp(struct scsi_cmnd *SCpnt)
 		SCpnt->SCp.phase = scsi_bufflen(SCpnt);
 
 #ifdef BELT_AND_BRACES
-		{	/*
+		{
+			/*
 			 * Calculate correct buffer length.  Some commands
 			 * come in with the wrong scsi_bufflen.
 			 */
@@ -101,26 +109,29 @@ static inline void init_SCp(struct scsi_cmnd *SCpnt)
 			unsigned i, sg_count = scsi_sg_count(SCpnt);
 
 			scsi_for_each_sg(SCpnt, sg, sg_count, i)
-				len += sg->length;
+			len += sg->length;
 
-			if (scsi_bufflen(SCpnt) != len) {
+			if (scsi_bufflen(SCpnt) != len)
+			{
 				printk(KERN_WARNING
-				       "scsi%d.%c: bad request buffer "
-				       "length %d, should be %ld\n",
-					SCpnt->device->host->host_no,
-					'0' + SCpnt->device->id,
-					scsi_bufflen(SCpnt), len);
+					   "scsi%d.%c: bad request buffer "
+					   "length %d, should be %ld\n",
+					   SCpnt->device->host->host_no,
+					   '0' + SCpnt->device->id,
+					   scsi_bufflen(SCpnt), len);
 				/*
 				 * FIXME: Totaly naive fixup. We should abort
 				 * with error
 				 */
 				SCpnt->SCp.phase =
 					min_t(unsigned long, len,
-					      scsi_bufflen(SCpnt));
+						  scsi_bufflen(SCpnt));
 			}
 		}
 #endif
-	} else {
+	}
+	else
+	{
 		SCpnt->SCp.ptr = NULL;
 		SCpnt->SCp.this_residual = 0;
 		SCpnt->SCp.phase = 0;

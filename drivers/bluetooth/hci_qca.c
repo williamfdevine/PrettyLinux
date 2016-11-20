@@ -51,20 +51,23 @@
 #define BAUDRATE_SETTLE_TIMEOUT_MS	300
 
 /* HCI_IBS transmit side sleep protocol states */
-enum tx_ibs_states {
+enum tx_ibs_states
+{
 	HCI_IBS_TX_ASLEEP,
 	HCI_IBS_TX_WAKING,
 	HCI_IBS_TX_AWAKE,
 };
 
 /* HCI_IBS receive side sleep protocol states */
-enum rx_states {
+enum rx_states
+{
 	HCI_IBS_RX_ASLEEP,
 	HCI_IBS_RX_AWAKE,
 };
 
 /* HCI_IBS transmit and receive side clock state vote */
-enum hci_ibs_clock_state_vote {
+enum hci_ibs_clock_state_vote
+{
 	HCI_IBS_VOTE_STATS_UPDATE,
 	HCI_IBS_TX_VOTE_CLOCK_ON,
 	HCI_IBS_TX_VOTE_CLOCK_OFF,
@@ -72,7 +75,8 @@ enum hci_ibs_clock_state_vote {
 	HCI_IBS_RX_VOTE_CLOCK_OFF,
 };
 
-struct qca_data {
+struct qca_data
+{
 	struct hci_uart *hu;
 	struct sk_buff *rx_skb;
 	struct sk_buff_head txq;
@@ -136,63 +140,78 @@ static void serial_clock_vote(unsigned long vote, struct hci_uart *hu)
 	bool old_vote = (qca->tx_vote | qca->rx_vote);
 	bool new_vote;
 
-	switch (vote) {
-	case HCI_IBS_VOTE_STATS_UPDATE:
-		diff = jiffies_to_msecs(jiffies - qca->vote_last_jif);
+	switch (vote)
+	{
+		case HCI_IBS_VOTE_STATS_UPDATE:
+			diff = jiffies_to_msecs(jiffies - qca->vote_last_jif);
 
-		if (old_vote)
-			qca->vote_off_ms += diff;
-		else
-			qca->vote_on_ms += diff;
-		return;
+			if (old_vote)
+			{
+				qca->vote_off_ms += diff;
+			}
+			else
+			{
+				qca->vote_on_ms += diff;
+			}
 
-	case HCI_IBS_TX_VOTE_CLOCK_ON:
-		qca->tx_vote = true;
-		qca->tx_votes_on++;
-		new_vote = true;
-		break;
+			return;
 
-	case HCI_IBS_RX_VOTE_CLOCK_ON:
-		qca->rx_vote = true;
-		qca->rx_votes_on++;
-		new_vote = true;
-		break;
+		case HCI_IBS_TX_VOTE_CLOCK_ON:
+			qca->tx_vote = true;
+			qca->tx_votes_on++;
+			new_vote = true;
+			break;
 
-	case HCI_IBS_TX_VOTE_CLOCK_OFF:
-		qca->tx_vote = false;
-		qca->tx_votes_off++;
-		new_vote = qca->rx_vote | qca->tx_vote;
-		break;
+		case HCI_IBS_RX_VOTE_CLOCK_ON:
+			qca->rx_vote = true;
+			qca->rx_votes_on++;
+			new_vote = true;
+			break;
 
-	case HCI_IBS_RX_VOTE_CLOCK_OFF:
-		qca->rx_vote = false;
-		qca->rx_votes_off++;
-		new_vote = qca->rx_vote | qca->tx_vote;
-		break;
+		case HCI_IBS_TX_VOTE_CLOCK_OFF:
+			qca->tx_vote = false;
+			qca->tx_votes_off++;
+			new_vote = qca->rx_vote | qca->tx_vote;
+			break;
 
-	default:
-		BT_ERR("Voting irregularity");
-		return;
+		case HCI_IBS_RX_VOTE_CLOCK_OFF:
+			qca->rx_vote = false;
+			qca->rx_votes_off++;
+			new_vote = qca->rx_vote | qca->tx_vote;
+			break;
+
+		default:
+			BT_ERR("Voting irregularity");
+			return;
 	}
 
-	if (new_vote != old_vote) {
+	if (new_vote != old_vote)
+	{
 		if (new_vote)
+		{
 			__serial_clock_on(hu->tty);
+		}
 		else
+		{
 			__serial_clock_off(hu->tty);
+		}
 
 		BT_DBG("Vote serial clock %s(%s)", new_vote ? "true" : "false",
-		       vote ? "true" : "false");
+			   vote ? "true" : "false");
 
 		diff = jiffies_to_msecs(jiffies - qca->vote_last_jif);
 
-		if (new_vote) {
+		if (new_vote)
+		{
 			qca->votes_on++;
 			qca->vote_off_ms += diff;
-		} else {
+		}
+		else
+		{
 			qca->votes_off++;
 			qca->vote_on_ms += diff;
 		}
+
 		qca->vote_last_jif = jiffies;
 	}
 }
@@ -209,7 +228,9 @@ static int send_hci_ibs_cmd(u8 cmd, struct hci_uart *hu)
 	BT_DBG("hu %p send hci ibs cmd 0x%x", hu, cmd);
 
 	skb = bt_skb_alloc(1, GFP_ATOMIC);
-	if (!skb) {
+
+	if (!skb)
+	{
 		BT_ERR("Failed to allocate memory for HCI_IBS packet");
 		return -ENOMEM;
 	}
@@ -225,7 +246,7 @@ static int send_hci_ibs_cmd(u8 cmd, struct hci_uart *hu)
 static void qca_wq_awake_device(struct work_struct *work)
 {
 	struct qca_data *qca = container_of(work, struct qca_data,
-					    ws_awake_device);
+										ws_awake_device);
 	struct hci_uart *hu = qca->hu;
 	unsigned long retrans_delay;
 
@@ -238,7 +259,9 @@ static void qca_wq_awake_device(struct work_struct *work)
 
 	/* Send wake indication to device */
 	if (send_hci_ibs_cmd(HCI_IBS_WAKE_IND, hu) < 0)
+	{
 		BT_ERR("Failed to send WAKE to device");
+	}
 
 	qca->ibs_sent_wakes++;
 
@@ -255,7 +278,7 @@ static void qca_wq_awake_device(struct work_struct *work)
 static void qca_wq_awake_rx(struct work_struct *work)
 {
 	struct qca_data *qca = container_of(work, struct qca_data,
-					    ws_awake_rx);
+										ws_awake_rx);
 	struct hci_uart *hu = qca->hu;
 
 	BT_DBG("hu %p wq awake rx", hu);
@@ -269,7 +292,9 @@ static void qca_wq_awake_rx(struct work_struct *work)
 	 * sending IBS message doesn't count as TX ON.
 	 */
 	if (send_hci_ibs_cmd(HCI_IBS_WAKE_ACK, hu) < 0)
+	{
 		BT_ERR("Failed to acknowledge device wake up");
+	}
 
 	qca->ibs_sent_wacks++;
 
@@ -282,7 +307,7 @@ static void qca_wq_awake_rx(struct work_struct *work)
 static void qca_wq_serial_rx_clock_vote_off(struct work_struct *work)
 {
 	struct qca_data *qca = container_of(work, struct qca_data,
-					    ws_rx_vote_off);
+										ws_rx_vote_off);
 	struct hci_uart *hu = qca->hu;
 
 	BT_DBG("hu %p rx clock vote off", hu);
@@ -293,7 +318,7 @@ static void qca_wq_serial_rx_clock_vote_off(struct work_struct *work)
 static void qca_wq_serial_tx_clock_vote_off(struct work_struct *work)
 {
 	struct qca_data *qca = container_of(work, struct qca_data,
-					    ws_tx_vote_off);
+										ws_tx_vote_off);
 	struct hci_uart *hu = qca->hu;
 
 	BT_DBG("hu %p tx clock vote off", hu);
@@ -316,27 +341,32 @@ static void hci_ibs_tx_idle_timeout(unsigned long arg)
 	BT_DBG("hu %p idle timeout in %d state", hu, qca->tx_ibs_state);
 
 	spin_lock_irqsave_nested(&qca->hci_ibs_lock,
-				 flags, SINGLE_DEPTH_NESTING);
+							 flags, SINGLE_DEPTH_NESTING);
 
-	switch (qca->tx_ibs_state) {
-	case HCI_IBS_TX_AWAKE:
-		/* TX_IDLE, go to SLEEP */
-		if (send_hci_ibs_cmd(HCI_IBS_SLEEP_IND, hu) < 0) {
-			BT_ERR("Failed to send SLEEP to device");
+	switch (qca->tx_ibs_state)
+	{
+		case HCI_IBS_TX_AWAKE:
+
+			/* TX_IDLE, go to SLEEP */
+			if (send_hci_ibs_cmd(HCI_IBS_SLEEP_IND, hu) < 0)
+			{
+				BT_ERR("Failed to send SLEEP to device");
+				break;
+			}
+
+			qca->tx_ibs_state = HCI_IBS_TX_ASLEEP;
+			qca->ibs_sent_slps++;
+			queue_work(qca->workqueue, &qca->ws_tx_vote_off);
 			break;
-		}
-		qca->tx_ibs_state = HCI_IBS_TX_ASLEEP;
-		qca->ibs_sent_slps++;
-		queue_work(qca->workqueue, &qca->ws_tx_vote_off);
-		break;
 
-	case HCI_IBS_TX_ASLEEP:
-	case HCI_IBS_TX_WAKING:
+		case HCI_IBS_TX_ASLEEP:
+		case HCI_IBS_TX_WAKING:
+
 		/* Fall through */
 
-	default:
-		BT_ERR("Spurrious timeout tx state %d", qca->tx_ibs_state);
-		break;
+		default:
+			BT_ERR("Spurrious timeout tx state %d", qca->tx_ibs_state);
+			break;
 	}
 
 	spin_unlock_irqrestore(&qca->hci_ibs_lock, flags);
@@ -350,37 +380,44 @@ static void hci_ibs_wake_retrans_timeout(unsigned long arg)
 	bool retransmit = false;
 
 	BT_DBG("hu %p wake retransmit timeout in %d state",
-		hu, qca->tx_ibs_state);
+		   hu, qca->tx_ibs_state);
 
 	spin_lock_irqsave_nested(&qca->hci_ibs_lock,
-				 flags, SINGLE_DEPTH_NESTING);
+							 flags, SINGLE_DEPTH_NESTING);
 
-	switch (qca->tx_ibs_state) {
-	case HCI_IBS_TX_WAKING:
-		/* No WAKE_ACK, retransmit WAKE */
-		retransmit = true;
-		if (send_hci_ibs_cmd(HCI_IBS_WAKE_IND, hu) < 0) {
-			BT_ERR("Failed to acknowledge device wake up");
+	switch (qca->tx_ibs_state)
+	{
+		case HCI_IBS_TX_WAKING:
+			/* No WAKE_ACK, retransmit WAKE */
+			retransmit = true;
+
+			if (send_hci_ibs_cmd(HCI_IBS_WAKE_IND, hu) < 0)
+			{
+				BT_ERR("Failed to acknowledge device wake up");
+				break;
+			}
+
+			qca->ibs_sent_wakes++;
+			retrans_delay = msecs_to_jiffies(qca->wake_retrans);
+			mod_timer(&qca->wake_retrans_timer, jiffies + retrans_delay);
 			break;
-		}
-		qca->ibs_sent_wakes++;
-		retrans_delay = msecs_to_jiffies(qca->wake_retrans);
-		mod_timer(&qca->wake_retrans_timer, jiffies + retrans_delay);
-		break;
 
-	case HCI_IBS_TX_ASLEEP:
-	case HCI_IBS_TX_AWAKE:
+		case HCI_IBS_TX_ASLEEP:
+		case HCI_IBS_TX_AWAKE:
+
 		/* Fall through */
 
-	default:
-		BT_ERR("Spurrious timeout tx state %d", qca->tx_ibs_state);
-		break;
+		default:
+			BT_ERR("Spurrious timeout tx state %d", qca->tx_ibs_state);
+			break;
 	}
 
 	spin_unlock_irqrestore(&qca->hci_ibs_lock, flags);
 
 	if (retransmit)
+	{
 		hci_uart_tx_wakeup(hu);
+	}
 }
 
 /* Initialize protocol */
@@ -391,14 +428,19 @@ static int qca_open(struct hci_uart *hu)
 	BT_DBG("hu %p qca_open", hu);
 
 	qca = kzalloc(sizeof(struct qca_data), GFP_ATOMIC);
+
 	if (!qca)
+	{
 		return -ENOMEM;
+	}
 
 	skb_queue_head_init(&qca->txq);
 	skb_queue_head_init(&qca->tx_wait_q);
 	spin_lock_init(&qca->hci_ibs_lock);
 	qca->workqueue = alloc_ordered_workqueue("qca_wq", 0);
-	if (!qca->workqueue) {
+
+	if (!qca->workqueue)
+	{
 		BT_ERR("QCA Workqueue not initialized properly");
 		kfree(qca);
 		return -ENOMEM;
@@ -449,7 +491,7 @@ static int qca_open(struct hci_uart *hu)
 	qca->tx_idle_delay = IBS_TX_IDLE_TIMEOUT_MS;
 
 	BT_DBG("HCI_UART_QCA open, tx_idle_delay=%u, wake_retrans=%u",
-	       qca->tx_idle_delay, qca->wake_retrans);
+		   qca->tx_idle_delay, qca->wake_retrans);
 
 	return 0;
 }
@@ -462,7 +504,9 @@ static void qca_debugfs_init(struct hci_dev *hdev)
 	umode_t mode;
 
 	if (!hdev->debugfs)
+	{
 		return;
+	}
 
 	ibs_dir = debugfs_create_dir("ibs", hdev->debugfs);
 
@@ -471,17 +515,17 @@ static void qca_debugfs_init(struct hci_dev *hdev)
 	debugfs_create_u8("tx_ibs_state", mode, ibs_dir, &qca->tx_ibs_state);
 	debugfs_create_u8("rx_ibs_state", mode, ibs_dir, &qca->rx_ibs_state);
 	debugfs_create_u64("ibs_sent_sleeps", mode, ibs_dir,
-			   &qca->ibs_sent_slps);
+					   &qca->ibs_sent_slps);
 	debugfs_create_u64("ibs_sent_wakes", mode, ibs_dir,
-			   &qca->ibs_sent_wakes);
+					   &qca->ibs_sent_wakes);
 	debugfs_create_u64("ibs_sent_wake_acks", mode, ibs_dir,
-			   &qca->ibs_sent_wacks);
+					   &qca->ibs_sent_wacks);
 	debugfs_create_u64("ibs_recv_sleeps", mode, ibs_dir,
-			   &qca->ibs_recv_slps);
+					   &qca->ibs_recv_slps);
 	debugfs_create_u64("ibs_recv_wakes", mode, ibs_dir,
-			   &qca->ibs_recv_wakes);
+					   &qca->ibs_recv_wakes);
 	debugfs_create_u64("ibs_recv_wake_acks", mode, ibs_dir,
-			   &qca->ibs_recv_wacks);
+					   &qca->ibs_recv_wacks);
 	debugfs_create_bool("tx_vote", mode, ibs_dir, &qca->tx_vote);
 	debugfs_create_u64("tx_votes_on", mode, ibs_dir, &qca->tx_votes_on);
 	debugfs_create_u64("tx_votes_off", mode, ibs_dir, &qca->tx_votes_off);
@@ -497,7 +541,7 @@ static void qca_debugfs_init(struct hci_dev *hdev)
 	mode = S_IRUGO | S_IWUSR;
 	debugfs_create_u32("wake_retrans", mode, ibs_dir, &qca->wake_retrans);
 	debugfs_create_u32("tx_idle_delay", mode, ibs_dir,
-			   &qca->tx_idle_delay);
+					   &qca->tx_idle_delay);
 }
 
 /* Flush protocol data */
@@ -551,31 +595,35 @@ static void device_want_to_wakeup(struct hci_uart *hu)
 
 	qca->ibs_recv_wakes++;
 
-	switch (qca->rx_ibs_state) {
-	case HCI_IBS_RX_ASLEEP:
-		/* Make sure clock is on - we may have turned clock off since
-		 * receiving the wake up indicator awake rx clock.
-		 */
-		queue_work(qca->workqueue, &qca->ws_awake_rx);
-		spin_unlock_irqrestore(&qca->hci_ibs_lock, flags);
-		return;
+	switch (qca->rx_ibs_state)
+	{
+		case HCI_IBS_RX_ASLEEP:
+			/* Make sure clock is on - we may have turned clock off since
+			 * receiving the wake up indicator awake rx clock.
+			 */
+			queue_work(qca->workqueue, &qca->ws_awake_rx);
+			spin_unlock_irqrestore(&qca->hci_ibs_lock, flags);
+			return;
 
-	case HCI_IBS_RX_AWAKE:
-		/* Always acknowledge device wake up,
-		 * sending IBS message doesn't count as TX ON.
-		 */
-		if (send_hci_ibs_cmd(HCI_IBS_WAKE_ACK, hu) < 0) {
-			BT_ERR("Failed to acknowledge device wake up");
+		case HCI_IBS_RX_AWAKE:
+
+			/* Always acknowledge device wake up,
+			 * sending IBS message doesn't count as TX ON.
+			 */
+			if (send_hci_ibs_cmd(HCI_IBS_WAKE_ACK, hu) < 0)
+			{
+				BT_ERR("Failed to acknowledge device wake up");
+				break;
+			}
+
+			qca->ibs_sent_wacks++;
 			break;
-		}
-		qca->ibs_sent_wacks++;
-		break;
 
-	default:
-		/* Any other state is illegal */
-		BT_ERR("Received HCI_IBS_WAKE_IND in rx state %d",
-		       qca->rx_ibs_state);
-		break;
+		default:
+			/* Any other state is illegal */
+			BT_ERR("Received HCI_IBS_WAKE_IND in rx state %d",
+				   qca->rx_ibs_state);
+			break;
 	}
 
 	spin_unlock_irqrestore(&qca->hci_ibs_lock, flags);
@@ -597,22 +645,24 @@ static void device_want_to_sleep(struct hci_uart *hu)
 
 	qca->ibs_recv_slps++;
 
-	switch (qca->rx_ibs_state) {
-	case HCI_IBS_RX_AWAKE:
-		/* Update state */
-		qca->rx_ibs_state = HCI_IBS_RX_ASLEEP;
-		/* Vote off rx clock under workqueue */
-		queue_work(qca->workqueue, &qca->ws_rx_vote_off);
-		break;
+	switch (qca->rx_ibs_state)
+	{
+		case HCI_IBS_RX_AWAKE:
+			/* Update state */
+			qca->rx_ibs_state = HCI_IBS_RX_ASLEEP;
+			/* Vote off rx clock under workqueue */
+			queue_work(qca->workqueue, &qca->ws_rx_vote_off);
+			break;
 
-	case HCI_IBS_RX_ASLEEP:
+		case HCI_IBS_RX_ASLEEP:
+
 		/* Fall through */
 
-	default:
-		/* Any other state is illegal */
-		BT_ERR("Received HCI_IBS_SLEEP_IND in rx state %d",
-		       qca->rx_ibs_state);
-		break;
+		default:
+			/* Any other state is illegal */
+			BT_ERR("Received HCI_IBS_SLEEP_IND in rx state %d",
+				   qca->rx_ibs_state);
+			break;
 	}
 
 	spin_unlock_irqrestore(&qca->hci_ibs_lock, flags);
@@ -632,32 +682,37 @@ static void device_woke_up(struct hci_uart *hu)
 
 	qca->ibs_recv_wacks++;
 
-	switch (qca->tx_ibs_state) {
-	case HCI_IBS_TX_AWAKE:
-		/* Expect one if we send 2 WAKEs */
-		BT_DBG("Received HCI_IBS_WAKE_ACK in tx state %d",
-		       qca->tx_ibs_state);
-		break;
+	switch (qca->tx_ibs_state)
+	{
+		case HCI_IBS_TX_AWAKE:
+			/* Expect one if we send 2 WAKEs */
+			BT_DBG("Received HCI_IBS_WAKE_ACK in tx state %d",
+				   qca->tx_ibs_state);
+			break;
 
-	case HCI_IBS_TX_WAKING:
-		/* Send pending packets */
-		while ((skb = skb_dequeue(&qca->tx_wait_q)))
-			skb_queue_tail(&qca->txq, skb);
+		case HCI_IBS_TX_WAKING:
 
-		/* Switch timers and change state to HCI_IBS_TX_AWAKE */
-		del_timer(&qca->wake_retrans_timer);
-		idle_delay = msecs_to_jiffies(qca->tx_idle_delay);
-		mod_timer(&qca->tx_idle_timer, jiffies + idle_delay);
-		qca->tx_ibs_state = HCI_IBS_TX_AWAKE;
-		break;
+			/* Send pending packets */
+			while ((skb = skb_dequeue(&qca->tx_wait_q)))
+			{
+				skb_queue_tail(&qca->txq, skb);
+			}
 
-	case HCI_IBS_TX_ASLEEP:
+			/* Switch timers and change state to HCI_IBS_TX_AWAKE */
+			del_timer(&qca->wake_retrans_timer);
+			idle_delay = msecs_to_jiffies(qca->tx_idle_delay);
+			mod_timer(&qca->tx_idle_timer, jiffies + idle_delay);
+			qca->tx_ibs_state = HCI_IBS_TX_AWAKE;
+			break;
+
+		case HCI_IBS_TX_ASLEEP:
+
 		/* Fall through */
 
-	default:
-		BT_ERR("Received HCI_IBS_WAKE_ACK in tx state %d",
-		       qca->tx_ibs_state);
-		break;
+		default:
+			BT_ERR("Received HCI_IBS_WAKE_ACK in tx state %d",
+				   qca->tx_ibs_state);
+			break;
 	}
 
 	spin_unlock_irqrestore(&qca->hci_ibs_lock, flags);
@@ -675,7 +730,7 @@ static int qca_enqueue(struct hci_uart *hu, struct sk_buff *skb)
 	struct qca_data *qca = hu->priv;
 
 	BT_DBG("hu %p qca enq skb %p tx_ibs_state %d", hu, skb,
-	       qca->tx_ibs_state);
+		   qca->tx_ibs_state);
 
 	/* Prepend skb with frame type */
 	memcpy(skb_push(skb, 1), &hci_skb_pkt_type(skb), 1);
@@ -683,7 +738,8 @@ static int qca_enqueue(struct hci_uart *hu, struct sk_buff *skb)
 	/* Don't go to sleep in middle of patch download or
 	 * Out-Of-Band(GPIOs control) sleep is selected.
 	 */
-	if (!test_bit(STATE_IN_BAND_SLEEP_ENABLED, &qca->flags)) {
+	if (!test_bit(STATE_IN_BAND_SLEEP_ENABLED, &qca->flags))
+	{
 		skb_queue_tail(&qca->txq, skb);
 		return 0;
 	}
@@ -691,35 +747,36 @@ static int qca_enqueue(struct hci_uart *hu, struct sk_buff *skb)
 	spin_lock_irqsave(&qca->hci_ibs_lock, flags);
 
 	/* Act according to current state */
-	switch (qca->tx_ibs_state) {
-	case HCI_IBS_TX_AWAKE:
-		BT_DBG("Device awake, sending normally");
-		skb_queue_tail(&qca->txq, skb);
-		idle_delay = msecs_to_jiffies(qca->tx_idle_delay);
-		mod_timer(&qca->tx_idle_timer, jiffies + idle_delay);
-		break;
+	switch (qca->tx_ibs_state)
+	{
+		case HCI_IBS_TX_AWAKE:
+			BT_DBG("Device awake, sending normally");
+			skb_queue_tail(&qca->txq, skb);
+			idle_delay = msecs_to_jiffies(qca->tx_idle_delay);
+			mod_timer(&qca->tx_idle_timer, jiffies + idle_delay);
+			break;
 
-	case HCI_IBS_TX_ASLEEP:
-		BT_DBG("Device asleep, waking up and queueing packet");
-		/* Save packet for later */
-		skb_queue_tail(&qca->tx_wait_q, skb);
+		case HCI_IBS_TX_ASLEEP:
+			BT_DBG("Device asleep, waking up and queueing packet");
+			/* Save packet for later */
+			skb_queue_tail(&qca->tx_wait_q, skb);
 
-		qca->tx_ibs_state = HCI_IBS_TX_WAKING;
-		/* Schedule a work queue to wake up device */
-		queue_work(qca->workqueue, &qca->ws_awake_device);
-		break;
+			qca->tx_ibs_state = HCI_IBS_TX_WAKING;
+			/* Schedule a work queue to wake up device */
+			queue_work(qca->workqueue, &qca->ws_awake_device);
+			break;
 
-	case HCI_IBS_TX_WAKING:
-		BT_DBG("Device waking up, queueing packet");
-		/* Transient state; just keep packet for later */
-		skb_queue_tail(&qca->tx_wait_q, skb);
-		break;
+		case HCI_IBS_TX_WAKING:
+			BT_DBG("Device waking up, queueing packet");
+			/* Transient state; just keep packet for later */
+			skb_queue_tail(&qca->tx_wait_q, skb);
+			break;
 
-	default:
-		BT_ERR("Illegal tx state: %d (losing packet)",
-		       qca->tx_ibs_state);
-		kfree_skb(skb);
-		break;
+		default:
+			BT_ERR("Illegal tx state: %d (losing packet)",
+				   qca->tx_ibs_state);
+			kfree_skb(skb);
+			break;
 	}
 
 	spin_unlock_irqrestore(&qca->hci_ibs_lock, flags);
@@ -765,26 +822,27 @@ static int qca_ibs_wake_ack(struct hci_dev *hdev, struct sk_buff *skb)
 
 #define QCA_IBS_SLEEP_IND_EVENT \
 	.type = HCI_IBS_SLEEP_IND, \
-	.hlen = 0, \
-	.loff = 0, \
-	.lsize = 0, \
-	.maxlen = HCI_MAX_IBS_SIZE
+			.hlen = 0, \
+					.loff = 0, \
+							.lsize = 0, \
+									 .maxlen = HCI_MAX_IBS_SIZE
 
 #define QCA_IBS_WAKE_IND_EVENT \
 	.type = HCI_IBS_WAKE_IND, \
-	.hlen = 0, \
-	.loff = 0, \
-	.lsize = 0, \
-	.maxlen = HCI_MAX_IBS_SIZE
+			.hlen = 0, \
+					.loff = 0, \
+							.lsize = 0, \
+									 .maxlen = HCI_MAX_IBS_SIZE
 
 #define QCA_IBS_WAKE_ACK_EVENT \
 	.type = HCI_IBS_WAKE_ACK, \
-	.hlen = 0, \
-	.loff = 0, \
-	.lsize = 0, \
-	.maxlen = HCI_MAX_IBS_SIZE
+			.hlen = 0, \
+					.loff = 0, \
+							.lsize = 0, \
+									 .maxlen = HCI_MAX_IBS_SIZE
 
-static const struct h4_recv_pkt qca_recv_pkts[] = {
+static const struct h4_recv_pkt qca_recv_pkts[] =
+{
 	{ H4_RECV_ACL,             .recv = hci_recv_frame    },
 	{ H4_RECV_SCO,             .recv = hci_recv_frame    },
 	{ H4_RECV_EVENT,           .recv = hci_recv_frame    },
@@ -798,11 +856,15 @@ static int qca_recv(struct hci_uart *hu, const void *data, int count)
 	struct qca_data *qca = hu->priv;
 
 	if (!test_bit(HCI_UART_REGISTERED, &hu->flags))
+	{
 		return -EUNATCH;
+	}
 
 	qca->rx_skb = h4_recv_buf(hu->hdev, qca->rx_skb, data, count,
-				  qca_recv_pkts, ARRAY_SIZE(qca_recv_pkts));
-	if (IS_ERR(qca->rx_skb)) {
+							  qca_recv_pkts, ARRAY_SIZE(qca_recv_pkts));
+
+	if (IS_ERR(qca->rx_skb))
+	{
 		int err = PTR_ERR(qca->rx_skb);
 		BT_ERR("%s: Frame reassembly failed (%d)", hu->hdev->name, err);
 		qca->rx_skb = NULL;
@@ -821,35 +883,49 @@ static struct sk_buff *qca_dequeue(struct hci_uart *hu)
 
 static uint8_t qca_get_baudrate_value(int speed)
 {
-	switch (speed) {
-	case 9600:
-		return QCA_BAUDRATE_9600;
-	case 19200:
-		return QCA_BAUDRATE_19200;
-	case 38400:
-		return QCA_BAUDRATE_38400;
-	case 57600:
-		return QCA_BAUDRATE_57600;
-	case 115200:
-		return QCA_BAUDRATE_115200;
-	case 230400:
-		return QCA_BAUDRATE_230400;
-	case 460800:
-		return QCA_BAUDRATE_460800;
-	case 500000:
-		return QCA_BAUDRATE_500000;
-	case 921600:
-		return QCA_BAUDRATE_921600;
-	case 1000000:
-		return QCA_BAUDRATE_1000000;
-	case 2000000:
-		return QCA_BAUDRATE_2000000;
-	case 3000000:
-		return QCA_BAUDRATE_3000000;
-	case 3500000:
-		return QCA_BAUDRATE_3500000;
-	default:
-		return QCA_BAUDRATE_115200;
+	switch (speed)
+	{
+		case 9600:
+			return QCA_BAUDRATE_9600;
+
+		case 19200:
+			return QCA_BAUDRATE_19200;
+
+		case 38400:
+			return QCA_BAUDRATE_38400;
+
+		case 57600:
+			return QCA_BAUDRATE_57600;
+
+		case 115200:
+			return QCA_BAUDRATE_115200;
+
+		case 230400:
+			return QCA_BAUDRATE_230400;
+
+		case 460800:
+			return QCA_BAUDRATE_460800;
+
+		case 500000:
+			return QCA_BAUDRATE_500000;
+
+		case 921600:
+			return QCA_BAUDRATE_921600;
+
+		case 1000000:
+			return QCA_BAUDRATE_1000000;
+
+		case 2000000:
+			return QCA_BAUDRATE_2000000;
+
+		case 3000000:
+			return QCA_BAUDRATE_3000000;
+
+		case 3500000:
+			return QCA_BAUDRATE_3500000;
+
+		default:
+			return QCA_BAUDRATE_115200;
 	}
 }
 
@@ -861,12 +937,16 @@ static int qca_set_baudrate(struct hci_dev *hdev, uint8_t baudrate)
 	u8 cmd[] = { 0x01, 0x48, 0xFC, 0x01, 0x00 };
 
 	if (baudrate > QCA_BAUDRATE_3000000)
+	{
 		return -EINVAL;
+	}
 
 	cmd[4] = baudrate;
 
 	skb = bt_skb_alloc(sizeof(cmd), GFP_ATOMIC);
-	if (!skb) {
+
+	if (!skb)
+	{
 		BT_ERR("Failed to allocate memory for baudrate packet");
 		return -ENOMEM;
 	}
@@ -903,37 +983,55 @@ static int qca_setup(struct hci_uart *hu)
 
 	/* Setup initial baudrate */
 	speed = 0;
+
 	if (hu->init_speed)
+	{
 		speed = hu->init_speed;
+	}
 	else if (hu->proto->init_speed)
+	{
 		speed = hu->proto->init_speed;
+	}
 
 	if (speed)
+	{
 		hci_uart_set_baudrate(hu, speed);
+	}
 
 	/* Setup user speed if needed */
 	speed = 0;
-	if (hu->oper_speed)
-		speed = hu->oper_speed;
-	else if (hu->proto->oper_speed)
-		speed = hu->proto->oper_speed;
 
-	if (speed) {
+	if (hu->oper_speed)
+	{
+		speed = hu->oper_speed;
+	}
+	else if (hu->proto->oper_speed)
+	{
+		speed = hu->proto->oper_speed;
+	}
+
+	if (speed)
+	{
 		qca_baudrate = qca_get_baudrate_value(speed);
 
 		BT_INFO("%s: Set UART speed to %d", hdev->name, speed);
 		ret = qca_set_baudrate(hdev, qca_baudrate);
-		if (ret) {
+
+		if (ret)
+		{
 			BT_ERR("%s: Failed to change the baud rate (%d)",
-			       hdev->name, ret);
+				   hdev->name, ret);
 			return ret;
 		}
+
 		hci_uart_set_baudrate(hu, speed);
 	}
 
 	/* Setup patch / NVM configurations */
 	ret = qca_uart_setup_rome(hdev, qca_baudrate);
-	if (!ret) {
+
+	if (!ret)
+	{
 		set_bit(STATE_IN_BAND_SLEEP_ENABLED, &qca->flags);
 		qca_debugfs_init(hdev);
 	}
@@ -944,7 +1042,8 @@ static int qca_setup(struct hci_uart *hu)
 	return ret;
 }
 
-static struct hci_uart_proto qca_proto = {
+static struct hci_uart_proto qca_proto =
+{
 	.id		= HCI_UART_QCA,
 	.name		= "QCA",
 	.manufacturer	= 29,

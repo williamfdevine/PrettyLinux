@@ -64,8 +64,11 @@ static int ams_input_enable(void)
 	ams_info.zcalib = z;
 
 	ams_info.idev = input_allocate_polled_device();
+
 	if (!ams_info.idev)
+	{
 		return -ENOMEM;
+	}
 
 	ams_info.idev->poll = ams_idev_poll;
 	ams_info.idev->poll_interval = 25;
@@ -85,7 +88,9 @@ static int ams_input_enable(void)
 	set_bit(BTN_TOUCH, input->keybit);
 
 	error = input_register_polled_device(ams_info.idev);
-	if (error) {
+
+	if (error)
+	{
 		input_free_polled_device(ams_info.idev);
 		ams_info.idev = NULL;
 		return error;
@@ -98,7 +103,8 @@ static int ams_input_enable(void)
 
 static void ams_input_disable(void)
 {
-	if (ams_info.idev) {
+	if (ams_info.idev)
+	{
 		input_unregister_polled_device(ams_info.idev);
 		input_free_polled_device(ams_info.idev);
 		ams_info.idev = NULL;
@@ -108,31 +114,42 @@ static void ams_input_disable(void)
 }
 
 static ssize_t ams_input_show_joystick(struct device *dev,
-	struct device_attribute *attr, char *buf)
+									   struct device_attribute *attr, char *buf)
 {
 	return sprintf(buf, "%d\n", joystick);
 }
 
 static ssize_t ams_input_store_joystick(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t count)
+										struct device_attribute *attr, const char *buf, size_t count)
 {
 	unsigned long enable;
 	int error = 0;
 	int ret;
 
 	ret = kstrtoul(buf, 0, &enable);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	if (enable > 1)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&ams_input_mutex);
 
-	if (enable != joystick) {
+	if (enable != joystick)
+	{
 		if (enable)
+		{
 			error = ams_input_enable();
+		}
 		else
+		{
 			ams_input_disable();
+		}
 	}
 
 	mutex_unlock(&ams_input_mutex);
@@ -141,12 +158,14 @@ static ssize_t ams_input_store_joystick(struct device *dev,
 }
 
 static DEVICE_ATTR(joystick, S_IRUGO | S_IWUSR,
-	ams_input_show_joystick, ams_input_store_joystick);
+				   ams_input_show_joystick, ams_input_store_joystick);
 
 int ams_input_init(void)
 {
 	if (joystick)
+	{
 		ams_input_enable();
+	}
 
 	return device_create_file(&ams_info.of_dev->dev, &dev_attr_joystick);
 }

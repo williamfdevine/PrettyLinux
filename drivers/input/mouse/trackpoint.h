@@ -22,7 +22,7 @@
 
 #define TP_READ_ID		0xE1	/* Sent for device identification */
 #define TP_MAGIC_IDENT		0x01	/* Sent after a TP_READ_ID followed */
-					/* by the firmware ID */
+/* by the firmware ID */
 
 
 /*
@@ -60,19 +60,19 @@
 #define TP_SPEED		0x60	/* Speed of TP Cursor */
 #define TP_REACH		0x57	/* Backup for Z-axis press */
 #define TP_DRAGHYS		0x58	/* Drag Hysteresis */
-					/* (how hard it is to drag */
-					/* with Z-axis pressed) */
+/* (how hard it is to drag */
+/* with Z-axis pressed) */
 
 #define TP_MINDRAG		0x59	/* Minimum amount of force needed */
-					/* to trigger dragging */
+/* to trigger dragging */
 
 #define TP_THRESH		0x5C	/* Minimum value for a Z-axis press */
 #define TP_UP_THRESH		0x5A	/* Used to generate a 'click' on Z-axis */
 #define TP_Z_TIME		0x5E	/* How sharp of a press */
 #define TP_JENKS_CURV		0x5D	/* Minimum curvature for double click */
 #define TP_DRIFT_TIME		0x5F	/* How long a 'hands off' condition */
-					/* must last (x*107ms) for drift */
-					/* correction to occur */
+/* must last (x*107ms) for drift */
+/* correction to occur */
 
 /*
  * Toggling Flag bits

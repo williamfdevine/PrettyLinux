@@ -47,7 +47,8 @@
  * The @parent is a physical device. It must be set by core or device drivers
  * before registering the node.
  */
-struct cec_devnode {
+struct cec_devnode
+{
 	/* sysfs */
 	struct device dev;
 	struct cdev cdev;
@@ -64,7 +65,8 @@ struct cec_devnode {
 struct cec_adapter;
 struct cec_data;
 
-struct cec_data {
+struct cec_data
+{
 	struct list_head list;
 	struct list_head xfer_list;
 	struct cec_adapter *adap;
@@ -78,14 +80,16 @@ struct cec_data {
 	bool completed;
 };
 
-struct cec_msg_entry {
+struct cec_msg_entry
+{
 	struct list_head	list;
 	struct cec_msg		msg;
 };
 
 #define CEC_NUM_EVENTS		CEC_EVENT_LOST_MSGS
 
-struct cec_fh {
+struct cec_fh
+{
 	struct list_head	list;
 	struct list_head	xfer_list;
 	struct cec_adapter	*adap;
@@ -108,13 +112,14 @@ struct cec_fh {
 /* The nominal data bit period is 2.4 ms */
 #define CEC_FREE_TIME_TO_USEC(ft)		((ft) * 2400)
 
-struct cec_adap_ops {
+struct cec_adap_ops
+{
 	/* Low-level callbacks */
 	int (*adap_enable)(struct cec_adapter *adap, bool enable);
 	int (*adap_monitor_all_enable)(struct cec_adapter *adap, bool enable);
 	int (*adap_log_addr)(struct cec_adapter *adap, u8 logical_addr);
 	int (*adap_transmit)(struct cec_adapter *adap, u8 attempts,
-			     u32 signal_free_time, struct cec_msg *msg);
+						 u32 signal_free_time, struct cec_msg *msg);
 	void (*adap_status)(struct cec_adapter *adap, struct seq_file *file);
 
 	/* High-level CEC message callback */
@@ -141,7 +146,8 @@ struct cec_adap_ops {
  */
 #define CEC_MAX_MSG_TX_QUEUE_SZ		(18 * 1)
 
-struct cec_adapter {
+struct cec_adapter
+{
 	struct module *owner;
 	char name[32];
 	struct cec_devnode devnode;
@@ -205,15 +211,15 @@ void cec_unregister_adapter(struct cec_adapter *adap);
 void cec_delete_adapter(struct cec_adapter *adap);
 
 int cec_s_log_addrs(struct cec_adapter *adap, struct cec_log_addrs *log_addrs,
-		    bool block);
+					bool block);
 void cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr,
-		     bool block);
+					 bool block);
 int cec_transmit_msg(struct cec_adapter *adap, struct cec_msg *msg,
-		     bool block);
+					 bool block);
 
 /* Called by the adapter */
 void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
-		       u8 nack_cnt, u8 low_drive_cnt, u8 error_cnt);
+					   u8 nack_cnt, u8 low_drive_cnt, u8 error_cnt);
 void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg);
 
 #else
@@ -232,7 +238,7 @@ static inline void cec_delete_adapter(struct cec_adapter *adap)
 }
 
 static inline void cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr,
-				   bool block)
+								   bool block)
 {
 }
 

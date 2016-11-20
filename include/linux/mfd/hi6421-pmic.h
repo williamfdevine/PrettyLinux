@@ -34,7 +34,8 @@
 #define HI6421_OCP_AUTO_STOP_MASK	0x01
 #define HI6421_OCP_AUTO_STOP_ENABLE	0x01
 
-struct hi6421_pmic {
+struct hi6421_pmic
+{
 	struct regmap		*regmap;
 };
 

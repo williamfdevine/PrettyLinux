@@ -199,7 +199,8 @@
 
 
 
-struct aaci_runtime {
+struct aaci_runtime
+{
 	void			__iomem *base;
 	void			__iomem *fifo;
 	spinlock_t		lock;
@@ -222,7 +223,8 @@ struct aaci_runtime {
 	unsigned int		fifo_bytes;
 };
 
-struct aaci {
+struct aaci
+{
 	struct amba_device	*dev;
 	struct snd_card		*card;
 	void			__iomem *base;

@@ -209,7 +209,8 @@ typedef struct _MGSL_PARAMS
 /*
  * Counters of the input lines (CTS, DSR, RI, CD) interrupts
  */
-struct mgsl_icount {
+struct mgsl_icount
+{
 	__u32	cts, dsr, rng, dcd, tx, rx;
 	__u32	frame, parity, overrun, brk;
 	__u32	buf_overrun;
@@ -227,7 +228,8 @@ struct mgsl_icount {
 	__u32	rxidle;
 };
 
-struct gpio_desc {
+struct gpio_desc
+{
 	__u32 state;
 	__u32 smask;
 	__u32 dir;

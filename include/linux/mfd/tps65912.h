@@ -268,7 +268,8 @@
 #define DCDC_LIMIT_MAX_SEL_SHIFT	0
 
 /* Define the TPS65912 IRQ numbers */
-enum tps65912_irqs {
+enum tps65912_irqs
+{
 	/* INT_STS registers */
 	TPS65912_IRQ_PWRHOLD_F,
 	TPS65912_IRQ_VMON,
@@ -310,7 +311,8 @@ enum tps65912_irqs {
  *
  * Device data may be used to access the TPS65912 chip
  */
-struct tps65912 {
+struct tps65912
+{
 	struct device *dev;
 	struct regmap *regmap;
 
@@ -319,16 +321,19 @@ struct tps65912 {
 	struct regmap_irq_chip_data *irq_data;
 };
 
-static const struct regmap_range tps65912_yes_ranges[] = {
+static const struct regmap_range tps65912_yes_ranges[] =
+{
 	regmap_reg_range(TPS65912_INT_STS, TPS65912_GPIO5),
 };
 
-static const struct regmap_access_table tps65912_volatile_table = {
+static const struct regmap_access_table tps65912_volatile_table =
+{
 	.yes_ranges = tps65912_yes_ranges,
 	.n_yes_ranges = ARRAY_SIZE(tps65912_yes_ranges),
 };
 
-static const struct regmap_config tps65912_regmap_config = {
+static const struct regmap_config tps65912_regmap_config =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 	.cache_type = REGCACHE_RBTREE,

@@ -18,7 +18,7 @@
 #include "internal.h"
 
 #define VALID_FLAGS (SYNC_FILE_RANGE_WAIT_BEFORE|SYNC_FILE_RANGE_WRITE| \
-			SYNC_FILE_RANGE_WAIT_AFTER)
+					 SYNC_FILE_RANGE_WAIT_AFTER)
 
 /*
  * Do the filesystem syncing work. For simple filesystems
@@ -30,12 +30,19 @@
 static int __sync_filesystem(struct super_block *sb, int wait)
 {
 	if (wait)
+	{
 		sync_inodes_sb(sb);
+	}
 	else
+	{
 		writeback_inodes_sb(sb, WB_REASON_SYNC);
+	}
 
 	if (sb->s_op->sync_fs)
+	{
 		sb->s_op->sync_fs(sb, wait);
+	}
+
 	return __sync_blockdev(sb->s_bdev, wait);
 }
 
@@ -58,11 +65,17 @@ int sync_filesystem(struct super_block *sb)
 	 * No point in syncing out anything if the filesystem is read-only.
 	 */
 	if (sb->s_flags & MS_RDONLY)
+	{
 		return 0;
+	}
 
 	ret = __sync_filesystem(sb, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return __sync_filesystem(sb, 1);
 }
 EXPORT_SYMBOL(sync_filesystem);
@@ -70,13 +83,17 @@ EXPORT_SYMBOL(sync_filesystem);
 static void sync_inodes_one_sb(struct super_block *sb, void *arg)
 {
 	if (!(sb->s_flags & MS_RDONLY))
+	{
 		sync_inodes_sb(sb);
+	}
 }
 
 static void sync_fs_one_sb(struct super_block *sb, void *arg)
 {
 	if (!(sb->s_flags & MS_RDONLY) && sb->s_op->sync_fs)
+	{
 		sb->s_op->sync_fs(sb, *(int *)arg);
+	}
 }
 
 static void fdatawrite_one_bdev(struct block_device *bdev, void *arg)
@@ -114,8 +131,12 @@ SYSCALL_DEFINE0(sync)
 	iterate_supers(sync_fs_one_sb, &wait);
 	iterate_bdevs(fdatawrite_one_bdev, NULL);
 	iterate_bdevs(fdatawait_one_bdev, NULL);
+
 	if (unlikely(laptop_mode))
+	{
 		laptop_sync_completion();
+	}
+
 	return 0;
 }
 
@@ -142,7 +163,9 @@ void emergency_sync(void)
 	struct work_struct *work;
 
 	work = kmalloc(sizeof(*work), GFP_ATOMIC);
-	if (work) {
+
+	if (work)
+	{
 		INIT_WORK(work, do_sync_work);
 		schedule_work(work);
 	}
@@ -158,7 +181,10 @@ SYSCALL_DEFINE1(syncfs, int, fd)
 	int ret;
 
 	if (!f.file)
+	{
 		return -EBADF;
+	}
+
 	sb = f.file->f_path.dentry->d_sb;
 
 	down_read(&sb->s_umount);
@@ -185,13 +211,18 @@ int vfs_fsync_range(struct file *file, loff_t start, loff_t end, int datasync)
 	struct inode *inode = file->f_mapping->host;
 
 	if (!file->f_op->fsync)
+	{
 		return -EINVAL;
-	if (!datasync && (inode->i_state & I_DIRTY_TIME)) {
+	}
+
+	if (!datasync && (inode->i_state & I_DIRTY_TIME))
+	{
 		spin_lock(&inode->i_lock);
 		inode->i_state &= ~I_DIRTY_TIME;
 		spin_unlock(&inode->i_lock);
 		mark_inode_dirty_sync(inode);
 	}
+
 	return file->f_op->fsync(file, start, end, datasync);
 }
 EXPORT_SYMBOL(vfs_fsync_range);
@@ -215,10 +246,12 @@ static int do_fsync(unsigned int fd, int datasync)
 	struct fd f = fdget(fd);
 	int ret = -EBADF;
 
-	if (f.file) {
+	if (f.file)
+	{
 		ret = vfs_fsync(f.file, datasync);
 		fdput(f);
 	}
+
 	return ret;
 }
 
@@ -289,20 +322,33 @@ SYSCALL_DEFINE4(sync_file_range, int, fd, loff_t, offset, loff_t, nbytes,
 	umode_t i_mode;
 
 	ret = -EINVAL;
+
 	if (flags & ~VALID_FLAGS)
+	{
 		goto out;
+	}
 
 	endbyte = offset + nbytes;
 
 	if ((s64)offset < 0)
+	{
 		goto out;
-	if ((s64)endbyte < 0)
-		goto out;
-	if (endbyte < offset)
-		goto out;
+	}
 
-	if (sizeof(pgoff_t) == 4) {
-		if (offset >= (0x100000000ULL << PAGE_SHIFT)) {
+	if ((s64)endbyte < 0)
+	{
+		goto out;
+	}
+
+	if (endbyte < offset)
+	{
+		goto out;
+	}
+
+	if (sizeof(pgoff_t) == 4)
+	{
+		if (offset >= (0x100000000ULL << PAGE_SHIFT))
+		{
 			/*
 			 * The range starts outside a 32 bit machine's
 			 * pagecache addressing capabilities.  Let it "succeed"
@@ -310,7 +356,9 @@ SYSCALL_DEFINE4(sync_file_range, int, fd, loff_t, offset, loff_t, nbytes,
 			ret = 0;
 			goto out;
 		}
-		if (endbyte >= (0x100000000ULL << PAGE_SHIFT)) {
+
+		if (endbyte >= (0x100000000ULL << PAGE_SHIFT))
+		{
 			/*
 			 * Out to EOF
 			 */
@@ -319,43 +367,66 @@ SYSCALL_DEFINE4(sync_file_range, int, fd, loff_t, offset, loff_t, nbytes,
 	}
 
 	if (nbytes == 0)
+	{
 		endbyte = LLONG_MAX;
+	}
 	else
-		endbyte--;		/* inclusive */
+	{
+		endbyte--;    /* inclusive */
+	}
 
 	ret = -EBADF;
 	f = fdget(fd);
+
 	if (!f.file)
+	{
 		goto out;
+	}
 
 	i_mode = file_inode(f.file)->i_mode;
 	ret = -ESPIPE;
+
 	if (!S_ISREG(i_mode) && !S_ISBLK(i_mode) && !S_ISDIR(i_mode) &&
-			!S_ISLNK(i_mode))
+		!S_ISLNK(i_mode))
+	{
 		goto out_put;
+	}
 
 	mapping = f.file->f_mapping;
-	if (!mapping) {
+
+	if (!mapping)
+	{
 		ret = -EINVAL;
 		goto out_put;
 	}
 
 	ret = 0;
-	if (flags & SYNC_FILE_RANGE_WAIT_BEFORE) {
+
+	if (flags & SYNC_FILE_RANGE_WAIT_BEFORE)
+	{
 		ret = filemap_fdatawait_range(mapping, offset, endbyte);
+
 		if (ret < 0)
+		{
 			goto out_put;
+		}
 	}
 
-	if (flags & SYNC_FILE_RANGE_WRITE) {
+	if (flags & SYNC_FILE_RANGE_WRITE)
+	{
 		ret = __filemap_fdatawrite_range(mapping, offset, endbyte,
-						 WB_SYNC_NONE);
+										 WB_SYNC_NONE);
+
 		if (ret < 0)
+		{
 			goto out_put;
+		}
 	}
 
 	if (flags & SYNC_FILE_RANGE_WAIT_AFTER)
+	{
 		ret = filemap_fdatawait_range(mapping, offset, endbyte);
+	}
 
 out_put:
 	fdput(f);
@@ -366,7 +437,7 @@ out:
 /* It would be nice if people remember that not all the world's an i386
    when they introduce new system calls */
 SYSCALL_DEFINE4(sync_file_range2, int, fd, unsigned int, flags,
-				 loff_t, offset, loff_t, nbytes)
+				loff_t, offset, loff_t, nbytes)
 {
 	return sys_sync_file_range(fd, offset, nbytes, flags);
 }

@@ -40,7 +40,7 @@
 #define B53_SPI_PAGE_SELECT	0xff
 
 static inline int b53_spi_read_reg(struct spi_device *spi, u8 reg, u8 *val,
-				   unsigned int len)
+								   unsigned int len)
 {
 	u8 txbuf[2];
 
@@ -56,19 +56,27 @@ static inline int b53_spi_clear_status(struct spi_device *spi)
 	u8 rxbuf;
 	int ret;
 
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 10; i++)
+	{
 		ret = b53_spi_read_reg(spi, B53_SPI_STATUS, &rxbuf, 1);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		if (!(rxbuf & B53_SPI_CMD_SPIF))
+		{
 			break;
+		}
 
 		mdelay(1);
 	}
 
 	if (i == 10)
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
@@ -89,7 +97,9 @@ static inline int b53_prepare_reg_access(struct spi_device *spi, u8 page)
 	int ret = b53_spi_clear_status(spi);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	return b53_spi_set_page(spi, page);
 }
@@ -101,39 +111,56 @@ static int b53_spi_prepare_reg_read(struct spi_device *spi, u8 reg)
 	int ret;
 
 	ret = b53_spi_read_reg(spi, reg, &rxbuf, 1);
-	if (ret)
-		return ret;
 
-	for (retry_count = 0; retry_count < 10; retry_count++) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	for (retry_count = 0; retry_count < 10; retry_count++)
+	{
 		ret = b53_spi_read_reg(spi, B53_SPI_STATUS, &rxbuf, 1);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		if (rxbuf & B53_SPI_CMD_RACK)
+		{
 			break;
+		}
 
 		mdelay(1);
 	}
 
 	if (retry_count == 10)
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
 
 static int b53_spi_read(struct b53_device *dev, u8 page, u8 reg, u8 *data,
-			unsigned int len)
+						unsigned int len)
 {
 	struct spi_device *spi = dev->priv;
 	int ret;
 
 	ret = b53_prepare_reg_access(spi, page);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = b53_spi_prepare_reg_read(spi, reg);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return b53_spi_read_reg(spi, B53_SPI_DATA, data, len);
 }
@@ -148,7 +175,9 @@ static int b53_spi_read16(struct b53_device *dev, u8 page, u8 reg, u16 *val)
 	int ret = b53_spi_read(dev, page, reg, (u8 *)val, 2);
 
 	if (!ret)
+	{
 		*val = le16_to_cpu(*val);
+	}
 
 	return ret;
 }
@@ -158,7 +187,9 @@ static int b53_spi_read32(struct b53_device *dev, u8 page, u8 reg, u32 *val)
 	int ret = b53_spi_read(dev, page, reg, (u8 *)val, 4);
 
 	if (!ret)
+	{
 		*val = le32_to_cpu(*val);
+	}
 
 	return ret;
 }
@@ -169,8 +200,11 @@ static int b53_spi_read48(struct b53_device *dev, u8 page, u8 reg, u64 *val)
 
 	*val = 0;
 	ret = b53_spi_read(dev, page, reg, (u8 *)val, 6);
+
 	if (!ret)
+	{
 		*val = le64_to_cpu(*val);
+	}
 
 	return ret;
 }
@@ -180,7 +214,9 @@ static int b53_spi_read64(struct b53_device *dev, u8 page, u8 reg, u64 *val)
 	int ret = b53_spi_read(dev, page, reg, (u8 *)val, 8);
 
 	if (!ret)
+	{
 		*val = le64_to_cpu(*val);
+	}
 
 	return ret;
 }
@@ -192,8 +228,11 @@ static int b53_spi_write8(struct b53_device *dev, u8 page, u8 reg, u8 value)
 	u8 txbuf[3];
 
 	ret = b53_prepare_reg_access(spi, page);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	txbuf[0] = B53_SPI_CMD_NORMAL | B53_SPI_CMD_WRITE;
 	txbuf[1] = reg;
@@ -209,8 +248,11 @@ static int b53_spi_write16(struct b53_device *dev, u8 page, u8 reg, u16 value)
 	u8 txbuf[4];
 
 	ret = b53_prepare_reg_access(spi, page);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	txbuf[0] = B53_SPI_CMD_NORMAL | B53_SPI_CMD_WRITE;
 	txbuf[1] = reg;
@@ -226,8 +268,11 @@ static int b53_spi_write32(struct b53_device *dev, u8 page, u8 reg, u32 value)
 	u8 txbuf[6];
 
 	ret = b53_prepare_reg_access(spi, page);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	txbuf[0] = B53_SPI_CMD_NORMAL | B53_SPI_CMD_WRITE;
 	txbuf[1] = reg;
@@ -243,8 +288,11 @@ static int b53_spi_write48(struct b53_device *dev, u8 page, u8 reg, u64 value)
 	u8 txbuf[10];
 
 	ret = b53_prepare_reg_access(spi, page);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	txbuf[0] = B53_SPI_CMD_NORMAL | B53_SPI_CMD_WRITE;
 	txbuf[1] = reg;
@@ -260,8 +308,11 @@ static int b53_spi_write64(struct b53_device *dev, u8 page, u8 reg, u64 value)
 	u8 txbuf[10];
 
 	ret = b53_prepare_reg_access(spi, page);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	txbuf[0] = B53_SPI_CMD_NORMAL | B53_SPI_CMD_WRITE;
 	txbuf[1] = reg;
@@ -270,7 +321,8 @@ static int b53_spi_write64(struct b53_device *dev, u8 page, u8 reg, u64 value)
 	return spi_write(spi, txbuf, sizeof(txbuf));
 }
 
-static const struct b53_io_ops b53_spi_ops = {
+static const struct b53_io_ops b53_spi_ops =
+{
 	.read8 = b53_spi_read8,
 	.read16 = b53_spi_read16,
 	.read32 = b53_spi_read32,
@@ -289,15 +341,23 @@ static int b53_spi_probe(struct spi_device *spi)
 	int ret;
 
 	dev = b53_switch_alloc(&spi->dev, &b53_spi_ops, spi);
+
 	if (!dev)
+	{
 		return -ENOMEM;
+	}
 
 	if (spi->dev.platform_data)
+	{
 		dev->pdata = spi->dev.platform_data;
+	}
 
 	ret = b53_switch_register(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	spi_set_drvdata(spi, dev);
 
@@ -309,12 +369,15 @@ static int b53_spi_remove(struct spi_device *spi)
 	struct b53_device *dev = spi_get_drvdata(spi);
 
 	if (dev)
+	{
 		b53_switch_remove(dev);
+	}
 
 	return 0;
 }
 
-static struct spi_driver b53_spi_driver = {
+static struct spi_driver b53_spi_driver =
+{
 	.driver = {
 		.name	= "b53-switch",
 	},

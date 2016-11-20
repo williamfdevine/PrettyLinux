@@ -14,25 +14,31 @@
 #include "governor.h"
 
 static int devfreq_performance_func(struct devfreq *df,
-				    unsigned long *freq)
+									unsigned long *freq)
 {
 	/*
 	 * target callback should be able to get floor value as
 	 * said in devfreq.h
 	 */
 	if (!df->max_freq)
+	{
 		*freq = UINT_MAX;
+	}
 	else
+	{
 		*freq = df->max_freq;
+	}
+
 	return 0;
 }
 
 static int devfreq_performance_handler(struct devfreq *devfreq,
-				unsigned int event, void *data)
+									   unsigned int event, void *data)
 {
 	int ret = 0;
 
-	if (event == DEVFREQ_GOV_START) {
+	if (event == DEVFREQ_GOV_START)
+	{
 		mutex_lock(&devfreq->lock);
 		ret = update_devfreq(devfreq);
 		mutex_unlock(&devfreq->lock);
@@ -41,7 +47,8 @@ static int devfreq_performance_handler(struct devfreq *devfreq,
 	return ret;
 }
 
-static struct devfreq_governor devfreq_performance = {
+static struct devfreq_governor devfreq_performance =
+{
 	.name = "performance",
 	.get_target_freq = devfreq_performance_func,
 	.event_handler = devfreq_performance_handler,
@@ -58,8 +65,11 @@ static void __exit devfreq_performance_exit(void)
 	int ret;
 
 	ret = devfreq_remove_governor(&devfreq_performance);
+
 	if (ret)
+	{
 		pr_err("%s: failed remove governor %d\n", __func__, ret);
+	}
 
 	return;
 }

@@ -23,7 +23,8 @@
 #include <linux/regmap.h>
 #include <linux/types.h>
 
-struct zynq_reset_data {
+struct zynq_reset_data
+{
 	struct regmap *slcr;
 	struct reset_controller_dev rcdev;
 	u32 offset;
@@ -33,7 +34,7 @@ struct zynq_reset_data {
 	container_of((p), struct zynq_reset_data, rcdev)
 
 static int zynq_reset_assert(struct reset_controller_dev *rcdev,
-			     unsigned long id)
+							 unsigned long id)
 {
 	struct zynq_reset_data *priv = to_zynq_reset_data(rcdev);
 
@@ -41,16 +42,16 @@ static int zynq_reset_assert(struct reset_controller_dev *rcdev,
 	int offset = id % BITS_PER_LONG;
 
 	pr_debug("%s: %s reset bank %u offset %u\n", KBUILD_MODNAME, __func__,
-		 bank, offset);
+			 bank, offset);
 
 	return regmap_update_bits(priv->slcr,
-				  priv->offset + (bank * 4),
-				  BIT(offset),
-				  BIT(offset));
+							  priv->offset + (bank * 4),
+							  BIT(offset),
+							  BIT(offset));
 }
 
 static int zynq_reset_deassert(struct reset_controller_dev *rcdev,
-			       unsigned long id)
+							   unsigned long id)
 {
 	struct zynq_reset_data *priv = to_zynq_reset_data(rcdev);
 
@@ -58,16 +59,16 @@ static int zynq_reset_deassert(struct reset_controller_dev *rcdev,
 	int offset = id % BITS_PER_LONG;
 
 	pr_debug("%s: %s reset bank %u offset %u\n", KBUILD_MODNAME, __func__,
-		 bank, offset);
+			 bank, offset);
 
 	return regmap_update_bits(priv->slcr,
-				  priv->offset + (bank * 4),
-				  BIT(offset),
-				  ~BIT(offset));
+							  priv->offset + (bank * 4),
+							  BIT(offset),
+							  ~BIT(offset));
 }
 
 static int zynq_reset_status(struct reset_controller_dev *rcdev,
-			     unsigned long id)
+							 unsigned long id)
 {
 	struct zynq_reset_data *priv = to_zynq_reset_data(rcdev);
 
@@ -77,16 +78,20 @@ static int zynq_reset_status(struct reset_controller_dev *rcdev,
 	u32 reg;
 
 	pr_debug("%s: %s reset bank %u offset %u\n", KBUILD_MODNAME, __func__,
-		 bank, offset);
+			 bank, offset);
 
 	ret = regmap_read(priv->slcr, priv->offset + (bank * 4), &reg);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return !!(reg & BIT(offset));
 }
 
-static const struct reset_control_ops zynq_reset_ops = {
+static const struct reset_control_ops zynq_reset_ops =
+{
 	.assert		= zynq_reset_assert,
 	.deassert	= zynq_reset_deassert,
 	.status		= zynq_reset_status,
@@ -98,19 +103,27 @@ static int zynq_reset_probe(struct platform_device *pdev)
 	struct zynq_reset_data *priv;
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
+
 	platform_set_drvdata(pdev, priv);
 
 	priv->slcr = syscon_regmap_lookup_by_phandle(pdev->dev.of_node,
-						     "syscon");
-	if (IS_ERR(priv->slcr)) {
+				 "syscon");
+
+	if (IS_ERR(priv->slcr))
+	{
 		dev_err(&pdev->dev, "unable to get zynq-slcr regmap");
 		return PTR_ERR(priv->slcr);
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "missing IO resource\n");
 		return -ENODEV;
 	}
@@ -125,12 +138,14 @@ static int zynq_reset_probe(struct platform_device *pdev)
 	return devm_reset_controller_register(&pdev->dev, &priv->rcdev);
 }
 
-static const struct of_device_id zynq_reset_dt_ids[] = {
+static const struct of_device_id zynq_reset_dt_ids[] =
+{
 	{ .compatible = "xlnx,zynq-reset", },
 	{ /* sentinel */ },
 };
 
-static struct platform_driver zynq_reset_driver = {
+static struct platform_driver zynq_reset_driver =
+{
 	.probe	= zynq_reset_probe,
 	.driver = {
 		.name		= KBUILD_MODNAME,

@@ -55,16 +55,16 @@
 #define to_meson_clk_cpu_nb(_nb) container_of(_nb, struct meson_clk_cpu, clk_nb)
 
 static long meson_clk_cpu_round_rate(struct clk_hw *hw, unsigned long rate,
-				     unsigned long *prate)
+									 unsigned long *prate)
 {
 	struct meson_clk_cpu *clk_cpu = to_meson_clk_cpu_hw(hw);
 
 	return divider_round_rate(hw, rate, prate, clk_cpu->div_table,
-				  MESON_N_WIDTH, CLK_DIVIDER_ROUND_CLOSEST);
+							  MESON_N_WIDTH, CLK_DIVIDER_ROUND_CLOSEST);
 }
 
 static int meson_clk_cpu_set_rate(struct clk_hw *hw, unsigned long rate,
-				  unsigned long parent_rate)
+								  unsigned long parent_rate)
 {
 	struct meson_clk_cpu *clk_cpu = to_meson_clk_cpu_hw(hw);
 	unsigned int div, sel, N = 0;
@@ -72,9 +72,12 @@ static int meson_clk_cpu_set_rate(struct clk_hw *hw, unsigned long rate,
 
 	div = DIV_ROUND_UP(parent_rate, rate);
 
-	if (div <= 3) {
+	if (div <= 3)
+	{
 		sel = div - 1;
-	} else {
+	}
+	else
+	{
 		sel = 3;
 		N = div / 2;
 	}
@@ -91,7 +94,7 @@ static int meson_clk_cpu_set_rate(struct clk_hw *hw, unsigned long rate,
 }
 
 static unsigned long meson_clk_cpu_recalc_rate(struct clk_hw *hw,
-					       unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct meson_clk_cpu *clk_cpu = to_meson_clk_cpu_hw(hw);
 	unsigned int N, sel;
@@ -105,47 +108,51 @@ static unsigned long meson_clk_cpu_recalc_rate(struct clk_hw *hw,
 	sel = PARM_GET(MESON_SEL_WIDTH, MESON_SEL_SHIFT, reg);
 
 	if (sel < 3)
+	{
 		div = sel + 1;
+	}
 	else
+	{
 		div = 2 * N;
+	}
 
 	return parent_rate / div;
 }
 
 /* FIXME MUX1 & MUX2 should be struct clk_hw objects */
 static int meson_clk_cpu_pre_rate_change(struct meson_clk_cpu *clk_cpu,
-					 struct clk_notifier_data *ndata)
+		struct clk_notifier_data *ndata)
 {
 	u32 cpu_clk_cntl;
 
 	/* switch MUX1 to xtal */
 	cpu_clk_cntl = readl(clk_cpu->base + clk_cpu->reg_off
-				+ MESON_CPU_CLK_CNTL);
+						 + MESON_CPU_CLK_CNTL);
 	cpu_clk_cntl &= ~MESON_CPU_CLK_MUX1;
 	writel(cpu_clk_cntl, clk_cpu->base + clk_cpu->reg_off
-				+ MESON_CPU_CLK_CNTL);
+		   + MESON_CPU_CLK_CNTL);
 	udelay(100);
 
 	/* switch MUX2 to sys-pll */
 	cpu_clk_cntl |= MESON_CPU_CLK_MUX2;
 	writel(cpu_clk_cntl, clk_cpu->base + clk_cpu->reg_off
-				+ MESON_CPU_CLK_CNTL);
+		   + MESON_CPU_CLK_CNTL);
 
 	return 0;
 }
 
 /* FIXME MUX1 & MUX2 should be struct clk_hw objects */
 static int meson_clk_cpu_post_rate_change(struct meson_clk_cpu *clk_cpu,
-					  struct clk_notifier_data *ndata)
+		struct clk_notifier_data *ndata)
 {
 	u32 cpu_clk_cntl;
 
 	/* switch MUX1 to divisors' output */
 	cpu_clk_cntl = readl(clk_cpu->base + clk_cpu->reg_off
-				+ MESON_CPU_CLK_CNTL);
+						 + MESON_CPU_CLK_CNTL);
 	cpu_clk_cntl |= MESON_CPU_CLK_MUX1;
 	writel(cpu_clk_cntl, clk_cpu->base + clk_cpu->reg_off
-				+ MESON_CPU_CLK_CNTL);
+		   + MESON_CPU_CLK_CNTL);
 	udelay(100);
 
 	return 0;
@@ -157,21 +164,26 @@ static int meson_clk_cpu_post_rate_change(struct meson_clk_cpu *clk_cpu,
  * while the PLL frequency is stabilized.
  */
 int meson_clk_cpu_notifier_cb(struct notifier_block *nb,
-				     unsigned long event, void *data)
+							  unsigned long event, void *data)
 {
 	struct clk_notifier_data *ndata = data;
 	struct meson_clk_cpu *clk_cpu = to_meson_clk_cpu_nb(nb);
 	int ret = 0;
 
 	if (event == PRE_RATE_CHANGE)
+	{
 		ret = meson_clk_cpu_pre_rate_change(clk_cpu, ndata);
+	}
 	else if (event == POST_RATE_CHANGE)
+	{
 		ret = meson_clk_cpu_post_rate_change(clk_cpu, ndata);
+	}
 
 	return notifier_from_errno(ret);
 }
 
-const struct clk_ops meson_clk_cpu_ops = {
+const struct clk_ops meson_clk_cpu_ops =
+{
 	.recalc_rate	= meson_clk_cpu_recalc_rate,
 	.round_rate	= meson_clk_cpu_round_rate,
 	.set_rate	= meson_clk_cpu_set_rate,

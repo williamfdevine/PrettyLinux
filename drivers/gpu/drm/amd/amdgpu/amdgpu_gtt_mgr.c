@@ -25,7 +25,8 @@
 #include <drm/drmP.h>
 #include "amdgpu.h"
 
-struct amdgpu_gtt_mgr {
+struct amdgpu_gtt_mgr
+{
 	struct drm_mm mm;
 	spinlock_t lock;
 	uint64_t available;
@@ -40,13 +41,16 @@ struct amdgpu_gtt_mgr {
  * Allocate and initialize the GTT manager.
  */
 static int amdgpu_gtt_mgr_init(struct ttm_mem_type_manager *man,
-			       unsigned long p_size)
+							   unsigned long p_size)
 {
 	struct amdgpu_gtt_mgr *mgr;
 
 	mgr = kzalloc(sizeof(*mgr), GFP_KERNEL);
+
 	if (!mgr)
+	{
 		return -ENOMEM;
+	}
 
 	drm_mm_init(&mgr->mm, 0, p_size);
 	spin_lock_init(&mgr->lock);
@@ -68,7 +72,9 @@ static int amdgpu_gtt_mgr_fini(struct ttm_mem_type_manager *man)
 	struct amdgpu_gtt_mgr *mgr = man->priv;
 
 	spin_lock(&mgr->lock);
-	if (!drm_mm_clean(&mgr->mm)) {
+
+	if (!drm_mm_clean(&mgr->mm))
+	{
 		spin_unlock(&mgr->lock);
 		return -EBUSY;
 	}
@@ -91,9 +97,9 @@ static int amdgpu_gtt_mgr_fini(struct ttm_mem_type_manager *man)
  * Allocate the address space for a node.
  */
 int amdgpu_gtt_mgr_alloc(struct ttm_mem_type_manager *man,
-			 struct ttm_buffer_object *tbo,
-			 const struct ttm_place *place,
-			 struct ttm_mem_reg *mem)
+						 struct ttm_buffer_object *tbo,
+						 const struct ttm_place *place,
+						 struct ttm_mem_reg *mem)
 {
 	struct amdgpu_gtt_mgr *mgr = man->priv;
 	struct drm_mm_node *node = mem->mm_node;
@@ -103,34 +109,47 @@ int amdgpu_gtt_mgr_alloc(struct ttm_mem_type_manager *man,
 	int r;
 
 	if (node->start != AMDGPU_BO_INVALID_OFFSET)
+	{
 		return 0;
+	}
 
 	if (place)
+	{
 		fpfn = place->fpfn;
+	}
 	else
+	{
 		fpfn = 0;
+	}
 
 	if (place && place->lpfn)
+	{
 		lpfn = place->lpfn;
+	}
 	else
+	{
 		lpfn = man->size;
+	}
 
-	if (place && place->flags & TTM_PL_FLAG_TOPDOWN) {
+	if (place && place->flags & TTM_PL_FLAG_TOPDOWN)
+	{
 		sflags = DRM_MM_SEARCH_BELOW;
 		aflags = DRM_MM_CREATE_TOP;
 	}
 
 	spin_lock(&mgr->lock);
 	r = drm_mm_insert_node_in_range_generic(&mgr->mm, node, mem->num_pages,
-						mem->page_alignment, 0,
-						fpfn, lpfn, sflags, aflags);
+											mem->page_alignment, 0,
+											fpfn, lpfn, sflags, aflags);
 	spin_unlock(&mgr->lock);
 
-	if (!r) {
+	if (!r)
+	{
 		mem->start = node->start;
+
 		if (&tbo->mem == mem)
 			tbo->offset = (tbo->mem.start << PAGE_SHIFT) +
-			    tbo->bdev->man[tbo->mem.mem_type].gpu_offset;
+						  tbo->bdev->man[tbo->mem.mem_type].gpu_offset;
 	}
 
 	return r;
@@ -147,36 +166,47 @@ int amdgpu_gtt_mgr_alloc(struct ttm_mem_type_manager *man,
  * Dummy, allocate the node but no space for it yet.
  */
 static int amdgpu_gtt_mgr_new(struct ttm_mem_type_manager *man,
-			      struct ttm_buffer_object *tbo,
-			      const struct ttm_place *place,
-			      struct ttm_mem_reg *mem)
+							  struct ttm_buffer_object *tbo,
+							  const struct ttm_place *place,
+							  struct ttm_mem_reg *mem)
 {
 	struct amdgpu_gtt_mgr *mgr = man->priv;
 	struct drm_mm_node *node;
 	int r;
 
 	spin_lock(&mgr->lock);
-	if (mgr->available < mem->num_pages) {
+
+	if (mgr->available < mem->num_pages)
+	{
 		spin_unlock(&mgr->lock);
 		return 0;
 	}
+
 	mgr->available -= mem->num_pages;
 	spin_unlock(&mgr->lock);
 
 	node = kzalloc(sizeof(*node), GFP_KERNEL);
+
 	if (!node)
+	{
 		return -ENOMEM;
+	}
 
 	node->start = AMDGPU_BO_INVALID_OFFSET;
 	mem->mm_node = node;
 
-	if (place->fpfn || place->lpfn || place->flags & TTM_PL_FLAG_TOPDOWN) {
+	if (place->fpfn || place->lpfn || place->flags & TTM_PL_FLAG_TOPDOWN)
+	{
 		r = amdgpu_gtt_mgr_alloc(man, tbo, place, mem);
-		if (unlikely(r)) {
+
+		if (unlikely(r))
+		{
 			kfree(node);
 			mem->mm_node = NULL;
 		}
-	} else {
+	}
+	else
+	{
 		mem->start = node->start;
 	}
 
@@ -194,17 +224,23 @@ static int amdgpu_gtt_mgr_new(struct ttm_mem_type_manager *man,
  * Free the allocated GTT again.
  */
 static void amdgpu_gtt_mgr_del(struct ttm_mem_type_manager *man,
-			       struct ttm_mem_reg *mem)
+							   struct ttm_mem_reg *mem)
 {
 	struct amdgpu_gtt_mgr *mgr = man->priv;
 	struct drm_mm_node *node = mem->mm_node;
 
 	if (!node)
+	{
 		return;
+	}
 
 	spin_lock(&mgr->lock);
+
 	if (node->start != AMDGPU_BO_INVALID_OFFSET)
+	{
 		drm_mm_remove_node(node);
+	}
+
 	mgr->available += mem->num_pages;
 	spin_unlock(&mgr->lock);
 
@@ -221,7 +257,7 @@ static void amdgpu_gtt_mgr_del(struct ttm_mem_type_manager *man,
  * Dump the table content using printk.
  */
 static void amdgpu_gtt_mgr_debug(struct ttm_mem_type_manager *man,
-				  const char *prefix)
+								 const char *prefix)
 {
 	struct amdgpu_gtt_mgr *mgr = man->priv;
 
@@ -230,7 +266,8 @@ static void amdgpu_gtt_mgr_debug(struct ttm_mem_type_manager *man,
 	spin_unlock(&mgr->lock);
 }
 
-const struct ttm_mem_type_manager_func amdgpu_gtt_mgr_func = {
+const struct ttm_mem_type_manager_func amdgpu_gtt_mgr_func =
+{
 	amdgpu_gtt_mgr_init,
 	amdgpu_gtt_mgr_fini,
 	amdgpu_gtt_mgr_new,

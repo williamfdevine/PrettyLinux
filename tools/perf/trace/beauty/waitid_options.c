@@ -2,7 +2,7 @@
 #include <sys/wait.h>
 
 static size_t syscall_arg__scnprintf_waitid_options(char *bf, size_t size,
-						    struct syscall_arg *arg)
+		struct syscall_arg *arg)
 {
 	int printed = 0, options = arg->val;
 
@@ -18,7 +18,9 @@ static size_t syscall_arg__scnprintf_waitid_options(char *bf, size_t size,
 #undef P_OPTION
 
 	if (options)
+	{
 		printed += scnprintf(bf + printed, size - printed, "%s%#x", printed ? "|" : "", options);
+	}
 
 	return printed;
 }

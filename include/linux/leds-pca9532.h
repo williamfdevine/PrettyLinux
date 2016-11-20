@@ -18,14 +18,16 @@
 #include <linux/workqueue.h>
 #include <dt-bindings/leds/leds-pca9532.h>
 
-enum pca9532_state {
+enum pca9532_state
+{
 	PCA9532_OFF  = 0x0,
 	PCA9532_ON   = 0x1,
 	PCA9532_PWM0 = 0x2,
 	PCA9532_PWM1 = 0x3
 };
 
-struct pca9532_led {
+struct pca9532_led
+{
 	u8 id;
 	struct i2c_client *client;
 	const char *name;
@@ -36,7 +38,8 @@ struct pca9532_led {
 	enum pca9532_state state;
 };
 
-struct pca9532_platform_data {
+struct pca9532_platform_data
+{
 	struct pca9532_led leds[16];
 	u8 pwm[2];
 	u8 psc[2];

@@ -13,42 +13,53 @@
 
 static const char *tb_port_type(struct tb_regs_port_header *port)
 {
-	switch (port->type >> 16) {
-	case 0:
-		switch ((u8) port->type) {
+	switch (port->type >> 16)
+	{
 		case 0:
-			return "Inactive";
-		case 1:
-			return "Port";
-		case 2:
-			return "NHI";
+			switch ((u8) port->type)
+			{
+				case 0:
+					return "Inactive";
+
+				case 1:
+					return "Port";
+
+				case 2:
+					return "NHI";
+
+				default:
+					return "unknown";
+			}
+
+		case 0x2:
+			return "Ethernet";
+
+		case 0x8:
+			return "SATA";
+
+		case 0xe:
+			return "DP/HDMI";
+
+		case 0x10:
+			return "PCIe";
+
+		case 0x20:
+			return "USB";
+
 		default:
 			return "unknown";
-		}
-	case 0x2:
-		return "Ethernet";
-	case 0x8:
-		return "SATA";
-	case 0xe:
-		return "DP/HDMI";
-	case 0x10:
-		return "PCIe";
-	case 0x20:
-		return "USB";
-	default:
-		return "unknown";
 	}
 }
 
 static void tb_dump_port(struct tb *tb, struct tb_regs_port_header *port)
 {
 	tb_info(tb,
-		" Port %d: %x:%x (Revision: %d, TB Version: %d, Type: %s (%#x))\n",
-		port->port_number, port->vendor_id, port->device_id,
-		port->revision, port->thunderbolt_version, tb_port_type(port),
-		port->type);
+			" Port %d: %x:%x (Revision: %d, TB Version: %d, Type: %s (%#x))\n",
+			port->port_number, port->vendor_id, port->device_id,
+			port->revision, port->thunderbolt_version, tb_port_type(port),
+			port->type);
 	tb_info(tb, "  Max hop id (in/out): %d/%d\n",
-		port->max_in_hop_id, port->max_out_hop_id);
+			port->max_in_hop_id, port->max_out_hop_id);
 	tb_info(tb, "  Max counters: %d\n", port->max_counters);
 	tb_info(tb, "  NFC Credits: %#x\n", port->nfc_credits);
 }
@@ -64,13 +75,20 @@ static int tb_port_state(struct tb_port *port)
 {
 	struct tb_cap_phy phy;
 	int res;
-	if (port->cap_phy == 0) {
+
+	if (port->cap_phy == 0)
+	{
 		tb_port_WARN(port, "does not have a PHY\n");
 		return -EINVAL;
 	}
+
 	res = tb_port_read(port, &phy, TB_CFG_PORT, port->cap_phy, 2);
+
 	if (res)
+	{
 		return res;
+	}
+
 	return phy.state;
 }
 
@@ -91,37 +109,53 @@ int tb_wait_for_port(struct tb_port *port, bool wait_if_unplugged)
 {
 	int retries = 10;
 	int state;
-	if (!port->cap_phy) {
+
+	if (!port->cap_phy)
+	{
 		tb_port_WARN(port, "does not have PHY\n");
 		return -EINVAL;
 	}
-	if (tb_is_upstream_port(port)) {
+
+	if (tb_is_upstream_port(port))
+	{
 		tb_port_WARN(port, "is the upstream port\n");
 		return -EINVAL;
 	}
 
-	while (retries--) {
+	while (retries--)
+	{
 		state = tb_port_state(port);
+
 		if (state < 0)
+		{
 			return state;
-		if (state == TB_PORT_DISABLED) {
+		}
+
+		if (state == TB_PORT_DISABLED)
+		{
 			tb_port_info(port, "is disabled (state: 0)\n");
 			return 0;
 		}
-		if (state == TB_PORT_UNPLUGGED) {
-			if (wait_if_unplugged) {
+
+		if (state == TB_PORT_UNPLUGGED)
+		{
+			if (wait_if_unplugged)
+			{
 				/* used during resume */
 				tb_port_info(port,
-					     "is unplugged (state: 7), retrying...\n");
+							 "is unplugged (state: 7), retrying...\n");
 				msleep(100);
 				continue;
 			}
+
 			tb_port_info(port, "is unplugged (state: 7)\n");
 			return 0;
 		}
-		if (state == TB_PORT_UP) {
+
+		if (state == TB_PORT_UP)
+		{
 			tb_port_info(port,
-				     "is connected, link is up (state: 2)\n");
+						 "is connected, link is up (state: 2)\n");
 			return 1;
 		}
 
@@ -130,12 +164,13 @@ int tb_wait_for_port(struct tb_port *port, bool wait_if_unplugged)
 		 * time.
 		 */
 		tb_port_info(port,
-			     "is connected, link is not up (state: %d), retrying...\n",
-			     state);
+					 "is connected, link is not up (state: %d), retrying...\n",
+					 state);
 		msleep(100);
 	}
+
 	tb_port_warn(port,
-		     "failed to reach state TB_PORT_UP. Ignoring port...\n");
+				 "failed to reach state TB_PORT_UP. Ignoring port...\n");
 	return 0;
 }
 
@@ -150,15 +185,18 @@ int tb_wait_for_port(struct tb_port *port, bool wait_if_unplugged)
 int tb_port_add_nfc_credits(struct tb_port *port, int credits)
 {
 	if (credits == 0)
+	{
 		return 0;
+	}
+
 	tb_port_info(port,
-		     "adding %#x NFC credits (%#x -> %#x)",
-		     credits,
-		     port->config.nfc_credits,
-		     port->config.nfc_credits + credits);
+				 "adding %#x NFC credits (%#x -> %#x)",
+				 credits,
+				 port->config.nfc_credits,
+				 port->config.nfc_credits + credits);
 	port->config.nfc_credits += credits;
 	return tb_port_write(port, &port->config.nfc_credits,
-			     TB_CFG_PORT, 4, 1);
+						 TB_CFG_PORT, 4, 1);
 }
 
 /**
@@ -187,17 +225,25 @@ static int tb_init_port(struct tb_port *port)
 	int cap;
 
 	res = tb_port_read(port, &port->config, TB_CFG_PORT, 0, 8);
+
 	if (res)
+	{
 		return res;
+	}
 
 	/* Port 0 is the switch itself and has no PHY. */
-	if (port->config.type == TB_TYPE_PORT && port->port != 0) {
+	if (port->config.type == TB_TYPE_PORT && port->port != 0)
+	{
 		cap = tb_find_cap(port, TB_CFG_PORT, TB_CAP_PHY);
 
 		if (cap > 0)
+		{
 			port->cap_phy = cap;
+		}
 		else
+		{
 			tb_port_WARN(port, "non switch port without a PHY\n");
+		}
 	}
 
 	tb_dump_port(port->sw->tb, &port->config);
@@ -212,19 +258,19 @@ static int tb_init_port(struct tb_port *port)
 static void tb_dump_switch(struct tb *tb, struct tb_regs_switch_header *sw)
 {
 	tb_info(tb,
-		" Switch: %x:%x (Revision: %d, TB Version: %d)\n",
-		sw->vendor_id, sw->device_id, sw->revision,
-		sw->thunderbolt_version);
+			" Switch: %x:%x (Revision: %d, TB Version: %d)\n",
+			sw->vendor_id, sw->device_id, sw->revision,
+			sw->thunderbolt_version);
 	tb_info(tb, "  Max Port Number: %d\n", sw->max_port_number);
 	tb_info(tb, "  Config:\n");
 	tb_info(tb,
-		"   Upstream Port Number: %d Depth: %d Route String: %#llx Enabled: %d, PlugEventsDelay: %dms\n",
-		sw->upstream_port_number, sw->depth,
-		(((u64) sw->route_hi) << 32) | sw->route_lo,
-		sw->enabled, sw->plug_events_delay);
+			"   Upstream Port Number: %d Depth: %d Route String: %#llx Enabled: %d, PlugEventsDelay: %dms\n",
+			sw->upstream_port_number, sw->depth,
+			(((u64) sw->route_hi) << 32) | sw->route_lo,
+			sw->enabled, sw->plug_events_delay);
 	tb_info(tb,
-		"   unknown1: %#x unknown4: %#x\n",
-		sw->__unknown1, sw->__unknown4);
+			"   unknown1: %#x unknown4: %#x\n",
+			sw->__unknown1, sw->__unknown4);
 }
 
 /**
@@ -235,19 +281,28 @@ static void tb_dump_switch(struct tb *tb, struct tb_regs_switch_header *sw)
 int tb_switch_reset(struct tb *tb, u64 route)
 {
 	struct tb_cfg_result res;
-	struct tb_regs_switch_header header = {
+	struct tb_regs_switch_header header =
+	{
 		header.route_hi = route >> 32,
 		header.route_lo = route,
 		header.enabled = true,
 	};
 	tb_info(tb, "resetting switch at %llx\n", route);
 	res.err = tb_cfg_write(tb->ctl, ((u32 *) &header) + 2, route,
-			0, 2, 2, 2);
+						   0, 2, 2, 2);
+
 	if (res.err)
+	{
 		return res.err;
+	}
+
 	res = tb_cfg_reset(tb->ctl, route, TB_CFG_DEFAULT_TIMEOUT);
+
 	if (res.err > 0)
+	{
 		return -EIO;
+	}
+
 	return res.err;
 }
 
@@ -257,16 +312,29 @@ struct tb_switch *get_switch_at_route(struct tb_switch *sw, u64 route)
 			       * Routes use a stride of 8 bits,
 			       * eventhough a port index has 6 bits at most.
 			       * */
+
 	if (route == 0)
+	{
 		return sw;
+	}
+
 	if (next_port > sw->config.max_port_number)
+	{
 		return NULL;
+	}
+
 	if (tb_is_upstream_port(&sw->ports[next_port]))
+	{
 		return NULL;
+	}
+
 	if (!sw->ports[next_port].remote)
+	{
 		return NULL;
+	}
+
 	return get_switch_at_route(sw->ports[next_port].remote->sw,
-				   route >> TB_ROUTE_SHIFT);
+							   route >> TB_ROUTE_SHIFT);
 }
 
 /**
@@ -283,28 +351,41 @@ static int tb_plug_events_active(struct tb_switch *sw, bool active)
 
 	sw->config.plug_events_delay = 0xff;
 	res = tb_sw_write(sw, ((u32 *) &sw->config) + 4, TB_CFG_SWITCH, 4, 1);
+
 	if (res)
+	{
 		return res;
+	}
 
 	res = tb_sw_read(sw, &data, TB_CFG_SWITCH, sw->cap_plug_events + 1, 1);
-	if (res)
-		return res;
 
-	if (active) {
+	if (res)
+	{
+		return res;
+	}
+
+	if (active)
+	{
 		data = data & 0xFFFFFF83;
-		switch (sw->config.device_id) {
-		case PCI_DEVICE_ID_INTEL_LIGHT_RIDGE:
-		case PCI_DEVICE_ID_INTEL_EAGLE_RIDGE:
-		case PCI_DEVICE_ID_INTEL_PORT_RIDGE:
-			break;
-		default:
-			data |= 4;
+
+		switch (sw->config.device_id)
+		{
+			case PCI_DEVICE_ID_INTEL_LIGHT_RIDGE:
+			case PCI_DEVICE_ID_INTEL_EAGLE_RIDGE:
+			case PCI_DEVICE_ID_INTEL_PORT_RIDGE:
+				break;
+
+			default:
+				data |= 4;
 		}
-	} else {
+	}
+	else
+	{
 		data = data | 0x7c;
 	}
+
 	return tb_sw_write(sw, &data, TB_CFG_SWITCH,
-			   sw->cap_plug_events + 1, 1);
+					   sw->cap_plug_events + 1, 1);
 }
 
 
@@ -314,17 +395,27 @@ static int tb_plug_events_active(struct tb_switch *sw, bool active)
 void tb_switch_free(struct tb_switch *sw)
 {
 	int i;
+
 	/* port 0 is the switch itself and never has a remote */
-	for (i = 1; i <= sw->config.max_port_number; i++) {
+	for (i = 1; i <= sw->config.max_port_number; i++)
+	{
 		if (tb_is_upstream_port(&sw->ports[i]))
+		{
 			continue;
+		}
+
 		if (sw->ports[i].remote)
+		{
 			tb_switch_free(sw->ports[i].remote->sw);
+		}
+
 		sw->ports[i].remote = NULL;
 	}
 
 	if (!sw->is_unplugged)
+	{
 		tb_plug_events_active(sw, false);
+	}
 
 	kfree(sw->ports);
 	kfree(sw->drom);
@@ -342,19 +433,29 @@ struct tb_switch *tb_switch_alloc(struct tb *tb, u64 route)
 	int cap;
 	struct tb_switch *sw;
 	int upstream_port = tb_cfg_get_upstream_port(tb->ctl, route);
+
 	if (upstream_port < 0)
+	{
 		return NULL;
+	}
 
 	sw = kzalloc(sizeof(*sw), GFP_KERNEL);
+
 	if (!sw)
+	{
 		return NULL;
+	}
 
 	sw->tb = tb;
+
 	if (tb_cfg_read(tb->ctl, &sw->config, route, 0, TB_CFG_SWITCH, 0, 5))
+	{
 		goto err;
+	}
+
 	tb_info(tb,
-		"initializing Switch at %#llx (depth: %d, up port: %d)\n",
-		route, tb_route_length(route), upstream_port);
+			"initializing Switch at %#llx (depth: %d, up port: %d)\n",
+			route, tb_route_length(route), upstream_port);
 	tb_info(tb, "old switch config:\n");
 	tb_dump_switch(tb, &sw->config);
 
@@ -368,57 +469,76 @@ struct tb_switch *tb_switch_alloc(struct tb *tb, u64 route)
 
 	if (sw->config.vendor_id != 0x8086)
 		tb_sw_warn(sw, "unknown switch vendor id %#x\n",
-			   sw->config.vendor_id);
+				   sw->config.vendor_id);
 
 	if (sw->config.device_id != PCI_DEVICE_ID_INTEL_LIGHT_RIDGE &&
-	    sw->config.device_id != PCI_DEVICE_ID_INTEL_CACTUS_RIDGE_4C &&
-	    sw->config.device_id != PCI_DEVICE_ID_INTEL_PORT_RIDGE &&
-	    sw->config.device_id != PCI_DEVICE_ID_INTEL_FALCON_RIDGE_2C_BRIDGE &&
-	    sw->config.device_id != PCI_DEVICE_ID_INTEL_FALCON_RIDGE_4C_BRIDGE)
+		sw->config.device_id != PCI_DEVICE_ID_INTEL_CACTUS_RIDGE_4C &&
+		sw->config.device_id != PCI_DEVICE_ID_INTEL_PORT_RIDGE &&
+		sw->config.device_id != PCI_DEVICE_ID_INTEL_FALCON_RIDGE_2C_BRIDGE &&
+		sw->config.device_id != PCI_DEVICE_ID_INTEL_FALCON_RIDGE_4C_BRIDGE)
 		tb_sw_warn(sw, "unsupported switch device id %#x\n",
-			   sw->config.device_id);
+				   sw->config.device_id);
 
 	/* upload configuration */
 	if (tb_sw_write(sw, 1 + (u32 *) &sw->config, TB_CFG_SWITCH, 1, 3))
+	{
 		goto err;
+	}
 
 	/* initialize ports */
 	sw->ports = kcalloc(sw->config.max_port_number + 1, sizeof(*sw->ports),
-				GFP_KERNEL);
-	if (!sw->ports)
-		goto err;
+						GFP_KERNEL);
 
-	for (i = 0; i <= sw->config.max_port_number; i++) {
+	if (!sw->ports)
+	{
+		goto err;
+	}
+
+	for (i = 0; i <= sw->config.max_port_number; i++)
+	{
 		/* minimum setup for tb_find_cap and tb_drom_read to work */
 		sw->ports[i].sw = sw;
 		sw->ports[i].port = i;
 	}
 
 	cap = tb_find_cap(&sw->ports[0], TB_CFG_SWITCH, TB_CAP_PLUG_EVENTS);
-	if (cap < 0) {
+
+	if (cap < 0)
+	{
 		tb_sw_warn(sw, "cannot find TB_CAP_PLUG_EVENTS aborting\n");
 		goto err;
 	}
+
 	sw->cap_plug_events = cap;
 
 	/* read drom */
 	if (tb_drom_read(sw))
+	{
 		tb_sw_warn(sw, "tb_eeprom_read_rom failed, continuing\n");
+	}
+
 	tb_sw_info(sw, "uid: %#llx\n", sw->uid);
 
-	for (i = 0; i <= sw->config.max_port_number; i++) {
-		if (sw->ports[i].disabled) {
+	for (i = 0; i <= sw->config.max_port_number; i++)
+	{
+		if (sw->ports[i].disabled)
+		{
 			tb_port_info(&sw->ports[i], "disabled by eeprom\n");
 			continue;
 		}
+
 		if (tb_init_port(&sw->ports[i]))
+		{
 			goto err;
+		}
 	}
 
 	/* TODO: I2C, IECS, link controller */
 
 	if (tb_plug_events_active(sw, true))
+	{
 		goto err;
+	}
 
 	return sw;
 err:
@@ -434,18 +554,27 @@ err:
 void tb_sw_set_unplugged(struct tb_switch *sw)
 {
 	int i;
-	if (sw == sw->tb->root_switch) {
+
+	if (sw == sw->tb->root_switch)
+	{
 		tb_sw_WARN(sw, "cannot unplug root switch\n");
 		return;
 	}
-	if (sw->is_unplugged) {
+
+	if (sw->is_unplugged)
+	{
 		tb_sw_WARN(sw, "is_unplugged already set\n");
 		return;
 	}
+
 	sw->is_unplugged = true;
-	for (i = 0; i <= sw->config.max_port_number; i++) {
+
+	for (i = 0; i <= sw->config.max_port_number; i++)
+	{
 		if (!tb_is_upstream_port(&sw->ports[i]) && sw->ports[i].remote)
+		{
 			tb_sw_set_unplugged(sw->ports[i].remote->sw);
+		}
 	}
 }
 
@@ -456,40 +585,60 @@ int tb_switch_resume(struct tb_switch *sw)
 	tb_sw_info(sw, "resuming switch\n");
 
 	err = tb_drom_read_uid_only(sw, &uid);
-	if (err) {
+
+	if (err)
+	{
 		tb_sw_warn(sw, "uid read failed\n");
 		return err;
 	}
-	if (sw->uid != uid) {
+
+	if (sw->uid != uid)
+	{
 		tb_sw_info(sw,
-			"changed while suspended (uid %#llx -> %#llx)\n",
-			sw->uid, uid);
+				   "changed while suspended (uid %#llx -> %#llx)\n",
+				   sw->uid, uid);
 		return -ENODEV;
 	}
 
 	/* upload configuration */
 	err = tb_sw_write(sw, 1 + (u32 *) &sw->config, TB_CFG_SWITCH, 1, 3);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = tb_plug_events_active(sw, true);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* check for surviving downstream switches */
-	for (i = 1; i <= sw->config.max_port_number; i++) {
+	for (i = 1; i <= sw->config.max_port_number; i++)
+	{
 		struct tb_port *port = &sw->ports[i];
+
 		if (tb_is_upstream_port(port))
+		{
 			continue;
+		}
+
 		if (!port->remote)
+		{
 			continue;
+		}
+
 		if (tb_wait_for_port(port, true) <= 0
-			|| tb_switch_resume(port->remote->sw)) {
+			|| tb_switch_resume(port->remote->sw))
+		{
 			tb_port_warn(port,
-				     "lost during suspend, disconnecting\n");
+						 "lost during suspend, disconnecting\n");
 			tb_sw_set_unplugged(port->remote->sw);
 		}
 	}
+
 	return 0;
 }
 
@@ -497,13 +646,20 @@ void tb_switch_suspend(struct tb_switch *sw)
 {
 	int i, err;
 	err = tb_plug_events_active(sw, false);
-	if (err)
-		return;
 
-	for (i = 1; i <= sw->config.max_port_number; i++) {
-		if (!tb_is_upstream_port(&sw->ports[i]) && sw->ports[i].remote)
-			tb_switch_suspend(sw->ports[i].remote->sw);
+	if (err)
+	{
+		return;
 	}
+
+	for (i = 1; i <= sw->config.max_port_number; i++)
+	{
+		if (!tb_is_upstream_port(&sw->ports[i]) && sw->ports[i].remote)
+		{
+			tb_switch_suspend(sw->ports[i].remote->sw);
+		}
+	}
+
 	/*
 	 * TODO: invoke tb_cfg_prepare_to_sleep here? does not seem to have any
 	 * effect?

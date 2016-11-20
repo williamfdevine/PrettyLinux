@@ -1,19 +1,19 @@
 #ifndef _LMC_VAR_H_
 #define _LMC_VAR_H_
 
- /*
-  * Copyright (c) 1997-2000 LAN Media Corporation (LMC)
-  * All rights reserved.  www.lanmedia.com
-  *
-  * This code is written by:
-  * Andrew Stanley-Jones (asj@cban.com)
-  * Rob Braun (bbraun@vix.com),
-  * Michael Graff (explorer@vix.com) and
-  * Matt Thomas (matt@3am-software.com).
-  *
-  * This software may be used and distributed according to the terms
-  * of the GNU General Public License version 2, incorporated herein by reference.
-  */
+/*
+ * Copyright (c) 1997-2000 LAN Media Corporation (LMC)
+ * All rights reserved.  www.lanmedia.com
+ *
+ * This code is written by:
+ * Andrew Stanley-Jones (asj@cban.com)
+ * Rob Braun (bbraun@vix.com),
+ * Michael Graff (explorer@vix.com) and
+ * Matt Thomas (matt@3am-software.com).
+ *
+ * This software may be used and distributed according to the terms
+ * of the GNU General Public License version 2, incorporated herein by reference.
+ */
 
 #include <linux/timer.h>
 
@@ -58,29 +58,30 @@ typedef struct lmc___ctl lmc_ctl_t;
 
 /* This macro sync's up with the mii so that reads and writes can take place */
 #define LMC_MII_SYNC(sc) do {int n=32; while( n >= 0 ) { \
-                LMC_CSR_WRITE((sc), csr_9, 0x20000); \
-		lmc_delay(); \
-		LMC_CSR_WRITE((sc), csr_9, 0x30000); \
-                lmc_delay(); \
-		n--; }} while(0)
+			LMC_CSR_WRITE((sc), csr_9, 0x20000); \
+			lmc_delay(); \
+			LMC_CSR_WRITE((sc), csr_9, 0x30000); \
+			lmc_delay(); \
+			n--; }} while(0)
 
-struct lmc_regfile_t {
-    lmc_csrptr_t csr_busmode;                  /* CSR0 */
-    lmc_csrptr_t csr_txpoll;                   /* CSR1 */
-    lmc_csrptr_t csr_rxpoll;                   /* CSR2 */
-    lmc_csrptr_t csr_rxlist;                   /* CSR3 */
-    lmc_csrptr_t csr_txlist;                   /* CSR4 */
-    lmc_csrptr_t csr_status;                   /* CSR5 */
-    lmc_csrptr_t csr_command;                  /* CSR6 */
-    lmc_csrptr_t csr_intr;                     /* CSR7 */
-    lmc_csrptr_t csr_missed_frames;            /* CSR8 */
-    lmc_csrptr_t csr_9;                        /* CSR9 */
-    lmc_csrptr_t csr_10;                       /* CSR10 */
-    lmc_csrptr_t csr_11;                       /* CSR11 */
-    lmc_csrptr_t csr_12;                       /* CSR12 */
-    lmc_csrptr_t csr_13;                       /* CSR13 */
-    lmc_csrptr_t csr_14;                       /* CSR14 */
-    lmc_csrptr_t csr_15;                       /* CSR15 */
+struct lmc_regfile_t
+{
+	lmc_csrptr_t csr_busmode;                  /* CSR0 */
+	lmc_csrptr_t csr_txpoll;                   /* CSR1 */
+	lmc_csrptr_t csr_rxpoll;                   /* CSR2 */
+	lmc_csrptr_t csr_rxlist;                   /* CSR3 */
+	lmc_csrptr_t csr_txlist;                   /* CSR4 */
+	lmc_csrptr_t csr_status;                   /* CSR5 */
+	lmc_csrptr_t csr_command;                  /* CSR6 */
+	lmc_csrptr_t csr_intr;                     /* CSR7 */
+	lmc_csrptr_t csr_missed_frames;            /* CSR8 */
+	lmc_csrptr_t csr_9;                        /* CSR9 */
+	lmc_csrptr_t csr_10;                       /* CSR10 */
+	lmc_csrptr_t csr_11;                       /* CSR11 */
+	lmc_csrptr_t csr_12;                       /* CSR12 */
+	lmc_csrptr_t csr_13;                       /* CSR13 */
+	lmc_csrptr_t csr_14;                       /* CSR14 */
+	lmc_csrptr_t csr_15;                       /* CSR15 */
 };
 
 #define csr_enetrom             csr_9   /* 21040 */
@@ -139,17 +140,18 @@ struct lmc_regfile_t {
 #define RDES_FRAME_LENGTH_BIT_NUMBER       16
 
 #define LMC_RDES_ERROR_MASK ( (u32)( \
-	  LMC_RDES_OVERFLOW \
-	| LMC_RDES_DRIBBLING_BIT \
-	| LMC_RDES_REPORT_ON_MII_ERR \
-        | LMC_RDES_COLLISION_SEEN ) )
+									 LMC_RDES_OVERFLOW \
+									 | LMC_RDES_DRIBBLING_BIT \
+									 | LMC_RDES_REPORT_ON_MII_ERR \
+									 | LMC_RDES_COLLISION_SEEN ) )
 
 
 /*
  * Ioctl info
  */
 
-typedef struct {
+typedef struct
+{
 	u32	n;
 	u32	m;
 	u32	v;
@@ -162,7 +164,8 @@ typedef struct {
 /*
  * Common structure passed to the ioctl code.
  */
-struct lmc___ctl {
+struct lmc___ctl
+{
 	u32	cardtype;
 	u32	clock_source;		/* HSSI, T1 */
 	u32	clock_rate;		/* T1 */
@@ -172,7 +175,8 @@ struct lmc___ctl {
 	u32	cable_type;		/* T1 */
 	u32	keepalive_onoff;	/* protocol */
 	u32	ticks;			/* ticks/sec */
-	union {
+	union
+	{
 		lmc_av9110_t	ssi;
 	} cardspec;
 	u32       circuit_type;   /* T1 or E1 */
@@ -193,7 +197,8 @@ struct lmc___ctl {
  * You could also expand status control to provide more bit information
  */
 
-struct tulip_desc_t {
+struct tulip_desc_t
+{
 	s32 status;
 	s32 length;
 	u32 buffer1;
@@ -204,19 +209,20 @@ struct tulip_desc_t {
  * media independent methods to check on media status, link, light LEDs,
  * etc.
  */
-struct lmc___media {
-	void	(* init)(lmc_softc_t * const);
-	void	(* defaults)(lmc_softc_t * const);
-	void	(* set_status)(lmc_softc_t * const, lmc_ctl_t *);
-	void	(* set_clock_source)(lmc_softc_t * const, int);
-	void	(* set_speed)(lmc_softc_t * const, lmc_ctl_t *);
-	void	(* set_cable_length)(lmc_softc_t * const, int);
-	void	(* set_scrambler)(lmc_softc_t * const, int);
-	int	(* get_link_status)(lmc_softc_t * const);
-	void	(* set_link_status)(lmc_softc_t * const, int);
-	void	(* set_crc_length)(lmc_softc_t * const, int);
-        void    (* set_circuit_type)(lmc_softc_t * const, int);
-        void	(* watchdog)(lmc_softc_t * const);
+struct lmc___media
+{
+	void	(* init)(lmc_softc_t *const);
+	void	(* defaults)(lmc_softc_t *const);
+	void	(* set_status)(lmc_softc_t *const, lmc_ctl_t *);
+	void	(* set_clock_source)(lmc_softc_t *const, int);
+	void	(* set_speed)(lmc_softc_t *const, lmc_ctl_t *);
+	void	(* set_cable_length)(lmc_softc_t *const, int);
+	void	(* set_scrambler)(lmc_softc_t *const, int);
+	int	(* get_link_status)(lmc_softc_t *const);
+	void	(* set_link_status)(lmc_softc_t *const, int);
+	void	(* set_crc_length)(lmc_softc_t *const, int);
+	void    (* set_circuit_type)(lmc_softc_t *const, int);
+	void	(* watchdog)(lmc_softc_t *const);
 };
 
 
@@ -265,7 +271,8 @@ struct lmc_extra_statistics
 	u32       check;
 };
 
-typedef struct lmc_xinfo {
+typedef struct lmc_xinfo
+{
 	u32       Magic0;                         /* BEEFCAFE */
 
 	u32       PciCardType;
@@ -291,7 +298,8 @@ typedef struct lmc_xinfo {
 /*
  * forward decl
  */
-struct lmc___softc {
+struct lmc___softc
+{
 	char                   *name;
 	u8			board_idx;
 	struct lmc_extra_statistics extra_stats;
@@ -308,8 +316,8 @@ struct lmc___softc {
 	u32			lmc_busmode;	/* our copy of csr_busmode */
 	u32			lmc_gpio_io;	/* state of in/out settings */
 	u32			lmc_gpio;	/* state of outputs */
-	struct sk_buff*		lmc_txq[LMC_TXDESCS];
-	struct sk_buff*		lmc_rxq[LMC_RXDESCS];
+	struct sk_buff		*lmc_txq[LMC_TXDESCS];
+	struct sk_buff		*lmc_rxq[LMC_RXDESCS];
 	volatile
 	struct tulip_desc_t	lmc_rxring[LMC_RXDESCS];
 	volatile
@@ -441,19 +449,19 @@ struct lmc___softc {
 #define LMC_DSTS_ERRSUM         (TULIP_DSTS_RxMIIERR)
 
 #define TULIP_DEFAULT_INTR_MASK  (TULIP_STS_NORMALINTR \
-  | TULIP_STS_RXINTR       \
-  | TULIP_STS_TXINTR     \
-  | TULIP_STS_ABNRMLINTR \
-  | TULIP_STS_SYSERROR   \
-  | TULIP_STS_TXSTOPPED  \
-  | TULIP_STS_TXUNDERFLOW\
-  | TULIP_STS_RXSTOPPED )
+								  | TULIP_STS_RXINTR       \
+								  | TULIP_STS_TXINTR     \
+								  | TULIP_STS_ABNRMLINTR \
+								  | TULIP_STS_SYSERROR   \
+								  | TULIP_STS_TXSTOPPED  \
+								  | TULIP_STS_TXUNDERFLOW\
+								  | TULIP_STS_RXSTOPPED )
 
 #define DESC_OWNED_BY_SYSTEM   ((u32)(0x00000000))
 #define DESC_OWNED_BY_DC21X4   ((u32)(0x80000000))
 
 #ifndef TULIP_CMD_RECEIVEALL
-#define TULIP_CMD_RECEIVEALL 0x40000000L
+	#define TULIP_CMD_RECEIVEALL 0x40000000L
 #endif
 
 /* Adapter module number */

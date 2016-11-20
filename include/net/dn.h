@@ -9,7 +9,7 @@
 
 struct dn_scp                                   /* Session Control Port */
 {
-        unsigned char           state;
+	unsigned char           state;
 #define DN_O     1                      /* Open                 */
 #define DN_CR    2                      /* Connect Receive      */
 #define DN_DR    3                      /* Disconnect Reject    */
@@ -27,17 +27,17 @@ struct dn_scp                                   /* Session Control Port */
 #define DN_CL    15                     /* Closed               */
 #define DN_CN    16                     /* Closed Notification  */
 
-        __le16          addrloc;
-        __le16          addrrem;
-        __u16          numdat;
-        __u16          numoth;
-        __u16          numoth_rcv;
-        __u16          numdat_rcv;
-        __u16          ackxmt_dat;
-        __u16          ackxmt_oth;
-        __u16          ackrcv_dat;
-        __u16          ackrcv_oth;
-        __u8           flowrem_sw;
+	__le16          addrloc;
+	__le16          addrrem;
+	__u16          numdat;
+	__u16          numoth;
+	__u16          numoth_rcv;
+	__u16          numdat_rcv;
+	__u16          ackxmt_dat;
+	__u16          ackxmt_oth;
+	__u16          ackrcv_dat;
+	__u16          ackrcv_oth;
+	__u8           flowrem_sw;
 	__u8           flowloc_sw;
 #define DN_SEND         2
 #define DN_DONTSEND     1
@@ -63,9 +63,9 @@ struct dn_scp                                   /* Session Control Port */
 	struct optdata_dn     conndata_out;
 	struct optdata_dn     discdata_in;
 	struct optdata_dn     discdata_out;
-        struct accessdata_dn  accessdata;
+	struct accessdata_dn  accessdata;
 
-        struct sockaddr_dn addr; /* Local address  */
+	struct sockaddr_dn addr; /* Local address  */
 	struct sockaddr_dn peer; /* Remote address */
 
 	/*
@@ -152,10 +152,11 @@ static inline struct dn_scp *DN_SK(struct sock *sk)
  * As a general policy, this structure keeps all addresses in network
  * byte order, and all else in host byte order. Thus dst, src, dst_port
  * and src_port are in network order. All else is in host order.
- * 
+ *
  */
 #define DN_SKB_CB(skb) ((struct dn_skb_cb *)(skb)->cb)
-struct dn_skb_cb {
+struct dn_skb_cb
+{
 	__le16 dst;
 	__le16 src;
 	__u16 hops;
@@ -215,9 +216,9 @@ char *dn_addr2asc(__u16, char *);
 int dn_destroy_timer(struct sock *sk);
 
 int dn_sockaddr2username(struct sockaddr_dn *addr, unsigned char *buf,
-			 unsigned char type);
+						 unsigned char type);
 int dn_username2sockaddr(unsigned char *data, int len, struct sockaddr_dn *addr,
-			 unsigned char *type);
+						 unsigned char *type);
 
 void dn_start_slow_timer(struct sock *sk);
 void dn_stop_slow_timer(struct sock *sk);

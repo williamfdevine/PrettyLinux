@@ -6,7 +6,8 @@
 #include <linux/types.h>
 #include <net/sock.h>
 
-struct sock_reuseport {
+struct sock_reuseport
+{
 	struct rcu_head		rcu;
 
 	u16			max_socks;	/* length of socks */
@@ -19,10 +20,10 @@ extern int reuseport_alloc(struct sock *sk);
 extern int reuseport_add_sock(struct sock *sk, struct sock *sk2);
 extern void reuseport_detach_sock(struct sock *sk);
 extern struct sock *reuseport_select_sock(struct sock *sk,
-					  u32 hash,
-					  struct sk_buff *skb,
-					  int hdr_len);
+		u32 hash,
+		struct sk_buff *skb,
+		int hdr_len);
 extern struct bpf_prog *reuseport_attach_prog(struct sock *sk,
-					      struct bpf_prog *prog);
+		struct bpf_prog *prog);
 
 #endif  /* _SOCK_REUSEPORT_H */

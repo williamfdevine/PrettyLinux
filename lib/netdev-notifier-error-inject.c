@@ -8,7 +8,8 @@ static int priority;
 module_param(priority, int, 0);
 MODULE_PARM_DESC(priority, "specify netdevice notifier priority");
 
-static struct notifier_err_inject netdev_notifier_err_inject = {
+static struct notifier_err_inject netdev_notifier_err_inject =
+{
 	.actions = {
 		{ NOTIFIER_ERR_INJECT_ACTION(NETDEV_REGISTER) },
 		{ NOTIFIER_ERR_INJECT_ACTION(NETDEV_CHANGEMTU) },
@@ -30,13 +31,19 @@ static int netdev_err_inject_init(void)
 	int err;
 
 	dir = notifier_err_inject_init("netdev", notifier_err_inject_dir,
-				       &netdev_notifier_err_inject, priority);
+								   &netdev_notifier_err_inject, priority);
+
 	if (IS_ERR(dir))
+	{
 		return PTR_ERR(dir);
+	}
 
 	err = register_netdevice_notifier(&netdev_notifier_err_inject.nb);
+
 	if (err)
+	{
 		debugfs_remove_recursive(dir);
+	}
 
 	return err;
 }

@@ -37,7 +37,8 @@
 #define SPM_CTL_INDEX_SHIFT	4
 #define SPM_CTL_EN		BIT(0)
 
-enum pm_sleep_mode {
+enum pm_sleep_mode
+{
 	PM_SLEEP_MODE_STBY,
 	PM_SLEEP_MODE_RET,
 	PM_SLEEP_MODE_SPC,
@@ -45,7 +46,8 @@ enum pm_sleep_mode {
 	PM_SLEEP_MODE_NR,
 };
 
-enum spm_reg {
+enum spm_reg
+{
 	SPM_REG_CFG,
 	SPM_REG_SPM_CTL,
 	SPM_REG_DLY,
@@ -59,7 +61,8 @@ enum spm_reg {
 	SPM_REG_NR,
 };
 
-struct spm_reg_data {
+struct spm_reg_data
+{
 	const u8 *reg_offset;
 	u32 spm_cfg;
 	u32 spm_dly;
@@ -69,12 +72,14 @@ struct spm_reg_data {
 	u8 start_index[PM_SLEEP_MODE_NR];
 };
 
-struct spm_driver_data {
+struct spm_driver_data
+{
 	void __iomem *reg_base;
 	const struct spm_reg_data *reg_data;
 };
 
-static const u8 spm_reg_offset_v2_1[SPM_REG_NR] = {
+static const u8 spm_reg_offset_v2_1[SPM_REG_NR] =
+{
 	[SPM_REG_CFG]		= 0x08,
 	[SPM_REG_SPM_CTL]	= 0x30,
 	[SPM_REG_DLY]		= 0x34,
@@ -82,18 +87,22 @@ static const u8 spm_reg_offset_v2_1[SPM_REG_NR] = {
 };
 
 /* SPM register data for 8974, 8084 */
-static const struct spm_reg_data spm_reg_8974_8084_cpu  = {
+static const struct spm_reg_data spm_reg_8974_8084_cpu  =
+{
 	.reg_offset = spm_reg_offset_v2_1,
 	.spm_cfg = 0x1,
 	.spm_dly = 0x3C102800,
-	.seq = { 0x03, 0x0B, 0x0F, 0x00, 0x20, 0x80, 0x10, 0xE8, 0x5B, 0x03,
+	.seq = {
+		0x03, 0x0B, 0x0F, 0x00, 0x20, 0x80, 0x10, 0xE8, 0x5B, 0x03,
 		0x3B, 0xE8, 0x5B, 0x82, 0x10, 0x0B, 0x30, 0x06, 0x26, 0x30,
-		0x0F },
+		0x0F
+	},
 	.start_index[PM_SLEEP_MODE_STBY] = 0,
 	.start_index[PM_SLEEP_MODE_SPC] = 3,
 };
 
-static const u8 spm_reg_offset_v1_1[SPM_REG_NR] = {
+static const u8 spm_reg_offset_v1_1[SPM_REG_NR] =
+{
 	[SPM_REG_CFG]		= 0x08,
 	[SPM_REG_SPM_CTL]	= 0x20,
 	[SPM_REG_PMIC_DLY]	= 0x24,
@@ -103,14 +112,17 @@ static const u8 spm_reg_offset_v1_1[SPM_REG_NR] = {
 };
 
 /* SPM register data for 8064 */
-static const struct spm_reg_data spm_reg_8064_cpu = {
+static const struct spm_reg_data spm_reg_8064_cpu =
+{
 	.reg_offset = spm_reg_offset_v1_1,
 	.spm_cfg = 0x1F,
 	.pmic_dly = 0x02020004,
 	.pmic_data[0] = 0x0084009C,
 	.pmic_data[1] = 0x00A4001C,
-	.seq = { 0x03, 0x0F, 0x00, 0x24, 0x54, 0x10, 0x09, 0x03, 0x01,
-		0x10, 0x54, 0x30, 0x0C, 0x24, 0x30, 0x0F },
+	.seq = {
+		0x03, 0x0F, 0x00, 0x24, 0x54, 0x10, 0x09, 0x03, 0x01,
+		0x10, 0x54, 0x30, 0x0C, 0x24, 0x30, 0x0F
+	},
 	.start_index[PM_SLEEP_MODE_STBY] = 0,
 	.start_index[PM_SLEEP_MODE_SPC] = 2,
 };
@@ -118,44 +130,52 @@ static const struct spm_reg_data spm_reg_8064_cpu = {
 static DEFINE_PER_CPU(struct spm_driver_data *, cpu_spm_drv);
 
 typedef int (*idle_fn)(void);
-static DEFINE_PER_CPU(idle_fn*, qcom_idle_ops);
+static DEFINE_PER_CPU(idle_fn *, qcom_idle_ops);
 
 static inline void spm_register_write(struct spm_driver_data *drv,
-					enum spm_reg reg, u32 val)
+									  enum spm_reg reg, u32 val)
 {
 	if (drv->reg_data->reg_offset[reg])
 		writel_relaxed(val, drv->reg_base +
-				drv->reg_data->reg_offset[reg]);
+					   drv->reg_data->reg_offset[reg]);
 }
 
 /* Ensure a guaranteed write, before return */
 static inline void spm_register_write_sync(struct spm_driver_data *drv,
-					enum spm_reg reg, u32 val)
+		enum spm_reg reg, u32 val)
 {
 	u32 ret;
 
 	if (!drv->reg_data->reg_offset[reg])
+	{
 		return;
+	}
 
-	do {
+	do
+	{
 		writel_relaxed(val, drv->reg_base +
-				drv->reg_data->reg_offset[reg]);
+					   drv->reg_data->reg_offset[reg]);
 		ret = readl_relaxed(drv->reg_base +
-				drv->reg_data->reg_offset[reg]);
+							drv->reg_data->reg_offset[reg]);
+
 		if (ret == val)
+		{
 			break;
+		}
+
 		cpu_relax();
-	} while (1);
+	}
+	while (1);
 }
 
 static inline u32 spm_register_read(struct spm_driver_data *drv,
-					enum spm_reg reg)
+									enum spm_reg reg)
 {
 	return readl_relaxed(drv->reg_base + drv->reg_data->reg_offset[reg]);
 }
 
 static void spm_set_low_power_mode(struct spm_driver_data *drv,
-					enum pm_sleep_mode mode)
+								   enum pm_sleep_mode mode)
 {
 	u32 start_index;
 	u32 ctl_val;
@@ -203,7 +223,8 @@ static int qcom_idle_enter(unsigned long index)
 	return __this_cpu_read(qcom_idle_ops)[index]();
 }
 
-static const struct of_device_id qcom_idle_state_match[] __initconst = {
+static const struct of_device_id qcom_idle_state_match[] __initconst =
+{
 	{ .compatible = "qcom,idle-state-spc", .data = qcom_cpu_spc },
 	{ },
 };
@@ -219,45 +240,65 @@ static int __init qcom_cpuidle_init(struct device_node *cpu_node, int cpu)
 	cpumask_t mask;
 	bool use_scm_power_down = false;
 
-	for (i = 0; ; i++) {
+	for (i = 0; ; i++)
+	{
 		state_node = of_parse_phandle(cpu_node, "cpu-idle-states", i);
+
 		if (!state_node)
+		{
 			break;
+		}
 
 		if (!of_device_is_available(state_node))
+		{
 			continue;
+		}
 
-		if (i == CPUIDLE_STATE_MAX) {
+		if (i == CPUIDLE_STATE_MAX)
+		{
 			pr_warn("%s: cpuidle states reached max possible\n",
 					__func__);
 			break;
 		}
 
 		match_id = of_match_node(qcom_idle_state_match, state_node);
+
 		if (!match_id)
+		{
 			return -ENODEV;
+		}
 
 		idle_fns[state_count] = match_id->data;
 
 		/* Check if any of the states allow power down */
 		if (match_id->data == qcom_cpu_spc)
+		{
 			use_scm_power_down = true;
+		}
 
 		state_count++;
 	}
 
 	if (state_count == 1)
+	{
 		goto check_spm;
+	}
 
 	fns = devm_kcalloc(get_cpu_device(cpu), state_count, sizeof(*fns),
-			GFP_KERNEL);
+					   GFP_KERNEL);
+
 	if (!fns)
+	{
 		return -ENOMEM;
+	}
 
 	for (i = 1; i < state_count; i++)
+	{
 		fns[i] = idle_fns[i];
+	}
 
-	if (use_scm_power_down) {
+	if (use_scm_power_down)
+	{
 		/* We have atleast one power down mode */
 		cpumask_clear(&mask);
 		cpumask_set_cpu(cpu, &mask);
@@ -275,7 +316,8 @@ check_spm:
 	return per_cpu(cpu_spm_drv, cpu) ? 0 : -ENXIO;
 }
 
-static const struct cpuidle_ops qcom_cpuidle_ops __initconst = {
+static const struct cpuidle_ops qcom_cpuidle_ops __initconst =
+{
 	.suspend = qcom_idle_enter,
 	.init = qcom_cpuidle_init,
 };
@@ -291,34 +333,53 @@ static struct spm_driver_data *spm_get_drv(struct platform_device *pdev,
 	int cpu;
 	bool found = 0;
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		cpu_node = of_cpu_device_node_get(cpu);
+
 		if (!cpu_node)
+		{
 			continue;
+		}
+
 		saw_node = of_parse_phandle(cpu_node, "qcom,saw", 0);
 		found = (saw_node == pdev->dev.of_node);
 		of_node_put(saw_node);
 		of_node_put(cpu_node);
+
 		if (found)
+		{
 			break;
+		}
 	}
 
-	if (found) {
+	if (found)
+	{
 		drv = devm_kzalloc(&pdev->dev, sizeof(*drv), GFP_KERNEL);
+
 		if (drv)
+		{
 			*spm_cpu = cpu;
+		}
 	}
 
 	return drv;
 }
 
-static const struct of_device_id spm_match_table[] = {
-	{ .compatible = "qcom,msm8974-saw2-v2.1-cpu",
-	  .data = &spm_reg_8974_8084_cpu },
-	{ .compatible = "qcom,apq8084-saw2-v2.1-cpu",
-	  .data = &spm_reg_8974_8084_cpu },
-	{ .compatible = "qcom,apq8064-saw2-v1.1-cpu",
-	  .data = &spm_reg_8064_cpu },
+static const struct of_device_id spm_match_table[] =
+{
+	{
+		.compatible = "qcom,msm8974-saw2-v2.1-cpu",
+		.data = &spm_reg_8974_8084_cpu
+	},
+	{
+		.compatible = "qcom,apq8084-saw2-v2.1-cpu",
+		.data = &spm_reg_8974_8084_cpu
+	},
+	{
+		.compatible = "qcom,apq8064-saw2-v1.1-cpu",
+		.data = &spm_reg_8064_cpu
+	},
 	{ },
 };
 
@@ -331,24 +392,33 @@ static int spm_dev_probe(struct platform_device *pdev)
 	int cpu;
 
 	drv = spm_get_drv(pdev, &cpu);
+
 	if (!drv)
+	{
 		return -EINVAL;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	drv->reg_base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(drv->reg_base))
+	{
 		return PTR_ERR(drv->reg_base);
+	}
 
 	match_id = of_match_node(spm_match_table, pdev->dev.of_node);
+
 	if (!match_id)
+	{
 		return -ENODEV;
+	}
 
 	drv->reg_data = match_id->data;
 
 	/* Write the SPM sequences first.. */
 	addr = drv->reg_base + drv->reg_data->reg_offset[SPM_REG_SEQ_ENTRY];
 	__iowrite32_copy(addr, drv->reg_data->seq,
-			ARRAY_SIZE(drv->reg_data->seq) / 4);
+					 ARRAY_SIZE(drv->reg_data->seq) / 4);
 
 	/*
 	 * ..and then the control registers.
@@ -360,9 +430,9 @@ static int spm_dev_probe(struct platform_device *pdev)
 	spm_register_write(drv, SPM_REG_DLY, drv->reg_data->spm_dly);
 	spm_register_write(drv, SPM_REG_PMIC_DLY, drv->reg_data->pmic_dly);
 	spm_register_write(drv, SPM_REG_PMIC_DATA_0,
-				drv->reg_data->pmic_data[0]);
+					   drv->reg_data->pmic_data[0]);
 	spm_register_write(drv, SPM_REG_PMIC_DATA_1,
-				drv->reg_data->pmic_data[1]);
+					   drv->reg_data->pmic_data[1]);
 
 	/* Set up Standby as the default low power mode */
 	spm_set_low_power_mode(drv, PM_SLEEP_MODE_STBY);
@@ -372,7 +442,8 @@ static int spm_dev_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver spm_driver = {
+static struct platform_driver spm_driver =
+{
 	.probe = spm_dev_probe,
 	.driver = {
 		.name = "saw",

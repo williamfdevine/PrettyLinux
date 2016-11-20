@@ -47,19 +47,20 @@
 /* Set the Edge Triggered behaviour for the target file descriptor */
 #define EPOLLET (1 << 31)
 
-/* 
+/*
  * On x86-64 make the 64bit structure have the same alignment as the
  * 32bit structure. This makes 32bit emulation easier.
  *
  * UML/x86_64 needs the same packing as x86_64
  */
 #ifdef __x86_64__
-#define EPOLL_PACKED __attribute__((packed))
+	#define EPOLL_PACKED __attribute__((packed))
 #else
-#define EPOLL_PACKED
+	#define EPOLL_PACKED
 #endif
 
-struct epoll_event {
+struct epoll_event
+{
 	__u32 events;
 	__u64 data;
 } EPOLL_PACKED;
@@ -68,7 +69,9 @@ struct epoll_event {
 static inline void ep_take_care_of_epollwakeup(struct epoll_event *epev)
 {
 	if ((epev->events & EPOLLWAKEUP) && !capable(CAP_BLOCK_SUSPEND))
+	{
 		epev->events &= ~EPOLLWAKEUP;
+	}
 }
 #else
 static inline void ep_take_care_of_epollwakeup(struct epoll_event *epev)

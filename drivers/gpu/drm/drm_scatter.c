@@ -47,15 +47,19 @@ static inline void *drm_vmalloc_dma(unsigned long size)
 #endif
 }
 
-static void drm_sg_cleanup(struct drm_sg_mem * entry)
+static void drm_sg_cleanup(struct drm_sg_mem *entry)
 {
 	struct page *page;
 	int i;
 
-	for (i = 0; i < entry->pages; i++) {
+	for (i = 0; i < entry->pages; i++)
+	{
 		page = entry->pagelist[i];
+
 		if (page)
+		{
 			ClearPageReserved(page);
+		}
 	}
 
 	vfree(entry->virtual);
@@ -68,19 +72,20 @@ static void drm_sg_cleanup(struct drm_sg_mem * entry)
 void drm_legacy_sg_cleanup(struct drm_device *dev)
 {
 	if (drm_core_check_feature(dev, DRIVER_SG) && dev->sg &&
-	    drm_core_check_feature(dev, DRIVER_LEGACY)) {
+		drm_core_check_feature(dev, DRIVER_LEGACY))
+	{
 		drm_sg_cleanup(dev->sg);
 		dev->sg = NULL;
 	}
 }
 #ifdef _LP64
-# define ScatterHandle(x) (unsigned int)((x >> 32) + (x & ((1L << 32) - 1)))
+	#define ScatterHandle(x) (unsigned int)((x >> 32) + (x & ((1L << 32) - 1)))
 #else
-# define ScatterHandle(x) (unsigned int)(x)
+	#define ScatterHandle(x) (unsigned int)(x)
 #endif
 
 int drm_legacy_sg_alloc(struct drm_device *dev, void *data,
-			struct drm_file *file_priv)
+						struct drm_file *file_priv)
 {
 	struct drm_scatter_gather *request = data;
 	struct drm_sg_mem *entry;
@@ -89,37 +94,52 @@ int drm_legacy_sg_alloc(struct drm_device *dev, void *data,
 	DRM_DEBUG("\n");
 
 	if (!drm_core_check_feature(dev, DRIVER_LEGACY))
+	{
 		return -EINVAL;
+	}
 
 	if (!drm_core_check_feature(dev, DRIVER_SG))
+	{
 		return -EINVAL;
+	}
 
 	if (dev->sg)
+	{
 		return -EINVAL;
+	}
 
 	entry = kzalloc(sizeof(*entry), GFP_KERNEL);
+
 	if (!entry)
+	{
 		return -ENOMEM;
+	}
 
 	pages = (request->size + PAGE_SIZE - 1) / PAGE_SIZE;
 	DRM_DEBUG("size=%ld pages=%ld\n", request->size, pages);
 
 	entry->pages = pages;
 	entry->pagelist = kcalloc(pages, sizeof(*entry->pagelist), GFP_KERNEL);
-	if (!entry->pagelist) {
+
+	if (!entry->pagelist)
+	{
 		kfree(entry);
 		return -ENOMEM;
 	}
 
 	entry->busaddr = kcalloc(pages, sizeof(*entry->busaddr), GFP_KERNEL);
-	if (!entry->busaddr) {
+
+	if (!entry->busaddr)
+	{
 		kfree(entry->pagelist);
 		kfree(entry);
 		return -ENOMEM;
 	}
 
 	entry->virtual = drm_vmalloc_dma(pages << PAGE_SHIFT);
-	if (!entry->virtual) {
+
+	if (!entry->virtual)
+	{
 		kfree(entry->busaddr);
 		kfree(entry->pagelist);
 		kfree(entry);
@@ -137,10 +157,15 @@ int drm_legacy_sg_alloc(struct drm_device *dev, void *data,
 	DRM_DEBUG("virtual = %p\n", entry->virtual);
 
 	for (i = (unsigned long)entry->virtual, j = 0; j < pages;
-	     i += PAGE_SIZE, j++) {
+		 i += PAGE_SIZE, j++)
+	{
 		entry->pagelist[j] = vmalloc_to_page((void *)i);
+
 		if (!entry->pagelist[j])
+		{
 			goto failed;
+		}
+
 		SetPageReserved(entry->pagelist[j]);
 	}
 
@@ -155,63 +180,82 @@ int drm_legacy_sg_alloc(struct drm_device *dev, void *data,
 	{
 		int error = 0;
 
-		for (i = 0; i < pages; i++) {
+		for (i = 0; i < pages; i++)
+		{
 			unsigned long *tmp;
 
 			tmp = page_address(entry->pagelist[i]);
+
 			for (j = 0;
-			     j < PAGE_SIZE / sizeof(unsigned long);
-			     j++, tmp++) {
+				 j < PAGE_SIZE / sizeof(unsigned long);
+				 j++, tmp++)
+			{
 				*tmp = 0xcafebabe;
 			}
+
 			tmp = (unsigned long *)((u8 *) entry->virtual +
-						(PAGE_SIZE * i));
+									(PAGE_SIZE * i));
+
 			for (j = 0;
-			     j < PAGE_SIZE / sizeof(unsigned long);
-			     j++, tmp++) {
-				if (*tmp != 0xcafebabe && error == 0) {
+				 j < PAGE_SIZE / sizeof(unsigned long);
+				 j++, tmp++)
+			{
+				if (*tmp != 0xcafebabe && error == 0)
+				{
 					error = 1;
 					DRM_ERROR("Scatter allocation error, "
-						  "pagelist does not match "
-						  "virtual mapping\n");
+							  "pagelist does not match "
+							  "virtual mapping\n");
 				}
 			}
+
 			tmp = page_address(entry->pagelist[i]);
+
 			for (j = 0;
-			     j < PAGE_SIZE / sizeof(unsigned long);
-			     j++, tmp++) {
+				 j < PAGE_SIZE / sizeof(unsigned long);
+				 j++, tmp++)
+			{
 				*tmp = 0;
 			}
 		}
+
 		if (error == 0)
+		{
 			DRM_ERROR("Scatter allocation matches pagelist\n");
+		}
 	}
 #endif
 
 	return 0;
 
-      failed:
+failed:
 	drm_sg_cleanup(entry);
 	return -ENOMEM;
 }
 
 int drm_legacy_sg_free(struct drm_device *dev, void *data,
-		       struct drm_file *file_priv)
+					   struct drm_file *file_priv)
 {
 	struct drm_scatter_gather *request = data;
 	struct drm_sg_mem *entry;
 
 	if (!drm_core_check_feature(dev, DRIVER_LEGACY))
+	{
 		return -EINVAL;
+	}
 
 	if (!drm_core_check_feature(dev, DRIVER_SG))
+	{
 		return -EINVAL;
+	}
 
 	entry = dev->sg;
 	dev->sg = NULL;
 
 	if (!entry || entry->handle != request->handle)
+	{
 		return -EINVAL;
+	}
 
 	DRM_DEBUG("virtual  = %p\n", entry->virtual);
 

@@ -43,7 +43,8 @@ static inline void set_s16(s32 __iomem *p, s16 val)
  * varies with different sensors.
  */
 
-struct raw_channel {
+struct raw_channel
+{
 	u32 raw_time;
 	s32 raw_data;
 	s32 reserved[2];
@@ -53,7 +54,8 @@ struct raw_channel {
  * The force_array structure shows the layout for the decoupled and
  * filtered force data.
  */
-struct force_array {
+struct force_array
+{
 	s32 fx;
 	s32 fy;
 	s32 fz;
@@ -68,7 +70,8 @@ struct force_array {
  * The six_axis_array structure shows the layout for the offsets and
  * the full scales.
  */
-struct six_axis_array {
+struct six_axis_array
+{
 	s32 fx;
 	s32 fy;
 	s32 fz;
@@ -93,7 +96,8 @@ struct six_axis_array {
  */
 
 /* vect_bits appears to be unused at this time */
-enum {
+enum
+{
 	fx = 0x0001,
 	fy = 0x0002,
 	fz = 0x0004,
@@ -116,7 +120,8 @@ enum {
  * exceeded the near saturation value.
  */
 
-enum {
+enum
+{
 	fx_near_sat = 0x0001,
 	fy_near_sat = 0x0002,
 	fz_near_sat = 0x0004,
@@ -188,7 +193,8 @@ enum {
  * the sensor data is not being received correctly.
  */
 
-enum error_bits_t {
+enum error_bits_t
+{
 	fx_sat = 0x0001,
 	fy_sat = 0x0002,
 	fz_sat = 0x0004,
@@ -216,7 +222,8 @@ enum error_bits_t {
  *    met or exceeded.
  */
 
-struct thresh_struct {
+struct thresh_struct
+{
 	s32 data_address;
 	s32 threshold;
 	s32 bit_pattern;
@@ -233,7 +240,8 @@ struct thresh_struct {
  *    command.
  * 2. number_of_xx_thresholds specify how many GE/LE threshold there are.
  */
-struct le_struct {
+struct le_struct
+{
 	s32 latch_bits;
 	s32 number_of_ge_thresholds;
 	s32 number_of_le_thresholds;
@@ -255,7 +263,8 @@ struct le_struct {
  * 7 - negate all axes (NEG)
  */
 
-enum link_types {
+enum link_types
+{
 	end_x_form,
 	tx,
 	ty,
@@ -268,8 +277,10 @@ enum link_types {
 
 /* TRANSFORM */
 /* Structure used to describe a transform. */
-struct intern_transform {
-	struct {
+struct intern_transform
+{
+	struct
+	{
 		u32 link_type;
 		s32 link_amount;
 	} link[8];
@@ -280,7 +291,8 @@ struct intern_transform {
  * and hardware manuals.
  */
 
-struct jr3_channel {
+struct jr3_channel
+{
 	/*
 	 * Raw_channels is the area used to store the raw data coming from
 	 * the sensor.
@@ -724,8 +736,10 @@ struct jr3_channel {
 	struct intern_transform transforms[0x10];	/* offset 0x0200 */
 };
 
-struct jr3_t {
-	struct {
+struct jr3_t
+{
+	struct
+	{
 		u32 program_lo[0x4000];		/*  0x00000 - 0x10000 */
 		struct jr3_channel data;	/*  0x10000 - 0x10c00 */
 		char pad2[0x30000 - 0x00c00];	/*  0x10c00 - 0x40000 */

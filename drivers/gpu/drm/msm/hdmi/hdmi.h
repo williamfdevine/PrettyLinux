@@ -32,14 +32,16 @@
 struct hdmi_phy;
 struct hdmi_platform_config;
 
-struct hdmi_gpio_data {
+struct hdmi_gpio_data
+{
 	int num;
 	bool output;
 	int value;
 	const char *label;
 };
 
-struct hdmi_audio {
+struct hdmi_audio
+{
 	bool enabled;
 	struct hdmi_audio_infoframe infoframe;
 	int rate;
@@ -47,7 +49,8 @@ struct hdmi_audio {
 
 struct hdmi_hdcp_ctrl;
 
-struct hdmi {
+struct hdmi
+{
 	struct drm_device *dev;
 	struct platform_device *pdev;
 	struct platform_device *audio_pdev;
@@ -98,7 +101,8 @@ struct hdmi {
 };
 
 /* platform config data (ie. from DT, or pdata) */
-struct hdmi_platform_config {
+struct hdmi_platform_config
+{
 	const char *mmio_name;
 	const char *qfprom_mmio_name;
 
@@ -144,7 +148,8 @@ static inline u32 hdmi_qfprom_read(struct hdmi *hdmi, u32 reg)
  * hdmi phy:
  */
 
-enum hdmi_phy_type {
+enum hdmi_phy_type
+{
 	MSM_HDMI_PHY_8x60,
 	MSM_HDMI_PHY_8960,
 	MSM_HDMI_PHY_8x74,
@@ -152,13 +157,14 @@ enum hdmi_phy_type {
 	MSM_HDMI_PHY_MAX,
 };
 
-struct hdmi_phy_cfg {
+struct hdmi_phy_cfg
+{
 	enum hdmi_phy_type type;
 	void (*powerup)(struct hdmi_phy *phy, unsigned long int pixclock);
 	void (*powerdown)(struct hdmi_phy *phy);
-	const char * const *reg_names;
+	const char *const *reg_names;
 	int num_regs;
-	const char * const *clk_names;
+	const char *const *clk_names;
 	int num_clks;
 };
 
@@ -167,7 +173,8 @@ extern const struct hdmi_phy_cfg msm_hdmi_phy_8960_cfg;
 extern const struct hdmi_phy_cfg msm_hdmi_phy_8x74_cfg;
 extern const struct hdmi_phy_cfg msm_hdmi_phy_8996_cfg;
 
-struct hdmi_phy {
+struct hdmi_phy
+{
 	struct platform_device *pdev;
 	void __iomem *mmio;
 	struct hdmi_phy_cfg *cfg;
@@ -227,8 +234,8 @@ static inline int msm_hdmi_pll_8996_init(struct platform_device *pdev)
 
 int msm_hdmi_audio_update(struct hdmi *hdmi);
 int msm_hdmi_audio_info_setup(struct hdmi *hdmi, bool enabled,
-	uint32_t num_of_channels, uint32_t channel_allocation,
-	uint32_t level_shift, bool down_mix);
+							  uint32_t num_of_channels, uint32_t channel_allocation,
+							  uint32_t level_shift, bool down_mix);
 void msm_hdmi_audio_set_sample_rate(struct hdmi *hdmi, int rate);
 
 

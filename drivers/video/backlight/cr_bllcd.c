@@ -66,7 +66,8 @@
 static struct pci_dev *lpc_dev;
 static u32 gpio_bar;
 
-struct cr_panel {
+struct cr_panel
+{
 	struct backlight_device *cr_backlight_device;
 	struct lcd_device *cr_lcd_device;
 };
@@ -78,18 +79,32 @@ static int cr_backlight_set_intensity(struct backlight_device *bd)
 	u32 cur = inl(addr);
 
 	if (bd->props.power == FB_BLANK_UNBLANK)
+	{
 		intensity = FB_BLANK_UNBLANK;
-	if (bd->props.fb_blank == FB_BLANK_UNBLANK)
-		intensity = FB_BLANK_UNBLANK;
-	if (bd->props.power == FB_BLANK_POWERDOWN)
-		intensity = FB_BLANK_POWERDOWN;
-	if (bd->props.fb_blank == FB_BLANK_POWERDOWN)
-		intensity = FB_BLANK_POWERDOWN;
+	}
 
-	if (intensity == FB_BLANK_UNBLANK) { /* FULL ON */
+	if (bd->props.fb_blank == FB_BLANK_UNBLANK)
+	{
+		intensity = FB_BLANK_UNBLANK;
+	}
+
+	if (bd->props.power == FB_BLANK_POWERDOWN)
+	{
+		intensity = FB_BLANK_POWERDOWN;
+	}
+
+	if (bd->props.fb_blank == FB_BLANK_POWERDOWN)
+	{
+		intensity = FB_BLANK_POWERDOWN;
+	}
+
+	if (intensity == FB_BLANK_UNBLANK)   /* FULL ON */
+	{
 		cur &= ~CRVML_BACKLIGHT_OFF;
 		outl(cur, addr);
-	} else if (intensity == FB_BLANK_POWERDOWN) { /* OFF */
+	}
+	else if (intensity == FB_BLANK_POWERDOWN)     /* OFF */
+	{
 		cur |= CRVML_BACKLIGHT_OFF;
 		outl(cur, addr);
 	} /* anything else, don't bother */
@@ -104,14 +119,19 @@ static int cr_backlight_get_intensity(struct backlight_device *bd)
 	u8 intensity;
 
 	if (cur & CRVML_BACKLIGHT_OFF)
+	{
 		intensity = FB_BLANK_POWERDOWN;
+	}
 	else
+	{
 		intensity = FB_BLANK_UNBLANK;
+	}
 
 	return intensity;
 }
 
-static const struct backlight_ops cr_backlight_ops = {
+static const struct backlight_ops cr_backlight_ops =
+{
 	.get_brightness = cr_backlight_get_intensity,
 	.update_status = cr_backlight_set_intensity,
 };
@@ -121,12 +141,15 @@ static void cr_panel_on(void)
 	u32 addr = gpio_bar + CRVML_PANEL_PORT;
 	u32 cur = inl(addr);
 
-	if (!(cur & CRVML_PANEL_ON)) {
+	if (!(cur & CRVML_PANEL_ON))
+	{
 		/* Make sure LVDS controller is down. */
-		if (cur & 0x00000001) {
+		if (cur & 0x00000001)
+		{
 			cur &= ~CRVML_LVDS_ON;
 			outl(cur, addr);
 		}
+
 		/* Power up Panel */
 		schedule_timeout(HZ / 10);
 		cur |= CRVML_PANEL_ON;
@@ -135,7 +158,8 @@ static void cr_panel_on(void)
 
 	/* Power up LVDS controller */
 
-	if (!(cur & CRVML_LVDS_ON)) {
+	if (!(cur & CRVML_LVDS_ON))
+	{
 		schedule_timeout(HZ / 10);
 		outl(cur | CRVML_LVDS_ON, addr);
 	}
@@ -147,11 +171,14 @@ static void cr_panel_off(void)
 	u32 cur = inl(addr);
 
 	/* Power down LVDS controller first to avoid high currents */
-	if (cur & CRVML_LVDS_ON) {
+	if (cur & CRVML_LVDS_ON)
+	{
 		cur &= ~CRVML_LVDS_ON;
 		outl(cur, addr);
 	}
-	if (cur & CRVML_PANEL_ON) {
+
+	if (cur & CRVML_PANEL_ON)
+	{
 		schedule_timeout(HZ / 10);
 		outl(cur & ~CRVML_PANEL_ON, addr);
 	}
@@ -160,14 +187,20 @@ static void cr_panel_off(void)
 static int cr_lcd_set_power(struct lcd_device *ld, int power)
 {
 	if (power == FB_BLANK_UNBLANK)
+	{
 		cr_panel_on();
+	}
+
 	if (power == FB_BLANK_POWERDOWN)
+	{
 		cr_panel_off();
+	}
 
 	return 0;
 }
 
-static struct lcd_ops cr_lcd_ops = {
+static struct lcd_ops cr_lcd_ops =
+{
 	.set_power = cr_lcd_set_power,
 };
 
@@ -180,14 +213,18 @@ static int cr_backlight_probe(struct platform_device *pdev)
 	u8 dev_en;
 
 	lpc_dev = pci_get_device(PCI_VENDOR_ID_INTEL,
-					CRVML_DEVICE_LPC, NULL);
-	if (!lpc_dev) {
+							 CRVML_DEVICE_LPC, NULL);
+
+	if (!lpc_dev)
+	{
 		pr_err("INTEL CARILLO RANCH LPC not found.\n");
 		return -ENODEV;
 	}
 
 	pci_read_config_byte(lpc_dev, CRVML_REG_GPIOEN, &dev_en);
-	if (!(dev_en & CRVML_GPIOEN_BIT)) {
+
+	if (!(dev_en & CRVML_GPIOEN_BIT))
+	{
 		pr_err("Carillo Ranch GPIO device was not enabled.\n");
 		pci_dev_put(lpc_dev);
 		return -ENODEV;
@@ -196,26 +233,32 @@ static int cr_backlight_probe(struct platform_device *pdev)
 	memset(&props, 0, sizeof(struct backlight_properties));
 	props.type = BACKLIGHT_RAW;
 	bdp = devm_backlight_device_register(&pdev->dev, "cr-backlight",
-					&pdev->dev, NULL, &cr_backlight_ops,
-					&props);
-	if (IS_ERR(bdp)) {
+										 &pdev->dev, NULL, &cr_backlight_ops,
+										 &props);
+
+	if (IS_ERR(bdp))
+	{
 		pci_dev_put(lpc_dev);
 		return PTR_ERR(bdp);
 	}
 
 	ldp = devm_lcd_device_register(&pdev->dev, "cr-lcd", &pdev->dev, NULL,
-					&cr_lcd_ops);
-	if (IS_ERR(ldp)) {
+								   &cr_lcd_ops);
+
+	if (IS_ERR(ldp))
+	{
 		pci_dev_put(lpc_dev);
 		return PTR_ERR(ldp);
 	}
 
 	pci_read_config_dword(lpc_dev, CRVML_REG_GPIOBAR,
-			      &gpio_bar);
+						  &gpio_bar);
 	gpio_bar &= ~0x3F;
 
 	crp = devm_kzalloc(&pdev->dev, sizeof(*crp), GFP_KERNEL);
-	if (!crp) {
+
+	if (!crp)
+	{
 		pci_dev_put(lpc_dev);
 		return -ENOMEM;
 	}
@@ -246,12 +289,13 @@ static int cr_backlight_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver cr_backlight_driver = {
+static struct platform_driver cr_backlight_driver =
+{
 	.probe = cr_backlight_probe,
 	.remove = cr_backlight_remove,
 	.driver = {
-		   .name = "cr_backlight",
-		   },
+		.name = "cr_backlight",
+	},
 };
 
 static struct platform_device *crp;
@@ -261,10 +305,14 @@ static int __init cr_backlight_init(void)
 	int ret = platform_driver_register(&cr_backlight_driver);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	crp = platform_device_register_simple("cr_backlight", -1, NULL, 0);
-	if (IS_ERR(crp)) {
+
+	if (IS_ERR(crp))
+	{
 		platform_driver_unregister(&cr_backlight_driver);
 		return PTR_ERR(crp);
 	}

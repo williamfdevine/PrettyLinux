@@ -33,19 +33,22 @@
 /*
  */
 
-struct mixart_uid {
+struct mixart_uid
+{
 	u32 object_id;
 	u32 desc;
 };
 
-struct mem_area {
+struct mem_area
+{
 	unsigned long phys;
 	void __iomem *virt;
 	struct resource *res;
 };
 
 
-struct mixart_route {
+struct mixart_route
+{
 	unsigned char connected;
 	unsigned char phase_inv;
 	int volume;
@@ -63,7 +66,8 @@ struct mixart_route {
 
 #define MIXART_MAX_PHYS_CONNECTORS  (MIXART_MAX_CARDS * 2 * 2) /* 4 * stereo * (analog+digital) */
 
-struct mixart_mgr {
+struct mixart_mgr
+{
 	unsigned int num_cards;
 	struct snd_mixart *chip[MIXART_MAX_CARDS];
 
@@ -95,7 +99,8 @@ struct mixart_mgr {
 
 	/* hardware interface */
 	unsigned int dsp_loaded;      /* bit flags of loaded dsp indices */
-	unsigned int board_type;      /* read from embedded once elf file is loaded, 250 = miXart8, 251 = with AES, 252 = with Cobranet */
+	unsigned int
+	board_type;      /* read from embedded once elf file is loaded, 250 = miXart8, 251 = with AES, 252 = with Cobranet */
 
 	struct snd_dma_buffer flowinfo;
 	struct snd_dma_buffer bufferinfo;
@@ -133,7 +138,8 @@ struct mixart_mgr {
 #define MIXART_NOTIFY_SUBS_MASK		0x007F
 
 
-struct mixart_stream {
+struct mixart_stream
+{
 	struct snd_pcm_substream *substream;
 	struct mixart_pipe *pipe;
 	int pcm_number;
@@ -148,14 +154,16 @@ struct mixart_stream {
 };
 
 
-enum mixart_pipe_status {
+enum mixart_pipe_status
+{
 	PIPE_UNDEFINED,
 	PIPE_STOPPED,
 	PIPE_RUNNING,
 	PIPE_CLOCK_SET
 };
 
-struct mixart_pipe {
+struct mixart_pipe
+{
 	struct mixart_uid group_uid;			/* id of the pipe, as returned by embedded */
 	int          stream_count;
 	struct mixart_uid uid_left_connector;	/* UID's for the audio connectors */
@@ -166,7 +174,8 @@ struct mixart_pipe {
 };
 
 
-struct snd_mixart {
+struct snd_mixart
+{
 	struct snd_card *card;
 	struct mixart_mgr *mgr;
 	int chip_idx;               /* zero based */
@@ -193,8 +202,10 @@ struct snd_mixart {
 	int analog_playback_active[2];		/* Mixer : Master Playback active (!mute) */
 	int analog_playback_volume[2];		/* Mixer : Master Playback Volume */
 	int analog_capture_volume[2];		/* Mixer : Master Capture Volume */
-	int digital_playback_active[2*MIXART_PLAYBACK_STREAMS][2];	/* Mixer : Digital Playback Active [(analog+AES output)*streams][stereo]*/
-	int digital_playback_volume[2*MIXART_PLAYBACK_STREAMS][2];	/* Mixer : Digital Playback Volume [(analog+AES output)*streams][stereo]*/
+	int digital_playback_active[2 *
+								MIXART_PLAYBACK_STREAMS][2];	/* Mixer : Digital Playback Active [(analog+AES output)*streams][stereo]*/
+	int digital_playback_volume[2 *
+								MIXART_PLAYBACK_STREAMS][2];	/* Mixer : Digital Playback Volume [(analog+AES output)*streams][stereo]*/
 	int digital_capture_volume[2][2];	/* Mixer : Digital Capture Volume [analog+AES output][stereo] */
 	int monitoring_active[2];		/* Mixer : Monitoring Active */
 	int monitoring_volume[2];		/* Mixer : Monitoring Volume */
@@ -217,7 +228,7 @@ struct mixart_flowinfo
 };
 
 /* exported */
-int snd_mixart_create_pcm(struct snd_mixart * chip);
+int snd_mixart_create_pcm(struct snd_mixart *chip);
 struct mixart_pipe *snd_mixart_add_ref_pipe(struct snd_mixart *chip, int pcm_number, int capture, int monitoring);
 int snd_mixart_kill_ref_pipe(struct mixart_mgr *mgr, struct mixart_pipe *pipe, int monitoring);
 

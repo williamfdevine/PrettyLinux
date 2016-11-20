@@ -116,7 +116,8 @@ static inline void lp5562_wait_enable_done(void)
 
 static void lp5562_set_led_current(struct lp55xx_led *led, u8 led_current)
 {
-	u8 addr[] = {
+	u8 addr[] =
+	{
 		LP5562_REG_R_CURRENT,
 		LP5562_REG_G_CURRENT,
 		LP5562_REG_B_CURRENT,
@@ -130,13 +131,15 @@ static void lp5562_set_led_current(struct lp55xx_led *led, u8 led_current)
 static void lp5562_load_engine(struct lp55xx_chip *chip)
 {
 	enum lp55xx_engine_index idx = chip->engine_idx;
-	u8 mask[] = {
+	u8 mask[] =
+	{
 		[LP55XX_ENGINE_1] = LP5562_MODE_ENG1_M,
 		[LP55XX_ENGINE_2] = LP5562_MODE_ENG2_M,
 		[LP55XX_ENGINE_3] = LP5562_MODE_ENG3_M,
 	};
 
-	u8 val[] = {
+	u8 val[] =
+	{
 		[LP55XX_ENGINE_1] = LP5562_LOAD_ENG1,
 		[LP55XX_ENGINE_2] = LP5562_LOAD_ENG2,
 		[LP55XX_ENGINE_3] = LP5562_LOAD_ENG3,
@@ -160,7 +163,8 @@ static void lp5562_run_engine(struct lp55xx_chip *chip, bool start)
 	u8 exec;
 
 	/* stop engine */
-	if (!start) {
+	if (!start)
+	{
 		lp55xx_write(chip, LP5562_REG_ENABLE, LP5562_ENABLE_DEFAULT);
 		lp5562_wait_enable_done();
 		lp5562_stop_engine(chip);
@@ -176,25 +180,34 @@ static void lp5562_run_engine(struct lp55xx_chip *chip, bool start)
 	 */
 
 	ret = lp55xx_read(chip, LP5562_REG_OP_MODE, &mode);
+
 	if (ret)
+	{
 		return;
+	}
 
 	ret = lp55xx_read(chip, LP5562_REG_ENABLE, &exec);
+
 	if (ret)
+	{
 		return;
+	}
 
 	/* change operation mode to RUN only when each engine is loading */
-	if (LP5562_ENG1_IS_LOADING(mode)) {
+	if (LP5562_ENG1_IS_LOADING(mode))
+	{
 		mode = (mode & ~LP5562_MODE_ENG1_M) | LP5562_RUN_ENG1;
 		exec = (exec & ~LP5562_EXEC_ENG1_M) | LP5562_RUN_ENG1;
 	}
 
-	if (LP5562_ENG2_IS_LOADING(mode)) {
+	if (LP5562_ENG2_IS_LOADING(mode))
+	{
 		mode = (mode & ~LP5562_MODE_ENG2_M) | LP5562_RUN_ENG2;
 		exec = (exec & ~LP5562_EXEC_ENG2_M) | LP5562_RUN_ENG2;
 	}
 
-	if (LP5562_ENG3_IS_LOADING(mode)) {
+	if (LP5562_ENG3_IS_LOADING(mode))
+	{
 		mode = (mode & ~LP5562_MODE_ENG3_M) | LP5562_RUN_ENG3;
 		exec = (exec & ~LP5562_EXEC_ENG3_M) | LP5562_RUN_ENG3;
 	}
@@ -207,11 +220,12 @@ static void lp5562_run_engine(struct lp55xx_chip *chip, bool start)
 }
 
 static int lp5562_update_firmware(struct lp55xx_chip *chip,
-					const u8 *data, size_t size)
+								  const u8 *data, size_t size)
 {
 	enum lp55xx_engine_index idx = chip->engine_idx;
 	u8 pattern[LP5562_PROGRAM_LENGTH] = {0};
-	u8 addr[] = {
+	u8 addr[] =
+	{
 		[LP55XX_ENGINE_1] = LP5562_REG_PROG_MEM_ENG1,
 		[LP55XX_ENGINE_2] = LP5562_REG_PROG_MEM_ENG2,
 		[LP55XX_ENGINE_3] = LP5562_REG_PROG_MEM_ENG3,
@@ -226,18 +240,28 @@ static int lp5562_update_firmware(struct lp55xx_chip *chip,
 
 	/* clear program memory before updating */
 	for (i = 0; i < LP5562_PROGRAM_LENGTH; i++)
+	{
 		lp55xx_write(chip, addr[idx] + i, 0);
+	}
 
 	i = 0;
-	while ((offset < size - 1) && (i < LP5562_PROGRAM_LENGTH)) {
+
+	while ((offset < size - 1) && (i < LP5562_PROGRAM_LENGTH))
+	{
 		/* separate sscanfs because length is working only for %s */
 		ret = sscanf(data + offset, "%2s%n ", c, &nrchars);
+
 		if (ret != 1)
+		{
 			goto err;
+		}
 
 		ret = sscanf(c, "%2x", &cmd);
+
 		if (ret != 1)
+		{
 			goto err;
+		}
 
 		pattern[i] = (u8)cmd;
 		offset += nrchars;
@@ -246,11 +270,16 @@ static int lp5562_update_firmware(struct lp55xx_chip *chip,
 
 	/* Each instruction is 16bit long. Check that length is even */
 	if (i % 2)
+	{
 		goto err;
+	}
 
 	program_size = i;
+
 	for (i = 0; i < program_size; i++)
+	{
 		lp55xx_write(chip, addr[idx] + i, pattern[i]);
+	}
 
 	return 0;
 
@@ -263,9 +292,10 @@ static void lp5562_firmware_loaded(struct lp55xx_chip *chip)
 {
 	const struct firmware *fw = chip->fw;
 
-	if (fw->size > LP5562_PROGRAM_LENGTH) {
+	if (fw->size > LP5562_PROGRAM_LENGTH)
+	{
 		dev_err(&chip->cl->dev, "firmware data size overflow: %zu\n",
-			fw->size);
+				fw->size);
 		return;
 	}
 
@@ -286,18 +316,26 @@ static int lp5562_post_init_device(struct lp55xx_chip *chip)
 
 	/* Set all PWMs to direct control mode */
 	ret = lp55xx_write(chip, LP5562_REG_OP_MODE, LP5562_CMD_DIRECT);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	lp5562_wait_opmode_done();
 
 	/* Update configuration for the clock setting */
 	if (!lp55xx_is_extclk_used(chip))
+	{
 		cfg |= LP5562_CLK_INT;
+	}
 
 	ret = lp55xx_write(chip, LP5562_REG_CONFIG, cfg);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Initialize all channels PWM to zero -> leds off */
 	lp55xx_write(chip, LP5562_REG_R_PWM, 0);
@@ -314,7 +352,8 @@ static int lp5562_post_init_device(struct lp55xx_chip *chip)
 static int lp5562_led_brightness(struct lp55xx_led *led)
 {
 	struct lp55xx_chip *chip = led->chip;
-	u8 addr[] = {
+	u8 addr[] =
+	{
 		LP5562_REG_R_PWM,
 		LP5562_REG_G_PWM,
 		LP5562_REG_B_PWM,
@@ -330,15 +369,19 @@ static int lp5562_led_brightness(struct lp55xx_led *led)
 }
 
 static void lp5562_write_program_memory(struct lp55xx_chip *chip,
-					u8 base, const u8 *rgb, int size)
+										u8 base, const u8 *rgb, int size)
 {
 	int i;
 
 	if (!rgb || size <= 0)
+	{
 		return;
+	}
 
 	for (i = 0; i < size; i++)
+	{
 		lp55xx_write(chip, base + i, *(rgb + i));
+	}
 
 	lp55xx_write(chip, base + i, 0);
 	lp55xx_write(chip, base + i + 1, 0);
@@ -348,8 +391,8 @@ static void lp5562_write_program_memory(struct lp55xx_chip *chip,
 static inline bool _is_pc_overflow(struct lp55xx_predef_pattern *ptn)
 {
 	return ptn->size_r >= LP5562_PROGRAM_LENGTH ||
-	       ptn->size_g >= LP5562_PROGRAM_LENGTH ||
-	       ptn->size_b >= LP5562_PROGRAM_LENGTH;
+		   ptn->size_g >= LP5562_PROGRAM_LENGTH ||
+		   ptn->size_b >= LP5562_PROGRAM_LENGTH;
 }
 
 static int lp5562_run_predef_led_pattern(struct lp55xx_chip *chip, int mode)
@@ -357,13 +400,16 @@ static int lp5562_run_predef_led_pattern(struct lp55xx_chip *chip, int mode)
 	struct lp55xx_predef_pattern *ptn;
 	int i;
 
-	if (mode == LP5562_PATTERN_OFF) {
+	if (mode == LP5562_PATTERN_OFF)
+	{
 		lp5562_run_engine(chip, false);
 		return 0;
 	}
 
 	ptn = chip->pdata->patterns + (mode - 1);
-	if (!ptn || _is_pc_overflow(ptn)) {
+
+	if (!ptn || _is_pc_overflow(ptn))
+	{
 		dev_err(&chip->cl->dev, "invalid pattern data\n");
 		return -EINVAL;
 	}
@@ -374,7 +420,8 @@ static int lp5562_run_predef_led_pattern(struct lp55xx_chip *chip, int mode)
 	lp55xx_write(chip, LP5562_REG_ENG_SEL, LP5562_ENG_SEL_RGB);
 
 	/* Load engines */
-	for (i = LP55XX_ENGINE_1; i <= LP55XX_ENGINE_3; i++) {
+	for (i = LP55XX_ENGINE_1; i <= LP55XX_ENGINE_3; i++)
+	{
 		chip->engine_idx = i;
 		lp5562_load_engine(chip);
 	}
@@ -389,11 +436,11 @@ static int lp5562_run_predef_led_pattern(struct lp55xx_chip *chip, int mode)
 
 	/* Program engines */
 	lp5562_write_program_memory(chip, LP5562_REG_PROG_MEM_ENG1,
-				ptn->r, ptn->size_r);
+								ptn->r, ptn->size_r);
 	lp5562_write_program_memory(chip, LP5562_REG_PROG_MEM_ENG2,
-				ptn->g, ptn->size_g);
+								ptn->g, ptn->size_g);
 	lp5562_write_program_memory(chip, LP5562_REG_PROG_MEM_ENG3,
-				ptn->b, ptn->size_b);
+								ptn->b, ptn->size_b);
 
 	/* Run engines */
 	lp5562_run_engine(chip, true);
@@ -402,8 +449,8 @@ static int lp5562_run_predef_led_pattern(struct lp55xx_chip *chip, int mode)
 }
 
 static ssize_t lp5562_store_pattern(struct device *dev,
-				struct device_attribute *attr,
-				const char *buf, size_t len)
+									struct device_attribute *attr,
+									const char *buf, size_t len)
 {
 	struct lp55xx_led *led = i2c_get_clientdata(to_i2c_client(dev));
 	struct lp55xx_chip *chip = led->chip;
@@ -413,25 +460,32 @@ static ssize_t lp5562_store_pattern(struct device *dev,
 	int ret;
 
 	ret = kstrtoul(buf, 0, &mode);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (mode > num_patterns || !ptn)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&chip->lock);
 	ret = lp5562_run_predef_led_pattern(chip, mode);
 	mutex_unlock(&chip->lock);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	return len;
 }
 
 static ssize_t lp5562_store_engine_mux(struct device *dev,
-				     struct device_attribute *attr,
-				     const char *buf, size_t len)
+									   struct device_attribute *attr,
+									   const char *buf, size_t len)
 {
 	struct lp55xx_led *led = i2c_get_clientdata(to_i2c_client(dev));
 	struct lp55xx_chip *chip = led->chip;
@@ -445,28 +499,38 @@ static ssize_t lp5562_store_engine_mux(struct device *dev,
 	 * W ... Engine 1 or 2 or 3
 	 */
 
-	if (sysfs_streq(buf, "RGB")) {
+	if (sysfs_streq(buf, "RGB"))
+	{
 		mask = LP5562_ENG_FOR_RGB_M;
 		val = LP5562_ENG_SEL_RGB;
-	} else if (sysfs_streq(buf, "W")) {
+	}
+	else if (sysfs_streq(buf, "W"))
+	{
 		enum lp55xx_engine_index idx = chip->engine_idx;
 
 		mask = LP5562_ENG_FOR_W_M;
-		switch (idx) {
-		case LP55XX_ENGINE_1:
-			val = LP5562_ENG1_FOR_W;
-			break;
-		case LP55XX_ENGINE_2:
-			val = LP5562_ENG2_FOR_W;
-			break;
-		case LP55XX_ENGINE_3:
-			val = LP5562_ENG3_FOR_W;
-			break;
-		default:
-			return -EINVAL;
+
+		switch (idx)
+		{
+			case LP55XX_ENGINE_1:
+				val = LP5562_ENG1_FOR_W;
+				break;
+
+			case LP55XX_ENGINE_2:
+				val = LP5562_ENG2_FOR_W;
+				break;
+
+			case LP55XX_ENGINE_3:
+				val = LP5562_ENG3_FOR_W;
+				break;
+
+			default:
+				return -EINVAL;
 		}
 
-	} else {
+	}
+	else
+	{
 		dev_err(dev, "choose RGB or W\n");
 		return -EINVAL;
 	}
@@ -481,18 +545,21 @@ static ssize_t lp5562_store_engine_mux(struct device *dev,
 static LP55XX_DEV_ATTR_WO(led_pattern, lp5562_store_pattern);
 static LP55XX_DEV_ATTR_WO(engine_mux, lp5562_store_engine_mux);
 
-static struct attribute *lp5562_attributes[] = {
+static struct attribute *lp5562_attributes[] =
+{
 	&dev_attr_led_pattern.attr,
 	&dev_attr_engine_mux.attr,
 	NULL,
 };
 
-static const struct attribute_group lp5562_group = {
+static const struct attribute_group lp5562_group =
+{
 	.attrs = lp5562_attributes,
 };
 
 /* Chip specific configurations */
-static struct lp55xx_device_config lp5562_cfg = {
+static struct lp55xx_device_config lp5562_cfg =
+{
 	.max_channel  = LP5562_MAX_LEDS,
 	.reset = {
 		.addr = LP5562_REG_RESET,
@@ -511,7 +578,7 @@ static struct lp55xx_device_config lp5562_cfg = {
 };
 
 static int lp5562_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	int ret;
 	struct lp55xx_chip *chip;
@@ -519,25 +586,38 @@ static int lp5562_probe(struct i2c_client *client,
 	struct lp55xx_platform_data *pdata = dev_get_platdata(&client->dev);
 	struct device_node *np = client->dev.of_node;
 
-	if (!pdata) {
-		if (np) {
+	if (!pdata)
+	{
+		if (np)
+		{
 			pdata = lp55xx_of_populate_pdata(&client->dev, np);
+
 			if (IS_ERR(pdata))
+			{
 				return PTR_ERR(pdata);
-		} else {
+			}
+		}
+		else
+		{
 			dev_err(&client->dev, "no platform data\n");
 			return -EINVAL;
 		}
 	}
 
 	chip = devm_kzalloc(&client->dev, sizeof(*chip), GFP_KERNEL);
+
 	if (!chip)
+	{
 		return -ENOMEM;
+	}
 
 	led = devm_kzalloc(&client->dev,
-			sizeof(*led) * pdata->num_channels, GFP_KERNEL);
+					   sizeof(*led) * pdata->num_channels, GFP_KERNEL);
+
 	if (!led)
+	{
 		return -ENOMEM;
+	}
 
 	chip->cl = client;
 	chip->pdata = pdata;
@@ -548,15 +628,23 @@ static int lp5562_probe(struct i2c_client *client,
 	i2c_set_clientdata(client, led);
 
 	ret = lp55xx_init_device(chip);
+
 	if (ret)
+	{
 		goto err_init;
+	}
 
 	ret = lp55xx_register_leds(led, chip);
+
 	if (ret)
+	{
 		goto err_register_leds;
+	}
 
 	ret = lp55xx_register_sysfs(chip);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&client->dev, "registering sysfs failed\n");
 		goto err_register_sysfs;
 	}
@@ -585,14 +673,16 @@ static int lp5562_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id lp5562_id[] = {
+static const struct i2c_device_id lp5562_id[] =
+{
 	{ "lp5562", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, lp5562_id);
 
 #ifdef CONFIG_OF
-static const struct of_device_id of_lp5562_leds_match[] = {
+static const struct of_device_id of_lp5562_leds_match[] =
+{
 	{ .compatible = "ti,lp5562", },
 	{},
 };
@@ -600,7 +690,8 @@ static const struct of_device_id of_lp5562_leds_match[] = {
 MODULE_DEVICE_TABLE(of, of_lp5562_leds_match);
 #endif
 
-static struct i2c_driver lp5562_driver = {
+static struct i2c_driver lp5562_driver =
+{
 	.driver = {
 		.name	= "lp5562",
 		.of_match_table = of_match_ptr(of_lp5562_leds_match),

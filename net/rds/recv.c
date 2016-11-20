@@ -41,7 +41,7 @@
 #include "rds.h"
 
 void rds_inc_init(struct rds_incoming *inc, struct rds_connection *conn,
-		  __be32 saddr)
+				  __be32 saddr)
 {
 	atomic_set(&inc->i_refcount, 1);
 	INIT_LIST_HEAD(&inc->i_item);
@@ -54,7 +54,7 @@ void rds_inc_init(struct rds_incoming *inc, struct rds_connection *conn,
 EXPORT_SYMBOL_GPL(rds_inc_init);
 
 void rds_inc_path_init(struct rds_incoming *inc, struct rds_conn_path *cp,
-		       __be32 saddr)
+					   __be32 saddr)
 {
 	atomic_set(&inc->i_refcount, 1);
 	INIT_LIST_HEAD(&inc->i_item);
@@ -76,7 +76,9 @@ static void rds_inc_addref(struct rds_incoming *inc)
 void rds_inc_put(struct rds_incoming *inc)
 {
 	rdsdebug("put inc %p ref %d\n", inc, atomic_read(&inc->i_refcount));
-	if (atomic_dec_and_test(&inc->i_refcount)) {
+
+	if (atomic_dec_and_test(&inc->i_refcount))
+	{
 		BUG_ON(!list_empty(&inc->i_item));
 
 		inc->i_conn->c_trans->inc_free(inc);
@@ -85,25 +87,28 @@ void rds_inc_put(struct rds_incoming *inc)
 EXPORT_SYMBOL_GPL(rds_inc_put);
 
 static void rds_recv_rcvbuf_delta(struct rds_sock *rs, struct sock *sk,
-				  struct rds_cong_map *map,
-				  int delta, __be16 port)
+								  struct rds_cong_map *map,
+								  int delta, __be16 port)
 {
 	int now_congested;
 
 	if (delta == 0)
+	{
 		return;
+	}
 
 	rs->rs_rcv_bytes += delta;
 	now_congested = rs->rs_rcv_bytes > rds_sk_rcvbuf(rs);
 
 	rdsdebug("rs %p (%pI4:%u) recv bytes %d buf %d "
-	  "now_cong %d delta %d\n",
-	  rs, &rs->rs_bound_addr,
-	  ntohs(rs->rs_bound_port), rs->rs_rcv_bytes,
-	  rds_sk_rcvbuf(rs), now_congested, delta);
+			 "now_cong %d delta %d\n",
+			 rs, &rs->rs_bound_addr,
+			 ntohs(rs->rs_bound_port), rs->rs_rcv_bytes,
+			 rds_sk_rcvbuf(rs), now_congested, delta);
 
 	/* wasn't -> am congested */
-	if (!rs->rs_congested && now_congested) {
+	if (!rs->rs_congested && now_congested)
+	{
 		rs->rs_congested = 1;
 		rds_cong_set_bit(map, port);
 		rds_cong_queue_updates(map);
@@ -111,7 +116,8 @@ static void rds_recv_rcvbuf_delta(struct rds_sock *rs, struct sock *sk,
 	/* was -> aren't congested */
 	/* Require more free space before reporting uncongested to prevent
 	   bouncing cong/uncong state too often */
-	else if (rs->rs_congested && (rs->rs_rcv_bytes < (rds_sk_rcvbuf(rs)/2))) {
+	else if (rs->rs_congested && (rs->rs_rcv_bytes < (rds_sk_rcvbuf(rs) / 2)))
+	{
 		rs->rs_congested = 0;
 		rds_cong_clear_bit(map, port);
 		rds_cong_queue_updates(map);
@@ -127,60 +133,76 @@ static void rds_recv_incoming_exthdrs(struct rds_incoming *inc, struct rds_sock 
 {
 	struct rds_header *hdr = &inc->i_hdr;
 	unsigned int pos = 0, type, len;
-	union {
+	union
+	{
 		struct rds_ext_header_version version;
 		struct rds_ext_header_rdma rdma;
 		struct rds_ext_header_rdma_dest rdma_dest;
 	} buffer;
 
-	while (1) {
+	while (1)
+	{
 		len = sizeof(buffer);
 		type = rds_message_next_extension(hdr, &pos, &buffer, &len);
+
 		if (type == RDS_EXTHDR_NONE)
+		{
 			break;
+		}
+
 		/* Process extension header here */
-		switch (type) {
-		case RDS_EXTHDR_RDMA:
-			rds_rdma_unuse(rs, be32_to_cpu(buffer.rdma.h_rdma_rkey), 0);
-			break;
+		switch (type)
+		{
+			case RDS_EXTHDR_RDMA:
+				rds_rdma_unuse(rs, be32_to_cpu(buffer.rdma.h_rdma_rkey), 0);
+				break;
 
-		case RDS_EXTHDR_RDMA_DEST:
-			/* We ignore the size for now. We could stash it
-			 * somewhere and use it for error checking. */
-			inc->i_rdma_cookie = rds_rdma_make_cookie(
-					be32_to_cpu(buffer.rdma_dest.h_rdma_rkey),
-					be32_to_cpu(buffer.rdma_dest.h_rdma_offset));
+			case RDS_EXTHDR_RDMA_DEST:
+				/* We ignore the size for now. We could stash it
+				 * somewhere and use it for error checking. */
+				inc->i_rdma_cookie = rds_rdma_make_cookie(
+										 be32_to_cpu(buffer.rdma_dest.h_rdma_rkey),
+										 be32_to_cpu(buffer.rdma_dest.h_rdma_offset));
 
-			break;
+				break;
 		}
 	}
 }
 
 static void rds_recv_hs_exthdrs(struct rds_header *hdr,
-				struct rds_connection *conn)
+								struct rds_connection *conn)
 {
 	unsigned int pos = 0, type, len;
-	union {
+	union
+	{
 		struct rds_ext_header_version version;
 		u16 rds_npaths;
 	} buffer;
 
-	while (1) {
+	while (1)
+	{
 		len = sizeof(buffer);
 		type = rds_message_next_extension(hdr, &pos, &buffer, &len);
+
 		if (type == RDS_EXTHDR_NONE)
+		{
 			break;
+		}
+
 		/* Process extension header here */
-		switch (type) {
-		case RDS_EXTHDR_NPATHS:
-			conn->c_npaths = min_t(int, RDS_MPATH_WORKERS,
-					       buffer.rds_npaths);
-			break;
-		default:
-			pr_warn_ratelimited("ignoring unknown exthdr type "
-					     "0x%x\n", type);
+		switch (type)
+		{
+			case RDS_EXTHDR_NPATHS:
+				conn->c_npaths = min_t(int, RDS_MPATH_WORKERS,
+									   buffer.rds_npaths);
+				break;
+
+			default:
+				pr_warn_ratelimited("ignoring unknown exthdr type "
+									"0x%x\n", type);
 		}
 	}
+
 	/* if RDS_EXTHDR_NPATHS was not found, default to a single-path */
 	conn->c_npaths = max_t(int, conn->c_npaths, 1);
 }
@@ -209,8 +231,10 @@ static void rds_start_mprds(struct rds_connection *conn)
 	int i;
 	struct rds_conn_path *cp;
 
-	if (conn->c_npaths > 1 && conn->c_laddr < conn->c_faddr) {
-		for (i = 1; i < conn->c_npaths; i++) {
+	if (conn->c_npaths > 1 && conn->c_laddr < conn->c_faddr)
+	{
+		for (i = 1; i < conn->c_npaths; i++)
+		{
 			cp = &conn->c_path[i];
 			rds_conn_path_connect_if_down(cp);
 		}
@@ -234,7 +258,7 @@ static void rds_start_mprds(struct rds_connection *conn)
  * tell us which roles the addrs in the conn are playing for this message.
  */
 void rds_recv_incoming(struct rds_connection *conn, __be32 saddr, __be32 daddr,
-		       struct rds_incoming *inc, gfp_t gfp)
+					   struct rds_incoming *inc, gfp_t gfp)
 {
 	struct rds_sock *rs = NULL;
 	struct sock *sk;
@@ -243,21 +267,26 @@ void rds_recv_incoming(struct rds_connection *conn, __be32 saddr, __be32 daddr,
 
 	inc->i_conn = conn;
 	inc->i_rx_jiffies = jiffies;
+
 	if (conn->c_trans->t_mp_capable)
+	{
 		cp = inc->i_conn_path;
+	}
 	else
+	{
 		cp = &conn->c_path[0];
+	}
 
 	rdsdebug("conn %p next %llu inc %p seq %llu len %u sport %u dport %u "
-		 "flags 0x%x rx_jiffies %lu\n", conn,
-		 (unsigned long long)cp->cp_next_rx_seq,
-		 inc,
-		 (unsigned long long)be64_to_cpu(inc->i_hdr.h_sequence),
-		 be32_to_cpu(inc->i_hdr.h_len),
-		 be16_to_cpu(inc->i_hdr.h_sport),
-		 be16_to_cpu(inc->i_hdr.h_dport),
-		 inc->i_hdr.h_flags,
-		 inc->i_rx_jiffies);
+			 "flags 0x%x rx_jiffies %lu\n", conn,
+			 (unsigned long long)cp->cp_next_rx_seq,
+			 inc,
+			 (unsigned long long)be64_to_cpu(inc->i_hdr.h_sequence),
+			 be32_to_cpu(inc->i_hdr.h_len),
+			 be16_to_cpu(inc->i_hdr.h_sport),
+			 be16_to_cpu(inc->i_hdr.h_dport),
+			 inc->i_hdr.h_flags,
+			 inc->i_rx_jiffies);
 
 	/*
 	 * Sequence numbers should only increase.  Messages get their
@@ -280,29 +309,38 @@ void rds_recv_incoming(struct rds_connection *conn, __be32 saddr, __be32 daddr,
 	 * detection, arguably worth it to avoid data corruption.
 	 */
 	if (be64_to_cpu(inc->i_hdr.h_sequence) < cp->cp_next_rx_seq &&
-	    (inc->i_hdr.h_flags & RDS_FLAG_RETRANSMITTED)) {
+		(inc->i_hdr.h_flags & RDS_FLAG_RETRANSMITTED))
+	{
 		rds_stats_inc(s_recv_drop_old_seq);
 		goto out;
 	}
+
 	cp->cp_next_rx_seq = be64_to_cpu(inc->i_hdr.h_sequence) + 1;
 
-	if (rds_sysctl_ping_enable && inc->i_hdr.h_dport == 0) {
-		if (inc->i_hdr.h_sport == 0) {
+	if (rds_sysctl_ping_enable && inc->i_hdr.h_dport == 0)
+	{
+		if (inc->i_hdr.h_sport == 0)
+		{
 			rdsdebug("ignore ping with 0 sport from 0x%x\n", saddr);
 			goto out;
 		}
+
 		rds_stats_inc(s_recv_ping);
 		rds_send_pong(cp, inc->i_hdr.h_sport);
+
 		/* if this is a handshake ping, start multipath if necessary */
-		if (RDS_HS_PROBE(inc->i_hdr.h_sport, inc->i_hdr.h_dport)) {
+		if (RDS_HS_PROBE(inc->i_hdr.h_sport, inc->i_hdr.h_dport))
+		{
 			rds_recv_hs_exthdrs(&inc->i_hdr, cp->cp_conn);
 			rds_start_mprds(cp->cp_conn);
 		}
+
 		goto out;
 	}
 
 	if (inc->i_hdr.h_dport ==  RDS_FLAG_PROBE_PORT &&
-	    inc->i_hdr.h_sport == 0) {
+		inc->i_hdr.h_sport == 0)
+	{
 		rds_recv_hs_exthdrs(&inc->i_hdr, cp->cp_conn);
 		/* if this is a handshake pong, start multipath if necessary */
 		rds_start_mprds(cp->cp_conn);
@@ -311,7 +349,9 @@ void rds_recv_incoming(struct rds_connection *conn, __be32 saddr, __be32 daddr,
 	}
 
 	rs = rds_find_bound(daddr, inc->i_hdr.h_dport);
-	if (!rs) {
+
+	if (!rs)
+	{
 		rds_stats_inc(s_recv_drop_no_sock);
 		goto out;
 	}
@@ -324,25 +364,37 @@ void rds_recv_incoming(struct rds_connection *conn, __be32 saddr, __be32 daddr,
 
 	/* serialize with rds_release -> sock_orphan */
 	write_lock_irqsave(&rs->rs_recv_lock, flags);
-	if (!sock_flag(sk, SOCK_DEAD)) {
+
+	if (!sock_flag(sk, SOCK_DEAD))
+	{
 		rdsdebug("adding inc %p to rs %p's recv queue\n", inc, rs);
 		rds_stats_inc(s_recv_queued);
 		rds_recv_rcvbuf_delta(rs, sk, inc->i_conn->c_lcong,
-				      be32_to_cpu(inc->i_hdr.h_len),
-				      inc->i_hdr.h_dport);
+							  be32_to_cpu(inc->i_hdr.h_len),
+							  inc->i_hdr.h_dport);
+
 		if (sock_flag(sk, SOCK_RCVTSTAMP))
+		{
 			do_gettimeofday(&inc->i_rx_tstamp);
+		}
+
 		rds_inc_addref(inc);
 		list_add_tail(&inc->i_item, &rs->rs_recv_queue);
 		__rds_wake_sk_sleep(sk);
-	} else {
+	}
+	else
+	{
 		rds_stats_inc(s_recv_drop_dead_sock);
 	}
+
 	write_unlock_irqrestore(&rs->rs_recv_lock, flags);
 
 out:
+
 	if (rs)
+	{
 		rds_sock_put(rs);
+	}
 }
 EXPORT_SYMBOL_GPL(rds_recv_incoming);
 
@@ -354,14 +406,18 @@ static int rds_next_incoming(struct rds_sock *rs, struct rds_incoming **inc)
 {
 	unsigned long flags;
 
-	if (!*inc) {
+	if (!*inc)
+	{
 		read_lock_irqsave(&rs->rs_recv_lock, flags);
-		if (!list_empty(&rs->rs_recv_queue)) {
+
+		if (!list_empty(&rs->rs_recv_queue))
+		{
 			*inc = list_entry(rs->rs_recv_queue.next,
-					  struct rds_incoming,
-					  i_item);
+							  struct rds_incoming,
+							  i_item);
 			rds_inc_addref(*inc);
 		}
+
 		read_unlock_irqrestore(&rs->rs_recv_lock, flags);
 	}
 
@@ -369,24 +425,29 @@ static int rds_next_incoming(struct rds_sock *rs, struct rds_incoming **inc)
 }
 
 static int rds_still_queued(struct rds_sock *rs, struct rds_incoming *inc,
-			    int drop)
+							int drop)
 {
 	struct sock *sk = rds_rs_to_sk(rs);
 	int ret = 0;
 	unsigned long flags;
 
 	write_lock_irqsave(&rs->rs_recv_lock, flags);
-	if (!list_empty(&inc->i_item)) {
+
+	if (!list_empty(&inc->i_item))
+	{
 		ret = 1;
-		if (drop) {
+
+		if (drop)
+		{
 			/* XXX make sure this i_conn is reliable */
 			rds_recv_rcvbuf_delta(rs, sk, inc->i_conn->c_lcong,
-					      -be32_to_cpu(inc->i_hdr.h_len),
-					      inc->i_hdr.h_dport);
+								  -be32_to_cpu(inc->i_hdr.h_len),
+								  inc->i_hdr.h_dport);
 			list_del_init(&inc->i_item);
 			rds_inc_put(inc);
 		}
 	}
+
 	write_unlock_irqrestore(&rs->rs_recv_lock, flags);
 
 	rdsdebug("inc %p rs %p still %d dropped %d\n", inc, rs, ret, drop);
@@ -414,35 +475,49 @@ int rds_notify_queue_get(struct rds_sock *rs, struct msghdr *msghdr)
 	 * even hold a single notification. Then we give him as much of this single
 	 * msg as we can squeeze in, and set MSG_CTRUNC.
 	 */
-	if (msghdr) {
+	if (msghdr)
+	{
 		max_messages = msghdr->msg_controllen / CMSG_SPACE(sizeof(cmsg));
+
 		if (!max_messages)
+		{
 			max_messages = 1;
+		}
 	}
 
 	spin_lock_irqsave(&rs->rs_lock, flags);
-	while (!list_empty(&rs->rs_notify_queue) && count < max_messages) {
+
+	while (!list_empty(&rs->rs_notify_queue) && count < max_messages)
+	{
 		notifier = list_entry(rs->rs_notify_queue.next,
-				struct rds_notifier, n_list);
+							  struct rds_notifier, n_list);
 		list_move(&notifier->n_list, &copy);
 		count++;
 	}
+
 	spin_unlock_irqrestore(&rs->rs_lock, flags);
 
 	if (!count)
+	{
 		return 0;
+	}
 
-	while (!list_empty(&copy)) {
+	while (!list_empty(&copy))
+	{
 		notifier = list_entry(copy.next, struct rds_notifier, n_list);
 
-		if (msghdr) {
+		if (msghdr)
+		{
 			cmsg.user_token = notifier->n_user_token;
 			cmsg.status = notifier->n_status;
 
 			err = put_cmsg(msghdr, SOL_RDS, RDS_CMSG_RDMA_STATUS,
-				       sizeof(cmsg), &cmsg);
+						   sizeof(cmsg), &cmsg);
+
 			if (err)
+			{
 				break;
+			}
 		}
 
 		list_del_init(&notifier->n_list);
@@ -452,7 +527,8 @@ int rds_notify_queue_get(struct rds_sock *rs, struct msghdr *msghdr)
 	/* If we bailed out because of an error in put_cmsg,
 	 * we may be left with one or more notifications that we
 	 * didn't process. Return them to the head of the list. */
-	if (!list_empty(&copy)) {
+	if (!list_empty(&copy))
+	{
 		spin_lock_irqsave(&rs->rs_lock, flags);
 		list_splice(&copy, &rs->rs_notify_queue);
 		spin_unlock_irqrestore(&rs->rs_lock, flags);
@@ -471,9 +547,12 @@ static int rds_notify_cong(struct rds_sock *rs, struct msghdr *msghdr)
 	int err;
 
 	err = put_cmsg(msghdr, SOL_RDS, RDS_CMSG_CONG_UPDATE,
-			sizeof(notify), &notify);
+				   sizeof(notify), &notify);
+
 	if (err)
+	{
 		return err;
+	}
 
 	spin_lock_irqsave(&rs->rs_lock, flags);
 	rs->rs_cong_notify &= ~notify;
@@ -486,31 +565,39 @@ static int rds_notify_cong(struct rds_sock *rs, struct msghdr *msghdr)
  * Receive any control messages.
  */
 static int rds_cmsg_recv(struct rds_incoming *inc, struct msghdr *msg,
-			 struct rds_sock *rs)
+						 struct rds_sock *rs)
 {
 	int ret = 0;
 
-	if (inc->i_rdma_cookie) {
+	if (inc->i_rdma_cookie)
+	{
 		ret = put_cmsg(msg, SOL_RDS, RDS_CMSG_RDMA_DEST,
-				sizeof(inc->i_rdma_cookie), &inc->i_rdma_cookie);
+					   sizeof(inc->i_rdma_cookie), &inc->i_rdma_cookie);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	if ((inc->i_rx_tstamp.tv_sec != 0) &&
-	    sock_flag(rds_rs_to_sk(rs), SOCK_RCVTSTAMP)) {
+		sock_flag(rds_rs_to_sk(rs), SOCK_RCVTSTAMP))
+	{
 		ret = put_cmsg(msg, SOL_SOCKET, SCM_TIMESTAMP,
-			       sizeof(struct timeval),
-			       &inc->i_rx_tstamp);
+					   sizeof(struct timeval),
+					   &inc->i_rx_tstamp);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
 }
 
 int rds_recvmsg(struct socket *sock, struct msghdr *msg, size_t size,
-		int msg_flags)
+				int msg_flags)
 {
 	struct sock *sk = sock->sk;
 	struct rds_sock *rs = rds_sk_to_rs(sk);
@@ -525,23 +612,31 @@ int rds_recvmsg(struct socket *sock, struct msghdr *msg, size_t size,
 	rdsdebug("size %zu flags 0x%x timeo %ld\n", size, msg_flags, timeo);
 
 	if (msg_flags & MSG_OOB)
+	{
 		goto out;
+	}
 
-	while (1) {
+	while (1)
+	{
 		struct iov_iter save;
+
 		/* If there are pending notifications, do those - and nothing else */
-		if (!list_empty(&rs->rs_notify_queue)) {
+		if (!list_empty(&rs->rs_notify_queue))
+		{
 			ret = rds_notify_queue_get(rs, msg);
 			break;
 		}
 
-		if (rs->rs_cong_notify) {
+		if (rs->rs_cong_notify)
+		{
 			ret = rds_notify_cong(rs, msg);
 			break;
 		}
 
-		if (!rds_next_incoming(rs, &inc)) {
-			if (nonblock) {
+		if (!rds_next_incoming(rs, &inc))
+		{
+			if (nonblock)
+			{
 				ret = -EAGAIN;
 				break;
 			}
@@ -551,30 +646,41 @@ int rds_recvmsg(struct socket *sock, struct msghdr *msg, size_t size,
 					 rs->rs_cong_notify ||
 					 rds_next_incoming(rs, &inc)), timeo);
 			rdsdebug("recvmsg woke inc %p timeo %ld\n", inc,
-				 timeo);
+					 timeo);
+
 			if (timeo > 0 || timeo == MAX_SCHEDULE_TIMEOUT)
+			{
 				continue;
+			}
 
 			ret = timeo;
+
 			if (ret == 0)
+			{
 				ret = -ETIMEDOUT;
+			}
+
 			break;
 		}
 
 		rdsdebug("copying inc %p from %pI4:%u to user\n", inc,
-			 &inc->i_conn->c_faddr,
-			 ntohs(inc->i_hdr.h_sport));
+				 &inc->i_conn->c_faddr,
+				 ntohs(inc->i_hdr.h_sport));
 		save = msg->msg_iter;
 		ret = inc->i_conn->c_trans->inc_copy_to_user(inc, &msg->msg_iter);
+
 		if (ret < 0)
+		{
 			break;
+		}
 
 		/*
 		 * if the message we just copied isn't at the head of the
 		 * recv queue then someone else raced us to return it, try
 		 * to get the next message.
 		 */
-		if (!rds_still_queued(rs, inc, !(msg_flags & MSG_PEEK))) {
+		if (!rds_still_queued(rs, inc, !(msg_flags & MSG_PEEK)))
+		{
 			rds_inc_put(inc);
 			inc = NULL;
 			rds_stats_inc(s_recv_deliver_raced);
@@ -582,31 +688,40 @@ int rds_recvmsg(struct socket *sock, struct msghdr *msg, size_t size,
 			continue;
 		}
 
-		if (ret < be32_to_cpu(inc->i_hdr.h_len)) {
+		if (ret < be32_to_cpu(inc->i_hdr.h_len))
+		{
 			if (msg_flags & MSG_TRUNC)
+			{
 				ret = be32_to_cpu(inc->i_hdr.h_len);
+			}
+
 			msg->msg_flags |= MSG_TRUNC;
 		}
 
-		if (rds_cmsg_recv(inc, msg, rs)) {
+		if (rds_cmsg_recv(inc, msg, rs))
+		{
 			ret = -EFAULT;
 			goto out;
 		}
 
 		rds_stats_inc(s_recv_delivered);
 
-		if (sin) {
+		if (sin)
+		{
 			sin->sin_family = AF_INET;
 			sin->sin_port = inc->i_hdr.h_sport;
 			sin->sin_addr.s_addr = inc->i_saddr;
 			memset(sin->sin_zero, 0, sizeof(sin->sin_zero));
 			msg->msg_namelen = sizeof(*sin);
 		}
+
 		break;
 	}
 
 	if (inc)
+	{
 		rds_inc_put(inc);
+	}
 
 out:
 	return ret;
@@ -624,10 +739,11 @@ void rds_clear_recv_queue(struct rds_sock *rs)
 	unsigned long flags;
 
 	write_lock_irqsave(&rs->rs_recv_lock, flags);
-	list_for_each_entry_safe(inc, tmp, &rs->rs_recv_queue, i_item) {
+	list_for_each_entry_safe(inc, tmp, &rs->rs_recv_queue, i_item)
+	{
 		rds_recv_rcvbuf_delta(rs, sk, inc->i_conn->c_lcong,
-				      -be32_to_cpu(inc->i_hdr.h_len),
-				      inc->i_hdr.h_dport);
+							  -be32_to_cpu(inc->i_hdr.h_len),
+							  inc->i_hdr.h_dport);
 		list_del_init(&inc->i_item);
 		rds_inc_put(inc);
 	}
@@ -639,20 +755,23 @@ void rds_clear_recv_queue(struct rds_sock *rs)
  * path.
  */
 void rds_inc_info_copy(struct rds_incoming *inc,
-		       struct rds_info_iterator *iter,
-		       __be32 saddr, __be32 daddr, int flip)
+					   struct rds_info_iterator *iter,
+					   __be32 saddr, __be32 daddr, int flip)
 {
 	struct rds_info_message minfo;
 
 	minfo.seq = be64_to_cpu(inc->i_hdr.h_sequence);
 	minfo.len = be32_to_cpu(inc->i_hdr.h_len);
 
-	if (flip) {
+	if (flip)
+	{
 		minfo.laddr = daddr;
 		minfo.faddr = saddr;
 		minfo.lport = inc->i_hdr.h_dport;
 		minfo.fport = inc->i_hdr.h_sport;
-	} else {
+	}
+	else
+	{
 		minfo.laddr = saddr;
 		minfo.faddr = daddr;
 		minfo.lport = inc->i_hdr.h_sport;

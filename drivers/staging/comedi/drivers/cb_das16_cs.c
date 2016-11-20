@@ -49,7 +49,7 @@
 #define DAS16CS_AI_MUX_HI_CHAN(x)	(((x) & 0xf) << 4)
 #define DAS16CS_AI_MUX_LO_CHAN(x)	(((x) & 0xf) << 0)
 #define DAS16CS_AI_MUX_SINGLE_CHAN(x)	(DAS16CS_AI_MUX_HI_CHAN(x) |	\
-					 DAS16CS_AI_MUX_LO_CHAN(x))
+		DAS16CS_AI_MUX_LO_CHAN(x))
 #define DAS16CS_MISC1_REG		0x04
 #define DAS16CS_MISC1_INTE		BIT(15)	/* 1=enable; 0=disable */
 #define DAS16CS_MISC1_INT_SRC(x)	(((x) & 0x7) << 12) /* interrupt src */
@@ -96,14 +96,16 @@
 #define DAS16CS_TIMER_BASE		0x08
 #define DAS16CS_DIO_REG			0x10
 
-struct das16cs_board {
+struct das16cs_board
+{
 	const char *name;
 	int device_id;
-	unsigned int has_ao:1;
-	unsigned int has_4dio:1;
+	unsigned int has_ao: 1;
+	unsigned int has_4dio: 1;
 };
 
-static const struct das16cs_board das16cs_boards[] = {
+static const struct das16cs_board das16cs_boards[] =
+{
 	{
 		.name		= "PC-CARD DAS16/16-AO",
 		.device_id	= 0x0039,
@@ -118,12 +120,14 @@ static const struct das16cs_board das16cs_boards[] = {
 	},
 };
 
-struct das16cs_private {
+struct das16cs_private
+{
 	unsigned short misc1;
 	unsigned short misc2;
 };
 
-static const struct comedi_lrange das16cs_ai_range = {
+static const struct comedi_lrange das16cs_ai_range =
+{
 	4, {
 		BIP_RANGE(10),
 		BIP_RANGE(5),
@@ -133,22 +137,26 @@ static const struct comedi_lrange das16cs_ai_range = {
 };
 
 static int das16cs_ai_eoc(struct comedi_device *dev,
-			  struct comedi_subdevice *s,
-			  struct comedi_insn *insn,
-			  unsigned long context)
+						  struct comedi_subdevice *s,
+						  struct comedi_insn *insn,
+						  unsigned long context)
 {
 	unsigned int status;
 
 	status = inw(dev->iobase + DAS16CS_MISC1_REG);
+
 	if (status & DAS16CS_MISC1_EOC)
+	{
 		return 0;
+	}
+
 	return -EBUSY;
 }
 
 static int das16cs_ai_insn_read(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_insn *insn,
-				unsigned int *data)
+								struct comedi_subdevice *s,
+								struct comedi_insn *insn,
+								unsigned int *data)
 {
 	struct das16cs_private *devpriv = dev->private;
 	int chan = CR_CHAN(insn->chanspec);
@@ -158,40 +166,56 @@ static int das16cs_ai_insn_read(struct comedi_device *dev,
 	int i;
 
 	outw(DAS16CS_AI_MUX_SINGLE_CHAN(chan),
-	     dev->iobase + DAS16CS_AI_MUX_REG);
+		 dev->iobase + DAS16CS_AI_MUX_REG);
 
 	/* disable interrupts, software convert */
 	devpriv->misc1 &= ~(DAS16CS_MISC1_INTE | DAS16CS_MISC1_INT_SRC_MASK |
-			      DAS16CS_MISC1_AI_CONV_MASK);
+						DAS16CS_MISC1_AI_CONV_MASK);
+
 	if (aref == AREF_DIFF)
+	{
 		devpriv->misc1 &= ~DAS16CS_MISC1_SEDIFF;
+	}
 	else
+	{
 		devpriv->misc1 |= DAS16CS_MISC1_SEDIFF;
+	}
+
 	outw(devpriv->misc1, dev->iobase + DAS16CS_MISC1_REG);
 
 	devpriv->misc2 &= ~(DAS16CS_MISC2_BME | DAS16CS_MISC2_AI_GAIN_MASK);
-	switch (range) {
-	case 0:
-		devpriv->misc2 |= DAS16CS_MISC2_AI_GAIN_1;
-		break;
-	case 1:
-		devpriv->misc2 |= DAS16CS_MISC2_AI_GAIN_2;
-		break;
-	case 2:
-		devpriv->misc2 |= DAS16CS_MISC2_AI_GAIN_4;
-		break;
-	case 3:
-		devpriv->misc2 |= DAS16CS_MISC2_AI_GAIN_8;
-		break;
+
+	switch (range)
+	{
+		case 0:
+			devpriv->misc2 |= DAS16CS_MISC2_AI_GAIN_1;
+			break;
+
+		case 1:
+			devpriv->misc2 |= DAS16CS_MISC2_AI_GAIN_2;
+			break;
+
+		case 2:
+			devpriv->misc2 |= DAS16CS_MISC2_AI_GAIN_4;
+			break;
+
+		case 3:
+			devpriv->misc2 |= DAS16CS_MISC2_AI_GAIN_8;
+			break;
 	}
+
 	outw(devpriv->misc2, dev->iobase + DAS16CS_MISC2_REG);
 
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		outw(0, dev->iobase + DAS16CS_AI_DATA_REG);
 
 		ret = comedi_timeout(dev, s, insn, das16cs_ai_eoc, 0);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		data[i] = inw(dev->iobase + DAS16CS_AI_DATA_REG);
 	}
@@ -200,9 +224,9 @@ static int das16cs_ai_insn_read(struct comedi_device *dev,
 }
 
 static int das16cs_ao_insn_write(struct comedi_device *dev,
-				 struct comedi_subdevice *s,
-				 struct comedi_insn *insn,
-				 unsigned int *data)
+								 struct comedi_subdevice *s,
+								 struct comedi_insn *insn,
+								 unsigned int *data)
 {
 	struct das16cs_private *devpriv = dev->private;
 	unsigned int chan = CR_CHAN(insn->chanspec);
@@ -211,7 +235,8 @@ static int das16cs_ao_insn_write(struct comedi_device *dev,
 	int bit;
 	int i;
 
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		val = data[i];
 
 		outw(devpriv->misc1, dev->iobase + DAS16CS_MISC1_REG);
@@ -219,44 +244,59 @@ static int das16cs_ao_insn_write(struct comedi_device *dev,
 
 		/* raise the DACxCS line for the non-selected channel */
 		misc1 = devpriv->misc1 & ~DAS16CS_MISC1_DAC_MASK;
+
 		if (chan)
+		{
 			misc1 |= DAS16CS_MISC1_DAC0CS;
+		}
 		else
+		{
 			misc1 |= DAS16CS_MISC1_DAC1CS;
+		}
 
 		outw(misc1, dev->iobase + DAS16CS_MISC1_REG);
 		udelay(1);
 
-		for (bit = 15; bit >= 0; bit--) {
+		for (bit = 15; bit >= 0; bit--)
+		{
 			if ((val >> bit) & 0x1)
+			{
 				misc1 |= DAS16CS_MISC1_DACSD;
+			}
 			else
+			{
 				misc1 &= ~DAS16CS_MISC1_DACSD;
+			}
+
 			outw(misc1, dev->iobase + DAS16CS_MISC1_REG);
 			udelay(1);
 			outw(misc1 | DAS16CS_MISC1_DACCLK,
-			     dev->iobase + DAS16CS_MISC1_REG);
+				 dev->iobase + DAS16CS_MISC1_REG);
 			udelay(1);
 		}
+
 		/*
 		 * Make both DAC0CS and DAC1CS high to load
 		 * the new data and update analog the output
 		 */
 		outw(misc1 | DAS16CS_MISC1_DAC0CS | DAS16CS_MISC1_DAC1CS,
-		     dev->iobase + DAS16CS_MISC1_REG);
+			 dev->iobase + DAS16CS_MISC1_REG);
 	}
+
 	s->readback[chan] = val;
 
 	return insn->n;
 }
 
 static int das16cs_dio_insn_bits(struct comedi_device *dev,
-				 struct comedi_subdevice *s,
-				 struct comedi_insn *insn,
-				 unsigned int *data)
+								 struct comedi_subdevice *s,
+								 struct comedi_insn *insn,
+								 unsigned int *data)
 {
 	if (comedi_dio_update_state(s, data))
+	{
 		outw(s->state, dev->iobase + DAS16CS_DIO_REG);
+	}
 
 	data[1] = inw(dev->iobase + DAS16CS_DIO_REG);
 
@@ -264,9 +304,9 @@ static int das16cs_dio_insn_bits(struct comedi_device *dev,
 }
 
 static int das16cs_dio_insn_config(struct comedi_device *dev,
-				   struct comedi_subdevice *s,
-				   struct comedi_insn *insn,
-				   unsigned int *data)
+								   struct comedi_subdevice *s,
+								   struct comedi_insn *insn,
+								   unsigned int *data)
 {
 	struct das16cs_private *devpriv = dev->private;
 	unsigned int chan = CR_CHAN(insn->chanspec);
@@ -274,81 +314,113 @@ static int das16cs_dio_insn_config(struct comedi_device *dev,
 	int ret;
 
 	if (chan < 4)
+	{
 		mask = 0x0f;
+	}
 	else
+	{
 		mask = 0xf0;
+	}
 
 	ret = comedi_dio_insn_config(dev, s, insn, data, mask);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (s->io_bits & 0xf0)
+	{
 		devpriv->misc2 |= DAS16CS_MISC2_UDIR;
+	}
 	else
+	{
 		devpriv->misc2 &= ~DAS16CS_MISC2_UDIR;
+	}
+
 	if (s->io_bits & 0x0f)
+	{
 		devpriv->misc2 |= DAS16CS_MISC2_LDIR;
+	}
 	else
+	{
 		devpriv->misc2 &= ~DAS16CS_MISC2_LDIR;
+	}
+
 	outw(devpriv->misc2, dev->iobase + DAS16CS_MISC2_REG);
 
 	return insn->n;
 }
 
 static int das16cs_counter_insn_config(struct comedi_device *dev,
-				       struct comedi_subdevice *s,
-				       struct comedi_insn *insn,
-				       unsigned int *data)
+									   struct comedi_subdevice *s,
+									   struct comedi_insn *insn,
+									   unsigned int *data)
 {
 	struct das16cs_private *devpriv = dev->private;
 
-	switch (data[0]) {
-	case INSN_CONFIG_SET_CLOCK_SRC:
-		switch (data[1]) {
-		case 0:	/* internal 100 kHz */
-			devpriv->misc2 |= DAS16CS_MISC2_CTR1;
+	switch (data[0])
+	{
+		case INSN_CONFIG_SET_CLOCK_SRC:
+			switch (data[1])
+			{
+				case 0:	/* internal 100 kHz */
+					devpriv->misc2 |= DAS16CS_MISC2_CTR1;
+					break;
+
+				case 1:	/* external */
+					devpriv->misc2 &= ~DAS16CS_MISC2_CTR1;
+					break;
+
+				default:
+					return -EINVAL;
+			}
+
+			outw(devpriv->misc2, dev->iobase + DAS16CS_MISC2_REG);
 			break;
-		case 1:	/* external */
-			devpriv->misc2 &= ~DAS16CS_MISC2_CTR1;
+
+		case INSN_CONFIG_GET_CLOCK_SRC:
+			if (devpriv->misc2 & DAS16CS_MISC2_CTR1)
+			{
+				data[1] = 0;
+				data[2] = I8254_OSC_BASE_100KHZ;
+			}
+			else
+			{
+				data[1] = 1;
+				data[2] = 0;	/* unknown */
+			}
+
 			break;
+
 		default:
 			return -EINVAL;
-		}
-		outw(devpriv->misc2, dev->iobase + DAS16CS_MISC2_REG);
-		break;
-	case INSN_CONFIG_GET_CLOCK_SRC:
-		if (devpriv->misc2 & DAS16CS_MISC2_CTR1) {
-			data[1] = 0;
-			data[2] = I8254_OSC_BASE_100KHZ;
-		} else {
-			data[1] = 1;
-			data[2] = 0;	/* unknown */
-		}
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	return insn->n;
 }
 
 static const void *das16cs_find_boardinfo(struct comedi_device *dev,
-					  struct pcmcia_device *link)
+		struct pcmcia_device *link)
 {
 	const struct das16cs_board *board;
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(das16cs_boards); i++) {
+	for (i = 0; i < ARRAY_SIZE(das16cs_boards); i++)
+	{
 		board = &das16cs_boards[i];
+
 		if (board->device_id == link->card_id)
+		{
 			return board;
+		}
 	}
 
 	return NULL;
 }
 
 static int das16cs_auto_attach(struct comedi_device *dev,
-			       unsigned long context)
+							   unsigned long context)
 {
 	struct pcmcia_device *link = comedi_to_pcmcia_dev(dev);
 	const struct das16cs_board *board;
@@ -357,31 +429,48 @@ static int das16cs_auto_attach(struct comedi_device *dev,
 	int ret;
 
 	board = das16cs_find_boardinfo(dev, link);
+
 	if (!board)
+	{
 		return -ENODEV;
+	}
+
 	dev->board_ptr = board;
 	dev->board_name = board->name;
 
 	link->config_flags |= CONF_AUTO_SET_IO | CONF_ENABLE_IRQ;
 	ret = comedi_pcmcia_enable(dev, NULL);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	dev->iobase = link->resource[0]->start;
 
 	link->priv = dev;
 
 	devpriv = comedi_alloc_devpriv(dev, sizeof(*devpriv));
+
 	if (!devpriv)
+	{
 		return -ENOMEM;
+	}
 
 	dev->pacer = comedi_8254_init(dev->iobase + DAS16CS_TIMER_BASE,
-				      I8254_OSC_BASE_10MHZ, I8254_IO16, 0);
+								  I8254_OSC_BASE_10MHZ, I8254_IO16, 0);
+
 	if (!dev->pacer)
+	{
 		return -ENOMEM;
+	}
 
 	ret = comedi_alloc_subdevices(dev, 4);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Analog Input subdevice */
 	s = &dev->subdevices[0];
@@ -394,7 +483,9 @@ static int das16cs_auto_attach(struct comedi_device *dev,
 
 	/* Analog Output subdevice */
 	s = &dev->subdevices[1];
-	if (board->has_ao) {
+
+	if (board->has_ao)
+	{
 		s->type		= COMEDI_SUBD_AO;
 		s->subdev_flags	= SDF_WRITABLE;
 		s->n_chan	= 2;
@@ -403,9 +494,14 @@ static int das16cs_auto_attach(struct comedi_device *dev,
 		s->insn_write	= &das16cs_ao_insn_write;
 
 		ret = comedi_alloc_subdev_readback(s);
+
 		if (ret)
+		{
 			return ret;
-	} else {
+		}
+	}
+	else
+	{
 		s->type		= COMEDI_SUBD_UNUSED;
 	}
 
@@ -432,7 +528,8 @@ static int das16cs_auto_attach(struct comedi_device *dev,
 	return 0;
 }
 
-static struct comedi_driver driver_das16cs = {
+static struct comedi_driver driver_das16cs =
+{
 	.driver_name	= "cb_das16_cs",
 	.module		= THIS_MODULE,
 	.auto_attach	= das16cs_auto_attach,
@@ -444,14 +541,16 @@ static int das16cs_pcmcia_attach(struct pcmcia_device *link)
 	return comedi_pcmcia_auto_config(link, &driver_das16cs);
 }
 
-static const struct pcmcia_device_id das16cs_id_table[] = {
+static const struct pcmcia_device_id das16cs_id_table[] =
+{
 	PCMCIA_DEVICE_MANF_CARD(0x01c5, 0x0039),
 	PCMCIA_DEVICE_MANF_CARD(0x01c5, 0x4009),
 	PCMCIA_DEVICE_NULL
 };
 MODULE_DEVICE_TABLE(pcmcia, das16cs_id_table);
 
-static struct pcmcia_driver das16cs_driver = {
+static struct pcmcia_driver das16cs_driver =
+{
 	.name		= "cb_das16_cs",
 	.owner		= THIS_MODULE,
 	.id_table	= das16cs_id_table,

@@ -12,15 +12,18 @@
  * structs for the IOCTL commands
  */
 
-struct baycom_debug_data {
+struct baycom_debug_data
+{
 	unsigned long debug1;
 	unsigned long debug2;
 	long debug3;
 };
 
-struct baycom_ioctl {
+struct baycom_ioctl
+{
 	int cmd;
-	union {
+	union
+	{
 		struct baycom_debug_data dbg;
 	} data;
 };

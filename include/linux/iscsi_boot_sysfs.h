@@ -19,7 +19,8 @@
 /*
  * The text attributes names for each of the kobjects.
 */
-enum iscsi_boot_eth_properties_enum {
+enum iscsi_boot_eth_properties_enum
+{
 	ISCSI_BOOT_ETH_INDEX,
 	ISCSI_BOOT_ETH_FLAGS,
 	ISCSI_BOOT_ETH_IP_ADDR,
@@ -37,7 +38,8 @@ enum iscsi_boot_eth_properties_enum {
 	ISCSI_BOOT_ETH_END_MARKER,
 };
 
-enum iscsi_boot_tgt_properties_enum {
+enum iscsi_boot_tgt_properties_enum
+{
 	ISCSI_BOOT_TGT_INDEX,
 	ISCSI_BOOT_TGT_FLAGS,
 	ISCSI_BOOT_TGT_IP_ADDR,
@@ -53,7 +55,8 @@ enum iscsi_boot_tgt_properties_enum {
 	ISCSI_BOOT_TGT_END_MARKER,
 };
 
-enum iscsi_boot_initiator_properties_enum {
+enum iscsi_boot_initiator_properties_enum
+{
 	ISCSI_BOOT_INI_INDEX,
 	ISCSI_BOOT_INI_FLAGS,
 	ISCSI_BOOT_INI_ISNS_SERVER,
@@ -64,7 +67,8 @@ enum iscsi_boot_initiator_properties_enum {
 	ISCSI_BOOT_INI_END_MARKER,
 };
 
-enum iscsi_boot_acpitbl_properties_enum {
+enum iscsi_boot_acpitbl_properties_enum
+{
 	ISCSI_BOOT_ACPITBL_SIGNATURE,
 	ISCSI_BOOT_ACPITBL_OEM_ID,
 	ISCSI_BOOT_ACPITBL_OEM_TABLE_ID,
@@ -72,7 +76,8 @@ enum iscsi_boot_acpitbl_properties_enum {
 
 struct attribute_group;
 
-struct iscsi_boot_kobj {
+struct iscsi_boot_kobj
+{
 	struct kobject kobj;
 	struct attribute_group *attr_group;
 	struct list_head list;
@@ -108,37 +113,38 @@ struct iscsi_boot_kobj {
 	void (*release) (void *data);
 };
 
-struct iscsi_boot_kset {
+struct iscsi_boot_kset
+{
 	struct list_head kobj_list;
 	struct kset *kset;
 };
 
 struct iscsi_boot_kobj *
 iscsi_boot_create_initiator(struct iscsi_boot_kset *boot_kset, int index,
-			    void *data,
-			    ssize_t (*show) (void *data, int type, char *buf),
-			    umode_t (*is_visible) (void *data, int type),
-			    void (*release) (void *data));
+							void *data,
+							ssize_t (*show) (void *data, int type, char *buf),
+							umode_t (*is_visible) (void *data, int type),
+							void (*release) (void *data));
 
 struct iscsi_boot_kobj *
 iscsi_boot_create_ethernet(struct iscsi_boot_kset *boot_kset, int index,
-			   void *data,
-			   ssize_t (*show) (void *data, int type, char *buf),
-			   umode_t (*is_visible) (void *data, int type),
-			   void (*release) (void *data));
+						   void *data,
+						   ssize_t (*show) (void *data, int type, char *buf),
+						   umode_t (*is_visible) (void *data, int type),
+						   void (*release) (void *data));
 struct iscsi_boot_kobj *
 iscsi_boot_create_target(struct iscsi_boot_kset *boot_kset, int index,
-			 void *data,
-			 ssize_t (*show) (void *data, int type, char *buf),
-			 umode_t (*is_visible) (void *data, int type),
-			 void (*release) (void *data));
+						 void *data,
+						 ssize_t (*show) (void *data, int type, char *buf),
+						 umode_t (*is_visible) (void *data, int type),
+						 void (*release) (void *data));
 
 struct iscsi_boot_kobj *
 iscsi_boot_create_acpitbl(struct iscsi_boot_kset *boot_kset, int index,
-			  void *data,
-			  ssize_t (*show)(void *data, int type, char *buf),
-			  umode_t (*is_visible)(void *data, int type),
-			  void (*release)(void *data));
+						  void *data,
+						  ssize_t (*show)(void *data, int type, char *buf),
+						  umode_t (*is_visible)(void *data, int type),
+						  void (*release)(void *data));
 
 struct iscsi_boot_kset *iscsi_boot_create_kset(const char *set_name);
 struct iscsi_boot_kset *iscsi_boot_create_host_kset(unsigned int hostno);

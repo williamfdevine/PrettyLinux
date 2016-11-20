@@ -17,18 +17,21 @@
  */
 #include <linux/types.h>
 
-struct scpi_opp {
+struct scpi_opp
+{
 	u32 freq;
 	u32 m_volt;
 } __packed;
 
-struct scpi_dvfs_info {
+struct scpi_dvfs_info
+{
 	unsigned int count;
 	unsigned int latency; /* in nanoseconds */
 	struct scpi_opp *opps;
 };
 
-enum scpi_sensor_class {
+enum scpi_sensor_class
+{
 	TEMPERATURE,
 	VOLTAGE,
 	CURRENT,
@@ -36,7 +39,8 @@ enum scpi_sensor_class {
 	ENERGY,
 };
 
-struct scpi_sensor_info {
+struct scpi_sensor_info
+{
 	u16 sensor_id;
 	u8 class;
 	u8 trigger_type;
@@ -59,7 +63,8 @@ struct scpi_sensor_info {
  * @dvfs_get_info: returns the DVFS capabilities of the given power
  *	domain. It includes the OPP list and the latency information
  */
-struct scpi_ops {
+struct scpi_ops
+{
 	u32 (*get_version)(void);
 	int (*clk_get_range)(u16, unsigned long *, unsigned long *);
 	unsigned long (*clk_get_val)(u16);

@@ -32,7 +32,7 @@
  * This debugfs entry modify the current usb test mode.
  */
 static ssize_t testmode_write(struct file *file, const char __user *ubuf, size_t
-		count, loff_t *ppos)
+							  count, loff_t *ppos)
 {
 	struct seq_file		*s = file->private_data;
 	struct dwc2_hsotg	*hsotg = s->private;
@@ -41,20 +41,34 @@ static ssize_t testmode_write(struct file *file, const char __user *ubuf, size_t
 	char			buf[32];
 
 	if (copy_from_user(&buf, ubuf, min_t(size_t, sizeof(buf) - 1, count)))
+	{
 		return -EFAULT;
+	}
 
 	if (!strncmp(buf, "test_j", 6))
+	{
 		testmode = TEST_J;
+	}
 	else if (!strncmp(buf, "test_k", 6))
+	{
 		testmode = TEST_K;
+	}
 	else if (!strncmp(buf, "test_se0_nak", 12))
+	{
 		testmode = TEST_SE0_NAK;
+	}
 	else if (!strncmp(buf, "test_packet", 11))
+	{
 		testmode = TEST_PACKET;
+	}
 	else if (!strncmp(buf, "test_force_enable", 17))
+	{
 		testmode = TEST_FORCE_EN;
+	}
 	else
+	{
 		testmode = 0;
+	}
 
 	spin_lock_irqsave(&hsotg->lock, flags);
 	dwc2_hsotg_set_test_mode(hsotg, testmode);
@@ -81,27 +95,34 @@ static int testmode_show(struct seq_file *s, void *unused)
 	dctl >>= DCTL_TSTCTL_SHIFT;
 	spin_unlock_irqrestore(&hsotg->lock, flags);
 
-	switch (dctl) {
-	case 0:
-		seq_puts(s, "no test\n");
-		break;
-	case TEST_J:
-		seq_puts(s, "test_j\n");
-		break;
-	case TEST_K:
-		seq_puts(s, "test_k\n");
-		break;
-	case TEST_SE0_NAK:
-		seq_puts(s, "test_se0_nak\n");
-		break;
-	case TEST_PACKET:
-		seq_puts(s, "test_packet\n");
-		break;
-	case TEST_FORCE_EN:
-		seq_puts(s, "test_force_enable\n");
-		break;
-	default:
-		seq_printf(s, "UNKNOWN %d\n", dctl);
+	switch (dctl)
+	{
+		case 0:
+			seq_puts(s, "no test\n");
+			break;
+
+		case TEST_J:
+			seq_puts(s, "test_j\n");
+			break;
+
+		case TEST_K:
+			seq_puts(s, "test_k\n");
+			break;
+
+		case TEST_SE0_NAK:
+			seq_puts(s, "test_se0_nak\n");
+			break;
+
+		case TEST_PACKET:
+			seq_puts(s, "test_packet\n");
+			break;
+
+		case TEST_FORCE_EN:
+			seq_puts(s, "test_force_enable\n");
+			break;
+
+		default:
+			seq_printf(s, "UNKNOWN %d\n", dctl);
 	}
 
 	return 0;
@@ -112,7 +133,8 @@ static int testmode_open(struct inode *inode, struct file *file)
 	return single_open(file, testmode_show, inode->i_private);
 }
 
-static const struct file_operations testmode_fops = {
+static const struct file_operations testmode_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= testmode_open,
 	.write		= testmode_write,
@@ -137,41 +159,42 @@ static int state_show(struct seq_file *seq, void *v)
 	int idx;
 
 	seq_printf(seq, "DCFG=0x%08x, DCTL=0x%08x, DSTS=0x%08x\n",
-		 dwc2_readl(regs + DCFG),
-		 dwc2_readl(regs + DCTL),
-		 dwc2_readl(regs + DSTS));
+			   dwc2_readl(regs + DCFG),
+			   dwc2_readl(regs + DCTL),
+			   dwc2_readl(regs + DSTS));
 
 	seq_printf(seq, "DIEPMSK=0x%08x, DOEPMASK=0x%08x\n",
-		   dwc2_readl(regs + DIEPMSK), dwc2_readl(regs + DOEPMSK));
+			   dwc2_readl(regs + DIEPMSK), dwc2_readl(regs + DOEPMSK));
 
 	seq_printf(seq, "GINTMSK=0x%08x, GINTSTS=0x%08x\n",
-		   dwc2_readl(regs + GINTMSK),
-		   dwc2_readl(regs + GINTSTS));
+			   dwc2_readl(regs + GINTMSK),
+			   dwc2_readl(regs + GINTSTS));
 
 	seq_printf(seq, "DAINTMSK=0x%08x, DAINT=0x%08x\n",
-		   dwc2_readl(regs + DAINTMSK),
-		   dwc2_readl(regs + DAINT));
+			   dwc2_readl(regs + DAINTMSK),
+			   dwc2_readl(regs + DAINT));
 
 	seq_printf(seq, "GNPTXSTS=0x%08x, GRXSTSR=%08x\n",
-		   dwc2_readl(regs + GNPTXSTS),
-		   dwc2_readl(regs + GRXSTSR));
+			   dwc2_readl(regs + GNPTXSTS),
+			   dwc2_readl(regs + GRXSTSR));
 
 	seq_puts(seq, "\nEndpoint status:\n");
 
-	for (idx = 0; idx < hsotg->num_of_eps; idx++) {
+	for (idx = 0; idx < hsotg->num_of_eps; idx++)
+	{
 		u32 in, out;
 
 		in = dwc2_readl(regs + DIEPCTL(idx));
 		out = dwc2_readl(regs + DOEPCTL(idx));
 
 		seq_printf(seq, "ep%d: DIEPCTL=0x%08x, DOEPCTL=0x%08x",
-			   idx, in, out);
+				   idx, in, out);
 
 		in = dwc2_readl(regs + DIEPTSIZ(idx));
 		out = dwc2_readl(regs + DOEPTSIZ(idx));
 
 		seq_printf(seq, ", DIEPTSIZ=0x%08x, DOEPTSIZ=0x%08x",
-			   in, out);
+				   in, out);
 
 		seq_puts(seq, "\n");
 	}
@@ -184,7 +207,8 @@ static int state_open(struct inode *inode, struct file *file)
 	return single_open(file, state_show, inode->i_private);
 }
 
-static const struct file_operations state_fops = {
+static const struct file_operations state_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= state_open,
 	.read		= seq_read,
@@ -212,17 +236,18 @@ static int fifo_show(struct seq_file *seq, void *v)
 
 	val = dwc2_readl(regs + GNPTXFSIZ);
 	seq_printf(seq, "NPTXFIFO: Size %d, Start 0x%08x\n",
-		   val >> FIFOSIZE_DEPTH_SHIFT,
-		   val & FIFOSIZE_DEPTH_MASK);
+			   val >> FIFOSIZE_DEPTH_SHIFT,
+			   val & FIFOSIZE_DEPTH_MASK);
 
 	seq_puts(seq, "\nPeriodic TXFIFOs:\n");
 
-	for (idx = 1; idx < hsotg->num_of_eps; idx++) {
+	for (idx = 1; idx < hsotg->num_of_eps; idx++)
+	{
 		val = dwc2_readl(regs + DPTXFSIZN(idx));
 
 		seq_printf(seq, "\tDPTXFIFO%2d: Size %d, Start 0x%08x\n", idx,
-			   val >> FIFOSIZE_DEPTH_SHIFT,
-			   val & FIFOSIZE_STARTADDR_MASK);
+				   val >> FIFOSIZE_DEPTH_SHIFT,
+				   val & FIFOSIZE_STARTADDR_MASK);
 	}
 
 	return 0;
@@ -233,7 +258,8 @@ static int fifo_open(struct inode *inode, struct file *file)
 	return single_open(file, fifo_show, inode->i_private);
 }
 
-static const struct file_operations fifo_fops = {
+static const struct file_operations fifo_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= fifo_open,
 	.read		= seq_read,
@@ -265,46 +291,48 @@ static int ep_show(struct seq_file *seq, void *v)
 	unsigned long flags;
 
 	seq_printf(seq, "Endpoint index %d, named %s,  dir %s:\n",
-		   ep->index, ep->ep.name, decode_direction(ep->dir_in));
+			   ep->index, ep->ep.name, decode_direction(ep->dir_in));
 
 	/* first show the register state */
 
 	seq_printf(seq, "\tDIEPCTL=0x%08x, DOEPCTL=0x%08x\n",
-		   dwc2_readl(regs + DIEPCTL(index)),
-		   dwc2_readl(regs + DOEPCTL(index)));
+			   dwc2_readl(regs + DIEPCTL(index)),
+			   dwc2_readl(regs + DOEPCTL(index)));
 
 	seq_printf(seq, "\tDIEPDMA=0x%08x, DOEPDMA=0x%08x\n",
-		   dwc2_readl(regs + DIEPDMA(index)),
-		   dwc2_readl(regs + DOEPDMA(index)));
+			   dwc2_readl(regs + DIEPDMA(index)),
+			   dwc2_readl(regs + DOEPDMA(index)));
 
 	seq_printf(seq, "\tDIEPINT=0x%08x, DOEPINT=0x%08x\n",
-		   dwc2_readl(regs + DIEPINT(index)),
-		   dwc2_readl(regs + DOEPINT(index)));
+			   dwc2_readl(regs + DIEPINT(index)),
+			   dwc2_readl(regs + DOEPINT(index)));
 
 	seq_printf(seq, "\tDIEPTSIZ=0x%08x, DOEPTSIZ=0x%08x\n",
-		   dwc2_readl(regs + DIEPTSIZ(index)),
-		   dwc2_readl(regs + DOEPTSIZ(index)));
+			   dwc2_readl(regs + DIEPTSIZ(index)),
+			   dwc2_readl(regs + DOEPTSIZ(index)));
 
 	seq_puts(seq, "\n");
 	seq_printf(seq, "mps %d\n", ep->ep.maxpacket);
 	seq_printf(seq, "total_data=%ld\n", ep->total_data);
 
 	seq_printf(seq, "request list (%p,%p):\n",
-		   ep->queue.next, ep->queue.prev);
+			   ep->queue.next, ep->queue.prev);
 
 	spin_lock_irqsave(&hsotg->lock, flags);
 
-	list_for_each_entry(req, &ep->queue, queue) {
-		if (--show_limit < 0) {
+	list_for_each_entry(req, &ep->queue, queue)
+	{
+		if (--show_limit < 0)
+		{
 			seq_puts(seq, "not showing more requests...\n");
 			break;
 		}
 
 		seq_printf(seq, "%c req %p: %d bytes @%p, ",
-			   req == ep->req ? '*' : ' ',
-			   req, req->req.length, req->req.buf);
+				   req == ep->req ? '*' : ' ',
+				   req, req->req.length, req->req.buf);
 		seq_printf(seq, "%d done, res %d\n",
-			   req->req.actual, req->req.status);
+				   req->req.actual, req->req.status);
 	}
 
 	spin_unlock_irqrestore(&hsotg->lock, flags);
@@ -317,7 +345,8 @@ static int ep_open(struct inode *inode, struct file *file)
 	return single_open(file, ep_show, inode->i_private);
 }
 
-static const struct file_operations ep_fops = {
+static const struct file_operations ep_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= ep_open,
 	.read		= seq_read,
@@ -345,43 +374,59 @@ static void dwc2_hsotg_create_debug(struct dwc2_hsotg *hsotg)
 	/* create general state file */
 
 	file = debugfs_create_file("state", S_IRUGO, root, hsotg, &state_fops);
+
 	if (IS_ERR(file))
+	{
 		dev_err(hsotg->dev, "%s: failed to create state\n", __func__);
+	}
 
 	file = debugfs_create_file("testmode", S_IRUGO | S_IWUSR, root, hsotg,
-							&testmode_fops);
+							   &testmode_fops);
+
 	if (IS_ERR(file))
 		dev_err(hsotg->dev, "%s: failed to create testmode\n",
 				__func__);
 
 	file = debugfs_create_file("fifo", S_IRUGO, root, hsotg, &fifo_fops);
+
 	if (IS_ERR(file))
+	{
 		dev_err(hsotg->dev, "%s: failed to create fifo\n", __func__);
+	}
 
 	/* Create one file for each out endpoint */
-	for (epidx = 0; epidx < hsotg->num_of_eps; epidx++) {
+	for (epidx = 0; epidx < hsotg->num_of_eps; epidx++)
+	{
 		struct dwc2_hsotg_ep *ep;
 
 		ep = hsotg->eps_out[epidx];
-		if (ep) {
+
+		if (ep)
+		{
 			file = debugfs_create_file(ep->name, S_IRUGO,
-							  root, ep, &ep_fops);
+									   root, ep, &ep_fops);
+
 			if (IS_ERR(file))
 				dev_err(hsotg->dev, "failed to create %s debug file\n",
-					ep->name);
+						ep->name);
 		}
 	}
+
 	/* Create one file for each in endpoint. EP0 is handled with out eps */
-	for (epidx = 1; epidx < hsotg->num_of_eps; epidx++) {
+	for (epidx = 1; epidx < hsotg->num_of_eps; epidx++)
+	{
 		struct dwc2_hsotg_ep *ep;
 
 		ep = hsotg->eps_in[epidx];
-		if (ep) {
+
+		if (ep)
+		{
 			file = debugfs_create_file(ep->name, S_IRUGO,
-							  root, ep, &ep_fops);
+									   root, ep, &ep_fops);
+
 			if (IS_ERR(file))
 				dev_err(hsotg->dev, "failed to create %s debug file\n",
-					ep->name);
+						ep->name);
 		}
 	}
 }
@@ -392,12 +437,13 @@ static inline void dwc2_hsotg_create_debug(struct dwc2_hsotg *hsotg) {}
 /* dwc2_hsotg_delete_debug is removed as cleanup in done in dwc2_debugfs_exit */
 
 #define dump_register(nm)	\
-{				\
-	.name	= #nm,		\
-	.offset	= nm,		\
-}
+	{				\
+		.name	= #nm,		\
+				  .offset	= nm,		\
+	}
 
-static const struct debugfs_reg32 dwc2_regs[] = {
+static const struct debugfs_reg32 dwc2_regs[] =
+{
 	/*
 	 * Accessing registers like this can trigger mode mismatch interrupt.
 	 * However, according to dwc2 databook, the register access, in this
@@ -731,7 +777,9 @@ int dwc2_debugfs_init(struct dwc2_hsotg *hsotg)
 	struct dentry		*file;
 
 	hsotg->debug_root = debugfs_create_dir(dev_name(hsotg->dev), NULL);
-	if (!hsotg->debug_root) {
+
+	if (!hsotg->debug_root)
+	{
 		ret = -ENOMEM;
 		goto err0;
 	}
@@ -740,8 +788,10 @@ int dwc2_debugfs_init(struct dwc2_hsotg *hsotg)
 	dwc2_hsotg_create_debug(hsotg);
 
 	hsotg->regset = devm_kzalloc(hsotg->dev, sizeof(*hsotg->regset),
-								GFP_KERNEL);
-	if (!hsotg->regset) {
+								 GFP_KERNEL);
+
+	if (!hsotg->regset)
+	{
 		ret = -ENOMEM;
 		goto err1;
 	}
@@ -751,8 +801,10 @@ int dwc2_debugfs_init(struct dwc2_hsotg *hsotg)
 	hsotg->regset->base = hsotg->regs;
 
 	file = debugfs_create_regset32("regdump", S_IRUGO, hsotg->debug_root,
-								hsotg->regset);
-	if (!file) {
+								   hsotg->regset);
+
+	if (!file)
+	{
 		ret = -ENOMEM;
 		goto err1;
 	}

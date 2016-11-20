@@ -29,7 +29,8 @@ static irqreturn_t t_handler(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct fmc_gpio t_gpio[] = {
+static struct fmc_gpio t_gpio[] =
+{
 	{
 		.gpio = FMC_GPIO_IRQ(0),
 		.mode = GPIOF_DIR_IN,
@@ -47,24 +48,42 @@ static int t_probe(struct fmc_device *fmc)
 	int index = 0;
 
 	if (fmc->op->validate)
+	{
 		index = fmc->op->validate(fmc, &t_drv);
+	}
+
 	if (index < 0)
-		return -EINVAL; /* not our device: invalid */
+	{
+		return -EINVAL;    /* not our device: invalid */
+	}
 
 	ret = fmc->op->irq_request(fmc, t_handler, "fmc-trivial", IRQF_SHARED);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	/* ignore error code of call below, we really don't care */
 	fmc->op->gpio_config(fmc, t_gpio, ARRAY_SIZE(t_gpio));
 
 	/* Reprogram, if asked to. ESRCH == no filename specified */
 	ret = -ESRCH;
+
 	if (fmc->op->reprogram)
+	{
 		ret = fmc->op->reprogram(fmc, &t_drv, "");
+	}
+
 	if (ret == -ESRCH)
+	{
 		ret = 0;
+	}
+
 	if (ret < 0)
+	{
 		fmc->op->irq_free(fmc);
+	}
 
 	/* FIXME: reprogram LM32 too */
 	return ret;
@@ -76,7 +95,8 @@ static int t_remove(struct fmc_device *fmc)
 	return 0;
 }
 
-static struct fmc_driver t_drv = {
+static struct fmc_driver t_drv =
+{
 	.version = FMC_VERSION,
 	.driver.name = KBUILD_MODNAME,
 	.probe = t_probe,
@@ -84,7 +104,7 @@ static struct fmc_driver t_drv = {
 	/* no table, as the current match just matches everything */
 };
 
- /* We accept the generic parameters */
+/* We accept the generic parameters */
 FMC_PARAM_BUSID(t_drv);
 FMC_PARAM_GATEWARE(t_drv);
 

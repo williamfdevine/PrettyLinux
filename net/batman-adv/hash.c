@@ -27,7 +27,8 @@ static void batadv_hash_init(struct batadv_hashtable *hash)
 {
 	u32 i;
 
-	for (i = 0; i < hash->size; i++) {
+	for (i = 0; i < hash->size; i++)
+	{
 		INIT_HLIST_HEAD(&hash->table[i]);
 		spin_lock_init(&hash->list_locks[i]);
 	}
@@ -47,17 +48,26 @@ struct batadv_hashtable *batadv_hash_new(u32 size)
 	struct batadv_hashtable *hash;
 
 	hash = kmalloc(sizeof(*hash), GFP_ATOMIC);
+
 	if (!hash)
+	{
 		return NULL;
+	}
 
 	hash->table = kmalloc_array(size, sizeof(*hash->table), GFP_ATOMIC);
+
 	if (!hash->table)
+	{
 		goto free_hash;
+	}
 
 	hash->list_locks = kmalloc_array(size, sizeof(*hash->list_locks),
-					 GFP_ATOMIC);
+									 GFP_ATOMIC);
+
 	if (!hash->list_locks)
+	{
 		goto free_table;
+	}
 
 	hash->size = size;
 	batadv_hash_init(hash);
@@ -71,10 +81,12 @@ free_hash:
 }
 
 void batadv_hash_set_lock_class(struct batadv_hashtable *hash,
-				struct lock_class_key *key)
+								struct lock_class_key *key)
 {
 	u32 i;
 
 	for (i = 0; i < hash->size; i++)
+	{
 		lockdep_set_class(&hash->list_locks[i], key);
+	}
 }

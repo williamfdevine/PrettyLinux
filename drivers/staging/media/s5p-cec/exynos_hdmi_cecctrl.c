@@ -30,14 +30,16 @@ void s5p_cec_set_divider(struct s5p_cec_dev *cec)
 
 	div_ratio  = S5P_HDMI_FIN / CEC_DIV_RATIO - 1;
 
-	if (regmap_read(cec->pmu, EXYNOS_HDMI_PHY_CONTROL, &reg)) {
+	if (regmap_read(cec->pmu, EXYNOS_HDMI_PHY_CONTROL, &reg))
+	{
 		dev_err(cec->dev, "failed to read phy control\n");
 		return;
 	}
 
 	reg = (reg & ~(0x3FF << 16)) | (div_ratio << 16);
 
-	if (regmap_write(cec->pmu, EXYNOS_HDMI_PHY_CONTROL, reg)) {
+	if (regmap_write(cec->pmu, EXYNOS_HDMI_PHY_CONTROL, reg))
+	{
 		dev_err(cec->dev, "failed to write phy control\n");
 		return;
 	}
@@ -135,12 +137,13 @@ void s5p_cec_threshold(struct s5p_cec_dev *cec)
 }
 
 void s5p_cec_copy_packet(struct s5p_cec_dev *cec, char *data,
-			 size_t count, u8 retries)
+						 size_t count, u8 retries)
 {
 	int i = 0;
 	u8 reg;
 
-	while (i < count) {
+	while (i < count)
+	{
 		writeb(data[i], cec->reg + (S5P_CEC_TX_BUFF0 + (i * 4)));
 		i++;
 	}
@@ -151,17 +154,20 @@ void s5p_cec_copy_packet(struct s5p_cec_dev *cec, char *data,
 	reg &= ~0x70;
 	reg |= retries << 4;
 
-	if ((data[0] & CEC_MESSAGE_BROADCAST_MASK) == CEC_MESSAGE_BROADCAST) {
+	if ((data[0] & CEC_MESSAGE_BROADCAST_MASK) == CEC_MESSAGE_BROADCAST)
+	{
 		dev_dbg(cec->dev, "Broadcast");
 		reg |= S5P_CEC_TX_CTRL_BCAST;
-	} else {
+	}
+	else
+	{
 		dev_dbg(cec->dev, "No Broadcast");
 		reg &= ~S5P_CEC_TX_CTRL_BCAST;
 	}
 
 	writeb(reg, cec->reg + S5P_CEC_TX_CTRL);
 	dev_dbg(cec->dev, "cec-tx: cec count (%zu): %*ph", count,
-		(int)count, data);
+			(int)count, data);
 }
 
 void s5p_cec_set_addr(struct s5p_cec_dev *cec, u32 addr)
@@ -186,13 +192,13 @@ u32 s5p_cec_get_status(struct s5p_cec_dev *cec)
 void s5p_clr_pending_tx(struct s5p_cec_dev *cec)
 {
 	writeb(S5P_CEC_IRQ_TX_DONE | S5P_CEC_IRQ_TX_ERROR,
-					cec->reg + S5P_CEC_IRQ_CLEAR);
+		   cec->reg + S5P_CEC_IRQ_CLEAR);
 }
 
 void s5p_clr_pending_rx(struct s5p_cec_dev *cec)
 {
 	writeb(S5P_CEC_IRQ_RX_DONE | S5P_CEC_IRQ_RX_ERROR,
-					cec->reg + S5P_CEC_IRQ_CLEAR);
+		   cec->reg + S5P_CEC_IRQ_CLEAR);
 }
 
 void s5p_cec_get_rx_buf(struct s5p_cec_dev *cec, u32 size, u8 *buffer)
@@ -200,10 +206,12 @@ void s5p_cec_get_rx_buf(struct s5p_cec_dev *cec, u32 size, u8 *buffer)
 	u32 i = 0;
 	char debug[40];
 
-	while (i < size) {
+	while (i < size)
+	{
 		buffer[i] = readb(cec->reg + S5P_CEC_RX_BUFF0 + (i * 4));
 		sprintf(debug + i * 2, "%02x ", buffer[i]);
 		i++;
 	}
+
 	dev_dbg(cec->dev, "cec-rx: cec size(%d): %s", size, debug);
 }

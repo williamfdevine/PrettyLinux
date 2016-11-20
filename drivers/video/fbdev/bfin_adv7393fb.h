@@ -11,55 +11,58 @@
 #define BFIN_LCD_NBR_PALETTE_ENTRIES	256
 
 #ifdef CONFIG_NTSC
-# define VMODE 0
+	#define VMODE 0
 #endif
 #ifdef CONFIG_PAL
-# define VMODE 1
+	#define VMODE 1
 #endif
 #ifdef CONFIG_NTSC_640x480
-# define VMODE 2
+	#define VMODE 2
 #endif
 #ifdef CONFIG_PAL_640x480
-# define VMODE 3
+	#define VMODE 3
 #endif
 #ifdef CONFIG_NTSC_YCBCR
-# define VMODE 4
+	#define VMODE 4
 #endif
 #ifdef CONFIG_PAL_YCBCR
-# define VMODE 5
+	#define VMODE 5
 #endif
 
 #ifndef VMODE
-# define VMODE 1
+	#define VMODE 1
 #endif
 
 #ifdef CONFIG_ADV7393_2XMEM
-# define VMEM 2
+	#define VMEM 2
 #else
-# define VMEM 1
+	#define VMEM 1
 #endif
 
 #if defined(CONFIG_BF537) || defined(CONFIG_BF536) || defined(CONFIG_BF534)
-# define DMA_CFG_VAL	0x7935	/* Set Sync Bit */
-# define VB_DUMMY_MEMORY_SOURCE	L1_DATA_B_START
+	#define DMA_CFG_VAL	0x7935	/* Set Sync Bit */
+	#define VB_DUMMY_MEMORY_SOURCE	L1_DATA_B_START
 #else
-# define DMA_CFG_VAL	0x7915
-# define VB_DUMMY_MEMORY_SOURCE	BOOT_ROM_START
+	#define DMA_CFG_VAL	0x7915
+	#define VB_DUMMY_MEMORY_SOURCE	BOOT_ROM_START
 #endif
 
-enum {
+enum
+{
 	DESTRUCT,
 	BUILD,
 };
 
-enum {
+enum
+{
 	POWER_ON,
 	POWER_DOWN,
 	BLANK_ON,
 	BLANK_OFF,
 };
 
-struct adv7393fb_modes {
+struct adv7393fb_modes
+{
 	const s8 name[25];	/* Full name */
 	u16 xres;		/* Active Horizonzal Pixels  */
 	u16 yres;		/* Active Vertical Pixels  */
@@ -75,7 +78,8 @@ struct adv7393fb_modes {
 	u16 adv7393_i2c_initd_len;
 };
 
-static const u8 init_NTSC_TESTPATTERN[] = {
+static const u8 init_NTSC_TESTPATTERN[] =
+{
 	0x00, 0x1E,	/* Power up all DACs and PLL */
 	0x01, 0x00,	/* SD-Only Mode */
 	0x80, 0x10,	/* SSAF Luma Filter Enabled, NTSC Mode */
@@ -83,7 +87,8 @@ static const u8 init_NTSC_TESTPATTERN[] = {
 	0x84, 0x40,	/* SD Color Bar Test Pattern Enabled, DAC 2 = Luma, DAC 3 = Chroma */
 };
 
-static const u8 init_NTSC[] = {
+static const u8 init_NTSC[] =
+{
 	0x00, 0x1E,	/* Power up all DACs and PLL */
 	0xC3, 0x26,	/* Program RGB->YCrCb Color Space conversion matrix */
 	0xC5, 0x12,	/* Program RGB->YCrCb Color Space conversion matrix */
@@ -105,7 +110,8 @@ static const u8 init_NTSC[] = {
 	0x8A, 0x0d,
 };
 
-static const u8 init_PAL[] = {
+static const u8 init_PAL[] =
+{
 	0x00, 0x1E,	/* Power up all DACs and PLL */
 	0xC3, 0x26,	/* Program RGB->YCrCb Color Space conversion matrix */
 	0xC5, 0x12,	/* Program RGB->YCrCb Color Space conversion matrix */
@@ -127,7 +133,8 @@ static const u8 init_PAL[] = {
 	0x8A, 0x0d,
 };
 
-static const u8 init_NTSC_YCbCr[] = {
+static const u8 init_NTSC_YCbCr[] =
+{
 	0x00, 0x1E,	/* Power up all DACs and PLL */
 	0x8C, 0x1F,	/* NTSC Subcarrier Frequency */
 	0x8D, 0x7C,	/* NTSC Subcarrier Frequency */
@@ -143,7 +150,8 @@ static const u8 init_NTSC_YCbCr[] = {
 	0x8A, 0x0d,
 };
 
-static const u8 init_PAL_YCbCr[] = {
+static const u8 init_PAL_YCbCr[] =
+{
 	0x00, 0x1E,	/* Power up all DACs and PLL */
 	0x8C, 0xCB,	/* PAL Subcarrier Frequency */
 	0x8D, 0x8A,	/* PAL Subcarrier Frequency */
@@ -159,7 +167,8 @@ static const u8 init_PAL_YCbCr[] = {
 	0x8A, 0x0d,
 };
 
-static struct adv7393fb_modes known_modes[] = {
+static struct adv7393fb_modes known_modes[] =
+{
 	/* NTSC 720x480 CRT */
 	{
 		.name = "NTSC 720x480",
@@ -258,11 +267,13 @@ static struct adv7393fb_modes known_modes[] = {
 	}
 };
 
-struct adv7393fb_regs {
+struct adv7393fb_regs
+{
 
 };
 
-struct adv7393fb_device {
+struct adv7393fb_device
+{
 	struct fb_info info;	/* FB driver info record */
 
 	struct i2c_client *client;
@@ -289,15 +300,15 @@ struct adv7393fb_device {
 };
 
 #define to_adv7393fb_device(_info) \
-	  (_info ? container_of(_info, struct adv7393fb_device, info) : NULL);
+	(_info ? container_of(_info, struct adv7393fb_device, info) : NULL);
 
 static int bfin_adv7393_fb_open(struct fb_info *info, int user);
 static int bfin_adv7393_fb_release(struct fb_info *info, int user);
 static int bfin_adv7393_fb_check_var(struct fb_var_screeninfo *var,
-				     struct fb_info *info);
+									 struct fb_info *info);
 
 static int bfin_adv7393_fb_pan_display(struct fb_var_screeninfo *var,
-				       struct fb_info *info);
+									   struct fb_info *info);
 
 static int bfin_adv7393_fb_blank(int blank, struct fb_info *info);
 
@@ -310,10 +321,10 @@ static void bfin_disable_ppi(void);
 static inline int adv7393_write(struct i2c_client *client, u8 reg, u8 value);
 static inline int adv7393_read(struct i2c_client *client, u8 reg);
 static int adv7393_write_block(struct i2c_client *client, const u8 *data,
-			       unsigned int len);
+							   unsigned int len);
 
 int bfin_adv7393_fb_cursor(struct fb_info *info, struct fb_cursor *cursor);
 static int bfin_adv7393_fb_setcolreg(u_int, u_int, u_int, u_int,
-				     u_int, struct fb_info *info);
+									 u_int, struct fb_info *info);
 
 #endif

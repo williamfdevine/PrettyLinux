@@ -31,7 +31,8 @@
 #include <subdev/timer.h>
 #include <engine/dma.h>
 
-struct nv50_disp_dmac_object {
+struct nv50_disp_dmac_object
+{
 	struct nvkm_oproxy oproxy;
 	struct nv50_disp_root *root;
 	int hash;
@@ -46,14 +47,15 @@ nv50_disp_dmac_child_del_(struct nvkm_oproxy *base)
 }
 
 static const struct nvkm_oproxy_func
-nv50_disp_dmac_child_func_ = {
+	nv50_disp_dmac_child_func_ =
+{
 	.dtor[0] = nv50_disp_dmac_child_del_,
 };
 
 static int
 nv50_disp_dmac_child_new_(struct nv50_disp_chan *base,
-			  const struct nvkm_oclass *oclass,
-			  void *data, u32 size, struct nvkm_object **pobject)
+						  const struct nvkm_oclass *oclass,
+						  void *data, u32 size, struct nvkm_object **pobject)
 {
 	struct nv50_disp_dmac *chan = nv50_disp_dmac(base);
 	struct nv50_disp_root *root = chan->base.root;
@@ -63,26 +65,35 @@ nv50_disp_dmac_child_new_(struct nv50_disp_chan *base,
 	int ret;
 
 	if (!(object = kzalloc(sizeof(*object), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	nvkm_oproxy_ctor(&nv50_disp_dmac_child_func_, oclass, &object->oproxy);
 	object->root = root;
 	*pobject = &object->oproxy.base;
 
 	ret = sclass->ctor(device, oclass, data, size, &object->oproxy.object);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	object->hash = chan->func->bind(chan, object->oproxy.object,
-					      oclass->handle);
+									oclass->handle);
+
 	if (object->hash < 0)
+	{
 		return object->hash;
+	}
 
 	return 0;
 }
 
 static int
 nv50_disp_dmac_child_get_(struct nv50_disp_chan *base, int index,
-			  struct nvkm_oclass *sclass)
+						  struct nvkm_oclass *sclass)
 {
 	struct nv50_disp_dmac *chan = nv50_disp_dmac(base);
 	struct nv50_disp *disp = chan->base.root->disp;
@@ -90,9 +101,13 @@ nv50_disp_dmac_child_get_(struct nv50_disp_chan *base, int index,
 	const struct nvkm_device_oclass *oclass = NULL;
 
 	sclass->engine = nvkm_device_engine(device, NVKM_ENGINE_DMAOBJ);
-	if (sclass->engine && sclass->engine->func->base.sclass) {
+
+	if (sclass->engine && sclass->engine->func->base.sclass)
+	{
 		sclass->engine->func->base.sclass(sclass, index, &oclass);
-		if (oclass) {
+
+		if (oclass)
+		{
 			sclass->priv = oclass;
 			return 0;
 		}
@@ -122,7 +137,8 @@ nv50_disp_dmac_dtor_(struct nv50_disp_chan *base)
 }
 
 static const struct nv50_disp_chan_func
-nv50_disp_dmac_func_ = {
+	nv50_disp_dmac_func_ =
+{
 	.dtor = nv50_disp_dmac_dtor_,
 	.init = nv50_disp_dmac_init_,
 	.fini = nv50_disp_dmac_fini_,
@@ -132,10 +148,10 @@ nv50_disp_dmac_func_ = {
 
 int
 nv50_disp_dmac_new_(const struct nv50_disp_dmac_func *func,
-		    const struct nv50_disp_chan_mthd *mthd,
-		    struct nv50_disp_root *root, int chid, int head, u64 push,
-		    const struct nvkm_oclass *oclass,
-		    struct nvkm_object **pobject)
+					const struct nv50_disp_chan_mthd *mthd,
+					struct nv50_disp_root *root, int chid, int head, u64 push,
+					const struct nvkm_oclass *oclass,
+					struct nvkm_object **pobject)
 {
 	struct nvkm_device *device = root->disp->base.engine.subdev.device;
 	struct nvkm_client *client = oclass->client;
@@ -144,31 +160,45 @@ nv50_disp_dmac_new_(const struct nv50_disp_dmac_func *func,
 	int ret;
 
 	if (!(chan = kzalloc(sizeof(*chan), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	*pobject = &chan->base.object;
 	chan->func = func;
 
 	ret = nv50_disp_chan_ctor(&nv50_disp_dmac_func_, mthd, root,
-				  chid, head, oclass, &chan->base);
+							  chid, head, oclass, &chan->base);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	dmaobj = nvkm_dma_search(device->dma, client, push);
+
 	if (!dmaobj)
+	{
 		return -ENOENT;
+	}
 
 	if (dmaobj->limit - dmaobj->start != 0xfff)
+	{
 		return -EINVAL;
+	}
 
-	switch (dmaobj->target) {
-	case NV_MEM_TARGET_VRAM:
-		chan->push = 0x00000001 | dmaobj->start >> 8;
-		break;
-	case NV_MEM_TARGET_PCI_NOSNOOP:
-		chan->push = 0x00000003 | dmaobj->start >> 8;
-		break;
-	default:
-		return -EINVAL;
+	switch (dmaobj->target)
+	{
+		case NV_MEM_TARGET_VRAM:
+			chan->push = 0x00000001 | dmaobj->start >> 8;
+			break;
+
+		case NV_MEM_TARGET_PCI_NOSNOOP:
+			chan->push = 0x00000003 | dmaobj->start >> 8;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
@@ -176,12 +206,12 @@ nv50_disp_dmac_new_(const struct nv50_disp_dmac_func *func,
 
 int
 nv50_disp_dmac_bind(struct nv50_disp_dmac *chan,
-		    struct nvkm_object *object, u32 handle)
+					struct nvkm_object *object, u32 handle)
 {
 	return nvkm_ramht_insert(chan->base.root->ramht, object,
-				 chan->base.chid, -10, handle,
-				 chan->base.chid << 28 |
-				 chan->base.chid);
+							 chan->base.chid, -10, handle,
+							 chan->base.chid << 28 |
+							 chan->base.chid);
 }
 
 static void
@@ -195,13 +225,15 @@ nv50_disp_dmac_fini(struct nv50_disp_dmac *chan)
 	/* deactivate channel */
 	nvkm_mask(device, 0x610200 + (chid * 0x0010), 0x00001010, 0x00001000);
 	nvkm_mask(device, 0x610200 + (chid * 0x0010), 0x00000003, 0x00000000);
+
 	if (nvkm_msec(device, 2000,
-		if (!(nvkm_rd32(device, 0x610200 + (chid * 0x10)) & 0x001e0000))
-			break;
-	) < 0) {
-		nvkm_error(subdev, "ch %d fini timeout, %08x\n", chid,
-			   nvkm_rd32(device, 0x610200 + (chid * 0x10)));
-	}
+				  if (!(nvkm_rd32(device, 0x610200 + (chid * 0x10)) & 0x001e0000))
+					  break;
+					 ) < 0)
+		{
+			nvkm_error(subdev, "ch %d fini timeout, %08x\n", chid,
+					   nvkm_rd32(device, 0x610200 + (chid * 0x10)));
+		}
 
 	/* disable error reporting and completion notifications */
 	nvkm_mask(device, 0x610028, 0x00010001 << chid, 0x00000000 << chid);
@@ -228,19 +260,21 @@ nv50_disp_dmac_init(struct nv50_disp_dmac *chan)
 
 	/* wait for it to go inactive */
 	if (nvkm_msec(device, 2000,
-		if (!(nvkm_rd32(device, 0x610200 + (chid * 0x10)) & 0x80000000))
-			break;
-	) < 0) {
-		nvkm_error(subdev, "ch %d init timeout, %08x\n", chid,
-			   nvkm_rd32(device, 0x610200 + (chid * 0x10)));
-		return -EBUSY;
-	}
+				  if (!(nvkm_rd32(device, 0x610200 + (chid * 0x10)) & 0x80000000))
+					  break;
+					 ) < 0)
+		{
+			nvkm_error(subdev, "ch %d init timeout, %08x\n", chid,
+					   nvkm_rd32(device, 0x610200 + (chid * 0x10)));
+			return -EBUSY;
+		}
 
 	return 0;
 }
 
 const struct nv50_disp_dmac_func
-nv50_disp_dmac_func = {
+	nv50_disp_dmac_func =
+{
 	.init = nv50_disp_dmac_init,
 	.fini = nv50_disp_dmac_fini,
 	.bind = nv50_disp_dmac_bind,

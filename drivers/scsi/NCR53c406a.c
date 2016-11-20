@@ -1,8 +1,8 @@
-/* 
+/*
  *  NCR53c406.c
  *  Low-level SCSI driver for NCR53c406a chip.
  *  Copyright (C) 1994, 1995, 1996 Normunds Saumanis (normunds@fi.ibm.com)
- * 
+ *
  *  LILO command line usage: ncr53c406a=<PORTBASE>[,<IRQ>[,<FASTPIO>]]
  *  Specify IRQ = 0 for non-interrupt driven mode.
  *  FASTPIO = 1 for fast pio mode, 0 for slow mode.
@@ -26,12 +26,12 @@
 #define USE_PIO 1
 
 #define USE_BIOS 0
-				/* #define BIOS_ADDR 0xD8000 *//* define this if autoprobe fails */
-				/* #define PORT_BASE 0x330 *//* define this if autoprobe fails */
-				/* #define IRQ_LEV   0	*//* define this if autoprobe fails */
+/* #define BIOS_ADDR 0xD8000 *//* define this if autoprobe fails */
+/* #define PORT_BASE 0x330 *//* define this if autoprobe fails */
+/* #define IRQ_LEV   0	*//* define this if autoprobe fails */
 #define DMA_CHAN  5		/* this is ignored if DMA is disabled */
 
-/* Set this to 0 if you encounter kernel lockups while transferring 
+/* Set this to 0 if you encounter kernel lockups while transferring
  * data in PIO mode */
 #define USE_FAST_PIO 1
 
@@ -62,23 +62,23 @@
 #define SYNC_MODE 0		/* Synchronous transfer mode */
 
 #ifdef DEBUG
-#undef NCR53C406A_DEBUG
-#define NCR53C406A_DEBUG 1
+	#undef NCR53C406A_DEBUG
+	#define NCR53C406A_DEBUG 1
 #endif
 
 #if USE_PIO
-#define USE_DMA 0
+	#define USE_DMA 0
 #else
-#define USE_DMA 1
+	#define USE_DMA 1
 #endif
 
 /* Default configuration */
 #define C1_IMG   0x07		/* ID=7 */
 #define C2_IMG   0x48		/* FE SCSI2 */
 #if USE_DMA
-#define C3_IMG   0x21		/* CDB TE */
+	#define C3_IMG   0x21		/* CDB TE */
 #else
-#define C3_IMG   0x20		/* CDB */
+	#define C3_IMG   0x20		/* CDB */
 #endif
 #define C4_IMG   0x04		/* ANE */
 #define C5_IMG   0xb6		/* AA PI SIE POL */
@@ -87,21 +87,21 @@
 #define REG1 (outb(C5_IMG, CONFIG5))
 
 #if NCR53C406A_DEBUG
-#define DEB(x) x
+	#define DEB(x) x
 #else
-#define DEB(x)
+	#define DEB(x)
 #endif
 
 #if VERBOSE_NCR53C406A_DEBUG
-#define VDEB(x) x
+	#define VDEB(x) x
 #else
-#define VDEB(x)
+	#define VDEB(x)
 #endif
 
 #define LOAD_DMA_COUNT(count) \
-  outb(count & 0xff, TC_LSB); \
-  outb((count >> 8) & 0xff, TC_MSB); \
-  outb((count >> 16) & 0xff, TC_HIGH);
+	outb(count & 0xff, TC_LSB); \
+	outb((count >> 8) & 0xff, TC_MSB); \
+	outb((count >> 16) & 0xff, TC_HIGH);
 
 /* Chip commands */
 #define DMA_OP               0x80
@@ -150,13 +150,14 @@
 */
 
 #if NCR53C406A_DEBUG
-#define rtrc(i) {inb(0x3da);outb(0x31,0x3c0);outb((i),0x3c0);}
+	#define rtrc(i) {inb(0x3da);outb(0x31,0x3c0);outb((i),0x3c0);}
 #else
-#define rtrc(i) {}
+	#define rtrc(i) {}
 #endif
 /*----------------------------------------------------------------*/
 
-enum Phase {
+enum Phase
+{
 	idle,
 	data_out,
 	data_in,
@@ -172,33 +173,33 @@ static irqreturn_t do_NCR53c406a_intr(int, void *);
 static void chip_init(void);
 static void calc_port_addr(void);
 #ifndef IRQ_LEV
-static int irq_probe(void);
+	static int irq_probe(void);
 #endif
 
 /* ================================================================= */
 
 #if USE_BIOS
-static void *bios_base;
+	static void *bios_base;
 #endif
 
 #ifdef PORT_BASE
-static int port_base = PORT_BASE;
+	static int port_base = PORT_BASE;
 #else
-static int port_base;
+	static int port_base;
 #endif
 
 #ifdef IRQ_LEV
-static int irq_level = IRQ_LEV;
+	static int irq_level = IRQ_LEV;
 #else
-static int irq_level = -1;	/* 0 is 'no irq', so use -1 for 'uninitialized' */
+	static int irq_level = -1;	/* 0 is 'no irq', so use -1 for 'uninitialized' */
 #endif
 
 #if USE_DMA
-static int dma_chan;
+	static int dma_chan;
 #endif
 
 #if USE_PIO
-static int fast_pio = USE_FAST_PIO;
+	static int fast_pio = USE_FAST_PIO;
 #endif
 
 static Scsi_Cmnd *current_SC;
@@ -208,7 +209,8 @@ static char info_msg[256];
 
 /* possible BIOS locations */
 #if USE_BIOS
-static void *addresses[] = {
+static void *addresses[] =
+{
 	(void *) 0xd8000,
 	(void *) 0xc8000
 };
@@ -227,15 +229,19 @@ static unsigned short intrs[] = { 10, 11, 12, 15 };
 
 /* signatures for NCR 53c406a based controllers */
 #if USE_BIOS
-struct signature {
+struct signature
+{
 	char *signature;
 	int sig_offset;
 	int sig_length;
-} signatures[] __initdata = {
+} signatures[] __initdata =
+{
 	/*          1         2         3         4         5         6 */
 	/* 123456789012345678901234567890123456789012345678901234567890 */
 	{
-"Copyright (C) Acculogic, Inc.\r\n2.8M Diskette Extension Bios ver 4.04.03 03/01/1993", 61, 82},};
+		"Copyright (C) Acculogic, Inc.\r\n2.8M Diskette Extension Bios ver 4.04.03 03/01/1993", 61, 82
+	},
+};
 
 #define SIGNATURE_COUNT ARRAY_SIZE(signatures)
 #endif				/* USE_BIOS */
@@ -257,28 +263,28 @@ static int FIFO_FLAGS;		/* indicates # of bytes in fifo */
 static int SYNCOFF;		/* synchronous offset register  */
 static int CONFIG1;		/* configuration register       */
 static int CLKCONV;		/* clock conversion reg */
-				/*static int TESTREG;*//* test mode register           */
+/*static int TESTREG;*//* test mode register           */
 static int CONFIG2;		/* Configuration 2 Register     */
 static int CONFIG3;		/* Configuration 3 Register     */
 static int CONFIG4;		/* Configuration 4 Register     */
 static int TC_HIGH;		/* Transfer Counter High */
-				/*static int FIFO_BOTTOM;*//* Reserve FIFO byte register   */
+/*static int FIFO_BOTTOM;*//* Reserve FIFO byte register   */
 
 /* Control Register Set 1 */
-				/*static int JUMPER_SENSE;*//* Jumper sense port reg (r/w) */
-				/*static int SRAM_PTR;*//* SRAM address pointer reg (r/w) */
-				/*static int SRAM_DATA;*//* SRAM data register (r/w) */
+/*static int JUMPER_SENSE;*//* Jumper sense port reg (r/w) */
+/*static int SRAM_PTR;*//* SRAM address pointer reg (r/w) */
+/*static int SRAM_DATA;*//* SRAM data register (r/w) */
 static int PIO_FIFO;		/* PIO FIFO registers (r/w) */
-				/*static int PIO_FIFO1;*//*  */
-				/*static int PIO_FIFO2;*//*  */
-				/*static int PIO_FIFO3;*//*  */
+/*static int PIO_FIFO1;*//*  */
+/*static int PIO_FIFO2;*//*  */
+/*static int PIO_FIFO3;*//*  */
 static int PIO_STATUS;		/* PIO status (r/w) */
-				/*static int ATA_CMD;*//* ATA command/status reg (r/w) */
-				/*static int ATA_ERR;*//* ATA features/error register (r/w) */
+/*static int ATA_CMD;*//* ATA command/status reg (r/w) */
+/*static int ATA_ERR;*//* ATA features/error register (r/w) */
 static int PIO_FLAG;		/* PIO flag interrupt enable (r/w) */
 static int CONFIG5;		/* Configuration 5 register (r/w) */
-				/*static int SIGNATURE;*//* Signature Register (r) */
-				/*static int CONFIG6;*//* Configuration 6 register (r) */
+/*static int SIGNATURE;*//* Signature Register (r) */
+/*static int CONFIG6;*//* Configuration 6 register (r) */
 
 /* ============================================================== */
 
@@ -289,22 +295,37 @@ static __inline__ int NCR53c406a_dma_setup(unsigned char *ptr, unsigned int coun
 	unsigned long flags = 0;
 
 	VDEB(printk("dma: before count=%d   ", count));
-	if (dma_chan <= 3) {
+
+	if (dma_chan <= 3)
+	{
 		if (count > 65536)
+		{
 			count = 65536;
+		}
+
 		limit = 65536 - (((unsigned) ptr) & 0xFFFF);
-	} else {
+	}
+	else
+	{
 		if (count > (65536 << 1))
+		{
 			count = (65536 << 1);
+		}
+
 		limit = (65536 << 1) - (((unsigned) ptr) & 0x1FFFF);
 	}
 
 	if (count > limit)
+	{
 		count = limit;
+	}
 
 	VDEB(printk("after count=%d\n", count));
+
 	if ((count & 1) || (((unsigned) ptr) & 1))
+	{
 		panic("NCR53c406a: attempted unaligned DMA transfer\n");
+	}
 
 	flags = claim_dma_lock();
 	disable_dma(dma_chan);
@@ -349,51 +370,70 @@ static __inline__ int NCR53c406a_pio_read(unsigned char *request, unsigned int r
 	int len;		/* current scsi fifo size */
 
 	REG1;
-	while (reqlen) {
+
+	while (reqlen)
+	{
 		i = inb(PIO_STATUS);
+
 		/*    VDEB(printk("pio_status=%x\n", i)); */
 		if (i & 0x80)
-			return 0;
-
-		switch (i & 0x1e) {
-		default:
-		case 0x10:
-			len = 0;
-			break;
-		case 0x0:
-			len = 1;
-			break;
-		case 0x8:
-			len = 42;
-			break;
-		case 0xc:
-			len = 84;
-			break;
-		case 0xe:
-			len = 128;
-			break;
-		}
-
-		if ((i & 0x40) && len == 0) {	/* fifo empty and interrupt occurred */
+		{
 			return 0;
 		}
 
-		if (len) {
+		switch (i & 0x1e)
+		{
+			default:
+			case 0x10:
+				len = 0;
+				break;
+
+			case 0x0:
+				len = 1;
+				break;
+
+			case 0x8:
+				len = 42;
+				break;
+
+			case 0xc:
+				len = 84;
+				break;
+
+			case 0xe:
+				len = 128;
+				break;
+		}
+
+		if ((i & 0x40) && len == 0)  	/* fifo empty and interrupt occurred */
+		{
+			return 0;
+		}
+
+		if (len)
+		{
 			if (len > reqlen)
+			{
 				len = reqlen;
+			}
 
-			if (fast_pio && len > 3) {
+			if (fast_pio && len > 3)
+			{
 				insl(PIO_FIFO, request, len >> 2);
 				request += len & 0xfc;
 				reqlen -= len & 0xfc;
-			} else {
-				while (len--) {
+			}
+			else
+			{
+				while (len--)
+				{
 					*request++ = inb(PIO_FIFO);
 					reqlen--;
 				}
 			}
 		}
 	}
+
 	return 0;
 }
 
@@ -403,52 +443,70 @@ static __inline__ int NCR53c406a_pio_write(unsigned char *request, unsigned int 
 	int len;		/* current scsi fifo size */
 
 	REG1;
-	while (reqlen && !(i & 0x40)) {
+
+	while (reqlen && !(i & 0x40))
+	{
 		i = inb(PIO_STATUS);
+
 		/*    VDEB(printk("pio_status=%x\n", i)); */
 		if (i & 0x80)	/* error */
+		{
 			return 0;
-
-		switch (i & 0x1e) {
-		case 0x10:
-			len = 128;
-			break;
-		case 0x0:
-			len = 84;
-			break;
-		case 0x8:
-			len = 42;
-			break;
-		case 0xc:
-			len = 1;
-			break;
-		default:
-		case 0xe:
-			len = 0;
-			break;
 		}
 
-		if (len) {
-			if (len > reqlen)
-				len = reqlen;
+		switch (i & 0x1e)
+		{
+			case 0x10:
+				len = 128;
+				break;
 
-			if (fast_pio && len > 3) {
+			case 0x0:
+				len = 84;
+				break;
+
+			case 0x8:
+				len = 42;
+				break;
+
+			case 0xc:
+				len = 1;
+				break;
+
+			default:
+			case 0xe:
+				len = 0;
+				break;
+		}
+
+		if (len)
+		{
+			if (len > reqlen)
+			{
+				len = reqlen;
+			}
+
+			if (fast_pio && len > 3)
+			{
 				outsl(PIO_FIFO, request, len >> 2);
 				request += len & 0xfc;
 				reqlen -= len & 0xfc;
-			} else {
-				while (len--) {
+			}
+			else
+			{
+				while (len--)
+				{
 					outb(*request++, PIO_FIFO);
 					reqlen--;
 				}
 			}
 		}
 	}
+
 	return 0;
 }
 #endif				/* USE_PIO */
 
-static int __init NCR53c406a_detect(struct scsi_host_template * tpnt)
+static int __init NCR53c406a_detect(struct scsi_host_template *tpnt)
 {
 	int present = 0;
 	struct Scsi_Host *shpnt = NULL;
@@ -459,49 +517,73 @@ static int __init NCR53c406a_detect(struct scsi_host_template * tpnt)
 #if USE_BIOS
 	int ii, jj;
 	bios_base = 0;
+
 	/* look for a valid signature */
 	for (ii = 0; ii < ADDRESS_COUNT && !bios_base; ii++)
 		for (jj = 0; (jj < SIGNATURE_COUNT) && !bios_base; jj++)
-			if (!memcmp((void *) addresses[ii] + signatures[jj].sig_offset, (void *) signatures[jj].signature, (int) signatures[jj].sig_length))
+			if (!memcmp((void *) addresses[ii] + signatures[jj].sig_offset, (void *) signatures[jj].signature,
+						(int) signatures[jj].sig_length))
+			{
 				bios_base = addresses[ii];
+			}
 
-	if (!bios_base) {
+	if (!bios_base)
+	{
 		printk("NCR53c406a: BIOS signature not found\n");
 		return 0;
 	}
 
 	DEB(printk("NCR53c406a BIOS found at 0x%x\n", (unsigned int) bios_base);
-	    );
+	   );
 #endif				/* USE_BIOS */
 
 #ifdef PORT_BASE
+
 	if (!request_region(port_base, 0x10, "NCR53c406a"))	/* ports already snatched */
+	{
 		port_base = 0;
+	}
 
 #else				/* autodetect */
-	if (port_base) {	/* LILO override */
+
+	if (port_base)  	/* LILO override */
+	{
 		if (!request_region(port_base, 0x10, "NCR53c406a"))
+		{
 			port_base = 0;
-	} else {
-		for (i = 0; i < PORT_COUNT && !port_base; i++) {
-			if (!request_region(ports[i], 0x10, "NCR53c406a")) {
+		}
+	}
+	else
+	{
+		for (i = 0; i < PORT_COUNT && !port_base; i++)
+		{
+			if (!request_region(ports[i], 0x10, "NCR53c406a"))
+			{
 				DEB(printk("NCR53c406a: port 0x%x in use\n", ports[i]));
-			} else {
+			}
+			else
+			{
 				VDEB(printk("NCR53c406a: port 0x%x available\n", ports[i]));
 				outb(C5_IMG, ports[i] + 0x0d);	/* reg set 1 */
-				if ((inb(ports[i] + 0x0e) ^ inb(ports[i] + 0x0e)) == 7 && (inb(ports[i] + 0x0e) ^ inb(ports[i] + 0x0e)) == 7 && (inb(ports[i] + 0x0e) & 0xf8) == 0x58) {
+
+				if ((inb(ports[i] + 0x0e) ^ inb(ports[i] + 0x0e)) == 7 && (inb(ports[i] + 0x0e) ^ inb(ports[i] + 0x0e)) == 7 &&
+					(inb(ports[i] + 0x0e) & 0xf8) == 0x58)
+				{
 					port_base = ports[i];
 					VDEB(printk("NCR53c406a: Sig register valid\n"));
 					VDEB(printk("port_base=0x%x\n", port_base));
 					break;
 				}
+
 				release_region(ports[i], 0x10);
 			}
 		}
 	}
+
 #endif				/* PORT_BASE */
 
-	if (!port_base) {	/* no ports found */
+	if (!port_base)  	/* no ports found */
+	{
 		printk("NCR53c406a: no available ports found\n");
 		return 0;
 	}
@@ -512,13 +594,18 @@ static int __init NCR53c406a_detect(struct scsi_host_template * tpnt)
 	chip_init();
 
 #ifndef IRQ_LEV
-	if (irq_level < 0) {	/* LILO override if >= 0 */
+
+	if (irq_level < 0)  	/* LILO override if >= 0 */
+	{
 		irq_level = irq_probe();
-		if (irq_level < 0) {	/* Trouble */
+
+		if (irq_level < 0)  	/* Trouble */
+		{
 			printk("NCR53c406a: IRQ problem, irq_level=%d, giving up\n", irq_level);
 			goto err_release;
 		}
 	}
+
 #endif
 
 	DEB(printk("NCR53c406a: using port_base 0x%x\n", port_base));
@@ -527,36 +614,47 @@ static int __init NCR53c406a_detect(struct scsi_host_template * tpnt)
 	tpnt->proc_name = "NCR53c406a";
 
 	shpnt = scsi_register(tpnt, 0);
-	if (!shpnt) {
+
+	if (!shpnt)
+	{
 		printk("NCR53c406a: Unable to register host, giving up.\n");
 		goto err_release;
 	}
 
-	if (irq_level > 0) {
-		if (request_irq(irq_level, do_NCR53c406a_intr, 0, "NCR53c406a", shpnt)) {
+	if (irq_level > 0)
+	{
+		if (request_irq(irq_level, do_NCR53c406a_intr, 0, "NCR53c406a", shpnt))
+		{
 			printk("NCR53c406a: unable to allocate IRQ %d\n", irq_level);
 			goto err_free_scsi;
 		}
+
 		tpnt->can_queue = 1;
 		DEB(printk("NCR53c406a: allocated IRQ %d\n", irq_level));
-	} else if (irq_level == 0) {
+	}
+	else if (irq_level == 0)
+	{
 		tpnt->can_queue = 0;
 		DEB(printk("NCR53c406a: No interrupts detected\n"));
 		printk("NCR53c406a driver no longer supports polling interface\n");
 		printk("Please email linux-scsi@vger.kernel.org\n");
-                        
+
 #if USE_DMA
 		printk("NCR53c406a: No interrupts found and DMA mode defined. Giving up.\n");
 #endif				/* USE_DMA */
 		goto err_free_scsi;
-	} else {
+	}
+	else
+	{
 		DEB(printk("NCR53c406a: Shouldn't get here!\n"));
 		goto err_free_scsi;
 	}
 
 #if USE_DMA
 	dma_chan = DMA_CHAN;
-	if (request_dma(dma_chan, "NCR53c406a") != 0) {
+
+	if (request_dma(dma_chan, "NCR53c406a") != 0)
+	{
 		printk("NCR53c406a: unable to allocate DMA channel %d\n", dma_chan);
 		goto err_free_irq;
 	}
@@ -580,13 +678,17 @@ static int __init NCR53c406a_detect(struct scsi_host_template * tpnt)
 	return (present);
 
 #if USE_DMA
-      err_free_irq:
+err_free_irq:
+
 	if (irq_level)
+	{
 		free_irq(irq_level, shpnt);
+	}
+
 #endif
-      err_free_scsi:
+err_free_scsi:
 	scsi_unregister(shpnt);
-      err_release:
+err_release:
 	release_region(port_base, 0x10);
 	return 0;
 }
@@ -594,13 +696,23 @@ static int __init NCR53c406a_detect(struct scsi_host_template * tpnt)
 static int NCR53c406a_release(struct Scsi_Host *shost)
 {
 	if (shost->irq)
+	{
 		free_irq(shost->irq, NULL);
+	}
+
 #if USE_DMA
+
 	if (shost->dma_channel != 0xff)
+	{
 		free_dma(shost->dma_channel);
+	}
+
 #endif
+
 	if (shost->io_port && shost->n_io_port)
+	{
 		release_region(shost->io_port, shost->n_io_port);
+	}
 
 	scsi_unregister(shost);
 	return 0;
@@ -615,47 +727,64 @@ static int __init NCR53c406a_setup(char *str)
 	int ints[4];
 
 	DEB(printk("NCR53c406a: Setup called\n");
-	    );
+	   );
 
-	if (setup_idx >= PORT_COUNT - 1) {
+	if (setup_idx >= PORT_COUNT - 1)
+	{
 		printk("NCR53c406a: Setup called too many times.  Bad LILO params?\n");
 		return 0;
 	}
+
 	get_options(str, 4, ints);
-	if (ints[0] < 1 || ints[0] > 3) {
+
+	if (ints[0] < 1 || ints[0] > 3)
+	{
 		printk("NCR53c406a: Malformed command line\n");
 		printk("NCR53c406a: Usage: ncr53c406a=<PORTBASE>[,<IRQ>[,<FASTPIO>]]\n");
 		return 0;
 	}
+
 	for (i = 0; i < PORT_COUNT && !port_base; i++)
-		if (ports[i] == ints[1]) {
+		if (ports[i] == ints[1])
+		{
 			port_base = ints[1];
 			DEB(printk("NCR53c406a: Specified port_base 0x%x\n", port_base);
-			    )
+			   )
 		}
-	if (!port_base) {
+
+	if (!port_base)
+	{
 		printk("NCR53c406a: Invalid PORTBASE 0x%x specified\n", ints[1]);
 		return 0;
 	}
 
-	if (ints[0] > 1) {
-		if (ints[2] == 0) {
+	if (ints[0] > 1)
+	{
+		if (ints[2] == 0)
+		{
 			irq_level = 0;
 			DEB(printk("NCR53c406a: Specified irq %d\n", irq_level);
-			    )
-		} else
+			   )
+		}
+		else
 			for (i = 0; i < INTR_COUNT && irq_level < 0; i++)
-				if (intrs[i] == ints[2]) {
+				if (intrs[i] == ints[2])
+				{
 					irq_level = ints[2];
 					DEB(printk("NCR53c406a: Specified irq %d\n", port_base);
-					    )
+					   )
 				}
+
 		if (irq_level < 0)
+		{
 			printk("NCR53c406a: Invalid IRQ %d specified\n", ints[2]);
+		}
 	}
 
 	if (ints[0] > 2)
+	{
 		fast_pio = ints[3];
+	}
 
 	DEB(printk("NCR53c406a: port_base=0x%x, irq=%d, fast_pio=%d\n", port_base, irq_level, fast_pio);)
 	return 1;
@@ -676,12 +805,14 @@ static void wait_intr(void)
 {
 	unsigned long i = jiffies + WATCHDOG;
 
-	while (time_after(i, jiffies) && !(inb(STAT_REG) & 0xe0)) {	/* wait for a pseudo-interrupt */
+	while (time_after(i, jiffies) && !(inb(STAT_REG) & 0xe0))  	/* wait for a pseudo-interrupt */
+	{
 		cpu_relax();
 		barrier();
 	}
 
-	if (time_before_eq(i, jiffies)) {	/* Timed out */
+	if (time_before_eq(i, jiffies))  	/* Timed out */
+	{
 		rtrc(0);
 		current_SC->result = DID_TIME_OUT << 16;
 		current_SC->SCp.phase = idle;
@@ -693,16 +824,19 @@ static void wait_intr(void)
 }
 #endif
 
-static int NCR53c406a_queue_lck(Scsi_Cmnd * SCpnt, void (*done) (Scsi_Cmnd *))
+static int NCR53c406a_queue_lck(Scsi_Cmnd *SCpnt, void (*done) (Scsi_Cmnd *))
 {
 	int i;
 
 	VDEB(printk("NCR53c406a_queue called\n"));
-        DEB(printk("cmd=%02x, cmd_len=%02x, target=%02x, lun=%02x, bufflen=%d\n", SCpnt->cmnd[0], SCpnt->cmd_len, SCpnt->device->target, (u8)SCpnt->device->lun, scsi_bufflen(SCpnt)));
+	DEB(printk("cmd=%02x, cmd_len=%02x, target=%02x, lun=%02x, bufflen=%d\n", SCpnt->cmnd[0], SCpnt->cmd_len,
+			   SCpnt->device->target, (u8)SCpnt->device->lun, scsi_bufflen(SCpnt)));
 
 #if 0
+
 	VDEB(for (i = 0; i < SCpnt->cmd_len; i++)
-	     printk("cmd[%d]=%02x  ", i, SCpnt->cmnd[i]));
+		 printk("cmd[%d]=%02x  ", i, SCpnt->cmnd[i]));
+
 	VDEB(printk("\n"));
 #endif
 
@@ -717,9 +851,11 @@ static int NCR53c406a_queue_lck(Scsi_Cmnd * SCpnt, void (*done) (Scsi_Cmnd *))
 	outb(scmd_id(SCpnt), DEST_ID);	/* set destination */
 	outb(FLUSH_FIFO, CMD_REG);	/* reset the fifos */
 
-	for (i = 0; i < SCpnt->cmd_len; i++) {
+	for (i = 0; i < SCpnt->cmd_len; i++)
+	{
 		outb(SCpnt->cmnd[i], SCSI_FIFO);
 	}
+
 	outb(SELECT_NO_ATN, CMD_REG);
 
 	rtrc(1);
@@ -728,7 +864,7 @@ static int NCR53c406a_queue_lck(Scsi_Cmnd * SCpnt, void (*done) (Scsi_Cmnd *))
 
 static DEF_SCSI_QCMD(NCR53c406a_queue)
 
-static int NCR53c406a_host_reset(Scsi_Cmnd * SCpnt)
+static int NCR53c406a_host_reset(Scsi_Cmnd *SCpnt)
 {
 	DEB(printk("NCR53c406a_reset called\n"));
 
@@ -748,8 +884,8 @@ static int NCR53c406a_host_reset(Scsi_Cmnd * SCpnt)
 }
 
 static int NCR53c406a_biosparm(struct scsi_device *disk,
-                               struct block_device *dev,
-			       sector_t capacity, int *info_array)
+							   struct block_device *dev,
+							   sector_t capacity, int *info_array)
 {
 	int size;
 
@@ -759,11 +895,14 @@ static int NCR53c406a_biosparm(struct scsi_device *disk,
 	info_array[0] = 64;	/* heads */
 	info_array[1] = 32;	/* sectors */
 	info_array[2] = size >> 11;	/* cylinders */
-	if (info_array[2] > 1024) {	/* big disk */
+
+	if (info_array[2] > 1024)  	/* big disk */
+	{
 		info_array[0] = 255;
 		info_array[1] = 63;
 		info_array[2] = size / (255 * 63);
 	}
+
 	return 0;
 }
 
@@ -781,14 +920,14 @@ static irqreturn_t do_NCR53c406a_intr(int unused, void *dev_id)
 static void NCR53c406a_intr(void *dev_id)
 {
 	DEB(unsigned char fifo_size;
-	    )
-	    DEB(unsigned char seq_reg;
-	    )
+	   )
+	DEB(unsigned char seq_reg;
+	   )
 	unsigned char status, int_reg;
 #if USE_PIO
 	unsigned char pio_status;
 	struct scatterlist *sg;
-        int i;
+	int i;
 #endif
 
 	VDEB(printk("NCR53c406a_intr called\n"));
@@ -812,7 +951,8 @@ static void NCR53c406a_intr(void *dev_id)
 #endif				/* USE_DMA */
 #endif				/* NCR53C406A_DEBUG */
 
-	if (int_reg & 0x80) {	/* SCSI reset intr */
+	if (int_reg & 0x80)  	/* SCSI reset intr */
+	{
 		rtrc(3);
 		DEB(printk("NCR53c406a: reset intr received\n"));
 		current_SC->SCp.phase = idle;
@@ -820,17 +960,22 @@ static void NCR53c406a_intr(void *dev_id)
 		current_SC->scsi_done(current_SC);
 		return;
 	}
+
 #if USE_PIO
-	if (pio_status & 0x80) {
+
+	if (pio_status & 0x80)
+	{
 		printk("NCR53C406A: Warning: PIO error!\n");
 		current_SC->SCp.phase = idle;
 		current_SC->result = DID_ERROR << 16;
 		current_SC->scsi_done(current_SC);
 		return;
 	}
+
 #endif				/* USE_PIO */
 
-	if (status & 0x20) {	/* Parity error */
+	if (status & 0x20)  	/* Parity error */
+	{
 		printk("NCR53c406a: Warning: parity error!\n");
 		current_SC->SCp.phase = idle;
 		current_SC->result = DID_PARITY << 16;
@@ -838,7 +983,8 @@ static void NCR53c406a_intr(void *dev_id)
 		return;
 	}
 
-	if (status & 0x40) {	/* Gross error */
+	if (status & 0x40)  	/* Gross error */
+	{
 		printk("NCR53c406a: Warning: gross error!\n");
 		current_SC->SCp.phase = idle;
 		current_SC->result = DID_ERROR << 16;
@@ -846,13 +992,18 @@ static void NCR53c406a_intr(void *dev_id)
 		return;
 	}
 
-	if (int_reg & 0x20) {	/* Disconnect */
+	if (int_reg & 0x20)  	/* Disconnect */
+	{
 		DEB(printk("NCR53c406a: disconnect intr received\n"));
-		if (current_SC->SCp.phase != message_in) {	/* Unexpected disconnect */
+
+		if (current_SC->SCp.phase != message_in)  	/* Unexpected disconnect */
+		{
 			current_SC->result = DID_NO_CONNECT << 16;
-		} else {	/* Command complete, return status and message */
+		}
+		else  	/* Command complete, return status and message */
+		{
 			current_SC->result = (current_SC->SCp.Status & 0xff)
-			    | ((current_SC->SCp.Message & 0xff) << 8) | (DID_OK << 16);
+								 | ((current_SC->SCp.Message & 0xff) << 8) | (DID_OK << 16);
 		}
 
 		rtrc(0);
@@ -861,92 +1012,101 @@ static void NCR53c406a_intr(void *dev_id)
 		return;
 	}
 
-	switch (status & 0x07) {	/* scsi phase */
-	case 0x00:		/* DATA-OUT */
-		if (int_reg & 0x10) {	/* Target requesting info transfer */
-			rtrc(5);
-			current_SC->SCp.phase = data_out;
-			VDEB(printk("NCR53c406a: Data-Out phase\n"));
-			outb(FLUSH_FIFO, CMD_REG);
-			LOAD_DMA_COUNT(scsi_bufflen(current_SC));	/* Max transfer size */
+	switch (status & 0x07)  	/* scsi phase */
+	{
+		case 0x00:		/* DATA-OUT */
+			if (int_reg & 0x10)  	/* Target requesting info transfer */
+			{
+				rtrc(5);
+				current_SC->SCp.phase = data_out;
+				VDEB(printk("NCR53c406a: Data-Out phase\n"));
+				outb(FLUSH_FIFO, CMD_REG);
+				LOAD_DMA_COUNT(scsi_bufflen(current_SC));	/* Max transfer size */
 #if USE_DMA			/* No s/g support for DMA */
-			NCR53c406a_dma_write(scsi_sglist(current_SC),
-                                             scsdi_bufflen(current_SC));
+				NCR53c406a_dma_write(scsi_sglist(current_SC),
+									 scsdi_bufflen(current_SC));
 
 #endif				/* USE_DMA */
-			outb(TRANSFER_INFO | DMA_OP, CMD_REG);
+				outb(TRANSFER_INFO | DMA_OP, CMD_REG);
 #if USE_PIO
-                        scsi_for_each_sg(current_SC, sg, scsi_sg_count(current_SC), i) {
-                                NCR53c406a_pio_write(sg_virt(sg), sg->length);
-                        }
-			REG0;
+				scsi_for_each_sg(current_SC, sg, scsi_sg_count(current_SC), i)
+				{
+					NCR53c406a_pio_write(sg_virt(sg), sg->length);
+				}
+				REG0;
 #endif				/* USE_PIO */
-		}
-		break;
+			}
 
-	case 0x01:		/* DATA-IN */
-		if (int_reg & 0x10) {	/* Target requesting info transfer */
-			rtrc(6);
-			current_SC->SCp.phase = data_in;
-			VDEB(printk("NCR53c406a: Data-In phase\n"));
-			outb(FLUSH_FIFO, CMD_REG);
-			LOAD_DMA_COUNT(scsi_bufflen(current_SC));	/* Max transfer size */
+			break;
+
+		case 0x01:		/* DATA-IN */
+			if (int_reg & 0x10)  	/* Target requesting info transfer */
+			{
+				rtrc(6);
+				current_SC->SCp.phase = data_in;
+				VDEB(printk("NCR53c406a: Data-In phase\n"));
+				outb(FLUSH_FIFO, CMD_REG);
+				LOAD_DMA_COUNT(scsi_bufflen(current_SC));	/* Max transfer size */
 #if USE_DMA			/* No s/g support for DMA */
-			NCR53c406a_dma_read(scsi_sglist(current_SC),
-                                            scsdi_bufflen(current_SC));
+				NCR53c406a_dma_read(scsi_sglist(current_SC),
+									scsdi_bufflen(current_SC));
 #endif				/* USE_DMA */
-			outb(TRANSFER_INFO | DMA_OP, CMD_REG);
+				outb(TRANSFER_INFO | DMA_OP, CMD_REG);
 #if USE_PIO
-                        scsi_for_each_sg(current_SC, sg, scsi_sg_count(current_SC), i) {
-                                NCR53c406a_pio_read(sg_virt(sg), sg->length);
-                        }
-			REG0;
+				scsi_for_each_sg(current_SC, sg, scsi_sg_count(current_SC), i)
+				{
+					NCR53c406a_pio_read(sg_virt(sg), sg->length);
+				}
+				REG0;
 #endif				/* USE_PIO */
-		}
-		break;
+			}
 
-	case 0x02:		/* COMMAND */
-		current_SC->SCp.phase = command_ph;
-		printk("NCR53c406a: Warning: Unknown interrupt occurred in command phase!\n");
-		break;
+			break;
 
-	case 0x03:		/* STATUS */
-		rtrc(7);
-		current_SC->SCp.phase = status_ph;
-		VDEB(printk("NCR53c406a: Status phase\n"));
-		outb(FLUSH_FIFO, CMD_REG);
-		outb(INIT_CMD_COMPLETE, CMD_REG);
-		break;
+		case 0x02:		/* COMMAND */
+			current_SC->SCp.phase = command_ph;
+			printk("NCR53c406a: Warning: Unknown interrupt occurred in command phase!\n");
+			break;
 
-	case 0x04:		/* Reserved */
-	case 0x05:		/* Reserved */
-		printk("NCR53c406a: WARNING: Reserved phase!!!\n");
-		break;
+		case 0x03:		/* STATUS */
+			rtrc(7);
+			current_SC->SCp.phase = status_ph;
+			VDEB(printk("NCR53c406a: Status phase\n"));
+			outb(FLUSH_FIFO, CMD_REG);
+			outb(INIT_CMD_COMPLETE, CMD_REG);
+			break;
 
-	case 0x06:		/* MESSAGE-OUT */
-		DEB(printk("NCR53c406a: Message-Out phase\n"));
-		current_SC->SCp.phase = message_out;
-		outb(SET_ATN, CMD_REG);	/* Reject the message */
-		outb(MSG_ACCEPT, CMD_REG);
-		break;
+		case 0x04:		/* Reserved */
+		case 0x05:		/* Reserved */
+			printk("NCR53c406a: WARNING: Reserved phase!!!\n");
+			break;
 
-	case 0x07:		/* MESSAGE-IN */
-		rtrc(4);
-		VDEB(printk("NCR53c406a: Message-In phase\n"));
-		current_SC->SCp.phase = message_in;
+		case 0x06:		/* MESSAGE-OUT */
+			DEB(printk("NCR53c406a: Message-Out phase\n"));
+			current_SC->SCp.phase = message_out;
+			outb(SET_ATN, CMD_REG);	/* Reject the message */
+			outb(MSG_ACCEPT, CMD_REG);
+			break;
 
-		current_SC->SCp.Status = inb(SCSI_FIFO);
-		current_SC->SCp.Message = inb(SCSI_FIFO);
+		case 0x07:		/* MESSAGE-IN */
+			rtrc(4);
+			VDEB(printk("NCR53c406a: Message-In phase\n"));
+			current_SC->SCp.phase = message_in;
 
-		VDEB(printk("SCSI FIFO size=%d\n", inb(FIFO_FLAGS) & 0x1f));
-		DEB(printk("Status = %02x  Message = %02x\n", current_SC->SCp.Status, current_SC->SCp.Message));
+			current_SC->SCp.Status = inb(SCSI_FIFO);
+			current_SC->SCp.Message = inb(SCSI_FIFO);
 
-		if (current_SC->SCp.Message == SAVE_POINTERS || current_SC->SCp.Message == DISCONNECT) {
-			outb(SET_ATN, CMD_REG);	/* Reject message */
-			DEB(printk("Discarding SAVE_POINTERS message\n"));
-		}
-		outb(MSG_ACCEPT, CMD_REG);
-		break;
+			VDEB(printk("SCSI FIFO size=%d\n", inb(FIFO_FLAGS) & 0x1f));
+			DEB(printk("Status = %02x  Message = %02x\n", current_SC->SCp.Status, current_SC->SCp.Message));
+
+			if (current_SC->SCp.Message == SAVE_POINTERS || current_SC->SCp.Message == DISCONNECT)
+			{
+				outb(SET_ATN, CMD_REG);	/* Reject message */
+				DEB(printk("Discarding SAVE_POINTERS message\n"));
+			}
+
+			outb(MSG_ACCEPT, CMD_REG);
+			break;
 	}
 }
 
@@ -965,9 +1125,14 @@ static int irq_probe(void)
 
 	/* Wait for the interrupt to occur */
 	i = jiffies + WATCHDOG;
+
 	while (time_after(i, jiffies) && !(inb(STAT_REG) & 0x80))
+	{
 		barrier();
-	if (time_before_eq(i, jiffies)) {	/* Timed out, must be hardware trouble */
+	}
+
+	if (time_before_eq(i, jiffies))  	/* Timed out, must be hardware trouble */
+	{
 		probe_irq_off(irqs);
 		return -1;
 	}
@@ -1053,19 +1218,19 @@ MODULE_LICENSE("GPL");
 
 static struct scsi_host_template driver_template =
 {
-     .proc_name         	= "NCR53c406a"		/* proc_name */,        
-     .name              	= "NCR53c406a"		/* name */,             
-     .detect            	= NCR53c406a_detect	/* detect */,           
-     .release            	= NCR53c406a_release,
-     .info              	= NCR53c406a_info		/* info */,             
-     .queuecommand      	= NCR53c406a_queue	/* queuecommand */,     
-     .eh_host_reset_handler     = NCR53c406a_host_reset	/* reset */,            
-     .bios_param        	= NCR53c406a_biosparm	/* biosparm */,         
-     .can_queue         	= 1			/* can_queue */,        
-     .this_id           	= 7			/* SCSI ID of the chip */,
-     .sg_tablesize      	= 32			/*SG_ALL*/ /*SG_NONE*/, 
-     .unchecked_isa_dma 	= 1			/* unchecked_isa_dma */,
-     .use_clustering    	= ENABLE_CLUSTERING,
+	.proc_name         	= "NCR53c406a"		/* proc_name */,
+	.name              	= "NCR53c406a"		/* name */,
+	.detect            	= NCR53c406a_detect	/* detect */,
+	.release            	= NCR53c406a_release,
+	.info              	= NCR53c406a_info		/* info */,
+	.queuecommand      	= NCR53c406a_queue	/* queuecommand */,
+	.eh_host_reset_handler     = NCR53c406a_host_reset	/* reset */,
+	.bios_param        	= NCR53c406a_biosparm	/* biosparm */,
+	.can_queue         	= 1			/* can_queue */,
+	.this_id           	= 7			/* SCSI ID of the chip */,
+	.sg_tablesize      	= 32			/*SG_ALL*/ /*SG_NONE*/,
+	.unchecked_isa_dma 	= 1			/* unchecked_isa_dma */,
+	.use_clustering    	= ENABLE_CLUSTERING,
 };
 
 #include "scsi_module.c"

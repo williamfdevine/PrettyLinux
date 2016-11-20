@@ -36,10 +36,10 @@ ip_set_hostmask6(u8 pfxlen)
 extern u32 ip_set_range_to_cidr(u32 from, u32 to, u8 *cidr);
 
 #define ip_set_mask_from_to(from, to, cidr)	\
-do {						\
-	from &= ip_set_hostmask(cidr);		\
-	to = from | ~ip_set_hostmask(cidr);	\
-} while (0)
+	do {						\
+		from &= ip_set_hostmask(cidr);		\
+		to = from | ~ip_set_hostmask(cidr);	\
+	} while (0)
 
 static inline void
 ip6_netmask(union nf_inet_addr *ip, u8 prefix)

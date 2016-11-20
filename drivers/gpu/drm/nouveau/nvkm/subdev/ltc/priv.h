@@ -5,9 +5,10 @@
 #include <core/enum.h>
 
 int nvkm_ltc_new_(const struct nvkm_ltc_func *, struct nvkm_device *,
-		  int index, struct nvkm_ltc **);
+				  int index, struct nvkm_ltc **);
 
-struct nvkm_ltc_func {
+struct nvkm_ltc_func
+{
 	int  (*oneinit)(struct nvkm_ltc *);
 	void (*init)(struct nvkm_ltc *);
 	void (*intr)(struct nvkm_ltc *);

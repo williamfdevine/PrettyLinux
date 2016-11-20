@@ -30,7 +30,8 @@
 
 struct cx18;
 
-enum cx18_av_video_input {
+enum cx18_av_video_input
+{
 	/* Composite video inputs In1-In8 */
 	CX18_AV_COMPOSITE1 = 1,
 	CX18_AV_COMPOSITE2,
@@ -83,7 +84,8 @@ enum cx18_av_video_input {
 	CX18_AV_COMPONENT1 = 0x861000,
 };
 
-enum cx18_av_audio_input {
+enum cx18_av_audio_input
+{
 	/* Audio inputs: serial or In4-In8 */
 	CX18_AV_AUDIO_SERIAL1,
 	CX18_AV_AUDIO_SERIAL2,
@@ -94,7 +96,8 @@ enum cx18_av_audio_input {
 	CX18_AV_AUDIO8,
 };
 
-struct cx18_av_state {
+struct cx18_av_state
+{
 	struct v4l2_subdev sd;
 	struct v4l2_ctrl_handler hdl;
 	struct v4l2_ctrl *volume;
@@ -360,7 +363,7 @@ int cx18_av_write4(struct cx18 *cx, u16 addr, u32 value);
 int cx18_av_write4_noretry(struct cx18 *cx, u16 addr, u32 value);
 int cx18_av_write_expect(struct cx18 *cx, u16 addr, u8 value, u8 eval, u8 mask);
 int cx18_av_write4_expect(struct cx18 *cx, u16 addr, u32 value, u32 eval,
-			  u32 mask);
+						  u32 mask);
 u8 cx18_av_read(struct cx18 *cx, u16 addr);
 u32 cx18_av_read4(struct cx18 *cx, u16 addr);
 int cx18_av_and_or(struct cx18 *cx, u16 addr, unsigned mask, u8 value);
@@ -382,7 +385,7 @@ extern const struct v4l2_ctrl_ops cx18_av_audio_ctrl_ops;
 /* ----------------------------------------------------------------------- */
 /* cx18_av-vbi.c                                                           */
 int cx18_av_decode_vbi_line(struct v4l2_subdev *sd,
-			   struct v4l2_decode_vbi_line *vbi);
+							struct v4l2_decode_vbi_line *vbi);
 int cx18_av_s_raw_fmt(struct v4l2_subdev *sd, struct v4l2_vbi_format *fmt);
 int cx18_av_g_sliced_fmt(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_format *fmt);
 int cx18_av_s_sliced_fmt(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_format *fmt);

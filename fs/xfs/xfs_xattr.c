@@ -33,21 +33,26 @@
 
 static int
 xfs_xattr_get(const struct xattr_handler *handler, struct dentry *unused,
-		struct inode *inode, const char *name, void *value, size_t size)
+			  struct inode *inode, const char *name, void *value, size_t size)
 {
 	int xflags = handler->flags;
 	struct xfs_inode *ip = XFS_I(inode);
 	int error, asize = size;
 
 	/* Convert Linux syscall to XFS internal ATTR flags */
-	if (!size) {
+	if (!size)
+	{
 		xflags |= ATTR_KERNOVAL;
 		value = NULL;
 	}
 
 	error = xfs_attr_get(ip, (unsigned char *)name, value, &asize, xflags);
+
 	if (error)
+	{
 		return error;
+	}
+
 	return asize;
 }
 
@@ -63,20 +68,27 @@ xfs_forget_acl(
 	 * responsibility to provide data in valid format and ensure i_mode is
 	 * consistent.
 	 */
-	if (xflags & ATTR_ROOT) {
+	if (xflags & ATTR_ROOT)
+	{
 #ifdef CONFIG_XFS_POSIX_ACL
+
 		if (!strcmp(name, SGI_ACL_FILE))
+		{
 			forget_cached_acl(inode, ACL_TYPE_ACCESS);
+		}
 		else if (!strcmp(name, SGI_ACL_DEFAULT))
+		{
 			forget_cached_acl(inode, ACL_TYPE_DEFAULT);
+		}
+
 #endif
 	}
 }
 
 static int
 xfs_xattr_set(const struct xattr_handler *handler, struct dentry *unused,
-		struct inode *inode, const char *name, const void *value,
-		size_t size, int flags)
+			  struct inode *inode, const char *name, const void *value,
+			  size_t size, int flags)
 {
 	int			xflags = handler->flags;
 	struct xfs_inode	*ip = XFS_I(inode);
@@ -84,42 +96,57 @@ xfs_xattr_set(const struct xattr_handler *handler, struct dentry *unused,
 
 	/* Convert Linux syscall to XFS internal ATTR flags */
 	if (flags & XATTR_CREATE)
+	{
 		xflags |= ATTR_CREATE;
+	}
+
 	if (flags & XATTR_REPLACE)
+	{
 		xflags |= ATTR_REPLACE;
+	}
 
 	if (!value)
+	{
 		return xfs_attr_remove(ip, (unsigned char *)name, xflags);
+	}
+
 	error = xfs_attr_set(ip, (unsigned char *)name,
-				(void *)value, size, xflags);
+						 (void *)value, size, xflags);
+
 	if (!error)
+	{
 		xfs_forget_acl(inode, name, xflags);
+	}
 
 	return error;
 }
 
-static const struct xattr_handler xfs_xattr_user_handler = {
+static const struct xattr_handler xfs_xattr_user_handler =
+{
 	.prefix	= XATTR_USER_PREFIX,
 	.flags	= 0, /* no flags implies user namespace */
 	.get	= xfs_xattr_get,
 	.set	= xfs_xattr_set,
 };
 
-static const struct xattr_handler xfs_xattr_trusted_handler = {
+static const struct xattr_handler xfs_xattr_trusted_handler =
+{
 	.prefix	= XATTR_TRUSTED_PREFIX,
 	.flags	= ATTR_ROOT,
 	.get	= xfs_xattr_get,
 	.set	= xfs_xattr_set,
 };
 
-static const struct xattr_handler xfs_xattr_security_handler = {
+static const struct xattr_handler xfs_xattr_security_handler =
+{
 	.prefix	= XATTR_SECURITY_PREFIX,
 	.flags	= ATTR_SECURE,
 	.get	= xfs_xattr_get,
 	.set	= xfs_xattr_set,
 };
 
-const struct xattr_handler *xfs_xattr_handlers[] = {
+const struct xattr_handler *xfs_xattr_handlers[] =
+{
 	&xfs_xattr_user_handler,
 	&xfs_xattr_trusted_handler,
 	&xfs_xattr_security_handler,
@@ -142,14 +169,19 @@ __xfs_xattr_put_listent(
 	int arraytop;
 
 	if (!context->alist)
+	{
 		goto compute_size;
+	}
 
 	arraytop = context->count + prefix_len + namelen + 1;
-	if (arraytop > context->firstu) {
+
+	if (arraytop > context->firstu)
+	{
 		context->count = -1;	/* insufficient space */
 		context->seen_enough = 1;
 		return 0;
 	}
+
 	offset = (char *)context->alist + context->count;
 	strncpy(offset, prefix, prefix_len);
 	offset += prefix_len;
@@ -175,29 +207,41 @@ xfs_xattr_put_listent(
 
 	ASSERT(context->count >= 0);
 
-	if (flags & XFS_ATTR_ROOT) {
+	if (flags & XFS_ATTR_ROOT)
+	{
 #ifdef CONFIG_XFS_POSIX_ACL
+
 		if (namelen == SGI_ACL_FILE_SIZE &&
-		    strncmp(name, SGI_ACL_FILE,
-			    SGI_ACL_FILE_SIZE) == 0) {
+			strncmp(name, SGI_ACL_FILE,
+					SGI_ACL_FILE_SIZE) == 0)
+		{
 			int ret = __xfs_xattr_put_listent(
-					context, XATTR_SYSTEM_PREFIX,
-					XATTR_SYSTEM_PREFIX_LEN,
-					XATTR_POSIX_ACL_ACCESS,
-					strlen(XATTR_POSIX_ACL_ACCESS));
+						  context, XATTR_SYSTEM_PREFIX,
+						  XATTR_SYSTEM_PREFIX_LEN,
+						  XATTR_POSIX_ACL_ACCESS,
+						  strlen(XATTR_POSIX_ACL_ACCESS));
+
 			if (ret)
+			{
 				return ret;
-		} else if (namelen == SGI_ACL_DEFAULT_SIZE &&
-			 strncmp(name, SGI_ACL_DEFAULT,
-				 SGI_ACL_DEFAULT_SIZE) == 0) {
-			int ret = __xfs_xattr_put_listent(
-					context, XATTR_SYSTEM_PREFIX,
-					XATTR_SYSTEM_PREFIX_LEN,
-					XATTR_POSIX_ACL_DEFAULT,
-					strlen(XATTR_POSIX_ACL_DEFAULT));
-			if (ret)
-				return ret;
+			}
 		}
+		else if (namelen == SGI_ACL_DEFAULT_SIZE &&
+				 strncmp(name, SGI_ACL_DEFAULT,
+						 SGI_ACL_DEFAULT_SIZE) == 0)
+		{
+			int ret = __xfs_xattr_put_listent(
+						  context, XATTR_SYSTEM_PREFIX,
+						  XATTR_SYSTEM_PREFIX_LEN,
+						  XATTR_POSIX_ACL_DEFAULT,
+						  strlen(XATTR_POSIX_ACL_DEFAULT));
+
+			if (ret)
+			{
+				return ret;
+			}
+		}
+
 #endif
 
 		/*
@@ -205,20 +249,26 @@ xfs_xattr_put_listent(
 		 * see them.
 		 */
 		if (!capable(CAP_SYS_ADMIN))
+		{
 			return 0;
+		}
 
 		prefix = XATTR_TRUSTED_PREFIX;
 		prefix_len = XATTR_TRUSTED_PREFIX_LEN;
-	} else if (flags & XFS_ATTR_SECURE) {
+	}
+	else if (flags & XFS_ATTR_SECURE)
+	{
 		prefix = XATTR_SECURITY_PREFIX;
 		prefix_len = XATTR_SECURITY_PREFIX_LEN;
-	} else {
+	}
+	else
+	{
 		prefix = XATTR_USER_PREFIX;
 		prefix_len = XATTR_USER_PREFIX_LEN;
 	}
 
 	return __xfs_xattr_put_listent(context, prefix, prefix_len, name,
-				       namelen);
+								   namelen);
 }
 
 ssize_t
@@ -245,10 +295,16 @@ xfs_vn_listxattr(
 	context.put_listent = xfs_xattr_put_listent;
 
 	error = xfs_attr_list_int(&context);
+
 	if (error)
+	{
 		return error;
+	}
+
 	if (context.count < 0)
+	{
 		return -ERANGE;
+	}
 
 	return context.count;
 }

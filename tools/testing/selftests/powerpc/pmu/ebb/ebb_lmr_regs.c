@@ -20,7 +20,8 @@ int ebb_lmr_regs(void)
 
 	ebb_global_enable();
 
-	for (i = 0; i < CHECKS; i++) {
+	for (i = 0; i < CHECKS; i++)
+	{
 		mtspr(SPRN_LMRR, i << 25);	// skip size and rsvd bits
 		mtspr(SPRN_LMSER, i);
 

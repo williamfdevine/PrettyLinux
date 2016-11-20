@@ -85,7 +85,7 @@
 #define OP_DATA_RIGHT_BTN  0x02
 #define OP_DATA_LEFT_BTN   0x01
 #define OP_DATA_BTN_MASK (OP_DATA_MIDDLE_BTN | OP_DATA_RIGHT_BTN | \
-			  OP_DATA_LEFT_BTN)
+						  OP_DATA_LEFT_BTN)
 
 /*
  * Write-only command file register used to issue commands and
@@ -113,7 +113,7 @@
 #define BL_STATUS_WATCHDOG   0x02
 #define BL_STATUS_CSUM_VALID 0x01
 #define BL_STATUS_REV_MASK (BL_STATUS_WATCHDOG | BL_STATUS_REV_3_2 | \
-			    BL_STATUS_REV_6_5)
+							BL_STATUS_REV_6_5)
 
 /*
  * Bootloader Error Register
@@ -142,8 +142,8 @@
 #define CAPABILITY_RIGHT_BTN_MASK	(0x01 << 4)
 #define CAPABILITY_MIDDLE_BTN_MASK	(0x01 << 5)
 #define CAPABILITY_BTN_MASK  (CAPABILITY_LEFT_BTN_MASK | \
-			      CAPABILITY_RIGHT_BTN_MASK | \
-			      CAPABILITY_MIDDLE_BTN_MASK)
+							  CAPABILITY_RIGHT_BTN_MASK | \
+							  CAPABILITY_MIDDLE_BTN_MASK)
 
 #define PWR_MODE_MASK   0xfc
 #define PWR_MODE_FULL_ACTIVE (0x3f << 2)
@@ -227,8 +227,8 @@
 
 #define VALID_CMD_RESP_HEADER(resp, cmd)				  \
 	(((resp)[PIP_RESP_REPORT_ID_OFFSET] == PIP_APP_RESP_REPORT_ID) && \
-	((resp)[PIP_RESP_RSVD_OFFSET] == PIP_RESP_RSVD_KEY) &&		  \
-	(GET_PIP_CMD_CODE((resp)[PIP_RESP_APP_CMD_OFFSET]) == (cmd)))
+	 ((resp)[PIP_RESP_RSVD_OFFSET] == PIP_RESP_RSVD_KEY) &&		  \
+	 (GET_PIP_CMD_CODE((resp)[PIP_RESP_APP_CMD_OFFSET]) == (cmd)))
 
 #define PIP_CMD_COMPLETE_SUCCESS(resp_data) \
 	((resp_data)[PIP_RESP_STATUS_OFFSET] == 0x00)
@@ -241,7 +241,7 @@
 #define PIP_DEV_SET_SLEEP_TIME(cyapa, t)	((cyapa)->dev_sleep_time = (t))
 #define PIP_DEV_GET_SLEEP_TIME(cyapa)		((cyapa)->dev_sleep_time)
 #define PIP_DEV_UNINIT_SLEEP_TIME(cyapa)	\
-		(((cyapa)->dev_sleep_time) == UNINIT_SLEEP_TIME)
+	(((cyapa)->dev_sleep_time) == UNINIT_SLEEP_TIME)
 
 /* The touch.id is used as the MT slot id, thus max MT slot is 15 */
 #define CYAPA_MAX_MT_SLOTS  15
@@ -250,7 +250,8 @@ struct cyapa;
 
 typedef bool (*cb_sort)(struct cyapa *, u8 *, int);
 
-enum cyapa_pm_stage {
+enum cyapa_pm_stage
+{
 	CYAPA_PM_DEACTIVE,
 	CYAPA_PM_ACTIVE,
 	CYAPA_PM_SUSPEND,
@@ -259,7 +260,8 @@ enum cyapa_pm_stage {
 	CYAPA_PM_RUNTIME_RESUME,
 };
 
-struct cyapa_dev_ops {
+struct cyapa_dev_ops
+{
 	int (*check_fw)(struct cyapa *, const struct firmware *);
 	int (*bl_enter)(struct cyapa *);
 	int (*bl_activate)(struct cyapa *);
@@ -268,9 +270,9 @@ struct cyapa_dev_ops {
 	int (*bl_deactivate)(struct cyapa *);
 
 	ssize_t (*show_baseline)(struct device *,
-			struct device_attribute *, char *);
+							 struct device_attribute *, char *);
 	ssize_t (*calibrate_store)(struct device *,
-			struct device_attribute *, const char *, size_t);
+							   struct device_attribute *, const char *, size_t);
 
 	int (*initialize)(struct cyapa *cyapa);
 
@@ -280,14 +282,15 @@ struct cyapa_dev_ops {
 	int (*irq_handler)(struct cyapa *);
 	bool (*irq_cmd_handler)(struct cyapa *);
 	int (*sort_empty_output_data)(struct cyapa *,
-			u8 *, int *, cb_sort);
+								  u8 *, int *, cb_sort);
 
 	int (*set_power_mode)(struct cyapa *, u8, u16, enum cyapa_pm_stage);
 
 	int (*set_proximity)(struct cyapa *, bool);
 };
 
-struct cyapa_pip_cmd_states {
+struct cyapa_pip_cmd_states
+{
 	struct mutex cmd_lock;
 	struct completion cmd_ready;
 	atomic_t cmd_issued;
@@ -305,11 +308,13 @@ struct cyapa_pip_cmd_states {
 	u8 empty_buf[CYAPA_REG_MAP_SIZE];
 };
 
-union cyapa_cmd_states {
+union cyapa_cmd_states
+{
 	struct cyapa_pip_cmd_states pip;
 };
 
-enum cyapa_state {
+enum cyapa_state
+{
 	CYAPA_STATE_NO_DEVICE,
 	CYAPA_STATE_BL_BUSY,
 	CYAPA_STATE_BL_IDLE,
@@ -321,14 +326,16 @@ enum cyapa_state {
 	CYAPA_STATE_GEN6_APP,
 };
 
-struct gen6_interval_setting {
+struct gen6_interval_setting
+{
 	u16 active_interval;
 	u16 lp1_interval;
 	u16 lp2_interval;
 };
 
 /* The main device structure */
-struct cyapa {
+struct cyapa
+{
 	enum cyapa_state state;
 	u8 status[BL_STATUS_SIZE];
 	bool operational; /* true: ready for data reporting; false: not. */
@@ -385,9 +392,9 @@ struct cyapa {
 
 
 ssize_t cyapa_i2c_reg_read_block(struct cyapa *cyapa, u8 reg, size_t len,
-				 u8 *values);
+								 u8 *values);
 ssize_t cyapa_smbus_read_block(struct cyapa *cyapa, u8 cmd, size_t len,
-			       u8 *values);
+							   u8 *values);
 
 ssize_t cyapa_read_block(struct cyapa *cyapa, u8 cmd_idx, u8 *values);
 
@@ -399,13 +406,13 @@ u16 cyapa_pwr_cmd_to_sleep_time(u8 pwr_mode);
 ssize_t cyapa_i2c_pip_read(struct cyapa *cyapa, u8 *buf, size_t size);
 ssize_t cyapa_i2c_pip_write(struct cyapa *cyapa, u8 *buf, size_t size);
 int cyapa_empty_pip_output_data(struct cyapa *cyapa,
-				u8 *buf, int *len, cb_sort func);
+								u8 *buf, int *len, cb_sort func);
 int cyapa_i2c_pip_cmd_irq_sync(struct cyapa *cyapa,
-			       u8 *cmd, int cmd_len,
-			       u8 *resp_data, int *resp_len,
-			       unsigned long timeout,
-			       cb_sort func,
-			       bool irq_mode);
+							   u8 *cmd, int cmd_len,
+							   u8 *resp_data, int *resp_len,
+							   unsigned long timeout,
+							   cb_sort func,
+							   bool irq_mode);
 int cyapa_pip_state_parse(struct cyapa *cyapa, u8 *reg_data, int len);
 bool cyapa_pip_sort_system_info_data(struct cyapa *cyapa, u8 *buf, int len);
 bool cyapa_sort_tsg_pip_bl_resp_data(struct cyapa *cyapa, u8 *data, int len);
@@ -428,8 +435,8 @@ int cyapa_pip_do_fw_update(struct cyapa *cyapa, const struct firmware *fw);
 int cyapa_pip_bl_activate(struct cyapa *cyapa);
 int cyapa_pip_bl_deactivate(struct cyapa *cyapa);
 ssize_t cyapa_pip_do_calibrate(struct device *dev,
-			       struct device_attribute *attr,
-			       const char *buf, size_t count);
+							   struct device_attribute *attr,
+							   const char *buf, size_t count);
 int cyapa_pip_set_proximity(struct cyapa *cyapa, bool enable);
 
 bool cyapa_pip_irq_cmd_handler(struct cyapa *cyapa);

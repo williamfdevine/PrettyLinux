@@ -24,7 +24,8 @@
 
 #define MAX_FIXUPS 8
 
-struct bpf_test {
+struct bpf_test
+{
 	const char *descr;
 	struct bpf_insn	insns[MAX_INSNS];
 	int fixup[MAX_FIXUPS];
@@ -32,7 +33,8 @@ struct bpf_test {
 	int test_val_map_fixup[MAX_FIXUPS];
 	const char *errstr;
 	const char *errstr_unpriv;
-	enum {
+	enum
+	{
 		UNDEF,
 		ACCEPT,
 		REJECT
@@ -44,16 +46,19 @@ struct bpf_test {
  * actually the end of the structure.
  */
 #define MAX_ENTRIES 11
-struct test_val {
+struct test_val
+{
 	unsigned index;
 	int foo[MAX_ENTRIES];
 };
 
-struct other_val {
+struct other_val
+{
 	unsigned int action[32];
 };
 
-static struct bpf_test tests[] = {
+static struct bpf_test tests[] =
+{
 	{
 		"add+sub+mul",
 		.insns = {
@@ -352,7 +357,7 @@ static struct bpf_test tests[] = {
 			BPF_STX_MEM(BPF_DW, BPF_REG_10, BPF_REG_6, -8),
 			BPF_LDX_MEM(BPF_DW, BPF_REG_0, BPF_REG_10, -8),
 			BPF_LDX_MEM(BPF_W, BPF_REG_0, BPF_REG_0,
-				    offsetof(struct __sk_buff, mark)),
+			offsetof(struct __sk_buff, mark)),
 			BPF_EXIT_INSN(),
 		},
 		.result = ACCEPT,
@@ -722,25 +727,25 @@ static struct bpf_test tests[] = {
 		"access skb fields ok",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_0, BPF_REG_1,
-				    offsetof(struct __sk_buff, len)),
+			offsetof(struct __sk_buff, len)),
 			BPF_JMP_IMM(BPF_JGE, BPF_REG_0, 0, 1),
 			BPF_LDX_MEM(BPF_W, BPF_REG_0, BPF_REG_1,
-				    offsetof(struct __sk_buff, mark)),
+			offsetof(struct __sk_buff, mark)),
 			BPF_JMP_IMM(BPF_JGE, BPF_REG_0, 0, 1),
 			BPF_LDX_MEM(BPF_W, BPF_REG_0, BPF_REG_1,
-				    offsetof(struct __sk_buff, pkt_type)),
+			offsetof(struct __sk_buff, pkt_type)),
 			BPF_JMP_IMM(BPF_JGE, BPF_REG_0, 0, 1),
 			BPF_LDX_MEM(BPF_W, BPF_REG_0, BPF_REG_1,
-				    offsetof(struct __sk_buff, queue_mapping)),
+			offsetof(struct __sk_buff, queue_mapping)),
 			BPF_JMP_IMM(BPF_JGE, BPF_REG_0, 0, 0),
 			BPF_LDX_MEM(BPF_W, BPF_REG_0, BPF_REG_1,
-				    offsetof(struct __sk_buff, protocol)),
+			offsetof(struct __sk_buff, protocol)),
 			BPF_JMP_IMM(BPF_JGE, BPF_REG_0, 0, 0),
 			BPF_LDX_MEM(BPF_W, BPF_REG_0, BPF_REG_1,
-				    offsetof(struct __sk_buff, vlan_present)),
+			offsetof(struct __sk_buff, vlan_present)),
 			BPF_JMP_IMM(BPF_JGE, BPF_REG_0, 0, 0),
 			BPF_LDX_MEM(BPF_W, BPF_REG_0, BPF_REG_1,
-				    offsetof(struct __sk_buff, vlan_tci)),
+			offsetof(struct __sk_buff, vlan_tci)),
 			BPF_JMP_IMM(BPF_JGE, BPF_REG_0, 0, 0),
 			BPF_EXIT_INSN(),
 		},
@@ -768,7 +773,7 @@ static struct bpf_test tests[] = {
 			BPF_EXIT_INSN(),
 			BPF_MOV64_REG(BPF_REG_1, BPF_REG_0),
 			BPF_LDX_MEM(BPF_W, BPF_REG_0, BPF_REG_1,
-				    offsetof(struct __sk_buff, pkt_type)),
+			offsetof(struct __sk_buff, pkt_type)),
 			BPF_EXIT_INSN(),
 		},
 		.fixup = {4},
@@ -781,7 +786,7 @@ static struct bpf_test tests[] = {
 		.insns = {
 			BPF_JMP_IMM(BPF_JGE, BPF_REG_1, 0, 2),
 			BPF_LDX_MEM(BPF_W, BPF_REG_0, BPF_REG_1,
-				    offsetof(struct __sk_buff, pkt_type)),
+			offsetof(struct __sk_buff, pkt_type)),
 			BPF_EXIT_INSN(),
 			BPF_ST_MEM(BPF_DW, BPF_REG_10, -8, 0),
 			BPF_MOV64_REG(BPF_REG_2, BPF_REG_10),
@@ -803,7 +808,7 @@ static struct bpf_test tests[] = {
 		.insns = {
 			BPF_JMP_IMM(BPF_JGE, BPF_REG_1, 0, 3),
 			BPF_LDX_MEM(BPF_W, BPF_REG_1, BPF_REG_1,
-				    offsetof(struct __sk_buff, len)),
+			offsetof(struct __sk_buff, len)),
 			BPF_MOV64_IMM(BPF_REG_0, 0),
 			BPF_EXIT_INSN(),
 			BPF_ST_MEM(BPF_DW, BPF_REG_10, -8, 0),
@@ -825,7 +830,7 @@ static struct bpf_test tests[] = {
 		"check skb->mark is not writeable by sockets",
 		.insns = {
 			BPF_STX_MEM(BPF_W, BPF_REG_1, BPF_REG_1,
-				    offsetof(struct __sk_buff, mark)),
+			offsetof(struct __sk_buff, mark)),
 			BPF_EXIT_INSN(),
 		},
 		.errstr = "invalid bpf_context access",
@@ -836,7 +841,7 @@ static struct bpf_test tests[] = {
 		"check skb->tc_index is not writeable by sockets",
 		.insns = {
 			BPF_STX_MEM(BPF_W, BPF_REG_1, BPF_REG_1,
-				    offsetof(struct __sk_buff, tc_index)),
+			offsetof(struct __sk_buff, tc_index)),
 			BPF_EXIT_INSN(),
 		},
 		.errstr = "invalid bpf_context access",
@@ -847,7 +852,7 @@ static struct bpf_test tests[] = {
 		"check non-u32 access to cb",
 		.insns = {
 			BPF_STX_MEM(BPF_H, BPF_REG_1, BPF_REG_1,
-				    offsetof(struct __sk_buff, cb[0])),
+			offsetof(struct __sk_buff, cb[0])),
 			BPF_EXIT_INSN(),
 		},
 		.errstr = "invalid bpf_context access",
@@ -858,7 +863,7 @@ static struct bpf_test tests[] = {
 		"check out of range skb->cb access",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_0, BPF_REG_1,
-				    offsetof(struct __sk_buff, cb[0]) + 256),
+			offsetof(struct __sk_buff, cb[0]) + 256),
 			BPF_EXIT_INSN(),
 		},
 		.errstr = "invalid bpf_context access",
@@ -870,17 +875,17 @@ static struct bpf_test tests[] = {
 		"write skb fields from socket prog",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_0, BPF_REG_1,
-				    offsetof(struct __sk_buff, cb[4])),
+			offsetof(struct __sk_buff, cb[4])),
 			BPF_JMP_IMM(BPF_JGE, BPF_REG_0, 0, 1),
 			BPF_LDX_MEM(BPF_W, BPF_REG_0, BPF_REG_1,
-				    offsetof(struct __sk_buff, mark)),
+			offsetof(struct __sk_buff, mark)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_0, BPF_REG_1,
-				    offsetof(struct __sk_buff, tc_index)),
+			offsetof(struct __sk_buff, tc_index)),
 			BPF_JMP_IMM(BPF_JGE, BPF_REG_0, 0, 1),
 			BPF_STX_MEM(BPF_W, BPF_REG_1, BPF_REG_1,
-				    offsetof(struct __sk_buff, cb[0])),
+			offsetof(struct __sk_buff, cb[0])),
 			BPF_STX_MEM(BPF_W, BPF_REG_1, BPF_REG_1,
-				    offsetof(struct __sk_buff, cb[2])),
+			offsetof(struct __sk_buff, cb[2])),
 			BPF_EXIT_INSN(),
 		},
 		.result = ACCEPT,
@@ -891,15 +896,15 @@ static struct bpf_test tests[] = {
 		"write skb fields from tc_cls_act prog",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_0, BPF_REG_1,
-				    offsetof(struct __sk_buff, cb[0])),
+			offsetof(struct __sk_buff, cb[0])),
 			BPF_STX_MEM(BPF_W, BPF_REG_1, BPF_REG_0,
-				    offsetof(struct __sk_buff, mark)),
+			offsetof(struct __sk_buff, mark)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_0, BPF_REG_1,
-				    offsetof(struct __sk_buff, tc_index)),
+			offsetof(struct __sk_buff, tc_index)),
 			BPF_STX_MEM(BPF_W, BPF_REG_1, BPF_REG_0,
-				    offsetof(struct __sk_buff, tc_index)),
+			offsetof(struct __sk_buff, tc_index)),
 			BPF_STX_MEM(BPF_W, BPF_REG_1, BPF_REG_0,
-				    offsetof(struct __sk_buff, cb[3])),
+			offsetof(struct __sk_buff, cb[3])),
 			BPF_EXIT_INSN(),
 		},
 		.errstr_unpriv = "",
@@ -1339,9 +1344,9 @@ static struct bpf_test tests[] = {
 			BPF_LDX_MEM(BPF_DW, BPF_REG_0, BPF_REG_6, -8), /* fill ctx into R0 */
 			BPF_LDX_MEM(BPF_DW, BPF_REG_2, BPF_REG_6,  8), /* fill ctx into R2 */
 			BPF_LDX_MEM(BPF_W, BPF_REG_0, BPF_REG_0,
-				    offsetof(struct __sk_buff, mark)),
+			offsetof(struct __sk_buff, mark)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_2, BPF_REG_2,
-				    offsetof(struct __sk_buff, priority)),
+			offsetof(struct __sk_buff, priority)),
 			BPF_ALU64_REG(BPF_ADD, BPF_REG_0, BPF_REG_2),
 			BPF_EXIT_INSN(),
 		},
@@ -1360,7 +1365,7 @@ static struct bpf_test tests[] = {
 			BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, BPF_FUNC_skb_load_bytes),
 			BPF_LDX_MEM(BPF_DW, BPF_REG_0, BPF_REG_6, 0), /* fill ctx into R0 */
 			BPF_LDX_MEM(BPF_W, BPF_REG_0, BPF_REG_0,
-				    offsetof(struct __sk_buff, mark)),
+			offsetof(struct __sk_buff, mark)),
 			BPF_EXIT_INSN(),
 		},
 		.result = REJECT,
@@ -1383,12 +1388,12 @@ static struct bpf_test tests[] = {
 			BPF_LDX_MEM(BPF_DW, BPF_REG_2, BPF_REG_6,  8), /* fill ctx into R2 */
 			BPF_LDX_MEM(BPF_DW, BPF_REG_3, BPF_REG_6,  0), /* fill ctx into R3 */
 			BPF_LDX_MEM(BPF_W, BPF_REG_0, BPF_REG_0,
-				    offsetof(struct __sk_buff, mark)),
+			offsetof(struct __sk_buff, mark)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_2, BPF_REG_2,
-				    offsetof(struct __sk_buff, priority)),
+			offsetof(struct __sk_buff, priority)),
 			BPF_ALU64_REG(BPF_ADD, BPF_REG_0, BPF_REG_2),
 			BPF_LDX_MEM(BPF_W, BPF_REG_3, BPF_REG_3,
-				    offsetof(struct __sk_buff, pkt_type)),
+			offsetof(struct __sk_buff, pkt_type)),
 			BPF_ALU64_REG(BPF_ADD, BPF_REG_0, BPF_REG_3),
 			BPF_EXIT_INSN(),
 		},
@@ -1412,9 +1417,9 @@ static struct bpf_test tests[] = {
 			BPF_LDX_MEM(BPF_DW, BPF_REG_2, BPF_REG_6,  8), /* fill ctx into R2 */
 			BPF_LDX_MEM(BPF_DW, BPF_REG_3, BPF_REG_6,  0), /* fill data into R3 */
 			BPF_LDX_MEM(BPF_W, BPF_REG_0, BPF_REG_0,
-				    offsetof(struct __sk_buff, mark)),
+			offsetof(struct __sk_buff, mark)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_2, BPF_REG_2,
-				    offsetof(struct __sk_buff, priority)),
+			offsetof(struct __sk_buff, priority)),
 			BPF_ALU64_REG(BPF_ADD, BPF_REG_0, BPF_REG_2),
 			BPF_ALU64_REG(BPF_ADD, BPF_REG_0, BPF_REG_3),
 			BPF_EXIT_INSN(),
@@ -1537,9 +1542,9 @@ static struct bpf_test tests[] = {
 		"direct packet access: test1",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_2, BPF_REG_1,
-				    offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_3, BPF_REG_1,
-				    offsetof(struct __sk_buff, data_end)),
+			offsetof(struct __sk_buff, data_end)),
 			BPF_MOV64_REG(BPF_REG_0, BPF_REG_2),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_0, 8),
 			BPF_JMP_REG(BPF_JGT, BPF_REG_0, BPF_REG_3, 1),
@@ -1555,9 +1560,9 @@ static struct bpf_test tests[] = {
 		.insns = {
 			BPF_MOV64_IMM(BPF_REG_0, 1),
 			BPF_LDX_MEM(BPF_W, BPF_REG_4, BPF_REG_1,
-				    offsetof(struct __sk_buff, data_end)),
+			offsetof(struct __sk_buff, data_end)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_3, BPF_REG_1,
-				    offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_MOV64_REG(BPF_REG_5, BPF_REG_3),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_5, 14),
 			BPF_JMP_REG(BPF_JGT, BPF_REG_5, BPF_REG_4, 15),
@@ -1565,7 +1570,7 @@ static struct bpf_test tests[] = {
 			BPF_LDX_MEM(BPF_B, BPF_REG_4, BPF_REG_3, 12),
 			BPF_ALU64_IMM(BPF_MUL, BPF_REG_4, 14),
 			BPF_LDX_MEM(BPF_W, BPF_REG_3, BPF_REG_1,
-				    offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_ALU64_REG(BPF_ADD, BPF_REG_3, BPF_REG_4),
 			BPF_MOV64_REG(BPF_REG_2, BPF_REG_1),
 			BPF_ALU64_IMM(BPF_LSH, BPF_REG_2, 48),
@@ -1574,7 +1579,7 @@ static struct bpf_test tests[] = {
 			BPF_MOV64_REG(BPF_REG_2, BPF_REG_3),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_2, 8),
 			BPF_LDX_MEM(BPF_W, BPF_REG_1, BPF_REG_1,
-				    offsetof(struct __sk_buff, data_end)),
+			offsetof(struct __sk_buff, data_end)),
 			BPF_JMP_REG(BPF_JGT, BPF_REG_2, BPF_REG_1, 1),
 			BPF_LDX_MEM(BPF_B, BPF_REG_1, BPF_REG_3, 4),
 			BPF_MOV64_IMM(BPF_REG_0, 0),
@@ -1587,7 +1592,7 @@ static struct bpf_test tests[] = {
 		"direct packet access: test3",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_2, BPF_REG_1,
-				    offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_MOV64_IMM(BPF_REG_0, 0),
 			BPF_EXIT_INSN(),
 		},
@@ -1599,9 +1604,9 @@ static struct bpf_test tests[] = {
 		"direct packet access: test4 (write)",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_2, BPF_REG_1,
-				    offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_3, BPF_REG_1,
-				    offsetof(struct __sk_buff, data_end)),
+			offsetof(struct __sk_buff, data_end)),
 			BPF_MOV64_REG(BPF_REG_0, BPF_REG_2),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_0, 8),
 			BPF_JMP_REG(BPF_JGT, BPF_REG_0, BPF_REG_3, 1),
@@ -1616,9 +1621,9 @@ static struct bpf_test tests[] = {
 		"direct packet access: test5 (pkt_end >= reg, good access)",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_2, BPF_REG_1,
-				    offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_3, BPF_REG_1,
-				    offsetof(struct __sk_buff, data_end)),
+			offsetof(struct __sk_buff, data_end)),
 			BPF_MOV64_REG(BPF_REG_0, BPF_REG_2),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_0, 8),
 			BPF_JMP_REG(BPF_JGE, BPF_REG_3, BPF_REG_0, 2),
@@ -1635,9 +1640,9 @@ static struct bpf_test tests[] = {
 		"direct packet access: test6 (pkt_end >= reg, bad access)",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_2, BPF_REG_1,
-				    offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_3, BPF_REG_1,
-				    offsetof(struct __sk_buff, data_end)),
+			offsetof(struct __sk_buff, data_end)),
 			BPF_MOV64_REG(BPF_REG_0, BPF_REG_2),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_0, 8),
 			BPF_JMP_REG(BPF_JGE, BPF_REG_3, BPF_REG_0, 3),
@@ -1655,9 +1660,9 @@ static struct bpf_test tests[] = {
 		"direct packet access: test7 (pkt_end >= reg, both accesses)",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_2, BPF_REG_1,
-				    offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_3, BPF_REG_1,
-				    offsetof(struct __sk_buff, data_end)),
+			offsetof(struct __sk_buff, data_end)),
 			BPF_MOV64_REG(BPF_REG_0, BPF_REG_2),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_0, 8),
 			BPF_JMP_REG(BPF_JGE, BPF_REG_3, BPF_REG_0, 3),
@@ -1676,9 +1681,9 @@ static struct bpf_test tests[] = {
 		"direct packet access: test8 (double test, variant 1)",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_2, BPF_REG_1,
-				    offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_3, BPF_REG_1,
-				    offsetof(struct __sk_buff, data_end)),
+			offsetof(struct __sk_buff, data_end)),
 			BPF_MOV64_REG(BPF_REG_0, BPF_REG_2),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_0, 8),
 			BPF_JMP_REG(BPF_JGE, BPF_REG_3, BPF_REG_0, 4),
@@ -1697,9 +1702,9 @@ static struct bpf_test tests[] = {
 		"direct packet access: test9 (double test, variant 2)",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_2, BPF_REG_1,
-				    offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_3, BPF_REG_1,
-				    offsetof(struct __sk_buff, data_end)),
+			offsetof(struct __sk_buff, data_end)),
 			BPF_MOV64_REG(BPF_REG_0, BPF_REG_2),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_0, 8),
 			BPF_JMP_REG(BPF_JGE, BPF_REG_3, BPF_REG_0, 2),
@@ -1718,9 +1723,9 @@ static struct bpf_test tests[] = {
 		"direct packet access: test10 (write invalid)",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_2, BPF_REG_1,
-				    offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_3, BPF_REG_1,
-				    offsetof(struct __sk_buff, data_end)),
+			offsetof(struct __sk_buff, data_end)),
 			BPF_MOV64_REG(BPF_REG_0, BPF_REG_2),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_0, 8),
 			BPF_JMP_REG(BPF_JGT, BPF_REG_0, BPF_REG_3, 2),
@@ -1738,9 +1743,9 @@ static struct bpf_test tests[] = {
 		"helper access to packet: test1, valid packet_ptr range",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_2, BPF_REG_1,
-				    offsetof(struct xdp_md, data)),
+			offsetof(struct xdp_md, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_3, BPF_REG_1,
-				    offsetof(struct xdp_md, data_end)),
+			offsetof(struct xdp_md, data_end)),
 			BPF_MOV64_REG(BPF_REG_1, BPF_REG_2),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_1, 8),
 			BPF_JMP_REG(BPF_JGT, BPF_REG_1, BPF_REG_3, 5),
@@ -1760,7 +1765,7 @@ static struct bpf_test tests[] = {
 		"helper access to packet: test2, unchecked packet_ptr",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_2, BPF_REG_1,
-				    offsetof(struct xdp_md, data)),
+			offsetof(struct xdp_md, data)),
 			BPF_LD_MAP_FD(BPF_REG_1, 0),
 			BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, BPF_FUNC_map_lookup_elem),
 			BPF_MOV64_IMM(BPF_REG_0, 0),
@@ -1775,9 +1780,9 @@ static struct bpf_test tests[] = {
 		"helper access to packet: test3, variable add",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_2, BPF_REG_1,
-					offsetof(struct xdp_md, data)),
+			offsetof(struct xdp_md, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_3, BPF_REG_1,
-					offsetof(struct xdp_md, data_end)),
+			offsetof(struct xdp_md, data_end)),
 			BPF_MOV64_REG(BPF_REG_4, BPF_REG_2),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_4, 8),
 			BPF_JMP_REG(BPF_JGT, BPF_REG_4, BPF_REG_3, 10),
@@ -1801,9 +1806,9 @@ static struct bpf_test tests[] = {
 		"helper access to packet: test4, packet_ptr with bad range",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_2, BPF_REG_1,
-				    offsetof(struct xdp_md, data)),
+			offsetof(struct xdp_md, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_3, BPF_REG_1,
-				    offsetof(struct xdp_md, data_end)),
+			offsetof(struct xdp_md, data_end)),
 			BPF_MOV64_REG(BPF_REG_4, BPF_REG_2),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_4, 4),
 			BPF_JMP_REG(BPF_JGT, BPF_REG_4, BPF_REG_3, 2),
@@ -1823,9 +1828,9 @@ static struct bpf_test tests[] = {
 		"helper access to packet: test5, packet_ptr with too short range",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_2, BPF_REG_1,
-				    offsetof(struct xdp_md, data)),
+			offsetof(struct xdp_md, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_3, BPF_REG_1,
-				    offsetof(struct xdp_md, data_end)),
+			offsetof(struct xdp_md, data_end)),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_2, 1),
 			BPF_MOV64_REG(BPF_REG_4, BPF_REG_2),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_4, 7),
@@ -1844,9 +1849,9 @@ static struct bpf_test tests[] = {
 		"helper access to packet: test6, cls valid packet_ptr range",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_2, BPF_REG_1,
-				    offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_3, BPF_REG_1,
-				    offsetof(struct __sk_buff, data_end)),
+			offsetof(struct __sk_buff, data_end)),
 			BPF_MOV64_REG(BPF_REG_1, BPF_REG_2),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_1, 8),
 			BPF_JMP_REG(BPF_JGT, BPF_REG_1, BPF_REG_3, 5),
@@ -1865,7 +1870,7 @@ static struct bpf_test tests[] = {
 		"helper access to packet: test7, cls unchecked packet_ptr",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_2, BPF_REG_1,
-				    offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_LD_MAP_FD(BPF_REG_1, 0),
 			BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, BPF_FUNC_map_lookup_elem),
 			BPF_MOV64_IMM(BPF_REG_0, 0),
@@ -1880,9 +1885,9 @@ static struct bpf_test tests[] = {
 		"helper access to packet: test8, cls variable add",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_2, BPF_REG_1,
-					offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_3, BPF_REG_1,
-					offsetof(struct __sk_buff, data_end)),
+			offsetof(struct __sk_buff, data_end)),
 			BPF_MOV64_REG(BPF_REG_4, BPF_REG_2),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_4, 8),
 			BPF_JMP_REG(BPF_JGT, BPF_REG_4, BPF_REG_3, 10),
@@ -1906,9 +1911,9 @@ static struct bpf_test tests[] = {
 		"helper access to packet: test9, cls packet_ptr with bad range",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_2, BPF_REG_1,
-				    offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_3, BPF_REG_1,
-				    offsetof(struct __sk_buff, data_end)),
+			offsetof(struct __sk_buff, data_end)),
 			BPF_MOV64_REG(BPF_REG_4, BPF_REG_2),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_4, 4),
 			BPF_JMP_REG(BPF_JGT, BPF_REG_4, BPF_REG_3, 2),
@@ -1928,9 +1933,9 @@ static struct bpf_test tests[] = {
 		"helper access to packet: test10, cls packet_ptr with too short range",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_2, BPF_REG_1,
-				    offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_3, BPF_REG_1,
-				    offsetof(struct __sk_buff, data_end)),
+			offsetof(struct __sk_buff, data_end)),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_2, 1),
 			BPF_MOV64_REG(BPF_REG_4, BPF_REG_2),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_4, 7),
@@ -1949,9 +1954,9 @@ static struct bpf_test tests[] = {
 		"helper access to packet: test11, cls unsuitable helper 1",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_6, BPF_REG_1,
-				    offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_7, BPF_REG_1,
-				    offsetof(struct __sk_buff, data_end)),
+			offsetof(struct __sk_buff, data_end)),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_6, 1),
 			BPF_MOV64_REG(BPF_REG_3, BPF_REG_6),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_3, 7),
@@ -1971,9 +1976,9 @@ static struct bpf_test tests[] = {
 		"helper access to packet: test12, cls unsuitable helper 2",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_6, BPF_REG_1,
-				    offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_7, BPF_REG_1,
-				    offsetof(struct __sk_buff, data_end)),
+			offsetof(struct __sk_buff, data_end)),
 			BPF_MOV64_REG(BPF_REG_3, BPF_REG_6),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_6, 8),
 			BPF_JMP_REG(BPF_JGT, BPF_REG_6, BPF_REG_7, 3),
@@ -1991,9 +1996,9 @@ static struct bpf_test tests[] = {
 		"helper access to packet: test13, cls helper ok",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_6, BPF_REG_1,
-				    offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_7, BPF_REG_1,
-				    offsetof(struct __sk_buff, data_end)),
+			offsetof(struct __sk_buff, data_end)),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_6, 1),
 			BPF_MOV64_REG(BPF_REG_1, BPF_REG_6),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_1, 7),
@@ -2014,9 +2019,9 @@ static struct bpf_test tests[] = {
 		"helper access to packet: test14, cls helper fail sub",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_6, BPF_REG_1,
-				    offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_7, BPF_REG_1,
-				    offsetof(struct __sk_buff, data_end)),
+			offsetof(struct __sk_buff, data_end)),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_6, 1),
 			BPF_MOV64_REG(BPF_REG_1, BPF_REG_6),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_1, 7),
@@ -2038,9 +2043,9 @@ static struct bpf_test tests[] = {
 		"helper access to packet: test15, cls helper fail range 1",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_6, BPF_REG_1,
-				    offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_7, BPF_REG_1,
-				    offsetof(struct __sk_buff, data_end)),
+			offsetof(struct __sk_buff, data_end)),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_6, 1),
 			BPF_MOV64_REG(BPF_REG_1, BPF_REG_6),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_1, 7),
@@ -2062,9 +2067,9 @@ static struct bpf_test tests[] = {
 		"helper access to packet: test16, cls helper fail range 2",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_6, BPF_REG_1,
-				    offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_7, BPF_REG_1,
-				    offsetof(struct __sk_buff, data_end)),
+			offsetof(struct __sk_buff, data_end)),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_6, 1),
 			BPF_MOV64_REG(BPF_REG_1, BPF_REG_6),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_1, 7),
@@ -2086,9 +2091,9 @@ static struct bpf_test tests[] = {
 		"helper access to packet: test17, cls helper fail range 3",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_6, BPF_REG_1,
-				    offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_7, BPF_REG_1,
-				    offsetof(struct __sk_buff, data_end)),
+			offsetof(struct __sk_buff, data_end)),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_6, 1),
 			BPF_MOV64_REG(BPF_REG_1, BPF_REG_6),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_1, 7),
@@ -2110,9 +2115,9 @@ static struct bpf_test tests[] = {
 		"helper access to packet: test18, cls helper fail range zero",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_6, BPF_REG_1,
-				    offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_7, BPF_REG_1,
-				    offsetof(struct __sk_buff, data_end)),
+			offsetof(struct __sk_buff, data_end)),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_6, 1),
 			BPF_MOV64_REG(BPF_REG_1, BPF_REG_6),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_1, 7),
@@ -2134,9 +2139,9 @@ static struct bpf_test tests[] = {
 		"helper access to packet: test19, pkt end as input",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_6, BPF_REG_1,
-				    offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_7, BPF_REG_1,
-				    offsetof(struct __sk_buff, data_end)),
+			offsetof(struct __sk_buff, data_end)),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_6, 1),
 			BPF_MOV64_REG(BPF_REG_1, BPF_REG_6),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_1, 7),
@@ -2158,9 +2163,9 @@ static struct bpf_test tests[] = {
 		"helper access to packet: test20, wrong reg",
 		.insns = {
 			BPF_LDX_MEM(BPF_W, BPF_REG_6, BPF_REG_1,
-				    offsetof(struct __sk_buff, data)),
+			offsetof(struct __sk_buff, data)),
 			BPF_LDX_MEM(BPF_W, BPF_REG_7, BPF_REG_1,
-				    offsetof(struct __sk_buff, data_end)),
+			offsetof(struct __sk_buff, data_end)),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_6, 1),
 			BPF_MOV64_REG(BPF_REG_1, BPF_REG_6),
 			BPF_ALU64_IMM(BPF_ADD, BPF_REG_1, 7),
@@ -2270,7 +2275,7 @@ static struct bpf_test tests[] = {
 			BPF_RAW_INSN(BPF_JMP | BPF_CALL, 0, 0, 0, BPF_FUNC_map_lookup_elem),
 			BPF_JMP_IMM(BPF_JEQ, BPF_REG_0, 0, 1),
 			BPF_ST_MEM(BPF_DW, BPF_REG_0, (MAX_ENTRIES + 1) << 2,
-				   offsetof(struct test_val, foo)),
+			offsetof(struct test_val, foo)),
 			BPF_EXIT_INSN(),
 		},
 		.test_val_map_fixup = {3},
@@ -2391,7 +2396,9 @@ static int probe_filter_length(struct bpf_insn *fp)
 
 	for (len = MAX_INSNS - 1; len > 0; --len)
 		if (fp[len].code != 0 || fp[len].imm != 0)
+		{
 			break;
+		}
 
 	return len + 1;
 }
@@ -2401,9 +2408,12 @@ static int create_map(size_t val_size, int num)
 	int map_fd;
 
 	map_fd = bpf_create_map(BPF_MAP_TYPE_HASH,
-				sizeof(long long), val_size, num, 0);
+							sizeof(long long), val_size, num, 0);
+
 	if (map_fd < 0)
+	{
 		printf("failed to create map '%s'\n", strerror(errno));
+	}
 
 	return map_fd;
 }
@@ -2413,9 +2423,12 @@ static int create_prog_array(void)
 	int map_fd;
 
 	map_fd = bpf_create_map(BPF_MAP_TYPE_PROG_ARRAY,
-				sizeof(int), sizeof(int), 4, 0);
+							sizeof(int), sizeof(int), 4, 0);
+
 	if (map_fd < 0)
+	{
 		printf("failed to create prog_array '%s'\n", strerror(errno));
+	}
 
 	return map_fd;
 }
@@ -2425,7 +2438,8 @@ static int test(void)
 	int prog_fd, i, pass_cnt = 0, err_cnt = 0;
 	bool unpriv = geteuid() != 0;
 
-	for (i = 0; i < ARRAY_SIZE(tests); i++) {
+	for (i = 0; i < ARRAY_SIZE(tests); i++)
+	{
 		struct bpf_insn *prog = tests[i].insns;
 		int prog_type = tests[i].prog_type;
 		int prog_len = probe_filter_length(prog);
@@ -2436,68 +2450,98 @@ static int test(void)
 		const char *expected_errstr;
 		int map_fd = -1, prog_array_fd = -1, test_val_map_fd = -1;
 
-		if (*fixup) {
+		if (*fixup)
+		{
 			map_fd = create_map(sizeof(long long), 1024);
 
-			do {
+			do
+			{
 				prog[*fixup].imm = map_fd;
 				fixup++;
-			} while (*fixup);
+			}
+			while (*fixup);
 		}
-		if (*prog_array_fixup) {
+
+		if (*prog_array_fixup)
+		{
 			prog_array_fd = create_prog_array();
 
-			do {
+			do
+			{
 				prog[*prog_array_fixup].imm = prog_array_fd;
 				prog_array_fixup++;
-			} while (*prog_array_fixup);
+			}
+			while (*prog_array_fixup);
 		}
-		if (*test_val_map_fixup) {
+
+		if (*test_val_map_fixup)
+		{
 			/* Unprivileged can't create a hash map.*/
 			if (unpriv)
+			{
 				continue;
+			}
+
 			test_val_map_fd = create_map(sizeof(struct test_val),
-						     256);
-			do {
+										 256);
+
+			do
+			{
 				prog[*test_val_map_fixup].imm = test_val_map_fd;
 				test_val_map_fixup++;
-			} while (*test_val_map_fixup);
+			}
+			while (*test_val_map_fixup);
 		}
 
 		printf("#%d %s ", i, tests[i].descr);
 
-		prog_fd = bpf_prog_load(prog_type ?: BPF_PROG_TYPE_SOCKET_FILTER,
-					prog, prog_len * sizeof(struct bpf_insn),
-					"GPL", 0);
+		prog_fd = bpf_prog_load(prog_type ? : BPF_PROG_TYPE_SOCKET_FILTER,
+								prog, prog_len * sizeof(struct bpf_insn),
+								"GPL", 0);
 
 		if (unpriv && tests[i].result_unpriv != UNDEF)
+		{
 			expected_result = tests[i].result_unpriv;
+		}
 		else
+		{
 			expected_result = tests[i].result;
+		}
 
 		if (unpriv && tests[i].errstr_unpriv)
+		{
 			expected_errstr = tests[i].errstr_unpriv;
+		}
 		else
+		{
 			expected_errstr = tests[i].errstr;
+		}
 
-		if (expected_result == ACCEPT) {
-			if (prog_fd < 0) {
+		if (expected_result == ACCEPT)
+		{
+			if (prog_fd < 0)
+			{
 				printf("FAIL\nfailed to load prog '%s'\n",
-				       strerror(errno));
+					   strerror(errno));
 				printf("%s", bpf_log_buf);
 				err_cnt++;
 				goto fail;
 			}
-		} else {
-			if (prog_fd >= 0) {
+		}
+		else
+		{
+			if (prog_fd >= 0)
+			{
 				printf("FAIL\nunexpected success to load\n");
 				printf("%s", bpf_log_buf);
 				err_cnt++;
 				goto fail;
 			}
-			if (strstr(bpf_log_buf, expected_errstr) == 0) {
+
+			if (strstr(bpf_log_buf, expected_errstr) == 0)
+			{
 				printf("FAIL\nunexpected error message: %s",
-				       bpf_log_buf);
+					   bpf_log_buf);
 				err_cnt++;
 				goto fail;
 			}
@@ -2506,15 +2550,26 @@ static int test(void)
 		pass_cnt++;
 		printf("OK\n");
 fail:
+
 		if (map_fd >= 0)
+		{
 			close(map_fd);
+		}
+
 		if (prog_array_fd >= 0)
+		{
 			close(prog_array_fd);
+		}
+
 		if (test_val_map_fd >= 0)
+		{
 			close(test_val_map_fd);
+		}
+
 		close(prog_fd);
 
 	}
+
 	printf("Summary: %d PASSED, %d FAILED\n", pass_cnt, err_cnt);
 
 	return 0;

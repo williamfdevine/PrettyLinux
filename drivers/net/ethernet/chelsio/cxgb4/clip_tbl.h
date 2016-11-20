@@ -10,17 +10,20 @@
  *  release for licensing terms and conditions.
  */
 
-struct clip_entry {
+struct clip_entry
+{
 	spinlock_t lock;	/* Hold while modifying clip reference */
 	atomic_t refcnt;
 	struct list_head list;
-	union {
+	union
+	{
 		struct sockaddr_in addr;
 		struct sockaddr_in6 addr6;
 	};
 };
 
-struct clip_tbl {
+struct clip_tbl
+{
 	unsigned int clipt_start;
 	unsigned int clipt_size;
 	rwlock_t lock;
@@ -30,12 +33,13 @@ struct clip_tbl {
 	struct list_head hash_list[0];
 };
 
-enum {
+enum
+{
 	CLIPT_MIN_HASH_BUCKETS = 2,
 };
 
 struct clip_tbl *t4_init_clip_tbl(unsigned int clipt_start,
-				  unsigned int clipt_end);
+								  unsigned int clipt_end);
 int cxgb4_clip_get(const struct net_device *dev, const u32 *lip, u8 v6);
 void cxgb4_clip_release(const struct net_device *dev, const u32 *lip, u8 v6);
 int clip_tbl_show(struct seq_file *seq, void *v);

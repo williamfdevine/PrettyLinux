@@ -24,7 +24,8 @@
 
 #include <linux/i2c.h>
 
-struct iic_regs {
+struct iic_regs
+{
 	u16 mdbuf;
 	u16 sbbuf;
 	u8 lmadr;
@@ -42,7 +43,8 @@ struct iic_regs {
 	u8 directcntl;
 };
 
-struct ibm_iic_private {
+struct ibm_iic_private
+{
 	struct i2c_adapter adap;
 	volatile struct iic_regs __iomem *vaddr;
 	wait_queue_head_t wq;

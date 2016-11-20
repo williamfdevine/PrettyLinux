@@ -45,29 +45,35 @@ static int qdf2xxx_pinctrl_probe(struct platform_device *pdev)
 
 	/* Query the number of GPIOs from ACPI */
 	ret = device_property_read_u32(&pdev->dev, "num-gpios", &num_gpios);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_warn(&pdev->dev, "missing num-gpios property\n");
 		return ret;
 	}
 
-	if (!num_gpios || num_gpios > MAX_GPIOS) {
+	if (!num_gpios || num_gpios > MAX_GPIOS)
+	{
 		dev_warn(&pdev->dev, "invalid num-gpios property\n");
 		return -ENODEV;
 	}
 
 	pins = devm_kcalloc(&pdev->dev, num_gpios,
-		sizeof(struct pinctrl_pin_desc), GFP_KERNEL);
+						sizeof(struct pinctrl_pin_desc), GFP_KERNEL);
 	groups = devm_kcalloc(&pdev->dev, num_gpios,
-		sizeof(struct msm_pingroup), GFP_KERNEL);
+						  sizeof(struct msm_pingroup), GFP_KERNEL);
 
 	if (!pins || !groups)
+	{
 		return -ENOMEM;
+	}
 
-	for (i = 0; i < num_gpios; i++) {
+	for (i = 0; i < num_gpios; i++)
+	{
 		pins[i].number = i;
 
 		groups[i].npins = 1,
-		groups[i].pins = &pins[i].number;
+				  groups[i].pins = &pins[i].number;
 		groups[i].ctl_reg = 0x10000 * i;
 		groups[i].io_reg = 0x04 + 0x10000 * i;
 		groups[i].intr_cfg_reg = 0x08 + 0x10000 * i;
@@ -99,13 +105,15 @@ static int qdf2xxx_pinctrl_probe(struct platform_device *pdev)
 	return msm_pinctrl_probe(pdev, &qdf2xxx_pinctrl);
 }
 
-static const struct acpi_device_id qdf2xxx_acpi_ids[] = {
+static const struct acpi_device_id qdf2xxx_acpi_ids[] =
+{
 	{"QCOM8001"},
 	{},
 };
 MODULE_DEVICE_TABLE(acpi, qdf2xxx_acpi_ids);
 
-static struct platform_driver qdf2xxx_pinctrl_driver = {
+static struct platform_driver qdf2xxx_pinctrl_driver =
+{
 	.driver = {
 		.name = "qdf2xxx-pinctrl",
 		.acpi_match_table = ACPI_PTR(qdf2xxx_acpi_ids),

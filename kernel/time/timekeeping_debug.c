@@ -32,13 +32,19 @@ static int tk_debug_show_sleep_time(struct seq_file *s, void *data)
 	unsigned int bin;
 	seq_puts(s, "      time (secs)        count\n");
 	seq_puts(s, "------------------------------\n");
-	for (bin = 0; bin < 32; bin++) {
+
+	for (bin = 0; bin < 32; bin++)
+	{
 		if (sleep_time_bin[bin] == 0)
+		{
 			continue;
+		}
+
 		seq_printf(s, "%10u - %-10u %4u\n",
-			bin ? 1 << (bin - 1) : 0, 1 << bin,
-				sleep_time_bin[bin]);
+				   bin ? 1 << (bin - 1) : 0, 1 << bin,
+				   sleep_time_bin[bin]);
 	}
+
 	return 0;
 }
 
@@ -47,7 +53,8 @@ static int tk_debug_sleep_time_open(struct inode *inode, struct file *file)
 	return single_open(file, tk_debug_show_sleep_time, NULL);
 }
 
-static const struct file_operations tk_debug_sleep_time_fops = {
+static const struct file_operations tk_debug_sleep_time_fops =
+{
 	.open		= tk_debug_sleep_time_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -59,8 +66,10 @@ static int __init tk_debug_sleep_time_init(void)
 	struct dentry *d;
 
 	d = debugfs_create_file("sleep_time", 0444, NULL, NULL,
-		&tk_debug_sleep_time_fops);
-	if (!d) {
+							&tk_debug_sleep_time_fops);
+
+	if (!d)
+	{
 		pr_err("Failed to create sleep_time debug file\n");
 		return -ENOMEM;
 	}
@@ -72,7 +81,7 @@ late_initcall(tk_debug_sleep_time_init);
 void tk_debug_account_sleep_time(struct timespec64 *t)
 {
 	/* Cap bin index so we don't overflow the array */
-	int bin = min(fls(t->tv_sec), NUM_BINS-1);
+	int bin = min(fls(t->tv_sec), NUM_BINS - 1);
 
 	sleep_time_bin[bin]++;
 	pr_info("Suspended for %lld.%03lu seconds\n", (s64)t->tv_sec,

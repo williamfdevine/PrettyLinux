@@ -89,7 +89,7 @@
 
 #define ASM9260_BM_ICOLL_INTERRUPTn_SHIFT(n)		(((n) & 0x3) << 3)
 #define ASM9260_BM_ICOLL_INTERRUPTn_ENABLE(n)		(1 << (2 + \
-			ASM9260_BM_ICOLL_INTERRUPTn_SHIFT(n)))
+		ASM9260_BM_ICOLL_INTERRUPTn_SHIFT(n)))
 
 #define ASM9260_HW_ICOLL_VBASE				0x0160
 /*
@@ -101,7 +101,7 @@
 #define ASM9260_HW_ICOLL_CLEAR0				0x01d0
 #define ASM9260_HW_ICOLL_CLEAR1				0x01e0
 #define ASM9260_HW_ICOLL_CLEARn(n)			(((n >> 5) * 0x10) \
-							+ SET_REG)
+		+ SET_REG)
 #define ASM9260_BM_CLEAR_BIT(n)				BIT(n & 0x1f)
 
 /* Scratchpad */

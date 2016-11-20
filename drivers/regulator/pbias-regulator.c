@@ -27,7 +27,8 @@
 #include <linux/of.h>
 #include <linux/of_device.h>
 
-struct pbias_reg_info {
+struct pbias_reg_info
+{
 	u32 enable;
 	u32 enable_mask;
 	u32 disable_val;
@@ -36,7 +37,8 @@ struct pbias_reg_info {
 	char *name;
 };
 
-struct pbias_regulator_data {
+struct pbias_regulator_data
+{
 	struct regulator_desc desc;
 	void __iomem *pbias_addr;
 	struct regulator_dev *dev;
@@ -45,16 +47,19 @@ struct pbias_regulator_data {
 	int voltage;
 };
 
-struct pbias_of_data {
+struct pbias_of_data
+{
 	unsigned int offset;
 };
 
-static const unsigned int pbias_volt_table[] = {
+static const unsigned int pbias_volt_table[] =
+{
 	1800000,
 	3000000
 };
 
-static struct regulator_ops pbias_regulator_voltage_ops = {
+static struct regulator_ops pbias_regulator_voltage_ops =
+{
 	.list_voltage = regulator_list_voltage_table,
 	.get_voltage_sel = regulator_get_voltage_sel_regmap,
 	.set_voltage_sel = regulator_set_voltage_sel_regmap,
@@ -63,7 +68,8 @@ static struct regulator_ops pbias_regulator_voltage_ops = {
 	.is_enabled = regulator_is_enabled_regmap,
 };
 
-static const struct pbias_reg_info pbias_mmc_omap2430 = {
+static const struct pbias_reg_info pbias_mmc_omap2430 =
+{
 	.enable = BIT(1),
 	.enable_mask = BIT(1),
 	.vmode = BIT(0),
@@ -72,7 +78,8 @@ static const struct pbias_reg_info pbias_mmc_omap2430 = {
 	.name = "pbias_mmc_omap2430"
 };
 
-static const struct pbias_reg_info pbias_sim_omap3 = {
+static const struct pbias_reg_info pbias_sim_omap3 =
+{
 	.enable = BIT(9),
 	.enable_mask = BIT(9),
 	.vmode = BIT(8),
@@ -80,7 +87,8 @@ static const struct pbias_reg_info pbias_sim_omap3 = {
 	.name = "pbias_sim_omap3"
 };
 
-static const struct pbias_reg_info pbias_mmc_omap4 = {
+static const struct pbias_reg_info pbias_mmc_omap4 =
+{
 	.enable = BIT(26) | BIT(22),
 	.enable_mask = BIT(26) | BIT(25) | BIT(22),
 	.disable_val = BIT(25),
@@ -89,7 +97,8 @@ static const struct pbias_reg_info pbias_mmc_omap4 = {
 	.name = "pbias_mmc_omap4"
 };
 
-static const struct pbias_reg_info pbias_mmc_omap5 = {
+static const struct pbias_reg_info pbias_mmc_omap5 =
+{
 	.enable = BIT(27) | BIT(26),
 	.enable_mask = BIT(27) | BIT(25) | BIT(26),
 	.disable_val = BIT(25),
@@ -98,37 +107,44 @@ static const struct pbias_reg_info pbias_mmc_omap5 = {
 	.name = "pbias_mmc_omap5"
 };
 
-static struct of_regulator_match pbias_matches[] = {
-	{ .name = "pbias_mmc_omap2430", .driver_data = (void *)&pbias_mmc_omap2430},
-	{ .name = "pbias_sim_omap3", .driver_data = (void *)&pbias_sim_omap3},
-	{ .name = "pbias_mmc_omap4", .driver_data = (void *)&pbias_mmc_omap4},
-	{ .name = "pbias_mmc_omap5", .driver_data = (void *)&pbias_mmc_omap5},
+static struct of_regulator_match pbias_matches[] =
+{
+	{ .name = "pbias_mmc_omap2430", .driver_data = (void *) &pbias_mmc_omap2430},
+	{ .name = "pbias_sim_omap3", .driver_data = (void *) &pbias_sim_omap3},
+	{ .name = "pbias_mmc_omap4", .driver_data = (void *) &pbias_mmc_omap4},
+	{ .name = "pbias_mmc_omap5", .driver_data = (void *) &pbias_mmc_omap5},
 };
 #define PBIAS_NUM_REGS	ARRAY_SIZE(pbias_matches)
 
 /* Offset from SCM general area (and syscon) base */
 
-static const struct pbias_of_data pbias_of_data_omap2 = {
+static const struct pbias_of_data pbias_of_data_omap2 =
+{
 	.offset = 0x230,
 };
 
-static const struct pbias_of_data pbias_of_data_omap3 = {
+static const struct pbias_of_data pbias_of_data_omap3 =
+{
 	.offset = 0x2b0,
 };
 
-static const struct pbias_of_data pbias_of_data_omap4 = {
+static const struct pbias_of_data pbias_of_data_omap4 =
+{
 	.offset = 0x60,
 };
 
-static const struct pbias_of_data pbias_of_data_omap5 = {
+static const struct pbias_of_data pbias_of_data_omap5 =
+{
 	.offset = 0x60,
 };
 
-static const struct pbias_of_data pbias_of_data_dra7 = {
+static const struct pbias_of_data pbias_of_data_dra7 =
+{
 	.offset = 0xe00,
 };
 
-static const struct of_device_id pbias_of_match[] = {
+static const struct of_device_id pbias_of_match[] =
+{
 	{ .compatible = "ti,pbias-omap", },
 	{ .compatible = "ti,pbias-omap2", .data = &pbias_of_data_omap2, },
 	{ .compatible = "ti,pbias-omap3", .data = &pbias_of_data_omap3, },
@@ -154,44 +170,66 @@ static int pbias_regulator_probe(struct platform_device *pdev)
 	unsigned int offset;
 
 	count = of_regulator_match(&pdev->dev, np, pbias_matches,
-						PBIAS_NUM_REGS);
+							   PBIAS_NUM_REGS);
+
 	if (count < 0)
+	{
 		return count;
+	}
 
 	drvdata = devm_kzalloc(&pdev->dev, sizeof(struct pbias_regulator_data)
-			       * count, GFP_KERNEL);
+						   * count, GFP_KERNEL);
+
 	if (!drvdata)
+	{
 		return -ENOMEM;
+	}
 
 	syscon = syscon_regmap_lookup_by_phandle(np, "syscon");
+
 	if (IS_ERR(syscon))
+	{
 		return PTR_ERR(syscon);
+	}
 
 	match = of_match_device(of_match_ptr(pbias_of_match), &pdev->dev);
-	if (match && match->data) {
+
+	if (match && match->data)
+	{
 		data = match->data;
 		offset = data->offset;
-	} else {
+	}
+	else
+	{
 		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 		if (!res)
+		{
 			return -EINVAL;
+		}
 
 		offset = res->start;
 		dev_WARN(&pdev->dev,
-			 "using legacy dt data for pbias offset\n");
+				 "using legacy dt data for pbias offset\n");
 	}
 
 	cfg.regmap = syscon;
 	cfg.dev = &pdev->dev;
 
-	for (idx = 0; idx < PBIAS_NUM_REGS && data_idx < count; idx++) {
+	for (idx = 0; idx < PBIAS_NUM_REGS && data_idx < count; idx++)
+	{
 		if (!pbias_matches[idx].init_data ||
 			!pbias_matches[idx].of_node)
+		{
 			continue;
+		}
 
 		info = pbias_matches[idx].driver_data;
+
 		if (!info)
+		{
 			return -ENODEV;
+		}
 
 		drvdata[data_idx].syscon = syscon;
 		drvdata[data_idx].info = info;
@@ -214,13 +252,16 @@ static int pbias_regulator_probe(struct platform_device *pdev)
 		cfg.of_node = pbias_matches[idx].of_node;
 
 		drvdata[data_idx].dev = devm_regulator_register(&pdev->dev,
-					&drvdata[data_idx].desc, &cfg);
-		if (IS_ERR(drvdata[data_idx].dev)) {
+								&drvdata[data_idx].desc, &cfg);
+
+		if (IS_ERR(drvdata[data_idx].dev))
+		{
 			ret = PTR_ERR(drvdata[data_idx].dev);
 			dev_err(&pdev->dev,
-				"Failed to register regulator: %d\n", ret);
+					"Failed to register regulator: %d\n", ret);
 			goto err_regulator;
 		}
+
 		data_idx++;
 	}
 
@@ -230,7 +271,8 @@ err_regulator:
 	return ret;
 }
 
-static struct platform_driver pbias_regulator_driver = {
+static struct platform_driver pbias_regulator_driver =
+{
 	.probe		= pbias_regulator_probe,
 	.driver		= {
 		.name		= "pbias-regulator",

@@ -41,18 +41,20 @@
 extern int av7110_debug;
 
 #define dprintk(level,args...) \
-	    do { if ((av7110_debug & level)) { printk("dvb-ttpci: %s(): ", __func__); printk(args); } } while (0)
+	do { if ((av7110_debug & level)) { printk("dvb-ttpci: %s(): ", __func__); printk(args); } } while (0)
 
 #define MAXFILT 32
 
 enum {AV_PES_STREAM, PS_STREAM, TS_STREAM, PES_STREAM};
 
-enum av7110_video_mode {
+enum av7110_video_mode
+{
 	AV7110_VIDEO_MODE_PAL 	= 0,
 	AV7110_VIDEO_MODE_NTSC	= 1
 };
 
-struct av7110_p2t {
+struct av7110_p2t
+{
 	u8		  pes[TS_SIZE];
 	u8		  counter;
 	long int	  pos;
@@ -63,7 +65,8 @@ struct av7110_p2t {
 /* video MPEG decoder events: */
 /* (code copied from dvb_frontend.c, should maybe be factored out...) */
 #define MAX_VIDEO_EVENT 8
-struct dvb_video_events {
+struct dvb_video_events
+{
 	struct video_event	  events[MAX_VIDEO_EVENT];
 	int			  eventw;
 	int			  eventr;
@@ -76,7 +79,8 @@ struct dvb_video_events {
 struct av7110;
 
 /* infrared remote control */
-struct infrared {
+struct infrared
+{
 	u16	key_map[256];
 	struct input_dev	*input_dev;
 	char			input_phys[32];
@@ -95,7 +99,8 @@ struct infrared {
 
 
 /* place to store all the necessary device information */
-struct av7110 {
+struct av7110
+{
 
 	/* devices */
 
@@ -268,37 +273,37 @@ struct av7110 {
 	unsigned char *bin_root;
 	unsigned long size_root;
 
-	struct dvb_frontend* fe;
+	struct dvb_frontend *fe;
 	enum fe_status fe_status;
 
 	struct mutex ioctl_mutex;
 
 	/* crash recovery */
-	void				(*recover)(struct av7110* av7110);
+	void				(*recover)(struct av7110 *av7110);
 	enum fe_sec_voltage		saved_voltage;
 	enum fe_sec_tone_mode		saved_tone;
 	struct dvb_diseqc_master_cmd	saved_master_cmd;
 	enum fe_sec_mini_cmd		saved_minicmd;
 
-	int (*fe_init)(struct dvb_frontend* fe);
+	int (*fe_init)(struct dvb_frontend *fe);
 	int (*fe_read_status)(struct dvb_frontend *fe, enum fe_status *status);
 	int (*fe_diseqc_reset_overload)(struct dvb_frontend *fe);
 	int (*fe_diseqc_send_master_cmd)(struct dvb_frontend *fe,
-					 struct dvb_diseqc_master_cmd *cmd);
+									 struct dvb_diseqc_master_cmd *cmd);
 	int (*fe_diseqc_send_burst)(struct dvb_frontend *fe,
-				    enum fe_sec_mini_cmd minicmd);
+								enum fe_sec_mini_cmd minicmd);
 	int (*fe_set_tone)(struct dvb_frontend *fe,
-			   enum fe_sec_tone_mode tone);
+					   enum fe_sec_tone_mode tone);
 	int (*fe_set_voltage)(struct dvb_frontend *fe,
-			      enum fe_sec_voltage voltage);
+						  enum fe_sec_voltage voltage);
 	int (*fe_dishnetwork_send_legacy_command)(struct dvb_frontend *fe,
-						  unsigned long cmd);
+			unsigned long cmd);
 	int (*fe_set_frontend)(struct dvb_frontend *fe);
 };
 
 
 extern int ChangePIDs(struct av7110 *av7110, u16 vpid, u16 apid, u16 ttpid,
-		       u16 subpid, u16 pcrpid);
+					  u16 subpid, u16 pcrpid);
 
 extern int av7110_check_ir_config(struct av7110 *av7110, int force);
 extern int av7110_ir_init(struct av7110 *av7110);

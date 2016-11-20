@@ -44,31 +44,36 @@ static void usage(void)
 static int bpf_map_create(void)
 {
 	return bpf_create_map(BPF_MAP_TYPE_ARRAY, sizeof(uint32_t),
-			      sizeof(uint32_t), 1024, 0);
+						  sizeof(uint32_t), 1024, 0);
 }
 
 static int bpf_prog_create(const char *object)
 {
-	static const struct bpf_insn insns[] = {
+	static const struct bpf_insn insns[] =
+	{
 		BPF_MOV64_IMM(BPF_REG_0, 1),
 		BPF_EXIT_INSN(),
 	};
 
-	if (object) {
+	if (object)
+	{
 		assert(!load_bpf_file((char *)object));
 		return prog_fd[0];
-	} else {
+	}
+	else
+	{
 		return bpf_prog_load(BPF_PROG_TYPE_SOCKET_FILTER,
-				     insns, sizeof(insns), "GPL", 0);
+							 insns, sizeof(insns), "GPL", 0);
 	}
 }
 
 static int bpf_do_map(const char *file, uint32_t flags, uint32_t key,
-		      uint32_t value)
+					  uint32_t value)
 {
 	int fd, ret;
 
-	if (flags & BPF_F_PIN) {
+	if (flags & BPF_F_PIN)
+	{
 		fd = bpf_map_create();
 		printf("bpf: map fd:%d (%s)\n", fd, strerror(errno));
 		assert(fd > 0);
@@ -76,21 +81,26 @@ static int bpf_do_map(const char *file, uint32_t flags, uint32_t key,
 		ret = bpf_obj_pin(fd, file);
 		printf("bpf: pin ret:(%d,%s)\n", ret, strerror(errno));
 		assert(ret == 0);
-	} else {
+	}
+	else
+	{
 		fd = bpf_obj_get(file);
 		printf("bpf: get fd:%d (%s)\n", fd, strerror(errno));
 		assert(fd > 0);
 	}
 
-	if ((flags & BPF_F_KEY_VAL) == BPF_F_KEY_VAL) {
+	if ((flags & BPF_F_KEY_VAL) == BPF_F_KEY_VAL)
+	{
 		ret = bpf_update_elem(fd, &key, &value, 0);
 		printf("bpf: fd:%d u->(%u:%u) ret:(%d,%s)\n", fd, key, value,
-		       ret, strerror(errno));
+			   ret, strerror(errno));
 		assert(ret == 0);
-	} else if (flags & BPF_F_KEY) {
+	}
+	else if (flags & BPF_F_KEY)
+	{
 		ret = bpf_lookup_elem(fd, &key, &value);
 		printf("bpf: fd:%d l->(%u):%u ret:(%d,%s)\n", fd, key, value,
-		       ret, strerror(errno));
+			   ret, strerror(errno));
 		assert(ret == 0);
 	}
 
@@ -101,7 +111,8 @@ static int bpf_do_prog(const char *file, uint32_t flags, const char *object)
 {
 	int fd, sock, ret;
 
-	if (flags & BPF_F_PIN) {
+	if (flags & BPF_F_PIN)
+	{
 		fd = bpf_prog_create(object);
 		printf("bpf: prog fd:%d (%s)\n", fd, strerror(errno));
 		assert(fd > 0);
@@ -109,7 +120,9 @@ static int bpf_do_prog(const char *file, uint32_t flags, const char *object)
 		ret = bpf_obj_pin(fd, file);
 		printf("bpf: pin ret:(%d,%s)\n", ret, strerror(errno));
 		assert(ret == 0);
-	} else {
+	}
+	else
+	{
 		fd = bpf_obj_get(file);
 		printf("bpf: get fd:%d (%s)\n", fd, strerror(errno));
 		assert(fd > 0);
@@ -120,7 +133,7 @@ static int bpf_do_prog(const char *file, uint32_t flags, const char *object)
 
 	ret = setsockopt(sock, SOL_SOCKET, SO_ATTACH_BPF, &fd, sizeof(fd));
 	printf("bpf: sock:%d <- fd:%d attached ret:(%d,%s)\n", sock, fd,
-	       ret, strerror(errno));
+		   ret, strerror(errno));
 	assert(ret == 0);
 
 	return 0;
@@ -132,51 +145,66 @@ int main(int argc, char **argv)
 	uint32_t key = 0, value = 0, flags = 0;
 	int opt, mode = BPF_M_UNSPEC;
 
-	while ((opt = getopt(argc, argv, "F:PGmk:v:po:")) != -1) {
-		switch (opt) {
-		/* General args */
-		case 'F':
-			file = optarg;
-			break;
-		case 'P':
-			flags |= BPF_F_PIN;
-			break;
-		case 'G':
-			flags |= BPF_F_GET;
-			break;
-		/* Map-related args */
-		case 'm':
-			mode = BPF_M_MAP;
-			break;
-		case 'k':
-			key = strtoul(optarg, NULL, 0);
-			flags |= BPF_F_KEY;
-			break;
-		case 'v':
-			value = strtoul(optarg, NULL, 0);
-			flags |= BPF_F_VAL;
-			break;
-		/* Prog-related args */
-		case 'p':
-			mode = BPF_M_PROG;
-			break;
-		case 'o':
-			object = optarg;
-			break;
-		default:
-			goto out;
+	while ((opt = getopt(argc, argv, "F:PGmk:v:po:")) != -1)
+	{
+		switch (opt)
+		{
+			/* General args */
+			case 'F':
+				file = optarg;
+				break;
+
+			case 'P':
+				flags |= BPF_F_PIN;
+				break;
+
+			case 'G':
+				flags |= BPF_F_GET;
+				break;
+
+			/* Map-related args */
+			case 'm':
+				mode = BPF_M_MAP;
+				break;
+
+			case 'k':
+				key = strtoul(optarg, NULL, 0);
+				flags |= BPF_F_KEY;
+				break;
+
+			case 'v':
+				value = strtoul(optarg, NULL, 0);
+				flags |= BPF_F_VAL;
+				break;
+
+			/* Prog-related args */
+			case 'p':
+				mode = BPF_M_PROG;
+				break;
+
+			case 'o':
+				object = optarg;
+				break;
+
+			default:
+				goto out;
 		}
 	}
 
 	if (!(flags & BPF_F_PIN_GET) || !file)
+	{
 		goto out;
-
-	switch (mode) {
-	case BPF_M_MAP:
-		return bpf_do_map(file, flags, key, value);
-	case BPF_M_PROG:
-		return bpf_do_prog(file, flags, object);
 	}
+
+	switch (mode)
+	{
+		case BPF_M_MAP:
+			return bpf_do_map(file, flags, key, value);
+
+		case BPF_M_PROG:
+			return bpf_do_prog(file, flags, object);
+	}
+
 out:
 	usage();
 	return -1;

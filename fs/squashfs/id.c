@@ -53,9 +53,12 @@ int squashfs_get_id(struct super_block *sb, unsigned int index,
 	int err;
 
 	err = squashfs_read_metadata(sb, &disk_id, &start_block, &offset,
-							sizeof(disk_id));
+								 sizeof(disk_id));
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	*id = le32_to_cpu(disk_id);
 	return 0;
@@ -66,7 +69,7 @@ int squashfs_get_id(struct super_block *sb, unsigned int index,
  * Read uncompressed id lookup table indexes from disk into memory
  */
 __le64 *squashfs_read_id_index_table(struct super_block *sb,
-		u64 id_table_start, u64 next_table, unsigned short no_ids)
+									 u64 id_table_start, u64 next_table, unsigned short no_ids)
 {
 	unsigned int length = SQUASHFS_ID_BLOCK_BYTES(no_ids);
 	__le64 *table;
@@ -77,7 +80,9 @@ __le64 *squashfs_read_id_index_table(struct super_block *sb,
 
 	/* there should always be at least one id */
 	if (no_ids == 0)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	/*
 	 * length bytes should not extend into the next table - this check
@@ -85,7 +90,9 @@ __le64 *squashfs_read_id_index_table(struct super_block *sb,
 	 * than the next table start
 	 */
 	if (id_table_start + length > next_table)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	table = squashfs_read_table(sb, id_table_start, length);
 
@@ -93,7 +100,8 @@ __le64 *squashfs_read_id_index_table(struct super_block *sb,
 	 * table[0] points to the first id lookup table metadata block, this
 	 * should be less than id_table_start
 	 */
-	if (!IS_ERR(table) && le64_to_cpu(table[0]) >= id_table_start) {
+	if (!IS_ERR(table) && le64_to_cpu(table[0]) >= id_table_start)
+	{
 		kfree(table);
 		return ERR_PTR(-EINVAL);
 	}

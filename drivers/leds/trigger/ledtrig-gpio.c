@@ -19,7 +19,8 @@
 #include <linux/slab.h>
 #include "../leds.h"
 
-struct gpio_trig_data {
+struct gpio_trig_data
+{
 	struct led_classdev *led;
 	struct work_struct work;
 
@@ -42,23 +43,33 @@ static irqreturn_t gpio_trig_irq(int irq, void *_led)
 static void gpio_trig_work(struct work_struct *work)
 {
 	struct gpio_trig_data *gpio_data = container_of(work,
-			struct gpio_trig_data, work);
+									   struct gpio_trig_data, work);
 	int tmp;
 
 	if (!gpio_data->gpio)
+	{
 		return;
+	}
 
 	tmp = gpio_get_value_cansleep(gpio_data->gpio);
-	if (gpio_data->inverted)
-		tmp = !tmp;
 
-	if (tmp) {
+	if (gpio_data->inverted)
+	{
+		tmp = !tmp;
+	}
+
+	if (tmp)
+	{
 		if (gpio_data->desired_brightness)
 			led_set_brightness_nosleep(gpio_data->led,
-					   gpio_data->desired_brightness);
+									   gpio_data->desired_brightness);
 		else
+		{
 			led_set_brightness_nosleep(gpio_data->led, LED_FULL);
-	} else {
+		}
+	}
+	else
+	{
 		led_set_brightness_nosleep(gpio_data->led, LED_OFF);
 	}
 }
@@ -81,7 +92,9 @@ static ssize_t gpio_trig_brightness_store(struct device *dev,
 	int ret;
 
 	ret = sscanf(buf, "%u", &desired_brightness);
-	if (ret < 1 || desired_brightness > 255) {
+
+	if (ret < 1 || desired_brightness > 255)
+	{
 		dev_err(dev, "invalid value\n");
 		return -EINVAL;
 	}
@@ -91,10 +104,10 @@ static ssize_t gpio_trig_brightness_store(struct device *dev,
 	return n;
 }
 static DEVICE_ATTR(desired_brightness, 0644, gpio_trig_brightness_show,
-		gpio_trig_brightness_store);
+				   gpio_trig_brightness_store);
 
 static ssize_t gpio_trig_inverted_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+									   struct device_attribute *attr, char *buf)
 {
 	struct led_classdev *led = dev_get_drvdata(dev);
 	struct gpio_trig_data *gpio_data = led->trigger_data;
@@ -103,7 +116,7 @@ static ssize_t gpio_trig_inverted_show(struct device *dev,
 }
 
 static ssize_t gpio_trig_inverted_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t n)
+										struct device_attribute *attr, const char *buf, size_t n)
 {
 	struct led_classdev *led = dev_get_drvdata(dev);
 	struct gpio_trig_data *gpio_data = led->trigger_data;
@@ -111,11 +124,16 @@ static ssize_t gpio_trig_inverted_store(struct device *dev,
 	int ret;
 
 	ret = kstrtoul(buf, 10, &inverted);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	if (inverted > 1)
+	{
 		return -EINVAL;
+	}
 
 	gpio_data->inverted = inverted;
 
@@ -125,10 +143,10 @@ static ssize_t gpio_trig_inverted_store(struct device *dev,
 	return n;
 }
 static DEVICE_ATTR(inverted, 0644, gpio_trig_inverted_show,
-		gpio_trig_inverted_store);
+				   gpio_trig_inverted_store);
 
 static ssize_t gpio_trig_gpio_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+								   struct device_attribute *attr, char *buf)
 {
 	struct led_classdev *led = dev_get_drvdata(dev);
 	struct gpio_trig_data *gpio_data = led->trigger_data;
@@ -137,7 +155,7 @@ static ssize_t gpio_trig_gpio_show(struct device *dev,
 }
 
 static ssize_t gpio_trig_gpio_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t n)
+									struct device_attribute *attr, const char *buf, size_t n)
 {
 	struct led_classdev *led = dev_get_drvdata(dev);
 	struct gpio_trig_data *gpio_data = led->trigger_data;
@@ -145,30 +163,45 @@ static ssize_t gpio_trig_gpio_store(struct device *dev,
 	int ret;
 
 	ret = sscanf(buf, "%u", &gpio);
-	if (ret < 1) {
+
+	if (ret < 1)
+	{
 		dev_err(dev, "couldn't read gpio number\n");
 		flush_work(&gpio_data->work);
 		return -EINVAL;
 	}
 
 	if (gpio_data->gpio == gpio)
+	{
 		return n;
+	}
 
-	if (!gpio) {
+	if (!gpio)
+	{
 		if (gpio_data->gpio != 0)
+		{
 			free_irq(gpio_to_irq(gpio_data->gpio), led);
+		}
+
 		gpio_data->gpio = 0;
 		return n;
 	}
 
 	ret = request_irq(gpio_to_irq(gpio), gpio_trig_irq,
-			IRQF_SHARED | IRQF_TRIGGER_RISING
-			| IRQF_TRIGGER_FALLING, "ledtrig-gpio", led);
-	if (ret) {
+					  IRQF_SHARED | IRQF_TRIGGER_RISING
+					  | IRQF_TRIGGER_FALLING, "ledtrig-gpio", led);
+
+	if (ret)
+	{
 		dev_err(dev, "request_irq failed with error %d\n", ret);
-	} else {
+	}
+	else
+	{
 		if (gpio_data->gpio != 0)
+		{
 			free_irq(gpio_to_irq(gpio_data->gpio), led);
+		}
+
 		gpio_data->gpio = gpio;
 	}
 
@@ -182,20 +215,32 @@ static void gpio_trig_activate(struct led_classdev *led)
 	int ret;
 
 	gpio_data = kzalloc(sizeof(*gpio_data), GFP_KERNEL);
+
 	if (!gpio_data)
+	{
 		return;
+	}
 
 	ret = device_create_file(led->dev, &dev_attr_gpio);
+
 	if (ret)
+	{
 		goto err_gpio;
+	}
 
 	ret = device_create_file(led->dev, &dev_attr_inverted);
+
 	if (ret)
+	{
 		goto err_inverted;
+	}
 
 	ret = device_create_file(led->dev, &dev_attr_desired_brightness);
+
 	if (ret)
+	{
 		goto err_brightness;
+	}
 
 	gpio_data->led = led;
 	led->trigger_data = gpio_data;
@@ -218,19 +263,25 @@ static void gpio_trig_deactivate(struct led_classdev *led)
 {
 	struct gpio_trig_data *gpio_data = led->trigger_data;
 
-	if (led->activated) {
+	if (led->activated)
+	{
 		device_remove_file(led->dev, &dev_attr_gpio);
 		device_remove_file(led->dev, &dev_attr_inverted);
 		device_remove_file(led->dev, &dev_attr_desired_brightness);
 		flush_work(&gpio_data->work);
+
 		if (gpio_data->gpio != 0)
+		{
 			free_irq(gpio_to_irq(gpio_data->gpio), led);
+		}
+
 		kfree(gpio_data);
 		led->activated = false;
 	}
 }
 
-static struct led_trigger gpio_led_trigger = {
+static struct led_trigger gpio_led_trigger =
+{
 	.name		= "gpio",
 	.activate	= gpio_trig_activate,
 	.deactivate	= gpio_trig_deactivate,

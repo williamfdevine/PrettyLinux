@@ -24,7 +24,8 @@
 #include <linux/i2c.h>
 #include <linux/i2c-algo-bit.h>
 
-struct simtec_i2c_data {
+struct simtec_i2c_data
+{
 	struct resource		*ioarea;
 	void __iomem		*reg;
 	struct i2c_adapter	 adap;
@@ -73,13 +74,18 @@ static int simtec_i2c_probe(struct platform_device *dev)
 	int ret;
 
 	pd = kzalloc(sizeof(struct simtec_i2c_data), GFP_KERNEL);
+
 	if (pd == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(dev, pd);
 
 	res = platform_get_resource(dev, IORESOURCE_MEM, 0);
-	if (res == NULL) {
+
+	if (res == NULL)
+	{
 		dev_err(&dev->dev, "cannot find IO resource\n");
 		ret = -ENOENT;
 		goto err;
@@ -88,14 +94,18 @@ static int simtec_i2c_probe(struct platform_device *dev)
 	size = resource_size(res);
 
 	pd->ioarea = request_mem_region(res->start, size, dev->name);
-	if (pd->ioarea == NULL) {
+
+	if (pd->ioarea == NULL)
+	{
 		dev_err(&dev->dev, "cannot request IO\n");
 		ret = -ENXIO;
 		goto err;
 	}
 
 	pd->reg = ioremap(res->start, size);
-	if (pd->reg == NULL) {
+
+	if (pd->reg == NULL)
+	{
 		dev_err(&dev->dev, "cannot map IO\n");
 		ret = -ENXIO;
 		goto err_res;
@@ -118,19 +128,22 @@ static int simtec_i2c_probe(struct platform_device *dev)
 	pd->bit.udelay = 20;
 
 	ret = i2c_bit_add_bus(&pd->adap);
+
 	if (ret)
+	{
 		goto err_all;
+	}
 
 	return 0;
 
- err_all:
+err_all:
 	iounmap(pd->reg);
 
- err_res:
+err_res:
 	release_resource(pd->ioarea);
 	kfree(pd->ioarea);
 
- err:
+err:
 	kfree(pd);
 	return ret;
 }
@@ -151,7 +164,8 @@ static int simtec_i2c_remove(struct platform_device *dev)
 
 /* device driver */
 
-static struct platform_driver simtec_i2c_driver = {
+static struct platform_driver simtec_i2c_driver =
+{
 	.driver		= {
 		.name		= "simtec-i2c",
 	},

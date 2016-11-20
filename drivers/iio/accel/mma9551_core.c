@@ -75,7 +75,8 @@
 #define MMA9551_I2C_READ_RETRIES	5
 #define MMA9551_I2C_READ_DELAY	50	/* us */
 
-struct mma9551_mbox_request {
+struct mma9551_mbox_request
+{
 	u8 start_mbox;		/* Always 0. */
 	u8 app_id;
 	/*
@@ -91,7 +92,8 @@ struct mma9551_mbox_request {
 	u8 buf[MMA9551_MAX_MAILBOX_DATA_REGS - 1];
 } __packed;
 
-struct mma9551_mbox_response {
+struct mma9551_mbox_response
+{
 	u8 app_id;
 	/*
 	 * See Section 5.3.3 of the MMA955xL Software Reference Manual.
@@ -105,7 +107,8 @@ struct mma9551_mbox_response {
 	u8 buf[MMA9551_MAX_MAILBOX_DATA_REGS];
 } __packed;
 
-struct mma9551_version_info {
+struct mma9551_version_info
+{
 	__be32 device_id;
 	u8 rom_version[2];
 	u8 fw_version[2];
@@ -114,9 +117,9 @@ struct mma9551_version_info {
 };
 
 static int mma9551_transfer(struct i2c_client *client,
-			    u8 app_id, u8 command, u16 offset,
-			    u8 *inbytes, int num_inbytes,
-			    u8 *outbytes, int num_outbytes)
+							u8 app_id, u8 command, u16 offset,
+							u8 *inbytes, int num_inbytes,
+							u8 *outbytes, int num_outbytes)
 {
 	struct mma9551_mbox_request req;
 	struct mma9551_mbox_response rsp;
@@ -124,7 +127,8 @@ static int mma9551_transfer(struct i2c_client *client,
 	u8 req_len, err_code;
 	int ret, retries;
 
-	if (offset >= 1 << 12) {
+	if (offset >= 1 << 12)
+	{
 		dev_err(&client->dev, "register offset too large\n");
 		return -EINVAL;
 	}
@@ -136,11 +140,18 @@ static int mma9551_transfer(struct i2c_client *client,
 	req.lower_off = offset;
 
 	if (command == MMA9551_CMD_WRITE_CONFIG)
+	{
 		req.nbytes = num_inbytes;
+	}
 	else
+	{
 		req.nbytes = num_outbytes;
+	}
+
 	if (num_inbytes)
+	{
 		memcpy(req.buf, inbytes, num_inbytes);
+	}
 
 	out.addr = client->addr;
 	out.flags = 0;
@@ -148,13 +159,17 @@ static int mma9551_transfer(struct i2c_client *client,
 	out.buf = (u8 *)&req;
 
 	ret = i2c_transfer(client->adapter, &out, 1);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "i2c write failed\n");
 		return ret;
 	}
 
 	retries = MMA9551_I2C_READ_RETRIES;
-	do {
+
+	do
+	{
 		udelay(MMA9551_I2C_READ_DELAY);
 
 		in.addr = client->addr;
@@ -163,43 +178,55 @@ static int mma9551_transfer(struct i2c_client *client,
 		in.buf = (u8 *)&rsp;
 
 		ret = i2c_transfer(client->adapter, &in, 1);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(&client->dev, "i2c read failed\n");
 			return ret;
 		}
 
 		if (rsp.coco_err & MMA9551_RESPONSE_COCO)
+		{
 			break;
-	} while (--retries > 0);
+		}
+	}
+	while (--retries > 0);
 
-	if (retries == 0) {
+	if (retries == 0)
+	{
 		dev_err(&client->dev,
-			"timed out while waiting for command response\n");
+				"timed out while waiting for command response\n");
 		return -ETIMEDOUT;
 	}
 
-	if (rsp.app_id != app_id) {
+	if (rsp.app_id != app_id)
+	{
 		dev_err(&client->dev,
-			"app_id mismatch in response got %02x expected %02x\n",
-			rsp.app_id, app_id);
+				"app_id mismatch in response got %02x expected %02x\n",
+				rsp.app_id, app_id);
 		return -EINVAL;
 	}
 
 	err_code = rsp.coco_err & ~MMA9551_RESPONSE_COCO;
-	if (err_code != MMA9551_MCI_ERROR_NONE) {
+
+	if (err_code != MMA9551_MCI_ERROR_NONE)
+	{
 		dev_err(&client->dev, "read returned error %x\n", err_code);
 		return -EINVAL;
 	}
 
-	if (rsp.nbytes != rsp.req_bytes) {
+	if (rsp.nbytes != rsp.req_bytes)
+	{
 		dev_err(&client->dev,
-			"output length mismatch got %d expected %d\n",
-			rsp.nbytes, rsp.req_bytes);
+				"output length mismatch got %d expected %d\n",
+				rsp.nbytes, rsp.req_bytes);
 		return -EINVAL;
 	}
 
 	if (num_outbytes)
+	{
 		memcpy(outbytes, rsp.buf, num_outbytes);
+	}
 
 	return 0;
 }
@@ -222,10 +249,10 @@ static int mma9551_transfer(struct i2c_client *client,
  * Returns: 0 on success, negative value on failure.
  */
 int mma9551_read_config_byte(struct i2c_client *client, u8 app_id,
-			     u16 reg, u8 *val)
+							 u16 reg, u8 *val)
 {
 	return mma9551_transfer(client, app_id, MMA9551_CMD_READ_CONFIG,
-				reg, NULL, 0, val, 1);
+							reg, NULL, 0, val, 1);
 }
 EXPORT_SYMBOL(mma9551_read_config_byte);
 
@@ -247,10 +274,10 @@ EXPORT_SYMBOL(mma9551_read_config_byte);
  * Returns: 0 on success, negative value on failure.
  */
 int mma9551_write_config_byte(struct i2c_client *client, u8 app_id,
-			      u16 reg, u8 val)
+							  u16 reg, u8 val)
 {
 	return mma9551_transfer(client, app_id, MMA9551_CMD_WRITE_CONFIG, reg,
-				&val, 1, NULL, 0);
+							&val, 1, NULL, 0);
 }
 EXPORT_SYMBOL(mma9551_write_config_byte);
 
@@ -272,10 +299,10 @@ EXPORT_SYMBOL(mma9551_write_config_byte);
  * Returns: 0 on success, negative value on failure.
  */
 int mma9551_read_status_byte(struct i2c_client *client, u8 app_id,
-			     u16 reg, u8 *val)
+							 u16 reg, u8 *val)
 {
 	return mma9551_transfer(client, app_id, MMA9551_CMD_READ_STATUS,
-				reg, NULL, 0, val, 1);
+							reg, NULL, 0, val, 1);
 }
 EXPORT_SYMBOL(mma9551_read_status_byte);
 
@@ -297,13 +324,13 @@ EXPORT_SYMBOL(mma9551_read_status_byte);
  * Returns: 0 on success, negative value on failure.
  */
 int mma9551_read_config_word(struct i2c_client *client, u8 app_id,
-			     u16 reg, u16 *val)
+							 u16 reg, u16 *val)
 {
 	int ret;
 	__be16 v;
 
 	ret = mma9551_transfer(client, app_id, MMA9551_CMD_READ_CONFIG,
-			       reg, NULL, 0, (u8 *)&v, 2);
+						   reg, NULL, 0, (u8 *)&v, 2);
 	*val = be16_to_cpu(v);
 
 	return ret;
@@ -328,12 +355,12 @@ EXPORT_SYMBOL(mma9551_read_config_word);
  * Returns: 0 on success, negative value on failure.
  */
 int mma9551_write_config_word(struct i2c_client *client, u8 app_id,
-			      u16 reg, u16 val)
+							  u16 reg, u16 val)
 {
 	__be16 v = cpu_to_be16(val);
 
 	return mma9551_transfer(client, app_id, MMA9551_CMD_WRITE_CONFIG, reg,
-				(u8 *)&v, 2, NULL, 0);
+							(u8 *)&v, 2, NULL, 0);
 }
 EXPORT_SYMBOL(mma9551_write_config_word);
 
@@ -355,13 +382,13 @@ EXPORT_SYMBOL(mma9551_write_config_word);
  * Returns: 0 on success, negative value on failure.
  */
 int mma9551_read_status_word(struct i2c_client *client, u8 app_id,
-			     u16 reg, u16 *val)
+							 u16 reg, u16 *val)
 {
 	int ret;
 	__be16 v;
 
 	ret = mma9551_transfer(client, app_id, MMA9551_CMD_READ_STATUS,
-			       reg, NULL, 0, (u8 *)&v, 2);
+						   reg, NULL, 0, (u8 *)&v, 2);
 	*val = be16_to_cpu(v);
 
 	return ret;
@@ -385,23 +412,29 @@ EXPORT_SYMBOL(mma9551_read_status_word);
  * Returns: 0 on success, negative value on failure.
  */
 int mma9551_read_config_words(struct i2c_client *client, u8 app_id,
-			      u16 reg, u8 len, u16 *buf)
+							  u16 reg, u8 len, u16 *buf)
 {
 	int ret, i;
 	__be16 be_buf[MMA9551_MAX_MAILBOX_DATA_REGS / 2];
 
-	if (len > ARRAY_SIZE(be_buf)) {
+	if (len > ARRAY_SIZE(be_buf))
+	{
 		dev_err(&client->dev, "Invalid buffer size %d\n", len);
 		return -EINVAL;
 	}
 
 	ret = mma9551_transfer(client, app_id, MMA9551_CMD_READ_CONFIG,
-			       reg, NULL, 0, (u8 *)be_buf, len * sizeof(u16));
+						   reg, NULL, 0, (u8 *)be_buf, len * sizeof(u16));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	for (i = 0; i < len; i++)
+	{
 		buf[i] = be16_to_cpu(be_buf[i]);
+	}
 
 	return 0;
 }
@@ -424,23 +457,29 @@ EXPORT_SYMBOL(mma9551_read_config_words);
  * Returns: 0 on success, negative value on failure.
  */
 int mma9551_read_status_words(struct i2c_client *client, u8 app_id,
-			      u16 reg, u8 len, u16 *buf)
+							  u16 reg, u8 len, u16 *buf)
 {
 	int ret, i;
 	__be16 be_buf[MMA9551_MAX_MAILBOX_DATA_REGS / 2];
 
-	if (len > ARRAY_SIZE(be_buf)) {
+	if (len > ARRAY_SIZE(be_buf))
+	{
 		dev_err(&client->dev, "Invalid buffer size %d\n", len);
 		return -EINVAL;
 	}
 
 	ret = mma9551_transfer(client, app_id, MMA9551_CMD_READ_STATUS,
-			       reg, NULL, 0, (u8 *)be_buf, len * sizeof(u16));
+						   reg, NULL, 0, (u8 *)be_buf, len * sizeof(u16));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	for (i = 0; i < len; i++)
+	{
 		buf[i] = be16_to_cpu(be_buf[i]);
+	}
 
 	return 0;
 }
@@ -463,21 +502,24 @@ EXPORT_SYMBOL(mma9551_read_status_words);
  * Returns: 0 on success, negative value on failure.
  */
 int mma9551_write_config_words(struct i2c_client *client, u8 app_id,
-			       u16 reg, u8 len, u16 *buf)
+							   u16 reg, u8 len, u16 *buf)
 {
 	int i;
 	__be16 be_buf[(MMA9551_MAX_MAILBOX_DATA_REGS - 1) / 2];
 
-	if (len > ARRAY_SIZE(be_buf)) {
+	if (len > ARRAY_SIZE(be_buf))
+	{
 		dev_err(&client->dev, "Invalid buffer size %d\n", len);
 		return -EINVAL;
 	}
 
 	for (i = 0; i < len; i++)
+	{
 		be_buf[i] = cpu_to_be16(buf[i]);
+	}
 
 	return mma9551_transfer(client, app_id, MMA9551_CMD_WRITE_CONFIG,
-				reg, (u8 *)be_buf, len * sizeof(u16), NULL, 0);
+							reg, (u8 *)be_buf, len * sizeof(u16), NULL, 0);
 }
 EXPORT_SYMBOL(mma9551_write_config_words);
 
@@ -498,20 +540,25 @@ EXPORT_SYMBOL(mma9551_write_config_words);
  * Returns: 0 on success, negative value on failure.
  */
 int mma9551_update_config_bits(struct i2c_client *client, u8 app_id,
-			       u16 reg, u8 mask, u8 val)
+							   u16 reg, u8 mask, u8 val)
 {
 	int ret;
 	u8 tmp, orig;
 
 	ret = mma9551_read_config_byte(client, app_id, reg, &orig);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	tmp = orig & ~mask;
 	tmp |= val & mask;
 
 	if (tmp == orig)
+	{
 		return 0;
+	}
 
 	return mma9551_write_config_byte(client, app_id, reg, tmp);
 }
@@ -537,12 +584,13 @@ EXPORT_SYMBOL(mma9551_update_config_bits);
  * Returns: 0 on success, negative value on failure.
  */
 int mma9551_gpio_config(struct i2c_client *client, enum mma9551_gpio_pin pin,
-			u8 app_id, u8 bitnum, int polarity)
+						u8 app_id, u8 bitnum, int polarity)
 {
 	u8 reg, pol_mask, pol_val;
 	int ret;
 
-	if (pin > mma9551_gpio_max) {
+	if (pin > mma9551_gpio_max)
+	{
 		dev_err(&client->dev, "bad GPIO pin\n");
 		return -EINVAL;
 	}
@@ -554,43 +602,55 @@ int mma9551_gpio_config(struct i2c_client *client, enum mma9551_gpio_pin pin,
 	reg = pin * 2;
 
 	ret = mma9551_write_config_byte(client, MMA9551_APPID_GPIO,
-					reg, app_id);
-	if (ret < 0) {
+									reg, app_id);
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "error setting GPIO app_id\n");
 		return ret;
 	}
 
 	ret = mma9551_write_config_byte(client, MMA9551_APPID_GPIO,
-					reg + 1, bitnum);
-	if (ret < 0) {
+									reg + 1, bitnum);
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "error setting GPIO bit number\n");
 		return ret;
 	}
 
-	switch (pin) {
-	case mma9551_gpio6:
-		reg = MMA9551_GPIO_POL_LSB;
-		pol_mask = 1 << 6;
-		break;
-	case mma9551_gpio7:
-		reg = MMA9551_GPIO_POL_LSB;
-		pol_mask = 1 << 7;
-		break;
-	case mma9551_gpio8:
-		reg = MMA9551_GPIO_POL_MSB;
-		pol_mask = 1 << 0;
-		break;
-	case mma9551_gpio9:
-		reg = MMA9551_GPIO_POL_MSB;
-		pol_mask = 1 << 1;
-		break;
+	switch (pin)
+	{
+		case mma9551_gpio6:
+			reg = MMA9551_GPIO_POL_LSB;
+			pol_mask = 1 << 6;
+			break;
+
+		case mma9551_gpio7:
+			reg = MMA9551_GPIO_POL_LSB;
+			pol_mask = 1 << 7;
+			break;
+
+		case mma9551_gpio8:
+			reg = MMA9551_GPIO_POL_MSB;
+			pol_mask = 1 << 0;
+			break;
+
+		case mma9551_gpio9:
+			reg = MMA9551_GPIO_POL_MSB;
+			pol_mask = 1 << 1;
+			break;
 	}
+
 	pol_val = polarity ? pol_mask : 0;
 
 	ret = mma9551_update_config_bits(client, MMA9551_APPID_GPIO, reg,
-					 pol_mask, pol_val);
+									 pol_mask, pol_val);
+
 	if (ret < 0)
+	{
 		dev_err(&client->dev, "error setting GPIO polarity\n");
+	}
 
 	return ret;
 }
@@ -614,13 +674,16 @@ int mma9551_read_version(struct i2c_client *client)
 	int ret;
 
 	ret = mma9551_transfer(client, MMA9551_APPID_VERSION, 0x00, 0x00,
-			       NULL, 0, (u8 *)&info, sizeof(info));
+						   NULL, 0, (u8 *)&info, sizeof(info));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	dev_info(&client->dev, "device ID 0x%x, firmware version %02x.%02x\n",
-		 be32_to_cpu(info.device_id), info.fw_version[0],
-		 info.fw_version[1]);
+			 be32_to_cpu(info.device_id), info.fw_version[0],
+			 info.fw_version[1]);
 
 	return 0;
 }
@@ -646,13 +709,13 @@ EXPORT_SYMBOL(mma9551_read_version);
 int mma9551_set_device_state(struct i2c_client *client, bool enable)
 {
 	return mma9551_update_config_bits(client, MMA9551_APPID_SLEEP_WAKE,
-					  MMA9551_SLEEP_CFG,
-					  MMA9551_SLEEP_CFG_SNCEN |
-					  MMA9551_SLEEP_CFG_FLEEN |
-					  MMA9551_SLEEP_CFG_SCHEN,
-					  enable ? MMA9551_SLEEP_CFG_SCHEN |
-					  MMA9551_SLEEP_CFG_FLEEN :
-					  MMA9551_SLEEP_CFG_SNCEN);
+									  MMA9551_SLEEP_CFG,
+									  MMA9551_SLEEP_CFG_SNCEN |
+									  MMA9551_SLEEP_CFG_FLEEN |
+									  MMA9551_SLEEP_CFG_SCHEN,
+									  enable ? MMA9551_SLEEP_CFG_SCHEN |
+									  MMA9551_SLEEP_CFG_FLEEN :
+									  MMA9551_SLEEP_CFG_SNCEN);
 }
 EXPORT_SYMBOL(mma9551_set_device_state);
 
@@ -672,20 +735,28 @@ int mma9551_set_power_state(struct i2c_client *client, bool on)
 	int ret;
 
 	if (on)
+	{
 		ret = pm_runtime_get_sync(&client->dev);
-	else {
+	}
+	else
+	{
 		pm_runtime_mark_last_busy(&client->dev);
 		ret = pm_runtime_put_autosuspend(&client->dev);
 	}
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		dev_err(&client->dev,
-			"failed to change power state to %d\n", on);
+				"failed to change power state to %d\n", on);
+
 		if (on)
+		{
 			pm_runtime_put_noidle(&client->dev);
+		}
 
 		return ret;
 	}
+
 #endif
 
 	return 0;
@@ -705,9 +776,13 @@ void mma9551_sleep(int freq)
 	int sleep_val = 1000 / freq;
 
 	if (sleep_val < 20)
+	{
 		usleep_range(sleep_val * 1000, 20000);
+	}
 	else
+	{
 		msleep_interruptible(sleep_val);
+	}
 }
 EXPORT_SYMBOL(mma9551_sleep);
 
@@ -727,35 +802,45 @@ EXPORT_SYMBOL(mma9551_sleep);
  * Returns: IIO_VAL_INT on success, negative value on failure.
  */
 int mma9551_read_accel_chan(struct i2c_client *client,
-			    const struct iio_chan_spec *chan,
-			    int *val, int *val2)
+							const struct iio_chan_spec *chan,
+							int *val, int *val2)
 {
 	u16 reg_addr;
 	s16 raw_accel;
 	int ret;
 
-	switch (chan->channel2) {
-	case IIO_MOD_X:
-		reg_addr = MMA9551_AFE_X_ACCEL_REG;
-		break;
-	case IIO_MOD_Y:
-		reg_addr = MMA9551_AFE_Y_ACCEL_REG;
-		break;
-	case IIO_MOD_Z:
-		reg_addr = MMA9551_AFE_Z_ACCEL_REG;
-		break;
-	default:
-		return -EINVAL;
+	switch (chan->channel2)
+	{
+		case IIO_MOD_X:
+			reg_addr = MMA9551_AFE_X_ACCEL_REG;
+			break;
+
+		case IIO_MOD_Y:
+			reg_addr = MMA9551_AFE_Y_ACCEL_REG;
+			break;
+
+		case IIO_MOD_Z:
+			reg_addr = MMA9551_AFE_Z_ACCEL_REG;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	ret = mma9551_set_power_state(client, true);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = mma9551_read_status_word(client, MMA9551_APPID_AFE,
-				       reg_addr, &raw_accel);
+								   reg_addr, &raw_accel);
+
 	if (ret < 0)
+	{
 		goto out_poweroff;
+	}
 
 	*val = raw_accel;
 
@@ -798,9 +883,9 @@ EXPORT_SYMBOL(mma9551_read_accel_scale);
 int mma9551_app_reset(struct i2c_client *client, u32 app_mask)
 {
 	return mma9551_write_config_byte(client, MMA9551_APPID_RSC,
-					 MMA9551_RSC_RESET +
-					 MMA9551_RSC_OFFSET(app_mask),
-					 MMA9551_RSC_VAL(app_mask));
+									 MMA9551_RSC_RESET +
+									 MMA9551_RSC_OFFSET(app_mask),
+									 MMA9551_RSC_VAL(app_mask));
 }
 EXPORT_SYMBOL(mma9551_app_reset);
 

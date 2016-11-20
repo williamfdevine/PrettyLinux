@@ -17,7 +17,8 @@
 #define L3_DEB_CHECK	0x10
 #define L3_DEB_SI	0x20
 
-struct stateentry {
+struct stateentry
+{
 	int state;
 	int primitive;
 	void (*rout) (struct l3_process *, u8, void *);

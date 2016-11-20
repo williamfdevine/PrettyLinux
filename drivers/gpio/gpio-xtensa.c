@@ -37,7 +37,7 @@
 #include <asm/coprocessor.h> /* CPENABLE read/write macros */
 
 #ifndef XCHAL_CP_ID_XTIOP
-#error GPIO32 option is not enabled for your xtensa core variant
+	#error GPIO32 option is not enabled for your xtensa core variant
 #endif
 
 #if XCHAL_HAVE_CP
@@ -91,7 +91,7 @@ static int xtensa_impwire_get_value(struct gpio_chip *gc, unsigned offset)
 }
 
 static void xtensa_impwire_set_value(struct gpio_chip *gc, unsigned offset,
-				    int value)
+									 int value)
 {
 	BUG(); /* output only; should never be called */
 }
@@ -114,7 +114,7 @@ static int xtensa_expstate_get_value(struct gpio_chip *gc, unsigned offset)
 }
 
 static void xtensa_expstate_set_value(struct gpio_chip *gc, unsigned offset,
-				     int value)
+									  int value)
 {
 	unsigned long flags, saved_cpenable;
 	u32 mask = BIT(offset);
@@ -122,11 +122,12 @@ static void xtensa_expstate_set_value(struct gpio_chip *gc, unsigned offset,
 
 	flags = enable_cp(&saved_cpenable);
 	__asm__ __volatile__("wrmsk_expstate %0, %1"
-			     :: "a" (val), "a" (mask));
+						 :: "a" (val), "a" (mask));
 	disable_cp(flags, saved_cpenable);
 }
 
-static struct gpio_chip impwire_chip = {
+static struct gpio_chip impwire_chip =
+{
 	.label		= "impwire",
 	.base		= -1,
 	.ngpio		= 32,
@@ -135,7 +136,8 @@ static struct gpio_chip impwire_chip = {
 	.set		= xtensa_impwire_set_value,
 };
 
-static struct gpio_chip expstate_chip = {
+static struct gpio_chip expstate_chip =
+{
 	.label		= "expstate",
 	.base		= -1,
 	.ngpio		= 32,
@@ -149,12 +151,17 @@ static int xtensa_gpio_probe(struct platform_device *pdev)
 	int ret;
 
 	ret = gpiochip_add_data(&impwire_chip, NULL);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	return gpiochip_add_data(&expstate_chip, NULL);
 }
 
-static struct platform_driver xtensa_gpio_driver = {
+static struct platform_driver xtensa_gpio_driver =
+{
 	.driver		= {
 		.name		= "xtensa-gpio",
 	},
@@ -166,8 +173,11 @@ static int __init xtensa_gpio_init(void)
 	struct platform_device *pdev;
 
 	pdev = platform_device_register_simple("xtensa-gpio", 0, NULL, 0);
+
 	if (IS_ERR(pdev))
+	{
 		return PTR_ERR(pdev);
+	}
 
 	return platform_driver_register(&xtensa_gpio_driver);
 }

@@ -17,7 +17,8 @@
 /*
  * binfmt binary parameters structure
  */
-struct elf_fdpic_params {
+struct elf_fdpic_params
+{
 	struct elfhdr			hdr;		/* ref copy of ELF header */
 	struct elf_phdr			*phdrs;		/* ref copy of PT_PHDR table */
 	struct elf32_fdpic_loadmap	*loadmap;	/* loadmap to be passed to userspace */
@@ -43,9 +44,9 @@ struct elf_fdpic_params {
 
 #ifdef CONFIG_MMU
 extern void elf_fdpic_arch_lay_out_mm(struct elf_fdpic_params *exec_params,
-				      struct elf_fdpic_params *interp_params,
-				      unsigned long *start_stack,
-				      unsigned long *start_brk);
+									  struct elf_fdpic_params *interp_params,
+									  unsigned long *start_stack,
+									  unsigned long *start_brk);
 #endif
 
 #endif /* _LINUX_ELF_FDPIC_H */

@@ -36,16 +36,18 @@
 
 #include "ipoib.h"
 
-struct ipoib_stats {
+struct ipoib_stats
+{
 	char stat_string[ETH_GSTRING_LEN];
 	int stat_offset;
 };
 
 #define IPOIB_NETDEV_STAT(m) { \
 		.stat_string = #m, \
-		.stat_offset = offsetof(struct rtnl_link_stats64, m) }
+					   .stat_offset = offsetof(struct rtnl_link_stats64, m) }
 
-static const struct ipoib_stats ipoib_gstrings_stats[] = {
+static const struct ipoib_stats ipoib_gstrings_stats[] =
+{
 	IPOIB_NETDEV_STAT(rx_packets),
 	IPOIB_NETDEV_STAT(tx_packets),
 	IPOIB_NETDEV_STAT(rx_bytes),
@@ -58,24 +60,24 @@ static const struct ipoib_stats ipoib_gstrings_stats[] = {
 #define IPOIB_GLOBAL_STATS_LEN	ARRAY_SIZE(ipoib_gstrings_stats)
 
 static void ipoib_get_drvinfo(struct net_device *netdev,
-			      struct ethtool_drvinfo *drvinfo)
+							  struct ethtool_drvinfo *drvinfo)
 {
 	struct ipoib_dev_priv *priv = netdev_priv(netdev);
 
 	ib_get_device_fw_str(priv->ca, drvinfo->fw_version,
-			     sizeof(drvinfo->fw_version));
+						 sizeof(drvinfo->fw_version));
 
 	strlcpy(drvinfo->bus_info, dev_name(priv->ca->dma_device),
-		sizeof(drvinfo->bus_info));
+			sizeof(drvinfo->bus_info));
 
 	strlcpy(drvinfo->version, ipoib_driver_version,
-		sizeof(drvinfo->version));
+			sizeof(drvinfo->version));
 
 	strlcpy(drvinfo->driver, "ib_ipoib", sizeof(drvinfo->driver));
 }
 
 static int ipoib_get_coalesce(struct net_device *dev,
-			      struct ethtool_coalesce *coal)
+							  struct ethtool_coalesce *coal)
 {
 	struct ipoib_dev_priv *priv = netdev_priv(dev);
 
@@ -86,7 +88,7 @@ static int ipoib_get_coalesce(struct net_device *dev,
 }
 
 static int ipoib_set_coalesce(struct net_device *dev,
-			      struct ethtool_coalesce *coal)
+							  struct ethtool_coalesce *coal)
 {
 	struct ipoib_dev_priv *priv = netdev_priv(dev);
 	int ret;
@@ -96,12 +98,16 @@ static int ipoib_set_coalesce(struct net_device *dev,
 	 * when ipoib_get_coalesce() is called
 	 */
 	if (coal->rx_coalesce_usecs       > 0xffff ||
-	    coal->rx_max_coalesced_frames > 0xffff)
+		coal->rx_max_coalesced_frames > 0xffff)
+	{
 		return -EINVAL;
+	}
 
 	ret = ib_modify_cq(priv->recv_cq, coal->rx_max_coalesced_frames,
-			   coal->rx_coalesce_usecs);
-	if (ret && ret != -ENOSYS) {
+					   coal->rx_coalesce_usecs);
+
+	if (ret && ret != -ENOSYS)
+	{
 		ipoib_warn(priv, "failed modifying CQ (%d)\n", ret);
 		return ret;
 	}
@@ -112,50 +118,60 @@ static int ipoib_set_coalesce(struct net_device *dev,
 	return 0;
 }
 static void ipoib_get_ethtool_stats(struct net_device *dev,
-				    struct ethtool_stats __always_unused *stats,
-				    u64 *data)
+									struct ethtool_stats __always_unused *stats,
+									u64 *data)
 {
 	int i;
 	struct net_device_stats *net_stats = &dev->stats;
 	u8 *p = (u8 *)net_stats;
 
 	for (i = 0; i < IPOIB_GLOBAL_STATS_LEN; i++)
+	{
 		data[i] = *(u64 *)(p + ipoib_gstrings_stats[i].stat_offset);
+	}
 
 }
 static void ipoib_get_strings(struct net_device __always_unused *dev,
-			      u32 stringset, u8 *data)
+							  u32 stringset, u8 *data)
 {
 	u8 *p = data;
 	int i;
 
-	switch (stringset) {
-	case ETH_SS_STATS:
-		for (i = 0; i < IPOIB_GLOBAL_STATS_LEN; i++) {
-			memcpy(p, ipoib_gstrings_stats[i].stat_string,
-				ETH_GSTRING_LEN);
-			p += ETH_GSTRING_LEN;
-		}
-		break;
-	case ETH_SS_TEST:
-	default:
-		break;
+	switch (stringset)
+	{
+		case ETH_SS_STATS:
+			for (i = 0; i < IPOIB_GLOBAL_STATS_LEN; i++)
+			{
+				memcpy(p, ipoib_gstrings_stats[i].stat_string,
+					   ETH_GSTRING_LEN);
+				p += ETH_GSTRING_LEN;
+			}
+
+			break;
+
+		case ETH_SS_TEST:
+		default:
+			break;
 	}
 }
 static int ipoib_get_sset_count(struct net_device __always_unused *dev,
-				 int sset)
+								int sset)
 {
-	switch (sset) {
-	case ETH_SS_STATS:
-		return IPOIB_GLOBAL_STATS_LEN;
-	case ETH_SS_TEST:
-	default:
-		break;
+	switch (sset)
+	{
+		case ETH_SS_STATS:
+			return IPOIB_GLOBAL_STATS_LEN;
+
+		case ETH_SS_TEST:
+		default:
+			break;
 	}
+
 	return -EOPNOTSUPP;
 }
 
-static const struct ethtool_ops ipoib_ethtool_ops = {
+static const struct ethtool_ops ipoib_ethtool_ops =
+{
 	.get_drvinfo		= ipoib_get_drvinfo,
 	.get_coalesce		= ipoib_get_coalesce,
 	.set_coalesce		= ipoib_set_coalesce,

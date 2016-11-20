@@ -21,14 +21,16 @@
 #include <linux/connector.h>
 #include <linux/miscdevice.h>
 
-enum hvutil_transport_mode {
+enum hvutil_transport_mode
+{
 	HVUTIL_TRANSPORT_INIT = 0,
 	HVUTIL_TRANSPORT_NETLINK,
 	HVUTIL_TRANSPORT_CHARDEV,
 	HVUTIL_TRANSPORT_DESTROY,
 };
 
-struct hvutil_transport {
+struct hvutil_transport
+{
 	int mode;                           /* hvutil_transport_mode */
 	struct file_operations fops;        /* file operations */
 	struct miscdevice mdev;             /* misc device */
@@ -44,11 +46,11 @@ struct hvutil_transport {
 };
 
 struct hvutil_transport *hvutil_transport_init(const char *name,
-					       u32 cn_idx, u32 cn_val,
-					       int (*on_msg)(void *, int),
-					       void (*on_reset)(void));
+		u32 cn_idx, u32 cn_val,
+		int (*on_msg)(void *, int),
+		void (*on_reset)(void));
 int hvutil_transport_send(struct hvutil_transport *hvt, void *msg, int len,
-			  void (*on_read_cb)(void));
+						  void (*on_read_cb)(void));
 void hvutil_transport_destroy(struct hvutil_transport *hvt);
 
 #endif /* _HV_UTILS_TRANSPORT_H */

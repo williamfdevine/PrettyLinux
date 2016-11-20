@@ -225,7 +225,8 @@
 #define BYD_PACKET_ONTO_PAD_SWIPE_UP		0xd0
 #define BYD_PACKET_ONTO_PAD_SWIPE_LEFT		0xc9
 
-struct byd_data {
+struct byd_data
+{
 	struct timer_list timer;
 	s32 abs_x;
 	s32 abs_y;
@@ -277,51 +278,61 @@ static psmouse_ret_t byd_process_byte(struct psmouse *psmouse)
 	struct byd_data *priv = psmouse->private;
 	u8 *pkt = psmouse->packet;
 
-	if (psmouse->pktcnt > 0 && !(pkt[0] & PS2_ALWAYS_1)) {
+	if (psmouse->pktcnt > 0 && !(pkt[0] & PS2_ALWAYS_1))
+	{
 		psmouse_warn(psmouse, "Always_1 bit not 1. pkt[0] = %02x\n",
-			     pkt[0]);
+					 pkt[0]);
 		return PSMOUSE_BAD_DATA;
 	}
 
 	if (psmouse->pktcnt < psmouse->pktsize)
+	{
 		return PSMOUSE_GOOD_DATA;
+	}
 
 	/* Otherwise, a full packet has been received */
-	switch (pkt[3]) {
-	case BYD_PACKET_ABSOLUTE:
-		/* Only use absolute packets for the start of movement. */
-		if (!priv->touch) {
-			/* needed to detect tap */
-			typeof(jiffies) tap_time =
-				priv->last_touch_time + BYD_TOUCH_TIMEOUT;
-			priv->touch = time_after(jiffies, tap_time);
+	switch (pkt[3])
+	{
+		case BYD_PACKET_ABSOLUTE:
 
-			/* init abs position */
-			priv->abs_x = pkt[1] * (BYD_PAD_WIDTH / 256);
-			priv->abs_y = (255 - pkt[2]) * (BYD_PAD_HEIGHT / 256);
-		}
-		break;
-	case BYD_PACKET_RELATIVE: {
-		/* Standard packet */
-		/* Sign-extend if a sign bit is set. */
-		u32 signx = pkt[0] & PS2_X_SIGN ? ~0xFF : 0;
-		u32 signy = pkt[0] & PS2_Y_SIGN ? ~0xFF : 0;
-		s32 dx = signx | (int) pkt[1];
-		s32 dy = signy | (int) pkt[2];
+			/* Only use absolute packets for the start of movement. */
+			if (!priv->touch)
+			{
+				/* needed to detect tap */
+				typeof(jiffies) tap_time =
+					priv->last_touch_time + BYD_TOUCH_TIMEOUT;
+				priv->touch = time_after(jiffies, tap_time);
 
-		/* Update position based on velocity */
-		priv->abs_x += dx * BYD_DT;
-		priv->abs_y -= dy * BYD_DT;
+				/* init abs position */
+				priv->abs_x = pkt[1] * (BYD_PAD_WIDTH / 256);
+				priv->abs_y = (255 - pkt[2]) * (BYD_PAD_HEIGHT / 256);
+			}
 
-		priv->touch = true;
-		break;
-	}
-	default:
-		psmouse_warn(psmouse,
-			     "Unrecognized Z: pkt = %02x %02x %02x %02x\n",
-			     psmouse->packet[0], psmouse->packet[1],
-			     psmouse->packet[2], psmouse->packet[3]);
-		return PSMOUSE_BAD_DATA;
+			break;
+
+		case BYD_PACKET_RELATIVE:
+			{
+				/* Standard packet */
+				/* Sign-extend if a sign bit is set. */
+				u32 signx = pkt[0] & PS2_X_SIGN ? ~0xFF : 0;
+				u32 signy = pkt[0] & PS2_Y_SIGN ? ~0xFF : 0;
+				s32 dx = signx | (int) pkt[1];
+				s32 dy = signy | (int) pkt[2];
+
+				/* Update position based on velocity */
+				priv->abs_x += dx * BYD_DT;
+				priv->abs_y -= dy * BYD_DT;
+
+				priv->touch = true;
+				break;
+			}
+
+		default:
+			psmouse_warn(psmouse,
+						 "Unrecognized Z: pkt = %02x %02x %02x %02x\n",
+						 psmouse->packet[0], psmouse->packet[1],
+						 psmouse->packet[2], psmouse->packet[3]);
+			return PSMOUSE_BAD_DATA;
 	}
 
 	priv->btn_left = pkt[0] & PS2_LEFT;
@@ -330,7 +341,8 @@ static psmouse_ret_t byd_process_byte(struct psmouse *psmouse)
 	byd_report_input(psmouse);
 
 	/* Reset time since last touch. */
-	if (priv->touch) {
+	if (priv->touch)
+	{
 		priv->last_touch_time = jiffies;
 		mod_timer(&priv->timer, jiffies + BYD_TOUCH_TIMEOUT);
 	}
@@ -344,10 +356,12 @@ static int byd_reset_touchpad(struct psmouse *psmouse)
 	u8 param[4];
 	size_t i;
 
-	const struct {
+	const struct
+	{
 		u16 command;
 		u8 arg;
-	} seq[] = {
+	} seq[] =
+	{
 		/*
 		 * Intellimouse initialization sequence, to get 4-byte instead
 		 * of 3-byte packets.
@@ -386,11 +400,15 @@ static int byd_reset_touchpad(struct psmouse *psmouse)
 		{ 0x10E2, 0x01 },
 	};
 
-	for (i = 0; i < ARRAY_SIZE(seq); ++i) {
+	for (i = 0; i < ARRAY_SIZE(seq); ++i)
+	{
 		memset(param, 0, sizeof(param));
 		param[0] = seq[i].arg;
+
 		if (ps2_command(ps2dev, param, seq[i].command))
+		{
 			return -EIO;
+		}
 	}
 
 	psmouse_set_state(psmouse, PSMOUSE_ACTIVATED);
@@ -402,20 +420,31 @@ static int byd_reconnect(struct psmouse *psmouse)
 	int retry = 0, error = 0;
 
 	psmouse_dbg(psmouse, "Reconnect\n");
-	do {
+
+	do
+	{
 		psmouse_reset(psmouse);
+
 		if (retry)
+		{
 			ssleep(1);
+		}
+
 		error = byd_detect(psmouse, 0);
-	} while (error && ++retry < 3);
+	}
+	while (error && ++retry < 3);
 
 	if (error)
+	{
 		return error;
+	}
 
 	psmouse_dbg(psmouse, "Reconnected after %d attempts\n", retry);
 
 	error = byd_reset_touchpad(psmouse);
-	if (error) {
+
+	if (error)
+	{
 		psmouse_err(psmouse, "Unable to initialize device\n");
 		return error;
 	}
@@ -427,7 +456,8 @@ static void byd_disconnect(struct psmouse *psmouse)
 {
 	struct byd_data *priv = psmouse->private;
 
-	if (priv) {
+	if (priv)
+	{
 		del_timer(&priv->timer);
 		kfree(psmouse->private);
 		psmouse->private = NULL;
@@ -440,22 +470,39 @@ int byd_detect(struct psmouse *psmouse, bool set_properties)
 	u8 param[4] = {0x03, 0x00, 0x00, 0x00};
 
 	if (ps2_command(ps2dev, param, PSMOUSE_CMD_SETRES))
+	{
 		return -1;
+	}
+
 	if (ps2_command(ps2dev, param, PSMOUSE_CMD_SETRES))
+	{
 		return -1;
+	}
+
 	if (ps2_command(ps2dev, param, PSMOUSE_CMD_SETRES))
+	{
 		return -1;
+	}
+
 	if (ps2_command(ps2dev, param, PSMOUSE_CMD_SETRES))
+	{
 		return -1;
+	}
+
 	if (ps2_command(ps2dev, param, PSMOUSE_CMD_GETINFO))
+	{
 		return -1;
+	}
 
 	if (param[1] != 0x03 || param[2] != 0x64)
+	{
 		return -ENODEV;
+	}
 
 	psmouse_dbg(psmouse, "BYD touchpad detected\n");
 
-	if (set_properties) {
+	if (set_properties)
+	{
 		psmouse->vendor = "BYD";
 		psmouse->name = "TouchPad";
 	}
@@ -469,14 +516,21 @@ int byd_init(struct psmouse *psmouse)
 	struct byd_data *priv;
 
 	if (psmouse_reset(psmouse))
+	{
 		return -EIO;
+	}
 
 	if (byd_reset_touchpad(psmouse))
+	{
 		return -EIO;
+	}
 
 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	setup_timer(&priv->timer, byd_clear_touch, (unsigned long) psmouse);
 

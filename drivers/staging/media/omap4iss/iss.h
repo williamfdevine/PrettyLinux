@@ -38,7 +38,8 @@ struct regmap;
 #define to_device(ptr_module)						\
 	(to_iss_device(ptr_module)->dev)
 
-enum iss_mem_resources {
+enum iss_mem_resources
+{
 	OMAP4_ISS_MEM_TOP,
 	OMAP4_ISS_MEM_CSI2_A_REGS1,
 	OMAP4_ISS_MEM_CAMERARX_CORE1,
@@ -53,7 +54,8 @@ enum iss_mem_resources {
 	OMAP4_ISS_MEM_LAST,
 };
 
-enum iss_subclk_resource {
+enum iss_subclk_resource
+{
 	OMAP4_ISS_SUBCLK_SIMCOP		= (1 << 0),
 	OMAP4_ISS_SUBCLK_ISP		= (1 << 1),
 	OMAP4_ISS_SUBCLK_CSI2_A		= (1 << 2),
@@ -61,7 +63,8 @@ enum iss_subclk_resource {
 	OMAP4_ISS_SUBCLK_CCP2		= (1 << 4),
 };
 
-enum iss_isp_subclk_resource {
+enum iss_isp_subclk_resource
+{
 	OMAP4_ISS_ISP_SUBCLK_BL		= (1 << 0),
 	OMAP4_ISS_ISP_SUBCLK_ISIF	= (1 << 1),
 	OMAP4_ISS_ISP_SUBCLK_H3A	= (1 << 2),
@@ -75,7 +78,8 @@ enum iss_isp_subclk_resource {
  * @reg: 32-bit Register address.
  * @val: 32-bit Register value.
  */
-struct iss_reg {
+struct iss_reg
+{
 	enum iss_mem_resources mmio_range;
 	u32 reg;
 	u32 val;
@@ -86,7 +90,8 @@ struct iss_reg {
  * @syscon: Regmap for the syscon register space
  * @crashed: Crashed entities
  */
-struct iss_device {
+struct iss_device
+{
 	struct v4l2_device v4l2_dev;
 	struct media_device media_dev;
 	struct device *dev;
@@ -127,34 +132,34 @@ struct iss_device {
 	container_of(dev, struct iss_device, v4l2_dev)
 
 int omap4iss_get_external_info(struct iss_pipeline *pipe,
-			       struct media_link *link);
+							   struct media_link *link);
 
 int omap4iss_module_sync_idle(struct media_entity *me, wait_queue_head_t *wait,
-			      atomic_t *stopping);
+							  atomic_t *stopping);
 
 int omap4iss_module_sync_is_stopping(wait_queue_head_t *wait,
-				     atomic_t *stopping);
+									 atomic_t *stopping);
 
 int omap4iss_pipeline_set_stream(struct iss_pipeline *pipe,
-				 enum iss_pipeline_stream_state state);
+								 enum iss_pipeline_stream_state state);
 void omap4iss_pipeline_cancel_stream(struct iss_pipeline *pipe);
 
 void omap4iss_configure_bridge(struct iss_device *iss,
-			       enum ipipeif_input_entity input);
+							   enum ipipeif_input_entity input);
 
 struct iss_device *omap4iss_get(struct iss_device *iss);
 void omap4iss_put(struct iss_device *iss);
 int omap4iss_subclk_enable(struct iss_device *iss,
-			   enum iss_subclk_resource res);
+						   enum iss_subclk_resource res);
 int omap4iss_subclk_disable(struct iss_device *iss,
-			    enum iss_subclk_resource res);
+							enum iss_subclk_resource res);
 void omap4iss_isp_subclk_enable(struct iss_device *iss,
-				enum iss_isp_subclk_resource res);
+								enum iss_isp_subclk_resource res);
 void omap4iss_isp_subclk_disable(struct iss_device *iss,
-				 enum iss_isp_subclk_resource res);
+								 enum iss_isp_subclk_resource res);
 
 int omap4iss_register_entities(struct platform_device *pdev,
-			       struct v4l2_device *v4l2_dev);
+							   struct v4l2_device *v4l2_dev);
 void omap4iss_unregister_entities(struct platform_device *pdev);
 
 /*
@@ -167,7 +172,7 @@ void omap4iss_unregister_entities(struct platform_device *pdev);
  */
 static inline
 u32 iss_reg_read(struct iss_device *iss, enum iss_mem_resources res,
-		 u32 offset)
+				 u32 offset)
 {
 	return readl(iss->regs[res] + offset);
 }
@@ -181,7 +186,7 @@ u32 iss_reg_read(struct iss_device *iss, enum iss_mem_resources res,
  */
 static inline
 void iss_reg_write(struct iss_device *iss, enum iss_mem_resources res,
-		   u32 offset, u32 value)
+				   u32 offset, u32 value)
 {
 	writel(value, iss->regs[res] + offset);
 }
@@ -195,7 +200,7 @@ void iss_reg_write(struct iss_device *iss, enum iss_mem_resources res,
  */
 static inline
 void iss_reg_clr(struct iss_device *iss, enum iss_mem_resources res,
-		 u32 offset, u32 clr)
+				 u32 offset, u32 clr)
 {
 	u32 v = iss_reg_read(iss, res, offset);
 
@@ -211,7 +216,7 @@ void iss_reg_clr(struct iss_device *iss, enum iss_mem_resources res,
  */
 static inline
 void iss_reg_set(struct iss_device *iss, enum iss_mem_resources res,
-		 u32 offset, u32 set)
+				 u32 offset, u32 set)
 {
 	u32 v = iss_reg_read(iss, res, offset);
 
@@ -230,7 +235,7 @@ void iss_reg_set(struct iss_device *iss, enum iss_mem_resources res,
  */
 static inline
 void iss_reg_update(struct iss_device *iss, enum iss_mem_resources res,
-		    u32 offset, u32 clr, u32 set)
+					u32 offset, u32 clr, u32 set)
 {
 	u32 v = iss_reg_read(iss, res, offset);
 
@@ -238,17 +243,17 @@ void iss_reg_update(struct iss_device *iss, enum iss_mem_resources res,
 }
 
 #define iss_poll_condition_timeout(cond, timeout, min_ival, max_ival)	\
-({									\
-	unsigned long __timeout = jiffies + usecs_to_jiffies(timeout);	\
-	unsigned int __min_ival = (min_ival);				\
-	unsigned int __max_ival = (max_ival);				\
-	bool __cond;							\
-	while (!(__cond = (cond))) {					\
-		if (time_after(jiffies, __timeout))			\
-			break;						\
-		usleep_range(__min_ival, __max_ival);			\
-	}								\
-	!__cond;							\
-})
+	({									\
+		unsigned long __timeout = jiffies + usecs_to_jiffies(timeout);	\
+		unsigned int __min_ival = (min_ival);				\
+		unsigned int __max_ival = (max_ival);				\
+		bool __cond;							\
+		while (!(__cond = (cond))) {					\
+			if (time_after(jiffies, __timeout))			\
+				break;						\
+			usleep_range(__min_ival, __max_ival);			\
+		}								\
+		!__cond;							\
+	})
 
 #endif /* _OMAP4_ISS_H_ */

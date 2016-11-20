@@ -12,7 +12,8 @@
  *
  * use kmalloc for smaller sizes, vmalloc for larger sizes.
  */
-struct ceph_buffer {
+struct ceph_buffer
+{
 	struct kref kref;
 	struct kvec vec;
 	size_t alloc_len;

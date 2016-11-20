@@ -27,7 +27,8 @@ static int container_offline(struct device *dev)
 	return cdev->offline ? cdev->offline(cdev) : 0;
 }
 
-struct bus_type container_subsys = {
+struct bus_type container_subsys =
+{
 	.name = CONTAINER_BUS_NAME,
 	.dev_name = CONTAINER_BUS_NAME,
 	.online = trivial_online,
@@ -39,6 +40,9 @@ void __init container_dev_init(void)
 	int ret;
 
 	ret = subsys_system_register(&container_subsys, NULL);
+
 	if (ret)
+	{
 		pr_err("%s() failed: %d\n", __func__, ret);
+	}
 }

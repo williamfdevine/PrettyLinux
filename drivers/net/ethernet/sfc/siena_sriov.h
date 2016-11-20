@@ -51,11 +51,11 @@ void efx_siena_sriov_flr(struct efx_nic *efx, unsigned flr);
 
 int efx_siena_sriov_set_vf_mac(struct efx_nic *efx, int vf, u8 *mac);
 int efx_siena_sriov_set_vf_vlan(struct efx_nic *efx, int vf,
-				u16 vlan, u8 qos);
+								u16 vlan, u8 qos);
 int efx_siena_sriov_set_vf_spoofchk(struct efx_nic *efx, int vf,
-				    bool spoofchk);
+									bool spoofchk);
 int efx_siena_sriov_get_vf_config(struct efx_nic *efx, int vf,
-				  struct ifla_vf_info *ivf);
+								  struct ifla_vf_info *ivf);
 
 #ifdef CONFIG_SFC_SRIOV
 

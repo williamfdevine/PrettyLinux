@@ -20,7 +20,8 @@
 
 struct snd_card;
 
-struct snd_cobalt_card {
+struct snd_cobalt_card
+{
 	struct cobalt_stream *s;
 	struct snd_card *sc;
 	unsigned int capture_transfer_done;

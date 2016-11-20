@@ -18,12 +18,14 @@
 #define TCA_TUNNEL_KEY_ACT_SET	    1
 #define TCA_TUNNEL_KEY_ACT_RELEASE  2
 
-struct tc_tunnel_key {
+struct tc_tunnel_key
+{
 	tc_gen;
 	int t_action;
 };
 
-enum {
+enum
+{
 	TCA_TUNNEL_KEY_UNSPEC,
 	TCA_TUNNEL_KEY_TM,
 	TCA_TUNNEL_KEY_PARMS,

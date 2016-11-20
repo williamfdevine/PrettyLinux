@@ -20,40 +20,46 @@
 
 #include <linux/mfd/si476x-core.h>
 
-struct si476x_property_range {
+struct si476x_property_range
+{
 	u16 low, high;
 };
 
 static bool si476x_core_element_is_in_array(u16 element,
-					    const u16 array[],
-					    size_t size)
+		const u16 array[],
+		size_t size)
 {
 	int i;
 
 	for (i = 0; i < size; i++)
 		if (element == array[i])
+		{
 			return true;
+		}
 
 	return false;
 }
 
 static bool si476x_core_element_is_in_range(u16 element,
-					    const struct si476x_property_range range[],
-					    size_t size)
+		const struct si476x_property_range range[],
+		size_t size)
 {
 	int i;
 
 	for (i = 0; i < size; i++)
 		if (element <= range[i].high && element >= range[i].low)
+		{
 			return true;
+		}
 
 	return false;
 }
 
 static bool si476x_core_is_valid_property_a10(struct si476x_core *core,
-					      u16 property)
+		u16 property)
 {
-	static const u16 valid_properties[] = {
+	static const u16 valid_properties[] =
+	{
 		0x0000,
 		0x0500, 0x0501,
 		0x0600,
@@ -64,7 +70,8 @@ static bool si476x_core_is_valid_property_a10(struct si476x_core *core,
 		0x2300,
 	};
 
-	static const struct si476x_property_range valid_ranges[] = {
+	static const struct si476x_property_range valid_ranges[] =
+	{
 		{ 0x0200, 0x0203 },
 		{ 0x0300, 0x0303 },
 		{ 0x0400, 0x0404 },
@@ -86,36 +93,39 @@ static bool si476x_core_is_valid_property_a10(struct si476x_core *core,
 	};
 
 	return	si476x_core_element_is_in_range(property, valid_ranges,
-						ARRAY_SIZE(valid_ranges)) ||
-		si476x_core_element_is_in_array(property, valid_properties,
-						ARRAY_SIZE(valid_properties));
+											ARRAY_SIZE(valid_ranges)) ||
+			si476x_core_element_is_in_array(property, valid_properties,
+											ARRAY_SIZE(valid_properties));
 }
 
 static bool si476x_core_is_valid_property_a20(struct si476x_core *core,
-					      u16 property)
+		u16 property)
 {
-	static const u16 valid_properties[] = {
+	static const u16 valid_properties[] =
+	{
 		0x071B,
 		0x1006,
 		0x2210,
 		0x3401,
 	};
 
-	static const struct si476x_property_range valid_ranges[] = {
+	static const struct si476x_property_range valid_ranges[] =
+	{
 		{ 0x2215, 0x2219 },
 	};
 
 	return	si476x_core_is_valid_property_a10(core, property) ||
-		si476x_core_element_is_in_range(property, valid_ranges,
-						ARRAY_SIZE(valid_ranges))  ||
-		si476x_core_element_is_in_array(property, valid_properties,
-						ARRAY_SIZE(valid_properties));
+			si476x_core_element_is_in_range(property, valid_ranges,
+											ARRAY_SIZE(valid_ranges))  ||
+			si476x_core_element_is_in_array(property, valid_properties,
+											ARRAY_SIZE(valid_properties));
 }
 
 static bool si476x_core_is_valid_property_a30(struct si476x_core *core,
-					      u16 property)
+		u16 property)
 {
-	static const u16 valid_properties[] = {
+	static const u16 valid_properties[] =
+	{
 		0x071C, 0x071D,
 		0x1007, 0x1008,
 		0x220F, 0x2214,
@@ -124,7 +134,8 @@ static bool si476x_core_is_valid_property_a30(struct si476x_core *core,
 		0x3402,
 	};
 
-	static const struct si476x_property_range valid_ranges[] = {
+	static const struct si476x_property_range valid_ranges[] =
+	{
 		{ 0x0405, 0x0411 },
 		{ 0x2008, 0x200B },
 		{ 0x2220, 0x2223 },
@@ -132,51 +143,55 @@ static bool si476x_core_is_valid_property_a30(struct si476x_core *core,
 	};
 
 	return	si476x_core_is_valid_property_a20(core, property) ||
-		si476x_core_element_is_in_range(property, valid_ranges,
-						ARRAY_SIZE(valid_ranges)) ||
-		si476x_core_element_is_in_array(property, valid_properties,
-						ARRAY_SIZE(valid_properties));
+			si476x_core_element_is_in_range(property, valid_ranges,
+											ARRAY_SIZE(valid_ranges)) ||
+			si476x_core_element_is_in_array(property, valid_properties,
+											ARRAY_SIZE(valid_properties));
 }
 
 typedef bool (*valid_property_pred_t) (struct si476x_core *, u16);
 
 static bool si476x_core_is_valid_property(struct si476x_core *core,
-					  u16 property)
+		u16 property)
 {
-	static const valid_property_pred_t is_valid_property[] = {
+	static const valid_property_pred_t is_valid_property[] =
+	{
 		[SI476X_REVISION_A10] = si476x_core_is_valid_property_a10,
 		[SI476X_REVISION_A20] = si476x_core_is_valid_property_a20,
 		[SI476X_REVISION_A30] = si476x_core_is_valid_property_a30,
 	};
 
 	BUG_ON(core->revision > SI476X_REVISION_A30 ||
-	       core->revision == -1);
+		   core->revision == -1);
 	return is_valid_property[core->revision](core, property);
 }
 
 
 static bool si476x_core_is_readonly_property(struct si476x_core *core,
-					     u16 property)
+		u16 property)
 {
 	BUG_ON(core->revision > SI476X_REVISION_A30 ||
-	       core->revision == -1);
+		   core->revision == -1);
 
-	switch (core->revision) {
-	case SI476X_REVISION_A10:
-		return (property == 0x3200);
-	case SI476X_REVISION_A20:
-		return (property == 0x1006 ||
-			property == 0x2210 ||
-			property == 0x3200);
-	case SI476X_REVISION_A30:
-		return false;
+	switch (core->revision)
+	{
+		case SI476X_REVISION_A10:
+			return (property == 0x3200);
+
+		case SI476X_REVISION_A20:
+			return (property == 0x1006 ||
+					property == 0x2210 ||
+					property == 0x3200);
+
+		case SI476X_REVISION_A30:
+			return false;
 	}
 
 	return false;
 }
 
 static bool si476x_core_regmap_readable_register(struct device *dev,
-						 unsigned int reg)
+		unsigned int reg)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	struct si476x_core *core = i2c_get_clientdata(client);
@@ -186,31 +201,34 @@ static bool si476x_core_regmap_readable_register(struct device *dev,
 }
 
 static bool si476x_core_regmap_writable_register(struct device *dev,
-						 unsigned int reg)
+		unsigned int reg)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	struct si476x_core *core = i2c_get_clientdata(client);
 
 	return si476x_core_is_valid_property(core, (u16) reg) &&
-		!si476x_core_is_readonly_property(core, (u16) reg);
+		   !si476x_core_is_readonly_property(core, (u16) reg);
 }
 
 
 static int si476x_core_regmap_write(void *context, unsigned int reg,
-				    unsigned int val)
+									unsigned int val)
 {
 	return si476x_core_cmd_set_property(context, reg, val);
 }
 
 static int si476x_core_regmap_read(void *context, unsigned int reg,
-				   unsigned *val)
+								   unsigned *val)
 {
 	struct si476x_core *core = context;
 	int err;
 
 	err = si476x_core_cmd_get_property(core, reg);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	*val = err;
 
@@ -218,7 +236,8 @@ static int si476x_core_regmap_read(void *context, unsigned int reg,
 }
 
 
-static const struct regmap_config si476x_regmap_config = {
+static const struct regmap_config si476x_regmap_config =
+{
 	.reg_bits = 16,
 	.val_bits = 16,
 
@@ -236,6 +255,6 @@ static const struct regmap_config si476x_regmap_config = {
 struct regmap *devm_regmap_init_si476x(struct si476x_core *core)
 {
 	return devm_regmap_init(&core->client->dev, NULL,
-				core, &si476x_regmap_config);
+							core, &si476x_regmap_config);
 }
 EXPORT_SYMBOL_GPL(devm_regmap_init_si476x);

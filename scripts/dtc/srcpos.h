@@ -23,7 +23,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-struct srcfile_state {
+struct srcfile_state
+{
 	FILE *f;
 	char *name;
 	char *dir;
@@ -67,12 +68,13 @@ bool srcfile_pop(void);
  */
 void srcfile_add_search_path(const char *dirname);
 
-struct srcpos {
-    int first_line;
-    int first_column;
-    int last_line;
-    int last_column;
-    struct srcfile_state *file;
+struct srcpos
+{
+	int first_line;
+	int first_column;
+	int last_line;
+	int last_column;
+	struct srcfile_state *file;
 };
 
 #define YYLTYPE struct srcpos
@@ -87,9 +89,9 @@ struct srcpos {
 			(Current).file = YYRHSLOC(Rhs, N).file;			\
 		} else {							\
 			(Current).first_line = (Current).last_line =		\
-				YYRHSLOC(Rhs, 0).last_line;			\
+								   YYRHSLOC(Rhs, 0).last_line;			\
 			(Current).first_column = (Current).last_column =	\
-				YYRHSLOC(Rhs, 0).last_column;			\
+									 YYRHSLOC(Rhs, 0).last_column;			\
 			(Current).file = YYRHSLOC (Rhs, 0).file;		\
 		}								\
 	} while (0)
@@ -108,11 +110,11 @@ extern char *srcpos_string(struct srcpos *pos);
 extern void srcpos_dump(struct srcpos *pos);
 
 extern void srcpos_verror(struct srcpos *pos, const char *prefix,
-			  const char *fmt, va_list va)
-	__attribute__((format(printf, 3, 0)));
+						  const char *fmt, va_list va)
+__attribute__((format(printf, 3, 0)));
 extern void srcpos_error(struct srcpos *pos, const char *prefix,
-			 const char *fmt, ...)
-	__attribute__((format(printf, 3, 4)));
+						 const char *fmt, ...)
+__attribute__((format(printf, 3, 4)));
 
 extern void srcpos_set_line(char *f, int l);
 

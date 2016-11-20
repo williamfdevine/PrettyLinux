@@ -36,7 +36,8 @@
  */
 #define ASD_MAX_DDBS	128
 
-struct asd_ddb_ssp_smp_target_port {
+struct asd_ddb_ssp_smp_target_port
+{
 	u8     conn_type;	  /* byte 0 */
 #define DDB_TP_CONN_TYPE 0x81	  /* Initiator port and addr frame type 0x01 */
 
@@ -92,7 +93,8 @@ struct asd_ddb_ssp_smp_target_port {
 	__le32 itnl_timestamp;
 } __attribute__ ((packed));
 
-struct asd_ddb_stp_sata_target_port {
+struct asd_ddb_stp_sata_target_port
+{
 	u8     conn_type;	  /* byte 0 */
 	u8     conn_rate;
 	__be16 init_conn_tag;
@@ -143,7 +145,8 @@ struct asd_ddb_stp_sata_target_port {
  * Bytes [0,11] and [20,27] are from the OPEN address frame.
  * The sequencer allocates an initiator port DDB entry.
  */
-struct asd_ddb_init_port {
+struct asd_ddb_init_port
+{
 	u8     conn_type;	  /* byte 0 */
 	u8     conn_rate;
 	__be16 init_conn_tag;     /* BE */
@@ -180,7 +183,8 @@ struct asd_ddb_init_port {
  * NCQ support.  This table is used by the sequencers to find the
  * corresponding SCB, given a SATA II tag value.
  */
-struct asd_ddb_sata_tag {
+struct asd_ddb_sata_tag
+{
 	__le16 scb_pointer[32];
 } __attribute__ ((packed));
 
@@ -192,7 +196,8 @@ struct asd_ddb_sata_tag {
  * DDB of the SATA port multiplier port (i.e. the SATA target
  * discovered on the port).
  */
-struct asd_ddb_sata_pm_table {
+struct asd_ddb_sata_pm_table
+{
 	__le16 ddb_pointer[16];
 	__le16 _r_a[16];
 } __attribute__ ((packed));
@@ -200,7 +205,8 @@ struct asd_ddb_sata_pm_table {
 /* This struct asd_ddb_sata_pm_port, describes the SATA port multiplier
  * port format DDB.
  */
-struct asd_ddb_sata_pm_port {
+struct asd_ddb_sata_pm_port
+{
 	u8     _r_a[15];
 	u8     ddb_type;
 	u8     _r_b[13];
@@ -225,7 +231,8 @@ struct asd_ddb_sata_pm_port {
  * number [0,7]; each byte is a bit mask of all the phys that are in
  * the same port as the indexed phy.
  */
-struct asd_ddb_seq_shared {
+struct asd_ddb_seq_shared
+{
 	__le16 q_free_ddb_head;
 	__le16 q_free_ddb_tail;
 	__le16 q_free_ddb_cnt;
@@ -258,7 +265,8 @@ struct asd_ddb_seq_shared {
  * sg_el embedded in the SCB, in which case next_sg_offset is 32,
  * since sizeof(sg_el) = 16; EOS should be 1 and EOL 0 in this case.
  */
-struct sg_el {
+struct sg_el
+{
 	__le64 bus_addr;
 	__le32 size;
 	__le16 _r;
@@ -281,7 +289,8 @@ struct sg_el {
 
 /* This struct scb_header, defines the SCB header format.
  */
-struct scb_header {
+struct scb_header
+{
 	__le64 next_scb;
 	__le16 index;		  /* transaction context */
 	u8     opcode;
@@ -334,7 +343,8 @@ struct scb_header {
 
 /* This is both ssp_task and long_ssp_task
  */
-struct initiate_ssp_task {
+struct initiate_ssp_task
+{
 	u8     proto_conn_rate;	  /* proto:6,4, conn_rate:3,0 */
 	__le32 total_xfer_len;
 	struct ssp_frame_hdr  ssp_frame;
@@ -358,7 +368,8 @@ struct initiate_ssp_task {
  * atapi: C bit of FIS should be 1, and command register should be 0xA0,
  * to indicate a packet command.
  */
-struct initiate_ata_task {
+struct initiate_ata_task
+{
 	u8     proto_conn_rate;
 	__le32 total_xfer_len;
 	struct host_to_dev_fis fis;
@@ -386,7 +397,8 @@ struct initiate_ata_task {
 	struct sg_el sg_element[3];
 } __attribute__ ((packed));
 
-struct initiate_smp_task {
+struct initiate_smp_task
+{
 	u8     proto_conn_rate;
 	u8     _r_a[40];
 	struct sg_el smp_req;
@@ -397,7 +409,8 @@ struct initiate_smp_task {
 	u8     _r_d[32];
 } __attribute__ ((packed));
 
-struct control_phy {
+struct control_phy
+{
 	u8     phy_id;
 	u8     sub_func;
 #define DISABLE_PHY            0x00
@@ -423,7 +436,8 @@ struct control_phy {
 	u8     _r_b[56];
 } __attribute__ ((packed));
 
-struct control_ata_dev {
+struct control_ata_dev
+{
 	u8     proto_conn_rate;
 	__le32 _r_a;
 	struct host_to_dev_fis fis;
@@ -434,17 +448,19 @@ struct control_ata_dev {
 	u8     _r_c[55];
 } __attribute__ ((packed));
 
-struct empty_scb {
+struct empty_scb
+{
 	u8     num_valid;
 	__le32 _r_a;
 #define ASD_EDBS_PER_SCB 7
-/* header+data+CRC+DMA suffix data */
+	/* header+data+CRC+DMA suffix data */
 #define ASD_EDB_SIZE (24+1024+4+16)
 	struct sg_el eb[ASD_EDBS_PER_SCB];
 #define ELEMENT_NOT_VALID  0xC0
 } __attribute__ ((packed));
 
-struct initiate_link_adm {
+struct initiate_link_adm
+{
 	u8     phy_id;
 	u8     sub_func;
 #define GET_LINK_ERROR_COUNT      0x00
@@ -456,7 +472,8 @@ struct initiate_link_adm {
 	u8     _r_b[56];
 } __attribute__ ((packed));
 
-struct copy_memory {
+struct copy_memory
+{
 	u8     _r_a;
 	__le16 xfer_len;
 	__le16 _r_b;
@@ -470,7 +487,8 @@ struct copy_memory {
 	u8     _r_e[39];
 } __attribute__ ((packed));
 
-struct abort_task {
+struct abort_task
+{
 	u8     proto_conn_rate;
 	__le32 _r_a;
 	struct ssp_frame_hdr ssp_frame;
@@ -488,7 +506,8 @@ struct abort_task {
 	u8     _r_d[44];
 } __attribute__ ((packed));
 
-struct clear_nexus {
+struct clear_nexus
+{
 	u8     nexus;
 #define NEXUS_ADAPTER  0x00
 #define NEXUS_PORT     0x01
@@ -521,7 +540,8 @@ struct clear_nexus {
 	u8     _r_f[44];
 } __attribute__ ((packed));
 
-struct initiate_ssp_tmf {
+struct initiate_ssp_tmf
+{
 	u8     proto_conn_rate;
 	__le32 _r_a;
 	struct ssp_frame_hdr ssp_frame;
@@ -542,7 +562,8 @@ struct initiate_ssp_tmf {
 /* Transmits an arbitrary primitive on the link.
  * Used for NOTIFY and BROADCAST.
  */
-struct send_prim {
+struct send_prim
+{
 	u8     phy_id;
 	u8     wait_transmit; 	  /* :0,0 */
 	u8     xmit_flags;
@@ -569,7 +590,8 @@ struct send_prim {
  * Send Good Response SCBs.  Used when the sequencer is operating in
  * target mode...
  */
-struct ssp_targ_get_data {
+struct ssp_targ_get_data
+{
 	u8     proto_conn_rate;
 	__le32 total_xfer_len;
 	struct ssp_frame_hdr ssp_frame;
@@ -587,9 +609,11 @@ struct ssp_targ_get_data {
 
 /* ---------- The actual SCB struct ---------- */
 
-struct scb {
+struct scb
+{
 	struct scb_header header;
-	union {
+	union
+	{
 		struct initiate_ssp_task ssp_task;
 		struct initiate_ata_task ata_task;
 		struct initiate_smp_task smp_task;
@@ -681,7 +705,8 @@ struct scb {
 /* This struct done_list_struct defines the done list entry.
  * All fields are LE.
  */
-struct done_list_struct {
+struct done_list_struct
+{
 	__le16 index;		  /* aka transaction context */
 	u8     opcode;
 	u8     status_block[4];
@@ -691,7 +716,8 @@ struct done_list_struct {
 
 /* ---------- PHYS ---------- */
 
-struct asd_phy {
+struct asd_phy
+{
 	struct asd_sas_phy        sas_phy;
 	struct asd_phy_desc   *phy_desc; /* hw profile */
 

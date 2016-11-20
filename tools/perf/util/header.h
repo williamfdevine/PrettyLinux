@@ -9,7 +9,8 @@
 #include "event.h"
 #include "env.h"
 
-enum {
+enum
+{
 	HEADER_RESERVED		= 0,	/* always cleared */
 	HEADER_FIRST_FEATURE	= 1,
 	HEADER_TRACING_DATA	= 1,
@@ -37,17 +38,20 @@ enum {
 	HEADER_FEAT_BITS	= 256,
 };
 
-enum perf_header_version {
+enum perf_header_version
+{
 	PERF_HEADER_VERSION_1,
 	PERF_HEADER_VERSION_2,
 };
 
-struct perf_file_section {
+struct perf_file_section
+{
 	u64 offset;
 	u64 size;
 };
 
-struct perf_file_header {
+struct perf_file_header
+{
 	u64				magic;
 	u64				size;
 	u64				attr_size;
@@ -58,7 +62,8 @@ struct perf_file_header {
 	DECLARE_BITMAP(adds_features, HEADER_FEAT_BITS);
 };
 
-struct perf_pipe_file_header {
+struct perf_pipe_file_header
+{
 	u64				magic;
 	u64				size;
 };
@@ -66,9 +71,10 @@ struct perf_pipe_file_header {
 struct perf_header;
 
 int perf_file_header__read(struct perf_file_header *header,
-			   struct perf_header *ph, int fd);
+						   struct perf_header *ph, int fd);
 
-struct perf_header {
+struct perf_header
+{
 	enum perf_header_version	version;
 	bool				needs_swap;
 	u64				data_offset;
@@ -83,8 +89,8 @@ struct perf_session;
 
 int perf_session__read_header(struct perf_session *session);
 int perf_session__write_header(struct perf_session *session,
-			       struct perf_evlist *evlist,
-			       int fd, bool at_exit);
+							   struct perf_evlist *evlist,
+							   int fd, bool at_exit);
 int perf_header__write_pipe(int fd);
 
 void perf_header__set_feat(struct perf_header *header, int feat);
@@ -94,52 +100,52 @@ bool perf_header__has_feat(const struct perf_header *header, int feat);
 int perf_header__set_cmdline(int argc, const char **argv);
 
 int perf_header__process_sections(struct perf_header *header, int fd,
-				  void *data,
-				  int (*process)(struct perf_file_section *section,
-				  struct perf_header *ph,
-				  int feat, int fd, void *data));
+								  void *data,
+								  int (*process)(struct perf_file_section *section,
+										  struct perf_header *ph,
+										  int feat, int fd, void *data));
 
 int perf_header__fprintf_info(struct perf_session *s, FILE *fp, bool full);
 
 int perf_event__synthesize_attr(struct perf_tool *tool,
-				struct perf_event_attr *attr, u32 ids, u64 *id,
-				perf_event__handler_t process);
+								struct perf_event_attr *attr, u32 ids, u64 *id,
+								perf_event__handler_t process);
 int perf_event__synthesize_attrs(struct perf_tool *tool,
-				 struct perf_session *session,
-				 perf_event__handler_t process);
+								 struct perf_session *session,
+								 perf_event__handler_t process);
 int perf_event__synthesize_event_update_unit(struct perf_tool *tool,
-					     struct perf_evsel *evsel,
-					     perf_event__handler_t process);
+		struct perf_evsel *evsel,
+		perf_event__handler_t process);
 int perf_event__synthesize_event_update_scale(struct perf_tool *tool,
-					      struct perf_evsel *evsel,
-					      perf_event__handler_t process);
+		struct perf_evsel *evsel,
+		perf_event__handler_t process);
 int perf_event__synthesize_event_update_name(struct perf_tool *tool,
-					     struct perf_evsel *evsel,
-					     perf_event__handler_t process);
+		struct perf_evsel *evsel,
+		perf_event__handler_t process);
 int perf_event__synthesize_event_update_cpus(struct perf_tool *tool,
-					     struct perf_evsel *evsel,
-					     perf_event__handler_t process);
+		struct perf_evsel *evsel,
+		perf_event__handler_t process);
 int perf_event__process_attr(struct perf_tool *tool, union perf_event *event,
-			     struct perf_evlist **pevlist);
+							 struct perf_evlist **pevlist);
 int perf_event__process_event_update(struct perf_tool *tool,
-				     union perf_event *event,
-				     struct perf_evlist **pevlist);
+									 union perf_event *event,
+									 struct perf_evlist **pevlist);
 size_t perf_event__fprintf_event_update(union perf_event *event, FILE *fp);
 
 int perf_event__synthesize_tracing_data(struct perf_tool *tool,
-					int fd, struct perf_evlist *evlist,
-					perf_event__handler_t process);
+										int fd, struct perf_evlist *evlist,
+										perf_event__handler_t process);
 int perf_event__process_tracing_data(struct perf_tool *tool,
-				     union perf_event *event,
-				     struct perf_session *session);
+									 union perf_event *event,
+									 struct perf_session *session);
 
 int perf_event__synthesize_build_id(struct perf_tool *tool,
-				    struct dso *pos, u16 misc,
-				    perf_event__handler_t process,
-				    struct machine *machine);
+									struct dso *pos, u16 misc,
+									perf_event__handler_t process,
+									struct machine *machine);
 int perf_event__process_build_id(struct perf_tool *tool,
-				 union perf_event *event,
-				 struct perf_session *session);
+								 union perf_event *event,
+								 struct perf_session *session);
 bool is_perf_magic(u64 magic);
 
 #define NAME_ALIGN 64

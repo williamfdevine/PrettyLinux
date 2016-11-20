@@ -17,7 +17,8 @@
 #ifndef REGD_COMMON_H
 #define REGD_COMMON_H
 
-enum EnumRd {
+enum EnumRd
+{
 	NO_ENUMRD = 0x00,
 	NULL1_WORLD = 0x03,
 	NULL1_ETSIB = 0x07,
@@ -156,7 +157,8 @@ enum EnumRd {
 };
 
 /* Regpair to CTL band mapping */
-static struct reg_dmn_pair_mapping regDomainPairs[] = {
+static struct reg_dmn_pair_mapping regDomainPairs[] =
+{
 	/* regpair, 5 GHz CTL, 2 GHz CTL */
 	{NO_ENUMRD, DEBUG_REG_DMN, DEBUG_REG_DMN},
 	{NULL1_WORLD, NO_CTL, CTL_ETSI},
@@ -286,7 +288,8 @@ static struct reg_dmn_pair_mapping regDomainPairs[] = {
 	{WORC_WORLD, NO_CTL, NO_CTL},
 };
 
-static struct country_code_to_enum_rd allCountries[] = {
+static struct country_code_to_enum_rd allCountries[] =
+{
 	{CTRY_DEBUG, NO_ENUMRD, "DB"},
 	{CTRY_DEFAULT, FCC1_FCCA, "CO"},
 	{CTRY_ALBANIA, NULL1_WORLD, "AL"},

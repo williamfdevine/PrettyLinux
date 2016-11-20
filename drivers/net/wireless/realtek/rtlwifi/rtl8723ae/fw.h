@@ -37,8 +37,8 @@
 
 #define IS_FW_HEADER_EXIST(_pfwhdr)	\
 	((_pfwhdr->signature&0xFFFF) == 0x2300 ||\
-	(_pfwhdr->signature&0xFFFF) == 0x2301 ||\
-	(_pfwhdr->signature&0xFFFF) == 0x2302)
+	 (_pfwhdr->signature&0xFFFF) == 0x2301 ||\
+	 (_pfwhdr->signature&0xFFFF) == 0x2302)
 
 #define pagenum_128(_len)	(u32)(((_len)>>7) + ((_len)&0x7F ? 1 : 0))
 
@@ -58,7 +58,7 @@
 	SET_BITS_TO_LE_1BYTE((__ph2ccmd)+2, 0, 8, __val)
 
 void rtl8723e_fill_h2c_cmd(struct ieee80211_hw *hw, u8 element_id,
-			   u32 cmd_len, u8 *p_cmdbuffer);
+						   u32 cmd_len, u8 *p_cmdbuffer);
 void rtl8723e_set_fw_pwrmode_cmd(struct ieee80211_hw *hw, u8 mode);
 void rtl8723e_set_fw_rsvdpagepkt(struct ieee80211_hw *hw, bool b_dl_finished);
 void rtl8723e_set_fw_joinbss_report_cmd(struct ieee80211_hw *hw, u8 mstatus);

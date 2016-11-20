@@ -30,9 +30,9 @@
 /*
  * FC Transport Message Types
  */
-	/* kernel -> user */
+/* kernel -> user */
 #define FC_NL_ASYNC_EVENT			0x0100
-	/* user -> kernel */
+/* user -> kernel */
 /* none */
 
 
@@ -55,7 +55,8 @@
  * Note: When specifying vendor_id, be sure to read the Vendor Type and ID
  *   formatting requirements specified in scsi_netlink.h
  */
-struct fc_nl_event {
+struct fc_nl_event
+{
 	struct scsi_nl_hdr snlh;		/* must be 1st element ! */
 	uint64_t seconds;
 	uint64_t vendor_id;

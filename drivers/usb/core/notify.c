@@ -54,7 +54,7 @@ void usb_notify_remove_device(struct usb_device *udev)
 	/* Protect against simultaneous usbfs open */
 	mutex_lock(&usbfs_mutex);
 	blocking_notifier_call_chain(&usb_notifier_list,
-			USB_DEVICE_REMOVE, udev);
+								 USB_DEVICE_REMOVE, udev);
 	mutex_unlock(&usbfs_mutex);
 }
 

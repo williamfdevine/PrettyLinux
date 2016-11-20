@@ -43,8 +43,10 @@
 #include <linux/mutex.h>
 #include <linux/sysfs.h>
 
-static const unsigned short normal_i2c[] = {
-	0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f, I2C_CLIENT_END };
+static const unsigned short normal_i2c[] =
+{
+	0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f, I2C_CLIENT_END
+};
 
 /*
  * The MAX6642 registers
@@ -86,7 +88,8 @@ static int temp_to_reg(int val)
  * Client data (each client gets its own)
  */
 
-struct max6642_data {
+struct max6642_data
+{
 	struct i2c_client *client;
 	struct mutex update_lock;
 	bool valid; /* zero until following fields are valid */
@@ -103,7 +106,7 @@ struct max6642_data {
  */
 
 static void max6642_init_client(struct max6642_data *data,
-				struct i2c_client *client)
+								struct i2c_client *client)
 {
 	u8 config;
 
@@ -111,36 +114,44 @@ static void max6642_init_client(struct max6642_data *data,
 	 * Start the conversions.
 	 */
 	config = i2c_smbus_read_byte_data(client, MAX6642_REG_R_CONFIG);
+
 	if (config & 0x40)
 		i2c_smbus_write_byte_data(client, MAX6642_REG_W_CONFIG,
-					  config & 0xBF); /* run */
+								  config & 0xBF); /* run */
 
 	data->temp_high[0] = i2c_smbus_read_byte_data(client,
-				MAX6642_REG_R_LOCAL_HIGH);
+						 MAX6642_REG_R_LOCAL_HIGH);
 	data->temp_high[1] = i2c_smbus_read_byte_data(client,
-				MAX6642_REG_R_REMOTE_HIGH);
+						 MAX6642_REG_R_REMOTE_HIGH);
 }
 
 /* Return 0 if detection is successful, -ENODEV otherwise */
 static int max6642_detect(struct i2c_client *client,
-			  struct i2c_board_info *info)
+						  struct i2c_board_info *info)
 {
 	struct i2c_adapter *adapter = client->adapter;
 	u8 reg_config, reg_status, man_id;
 
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		return -ENODEV;
+	}
 
 	/* identification */
 	man_id = i2c_smbus_read_byte_data(client, MAX6642_REG_R_MAN_ID);
+
 	if (man_id != 0x4D)
+	{
 		return -ENODEV;
+	}
 
 	/* sanity check */
 	if (i2c_smbus_read_byte_data(client, 0x04) != 0x4D
-	    || i2c_smbus_read_byte_data(client, 0x06) != 0x4D
-	    || i2c_smbus_read_byte_data(client, 0xff) != 0x4D)
+		|| i2c_smbus_read_byte_data(client, 0x06) != 0x4D
+		|| i2c_smbus_read_byte_data(client, 0xff) != 0x4D)
+	{
 		return -ENODEV;
+	}
 
 	/*
 	 * We read the config and status register, the 4 lower bits in the
@@ -148,18 +159,26 @@ static int max6642_detect(struct i2c_client *client,
 	 * zero in the status register.
 	 */
 	reg_config = i2c_smbus_read_byte_data(client, MAX6642_REG_R_CONFIG);
+
 	if ((reg_config & 0x0f) != 0x00)
+	{
 		return -ENODEV;
+	}
 
 	/* in between, another round of sanity checks */
 	if (i2c_smbus_read_byte_data(client, 0x04) != reg_config
-	    || i2c_smbus_read_byte_data(client, 0x06) != reg_config
-	    || i2c_smbus_read_byte_data(client, 0xff) != reg_config)
+		|| i2c_smbus_read_byte_data(client, 0x06) != reg_config
+		|| i2c_smbus_read_byte_data(client, 0xff) != reg_config)
+	{
 		return -ENODEV;
+	}
 
 	reg_status = i2c_smbus_read_byte_data(client, MAX6642_REG_R_STATUS);
+
 	if ((reg_status & 0x2b) != 0x00)
+	{
 		return -ENODEV;
+	}
 
 	strlcpy(info->type, "max6642", I2C_NAME_SIZE);
 
@@ -174,24 +193,25 @@ static struct max6642_data *max6642_update_device(struct device *dev)
 
 	mutex_lock(&data->update_lock);
 
-	if (time_after(jiffies, data->last_updated + HZ) || !data->valid) {
+	if (time_after(jiffies, data->last_updated + HZ) || !data->valid)
+	{
 		dev_dbg(dev, "Updating max6642 data.\n");
 		val = i2c_smbus_read_byte_data(client,
-					MAX6642_REG_R_LOCAL_TEMPL);
+									   MAX6642_REG_R_LOCAL_TEMPL);
 		tmp = (val >> 6) & 3;
 		val = i2c_smbus_read_byte_data(client,
-					MAX6642_REG_R_LOCAL_TEMP);
+									   MAX6642_REG_R_LOCAL_TEMP);
 		val = (val << 2) | tmp;
 		data->temp_input[0] = val;
 		val = i2c_smbus_read_byte_data(client,
-					MAX6642_REG_R_REMOTE_TEMPL);
+									   MAX6642_REG_R_REMOTE_TEMPL);
 		tmp = (val >> 6) & 3;
 		val = i2c_smbus_read_byte_data(client,
-					MAX6642_REG_R_REMOTE_TEMP);
+									   MAX6642_REG_R_REMOTE_TEMP);
 		val = (val << 2) | tmp;
 		data->temp_input[1] = val;
 		data->alarms = i2c_smbus_read_byte_data(client,
-					MAX6642_REG_R_STATUS);
+												MAX6642_REG_R_STATUS);
 
 		data->last_updated = jiffies;
 		data->valid = 1;
@@ -207,17 +227,17 @@ static struct max6642_data *max6642_update_device(struct device *dev)
  */
 
 static ssize_t show_temp_max10(struct device *dev,
-			       struct device_attribute *dev_attr, char *buf)
+							   struct device_attribute *dev_attr, char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(dev_attr);
 	struct max6642_data *data = max6642_update_device(dev);
 
 	return sprintf(buf, "%d\n",
-		       temp_from_reg10(data->temp_input[attr->index]));
+				   temp_from_reg10(data->temp_input[attr->index]));
 }
 
 static ssize_t show_temp_max(struct device *dev, struct device_attribute *attr,
-			     char *buf)
+							 char *buf)
 {
 	struct sensor_device_attribute_2 *attr2 = to_sensor_dev_attr_2(attr);
 	struct max6642_data *data = max6642_update_device(dev);
@@ -226,7 +246,7 @@ static ssize_t show_temp_max(struct device *dev, struct device_attribute *attr,
 }
 
 static ssize_t set_temp_max(struct device *dev, struct device_attribute *attr,
-			    const char *buf, size_t count)
+							const char *buf, size_t count)
 {
 	struct sensor_device_attribute_2 *attr2 = to_sensor_dev_attr_2(attr);
 	struct max6642_data *data = dev_get_drvdata(dev);
@@ -234,19 +254,22 @@ static ssize_t set_temp_max(struct device *dev, struct device_attribute *attr,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
 	data->temp_high[attr2->nr] = clamp_val(temp_to_reg(val), 0, 255);
 	i2c_smbus_write_byte_data(data->client, attr2->index,
-				  data->temp_high[attr2->nr]);
+							  data->temp_high[attr2->nr]);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
-			  char *buf)
+						  char *buf)
 {
 	int bitnr = to_sensor_dev_attr(attr)->index;
 	struct max6642_data *data = max6642_update_device(dev);
@@ -256,14 +279,15 @@ static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
 static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_max10, NULL, 0);
 static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp_max10, NULL, 1);
 static SENSOR_DEVICE_ATTR_2(temp1_max, S_IWUSR | S_IRUGO, show_temp_max,
-			    set_temp_max, 0, MAX6642_REG_W_LOCAL_HIGH);
+							set_temp_max, 0, MAX6642_REG_W_LOCAL_HIGH);
 static SENSOR_DEVICE_ATTR_2(temp2_max, S_IWUSR | S_IRUGO, show_temp_max,
-			    set_temp_max, 1, MAX6642_REG_W_REMOTE_HIGH);
+							set_temp_max, 1, MAX6642_REG_W_REMOTE_HIGH);
 static SENSOR_DEVICE_ATTR(temp2_fault, S_IRUGO, show_alarm, NULL, 2);
 static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL, 6);
 static SENSOR_DEVICE_ATTR(temp2_max_alarm, S_IRUGO, show_alarm, NULL, 4);
 
-static struct attribute *max6642_attrs[] = {
+static struct attribute *max6642_attrs[] =
+{
 	&sensor_dev_attr_temp1_input.dev_attr.attr,
 	&sensor_dev_attr_temp2_input.dev_attr.attr,
 	&sensor_dev_attr_temp1_max.dev_attr.attr,
@@ -277,15 +301,18 @@ static struct attribute *max6642_attrs[] = {
 ATTRIBUTE_GROUPS(max6642);
 
 static int max6642_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct device *dev = &client->dev;
 	struct max6642_data *data;
 	struct device *hwmon_dev;
 
 	data = devm_kzalloc(dev, sizeof(struct max6642_data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	data->client = client;
 	mutex_init(&data->update_lock);
@@ -294,8 +321,8 @@ static int max6642_probe(struct i2c_client *client,
 	max6642_init_client(data, client);
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(&client->dev,
-							   client->name, data,
-							   max6642_groups);
+				client->name, data,
+				max6642_groups);
 	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
@@ -303,13 +330,15 @@ static int max6642_probe(struct i2c_client *client,
  * Driver data (common to all clients)
  */
 
-static const struct i2c_device_id max6642_id[] = {
+static const struct i2c_device_id max6642_id[] =
+{
 	{ "max6642", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, max6642_id);
 
-static struct i2c_driver max6642_driver = {
+static struct i2c_driver max6642_driver =
+{
 	.class		= I2C_CLASS_HWMON,
 	.driver = {
 		.name	= "max6642",

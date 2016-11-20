@@ -154,36 +154,36 @@
 /*CHV_A0, CHV_B0*/
 #define IPC_INT_FROM_ISH_TO_HOST_CHV_AB(drbl_reg) \
 	(((drbl_reg)&IPC_INT_ISH2HOST_BIT_CHV_AB) == \
-	((u32)IPC_INT_ISH2HOST_BIT_CHV_AB))
+	 ((u32)IPC_INT_ISH2HOST_BIT_CHV_AB))
 /*BXT, CHV_K0*/
 #define IPC_INT_FROM_ISH_TO_HOST_BXT(drbl_reg) \
 	(((drbl_reg)&IPC_INT_ISH2HOST_BIT_BXT) == \
-	((u32)IPC_INT_ISH2HOST_BIT_BXT))
+	 ((u32)IPC_INT_ISH2HOST_BIT_BXT))
 /***********************************/
 
 #define IPC_BUILD_HEADER(length, protocol, busy)		\
 	(((busy)<<IPC_DRBL_BUSY_OFFS) |				\
-	((protocol) << IPC_HEADER_PROTOCOL_OFFSET) |		\
-	((length)<<IPC_HEADER_LENGTH_OFFSET))
+	 ((protocol) << IPC_HEADER_PROTOCOL_OFFSET) |		\
+	 ((length)<<IPC_HEADER_LENGTH_OFFSET))
 
 #define IPC_BUILD_MNG_MSG(cmd, length)				\
 	(((1)<<IPC_DRBL_BUSY_OFFS)|				\
-	((IPC_PROTOCOL_MNG)<<IPC_HEADER_PROTOCOL_OFFSET)|	\
-	((cmd)<<IPC_HEADER_MNG_CMD_OFFSET)|			\
+	 ((IPC_PROTOCOL_MNG)<<IPC_HEADER_PROTOCOL_OFFSET)|	\
+	 ((cmd)<<IPC_HEADER_MNG_CMD_OFFSET)|			\
 	 ((length)<<IPC_HEADER_LENGTH_OFFSET))
 
 
 #define IPC_SET_HOST_READY(host_status)		\
-				((host_status) |= (IPC_HOSTCOMM_READY_BIT))
+	((host_status) |= (IPC_HOSTCOMM_READY_BIT))
 
 #define IPC_SET_HOST_ILUP(host_status)		\
-				((host_status) |= (IPC_ILUP_BIT))
+	((host_status) |= (IPC_ILUP_BIT))
 
 #define IPC_CLEAR_HOST_READY(host_status)	\
-				((host_status) ^= (IPC_HOSTCOMM_READY_BIT))
+	((host_status) ^= (IPC_HOSTCOMM_READY_BIT))
 
 #define IPC_CLEAR_HOST_ILUP(host_status)	\
-				((host_status) ^= (IPC_ILUP_BIT))
+	((host_status) ^= (IPC_ILUP_BIT))
 
 /* todo - temp until PIMR HW ready */
 #define IPC_HOST_BUSY_READING_OFFS	6
@@ -192,18 +192,18 @@
 #define IPC_HOST_BUSY_READING_BIT	(1<<IPC_HOST_BUSY_READING_OFFS)
 
 #define IPC_SET_HOST_BUSY_READING(host_status)	\
-				((host_status) |= (IPC_HOST_BUSY_READING_BIT))
+	((host_status) |= (IPC_HOST_BUSY_READING_BIT))
 
 #define IPC_CLEAR_HOST_BUSY_READING(host_status)\
-				((host_status) ^= (IPC_HOST_BUSY_READING_BIT))
+	((host_status) ^= (IPC_HOST_BUSY_READING_BIT))
 
 
 #define IPC_IS_ISH_ISHTP_READY(ish_status)	\
-		(((ish_status) & IPC_ISH_ISHTP_READY_BIT) ==	\
-			((uint32_t)IPC_ISH_ISHTP_READY_BIT))
+	(((ish_status) & IPC_ISH_ISHTP_READY_BIT) ==	\
+	 ((uint32_t)IPC_ISH_ISHTP_READY_BIT))
 
 #define IPC_IS_ISH_ILUP(ish_status)		\
-		(((ish_status) & IPC_ILUP_BIT) == ((uint32_t)IPC_ILUP_BIT))
+	(((ish_status) & IPC_ILUP_BIT) == ((uint32_t)IPC_ILUP_BIT))
 
 
 #define IPC_PROTOCOL_ISHTP		1

@@ -12,13 +12,15 @@ int nouveau_abi16_ioctl_grobj_alloc(ABI16_IOCTL_ARGS);
 int nouveau_abi16_ioctl_notifierobj_alloc(ABI16_IOCTL_ARGS);
 int nouveau_abi16_ioctl_gpuobj_free(ABI16_IOCTL_ARGS);
 
-struct nouveau_abi16_ntfy {
+struct nouveau_abi16_ntfy
+{
 	struct nvif_object object;
 	struct list_head head;
 	struct nvkm_mm_node *node;
 };
 
-struct nouveau_abi16_chan {
+struct nouveau_abi16_chan
+{
 	struct list_head head;
 	struct nouveau_channel *chan;
 	struct list_head notifiers;
@@ -27,7 +29,8 @@ struct nouveau_abi16_chan {
 	struct nvkm_mm  heap;
 };
 
-struct nouveau_abi16 {
+struct nouveau_abi16
+{
 	struct nvif_device device;
 	struct list_head channels;
 	u64 handles;
@@ -42,7 +45,8 @@ int  nouveau_abi16_usif(struct drm_file *, void *data, u32 size);
 #define NOUVEAU_GEM_DOMAIN_VRAM      (1 << 1)
 #define NOUVEAU_GEM_DOMAIN_GART      (1 << 2)
 
-struct drm_nouveau_channel_alloc {
+struct drm_nouveau_channel_alloc
+{
 	uint32_t     fb_ctxdma_handle;
 	uint32_t     tt_ctxdma_handle;
 
@@ -53,31 +57,36 @@ struct drm_nouveau_channel_alloc {
 	uint32_t     notifier_handle;
 
 	/* DRM-enforced subchannel assignments */
-	struct {
+	struct
+	{
 		uint32_t handle;
 		uint32_t grclass;
 	} subchan[8];
 	uint32_t nr_subchan;
 };
 
-struct drm_nouveau_channel_free {
+struct drm_nouveau_channel_free
+{
 	int channel;
 };
 
-struct drm_nouveau_grobj_alloc {
+struct drm_nouveau_grobj_alloc
+{
 	int      channel;
 	uint32_t handle;
 	int      class;
 };
 
-struct drm_nouveau_notifierobj_alloc {
+struct drm_nouveau_notifierobj_alloc
+{
 	uint32_t channel;
 	uint32_t handle;
 	uint32_t size;
 	uint32_t offset;
 };
 
-struct drm_nouveau_gpuobj_free {
+struct drm_nouveau_gpuobj_free
+{
 	int      channel;
 	uint32_t handle;
 };
@@ -93,12 +102,14 @@ struct drm_nouveau_gpuobj_free {
 #define NOUVEAU_GETPARAM_PTIMER_TIME     14
 #define NOUVEAU_GETPARAM_HAS_BO_USAGE    15
 #define NOUVEAU_GETPARAM_HAS_PAGEFLIP    16
-struct drm_nouveau_getparam {
+struct drm_nouveau_getparam
+{
 	uint64_t param;
 	uint64_t value;
 };
 
-struct drm_nouveau_setparam {
+struct drm_nouveau_setparam
+{
 	uint64_t param;
 	uint64_t value;
 };

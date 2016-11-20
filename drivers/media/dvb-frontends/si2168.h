@@ -22,7 +22,8 @@
  * I2C address
  * 0x64
  */
-struct si2168_config {
+struct si2168_config
+{
 	/*
 	 * frontend
 	 * returned by driver

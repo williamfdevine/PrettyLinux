@@ -14,15 +14,15 @@
 #include "ccu_mult.h"
 
 static void ccu_mult_find_best(unsigned long parent, unsigned long rate,
-			       unsigned int max_n, unsigned int *n)
+							   unsigned int max_n, unsigned int *n)
 {
 	*n = rate / parent;
 }
 
 static unsigned long ccu_mult_round_rate(struct ccu_mux_internal *mux,
-					unsigned long parent_rate,
-					unsigned long rate,
-					void *data)
+		unsigned long parent_rate,
+		unsigned long rate,
+		void *data)
 {
 	struct ccu_mult *cm = data;
 	unsigned int n;
@@ -54,7 +54,7 @@ static int ccu_mult_is_enabled(struct clk_hw *hw)
 }
 
 static unsigned long ccu_mult_recalc_rate(struct clk_hw *hw,
-					unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct ccu_mult *cm = hw_to_ccu_mult(hw);
 	unsigned long val;
@@ -65,22 +65,22 @@ static unsigned long ccu_mult_recalc_rate(struct clk_hw *hw,
 	val &= (1 << cm->mult.width) - 1;
 
 	ccu_mux_helper_adjust_parent_for_prediv(&cm->common, &cm->mux, -1,
-						&parent_rate);
+											&parent_rate);
 
 	return parent_rate * (val + 1);
 }
 
 static int ccu_mult_determine_rate(struct clk_hw *hw,
-				struct clk_rate_request *req)
+								   struct clk_rate_request *req)
 {
 	struct ccu_mult *cm = hw_to_ccu_mult(hw);
 
 	return ccu_mux_helper_determine_rate(&cm->common, &cm->mux,
-					     req, ccu_mult_round_rate, cm);
+										 req, ccu_mult_round_rate, cm);
 }
 
 static int ccu_mult_set_rate(struct clk_hw *hw, unsigned long rate,
-			   unsigned long parent_rate)
+							 unsigned long parent_rate)
 {
 	struct ccu_mult *cm = hw_to_ccu_mult(hw);
 	unsigned long flags;
@@ -88,7 +88,7 @@ static int ccu_mult_set_rate(struct clk_hw *hw, unsigned long rate,
 	u32 reg;
 
 	ccu_mux_helper_adjust_parent_for_prediv(&cm->common, &cm->mux, -1,
-						&parent_rate);
+											&parent_rate);
 
 	ccu_mult_find_best(parent_rate, rate, 1 << cm->mult.width, &n);
 
@@ -98,7 +98,7 @@ static int ccu_mult_set_rate(struct clk_hw *hw, unsigned long rate,
 	reg &= ~GENMASK(cm->mult.width + cm->mult.shift - 1, cm->mult.shift);
 
 	writel(reg | ((n - 1) << cm->mult.shift),
-	       cm->common.base + cm->common.reg);
+		   cm->common.base + cm->common.reg);
 
 	spin_unlock_irqrestore(cm->common.lock, flags);
 
@@ -119,7 +119,8 @@ static int ccu_mult_set_parent(struct clk_hw *hw, u8 index)
 	return ccu_mux_helper_set_parent(&cm->common, &cm->mux, index);
 }
 
-const struct clk_ops ccu_mult_ops = {
+const struct clk_ops ccu_mult_ops =
+{
 	.disable	= ccu_mult_disable,
 	.enable		= ccu_mult_enable,
 	.is_enabled	= ccu_mult_is_enabled,

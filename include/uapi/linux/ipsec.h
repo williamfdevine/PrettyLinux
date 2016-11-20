@@ -9,14 +9,16 @@
 #define IPSEC_ULPROTO_ANY	255
 #define IPSEC_PROTO_ANY		255
 
-enum {
+enum
+{
 	IPSEC_MODE_ANY		= 0,	/* We do not support this for SA */
 	IPSEC_MODE_TRANSPORT	= 1,
 	IPSEC_MODE_TUNNEL	= 2,
 	IPSEC_MODE_BEET         = 3
 };
 
-enum {
+enum
+{
 	IPSEC_DIR_ANY		= 0,
 	IPSEC_DIR_INBOUND	= 1,
 	IPSEC_DIR_OUTBOUND	= 2,
@@ -25,7 +27,8 @@ enum {
 	IPSEC_DIR_INVALID	= 5
 };
 
-enum {
+enum
+{
 	IPSEC_POLICY_DISCARD	= 0,
 	IPSEC_POLICY_NONE	= 1,
 	IPSEC_POLICY_IPSEC	= 2,
@@ -33,7 +36,8 @@ enum {
 	IPSEC_POLICY_BYPASS	= 4
 };
 
-enum {
+enum
+{
 	IPSEC_LEVEL_DEFAULT	= 0,
 	IPSEC_LEVEL_USE		= 1,
 	IPSEC_LEVEL_REQUIRE	= 2,

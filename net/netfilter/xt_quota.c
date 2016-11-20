@@ -11,7 +11,8 @@
 #include <linux/netfilter/xt_quota.h>
 #include <linux/module.h>
 
-struct xt_quota_priv {
+struct xt_quota_priv
+{
 	spinlock_t	lock;
 	uint64_t	quota;
 };
@@ -30,13 +31,18 @@ quota_mt(const struct sk_buff *skb, struct xt_action_param *par)
 	bool ret = q->flags & XT_QUOTA_INVERT;
 
 	spin_lock_bh(&priv->lock);
-	if (priv->quota >= skb->len) {
+
+	if (priv->quota >= skb->len)
+	{
 		priv->quota -= skb->len;
 		ret = !ret;
-	} else {
+	}
+	else
+	{
 		/* we do not allow even small packets from now on */
 		priv->quota = 0;
 	}
+
 	spin_unlock_bh(&priv->lock);
 
 	return ret;
@@ -47,11 +53,16 @@ static int quota_mt_check(const struct xt_mtchk_param *par)
 	struct xt_quota_info *q = par->matchinfo;
 
 	if (q->flags & ~XT_QUOTA_MASK)
+	{
 		return -EINVAL;
+	}
 
 	q->master = kmalloc(sizeof(*q->master), GFP_KERNEL);
+
 	if (q->master == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&q->master->lock);
 	q->master->quota = q->quota;
@@ -65,7 +76,8 @@ static void quota_mt_destroy(const struct xt_mtdtor_param *par)
 	kfree(q->master);
 }
 
-static struct xt_match quota_mt_reg __read_mostly = {
+static struct xt_match quota_mt_reg __read_mostly =
+{
 	.name       = "quota",
 	.revision   = 0,
 	.family     = NFPROTO_UNSPEC,

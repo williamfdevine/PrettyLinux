@@ -22,14 +22,16 @@ void w100fb_gpio_write(int port, unsigned long value);
 unsigned long w100fb_get_hsynclen(struct device *dev);
 
 /* LCD Specific Routines and Config */
-struct w100_tg_info {
-	void (*change)(struct w100fb_par*);
-	void (*suspend)(struct w100fb_par*);
-	void (*resume)(struct w100fb_par*);
+struct w100_tg_info
+{
+	void (*change)(struct w100fb_par *);
+	void (*suspend)(struct w100fb_par *);
+	void (*resume)(struct w100fb_par *);
 };
 
 /* General Platform Specific w100 Register Values */
-struct w100_gen_regs {
+struct w100_gen_regs
+{
 	unsigned long lcd_format;
 	unsigned long lcdd_cntl1;
 	unsigned long lcdd_cntl2;
@@ -38,7 +40,8 @@ struct w100_gen_regs {
 	unsigned long genlcd_cntl3;
 };
 
-struct w100_gpio_regs {
+struct w100_gpio_regs
+{
 	unsigned long init_data1;
 	unsigned long init_data2;
 	unsigned long gpio_dir1;
@@ -48,7 +51,8 @@ struct w100_gpio_regs {
 };
 
 /* Optional External Memory Configuration */
-struct w100_mem_info {
+struct w100_mem_info
+{
 	unsigned long ext_cntl;
 	unsigned long sdram_mode_reg;
 	unsigned long ext_timing_cntl;
@@ -56,7 +60,8 @@ struct w100_mem_info {
 	unsigned int size;
 };
 
-struct w100_bm_mem_info {
+struct w100_bm_mem_info
+{
 	unsigned long ext_mem_bw;
 	unsigned long offset;
 	unsigned long ext_timing_ctl;
@@ -67,7 +72,8 @@ struct w100_bm_mem_info {
 };
 
 /* LCD Mode definition */
-struct w100_mode {
+struct w100_mode
+{
 	unsigned int xres;
 	unsigned int yres;
 	unsigned short left_margin;
@@ -92,7 +98,8 @@ struct w100_mode {
 	int pixclk_divider_rotated;
 };
 
-struct w100_pll_info {
+struct w100_pll_info
+{
 	uint16_t freq;  /* desired Fout for PLL (Mhz) */
 	uint8_t M;      /* input divider */
 	uint8_t N_int;  /* VCO multiplier */
@@ -110,7 +117,8 @@ struct w100_pll_info {
  * It is set by machine specific code and used in the probe routine
  * of drivers/video/w100fb.c
  */
-struct w100fb_mach_info {
+struct w100fb_mach_info
+{
 	/* General Platform Specific Registers */
 	struct w100_gen_regs *regs;
 	/* Table of modes the LCD is capable of */
@@ -133,7 +141,8 @@ struct w100fb_mach_info {
 };
 
 /* General frame buffer data structure */
-struct w100fb_par {
+struct w100fb_par
+{
 	unsigned int chip_id;
 	unsigned int xres;
 	unsigned int yres;

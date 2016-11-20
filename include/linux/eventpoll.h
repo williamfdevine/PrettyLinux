@@ -51,7 +51,9 @@ static inline void eventpoll_release(struct file *file)
 	 * eventpoll ) has still a reference to this file.
 	 */
 	if (likely(list_empty(&file->f_ep_links)))
+	{
 		return;
+	}
 
 	/*
 	 * The file is being closed while it is still linked to an epoll

@@ -69,9 +69,9 @@
 #define E1000_H2ME_ENFORCE_SETTINGS	0x00001000	/* Enforce Settings */
 
 #define ID_LED_DEFAULT_ICH8LAN	((ID_LED_DEF1_DEF2 << 12) | \
-				 (ID_LED_OFF1_OFF2 <<  8) | \
-				 (ID_LED_OFF1_ON2  <<  4) | \
-				 (ID_LED_DEF1_DEF2))
+								 (ID_LED_OFF1_OFF2 <<  8) | \
+								 (ID_LED_OFF1_ON2  <<  4) | \
+								 (ID_LED_DEF1_DEF2))
 
 #define E1000_ICH_NVM_SIG_WORD		0x13u
 #define E1000_ICH_NVM_SIG_MASK		0xC000u
@@ -122,7 +122,7 @@
 
 #define PHY_PAGE_SHIFT		5
 #define PHY_REG(page, reg)	(((page) << PHY_PAGE_SHIFT) | \
-				 ((reg) & MAX_PHY_REG_ADDRESS))
+							 ((reg) & MAX_PHY_REG_ADDRESS))
 #define IGP3_KMRN_DIAG	PHY_REG(770, 19)	/* KMRN Diagnostic */
 #define IGP3_VR_CTRL	PHY_REG(776, 18)	/* Voltage Regulator Control */
 
@@ -302,7 +302,7 @@
 
 void e1000e_write_protect_nvm_ich8lan(struct e1000_hw *hw);
 void e1000e_set_kmrn_lock_loss_workaround_ich8lan(struct e1000_hw *hw,
-						  bool state);
+		bool state);
 void e1000e_igp3_phy_powerdown_workaround_ich8lan(struct e1000_hw *hw);
 void e1000e_gig_downshift_workaround_ich8lan(struct e1000_hw *hw);
 void e1000_suspend_workarounds_ich8lan(struct e1000_hw *hw);

@@ -18,7 +18,8 @@
 #include <net/pkt_sched.h>
 #include <net/pkt_cls.h>
 
-struct drr_class {
+struct drr_class
+{
 	struct Qdisc_class_common	common;
 	unsigned int			refcnt;
 	unsigned int			filter_cnt;
@@ -33,7 +34,8 @@ struct drr_class {
 	u32				deficit;
 };
 
-struct drr_sched {
+struct drr_sched
+{
 	struct list_head		active;
 	struct tcf_proto __rcu		*filter_list;
 	struct Qdisc_class_hash		clhash;
@@ -45,8 +47,12 @@ static struct drr_class *drr_find_class(struct Qdisc *sch, u32 classid)
 	struct Qdisc_class_common *clc;
 
 	clc = qdisc_class_find(&q->clhash, classid);
+
 	if (clc == NULL)
+	{
 		return NULL;
+	}
+
 	return container_of(clc, struct drr_class, common);
 }
 
@@ -59,12 +65,13 @@ static void drr_purge_queue(struct drr_class *cl)
 	qdisc_tree_reduce_backlog(cl->qdisc, len, backlog);
 }
 
-static const struct nla_policy drr_policy[TCA_DRR_MAX + 1] = {
+static const struct nla_policy drr_policy[TCA_DRR_MAX + 1] =
+{
 	[TCA_DRR_QUANTUM]	= { .type = NLA_U32 },
 };
 
 static int drr_change_class(struct Qdisc *sch, u32 classid, u32 parentid,
-			    struct nlattr **tca, unsigned long *arg)
+							struct nlattr **tca, unsigned long *arg)
 {
 	struct drr_sched *q = qdisc_priv(sch);
 	struct drr_class *cl = (struct drr_class *)*arg;
@@ -74,56 +81,86 @@ static int drr_change_class(struct Qdisc *sch, u32 classid, u32 parentid,
 	int err;
 
 	if (!opt)
+	{
 		return -EINVAL;
+	}
 
 	err = nla_parse_nested(tb, TCA_DRR_MAX, opt, drr_policy);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
-	if (tb[TCA_DRR_QUANTUM]) {
+	if (tb[TCA_DRR_QUANTUM])
+	{
 		quantum = nla_get_u32(tb[TCA_DRR_QUANTUM]);
-		if (quantum == 0)
-			return -EINVAL;
-	} else
-		quantum = psched_mtu(qdisc_dev(sch));
 
-	if (cl != NULL) {
-		if (tca[TCA_RATE]) {
+		if (quantum == 0)
+		{
+			return -EINVAL;
+		}
+	}
+	else
+	{
+		quantum = psched_mtu(qdisc_dev(sch));
+	}
+
+	if (cl != NULL)
+	{
+		if (tca[TCA_RATE])
+		{
 			err = gen_replace_estimator(&cl->bstats, NULL,
-						    &cl->rate_est,
-						    NULL,
-						    qdisc_root_sleeping_running(sch),
-						    tca[TCA_RATE]);
+										&cl->rate_est,
+										NULL,
+										qdisc_root_sleeping_running(sch),
+										tca[TCA_RATE]);
+
 			if (err)
+			{
 				return err;
+			}
 		}
 
 		sch_tree_lock(sch);
+
 		if (tb[TCA_DRR_QUANTUM])
+		{
 			cl->quantum = quantum;
+		}
+
 		sch_tree_unlock(sch);
 
 		return 0;
 	}
 
 	cl = kzalloc(sizeof(struct drr_class), GFP_KERNEL);
+
 	if (cl == NULL)
+	{
 		return -ENOBUFS;
+	}
 
 	cl->refcnt	   = 1;
 	cl->common.classid = classid;
 	cl->quantum	   = quantum;
 	cl->qdisc	   = qdisc_create_dflt(sch->dev_queue,
-					       &pfifo_qdisc_ops, classid);
-	if (cl->qdisc == NULL)
-		cl->qdisc = &noop_qdisc;
+									   &pfifo_qdisc_ops, classid);
 
-	if (tca[TCA_RATE]) {
+	if (cl->qdisc == NULL)
+	{
+		cl->qdisc = &noop_qdisc;
+	}
+
+	if (tca[TCA_RATE])
+	{
 		err = gen_replace_estimator(&cl->bstats, NULL, &cl->rate_est,
-					    NULL,
-					    qdisc_root_sleeping_running(sch),
-					    tca[TCA_RATE]);
-		if (err) {
+									NULL,
+									qdisc_root_sleeping_running(sch),
+									tca[TCA_RATE]);
+
+		if (err)
+		{
 			qdisc_destroy(cl->qdisc);
 			kfree(cl);
 			return err;
@@ -153,7 +190,9 @@ static int drr_delete_class(struct Qdisc *sch, unsigned long arg)
 	struct drr_class *cl = (struct drr_class *)arg;
 
 	if (cl->filter_cnt > 0)
+	{
 		return -EBUSY;
+	}
 
 	sch_tree_lock(sch);
 
@@ -175,7 +214,9 @@ static unsigned long drr_get_class(struct Qdisc *sch, u32 classid)
 	struct drr_class *cl = drr_find_class(sch, classid);
 
 	if (cl != NULL)
+	{
 		cl->refcnt++;
+	}
 
 	return (unsigned long)cl;
 }
@@ -185,27 +226,33 @@ static void drr_put_class(struct Qdisc *sch, unsigned long arg)
 	struct drr_class *cl = (struct drr_class *)arg;
 
 	if (--cl->refcnt == 0)
+	{
 		drr_destroy_class(sch, cl);
+	}
 }
 
 static struct tcf_proto __rcu **drr_tcf_chain(struct Qdisc *sch,
-					      unsigned long cl)
+		unsigned long cl)
 {
 	struct drr_sched *q = qdisc_priv(sch);
 
 	if (cl)
+	{
 		return NULL;
+	}
 
 	return &q->filter_list;
 }
 
 static unsigned long drr_bind_tcf(struct Qdisc *sch, unsigned long parent,
-				  u32 classid)
+								  u32 classid)
 {
 	struct drr_class *cl = drr_find_class(sch, classid);
 
 	if (cl != NULL)
+	{
 		cl->filter_cnt++;
+	}
 
 	return (unsigned long)cl;
 }
@@ -218,15 +265,19 @@ static void drr_unbind_tcf(struct Qdisc *sch, unsigned long arg)
 }
 
 static int drr_graft_class(struct Qdisc *sch, unsigned long arg,
-			   struct Qdisc *new, struct Qdisc **old)
+						   struct Qdisc *new, struct Qdisc **old)
 {
 	struct drr_class *cl = (struct drr_class *)arg;
 
-	if (new == NULL) {
+	if (new == NULL)
+	{
 		new = qdisc_create_dflt(sch->dev_queue,
-					&pfifo_qdisc_ops, cl->common.classid);
+								&pfifo_qdisc_ops, cl->common.classid);
+
 		if (new == NULL)
+		{
 			new = &noop_qdisc;
+		}
 	}
 
 	*old = qdisc_replace(sch, new, &cl->qdisc);
@@ -245,11 +296,13 @@ static void drr_qlen_notify(struct Qdisc *csh, unsigned long arg)
 	struct drr_class *cl = (struct drr_class *)arg;
 
 	if (cl->qdisc->q.qlen == 0)
+	{
 		list_del(&cl->alist);
+	}
 }
 
 static int drr_dump_class(struct Qdisc *sch, unsigned long arg,
-			  struct sk_buff *skb, struct tcmsg *tcm)
+						  struct sk_buff *skb, struct tcmsg *tcm)
 {
 	struct drr_class *cl = (struct drr_class *)arg;
 	struct nlattr *nest;
@@ -259,10 +312,17 @@ static int drr_dump_class(struct Qdisc *sch, unsigned long arg,
 	tcm->tcm_info	= cl->qdisc->handle;
 
 	nest = nla_nest_start(skb, TCA_OPTIONS);
+
 	if (nest == NULL)
+	{
 		goto nla_put_failure;
+	}
+
 	if (nla_put_u32(skb, TCA_DRR_QUANTUM, cl->quantum))
+	{
 		goto nla_put_failure;
+	}
+
 	return nla_nest_end(skb, nest);
 
 nla_put_failure:
@@ -271,21 +331,26 @@ nla_put_failure:
 }
 
 static int drr_dump_class_stats(struct Qdisc *sch, unsigned long arg,
-				struct gnet_dump *d)
+								struct gnet_dump *d)
 {
 	struct drr_class *cl = (struct drr_class *)arg;
 	__u32 qlen = cl->qdisc->q.qlen;
 	struct tc_drr_stats xstats;
 
 	memset(&xstats, 0, sizeof(xstats));
+
 	if (qlen)
+	{
 		xstats.deficit = cl->deficit;
+	}
 
 	if (gnet_stats_copy_basic(qdisc_root_sleeping_running(sch),
-				  d, NULL, &cl->bstats) < 0 ||
-	    gnet_stats_copy_rate_est(d, &cl->bstats, &cl->rate_est) < 0 ||
-	    gnet_stats_copy_queue(d, NULL, &cl->qdisc->qstats, qlen) < 0)
+							  d, NULL, &cl->bstats) < 0 ||
+		gnet_stats_copy_rate_est(d, &cl->bstats, &cl->rate_est) < 0 ||
+		gnet_stats_copy_queue(d, NULL, &cl->qdisc->qstats, qlen) < 0)
+	{
 		return -1;
+	}
 
 	return gnet_stats_copy_app(d, &xstats, sizeof(xstats));
 }
@@ -297,25 +362,33 @@ static void drr_walk(struct Qdisc *sch, struct qdisc_walker *arg)
 	unsigned int i;
 
 	if (arg->stop)
+	{
 		return;
+	}
 
-	for (i = 0; i < q->clhash.hashsize; i++) {
-		hlist_for_each_entry(cl, &q->clhash.hash[i], common.hnode) {
-			if (arg->count < arg->skip) {
+	for (i = 0; i < q->clhash.hashsize; i++)
+	{
+		hlist_for_each_entry(cl, &q->clhash.hash[i], common.hnode)
+		{
+			if (arg->count < arg->skip)
+			{
 				arg->count++;
 				continue;
 			}
-			if (arg->fn(sch, (unsigned long)cl, arg) < 0) {
+
+			if (arg->fn(sch, (unsigned long)cl, arg) < 0)
+			{
 				arg->stop = 1;
 				return;
 			}
+
 			arg->count++;
 		}
 	}
 }
 
 static struct drr_class *drr_classify(struct sk_buff *skb, struct Qdisc *sch,
-				      int *qerr)
+									  int *qerr)
 {
 	struct drr_sched *q = qdisc_priv(sch);
 	struct drr_class *cl;
@@ -323,58 +396,83 @@ static struct drr_class *drr_classify(struct sk_buff *skb, struct Qdisc *sch,
 	struct tcf_proto *fl;
 	int result;
 
-	if (TC_H_MAJ(skb->priority ^ sch->handle) == 0) {
+	if (TC_H_MAJ(skb->priority ^ sch->handle) == 0)
+	{
 		cl = drr_find_class(sch, skb->priority);
+
 		if (cl != NULL)
+		{
 			return cl;
+		}
 	}
 
 	*qerr = NET_XMIT_SUCCESS | __NET_XMIT_BYPASS;
 	fl = rcu_dereference_bh(q->filter_list);
 	result = tc_classify(skb, fl, &res, false);
-	if (result >= 0) {
+
+	if (result >= 0)
+	{
 #ifdef CONFIG_NET_CLS_ACT
-		switch (result) {
-		case TC_ACT_QUEUED:
-		case TC_ACT_STOLEN:
-			*qerr = NET_XMIT_SUCCESS | __NET_XMIT_STOLEN;
-		case TC_ACT_SHOT:
-			return NULL;
+
+		switch (result)
+		{
+			case TC_ACT_QUEUED:
+			case TC_ACT_STOLEN:
+				*qerr = NET_XMIT_SUCCESS | __NET_XMIT_STOLEN;
+
+			case TC_ACT_SHOT:
+				return NULL;
 		}
+
 #endif
 		cl = (struct drr_class *)res.class;
+
 		if (cl == NULL)
+		{
 			cl = drr_find_class(sch, res.classid);
+		}
+
 		return cl;
 	}
+
 	return NULL;
 }
 
 static int drr_enqueue(struct sk_buff *skb, struct Qdisc *sch,
-		       struct sk_buff **to_free)
+					   struct sk_buff **to_free)
 {
 	struct drr_sched *q = qdisc_priv(sch);
 	struct drr_class *cl;
 	int err = 0;
 
 	cl = drr_classify(skb, sch, &err);
-	if (cl == NULL) {
+
+	if (cl == NULL)
+	{
 		if (err & __NET_XMIT_BYPASS)
+		{
 			qdisc_qstats_drop(sch);
+		}
+
 		__qdisc_drop(skb, to_free);
 		return err;
 	}
 
 	err = qdisc_enqueue(skb, cl->qdisc, to_free);
-	if (unlikely(err != NET_XMIT_SUCCESS)) {
-		if (net_xmit_drop_count(err)) {
+
+	if (unlikely(err != NET_XMIT_SUCCESS))
+	{
+		if (net_xmit_drop_count(err))
+		{
 			cl->qstats.drops++;
 			qdisc_qstats_drop(sch);
 		}
+
 		return err;
 	}
 
-	if (cl->qdisc->q.qlen == 1) {
+	if (cl->qdisc->q.qlen == 1)
+	{
 		list_add_tail(&cl->alist, &q->active);
 		cl->deficit = cl->quantum;
 	}
@@ -392,23 +490,37 @@ static struct sk_buff *drr_dequeue(struct Qdisc *sch)
 	unsigned int len;
 
 	if (list_empty(&q->active))
+	{
 		goto out;
-	while (1) {
+	}
+
+	while (1)
+	{
 		cl = list_first_entry(&q->active, struct drr_class, alist);
 		skb = cl->qdisc->ops->peek(cl->qdisc);
-		if (skb == NULL) {
+
+		if (skb == NULL)
+		{
 			qdisc_warn_nonwc(__func__, cl->qdisc);
 			goto out;
 		}
 
 		len = qdisc_pkt_len(skb);
-		if (len <= cl->deficit) {
+
+		if (len <= cl->deficit)
+		{
 			cl->deficit -= len;
 			skb = qdisc_dequeue_peeked(cl->qdisc);
+
 			if (unlikely(skb == NULL))
+			{
 				goto out;
+			}
+
 			if (cl->qdisc->q.qlen == 0)
+			{
 				list_del(&cl->alist);
+			}
 
 			bstats_update(&cl->bstats, skb);
 			qdisc_bstats_update(sch, skb);
@@ -420,6 +532,7 @@ static struct sk_buff *drr_dequeue(struct Qdisc *sch)
 		cl->deficit += cl->quantum;
 		list_move_tail(&cl->alist, &q->active);
 	}
+
 out:
 	return NULL;
 }
@@ -430,8 +543,12 @@ static int drr_init_qdisc(struct Qdisc *sch, struct nlattr *opt)
 	int err;
 
 	err = qdisc_class_hash_init(&q->clhash);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	INIT_LIST_HEAD(&q->active);
 	return 0;
 }
@@ -442,13 +559,19 @@ static void drr_reset_qdisc(struct Qdisc *sch)
 	struct drr_class *cl;
 	unsigned int i;
 
-	for (i = 0; i < q->clhash.hashsize; i++) {
-		hlist_for_each_entry(cl, &q->clhash.hash[i], common.hnode) {
+	for (i = 0; i < q->clhash.hashsize; i++)
+	{
+		hlist_for_each_entry(cl, &q->clhash.hash[i], common.hnode)
+		{
 			if (cl->qdisc->q.qlen)
+			{
 				list_del(&cl->alist);
+			}
+
 			qdisc_reset(cl->qdisc);
 		}
 	}
+
 	sch->qstats.backlog = 0;
 	sch->q.qlen = 0;
 }
@@ -462,15 +585,18 @@ static void drr_destroy_qdisc(struct Qdisc *sch)
 
 	tcf_destroy_chain(&q->filter_list);
 
-	for (i = 0; i < q->clhash.hashsize; i++) {
+	for (i = 0; i < q->clhash.hashsize; i++)
+	{
 		hlist_for_each_entry_safe(cl, next, &q->clhash.hash[i],
-					  common.hnode)
-			drr_destroy_class(sch, cl);
+								  common.hnode)
+		drr_destroy_class(sch, cl);
 	}
+
 	qdisc_class_hash_destroy(&q->clhash);
 }
 
-static const struct Qdisc_class_ops drr_class_ops = {
+static const struct Qdisc_class_ops drr_class_ops =
+{
 	.change		= drr_change_class,
 	.delete		= drr_delete_class,
 	.get		= drr_get_class,
@@ -486,7 +612,8 @@ static const struct Qdisc_class_ops drr_class_ops = {
 	.walk		= drr_walk,
 };
 
-static struct Qdisc_ops drr_qdisc_ops __read_mostly = {
+static struct Qdisc_ops drr_qdisc_ops __read_mostly =
+{
 	.cl_ops		= &drr_class_ops,
 	.id		= "drr",
 	.priv_size	= sizeof(struct drr_sched),

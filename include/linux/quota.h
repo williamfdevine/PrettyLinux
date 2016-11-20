@@ -51,7 +51,8 @@
 #undef USRQUOTA
 #undef GRPQUOTA
 #undef PRJQUOTA
-enum quota_type {
+enum quota_type
+{
 	USRQUOTA = 0,		/* element used for user quotas */
 	GRPQUOTA = 1,		/* element used for group quotas */
 	PRJQUOTA = 2,		/* element used for project quotas */
@@ -65,8 +66,10 @@ enum quota_type {
 typedef __kernel_uid32_t qid_t; /* Type in which we store ids in memory */
 typedef long long qsize_t;	/* Type in which we store sizes */
 
-struct kqid {			/* Type in which we store the quota identifier */
-	union {
+struct kqid  			/* Type in which we store the quota identifier */
+{
+	union
+	{
 		kuid_t uid;
 		kgid_t gid;
 		kprojid_t projid;
@@ -95,24 +98,30 @@ extern bool qid_valid(struct kqid qid);
  *	Invalid kqids may be tested for using qid_valid().
  */
 static inline struct kqid make_kqid(struct user_namespace *from,
-				    enum quota_type type, qid_t qid)
+									enum quota_type type, qid_t qid)
 {
 	struct kqid kqid;
 
 	kqid.type = type;
-	switch (type) {
-	case USRQUOTA:
-		kqid.uid = make_kuid(from, qid);
-		break;
-	case GRPQUOTA:
-		kqid.gid = make_kgid(from, qid);
-		break;
-	case PRJQUOTA:
-		kqid.projid = make_kprojid(from, qid);
-		break;
-	default:
-		BUG();
+
+	switch (type)
+	{
+		case USRQUOTA:
+			kqid.uid = make_kuid(from, qid);
+			break;
+
+		case GRPQUOTA:
+			kqid.gid = make_kgid(from, qid);
+			break;
+
+		case PRJQUOTA:
+			kqid.projid = make_kprojid(from, qid);
+			break;
+
+		default:
+			BUG();
 	}
+
 	return kqid;
 }
 
@@ -127,19 +136,25 @@ static inline struct kqid make_kqid_invalid(enum quota_type type)
 	struct kqid kqid;
 
 	kqid.type = type;
-	switch (type) {
-	case USRQUOTA:
-		kqid.uid = INVALID_UID;
-		break;
-	case GRPQUOTA:
-		kqid.gid = INVALID_GID;
-		break;
-	case PRJQUOTA:
-		kqid.projid = INVALID_PROJID;
-		break;
-	default:
-		BUG();
+
+	switch (type)
+	{
+		case USRQUOTA:
+			kqid.uid = INVALID_UID;
+			break;
+
+		case GRPQUOTA:
+			kqid.gid = INVALID_GID;
+			break;
+
+		case PRJQUOTA:
+			kqid.projid = INVALID_PROJID;
+			break;
+
+		default:
+			BUG();
 	}
+
 	return kqid;
 }
 
@@ -186,7 +201,7 @@ static inline struct kqid make_kqid_projid(kprojid_t projid)
  */
 static inline bool qid_has_mapping(struct user_namespace *ns, struct kqid qid)
 {
-	return from_kqid(ns, qid) != (qid_t) -1;
+	return from_kqid(ns, qid) != (qid_t) - 1;
 }
 
 
@@ -202,7 +217,8 @@ extern spinlock_t dq_data_lock;
 /*
  * Data for one user/group kept in memory
  */
-struct mem_dqblk {
+struct mem_dqblk
+{
 	qsize_t dqb_bhardlimit;	/* absolute limit on disk blks alloc */
 	qsize_t dqb_bsoftlimit;	/* preferred limit on disk blks */
 	qsize_t dqb_curspace;	/* current used space */
@@ -219,7 +235,8 @@ struct mem_dqblk {
  */
 struct quota_format_type;
 
-struct mem_dqinfo {
+struct mem_dqinfo
+{
 	struct quota_format_type *dqi_format;
 	int dqi_fmt_id;		/* Id of the dqi_format - used when turning
 				 * quotas on after remount RW */
@@ -239,7 +256,8 @@ struct super_block;
 /* Mask for flags modifiable from userspace */
 #define DQF_SETINFO_MASK DQF_ROOT_SQUASH
 
-enum {
+enum
+{
 	DQF_INFO_DIRTY_B = DQF_PRIVATE,
 };
 #define DQF_INFO_DIRTY (1 << DQF_INFO_DIRTY_B)	/* Is info dirty? */
@@ -250,7 +268,8 @@ static inline int info_dirty(struct mem_dqinfo *info)
 	return test_bit(DQF_INFO_DIRTY_B, &info->dqi_flags);
 }
 
-enum {
+enum
+{
 	DQST_LOOKUPS,
 	DQST_DROPS,
 	DQST_READS,
@@ -262,7 +281,8 @@ enum {
 	_DQST_DQSTAT_LAST
 };
 
-struct dqstats {
+struct dqstats
+{
 	int stat[_DQST_DQSTAT_LAST];
 	struct percpu_counter counter[_DQST_DQSTAT_LAST];
 };
@@ -290,9 +310,10 @@ static inline void dqstats_dec(unsigned int type)
 				 * for the mask of entries set via SETQUOTA\
 				 * quotactl. They are set under dq_data_lock\
 				 * and the quota format handling dquot can\
-				 * clear them when it sees fit. */
+* clear them when it sees fit. */
 
-struct dquot {
+struct dquot
+{
 	struct hlist_node dq_hash;	/* Hash list in memory */
 	struct list_head dq_inuse;	/* List of all quotas */
 	struct list_head dq_free;	/* Free list element */
@@ -308,7 +329,8 @@ struct dquot {
 };
 
 /* Operations which must be implemented by each quota format */
-struct quota_format_ops {
+struct quota_format_ops
+{
 	int (*check_quota_file)(struct super_block *sb, int type);	/* Detect whether file is in our format */
 	int (*read_file_info)(struct super_block *sb, int type);	/* Read main info about file - called on quotaon() */
 	int (*write_file_info)(struct super_block *sb, int type);	/* Write main info about file */
@@ -316,11 +338,13 @@ struct quota_format_ops {
 	int (*read_dqblk)(struct dquot *dquot);		/* Read structure for one user */
 	int (*commit_dqblk)(struct dquot *dquot);	/* Write structure for one user */
 	int (*release_dqblk)(struct dquot *dquot);	/* Called when last reference to dquot is being dropped */
-	int (*get_next_id)(struct super_block *sb, struct kqid *qid);	/* Get next ID with existing structure in the quota file */
+	int (*get_next_id)(struct super_block *sb,
+					   struct kqid *qid);	/* Get next ID with existing structure in the quota file */
 };
 
 /* Operations working with dquots */
-struct dquot_operations {
+struct dquot_operations
+{
 	int (*write_dquot) (struct dquot *);		/* Ordinary dquot write */
 	struct dquot *(*alloc_dquot)(struct super_block *, int);	/* Allocate memory for new dquot */
 	void (*destroy_dquot)(struct dquot *);		/* Free memory for dquot */
@@ -339,7 +363,8 @@ struct dquot_operations {
 struct path;
 
 /* Structure for communicating via ->get_dqblk() & ->set_dqblk() */
-struct qc_dqblk {
+struct qc_dqblk
+{
 	int d_fieldmask;	/* mask of fields to change in ->set_dqblk() */
 	u64 d_spc_hardlimit;	/* absolute limit on used space */
 	u64 d_spc_softlimit;	/* preferred limit on used space */
@@ -348,7 +373,7 @@ struct qc_dqblk {
 	u64 d_space;		/* Space owned by the user */
 	u64 d_ino_count;	/* # inodes owned by the user */
 	s64 d_ino_timer;	/* zero if within inode limits */
-				/* if not, we refuse service */
+	/* if not, we refuse service */
 	s64 d_spc_timer;	/* similar to above; for space */
 	int d_ino_warns;	/* # warnings issued wrt num inodes */
 	int d_spc_warns;	/* # warnings issued wrt used space */
@@ -370,7 +395,7 @@ struct qc_dqblk {
 #define	QC_RT_SPC_SOFT	(1<<4)
 #define	QC_RT_SPC_HARD	(1<<5)
 #define QC_LIMIT_MASK (QC_INO_SOFT | QC_INO_HARD | QC_SPC_SOFT | QC_SPC_HARD | \
-		       QC_RT_SPC_SOFT | QC_RT_SPC_HARD)
+					   QC_RT_SPC_SOFT | QC_RT_SPC_HARD)
 #define	QC_SPC_TIMER	(1<<6)
 #define	QC_INO_TIMER	(1<<7)
 #define	QC_RT_SPC_TIMER	(1<<8)
@@ -391,7 +416,8 @@ struct qc_dqblk {
 #define QCI_LIMITS_ENFORCED	(1 << 3)	/* Quota limits enforced */
 
 /* Structures for communicating via ->get_state */
-struct qc_type_state {
+struct qc_type_state
+{
 	unsigned int flags;		/* Flags QCI_* */
 	unsigned int spc_timelimit;	/* Time after which space softlimit is
 					 * enforced */
@@ -405,7 +431,8 @@ struct qc_type_state {
 	blkcnt_t nextents;		/* Number of extents in the file */
 };
 
-struct qc_state {
+struct qc_state
+{
 	unsigned int s_incoredqs;	/* Number of dquots in core */
 	/*
 	 * Per quota type information. The array should really have
@@ -417,7 +444,8 @@ struct qc_state {
 };
 
 /* Structure for communicating via ->set_info */
-struct qc_info {
+struct qc_info
+{
 	int i_fieldmask;	/* mask of fields to change in ->set_info() */
 	unsigned int i_flags;		/* Flags QCI_* */
 	unsigned int i_spc_timelimit;	/* Time after which space softlimit is
@@ -430,7 +458,8 @@ struct qc_info {
 };
 
 /* Operations handling requests from userspace */
-struct quotactl_ops {
+struct quotactl_ops
+{
 	int (*quota_on)(struct super_block *, int, int, struct path *);
 	int (*quota_off)(struct super_block *, int);
 	int (*quota_enable)(struct super_block *, unsigned int);
@@ -439,13 +468,14 @@ struct quotactl_ops {
 	int (*set_info)(struct super_block *, int, struct qc_info *);
 	int (*get_dqblk)(struct super_block *, struct kqid, struct qc_dqblk *);
 	int (*get_nextdqblk)(struct super_block *, struct kqid *,
-			     struct qc_dqblk *);
+						 struct qc_dqblk *);
 	int (*set_dqblk)(struct super_block *, struct kqid, struct qc_dqblk *);
 	int (*get_state)(struct super_block *, struct qc_state *);
 	int (*rm_xquota)(struct super_block *, unsigned int);
 };
 
-struct quota_format_type {
+struct quota_format_type
+{
 	int qf_fmt_id;	/* Quota format id */
 	const struct quota_format_ops *qf_ops;	/* Operations of format */
 	struct module *qf_owner;		/* Module implementing quota format */
@@ -465,7 +495,8 @@ struct quota_format_type {
  *  DQUOT_QUOTA_SYS_FILE	0x0040
  *  DQUOT_NEGATIVE_USAGE	0x0080
  */
-enum {
+enum
+{
 	_DQUOT_USAGE_ENABLED = 0,		/* Track disk usage for users */
 	_DQUOT_LIMITS_ENABLED,			/* Enforce quota limits for users */
 	_DQUOT_SUSPENDED,			/* User diskquotas are off, but
@@ -477,18 +508,18 @@ enum {
 #define DQUOT_LIMITS_ENABLED	(1 << _DQUOT_LIMITS_ENABLED * MAXQUOTAS)
 #define DQUOT_SUSPENDED		(1 << _DQUOT_SUSPENDED * MAXQUOTAS)
 #define DQUOT_STATE_FLAGS	(DQUOT_USAGE_ENABLED | DQUOT_LIMITS_ENABLED | \
-				 DQUOT_SUSPENDED)
+							 DQUOT_SUSPENDED)
 /* Other quota flags */
 #define DQUOT_STATE_LAST	(_DQUOT_STATE_FLAGS * MAXQUOTAS)
 #define DQUOT_QUOTA_SYS_FILE	(1 << DQUOT_STATE_LAST)
-						/* Quota file is a special
-						 * system file and user cannot
-						 * touch it. Filesystem is
-						 * responsible for setting
-						 * S_NOQUOTA, S_NOATIME flags
-						 */
+/* Quota file is a special
+ * system file and user cannot
+ * touch it. Filesystem is
+ * responsible for setting
+ * S_NOQUOTA, S_NOATIME flags
+ */
 #define DQUOT_NEGATIVE_USAGE	(1 << (DQUOT_STATE_LAST + 1))
-					       /* Allow negative quota usage */
+/* Allow negative quota usage */
 static inline unsigned int dquot_state_flag(unsigned int flags, int type)
 {
 	return flags << type;
@@ -508,16 +539,17 @@ static __always_inline unsigned dquot_state_types(unsigned flags, unsigned flag)
 
 #ifdef CONFIG_QUOTA_NETLINK_INTERFACE
 extern void quota_send_warning(struct kqid qid, dev_t dev,
-			       const char warntype);
+							   const char warntype);
 #else
 static inline void quota_send_warning(struct kqid qid, dev_t dev,
-				      const char warntype)
+									  const char warntype)
 {
 	return;
 }
 #endif /* CONFIG_QUOTA_NETLINK_INTERFACE */
 
-struct quota_info {
+struct quota_info
+{
 	unsigned int flags;			/* Flags for diskquotas on this device */
 	struct mutex dqio_mutex;		/* lock device while I/O in progress */
 	struct mutex dqonoff_mutex;		/* Serialize quotaon & quotaoff */
@@ -529,15 +561,16 @@ struct quota_info {
 int register_quota_format(struct quota_format_type *fmt);
 void unregister_quota_format(struct quota_format_type *fmt);
 
-struct quota_module_name {
+struct quota_module_name
+{
 	int qm_fmt_id;
 	char *qm_mod_name;
 };
 
 #define INIT_QUOTA_MODULE_NAMES {\
-	{QFMT_VFS_OLD, "quota_v1"},\
-	{QFMT_VFS_V0, "quota_v2"},\
-	{QFMT_VFS_V1, "quota_v2"},\
-	{0, NULL}}
+		{QFMT_VFS_OLD, "quota_v1"},\
+		{QFMT_VFS_V0, "quota_v2"},\
+		{QFMT_VFS_V1, "quota_v2"},\
+		{0, NULL}}
 
 #endif /* _QUOTA_ */

@@ -16,7 +16,8 @@
  * to support dm-btree-spine.c in that case.
  */
 
-enum node_flags {
+enum node_flags
+{
 	INTERNAL_NODE = 1,
 	LEAF_NODE = 1 << 1
 };
@@ -25,7 +26,8 @@ enum node_flags {
  * Every btree node begins with this structure.  Make sure it's a multiple
  * of 8-bytes in size, otherwise the 64bit keys will be mis-aligned.
  */
-struct node_header {
+struct node_header
+{
 	__le32 csum;
 	__le32 flags;
 	__le64 blocknr; /* Block this node is supposed to live in. */
@@ -36,7 +38,8 @@ struct node_header {
 	__le32 padding;
 } __packed;
 
-struct btree_node {
+struct btree_node
+{
 	struct node_header header;
 	__le64 keys[0];
 } __packed;
@@ -46,10 +49,10 @@ struct btree_node {
  * Locks a block using the btree node validator.
  */
 int bn_read_lock(struct dm_btree_info *info, dm_block_t b,
-		 struct dm_block **result);
+				 struct dm_block **result);
 
 void inc_children(struct dm_transaction_manager *tm, struct btree_node *n,
-		  struct dm_btree_value_type *vt);
+				  struct dm_btree_value_type *vt);
 
 int new_block(struct dm_btree_info *info, struct dm_block **result);
 void unlock_block(struct dm_btree_info *info, struct dm_block *b);
@@ -60,7 +63,8 @@ void unlock_block(struct dm_btree_info *info, struct dm_block *b);
  * type checker to spot misuse, for example accidentally calling read_lock
  * on a shadow spine.
  */
-struct ro_spine {
+struct ro_spine
+{
 	struct dm_btree_info *info;
 
 	int count;
@@ -73,7 +77,8 @@ int ro_step(struct ro_spine *s, dm_block_t new_child);
 void ro_pop(struct ro_spine *s);
 struct btree_node *ro_node(struct ro_spine *s);
 
-struct shadow_spine {
+struct shadow_spine
+{
 	struct dm_btree_info *info;
 
 	int count;
@@ -86,7 +91,7 @@ void init_shadow_spine(struct shadow_spine *s, struct dm_btree_info *info);
 int exit_shadow_spine(struct shadow_spine *s);
 
 int shadow_step(struct shadow_spine *s, dm_block_t b,
-		struct dm_btree_value_type *vt);
+				struct dm_btree_value_type *vt);
 
 /*
  * The spine must have at least one entry before calling this.
@@ -142,6 +147,6 @@ extern struct dm_block_validator btree_node_validator;
  * Value type for upper levels of multi-level btrees.
  */
 extern void init_le64_type(struct dm_transaction_manager *tm,
-			   struct dm_btree_value_type *vt);
+						   struct dm_btree_value_type *vt);
 
 #endif	/* DM_BTREE_INTERNAL_H */

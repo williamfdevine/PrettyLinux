@@ -34,7 +34,8 @@
 
 bool wl1271_set_block_size(struct wl1271 *wl)
 {
-	if (wl->if_ops->set_block_size) {
+	if (wl->if_ops->set_block_size)
+	{
 		wl->if_ops->set_block_size(wl->dev, WL12XX_BUS_BLOCK_SIZE);
 		return true;
 	}
@@ -81,19 +82,23 @@ int wlcore_translate_addr(struct wl1271 *wl, int addr)
 	 * get the offset to the new region.
 	 */
 	if ((addr >= part->mem.start) &&
-	    (addr < part->mem.start + part->mem.size))
+		(addr < part->mem.start + part->mem.size))
+	{
 		return addr - part->mem.start;
+	}
 	else if ((addr >= part->reg.start) &&
-		 (addr < part->reg.start + part->reg.size))
+			 (addr < part->reg.start + part->reg.size))
+	{
 		return addr - part->reg.start + part->mem.size;
+	}
 	else if ((addr >= part->mem2.start) &&
-		 (addr < part->mem2.start + part->mem2.size))
+			 (addr < part->mem2.start + part->mem2.size))
 		return addr - part->mem2.start + part->mem.size +
-			part->reg.size;
+			   part->reg.size;
 	else if ((addr >= part->mem3.start) &&
-		 (addr < part->mem3.start + part->mem3.size))
+			 (addr < part->mem3.start + part->mem3.size))
 		return addr - part->mem3.start + part->mem.size +
-			part->reg.size + part->mem2.size;
+			   part->reg.size + part->mem2.size;
 
 	WARN(1, "HW address 0x%x out of range", addr);
 	return 0;
@@ -135,7 +140,7 @@ EXPORT_SYMBOL_GPL(wlcore_translate_addr);
  *
  */
 int wlcore_set_partition(struct wl1271 *wl,
-			 const struct wlcore_partition_set *p)
+						 const struct wlcore_partition_set *p)
 {
 	int ret;
 
@@ -143,37 +148,55 @@ int wlcore_set_partition(struct wl1271 *wl,
 	memcpy(&wl->curr_part, p, sizeof(*p));
 
 	wl1271_debug(DEBUG_IO, "mem_start %08X mem_size %08X",
-		     p->mem.start, p->mem.size);
+				 p->mem.start, p->mem.size);
 	wl1271_debug(DEBUG_IO, "reg_start %08X reg_size %08X",
-		     p->reg.start, p->reg.size);
+				 p->reg.start, p->reg.size);
 	wl1271_debug(DEBUG_IO, "mem2_start %08X mem2_size %08X",
-		     p->mem2.start, p->mem2.size);
+				 p->mem2.start, p->mem2.size);
 	wl1271_debug(DEBUG_IO, "mem3_start %08X mem3_size %08X",
-		     p->mem3.start, p->mem3.size);
+				 p->mem3.start, p->mem3.size);
 
 	ret = wlcore_raw_write32(wl, HW_PART0_START_ADDR, p->mem.start);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	ret = wlcore_raw_write32(wl, HW_PART0_SIZE_ADDR, p->mem.size);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	ret = wlcore_raw_write32(wl, HW_PART1_START_ADDR, p->reg.start);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	ret = wlcore_raw_write32(wl, HW_PART1_SIZE_ADDR, p->reg.size);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	ret = wlcore_raw_write32(wl, HW_PART2_START_ADDR, p->mem2.start);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	ret = wlcore_raw_write32(wl, HW_PART2_SIZE_ADDR, p->mem2.size);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	/* wl12xx only: We don't need the size of the last partition,
 	 * as it is automatically calculated based on the total memory
@@ -187,12 +210,18 @@ int wlcore_set_partition(struct wl1271 *wl,
 	 * HW_PART3_SIZE_ADDR instead which is at offset 24 after changes.
 	 */
 	ret = wlcore_raw_write32(wl, HW_PART3_START_ADDR, p->mem3.start);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	ret = wlcore_raw_write32(wl, HW_PART3_SIZE_ADDR, p->mem3.size);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 out:
 	return ret;
@@ -202,11 +231,15 @@ EXPORT_SYMBOL_GPL(wlcore_set_partition);
 void wl1271_io_reset(struct wl1271 *wl)
 {
 	if (wl->if_ops->reset)
+	{
 		wl->if_ops->reset(wl->dev);
+	}
 }
 
 void wl1271_io_init(struct wl1271 *wl)
 {
 	if (wl->if_ops->init)
+	{
 		wl->if_ops->init(wl->dev);
+	}
 }

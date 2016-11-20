@@ -25,14 +25,16 @@
 
 #include "tpm.h"
 
-enum tis_access {
+enum tis_access
+{
 	TPM_ACCESS_VALID = 0x80,
 	TPM_ACCESS_ACTIVE_LOCALITY = 0x20,
 	TPM_ACCESS_REQUEST_PENDING = 0x04,
 	TPM_ACCESS_REQUEST_USE = 0x02,
 };
 
-enum tis_status {
+enum tis_status
+{
 	TPM_STS_VALID = 0x80,
 	TPM_STS_COMMAND_READY = 0x40,
 	TPM_STS_GO = 0x20,
@@ -40,7 +42,8 @@ enum tis_status {
 	TPM_STS_DATA_EXPECT = 0x08,
 };
 
-enum tis_int_flags {
+enum tis_int_flags
+{
 	TPM_GLOBAL_INT_ENABLE = 0x80000000,
 	TPM_INTF_BURST_COUNT_STATIC = 0x100,
 	TPM_INTF_CMD_READY_INT = 0x080,
@@ -53,7 +56,8 @@ enum tis_int_flags {
 	TPM_INTF_DATA_AVAIL_INT = 0x001,
 };
 
-enum tis_defaults {
+enum tis_defaults
+{
 	TIS_MEM_LEN = 0x5000,
 	TIS_SHORT_TIMEOUT = 750,	/* ms */
 	TIS_LONG_TIMEOUT = 2000,	/* 2 sec */
@@ -79,11 +83,13 @@ enum tis_defaults {
 #define	TPM_DID_VID(l)			(0x0F00 | ((l) << 12))
 #define	TPM_RID(l)			(0x0F04 | ((l) << 12))
 
-enum tpm_tis_flags {
+enum tpm_tis_flags
+{
 	TPM_TIS_ITPM_POSSIBLE		= BIT(0),
 };
 
-struct tpm_tis_data {
+struct tpm_tis_data
+{
 	u16 manufacturer_id;
 	int locality;
 	int irq;
@@ -94,18 +100,19 @@ struct tpm_tis_data {
 	const struct tpm_tis_phy_ops *phy_ops;
 };
 
-struct tpm_tis_phy_ops {
+struct tpm_tis_phy_ops
+{
 	int (*read_bytes)(struct tpm_tis_data *data, u32 addr, u16 len,
-			  u8 *result);
+					  u8 *result);
 	int (*write_bytes)(struct tpm_tis_data *data, u32 addr, u16 len,
-			   u8 *value);
+					   u8 *value);
 	int (*read16)(struct tpm_tis_data *data, u32 addr, u16 *result);
 	int (*read32)(struct tpm_tis_data *data, u32 addr, u32 *result);
 	int (*write32)(struct tpm_tis_data *data, u32 addr, u32 src);
 };
 
 static inline int tpm_tis_read_bytes(struct tpm_tis_data *data, u32 addr,
-				     u16 len, u8 *result)
+									 u16 len, u8 *result)
 {
 	return data->phy_ops->read_bytes(data, addr, len, result);
 }
@@ -116,19 +123,19 @@ static inline int tpm_tis_read8(struct tpm_tis_data *data, u32 addr, u8 *result)
 }
 
 static inline int tpm_tis_read16(struct tpm_tis_data *data, u32 addr,
-				 u16 *result)
+								 u16 *result)
 {
 	return data->phy_ops->read16(data, addr, result);
 }
 
 static inline int tpm_tis_read32(struct tpm_tis_data *data, u32 addr,
-				 u32 *result)
+								 u32 *result)
 {
 	return data->phy_ops->read32(data, addr, result);
 }
 
 static inline int tpm_tis_write_bytes(struct tpm_tis_data *data, u32 addr,
-				      u16 len, u8 *value)
+									  u16 len, u8 *value)
 {
 	return data->phy_ops->write_bytes(data, addr, len, value);
 }
@@ -139,18 +146,18 @@ static inline int tpm_tis_write8(struct tpm_tis_data *data, u32 addr, u8 value)
 }
 
 static inline int tpm_tis_write32(struct tpm_tis_data *data, u32 addr,
-				  u32 value)
+								  u32 value)
 {
 	return data->phy_ops->write32(data, addr, value);
 }
 
 void tpm_tis_remove(struct tpm_chip *chip);
 int tpm_tis_core_init(struct device *dev, struct tpm_tis_data *priv, int irq,
-		      const struct tpm_tis_phy_ops *phy_ops,
-		      acpi_handle acpi_dev_handle);
+					  const struct tpm_tis_phy_ops *phy_ops,
+					  acpi_handle acpi_dev_handle);
 
 #ifdef CONFIG_PM_SLEEP
-int tpm_tis_resume(struct device *dev);
+	int tpm_tis_resume(struct device *dev);
 #endif
 
 #endif

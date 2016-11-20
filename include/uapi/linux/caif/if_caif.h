@@ -22,7 +22,8 @@
  * When using RT Netlink to create, destroy or configure a CAIF IP interface,
  * enum ifla_caif is used to specify the configuration attributes.
  */
-enum ifla_caif {
+enum ifla_caif
+{
 	__IFLA_CAIF_UNSPEC,
 	IFLA_CAIF_IPV4_CONNID,
 	IFLA_CAIF_IPV6_CONNID,

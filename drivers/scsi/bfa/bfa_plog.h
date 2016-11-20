@@ -27,7 +27,8 @@
 #define BFA_PL_STRING_LOG_SZ   32   /* number of chars in string log */
 #define BFA_PL_INT_LOG_SZ      8    /* number of integers in the integer log */
 
-enum bfa_plog_log_type {
+enum bfa_plog_log_type
+{
 	BFA_PL_LOG_TYPE_INVALID	= 0,
 	BFA_PL_LOG_TYPE_INT	= 1,
 	BFA_PL_LOG_TYPE_STRING	= 2,
@@ -36,7 +37,8 @@ enum bfa_plog_log_type {
 /*
  * the (fixed size) record format for each entry in the portlog
  */
-struct bfa_plog_rec_s {
+struct bfa_plog_rec_s
+{
 	u64	tv;	/* timestamp */
 	u8	 port;	/* Source port that logged this entry */
 	u8	 mid;	/* module id */
@@ -49,7 +51,8 @@ struct bfa_plog_rec_s {
 	 */
 	u8	 rsvd;
 	u16	misc;	/* can be used to indicate fc frame length */
-	union {
+	union
+	{
 		char	    string_log[BFA_PL_STRING_LOG_SZ];
 		u32	int_log[BFA_PL_INT_LOG_SZ];
 	} log_entry;
@@ -65,7 +68,8 @@ struct bfa_plog_rec_s {
  *  - define corresponding string in BFAL
  *  - Do not remove any entry or rearrange the order.
  */
-enum bfa_plog_mid {
+enum bfa_plog_mid
+{
 	BFA_PL_MID_INVALID	= 0,
 	BFA_PL_MID_DEBUG	= 1,
 	BFA_PL_MID_DRVR		= 2,
@@ -78,7 +82,8 @@ enum bfa_plog_mid {
 };
 
 #define BFA_PL_MID_STRLEN    8
-struct bfa_plog_mid_strings_s {
+struct bfa_plog_mid_strings_s
+{
 	char	    m_str[BFA_PL_MID_STRLEN];
 };
 
@@ -91,7 +96,8 @@ struct bfa_plog_mid_strings_s {
  *  - define corresponding string in BFAL
  *  - Do not remove any entry or rearrange the order.
  */
-enum bfa_plog_eid {
+enum bfa_plog_eid
+{
 	BFA_PL_EID_INVALID		= 0,
 	BFA_PL_EID_IOC_DISABLE		= 1,
 	BFA_PL_EID_IOC_ENABLE		= 2,
@@ -121,7 +127,8 @@ enum bfa_plog_eid {
 };
 
 #define BFA_PL_ENAME_STRLEN	8
-struct bfa_plog_eid_strings_s {
+struct bfa_plog_eid_strings_s
+{
 	char	    e_str[BFA_PL_ENAME_STRLEN];
 };
 
@@ -131,7 +138,8 @@ struct bfa_plog_eid_strings_s {
 /*
  * per port circular log buffer
  */
-struct bfa_plog_s {
+struct bfa_plog_s
+{
 	char	    plog_sig[BFA_PL_SIG_LEN];	/* Start signature */
 	u8	 plog_enabled;
 	u8	 rsvd[7];
@@ -143,14 +151,14 @@ struct bfa_plog_s {
 
 void bfa_plog_init(struct bfa_plog_s *plog);
 void bfa_plog_str(struct bfa_plog_s *plog, enum bfa_plog_mid mid,
-			enum bfa_plog_eid event, u16 misc, char *log_str);
+				  enum bfa_plog_eid event, u16 misc, char *log_str);
 void bfa_plog_intarr(struct bfa_plog_s *plog, enum bfa_plog_mid mid,
-			enum bfa_plog_eid event, u16 misc,
-			u32 *intarr, u32 num_ints);
+					 enum bfa_plog_eid event, u16 misc,
+					 u32 *intarr, u32 num_ints);
 void bfa_plog_fchdr(struct bfa_plog_s *plog, enum bfa_plog_mid mid,
-		enum bfa_plog_eid event, u16 misc, struct fchs_s *fchdr);
+					enum bfa_plog_eid event, u16 misc, struct fchs_s *fchdr);
 void bfa_plog_fchdr_and_pl(struct bfa_plog_s *plog, enum bfa_plog_mid mid,
-			enum bfa_plog_eid event, u16 misc,
-			struct fchs_s *fchdr, u32 pld_w0);
+						   enum bfa_plog_eid event, u16 misc,
+						   struct fchs_s *fchdr, u32 pld_w0);
 
 #endif /* __BFA_PORTLOG_H__ */

@@ -50,7 +50,8 @@ static int is_flushing;
 static spinlock_t flush_lock;
 static DECLARE_WAIT_QUEUE_HEAD(flush);
 
-static struct var_t vars[] = {
+static struct var_t vars[] =
+{
 	{ CAPS_START, .u.s = {"[:dv ap 160] " } },
 	{ CAPS_STOP, .u.s = {"[:dv ap 100 ] " } },
 	{ RATE, .u.n = {"[:ra %d] ", 180, 75, 650, 0, 0, NULL } },
@@ -66,36 +67,37 @@ static struct var_t vars[] = {
  * These attributes will appear in /sys/accessibility/speakup/dectlk.
  */
 static struct kobj_attribute caps_start_attribute =
-	__ATTR(caps_start, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(caps_start, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute caps_stop_attribute =
-	__ATTR(caps_stop, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(caps_stop, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute pitch_attribute =
-	__ATTR(pitch, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(pitch, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute punct_attribute =
-	__ATTR(punct, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(punct, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute rate_attribute =
-	__ATTR(rate, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(rate, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute voice_attribute =
-	__ATTR(voice, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(voice, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute vol_attribute =
-	__ATTR(vol, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(vol, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 
 static struct kobj_attribute delay_time_attribute =
-	__ATTR(delay_time, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(delay_time, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute direct_attribute =
-	__ATTR(direct, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(direct, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute full_time_attribute =
-	__ATTR(full_time, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(full_time, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute jiffy_delta_attribute =
-	__ATTR(jiffy_delta, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(jiffy_delta, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute trigger_time_attribute =
-	__ATTR(trigger_time, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(trigger_time, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 
 /*
  * Create a group of attributes so that we can create and destroy them all
  * at once.
  */
-static struct attribute *synth_attrs[] = {
+static struct attribute *synth_attrs[] =
+{
 	&caps_start_attribute.attr,
 	&caps_stop_attribute.attr,
 	&pitch_attribute.attr,
@@ -114,7 +116,8 @@ static struct attribute *synth_attrs[] = {
 static int ap_defaults[] = {122, 89, 155, 110, 208, 240, 200, 106, 306};
 static int g5_defaults[] = {86, 81, 86, 84, 81, 80, 83, 83, 73};
 
-static struct spk_synth synth_dectlk = {
+static struct spk_synth synth_dectlk =
+{
 	.name = "dectlk",
 	.version = DRV_VERSION,
 	.long_name = "Dectalk Express",
@@ -153,10 +156,12 @@ static struct spk_synth synth_dectlk = {
 
 static int is_indnum(u_char *ch)
 {
-	if ((*ch >= '0') && (*ch <= '9')) {
+	if ((*ch >= '0') && (*ch <= '9'))
+	{
 		*ch = *ch - '0';
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -175,25 +180,41 @@ static void read_buff_add(u_char c)
 {
 	static int ind = -1;
 
-	if (c == 0x01) {
+	if (c == 0x01)
+	{
 		unsigned long flags;
 
 		spin_lock_irqsave(&flush_lock, flags);
 		is_flushing = 0;
 		wake_up_interruptible(&flush);
 		spin_unlock_irqrestore(&flush_lock, flags);
-	} else if (c == 0x13) {
+	}
+	else if (c == 0x13)
+	{
 		xoff = 1;
-	} else if (c == 0x11) {
+	}
+	else if (c == 0x11)
+	{
 		xoff = 0;
-	} else if (is_indnum(&c)) {
+	}
+	else if (is_indnum(&c))
+	{
 		if (ind == -1)
+		{
 			ind = c;
+		}
 		else
+		{
 			ind = ind * 10 + c;
-	} else if ((c > 31) && (c < 127)) {
+		}
+	}
+	else if ((c > 31) && (c < 127))
+	{
 		if (ind != -1)
+		{
 			lastind = (u_char)ind;
+		}
+
 		ind = -1;
 	}
 }
@@ -219,77 +240,112 @@ static void do_catch_up(struct spk_synth *synth)
 	spin_unlock_irqrestore(&speakup_info.spinlock, flags);
 	jiff_max = jiffies + jiffy_delta_val;
 
-	while (!kthread_should_stop()) {
+	while (!kthread_should_stop())
+	{
 		/* if no ctl-a in 4, send data anyway */
 		spin_lock_irqsave(&flush_lock, flags);
-		while (is_flushing && timeout) {
+
+		while (is_flushing && timeout)
+		{
 			prepare_to_wait(&flush, &wait, TASK_INTERRUPTIBLE);
 			spin_unlock_irqrestore(&flush_lock, flags);
 			timeout = schedule_timeout(timeout);
 			spin_lock_irqsave(&flush_lock, flags);
 		}
+
 		finish_wait(&flush, &wait);
 		is_flushing = 0;
 		spin_unlock_irqrestore(&flush_lock, flags);
 
 		spin_lock_irqsave(&speakup_info.spinlock, flags);
-		if (speakup_info.flushing) {
+
+		if (speakup_info.flushing)
+		{
 			speakup_info.flushing = 0;
 			spin_unlock_irqrestore(&speakup_info.spinlock, flags);
 			synth->flush(synth);
 			continue;
 		}
-		if (synth_buffer_empty()) {
+
+		if (synth_buffer_empty())
+		{
 			spin_unlock_irqrestore(&speakup_info.spinlock, flags);
 			break;
 		}
+
 		ch = synth_buffer_peek();
 		set_current_state(TASK_INTERRUPTIBLE);
 		delay_time_val = delay_time->u.n.value;
 		synth_full_val = synth_full();
 		spin_unlock_irqrestore(&speakup_info.spinlock, flags);
+
 		if (ch == '\n')
+		{
 			ch = 0x0D;
-		if (synth_full_val || !spk_serial_out(ch)) {
+		}
+
+		if (synth_full_val || !spk_serial_out(ch))
+		{
 			schedule_timeout(msecs_to_jiffies(delay_time_val));
 			continue;
 		}
+
 		set_current_state(TASK_RUNNING);
 		spin_lock_irqsave(&speakup_info.spinlock, flags);
 		synth_buffer_getc();
 		spin_unlock_irqrestore(&speakup_info.spinlock, flags);
+
 		if (ch == '[')
+		{
 			in_escape = 1;
+		}
 		else if (ch == ']')
+		{
 			in_escape = 0;
-		else if (ch <= SPACE) {
+		}
+		else if (ch <= SPACE)
+		{
 			if (!in_escape && strchr(",.!?;:", last))
+			{
 				spk_serial_out(PROCSPEECH);
-			if (time_after_eq(jiffies, jiff_max)) {
+			}
+
+			if (time_after_eq(jiffies, jiff_max))
+			{
 				if (!in_escape)
+				{
 					spk_serial_out(PROCSPEECH);
+				}
+
 				spin_lock_irqsave(&speakup_info.spinlock,
-						flags);
+								  flags);
 				jiffy_delta_val = jiffy_delta->u.n.value;
 				delay_time_val = delay_time->u.n.value;
 				spin_unlock_irqrestore(&speakup_info.spinlock,
-						flags);
+									   flags);
 				schedule_timeout(msecs_to_jiffies
-						 (delay_time_val));
+								 (delay_time_val));
 				jiff_max = jiffies + jiffy_delta_val;
 			}
 		}
+
 		last = ch;
 	}
+
 	if (!in_escape)
+	{
 		spk_serial_out(PROCSPEECH);
+	}
 }
 
 static void synth_flush(struct spk_synth *synth)
 {
 	if (in_escape)
 		/* if in command output ']' so we don't get an error */
+	{
 		spk_serial_out(']');
+	}
+
 	in_escape = 0;
 	is_flushing = 1;
 	spk_serial_out(SYNTH_CLEAR);

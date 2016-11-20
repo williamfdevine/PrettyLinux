@@ -66,7 +66,8 @@
 #include "fw-api.h"
 
 /* ToF sub-group command IDs */
-enum iwl_mvm_tof_sub_grp_ids {
+enum iwl_mvm_tof_sub_grp_ids
+{
 	TOF_RANGE_REQ_CMD = 0x1,
 	TOF_CONFIG_CMD = 0x2,
 	TOF_RANGE_ABORT_CMD = 0x3,
@@ -87,7 +88,8 @@ enum iwl_mvm_tof_sub_grp_ids {
  * @is_debug_mode: 1 debug mode, 0 - otherwise
  * @is_buf_required: 1 channel estimation buffer required, 0 - otherwise
  */
-struct iwl_tof_config_cmd {
+struct iwl_tof_config_cmd
+{
 	__le32 sub_grp_cmd_id;
 	u8 tof_disabled;
 	u8 one_sided_disabled;
@@ -134,7 +136,8 @@ struct iwl_tof_config_cmd {
  *		to this field
  * @bssid: Current AP BSSID
  */
-struct iwl_tof_responder_config_cmd {
+struct iwl_tof_responder_config_cmd
+{
 	__le32 sub_grp_cmd_id;
 	__le16 burst_period;
 	u8 min_delta_ftm;
@@ -168,7 +171,8 @@ struct iwl_tof_responder_config_cmd {
  * @ftm_format_and_bw80M: FTM Channel Spacing/Format for 80MHz: recommended
  *			value to be sent to the AP
  */
-struct iwl_tof_range_req_ext_cmd {
+struct iwl_tof_range_req_ext_cmd
+{
 	__le32 sub_grp_cmd_id;
 	__le16 tsf_timer_offset_msec;
 	__le16 reserved;
@@ -215,7 +219,8 @@ struct iwl_tof_range_req_ext_cmd {
  * @rssi: Last received value
  *	  leagal values: -128-0 (0x7f). above 0x0 indicating an invalid value.
  */
-struct iwl_tof_range_req_ap_entry {
+struct iwl_tof_range_req_ap_entry
+{
 	u8 channel_num;
 	u8 bandwidth;
 	u8 tsf_delta_direction;
@@ -243,7 +248,8 @@ struct iwl_tof_range_req_ap_entry {
  *				  earlier of: measurements completion / timeout
  *				  expiration.
  */
-enum iwl_tof_response_mode {
+enum iwl_tof_response_mode
+{
 	IWL_MVM_TOF_RESPOSE_ASAP = 1,
 	IWL_MVM_TOF_RESPOSE_TIMEOUT,
 	IWL_MVM_TOF_RESPOSE_COMPLETE,
@@ -269,7 +275,8 @@ enum iwl_tof_response_mode {
  * @macaddr_mask: Bits set to 0 shall be copied from the MAC address template.
  *		  Bits set to 1 shall be randomized by the UMAC
  */
-struct iwl_tof_range_req_cmd {
+struct iwl_tof_range_req_cmd
+{
 	__le32 sub_grp_cmd_id;
 	u8 request_id;
 	u8 initiator;
@@ -287,7 +294,8 @@ struct iwl_tof_range_req_cmd {
 /**
  * struct iwl_tof_gen_resp_cmd - generic ToF response
  */
-struct iwl_tof_gen_resp_cmd {
+struct iwl_tof_gen_resp_cmd
+{
 	__le32 sub_grp_cmd_id;
 	u8 data[];
 } __packed;
@@ -309,7 +317,8 @@ struct iwl_tof_gen_resp_cmd {
  * @timestamp: The GP2 Clock [usec] where Channel Estimation notification was
  *	       uploaded by the LMAC
  */
-struct iwl_tof_range_rsp_ap_entry_ntfy {
+struct iwl_tof_range_rsp_ap_entry_ntfy
+{
 	u8 bssid[ETH_ALEN];
 	u8 measure_status;
 	u8 measure_bw;
@@ -331,7 +340,8 @@ struct iwl_tof_range_rsp_ap_entry_ntfy {
  * @last_in_batch: reprot policy (when not all responses are uploaded at once)
  * @num_of_aps: Number of APs to measure (error if > IWL_MVM_TOF_MAX_APS)
  */
-struct iwl_tof_range_rsp_ntfy {
+struct iwl_tof_range_rsp_ntfy
+{
 	u8 request_id;
 	u8 request_status;
 	u8 last_in_batch;
@@ -348,7 +358,8 @@ struct iwl_tof_range_rsp_ntfy {
  * @responder_bssid: responder machine
  * @mcsi_buffer: debug data
  */
-struct iwl_tof_mcsi_notif {
+struct iwl_tof_mcsi_notif
+{
 	u8 token;
 	u8 role;
 	__le16 reserved;
@@ -365,7 +376,8 @@ struct iwl_tof_mcsi_notif {
  * @report_ie_len: the length of the response frame starting from the Element ID
  * @data: the IEs
  */
-struct iwl_tof_neighbor_report {
+struct iwl_tof_neighbor_report
+{
 	u8 bssid[ETH_ALEN];
 	u8 request_token;
 	u8 status;
@@ -377,7 +389,8 @@ struct iwl_tof_neighbor_report {
  * struct iwl_tof_range_abort_cmd
  * @request_id: corresponds to a range request
  */
-struct iwl_tof_range_abort_cmd {
+struct iwl_tof_range_abort_cmd
+{
 	__le32 sub_grp_cmd_id;
 	u8 request_id;
 	u8 reserved[3];

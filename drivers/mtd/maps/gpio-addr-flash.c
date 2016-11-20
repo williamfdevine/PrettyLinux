@@ -40,7 +40,8 @@
  *	@gpio_values: cached GPIO values
  *	@win_size:    dedicated memory size (if no GPIOs)
  */
-struct async_state {
+struct async_state
+{
 	struct mtd_info *mtd;
 	struct map_info map;
 	size_t gpio_count;
@@ -65,13 +66,18 @@ static void gf_set_gpios(struct async_state *state, unsigned long ofs)
 	size_t i = 0;
 	int value;
 	ofs /= state->win_size;
-	do {
+
+	do
+	{
 		value = ofs & (1 << i);
-		if (state->gpio_values[i] != value) {
+
+		if (state->gpio_values[i] != value)
+		{
 			gpio_set_value(state->gpio_addrs[i], value);
 			state->gpio_values[i] = value;
 		}
-	} while (++i < state->gpio_count);
+	}
+	while (++i < state->gpio_count);
 }
 
 /**
@@ -108,15 +114,20 @@ static void gf_copy_from(struct map_info *map, void *to, unsigned long from, ssi
 
 	int this_len;
 
-	while (len) {
+	while (len)
+	{
 		if ((from % state->win_size) + len > state->win_size)
+		{
 			this_len = state->win_size - (from % state->win_size);
+		}
 		else
+		{
 			this_len = len;
+		}
 
 		gf_set_gpios(state, from);
 		memcpy_fromio(to, map->virt + (from % state->win_size),
-			 this_len);
+					  this_len);
 		len -= this_len;
 		from += this_len;
 		to += this_len;
@@ -149,17 +160,22 @@ static void gf_write(struct map_info *map, map_word d1, unsigned long ofs)
  * See gf_copy_from() caveat.
  */
 static void gf_copy_to(struct map_info *map, unsigned long to,
-		       const void *from, ssize_t len)
+					   const void *from, ssize_t len)
 {
 	struct async_state *state = gf_map_info_to_state(map);
 
 	int this_len;
 
-	while (len) {
+	while (len)
+	{
 		if ((to % state->win_size) + len > state->win_size)
+		{
 			this_len = state->win_size - (to % state->win_size);
+		}
 		else
+		{
 			this_len = len;
+		}
 
 		gf_set_gpios(state, to);
 		memcpy_toio(map->virt + (to % state->win_size), from, len);
@@ -170,8 +186,10 @@ static void gf_copy_to(struct map_info *map, unsigned long to,
 	}
 }
 
-static const char * const part_probe_types[] = {
-	"cmdlinepart", "RedBoot", NULL };
+static const char *const part_probe_types[] =
+{
+	"cmdlinepart", "RedBoot", NULL
+};
 
 /**
  * gpio_flash_probe() - setup a mapping for a GPIO assisted flash
@@ -214,12 +232,17 @@ static int gpio_flash_probe(struct platform_device *pdev)
 	gpios = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
 
 	if (!memory || !gpios || !gpios->end)
+	{
 		return -EINVAL;
+	}
 
 	arr_size = sizeof(int) * gpios->end;
 	state = kzalloc(sizeof(*state) + arr_size, GFP_KERNEL);
+
 	if (!state)
+	{
 		return -ENOMEM;
+	}
 
 	/*
 	 * We cast start/end to known types in the boards file, so cast
@@ -245,31 +268,46 @@ static int gpio_flash_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, state);
 
 	i = 0;
-	do {
-		if (gpio_request(state->gpio_addrs[i], DRIVER_NAME)) {
+
+	do
+	{
+		if (gpio_request(state->gpio_addrs[i], DRIVER_NAME))
+		{
 			pr_devinit(KERN_ERR PFX "failed to request gpio %d\n",
-				state->gpio_addrs[i]);
+					   state->gpio_addrs[i]);
+
 			while (i--)
+			{
 				gpio_free(state->gpio_addrs[i]);
+			}
+
 			kfree(state);
 			return -EBUSY;
 		}
+
 		gpio_direction_output(state->gpio_addrs[i], 0);
-	} while (++i < state->gpio_count);
+	}
+	while (++i < state->gpio_count);
 
 	pr_devinit(KERN_NOTICE PFX "probing %d-bit flash bus\n",
-		state->map.bankwidth * 8);
+			   state->map.bankwidth * 8);
 	state->mtd = do_map_probe(memory->name, &state->map);
-	if (!state->mtd) {
+
+	if (!state->mtd)
+	{
 		for (i = 0; i < state->gpio_count; ++i)
+		{
 			gpio_free(state->gpio_addrs[i]);
+		}
+
 		kfree(state);
 		return -ENXIO;
 	}
+
 	state->mtd->dev.parent = &pdev->dev;
 
 	mtd_device_parse_register(state->mtd, part_probe_types, NULL,
-				  pdata->parts, pdata->nr_parts);
+							  pdata->parts, pdata->nr_parts);
 
 	return 0;
 }
@@ -278,16 +316,21 @@ static int gpio_flash_remove(struct platform_device *pdev)
 {
 	struct async_state *state = platform_get_drvdata(pdev);
 	size_t i = 0;
-	do {
+
+	do
+	{
 		gpio_free(state->gpio_addrs[i]);
-	} while (++i < state->gpio_count);
+	}
+	while (++i < state->gpio_count);
+
 	mtd_device_unregister(state->mtd);
 	map_destroy(state->mtd);
 	kfree(state);
 	return 0;
 }
 
-static struct platform_driver gpio_flash_driver = {
+static struct platform_driver gpio_flash_driver =
+{
 	.probe		= gpio_flash_probe,
 	.remove		= gpio_flash_remove,
 	.driver		= {

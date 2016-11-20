@@ -24,7 +24,7 @@ static char *dev_info = "hostap_cs";
 
 MODULE_AUTHOR("Jouni Malinen");
 MODULE_DESCRIPTION("Support for Intersil Prism2-based 802.11 wireless LAN "
-		   "cards (PC Card).");
+				   "cards (PC Card).");
 MODULE_SUPPORTED_DEVICE("Intersil Prism2-based WLAN cards (PC Card)");
 MODULE_LICENSE("GPL");
 
@@ -35,7 +35,8 @@ MODULE_PARM_DESC(ignore_cis_vcc, "Ignore broken CIS VCC entry");
 
 
 /* struct local_info::hw_priv */
-struct hostap_cs_priv {
+struct hostap_cs_priv
+{
 	struct pcmcia_device *link;
 	int sandisk_connectplus;
 };
@@ -104,7 +105,7 @@ static inline u16 hfa384x_inw_debug(struct net_device *dev, int a)
 }
 
 static inline void hfa384x_outsw_debug(struct net_device *dev, int a,
-				       u8 *buf, int wc)
+									   u8 *buf, int wc)
 {
 	struct hostap_interface *iface;
 	local_info_t *local;
@@ -119,7 +120,7 @@ static inline void hfa384x_outsw_debug(struct net_device *dev, int a,
 }
 
 static inline void hfa384x_insw_debug(struct net_device *dev, int a,
-				      u8 *buf, int wc)
+									  u8 *buf, int wc)
 {
 	struct hostap_interface *iface;
 	local_info_t *local;
@@ -153,7 +154,7 @@ static inline void hfa384x_insw_debug(struct net_device *dev, int a,
 
 
 static int hfa384x_from_bap(struct net_device *dev, u16 bap, void *buf,
-			    int len)
+							int len)
 {
 	u16 d_off;
 	u16 *pos;
@@ -162,11 +163,16 @@ static int hfa384x_from_bap(struct net_device *dev, u16 bap, void *buf,
 	pos = (u16 *) buf;
 
 	if (len / 2)
+	{
 		HFA384X_INSW(d_off, buf, len / 2);
+	}
+
 	pos += len / 2;
 
 	if (len & 1)
+	{
 		*((char *) pos) = HFA384X_INB(d_off);
+	}
 
 	return 0;
 }
@@ -181,11 +187,16 @@ static int hfa384x_to_bap(struct net_device *dev, u16 bap, void *buf, int len)
 	pos = (u16 *) buf;
 
 	if (len / 2)
+	{
 		HFA384X_OUTSW(d_off, buf, len / 2);
+	}
+
 	pos += len / 2;
 
 	if (len & 1)
+	{
 		HFA384X_OUTB(*((char *) pos), d_off);
+	}
 
 	return 0;
 }
@@ -204,8 +215,12 @@ static int prism2_config(struct pcmcia_device *link);
 static int prism2_pccard_card_present(local_info_t *local)
 {
 	struct hostap_cs_priv *hw_priv = local->hw_priv;
+
 	if (hw_priv != NULL && hw_priv->link != NULL && pcmcia_dev_present(hw_priv->link))
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -225,18 +240,23 @@ static void sandisk_set_iobase(local_info_t *local)
 	struct hostap_cs_priv *hw_priv = local->hw_priv;
 
 	res = pcmcia_write_config_byte(hw_priv->link, 0x10,
-				hw_priv->link->resource[0]->start & 0x00ff);
-	if (res != 0) {
+								   hw_priv->link->resource[0]->start & 0x00ff);
+
+	if (res != 0)
+	{
 		printk(KERN_DEBUG "Prism3 SanDisk - failed to set I/O base 0 -"
-		       " res=%d\n", res);
+			   " res=%d\n", res);
 	}
+
 	udelay(10);
 
 	res = pcmcia_write_config_byte(hw_priv->link, 0x12,
-				(hw_priv->link->resource[0]->start >> 8) & 0x00ff);
-	if (res != 0) {
+								   (hw_priv->link->resource[0]->start >> 8) & 0x00ff);
+
+	if (res != 0)
+	{
 		printk(KERN_DEBUG "Prism3 SanDisk - failed to set I/O base 1 -"
-		       " res=%d\n", res);
+			   " res=%d\n", res);
 	}
 }
 
@@ -248,9 +268,12 @@ static void sandisk_write_hcr(local_info_t *local, int hcr)
 
 	HFA384X_OUTB(0x80, SANDISK_WLAN_ACTIVATION_OFF);
 	udelay(50);
-	for (i = 0; i < 10; i++) {
+
+	for (i = 0; i < 10; i++)
+	{
 		HFA384X_OUTB(hcr, SANDISK_HCR_OFF);
 	}
+
 	udelay(55);
 	HFA384X_OUTB(0x45, SANDISK_WLAN_ACTIVATION_OFF);
 }
@@ -263,35 +286,41 @@ static int sandisk_enable_wireless(struct net_device *dev)
 	local_info_t *local = iface->local;
 	struct hostap_cs_priv *hw_priv = local->hw_priv;
 
-	if (resource_size(hw_priv->link->resource[0]) < 0x42) {
+	if (resource_size(hw_priv->link->resource[0]) < 0x42)
+	{
 		/* Not enough ports to be SanDisk multi-function card */
 		ret = -ENODEV;
 		goto done;
 	}
 
-	if (hw_priv->link->manf_id != 0xd601 || hw_priv->link->card_id != 0x0101) {
+	if (hw_priv->link->manf_id != 0xd601 || hw_priv->link->card_id != 0x0101)
+	{
 		/* No SanDisk manfid found */
 		ret = -ENODEV;
 		goto done;
 	}
 
-	if (hw_priv->link->socket->functions < 2) {
+	if (hw_priv->link->socket->functions < 2)
+	{
 		/* No multi-function links found */
 		ret = -ENODEV;
 		goto done;
 	}
 
 	printk(KERN_DEBUG "%s: Multi-function SanDisk ConnectPlus detected"
-	       " - using vendor-specific initialization\n", dev->name);
+		   " - using vendor-specific initialization\n", dev->name);
 	hw_priv->sandisk_connectplus = 1;
 
 	res = pcmcia_write_config_byte(hw_priv->link, CISREG_COR,
-				COR_SOFT_RESET);
-	if (res != 0) {
+								   COR_SOFT_RESET);
+
+	if (res != 0)
+	{
 		printk(KERN_DEBUG "%s: SanDisk - COR sreset failed (%d)\n",
-		       dev->name, res);
+			   dev->name, res);
 		goto done;
 	}
+
 	mdelay(5);
 
 	/*
@@ -299,13 +328,16 @@ static int sandisk_enable_wireless(struct net_device *dev)
 	 * will be enabled during the first cor_sreset call.
 	 */
 	res = pcmcia_write_config_byte(hw_priv->link, CISREG_COR,
-				(COR_LEVEL_REQ | 0x8 | COR_ADDR_DECODE |
-					COR_FUNC_ENA));
-	if (res != 0) {
+								   (COR_LEVEL_REQ | 0x8 | COR_ADDR_DECODE |
+									COR_FUNC_ENA));
+
+	if (res != 0)
+	{
 		printk(KERN_DEBUG "%s: SanDisk - COR sreset failed (%d)\n",
-		       dev->name, res);
+			   dev->name, res);
 		goto done;
 	}
+
 	mdelay(5);
 
 	sandisk_set_iobase(local);
@@ -327,41 +359,56 @@ static void prism2_pccard_cor_sreset(local_info_t *local)
 	struct hostap_cs_priv *hw_priv = local->hw_priv;
 
 	if (!prism2_pccard_card_present(local))
-	       return;
-
-	res = pcmcia_read_config_byte(hw_priv->link, CISREG_COR, &val);
-	if (res != 0) {
-		printk(KERN_DEBUG "prism2_pccard_cor_sreset failed 1 (%d)\n",
-		       res);
+	{
 		return;
 	}
+
+	res = pcmcia_read_config_byte(hw_priv->link, CISREG_COR, &val);
+
+	if (res != 0)
+	{
+		printk(KERN_DEBUG "prism2_pccard_cor_sreset failed 1 (%d)\n",
+			   res);
+		return;
+	}
+
 	printk(KERN_DEBUG "prism2_pccard_cor_sreset: original COR %02x\n",
-		val);
+		   val);
 
 	val |= COR_SOFT_RESET;
 	res = pcmcia_write_config_byte(hw_priv->link, CISREG_COR, val);
-	if (res != 0) {
+
+	if (res != 0)
+	{
 		printk(KERN_DEBUG "prism2_pccard_cor_sreset failed 2 (%d)\n",
-		       res);
+			   res);
 		return;
 	}
 
 	mdelay(hw_priv->sandisk_connectplus ? 5 : 2);
 
 	val &= ~COR_SOFT_RESET;
+
 	if (hw_priv->sandisk_connectplus)
+	{
 		val |= COR_IREQ_ENA;
+	}
+
 	res = pcmcia_write_config_byte(hw_priv->link, CISREG_COR, val);
-	if (res != 0) {
+
+	if (res != 0)
+	{
 		printk(KERN_DEBUG "prism2_pccard_cor_sreset failed 3 (%d)\n",
-		       res);
+			   res);
 		return;
 	}
 
 	mdelay(hw_priv->sandisk_connectplus ? 5 : 2);
 
 	if (hw_priv->sandisk_connectplus)
+	{
 		sandisk_set_iobase(local);
+	}
 }
 
 
@@ -372,23 +419,31 @@ static void prism2_pccard_genesis_reset(local_info_t *local, int hcr)
 	struct hostap_cs_priv *hw_priv = local->hw_priv;
 
 	if (!prism2_pccard_card_present(local))
-	       return;
+	{
+		return;
+	}
 
-	if (hw_priv->sandisk_connectplus) {
+	if (hw_priv->sandisk_connectplus)
+	{
 		sandisk_write_hcr(local, hcr);
 		return;
 	}
 
 	res = pcmcia_read_config_byte(hw_priv->link, CISREG_COR, &old_cor);
-	if (res != 0) {
+
+	if (res != 0)
+	{
 		printk(KERN_DEBUG "%s failed 1 (%d)\n", __func__, res);
 		return;
 	}
+
 	printk(KERN_DEBUG "%s: original COR %02x\n", __func__, old_cor);
 
 	res = pcmcia_write_config_byte(hw_priv->link, CISREG_COR,
-				old_cor | COR_SOFT_RESET);
-	if (res != 0) {
+								   old_cor | COR_SOFT_RESET);
+
+	if (res != 0)
+	{
 		printk(KERN_DEBUG "%s failed 2 (%d)\n", __func__, res);
 		return;
 	}
@@ -397,15 +452,20 @@ static void prism2_pccard_genesis_reset(local_info_t *local, int hcr)
 
 	/* Setup Genesis mode */
 	res = pcmcia_write_config_byte(hw_priv->link, CISREG_CCSR, hcr);
-	if (res != 0) {
+
+	if (res != 0)
+	{
 		printk(KERN_DEBUG "%s failed 3 (%d)\n", __func__, res);
 		return;
 	}
+
 	mdelay(10);
 
 	res = pcmcia_write_config_byte(hw_priv->link, CISREG_COR,
-				old_cor & ~COR_SOFT_RESET);
-	if (res != 0) {
+								   old_cor & ~COR_SOFT_RESET);
+
+	if (res != 0)
+	{
 		printk(KERN_DEBUG "%s failed 4 (%d)\n", __func__, res);
 		return;
 	}
@@ -432,7 +492,9 @@ static int hostap_cs_probe(struct pcmcia_device *p_dev)
 	PDEBUG(DEBUG_HW, "%s: setting Vcc=33 (constant)\n", dev_info);
 
 	ret = prism2_config(p_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		PDEBUG(DEBUG_EXTRA, "prism2_config() failed\n");
 	}
 
@@ -447,7 +509,8 @@ static void prism2_detach(struct pcmcia_device *link)
 	prism2_release((u_long)link);
 
 	/* release net devices */
-	if (link->priv) {
+	if (link->priv)
+	{
 		struct hostap_cs_priv *hw_priv;
 		struct net_device *dev;
 		struct hostap_interface *iface;
@@ -463,7 +526,9 @@ static void prism2_detach(struct pcmcia_device *link)
 static int prism2_config_check(struct pcmcia_device *p_dev, void *priv_data)
 {
 	if (p_dev->config_index == 0)
+	{
 		return -EINVAL;
+	}
 
 	return pcmcia_request_io(p_dev);
 }
@@ -480,32 +545,44 @@ static int prism2_config(struct pcmcia_device *link)
 	PDEBUG(DEBUG_FLOW, "prism2_config()\n");
 
 	hw_priv = kzalloc(sizeof(*hw_priv), GFP_KERNEL);
-	if (hw_priv == NULL) {
+
+	if (hw_priv == NULL)
+	{
 		ret = -ENOMEM;
 		goto failed;
 	}
 
 	/* Look for an appropriate configuration table entry in the CIS */
 	link->config_flags |= CONF_AUTO_SET_VPP | CONF_AUTO_AUDIO |
-		CONF_AUTO_CHECK_VCC | CONF_AUTO_SET_IO | CONF_ENABLE_IRQ;
+						  CONF_AUTO_CHECK_VCC | CONF_AUTO_SET_IO | CONF_ENABLE_IRQ;
+
 	if (ignore_cis_vcc)
+	{
 		link->config_flags &= ~CONF_AUTO_CHECK_VCC;
+	}
+
 	ret = pcmcia_loop_config(link, prism2_config_check, NULL);
-	if (ret) {
+
+	if (ret)
+	{
 		if (!ignore_cis_vcc)
 			printk(KERN_ERR "GetNextTuple(): No matching "
-			       "CIS configuration.  Maybe you need the "
-			       "ignore_cis_vcc=1 parameter.\n");
+				   "CIS configuration.  Maybe you need the "
+				   "ignore_cis_vcc=1 parameter.\n");
+
 		goto failed;
 	}
 
 	/* Need to allocate net_device before requesting IRQ handler */
 	dev = prism2_init_local_data(&prism2_pccard_funcs, 0,
-				     &link->dev);
-	if (!dev) {
+								 &link->dev);
+
+	if (!dev)
+	{
 		ret = -ENOMEM;
 		goto failed;
 	}
+
 	link->priv = dev;
 
 	iface = netdev_priv(dev);
@@ -519,12 +596,18 @@ static int prism2_config(struct pcmcia_device *link)
 	 * receive interrupts when driver is not initialized.
 	 */
 	ret = pcmcia_request_irq(link, prism2_interrupt);
+
 	if (ret)
+	{
 		goto failed;
+	}
 
 	ret = pcmcia_enable_device(link);
+
 	if (ret)
+	{
 		goto failed;
+	}
 
 	spin_lock_irqsave(&local->irq_init_lock, flags);
 	dev->irq = link->irq;
@@ -536,12 +619,15 @@ static int prism2_config(struct pcmcia_device *link)
 	sandisk_enable_wireless(dev);
 
 	ret = prism2_hw_config(dev, 1);
+
 	if (!ret)
+	{
 		ret = hostap_hw_ready(dev);
+	}
 
 	return ret;
 
- failed:
+failed:
 	kfree(hw_priv);
 	prism2_release((u_long)link);
 	return ret;
@@ -554,7 +640,8 @@ static void prism2_release(u_long arg)
 
 	PDEBUG(DEBUG_FLOW, "prism2_release\n");
 
-	if (link->priv) {
+	if (link->priv)
+	{
 		struct net_device *dev = link->priv;
 		struct hostap_interface *iface;
 
@@ -574,17 +661,25 @@ static int hostap_cs_suspend(struct pcmcia_device *link)
 	struct hostap_interface *iface = NULL;
 
 	if (!dev)
+	{
 		return -ENODEV;
+	}
 
 	iface = netdev_priv(dev);
 
 	PDEBUG(DEBUG_EXTRA, "%s: CS_EVENT_PM_SUSPEND\n", dev_info);
+
 	if (iface && iface->local)
+	{
 		dev_open = iface->local->num_dev_open > 0;
-	if (dev_open) {
+	}
+
+	if (dev_open)
+	{
 		netif_stop_queue(dev);
 		netif_device_detach(dev);
 	}
+
 	prism2_suspend(dev);
 
 	return 0;
@@ -597,18 +692,24 @@ static int hostap_cs_resume(struct pcmcia_device *link)
 	struct hostap_interface *iface = NULL;
 
 	if (!dev)
+	{
 		return -ENODEV;
+	}
 
 	iface = netdev_priv(dev);
 
 	PDEBUG(DEBUG_EXTRA, "%s: CS_EVENT_PM_RESUME\n", dev_info);
 
 	if (iface && iface->local)
+	{
 		dev_open = iface->local->num_dev_open > 0;
+	}
 
 	prism2_hw_shutdown(dev, 1);
 	prism2_hw_config(dev, dev_open ? 0 : 1);
-	if (dev_open) {
+
+	if (dev_open)
+	{
 		netif_device_attach(dev);
 		netif_start_queue(dev);
 	}
@@ -616,7 +717,8 @@ static int hostap_cs_resume(struct pcmcia_device *link)
 	return 0;
 }
 
-static const struct pcmcia_device_id hostap_cs_ids[] = {
+static const struct pcmcia_device_id hostap_cs_ids[] =
+{
 	PCMCIA_DEVICE_MANF_CARD(0x000b, 0x7100),
 	PCMCIA_DEVICE_MANF_CARD(0x000b, 0x7300),
 	PCMCIA_DEVICE_MANF_CARD(0x0101, 0x0777),
@@ -632,22 +734,22 @@ static const struct pcmcia_device_id hostap_cs_ids[] = {
 	PCMCIA_DEVICE_MANF_CARD(0x02d2, 0x0001),
 	PCMCIA_DEVICE_MANF_CARD(0x50c2, 0x0001),
 	PCMCIA_DEVICE_MANF_CARD(0x50c2, 0x7300),
-/*	PCMCIA_DEVICE_MANF_CARD(0xc00f, 0x0000),    conflict with pcnet_cs */
+	/*	PCMCIA_DEVICE_MANF_CARD(0xc00f, 0x0000),    conflict with pcnet_cs */
 	PCMCIA_DEVICE_MANF_CARD(0xc250, 0x0002),
 	PCMCIA_DEVICE_MANF_CARD(0xd601, 0x0002),
 	PCMCIA_DEVICE_MANF_CARD(0xd601, 0x0005),
 	PCMCIA_DEVICE_MANF_CARD(0xd601, 0x0010),
 	PCMCIA_DEVICE_MANF_CARD(0x0126, 0x0002),
 	PCMCIA_DEVICE_MANF_CARD_PROD_ID1(0xd601, 0x0005, "ADLINK 345 CF",
-					 0x2d858104),
+	0x2d858104),
 	PCMCIA_DEVICE_MANF_CARD_PROD_ID1(0x0156, 0x0002, "INTERSIL",
-					 0x74c5e40d),
+	0x74c5e40d),
 	PCMCIA_DEVICE_MANF_CARD_PROD_ID1(0x0156, 0x0002, "Intersil",
-					 0x4b801a17),
+	0x4b801a17),
 	PCMCIA_DEVICE_MANF_CARD_PROD_ID3(0x0156, 0x0002, "Version 01.02",
-					 0x4b74baa0),
+	0x4b74baa0),
 	PCMCIA_MFC_DEVICE_PROD_ID12(0, "SanDisk", "ConnectPlus",
-				    0x7a954bd9, 0x74be00c6),
+	0x7a954bd9, 0x74be00c6),
 	PCMCIA_DEVICE_PROD_ID123(
 		"Addtron", "AWP-100 Wireless PCMCIA", "Version 01.02",
 		0xe6ec52ce, 0x08649af2, 0x4b74baa0),
@@ -663,19 +765,19 @@ static const struct pcmcia_device_id hostap_cs_ids[] = {
 	PCMCIA_DEVICE_PROD_ID123(
 		"SMC", "SMC2632W", "Version 01.02",
 		0xc4f8b18b, 0x474a1f2a, 0x4b74baa0),
-	PCMCIA_DEVICE_PROD_ID12("BUFFALO", "WLI-CF-S11G", 
-				0x2decece3, 0x82067c18),
+	PCMCIA_DEVICE_PROD_ID12("BUFFALO", "WLI-CF-S11G",
+	0x2decece3, 0x82067c18),
 	PCMCIA_DEVICE_PROD_ID12("Compaq", "WL200_11Mbps_Wireless_PCI_Card",
-				0x54f7c49c, 0x15a75e5b),
+	0x54f7c49c, 0x15a75e5b),
 	PCMCIA_DEVICE_PROD_ID12("INTERSIL", "HFA384x/IEEE",
-				0x74c5e40d, 0xdb472a18),
+	0x74c5e40d, 0xdb472a18),
 	PCMCIA_DEVICE_PROD_ID12("Linksys", "Wireless CompactFlash Card",
-				0x0733cc81, 0x0c52f395),
+	0x0733cc81, 0x0c52f395),
 	PCMCIA_DEVICE_PROD_ID12(
 		"ZoomAir 11Mbps High", "Rate wireless Networking",
 		0x273fe3db, 0x32a1eaee),
 	PCMCIA_DEVICE_PROD_ID12("NETGEAR MA401 Wireless PC", "Card",
-		0xa37434e9, 0x9762e8f1),
+	0xa37434e9, 0x9762e8f1),
 	PCMCIA_DEVICE_PROD_ID123(
 		"Pretec", "CompactWLAN Card 802.11b", "2.5",
 		0x1cadd3e5, 0xe697636c, 0x7a5bfcf1),
@@ -698,7 +800,8 @@ static const struct pcmcia_device_id hostap_cs_ids[] = {
 MODULE_DEVICE_TABLE(pcmcia, hostap_cs_ids);
 
 
-static struct pcmcia_driver hostap_driver = {
+static struct pcmcia_driver hostap_driver =
+{
 	.name		= "hostap_cs",
 	.probe		= hostap_cs_probe,
 	.remove		= prism2_detach,

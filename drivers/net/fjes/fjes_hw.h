@@ -61,10 +61,10 @@ struct fjes_hw;
 
 #define EP_BUFFER_SIZE \
 	(((sizeof(union ep_buffer_info) + (128 * (64 * 1024))) \
-		/ EP_BUFFER_INFO_SIZE) * EP_BUFFER_INFO_SIZE)
+	  / EP_BUFFER_INFO_SIZE) * EP_BUFFER_INFO_SIZE)
 
 #define EP_RING_NUM(buffer_size, frame_size) \
-		(u32)((buffer_size) / (frame_size))
+	(u32)((buffer_size) / (frame_size))
 #define EP_RING_INDEX(_num, _max) (((_num) + (_max)) % (_max))
 #define EP_RING_INDEX_INC(_num, _max) \
 	((_num) = EP_RING_INDEX((_num) + 1, (_max)))
@@ -79,7 +79,7 @@ struct fjes_hw;
 	(sizeof(struct esmem_frame) + FJES_MTU_TO_BUFFER_SIZE(mtu))
 #define FJES_MTU_DEFINE(size) \
 	((size) - sizeof(struct esmem_frame) - \
-	(ETH_HLEN + VLAN_HLEN + ETH_FCS_LEN))
+	 (ETH_HLEN + VLAN_HLEN + ETH_FCS_LEN))
 
 #define FJES_DEV_COMMAND_INFO_REQ_LEN	(4)
 #define FJES_DEV_COMMAND_INFO_RES_LEN(epnum) (8 + 2 * (epnum))
@@ -95,13 +95,15 @@ struct fjes_hw;
 	FJES_DEV_COMMAND_INFO_RES_LEN(maxep)
 
 /* Frame & MTU */
-struct esmem_frame {
+struct esmem_frame
+{
 	__le32 frame_size;
 	u8 frame_data[];
 };
 
 /* EP partner status */
-enum ep_partner_status {
+enum ep_partner_status
+{
 	EP_PARTNER_UNSHARE,
 	EP_PARTNER_SHARED,
 	EP_PARTNER_WAITING,
@@ -110,73 +112,89 @@ enum ep_partner_status {
 };
 
 /* shared status region */
-struct fjes_device_shared_info {
+struct fjes_device_shared_info
+{
 	int epnum;
 	u8 ep_status[];
 };
 
 /* structures for command control request data*/
-union fjes_device_command_req {
-	struct {
+union fjes_device_command_req
+{
+	struct
+	{
 		__le32 length;
 	} info;
-	struct {
+	struct
+	{
 		__le32 length;
 		__le32 epid;
 		__le64 buffer[];
 	} share_buffer;
-	struct {
+	struct
+	{
 		__le32 length;
 		__le32 epid;
 	} unshare_buffer;
-	struct {
+	struct
+	{
 		__le32 length;
 		__le32 mode;
 		__le64 buffer_len;
 		__le64 buffer[];
 	} start_trace;
-	struct {
+	struct
+	{
 		__le32 length;
 	} stop_trace;
 };
 
 /* structures for command control response data */
-union fjes_device_command_res {
-	struct {
+union fjes_device_command_res
+{
+	struct
+	{
 		__le32 length;
 		__le32 code;
-		struct {
+		struct
+		{
 			u8 es_status;
 			u8 zone;
 		} info[];
 	} info;
-	struct {
+	struct
+	{
 		__le32 length;
 		__le32 code;
 	} share_buffer;
-	struct {
+	struct
+	{
 		__le32 length;
 		__le32 code;
 	} unshare_buffer;
-	struct {
+	struct
+	{
 		__le32 length;
 		__le32 code;
 	} start_trace;
-	struct {
+	struct
+	{
 		__le32 length;
 		__le32 code;
 	} stop_trace;
 };
 
 /* request command type */
-enum fjes_dev_command_request_type {
+enum fjes_dev_command_request_type
+{
 	FJES_CMD_REQ_INFO		= 0x0001,
 	FJES_CMD_REQ_SHARE_BUFFER	= 0x0002,
 	FJES_CMD_REQ_UNSHARE_BUFFER	= 0x0004,
 };
 
 /* parameter for command control */
-struct fjes_device_command_param {
+struct fjes_device_command_param
+{
 	u32 req_len;
 	phys_addr_t req_start;
 	u32 res_len;
@@ -185,7 +203,8 @@ struct fjes_device_command_param {
 };
 
 /* error code for command control */
-enum fjes_dev_command_response_e {
+enum fjes_dev_command_response_e
+{
 	FJES_CMD_STATUS_UNKNOWN,
 	FJES_CMD_STATUS_NORMAL,
 	FJES_CMD_STATUS_TIMEOUT,
@@ -194,14 +213,17 @@ enum fjes_dev_command_response_e {
 };
 
 /* EP buffer information */
-union ep_buffer_info {
+union ep_buffer_info
+{
 	u8 raw[EP_BUFFER_INFO_SIZE];
 
-	struct _ep_buffer_info_common_t {
+	struct _ep_buffer_info_common_t
+	{
 		u32 version;
 	} common;
 
-	struct _ep_buffer_info_v1_t {
+	struct _ep_buffer_info_v1_t
+	{
 		u32 version;
 		u32 info_size;
 
@@ -229,8 +251,10 @@ union ep_buffer_info {
 };
 
 /* buffer pair for Extended Partition */
-struct ep_share_mem_info {
-	struct epbuf_handler {
+struct ep_share_mem_info
+{
+	struct epbuf_handler
+	{
 		void *buffer;
 		size_t size;
 		union ep_buffer_info *info;
@@ -245,21 +269,24 @@ struct ep_share_mem_info {
 	u8 zone;
 };
 
-struct es_device_trace {
+struct es_device_trace
+{
 	u32 record_num;
 	u32 current_record;
 	u32 status_flag;
 	u32 _rsv;
 
-	struct {
-			u16 epid;
-			u16 dir_offset;
-			u32 data;
-			u64 tsc;
+	struct
+	{
+		u16 epid;
+		u16 dir_offset;
+		u32 data;
+		u64 tsc;
 	} record[];
 };
 
-struct fjes_hw_info {
+struct fjes_hw_info
+{
 	struct fjes_device_shared_info *share;
 	union fjes_device_command_req *req_buf;
 	u64 req_buf_size;
@@ -278,7 +305,8 @@ struct fjes_hw_info {
 	unsigned long buffer_unshare_reserve_bit;
 };
 
-struct fjes_hw {
+struct fjes_hw
+{
 	void *back;
 
 	unsigned long txrx_stop_req_bit;
@@ -291,7 +319,8 @@ struct fjes_hw {
 
 	struct ep_share_mem_info *ep_shm_info;
 
-	struct fjes_hw_resource {
+	struct fjes_hw_resource
+	{
 		u64 start;
 		u64 size;
 		int irq;
@@ -309,10 +338,10 @@ void fjes_hw_exit(struct fjes_hw *);
 int fjes_hw_reset(struct fjes_hw *);
 int fjes_hw_request_info(struct fjes_hw *);
 int fjes_hw_register_buff_addr(struct fjes_hw *, int,
-			       struct ep_share_mem_info *);
+							   struct ep_share_mem_info *);
 int fjes_hw_unregister_buff_addr(struct fjes_hw *, int);
 void fjes_hw_init_command_registers(struct fjes_hw *,
-				    struct fjes_device_command_param *);
+									struct fjes_device_command_param *);
 void fjes_hw_setup_epbuf(struct epbuf_handler *, u8 *, u32);
 int fjes_hw_raise_interrupt(struct fjes_hw *, int, enum REG_ICTL_MASK);
 void fjes_hw_set_irqmask(struct fjes_hw *, enum REG_ICTL_MASK, bool);
@@ -320,7 +349,7 @@ u32 fjes_hw_capture_interrupt_status(struct fjes_hw *);
 void fjes_hw_raise_epstop(struct fjes_hw *);
 int fjes_hw_wait_epstop(struct fjes_hw *);
 enum ep_partner_status
-	fjes_hw_get_partner_ep_status(struct fjes_hw *, int);
+fjes_hw_get_partner_ep_status(struct fjes_hw *, int);
 
 bool fjes_hw_epid_is_same_zone(struct fjes_hw *, int);
 int fjes_hw_epid_is_shared(struct fjes_device_shared_info *, int);

@@ -23,15 +23,18 @@ struct lpfc_hba;
 struct lpfc_vport;
 
 /* Define the context types that SLI handles for abort and sums. */
-typedef enum _lpfc_ctx_cmd {
+typedef enum _lpfc_ctx_cmd
+{
 	LPFC_CTX_LUN,
 	LPFC_CTX_TGT,
 	LPFC_CTX_HOST
 } lpfc_ctx_cmd;
 
-struct lpfc_cq_event {
+struct lpfc_cq_event
+{
 	struct list_head list;
-	union {
+	union
+	{
 		struct lpfc_mcqe		mcqe_cmpl;
 		struct lpfc_acqe_link		acqe_link;
 		struct lpfc_acqe_fip		acqe_fip;
@@ -46,7 +49,8 @@ struct lpfc_cq_event {
 };
 
 /* This structure is used to handle IOCB requests / responses */
-struct lpfc_iocbq {
+struct lpfc_iocbq
+{
 	/* lpfc_iocbqs are used in double linked lists */
 	struct list_head list;
 	struct list_head clist;
@@ -89,7 +93,8 @@ struct lpfc_iocbq {
 	void *context1;		/* caller context information */
 	void *context2;		/* caller context information */
 	void *context3;		/* caller context information */
-	union {
+	union
+	{
 		wait_queue_head_t    *wait_queue;
 		struct lpfc_iocbq    *rsp_iocb;
 		struct lpfcMboxq     *mbox;
@@ -98,11 +103,11 @@ struct lpfc_iocbq {
 	} context_un;
 
 	void (*fabric_iocb_cmpl) (struct lpfc_hba *, struct lpfc_iocbq *,
-			   struct lpfc_iocbq *);
+							  struct lpfc_iocbq *);
 	void (*wait_iocb_cmpl) (struct lpfc_hba *, struct lpfc_iocbq *,
-			   struct lpfc_iocbq *);
+							struct lpfc_iocbq *);
 	void (*iocb_cmpl) (struct lpfc_hba *, struct lpfc_iocbq *,
-			   struct lpfc_iocbq *);
+					   struct lpfc_iocbq *);
 };
 
 #define SLI_IOCB_RET_IOCB      1	/* Return IOCB if cmd ring full */
@@ -115,10 +120,12 @@ struct lpfc_iocbq {
 #define LPFC_MBX_WAKE		1
 #define LPFC_MBX_IMED_UNREG	2
 
-typedef struct lpfcMboxq {
+typedef struct lpfcMboxq
+{
 	/* MBOXQs are used in single linked lists */
 	struct list_head list;	/* ptr to next mailbox command */
-	union {
+	union
+	{
 		MAILBOX_t mb;		/* Mailbox cmd */
 		struct lpfc_mqe mqe;
 	} u;
@@ -147,20 +154,22 @@ typedef struct lpfcMboxq {
 
 struct lpfc_sli_ring;
 
-struct lpfc_sli_ring_mask {
+struct lpfc_sli_ring_mask
+{
 	uint8_t profile;	/* profile associated with ring */
 	uint8_t rctl;	/* rctl / type pair configured for ring */
 	uint8_t type;	/* rctl / type pair configured for ring */
 	uint8_t rsvd;
 	/* rcv'd unsol event */
 	void (*lpfc_sli_rcv_unsol_event) (struct lpfc_hba *,
-					 struct lpfc_sli_ring *,
-					 struct lpfc_iocbq *);
+									  struct lpfc_sli_ring *,
+									  struct lpfc_iocbq *);
 };
 
 
 /* Structure used to hold SLI statistical counters and info */
-struct lpfc_sli_ring_stat {
+struct lpfc_sli_ring_stat
+{
 	uint64_t iocb_event;	 /* IOCB event counters */
 	uint64_t iocb_cmd;	 /* IOCB cmd issued */
 	uint64_t iocb_rsp;	 /* IOCB rsp received */
@@ -170,7 +179,8 @@ struct lpfc_sli_ring_stat {
 	uint64_t iocb_rsp_full;	 /* IOCB rsp ring full */
 };
 
-struct lpfc_sli3_ring {
+struct lpfc_sli3_ring
+{
 	uint32_t local_getidx;  /* last available cmd index (from cmdGetInx) */
 	uint32_t next_cmdidx;   /* next_cmd index */
 	uint32_t rspidx;	/* current index in response ring */
@@ -183,13 +193,15 @@ struct lpfc_sli3_ring {
 	uint32_t *rspringaddr;	/* virtual address for rsp rings */
 };
 
-struct lpfc_sli4_ring {
+struct lpfc_sli4_ring
+{
 	struct lpfc_queue *wqp;	/* Pointer to associated WQ */
 };
 
 
 /* Structure used to hold SLI ring information */
-struct lpfc_sli_ring {
+struct lpfc_sli_ring
+{
 	uint16_t flag;		/* ring flags */
 #define LPFC_DEFERRED_RING_EVENT 0x001	/* Deferred processing a ring event */
 #define LPFC_CALL_RING_AVAILABLE 0x002	/* indicates cmd was full */
@@ -222,21 +234,23 @@ struct lpfc_sli_ring {
 	struct lpfc_sli_ring_mask prt[LPFC_MAX_RING_MASK];
 	uint32_t num_mask;	/* number of mask entries in prt array */
 	void (*lpfc_sli_rcv_async_status) (struct lpfc_hba *,
-		struct lpfc_sli_ring *, struct lpfc_iocbq *);
+									   struct lpfc_sli_ring *, struct lpfc_iocbq *);
 
 	struct lpfc_sli_ring_stat stats;	/* SLI statistical info */
 
 	/* cmd ring available */
 	void (*lpfc_sli_cmd_available) (struct lpfc_hba *,
-					struct lpfc_sli_ring *);
-	union {
+									struct lpfc_sli_ring *);
+	union
+	{
 		struct lpfc_sli3_ring sli3;
 		struct lpfc_sli4_ring sli4;
 	} sli;
 };
 
 /* Structure used for configuring rings to a specific profile or rctl / type */
-struct lpfc_hbq_init {
+struct lpfc_hbq_init
+{
 	uint32_t rn;		/* Receive buffer notification */
 	uint32_t entry_count;	/* max # of entries in HBQ */
 	uint32_t headerLen;	/* 0 if not profile 4 or 5 */
@@ -261,7 +275,8 @@ struct lpfc_hbq_init {
 } ;
 
 /* Structure used to hold SLI statistical counters and info */
-struct lpfc_sli_stat {
+struct lpfc_sli_stat
+{
 	uint64_t mbox_stat_err;  /* Mbox cmds completed status error */
 	uint64_t mbox_cmd;       /* Mailbox commands issued */
 	uint64_t sli_intr;       /* Count of Host Attention interrupts */
@@ -274,7 +289,8 @@ struct lpfc_sli_stat {
 };
 
 /* Structure to store link status values when port stats are reset */
-struct lpfc_lnk_stat {
+struct lpfc_lnk_stat
+{
 	uint32_t link_failure_count;
 	uint32_t loss_of_sync_count;
 	uint32_t loss_of_signal_count;
@@ -286,7 +302,8 @@ struct lpfc_lnk_stat {
 };
 
 /* Structure used to hold SLI information */
-struct lpfc_sli {
+struct lpfc_sli
+{
 	uint32_t num_rings;
 	uint32_t sli_flag;
 
@@ -315,7 +332,7 @@ struct lpfc_sli {
 					   cmd */
 
 #define LPFC_IOCBQ_LOOKUP_INCREMENT  1024
-	struct lpfc_iocbq ** iocbq_lookup; /* array to lookup IOCB by IOTAG */
+	struct lpfc_iocbq **iocbq_lookup;  /* array to lookup IOCB by IOTAG */
 	size_t iocbq_lookup_len;           /* current lengs of the array */
 	uint16_t  last_iotag;              /* last allocated IOTAG */
 	unsigned long  stats_start;        /* in seconds */

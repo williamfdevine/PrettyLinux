@@ -11,7 +11,8 @@
 #define ADM8211_CSR_WRITE(r, val) iowrite32((val), &priv->map->r)
 
 /* CSR (Host Control and Status Registers) */
-struct adm8211_csr {
+struct adm8211_csr
+{
 	__le32 PAR;		/* 0x00 CSR0 */
 	__le32 FRCTL;		/* 0x04 CSR0A */
 	__le32 TDR;		/* 0x08 CSR1 */
@@ -150,29 +151,29 @@ struct adm8211_csr {
 #define ADM8211_NAR_CTX		(1 << 0)
 
 #define ADM8211_IDLE() 							   \
-do { 									   \
-	if (priv->nar & (ADM8211_NAR_SR | ADM8211_NAR_ST)) {		   \
-		ADM8211_CSR_WRITE(NAR, priv->nar &			   \
-				       ~(ADM8211_NAR_SR | ADM8211_NAR_ST));\
-		ADM8211_CSR_READ(NAR);					   \
-		msleep(20);						   \
-	}								   \
-} while (0)
+	do { 									   \
+		if (priv->nar & (ADM8211_NAR_SR | ADM8211_NAR_ST)) {		   \
+			ADM8211_CSR_WRITE(NAR, priv->nar &			   \
+							  ~(ADM8211_NAR_SR | ADM8211_NAR_ST));\
+			ADM8211_CSR_READ(NAR);					   \
+			msleep(20);						   \
+		}								   \
+	} while (0)
 
 #define ADM8211_IDLE_RX() 						\
-do {									\
-	if (priv->nar & ADM8211_NAR_SR) {				\
-		ADM8211_CSR_WRITE(NAR, priv->nar & ~ADM8211_NAR_SR);	\
-		ADM8211_CSR_READ(NAR);					\
-		mdelay(20);						\
-	}								\
-} while (0)
+	do {									\
+		if (priv->nar & ADM8211_NAR_SR) {				\
+			ADM8211_CSR_WRITE(NAR, priv->nar & ~ADM8211_NAR_SR);	\
+			ADM8211_CSR_READ(NAR);					\
+			mdelay(20);						\
+		}								\
+	} while (0)
 
 #define ADM8211_RESTORE()					\
-do {								\
-	if (priv->nar & (ADM8211_NAR_SR | ADM8211_NAR_ST))	\
-		ADM8211_CSR_WRITE(NAR, priv->nar);		\
-} while (0)
+	do {								\
+		if (priv->nar & (ADM8211_NAR_SR | ADM8211_NAR_ST))	\
+			ADM8211_CSR_WRITE(NAR, priv->nar);		\
+	} while (0)
 
 /* CSR7 - IER (Interrupt Enable Register) */
 #define ADM8211_IER_PCFIE	(1 << 31)
@@ -360,7 +361,8 @@ do {								\
 #define ADM8211_REV_BA 0x20
 #define ADM8211_REV_CA 0x30
 
-struct adm8211_desc {
+struct adm8211_desc
+{
 	__le32 status;
 	__le32 length;
 	__le32 buffer1;
@@ -417,7 +419,7 @@ struct adm8211_desc {
 
 /* SRAM offsets */
 #define ADM8211_SRAM(x) (priv->pdev->revision < ADM8211_REV_BA ? \
-        ADM8211_SRAM_A_ ## x : ADM8211_SRAM_B_ ## x)
+						 ADM8211_SRAM_A_ ## x : ADM8211_SRAM_B_ ## x)
 
 #define ADM8211_SRAM_INDIV_KEY   0x0000
 #define ADM8211_SRAM_A_SHARE_KEY 0x0160
@@ -435,12 +437,14 @@ struct adm8211_desc {
 #define ADM8211_SRAM_B_SIZE      0x01c0
 #define ADM8211_SRAM_SIZE ADM8211_SRAM(SIZE)
 
-struct adm8211_rx_ring_info {
+struct adm8211_rx_ring_info
+{
 	struct sk_buff *skb;
 	dma_addr_t mapping;
 };
 
-struct adm8211_tx_ring_info {
+struct adm8211_tx_ring_info
+{
 	struct sk_buff *skb;
 	dma_addr_t mapping;
 	size_t hdrlen;
@@ -451,7 +455,8 @@ struct adm8211_tx_ring_info {
 #define PLCP_SIGNAL_5M5		0x37
 #define PLCP_SIGNAL_11M		0x6e
 
-struct adm8211_tx_hdr {
+struct adm8211_tx_hdr
+{
 	u8 da[6];
 	u8 signal; /* PLCP signal / TX rate in 100 Kbps */
 	u8 service;
@@ -490,7 +495,8 @@ struct adm8211_tx_hdr {
 #define RX_COPY_BREAK 128
 #define RX_PKT_SIZE 2500
 
-struct adm8211_eeprom {
+struct adm8211_eeprom
+{
 	__le16	signature;		/* 0x00 */
 	u8	major_version;		/* 0x02 */
 	u8	minor_version;		/* 0x03 */
@@ -503,7 +509,7 @@ struct adm8211_eeprom {
 	u8	cr29;			/* 0x1A */
 	u8	country_code;		/* 0x1B */
 
-/* specific bbp types */
+	/* specific bbp types */
 #define ADM8211_BBP_RFMD3000	0x00
 #define ADM8211_BBP_RFMD3002	0x01
 #define ADM8211_BBP_ADM8011	0x04
@@ -533,7 +539,8 @@ struct adm8211_eeprom {
 	u8	cis_data[0];		/* 0x80, 384 bytes */
 } __packed;
 
-struct adm8211_priv {
+struct adm8211_priv
+{
 	struct pci_dev *pdev;
 	spinlock_t lock;
 	struct adm8211_csr __iomem *map;
@@ -571,11 +578,12 @@ struct adm8211_priv {
 #define ADM8211_TYPE_MARVEL	0x02
 #define ADM8211_TYPE_AIROHA	0x03
 #define ADM8211_TYPE_ADMTEK     0x05
-	unsigned int rf_type:3;
-	unsigned int bbp_type:3;
+	unsigned int rf_type: 3;
+	unsigned int bbp_type: 3;
 
 	u8 specific_bbptype;
-	enum {
+	enum
+	{
 		ADM8211_RFMD2948 = 0x0,
 		ADM8211_RFMD2958 = 0x1,
 		ADM8211_RFMD2958_RF3000_CONTROL_POWER = 0x2,
@@ -584,12 +592,14 @@ struct adm8211_priv {
 	} transceiver_type;
 };
 
-struct ieee80211_chan_range {
+struct ieee80211_chan_range
+{
 	u8 min;
 	u8 max;
 };
 
-static const struct ieee80211_chan_range cranges[] = {
+static const struct ieee80211_chan_range cranges[] =
+{
 	{1,  11},	/* FCC */
 	{1,  11},	/* IC */
 	{1,  13},	/* ETSI */

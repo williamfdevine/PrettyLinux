@@ -48,26 +48,30 @@
 #define BIT30		   0x40000000
 #define BIT31		   0x80000000
 
-union qos_tsinfo {
+union qos_tsinfo
+{
 	u8		charData[3];
-	struct {
-		u8		ucTrafficType:1;
-		u8		ucTSID:4;
-		u8		ucDirection:2;
-		u8		ucAccessPolicy:2;
-		u8		ucAggregation:1;
-		u8		ucPSB:1;
-		u8		ucUP:3;
-		u8		ucTSInfoAckPolicy:2;
-		u8		ucSchedule:1;
-		u8		ucReserved:7;
+	struct
+	{
+		u8		ucTrafficType: 1;
+		u8		ucTSID: 4;
+		u8		ucDirection: 2;
+		u8		ucAccessPolicy: 2;
+		u8		ucAggregation: 1;
+		u8		ucPSB: 1;
+		u8		ucUP: 3;
+		u8		ucTSInfoAckPolicy: 2;
+		u8		ucSchedule: 1;
+		u8		ucReserved: 7;
 	} field;
 };
 
-union tspec_body {
+union tspec_body
+{
 	u8		charData[55];
 
-	struct {
+	struct
+	{
 		union qos_tsinfo TSInfo;
 		u16	NominalMSDUsize;
 		u16	MaxMSDUsize;
@@ -87,7 +91,8 @@ union tspec_body {
 	} f;
 };
 
-struct octet_string {
+struct octet_string
+{
 	u8 *Octet;
 	u16 Length;
 };
@@ -98,35 +103,41 @@ struct octet_string {
 #define AC3_VO	3
 #define AC_MAX	4
 
-enum direction_value {
+enum direction_value
+{
 	DIR_UP			= 0,
 	DIR_DOWN		= 1,
 	DIR_DIRECT		= 2,
 	DIR_BI_DIR		= 3,
 };
 
-enum acm_method {
+enum acm_method
+{
 	eAcmWay0_SwAndHw		= 0,
 	eAcmWay1_HW			= 1,
 	eAcmWay2_SW			= 2,
 };
 
 
-struct acm {
+struct acm
+{
 	u64		UsedTime;
 	u64		MediumTime;
 	u8		HwAcmCtl;
 };
 
-union qos_tclas {
+union qos_tclas
+{
 
-	struct _TYPE_GENERAL {
+	struct _TYPE_GENERAL
+	{
 		u8		Priority;
 		u8		ClassifierType;
 		u8		Mask;
 	} TYPE_GENERAL;
 
-	struct _TYPE0_ETH {
+	struct _TYPE0_ETH
+	{
 		u8		Priority;
 		u8		ClassifierType;
 		u8		Mask;
@@ -135,7 +146,8 @@ union qos_tclas {
 		u16		Type;
 	} TYPE0_ETH;
 
-	struct _TYPE1_IPV4 {
+	struct _TYPE1_IPV4
+	{
 		u8		Priority;
 		u8		ClassifierType;
 		u8		Mask;
@@ -149,7 +161,8 @@ union qos_tclas {
 		u8		Reserved;
 	} TYPE1_IPV4;
 
-	struct _TYPE1_IPV6 {
+	struct _TYPE1_IPV6
+	{
 		u8		Priority;
 		u8		ClassifierType;
 		u8		Mask;
@@ -161,7 +174,8 @@ union qos_tclas {
 		u8		FlowLabel[3];
 	} TYPE1_IPV6;
 
-	struct _TYPE2_8021Q {
+	struct _TYPE2_8021Q
+	{
 		u8		Priority;
 		u8		ClassifierType;
 		u8		Mask;
@@ -169,14 +183,16 @@ union qos_tclas {
 	} TYPE2_8021Q;
 };
 
-union aci_aifsn {
+union aci_aifsn
+{
 	u8	charData;
 
-	struct {
-		u8	AIFSN:4;
-		u8	acm:1;
-		u8	ACI:2;
-		u8	Reserved:1;
+	struct
+	{
+		u8	AIFSN: 4;
+		u8	acm: 1;
+		u8	ACI: 2;
+		u8	Reserved: 1;
 	} f;
 };
 

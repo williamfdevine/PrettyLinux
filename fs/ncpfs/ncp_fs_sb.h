@@ -19,7 +19,8 @@
 
 struct sock;
 
-struct ncp_mount_data_kernel {
+struct ncp_mount_data_kernel
+{
 	unsigned long    flags;		/* NCP_MOUNT_* flags */
 	unsigned int	 int_flags;	/* internal flags */
 #define NCP_IMOUNT_LOGGEDIN_POSSIBLE	0x0001
@@ -37,7 +38,8 @@ struct ncp_mount_data_kernel {
 	int		 info_fd;
 };
 
-struct ncp_server {
+struct ncp_server
+{
 	struct rcu_head rcu;
 	struct ncp_mount_data_kernel m;	/* Nearly all of the mount data is of
 					   interest for us later, so we store
@@ -81,19 +83,21 @@ struct ncp_server {
 	int sign_wanted;	/* 1=Server needs signed packets */
 	int sign_active;	/* 0=don't do signing, 1=do */
 	char sign_root[8];	/* generated from password and encr. key */
-	char sign_last[16];	
+	char sign_last[16];
 
 	/* Authentication info: NDS or BINDERY, username */
-	struct {
+	struct
+	{
 		int	auth_type;
 		size_t	object_name_len;
-		void*	object_name;
+		void	*object_name;
 		int	object_type;
 	} auth;
 	/* Password info */
-	struct {
+	struct
+	{
 		size_t	len;
-		void*	data;
+		void	*data;
 	} priv;
 	struct rw_semaphore auth_rwsem;
 
@@ -109,16 +113,18 @@ struct ncp_server {
 
 	spinlock_t requests_lock;	/* Lock accesses to tx.requests, tx.creq and rcv.creq when STREAM mode */
 
-	void (*data_ready)(struct sock* sk);
-	void (*error_report)(struct sock* sk);
-	void (*write_space)(struct sock* sk);	/* STREAM mode only */
-	struct {
+	void (*data_ready)(struct sock *sk);
+	void (*error_report)(struct sock *sk);
+	void (*write_space)(struct sock *sk);	/* STREAM mode only */
+	struct
+	{
 		struct work_struct tq;		/* STREAM/DGRAM: data/error ready */
-		struct ncp_request_reply* creq;	/* STREAM/DGRAM: awaiting reply from this request */
+		struct ncp_request_reply *creq;	/* STREAM/DGRAM: awaiting reply from this request */
 		struct mutex creq_mutex;	/* DGRAM only: lock accesses to rcv.creq */
 
 		unsigned int state;		/* STREAM only: receiver state */
-		struct {
+		struct
+		{
 			__u32 magic __packed;
 			__u32 len __packed;
 			__u16 type __packed;
@@ -127,19 +133,21 @@ struct ncp_server {
 			__u16 p3 __packed;
 			__u16 type2 __packed;
 		} buf;				/* STREAM only: temporary buffer */
-		unsigned char* ptr;		/* STREAM only: pointer to data */
+		unsigned char *ptr;		/* STREAM only: pointer to data */
 		size_t len;			/* STREAM only: length of data to receive */
 	} rcv;
-	struct {
+	struct
+	{
 		struct list_head requests;	/* STREAM only: queued requests */
 		struct work_struct tq;		/* STREAM only: transmitter ready */
-		struct ncp_request_reply* creq;	/* STREAM only: currently transmitted entry */
+		struct ncp_request_reply *creq;	/* STREAM only: currently transmitted entry */
 	} tx;
 	struct timer_list timeout_tm;		/* DGRAM only: timeout timer */
 	struct work_struct timeout_tq;		/* DGRAM only: associated queue, we run timers from process context */
 	int timeout_last;			/* DGRAM only: current timeout length */
 	int timeout_retries;			/* DGRAM only: retries left */
-	struct {
+	struct
+	{
 		size_t len;
 		__u8 data[128];
 	} unexpected_packet;
@@ -151,9 +159,9 @@ extern void ncp_tcp_tx_proc(struct work_struct *work);
 extern void ncpdgram_rcv_proc(struct work_struct *work);
 extern void ncpdgram_timeout_proc(struct work_struct *work);
 extern void ncpdgram_timeout_call(unsigned long server);
-extern void ncp_tcp_data_ready(struct sock* sk);
-extern void ncp_tcp_write_space(struct sock* sk);
-extern void ncp_tcp_error_report(struct sock* sk);
+extern void ncp_tcp_data_ready(struct sock *sk);
+extern void ncp_tcp_write_space(struct sock *sk);
+extern void ncp_tcp_error_report(struct sock *sk);
 
 #define NCP_FLAG_UTF8	1
 

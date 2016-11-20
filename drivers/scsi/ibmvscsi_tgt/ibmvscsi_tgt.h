@@ -47,17 +47,19 @@
  * SRP buffer formats defined as of 16.a supported by this driver.
  */
 #define SUPPORTED_FORMATS  ((SRP_DATA_DESC_DIRECT << 1) | \
-			    (SRP_DATA_DESC_INDIRECT << 1))
+							(SRP_DATA_DESC_INDIRECT << 1))
 
 #define SCSI_LUN_ADDR_METHOD_FLAT	1
 
-struct dma_window {
+struct dma_window
+{
 	u32 liobn;	/* Unique per vdevice */
 	u64 tce_base;	/* Physical location of the TCE table */
 	u64 tce_size;	/* Size of the TCE table in bytes */
 };
 
-struct target_dds {
+struct target_dds
+{
 	u64 unit_id;                /* 64 bit will force alignment */
 #define NUM_DMA_WINDOWS 2
 #define LOCAL  0
@@ -79,12 +81,14 @@ struct target_dds {
 /* choose error codes that do not conflict with PHYP */
 #define ERROR                   -40L
 
-struct format_code {
+struct format_code
+{
 	u8 reserved;
 	u8 buffers;
 };
 
-struct client_info {
+struct client_info
+{
 #define SRP_VERSION "16.a"
 	char srp_version[8];
 	/* root node property ibm,partition-name */
@@ -108,12 +112,13 @@ struct client_info {
 #define WAIT_SECONDS 1
 #define WAIT_NANO_SECONDS 5000
 #define MAX_TIMER_POPS ((1000000 / WAIT_NANO_SECONDS) * \
-			SECONDS_TO_CONSIDER_FAILED)
+						SECONDS_TO_CONSIDER_FAILED)
 /*
  * general purpose timer control block
  * which can be used for multiple functions
  */
-struct timer_cb {
+struct timer_cb
+{
 	struct hrtimer timer;
 	/*
 	 * how long has it been since the client
@@ -126,7 +131,8 @@ struct timer_cb {
 	bool started;
 };
 
-struct cmd_queue {
+struct cmd_queue
+{
 	/* kva */
 	struct viosrp_crq *base_addr;
 	dma_addr_t crq_token;
@@ -143,7 +149,8 @@ struct cmd_queue {
 #define SCSOLNT         BIT(SCSOLNT_RESP_SHIFT)
 #define UCSOLNT         BIT(UCSOLNT_RESP_SHIFT)
 
-enum cmd_type {
+enum cmd_type
+{
 	SCSI_CDB	= 0x01,
 	TASK_MANAGEMENT	= 0x02,
 	/* MAD or addressed to port 0 */
@@ -151,7 +158,8 @@ enum cmd_type {
 	UNSET_TYPE	= 0x08,
 };
 
-struct iu_rsp {
+struct iu_rsp
+{
 	u8 format;
 	u8 sol_not;
 	u16 len;
@@ -159,7 +167,8 @@ struct iu_rsp {
 	u64 tag;
 };
 
-struct ibmvscsis_cmd {
+struct ibmvscsis_cmd
+{
 	struct list_head list;
 	/* Used for TCM Core operations */
 	struct se_cmd se_cmd;
@@ -175,11 +184,13 @@ struct ibmvscsis_cmd {
 	char type;
 };
 
-struct ibmvscsis_nexus {
+struct ibmvscsis_nexus
+{
 	struct se_session *se_sess;
 };
 
-struct ibmvscsis_tport {
+struct ibmvscsis_tport
+{
 	/* SCSI protocol the tport is providing */
 	u8 tport_proto_id;
 	/* ASCII formatted WWPN for SRP Target port */
@@ -196,7 +207,8 @@ struct ibmvscsis_tport {
 	bool releasing;
 };
 
-struct scsi_info {
+struct scsi_info
+{
 	struct list_head list;
 	char eye[MAX_EYE];
 
@@ -300,7 +312,7 @@ struct scsi_info {
  * disconnecting from the client from one of several states.
  */
 #define IS_DISCONNECTING (UNCONFIGURING | ERR_DISCONNECT_RECONNECT | \
-			  ERR_DISCONNECT)
+						  ERR_DISCONNECT)
 
 /*
  * Provide a constant that can be used with interrupt handling that
@@ -308,7 +320,7 @@ struct scsi_info {
  * be thrown out,
  */
 #define DONT_PROCESS_STATE (IS_DISCONNECTING | UNDEFINED | \
-			    ERR_DISCONNECTED  | WAIT_IDLE)
+							ERR_DISCONNECTED  | WAIT_IDLE)
 
 /*
  * If any of these flag bits are set then do not allow the interrupt
@@ -318,7 +330,7 @@ struct scsi_info {
 
 /* State and transition events that stop the interrupt handler */
 #define TARGET_STOP(VSCSI) (long)(((VSCSI)->state & DONT_PROCESS_STATE) | \
-				  ((VSCSI)->flags & BLOCK))
+								  ((VSCSI)->flags & BLOCK))
 
 /* flag bit that are not reset during disconnect */
 #define PRESERVE_FLAG_FIELDS 0
@@ -329,18 +341,18 @@ struct scsi_info {
 #define WRITE_CMD(cdb)	(((cdb)[0] & 0x1F) == 0xA)
 
 #ifndef H_GET_PARTNER_INFO
-#define H_GET_PARTNER_INFO      0x0000000000000008LL
+	#define H_GET_PARTNER_INFO      0x0000000000000008LL
 #endif
 
 #define h_copy_rdma(l, sa, sb, da, db) \
-		plpar_hcall_norets(H_COPY_RDMA, l, sa, sb, da, db)
+	plpar_hcall_norets(H_COPY_RDMA, l, sa, sb, da, db)
 #define h_vioctl(u, o, a, u1, u2, u3, u4) \
-		plpar_hcall_norets(H_VIOCTL, u, o, a, u1, u2)
+	plpar_hcall_norets(H_VIOCTL, u, o, a, u1, u2)
 #define h_reg_crq(ua, tok, sz) \
-		plpar_hcall_norets(H_REG_CRQ, ua, tok, sz)
+	plpar_hcall_norets(H_REG_CRQ, ua, tok, sz)
 #define h_free_crq(ua) \
-		plpar_hcall_norets(H_FREE_CRQ, ua)
+	plpar_hcall_norets(H_FREE_CRQ, ua)
 #define h_send_crq(ua, d1, d2) \
-		plpar_hcall_norets(H_SEND_CRQ, ua, d1, d2)
+	plpar_hcall_norets(H_SEND_CRQ, ua, d1, d2)
 
 #endif

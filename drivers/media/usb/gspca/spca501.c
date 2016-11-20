@@ -30,7 +30,8 @@ MODULE_DESCRIPTION("GSPCA/SPCA501 USB Camera Driver");
 MODULE_LICENSE("GPL");
 
 /* specific webcam descriptor */
-struct sd {
+struct sd
+{
 	struct gspca_dev gspca_dev;	/* !! must be the first item */
 
 	unsigned short contrast;
@@ -49,22 +50,29 @@ struct sd {
 #define ViewQuestM318B 6
 };
 
-static const struct v4l2_pix_format vga_mode[] = {
-	{160, 120, V4L2_PIX_FMT_SPCA501, V4L2_FIELD_NONE,
+static const struct v4l2_pix_format vga_mode[] =
+{
+	{
+		160, 120, V4L2_PIX_FMT_SPCA501, V4L2_FIELD_NONE,
 		.bytesperline = 160,
 		.sizeimage = 160 * 120 * 3 / 2,
 		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 2},
-	{320, 240, V4L2_PIX_FMT_SPCA501, V4L2_FIELD_NONE,
+		.priv = 2
+	},
+	{
+		320, 240, V4L2_PIX_FMT_SPCA501, V4L2_FIELD_NONE,
 		.bytesperline = 320,
 		.sizeimage = 320 * 240 * 3 / 2,
 		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 1},
-	{640, 480, V4L2_PIX_FMT_SPCA501, V4L2_FIELD_NONE,
+		.priv = 1
+	},
+	{
+		640, 480, V4L2_PIX_FMT_SPCA501, V4L2_FIELD_NONE,
 		.bytesperline = 640,
 		.sizeimage = 640 * 480 * 3 / 2,
 		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 0},
+		.priv = 0
+	},
 };
 
 #define SPCA50X_REG_USB 0x2	/* spca505 501 */
@@ -111,7 +119,8 @@ static const struct v4l2_pix_format vga_mode[] = {
 #define SPCA501_A33 0x10
 
 /* Data for video camera initialization before capturing */
-static const __u16 spca501_open_data[][3] = {
+static const __u16 spca501_open_data[][3] =
+{
 	/* bmRequest,value,index */
 
 	{0x2, 0x50, 0x00},	/* C/S enable soft reset */
@@ -131,7 +140,7 @@ static const __u16 spca501_open_data[][3] = {
 	{0x1, 0xFF, 0x15},	/* CCDSP High luminance for white balance */
 	{0x1, 0x01, 0x16},	/* CCDSP Low luminance for white balance */
 
-/* Color correction and RGB-to-YUV transformation coefficients changing */
+	/* Color correction and RGB-to-YUV transformation coefficients changing */
 #ifdef ALTER_GAMA
 	{0x0, 0x00, 0x08},	/* A11 */
 	{0x0, 0x00, 0x09},	/* A12 */
@@ -217,7 +226,8 @@ static const __u16 spca501_open_data[][3] = {
  */
 
 /* Data for chip initialization (set default values) */
-static const __u16 spca501_init_data[][3] = {
+static const __u16 spca501_init_data[][3] =
+{
 	/* Set all the values to powerup defaults */
 	/* bmRequest,value,index */
 	{0x0, 0xAA, 0x00},
@@ -504,7 +514,8 @@ static const __u16 spca501_init_data[][3] = {
  * Capture and decoding by Colin Peart.
  * This is is for the 3com HomeConnect Lite which is spca501a based.
  */
-static const __u16 spca501_3com_open_data[][3] = {
+static const __u16 spca501_3com_open_data[][3] =
+{
 	/* bmRequest,value,index */
 	{0x2, 0x0050, 0x0000},	/* C/S Enable TG soft reset, timing mode=010 */
 	{0x2, 0x0043, 0x0000},	/* C/S Disable TG soft reset, timing mode=010 */
@@ -577,7 +588,7 @@ static const __u16 spca501_3com_open_data[][3] = {
 #endif
 	{0x0, 0x0001, 0x0010},	/* TG Start Clock */
 
-/*	{0x2, 0x006a, 0x0001},	 * C/S Enable ISOSYNCH Packet Engine */
+	/*	{0x2, 0x006a, 0x0001},	 * C/S Enable ISOSYNCH Packet Engine */
 	{0x2, 0x0068, 0x0001},	/* C/S Diable ISOSYNCH Packet Engine */
 	{0x2, 0x0000, 0x0005},
 	{0x2, 0x0043, 0x0000},	/* C/S Set Timing Mode, Disable TG soft reset */
@@ -599,7 +610,8 @@ static const __u16 spca501_3com_open_data[][3] = {
  * 2) Understand why some values seem to appear more than once
  * 3) Write a small comment for each line of the following arrays.
  */
-static const __u16 spca501c_arowana_open_data[][3] = {
+static const __u16 spca501c_arowana_open_data[][3] =
+{
 	/* bmRequest,value,index */
 	{0x02, 0x0007, 0x0005},
 	{0x02, 0xa048, 0x0000},
@@ -621,7 +633,8 @@ static const __u16 spca501c_arowana_open_data[][3] = {
 	{}
 };
 
-static const __u16 spca501c_arowana_init_data[][3] = {
+static const __u16 spca501c_arowana_init_data[][3] =
+{
 	/* bmRequest,value,index */
 	{0x02, 0x0007, 0x0005},
 	{0x02, 0xa048, 0x0000},
@@ -1555,11 +1568,12 @@ static const __u16 spca501c_arowana_init_data[][3] = {
 
 /* Unknown camera from Ori Usbid 0x0000:0x0000 */
 /* Based on snoops from Ori Cohen */
-static const __u16 spca501c_mysterious_open_data[][3] = {
+static const __u16 spca501c_mysterious_open_data[][3] =
+{
 	{0x02, 0x000f, 0x0005},
 	{0x02, 0xa048, 0x0000},
 	{0x05, 0x0022, 0x0004},
-/* DSP Registers */
+	/* DSP Registers */
 	{0x01, 0x0016, 0x0011},	/* RGB offset */
 	{0x01, 0x0000, 0x0012},
 	{0x01, 0x0006, 0x0013},
@@ -1568,9 +1582,9 @@ static const __u16 spca501c_mysterious_open_data[][3] = {
 	{0x01, 0x0046, 0x0053},
 	{0x01, 0x0040, 0x0054},
 	{0x00, 0x0025, 0x0000},
-/*	{0x00, 0x0000, 0x0000 }, */
-/* Part 2 */
-/* TG Registers */
+	/*	{0x00, 0x0000, 0x0000 }, */
+	/* Part 2 */
+	/* TG Registers */
 	{0x00, 0x0026, 0x0000},
 	{0x00, 0x0001, 0x0000},
 	{0x00, 0x0027, 0x0000},
@@ -1606,10 +1620,11 @@ static const __u16 spca501c_mysterious_open_data[][3] = {
 };
 
 /* Based on snoops from Ori Cohen */
-static const __u16 spca501c_mysterious_init_data[][3] = {
-/* Part 3 */
-/* TG registers */
-/*	{0x00, 0x0000, 0x0000}, */
+static const __u16 spca501c_mysterious_init_data[][3] =
+{
+	/* Part 3 */
+	/* TG registers */
+	/*	{0x00, 0x0000, 0x0000}, */
 	{0x00, 0x0000, 0x0001},
 	{0x00, 0x0000, 0x0002},
 	{0x00, 0x0006, 0x0003},
@@ -1641,7 +1656,7 @@ static const __u16 spca501c_mysterious_init_data[][3] = {
 	{0x00, 0x0000, 0x0048},
 	{0x00, 0x0000, 0x0049},
 	{0x00, 0x0008, 0x004a},
-/* DSP Registers	*/
+	/* DSP Registers	*/
 	{0x01, 0x00a6, 0x0000},
 	{0x01, 0x0028, 0x0001},
 	{0x01, 0x0000, 0x0002},
@@ -1705,7 +1720,7 @@ static const __u16 spca501c_mysterious_init_data[][3] = {
 	{0x05, 0x0022, 0x0004},
 	{0x05, 0x0025, 0x0001},
 	{0x05, 0x0000, 0x0000},
-/* Part 4 */
+	/* Part 4 */
 	{0x05, 0x0026, 0x0001},
 	{0x05, 0x0001, 0x0000},
 	{0x05, 0x0027, 0x0001},
@@ -1723,7 +1738,7 @@ static const __u16 spca501c_mysterious_init_data[][3] = {
 	{0x05, 0x0001, 0x0000},
 	{0x05, 0x0027, 0x0001},
 	{0x05, 0x004e, 0x0000},
-/* Part 5 */
+	/* Part 5 */
 	{0x01, 0x0003, 0x003f},
 	{0x01, 0x0001, 0x0056},
 	{0x01, 0x000f, 0x0008},
@@ -1757,20 +1772,24 @@ static const __u16 spca501c_mysterious_init_data[][3] = {
 };
 
 static int reg_write(struct gspca_dev *gspca_dev,
-					__u16 req, __u16 index, __u16 value)
+					 __u16 req, __u16 index, __u16 value)
 {
 	int ret;
 	struct usb_device *dev = gspca_dev->dev;
 
 	ret = usb_control_msg(dev,
-			usb_sndctrlpipe(dev, 0),
-			req,
-			USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-			value, index, NULL, 0, 500);
+						  usb_sndctrlpipe(dev, 0),
+						  req,
+						  USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+						  value, index, NULL, 0, 500);
 	PDEBUG(D_USBO, "reg write: 0x%02x 0x%02x 0x%02x",
-		req, index, value);
+		   req, index, value);
+
 	if (ret < 0)
+	{
 		pr_err("reg write: error %d\n", ret);
+	}
+
 	return ret;
 }
 
@@ -1779,16 +1798,21 @@ static int write_vector(struct gspca_dev *gspca_dev, const __u16 data[][3])
 {
 	int ret, i = 0;
 
-	while (data[i][0] != 0 || data[i][1] != 0 || data[i][2] != 0) {
+	while (data[i][0] != 0 || data[i][1] != 0 || data[i][2] != 0)
+	{
 		ret = reg_write(gspca_dev, data[i][0], data[i][2],
-								data[i][1]);
-		if (ret < 0) {
+						data[i][1]);
+
+		if (ret < 0)
+		{
 			PERR("Reg write failed for 0x%02x,0x%02x,0x%02x",
-				data[i][0], data[i][1], data[i][2]);
+				 data[i][0], data[i][1], data[i][2]);
 			return ret;
 		}
+
 		i++;
 	}
+
 	return 0;
 }
 
@@ -1820,7 +1844,7 @@ static void setred_balance(struct gspca_dev *gspca_dev, s32 val)
 
 /* this function is called at probe time */
 static int sd_config(struct gspca_dev *gspca_dev,
-			const struct usb_device_id *id)
+					 const struct usb_device_id *id)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 	struct cam *cam;
@@ -1838,24 +1862,40 @@ static int sd_init(struct gspca_dev *gspca_dev)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 
-	switch (sd->subtype) {
-	case Arowana300KCMOSCamera:
-	case SmileIntlCamera:
-		/* Arowana 300k CMOS Camera data */
-		if (write_vector(gspca_dev, spca501c_arowana_init_data))
-			goto error;
-		break;
-	case MystFromOriUnknownCamera:
-		/* Unknown Ori CMOS Camera data */
-		if (write_vector(gspca_dev, spca501c_mysterious_open_data))
-			goto error;
-		break;
-	default:
-		/* generic spca501 init data */
-		if (write_vector(gspca_dev, spca501_init_data))
-			goto error;
-		break;
+	switch (sd->subtype)
+	{
+		case Arowana300KCMOSCamera:
+		case SmileIntlCamera:
+
+			/* Arowana 300k CMOS Camera data */
+			if (write_vector(gspca_dev, spca501c_arowana_init_data))
+			{
+				goto error;
+			}
+
+			break;
+
+		case MystFromOriUnknownCamera:
+
+			/* Unknown Ori CMOS Camera data */
+			if (write_vector(gspca_dev, spca501c_mysterious_open_data))
+			{
+				goto error;
+			}
+
+			break;
+
+		default:
+
+			/* generic spca501 init data */
+			if (write_vector(gspca_dev, spca501_init_data))
+			{
+				goto error;
+			}
+
+			break;
 	}
+
 	PDEBUG(D_STREAM, "Initializing SPCA501 finished");
 	return 0;
 error:
@@ -1867,23 +1907,27 @@ static int sd_start(struct gspca_dev *gspca_dev)
 	struct sd *sd = (struct sd *) gspca_dev;
 	int mode;
 
-	switch (sd->subtype) {
-	case ThreeComHomeConnectLite:
-		/* Special handling for 3com data */
-		write_vector(gspca_dev, spca501_3com_open_data);
-		break;
-	case Arowana300KCMOSCamera:
-	case SmileIntlCamera:
-		/* Arowana 300k CMOS Camera data */
-		write_vector(gspca_dev, spca501c_arowana_open_data);
-		break;
-	case MystFromOriUnknownCamera:
-		/* Unknown CMOS Camera data */
-		write_vector(gspca_dev, spca501c_mysterious_init_data);
-		break;
-	default:
-		/* Generic 501 open data */
-		write_vector(gspca_dev, spca501_open_data);
+	switch (sd->subtype)
+	{
+		case ThreeComHomeConnectLite:
+			/* Special handling for 3com data */
+			write_vector(gspca_dev, spca501_3com_open_data);
+			break;
+
+		case Arowana300KCMOSCamera:
+		case SmileIntlCamera:
+			/* Arowana 300k CMOS Camera data */
+			write_vector(gspca_dev, spca501c_arowana_open_data);
+			break;
+
+		case MystFromOriUnknownCamera:
+			/* Unknown CMOS Camera data */
+			write_vector(gspca_dev, spca501c_mysterious_init_data);
+			break;
+
+		default:
+			/* Generic 501 open data */
+			write_vector(gspca_dev, spca501_open_data);
 	}
 
 	/* memorize the wanted pixel format */
@@ -1892,18 +1936,23 @@ static int sd_start(struct gspca_dev *gspca_dev)
 	/* Enable ISO packet machine CTRL reg=2,
 	 * index=1 bitmask=0x2 (bit ordinal 1) */
 	reg_write(gspca_dev, SPCA50X_REG_USB, 0x6, 0x94);
-	switch (mode) {
-	case 0: /* 640x480 */
-		reg_write(gspca_dev, SPCA50X_REG_USB, 0x07, 0x004a);
-		break;
-	case 1: /* 320x240 */
-		reg_write(gspca_dev, SPCA50X_REG_USB, 0x07, 0x104a);
-		break;
-	default:
-/*	case 2:  * 160x120 */
-		reg_write(gspca_dev, SPCA50X_REG_USB, 0x07, 0x204a);
-		break;
+
+	switch (mode)
+	{
+		case 0: /* 640x480 */
+			reg_write(gspca_dev, SPCA50X_REG_USB, 0x07, 0x004a);
+			break;
+
+		case 1: /* 320x240 */
+			reg_write(gspca_dev, SPCA50X_REG_USB, 0x07, 0x104a);
+			break;
+
+		default:
+			/*	case 2:  * 160x120 */
+			reg_write(gspca_dev, SPCA50X_REG_USB, 0x07, 0x204a);
+			break;
 	}
+
 	reg_write(gspca_dev, SPCA501_REG_CTLRL, 0x01, 0x02);
 
 	return 0;
@@ -1920,25 +1969,31 @@ static void sd_stopN(struct gspca_dev *gspca_dev)
 static void sd_stop0(struct gspca_dev *gspca_dev)
 {
 	if (!gspca_dev->present)
+	{
 		return;
+	}
+
 	reg_write(gspca_dev, SPCA501_REG_CTLRL, 0x05, 0x00);
 }
 
 static void sd_pkt_scan(struct gspca_dev *gspca_dev,
-			u8 *data,			/* isoc packet */
-			int len)			/* iso packet length */
+						u8 *data,			/* isoc packet */
+						int len)			/* iso packet length */
 {
-	switch (data[0]) {
-	case 0:				/* start of frame */
-		gspca_frame_add(gspca_dev, LAST_PACKET, NULL, 0);
-		data += SPCA501_OFFSET_DATA;
-		len -= SPCA501_OFFSET_DATA;
-		gspca_frame_add(gspca_dev, FIRST_PACKET, data, len);
-		return;
-	case 0xff:			/* drop */
-/*		gspca_dev->last_packet_type = DISCARD_PACKET; */
-		return;
+	switch (data[0])
+	{
+		case 0:				/* start of frame */
+			gspca_frame_add(gspca_dev, LAST_PACKET, NULL, 0);
+			data += SPCA501_OFFSET_DATA;
+			len -= SPCA501_OFFSET_DATA;
+			gspca_frame_add(gspca_dev, FIRST_PACKET, data, len);
+			return;
+
+		case 0xff:			/* drop */
+			/*		gspca_dev->last_packet_type = DISCARD_PACKET; */
+			return;
 	}
+
 	data++;
 	len--;
 	gspca_frame_add(gspca_dev, INTER_PACKET, data, len);
@@ -1952,29 +2007,38 @@ static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
 	gspca_dev->usb_err = 0;
 
 	if (!gspca_dev->streaming)
+	{
 		return 0;
-
-	switch (ctrl->id) {
-	case V4L2_CID_BRIGHTNESS:
-		setbrightness(gspca_dev, ctrl->val);
-		break;
-	case V4L2_CID_CONTRAST:
-		setcontrast(gspca_dev, ctrl->val);
-		break;
-	case V4L2_CID_SATURATION:
-		setcolors(gspca_dev, ctrl->val);
-		break;
-	case V4L2_CID_BLUE_BALANCE:
-		setblue_balance(gspca_dev, ctrl->val);
-		break;
-	case V4L2_CID_RED_BALANCE:
-		setred_balance(gspca_dev, ctrl->val);
-		break;
 	}
+
+	switch (ctrl->id)
+	{
+		case V4L2_CID_BRIGHTNESS:
+			setbrightness(gspca_dev, ctrl->val);
+			break;
+
+		case V4L2_CID_CONTRAST:
+			setcontrast(gspca_dev, ctrl->val);
+			break;
+
+		case V4L2_CID_SATURATION:
+			setcolors(gspca_dev, ctrl->val);
+			break;
+
+		case V4L2_CID_BLUE_BALANCE:
+			setblue_balance(gspca_dev, ctrl->val);
+			break;
+
+		case V4L2_CID_RED_BALANCE:
+			setred_balance(gspca_dev, ctrl->val);
+			break;
+	}
+
 	return gspca_dev->usb_err;
 }
 
-static const struct v4l2_ctrl_ops sd_ctrl_ops = {
+static const struct v4l2_ctrl_ops sd_ctrl_ops =
+{
 	.s_ctrl = sd_s_ctrl,
 };
 
@@ -1985,25 +2049,28 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
 	gspca_dev->vdev.ctrl_handler = hdl;
 	v4l2_ctrl_handler_init(hdl, 5);
 	v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-			V4L2_CID_BRIGHTNESS, 0, 127, 1, 0);
+					  V4L2_CID_BRIGHTNESS, 0, 127, 1, 0);
 	v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-			V4L2_CID_CONTRAST, 0, 64725, 1, 64725);
+					  V4L2_CID_CONTRAST, 0, 64725, 1, 64725);
 	v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-			V4L2_CID_SATURATION, 0, 63, 1, 20);
+					  V4L2_CID_SATURATION, 0, 63, 1, 20);
 	v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-			V4L2_CID_BLUE_BALANCE, 0, 127, 1, 0);
+					  V4L2_CID_BLUE_BALANCE, 0, 127, 1, 0);
 	v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-			V4L2_CID_RED_BALANCE, 0, 127, 1, 0);
+					  V4L2_CID_RED_BALANCE, 0, 127, 1, 0);
 
-	if (hdl->error) {
+	if (hdl->error)
+	{
 		pr_err("Could not initialize controls\n");
 		return hdl->error;
 	}
+
 	return 0;
 }
 
 /* sub-driver description */
-static const struct sd_desc sd_desc = {
+static const struct sd_desc sd_desc =
+{
 	.name = MODULE_NAME,
 	.config = sd_config,
 	.init = sd_init,
@@ -2015,7 +2082,8 @@ static const struct sd_desc sd_desc = {
 };
 
 /* -- module initialisation -- */
-static const struct usb_device_id device_table[] = {
+static const struct usb_device_id device_table[] =
+{
 	{USB_DEVICE(0x040a, 0x0002), .driver_info = KodakDVC325},
 	{USB_DEVICE(0x0497, 0xc001), .driver_info = SmileIntlCamera},
 	{USB_DEVICE(0x0506, 0x00df), .driver_info = ThreeComHomeConnectLite},
@@ -2029,13 +2097,14 @@ MODULE_DEVICE_TABLE(usb, device_table);
 
 /* -- device connect -- */
 static int sd_probe(struct usb_interface *intf,
-			const struct usb_device_id *id)
+					const struct usb_device_id *id)
 {
 	return gspca_dev_probe(intf, id, &sd_desc, sizeof(struct sd),
-				THIS_MODULE);
+						   THIS_MODULE);
 }
 
-static struct usb_driver sd_driver = {
+static struct usb_driver sd_driver =
+{
 	.name = MODULE_NAME,
 	.id_table = device_table,
 	.probe = sd_probe,

@@ -10,7 +10,8 @@
 
 struct ctl_table_header;
 
-struct xfrm_policy_hash {
+struct xfrm_policy_hash
+{
 	struct hlist_head	__rcu *table;
 	unsigned int		hmask;
 	u8			dbits4;
@@ -19,7 +20,8 @@ struct xfrm_policy_hash {
 	u8			sbits6;
 };
 
-struct xfrm_policy_hthresh {
+struct xfrm_policy_hthresh
+{
 	struct work_struct	work;
 	seqlock_t		lock;
 	u8			lbits4;
@@ -28,7 +30,8 @@ struct xfrm_policy_hthresh {
 	u8			rbits6;
 };
 
-struct netns_xfrm {
+struct netns_xfrm
+{
 	struct list_head	state_all;
 	/*
 	 * Hash table to find appropriate SA towards given target (endpoint of

@@ -54,8 +54,8 @@
 #define LDD_F_SV_TYPE_OST   0x0002
 #define LDD_F_SV_TYPE_MGS   0x0004
 #define LDD_F_SV_TYPE_MASK (LDD_F_SV_TYPE_MDT  | \
-			    LDD_F_SV_TYPE_OST  | \
-			    LDD_F_SV_TYPE_MGS)
+							LDD_F_SV_TYPE_OST  | \
+							LDD_F_SV_TYPE_MGS)
 #define LDD_F_SV_ALL	0x0008
 
 /****************** mount command *********************/
@@ -68,7 +68,8 @@
 #define LMD_PARAMS_MAXLEN	4096
 
 /* gleaned from the mount command - no persistent info here */
-struct lustre_mount_data {
+struct lustre_mount_data
+{
 	__u32      lmd_magic;
 	__u32      lmd_flags;	 /* lustre mount flags */
 	int	lmd_mgs_failnodes; /* mgs failover node count */
@@ -120,7 +121,8 @@ struct lustre_mount_data {
 
 struct ll_sb_info;
 
-struct lustre_sb_info {
+struct lustre_sb_info
+{
 	int		       lsi_flags;
 	struct obd_device	*lsi_mgc;     /* mgc obd */
 	struct lustre_mount_data *lsi_lmd;     /* mount command info */
@@ -150,7 +152,8 @@ struct lustre_sb_info {
 
 /****************** mount lookup info *********************/
 
-struct lustre_mount_info {
+struct lustre_mount_info
+{
 	char		 *lmi_name;
 	struct super_block   *lmi_sb;
 	struct list_head	    lmi_list_chain;
@@ -162,7 +165,7 @@ struct lustre_mount_info {
 
 int lustre_start_mgc(struct super_block *sb);
 void lustre_register_client_fill_super(int (*cfs)(struct super_block *sb,
-						  struct vfsmount *mnt));
+									   struct vfsmount *mnt));
 void lustre_register_kill_super_cb(void (*cfs)(struct super_block *sb));
 int lustre_common_put_super(struct super_block *sb);
 

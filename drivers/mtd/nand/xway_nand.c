@@ -63,7 +63,8 @@
 #define NAND_CON_CSMUX		(1 << 1)
 #define NAND_CON_NANDM		1
 
-struct xway_nand_data {
+struct xway_nand_data
+{
 	struct nand_chip	chip;
 	unsigned long		csflags;
 	void __iomem		*nandaddr;
@@ -90,31 +91,40 @@ static void xway_select_chip(struct mtd_info *mtd, int select)
 	struct nand_chip *chip = mtd_to_nand(mtd);
 	struct xway_nand_data *data = nand_get_controller_data(chip);
 
-	switch (select) {
-	case -1:
-		ltq_ebu_w32_mask(NAND_CON_CE, 0, EBU_NAND_CON);
-		ltq_ebu_w32_mask(NAND_CON_NANDM, 0, EBU_NAND_CON);
-		spin_unlock_irqrestore(&ebu_lock, data->csflags);
-		break;
-	case 0:
-		spin_lock_irqsave(&ebu_lock, data->csflags);
-		ltq_ebu_w32_mask(0, NAND_CON_NANDM, EBU_NAND_CON);
-		ltq_ebu_w32_mask(0, NAND_CON_CE, EBU_NAND_CON);
-		break;
-	default:
-		BUG();
+	switch (select)
+	{
+		case -1:
+			ltq_ebu_w32_mask(NAND_CON_CE, 0, EBU_NAND_CON);
+			ltq_ebu_w32_mask(NAND_CON_NANDM, 0, EBU_NAND_CON);
+			spin_unlock_irqrestore(&ebu_lock, data->csflags);
+			break;
+
+		case 0:
+			spin_lock_irqsave(&ebu_lock, data->csflags);
+			ltq_ebu_w32_mask(0, NAND_CON_NANDM, EBU_NAND_CON);
+			ltq_ebu_w32_mask(0, NAND_CON_CE, EBU_NAND_CON);
+			break;
+
+		default:
+			BUG();
 	}
 }
 
 static void xway_cmd_ctrl(struct mtd_info *mtd, int cmd, unsigned int ctrl)
 {
 	if (cmd == NAND_CMD_NONE)
+	{
 		return;
+	}
 
 	if (ctrl & NAND_CLE)
+	{
 		xway_writeb(mtd, NAND_WRITE_CMD, cmd);
+	}
 	else if (ctrl & NAND_ALE)
+	{
 		xway_writeb(mtd, NAND_WRITE_ADDR, cmd);
+	}
 
 	while ((ltq_ebu_r32(EBU_NAND_WAIT) & NAND_WAIT_WR_C) == 0)
 		;
@@ -135,7 +145,9 @@ static void xway_read_buf(struct mtd_info *mtd, u_char *buf, int len)
 	int i;
 
 	for (i = 0; i < len; i++)
+	{
 		buf[i] = xway_readb(mtd, NAND_WRITE_DATA);
+	}
 }
 
 static void xway_write_buf(struct mtd_info *mtd, const u_char *buf, int len)
@@ -143,7 +155,9 @@ static void xway_write_buf(struct mtd_info *mtd, const u_char *buf, int len)
 	int i;
 
 	for (i = 0; i < len; i++)
+	{
 		xway_writeb(mtd, NAND_WRITE_DATA, buf[i]);
+	}
 }
 
 /*
@@ -160,14 +174,20 @@ static int xway_nand_probe(struct platform_device *pdev)
 
 	/* Allocate memory for the device structure (and zero it) */
 	data = devm_kzalloc(&pdev->dev, sizeof(struct xway_nand_data),
-			    GFP_KERNEL);
+						GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	data->nandaddr = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(data->nandaddr))
+	{
 		return PTR_ERR(data->nandaddr);
+	}
 
 	nand_set_flash_node(&data->chip, pdev->dev.of_node);
 	mtd = nand_to_mtd(&data->chip);
@@ -189,29 +209,38 @@ static int xway_nand_probe(struct platform_device *pdev)
 
 	/* load our CS from the DT. Either we find a valid 1 or default to 0 */
 	err = of_property_read_u32(pdev->dev.of_node, "lantiq,cs", &cs);
+
 	if (!err && cs == 1)
+	{
 		cs_flag = NAND_CON_IN_CS1 | NAND_CON_OUT_CS1;
+	}
 
 	/* setup the EBU to run in NAND mode on our base addr */
 	ltq_ebu_w32(CPHYSADDR(data->nandaddr)
-		    | ADDSEL1_MASK(3) | ADDSEL1_REGEN, EBU_ADDSEL1);
+				| ADDSEL1_MASK(3) | ADDSEL1_REGEN, EBU_ADDSEL1);
 
 	ltq_ebu_w32(BUSCON1_SETUP | BUSCON1_BCGEN_RES | BUSCON1_WAITWRC2
-		    | BUSCON1_WAITRDC2 | BUSCON1_HOLDC1 | BUSCON1_RECOVC1
-		    | BUSCON1_CMULT4, LTQ_EBU_BUSCON1);
+				| BUSCON1_WAITRDC2 | BUSCON1_HOLDC1 | BUSCON1_RECOVC1
+				| BUSCON1_CMULT4, LTQ_EBU_BUSCON1);
 
 	ltq_ebu_w32(NAND_CON_NANDM | NAND_CON_CSMUX | NAND_CON_CS_P
-		    | NAND_CON_SE_P | NAND_CON_WP_P | NAND_CON_PRE_P
-		    | cs_flag, EBU_NAND_CON);
+				| NAND_CON_SE_P | NAND_CON_WP_P | NAND_CON_PRE_P
+				| cs_flag, EBU_NAND_CON);
 
 	/* Scan to find existence of the device */
 	err = nand_scan(mtd, 1);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = mtd_device_register(mtd, NULL, 0);
+
 	if (err)
+	{
 		nand_release(mtd);
+	}
 
 	return err;
 }
@@ -228,13 +257,15 @@ static int xway_nand_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id xway_nand_match[] = {
+static const struct of_device_id xway_nand_match[] =
+{
 	{ .compatible = "lantiq,nand-xway" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, xway_nand_match);
 
-static struct platform_driver xway_nand_driver = {
+static struct platform_driver xway_nand_driver =
+{
 	.probe	= xway_nand_probe,
 	.remove	= xway_nand_remove,
 	.driver	= {

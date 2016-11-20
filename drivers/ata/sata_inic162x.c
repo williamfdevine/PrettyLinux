@@ -63,7 +63,8 @@
 #define DRV_NAME	"sata_inic162x"
 #define DRV_VERSION	"0.4"
 
-enum {
+enum
+{
 	MMIO_BAR_PCI		= 5,
 	MMIO_BAR_CARDBUS	= 1,
 
@@ -118,7 +119,7 @@ enum {
 	HCTL_RPGSEL		= (1 << 15), /* register page select */
 
 	HCTL_KNOWN_BITS		= HCTL_IRQOFF | HCTL_PWRDWN | HCTL_SOFTRST |
-				  HCTL_RPGSEL,
+						  HCTL_RPGSEL,
 
 	/* HOST_IRQ_(STAT|MASK) bits */
 	HIRQ_PORT0		= (1 << 0),
@@ -189,7 +190,8 @@ enum {
 };
 
 /* Comman Parameter Block */
-struct inic_cpb {
+struct inic_cpb
+{
 	u8		resp_flags;	/* Response Flags */
 	u8		error;		/* ATA Error */
 	u8		status;		/* ATA Status */
@@ -218,38 +220,44 @@ struct inic_cpb {
 } __packed;
 
 /* Physical Region Descriptor */
-struct inic_prd {
+struct inic_prd
+{
 	__le32		mad;		/* Physical Memory Address */
 	__le16		len;		/* Transfer Length */
 	u8		rsvd;
 	u8		flags;		/* Control Flags */
 } __packed;
 
-struct inic_pkt {
+struct inic_pkt
+{
 	struct inic_cpb	cpb;
 	struct inic_prd	prd[LIBATA_MAX_PRD + 1];	/* + 1 for cdb */
 	u8		cdb[ATAPI_CDB_LEN];
 } __packed;
 
-struct inic_host_priv {
+struct inic_host_priv
+{
 	void __iomem	*mmio_base;
 	u16		cached_hctl;
 };
 
-struct inic_port_priv {
+struct inic_port_priv
+{
 	struct inic_pkt	*pkt;
 	dma_addr_t	pkt_dma;
 	u32		*cpb_tbl;
 	dma_addr_t	cpb_tbl_dma;
 };
 
-static struct scsi_host_template inic_sht = {
+static struct scsi_host_template inic_sht =
+{
 	ATA_BASE_SHT(DRV_NAME),
 	.sg_tablesize	= LIBATA_MAX_PRD,	/* maybe it can be larger? */
 	.dma_boundary	= INIC_DMA_BOUNDARY,
 };
 
-static const int scr_map[] = {
+static const int scr_map[] =
+{
 	[SCR_STATUS]	= 0,
 	[SCR_ERROR]	= 1,
 	[SCR_CONTROL]	= 2,
@@ -287,13 +295,18 @@ static int inic_scr_read(struct ata_link *link, unsigned sc_reg, u32 *val)
 	void __iomem *scr_addr = inic_port_base(link->ap) + PORT_SCR;
 
 	if (unlikely(sc_reg >= ARRAY_SIZE(scr_map)))
+	{
 		return -EINVAL;
+	}
 
 	*val = readl(scr_addr + scr_map[sc_reg] * 4);
 
 	/* this controller has stuck DIAG.N, ignore it */
 	if (sc_reg == SCR_ERROR)
+	{
 		*val &= ~SERR_PHYRDY_CHG;
+	}
+
 	return 0;
 }
 
@@ -302,7 +315,9 @@ static int inic_scr_write(struct ata_link *link, unsigned sc_reg, u32 val)
 	void __iomem *scr_addr = inic_port_base(link->ap) + PORT_SCR;
 
 	if (unlikely(sc_reg >= ARRAY_SIZE(scr_map)))
+	{
 		return -EINVAL;
+	}
 
 	writel(val, scr_addr + scr_map[sc_reg] * 4);
 	return 0;
@@ -326,41 +341,49 @@ static void inic_host_err_intr(struct ata_port *ap, u8 irq_stat, u16 idma_stat)
 
 	ata_ehi_clear_desc(ehi);
 	ata_ehi_push_desc(ehi, "irq_stat=0x%x idma_stat=0x%x",
-			  irq_stat, idma_stat);
+					  irq_stat, idma_stat);
 
 	inic_stop_idma(ap);
 
-	if (irq_stat & (PIRQ_OFFLINE | PIRQ_ONLINE)) {
+	if (irq_stat & (PIRQ_OFFLINE | PIRQ_ONLINE))
+	{
 		ata_ehi_push_desc(ehi, "hotplug");
 		ata_ehi_hotplugged(ehi);
 		freeze = true;
 	}
 
-	if (idma_stat & IDMA_STAT_PERR) {
+	if (idma_stat & IDMA_STAT_PERR)
+	{
 		ata_ehi_push_desc(ehi, "PCI error");
 		freeze = true;
 	}
 
-	if (idma_stat & IDMA_STAT_CPBERR) {
+	if (idma_stat & IDMA_STAT_CPBERR)
+	{
 		ata_ehi_push_desc(ehi, "CPB error");
 
-		if (cpb->resp_flags & CPB_RESP_IGNORED) {
+		if (cpb->resp_flags & CPB_RESP_IGNORED)
+		{
 			__ata_ehi_push_desc(ehi, " ignored");
 			ehi->err_mask |= AC_ERR_INVALID;
 			freeze = true;
 		}
 
 		if (cpb->resp_flags & CPB_RESP_ATA_ERR)
+		{
 			ehi->err_mask |= AC_ERR_DEV;
+		}
 
-		if (cpb->resp_flags & CPB_RESP_SPURIOUS) {
+		if (cpb->resp_flags & CPB_RESP_SPURIOUS)
+		{
 			__ata_ehi_push_desc(ehi, " spurious-intr");
 			ehi->err_mask |= AC_ERR_HSM;
 			freeze = true;
 		}
 
 		if (cpb->resp_flags &
-		    (CPB_RESP_UNDERFLOW | CPB_RESP_OVERFLOW)) {
+			(CPB_RESP_UNDERFLOW | CPB_RESP_OVERFLOW))
+		{
 			__ata_ehi_push_desc(ehi, " data-over/underflow");
 			ehi->err_mask |= AC_ERR_HSM;
 			freeze = true;
@@ -368,9 +391,13 @@ static void inic_host_err_intr(struct ata_port *ap, u8 irq_stat, u16 idma_stat)
 	}
 
 	if (freeze)
+	{
 		ata_port_freeze(ap);
+	}
 	else
+	{
 		ata_port_abort(ap);
+	}
 }
 
 static void inic_host_intr(struct ata_port *ap)
@@ -386,28 +413,35 @@ static void inic_host_intr(struct ata_port *ap)
 	idma_stat = readw(port_base + PORT_IDMA_STAT);
 
 	if (unlikely((irq_stat & PIRQ_ERR) || (idma_stat & IDMA_STAT_ERR)))
+	{
 		inic_host_err_intr(ap, irq_stat, idma_stat);
+	}
 
 	if (unlikely(!qc))
+	{
 		goto spurious;
+	}
 
-	if (likely(idma_stat & IDMA_STAT_DONE)) {
+	if (likely(idma_stat & IDMA_STAT_DONE))
+	{
 		inic_stop_idma(ap);
 
 		/* Depending on circumstances, device error
 		 * isn't reported by IDMA, check it explicitly.
 		 */
 		if (unlikely(readb(port_base + PORT_TF_COMMAND) &
-			     (ATA_DF | ATA_ERR)))
+					 (ATA_DF | ATA_ERR)))
+		{
 			qc->err_mask |= AC_ERR_DEV;
+		}
 
 		ata_qc_complete(qc);
 		return;
 	}
 
- spurious:
+spurious:
 	ata_port_warn(ap, "unhandled interrupt: cmd=0x%x irq_stat=0x%x idma_stat=0x%x\n",
-		      qc ? qc->tf.command : 0xff, irq_stat, idma_stat);
+				  qc ? qc->tf.command : 0xff, irq_stat, idma_stat);
 }
 
 static irqreturn_t inic_interrupt(int irq, void *dev_instance)
@@ -420,19 +454,22 @@ static irqreturn_t inic_interrupt(int irq, void *dev_instance)
 	host_irq_stat = readw(hpriv->mmio_base + HOST_IRQ_STAT);
 
 	if (unlikely(!(host_irq_stat & HIRQ_GLOBAL)))
+	{
 		goto out;
+	}
 
 	spin_lock(&host->lock);
 
 	for (i = 0; i < NR_PORTS; i++)
-		if (host_irq_stat & (HIRQ_PORT0 << i)) {
+		if (host_irq_stat & (HIRQ_PORT0 << i))
+		{
 			inic_host_intr(host->ports[i]);
 			handled++;
 		}
 
 	spin_unlock(&host->lock);
 
- out:
+out:
 	return IRQ_RETVAL(handled);
 }
 
@@ -445,7 +482,10 @@ static int inic_check_atapi_dma(struct ata_queued_cmd *qc)
 	 * SATA devices.
 	 */
 	if (atapi_cmd_type(qc->cdb[0]) == READ)
+	{
 		return 0;
+	}
+
 	return 1;
 }
 
@@ -456,12 +496,17 @@ static void inic_fill_sg(struct inic_prd *prd, struct ata_queued_cmd *qc)
 	u8 flags = 0;
 
 	if (qc->tf.flags & ATA_TFLAG_WRITE)
+	{
 		flags |= PRD_WRITE;
+	}
 
 	if (ata_is_dma(qc->tf.protocol))
+	{
 		flags |= PRD_DMA;
+	}
 
-	for_each_sg(qc->sg, sg, qc->n_elem, si) {
+	for_each_sg(qc->sg, sg, qc->n_elem, si)
+	{
 		prd->mad = cpu_to_le32(sg_dma_address(sg));
 		prd->len = cpu_to_le16(sg_dma_len(sg));
 		prd->flags = flags;
@@ -485,14 +530,19 @@ static void inic_qc_prep(struct ata_queued_cmd *qc)
 	VPRINTK("ENTER\n");
 
 	if (is_atapi)
+	{
 		cdb_len = qc->dev->cdb_len;
+	}
 
 	/* prepare packet, based on initio driver */
 	memset(pkt, 0, sizeof(struct inic_pkt));
 
 	cpb->ctl_flags = CPB_CTL_VALID | CPB_CTL_IEN;
+
 	if (is_atapi || is_data)
+	{
 		cpb->ctl_flags |= CPB_CTL_DATA;
+	}
 
 	cpb->len = cpu_to_le32(qc->nbytes + cdb_len);
 	cpb->prd = cpu_to_le32(pp->pkt_dma + offsetof(struct inic_pkt, prd));
@@ -504,7 +554,8 @@ static void inic_qc_prep(struct ata_queued_cmd *qc)
 	cpb->lbam = qc->tf.lbam;
 	cpb->lbah = qc->tf.lbah;
 
-	if (qc->tf.flags & ATA_TFLAG_LBA48) {
+	if (qc->tf.flags & ATA_TFLAG_LBA48)
+	{
 		cpb->hob_feature = qc->tf.hob_feature;
 		cpb->hob_nsect = qc->tf.hob_nsect;
 		cpb->hob_lbal = qc->tf.hob_lbal;
@@ -516,20 +567,27 @@ static void inic_qc_prep(struct ata_queued_cmd *qc)
 	/* don't load ctl - dunno why.  it's like that in the initio driver */
 
 	/* setup PRD for CDB */
-	if (is_atapi) {
+	if (is_atapi)
+	{
 		memcpy(pkt->cdb, qc->cdb, ATAPI_CDB_LEN);
 		prd->mad = cpu_to_le32(pp->pkt_dma +
-				       offsetof(struct inic_pkt, cdb));
+							   offsetof(struct inic_pkt, cdb));
 		prd->len = cpu_to_le16(cdb_len);
 		prd->flags = PRD_CDB | PRD_WRITE;
+
 		if (!is_data)
+		{
 			prd->flags |= PRD_END;
+		}
+
 		prd++;
 	}
 
 	/* setup sg table */
 	if (is_data)
+	{
 		inic_fill_sg(prd, qc);
+	}
 
 	pp->cpb_tbl[0] = pp->pkt_dma;
 }
@@ -575,7 +633,9 @@ static bool inic_qc_fill_rtf(struct ata_queued_cmd *qc)
 	inic_tf_read(qc->ap, &tf);
 
 	if (!(tf.command & ATA_ERR))
+	{
 		return false;
+	}
 
 	rtf->command = tf.command;
 	rtf->feature = tf.feature;
@@ -610,7 +670,7 @@ static int inic_check_ready(struct ata_link *link)
  * controller.  Only controller specific hardreset mechanism works.
  */
 static int inic_hardreset(struct ata_link *link, unsigned int *class,
-			  unsigned long deadline)
+						  unsigned long deadline)
 {
 	struct ata_port *ap = link->ap;
 	void __iomem *port_base = inic_port_base(ap);
@@ -627,24 +687,30 @@ static int inic_hardreset(struct ata_link *link, unsigned int *class,
 	writew(0, idma_ctl);
 
 	rc = sata_link_resume(link, timing, deadline);
-	if (rc) {
+
+	if (rc)
+	{
 		ata_link_warn(link,
-			      "failed to resume link after reset (errno=%d)\n",
-			      rc);
+					  "failed to resume link after reset (errno=%d)\n",
+					  rc);
 		return rc;
 	}
 
 	*class = ATA_DEV_NONE;
-	if (ata_link_online(link)) {
+
+	if (ata_link_online(link))
+	{
 		struct ata_taskfile tf;
 
 		/* wait for link to become ready */
 		rc = ata_wait_after_reset(link, deadline, inic_check_ready);
+
 		/* link occupied, -ENODEV too is an error */
-		if (rc) {
+		if (rc)
+		{
 			ata_link_warn(link,
-				      "device not ready after hardreset (errno=%d)\n",
-				      rc);
+						  "device not ready after hardreset (errno=%d)\n",
+						  rc);
 			return rc;
 		}
 
@@ -667,7 +733,9 @@ static void inic_post_internal_cmd(struct ata_queued_cmd *qc)
 {
 	/* make DMA engine forget about the failed command */
 	if (qc->flags & ATA_QCFLAG_FAILED)
+	{
 		inic_reset_port(inic_port_base(qc->ap));
+	}
 }
 
 static void init_port(struct ata_port *ap)
@@ -696,27 +764,38 @@ static int inic_port_start(struct ata_port *ap)
 
 	/* alloc and initialize private data */
 	pp = devm_kzalloc(dev, sizeof(*pp), GFP_KERNEL);
+
 	if (!pp)
+	{
 		return -ENOMEM;
+	}
+
 	ap->private_data = pp;
 
 	/* Alloc resources */
 	pp->pkt = dmam_alloc_coherent(dev, sizeof(struct inic_pkt),
-				      &pp->pkt_dma, GFP_KERNEL);
+								  &pp->pkt_dma, GFP_KERNEL);
+
 	if (!pp->pkt)
+	{
 		return -ENOMEM;
+	}
 
 	pp->cpb_tbl = dmam_alloc_coherent(dev, IDMA_CPB_TBL_SIZE,
-					  &pp->cpb_tbl_dma, GFP_KERNEL);
+									  &pp->cpb_tbl_dma, GFP_KERNEL);
+
 	if (!pp->cpb_tbl)
+	{
 		return -ENOMEM;
+	}
 
 	init_port(ap);
 
 	return 0;
 }
 
-static struct ata_port_operations inic_port_ops = {
+static struct ata_port_operations inic_port_ops =
+{
 	.inherits		= &sata_port_ops,
 
 	.check_atapi_dma	= inic_check_atapi_dma,
@@ -737,7 +816,8 @@ static struct ata_port_operations inic_port_ops = {
 	.port_start		= inic_port_start,
 };
 
-static struct ata_port_info inic_port_info = {
+static struct ata_port_info inic_port_info =
+{
 	.flags			= ATA_FLAG_SATA | ATA_FLAG_PIO_DMA,
 	.pio_mask		= ATA_PIO4,
 	.mwdma_mask		= ATA_MWDMA2,
@@ -758,18 +838,25 @@ static int init_controller(void __iomem *mmio_base, u16 hctl)
 	writew(hctl | HCTL_SOFTRST, mmio_base + HOST_CTL);
 	readw(mmio_base + HOST_CTL); /* flush */
 
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 10; i++)
+	{
 		msleep(1);
 		val = readw(mmio_base + HOST_CTL);
+
 		if (!(val & HCTL_SOFTRST))
+		{
 			break;
+		}
 	}
 
 	if (val & HCTL_SOFTRST)
+	{
 		return -EIO;
+	}
 
 	/* mask all interrupts and reset ports */
-	for (i = 0; i < NR_PORTS; i++) {
+	for (i = 0; i < NR_PORTS; i++)
+	{
 		void __iomem *port_base = mmio_base + i * PORT_SIZE;
 
 		writeb(0xff, port_base + PORT_IRQ_MASK);
@@ -793,13 +880,20 @@ static int inic_pci_device_resume(struct pci_dev *pdev)
 	int rc;
 
 	rc = ata_pci_device_do_resume(pdev);
-	if (rc)
-		return rc;
 
-	if (pdev->dev.power.power_state.event == PM_EVENT_SUSPEND) {
+	if (rc)
+	{
+		return rc;
+	}
+
+	if (pdev->dev.power.power_state.event == PM_EVENT_SUSPEND)
+	{
 		rc = init_controller(hpriv->mmio_base, hpriv->cached_hctl);
+
 		if (rc)
+		{
 			return rc;
+		}
 	}
 
 	ata_host_resume(host);
@@ -813,19 +907,23 @@ static int inic_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	const struct ata_port_info *ppi[] = { &inic_port_info, NULL };
 	struct ata_host *host;
 	struct inic_host_priv *hpriv;
-	void __iomem * const *iomap;
+	void __iomem *const *iomap;
 	int mmio_bar;
 	int i, rc;
 
 	ata_print_version_once(&pdev->dev, DRV_VERSION);
 
-	dev_alert(&pdev->dev, "inic162x support is broken with common data corruption issues and will be disabled by default, contact linux-ide@vger.kernel.org if in production use\n");
+	dev_alert(&pdev->dev,
+			  "inic162x support is broken with common data corruption issues and will be disabled by default, contact linux-ide@vger.kernel.org if in production use\n");
 
 	/* alloc host */
 	host = ata_host_alloc_pinfo(&pdev->dev, ppi, NR_PORTS);
 	hpriv = devm_kzalloc(&pdev->dev, sizeof(*hpriv), GFP_KERNEL);
+
 	if (!host || !hpriv)
+	{
 		return -ENOMEM;
+	}
 
 	host->private_data = hpriv;
 
@@ -833,22 +931,34 @@ static int inic_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	 * use different BARs.
 	 */
 	rc = pcim_enable_device(pdev);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	if (pci_resource_flags(pdev, MMIO_BAR_PCI) & IORESOURCE_MEM)
+	{
 		mmio_bar = MMIO_BAR_PCI;
+	}
 	else
+	{
 		mmio_bar = MMIO_BAR_CARDBUS;
+	}
 
 	rc = pcim_iomap_regions(pdev, 1 << mmio_bar, DRV_NAME);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	host->iomap = iomap = pcim_iomap_table(pdev);
 	hpriv->mmio_base = iomap[mmio_bar];
 	hpriv->cached_hctl = readw(hpriv->mmio_base + HOST_CTL);
 
-	for (i = 0; i < NR_PORTS; i++) {
+	for (i = 0; i < NR_PORTS; i++)
+	{
 		struct ata_port *ap = host->ports[i];
 
 		ata_port_pbar_desc(ap, mmio_bar, -1, "mmio");
@@ -857,13 +967,17 @@ static int inic_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	/* Set dma_mask.  This devices doesn't support 64bit addressing. */
 	rc = dma_set_mask(&pdev->dev, DMA_BIT_MASK(32));
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&pdev->dev, "32-bit DMA enable failed\n");
 		return rc;
 	}
 
 	rc = dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(32));
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&pdev->dev, "32-bit consistent DMA enable failed\n");
 		return rc;
 	}
@@ -874,28 +988,34 @@ static int inic_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	 * 65536 byte PRD entry is fed. Reduce maximum segment size.
 	 */
 	rc = pci_set_dma_max_seg_size(pdev, 65536 - 512);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&pdev->dev, "failed to set the maximum segment size\n");
 		return rc;
 	}
 
 	rc = init_controller(hpriv->mmio_base, hpriv->cached_hctl);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&pdev->dev, "failed to initialize controller\n");
 		return rc;
 	}
 
 	pci_set_master(pdev);
 	return ata_host_activate(host, pdev->irq, inic_interrupt, IRQF_SHARED,
-				 &inic_sht);
+							 &inic_sht);
 }
 
-static const struct pci_device_id inic_pci_tbl[] = {
+static const struct pci_device_id inic_pci_tbl[] =
+{
 	{ PCI_VDEVICE(INIT, 0x1622), },
 	{ },
 };
 
-static struct pci_driver inic_pci_driver = {
+static struct pci_driver inic_pci_driver =
+{
 	.name 		= DRV_NAME,
 	.id_table	= inic_pci_tbl,
 #ifdef CONFIG_PM_SLEEP

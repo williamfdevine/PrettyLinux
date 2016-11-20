@@ -37,7 +37,7 @@
 #define IRQC_EN_STS	0x04	/* Interrupt Enable Status Register */
 #define IRQC_EN_SET	0x08	/* Interrupt Enable Set Register */
 #define IRQC_INT_CPU_BASE(n) (0x000 + ((n) * 0x10))
-				/* SYS-CPU vs. RT-CPU */
+/* SYS-CPU vs. RT-CPU */
 #define DETECT_STATUS	0x100	/* IRQn Detect Status Register */
 #define MONITOR		0x104	/* IRQn Signal Level Monitor Register */
 #define HLVL_STS	0x108	/* IRQn High Level Detect Status Register */
@@ -48,15 +48,17 @@
 #define A_F_EDGE_STS	0x11c	/* IRQn Async Falling Edge Detect Status Reg. */
 #define CHTEN_STS	0x120	/* Chattering Reduction Status Register */
 #define IRQC_CONFIG(n) (0x180 + ((n) * 0x04))
-				/* IRQn Configuration Register */
+/* IRQn Configuration Register */
 
-struct irqc_irq {
+struct irqc_irq
+{
 	int hw_irq;
 	int requested_irq;
 	struct irqc_priv *p;
 };
 
-struct irqc_priv {
+struct irqc_priv
+{
 	void __iomem *iomem;
 	void __iomem *cpu_int_base;
 	struct irqc_irq irq[IRQC_IRQ_MAX];
@@ -75,10 +77,11 @@ static struct irqc_priv *irq_data_to_priv(struct irq_data *data)
 static void irqc_dbg(struct irqc_irq *i, char *str)
 {
 	dev_dbg(&i->p->pdev->dev, "%s (%d:%d)\n",
-		str, i->requested_irq, i->hw_irq);
+			str, i->requested_irq, i->hw_irq);
 }
 
-static unsigned char irqc_sense[IRQ_TYPE_SENSE_MASK + 1] = {
+static unsigned char irqc_sense[IRQ_TYPE_SENSE_MASK + 1] =
+{
 	[IRQ_TYPE_LEVEL_LOW]	= 0x01,
 	[IRQ_TYPE_LEVEL_HIGH]	= 0x02,
 	[IRQ_TYPE_EDGE_FALLING]	= 0x04,	/* Synchronous */
@@ -96,7 +99,9 @@ static int irqc_irq_set_type(struct irq_data *d, unsigned int type)
 	irqc_dbg(&p->irq[hw_irq], "sense");
 
 	if (!value)
+	{
 		return -EINVAL;
+	}
 
 	tmp = ioread32(p->iomem + IRQC_CONFIG(hw_irq));
 	tmp &= ~0x3f;
@@ -113,12 +118,18 @@ static int irqc_irq_set_wake(struct irq_data *d, unsigned int on)
 	irq_set_irq_wake(p->irq[hw_irq].requested_irq, on);
 
 	if (!p->clk)
+	{
 		return 0;
+	}
 
 	if (on)
+	{
 		clk_enable(p->clk);
+	}
 	else
+	{
 		clk_disable(p->clk);
+	}
 
 	return 0;
 }
@@ -131,12 +142,14 @@ static irqreturn_t irqc_irq_handler(int irq, void *dev_id)
 
 	irqc_dbg(i, "demux1");
 
-	if (ioread32(p->iomem + DETECT_STATUS) & bit) {
+	if (ioread32(p->iomem + DETECT_STATUS) & bit)
+	{
 		iowrite32(bit, p->iomem + DETECT_STATUS);
 		irqc_dbg(i, "demux2");
 		generic_handle_irq(irq_find_mapping(p->irq_domain, i->hw_irq));
 		return IRQ_HANDLED;
 	}
+
 	return IRQ_NONE;
 }
 
@@ -150,7 +163,9 @@ static int irqc_probe(struct platform_device *pdev)
 	int k;
 
 	p = kzalloc(sizeof(*p), GFP_KERNEL);
-	if (!p) {
+
+	if (!p)
+	{
 		dev_err(&pdev->dev, "failed to allocate driver data\n");
 		ret = -ENOMEM;
 		goto err0;
@@ -160,7 +175,9 @@ static int irqc_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, p);
 
 	p->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(p->clk)) {
+
+	if (IS_ERR(p->clk))
+	{
 		dev_warn(&pdev->dev, "unable to get clock\n");
 		p->clk = NULL;
 	}
@@ -170,17 +187,23 @@ static int irqc_probe(struct platform_device *pdev)
 
 	/* get hold of manadatory IOMEM */
 	io = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!io) {
+
+	if (!io)
+	{
 		dev_err(&pdev->dev, "not enough IOMEM resources\n");
 		ret = -EINVAL;
 		goto err1;
 	}
 
 	/* allow any number of IRQs between 1 and IRQC_IRQ_MAX */
-	for (k = 0; k < IRQC_IRQ_MAX; k++) {
+	for (k = 0; k < IRQC_IRQ_MAX; k++)
+	{
 		irq = platform_get_resource(pdev, IORESOURCE_IRQ, k);
+
 		if (!irq)
+		{
 			break;
+		}
 
 		p->irq[k].p = p;
 		p->irq[k].hw_irq = k;
@@ -188,7 +211,9 @@ static int irqc_probe(struct platform_device *pdev)
 	}
 
 	p->number_of_irqs = k;
-	if (p->number_of_irqs < 1) {
+
+	if (p->number_of_irqs < 1)
+	{
 		dev_err(&pdev->dev, "not enough IRQ resources\n");
 		ret = -EINVAL;
 		goto err1;
@@ -196,7 +221,9 @@ static int irqc_probe(struct platform_device *pdev)
 
 	/* ioremap IOMEM and setup read/write callbacks */
 	p->iomem = ioremap_nocache(io->start, resource_size(io));
-	if (!p->iomem) {
+
+	if (!p->iomem)
+	{
 		dev_err(&pdev->dev, "failed to remap IOMEM\n");
 		ret = -ENXIO;
 		goto err2;
@@ -205,18 +232,22 @@ static int irqc_probe(struct platform_device *pdev)
 	p->cpu_int_base = p->iomem + IRQC_INT_CPU_BASE(0); /* SYS-SPI */
 
 	p->irq_domain = irq_domain_add_linear(pdev->dev.of_node,
-					      p->number_of_irqs,
-					      &irq_generic_chip_ops, p);
-	if (!p->irq_domain) {
+										  p->number_of_irqs,
+										  &irq_generic_chip_ops, p);
+
+	if (!p->irq_domain)
+	{
 		ret = -ENXIO;
 		dev_err(&pdev->dev, "cannot initialize irq domain\n");
 		goto err2;
 	}
 
 	ret = irq_alloc_domain_generic_chips(p->irq_domain, p->number_of_irqs,
-					     1, name, handle_level_irq,
-					     0, 0, IRQ_GC_INIT_NESTED_LOCK);
-	if (ret) {
+										 1, name, handle_level_irq,
+										 0, 0, IRQ_GC_INIT_NESTED_LOCK);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "cannot allocate generic chip\n");
 		goto err3;
 	}
@@ -232,9 +263,11 @@ static int irqc_probe(struct platform_device *pdev)
 	p->gc->chip_types[0].chip.flags	= IRQCHIP_MASK_ON_SUSPEND;
 
 	/* request interrupts one by one */
-	for (k = 0; k < p->number_of_irqs; k++) {
+	for (k = 0; k < p->number_of_irqs; k++)
+	{
 		if (request_irq(p->irq[k].requested_irq, irqc_irq_handler,
-				0, name, &p->irq[k])) {
+						0, name, &p->irq[k]))
+		{
 			dev_err(&pdev->dev, "failed to request IRQ\n");
 			ret = -ENOENT;
 			goto err4;
@@ -245,8 +278,11 @@ static int irqc_probe(struct platform_device *pdev)
 
 	return 0;
 err4:
+
 	while (--k >= 0)
+	{
 		free_irq(p->irq[k].requested_irq, &p->irq[k]);
+	}
 
 err3:
 	irq_domain_remove(p->irq_domain);
@@ -266,7 +302,9 @@ static int irqc_remove(struct platform_device *pdev)
 	int k;
 
 	for (k = 0; k < p->number_of_irqs; k++)
+	{
 		free_irq(p->irq[k].requested_irq, &p->irq[k]);
+	}
 
 	irq_domain_remove(p->irq_domain);
 	iounmap(p->iomem);
@@ -276,13 +314,15 @@ static int irqc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id irqc_dt_ids[] = {
+static const struct of_device_id irqc_dt_ids[] =
+{
 	{ .compatible = "renesas,irqc", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, irqc_dt_ids);
 
-static struct platform_driver irqc_device_driver = {
+static struct platform_driver irqc_device_driver =
+{
 	.probe		= irqc_probe,
 	.remove		= irqc_remove,
 	.driver		= {

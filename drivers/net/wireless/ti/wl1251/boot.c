@@ -44,13 +44,19 @@ int wl1251_boot_soft_reset(struct wl1251 *wl)
 
 	/* SOFT_RESET is self clearing */
 	timeout = jiffies + usecs_to_jiffies(SOFT_RESET_MAX_TIME);
-	while (1) {
+
+	while (1)
+	{
 		boot_data = wl1251_reg_read32(wl, ACX_REG_SLV_SOFT_RESET);
 		wl1251_debug(DEBUG_BOOT, "soft reset bootdata 0x%x", boot_data);
-		if ((boot_data & ACX_SLV_SOFT_RESET_BIT) == 0)
-			break;
 
-		if (time_after(jiffies, timeout)) {
+		if ((boot_data & ACX_SLV_SOFT_RESET_BIT) == 0)
+		{
+			break;
+		}
+
+		if (time_after(jiffies, timeout))
+		{
 			/* 1.2 check pWhalBus->uSelfClearTime if the
 			 * timeout was reached */
 			wl1251_error("soft reset timeout");
@@ -81,7 +87,8 @@ int wl1251_boot_init_seq(struct wl1251 *wl)
 	 * col #5: STOP_TIME_BB
 	 * col #6: BB_PLL_LOOP_FILTER
 	 */
-	static const u32 LUT[REF_FREQ_NUM][LUT_PARAM_NUM] = {
+	static const u32 LUT[REF_FREQ_NUM][LUT_PARAM_NUM] =
+	{
 
 		{   83, 87381,  0xB, 5, 0xF00,  3}, /* REF_FREQ_19_2*/
 		{   61, 141154, 0xB, 5, 0x1450, 2}, /* REF_FREQ_26_0*/
@@ -133,9 +140,14 @@ int wl1251_boot_init_seq(struct wl1251 *wl)
 	 * 1ms = 4ms
 	 */
 	if (init_data > 0x21)
+	{
 		tmp = init_data - 0x21;
+	}
 	else
+	{
 		tmp = 0;
+	}
+
 	wl1251_reg_write32(wl, CLK_REQ_TIME, tmp);
 
 	/* set BB PLL configurations in RF AFE */
@@ -172,7 +184,7 @@ int wl1251_boot_init_seq(struct wl1251 *wl)
 	 * the VCO gain
 	 */
 	tmp = (LUT[ref_freq][LUT_PARAM_ATTN_BB] << 16) |
-		(LUT[ref_freq][LUT_PARAM_ALPHA_BB] << 12) | 0x1;
+		  (LUT[ref_freq][LUT_PARAM_ALPHA_BB] << 12) | 0x1;
 	wl1251_reg_write32(wl, 0x00305854, tmp);
 
 	/*
@@ -230,33 +242,39 @@ int wl1251_boot_run_firmware(struct wl1251 *wl)
 
 	wl1251_debug(DEBUG_BOOT, "chip id after firmware boot: 0x%x", chip_id);
 
-	if (chip_id != wl->chip_id) {
+	if (chip_id != wl->chip_id)
+	{
 		wl1251_error("chip id doesn't match after firmware boot");
 		return -EIO;
 	}
 
 	/* wait for init to complete */
 	loop = 0;
-	while (loop++ < INIT_LOOP) {
+
+	while (loop++ < INIT_LOOP)
+	{
 		udelay(INIT_LOOP_DELAY);
 		acx_intr = wl1251_reg_read32(wl, ACX_REG_INTERRUPT_NO_CLEAR);
 
-		if (acx_intr == 0xffffffff) {
+		if (acx_intr == 0xffffffff)
+		{
 			wl1251_error("error reading hardware complete "
-				     "init indication");
+						 "init indication");
 			return -EIO;
 		}
 		/* check that ACX_INTR_INIT_COMPLETE is enabled */
-		else if (acx_intr & WL1251_ACX_INTR_INIT_COMPLETE) {
+		else if (acx_intr & WL1251_ACX_INTR_INIT_COMPLETE)
+		{
 			wl1251_reg_write32(wl, ACX_REG_INTERRUPT_ACK,
-					   WL1251_ACX_INTR_INIT_COMPLETE);
+							   WL1251_ACX_INTR_INIT_COMPLETE);
 			break;
 		}
 	}
 
-	if (loop > INIT_LOOP) {
+	if (loop > INIT_LOOP)
+	{
 		wl1251_error("timeout waiting for the hardware to "
-			     "complete initialization");
+					 "complete initialization");
 		return -EIO;
 	}
 
@@ -268,12 +286,12 @@ int wl1251_boot_run_firmware(struct wl1251 *wl)
 
 	/* set the working partition to its "running" mode offset */
 	wl1251_set_partition(wl, WL1251_PART_WORK_MEM_START,
-			     WL1251_PART_WORK_MEM_SIZE,
-			     WL1251_PART_WORK_REG_START,
-			     WL1251_PART_WORK_REG_SIZE);
+						 WL1251_PART_WORK_MEM_SIZE,
+						 WL1251_PART_WORK_REG_START,
+						 WL1251_PART_WORK_REG_SIZE);
 
 	wl1251_debug(DEBUG_MAILBOX, "cmd_box_addr 0x%x event_box_addr 0x%x",
-		     wl->cmd_box_addr, wl->event_box_addr);
+				 wl->cmd_box_addr, wl->event_box_addr);
 
 	wl1251_acx_fw_version(wl, wl->fw_ver, sizeof(wl->fw_ver));
 
@@ -287,23 +305,25 @@ int wl1251_boot_run_firmware(struct wl1251 *wl)
 
 	/* Enable target's interrupts */
 	wl->intr_mask = WL1251_ACX_INTR_RX0_DATA |
-		WL1251_ACX_INTR_RX1_DATA |
-		WL1251_ACX_INTR_TX_RESULT |
-		WL1251_ACX_INTR_EVENT_A |
-		WL1251_ACX_INTR_EVENT_B |
-		WL1251_ACX_INTR_INIT_COMPLETE;
+					WL1251_ACX_INTR_RX1_DATA |
+					WL1251_ACX_INTR_TX_RESULT |
+					WL1251_ACX_INTR_EVENT_A |
+					WL1251_ACX_INTR_EVENT_B |
+					WL1251_ACX_INTR_INIT_COMPLETE;
 	wl1251_boot_target_enable_interrupts(wl);
 
 	wl->event_mask = SCAN_COMPLETE_EVENT_ID | BSS_LOSE_EVENT_ID |
-		SYNCHRONIZATION_TIMEOUT_EVENT_ID |
-		ROAMING_TRIGGER_LOW_RSSI_EVENT_ID |
-		ROAMING_TRIGGER_REGAINED_RSSI_EVENT_ID |
-		REGAINED_BSS_EVENT_ID | BT_PTA_SENSE_EVENT_ID |
-		BT_PTA_PREDICTION_EVENT_ID | JOIN_EVENT_COMPLETE_ID |
-		PS_REPORT_EVENT_ID;
+					 SYNCHRONIZATION_TIMEOUT_EVENT_ID |
+					 ROAMING_TRIGGER_LOW_RSSI_EVENT_ID |
+					 ROAMING_TRIGGER_REGAINED_RSSI_EVENT_ID |
+					 REGAINED_BSS_EVENT_ID | BT_PTA_SENSE_EVENT_ID |
+					 BT_PTA_PREDICTION_EVENT_ID | JOIN_EVENT_COMPLETE_ID |
+					 PS_REPORT_EVENT_ID;
 
 	ret = wl1251_event_unmask(wl);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		wl1251_error("EVENT mask setting failed");
 		return ret;
 	}
@@ -323,56 +343,62 @@ static int wl1251_boot_upload_firmware(struct wl1251 *wl)
 	/* whal_FwCtrl_LoadFwImageSm() */
 
 	wl1251_debug(DEBUG_BOOT, "chip id before fw upload: 0x%x",
-		     wl1251_reg_read32(wl, CHIP_ID_B));
+				 wl1251_reg_read32(wl, CHIP_ID_B));
 
 	/* 10.0 check firmware length and set partition */
 	fw_data_len =  (wl->fw[4] << 24) | (wl->fw[5] << 16) |
-		(wl->fw[6] << 8) | (wl->fw[7]);
+				   (wl->fw[6] << 8) | (wl->fw[7]);
 
 	wl1251_debug(DEBUG_BOOT, "fw_data_len %zu chunk_size %d", fw_data_len,
-		CHUNK_SIZE);
+				 CHUNK_SIZE);
 
-	if ((fw_data_len % 4) != 0) {
+	if ((fw_data_len % 4) != 0)
+	{
 		wl1251_error("firmware length not multiple of four");
 		return -EIO;
 	}
 
 	buf = kmalloc(CHUNK_SIZE, GFP_KERNEL);
-	if (!buf) {
+
+	if (!buf)
+	{
 		wl1251_error("allocation for firmware upload chunk failed");
 		return -ENOMEM;
 	}
 
 	wl1251_set_partition(wl, WL1251_PART_DOWN_MEM_START,
-			     WL1251_PART_DOWN_MEM_SIZE,
-			     WL1251_PART_DOWN_REG_START,
-			     WL1251_PART_DOWN_REG_SIZE);
+						 WL1251_PART_DOWN_MEM_SIZE,
+						 WL1251_PART_DOWN_REG_START,
+						 WL1251_PART_DOWN_REG_SIZE);
 
 	/* 10.1 set partition limit and chunk num */
 	chunk_num = 0;
 	partition_limit = WL1251_PART_DOWN_MEM_SIZE;
 
-	while (chunk_num < fw_data_len / CHUNK_SIZE) {
+	while (chunk_num < fw_data_len / CHUNK_SIZE)
+	{
 		/* 10.2 update partition, if needed */
 		addr = WL1251_PART_DOWN_MEM_START +
-			(chunk_num + 2) * CHUNK_SIZE;
-		if (addr > partition_limit) {
+			   (chunk_num + 2) * CHUNK_SIZE;
+
+		if (addr > partition_limit)
+		{
 			addr = WL1251_PART_DOWN_MEM_START +
-				chunk_num * CHUNK_SIZE;
+				   chunk_num * CHUNK_SIZE;
 			partition_limit = chunk_num * CHUNK_SIZE +
-				WL1251_PART_DOWN_MEM_SIZE;
+							  WL1251_PART_DOWN_MEM_SIZE;
 			wl1251_set_partition(wl,
-					     addr,
-					     WL1251_PART_DOWN_MEM_SIZE,
-					     WL1251_PART_DOWN_REG_START,
-					     WL1251_PART_DOWN_REG_SIZE);
+								 addr,
+								 WL1251_PART_DOWN_MEM_SIZE,
+								 WL1251_PART_DOWN_REG_START,
+								 WL1251_PART_DOWN_REG_SIZE);
 		}
 
 		/* 10.3 upload the chunk */
 		addr = WL1251_PART_DOWN_MEM_START + chunk_num * CHUNK_SIZE;
 		p = wl->fw + FW_HDR_SIZE + chunk_num * CHUNK_SIZE;
 		wl1251_debug(DEBUG_BOOT, "uploading fw chunk 0x%p to 0x%x",
-			     p, addr);
+					 p, addr);
 
 		/* need to copy the chunk for dma */
 		len = CHUNK_SIZE;
@@ -391,7 +417,7 @@ static int wl1251_boot_upload_firmware(struct wl1251 *wl)
 	memcpy(buf, p, len);
 
 	wl1251_debug(DEBUG_BOOT, "uploading fw last chunk (%zu B) 0x%p to 0x%x",
-		     len, p, addr);
+				 len, p, addr);
 	wl1251_mem_write(wl, addr, buf, len);
 
 	kfree(buf);
@@ -407,8 +433,11 @@ static int wl1251_boot_upload_nvs(struct wl1251 *wl)
 	u8 *nvs_ptr, *nvs;
 
 	nvs = wl->nvs;
+
 	if (nvs == NULL)
+	{
 		return -ENODEV;
+	}
 
 	nvs_ptr = nvs;
 
@@ -424,20 +453,22 @@ static int wl1251_boot_upload_nvs(struct wl1251 *wl)
 	 * This is ended by a 0 length, then the NVS tables.
 	 */
 
-	while (nvs_ptr[0]) {
+	while (nvs_ptr[0])
+	{
 		burst_len = nvs_ptr[0];
 		dest_addr = (nvs_ptr[1] & 0xfe) | ((u32)(nvs_ptr[2] << 8));
 
 		/* We move our pointer to the data */
 		nvs_ptr += 3;
 
-		for (i = 0; i < burst_len; i++) {
+		for (i = 0; i < burst_len; i++)
+		{
 			val = (nvs_ptr[0] | (nvs_ptr[1] << 8)
-			       | (nvs_ptr[2] << 16) | (nvs_ptr[3] << 24));
+				   | (nvs_ptr[2] << 16) | (nvs_ptr[3] << 24));
 
 			wl1251_debug(DEBUG_BOOT,
-				     "nvs burst write 0x%x: 0x%x",
-				     dest_addr, val);
+						 "nvs burst write 0x%x: 0x%x",
+						 dest_addr, val);
 			wl1251_mem_write32(wl, dest_addr, val);
 
 			nvs_ptr += 4;
@@ -455,19 +486,21 @@ static int wl1251_boot_upload_nvs(struct wl1251 *wl)
 
 	/* Now we must set the partition correctly */
 	wl1251_set_partition(wl, nvs_start,
-			     WL1251_PART_DOWN_MEM_SIZE,
-			     WL1251_PART_DOWN_REG_START,
-			     WL1251_PART_DOWN_REG_SIZE);
+						 WL1251_PART_DOWN_MEM_SIZE,
+						 WL1251_PART_DOWN_REG_START,
+						 WL1251_PART_DOWN_REG_SIZE);
 
 	/* And finally we upload the NVS tables */
 	nvs_bytes_written = 0;
-	while (nvs_bytes_written < nvs_len) {
+
+	while (nvs_bytes_written < nvs_len)
+	{
 		val = (nvs_ptr[0] | (nvs_ptr[1] << 8)
-		       | (nvs_ptr[2] << 16) | (nvs_ptr[3] << 24));
+			   | (nvs_ptr[2] << 16) | (nvs_ptr[3] << 24));
 
 		wl1251_debug(DEBUG_BOOT,
-			     "nvs write table 0x%x: 0x%x",
-			     nvs_start, val);
+					 "nvs write table 0x%x: 0x%x",
+					 nvs_start, val);
 		wl1251_mem_write32(wl, nvs_start, val);
 
 		nvs_ptr += 4;
@@ -487,19 +520,28 @@ int wl1251_boot(struct wl1251 *wl)
 	wl1251_reg_write32(wl, ACX_REG_ECPU_CONTROL, ECPU_CONTROL_HALT);
 
 	ret = wl1251_boot_soft_reset(wl);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	/* 2. start processing NVS file */
-	if (wl->use_eeprom) {
+	if (wl->use_eeprom)
+	{
 		wl1251_reg_write32(wl, ACX_REG_EE_START, START_EEPROM_MGR);
 		/* Wait for EEPROM NVS burst read to complete */
 		msleep(40);
 		wl1251_reg_write32(wl, ACX_EEPROMLESS_IND_REG, USE_EEPROM);
-	} else {
+	}
+	else
+	{
 		ret = wl1251_boot_upload_nvs(wl);
+
 		if (ret < 0)
+		{
 			goto out;
+		}
 
 		/* write firmware's last address (ie. it's length) to
 		 * ACX_EEPROMLESS_IND_REG */
@@ -519,13 +561,16 @@ int wl1251_boot(struct wl1251 *wl)
 	minor_minor_e2_ver = (tmp & 0xFF000000) >> 24;
 
 	wl1251_debug(DEBUG_BOOT, "radioType 0x%x majorE2Ver 0x%x "
-		     "minorE2Ver 0x%x minor_minor_e2_ver 0x%x",
-		     wl->boot_attr.radio_type, wl->boot_attr.major,
-		     wl->boot_attr.minor, minor_minor_e2_ver);
+				 "minorE2Ver 0x%x minor_minor_e2_ver 0x%x",
+				 wl->boot_attr.radio_type, wl->boot_attr.major,
+				 wl->boot_attr.minor, minor_minor_e2_ver);
 
 	ret = wl1251_boot_init_seq(wl);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	/* 9. NVS processing done */
 	boot_data = wl1251_reg_read32(wl, ACX_REG_ECPU_CONTROL);
@@ -535,20 +580,27 @@ int wl1251_boot(struct wl1251 *wl)
 	/* 10. check that ECPU_CONTROL_HALT bits are set in
 	 * pWhalBus->uBootData and start uploading firmware
 	 */
-	if ((boot_data & ECPU_CONTROL_HALT) == 0) {
+	if ((boot_data & ECPU_CONTROL_HALT) == 0)
+	{
 		wl1251_error("boot failed, ECPU_CONTROL_HALT not set");
 		ret = -EIO;
 		goto out;
 	}
 
 	ret = wl1251_boot_upload_firmware(wl);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	/* 10.5 start firmware */
 	ret = wl1251_boot_run_firmware(wl);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 out:
 	return ret;

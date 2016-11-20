@@ -144,8 +144,8 @@
  */
 #define FIT_MXD_CONS(TYPE, PARAM, DATA) \
 	((((TYPE)  & 0xFFu) << 24u) | \
-	(((PARAM) & 0xFFu) << 16u) | \
-	(((DATA)  & 0xFFFFu) << 0u))
+	 (((PARAM) & 0xFFu) << 16u) | \
+	 (((DATA)  & 0xFFFFu) << 0u))
 #define FIT_MXD_TYPE(MXD)		(((MXD) >> 24u) & 0xFFu)
 #define FIT_MXD_PARAM(MXD)		(((MXD) >> 16u) & 0xFFu)
 #define FIT_MXD_DATA(MXD)		(((MXD) >> 0u) & 0xFFFFu)
@@ -196,7 +196,8 @@
  * 32-bytes and must be aligned on a 32-byte boundary.
  * All fields are in little endian order.
  */
-struct fit_sg_descriptor {
+struct fit_sg_descriptor
+{
 	uint32_t control;
 	uint32_t byte_count;
 	uint64_t host_side_addr;
@@ -213,7 +214,8 @@ struct fit_sg_descriptor {
  * A FIT message can be up to 512 bytes long and must start
  * on a 64-byte boundary.
  */
-struct fit_msg_hdr {
+struct fit_msg_hdr
+{
 	uint8_t protocol_id;
 	uint8_t num_protocol_cmds_coalesced;
 	uint8_t _reserved[62];
@@ -249,7 +251,8 @@ struct fit_msg_hdr {
  *  The major protocol version is found in bits
  *  20-23 of the FIT_MTD_FITFW_INIT response.
  */
-struct fit_completion_entry_v1 {
+struct fit_completion_entry_v1
+{
 	uint32_t	num_returned_bytes;
 	uint16_t	tag;
 	uint8_t		status;  /* SCSI status */
@@ -258,23 +261,24 @@ struct fit_completion_entry_v1 {
 #define FIT_PROTOCOL_VERSION_1		1
 #define FIT_PROTOCOL_VERSION_CURRENT	FIT_PROTOCOL_VERSION_1
 
-struct fit_comp_error_info {
-	uint8_t		type:7; /* 00: Bits0-6 indicates the type of sense data. */
-	uint8_t		valid:1; /* 00: Bit 7 := 1 ==> info field is valid. */
+struct fit_comp_error_info
+{
+	uint8_t		type: 7; /* 00: Bits0-6 indicates the type of sense data. */
+	uint8_t		valid: 1; /* 00: Bit 7 := 1 ==> info field is valid. */
 	uint8_t		reserved0; /* 01: Obsolete field */
-	uint8_t		key:4; /* 02: Bits0-3 indicate the sense key. */
-	uint8_t		reserved2:1; /* 02: Reserved bit. */
-	uint8_t		bad_length:1; /* 02: Incorrect Length Indicator */
-	uint8_t		end_medium:1; /* 02: End of Medium */
-	uint8_t		file_mark:1; /* 02: Filemark */
+	uint8_t		key: 4; /* 02: Bits0-3 indicate the sense key. */
+	uint8_t		reserved2: 1; /* 02: Reserved bit. */
+	uint8_t		bad_length: 1; /* 02: Incorrect Length Indicator */
+	uint8_t		end_medium: 1; /* 02: End of Medium */
+	uint8_t		file_mark: 1; /* 02: Filemark */
 	uint8_t		info[4]; /* 03: */
 	uint8_t		reserved1; /* 07: Additional Sense Length */
 	uint8_t		cmd_spec[4]; /* 08: Command Specific Information */
 	uint8_t		code; /* 0C: Additional Sense Code */
 	uint8_t		qual; /* 0D: Additional Sense Code Qualifier */
 	uint8_t		fruc; /* 0E: Field Replaceable Unit Code */
-	uint8_t		sks_high:7; /* 0F: Sense Key Specific (MSB) */
-	uint8_t		sks_valid:1; /* 0F: Sense Key Specific Valid */
+	uint8_t		sks_high: 7; /* 0F: Sense Key Specific (MSB) */
+	uint8_t		sks_valid: 1; /* 0F: Sense Key Specific Valid */
 	uint16_t	sks_low; /* 10: Sense Key Specific (LSW) */
 	uint16_t	reserved3; /* 12: Part of additional sense bytes (unused) */
 	uint16_t	uec; /* 14: Additional Sense Bytes */
@@ -291,7 +295,8 @@ struct fit_comp_error_info {
 /* Version zero has the last 32 bits reserved,
  * Version one has the last 32 bits sg_list_len_bytes;
  */
-struct skd_command_header {
+struct skd_command_header
+{
 	uint64_t	sg_list_dma_address;
 	uint16_t	tag;
 	uint8_t		attribute;
@@ -299,15 +304,17 @@ struct skd_command_header {
 	uint32_t	sg_list_len_bytes;
 };
 
-struct skd_scsi_request {
+struct skd_scsi_request
+{
 	struct		skd_command_header hdr;
 	unsigned char	cdb[16];
-/*	unsigned char _reserved[16]; */
+	/*	unsigned char _reserved[16]; */
 };
 
-struct driver_inquiry_data {
-	uint8_t		peripheral_device_type:5;
-	uint8_t		qualifier:3;
+struct driver_inquiry_data
+{
+	uint8_t		peripheral_device_type: 5;
+	uint8_t		qualifier: 3;
 	uint8_t		page_code;
 	uint16_t	page_length;
 	uint16_t	pcie_bus_number;

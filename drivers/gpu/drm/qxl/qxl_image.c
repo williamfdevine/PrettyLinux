@@ -31,19 +31,24 @@
 
 static int
 qxl_allocate_chunk(struct qxl_device *qdev,
-		   struct qxl_release *release,
-		   struct qxl_drm_image *image,
-		   unsigned int chunk_size)
+				   struct qxl_release *release,
+				   struct qxl_drm_image *image,
+				   unsigned int chunk_size)
 {
 	struct qxl_drm_chunk *chunk;
 	int ret;
 
 	chunk = kmalloc(sizeof(struct qxl_drm_chunk), GFP_KERNEL);
+
 	if (!chunk)
+	{
 		return -ENOMEM;
+	}
 
 	ret = qxl_alloc_bo_reserved(qdev, release, chunk_size, &chunk->bo);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(chunk);
 		return ret;
 	}
@@ -54,31 +59,39 @@ qxl_allocate_chunk(struct qxl_device *qdev,
 
 int
 qxl_image_alloc_objects(struct qxl_device *qdev,
-			struct qxl_release *release,
-			struct qxl_drm_image **image_ptr,
-			int height, int stride)
+						struct qxl_release *release,
+						struct qxl_drm_image **image_ptr,
+						int height, int stride)
 {
 	struct qxl_drm_image *image;
 	int ret;
 
 	image = kmalloc(sizeof(struct qxl_drm_image), GFP_KERNEL);
+
 	if (!image)
+	{
 		return -ENOMEM;
+	}
 
 	INIT_LIST_HEAD(&image->chunk_list);
 
 	ret = qxl_alloc_bo_reserved(qdev, release, sizeof(struct qxl_image), &image->bo);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(image);
 		return ret;
 	}
 
 	ret = qxl_allocate_chunk(qdev, release, image, sizeof(struct qxl_data_chunk) + stride * height);
-	if (ret) {
+
+	if (ret)
+	{
 		qxl_bo_unref(&image->bo);
 		kfree(image);
 		return ret;
 	}
+
 	*image_ptr = image;
 	return 0;
 }
@@ -87,7 +100,8 @@ void qxl_image_free_objects(struct qxl_device *qdev, struct qxl_drm_image *dimag
 {
 	struct qxl_drm_chunk *chunk, *tmp;
 
-	list_for_each_entry_safe(chunk, tmp, &dimage->chunk_list, head) {
+	list_for_each_entry_safe(chunk, tmp, &dimage->chunk_list, head)
+	{
 		qxl_bo_unref(&chunk->bo);
 		kfree(chunk);
 	}
@@ -98,12 +112,12 @@ void qxl_image_free_objects(struct qxl_device *qdev, struct qxl_drm_image *dimag
 
 static int
 qxl_image_init_helper(struct qxl_device *qdev,
-		      struct qxl_release *release,
-		      struct qxl_drm_image *dimage,
-		      const uint8_t *data,
-		      int width, int height,
-		      int depth, unsigned int hash,
-		      int stride)
+					  struct qxl_release *release,
+					  struct qxl_drm_image *dimage,
+					  const uint8_t *data,
+					  int width, int height,
+					  int depth, unsigned int hash,
+					  int stride)
 {
 	struct qxl_drm_chunk *drv_chunk;
 	struct qxl_image *image;
@@ -136,22 +150,29 @@ qxl_image_init_helper(struct qxl_device *qdev,
 		int remain;
 		int page;
 		int size;
-		if (stride == linesize && chunk_stride == stride) {
+
+		if (stride == linesize && chunk_stride == stride)
+		{
 			remain = linesize * height;
 			page = 0;
 			i_data = (void *)data;
 
-			while (remain > 0) {
+			while (remain > 0)
+			{
 				ptr = qxl_bo_kmap_atomic_page(qdev, chunk_bo, page << PAGE_SHIFT);
 
-				if (page == 0) {
+				if (page == 0)
+				{
 					chunk = ptr;
 					k_data = chunk->data;
 					size = PAGE_SIZE - offsetof(struct qxl_data_chunk, data);
-				} else {
+				}
+				else
+				{
 					k_data = ptr;
 					size = PAGE_SIZE;
 				}
+
 				size = min(size, remain);
 
 				memcpy(k_data, i_data, size);
@@ -161,14 +182,19 @@ qxl_image_init_helper(struct qxl_device *qdev,
 				remain -= size;
 				page++;
 			}
-		} else {
+		}
+		else
+		{
 			unsigned page_base, page_offset, out_offset;
-			for (i = 0 ; i < height ; ++i) {
+
+			for (i = 0 ; i < height ; ++i)
+			{
 				i_data = (void *)data + i * stride;
 				remain = linesize;
 				out_offset = offsetof(struct qxl_data_chunk, data) + i * chunk_stride;
 
-				while (remain > 0) {
+				while (remain > 0)
+				{
 					page_base = out_offset & PAGE_MASK;
 					page_offset = offset_in_page(out_offset);
 					size = min((int)(PAGE_SIZE - page_offset), remain);
@@ -197,21 +223,26 @@ qxl_image_init_helper(struct qxl_device *qdev,
 	image->descriptor.width = width;
 	image->descriptor.height = height;
 
-	switch (depth) {
-	case 1:
-		/* TODO: BE? check by arch? */
-		image->u.bitmap.format = SPICE_BITMAP_FMT_1BIT_BE;
-		break;
-	case 24:
-		image->u.bitmap.format = SPICE_BITMAP_FMT_24BIT;
-		break;
-	case 32:
-		image->u.bitmap.format = SPICE_BITMAP_FMT_32BIT;
-		break;
-	default:
-		DRM_ERROR("unsupported image bit depth\n");
-		return -EINVAL; /* TODO: cleanup */
+	switch (depth)
+	{
+		case 1:
+			/* TODO: BE? check by arch? */
+			image->u.bitmap.format = SPICE_BITMAP_FMT_1BIT_BE;
+			break;
+
+		case 24:
+			image->u.bitmap.format = SPICE_BITMAP_FMT_24BIT;
+			break;
+
+		case 32:
+			image->u.bitmap.format = SPICE_BITMAP_FMT_32BIT;
+			break;
+
+		default:
+			DRM_ERROR("unsupported image bit depth\n");
+			return -EINVAL; /* TODO: cleanup */
 	}
+
 	image->u.bitmap.flags = QXL_BITMAP_TOP_DOWN;
 	image->u.bitmap.x = width;
 	image->u.bitmap.y = height;
@@ -225,13 +256,13 @@ qxl_image_init_helper(struct qxl_device *qdev,
 }
 
 int qxl_image_init(struct qxl_device *qdev,
-		     struct qxl_release *release,
-		     struct qxl_drm_image *dimage,
-		     const uint8_t *data,
-		     int x, int y, int width, int height,
-		     int depth, int stride)
+				   struct qxl_release *release,
+				   struct qxl_drm_image *dimage,
+				   const uint8_t *data,
+				   int x, int y, int width, int height,
+				   int depth, int stride)
 {
 	data += y * stride + x * (depth / 8);
 	return qxl_image_init_helper(qdev, release, dimage, data,
-				       width, height, depth, 0, stride);
+								 width, height, depth, 0, stride);
 }

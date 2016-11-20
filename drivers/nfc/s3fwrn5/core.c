@@ -25,11 +25,11 @@
 #include "nci.h"
 
 #define S3FWRN5_NFC_PROTOCOLS  (NFC_PROTO_JEWEL_MASK | \
-				NFC_PROTO_MIFARE_MASK | \
-				NFC_PROTO_FELICA_MASK | \
-				NFC_PROTO_ISO14443_MASK | \
-				NFC_PROTO_ISO14443_B_MASK | \
-				NFC_PROTO_ISO15693_MASK)
+								NFC_PROTO_MIFARE_MASK | \
+								NFC_PROTO_FELICA_MASK | \
+								NFC_PROTO_ISO14443_MASK | \
+								NFC_PROTO_ISO14443_B_MASK | \
+								NFC_PROTO_ISO15693_MASK)
 
 static int s3fwrn5_firmware_update(struct s3fwrn5_info *info)
 {
@@ -44,19 +44,28 @@ static int s3fwrn5_firmware_update(struct s3fwrn5_info *info)
 	s3fwrn5_set_mode(info, S3FWRN5_MODE_FW);
 
 	ret = s3fwrn5_fw_setup(&info->fw_info);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	need_update = s3fwrn5_fw_check_version(&info->fw_info,
-		info->ndev->manufact_specific_info);
+										   info->ndev->manufact_specific_info);
+
 	if (!need_update)
+	{
 		goto out;
+	}
 
 	dev_info(&info->ndev->nfc_dev->dev, "Detected new firmware version\n");
 
 	ret = s3fwrn5_fw_download(&info->fw_info);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	/* Update RF configuration */
 
@@ -77,7 +86,9 @@ static int s3fwrn5_nci_open(struct nci_dev *ndev)
 	struct s3fwrn5_info *info = nci_get_drvdata(ndev);
 
 	if (s3fwrn5_get_mode(info) != S3FWRN5_MODE_COLD)
+	{
 		return  -EBUSY;
+	}
 
 	s3fwrn5_set_mode(info, S3FWRN5_MODE_NCI);
 	s3fwrn5_set_wake(info, true);
@@ -102,14 +113,18 @@ static int s3fwrn5_nci_send(struct nci_dev *ndev, struct sk_buff *skb)
 
 	mutex_lock(&info->mutex);
 
-	if (s3fwrn5_get_mode(info) != S3FWRN5_MODE_NCI) {
+	if (s3fwrn5_get_mode(info) != S3FWRN5_MODE_NCI)
+	{
 		mutex_unlock(&info->mutex);
 		return -EINVAL;
 	}
 
 	ret = s3fwrn5_write(info, skb);
+
 	if (ret < 0)
+	{
 		kfree_skb(skb);
+	}
 
 	mutex_unlock(&info->mutex);
 	return ret;
@@ -121,8 +136,11 @@ static int s3fwrn5_nci_post_setup(struct nci_dev *ndev)
 	int ret;
 
 	ret = s3fwrn5_firmware_update(info);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	/* NCI core reset */
 
@@ -130,8 +148,11 @@ static int s3fwrn5_nci_post_setup(struct nci_dev *ndev)
 	s3fwrn5_set_wake(info, true);
 
 	ret = nci_core_reset(info->ndev);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	ret = nci_core_init(info->ndev);
 
@@ -139,7 +160,8 @@ out:
 	return ret;
 }
 
-static struct nci_ops s3fwrn5_nci_ops = {
+static struct nci_ops s3fwrn5_nci_ops =
+{
 	.open = s3fwrn5_nci_open,
 	.close = s3fwrn5_nci_close,
 	.send = s3fwrn5_nci_send,
@@ -147,14 +169,17 @@ static struct nci_ops s3fwrn5_nci_ops = {
 };
 
 int s3fwrn5_probe(struct nci_dev **ndev, void *phy_id, struct device *pdev,
-	const struct s3fwrn5_phy_ops *phy_ops, unsigned int max_payload)
+				  const struct s3fwrn5_phy_ops *phy_ops, unsigned int max_payload)
 {
 	struct s3fwrn5_info *info;
 	int ret;
 
 	info = devm_kzalloc(pdev, sizeof(*info), GFP_KERNEL);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
 
 	info->phy_id = phy_id;
 	info->pdev = pdev;
@@ -165,18 +190,23 @@ int s3fwrn5_probe(struct nci_dev **ndev, void *phy_id, struct device *pdev,
 	s3fwrn5_set_mode(info, S3FWRN5_MODE_COLD);
 
 	s3fwrn5_nci_get_prop_ops(&s3fwrn5_nci_ops.prop_ops,
-		&s3fwrn5_nci_ops.n_prop_ops);
+							 &s3fwrn5_nci_ops.n_prop_ops);
 
 	info->ndev = nci_allocate_device(&s3fwrn5_nci_ops,
-		S3FWRN5_NFC_PROTOCOLS, 0, 0);
+									 S3FWRN5_NFC_PROTOCOLS, 0, 0);
+
 	if (!info->ndev)
+	{
 		return -ENOMEM;
+	}
 
 	nci_set_parent_dev(info->ndev, pdev);
 	nci_set_drvdata(info->ndev, info);
 
 	ret = nci_register_device(info->ndev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		nci_free_device(info->ndev);
 		return ret;
 	}
@@ -201,15 +231,18 @@ void s3fwrn5_remove(struct nci_dev *ndev)
 EXPORT_SYMBOL(s3fwrn5_remove);
 
 int s3fwrn5_recv_frame(struct nci_dev *ndev, struct sk_buff *skb,
-	enum s3fwrn5_mode mode)
+					   enum s3fwrn5_mode mode)
 {
-	switch (mode) {
-	case S3FWRN5_MODE_NCI:
-		return nci_recv_frame(ndev, skb);
-	case S3FWRN5_MODE_FW:
-		return s3fwrn5_fw_recv_frame(ndev, skb);
-	default:
-		return -ENODEV;
+	switch (mode)
+	{
+		case S3FWRN5_MODE_NCI:
+			return nci_recv_frame(ndev, skb);
+
+		case S3FWRN5_MODE_FW:
+			return s3fwrn5_fw_recv_frame(ndev, skb);
+
+		default:
+			return -ENODEV;
 	}
 }
 EXPORT_SYMBOL(s3fwrn5_recv_frame);

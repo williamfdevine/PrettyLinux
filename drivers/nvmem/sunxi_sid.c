@@ -24,7 +24,8 @@
 #include <linux/slab.h>
 #include <linux/random.h>
 
-static struct nvmem_config econfig = {
+static struct nvmem_config econfig =
+{
 	.name = "sunxi-sid",
 	.read_only = true,
 	.stride = 4,
@@ -32,7 +33,8 @@ static struct nvmem_config econfig = {
 	.owner = THIS_MODULE,
 };
 
-struct sunxi_sid {
+struct sunxi_sid
+{
 	void __iomem		*base;
 };
 
@@ -42,7 +44,7 @@ struct sunxi_sid {
  * only very rarely probed, this is not really an issue.
  */
 static u8 sunxi_sid_read_byte(const struct sunxi_sid *sid,
-			      const unsigned int offset)
+							  const unsigned int offset)
 {
 	u32 sid_key;
 
@@ -53,13 +55,15 @@ static u8 sunxi_sid_read_byte(const struct sunxi_sid *sid,
 }
 
 static int sunxi_sid_read(void *context, unsigned int offset,
-			  void *val, size_t bytes)
+						  void *val, size_t bytes)
 {
 	struct sunxi_sid *sid = context;
 	u8 *buf = val;
 
 	while (bytes--)
+	{
 		*buf++ = sunxi_sid_read_byte(sid, offset++);
+	}
 
 	return 0;
 }
@@ -74,13 +78,19 @@ static int sunxi_sid_probe(struct platform_device *pdev)
 	char *randomness;
 
 	sid = devm_kzalloc(dev, sizeof(*sid), GFP_KERNEL);
+
 	if (!sid)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	sid->base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(sid->base))
+	{
 		return PTR_ERR(sid->base);
+	}
 
 	size = resource_size(res) - 1;
 	econfig.size = resource_size(res);
@@ -88,17 +98,24 @@ static int sunxi_sid_probe(struct platform_device *pdev)
 	econfig.reg_read = sunxi_sid_read;
 	econfig.priv = sid;
 	nvmem = nvmem_register(&econfig);
+
 	if (IS_ERR(nvmem))
+	{
 		return PTR_ERR(nvmem);
+	}
 
 	randomness = kzalloc(sizeof(u8) * (size), GFP_KERNEL);
-	if (!randomness) {
+
+	if (!randomness)
+	{
 		ret = -EINVAL;
 		goto err_unreg_nvmem;
 	}
 
 	for (i = 0; i < size; i++)
+	{
 		randomness[i] = sunxi_sid_read_byte(sid, i);
+	}
 
 	add_device_randomness(randomness, size);
 	kfree(randomness);
@@ -119,14 +136,16 @@ static int sunxi_sid_remove(struct platform_device *pdev)
 	return nvmem_unregister(nvmem);
 }
 
-static const struct of_device_id sunxi_sid_of_match[] = {
+static const struct of_device_id sunxi_sid_of_match[] =
+{
 	{ .compatible = "allwinner,sun4i-a10-sid" },
 	{ .compatible = "allwinner,sun7i-a20-sid" },
 	{/* sentinel */},
 };
 MODULE_DEVICE_TABLE(of, sunxi_sid_of_match);
 
-static struct platform_driver sunxi_sid_driver = {
+static struct platform_driver sunxi_sid_driver =
+{
 	.probe = sunxi_sid_probe,
 	.remove = sunxi_sid_remove,
 	.driver = {

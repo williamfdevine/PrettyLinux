@@ -22,14 +22,14 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  *
- */      
+ */
 
 #define  AUREON_DEVICE_DESC 	       "{Terratec,Aureon 5.1 Sky},"\
-				       "{Terratec,Aureon 7.1 Space},"\
-				       "{Terratec,Aureon 7.1 Universe}," \
-					"{AudioTrak,Prodigy 7.1}," \
-					"{AudioTrak,Prodigy 7.1 LT},"\
-					"{AudioTrak,Prodigy 7.1 XT},"
+	"{Terratec,Aureon 7.1 Space},"\
+	"{Terratec,Aureon 7.1 Universe}," \
+	"{AudioTrak,Prodigy 7.1}," \
+	"{AudioTrak,Prodigy 7.1 LT},"\
+	"{AudioTrak,Prodigy 7.1 XT},"
 
 #define VT1724_SUBDEVICE_AUREON51_SKY	0x3b154711	/* Aureon 5.1 Sky */
 #define VT1724_SUBDEVICE_AUREON71_SPACE	0x3b154511	/* Aureon 7.1 Space */

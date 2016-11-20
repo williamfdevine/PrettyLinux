@@ -199,52 +199,52 @@
 #define ACPI_TRACE_LAYER_DEFAULT    ACPI_EXECUTER
 
 #if defined (ACPI_DEBUG_OUTPUT) || !defined (ACPI_NO_ERROR_MESSAGES)
-/*
- * The module name is used primarily for error and debug messages.
- * The __FILE__ macro is not very useful for this, because it
- * usually includes the entire pathname to the module making the
- * debug output difficult to read.
- */
-#define ACPI_MODULE_NAME(name)          static const char ACPI_UNUSED_VAR _acpi_module_name[] = name;
+	/*
+	* The module name is used primarily for error and debug messages.
+	* The __FILE__ macro is not very useful for this, because it
+	* usually includes the entire pathname to the module making the
+	* debug output difficult to read.
+	*/
+	#define ACPI_MODULE_NAME(name)          static const char ACPI_UNUSED_VAR _acpi_module_name[] = name;
 #else
-/*
- * For the no-debug and no-error-msg cases, we must at least define
- * a null module name.
- */
-#define ACPI_MODULE_NAME(name)
-#define _acpi_module_name ""
+	/*
+	* For the no-debug and no-error-msg cases, we must at least define
+	* a null module name.
+	*/
+	#define ACPI_MODULE_NAME(name)
+	#define _acpi_module_name ""
 #endif
 
 /*
  * Ascii error messages can be configured out
  */
 #ifndef ACPI_NO_ERROR_MESSAGES
-#define AE_INFO                         _acpi_module_name, __LINE__
+	#define AE_INFO                         _acpi_module_name, __LINE__
 
-/*
- * Error reporting. Callers module and line number are inserted by AE_INFO,
- * the plist contains a set of parens to allow variable-length lists.
- * These macros are used for both the debug and non-debug versions of the code.
- */
-#define ACPI_INFO(plist)                acpi_info plist
-#define ACPI_WARNING(plist)             acpi_warning plist
-#define ACPI_EXCEPTION(plist)           acpi_exception plist
-#define ACPI_ERROR(plist)               acpi_error plist
-#define ACPI_BIOS_WARNING(plist)        acpi_bios_warning plist
-#define ACPI_BIOS_ERROR(plist)          acpi_bios_error plist
-#define ACPI_DEBUG_OBJECT(obj,l,i)      acpi_ex_do_debug_object(obj,l,i)
+	/*
+	* Error reporting. Callers module and line number are inserted by AE_INFO,
+	* the plist contains a set of parens to allow variable-length lists.
+	* These macros are used for both the debug and non-debug versions of the code.
+	*/
+	#define ACPI_INFO(plist)                acpi_info plist
+	#define ACPI_WARNING(plist)             acpi_warning plist
+	#define ACPI_EXCEPTION(plist)           acpi_exception plist
+	#define ACPI_ERROR(plist)               acpi_error plist
+	#define ACPI_BIOS_WARNING(plist)        acpi_bios_warning plist
+	#define ACPI_BIOS_ERROR(plist)          acpi_bios_error plist
+	#define ACPI_DEBUG_OBJECT(obj,l,i)      acpi_ex_do_debug_object(obj,l,i)
 
 #else
 
-/* No error messages */
+	/* No error messages */
 
-#define ACPI_INFO(plist)
-#define ACPI_WARNING(plist)
-#define ACPI_EXCEPTION(plist)
-#define ACPI_ERROR(plist)
-#define ACPI_BIOS_WARNING(plist)
-#define ACPI_BIOS_ERROR(plist)
-#define ACPI_DEBUG_OBJECT(obj,l,i)
+	#define ACPI_INFO(plist)
+	#define ACPI_WARNING(plist)
+	#define ACPI_EXCEPTION(plist)
+	#define ACPI_ERROR(plist)
+	#define ACPI_BIOS_WARNING(plist)
+	#define ACPI_BIOS_ERROR(plist)
+	#define ACPI_DEBUG_OBJECT(obj,l,i)
 
 #endif				/* ACPI_NO_ERROR_MESSAGES */
 
@@ -259,20 +259,20 @@
  * a __func__ macro or equivalent.
  */
 #ifndef ACPI_GET_FUNCTION_NAME
-#define ACPI_GET_FUNCTION_NAME          _acpi_function_name
+	#define ACPI_GET_FUNCTION_NAME          _acpi_function_name
 
-/*
- * The Name parameter should be the procedure name as a non-quoted string.
- * The function name is also used by the function exit macros below.
- * Note: (const char) is used to be compatible with the debug interfaces
- * and macros such as __func__.
- */
-#define ACPI_FUNCTION_NAME(name)        static const char _acpi_function_name[] = #name;
+	/*
+	* The Name parameter should be the procedure name as a non-quoted string.
+	* The function name is also used by the function exit macros below.
+	* Note: (const char) is used to be compatible with the debug interfaces
+	* and macros such as __func__.
+	*/
+	#define ACPI_FUNCTION_NAME(name)        static const char _acpi_function_name[] = #name;
 
 #else
-/* Compiler supports __func__ (or equivalent) -- Ignore this macro */
+	/* Compiler supports __func__ (or equivalent) -- Ignore this macro */
 
-#define ACPI_FUNCTION_NAME(name)
+	#define ACPI_FUNCTION_NAME(name)
 #endif				/* ACPI_GET_FUNCTION_NAME */
 
 /*
@@ -303,9 +303,9 @@
  * adds some extra code, so this feature is optional.
  */
 #ifdef ACPI_USE_DO_WHILE_0
-#define ACPI_DO_WHILE0(a)               do a while(0)
+	#define ACPI_DO_WHILE0(a)               do a while(0)
 #else
-#define ACPI_DO_WHILE0(a)               a
+	#define ACPI_DO_WHILE0(a)               a
 #endif
 
 /* DEBUG_PRINT functions */
@@ -329,11 +329,11 @@
 
 #define ACPI_ACTUAL_DEBUG(level, line, filename, modulename, component, ...) \
 	ACPI_DO_DEBUG_PRINT (acpi_debug_print, level, line, \
-		filename, modulename, component, __VA_ARGS__)
+						 filename, modulename, component, __VA_ARGS__)
 
 #define ACPI_ACTUAL_DEBUG_RAW(level, line, filename, modulename, component, ...) \
 	ACPI_DO_DEBUG_PRINT (acpi_debug_print_raw, level, line, \
-		filename, modulename, component, __VA_ARGS__)
+						 filename, modulename, component, __VA_ARGS__)
 
 #define ACPI_DEBUG_PRINT(plist)         ACPI_ACTUAL_DEBUG plist
 #define ACPI_DEBUG_PRINT_RAW(plist)     ACPI_ACTUAL_DEBUG_RAW plist

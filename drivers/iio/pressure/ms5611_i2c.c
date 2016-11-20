@@ -34,9 +34,12 @@ static int ms5611_i2c_read_prom_word(struct device *dev, int index, u16 *word)
 	struct ms5611_state *st = iio_priv(dev_to_iio_dev(dev));
 
 	ret = i2c_smbus_read_word_swapped(st->client,
-			MS5611_READ_PROM_WORD + (index << 1));
+									  MS5611_READ_PROM_WORD + (index << 1));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	*word = ret;
 
@@ -49,9 +52,12 @@ static int ms5611_i2c_read_adc(struct ms5611_state *st, s32 *val)
 	u8 buf[3];
 
 	ret = i2c_smbus_read_i2c_block_data(st->client, MS5611_READ_ADC,
-					    3, buf);
+										3, buf);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	*val = (buf[0] << 16) | (buf[1] << 8) | buf[2];
 
@@ -59,45 +65,59 @@ static int ms5611_i2c_read_adc(struct ms5611_state *st, s32 *val)
 }
 
 static int ms5611_i2c_read_adc_temp_and_pressure(struct device *dev,
-						 s32 *temp, s32 *pressure)
+		s32 *temp, s32 *pressure)
 {
 	int ret;
 	struct ms5611_state *st = iio_priv(dev_to_iio_dev(dev));
 	const struct ms5611_osr *osr = st->temp_osr;
 
 	ret = i2c_smbus_write_byte(st->client, osr->cmd);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	usleep_range(osr->conv_usec, osr->conv_usec + (osr->conv_usec / 10UL));
 	ret = ms5611_i2c_read_adc(st, temp);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	osr = st->pressure_osr;
 	ret = i2c_smbus_write_byte(st->client, osr->cmd);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	usleep_range(osr->conv_usec, osr->conv_usec + (osr->conv_usec / 10UL));
 	return ms5611_i2c_read_adc(st, pressure);
 }
 
 static int ms5611_i2c_probe(struct i2c_client *client,
-			    const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	struct ms5611_state *st;
 	struct iio_dev *indio_dev;
 
 	if (!i2c_check_functionality(client->adapter,
-				     I2C_FUNC_SMBUS_WRITE_BYTE |
-				     I2C_FUNC_SMBUS_READ_WORD_DATA |
-				     I2C_FUNC_SMBUS_READ_I2C_BLOCK))
+								 I2C_FUNC_SMBUS_WRITE_BYTE |
+								 I2C_FUNC_SMBUS_READ_WORD_DATA |
+								 I2C_FUNC_SMBUS_READ_I2C_BLOCK))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*st));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	st = iio_priv(indio_dev);
 	i2c_set_clientdata(client, indio_dev);
@@ -115,7 +135,8 @@ static int ms5611_i2c_remove(struct i2c_client *client)
 }
 
 #if defined(CONFIG_OF)
-static const struct of_device_id ms5611_i2c_matches[] = {
+static const struct of_device_id ms5611_i2c_matches[] =
+{
 	{ .compatible = "meas,ms5611" },
 	{ .compatible = "ms5611" },
 	{ .compatible = "meas,ms5607" },
@@ -125,14 +146,16 @@ static const struct of_device_id ms5611_i2c_matches[] = {
 MODULE_DEVICE_TABLE(of, ms5611_i2c_matches);
 #endif
 
-static const struct i2c_device_id ms5611_id[] = {
+static const struct i2c_device_id ms5611_id[] =
+{
 	{ "ms5611", MS5611 },
 	{ "ms5607", MS5607 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, ms5611_id);
 
-static struct i2c_driver ms5611_driver = {
+static struct i2c_driver ms5611_driver =
+{
 	.driver = {
 		.name = "ms5611",
 		.of_match_table = of_match_ptr(ms5611_i2c_matches)

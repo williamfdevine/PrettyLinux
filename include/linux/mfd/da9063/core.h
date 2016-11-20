@@ -29,18 +29,21 @@
 #define DA9063_DRVNAME_RTC		"da9063-rtc"
 #define DA9063_DRVNAME_VIBRATION	"da9063-vibration"
 
-enum da9063_models {
+enum da9063_models
+{
 	PMIC_DA9063 = 0x61,
 };
 
-enum da9063_variant_codes {
+enum da9063_variant_codes
+{
 	PMIC_DA9063_AD = 0x3,
 	PMIC_DA9063_BB = 0x5,
 	PMIC_DA9063_CA = 0x6,
 };
 
 /* Interrupts */
-enum da9063_irqs {
+enum da9063_irqs
+{
 	DA9063_IRQ_ONKEY = 0,
 	DA9063_IRQ_ALARM,
 	DA9063_IRQ_TICK,
@@ -75,7 +78,8 @@ enum da9063_irqs {
 #define DA9063_IRQ_BASE_OFFSET	0
 #define DA9063_NUM_IRQ		(DA9063_IRQ_GPI15 + 1 - DA9063_IRQ_BASE_OFFSET)
 
-struct da9063 {
+struct da9063
+{
 	/* Device */
 	struct device	*dev;
 	unsigned short	model;

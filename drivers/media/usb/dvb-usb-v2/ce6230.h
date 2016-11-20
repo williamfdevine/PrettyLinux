@@ -28,7 +28,8 @@
 
 #define CE6230_USB_TIMEOUT 1000
 
-struct usb_req {
+struct usb_req
+{
 	u8  cmd;       /* [1] */
 	u16 value;     /* [2|3] */
 	u16 index;     /* [4|5] */
@@ -36,7 +37,8 @@ struct usb_req {
 	u8  *data;
 };
 
-enum ce6230_cmd {
+enum ce6230_cmd
+{
 	CONFIG_READ          = 0xd0, /* rd 0 (unclear) */
 	UNKNOWN_WRITE        = 0xc7, /* wr 7 (unclear) */
 	I2C_READ             = 0xd9, /* rd 9 (unclear) */

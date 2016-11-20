@@ -24,7 +24,8 @@
 
 #define	VNIC_WQ_COPY_MAX 1
 
-struct vnic_wq_copy {
+struct vnic_wq_copy
+{
 	unsigned int index;
 	struct vnic_dev *vdev;
 	struct vnic_wq_ctrl __iomem *ctrl;	/* memory-mapped */
@@ -53,7 +54,7 @@ static inline void vnic_wq_copy_post(struct vnic_wq_copy *wq)
 {
 
 	((wq->to_use_index + 1) == wq->ring.desc_count) ?
-		(wq->to_use_index = 0) : (wq->to_use_index++);
+	(wq->to_use_index = 0) : (wq->to_use_index++);
 	wq->ring.desc_avail--;
 
 	/* Adding write memory barrier prevents compiler and/or CPU
@@ -71,9 +72,13 @@ static inline void vnic_wq_copy_desc_process(struct vnic_wq_copy *wq, u16 index)
 	unsigned int cnt;
 
 	if (wq->to_clean_index <= index)
+	{
 		cnt = (index - wq->to_clean_index) + 1;
+	}
 	else
+	{
 		cnt = wq->ring.desc_count - wq->to_clean_index + index + 1;
+	}
 
 	wq->to_clean_index = ((index + 1) % wq->ring.desc_count);
 	wq->ring.desc_avail += cnt;
@@ -81,17 +86,20 @@ static inline void vnic_wq_copy_desc_process(struct vnic_wq_copy *wq, u16 index)
 }
 
 static inline void vnic_wq_copy_service(struct vnic_wq_copy *wq,
-	u16 completed_index,
-	void (*q_service)(struct vnic_wq_copy *wq,
-	struct fcpio_host_req *wq_desc))
+										u16 completed_index,
+										void (*q_service)(struct vnic_wq_copy *wq,
+												struct fcpio_host_req *wq_desc))
 {
 	struct fcpio_host_req *wq_desc = wq->ring.descs;
 	unsigned int curr_index;
 
-	while (1) {
+	while (1)
+	{
 
 		if (q_service)
+		{
 			(*q_service)(wq, &wq_desc[wq->to_clean_index]);
+		}
 
 		wq->ring.desc_avail++;
 
@@ -101,15 +109,19 @@ static inline void vnic_wq_copy_service(struct vnic_wq_copy *wq,
 		 * with an unprocessed index next time we enter the loop
 		 */
 		((wq->to_clean_index + 1) == wq->ring.desc_count) ?
-			(wq->to_clean_index = 0) : (wq->to_clean_index++);
+		(wq->to_clean_index = 0) : (wq->to_clean_index++);
 
 		if (curr_index == completed_index)
+		{
 			break;
+		}
 
 		/* we have cleaned all the entries */
-		if ((completed_index == (u16)-1) &&
-		    (wq->to_clean_index == wq->to_use_index))
+		if ((completed_index == (u16) - 1) &&
+			(wq->to_clean_index == wq->to_use_index))
+		{
 			break;
+		}
 	}
 }
 
@@ -117,12 +129,12 @@ void vnic_wq_copy_enable(struct vnic_wq_copy *wq);
 int vnic_wq_copy_disable(struct vnic_wq_copy *wq);
 void vnic_wq_copy_free(struct vnic_wq_copy *wq);
 int vnic_wq_copy_alloc(struct vnic_dev *vdev, struct vnic_wq_copy *wq,
-	unsigned int index, unsigned int desc_count, unsigned int desc_size);
+					   unsigned int index, unsigned int desc_count, unsigned int desc_size);
 void vnic_wq_copy_init(struct vnic_wq_copy *wq, unsigned int cq_index,
-	unsigned int error_interrupt_enable,
-	unsigned int error_interrupt_offset);
+					   unsigned int error_interrupt_enable,
+					   unsigned int error_interrupt_offset);
 void vnic_wq_copy_clean(struct vnic_wq_copy *wq,
-	void (*q_clean)(struct vnic_wq_copy *wq,
-	struct fcpio_host_req *wq_desc));
+						void (*q_clean)(struct vnic_wq_copy *wq,
+										struct fcpio_host_req *wq_desc));
 
 #endif /* _VNIC_WQ_COPY_H_ */

@@ -16,7 +16,8 @@
 #include <linux/io.h>
 #include <linux/platform_device.h>
 
-struct priv {
+struct priv
+{
 	struct clk	*clk;
 	void __iomem	*base;
 };
@@ -39,7 +40,7 @@ static int phy_mvebu_sata_power_on(struct phy *phy)
 	/* Enable PLL and IVREF */
 	reg = readl(priv->base + SATA_PHY_MODE_2);
 	reg |= (MODE_2_FORCE_PU_TX | MODE_2_FORCE_PU_RX |
-		MODE_2_PU_PLL | MODE_2_PU_IVREF);
+			MODE_2_PU_PLL | MODE_2_PU_IVREF);
 	writel(reg , priv->base + SATA_PHY_MODE_2);
 
 	/* Enable PHY */
@@ -62,7 +63,7 @@ static int phy_mvebu_sata_power_off(struct phy *phy)
 	/* Disable PLL and IVREF */
 	reg = readl(priv->base + SATA_PHY_MODE_2);
 	reg &= ~(MODE_2_FORCE_PU_TX | MODE_2_FORCE_PU_RX |
-		 MODE_2_PU_PLL | MODE_2_PU_IVREF);
+			 MODE_2_PU_PLL | MODE_2_PU_IVREF);
 	writel(reg, priv->base + SATA_PHY_MODE_2);
 
 	/* Disable PHY */
@@ -75,7 +76,8 @@ static int phy_mvebu_sata_power_off(struct phy *phy)
 	return 0;
 }
 
-static const struct phy_ops phy_mvebu_sata_ops = {
+static const struct phy_ops phy_mvebu_sata_ops =
+{
 	.power_on	= phy_mvebu_sata_power_on,
 	.power_off	= phy_mvebu_sata_power_off,
 	.owner		= THIS_MODULE,
@@ -89,28 +91,43 @@ static int phy_mvebu_sata_probe(struct platform_device *pdev)
 	struct phy *phy;
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(priv->base))
+	{
 		return PTR_ERR(priv->base);
+	}
 
 	priv->clk = devm_clk_get(&pdev->dev, "sata");
+
 	if (IS_ERR(priv->clk))
+	{
 		return PTR_ERR(priv->clk);
+	}
 
 	phy = devm_phy_create(&pdev->dev, NULL, &phy_mvebu_sata_ops);
+
 	if (IS_ERR(phy))
+	{
 		return PTR_ERR(phy);
+	}
 
 	phy_set_drvdata(phy, priv);
 
 	phy_provider = devm_of_phy_provider_register(&pdev->dev,
-						     of_phy_simple_xlate);
+				   of_phy_simple_xlate);
+
 	if (IS_ERR(phy_provider))
+	{
 		return PTR_ERR(phy_provider);
+	}
 
 	/* The boot loader may of left it on. Turn it off. */
 	phy_mvebu_sata_power_off(phy);
@@ -118,13 +135,15 @@ static int phy_mvebu_sata_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id phy_mvebu_sata_of_match[] = {
+static const struct of_device_id phy_mvebu_sata_of_match[] =
+{
 	{ .compatible = "marvell,mvebu-sata-phy" },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, phy_mvebu_sata_of_match);
 
-static struct platform_driver phy_mvebu_sata_driver = {
+static struct platform_driver phy_mvebu_sata_driver =
+{
 	.probe	= phy_mvebu_sata_probe,
 	.driver = {
 		.name	= "phy-mvebu-sata",

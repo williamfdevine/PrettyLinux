@@ -21,7 +21,8 @@ struct gpio_desc;
 struct pcmcia_low_level;
 struct regulator;
 
-struct soc_pcmcia_regulator {
+struct soc_pcmcia_regulator
+{
 	struct regulator	*reg;
 	bool			on;
 };
@@ -30,7 +31,8 @@ struct soc_pcmcia_regulator {
  * This structure encapsulates per-socket state which we might need to
  * use when responding to a Card Services query of some kind.
  */
-struct soc_pcmcia_socket {
+struct soc_pcmcia_socket
+{
 	struct pcmcia_socket	socket;
 
 	/*
@@ -57,7 +59,8 @@ struct soc_pcmcia_socket {
 	struct resource		res_attr;
 	void __iomem		*virt_io;
 
-	struct {
+	struct
+	{
 		int		gpio;
 		struct gpio_desc *desc;
 		unsigned int	irq;
@@ -85,22 +88,25 @@ struct soc_pcmcia_socket {
 	void *driver_data;
 };
 
-struct skt_dev_info {
+struct skt_dev_info
+{
 	int nskt;
 	struct soc_pcmcia_socket skt[0];
 };
 
-struct pcmcia_state {
-  unsigned detect: 1,
-            ready: 1,
-             bvd1: 1,
-             bvd2: 1,
-           wrprot: 1,
-            vs_3v: 1,
-            vs_Xv: 1;
+struct pcmcia_state
+{
+	unsigned detect: 1,
+			 ready: 1,
+			 bvd1: 1,
+			 bvd2: 1,
+			 wrprot: 1,
+			 vs_3v: 1,
+			 vs_Xv: 1;
 };
 
-struct pcmcia_low_level {
+struct pcmcia_low_level
+{
 	struct module *owner;
 
 	/* first socket in system */
@@ -143,7 +149,8 @@ struct pcmcia_low_level {
 };
 
 
-struct soc_pcmcia_timing {
+struct soc_pcmcia_timing
+{
 	unsigned short io;
 	unsigned short mem;
 	unsigned short attr;
@@ -152,21 +159,21 @@ struct soc_pcmcia_timing {
 extern void soc_common_pcmcia_get_timing(struct soc_pcmcia_socket *, struct soc_pcmcia_timing *);
 
 void soc_pcmcia_init_one(struct soc_pcmcia_socket *skt,
-	const struct pcmcia_low_level *ops, struct device *dev);
+						 const struct pcmcia_low_level *ops, struct device *dev);
 void soc_pcmcia_remove_one(struct soc_pcmcia_socket *skt);
 int soc_pcmcia_add_one(struct soc_pcmcia_socket *skt);
 int soc_pcmcia_request_gpiods(struct soc_pcmcia_socket *skt);
 
 void soc_common_cf_socket_state(struct soc_pcmcia_socket *skt,
-	struct pcmcia_state *state);
+								struct pcmcia_state *state);
 
 int soc_pcmcia_regulator_set(struct soc_pcmcia_socket *skt,
-	struct soc_pcmcia_regulator *r, int v);
+							 struct soc_pcmcia_regulator *r, int v);
 
 #ifdef CONFIG_PCMCIA_DEBUG
 
 extern void soc_pcmcia_debug(struct soc_pcmcia_socket *skt, const char *func,
-			     int lvl, const char *fmt, ...);
+							 int lvl, const char *fmt, ...);
 
 #define debug(skt, lvl, fmt, arg...) \
 	soc_pcmcia_debug(skt, __func__, lvl, fmt , ## arg)

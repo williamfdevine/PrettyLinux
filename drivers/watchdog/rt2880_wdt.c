@@ -50,8 +50,8 @@ static struct reset_control *rt288x_wdt_reset;
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout,
-		"Watchdog cannot be stopped once started (default="
-		__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "Watchdog cannot be stopped once started (default="
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 static inline void rt_wdt_w32(unsigned reg, u32 val)
 {
@@ -76,9 +76,9 @@ static int rt288x_wdt_start(struct watchdog_device *w)
 
 	t = rt_wdt_r32(TIMER_REG_TMR1CTL);
 	t &= ~(TMR1CTL_MODE_MASK << TMR1CTL_MODE_SHIFT |
-		TMR1CTL_PRESCALE_MASK);
+		   TMR1CTL_PRESCALE_MASK);
 	t |= (TMR1CTL_MODE_WDT << TMR1CTL_MODE_SHIFT |
-		TMR1CTL_PRESCALE_65536);
+		  TMR1CTL_PRESCALE_65536);
 	rt_wdt_w32(TIMER_REG_TMR1CTL, t);
 
 	rt288x_wdt_ping(w);
@@ -114,17 +114,21 @@ static int rt288x_wdt_set_timeout(struct watchdog_device *w, unsigned int t)
 static int rt288x_wdt_bootcause(void)
 {
 	if (rt_sysc_r32(SYSC_RSTSTAT) & WDT_RST_CAUSE)
+	{
 		return WDIOF_CARDRESET;
+	}
 
 	return 0;
 }
 
-static struct watchdog_info rt288x_wdt_info = {
+static struct watchdog_info rt288x_wdt_info =
+{
 	.identity = "Ralink Watchdog",
 	.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING | WDIOF_MAGICCLOSE,
 };
 
-static struct watchdog_ops rt288x_wdt_ops = {
+static struct watchdog_ops rt288x_wdt_ops =
+{
 	.owner = THIS_MODULE,
 	.start = rt288x_wdt_start,
 	.stop = rt288x_wdt_stop,
@@ -132,7 +136,8 @@ static struct watchdog_ops rt288x_wdt_ops = {
 	.set_timeout = rt288x_wdt_set_timeout,
 };
 
-static struct watchdog_device rt288x_wdt_dev = {
+static struct watchdog_device rt288x_wdt_dev =
+{
 	.info = &rt288x_wdt_info,
 	.ops = &rt288x_wdt_ops,
 	.min_timeout = 1,
@@ -145,16 +150,25 @@ static int rt288x_wdt_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	rt288x_wdt_base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(rt288x_wdt_base))
+	{
 		return PTR_ERR(rt288x_wdt_base);
+	}
 
 	rt288x_wdt_clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(rt288x_wdt_clk))
+	{
 		return PTR_ERR(rt288x_wdt_clk);
+	}
 
 	rt288x_wdt_reset = devm_reset_control_get(&pdev->dev, NULL);
+
 	if (!IS_ERR(rt288x_wdt_reset))
+	{
 		reset_control_deassert(rt288x_wdt_reset);
+	}
 
 	rt288x_wdt_freq = clk_get_rate(rt288x_wdt_clk) / RALINK_WDT_PRESCALE;
 
@@ -163,12 +177,15 @@ static int rt288x_wdt_probe(struct platform_device *pdev)
 	rt288x_wdt_dev.parent = &pdev->dev;
 
 	watchdog_init_timeout(&rt288x_wdt_dev, rt288x_wdt_dev.max_timeout,
-			      &pdev->dev);
+						  &pdev->dev);
 	watchdog_set_nowayout(&rt288x_wdt_dev, nowayout);
 
 	ret = watchdog_register_device(&rt288x_wdt_dev);
+
 	if (!ret)
+	{
 		dev_info(&pdev->dev, "Initialized\n");
+	}
 
 	return 0;
 }
@@ -185,13 +202,15 @@ static void rt288x_wdt_shutdown(struct platform_device *pdev)
 	rt288x_wdt_stop(&rt288x_wdt_dev);
 }
 
-static const struct of_device_id rt288x_wdt_match[] = {
+static const struct of_device_id rt288x_wdt_match[] =
+{
 	{ .compatible = "ralink,rt2880-wdt" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, rt288x_wdt_match);
 
-static struct platform_driver rt288x_wdt_driver = {
+static struct platform_driver rt288x_wdt_driver =
+{
 	.probe		= rt288x_wdt_probe,
 	.remove		= rt288x_wdt_remove,
 	.shutdown	= rt288x_wdt_shutdown,

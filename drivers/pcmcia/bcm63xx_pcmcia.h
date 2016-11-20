@@ -9,7 +9,8 @@
 /* socket polling rate in ms */
 #define BCM63XX_PCMCIA_POLL_RATE	500
 
-enum {
+enum
+{
 	CARD_CARDBUS = (1 << 0),
 	CARD_PCCARD = (1 << 1),
 	CARD_5V = (1 << 2),
@@ -18,7 +19,8 @@ enum {
 	CARD_YV = (1 << 5),
 };
 
-struct bcm63xx_pcmcia_socket {
+struct bcm63xx_pcmcia_socket
+{
 	struct pcmcia_socket socket;
 
 	/* platform specific data */

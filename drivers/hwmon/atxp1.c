@@ -42,12 +42,14 @@ MODULE_AUTHOR("Sebastian Witt <se.witt@gmx.net>");
 #define ATXP1_VIDMASK	0x1f
 #define ATXP1_GPIO1MASK	0x0f
 
-struct atxp1_data {
+struct atxp1_data
+{
 	struct i2c_client *client;
 	struct mutex update_lock;
 	unsigned long last_updated;
 	u8 valid;
-	struct {
+	struct
+	{
 		u8 vid;		/* VID output register */
 		u8 cpu_vid; /* VID input from CPU */
 		u8 gpio1;   /* General purpose I/O register 1 */
@@ -63,12 +65,13 @@ static struct atxp1_data *atxp1_update_device(struct device *dev)
 
 	mutex_lock(&data->update_lock);
 
-	if (time_after(jiffies, data->last_updated + HZ) || !data->valid) {
+	if (time_after(jiffies, data->last_updated + HZ) || !data->valid)
+	{
 
 		/* Update local register data */
 		data->reg.vid = i2c_smbus_read_byte_data(client, ATXP1_VID);
 		data->reg.cpu_vid = i2c_smbus_read_byte_data(client,
-							     ATXP1_CVID);
+							ATXP1_CVID);
 		data->reg.gpio1 = i2c_smbus_read_byte_data(client, ATXP1_GPIO1);
 		data->reg.gpio2 = i2c_smbus_read_byte_data(client, ATXP1_GPIO2);
 
@@ -82,7 +85,7 @@ static struct atxp1_data *atxp1_update_device(struct device *dev)
 
 /* sys file functions for cpu0_vid */
 static ssize_t atxp1_showvcore(struct device *dev,
-			       struct device_attribute *attr, char *buf)
+							   struct device_attribute *attr, char *buf)
 {
 	int size;
 	struct atxp1_data *data;
@@ -90,14 +93,14 @@ static ssize_t atxp1_showvcore(struct device *dev,
 	data = atxp1_update_device(dev);
 
 	size = sprintf(buf, "%d\n", vid_from_reg(data->reg.vid & ATXP1_VIDMASK,
-						 data->vrm));
+				   data->vrm));
 
 	return size;
 }
 
 static ssize_t atxp1_storevcore(struct device *dev,
-				struct device_attribute *attr,
-				const char *buf, size_t count)
+								struct device_attribute *attr,
+								const char *buf, size_t count)
 {
 	struct atxp1_data *data = atxp1_update_device(dev);
 	struct i2c_client *client = data->client;
@@ -106,15 +109,20 @@ static ssize_t atxp1_storevcore(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 10, &vcore);
+
 	if (err)
+	{
 		return err;
+	}
 
 	vcore /= 25;
 	vcore *= 25;
 
 	/* Calculate VID */
 	vid = vid_to_reg(vcore, data->vrm);
-	if (vid < 0) {
+
+	if (vid < 0)
+	{
 		dev_err(dev, "VID calculation failed.\n");
 		return vid;
 	}
@@ -124,25 +132,34 @@ static ssize_t atxp1_storevcore(struct device *dev,
 	 * Otherwise original CPU VID
 	 */
 	if (data->reg.vid & ATXP1_VIDENA)
+	{
 		cvid = data->reg.vid & ATXP1_VIDMASK;
+	}
 	else
+	{
 		cvid = data->reg.cpu_vid;
+	}
 
 	/* Nothing changed, aborting */
 	if (vid == cvid)
+	{
 		return count;
+	}
 
 	dev_dbg(dev, "Setting VCore to %d mV (0x%02x)\n", (int)vcore, vid);
 
 	/* Write every 25 mV step to increase stability */
-	if (cvid > vid) {
+	if (cvid > vid)
+	{
 		for (; cvid >= vid; cvid--)
 			i2c_smbus_write_byte_data(client,
-						ATXP1_VID, cvid | ATXP1_VIDENA);
-	} else {
+									  ATXP1_VID, cvid | ATXP1_VIDENA);
+	}
+	else
+	{
 		for (; cvid <= vid; cvid++)
 			i2c_smbus_write_byte_data(client,
-						ATXP1_VID, cvid | ATXP1_VIDENA);
+									  ATXP1_VID, cvid | ATXP1_VIDENA);
 	}
 
 	data->valid = 0;
@@ -155,11 +172,11 @@ static ssize_t atxp1_storevcore(struct device *dev,
  * unit: millivolt
  */
 static DEVICE_ATTR(cpu0_vid, S_IRUGO | S_IWUSR, atxp1_showvcore,
-		   atxp1_storevcore);
+				   atxp1_storevcore);
 
 /* sys file functions for GPIO1 */
 static ssize_t atxp1_showgpio1(struct device *dev,
-			       struct device_attribute *attr, char *buf)
+							   struct device_attribute *attr, char *buf)
 {
 	int size;
 	struct atxp1_data *data;
@@ -172,8 +189,8 @@ static ssize_t atxp1_showgpio1(struct device *dev,
 }
 
 static ssize_t atxp1_storegpio1(struct device *dev,
-				struct device_attribute *attr, const char *buf,
-				size_t count)
+								struct device_attribute *attr, const char *buf,
+								size_t count)
 {
 	struct atxp1_data *data = atxp1_update_device(dev);
 	struct i2c_client *client = data->client;
@@ -181,12 +198,16 @@ static ssize_t atxp1_storegpio1(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 16, &value);
+
 	if (err)
+	{
 		return err;
+	}
 
 	value &= ATXP1_GPIO1MASK;
 
-	if (value != (data->reg.gpio1 & ATXP1_GPIO1MASK)) {
+	if (value != (data->reg.gpio1 & ATXP1_GPIO1MASK))
+	{
 		dev_info(dev, "Writing 0x%x to GPIO1.\n", (unsigned int)value);
 
 		i2c_smbus_write_byte_data(client, ATXP1_GPIO1, value);
@@ -205,7 +226,7 @@ static DEVICE_ATTR(gpio1, S_IRUGO | S_IWUSR, atxp1_showgpio1, atxp1_storegpio1);
 
 /* sys file functions for GPIO2 */
 static ssize_t atxp1_showgpio2(struct device *dev,
-			       struct device_attribute *attr, char *buf)
+							   struct device_attribute *attr, char *buf)
 {
 	int size;
 	struct atxp1_data *data;
@@ -218,8 +239,8 @@ static ssize_t atxp1_showgpio2(struct device *dev,
 }
 
 static ssize_t atxp1_storegpio2(struct device *dev,
-				struct device_attribute *attr,
-				const char *buf, size_t count)
+								struct device_attribute *attr,
+								const char *buf, size_t count)
 {
 	struct atxp1_data *data = atxp1_update_device(dev);
 	struct i2c_client *client = data->client;
@@ -227,11 +248,16 @@ static ssize_t atxp1_storegpio2(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 16, &value);
+
 	if (err)
+	{
 		return err;
+	}
+
 	value &= 0xff;
 
-	if (value != data->reg.gpio2) {
+	if (value != data->reg.gpio2)
+	{
 		dev_info(dev, "Writing 0x%x to GPIO1.\n", (unsigned int)value);
 
 		i2c_smbus_write_byte_data(client, ATXP1_GPIO2, value);
@@ -248,7 +274,8 @@ static ssize_t atxp1_storegpio2(struct device *dev,
  */
 static DEVICE_ATTR(gpio2, S_IRUGO | S_IWUSR, atxp1_showgpio2, atxp1_storegpio2);
 
-static struct attribute *atxp1_attrs[] = {
+static struct attribute *atxp1_attrs[] =
+{
 	&dev_attr_gpio1.attr,
 	&dev_attr_gpio2.attr,
 	&dev_attr_cpu0_vid.attr,
@@ -257,21 +284,26 @@ static struct attribute *atxp1_attrs[] = {
 ATTRIBUTE_GROUPS(atxp1);
 
 static int atxp1_probe(struct i2c_client *client,
-		       const struct i2c_device_id *id)
+					   const struct i2c_device_id *id)
 {
 	struct device *dev = &client->dev;
 	struct atxp1_data *data;
 	struct device *hwmon_dev;
 
 	data = devm_kzalloc(dev, sizeof(struct atxp1_data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	/* Get VRM */
 	data->vrm = vid_which_vrm();
-	if (data->vrm != 90 && data->vrm != 91) {
+
+	if (data->vrm != 90 && data->vrm != 91)
+	{
 		dev_err(dev, "atxp1: Not supporting VRM %d.%d\n",
-			data->vrm / 10, data->vrm % 10);
+				data->vrm / 10, data->vrm % 10);
 		return -ENODEV;
 	}
 
@@ -279,23 +311,28 @@ static int atxp1_probe(struct i2c_client *client,
 	mutex_init(&data->update_lock);
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
-							   data,
-							   atxp1_groups);
+				data,
+				atxp1_groups);
+
 	if (IS_ERR(hwmon_dev))
+	{
 		return PTR_ERR(hwmon_dev);
+	}
 
 	dev_info(dev, "Using VRM: %d.%d\n", data->vrm / 10, data->vrm % 10);
 
 	return 0;
 };
 
-static const struct i2c_device_id atxp1_id[] = {
+static const struct i2c_device_id atxp1_id[] =
+{
 	{ "atxp1", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, atxp1_id);
 
-static struct i2c_driver atxp1_driver = {
+static struct i2c_driver atxp1_driver =
+{
 	.class		= I2C_CLASS_HWMON,
 	.driver = {
 		.name	= "atxp1",

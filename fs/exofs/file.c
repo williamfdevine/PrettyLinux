@@ -43,14 +43,17 @@ static int exofs_release_file(struct inode *inode, struct file *filp)
  *   The writeout is synchronous
  */
 static int exofs_file_fsync(struct file *filp, loff_t start, loff_t end,
-			    int datasync)
+							int datasync)
 {
 	struct inode *inode = filp->f_mapping->host;
 	int ret;
 
 	ret = filemap_write_and_wait_range(inode->i_mapping, start, end);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	inode_lock(inode);
 	ret = sync_inode_metadata(filp->f_mapping->host, 1);
@@ -65,7 +68,8 @@ static int exofs_flush(struct file *file, fl_owner_t id)
 	return ret;
 }
 
-const struct file_operations exofs_file_operations = {
+const struct file_operations exofs_file_operations =
+{
 	.llseek		= generic_file_llseek,
 	.read_iter	= generic_file_read_iter,
 	.write_iter	= generic_file_write_iter,
@@ -78,6 +82,7 @@ const struct file_operations exofs_file_operations = {
 	.splice_write	= iter_file_splice_write,
 };
 
-const struct inode_operations exofs_file_inode_operations = {
+const struct inode_operations exofs_file_inode_operations =
+{
 	.setattr	= exofs_setattr,
 };

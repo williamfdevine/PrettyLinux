@@ -14,7 +14,8 @@
 #ifndef _S3C2410_UDC_H
 #define _S3C2410_UDC_H
 
-struct s3c2410_ep {
+struct s3c2410_ep
+{
 	struct list_head		queue;
 	unsigned long			last_io;	/* jiffies timestamp */
 	struct usb_gadget		*gadget;
@@ -44,7 +45,8 @@ struct s3c2410_ep {
 
 static const char ep0name [] = "ep0";
 
-static const char *const ep_name[] = {
+static const char *const ep_name[] =
+{
 	ep0name,                                /* everyone has ep0 */
 	/* s3c2410 four bidirectional bulk endpoints */
 	"ep1-bulk", "ep2-bulk", "ep3-bulk", "ep4-bulk",
@@ -52,28 +54,32 @@ static const char *const ep_name[] = {
 
 #define S3C2410_ENDPOINTS       ARRAY_SIZE(ep_name)
 
-struct s3c2410_request {
+struct s3c2410_request
+{
 	struct list_head		queue;		/* ep's requests */
 	struct usb_request		req;
 };
 
-enum ep0_state {
-        EP0_IDLE,
-        EP0_IN_DATA_PHASE,
-        EP0_OUT_DATA_PHASE,
-        EP0_END_XFER,
-        EP0_STALL,
+enum ep0_state
+{
+	EP0_IDLE,
+	EP0_IN_DATA_PHASE,
+	EP0_OUT_DATA_PHASE,
+	EP0_END_XFER,
+	EP0_STALL,
 };
 
-static const char *ep0states[]= {
-        "EP0_IDLE",
-        "EP0_IN_DATA_PHASE",
-        "EP0_OUT_DATA_PHASE",
-        "EP0_END_XFER",
-        "EP0_STALL",
+static const char *ep0states[] =
+{
+	"EP0_IDLE",
+	"EP0_IN_DATA_PHASE",
+	"EP0_OUT_DATA_PHASE",
+	"EP0_END_XFER",
+	"EP0_STALL",
 };
 
-struct s3c2410_udc {
+struct s3c2410_udc
+{
 	spinlock_t			lock;
 
 	struct s3c2410_ep		ep[S3C2410_ENDPOINTS];

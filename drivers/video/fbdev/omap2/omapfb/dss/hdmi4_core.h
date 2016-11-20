@@ -183,13 +183,15 @@
 #define HDMI_CORE_AV_GEN_DBYTE_NELEMS		31
 #define HDMI_CORE_AV_GEN2_DBYTE_NELEMS		31
 
-enum hdmi_core_inputbus_width {
+enum hdmi_core_inputbus_width
+{
 	HDMI_INPUT_8BIT = 0,
 	HDMI_INPUT_10BIT = 1,
 	HDMI_INPUT_12BIT = 2
 };
 
-enum hdmi_core_dither_trunc {
+enum hdmi_core_dither_trunc
+{
 	HDMI_OUTPUTTRUNCATION_8BIT = 0,
 	HDMI_OUTPUTTRUNCATION_10BIT = 1,
 	HDMI_OUTPUTTRUNCATION_12BIT = 2,
@@ -198,12 +200,14 @@ enum hdmi_core_dither_trunc {
 	HDMI_OUTPUTDITHER_12BIT = 5
 };
 
-enum hdmi_core_deepcolor_ed {
+enum hdmi_core_deepcolor_ed
+{
 	HDMI_DEEPCOLORPACKECTDISABLE = 0,
 	HDMI_DEEPCOLORPACKECTENABLE = 1
 };
 
-enum hdmi_core_packet_mode {
+enum hdmi_core_packet_mode
+{
 	HDMI_PACKETMODERESERVEDVALUE = 0,
 	HDMI_PACKETMODE24BITPERPIXEL = 4,
 	HDMI_PACKETMODE30BITPERPIXEL = 5,
@@ -211,21 +215,24 @@ enum hdmi_core_packet_mode {
 	HDMI_PACKETMODE48BITPERPIXEL = 7
 };
 
-enum hdmi_core_tclkselclkmult {
+enum hdmi_core_tclkselclkmult
+{
 	HDMI_FPLL05IDCK = 0,
 	HDMI_FPLL10IDCK = 1,
 	HDMI_FPLL20IDCK = 2,
 	HDMI_FPLL40IDCK = 3
 };
 
-enum hdmi_core_packet_ctrl {
+enum hdmi_core_packet_ctrl
+{
 	HDMI_PACKETENABLE = 1,
 	HDMI_PACKETDISABLE = 0,
 	HDMI_PACKETREPEATON = 1,
 	HDMI_PACKETREPEATOFF = 0
 };
 
-enum hdmi_audio_i2s_config {
+enum hdmi_audio_i2s_config
+{
 	HDMI_AUDIO_I2S_MSB_SHIFTED_FIRST = 0,
 	HDMI_AUDIO_I2S_LSB_SHIFTED_FIRST = 1,
 	HDMI_AUDIO_I2S_SCK_EDGE_FALLING = 0,
@@ -240,7 +247,8 @@ enum hdmi_audio_i2s_config {
 	HDMI_AUDIO_I2S_SD3_EN = 1 << 3,
 };
 
-struct hdmi_core_video_config {
+struct hdmi_core_video_config
+{
 	enum hdmi_core_inputbus_width	ip_bus_width;
 	enum hdmi_core_dither_trunc	op_dither_truc;
 	enum hdmi_core_deepcolor_ed	deep_color_pkt;
@@ -249,7 +257,8 @@ struct hdmi_core_video_config {
 	enum hdmi_core_tclkselclkmult	tclk_sel_clkmult;
 };
 
-struct hdmi_core_packet_enable_repeat {
+struct hdmi_core_packet_enable_repeat
+{
 	u32	audio_pkt;
 	u32	audio_pkt_repeat;
 	u32	avi_infoframe;
@@ -262,12 +271,12 @@ struct hdmi_core_packet_enable_repeat {
 
 int hdmi4_read_edid(struct hdmi_core_data *core, u8 *edid, int len);
 void hdmi4_configure(struct hdmi_core_data *core, struct hdmi_wp_data *wp,
-		struct hdmi_config *cfg);
+					 struct hdmi_config *cfg);
 void hdmi4_core_dump(struct hdmi_core_data *core, struct seq_file *s);
 int hdmi4_core_init(struct platform_device *pdev, struct hdmi_core_data *core);
 
 int hdmi4_audio_start(struct hdmi_core_data *core, struct hdmi_wp_data *wp);
 void hdmi4_audio_stop(struct hdmi_core_data *core, struct hdmi_wp_data *wp);
 int hdmi4_audio_config(struct hdmi_core_data *core, struct hdmi_wp_data *wp,
-		struct omap_dss_audio *audio, u32 pclk);
+					   struct omap_dss_audio *audio, u32 pclk);
 #endif

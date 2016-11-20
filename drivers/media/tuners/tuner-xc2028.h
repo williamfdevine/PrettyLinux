@@ -24,28 +24,31 @@
 #define	XC3028_FE_ZARLINK456	4560
 #define	XC3028_FE_CHINA		5200
 
-enum firmware_type {
+enum firmware_type
+{
 	XC2028_AUTO = 0,        /* By default, auto-detects */
 	XC2028_D2633,
 	XC2028_D2620,
 };
 
-struct xc2028_ctrl {
+struct xc2028_ctrl
+{
 	char			*fname;
 	int			max_len;
 	int			msleep;
 	unsigned int		scode_table;
-	unsigned int		mts   :1;
-	unsigned int		input1:1;
-	unsigned int		vhfbw7:1;
-	unsigned int		uhfbw8:1;
-	unsigned int		disable_power_mgmt:1;
-	unsigned int            read_not_reliable:1;
+	unsigned int		mts   : 1;
+	unsigned int		input1: 1;
+	unsigned int		vhfbw7: 1;
+	unsigned int		uhfbw8: 1;
+	unsigned int		disable_power_mgmt: 1;
+	unsigned int            read_not_reliable: 1;
 	unsigned int		demod;
-	enum firmware_type	type:2;
-};
+	enum firmware_type	type : 2;
+	};
 
-struct xc2028_config {
+	struct xc2028_config
+{
 	struct i2c_adapter *i2c_adap;
 	u8 		   i2c_addr;
 	struct xc2028_ctrl *ctrl;
@@ -58,13 +61,13 @@ struct xc2028_config {
 
 #if IS_REACHABLE(CONFIG_MEDIA_TUNER_XC2028)
 extern struct dvb_frontend *xc2028_attach(struct dvb_frontend *fe,
-					  struct xc2028_config *cfg);
+		struct xc2028_config *cfg);
 #else
 static inline struct dvb_frontend *xc2028_attach(struct dvb_frontend *fe,
-						 struct xc2028_config *cfg)
+		struct xc2028_config *cfg)
 {
 	printk(KERN_INFO "%s: not probed - driver disabled by Kconfig\n",
-	       __func__);
+		   __func__);
 	return NULL;
 }
 #endif

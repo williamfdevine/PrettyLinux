@@ -60,38 +60,47 @@ static int cs3308_s_register(struct v4l2_subdev *sd, const struct v4l2_dbg_regis
 
 /* ----------------------------------------------------------------------- */
 
-static const struct v4l2_subdev_core_ops cs3308_core_ops = {
+static const struct v4l2_subdev_core_ops cs3308_core_ops =
+{
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 	.g_register = cs3308_g_register,
 	.s_register = cs3308_s_register,
 #endif
 };
 
-static const struct v4l2_subdev_ops cs3308_ops = {
+static const struct v4l2_subdev_ops cs3308_ops =
+{
 	.core = &cs3308_core_ops,
 };
 
 /* ----------------------------------------------------------------------- */
 
 static int cs3308_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	struct v4l2_subdev *sd;
 	unsigned i;
 
 	/* Check if the adapter supports the needed features */
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		return -EIO;
+	}
 
 	if ((i2c_smbus_read_byte_data(client, 0x1c) & 0xf0) != 0xe0)
+	{
 		return -ENODEV;
+	}
 
 	v4l_info(client, "chip found @ 0x%x (%s)\n",
-		 client->addr << 1, client->adapter->name);
+			 client->addr << 1, client->adapter->name);
 
 	sd = kzalloc(sizeof(struct v4l2_subdev), GFP_KERNEL);
+
 	if (sd == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	v4l2_i2c_subdev_init(sd, client, &cs3308_ops);
 
@@ -99,9 +108,13 @@ static int cs3308_probe(struct i2c_client *client,
 	cs3308_write(sd, 0x0d, 0x00); /* Power up all channels */
 	cs3308_write(sd, 0x0e, 0x00); /* Master Power */
 	cs3308_write(sd, 0x0b, 0x00); /* Device Configuration */
+
 	/* Set volume for each channel */
 	for (i = 1; i <= 8; i++)
+	{
 		cs3308_write(sd, i, 0xd2);
+	}
+
 	cs3308_write(sd, 0x0a, 0x00); /* Unmute all channels */
 	return 0;
 }
@@ -119,13 +132,15 @@ static int cs3308_remove(struct i2c_client *client)
 
 /* ----------------------------------------------------------------------- */
 
-static const struct i2c_device_id cs3308_id[] = {
+static const struct i2c_device_id cs3308_id[] =
+{
 	{ "cs3308", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, cs3308_id);
 
-static struct i2c_driver cs3308_driver = {
+static struct i2c_driver cs3308_driver =
+{
 	.driver = {
 		.name   = "cs3308",
 	},

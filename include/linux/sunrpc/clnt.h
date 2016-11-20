@@ -32,36 +32,37 @@ struct rpc_inode;
 /*
  * The high-level client handle
  */
-struct rpc_clnt {
+struct rpc_clnt
+{
 	atomic_t		cl_count;	/* Number of references */
 	unsigned int		cl_clid;	/* client id */
 	struct list_head	cl_clients;	/* Global list of clients */
 	struct list_head	cl_tasks;	/* List of tasks */
 	spinlock_t		cl_lock;	/* spinlock */
-	struct rpc_xprt __rcu *	cl_xprt;	/* transport */
-	struct rpc_procinfo *	cl_procinfo;	/* procedure info */
+	struct rpc_xprt __rcu 	*cl_xprt;	/* transport */
+	struct rpc_procinfo 	*cl_procinfo;	/* procedure info */
 	u32			cl_prog,	/* RPC program number */
 				cl_vers,	/* RPC version number */
 				cl_maxproc;	/* max procedure number */
 
-	struct rpc_auth *	cl_auth;	/* authenticator */
-	struct rpc_stat *	cl_stats;	/* per-program statistics */
-	struct rpc_iostats *	cl_metrics;	/* per-client statistics */
+	struct rpc_auth 	*cl_auth;	/* authenticator */
+	struct rpc_stat 	*cl_stats;	/* per-program statistics */
+	struct rpc_iostats 	*cl_metrics;	/* per-client statistics */
 
 	unsigned int		cl_softrtry : 1,/* soft timeouts */
-				cl_discrtry : 1,/* disconnect before retry */
-				cl_noretranstimeo: 1,/* No retransmit timeouts */
-				cl_autobind : 1,/* use getport() */
-				cl_chatty   : 1;/* be verbose */
+				   cl_discrtry : 1,/* disconnect before retry */
+				   cl_noretranstimeo: 1,/* No retransmit timeouts */
+				   cl_autobind : 1,/* use getport() */
+				   cl_chatty   : 1;/* be verbose */
 
-	struct rpc_rtt *	cl_rtt;		/* RTO estimator data */
+	struct rpc_rtt 	*cl_rtt;		/* RTO estimator data */
 	const struct rpc_timeout *cl_timeout;	/* Timeout strategy */
 
 	atomic_t		cl_swapper;	/* swapfile count */
 	int			cl_nodelen;	/* nodename length */
-	char 			cl_nodename[UNX_MAXNODENAME+1];
+	char 			cl_nodename[UNX_MAXNODENAME + 1];
 	struct rpc_pipe_dir_head cl_pipedir_objects;
-	struct rpc_clnt *	cl_parent;	/* Points to parent of clones */
+	struct rpc_clnt 	*cl_parent;	/* Points to parent of clones */
 	struct rpc_rtt		cl_rtt_default;
 	struct rpc_timeout	cl_timeout_default;
 	const struct rpc_program *cl_program;
@@ -75,25 +76,28 @@ struct rpc_clnt {
  * General RPC program info
  */
 #define RPC_MAXVERSION		4
-struct rpc_program {
-	const char *		name;		/* protocol name */
+struct rpc_program
+{
+	const char 		*name;		/* protocol name */
 	u32			number;		/* program number */
 	unsigned int		nrvers;		/* number of versions */
-	const struct rpc_version **	version;	/* version array */
-	struct rpc_stat *	stats;		/* statistics */
-	const char *		pipe_dir_name;	/* path to rpc_pipefs dir */
+	const struct rpc_version 	**version;	/* version array */
+	struct rpc_stat 	*stats;		/* statistics */
+	const char 		*pipe_dir_name;	/* path to rpc_pipefs dir */
 };
 
-struct rpc_version {
+struct rpc_version
+{
 	u32			number;		/* version number */
 	unsigned int		nrprocs;	/* number of procs */
-	struct rpc_procinfo *	procs;		/* procedure array */
+	struct rpc_procinfo 	*procs;		/* procedure array */
 };
 
 /*
  * Procedure information
  */
-struct rpc_procinfo {
+struct rpc_procinfo
+{
 	u32			p_proc;		/* RPC procedure number */
 	kxdreproc_t		p_encode;	/* XDR encode function */
 	kxdrdproc_t		p_decode;	/* XDR decode function */
@@ -102,12 +106,13 @@ struct rpc_procinfo {
 	unsigned int		p_count;	/* call count */
 	unsigned int		p_timer;	/* Which RTT timer to use */
 	u32			p_statidx;	/* Which procedure to account */
-	const char *		p_name;		/* name of procedure */
+	const char 		*p_name;		/* name of procedure */
 };
 
 #ifdef __KERNEL__
 
-struct rpc_create_args {
+struct rpc_create_args
+{
 	struct net		*net;
 	int			protocol;
 	struct sockaddr		*address;
@@ -125,10 +130,11 @@ struct rpc_create_args {
 	struct svc_xprt		*bc_xprt;	/* NFSv4.1 backchannel */
 };
 
-struct rpc_add_xprt_test {
+struct rpc_add_xprt_test
+{
 	int (*add_xprt_test)(struct rpc_clnt *,
-		struct rpc_xprt *,
-		void *calldata);
+						 struct rpc_xprt *,
+						 void *calldata);
 	void *data;
 };
 
@@ -145,13 +151,13 @@ struct rpc_add_xprt_test {
 
 struct rpc_clnt *rpc_create(struct rpc_create_args *args);
 struct rpc_clnt	*rpc_bind_new_program(struct rpc_clnt *,
-				const struct rpc_program *, u32);
+									  const struct rpc_program *, u32);
 struct rpc_clnt *rpc_clone_client(struct rpc_clnt *);
 struct rpc_clnt *rpc_clone_client_set_auth(struct rpc_clnt *,
-				rpc_authflavor_t);
+		rpc_authflavor_t);
 int		rpc_switch_client_transport(struct rpc_clnt *,
-				struct xprt_create *,
-				const struct rpc_timeout *);
+									struct xprt_create *,
+									const struct rpc_timeout *);
 
 void		rpc_shutdown_client(struct rpc_clnt *);
 void		rpc_release_client(struct rpc_clnt *);
@@ -161,25 +167,25 @@ int		rpcb_create_local(struct net *);
 void		rpcb_put_local(struct net *);
 int		rpcb_register(struct net *, u32, u32, int, unsigned short);
 int		rpcb_v4_register(struct net *net, const u32 program,
-				 const u32 version,
-				 const struct sockaddr *address,
-				 const char *netid);
+						 const u32 version,
+						 const struct sockaddr *address,
+						 const char *netid);
 void		rpcb_getport_async(struct rpc_task *);
 
 void		rpc_call_start(struct rpc_task *);
 int		rpc_call_async(struct rpc_clnt *clnt,
-			       const struct rpc_message *msg, int flags,
-			       const struct rpc_call_ops *tk_ops,
-			       void *calldata);
+					   const struct rpc_message *msg, int flags,
+					   const struct rpc_call_ops *tk_ops,
+					   void *calldata);
 int		rpc_call_sync(struct rpc_clnt *clnt,
-			      const struct rpc_message *msg, int flags);
+					  const struct rpc_message *msg, int flags);
 struct rpc_task *rpc_call_null(struct rpc_clnt *clnt, struct rpc_cred *cred,
-			       int flags);
+							   int flags);
 int		rpc_restart_call_prepare(struct rpc_task *);
 int		rpc_restart_call(struct rpc_task *);
 void		rpc_setbufsize(struct rpc_clnt *, unsigned int, unsigned int);
 int		rpc_protocol(struct rpc_clnt *);
-struct net *	rpc_net_ns(struct rpc_clnt *);
+struct net 	*rpc_net_ns(struct rpc_clnt *);
 size_t		rpc_max_payload(struct rpc_clnt *);
 size_t		rpc_max_bc_payload(struct rpc_clnt *);
 unsigned long	rpc_get_timeout(struct rpc_clnt *clnt);
@@ -189,32 +195,32 @@ const char	*rpc_peeraddr2str(struct rpc_clnt *, enum rpc_display_format_t);
 int		rpc_localaddr(struct rpc_clnt *, struct sockaddr *, size_t);
 
 int 		rpc_clnt_iterate_for_each_xprt(struct rpc_clnt *clnt,
-			int (*fn)(struct rpc_clnt *, struct rpc_xprt *, void *),
-			void *data);
+		int (*fn)(struct rpc_clnt *, struct rpc_xprt *, void *),
+		void *data);
 
 int 		rpc_clnt_test_and_add_xprt(struct rpc_clnt *clnt,
-			struct rpc_xprt_switch *xps,
-			struct rpc_xprt *xprt,
-			void *dummy);
+									   struct rpc_xprt_switch *xps,
+									   struct rpc_xprt *xprt,
+									   void *dummy);
 int		rpc_clnt_add_xprt(struct rpc_clnt *, struct xprt_create *,
-			int (*setup)(struct rpc_clnt *,
-				struct rpc_xprt_switch *,
-				struct rpc_xprt *,
-				void *),
-			void *data);
+						  int (*setup)(struct rpc_clnt *,
+									   struct rpc_xprt_switch *,
+									   struct rpc_xprt *,
+									   void *),
+						  void *data);
 void		rpc_cap_max_reconnect_timeout(struct rpc_clnt *clnt,
-			unsigned long timeo);
+		unsigned long timeo);
 
 int		rpc_clnt_setup_test_and_add_xprt(struct rpc_clnt *,
-			struct rpc_xprt_switch *,
-			struct rpc_xprt *,
-			void *);
+		struct rpc_xprt_switch *,
+		struct rpc_xprt *,
+		void *);
 
 const char *rpc_proc_name(const struct rpc_task *task);
 
 void rpc_clnt_xprt_switch_put(struct rpc_clnt *);
 void rpc_clnt_xprt_switch_add_xprt(struct rpc_clnt *, struct rpc_xprt *);
 bool rpc_clnt_xprt_switch_has_addr(struct rpc_clnt *clnt,
-			const struct sockaddr *sap);
+								   const struct sockaddr *sap);
 #endif /* __KERNEL__ */
 #endif /* _LINUX_SUNRPC_CLNT_H */

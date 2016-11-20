@@ -26,7 +26,8 @@
  *
  * This structure contains devfreq-event device information.
  */
-struct devfreq_event_dev {
+struct devfreq_event_dev
+{
 	struct list_head node;
 
 	struct device dev;
@@ -47,7 +48,8 @@ struct devfreq_event_dev {
  *
  * This structure contains the data of devfreq-event device for polling period.
  */
-struct devfreq_event_data {
+struct devfreq_event_data
+{
 	unsigned long load_count;
 	unsigned long total_count;
 };
@@ -65,7 +67,8 @@ struct devfreq_event_data {
  * This structure contains devfreq-event device operations which can be
  * implemented by devfreq-event device drivers.
  */
-struct devfreq_event_ops {
+struct devfreq_event_ops
+{
 	/* Optional functions */
 	int (*enable)(struct devfreq_event_dev *edev);
 	int (*disable)(struct devfreq_event_dev *edev);
@@ -74,7 +77,7 @@ struct devfreq_event_ops {
 	/* Mandatory functions */
 	int (*set_event)(struct devfreq_event_dev *edev);
 	int (*get_event)(struct devfreq_event_dev *edev,
-			 struct devfreq_event_data *edata);
+					 struct devfreq_event_data *edata);
 };
 
 /**
@@ -87,7 +90,8 @@ struct devfreq_event_ops {
  * Each devfreq-event device is described with a this structure.
  * This structure contains the various data for devfreq-event device.
  */
-struct devfreq_event_desc {
+struct devfreq_event_desc
+{
 	const char *name;
 	void *driver_data;
 
@@ -100,18 +104,18 @@ extern int devfreq_event_disable_edev(struct devfreq_event_dev *edev);
 extern bool devfreq_event_is_enabled(struct devfreq_event_dev *edev);
 extern int devfreq_event_set_event(struct devfreq_event_dev *edev);
 extern int devfreq_event_get_event(struct devfreq_event_dev *edev,
-				struct devfreq_event_data *edata);
+								   struct devfreq_event_data *edata);
 extern int devfreq_event_reset_event(struct devfreq_event_dev *edev);
 extern struct devfreq_event_dev *devfreq_event_get_edev_by_phandle(
-				struct device *dev, int index);
+	struct device *dev, int index);
 extern int devfreq_event_get_edev_count(struct device *dev);
 extern struct devfreq_event_dev *devfreq_event_add_edev(struct device *dev,
-				struct devfreq_event_desc *desc);
+		struct devfreq_event_desc *desc);
 extern int devfreq_event_remove_edev(struct devfreq_event_dev *edev);
 extern struct devfreq_event_dev *devm_devfreq_event_add_edev(struct device *dev,
-				struct devfreq_event_desc *desc);
+		struct devfreq_event_desc *desc);
 extern void devm_devfreq_event_remove_edev(struct device *dev,
-				struct devfreq_event_dev *edev);
+		struct devfreq_event_dev *edev);
 static inline void *devfreq_event_get_drvdata(struct devfreq_event_dev *edev)
 {
 	return edev->desc->driver_data;
@@ -138,7 +142,7 @@ static inline int devfreq_event_set_event(struct devfreq_event_dev *edev)
 }
 
 static inline int devfreq_event_get_event(struct devfreq_event_dev *edev,
-					struct devfreq_event_data *edata)
+		struct devfreq_event_data *edata)
 {
 	return -EINVAL;
 }
@@ -149,7 +153,7 @@ static inline int devfreq_event_reset_event(struct devfreq_event_dev *edev)
 }
 
 static inline struct devfreq_event_dev *devfreq_event_get_edev_by_phandle(
-					struct device *dev, int index)
+	struct device *dev, int index)
 {
 	return ERR_PTR(-EINVAL);
 }
@@ -160,7 +164,7 @@ static inline int devfreq_event_get_edev_count(struct device *dev)
 }
 
 static inline struct devfreq_event_dev *devfreq_event_add_edev(struct device *dev,
-					struct devfreq_event_desc *desc)
+		struct devfreq_event_desc *desc)
 {
 	return ERR_PTR(-EINVAL);
 }
@@ -171,14 +175,14 @@ static inline int devfreq_event_remove_edev(struct devfreq_event_dev *edev)
 }
 
 static inline struct devfreq_event_dev *devm_devfreq_event_add_edev(
-					struct device *dev,
-					struct devfreq_event_desc *desc)
+	struct device *dev,
+	struct devfreq_event_desc *desc)
 {
 	return ERR_PTR(-EINVAL);
 }
 
 static inline void devm_devfreq_event_remove_edev(struct device *dev,
-					struct devfreq_event_dev *edev)
+		struct devfreq_event_dev *edev)
 {
 }
 

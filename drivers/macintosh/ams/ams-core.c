@@ -38,24 +38,36 @@ MODULE_PARM_DESC(verbose, "Show free falls and shocks in kernel output");
 /* Call with ams_info.lock held! */
 void ams_sensors(s8 *x, s8 *y, s8 *z)
 {
-	u32 orient = ams_info.vflag? ams_info.orient1 : ams_info.orient2;
+	u32 orient = ams_info.vflag ? ams_info.orient1 : ams_info.orient2;
 
 	if (orient & 0x80)
 		/* X and Y swapped */
+	{
 		ams_info.get_xyz(y, x, z);
+	}
 	else
+	{
 		ams_info.get_xyz(x, y, z);
+	}
 
 	if (orient & 0x04)
+	{
 		*z = ~(*z);
+	}
+
 	if (orient & 0x02)
+	{
 		*y = ~(*y);
+	}
+
 	if (orient & 0x01)
+	{
 		*x = ~(*x);
+	}
 }
 
 static ssize_t ams_show_current(struct device *dev,
-	struct device_attribute *attr, char *buf)
+								struct device_attribute *attr, char *buf)
 {
 	s8 x, y, z;
 
@@ -81,14 +93,16 @@ static void ams_handle_irq(void *data)
 }
 
 static enum ams_irq ams_freefall_irq_data = AMS_IRQ_FREEFALL;
-static struct pmf_irq_client ams_freefall_client = {
+static struct pmf_irq_client ams_freefall_client =
+{
 	.owner = THIS_MODULE,
 	.handler = ams_handle_irq,
 	.data = &ams_freefall_irq_data,
 };
 
 static enum ams_irq ams_shock_irq_data = AMS_IRQ_SHOCK;
-static struct pmf_irq_client ams_shock_client = {
+static struct pmf_irq_client ams_shock_client =
+{
 	.owner = THIS_MODULE,
 	.handler = ams_handle_irq,
 	.data = &ams_shock_irq_data,
@@ -107,16 +121,22 @@ static void ams_worker(struct work_struct *work)
 	spin_lock_irqsave(&ams_info.irq_lock, flags);
 	irqs_to_clear = ams_info.worker_irqs;
 
-	if (ams_info.worker_irqs & AMS_IRQ_FREEFALL) {
+	if (ams_info.worker_irqs & AMS_IRQ_FREEFALL)
+	{
 		if (verbose)
+		{
 			printk(KERN_INFO "ams: freefall detected!\n");
+		}
 
 		ams_info.worker_irqs &= ~AMS_IRQ_FREEFALL;
 	}
 
-	if (ams_info.worker_irqs & AMS_IRQ_SHOCK) {
+	if (ams_info.worker_irqs & AMS_IRQ_SHOCK)
+	{
 		if (verbose)
+		{
 			printk(KERN_INFO "ams: shock detected!\n");
+		}
 
 		ams_info.worker_irqs &= ~AMS_IRQ_SHOCK;
 	}
@@ -136,46 +156,64 @@ int ams_sensor_attach(void)
 
 	/* Get orientation */
 	prop = of_get_property(ams_info.of_node, "orientation", NULL);
+
 	if (!prop)
+	{
 		return -ENODEV;
+	}
+
 	ams_info.orient1 = *prop;
 	ams_info.orient2 = *(prop + 1);
 
 	/* Register freefall interrupt handler */
 	result = pmf_register_irq_client(ams_info.of_node,
-			"accel-int-1",
-			&ams_freefall_client);
+									 "accel-int-1",
+									 &ams_freefall_client);
+
 	if (result < 0)
+	{
 		return -ENODEV;
+	}
 
 	/* Reset saved irqs */
 	ams_info.worker_irqs = 0;
 
 	/* Register shock interrupt handler */
 	result = pmf_register_irq_client(ams_info.of_node,
-			"accel-int-2",
-			&ams_shock_client);
+									 "accel-int-2",
+									 &ams_shock_client);
+
 	if (result < 0)
+	{
 		goto release_freefall;
+	}
 
 	/* Create device */
 	ams_info.of_dev = of_platform_device_create(ams_info.of_node, "ams", NULL);
-	if (!ams_info.of_dev) {
+
+	if (!ams_info.of_dev)
+	{
 		result = -ENODEV;
 		goto release_shock;
 	}
 
 	/* Create attributes */
 	result = device_create_file(&ams_info.of_dev->dev, &dev_attr_current);
+
 	if (result)
+	{
 		goto release_of;
+	}
 
 	ams_info.vflag = !!(ams_info.get_vendor() & 0x10);
 
 	/* Init input device */
 	result = ams_input_init();
+
 	if (result)
+	{
 		goto release_device_file;
+	}
 
 	return result;
 release_device_file:
@@ -199,16 +237,24 @@ int __init ams_init(void)
 
 #ifdef CONFIG_SENSORS_AMS_I2C
 	np = of_find_node_by_name(NULL, "accelerometer");
+
 	if (np && of_device_is_compatible(np, "AAPL,accelerometer_1"))
 		/* Found I2C motion sensor */
+	{
 		return ams_i2c_init(np);
+	}
+
 #endif
 
 #ifdef CONFIG_SENSORS_AMS_PMU
 	np = of_find_node_by_name(NULL, "sms");
+
 	if (np && of_device_is_compatible(np, "sms"))
 		/* Found PMU motion sensor */
+	{
 		return ams_pmu_init(np);
+	}
+
 #endif
 	return -ENODEV;
 }

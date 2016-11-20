@@ -42,26 +42,29 @@
 const int mma7660_nscale = 467142857;
 
 #define MMA7660_CHANNEL(reg, axis) {	\
-	.type = IIO_ACCEL,	\
-	.address = reg,	\
-	.modified = 1,	\
-	.channel2 = IIO_MOD_##axis,	\
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),	\
-	.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
-}
+		.type = IIO_ACCEL,	\
+				.address = reg,	\
+						   .modified = 1,	\
+									   .channel2 = IIO_MOD_##axis,	\
+											   .info_mask_separate = BIT(IIO_CHAN_INFO_RAW),	\
+													   .info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
+	}
 
-static const struct iio_chan_spec mma7660_channels[] = {
+static const struct iio_chan_spec mma7660_channels[] =
+{
 	MMA7660_CHANNEL(MMA7660_REG_XOUT, X),
 	MMA7660_CHANNEL(MMA7660_REG_YOUT, Y),
 	MMA7660_CHANNEL(MMA7660_REG_ZOUT, Z),
 };
 
-enum mma7660_mode {
+enum mma7660_mode
+{
 	MMA7660_MODE_STANDBY,
 	MMA7660_MODE_ACTIVE
 };
 
-struct mma7660_data {
+struct mma7660_data
+{
 	struct i2c_client *client;
 	struct mutex lock;
 	enum mma7660_mode mode;
@@ -69,40 +72,51 @@ struct mma7660_data {
 
 static IIO_CONST_ATTR(in_accel_scale_available, MMA7660_SCALE_AVAIL);
 
-static struct attribute *mma7660_attributes[] = {
+static struct attribute *mma7660_attributes[] =
+{
 	&iio_const_attr_in_accel_scale_available.dev_attr.attr,
 	NULL,
 };
 
-static const struct attribute_group mma7660_attribute_group = {
+static const struct attribute_group mma7660_attribute_group =
+{
 	.attrs = mma7660_attributes
 };
 
 static int mma7660_set_mode(struct mma7660_data *data,
-				enum mma7660_mode mode)
+							enum mma7660_mode mode)
 {
 	int ret;
 	struct i2c_client *client = data->client;
 
 	if (mode == data->mode)
+	{
 		return 0;
+	}
 
 	ret = i2c_smbus_read_byte_data(client, MMA7660_REG_MODE);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "failed to read sensor mode\n");
 		return ret;
 	}
 
-	if (mode == MMA7660_MODE_ACTIVE) {
+	if (mode == MMA7660_MODE_ACTIVE)
+	{
 		ret &= ~MMA7660_REG_MODE_BIT_TON;
 		ret |= MMA7660_REG_MODE_BIT_MODE;
-	} else {
+	}
+	else
+	{
 		ret &= ~MMA7660_REG_MODE_BIT_TON;
 		ret &= ~MMA7660_REG_MODE_BIT_MODE;
 	}
 
 	ret = i2c_smbus_write_byte_data(client, MMA7660_REG_MODE, ret);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "failed to change sensor mode\n");
 		return ret;
 	}
@@ -124,15 +138,20 @@ static int mma7660_read_accel(struct mma7660_data *data, u8 address)
 	 * MMA7660_I2C_READ_RETRIES times to avoid spending too much time
 	 * in the kernel.
 	 */
-	do {
+	do
+	{
 		ret = i2c_smbus_read_byte_data(client, address);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(&client->dev, "register read failed\n");
 			return ret;
 		}
-	} while (retries-- > 0 && ret & MMA7660_REG_OUT_BIT_ALERT);
+	}
+	while (retries-- > 0 && ret & MMA7660_REG_OUT_BIT_ALERT);
 
-	if (ret & MMA7660_REG_OUT_BIT_ALERT) {
+	if (ret & MMA7660_REG_OUT_BIT_ALERT)
+	{
 		dev_err(&client->dev, "all register read retries failed\n");
 		return -ETIMEDOUT;
 	}
@@ -141,47 +160,57 @@ static int mma7660_read_accel(struct mma7660_data *data, u8 address)
 }
 
 static int mma7660_read_raw(struct iio_dev *indio_dev,
-				struct iio_chan_spec const *chan,
-				int *val, int *val2, long mask)
+							struct iio_chan_spec const *chan,
+							int *val, int *val2, long mask)
 {
 	struct mma7660_data *data = iio_priv(indio_dev);
 	int ret;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		mutex_lock(&data->lock);
-		ret = mma7660_read_accel(data, chan->address);
-		mutex_unlock(&data->lock);
-		if (ret < 0)
-			return ret;
-		*val = sign_extend32(ret, 5);
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_SCALE:
-		*val = 0;
-		*val2 = mma7660_nscale;
-		return IIO_VAL_INT_PLUS_NANO;
-	default:
-		return -EINVAL;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			mutex_lock(&data->lock);
+			ret = mma7660_read_accel(data, chan->address);
+			mutex_unlock(&data->lock);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			*val = sign_extend32(ret, 5);
+			return IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_SCALE:
+			*val = 0;
+			*val2 = mma7660_nscale;
+			return IIO_VAL_INT_PLUS_NANO;
+
+		default:
+			return -EINVAL;
 	}
 
 	return -EINVAL;
 }
 
-static const struct iio_info mma7660_info = {
+static const struct iio_info mma7660_info =
+{
 	.driver_module	= THIS_MODULE,
 	.read_raw		= mma7660_read_raw,
 	.attrs			= &mma7660_attribute_group,
 };
 
 static int mma7660_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	int ret;
 	struct iio_dev *indio_dev;
 	struct mma7660_data *data;
 
 	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*data));
-	if (!indio_dev) {
+
+	if (!indio_dev)
+	{
 		dev_err(&client->dev, "iio allocation failed!\n");
 		return -ENOMEM;
 	}
@@ -200,11 +229,16 @@ static int mma7660_probe(struct i2c_client *client,
 	indio_dev->num_channels = ARRAY_SIZE(mma7660_channels);
 
 	ret = mma7660_set_mode(data, MMA7660_MODE_ACTIVE);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = iio_device_register(indio_dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "device_register failed\n");
 		mma7660_set_mode(data, MMA7660_MODE_STANDBY);
 	}
@@ -247,20 +281,23 @@ static SIMPLE_DEV_PM_OPS(mma7660_pm_ops, mma7660_suspend, mma7660_resume);
 #define MMA7660_PM_OPS NULL
 #endif
 
-static const struct i2c_device_id mma7660_i2c_id[] = {
+static const struct i2c_device_id mma7660_i2c_id[] =
+{
 	{"mma7660", 0},
 	{}
 };
 MODULE_DEVICE_TABLE(i2c, mma7660_i2c_id);
 
-static const struct acpi_device_id mma7660_acpi_id[] = {
+static const struct acpi_device_id mma7660_acpi_id[] =
+{
 	{"MMA7660", 0},
 	{}
 };
 
 MODULE_DEVICE_TABLE(acpi, mma7660_acpi_id);
 
-static struct i2c_driver mma7660_driver = {
+static struct i2c_driver mma7660_driver =
+{
 	.driver = {
 		.name = "mma7660",
 		.pm = MMA7660_PM_OPS,

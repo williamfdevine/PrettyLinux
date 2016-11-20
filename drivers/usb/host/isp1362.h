@@ -32,7 +32,9 @@
 static inline void delayed_outsw(unsigned int addr, void *buf, int len)
 {
 	unsigned short *bp = (unsigned short *)buf;
-	while (len--) {
+
+	while (len--)
+	{
 		DUMMY_DELAY_ACCESS;
 		outw(*bp++, addr);
 	}
@@ -41,7 +43,9 @@ static inline void delayed_outsw(unsigned int addr, void *buf, int len)
 static inline void delayed_insw(unsigned int addr, void *buf, int len)
 {
 	unsigned short *bp = (unsigned short *)buf;
-	while (len--) {
+
+	while (len--)
+	{
 		DUMMY_DELAY_ACCESS;
 		*bp++ = inw(addr);
 	}
@@ -92,7 +96,7 @@ typedef const unsigned int isp1362_reg_t;
 #define ISP1362_REG_NO(r)		((r) & REG_NO_MASK)
 
 #define ISP1362_REG(name, addr, width, rw) \
-static isp1362_reg_t ISP1362_REG_##name = ((addr) | (width) | (rw))
+	static isp1362_reg_t ISP1362_REG_##name = ((addr) | (width) | (rw))
 
 #define REG_ACCESS_TEST(r)   BUG_ON(((r) & ISP1362_REG_WRITE_OFFSET) && !((r) & REG_ACCESS_W))
 #define REG_WIDTH_TEST(r, w) BUG_ON(((r) & REG_WIDTH_MASK) != (w))
@@ -101,7 +105,7 @@ typedef const unsigned char isp1362_reg_t;
 #define ISP1362_REG_NO(r)		(r)
 
 #define ISP1362_REG(name, addr, width, rw) \
-static isp1362_reg_t ISP1362_REG_##name = addr
+	static isp1362_reg_t ISP1362_REG_##name = addr
 
 #define REG_ACCESS_TEST(r)		do {} while (0)
 #define REG_WIDTH_TEST(r, w)		do {} while (0)
@@ -244,7 +248,8 @@ ISP1362_REG(OTGTIMER,	0x6A,	REG_WIDTH_16,	REG_ACCESS_RW);
 ISP1362_REG(OTGALTTMR,	0x6C,	REG_WIDTH_16,	REG_ACCESS_RW);
 
 /* Philips transfer descriptor, cpu-endian */
-struct ptd {
+struct ptd
+{
 	u16 count;
 #define	PTD_COUNT_MSK	(0x3ff << 0)
 #define	PTD_TOGGLE_MSK	(1 << 10)
@@ -263,7 +268,7 @@ struct ptd {
 #define	PTD_DIR_IN	(2)
 	u16 faddr;
 #define	PTD_FA_MSK	(0x7f << 0)
-/* PTD Byte 7: [StartingFrame (if ISO PTD) | StartingFrame[0..4], PollingRate[0..2] (if INT PTD)] */
+	/* PTD Byte 7: [StartingFrame (if ISO PTD) | StartingFrame[0..4], PollingRate[0..2] (if INT PTD)] */
 #define PTD_SF_ISO_MSK	(0xff << 8)
 #define PTD_SF_INT_MSK	(0x1f << 8)
 #define PTD_PR_MSK	(0x07 << 13)
@@ -285,15 +290,16 @@ struct ptd {
 #define PTD_UNEXPECTEDPID   0x07
 #define PTD_DATAOVERRUN     0x08
 #define PTD_DATAUNDERRUN    0x09
-    /* 0x0A, 0x0B reserved for hardware */
+/* 0x0A, 0x0B reserved for hardware */
 #define PTD_BUFFEROVERRUN   0x0C
 #define PTD_BUFFERUNDERRUN  0x0D
-    /* 0x0E, 0x0F reserved for HCD */
+/* 0x0E, 0x0F reserved for HCD */
 #define PTD_NOTACCESSED     0x0F
 
 
 /* map OHCI TD status codes (CC) to errno values */
-static const int cc_to_error[16] = {
+static const int cc_to_error[16] =
+{
 	/* No  Error  */               0,
 	/* CRC Error  */               -EILSEQ,
 	/* Bit Stuff  */               -EPROTO,
@@ -422,7 +428,8 @@ static const int cc_to_error[16] = {
 #define	LOG2_PERIODIC_SIZE	5	/* arbitrary; this matches OHCI */
 #define	PERIODIC_SIZE		(1 << LOG2_PERIODIC_SIZE)
 
-struct isp1362_ep {
+struct isp1362_ep
+{
 	struct usb_host_endpoint *hep;
 	struct usb_device	*udev;
 
@@ -455,7 +462,8 @@ struct isp1362_ep {
 	int			num_req;
 };
 
-struct isp1362_ep_queue {
+struct isp1362_ep_queue
+{
 	struct list_head	active;		/* list of PTDs currently processed by HC */
 	atomic_t		finishing;
 	unsigned long		buf_map;
@@ -473,7 +481,8 @@ struct isp1362_ep_queue {
 	u8			ptd_count;	/* number of ptds submitted to this queue */
 };
 
-struct isp1362_hcd {
+struct isp1362_hcd
+{
 	spinlock_t		lock;
 	void __iomem		*addr_reg;
 	void __iomem		*data_reg;
@@ -507,8 +516,8 @@ struct isp1362_hcd {
 
 	/* periodic schedule: isochronous */
 	struct list_head	isoc;
-	unsigned int		istl_flip:1;
-	unsigned int		irq_active:1;
+	unsigned int		istl_flip: 1;
+	unsigned int		irq_active: 1;
 
 	/* Schedules for the current frame */
 	struct isp1362_ep_queue atl_queue;
@@ -517,7 +526,8 @@ struct isp1362_hcd {
 
 	/* list of PTDs retrieved from HC */
 	struct list_head	remove_list;
-	enum {
+	enum
+	{
 		ISP1362_INT_SOF,
 		ISP1362_INT_ISTL0,
 		ISP1362_INT_ISTL1,
@@ -536,34 +546,56 @@ struct isp1362_hcd {
 
 static inline const char *ISP1362_INT_NAME(int n)
 {
-	switch (n) {
-	case ISP1362_INT_SOF:    return "SOF";
-	case ISP1362_INT_ISTL0:  return "ISTL0";
-	case ISP1362_INT_ISTL1:  return "ISTL1";
-	case ISP1362_INT_EOT:    return "EOT";
-	case ISP1362_INT_OPR:    return "OPR";
-	case ISP1362_INT_SUSP:   return "SUSP";
-	case ISP1362_INT_CLKRDY: return "CLKRDY";
-	case ISP1362_INT_INTL:   return "INTL";
-	case ISP1362_INT_ATL:    return "ATL";
-	case ISP1362_INT_OTG:    return "OTG";
-	default:                 return "unknown";
+	switch (n)
+	{
+		case ISP1362_INT_SOF:    return "SOF";
+
+		case ISP1362_INT_ISTL0:  return "ISTL0";
+
+		case ISP1362_INT_ISTL1:  return "ISTL1";
+
+		case ISP1362_INT_EOT:    return "EOT";
+
+		case ISP1362_INT_OPR:    return "OPR";
+
+		case ISP1362_INT_SUSP:   return "SUSP";
+
+		case ISP1362_INT_CLKRDY: return "CLKRDY";
+
+		case ISP1362_INT_INTL:   return "INTL";
+
+		case ISP1362_INT_ATL:    return "ATL";
+
+		case ISP1362_INT_OTG:    return "OTG";
+
+		default:                 return "unknown";
 	}
 }
 
 static inline void ALIGNSTAT(struct isp1362_hcd *isp1362_hcd, void *ptr)
 {
 	unsigned long p = (unsigned long)ptr;
+
 	if (!(p & 0xf))
+	{
 		isp1362_hcd->stat16++;
+	}
 	else if (!(p & 0x7))
+	{
 		isp1362_hcd->stat8++;
+	}
 	else if (!(p & 0x3))
+	{
 		isp1362_hcd->stat4++;
+	}
 	else if (!(p & 0x1))
+	{
 		isp1362_hcd->stat2++;
+	}
 	else
+	{
 		isp1362_hcd->stat1++;
+	}
 }
 
 static inline struct isp1362_hcd *hcd_to_isp1362_hcd(struct usb_hcd *hcd)
@@ -589,39 +621,39 @@ static inline struct usb_hcd *isp1362_hcd_to_hcd(struct isp1362_hcd *isp1362_hcd
 	} while (0)
 
 #ifdef VERBOSE
-#    define VDBG(fmt...)	DBG(3, fmt)
+	#define VDBG(fmt...)	DBG(3, fmt)
 #else
-#    define VDBG(fmt...)	do {} while (0)
+	#define VDBG(fmt...)	do {} while (0)
 #endif
 
 #ifdef REGISTERS
-#    define RDBG(fmt...)	DBG(1, fmt)
+	#define RDBG(fmt...)	DBG(1, fmt)
 #else
-#    define RDBG(fmt...)	do {} while (0)
+	#define RDBG(fmt...)	do {} while (0)
 #endif
 
 #ifdef URB_TRACE
-#define URB_DBG(fmt...)		DBG(0, fmt)
+	#define URB_DBG(fmt...)		DBG(0, fmt)
 #else
-#define URB_DBG(fmt...)		do {} while (0)
+	#define URB_DBG(fmt...)		do {} while (0)
 #endif
 
 
 #if USE_PLATFORM_DELAY
-#if USE_NDELAY
-#error USE_PLATFORM_DELAY and USE_NDELAY defined simultaneously.
-#endif
-#define	isp1362_delay(h, d)	(h)->board->delay(isp1362_hcd_to_hcd(h)->self.controller, d)
+	#if USE_NDELAY
+		#error USE_PLATFORM_DELAY and USE_NDELAY defined simultaneously.
+	#endif
+	#define	isp1362_delay(h, d)	(h)->board->delay(isp1362_hcd_to_hcd(h)->self.controller, d)
 #elif USE_NDELAY
-#define	isp1362_delay(h, d)	ndelay(d)
+	#define	isp1362_delay(h, d)	ndelay(d)
 #else
-#define	isp1362_delay(h, d)	do {} while (0)
+	#define	isp1362_delay(h, d)	do {} while (0)
 #endif
 
 #define get_urb(ep) ({							\
-	BUG_ON(list_empty(&ep->hep->urb_list));				\
-	container_of(ep->hep->urb_list.next, struct urb, urb_list);	\
-})
+		BUG_ON(list_empty(&ep->hep->urb_list));				\
+		container_of(ep->hep->urb_list.next, struct urb, urb_list);	\
+	})
 
 /* basic access functions for ISP1362 chip registers */
 /* NOTE: The contents of the address pointer register cannot be read back! The driver must ensure,
@@ -690,18 +722,25 @@ static void isp1362_read_fifo(struct isp1362_hcd *isp1362_hcd, void *buf, u16 le
 	u16 data;
 
 	if (!len)
+	{
 		return;
+	}
 
 	RDBG("%s: Reading %d byte from fifo to mem @ %p\n", __func__, len, buf);
 #if USE_32BIT
-	if (len >= 4) {
+
+	if (len >= 4)
+	{
 		RDBG("%s: Using readsl for %d dwords\n", __func__, len >> 2);
 		readsl(isp1362_hcd->data_reg, dp, len >> 2);
 		dp += len & ~3;
 		len &= 3;
 	}
+
 #endif
-	if (len >= 2) {
+
+	if (len >= 2)
+	{
 		RDBG("%s: Using readsw for %d words\n", __func__, len >> 1);
 		insw((unsigned long)isp1362_hcd->data_reg, dp, len >> 1);
 		dp += len & ~1;
@@ -709,10 +748,12 @@ static void isp1362_read_fifo(struct isp1362_hcd *isp1362_hcd, void *buf, u16 le
 	}
 
 	BUG_ON(len & ~1);
-	if (len > 0) {
+
+	if (len > 0)
+	{
 		data = isp1362_read_data16(isp1362_hcd);
 		RDBG("%s: Reading trailing byte %02x to mem @ %08x\n", __func__,
-		     (u8)data, (u32)dp);
+			 (u8)data, (u32)dp);
 		*dp = (u8)data;
 	}
 }
@@ -723,30 +764,43 @@ static void isp1362_write_fifo(struct isp1362_hcd *isp1362_hcd, void *buf, u16 l
 	u16 data;
 
 	if (!len)
+	{
 		return;
+	}
 
-	if ((unsigned long)dp & 0x1) {
+	if ((unsigned long)dp & 0x1)
+	{
 		/* not aligned */
-		for (; len > 1; len -= 2) {
+		for (; len > 1; len -= 2)
+		{
 			data = *dp++;
 			data |= *dp++ << 8;
 			isp1362_write_data16(isp1362_hcd, data);
 		}
+
 		if (len)
+		{
 			isp1362_write_data16(isp1362_hcd, *dp);
+		}
+
 		return;
 	}
 
 	RDBG("%s: Writing %d byte to fifo from memory @%p\n", __func__, len, buf);
 #if USE_32BIT
-	if (len >= 4) {
+
+	if (len >= 4)
+	{
 		RDBG("%s: Using writesl for %d dwords\n", __func__, len >> 2);
 		writesl(isp1362_hcd->data_reg, dp, len >> 2);
 		dp += len & ~3;
 		len &= 3;
 	}
+
 #endif
-	if (len >= 2) {
+
+	if (len >= 2)
+	{
 		RDBG("%s: Using writesw for %d words\n", __func__, len >> 1);
 		outsw((unsigned long)isp1362_hcd->data_reg, dp, len >> 1);
 		dp += len & ~1;
@@ -754,89 +808,91 @@ static void isp1362_write_fifo(struct isp1362_hcd *isp1362_hcd, void *buf, u16 l
 	}
 
 	BUG_ON(len & ~1);
-	if (len > 0) {
+
+	if (len > 0)
+	{
 		/* finally write any trailing byte; we don't need to care
 		 * about the high byte of the last word written
 		 */
-		data = (u16)*dp;
+		data = (u16) * dp;
 		RDBG("%s: Sending trailing byte %02x from mem @ %08x\n", __func__,
-			data, (u32)dp);
+			 data, (u32)dp);
 		isp1362_write_data16(isp1362_hcd, data);
 	}
 }
 
 #define isp1362_read_reg16(d, r)		({			\
-	u16 __v;							\
-	REG_WIDTH_TEST(ISP1362_REG_##r, REG_WIDTH_16);			\
-	isp1362_write_addr(d, ISP1362_REG_##r);				\
-	__v = isp1362_read_data16(d);					\
-	RDBG("%s: Read %04x from %s[%02x]\n", __func__, __v, #r,	\
-	     ISP1362_REG_NO(ISP1362_REG_##r));				\
-	__v;								\
-})
+		u16 __v;							\
+		REG_WIDTH_TEST(ISP1362_REG_##r, REG_WIDTH_16);			\
+		isp1362_write_addr(d, ISP1362_REG_##r);				\
+		__v = isp1362_read_data16(d);					\
+		RDBG("%s: Read %04x from %s[%02x]\n", __func__, __v, #r,	\
+			 ISP1362_REG_NO(ISP1362_REG_##r));				\
+		__v;								\
+	})
 
 #define isp1362_read_reg32(d, r)		({			\
-	u32 __v;							\
-	REG_WIDTH_TEST(ISP1362_REG_##r, REG_WIDTH_32);			\
-	isp1362_write_addr(d, ISP1362_REG_##r);				\
-	__v = isp1362_read_data32(d);					\
-	RDBG("%s: Read %08x from %s[%02x]\n", __func__, __v, #r,	\
-	     ISP1362_REG_NO(ISP1362_REG_##r));				\
-	__v;								\
-})
+		u32 __v;							\
+		REG_WIDTH_TEST(ISP1362_REG_##r, REG_WIDTH_32);			\
+		isp1362_write_addr(d, ISP1362_REG_##r);				\
+		__v = isp1362_read_data32(d);					\
+		RDBG("%s: Read %08x from %s[%02x]\n", __func__, __v, #r,	\
+			 ISP1362_REG_NO(ISP1362_REG_##r));				\
+		__v;								\
+	})
 
 #define isp1362_write_reg16(d, r, v)	{					\
-	REG_WIDTH_TEST(ISP1362_REG_##r, REG_WIDTH_16);				\
-	isp1362_write_addr(d, (ISP1362_REG_##r) | ISP1362_REG_WRITE_OFFSET);	\
-	isp1362_write_data16(d, (u16)(v));					\
-	RDBG("%s: Wrote %04x to %s[%02x]\n", __func__, (u16)(v), #r,	\
-	     ISP1362_REG_NO(ISP1362_REG_##r));					\
-}
+		REG_WIDTH_TEST(ISP1362_REG_##r, REG_WIDTH_16);				\
+		isp1362_write_addr(d, (ISP1362_REG_##r) | ISP1362_REG_WRITE_OFFSET);	\
+		isp1362_write_data16(d, (u16)(v));					\
+		RDBG("%s: Wrote %04x to %s[%02x]\n", __func__, (u16)(v), #r,	\
+			 ISP1362_REG_NO(ISP1362_REG_##r));					\
+	}
 
 #define isp1362_write_reg32(d, r, v)	{					\
-	REG_WIDTH_TEST(ISP1362_REG_##r, REG_WIDTH_32);				\
-	isp1362_write_addr(d, (ISP1362_REG_##r) | ISP1362_REG_WRITE_OFFSET);	\
-	isp1362_write_data32(d, (u32)(v));					\
-	RDBG("%s: Wrote %08x to %s[%02x]\n", __func__, (u32)(v), #r,	\
-	     ISP1362_REG_NO(ISP1362_REG_##r));					\
-}
+		REG_WIDTH_TEST(ISP1362_REG_##r, REG_WIDTH_32);				\
+		isp1362_write_addr(d, (ISP1362_REG_##r) | ISP1362_REG_WRITE_OFFSET);	\
+		isp1362_write_data32(d, (u32)(v));					\
+		RDBG("%s: Wrote %08x to %s[%02x]\n", __func__, (u32)(v), #r,	\
+			 ISP1362_REG_NO(ISP1362_REG_##r));					\
+	}
 
 #define isp1362_set_mask16(d, r, m) {			\
-	u16 __v;					\
-	__v = isp1362_read_reg16(d, r);			\
-	if ((__v | m) != __v)				\
-		isp1362_write_reg16(d, r, __v | m);	\
-}
+		u16 __v;					\
+		__v = isp1362_read_reg16(d, r);			\
+		if ((__v | m) != __v)				\
+			isp1362_write_reg16(d, r, __v | m);	\
+	}
 
 #define isp1362_clr_mask16(d, r, m) {			\
-	u16 __v;					\
-	__v = isp1362_read_reg16(d, r);			\
-	if ((__v & ~m) != __v)			\
-		isp1362_write_reg16(d, r, __v & ~m);	\
-}
+		u16 __v;					\
+		__v = isp1362_read_reg16(d, r);			\
+		if ((__v & ~m) != __v)			\
+			isp1362_write_reg16(d, r, __v & ~m);	\
+	}
 
 #define isp1362_set_mask32(d, r, m) {			\
-	u32 __v;					\
-	__v = isp1362_read_reg32(d, r);			\
-	if ((__v | m) != __v)				\
-		isp1362_write_reg32(d, r, __v | m);	\
-}
+		u32 __v;					\
+		__v = isp1362_read_reg32(d, r);			\
+		if ((__v | m) != __v)				\
+			isp1362_write_reg32(d, r, __v | m);	\
+	}
 
 #define isp1362_clr_mask32(d, r, m) {			\
-	u32 __v;					\
-	__v = isp1362_read_reg32(d, r);			\
-	if ((__v & ~m) != __v)			\
-		isp1362_write_reg32(d, r, __v & ~m);	\
-}
+		u32 __v;					\
+		__v = isp1362_read_reg32(d, r);			\
+		if ((__v & ~m) != __v)			\
+			isp1362_write_reg32(d, r, __v & ~m);	\
+	}
 
 #define isp1362_show_reg(d, r) {								\
-	if ((ISP1362_REG_##r & REG_WIDTH_MASK) == REG_WIDTH_32)			\
-		DBG(0, "%-12s[%02x]: %08x\n", #r,					\
-			ISP1362_REG_NO(ISP1362_REG_##r), isp1362_read_reg32(d, r));	\
-	else									\
-		DBG(0, "%-12s[%02x]:     %04x\n", #r,					\
-			ISP1362_REG_NO(ISP1362_REG_##r), isp1362_read_reg16(d, r));	\
-}
+		if ((ISP1362_REG_##r & REG_WIDTH_MASK) == REG_WIDTH_32)			\
+			DBG(0, "%-12s[%02x]: %08x\n", #r,					\
+				ISP1362_REG_NO(ISP1362_REG_##r), isp1362_read_reg32(d, r));	\
+		else									\
+			DBG(0, "%-12s[%02x]:     %04x\n", #r,					\
+				ISP1362_REG_NO(ISP1362_REG_##r), isp1362_read_reg16(d, r));	\
+	}
 
 static void __attribute__((__unused__)) isp1362_show_regs(struct isp1362_hcd *isp1362_hcd)
 {
@@ -862,9 +918,12 @@ static void __attribute__((__unused__)) isp1362_show_regs(struct isp1362_hcd *is
 
 	if (in_interrupt())
 		DBG(0, "%-12s[%02x]:     %04x\n", "HCuPINTENB",
-			 ISP1362_REG_NO(ISP1362_REG_HCuPINTENB), isp1362_hcd->irqenb);
+			ISP1362_REG_NO(ISP1362_REG_HCuPINTENB), isp1362_hcd->irqenb);
 	else
+	{
 		isp1362_show_reg(isp1362_hcd, HCuPINTENB);
+	}
+
 	isp1362_show_reg(isp1362_hcd, HCCHIPID);
 	isp1362_show_reg(isp1362_hcd, HCSCRATCH);
 	isp1362_show_reg(isp1362_hcd, HCBUFSTAT);
@@ -898,7 +957,7 @@ static void isp1362_write_diraddr(struct isp1362_hcd *isp1362_hcd, u16 offset, u
 
 	isp1362_clr_mask16(isp1362_hcd, HCDMACFG, HCDMACFG_CTR_ENABLE);
 	isp1362_write_reg32(isp1362_hcd, HCDIRADDR,
-			    HCDIRADDR_ADDR(offset) | HCDIRADDR_COUNT(len));
+						HCDIRADDR_ADDR(offset) | HCDIRADDR_COUNT(len));
 }
 
 static void isp1362_read_buffer(struct isp1362_hcd *isp1362_hcd, void *buf, u16 offset, int len)
@@ -906,7 +965,7 @@ static void isp1362_read_buffer(struct isp1362_hcd *isp1362_hcd, void *buf, u16 
 	isp1362_write_diraddr(isp1362_hcd, offset, len);
 
 	DBG(3, "%s: Reading %d byte from buffer @%04x to memory @ %p\n",
-	    __func__, len, offset, buf);
+		__func__, len, offset, buf);
 
 	isp1362_write_reg16(isp1362_hcd, HCuPINT, HCuPINT_EOT);
 
@@ -921,7 +980,7 @@ static void isp1362_write_buffer(struct isp1362_hcd *isp1362_hcd, void *buf, u16
 	isp1362_write_diraddr(isp1362_hcd, offset, len);
 
 	DBG(3, "%s: Writing %d byte to buffer @%04x from memory @ %p\n",
-	    __func__, len, offset, buf);
+		__func__, len, offset, buf);
 
 	isp1362_write_reg16(isp1362_hcd, HCuPINT, HCuPINT_EOT);
 
@@ -933,29 +992,48 @@ static void isp1362_write_buffer(struct isp1362_hcd *isp1362_hcd, void *buf, u16
 
 static void __attribute__((unused)) dump_data(char *buf, int len)
 {
-	if (dbg_level > 0) {
+	if (dbg_level > 0)
+	{
 		int k;
 		int lf = 0;
 
-		for (k = 0; k < len; ++k) {
+		for (k = 0; k < len; ++k)
+		{
 			if (!lf)
+			{
 				DBG(0, "%04x:", k);
+			}
+
 			printk(" %02x", ((u8 *) buf)[k]);
 			lf = 1;
+
 			if (!k)
+			{
 				continue;
-			if (k % 16 == 15) {
+			}
+
+			if (k % 16 == 15)
+			{
 				printk("\n");
 				lf = 0;
 				continue;
 			}
+
 			if (k % 8 == 7)
+			{
 				printk(" ");
+			}
+
 			if (k % 4 == 3)
+			{
 				printk(" ");
+			}
 		}
+
 		if (lf)
+		{
 			printk("\n");
+		}
 	}
 }
 
@@ -964,18 +1042,20 @@ static void __attribute__((unused)) dump_data(char *buf, int len)
 static void dump_ptd(struct ptd *ptd)
 {
 	DBG(0, "EP %p: CC=%x EP=%d DIR=%x CNT=%d LEN=%d MPS=%d TGL=%x ACT=%x FA=%d SPD=%x SF=%x PR=%x LST=%x\n",
-	    container_of(ptd, struct isp1362_ep, ptd),
-	    PTD_GET_CC(ptd), PTD_GET_EP(ptd), PTD_GET_DIR(ptd),
-	    PTD_GET_COUNT(ptd), PTD_GET_LEN(ptd), PTD_GET_MPS(ptd),
-	    PTD_GET_TOGGLE(ptd), PTD_GET_ACTIVE(ptd), PTD_GET_FA(ptd),
-	    PTD_GET_SPD(ptd), PTD_GET_SF_INT(ptd), PTD_GET_PR(ptd), PTD_GET_LAST(ptd));
+		container_of(ptd, struct isp1362_ep, ptd),
+		PTD_GET_CC(ptd), PTD_GET_EP(ptd), PTD_GET_DIR(ptd),
+		PTD_GET_COUNT(ptd), PTD_GET_LEN(ptd), PTD_GET_MPS(ptd),
+		PTD_GET_TOGGLE(ptd), PTD_GET_ACTIVE(ptd), PTD_GET_FA(ptd),
+		PTD_GET_SPD(ptd), PTD_GET_SF_INT(ptd), PTD_GET_PR(ptd), PTD_GET_LAST(ptd));
 	DBG(0, "  %04x %04x %04x %04x\n", ptd->count, ptd->mps, ptd->len, ptd->faddr);
 }
 
 static void dump_ptd_out_data(struct ptd *ptd, u8 *buf)
 {
-	if (dbg_level > 0) {
-		if (PTD_GET_DIR(ptd) != PTD_DIR_IN && PTD_GET_LEN(ptd)) {
+	if (dbg_level > 0)
+	{
+		if (PTD_GET_DIR(ptd) != PTD_DIR_IN && PTD_GET_LEN(ptd))
+		{
 			DBG(0, "--out->\n");
 			dump_data(buf, PTD_GET_LEN(ptd));
 		}
@@ -984,11 +1064,14 @@ static void dump_ptd_out_data(struct ptd *ptd, u8 *buf)
 
 static void dump_ptd_in_data(struct ptd *ptd, u8 *buf)
 {
-	if (dbg_level > 0) {
-		if (PTD_GET_DIR(ptd) == PTD_DIR_IN && PTD_GET_COUNT(ptd)) {
+	if (dbg_level > 0)
+	{
+		if (PTD_GET_DIR(ptd) == PTD_DIR_IN && PTD_GET_COUNT(ptd))
+		{
 			DBG(0, "<--in--\n");
 			dump_data(buf, PTD_GET_COUNT(ptd));
 		}
+
 		DBG(0, "-----\n");
 	}
 }
@@ -999,7 +1082,8 @@ static void dump_ptd_queue(struct isp1362_ep_queue *epq)
 	int dbg = dbg_level;
 
 	dbg_level = 1;
-	list_for_each_entry(ep, &epq->active, active) {
+	list_for_each_entry(ep, &epq->active, active)
+	{
 		dump_ptd(&ep->ptd);
 		dump_data(ep->data, ep->length);
 	}

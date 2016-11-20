@@ -51,7 +51,8 @@
  * private key, instead requiring the encrypted data and returning the
  * decrypted data.
  */
-struct ecryptfs_session_key {
+struct ecryptfs_session_key
+{
 #define ECRYPTFS_USERSPACE_SHOULD_TRY_TO_DECRYPT 0x00000001
 #define ECRYPTFS_USERSPACE_SHOULD_TRY_TO_ENCRYPT 0x00000002
 #define ECRYPTFS_CONTAINS_DECRYPTED_KEY 0x00000004
@@ -63,7 +64,8 @@ struct ecryptfs_session_key {
 	u8 decrypted_key[ECRYPTFS_MAX_KEY_BYTES];
 };
 
-struct ecryptfs_password {
+struct ecryptfs_password
+{
 	u32 password_bytes;
 	s32 hash_algo;
 	u32 hash_iterations;
@@ -80,7 +82,8 @@ struct ecryptfs_password {
 
 enum ecryptfs_token_types {ECRYPTFS_PASSWORD, ECRYPTFS_PRIVATE_KEY};
 
-struct ecryptfs_private_key {
+struct ecryptfs_private_key
+{
 	u32 key_size;
 	u32 data_len;
 	u8 signature[ECRYPTFS_PASSWORD_SIG_SIZE + 1];
@@ -89,14 +92,16 @@ struct ecryptfs_private_key {
 };
 
 /* May be a password or a private key */
-struct ecryptfs_auth_tok {
+struct ecryptfs_auth_tok
+{
 	u16 version; /* 8-bit major and 8-bit minor */
 	u16 token_type;
 #define ECRYPTFS_ENCRYPT_ONLY 0x00000001
 	u32 flags;
 	struct ecryptfs_session_key session_key;
 	u8 reserved[32];
-	union {
+	union
+	{
 		struct ecryptfs_password password;
 		struct ecryptfs_private_key private_key;
 	} token;

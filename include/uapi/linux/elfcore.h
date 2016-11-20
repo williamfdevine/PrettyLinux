@@ -17,11 +17,11 @@ struct elf_siginfo
 
 
 #ifndef __KERNEL__
-typedef elf_greg_t greg_t;
-typedef elf_gregset_t gregset_t;
-typedef elf_fpregset_t fpregset_t;
-typedef elf_fpxregset_t fpxregset_t;
-#define NGREG ELF_NGREG
+	typedef elf_greg_t greg_t;
+	typedef elf_gregset_t gregset_t;
+	typedef elf_fpregset_t fpregset_t;
+	typedef elf_fpxregset_t fpxregset_t;
+	#define NGREG ELF_NGREG
 #endif
 
 /*
@@ -91,9 +91,9 @@ struct elf_prpsinfo
 };
 
 #ifndef __KERNEL__
-typedef struct elf_prstatus prstatus_t;
-typedef struct elf_prpsinfo prpsinfo_t;
-#define PRARGSZ ELF_PRARGSZ 
+	typedef struct elf_prstatus prstatus_t;
+	typedef struct elf_prpsinfo prpsinfo_t;
+	#define PRARGSZ ELF_PRARGSZ
 #endif
 
 

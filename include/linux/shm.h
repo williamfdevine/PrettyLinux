@@ -7,7 +7,7 @@
 #include <asm/shmparam.h>
 
 struct shmid_kernel /* private to the kernel */
-{	
+{
 	struct kern_ipc_perm	shm_perm;
 	struct file		*shm_file;
 	unsigned long		shm_nattch;
@@ -46,23 +46,25 @@ struct shmid_kernel /* private to the kernel */
 #define SHM_HUGE_1GB    (30 << SHM_HUGE_SHIFT)
 
 #ifdef CONFIG_SYSVIPC
-struct sysv_shm {
+struct sysv_shm
+{
 	struct list_head shm_clist;
 };
 
 long do_shmat(int shmid, char __user *shmaddr, int shmflg, unsigned long *addr,
-	      unsigned long shmlba);
+			  unsigned long shmlba);
 bool is_file_shm_hugepages(struct file *file);
 void exit_shm(struct task_struct *task);
 #define shm_init_task(task) INIT_LIST_HEAD(&(task)->sysvshm.shm_clist)
 #else
-struct sysv_shm {
+struct sysv_shm
+{
 	/* empty */
 };
 
 static inline long do_shmat(int shmid, char __user *shmaddr,
-			    int shmflg, unsigned long *addr,
-			    unsigned long shmlba)
+							int shmflg, unsigned long *addr,
+							unsigned long shmlba)
 {
 	return -ENOSYS;
 }

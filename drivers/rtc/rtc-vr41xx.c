@@ -62,10 +62,10 @@ MODULE_LICENSE("GPL v2");
 #define TCLKCNTHREG		0x06
 /* RFU */
 #define RTCINTREG		0x1e
- #define TCLOCK_INT		0x08
- #define RTCLONG2_INT		0x04
- #define RTCLONG1_INT		0x02
- #define ELAPSEDTIME_INT	0x01
+#define TCLOCK_INT		0x08
+#define RTCLONG2_INT		0x04
+#define RTCLONG1_INT		0x02
+#define ELAPSEDTIME_INT	0x01
 
 #define RTC_FREQUENCY		32768
 #define MAX_PERIODIC_RATE	6553
@@ -95,15 +95,17 @@ static inline unsigned long read_elapsed_second(void)
 
 	unsigned long second_low, second_mid, second_high;
 
-	do {
+	do
+	{
 		first_low = rtc1_read(ETIMELREG);
 		first_mid = rtc1_read(ETIMEMREG);
 		first_high = rtc1_read(ETIMEHREG);
 		second_low = rtc1_read(ETIMELREG);
 		second_mid = rtc1_read(ETIMEMREG);
 		second_high = rtc1_read(ETIMEHREG);
-	} while (first_low != second_low || first_mid != second_mid ||
-		 first_high != second_high);
+	}
+	while (first_low != second_low || first_mid != second_mid ||
+		   first_high != second_high);
 
 	return (first_high << 17) | (first_mid << 1) | (first_low >> 15);
 }
@@ -154,7 +156,7 @@ static int vr41xx_rtc_set_time(struct device *dev, struct rtc_time *time)
 
 	epoch_sec = mktime(epoch, 1, 1, 0, 0, 0);
 	current_sec = mktime(time->tm_year + 1900, time->tm_mon + 1, time->tm_mday,
-			     time->tm_hour, time->tm_min, time->tm_sec);
+						 time->tm_hour, time->tm_min, time->tm_sec);
 
 	write_elapsed_second(current_sec - epoch_sec);
 
@@ -186,19 +188,23 @@ static int vr41xx_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *wkalrm)
 	struct rtc_time *time = &wkalrm->time;
 
 	alarm_sec = mktime(time->tm_year + 1900, time->tm_mon + 1, time->tm_mday,
-			   time->tm_hour, time->tm_min, time->tm_sec);
+					   time->tm_hour, time->tm_min, time->tm_sec);
 
 	spin_lock_irq(&rtc_lock);
 
 	if (alarm_enabled)
+	{
 		disable_irq(aie_irq);
+	}
 
 	rtc1_write(ECMPLREG, (uint16_t)(alarm_sec << 15));
 	rtc1_write(ECMPMREG, (uint16_t)(alarm_sec >> 1));
 	rtc1_write(ECMPHREG, (uint16_t)(alarm_sec >> 17));
 
 	if (wkalrm->enabled)
+	{
 		enable_irq(aie_irq);
+	}
 
 	alarm_enabled = wkalrm->enabled;
 
@@ -209,17 +215,24 @@ static int vr41xx_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *wkalrm)
 
 static int vr41xx_rtc_ioctl(struct device *dev, unsigned int cmd, unsigned long arg)
 {
-	switch (cmd) {
-	case RTC_EPOCH_READ:
-		return put_user(epoch, (unsigned long __user *)arg);
-	case RTC_EPOCH_SET:
-		/* Doesn't support before 1900 */
-		if (arg < 1900)
-			return -EINVAL;
-		epoch = arg;
-		break;
-	default:
-		return -ENOIOCTLCMD;
+	switch (cmd)
+	{
+		case RTC_EPOCH_READ:
+			return put_user(epoch, (unsigned long __user *)arg);
+
+		case RTC_EPOCH_SET:
+
+			/* Doesn't support before 1900 */
+			if (arg < 1900)
+			{
+				return -EINVAL;
+			}
+
+			epoch = arg;
+			break;
+
+		default:
+			return -ENOIOCTLCMD;
 	}
 
 	return 0;
@@ -228,17 +241,24 @@ static int vr41xx_rtc_ioctl(struct device *dev, unsigned int cmd, unsigned long 
 static int vr41xx_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
 {
 	spin_lock_irq(&rtc_lock);
-	if (enabled) {
-		if (!alarm_enabled) {
+
+	if (enabled)
+	{
+		if (!alarm_enabled)
+		{
 			enable_irq(aie_irq);
 			alarm_enabled = 1;
 		}
-	} else {
-		if (alarm_enabled) {
+	}
+	else
+	{
+		if (alarm_enabled)
+		{
 			disable_irq(aie_irq);
 			alarm_enabled = 0;
 		}
 	}
+
 	spin_unlock_irq(&rtc_lock);
 	return 0;
 }
@@ -271,7 +291,8 @@ static irqreturn_t rtclong1_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static const struct rtc_class_ops vr41xx_rtc_ops = {
+static const struct rtc_class_ops vr41xx_rtc_ops =
+{
 	.release		= vr41xx_rtc_release,
 	.ioctl			= vr41xx_rtc_ioctl,
 	.read_time		= vr41xx_rtc_read_time,
@@ -288,31 +309,45 @@ static int rtc_probe(struct platform_device *pdev)
 	int retval;
 
 	if (pdev->num_resources != 4)
+	{
 		return -EBUSY;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (!res)
+	{
 		return -EBUSY;
+	}
 
 	rtc1_base = devm_ioremap(&pdev->dev, res->start, resource_size(res));
+
 	if (!rtc1_base)
+	{
 		return -EBUSY;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-	if (!res) {
+
+	if (!res)
+	{
 		retval = -EBUSY;
 		goto err_rtc1_iounmap;
 	}
 
 	rtc2_base = devm_ioremap(&pdev->dev, res->start, resource_size(res));
-	if (!rtc2_base) {
+
+	if (!rtc2_base)
+	{
 		retval = -EBUSY;
 		goto err_rtc1_iounmap;
 	}
 
 	rtc = devm_rtc_device_register(&pdev->dev, rtc_name, &vr41xx_rtc_ops,
-					THIS_MODULE);
-	if (IS_ERR(rtc)) {
+								   THIS_MODULE);
+
+	if (IS_ERR(rtc))
+	{
 		retval = PTR_ERR(rtc);
 		goto err_iounmap_all;
 	}
@@ -330,26 +365,36 @@ static int rtc_probe(struct platform_device *pdev)
 	spin_unlock_irq(&rtc_lock);
 
 	aie_irq = platform_get_irq(pdev, 0);
-	if (aie_irq <= 0) {
+
+	if (aie_irq <= 0)
+	{
 		retval = -EBUSY;
 		goto err_iounmap_all;
 	}
 
 	retval = devm_request_irq(&pdev->dev, aie_irq, elapsedtime_interrupt, 0,
-				"elapsed_time", pdev);
+							  "elapsed_time", pdev);
+
 	if (retval < 0)
+	{
 		goto err_iounmap_all;
+	}
 
 	pie_irq = platform_get_irq(pdev, 1);
-	if (pie_irq <= 0) {
+
+	if (pie_irq <= 0)
+	{
 		retval = -EBUSY;
 		goto err_iounmap_all;
 	}
 
 	retval = devm_request_irq(&pdev->dev, pie_irq, rtclong1_interrupt, 0,
-				"rtclong1", pdev);
+							  "rtclong1", pdev);
+
 	if (retval < 0)
+	{
 		goto err_iounmap_all;
+	}
 
 	platform_set_drvdata(pdev, rtc);
 
@@ -372,7 +417,8 @@ err_rtc1_iounmap:
 /* work with hotplug and coldplug */
 MODULE_ALIAS("platform:RTC");
 
-static struct platform_driver rtc_platform_driver = {
+static struct platform_driver rtc_platform_driver =
+{
 	.probe		= rtc_probe,
 	.driver		= {
 		.name	= rtc_name,

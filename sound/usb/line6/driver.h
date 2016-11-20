@@ -41,7 +41,7 @@
 
 
 #if LINE6_BUFSIZE_LISTEN > 65535
-#error "Use dynamic fifo instead"
+	#error "Use dynamic fifo instead"
 #endif
 
 /*
@@ -69,11 +69,11 @@
 #define LINE6_CHANNEL_MASK 0x0f
 
 #define CHECK_STARTUP_PROGRESS(x, n)	\
-do {					\
-	if ((x) >= (n))			\
-		return;			\
-	x = (n);			\
-} while (0)
+	do {					\
+		if ((x) >= (n))			\
+			return;			\
+		x = (n);			\
+	} while (0)
 
 extern const unsigned char line6_midi_id[3];
 
@@ -83,7 +83,8 @@ static const int SYSEX_EXTRA_SIZE = sizeof(line6_midi_id) + 4;
 /*
 	 Common properties of Line 6 devices.
 */
-struct line6_properties {
+struct line6_properties
+{
 	/* Card id string (maximum 16 characters).
 	 * This can be used to address the device in ALSA programs as
 	 * "default:CARD=<id>"
@@ -105,7 +106,8 @@ struct line6_properties {
 };
 
 /* Capability bits */
-enum {
+enum
+{
 	/* device supports settings parameter via USB */
 	LINE6_CAP_CONTROL =	1 << 0,
 	/* device supports PCM input/output via USB */
@@ -122,7 +124,8 @@ enum {
 	 Common data shared by all Line 6 devices.
 	 Corresponds to a pair of USB endpoints.
 */
-struct usb_line6 {
+struct usb_line6
+{
 	/* USB device */
 	struct usb_device *usbdev;
 
@@ -167,12 +170,13 @@ struct usb_line6 {
 	int message_length;
 
 	/* Circular buffer for non-MIDI control messages */
-	struct {
+	struct
+	{
 		struct mutex read_lock;
 		wait_queue_head_t wait_queue;
-		unsigned int active:1;
-		STRUCT_KFIFO_REC_2(LINE6_BUFSIZE_LISTEN * LINE6_RAW_MESSAGES_MAXCOUNT)
-			fifo;
+		unsigned int active: 1;
+		STRUCT_KFIFO_REC_2(LINE6_BUFSIZE_LISTEN *LINE6_RAW_MESSAGES_MAXCOUNT)
+		fifo;
 	} messages;
 
 	/* If MIDI is supported, buffer_message contains the pre-processed data;
@@ -183,36 +187,36 @@ struct usb_line6 {
 };
 
 extern char *line6_alloc_sysex_buffer(struct usb_line6 *line6, int code1,
-				      int code2, int size);
+									  int code2, int size);
 extern int line6_read_data(struct usb_line6 *line6, unsigned address,
-			   void *data, unsigned datalen);
+						   void *data, unsigned datalen);
 extern int line6_read_serial_number(struct usb_line6 *line6,
-				    u32 *serial_number);
+									u32 *serial_number);
 extern int line6_send_raw_message_async(struct usb_line6 *line6,
-					const char *buffer, int size);
+										const char *buffer, int size);
 extern int line6_send_sysex_message(struct usb_line6 *line6,
-				    const char *buffer, int size);
+									const char *buffer, int size);
 extern ssize_t line6_set_raw(struct device *dev, struct device_attribute *attr,
-			     const char *buf, size_t count);
+							 const char *buf, size_t count);
 extern void line6_start_timer(struct timer_list *timer, unsigned long msecs,
-			      void (*function)(unsigned long),
-			      unsigned long data);
+							  void (*function)(unsigned long),
+							  unsigned long data);
 extern int line6_version_request_async(struct usb_line6 *line6);
 extern int line6_write_data(struct usb_line6 *line6, unsigned address,
-			    void *data, unsigned datalen);
+							void *data, unsigned datalen);
 
 int line6_probe(struct usb_interface *interface,
-		const struct usb_device_id *id,
-		const char *driver_name,
-		const struct line6_properties *properties,
-		int (*private_init)(struct usb_line6 *, const struct usb_device_id *id),
-		size_t data_size);
+				const struct usb_device_id *id,
+				const char *driver_name,
+				const struct line6_properties *properties,
+				int (*private_init)(struct usb_line6 *, const struct usb_device_id *id),
+				size_t data_size);
 
 void line6_disconnect(struct usb_interface *interface);
 
 #ifdef CONFIG_PM
-int line6_suspend(struct usb_interface *interface, pm_message_t message);
-int line6_resume(struct usb_interface *interface);
+	int line6_suspend(struct usb_interface *interface, pm_message_t message);
+	int line6_resume(struct usb_interface *interface);
 #endif
 
 #endif

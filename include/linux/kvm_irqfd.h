@@ -27,7 +27,8 @@
  * together, so we don't need to track the state of each individual
  * user.  We can also therefore share the same irq source ID.
  */
-struct kvm_kernel_irqfd_resampler {
+struct kvm_kernel_irqfd_resampler
+{
 	struct kvm *kvm;
 	/*
 	 * List of resampling struct _irqfd objects sharing this gsi.
@@ -43,7 +44,8 @@ struct kvm_kernel_irqfd_resampler {
 	struct list_head link;
 };
 
-struct kvm_kernel_irqfd {
+struct kvm_kernel_irqfd
+{
 	/* Used for MSI fast-path */
 	struct kvm *kvm;
 	wait_queue_t wait;

@@ -26,39 +26,45 @@
 #define KERNEL_SEQNUM_MAX	((u32)~0)
 
 /* for clock source and sampling rate */
-struct efc_clock {
+struct efc_clock
+{
 	u32 source;
 	u32 sampling_rate;
 	u32 index;
 };
 
 /* command categories */
-enum efc_category {
+enum efc_category
+{
 	EFC_CAT_HWINFO		= 0,
 	EFC_CAT_TRANSPORT	= 2,
 	EFC_CAT_HWCTL		= 3,
 };
 
 /* hardware info category commands */
-enum efc_cmd_hwinfo {
+enum efc_cmd_hwinfo
+{
 	EFC_CMD_HWINFO_GET_CAPS		= 0,
 	EFC_CMD_HWINFO_GET_POLLED	= 1,
 	EFC_CMD_HWINFO_SET_RESP_ADDR	= 2
 };
 
-enum efc_cmd_transport {
+enum efc_cmd_transport
+{
 	EFC_CMD_TRANSPORT_SET_TX_MODE	= 0
 };
 
 /* hardware control category commands */
-enum efc_cmd_hwctl {
+enum efc_cmd_hwctl
+{
 	EFC_CMD_HWCTL_SET_CLOCK		= 0,
 	EFC_CMD_HWCTL_GET_CLOCK		= 1,
 	EFC_CMD_HWCTL_IDENTIFY		= 5
 };
 
 /* return values in response */
-enum efr_status {
+enum efr_status
+{
 	EFR_STATUS_OK			= 0,
 	EFR_STATUS_BAD			= 1,
 	EFR_STATUS_BAD_COMMAND		= 2,
@@ -78,7 +84,8 @@ enum efr_status {
 	EFR_STATUS_INCOMPLETE		= 0x80000000
 };
 
-static const char *const efr_status_names[] = {
+static const char *const efr_status_names[] =
+{
 	[EFR_STATUS_OK]			= "OK",
 	[EFR_STATUS_BAD]		= "bad",
 	[EFR_STATUS_BAD_COMMAND]	= "bad command",
@@ -100,9 +107,9 @@ static const char *const efr_status_names[] = {
 
 static int
 efw_transaction(struct snd_efw *efw, unsigned int category,
-		unsigned int command,
-		const __be32 *params, unsigned int param_bytes,
-		const __be32 *resp, unsigned int resp_bytes)
+				unsigned int command,
+				const __be32 *params, unsigned int param_bytes,
+				const __be32 *resp, unsigned int resp_bytes)
 {
 	struct snd_efw_transaction *header;
 	__be32 *buf;
@@ -112,20 +119,29 @@ efw_transaction(struct snd_efw *efw, unsigned int category,
 
 	/* calculate buffer size*/
 	buf_bytes = sizeof(struct snd_efw_transaction) +
-		    max(param_bytes, resp_bytes);
+				max(param_bytes, resp_bytes);
 
 	/* keep buffer */
 	buf = kzalloc(buf_bytes, GFP_KERNEL);
+
 	if (buf == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	/* to keep consistency of sequence number */
 	spin_lock(&efw->lock);
+
 	if ((efw->seqnum < KERNEL_SEQNUM_MIN) ||
-	    (efw->seqnum >= KERNEL_SEQNUM_MAX - 2))
+		(efw->seqnum >= KERNEL_SEQNUM_MAX - 2))
+	{
 		efw->seqnum = KERNEL_SEQNUM_MIN;
+	}
 	else
+	{
 		efw->seqnum += 2;
+	}
+
 	seqnum = efw->seqnum;
 	spin_unlock(&efw->lock);
 
@@ -143,31 +159,37 @@ efw_transaction(struct snd_efw *efw, unsigned int category,
 	memcpy(header->params, params, param_bytes);
 
 	err = snd_efw_transaction_run(efw->unit, buf, cmd_bytes,
-				      buf, buf_bytes);
+								  buf, buf_bytes);
+
 	if (err < 0)
+	{
 		goto end;
+	}
 
 	/* check transaction header fields */
 	if ((be32_to_cpu(header->version) < 1) ||
-	    (be32_to_cpu(header->category) != category) ||
-	    (be32_to_cpu(header->command) != command) ||
-	    (be32_to_cpu(header->status) != EFR_STATUS_OK)) {
+		(be32_to_cpu(header->category) != category) ||
+		(be32_to_cpu(header->command) != command) ||
+		(be32_to_cpu(header->status) != EFR_STATUS_OK))
+	{
 		dev_err(&efw->unit->device, "EFW command failed [%u/%u]: %s\n",
-			be32_to_cpu(header->category),
-			be32_to_cpu(header->command),
-			efr_status_names[be32_to_cpu(header->status)]);
+				be32_to_cpu(header->category),
+				be32_to_cpu(header->command),
+				efr_status_names[be32_to_cpu(header->status)]);
 		err = -EIO;
 		goto end;
 	}
 
 	if (resp == NULL)
+	{
 		goto end;
+	}
 
 	/* fill transaction response parameters */
 	memset((void *)resp, 0, resp_bytes);
 	resp_bytes = min_t(unsigned int, resp_bytes,
-			   be32_to_cpu(header->length) * sizeof(__be32) -
-				sizeof(struct snd_efw_transaction));
+					   be32_to_cpu(header->length) * sizeof(__be32) -
+					   sizeof(struct snd_efw_transaction));
 	memcpy((void *)resp, &buf[6], resp_bytes);
 end:
 	kfree(buf);
@@ -180,7 +202,7 @@ end:
  * MEMORY_SPACE_EFW_RESPONSE.
  */
 int snd_efw_command_set_resp_addr(struct snd_efw *efw,
-				  u16 addr_high, u32 addr_low)
+								  u16 addr_high, u32 addr_low)
 {
 	__be32 addr[2];
 
@@ -188,11 +210,13 @@ int snd_efw_command_set_resp_addr(struct snd_efw *efw,
 	addr[1] = cpu_to_be32(addr_low);
 
 	if (!efw->resp_addr_changable)
+	{
 		return -ENOSYS;
+	}
 
 	return efw_transaction(efw, EFC_CAT_HWCTL,
-			       EFC_CMD_HWINFO_SET_RESP_ADDR,
-			       addr, sizeof(addr), NULL, 0);
+						   EFC_CMD_HWINFO_SET_RESP_ADDR,
+						   addr, sizeof(addr), NULL, 0);
 }
 
 /*
@@ -201,24 +225,27 @@ int snd_efw_command_set_resp_addr(struct snd_efw *efw,
  * 'no data' packet the value of this field is 0x90ffffff.
  */
 int snd_efw_command_set_tx_mode(struct snd_efw *efw,
-				enum snd_efw_transport_mode mode)
+								enum snd_efw_transport_mode mode)
 {
 	__be32 param = cpu_to_be32(mode);
 	return efw_transaction(efw, EFC_CAT_TRANSPORT,
-			       EFC_CMD_TRANSPORT_SET_TX_MODE,
-			       &param, sizeof(param), NULL, 0);
+						   EFC_CMD_TRANSPORT_SET_TX_MODE,
+						   &param, sizeof(param), NULL, 0);
 }
 
 int snd_efw_command_get_hwinfo(struct snd_efw *efw,
-			       struct snd_efw_hwinfo *hwinfo)
+							   struct snd_efw_hwinfo *hwinfo)
 {
 	int err;
 
 	err  = efw_transaction(efw, EFC_CAT_HWINFO,
-			       EFC_CMD_HWINFO_GET_CAPS,
-			       NULL, 0, (__be32 *)hwinfo, sizeof(*hwinfo));
+						   EFC_CMD_HWINFO_GET_CAPS,
+						   NULL, 0, (__be32 *)hwinfo, sizeof(*hwinfo));
+
 	if (err < 0)
+	{
 		goto end;
+	}
 
 	be32_to_cpus(&hwinfo->flags);
 	be32_to_cpus(&hwinfo->guid_hi);
@@ -254,19 +281,22 @@ end:
 }
 
 int snd_efw_command_get_phys_meters(struct snd_efw *efw,
-				    struct snd_efw_phys_meters *meters,
-				    unsigned int len)
+									struct snd_efw_phys_meters *meters,
+									unsigned int len)
 {
 	u32 *buf = (u32 *)meters;
 	unsigned int i;
 	int err;
 
 	err = efw_transaction(efw, EFC_CAT_HWINFO,
-			      EFC_CMD_HWINFO_GET_POLLED,
-			      NULL, 0, (__be32 *)meters, len);
+						  EFC_CMD_HWINFO_GET_POLLED,
+						  NULL, 0, (__be32 *)meters, len);
+
 	if (err >= 0)
 		for (i = 0; i < len / sizeof(u32); i++)
+		{
 			be32_to_cpus(&buf[i]);
+		}
 
 	return err;
 }
@@ -277,10 +307,12 @@ command_get_clock(struct snd_efw *efw, struct efc_clock *clock)
 	int err;
 
 	err = efw_transaction(efw, EFC_CAT_HWCTL,
-			      EFC_CMD_HWCTL_GET_CLOCK,
-			      NULL, 0,
-			      (__be32 *)clock, sizeof(struct efc_clock));
-	if (err >= 0) {
+						  EFC_CMD_HWCTL_GET_CLOCK,
+						  NULL, 0,
+						  (__be32 *)clock, sizeof(struct efc_clock));
+
+	if (err >= 0)
+	{
 		be32_to_cpus(&clock->source);
 		be32_to_cpus(&clock->sampling_rate);
 		be32_to_cpus(&clock->index);
@@ -292,31 +324,43 @@ command_get_clock(struct snd_efw *efw, struct efc_clock *clock)
 /* give UINT_MAX if set nothing */
 static int
 command_set_clock(struct snd_efw *efw,
-		  unsigned int source, unsigned int rate)
+				  unsigned int source, unsigned int rate)
 {
 	struct efc_clock clock = {0};
 	int err;
 
 	/* check arguments */
-	if ((source == UINT_MAX) && (rate == UINT_MAX)) {
+	if ((source == UINT_MAX) && (rate == UINT_MAX))
+	{
 		err = -EINVAL;
 		goto end;
 	}
 
 	/* get current status */
 	err = command_get_clock(efw, &clock);
+
 	if (err < 0)
+	{
 		goto end;
+	}
 
 	/* no need */
 	if ((clock.source == source) && (clock.sampling_rate == rate))
+	{
 		goto end;
+	}
 
 	/* set params */
 	if ((source != UINT_MAX) && (clock.source != source))
+	{
 		clock.source = source;
+	}
+
 	if ((rate != UINT_MAX) && (clock.sampling_rate != rate))
+	{
 		clock.sampling_rate = rate;
+	}
+
 	clock.index = 0;
 
 	cpu_to_be32s(&clock.source);
@@ -324,11 +368,14 @@ command_set_clock(struct snd_efw *efw,
 	cpu_to_be32s(&clock.index);
 
 	err = efw_transaction(efw, EFC_CAT_HWCTL,
-			      EFC_CMD_HWCTL_SET_CLOCK,
-			      (__be32 *)&clock, sizeof(struct efc_clock),
-			      NULL, 0);
+						  EFC_CMD_HWCTL_SET_CLOCK,
+						  (__be32 *)&clock, sizeof(struct efc_clock),
+						  NULL, 0);
+
 	if (err < 0)
+	{
 		goto end;
+	}
 
 	/*
 	 * With firmware version 5.8, just after changing clock state, these
@@ -341,14 +388,17 @@ end:
 }
 
 int snd_efw_command_get_clock_source(struct snd_efw *efw,
-				     enum snd_efw_clock_source *source)
+									 enum snd_efw_clock_source *source)
 {
 	int err;
 	struct efc_clock clock = {0};
 
 	err = command_get_clock(efw, &clock);
+
 	if (err >= 0)
+	{
 		*source = clock.source;
+	}
 
 	return err;
 }
@@ -359,8 +409,11 @@ int snd_efw_command_get_sampling_rate(struct snd_efw *efw, unsigned int *rate)
 	struct efc_clock clock = {0};
 
 	err = command_get_clock(efw, &clock);
+
 	if (err >= 0)
+	{
 		*rate = clock.sampling_rate;
+	}
 
 	return err;
 }

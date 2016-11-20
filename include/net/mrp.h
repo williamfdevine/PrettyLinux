@@ -3,23 +3,27 @@
 
 #define MRP_END_MARK		0x0
 
-struct mrp_pdu_hdr {
+struct mrp_pdu_hdr
+{
 	u8	version;
 };
 
-struct mrp_msg_hdr {
+struct mrp_msg_hdr
+{
 	u8	attrtype;
 	u8	attrlen;
 };
 
-struct mrp_vecattr_hdr {
+struct mrp_vecattr_hdr
+{
 	__be16	lenflags;
 	unsigned char	firstattrvalue[];
 #define MRP_VECATTR_HDR_LEN_MASK cpu_to_be16(0x1FFF)
 #define MRP_VECATTR_HDR_FLAG_LA cpu_to_be16(0x2000)
 };
 
-enum mrp_vecattr_event {
+enum mrp_vecattr_event
+{
 	MRP_VECATTR_EVENT_NEW,
 	MRP_VECATTR_EVENT_JOIN_IN,
 	MRP_VECATTR_EVENT_IN,
@@ -29,7 +33,8 @@ enum mrp_vecattr_event {
 	__MRP_VECATTR_EVENT_MAX
 };
 
-struct mrp_skb_cb {
+struct mrp_skb_cb
+{
 	struct mrp_msg_hdr	*mh;
 	struct mrp_vecattr_hdr	*vah;
 	unsigned char		attrvalue[];
@@ -38,11 +43,12 @@ struct mrp_skb_cb {
 static inline struct mrp_skb_cb *mrp_cb(struct sk_buff *skb)
 {
 	BUILD_BUG_ON(sizeof(struct mrp_skb_cb) >
-		     FIELD_SIZEOF(struct sk_buff, cb));
+				 FIELD_SIZEOF(struct sk_buff, cb));
 	return (struct mrp_skb_cb *)skb->cb;
 }
 
-enum mrp_applicant_state {
+enum mrp_applicant_state
+{
 	MRP_APPLICANT_INVALID,
 	MRP_APPLICANT_VO,
 	MRP_APPLICANT_VP,
@@ -59,7 +65,8 @@ enum mrp_applicant_state {
 };
 #define MRP_APPLICANT_MAX	(__MRP_APPLICANT_MAX - 1)
 
-enum mrp_event {
+enum mrp_event
+{
 	MRP_EVENT_NEW,
 	MRP_EVENT_JOIN,
 	MRP_EVENT_LV,
@@ -77,7 +84,8 @@ enum mrp_event {
 };
 #define MRP_EVENT_MAX		(__MRP_EVENT_MAX - 1)
 
-enum mrp_tx_action {
+enum mrp_tx_action
+{
 	MRP_TX_ACTION_NONE,
 	MRP_TX_ACTION_S_NEW,
 	MRP_TX_ACTION_S_JOIN_IN,
@@ -86,7 +94,8 @@ enum mrp_tx_action {
 	MRP_TX_ACTION_S_LV,
 };
 
-struct mrp_attr {
+struct mrp_attr
+{
 	struct rb_node			node;
 	enum mrp_applicant_state	state;
 	u8				type;
@@ -94,13 +103,15 @@ struct mrp_attr {
 	unsigned char			value[];
 };
 
-enum mrp_applications {
+enum mrp_applications
+{
 	MRP_APPLICATION_MVRP,
 	__MRP_APPLICATION_MAX
 };
 #define MRP_APPLICATION_MAX	(__MRP_APPLICATION_MAX - 1)
 
-struct mrp_application {
+struct mrp_application
+{
 	enum mrp_applications	type;
 	unsigned int		maxattr;
 	struct packet_type	pkttype;
@@ -108,7 +119,8 @@ struct mrp_application {
 	u8			version;
 };
 
-struct mrp_applicant {
+struct mrp_applicant
+{
 	struct mrp_application	*app;
 	struct net_device	*dev;
 	struct timer_list	join_timer;
@@ -121,7 +133,8 @@ struct mrp_applicant {
 	struct rcu_head		rcu;
 };
 
-struct mrp_port {
+struct mrp_port
+{
 	struct mrp_applicant __rcu	*applicants[MRP_APPLICATION_MAX + 1];
 	struct rcu_head			rcu;
 };
@@ -133,10 +146,10 @@ int mrp_init_applicant(struct net_device *dev, struct mrp_application *app);
 void mrp_uninit_applicant(struct net_device *dev, struct mrp_application *app);
 
 int mrp_request_join(const struct net_device *dev,
-		     const struct mrp_application *app,
-		     const void *value, u8 len, u8 type);
+					 const struct mrp_application *app,
+					 const void *value, u8 len, u8 type);
 void mrp_request_leave(const struct net_device *dev,
-		       const struct mrp_application *app,
-		       const void *value, u8 len, u8 type);
+					   const struct mrp_application *app,
+					   const void *value, u8 len, u8 type);
 
 #endif /* _NET_MRP_H */

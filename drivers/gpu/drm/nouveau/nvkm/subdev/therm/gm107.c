@@ -55,7 +55,8 @@ gm107_fan_pwm_clock(struct nvkm_therm *therm, int line)
 }
 
 static const struct nvkm_therm_func
-gm107_therm = {
+	gm107_therm =
+{
 	.init = gf119_therm_init,
 	.fini = g84_therm_fini,
 	.pwm_ctrl = gm107_fan_pwm_ctrl,
@@ -69,7 +70,7 @@ gm107_therm = {
 
 int
 gm107_therm_new(struct nvkm_device *device, int index,
-		struct nvkm_therm **ptherm)
+				struct nvkm_therm **ptherm)
 {
 	return nvkm_therm_new_(&gm107_therm, device, index, ptherm);
 }

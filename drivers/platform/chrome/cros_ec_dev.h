@@ -33,7 +33,8 @@
  * @buffer: where to store the result
  * ioctl returns the number of bytes read, negative on error
  */
-struct cros_ec_readmem {
+struct cros_ec_readmem
+{
 	uint32_t offset;
 	uint32_t bytes;
 	uint8_t buffer[EC_MEMMAP_SIZE];

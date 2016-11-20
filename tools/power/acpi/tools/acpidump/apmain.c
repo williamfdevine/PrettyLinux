@@ -112,8 +112,8 @@ static void ap_display_usage(void)
 	ACPI_OPTION("-x -x", "Do not use or dump XSDT");
 
 	ACPI_USAGE_TEXT("\n"
-			"Invocation without parameters dumps all available tables\n"
-			"Multiple mixed instances of -a, -f, and -n are supported\n\n");
+					"Invocation without parameters dumps all available tables\n"
+					"Multiple mixed instances of -a, -f, and -n are supported\n\n");
 }
 
 /******************************************************************************
@@ -138,9 +138,11 @@ static int ap_insert_action(char *argument, u32 to_be_done)
 	action_table[current_action].to_be_done = to_be_done;
 
 	current_action++;
-	if (current_action > AP_MAX_ACTIONS) {
+
+	if (current_action > AP_MAX_ACTIONS)
+	{
 		fprintf(stderr, "Too many table options (max %u)\n",
-			AP_MAX_ACTIONS);
+				AP_MAX_ACTIONS);
 		return (-1);
 	}
 
@@ -168,119 +170,143 @@ static int ap_do_options(int argc, char **argv)
 	/* Command line options */
 
 	while ((j =
-		acpi_getopt(argc, argv, AP_SUPPORTED_OPTIONS)) != ACPI_OPT_END)
-		switch (j) {
+				acpi_getopt(argc, argv, AP_SUPPORTED_OPTIONS)) != ACPI_OPT_END)
+		switch (j)
+		{
 			/*
 			 * Global options
 			 */
-		case 'b':	/* Dump all input tables to binary files */
+			case 'b':	/* Dump all input tables to binary files */
 
-			gbl_binary_mode = TRUE;
-			continue;
+				gbl_binary_mode = TRUE;
+				continue;
 
-		case 'c':	/* Dump customized tables */
+			case 'c':	/* Dump customized tables */
 
-			if (!strcmp(acpi_gbl_optarg, "on")) {
-				gbl_dump_customized_tables = TRUE;
-			} else if (!strcmp(acpi_gbl_optarg, "off")) {
-				gbl_dump_customized_tables = FALSE;
-			} else {
-				fprintf(stderr,
-					"%s: Cannot handle this switch, please use on|off\n",
-					acpi_gbl_optarg);
-				return (-1);
-			}
-			continue;
+				if (!strcmp(acpi_gbl_optarg, "on"))
+				{
+					gbl_dump_customized_tables = TRUE;
+				}
+				else if (!strcmp(acpi_gbl_optarg, "off"))
+				{
+					gbl_dump_customized_tables = FALSE;
+				}
+				else
+				{
+					fprintf(stderr,
+							"%s: Cannot handle this switch, please use on|off\n",
+							acpi_gbl_optarg);
+					return (-1);
+				}
 
-		case 'h':
-		case '?':
+				continue;
 
-			ap_display_usage();
-			return (1);
+			case 'h':
+			case '?':
 
-		case 'o':	/* Redirect output to a single file */
+				ap_display_usage();
+				return (1);
 
-			if (ap_open_output_file(acpi_gbl_optarg)) {
-				return (-1);
-			}
-			continue;
+			case 'o':	/* Redirect output to a single file */
 
-		case 'r':	/* Dump tables from specified RSDP */
+				if (ap_open_output_file(acpi_gbl_optarg))
+				{
+					return (-1);
+				}
 
-			status =
-			    acpi_ut_strtoul64(acpi_gbl_optarg,
-					      ACPI_STRTOUL_64BIT,
-					      &gbl_rsdp_base);
-			if (ACPI_FAILURE(status)) {
-				fprintf(stderr,
-					"%s: Could not convert to a physical address\n",
-					acpi_gbl_optarg);
-				return (-1);
-			}
-			continue;
+				continue;
 
-		case 's':	/* Print table summaries only */
+			case 'r':	/* Dump tables from specified RSDP */
 
-			gbl_summary_mode = TRUE;
-			continue;
+				status =
+					acpi_ut_strtoul64(acpi_gbl_optarg,
+									  ACPI_STRTOUL_64BIT,
+									  &gbl_rsdp_base);
 
-		case 'x':	/* Do not use XSDT */
+				if (ACPI_FAILURE(status))
+				{
+					fprintf(stderr,
+							"%s: Could not convert to a physical address\n",
+							acpi_gbl_optarg);
+					return (-1);
+				}
 
-			if (!acpi_gbl_do_not_use_xsdt) {
-				acpi_gbl_do_not_use_xsdt = TRUE;
-			} else {
-				gbl_do_not_dump_xsdt = TRUE;
-			}
-			continue;
+				continue;
 
-		case 'v':	/* Revision/version */
+			case 's':	/* Print table summaries only */
 
-			acpi_os_printf(ACPI_COMMON_SIGNON(AP_UTILITY_NAME));
-			return (1);
+				gbl_summary_mode = TRUE;
+				continue;
 
-		case 'z':	/* Verbose mode */
+			case 'x':	/* Do not use XSDT */
 
-			gbl_verbose_mode = TRUE;
-			fprintf(stderr, ACPI_COMMON_SIGNON(AP_UTILITY_NAME));
-			continue;
+				if (!acpi_gbl_do_not_use_xsdt)
+				{
+					acpi_gbl_do_not_use_xsdt = TRUE;
+				}
+				else
+				{
+					gbl_do_not_dump_xsdt = TRUE;
+				}
+
+				continue;
+
+			case 'v':	/* Revision/version */
+
+				acpi_os_printf(ACPI_COMMON_SIGNON(AP_UTILITY_NAME));
+				return (1);
+
+			case 'z':	/* Verbose mode */
+
+				gbl_verbose_mode = TRUE;
+				fprintf(stderr, ACPI_COMMON_SIGNON(AP_UTILITY_NAME));
+				continue;
 
 			/*
 			 * Table options
 			 */
-		case 'a':	/* Get table by physical address */
+			case 'a':	/* Get table by physical address */
 
-			if (ap_insert_action
-			    (acpi_gbl_optarg, AP_DUMP_TABLE_BY_ADDRESS)) {
+				if (ap_insert_action
+					(acpi_gbl_optarg, AP_DUMP_TABLE_BY_ADDRESS))
+				{
+					return (-1);
+				}
+
+				break;
+
+			case 'f':	/* Get table from a file */
+
+				if (ap_insert_action
+					(acpi_gbl_optarg, AP_DUMP_TABLE_BY_FILE))
+				{
+					return (-1);
+				}
+
+				break;
+
+			case 'n':	/* Get table by input name (signature) */
+
+				if (ap_insert_action
+					(acpi_gbl_optarg, AP_DUMP_TABLE_BY_NAME))
+				{
+					return (-1);
+				}
+
+				break;
+
+			default:
+
+				ap_display_usage();
 				return (-1);
-			}
-			break;
-
-		case 'f':	/* Get table from a file */
-
-			if (ap_insert_action
-			    (acpi_gbl_optarg, AP_DUMP_TABLE_BY_FILE)) {
-				return (-1);
-			}
-			break;
-
-		case 'n':	/* Get table by input name (signature) */
-
-			if (ap_insert_action
-			    (acpi_gbl_optarg, AP_DUMP_TABLE_BY_NAME)) {
-				return (-1);
-			}
-			break;
-
-		default:
-
-			ap_display_usage();
-			return (-1);
 		}
 
 	/* If there are no actions, this means "get/dump all tables" */
 
-	if (current_action == 0) {
-		if (ap_insert_action(NULL, AP_DUMP_ALL_TABLES)) {
+	if (current_action == 0)
+	{
+		if (ap_insert_action(NULL, AP_DUMP_ALL_TABLES))
+		{
 			return (-1);
 		}
 	}
@@ -301,9 +327,9 @@ static int ap_do_options(int argc, char **argv)
  ******************************************************************************/
 
 #ifndef _GNU_EFI
-int ACPI_SYSTEM_XFACE main(int argc, char *argv[])
+	int ACPI_SYSTEM_XFACE main(int argc, char *argv[])
 #else
-int ACPI_SYSTEM_XFACE acpi_main(int argc, char *argv[])
+	int ACPI_SYSTEM_XFACE acpi_main(int argc, char *argv[])
 #endif
 {
 	int status = 0;
@@ -319,60 +345,70 @@ int ACPI_SYSTEM_XFACE acpi_main(int argc, char *argv[])
 	/* Process command line options */
 
 	status = ap_do_options(argc, argv);
-	if (status > 0) {
+
+	if (status > 0)
+	{
 		return (0);
 	}
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		return (status);
 	}
 
 	/* Get/dump ACPI table(s) as requested */
 
-	for (i = 0; i < current_action; i++) {
+	for (i = 0; i < current_action; i++)
+	{
 		action = &action_table[i];
-		switch (action->to_be_done) {
-		case AP_DUMP_ALL_TABLES:
 
-			status = ap_dump_all_tables();
-			break;
+		switch (action->to_be_done)
+		{
+			case AP_DUMP_ALL_TABLES:
 
-		case AP_DUMP_TABLE_BY_ADDRESS:
+				status = ap_dump_all_tables();
+				break;
 
-			status = ap_dump_table_by_address(action->argument);
-			break;
+			case AP_DUMP_TABLE_BY_ADDRESS:
 
-		case AP_DUMP_TABLE_BY_NAME:
+				status = ap_dump_table_by_address(action->argument);
+				break;
 
-			status = ap_dump_table_by_name(action->argument);
-			break;
+			case AP_DUMP_TABLE_BY_NAME:
 
-		case AP_DUMP_TABLE_BY_FILE:
+				status = ap_dump_table_by_name(action->argument);
+				break;
 
-			status = ap_dump_table_from_file(action->argument);
-			break;
+			case AP_DUMP_TABLE_BY_FILE:
 
-		default:
+				status = ap_dump_table_from_file(action->argument);
+				break;
 
-			fprintf(stderr,
-				"Internal error, invalid action: 0x%X\n",
-				action->to_be_done);
-			return (-1);
+			default:
+
+				fprintf(stderr,
+						"Internal error, invalid action: 0x%X\n",
+						action->to_be_done);
+				return (-1);
 		}
 
-		if (status) {
+		if (status)
+		{
 			return (status);
 		}
 	}
 
-	if (gbl_output_filename) {
-		if (gbl_verbose_mode) {
+	if (gbl_output_filename)
+	{
+		if (gbl_verbose_mode)
+		{
 
 			/* Summary for the output file */
 
 			file_size = cm_get_file_size(gbl_output_file);
 			fprintf(stderr,
-				"Output file %s contains 0x%X (%u) bytes\n\n",
-				gbl_output_filename, file_size, file_size);
+					"Output file %s contains 0x%X (%u) bytes\n\n",
+					gbl_output_filename, file_size, file_size);
 		}
 
 		fclose(gbl_output_file);

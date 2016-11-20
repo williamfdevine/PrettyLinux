@@ -77,7 +77,7 @@ void fsnotify_clear_inode_marks_by_group(struct fsnotify_group *group)
  * if found take a reference to that mark and return it, else return NULL
  */
 struct fsnotify_mark *fsnotify_find_inode_mark(struct fsnotify_group *group,
-					       struct inode *inode)
+		struct inode *inode)
 {
 	struct fsnotify_mark *mark;
 
@@ -93,15 +93,16 @@ struct fsnotify_mark *fsnotify_find_inode_mark(struct fsnotify_group *group,
  * in memory.
  */
 void fsnotify_set_inode_mark_mask_locked(struct fsnotify_mark *mark,
-					 __u32 mask)
+		__u32 mask)
 {
 	struct inode *inode;
 
 	assert_spin_locked(&mark->lock);
 
 	if (mask &&
-	    mark->inode &&
-	    !(mark->flags & FSNOTIFY_MARK_FLAG_OBJECT_PINNED)) {
+		mark->inode &&
+		!(mark->flags & FSNOTIFY_MARK_FLAG_OBJECT_PINNED))
+	{
 		mark->flags |= FSNOTIFY_MARK_FLAG_OBJECT_PINNED;
 		inode = igrab(mark->inode);
 		/*
@@ -121,8 +122,8 @@ void fsnotify_set_inode_mark_mask_locked(struct fsnotify_mark *mark,
  * the group's location in memory.
  */
 int fsnotify_add_inode_mark(struct fsnotify_mark *mark,
-			    struct fsnotify_group *group, struct inode *inode,
-			    int allow_dups)
+							struct fsnotify_group *group, struct inode *inode,
+							int allow_dups)
 {
 	int ret;
 
@@ -134,7 +135,7 @@ int fsnotify_add_inode_mark(struct fsnotify_mark *mark,
 	spin_lock(&inode->i_lock);
 	mark->inode = inode;
 	ret = fsnotify_add_mark_list(&inode->i_fsnotify_marks, mark,
-				     allow_dups);
+								 allow_dups);
 	inode->i_fsnotify_mask = fsnotify_recalc_mask(&inode->i_fsnotify_marks);
 	spin_unlock(&inode->i_lock);
 
@@ -153,7 +154,8 @@ void fsnotify_unmount_inodes(struct super_block *sb)
 	struct inode *inode, *next_i, *need_iput = NULL;
 
 	spin_lock(&sb->s_inode_list_lock);
-	list_for_each_entry_safe(inode, next_i, &sb->s_inodes, i_sb_list) {
+	list_for_each_entry_safe(inode, next_i, &sb->s_inodes, i_sb_list)
+	{
 		struct inode *need_iput_tmp;
 
 		/*
@@ -162,7 +164,9 @@ void fsnotify_unmount_inodes(struct super_block *sb)
 		 * the inode cannot have any associated watches.
 		 */
 		spin_lock(&inode->i_lock);
-		if (inode->i_state & (I_FREEING|I_WILL_FREE|I_NEW)) {
+
+		if (inode->i_state & (I_FREEING | I_WILL_FREE | I_NEW))
+		{
 			spin_unlock(&inode->i_lock);
 			continue;
 		}
@@ -173,7 +177,8 @@ void fsnotify_unmount_inodes(struct super_block *sb)
 		 * evict all inodes with zero i_count from icache which is
 		 * unnecessarily violent and may in fact be illegal to do.
 		 */
-		if (!atomic_read(&inode->i_count)) {
+		if (!atomic_read(&inode->i_count))
+		{
 			spin_unlock(&inode->i_lock);
 			continue;
 		}
@@ -183,21 +188,30 @@ void fsnotify_unmount_inodes(struct super_block *sb)
 
 		/* In case fsnotify_inode_delete() drops a reference. */
 		if (inode != need_iput_tmp)
+		{
 			__iget(inode);
+		}
 		else
+		{
 			need_iput_tmp = NULL;
+		}
+
 		spin_unlock(&inode->i_lock);
 
 		/* In case the dropping of a reference would nuke next_i. */
-		while (&next_i->i_sb_list != &sb->s_inodes) {
+		while (&next_i->i_sb_list != &sb->s_inodes)
+		{
 			spin_lock(&next_i->i_lock);
+
 			if (!(next_i->i_state & (I_FREEING | I_WILL_FREE)) &&
-						atomic_read(&next_i->i_count)) {
+				atomic_read(&next_i->i_count))
+			{
 				__iget(next_i);
 				need_iput = next_i;
 				spin_unlock(&next_i->i_lock);
 				break;
 			}
+
 			spin_unlock(&next_i->i_lock);
 			next_i = list_next_entry(next_i, i_sb_list);
 		}
@@ -211,7 +225,9 @@ void fsnotify_unmount_inodes(struct super_block *sb)
 		spin_unlock(&sb->s_inode_list_lock);
 
 		if (need_iput_tmp)
+		{
 			iput(need_iput_tmp);
+		}
 
 		/* for each watch, send FS_UNMOUNT and then remove it */
 		fsnotify(inode, FS_UNMOUNT, inode, FSNOTIFY_EVENT_INODE, NULL, 0);

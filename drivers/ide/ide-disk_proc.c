@@ -45,9 +45,14 @@ static int idedisk_cache_proc_show(struct seq_file *m, void *v)
 	ide_drive_t	*drive = (ide_drive_t *) m->private;
 
 	if (drive->dev_flags & IDE_DFLAG_ID_READ)
+	{
 		seq_printf(m, "%i\n", drive->id[ATA_ID_BUF_SIZE] / 2);
+	}
 	else
+	{
 		seq_printf(m, "(none)\n");
+	}
+
 	return 0;
 }
 
@@ -56,7 +61,8 @@ static int idedisk_cache_proc_open(struct inode *inode, struct file *file)
 	return single_open(file, idedisk_cache_proc_show, PDE_DATA(inode));
 }
 
-static const struct file_operations idedisk_cache_proc_fops = {
+static const struct file_operations idedisk_cache_proc_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= idedisk_cache_proc_open,
 	.read		= seq_read,
@@ -66,7 +72,7 @@ static const struct file_operations idedisk_cache_proc_fops = {
 
 static int idedisk_capacity_proc_show(struct seq_file *m, void *v)
 {
-	ide_drive_t*drive = (ide_drive_t *)m->private;
+	ide_drive_t *drive = (ide_drive_t *)m->private;
 
 	seq_printf(m, "%llu\n", (long long)ide_gd_capacity(drive));
 	return 0;
@@ -77,7 +83,8 @@ static int idedisk_capacity_proc_open(struct inode *inode, struct file *file)
 	return single_open(file, idedisk_capacity_proc_show, PDE_DATA(inode));
 }
 
-static const struct file_operations idedisk_capacity_proc_fops = {
+static const struct file_operations idedisk_capacity_proc_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= idedisk_capacity_proc_open,
 	.read		= seq_read,
@@ -90,20 +97,26 @@ static int __idedisk_proc_show(struct seq_file *m, ide_drive_t *drive, u8 sub_cm
 	u8 *buf;
 
 	buf = kmalloc(SECTOR_SIZE, GFP_KERNEL);
+
 	if (!buf)
+	{
 		return -ENOMEM;
+	}
 
 	(void)smart_enable(drive);
 
-	if (get_smart_data(drive, buf, sub_cmd) == 0) {
+	if (get_smart_data(drive, buf, sub_cmd) == 0)
+	{
 		__le16 *val = (__le16 *)buf;
 		int i;
 
-		for (i = 0; i < SECTOR_SIZE / 2; i++) {
+		for (i = 0; i < SECTOR_SIZE / 2; i++)
+		{
 			seq_printf(m, "%04x%c", le16_to_cpu(val[i]),
-					(i % 8) == 7 ? '\n' : ' ');
+					   (i % 8) == 7 ? '\n' : ' ');
 		}
 	}
+
 	kfree(buf);
 	return 0;
 }
@@ -118,7 +131,8 @@ static int idedisk_sv_proc_open(struct inode *inode, struct file *file)
 	return single_open(file, idedisk_sv_proc_show, PDE_DATA(inode));
 }
 
-static const struct file_operations idedisk_sv_proc_fops = {
+static const struct file_operations idedisk_sv_proc_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= idedisk_sv_proc_open,
 	.read		= seq_read,
@@ -136,7 +150,8 @@ static int idedisk_st_proc_open(struct inode *inode, struct file *file)
 	return single_open(file, idedisk_st_proc_show, PDE_DATA(inode));
 }
 
-static const struct file_operations idedisk_st_proc_fops = {
+static const struct file_operations idedisk_st_proc_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= idedisk_st_proc_open,
 	.read		= seq_read,
@@ -144,12 +159,13 @@ static const struct file_operations idedisk_st_proc_fops = {
 	.release	= single_release,
 };
 
-ide_proc_entry_t ide_disk_proc[] = {
-	{ "cache",	  S_IFREG|S_IRUGO, &idedisk_cache_proc_fops	},
-	{ "capacity",	  S_IFREG|S_IRUGO, &idedisk_capacity_proc_fops	},
-	{ "geometry",	  S_IFREG|S_IRUGO, &ide_geometry_proc_fops	},
-	{ "smart_values", S_IFREG|S_IRUSR, &idedisk_sv_proc_fops	},
-	{ "smart_thresholds", S_IFREG|S_IRUSR, &idedisk_st_proc_fops	},
+ide_proc_entry_t ide_disk_proc[] =
+{
+	{ "cache",	  S_IFREG | S_IRUGO, &idedisk_cache_proc_fops	},
+	{ "capacity",	  S_IFREG | S_IRUGO, &idedisk_capacity_proc_fops	},
+	{ "geometry",	  S_IFREG | S_IRUGO, &ide_geometry_proc_fops	},
+	{ "smart_values", S_IFREG | S_IRUSR, &idedisk_sv_proc_fops	},
+	{ "smart_thresholds", S_IFREG | S_IRUSR, &idedisk_st_proc_fops	},
 	{}
 };
 
@@ -160,7 +176,8 @@ ide_devset_rw_field(failures, failures);
 ide_devset_rw_field(lun, lun);
 ide_devset_rw_field(max_failures, max_failures);
 
-const struct ide_proc_devset ide_disk_settings[] = {
+const struct ide_proc_devset ide_disk_settings[] =
+{
 	IDE_PROC_DEVSET(acoustic,	0,   254),
 	IDE_PROC_DEVSET(address,	0,     2),
 	IDE_PROC_DEVSET(bios_cyl,	0, 65535),

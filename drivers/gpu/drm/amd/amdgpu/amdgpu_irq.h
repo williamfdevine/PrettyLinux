@@ -32,12 +32,14 @@
 struct amdgpu_device;
 struct amdgpu_iv_entry;
 
-enum amdgpu_interrupt_state {
+enum amdgpu_interrupt_state
+{
 	AMDGPU_IRQ_STATE_DISABLE,
 	AMDGPU_IRQ_STATE_ENABLE,
 };
 
-struct amdgpu_irq_src {
+struct amdgpu_irq_src
+{
 	unsigned				num_types;
 	atomic_t				*enabled_types;
 	const struct amdgpu_irq_src_funcs	*funcs;
@@ -45,16 +47,18 @@ struct amdgpu_irq_src {
 };
 
 /* provided by interrupt generating IP blocks */
-struct amdgpu_irq_src_funcs {
+struct amdgpu_irq_src_funcs
+{
 	int (*set)(struct amdgpu_device *adev, struct amdgpu_irq_src *source,
-		   unsigned type, enum amdgpu_interrupt_state state);
+			   unsigned type, enum amdgpu_interrupt_state state);
 
 	int (*process)(struct amdgpu_device *adev,
-		       struct amdgpu_irq_src *source,
-		       struct amdgpu_iv_entry *entry);
+				   struct amdgpu_irq_src *source,
+				   struct amdgpu_iv_entry *entry);
 };
 
-struct amdgpu_irq {
+struct amdgpu_irq
+{
 	bool				installed;
 	spinlock_t			lock;
 	/* interrupt sources */
@@ -81,20 +85,20 @@ irqreturn_t amdgpu_irq_handler(int irq, void *arg);
 int amdgpu_irq_init(struct amdgpu_device *adev);
 void amdgpu_irq_fini(struct amdgpu_device *adev);
 int amdgpu_irq_add_id(struct amdgpu_device *adev, unsigned src_id,
-		      struct amdgpu_irq_src *source);
+					  struct amdgpu_irq_src *source);
 void amdgpu_irq_dispatch(struct amdgpu_device *adev,
-			 struct amdgpu_iv_entry *entry);
+						 struct amdgpu_iv_entry *entry);
 int amdgpu_irq_update(struct amdgpu_device *adev, struct amdgpu_irq_src *src,
-		      unsigned type);
+					  unsigned type);
 int amdgpu_irq_get(struct amdgpu_device *adev, struct amdgpu_irq_src *src,
-		   unsigned type);
+				   unsigned type);
 bool amdgpu_irq_get_delayed(struct amdgpu_device *adev,
-			    struct amdgpu_irq_src *src,
-			    unsigned type);
+							struct amdgpu_irq_src *src,
+							unsigned type);
 int amdgpu_irq_put(struct amdgpu_device *adev, struct amdgpu_irq_src *src,
-		   unsigned type);
+				   unsigned type);
 bool amdgpu_irq_enabled(struct amdgpu_device *adev, struct amdgpu_irq_src *src,
-			unsigned type);
+						unsigned type);
 void amdgpu_irq_gpu_reset_resume_helper(struct amdgpu_device *adev);
 
 int amdgpu_irq_add_domain(struct amdgpu_device *adev);

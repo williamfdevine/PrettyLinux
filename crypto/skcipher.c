@@ -27,17 +27,21 @@
 static unsigned int crypto_skcipher_extsize(struct crypto_alg *alg)
 {
 	if (alg->cra_type == &crypto_blkcipher_type)
+	{
 		return sizeof(struct crypto_blkcipher *);
+	}
 
 	if (alg->cra_type == &crypto_ablkcipher_type ||
-	    alg->cra_type == &crypto_givcipher_type)
+		alg->cra_type == &crypto_givcipher_type)
+	{
 		return sizeof(struct crypto_ablkcipher *);
+	}
 
 	return crypto_alg_extsize(alg);
 }
 
 static int skcipher_setkey_blkcipher(struct crypto_skcipher *tfm,
-				     const u8 *key, unsigned int keylen)
+									 const u8 *key, unsigned int keylen)
 {
 	struct crypto_blkcipher **ctx = crypto_skcipher_ctx(tfm);
 	struct crypto_blkcipher *blkcipher = *ctx;
@@ -45,23 +49,24 @@ static int skcipher_setkey_blkcipher(struct crypto_skcipher *tfm,
 
 	crypto_blkcipher_clear_flags(blkcipher, ~0);
 	crypto_blkcipher_set_flags(blkcipher, crypto_skcipher_get_flags(tfm) &
-					      CRYPTO_TFM_REQ_MASK);
+							   CRYPTO_TFM_REQ_MASK);
 	err = crypto_blkcipher_setkey(blkcipher, key, keylen);
 	crypto_skcipher_set_flags(tfm, crypto_blkcipher_get_flags(blkcipher) &
-				       CRYPTO_TFM_RES_MASK);
+							  CRYPTO_TFM_RES_MASK);
 
 	return err;
 }
 
 static int skcipher_crypt_blkcipher(struct skcipher_request *req,
-				    int (*crypt)(struct blkcipher_desc *,
-						 struct scatterlist *,
-						 struct scatterlist *,
-						 unsigned int))
+									int (*crypt)(struct blkcipher_desc *,
+											struct scatterlist *,
+											struct scatterlist *,
+											unsigned int))
 {
 	struct crypto_skcipher *tfm = crypto_skcipher_reqtfm(req);
 	struct crypto_blkcipher **ctx = crypto_skcipher_ctx(tfm);
-	struct blkcipher_desc desc = {
+	struct blkcipher_desc desc =
+	{
 		.tfm = *ctx,
 		.info = req->iv,
 		.flags = req->base.flags,
@@ -105,11 +110,15 @@ static int crypto_init_skcipher_ops_blkcipher(struct crypto_tfm *tfm)
 	struct crypto_tfm *btfm;
 
 	if (!crypto_mod_get(calg))
+	{
 		return -EAGAIN;
+	}
 
 	btfm = __crypto_alloc_tfm(calg, CRYPTO_ALG_TYPE_BLKCIPHER,
-					CRYPTO_ALG_TYPE_MASK);
-	if (IS_ERR(btfm)) {
+							  CRYPTO_ALG_TYPE_MASK);
+
+	if (IS_ERR(btfm))
+	{
 		crypto_mod_put(calg);
 		return PTR_ERR(btfm);
 	}
@@ -129,7 +138,7 @@ static int crypto_init_skcipher_ops_blkcipher(struct crypto_tfm *tfm)
 }
 
 static int skcipher_setkey_ablkcipher(struct crypto_skcipher *tfm,
-				      const u8 *key, unsigned int keylen)
+									  const u8 *key, unsigned int keylen)
 {
 	struct crypto_ablkcipher **ctx = crypto_skcipher_ctx(tfm);
 	struct crypto_ablkcipher *ablkcipher = *ctx;
@@ -137,18 +146,18 @@ static int skcipher_setkey_ablkcipher(struct crypto_skcipher *tfm,
 
 	crypto_ablkcipher_clear_flags(ablkcipher, ~0);
 	crypto_ablkcipher_set_flags(ablkcipher,
-				    crypto_skcipher_get_flags(tfm) &
-				    CRYPTO_TFM_REQ_MASK);
+								crypto_skcipher_get_flags(tfm) &
+								CRYPTO_TFM_REQ_MASK);
 	err = crypto_ablkcipher_setkey(ablkcipher, key, keylen);
 	crypto_skcipher_set_flags(tfm,
-				  crypto_ablkcipher_get_flags(ablkcipher) &
-				  CRYPTO_TFM_RES_MASK);
+							  crypto_ablkcipher_get_flags(ablkcipher) &
+							  CRYPTO_TFM_RES_MASK);
 
 	return err;
 }
 
 static int skcipher_crypt_ablkcipher(struct skcipher_request *req,
-				     int (*crypt)(struct ablkcipher_request *))
+									 int (*crypt)(struct ablkcipher_request *))
 {
 	struct crypto_skcipher *tfm = crypto_skcipher_reqtfm(req);
 	struct crypto_ablkcipher **ctx = crypto_skcipher_ctx(tfm);
@@ -156,9 +165,9 @@ static int skcipher_crypt_ablkcipher(struct skcipher_request *req,
 
 	ablkcipher_request_set_tfm(subreq, *ctx);
 	ablkcipher_request_set_callback(subreq, skcipher_request_flags(req),
-					req->base.complete, req->base.data);
+									req->base.complete, req->base.data);
 	ablkcipher_request_set_crypt(subreq, req->src, req->dst, req->cryptlen,
-				     req->iv);
+								 req->iv);
 
 	return crypt(subreq);
 }
@@ -197,10 +206,14 @@ static int crypto_init_skcipher_ops_ablkcipher(struct crypto_tfm *tfm)
 	struct crypto_tfm *abtfm;
 
 	if (!crypto_mod_get(calg))
+	{
 		return -EAGAIN;
+	}
 
 	abtfm = __crypto_alloc_tfm(calg, 0, 0);
-	if (IS_ERR(abtfm)) {
+
+	if (IS_ERR(abtfm))
+	{
 		crypto_mod_put(calg);
 		return PTR_ERR(abtfm);
 	}
@@ -215,7 +228,7 @@ static int crypto_init_skcipher_ops_ablkcipher(struct crypto_tfm *tfm)
 
 	skcipher->ivsize = crypto_ablkcipher_ivsize(ablkcipher);
 	skcipher->reqsize = crypto_ablkcipher_reqsize(ablkcipher) +
-			    sizeof(struct ablkcipher_request);
+						sizeof(struct ablkcipher_request);
 	skcipher->keysize = calg->cra_ablkcipher.max_keysize;
 
 	return 0;
@@ -235,11 +248,15 @@ static int crypto_skcipher_init_tfm(struct crypto_tfm *tfm)
 	struct skcipher_alg *alg = crypto_skcipher_alg(skcipher);
 
 	if (tfm->__crt_alg->cra_type == &crypto_blkcipher_type)
+	{
 		return crypto_init_skcipher_ops_blkcipher(tfm);
+	}
 
 	if (tfm->__crt_alg->cra_type == &crypto_ablkcipher_type ||
-	    tfm->__crt_alg->cra_type == &crypto_givcipher_type)
+		tfm->__crt_alg->cra_type == &crypto_givcipher_type)
+	{
 		return crypto_init_skcipher_ops_ablkcipher(tfm);
+	}
 
 	skcipher->setkey = alg->setkey;
 	skcipher->encrypt = alg->encrypt;
@@ -248,10 +265,14 @@ static int crypto_skcipher_init_tfm(struct crypto_tfm *tfm)
 	skcipher->keysize = alg->max_keysize;
 
 	if (alg->exit)
+	{
 		skcipher->base.exit = crypto_skcipher_exit_tfm;
+	}
 
 	if (alg->init)
+	{
 		return alg->init(skcipher);
+	}
 
 	return 0;
 }
@@ -265,15 +286,15 @@ static void crypto_skcipher_free_instance(struct crypto_instance *inst)
 }
 
 static void crypto_skcipher_show(struct seq_file *m, struct crypto_alg *alg)
-	__attribute__ ((unused));
+__attribute__ ((unused));
 static void crypto_skcipher_show(struct seq_file *m, struct crypto_alg *alg)
 {
 	struct skcipher_alg *skcipher = container_of(alg, struct skcipher_alg,
-						     base);
+									base);
 
 	seq_printf(m, "type         : skcipher\n");
 	seq_printf(m, "async        : %s\n",
-		   alg->cra_flags & CRYPTO_ALG_ASYNC ?  "yes" : "no");
+			   alg->cra_flags & CRYPTO_ALG_ASYNC ?  "yes" : "no");
 	seq_printf(m, "blocksize    : %u\n", alg->cra_blocksize);
 	seq_printf(m, "min keysize  : %u\n", skcipher->min_keysize);
 	seq_printf(m, "max keysize  : %u\n", skcipher->max_keysize);
@@ -286,7 +307,7 @@ static int crypto_skcipher_report(struct sk_buff *skb, struct crypto_alg *alg)
 {
 	struct crypto_report_blkcipher rblkcipher;
 	struct skcipher_alg *skcipher = container_of(alg, struct skcipher_alg,
-						     base);
+									base);
 
 	strncpy(rblkcipher.type, "skcipher", sizeof(rblkcipher.type));
 	strncpy(rblkcipher.geniv, "<none>", sizeof(rblkcipher.geniv));
@@ -297,8 +318,11 @@ static int crypto_skcipher_report(struct sk_buff *skb, struct crypto_alg *alg)
 	rblkcipher.ivsize = skcipher->ivsize;
 
 	if (nla_put(skb, CRYPTOCFGA_REPORT_BLKCIPHER,
-		    sizeof(struct crypto_report_blkcipher), &rblkcipher))
+				sizeof(struct crypto_report_blkcipher), &rblkcipher))
+	{
 		goto nla_put_failure;
+	}
+
 	return 0;
 
 nla_put_failure:
@@ -311,7 +335,8 @@ static int crypto_skcipher_report(struct sk_buff *skb, struct crypto_alg *alg)
 }
 #endif
 
-static const struct crypto_type crypto_skcipher_type2 = {
+static const struct crypto_type crypto_skcipher_type2 =
+{
 	.extsize = crypto_skcipher_extsize,
 	.init_tfm = crypto_skcipher_init_tfm,
 	.free = crypto_skcipher_free_instance,
@@ -326,7 +351,7 @@ static const struct crypto_type crypto_skcipher_type2 = {
 };
 
 int crypto_grab_skcipher(struct crypto_skcipher_spawn *spawn,
-			  const char *name, u32 type, u32 mask)
+						 const char *name, u32 type, u32 mask)
 {
 	spawn->base.frontend = &crypto_skcipher_type2;
 	return crypto_grab_spawn(&spawn->base, name, type, mask);
@@ -334,7 +359,7 @@ int crypto_grab_skcipher(struct crypto_skcipher_spawn *spawn,
 EXPORT_SYMBOL_GPL(crypto_grab_skcipher);
 
 struct crypto_skcipher *crypto_alloc_skcipher(const char *alg_name,
-					      u32 type, u32 mask)
+		u32 type, u32 mask)
 {
 	return crypto_alloc_tfm(alg_name, &crypto_skcipher_type2, type, mask);
 }
@@ -343,7 +368,7 @@ EXPORT_SYMBOL_GPL(crypto_alloc_skcipher);
 int crypto_has_skcipher2(const char *alg_name, u32 type, u32 mask)
 {
 	return crypto_type_has_alg(alg_name, &crypto_skcipher_type2,
-				   type, mask);
+							   type, mask);
 }
 EXPORT_SYMBOL_GPL(crypto_has_skcipher2);
 
@@ -352,10 +377,14 @@ static int skcipher_prepare_alg(struct skcipher_alg *alg)
 	struct crypto_alg *base = &alg->base;
 
 	if (alg->ivsize > PAGE_SIZE / 8 || alg->chunksize > PAGE_SIZE / 8)
+	{
 		return -EINVAL;
+	}
 
 	if (!alg->chunksize)
+	{
 		alg->chunksize = base->cra_blocksize;
+	}
 
 	base->cra_type = &crypto_skcipher_type2;
 	base->cra_flags &= ~CRYPTO_ALG_TYPE_MASK;
@@ -370,8 +399,11 @@ int crypto_register_skcipher(struct skcipher_alg *alg)
 	int err;
 
 	err = skcipher_prepare_alg(alg);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return crypto_register_alg(base);
 }
@@ -387,17 +419,24 @@ int crypto_register_skciphers(struct skcipher_alg *algs, int count)
 {
 	int i, ret;
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		ret = crypto_register_skcipher(&algs[i]);
+
 		if (ret)
+		{
 			goto err;
+		}
 	}
 
 	return 0;
 
 err:
+
 	for (--i; i >= 0; --i)
+	{
 		crypto_unregister_skcipher(&algs[i]);
+	}
 
 	return ret;
 }
@@ -408,18 +447,23 @@ void crypto_unregister_skciphers(struct skcipher_alg *algs, int count)
 	int i;
 
 	for (i = count - 1; i >= 0; --i)
+	{
 		crypto_unregister_skcipher(&algs[i]);
+	}
 }
 EXPORT_SYMBOL_GPL(crypto_unregister_skciphers);
 
 int skcipher_register_instance(struct crypto_template *tmpl,
-			   struct skcipher_instance *inst)
+							   struct skcipher_instance *inst)
 {
 	int err;
 
 	err = skcipher_prepare_alg(&inst->alg);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return crypto_register_instance(tmpl, skcipher_crypto_instance(inst));
 }

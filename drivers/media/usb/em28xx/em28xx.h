@@ -215,7 +215,8 @@
 /* max. number of button state polling addresses */
 #define EM28XX_NUM_BUTTON_ADDRESSES_MAX		5
 
-enum em28xx_mode {
+enum em28xx_mode
+{
 	EM28XX_SUSPEND,
 	EM28XX_ANALOG_MODE,
 	EM28XX_DIGITAL_MODE,
@@ -223,41 +224,44 @@ enum em28xx_mode {
 
 struct em28xx;
 
-struct em28xx_usb_bufs {
-		/* max packet size of isoc transaction */
+struct em28xx_usb_bufs
+{
+	/* max packet size of isoc transaction */
 	int				max_pkt_size;
 
-		/* number of packets in each buffer */
+	/* number of packets in each buffer */
 	int				num_packets;
 
-		/* number of allocated urbs */
+	/* number of allocated urbs */
 	int				num_bufs;
 
-		/* urb for isoc/bulk transfers */
+	/* urb for isoc/bulk transfers */
 	struct urb			**urb;
 
-		/* transfer buffers for isoc/bulk transfer */
+	/* transfer buffers for isoc/bulk transfer */
 	char				**transfer_buffer;
 };
 
-struct em28xx_usb_ctl {
-		/* isoc/bulk transfer buffers for analog mode */
+struct em28xx_usb_ctl
+{
+	/* isoc/bulk transfer buffers for analog mode */
 	struct em28xx_usb_bufs		analog_bufs;
 
-		/* isoc/bulk transfer buffers for digital mode */
+	/* isoc/bulk transfer buffers for digital mode */
 	struct em28xx_usb_bufs		digital_bufs;
 
-		/* Stores already requested buffers */
+	/* Stores already requested buffers */
 	struct em28xx_buffer	*vid_buf;
 	struct em28xx_buffer	*vbi_buf;
 
-		/* copy data from URB */
+	/* copy data from URB */
 	int (*urb_data_copy)(struct em28xx *dev, struct urb *urb);
 
 };
 
 /* Struct to enumberate video formats */
-struct em28xx_fmt {
+struct em28xx_fmt
+{
 	char  *name;
 	u32   fourcc;          /* v4l2 format id */
 	int   depth;
@@ -265,7 +269,8 @@ struct em28xx_fmt {
 };
 
 /* buffer for one video frame */
-struct em28xx_buffer {
+struct em28xx_buffer
+{
 	/* common v4l buffer stuff -- must be first */
 	struct vb2_v4l2_buffer vb;
 	struct list_head list;
@@ -283,7 +288,8 @@ struct em28xx_buffer {
 	char *vb_buf;
 };
 
-struct em28xx_dmaqueue {
+struct em28xx_dmaqueue
+{
 	struct list_head       active;
 
 	wait_queue_head_t          wq;
@@ -292,31 +298,36 @@ struct em28xx_dmaqueue {
 /* inputs */
 
 #define MAX_EM28XX_INPUT 4
-enum enum28xx_itype {
+enum enum28xx_itype
+{
 	EM28XX_VMUX_COMPOSITE = 1,
 	EM28XX_VMUX_SVIDEO,
 	EM28XX_VMUX_TELEVISION,
 	EM28XX_RADIO,
 };
 
-enum em28xx_ac97_mode {
+enum em28xx_ac97_mode
+{
 	EM28XX_NO_AC97 = 0,
 	EM28XX_AC97_EM202,
 	EM28XX_AC97_SIGMATEL,
 	EM28XX_AC97_OTHER,
 };
 
-struct em28xx_audio_mode {
+struct em28xx_audio_mode
+{
 	enum em28xx_ac97_mode ac97;
 };
 
-enum em28xx_int_audio_type {
+enum em28xx_int_audio_type
+{
 	EM28XX_INT_AUDIO_NONE = 0,
 	EM28XX_INT_AUDIO_AC97,
 	EM28XX_INT_AUDIO_I2S,
 };
 
-enum em28xx_usb_audio_type {
+enum em28xx_usb_audio_type
+{
 	EM28XX_USB_AUDIO_NONE = 0,
 	EM28XX_USB_AUDIO_CLASS,
 	EM28XX_USB_AUDIO_VENDOR,
@@ -328,7 +339,8 @@ enum em28xx_usb_audio_type {
    depending on their model. So, it is possible to use AC97 mixer to
    address more than two different entries.
  */
-enum em28xx_amux {
+enum em28xx_amux
+{
 	/* This is the only entry for em28xx tuner input */
 	EM28XX_AMUX_VIDEO,	/* em28xx tuner, AC97 mixer Video */
 
@@ -343,7 +355,8 @@ enum em28xx_amux {
 	EM28XX_AMUX_PCM_OUT,
 };
 
-enum em28xx_aout {
+enum em28xx_aout
+{
 	/* AC97 outputs */
 	EM28XX_AOUT_MASTER = 1 << 0,
 	EM28XX_AOUT_LINE   = 1 << 1,
@@ -370,13 +383,15 @@ static inline int ac97_return_record_select(int a_out)
 	return (a_out & 0x700) >> 8;
 }
 
-struct em28xx_reg_seq {
+struct em28xx_reg_seq
+{
 	int reg;
 	unsigned char val, mask;
 	int sleep;
 };
 
-struct em28xx_input {
+struct em28xx_input
+{
 	enum enum28xx_itype type;
 	unsigned int vmux;
 	enum em28xx_amux amux;
@@ -386,13 +401,15 @@ struct em28xx_input {
 
 #define INPUT(nr) (&em28xx_boards[dev->model].input[nr])
 
-enum em28xx_decoder {
+enum em28xx_decoder
+{
 	EM28XX_NODECODER = 0,
 	EM28XX_TVP5150,
 	EM28XX_SAA711X,
 };
 
-enum em28xx_sensor {
+enum em28xx_sensor
+{
 	EM28XX_NOSENSOR = 0,
 	EM28XX_MT9V011,
 	EM28XX_MT9M001,
@@ -400,12 +417,14 @@ enum em28xx_sensor {
 	EM28XX_OV2640,
 };
 
-enum em28xx_adecoder {
+enum em28xx_adecoder
+{
 	EM28XX_NOADECODER = 0,
 	EM28XX_TVAUDIO,
 };
 
-enum em28xx_led_role {
+enum em28xx_led_role
+{
 	EM28XX_LED_ANALOG_CAPTURING = 0,
 	EM28XX_LED_DIGITAL_CAPTURING,
 	EM28XX_LED_DIGITAL_CAPTURING_TS2,
@@ -413,20 +432,23 @@ enum em28xx_led_role {
 	EM28XX_NUM_LED_ROLES, /* must be the last */
 };
 
-struct em28xx_led {
+struct em28xx_led
+{
 	enum em28xx_led_role role;
 	u8 gpio_reg;
 	u8 gpio_mask;
 	bool inverted;
 };
 
-enum em28xx_button_role {
+enum em28xx_button_role
+{
 	EM28XX_BUTTON_SNAPSHOT = 0,
 	EM28XX_BUTTON_ILLUMINATION,
 	EM28XX_NUM_BUTTON_ROLES, /* must be the last */
 };
 
-struct em28xx_button {
+struct em28xx_button
+{
 	enum em28xx_button_role role;
 	u8 reg_r;
 	u8 reg_clearing;
@@ -434,7 +456,8 @@ struct em28xx_button {
 	bool inverted;
 };
 
-struct em28xx_board {
+struct em28xx_board
+{
 	char *name;
 	int vchannels;
 	int tuner_type;
@@ -450,14 +473,14 @@ struct em28xx_board {
 	struct em28xx_reg_seq *tuner_gpio;
 	struct em28xx_reg_seq *mute_gpio;
 
-	unsigned int is_em2800:1;
-	unsigned int has_msp34xx:1;
-	unsigned int mts_firmware:1;
-	unsigned int max_range_640_480:1;
-	unsigned int has_dvb:1;
-	unsigned int is_webcam:1;
-	unsigned int valid:1;
-	unsigned int has_ir_i2c:1;
+	unsigned int is_em2800: 1;
+	unsigned int has_msp34xx: 1;
+	unsigned int mts_firmware: 1;
+	unsigned int max_range_640_480: 1;
+	unsigned int has_dvb: 1;
+	unsigned int is_webcam: 1;
+	unsigned int valid: 1;
+	unsigned int has_ir_i2c: 1;
 
 	unsigned char xclk, i2c_speed;
 	unsigned char radio_addr;
@@ -477,7 +500,8 @@ struct em28xx_board {
 	struct em28xx_button	  *buttons;
 };
 
-struct em28xx_eeprom {
+struct em28xx_eeprom
+{
 	u8 id[4];			/* 1a eb 67 95 */
 	__le16 vendor_ID;
 	__le16 product_ID;
@@ -503,7 +527,8 @@ struct em28xx_eeprom {
 #define EM28XX_RESOURCE_VIDEO 0x01
 #define EM28XX_RESOURCE_VBI   0x02
 
-struct em28xx_v4l2 {
+struct em28xx_v4l2
+{
 	struct kref ref;
 	struct em28xx *dev;
 
@@ -562,7 +587,8 @@ struct em28xx_v4l2 {
 #endif
 };
 
-struct em28xx_audio {
+struct em28xx_audio
+{
 	char name[50];
 	unsigned num_urb;
 	char **transfer_buffer;
@@ -586,13 +612,15 @@ struct em28xx_audio {
 
 struct em28xx;
 
-enum em28xx_i2c_algo_type {
+enum em28xx_i2c_algo_type
+{
 	EM28XX_I2C_ALGO_EM28XX = 0,
 	EM28XX_I2C_ALGO_EM2800,
 	EM28XX_I2C_ALGO_EM25XX_BUS_B,
 };
 
-struct em28xx_i2c_bus {
+struct em28xx_i2c_bus
+{
 	struct em28xx *dev;
 
 	unsigned bus;
@@ -600,7 +628,8 @@ struct em28xx_i2c_bus {
 };
 
 /* main device struct */
-struct em28xx {
+struct em28xx
+{
 	struct kref ref;
 
 	/* Sub-module data */
@@ -615,10 +644,10 @@ struct em28xx {
 	int devno;		/* marks the number of this device */
 	enum em28xx_chip_id chip_id;
 
-	unsigned int is_em25xx:1;	/* em25xx/em276x/7x/8x family bridge */
-	unsigned char disconnected:1;	/* device has been diconnected */
-	unsigned int has_video:1;
-	unsigned int is_audio_only:1;
+	unsigned int is_em25xx: 1;	/* em25xx/em276x/7x/8x family bridge */
+	unsigned char disconnected: 1;	/* device has been diconnected */
+	unsigned int has_video: 1;
+	unsigned int is_audio_only: 1;
 	enum em28xx_int_audio_type int_audio_type;
 	enum em28xx_usb_audio_type usb_audio_type;
 
@@ -642,7 +671,7 @@ struct em28xx {
 	struct i2c_client i2c_client[NUM_I2C_BUSES];
 	struct em28xx_i2c_bus i2c_bus[NUM_I2C_BUSES];
 
-	unsigned char eeprom_addrwidth_16bit:1;
+	unsigned char eeprom_addrwidth_16bit: 1;
 	unsigned def_i2c_bus;	/* Default I2C bus */
 	unsigned cur_i2c_bus;	/* Current I2C bus */
 	struct rt_mutex i2c_bus_lock;
@@ -690,23 +719,23 @@ struct em28xx {
 				   URB buffer size definition */
 	int num_alt;		/* number of alternative settings */
 	unsigned int *alt_max_pkt_size_isoc; /* array of isoc wMaxPacketSize */
-	unsigned int analog_xfer_bulk:1;	/* use bulk instead of isoc
+	unsigned int analog_xfer_bulk: 1;	/* use bulk instead of isoc
 						   transfers for analog      */
 	int dvb_alt_isoc;	/* alternate setting for DVB isoc transfers */
 	unsigned int dvb_max_pkt_size_isoc;	/* isoc max packet size of the
 						   selected DVB ep at dvb_alt */
-	unsigned int dvb_xfer_bulk:1;		/* use bulk instead of isoc
+	unsigned int dvb_xfer_bulk: 1;		/* use bulk instead of isoc
 						   transfers for DVB          */
 	char urb_buf[URB_MAX_CTRL_SIZE];	/* urb control msg buffer */
 
 	/* helper funcs that call usb_control_msg */
 	int (*em28xx_write_regs)(struct em28xx *dev, u16 reg,
-				 char *buf, int len);
+							 char *buf, int len);
 	int (*em28xx_read_reg)(struct em28xx *dev, u16 reg);
 	int (*em28xx_read_reg_req_len)(struct em28xx *dev, u8 req, u16 reg,
-				       char *buf, int len);
+								   char *buf, int len);
 	int (*em28xx_write_regs_req)(struct em28xx *dev, u8 req, u16 reg,
-				     char *buf, int len);
+								 char *buf, int len);
 	int (*em28xx_read_reg_req)(struct em28xx *dev, u8 req, u16 reg);
 
 	enum em28xx_mode mode;
@@ -730,7 +759,8 @@ struct em28xx {
 
 #define kref_to_dev(d) container_of(d, struct em28xx, ref)
 
-struct em28xx_ops {
+struct em28xx_ops
+{
 	struct list_head next;
 	char *name;
 	int id;
@@ -743,20 +773,20 @@ struct em28xx_ops {
 /* Provided by em28xx-i2c.c */
 void em28xx_do_i2c_scan(struct em28xx *dev, unsigned bus);
 int  em28xx_i2c_register(struct em28xx *dev, unsigned bus,
-			 enum em28xx_i2c_algo_type algo_type);
+						 enum em28xx_i2c_algo_type algo_type);
 int  em28xx_i2c_unregister(struct em28xx *dev, unsigned bus);
 
 /* Provided by em28xx-core.c */
 int em28xx_read_reg_req_len(struct em28xx *dev, u8 req, u16 reg,
-			    char *buf, int len);
+							char *buf, int len);
 int em28xx_read_reg_req(struct em28xx *dev, u8 req, u16 reg);
 int em28xx_read_reg(struct em28xx *dev, u16 reg);
 int em28xx_write_regs_req(struct em28xx *dev, u8 req, u16 reg, char *buf,
-			  int len);
+						  int len);
 int em28xx_write_regs(struct em28xx *dev, u16 reg, char *buf, int len);
 int em28xx_write_reg(struct em28xx *dev, u16 reg, u8 val);
 int em28xx_write_reg_bits(struct em28xx *dev, u16 reg, u8 val,
-			  u8 bitmask);
+						  u8 bitmask);
 int em28xx_toggle_reg_bits(struct em28xx *dev, u16 reg, u8 bitmask);
 
 int em28xx_read_ac97(struct em28xx *dev, u8 reg);
@@ -766,15 +796,15 @@ int em28xx_audio_analog_set(struct em28xx *dev);
 int em28xx_audio_setup(struct em28xx *dev);
 
 const struct em28xx_led *em28xx_find_led(struct em28xx *dev,
-					 enum em28xx_led_role role);
+		enum em28xx_led_role role);
 int em28xx_capture_start(struct em28xx *dev, int start);
 int em28xx_alloc_urbs(struct em28xx *dev, enum em28xx_mode mode, int xfer_bulk,
-		      int num_bufs, int max_pkt_size, int packet_multiplier);
+					  int num_bufs, int max_pkt_size, int packet_multiplier);
 int em28xx_init_usb_xfer(struct em28xx *dev, enum em28xx_mode mode,
-			 int xfer_bulk,
-			 int num_bufs, int max_pkt_size, int packet_multiplier,
-			 int (*urb_data_copy)
-					(struct em28xx *dev, struct urb *urb));
+						 int xfer_bulk,
+						 int num_bufs, int max_pkt_size, int packet_multiplier,
+						 int (*urb_data_copy)
+						 (struct em28xx *dev, struct urb *urb));
 void em28xx_uninit_usb_xfer(struct em28xx *dev, enum em28xx_mode mode);
 void em28xx_stop_urbs(struct em28xx *dev);
 int em28xx_set_mode(struct em28xx *dev, enum em28xx_mode set_mode);
@@ -800,17 +830,17 @@ int em28xx_init_camera(struct em28xx *dev);
 /* printk macros */
 
 #define em28xx_err(fmt, arg...) do {\
-	printk(KERN_ERR fmt , ##arg); } while (0)
+		printk(KERN_ERR fmt , ##arg); } while (0)
 
 #define em28xx_errdev(fmt, arg...) do {\
-	printk(KERN_ERR "%s: "fmt,\
-			dev->name , ##arg); } while (0)
+		printk(KERN_ERR "%s: "fmt,\
+			   dev->name , ##arg); } while (0)
 
 #define em28xx_info(fmt, arg...) do {\
-	printk(KERN_INFO "%s: "fmt,\
-			dev->name , ##arg); } while (0)
+		printk(KERN_INFO "%s: "fmt,\
+			   dev->name , ##arg); } while (0)
 #define em28xx_warn(fmt, arg...) do {\
-	printk(KERN_WARNING "%s: "fmt,\
-			dev->name , ##arg); } while (0)
+		printk(KERN_WARNING "%s: "fmt,\
+			   dev->name , ##arg); } while (0)
 
 #endif

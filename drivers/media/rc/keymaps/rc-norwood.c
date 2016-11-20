@@ -17,7 +17,8 @@
    By Peter Naulls <peter@chocky.org>
    Key comments are the functions given in the manual */
 
-static struct rc_map_table norwood[] = {
+static struct rc_map_table norwood[] =
+{
 	/* Keys 0 to 9 */
 	{ 0x20, KEY_0 },
 	{ 0x21, KEY_1 },
@@ -60,7 +61,8 @@ static struct rc_map_table norwood[] = {
 	{ 0x65, KEY_POWER },		/* Computer power      */
 };
 
-static struct rc_map_list norwood_map = {
+static struct rc_map_list norwood_map =
+{
 	.map = {
 		.scan    = norwood,
 		.size    = ARRAY_SIZE(norwood),

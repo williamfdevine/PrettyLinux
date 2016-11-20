@@ -141,7 +141,8 @@
 #define PCIE2_CAP_DEVSTSCTRL2_LTRENAB		0x400
 #define PCIE2_PVT_REG_PM_CLK_PERIOD		0x184c
 
-struct bcma_drv_pcie2 {
+struct bcma_drv_pcie2
+{
 	struct bcma_device *core;
 
 	u16 reqsize;

@@ -26,14 +26,17 @@ void usb_led_activity(enum usb_led_event ev)
 {
 	struct led_trigger *trig = NULL;
 
-	switch (ev) {
-	case USB_LED_EVENT_GADGET:
-		trig = ledtrig_usb_gadget;
-		break;
-	case USB_LED_EVENT_HOST:
-		trig = ledtrig_usb_host;
-		break;
+	switch (ev)
+	{
+		case USB_LED_EVENT_GADGET:
+			trig = ledtrig_usb_gadget;
+			break;
+
+		case USB_LED_EVENT_HOST:
+			trig = ledtrig_usb_host;
+			break;
 	}
+
 	/* led_trigger_blink_oneshot() handles trig == NULL gracefully */
 	led_trigger_blink_oneshot(trig, &usb_blink_delay, &usb_blink_delay, 0);
 }

@@ -25,7 +25,8 @@
 
 
 /* return value from  GELIC_LV1_GET_WLAN_EVENT netcontrol */
-enum gelic_lv1_wl_event {
+enum gelic_lv1_wl_event
+{
 	GELIC_LV1_WL_EVENT_DEVICE_READY   = 0x01, /* Eurus ready */
 	GELIC_LV1_WL_EVENT_SCAN_COMPLETED = 0x02, /* Scan has completed */
 	GELIC_LV1_WL_EVENT_DEAUTH         = 0x04, /* Deauthed by the AP */
@@ -36,7 +37,8 @@ enum gelic_lv1_wl_event {
 };
 
 /* arguments for GELIC_LV1_POST_WLAN_COMMAND netcontrol */
-enum gelic_eurus_command {
+enum gelic_eurus_command
+{
 	GELIC_EURUS_CMD_ASSOC		=  1, /* association start */
 	GELIC_EURUS_CMD_DISASSOC	=  2, /* disassociate      */
 	GELIC_EURUS_CMD_START_SCAN	=  3, /* scan start        */
@@ -52,23 +54,27 @@ enum gelic_eurus_command {
 };
 
 /* for GELIC_EURUS_CMD_COMMON_CFG */
-enum gelic_eurus_bss_type {
+enum gelic_eurus_bss_type
+{
 	GELIC_EURUS_BSS_INFRA = 0,
 	GELIC_EURUS_BSS_ADHOC = 1, /* not supported */
 };
 
-enum gelic_eurus_auth_method {
+enum gelic_eurus_auth_method
+{
 	GELIC_EURUS_AUTH_OPEN = 0, /* FIXME: WLAN_AUTH_OPEN */
 	GELIC_EURUS_AUTH_SHARED = 1, /* not supported */
 };
 
-enum gelic_eurus_opmode {
+enum gelic_eurus_opmode
+{
 	GELIC_EURUS_OPMODE_11BG = 0, /* 802.11b/g */
 	GELIC_EURUS_OPMODE_11B = 1, /* 802.11b only */
 	GELIC_EURUS_OPMODE_11G = 2, /* 802.11g only */
 };
 
-struct gelic_eurus_common_cfg {
+struct gelic_eurus_common_cfg
+{
 	/* all fields are big endian */
 	u16 scan_index;
 	u16 bss_type;    /* infra or adhoc */
@@ -78,20 +84,23 @@ struct gelic_eurus_common_cfg {
 
 
 /* for GELIC_EURUS_CMD_WEP_CFG */
-enum gelic_eurus_wep_security {
+enum gelic_eurus_wep_security
+{
 	GELIC_EURUS_WEP_SEC_NONE	= 0,
 	GELIC_EURUS_WEP_SEC_40BIT	= 1,
 	GELIC_EURUS_WEP_SEC_104BIT	= 2,
 };
 
-struct gelic_eurus_wep_cfg {
+struct gelic_eurus_wep_cfg
+{
 	/* all fields are big endian */
 	u16 security;
 	u8 key[4][16];
 } __packed;
 
 /* for GELIC_EURUS_CMD_WPA_CFG */
-enum gelic_eurus_wpa_security {
+enum gelic_eurus_wpa_security
+{
 	GELIC_EURUS_WPA_SEC_NONE		= 0x0000,
 	/* group=TKIP, pairwise=TKIP */
 	GELIC_EURUS_WPA_SEC_WPA_TKIP_TKIP	= 0x0001,
@@ -107,7 +116,8 @@ enum gelic_eurus_wpa_security {
 	GELIC_EURUS_WPA_SEC_WPA2_TKIP_AES	= 0x0020,
 };
 
-enum gelic_eurus_wpa_psk_type {
+enum gelic_eurus_wpa_psk_type
+{
 	GELIC_EURUS_WPA_PSK_PASSPHRASE	= 0, /* passphrase string   */
 	GELIC_EURUS_WPA_PSK_BIN		= 1, /* 32 bytes binary key */
 };
@@ -115,7 +125,8 @@ enum gelic_eurus_wpa_psk_type {
 #define GELIC_WL_EURUS_PSK_MAX_LEN	64
 #define WPA_PSK_LEN			32 /* WPA spec says 256bit */
 
-struct gelic_eurus_wpa_cfg {
+struct gelic_eurus_wpa_cfg
+{
 	/* all fields are big endian */
 	u16 security;
 	u16 psk_type; /* psk key encoding type */
@@ -123,13 +134,15 @@ struct gelic_eurus_wpa_cfg {
 } __packed;
 
 /* for GELIC_EURUS_CMD_{START,GET}_SCAN */
-enum gelic_eurus_scan_capability {
+enum gelic_eurus_scan_capability
+{
 	GELIC_EURUS_SCAN_CAP_ADHOC	= 0x0000,
 	GELIC_EURUS_SCAN_CAP_INFRA	= 0x0001,
 	GELIC_EURUS_SCAN_CAP_MASK	= 0x0001,
 };
 
-enum gelic_eurus_scan_sec_type {
+enum gelic_eurus_scan_sec_type
+{
 	GELIC_EURUS_SCAN_SEC_NONE	= 0x0000,
 	GELIC_EURUS_SCAN_SEC_WEP	= 0x0100,
 	GELIC_EURUS_SCAN_SEC_WPA	= 0x0200,
@@ -137,14 +150,16 @@ enum gelic_eurus_scan_sec_type {
 	GELIC_EURUS_SCAN_SEC_MASK	= 0x0f00,
 };
 
-enum gelic_eurus_scan_sec_wep_type {
+enum gelic_eurus_scan_sec_wep_type
+{
 	GELIC_EURUS_SCAN_SEC_WEP_UNKNOWN	= 0x0000,
 	GELIC_EURUS_SCAN_SEC_WEP_40		= 0x0001,
 	GELIC_EURUS_SCAN_SEC_WEP_104		= 0x0002,
 	GELIC_EURUS_SCAN_SEC_WEP_MASK		= 0x0003,
 };
 
-enum gelic_eurus_scan_sec_wpa_type {
+enum gelic_eurus_scan_sec_wpa_type
+{
 	GELIC_EURUS_SCAN_SEC_WPA_UNKNOWN	= 0x0000,
 	GELIC_EURUS_SCAN_SEC_WPA_TKIP		= 0x0001,
 	GELIC_EURUS_SCAN_SEC_WPA_AES		= 0x0002,
@@ -154,7 +169,8 @@ enum gelic_eurus_scan_sec_wpa_type {
 /*
  * hw BSS information structure returned from GELIC_EURUS_CMD_GET_SCAN
  */
-struct gelic_eurus_scan_info {
+struct gelic_eurus_scan_info
+{
 	/* all fields are big endian */
 	__be16 size;
 	__be16 rssi; /* percentage */
@@ -175,7 +191,8 @@ struct gelic_eurus_scan_info {
 
 /* the hypervisor returns bbs up to 16 */
 #define GELIC_EURUS_MAX_SCAN  (16)
-struct gelic_wl_scan_info {
+struct gelic_wl_scan_info
+{
 	struct list_head list;
 	struct gelic_eurus_scan_info *hwinfo;
 
@@ -190,14 +207,16 @@ struct gelic_wl_scan_info {
 };
 
 /* for GELIC_EURUS_CMD_GET_RSSI */
-struct gelic_eurus_rssi_info {
+struct gelic_eurus_rssi_info
+{
 	/* big endian */
 	__be16 rssi;
 } __packed;
 
 
 /* for 'stat' member of gelic_wl_info */
-enum gelic_wl_info_status_bit {
+enum gelic_wl_info_status_bit
+{
 	GELIC_WL_STAT_CONFIGURED,
 	GELIC_WL_STAT_CH_INFO,   /* ch info acquired */
 	GELIC_WL_STAT_ESSID_SET, /* ESSID specified by userspace */
@@ -207,7 +226,8 @@ enum gelic_wl_info_status_bit {
 };
 
 /* for 'scan_stat' member of gelic_wl_info */
-enum gelic_wl_scan_state {
+enum gelic_wl_scan_state
+{
 	/* just initialized or get last scan result failed */
 	GELIC_WL_SCAN_STAT_INIT,
 	/* scan request issued, accepted or chip is scanning */
@@ -217,7 +237,8 @@ enum gelic_wl_scan_state {
 };
 
 /* for 'cipher_method' */
-enum gelic_wl_cipher_method {
+enum gelic_wl_cipher_method
+{
 	GELIC_WL_CIPHER_NONE,
 	GELIC_WL_CIPHER_WEP,
 	GELIC_WL_CIPHER_TKIP,
@@ -225,21 +246,24 @@ enum gelic_wl_cipher_method {
 };
 
 /* for 'wpa_level' */
-enum gelic_wl_wpa_level {
+enum gelic_wl_wpa_level
+{
 	GELIC_WL_WPA_LEVEL_NONE,
 	GELIC_WL_WPA_LEVEL_WPA,
 	GELIC_WL_WPA_LEVEL_WPA2,
 };
 
 /* for 'assoc_stat' */
-enum gelic_wl_assoc_state {
+enum gelic_wl_assoc_state
+{
 	GELIC_WL_ASSOC_STAT_DISCONN,
 	GELIC_WL_ASSOC_STAT_ASSOCIATING,
 	GELIC_WL_ASSOC_STAT_ASSOCIATED,
 };
 /* part of private data alloc_etherdev() allocated */
 #define GELIC_WEP_KEYS 4
-struct gelic_wl_info {
+struct gelic_wl_info
+{
 	/* bss list */
 	struct mutex scan_lock;
 	struct list_head network_list;
@@ -303,7 +327,8 @@ static inline struct gelic_wl_info *port_wl(struct gelic_port *port)
 	return port_priv(port);
 }
 
-struct gelic_eurus_cmd {
+struct gelic_eurus_cmd
+{
 	struct work_struct work;
 	struct gelic_wl_info *wl;
 	unsigned int cmd; /* command code */

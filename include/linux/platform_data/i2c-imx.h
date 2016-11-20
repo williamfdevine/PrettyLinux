@@ -14,7 +14,8 @@
  * @bitrate:	Bus speed measured in Hz
  *
  **/
-struct imxi2c_platform_data {
+struct imxi2c_platform_data
+{
 	u32 bitrate;
 };
 

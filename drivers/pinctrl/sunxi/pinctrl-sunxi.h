@@ -80,19 +80,22 @@
 #define SUN4I_FUNC_INPUT	0
 #define SUN4I_FUNC_IRQ		6
 
-struct sunxi_desc_function {
+struct sunxi_desc_function
+{
 	const char	*name;
 	u8		muxval;
 	u8		irqbank;
 	u8		irqnum;
 };
 
-struct sunxi_desc_pin {
+struct sunxi_desc_pin
+{
 	struct pinctrl_pin_desc		pin;
 	struct sunxi_desc_function	*functions;
 };
 
-struct sunxi_pinctrl_desc {
+struct sunxi_pinctrl_desc
+{
 	const struct sunxi_desc_pin	*pins;
 	int				npins;
 	unsigned			pin_base;
@@ -101,19 +104,22 @@ struct sunxi_pinctrl_desc {
 	bool				irq_read_needs_mux;
 };
 
-struct sunxi_pinctrl_function {
+struct sunxi_pinctrl_function
+{
 	const char	*name;
 	const char	**groups;
 	unsigned	ngroups;
 };
 
-struct sunxi_pinctrl_group {
+struct sunxi_pinctrl_group
+{
 	const char	*name;
 	unsigned long	config;
 	unsigned	pin;
 };
 
-struct sunxi_pinctrl {
+struct sunxi_pinctrl
+{
 	void __iomem			*membase;
 	struct gpio_chip		*chip;
 	const struct sunxi_pinctrl_desc	*desc;
@@ -139,22 +145,22 @@ struct sunxi_pinctrl {
 #define SUNXI_FUNCTION(_val, _name)				\
 	{							\
 		.name = _name,					\
-		.muxval = _val,					\
+				.muxval = _val,					\
 	}
 
 #define SUNXI_FUNCTION_IRQ(_val, _irq)				\
 	{							\
 		.name = "irq",					\
-		.muxval = _val,					\
-		.irqnum = _irq,					\
+				.muxval = _val,					\
+						  .irqnum = _irq,					\
 	}
 
 #define SUNXI_FUNCTION_IRQ_BANK(_val, _bank, _irq)		\
 	{							\
 		.name = "irq",					\
-		.muxval = _val,					\
-		.irqbank = _bank,				\
-		.irqnum = _irq,					\
+				.muxval = _val,					\
+						  .irqbank = _bank,				\
+									 .irqnum = _irq,					\
 	}
 
 /*
@@ -285,6 +291,6 @@ static inline u32 sunxi_irq_status_offset(u16 irq)
 }
 
 int sunxi_pinctrl_init(struct platform_device *pdev,
-		       const struct sunxi_pinctrl_desc *desc);
+					   const struct sunxi_pinctrl_desc *desc);
 
 #endif /* __PINCTRL_SUNXI_H */

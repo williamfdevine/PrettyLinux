@@ -46,7 +46,8 @@
 #define to_device(ptr_module)						\
 	(to_isp_device(ptr_module)->dev)
 
-enum isp_mem_resources {
+enum isp_mem_resources
+{
 	OMAP3_ISP_IOMEM_MAIN,
 	OMAP3_ISP_IOMEM_CCP2,
 	OMAP3_ISP_IOMEM_CCDC,
@@ -64,7 +65,8 @@ enum isp_mem_resources {
 	OMAP3_ISP_IOMEM_LAST
 };
 
-enum isp_sbl_resource {
+enum isp_sbl_resource
+{
 	OMAP3_ISP_SBL_CSI1_READ		= 0x1,
 	OMAP3_ISP_SBL_CSI1_WRITE	= 0x2,
 	OMAP3_ISP_SBL_CSI2A_WRITE	= 0x4,
@@ -77,7 +79,8 @@ enum isp_sbl_resource {
 	OMAP3_ISP_SBL_RESIZER_WRITE	= 0x200,
 };
 
-enum isp_subclk_resource {
+enum isp_subclk_resource
+{
 	OMAP3_ISP_SUBCLK_CCDC		= (1 << 0),
 	OMAP3_ISP_SUBCLK_AEWB		= (1 << 1),
 	OMAP3_ISP_SUBCLK_AF		= (1 << 2),
@@ -104,7 +107,8 @@ struct regmap;
  * @offset: register offsets of various ISP sub-blocks
  * @phy_type: ISP_PHY_TYPE_{3430,3630}
  */
-struct isp_res_mapping {
+struct isp_res_mapping
+{
 	u32 isp_rev;
 	u32 offset[OMAP3_ISP_IOMEM_LAST];
 	u32 phy_type;
@@ -115,18 +119,21 @@ struct isp_res_mapping {
  * @reg: 32-bit Register address.
  * @val: 32-bit Register value.
  */
-struct isp_reg {
+struct isp_reg
+{
 	enum isp_mem_resources mmio_range;
 	u32 reg;
 	u32 val;
 };
 
-enum isp_xclk_id {
+enum isp_xclk_id
+{
 	ISP_XCLK_A,
 	ISP_XCLK_B,
 };
 
-struct isp_xclk {
+struct isp_xclk
+{
 	struct isp_device *isp;
 	struct clk_hw hw;
 	struct clk *clk;
@@ -173,7 +180,8 @@ struct isp_xclk {
  *
  * This structure is used to store the OMAP ISP Information.
  */
-struct isp_device {
+struct isp_device
+{
 	struct v4l2_device v4l2_dev;
 	struct v4l2_async_notifier notifier;
 	struct media_device media_dev;
@@ -226,7 +234,8 @@ struct isp_device {
 	struct v4l2_subdev *subdevs[ISP_MAX_SUBDEVS];
 };
 
-struct isp_async_subdev {
+struct isp_async_subdev
+{
 	struct v4l2_subdev *sd;
 	struct isp_bus_cfg bus;
 	struct v4l2_async_subdev asd;
@@ -240,18 +249,18 @@ void omap3isp_hist_dma_done(struct isp_device *isp);
 void omap3isp_flush(struct isp_device *isp);
 
 int omap3isp_module_sync_idle(struct media_entity *me, wait_queue_head_t *wait,
-			      atomic_t *stopping);
+							  atomic_t *stopping);
 
 int omap3isp_module_sync_is_stopping(wait_queue_head_t *wait,
-				     atomic_t *stopping);
+									 atomic_t *stopping);
 
 int omap3isp_pipeline_set_stream(struct isp_pipeline *pipe,
-				 enum isp_pipeline_stream_state state);
+								 enum isp_pipeline_stream_state state);
 void omap3isp_pipeline_cancel_stream(struct isp_pipeline *pipe);
 void omap3isp_configure_bridge(struct isp_device *isp,
-			       enum ccdc_input_entity input,
-			       const struct isp_parallel_cfg *buscfg,
-			       unsigned int shift, unsigned int bridge);
+							   enum ccdc_input_entity input,
+							   const struct isp_parallel_cfg *buscfg,
+							   unsigned int shift, unsigned int bridge);
 
 struct isp_device *omap3isp_get(struct isp_device *isp);
 void omap3isp_put(struct isp_device *isp);
@@ -262,12 +271,12 @@ void omap3isp_sbl_enable(struct isp_device *isp, enum isp_sbl_resource res);
 void omap3isp_sbl_disable(struct isp_device *isp, enum isp_sbl_resource res);
 
 void omap3isp_subclk_enable(struct isp_device *isp,
-			    enum isp_subclk_resource res);
+							enum isp_subclk_resource res);
 void omap3isp_subclk_disable(struct isp_device *isp,
-			     enum isp_subclk_resource res);
+							 enum isp_subclk_resource res);
 
 int omap3isp_register_entities(struct platform_device *pdev,
-			       struct v4l2_device *v4l2_dev);
+							   struct v4l2_device *v4l2_dev);
 void omap3isp_unregister_entities(struct platform_device *pdev);
 
 /*
@@ -280,7 +289,7 @@ void omap3isp_unregister_entities(struct platform_device *pdev);
  */
 static inline
 u32 isp_reg_readl(struct isp_device *isp, enum isp_mem_resources isp_mmio_range,
-		  u32 reg_offset)
+				  u32 reg_offset)
 {
 	return __raw_readl(isp->mmio_base[isp_mmio_range] + reg_offset);
 }
@@ -294,7 +303,7 @@ u32 isp_reg_readl(struct isp_device *isp, enum isp_mem_resources isp_mmio_range,
  */
 static inline
 void isp_reg_writel(struct isp_device *isp, u32 reg_value,
-		    enum isp_mem_resources isp_mmio_range, u32 reg_offset)
+					enum isp_mem_resources isp_mmio_range, u32 reg_offset)
 {
 	__raw_writel(reg_value, isp->mmio_base[isp_mmio_range] + reg_offset);
 }
@@ -308,7 +317,7 @@ void isp_reg_writel(struct isp_device *isp, u32 reg_value,
  */
 static inline
 void isp_reg_clr(struct isp_device *isp, enum isp_mem_resources mmio_range,
-		 u32 reg, u32 clr_bits)
+				 u32 reg, u32 clr_bits)
 {
 	u32 v = isp_reg_readl(isp, mmio_range, reg);
 
@@ -324,7 +333,7 @@ void isp_reg_clr(struct isp_device *isp, enum isp_mem_resources mmio_range,
  */
 static inline
 void isp_reg_set(struct isp_device *isp, enum isp_mem_resources mmio_range,
-		 u32 reg, u32 set_bits)
+				 u32 reg, u32 set_bits)
 {
 	u32 v = isp_reg_readl(isp, mmio_range, reg);
 
@@ -343,7 +352,7 @@ void isp_reg_set(struct isp_device *isp, enum isp_mem_resources mmio_range,
  */
 static inline
 void isp_reg_clr_set(struct isp_device *isp, enum isp_mem_resources mmio_range,
-		     u32 reg, u32 clr_bits, u32 set_bits)
+					 u32 reg, u32 clr_bits, u32 set_bits)
 {
 	u32 v = isp_reg_readl(isp, mmio_range, reg);
 
@@ -354,12 +363,16 @@ static inline enum v4l2_buf_type
 isp_pad_buffer_type(const struct v4l2_subdev *subdev, int pad)
 {
 	if (pad >= subdev->entity.num_pads)
+	{
 		return 0;
+	}
 
 	if (subdev->entity.pads[pad].flags & MEDIA_PAD_FL_SINK)
+	{
 		return V4L2_BUF_TYPE_VIDEO_OUTPUT;
+	}
 	else
-		return V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	{ return V4L2_BUF_TYPE_VIDEO_CAPTURE; }
 }
 
 #endif	/* OMAP3_ISP_CORE_H */

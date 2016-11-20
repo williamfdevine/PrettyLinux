@@ -29,26 +29,39 @@
 
 	/* Check length parameter for validity */
 	pad = nn - nroots - len;
-	if (pad < 0 || pad >= nn)
-		return -ERANGE;
 
-	for (i = 0; i < len; i++) {
+	if (pad < 0 || pad >= nn)
+	{
+		return -ERANGE;
+	}
+
+	for (i = 0; i < len; i++)
+	{
 		fb = index_of[((((uint16_t) data[i])^invmsk) & msk) ^ par[0]];
+
 		/* feedback term is non-zero */
-		if (fb != nn) {
-			for (j = 1; j < nroots; j++) {
+		if (fb != nn)
+		{
+			for (j = 1; j < nroots; j++)
+			{
 				par[j] ^= alpha_to[rs_modnn(rs, fb +
-							 genpoly[nroots - j])];
+				genpoly[nroots - j])];
 			}
 		}
+
 		/* Shift */
 		memmove(&par[0], &par[1], sizeof(uint16_t) * (nroots - 1));
-		if (fb != nn) {
+
+		if (fb != nn)
+		{
 			par[nroots - 1] = alpha_to[rs_modnn(rs,
-							    fb + genpoly[0])];
-		} else {
+												fb + genpoly[0])];
+		}
+		else
+		{
 			par[nroots - 1] = 0;
 		}
 	}
+
 	return 0;
 }

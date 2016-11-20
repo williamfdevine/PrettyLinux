@@ -30,42 +30,71 @@ static int get_temp_8996(struct tsens_device *tmdev, int id, int *temp)
 
 	sensor_addr = STATUS_OFFSET + s->hw_id * 4;
 	ret = regmap_read(tmdev->map, sensor_addr, &code);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	last_temp = code & LAST_TEMP_MASK;
+
 	if (code & STATUS_VALID_BIT)
+	{
 		goto done;
+	}
 
 	/* Try a second time */
 	ret = regmap_read(tmdev->map, sensor_addr, &code);
+
 	if (ret)
+	{
 		return ret;
-	if (code & STATUS_VALID_BIT) {
+	}
+
+	if (code & STATUS_VALID_BIT)
+	{
 		last_temp = code & LAST_TEMP_MASK;
 		goto done;
-	} else {
+	}
+	else
+	{
 		last_temp2 = code & LAST_TEMP_MASK;
 	}
 
 	/* Try a third/last time */
 	ret = regmap_read(tmdev->map, sensor_addr, &code);
+
 	if (ret)
+	{
 		return ret;
-	if (code & STATUS_VALID_BIT) {
+	}
+
+	if (code & STATUS_VALID_BIT)
+	{
 		last_temp = code & LAST_TEMP_MASK;
 		goto done;
-	} else {
+	}
+	else
+	{
 		last_temp3 = code & LAST_TEMP_MASK;
 	}
 
 	if (last_temp == last_temp2)
+	{
 		last_temp = last_temp2;
+	}
 	else if (last_temp2 == last_temp3)
+	{
 		last_temp = last_temp3;
+	}
+
 done:
+
 	/* Code sign bit is the sign extension for a negative value */
 	if (last_temp & CODE_SIGN_BIT)
+	{
 		last_temp |= ~CODE_SIGN_BIT;
+	}
 
 	/* Temperatures are in deciCelicius */
 	*temp = last_temp * 100;
@@ -73,12 +102,14 @@ done:
 	return 0;
 }
 
-static const struct tsens_ops ops_8996 = {
+static const struct tsens_ops ops_8996 =
+{
 	.init		= init_common,
 	.get_temp	= get_temp_8996,
 };
 
-const struct tsens_data data_8996 = {
+const struct tsens_data data_8996 =
+{
 	.num_sensors	= 13,
 	.ops		= &ops_8996,
 };

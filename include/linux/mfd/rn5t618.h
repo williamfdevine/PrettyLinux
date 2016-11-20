@@ -213,7 +213,8 @@
 #define RN5T618_WATCHDOG_WDOGTIM_S	0
 #define RN5T618_PWRIRQ_IR_WDOG		BIT(6)
 
-enum {
+enum
+{
 	RN5T618_DCDC1,
 	RN5T618_DCDC2,
 	RN5T618_DCDC3,
@@ -228,12 +229,14 @@ enum {
 	RN5T618_REG_NUM,
 };
 
-enum {
+enum
+{
 	RN5T567 = 0,
 	RN5T618,
 };
 
-struct rn5t618 {
+struct rn5t618
+{
 	struct regmap *regmap;
 	long variant;
 };

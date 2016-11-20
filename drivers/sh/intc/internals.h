@@ -19,38 +19,43 @@
 #define _INTC_ADDR_D(h)		((h >> 24) & 0xff)
 
 #ifdef CONFIG_SMP
-#define IS_SMP(x)		(x.smp)
-#define INTC_REG(d, x, c)	(d->reg[(x)] + ((d->smp[(x)] & 0xff) * c))
-#define SMP_NR(d, x)		((d->smp[(x)] >> 8) ? (d->smp[(x)] >> 8) : 1)
+	#define IS_SMP(x)		(x.smp)
+	#define INTC_REG(d, x, c)	(d->reg[(x)] + ((d->smp[(x)] & 0xff) * c))
+	#define SMP_NR(d, x)		((d->smp[(x)] >> 8) ? (d->smp[(x)] >> 8) : 1)
 #else
-#define IS_SMP(x)		0
-#define INTC_REG(d, x, c)	(d->reg[(x)])
-#define SMP_NR(d, x)		1
+	#define IS_SMP(x)		0
+	#define INTC_REG(d, x, c)	(d->reg[(x)])
+	#define SMP_NR(d, x)		1
 #endif
 
-struct intc_handle_int {
+struct intc_handle_int
+{
 	unsigned int irq;
 	unsigned long handle;
 };
 
-struct intc_window {
+struct intc_window
+{
 	phys_addr_t phys;
 	void __iomem *virt;
 	unsigned long size;
 };
 
-struct intc_map_entry {
+struct intc_map_entry
+{
 	intc_enum enum_id;
 	struct intc_desc_int *desc;
 };
 
-struct intc_subgroup_entry {
+struct intc_subgroup_entry
+{
 	unsigned int pirq;
 	intc_enum enum_id;
 	unsigned long handle;
 };
 
-struct intc_desc_int {
+struct intc_desc_int
+{
 	struct list_head list;
 	struct device dev;
 	struct radix_tree_root tree;
@@ -73,7 +78,8 @@ struct intc_desc_int {
 };
 
 
-enum {
+enum
+{
 	REG_FN_ERR = 0,
 	REG_FN_TEST_BASE = 1,
 	REG_FN_WRITE_BASE = 5,
@@ -81,11 +87,11 @@ enum {
 };
 
 enum {	MODE_ENABLE_REG = 0, /* Bit(s) set -> interrupt enabled */
-	MODE_MASK_REG,       /* Bit(s) set -> interrupt disabled */
-	MODE_DUAL_REG,       /* Two registers, set bit to enable / disable */
-	MODE_PRIO_REG,       /* Priority value written to enable interrupt */
-	MODE_PCLR_REG,       /* Above plus all bits set to disable interrupt */
-};
+		MODE_MASK_REG,       /* Bit(s) set -> interrupt disabled */
+		MODE_DUAL_REG,       /* Two registers, set bit to enable / disable */
+		MODE_PRIO_REG,       /* Priority value written to enable interrupt */
+		MODE_PCLR_REG,       /* Above plus all bits set to disable interrupt */
+	 };
 
 static inline struct intc_desc_int *get_intc_desc(unsigned int irq)
 {
@@ -116,40 +122,40 @@ extern unsigned long
 
 extern unsigned long
 (*intc_enable_fns[])(unsigned long addr, unsigned long handle,
-		     unsigned long (*fn)(unsigned long,
-				unsigned long, unsigned long),
-		     unsigned int irq);
+					 unsigned long (*fn)(unsigned long,
+							 unsigned long, unsigned long),
+					 unsigned int irq);
 extern unsigned long
 (*intc_disable_fns[])(unsigned long addr, unsigned long handle,
-		      unsigned long (*fn)(unsigned long,
-				unsigned long, unsigned long),
-		      unsigned int irq);
+					  unsigned long (*fn)(unsigned long,
+							  unsigned long, unsigned long),
+					  unsigned int irq);
 extern unsigned long
 (*intc_enable_noprio_fns[])(unsigned long addr, unsigned long handle,
-		            unsigned long (*fn)(unsigned long,
-				unsigned long, unsigned long),
-			    unsigned int irq);
+							unsigned long (*fn)(unsigned long,
+									unsigned long, unsigned long),
+							unsigned int irq);
 
 unsigned long intc_phys_to_virt(struct intc_desc_int *d, unsigned long address);
 unsigned int intc_get_reg(struct intc_desc_int *d, unsigned long address);
 unsigned int intc_set_field_from_handle(unsigned int value,
-			    unsigned int field_value,
-			    unsigned int handle);
+										unsigned int field_value,
+										unsigned int handle);
 unsigned long intc_get_field_from_handle(unsigned int value,
-					 unsigned int handle);
+		unsigned int handle);
 
 /* balancing.c */
 #ifdef CONFIG_INTC_BALANCING
 void intc_balancing_enable(unsigned int irq);
 void intc_balancing_disable(unsigned int irq);
 void intc_set_dist_handle(unsigned int irq, struct intc_desc *desc,
-			  struct intc_desc_int *d, intc_enum id);
+						  struct intc_desc_int *d, intc_enum id);
 #else
 static inline void intc_balancing_enable(unsigned int irq) { }
 static inline void intc_balancing_disable(unsigned int irq) { }
 static inline void
 intc_set_dist_handle(unsigned int irq, struct intc_desc *desc,
-		     struct intc_desc_int *d, intc_enum id) { }
+					 struct intc_desc_int *d, intc_enum id) { }
 #endif
 
 /* chip.c */
@@ -167,19 +173,19 @@ void intc_set_prio_level(unsigned int irq, unsigned int level);
 
 /* handle.c */
 unsigned int intc_get_mask_handle(struct intc_desc *desc,
-				  struct intc_desc_int *d,
-				  intc_enum enum_id, int do_grps);
+								  struct intc_desc_int *d,
+								  intc_enum enum_id, int do_grps);
 unsigned int intc_get_prio_handle(struct intc_desc *desc,
-				  struct intc_desc_int *d,
-				  intc_enum enum_id, int do_grps);
+								  struct intc_desc_int *d,
+								  intc_enum enum_id, int do_grps);
 unsigned int intc_get_sense_handle(struct intc_desc *desc,
-				   struct intc_desc_int *d,
-				   intc_enum enum_id);
+								   struct intc_desc_int *d,
+								   intc_enum enum_id);
 void intc_set_ack_handle(unsigned int irq, struct intc_desc *desc,
-			 struct intc_desc_int *d, intc_enum id);
+						 struct intc_desc_int *d, intc_enum id);
 unsigned long intc_get_ack_handle(unsigned int irq);
 void intc_enable_disable_enum(struct intc_desc *desc, struct intc_desc_int *d,
-			      intc_enum enum_id, int enable);
+							  intc_enum enum_id, int enable);
 
 /* irqdomain.c */
 void intc_irq_domain_init(struct intc_desc_int *d, struct intc_hw_desc *hw);

@@ -64,7 +64,8 @@
  * covers all valid ext4 block sizes.  Therefore, this tail structure can be
  * crammed into the end of the block without having to rebalance the tree.
  */
-struct ext4_extent_tail {
+struct ext4_extent_tail
+{
 	__le32	et_checksum;	/* crc32c(uuid+inum+extent_block) */
 };
 
@@ -72,7 +73,8 @@ struct ext4_extent_tail {
  * This is the extent on-disk structure.
  * It's used at the bottom of the tree.
  */
-struct ext4_extent {
+struct ext4_extent
+{
 	__le32	ee_block;	/* first logical block extent covers */
 	__le16	ee_len;		/* number of blocks covered by extent */
 	__le16	ee_start_hi;	/* high 16 bits of physical block */
@@ -83,7 +85,8 @@ struct ext4_extent {
  * This is index on-disk structure.
  * It's used at all the levels except the bottom.
  */
-struct ext4_extent_idx {
+struct ext4_extent_idx
+{
 	__le32	ei_block;	/* index covers logical blocks from 'block' */
 	__le32	ei_leaf_lo;	/* pointer to the physical block of the next *
 				 * level. leaf or next index could be there */
@@ -94,7 +97,8 @@ struct ext4_extent_idx {
 /*
  * Each block (leaves and indexes), even inode-stored has header.
  */
-struct ext4_extent_header {
+struct ext4_extent_header
+{
 	__le16	eh_magic;	/* probably will support different formats */
 	__le16	eh_entries;	/* number of valid entries */
 	__le16	eh_max;		/* capacity of store in entries */
@@ -112,7 +116,7 @@ static inline struct ext4_extent_tail *
 find_ext4_extent_tail(struct ext4_extent_header *eh)
 {
 	return (struct ext4_extent_tail *)(((void *)eh) +
-					   EXT4_EXTENT_TAIL_OFFSET(eh));
+									   EXT4_EXTENT_TAIL_OFFSET(eh));
 }
 
 /*
@@ -120,7 +124,8 @@ find_ext4_extent_tail(struct ext4_extent_header *eh)
  * Creation/lookup routines use it for traversal/splitting/etc.
  * Truncate uses it to simulate recursive walking.
  */
-struct ext4_ext_path {
+struct ext4_ext_path
+{
 	ext4_fsblk_t			p_block;
 	__u16				p_depth;
 	__u16				p_maxdepth;
@@ -157,13 +162,13 @@ struct ext4_ext_path {
 
 #define EXT_FIRST_EXTENT(__hdr__) \
 	((struct ext4_extent *) (((char *) (__hdr__)) +		\
-				 sizeof(struct ext4_extent_header)))
+							 sizeof(struct ext4_extent_header)))
 #define EXT_FIRST_INDEX(__hdr__) \
 	((struct ext4_extent_idx *) (((char *) (__hdr__)) +	\
-				     sizeof(struct ext4_extent_header)))
+								 sizeof(struct ext4_extent_header)))
 #define EXT_HAS_FREE_INDEX(__path__) \
 	(le16_to_cpu((__path__)->p_hdr->eh_entries) \
-				     < le16_to_cpu((__path__)->p_hdr->eh_max))
+	 < le16_to_cpu((__path__)->p_hdr->eh_max))
 #define EXT_LAST_EXTENT(__hdr__) \
 	(EXT_FIRST_EXTENT((__hdr__)) + le16_to_cpu((__hdr__)->eh_entries) - 1)
 #define EXT_LAST_INDEX(__hdr__) \
@@ -204,8 +209,8 @@ static inline int ext4_ext_is_unwritten(struct ext4_extent *ext)
 static inline int ext4_ext_get_actual_len(struct ext4_extent *ext)
 {
 	return (le16_to_cpu(ext->ee_len) <= EXT_INIT_MAX_LEN ?
-		le16_to_cpu(ext->ee_len) :
-		(le16_to_cpu(ext->ee_len) - EXT_INIT_MAX_LEN));
+			le16_to_cpu(ext->ee_len) :
+			(le16_to_cpu(ext->ee_len) - EXT_INIT_MAX_LEN));
 }
 
 static inline void ext4_ext_mark_initialized(struct ext4_extent *ext)
@@ -245,11 +250,11 @@ static inline ext4_fsblk_t ext4_idx_pblock(struct ext4_extent_idx *ix)
  * breaking it into parts
  */
 static inline void ext4_ext_store_pblock(struct ext4_extent *ex,
-					 ext4_fsblk_t pb)
+		ext4_fsblk_t pb)
 {
 	ex->ee_start_lo = cpu_to_le32((unsigned long) (pb & 0xffffffff));
 	ex->ee_start_hi = cpu_to_le16((unsigned long) ((pb >> 31) >> 1) &
-				      0xffff);
+								  0xffff);
 }
 
 /*
@@ -258,17 +263,17 @@ static inline void ext4_ext_store_pblock(struct ext4_extent *ex,
  * breaking it into parts
  */
 static inline void ext4_idx_store_pblock(struct ext4_extent_idx *ix,
-					 ext4_fsblk_t pb)
+		ext4_fsblk_t pb)
 {
 	ix->ei_leaf_lo = cpu_to_le32((unsigned long) (pb & 0xffffffff));
 	ix->ei_leaf_hi = cpu_to_le16((unsigned long) ((pb >> 31) >> 1) &
-				     0xffff);
+								 0xffff);
 }
 
 #define ext4_ext_dirty(handle, inode, path) \
-		__ext4_ext_dirty(__func__, __LINE__, (handle), (inode), (path))
+	__ext4_ext_dirty(__func__, __LINE__, (handle), (inode), (path))
 int __ext4_ext_dirty(const char *where, unsigned int line, handle_t *handle,
-		     struct inode *inode, struct ext4_ext_path *path);
+					 struct inode *inode, struct ext4_ext_path *path);
 
 #endif /* _EXT4_EXTENTS */
 

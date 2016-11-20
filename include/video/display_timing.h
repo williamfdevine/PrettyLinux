@@ -12,7 +12,8 @@
 #include <linux/bitops.h>
 #include <linux/types.h>
 
-enum display_flags {
+enum display_flags
+{
 	DISPLAY_FLAGS_HSYNC_LOW		= BIT(0),
 	DISPLAY_FLAGS_HSYNC_HIGH	= BIT(1),
 	DISPLAY_FLAGS_VSYNC_LOW		= BIT(2),
@@ -34,7 +35,8 @@ enum display_flags {
  * A single signal can be specified via a range of minimal and maximal values
  * with a typical value, that lies somewhere inbetween.
  */
-struct timing_entry {
+struct timing_entry
+{
 	u32 min;
 	u32 typ;
 	u32 max;
@@ -57,7 +59,8 @@ struct timing_entry {
  *
  * VSync ¯|__________|¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|_________
  */
-struct display_timing {
+struct display_timing
+{
 	struct timing_entry pixelclock;
 
 	struct timing_entry hactive;		/* hor. active video */
@@ -79,7 +82,8 @@ struct display_timing {
  * Drivers that can handle multiple videomodes should work with this struct and
  * convert each entry to the desired end result.
  */
-struct display_timings {
+struct display_timings
+{
 	unsigned int num_timings;
 	unsigned int native_mode;
 
@@ -88,13 +92,17 @@ struct display_timings {
 
 /* get one entry from struct display_timings */
 static inline struct display_timing *display_timings_get(const struct
-							 display_timings *disp,
-							 unsigned int index)
+		display_timings *disp,
+		unsigned int index)
 {
 	if (disp->num_timings > index)
+	{
 		return disp->timings[index];
+	}
 	else
+	{
 		return NULL;
+	}
 }
 
 void display_timings_release(struct display_timings *disp);

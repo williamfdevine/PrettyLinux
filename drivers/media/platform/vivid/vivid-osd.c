@@ -47,12 +47,14 @@
  * Order: white, yellow, cyan, green, magenta, red, blue, black,
  * and same again with the alpha bit set (if any)
  */
-static const u16 rgb555[16] = {
+static const u16 rgb555[16] =
+{
 	0x7fff, 0x7fe0, 0x03ff, 0x03e0, 0x7c1f, 0x7c00, 0x001f, 0x0000,
 	0xffff, 0xffe0, 0x83ff, 0x83e0, 0xfc1f, 0xfc00, 0x801f, 0x8000
 };
 
-static const u16 rgb565[16] = {
+static const u16 rgb565[16] =
+{
 	0xffff, 0xffe0, 0x07ff, 0x07e0, 0xf81f, 0xf800, 0x001f, 0x0000,
 	0xffff, 0xffe0, 0x07ff, 0x07e0, 0xf81f, 0xf800, 0x001f, 0x0000
 };
@@ -64,13 +66,19 @@ void vivid_clear_fb(struct vivid_dev *dev)
 	unsigned x, y;
 
 	if (dev->fb_defined.green.length == 6)
+	{
 		rgb = rgb565;
+	}
 
-	for (y = 0; y < dev->display_height; y++) {
+	for (y = 0; y < dev->display_height; y++)
+	{
 		u16 *d = p;
 
 		for (x = 0; x < dev->display_width; x++)
+		{
 			d[x] = rgb[(y / 16 + x / 16) % 16];
+		}
+
 		p += dev->display_byte_stride;
 	}
 }
@@ -81,25 +89,32 @@ static int vivid_fb_ioctl(struct fb_info *info, unsigned cmd, unsigned long arg)
 {
 	struct vivid_dev *dev = (struct vivid_dev *)info->par;
 
-	switch (cmd) {
-	case FBIOGET_VBLANK: {
-		struct fb_vblank vblank;
+	switch (cmd)
+	{
+		case FBIOGET_VBLANK:
+			{
+				struct fb_vblank vblank;
 
-		memset(&vblank, 0, sizeof(vblank));
-		vblank.flags = FB_VBLANK_HAVE_COUNT | FB_VBLANK_HAVE_VCOUNT |
-			FB_VBLANK_HAVE_VSYNC;
-		vblank.count = 0;
-		vblank.vcount = 0;
-		vblank.hcount = 0;
-		if (copy_to_user((void __user *)arg, &vblank, sizeof(vblank)))
-			return -EFAULT;
-		return 0;
+				memset(&vblank, 0, sizeof(vblank));
+				vblank.flags = FB_VBLANK_HAVE_COUNT | FB_VBLANK_HAVE_VCOUNT |
+							   FB_VBLANK_HAVE_VSYNC;
+				vblank.count = 0;
+				vblank.vcount = 0;
+				vblank.hcount = 0;
+
+				if (copy_to_user((void __user *)arg, &vblank, sizeof(vblank)))
+				{
+					return -EFAULT;
+				}
+
+				return 0;
+			}
+
+		default:
+			dprintk(dev, 1, "Unknown ioctl %08x\n", cmd);
+			return -EINVAL;
 	}
 
-	default:
-		dprintk(dev, 1, "Unknown ioctl %08x\n", cmd);
-		return -EINVAL;
-	}
 	return 0;
 }
 
@@ -109,10 +124,12 @@ static int vivid_fb_set_var(struct vivid_dev *dev, struct fb_var_screeninfo *var
 {
 	dprintk(dev, 1, "vivid_fb_set_var\n");
 
-	if (var->bits_per_pixel != 16) {
+	if (var->bits_per_pixel != 16)
+	{
 		dprintk(dev, 1, "vivid_fb_set_var - Invalid bpp\n");
 		return -EINVAL;
 	}
+
 	dev->display_byte_stride = var->xres * dev->bytes_per_pixel;
 
 	return 0;
@@ -143,7 +160,9 @@ static int _vivid_fb_check_var(struct fb_var_screeninfo *var, struct vivid_dev *
 	dprintk(dev, 1, "vivid_fb_check_var\n");
 
 	var->bits_per_pixel = 16;
-	if (var->green.length == 5) {
+
+	if (var->green.length == 5)
+	{
 		var->red.offset = 10;
 		var->red.length = 5;
 		var->green.offset = 5;
@@ -152,7 +171,9 @@ static int _vivid_fb_check_var(struct fb_var_screeninfo *var, struct vivid_dev *
 		var->blue.length = 5;
 		var->transp.offset = 15;
 		var->transp.length = 1;
-	} else {
+	}
+	else
+	{
 		var->red.offset = 11;
 		var->red.length = 5;
 		var->green.offset = 5;
@@ -162,6 +183,7 @@ static int _vivid_fb_check_var(struct fb_var_screeninfo *var, struct vivid_dev *
 		var->transp.offset = 0;
 		var->transp.length = 0;
 	}
+
 	var->xoffset = var->yoffset = 0;
 	var->left_margin = var->upper_margin = 0;
 	var->nonstd = 0;
@@ -204,35 +226,45 @@ static int vivid_fb_set_par(struct fb_info *info)
 }
 
 static int vivid_fb_setcolreg(unsigned regno, unsigned red, unsigned green,
-				unsigned blue, unsigned transp,
-				struct fb_info *info)
+							  unsigned blue, unsigned transp,
+							  struct fb_info *info)
 {
 	u32 color, *palette;
 
 	if (regno >= info->cmap.len)
+	{
 		return -EINVAL;
+	}
 
 	color = ((transp & 0xFF00) << 16) | ((red & 0xFF00) << 8) |
-		 (green & 0xFF00) | ((blue & 0xFF00) >> 8);
+			(green & 0xFF00) | ((blue & 0xFF00) >> 8);
+
 	if (regno >= 16)
+	{
 		return -EINVAL;
+	}
 
 	palette = info->pseudo_palette;
-	if (info->var.bits_per_pixel == 16) {
-		switch (info->var.green.length) {
-		case 6:
-			color = (red & 0xf800) |
-				((green & 0xfc00) >> 5) |
-				((blue & 0xf800) >> 11);
-			break;
-		case 5:
-			color = ((red & 0xf800) >> 1) |
-				((green & 0xf800) >> 6) |
-				((blue & 0xf800) >> 11) |
-				(transp ? 0x8000 : 0);
-			break;
+
+	if (info->var.bits_per_pixel == 16)
+	{
+		switch (info->var.green.length)
+		{
+			case 6:
+				color = (red & 0xf800) |
+						((green & 0xfc00) >> 5) |
+						((blue & 0xf800) >> 11);
+				break;
+
+			case 5:
+				color = ((red & 0xf800) >> 1) |
+						((green & 0xf800) >> 6) |
+						((blue & 0xf800) >> 11) |
+						(transp ? 0x8000 : 0);
+				break;
 		}
 	}
+
 	palette[regno] = color;
 	return 0;
 }
@@ -244,19 +276,24 @@ static int vivid_fb_blank(int blank_mode, struct fb_info *info)
 	struct vivid_dev *dev = (struct vivid_dev *)info->par;
 
 	dprintk(dev, 1, "Set blanking mode : %d\n", blank_mode);
-	switch (blank_mode) {
-	case FB_BLANK_UNBLANK:
-		break;
-	case FB_BLANK_NORMAL:
-	case FB_BLANK_HSYNC_SUSPEND:
-	case FB_BLANK_VSYNC_SUSPEND:
-	case FB_BLANK_POWERDOWN:
-		break;
+
+	switch (blank_mode)
+	{
+		case FB_BLANK_UNBLANK:
+			break;
+
+		case FB_BLANK_NORMAL:
+		case FB_BLANK_HSYNC_SUSPEND:
+		case FB_BLANK_VSYNC_SUSPEND:
+		case FB_BLANK_POWERDOWN:
+			break;
 	}
+
 	return 0;
 }
 
-static struct fb_ops vivid_fb_ops = {
+static struct fb_ops vivid_fb_ops =
+{
 	.owner = THIS_MODULE,
 	.fb_check_var   = vivid_fb_check_var,
 	.fb_set_par     = vivid_fb_set_par,
@@ -337,7 +374,8 @@ static int vivid_fb_init_vidmode(struct vivid_dev *dev)
 	dev->fb_info.monspecs.vfmax = 100;
 
 	/* Allocate color map */
-	if (fb_alloc_cmap(&dev->fb_info.cmap, 256, 1)) {
+	if (fb_alloc_cmap(&dev->fb_info.cmap, 256, 1))
+	{
 		pr_err("abort, unable to alloc cmap\n");
 		return -ENOMEM;
 	}
@@ -352,11 +390,15 @@ static int vivid_fb_init_vidmode(struct vivid_dev *dev)
 void vivid_fb_release_buffers(struct vivid_dev *dev)
 {
 	if (dev->video_vbase == NULL)
+	{
 		return;
+	}
 
 	/* Release cmap */
 	if (dev->fb_info.cmap.len)
+	{
 		fb_dealloc_cmap(&dev->fb_info.cmap);
+	}
 
 	/* Release pseudo palette */
 	kfree(dev->fb_info.pseudo_palette);
@@ -371,8 +413,12 @@ int vivid_fb_init(struct vivid_dev *dev)
 
 	dev->video_buffer_size = MAX_OSD_HEIGHT * MAX_OSD_WIDTH * 2;
 	dev->video_vbase = kzalloc(dev->video_buffer_size, GFP_KERNEL | GFP_DMA32);
+
 	if (dev->video_vbase == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	dev->video_pbase = virt_to_phys(dev->video_vbase);
 
 	pr_info("Framebuffer at 0x%lx, mapped to 0x%p, size %dk\n",
@@ -381,7 +427,9 @@ int vivid_fb_init(struct vivid_dev *dev)
 
 	/* Set the startup video mode information */
 	ret = vivid_fb_init_vidmode(dev);
-	if (ret) {
+
+	if (ret)
+	{
 		vivid_fb_release_buffers(dev);
 		return ret;
 	}
@@ -389,7 +437,8 @@ int vivid_fb_init(struct vivid_dev *dev)
 	vivid_clear_fb(dev);
 
 	/* Register the framebuffer */
-	if (register_framebuffer(&dev->fb_info) < 0) {
+	if (register_framebuffer(&dev->fb_info) < 0)
+	{
 		vivid_fb_release_buffers(dev);
 		return -EINVAL;
 	}

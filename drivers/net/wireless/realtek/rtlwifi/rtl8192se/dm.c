@@ -36,7 +36,8 @@
 #include "dm.h"
 #include "fw.h"
 
-static const u32 edca_setting_dl[PEER_MAX] = {
+static const u32 edca_setting_dl[PEER_MAX] =
+{
 	0xa44f,		/* 0 UNKNOWN */
 	0x5ea44f,	/* 1 REALTEK_90 */
 	0x5ea44f,	/* 2 REALTEK_92SE */
@@ -47,7 +48,8 @@ static const u32 edca_setting_dl[PEER_MAX] = {
 	0xa42b,		/* 7 MARV */
 };
 
-static const u32 edca_setting_dl_gmode[PEER_MAX] = {
+static const u32 edca_setting_dl_gmode[PEER_MAX] =
+{
 	0x4322,		/* 0 UNKNOWN */
 	0xa44f,		/* 1 REALTEK_90 */
 	0x5ea44f,	/* 2 REALTEK_92SE */
@@ -58,7 +60,8 @@ static const u32 edca_setting_dl_gmode[PEER_MAX] = {
 	0x5ea44f,	/* 7 MARV */
 };
 
-static const u32 edca_setting_ul[PEER_MAX] = {
+static const u32 edca_setting_ul[PEER_MAX] =
+{
 	0x5e4322,	/* 0 UNKNOWN */
 	0xa44f,		/* 1 REALTEK_90 */
 	0x5ea44f,	/* 2 REALTEK_92SE */
@@ -83,71 +86,93 @@ static void _rtl92s_dm_check_edca_turbo(struct ieee80211_hw *hw)
 	u32 edca_be_dl = edca_setting_dl[mac->vendor];
 	u32 edca_gmode = edca_setting_dl_gmode[mac->vendor];
 
-	if (mac->link_state != MAC80211_LINKED) {
+	if (mac->link_state != MAC80211_LINKED)
+	{
 		rtlpriv->dm.current_turbo_edca = false;
 		goto dm_checkedcaturbo_exit;
 	}
 
 	if ((!rtlpriv->dm.is_any_nonbepkts) &&
-	    (!rtlpriv->dm.disable_framebursting)) {
+		(!rtlpriv->dm.disable_framebursting))
+	{
 		cur_txok_cnt = rtlpriv->stats.txbytesunicast - last_txok_cnt;
 		cur_rxok_cnt = rtlpriv->stats.rxbytesunicast - last_rxok_cnt;
 
-		if (rtlpriv->phy.rf_type == RF_1T2R) {
-			if (cur_txok_cnt > 4 * cur_rxok_cnt) {
+		if (rtlpriv->phy.rf_type == RF_1T2R)
+		{
+			if (cur_txok_cnt > 4 * cur_rxok_cnt)
+			{
 				/* Uplink TP is present. */
 				if (rtlpriv->dm.is_cur_rdlstate ||
-					!rtlpriv->dm.current_turbo_edca) {
+					!rtlpriv->dm.current_turbo_edca)
+				{
 					rtl_write_dword(rtlpriv, EDCAPARA_BE,
-							edca_be_ul);
-					rtlpriv->dm.is_cur_rdlstate = false;
-				}
-			} else {/* Balance TP is present. */
-				if (!rtlpriv->dm.is_cur_rdlstate ||
-					!rtlpriv->dm.current_turbo_edca) {
-					if (mac->mode == WIRELESS_MODE_G ||
-					    mac->mode == WIRELESS_MODE_B)
-						rtl_write_dword(rtlpriv,
-								EDCAPARA_BE,
-								edca_gmode);
-					else
-						rtl_write_dword(rtlpriv,
-								EDCAPARA_BE,
-								edca_be_dl);
-					rtlpriv->dm.is_cur_rdlstate = true;
-				}
-			}
-			rtlpriv->dm.current_turbo_edca = true;
-		} else {
-			if (cur_rxok_cnt > 4 * cur_txok_cnt) {
-				if (!rtlpriv->dm.is_cur_rdlstate ||
-					!rtlpriv->dm.current_turbo_edca) {
-					if (mac->mode == WIRELESS_MODE_G ||
-					    mac->mode == WIRELESS_MODE_B)
-						rtl_write_dword(rtlpriv,
-								EDCAPARA_BE,
-								edca_gmode);
-					else
-						rtl_write_dword(rtlpriv,
-								EDCAPARA_BE,
-								edca_be_dl);
-					rtlpriv->dm.is_cur_rdlstate = true;
-				}
-			} else {
-				if (rtlpriv->dm.is_cur_rdlstate ||
-					!rtlpriv->dm.current_turbo_edca) {
-					rtl_write_dword(rtlpriv, EDCAPARA_BE,
-							edca_be_ul);
+									edca_be_ul);
 					rtlpriv->dm.is_cur_rdlstate = false;
 				}
 			}
+			else    /* Balance TP is present. */
+			{
+				if (!rtlpriv->dm.is_cur_rdlstate ||
+					!rtlpriv->dm.current_turbo_edca)
+				{
+					if (mac->mode == WIRELESS_MODE_G ||
+						mac->mode == WIRELESS_MODE_B)
+						rtl_write_dword(rtlpriv,
+										EDCAPARA_BE,
+										edca_gmode);
+					else
+						rtl_write_dword(rtlpriv,
+										EDCAPARA_BE,
+										edca_be_dl);
+
+					rtlpriv->dm.is_cur_rdlstate = true;
+				}
+			}
+
 			rtlpriv->dm.current_turbo_edca = true;
 		}
-	} else {
-		if (rtlpriv->dm.current_turbo_edca) {
+		else
+		{
+			if (cur_rxok_cnt > 4 * cur_txok_cnt)
+			{
+				if (!rtlpriv->dm.is_cur_rdlstate ||
+					!rtlpriv->dm.current_turbo_edca)
+				{
+					if (mac->mode == WIRELESS_MODE_G ||
+						mac->mode == WIRELESS_MODE_B)
+						rtl_write_dword(rtlpriv,
+										EDCAPARA_BE,
+										edca_gmode);
+					else
+						rtl_write_dword(rtlpriv,
+										EDCAPARA_BE,
+										edca_be_dl);
+
+					rtlpriv->dm.is_cur_rdlstate = true;
+				}
+			}
+			else
+			{
+				if (rtlpriv->dm.is_cur_rdlstate ||
+					!rtlpriv->dm.current_turbo_edca)
+				{
+					rtl_write_dword(rtlpriv, EDCAPARA_BE,
+									edca_be_ul);
+					rtlpriv->dm.is_cur_rdlstate = false;
+				}
+			}
+
+			rtlpriv->dm.current_turbo_edca = true;
+		}
+	}
+	else
+	{
+		if (rtlpriv->dm.current_turbo_edca)
+		{
 			u8 tmp = AC0_BE;
 			rtlpriv->cfg->ops->set_hw_reg(hw, HW_VAR_AC_PARAM,
-						      &tmp);
+										  &tmp);
 			rtlpriv->dm.current_turbo_edca = false;
 		}
 	}
@@ -159,7 +184,7 @@ dm_checkedcaturbo_exit:
 }
 
 static void _rtl92s_dm_txpowertracking_callback_thermalmeter(
-					struct ieee80211_hw *hw)
+	struct ieee80211_hw *hw)
 {
 	struct rtl_priv *rtlpriv = rtl_priv(hw);
 	struct rtl_efuse *rtlefuse = rtl_efuse(rtl_priv(hw));
@@ -171,21 +196,26 @@ static void _rtl92s_dm_txpowertracking_callback_thermalmeter(
 	thermalvalue = (u8)rtl_get_rfreg(hw, RF90_PATH_A, RF_T_METER, 0x1f);
 
 	RT_TRACE(rtlpriv, COMP_POWER_TRACKING, DBG_LOUD,
-		 "Readback Thermal Meter = 0x%x pre thermal meter 0x%x eeprom_thermal meter 0x%x\n",
-		 thermalvalue,
-		 rtlpriv->dm.thermalvalue, rtlefuse->eeprom_thermalmeter);
+			 "Readback Thermal Meter = 0x%x pre thermal meter 0x%x eeprom_thermal meter 0x%x\n",
+			 thermalvalue,
+			 rtlpriv->dm.thermalvalue, rtlefuse->eeprom_thermalmeter);
 
-	if (thermalvalue) {
+	if (thermalvalue)
+	{
 		rtlpriv->dm.thermalvalue = thermalvalue;
-		if (hal_get_firmwareversion(rtlpriv) >= 0x35) {
+
+		if (hal_get_firmwareversion(rtlpriv) >= 0x35)
+		{
 			rtl92s_phy_set_fw_cmd(hw, FW_CMD_TXPWR_TRACK_THERMAL);
-		} else {
+		}
+		else
+		{
 			fw_cmd = (FW_TXPWR_TRACK_THERMAL |
-				 (rtlpriv->efuse.thermalmeter[0] << 8) |
-				 (thermalvalue << 16));
+					  (rtlpriv->efuse.thermalmeter[0] << 8) |
+					  (thermalvalue << 16));
 
 			RT_TRACE(rtlpriv, COMP_POWER_TRACKING, DBG_LOUD,
-				 "Write to FW Thermal Val = 0x%x\n", fw_cmd);
+					 "Write to FW Thermal Val = 0x%x\n", fw_cmd);
 
 			rtl_write_dword(rtlpriv, WFM5, fw_cmd);
 			rtl92s_phy_chk_fwcmd_iodone(hw);
@@ -196,7 +226,7 @@ static void _rtl92s_dm_txpowertracking_callback_thermalmeter(
 }
 
 static void _rtl92s_dm_check_txpowertracking_thermalmeter(
-					struct ieee80211_hw *hw)
+	struct ieee80211_hw *hw)
 {
 	struct rtl_priv *rtlpriv = rtl_priv(hw);
 	struct rtl_phy *rtlphy = &(rtlpriv->phy);
@@ -204,21 +234,29 @@ static void _rtl92s_dm_check_txpowertracking_thermalmeter(
 
 	/* 2T2R TP issue */
 	if (rtlphy->rf_type == RF_2T2R)
+	{
 		return;
+	}
 
 	if (!rtlpriv->dm.txpower_tracking)
+	{
 		return;
+	}
 
-	if (rtlpriv->dm.txpowercount <= tx_power_checkcnt) {
+	if (rtlpriv->dm.txpowercount <= tx_power_checkcnt)
+	{
 		rtlpriv->dm.txpowercount++;
 		return;
 	}
 
-	if (!rtlpriv->dm.tm_trigger) {
+	if (!rtlpriv->dm.tm_trigger)
+	{
 		rtl_set_rfreg(hw, RF90_PATH_A, RF_T_METER,
-			      RFREG_OFFSET_MASK, 0x60);
+					  RFREG_OFFSET_MASK, 0x60);
 		rtlpriv->dm.tm_trigger = 1;
-	} else {
+	}
+	else
+	{
 		_rtl92s_dm_txpowertracking_callback_thermalmeter(hw);
 		rtlpriv->dm.tm_trigger = 0;
 	}
@@ -236,70 +274,91 @@ static void _rtl92s_dm_refresh_rateadaptive_mask(struct ieee80211_hw *hw)
 	u32 high_rssi_thresh = 0;
 
 	if (is_hal_stop(rtlhal))
+	{
 		return;
+	}
 
 	if (!rtlpriv->dm.useramask)
+	{
 		return;
+	}
 
 	if (hal_get_firmwareversion(rtlpriv) >= 61 &&
-	    !rtlpriv->dm.inform_fw_driverctrldm) {
+		!rtlpriv->dm.inform_fw_driverctrldm)
+	{
 		rtl92s_phy_set_fw_cmd(hw, FW_CMD_CTRL_DM_BY_DRIVER);
 		rtlpriv->dm.inform_fw_driverctrldm = true;
 	}
 
 	if ((mac->link_state == MAC80211_LINKED) &&
-	    (mac->opmode == NL80211_IFTYPE_STATION)) {
-		switch (ra->pre_ratr_state) {
-		case DM_RATR_STA_HIGH:
-			high_rssi_thresh = 40;
-			middle_rssi_thresh = 30;
-			low_rssi_thresh = 20;
-			break;
-		case DM_RATR_STA_MIDDLE:
-			high_rssi_thresh = 44;
-			middle_rssi_thresh = 30;
-			low_rssi_thresh = 20;
-			break;
-		case DM_RATR_STA_LOW:
-			high_rssi_thresh = 44;
-			middle_rssi_thresh = 34;
-			low_rssi_thresh = 20;
-			break;
-		case DM_RATR_STA_ULTRALOW:
-			high_rssi_thresh = 44;
-			middle_rssi_thresh = 34;
-			low_rssi_thresh = 24;
-			break;
-		default:
-			high_rssi_thresh = 44;
-			middle_rssi_thresh = 34;
-			low_rssi_thresh = 24;
-			break;
+		(mac->opmode == NL80211_IFTYPE_STATION))
+	{
+		switch (ra->pre_ratr_state)
+		{
+			case DM_RATR_STA_HIGH:
+				high_rssi_thresh = 40;
+				middle_rssi_thresh = 30;
+				low_rssi_thresh = 20;
+				break;
+
+			case DM_RATR_STA_MIDDLE:
+				high_rssi_thresh = 44;
+				middle_rssi_thresh = 30;
+				low_rssi_thresh = 20;
+				break;
+
+			case DM_RATR_STA_LOW:
+				high_rssi_thresh = 44;
+				middle_rssi_thresh = 34;
+				low_rssi_thresh = 20;
+				break;
+
+			case DM_RATR_STA_ULTRALOW:
+				high_rssi_thresh = 44;
+				middle_rssi_thresh = 34;
+				low_rssi_thresh = 24;
+				break;
+
+			default:
+				high_rssi_thresh = 44;
+				middle_rssi_thresh = 34;
+				low_rssi_thresh = 24;
+				break;
 		}
 
-		if (rtlpriv->dm.undec_sm_pwdb > (long)high_rssi_thresh) {
+		if (rtlpriv->dm.undec_sm_pwdb > (long)high_rssi_thresh)
+		{
 			ra->ratr_state = DM_RATR_STA_HIGH;
-		} else if (rtlpriv->dm.undec_sm_pwdb >
-			   (long)middle_rssi_thresh) {
+		}
+		else if (rtlpriv->dm.undec_sm_pwdb >
+				 (long)middle_rssi_thresh)
+		{
 			ra->ratr_state = DM_RATR_STA_LOW;
-		} else if (rtlpriv->dm.undec_sm_pwdb >
-			   (long)low_rssi_thresh) {
+		}
+		else if (rtlpriv->dm.undec_sm_pwdb >
+				 (long)low_rssi_thresh)
+		{
 			ra->ratr_state = DM_RATR_STA_LOW;
-		} else {
+		}
+		else
+		{
 			ra->ratr_state = DM_RATR_STA_ULTRALOW;
 		}
 
-		if (ra->pre_ratr_state != ra->ratr_state) {
+		if (ra->pre_ratr_state != ra->ratr_state)
+		{
 			RT_TRACE(rtlpriv, COMP_RATE, DBG_LOUD,
-				 "RSSI = %ld RSSI_LEVEL = %d PreState = %d, CurState = %d\n",
-				 rtlpriv->dm.undec_sm_pwdb, ra->ratr_state,
-				 ra->pre_ratr_state, ra->ratr_state);
+					 "RSSI = %ld RSSI_LEVEL = %d PreState = %d, CurState = %d\n",
+					 rtlpriv->dm.undec_sm_pwdb, ra->ratr_state,
+					 ra->pre_ratr_state, ra->ratr_state);
 
 			rcu_read_lock();
 			sta = rtl_find_sta(hw, mac->bssid);
+
 			if (sta)
 				rtlpriv->cfg->ops->update_rate_tbl(hw, sta,
-							   ra->ratr_state);
+												   ra->ratr_state);
+
 			rcu_read_unlock();
 
 			ra->pre_ratr_state = ra->ratr_state;
@@ -320,41 +379,63 @@ static void _rtl92s_dm_switch_baseband_mrc(struct ieee80211_hw *hw)
 	u8 rssi_b = 0;
 
 	if (is_hal_stop(rtlhal))
+	{
 		return;
+	}
 
 	if ((rtlphy->rf_type == RF_1T1R) || (rtlphy->rf_type == RF_2T2R))
+	{
 		return;
+	}
 
 	rtlpriv->cfg->ops->get_hw_reg(hw, HW_VAR_MRC, (u8 *)(&current_mrc));
 
-	if (mac->link_state >= MAC80211_LINKED) {
-		if (rtlpriv->dm.undec_sm_pwdb > tmpentry_maxpwdb) {
+	if (mac->link_state >= MAC80211_LINKED)
+	{
+		if (rtlpriv->dm.undec_sm_pwdb > tmpentry_maxpwdb)
+		{
 			rssi_a = rtlpriv->stats.rx_rssi_percentage[RF90_PATH_A];
 			rssi_b = rtlpriv->stats.rx_rssi_percentage[RF90_PATH_B];
 		}
 	}
 
 	/* MRC settings would NOT affect TP on Wireless B mode. */
-	if (mac->mode != WIRELESS_MODE_B) {
-		if ((rssi_a == 0) && (rssi_b == 0)) {
+	if (mac->mode != WIRELESS_MODE_B)
+	{
+		if ((rssi_a == 0) && (rssi_b == 0))
+		{
 			enable_mrc = true;
-		} else if (rssi_b > 30) {
+		}
+		else if (rssi_b > 30)
+		{
 			/* Turn on B-Path */
 			enable_mrc = true;
-		} else if (rssi_b < 5) {
+		}
+		else if (rssi_b < 5)
+		{
 			/* Turn off B-path  */
 			enable_mrc = false;
-		/* Take care of RSSI differentiation. */
-		} else if (rssi_a > 15 && (rssi_a >= rssi_b)) {
+			/* Take care of RSSI differentiation. */
+		}
+		else if (rssi_a > 15 && (rssi_a >= rssi_b))
+		{
 			if ((rssi_a - rssi_b) > 15)
 				/* Turn off B-path  */
+			{
 				enable_mrc = false;
+			}
 			else if ((rssi_a - rssi_b) < 10)
 				/* Turn on B-Path */
+			{
 				enable_mrc = true;
+			}
 			else
+			{
 				enable_mrc = current_mrc;
-		} else {
+			}
+		}
+		else
+		{
 			/* Turn on B-Path */
 			enable_mrc = true;
 		}
@@ -363,7 +444,7 @@ static void _rtl92s_dm_switch_baseband_mrc(struct ieee80211_hw *hw)
 	/* Update MRC settings if needed. */
 	if (enable_mrc != current_mrc)
 		rtlpriv->cfg->ops->set_hw_reg(hw, HW_VAR_MRC,
-					      (u8 *)&enable_mrc);
+									  (u8 *)&enable_mrc);
 
 }
 
@@ -385,17 +466,21 @@ static void _rtl92s_dm_init_rate_adaptive_mask(struct ieee80211_hw *hw)
 	ra->pre_ratr_state = DM_RATR_STA_MAX;
 
 	if (rtlpriv->dm.dm_type == DM_TYPE_BYDRIVER &&
-	    hal_get_firmwareversion(rtlpriv) >= 60)
+		hal_get_firmwareversion(rtlpriv) >= 60)
+	{
 		rtlpriv->dm.useramask = true;
+	}
 	else
+	{
 		rtlpriv->dm.useramask = false;
+	}
 
 	rtlpriv->dm.useramask = false;
 	rtlpriv->dm.inform_fw_driverctrldm = false;
 }
 
 static void _rtl92s_dm_init_txpowertracking_thermalmeter(
-				struct ieee80211_hw *hw)
+	struct ieee80211_hw *hw)
 {
 	struct rtl_priv *rtlpriv = rtl_priv(hw);
 
@@ -420,14 +505,14 @@ static void _rtl92s_dm_false_alarm_counter_statistics(struct ieee80211_hw *hw)
 	falsealm_cnt->cnt_mcs_fail = (ret_value & 0xffff);
 
 	falsealm_cnt->cnt_ofdm_fail = falsealm_cnt->cnt_parity_fail +
-		falsealm_cnt->cnt_rate_illegal + falsealm_cnt->cnt_crc8_fail +
-		falsealm_cnt->cnt_mcs_fail;
+								  falsealm_cnt->cnt_rate_illegal + falsealm_cnt->cnt_crc8_fail +
+								  falsealm_cnt->cnt_mcs_fail;
 
 	/* read CCK false alarm */
 	ret_value = rtl_get_bbreg(hw, 0xc64, MASKDWORD);
 	falsealm_cnt->cnt_cck_fail = (ret_value & 0xffff);
 	falsealm_cnt->cnt_all =	falsealm_cnt->cnt_ofdm_fail +
-		falsealm_cnt->cnt_cck_fail;
+							falsealm_cnt->cnt_cck_fail;
 }
 
 static void rtl92s_backoff_enable_flag(struct ieee80211_hw *hw)
@@ -436,19 +521,28 @@ static void rtl92s_backoff_enable_flag(struct ieee80211_hw *hw)
 	struct dig_t *digtable = &rtlpriv->dm_digtable;
 	struct false_alarm_statistics *falsealm_cnt = &(rtlpriv->falsealm_cnt);
 
-	if (falsealm_cnt->cnt_all > digtable->fa_highthresh) {
+	if (falsealm_cnt->cnt_all > digtable->fa_highthresh)
+	{
 		if ((digtable->back_val - 6) <
 			digtable->backoffval_range_min)
+		{
 			digtable->back_val = digtable->backoffval_range_min;
+		}
 		else
+		{
 			digtable->back_val -= 6;
-	} else if (falsealm_cnt->cnt_all < digtable->fa_lowthresh) {
+		}
+	}
+	else if (falsealm_cnt->cnt_all < digtable->fa_lowthresh)
+	{
 		if ((digtable->back_val + 6) >
 			digtable->backoffval_range_max)
 			digtable->back_val =
-				 digtable->backoffval_range_max;
+				digtable->backoffval_range_max;
 		else
+		{
 			digtable->back_val += 6;
+		}
 	}
 }
 
@@ -461,44 +555,58 @@ static void _rtl92s_dm_initial_gain_sta_beforeconnect(struct ieee80211_hw *hw)
 	u8 initial_gain = 0;
 
 	if ((digtable->pre_sta_cstate == digtable->cur_sta_cstate) ||
-	    (digtable->cur_sta_cstate == DIG_STA_BEFORE_CONNECT)) {
-		if (digtable->cur_sta_cstate == DIG_STA_BEFORE_CONNECT) {
+		(digtable->cur_sta_cstate == DIG_STA_BEFORE_CONNECT))
+	{
+		if (digtable->cur_sta_cstate == DIG_STA_BEFORE_CONNECT)
+		{
 			if (rtlpriv->psc.rfpwr_state != ERFON)
+			{
 				return;
+			}
 
 			if (digtable->backoff_enable_flag)
+			{
 				rtl92s_backoff_enable_flag(hw);
+			}
 			else
+			{
 				digtable->back_val = DM_DIG_BACKOFF_MAX;
+			}
 
 			if ((digtable->rssi_val + 10 - digtable->back_val) >
 				digtable->rx_gain_max)
 				digtable->cur_igvalue =
-						digtable->rx_gain_max;
+					digtable->rx_gain_max;
 			else if ((digtable->rssi_val + 10 - digtable->back_val)
-				 < digtable->rx_gain_min)
+					 < digtable->rx_gain_min)
 				digtable->cur_igvalue =
-						digtable->rx_gain_min;
+					digtable->rx_gain_min;
 			else
 				digtable->cur_igvalue = digtable->rssi_val + 10
-					- digtable->back_val;
+										- digtable->back_val;
 
 			if (falsealm_cnt->cnt_all > 10000)
 				digtable->cur_igvalue =
-					 (digtable->cur_igvalue > 0x33) ?
-					 digtable->cur_igvalue : 0x33;
+					(digtable->cur_igvalue > 0x33) ?
+					digtable->cur_igvalue : 0x33;
 
 			if (falsealm_cnt->cnt_all > 16000)
 				digtable->cur_igvalue =
-						 digtable->rx_gain_max;
-		/* connected -> connected or disconnected -> disconnected  */
-		} else {
+					digtable->rx_gain_max;
+
+			/* connected -> connected or disconnected -> disconnected  */
+		}
+		else
+		{
 			/* Firmware control DIG, do nothing in driver dm */
 			return;
 		}
+
 		/* disconnected -> connected or connected ->
 		 * disconnected or beforeconnect->(dis)connected */
-	} else {
+	}
+	else
+	{
 		/* Enable FW DIG */
 		digtable->dig_ext_port_stage = DIG_EXT_PORT_STAGE_MAX;
 		rtl92s_phy_set_fw_cmd(hw, FW_CMD_DIG_ENABLE);
@@ -511,11 +619,14 @@ static void _rtl92s_dm_initial_gain_sta_beforeconnect(struct ieee80211_hw *hw)
 
 	/* Forced writing to prevent from fw-dig overwriting. */
 	if (digtable->pre_igvalue != rtl_get_bbreg(hw, ROFDM0_XAAGCCORE1,
-						  MASKBYTE0))
+			MASKBYTE0))
+	{
 		force_write = 1;
+	}
 
 	if ((digtable->pre_igvalue != digtable->cur_igvalue) ||
-	    !initialized || force_write) {
+		!initialized || force_write)
+	{
 		/* Disable FW DIG */
 		rtl92s_phy_set_fw_cmd(hw, FW_CMD_DIG_DISABLE);
 
@@ -536,21 +647,29 @@ static void _rtl92s_dm_ctrl_initgain_bytwoport(struct ieee80211_hw *hw)
 	struct dig_t *dig = &rtlpriv->dm_digtable;
 
 	if (rtlpriv->mac80211.act_scanning)
+	{
 		return;
+	}
 
 	/* Decide the current status and if modify initial gain or not */
 	if (rtlpriv->mac80211.link_state >= MAC80211_LINKED ||
-	    rtlpriv->mac80211.opmode == NL80211_IFTYPE_ADHOC)
+		rtlpriv->mac80211.opmode == NL80211_IFTYPE_ADHOC)
+	{
 		dig->cur_sta_cstate = DIG_STA_CONNECT;
+	}
 	else
+	{
 		dig->cur_sta_cstate = DIG_STA_DISCONNECT;
+	}
 
 	dig->rssi_val = rtlpriv->dm.undec_sm_pwdb;
 
 	/* Change dig mode to rssi */
-	if (dig->cur_sta_cstate != DIG_STA_DISCONNECT) {
+	if (dig->cur_sta_cstate != DIG_STA_DISCONNECT)
+	{
 		if (dig->dig_twoport_algorithm ==
-		    DIG_TWO_PORT_ALGO_FALSE_ALARM) {
+			DIG_TWO_PORT_ALGO_FALSE_ALARM)
+		{
 			dig->dig_twoport_algorithm = DIG_TWO_PORT_ALGO_RSSI;
 			rtl92s_phy_set_fw_cmd(hw, FW_CMD_DIG_MODE_SS);
 		}
@@ -570,13 +689,19 @@ static void _rtl92s_dm_ctrl_initgain_byrssi(struct ieee80211_hw *hw)
 
 	/* 2T2R TP issue */
 	if (rtlphy->rf_type == RF_2T2R)
+	{
 		return;
+	}
 
 	if (!rtlpriv->dm.dm_initialgain_enable)
+	{
 		return;
+	}
 
 	if (digtable->dig_enable_flag == false)
+	{
 		return;
+	}
 
 	_rtl92s_dm_ctrl_initgain_bytwoport(hw);
 }
@@ -591,18 +716,22 @@ static void _rtl92s_dm_dynamic_txpower(struct ieee80211_hw *hw)
 
 	/* 2T2R TP issue */
 	if (rtlphy->rf_type == RF_2T2R)
+	{
 		return;
+	}
 
 	if (!rtlpriv->dm.dynamic_txpower_enable ||
-	    rtlpriv->dm.dm_flag & HAL_DM_HIPWR_DISABLE) {
+		rtlpriv->dm.dm_flag & HAL_DM_HIPWR_DISABLE)
+	{
 		rtlpriv->dm.dynamic_txhighpower_lvl = TX_HIGHPWR_LEVEL_NORMAL;
 		return;
 	}
 
 	if ((mac->link_state < MAC80211_LINKED) &&
-	    (rtlpriv->dm.entry_min_undec_sm_pwdb == 0)) {
+		(rtlpriv->dm.entry_min_undec_sm_pwdb == 0))
+	{
 		RT_TRACE(rtlpriv, COMP_POWER, DBG_TRACE,
-			 "Not connected to any\n");
+				 "Not connected to any\n");
 
 		rtlpriv->dm.dynamic_txhighpower_lvl = TX_HIGHPWR_LEVEL_NORMAL;
 
@@ -610,41 +739,57 @@ static void _rtl92s_dm_dynamic_txpower(struct ieee80211_hw *hw)
 		return;
 	}
 
-	if (mac->link_state >= MAC80211_LINKED) {
-		if (mac->opmode == NL80211_IFTYPE_ADHOC) {
+	if (mac->link_state >= MAC80211_LINKED)
+	{
+		if (mac->opmode == NL80211_IFTYPE_ADHOC)
+		{
 			undec_sm_pwdb = rtlpriv->dm.entry_min_undec_sm_pwdb;
 			RT_TRACE(rtlpriv, COMP_POWER, DBG_LOUD,
-				 "AP Client PWDB = 0x%lx\n",
-				 undec_sm_pwdb);
-		} else {
+					 "AP Client PWDB = 0x%lx\n",
+					 undec_sm_pwdb);
+		}
+		else
+		{
 			undec_sm_pwdb = rtlpriv->dm.undec_sm_pwdb;
 			RT_TRACE(rtlpriv, COMP_POWER, DBG_LOUD,
-				 "STA Default Port PWDB = 0x%lx\n",
-				 undec_sm_pwdb);
+					 "STA Default Port PWDB = 0x%lx\n",
+					 undec_sm_pwdb);
 		}
-	} else {
+	}
+	else
+	{
 		undec_sm_pwdb = rtlpriv->dm.entry_min_undec_sm_pwdb;
 
 		RT_TRACE(rtlpriv, COMP_POWER, DBG_LOUD,
-			 "AP Ext Port PWDB = 0x%lx\n",
-			 undec_sm_pwdb);
+				 "AP Ext Port PWDB = 0x%lx\n",
+				 undec_sm_pwdb);
 	}
 
 	txpwr_threshold_lv2 = TX_POWER_NEAR_FIELD_THRESH_LVL2;
 	txpwr_threshold_lv1 = TX_POWER_NEAR_FIELD_THRESH_LVL1;
 
 	if (rtl_get_bbreg(hw, 0xc90, MASKBYTE0) == 1)
+	{
 		rtlpriv->dm.dynamic_txhighpower_lvl = TX_HIGHPWR_LEVEL_NORMAL;
+	}
 	else if (undec_sm_pwdb >= txpwr_threshold_lv2)
+	{
 		rtlpriv->dm.dynamic_txhighpower_lvl = TX_HIGHPWR_LEVEL_NORMAL2;
+	}
 	else if ((undec_sm_pwdb < (txpwr_threshold_lv2 - 3)) &&
-		(undec_sm_pwdb >= txpwr_threshold_lv1))
+			 (undec_sm_pwdb >= txpwr_threshold_lv1))
+	{
 		rtlpriv->dm.dynamic_txhighpower_lvl = TX_HIGHPWR_LEVEL_NORMAL1;
+	}
 	else if (undec_sm_pwdb < (txpwr_threshold_lv1 - 3))
+	{
 		rtlpriv->dm.dynamic_txhighpower_lvl = TX_HIGHPWR_LEVEL_NORMAL;
+	}
 
 	if ((rtlpriv->dm.dynamic_txhighpower_lvl != rtlpriv->dm.last_dtp_lvl))
+	{
 		rtl92s_phy_set_txpower(hw, rtlphy->current_channel);
+	}
 
 	rtlpriv->dm.last_dtp_lvl = rtlpriv->dm.dynamic_txhighpower_lvl;
 }
@@ -659,11 +804,13 @@ static void _rtl92s_dm_init_dig(struct ieee80211_hw *hw)
 	digtable->backoff_enable_flag = true;
 
 	if ((rtlpriv->dm.dm_type == DM_TYPE_BYDRIVER) &&
-	    (hal_get_firmwareversion(rtlpriv) >= 0x3c))
+		(hal_get_firmwareversion(rtlpriv) >= 0x3c))
+	{
 		digtable->dig_algorithm = DIG_ALGO_BY_TOW_PORT;
+	}
 	else
 		digtable->dig_algorithm =
-			 DIG_ALGO_BEFORE_CONNECT_BY_RSSI_AND_ALARM;
+			DIG_ALGO_BEFORE_CONNECT_BY_RSSI_AND_ALARM;
 
 	digtable->dig_twoport_algorithm = DIG_TWO_PORT_ALGO_RSSI;
 	digtable->dig_ext_port_stage = DIG_EXT_PORT_STAGE_MAX;
@@ -705,10 +852,14 @@ static void _rtl92s_dm_init_dynamic_txpower(struct ieee80211_hw *hw)
 	struct rtl_priv *rtlpriv = rtl_priv(hw);
 
 	if ((hal_get_firmwareversion(rtlpriv) >= 60) &&
-	    (rtlpriv->dm.dm_type == DM_TYPE_BYDRIVER))
+		(rtlpriv->dm.dm_type == DM_TYPE_BYDRIVER))
+	{
 		rtlpriv->dm.dynamic_txpower_enable = true;
+	}
 	else
+	{
 		rtlpriv->dm.dynamic_txpower_enable = false;
+	}
 
 	rtlpriv->dm.last_dtp_lvl = TX_HIGHPWR_LEVEL_NORMAL;
 	rtlpriv->dm.dynamic_txhighpower_lvl = TX_HIGHPWR_LEVEL_NORMAL;

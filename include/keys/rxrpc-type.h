@@ -24,7 +24,8 @@ extern struct key *rxrpc_get_null_key(const char *);
 /*
  * RxRPC key for Kerberos IV (type-2 security)
  */
-struct rxkad_key {
+struct rxkad_key
+{
 	u32	vice_id;
 	u32	start;			/* time at which ticket starts */
 	u32	expiry;			/* time at which ticket expires */
@@ -39,7 +40,8 @@ struct rxkad_key {
  * Kerberos 5 principal
  *	name/name/name@realm
  */
-struct krb5_principal {
+struct krb5_principal
+{
 	u8	n_name_parts;		/* N of parts of the name part of the principal */
 	char	**name_parts;		/* parts of the name part of the principal */
 	char	*realm;			/* parts of the realm part of the principal */
@@ -48,7 +50,8 @@ struct krb5_principal {
 /*
  * Kerberos 5 tagged data
  */
-struct krb5_tagged_data {
+struct krb5_tagged_data
+{
 	/* for tag value, see /usr/include/krb5/krb5.h
 	 * - KRB5_AUTHDATA_* for auth data
 	 * -
@@ -61,7 +64,8 @@ struct krb5_tagged_data {
 /*
  * RxRPC key for Kerberos V (type-5 security)
  */
-struct rxk5_key {
+struct rxk5_key
+{
 	u64			authtime;	/* time at which auth token generated */
 	u64			starttime;	/* time at which auth token starts */
 	u64			endtime;	/* time at which auth token expired */
@@ -86,10 +90,12 @@ struct rxk5_key {
 /*
  * list of tokens attached to an rxrpc key
  */
-struct rxrpc_key_token {
+struct rxrpc_key_token
+{
 	u16	security_index;		/* RxRPC header security index */
 	struct rxrpc_key_token *next;	/* the next token in the list */
-	union {
+	union
+	{
 		struct rxkad_key *kad;
 		struct rxk5_key *k5;
 	};
@@ -98,7 +104,8 @@ struct rxrpc_key_token {
 /*
  * structure of raw payloads passed to add_key() or instantiate key
  */
-struct rxrpc_key_data_v1 {
+struct rxrpc_key_data_v1
+{
 	u16		security_index;
 	u16		ticket_length;
 	u32		expiry;			/* time_t */

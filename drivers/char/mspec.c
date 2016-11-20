@@ -66,16 +66,17 @@
 /*
  * Page types allocated by the device.
  */
-enum mspec_page_type {
+enum mspec_page_type
+{
 	MSPEC_FETCHOP = 1,
 	MSPEC_CACHED,
 	MSPEC_UNCACHED
 };
 
 #ifdef CONFIG_SGI_SN
-static int is_sn2;
+	static int is_sn2;
 #else
-#define is_sn2		0
+	#define is_sn2		0
 #endif
 
 /*
@@ -88,7 +89,8 @@ static int is_sn2;
  * The refcnt is incremented atomically because mm->mmap_sem does not
  * protect in fork case where multiple tasks share the vma_data.
  */
-struct vma_data {
+struct vma_data
+{
 	atomic_t refcnt;	/* Number of vmas sharing the data. */
 	spinlock_t lock;	/* Serialize access to this structure. */
 	int count;		/* Number of pages allocated. */
@@ -107,8 +109,10 @@ mspec_zero_block(unsigned long addr, int len)
 {
 	int status;
 
-	if (is_sn2) {
-		if (is_shub2()) {
+	if (is_sn2)
+	{
+		if (is_shub2())
+		{
 			int nid;
 			void *p;
 			int i;
@@ -116,18 +120,22 @@ mspec_zero_block(unsigned long addr, int len)
 			nid = nasid_to_cnodeid(get_node_number(__pa(addr)));
 			p = (void *)TO_AMO(scratch_page[nid]);
 
-			for (i=0; i < SH2_AMO_CACHE_ENTRIES; i++) {
+			for (i = 0; i < SH2_AMO_CACHE_ENTRIES; i++)
+			{
 				FETCHOP_LOAD_OP(p, FETCHOP_LOAD);
 				p += FETCHOP_VAR_SIZE;
 			}
 		}
 
 		status = bte_copy(0, addr & ~__IA64_UNCACHED_OFFSET, len,
-				  BTE_WACQUIRE | BTE_ZERO_FILL, NULL);
-	} else {
+						  BTE_WACQUIRE | BTE_ZERO_FILL, NULL);
+	}
+	else
+	{
 		memset((char *) addr, 0, len);
 		status = 0;
 	}
+
 	return status;
 }
 
@@ -163,23 +171,33 @@ mspec_close(struct vm_area_struct *vma)
 	vdata = vma->vm_private_data;
 
 	if (!atomic_dec_and_test(&vdata->refcnt))
+	{
 		return;
+	}
 
 	last_index = (vdata->vm_end - vdata->vm_start) >> PAGE_SHIFT;
-	for (index = 0; index < last_index; index++) {
+
+	for (index = 0; index < last_index; index++)
+	{
 		if (vdata->maddr[index] == 0)
+		{
 			continue;
+		}
+
 		/*
 		 * Clear the page before sticking it back
 		 * into the pool.
 		 */
 		my_page = vdata->maddr[index];
 		vdata->maddr[index] = 0;
+
 		if (!mspec_zero_block(my_page, PAGE_SIZE))
+		{
 			uncached_free_page(my_page, 1);
+		}
 		else
 			printk(KERN_WARNING "mspec_close(): "
-			       "failed to zero page %ld\n", my_page);
+				   "failed to zero page %ld\n", my_page);
 	}
 
 	kvfree(vdata);
@@ -199,26 +217,40 @@ mspec_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 	struct vma_data *vdata = vma->vm_private_data;
 
 	maddr = (volatile unsigned long) vdata->maddr[index];
-	if (maddr == 0) {
+
+	if (maddr == 0)
+	{
 		maddr = uncached_alloc_page(numa_node_id(), 1);
+
 		if (maddr == 0)
+		{
 			return VM_FAULT_OOM;
+		}
 
 		spin_lock(&vdata->lock);
-		if (vdata->maddr[index] == 0) {
+
+		if (vdata->maddr[index] == 0)
+		{
 			vdata->count++;
 			vdata->maddr[index] = maddr;
-		} else {
+		}
+		else
+		{
 			uncached_free_page(maddr, 1);
 			maddr = vdata->maddr[index];
 		}
+
 		spin_unlock(&vdata->lock);
 	}
 
 	if (vdata->type == MSPEC_FETCHOP)
+	{
 		paddr = TO_AMO(maddr);
+	}
 	else
+	{
 		paddr = maddr & ~__IA64_UNCACHED_OFFSET;
+	}
 
 	pfn = paddr >> PAGE_SHIFT;
 
@@ -232,7 +264,8 @@ mspec_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 	return VM_FAULT_NOPAGE;
 }
 
-static const struct vm_operations_struct mspec_vm_ops = {
+static const struct vm_operations_struct mspec_vm_ops =
+{
 	.open = mspec_open,
 	.close = mspec_close,
 	.fault = mspec_fault,
@@ -247,28 +280,42 @@ static const struct vm_operations_struct mspec_vm_ops = {
  */
 static int
 mspec_mmap(struct file *file, struct vm_area_struct *vma,
-					enum mspec_page_type type)
+		   enum mspec_page_type type)
 {
 	struct vma_data *vdata;
 	int pages, vdata_size;
 
 	if (vma->vm_pgoff != 0)
+	{
 		return -EINVAL;
+	}
 
 	if ((vma->vm_flags & VM_SHARED) == 0)
+	{
 		return -EINVAL;
+	}
 
 	if ((vma->vm_flags & VM_WRITE) == 0)
+	{
 		return -EPERM;
+	}
 
 	pages = vma_pages(vma);
 	vdata_size = sizeof(struct vma_data) + pages * sizeof(long);
+
 	if (vdata_size <= PAGE_SIZE)
+	{
 		vdata = kzalloc(vdata_size, GFP_KERNEL);
+	}
 	else
+	{
 		vdata = vzalloc(vdata_size);
+	}
+
 	if (!vdata)
+	{
 		return -ENOMEM;
+	}
 
 	vdata->vm_start = vma->vm_start;
 	vdata->vm_end = vma->vm_end;
@@ -278,8 +325,12 @@ mspec_mmap(struct file *file, struct vm_area_struct *vma,
 	vma->vm_private_data = vdata;
 
 	vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP;
+
 	if (vdata->type == MSPEC_FETCHOP || vdata->type == MSPEC_UNCACHED)
+	{
 		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+	}
+
 	vma->vm_ops = &mspec_vm_ops;
 
 	return 0;
@@ -303,37 +354,43 @@ uncached_mmap(struct file *file, struct vm_area_struct *vma)
 	return mspec_mmap(file, vma, MSPEC_UNCACHED);
 }
 
-static const struct file_operations fetchop_fops = {
+static const struct file_operations fetchop_fops =
+{
 	.owner = THIS_MODULE,
 	.mmap = fetchop_mmap,
 	.llseek = noop_llseek,
 };
 
-static struct miscdevice fetchop_miscdev = {
+static struct miscdevice fetchop_miscdev =
+{
 	.minor = MISC_DYNAMIC_MINOR,
 	.name = "sgi_fetchop",
 	.fops = &fetchop_fops
 };
 
-static const struct file_operations cached_fops = {
+static const struct file_operations cached_fops =
+{
 	.owner = THIS_MODULE,
 	.mmap = cached_mmap,
 	.llseek = noop_llseek,
 };
 
-static struct miscdevice cached_miscdev = {
+static struct miscdevice cached_miscdev =
+{
 	.minor = MISC_DYNAMIC_MINOR,
 	.name = "mspec_cached",
 	.fops = &cached_fops
 };
 
-static const struct file_operations uncached_fops = {
+static const struct file_operations uncached_fops =
+{
 	.owner = THIS_MODULE,
 	.mmap = uncached_mmap,
 	.llseek = noop_llseek,
 };
 
-static struct miscdevice uncached_miscdev = {
+static struct miscdevice uncached_miscdev =
+{
 	.minor = MISC_DYNAMIC_MINOR,
 	.name = "mspec_uncached",
 	.fops = &uncached_fops
@@ -355,63 +412,94 @@ mspec_init(void)
 	 * memory drivers should both be valid on all ia64 hardware
 	 */
 #ifdef CONFIG_SGI_SN
-	if (ia64_platform_is("sn2")) {
+
+	if (ia64_platform_is("sn2"))
+	{
 		is_sn2 = 1;
-		if (is_shub2()) {
+
+		if (is_shub2())
+		{
 			ret = -ENOMEM;
-			for_each_node_state(nid, N_ONLINE) {
+			for_each_node_state(nid, N_ONLINE)
+			{
 				int actual_nid;
 				int nasid;
 				unsigned long phys;
 
 				scratch_page[nid] = uncached_alloc_page(nid, 1);
+
 				if (scratch_page[nid] == 0)
+				{
 					goto free_scratch_pages;
+				}
+
 				phys = __pa(scratch_page[nid]);
 				nasid = get_node_number(phys);
 				actual_nid = nasid_to_cnodeid(nasid);
+
 				if (actual_nid != nid)
+				{
 					goto free_scratch_pages;
+				}
 			}
 		}
 
 		ret = misc_register(&fetchop_miscdev);
-		if (ret) {
+
+		if (ret)
+		{
 			printk(KERN_ERR
-			       "%s: failed to register device %i\n",
-			       FETCHOP_ID, ret);
+				   "%s: failed to register device %i\n",
+				   FETCHOP_ID, ret);
 			goto free_scratch_pages;
 		}
 	}
+
 #endif
 	ret = misc_register(&cached_miscdev);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "%s: failed to register device %i\n",
-		       CACHED_ID, ret);
+			   CACHED_ID, ret);
+
 		if (is_sn2)
+		{
 			misc_deregister(&fetchop_miscdev);
+		}
+
 		goto free_scratch_pages;
 	}
+
 	ret = misc_register(&uncached_miscdev);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "%s: failed to register device %i\n",
-		       UNCACHED_ID, ret);
+			   UNCACHED_ID, ret);
 		misc_deregister(&cached_miscdev);
+
 		if (is_sn2)
+		{
 			misc_deregister(&fetchop_miscdev);
+		}
+
 		goto free_scratch_pages;
 	}
 
 	printk(KERN_INFO "%s %s initialized devices: %s %s %s\n",
-	       MSPEC_BASENAME, REVISION, is_sn2 ? FETCHOP_ID : "",
-	       CACHED_ID, UNCACHED_ID);
+		   MSPEC_BASENAME, REVISION, is_sn2 ? FETCHOP_ID : "",
+		   CACHED_ID, UNCACHED_ID);
 
 	return 0;
 
- free_scratch_pages:
-	for_each_node(nid) {
+free_scratch_pages:
+	for_each_node(nid)
+	{
 		if (scratch_page[nid] != 0)
+		{
 			uncached_free_page(scratch_page[nid], 1);
+		}
 	}
 	return ret;
 }
@@ -423,12 +511,17 @@ mspec_exit(void)
 
 	misc_deregister(&uncached_miscdev);
 	misc_deregister(&cached_miscdev);
-	if (is_sn2) {
+
+	if (is_sn2)
+	{
 		misc_deregister(&fetchop_miscdev);
 
-		for_each_node(nid) {
+		for_each_node(nid)
+		{
 			if (scratch_page[nid] != 0)
+			{
 				uncached_free_page(scratch_page[nid], 1);
+			}
 		}
 	}
 }

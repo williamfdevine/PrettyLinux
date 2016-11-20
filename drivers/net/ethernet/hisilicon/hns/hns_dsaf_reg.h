@@ -1048,7 +1048,7 @@ static inline u32 dsaf_read_syscon(struct regmap *base, u32 reg)
 	dsaf_set_field((origin), (1ull << (shift)), (shift), (val))
 
 static inline void dsaf_set_reg_field(void __iomem *base, u32 reg, u32 mask,
-				      u32 shift, u32 val)
+									  u32 shift, u32 val)
 {
 	u32 origin = dsaf_read_reg(base, reg);
 
@@ -1068,7 +1068,7 @@ static inline void dsaf_set_reg_field(void __iomem *base, u32 reg, u32 mask,
 	dsaf_get_field((origin), (1ull << (shift)), (shift))
 
 static inline u32 dsaf_get_reg_field(void __iomem *base, u32 reg, u32 mask,
-				     u32 shift)
+									 u32 shift)
 {
 	u32 origin;
 

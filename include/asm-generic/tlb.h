@@ -48,7 +48,8 @@
  * the implementation of tlb_remove_table_one().
  *
  */
-struct mmu_table_batch {
+struct mmu_table_batch
+{
 	struct rcu_head		rcu;
 	unsigned int		nr;
 	void			*tables[0];
@@ -68,7 +69,8 @@ extern void tlb_remove_table(struct mmu_gather *tlb, void *table);
  */
 #define MMU_GATHER_BUNDLE	8
 
-struct mmu_gather_batch {
+struct mmu_gather_batch
+{
 	struct mmu_gather_batch	*next;
 	unsigned int		nr;
 	unsigned int		max;
@@ -89,7 +91,8 @@ struct mmu_gather_batch {
 /* struct mmu_gather is an opaque type used by the mm code for passing around
  * any data needed by arch specific code for tlb_remove_page.
  */
-struct mmu_gather {
+struct mmu_gather
+{
 	struct mm_struct	*mm;
 #ifdef CONFIG_HAVE_RCU_TABLE_FREE
 	struct mmu_table_batch	*batch;
@@ -99,9 +102,9 @@ struct mmu_gather {
 	/* we are in the middle of an operation to clear
 	 * a full mm and can make some optimizations */
 	unsigned int		fullmm : 1,
-	/* we have performed an operation which
-	 * requires a complete flush of the tlb */
-				need_flush_all : 1;
+				   /* we have performed an operation which
+				    * requires a complete flush of the tlb */
+				   need_flush_all : 1;
 
 	struct mmu_gather_batch *active;
 	struct mmu_gather_batch	local;
@@ -120,12 +123,12 @@ struct mmu_gather {
 void tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm, unsigned long start, unsigned long end);
 void tlb_flush_mmu(struct mmu_gather *tlb);
 void tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start,
-							unsigned long end);
+					unsigned long end);
 extern bool __tlb_remove_page_size(struct mmu_gather *tlb, struct page *page,
-				   int page_size);
+								   int page_size);
 
 static inline void __tlb_adjust_range(struct mmu_gather *tlb,
-				      unsigned long address)
+									  unsigned long address)
 {
 	tlb->start = min(tlb->start, address);
 	tlb->end = max(tlb->end, address + PAGE_SIZE);
@@ -139,18 +142,22 @@ static inline void __tlb_adjust_range(struct mmu_gather *tlb,
 
 static inline void __tlb_reset_range(struct mmu_gather *tlb)
 {
-	if (tlb->fullmm) {
+	if (tlb->fullmm)
+	{
 		tlb->start = tlb->end = ~0;
-	} else {
+	}
+	else
+	{
 		tlb->start = TASK_SIZE;
 		tlb->end = 0;
 	}
 }
 
 static inline void tlb_remove_page_size(struct mmu_gather *tlb,
-					struct page *page, int page_size)
+										struct page *page, int page_size)
 {
-	if (__tlb_remove_page_size(tlb, page, page_size)) {
+	if (__tlb_remove_page_size(tlb, page, page_size))
+	{
 		tlb_flush_mmu(tlb);
 		tlb->page_size = page_size;
 		__tlb_adjust_range(tlb, tlb->addr);
@@ -187,7 +194,7 @@ static inline bool __tlb_remove_pte_page(struct mmu_gather *tlb, struct page *pa
  * the vmas are adjusted to only cover the region to be torn down.
  */
 #ifndef tlb_start_vma
-#define tlb_start_vma(tlb, vma) do { } while (0)
+	#define tlb_start_vma(tlb, vma) do { } while (0)
 #endif
 
 #define __tlb_end_vma(tlb, vma)					\
@@ -199,11 +206,11 @@ static inline bool __tlb_remove_pte_page(struct mmu_gather *tlb, struct page *pa
 	} while (0)
 
 #ifndef tlb_end_vma
-#define tlb_end_vma	__tlb_end_vma
+	#define tlb_end_vma	__tlb_end_vma
 #endif
 
 #ifndef __tlb_remove_tlb_entry
-#define __tlb_remove_tlb_entry(tlb, ptep, address) do { } while (0)
+	#define __tlb_remove_tlb_entry(tlb, ptep, address) do { } while (0)
 #endif
 
 /**
@@ -224,7 +231,7 @@ static inline bool __tlb_remove_pte_page(struct mmu_gather *tlb, struct page *pa
  * This is a nop so far, because only x86 needs it.
  */
 #ifndef __tlb_remove_pmd_tlb_entry
-#define __tlb_remove_pmd_tlb_entry(tlb, pmdp, address) do {} while (0)
+	#define __tlb_remove_pmd_tlb_entry(tlb, pmdp, address) do {} while (0)
 #endif
 
 #define tlb_remove_pmd_tlb_entry(tlb, pmdp, address)		\

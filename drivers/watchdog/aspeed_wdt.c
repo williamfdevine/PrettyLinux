@@ -17,13 +17,15 @@
 #include <linux/platform_device.h>
 #include <linux/watchdog.h>
 
-struct aspeed_wdt {
+struct aspeed_wdt
+{
 	struct watchdog_device	wdd;
 	void __iomem		*base;
 	u32			ctrl;
 };
 
-static const struct of_device_id aspeed_wdt_of_table[] = {
+static const struct of_device_id aspeed_wdt_of_table[] =
+{
 	{ .compatible = "aspeed,ast2400-wdt" },
 	{ .compatible = "aspeed,ast2500-wdt" },
 	{ },
@@ -93,7 +95,7 @@ static int aspeed_wdt_ping(struct watchdog_device *wdd)
 }
 
 static int aspeed_wdt_set_timeout(struct watchdog_device *wdd,
-				  unsigned int timeout)
+								  unsigned int timeout)
 {
 	struct aspeed_wdt *wdt = to_aspeed_wdt(wdd);
 	u32 actual;
@@ -109,7 +111,7 @@ static int aspeed_wdt_set_timeout(struct watchdog_device *wdd,
 }
 
 static int aspeed_wdt_restart(struct watchdog_device *wdd,
-			      unsigned long action, void *data)
+							  unsigned long action, void *data)
 {
 	struct aspeed_wdt *wdt = to_aspeed_wdt(wdd);
 
@@ -120,7 +122,8 @@ static int aspeed_wdt_restart(struct watchdog_device *wdd,
 	return 0;
 }
 
-static const struct watchdog_ops aspeed_wdt_ops = {
+static const struct watchdog_ops aspeed_wdt_ops =
+{
 	.start		= aspeed_wdt_start,
 	.stop		= aspeed_wdt_stop,
 	.ping		= aspeed_wdt_ping,
@@ -129,10 +132,11 @@ static const struct watchdog_ops aspeed_wdt_ops = {
 	.owner		= THIS_MODULE,
 };
 
-static const struct watchdog_info aspeed_wdt_info = {
+static const struct watchdog_info aspeed_wdt_info =
+{
 	.options	= WDIOF_KEEPALIVEPING
-			| WDIOF_MAGICCLOSE
-			| WDIOF_SETTIMEOUT,
+	| WDIOF_MAGICCLOSE
+	| WDIOF_SETTIMEOUT,
 	.identity	= KBUILD_MODNAME,
 };
 
@@ -152,13 +156,19 @@ static int aspeed_wdt_probe(struct platform_device *pdev)
 	int ret;
 
 	wdt = devm_kzalloc(&pdev->dev, sizeof(*wdt), GFP_KERNEL);
+
 	if (!wdt)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	wdt->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(wdt->base))
+	{
 		return PTR_ERR(wdt->base);
+	}
 
 	/*
 	 * The ast2400 wdt can run at PCLK, or 1MHz. The ast2500 only
@@ -179,16 +189,19 @@ static int aspeed_wdt_probe(struct platform_device *pdev)
 	 * the SOC and not the full chip
 	 */
 	wdt->ctrl = WDT_CTRL_RESET_MODE_SOC |
-		WDT_CTRL_1MHZ_CLK |
-		WDT_CTRL_RESET_SYSTEM;
+				WDT_CTRL_1MHZ_CLK |
+				WDT_CTRL_RESET_SYSTEM;
 
-	if (readl(wdt->base + WDT_CTRL) & WDT_CTRL_ENABLE)  {
+	if (readl(wdt->base + WDT_CTRL) & WDT_CTRL_ENABLE)
+	{
 		aspeed_wdt_start(&wdt->wdd);
 		set_bit(WDOG_HW_RUNNING, &wdt->wdd.status);
 	}
 
 	ret = watchdog_register_device(&wdt->wdd);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to register\n");
 		return ret;
 	}
@@ -198,7 +211,8 @@ static int aspeed_wdt_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver aspeed_watchdog_driver = {
+static struct platform_driver aspeed_watchdog_driver =
+{
 	.probe = aspeed_wdt_probe,
 	.remove = aspeed_wdt_remove,
 	.driver = {

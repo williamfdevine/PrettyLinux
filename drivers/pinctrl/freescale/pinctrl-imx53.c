@@ -21,7 +21,8 @@
 
 #include "pinctrl-imx.h"
 
-enum imx53_pads {
+enum imx53_pads
+{
 	MX53_PAD_RESERVE0 = 0,
 	MX53_PAD_RESERVE1 = 1,
 	MX53_PAD_RESERVE2 = 2,
@@ -235,7 +236,8 @@ enum imx53_pads {
 };
 
 /* Pad names for the pinmux subsystem */
-static const struct pinctrl_pin_desc imx53_pinctrl_pads[] = {
+static const struct pinctrl_pin_desc imx53_pinctrl_pads[] =
+{
 	IMX_PINCTRL_PIN(MX53_PAD_RESERVE0),
 	IMX_PINCTRL_PIN(MX53_PAD_RESERVE1),
 	IMX_PINCTRL_PIN(MX53_PAD_RESERVE2),
@@ -448,13 +450,15 @@ static const struct pinctrl_pin_desc imx53_pinctrl_pads[] = {
 	IMX_PINCTRL_PIN(MX53_PAD_GPIO_18),
 };
 
-static struct imx_pinctrl_soc_info imx53_pinctrl_info = {
+static struct imx_pinctrl_soc_info imx53_pinctrl_info =
+{
 	.pins = imx53_pinctrl_pads,
 	.npins = ARRAY_SIZE(imx53_pinctrl_pads),
 	.gpr_compatible = "fsl,imx53-iomuxc-gpr",
 };
 
-static const struct of_device_id imx53_pinctrl_of_match[] = {
+static const struct of_device_id imx53_pinctrl_of_match[] =
+{
 	{ .compatible = "fsl,imx53-iomuxc", },
 	{ /* sentinel */ }
 };
@@ -464,7 +468,8 @@ static int imx53_pinctrl_probe(struct platform_device *pdev)
 	return imx_pinctrl_probe(pdev, &imx53_pinctrl_info);
 }
 
-static struct platform_driver imx53_pinctrl_driver = {
+static struct platform_driver imx53_pinctrl_driver =
+{
 	.driver = {
 		.name = "imx53-pinctrl",
 		.of_match_table = imx53_pinctrl_of_match,

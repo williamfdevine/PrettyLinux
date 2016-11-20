@@ -36,12 +36,13 @@ MODULE_LICENSE("GPL");
 
 #define CMD_RESET		5
 
-static struct ncr_chip zalon720_chip __initdata = {
+static struct ncr_chip zalon720_chip __initdata =
+{
 	.revision_id =	0x0f,
 	.burst_max =	3,
 	.offset_max =	8,
 	.nr_divisor =	4,
-	.features =	FE_WIDE | FE_DIFF | FE_EHP| FE_MUX | FE_EA,
+	.features =	FE_WIDE | FE_DIFF | FE_EHP | FE_MUX | FE_EA,
 };
 
 
@@ -57,27 +58,32 @@ static struct ncr_chip zalon720_chip __initdata = {
 /* poke SCSI clock out of iodc data */
 
 static u8 iodc_data[32] __attribute__ ((aligned (64)));
-static unsigned long pdc_result[32] __attribute__ ((aligned (16))) ={0,0,0,0};
+static unsigned long pdc_result[32] __attribute__ ((aligned (16))) = {0, 0, 0, 0};
 
-static int 
-lasi_scsi_clock(void * hpa, int defaultclock)
+static int
+lasi_scsi_clock(void *hpa, int defaultclock)
 {
 	int clock, status;
 
 	status = pdc_iodc_read(&pdc_result, hpa, 0, &iodc_data, 32 );
-	if (status == PDC_RET_OK) {
+
+	if (status == PDC_RET_OK)
+	{
 		clock = (int) pdc_result[16];
-	} else {
+	}
+	else
+	{
 		printk(KERN_WARNING "%s: pdc_iodc_read returned %d\n", __func__, status);
-		clock = defaultclock; 
+		clock = defaultclock;
 	}
 
 	printk(KERN_DEBUG "%s: SCSI clock %d\n", __func__, clock);
- 	return clock;
+	return clock;
 }
 #endif
 
-static struct scsi_host_template zalon7xx_template = {
+static struct scsi_host_template zalon7xx_template =
+{
 	.module		= THIS_MODULE,
 	.proc_name	= "zalon7xx",
 };
@@ -95,10 +101,14 @@ zalon_probe(struct parisc_device *dev)
 	struct ncr_device device;
 
 	__raw_writel(CMD_RESET, zalon + IO_MODULE_IO_COMMAND);
+
 	while (!(__raw_readl(zalon + IO_MODULE_IO_STATUS) & IOSTATUS_RY))
+	{
 		cpu_relax();
+	}
+
 	__raw_writel(IOIIDATA_MINT5EN | IOIIDATA_PACKEN | IOIIDATA_PREFETCHEN,
-		zalon + IO_MODULE_II_CDATA);
+				 zalon + IO_MODULE_II_CDATA);
 
 	/* XXX: Save the Zalon version for bug workarounds? */
 	zalon_vers = (__raw_readl(zalon + IO_MODULE_II_CDATA) >> 24) & 0x07;
@@ -109,12 +119,14 @@ zalon_probe(struct parisc_device *dev)
 	dev->irq = gsc_alloc_irq(&gsc_irq);
 
 	printk(KERN_INFO "%s: Zalon version %d, IRQ %d\n", __func__,
-		zalon_vers, dev->irq);
+		   zalon_vers, dev->irq);
 
 	__raw_writel(gsc_irq.txn_addr | gsc_irq.txn_data, zalon + IO_MODULE_EIM);
 
 	if (zalon_vers == 0)
+	{
 		printk(KERN_WARNING "%s: Zalon 1.1 or earlier\n", __func__);
+	}
 
 	memset(&device, 0, sizeof(struct ncr_device));
 
@@ -133,12 +145,16 @@ zalon_probe(struct parisc_device *dev)
 	device.differential	= 2;
 
 	host = ncr_attach(&zalon7xx_template, unit, &device);
-	if (!host)
-		return -ENODEV;
 
-	if (request_irq(dev->irq, ncr53c8xx_intr, IRQF_SHARED, "zalon", host)) {
-	  dev_printk(KERN_ERR, &dev->dev, "irq problem with %d, detaching\n ",
-		     dev->irq);
+	if (!host)
+	{
+		return -ENODEV;
+	}
+
+	if (request_irq(dev->irq, ncr53c8xx_intr, IRQF_SHARED, "zalon", host))
+	{
+		dev_printk(KERN_ERR, &dev->dev, "irq problem with %d, detaching\n ",
+				   dev->irq);
 		goto fail;
 	}
 
@@ -147,21 +163,25 @@ zalon_probe(struct parisc_device *dev)
 	dev_set_drvdata(&dev->dev, host);
 
 	error = scsi_add_host(host, &dev->dev);
+
 	if (error)
+	{
 		goto fail_free_irq;
+	}
 
 	scsi_scan_host(host);
 	return 0;
 
- fail_free_irq:
+fail_free_irq:
 	free_irq(dev->irq, host);
- fail:
+fail:
 	ncr53c8xx_release(host);
 	return error;
 }
 
-static struct parisc_device_id zalon_tbl[] = {
-	{ HPHW_A_DMA, HVERSION_REV_ANY_ID, HVERSION_ANY_ID, 0x00089 }, 
+static struct parisc_device_id zalon_tbl[] =
+{
+	{ HPHW_A_DMA, HVERSION_REV_ANY_ID, HVERSION_ANY_ID, 0x00089 },
 	{ 0, }
 };
 
@@ -178,7 +198,8 @@ static int __exit zalon_remove(struct parisc_device *dev)
 	return 0;
 }
 
-static struct parisc_driver zalon_driver = {
+static struct parisc_driver zalon_driver =
+{
 	.name =		"zalon",
 	.id_table =	zalon_tbl,
 	.probe =	zalon_probe,
@@ -188,10 +209,17 @@ static struct parisc_driver zalon_driver = {
 static int __init zalon7xx_init(void)
 {
 	int ret = ncr53c8xx_init();
+
 	if (!ret)
+	{
 		ret = register_parisc_driver(&zalon_driver);
+	}
+
 	if (ret)
+	{
 		ncr53c8xx_exit();
+	}
+
 	return ret;
 }
 

@@ -21,15 +21,16 @@
 #ifdef CONFIG_SCSI_SNIC_DEBUG_FS
 
 extern ssize_t simple_read_from_buffer(void __user *to,
-					size_t count,
-					loff_t *ppos,
-					const void *from,
-					size_t available);
+									   size_t count,
+									   loff_t *ppos,
+									   const void *from,
+									   size_t available);
 
 extern unsigned int snic_trace_max_pages;
 
 /* Global Data structure for trace to manage trace functionality */
-struct snic_trc_data {
+struct snic_trc_data
+{
 	u64	ts;		/* Time Stamp */
 	char	*fn;		/* Ptr to Function Name */
 	u32	hno;		/* SCSI Host ID */
@@ -39,7 +40,8 @@ struct snic_trc_data {
 
 #define SNIC_TRC_ENTRY_SZ  64	/* in Bytes */
 
-struct snic_trc {
+struct snic_trc
+{
 	spinlock_t lock;
 	struct snic_trc_data *buf;	/* Trace Buffer */
 	u32	max_idx;		/* Max Index into trace buffer */
@@ -67,7 +69,9 @@ snic_trace(char *fn, u16 hno, u32 tag, u64 d1, u64 d2, u64 d3, u64 d4, u64 d5)
 	struct snic_trc_data *tr_rec = snic_get_trc_buf();
 
 	if (!tr_rec)
+	{
 		return;
+	}
 
 	tr_rec->fn = (char *)fn;
 	tr_rec->hno = hno;
@@ -84,13 +88,13 @@ snic_trace(char *fn, u16 hno, u32 tag, u64 d1, u64 d2, u64 d3, u64 d4, u64 d5)
 	do {								\
 		if (unlikely(snic_glob->trc.enable))			\
 			snic_trace((char *)__func__,			\
-				   (u16)(_hno),				\
-				   (u32)(_tag),				\
-				   (u64)(d1),				\
-				   (u64)(d2),				\
-				   (u64)(d3),				\
-				   (u64)(d4),				\
-				   (u64)(d5));				\
+					   (u16)(_hno),				\
+					   (u32)(_tag),				\
+					   (u64)(d1),				\
+					   (u64)(d2),				\
+					   (u64)(d3),				\
+					   (u64)(d4),				\
+					   (u64)(d5));				\
 	} while (0)
 #else
 
@@ -98,14 +102,14 @@ snic_trace(char *fn, u16 hno, u32 tag, u64 d1, u64 d2, u64 d3, u64 d4, u64 d5)
 	do {						\
 		if (unlikely(snic_log_level & 0x2))	\
 			SNIC_DBG("SnicTrace: %s %2u %2u %llx %llx %llx %llx %llx", \
-				 (char *)__func__,	\
-				 (u16)(_hno),		\
-				 (u32)(_tag),		\
-				 (u64)(d1),		\
-				 (u64)(d2),		\
-				 (u64)(d3),		\
-				 (u64)(d4),		\
-				 (u64)(d5));		\
+					 (char *)__func__,	\
+					 (u16)(_hno),		\
+					 (u32)(_tag),		\
+					 (u64)(d1),		\
+					 (u64)(d2),		\
+					 (u64)(d3),		\
+					 (u64)(d4),		\
+					 (u64)(d5));		\
 	} while (0)
 #endif /* end of CONFIG_SCSI_SNIC_DEBUG_FS */
 

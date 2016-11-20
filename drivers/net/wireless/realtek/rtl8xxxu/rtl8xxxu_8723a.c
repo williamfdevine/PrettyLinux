@@ -40,7 +40,8 @@
 #include "rtl8xxxu.h"
 #include "rtl8xxxu_regs.h"
 
-static struct rtl8xxxu_power_base rtl8723a_power_base = {
+static struct rtl8xxxu_power_base rtl8723a_power_base =
+{
 	.reg_0e00 = 0x0a0c0c0c,
 	.reg_0e04 = 0x02040608,
 	.reg_0e08 = 0x00000000,
@@ -62,7 +63,8 @@ static struct rtl8xxxu_power_base rtl8723a_power_base = {
 	.reg_0868 = 0x02040608,
 };
 
-static struct rtl8xxxu_rfregval rtl8723au_radioa_1t_init_table[] = {
+static struct rtl8xxxu_rfregval rtl8723au_radioa_1t_init_table[] =
+{
 	{0x00, 0x00030159}, {0x01, 0x00031284},
 	{0x02, 0x00098000}, {0x03, 0x00039c63},
 	{0x04, 0x000210e7}, {0x09, 0x0002044f},
@@ -142,39 +144,42 @@ static int rtl8723au_parse_efuse(struct rtl8xxxu_priv *priv)
 	struct rtl8723au_efuse *efuse = &priv->efuse_wifi.efuse8723;
 
 	if (efuse->rtl_id != cpu_to_le16(0x8129))
+	{
 		return -EINVAL;
+	}
 
 	ether_addr_copy(priv->mac_addr, efuse->mac_addr);
 
 	memcpy(priv->cck_tx_power_index_A,
-	       efuse->cck_tx_power_index_A,
-	       sizeof(efuse->cck_tx_power_index_A));
+		   efuse->cck_tx_power_index_A,
+		   sizeof(efuse->cck_tx_power_index_A));
 	memcpy(priv->cck_tx_power_index_B,
-	       efuse->cck_tx_power_index_B,
-	       sizeof(efuse->cck_tx_power_index_B));
+		   efuse->cck_tx_power_index_B,
+		   sizeof(efuse->cck_tx_power_index_B));
 
 	memcpy(priv->ht40_1s_tx_power_index_A,
-	       efuse->ht40_1s_tx_power_index_A,
-	       sizeof(efuse->ht40_1s_tx_power_index_A));
+		   efuse->ht40_1s_tx_power_index_A,
+		   sizeof(efuse->ht40_1s_tx_power_index_A));
 	memcpy(priv->ht40_1s_tx_power_index_B,
-	       efuse->ht40_1s_tx_power_index_B,
-	       sizeof(efuse->ht40_1s_tx_power_index_B));
+		   efuse->ht40_1s_tx_power_index_B,
+		   sizeof(efuse->ht40_1s_tx_power_index_B));
 
 	memcpy(priv->ht20_tx_power_index_diff,
-	       efuse->ht20_tx_power_index_diff,
-	       sizeof(efuse->ht20_tx_power_index_diff));
+		   efuse->ht20_tx_power_index_diff,
+		   sizeof(efuse->ht20_tx_power_index_diff));
 	memcpy(priv->ofdm_tx_power_index_diff,
-	       efuse->ofdm_tx_power_index_diff,
-	       sizeof(efuse->ofdm_tx_power_index_diff));
+		   efuse->ofdm_tx_power_index_diff,
+		   sizeof(efuse->ofdm_tx_power_index_diff));
 
 	memcpy(priv->ht40_max_power_offset,
-	       efuse->ht40_max_power_offset,
-	       sizeof(efuse->ht40_max_power_offset));
+		   efuse->ht40_max_power_offset,
+		   sizeof(efuse->ht40_max_power_offset));
 	memcpy(priv->ht20_max_power_offset,
-	       efuse->ht20_max_power_offset,
-	       sizeof(efuse->ht20_max_power_offset));
+		   efuse->ht20_max_power_offset,
+		   sizeof(efuse->ht20_max_power_offset));
 
-	if (priv->efuse_wifi.efuse8723.version >= 0x01) {
+	if (priv->efuse_wifi.efuse8723.version >= 0x01)
+	{
 		priv->has_xtalk = 1;
 		priv->xtalk = priv->efuse_wifi.efuse8723.xtal_k & 0x3f;
 	}
@@ -182,9 +187,9 @@ static int rtl8723au_parse_efuse(struct rtl8xxxu_priv *priv)
 	priv->power_base = &rtl8723a_power_base;
 
 	dev_info(&priv->udev->dev, "Vendor: %.7s\n",
-		 efuse->vendor_name);
+			 efuse->vendor_name);
 	dev_info(&priv->udev->dev, "Product: %.41s\n",
-		 efuse->device_name);
+			 efuse->device_name);
 	return 0;
 }
 
@@ -193,19 +198,26 @@ static int rtl8723au_load_firmware(struct rtl8xxxu_priv *priv)
 	char *fw_name;
 	int ret;
 
-	switch (priv->chip_cut) {
-	case 0:
-		fw_name = "rtlwifi/rtl8723aufw_A.bin";
-		break;
-	case 1:
-		if (priv->enable_bluetooth)
-			fw_name = "rtlwifi/rtl8723aufw_B.bin";
-		else
-			fw_name = "rtlwifi/rtl8723aufw_B_NoBT.bin";
+	switch (priv->chip_cut)
+	{
+		case 0:
+			fw_name = "rtlwifi/rtl8723aufw_A.bin";
+			break;
 
-		break;
-	default:
-		return -EINVAL;
+		case 1:
+			if (priv->enable_bluetooth)
+			{
+				fw_name = "rtlwifi/rtl8723aufw_B.bin";
+			}
+			else
+			{
+				fw_name = "rtlwifi/rtl8723aufw_B_NoBT.bin";
+			}
+
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	ret = rtl8xxxu_load_firmware(priv, fw_name);
@@ -256,15 +268,20 @@ static int rtl8723a_emu_to_active(struct rtl8xxxu_priv *priv)
 	rtl8xxxu_write8(priv, REG_APS_FSMCO + 1, val8);
 
 	/* wait till 0x04[17] = 1 power ready*/
-	for (count = RTL8XXXU_MAX_REG_POLL; count; count--) {
+	for (count = RTL8XXXU_MAX_REG_POLL; count; count--)
+	{
 		val32 = rtl8xxxu_read32(priv, REG_APS_FSMCO);
+
 		if (val32 & BIT(17))
+		{
 			break;
+		}
 
 		udelay(10);
 	}
 
-	if (!count) {
+	if (!count)
+	{
 		ret = -EBUSY;
 		goto exit;
 	}
@@ -291,16 +308,21 @@ static int rtl8723a_emu_to_active(struct rtl8xxxu_priv *priv)
 	val32 |= APS_FSMCO_MAC_ENABLE;
 	rtl8xxxu_write32(priv, REG_APS_FSMCO, val32);
 
-	for (count = RTL8XXXU_MAX_REG_POLL; count; count--) {
+	for (count = RTL8XXXU_MAX_REG_POLL; count; count--)
+	{
 		val32 = rtl8xxxu_read32(priv, REG_APS_FSMCO);
-		if ((val32 & APS_FSMCO_MAC_ENABLE) == 0) {
+
+		if ((val32 & APS_FSMCO_MAC_ENABLE) == 0)
+		{
 			ret = 0;
 			break;
 		}
+
 		udelay(10);
 	}
 
-	if (!count) {
+	if (!count)
+	{
 		ret = -EBUSY;
 		goto exit;
 	}
@@ -334,8 +356,11 @@ static int rtl8723au_power_on(struct rtl8xxxu_priv *priv)
 	rtl8xxxu_disabled_to_emu(priv);
 
 	ret = rtl8723a_emu_to_active(priv);
+
 	if (ret)
+	{
 		goto exit;
+	}
 
 	/*
 	 * 0x0004[19] = 1, reset 8051
@@ -350,10 +375,10 @@ static int rtl8723au_power_on(struct rtl8xxxu_priv *priv)
 	 */
 	val16 = rtl8xxxu_read16(priv, REG_CR);
 	val16 |= (CR_HCI_TXDMA_ENABLE | CR_HCI_RXDMA_ENABLE |
-		  CR_TXDMA_ENABLE | CR_RXDMA_ENABLE |
-		  CR_PROTOCOL_ENABLE | CR_SCHEDULE_ENABLE |
-		  CR_MAC_TX_ENABLE | CR_MAC_RX_ENABLE |
-		  CR_SECURITY_ENABLE | CR_CALTIMER_ENABLE);
+			  CR_TXDMA_ENABLE | CR_RXDMA_ENABLE |
+			  CR_PROTOCOL_ENABLE | CR_SCHEDULE_ENABLE |
+			  CR_MAC_TX_ENABLE | CR_MAC_RX_ENABLE |
+			  CR_SECURITY_ENABLE | CR_CALTIMER_ENABLE);
 	rtl8xxxu_write16(priv, REG_CR, val16);
 
 	/* For EFuse PG */
@@ -365,7 +390,8 @@ exit:
 	return ret;
 }
 
-struct rtl8xxxu_fileops rtl8723au_fops = {
+struct rtl8xxxu_fileops rtl8723au_fops =
+{
 	.parse_efuse = rtl8723au_parse_efuse,
 	.load_firmware = rtl8723au_load_firmware,
 	.power_on = rtl8723au_power_on,

@@ -3,7 +3,8 @@
 
 struct pci_dev;
 
-struct sdhci_pci_data {
+struct sdhci_pci_data
+{
 	struct pci_dev	*pdev;
 	int		slotno;
 	int		rst_n_gpio; /* Set to -EINVAL if unused */
@@ -13,7 +14,7 @@ struct sdhci_pci_data {
 };
 
 extern struct sdhci_pci_data *(*sdhci_pci_get_data)(struct pci_dev *pdev,
-				int slotno);
+		int slotno);
 
 extern int sdhci_pci_spt_drive_strength;
 

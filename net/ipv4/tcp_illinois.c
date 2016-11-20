@@ -40,7 +40,8 @@ module_param(theta, int, 0);
 MODULE_PARM_DESC(theta, "# of fast RTT's before full growth");
 
 /* TCP Illinois Parameters */
-struct illinois {
+struct illinois
+{
 	u64	sum_rtt;	/* sum of rtt's measured within last rtt */
 	u16	cnt_rtt;	/* # of rtts measured within last rtt */
 	u32	base_rtt;	/* min of all rtt in usec */
@@ -91,19 +92,27 @@ static void tcp_illinois_acked(struct sock *sk, const struct ack_sample *sample)
 
 	/* dup ack, no rtt sample */
 	if (rtt_us < 0)
+	{
 		return;
+	}
 
 	/* ignore bogus values, this prevents wraparound in alpha math */
 	if (rtt_us > RTT_MAX)
+	{
 		rtt_us = RTT_MAX;
+	}
 
 	/* keep track of minimum RTT seen so far */
 	if (ca->base_rtt > rtt_us)
+	{
 		ca->base_rtt = rtt_us;
+	}
 
 	/* and max */
 	if (ca->max_rtt < rtt_us)
+	{
 		ca->max_rtt = rtt_us;
+	}
 
 	++ca->cnt_rtt;
 	ca->sum_rtt += rtt_us;
@@ -140,16 +149,21 @@ static u32 alpha(struct illinois *ca, u32 da, u32 dm)
 {
 	u32 d1 = dm / 100;	/* Low threshold */
 
-	if (da <= d1) {
+	if (da <= d1)
+	{
 		/* If never got out of low delay zone, then use max */
 		if (!ca->rtt_above)
+		{
 			return ALPHA_MAX;
+		}
 
 		/* Wait for 5 good RTT's before allowing alpha to go alpha max.
 		 * This prevents one good RTT from causing sudden window increase.
 		 */
 		if (++ca->rtt_low < theta)
+		{
 			return ca->alpha;
+		}
 
 		ca->rtt_low = 0;
 		ca->rtt_above = 0;
@@ -177,7 +191,7 @@ static u32 alpha(struct illinois *ca, u32 da, u32 dm)
 	dm -= d1;
 	da -= d1;
 	return (dm * ALPHA_MAX) /
-		(dm + (da  * (ALPHA_MAX - ALPHA_MIN)) / ALPHA_MIN);
+		   (dm + (da  * (ALPHA_MAX - ALPHA_MIN)) / ALPHA_MIN);
 }
 
 /*
@@ -193,12 +207,18 @@ static u32 beta(u32 da, u32 dm)
 	u32 d2, d3;
 
 	d2 = dm / 10;
+
 	if (da <= d2)
+	{
 		return BETA_MIN;
+	}
 
 	d3 = (8 * dm) / 10;
+
 	if (da >= d3 || d3 <= d2)
+	{
 		return BETA_MAX;
+	}
 
 	/*
 	 * Based on:
@@ -214,7 +234,7 @@ static u32 beta(u32 da, u32 dm)
 	 * b = k3 + k4 da
 	 */
 	return (BETA_MIN * d3 - BETA_MAX * d2 + (BETA_MAX - BETA_MIN) * da)
-		/ (d3 - d2);
+		   / (d3 - d2);
 }
 
 /* Update alpha and beta values once per RTT */
@@ -223,10 +243,13 @@ static void update_params(struct sock *sk)
 	struct tcp_sock *tp = tcp_sk(sk);
 	struct illinois *ca = inet_csk_ca(sk);
 
-	if (tp->snd_cwnd < win_thresh) {
+	if (tp->snd_cwnd < win_thresh)
+	{
 		ca->alpha = ALPHA_BASE;
 		ca->beta = BETA_BASE;
-	} else if (ca->cnt_rtt > 0) {
+	}
+	else if (ca->cnt_rtt > 0)
+	{
 		u32 dm = max_delay(ca);
 		u32 da = avg_delay(ca);
 
@@ -244,7 +267,8 @@ static void tcp_illinois_state(struct sock *sk, u8 new_state)
 {
 	struct illinois *ca = inet_csk_ca(sk);
 
-	if (new_state == TCP_CA_Loss) {
+	if (new_state == TCP_CA_Loss)
+	{
 		ca->alpha = ALPHA_BASE;
 		ca->beta = BETA_BASE;
 		ca->rtt_low = 0;
@@ -262,17 +286,24 @@ static void tcp_illinois_cong_avoid(struct sock *sk, u32 ack, u32 acked)
 	struct illinois *ca = inet_csk_ca(sk);
 
 	if (after(ack, ca->end_seq))
+	{
 		update_params(sk);
+	}
 
 	/* RFC2861 only increase cwnd if fully utilized */
 	if (!tcp_is_cwnd_limited(sk))
+	{
 		return;
+	}
 
 	/* In slow start */
 	if (tcp_in_slow_start(tp))
+	{
 		tcp_slow_start(tp, acked);
+	}
 
-	else {
+	else
+	{
 		u32 delta;
 
 		/* snd_cwnd_cnt is # of packets since last cwnd increment */
@@ -283,9 +314,11 @@ static void tcp_illinois_cong_avoid(struct sock *sk, u32 ack, u32 acked)
 		 * tp->snd_cwnd += alpha/tp->snd_cwnd
 		*/
 		delta = (tp->snd_cwnd_cnt * ca->alpha) >> ALPHA_SHIFT;
-		if (delta >= tp->snd_cwnd) {
+
+		if (delta >= tp->snd_cwnd)
+		{
 			tp->snd_cwnd = min(tp->snd_cwnd + delta / tp->snd_cwnd,
-					   (u32)tp->snd_cwnd_clamp);
+							   (u32)tp->snd_cwnd_clamp);
 			tp->snd_cwnd_cnt = 0;
 		}
 	}
@@ -302,29 +335,34 @@ static u32 tcp_illinois_ssthresh(struct sock *sk)
 
 /* Extract info for Tcp socket info provided via netlink. */
 static size_t tcp_illinois_info(struct sock *sk, u32 ext, int *attr,
-				union tcp_cc_info *info)
+								union tcp_cc_info *info)
 {
 	const struct illinois *ca = inet_csk_ca(sk);
 
-	if (ext & (1 << (INET_DIAG_VEGASINFO - 1))) {
+	if (ext & (1 << (INET_DIAG_VEGASINFO - 1)))
+	{
 		info->vegas.tcpv_enabled = 1;
 		info->vegas.tcpv_rttcnt = ca->cnt_rtt;
 		info->vegas.tcpv_minrtt = ca->base_rtt;
 		info->vegas.tcpv_rtt = 0;
 
-		if (info->vegas.tcpv_rttcnt > 0) {
+		if (info->vegas.tcpv_rttcnt > 0)
+		{
 			u64 t = ca->sum_rtt;
 
 			do_div(t, info->vegas.tcpv_rttcnt);
 			info->vegas.tcpv_rtt = t;
 		}
+
 		*attr = INET_DIAG_VEGASINFO;
 		return sizeof(struct tcpvegas_info);
 	}
+
 	return 0;
 }
 
-static struct tcp_congestion_ops tcp_illinois __read_mostly = {
+static struct tcp_congestion_ops tcp_illinois __read_mostly =
+{
 	.init		= tcp_illinois_init,
 	.ssthresh	= tcp_illinois_ssthresh,
 	.cong_avoid	= tcp_illinois_cong_avoid,

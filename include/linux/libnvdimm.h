@@ -18,7 +18,8 @@
 #include <linux/sizes.h>
 #include <linux/types.h>
 
-enum {
+enum
+{
 	/* when a dimm supports both PMEM and BLK access a label is required */
 	NDD_ALIASING = 1 << 0,
 	/* unarmed memory devices may not persist writes */
@@ -47,10 +48,11 @@ extern struct attribute_group nd_mapping_attribute_group;
 struct nvdimm;
 struct nvdimm_bus_descriptor;
 typedef int (*ndctl_fn)(struct nvdimm_bus_descriptor *nd_desc,
-		struct nvdimm *nvdimm, unsigned int cmd, void *buf,
-		unsigned int buf_len, int *cmd_rc);
+						struct nvdimm *nvdimm, unsigned int cmd, void *buf,
+						unsigned int buf_len, int *cmd_rc);
 
-struct nvdimm_bus_descriptor {
+struct nvdimm_bus_descriptor
+{
 	const struct attribute_group **attr_groups;
 	unsigned long cmd_mask;
 	struct module *module;
@@ -58,27 +60,31 @@ struct nvdimm_bus_descriptor {
 	ndctl_fn ndctl;
 	int (*flush_probe)(struct nvdimm_bus_descriptor *nd_desc);
 	int (*clear_to_send)(struct nvdimm_bus_descriptor *nd_desc,
-			struct nvdimm *nvdimm, unsigned int cmd);
+						 struct nvdimm *nvdimm, unsigned int cmd);
 };
 
-struct nd_cmd_desc {
+struct nd_cmd_desc
+{
 	int in_num;
 	int out_num;
 	u32 in_sizes[ND_CMD_MAX_ELEM];
 	int out_sizes[ND_CMD_MAX_ELEM];
 };
 
-struct nd_interleave_set {
+struct nd_interleave_set
+{
 	u64 cookie;
 };
 
-struct nd_mapping_desc {
+struct nd_mapping_desc
+{
 	struct nvdimm *nvdimm;
 	u64 start;
 	u64 size;
 };
 
-struct nd_region_desc {
+struct nd_region_desc
+{
 	struct resource *res;
 	struct nd_mapping_desc *mapping;
 	u16 num_mappings;
@@ -92,7 +98,7 @@ struct nd_region_desc {
 
 struct device;
 void *devm_nvdimm_memremap(struct device *dev, resource_size_t offset,
-		size_t size, unsigned long flags);
+						   size_t size, unsigned long flags);
 static inline void __iomem *devm_nvdimm_ioremap(struct device *dev,
 		resource_size_t offset, size_t size)
 {
@@ -103,15 +109,16 @@ struct nvdimm_bus;
 struct module;
 struct device;
 struct nd_blk_region;
-struct nd_blk_region_desc {
+struct nd_blk_region_desc
+{
 	int (*enable)(struct nvdimm_bus *nvdimm_bus, struct device *dev);
 	int (*do_io)(struct nd_blk_region *ndbr, resource_size_t dpa,
-			void *iobuf, u64 len, int rw);
+				 void *iobuf, u64 len, int rw);
 	struct nd_region_desc ndr_desc;
 };
 
 static inline struct nd_blk_region_desc *to_blk_region_desc(
-		struct nd_region_desc *ndr_desc)
+	struct nd_region_desc *ndr_desc)
 {
 	return container_of(ndr_desc, struct nd_blk_region_desc, ndr_desc);
 
@@ -119,9 +126,9 @@ static inline struct nd_blk_region_desc *to_blk_region_desc(
 
 int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length);
 void nvdimm_clear_from_poison_list(struct nvdimm_bus *nvdimm_bus,
-		phys_addr_t start, unsigned int len);
+								   phys_addr_t start, unsigned int len);
 struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
-		struct nvdimm_bus_descriptor *nfit_desc);
+									   struct nvdimm_bus_descriptor *nfit_desc);
 void nvdimm_bus_unregister(struct nvdimm_bus *nvdimm_bus);
 struct nvdimm_bus *to_nvdimm_bus(struct device *dev);
 struct nvdimm *to_nvdimm(struct device *dev);
@@ -134,16 +141,16 @@ struct kobject *nvdimm_kobj(struct nvdimm *nvdimm);
 unsigned long nvdimm_cmd_mask(struct nvdimm *nvdimm);
 void *nvdimm_provider_data(struct nvdimm *nvdimm);
 struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
-		const struct attribute_group **groups, unsigned long flags,
-		unsigned long cmd_mask, int num_flush,
-		struct resource *flush_wpq);
+							 const struct attribute_group **groups, unsigned long flags,
+							 unsigned long cmd_mask, int num_flush,
+							 struct resource *flush_wpq);
 const struct nd_cmd_desc *nd_cmd_dimm_desc(int cmd);
 const struct nd_cmd_desc *nd_cmd_bus_desc(int cmd);
 u32 nd_cmd_in_size(struct nvdimm *nvdimm, int cmd,
-		const struct nd_cmd_desc *desc, int idx, void *buf);
+				   const struct nd_cmd_desc *desc, int idx, void *buf);
 u32 nd_cmd_out_size(struct nvdimm *nvdimm, int cmd,
-		const struct nd_cmd_desc *desc, int idx, const u32 *in_field,
-		const u32 *out_field);
+					const struct nd_cmd_desc *desc, int idx, const u32 *in_field,
+					const u32 *out_field);
 int nvdimm_bus_check_dimm_count(struct nvdimm_bus *nvdimm_bus, int dimm_count);
 struct nd_region *nvdimm_pmem_region_create(struct nvdimm_bus *nvdimm_bus,
 		struct nd_region_desc *ndr_desc);

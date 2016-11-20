@@ -34,13 +34,15 @@
 struct amdgpu_ring;
 struct amdgpu_bo;
 
-struct amdgpu_gds_asic_info {
+struct amdgpu_gds_asic_info
+{
 	uint32_t	total_size;
 	uint32_t	gfx_partition_size;
 	uint32_t	cs_partition_size;
 };
 
-struct amdgpu_gds {
+struct amdgpu_gds
+{
 	struct amdgpu_gds_asic_info	mem;
 	struct amdgpu_gds_asic_info	gws;
 	struct amdgpu_gds_asic_info	oa;
@@ -49,12 +51,13 @@ struct amdgpu_gds {
 	 * Such resource is shared between all gfx clients.
 	 * TODO: move this operation to user space
 	 * */
-	struct amdgpu_bo*		gds_gfx_bo;
-	struct amdgpu_bo*		gws_gfx_bo;
-	struct amdgpu_bo*		oa_gfx_bo;
+	struct amdgpu_bo		*gds_gfx_bo;
+	struct amdgpu_bo		*gws_gfx_bo;
+	struct amdgpu_bo		*oa_gfx_bo;
 };
 
-struct amdgpu_gds_reg_offset {
+struct amdgpu_gds_reg_offset
+{
 	uint32_t	mem_base;
 	uint32_t	mem_size;
 	uint32_t	gws;

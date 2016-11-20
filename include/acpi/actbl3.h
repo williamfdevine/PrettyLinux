@@ -106,7 +106,8 @@
  *
  ******************************************************************************/
 
-struct acpi_table_bgrt {
+struct acpi_table_bgrt
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
 	u16 version;
 	u8 status;
@@ -124,7 +125,8 @@ struct acpi_table_bgrt {
  *
  ******************************************************************************/
 
-struct acpi_table_drtm {
+struct acpi_table_drtm
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
 	u64 entry_base_address;
 	u64 entry_length;
@@ -146,7 +148,8 @@ struct acpi_table_drtm {
 
 /* 1) Validated Tables List (64-bit addresses) */
 
-struct acpi_drtm_vtable_list {
+struct acpi_drtm_vtable_list
+{
 	u32 validated_table_count;
 	u64 validated_tables[1];
 };
@@ -155,20 +158,23 @@ struct acpi_drtm_vtable_list {
 
 /* Resource Descriptor */
 
-struct acpi_drtm_resource {
+struct acpi_drtm_resource
+{
 	u8 size[7];
 	u8 type;
 	u64 address;
 };
 
-struct acpi_drtm_resource_list {
+struct acpi_drtm_resource_list
+{
 	u32 resource_count;
 	struct acpi_drtm_resource resources[1];
 };
 
 /* 3) Platform-specific Identifiers List */
 
-struct acpi_drtm_dps_id {
+struct acpi_drtm_dps_id
+{
 	u32 dps_id_length;
 	u8 dps_id[16];
 };
@@ -180,13 +186,15 @@ struct acpi_drtm_dps_id {
  *
  ******************************************************************************/
 
-struct acpi_table_fpdt {
+struct acpi_table_fpdt
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
 };
 
 /* FPDT subtable header (Performance Record Structure) */
 
-struct acpi_fpdt_header {
+struct acpi_fpdt_header
+{
 	u16 type;
 	u8 length;
 	u8 revision;
@@ -194,7 +202,8 @@ struct acpi_fpdt_header {
 
 /* Values for Type field above */
 
-enum acpi_fpdt_type {
+enum acpi_fpdt_type
+{
 	ACPI_FPDT_TYPE_BOOT = 0,
 	ACPI_FPDT_TYPE_S3PERF = 1
 };
@@ -205,7 +214,8 @@ enum acpi_fpdt_type {
 
 /* 0: Firmware Basic Boot Performance Record */
 
-struct acpi_fpdt_boot_pointer {
+struct acpi_fpdt_boot_pointer
+{
 	struct acpi_fpdt_header header;
 	u8 reserved[4];
 	u64 address;
@@ -213,7 +223,8 @@ struct acpi_fpdt_boot_pointer {
 
 /* 1: S3 Performance Table Pointer Record */
 
-struct acpi_fpdt_s3pt_pointer {
+struct acpi_fpdt_s3pt_pointer
+{
 	struct acpi_fpdt_header header;
 	u8 reserved[4];
 	u64 address;
@@ -223,7 +234,8 @@ struct acpi_fpdt_s3pt_pointer {
  * S3PT - S3 Performance Table. This table is pointed to by the
  * S3 Pointer Record above.
  */
-struct acpi_table_s3pt {
+struct acpi_table_s3pt
+{
 	u8 signature[4];	/* "S3PT" */
 	u32 length;
 };
@@ -234,20 +246,23 @@ struct acpi_table_s3pt {
 
 /* Values for Type field in S3PT header */
 
-enum acpi_s3pt_type {
+enum acpi_s3pt_type
+{
 	ACPI_S3PT_TYPE_RESUME = 0,
 	ACPI_S3PT_TYPE_SUSPEND = 1,
 	ACPI_FPDT_BOOT_PERFORMANCE = 2
 };
 
-struct acpi_s3pt_resume {
+struct acpi_s3pt_resume
+{
 	struct acpi_fpdt_header header;
 	u32 resume_count;
 	u64 full_resume;
 	u64 average_resume;
 };
 
-struct acpi_s3pt_suspend {
+struct acpi_s3pt_suspend
+{
 	struct acpi_fpdt_header header;
 	u64 suspend_start;
 	u64 suspend_end;
@@ -256,7 +271,8 @@ struct acpi_s3pt_suspend {
 /*
  * FPDT Boot Performance Record (Not part of the actual FPDT)
  */
-struct acpi_fpdt_boot {
+struct acpi_fpdt_boot
+{
 	struct acpi_fpdt_header header;
 	u8 reserved[4];
 	u64 reset_end;
@@ -273,7 +289,8 @@ struct acpi_fpdt_boot {
  *
  ******************************************************************************/
 
-struct acpi_table_gtdt {
+struct acpi_table_gtdt
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
 	u64 counter_block_addresss;
 	u32 reserved;
@@ -298,14 +315,16 @@ struct acpi_table_gtdt {
 
 /* Common GTDT subtable header */
 
-struct acpi_gtdt_header {
+struct acpi_gtdt_header
+{
 	u8 type;
 	u16 length;
 };
 
 /* Values for GTDT subtable type above */
 
-enum acpi_gtdt_type {
+enum acpi_gtdt_type
+{
 	ACPI_GTDT_TYPE_TIMER_BLOCK = 0,
 	ACPI_GTDT_TYPE_WATCHDOG = 1,
 	ACPI_GTDT_TYPE_RESERVED = 2	/* 2 and greater are reserved */
@@ -315,7 +334,8 @@ enum acpi_gtdt_type {
 
 /* 0: Generic Timer Block */
 
-struct acpi_gtdt_timer_block {
+struct acpi_gtdt_timer_block
+{
 	struct acpi_gtdt_header header;
 	u8 reserved;
 	u64 block_address;
@@ -325,7 +345,8 @@ struct acpi_gtdt_timer_block {
 
 /* Timer Sub-Structure, one per timer */
 
-struct acpi_gtdt_timer_entry {
+struct acpi_gtdt_timer_entry
+{
 	u8 frame_number;
 	u8 reserved[3];
 	u64 base_address;
@@ -349,7 +370,8 @@ struct acpi_gtdt_timer_entry {
 
 /* 1: SBSA Generic Watchdog Structure */
 
-struct acpi_gtdt_watchdog {
+struct acpi_gtdt_watchdog
+{
 	struct acpi_gtdt_header header;
 	u8 reserved;
 	u64 refresh_frame_address;
@@ -379,20 +401,23 @@ struct acpi_gtdt_watchdog {
 
 /* Main table */
 
-struct acpi_table_mpst {
+struct acpi_table_mpst
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
-	 ACPI_MPST_CHANNEL_INFO	/* Platform Communication Channel */
+	ACPI_MPST_CHANNEL_INFO	/* Platform Communication Channel */
 };
 
 /* Memory Platform Communication Channel Info */
 
-struct acpi_mpst_channel {
+struct acpi_mpst_channel
+{
 	ACPI_MPST_CHANNEL_INFO	/* Platform Communication Channel */
 };
 
 /* Memory Power Node Structure */
 
-struct acpi_mpst_power_node {
+struct acpi_mpst_power_node
+{
 	u8 flags;
 	u8 reserved1;
 	u16 node_id;
@@ -411,25 +436,29 @@ struct acpi_mpst_power_node {
 
 /* Memory Power State Structure (follows POWER_NODE above) */
 
-struct acpi_mpst_power_state {
+struct acpi_mpst_power_state
+{
 	u8 power_state;
 	u8 info_index;
 };
 
 /* Physical Component ID Structure (follows POWER_STATE above) */
 
-struct acpi_mpst_component {
+struct acpi_mpst_component
+{
 	u16 component_id;
 };
 
 /* Memory Power State Characteristics Structure (follows all POWER_NODEs) */
 
-struct acpi_mpst_data_hdr {
+struct acpi_mpst_data_hdr
+{
 	u16 characteristics_count;
 	u16 reserved;
 };
 
-struct acpi_mpst_power_data {
+struct acpi_mpst_power_data
+{
 	u8 structure_id;
 	u8 flags;
 	u16 reserved1;
@@ -447,7 +476,8 @@ struct acpi_mpst_power_data {
 
 /* Shared Memory Region (not part of an ACPI table) */
 
-struct acpi_mpst_shared {
+struct acpi_mpst_shared
+{
 	u32 signature;
 	u16 pcc_command;
 	u16 pcc_status;
@@ -466,7 +496,8 @@ struct acpi_mpst_shared {
  *
  ******************************************************************************/
 
-struct acpi_table_pcct {
+struct acpi_table_pcct
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
 	u32 flags;
 	u64 reserved;
@@ -478,7 +509,8 @@ struct acpi_table_pcct {
 
 /* Values for subtable type in struct acpi_subtable_header */
 
-enum acpi_pcct_type {
+enum acpi_pcct_type
+{
 	ACPI_PCCT_TYPE_GENERIC_SUBSPACE = 0,
 	ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE = 1,
 	ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2 = 2,	/* ACPI 6.1 */
@@ -491,7 +523,8 @@ enum acpi_pcct_type {
 
 /* 0: Generic Communications Subspace */
 
-struct acpi_pcct_subspace {
+struct acpi_pcct_subspace
+{
 	struct acpi_subtable_header header;
 	u8 reserved[6];
 	u64 base_address;
@@ -506,7 +539,8 @@ struct acpi_pcct_subspace {
 
 /* 1: HW-reduced Communications Subspace (ACPI 5.1) */
 
-struct acpi_pcct_hw_reduced {
+struct acpi_pcct_hw_reduced
+{
 	struct acpi_subtable_header header;
 	u32 doorbell_interrupt;
 	u8 flags;
@@ -523,7 +557,8 @@ struct acpi_pcct_hw_reduced {
 
 /* 2: HW-reduced Communications Subspace Type 2 (ACPI 6.1) */
 
-struct acpi_pcct_hw_reduced_type2 {
+struct acpi_pcct_hw_reduced_type2
+{
 	struct acpi_subtable_header header;
 	u32 doorbell_interrupt;
 	u8 flags;
@@ -552,7 +587,8 @@ struct acpi_pcct_hw_reduced_type2 {
 
 /* Shared Memory Region */
 
-struct acpi_pcct_shared_memory {
+struct acpi_pcct_shared_memory
+{
 	u32 signature;
 	u16 command;
 	u16 status;
@@ -565,14 +601,16 @@ struct acpi_pcct_shared_memory {
  *
  ******************************************************************************/
 
-struct acpi_table_pmtt {
+struct acpi_table_pmtt
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
 	u32 reserved;
 };
 
 /* Common header for PMTT subtables that follow main table */
 
-struct acpi_pmtt_header {
+struct acpi_pmtt_header
+{
 	u8 type;
 	u8 reserved1;
 	u16 length;
@@ -599,7 +637,8 @@ struct acpi_pmtt_header {
 
 /* 0: Socket Structure */
 
-struct acpi_pmtt_socket {
+struct acpi_pmtt_socket
+{
 	struct acpi_pmtt_header header;
 	u16 socket_id;
 	u16 reserved;
@@ -607,7 +646,8 @@ struct acpi_pmtt_socket {
 
 /* 1: Memory Controller subtable */
 
-struct acpi_pmtt_controller {
+struct acpi_pmtt_controller
+{
 	struct acpi_pmtt_header header;
 	u32 read_latency;
 	u32 write_latency;
@@ -621,13 +661,15 @@ struct acpi_pmtt_controller {
 
 /* 1a: Proximity Domain substructure */
 
-struct acpi_pmtt_domain {
+struct acpi_pmtt_domain
+{
 	u32 proximity_domain;
 };
 
 /* 2: Physical Component Identifier (DIMM) */
 
-struct acpi_pmtt_physical_component {
+struct acpi_pmtt_physical_component
+{
 	struct acpi_pmtt_header header;
 	u16 component_id;
 	u16 reserved;
@@ -642,14 +684,16 @@ struct acpi_pmtt_physical_component {
  *
  ******************************************************************************/
 
-struct acpi_table_rasf {
+struct acpi_table_rasf
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
 	u8 channel_id[12];
 };
 
 /* RASF Platform Communication Channel Shared Memory Region */
 
-struct acpi_rasf_shared_memory {
+struct acpi_rasf_shared_memory
+{
 	u32 signature;
 	u16 command;
 	u16 status;
@@ -662,7 +706,8 @@ struct acpi_rasf_shared_memory {
 
 /* RASF Parameter Block Structure Header */
 
-struct acpi_rasf_parameter_block {
+struct acpi_rasf_parameter_block
+{
 	u16 type;
 	u16 version;
 	u16 length;
@@ -670,7 +715,8 @@ struct acpi_rasf_parameter_block {
 
 /* RASF Parameter Block Structure for PATROL_SCRUB */
 
-struct acpi_rasf_patrol_scrub_parameter {
+struct acpi_rasf_patrol_scrub_parameter
+{
 	struct acpi_rasf_parameter_block header;
 	u16 patrol_scrub_command;
 	u64 requested_address_range[2];
@@ -689,20 +735,23 @@ struct acpi_rasf_patrol_scrub_parameter {
 
 /* Channel Commands */
 
-enum acpi_rasf_commands {
+enum acpi_rasf_commands
+{
 	ACPI_RASF_EXECUTE_RASF_COMMAND = 1
 };
 
 /* Platform RAS Capabilities */
 
-enum acpi_rasf_capabiliities {
+enum acpi_rasf_capabiliities
+{
 	ACPI_HW_PATROL_SCRUB_SUPPORTED = 0,
 	ACPI_SW_PATROL_SCRUB_EXPOSED = 1
 };
 
 /* Patrol Scrub Commands */
 
-enum acpi_rasf_patrol_scrub_commands {
+enum acpi_rasf_patrol_scrub_commands
+{
 	ACPI_RASF_GET_PATROL_PARAMETERS = 1,
 	ACPI_RASF_START_PATROL_SCRUBBER = 2,
 	ACPI_RASF_STOP_PATROL_SCRUBBER = 3
@@ -714,7 +763,8 @@ enum acpi_rasf_patrol_scrub_commands {
 
 /* Status values */
 
-enum acpi_rasf_status {
+enum acpi_rasf_status
+{
 	ACPI_RASF_SUCCESS = 0,
 	ACPI_RASF_NOT_VALID = 1,
 	ACPI_RASF_NOT_SUPPORTED = 2,
@@ -741,7 +791,8 @@ enum acpi_rasf_status {
  *
  ******************************************************************************/
 
-struct acpi_table_stao {
+struct acpi_table_stao
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
 	u8 ignore_uart;
 };
@@ -755,7 +806,8 @@ struct acpi_table_stao {
  *
  ******************************************************************************/
 
-struct acpi_table_wpbt {
+struct acpi_table_wpbt
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
 	u32 handoff_size;
 	u64 handoff_address;
@@ -773,7 +825,8 @@ struct acpi_table_wpbt {
  *
  ******************************************************************************/
 
-struct acpi_table_xenv {
+struct acpi_table_xenv
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
 	u64 grant_table_address;
 	u64 grant_table_size;

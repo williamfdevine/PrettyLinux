@@ -52,7 +52,8 @@
 #define CFSPI_DBG_PREFILL		0
 
 /* Structure describing a SPI transfer. */
-struct cfspi_xfer {
+struct cfspi_xfer
+{
 	u16 tx_dma_len;
 	u16 rx_dma_len;
 	void *va_tx[2];
@@ -62,14 +63,16 @@ struct cfspi_xfer {
 };
 
 /* Structure implemented by the SPI interface. */
-struct cfspi_ifc {
+struct cfspi_ifc
+{
 	void (*ss_cb) (bool assert, struct cfspi_ifc *ifc);
 	void (*xfer_done_cb) (struct cfspi_ifc *ifc);
 	void *priv;
 };
 
 /* Structure implemented by SPI clients. */
-struct cfspi_dev {
+struct cfspi_dev
+{
 	int (*init_xfer) (struct cfspi_xfer *xfer, struct cfspi_dev *dev);
 	void (*sig_xfer) (bool xfer, struct cfspi_dev *dev);
 	struct cfspi_ifc *ifc;
@@ -79,7 +82,8 @@ struct cfspi_dev {
 };
 
 /* Enumeration describing the CAIF SPI state. */
-enum cfspi_state {
+enum cfspi_state
+{
 	CFSPI_STATE_WAITING = 0,
 	CFSPI_STATE_AWAKE,
 	CFSPI_STATE_FETCH_PKT,
@@ -96,7 +100,8 @@ enum cfspi_state {
 };
 
 /* Structure implemented by SPI physical interfaces. */
-struct cfspi {
+struct cfspi
+{
 	struct caif_dev_common cfdev;
 	struct net_device *ndev;
 	struct platform_device *pdev;

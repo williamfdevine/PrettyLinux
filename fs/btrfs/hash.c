@@ -24,7 +24,7 @@ int __init btrfs_hash_init(void)
 	return PTR_ERR_OR_ZERO(tfm);
 }
 
-const char* btrfs_crc32c_impl(void)
+const char *btrfs_crc32c_impl(void)
 {
 	return crypto_tfm_alg_driver_name(crypto_shash_tfm(tfm));
 }

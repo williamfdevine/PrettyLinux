@@ -96,64 +96,69 @@ MODULE_AUTHOR("Texas Instruments");
 
 /* map mbus_fmt to pixelformat */
 void mbus_to_pix(const struct v4l2_mbus_framefmt *mbus,
-			   struct v4l2_pix_format *pix)
+				 struct v4l2_pix_format *pix)
 {
-	switch (mbus->code) {
-	case MEDIA_BUS_FMT_UYVY8_2X8:
-		pix->pixelformat = V4L2_PIX_FMT_UYVY;
-		pix->bytesperline = pix->width * 2;
-		break;
+	switch (mbus->code)
+	{
+		case MEDIA_BUS_FMT_UYVY8_2X8:
+			pix->pixelformat = V4L2_PIX_FMT_UYVY;
+			pix->bytesperline = pix->width * 2;
+			break;
 
-	case MEDIA_BUS_FMT_YUYV8_2X8:
-		pix->pixelformat = V4L2_PIX_FMT_YUYV;
-		pix->bytesperline = pix->width * 2;
-		break;
+		case MEDIA_BUS_FMT_YUYV8_2X8:
+			pix->pixelformat = V4L2_PIX_FMT_YUYV;
+			pix->bytesperline = pix->width * 2;
+			break;
 
-	case MEDIA_BUS_FMT_YUYV10_1X20:
-		pix->pixelformat = V4L2_PIX_FMT_UYVY;
-		pix->bytesperline = pix->width * 2;
-		break;
+		case MEDIA_BUS_FMT_YUYV10_1X20:
+			pix->pixelformat = V4L2_PIX_FMT_UYVY;
+			pix->bytesperline = pix->width * 2;
+			break;
 
-	case MEDIA_BUS_FMT_SGRBG12_1X12:
-		pix->pixelformat = V4L2_PIX_FMT_SBGGR16;
-		pix->bytesperline = pix->width * 2;
-		break;
+		case MEDIA_BUS_FMT_SGRBG12_1X12:
+			pix->pixelformat = V4L2_PIX_FMT_SBGGR16;
+			pix->bytesperline = pix->width * 2;
+			break;
 
-	case MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8:
-		pix->pixelformat = V4L2_PIX_FMT_SGRBG10DPCM8;
-		pix->bytesperline = pix->width;
-		break;
+		case MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8:
+			pix->pixelformat = V4L2_PIX_FMT_SGRBG10DPCM8;
+			pix->bytesperline = pix->width;
+			break;
 
-	case MEDIA_BUS_FMT_SGRBG10_ALAW8_1X8:
-		pix->pixelformat = V4L2_PIX_FMT_SGRBG10ALAW8;
-		pix->bytesperline = pix->width;
-		break;
+		case MEDIA_BUS_FMT_SGRBG10_ALAW8_1X8:
+			pix->pixelformat = V4L2_PIX_FMT_SGRBG10ALAW8;
+			pix->bytesperline = pix->width;
+			break;
 
-	case MEDIA_BUS_FMT_YDYUYDYV8_1X16:
-		pix->pixelformat = V4L2_PIX_FMT_NV12;
-		pix->bytesperline = pix->width;
-		break;
+		case MEDIA_BUS_FMT_YDYUYDYV8_1X16:
+			pix->pixelformat = V4L2_PIX_FMT_NV12;
+			pix->bytesperline = pix->width;
+			break;
 
-	case MEDIA_BUS_FMT_Y8_1X8:
-		pix->pixelformat = V4L2_PIX_FMT_GREY;
-		pix->bytesperline = pix->width;
-		break;
+		case MEDIA_BUS_FMT_Y8_1X8:
+			pix->pixelformat = V4L2_PIX_FMT_GREY;
+			pix->bytesperline = pix->width;
+			break;
 
-	case MEDIA_BUS_FMT_UV8_1X8:
-		pix->pixelformat = V4L2_PIX_FMT_UV8;
-		pix->bytesperline = pix->width;
-		break;
+		case MEDIA_BUS_FMT_UV8_1X8:
+			pix->pixelformat = V4L2_PIX_FMT_UV8;
+			pix->bytesperline = pix->width;
+			break;
 
-	default:
-		pr_err("Invalid mbus code set\n");
+		default:
+			pr_err("Invalid mbus code set\n");
 	}
+
 	/* pitch should be 32 bytes aligned */
 	pix->bytesperline = ALIGN(pix->bytesperline, 32);
+
 	if (pix->pixelformat == V4L2_PIX_FMT_NV12)
 		pix->sizeimage = pix->bytesperline * pix->height +
-				((pix->bytesperline * pix->height) >> 1);
+						 ((pix->bytesperline * pix->height) >> 1);
 	else
+	{
 		pix->sizeimage = pix->bytesperline * pix->height;
+	}
 }
 
 /* ISR for VINT0*/
@@ -201,10 +206,12 @@ static void vpfe_disable_clock(struct vpfe_device *vpfe_dev)
 	struct vpfe_config *vpfe_cfg = vpfe_dev->cfg;
 	int i;
 
-	for (i = 0; i < vpfe_cfg->num_clocks; i++) {
+	for (i = 0; i < vpfe_cfg->num_clocks; i++)
+	{
 		clk_disable_unprepare(vpfe_dev->clks[i]);
 		clk_put(vpfe_dev->clks[i]);
 	}
+
 	kzfree(vpfe_dev->clks);
 	v4l2_info(vpfe_dev->pdev->driver, "vpfe capture clocks disabled\n");
 }
@@ -224,45 +231,57 @@ static int vpfe_enable_clock(struct vpfe_device *vpfe_dev)
 	int i;
 
 	if (!vpfe_cfg->num_clocks)
+	{
 		return 0;
+	}
 
 	vpfe_dev->clks = kcalloc(vpfe_cfg->num_clocks,
-				 sizeof(*vpfe_dev->clks), GFP_KERNEL);
-	if (vpfe_dev->clks == NULL)
-		return -ENOMEM;
+							 sizeof(*vpfe_dev->clks), GFP_KERNEL);
 
-	for (i = 0; i < vpfe_cfg->num_clocks; i++) {
-		if (vpfe_cfg->clocks[i] == NULL) {
+	if (vpfe_dev->clks == NULL)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < vpfe_cfg->num_clocks; i++)
+	{
+		if (vpfe_cfg->clocks[i] == NULL)
+		{
 			v4l2_err(vpfe_dev->pdev->driver,
-				"clock %s is not defined in vpfe config\n",
-				vpfe_cfg->clocks[i]);
+					 "clock %s is not defined in vpfe config\n",
+					 vpfe_cfg->clocks[i]);
 			goto out;
 		}
 
 		vpfe_dev->clks[i] =
-				clk_get(vpfe_dev->pdev, vpfe_cfg->clocks[i]);
-		if (IS_ERR(vpfe_dev->clks[i])) {
+			clk_get(vpfe_dev->pdev, vpfe_cfg->clocks[i]);
+
+		if (IS_ERR(vpfe_dev->clks[i]))
+		{
 			v4l2_err(vpfe_dev->pdev->driver,
-				"Failed to get clock %s\n",
-				vpfe_cfg->clocks[i]);
+					 "Failed to get clock %s\n",
+					 vpfe_cfg->clocks[i]);
 			goto out;
 		}
 
-		if (clk_prepare_enable(vpfe_dev->clks[i])) {
+		if (clk_prepare_enable(vpfe_dev->clks[i]))
+		{
 			v4l2_err(vpfe_dev->pdev->driver,
-				"vpfe clock %s not enabled\n",
-				vpfe_cfg->clocks[i]);
+					 "vpfe clock %s not enabled\n",
+					 vpfe_cfg->clocks[i]);
 			goto out;
 		}
 
 		v4l2_info(vpfe_dev->pdev->driver, "vpss clock %s enabled",
-			  vpfe_cfg->clocks[i]);
+				  vpfe_cfg->clocks[i]);
 	}
 
 	return 0;
 out:
+
 	for (i = 0; i < vpfe_cfg->num_clocks; i++)
-		if (!IS_ERR(vpfe_dev->clks[i])) {
+		if (!IS_ERR(vpfe_dev->clks[i]))
+		{
 			clk_disable_unprepare(vpfe_dev->clks[i]);
 			clk_put(vpfe_dev->clks[i]);
 		}
@@ -297,27 +316,33 @@ static int vpfe_attach_irq(struct vpfe_device *vpfe_dev)
 	int ret;
 
 	ret = request_irq(vpfe_dev->ccdc_irq0, vpfe_isr, 0,
-			  "vpfe_capture0", vpfe_dev);
-	if (ret < 0) {
+					  "vpfe_capture0", vpfe_dev);
+
+	if (ret < 0)
+	{
 		v4l2_err(&vpfe_dev->v4l2_dev,
-			"Error: requesting VINT0 interrupt\n");
+				 "Error: requesting VINT0 interrupt\n");
 		return ret;
 	}
 
 	ret = request_irq(vpfe_dev->ccdc_irq1, vpfe_vdint1_isr, 0,
-			  "vpfe_capture1", vpfe_dev);
-	if (ret < 0) {
+					  "vpfe_capture1", vpfe_dev);
+
+	if (ret < 0)
+	{
 		v4l2_err(&vpfe_dev->v4l2_dev,
-			"Error: requesting VINT1 interrupt\n");
+				 "Error: requesting VINT1 interrupt\n");
 		free_irq(vpfe_dev->ccdc_irq0, vpfe_dev);
 		return ret;
 	}
 
 	ret = request_irq(vpfe_dev->imp_dma_irq, vpfe_imp_dma_isr,
-			  0, "Imp_Sdram_Irq", vpfe_dev);
-	if (ret < 0) {
+					  0, "Imp_Sdram_Irq", vpfe_dev);
+
+	if (ret < 0)
+	{
 		v4l2_err(&vpfe_dev->v4l2_dev,
-			 "Error: requesting IMP IRQ interrupt\n");
+				 "Error: requesting IMP IRQ interrupt\n");
 		free_irq(vpfe_dev->ccdc_irq1, vpfe_dev);
 		free_irq(vpfe_dev->ccdc_irq0, vpfe_dev);
 		return ret;
@@ -346,13 +371,18 @@ static int register_i2c_devices(struct vpfe_device *vpfe_dev)
 	i2c_adap = i2c_get_adapter(1);
 	num_subdevs = vpfe_cfg->num_subdevs;
 	vpfe_dev->sd =
-		  kcalloc(num_subdevs, sizeof(struct v4l2_subdev *),
-			  GFP_KERNEL);
-	if (vpfe_dev->sd == NULL)
-		return -ENOMEM;
+		kcalloc(num_subdevs, sizeof(struct v4l2_subdev *),
+				GFP_KERNEL);
 
-	for (i = 0, k = 0; i < num_subdevs; i++) {
+	if (vpfe_dev->sd == NULL)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0, k = 0; i < num_subdevs; i++)
+	{
 		sdinfo = &vpfe_cfg->sub_devs[i];
+
 		/*
 		 * register subdevices based on interface setting. Currently
 		 * tvp5146 and mt9p031 cannot co-exists due to i2c address
@@ -360,37 +390,45 @@ static int register_i2c_devices(struct vpfe_device *vpfe_dev)
 		 * once we have support for i2c switch handling in i2c driver
 		 * framework
 		 */
-		if (interface == sdinfo->is_camera) {
+		if (interface == sdinfo->is_camera)
+		{
 			/* setup input path */
 			if (vpfe_cfg->setup_input &&
-				vpfe_cfg->setup_input(sdinfo->grp_id) < 0) {
+				vpfe_cfg->setup_input(sdinfo->grp_id) < 0)
+			{
 				ret = -EFAULT;
 				v4l2_info(&vpfe_dev->v4l2_dev,
-					  "could not setup input for %s\n",
-						sdinfo->module_name);
+						  "could not setup input for %s\n",
+						  sdinfo->module_name);
 				goto probe_sd_out;
 			}
+
 			/* Load up the subdevice */
 			vpfe_dev->sd[k] =
 				v4l2_i2c_new_subdev_board(&vpfe_dev->v4l2_dev,
-						  i2c_adap, &sdinfo->board_info,
-						  NULL);
-			if (vpfe_dev->sd[k]) {
+										  i2c_adap, &sdinfo->board_info,
+										  NULL);
+
+			if (vpfe_dev->sd[k])
+			{
 				v4l2_info(&vpfe_dev->v4l2_dev,
-						"v4l2 sub device %s registered\n",
-						sdinfo->module_name);
+						  "v4l2 sub device %s registered\n",
+						  sdinfo->module_name);
 
 				vpfe_dev->sd[k]->grp_id = sdinfo->grp_id;
 				k++;
 
 				sdinfo->registered = 1;
 			}
-		} else {
+		}
+		else
+		{
 			v4l2_info(&vpfe_dev->v4l2_dev,
-				  "v4l2 sub device %s is not registered\n",
-				  sdinfo->module_name);
+					  "v4l2 sub device %s is not registered\n",
+					  sdinfo->module_name);
 		}
 	}
+
 	vpfe_dev->num_ext_subdevs = k;
 
 	return 0;
@@ -416,71 +454,106 @@ static int vpfe_register_entities(struct vpfe_device *vpfe_dev)
 
 	/* register i2c devices first */
 	ret = register_i2c_devices(vpfe_dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* register rest of the sub-devs */
 	ret = vpfe_isif_register_entities(&vpfe_dev->vpfe_isif,
-					  &vpfe_dev->v4l2_dev);
+									  &vpfe_dev->v4l2_dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = vpfe_ipipeif_register_entities(&vpfe_dev->vpfe_ipipeif,
-					     &vpfe_dev->v4l2_dev);
+										 &vpfe_dev->v4l2_dev);
+
 	if (ret)
+	{
 		goto out_isif_register;
+	}
 
 	ret = vpfe_ipipe_register_entities(&vpfe_dev->vpfe_ipipe,
-					   &vpfe_dev->v4l2_dev);
+									   &vpfe_dev->v4l2_dev);
+
 	if (ret)
+	{
 		goto out_ipipeif_register;
+	}
 
 	ret = vpfe_resizer_register_entities(&vpfe_dev->vpfe_resizer,
-					     &vpfe_dev->v4l2_dev);
+										 &vpfe_dev->v4l2_dev);
+
 	if (ret)
+	{
 		goto out_ipipe_register;
+	}
 
 	/* create links now, starting with external(i2c) entities */
 	for (i = 0; i < vpfe_dev->num_ext_subdevs; i++)
+
 		/*
 		 * if entity has no pads (ex: amplifier),
 		 * cant establish link
 		 */
-		if (vpfe_dev->sd[i]->entity.num_pads) {
+		if (vpfe_dev->sd[i]->entity.num_pads)
+		{
 			ret = media_create_pad_link(&vpfe_dev->sd[i]->entity,
-				0, &vpfe_dev->vpfe_isif.subdev.entity,
-				0, flags);
+										0, &vpfe_dev->vpfe_isif.subdev.entity,
+										0, flags);
+
 			if (ret < 0)
+			{
 				goto out_resizer_register;
+			}
 		}
 
 	ret = media_create_pad_link(&vpfe_dev->vpfe_isif.subdev.entity, 1,
-				       &vpfe_dev->vpfe_ipipeif.subdev.entity,
-				       0, flags);
+								&vpfe_dev->vpfe_ipipeif.subdev.entity,
+								0, flags);
+
 	if (ret < 0)
+	{
 		goto out_resizer_register;
+	}
 
 	ret = media_create_pad_link(&vpfe_dev->vpfe_ipipeif.subdev.entity, 1,
-				       &vpfe_dev->vpfe_ipipe.subdev.entity,
-				       0, flags);
+								&vpfe_dev->vpfe_ipipe.subdev.entity,
+								0, flags);
+
 	if (ret < 0)
+	{
 		goto out_resizer_register;
+	}
 
 	ret = media_create_pad_link(&vpfe_dev->vpfe_ipipe.subdev.entity,
-			1, &vpfe_dev->vpfe_resizer.crop_resizer.subdev.entity,
-			0, flags);
+								1, &vpfe_dev->vpfe_resizer.crop_resizer.subdev.entity,
+								0, flags);
+
 	if (ret < 0)
+	{
 		goto out_resizer_register;
+	}
 
 	ret = media_create_pad_link(&vpfe_dev->vpfe_ipipeif.subdev.entity, 1,
-			&vpfe_dev->vpfe_resizer.crop_resizer.subdev.entity,
-			0, flags);
+								&vpfe_dev->vpfe_resizer.crop_resizer.subdev.entity,
+								0, flags);
+
 	if (ret < 0)
+	{
 		goto out_resizer_register;
+	}
 
 	ret = v4l2_device_register_subdev_nodes(&vpfe_dev->v4l2_dev);
+
 	if (ret < 0)
+	{
 		goto out_resizer_register;
+	}
 
 	return 0;
 
@@ -518,7 +591,7 @@ static void vpfe_unregister_entities(struct vpfe_device *vpfe_dev)
  * cleanup all v4l2 subdevs
  */
 static void vpfe_cleanup_modules(struct vpfe_device *vpfe_dev,
-				 struct platform_device *pdev)
+								 struct platform_device *pdev)
 {
 	vpfe_isif_cleanup(&vpfe_dev->vpfe_isif, pdev);
 	vpfe_ipipeif_cleanup(&vpfe_dev->vpfe_ipipeif, pdev);
@@ -534,25 +607,37 @@ static void vpfe_cleanup_modules(struct vpfe_device *vpfe_dev,
  * intialize all v4l2 subdevs and media entities
  */
 static int vpfe_initialize_modules(struct vpfe_device *vpfe_dev,
-				   struct platform_device *pdev)
+								   struct platform_device *pdev)
 {
 	int ret;
 
 	ret = vpfe_isif_init(&vpfe_dev->vpfe_isif, pdev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = vpfe_ipipeif_init(&vpfe_dev->vpfe_ipipeif, pdev);
+
 	if (ret)
+	{
 		goto out_isif_init;
+	}
 
 	ret = vpfe_ipipe_init(&vpfe_dev->vpfe_ipipe, pdev);
+
 	if (ret)
+	{
 		goto out_ipipeif_init;
+	}
 
 	ret = vpfe_resizer_init(&vpfe_dev->vpfe_resizer, pdev);
+
 	if (ret)
+	{
 		goto out_ipipe_init;
+	}
 
 	return 0;
 
@@ -580,18 +665,24 @@ static int vpfe_probe(struct platform_device *pdev)
 	int ret = -ENOMEM;
 
 	vpfe_dev = kzalloc(sizeof(*vpfe_dev), GFP_KERNEL);
-	if (!vpfe_dev)
-		return ret;
 
-	if (pdev->dev.platform_data == NULL) {
+	if (!vpfe_dev)
+	{
+		return ret;
+	}
+
+	if (pdev->dev.platform_data == NULL)
+	{
 		v4l2_err(pdev->dev.driver, "Unable to get vpfe config\n");
 		ret = -ENOENT;
 		goto probe_free_dev_mem;
 	}
 
 	vpfe_dev->cfg = pdev->dev.platform_data;
+
 	if (vpfe_dev->cfg->card_name == NULL ||
-			vpfe_dev->cfg->sub_devs == NULL) {
+		vpfe_dev->cfg->sub_devs == NULL)
+	{
 		v4l2_err(pdev->dev.driver, "null ptr in vpfe_cfg\n");
 		ret = -ENOENT;
 		goto probe_free_dev_mem;
@@ -599,58 +690,77 @@ static int vpfe_probe(struct platform_device *pdev)
 
 	/* Get VINT0 irq resource */
 	res1 = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-	if (!res1) {
+
+	if (!res1)
+	{
 		v4l2_err(pdev->dev.driver,
-			 "Unable to get interrupt for VINT0\n");
+				 "Unable to get interrupt for VINT0\n");
 		ret = -ENOENT;
 		goto probe_free_dev_mem;
 	}
+
 	vpfe_dev->ccdc_irq0 = res1->start;
 
 	/* Get VINT1 irq resource */
 	res1 = platform_get_resource(pdev, IORESOURCE_IRQ, 1);
-	if (!res1) {
+
+	if (!res1)
+	{
 		v4l2_err(pdev->dev.driver,
-			 "Unable to get interrupt for VINT1\n");
+				 "Unable to get interrupt for VINT1\n");
 		ret = -ENOENT;
 		goto probe_free_dev_mem;
 	}
+
 	vpfe_dev->ccdc_irq1 = res1->start;
 
 	/* Get DMA irq resource */
 	res1 = platform_get_resource(pdev, IORESOURCE_IRQ, 2);
-	if (!res1) {
+
+	if (!res1)
+	{
 		v4l2_err(pdev->dev.driver,
-			 "Unable to get interrupt for DMA\n");
+				 "Unable to get interrupt for DMA\n");
 		ret = -ENOENT;
 		goto probe_free_dev_mem;
 	}
+
 	vpfe_dev->imp_dma_irq = res1->start;
 
 	vpfe_dev->pdev = &pdev->dev;
 
 	/* enable vpss clocks */
 	ret = vpfe_enable_clock(vpfe_dev);
+
 	if (ret)
+	{
 		goto probe_free_dev_mem;
+	}
 
 	ret = vpfe_initialize_modules(vpfe_dev, pdev);
+
 	if (ret)
+	{
 		goto probe_disable_clock;
+	}
 
 	vpfe_dev->media_dev.dev = vpfe_dev->pdev;
 	strcpy((char *)&vpfe_dev->media_dev.model, "davinci-media");
 
 	ret = media_device_register(&vpfe_dev->media_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		v4l2_err(pdev->dev.driver,
-			"Unable to register media device.\n");
+				 "Unable to register media device.\n");
 		goto probe_out_entities_cleanup;
 	}
 
 	vpfe_dev->v4l2_dev.mdev = &vpfe_dev->media_dev;
 	ret = v4l2_device_register(&pdev->dev, &vpfe_dev->v4l2_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		v4l2_err(pdev->dev.driver, "Unable to register v4l2 device.\n");
 		goto probe_out_media_unregister;
 	}
@@ -660,12 +770,18 @@ static int vpfe_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, vpfe_dev);
 	/* register subdevs/entities */
 	ret = vpfe_register_entities(vpfe_dev);
+
 	if (ret)
+	{
 		goto probe_out_v4l2_unregister;
+	}
 
 	ret = vpfe_attach_irq(vpfe_dev);
+
 	if (ret)
+	{
 		goto probe_out_entities_unregister;
+	}
 
 	return 0;
 
@@ -707,7 +823,8 @@ static int vpfe_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver vpfe_driver = {
+static struct platform_driver vpfe_driver =
+{
 	.driver = {
 		.name = CAPTURE_DRV_NAME,
 	},

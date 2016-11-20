@@ -37,7 +37,8 @@ struct _adapter;
 #include <linux/mutex.h>
 #include <linux/completion.h>
 
-enum _NIC_VERSION {
+enum _NIC_VERSION
+{
 	RTL8711_NIC,
 	RTL8712_NIC,
 	RTL8713_NIC,
@@ -46,7 +47,8 @@ enum _NIC_VERSION {
 
 struct _adapter;
 
-struct	qos_priv	{
+struct	qos_priv
+{
 	/* bit mask option: u-apsd, s-apsd, ts, block ack... */
 	unsigned int qos_option;
 };
@@ -69,14 +71,16 @@ struct	qos_priv	{
 
 #define SPEC_DEV_ID_DISABLE_HT BIT(1)
 
-struct specific_device_id {
+struct specific_device_id
+{
 	u32		flags;
 	u16		idVendor;
 	u16		idProduct;
 
 };
 
-struct registry_priv {
+struct registry_priv
+{
 	u8	chip_version;
 	u8	rfintfs;
 	u8	lbkmode;
@@ -122,7 +126,8 @@ struct registry_priv {
 	u8 wifi_test;
 };
 
-struct dvobj_priv {
+struct dvobj_priv
+{
 	struct _adapter *padapter;
 	u32 nr_endpoint;
 	u8   ishighspeed;
@@ -136,7 +141,8 @@ struct dvobj_priv {
  *
  * bup: True indicates that the interface is up.
  */
-struct _adapter {
+struct _adapter
+{
 	struct	dvobj_priv dvobjpriv;
 	struct	mlme_priv mlmepriv;
 	struct	cmd_priv	cmdpriv;
@@ -161,7 +167,7 @@ struct _adapter {
 	u8	EepromAddressSize;
 	u8	hw_init_completed;
 	struct task_struct *cmdThread;
-	 pid_t evtThread;
+	pid_t evtThread;
 	struct task_struct *xmitThread;
 	pid_t recvThread;
 	uint (*dvobj_init)(struct _adapter *adapter);

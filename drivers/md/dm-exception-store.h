@@ -26,7 +26,8 @@ typedef sector_t chunk_t;
  * of chunks that follow contiguously.  Remaining bits hold the number of the
  * chunk within the device.
  */
-struct dm_exception {
+struct dm_exception
+{
 	struct list_head hash_list;
 
 	chunk_t old_chunk;
@@ -38,7 +39,8 @@ struct dm_exception {
  * COW device).
  */
 struct dm_exception_store;
-struct dm_exception_store_type {
+struct dm_exception_store_type
+{
 	const char *name;
 	struct module *module;
 
@@ -55,23 +57,23 @@ struct dm_exception_store_type {
 	 * reported back via the callback.
 	 */
 	int (*read_metadata) (struct dm_exception_store *store,
-			      int (*callback)(void *callback_context,
-					      chunk_t old, chunk_t new),
-			      void *callback_context);
+						  int (*callback)(void *callback_context,
+										  chunk_t old, chunk_t new),
+						  void *callback_context);
 
 	/*
 	 * Find somewhere to store the next exception.
 	 */
 	int (*prepare_exception) (struct dm_exception_store *store,
-				  struct dm_exception *e);
+							  struct dm_exception *e);
 
 	/*
 	 * Update the metadata with this exception.
 	 */
 	void (*commit_exception) (struct dm_exception_store *store,
-				  struct dm_exception *e, int valid,
-				  void (*callback) (void *, int success),
-				  void *callback_context);
+							  struct dm_exception *e, int valid,
+							  void (*callback) (void *, int success),
+							  void *callback_context);
 
 	/*
 	 * Returns 0 if the exception store is empty.
@@ -82,7 +84,7 @@ struct dm_exception_store_type {
 	 * consecutive previous ones.
 	 */
 	int (*prepare_merge) (struct dm_exception_store *store,
-			      chunk_t *last_old_chunk, chunk_t *last_new_chunk);
+						  chunk_t *last_old_chunk, chunk_t *last_new_chunk);
 
 	/*
 	 * Clear the last n exceptions.
@@ -96,15 +98,15 @@ struct dm_exception_store_type {
 	void (*drop_snapshot) (struct dm_exception_store *store);
 
 	unsigned (*status) (struct dm_exception_store *store,
-			    status_type_t status, char *result,
-			    unsigned maxlen);
+						status_type_t status, char *result,
+						unsigned maxlen);
 
 	/*
 	 * Return how full the snapshot is.
 	 */
 	void (*usage) (struct dm_exception_store *store,
-		       sector_t *total_sectors, sector_t *sectors_allocated,
-		       sector_t *metadata_sectors);
+				   sector_t *total_sectors, sector_t *sectors_allocated,
+				   sector_t *metadata_sectors);
 
 	/* For internal device-mapper use only. */
 	struct list_head list;
@@ -112,7 +114,8 @@ struct dm_exception_store_type {
 
 struct dm_snapshot;
 
-struct dm_exception_store {
+struct dm_exception_store
+{
 	struct dm_exception_store_type *type;
 	struct dm_snapshot *snap;
 
@@ -195,7 +198,7 @@ static inline sector_t get_dev_size(struct block_device *bdev)
 }
 
 static inline chunk_t sector_to_chunk(struct dm_exception_store *store,
-				      sector_t sector)
+									  sector_t sector)
 {
 	return sector >> store->chunk_shift;
 }
@@ -204,13 +207,13 @@ int dm_exception_store_type_register(struct dm_exception_store_type *type);
 int dm_exception_store_type_unregister(struct dm_exception_store_type *type);
 
 int dm_exception_store_set_chunk_size(struct dm_exception_store *store,
-				      unsigned chunk_size,
-				      char **error);
+									  unsigned chunk_size,
+									  char **error);
 
 int dm_exception_store_create(struct dm_target *ti, int argc, char **argv,
-			      struct dm_snapshot *snap,
-			      unsigned *args_used,
-			      struct dm_exception_store **store);
+							  struct dm_snapshot *snap,
+							  unsigned *args_used,
+							  struct dm_exception_store **store);
 void dm_exception_store_destroy(struct dm_exception_store *store);
 
 int dm_exception_store_init(void);

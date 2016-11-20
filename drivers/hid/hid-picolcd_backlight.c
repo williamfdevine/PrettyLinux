@@ -37,14 +37,20 @@ static int picolcd_set_brightness(struct backlight_device *bdev)
 	unsigned long flags;
 
 	if (!report || report->maxfield != 1 || report->field[0]->report_count != 1)
+	{
 		return -ENODEV;
+	}
 
 	data->lcd_brightness = bdev->props.brightness & 0x0ff;
 	data->lcd_power      = bdev->props.power;
 	spin_lock_irqsave(&data->lock, flags);
 	hid_set_field(report->field[0], 0, data->lcd_power == FB_BLANK_UNBLANK ? data->lcd_brightness : 0);
+
 	if (!(data->status & PICOLCD_FAILED))
+	{
 		hid_hw_request(data->hdev, report, HID_REQ_SET_REPORT);
+	}
+
 	spin_unlock_irqrestore(&data->lock, flags);
 	return 0;
 }
@@ -54,7 +60,8 @@ static int picolcd_check_bl_fb(struct backlight_device *bdev, struct fb_info *fb
 	return fb && fb == picolcd_fbinfo((struct picolcd_data *)bl_get_data(bdev));
 }
 
-static const struct backlight_ops picolcd_blops = {
+static const struct backlight_ops picolcd_blops =
+{
 	.update_status  = picolcd_set_brightness,
 	.get_brightness = picolcd_get_brightness,
 	.check_fb       = picolcd_check_bl_fb,
@@ -65,10 +72,15 @@ int picolcd_init_backlight(struct picolcd_data *data, struct hid_report *report)
 	struct device *dev = &data->hdev->dev;
 	struct backlight_device *bdev;
 	struct backlight_properties props;
+
 	if (!report)
+	{
 		return -ENODEV;
+	}
+
 	if (report->maxfield != 1 || report->field[0]->report_count != 1 ||
-			report->field[0]->report_size != 8) {
+		report->field[0]->report_size != 8)
+	{
 		dev_err(dev, "unsupported BRIGHTNESS report");
 		return -EINVAL;
 	}
@@ -77,11 +89,14 @@ int picolcd_init_backlight(struct picolcd_data *data, struct hid_report *report)
 	props.type = BACKLIGHT_RAW;
 	props.max_brightness = 0xff;
 	bdev = backlight_device_register(dev_name(dev), dev, data,
-			&picolcd_blops, &props);
-	if (IS_ERR(bdev)) {
+									 &picolcd_blops, &props);
+
+	if (IS_ERR(bdev))
+	{
 		dev_err(dev, "failed to register backlight\n");
 		return PTR_ERR(bdev);
 	}
+
 	bdev->props.brightness     = 0xff;
 	data->lcd_brightness       = 0xff;
 	data->backlight            = bdev;
@@ -100,7 +115,10 @@ void picolcd_exit_backlight(struct picolcd_data *data)
 int picolcd_resume_backlight(struct picolcd_data *data)
 {
 	if (!data->backlight)
+	{
 		return 0;
+	}
+
 	return picolcd_set_brightness(data->backlight);
 }
 
@@ -108,8 +126,11 @@ int picolcd_resume_backlight(struct picolcd_data *data)
 void picolcd_suspend_backlight(struct picolcd_data *data)
 {
 	int bl_power = data->lcd_power;
+
 	if (!data->backlight)
+	{
 		return;
+	}
 
 	data->backlight->props.power = FB_BLANK_POWERDOWN;
 	picolcd_set_brightness(data->backlight);

@@ -2,7 +2,8 @@
 #define __NVKM_PM_H__
 #include <core/engine.h>
 
-struct nvkm_pm {
+struct nvkm_pm
+{
 	const struct nvkm_pm_func *func;
 	struct nvkm_engine engine;
 

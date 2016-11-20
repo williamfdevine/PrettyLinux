@@ -31,14 +31,15 @@
 #define TULIP_DEBUG 1
 
 #ifdef CONFIG_TULIP_MMIO
-#define TULIP_BAR	1	/* CBMA */
+	#define TULIP_BAR	1	/* CBMA */
 #else
-#define TULIP_BAR	0	/* CBIO */
+	#define TULIP_BAR	0	/* CBIO */
 #endif
 
 
 
-struct tulip_chip_table {
+struct tulip_chip_table
+{
 	char *chip_name;
 	int io_size;
 	int valid_intrs;	/* CSR7 interrupt enable settings */
@@ -48,7 +49,8 @@ struct tulip_chip_table {
 };
 
 
-enum tbl_flag {
+enum tbl_flag
+{
 	HAS_MII			= 0x00001,
 	HAS_MEDIA_TABLE		= 0x00002,
 	CSR12_IN_SROM		= 0x00004,
@@ -72,7 +74,8 @@ enum tbl_flag {
 /* chip types.  careful!  order is VERY IMPORTANT here, as these
  * are used throughout the driver as indices into arrays */
 /* Note 21142 == 21143. */
-enum chips {
+enum chips
+{
 	DC21040 = 0,
 	DC21041 = 1,
 	DC21140 = 2,
@@ -91,7 +94,8 @@ enum chips {
 };
 
 
-enum MediaIs {
+enum MediaIs
+{
 	MediaIsFD = 1,
 	MediaAlwaysFD = 2,
 	MediaIsMII = 4,
@@ -102,7 +106,8 @@ enum MediaIs {
 
 /* Offsets to the Command and Status Registers, "CSRs".  All accesses
    must be longword instructions and quadword aligned. */
-enum tulip_offsets {
+enum tulip_offsets
+{
 	CSR0 = 0,
 	CSR1 = 0x08,
 	CSR2 = 0x10,
@@ -127,7 +132,8 @@ enum tulip_offsets {
 };
 
 /* register offset and bits for CFDD PCI config reg */
-enum pci_cfg_driver_reg {
+enum pci_cfg_driver_reg
+{
 	CFDD = 0x40,
 	CFDD_Sleep = (1 << 31),
 	CFDD_Snooze = (1 << 30),
@@ -136,7 +142,8 @@ enum pci_cfg_driver_reg {
 #define RxPollInt (RxIntr|RxNoBuf|RxDied|RxJabber)
 
 /* The bits in the CSR5 status registers, mostly interrupt sources. */
-enum status_bits {
+enum status_bits
+{
 	TimerInt = 0x800,
 	SystemError = 0x2000,
 	TPLnkFail = 0x1000,
@@ -159,7 +166,8 @@ enum status_bits {
 #define CSR5_TS	0x00700000
 #define CSR5_RS	0x000e0000
 
-enum tulip_mode_bits {
+enum tulip_mode_bits
+{
 	TxThreshold		= (1 << 22),
 	FullDuplex		= (1 << 9),
 	TxOn			= 0x2000,
@@ -172,7 +180,8 @@ enum tulip_mode_bits {
 };
 
 
-enum tulip_busconfig_bits {
+enum tulip_busconfig_bits
+{
 	MWI			= (1 << 24),
 	MRL			= (1 << 23),
 	MRM			= (1 << 21),
@@ -182,7 +191,8 @@ enum tulip_busconfig_bits {
 
 
 /* The Tulip Rx and Tx buffer descriptors. */
-struct tulip_rx_desc {
+struct tulip_rx_desc
+{
 	__le32 status;
 	__le32 length;
 	__le32 buffer1;
@@ -190,7 +200,8 @@ struct tulip_rx_desc {
 };
 
 
-struct tulip_tx_desc {
+struct tulip_tx_desc
+{
 	__le32 status;
 	__le32 length;
 	__le32 buffer1;
@@ -198,7 +209,8 @@ struct tulip_tx_desc {
 };
 
 
-enum desc_status_bits {
+enum desc_status_bits
+{
 	DescOwned    = 0x80000000,
 	DescWholePkt = 0x60000000,
 	DescEndPkt   = 0x40000000,
@@ -240,20 +252,21 @@ enum desc_status_bits {
 };
 
 
-enum t21143_csr6_bits {
-	csr6_sc = (1<<31),
-	csr6_ra = (1<<30),
-	csr6_ign_dest_msb = (1<<26),
-	csr6_mbo = (1<<25),
-	csr6_scr = (1<<24),  /* scramble mode flag: can't be set */
-	csr6_pcs = (1<<23),  /* Enables PCS functions (symbol mode requires csr6_ps be set) default is set */
-	csr6_ttm = (1<<22),  /* Transmit Threshold Mode, set for 10baseT, 0 for 100BaseTX */
-	csr6_sf = (1<<21),   /* Store and forward. If set ignores TR bits */
-	csr6_hbd = (1<<19),  /* Heart beat disable. Disables SQE function in 10baseT */
-	csr6_ps = (1<<18),   /* Port Select. 0 (defualt) = 10baseT, 1 = 100baseTX: can't be set */
-	csr6_ca = (1<<17),   /* Collision Offset Enable. If set uses special algorithm in low collision situations */
-	csr6_trh = (1<<15),  /* Transmit Threshold high bit */
-	csr6_trl = (1<<14),  /* Transmit Threshold low bit */
+enum t21143_csr6_bits
+{
+	csr6_sc = (1 << 31),
+	csr6_ra = (1 << 30),
+	csr6_ign_dest_msb = (1 << 26),
+	csr6_mbo = (1 << 25),
+	csr6_scr = (1 << 24), /* scramble mode flag: can't be set */
+	csr6_pcs = (1 << 23), /* Enables PCS functions (symbol mode requires csr6_ps be set) default is set */
+	csr6_ttm = (1 << 22), /* Transmit Threshold Mode, set for 10baseT, 0 for 100BaseTX */
+	csr6_sf = (1 << 21), /* Store and forward. If set ignores TR bits */
+	csr6_hbd = (1 << 19), /* Heart beat disable. Disables SQE function in 10baseT */
+	csr6_ps = (1 << 18), /* Port Select. 0 (defualt) = 10baseT, 1 = 100baseTX: can't be set */
+	csr6_ca = (1 << 17), /* Collision Offset Enable. If set uses special algorithm in low collision situations */
+	csr6_trh = (1 << 15), /* Transmit Threshold high bit */
+	csr6_trl = (1 << 14), /* Transmit Threshold low bit */
 
 	/***************************************************************
 	 * This table shows transmit threshold values based on media   *
@@ -270,18 +283,18 @@ enum t21143_csr6_bits {
 	 *   (1,1)   *    1024   *   160   *
 	 ***********************************/
 
-	csr6_fc = (1<<12),   /* Forces a collision in next transmission (for testing in loopback mode) */
-	csr6_om_int_loop = (1<<10), /* internal (FIFO) loopback flag */
-	csr6_om_ext_loop = (1<<11), /* external (PMD) loopback flag */
+	csr6_fc = (1 << 12), /* Forces a collision in next transmission (for testing in loopback mode) */
+	csr6_om_int_loop = (1 << 10), /* internal (FIFO) loopback flag */
+	csr6_om_ext_loop = (1 << 11), /* external (PMD) loopback flag */
 	/* set both and you get (PHY) loopback */
-	csr6_fd = (1<<9),    /* Full duplex mode, disables hearbeat, no loopback */
-	csr6_pm = (1<<7),    /* Pass All Multicast */
-	csr6_pr = (1<<6),    /* Promiscuous mode */
-	csr6_sb = (1<<5),    /* Start(1)/Stop(0) backoff counter */
-	csr6_if = (1<<4),    /* Inverse Filtering, rejects only addresses in address table: can't be set */
-	csr6_pb = (1<<3),    /* Pass Bad Frames, (1) causes even bad frames to be passed on */
-	csr6_ho = (1<<2),    /* Hash-only filtering mode: can't be set */
-	csr6_hp = (1<<0),    /* Hash/Perfect Receive Filtering Mode: can't be set */
+	csr6_fd = (1 << 9),  /* Full duplex mode, disables hearbeat, no loopback */
+	csr6_pm = (1 << 7),  /* Pass All Multicast */
+	csr6_pr = (1 << 6),  /* Promiscuous mode */
+	csr6_sb = (1 << 5),  /* Start(1)/Stop(0) backoff counter */
+	csr6_if = (1 << 4),  /* Inverse Filtering, rejects only addresses in address table: can't be set */
+	csr6_pb = (1 << 3),  /* Pass Bad Frames, (1) causes even bad frames to be passed on */
+	csr6_ho = (1 << 2),  /* Hash-only filtering mode: can't be set */
+	csr6_hp = (1 << 0),  /* Hash/Perfect Receive Filtering Mode: can't be set */
 
 	csr6_mask_capture = (csr6_sc | csr6_ca),
 	csr6_mask_defstate = (csr6_mask_capture | csr6_mbo),
@@ -293,29 +306,32 @@ enum t21143_csr6_bits {
 	csr6_mask_100bt = (csr6_scr | csr6_pcs | csr6_hbd),
 };
 
-enum tulip_comet_csr13_bits {
-/* The LINKOFFE and LINKONE work in conjunction with LSCE, i.e. they
- * determine which link status transition wakes up if LSCE is
- * enabled */
-        comet_csr13_linkoffe = (1 << 17),
-        comet_csr13_linkone = (1 << 16),
-        comet_csr13_wfre = (1 << 10),
-        comet_csr13_mpre = (1 << 9),
-        comet_csr13_lsce = (1 << 8),
-        comet_csr13_wfr = (1 << 2),
-        comet_csr13_mpr = (1 << 1),
-        comet_csr13_lsc = (1 << 0),
+enum tulip_comet_csr13_bits
+{
+	/* The LINKOFFE and LINKONE work in conjunction with LSCE, i.e. they
+	 * determine which link status transition wakes up if LSCE is
+	 * enabled */
+	comet_csr13_linkoffe = (1 << 17),
+	comet_csr13_linkone = (1 << 16),
+	comet_csr13_wfre = (1 << 10),
+	comet_csr13_mpre = (1 << 9),
+	comet_csr13_lsce = (1 << 8),
+	comet_csr13_wfr = (1 << 2),
+	comet_csr13_mpr = (1 << 1),
+	comet_csr13_lsc = (1 << 0),
 };
 
-enum tulip_comet_csr18_bits {
-        comet_csr18_pmes_sticky = (1 << 24),
-        comet_csr18_pm_mode = (1 << 19),
-        comet_csr18_apm_mode = (1 << 18),
-        comet_csr18_d3a = (1 << 7)
+enum tulip_comet_csr18_bits
+{
+	comet_csr18_pmes_sticky = (1 << 24),
+	comet_csr18_pm_mode = (1 << 19),
+	comet_csr18_apm_mode = (1 << 18),
+	comet_csr18_d3a = (1 << 7)
 };
 
-enum tulip_comet_csr20_bits {
-        comet_csr20_pmes = (1 << 15),
+enum tulip_comet_csr20_bits
+{
+	comet_csr20_pmes = (1 << 15),
 };
 
 /* Keep the ring sizes a power of two for efficiency.
@@ -337,13 +353,13 @@ enum tulip_comet_csr20_bits {
 #define TULIP_MIN_CACHE_LINE	8	/* in units of 32-bit words */
 
 #if defined(__sparc__) || defined(__hppa__)
-/* The UltraSparc PCI controllers will disconnect at every 64-byte
- * crossing anyways so it makes no sense to tell Tulip to burst
- * any more than that.
- */
-#define TULIP_MAX_CACHE_LINE	16	/* in units of 32-bit words */
+	/* The UltraSparc PCI controllers will disconnect at every 64-byte
+	* crossing anyways so it makes no sense to tell Tulip to burst
+	* any more than that.
+	*/
+	#define TULIP_MAX_CACHE_LINE	16	/* in units of 32-bit words */
 #else
-#define TULIP_MAX_CACHE_LINE	32	/* in units of 32-bit words */
+	#define TULIP_MAX_CACHE_LINE	32	/* in units of 32-bit words */
 #endif
 
 
@@ -365,40 +381,45 @@ enum tulip_comet_csr20_bits {
 
 #define get_u16(ptr) get_unaligned_le16((ptr))
 
-struct medialeaf {
+struct medialeaf
+{
 	u8 type;
 	u8 media;
 	unsigned char *leafdata;
 };
 
 
-struct mediatable {
+struct mediatable
+{
 	u16 defaultmedia;
 	u8 leafcount;
 	u8 csr12dir;		/* General purpose pin directions. */
-	unsigned has_mii:1;
-	unsigned has_nonmii:1;
-	unsigned has_reset:6;
+	unsigned has_mii: 1;
+	unsigned has_nonmii: 1;
+	unsigned has_reset: 6;
 	u32 csr15dir;
 	u32 csr15val;		/* 21143 NWay setting. */
 	struct medialeaf mleaf[0];
 };
 
 
-struct mediainfo {
+struct mediainfo
+{
 	struct mediainfo *next;
 	int info_type;
 	int index;
 	unsigned char *info;
 };
 
-struct ring_info {
+struct ring_info
+{
 	struct sk_buff	*skb;
 	dma_addr_t	mapping;
 };
 
 
-struct tulip_private {
+struct tulip_private
+{
 	const char *product_name;
 	struct net_device *next_module;
 	struct tulip_rx_desc *rx_ring;
@@ -423,22 +444,22 @@ struct tulip_private {
 	unsigned int dirty_rx, dirty_tx;	/* The ring entries to be free()ed. */
 
 #ifdef 	CONFIG_TULIP_NAPI_HW_MITIGATION
-        int mit_on;
+	int mit_on;
 #endif
-	unsigned int full_duplex:1;	/* Full-duplex operation requested. */
-	unsigned int full_duplex_lock:1;
-	unsigned int fake_addr:1;	/* Multiport board faked address. */
-	unsigned int default_port:4;	/* Last dev->if_port value. */
-	unsigned int media2:4;	/* Secondary monitored media port. */
-	unsigned int medialock:1;	/* Don't sense media type. */
-	unsigned int mediasense:1;	/* Media sensing in progress. */
-	unsigned int nway:1, nwayset:1;		/* 21143 internal NWay. */
-	unsigned int timeout_recovery:1;
+	unsigned int full_duplex: 1;	/* Full-duplex operation requested. */
+	unsigned int full_duplex_lock: 1;
+	unsigned int fake_addr: 1;	/* Multiport board faked address. */
+	unsigned int default_port: 4;	/* Last dev->if_port value. */
+	unsigned int media2: 4;	/* Secondary monitored media port. */
+	unsigned int medialock: 1;	/* Don't sense media type. */
+	unsigned int mediasense: 1;	/* Media sensing in progress. */
+	unsigned int nway: 1, nwayset: 1;		/* 21143 internal NWay. */
+	unsigned int timeout_recovery: 1;
 	unsigned int csr0;	/* CSR0 setting. */
 	unsigned int csr6;	/* Current CSR6 control settings. */
 	unsigned char eeprom[EEPROM_SIZE];	/* Serial EEPROM contents. */
-	void (*link_change) (struct net_device * dev, int csr5);
-        struct ethtool_wolinfo wolinfo;        /* WOL settings */
+	void (*link_change) (struct net_device *dev, int csr5);
+	struct ethtool_wolinfo wolinfo;        /* WOL settings */
 	u16 sym_advertise, mii_advertise; /* NWay capabilities advertised.  */
 	u16 lpar;		/* 21143 Link partner ability. */
 	u16 advertising[4];
@@ -458,7 +479,8 @@ struct tulip_private {
 };
 
 
-struct eeprom_fixup {
+struct eeprom_fixup
+{
 	char *name;
 	unsigned char addr0;
 	unsigned char addr1;
@@ -490,7 +512,7 @@ extern int tulip_rx_copybreak;
 irqreturn_t tulip_interrupt(int irq, void *dev_instance);
 int tulip_refill_rx(struct net_device *dev);
 #ifdef CONFIG_TULIP_NAPI
-int tulip_poll(struct napi_struct *napi, int budget);
+	int tulip_poll(struct napi_struct *napi, int budget);
 #endif
 
 
@@ -513,7 +535,7 @@ void comet_timer(unsigned long data);
 
 /* tulip_core.c */
 extern int tulip_debug;
-extern const char * const medianame[];
+extern const char *const medianame[];
 extern const char tulip_media_cap[];
 extern struct tulip_chip_table tulip_tbl[];
 void oom_timer(unsigned long data);
@@ -532,21 +554,25 @@ static inline void tulip_stop_rxtx(struct tulip_private *tp)
 	void __iomem *ioaddr = tp->base_addr;
 	u32 csr6 = ioread32(ioaddr + CSR6);
 
-	if (csr6 & RxTx) {
-		unsigned i=1300/10;
+	if (csr6 & RxTx)
+	{
+		unsigned i = 1300 / 10;
 		iowrite32(csr6 & ~RxTx, ioaddr + CSR6);
 		barrier();
+
 		/* wait until in-flight frame completes.
 		 * Max time @ 10BT: 1500*8b/10Mbps == 1200us (+ 100us margin)
 		 * Typically expect this loop to end in < 50 us on 100BT.
 		 */
-		while (--i && (ioread32(ioaddr + CSR5) & (CSR5_TS|CSR5_RS)))
+		while (--i && (ioread32(ioaddr + CSR5) & (CSR5_TS | CSR5_RS)))
+		{
 			udelay(10);
+		}
 
 		if (!i)
 			netdev_dbg(tp->dev, "tulip_stop_rxtx() failed (CSR5 0x%x CSR6 0x%x)\n",
-				   ioread32(ioaddr + CSR5),
-				   ioread32(ioaddr + CSR6));
+					   ioread32(ioaddr + CSR5),
+					   ioread32(ioaddr + CSR6));
 	}
 }
 

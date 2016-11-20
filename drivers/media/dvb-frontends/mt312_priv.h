@@ -23,7 +23,8 @@
 #ifndef _DVB_FRONTENDS_MT312_PRIV
 #define _DVB_FRONTENDS_MT312_PRIV
 
-enum mt312_reg_addr {
+enum mt312_reg_addr
+{
 	QPSK_INT_H = 0,
 	QPSK_INT_M = 1,
 	QPSK_INT_L = 2,
@@ -156,7 +157,8 @@ enum mt312_reg_addr {
 	CONFIG = 127
 };
 
-enum mt312_model_id {
+enum mt312_model_id
+{
 	ID_VP310 = 1,
 	ID_MT312 = 3,
 	ID_ZL10313 = 5,

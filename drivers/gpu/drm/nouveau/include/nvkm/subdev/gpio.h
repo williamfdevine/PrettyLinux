@@ -6,7 +6,8 @@
 #include <subdev/bios.h>
 #include <subdev/bios/gpio.h>
 
-struct nvkm_gpio_ntfy_req {
+struct nvkm_gpio_ntfy_req
+{
 #define NVKM_GPIO_HI                                                       0x01
 #define NVKM_GPIO_LO                                                       0x02
 #define NVKM_GPIO_TOGGLED                                                  0x03
@@ -14,11 +15,13 @@ struct nvkm_gpio_ntfy_req {
 	u8 line;
 };
 
-struct nvkm_gpio_ntfy_rep {
+struct nvkm_gpio_ntfy_rep
+{
 	u8 mask;
 };
 
-struct nvkm_gpio {
+struct nvkm_gpio
+{
 	const struct nvkm_gpio_func *func;
 	struct nvkm_subdev subdev;
 
@@ -27,7 +30,7 @@ struct nvkm_gpio {
 
 void nvkm_gpio_reset(struct nvkm_gpio *, u8 func);
 int nvkm_gpio_find(struct nvkm_gpio *, int idx, u8 tag, u8 line,
-		   struct dcb_gpio_func *);
+				   struct dcb_gpio_func *);
 int nvkm_gpio_set(struct nvkm_gpio *, int idx, u8 tag, u8 line, int state);
 int nvkm_gpio_get(struct nvkm_gpio *, int idx, u8 tag, u8 line);
 

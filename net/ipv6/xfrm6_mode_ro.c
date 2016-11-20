@@ -58,7 +58,8 @@ static int xfrm6_ro_output(struct xfrm_state *x, struct sk_buff *skb)
 	return 0;
 }
 
-static struct xfrm_mode xfrm6_ro_mode = {
+static struct xfrm_mode xfrm6_ro_mode =
+{
 	.output = xfrm6_ro_output,
 	.owner = THIS_MODULE,
 	.encap = XFRM_MODE_ROUTEOPTIMIZATION,

@@ -25,8 +25,8 @@ struct bio;
 #define SWAP_FLAG_DISCARD_PAGES 0x40000 /* discard page-clusters after use */
 
 #define SWAP_FLAGS_VALID	(SWAP_FLAG_PRIO_MASK | SWAP_FLAG_PREFER | \
-				 SWAP_FLAG_DISCARD | SWAP_FLAG_DISCARD_ONCE | \
-				 SWAP_FLAG_DISCARD_PAGES)
+							 SWAP_FLAG_DISCARD | SWAP_FLAG_DISCARD_ONCE | \
+							 SWAP_FLAG_DISCARD_PAGES)
 
 static inline int current_is_kswapd(void)
 {
@@ -53,21 +53,21 @@ static inline int current_is_kswapd(void)
  * NUMA node memory migration support
  */
 #ifdef CONFIG_MIGRATION
-#define SWP_MIGRATION_NUM 2
-#define SWP_MIGRATION_READ	(MAX_SWAPFILES + SWP_HWPOISON_NUM)
-#define SWP_MIGRATION_WRITE	(MAX_SWAPFILES + SWP_HWPOISON_NUM + 1)
+	#define SWP_MIGRATION_NUM 2
+	#define SWP_MIGRATION_READ	(MAX_SWAPFILES + SWP_HWPOISON_NUM)
+	#define SWP_MIGRATION_WRITE	(MAX_SWAPFILES + SWP_HWPOISON_NUM + 1)
 #else
-#define SWP_MIGRATION_NUM 0
+	#define SWP_MIGRATION_NUM 0
 #endif
 
 /*
  * Handling of hardware poisoned pages with memory corruption.
  */
 #ifdef CONFIG_MEMORY_FAILURE
-#define SWP_HWPOISON_NUM 1
-#define SWP_HWPOISON		MAX_SWAPFILES
+	#define SWP_HWPOISON_NUM 1
+	#define SWP_HWPOISON		MAX_SWAPFILES
 #else
-#define SWP_HWPOISON_NUM 0
+	#define SWP_HWPOISON_NUM 0
 #endif
 
 #define MAX_SWAPFILES \
@@ -85,12 +85,15 @@ static inline int current_is_kswapd(void)
  * For 2.5 we'll probably want to move the magic to just beyond the
  * bootbits...
  */
-union swap_header {
-	struct {
+union swap_header
+{
+	struct
+	{
 		char reserved[PAGE_SIZE - 10];
 		char magic[10];			/* SWAP-SPACE or SWAPSPACE2 */
 	} magic;
-	struct {
+	struct
+	{
 		char		bootbits[1024];	/* Space for disklabel etc. */
 		__u32		version;
 		__u32		last_page;
@@ -106,7 +109,8 @@ union swap_header {
  * current->reclaim_state points to one of these when a task is running
  * memory reclaim
  */
-struct reclaim_state {
+struct reclaim_state
+{
 	unsigned long reclaimed_slab;
 };
 
@@ -125,7 +129,8 @@ struct zone;
  *
  * We always assume that blocks are of size PAGE_SIZE.
  */
-struct swap_extent {
+struct swap_extent
+{
 	struct list_head list;
 	pgoff_t start_page;
 	pgoff_t nr_pages;
@@ -139,7 +144,8 @@ struct swap_extent {
 #define MAX_SWAP_BADPAGES \
 	((__swapoffset(magic.magic) - __swapoffset(info.badpages)) / sizeof(int))
 
-enum {
+enum
+{
 	SWP_USED	= (1 << 0),	/* is slot in swap_info[] used? */
 	SWP_WRITEOK	= (1 << 1),	/* ok to write to this swap?	*/
 	SWP_DISCARDABLE = (1 << 2),	/* blkdev support discard */
@@ -150,7 +156,7 @@ enum {
 	SWP_FILE	= (1 << 7),	/* set after swap_activate success */
 	SWP_AREA_DISCARD = (1 << 8),	/* single-time swap area discards */
 	SWP_PAGE_DISCARD = (1 << 9),	/* freed swap page-cluster discards */
-					/* add others here before... */
+	/* add others here before... */
 	SWP_SCANNING	= (1 << 10),	/* refcount in scan_swap_map */
 };
 
@@ -174,9 +180,10 @@ enum {
  * counter otherwise. The flags field determines if a cluster is free. This is
  * protected by swap_info_struct.lock.
  */
-struct swap_cluster_info {
-	unsigned int data:24;
-	unsigned int flags:8;
+struct swap_cluster_info
+{
+	unsigned int data: 24;
+	unsigned int flags: 8;
 };
 #define CLUSTER_FLAG_FREE 1 /* This cluster is free */
 #define CLUSTER_FLAG_NEXT_NULL 2 /* This cluster has no next cluster */
@@ -186,12 +193,14 @@ struct swap_cluster_info {
  * its own cluster and swapout sequentially. The purpose is to optimize swapout
  * throughput.
  */
-struct percpu_cluster {
+struct percpu_cluster
+{
 	struct swap_cluster_info index; /* Current cluster index */
 	unsigned int next; /* Likely next allocation offset */
 };
 
-struct swap_cluster_list {
+struct swap_cluster_list
+{
 	struct swap_cluster_info head;
 	struct swap_cluster_info tail;
 };
@@ -199,7 +208,8 @@ struct swap_cluster_list {
 /*
  * The in-memory structure used to track swap areas.
  */
-struct swap_info_struct {
+struct swap_info_struct
+{
 	unsigned long	flags;		/* SWP_USED etc: see above */
 	signed short	prio;		/* swap priority of this type */
 	struct plist_node list;		/* entry in swap_active_head */
@@ -295,7 +305,7 @@ extern void lru_cache_add(struct page *);
 extern void lru_cache_add_anon(struct page *page);
 extern void lru_cache_add_file(struct page *page);
 extern void lru_add_page_tail(struct page *page, struct page *page_tail,
-			 struct lruvec *lruvec, struct list_head *head);
+							  struct lruvec *lruvec, struct list_head *head);
 extern void activate_page(struct page *);
 extern void mark_page_accessed(struct page *);
 extern void lru_add_drain(void);
@@ -309,22 +319,22 @@ extern void swap_setup(void);
 extern void add_page_to_unevictable_list(struct page *page);
 
 extern void lru_cache_add_active_or_unevictable(struct page *page,
-						struct vm_area_struct *vma);
+		struct vm_area_struct *vma);
 
 /* linux/mm/vmscan.c */
 extern unsigned long zone_reclaimable_pages(struct zone *zone);
 extern unsigned long pgdat_reclaimable_pages(struct pglist_data *pgdat);
 extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
-					gfp_t gfp_mask, nodemask_t *mask);
+									   gfp_t gfp_mask, nodemask_t *mask);
 extern int __isolate_lru_page(struct page *page, isolate_mode_t mode);
 extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
-						  unsigned long nr_pages,
-						  gfp_t gfp_mask,
-						  bool may_swap);
+		unsigned long nr_pages,
+		gfp_t gfp_mask,
+		bool may_swap);
 extern unsigned long mem_cgroup_shrink_node(struct mem_cgroup *mem,
-						gfp_t gfp_mask, bool noswap,
-						pg_data_t *pgdat,
-						unsigned long *nr_scanned);
+		gfp_t gfp_mask, bool noswap,
+		pg_data_t *pgdat,
+		unsigned long *nr_scanned);
 extern unsigned long shrink_all_memory(unsigned long nr_pages);
 extern int vm_swappiness;
 extern int remove_mapping(struct address_space *mapping, struct page *page);
@@ -338,7 +348,7 @@ extern int node_reclaim(struct pglist_data *, gfp_t, unsigned int);
 #else
 #define node_reclaim_mode 0
 static inline int node_reclaim(struct pglist_data *pgdat, gfp_t mask,
-				unsigned int order)
+							   unsigned int order)
 {
 	return 0;
 }
@@ -356,13 +366,13 @@ extern int swap_readpage(struct page *);
 extern int swap_writepage(struct page *page, struct writeback_control *wbc);
 extern void end_swap_bio_write(struct bio *bio);
 extern int __swap_writepage(struct page *page, struct writeback_control *wbc,
-	bio_end_io_t end_write_func);
+							bio_end_io_t end_write_func);
 extern int swap_set_page_dirty(struct page *page);
 
 int add_swap_extent(struct swap_info_struct *sis, unsigned long start_page,
-		unsigned long nr_pages, sector_t start_block);
+					unsigned long nr_pages, sector_t start_block);
 int generic_swapfile_activate(struct swap_info_struct *, struct file *,
-		sector_t *);
+							  sector_t *);
 
 /* linux/mm/swap_state.c */
 extern struct address_space swapper_spaces[];
@@ -378,12 +388,12 @@ extern void free_page_and_swap_cache(struct page *);
 extern void free_pages_and_swap_cache(struct page **, int);
 extern struct page *lookup_swap_cache(swp_entry_t);
 extern struct page *read_swap_cache_async(swp_entry_t, gfp_t,
-			struct vm_area_struct *vma, unsigned long addr);
+		struct vm_area_struct *vma, unsigned long addr);
 extern struct page *__read_swap_cache_async(swp_entry_t, gfp_t,
-			struct vm_area_struct *vma, unsigned long addr,
-			bool *new_page_allocated);
+		struct vm_area_struct *vma, unsigned long addr,
+		bool *new_page_allocated);
 extern struct page *swapin_readahead(swp_entry_t, gfp_t,
-			struct vm_area_struct *vma, unsigned long addr);
+									 struct vm_area_struct *vma, unsigned long addr);
 
 /* linux/mm/swapfile.c */
 extern atomic_long_t nr_swap_pages;
@@ -468,7 +478,7 @@ static inline void swapcache_free(swp_entry_t swp)
 }
 
 static inline struct page *swapin_readahead(swp_entry_t swp, gfp_t gfp_mask,
-			struct vm_area_struct *vma, unsigned long addr)
+		struct vm_area_struct *vma, unsigned long addr)
 {
 	return NULL;
 }
@@ -489,7 +499,7 @@ static inline int add_to_swap(struct page *page, struct list_head *list)
 }
 
 static inline int add_to_swap_cache(struct page *page, swp_entry_t entry,
-							gfp_t gfp_mask)
+									gfp_t gfp_mask)
 {
 	return -1;
 }
@@ -534,11 +544,15 @@ static inline int mem_cgroup_swappiness(struct mem_cgroup *memcg)
 {
 	/* Cgroup2 doesn't have per-cgroup swappiness */
 	if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
+	{
 		return vm_swappiness;
+	}
 
 	/* root ? */
 	if (mem_cgroup_disabled() || !memcg->css.parent)
+	{
 		return vm_swappiness;
+	}
 
 	return memcg->swappiness;
 }
@@ -562,7 +576,7 @@ static inline void mem_cgroup_swapout(struct page *page, swp_entry_t entry)
 }
 
 static inline int mem_cgroup_try_charge_swap(struct page *page,
-					     swp_entry_t entry)
+		swp_entry_t entry)
 {
 	return 0;
 }

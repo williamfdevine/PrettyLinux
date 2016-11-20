@@ -21,7 +21,8 @@
 #include "cq_desc.h"
 
 /* Ethernet completion queue descriptor: 16B */
-struct cq_enet_wq_desc {
+struct cq_enet_wq_desc
+{
 	__le16 completed_index;
 	__le16 q_number;
 	u8 reserved[11];
@@ -29,14 +30,15 @@ struct cq_enet_wq_desc {
 };
 
 static inline void cq_enet_wq_desc_dec(struct cq_enet_wq_desc *desc,
-	u8 *type, u8 *color, u16 *q_number, u16 *completed_index)
+									   u8 *type, u8 *color, u16 *q_number, u16 *completed_index)
 {
 	cq_desc_dec((struct cq_desc *)desc, type,
-		color, q_number, completed_index);
+				color, q_number, completed_index);
 }
 
 /* Completion queue descriptor: Ethernet receive queue, 16B */
-struct cq_enet_rq_desc {
+struct cq_enet_rq_desc
+{
 	__le16 completed_index_flags;
 	__le16 q_number_rss_type_flags;
 	__le32 rss_hash;
@@ -91,13 +93,13 @@ struct cq_enet_rq_desc {
 #define CQ_ENET_RQ_DESC_FLAGS_FCS_OK                (0x1 << 7)
 
 static inline void cq_enet_rq_desc_dec(struct cq_enet_rq_desc *desc,
-	u8 *type, u8 *color, u16 *q_number, u16 *completed_index,
-	u8 *ingress_port, u8 *fcoe, u8 *eop, u8 *sop, u8 *rss_type,
-	u8 *csum_not_calc, u32 *rss_hash, u16 *bytes_written, u8 *packet_error,
-	u8 *vlan_stripped, u16 *vlan, u16 *checksum, u8 *fcoe_sof,
-	u8 *fcoe_fc_crc_ok, u8 *fcoe_enc_error, u8 *fcoe_eof,
-	u8 *tcp_udp_csum_ok, u8 *udp, u8 *tcp, u8 *ipv4_csum_ok,
-	u8 *ipv6, u8 *ipv4, u8 *ipv4_fragment, u8 *fcs_ok)
+									   u8 *type, u8 *color, u16 *q_number, u16 *completed_index,
+									   u8 *ingress_port, u8 *fcoe, u8 *eop, u8 *sop, u8 *rss_type,
+									   u8 *csum_not_calc, u32 *rss_hash, u16 *bytes_written, u8 *packet_error,
+									   u8 *vlan_stripped, u16 *vlan, u16 *checksum, u8 *fcoe_sof,
+									   u8 *fcoe_fc_crc_ok, u8 *fcoe_enc_error, u8 *fcoe_eof,
+									   u8 *tcp_udp_csum_ok, u8 *udp, u8 *tcp, u8 *ipv4_csum_ok,
+									   u8 *ipv6, u8 *ipv4, u8 *ipv4_fragment, u8 *fcs_ok)
 {
 	u16 completed_index_flags = le16_to_cpu(desc->completed_index_flags);
 	u16 q_number_rss_type_flags =
@@ -105,45 +107,48 @@ static inline void cq_enet_rq_desc_dec(struct cq_enet_rq_desc *desc,
 	u16 bytes_written_flags = le16_to_cpu(desc->bytes_written_flags);
 
 	cq_desc_dec((struct cq_desc *)desc, type,
-		color, q_number, completed_index);
+				color, q_number, completed_index);
 
 	*ingress_port = (completed_index_flags &
-		CQ_ENET_RQ_DESC_FLAGS_INGRESS_PORT) ? 1 : 0;
+					 CQ_ENET_RQ_DESC_FLAGS_INGRESS_PORT) ? 1 : 0;
 	*fcoe = (completed_index_flags & CQ_ENET_RQ_DESC_FLAGS_FCOE) ?
-		1 : 0;
+			1 : 0;
 	*eop = (completed_index_flags & CQ_ENET_RQ_DESC_FLAGS_EOP) ?
-		1 : 0;
+		   1 : 0;
 	*sop = (completed_index_flags & CQ_ENET_RQ_DESC_FLAGS_SOP) ?
-		1 : 0;
+		   1 : 0;
 
 	*rss_type = (u8)((q_number_rss_type_flags >> CQ_DESC_Q_NUM_BITS) &
-		CQ_ENET_RQ_DESC_RSS_TYPE_MASK);
+					 CQ_ENET_RQ_DESC_RSS_TYPE_MASK);
 	*csum_not_calc = (q_number_rss_type_flags &
-		CQ_ENET_RQ_DESC_FLAGS_CSUM_NOT_CALC) ? 1 : 0;
+					  CQ_ENET_RQ_DESC_FLAGS_CSUM_NOT_CALC) ? 1 : 0;
 
 	*rss_hash = le32_to_cpu(desc->rss_hash);
 
 	*bytes_written = bytes_written_flags &
-		CQ_ENET_RQ_DESC_BYTES_WRITTEN_MASK;
+					 CQ_ENET_RQ_DESC_BYTES_WRITTEN_MASK;
 	*packet_error = (bytes_written_flags &
-		CQ_ENET_RQ_DESC_FLAGS_TRUNCATED) ? 1 : 0;
+					 CQ_ENET_RQ_DESC_FLAGS_TRUNCATED) ? 1 : 0;
 	*vlan_stripped = (bytes_written_flags &
-		CQ_ENET_RQ_DESC_FLAGS_VLAN_STRIPPED) ? 1 : 0;
+					  CQ_ENET_RQ_DESC_FLAGS_VLAN_STRIPPED) ? 1 : 0;
 
 	*vlan = le16_to_cpu(desc->vlan);
 
-	if (*fcoe) {
+	if (*fcoe)
+	{
 		*fcoe_sof = (u8)(le16_to_cpu(desc->checksum_fcoe) &
-			CQ_ENET_RQ_DESC_FCOE_SOF_MASK);
+						 CQ_ENET_RQ_DESC_FCOE_SOF_MASK);
 		*fcoe_fc_crc_ok = (desc->flags &
-			CQ_ENET_RQ_DESC_FCOE_FC_CRC_OK) ? 1 : 0;
+						   CQ_ENET_RQ_DESC_FCOE_FC_CRC_OK) ? 1 : 0;
 		*fcoe_enc_error = (desc->flags &
-			CQ_ENET_RQ_DESC_FCOE_ENC_ERROR) ? 1 : 0;
+						   CQ_ENET_RQ_DESC_FCOE_ENC_ERROR) ? 1 : 0;
 		*fcoe_eof = (u8)((desc->checksum_fcoe >>
-			CQ_ENET_RQ_DESC_FCOE_EOF_SHIFT) &
-			CQ_ENET_RQ_DESC_FCOE_EOF_MASK);
+						  CQ_ENET_RQ_DESC_FCOE_EOF_SHIFT) &
+						 CQ_ENET_RQ_DESC_FCOE_EOF_MASK);
 		*checksum = 0;
-	} else {
+	}
+	else
+	{
 		*fcoe_sof = 0;
 		*fcoe_fc_crc_ok = 0;
 		*fcoe_enc_error = 0;

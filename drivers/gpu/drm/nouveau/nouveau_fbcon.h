@@ -31,7 +31,8 @@
 
 #include "nouveau_display.h"
 
-struct nouveau_fbdev {
+struct nouveau_fbdev
+{
 	struct drm_fb_helper helper;
 	struct nouveau_framebuffer nouveau_fb;
 	struct drm_device *dev;

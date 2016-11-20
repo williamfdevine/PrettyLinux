@@ -28,17 +28,20 @@
 
 #define MTK_PINCTRL_NOT_SUPPORT	(0xffff)
 
-struct mtk_desc_function {
+struct mtk_desc_function
+{
 	const char *name;
 	unsigned char muxval;
 };
 
-struct mtk_desc_eint {
+struct mtk_desc_eint
+{
 	unsigned char eintmux;
 	unsigned char eintnum;
 };
 
-struct mtk_desc_pin {
+struct mtk_desc_pin
+{
 	struct pinctrl_pin_desc	pin;
 	const struct mtk_desc_eint eint;
 	const struct mtk_desc_function	*functions;
@@ -47,7 +50,7 @@ struct mtk_desc_pin {
 #define MTK_PIN(_pin, _pad, _chip, _eint, ...)		\
 	{							\
 		.pin = _pin,					\
-		.eint = _eint,					\
+			   .eint = _eint,					\
 		.functions = (struct mtk_desc_function[]){	\
 			__VA_ARGS__, { } },			\
 	}
@@ -55,19 +58,20 @@ struct mtk_desc_pin {
 #define MTK_EINT_FUNCTION(_eintmux, _eintnum)				\
 	{							\
 		.eintmux = _eintmux,					\
-		.eintnum = _eintnum,					\
+				   .eintnum = _eintnum,					\
 	}
 
 #define MTK_FUNCTION(_val, _name)				\
 	{							\
 		.muxval = _val,					\
-		.name = _name,					\
+				  .name = _name,					\
 	}
 
 #define SET_ADDR(x, y)  (x + (y->devdata->port_align))
 #define CLR_ADDR(x, y)  (x + (y->devdata->port_align << 1))
 
-struct mtk_pinctrl_group {
+struct mtk_pinctrl_group
+{
 	const char	*name;
 	unsigned long	config;
 	unsigned	pin;
@@ -81,7 +85,8 @@ struct mtk_pinctrl_group {
  * @high_bit: The highest bit of this group.
  * @step: The step current of this group.
  */
-struct mtk_drv_group_desc {
+struct mtk_drv_group_desc
+{
 	unsigned char min_drv;
 	unsigned char max_drv;
 	unsigned char low_bit;
@@ -92,10 +97,10 @@ struct mtk_drv_group_desc {
 #define MTK_DRV_GRP(_min, _max, _low, _high, _step)	\
 	{	\
 		.min_drv = _min,	\
-		.max_drv = _max,	\
-		.low_bit = _low,	\
-		.high_bit = _high,	\
-		.step = _step,		\
+				   .max_drv = _max,	\
+							  .low_bit = _low,	\
+										 .high_bit = _high,	\
+												 .step = _step,		\
 	}
 
 /**
@@ -105,7 +110,8 @@ struct mtk_drv_group_desc {
  * @bit: The bit of driving register for this pin.
  * @grp: The group for this pin belongs to.
  */
-struct mtk_pin_drv_grp {
+struct mtk_pin_drv_grp
+{
 	unsigned short pin;
 	unsigned short offset;
 	unsigned char bit;
@@ -115,9 +121,9 @@ struct mtk_pin_drv_grp {
 #define MTK_PIN_DRV_GRP(_pin, _offset, _bit, _grp)	\
 	{	\
 		.pin = _pin,	\
-		.offset = _offset,	\
-		.bit = _bit,	\
-		.grp = _grp,	\
+			   .offset = _offset,	\
+						 .bit = _bit,	\
+								.grp = _grp,	\
 	}
 
 /**
@@ -129,7 +135,8 @@ struct mtk_pin_drv_grp {
  * @r0_bit: The r0 bit of pull resistor.
  * @r1_bit: The r1 bit of pull resistor.
  */
-struct mtk_pin_spec_pupd_set_samereg {
+struct mtk_pin_spec_pupd_set_samereg
+{
 	unsigned short pin;
 	unsigned short offset;
 	unsigned char pupd_bit;
@@ -140,10 +147,10 @@ struct mtk_pin_spec_pupd_set_samereg {
 #define MTK_PIN_PUPD_SPEC_SR(_pin, _offset, _pupd, _r1, _r0)	\
 	{	\
 		.pin = _pin,	\
-		.offset = _offset,	\
-		.pupd_bit = _pupd,	\
-		.r1_bit = _r1,		\
-		.r0_bit = _r0,		\
+			   .offset = _offset,	\
+						 .pupd_bit = _pupd,	\
+									 .r1_bit = _r1,		\
+											   .r0_bit = _r0,		\
 	}
 
 /**
@@ -153,7 +160,8 @@ struct mtk_pin_spec_pupd_set_samereg {
  * @offset: The offset of special setting register.
  * @bit: The bit of special setting register.
  */
-struct mtk_pin_ies_smt_set {
+struct mtk_pin_ies_smt_set
+{
 	unsigned short start;
 	unsigned short end;
 	unsigned short offset;
@@ -163,12 +171,13 @@ struct mtk_pin_ies_smt_set {
 #define MTK_PIN_IES_SMT_SPEC(_start, _end, _offset, _bit)	\
 	{	\
 		.start = _start,	\
-		.end = _end,	\
-		.bit = _bit,	\
-		.offset = _offset,	\
+				 .end = _end,	\
+						.bit = _bit,	\
+							   .offset = _offset,	\
 	}
 
-struct mtk_eint_offsets {
+struct mtk_eint_offsets
+{
 	const char *name;
 	unsigned int  stat;
 	unsigned int  ack;
@@ -230,7 +239,8 @@ struct mtk_eint_offsets {
  * @port_mask: The mask of register.
  * @port_align: Provide clear register and set register step.
  */
-struct mtk_pinctrl_devdata {
+struct mtk_pinctrl_devdata
+{
 	const struct mtk_desc_pin	*pins;
 	unsigned int				npins;
 	const struct mtk_drv_group_desc	*grp_desc;
@@ -238,11 +248,11 @@ struct mtk_pinctrl_devdata {
 	const struct mtk_pin_drv_grp	*pin_drv_grp;
 	unsigned int	n_pin_drv_grps;
 	int (*spec_pull_set)(struct regmap *reg, unsigned int pin,
-			unsigned char align, bool isup, unsigned int arg);
+						 unsigned char align, bool isup, unsigned int arg);
 	int (*spec_ies_smt_set)(struct regmap *reg, unsigned int pin,
-			unsigned char align, int value, enum pin_config_param arg);
+							unsigned char align, int value, enum pin_config_param arg);
 	void (*spec_pinmux_set)(struct regmap *reg, unsigned int pin,
-			unsigned int mode);
+							unsigned int mode);
 	void (*spec_dir_set)(unsigned int *reg_addr, unsigned int pin);
 	unsigned int dir_offset;
 	unsigned int ies_offset;
@@ -263,7 +273,8 @@ struct mtk_pinctrl_devdata {
 	unsigned int	db_cnt;
 };
 
-struct mtk_pinctrl {
+struct mtk_pinctrl
+{
 	struct regmap	*regmap1;
 	struct regmap	*regmap2;
 	struct pinctrl_desc pctl_desc;
@@ -282,17 +293,17 @@ struct mtk_pinctrl {
 };
 
 int mtk_pctrl_init(struct platform_device *pdev,
-		const struct mtk_pinctrl_devdata *data,
-		struct regmap *regmap);
+				   const struct mtk_pinctrl_devdata *data,
+				   struct regmap *regmap);
 
 int mtk_pctrl_spec_pull_set_samereg(struct regmap *regmap,
-		const struct mtk_pin_spec_pupd_set_samereg *pupd_infos,
-		unsigned int info_num, unsigned int pin,
-		unsigned char align, bool isup, unsigned int r1r0);
+									const struct mtk_pin_spec_pupd_set_samereg *pupd_infos,
+									unsigned int info_num, unsigned int pin,
+									unsigned char align, bool isup, unsigned int r1r0);
 
 int mtk_pconf_spec_set_ies_smt_range(struct regmap *regmap,
-		const struct mtk_pin_ies_smt_set *ies_smt_infos, unsigned int info_num,
-		unsigned int pin, unsigned char align, int value);
+									 const struct mtk_pin_ies_smt_set *ies_smt_infos, unsigned int info_num,
+									 unsigned int pin, unsigned char align, int value);
 
 extern const struct dev_pm_ops mtk_eint_pm_ops;
 

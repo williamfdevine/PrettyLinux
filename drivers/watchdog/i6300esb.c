@@ -91,14 +91,14 @@ static int cards_found;
 static int heartbeat = WATCHDOG_HEARTBEAT;  /* in seconds */
 module_param(heartbeat, int, 0);
 MODULE_PARM_DESC(heartbeat,
-		"Watchdog heartbeat in seconds. (1<heartbeat<2046, default="
-				__MODULE_STRING(WATCHDOG_HEARTBEAT) ")");
+				 "Watchdog heartbeat in seconds. (1<heartbeat<2046, default="
+				 __MODULE_STRING(WATCHDOG_HEARTBEAT) ")");
 
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout,
-		"Watchdog cannot be stopped once started (default="
-				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "Watchdog cannot be stopped once started (default="
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 /*
  * Some i6300ESB specific functions
@@ -161,7 +161,9 @@ static int esb_timer_set_heartbeat(int time)
 	u32 val;
 
 	if (time < 0x1 || time > (2 * 0x03ff))
+	{
 		return -EINVAL;
+	}
 
 	spin_lock(&esb_lock);
 
@@ -199,7 +201,9 @@ static int esb_open(struct inode *inode, struct file *file)
 {
 	/* /dev/watchdog can only be opened once */
 	if (test_and_set_bit(0, &timer_alive))
+	{
 		return -EBUSY;
+	}
 
 	/* Reload and activate timer */
 	esb_timer_start();
@@ -211,22 +215,28 @@ static int esb_release(struct inode *inode, struct file *file)
 {
 	/* Shut off the timer. */
 	if (esb_expect_close == 42)
+	{
 		esb_timer_stop();
-	else {
+	}
+	else
+	{
 		pr_crit("Unexpected close, not stopping watchdog!\n");
 		esb_timer_keepalive();
 	}
+
 	clear_bit(0, &timer_alive);
 	esb_expect_close = 0;
 	return 0;
 }
 
 static ssize_t esb_write(struct file *file, const char __user *data,
-			  size_t len, loff_t *ppos)
+						 size_t len, loff_t *ppos)
 {
 	/* See if we got the magic character 'V' and reload the timer */
-	if (len) {
-		if (!nowayout) {
+	if (len)
+	{
+		if (!nowayout)
+		{
 			size_t i;
 
 			/* note: just in case someone wrote the magic character
@@ -235,18 +245,26 @@ static ssize_t esb_write(struct file *file, const char __user *data,
 
 			/* scan to see whether or not we got the
 			 * magic character */
-			for (i = 0; i != len; i++) {
+			for (i = 0; i != len; i++)
+			{
 				char c;
+
 				if (get_user(c, data + i))
+				{
 					return -EFAULT;
+				}
+
 				if (c == 'V')
+				{
 					esb_expect_close = 42;
+				}
 			}
 		}
 
 		/* someone wrote to us, we should reload the timer */
 		esb_timer_keepalive();
 	}
+
 	return len;
 }
 
@@ -256,58 +274,74 @@ static long esb_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	int new_heartbeat;
 	void __user *argp = (void __user *)arg;
 	int __user *p = argp;
-	static const struct watchdog_info ident = {
+	static const struct watchdog_info ident =
+	{
 		.options =		WDIOF_SETTIMEOUT |
-					WDIOF_KEEPALIVEPING |
-					WDIOF_MAGICCLOSE,
+		WDIOF_KEEPALIVEPING |
+		WDIOF_MAGICCLOSE,
 		.firmware_version =	0,
 		.identity =		ESB_MODULE_NAME,
 	};
 
-	switch (cmd) {
-	case WDIOC_GETSUPPORT:
-		return copy_to_user(argp, &ident,
-					sizeof(ident)) ? -EFAULT : 0;
-
-	case WDIOC_GETSTATUS:
-		return put_user(0, p);
-
-	case WDIOC_GETBOOTSTATUS:
-		return put_user(triggered, p);
-
-	case WDIOC_SETOPTIONS:
+	switch (cmd)
 	{
-		if (get_user(new_options, p))
-			return -EFAULT;
+		case WDIOC_GETSUPPORT:
+			return copy_to_user(argp, &ident,
+								sizeof(ident)) ? -EFAULT : 0;
 
-		if (new_options & WDIOS_DISABLECARD) {
-			esb_timer_stop();
-			retval = 0;
-		}
+		case WDIOC_GETSTATUS:
+			return put_user(0, p);
 
-		if (new_options & WDIOS_ENABLECARD) {
-			esb_timer_start();
-			retval = 0;
-		}
-		return retval;
-	}
-	case WDIOC_KEEPALIVE:
-		esb_timer_keepalive();
-		return 0;
+		case WDIOC_GETBOOTSTATUS:
+			return put_user(triggered, p);
 
-	case WDIOC_SETTIMEOUT:
-	{
-		if (get_user(new_heartbeat, p))
-			return -EFAULT;
-		if (esb_timer_set_heartbeat(new_heartbeat))
-			return -EINVAL;
-		esb_timer_keepalive();
-		/* Fall */
-	}
-	case WDIOC_GETTIMEOUT:
-		return put_user(heartbeat, p);
-	default:
-		return -ENOTTY;
+		case WDIOC_SETOPTIONS:
+			{
+				if (get_user(new_options, p))
+				{
+					return -EFAULT;
+				}
+
+				if (new_options & WDIOS_DISABLECARD)
+				{
+					esb_timer_stop();
+					retval = 0;
+				}
+
+				if (new_options & WDIOS_ENABLECARD)
+				{
+					esb_timer_start();
+					retval = 0;
+				}
+
+				return retval;
+			}
+
+		case WDIOC_KEEPALIVE:
+			esb_timer_keepalive();
+			return 0;
+
+		case WDIOC_SETTIMEOUT:
+			{
+				if (get_user(new_heartbeat, p))
+				{
+					return -EFAULT;
+				}
+
+				if (esb_timer_set_heartbeat(new_heartbeat))
+				{
+					return -EINVAL;
+				}
+
+				esb_timer_keepalive();
+				/* Fall */
+			}
+
+		case WDIOC_GETTIMEOUT:
+			return put_user(heartbeat, p);
+
+		default:
+			return -ENOTTY;
 	}
 }
 
@@ -315,7 +349,8 @@ static long esb_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
  *      Kernel Interfaces
  */
 
-static const struct file_operations esb_fops = {
+static const struct file_operations esb_fops =
+{
 	.owner = THIS_MODULE,
 	.llseek = no_llseek,
 	.write = esb_write,
@@ -324,7 +359,8 @@ static const struct file_operations esb_fops = {
 	.release = esb_release,
 };
 
-static struct miscdevice esb_miscdev = {
+static struct miscdevice esb_miscdev =
+{
 	.minor = WATCHDOG_MINOR,
 	.name = "watchdog",
 	.fops = &esb_fops,
@@ -333,7 +369,8 @@ static struct miscdevice esb_miscdev = {
 /*
  * Data for PCI driver interface
  */
-static const struct pci_device_id esb_pci_tbl[] = {
+static const struct pci_device_id esb_pci_tbl[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ESB_9), },
 	{ 0, },                 /* End of list */
 };
@@ -345,18 +382,22 @@ MODULE_DEVICE_TABLE(pci, esb_pci_tbl);
 
 static unsigned char esb_getdevice(struct pci_dev *pdev)
 {
-	if (pci_enable_device(pdev)) {
+	if (pci_enable_device(pdev))
+	{
 		pr_err("failed to enable device\n");
 		goto err_devput;
 	}
 
-	if (pci_request_region(pdev, 0, ESB_MODULE_NAME)) {
+	if (pci_request_region(pdev, 0, ESB_MODULE_NAME))
+	{
 		pr_err("failed to request region\n");
 		goto err_disable;
 	}
 
 	BASEADDR = pci_ioremap_bar(pdev, 0);
-	if (BASEADDR == NULL) {
+
+	if (BASEADDR == NULL)
+	{
 		/* Something's wrong here, BASEADDR has to be set */
 		pr_err("failed to get BASEADDR\n");
 		goto err_release;
@@ -395,8 +436,11 @@ static void esb_initdevice(void)
 
 	/* Check that the WDT isn't already locked */
 	pci_read_config_byte(esb_pci, ESB_LOCK_REG, &val1);
+
 	if (val1 & ESB_WDT_LOCK)
+	{
 		pr_warn("nowayout already set\n");
+	}
 
 	/* Set the timer to watchdog mode and disable it for now */
 	pci_write_config_byte(esb_pci, ESB_LOCK_REG, 0x00);
@@ -404,8 +448,11 @@ static void esb_initdevice(void)
 	/* Check if the watchdog was previously triggered */
 	esb_unlock_registers();
 	val2 = readw(ESB_RELOAD_REG);
+
 	if (val2 & ESB_WDT_TIMEOUT)
+	{
 		triggered = WDIOF_CARDRESET;
+	}
 
 	/* Reset WDT_TIMEOUT flag and timers */
 	esb_unlock_registers();
@@ -416,30 +463,35 @@ static void esb_initdevice(void)
 }
 
 static int esb_probe(struct pci_dev *pdev,
-		const struct pci_device_id *ent)
+					 const struct pci_device_id *ent)
 {
 	int ret;
 
 	cards_found++;
+
 	if (cards_found == 1)
 		pr_info("Intel 6300ESB WatchDog Timer Driver v%s\n",
-			ESB_VERSION);
+				ESB_VERSION);
 
-	if (cards_found > 1) {
+	if (cards_found > 1)
+	{
 		pr_err("This driver only supports 1 device\n");
 		return -ENODEV;
 	}
 
 	/* Check whether or not the hardware watchdog is there */
 	if (!esb_getdevice(pdev) || esb_pci == NULL)
+	{
 		return -ENODEV;
+	}
 
 	/* Check that the heartbeat value is within it's range;
 	   if not reset to the default */
-	if (heartbeat < 0x1 || heartbeat > 2 * 0x03ff) {
+	if (heartbeat < 0x1 || heartbeat > 2 * 0x03ff)
+	{
 		heartbeat = WATCHDOG_HEARTBEAT;
 		pr_info("heartbeat value must be 1<heartbeat<2046, using %d\n",
-			heartbeat);
+				heartbeat);
 	}
 
 	/* Initialize the watchdog and make sure it does not run */
@@ -447,13 +499,16 @@ static int esb_probe(struct pci_dev *pdev,
 
 	/* Register the watchdog so that userspace has access to it */
 	ret = misc_register(&esb_miscdev);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		pr_err("cannot register miscdev on minor=%d (err=%d)\n",
-		       WATCHDOG_MINOR, ret);
+			   WATCHDOG_MINOR, ret);
 		goto err_unmap;
 	}
+
 	pr_info("initialized (0x%p). heartbeat=%d sec (nowayout=%d)\n",
-		BASEADDR, heartbeat, nowayout);
+			BASEADDR, heartbeat, nowayout);
 	return 0;
 
 err_unmap:
@@ -468,7 +523,9 @@ static void esb_remove(struct pci_dev *pdev)
 {
 	/* Stop the timer before we leave */
 	if (!nowayout)
+	{
 		esb_timer_stop();
+	}
 
 	/* Deregister */
 	misc_deregister(&esb_miscdev);
@@ -483,7 +540,8 @@ static void esb_shutdown(struct pci_dev *pdev)
 	esb_timer_stop();
 }
 
-static struct pci_driver esb_driver = {
+static struct pci_driver esb_driver =
+{
 	.name		= ESB_MODULE_NAME,
 	.id_table	= esb_pci_tbl,
 	.probe          = esb_probe,

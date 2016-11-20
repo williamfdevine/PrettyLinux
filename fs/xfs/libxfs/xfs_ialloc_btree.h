@@ -31,7 +31,7 @@ struct xfs_mount;
  */
 #define XFS_INOBT_BLOCK_LEN(mp) \
 	(xfs_sb_version_hascrc(&((mp)->m_sb)) ? \
-		XFS_BTREE_SBLOCK_CRC_LEN : XFS_BTREE_SBLOCK_LEN)
+	 XFS_BTREE_SBLOCK_CRC_LEN : XFS_BTREE_SBLOCK_LEN)
 
 /*
  * Record, key, and pointer address macros for btree blocks.
@@ -40,22 +40,22 @@ struct xfs_mount;
  */
 #define XFS_INOBT_REC_ADDR(mp, block, index) \
 	((xfs_inobt_rec_t *) \
-		((char *)(block) + \
-		 XFS_INOBT_BLOCK_LEN(mp) + \
-		 (((index) - 1) * sizeof(xfs_inobt_rec_t))))
+	 ((char *)(block) + \
+	  XFS_INOBT_BLOCK_LEN(mp) + \
+	  (((index) - 1) * sizeof(xfs_inobt_rec_t))))
 
 #define XFS_INOBT_KEY_ADDR(mp, block, index) \
 	((xfs_inobt_key_t *) \
-		((char *)(block) + \
-		 XFS_INOBT_BLOCK_LEN(mp) + \
-		 ((index) - 1) * sizeof(xfs_inobt_key_t)))
+	 ((char *)(block) + \
+	  XFS_INOBT_BLOCK_LEN(mp) + \
+	  ((index) - 1) * sizeof(xfs_inobt_key_t)))
 
 #define XFS_INOBT_PTR_ADDR(mp, block, index, maxrecs) \
 	((xfs_inobt_ptr_t *) \
-		((char *)(block) + \
-		 XFS_INOBT_BLOCK_LEN(mp) + \
-		 (maxrecs) * sizeof(xfs_inobt_key_t) + \
-		 ((index) - 1) * sizeof(xfs_inobt_ptr_t)))
+	 ((char *)(block) + \
+	  XFS_INOBT_BLOCK_LEN(mp) + \
+	  (maxrecs) * sizeof(xfs_inobt_key_t) + \
+	  ((index) - 1) * sizeof(xfs_inobt_ptr_t)))
 
 extern struct xfs_btree_cur *xfs_inobt_init_cursor(struct xfs_mount *,
 		struct xfs_trans *, struct xfs_buf *, xfs_agnumber_t,
@@ -67,7 +67,7 @@ uint64_t xfs_inobt_irec_to_allocmask(struct xfs_inobt_rec_incore *);
 
 #if defined(DEBUG) || defined(XFS_WARN)
 int xfs_inobt_rec_check_count(struct xfs_mount *,
-			      struct xfs_inobt_rec_incore *);
+							  struct xfs_inobt_rec_incore *);
 #else
 #define xfs_inobt_rec_check_count(mp, rec)	0
 #endif	/* DEBUG */

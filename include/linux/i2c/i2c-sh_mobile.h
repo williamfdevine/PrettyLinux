@@ -3,7 +3,8 @@
 
 #include <linux/platform_device.h>
 
-struct i2c_sh_mobile_platform_data {
+struct i2c_sh_mobile_platform_data
+{
 	unsigned long bus_speed;
 	unsigned int clks_per_count;
 };

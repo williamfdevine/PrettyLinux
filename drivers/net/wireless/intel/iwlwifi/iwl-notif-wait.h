@@ -67,7 +67,8 @@
 
 #include "iwl-trans.h"
 
-struct iwl_notif_wait_data {
+struct iwl_notif_wait_data
+{
 	struct list_head notif_waits;
 	spinlock_t notif_wait_lock;
 	wait_queue_head_t notif_waitq;
@@ -99,11 +100,12 @@ struct iwl_notif_wait_data {
  * can't be allocated on the stack) we need to modify
  * the code for them.
  */
-struct iwl_notification_wait {
+struct iwl_notification_wait
+{
 	struct list_head list;
 
 	bool (*fn)(struct iwl_notif_wait_data *notif_data,
-		   struct iwl_rx_packet *pkt, void *data);
+			   struct iwl_rx_packet *pkt, void *data);
 	void *fn_data;
 
 	u16 cmds[MAX_NOTIF_CMDS];
@@ -115,25 +117,25 @@ struct iwl_notification_wait {
 /* caller functions */
 void iwl_notification_wait_init(struct iwl_notif_wait_data *notif_data);
 void iwl_notification_wait_notify(struct iwl_notif_wait_data *notif_data,
-				  struct iwl_rx_packet *pkt);
+								  struct iwl_rx_packet *pkt);
 void iwl_abort_notification_waits(struct iwl_notif_wait_data *notif_data);
 
 /* user functions */
 void __acquires(wait_entry)
 iwl_init_notification_wait(struct iwl_notif_wait_data *notif_data,
-			   struct iwl_notification_wait *wait_entry,
-			   const u16 *cmds, int n_cmds,
-			   bool (*fn)(struct iwl_notif_wait_data *notif_data,
-				      struct iwl_rx_packet *pkt, void *data),
-			   void *fn_data);
+						   struct iwl_notification_wait *wait_entry,
+						   const u16 *cmds, int n_cmds,
+						   bool (*fn)(struct iwl_notif_wait_data *notif_data,
+									  struct iwl_rx_packet *pkt, void *data),
+						   void *fn_data);
 
 int __must_check __releases(wait_entry)
 iwl_wait_notification(struct iwl_notif_wait_data *notif_data,
-		      struct iwl_notification_wait *wait_entry,
-		      unsigned long timeout);
+					  struct iwl_notification_wait *wait_entry,
+					  unsigned long timeout);
 
 void __releases(wait_entry)
 iwl_remove_notification(struct iwl_notif_wait_data *notif_data,
-			struct iwl_notification_wait *wait_entry);
+						struct iwl_notification_wait *wait_entry);
 
 #endif /* __iwl_notif_wait_h__ */

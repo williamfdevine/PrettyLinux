@@ -14,7 +14,8 @@
 
 #include <linux/types.h>
 
-enum {
+enum
+{
 	ISKU_SIZE_CONTROL = 0x03,
 	ISKU_SIZE_INFO = 0x06,
 	ISKU_SIZE_KEY_MASK = 0x06,
@@ -32,18 +33,21 @@ enum {
 	ISKU_SIZE_TALKFX = 0x10,
 };
 
-enum {
+enum
+{
 	ISKU_PROFILE_NUM = 5,
 	ISKU_USB_INTERFACE_PROTOCOL = 0,
 };
 
-struct isku_actual_profile {
+struct isku_actual_profile
+{
 	uint8_t command; /* ISKU_COMMAND_ACTUAL_PROFILE */
 	uint8_t size; /* always 3 */
 	uint8_t actual_profile;
 } __packed;
 
-enum isku_commands {
+enum isku_commands
+{
 	ISKU_COMMAND_CONTROL = 0x4,
 	ISKU_COMMAND_ACTUAL_PROFILE = 0x5,
 	ISKU_COMMAND_KEY_MASK = 0x7,
@@ -65,7 +69,8 @@ enum isku_commands {
 	ISKU_COMMAND_FIRMWARE_WRITE_CONTROL = 0x1c,
 };
 
-struct isku_report_button {
+struct isku_report_button
+{
 	uint8_t number; /* ISKU_REPORT_NUMBER_BUTTON */
 	uint8_t zero;
 	uint8_t event;
@@ -73,22 +78,26 @@ struct isku_report_button {
 	uint8_t data2;
 };
 
-enum isku_report_numbers {
+enum isku_report_numbers
+{
 	ISKU_REPORT_NUMBER_BUTTON = 3,
 };
 
-enum isku_report_button_events {
+enum isku_report_button_events
+{
 	ISKU_REPORT_BUTTON_EVENT_PROFILE = 0x2,
 };
 
-struct isku_roccat_report {
+struct isku_roccat_report
+{
 	uint8_t event;
 	uint8_t data1;
 	uint8_t data2;
 	uint8_t profile;
 } __packed;
 
-struct isku_device {
+struct isku_device
+{
 	int roccat_claimed;
 	int chrdev_minor;
 

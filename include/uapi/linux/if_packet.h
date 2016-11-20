@@ -3,13 +3,15 @@
 
 #include <linux/types.h>
 
-struct sockaddr_pkt {
+struct sockaddr_pkt
+{
 	unsigned short spkt_family;
 	unsigned char spkt_device[14];
 	__be16 spkt_protocol;
 };
 
-struct sockaddr_ll {
+struct sockaddr_ll
+{
 	unsigned short	sll_family;
 	__be16		sll_protocol;
 	int		sll_ifindex;
@@ -68,29 +70,34 @@ struct sockaddr_ll {
 #define PACKET_FANOUT_FLAG_ROLLOVER	0x1000
 #define PACKET_FANOUT_FLAG_DEFRAG	0x8000
 
-struct tpacket_stats {
+struct tpacket_stats
+{
 	unsigned int	tp_packets;
 	unsigned int	tp_drops;
 };
 
-struct tpacket_stats_v3 {
+struct tpacket_stats_v3
+{
 	unsigned int	tp_packets;
 	unsigned int	tp_drops;
 	unsigned int	tp_freeze_q_cnt;
 };
 
-struct tpacket_rollover_stats {
+struct tpacket_rollover_stats
+{
 	__aligned_u64	tp_all;
 	__aligned_u64	tp_huge;
 	__aligned_u64	tp_failed;
 };
 
-union tpacket_stats_u {
+union tpacket_stats_u
+{
 	struct tpacket_stats stats1;
 	struct tpacket_stats_v3 stats3;
 };
 
-struct tpacket_auxdata {
+struct tpacket_auxdata
+{
 	__u32		tp_status;
 	__u32		tp_len;
 	__u32		tp_snaplen;
@@ -125,7 +132,8 @@ struct tpacket_auxdata {
 /* Rx ring - feature request bits */
 #define TP_FT_REQ_FILL_RXHASH	0x1
 
-struct tpacket_hdr {
+struct tpacket_hdr
+{
 	unsigned long	tp_status;
 	unsigned int	tp_len;
 	unsigned int	tp_snaplen;
@@ -139,7 +147,8 @@ struct tpacket_hdr {
 #define TPACKET_ALIGN(x)	(((x)+TPACKET_ALIGNMENT-1)&~(TPACKET_ALIGNMENT-1))
 #define TPACKET_HDRLEN		(TPACKET_ALIGN(sizeof(struct tpacket_hdr)) + sizeof(struct sockaddr_ll))
 
-struct tpacket2_hdr {
+struct tpacket2_hdr
+{
 	__u32		tp_status;
 	__u32		tp_len;
 	__u32		tp_snaplen;
@@ -152,14 +161,16 @@ struct tpacket2_hdr {
 	__u8		tp_padding[4];
 };
 
-struct tpacket_hdr_variant1 {
+struct tpacket_hdr_variant1
+{
 	__u32	tp_rxhash;
 	__u32	tp_vlan_tci;
 	__u16	tp_vlan_tpid;
 	__u16	tp_padding;
 };
 
-struct tpacket3_hdr {
+struct tpacket3_hdr
+{
 	__u32		tp_next_offset;
 	__u32		tp_sec;
 	__u32		tp_nsec;
@@ -169,21 +180,25 @@ struct tpacket3_hdr {
 	__u16		tp_mac;
 	__u16		tp_net;
 	/* pkt_hdr variants */
-	union {
+	union
+	{
 		struct tpacket_hdr_variant1 hv1;
 	};
 	__u8		tp_padding[8];
 };
 
-struct tpacket_bd_ts {
+struct tpacket_bd_ts
+{
 	unsigned int ts_sec;
-	union {
+	union
+	{
 		unsigned int ts_usec;
 		unsigned int ts_nsec;
 	};
 };
 
-struct tpacket_hdr_v1 {
+struct tpacket_hdr_v1
+{
 	__u32	block_status;
 	__u32	num_pkts;
 	__u32	offset_to_first_pkt;
@@ -232,11 +247,13 @@ struct tpacket_hdr_v1 {
 	struct tpacket_bd_ts	ts_first_pkt, ts_last_pkt;
 };
 
-union tpacket_bd_header_u {
+union tpacket_bd_header_u
+{
 	struct tpacket_hdr_v1 bh1;
 };
 
-struct tpacket_block_desc {
+struct tpacket_block_desc
+{
 	__u32 version;
 	__u32 offset_to_priv;
 	union tpacket_bd_header_u hdr;
@@ -245,7 +262,8 @@ struct tpacket_block_desc {
 #define TPACKET2_HDRLEN		(TPACKET_ALIGN(sizeof(struct tpacket2_hdr)) + sizeof(struct sockaddr_ll))
 #define TPACKET3_HDRLEN		(TPACKET_ALIGN(sizeof(struct tpacket3_hdr)) + sizeof(struct sockaddr_ll))
 
-enum tpacket_versions {
+enum tpacket_versions
+{
 	TPACKET_V1,
 	TPACKET_V2,
 	TPACKET_V3
@@ -264,14 +282,16 @@ enum tpacket_versions {
    - Pad to align to TPACKET_ALIGNMENT=16
  */
 
-struct tpacket_req {
+struct tpacket_req
+{
 	unsigned int	tp_block_size;	/* Minimal size of contiguous block */
 	unsigned int	tp_block_nr;	/* Number of blocks */
 	unsigned int	tp_frame_size;	/* Size of frame */
 	unsigned int	tp_frame_nr;	/* Total number of frames */
 };
 
-struct tpacket_req3 {
+struct tpacket_req3
+{
 	unsigned int	tp_block_size;	/* Minimal size of contiguous block */
 	unsigned int	tp_block_nr;	/* Number of blocks */
 	unsigned int	tp_frame_size;	/* Size of frame */
@@ -281,12 +301,14 @@ struct tpacket_req3 {
 	unsigned int	tp_feature_req_word;
 };
 
-union tpacket_req_u {
+union tpacket_req_u
+{
 	struct tpacket_req	req;
 	struct tpacket_req3	req3;
 };
 
-struct packet_mreq {
+struct packet_mreq
+{
 	int		mr_ifindex;
 	unsigned short	mr_type;
 	unsigned short	mr_alen;

@@ -10,7 +10,8 @@
 #define XT_LOG_MACDECODE	0x20	/* Decode MAC header */
 #define XT_LOG_MASK		0x2f
 
-struct xt_log_info {
+struct xt_log_info
+{
 	unsigned char level;
 	unsigned char logflags;
 	char prefix[30];

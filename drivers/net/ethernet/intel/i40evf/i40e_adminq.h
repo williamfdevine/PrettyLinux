@@ -36,12 +36,14 @@
 
 #define I40E_ADMINQ_DESC_ALIGNMENT 4096
 
-struct i40e_adminq_ring {
+struct i40e_adminq_ring
+{
 	struct i40e_virt_mem dma_head;	/* space for dma structures */
 	struct i40e_dma_mem desc_buf;	/* descriptor ring memory */
 	struct i40e_virt_mem cmd_buf;	/* command buffer memory */
 
-	union {
+	union
+	{
 		struct i40e_dma_mem *asq_bi;
 		struct i40e_dma_mem *arq_bi;
 	} r;
@@ -62,7 +64,8 @@ struct i40e_adminq_ring {
 };
 
 /* ASQ transaction details */
-struct i40e_asq_cmd_details {
+struct i40e_asq_cmd_details
+{
 	void *callback; /* cast from type I40E_ADMINQ_CALLBACK */
 	u64 cookie;
 	u16 flags_ena;
@@ -76,7 +79,8 @@ struct i40e_asq_cmd_details {
 	(&(((struct i40e_asq_cmd_details *)((R).cmd_buf.va))[i]))
 
 /* ARQ event information */
-struct i40e_arq_event_info {
+struct i40e_arq_event_info
+{
 	struct i40e_aq_desc desc;
 	u16 msg_len;
 	u16 buf_len;
@@ -84,7 +88,8 @@ struct i40e_arq_event_info {
 };
 
 /* Admin Queue information */
-struct i40e_adminq_info {
+struct i40e_adminq_info
+{
 	struct i40e_adminq_ring arq;    /* receive queue */
 	struct i40e_adminq_ring asq;    /* send queue */
 	u32 asq_cmd_timeout;            /* send queue cmd write back timeout*/
@@ -113,7 +118,8 @@ struct i40e_adminq_info {
  **/
 static inline int i40e_aq_rc_to_posix(int aq_ret, int aq_rc)
 {
-	int aq_to_posix[] = {
+	int aq_to_posix[] =
+	{
 		0,           /* I40E_AQ_RC_OK */
 		-EPERM,      /* I40E_AQ_RC_EPERM */
 		-ENOENT,     /* I40E_AQ_RC_ENOENT */
@@ -141,10 +147,14 @@ static inline int i40e_aq_rc_to_posix(int aq_ret, int aq_rc)
 
 	/* aq_rc is invalid if AQ timed out */
 	if (aq_ret == I40E_ERR_ADMIN_QUEUE_TIMEOUT)
+	{
 		return -EAGAIN;
+	}
 
 	if (!((u32)aq_rc < (sizeof(aq_to_posix) / sizeof((aq_to_posix)[0]))))
+	{
 		return -ERANGE;
+	}
 
 	return aq_to_posix[aq_rc];
 }
@@ -154,6 +164,6 @@ static inline int i40e_aq_rc_to_posix(int aq_ret, int aq_rc)
 #define I40E_ASQ_CMD_TIMEOUT	250  /* msecs */
 
 void i40evf_fill_default_direct_cmd_desc(struct i40e_aq_desc *desc,
-				       u16 opcode);
+		u16 opcode);
 
 #endif /* _I40E_ADMINQ_H_ */

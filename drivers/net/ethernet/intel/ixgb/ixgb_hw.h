@@ -34,14 +34,16 @@
 #include "ixgb_osdep.h"
 
 /* Enums */
-typedef enum {
+typedef enum
+{
 	ixgb_mac_unknown = 0,
 	ixgb_82597,
 	ixgb_num_macs
 } ixgb_mac_type;
 
 /* Types of physical layer modules */
-typedef enum {
+typedef enum
+{
 	ixgb_phy_type_unknown = 0,
 	ixgb_phy_type_g6005,	/* 850nm, MM fiber, XPAK transceiver */
 	ixgb_phy_type_g6104,	/* 1310nm, SM fiber, XPAK transceiver */
@@ -51,13 +53,15 @@ typedef enum {
 } ixgb_phy_type;
 
 /* XPAK transceiver vendors, for the SR adapters */
-typedef enum {
+typedef enum
+{
 	ixgb_xpak_vendor_intel,
 	ixgb_xpak_vendor_infineon
 } ixgb_xpak_vendor;
 
 /* Media Types */
-typedef enum {
+typedef enum
+{
 	ixgb_media_type_unknown = 0,
 	ixgb_media_type_fiber = 1,
 	ixgb_media_type_copper = 2,
@@ -65,7 +69,8 @@ typedef enum {
 } ixgb_media_type;
 
 /* Flow Control Settings */
-typedef enum {
+typedef enum
+{
 	ixgb_fc_none = 0,
 	ixgb_fc_rx_pause = 1,
 	ixgb_fc_tx_pause = 2,
@@ -74,14 +79,16 @@ typedef enum {
 } ixgb_fc_type;
 
 /* PCI bus types */
-typedef enum {
+typedef enum
+{
 	ixgb_bus_type_unknown = 0,
 	ixgb_bus_type_pci,
 	ixgb_bus_type_pcix
 } ixgb_bus_type;
 
 /* PCI bus speeds */
-typedef enum {
+typedef enum
+{
 	ixgb_bus_speed_unknown = 0,
 	ixgb_bus_speed_33,
 	ixgb_bus_speed_66,
@@ -91,7 +98,8 @@ typedef enum {
 } ixgb_bus_speed;
 
 /* PCI bus widths */
-typedef enum {
+typedef enum
+{
 	ixgb_bus_width_unknown = 0,
 	ixgb_bus_width_32,
 	ixgb_bus_width_64
@@ -110,7 +118,7 @@ typedef enum {
 #define IXGB_DELAY_AFTER_EE_RESET      10	/* allow 10ms after the EEPROM reset        */
 
 #define IXGB_DELAY_USECS_AFTER_LINK_RESET    13	/* allow 13 microseconds after the reset    */
-					   /* NOTE: this is MICROSECONDS               */
+/* NOTE: this is MICROSECONDS               */
 #define MAX_RESET_ITERATIONS            8	/* number of iterations to get things right */
 
 /* General Registers */
@@ -522,7 +530,8 @@ typedef enum {
  * compilers.  However, some compilers may insert padding between the fields,
  * in which case the structure must be packed in some compiler-specific
  * manner. */
-struct ixgb_rx_desc {
+struct ixgb_rx_desc
+{
 	__le64 buff_addr;
 	__le16 length;
 	__le16 reserved;
@@ -555,7 +564,8 @@ struct ixgb_rx_desc {
  * compilers.  However, some compilers may insert padding between the fields,
  * in which case the structure must be packed in some compiler-specific
  * manner. */
-struct ixgb_tx_desc {
+struct ixgb_tx_desc
+{
 	__le64 buff_addr;
 	__le32 cmd_type_len;
 	u8 status;
@@ -582,7 +592,8 @@ struct ixgb_tx_desc {
 #define IXGB_TX_DESC_POPTS_TXSM 0x02
 #define IXGB_TX_DESC_SPECIAL_PRI_SHIFT  IXGB_RX_DESC_SPECIAL_PRI_SHIFT	/* Priority is in upper 3 of 16 */
 
-struct ixgb_context_desc {
+struct ixgb_context_desc
+{
 	u8 ipcss;
 	u8 ipcso;
 	__le16 ipcse;
@@ -624,7 +635,8 @@ struct ixgb_context_desc {
 #define IXGB_DIAG_PHY_ADDR    0x1F	/* Diagnostic Device phy address */
 
 /* This structure takes a 64k flash and maps it for identification commands */
-struct ixgb_flash_buffer {
+struct ixgb_flash_buffer
+{
 	u8 manufacturer_id;
 	u8 device_id;
 	u8 filler1[0x2AA8];
@@ -635,7 +647,8 @@ struct ixgb_flash_buffer {
 };
 
 /* Flow control parameters */
-struct ixgb_fc {
+struct ixgb_fc
+{
 	u32 high_water;	/* Flow Control High-water          */
 	u32 low_water;	/* Flow Control Low-water           */
 	u16 pause_time;	/* Flow Control Pause timer         */
@@ -654,13 +667,15 @@ struct ixgb_fc {
 #define IXGB_MAX_PHY_DEV_TYPE       31
 
 /* Bus parameters */
-struct ixgb_bus {
+struct ixgb_bus
+{
 	ixgb_bus_speed speed;
 	ixgb_bus_width width;
 	ixgb_bus_type type;
 };
 
-struct ixgb_hw {
+struct ixgb_hw
+{
 	u8 __iomem *hw_addr;/* Base Address of the hardware     */
 	void *back;		/* Pointer to OS-dependent struct   */
 	struct ixgb_fc fc;	/* Flow control parameters          */
@@ -695,7 +710,8 @@ struct ixgb_hw {
 };
 
 /* Statistics reported by the hardware */
-struct ixgb_hw_stats {
+struct ixgb_hw_stats
+{
 	u64 tprl;
 	u64 tprh;
 	u64 gprcl;
@@ -769,7 +785,7 @@ void ixgb_rar_set(struct ixgb_hw *hw, u8 *addr, u32 index);
 
 /* Filters (multicast, vlan, receive) */
 void ixgb_mc_addr_list_update(struct ixgb_hw *hw, u8 *mc_addr_list,
-			      u32 mc_addr_count, u32 pad);
+							  u32 mc_addr_count, u32 pad);
 
 /* Vfta functions */
 void ixgb_write_vfta(struct ixgb_hw *hw, u32 offset, u32 value);
@@ -785,8 +801,8 @@ __le16 ixgb_get_eeprom_word(struct ixgb_hw *hw, u16 index);
 void ixgb_led_on(struct ixgb_hw *hw);
 void ixgb_led_off(struct ixgb_hw *hw);
 void ixgb_write_pci_cfg(struct ixgb_hw *hw,
-			 u32 reg,
-			 u16 * value);
+						u32 reg,
+						u16 *value);
 
 
 #endif /* _IXGB_HW_H_ */

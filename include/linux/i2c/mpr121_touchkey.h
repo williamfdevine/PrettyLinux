@@ -10,7 +10,8 @@
  * @wakeup: configure the button as a wake-up source
  * @vdd_uv: VDD voltage in uV
  */
-struct mpr121_platform_data {
+struct mpr121_platform_data
+{
 	const unsigned short *keymap;
 	unsigned int keymap_size;
 	bool wakeup;

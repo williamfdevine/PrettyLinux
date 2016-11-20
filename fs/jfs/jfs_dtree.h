@@ -24,8 +24,10 @@
 
 #include "jfs_btree.h"
 
-typedef union {
-	struct {
+typedef union
+{
+	struct
+	{
 		tid_t tid;
 		struct inode *ip;
 		u32 ino;
@@ -44,7 +46,8 @@ typedef union {
 /*
  *	directory page slot
  */
-struct dtslot {
+struct dtslot
+{
 	s8 next;		/* 1: */
 	s8 cnt;			/* 1: */
 	__le16 name[15];	/* 30: */
@@ -62,7 +65,8 @@ struct dtslot {
 /*
  *	 internal node entry head/only segment
  */
-struct idtentry {
+struct idtentry
+{
 	pxd_t xd;		/* 8: child extent descriptor */
 
 	s8 next;		/* 1: */
@@ -82,7 +86,8 @@ struct idtentry {
  *
  *	For legacy filesystems, name contains 13 wchars -- no index field
  */
-struct ldtentry {
+struct ldtentry
+{
 	__le32 inumber;		/* 4: 4-byte aligned */
 	s8 next;		/* 1: */
 	u8 namlen;		/* 1: */
@@ -108,7 +113,8 @@ struct ldtentry {
  */
 #define MAX_INLINE_DIRTABLE_ENTRY 13
 
-struct dir_table_slot {
+struct dir_table_slot
+{
 	u8 rsrvd;		/* 1: */
 	u8 flag;		/* 1: 0 if free */
 	u8 slot;		/* 1: slot within leaf page of entry */
@@ -124,10 +130,10 @@ struct dir_table_slot {
 #define DIR_INDEX_FREE 0
 
 #define DTSaddress(dir_table_slot, address64)\
-{\
-	(dir_table_slot)->addr1 = ((u64)address64) >> 32;\
-	(dir_table_slot)->addr2 = __cpu_to_le32((address64) & 0xffffffff);\
-}
+	{\
+		(dir_table_slot)->addr1 = ((u64)address64) >> 32;\
+		(dir_table_slot)->addr2 = __cpu_to_le32((address64) & 0xffffffff);\
+	}
 
 #define addressDTS(dts)\
 	( ((s64)((dts)->addr1)) << 32 | __le32_to_cpu((dts)->addr2) )
@@ -142,8 +148,10 @@ struct dir_table_slot {
  *
  * cf. dtpage_t below.
  */
-typedef union {
-	struct {
+typedef union
+{
+	struct
+	{
 		struct dasd DASD; /* 16: DASD limit/usage info */
 
 		u8 flag;	/* 1: */
@@ -190,8 +198,10 @@ typedef union {
  * except nextindex which refers to entry index in stbl;
  * end of entry stot list or freelist is marked with -1.
  */
-typedef union {
-	struct {
+typedef union
+{
+	struct
+	{
 		__le64 next;	/* 8: next sibling */
 		__le64 prev;	/* 8: previous sibling */
 
@@ -232,8 +242,8 @@ typedef union {
 
 /* get sorted entry table of the page */
 #define DT_GETSTBL(p) ( ((p)->header.flag & BT_ROOT) ?\
-	((dtroot_t *)(p))->header.stbl : \
-	(s8 *)&(p)->slot[(p)->header.stblindex] )
+						((dtroot_t *)(p))->header.stbl : \
+						(s8 *)&(p)->slot[(p)->header.stblindex] )
 
 /*
  * Flags for dtSearch
@@ -253,17 +263,17 @@ typedef union {
  */
 extern void dtInitRoot(tid_t tid, struct inode *ip, u32 idotdot);
 
-extern int dtSearch(struct inode *ip, struct component_name * key,
-		    ino_t * data, struct btstack * btstack, int flag);
+extern int dtSearch(struct inode *ip, struct component_name *key,
+					ino_t *data, struct btstack *btstack, int flag);
 
-extern int dtInsert(tid_t tid, struct inode *ip, struct component_name * key,
-		    ino_t * ino, struct btstack * btstack);
+extern int dtInsert(tid_t tid, struct inode *ip, struct component_name *key,
+					ino_t *ino, struct btstack *btstack);
 
-extern int dtDelete(tid_t tid, struct inode *ip, struct component_name * key,
-		    ino_t * data, int flag);
+extern int dtDelete(tid_t tid, struct inode *ip, struct component_name *key,
+					ino_t *data, int flag);
 
-extern int dtModify(tid_t tid, struct inode *ip, struct component_name * key,
-		    ino_t * orig_ino, ino_t new_ino, int flag);
+extern int dtModify(tid_t tid, struct inode *ip, struct component_name *key,
+					ino_t *orig_ino, ino_t new_ino, int flag);
 
 extern int jfs_readdir(struct file *file, struct dir_context *ctx);
 #endif				/* !_H_JFS_DTREE */

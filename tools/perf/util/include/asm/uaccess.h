@@ -2,10 +2,10 @@
 #define _PERF_ASM_UACCESS_H_
 
 #define __get_user(src, dest)						\
-({									\
-	(src) = *dest;							\
-	0;								\
-})
+	({									\
+		(src) = *dest;							\
+		0;								\
+	})
 
 #define get_user	__get_user
 

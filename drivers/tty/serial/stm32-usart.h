@@ -7,7 +7,8 @@
 
 #define DRIVER_NAME "stm32-usart"
 
-struct stm32_usart_offsets {
+struct stm32_usart_offsets
+{
 	u8 cr1;
 	u8 cr2;
 	u8 cr3;
@@ -21,12 +22,14 @@ struct stm32_usart_offsets {
 	u8 tdr;
 };
 
-struct stm32_usart_config {
+struct stm32_usart_config
+{
 	u8 uart_enable_bit; /* USART_CR1_UE */
 	bool has_7bits_data;
 };
 
-struct stm32_usart_info {
+struct stm32_usart_info
+{
 	struct stm32_usart_offsets ofs;
 	struct stm32_usart_config cfg;
 };
@@ -34,7 +37,8 @@ struct stm32_usart_info {
 #define UNDEF_REG 0xff
 
 /* Register offsets */
-struct stm32_usart_info stm32f4_info = {
+struct stm32_usart_info stm32f4_info =
+{
 	.ofs = {
 		.isr	= 0x00,
 		.rdr	= 0x04,
@@ -54,7 +58,8 @@ struct stm32_usart_info stm32f4_info = {
 	}
 };
 
-struct stm32_usart_info stm32f7_info = {
+struct stm32_usart_info stm32f7_info =
+{
 	.ofs = {
 		.cr1	= 0x00,
 		.cr2	= 0x04,
@@ -95,7 +100,7 @@ struct stm32_usart_info stm32f7_info = {
 #define USART_SR_SBKF		BIT(18)		/* F7 */
 #define USART_SR_TEACK		BIT(21)		/* F7 */
 #define USART_SR_ERR_MASK	(USART_SR_LBD | USART_SR_ORE | \
-				 USART_SR_FE | USART_SR_PE)
+							 USART_SR_FE | USART_SR_PE)
 /* Dummy bits */
 #define USART_SR_DUMMY_RX	BIT(16)
 
@@ -211,7 +216,8 @@ struct stm32_usart_info stm32f7_info = {
 #define RX_BUF_P RX_BUF_L	 /* dma rx buffer period     */
 #define TX_BUF_L 200		 /* dma tx buffer length     */
 
-struct stm32_port {
+struct stm32_port
+{
 	struct uart_port port;
 	struct clk *clk;
 	struct stm32_usart_info *info;

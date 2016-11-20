@@ -49,7 +49,8 @@
  * @channel:		channel specification
 */
 
-struct ad5686_chip_info {
+struct ad5686_chip_info
+{
 	u16				int_vref_mv;
 	struct iio_chan_spec		channel[AD5686_DAC_CHANNELS];
 };
@@ -65,7 +66,8 @@ struct ad5686_chip_info {
  * @data:		spi transfer buffers
  */
 
-struct ad5686_state {
+struct ad5686_state
+{
 	struct spi_device		*spi;
 	const struct ad5686_chip_info	*chip_info;
 	struct regulator		*reg;
@@ -77,7 +79,8 @@ struct ad5686_state {
 	 * transfer buffers to live in their own cache lines.
 	 */
 
-	union {
+	union
+	{
 		__be32 d32;
 		u8 d8[4];
 	} data[3] ____cacheline_aligned;
@@ -87,26 +90,28 @@ struct ad5686_state {
  * ad5686_supported_device_ids:
  */
 
-enum ad5686_supported_device_ids {
+enum ad5686_supported_device_ids
+{
 	ID_AD5684,
 	ID_AD5685,
 	ID_AD5686,
 };
 static int ad5686_spi_write(struct ad5686_state *st,
-			     u8 cmd, u8 addr, u16 val, u8 shift)
+							u8 cmd, u8 addr, u16 val, u8 shift)
 {
 	val <<= shift;
 
 	st->data[0].d32 = cpu_to_be32(AD5686_CMD(cmd) |
-			      AD5686_ADDR(addr) |
-			      val);
+								  AD5686_ADDR(addr) |
+								  val);
 
 	return spi_write(st->spi, &st->data[0].d8[1], 3);
 }
 
 static int ad5686_spi_read(struct ad5686_state *st, u8 addr)
 {
-	struct spi_transfer t[] = {
+	struct spi_transfer t[] =
+	{
 		{
 			.tx_buf = &st->data[0].d8[1],
 			.len = 3,
@@ -120,24 +125,28 @@ static int ad5686_spi_read(struct ad5686_state *st, u8 addr)
 	int ret;
 
 	st->data[0].d32 = cpu_to_be32(AD5686_CMD(AD5686_CMD_READBACK_ENABLE) |
-			      AD5686_ADDR(addr));
+								  AD5686_ADDR(addr));
 	st->data[1].d32 = cpu_to_be32(AD5686_CMD(AD5686_CMD_NOOP));
 
 	ret = spi_sync_transfer(st->spi, t, ARRAY_SIZE(t));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return be32_to_cpu(st->data[2].d32);
 }
 
-static const char * const ad5686_powerdown_modes[] = {
+static const char *const ad5686_powerdown_modes[] =
+{
 	"1kohm_to_gnd",
 	"100kohm_to_gnd",
 	"three_state"
 };
 
 static int ad5686_get_powerdown_mode(struct iio_dev *indio_dev,
-	const struct iio_chan_spec *chan)
+									 const struct iio_chan_spec *chan)
 {
 	struct ad5686_state *st = iio_priv(indio_dev);
 
@@ -145,7 +154,7 @@ static int ad5686_get_powerdown_mode(struct iio_dev *indio_dev,
 }
 
 static int ad5686_set_powerdown_mode(struct iio_dev *indio_dev,
-	const struct iio_chan_spec *chan, unsigned int mode)
+									 const struct iio_chan_spec *chan, unsigned int mode)
 {
 	struct ad5686_state *st = iio_priv(indio_dev);
 
@@ -155,7 +164,8 @@ static int ad5686_set_powerdown_mode(struct iio_dev *indio_dev,
 	return 0;
 }
 
-static const struct iio_enum ad5686_powerdown_mode_enum = {
+static const struct iio_enum ad5686_powerdown_mode_enum =
+{
 	.items = ad5686_powerdown_modes,
 	.num_items = ARRAY_SIZE(ad5686_powerdown_modes),
 	.get = ad5686_get_powerdown_mode,
@@ -163,99 +173,119 @@ static const struct iio_enum ad5686_powerdown_mode_enum = {
 };
 
 static ssize_t ad5686_read_dac_powerdown(struct iio_dev *indio_dev,
-	uintptr_t private, const struct iio_chan_spec *chan, char *buf)
+		uintptr_t private, const struct iio_chan_spec *chan, char *buf)
 {
 	struct ad5686_state *st = iio_priv(indio_dev);
 
 	return sprintf(buf, "%d\n", !!(st->pwr_down_mask &
-			(0x3 << (chan->channel * 2))));
+								   (0x3 << (chan->channel * 2))));
 }
 
 static ssize_t ad5686_write_dac_powerdown(struct iio_dev *indio_dev,
-	 uintptr_t private, const struct iio_chan_spec *chan, const char *buf,
-	 size_t len)
+		uintptr_t private, const struct iio_chan_spec *chan, const char *buf,
+		size_t len)
 {
 	bool readin;
 	int ret;
 	struct ad5686_state *st = iio_priv(indio_dev);
 
 	ret = strtobool(buf, &readin);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (readin)
+	{
 		st->pwr_down_mask |= (0x3 << (chan->channel * 2));
+	}
 	else
+	{
 		st->pwr_down_mask &= ~(0x3 << (chan->channel * 2));
+	}
 
 	ret = ad5686_spi_write(st, AD5686_CMD_POWERDOWN_DAC, 0,
-			       st->pwr_down_mask & st->pwr_down_mode, 0);
+						   st->pwr_down_mask & st->pwr_down_mode, 0);
 
 	return ret ? ret : len;
 }
 
 static int ad5686_read_raw(struct iio_dev *indio_dev,
-			   struct iio_chan_spec const *chan,
-			   int *val,
-			   int *val2,
-			   long m)
+						   struct iio_chan_spec const *chan,
+						   int *val,
+						   int *val2,
+						   long m)
 {
 	struct ad5686_state *st = iio_priv(indio_dev);
 	int ret;
 
-	switch (m) {
-	case IIO_CHAN_INFO_RAW:
-		mutex_lock(&indio_dev->mlock);
-		ret = ad5686_spi_read(st, chan->address);
-		mutex_unlock(&indio_dev->mlock);
-		if (ret < 0)
-			return ret;
-		*val = ret;
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_SCALE:
-		*val = st->vref_mv;
-		*val2 = chan->scan_type.realbits;
-		return IIO_VAL_FRACTIONAL_LOG2;
+	switch (m)
+	{
+		case IIO_CHAN_INFO_RAW:
+			mutex_lock(&indio_dev->mlock);
+			ret = ad5686_spi_read(st, chan->address);
+			mutex_unlock(&indio_dev->mlock);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			*val = ret;
+			return IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_SCALE:
+			*val = st->vref_mv;
+			*val2 = chan->scan_type.realbits;
+			return IIO_VAL_FRACTIONAL_LOG2;
 	}
+
 	return -EINVAL;
 }
 
 static int ad5686_write_raw(struct iio_dev *indio_dev,
-			       struct iio_chan_spec const *chan,
-			       int val,
-			       int val2,
-			       long mask)
+							struct iio_chan_spec const *chan,
+							int val,
+							int val2,
+							long mask)
 {
 	struct ad5686_state *st = iio_priv(indio_dev);
 	int ret;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		if (val > (1 << chan->scan_type.realbits) || val < 0)
-			return -EINVAL;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			if (val > (1 << chan->scan_type.realbits) || val < 0)
+			{
+				return -EINVAL;
+			}
 
-		mutex_lock(&indio_dev->mlock);
-		ret = ad5686_spi_write(st,
-				 AD5686_CMD_WRITE_INPUT_N_UPDATE_N,
-				 chan->address,
-				 val,
-				 chan->scan_type.shift);
-		mutex_unlock(&indio_dev->mlock);
-		break;
-	default:
-		ret = -EINVAL;
+			mutex_lock(&indio_dev->mlock);
+			ret = ad5686_spi_write(st,
+								   AD5686_CMD_WRITE_INPUT_N_UPDATE_N,
+								   chan->address,
+								   val,
+								   chan->scan_type.shift);
+			mutex_unlock(&indio_dev->mlock);
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
 
 	return ret;
 }
 
-static const struct iio_info ad5686_info = {
+static const struct iio_info ad5686_info =
+{
 	.read_raw = ad5686_read_raw,
 	.write_raw = ad5686_write_raw,
 	.driver_module = THIS_MODULE,
 };
 
-static const struct iio_chan_spec_ext_info ad5686_ext_info[] = {
+static const struct iio_chan_spec_ext_info ad5686_ext_info[] =
+{
 	{
 		.name = "powerdown",
 		.read = ad5686_read_dac_powerdown,
@@ -269,22 +299,23 @@ static const struct iio_chan_spec_ext_info ad5686_ext_info[] = {
 
 #define AD5868_CHANNEL(chan, bits, _shift) {			\
 		.type = IIO_VOLTAGE,				\
-		.indexed = 1,					\
-		.output = 1,					\
-		.channel = chan,				\
-		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),	\
-		.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),\
-		.address = AD5686_ADDR_DAC(chan),		\
-		.scan_type = {					\
-			.sign = 'u',				\
-			.realbits = (bits),			\
-			.storagebits = 16,			\
-			.shift = (_shift),			\
-		},						\
-		.ext_info = ad5686_ext_info,			\
-}
+				.indexed = 1,					\
+						   .output = 1,					\
+									 .channel = chan,				\
+												.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),	\
+														.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),\
+																.address = AD5686_ADDR_DAC(chan),		\
+																		.scan_type = {					\
+																										.sign = 'u',				\
+																										.realbits = (bits),			\
+																										.storagebits = 16,			\
+																										.shift = (_shift),			\
+																					 },						\
+																				.ext_info = ad5686_ext_info,			\
+	}
 
-static const struct ad5686_chip_info ad5686_chip_info_tbl[] = {
+static const struct ad5686_chip_info ad5686_chip_info_tbl[] =
+{
 	[ID_AD5684] = {
 		.channel[0] = AD5868_CHANNEL(0, 12, 4),
 		.channel[1] = AD5868_CHANNEL(1, 12, 4),
@@ -316,21 +347,32 @@ static int ad5686_probe(struct spi_device *spi)
 	int ret, voltage_uv = 0;
 
 	indio_dev = devm_iio_device_alloc(&spi->dev, sizeof(*st));
+
 	if (indio_dev == NULL)
+	{
 		return  -ENOMEM;
+	}
 
 	st = iio_priv(indio_dev);
 	spi_set_drvdata(spi, indio_dev);
 
 	st->reg = devm_regulator_get_optional(&spi->dev, "vcc");
-	if (!IS_ERR(st->reg)) {
+
+	if (!IS_ERR(st->reg))
+	{
 		ret = regulator_enable(st->reg);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		ret = regulator_get_voltage(st->reg);
+
 		if (ret < 0)
+		{
 			goto error_disable_reg;
+		}
 
 		voltage_uv = ret;
 	}
@@ -339,9 +381,13 @@ static int ad5686_probe(struct spi_device *spi)
 		&ad5686_chip_info_tbl[spi_get_device_id(spi)->driver_data];
 
 	if (voltage_uv)
+	{
 		st->vref_mv = voltage_uv / 1000;
+	}
 	else
+	{
 		st->vref_mv = st->chip_info->int_vref_mv;
+	}
 
 	st->spi = spi;
 
@@ -356,19 +402,29 @@ static int ad5686_probe(struct spi_device *spi)
 	indio_dev->num_channels = AD5686_DAC_CHANNELS;
 
 	ret = ad5686_spi_write(st, AD5686_CMD_INTERNAL_REFER_SETUP, 0,
-				!!voltage_uv, 0);
+						   !!voltage_uv, 0);
+
 	if (ret)
+	{
 		goto error_disable_reg;
+	}
 
 	ret = iio_device_register(indio_dev);
+
 	if (ret)
+	{
 		goto error_disable_reg;
+	}
 
 	return 0;
 
 error_disable_reg:
+
 	if (!IS_ERR(st->reg))
+	{
 		regulator_disable(st->reg);
+	}
+
 	return ret;
 }
 
@@ -378,13 +434,17 @@ static int ad5686_remove(struct spi_device *spi)
 	struct ad5686_state *st = iio_priv(indio_dev);
 
 	iio_device_unregister(indio_dev);
+
 	if (!IS_ERR(st->reg))
+	{
 		regulator_disable(st->reg);
+	}
 
 	return 0;
 }
 
-static const struct spi_device_id ad5686_id[] = {
+static const struct spi_device_id ad5686_id[] =
+{
 	{"ad5684", ID_AD5684},
 	{"ad5685", ID_AD5685},
 	{"ad5686", ID_AD5686},
@@ -392,10 +452,11 @@ static const struct spi_device_id ad5686_id[] = {
 };
 MODULE_DEVICE_TABLE(spi, ad5686_id);
 
-static struct spi_driver ad5686_driver = {
+static struct spi_driver ad5686_driver =
+{
 	.driver = {
-		   .name = "ad5686",
-		   },
+		.name = "ad5686",
+	},
 	.probe = ad5686_probe,
 	.remove = ad5686_remove,
 	.id_table = ad5686_id,

@@ -57,18 +57,23 @@ MODULE_PARM_DESC(wapf, "WAPF value");
 static struct quirk_entry *quirks;
 
 static bool asus_q500a_i8042_filter(unsigned char data, unsigned char str,
-			      struct serio *port)
+									struct serio *port)
 {
 	static bool extended;
 	bool ret = false;
 
 	if (str & I8042_STR_AUXDATA)
+	{
 		return false;
+	}
 
-	if (unlikely(data == 0xe1)) {
+	if (unlikely(data == 0xe1))
+	{
 		extended = true;
 		ret = true;
-	} else if (unlikely(extended)) {
+	}
+	else if (unlikely(extended))
+	{
 		extended = false;
 		ret = true;
 	}
@@ -76,11 +81,13 @@ static bool asus_q500a_i8042_filter(unsigned char data, unsigned char str,
 	return ret;
 }
 
-static struct quirk_entry quirk_asus_unknown = {
+static struct quirk_entry quirk_asus_unknown =
+{
 	.wapf = 0,
 };
 
-static struct quirk_entry quirk_asus_q500a = {
+static struct quirk_entry quirk_asus_q500a =
+{
 	.i8042_filter = asus_q500a_i8042_filter,
 };
 
@@ -89,30 +96,36 @@ static struct quirk_entry quirk_asus_q500a = {
  * and can't adjust brightness through ACPI interface
  * and have duplicate events(ACPI and WMI) for display toggle
  */
-static struct quirk_entry quirk_asus_x55u = {
+static struct quirk_entry quirk_asus_x55u =
+{
 	.wapf = 4,
 	.wmi_backlight_power = true,
 	.no_display_toggle = true,
 };
 
-static struct quirk_entry quirk_asus_wapf4 = {
+static struct quirk_entry quirk_asus_wapf4 =
+{
 	.wapf = 4,
 };
 
-static struct quirk_entry quirk_asus_x200ca = {
+static struct quirk_entry quirk_asus_x200ca =
+{
 	.wapf = 2,
 };
 
-static struct quirk_entry quirk_no_rfkill = {
+static struct quirk_entry quirk_no_rfkill =
+{
 	.no_rfkill = true,
 };
 
-static struct quirk_entry quirk_no_rfkill_wapf4 = {
+static struct quirk_entry quirk_no_rfkill_wapf4 =
+{
 	.wapf = 4,
 	.no_rfkill = true,
 };
 
-static struct quirk_entry quirk_asus_ux303ub = {
+static struct quirk_entry quirk_asus_ux303ub =
+{
 	.wmi_backlight_native = true,
 };
 
@@ -122,7 +135,8 @@ static int dmi_matched(const struct dmi_system_id *dmi)
 	return 1;
 }
 
-static const struct dmi_system_id asus_quirks[] = {
+static const struct dmi_system_id asus_quirks[] =
+{
 	{
 		.callback = dmi_matched,
 		.ident = "ASUSTeK COMPUTER INC. Q500A",
@@ -413,21 +427,30 @@ static void asus_nb_wmi_quirks(struct asus_wmi_driver *driver)
 
 	/* overwrite the wapf setting if the wapf paramater is specified */
 	if (wapf != -1)
+	{
 		quirks->wapf = wapf;
+	}
 	else
+	{
 		wapf = quirks->wapf;
+	}
 
-	if (quirks->i8042_filter) {
+	if (quirks->i8042_filter)
+	{
 		ret = i8042_install_filter(quirks->i8042_filter);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_warn("Unable to install key filter\n");
 			return;
 		}
+
 		pr_info("Using i8042 filter function for receiving events\n");
 	}
 }
 
-static const struct key_entry asus_nb_wmi_keymap[] = {
+static const struct key_entry asus_nb_wmi_keymap[] =
+{
 	{ KE_KEY, ASUS_WMI_BRN_DOWN, { KEY_BRIGHTNESSDOWN } },
 	{ KE_KEY, ASUS_WMI_BRN_UP, { KEY_BRIGHTNESSUP } },
 	{ KE_KEY, 0x30, { KEY_VOLUMEUP } },
@@ -490,7 +513,8 @@ static const struct key_entry asus_nb_wmi_keymap[] = {
 	{ KE_END, 0},
 };
 
-static struct asus_wmi_driver asus_nb_wmi_driver = {
+static struct asus_wmi_driver asus_nb_wmi_driver =
+{
 	.name = ASUS_NB_WMI_FILE,
 	.owner = THIS_MODULE,
 	.event_guid = ASUS_NB_WMI_EVENT_GUID,

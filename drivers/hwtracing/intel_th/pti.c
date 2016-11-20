@@ -27,7 +27,8 @@
 #include "intel_th.h"
 #include "pti.h"
 
-struct pti_device {
+struct pti_device
+{
 	void __iomem		*base;
 	struct intel_th_device	*thdev;
 	unsigned int		mode;
@@ -37,7 +38,8 @@ struct pti_device {
 };
 
 /* map PTI widths to MODE settings of PTI_CTL register */
-static const unsigned int pti_mode[] = {
+static const unsigned int pti_mode[] =
+{
 	0, 4, 8, 0, 12, 0, 0, 0, 16, 0, 0, 0, 0, 0, 0, 0,
 };
 
@@ -47,13 +49,15 @@ static int pti_width_mode(unsigned int width)
 
 	for (i = 0; i < ARRAY_SIZE(pti_mode); i++)
 		if (pti_mode[i] == width)
+		{
 			return i;
+		}
 
 	return -EINVAL;
 }
 
 static ssize_t mode_show(struct device *dev, struct device_attribute *attr,
-			 char *buf)
+						 char *buf)
 {
 	struct pti_device *pti = dev_get_drvdata(dev);
 
@@ -61,19 +65,25 @@ static ssize_t mode_show(struct device *dev, struct device_attribute *attr,
 }
 
 static ssize_t mode_store(struct device *dev, struct device_attribute *attr,
-			  const char *buf, size_t size)
+						  const char *buf, size_t size)
 {
 	struct pti_device *pti = dev_get_drvdata(dev);
 	unsigned long val;
 	int ret;
 
 	ret = kstrtoul(buf, 10, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = pti_width_mode(val);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	pti->mode = ret;
 
@@ -84,7 +94,7 @@ static DEVICE_ATTR_RW(mode);
 
 static ssize_t
 freerunning_clock_show(struct device *dev, struct device_attribute *attr,
-		       char *buf)
+					   char *buf)
 {
 	struct pti_device *pti = dev_get_drvdata(dev);
 
@@ -93,15 +103,18 @@ freerunning_clock_show(struct device *dev, struct device_attribute *attr,
 
 static ssize_t
 freerunning_clock_store(struct device *dev, struct device_attribute *attr,
-			const char *buf, size_t size)
+						const char *buf, size_t size)
 {
 	struct pti_device *pti = dev_get_drvdata(dev);
 	unsigned long val;
 	int ret;
 
 	ret = kstrtoul(buf, 10, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	pti->freeclk = !!val;
 
@@ -112,7 +125,7 @@ static DEVICE_ATTR_RW(freerunning_clock);
 
 static ssize_t
 clock_divider_show(struct device *dev, struct device_attribute *attr,
-		   char *buf)
+				   char *buf)
 {
 	struct pti_device *pti = dev_get_drvdata(dev);
 
@@ -121,18 +134,23 @@ clock_divider_show(struct device *dev, struct device_attribute *attr,
 
 static ssize_t
 clock_divider_store(struct device *dev, struct device_attribute *attr,
-		    const char *buf, size_t size)
+					const char *buf, size_t size)
 {
 	struct pti_device *pti = dev_get_drvdata(dev);
 	unsigned long val;
 	int ret;
 
 	ret = kstrtoul(buf, 10, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (!is_power_of_2(val) || val > 8 || !val)
+	{
 		return -EINVAL;
+	}
 
 	pti->clkdiv = val;
 
@@ -141,14 +159,16 @@ clock_divider_store(struct device *dev, struct device_attribute *attr,
 
 static DEVICE_ATTR_RW(clock_divider);
 
-static struct attribute *pti_output_attrs[] = {
+static struct attribute *pti_output_attrs[] =
+{
 	&dev_attr_mode.attr,
 	&dev_attr_freerunning_clock.attr,
 	&dev_attr_clock_divider.attr,
 	NULL,
 };
 
-static struct attribute_group pti_output_group = {
+static struct attribute_group pti_output_group =
+{
 	.attrs	= pti_output_attrs,
 };
 
@@ -158,9 +178,15 @@ static int intel_th_pti_activate(struct intel_th_device *thdev)
 	u32 ctl = PTI_EN;
 
 	if (pti->patgen)
+	{
 		ctl |= pti->patgen << __ffs(PTI_PATGENMODE);
+	}
+
 	if (pti->freeclk)
+	{
 		ctl |= PTI_FCEN;
+	}
+
 	ctl |= pti->mode << __ffs(PTI_MODE);
 	ctl |= pti->clkdiv << __ffs(PTI_CLKDIV);
 
@@ -189,9 +215,14 @@ static void read_hw_config(struct pti_device *pti)
 	pti->freeclk	= !!(ctl & PTI_FCEN);
 
 	if (!pti_mode[pti->mode])
+	{
 		pti->mode = pti_width_mode(4);
+	}
+
 	if (!pti->clkdiv)
+	{
 		pti->clkdiv = 1;
+	}
 }
 
 static int intel_th_pti_probe(struct intel_th_device *thdev)
@@ -202,16 +233,25 @@ static int intel_th_pti_probe(struct intel_th_device *thdev)
 	void __iomem *base;
 
 	res = intel_th_device_get_resource(thdev, IORESOURCE_MEM, 0);
+
 	if (!res)
+	{
 		return -ENODEV;
+	}
 
 	base = devm_ioremap(dev, res->start, resource_size(res));
+
 	if (!base)
+	{
 		return -ENOMEM;
+	}
 
 	pti = devm_kzalloc(dev, sizeof(*pti), GFP_KERNEL);
+
 	if (!pti)
+	{
 		return -ENOMEM;
+	}
 
 	pti->thdev = thdev;
 	pti->base = base;
@@ -227,7 +267,8 @@ static void intel_th_pti_remove(struct intel_th_device *thdev)
 {
 }
 
-static struct intel_th_driver intel_th_pti_driver = {
+static struct intel_th_driver intel_th_pti_driver =
+{
 	.probe	= intel_th_pti_probe,
 	.remove	= intel_th_pti_remove,
 	.activate	= intel_th_pti_activate,
@@ -240,8 +281,8 @@ static struct intel_th_driver intel_th_pti_driver = {
 };
 
 module_driver(intel_th_pti_driver,
-	      intel_th_driver_register,
-	      intel_th_driver_unregister);
+			  intel_th_driver_register,
+			  intel_th_driver_unregister);
 
 MODULE_LICENSE("GPL v2");
 MODULE_DESCRIPTION("Intel(R) Trace Hub PTI output driver");

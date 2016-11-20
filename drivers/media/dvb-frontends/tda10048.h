@@ -25,7 +25,8 @@
 #include <linux/dvb/frontend.h>
 #include <linux/firmware.h>
 
-struct tda10048_config {
+struct tda10048_config
+{
 
 	/* the demodulator's i2c address */
 	u8 demod_address;

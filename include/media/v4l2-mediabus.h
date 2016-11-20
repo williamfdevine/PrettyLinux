@@ -60,9 +60,9 @@
 #define V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK	(1 << 9)
 
 #define V4L2_MBUS_CSI2_LANES		(V4L2_MBUS_CSI2_1_LANE | V4L2_MBUS_CSI2_2_LANE | \
-					 V4L2_MBUS_CSI2_3_LANE | V4L2_MBUS_CSI2_4_LANE)
+									 V4L2_MBUS_CSI2_3_LANE | V4L2_MBUS_CSI2_4_LANE)
 #define V4L2_MBUS_CSI2_CHANNELS		(V4L2_MBUS_CSI2_CHANNEL_0 | V4L2_MBUS_CSI2_CHANNEL_1 | \
-					 V4L2_MBUS_CSI2_CHANNEL_2 | V4L2_MBUS_CSI2_CHANNEL_3)
+									 V4L2_MBUS_CSI2_CHANNEL_2 | V4L2_MBUS_CSI2_CHANNEL_3)
 
 /**
  * enum v4l2_mbus_type - media bus type
@@ -71,7 +71,8 @@
  *			also be used for BT.1120
  * @V4L2_MBUS_CSI2:	MIPI CSI-2 serial interface
  */
-enum v4l2_mbus_type {
+enum v4l2_mbus_type
+{
 	V4L2_MBUS_PARALLEL,
 	V4L2_MBUS_BT656,
 	V4L2_MBUS_CSI2,
@@ -82,13 +83,14 @@ enum v4l2_mbus_type {
  * @type:	in: interface type
  * @flags:	in / out: configuration flags, depending on @type
  */
-struct v4l2_mbus_config {
+struct v4l2_mbus_config
+{
 	enum v4l2_mbus_type type;
 	unsigned int flags;
 };
 
 static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
-				const struct v4l2_mbus_framefmt *mbus_fmt)
+										const struct v4l2_mbus_framefmt *mbus_fmt)
 {
 	pix_fmt->width = mbus_fmt->width;
 	pix_fmt->height = mbus_fmt->height;
@@ -100,8 +102,8 @@ static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
 }
 
 static inline void v4l2_fill_mbus_format(struct v4l2_mbus_framefmt *mbus_fmt,
-			   const struct v4l2_pix_format *pix_fmt,
-			   u32 code)
+		const struct v4l2_pix_format *pix_fmt,
+		u32 code)
 {
 	mbus_fmt->width = pix_fmt->width;
 	mbus_fmt->height = pix_fmt->height;

@@ -44,7 +44,8 @@
 #define EUROPE				0x1 /* temp, should be provided later */
 #define JAPAN				0x2 /* temp, should be provided later */
 
-struct	regulatory_class {
+struct	regulatory_class
+{
 	u32	starting_freq;				/* MHz, */
 	u8	channel_set[MAX_CHANNEL_NUM];
 	u8	channel_cck_power[MAX_CHANNEL_NUM];	/* dbm */
@@ -54,7 +55,8 @@ struct	regulatory_class {
 	u8	modem;
 };
 
-enum capability {
+enum capability
+{
 	cESS		= 0x0001,
 	cIBSS		= 0x0002,
 	cPollable	= 0x0004,
@@ -74,13 +76,15 @@ enum capability {
 	cImmediateBA	= 0x8000,
 };
 
-enum	_REG_PREAMBLE_MODE {
+enum	_REG_PREAMBLE_MODE
+{
 	PREAMBLE_LONG	= 1,
 	PREAMBLE_AUTO	= 2,
 	PREAMBLE_SHORT	= 3,
 };
 
-enum _RTL8712_RF_MIMO_CONFIG_ {
+enum _RTL8712_RF_MIMO_CONFIG_
+{
 	RTL8712_RFCONFIG_1T = 0x10,
 	RTL8712_RFCONFIG_2T = 0x20,
 	RTL8712_RFCONFIG_1R = 0x01,
@@ -91,7 +95,8 @@ enum _RTL8712_RF_MIMO_CONFIG_ {
 	RTL8712_RFCONFIG_2T2R = 0x22
 };
 
-enum rf90_radio_path {
+enum rf90_radio_path
+{
 	RF90_PATH_A = 0,		/* Radio Path A */
 	RF90_PATH_B = 1,		/* Radio Path B */
 	RF90_PATH_C = 2,		/* Radio Path C */
@@ -105,7 +110,8 @@ enum rf90_radio_path {
 
 /*  Represent Channel Width in HT Capabilities */
 /*  */
-enum ht_channel_width {
+enum ht_channel_width
+{
 	HT_CHANNEL_WIDTH_20 = 0,
 	HT_CHANNEL_WIDTH_40 = 1,
 	HT_CHANNEL_WIDTH_80 = 2,
@@ -117,7 +123,8 @@ enum ht_channel_width {
 /*  Represent Extension Channel Offset in HT Capabilities */
 /*  This is available only in 40Mhz mode. */
 /*  */
-enum ht_extchnl_offset {
+enum ht_extchnl_offset
+{
 	HT_EXTCHNL_OFFSET_NO_EXT = 0,
 	HT_EXTCHNL_OFFSET_UPPER = 1,
 	HT_EXTCHNL_OFFSET_NO_DEF = 2,
@@ -125,7 +132,8 @@ enum ht_extchnl_offset {
 };
 
 /* 2007/11/15 MH Define different RF type. */
-enum rt_rf_type_def {
+enum rt_rf_type_def
+{
 	RF_1T2R = 0,
 	RF_2T4R = 1,
 	RF_2T2R = 2,

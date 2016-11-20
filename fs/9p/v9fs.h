@@ -39,12 +39,13 @@
  * Session flags reflect options selected by users at mount time
  */
 #define	V9FS_ACCESS_ANY (V9FS_ACCESS_SINGLE | \
-			 V9FS_ACCESS_USER |   \
-			 V9FS_ACCESS_CLIENT)
+						 V9FS_ACCESS_USER |   \
+						 V9FS_ACCESS_CLIENT)
 #define V9FS_ACCESS_MASK V9FS_ACCESS_ANY
 #define V9FS_ACL_MASK V9FS_POSIX_ACL
 
-enum p9_session_flags {
+enum p9_session_flags
+{
 	V9FS_PROTO_2000U	= 0x01,
 	V9FS_PROTO_2000L	= 0x02,
 	V9FS_ACCESS_SINGLE	= 0x04,
@@ -62,7 +63,8 @@ enum p9_session_flags {
  * eventually support loose, tight, time, session, default always none
  */
 
-enum p9_cache_modes {
+enum p9_cache_modes
+{
 	CACHE_NONE,
 	CACHE_MMAP,
 	CACHE_LOOSE,
@@ -94,7 +96,8 @@ enum p9_cache_modes {
  * removed.
  */
 
-struct v9fs_session_info {
+struct v9fs_session_info
+{
 	/* options */
 	unsigned char flags;
 	unsigned char nodev;
@@ -121,7 +124,8 @@ struct v9fs_session_info {
 /* cache_validity flags */
 #define V9FS_INO_INVALID_ATTR 0x01
 
-struct v9fs_inode {
+struct v9fs_inode
+{
 #ifdef CONFIG_9P_FSCACHE
 	struct mutex fscache_lock;
 	struct fscache_cookie *fscache;
@@ -139,26 +143,26 @@ static inline struct v9fs_inode *V9FS_I(const struct inode *inode)
 }
 
 struct p9_fid *v9fs_session_init(struct v9fs_session_info *, const char *,
-									char *);
+								 char *);
 extern void v9fs_session_close(struct v9fs_session_info *v9ses);
 extern void v9fs_session_cancel(struct v9fs_session_info *v9ses);
 extern void v9fs_session_begin_cancel(struct v9fs_session_info *v9ses);
 extern struct dentry *v9fs_vfs_lookup(struct inode *dir, struct dentry *dentry,
-			unsigned int flags);
+									  unsigned int flags);
 extern int v9fs_vfs_unlink(struct inode *i, struct dentry *d);
 extern int v9fs_vfs_rmdir(struct inode *i, struct dentry *d);
 extern int v9fs_vfs_rename(struct inode *old_dir, struct dentry *old_dentry,
-			   struct inode *new_dir, struct dentry *new_dentry,
-			   unsigned int flags);
+						   struct inode *new_dir, struct dentry *new_dentry,
+						   unsigned int flags);
 extern struct inode *v9fs_inode_from_fid(struct v9fs_session_info *v9ses,
-					 struct p9_fid *fid,
-					 struct super_block *sb, int new);
+		struct p9_fid *fid,
+		struct super_block *sb, int new);
 extern const struct inode_operations v9fs_dir_inode_operations_dotl;
 extern const struct inode_operations v9fs_file_inode_operations_dotl;
 extern const struct inode_operations v9fs_symlink_inode_operations_dotl;
 extern struct inode *v9fs_inode_from_fid_dotl(struct v9fs_session_info *v9ses,
-					      struct p9_fid *fid,
-					      struct super_block *sb, int new);
+		struct p9_fid *fid,
+		struct super_block *sb, int new);
 
 /* other default globals */
 #define V9FS_PORT	564
@@ -197,12 +201,16 @@ static inline int v9fs_proto_dotl(struct v9fs_session_info *v9ses)
  */
 static inline struct inode *
 v9fs_get_inode_from_fid(struct v9fs_session_info *v9ses, struct p9_fid *fid,
-			struct super_block *sb)
+						struct super_block *sb)
 {
 	if (v9fs_proto_dotl(v9ses))
+	{
 		return v9fs_inode_from_fid_dotl(v9ses, fid, sb, 0);
+	}
 	else
+	{
 		return v9fs_inode_from_fid(v9ses, fid, sb, 0);
+	}
 }
 
 /**
@@ -215,12 +223,16 @@ v9fs_get_inode_from_fid(struct v9fs_session_info *v9ses, struct p9_fid *fid,
  */
 static inline struct inode *
 v9fs_get_new_inode_from_fid(struct v9fs_session_info *v9ses, struct p9_fid *fid,
-			    struct super_block *sb)
+							struct super_block *sb)
 {
 	if (v9fs_proto_dotl(v9ses))
+	{
 		return v9fs_inode_from_fid_dotl(v9ses, fid, sb, 1);
+	}
 	else
+	{
 		return v9fs_inode_from_fid(v9ses, fid, sb, 1);
+	}
 }
 
 #endif

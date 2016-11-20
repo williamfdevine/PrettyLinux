@@ -69,14 +69,17 @@ csio_reg_rnode(struct csio_rnode *rn)
 	ids.port_id	= rn->nport_id;
 	ids.roles	= FC_RPORT_ROLE_UNKNOWN;
 
-	if (rn->role & CSIO_RNFR_INITIATOR || rn->role & CSIO_RNFR_TARGET) {
+	if (rn->role & CSIO_RNFR_INITIATOR || rn->role & CSIO_RNFR_TARGET)
+	{
 		rport = rn->rport;
 		CSIO_ASSERT(rport != NULL);
 		goto update_role;
 	}
 
 	rn->rport = fc_remote_port_add(shost, 0, &ids);
-	if (!rn->rport) {
+
+	if (!rn->rport)
+	{
 		csio_ln_err(ln, "Failed to register rport = 0x%x.\n",
 					rn->nport_id);
 		return;
@@ -90,23 +93,37 @@ csio_reg_rnode(struct csio_rnode *rn)
 
 	sp = &rn->rn_sparm;
 	rport->maxframe_size = ntohs(sp->csp.sp_bb_data);
+
 	if (ntohs(sp->clsp[2].cp_class) & FC_CPC_VALID)
+	{
 		rport->supported_classes = FC_COS_CLASS3;
+	}
 	else
+	{
 		rport->supported_classes = FC_COS_UNSPECIFIED;
+	}
+
 update_role:
+
 	if (rn->role & CSIO_RNFR_INITIATOR)
+	{
 		ids.roles |= FC_RPORT_ROLE_FCP_INITIATOR;
+	}
+
 	if (rn->role & CSIO_RNFR_TARGET)
+	{
 		ids.roles |= FC_RPORT_ROLE_FCP_TARGET;
+	}
 
 	if (ids.roles != FC_RPORT_ROLE_UNKNOWN)
+	{
 		fc_remote_port_rolechg(rport, ids.roles);
+	}
 
 	rn->scsi_id = rport->scsi_target_id;
 
 	csio_ln_dbg(ln, "Remote port x%x role 0x%x registered\n",
-		rn->nport_id, ids.roles);
+				rn->nport_id, ids.roles);
 }
 
 /*
@@ -140,36 +157,47 @@ csio_unreg_rnode(struct csio_rnode *rn)
 void
 csio_lnode_async_event(struct csio_lnode *ln, enum csio_ln_fc_evt fc_evt)
 {
-	switch (fc_evt) {
-	case CSIO_LN_FC_RSCN:
-		/* Get payload of rscn from ln */
-		/* For each RSCN entry */
+	switch (fc_evt)
+	{
+		case CSIO_LN_FC_RSCN:
+			/* Get payload of rscn from ln */
+			/* For each RSCN entry */
 			/*
 			 * fc_host_post_event(shost,
 			 *		      fc_get_event_number(),
 			 *		      FCH_EVT_RSCN,
 			 *		      rscn_entry);
 			 */
-		break;
-	case CSIO_LN_FC_LINKUP:
-		/* send fc_host_post_event */
-		/* set vport state */
-		if (csio_is_npiv_ln(ln))
-			csio_vport_set_state(ln);
+			break;
 
-		break;
-	case CSIO_LN_FC_LINKDOWN:
-		/* send fc_host_post_event */
-		/* set vport state */
-		if (csio_is_npiv_ln(ln))
-			csio_vport_set_state(ln);
+		case CSIO_LN_FC_LINKUP:
 
-		break;
-	case CSIO_LN_FC_ATTRIB_UPDATE:
-		csio_fchost_attr_init(ln);
-		break;
-	default:
-		break;
+			/* send fc_host_post_event */
+			/* set vport state */
+			if (csio_is_npiv_ln(ln))
+			{
+				csio_vport_set_state(ln);
+			}
+
+			break;
+
+		case CSIO_LN_FC_LINKDOWN:
+
+			/* send fc_host_post_event */
+			/* set vport state */
+			if (csio_is_npiv_ln(ln))
+			{
+				csio_vport_set_state(ln);
+			}
+
+			break;
+
+		case CSIO_LN_FC_ATTRIB_UPDATE:
+			csio_fchost_attr_init(ln);
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -188,17 +216,17 @@ csio_fchost_attr_init(struct csio_lnode *ln)
 
 	fc_host_supported_classes(shost) = FC_COS_CLASS3;
 	fc_host_max_npiv_vports(shost) =
-			(csio_lnode_to_hw(ln))->fres_info.max_vnps;
+		(csio_lnode_to_hw(ln))->fres_info.max_vnps;
 	fc_host_supported_speeds(shost) = FC_PORTSPEED_10GBIT |
-		FC_PORTSPEED_1GBIT;
+									  FC_PORTSPEED_1GBIT;
 
 	fc_host_maxframe_size(shost) = ntohs(ln->ln_sparm.csp.sp_bb_data);
 	memset(fc_host_supported_fc4s(shost), 0,
-		sizeof(fc_host_supported_fc4s(shost)));
+		   sizeof(fc_host_supported_fc4s(shost)));
 	fc_host_supported_fc4s(shost)[7] = 1;
 
 	memset(fc_host_active_fc4s(shost), 0,
-		sizeof(fc_host_active_fc4s(shost)));
+		   sizeof(fc_host_active_fc4s(shost)));
 	fc_host_active_fc4s(shost)[7] = 1;
 }
 
@@ -229,10 +257,16 @@ csio_get_host_port_type(struct Scsi_Host *shost)
 	struct csio_hw *hw = csio_lnode_to_hw(ln);
 
 	spin_lock_irq(&hw->lock);
+
 	if (csio_is_npiv_ln(ln))
+	{
 		fc_host_port_type(shost) = FC_PORTTYPE_NPIV;
+	}
 	else
+	{
 		fc_host_port_type(shost) = FC_PORTTYPE_NPORT;
+	}
+
 	spin_unlock_irq(&hw->lock);
 }
 
@@ -251,12 +285,19 @@ csio_get_host_port_state(struct Scsi_Host *shost)
 	spin_lock_irq(&hw->lock);
 
 	csio_lnode_state_to_str(ln, state);
+
 	if (!strcmp(state, "READY"))
+	{
 		fc_host_port_state(shost) = FC_PORTSTATE_ONLINE;
+	}
 	else if (!strcmp(state, "OFFLINE"))
+	{
 		fc_host_port_state(shost) = FC_PORTSTATE_LINKDOWN;
+	}
 	else
+	{
 		fc_host_port_state(shost) = FC_PORTSTATE_UNKNOWN;
+	}
 
 	spin_unlock_irq(&hw->lock);
 }
@@ -273,17 +314,22 @@ csio_get_host_speed(struct Scsi_Host *shost)
 	struct csio_hw *hw = csio_lnode_to_hw(ln);
 
 	spin_lock_irq(&hw->lock);
-	switch (hw->pport[ln->portid].link_speed) {
-	case FW_PORT_CAP_SPEED_1G:
-		fc_host_speed(shost) = FC_PORTSPEED_1GBIT;
-		break;
-	case FW_PORT_CAP_SPEED_10G:
-		fc_host_speed(shost) = FC_PORTSPEED_10GBIT;
-		break;
-	default:
-		fc_host_speed(shost) = FC_PORTSPEED_UNKNOWN;
-		break;
+
+	switch (hw->pport[ln->portid].link_speed)
+	{
+		case FW_PORT_CAP_SPEED_1G:
+			fc_host_speed(shost) = FC_PORTSPEED_1GBIT;
+			break;
+
+		case FW_PORT_CAP_SPEED_10G:
+			fc_host_speed(shost) = FC_PORTSPEED_10GBIT;
+			break;
+
+		default:
+			fc_host_speed(shost) = FC_PORTSPEED_UNKNOWN;
+			break;
 	}
+
 	spin_unlock_irq(&hw->lock);
 }
 
@@ -301,10 +347,16 @@ csio_get_host_fabric_name(struct Scsi_Host *shost)
 
 	spin_lock_irq(&hw->lock);
 	rn = csio_rnode_lookup_portid(ln, FC_FID_FLOGI);
+
 	if (rn)
+	{
 		fc_host_fabric_name(shost) = wwn_to_u64(csio_rn_wwnn(rn));
+	}
 	else
+	{
 		fc_host_fabric_name(shost) = 0;
+	}
+
 	spin_unlock_irq(&hw->lock);
 }
 
@@ -326,21 +378,21 @@ csio_get_stats(struct Scsi_Host *shost)
 	csio_get_phy_port_stats(hw, ln->portid, &fcoe_port_stats);
 
 	fhs->tx_frames  += (be64_to_cpu(fcoe_port_stats.tx_bcast_frames) +
-			    be64_to_cpu(fcoe_port_stats.tx_mcast_frames) +
-			    be64_to_cpu(fcoe_port_stats.tx_ucast_frames) +
-			    be64_to_cpu(fcoe_port_stats.tx_offload_frames));
+						be64_to_cpu(fcoe_port_stats.tx_mcast_frames) +
+						be64_to_cpu(fcoe_port_stats.tx_ucast_frames) +
+						be64_to_cpu(fcoe_port_stats.tx_offload_frames));
 	fhs->tx_words  += (be64_to_cpu(fcoe_port_stats.tx_bcast_bytes) +
-			   be64_to_cpu(fcoe_port_stats.tx_mcast_bytes) +
-			   be64_to_cpu(fcoe_port_stats.tx_ucast_bytes) +
-			   be64_to_cpu(fcoe_port_stats.tx_offload_bytes)) /
-							CSIO_WORD_TO_BYTE;
+					   be64_to_cpu(fcoe_port_stats.tx_mcast_bytes) +
+					   be64_to_cpu(fcoe_port_stats.tx_ucast_bytes) +
+					   be64_to_cpu(fcoe_port_stats.tx_offload_bytes)) /
+					  CSIO_WORD_TO_BYTE;
 	fhs->rx_frames += (be64_to_cpu(fcoe_port_stats.rx_bcast_frames) +
-			   be64_to_cpu(fcoe_port_stats.rx_mcast_frames) +
-			   be64_to_cpu(fcoe_port_stats.rx_ucast_frames));
+					   be64_to_cpu(fcoe_port_stats.rx_mcast_frames) +
+					   be64_to_cpu(fcoe_port_stats.rx_ucast_frames));
 	fhs->rx_words += (be64_to_cpu(fcoe_port_stats.rx_bcast_bytes) +
-			  be64_to_cpu(fcoe_port_stats.rx_mcast_bytes) +
-			  be64_to_cpu(fcoe_port_stats.rx_ucast_bytes)) /
-							CSIO_WORD_TO_BYTE;
+					  be64_to_cpu(fcoe_port_stats.rx_mcast_bytes) +
+					  be64_to_cpu(fcoe_port_stats.rx_ucast_bytes)) /
+					 CSIO_WORD_TO_BYTE;
 	fhs->error_frames += be64_to_cpu(fcoe_port_stats.rx_err_frames);
 	fhs->fcp_input_requests +=  ln->stats.n_input_requests;
 	fhs->fcp_output_requests +=  ln->stats.n_output_requests;
@@ -368,9 +420,13 @@ static void
 csio_set_rport_loss_tmo(struct fc_rport *rport, uint32_t timeout)
 {
 	if (timeout)
+	{
 		rport->dev_loss_tmo = timeout;
+	}
 	else
+	{
 		rport->dev_loss_tmo = 1;
+	}
 }
 
 static void
@@ -382,22 +438,28 @@ csio_vport_set_state(struct csio_lnode *ln)
 
 	/* Set fc vport state based on phyiscal lnode */
 	csio_lnode_state_to_str(pln, state);
-	if (strcmp(state, "READY")) {
+
+	if (strcmp(state, "READY"))
+	{
 		fc_vport_set_state(fc_vport, FC_VPORT_LINKDOWN);
 		return;
 	}
 
-	if (!(pln->flags & CSIO_LNF_NPIVSUPP)) {
+	if (!(pln->flags & CSIO_LNF_NPIVSUPP))
+	{
 		fc_vport_set_state(fc_vport, FC_VPORT_NO_FABRIC_SUPP);
 		return;
 	}
 
 	/* Set fc vport state based on virtual lnode */
 	csio_lnode_state_to_str(ln, state);
-	if (strcmp(state, "READY")) {
+
+	if (strcmp(state, "READY"))
+	{
 		fc_vport_set_state(fc_vport, FC_VPORT_LINKDOWN);
 		return;
 	}
+
 	fc_vport_set_state(fc_vport, FC_VPORT_ACTIVE);
 }
 
@@ -414,7 +476,9 @@ csio_fcoe_alloc_vnp(struct csio_hw *hw, struct csio_lnode *ln)
 	/* Allocate Mbox request */
 	spin_lock_irq(&hw->lock);
 	mbp = mempool_alloc(hw->mb_mempool, GFP_ATOMIC);
-	if (!mbp) {
+
+	if (!mbp)
+	{
 		CSIO_INC_STATS(hw, n_err_nomem);
 		ret = -ENOMEM;
 		goto out;
@@ -425,18 +489,22 @@ csio_fcoe_alloc_vnp(struct csio_hw *hw, struct csio_lnode *ln)
 	ln->portid = pln->portid;
 
 	csio_fcoe_vnp_alloc_init_mb(ln, mbp, CSIO_MB_DEFAULT_TMO,
-				    pln->fcf_flowid, pln->vnp_flowid, 0,
-				    csio_ln_wwnn(ln), csio_ln_wwpn(ln), NULL);
+								pln->fcf_flowid, pln->vnp_flowid, 0,
+								csio_ln_wwnn(ln), csio_ln_wwpn(ln), NULL);
 
-	for (retry = 0; retry < 3; retry++) {
+	for (retry = 0; retry < 3; retry++)
+	{
 		/* FW is expected to complete vnp cmd in immediate mode
 		 * without much delay.
 		 * Otherwise, there will be increase in IO latency since HW
 		 * lock is held till completion of vnp mbox cmd.
 		 */
 		ret = csio_mb_issue(hw, mbp);
+
 		if (ret != -EBUSY)
+		{
 			break;
+		}
 
 		/* Retry if mbox returns busy */
 		spin_unlock_irq(&hw->lock);
@@ -444,36 +512,39 @@ csio_fcoe_alloc_vnp(struct csio_hw *hw, struct csio_lnode *ln)
 		spin_lock_irq(&hw->lock);
 	}
 
-	if (ret) {
+	if (ret)
+	{
 		csio_ln_err(ln, "Failed to issue mbox FCoE VNP command\n");
 		goto out_free;
 	}
 
 	/* Process Mbox response of VNP command */
 	rsp = (struct fw_fcoe_vnp_cmd *)(mbp->mb);
-	if (FW_CMD_RETVAL_G(ntohl(rsp->alloc_to_len16)) != FW_SUCCESS) {
+
+	if (FW_CMD_RETVAL_G(ntohl(rsp->alloc_to_len16)) != FW_SUCCESS)
+	{
 		csio_ln_err(ln, "FCOE VNP ALLOC cmd returned 0x%x!\n",
-			    FW_CMD_RETVAL_G(ntohl(rsp->alloc_to_len16)));
+					FW_CMD_RETVAL_G(ntohl(rsp->alloc_to_len16)));
 		ret = -EINVAL;
 		goto out_free;
 	}
 
 	ln->vnp_flowid = FW_FCOE_VNP_CMD_VNPI_GET(
-				ntohl(rsp->gen_wwn_to_vnpi));
+						 ntohl(rsp->gen_wwn_to_vnpi));
 	memcpy(csio_ln_wwnn(ln), rsp->vnport_wwnn, 8);
 	memcpy(csio_ln_wwpn(ln), rsp->vnport_wwpn, 8);
 
 	csio_ln_dbg(ln, "FCOE VNPI: 0x%x\n", ln->vnp_flowid);
 	csio_ln_dbg(ln, "\tWWNN: %x%x%x%x%x%x%x%x\n",
-		    ln->ln_sparm.wwnn[0], ln->ln_sparm.wwnn[1],
-		    ln->ln_sparm.wwnn[2], ln->ln_sparm.wwnn[3],
-		    ln->ln_sparm.wwnn[4], ln->ln_sparm.wwnn[5],
-		    ln->ln_sparm.wwnn[6], ln->ln_sparm.wwnn[7]);
+				ln->ln_sparm.wwnn[0], ln->ln_sparm.wwnn[1],
+				ln->ln_sparm.wwnn[2], ln->ln_sparm.wwnn[3],
+				ln->ln_sparm.wwnn[4], ln->ln_sparm.wwnn[5],
+				ln->ln_sparm.wwnn[6], ln->ln_sparm.wwnn[7]);
 	csio_ln_dbg(ln, "\tWWPN: %x%x%x%x%x%x%x%x\n",
-		    ln->ln_sparm.wwpn[0], ln->ln_sparm.wwpn[1],
-		    ln->ln_sparm.wwpn[2], ln->ln_sparm.wwpn[3],
-		    ln->ln_sparm.wwpn[4], ln->ln_sparm.wwpn[5],
-		    ln->ln_sparm.wwpn[6], ln->ln_sparm.wwpn[7]);
+				ln->ln_sparm.wwpn[0], ln->ln_sparm.wwpn[1],
+				ln->ln_sparm.wwpn[2], ln->ln_sparm.wwpn[3],
+				ln->ln_sparm.wwpn[4], ln->ln_sparm.wwpn[5],
+				ln->ln_sparm.wwpn[6], ln->ln_sparm.wwpn[7]);
 
 out_free:
 	mempool_free(mbp, hw->mb_mempool);
@@ -496,7 +567,9 @@ csio_fcoe_free_vnp(struct csio_hw *hw, struct csio_lnode *ln)
 
 	spin_lock_irq(&hw->lock);
 	mbp = mempool_alloc(hw->mb_mempool, GFP_ATOMIC);
-	if (!mbp) {
+
+	if (!mbp)
+	{
 		CSIO_INC_STATS(hw, n_err_nomem);
 		ret = -ENOMEM;
 		goto out;
@@ -505,13 +578,17 @@ csio_fcoe_free_vnp(struct csio_hw *hw, struct csio_lnode *ln)
 	pln = ln->pln;
 
 	csio_fcoe_vnp_free_init_mb(ln, mbp, CSIO_MB_DEFAULT_TMO,
-				   ln->fcf_flowid, ln->vnp_flowid,
-				   NULL);
+							   ln->fcf_flowid, ln->vnp_flowid,
+							   NULL);
 
-	for (retry = 0; retry < 3; retry++) {
+	for (retry = 0; retry < 3; retry++)
+	{
 		ret = csio_mb_issue(hw, mbp);
+
 		if (ret != -EBUSY)
+		{
 			break;
+		}
 
 		/* Retry if mbox returns busy */
 		spin_unlock_irq(&hw->lock);
@@ -519,16 +596,19 @@ csio_fcoe_free_vnp(struct csio_hw *hw, struct csio_lnode *ln)
 		spin_lock_irq(&hw->lock);
 	}
 
-	if (ret) {
+	if (ret)
+	{
 		csio_ln_err(ln, "Failed to issue mbox FCoE VNP command\n");
 		goto out_free;
 	}
 
 	/* Process Mbox response of VNP command */
 	rsp = (struct fw_fcoe_vnp_cmd *)(mbp->mb);
-	if (FW_CMD_RETVAL_G(ntohl(rsp->alloc_to_len16)) != FW_SUCCESS) {
+
+	if (FW_CMD_RETVAL_G(ntohl(rsp->alloc_to_len16)) != FW_SUCCESS)
+	{
 		csio_ln_err(ln, "FCOE VNP FREE cmd returned 0x%x!\n",
-			    FW_CMD_RETVAL_G(ntohl(rsp->alloc_to_len16)));
+					FW_CMD_RETVAL_G(ntohl(rsp->alloc_to_len16)));
 		ret = -EINVAL;
 	}
 
@@ -550,53 +630,75 @@ csio_vport_create(struct fc_vport *fc_vport, bool disable)
 	int ret = -1;
 
 	ln = csio_shost_init(hw, &fc_vport->dev, false, pln);
-	if (!ln)
-		goto error;
 
-	if (fc_vport->node_name != 0) {
+	if (!ln)
+	{
+		goto error;
+	}
+
+	if (fc_vport->node_name != 0)
+	{
 		u64_to_wwn(fc_vport->node_name, wwn);
 
-		if (!CSIO_VALID_WWN(wwn)) {
+		if (!CSIO_VALID_WWN(wwn))
+		{
 			csio_ln_err(ln,
-				    "vport create failed. Invalid wwnn\n");
+						"vport create failed. Invalid wwnn\n");
 			goto error;
 		}
+
 		memcpy(csio_ln_wwnn(ln), wwn, 8);
 	}
 
-	if (fc_vport->port_name != 0) {
+	if (fc_vport->port_name != 0)
+	{
 		u64_to_wwn(fc_vport->port_name, wwn);
 
-		if (!CSIO_VALID_WWN(wwn)) {
+		if (!CSIO_VALID_WWN(wwn))
+		{
 			csio_ln_err(ln,
-				    "vport create failed. Invalid wwpn\n");
+						"vport create failed. Invalid wwpn\n");
 			goto error;
 		}
 
-		if (csio_lnode_lookup_by_wwpn(hw, wwn)) {
+		if (csio_lnode_lookup_by_wwpn(hw, wwn))
+		{
 			csio_ln_err(ln,
-			    "vport create failed. wwpn already exists\n");
+						"vport create failed. wwpn already exists\n");
 			goto error;
 		}
+
 		memcpy(csio_ln_wwpn(ln), wwn, 8);
 	}
 
 	fc_vport_set_state(fc_vport, FC_VPORT_INITIALIZING);
 
 	if (csio_fcoe_alloc_vnp(hw, ln))
+	{
 		goto error;
+	}
 
 	*(struct csio_lnode **)fc_vport->dd_data = ln;
 	ln->fc_vport = fc_vport;
+
 	if (!fc_vport->node_name)
+	{
 		fc_vport->node_name = wwn_to_u64(csio_ln_wwnn(ln));
+	}
+
 	if (!fc_vport->port_name)
+	{
 		fc_vport->port_name = wwn_to_u64(csio_ln_wwpn(ln));
+	}
+
 	csio_fchost_attr_init(ln);
 	return 0;
 error:
+
 	if (ln)
+	{
 		csio_shost_exit(ln);
+	}
 
 	return ret;
 }
@@ -613,7 +715,8 @@ csio_vport_delete(struct fc_vport *fc_vport)
 	rmv = csio_is_hw_removing(hw);
 	spin_unlock_irq(&hw->lock);
 
-	if (rmv) {
+	if (rmv)
+	{
 		csio_shost_exit(ln);
 		return 0;
 	}
@@ -628,7 +731,9 @@ csio_vport_delete(struct fc_vport *fc_vport)
 
 	/* Free vnp */
 	if (fc_vport->vport_state !=  FC_VPORT_DISABLED)
+	{
 		csio_fcoe_free_vnp(hw, ln);
+	}
 
 	csio_shost_exit(ln);
 	return 0;
@@ -642,7 +747,8 @@ csio_vport_disable(struct fc_vport *fc_vport, bool disable)
 	struct csio_hw *hw = csio_lnode_to_hw(ln);
 
 	/* disable vport */
-	if (disable) {
+	if (disable)
+	{
 		/* Quiesce ios and send stop event to lnode */
 		scsi_block_requests(shost);
 		spin_lock_irq(&hw->lock);
@@ -656,13 +762,18 @@ csio_vport_disable(struct fc_vport *fc_vport, bool disable)
 		fc_vport_set_state(fc_vport, FC_VPORT_DISABLED);
 		csio_ln_err(ln, "vport disabled\n");
 		return 0;
-	} else {
+	}
+	else
+	{
 		/* enable vport */
 		fc_vport_set_state(fc_vport, FC_VPORT_INITIALIZING);
-		if (csio_fcoe_alloc_vnp(hw, ln)) {
+
+		if (csio_fcoe_alloc_vnp(hw, ln))
+		{
 			csio_ln_err(ln, "vport enabled failed.\n");
 			return -1;
 		}
+
 		csio_ln_err(ln, "vport enabled\n");
 		return 0;
 	}
@@ -683,10 +794,12 @@ csio_dev_loss_tmo_callbk(struct fc_rport *rport)
 
 	/* return if driver is being removed or same rnode comes back online */
 	if (csio_is_hw_removing(hw) || csio_is_rnode_ready(rn))
+	{
 		goto out;
+	}
 
 	csio_ln_dbg(ln, "devloss timeout on rnode:%p portid:x%x flowid:x%x\n",
-		    rn, rn->nport_id, csio_rn_flowid(rn));
+				rn, rn->nport_id, csio_rn_flowid(rn));
 
 	CSIO_INC_STATS(ln, n_dev_loss_tmo);
 
@@ -694,12 +807,14 @@ csio_dev_loss_tmo_callbk(struct fc_rport *rport)
 	 * enqueue devloss event to event worker thread to serialize all
 	 * rnode events.
 	 */
-	if (csio_enqueue_evt(hw, CSIO_EVT_DEV_LOSS, &rn, sizeof(rn))) {
+	if (csio_enqueue_evt(hw, CSIO_EVT_DEV_LOSS, &rn, sizeof(rn)))
+	{
 		CSIO_INC_STATS(hw, n_evt_drop);
 		goto out;
 	}
 
-	if (!(hw->flags & CSIO_HWF_FWEVT_PENDING)) {
+	if (!(hw->flags & CSIO_HWF_FWEVT_PENDING))
+	{
 		hw->flags |= CSIO_HWF_FWEVT_PENDING;
 		spin_unlock_irq(&hw->lock);
 		schedule_work(&hw->evtq_work);
@@ -711,7 +826,8 @@ out:
 }
 
 /* FC transport functions template - Physical port */
-struct fc_function_template csio_fc_transport_funcs = {
+struct fc_function_template csio_fc_transport_funcs =
+{
 	.show_host_node_name = 1,
 	.show_host_port_name = 1,
 	.show_host_supported_classes = 1,
@@ -755,7 +871,8 @@ struct fc_function_template csio_fc_transport_funcs = {
 };
 
 /* FC transport functions template - Virtual  port */
-struct fc_function_template csio_fc_transport_vport_funcs = {
+struct fc_function_template csio_fc_transport_vport_funcs =
+{
 	.show_host_node_name = 1,
 	.show_host_port_name = 1,
 	.show_host_supported_classes = 1,

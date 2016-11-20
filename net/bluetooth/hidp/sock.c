@@ -25,7 +25,8 @@
 
 #include "hidp.h"
 
-static struct bt_sock_list hidp_sk_list = {
+static struct bt_sock_list hidp_sk_list =
+{
 	.lock = __RW_LOCK_UNLOCKED(hidp_sk_list.lock)
 };
 
@@ -36,7 +37,9 @@ static int hidp_sock_release(struct socket *sock)
 	BT_DBG("sock %p sk %p", sock, sk);
 
 	if (!sk)
+	{
 		return 0;
+	}
 
 	bt_sock_unlink(&hidp_sk_list, sk);
 
@@ -59,71 +62,101 @@ static int hidp_sock_ioctl(struct socket *sock, unsigned int cmd, unsigned long 
 
 	BT_DBG("cmd %x arg %lx", cmd, arg);
 
-	switch (cmd) {
-	case HIDPCONNADD:
-		if (!capable(CAP_NET_ADMIN))
-			return -EPERM;
+	switch (cmd)
+	{
+		case HIDPCONNADD:
+			if (!capable(CAP_NET_ADMIN))
+			{
+				return -EPERM;
+			}
 
-		if (copy_from_user(&ca, argp, sizeof(ca)))
-			return -EFAULT;
+			if (copy_from_user(&ca, argp, sizeof(ca)))
+			{
+				return -EFAULT;
+			}
 
-		csock = sockfd_lookup(ca.ctrl_sock, &err);
-		if (!csock)
-			return err;
+			csock = sockfd_lookup(ca.ctrl_sock, &err);
 
-		isock = sockfd_lookup(ca.intr_sock, &err);
-		if (!isock) {
+			if (!csock)
+			{
+				return err;
+			}
+
+			isock = sockfd_lookup(ca.intr_sock, &err);
+
+			if (!isock)
+			{
+				sockfd_put(csock);
+				return err;
+			}
+
+			err = hidp_connection_add(&ca, csock, isock);
+
+			if (!err && copy_to_user(argp, &ca, sizeof(ca)))
+			{
+				err = -EFAULT;
+			}
+
 			sockfd_put(csock);
+			sockfd_put(isock);
+
 			return err;
-		}
 
-		err = hidp_connection_add(&ca, csock, isock);
-		if (!err && copy_to_user(argp, &ca, sizeof(ca)))
-			err = -EFAULT;
+		case HIDPCONNDEL:
+			if (!capable(CAP_NET_ADMIN))
+			{
+				return -EPERM;
+			}
 
-		sockfd_put(csock);
-		sockfd_put(isock);
+			if (copy_from_user(&cd, argp, sizeof(cd)))
+			{
+				return -EFAULT;
+			}
 
-		return err;
+			return hidp_connection_del(&cd);
 
-	case HIDPCONNDEL:
-		if (!capable(CAP_NET_ADMIN))
-			return -EPERM;
+		case HIDPGETCONNLIST:
+			if (copy_from_user(&cl, argp, sizeof(cl)))
+			{
+				return -EFAULT;
+			}
 
-		if (copy_from_user(&cd, argp, sizeof(cd)))
-			return -EFAULT;
+			if (cl.cnum <= 0)
+			{
+				return -EINVAL;
+			}
 
-		return hidp_connection_del(&cd);
+			err = hidp_get_connlist(&cl);
 
-	case HIDPGETCONNLIST:
-		if (copy_from_user(&cl, argp, sizeof(cl)))
-			return -EFAULT;
+			if (!err && copy_to_user(argp, &cl, sizeof(cl)))
+			{
+				return -EFAULT;
+			}
 
-		if (cl.cnum <= 0)
-			return -EINVAL;
+			return err;
 
-		err = hidp_get_connlist(&cl);
-		if (!err && copy_to_user(argp, &cl, sizeof(cl)))
-			return -EFAULT;
+		case HIDPGETCONNINFO:
+			if (copy_from_user(&ci, argp, sizeof(ci)))
+			{
+				return -EFAULT;
+			}
 
-		return err;
+			err = hidp_get_conninfo(&ci);
 
-	case HIDPGETCONNINFO:
-		if (copy_from_user(&ci, argp, sizeof(ci)))
-			return -EFAULT;
+			if (!err && copy_to_user(argp, &ci, sizeof(ci)))
+			{
+				return -EFAULT;
+			}
 
-		err = hidp_get_conninfo(&ci);
-		if (!err && copy_to_user(argp, &ci, sizeof(ci)))
-			return -EFAULT;
-
-		return err;
+			return err;
 	}
 
 	return -EINVAL;
 }
 
 #ifdef CONFIG_COMPAT
-struct compat_hidp_connadd_req {
+struct compat_hidp_connadd_req
+{
 	int   ctrl_sock;	/* Connected control socket */
 	int   intr_sock;	/* Connected interrupt socket */
 	__u16 parser;
@@ -141,49 +174,62 @@ struct compat_hidp_connadd_req {
 
 static int hidp_sock_compat_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
 {
-	if (cmd == HIDPGETCONNLIST) {
+	if (cmd == HIDPGETCONNLIST)
+	{
 		struct hidp_connlist_req cl;
 		u32 uci;
 		int err;
 
 		if (get_user(cl.cnum, (u32 __user *) arg) ||
-				get_user(uci, (u32 __user *) (arg + 4)))
+			get_user(uci, (u32 __user *) (arg + 4)))
+		{
 			return -EFAULT;
+		}
 
 		cl.ci = compat_ptr(uci);
 
 		if (cl.cnum <= 0)
+		{
 			return -EINVAL;
+		}
 
 		err = hidp_get_connlist(&cl);
 
 		if (!err && put_user(cl.cnum, (u32 __user *) arg))
+		{
 			err = -EFAULT;
+		}
 
 		return err;
-	} else if (cmd == HIDPCONNADD) {
+	}
+	else if (cmd == HIDPCONNADD)
+	{
 		struct compat_hidp_connadd_req ca;
 		struct hidp_connadd_req __user *uca;
 
 		uca = compat_alloc_user_space(sizeof(*uca));
 
 		if (copy_from_user(&ca, (void __user *) arg, sizeof(ca)))
+		{
 			return -EFAULT;
+		}
 
 		if (put_user(ca.ctrl_sock, &uca->ctrl_sock) ||
-				put_user(ca.intr_sock, &uca->intr_sock) ||
-				put_user(ca.parser, &uca->parser) ||
-				put_user(ca.rd_size, &uca->rd_size) ||
-				put_user(compat_ptr(ca.rd_data), &uca->rd_data) ||
-				put_user(ca.country, &uca->country) ||
-				put_user(ca.subclass, &uca->subclass) ||
-				put_user(ca.vendor, &uca->vendor) ||
-				put_user(ca.product, &uca->product) ||
-				put_user(ca.version, &uca->version) ||
-				put_user(ca.flags, &uca->flags) ||
-				put_user(ca.idle_to, &uca->idle_to) ||
-				copy_to_user(&uca->name[0], &ca.name[0], 128))
+			put_user(ca.intr_sock, &uca->intr_sock) ||
+			put_user(ca.parser, &uca->parser) ||
+			put_user(ca.rd_size, &uca->rd_size) ||
+			put_user(compat_ptr(ca.rd_data), &uca->rd_data) ||
+			put_user(ca.country, &uca->country) ||
+			put_user(ca.subclass, &uca->subclass) ||
+			put_user(ca.vendor, &uca->vendor) ||
+			put_user(ca.product, &uca->product) ||
+			put_user(ca.version, &uca->version) ||
+			put_user(ca.flags, &uca->flags) ||
+			put_user(ca.idle_to, &uca->idle_to) ||
+			copy_to_user(&uca->name[0], &ca.name[0], 128))
+		{
 			return -EFAULT;
+		}
 
 		arg = (unsigned long) uca;
 
@@ -196,7 +242,8 @@ static int hidp_sock_compat_ioctl(struct socket *sock, unsigned int cmd, unsigne
 }
 #endif
 
-static const struct proto_ops hidp_sock_ops = {
+static const struct proto_ops hidp_sock_ops =
+{
 	.family		= PF_BLUETOOTH,
 	.owner		= THIS_MODULE,
 	.release	= hidp_sock_release,
@@ -219,25 +266,31 @@ static const struct proto_ops hidp_sock_ops = {
 	.mmap		= sock_no_mmap
 };
 
-static struct proto hidp_proto = {
+static struct proto hidp_proto =
+{
 	.name		= "HIDP",
 	.owner		= THIS_MODULE,
 	.obj_size	= sizeof(struct bt_sock)
 };
 
 static int hidp_sock_create(struct net *net, struct socket *sock, int protocol,
-			    int kern)
+							int kern)
 {
 	struct sock *sk;
 
 	BT_DBG("sock %p", sock);
 
 	if (sock->type != SOCK_RAW)
+	{
 		return -ESOCKTNOSUPPORT;
+	}
 
 	sk = sk_alloc(net, PF_BLUETOOTH, GFP_ATOMIC, &hidp_proto, kern);
+
 	if (!sk)
+	{
 		return -ENOMEM;
+	}
 
 	sock_init_data(sock, sk);
 
@@ -255,7 +308,8 @@ static int hidp_sock_create(struct net *net, struct socket *sock, int protocol,
 	return 0;
 }
 
-static const struct net_proto_family hidp_sock_family_ops = {
+static const struct net_proto_family hidp_sock_family_ops =
+{
 	.family	= PF_BLUETOOTH,
 	.owner	= THIS_MODULE,
 	.create	= hidp_sock_create
@@ -266,17 +320,24 @@ int __init hidp_init_sockets(void)
 	int err;
 
 	err = proto_register(&hidp_proto, 0);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = bt_sock_register(BTPROTO_HIDP, &hidp_sock_family_ops);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		BT_ERR("Can't register HIDP socket");
 		goto error;
 	}
 
 	err = bt_procfs_init(&init_net, "hidp", &hidp_sk_list, NULL);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		BT_ERR("Failed to create HIDP proc file");
 		bt_sock_unregister(BTPROTO_HIDP);
 		goto error;

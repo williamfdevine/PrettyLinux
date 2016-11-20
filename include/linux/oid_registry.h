@@ -20,7 +20,8 @@
  * NOTE!  Do not mess with the format of each line as this is read by
  *	  build_OID_registry.pl to generate the data for look_up_OID().
  */
-enum OID {
+enum OID
+{
 	OID_id_dsa_with_sha1,		/* 1.2.840.10030.4.3 */
 	OID_id_dsa,			/* 1.2.840.10040.4.1 */
 	OID_id_ecdsa_with_sha1,		/* 1.2.840.10045.4.1 */

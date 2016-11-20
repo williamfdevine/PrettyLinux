@@ -1021,7 +1021,8 @@
 #define WM8983_HALFOPBIAS_SHIFT                      0  /* HALFOPBIAS */
 #define WM8983_HALFOPBIAS_WIDTH                      1  /* HALFOPBIAS */
 
-enum clk_src {
+enum clk_src
+{
 	WM8983_CLKSRC_MCLK,
 	WM8983_CLKSRC_PLL
 };

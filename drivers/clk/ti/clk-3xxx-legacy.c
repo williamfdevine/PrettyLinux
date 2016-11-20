@@ -21,67 +21,80 @@
 
 #include "clock.h"
 
-static struct ti_clk_fixed virt_12m_ck_data = {
+static struct ti_clk_fixed virt_12m_ck_data =
+{
 	.frequency = 12000000,
 };
 
-static struct ti_clk virt_12m_ck = {
+static struct ti_clk virt_12m_ck =
+{
 	.name = "virt_12m_ck",
 	.type = TI_CLK_FIXED,
 	.data = &virt_12m_ck_data,
 };
 
-static struct ti_clk_fixed virt_13m_ck_data = {
+static struct ti_clk_fixed virt_13m_ck_data =
+{
 	.frequency = 13000000,
 };
 
-static struct ti_clk virt_13m_ck = {
+static struct ti_clk virt_13m_ck =
+{
 	.name = "virt_13m_ck",
 	.type = TI_CLK_FIXED,
 	.data = &virt_13m_ck_data,
 };
 
-static struct ti_clk_fixed virt_19200000_ck_data = {
+static struct ti_clk_fixed virt_19200000_ck_data =
+{
 	.frequency = 19200000,
 };
 
-static struct ti_clk virt_19200000_ck = {
+static struct ti_clk virt_19200000_ck =
+{
 	.name = "virt_19200000_ck",
 	.type = TI_CLK_FIXED,
 	.data = &virt_19200000_ck_data,
 };
 
-static struct ti_clk_fixed virt_26000000_ck_data = {
+static struct ti_clk_fixed virt_26000000_ck_data =
+{
 	.frequency = 26000000,
 };
 
-static struct ti_clk virt_26000000_ck = {
+static struct ti_clk virt_26000000_ck =
+{
 	.name = "virt_26000000_ck",
 	.type = TI_CLK_FIXED,
 	.data = &virt_26000000_ck_data,
 };
 
-static struct ti_clk_fixed virt_38_4m_ck_data = {
+static struct ti_clk_fixed virt_38_4m_ck_data =
+{
 	.frequency = 38400000,
 };
 
-static struct ti_clk virt_38_4m_ck = {
+static struct ti_clk virt_38_4m_ck =
+{
 	.name = "virt_38_4m_ck",
 	.type = TI_CLK_FIXED,
 	.data = &virt_38_4m_ck_data,
 };
 
-static struct ti_clk_fixed virt_16_8m_ck_data = {
+static struct ti_clk_fixed virt_16_8m_ck_data =
+{
 	.frequency = 16800000,
 };
 
-static struct ti_clk virt_16_8m_ck = {
+static struct ti_clk virt_16_8m_ck =
+{
 	.name = "virt_16_8m_ck",
 	.type = TI_CLK_FIXED,
 	.data = &virt_16_8m_ck_data,
 };
 
-static const char *osc_sys_ck_parents[] = {
+static const char *osc_sys_ck_parents[] =
+{
 	"virt_12m_ck",
 	"virt_13m_ck",
 	"virt_19200000_ck",
@@ -90,20 +103,23 @@ static const char *osc_sys_ck_parents[] = {
 	"virt_16_8m_ck",
 };
 
-static struct ti_clk_mux osc_sys_ck_data = {
+static struct ti_clk_mux osc_sys_ck_data =
+{
 	.num_parents = ARRAY_SIZE(osc_sys_ck_parents),
 	.reg = 0xd40,
 	.module = TI_CLKM_PRM,
 	.parents = osc_sys_ck_parents,
 };
 
-static struct ti_clk osc_sys_ck = {
+static struct ti_clk osc_sys_ck =
+{
 	.name = "osc_sys_ck",
 	.type = TI_CLK_MUX,
 	.data = &osc_sys_ck_data,
 };
 
-static struct ti_clk_divider sys_ck_data = {
+static struct ti_clk_divider sys_ck_data =
+{
 	.parent = "osc_sys_ck",
 	.bit_shift = 6,
 	.max_div = 3,
@@ -112,18 +128,21 @@ static struct ti_clk_divider sys_ck_data = {
 	.flags = CLKF_INDEX_STARTS_AT_ONE,
 };
 
-static struct ti_clk sys_ck = {
+static struct ti_clk sys_ck =
+{
 	.name = "sys_ck",
 	.type = TI_CLK_DIVIDER,
 	.data = &sys_ck_data,
 };
 
-static const char *dpll3_ck_parents[] = {
+static const char *dpll3_ck_parents[] =
+{
 	"sys_ck",
 	"sys_ck",
 };
 
-static struct ti_clk_dpll dpll3_ck_data = {
+static struct ti_clk_dpll dpll3_ck_data =
+{
 	.num_parents = ARRAY_SIZE(dpll3_ck_parents),
 	.control_reg = 0xd00,
 	.idlest_reg = 0xd20,
@@ -146,14 +165,16 @@ static struct ti_clk_dpll dpll3_ck_data = {
 	.autoidle_mask = 0x7,
 };
 
-static struct ti_clk dpll3_ck = {
+static struct ti_clk dpll3_ck =
+{
 	.name = "dpll3_ck",
 	.clkdm_name = "dpll3_clkdm",
 	.type = TI_CLK_DPLL,
 	.data = &dpll3_ck_data,
 };
 
-static struct ti_clk_divider dpll3_m2_ck_data = {
+static struct ti_clk_divider dpll3_m2_ck_data =
+{
 	.parent = "dpll3_ck",
 	.bit_shift = 27,
 	.max_div = 31,
@@ -162,25 +183,29 @@ static struct ti_clk_divider dpll3_m2_ck_data = {
 	.flags = CLKF_INDEX_STARTS_AT_ONE,
 };
 
-static struct ti_clk dpll3_m2_ck = {
+static struct ti_clk dpll3_m2_ck =
+{
 	.name = "dpll3_m2_ck",
 	.type = TI_CLK_DIVIDER,
 	.data = &dpll3_m2_ck_data,
 };
 
-static struct ti_clk_fixed_factor core_ck_data = {
+static struct ti_clk_fixed_factor core_ck_data =
+{
 	.parent = "dpll3_m2_ck",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk core_ck = {
+static struct ti_clk core_ck =
+{
 	.name = "core_ck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &core_ck_data,
 };
 
-static struct ti_clk_divider l3_ick_data = {
+static struct ti_clk_divider l3_ick_data =
+{
 	.parent = "core_ck",
 	.max_div = 3,
 	.reg = 0xa40,
@@ -188,37 +213,43 @@ static struct ti_clk_divider l3_ick_data = {
 	.flags = CLKF_INDEX_STARTS_AT_ONE,
 };
 
-static struct ti_clk l3_ick = {
+static struct ti_clk l3_ick =
+{
 	.name = "l3_ick",
 	.type = TI_CLK_DIVIDER,
 	.data = &l3_ick_data,
 };
 
-static struct ti_clk_fixed_factor security_l3_ick_data = {
+static struct ti_clk_fixed_factor security_l3_ick_data =
+{
 	.parent = "l3_ick",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk security_l3_ick = {
+static struct ti_clk security_l3_ick =
+{
 	.name = "security_l3_ick",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &security_l3_ick_data,
 };
 
-static struct ti_clk_fixed_factor wkup_l4_ick_data = {
+static struct ti_clk_fixed_factor wkup_l4_ick_data =
+{
 	.parent = "sys_ck",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk wkup_l4_ick = {
+static struct ti_clk wkup_l4_ick =
+{
 	.name = "wkup_l4_ick",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &wkup_l4_ick_data,
 };
 
-static struct ti_clk_gate usim_ick_data = {
+static struct ti_clk_gate usim_ick_data =
+{
 	.parent = "wkup_l4_ick",
 	.bit_shift = 9,
 	.reg = 0xc10,
@@ -226,28 +257,32 @@ static struct ti_clk_gate usim_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk usim_ick = {
+static struct ti_clk usim_ick =
+{
 	.name = "usim_ick",
 	.clkdm_name = "wkup_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &usim_ick_data,
 };
 
-static struct ti_clk_gate dss2_alwon_fck_data = {
+static struct ti_clk_gate dss2_alwon_fck_data =
+{
 	.parent = "sys_ck",
 	.bit_shift = 1,
 	.reg = 0xe00,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk dss2_alwon_fck = {
+static struct ti_clk dss2_alwon_fck =
+{
 	.name = "dss2_alwon_fck",
 	.clkdm_name = "dss_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &dss2_alwon_fck_data,
 };
 
-static struct ti_clk_divider l4_ick_data = {
+static struct ti_clk_divider l4_ick_data =
+{
 	.parent = "l3_ick",
 	.bit_shift = 2,
 	.max_div = 3,
@@ -256,25 +291,29 @@ static struct ti_clk_divider l4_ick_data = {
 	.flags = CLKF_INDEX_STARTS_AT_ONE,
 };
 
-static struct ti_clk l4_ick = {
+static struct ti_clk l4_ick =
+{
 	.name = "l4_ick",
 	.type = TI_CLK_DIVIDER,
 	.data = &l4_ick_data,
 };
 
-static struct ti_clk_fixed_factor core_l4_ick_data = {
+static struct ti_clk_fixed_factor core_l4_ick_data =
+{
 	.parent = "l4_ick",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk core_l4_ick = {
+static struct ti_clk core_l4_ick =
+{
 	.name = "core_l4_ick",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &core_l4_ick_data,
 };
 
-static struct ti_clk_gate mmchs2_ick_data = {
+static struct ti_clk_gate mmchs2_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 25,
 	.reg = 0xa10,
@@ -282,19 +321,22 @@ static struct ti_clk_gate mmchs2_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk mmchs2_ick = {
+static struct ti_clk mmchs2_ick =
+{
 	.name = "mmchs2_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &mmchs2_ick_data,
 };
 
-static const char *dpll4_ck_parents[] = {
+static const char *dpll4_ck_parents[] =
+{
 	"sys_ck",
 	"sys_ck",
 };
 
-static struct ti_clk_dpll dpll4_ck_data = {
+static struct ti_clk_dpll dpll4_ck_data =
+{
 	.num_parents = ARRAY_SIZE(dpll4_ck_parents),
 	.control_reg = 0xd00,
 	.idlest_reg = 0xd20,
@@ -318,14 +360,16 @@ static struct ti_clk_dpll dpll4_ck_data = {
 	.autoidle_mask = 0x38,
 };
 
-static struct ti_clk dpll4_ck = {
+static struct ti_clk dpll4_ck =
+{
 	.name = "dpll4_ck",
 	.clkdm_name = "dpll4_clkdm",
 	.type = TI_CLK_DPLL,
 	.data = &dpll4_ck_data,
 };
 
-static struct ti_clk_divider dpll4_m2_ck_data = {
+static struct ti_clk_divider dpll4_m2_ck_data =
+{
 	.parent = "dpll4_ck",
 	.max_div = 63,
 	.reg = 0xd48,
@@ -333,25 +377,29 @@ static struct ti_clk_divider dpll4_m2_ck_data = {
 	.flags = CLKF_INDEX_STARTS_AT_ONE,
 };
 
-static struct ti_clk dpll4_m2_ck = {
+static struct ti_clk dpll4_m2_ck =
+{
 	.name = "dpll4_m2_ck",
 	.type = TI_CLK_DIVIDER,
 	.data = &dpll4_m2_ck_data,
 };
 
-static struct ti_clk_fixed_factor dpll4_m2x2_mul_ck_data = {
+static struct ti_clk_fixed_factor dpll4_m2x2_mul_ck_data =
+{
 	.parent = "dpll4_m2_ck",
 	.div = 1,
 	.mult = 2,
 };
 
-static struct ti_clk dpll4_m2x2_mul_ck = {
+static struct ti_clk dpll4_m2x2_mul_ck =
+{
 	.name = "dpll4_m2x2_mul_ck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &dpll4_m2x2_mul_ck_data,
 };
 
-static struct ti_clk_gate dpll4_m2x2_ck_data = {
+static struct ti_clk_gate dpll4_m2x2_ck_data =
+{
 	.parent = "dpll4_m2x2_mul_ck",
 	.bit_shift = 0x1b,
 	.reg = 0xd00,
@@ -359,42 +407,49 @@ static struct ti_clk_gate dpll4_m2x2_ck_data = {
 	.flags = CLKF_SET_BIT_TO_DISABLE,
 };
 
-static struct ti_clk dpll4_m2x2_ck = {
+static struct ti_clk dpll4_m2x2_ck =
+{
 	.name = "dpll4_m2x2_ck",
 	.type = TI_CLK_GATE,
 	.data = &dpll4_m2x2_ck_data,
 };
 
-static struct ti_clk_fixed_factor omap_96m_alwon_fck_data = {
+static struct ti_clk_fixed_factor omap_96m_alwon_fck_data =
+{
 	.parent = "dpll4_m2x2_ck",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk omap_96m_alwon_fck = {
+static struct ti_clk omap_96m_alwon_fck =
+{
 	.name = "omap_96m_alwon_fck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &omap_96m_alwon_fck_data,
 };
 
-static struct ti_clk_fixed_factor cm_96m_fck_data = {
+static struct ti_clk_fixed_factor cm_96m_fck_data =
+{
 	.parent = "omap_96m_alwon_fck",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk cm_96m_fck = {
+static struct ti_clk cm_96m_fck =
+{
 	.name = "cm_96m_fck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &cm_96m_fck_data,
 };
 
-static const char *omap_96m_fck_parents[] = {
+static const char *omap_96m_fck_parents[] =
+{
 	"cm_96m_fck",
 	"sys_ck",
 };
 
-static struct ti_clk_mux omap_96m_fck_data = {
+static struct ti_clk_mux omap_96m_fck_data =
+{
 	.bit_shift = 6,
 	.num_parents = ARRAY_SIZE(omap_96m_fck_parents),
 	.reg = 0xd40,
@@ -402,25 +457,29 @@ static struct ti_clk_mux omap_96m_fck_data = {
 	.parents = omap_96m_fck_parents,
 };
 
-static struct ti_clk omap_96m_fck = {
+static struct ti_clk omap_96m_fck =
+{
 	.name = "omap_96m_fck",
 	.type = TI_CLK_MUX,
 	.data = &omap_96m_fck_data,
 };
 
-static struct ti_clk_fixed_factor core_96m_fck_data = {
+static struct ti_clk_fixed_factor core_96m_fck_data =
+{
 	.parent = "omap_96m_fck",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk core_96m_fck = {
+static struct ti_clk core_96m_fck =
+{
 	.name = "core_96m_fck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &core_96m_fck_data,
 };
 
-static struct ti_clk_gate mspro_fck_data = {
+static struct ti_clk_gate mspro_fck_data =
+{
 	.parent = "core_96m_fck",
 	.bit_shift = 23,
 	.reg = 0xa00,
@@ -428,14 +487,16 @@ static struct ti_clk_gate mspro_fck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk mspro_fck = {
+static struct ti_clk mspro_fck =
+{
 	.name = "mspro_fck",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &mspro_fck_data,
 };
 
-static struct ti_clk_gate dss_ick_3430es2_data = {
+static struct ti_clk_gate dss_ick_3430es2_data =
+{
 	.parent = "l4_ick",
 	.bit_shift = 0,
 	.reg = 0xe10,
@@ -443,14 +504,16 @@ static struct ti_clk_gate dss_ick_3430es2_data = {
 	.flags = CLKF_DSS | CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk dss_ick_3430es2 = {
+static struct ti_clk dss_ick_3430es2 =
+{
 	.name = "dss_ick",
 	.clkdm_name = "dss_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &dss_ick_3430es2_data,
 };
 
-static struct ti_clk_gate uart4_ick_am35xx_data = {
+static struct ti_clk_gate uart4_ick_am35xx_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 23,
 	.reg = 0xa10,
@@ -458,26 +521,30 @@ static struct ti_clk_gate uart4_ick_am35xx_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk uart4_ick_am35xx = {
+static struct ti_clk uart4_ick_am35xx =
+{
 	.name = "uart4_ick_am35xx",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &uart4_ick_am35xx_data,
 };
 
-static struct ti_clk_fixed_factor security_l4_ick2_data = {
+static struct ti_clk_fixed_factor security_l4_ick2_data =
+{
 	.parent = "l4_ick",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk security_l4_ick2 = {
+static struct ti_clk security_l4_ick2 =
+{
 	.name = "security_l4_ick2",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &security_l4_ick2_data,
 };
 
-static struct ti_clk_gate aes1_ick_data = {
+static struct ti_clk_gate aes1_ick_data =
+{
 	.parent = "security_l4_ick2",
 	.bit_shift = 3,
 	.reg = 0xa14,
@@ -485,18 +552,21 @@ static struct ti_clk_gate aes1_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk aes1_ick = {
+static struct ti_clk aes1_ick =
+{
 	.name = "aes1_ick",
 	.type = TI_CLK_GATE,
 	.data = &aes1_ick_data,
 };
 
-static const char *dpll5_ck_parents[] = {
+static const char *dpll5_ck_parents[] =
+{
 	"sys_ck",
 	"sys_ck",
 };
 
-static struct ti_clk_dpll dpll5_ck_data = {
+static struct ti_clk_dpll dpll5_ck_data =
+{
 	.num_parents = ARRAY_SIZE(dpll5_ck_parents),
 	.control_reg = 0xd04,
 	.idlest_reg = 0xd24,
@@ -519,14 +589,16 @@ static struct ti_clk_dpll dpll5_ck_data = {
 	.autoidle_mask = 0x7,
 };
 
-static struct ti_clk dpll5_ck = {
+static struct ti_clk dpll5_ck =
+{
 	.name = "dpll5_ck",
 	.clkdm_name = "dpll5_clkdm",
 	.type = TI_CLK_DPLL,
 	.data = &dpll5_ck_data,
 };
 
-static struct ti_clk_divider dpll5_m2_ck_data = {
+static struct ti_clk_divider dpll5_m2_ck_data =
+{
 	.parent = "dpll5_ck",
 	.max_div = 31,
 	.reg = 0xd50,
@@ -534,54 +606,63 @@ static struct ti_clk_divider dpll5_m2_ck_data = {
 	.flags = CLKF_INDEX_STARTS_AT_ONE,
 };
 
-static struct ti_clk dpll5_m2_ck = {
+static struct ti_clk dpll5_m2_ck =
+{
 	.name = "dpll5_m2_ck",
 	.type = TI_CLK_DIVIDER,
 	.data = &dpll5_m2_ck_data,
 };
 
-static struct ti_clk_gate usbhost_120m_fck_data = {
+static struct ti_clk_gate usbhost_120m_fck_data =
+{
 	.parent = "dpll5_m2_ck",
 	.bit_shift = 1,
 	.reg = 0x1400,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk usbhost_120m_fck = {
+static struct ti_clk usbhost_120m_fck =
+{
 	.name = "usbhost_120m_fck",
 	.clkdm_name = "usbhost_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &usbhost_120m_fck_data,
 };
 
-static struct ti_clk_fixed_factor cm_96m_d2_fck_data = {
+static struct ti_clk_fixed_factor cm_96m_d2_fck_data =
+{
 	.parent = "cm_96m_fck",
 	.div = 2,
 	.mult = 1,
 };
 
-static struct ti_clk cm_96m_d2_fck = {
+static struct ti_clk cm_96m_d2_fck =
+{
 	.name = "cm_96m_d2_fck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &cm_96m_d2_fck_data,
 };
 
-static struct ti_clk_fixed sys_altclk_data = {
+static struct ti_clk_fixed sys_altclk_data =
+{
 	.frequency = 0x0,
 };
 
-static struct ti_clk sys_altclk = {
+static struct ti_clk sys_altclk =
+{
 	.name = "sys_altclk",
 	.type = TI_CLK_FIXED,
 	.data = &sys_altclk_data,
 };
 
-static const char *omap_48m_fck_parents[] = {
+static const char *omap_48m_fck_parents[] =
+{
 	"cm_96m_d2_fck",
 	"sys_altclk",
 };
 
-static struct ti_clk_mux omap_48m_fck_data = {
+static struct ti_clk_mux omap_48m_fck_data =
+{
 	.bit_shift = 3,
 	.num_parents = ARRAY_SIZE(omap_48m_fck_parents),
 	.reg = 0xd40,
@@ -589,59 +670,69 @@ static struct ti_clk_mux omap_48m_fck_data = {
 	.parents = omap_48m_fck_parents,
 };
 
-static struct ti_clk omap_48m_fck = {
+static struct ti_clk omap_48m_fck =
+{
 	.name = "omap_48m_fck",
 	.type = TI_CLK_MUX,
 	.data = &omap_48m_fck_data,
 };
 
-static struct ti_clk_fixed_factor core_48m_fck_data = {
+static struct ti_clk_fixed_factor core_48m_fck_data =
+{
 	.parent = "omap_48m_fck",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk core_48m_fck = {
+static struct ti_clk core_48m_fck =
+{
 	.name = "core_48m_fck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &core_48m_fck_data,
 };
 
-static struct ti_clk_fixed mcbsp_clks_data = {
+static struct ti_clk_fixed mcbsp_clks_data =
+{
 	.frequency = 0x0,
 };
 
-static struct ti_clk mcbsp_clks = {
+static struct ti_clk mcbsp_clks =
+{
 	.name = "mcbsp_clks",
 	.type = TI_CLK_FIXED,
 	.data = &mcbsp_clks_data,
 };
 
-static struct ti_clk_gate mcbsp2_gate_fck_data = {
+static struct ti_clk_gate mcbsp2_gate_fck_data =
+{
 	.parent = "mcbsp_clks",
 	.bit_shift = 0,
 	.reg = 0x1000,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk_fixed_factor per_96m_fck_data = {
+static struct ti_clk_fixed_factor per_96m_fck_data =
+{
 	.parent = "omap_96m_alwon_fck",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk per_96m_fck = {
+static struct ti_clk per_96m_fck =
+{
 	.name = "per_96m_fck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &per_96m_fck_data,
 };
 
-static const char *mcbsp2_mux_fck_parents[] = {
+static const char *mcbsp2_mux_fck_parents[] =
+{
 	"per_96m_fck",
 	"mcbsp_clks",
 };
 
-static struct ti_clk_mux mcbsp2_mux_fck_data = {
+static struct ti_clk_mux mcbsp2_mux_fck_data =
+{
 	.bit_shift = 6,
 	.num_parents = ARRAY_SIZE(mcbsp2_mux_fck_parents),
 	.reg = 0x274,
@@ -649,42 +740,49 @@ static struct ti_clk_mux mcbsp2_mux_fck_data = {
 	.parents = mcbsp2_mux_fck_parents,
 };
 
-static struct ti_clk_composite mcbsp2_fck_data = {
+static struct ti_clk_composite mcbsp2_fck_data =
+{
 	.mux = &mcbsp2_mux_fck_data,
 	.gate = &mcbsp2_gate_fck_data,
 };
 
-static struct ti_clk mcbsp2_fck = {
+static struct ti_clk mcbsp2_fck =
+{
 	.name = "mcbsp2_fck",
 	.type = TI_CLK_COMPOSITE,
 	.data = &mcbsp2_fck_data,
 };
 
-static struct ti_clk_fixed_factor dpll3_m2x2_ck_data = {
+static struct ti_clk_fixed_factor dpll3_m2x2_ck_data =
+{
 	.parent = "dpll3_m2_ck",
 	.div = 1,
 	.mult = 2,
 };
 
-static struct ti_clk dpll3_m2x2_ck = {
+static struct ti_clk dpll3_m2x2_ck =
+{
 	.name = "dpll3_m2x2_ck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &dpll3_m2x2_ck_data,
 };
 
-static struct ti_clk_fixed_factor corex2_fck_data = {
+static struct ti_clk_fixed_factor corex2_fck_data =
+{
 	.parent = "dpll3_m2x2_ck",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk corex2_fck = {
+static struct ti_clk corex2_fck =
+{
 	.name = "corex2_fck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &corex2_fck_data,
 };
 
-static struct ti_clk_gate ssi_ssr_gate_fck_3430es1_data = {
+static struct ti_clk_gate ssi_ssr_gate_fck_3430es1_data =
+{
 	.parent = "corex2_fck",
 	.bit_shift = 0,
 	.reg = 0xa00,
@@ -692,7 +790,8 @@ static struct ti_clk_gate ssi_ssr_gate_fck_3430es1_data = {
 	.flags = CLKF_NO_WAIT,
 };
 
-static int ssi_ssr_div_fck_3430es1_divs[] = {
+static int ssi_ssr_div_fck_3430es1_divs[] =
+{
 	0,
 	1,
 	2,
@@ -704,7 +803,8 @@ static int ssi_ssr_div_fck_3430es1_divs[] = {
 	8,
 };
 
-static struct ti_clk_divider ssi_ssr_div_fck_3430es1_data = {
+static struct ti_clk_divider ssi_ssr_div_fck_3430es1_data =
+{
 	.num_dividers = ARRAY_SIZE(ssi_ssr_div_fck_3430es1_divs),
 	.parent = "corex2_fck",
 	.bit_shift = 8,
@@ -713,66 +813,77 @@ static struct ti_clk_divider ssi_ssr_div_fck_3430es1_data = {
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk_composite ssi_ssr_fck_3430es1_data = {
+static struct ti_clk_composite ssi_ssr_fck_3430es1_data =
+{
 	.gate = &ssi_ssr_gate_fck_3430es1_data,
 	.divider = &ssi_ssr_div_fck_3430es1_data,
 };
 
-static struct ti_clk ssi_ssr_fck_3430es1 = {
+static struct ti_clk ssi_ssr_fck_3430es1 =
+{
 	.name = "ssi_ssr_fck",
 	.type = TI_CLK_COMPOSITE,
 	.data = &ssi_ssr_fck_3430es1_data,
 };
 
-static struct ti_clk_fixed_factor ssi_sst_fck_3430es1_data = {
+static struct ti_clk_fixed_factor ssi_sst_fck_3430es1_data =
+{
 	.parent = "ssi_ssr_fck",
 	.div = 2,
 	.mult = 1,
 };
 
-static struct ti_clk ssi_sst_fck_3430es1 = {
+static struct ti_clk ssi_sst_fck_3430es1 =
+{
 	.name = "ssi_sst_fck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &ssi_sst_fck_3430es1_data,
 };
 
-static struct ti_clk_fixed omap_32k_fck_data = {
+static struct ti_clk_fixed omap_32k_fck_data =
+{
 	.frequency = 32768,
 };
 
-static struct ti_clk omap_32k_fck = {
+static struct ti_clk omap_32k_fck =
+{
 	.name = "omap_32k_fck",
 	.type = TI_CLK_FIXED,
 	.data = &omap_32k_fck_data,
 };
 
-static struct ti_clk_fixed_factor per_32k_alwon_fck_data = {
+static struct ti_clk_fixed_factor per_32k_alwon_fck_data =
+{
 	.parent = "omap_32k_fck",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk per_32k_alwon_fck = {
+static struct ti_clk per_32k_alwon_fck =
+{
 	.name = "per_32k_alwon_fck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &per_32k_alwon_fck_data,
 };
 
-static struct ti_clk_gate gpio5_dbck_data = {
+static struct ti_clk_gate gpio5_dbck_data =
+{
 	.parent = "per_32k_alwon_fck",
 	.bit_shift = 16,
 	.reg = 0x1000,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk gpio5_dbck = {
+static struct ti_clk gpio5_dbck =
+{
 	.name = "gpio5_dbck",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gpio5_dbck_data,
 };
 
-static struct ti_clk_gate gpt1_ick_data = {
+static struct ti_clk_gate gpt1_ick_data =
+{
 	.parent = "wkup_l4_ick",
 	.bit_shift = 0,
 	.reg = 0xc10,
@@ -780,14 +891,16 @@ static struct ti_clk_gate gpt1_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk gpt1_ick = {
+static struct ti_clk gpt1_ick =
+{
 	.name = "gpt1_ick",
 	.clkdm_name = "wkup_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gpt1_ick_data,
 };
 
-static struct ti_clk_gate mcspi3_fck_data = {
+static struct ti_clk_gate mcspi3_fck_data =
+{
 	.parent = "core_48m_fck",
 	.bit_shift = 20,
 	.reg = 0xa00,
@@ -795,44 +908,51 @@ static struct ti_clk_gate mcspi3_fck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk mcspi3_fck = {
+static struct ti_clk mcspi3_fck =
+{
 	.name = "mcspi3_fck",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &mcspi3_fck_data,
 };
 
-static struct ti_clk_gate gpt2_gate_fck_data = {
+static struct ti_clk_gate gpt2_gate_fck_data =
+{
 	.parent = "sys_ck",
 	.bit_shift = 3,
 	.reg = 0x1000,
 	.module = TI_CLKM_CM,
 };
 
-static const char *gpt2_mux_fck_parents[] = {
+static const char *gpt2_mux_fck_parents[] =
+{
 	"omap_32k_fck",
 	"sys_ck",
 };
 
-static struct ti_clk_mux gpt2_mux_fck_data = {
+static struct ti_clk_mux gpt2_mux_fck_data =
+{
 	.num_parents = ARRAY_SIZE(gpt2_mux_fck_parents),
 	.reg = 0x1040,
 	.module = TI_CLKM_CM,
 	.parents = gpt2_mux_fck_parents,
 };
 
-static struct ti_clk_composite gpt2_fck_data = {
+static struct ti_clk_composite gpt2_fck_data =
+{
 	.mux = &gpt2_mux_fck_data,
 	.gate = &gpt2_gate_fck_data,
 };
 
-static struct ti_clk gpt2_fck = {
+static struct ti_clk gpt2_fck =
+{
 	.name = "gpt2_fck",
 	.type = TI_CLK_COMPOSITE,
 	.data = &gpt2_fck_data,
 };
 
-static struct ti_clk_gate gpt10_ick_data = {
+static struct ti_clk_gate gpt10_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 11,
 	.reg = 0xa10,
@@ -840,14 +960,16 @@ static struct ti_clk_gate gpt10_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk gpt10_ick = {
+static struct ti_clk gpt10_ick =
+{
 	.name = "gpt10_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gpt10_ick_data,
 };
 
-static struct ti_clk_gate uart2_fck_data = {
+static struct ti_clk_gate uart2_fck_data =
+{
 	.parent = "core_48m_fck",
 	.bit_shift = 14,
 	.reg = 0xa00,
@@ -855,38 +977,44 @@ static struct ti_clk_gate uart2_fck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk uart2_fck = {
+static struct ti_clk uart2_fck =
+{
 	.name = "uart2_fck",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &uart2_fck_data,
 };
 
-static struct ti_clk_fixed_factor sr_l4_ick_data = {
+static struct ti_clk_fixed_factor sr_l4_ick_data =
+{
 	.parent = "l4_ick",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk sr_l4_ick = {
+static struct ti_clk sr_l4_ick =
+{
 	.name = "sr_l4_ick",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &sr_l4_ick_data,
 };
 
-static struct ti_clk_fixed_factor omap_96m_d8_fck_data = {
+static struct ti_clk_fixed_factor omap_96m_d8_fck_data =
+{
 	.parent = "omap_96m_fck",
 	.div = 8,
 	.mult = 1,
 };
 
-static struct ti_clk omap_96m_d8_fck = {
+static struct ti_clk omap_96m_d8_fck =
+{
 	.name = "omap_96m_d8_fck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &omap_96m_d8_fck_data,
 };
 
-static struct ti_clk_divider dpll4_m5_ck_data = {
+static struct ti_clk_divider dpll4_m5_ck_data =
+{
 	.parent = "dpll4_ck",
 	.max_div = 63,
 	.reg = 0xf40,
@@ -894,26 +1022,30 @@ static struct ti_clk_divider dpll4_m5_ck_data = {
 	.flags = CLKF_INDEX_STARTS_AT_ONE,
 };
 
-static struct ti_clk dpll4_m5_ck = {
+static struct ti_clk dpll4_m5_ck =
+{
 	.name = "dpll4_m5_ck",
 	.type = TI_CLK_DIVIDER,
 	.data = &dpll4_m5_ck_data,
 };
 
-static struct ti_clk_fixed_factor dpll4_m5x2_mul_ck_data = {
+static struct ti_clk_fixed_factor dpll4_m5x2_mul_ck_data =
+{
 	.parent = "dpll4_m5_ck",
 	.div = 1,
 	.mult = 2,
 	.flags = CLKF_SET_RATE_PARENT,
 };
 
-static struct ti_clk dpll4_m5x2_mul_ck = {
+static struct ti_clk dpll4_m5x2_mul_ck =
+{
 	.name = "dpll4_m5x2_mul_ck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &dpll4_m5x2_mul_ck_data,
 };
 
-static struct ti_clk_gate dpll4_m5x2_ck_data = {
+static struct ti_clk_gate dpll4_m5x2_ck_data =
+{
 	.parent = "dpll4_m5x2_mul_ck",
 	.bit_shift = 0x1e,
 	.reg = 0xd00,
@@ -921,13 +1053,15 @@ static struct ti_clk_gate dpll4_m5x2_ck_data = {
 	.flags = CLKF_SET_BIT_TO_DISABLE,
 };
 
-static struct ti_clk dpll4_m5x2_ck = {
+static struct ti_clk dpll4_m5x2_ck =
+{
 	.name = "dpll4_m5x2_ck",
 	.type = TI_CLK_GATE,
 	.data = &dpll4_m5x2_ck_data,
 };
 
-static struct ti_clk_gate cam_mclk_data = {
+static struct ti_clk_gate cam_mclk_data =
+{
 	.parent = "dpll4_m5x2_ck",
 	.bit_shift = 0,
 	.reg = 0xf00,
@@ -935,69 +1069,80 @@ static struct ti_clk_gate cam_mclk_data = {
 	.flags = CLKF_SET_RATE_PARENT,
 };
 
-static struct ti_clk cam_mclk = {
+static struct ti_clk cam_mclk =
+{
 	.name = "cam_mclk",
 	.type = TI_CLK_GATE,
 	.data = &cam_mclk_data,
 };
 
-static struct ti_clk_gate mcbsp3_gate_fck_data = {
+static struct ti_clk_gate mcbsp3_gate_fck_data =
+{
 	.parent = "mcbsp_clks",
 	.bit_shift = 1,
 	.reg = 0x1000,
 	.module = TI_CLKM_CM,
 };
 
-static const char *mcbsp3_mux_fck_parents[] = {
+static const char *mcbsp3_mux_fck_parents[] =
+{
 	"per_96m_fck",
 	"mcbsp_clks",
 };
 
-static struct ti_clk_mux mcbsp3_mux_fck_data = {
+static struct ti_clk_mux mcbsp3_mux_fck_data =
+{
 	.num_parents = ARRAY_SIZE(mcbsp3_mux_fck_parents),
 	.reg = 0x2d8,
 	.module = TI_CLKM_SCRM,
 	.parents = mcbsp3_mux_fck_parents,
 };
 
-static struct ti_clk_composite mcbsp3_fck_data = {
+static struct ti_clk_composite mcbsp3_fck_data =
+{
 	.mux = &mcbsp3_mux_fck_data,
 	.gate = &mcbsp3_gate_fck_data,
 };
 
-static struct ti_clk mcbsp3_fck = {
+static struct ti_clk mcbsp3_fck =
+{
 	.name = "mcbsp3_fck",
 	.type = TI_CLK_COMPOSITE,
 	.data = &mcbsp3_fck_data,
 };
 
-static struct ti_clk_gate csi2_96m_fck_data = {
+static struct ti_clk_gate csi2_96m_fck_data =
+{
 	.parent = "core_96m_fck",
 	.bit_shift = 1,
 	.reg = 0xf00,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk csi2_96m_fck = {
+static struct ti_clk csi2_96m_fck =
+{
 	.name = "csi2_96m_fck",
 	.clkdm_name = "cam_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &csi2_96m_fck_data,
 };
 
-static struct ti_clk_gate gpt9_gate_fck_data = {
+static struct ti_clk_gate gpt9_gate_fck_data =
+{
 	.parent = "sys_ck",
 	.bit_shift = 10,
 	.reg = 0x1000,
 	.module = TI_CLKM_CM,
 };
 
-static const char *gpt9_mux_fck_parents[] = {
+static const char *gpt9_mux_fck_parents[] =
+{
 	"omap_32k_fck",
 	"sys_ck",
 };
 
-static struct ti_clk_mux gpt9_mux_fck_data = {
+static struct ti_clk_mux gpt9_mux_fck_data =
+{
 	.bit_shift = 7,
 	.num_parents = ARRAY_SIZE(gpt9_mux_fck_parents),
 	.reg = 0x1040,
@@ -1005,18 +1150,21 @@ static struct ti_clk_mux gpt9_mux_fck_data = {
 	.parents = gpt9_mux_fck_parents,
 };
 
-static struct ti_clk_composite gpt9_fck_data = {
+static struct ti_clk_composite gpt9_fck_data =
+{
 	.mux = &gpt9_mux_fck_data,
 	.gate = &gpt9_gate_fck_data,
 };
 
-static struct ti_clk gpt9_fck = {
+static struct ti_clk gpt9_fck =
+{
 	.name = "gpt9_fck",
 	.type = TI_CLK_COMPOSITE,
 	.data = &gpt9_fck_data,
 };
 
-static struct ti_clk_divider dpll3_m3_ck_data = {
+static struct ti_clk_divider dpll3_m3_ck_data =
+{
 	.parent = "dpll3_ck",
 	.bit_shift = 16,
 	.max_div = 31,
@@ -1025,25 +1173,29 @@ static struct ti_clk_divider dpll3_m3_ck_data = {
 	.flags = CLKF_INDEX_STARTS_AT_ONE,
 };
 
-static struct ti_clk dpll3_m3_ck = {
+static struct ti_clk dpll3_m3_ck =
+{
 	.name = "dpll3_m3_ck",
 	.type = TI_CLK_DIVIDER,
 	.data = &dpll3_m3_ck_data,
 };
 
-static struct ti_clk_fixed_factor dpll3_m3x2_mul_ck_data = {
+static struct ti_clk_fixed_factor dpll3_m3x2_mul_ck_data =
+{
 	.parent = "dpll3_m3_ck",
 	.div = 1,
 	.mult = 2,
 };
 
-static struct ti_clk dpll3_m3x2_mul_ck = {
+static struct ti_clk dpll3_m3x2_mul_ck =
+{
 	.name = "dpll3_m3x2_mul_ck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &dpll3_m3x2_mul_ck_data,
 };
 
-static struct ti_clk_gate sr2_fck_data = {
+static struct ti_clk_gate sr2_fck_data =
+{
 	.parent = "sys_ck",
 	.bit_shift = 7,
 	.reg = 0xc00,
@@ -1051,24 +1203,28 @@ static struct ti_clk_gate sr2_fck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk sr2_fck = {
+static struct ti_clk sr2_fck =
+{
 	.name = "sr2_fck",
 	.clkdm_name = "wkup_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &sr2_fck_data,
 };
 
-static struct ti_clk_fixed pclk_ck_data = {
+static struct ti_clk_fixed pclk_ck_data =
+{
 	.frequency = 27000000,
 };
 
-static struct ti_clk pclk_ck = {
+static struct ti_clk pclk_ck =
+{
 	.name = "pclk_ck",
 	.type = TI_CLK_FIXED,
 	.data = &pclk_ck_data,
 };
 
-static struct ti_clk_gate wdt2_ick_data = {
+static struct ti_clk_gate wdt2_ick_data =
+{
 	.parent = "wkup_l4_ick",
 	.bit_shift = 5,
 	.reg = 0xc10,
@@ -1076,26 +1232,30 @@ static struct ti_clk_gate wdt2_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk wdt2_ick = {
+static struct ti_clk wdt2_ick =
+{
 	.name = "wdt2_ick",
 	.clkdm_name = "wkup_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &wdt2_ick_data,
 };
 
-static struct ti_clk_fixed_factor core_l3_ick_data = {
+static struct ti_clk_fixed_factor core_l3_ick_data =
+{
 	.parent = "l3_ick",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk core_l3_ick = {
+static struct ti_clk core_l3_ick =
+{
 	.name = "core_l3_ick",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &core_l3_ick_data,
 };
 
-static struct ti_clk_gate mcspi4_fck_data = {
+static struct ti_clk_gate mcspi4_fck_data =
+{
 	.parent = "core_48m_fck",
 	.bit_shift = 21,
 	.reg = 0xa00,
@@ -1103,26 +1263,30 @@ static struct ti_clk_gate mcspi4_fck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk mcspi4_fck = {
+static struct ti_clk mcspi4_fck =
+{
 	.name = "mcspi4_fck",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &mcspi4_fck_data,
 };
 
-static struct ti_clk_fixed_factor per_48m_fck_data = {
+static struct ti_clk_fixed_factor per_48m_fck_data =
+{
 	.parent = "omap_48m_fck",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk per_48m_fck = {
+static struct ti_clk per_48m_fck =
+{
 	.name = "per_48m_fck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &per_48m_fck_data,
 };
 
-static struct ti_clk_gate uart4_fck_data = {
+static struct ti_clk_gate uart4_fck_data =
+{
 	.parent = "per_48m_fck",
 	.bit_shift = 18,
 	.reg = 0x1000,
@@ -1130,45 +1294,52 @@ static struct ti_clk_gate uart4_fck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk uart4_fck = {
+static struct ti_clk uart4_fck =
+{
 	.name = "uart4_fck",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &uart4_fck_data,
 };
 
-static struct ti_clk_fixed_factor omap_96m_d10_fck_data = {
+static struct ti_clk_fixed_factor omap_96m_d10_fck_data =
+{
 	.parent = "omap_96m_fck",
 	.div = 10,
 	.mult = 1,
 };
 
-static struct ti_clk omap_96m_d10_fck = {
+static struct ti_clk omap_96m_d10_fck =
+{
 	.name = "omap_96m_d10_fck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &omap_96m_d10_fck_data,
 };
 
-static struct ti_clk_gate usim_gate_fck_data = {
+static struct ti_clk_gate usim_gate_fck_data =
+{
 	.parent = "omap_96m_fck",
 	.bit_shift = 9,
 	.reg = 0xc00,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk_fixed_factor per_l4_ick_data = {
+static struct ti_clk_fixed_factor per_l4_ick_data =
+{
 	.parent = "l4_ick",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk per_l4_ick = {
+static struct ti_clk per_l4_ick =
+{
 	.name = "per_l4_ick",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &per_l4_ick_data,
 };
 
-static struct ti_clk_gate gpt5_ick_data = {
+static struct ti_clk_gate gpt5_ick_data =
+{
 	.parent = "per_l4_ick",
 	.bit_shift = 6,
 	.reg = 0x1010,
@@ -1176,14 +1347,16 @@ static struct ti_clk_gate gpt5_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk gpt5_ick = {
+static struct ti_clk gpt5_ick =
+{
 	.name = "gpt5_ick",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gpt5_ick_data,
 };
 
-static struct ti_clk_gate mcspi2_ick_data = {
+static struct ti_clk_gate mcspi2_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 19,
 	.reg = 0xa10,
@@ -1191,27 +1364,31 @@ static struct ti_clk_gate mcspi2_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk mcspi2_ick = {
+static struct ti_clk mcspi2_ick =
+{
 	.name = "mcspi2_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &mcspi2_ick_data,
 };
 
-static struct ti_clk_fixed_factor ssi_l4_ick_data = {
+static struct ti_clk_fixed_factor ssi_l4_ick_data =
+{
 	.parent = "l4_ick",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk ssi_l4_ick = {
+static struct ti_clk ssi_l4_ick =
+{
 	.name = "ssi_l4_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &ssi_l4_ick_data,
 };
 
-static struct ti_clk_gate ssi_ick_3430es1_data = {
+static struct ti_clk_gate ssi_ick_3430es1_data =
+{
 	.parent = "ssi_l4_ick",
 	.bit_shift = 0,
 	.reg = 0xa10,
@@ -1219,14 +1396,16 @@ static struct ti_clk_gate ssi_ick_3430es1_data = {
 	.flags = CLKF_OMAP3 | CLKF_NO_WAIT | CLKF_INTERFACE,
 };
 
-static struct ti_clk ssi_ick_3430es1 = {
+static struct ti_clk ssi_ick_3430es1 =
+{
 	.name = "ssi_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &ssi_ick_3430es1_data,
 };
 
-static struct ti_clk_gate i2c2_fck_data = {
+static struct ti_clk_gate i2c2_fck_data =
+{
 	.parent = "core_96m_fck",
 	.bit_shift = 16,
 	.reg = 0xa00,
@@ -1234,14 +1413,16 @@ static struct ti_clk_gate i2c2_fck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk i2c2_fck = {
+static struct ti_clk i2c2_fck =
+{
 	.name = "i2c2_fck",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &i2c2_fck_data,
 };
 
-static struct ti_clk_divider dpll1_fck_data = {
+static struct ti_clk_divider dpll1_fck_data =
+{
 	.parent = "core_ck",
 	.bit_shift = 19,
 	.max_div = 7,
@@ -1250,18 +1431,21 @@ static struct ti_clk_divider dpll1_fck_data = {
 	.flags = CLKF_INDEX_STARTS_AT_ONE,
 };
 
-static struct ti_clk dpll1_fck = {
+static struct ti_clk dpll1_fck =
+{
 	.name = "dpll1_fck",
 	.type = TI_CLK_DIVIDER,
 	.data = &dpll1_fck_data,
 };
 
-static const char *dpll1_ck_parents[] = {
+static const char *dpll1_ck_parents[] =
+{
 	"sys_ck",
 	"dpll1_fck",
 };
 
-static struct ti_clk_dpll dpll1_ck_data = {
+static struct ti_clk_dpll dpll1_ck_data =
+{
 	.num_parents = ARRAY_SIZE(dpll1_ck_parents),
 	.control_reg = 0x904,
 	.idlest_reg = 0x924,
@@ -1284,24 +1468,28 @@ static struct ti_clk_dpll dpll1_ck_data = {
 	.autoidle_mask = 0x7,
 };
 
-static struct ti_clk dpll1_ck = {
+static struct ti_clk dpll1_ck =
+{
 	.name = "dpll1_ck",
 	.clkdm_name = "dpll1_clkdm",
 	.type = TI_CLK_DPLL,
 	.data = &dpll1_ck_data,
 };
 
-static struct ti_clk_fixed secure_32k_fck_data = {
+static struct ti_clk_fixed secure_32k_fck_data =
+{
 	.frequency = 32768,
 };
 
-static struct ti_clk secure_32k_fck = {
+static struct ti_clk secure_32k_fck =
+{
 	.name = "secure_32k_fck",
 	.type = TI_CLK_FIXED,
 	.data = &secure_32k_fck_data,
 };
 
-static struct ti_clk_gate gpio5_ick_data = {
+static struct ti_clk_gate gpio5_ick_data =
+{
 	.parent = "per_l4_ick",
 	.bit_shift = 16,
 	.reg = 0x1010,
@@ -1309,14 +1497,16 @@ static struct ti_clk_gate gpio5_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk gpio5_ick = {
+static struct ti_clk gpio5_ick =
+{
 	.name = "gpio5_ick",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gpio5_ick_data,
 };
 
-static struct ti_clk_divider dpll4_m4_ck_data = {
+static struct ti_clk_divider dpll4_m4_ck_data =
+{
 	.parent = "dpll4_ck",
 	.max_div = 32,
 	.reg = 0xe40,
@@ -1324,26 +1514,30 @@ static struct ti_clk_divider dpll4_m4_ck_data = {
 	.flags = CLKF_INDEX_STARTS_AT_ONE,
 };
 
-static struct ti_clk dpll4_m4_ck = {
+static struct ti_clk dpll4_m4_ck =
+{
 	.name = "dpll4_m4_ck",
 	.type = TI_CLK_DIVIDER,
 	.data = &dpll4_m4_ck_data,
 };
 
-static struct ti_clk_fixed_factor dpll4_m4x2_mul_ck_data = {
+static struct ti_clk_fixed_factor dpll4_m4x2_mul_ck_data =
+{
 	.parent = "dpll4_m4_ck",
 	.div = 1,
 	.mult = 2,
 	.flags = CLKF_SET_RATE_PARENT,
 };
 
-static struct ti_clk dpll4_m4x2_mul_ck = {
+static struct ti_clk dpll4_m4x2_mul_ck =
+{
 	.name = "dpll4_m4x2_mul_ck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &dpll4_m4x2_mul_ck_data,
 };
 
-static struct ti_clk_gate dpll4_m4x2_ck_data = {
+static struct ti_clk_gate dpll4_m4x2_ck_data =
+{
 	.parent = "dpll4_m4x2_mul_ck",
 	.bit_shift = 0x1d,
 	.reg = 0xd00,
@@ -1351,13 +1545,15 @@ static struct ti_clk_gate dpll4_m4x2_ck_data = {
 	.flags = CLKF_SET_RATE_PARENT | CLKF_SET_BIT_TO_DISABLE,
 };
 
-static struct ti_clk dpll4_m4x2_ck = {
+static struct ti_clk dpll4_m4x2_ck =
+{
 	.name = "dpll4_m4x2_ck",
 	.type = TI_CLK_GATE,
 	.data = &dpll4_m4x2_ck_data,
 };
 
-static struct ti_clk_gate dss1_alwon_fck_3430es2_data = {
+static struct ti_clk_gate dss1_alwon_fck_3430es2_data =
+{
 	.parent = "dpll4_m4x2_ck",
 	.bit_shift = 0,
 	.reg = 0xe00,
@@ -1365,14 +1561,16 @@ static struct ti_clk_gate dss1_alwon_fck_3430es2_data = {
 	.flags = CLKF_DSS | CLKF_SET_RATE_PARENT,
 };
 
-static struct ti_clk dss1_alwon_fck_3430es2 = {
+static struct ti_clk dss1_alwon_fck_3430es2 =
+{
 	.name = "dss1_alwon_fck",
 	.clkdm_name = "dss_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &dss1_alwon_fck_3430es2_data,
 };
 
-static struct ti_clk_gate uart3_ick_data = {
+static struct ti_clk_gate uart3_ick_data =
+{
 	.parent = "per_l4_ick",
 	.bit_shift = 11,
 	.reg = 0x1010,
@@ -1380,14 +1578,16 @@ static struct ti_clk_gate uart3_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk uart3_ick = {
+static struct ti_clk uart3_ick =
+{
 	.name = "uart3_ick",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &uart3_ick_data,
 };
 
-static struct ti_clk_divider dpll4_m3_ck_data = {
+static struct ti_clk_divider dpll4_m3_ck_data =
+{
 	.parent = "dpll4_ck",
 	.bit_shift = 8,
 	.max_div = 32,
@@ -1396,13 +1596,15 @@ static struct ti_clk_divider dpll4_m3_ck_data = {
 	.flags = CLKF_INDEX_STARTS_AT_ONE,
 };
 
-static struct ti_clk dpll4_m3_ck = {
+static struct ti_clk dpll4_m3_ck =
+{
 	.name = "dpll4_m3_ck",
 	.type = TI_CLK_DIVIDER,
 	.data = &dpll4_m3_ck_data,
 };
 
-static struct ti_clk_gate mcbsp3_ick_data = {
+static struct ti_clk_gate mcbsp3_ick_data =
+{
 	.parent = "per_l4_ick",
 	.bit_shift = 1,
 	.reg = 0x1010,
@@ -1410,28 +1612,32 @@ static struct ti_clk_gate mcbsp3_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk mcbsp3_ick = {
+static struct ti_clk mcbsp3_ick =
+{
 	.name = "mcbsp3_ick",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &mcbsp3_ick_data,
 };
 
-static struct ti_clk_gate gpio3_dbck_data = {
+static struct ti_clk_gate gpio3_dbck_data =
+{
 	.parent = "per_32k_alwon_fck",
 	.bit_shift = 14,
 	.reg = 0x1000,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk gpio3_dbck = {
+static struct ti_clk gpio3_dbck =
+{
 	.name = "gpio3_dbck",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gpio3_dbck_data,
 };
 
-static struct ti_clk_gate fac_ick_data = {
+static struct ti_clk_gate fac_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 8,
 	.reg = 0xa10,
@@ -1439,14 +1645,16 @@ static struct ti_clk_gate fac_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk fac_ick = {
+static struct ti_clk fac_ick =
+{
 	.name = "fac_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &fac_ick_data,
 };
 
-static struct ti_clk_gate clkout2_src_gate_ck_data = {
+static struct ti_clk_gate clkout2_src_gate_ck_data =
+{
 	.parent = "core_ck",
 	.bit_shift = 7,
 	.reg = 0xd70,
@@ -1454,19 +1662,22 @@ static struct ti_clk_gate clkout2_src_gate_ck_data = {
 	.flags = CLKF_NO_WAIT,
 };
 
-static struct ti_clk_fixed_factor dpll4_m3x2_mul_ck_data = {
+static struct ti_clk_fixed_factor dpll4_m3x2_mul_ck_data =
+{
 	.parent = "dpll4_m3_ck",
 	.div = 1,
 	.mult = 2,
 };
 
-static struct ti_clk dpll4_m3x2_mul_ck = {
+static struct ti_clk dpll4_m3x2_mul_ck =
+{
 	.name = "dpll4_m3x2_mul_ck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &dpll4_m3x2_mul_ck_data,
 };
 
-static struct ti_clk_gate dpll4_m3x2_ck_data = {
+static struct ti_clk_gate dpll4_m3x2_ck_data =
+{
 	.parent = "dpll4_m3x2_mul_ck",
 	.bit_shift = 0x1c,
 	.reg = 0xd00,
@@ -1474,18 +1685,21 @@ static struct ti_clk_gate dpll4_m3x2_ck_data = {
 	.flags = CLKF_SET_BIT_TO_DISABLE,
 };
 
-static struct ti_clk dpll4_m3x2_ck = {
+static struct ti_clk dpll4_m3x2_ck =
+{
 	.name = "dpll4_m3x2_ck",
 	.type = TI_CLK_GATE,
 	.data = &dpll4_m3x2_ck_data,
 };
 
-static const char *omap_54m_fck_parents[] = {
+static const char *omap_54m_fck_parents[] =
+{
 	"dpll4_m3x2_ck",
 	"sys_altclk",
 };
 
-static struct ti_clk_mux omap_54m_fck_data = {
+static struct ti_clk_mux omap_54m_fck_data =
+{
 	.bit_shift = 5,
 	.num_parents = ARRAY_SIZE(omap_54m_fck_parents),
 	.reg = 0xd40,
@@ -1493,38 +1707,44 @@ static struct ti_clk_mux omap_54m_fck_data = {
 	.parents = omap_54m_fck_parents,
 };
 
-static struct ti_clk omap_54m_fck = {
+static struct ti_clk omap_54m_fck =
+{
 	.name = "omap_54m_fck",
 	.type = TI_CLK_MUX,
 	.data = &omap_54m_fck_data,
 };
 
-static const char *clkout2_src_mux_ck_parents[] = {
+static const char *clkout2_src_mux_ck_parents[] =
+{
 	"core_ck",
 	"sys_ck",
 	"cm_96m_fck",
 	"omap_54m_fck",
 };
 
-static struct ti_clk_mux clkout2_src_mux_ck_data = {
+static struct ti_clk_mux clkout2_src_mux_ck_data =
+{
 	.num_parents = ARRAY_SIZE(clkout2_src_mux_ck_parents),
 	.reg = 0xd70,
 	.module = TI_CLKM_CM,
 	.parents = clkout2_src_mux_ck_parents,
 };
 
-static struct ti_clk_composite clkout2_src_ck_data = {
+static struct ti_clk_composite clkout2_src_ck_data =
+{
 	.mux = &clkout2_src_mux_ck_data,
 	.gate = &clkout2_src_gate_ck_data,
 };
 
-static struct ti_clk clkout2_src_ck = {
+static struct ti_clk clkout2_src_ck =
+{
 	.name = "clkout2_src_ck",
 	.type = TI_CLK_COMPOSITE,
 	.data = &clkout2_src_ck_data,
 };
 
-static struct ti_clk_gate i2c1_fck_data = {
+static struct ti_clk_gate i2c1_fck_data =
+{
 	.parent = "core_96m_fck",
 	.bit_shift = 15,
 	.reg = 0xa00,
@@ -1532,14 +1752,16 @@ static struct ti_clk_gate i2c1_fck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk i2c1_fck = {
+static struct ti_clk i2c1_fck =
+{
 	.name = "i2c1_fck",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &i2c1_fck_data,
 };
 
-static struct ti_clk_gate wdt3_fck_data = {
+static struct ti_clk_gate wdt3_fck_data =
+{
 	.parent = "per_32k_alwon_fck",
 	.bit_shift = 12,
 	.reg = 0x1000,
@@ -1547,26 +1769,30 @@ static struct ti_clk_gate wdt3_fck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk wdt3_fck = {
+static struct ti_clk wdt3_fck =
+{
 	.name = "wdt3_fck",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &wdt3_fck_data,
 };
 
-static struct ti_clk_gate gpt7_gate_fck_data = {
+static struct ti_clk_gate gpt7_gate_fck_data =
+{
 	.parent = "sys_ck",
 	.bit_shift = 8,
 	.reg = 0x1000,
 	.module = TI_CLKM_CM,
 };
 
-static const char *gpt7_mux_fck_parents[] = {
+static const char *gpt7_mux_fck_parents[] =
+{
 	"omap_32k_fck",
 	"sys_ck",
 };
 
-static struct ti_clk_mux gpt7_mux_fck_data = {
+static struct ti_clk_mux gpt7_mux_fck_data =
+{
 	.bit_shift = 5,
 	.num_parents = ARRAY_SIZE(gpt7_mux_fck_parents),
 	.reg = 0x1040,
@@ -1574,18 +1800,21 @@ static struct ti_clk_mux gpt7_mux_fck_data = {
 	.parents = gpt7_mux_fck_parents,
 };
 
-static struct ti_clk_composite gpt7_fck_data = {
+static struct ti_clk_composite gpt7_fck_data =
+{
 	.mux = &gpt7_mux_fck_data,
 	.gate = &gpt7_gate_fck_data,
 };
 
-static struct ti_clk gpt7_fck = {
+static struct ti_clk gpt7_fck =
+{
 	.name = "gpt7_fck",
 	.type = TI_CLK_COMPOSITE,
 	.data = &gpt7_fck_data,
 };
 
-static struct ti_clk_gate usb_l4_gate_ick_data = {
+static struct ti_clk_gate usb_l4_gate_ick_data =
+{
 	.parent = "l4_ick",
 	.bit_shift = 5,
 	.reg = 0xa10,
@@ -1593,7 +1822,8 @@ static struct ti_clk_gate usb_l4_gate_ick_data = {
 	.flags = CLKF_INTERFACE,
 };
 
-static struct ti_clk_divider usb_l4_div_ick_data = {
+static struct ti_clk_divider usb_l4_div_ick_data =
+{
 	.parent = "l4_ick",
 	.bit_shift = 4,
 	.max_div = 1,
@@ -1602,18 +1832,21 @@ static struct ti_clk_divider usb_l4_div_ick_data = {
 	.flags = CLKF_INDEX_STARTS_AT_ONE,
 };
 
-static struct ti_clk_composite usb_l4_ick_data = {
+static struct ti_clk_composite usb_l4_ick_data =
+{
 	.gate = &usb_l4_gate_ick_data,
 	.divider = &usb_l4_div_ick_data,
 };
 
-static struct ti_clk usb_l4_ick = {
+static struct ti_clk usb_l4_ick =
+{
 	.name = "usb_l4_ick",
 	.type = TI_CLK_COMPOSITE,
 	.data = &usb_l4_ick_data,
 };
 
-static struct ti_clk_gate uart4_ick_data = {
+static struct ti_clk_gate uart4_ick_data =
+{
 	.parent = "per_l4_ick",
 	.bit_shift = 18,
 	.reg = 0x1010,
@@ -1621,29 +1854,34 @@ static struct ti_clk_gate uart4_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk uart4_ick = {
+static struct ti_clk uart4_ick =
+{
 	.name = "uart4_ick",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &uart4_ick_data,
 };
 
-static struct ti_clk_fixed dummy_ck_data = {
+static struct ti_clk_fixed dummy_ck_data =
+{
 	.frequency = 0,
 };
 
-static struct ti_clk dummy_ck = {
+static struct ti_clk dummy_ck =
+{
 	.name = "dummy_ck",
 	.type = TI_CLK_FIXED,
 	.data = &dummy_ck_data,
 };
 
-static const char *gpt3_mux_fck_parents[] = {
+static const char *gpt3_mux_fck_parents[] =
+{
 	"omap_32k_fck",
 	"sys_ck",
 };
 
-static struct ti_clk_mux gpt3_mux_fck_data = {
+static struct ti_clk_mux gpt3_mux_fck_data =
+{
 	.bit_shift = 1,
 	.num_parents = ARRAY_SIZE(gpt3_mux_fck_parents),
 	.reg = 0x1040,
@@ -1651,7 +1889,8 @@ static struct ti_clk_mux gpt3_mux_fck_data = {
 	.parents = gpt3_mux_fck_parents,
 };
 
-static struct ti_clk_gate gpt9_ick_data = {
+static struct ti_clk_gate gpt9_ick_data =
+{
 	.parent = "per_l4_ick",
 	.bit_shift = 10,
 	.reg = 0x1010,
@@ -1659,21 +1898,24 @@ static struct ti_clk_gate gpt9_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk gpt9_ick = {
+static struct ti_clk gpt9_ick =
+{
 	.name = "gpt9_ick",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gpt9_ick_data,
 };
 
-static struct ti_clk_gate gpt10_gate_fck_data = {
+static struct ti_clk_gate gpt10_gate_fck_data =
+{
 	.parent = "sys_ck",
 	.bit_shift = 11,
 	.reg = 0xa00,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk_gate dss_ick_3430es1_data = {
+static struct ti_clk_gate dss_ick_3430es1_data =
+{
 	.parent = "l4_ick",
 	.bit_shift = 0,
 	.reg = 0xe10,
@@ -1681,14 +1923,16 @@ static struct ti_clk_gate dss_ick_3430es1_data = {
 	.flags = CLKF_OMAP3 | CLKF_NO_WAIT | CLKF_INTERFACE,
 };
 
-static struct ti_clk dss_ick_3430es1 = {
+static struct ti_clk dss_ick_3430es1 =
+{
 	.name = "dss_ick",
 	.clkdm_name = "dss_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &dss_ick_3430es1_data,
 };
 
-static struct ti_clk_gate gpt11_ick_data = {
+static struct ti_clk_gate gpt11_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 12,
 	.reg = 0xa10,
@@ -1696,14 +1940,16 @@ static struct ti_clk_gate gpt11_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk gpt11_ick = {
+static struct ti_clk gpt11_ick =
+{
 	.name = "gpt11_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gpt11_ick_data,
 };
 
-static struct ti_clk_divider dpll2_fck_data = {
+static struct ti_clk_divider dpll2_fck_data =
+{
 	.parent = "core_ck",
 	.bit_shift = 19,
 	.max_div = 7,
@@ -1712,13 +1958,15 @@ static struct ti_clk_divider dpll2_fck_data = {
 	.flags = CLKF_INDEX_STARTS_AT_ONE,
 };
 
-static struct ti_clk dpll2_fck = {
+static struct ti_clk dpll2_fck =
+{
 	.name = "dpll2_fck",
 	.type = TI_CLK_DIVIDER,
 	.data = &dpll2_fck_data,
 };
 
-static struct ti_clk_gate uart1_fck_data = {
+static struct ti_clk_gate uart1_fck_data =
+{
 	.parent = "core_48m_fck",
 	.bit_shift = 13,
 	.reg = 0xa00,
@@ -1726,14 +1974,16 @@ static struct ti_clk_gate uart1_fck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk uart1_fck = {
+static struct ti_clk uart1_fck =
+{
 	.name = "uart1_fck",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &uart1_fck_data,
 };
 
-static struct ti_clk_gate hsotgusb_ick_3430es1_data = {
+static struct ti_clk_gate hsotgusb_ick_3430es1_data =
+{
 	.parent = "core_l3_ick",
 	.bit_shift = 4,
 	.reg = 0xa10,
@@ -1741,14 +1991,16 @@ static struct ti_clk_gate hsotgusb_ick_3430es1_data = {
 	.flags = CLKF_OMAP3 | CLKF_NO_WAIT | CLKF_INTERFACE,
 };
 
-static struct ti_clk hsotgusb_ick_3430es1 = {
+static struct ti_clk hsotgusb_ick_3430es1 =
+{
 	.name = "hsotgusb_ick_3430es1",
 	.clkdm_name = "core_l3_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &hsotgusb_ick_3430es1_data,
 };
 
-static struct ti_clk_gate gpio2_ick_data = {
+static struct ti_clk_gate gpio2_ick_data =
+{
 	.parent = "per_l4_ick",
 	.bit_shift = 13,
 	.reg = 0x1010,
@@ -1756,14 +2008,16 @@ static struct ti_clk_gate gpio2_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk gpio2_ick = {
+static struct ti_clk gpio2_ick =
+{
 	.name = "gpio2_ick",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gpio2_ick_data,
 };
 
-static struct ti_clk_gate mmchs1_ick_data = {
+static struct ti_clk_gate mmchs1_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 24,
 	.reg = 0xa10,
@@ -1771,14 +2025,16 @@ static struct ti_clk_gate mmchs1_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk mmchs1_ick = {
+static struct ti_clk mmchs1_ick =
+{
 	.name = "mmchs1_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &mmchs1_ick_data,
 };
 
-static struct ti_clk_gate modem_fck_data = {
+static struct ti_clk_gate modem_fck_data =
+{
 	.parent = "sys_ck",
 	.bit_shift = 31,
 	.reg = 0xa00,
@@ -1786,14 +2042,16 @@ static struct ti_clk_gate modem_fck_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk modem_fck = {
+static struct ti_clk modem_fck =
+{
 	.name = "modem_fck",
 	.clkdm_name = "d2d_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &modem_fck_data,
 };
 
-static struct ti_clk_gate mcbsp4_ick_data = {
+static struct ti_clk_gate mcbsp4_ick_data =
+{
 	.parent = "per_l4_ick",
 	.bit_shift = 2,
 	.reg = 0x1010,
@@ -1801,14 +2059,16 @@ static struct ti_clk_gate mcbsp4_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk mcbsp4_ick = {
+static struct ti_clk mcbsp4_ick =
+{
 	.name = "mcbsp4_ick",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &mcbsp4_ick_data,
 };
 
-static struct ti_clk_gate gpio1_ick_data = {
+static struct ti_clk_gate gpio1_ick_data =
+{
 	.parent = "wkup_l4_ick",
 	.bit_shift = 3,
 	.reg = 0xc10,
@@ -1816,19 +2076,22 @@ static struct ti_clk_gate gpio1_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk gpio1_ick = {
+static struct ti_clk gpio1_ick =
+{
 	.name = "gpio1_ick",
 	.clkdm_name = "wkup_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gpio1_ick_data,
 };
 
-static const char *gpt6_mux_fck_parents[] = {
+static const char *gpt6_mux_fck_parents[] =
+{
 	"omap_32k_fck",
 	"sys_ck",
 };
 
-static struct ti_clk_mux gpt6_mux_fck_data = {
+static struct ti_clk_mux gpt6_mux_fck_data =
+{
 	.bit_shift = 4,
 	.num_parents = ARRAY_SIZE(gpt6_mux_fck_parents),
 	.reg = 0x1040,
@@ -1836,19 +2099,22 @@ static struct ti_clk_mux gpt6_mux_fck_data = {
 	.parents = gpt6_mux_fck_parents,
 };
 
-static struct ti_clk_fixed_factor dpll1_x2_ck_data = {
+static struct ti_clk_fixed_factor dpll1_x2_ck_data =
+{
 	.parent = "dpll1_ck",
 	.div = 1,
 	.mult = 2,
 };
 
-static struct ti_clk dpll1_x2_ck = {
+static struct ti_clk dpll1_x2_ck =
+{
 	.name = "dpll1_x2_ck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &dpll1_x2_ck_data,
 };
 
-static struct ti_clk_divider dpll1_x2m2_ck_data = {
+static struct ti_clk_divider dpll1_x2m2_ck_data =
+{
 	.parent = "dpll1_x2_ck",
 	.max_div = 31,
 	.reg = 0x944,
@@ -1856,62 +2122,72 @@ static struct ti_clk_divider dpll1_x2m2_ck_data = {
 	.flags = CLKF_INDEX_STARTS_AT_ONE,
 };
 
-static struct ti_clk dpll1_x2m2_ck = {
+static struct ti_clk dpll1_x2m2_ck =
+{
 	.name = "dpll1_x2m2_ck",
 	.type = TI_CLK_DIVIDER,
 	.data = &dpll1_x2m2_ck_data,
 };
 
-static struct ti_clk_fixed_factor mpu_ck_data = {
+static struct ti_clk_fixed_factor mpu_ck_data =
+{
 	.parent = "dpll1_x2m2_ck",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk mpu_ck = {
+static struct ti_clk mpu_ck =
+{
 	.name = "mpu_ck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &mpu_ck_data,
 };
 
-static struct ti_clk_divider arm_fck_data = {
+static struct ti_clk_divider arm_fck_data =
+{
 	.parent = "mpu_ck",
 	.max_div = 2,
 	.reg = 0x924,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk arm_fck = {
+static struct ti_clk arm_fck =
+{
 	.name = "arm_fck",
 	.type = TI_CLK_DIVIDER,
 	.data = &arm_fck_data,
 };
 
-static struct ti_clk_fixed_factor core_d3_ck_data = {
+static struct ti_clk_fixed_factor core_d3_ck_data =
+{
 	.parent = "core_ck",
 	.div = 3,
 	.mult = 1,
 };
 
-static struct ti_clk core_d3_ck = {
+static struct ti_clk core_d3_ck =
+{
 	.name = "core_d3_ck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &core_d3_ck_data,
 };
 
-static struct ti_clk_gate gpt11_gate_fck_data = {
+static struct ti_clk_gate gpt11_gate_fck_data =
+{
 	.parent = "sys_ck",
 	.bit_shift = 12,
 	.reg = 0xa00,
 	.module = TI_CLKM_CM,
 };
 
-static const char *gpt11_mux_fck_parents[] = {
+static const char *gpt11_mux_fck_parents[] =
+{
 	"omap_32k_fck",
 	"sys_ck",
 };
 
-static struct ti_clk_mux gpt11_mux_fck_data = {
+static struct ti_clk_mux gpt11_mux_fck_data =
+{
 	.bit_shift = 7,
 	.num_parents = ARRAY_SIZE(gpt11_mux_fck_parents),
 	.reg = 0xa40,
@@ -1919,30 +2195,35 @@ static struct ti_clk_mux gpt11_mux_fck_data = {
 	.parents = gpt11_mux_fck_parents,
 };
 
-static struct ti_clk_composite gpt11_fck_data = {
+static struct ti_clk_composite gpt11_fck_data =
+{
 	.mux = &gpt11_mux_fck_data,
 	.gate = &gpt11_gate_fck_data,
 };
 
-static struct ti_clk gpt11_fck = {
+static struct ti_clk gpt11_fck =
+{
 	.name = "gpt11_fck",
 	.type = TI_CLK_COMPOSITE,
 	.data = &gpt11_fck_data,
 };
 
-static struct ti_clk_fixed_factor core_d6_ck_data = {
+static struct ti_clk_fixed_factor core_d6_ck_data =
+{
 	.parent = "core_ck",
 	.div = 6,
 	.mult = 1,
 };
 
-static struct ti_clk core_d6_ck = {
+static struct ti_clk core_d6_ck =
+{
 	.name = "core_d6_ck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &core_d6_ck_data,
 };
 
-static struct ti_clk_gate uart4_fck_am35xx_data = {
+static struct ti_clk_gate uart4_fck_am35xx_data =
+{
 	.parent = "core_48m_fck",
 	.bit_shift = 23,
 	.reg = 0xa00,
@@ -1950,14 +2231,16 @@ static struct ti_clk_gate uart4_fck_am35xx_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk uart4_fck_am35xx = {
+static struct ti_clk uart4_fck_am35xx =
+{
 	.name = "uart4_fck_am35xx",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &uart4_fck_am35xx_data,
 };
 
-static struct ti_clk_gate dpll3_m3x2_ck_data = {
+static struct ti_clk_gate dpll3_m3x2_ck_data =
+{
 	.parent = "dpll3_m3x2_mul_ck",
 	.bit_shift = 0xc,
 	.reg = 0xd00,
@@ -1965,25 +2248,29 @@ static struct ti_clk_gate dpll3_m3x2_ck_data = {
 	.flags = CLKF_SET_BIT_TO_DISABLE,
 };
 
-static struct ti_clk dpll3_m3x2_ck = {
+static struct ti_clk dpll3_m3x2_ck =
+{
 	.name = "dpll3_m3x2_ck",
 	.type = TI_CLK_GATE,
 	.data = &dpll3_m3x2_ck_data,
 };
 
-static struct ti_clk_fixed_factor emu_core_alwon_ck_data = {
+static struct ti_clk_fixed_factor emu_core_alwon_ck_data =
+{
 	.parent = "dpll3_m3x2_ck",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk emu_core_alwon_ck = {
+static struct ti_clk emu_core_alwon_ck =
+{
 	.name = "emu_core_alwon_ck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &emu_core_alwon_ck_data,
 };
 
-static struct ti_clk_divider dpll4_m6_ck_data = {
+static struct ti_clk_divider dpll4_m6_ck_data =
+{
 	.parent = "dpll4_ck",
 	.bit_shift = 24,
 	.max_div = 63,
@@ -1992,25 +2279,29 @@ static struct ti_clk_divider dpll4_m6_ck_data = {
 	.flags = CLKF_INDEX_STARTS_AT_ONE,
 };
 
-static struct ti_clk dpll4_m6_ck = {
+static struct ti_clk dpll4_m6_ck =
+{
 	.name = "dpll4_m6_ck",
 	.type = TI_CLK_DIVIDER,
 	.data = &dpll4_m6_ck_data,
 };
 
-static struct ti_clk_fixed_factor dpll4_m6x2_mul_ck_data = {
+static struct ti_clk_fixed_factor dpll4_m6x2_mul_ck_data =
+{
 	.parent = "dpll4_m6_ck",
 	.div = 1,
 	.mult = 2,
 };
 
-static struct ti_clk dpll4_m6x2_mul_ck = {
+static struct ti_clk dpll4_m6x2_mul_ck =
+{
 	.name = "dpll4_m6x2_mul_ck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &dpll4_m6x2_mul_ck_data,
 };
 
-static struct ti_clk_gate dpll4_m6x2_ck_data = {
+static struct ti_clk_gate dpll4_m6x2_ck_data =
+{
 	.parent = "dpll4_m6x2_mul_ck",
 	.bit_shift = 0x1f,
 	.reg = 0xd00,
@@ -2018,69 +2309,80 @@ static struct ti_clk_gate dpll4_m6x2_ck_data = {
 	.flags = CLKF_SET_BIT_TO_DISABLE,
 };
 
-static struct ti_clk dpll4_m6x2_ck = {
+static struct ti_clk dpll4_m6x2_ck =
+{
 	.name = "dpll4_m6x2_ck",
 	.type = TI_CLK_GATE,
 	.data = &dpll4_m6x2_ck_data,
 };
 
-static struct ti_clk_fixed_factor emu_per_alwon_ck_data = {
+static struct ti_clk_fixed_factor emu_per_alwon_ck_data =
+{
 	.parent = "dpll4_m6x2_ck",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk emu_per_alwon_ck = {
+static struct ti_clk emu_per_alwon_ck =
+{
 	.name = "emu_per_alwon_ck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &emu_per_alwon_ck_data,
 };
 
-static struct ti_clk_fixed_factor emu_mpu_alwon_ck_data = {
+static struct ti_clk_fixed_factor emu_mpu_alwon_ck_data =
+{
 	.parent = "mpu_ck",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk emu_mpu_alwon_ck = {
+static struct ti_clk emu_mpu_alwon_ck =
+{
 	.name = "emu_mpu_alwon_ck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &emu_mpu_alwon_ck_data,
 };
 
-static const char *emu_src_mux_ck_parents[] = {
+static const char *emu_src_mux_ck_parents[] =
+{
 	"sys_ck",
 	"emu_core_alwon_ck",
 	"emu_per_alwon_ck",
 	"emu_mpu_alwon_ck",
 };
 
-static struct ti_clk_mux emu_src_mux_ck_data = {
+static struct ti_clk_mux emu_src_mux_ck_data =
+{
 	.num_parents = ARRAY_SIZE(emu_src_mux_ck_parents),
 	.reg = 0x1140,
 	.module = TI_CLKM_CM,
 	.parents = emu_src_mux_ck_parents,
 };
 
-static struct ti_clk emu_src_mux_ck = {
+static struct ti_clk emu_src_mux_ck =
+{
 	.name = "emu_src_mux_ck",
 	.type = TI_CLK_MUX,
 	.data = &emu_src_mux_ck_data,
 };
 
-static struct ti_clk_gate emu_src_ck_data = {
+static struct ti_clk_gate emu_src_ck_data =
+{
 	.parent = "emu_src_mux_ck",
 	.flags = CLKF_CLKDM,
 };
 
-static struct ti_clk emu_src_ck = {
+static struct ti_clk emu_src_ck =
+{
 	.name = "emu_src_ck",
 	.clkdm_name = "emu_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &emu_src_ck_data,
 };
 
-static struct ti_clk_divider atclk_fck_data = {
+static struct ti_clk_divider atclk_fck_data =
+{
 	.parent = "emu_src_ck",
 	.bit_shift = 4,
 	.max_div = 3,
@@ -2089,13 +2391,15 @@ static struct ti_clk_divider atclk_fck_data = {
 	.flags = CLKF_INDEX_STARTS_AT_ONE,
 };
 
-static struct ti_clk atclk_fck = {
+static struct ti_clk atclk_fck =
+{
 	.name = "atclk_fck",
 	.type = TI_CLK_DIVIDER,
 	.data = &atclk_fck_data,
 };
 
-static struct ti_clk_gate ipss_ick_data = {
+static struct ti_clk_gate ipss_ick_data =
+{
 	.parent = "core_l3_ick",
 	.bit_shift = 4,
 	.reg = 0xa10,
@@ -2103,14 +2407,16 @@ static struct ti_clk_gate ipss_ick_data = {
 	.flags = CLKF_AM35XX | CLKF_INTERFACE,
 };
 
-static struct ti_clk ipss_ick = {
+static struct ti_clk ipss_ick =
+{
 	.name = "ipss_ick",
 	.clkdm_name = "core_l3_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &ipss_ick_data,
 };
 
-static struct ti_clk_gate emac_ick_data = {
+static struct ti_clk_gate emac_ick_data =
+{
 	.parent = "ipss_ick",
 	.bit_shift = 1,
 	.reg = 0x59c,
@@ -2118,14 +2424,16 @@ static struct ti_clk_gate emac_ick_data = {
 	.flags = CLKF_AM35XX,
 };
 
-static struct ti_clk emac_ick = {
+static struct ti_clk emac_ick =
+{
 	.name = "emac_ick",
 	.clkdm_name = "core_l3_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &emac_ick_data,
 };
 
-static struct ti_clk_gate vpfe_ick_data = {
+static struct ti_clk_gate vpfe_ick_data =
+{
 	.parent = "ipss_ick",
 	.bit_shift = 2,
 	.reg = 0x59c,
@@ -2133,19 +2441,22 @@ static struct ti_clk_gate vpfe_ick_data = {
 	.flags = CLKF_AM35XX,
 };
 
-static struct ti_clk vpfe_ick = {
+static struct ti_clk vpfe_ick =
+{
 	.name = "vpfe_ick",
 	.clkdm_name = "core_l3_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &vpfe_ick_data,
 };
 
-static const char *dpll2_ck_parents[] = {
+static const char *dpll2_ck_parents[] =
+{
 	"sys_ck",
 	"dpll2_fck",
 };
 
-static struct ti_clk_dpll dpll2_ck_data = {
+static struct ti_clk_dpll dpll2_ck_data =
+{
 	.num_parents = ARRAY_SIZE(dpll2_ck_parents),
 	.control_reg = 0x4,
 	.idlest_reg = 0x24,
@@ -2168,14 +2479,16 @@ static struct ti_clk_dpll dpll2_ck_data = {
 	.autoidle_mask = 0x7,
 };
 
-static struct ti_clk dpll2_ck = {
+static struct ti_clk dpll2_ck =
+{
 	.name = "dpll2_ck",
 	.clkdm_name = "dpll2_clkdm",
 	.type = TI_CLK_DPLL,
 	.data = &dpll2_ck_data,
 };
 
-static struct ti_clk_divider dpll2_m2_ck_data = {
+static struct ti_clk_divider dpll2_m2_ck_data =
+{
 	.parent = "dpll2_ck",
 	.max_div = 31,
 	.reg = 0x44,
@@ -2183,18 +2496,21 @@ static struct ti_clk_divider dpll2_m2_ck_data = {
 	.flags = CLKF_INDEX_STARTS_AT_ONE,
 };
 
-static struct ti_clk dpll2_m2_ck = {
+static struct ti_clk dpll2_m2_ck =
+{
 	.name = "dpll2_m2_ck",
 	.type = TI_CLK_DIVIDER,
 	.data = &dpll2_m2_ck_data,
 };
 
-static const char *mcbsp4_mux_fck_parents[] = {
+static const char *mcbsp4_mux_fck_parents[] =
+{
 	"per_96m_fck",
 	"mcbsp_clks",
 };
 
-static struct ti_clk_mux mcbsp4_mux_fck_data = {
+static struct ti_clk_mux mcbsp4_mux_fck_data =
+{
 	.bit_shift = 2,
 	.num_parents = ARRAY_SIZE(mcbsp4_mux_fck_parents),
 	.reg = 0x2d8,
@@ -2202,12 +2518,14 @@ static struct ti_clk_mux mcbsp4_mux_fck_data = {
 	.parents = mcbsp4_mux_fck_parents,
 };
 
-static const char *mcbsp1_mux_fck_parents[] = {
+static const char *mcbsp1_mux_fck_parents[] =
+{
 	"core_96m_fck",
 	"mcbsp_clks",
 };
 
-static struct ti_clk_mux mcbsp1_mux_fck_data = {
+static struct ti_clk_mux mcbsp1_mux_fck_data =
+{
 	.bit_shift = 2,
 	.num_parents = ARRAY_SIZE(mcbsp1_mux_fck_parents),
 	.reg = 0x274,
@@ -2215,14 +2533,16 @@ static struct ti_clk_mux mcbsp1_mux_fck_data = {
 	.parents = mcbsp1_mux_fck_parents,
 };
 
-static struct ti_clk_gate gpt8_gate_fck_data = {
+static struct ti_clk_gate gpt8_gate_fck_data =
+{
 	.parent = "sys_ck",
 	.bit_shift = 9,
 	.reg = 0x1000,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk_gate gpt8_ick_data = {
+static struct ti_clk_gate gpt8_ick_data =
+{
 	.parent = "per_l4_ick",
 	.bit_shift = 9,
 	.reg = 0x1010,
@@ -2230,19 +2550,22 @@ static struct ti_clk_gate gpt8_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk gpt8_ick = {
+static struct ti_clk gpt8_ick =
+{
 	.name = "gpt8_ick",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gpt8_ick_data,
 };
 
-static const char *gpt10_mux_fck_parents[] = {
+static const char *gpt10_mux_fck_parents[] =
+{
 	"omap_32k_fck",
 	"sys_ck",
 };
 
-static struct ti_clk_mux gpt10_mux_fck_data = {
+static struct ti_clk_mux gpt10_mux_fck_data =
+{
 	.bit_shift = 6,
 	.num_parents = ARRAY_SIZE(gpt10_mux_fck_parents),
 	.reg = 0xa40,
@@ -2250,7 +2573,8 @@ static struct ti_clk_mux gpt10_mux_fck_data = {
 	.parents = gpt10_mux_fck_parents,
 };
 
-static struct ti_clk_gate mmchs3_ick_data = {
+static struct ti_clk_gate mmchs3_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 30,
 	.reg = 0xa10,
@@ -2258,14 +2582,16 @@ static struct ti_clk_gate mmchs3_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk mmchs3_ick = {
+static struct ti_clk mmchs3_ick =
+{
 	.name = "mmchs3_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &mmchs3_ick_data,
 };
 
-static struct ti_clk_gate gpio3_ick_data = {
+static struct ti_clk_gate gpio3_ick_data =
+{
 	.parent = "per_l4_ick",
 	.bit_shift = 14,
 	.reg = 0x1010,
@@ -2273,21 +2599,24 @@ static struct ti_clk_gate gpio3_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk gpio3_ick = {
+static struct ti_clk gpio3_ick =
+{
 	.name = "gpio3_ick",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gpio3_ick_data,
 };
 
-static const char *traceclk_src_fck_parents[] = {
+static const char *traceclk_src_fck_parents[] =
+{
 	"sys_ck",
 	"emu_core_alwon_ck",
 	"emu_per_alwon_ck",
 	"emu_mpu_alwon_ck",
 };
 
-static struct ti_clk_mux traceclk_src_fck_data = {
+static struct ti_clk_mux traceclk_src_fck_data =
+{
 	.bit_shift = 2,
 	.num_parents = ARRAY_SIZE(traceclk_src_fck_parents),
 	.reg = 0x1140,
@@ -2295,13 +2624,15 @@ static struct ti_clk_mux traceclk_src_fck_data = {
 	.parents = traceclk_src_fck_parents,
 };
 
-static struct ti_clk traceclk_src_fck = {
+static struct ti_clk traceclk_src_fck =
+{
 	.name = "traceclk_src_fck",
 	.type = TI_CLK_MUX,
 	.data = &traceclk_src_fck_data,
 };
 
-static struct ti_clk_divider traceclk_fck_data = {
+static struct ti_clk_divider traceclk_fck_data =
+{
 	.parent = "traceclk_src_fck",
 	.bit_shift = 11,
 	.max_div = 7,
@@ -2310,20 +2641,23 @@ static struct ti_clk_divider traceclk_fck_data = {
 	.flags = CLKF_INDEX_STARTS_AT_ONE,
 };
 
-static struct ti_clk traceclk_fck = {
+static struct ti_clk traceclk_fck =
+{
 	.name = "traceclk_fck",
 	.type = TI_CLK_DIVIDER,
 	.data = &traceclk_fck_data,
 };
 
-static struct ti_clk_gate mcbsp5_gate_fck_data = {
+static struct ti_clk_gate mcbsp5_gate_fck_data =
+{
 	.parent = "mcbsp_clks",
 	.bit_shift = 10,
 	.reg = 0xa00,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk_gate sad2d_ick_data = {
+static struct ti_clk_gate sad2d_ick_data =
+{
 	.parent = "l3_ick",
 	.bit_shift = 3,
 	.reg = 0xa10,
@@ -2331,26 +2665,30 @@ static struct ti_clk_gate sad2d_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk sad2d_ick = {
+static struct ti_clk sad2d_ick =
+{
 	.name = "sad2d_ick",
 	.clkdm_name = "d2d_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &sad2d_ick_data,
 };
 
-static const char *gpt1_mux_fck_parents[] = {
+static const char *gpt1_mux_fck_parents[] =
+{
 	"omap_32k_fck",
 	"sys_ck",
 };
 
-static struct ti_clk_mux gpt1_mux_fck_data = {
+static struct ti_clk_mux gpt1_mux_fck_data =
+{
 	.num_parents = ARRAY_SIZE(gpt1_mux_fck_parents),
 	.reg = 0xc40,
 	.module = TI_CLKM_CM,
 	.parents = gpt1_mux_fck_parents,
 };
 
-static struct ti_clk_gate hecc_ck_data = {
+static struct ti_clk_gate hecc_ck_data =
+{
 	.parent = "sys_ck",
 	.bit_shift = 3,
 	.reg = 0x59c,
@@ -2358,32 +2696,37 @@ static struct ti_clk_gate hecc_ck_data = {
 	.flags = CLKF_AM35XX,
 };
 
-static struct ti_clk hecc_ck = {
+static struct ti_clk hecc_ck =
+{
 	.name = "hecc_ck",
 	.clkdm_name = "core_l3_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &hecc_ck_data,
 };
 
-static struct ti_clk_gate gpt1_gate_fck_data = {
+static struct ti_clk_gate gpt1_gate_fck_data =
+{
 	.parent = "sys_ck",
 	.bit_shift = 0,
 	.reg = 0xc00,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk_composite gpt1_fck_data = {
+static struct ti_clk_composite gpt1_fck_data =
+{
 	.mux = &gpt1_mux_fck_data,
 	.gate = &gpt1_gate_fck_data,
 };
 
-static struct ti_clk gpt1_fck = {
+static struct ti_clk gpt1_fck =
+{
 	.name = "gpt1_fck",
 	.type = TI_CLK_COMPOSITE,
 	.data = &gpt1_fck_data,
 };
 
-static struct ti_clk_gate dpll4_m2x2_ck_omap36xx_data = {
+static struct ti_clk_gate dpll4_m2x2_ck_omap36xx_data =
+{
 	.parent = "dpll4_m2x2_mul_ck",
 	.bit_shift = 0x1b,
 	.reg = 0xd00,
@@ -2391,14 +2734,16 @@ static struct ti_clk_gate dpll4_m2x2_ck_omap36xx_data = {
 	.flags = CLKF_HSDIV | CLKF_SET_BIT_TO_DISABLE,
 };
 
-static struct ti_clk dpll4_m2x2_ck_omap36xx = {
+static struct ti_clk dpll4_m2x2_ck_omap36xx =
+{
 	.name = "dpll4_m2x2_ck",
 	.type = TI_CLK_GATE,
 	.data = &dpll4_m2x2_ck_omap36xx_data,
 	.patch = &dpll4_m2x2_ck,
 };
 
-static struct ti_clk_divider gfx_l3_fck_data = {
+static struct ti_clk_divider gfx_l3_fck_data =
+{
 	.parent = "l3_ick",
 	.max_div = 7,
 	.reg = 0xb40,
@@ -2406,13 +2751,15 @@ static struct ti_clk_divider gfx_l3_fck_data = {
 	.flags = CLKF_INDEX_STARTS_AT_ONE,
 };
 
-static struct ti_clk gfx_l3_fck = {
+static struct ti_clk gfx_l3_fck =
+{
 	.name = "gfx_l3_fck",
 	.type = TI_CLK_DIVIDER,
 	.data = &gfx_l3_fck_data,
 };
 
-static struct ti_clk_gate gfx_cg1_ck_data = {
+static struct ti_clk_gate gfx_cg1_ck_data =
+{
 	.parent = "gfx_l3_fck",
 	.bit_shift = 1,
 	.reg = 0xb00,
@@ -2420,14 +2767,16 @@ static struct ti_clk_gate gfx_cg1_ck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk gfx_cg1_ck = {
+static struct ti_clk gfx_cg1_ck =
+{
 	.name = "gfx_cg1_ck",
 	.clkdm_name = "gfx_3430es1_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gfx_cg1_ck_data,
 };
 
-static struct ti_clk_gate mailboxes_ick_data = {
+static struct ti_clk_gate mailboxes_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 7,
 	.reg = 0xa10,
@@ -2435,14 +2784,16 @@ static struct ti_clk_gate mailboxes_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk mailboxes_ick = {
+static struct ti_clk mailboxes_ick =
+{
 	.name = "mailboxes_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &mailboxes_ick_data,
 };
 
-static struct ti_clk_gate sha11_ick_data = {
+static struct ti_clk_gate sha11_ick_data =
+{
 	.parent = "security_l4_ick2",
 	.bit_shift = 1,
 	.reg = 0xa14,
@@ -2450,13 +2801,15 @@ static struct ti_clk_gate sha11_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk sha11_ick = {
+static struct ti_clk sha11_ick =
+{
 	.name = "sha11_ick",
 	.type = TI_CLK_GATE,
 	.data = &sha11_ick_data,
 };
 
-static struct ti_clk_gate hsotgusb_ick_am35xx_data = {
+static struct ti_clk_gate hsotgusb_ick_am35xx_data =
+{
 	.parent = "ipss_ick",
 	.bit_shift = 0,
 	.reg = 0x59c,
@@ -2464,14 +2817,16 @@ static struct ti_clk_gate hsotgusb_ick_am35xx_data = {
 	.flags = CLKF_AM35XX,
 };
 
-static struct ti_clk hsotgusb_ick_am35xx = {
+static struct ti_clk hsotgusb_ick_am35xx =
+{
 	.name = "hsotgusb_ick_am35xx",
 	.clkdm_name = "core_l3_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &hsotgusb_ick_am35xx_data,
 };
 
-static struct ti_clk_gate mmchs3_fck_data = {
+static struct ti_clk_gate mmchs3_fck_data =
+{
 	.parent = "core_96m_fck",
 	.bit_shift = 30,
 	.reg = 0xa00,
@@ -2479,14 +2834,16 @@ static struct ti_clk_gate mmchs3_fck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk mmchs3_fck = {
+static struct ti_clk mmchs3_fck =
+{
 	.name = "mmchs3_fck",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &mmchs3_fck_data,
 };
 
-static struct ti_clk_divider pclk_fck_data = {
+static struct ti_clk_divider pclk_fck_data =
+{
 	.parent = "emu_src_ck",
 	.bit_shift = 8,
 	.max_div = 7,
@@ -2495,18 +2852,21 @@ static struct ti_clk_divider pclk_fck_data = {
 	.flags = CLKF_INDEX_STARTS_AT_ONE,
 };
 
-static struct ti_clk pclk_fck = {
+static struct ti_clk pclk_fck =
+{
 	.name = "pclk_fck",
 	.type = TI_CLK_DIVIDER,
 	.data = &pclk_fck_data,
 };
 
-static const char *dpll4_ck_omap36xx_parents[] = {
+static const char *dpll4_ck_omap36xx_parents[] =
+{
 	"sys_ck",
 	"sys_ck",
 };
 
-static struct ti_clk_dpll dpll4_ck_omap36xx_data = {
+static struct ti_clk_dpll dpll4_ck_omap36xx_data =
+{
 	.num_parents = ARRAY_SIZE(dpll4_ck_omap36xx_parents),
 	.control_reg = 0xd00,
 	.idlest_reg = 0xd20,
@@ -2531,14 +2891,16 @@ static struct ti_clk_dpll dpll4_ck_omap36xx_data = {
 	.flags = CLKF_PER | CLKF_J_TYPE,
 };
 
-static struct ti_clk dpll4_ck_omap36xx = {
+static struct ti_clk dpll4_ck_omap36xx =
+{
 	.name = "dpll4_ck",
 	.type = TI_CLK_DPLL,
 	.data = &dpll4_ck_omap36xx_data,
 	.patch = &dpll4_ck,
 };
 
-static struct ti_clk_gate uart3_fck_data = {
+static struct ti_clk_gate uart3_fck_data =
+{
 	.parent = "per_48m_fck",
 	.bit_shift = 11,
 	.reg = 0x1000,
@@ -2546,63 +2908,73 @@ static struct ti_clk_gate uart3_fck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk uart3_fck = {
+static struct ti_clk uart3_fck =
+{
 	.name = "uart3_fck",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &uart3_fck_data,
 };
 
-static struct ti_clk_fixed_factor wkup_32k_fck_data = {
+static struct ti_clk_fixed_factor wkup_32k_fck_data =
+{
 	.parent = "omap_32k_fck",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk wkup_32k_fck = {
+static struct ti_clk wkup_32k_fck =
+{
 	.name = "wkup_32k_fck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &wkup_32k_fck_data,
 };
 
-static struct ti_clk_gate sys_clkout1_data = {
+static struct ti_clk_gate sys_clkout1_data =
+{
 	.parent = "osc_sys_ck",
 	.bit_shift = 7,
 	.reg = 0xd70,
 	.module = TI_CLKM_PRM,
 };
 
-static struct ti_clk sys_clkout1 = {
+static struct ti_clk sys_clkout1 =
+{
 	.name = "sys_clkout1",
 	.type = TI_CLK_GATE,
 	.data = &sys_clkout1_data,
 };
 
-static struct ti_clk_fixed_factor gpmc_fck_data = {
+static struct ti_clk_fixed_factor gpmc_fck_data =
+{
 	.parent = "core_l3_ick",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk gpmc_fck = {
+static struct ti_clk gpmc_fck =
+{
 	.name = "gpmc_fck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &gpmc_fck_data,
 };
 
-static struct ti_clk_fixed_factor dpll5_m2_d20_ck_data = {
+static struct ti_clk_fixed_factor dpll5_m2_d20_ck_data =
+{
 	.parent = "dpll5_m2_ck",
 	.div = 20,
 	.mult = 1,
 };
 
-static struct ti_clk dpll5_m2_d20_ck = {
+static struct ti_clk dpll5_m2_d20_ck =
+{
 	.name = "dpll5_m2_d20_ck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &dpll5_m2_d20_ck_data,
 };
 
-static struct ti_clk_gate dpll4_m5x2_ck_omap36xx_data = {
+static struct ti_clk_gate dpll4_m5x2_ck_omap36xx_data =
+{
 	.parent = "dpll4_m5x2_mul_ck",
 	.bit_shift = 0x1e,
 	.reg = 0xd00,
@@ -2610,14 +2982,16 @@ static struct ti_clk_gate dpll4_m5x2_ck_omap36xx_data = {
 	.flags = CLKF_HSDIV | CLKF_SET_RATE_PARENT | CLKF_SET_BIT_TO_DISABLE,
 };
 
-static struct ti_clk dpll4_m5x2_ck_omap36xx = {
+static struct ti_clk dpll4_m5x2_ck_omap36xx =
+{
 	.name = "dpll4_m5x2_ck",
 	.type = TI_CLK_GATE,
 	.data = &dpll4_m5x2_ck_omap36xx_data,
 	.patch = &dpll4_m5x2_ck,
 };
 
-static struct ti_clk_gate ssi_ssr_gate_fck_3430es2_data = {
+static struct ti_clk_gate ssi_ssr_gate_fck_3430es2_data =
+{
 	.parent = "corex2_fck",
 	.bit_shift = 0,
 	.reg = 0xa00,
@@ -2625,7 +2999,8 @@ static struct ti_clk_gate ssi_ssr_gate_fck_3430es2_data = {
 	.flags = CLKF_NO_WAIT,
 };
 
-static struct ti_clk_gate uart1_ick_data = {
+static struct ti_clk_gate uart1_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 13,
 	.reg = 0xa10,
@@ -2633,14 +3008,16 @@ static struct ti_clk_gate uart1_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk uart1_ick = {
+static struct ti_clk uart1_ick =
+{
 	.name = "uart1_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &uart1_ick_data,
 };
 
-static struct ti_clk_gate iva2_ck_data = {
+static struct ti_clk_gate iva2_ck_data =
+{
 	.parent = "dpll2_m2_ck",
 	.bit_shift = 0,
 	.reg = 0x0,
@@ -2648,14 +3025,16 @@ static struct ti_clk_gate iva2_ck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk iva2_ck = {
+static struct ti_clk iva2_ck =
+{
 	.name = "iva2_ck",
 	.clkdm_name = "iva2_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &iva2_ck_data,
 };
 
-static struct ti_clk_gate pka_ick_data = {
+static struct ti_clk_gate pka_ick_data =
+{
 	.parent = "security_l3_ick",
 	.bit_shift = 4,
 	.reg = 0xa14,
@@ -2663,13 +3042,15 @@ static struct ti_clk_gate pka_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk pka_ick = {
+static struct ti_clk pka_ick =
+{
 	.name = "pka_ick",
 	.type = TI_CLK_GATE,
 	.data = &pka_ick_data,
 };
 
-static struct ti_clk_gate gpt12_ick_data = {
+static struct ti_clk_gate gpt12_ick_data =
+{
 	.parent = "wkup_l4_ick",
 	.bit_shift = 1,
 	.reg = 0xc10,
@@ -2677,19 +3058,22 @@ static struct ti_clk_gate gpt12_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk gpt12_ick = {
+static struct ti_clk gpt12_ick =
+{
 	.name = "gpt12_ick",
 	.clkdm_name = "wkup_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gpt12_ick_data,
 };
 
-static const char *mcbsp5_mux_fck_parents[] = {
+static const char *mcbsp5_mux_fck_parents[] =
+{
 	"core_96m_fck",
 	"mcbsp_clks",
 };
 
-static struct ti_clk_mux mcbsp5_mux_fck_data = {
+static struct ti_clk_mux mcbsp5_mux_fck_data =
+{
 	.bit_shift = 4,
 	.num_parents = ARRAY_SIZE(mcbsp5_mux_fck_parents),
 	.reg = 0x2d8,
@@ -2697,18 +3081,21 @@ static struct ti_clk_mux mcbsp5_mux_fck_data = {
 	.parents = mcbsp5_mux_fck_parents,
 };
 
-static struct ti_clk_composite mcbsp5_fck_data = {
+static struct ti_clk_composite mcbsp5_fck_data =
+{
 	.mux = &mcbsp5_mux_fck_data,
 	.gate = &mcbsp5_gate_fck_data,
 };
 
-static struct ti_clk mcbsp5_fck = {
+static struct ti_clk mcbsp5_fck =
+{
 	.name = "mcbsp5_fck",
 	.type = TI_CLK_COMPOSITE,
 	.data = &mcbsp5_fck_data,
 };
 
-static struct ti_clk_gate usbhost_48m_fck_data = {
+static struct ti_clk_gate usbhost_48m_fck_data =
+{
 	.parent = "omap_48m_fck",
 	.bit_shift = 0,
 	.reg = 0x1400,
@@ -2716,14 +3103,16 @@ static struct ti_clk_gate usbhost_48m_fck_data = {
 	.flags = CLKF_DSS,
 };
 
-static struct ti_clk usbhost_48m_fck = {
+static struct ti_clk usbhost_48m_fck =
+{
 	.name = "usbhost_48m_fck",
 	.clkdm_name = "usbhost_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &usbhost_48m_fck_data,
 };
 
-static struct ti_clk_gate des1_ick_data = {
+static struct ti_clk_gate des1_ick_data =
+{
 	.parent = "security_l4_ick2",
 	.bit_shift = 0,
 	.reg = 0xa14,
@@ -2731,80 +3120,93 @@ static struct ti_clk_gate des1_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk des1_ick = {
+static struct ti_clk des1_ick =
+{
 	.name = "des1_ick",
 	.type = TI_CLK_GATE,
 	.data = &des1_ick_data,
 };
 
-static struct ti_clk_gate sgx_gate_fck_data = {
+static struct ti_clk_gate sgx_gate_fck_data =
+{
 	.parent = "core_ck",
 	.bit_shift = 1,
 	.reg = 0xb00,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk_fixed_factor core_d4_ck_data = {
+static struct ti_clk_fixed_factor core_d4_ck_data =
+{
 	.parent = "core_ck",
 	.div = 4,
 	.mult = 1,
 };
 
-static struct ti_clk core_d4_ck = {
+static struct ti_clk core_d4_ck =
+{
 	.name = "core_d4_ck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &core_d4_ck_data,
 };
 
-static struct ti_clk_fixed_factor omap_192m_alwon_fck_data = {
+static struct ti_clk_fixed_factor omap_192m_alwon_fck_data =
+{
 	.parent = "dpll4_m2x2_ck",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk omap_192m_alwon_fck = {
+static struct ti_clk omap_192m_alwon_fck =
+{
 	.name = "omap_192m_alwon_fck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &omap_192m_alwon_fck_data,
 };
 
-static struct ti_clk_fixed_factor core_d2_ck_data = {
+static struct ti_clk_fixed_factor core_d2_ck_data =
+{
 	.parent = "core_ck",
 	.div = 2,
 	.mult = 1,
 };
 
-static struct ti_clk core_d2_ck = {
+static struct ti_clk core_d2_ck =
+{
 	.name = "core_d2_ck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &core_d2_ck_data,
 };
 
-static struct ti_clk_fixed_factor corex2_d3_fck_data = {
+static struct ti_clk_fixed_factor corex2_d3_fck_data =
+{
 	.parent = "corex2_fck",
 	.div = 3,
 	.mult = 1,
 };
 
-static struct ti_clk corex2_d3_fck = {
+static struct ti_clk corex2_d3_fck =
+{
 	.name = "corex2_d3_fck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &corex2_d3_fck_data,
 };
 
-static struct ti_clk_fixed_factor corex2_d5_fck_data = {
+static struct ti_clk_fixed_factor corex2_d5_fck_data =
+{
 	.parent = "corex2_fck",
 	.div = 5,
 	.mult = 1,
 };
 
-static struct ti_clk corex2_d5_fck = {
+static struct ti_clk corex2_d5_fck =
+{
 	.name = "corex2_d5_fck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &corex2_d5_fck_data,
 };
 
-static const char *sgx_mux_fck_parents[] = {
+static const char *sgx_mux_fck_parents[] =
+{
 	"core_d3_ck",
 	"core_d4_ck",
 	"core_d6_ck",
@@ -2815,25 +3217,29 @@ static const char *sgx_mux_fck_parents[] = {
 	"corex2_d5_fck",
 };
 
-static struct ti_clk_mux sgx_mux_fck_data = {
+static struct ti_clk_mux sgx_mux_fck_data =
+{
 	.num_parents = ARRAY_SIZE(sgx_mux_fck_parents),
 	.reg = 0xb40,
 	.module = TI_CLKM_CM,
 	.parents = sgx_mux_fck_parents,
 };
 
-static struct ti_clk_composite sgx_fck_data = {
+static struct ti_clk_composite sgx_fck_data =
+{
 	.mux = &sgx_mux_fck_data,
 	.gate = &sgx_gate_fck_data,
 };
 
-static struct ti_clk sgx_fck = {
+static struct ti_clk sgx_fck =
+{
 	.name = "sgx_fck",
 	.type = TI_CLK_COMPOSITE,
 	.data = &sgx_fck_data,
 };
 
-static struct ti_clk_gate mcspi1_fck_data = {
+static struct ti_clk_gate mcspi1_fck_data =
+{
 	.parent = "core_48m_fck",
 	.bit_shift = 18,
 	.reg = 0xa00,
@@ -2841,14 +3247,16 @@ static struct ti_clk_gate mcspi1_fck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk mcspi1_fck = {
+static struct ti_clk mcspi1_fck =
+{
 	.name = "mcspi1_fck",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &mcspi1_fck_data,
 };
 
-static struct ti_clk_gate mmchs2_fck_data = {
+static struct ti_clk_gate mmchs2_fck_data =
+{
 	.parent = "core_96m_fck",
 	.bit_shift = 25,
 	.reg = 0xa00,
@@ -2856,14 +3264,16 @@ static struct ti_clk_gate mmchs2_fck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk mmchs2_fck = {
+static struct ti_clk mmchs2_fck =
+{
 	.name = "mmchs2_fck",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &mmchs2_fck_data,
 };
 
-static struct ti_clk_gate mcspi2_fck_data = {
+static struct ti_clk_gate mcspi2_fck_data =
+{
 	.parent = "core_48m_fck",
 	.bit_shift = 19,
 	.reg = 0xa00,
@@ -2871,53 +3281,61 @@ static struct ti_clk_gate mcspi2_fck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk mcspi2_fck = {
+static struct ti_clk mcspi2_fck =
+{
 	.name = "mcspi2_fck",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &mcspi2_fck_data,
 };
 
-static struct ti_clk_gate vpfe_fck_data = {
+static struct ti_clk_gate vpfe_fck_data =
+{
 	.parent = "pclk_ck",
 	.bit_shift = 10,
 	.reg = 0x59c,
 	.module = TI_CLKM_SCRM,
 };
 
-static struct ti_clk vpfe_fck = {
+static struct ti_clk vpfe_fck =
+{
 	.name = "vpfe_fck",
 	.type = TI_CLK_GATE,
 	.data = &vpfe_fck_data,
 };
 
-static struct ti_clk_gate gpt4_gate_fck_data = {
+static struct ti_clk_gate gpt4_gate_fck_data =
+{
 	.parent = "sys_ck",
 	.bit_shift = 5,
 	.reg = 0x1000,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk_gate mcbsp1_gate_fck_data = {
+static struct ti_clk_gate mcbsp1_gate_fck_data =
+{
 	.parent = "mcbsp_clks",
 	.bit_shift = 9,
 	.reg = 0xa00,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk_gate gpt5_gate_fck_data = {
+static struct ti_clk_gate gpt5_gate_fck_data =
+{
 	.parent = "sys_ck",
 	.bit_shift = 6,
 	.reg = 0x1000,
 	.module = TI_CLKM_CM,
 };
 
-static const char *gpt5_mux_fck_parents[] = {
+static const char *gpt5_mux_fck_parents[] =
+{
 	"omap_32k_fck",
 	"sys_ck",
 };
 
-static struct ti_clk_mux gpt5_mux_fck_data = {
+static struct ti_clk_mux gpt5_mux_fck_data =
+{
 	.bit_shift = 3,
 	.num_parents = ARRAY_SIZE(gpt5_mux_fck_parents),
 	.reg = 0x1040,
@@ -2925,44 +3343,51 @@ static struct ti_clk_mux gpt5_mux_fck_data = {
 	.parents = gpt5_mux_fck_parents,
 };
 
-static struct ti_clk_composite gpt5_fck_data = {
+static struct ti_clk_composite gpt5_fck_data =
+{
 	.mux = &gpt5_mux_fck_data,
 	.gate = &gpt5_gate_fck_data,
 };
 
-static struct ti_clk gpt5_fck = {
+static struct ti_clk gpt5_fck =
+{
 	.name = "gpt5_fck",
 	.type = TI_CLK_COMPOSITE,
 	.data = &gpt5_fck_data,
 };
 
-static struct ti_clk_gate ts_fck_data = {
+static struct ti_clk_gate ts_fck_data =
+{
 	.parent = "omap_32k_fck",
 	.bit_shift = 1,
 	.reg = 0xa08,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk ts_fck = {
+static struct ti_clk ts_fck =
+{
 	.name = "ts_fck",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &ts_fck_data,
 };
 
-static struct ti_clk_fixed_factor wdt1_fck_data = {
+static struct ti_clk_fixed_factor wdt1_fck_data =
+{
 	.parent = "secure_32k_fck",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk wdt1_fck = {
+static struct ti_clk wdt1_fck =
+{
 	.name = "wdt1_fck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &wdt1_fck_data,
 };
 
-static struct ti_clk_gate dpll4_m6x2_ck_omap36xx_data = {
+static struct ti_clk_gate dpll4_m6x2_ck_omap36xx_data =
+{
 	.parent = "dpll4_m6x2_mul_ck",
 	.bit_shift = 0x1f,
 	.reg = 0xd00,
@@ -2970,19 +3395,22 @@ static struct ti_clk_gate dpll4_m6x2_ck_omap36xx_data = {
 	.flags = CLKF_HSDIV | CLKF_SET_BIT_TO_DISABLE,
 };
 
-static struct ti_clk dpll4_m6x2_ck_omap36xx = {
+static struct ti_clk dpll4_m6x2_ck_omap36xx =
+{
 	.name = "dpll4_m6x2_ck",
 	.type = TI_CLK_GATE,
 	.data = &dpll4_m6x2_ck_omap36xx_data,
 	.patch = &dpll4_m6x2_ck,
 };
 
-static const char *gpt4_mux_fck_parents[] = {
+static const char *gpt4_mux_fck_parents[] =
+{
 	"omap_32k_fck",
 	"sys_ck",
 };
 
-static struct ti_clk_mux gpt4_mux_fck_data = {
+static struct ti_clk_mux gpt4_mux_fck_data =
+{
 	.bit_shift = 2,
 	.num_parents = ARRAY_SIZE(gpt4_mux_fck_parents),
 	.reg = 0x1040,
@@ -2990,7 +3418,8 @@ static struct ti_clk_mux gpt4_mux_fck_data = {
 	.parents = gpt4_mux_fck_parents,
 };
 
-static struct ti_clk_gate usbhost_ick_data = {
+static struct ti_clk_gate usbhost_ick_data =
+{
 	.parent = "l4_ick",
 	.bit_shift = 0,
 	.reg = 0x1410,
@@ -2998,14 +3427,16 @@ static struct ti_clk_gate usbhost_ick_data = {
 	.flags = CLKF_DSS | CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk usbhost_ick = {
+static struct ti_clk usbhost_ick =
+{
 	.name = "usbhost_ick",
 	.clkdm_name = "usbhost_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &usbhost_ick_data,
 };
 
-static struct ti_clk_gate mcbsp2_ick_data = {
+static struct ti_clk_gate mcbsp2_ick_data =
+{
 	.parent = "per_l4_ick",
 	.bit_shift = 0,
 	.reg = 0x1010,
@@ -3013,14 +3444,16 @@ static struct ti_clk_gate mcbsp2_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk mcbsp2_ick = {
+static struct ti_clk mcbsp2_ick =
+{
 	.name = "mcbsp2_ick",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &mcbsp2_ick_data,
 };
 
-static struct ti_clk_gate omapctrl_ick_data = {
+static struct ti_clk_gate omapctrl_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 6,
 	.reg = 0xa10,
@@ -3028,26 +3461,30 @@ static struct ti_clk_gate omapctrl_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk omapctrl_ick = {
+static struct ti_clk omapctrl_ick =
+{
 	.name = "omapctrl_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &omapctrl_ick_data,
 };
 
-static struct ti_clk_fixed_factor omap_96m_d4_fck_data = {
+static struct ti_clk_fixed_factor omap_96m_d4_fck_data =
+{
 	.parent = "omap_96m_fck",
 	.div = 4,
 	.mult = 1,
 };
 
-static struct ti_clk omap_96m_d4_fck = {
+static struct ti_clk omap_96m_d4_fck =
+{
 	.name = "omap_96m_d4_fck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &omap_96m_d4_fck_data,
 };
 
-static struct ti_clk_gate gpt6_ick_data = {
+static struct ti_clk_gate gpt6_ick_data =
+{
 	.parent = "per_l4_ick",
 	.bit_shift = 7,
 	.reg = 0x1010,
@@ -3055,14 +3492,16 @@ static struct ti_clk_gate gpt6_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk gpt6_ick = {
+static struct ti_clk gpt6_ick =
+{
 	.name = "gpt6_ick",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gpt6_ick_data,
 };
 
-static struct ti_clk_gate dpll3_m3x2_ck_omap36xx_data = {
+static struct ti_clk_gate dpll3_m3x2_ck_omap36xx_data =
+{
 	.parent = "dpll3_m3x2_mul_ck",
 	.bit_shift = 0xc,
 	.reg = 0xd00,
@@ -3070,14 +3509,16 @@ static struct ti_clk_gate dpll3_m3x2_ck_omap36xx_data = {
 	.flags = CLKF_HSDIV | CLKF_SET_BIT_TO_DISABLE,
 };
 
-static struct ti_clk dpll3_m3x2_ck_omap36xx = {
+static struct ti_clk dpll3_m3x2_ck_omap36xx =
+{
 	.name = "dpll3_m3x2_ck",
 	.type = TI_CLK_GATE,
 	.data = &dpll3_m3x2_ck_omap36xx_data,
 	.patch = &dpll3_m3x2_ck,
 };
 
-static struct ti_clk_gate i2c3_ick_data = {
+static struct ti_clk_gate i2c3_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 17,
 	.reg = 0xa10,
@@ -3085,14 +3526,16 @@ static struct ti_clk_gate i2c3_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk i2c3_ick = {
+static struct ti_clk i2c3_ick =
+{
 	.name = "i2c3_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &i2c3_ick_data,
 };
 
-static struct ti_clk_gate gpio6_ick_data = {
+static struct ti_clk_gate gpio6_ick_data =
+{
 	.parent = "per_l4_ick",
 	.bit_shift = 17,
 	.reg = 0x1010,
@@ -3100,14 +3543,16 @@ static struct ti_clk_gate gpio6_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk gpio6_ick = {
+static struct ti_clk gpio6_ick =
+{
 	.name = "gpio6_ick",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gpio6_ick_data,
 };
 
-static struct ti_clk_gate mspro_ick_data = {
+static struct ti_clk_gate mspro_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 23,
 	.reg = 0xa10,
@@ -3115,120 +3560,140 @@ static struct ti_clk_gate mspro_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk mspro_ick = {
+static struct ti_clk mspro_ick =
+{
 	.name = "mspro_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &mspro_ick_data,
 };
 
-static struct ti_clk_composite mcbsp1_fck_data = {
+static struct ti_clk_composite mcbsp1_fck_data =
+{
 	.mux = &mcbsp1_mux_fck_data,
 	.gate = &mcbsp1_gate_fck_data,
 };
 
-static struct ti_clk mcbsp1_fck = {
+static struct ti_clk mcbsp1_fck =
+{
 	.name = "mcbsp1_fck",
 	.type = TI_CLK_COMPOSITE,
 	.data = &mcbsp1_fck_data,
 };
 
-static struct ti_clk_gate gpt3_gate_fck_data = {
+static struct ti_clk_gate gpt3_gate_fck_data =
+{
 	.parent = "sys_ck",
 	.bit_shift = 4,
 	.reg = 0x1000,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk_fixed rmii_ck_data = {
+static struct ti_clk_fixed rmii_ck_data =
+{
 	.frequency = 50000000,
 };
 
-static struct ti_clk rmii_ck = {
+static struct ti_clk rmii_ck =
+{
 	.name = "rmii_ck",
 	.type = TI_CLK_FIXED,
 	.data = &rmii_ck_data,
 };
 
-static struct ti_clk_gate gpt6_gate_fck_data = {
+static struct ti_clk_gate gpt6_gate_fck_data =
+{
 	.parent = "sys_ck",
 	.bit_shift = 7,
 	.reg = 0x1000,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk_composite gpt6_fck_data = {
+static struct ti_clk_composite gpt6_fck_data =
+{
 	.mux = &gpt6_mux_fck_data,
 	.gate = &gpt6_gate_fck_data,
 };
 
-static struct ti_clk gpt6_fck = {
+static struct ti_clk gpt6_fck =
+{
 	.name = "gpt6_fck",
 	.type = TI_CLK_COMPOSITE,
 	.data = &gpt6_fck_data,
 };
 
-static struct ti_clk_fixed_factor dpll5_m2_d4_ck_data = {
+static struct ti_clk_fixed_factor dpll5_m2_d4_ck_data =
+{
 	.parent = "dpll5_m2_ck",
 	.div = 4,
 	.mult = 1,
 };
 
-static struct ti_clk dpll5_m2_d4_ck = {
+static struct ti_clk dpll5_m2_d4_ck =
+{
 	.name = "dpll5_m2_d4_ck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &dpll5_m2_d4_ck_data,
 };
 
-static struct ti_clk_fixed_factor sys_d2_ck_data = {
+static struct ti_clk_fixed_factor sys_d2_ck_data =
+{
 	.parent = "sys_ck",
 	.div = 2,
 	.mult = 1,
 };
 
-static struct ti_clk sys_d2_ck = {
+static struct ti_clk sys_d2_ck =
+{
 	.name = "sys_d2_ck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &sys_d2_ck_data,
 };
 
-static struct ti_clk_fixed_factor omap_96m_d2_fck_data = {
+static struct ti_clk_fixed_factor omap_96m_d2_fck_data =
+{
 	.parent = "omap_96m_fck",
 	.div = 2,
 	.mult = 1,
 };
 
-static struct ti_clk omap_96m_d2_fck = {
+static struct ti_clk omap_96m_d2_fck =
+{
 	.name = "omap_96m_d2_fck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &omap_96m_d2_fck_data,
 };
 
-static struct ti_clk_fixed_factor dpll5_m2_d8_ck_data = {
+static struct ti_clk_fixed_factor dpll5_m2_d8_ck_data =
+{
 	.parent = "dpll5_m2_ck",
 	.div = 8,
 	.mult = 1,
 };
 
-static struct ti_clk dpll5_m2_d8_ck = {
+static struct ti_clk dpll5_m2_d8_ck =
+{
 	.name = "dpll5_m2_d8_ck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &dpll5_m2_d8_ck_data,
 };
 
-static struct ti_clk_fixed_factor dpll5_m2_d16_ck_data = {
+static struct ti_clk_fixed_factor dpll5_m2_d16_ck_data =
+{
 	.parent = "dpll5_m2_ck",
 	.div = 16,
 	.mult = 1,
 };
 
-static struct ti_clk dpll5_m2_d16_ck = {
+static struct ti_clk dpll5_m2_d16_ck =
+{
 	.name = "dpll5_m2_d16_ck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &dpll5_m2_d16_ck_data,
 };
 
-static const char *usim_mux_fck_parents[] = {
+static const char *usim_mux_fck_parents[] =
+{
 	"sys_ck",
 	"sys_d2_ck",
 	"omap_96m_d2_fck",
@@ -3241,7 +3706,8 @@ static const char *usim_mux_fck_parents[] = {
 	"dpll5_m2_d20_ck",
 };
 
-static struct ti_clk_mux usim_mux_fck_data = {
+static struct ti_clk_mux usim_mux_fck_data =
+{
 	.bit_shift = 3,
 	.num_parents = ARRAY_SIZE(usim_mux_fck_parents),
 	.reg = 0xc40,
@@ -3250,18 +3716,21 @@ static struct ti_clk_mux usim_mux_fck_data = {
 	.flags = CLKF_INDEX_STARTS_AT_ONE,
 };
 
-static struct ti_clk_composite usim_fck_data = {
+static struct ti_clk_composite usim_fck_data =
+{
 	.mux = &usim_mux_fck_data,
 	.gate = &usim_gate_fck_data,
 };
 
-static struct ti_clk usim_fck = {
+static struct ti_clk usim_fck =
+{
 	.name = "usim_fck",
 	.type = TI_CLK_COMPOSITE,
 	.data = &usim_fck_data,
 };
 
-static int ssi_ssr_div_fck_3430es2_divs[] = {
+static int ssi_ssr_div_fck_3430es2_divs[] =
+{
 	0,
 	1,
 	2,
@@ -3273,7 +3742,8 @@ static int ssi_ssr_div_fck_3430es2_divs[] = {
 	8,
 };
 
-static struct ti_clk_divider ssi_ssr_div_fck_3430es2_data = {
+static struct ti_clk_divider ssi_ssr_div_fck_3430es2_data =
+{
 	.num_dividers = ARRAY_SIZE(ssi_ssr_div_fck_3430es2_divs),
 	.parent = "corex2_fck",
 	.bit_shift = 8,
@@ -3282,18 +3752,21 @@ static struct ti_clk_divider ssi_ssr_div_fck_3430es2_data = {
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk_composite ssi_ssr_fck_3430es2_data = {
+static struct ti_clk_composite ssi_ssr_fck_3430es2_data =
+{
 	.gate = &ssi_ssr_gate_fck_3430es2_data,
 	.divider = &ssi_ssr_div_fck_3430es2_data,
 };
 
-static struct ti_clk ssi_ssr_fck_3430es2 = {
+static struct ti_clk ssi_ssr_fck_3430es2 =
+{
 	.name = "ssi_ssr_fck",
 	.type = TI_CLK_COMPOSITE,
 	.data = &ssi_ssr_fck_3430es2_data,
 };
 
-static struct ti_clk_gate dss1_alwon_fck_3430es1_data = {
+static struct ti_clk_gate dss1_alwon_fck_3430es1_data =
+{
 	.parent = "dpll4_m4x2_ck",
 	.bit_shift = 0,
 	.reg = 0xe00,
@@ -3301,14 +3774,16 @@ static struct ti_clk_gate dss1_alwon_fck_3430es1_data = {
 	.flags = CLKF_SET_RATE_PARENT,
 };
 
-static struct ti_clk dss1_alwon_fck_3430es1 = {
+static struct ti_clk dss1_alwon_fck_3430es1 =
+{
 	.name = "dss1_alwon_fck",
 	.clkdm_name = "dss_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &dss1_alwon_fck_3430es1_data,
 };
 
-static struct ti_clk_gate gpt3_ick_data = {
+static struct ti_clk_gate gpt3_ick_data =
+{
 	.parent = "per_l4_ick",
 	.bit_shift = 4,
 	.reg = 0x1010,
@@ -3316,38 +3791,44 @@ static struct ti_clk_gate gpt3_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk gpt3_ick = {
+static struct ti_clk gpt3_ick =
+{
 	.name = "gpt3_ick",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gpt3_ick_data,
 };
 
-static struct ti_clk_fixed_factor omap_12m_fck_data = {
+static struct ti_clk_fixed_factor omap_12m_fck_data =
+{
 	.parent = "omap_48m_fck",
 	.div = 4,
 	.mult = 1,
 };
 
-static struct ti_clk omap_12m_fck = {
+static struct ti_clk omap_12m_fck =
+{
 	.name = "omap_12m_fck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &omap_12m_fck_data,
 };
 
-static struct ti_clk_fixed_factor core_12m_fck_data = {
+static struct ti_clk_fixed_factor core_12m_fck_data =
+{
 	.parent = "omap_12m_fck",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk core_12m_fck = {
+static struct ti_clk core_12m_fck =
+{
 	.name = "core_12m_fck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &core_12m_fck_data,
 };
 
-static struct ti_clk_gate hdq_fck_data = {
+static struct ti_clk_gate hdq_fck_data =
+{
 	.parent = "core_12m_fck",
 	.bit_shift = 22,
 	.reg = 0xa00,
@@ -3355,14 +3836,16 @@ static struct ti_clk_gate hdq_fck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk hdq_fck = {
+static struct ti_clk hdq_fck =
+{
 	.name = "hdq_fck",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &hdq_fck_data,
 };
 
-static struct ti_clk_gate usbtll_fck_data = {
+static struct ti_clk_gate usbtll_fck_data =
+{
 	.parent = "dpll5_m2_ck",
 	.bit_shift = 2,
 	.reg = 0xa08,
@@ -3370,28 +3853,32 @@ static struct ti_clk_gate usbtll_fck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk usbtll_fck = {
+static struct ti_clk usbtll_fck =
+{
 	.name = "usbtll_fck",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &usbtll_fck_data,
 };
 
-static struct ti_clk_gate hsotgusb_fck_am35xx_data = {
+static struct ti_clk_gate hsotgusb_fck_am35xx_data =
+{
 	.parent = "sys_ck",
 	.bit_shift = 8,
 	.reg = 0x59c,
 	.module = TI_CLKM_SCRM,
 };
 
-static struct ti_clk hsotgusb_fck_am35xx = {
+static struct ti_clk hsotgusb_fck_am35xx =
+{
 	.name = "hsotgusb_fck_am35xx",
 	.clkdm_name = "core_l3_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &hsotgusb_fck_am35xx_data,
 };
 
-static struct ti_clk_gate hsotgusb_ick_3430es2_data = {
+static struct ti_clk_gate hsotgusb_ick_3430es2_data =
+{
 	.parent = "core_l3_ick",
 	.bit_shift = 4,
 	.reg = 0xa10,
@@ -3399,14 +3886,16 @@ static struct ti_clk_gate hsotgusb_ick_3430es2_data = {
 	.flags = CLKF_HSOTGUSB | CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk hsotgusb_ick_3430es2 = {
+static struct ti_clk hsotgusb_ick_3430es2 =
+{
 	.name = "hsotgusb_ick_3430es2",
 	.clkdm_name = "core_l3_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &hsotgusb_ick_3430es2_data,
 };
 
-static struct ti_clk_gate gfx_l3_ck_data = {
+static struct ti_clk_gate gfx_l3_ck_data =
+{
 	.parent = "l3_ick",
 	.bit_shift = 0,
 	.reg = 0xb10,
@@ -3414,26 +3903,30 @@ static struct ti_clk_gate gfx_l3_ck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk gfx_l3_ck = {
+static struct ti_clk gfx_l3_ck =
+{
 	.name = "gfx_l3_ck",
 	.clkdm_name = "gfx_3430es1_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gfx_l3_ck_data,
 };
 
-static struct ti_clk_fixed_factor gfx_l3_ick_data = {
+static struct ti_clk_fixed_factor gfx_l3_ick_data =
+{
 	.parent = "gfx_l3_ck",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk gfx_l3_ick = {
+static struct ti_clk gfx_l3_ick =
+{
 	.name = "gfx_l3_ick",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &gfx_l3_ick_data,
 };
 
-static struct ti_clk_gate mcbsp1_ick_data = {
+static struct ti_clk_gate mcbsp1_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 9,
 	.reg = 0xa10,
@@ -3441,26 +3934,30 @@ static struct ti_clk_gate mcbsp1_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk mcbsp1_ick = {
+static struct ti_clk mcbsp1_ick =
+{
 	.name = "mcbsp1_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &mcbsp1_ick_data,
 };
 
-static struct ti_clk_fixed_factor gpt12_fck_data = {
+static struct ti_clk_fixed_factor gpt12_fck_data =
+{
 	.parent = "secure_32k_fck",
 	.div = 1,
 	.mult = 1,
 };
 
-static struct ti_clk gpt12_fck = {
+static struct ti_clk gpt12_fck =
+{
 	.name = "gpt12_fck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &gpt12_fck_data,
 };
 
-static struct ti_clk_gate gfx_cg2_ck_data = {
+static struct ti_clk_gate gfx_cg2_ck_data =
+{
 	.parent = "gfx_l3_fck",
 	.bit_shift = 2,
 	.reg = 0xb00,
@@ -3468,14 +3965,16 @@ static struct ti_clk_gate gfx_cg2_ck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk gfx_cg2_ck = {
+static struct ti_clk gfx_cg2_ck =
+{
 	.name = "gfx_cg2_ck",
 	.clkdm_name = "gfx_3430es1_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gfx_cg2_ck_data,
 };
 
-static struct ti_clk_gate i2c2_ick_data = {
+static struct ti_clk_gate i2c2_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 16,
 	.reg = 0xa10,
@@ -3483,28 +3982,32 @@ static struct ti_clk_gate i2c2_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk i2c2_ick = {
+static struct ti_clk i2c2_ick =
+{
 	.name = "i2c2_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &i2c2_ick_data,
 };
 
-static struct ti_clk_gate gpio4_dbck_data = {
+static struct ti_clk_gate gpio4_dbck_data =
+{
 	.parent = "per_32k_alwon_fck",
 	.bit_shift = 15,
 	.reg = 0x1000,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk gpio4_dbck = {
+static struct ti_clk gpio4_dbck =
+{
 	.name = "gpio4_dbck",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gpio4_dbck_data,
 };
 
-static struct ti_clk_gate i2c3_fck_data = {
+static struct ti_clk_gate i2c3_fck_data =
+{
 	.parent = "core_96m_fck",
 	.bit_shift = 17,
 	.reg = 0xa00,
@@ -3512,25 +4015,29 @@ static struct ti_clk_gate i2c3_fck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk i2c3_fck = {
+static struct ti_clk i2c3_fck =
+{
 	.name = "i2c3_fck",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &i2c3_fck_data,
 };
 
-static struct ti_clk_composite gpt3_fck_data = {
+static struct ti_clk_composite gpt3_fck_data =
+{
 	.mux = &gpt3_mux_fck_data,
 	.gate = &gpt3_gate_fck_data,
 };
 
-static struct ti_clk gpt3_fck = {
+static struct ti_clk gpt3_fck =
+{
 	.name = "gpt3_fck",
 	.type = TI_CLK_COMPOSITE,
 	.data = &gpt3_fck_data,
 };
 
-static struct ti_clk_gate i2c1_ick_data = {
+static struct ti_clk_gate i2c1_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 15,
 	.reg = 0xa10,
@@ -3538,14 +4045,16 @@ static struct ti_clk_gate i2c1_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk i2c1_ick = {
+static struct ti_clk i2c1_ick =
+{
 	.name = "i2c1_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &i2c1_ick_data,
 };
 
-static struct ti_clk_gate omap_32ksync_ick_data = {
+static struct ti_clk_gate omap_32ksync_ick_data =
+{
 	.parent = "wkup_l4_ick",
 	.bit_shift = 2,
 	.reg = 0xc10,
@@ -3553,14 +4062,16 @@ static struct ti_clk_gate omap_32ksync_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk omap_32ksync_ick = {
+static struct ti_clk omap_32ksync_ick =
+{
 	.name = "omap_32ksync_ick",
 	.clkdm_name = "wkup_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &omap_32ksync_ick_data,
 };
 
-static struct ti_clk_gate aes2_ick_data = {
+static struct ti_clk_gate aes2_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 28,
 	.reg = 0xa10,
@@ -3568,19 +4079,22 @@ static struct ti_clk_gate aes2_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk aes2_ick = {
+static struct ti_clk aes2_ick =
+{
 	.name = "aes2_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &aes2_ick_data,
 };
 
-static const char *gpt8_mux_fck_parents[] = {
+static const char *gpt8_mux_fck_parents[] =
+{
 	"omap_32k_fck",
 	"sys_ck",
 };
 
-static struct ti_clk_mux gpt8_mux_fck_data = {
+static struct ti_clk_mux gpt8_mux_fck_data =
+{
 	.bit_shift = 6,
 	.num_parents = ARRAY_SIZE(gpt8_mux_fck_parents),
 	.reg = 0x1040,
@@ -3588,50 +4102,58 @@ static struct ti_clk_mux gpt8_mux_fck_data = {
 	.parents = gpt8_mux_fck_parents,
 };
 
-static struct ti_clk_composite gpt8_fck_data = {
+static struct ti_clk_composite gpt8_fck_data =
+{
 	.mux = &gpt8_mux_fck_data,
 	.gate = &gpt8_gate_fck_data,
 };
 
-static struct ti_clk gpt8_fck = {
+static struct ti_clk gpt8_fck =
+{
 	.name = "gpt8_fck",
 	.type = TI_CLK_COMPOSITE,
 	.data = &gpt8_fck_data,
 };
 
-static struct ti_clk_gate mcbsp4_gate_fck_data = {
+static struct ti_clk_gate mcbsp4_gate_fck_data =
+{
 	.parent = "mcbsp_clks",
 	.bit_shift = 2,
 	.reg = 0x1000,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk_composite mcbsp4_fck_data = {
+static struct ti_clk_composite mcbsp4_fck_data =
+{
 	.mux = &mcbsp4_mux_fck_data,
 	.gate = &mcbsp4_gate_fck_data,
 };
 
-static struct ti_clk mcbsp4_fck = {
+static struct ti_clk mcbsp4_fck =
+{
 	.name = "mcbsp4_fck",
 	.type = TI_CLK_COMPOSITE,
 	.data = &mcbsp4_fck_data,
 };
 
-static struct ti_clk_gate gpio2_dbck_data = {
+static struct ti_clk_gate gpio2_dbck_data =
+{
 	.parent = "per_32k_alwon_fck",
 	.bit_shift = 13,
 	.reg = 0x1000,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk gpio2_dbck = {
+static struct ti_clk gpio2_dbck =
+{
 	.name = "gpio2_dbck",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gpio2_dbck_data,
 };
 
-static struct ti_clk_gate usbtll_ick_data = {
+static struct ti_clk_gate usbtll_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 2,
 	.reg = 0xa18,
@@ -3639,14 +4161,16 @@ static struct ti_clk_gate usbtll_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk usbtll_ick = {
+static struct ti_clk usbtll_ick =
+{
 	.name = "usbtll_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &usbtll_ick_data,
 };
 
-static struct ti_clk_gate mcspi4_ick_data = {
+static struct ti_clk_gate mcspi4_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 21,
 	.reg = 0xa10,
@@ -3654,28 +4178,32 @@ static struct ti_clk_gate mcspi4_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk mcspi4_ick = {
+static struct ti_clk mcspi4_ick =
+{
 	.name = "mcspi4_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &mcspi4_ick_data,
 };
 
-static struct ti_clk_gate dss_96m_fck_data = {
+static struct ti_clk_gate dss_96m_fck_data =
+{
 	.parent = "omap_96m_fck",
 	.bit_shift = 2,
 	.reg = 0xe00,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk dss_96m_fck = {
+static struct ti_clk dss_96m_fck =
+{
 	.name = "dss_96m_fck",
 	.clkdm_name = "dss_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &dss_96m_fck_data,
 };
 
-static struct ti_clk_divider rm_ick_data = {
+static struct ti_clk_divider rm_ick_data =
+{
 	.parent = "l4_ick",
 	.bit_shift = 1,
 	.max_div = 3,
@@ -3684,13 +4212,15 @@ static struct ti_clk_divider rm_ick_data = {
 	.flags = CLKF_INDEX_STARTS_AT_ONE,
 };
 
-static struct ti_clk rm_ick = {
+static struct ti_clk rm_ick =
+{
 	.name = "rm_ick",
 	.type = TI_CLK_DIVIDER,
 	.data = &rm_ick_data,
 };
 
-static struct ti_clk_gate hdq_ick_data = {
+static struct ti_clk_gate hdq_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 22,
 	.reg = 0xa10,
@@ -3698,26 +4228,30 @@ static struct ti_clk_gate hdq_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk hdq_ick = {
+static struct ti_clk hdq_ick =
+{
 	.name = "hdq_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &hdq_ick_data,
 };
 
-static struct ti_clk_fixed_factor dpll3_x2_ck_data = {
+static struct ti_clk_fixed_factor dpll3_x2_ck_data =
+{
 	.parent = "dpll3_ck",
 	.div = 1,
 	.mult = 2,
 };
 
-static struct ti_clk dpll3_x2_ck = {
+static struct ti_clk dpll3_x2_ck =
+{
 	.name = "dpll3_x2_ck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &dpll3_x2_ck_data,
 };
 
-static struct ti_clk_gate mad2d_ick_data = {
+static struct ti_clk_gate mad2d_ick_data =
+{
 	.parent = "l3_ick",
 	.bit_shift = 3,
 	.reg = 0xa18,
@@ -3725,14 +4259,16 @@ static struct ti_clk_gate mad2d_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk mad2d_ick = {
+static struct ti_clk mad2d_ick =
+{
 	.name = "mad2d_ick",
 	.clkdm_name = "d2d_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &mad2d_ick_data,
 };
 
-static struct ti_clk_gate fshostusb_fck_data = {
+static struct ti_clk_gate fshostusb_fck_data =
+{
 	.parent = "core_48m_fck",
 	.bit_shift = 5,
 	.reg = 0xa00,
@@ -3740,14 +4276,16 @@ static struct ti_clk_gate fshostusb_fck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk fshostusb_fck = {
+static struct ti_clk fshostusb_fck =
+{
 	.name = "fshostusb_fck",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &fshostusb_fck_data,
 };
 
-static struct ti_clk_gate sr1_fck_data = {
+static struct ti_clk_gate sr1_fck_data =
+{
 	.parent = "sys_ck",
 	.bit_shift = 6,
 	.reg = 0xc00,
@@ -3755,14 +4293,16 @@ static struct ti_clk_gate sr1_fck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk sr1_fck = {
+static struct ti_clk sr1_fck =
+{
 	.name = "sr1_fck",
 	.clkdm_name = "wkup_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &sr1_fck_data,
 };
 
-static struct ti_clk_gate des2_ick_data = {
+static struct ti_clk_gate des2_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 26,
 	.reg = 0xa10,
@@ -3770,14 +4310,16 @@ static struct ti_clk_gate des2_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk des2_ick = {
+static struct ti_clk des2_ick =
+{
 	.name = "des2_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &des2_ick_data,
 };
 
-static struct ti_clk_gate sdrc_ick_data = {
+static struct ti_clk_gate sdrc_ick_data =
+{
 	.parent = "core_l3_ick",
 	.bit_shift = 1,
 	.reg = 0xa10,
@@ -3785,25 +4327,29 @@ static struct ti_clk_gate sdrc_ick_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk sdrc_ick = {
+static struct ti_clk sdrc_ick =
+{
 	.name = "sdrc_ick",
 	.clkdm_name = "core_l3_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &sdrc_ick_data,
 };
 
-static struct ti_clk_composite gpt4_fck_data = {
+static struct ti_clk_composite gpt4_fck_data =
+{
 	.mux = &gpt4_mux_fck_data,
 	.gate = &gpt4_gate_fck_data,
 };
 
-static struct ti_clk gpt4_fck = {
+static struct ti_clk gpt4_fck =
+{
 	.name = "gpt4_fck",
 	.type = TI_CLK_COMPOSITE,
 	.data = &gpt4_fck_data,
 };
 
-static struct ti_clk_gate dpll4_m3x2_ck_omap36xx_data = {
+static struct ti_clk_gate dpll4_m3x2_ck_omap36xx_data =
+{
 	.parent = "dpll4_m3x2_mul_ck",
 	.bit_shift = 0x1c,
 	.reg = 0xd00,
@@ -3811,28 +4357,32 @@ static struct ti_clk_gate dpll4_m3x2_ck_omap36xx_data = {
 	.flags = CLKF_HSDIV | CLKF_SET_BIT_TO_DISABLE,
 };
 
-static struct ti_clk dpll4_m3x2_ck_omap36xx = {
+static struct ti_clk dpll4_m3x2_ck_omap36xx =
+{
 	.name = "dpll4_m3x2_ck",
 	.type = TI_CLK_GATE,
 	.data = &dpll4_m3x2_ck_omap36xx_data,
 	.patch = &dpll4_m3x2_ck,
 };
 
-static struct ti_clk_gate cpefuse_fck_data = {
+static struct ti_clk_gate cpefuse_fck_data =
+{
 	.parent = "sys_ck",
 	.bit_shift = 0,
 	.reg = 0xa08,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk cpefuse_fck = {
+static struct ti_clk cpefuse_fck =
+{
 	.name = "cpefuse_fck",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &cpefuse_fck_data,
 };
 
-static struct ti_clk_gate mcspi3_ick_data = {
+static struct ti_clk_gate mcspi3_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 20,
 	.reg = 0xa10,
@@ -3840,40 +4390,46 @@ static struct ti_clk_gate mcspi3_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk mcspi3_ick = {
+static struct ti_clk mcspi3_ick =
+{
 	.name = "mcspi3_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &mcspi3_ick_data,
 };
 
-static struct ti_clk_fixed_factor ssi_sst_fck_3430es2_data = {
+static struct ti_clk_fixed_factor ssi_sst_fck_3430es2_data =
+{
 	.parent = "ssi_ssr_fck",
 	.div = 2,
 	.mult = 1,
 };
 
-static struct ti_clk ssi_sst_fck_3430es2 = {
+static struct ti_clk ssi_sst_fck_3430es2 =
+{
 	.name = "ssi_sst_fck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &ssi_sst_fck_3430es2_data,
 };
 
-static struct ti_clk_gate gpio1_dbck_data = {
+static struct ti_clk_gate gpio1_dbck_data =
+{
 	.parent = "wkup_32k_fck",
 	.bit_shift = 3,
 	.reg = 0xc00,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk gpio1_dbck = {
+static struct ti_clk gpio1_dbck =
+{
 	.name = "gpio1_dbck",
 	.clkdm_name = "wkup_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gpio1_dbck_data,
 };
 
-static struct ti_clk_gate gpt4_ick_data = {
+static struct ti_clk_gate gpt4_ick_data =
+{
 	.parent = "per_l4_ick",
 	.bit_shift = 5,
 	.reg = 0x1010,
@@ -3881,14 +4437,16 @@ static struct ti_clk_gate gpt4_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk gpt4_ick = {
+static struct ti_clk gpt4_ick =
+{
 	.name = "gpt4_ick",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gpt4_ick_data,
 };
 
-static struct ti_clk_gate gpt2_ick_data = {
+static struct ti_clk_gate gpt2_ick_data =
+{
 	.parent = "per_l4_ick",
 	.bit_shift = 3,
 	.reg = 0x1010,
@@ -3896,14 +4454,16 @@ static struct ti_clk_gate gpt2_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk gpt2_ick = {
+static struct ti_clk gpt2_ick =
+{
 	.name = "gpt2_ick",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gpt2_ick_data,
 };
 
-static struct ti_clk_gate mmchs1_fck_data = {
+static struct ti_clk_gate mmchs1_fck_data =
+{
 	.parent = "core_96m_fck",
 	.bit_shift = 24,
 	.reg = 0xa00,
@@ -3911,38 +4471,44 @@ static struct ti_clk_gate mmchs1_fck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk mmchs1_fck = {
+static struct ti_clk mmchs1_fck =
+{
 	.name = "mmchs1_fck",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &mmchs1_fck_data,
 };
 
-static struct ti_clk_fixed dummy_apb_pclk_data = {
+static struct ti_clk_fixed dummy_apb_pclk_data =
+{
 	.frequency = 0x0,
 };
 
-static struct ti_clk dummy_apb_pclk = {
+static struct ti_clk dummy_apb_pclk =
+{
 	.name = "dummy_apb_pclk",
 	.type = TI_CLK_FIXED,
 	.data = &dummy_apb_pclk_data,
 };
 
-static struct ti_clk_gate gpio6_dbck_data = {
+static struct ti_clk_gate gpio6_dbck_data =
+{
 	.parent = "per_32k_alwon_fck",
 	.bit_shift = 17,
 	.reg = 0x1000,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk gpio6_dbck = {
+static struct ti_clk gpio6_dbck =
+{
 	.name = "gpio6_dbck",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gpio6_dbck_data,
 };
 
-static struct ti_clk_gate uart2_ick_data = {
+static struct ti_clk_gate uart2_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 14,
 	.reg = 0xa10,
@@ -3950,26 +4516,30 @@ static struct ti_clk_gate uart2_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk uart2_ick = {
+static struct ti_clk uart2_ick =
+{
 	.name = "uart2_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &uart2_ick_data,
 };
 
-static struct ti_clk_fixed_factor dpll4_x2_ck_data = {
+static struct ti_clk_fixed_factor dpll4_x2_ck_data =
+{
 	.parent = "dpll4_ck",
 	.div = 1,
 	.mult = 2,
 };
 
-static struct ti_clk dpll4_x2_ck = {
+static struct ti_clk dpll4_x2_ck =
+{
 	.name = "dpll4_x2_ck",
 	.type = TI_CLK_FIXED_FACTOR,
 	.data = &dpll4_x2_ck_data,
 };
 
-static struct ti_clk_gate gpt7_ick_data = {
+static struct ti_clk_gate gpt7_ick_data =
+{
 	.parent = "per_l4_ick",
 	.bit_shift = 8,
 	.reg = 0x1010,
@@ -3977,28 +4547,32 @@ static struct ti_clk_gate gpt7_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk gpt7_ick = {
+static struct ti_clk gpt7_ick =
+{
 	.name = "gpt7_ick",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gpt7_ick_data,
 };
 
-static struct ti_clk_gate dss_tv_fck_data = {
+static struct ti_clk_gate dss_tv_fck_data =
+{
 	.parent = "omap_54m_fck",
 	.bit_shift = 2,
 	.reg = 0xe00,
 	.module = TI_CLKM_CM,
 };
 
-static struct ti_clk dss_tv_fck = {
+static struct ti_clk dss_tv_fck =
+{
 	.name = "dss_tv_fck",
 	.clkdm_name = "dss_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &dss_tv_fck_data,
 };
 
-static struct ti_clk_gate mcbsp5_ick_data = {
+static struct ti_clk_gate mcbsp5_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 10,
 	.reg = 0xa10,
@@ -4006,14 +4580,16 @@ static struct ti_clk_gate mcbsp5_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk mcbsp5_ick = {
+static struct ti_clk mcbsp5_ick =
+{
 	.name = "mcbsp5_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &mcbsp5_ick_data,
 };
 
-static struct ti_clk_gate mcspi1_ick_data = {
+static struct ti_clk_gate mcspi1_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 18,
 	.reg = 0xa10,
@@ -4021,14 +4597,16 @@ static struct ti_clk_gate mcspi1_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk mcspi1_ick = {
+static struct ti_clk mcspi1_ick =
+{
 	.name = "mcspi1_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &mcspi1_ick_data,
 };
 
-static struct ti_clk_gate d2d_26m_fck_data = {
+static struct ti_clk_gate d2d_26m_fck_data =
+{
 	.parent = "sys_ck",
 	.bit_shift = 3,
 	.reg = 0xa00,
@@ -4036,14 +4614,16 @@ static struct ti_clk_gate d2d_26m_fck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk d2d_26m_fck = {
+static struct ti_clk d2d_26m_fck =
+{
 	.name = "d2d_26m_fck",
 	.clkdm_name = "d2d_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &d2d_26m_fck_data,
 };
 
-static struct ti_clk_gate wdt3_ick_data = {
+static struct ti_clk_gate wdt3_ick_data =
+{
 	.parent = "per_l4_ick",
 	.bit_shift = 12,
 	.reg = 0x1010,
@@ -4051,14 +4631,16 @@ static struct ti_clk_gate wdt3_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk wdt3_ick = {
+static struct ti_clk wdt3_ick =
+{
 	.name = "wdt3_ick",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &wdt3_ick_data,
 };
 
-static struct ti_clk_divider pclkx2_fck_data = {
+static struct ti_clk_divider pclkx2_fck_data =
+{
 	.parent = "emu_src_ck",
 	.bit_shift = 6,
 	.max_div = 3,
@@ -4067,13 +4649,15 @@ static struct ti_clk_divider pclkx2_fck_data = {
 	.flags = CLKF_INDEX_STARTS_AT_ONE,
 };
 
-static struct ti_clk pclkx2_fck = {
+static struct ti_clk pclkx2_fck =
+{
 	.name = "pclkx2_fck",
 	.type = TI_CLK_DIVIDER,
 	.data = &pclkx2_fck_data,
 };
 
-static struct ti_clk_gate sha12_ick_data = {
+static struct ti_clk_gate sha12_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 27,
 	.reg = 0xa10,
@@ -4081,38 +4665,44 @@ static struct ti_clk_gate sha12_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk sha12_ick = {
+static struct ti_clk sha12_ick =
+{
 	.name = "sha12_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &sha12_ick_data,
 };
 
-static struct ti_clk_gate emac_fck_data = {
+static struct ti_clk_gate emac_fck_data =
+{
 	.parent = "rmii_ck",
 	.bit_shift = 9,
 	.reg = 0x59c,
 	.module = TI_CLKM_SCRM,
 };
 
-static struct ti_clk emac_fck = {
+static struct ti_clk emac_fck =
+{
 	.name = "emac_fck",
 	.type = TI_CLK_GATE,
 	.data = &emac_fck_data,
 };
 
-static struct ti_clk_composite gpt10_fck_data = {
+static struct ti_clk_composite gpt10_fck_data =
+{
 	.mux = &gpt10_mux_fck_data,
 	.gate = &gpt10_gate_fck_data,
 };
 
-static struct ti_clk gpt10_fck = {
+static struct ti_clk gpt10_fck =
+{
 	.name = "gpt10_fck",
 	.type = TI_CLK_COMPOSITE,
 	.data = &gpt10_fck_data,
 };
 
-static struct ti_clk_gate wdt2_fck_data = {
+static struct ti_clk_gate wdt2_fck_data =
+{
 	.parent = "wkup_32k_fck",
 	.bit_shift = 5,
 	.reg = 0xc00,
@@ -4120,14 +4710,16 @@ static struct ti_clk_gate wdt2_fck_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk wdt2_fck = {
+static struct ti_clk wdt2_fck =
+{
 	.name = "wdt2_fck",
 	.clkdm_name = "wkup_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &wdt2_fck_data,
 };
 
-static struct ti_clk_gate cam_ick_data = {
+static struct ti_clk_gate cam_ick_data =
+{
 	.parent = "l4_ick",
 	.bit_shift = 0,
 	.reg = 0xf10,
@@ -4135,14 +4727,16 @@ static struct ti_clk_gate cam_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_NO_WAIT | CLKF_INTERFACE,
 };
 
-static struct ti_clk cam_ick = {
+static struct ti_clk cam_ick =
+{
 	.name = "cam_ick",
 	.clkdm_name = "cam_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &cam_ick_data,
 };
 
-static struct ti_clk_gate ssi_ick_3430es2_data = {
+static struct ti_clk_gate ssi_ick_3430es2_data =
+{
 	.parent = "ssi_l4_ick",
 	.bit_shift = 0,
 	.reg = 0xa10,
@@ -4150,14 +4744,16 @@ static struct ti_clk_gate ssi_ick_3430es2_data = {
 	.flags = CLKF_SSI | CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk ssi_ick_3430es2 = {
+static struct ti_clk ssi_ick_3430es2 =
+{
 	.name = "ssi_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &ssi_ick_3430es2_data,
 };
 
-static struct ti_clk_gate gpio4_ick_data = {
+static struct ti_clk_gate gpio4_ick_data =
+{
 	.parent = "per_l4_ick",
 	.bit_shift = 15,
 	.reg = 0x1010,
@@ -4165,14 +4761,16 @@ static struct ti_clk_gate gpio4_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk gpio4_ick = {
+static struct ti_clk gpio4_ick =
+{
 	.name = "gpio4_ick",
 	.clkdm_name = "per_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &gpio4_ick_data,
 };
 
-static struct ti_clk_gate wdt1_ick_data = {
+static struct ti_clk_gate wdt1_ick_data =
+{
 	.parent = "wkup_l4_ick",
 	.bit_shift = 4,
 	.reg = 0xc10,
@@ -4180,14 +4778,16 @@ static struct ti_clk_gate wdt1_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk wdt1_ick = {
+static struct ti_clk wdt1_ick =
+{
 	.name = "wdt1_ick",
 	.clkdm_name = "wkup_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &wdt1_ick_data,
 };
 
-static struct ti_clk_gate rng_ick_data = {
+static struct ti_clk_gate rng_ick_data =
+{
 	.parent = "security_l4_ick2",
 	.bit_shift = 2,
 	.reg = 0xa14,
@@ -4195,13 +4795,15 @@ static struct ti_clk_gate rng_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk rng_ick = {
+static struct ti_clk rng_ick =
+{
 	.name = "rng_ick",
 	.type = TI_CLK_GATE,
 	.data = &rng_ick_data,
 };
 
-static struct ti_clk_gate icr_ick_data = {
+static struct ti_clk_gate icr_ick_data =
+{
 	.parent = "core_l4_ick",
 	.bit_shift = 29,
 	.reg = 0xa10,
@@ -4209,14 +4811,16 @@ static struct ti_clk_gate icr_ick_data = {
 	.flags = CLKF_OMAP3 | CLKF_INTERFACE,
 };
 
-static struct ti_clk icr_ick = {
+static struct ti_clk icr_ick =
+{
 	.name = "icr_ick",
 	.clkdm_name = "core_l4_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &icr_ick_data,
 };
 
-static struct ti_clk_gate sgx_ick_data = {
+static struct ti_clk_gate sgx_ick_data =
+{
 	.parent = "l3_ick",
 	.bit_shift = 0,
 	.reg = 0xb10,
@@ -4224,14 +4828,16 @@ static struct ti_clk_gate sgx_ick_data = {
 	.flags = CLKF_WAIT,
 };
 
-static struct ti_clk sgx_ick = {
+static struct ti_clk sgx_ick =
+{
 	.name = "sgx_ick",
 	.clkdm_name = "sgx_clkdm",
 	.type = TI_CLK_GATE,
 	.data = &sgx_ick_data,
 };
 
-static struct ti_clk_divider sys_clkout2_data = {
+static struct ti_clk_divider sys_clkout2_data =
+{
 	.parent = "clkout2_src_ck",
 	.bit_shift = 3,
 	.max_div = 64,
@@ -4240,13 +4846,15 @@ static struct ti_clk_divider sys_clkout2_data = {
 	.flags = CLKF_INDEX_POWER_OF_TWO,
 };
 
-static struct ti_clk sys_clkout2 = {
+static struct ti_clk sys_clkout2 =
+{
 	.name = "sys_clkout2",
 	.type = TI_CLK_DIVIDER,
 	.data = &sys_clkout2_data,
 };
 
-static struct ti_clk_alias omap34xx_omap36xx_clks[] = {
+static struct ti_clk_alias omap34xx_omap36xx_clks[] =
+{
 	CLK(NULL, "security_l4_ick2", &security_l4_ick2),
 	CLK(NULL, "aes1_ick", &aes1_ick),
 	CLK("omap_rng", "ick", &rng_ick),
@@ -4277,7 +4885,8 @@ static struct ti_clk_alias omap34xx_omap36xx_clks[] = {
 	{ NULL },
 };
 
-static struct ti_clk_alias omap36xx_omap3430es2plus_clks[] = {
+static struct ti_clk_alias omap36xx_omap3430es2plus_clks[] =
+{
 	CLK(NULL, "ssi_ssr_fck", &ssi_ssr_fck_3430es2),
 	CLK(NULL, "ssi_sst_fck", &ssi_sst_fck_3430es2),
 	CLK("musb-omap2430", "ick", &hsotgusb_ick_3430es2),
@@ -4297,7 +4906,8 @@ static struct ti_clk_alias omap36xx_omap3430es2plus_clks[] = {
 	{ NULL },
 };
 
-static struct ti_clk_alias omap3xxx_clks[] = {
+static struct ti_clk_alias omap3xxx_clks[] =
+{
 	CLK(NULL, "apb_pclk", &dummy_apb_pclk),
 	CLK(NULL, "omap_32k_fck", &omap_32k_fck),
 	CLK(NULL, "virt_12m_ck", &virt_12m_ck),
@@ -4494,7 +5104,8 @@ static struct ti_clk_alias omap3xxx_clks[] = {
 	{ NULL },
 };
 
-static struct ti_clk_alias omap36xx_am35xx_omap3430es2plus_clks[] = {
+static struct ti_clk_alias omap36xx_am35xx_omap3430es2plus_clks[] =
+{
 	CLK(NULL, "dpll5_ck", &dpll5_ck),
 	CLK(NULL, "dpll5_m2_ck", &dpll5_m2_ck),
 	CLK(NULL, "core_d3_ck", &core_d3_ck),
@@ -4522,7 +5133,8 @@ static struct ti_clk_alias omap36xx_am35xx_omap3430es2plus_clks[] = {
 	{ NULL },
 };
 
-static struct ti_clk_alias omap3430es1_clks[] = {
+static struct ti_clk_alias omap3430es1_clks[] =
+{
 	CLK(NULL, "gfx_l3_ck", &gfx_l3_ck),
 	CLK(NULL, "gfx_l3_fck", &gfx_l3_fck),
 	CLK(NULL, "gfx_l3_ick", &gfx_l3_ick),
@@ -4543,12 +5155,14 @@ static struct ti_clk_alias omap3430es1_clks[] = {
 	{ NULL },
 };
 
-static struct ti_clk_alias omap36xx_clks[] = {
+static struct ti_clk_alias omap36xx_clks[] =
+{
 	CLK(NULL, "uart4_fck", &uart4_fck),
 	{ NULL },
 };
 
-static struct ti_clk_alias am35xx_clks[] = {
+static struct ti_clk_alias am35xx_clks[] =
+{
 	CLK(NULL, "ipss_ick", &ipss_ick),
 	CLK(NULL, "rmii_ck", &rmii_ck),
 	CLK(NULL, "pclk_ck", &pclk_ck),
@@ -4566,7 +5180,8 @@ static struct ti_clk_alias am35xx_clks[] = {
 	{ NULL },
 };
 
-static struct ti_clk *omap36xx_clk_patches[] = {
+static struct ti_clk *omap36xx_clk_patches[] =
+{
 	&dpll4_m3x2_ck_omap36xx,
 	&dpll3_m3x2_ck_omap36xx,
 	&dpll4_m6x2_ck_omap36xx,
@@ -4576,7 +5191,8 @@ static struct ti_clk *omap36xx_clk_patches[] = {
 	NULL,
 };
 
-static const char *enable_init_clks[] = {
+static const char *enable_init_clks[] =
+{
 	"sdrc_ick",
 	"gpmc_fck",
 	"omapctrl_ick",
@@ -4587,13 +5203,13 @@ static void __init omap3_clk_legacy_common_init(void)
 	omap2_clk_disable_autoidle_all();
 
 	omap2_clk_enable_init_clocks(enable_init_clks,
-				     ARRAY_SIZE(enable_init_clks));
+								 ARRAY_SIZE(enable_init_clks));
 
 	pr_info("Clocking rate (Crystal/Core/MPU): %ld.%01ld/%ld/%ld MHz\n",
-		(clk_get_rate(osc_sys_ck.clk) / 1000000),
-		(clk_get_rate(osc_sys_ck.clk) / 100000) % 10,
-		(clk_get_rate(core_ck.clk) / 1000000),
-		(clk_get_rate(arm_fck.clk) / 1000000));
+			(clk_get_rate(osc_sys_ck.clk) / 1000000),
+			(clk_get_rate(osc_sys_ck.clk) / 100000) % 10,
+			(clk_get_rate(core_ck.clk) / 1000000),
+			(clk_get_rate(arm_fck.clk) / 1000000));
 }
 
 int __init omap3430es1_clk_legacy_init(void)

@@ -82,12 +82,12 @@
  * void (*flush_chars)(struct tty_struct *tty);
  *
  * 	This routine is called by the kernel after it has written a
- * 	series of characters to the tty device using put_char().  
+ * 	series of characters to the tty device using put_char().
  *
  *	Optional:
  *
  *	Note: Do not call this function directly, call tty_driver_flush_chars
- * 
+ *
  * int  (*write_room)(struct tty_struct *tty);
  *
  * 	This routine returns the numbers of characters the tty driver
@@ -98,7 +98,7 @@
  *	Required if write method is provided else not needed.
  *
  *	Note: Do not call this function directly, call tty_write_room
- * 
+ *
  * int  (*ioctl)(struct tty_struct *tty, unsigned int cmd, unsigned long arg);
  *
  * 	This routine allows the tty driver to implement
@@ -113,7 +113,7 @@
  * 	implement ioctl processing for 32 bit process on 64 bit system
  *
  *	Optional
- * 
+ *
  * void (*set_termios)(struct tty_struct *tty, struct ktermios * old);
  *
  * 	This routine allows the tty driver to be notified when
@@ -128,7 +128,7 @@
  * 	device's termios settings have changed.
  *
  *	Optional: Called under BKL (currently)
- * 
+ *
  * void (*throttle)(struct tty_struct * tty);
  *
  * 	This routine notifies the tty driver that input buffers for
@@ -137,27 +137,27 @@
  *
  *	Optional: Always invoke via tty_throttle(), called under the
  *	termios lock.
- * 
+ *
  * void (*unthrottle)(struct tty_struct * tty);
  *
  * 	This routine notifies the tty drivers that it should signals
  * 	that characters can now be sent to the tty without fear of
  * 	overrunning the input buffers of the line disciplines.
- * 
+ *
  *	Optional: Always invoke via tty_unthrottle(), called under the
  *	termios lock.
  *
  * void (*stop)(struct tty_struct *tty);
  *
  * 	This routine notifies the tty driver that it should stop
- * 	outputting characters to the tty device.  
+ * 	outputting characters to the tty device.
  *
  *	Called with ->flow_lock held. Serialized with start() method.
  *
  *	Optional:
  *
  *	Note: Call stop_tty not this method.
- * 
+ *
  * void (*start)(struct tty_struct *tty);
  *
  * 	This routine notifies the tty driver that it resume sending
@@ -168,7 +168,7 @@
  *	Optional:
  *
  *	Note: Call start_tty not this method.
- * 
+ *
  * void (*hangup)(struct tty_struct *tty);
  *
  * 	This routine notifies the tty driver that it should hang up the
@@ -196,7 +196,7 @@
  *	Optional: Required for TCSBRK/BRKP/etc handling.
  *
  * void (*wait_until_sent)(struct tty_struct *tty, int timeout);
- * 
+ *
  * 	This routine waits until the device has written out all of the
  * 	characters in its transmitter FIFO.
  *
@@ -248,28 +248,29 @@ struct tty_struct;
 struct tty_driver;
 struct serial_icounter_struct;
 
-struct tty_operations {
-	struct tty_struct * (*lookup)(struct tty_driver *driver,
-			struct file *filp, int idx);
+struct tty_operations
+{
+	struct tty_struct *(*lookup)(struct tty_driver *driver,
+								 struct file *filp, int idx);
 	int  (*install)(struct tty_driver *driver, struct tty_struct *tty);
 	void (*remove)(struct tty_driver *driver, struct tty_struct *tty);
-	int  (*open)(struct tty_struct * tty, struct file * filp);
-	void (*close)(struct tty_struct * tty, struct file * filp);
+	int  (*open)(struct tty_struct *tty, struct file *filp);
+	void (*close)(struct tty_struct *tty, struct file *filp);
 	void (*shutdown)(struct tty_struct *tty);
 	void (*cleanup)(struct tty_struct *tty);
-	int  (*write)(struct tty_struct * tty,
-		      const unsigned char *buf, int count);
+	int  (*write)(struct tty_struct *tty,
+				  const unsigned char *buf, int count);
 	int  (*put_char)(struct tty_struct *tty, unsigned char ch);
 	void (*flush_chars)(struct tty_struct *tty);
 	int  (*write_room)(struct tty_struct *tty);
 	int  (*chars_in_buffer)(struct tty_struct *tty);
 	int  (*ioctl)(struct tty_struct *tty,
-		    unsigned int cmd, unsigned long arg);
+				  unsigned int cmd, unsigned long arg);
 	long (*compat_ioctl)(struct tty_struct *tty,
-			     unsigned int cmd, unsigned long arg);
-	void (*set_termios)(struct tty_struct *tty, struct ktermios * old);
-	void (*throttle)(struct tty_struct * tty);
-	void (*unthrottle)(struct tty_struct * tty);
+						 unsigned int cmd, unsigned long arg);
+	void (*set_termios)(struct tty_struct *tty, struct ktermios *old);
+	void (*throttle)(struct tty_struct *tty);
+	void (*unthrottle)(struct tty_struct *tty);
 	void (*stop)(struct tty_struct *tty);
 	void (*start)(struct tty_struct *tty);
 	void (*hangup)(struct tty_struct *tty);
@@ -280,11 +281,11 @@ struct tty_operations {
 	void (*send_xchar)(struct tty_struct *tty, char ch);
 	int (*tiocmget)(struct tty_struct *tty);
 	int (*tiocmset)(struct tty_struct *tty,
-			unsigned int set, unsigned int clear);
+					unsigned int set, unsigned int clear);
 	int (*resize)(struct tty_struct *tty, struct winsize *ws);
 	int (*set_termiox)(struct tty_struct *tty, struct termiox *tnew);
 	int (*get_icount)(struct tty_struct *tty,
-				struct serial_icounter_struct *icount);
+					  struct serial_icounter_struct *icount);
 #ifdef CONFIG_CONSOLE_POLL
 	int (*poll_init)(struct tty_driver *driver, int line, char *options);
 	int (*poll_get_char)(struct tty_driver *driver, int line);
@@ -293,7 +294,8 @@ struct tty_operations {
 	const struct file_operations *proc_fops;
 };
 
-struct tty_driver {
+struct tty_driver
+{
 	int	magic;		/* magic number for this structure */
 	struct kref kref;	/* Reference management */
 	struct cdev **cdevs;
@@ -333,14 +335,14 @@ extern struct tty_driver *__tty_alloc_driver(unsigned int lines,
 		struct module *owner, unsigned long flags);
 extern void put_tty_driver(struct tty_driver *driver);
 extern void tty_set_operations(struct tty_driver *driver,
-			const struct tty_operations *op);
+							   const struct tty_operations *op);
 extern struct tty_driver *tty_find_polling_driver(char *name, int *line);
 
 extern void tty_driver_kref_put(struct tty_driver *driver);
 
 /* Use TTY_DRIVER_* flags below */
 #define tty_alloc_driver(lines, flags) \
-		__tty_alloc_driver(lines, THIS_MODULE, flags)
+	__tty_alloc_driver(lines, THIS_MODULE, flags)
 
 /*
  * DEPRECATED Do not use this in new code, use tty_alloc_driver instead.
@@ -349,8 +351,12 @@ extern void tty_driver_kref_put(struct tty_driver *driver);
 static inline struct tty_driver *alloc_tty_driver(unsigned int lines)
 {
 	struct tty_driver *ret = tty_alloc_driver(lines, 0);
+
 	if (IS_ERR(ret))
+	{
 		return NULL;
+	}
+
 	return ret;
 }
 
@@ -365,11 +371,11 @@ static inline struct tty_driver *tty_driver_kref_get(struct tty_driver *d)
 
 /*
  * tty driver flags
- * 
+ *
  * TTY_DRIVER_RESET_TERMIOS --- requests the tty layer to reset the
  * 	termios setting when the last process has closed the device.
  * 	Used for PTY's, in particular.
- * 
+ *
  * TTY_DRIVER_REAL_RAW --- if set, indicates that the driver will
  * 	guarantee never not to set any special character handling
  * 	flags if ((IGNBRK || (!BRKINT && !PARMRK)) && (IGNPAR ||

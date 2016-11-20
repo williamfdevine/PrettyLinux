@@ -10,7 +10,8 @@
  * flags to support those protocol options.  These values all come from
  * the chip datasheets.
  */
-struct spi_eeprom {
+struct spi_eeprom
+{
 	u32		byte_len;
 	char		name[10];
 	u16		page_size;		/* for writes */

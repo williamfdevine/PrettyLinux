@@ -45,7 +45,8 @@
  * @lock: control access to subscriber
  * @subscrp_list: list of subscription objects for this subscriber
  */
-struct tipc_subscriber {
+struct tipc_subscriber
+{
 	struct kref kref;
 	int conid;
 	spinlock_t lock;
@@ -68,8 +69,8 @@ static u32 htohl(u32 in, int swap)
 }
 
 static void tipc_subscrp_send_event(struct tipc_subscription *sub,
-				    u32 found_lower, u32 found_upper,
-				    u32 event, u32 port_ref, u32 node)
+									u32 found_lower, u32 found_upper,
+									u32 event, u32 port_ref, u32 node)
 {
 	struct tipc_net *tn = net_generic(sub->net, tipc_net_id);
 	struct tipc_subscriber *subscriber = sub->subscriber;
@@ -83,7 +84,7 @@ static void tipc_subscrp_send_event(struct tipc_subscription *sub,
 	sub->evt.port.ref = htohl(port_ref, sub->swap);
 	sub->evt.port.node = htohl(node, sub->swap);
 	tipc_conn_sendmsg(tn->topsrv, subscriber->conid, NULL,
-			  msg_sect.iov_base, msg_sect.iov_len);
+					  msg_sect.iov_base, msg_sect.iov_len);
 }
 
 /**
@@ -93,14 +94,23 @@ static void tipc_subscrp_send_event(struct tipc_subscription *sub,
  * Returns 1 if there is overlap, otherwise 0.
  */
 int tipc_subscrp_check_overlap(struct tipc_name_seq *seq, u32 found_lower,
-			       u32 found_upper)
+							   u32 found_upper)
 {
 	if (found_lower < seq->lower)
+	{
 		found_lower = seq->lower;
+	}
+
 	if (found_upper > seq->upper)
+	{
 		found_upper = seq->upper;
+	}
+
 	if (found_lower > found_upper)
+	{
 		return 0;
+	}
+
 	return 1;
 }
 
@@ -110,7 +120,7 @@ u32 tipc_subscrp_convert_seq_type(u32 type, int swap)
 }
 
 void tipc_subscrp_convert_seq(struct tipc_name_seq *in, int swap,
-			      struct tipc_name_seq *out)
+							  struct tipc_name_seq *out)
 {
 	out->type = htohl(in->type, swap);
 	out->lower = htohl(in->lower, swap);
@@ -118,20 +128,26 @@ void tipc_subscrp_convert_seq(struct tipc_name_seq *in, int swap,
 }
 
 void tipc_subscrp_report_overlap(struct tipc_subscription *sub, u32 found_lower,
-				 u32 found_upper, u32 event, u32 port_ref,
-				 u32 node, int must)
+								 u32 found_upper, u32 event, u32 port_ref,
+								 u32 node, int must)
 {
 	struct tipc_name_seq seq;
 
 	tipc_subscrp_convert_seq(&sub->evt.s.seq, sub->swap, &seq);
+
 	if (!tipc_subscrp_check_overlap(&seq, found_lower, found_upper))
+	{
 		return;
+	}
+
 	if (!must &&
-	    !(htohl(sub->evt.s.filter, sub->swap) & TIPC_SUB_PORTS))
+		!(htohl(sub->evt.s.filter, sub->swap) & TIPC_SUB_PORTS))
+	{
 		return;
+	}
 
 	tipc_subscrp_send_event(sub, found_lower, found_upper, event, port_ref,
-				node);
+							node);
 }
 
 static void tipc_subscrp_timeout(unsigned long data)
@@ -141,7 +157,7 @@ static void tipc_subscrp_timeout(unsigned long data)
 
 	/* Notify subscriber of timeout */
 	tipc_subscrp_send_event(sub, sub->evt.s.seq.lower, sub->evt.s.seq.upper,
-				TIPC_SUBSCR_TIMEOUT, 0, 0);
+							TIPC_SUBSCR_TIMEOUT, 0, 0);
 
 	spin_lock_bh(&subscriber->lock);
 	tipc_subscrp_delete(sub);
@@ -153,7 +169,7 @@ static void tipc_subscrp_timeout(unsigned long data)
 static void tipc_subscrb_kref_release(struct kref *kref)
 {
 	struct tipc_subscriber *subcriber = container_of(kref,
-					    struct tipc_subscriber, kref);
+										struct tipc_subscriber, kref);
 
 	kfree(subcriber);
 }
@@ -173,10 +189,13 @@ static struct tipc_subscriber *tipc_subscrb_create(int conid)
 	struct tipc_subscriber *subscriber;
 
 	subscriber = kzalloc(sizeof(*subscriber), GFP_ATOMIC);
-	if (!subscriber) {
+
+	if (!subscriber)
+	{
 		pr_warn("Subscriber rejected, no memory\n");
 		return NULL;
 	}
+
 	kref_init(&subscriber->kref);
 	INIT_LIST_HEAD(&subscriber->subscrp_list);
 	subscriber->conid = conid;
@@ -193,9 +212,12 @@ static void tipc_subscrb_delete(struct tipc_subscriber *subscriber)
 	spin_lock_bh(&subscriber->lock);
 	/* Destroy any existing subscriptions for subscriber */
 	list_for_each_entry_safe(sub, temp, &subscriber->subscrp_list,
-				 subscrp_list) {
+							 subscrp_list)
+	{
 		timeout = htohl(sub->evt.s.timeout, sub->swap);
-		if ((timeout == TIPC_WAIT_FOREVER) || del_timer(&sub->timer)) {
+
+		if ((timeout == TIPC_WAIT_FOREVER) || del_timer(&sub->timer))
+		{
 			tipc_subscrp_delete(sub);
 			tipc_subscrb_put(subscriber);
 		}
@@ -216,7 +238,7 @@ static void tipc_subscrp_delete(struct tipc_subscription *sub)
 }
 
 static void tipc_subscrp_cancel(struct tipc_subscr *s,
-				struct tipc_subscriber *subscriber)
+								struct tipc_subscriber *subscriber)
 {
 	struct tipc_subscription *sub, *temp;
 	u32 timeout;
@@ -224,14 +246,19 @@ static void tipc_subscrp_cancel(struct tipc_subscr *s,
 	spin_lock_bh(&subscriber->lock);
 	/* Find first matching subscription, exit if not found */
 	list_for_each_entry_safe(sub, temp, &subscriber->subscrp_list,
-				 subscrp_list) {
-		if (!memcmp(s, &sub->evt.s, sizeof(struct tipc_subscr))) {
+							 subscrp_list)
+	{
+		if (!memcmp(s, &sub->evt.s, sizeof(struct tipc_subscr)))
+		{
 			timeout = htohl(sub->evt.s.timeout, sub->swap);
+
 			if ((timeout == TIPC_WAIT_FOREVER) ||
-			    del_timer(&sub->timer)) {
+				del_timer(&sub->timer))
+			{
 				tipc_subscrp_delete(sub);
 				tipc_subscrb_put(subscriber);
 			}
+
 			break;
 		}
 	}
@@ -239,31 +266,36 @@ static void tipc_subscrp_cancel(struct tipc_subscr *s,
 }
 
 static struct tipc_subscription *tipc_subscrp_create(struct net *net,
-						     struct tipc_subscr *s,
-						     int swap)
+		struct tipc_subscr *s,
+		int swap)
 {
 	struct tipc_net *tn = net_generic(net, tipc_net_id);
 	struct tipc_subscription *sub;
 	u32 filter = htohl(s->filter, swap);
 
 	/* Refuse subscription if global limit exceeded */
-	if (atomic_read(&tn->subscription_count) >= TIPC_MAX_SUBSCRIPTIONS) {
+	if (atomic_read(&tn->subscription_count) >= TIPC_MAX_SUBSCRIPTIONS)
+	{
 		pr_warn("Subscription rejected, limit reached (%u)\n",
-			TIPC_MAX_SUBSCRIPTIONS);
+				TIPC_MAX_SUBSCRIPTIONS);
 		return NULL;
 	}
 
 	/* Allocate subscription object */
 	sub = kmalloc(sizeof(*sub), GFP_ATOMIC);
-	if (!sub) {
+
+	if (!sub)
+	{
 		pr_warn("Subscription rejected, no memory\n");
 		return NULL;
 	}
 
 	/* Initialize subscription object */
 	sub->net = net;
+
 	if (((filter & TIPC_SUB_PORTS) && (filter & TIPC_SUB_SERVICE)) ||
-	    (htohl(s->seq.lower, swap) > htohl(s->seq.upper, swap))) {
+		(htohl(s->seq.lower, swap) > htohl(s->seq.upper, swap)))
+	{
 		pr_warn("Subscription rejected, illegal request\n");
 		kfree(sub);
 		return NULL;
@@ -276,15 +308,18 @@ static struct tipc_subscription *tipc_subscrp_create(struct net *net,
 }
 
 static void tipc_subscrp_subscribe(struct net *net, struct tipc_subscr *s,
-				   struct tipc_subscriber *subscriber, int swap)
+								   struct tipc_subscriber *subscriber, int swap)
 {
 	struct tipc_net *tn = net_generic(net, tipc_net_id);
 	struct tipc_subscription *sub = NULL;
 	u32 timeout;
 
 	sub = tipc_subscrp_create(net, s, swap);
+
 	if (!sub)
+	{
 		return tipc_conn_terminate(tn->topsrv, subscriber->conid);
+	}
 
 	spin_lock_bh(&subscriber->lock);
 	list_add(&sub->subscrp_list, &subscriber->subscrp_list);
@@ -294,8 +329,11 @@ static void tipc_subscrp_subscribe(struct net *net, struct tipc_subscr *s,
 	spin_unlock_bh(&subscriber->lock);
 
 	timeout = htohl(sub->evt.s.timeout, swap);
+
 	if (timeout == TIPC_WAIT_FOREVER)
+	{
 		return;
+	}
 
 	setup_timer(&sub->timer, tipc_subscrp_timeout, (unsigned long)sub);
 	mod_timer(&sub->timer, jiffies + msecs_to_jiffies(timeout));
@@ -309,8 +347,8 @@ static void tipc_subscrb_release_cb(int conid, void *usr_data)
 
 /* Handle one request to create a new subscription for the subscriber */
 static void tipc_subscrb_rcv_cb(struct net *net, int conid,
-				struct sockaddr_tipc *addr, void *usr_data,
-				void *buf, size_t len)
+								struct sockaddr_tipc *addr, void *usr_data,
+								void *buf, size_t len)
 {
 	struct tipc_subscriber *subscriber = usr_data;
 	struct tipc_subscr *s = (struct tipc_subscr *)buf;
@@ -318,10 +356,11 @@ static void tipc_subscrb_rcv_cb(struct net *net, int conid,
 
 	/* Determine subscriber's endianness */
 	swap = !(s->filter & (TIPC_SUB_PORTS | TIPC_SUB_SERVICE |
-			      TIPC_SUB_CANCEL));
+						  TIPC_SUB_CANCEL));
 
 	/* Detect & process a subscription cancellation request */
-	if (s->filter & htohl(TIPC_SUB_CANCEL, swap)) {
+	if (s->filter & htohl(TIPC_SUB_CANCEL, swap))
+	{
 		s->filter &= ~htohl(TIPC_SUB_CANCEL, swap);
 		return tipc_subscrp_cancel(s, subscriber);
 	}
@@ -343,8 +382,12 @@ int tipc_topsrv_start(struct net *net)
 	struct sockaddr_tipc *saddr;
 
 	saddr = kzalloc(sizeof(*saddr), GFP_ATOMIC);
+
 	if (!saddr)
+	{
 		return -ENOMEM;
+	}
+
 	saddr->family			= AF_TIPC;
 	saddr->addrtype			= TIPC_ADDR_NAMESEQ;
 	saddr->addr.nameseq.type	= TIPC_TOP_SRV;
@@ -353,10 +396,13 @@ int tipc_topsrv_start(struct net *net)
 	saddr->scope			= TIPC_NODE_SCOPE;
 
 	topsrv = kzalloc(sizeof(*topsrv), GFP_ATOMIC);
-	if (!topsrv) {
+
+	if (!topsrv)
+	{
 		kfree(saddr);
 		return -ENOMEM;
 	}
+
 	topsrv->net			= net;
 	topsrv->saddr			= saddr;
 	topsrv->imp			= TIPC_CRITICAL_IMPORTANCE;

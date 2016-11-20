@@ -18,7 +18,8 @@
 #define GPC_IMR1_CORE0		0x30
 #define GPC_IMR1_CORE1		0x40
 
-struct gpcv2_irqchip_data {
+struct gpcv2_irqchip_data
+{
 	struct raw_spinlock	rlock;
 	void __iomem		*gpc_base;
 	u32			wakeup_sources[IMR_NUM];
@@ -34,10 +35,14 @@ static struct gpcv2_irqchip_data *imx_gpcv2_instance;
 u32 imx_gpcv2_get_wakeup_source(u32 **sources)
 {
 	if (!imx_gpcv2_instance)
+	{
 		return 0;
+	}
 
 	if (sources)
+	{
 		*sources = imx_gpcv2_instance->wakeup_sources;
+	}
 
 	return IMR_NUM;
 }
@@ -49,10 +54,14 @@ static int gpcv2_wakeup_source_save(void)
 	int i;
 
 	cd = imx_gpcv2_instance;
-	if (!cd)
-		return 0;
 
-	for (i = 0; i < IMR_NUM; i++) {
+	if (!cd)
+	{
+		return 0;
+	}
+
+	for (i = 0; i < IMR_NUM; i++)
+	{
 		reg = cd->gpc_base + cd->cpu2wakeup + i * 4;
 		cd->saved_irq_mask[i] = readl_relaxed(reg);
 		writel_relaxed(cd->wakeup_sources[i], reg);
@@ -68,16 +77,21 @@ static void gpcv2_wakeup_source_restore(void)
 	int i;
 
 	cd = imx_gpcv2_instance;
-	if (!cd)
-		return;
 
-	for (i = 0; i < IMR_NUM; i++) {
+	if (!cd)
+	{
+		return;
+	}
+
+	for (i = 0; i < IMR_NUM; i++)
+	{
 		reg = cd->gpc_base + cd->cpu2wakeup + i * 4;
 		writel_relaxed(cd->saved_irq_mask[i], reg);
 	}
 }
 
-static struct syscore_ops imx_gpcv2_syscore_ops = {
+static struct syscore_ops imx_gpcv2_syscore_ops =
+{
 	.suspend	= gpcv2_wakeup_source_save,
 	.resume		= gpcv2_wakeup_source_restore,
 };
@@ -138,7 +152,8 @@ static void imx_gpcv2_irq_mask(struct irq_data *d)
 	irq_chip_mask_parent(d);
 }
 
-static struct irq_chip gpcv2_irqchip_data_chip = {
+static struct irq_chip gpcv2_irqchip_data_chip =
+{
 	.name			= "GPCv2",
 	.irq_eoi		= irq_chip_eoi_parent,
 	.irq_mask		= imx_gpcv2_irq_mask,
@@ -151,17 +166,22 @@ static struct irq_chip gpcv2_irqchip_data_chip = {
 };
 
 static int imx_gpcv2_domain_translate(struct irq_domain *d,
-				      struct irq_fwspec *fwspec,
-				      unsigned long *hwirq,
-				      unsigned int *type)
+									  struct irq_fwspec *fwspec,
+									  unsigned long *hwirq,
+									  unsigned int *type)
 {
-	if (is_of_node(fwspec->fwnode)) {
+	if (is_of_node(fwspec->fwnode))
+	{
 		if (fwspec->param_count != 3)
+		{
 			return -EINVAL;
+		}
 
 		/* No PPI should point to this domain */
 		if (fwspec->param[0] != 0)
+		{
 			return -EINVAL;
+		}
 
 		*hwirq = fwspec->param[1];
 		*type = fwspec->param[2];
@@ -172,8 +192,8 @@ static int imx_gpcv2_domain_translate(struct irq_domain *d,
 }
 
 static int imx_gpcv2_domain_alloc(struct irq_domain *domain,
-				  unsigned int irq, unsigned int nr_irqs,
-				  void *data)
+								  unsigned int irq, unsigned int nr_irqs,
+								  void *data)
 {
 	struct irq_fwspec *fwspec = data;
 	struct irq_fwspec parent_fwspec;
@@ -183,71 +203,89 @@ static int imx_gpcv2_domain_alloc(struct irq_domain *domain,
 	int i;
 
 	err = imx_gpcv2_domain_translate(domain, fwspec, &hwirq, &type);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (hwirq >= GPC_MAX_IRQS)
+	{
 		return -EINVAL;
+	}
 
-	for (i = 0; i < nr_irqs; i++) {
+	for (i = 0; i < nr_irqs; i++)
+	{
 		irq_domain_set_hwirq_and_chip(domain, irq + i, hwirq + i,
-				&gpcv2_irqchip_data_chip, domain->host_data);
+									  &gpcv2_irqchip_data_chip, domain->host_data);
 	}
 
 	parent_fwspec = *fwspec;
 	parent_fwspec.fwnode = domain->parent->fwnode;
 	return irq_domain_alloc_irqs_parent(domain, irq, nr_irqs,
-					    &parent_fwspec);
+										&parent_fwspec);
 }
 
-static struct irq_domain_ops gpcv2_irqchip_data_domain_ops = {
+static struct irq_domain_ops gpcv2_irqchip_data_domain_ops =
+{
 	.translate	= imx_gpcv2_domain_translate,
 	.alloc		= imx_gpcv2_domain_alloc,
 	.free		= irq_domain_free_irqs_common,
 };
 
 static int __init imx_gpcv2_irqchip_init(struct device_node *node,
-			       struct device_node *parent)
+		struct device_node *parent)
 {
 	struct irq_domain *parent_domain, *domain;
 	struct gpcv2_irqchip_data *cd;
 	int i;
 
-	if (!parent) {
+	if (!parent)
+	{
 		pr_err("%s: no parent, giving up\n", node->full_name);
 		return -ENODEV;
 	}
 
 	parent_domain = irq_find_host(parent);
-	if (!parent_domain) {
+
+	if (!parent_domain)
+	{
 		pr_err("%s: unable to get parent domain\n", node->full_name);
 		return -ENXIO;
 	}
 
 	cd = kzalloc(sizeof(struct gpcv2_irqchip_data), GFP_KERNEL);
-	if (!cd) {
+
+	if (!cd)
+	{
 		pr_err("kzalloc failed!\n");
 		return -ENOMEM;
 	}
 
 	cd->gpc_base = of_iomap(node, 0);
-	if (!cd->gpc_base) {
+
+	if (!cd->gpc_base)
+	{
 		pr_err("fsl-gpcv2: unable to map gpc registers\n");
 		kfree(cd);
 		return -ENOMEM;
 	}
 
 	domain = irq_domain_add_hierarchy(parent_domain, 0, GPC_MAX_IRQS,
-				node, &gpcv2_irqchip_data_domain_ops, cd);
-	if (!domain) {
+									  node, &gpcv2_irqchip_data_domain_ops, cd);
+
+	if (!domain)
+	{
 		iounmap(cd->gpc_base);
 		kfree(cd);
 		return -ENOMEM;
 	}
+
 	irq_set_default_host(domain);
 
 	/* Initially mask all interrupts */
-	for (i = 0; i < IMR_NUM; i++) {
+	for (i = 0; i < IMR_NUM; i++)
+	{
 		writel_relaxed(~0, cd->gpc_base + GPC_IMR1_CORE0 + i * 4);
 		writel_relaxed(~0, cd->gpc_base + GPC_IMR1_CORE1 + i * 4);
 		cd->wakeup_sources[i] = ~0;

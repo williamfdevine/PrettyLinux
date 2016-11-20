@@ -85,7 +85,7 @@ extern void ttm_dma_unpopulate(struct ttm_dma_tt *ttm_dma, struct device *dev);
 
 #else
 static inline int ttm_dma_page_alloc_init(struct ttm_mem_global *glob,
-					  unsigned max_pages)
+		unsigned max_pages)
 {
 	return -ENODEV;
 }
@@ -97,12 +97,12 @@ static inline int ttm_dma_page_alloc_debugfs(struct seq_file *m, void *data)
 	return 0;
 }
 static inline int ttm_dma_populate(struct ttm_dma_tt *ttm_dma,
-				   struct device *dev)
+								   struct device *dev)
 {
 	return -ENOMEM;
 }
 static inline void ttm_dma_unpopulate(struct ttm_dma_tt *ttm_dma,
-				      struct device *dev)
+									  struct device *dev)
 {
 }
 #endif

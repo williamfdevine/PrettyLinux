@@ -555,7 +555,7 @@
 
 #define PORT_CTRL_ADDR(port, addr)		\
 	(addr = KS8842_PORT_1_CTRL_1 + (port) *	\
-		(KS8842_PORT_2_CTRL_1 - KS8842_PORT_1_CTRL_1))
+			(KS8842_PORT_2_CTRL_1 - KS8842_PORT_1_CTRL_1))
 
 #define KS8842_PORT_CTRL_1_OFFSET	0x00
 
@@ -761,12 +761,14 @@
 
 #define HW_TO_DEV_PORT(port)		(port - 1)
 
-enum {
+enum
+{
 	media_connected,
 	media_disconnected
 };
 
-enum {
+enum
+{
 	OID_COUNTER_UNKOWN,
 
 	OID_COUNTER_FIRST,
@@ -806,9 +808,9 @@ enum {
 #define KS_DESC_RX_FIRST		0x40000000
 #define KS_DESC_RX_ERROR_COND		\
 	(KS_DESC_RX_ERROR_CRC |		\
-	KS_DESC_RX_ERROR_RUNT |		\
-	KS_DESC_RX_ERROR_PHY |		\
-	KS_DESC_RX_ERROR_TOO_LONG)
+	 KS_DESC_RX_ERROR_RUNT |		\
+	 KS_DESC_RX_ERROR_PHY |		\
+	 KS_DESC_RX_ERROR_TOO_LONG)
 
 #define KS_DESC_HW_OWNED		0x80000000
 
@@ -828,110 +830,116 @@ enum {
 
 #define KS_DESC_TX_MASK			\
 	(KS_DESC_TX_INTERRUPT |		\
-	KS_DESC_TX_FIRST |		\
-	KS_DESC_TX_LAST |		\
-	KS_DESC_TX_CSUM_GEN_IP |	\
-	KS_DESC_TX_CSUM_GEN_TCP |	\
-	KS_DESC_TX_CSUM_GEN_UDP |	\
-	KS_DESC_BUF_SIZE)
+	 KS_DESC_TX_FIRST |		\
+	 KS_DESC_TX_LAST |		\
+	 KS_DESC_TX_CSUM_GEN_IP |	\
+	 KS_DESC_TX_CSUM_GEN_TCP |	\
+	 KS_DESC_TX_CSUM_GEN_UDP |	\
+	 KS_DESC_BUF_SIZE)
 
-struct ksz_desc_rx_stat {
+struct ksz_desc_rx_stat
+{
 #ifdef __BIG_ENDIAN_BITFIELD
-	u32 hw_owned:1;
-	u32 first_desc:1;
-	u32 last_desc:1;
-	u32 csum_err_ip:1;
-	u32 csum_err_tcp:1;
-	u32 csum_err_udp:1;
-	u32 error:1;
-	u32 multicast:1;
-	u32 src_port:4;
-	u32 err_phy:1;
-	u32 err_too_long:1;
-	u32 err_runt:1;
-	u32 err_crc:1;
-	u32 frame_type:1;
-	u32 reserved1:4;
-	u32 frame_len:11;
+	u32 hw_owned: 1;
+	u32 first_desc: 1;
+	u32 last_desc: 1;
+	u32 csum_err_ip: 1;
+	u32 csum_err_tcp: 1;
+	u32 csum_err_udp: 1;
+	u32 error: 1;
+	u32 multicast: 1;
+	u32 src_port: 4;
+	u32 err_phy: 1;
+	u32 err_too_long: 1;
+	u32 err_runt: 1;
+	u32 err_crc: 1;
+	u32 frame_type: 1;
+	u32 reserved1: 4;
+	u32 frame_len: 11;
 #else
-	u32 frame_len:11;
-	u32 reserved1:4;
-	u32 frame_type:1;
-	u32 err_crc:1;
-	u32 err_runt:1;
-	u32 err_too_long:1;
-	u32 err_phy:1;
-	u32 src_port:4;
-	u32 multicast:1;
-	u32 error:1;
-	u32 csum_err_udp:1;
-	u32 csum_err_tcp:1;
-	u32 csum_err_ip:1;
-	u32 last_desc:1;
-	u32 first_desc:1;
-	u32 hw_owned:1;
+	u32 frame_len: 11;
+	u32 reserved1: 4;
+	u32 frame_type: 1;
+	u32 err_crc: 1;
+	u32 err_runt: 1;
+	u32 err_too_long: 1;
+	u32 err_phy: 1;
+	u32 src_port: 4;
+	u32 multicast: 1;
+	u32 error: 1;
+	u32 csum_err_udp: 1;
+	u32 csum_err_tcp: 1;
+	u32 csum_err_ip: 1;
+	u32 last_desc: 1;
+	u32 first_desc: 1;
+	u32 hw_owned: 1;
 #endif
 };
 
-struct ksz_desc_tx_stat {
+struct ksz_desc_tx_stat
+{
 #ifdef __BIG_ENDIAN_BITFIELD
-	u32 hw_owned:1;
-	u32 reserved1:31;
+	u32 hw_owned: 1;
+	u32 reserved1: 31;
 #else
-	u32 reserved1:31;
-	u32 hw_owned:1;
+	u32 reserved1: 31;
+	u32 hw_owned: 1;
 #endif
 };
 
-struct ksz_desc_rx_buf {
+struct ksz_desc_rx_buf
+{
 #ifdef __BIG_ENDIAN_BITFIELD
-	u32 reserved4:6;
-	u32 end_of_ring:1;
-	u32 reserved3:14;
-	u32 buf_size:11;
+	u32 reserved4: 6;
+	u32 end_of_ring: 1;
+	u32 reserved3: 14;
+	u32 buf_size: 11;
 #else
-	u32 buf_size:11;
-	u32 reserved3:14;
-	u32 end_of_ring:1;
-	u32 reserved4:6;
+	u32 buf_size: 11;
+	u32 reserved3: 14;
+	u32 end_of_ring: 1;
+	u32 reserved4: 6;
 #endif
 };
 
-struct ksz_desc_tx_buf {
+struct ksz_desc_tx_buf
+{
 #ifdef __BIG_ENDIAN_BITFIELD
-	u32 intr:1;
-	u32 first_seg:1;
-	u32 last_seg:1;
-	u32 csum_gen_ip:1;
-	u32 csum_gen_tcp:1;
-	u32 csum_gen_udp:1;
-	u32 end_of_ring:1;
-	u32 reserved4:1;
-	u32 dest_port:4;
-	u32 reserved3:9;
-	u32 buf_size:11;
+	u32 intr: 1;
+	u32 first_seg: 1;
+	u32 last_seg: 1;
+	u32 csum_gen_ip: 1;
+	u32 csum_gen_tcp: 1;
+	u32 csum_gen_udp: 1;
+	u32 end_of_ring: 1;
+	u32 reserved4: 1;
+	u32 dest_port: 4;
+	u32 reserved3: 9;
+	u32 buf_size: 11;
 #else
-	u32 buf_size:11;
-	u32 reserved3:9;
-	u32 dest_port:4;
-	u32 reserved4:1;
-	u32 end_of_ring:1;
-	u32 csum_gen_udp:1;
-	u32 csum_gen_tcp:1;
-	u32 csum_gen_ip:1;
-	u32 last_seg:1;
-	u32 first_seg:1;
-	u32 intr:1;
+	u32 buf_size: 11;
+	u32 reserved3: 9;
+	u32 dest_port: 4;
+	u32 reserved4: 1;
+	u32 end_of_ring: 1;
+	u32 csum_gen_udp: 1;
+	u32 csum_gen_tcp: 1;
+	u32 csum_gen_ip: 1;
+	u32 last_seg: 1;
+	u32 first_seg: 1;
+	u32 intr: 1;
 #endif
 };
 
-union desc_stat {
+union desc_stat
+{
 	struct ksz_desc_rx_stat rx;
 	struct ksz_desc_tx_stat tx;
 	u32 data;
 };
 
-union desc_buf {
+union desc_buf
+{
 	struct ksz_desc_rx_buf rx;
 	struct ksz_desc_tx_buf tx;
 	u32 data;
@@ -944,7 +952,8 @@ union desc_buf {
  * @addr:	Physical address of memory buffer.
  * @next:	Pointer to next hardware descriptor.
  */
-struct ksz_hw_desc {
+struct ksz_hw_desc
+{
 	union desc_stat ctrl;
 	union desc_buf buf;
 	u32 addr;
@@ -957,7 +966,8 @@ struct ksz_hw_desc {
  * @buf:	Descriptor buffer value.
  * @buf_size:	Current buffers size value in hardware descriptor.
  */
-struct ksz_sw_desc {
+struct ksz_sw_desc
+{
 	union desc_stat ctrl;
 	union desc_buf buf;
 	u32 buf_size;
@@ -969,7 +979,8 @@ struct ksz_sw_desc {
  * @dma:	Associated physical DMA address.
  * len:		Actual len used.
  */
-struct ksz_dma_buf {
+struct ksz_dma_buf
+{
 	struct sk_buff *skb;
 	dma_addr_t dma;
 	int len;
@@ -983,7 +994,8 @@ struct ksz_dma_buf {
  * @dma_buf:	Operating system dependent data structure to hold physical
  * 		memory buffer allocation information.
  */
-struct ksz_desc {
+struct ksz_desc
+{
 	struct ksz_hw_desc *phw;
 	struct ksz_sw_desc sw;
 	struct ksz_dma_buf dma_buf;
@@ -1004,7 +1016,8 @@ struct ksz_desc {
  * @next:	Index for next descriptor available for use.
  * @mask:	Mask for index wrapping.
  */
-struct ksz_desc_info {
+struct ksz_desc_info
+{
 	struct ksz_desc *ring;
 	struct ksz_desc *cur;
 	struct ksz_hw_desc *ring_virt;
@@ -1021,7 +1034,8 @@ struct ksz_desc_info {
  * KSZ8842 switch definitions
  */
 
-enum {
+enum
+{
 	TABLE_STATIC_MAC = 0,
 	TABLE_VLAN,
 	TABLE_DYNAMIC_MAC,
@@ -1041,25 +1055,27 @@ enum {
  * @use_fid:	FID use setting.
  * @valid:	Valid setting indicating the entry is being used.
  */
-struct ksz_mac_table {
+struct ksz_mac_table
+{
 	u8 mac_addr[ETH_ALEN];
 	u16 vid;
 	u8 fid;
 	u8 ports;
-	u8 override:1;
-	u8 use_fid:1;
-	u8 valid:1;
-};
+	u8 override: 1;
+		u8 use_fid: 1;
+		u8 valid: 1;
+	};
 
 #define VLAN_TABLE_ENTRIES		16
 
-/**
- * struct ksz_vlan_table - VLAN table data structure
- * @vid:	VID value.
- * @fid:	FID value.
- * @member:	Port membership.
- */
-struct ksz_vlan_table {
+	/**
+	 * struct ksz_vlan_table - VLAN table data structure
+	 * @vid:	VID value.
+	 * @fid:	FID value.
+	 * @member:	Port membership.
+	 */
+	struct ksz_vlan_table
+{
 	u16 vid;
 	u8 fid;
 	u8 member;
@@ -1136,7 +1152,8 @@ struct ksz_vlan_table {
  * disconnected so that all MIB counters are read one last time to update the
  * information.
  */
-struct ksz_port_mib {
+struct ksz_port_mib
+{
 	u8 cnt_ptr;
 	u8 link_down;
 	u8 state;
@@ -1155,7 +1172,8 @@ struct ksz_port_mib {
  * @tx_rate:	Transmit priority rate.
  * @stp_state:	Current Spanning Tree Protocol state.
  */
-struct ksz_port_cfg {
+struct ksz_port_cfg
+{
 	u16 vid;
 	u8 member;
 	u8 port_prio;
@@ -1178,7 +1196,8 @@ struct ksz_port_cfg {
  * @broad_per:	Broadcast storm percentage.
  * @member:	Current port membership.  Used for STP.
  */
-struct ksz_switch {
+struct ksz_switch
+{
 	struct ksz_mac_table mac_table[STATIC_MAC_TABLE_ENTRIES];
 	struct ksz_vlan_table vlan_table[VLAN_TABLE_ENTRIES];
 	struct ksz_port_cfg port_cfg[TOTAL_PORT_NUM];
@@ -1205,7 +1224,8 @@ struct ksz_switch {
  * @port_id:	Port index to access actual hardware register.
  * @pdev:	Pointer to OS dependent network device.
  */
-struct ksz_port_info {
+struct ksz_port_info
+{
 	uint state;
 	uint tx_rate;
 	u8 duplex;
@@ -1266,10 +1286,11 @@ struct ksz_port_info {
  * @overrides:		Hardware features to override.
  * @parent:		Pointer to parent, network device private structure.
  */
-struct ksz_hw {
-	void __iomem *io;
+struct ksz_hw
+{
+	void __iomem * io;
 
-	struct ksz_switch *ksz_switch;
+	struct ksz_switch * ksz_switch;
 	struct ksz_port_info port_info[SWITCH_PORT_NUM];
 	struct ksz_port_mib port_mib[TOTAL_PORT_NUM];
 	int dev_count;
@@ -1312,7 +1333,8 @@ struct ksz_hw {
 	void *parent;
 };
 
-enum {
+enum
+{
 	PHY_NO_FLOW_CTRL,
 	PHY_FLOW_CTRL,
 	PHY_TX_ONLY,
@@ -1339,7 +1361,8 @@ enum {
  * @hw:			Pointer to hardware structure.
  * @linked:		Pointer to port information linked to this port.
  */
-struct ksz_port {
+struct ksz_port
+{
 	u8 duplex;
 	u8 speed;
 	u8 force_link;
@@ -1350,8 +1373,8 @@ struct ksz_port {
 	int port_cnt;
 	u64 counter[OID_COUNTER_LAST];
 
-	struct ksz_hw *hw;
-	struct ksz_port_info *linked;
+	struct ksz_hw * hw;
+	struct ksz_port_info * linked;
 };
 
 /**
@@ -1361,7 +1384,8 @@ struct ksz_port {
  * @max:	Number of times to run timer; -1 for infinity.
  * @period:	Timer period in jiffies.
  */
-struct ksz_timer_info {
+struct ksz_timer_info
+{
 	struct timer_list timer;
 	int cnt;
 	int max;
@@ -1376,12 +1400,13 @@ struct ksz_timer_info {
  * @alloc_virt:	Virtual address allocated.
  * @virt:	Actual virtual address used.
  */
-struct ksz_shared_mem {
+struct ksz_shared_mem
+{
 	dma_addr_t dma_addr;
 	uint alloc_size;
 	uint phys;
-	u8 *alloc_virt;
-	u8 *virt;
+	u8 * alloc_virt;
+	u8 * virt;
 };
 
 /**
@@ -1390,7 +1415,8 @@ struct ksz_shared_mem {
  * @time:	Next time in jiffies to read counter.
  * @read:	Indication of counters read in full or not.
  */
-struct ksz_counter_info {
+struct ksz_counter_info
+{
 	wait_queue_head_t counter;
 	unsigned long time;
 	int read;
@@ -1420,9 +1446,10 @@ struct ksz_counter_info {
  * @wol_support:	Wake-on-LAN support used by ethtool.
  * @pme_wait:		Used for KSZ8841 power management.
  */
-struct dev_info {
-	struct net_device *dev;
-	struct pci_dev *pdev;
+struct dev_info
+{
+	struct net_device * dev;
+	struct pci_dev * pdev;
 
 	struct ksz_hw hw;
 	struct ksz_shared_mem desc_pool;
@@ -1432,7 +1459,7 @@ struct dev_info {
 
 	int (*dev_rcv)(struct dev_info *);
 
-	struct sk_buff *last_skb;
+	struct sk_buff * last_skb;
 	int skb_index;
 	int skb_len;
 
@@ -1465,8 +1492,9 @@ struct dev_info {
  * @multicast:		The all multicast state of the device.
  * @promiscuous:	The promiscuous state of the device.
  */
-struct dev_priv {
-	struct dev_info *adapter;
+struct dev_priv
+{
+	struct dev_info * adapter;
 	struct ksz_port port;
 	struct ksz_timer_info monitor_timer_info;
 
@@ -1496,7 +1524,7 @@ static u8 DEFAULT_MAC_ADDRESS[] = { 0x00, 0x10, 0xA1, 0x88, 0x42, 0x01 };
  * Interrupt processing primary routines
  */
 
-static inline void hw_ack_intr(struct ksz_hw *hw, uint interrupt)
+static inline void hw_ack_intr(struct ksz_hw * hw, uint interrupt)
 {
 	writel(interrupt, hw->io + KS884X_INTERRUPTS_STATUS);
 }
@@ -1548,7 +1576,9 @@ static void hw_turn_on_intr(struct ksz_hw *hw, u32 bit)
 	hw->intr_mask |= bit;
 
 	if (!hw->intr_blocked)
+	{
 		hw_set_intr(hw, hw->intr_mask);
+	}
 }
 
 static inline void hw_ena_intr_bit(struct ksz_hw *hw, uint interrupt)
@@ -1569,7 +1599,9 @@ static inline void hw_read_intr(struct ksz_hw *hw, uint *status)
 static inline void hw_restore_intr(struct ksz_hw *hw, uint interrupt)
 {
 	if (interrupt)
+	{
 		hw_ena_intr(hw);
+	}
 }
 
 /**
@@ -1584,10 +1616,12 @@ static uint hw_block_intr(struct ksz_hw *hw)
 {
 	uint interrupt = 0;
 
-	if (!hw->intr_blocked) {
+	if (!hw->intr_blocked)
+	{
 		hw_dis_intr(hw);
 		interrupt = hw->intr_blocked;
 	}
+
 	return interrupt;
 }
 
@@ -1604,10 +1638,13 @@ static inline void reset_desc(struct ksz_desc *desc, union desc_stat status)
 static inline void release_desc(struct ksz_desc *desc)
 {
 	desc->sw.ctrl.tx.hw_owned = 1;
-	if (desc->sw.buf_size != desc->sw.buf.data) {
+
+	if (desc->sw.buf_size != desc->sw.buf.data)
+	{
 		desc->sw.buf_size = desc->sw.buf.data;
 		desc->phw->buf.data = cpu_to_le32(desc->sw.buf.data);
 	}
+
 	desc->phw->ctrl.data = cpu_to_le32(desc->sw.ctrl.data);
 }
 
@@ -1631,7 +1668,7 @@ static inline void set_rx_len(struct ksz_desc *desc, u32 len)
 }
 
 static inline void get_tx_pkt(struct ksz_desc_info *info,
-	struct ksz_desc **desc)
+							  struct ksz_desc **desc)
 {
 	*desc = &info->ring[info->next];
 	info->next++;
@@ -1699,7 +1736,7 @@ static void sw_r_table(struct ksz_hw *hw, int table, u16 addr, u32 *data)
  * Hardware interrupts are disabled to minimize corruption of written data.
  */
 static void sw_w_table_64(struct ksz_hw *hw, int table, u16 addr, u32 data_hi,
-	u32 data_lo)
+						  u32 data_lo)
 {
 	u16 ctrl_addr;
 	uint interrupt;
@@ -1732,25 +1769,32 @@ static void sw_w_table_64(struct ksz_hw *hw, int table, u16 addr, u32 data_hi,
  * calls sw_w_table_64() to write the data.
  */
 static void sw_w_sta_mac_table(struct ksz_hw *hw, u16 addr, u8 *mac_addr,
-	u8 ports, int override, int valid, int use_fid, u8 fid)
+							   u8 ports, int override, int valid, int use_fid, u8 fid)
 {
 	u32 data_hi;
 	u32 data_lo;
 
 	data_lo = ((u32) mac_addr[2] << 24) |
-		((u32) mac_addr[3] << 16) |
-		((u32) mac_addr[4] << 8) | mac_addr[5];
+			  ((u32) mac_addr[3] << 16) |
+			  ((u32) mac_addr[4] << 8) | mac_addr[5];
 	data_hi = ((u32) mac_addr[0] << 8) | mac_addr[1];
 	data_hi |= (u32) ports << STATIC_MAC_FWD_PORTS_SHIFT;
 
 	if (override)
+	{
 		data_hi |= STATIC_MAC_TABLE_OVERRIDE;
-	if (use_fid) {
+	}
+
+	if (use_fid)
+	{
 		data_hi |= STATIC_MAC_TABLE_USE_FID;
 		data_hi |= (u32) fid << STATIC_MAC_FID_SHIFT;
 	}
+
 	if (valid)
+	{
 		data_hi |= STATIC_MAC_TABLE_VALID;
+	}
 
 	sw_w_table_64(hw, TABLE_STATIC_MAC, addr, data_hi, data_lo);
 }
@@ -1769,18 +1813,21 @@ static void sw_w_sta_mac_table(struct ksz_hw *hw, u16 addr, u8 *mac_addr,
  * Return 0 if the entry is valid; otherwise -1.
  */
 static int sw_r_vlan_table(struct ksz_hw *hw, u16 addr, u16 *vid, u8 *fid,
-	u8 *member)
+						   u8 *member)
 {
 	u32 data;
 
 	sw_r_table(hw, TABLE_VLAN, addr, &data);
-	if (data & VLAN_TABLE_VALID) {
+
+	if (data & VLAN_TABLE_VALID)
+	{
 		*vid = (u16)(data & VLAN_TABLE_VID);
 		*fid = (u8)((data & VLAN_TABLE_FID) >> VLAN_TABLE_FID_SHIFT);
 		*member = (u8)((data & VLAN_TABLE_MEMBERSHIP) >>
-			VLAN_TABLE_MEMBERSHIP_SHIFT);
+					   VLAN_TABLE_MEMBERSHIP_SHIFT);
 		return 0;
 	}
+
 	return -1;
 }
 
@@ -1809,12 +1856,17 @@ static void port_r_mib_cnt(struct ksz_hw *hw, int port, u16 addr, u64 *cnt)
 	writew(ctrl_addr, hw->io + KS884X_IACR_OFFSET);
 	HW_DELAY(hw, KS884X_IACR_OFFSET);
 
-	for (timeout = 100; timeout > 0; timeout--) {
+	for (timeout = 100; timeout > 0; timeout--)
+	{
 		data = readl(hw->io + KS884X_ACC_DATA_0_OFFSET);
 
-		if (data & MIB_COUNTER_VALID) {
+		if (data & MIB_COUNTER_VALID)
+		{
 			if (data & MIB_COUNTER_OVERFLOW)
+			{
 				*cnt += MIB_COUNTER_VALUE + 1;
+			}
+
 			*cnt += data & MIB_COUNTER_VALUE;
 			break;
 		}
@@ -1841,12 +1893,14 @@ static void port_r_mib_pkt(struct ksz_hw *hw, int port, u32 *last, u64 *cnt)
 	int index;
 
 	index = KS_MIB_PACKET_DROPPED_RX_0 + port;
-	do {
+
+	do
+	{
 		interrupt = hw_block_intr(hw);
 
 		ctrl_addr = (u16) index;
 		ctrl_addr |= (((TABLE_MIB << TABLE_SEL_SHIFT) | TABLE_READ)
-			<< 8);
+					  << 8);
 		writew(ctrl_addr, hw->io + KS884X_IACR_OFFSET);
 		HW_DELAY(hw, KS884X_IACR_OFFSET);
 		data = readl(hw->io + KS884X_ACC_DATA_0_OFFSET);
@@ -1855,18 +1909,26 @@ static void port_r_mib_pkt(struct ksz_hw *hw, int port, u32 *last, u64 *cnt)
 
 		data &= MIB_PACKET_DROPPED;
 		cur = *last;
-		if (data != cur) {
+
+		if (data != cur)
+		{
 			*last = data;
+
 			if (data < cur)
+			{
 				data += MIB_PACKET_DROPPED + 1;
+			}
+
 			data -= cur;
 			*cnt += data;
 		}
+
 		++last;
 		++cnt;
 		index -= KS_MIB_PACKET_DROPPED_TX -
-			KS_MIB_PACKET_DROPPED_TX_0 + 1;
-	} while (index >= KS_MIB_PACKET_DROPPED_TX_0 + port);
+				 KS_MIB_PACKET_DROPPED_TX_0 + 1;
+	}
+	while (index >= KS_MIB_PACKET_DROPPED_TX_0 + port);
 }
 
 /**
@@ -1885,14 +1947,17 @@ static int port_r_cnt(struct ksz_hw *hw, int port)
 	struct ksz_port_mib *mib = &hw->port_mib[port];
 
 	if (mib->mib_start < PORT_COUNTER_NUM)
-		while (mib->cnt_ptr < PORT_COUNTER_NUM) {
+		while (mib->cnt_ptr < PORT_COUNTER_NUM)
+		{
 			port_r_mib_cnt(hw, port, mib->cnt_ptr,
-				&mib->counter[mib->cnt_ptr]);
+						   &mib->counter[mib->cnt_ptr]);
 			++mib->cnt_ptr;
 		}
+
 	if (hw->mib_cnt > PORT_COUNTER_NUM)
 		port_r_mib_pkt(hw, port, mib->dropped,
-			&mib->counter[PORT_COUNTER_NUM]);
+					   &mib->counter[PORT_COUNTER_NUM]);
+
 	mib->cnt_ptr = 0;
 	return 0;
 }
@@ -1910,15 +1975,20 @@ static void port_init_cnt(struct ksz_hw *hw, int port)
 	struct ksz_port_mib *mib = &hw->port_mib[port];
 
 	mib->cnt_ptr = 0;
+
 	if (mib->mib_start < PORT_COUNTER_NUM)
-		do {
+		do
+		{
 			port_r_mib_cnt(hw, port, mib->cnt_ptr,
-				&mib->counter[mib->cnt_ptr]);
+						   &mib->counter[mib->cnt_ptr]);
 			++mib->cnt_ptr;
-		} while (mib->cnt_ptr < PORT_COUNTER_NUM);
+		}
+		while (mib->cnt_ptr < PORT_COUNTER_NUM);
+
 	if (hw->mib_cnt > PORT_COUNTER_NUM)
 		port_r_mib_pkt(hw, port, mib->dropped,
-			&mib->counter[PORT_COUNTER_NUM]);
+					   &mib->counter[PORT_COUNTER_NUM]);
+
 	memset((void *) mib->counter, 0, sizeof(u64) * TOTAL_PORT_COUNTER_NUM);
 	mib->cnt_ptr = 0;
 }
@@ -1961,7 +2031,7 @@ static int port_chk(struct ksz_hw *hw, int port, int offset, u16 bits)
  * This routine sets or resets the specified bits of the port register.
  */
 static void port_cfg(struct ksz_hw *hw, int port, int offset, u16 bits,
-	int set)
+					 int set)
 {
 	u32 addr;
 	u16 data;
@@ -1969,10 +2039,16 @@ static void port_cfg(struct ksz_hw *hw, int port, int offset, u16 bits,
 	PORT_CTRL_ADDR(port, addr);
 	addr += offset;
 	data = readw(hw->io + addr);
+
 	if (set)
+	{
 		data |= bits;
+	}
 	else
+	{
 		data &= ~bits;
+	}
+
 	writew(data, hw->io + addr);
 }
 
@@ -2009,17 +2085,23 @@ static int port_chk_shift(struct ksz_hw *hw, int port, u32 addr, int shift)
  * This routine sets or resets the specified port in the register.
  */
 static void port_cfg_shift(struct ksz_hw *hw, int port, u32 addr, int shift,
-	int set)
+						   int set)
 {
 	u16 data;
 	u16 bits = 1 << port;
 
 	data = readw(hw->io + addr);
 	bits <<= shift;
+
 	if (set)
+	{
 		data |= bits;
+	}
 	else
+	{
 		data &= ~bits;
+	}
+
 	writew(data, hw->io + addr);
 }
 
@@ -2110,10 +2192,16 @@ static void sw_cfg(struct ksz_hw *hw, u32 addr, u16 bits, int set)
 	u16 data;
 
 	data = readw(hw->io + addr);
+
 	if (set)
+	{
 		data |= bits;
+	}
 	else
+	{
 		data &= ~bits;
+	}
+
 	writew(data, hw->io + addr);
 }
 
@@ -2122,13 +2210,13 @@ static void sw_cfg(struct ksz_hw *hw, u32 addr, u16 bits, int set)
 static inline void port_cfg_broad_storm(struct ksz_hw *hw, int p, int set)
 {
 	port_cfg(hw, p,
-		KS8842_PORT_CTRL_1_OFFSET, PORT_BROADCAST_STORM, set);
+			 KS8842_PORT_CTRL_1_OFFSET, PORT_BROADCAST_STORM, set);
 }
 
 static inline int port_chk_broad_storm(struct ksz_hw *hw, int p)
 {
 	return port_chk(hw, p,
-		KS8842_PORT_CTRL_1_OFFSET, PORT_BROADCAST_STORM);
+					KS8842_PORT_CTRL_1_OFFSET, PORT_BROADCAST_STORM);
 }
 
 /* Driver set switch broadcast storm protection at 10% rate. */
@@ -2150,7 +2238,9 @@ static void sw_cfg_broad_storm(struct ksz_hw *hw, u8 percent)
 	u32 value = ((u32) BROADCAST_STORM_VALUE * (u32) percent / 100);
 
 	if (value > BROADCAST_STORM_RATE)
+	{
 		value = BROADCAST_STORM_RATE;
+	}
 
 	data = readw(hw->io + KS8842_SWITCH_CTRL_3_OFFSET);
 	data &= ~(BROADCAST_STORM_RATE_LO | BROADCAST_STORM_RATE_HI);
@@ -2215,8 +2305,12 @@ static void sw_init_broad_storm(struct ksz_hw *hw)
 
 	hw->ksz_switch->broad_per = 1;
 	sw_cfg_broad_storm(hw, hw->ksz_switch->broad_per);
+
 	for (port = 0; port < TOTAL_PORT_NUM; port++)
+	{
 		sw_dis_broad_storm(hw, port);
+	}
+
 	sw_cfg(hw, KS8842_SWITCH_CTRL_2_OFFSET, MULTICAST_STORM_DISABLE, 1);
 }
 
@@ -2231,7 +2325,9 @@ static void sw_init_broad_storm(struct ksz_hw *hw)
 static void hw_cfg_broad_storm(struct ksz_hw *hw, u8 percent)
 {
 	if (percent > 100)
+	{
 		percent = 100;
+	}
 
 	sw_cfg_broad_storm(hw, percent);
 	sw_get_broad_storm(hw, &percent);
@@ -2266,11 +2362,14 @@ static void sw_init_prio_rate(struct ksz_hw *hw)
 	int prio;
 	struct ksz_switch *sw = hw->ksz_switch;
 
-	for (port = 0; port < TOTAL_PORT_NUM; port++) {
-		for (prio = 0; prio < PRIO_QUEUES; prio++) {
+	for (port = 0; port < TOTAL_PORT_NUM; port++)
+	{
+		for (prio = 0; prio < PRIO_QUEUES; prio++)
+		{
 			sw->port_cfg[port].rx_rate[prio] =
-			sw->port_cfg[port].tx_rate[prio] = 0;
+				sw->port_cfg[port].tx_rate[prio] = 0;
 		}
+
 		sw_dis_prio_rate(hw, port);
 	}
 }
@@ -2280,25 +2379,25 @@ static void sw_init_prio_rate(struct ksz_hw *hw)
 static inline void port_cfg_back_pressure(struct ksz_hw *hw, int p, int set)
 {
 	port_cfg(hw, p,
-		KS8842_PORT_CTRL_2_OFFSET, PORT_BACK_PRESSURE, set);
+			 KS8842_PORT_CTRL_2_OFFSET, PORT_BACK_PRESSURE, set);
 }
 
 static inline void port_cfg_force_flow_ctrl(struct ksz_hw *hw, int p, int set)
 {
 	port_cfg(hw, p,
-		KS8842_PORT_CTRL_2_OFFSET, PORT_FORCE_FLOW_CTRL, set);
+			 KS8842_PORT_CTRL_2_OFFSET, PORT_FORCE_FLOW_CTRL, set);
 }
 
 static inline int port_chk_back_pressure(struct ksz_hw *hw, int p)
 {
 	return port_chk(hw, p,
-		KS8842_PORT_CTRL_2_OFFSET, PORT_BACK_PRESSURE);
+					KS8842_PORT_CTRL_2_OFFSET, PORT_BACK_PRESSURE);
 }
 
 static inline int port_chk_force_flow_ctrl(struct ksz_hw *hw, int p)
 {
 	return port_chk(hw, p,
-		KS8842_PORT_CTRL_2_OFFSET, PORT_FORCE_FLOW_CTRL);
+					KS8842_PORT_CTRL_2_OFFSET, PORT_FORCE_FLOW_CTRL);
 }
 
 /* Spanning Tree */
@@ -2306,13 +2405,13 @@ static inline int port_chk_force_flow_ctrl(struct ksz_hw *hw, int p)
 static inline void port_cfg_rx(struct ksz_hw *hw, int p, int set)
 {
 	port_cfg(hw, p,
-		KS8842_PORT_CTRL_2_OFFSET, PORT_RX_ENABLE, set);
+			 KS8842_PORT_CTRL_2_OFFSET, PORT_RX_ENABLE, set);
 }
 
 static inline void port_cfg_tx(struct ksz_hw *hw, int p, int set)
 {
 	port_cfg(hw, p,
-		KS8842_PORT_CTRL_2_OFFSET, PORT_TX_ENABLE, set);
+			 KS8842_PORT_CTRL_2_OFFSET, PORT_TX_ENABLE, set);
 }
 
 static inline void sw_cfg_fast_aging(struct ksz_hw *hw, int set)
@@ -2322,7 +2421,8 @@ static inline void sw_cfg_fast_aging(struct ksz_hw *hw, int set)
 
 static inline void sw_flush_dyn_mac_table(struct ksz_hw *hw)
 {
-	if (!(hw->overrides & FAST_AGING)) {
+	if (!(hw->overrides & FAST_AGING))
+	{
 		sw_cfg_fast_aging(hw, 1);
 		mdelay(1);
 		sw_cfg_fast_aging(hw, 0);
@@ -2334,49 +2434,49 @@ static inline void sw_flush_dyn_mac_table(struct ksz_hw *hw)
 static inline void port_cfg_ins_tag(struct ksz_hw *hw, int p, int insert)
 {
 	port_cfg(hw, p,
-		KS8842_PORT_CTRL_1_OFFSET, PORT_INSERT_TAG, insert);
+			 KS8842_PORT_CTRL_1_OFFSET, PORT_INSERT_TAG, insert);
 }
 
 static inline void port_cfg_rmv_tag(struct ksz_hw *hw, int p, int remove)
 {
 	port_cfg(hw, p,
-		KS8842_PORT_CTRL_1_OFFSET, PORT_REMOVE_TAG, remove);
+			 KS8842_PORT_CTRL_1_OFFSET, PORT_REMOVE_TAG, remove);
 }
 
 static inline int port_chk_ins_tag(struct ksz_hw *hw, int p)
 {
 	return port_chk(hw, p,
-		KS8842_PORT_CTRL_1_OFFSET, PORT_INSERT_TAG);
+					KS8842_PORT_CTRL_1_OFFSET, PORT_INSERT_TAG);
 }
 
 static inline int port_chk_rmv_tag(struct ksz_hw *hw, int p)
 {
 	return port_chk(hw, p,
-		KS8842_PORT_CTRL_1_OFFSET, PORT_REMOVE_TAG);
+					KS8842_PORT_CTRL_1_OFFSET, PORT_REMOVE_TAG);
 }
 
 static inline void port_cfg_dis_non_vid(struct ksz_hw *hw, int p, int set)
 {
 	port_cfg(hw, p,
-		KS8842_PORT_CTRL_2_OFFSET, PORT_DISCARD_NON_VID, set);
+			 KS8842_PORT_CTRL_2_OFFSET, PORT_DISCARD_NON_VID, set);
 }
 
 static inline void port_cfg_in_filter(struct ksz_hw *hw, int p, int set)
 {
 	port_cfg(hw, p,
-		KS8842_PORT_CTRL_2_OFFSET, PORT_INGRESS_VLAN_FILTER, set);
+			 KS8842_PORT_CTRL_2_OFFSET, PORT_INGRESS_VLAN_FILTER, set);
 }
 
 static inline int port_chk_dis_non_vid(struct ksz_hw *hw, int p)
 {
 	return port_chk(hw, p,
-		KS8842_PORT_CTRL_2_OFFSET, PORT_DISCARD_NON_VID);
+					KS8842_PORT_CTRL_2_OFFSET, PORT_DISCARD_NON_VID);
 }
 
 static inline int port_chk_in_filter(struct ksz_hw *hw, int p)
 {
 	return port_chk(hw, p,
-		KS8842_PORT_CTRL_2_OFFSET, PORT_INGRESS_VLAN_FILTER);
+					KS8842_PORT_CTRL_2_OFFSET, PORT_INGRESS_VLAN_FILTER);
 }
 
 /* Mirroring */
@@ -2384,19 +2484,19 @@ static inline int port_chk_in_filter(struct ksz_hw *hw, int p)
 static inline void port_cfg_mirror_sniffer(struct ksz_hw *hw, int p, int set)
 {
 	port_cfg(hw, p,
-		KS8842_PORT_CTRL_2_OFFSET, PORT_MIRROR_SNIFFER, set);
+			 KS8842_PORT_CTRL_2_OFFSET, PORT_MIRROR_SNIFFER, set);
 }
 
 static inline void port_cfg_mirror_rx(struct ksz_hw *hw, int p, int set)
 {
 	port_cfg(hw, p,
-		KS8842_PORT_CTRL_2_OFFSET, PORT_MIRROR_RX, set);
+			 KS8842_PORT_CTRL_2_OFFSET, PORT_MIRROR_RX, set);
 }
 
 static inline void port_cfg_mirror_tx(struct ksz_hw *hw, int p, int set)
 {
 	port_cfg(hw, p,
-		KS8842_PORT_CTRL_2_OFFSET, PORT_MIRROR_TX, set);
+			 KS8842_PORT_CTRL_2_OFFSET, PORT_MIRROR_TX, set);
 }
 
 static inline void sw_cfg_mirror_rx_tx(struct ksz_hw *hw, int set)
@@ -2408,24 +2508,26 @@ static void sw_init_mirror(struct ksz_hw *hw)
 {
 	int port;
 
-	for (port = 0; port < TOTAL_PORT_NUM; port++) {
+	for (port = 0; port < TOTAL_PORT_NUM; port++)
+	{
 		port_cfg_mirror_sniffer(hw, port, 0);
 		port_cfg_mirror_rx(hw, port, 0);
 		port_cfg_mirror_tx(hw, port, 0);
 	}
+
 	sw_cfg_mirror_rx_tx(hw, 0);
 }
 
 static inline void sw_cfg_unk_def_deliver(struct ksz_hw *hw, int set)
 {
 	sw_cfg(hw, KS8842_SWITCH_CTRL_7_OFFSET,
-		SWITCH_UNK_DEF_PORT_ENABLE, set);
+		   SWITCH_UNK_DEF_PORT_ENABLE, set);
 }
 
 static inline int sw_cfg_chk_unk_def_deliver(struct ksz_hw *hw)
 {
 	return sw_chk(hw, KS8842_SWITCH_CTRL_7_OFFSET,
-		SWITCH_UNK_DEF_PORT_ENABLE);
+				  SWITCH_UNK_DEF_PORT_ENABLE);
 }
 
 static inline void sw_cfg_unk_def_port(struct ksz_hw *hw, int port, int set)
@@ -2443,49 +2545,49 @@ static inline int sw_chk_unk_def_port(struct ksz_hw *hw, int port)
 static inline void port_cfg_diffserv(struct ksz_hw *hw, int p, int set)
 {
 	port_cfg(hw, p,
-		KS8842_PORT_CTRL_1_OFFSET, PORT_DIFFSERV_ENABLE, set);
+			 KS8842_PORT_CTRL_1_OFFSET, PORT_DIFFSERV_ENABLE, set);
 }
 
 static inline void port_cfg_802_1p(struct ksz_hw *hw, int p, int set)
 {
 	port_cfg(hw, p,
-		KS8842_PORT_CTRL_1_OFFSET, PORT_802_1P_ENABLE, set);
+			 KS8842_PORT_CTRL_1_OFFSET, PORT_802_1P_ENABLE, set);
 }
 
 static inline void port_cfg_replace_vid(struct ksz_hw *hw, int p, int set)
 {
 	port_cfg(hw, p,
-		KS8842_PORT_CTRL_2_OFFSET, PORT_USER_PRIORITY_CEILING, set);
+			 KS8842_PORT_CTRL_2_OFFSET, PORT_USER_PRIORITY_CEILING, set);
 }
 
 static inline void port_cfg_prio(struct ksz_hw *hw, int p, int set)
 {
 	port_cfg(hw, p,
-		KS8842_PORT_CTRL_1_OFFSET, PORT_PRIO_QUEUE_ENABLE, set);
+			 KS8842_PORT_CTRL_1_OFFSET, PORT_PRIO_QUEUE_ENABLE, set);
 }
 
 static inline int port_chk_diffserv(struct ksz_hw *hw, int p)
 {
 	return port_chk(hw, p,
-		KS8842_PORT_CTRL_1_OFFSET, PORT_DIFFSERV_ENABLE);
+					KS8842_PORT_CTRL_1_OFFSET, PORT_DIFFSERV_ENABLE);
 }
 
 static inline int port_chk_802_1p(struct ksz_hw *hw, int p)
 {
 	return port_chk(hw, p,
-		KS8842_PORT_CTRL_1_OFFSET, PORT_802_1P_ENABLE);
+					KS8842_PORT_CTRL_1_OFFSET, PORT_802_1P_ENABLE);
 }
 
 static inline int port_chk_replace_vid(struct ksz_hw *hw, int p)
 {
 	return port_chk(hw, p,
-		KS8842_PORT_CTRL_2_OFFSET, PORT_USER_PRIORITY_CEILING);
+					KS8842_PORT_CTRL_2_OFFSET, PORT_USER_PRIORITY_CEILING);
 }
 
 static inline int port_chk_prio(struct ksz_hw *hw, int p)
 {
 	return port_chk(hw, p,
-		KS8842_PORT_CTRL_1_OFFSET, PORT_PRIO_QUEUE_ENABLE);
+					KS8842_PORT_CTRL_1_OFFSET, PORT_PRIO_QUEUE_ENABLE);
 }
 
 /**
@@ -2552,7 +2654,9 @@ static void sw_cfg_port_based(struct ksz_hw *hw, int port, u8 prio)
 	u16 data;
 
 	if (prio > PORT_BASED_PRIORITY_BASE)
+	{
 		prio = PORT_BASED_PRIORITY_BASE;
+	}
 
 	hw->ksz_switch->port_cfg[port].port_prio = prio;
 
@@ -2605,10 +2709,13 @@ static void sw_init_prio(struct ksz_hw *hw)
 	 * queue 0.
 	 */
 	for (tos = 0; tos < DIFFSERV_ENTRIES; tos++)
+	{
 		sw->diffserv[tos] = 0;
+	}
 
 	/* All QoS functions disabled. */
-	for (port = 0; port < TOTAL_PORT_NUM; port++) {
+	for (port = 0; port < TOTAL_PORT_NUM; port++)
+	{
 		sw_dis_multi_queue(hw, port);
 		sw_dis_diffserv(hw, port);
 		sw_dis_802_1p(hw, port);
@@ -2617,6 +2724,7 @@ static void sw_init_prio(struct ksz_hw *hw)
 		sw->port_cfg[port].port_prio = 0;
 		sw_cfg_port_based(hw, port, sw->port_cfg[port].port_prio);
 	}
+
 	sw_cfg_replace_null_vid(hw, 0);
 }
 
@@ -2650,14 +2758,16 @@ static void sw_init_vlan(struct ksz_hw *hw)
 	struct ksz_switch *sw = hw->ksz_switch;
 
 	/* Read 16 VLAN entries from device's VLAN table. */
-	for (entry = 0; entry < VLAN_TABLE_ENTRIES; entry++) {
+	for (entry = 0; entry < VLAN_TABLE_ENTRIES; entry++)
+	{
 		sw_r_vlan_table(hw, entry,
-			&sw->vlan_table[entry].vid,
-			&sw->vlan_table[entry].fid,
-			&sw->vlan_table[entry].member);
+						&sw->vlan_table[entry].vid,
+						&sw->vlan_table[entry].fid,
+						&sw->vlan_table[entry].member);
 	}
 
-	for (port = 0; port < TOTAL_PORT_NUM; port++) {
+	for (port = 0; port < TOTAL_PORT_NUM; port++)
+	{
 		port_get_def_vid(hw, port, &sw->port_cfg[port].vid);
 		sw->port_cfg[port].member = PORT_MASK;
 	}
@@ -2698,7 +2808,8 @@ static inline void sw_get_addr(struct ksz_hw *hw, u8 *mac_addr)
 {
 	int i;
 
-	for (i = 0; i < 6; i += 2) {
+	for (i = 0; i < 6; i += 2)
+	{
 		mac_addr[i] = readb(hw->io + KS8842_MAC_ADDR_0_OFFSET + i);
 		mac_addr[1 + i] = readb(hw->io + KS8842_MAC_ADDR_1_OFFSET + i);
 	}
@@ -2715,7 +2826,8 @@ static void sw_set_addr(struct ksz_hw *hw, u8 *mac_addr)
 {
 	int i;
 
-	for (i = 0; i < 6; i += 2) {
+	for (i = 0; i < 6; i += 2)
+	{
 		writeb(mac_addr[i], hw->io + KS8842_MAC_ADDR_0_OFFSET + i);
 		writeb(mac_addr[1 + i], hw->io + KS8842_MAC_ADDR_1_OFFSET + i);
 	}
@@ -2746,9 +2858,14 @@ static void sw_set_global_ctrl(struct ksz_hw *hw)
 	data |= SWITCH_LINK_AUTO_AGING;
 
 	if (hw->overrides & FAST_AGING)
+	{
 		data |= SWITCH_FAST_AGING;
+	}
 	else
+	{
 		data &= ~SWITCH_FAST_AGING;
+	}
+
 	writew(data, hw->io + KS8842_SWITCH_CTRL_1_OFFSET);
 
 	data = readw(hw->io + KS8842_SWITCH_CTRL_2_OFFSET);
@@ -2758,7 +2875,8 @@ static void sw_set_global_ctrl(struct ksz_hw *hw)
 	writew(data, hw->io + KS8842_SWITCH_CTRL_2_OFFSET);
 }
 
-enum {
+enum
+{
 	STP_STATE_DISABLED = 0,
 	STP_STATE_LISTENING,
 	STP_STATE_LEARNING,
@@ -2780,42 +2898,50 @@ static void port_set_stp_state(struct ksz_hw *hw, int port, int state)
 	u16 data;
 
 	port_r16(hw, port, KS8842_PORT_CTRL_2_OFFSET, &data);
-	switch (state) {
-	case STP_STATE_DISABLED:
-		data &= ~(PORT_TX_ENABLE | PORT_RX_ENABLE);
-		data |= PORT_LEARN_DISABLE;
-		break;
-	case STP_STATE_LISTENING:
-/*
- * No need to turn on transmit because of port direct mode.
- * Turning on receive is required if static MAC table is not setup.
- */
-		data &= ~PORT_TX_ENABLE;
-		data |= PORT_RX_ENABLE;
-		data |= PORT_LEARN_DISABLE;
-		break;
-	case STP_STATE_LEARNING:
-		data &= ~PORT_TX_ENABLE;
-		data |= PORT_RX_ENABLE;
-		data &= ~PORT_LEARN_DISABLE;
-		break;
-	case STP_STATE_FORWARDING:
-		data |= (PORT_TX_ENABLE | PORT_RX_ENABLE);
-		data &= ~PORT_LEARN_DISABLE;
-		break;
-	case STP_STATE_BLOCKED:
-/*
- * Need to setup static MAC table with override to keep receiving BPDU
- * messages.  See sw_init_stp routine.
- */
-		data &= ~(PORT_TX_ENABLE | PORT_RX_ENABLE);
-		data |= PORT_LEARN_DISABLE;
-		break;
-	case STP_STATE_SIMPLE:
-		data |= (PORT_TX_ENABLE | PORT_RX_ENABLE);
-		data |= PORT_LEARN_DISABLE;
-		break;
+
+	switch (state)
+	{
+		case STP_STATE_DISABLED:
+			data &= ~(PORT_TX_ENABLE | PORT_RX_ENABLE);
+			data |= PORT_LEARN_DISABLE;
+			break;
+
+		case STP_STATE_LISTENING:
+			/*
+			 * No need to turn on transmit because of port direct mode.
+			 * Turning on receive is required if static MAC table is not setup.
+			 */
+			data &= ~PORT_TX_ENABLE;
+			data |= PORT_RX_ENABLE;
+			data |= PORT_LEARN_DISABLE;
+			break;
+
+		case STP_STATE_LEARNING:
+			data &= ~PORT_TX_ENABLE;
+			data |= PORT_RX_ENABLE;
+			data &= ~PORT_LEARN_DISABLE;
+			break;
+
+		case STP_STATE_FORWARDING:
+			data |= (PORT_TX_ENABLE | PORT_RX_ENABLE);
+			data &= ~PORT_LEARN_DISABLE;
+			break;
+
+		case STP_STATE_BLOCKED:
+			/*
+			 * Need to setup static MAC table with override to keep receiving BPDU
+			 * messages.  See sw_init_stp routine.
+			 */
+			data &= ~(PORT_TX_ENABLE | PORT_RX_ENABLE);
+			data |= PORT_LEARN_DISABLE;
+			break;
+
+		case STP_STATE_SIMPLE:
+			data |= (PORT_TX_ENABLE | PORT_RX_ENABLE);
+			data |= PORT_LEARN_DISABLE;
+			break;
 	}
+
 	port_w16(hw, port, KS8842_PORT_CTRL_2_OFFSET, data);
 	hw->ksz_switch->port_cfg[port].stp_state = state;
 }
@@ -2836,12 +2962,13 @@ static void sw_clr_sta_mac_table(struct ksz_hw *hw)
 	struct ksz_mac_table *entry;
 	int i;
 
-	for (i = 0; i < STATIC_MAC_TABLE_ENTRIES; i++) {
+	for (i = 0; i < STATIC_MAC_TABLE_ENTRIES; i++)
+	{
 		entry = &hw->ksz_switch->mac_table[i];
 		sw_w_sta_mac_table(hw, i,
-			entry->mac_addr, entry->ports,
-			entry->override, 0,
-			entry->use_fid, entry->fid);
+						   entry->mac_addr, entry->ports,
+						   entry->override, 0,
+						   entry->use_fid, entry->fid);
 	}
 }
 
@@ -2866,9 +2993,9 @@ static void sw_init_stp(struct ksz_hw *hw)
 	entry->override = 1;
 	entry->valid = 1;
 	sw_w_sta_mac_table(hw, STP_ENTRY,
-		entry->mac_addr, entry->ports,
-		entry->override, entry->valid,
-		entry->use_fid, entry->fid);
+					   entry->mac_addr, entry->ports,
+					   entry->override, entry->valid,
+					   entry->use_fid, entry->fid);
 }
 
 /**
@@ -2882,24 +3009,25 @@ static void sw_block_addr(struct ksz_hw *hw)
 	struct ksz_mac_table *entry;
 	int i;
 
-	for (i = BROADCAST_ENTRY; i <= IPV6_ADDR_ENTRY; i++) {
+	for (i = BROADCAST_ENTRY; i <= IPV6_ADDR_ENTRY; i++)
+	{
 		entry = &hw->ksz_switch->mac_table[i];
 		entry->valid = 0;
 		sw_w_sta_mac_table(hw, i,
-			entry->mac_addr, entry->ports,
-			entry->override, entry->valid,
-			entry->use_fid, entry->fid);
+						   entry->mac_addr, entry->ports,
+						   entry->override, entry->valid,
+						   entry->use_fid, entry->fid);
 	}
 }
 
 #define PHY_LINK_SUPPORT		\
 	(PHY_AUTO_NEG_ASYM_PAUSE |	\
-	PHY_AUTO_NEG_SYM_PAUSE |	\
-	PHY_AUTO_NEG_100BT4 |		\
-	PHY_AUTO_NEG_100BTX_FD |	\
-	PHY_AUTO_NEG_100BTX |		\
-	PHY_AUTO_NEG_10BT_FD |		\
-	PHY_AUTO_NEG_10BT)
+	 PHY_AUTO_NEG_SYM_PAUSE |	\
+	 PHY_AUTO_NEG_100BT4 |		\
+	 PHY_AUTO_NEG_100BTX_FD |	\
+	 PHY_AUTO_NEG_100BTX |		\
+	 PHY_AUTO_NEG_10BT_FD |		\
+	 PHY_AUTO_NEG_10BT)
 
 static inline void hw_r_phy_ctrl(struct ksz_hw *hw, int phy, u16 *data)
 {
@@ -3050,7 +3178,8 @@ static u16 spi_r(struct ksz_hw *hw)
 	int i;
 	u16 temp = 0;
 
-	for (i = 15; i >= 0; i--) {
+	for (i = 15; i >= 0; i--)
+	{
 		raise_gpio(hw, EEPROM_SERIAL_CLOCK);
 		udelay(EEPROM_DELAY);
 
@@ -3059,6 +3188,7 @@ static u16 spi_r(struct ksz_hw *hw)
 		drop_gpio(hw, EEPROM_SERIAL_CLOCK);
 		udelay(EEPROM_DELAY);
 	}
+
 	return temp;
 }
 
@@ -3066,9 +3196,10 @@ static void spi_w(struct ksz_hw *hw, u16 data)
 {
 	int i;
 
-	for (i = 15; i >= 0; i--) {
+	for (i = 15; i >= 0; i--)
+	{
 		(data & (0x01 << i)) ? raise_gpio(hw, EEPROM_DATA_OUT) :
-			drop_gpio(hw, EEPROM_DATA_OUT);
+		drop_gpio(hw, EEPROM_DATA_OUT);
 		eeprom_clk(hw);
 	}
 }
@@ -3082,16 +3213,18 @@ static void spi_reg(struct ksz_hw *hw, u8 data, u8 reg)
 	eeprom_clk(hw);
 
 	/* AT93C operation */
-	for (i = 1; i >= 0; i--) {
+	for (i = 1; i >= 0; i--)
+	{
 		(data & (0x01 << i)) ? raise_gpio(hw, EEPROM_DATA_OUT) :
-			drop_gpio(hw, EEPROM_DATA_OUT);
+		drop_gpio(hw, EEPROM_DATA_OUT);
 		eeprom_clk(hw);
 	}
 
 	/* Address location */
-	for (i = 5; i >= 0; i--) {
+	for (i = 5; i >= 0; i--)
+	{
 		(reg & (0x01 << i)) ? raise_gpio(hw, EEPROM_DATA_OUT) :
-			drop_gpio(hw, EEPROM_DATA_OUT);
+		drop_gpio(hw, EEPROM_DATA_OUT);
 		eeprom_clk(hw);
 	}
 }
@@ -3159,9 +3292,13 @@ static void eeprom_write(struct ksz_hw *hw, u8 reg, u16 data)
 	raise_gpio(hw, EEPROM_CHIP_SELECT);
 	timeout = 8;
 	mdelay(2);
-	do {
+
+	do
+	{
 		mdelay(1);
-	} while (!state_gpio(hw, EEPROM_DATA_IN) && --timeout);
+	}
+	while (!state_gpio(hw, EEPROM_DATA_IN) && --timeout);
+
 	drop_gpio(hw, EEPROM_CHIP_SELECT);
 	udelay(1);
 
@@ -3176,9 +3313,13 @@ static void eeprom_write(struct ksz_hw *hw, u8 reg, u16 data)
 	raise_gpio(hw, EEPROM_CHIP_SELECT);
 	timeout = 8;
 	mdelay(2);
-	do {
+
+	do
+	{
 		mdelay(1);
-	} while (!state_gpio(hw, EEPROM_DATA_IN) && --timeout);
+	}
+	while (!state_gpio(hw, EEPROM_DATA_IN) && --timeout);
+
 	drop_gpio(hw, EEPROM_CHIP_SELECT);
 	udelay(1);
 
@@ -3196,16 +3337,20 @@ static void eeprom_write(struct ksz_hw *hw, u8 reg, u16 data)
 static u16 advertised_flow_ctrl(struct ksz_port *port, u16 ctrl)
 {
 	ctrl &= ~PORT_AUTO_NEG_SYM_PAUSE;
-	switch (port->flow_ctrl) {
-	case PHY_FLOW_CTRL:
-		ctrl |= PORT_AUTO_NEG_SYM_PAUSE;
-		break;
-	/* Not supported. */
-	case PHY_TX_ONLY:
-	case PHY_RX_ONLY:
-	default:
-		break;
+
+	switch (port->flow_ctrl)
+	{
+		case PHY_FLOW_CTRL:
+			ctrl |= PORT_AUTO_NEG_SYM_PAUSE;
+			break;
+
+		/* Not supported. */
+		case PHY_TX_ONLY:
+		case PHY_RX_ONLY:
+		default:
+			break;
 	}
+
 	return ctrl;
 }
 
@@ -3216,62 +3361,102 @@ static void set_flow_ctrl(struct ksz_hw *hw, int rx, int tx)
 
 	rx_cfg = hw->rx_cfg;
 	tx_cfg = hw->tx_cfg;
+
 	if (rx)
+	{
 		hw->rx_cfg |= DMA_RX_FLOW_ENABLE;
+	}
 	else
+	{
 		hw->rx_cfg &= ~DMA_RX_FLOW_ENABLE;
+	}
+
 	if (tx)
+	{
 		hw->tx_cfg |= DMA_TX_FLOW_ENABLE;
+	}
 	else
+	{
 		hw->tx_cfg &= ~DMA_TX_FLOW_ENABLE;
-	if (hw->enabled) {
+	}
+
+	if (hw->enabled)
+	{
 		if (rx_cfg != hw->rx_cfg)
+		{
 			writel(hw->rx_cfg, hw->io + KS_DMA_RX_CTRL);
+		}
+
 		if (tx_cfg != hw->tx_cfg)
+		{
 			writel(hw->tx_cfg, hw->io + KS_DMA_TX_CTRL);
+		}
 	}
 }
 
 static void determine_flow_ctrl(struct ksz_hw *hw, struct ksz_port *port,
-	u16 local, u16 remote)
+								u16 local, u16 remote)
 {
 	int rx;
 	int tx;
 
 	if (hw->overrides & PAUSE_FLOW_CTRL)
+	{
 		return;
+	}
 
 	rx = tx = 0;
+
 	if (port->force_link)
+	{
 		rx = tx = 1;
-	if (remote & PHY_AUTO_NEG_SYM_PAUSE) {
-		if (local & PHY_AUTO_NEG_SYM_PAUSE) {
+	}
+
+	if (remote & PHY_AUTO_NEG_SYM_PAUSE)
+	{
+		if (local & PHY_AUTO_NEG_SYM_PAUSE)
+		{
 			rx = tx = 1;
-		} else if ((remote & PHY_AUTO_NEG_ASYM_PAUSE) &&
-				(local & PHY_AUTO_NEG_PAUSE) ==
-				PHY_AUTO_NEG_ASYM_PAUSE) {
+		}
+		else if ((remote & PHY_AUTO_NEG_ASYM_PAUSE) &&
+				 (local & PHY_AUTO_NEG_PAUSE) ==
+				 PHY_AUTO_NEG_ASYM_PAUSE)
+		{
 			tx = 1;
 		}
-	} else if (remote & PHY_AUTO_NEG_ASYM_PAUSE) {
-		if ((local & PHY_AUTO_NEG_PAUSE) == PHY_AUTO_NEG_PAUSE)
-			rx = 1;
 	}
+	else if (remote & PHY_AUTO_NEG_ASYM_PAUSE)
+	{
+		if ((local & PHY_AUTO_NEG_PAUSE) == PHY_AUTO_NEG_PAUSE)
+		{
+			rx = 1;
+		}
+	}
+
 	if (!hw->ksz_switch)
+	{
 		set_flow_ctrl(hw, rx, tx);
+	}
 }
 
 static inline void port_cfg_change(struct ksz_hw *hw, struct ksz_port *port,
-	struct ksz_port_info *info, u16 link_status)
+								   struct ksz_port_info *info, u16 link_status)
 {
 	if ((hw->features & HALF_DUPLEX_SIGNAL_BUG) &&
-			!(hw->overrides & PAUSE_FLOW_CTRL)) {
+		!(hw->overrides & PAUSE_FLOW_CTRL))
+	{
 		u32 cfg = hw->tx_cfg;
 
 		/* Disable flow control in the half duplex mode. */
 		if (1 == info->duplex)
+		{
 			hw->tx_cfg &= ~DMA_TX_FLOW_ENABLE;
+		}
+
 		if (hw->enabled && cfg != hw->tx_cfg)
+		{
 			writel(hw->tx_cfg, hw->io + KS_DMA_TX_CTRL);
+		}
 	}
 }
 
@@ -3298,7 +3483,8 @@ static void port_get_link_speed(struct ksz_port *port)
 
 	interrupt = hw_block_intr(hw);
 
-	for (i = 0, p = port->first_port; i < port->port_cnt; i++, p++) {
+	for (i = 0, p = port->first_port; i < port->port_cnt; i++, p++)
+	{
 		info = &hw->port_info[p];
 		port_r16(hw, p, KS884X_PORT_CTRL_4_OFFSET, &data);
 		port_r16(hw, p, KS884X_PORT_STATUS_OFFSET, &status);
@@ -3308,57 +3494,81 @@ static void port_get_link_speed(struct ksz_port *port)
 		 * cable connection!
 		 */
 		remote = status & (PORT_AUTO_NEG_COMPLETE |
-			PORT_STATUS_LINK_GOOD);
+						   PORT_STATUS_LINK_GOOD);
 		local = (u8) data;
 
 		/* No change to status. */
 		if (local == info->advertised && remote == info->partner)
+		{
 			continue;
+		}
 
 		info->advertised = local;
 		info->partner = remote;
-		if (status & PORT_STATUS_LINK_GOOD) {
+
+		if (status & PORT_STATUS_LINK_GOOD)
+		{
 
 			/* Remember the first linked port. */
 			if (!linked)
+			{
 				linked = info;
+			}
 
 			info->tx_rate = 10 * TX_RATE_UNIT;
+
 			if (status & PORT_STATUS_SPEED_100MBIT)
+			{
 				info->tx_rate = 100 * TX_RATE_UNIT;
+			}
 
 			info->duplex = 1;
-			if (status & PORT_STATUS_FULL_DUPLEX)
-				info->duplex = 2;
 
-			if (media_connected != info->state) {
+			if (status & PORT_STATUS_FULL_DUPLEX)
+			{
+				info->duplex = 2;
+			}
+
+			if (media_connected != info->state)
+			{
 				hw_r_phy(hw, p, KS884X_PHY_AUTO_NEG_OFFSET,
-					&data);
+						 &data);
 				hw_r_phy(hw, p, KS884X_PHY_REMOTE_CAP_OFFSET,
-					&status);
+						 &status);
 				determine_flow_ctrl(hw, port, data, status);
-				if (hw->ksz_switch) {
+
+				if (hw->ksz_switch)
+				{
 					port_cfg_back_pressure(hw, p,
-						(1 == info->duplex));
+										   (1 == info->duplex));
 				}
+
 				change |= 1 << i;
 				port_cfg_change(hw, port, info, status);
 			}
+
 			info->state = media_connected;
-		} else {
-			if (media_disconnected != info->state) {
+		}
+		else
+		{
+			if (media_disconnected != info->state)
+			{
 				change |= 1 << i;
 
 				/* Indicate the link just goes down. */
 				hw->port_mib[p].link_down = 1;
 			}
+
 			info->state = media_disconnected;
 		}
+
 		hw->port_mib[p].state = (u8) info->state;
 	}
 
 	if (linked && media_disconnected == port->linked->state)
+	{
 		port->linked = linked;
+	}
 
 	hw_restore_intr(hw, interrupt);
 }
@@ -3381,38 +3591,46 @@ static void port_set_link_speed(struct ksz_port *port)
 	int i;
 	int p;
 
-	for (i = 0, p = port->first_port; i < port->port_cnt; i++, p++) {
+	for (i = 0, p = port->first_port; i < port->port_cnt; i++, p++)
+	{
 		info = &hw->port_info[p];
 
 		port_r16(hw, p, KS884X_PORT_CTRL_4_OFFSET, &data);
 		port_r8(hw, p, KS884X_PORT_STATUS_OFFSET, &status);
 
 		cfg = 0;
+
 		if (status & PORT_STATUS_LINK_GOOD)
+		{
 			cfg = data;
+		}
 
 		data |= PORT_AUTO_NEG_ENABLE;
 		data = advertised_flow_ctrl(port, data);
 
 		data |= PORT_AUTO_NEG_100BTX_FD | PORT_AUTO_NEG_100BTX |
-			PORT_AUTO_NEG_10BT_FD | PORT_AUTO_NEG_10BT;
+				PORT_AUTO_NEG_10BT_FD | PORT_AUTO_NEG_10BT;
 
 		/* Check if manual configuration is specified by the user. */
-		if (port->speed || port->duplex) {
+		if (port->speed || port->duplex)
+		{
 			if (10 == port->speed)
 				data &= ~(PORT_AUTO_NEG_100BTX_FD |
-					PORT_AUTO_NEG_100BTX);
+						  PORT_AUTO_NEG_100BTX);
 			else if (100 == port->speed)
 				data &= ~(PORT_AUTO_NEG_10BT_FD |
-					PORT_AUTO_NEG_10BT);
+						  PORT_AUTO_NEG_10BT);
+
 			if (1 == port->duplex)
 				data &= ~(PORT_AUTO_NEG_100BTX_FD |
-					PORT_AUTO_NEG_10BT_FD);
+						  PORT_AUTO_NEG_10BT_FD);
 			else if (2 == port->duplex)
 				data &= ~(PORT_AUTO_NEG_100BTX |
-					PORT_AUTO_NEG_10BT);
+						  PORT_AUTO_NEG_10BT);
 		}
-		if (data != cfg) {
+
+		if (data != cfg)
+		{
 			data |= PORT_AUTO_NEG_RESTART;
 			port_w16(hw, p, KS884X_PORT_CTRL_4_OFFSET, data);
 		}
@@ -3433,20 +3651,31 @@ static void port_force_link_speed(struct ksz_port *port)
 	int phy;
 	int p;
 
-	for (i = 0, p = port->first_port; i < port->port_cnt; i++, p++) {
+	for (i = 0, p = port->first_port; i < port->port_cnt; i++, p++)
+	{
 		phy = KS884X_PHY_1_CTRL_OFFSET + p * PHY_CTRL_INTERVAL;
 		hw_r_phy_ctrl(hw, phy, &data);
 
 		data &= ~PHY_AUTO_NEG_ENABLE;
 
 		if (10 == port->speed)
+		{
 			data &= ~PHY_SPEED_100MBIT;
+		}
 		else if (100 == port->speed)
+		{
 			data |= PHY_SPEED_100MBIT;
+		}
+
 		if (1 == port->duplex)
+		{
 			data &= ~PHY_FULL_DUPLEX;
+		}
 		else if (2 == port->duplex)
+		{
 			data |= PHY_FULL_DUPLEX;
+		}
+
 		hw_w_phy_ctrl(hw, phy, data);
 	}
 }
@@ -3459,7 +3688,7 @@ static void port_set_power_saving(struct ksz_port *port, int enable)
 
 	for (i = 0, p = port->first_port; i < port->port_cnt; i++, p++)
 		port_cfg(hw, p,
-			KS884X_PORT_CTRL_4_OFFSET, PORT_POWER_DOWN, enable);
+				 KS884X_PORT_CTRL_4_OFFSET, PORT_POWER_DOWN, enable);
 }
 
 /*
@@ -3481,7 +3710,10 @@ static int hw_chk_wol_pme_status(struct ksz_hw *hw)
 	u16 data;
 
 	if (!pdev->pm_cap)
+	{
 		return 0;
+	}
+
 	pci_read_config_word(pdev, pdev->pm_cap + PCI_PM_CTRL, &data);
 	return (data & PCI_PM_CTRL_PME_STATUS) == PCI_PM_CTRL_PME_STATUS;
 }
@@ -3499,7 +3731,9 @@ static void hw_clr_wol_pme_status(struct ksz_hw *hw)
 	u16 data;
 
 	if (!pdev->pm_cap)
+	{
 		return;
+	}
 
 	/* Clear PME_Status to deassert PMEN pin. */
 	pci_read_config_word(pdev, pdev->pm_cap + PCI_PM_CTRL, &data);
@@ -3521,13 +3755,22 @@ static void hw_cfg_wol_pme(struct ksz_hw *hw, int set)
 	u16 data;
 
 	if (!pdev->pm_cap)
+	{
 		return;
+	}
+
 	pci_read_config_word(pdev, pdev->pm_cap + PCI_PM_CTRL, &data);
 	data &= ~PCI_PM_CTRL_STATE_MASK;
+
 	if (set)
+	{
 		data |= PCI_PM_CTRL_PME_ENABLE | PCI_D3hot;
+	}
 	else
+	{
 		data &= ~PCI_PM_CTRL_PME_ENABLE;
+	}
+
 	pci_write_config_word(pdev, pdev->pm_cap + PCI_PM_CTRL, data);
 }
 
@@ -3544,10 +3787,16 @@ static void hw_cfg_wol(struct ksz_hw *hw, u16 frame, int set)
 	u16 data;
 
 	data = readw(hw->io + KS8841_WOL_CTRL_OFFSET);
+
 	if (set)
+	{
 		data |= frame;
+	}
 	else
+	{
 		data &= ~frame;
+	}
+
 	writew(data, hw->io + KS8841_WOL_CTRL_OFFSET);
 }
 
@@ -3563,7 +3812,7 @@ static void hw_cfg_wol(struct ksz_hw *hw, u16 frame, int set)
  * This routine is used to program Wake-on-LAN pattern.
  */
 static void hw_set_wol_frame(struct ksz_hw *hw, int i, uint mask_size,
-	const u8 *mask, uint frame_size, const u8 *pattern)
+							 const u8 *mask, uint frame_size, const u8 *pattern)
 {
 	int bits;
 	int from;
@@ -3574,40 +3823,62 @@ static void hw_set_wol_frame(struct ksz_hw *hw, int i, uint mask_size,
 	u8 val = 0;
 
 	if (frame_size > mask_size * 8)
+	{
 		frame_size = mask_size * 8;
+	}
+
 	if (frame_size > 64)
+	{
 		frame_size = 64;
+	}
 
 	i *= 0x10;
 	writel(0, hw->io + KS8841_WOL_FRAME_BYTE0_OFFSET + i);
 	writel(0, hw->io + KS8841_WOL_FRAME_BYTE2_OFFSET + i);
 
 	bits = len = from = to = 0;
-	do {
-		if (bits) {
+
+	do
+	{
+		if (bits)
+		{
 			if ((val & 1))
+			{
 				data[to++] = pattern[from];
+			}
+
 			val >>= 1;
 			++from;
 			--bits;
-		} else {
+		}
+		else
+		{
 			val = mask[len];
 			writeb(val, hw->io + KS8841_WOL_FRAME_BYTE0_OFFSET + i
-				+ len);
+				   + len);
 			++len;
+
 			if (val)
+			{
 				bits = 8;
+			}
 			else
+			{
 				from += 8;
+			}
 		}
-	} while (from < (int) frame_size);
-	if (val) {
+	}
+	while (from < (int) frame_size);
+
+	if (val)
+	{
 		bits = mask[len - 1];
 		val <<= (from % 8);
 		bits &= ~val;
 		writeb(bits, hw->io + KS8841_WOL_FRAME_BYTE0_OFFSET + i + len -
-			1);
+			   1);
 	}
+
 	crc = ether_crc(to, data);
 	writel(crc, hw->io + KS8841_WOL_FRAME_CRC_OFFSET + i);
 }
@@ -3622,7 +3893,8 @@ static void hw_set_wol_frame(struct ksz_hw *hw, int i, uint mask_size,
 static void hw_add_wol_arp(struct ksz_hw *hw, const u8 *ip_addr)
 {
 	static const u8 mask[6] = { 0x3F, 0xF0, 0x3F, 0x00, 0xC0, 0x03 };
-	u8 pattern[42] = {
+	u8 pattern[42] =
+	{
 		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x08, 0x06,
@@ -3630,7 +3902,8 @@ static void hw_add_wol_arp(struct ksz_hw *hw, const u8 *ip_addr)
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		0x00, 0x00, 0x00, 0x00 };
+		0x00, 0x00, 0x00, 0x00
+	};
 
 	memcpy(&pattern[38], ip_addr, 4);
 	hw_set_wol_frame(hw, 3, 6, mask, 42, pattern);
@@ -3728,19 +4001,31 @@ static int hw_init(struct ksz_hw *hw)
 
 	revision = (data & KS884X_REVISION_MASK) >> KS884X_REVISION_SHIFT;
 	data &= KS884X_CHIP_ID_MASK_41;
+
 	if (REG_CHIP_ID_41 == data)
+	{
 		rc = 1;
+	}
 	else if (REG_CHIP_ID_42 == data)
+	{
 		rc = 2;
+	}
 	else
+	{
 		return 0;
+	}
 
 	/* Setup hardware features or bug workarounds. */
-	if (revision <= 1) {
+	if (revision <= 1)
+	{
 		hw->features |= SMALL_PACKET_TX_BUG;
+
 		if (1 == rc)
+		{
 			hw->features |= HALF_DUPLEX_SIGNAL_BUG;
+		}
 	}
+
 	return rc;
 }
 
@@ -3781,20 +4066,25 @@ static void hw_setup(struct ksz_hw *hw)
 
 	/* Setup transmit control. */
 	hw->tx_cfg = (DMA_TX_PAD_ENABLE | DMA_TX_CRC_ENABLE |
-		(DMA_BURST_DEFAULT << DMA_BURST_SHIFT) | DMA_TX_ENABLE);
+				  (DMA_BURST_DEFAULT << DMA_BURST_SHIFT) | DMA_TX_ENABLE);
 
 	/* Setup receive control. */
 	hw->rx_cfg = (DMA_RX_BROADCAST | DMA_RX_UNICAST |
-		(DMA_BURST_DEFAULT << DMA_BURST_SHIFT) | DMA_RX_ENABLE);
+				  (DMA_BURST_DEFAULT << DMA_BURST_SHIFT) | DMA_RX_ENABLE);
 	hw->rx_cfg |= KS884X_DMA_RX_MULTICAST;
 
 	/* Hardware cannot handle UDP packet in IP fragments. */
 	hw->rx_cfg |= (DMA_RX_CSUM_TCP | DMA_RX_CSUM_IP);
 
 	if (hw->all_multi)
+	{
 		hw->rx_cfg |= DMA_RX_ALL_MULTICAST;
+	}
+
 	if (hw->promiscuous)
+	{
 		hw->rx_cfg |= DMA_RX_PROMISCUOUS;
+	}
 }
 
 /**
@@ -3816,21 +4106,32 @@ static void ksz_check_desc_num(struct ksz_desc_info *info)
 	int shift;
 
 	shift = 0;
-	while (!(alloc & 1)) {
+
+	while (!(alloc & 1))
+	{
 		shift++;
 		alloc >>= 1;
 	}
-	if (alloc != 1 || shift < MIN_DESC_SHIFT) {
+
+	if (alloc != 1 || shift < MIN_DESC_SHIFT)
+	{
 		pr_alert("Hardware descriptor numbers not right!\n");
-		while (alloc) {
+
+		while (alloc)
+		{
 			shift++;
 			alloc >>= 1;
 		}
+
 		if (shift < MIN_DESC_SHIFT)
+		{
 			shift = MIN_DESC_SHIFT;
+		}
+
 		alloc = 1 << shift;
 		info->alloc = alloc;
 	}
+
 	info->mask = info->alloc - 1;
 }
 
@@ -3842,12 +4143,14 @@ static void hw_init_desc(struct ksz_desc_info *desc_info, int transmit)
 	struct ksz_desc *cur = desc_info->ring;
 	struct ksz_desc *previous = NULL;
 
-	for (i = 0; i < desc_info->alloc; i++) {
+	for (i = 0; i < desc_info->alloc; i++)
+	{
 		cur->phw = desc++;
 		phys += desc_info->size;
 		previous = cur++;
 		previous->phw->next = cpu_to_le32(phys);
 	}
+
 	previous->phw->next = cpu_to_le32(desc_info->ring_phys);
 	previous->sw.buf.rx.end_of_ring = 1;
 	previous->phw->buf.data = cpu_to_le32(previous->sw.buf.data);
@@ -3904,7 +4207,9 @@ static void hw_start_rx(struct ksz_hw *hw)
 
 	/* Variable overflows. */
 	if (0 == hw->rx_stop)
+	{
 		hw->rx_stop = 2;
+	}
 }
 
 /**
@@ -3982,7 +4287,9 @@ static int hw_alloc_pkt(struct ksz_hw *hw, int length, int physical)
 {
 	/* Always leave one descriptor free. */
 	if (hw->tx_desc_info.avail <= 1)
+	{
 		return 0;
+	}
 
 	/* Allocate a descriptor for transmission and mark it current. */
 	get_tx_pkt(&hw->tx_desc_info, &hw->tx_desc_info.cur);
@@ -3994,10 +4301,14 @@ static int hw_alloc_pkt(struct ksz_hw *hw, int length, int physical)
 
 	/* Cannot hold on too much data. */
 	if (hw->tx_size >= MAX_TX_HELD_SIZE)
+	{
 		hw->tx_int_cnt = hw->tx_int_mask + 1;
+	}
 
 	if (physical > hw->tx_desc_info.avail)
+	{
 		return 1;
+	}
 
 	return hw->tx_desc_info.avail;
 }
@@ -4015,7 +4326,8 @@ static void hw_send_pkt(struct ksz_hw *hw)
 	cur->sw.buf.tx.last_seg = 1;
 
 	/* Interrupt only after specified number of descriptors used. */
-	if (hw->tx_int_cnt > hw->tx_int_mask) {
+	if (hw->tx_int_cnt > hw->tx_int_mask)
+	{
 		cur->sw.buf.tx.intr = 1;
 		hw->tx_int_cnt = 0;
 		hw->tx_size = 0;
@@ -4050,7 +4362,7 @@ static void hw_set_addr(struct ksz_hw *hw)
 
 	for (i = 0; i < ETH_ALEN; i++)
 		writeb(hw->override_addr[MAC_ADDR_ORDER(i)],
-			hw->io + KS884X_ADDR_0_OFFSET + i);
+			   hw->io + KS884X_ADDR_0_OFFSET + i);
 
 	sw_set_addr(hw, hw->override_addr);
 }
@@ -4067,14 +4379,17 @@ static void hw_read_addr(struct ksz_hw *hw)
 
 	for (i = 0; i < ETH_ALEN; i++)
 		hw->perm_addr[MAC_ADDR_ORDER(i)] = readb(hw->io +
-			KS884X_ADDR_0_OFFSET + i);
+										   KS884X_ADDR_0_OFFSET + i);
 
-	if (!hw->mac_override) {
+	if (!hw->mac_override)
+	{
 		memcpy(hw->override_addr, hw->perm_addr, ETH_ALEN);
-		if (empty_addr(hw->override_addr)) {
+
+		if (empty_addr(hw->override_addr))
+		{
 			memcpy(hw->perm_addr, DEFAULT_MAC_ADDRESS, ETH_ALEN);
 			memcpy(hw->override_addr, DEFAULT_MAC_ADDRESS,
-			       ETH_ALEN);
+				   ETH_ALEN);
 			hw->override_addr[5] += hw->id;
 			hw_set_addr(hw);
 		}
@@ -4088,16 +4403,22 @@ static void hw_ena_add_addr(struct ksz_hw *hw, int index, u8 *mac_addr)
 	u32 mac_addr_hi;
 
 	mac_addr_hi = 0;
-	for (i = 0; i < 2; i++) {
+
+	for (i = 0; i < 2; i++)
+	{
 		mac_addr_hi <<= 8;
 		mac_addr_hi |= mac_addr[i];
 	}
+
 	mac_addr_hi |= ADD_ADDR_ENABLE;
 	mac_addr_lo = 0;
-	for (i = 2; i < 6; i++) {
+
+	for (i = 2; i < 6; i++)
+	{
 		mac_addr_lo <<= 8;
 		mac_addr_lo |= mac_addr[i];
 	}
+
 	index *= ADD_ADDR_INCR;
 
 	writel(mac_addr_lo, hw->io + index + KS_ADD_ADDR_0_LO);
@@ -4108,12 +4429,15 @@ static void hw_set_add_addr(struct ksz_hw *hw)
 {
 	int i;
 
-	for (i = 0; i < ADDITIONAL_ENTRIES; i++) {
+	for (i = 0; i < ADDITIONAL_ENTRIES; i++)
+	{
 		if (empty_addr(hw->address[i]))
 			writel(0, hw->io + ADD_ADDR_INCR * i +
-				KS_ADD_ADDR_0_HI);
+				   KS_ADD_ADDR_0_HI);
 		else
+		{
 			hw_ena_add_addr(hw, i, hw->address[i]);
+		}
 	}
 }
 
@@ -4123,18 +4447,30 @@ static int hw_add_addr(struct ksz_hw *hw, u8 *mac_addr)
 	int j = ADDITIONAL_ENTRIES;
 
 	if (ether_addr_equal(hw->override_addr, mac_addr))
+	{
 		return 0;
-	for (i = 0; i < hw->addr_list_size; i++) {
-		if (ether_addr_equal(hw->address[i], mac_addr))
-			return 0;
-		if (ADDITIONAL_ENTRIES == j && empty_addr(hw->address[i]))
-			j = i;
 	}
-	if (j < ADDITIONAL_ENTRIES) {
+
+	for (i = 0; i < hw->addr_list_size; i++)
+	{
+		if (ether_addr_equal(hw->address[i], mac_addr))
+		{
+			return 0;
+		}
+
+		if (ADDITIONAL_ENTRIES == j && empty_addr(hw->address[i]))
+		{
+			j = i;
+		}
+	}
+
+	if (j < ADDITIONAL_ENTRIES)
+	{
 		memcpy(hw->address[j], mac_addr, ETH_ALEN);
 		hw_ena_add_addr(hw, j, hw->address[j]);
 		return 0;
 	}
+
 	return -1;
 }
 
@@ -4142,14 +4478,17 @@ static int hw_del_addr(struct ksz_hw *hw, u8 *mac_addr)
 {
 	int i;
 
-	for (i = 0; i < hw->addr_list_size; i++) {
-		if (ether_addr_equal(hw->address[i], mac_addr)) {
+	for (i = 0; i < hw->addr_list_size; i++)
+	{
+		if (ether_addr_equal(hw->address[i], mac_addr))
+		{
 			eth_zero_addr(hw->address[i]);
 			writel(0, hw->io + ADD_ADDR_INCR * i +
-				KS_ADD_ADDR_0_HI);
+				   KS_ADD_ADDR_0_HI);
 			return 0;
 		}
 	}
+
 	return -1;
 }
 
@@ -4163,7 +4502,8 @@ static void hw_clr_multicast(struct ksz_hw *hw)
 {
 	int i;
 
-	for (i = 0; i < HW_MULTICAST_SIZE; i++) {
+	for (i = 0; i < HW_MULTICAST_SIZE; i++)
+	{
 		hw->multi_bits[i] = 0;
 
 		writeb(0, hw->io + KS884X_MULTICAST_0_OFFSET + i);
@@ -4186,7 +4526,8 @@ static void hw_set_grp_addr(struct ksz_hw *hw)
 
 	memset(hw->multi_bits, 0, sizeof(u8) * HW_MULTICAST_SIZE);
 
-	for (i = 0; i < hw->multi_list_size; i++) {
+	for (i = 0; i < hw->multi_list_size; i++)
+	{
 		position = (ether_crc(6, hw->multi_list[i]) >> 26) & 0x3f;
 		index = position >> 3;
 		value = 1 << (position & 7);
@@ -4195,7 +4536,7 @@ static void hw_set_grp_addr(struct ksz_hw *hw)
 
 	for (i = 0; i < HW_MULTICAST_SIZE; i++)
 		writeb(hw->multi_bits[i], hw->io + KS884X_MULTICAST_0_OFFSET +
-			i);
+			   i);
 }
 
 /**
@@ -4211,12 +4552,18 @@ static void hw_set_multicast(struct ksz_hw *hw, u8 multicast)
 	hw_stop_rx(hw);
 
 	if (multicast)
+	{
 		hw->rx_cfg |= DMA_RX_ALL_MULTICAST;
+	}
 	else
+	{
 		hw->rx_cfg &= ~DMA_RX_ALL_MULTICAST;
+	}
 
 	if (hw->enabled)
+	{
 		hw_start_rx(hw);
+	}
 }
 
 /**
@@ -4232,12 +4579,18 @@ static void hw_set_promiscuous(struct ksz_hw *hw, u8 prom)
 	hw_stop_rx(hw);
 
 	if (prom)
+	{
 		hw->rx_cfg |= DMA_RX_PROMISCUOUS;
+	}
 	else
+	{
 		hw->rx_cfg &= ~DMA_RX_PROMISCUOUS;
+	}
 
 	if (hw->enabled)
+	{
 		hw_start_rx(hw);
+	}
 }
 
 /**
@@ -4251,24 +4604,36 @@ static void sw_enable(struct ksz_hw *hw, int enable)
 {
 	int port;
 
-	for (port = 0; port < SWITCH_PORT_NUM; port++) {
-		if (hw->dev_count > 1) {
+	for (port = 0; port < SWITCH_PORT_NUM; port++)
+	{
+		if (hw->dev_count > 1)
+		{
 			/* Set port-base vlan membership with host port. */
 			sw_cfg_port_base_vlan(hw, port,
-				HOST_MASK | (1 << port));
+								  HOST_MASK | (1 << port));
 			port_set_stp_state(hw, port, STP_STATE_DISABLED);
-		} else {
+		}
+		else
+		{
 			sw_cfg_port_base_vlan(hw, port, PORT_MASK);
 			port_set_stp_state(hw, port, STP_STATE_FORWARDING);
 		}
 	}
+
 	if (hw->dev_count > 1)
+	{
 		port_set_stp_state(hw, SWITCH_PORT_NUM, STP_STATE_SIMPLE);
+	}
 	else
+	{
 		port_set_stp_state(hw, SWITCH_PORT_NUM, STP_STATE_FORWARDING);
+	}
 
 	if (enable)
+	{
 		enable = KS8842_START;
+	}
+
 	writew(enable, hw->io + KS884X_CHIP_ID_OFFSET);
 }
 
@@ -4287,8 +4652,11 @@ static void sw_setup(struct ksz_hw *hw)
 	/* Enable switch broadcast storm protection at 10% percent rate. */
 	sw_init_broad_storm(hw);
 	hw_cfg_broad_storm(hw, BROADCAST_STORM_PROTECTION_RATE);
+
 	for (port = 0; port < SWITCH_PORT_NUM; port++)
+	{
 		sw_ena_broad_storm(hw, port);
+	}
 
 	sw_init_prio(hw);
 
@@ -4299,10 +4667,16 @@ static void sw_setup(struct ksz_hw *hw)
 	sw_init_vlan(hw);
 
 	if (hw->features & STP_SUPPORT)
+	{
 		sw_init_stp(hw);
+	}
+
 	if (!sw_chk(hw, KS8842_SWITCH_CTRL_1_OFFSET,
-			SWITCH_TX_FLOW_CTRL | SWITCH_RX_FLOW_CTRL))
+				SWITCH_TX_FLOW_CTRL | SWITCH_RX_FLOW_CTRL))
+	{
 		hw->overrides |= PAUSE_FLOW_CTRL;
+	}
+
 	sw_enable(hw, 1);
 }
 
@@ -4331,14 +4705,15 @@ static void ksz_start_timer(struct ksz_timer_info *info, int time)
  */
 static void ksz_stop_timer(struct ksz_timer_info *info)
 {
-	if (info->max) {
+	if (info->max)
+	{
 		info->max = 0;
 		del_timer_sync(&info->timer);
 	}
 }
 
 static void ksz_init_timer(struct ksz_timer_info *info, int period,
-	void (*function)(unsigned long), void *data)
+						   void (*function)(unsigned long), void *data)
 {
 	info->max = 0;
 	info->period = period;
@@ -4348,13 +4723,21 @@ static void ksz_init_timer(struct ksz_timer_info *info, int period,
 static void ksz_update_timer(struct ksz_timer_info *info)
 {
 	++info->cnt;
-	if (info->max > 0) {
-		if (info->cnt < info->max) {
+
+	if (info->max > 0)
+	{
+		if (info->cnt < info->max)
+		{
 			info->timer.expires = jiffies + info->period;
 			add_timer(&info->timer);
-		} else
+		}
+		else
+		{
 			info->max = 0;
-	} else if (info->max < 0) {
+		}
+	}
+	else if (info->max < 0)
+	{
 		info->timer.expires = jiffies + info->period;
 		add_timer(&info->timer);
 	}
@@ -4373,9 +4756,13 @@ static void ksz_update_timer(struct ksz_timer_info *info)
 static int ksz_alloc_soft_desc(struct ksz_desc_info *desc_info, int transmit)
 {
 	desc_info->ring = kzalloc(sizeof(struct ksz_desc) * desc_info->alloc,
-				  GFP_KERNEL);
+							  GFP_KERNEL);
+
 	if (!desc_info->ring)
+	{
 		return 1;
+	}
+
 	hw_init_desc(desc_info, transmit);
 	return 0;
 }
@@ -4402,33 +4789,40 @@ static int ksz_alloc_desc(struct dev_info *adapter)
 
 	adapter->desc_pool.alloc_virt =
 		pci_zalloc_consistent(adapter->pdev,
-				      adapter->desc_pool.alloc_size,
-				      &adapter->desc_pool.dma_addr);
-	if (adapter->desc_pool.alloc_virt == NULL) {
+							  adapter->desc_pool.alloc_size,
+							  &adapter->desc_pool.dma_addr);
+
+	if (adapter->desc_pool.alloc_virt == NULL)
+	{
 		adapter->desc_pool.alloc_size = 0;
 		return 1;
 	}
 
 	/* Align to the next cache line boundary. */
 	offset = (((ulong) adapter->desc_pool.alloc_virt % DESC_ALIGNMENT) ?
-		(DESC_ALIGNMENT -
-		((ulong) adapter->desc_pool.alloc_virt % DESC_ALIGNMENT)) : 0);
+			  (DESC_ALIGNMENT -
+			   ((ulong) adapter->desc_pool.alloc_virt % DESC_ALIGNMENT)) : 0);
 	adapter->desc_pool.virt = adapter->desc_pool.alloc_virt + offset;
 	adapter->desc_pool.phys = adapter->desc_pool.dma_addr + offset;
 
 	/* Allocate receive/transmit descriptors. */
 	hw->rx_desc_info.ring_virt = (struct ksz_hw_desc *)
-		adapter->desc_pool.virt;
+								 adapter->desc_pool.virt;
 	hw->rx_desc_info.ring_phys = adapter->desc_pool.phys;
 	offset = hw->rx_desc_info.alloc * hw->rx_desc_info.size;
 	hw->tx_desc_info.ring_virt = (struct ksz_hw_desc *)
-		(adapter->desc_pool.virt + offset);
+								 (adapter->desc_pool.virt + offset);
 	hw->tx_desc_info.ring_phys = adapter->desc_pool.phys + offset;
 
 	if (ksz_alloc_soft_desc(&hw->rx_desc_info, 0))
+	{
 		return 1;
+	}
+
 	if (ksz_alloc_soft_desc(&hw->tx_desc_info, 1))
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -4440,7 +4834,7 @@ static int ksz_alloc_desc(struct dev_info *adapter)
  * This routine is just a helper function to release the DMA buffer resources.
  */
 static void free_dma_buf(struct dev_info *adapter, struct ksz_dma_buf *dma_buf,
-	int direction)
+						 int direction)
 {
 	pci_unmap_single(adapter->pdev, dma_buf->dma, dma_buf->len, direction);
 	dev_kfree_skb(dma_buf->skb);
@@ -4462,21 +4856,30 @@ static void ksz_init_rx_buffers(struct dev_info *adapter)
 	struct ksz_hw *hw = &adapter->hw;
 	struct ksz_desc_info *info = &hw->rx_desc_info;
 
-	for (i = 0; i < hw->rx_desc_info.alloc; i++) {
+	for (i = 0; i < hw->rx_desc_info.alloc; i++)
+	{
 		get_rx_pkt(info, &desc);
 
 		dma_buf = DMA_BUFFER(desc);
+
 		if (dma_buf->skb && dma_buf->len != adapter->mtu)
+		{
 			free_dma_buf(adapter, dma_buf, PCI_DMA_FROMDEVICE);
+		}
+
 		dma_buf->len = adapter->mtu;
+
 		if (!dma_buf->skb)
+		{
 			dma_buf->skb = alloc_skb(dma_buf->len, GFP_ATOMIC);
+		}
+
 		if (dma_buf->skb && !dma_buf->dma)
 			dma_buf->dma = pci_map_single(
-				adapter->pdev,
-				skb_tail_pointer(dma_buf->skb),
-				dma_buf->len,
-				PCI_DMA_FROMDEVICE);
+							   adapter->pdev,
+							   skb_tail_pointer(dma_buf->skb),
+							   dma_buf->len,
+							   PCI_DMA_FROMDEVICE);
 
 		/* Set descriptor. */
 		set_rx_buf(desc, dma_buf->dma);
@@ -4505,13 +4908,20 @@ static int ksz_alloc_mem(struct dev_info *adapter)
 	/* Determine how many descriptors to skip transmit interrupt. */
 	hw->tx_int_cnt = 0;
 	hw->tx_int_mask = NUM_OF_TX_DESC / 4;
+
 	if (hw->tx_int_mask > 8)
+	{
 		hw->tx_int_mask = 8;
-	while (hw->tx_int_mask) {
+	}
+
+	while (hw->tx_int_mask)
+	{
 		hw->tx_int_cnt++;
 		hw->tx_int_mask >>= 1;
 	}
-	if (hw->tx_int_cnt) {
+
+	if (hw->tx_int_cnt)
+	{
 		hw->tx_int_mask = (1 << (hw->tx_int_cnt - 1)) - 1;
 		hw->tx_int_cnt = 0;
 	}
@@ -4519,18 +4929,24 @@ static int ksz_alloc_mem(struct dev_info *adapter)
 	/* Determine the descriptor size. */
 	hw->rx_desc_info.size =
 		(((sizeof(struct ksz_hw_desc) + DESC_ALIGNMENT - 1) /
-		DESC_ALIGNMENT) * DESC_ALIGNMENT);
+		  DESC_ALIGNMENT) * DESC_ALIGNMENT);
 	hw->tx_desc_info.size =
 		(((sizeof(struct ksz_hw_desc) + DESC_ALIGNMENT - 1) /
-		DESC_ALIGNMENT) * DESC_ALIGNMENT);
+		  DESC_ALIGNMENT) * DESC_ALIGNMENT);
+
 	if (hw->rx_desc_info.size != sizeof(struct ksz_hw_desc))
+	{
 		pr_alert("Hardware descriptor size not right!\n");
+	}
+
 	ksz_check_desc_num(&hw->rx_desc_info);
 	ksz_check_desc_num(&hw->tx_desc_info);
 
 	/* Allocate descriptors. */
 	if (ksz_alloc_desc(adapter))
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -4578,16 +4994,21 @@ static void ksz_free_desc(struct dev_info *adapter)
  * This local routine frees buffers used in the DMA buffers.
  */
 static void ksz_free_buffers(struct dev_info *adapter,
-	struct ksz_desc_info *desc_info, int direction)
+							 struct ksz_desc_info *desc_info, int direction)
 {
 	int i;
 	struct ksz_dma_buf *dma_buf;
 	struct ksz_desc *desc = desc_info->ring;
 
-	for (i = 0; i < desc_info->alloc; i++) {
+	for (i = 0; i < desc_info->alloc; i++)
+	{
 		dma_buf = DMA_BUFFER(desc);
+
 		if (dma_buf->skb)
+		{
 			free_dma_buf(adapter, dma_buf, direction);
+		}
+
 		desc++;
 	}
 }
@@ -4602,18 +5023,18 @@ static void ksz_free_mem(struct dev_info *adapter)
 {
 	/* Free transmit buffers. */
 	ksz_free_buffers(adapter, &adapter->hw.tx_desc_info,
-		PCI_DMA_TODEVICE);
+					 PCI_DMA_TODEVICE);
 
 	/* Free receive buffers. */
 	ksz_free_buffers(adapter, &adapter->hw.rx_desc_info,
-		PCI_DMA_FROMDEVICE);
+					 PCI_DMA_FROMDEVICE);
 
 	/* Free descriptors. */
 	ksz_free_desc(adapter);
 }
 
 static void get_mib_counters(struct ksz_hw *hw, int first, int cnt,
-	u64 *counter)
+							 u64 *counter)
 {
 	int i;
 	int mib;
@@ -4621,10 +5042,15 @@ static void get_mib_counters(struct ksz_hw *hw, int first, int cnt,
 	struct ksz_port_mib *port_mib;
 
 	memset(counter, 0, sizeof(u64) * TOTAL_PORT_COUNTER_NUM);
-	for (i = 0, port = first; i < cnt; i++, port++) {
+
+	for (i = 0, port = first; i < cnt; i++, port++)
+	{
 		port_mib = &hw->port_mib[port];
+
 		for (mib = port_mib->mib_start; mib < hw->mib_cnt; mib++)
+		{
 			counter[mib] += port_mib->counter[mib];
+		}
 	}
 }
 
@@ -4652,7 +5078,9 @@ static void send_packet(struct sk_buff *skb, struct net_device *dev)
 	 * to send.
 	 */
 	if (hw->dev_count > 1)
+	{
 		hw->dst_ports = 1 << priv->port.first_port;
+	}
 
 	/* Hardware will pad the length to 60. */
 	len = skb->len;
@@ -4662,20 +5090,24 @@ static void send_packet(struct sk_buff *skb, struct net_device *dev)
 	desc = first;
 
 	dma_buf = DMA_BUFFER(desc);
-	if (last_frag) {
+
+	if (last_frag)
+	{
 		int frag;
 		skb_frag_t *this_frag;
 
 		dma_buf->len = skb_headlen(skb);
 
 		dma_buf->dma = pci_map_single(
-			hw_priv->pdev, skb->data, dma_buf->len,
-			PCI_DMA_TODEVICE);
+						   hw_priv->pdev, skb->data, dma_buf->len,
+						   PCI_DMA_TODEVICE);
 		set_tx_buf(desc, dma_buf->dma);
 		set_tx_len(desc, dma_buf->len);
 
 		frag = 0;
-		do {
+
+		do
+		{
 			this_frag = &skb_shinfo(skb)->frags[frag];
 
 			/* Get a new descriptor. */
@@ -4688,37 +5120,44 @@ static void send_packet(struct sk_buff *skb, struct net_device *dev)
 			dma_buf->len = skb_frag_size(this_frag);
 
 			dma_buf->dma = pci_map_single(
-				hw_priv->pdev,
-				skb_frag_address(this_frag),
-				dma_buf->len,
-				PCI_DMA_TODEVICE);
+							   hw_priv->pdev,
+							   skb_frag_address(this_frag),
+							   dma_buf->len,
+							   PCI_DMA_TODEVICE);
 			set_tx_buf(desc, dma_buf->dma);
 			set_tx_len(desc, dma_buf->len);
 
 			frag++;
+
 			if (frag == last_frag)
+			{
 				break;
+			}
 
 			/* Do not release the last descriptor here. */
 			release_desc(desc);
-		} while (1);
+		}
+		while (1);
 
 		/* current points to the last descriptor. */
 		info->cur = desc;
 
 		/* Release the first descriptor. */
 		release_desc(first);
-	} else {
+	}
+	else
+	{
 		dma_buf->len = len;
 
 		dma_buf->dma = pci_map_single(
-			hw_priv->pdev, skb->data, dma_buf->len,
-			PCI_DMA_TODEVICE);
+						   hw_priv->pdev, skb->data, dma_buf->len,
+						   PCI_DMA_TODEVICE);
 		set_tx_buf(desc, dma_buf->dma);
 		set_tx_len(desc, dma_buf->len);
 	}
 
-	if (skb->ip_summed == CHECKSUM_PARTIAL) {
+	if (skb->ip_summed == CHECKSUM_PARTIAL)
+	{
 		(desc)->sw.buf.tx.csum_gen_tcp = 1;
 		(desc)->sw.buf.tx.csum_gen_udp = 1;
 	}
@@ -4755,15 +5194,22 @@ static void transmit_cleanup(struct dev_info *hw_priv, int normal)
 	spin_lock_irq(&hw_priv->hwlock);
 	last = info->last;
 
-	while (info->avail < info->alloc) {
+	while (info->avail < info->alloc)
+	{
 		/* Get next descriptor which is not hardware owned. */
 		desc = &info->ring[last];
 		status.data = le32_to_cpu(desc->phw->ctrl.data);
-		if (status.tx.hw_owned) {
+
+		if (status.tx.hw_owned)
+		{
 			if (normal)
+			{
 				break;
+			}
 			else
+			{
 				reset_desc(desc, status);
+			}
 		}
 
 		dma_buf = DMA_BUFFER(desc);
@@ -4772,7 +5218,8 @@ static void transmit_cleanup(struct dev_info *hw_priv, int normal)
 			PCI_DMA_TODEVICE);
 
 		/* This descriptor contains the last buffer in the packet. */
-		if (dma_buf->skb) {
+		if (dma_buf->skb)
+		{
 			dev = dma_buf->skb->dev;
 
 			/* Release the packet back to network subsystem. */
@@ -4785,12 +5232,15 @@ static void transmit_cleanup(struct dev_info *hw_priv, int normal)
 		last &= info->mask;
 		info->avail++;
 	}
+
 	info->last = last;
 	spin_unlock_irq(&hw_priv->hwlock);
 
 	/* Notify the network subsystem that the packet has been sent. */
 	if (dev)
+	{
 		netif_trans_update(dev);
+	}
 }
 
 /**
@@ -4807,11 +5257,14 @@ static void tx_done(struct dev_info *hw_priv)
 
 	transmit_cleanup(hw_priv, 1);
 
-	for (port = 0; port < hw->dev_count; port++) {
+	for (port = 0; port < hw->dev_count; port++)
+	{
 		struct net_device *dev = hw->port_info[port].pdev;
 
 		if (netif_running(dev) && netif_queue_stopped(dev))
+		{
 			netif_wake_queue(dev);
+		}
 	}
 }
 
@@ -4844,20 +5297,29 @@ static netdev_tx_t netdev_tx(struct sk_buff *skb, struct net_device *dev)
 	int num = 1;
 	int rc = 0;
 
-	if (hw->features & SMALL_PACKET_TX_BUG) {
+	if (hw->features & SMALL_PACKET_TX_BUG)
+	{
 		struct sk_buff *org_skb = skb;
 
-		if (skb->len <= 48) {
-			if (skb_end_pointer(skb) - skb->data >= 50) {
+		if (skb->len <= 48)
+		{
+			if (skb_end_pointer(skb) - skb->data >= 50)
+			{
 				memset(&skb->data[skb->len], 0, 50 - skb->len);
 				skb->len = 50;
-			} else {
+			}
+			else
+			{
 				skb = netdev_alloc_skb(dev, 50);
+
 				if (!skb)
+				{
 					return NETDEV_TX_BUSY;
+				}
+
 				memcpy(skb->data, org_skb->data, org_skb->len);
 				memset(&skb->data[org_skb->len], 0,
-					50 - org_skb->len);
+					   50 - org_skb->len);
 				skb->len = 50;
 				copy_old_skb(org_skb, skb);
 			}
@@ -4868,30 +5330,43 @@ static netdev_tx_t netdev_tx(struct sk_buff *skb, struct net_device *dev)
 
 	num = skb_shinfo(skb)->nr_frags + 1;
 	left = hw_alloc_pkt(hw, skb->len, num);
-	if (left) {
+
+	if (left)
+	{
 		if (left < num ||
-		    (CHECKSUM_PARTIAL == skb->ip_summed &&
-		     skb->protocol == htons(ETH_P_IPV6))) {
+			(CHECKSUM_PARTIAL == skb->ip_summed &&
+			 skb->protocol == htons(ETH_P_IPV6)))
+		{
 			struct sk_buff *org_skb = skb;
 
 			skb = netdev_alloc_skb(dev, org_skb->len);
-			if (!skb) {
+
+			if (!skb)
+			{
 				rc = NETDEV_TX_BUSY;
 				goto unlock;
 			}
+
 			skb_copy_and_csum_dev(org_skb, skb->data);
 			org_skb->ip_summed = CHECKSUM_NONE;
 			skb->len = org_skb->len;
 			copy_old_skb(org_skb, skb);
 		}
+
 		send_packet(skb, dev);
+
 		if (left <= num)
+		{
 			netif_stop_queue(dev);
-	} else {
+		}
+	}
+	else
+	{
 		/* Stop the transmit queue until packet is allocated. */
 		netif_stop_queue(dev);
 		rc = NETDEV_TX_BUSY;
 	}
+
 unlock:
 	spin_unlock_irq(&hw_priv->hwlock);
 
@@ -4916,17 +5391,22 @@ static void netdev_tx_timeout(struct net_device *dev)
 	struct ksz_hw *hw = &hw_priv->hw;
 	int port;
 
-	if (hw->dev_count > 1) {
+	if (hw->dev_count > 1)
+	{
 		/*
 		 * Only reset the hardware if time between calls is long
 		 * enough.
 		 */
 		if (time_before_eq(jiffies, last_reset + dev->watchdog_timeo))
+		{
 			hw_priv = NULL;
+		}
 	}
 
 	last_reset = jiffies;
-	if (hw_priv) {
+
+	if (hw_priv)
+	{
 		hw_dis_intr(hw);
 		hw_disable(hw);
 
@@ -4938,26 +5418,35 @@ static void netdev_tx_timeout(struct net_device *dev)
 		hw_reset(hw);
 
 		hw_set_desc_base(hw,
-			hw->tx_desc_info.ring_phys,
-			hw->rx_desc_info.ring_phys);
+						 hw->tx_desc_info.ring_phys,
+						 hw->rx_desc_info.ring_phys);
 		hw_set_addr(hw);
-		if (hw->all_multi)
-			hw_set_multicast(hw, hw->all_multi);
-		else if (hw->multi_list_size)
-			hw_set_grp_addr(hw);
 
-		if (hw->dev_count > 1) {
+		if (hw->all_multi)
+		{
+			hw_set_multicast(hw, hw->all_multi);
+		}
+		else if (hw->multi_list_size)
+		{
+			hw_set_grp_addr(hw);
+		}
+
+		if (hw->dev_count > 1)
+		{
 			hw_set_add_addr(hw);
-			for (port = 0; port < SWITCH_PORT_NUM; port++) {
+
+			for (port = 0; port < SWITCH_PORT_NUM; port++)
+			{
 				struct net_device *port_dev;
 
 				port_set_stp_state(hw, port,
-					STP_STATE_DISABLED);
+								   STP_STATE_DISABLED);
 
 				port_dev = hw->port_info[port].pdev;
+
 				if (netif_running(port_dev))
 					port_set_stp_state(hw, port,
-						STP_STATE_SIMPLE);
+									   STP_STATE_SIMPLE);
 			}
 		}
 
@@ -4977,19 +5466,25 @@ static inline void csum_verified(struct sk_buff *skb)
 	protocol = skb->protocol;
 	skb_reset_network_header(skb);
 	iph = (struct iphdr *) skb_network_header(skb);
-	if (protocol == htons(ETH_P_8021Q)) {
+
+	if (protocol == htons(ETH_P_8021Q))
+	{
 		protocol = iph->tot_len;
 		skb_set_network_header(skb, VLAN_HLEN);
 		iph = (struct iphdr *) skb_network_header(skb);
 	}
-	if (protocol == htons(ETH_P_IP)) {
+
+	if (protocol == htons(ETH_P_IP))
+	{
 		if (iph->protocol == IPPROTO_TCP)
+		{
 			skb->ip_summed = CHECKSUM_UNNECESSARY;
+		}
 	}
 }
 
-static inline int rx_proc(struct net_device *dev, struct ksz_hw* hw,
-	struct ksz_desc *desc, union desc_stat status)
+static inline int rx_proc(struct net_device *dev, struct ksz_hw *hw,
+						  struct ksz_desc *desc, union desc_stat status)
 {
 	int packet_len;
 	struct dev_priv *priv = netdev_priv(dev);
@@ -5006,10 +5501,13 @@ static inline int rx_proc(struct net_device *dev, struct ksz_hw* hw,
 		hw_priv->pdev, dma_buf->dma, packet_len + 4,
 		PCI_DMA_FROMDEVICE);
 
-	do {
+	do
+	{
 		/* skb->data != skb->head */
 		skb = netdev_alloc_skb(dev, packet_len + 2);
-		if (!skb) {
+
+		if (!skb)
+		{
 			dev->stats.rx_dropped++;
 			return -ENOMEM;
 		}
@@ -5021,13 +5519,16 @@ static inline int rx_proc(struct net_device *dev, struct ksz_hw* hw,
 		skb_reserve(skb, 2);
 
 		memcpy(skb_put(skb, packet_len),
-			dma_buf->skb->data, packet_len);
-	} while (0);
+			   dma_buf->skb->data, packet_len);
+	}
+	while (0);
 
 	skb->protocol = eth_type_trans(skb, dev);
 
 	if (hw->rx_cfg & (DMA_RX_CSUM_UDP | DMA_RX_CSUM_TCP))
+	{
 		csum_verified(skb);
+	}
 
 	/* Update receive statistics. */
 	dev->stats.rx_packets++;
@@ -5051,17 +5552,26 @@ static int dev_rcv_packets(struct dev_info *hw_priv)
 	int received = 0;
 
 	next = info->next;
-	while (left--) {
+
+	while (left--)
+	{
 		/* Get next descriptor which is not hardware owned. */
 		desc = &info->ring[next];
 		status.data = le32_to_cpu(desc->phw->ctrl.data);
+
 		if (status.rx.hw_owned)
+		{
 			break;
+		}
 
 		/* Status valid only when last descriptor bit is set. */
-		if (status.rx.last_desc && status.rx.first_desc) {
+		if (status.rx.last_desc && status.rx.first_desc)
+		{
 			if (rx_proc(dev, hw, desc, status))
+			{
 				goto release_packet;
+			}
+
 			received++;
 		}
 
@@ -5070,6 +5580,7 @@ release_packet:
 		next++;
 		next &= info->mask;
 	}
+
 	info->next = next;
 
 	return received;
@@ -5087,26 +5598,39 @@ static int port_rcv_packets(struct dev_info *hw_priv)
 	int received = 0;
 
 	next = info->next;
-	while (left--) {
+
+	while (left--)
+	{
 		/* Get next descriptor which is not hardware owned. */
 		desc = &info->ring[next];
 		status.data = le32_to_cpu(desc->phw->ctrl.data);
-		if (status.rx.hw_owned)
-			break;
 
-		if (hw->dev_count > 1) {
+		if (status.rx.hw_owned)
+		{
+			break;
+		}
+
+		if (hw->dev_count > 1)
+		{
 			/* Get received port number. */
 			int p = HW_TO_DEV_PORT(status.rx.src_port);
 
 			dev = hw->port_info[p].pdev;
+
 			if (!netif_running(dev))
+			{
 				goto release_packet;
+			}
 		}
 
 		/* Status valid only when last descriptor bit is set. */
-		if (status.rx.last_desc && status.rx.first_desc) {
+		if (status.rx.last_desc && status.rx.first_desc)
+		{
 			if (rx_proc(dev, hw, desc, status))
+			{
 				goto release_packet;
+			}
+
 			received++;
 		}
 
@@ -5115,6 +5639,7 @@ release_packet:
 		next++;
 		next &= info->mask;
 	}
+
 	info->next = next;
 
 	return received;
@@ -5132,36 +5657,52 @@ static int dev_rcv_special(struct dev_info *hw_priv)
 	int received = 0;
 
 	next = info->next;
-	while (left--) {
+
+	while (left--)
+	{
 		/* Get next descriptor which is not hardware owned. */
 		desc = &info->ring[next];
 		status.data = le32_to_cpu(desc->phw->ctrl.data);
-		if (status.rx.hw_owned)
-			break;
 
-		if (hw->dev_count > 1) {
+		if (status.rx.hw_owned)
+		{
+			break;
+		}
+
+		if (hw->dev_count > 1)
+		{
 			/* Get received port number. */
 			int p = HW_TO_DEV_PORT(status.rx.src_port);
 
 			dev = hw->port_info[p].pdev;
+
 			if (!netif_running(dev))
+			{
 				goto release_packet;
+			}
 		}
 
 		/* Status valid only when last descriptor bit is set. */
-		if (status.rx.last_desc && status.rx.first_desc) {
+		if (status.rx.last_desc && status.rx.first_desc)
+		{
 			/*
 			 * Receive without error.  With receive errors
 			 * disabled, packets with receive errors will be
 			 * dropped, so no need to check the error bit.
 			 */
 			if (!status.rx.error || (status.data &
-					KS_DESC_RX_ERROR_COND) ==
-					KS_DESC_RX_ERROR_TOO_LONG) {
+									 KS_DESC_RX_ERROR_COND) ==
+				KS_DESC_RX_ERROR_TOO_LONG)
+			{
 				if (rx_proc(dev, hw, desc, status))
+				{
 					goto release_packet;
+				}
+
 				received++;
-			} else {
+			}
+			else
+			{
 				struct dev_priv *priv = netdev_priv(dev);
 
 				/* Update receive error statistics. */
@@ -5174,6 +5715,7 @@ release_packet:
 		next++;
 		next &= info->mask;
 	}
+
 	info->next = next;
 
 	return received;
@@ -5185,8 +5727,12 @@ static void rx_proc_task(unsigned long data)
 	struct ksz_hw *hw = &hw_priv->hw;
 
 	if (!hw->enabled)
+	{
 		return;
-	if (unlikely(!hw_priv->dev_rcv(hw_priv))) {
+	}
+
+	if (unlikely(!hw_priv->dev_rcv(hw_priv)))
+	{
 
 		/* In case receive process is suspended because of overrun. */
 		hw_resume_rx(hw);
@@ -5195,7 +5741,9 @@ static void rx_proc_task(unsigned long data)
 		spin_lock_irq(&hw_priv->hwlock);
 		hw_turn_on_intr(hw, KS884X_INT_RX_MASK);
 		spin_unlock_irq(&hw_priv->hwlock);
-	} else {
+	}
+	else
+	{
 		hw_ack_intr(hw, KS884X_INT_RX);
 		tasklet_schedule(&hw_priv->rx_tasklet);
 	}
@@ -5220,17 +5768,26 @@ static inline void handle_rx_stop(struct ksz_hw *hw)
 {
 	/* Receive just has been stopped. */
 	if (0 == hw->rx_stop)
+	{
 		hw->intr_mask &= ~KS884X_INT_RX_STOPPED;
-	else if (hw->rx_stop > 1) {
-		if (hw->enabled && (hw->rx_cfg & DMA_RX_ENABLE)) {
+	}
+	else if (hw->rx_stop > 1)
+	{
+		if (hw->enabled && (hw->rx_cfg & DMA_RX_ENABLE))
+		{
 			hw_start_rx(hw);
-		} else {
+		}
+		else
+		{
 			hw->intr_mask &= ~KS884X_INT_RX_STOPPED;
 			hw->rx_stop = 0;
 		}
-	} else
+	}
+	else
 		/* Receive just has been started. */
+	{
 		hw->rx_stop++;
+	}
 }
 
 /**
@@ -5255,53 +5812,66 @@ static irqreturn_t netdev_intr(int irq, void *dev_id)
 	hw_read_intr(hw, &int_enable);
 
 	/* Not our interrupt! */
-	if (!int_enable) {
+	if (!int_enable)
+	{
 		spin_unlock(&hw_priv->hwlock);
 		return IRQ_NONE;
 	}
 
-	do {
+	do
+	{
 		hw_ack_intr(hw, int_enable);
 		int_enable &= hw->intr_mask;
 
-		if (unlikely(int_enable & KS884X_INT_TX_MASK)) {
+		if (unlikely(int_enable & KS884X_INT_TX_MASK))
+		{
 			hw_dis_intr_bit(hw, KS884X_INT_TX_MASK);
 			tasklet_schedule(&hw_priv->tx_tasklet);
 		}
 
-		if (likely(int_enable & KS884X_INT_RX)) {
+		if (likely(int_enable & KS884X_INT_RX))
+		{
 			hw_dis_intr_bit(hw, KS884X_INT_RX);
 			tasklet_schedule(&hw_priv->rx_tasklet);
 		}
 
-		if (unlikely(int_enable & KS884X_INT_RX_OVERRUN)) {
+		if (unlikely(int_enable & KS884X_INT_RX_OVERRUN))
+		{
 			dev->stats.rx_fifo_errors++;
 			hw_resume_rx(hw);
 		}
 
-		if (unlikely(int_enable & KS884X_INT_PHY)) {
+		if (unlikely(int_enable & KS884X_INT_PHY))
+		{
 			struct ksz_port *port = &priv->port;
 
 			hw->features |= LINK_INT_WORKING;
 			port_get_link_speed(port);
 		}
 
-		if (unlikely(int_enable & KS884X_INT_RX_STOPPED)) {
+		if (unlikely(int_enable & KS884X_INT_RX_STOPPED))
+		{
 			handle_rx_stop(hw);
 			break;
 		}
 
-		if (unlikely(int_enable & KS884X_INT_TX_STOPPED)) {
+		if (unlikely(int_enable & KS884X_INT_TX_STOPPED))
+		{
 			u32 data;
 
 			hw->intr_mask &= ~KS884X_INT_TX_STOPPED;
 			pr_info("Tx stopped\n");
 			data = readl(hw->io + KS_DMA_TX_CTRL);
+
 			if (!(data & DMA_TX_ENABLE))
+			{
 				pr_info("Tx disabled\n");
+			}
+
 			break;
 		}
-	} while (0);
+	}
+	while (0);
 
 	hw_ena_intr(hw);
 
@@ -5334,17 +5904,27 @@ static void bridge_change(struct ksz_hw *hw)
 	struct ksz_switch *sw = hw->ksz_switch;
 
 	/* No ports in forwarding state. */
-	if (!sw->member) {
+	if (!sw->member)
+	{
 		port_set_stp_state(hw, SWITCH_PORT_NUM, STP_STATE_SIMPLE);
 		sw_block_addr(hw);
 	}
-	for (port = 0; port < SWITCH_PORT_NUM; port++) {
+
+	for (port = 0; port < SWITCH_PORT_NUM; port++)
+	{
 		if (STP_STATE_FORWARDING == sw->port_cfg[port].stp_state)
+		{
 			member = HOST_MASK | sw->member;
+		}
 		else
+		{
 			member = HOST_MASK | (1 << port);
+		}
+
 		if (member != sw->port_cfg[port].member)
+		{
 			sw_cfg_port_base_vlan(hw, port, member);
+		}
 	}
 }
 
@@ -5370,30 +5950,47 @@ static int netdev_close(struct net_device *dev)
 	ksz_stop_timer(&priv->monitor_timer_info);
 
 	/* Need to shut the port manually in multiple device interfaces mode. */
-	if (hw->dev_count > 1) {
+	if (hw->dev_count > 1)
+	{
 		port_set_stp_state(hw, port->first_port, STP_STATE_DISABLED);
 
 		/* Port is closed.  Need to change bridge setting. */
-		if (hw->features & STP_SUPPORT) {
+		if (hw->features & STP_SUPPORT)
+		{
 			pi = 1 << port->first_port;
-			if (hw->ksz_switch->member & pi) {
+
+			if (hw->ksz_switch->member & pi)
+			{
 				hw->ksz_switch->member &= ~pi;
 				bridge_change(hw);
 			}
 		}
 	}
+
 	if (port->first_port > 0)
+	{
 		hw_del_addr(hw, dev->dev_addr);
+	}
+
 	if (!hw_priv->wol_enable)
+	{
 		port_set_power_saving(port, true);
+	}
 
 	if (priv->multicast)
+	{
 		--hw->all_multi;
+	}
+
 	if (priv->promiscuous)
+	{
 		--hw->promiscuous;
+	}
 
 	hw_priv->opened--;
-	if (!(hw_priv->opened)) {
+
+	if (!(hw_priv->opened))
+	{
 		ksz_stop_timer(&hw_priv->mib_timer_info);
 		flush_work(&hw_priv->mib_read);
 
@@ -5414,7 +6011,9 @@ static int netdev_close(struct net_device *dev)
 
 		/* Clean out static MAC table when the switch is shutdown. */
 		if (hw->features & STP_SUPPORT)
+		{
 			sw_clr_sta_mac_table(hw);
+		}
 	}
 
 	return 0;
@@ -5422,25 +6021,41 @@ static int netdev_close(struct net_device *dev)
 
 static void hw_cfg_huge_frame(struct dev_info *hw_priv, struct ksz_hw *hw)
 {
-	if (hw->ksz_switch) {
+	if (hw->ksz_switch)
+	{
 		u32 data;
 
 		data = readw(hw->io + KS8842_SWITCH_CTRL_2_OFFSET);
+
 		if (hw->features & RX_HUGE_FRAME)
+		{
 			data |= SWITCH_HUGE_PACKET;
+		}
 		else
+		{
 			data &= ~SWITCH_HUGE_PACKET;
+		}
+
 		writew(data, hw->io + KS8842_SWITCH_CTRL_2_OFFSET);
 	}
-	if (hw->features & RX_HUGE_FRAME) {
+
+	if (hw->features & RX_HUGE_FRAME)
+	{
 		hw->rx_cfg |= DMA_RX_ERROR;
 		hw_priv->dev_rcv = dev_rcv_special;
-	} else {
+	}
+	else
+	{
 		hw->rx_cfg &= ~DMA_RX_ERROR;
+
 		if (hw->dev_count > 1)
+		{
 			hw_priv->dev_rcv = port_rcv_packets;
+		}
 		else
+		{
 			hw_priv->dev_rcv = dev_rcv_packets;
+		}
 	}
 }
 
@@ -5454,12 +6069,16 @@ static int prepare_hardware(struct net_device *dev)
 	/* Remember the network device that requests interrupts. */
 	hw_priv->dev = dev;
 	rc = request_irq(dev->irq, netdev_intr, IRQF_SHARED, dev->name, dev);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	tasklet_init(&hw_priv->rx_tasklet, rx_proc_task,
-		     (unsigned long) hw_priv);
+				 (unsigned long) hw_priv);
 	tasklet_init(&hw_priv->tx_tasklet, tx_proc_task,
-		     (unsigned long) hw_priv);
+				 (unsigned long) hw_priv);
 
 	hw->promiscuous = 0;
 	hw->all_multi = 0;
@@ -5468,7 +6087,7 @@ static int prepare_hardware(struct net_device *dev)
 	hw_reset(hw);
 
 	hw_set_desc_base(hw,
-		hw->tx_desc_info.ring_phys, hw->rx_desc_info.ring_phys);
+					 hw->tx_desc_info.ring_phys, hw->rx_desc_info.ring_phys);
 	hw_set_addr(hw);
 	hw_cfg_huge_frame(hw_priv, hw);
 	ksz_init_rx_buffers(hw_priv);
@@ -5480,11 +6099,16 @@ static void set_media_state(struct net_device *dev, int media_state)
 	struct dev_priv *priv = netdev_priv(dev);
 
 	if (media_state == priv->media_state)
+	{
 		netif_carrier_on(dev);
+	}
 	else
+	{
 		netif_carrier_off(dev);
+	}
+
 	netif_info(priv, link, dev, "link %s\n",
-		   media_state == priv->media_state ? "on" : "off");
+			   media_state == priv->media_state ? "on" : "off");
 }
 
 /**
@@ -5512,32 +6136,49 @@ static int netdev_open(struct net_device *dev)
 	/* Reset device statistics. */
 	memset(&dev->stats, 0, sizeof(struct net_device_stats));
 	memset((void *) port->counter, 0,
-		(sizeof(u64) * OID_COUNTER_LAST));
+		   (sizeof(u64) * OID_COUNTER_LAST));
 
-	if (!(hw_priv->opened)) {
+	if (!(hw_priv->opened))
+	{
 		rc = prepare_hardware(dev);
+
 		if (rc)
+		{
 			return rc;
-		for (i = 0; i < hw->mib_port_cnt; i++) {
+		}
+
+		for (i = 0; i < hw->mib_port_cnt; i++)
+		{
 			if (next_jiffies < jiffies)
+			{
 				next_jiffies = jiffies + HZ * 2;
+			}
 			else
+			{
 				next_jiffies += HZ * 1;
+			}
+
 			hw_priv->counter[i].time = next_jiffies;
 			hw->port_mib[i].state = media_disconnected;
 			port_init_cnt(hw, i);
 		}
+
 		if (hw->ksz_switch)
+		{
 			hw->port_mib[HOST_PORT].state = media_connected;
-		else {
+		}
+		else
+		{
 			hw_add_wol_bcast(hw);
 			hw_cfg_wol_pme(hw, 0);
 			hw_clr_wol_pme_status(&hw_priv->hw);
 		}
 	}
+
 	port_set_power_saving(port, false);
 
-	for (i = 0, p = port->first_port; i < port->port_cnt; i++, p++) {
+	for (i = 0, p = port->first_port; i < port->port_cnt; i++, p++)
+	{
 		/*
 		 * Initialize to invalid value so that link detection
 		 * is done.
@@ -5547,32 +6188,42 @@ static int netdev_open(struct net_device *dev)
 	}
 
 	/* Need to open the port in multiple device interfaces mode. */
-	if (hw->dev_count > 1) {
+	if (hw->dev_count > 1)
+	{
 		port_set_stp_state(hw, port->first_port, STP_STATE_SIMPLE);
+
 		if (port->first_port > 0)
+		{
 			hw_add_addr(hw, dev->dev_addr);
+		}
 	}
 
 	port_get_link_speed(port);
-	if (port->force_link)
-		port_force_link_speed(port);
-	else
-		port_set_link_speed(port);
 
-	if (!(hw_priv->opened)) {
+	if (port->force_link)
+	{
+		port_force_link_speed(port);
+	}
+	else
+	{
+		port_set_link_speed(port);
+	}
+
+	if (!(hw_priv->opened))
+	{
 		hw_setup_intr(hw);
 		hw_enable(hw);
 		hw_ena_intr(hw);
 
 		if (hw->mib_port_cnt)
 			ksz_start_timer(&hw_priv->mib_timer_info,
-				hw_priv->mib_timer_info.period);
+							hw_priv->mib_timer_info.period);
 	}
 
 	hw_priv->opened++;
 
 	ksz_start_timer(&priv->monitor_timer_info,
-		priv->monitor_timer_info.period);
+					priv->monitor_timer_info.period);
 
 	priv->media_state = port->linked->state;
 
@@ -5621,28 +6272,29 @@ static struct net_device_stats *netdev_query_statistics(struct net_device *dev)
 	dev->stats.rx_frame_errors = 0;
 	dev->stats.tx_window_errors = 0;
 
-	for (i = 0, p = port->first_port; i < port->mib_port_cnt; i++, p++) {
+	for (i = 0, p = port->first_port; i < port->mib_port_cnt; i++, p++)
+	{
 		mib = &hw->port_mib[p];
 
 		dev->stats.multicast += (unsigned long)
-			mib->counter[MIB_COUNTER_RX_MULTICAST];
+								mib->counter[MIB_COUNTER_RX_MULTICAST];
 
 		dev->stats.collisions += (unsigned long)
-			mib->counter[MIB_COUNTER_TX_TOTAL_COLLISION];
+								 mib->counter[MIB_COUNTER_TX_TOTAL_COLLISION];
 
 		dev->stats.rx_length_errors += (unsigned long)(
-			mib->counter[MIB_COUNTER_RX_UNDERSIZE] +
-			mib->counter[MIB_COUNTER_RX_FRAGMENT] +
-			mib->counter[MIB_COUNTER_RX_OVERSIZE] +
-			mib->counter[MIB_COUNTER_RX_JABBER]);
+										   mib->counter[MIB_COUNTER_RX_UNDERSIZE] +
+										   mib->counter[MIB_COUNTER_RX_FRAGMENT] +
+										   mib->counter[MIB_COUNTER_RX_OVERSIZE] +
+										   mib->counter[MIB_COUNTER_RX_JABBER]);
 		dev->stats.rx_crc_errors += (unsigned long)
-			mib->counter[MIB_COUNTER_RX_CRC_ERR];
+									mib->counter[MIB_COUNTER_RX_CRC_ERR];
 		dev->stats.rx_frame_errors += (unsigned long)(
-			mib->counter[MIB_COUNTER_RX_ALIGNMENT_ERR] +
-			mib->counter[MIB_COUNTER_RX_SYMBOL_ERR]);
+										  mib->counter[MIB_COUNTER_RX_ALIGNMENT_ERR] +
+										  mib->counter[MIB_COUNTER_RX_SYMBOL_ERR]);
 
 		dev->stats.tx_window_errors += (unsigned long)
-			mib->counter[MIB_COUNTER_TX_LATE_COLLISION];
+									   mib->counter[MIB_COUNTER_TX_LATE_COLLISION];
 	}
 
 	return &dev->stats;
@@ -5666,8 +6318,11 @@ static int netdev_set_mac_address(struct net_device *dev, void *addr)
 	uint interrupt;
 
 	if (priv->port.first_port > 0)
+	{
 		hw_del_addr(hw, dev->dev_addr);
-	else {
+	}
+	else
+	{
 		hw->mac_override = 1;
 		memcpy(hw->override_addr, mac->sa_data, ETH_ALEN);
 	}
@@ -5677,42 +6332,58 @@ static int netdev_set_mac_address(struct net_device *dev, void *addr)
 	interrupt = hw_block_intr(hw);
 
 	if (priv->port.first_port > 0)
+	{
 		hw_add_addr(hw, dev->dev_addr);
+	}
 	else
+	{
 		hw_set_addr(hw);
+	}
+
 	hw_restore_intr(hw, interrupt);
 
 	return 0;
 }
 
 static void dev_set_promiscuous(struct net_device *dev, struct dev_priv *priv,
-	struct ksz_hw *hw, int promiscuous)
+								struct ksz_hw *hw, int promiscuous)
 {
-	if (promiscuous != priv->promiscuous) {
+	if (promiscuous != priv->promiscuous)
+	{
 		u8 prev_state = hw->promiscuous;
 
 		if (promiscuous)
+		{
 			++hw->promiscuous;
+		}
 		else
+		{
 			--hw->promiscuous;
+		}
+
 		priv->promiscuous = promiscuous;
 
 		/* Turn on/off promiscuous mode. */
 		if (hw->promiscuous <= 1 && prev_state <= 1)
+		{
 			hw_set_promiscuous(hw, hw->promiscuous);
+		}
 
 		/*
 		 * Port is not in promiscuous mode, meaning it is released
 		 * from the bridge.
 		 */
 		if ((hw->features & STP_SUPPORT) && !promiscuous &&
-		    (dev->priv_flags & IFF_BRIDGE_PORT)) {
+			(dev->priv_flags & IFF_BRIDGE_PORT))
+		{
 			struct ksz_switch *sw = hw->ksz_switch;
 			int port = priv->port.first_port;
 
 			port_set_stp_state(hw, port, STP_STATE_DISABLED);
 			port = 1 << port;
-			if (sw->member & port) {
+
+			if (sw->member & port)
+			{
 				sw->member &= ~port;
 				bridge_change(hw);
 			}
@@ -5721,20 +6392,28 @@ static void dev_set_promiscuous(struct net_device *dev, struct dev_priv *priv,
 }
 
 static void dev_set_multicast(struct dev_priv *priv, struct ksz_hw *hw,
-	int multicast)
+							  int multicast)
 {
-	if (multicast != priv->multicast) {
+	if (multicast != priv->multicast)
+	{
 		u8 all_multi = hw->all_multi;
 
 		if (multicast)
+		{
 			++hw->all_multi;
+		}
 		else
+		{
 			--hw->all_multi;
+		}
+
 		priv->multicast = multicast;
 
 		/* Turn on/off all multicast mode. */
 		if (hw->all_multi <= 1 && all_multi <= 1)
+		{
 			hw_set_multicast(hw, hw->all_multi);
+		}
 	}
 }
 
@@ -5756,38 +6435,55 @@ static void netdev_set_rx_mode(struct net_device *dev)
 	dev_set_promiscuous(dev, priv, hw, (dev->flags & IFF_PROMISC));
 
 	if (hw_priv->hw.dev_count > 1)
+	{
 		multicast |= (dev->flags & IFF_MULTICAST);
+	}
+
 	dev_set_multicast(priv, hw, multicast);
 
 	/* Cannot use different hashes in multiple device interfaces mode. */
 	if (hw_priv->hw.dev_count > 1)
+	{
 		return;
+	}
 
-	if ((dev->flags & IFF_MULTICAST) && !netdev_mc_empty(dev)) {
+	if ((dev->flags & IFF_MULTICAST) && !netdev_mc_empty(dev))
+	{
 		int i = 0;
 
 		/* List too big to support so turn on all multicast mode. */
-		if (netdev_mc_count(dev) > MAX_MULTICAST_LIST) {
-			if (MAX_MULTICAST_LIST != hw->multi_list_size) {
+		if (netdev_mc_count(dev) > MAX_MULTICAST_LIST)
+		{
+			if (MAX_MULTICAST_LIST != hw->multi_list_size)
+			{
 				hw->multi_list_size = MAX_MULTICAST_LIST;
 				++hw->all_multi;
 				hw_set_multicast(hw, hw->all_multi);
 			}
+
 			return;
 		}
 
-		netdev_for_each_mc_addr(ha, dev) {
+		netdev_for_each_mc_addr(ha, dev)
+		{
 			if (i >= MAX_MULTICAST_LIST)
+			{
 				break;
+			}
+
 			memcpy(hw->multi_list[i++], ha->addr, ETH_ALEN);
 		}
 		hw->multi_list_size = (u8) i;
 		hw_set_grp_addr(hw);
-	} else {
-		if (MAX_MULTICAST_LIST == hw->multi_list_size) {
+	}
+	else
+	{
+		if (MAX_MULTICAST_LIST == hw->multi_list_size)
+		{
 			--hw->all_multi;
 			hw_set_multicast(hw, hw->all_multi);
 		}
+
 		hw->multi_list_size = 0;
 		hw_clr_multicast(hw);
 	}
@@ -5801,30 +6497,47 @@ static int netdev_change_mtu(struct net_device *dev, int new_mtu)
 	int hw_mtu;
 
 	if (netif_running(dev))
+	{
 		return -EBUSY;
+	}
 
 	/* Cannot use different MTU in multiple device interfaces mode. */
 	if (hw->dev_count > 1)
 		if (dev != hw_priv->dev)
+		{
 			return 0;
-	if (new_mtu < 60)
-		return -EINVAL;
+		}
 
-	if (dev->mtu != new_mtu) {
+	if (new_mtu < 60)
+	{
+		return -EINVAL;
+	}
+
+	if (dev->mtu != new_mtu)
+	{
 		hw_mtu = new_mtu + ETHERNET_HEADER_SIZE + 4;
+
 		if (hw_mtu > MAX_RX_BUF_SIZE)
+		{
 			return -EINVAL;
-		if (hw_mtu > REGULAR_RX_BUF_SIZE) {
+		}
+
+		if (hw_mtu > REGULAR_RX_BUF_SIZE)
+		{
 			hw->features |= RX_HUGE_FRAME;
 			hw_mtu = MAX_RX_BUF_SIZE;
-		} else {
+		}
+		else
+		{
 			hw->features &= ~RX_HUGE_FRAME;
 			hw_mtu = REGULAR_RX_BUF_SIZE;
 		}
+
 		hw_mtu = (hw_mtu + 3) & ~3;
 		hw_priv->mtu = hw_mtu;
 		dev->mtu = new_mtu;
 	}
+
 	return 0;
 }
 
@@ -5848,37 +6561,48 @@ static int netdev_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 	struct mii_ioctl_data *data = if_mii(ifr);
 
 	if (down_interruptible(&priv->proc_sem))
+	{
 		return -ERESTARTSYS;
+	}
 
-	switch (cmd) {
-	/* Get address of MII PHY in use. */
-	case SIOCGMIIPHY:
-		data->phy_id = priv->id;
+	switch (cmd)
+	{
+		/* Get address of MII PHY in use. */
+		case SIOCGMIIPHY:
+			data->phy_id = priv->id;
 
 		/* Fallthrough... */
 
-	/* Read MII PHY register. */
-	case SIOCGMIIREG:
-		if (data->phy_id != priv->id || data->reg_num >= 6)
-			result = -EIO;
-		else
-			hw_r_phy(hw, port->linked->port_id, data->reg_num,
-				&data->val_out);
-		break;
+		/* Read MII PHY register. */
+		case SIOCGMIIREG:
+			if (data->phy_id != priv->id || data->reg_num >= 6)
+			{
+				result = -EIO;
+			}
+			else
+				hw_r_phy(hw, port->linked->port_id, data->reg_num,
+						 &data->val_out);
 
-	/* Write MII PHY register. */
-	case SIOCSMIIREG:
-		if (!capable(CAP_NET_ADMIN))
-			result = -EPERM;
-		else if (data->phy_id != priv->id || data->reg_num >= 6)
-			result = -EIO;
-		else
-			hw_w_phy(hw, port->linked->port_id, data->reg_num,
-				data->val_in);
-		break;
+			break;
 
-	default:
-		result = -EOPNOTSUPP;
+		/* Write MII PHY register. */
+		case SIOCSMIIREG:
+			if (!capable(CAP_NET_ADMIN))
+			{
+				result = -EPERM;
+			}
+			else if (data->phy_id != priv->id || data->reg_num >= 6)
+			{
+				result = -EIO;
+			}
+			else
+				hw_w_phy(hw, port->linked->port_id, data->reg_num,
+						 data->val_in);
+
+			break;
+
+		default:
+			result = -EOPNOTSUPP;
 	}
 
 	up(&priv->proc_sem);
@@ -5929,7 +6653,9 @@ static void mdio_write(struct net_device *dev, int phy_id, int reg_num, int val)
 	int pi;
 
 	for (i = 0, pi = port->first_port; i < port->port_cnt; i++, pi++)
+	{
 		hw_w_phy(hw, pi, reg_num << 1, val);
+	}
 }
 
 /*
@@ -5942,9 +6668,9 @@ static u16 eeprom_data[EEPROM_SIZE] = { 0 };
 
 #define ADVERTISED_ALL			\
 	(ADVERTISED_10baseT_Half |	\
-	ADVERTISED_10baseT_Full |	\
-	ADVERTISED_100baseT_Half |	\
-	ADVERTISED_100baseT_Full)
+	 ADVERTISED_10baseT_Full |	\
+	 ADVERTISED_100baseT_Half |	\
+	 ADVERTISED_100baseT_Full)
 
 /* These functions use the MII functions in mii.c. */
 
@@ -5993,41 +6719,58 @@ static int netdev_set_settings(struct net_device *dev, struct ethtool_cmd *cmd)
 	 * ethtool utility does not change advertised setting if auto
 	 * negotiation is not specified explicitly.
 	 */
-	if (cmd->autoneg && priv->advertising == cmd->advertising) {
+	if (cmd->autoneg && priv->advertising == cmd->advertising)
+	{
 		cmd->advertising |= ADVERTISED_ALL;
+
 		if (10 == speed)
 			cmd->advertising &=
 				~(ADVERTISED_100baseT_Full |
-				ADVERTISED_100baseT_Half);
+				  ADVERTISED_100baseT_Half);
 		else if (100 == speed)
 			cmd->advertising &=
 				~(ADVERTISED_10baseT_Full |
-				ADVERTISED_10baseT_Half);
+				  ADVERTISED_10baseT_Half);
+
 		if (0 == cmd->duplex)
 			cmd->advertising &=
 				~(ADVERTISED_100baseT_Full |
-				ADVERTISED_10baseT_Full);
+				  ADVERTISED_10baseT_Full);
 		else if (1 == cmd->duplex)
 			cmd->advertising &=
 				~(ADVERTISED_100baseT_Half |
-				ADVERTISED_10baseT_Half);
+				  ADVERTISED_10baseT_Half);
 	}
+
 	mutex_lock(&hw_priv->lock);
+
 	if (cmd->autoneg &&
-			(cmd->advertising & ADVERTISED_ALL) ==
-			ADVERTISED_ALL) {
+		(cmd->advertising & ADVERTISED_ALL) ==
+		ADVERTISED_ALL)
+	{
 		port->duplex = 0;
 		port->speed = 0;
 		port->force_link = 0;
-	} else {
-		port->duplex = cmd->duplex + 1;
-		if (1000 != speed)
-			port->speed = speed;
-		if (cmd->autoneg)
-			port->force_link = 0;
-		else
-			port->force_link = 1;
 	}
+	else
+	{
+		port->duplex = cmd->duplex + 1;
+
+		if (1000 != speed)
+		{
+			port->speed = speed;
+		}
+
+		if (cmd->autoneg)
+		{
+			port->force_link = 0;
+		}
+		else
+		{
+			port->force_link = 1;
+		}
+	}
+
 	rc = mii_ethtool_sset(&priv->mii_if, cmd);
 	mutex_unlock(&hw_priv->lock);
 	return rc;
@@ -6078,7 +6821,7 @@ static u32 netdev_get_link(struct net_device *dev)
  * This procedure returns the driver information.
  */
 static void netdev_get_drvinfo(struct net_device *dev,
-	struct ethtool_drvinfo *info)
+							   struct ethtool_drvinfo *info)
 {
 	struct dev_priv *priv = netdev_priv(dev);
 	struct dev_info *hw_priv = priv->adapter;
@@ -6086,7 +6829,7 @@ static void netdev_get_drvinfo(struct net_device *dev,
 	strlcpy(info->driver, DRV_NAME, sizeof(info->driver));
 	strlcpy(info->version, DRV_VERSION, sizeof(info->version));
 	strlcpy(info->bus_info, pci_name(hw_priv->pdev),
-		sizeof(info->bus_info));
+			sizeof(info->bus_info));
 }
 
 /**
@@ -6097,10 +6840,12 @@ static void netdev_get_drvinfo(struct net_device *dev,
  *
  * Return length of the register dump.
  */
-static struct hw_regs {
+static struct hw_regs
+{
 	int start;
 	int end;
-} hw_regs_range[] = {
+} hw_regs_range[] =
+{
 	{ KS_DMA_TX_CTRL,	KS884X_INTERRUPTS_STATUS },
 	{ KS_ADD_ADDR_0_LO,	KS_ADD_ADDR_F_HI },
 	{ KS884X_ADDR_0_OFFSET,	KS8841_WOL_FRAME_BYTE2_OFFSET },
@@ -6115,10 +6860,12 @@ static int netdev_get_regs_len(struct net_device *dev)
 	struct hw_regs *range = hw_regs_range;
 	int regs_len = 0x10 * sizeof(u32);
 
-	while (range->end > range->start) {
+	while (range->end > range->start)
+	{
 		regs_len += (range->end - range->start + 3) / 4 * 4;
 		range++;
 	}
+
 	return regs_len;
 }
 
@@ -6131,7 +6878,7 @@ static int netdev_get_regs_len(struct net_device *dev)
  * This procedure dumps the register values in the provided buffer.
  */
 static void netdev_get_regs(struct net_device *dev, struct ethtool_regs *regs,
-	void *ptr)
+							void *ptr)
 {
 	struct dev_priv *priv = netdev_priv(dev);
 	struct dev_info *hw_priv = priv->adapter;
@@ -6142,24 +6889,31 @@ static void netdev_get_regs(struct net_device *dev, struct ethtool_regs *regs,
 
 	mutex_lock(&hw_priv->lock);
 	regs->version = 0;
-	for (len = 0; len < 0x40; len += 4) {
+
+	for (len = 0; len < 0x40; len += 4)
+	{
 		pci_read_config_dword(hw_priv->pdev, len, buf);
 		buf++;
 	}
-	while (range->end > range->start) {
-		for (len = range->start; len < range->end; len += 4) {
+
+	while (range->end > range->start)
+	{
+		for (len = range->start; len < range->end; len += 4)
+		{
 			*buf = readl(hw->io + len);
 			buf++;
 		}
+
 		range++;
 	}
+
 	mutex_unlock(&hw_priv->lock);
 }
 
 #define WOL_SUPPORT			\
 	(WAKE_PHY | WAKE_MAGIC |	\
-	WAKE_UCAST | WAKE_MCAST |	\
-	WAKE_BCAST | WAKE_ARP)
+	 WAKE_UCAST | WAKE_MCAST |	\
+	 WAKE_BCAST | WAKE_ARP)
 
 /**
  * netdev_get_wol - get Wake-on-LAN support
@@ -6169,7 +6923,7 @@ static void netdev_get_regs(struct net_device *dev, struct ethtool_regs *regs,
  * This procedure returns Wake-on-LAN support.
  */
 static void netdev_get_wol(struct net_device *dev,
-	struct ethtool_wolinfo *wol)
+						   struct ethtool_wolinfo *wol)
 {
 	struct dev_priv *priv = netdev_priv(dev);
 	struct dev_info *hw_priv = priv->adapter;
@@ -6189,7 +6943,7 @@ static void netdev_get_wol(struct net_device *dev,
  * Return 0 if successful; otherwise an error code.
  */
 static int netdev_set_wol(struct net_device *dev,
-	struct ethtool_wolinfo *wol)
+						  struct ethtool_wolinfo *wol)
 {
 	struct dev_priv *priv = netdev_priv(dev);
 	struct dev_info *hw_priv = priv->adapter;
@@ -6198,13 +6952,18 @@ static int netdev_set_wol(struct net_device *dev,
 	static const u8 net_addr[] = { 192, 168, 1, 1 };
 
 	if (wol->wolopts & ~hw_priv->wol_support)
+	{
 		return -EINVAL;
+	}
 
 	hw_priv->wol_enable = wol->wolopts;
 
 	/* Link wakeup cannot really be disabled. */
 	if (wol->wolopts)
+	{
 		hw_priv->wol_enable |= WAKE_PHY;
+	}
+
 	hw_enable_wol(&hw_priv->hw, hw_priv->wol_enable, net_addr);
 	return 0;
 }
@@ -6264,7 +7023,7 @@ static int netdev_get_eeprom_len(struct net_device *dev)
 #define EEPROM_MAGIC			0x10A18842
 
 static int netdev_get_eeprom(struct net_device *dev,
-	struct ethtool_eeprom *eeprom, u8 *data)
+							 struct ethtool_eeprom *eeprom, u8 *data)
 {
 	struct dev_priv *priv = netdev_priv(dev);
 	struct dev_info *hw_priv = priv->adapter;
@@ -6273,8 +7032,12 @@ static int netdev_get_eeprom(struct net_device *dev,
 	int len;
 
 	len = (eeprom->offset + eeprom->len + 1) / 2;
+
 	for (i = eeprom->offset / 2; i < len; i++)
+	{
 		eeprom_data[i] = eeprom_read(&hw_priv->hw, i);
+	}
+
 	eeprom->magic = EEPROM_MAGIC;
 	memcpy(data, &eeprom_byte[eeprom->offset], eeprom->len);
 
@@ -6292,7 +7055,7 @@ static int netdev_get_eeprom(struct net_device *dev,
  * Return 0 if successful; otherwise an error code.
  */
 static int netdev_set_eeprom(struct net_device *dev,
-	struct ethtool_eeprom *eeprom, u8 *data)
+							 struct ethtool_eeprom *eeprom, u8 *data)
 {
 	struct dev_priv *priv = netdev_priv(dev);
 	struct dev_info *hw_priv = priv->adapter;
@@ -6302,18 +7065,26 @@ static int netdev_set_eeprom(struct net_device *dev,
 	int len;
 
 	if (eeprom->magic != EEPROM_MAGIC)
+	{
 		return -EINVAL;
+	}
 
 	len = (eeprom->offset + eeprom->len + 1) / 2;
+
 	for (i = eeprom->offset / 2; i < len; i++)
+	{
 		eeprom_data[i] = eeprom_read(&hw_priv->hw, i);
+	}
+
 	memcpy(eeprom_word, eeprom_data, EEPROM_SIZE * 2);
 	memcpy(&eeprom_byte[eeprom->offset], data, eeprom->len);
+
 	for (i = 0; i < EEPROM_SIZE; i++)
-		if (eeprom_word[i] != eeprom_data[i]) {
+		if (eeprom_word[i] != eeprom_data[i])
+		{
 			eeprom_data[i] = eeprom_word[i];
 			eeprom_write(&hw_priv->hw, i, eeprom_data[i]);
-	}
+		}
 
 	return 0;
 }
@@ -6326,25 +7097,29 @@ static int netdev_set_eeprom(struct net_device *dev,
  * This procedure returns the PAUSE control flow settings.
  */
 static void netdev_get_pauseparam(struct net_device *dev,
-	struct ethtool_pauseparam *pause)
+								  struct ethtool_pauseparam *pause)
 {
 	struct dev_priv *priv = netdev_priv(dev);
 	struct dev_info *hw_priv = priv->adapter;
 	struct ksz_hw *hw = &hw_priv->hw;
 
 	pause->autoneg = (hw->overrides & PAUSE_FLOW_CTRL) ? 0 : 1;
-	if (!hw->ksz_switch) {
+
+	if (!hw->ksz_switch)
+	{
 		pause->rx_pause =
 			(hw->rx_cfg & DMA_RX_FLOW_ENABLE) ? 1 : 0;
 		pause->tx_pause =
 			(hw->tx_cfg & DMA_TX_FLOW_ENABLE) ? 1 : 0;
-	} else {
+	}
+	else
+	{
 		pause->rx_pause =
 			(sw_chk(hw, KS8842_SWITCH_CTRL_1_OFFSET,
-				SWITCH_RX_FLOW_CTRL)) ? 1 : 0;
+					SWITCH_RX_FLOW_CTRL)) ? 1 : 0;
 		pause->tx_pause =
 			(sw_chk(hw, KS8842_SWITCH_CTRL_1_OFFSET,
-				SWITCH_TX_FLOW_CTRL)) ? 1 : 0;
+					SWITCH_TX_FLOW_CTRL)) ? 1 : 0;
 	}
 }
 
@@ -6359,7 +7134,7 @@ static void netdev_get_pauseparam(struct net_device *dev,
  * Return 0 if successful; otherwise an error code.
  */
 static int netdev_set_pauseparam(struct net_device *dev,
-	struct ethtool_pauseparam *pause)
+								 struct ethtool_pauseparam *pause)
 {
 	struct dev_priv *priv = netdev_priv(dev);
 	struct dev_info *hw_priv = priv->adapter;
@@ -6367,30 +7142,48 @@ static int netdev_set_pauseparam(struct net_device *dev,
 	struct ksz_port *port = &priv->port;
 
 	mutex_lock(&hw_priv->lock);
-	if (pause->autoneg) {
+
+	if (pause->autoneg)
+	{
 		if (!pause->rx_pause && !pause->tx_pause)
+		{
 			port->flow_ctrl = PHY_NO_FLOW_CTRL;
+		}
 		else
+		{
 			port->flow_ctrl = PHY_FLOW_CTRL;
+		}
+
 		hw->overrides &= ~PAUSE_FLOW_CTRL;
 		port->force_link = 0;
-		if (hw->ksz_switch) {
+
+		if (hw->ksz_switch)
+		{
 			sw_cfg(hw, KS8842_SWITCH_CTRL_1_OFFSET,
-				SWITCH_RX_FLOW_CTRL, 1);
+				   SWITCH_RX_FLOW_CTRL, 1);
 			sw_cfg(hw, KS8842_SWITCH_CTRL_1_OFFSET,
-				SWITCH_TX_FLOW_CTRL, 1);
+				   SWITCH_TX_FLOW_CTRL, 1);
 		}
+
 		port_set_link_speed(port);
-	} else {
-		hw->overrides |= PAUSE_FLOW_CTRL;
-		if (hw->ksz_switch) {
-			sw_cfg(hw, KS8842_SWITCH_CTRL_1_OFFSET,
-				SWITCH_RX_FLOW_CTRL, pause->rx_pause);
-			sw_cfg(hw, KS8842_SWITCH_CTRL_1_OFFSET,
-				SWITCH_TX_FLOW_CTRL, pause->tx_pause);
-		} else
-			set_flow_ctrl(hw, pause->rx_pause, pause->tx_pause);
 	}
+	else
+	{
+		hw->overrides |= PAUSE_FLOW_CTRL;
+
+		if (hw->ksz_switch)
+		{
+			sw_cfg(hw, KS8842_SWITCH_CTRL_1_OFFSET,
+				   SWITCH_RX_FLOW_CTRL, pause->rx_pause);
+			sw_cfg(hw, KS8842_SWITCH_CTRL_1_OFFSET,
+				   SWITCH_TX_FLOW_CTRL, pause->tx_pause);
+		}
+		else
+		{
+			set_flow_ctrl(hw, pause->rx_pause, pause->tx_pause);
+		}
+	}
+
 	mutex_unlock(&hw_priv->lock);
 
 	return 0;
@@ -6404,7 +7197,7 @@ static int netdev_set_pauseparam(struct net_device *dev,
  * This procedure returns the TX/RX ring settings.
  */
 static void netdev_get_ringparam(struct net_device *dev,
-	struct ethtool_ringparam *ring)
+								 struct ethtool_ringparam *ring)
 {
 	struct dev_priv *priv = netdev_priv(dev);
 	struct dev_info *hw_priv = priv->adapter;
@@ -6418,9 +7211,11 @@ static void netdev_get_ringparam(struct net_device *dev,
 
 #define STATS_LEN			(TOTAL_PORT_COUNTER_NUM)
 
-static struct {
+static struct
+{
 	char string[ETH_GSTRING_LEN];
-} ethtool_stats_keys[STATS_LEN] = {
+} ethtool_stats_keys[STATS_LEN] =
+{
 	{ "rx_lo_priority_octets" },
 	{ "rx_hi_priority_octets" },
 	{ "rx_undersize_packets" },
@@ -6475,7 +7270,7 @@ static void netdev_get_strings(struct net_device *dev, u32 stringset, u8 *buf)
 
 	if (ETH_SS_STATS == stringset)
 		memcpy(buf, &ethtool_stats_keys,
-			ETH_GSTRING_LEN * hw->mib_cnt);
+			   ETH_GSTRING_LEN * hw->mib_cnt);
 }
 
 /**
@@ -6493,11 +7288,13 @@ static int netdev_get_sset_count(struct net_device *dev, int sset)
 	struct dev_info *hw_priv = priv->adapter;
 	struct ksz_hw *hw = &hw_priv->hw;
 
-	switch (sset) {
-	case ETH_SS_STATS:
-		return hw->mib_cnt;
-	default:
-		return -EOPNOTSUPP;
+	switch (sset)
+	{
+		case ETH_SS_STATS:
+			return hw->mib_cnt;
+
+		default:
+			return -EOPNOTSUPP;
 	}
 }
 
@@ -6510,7 +7307,7 @@ static int netdev_get_sset_count(struct net_device *dev, int sset)
  * This procedure returns the statistics.
  */
 static void netdev_get_ethtool_stats(struct net_device *dev,
-	struct ethtool_stats *stats, u64 *data)
+									 struct ethtool_stats *stats, u64 *data)
 {
 	struct dev_priv *priv = netdev_priv(dev);
 	struct dev_info *hw_priv = priv->adapter;
@@ -6525,48 +7322,69 @@ static void netdev_get_ethtool_stats(struct net_device *dev,
 
 	mutex_lock(&hw_priv->lock);
 	n = SWITCH_PORT_NUM;
-	for (i = 0, p = port->first_port; i < port->mib_port_cnt; i++, p++) {
-		if (media_connected == hw->port_mib[p].state) {
+
+	for (i = 0, p = port->first_port; i < port->mib_port_cnt; i++, p++)
+	{
+		if (media_connected == hw->port_mib[p].state)
+		{
 			hw_priv->counter[p].read = 1;
 
 			/* Remember first port that requests read. */
 			if (n == SWITCH_PORT_NUM)
+			{
 				n = p;
+			}
 		}
 	}
+
 	mutex_unlock(&hw_priv->lock);
 
 	if (n < SWITCH_PORT_NUM)
+	{
 		schedule_work(&hw_priv->mib_read);
+	}
 
-	if (1 == port->mib_port_cnt && n < SWITCH_PORT_NUM) {
+	if (1 == port->mib_port_cnt && n < SWITCH_PORT_NUM)
+	{
 		p = n;
 		rc = wait_event_interruptible_timeout(
-			hw_priv->counter[p].counter,
-			2 == hw_priv->counter[p].read,
-			HZ * 1);
-	} else
-		for (i = 0, p = n; i < port->mib_port_cnt - n; i++, p++) {
-			if (0 == i) {
+				 hw_priv->counter[p].counter,
+				 2 == hw_priv->counter[p].read,
+				 HZ * 1);
+	}
+	else
+		for (i = 0, p = n; i < port->mib_port_cnt - n; i++, p++)
+		{
+			if (0 == i)
+			{
 				rc = wait_event_interruptible_timeout(
-					hw_priv->counter[p].counter,
-					2 == hw_priv->counter[p].read,
-					HZ * 2);
-			} else if (hw->port_mib[p].cnt_ptr) {
+						 hw_priv->counter[p].counter,
+						 2 == hw_priv->counter[p].read,
+						 HZ * 2);
+			}
+			else if (hw->port_mib[p].cnt_ptr)
+			{
 				rc = wait_event_interruptible_timeout(
-					hw_priv->counter[p].counter,
-					2 == hw_priv->counter[p].read,
-					HZ * 1);
+						 hw_priv->counter[p].counter,
+						 2 == hw_priv->counter[p].read,
+						 HZ * 1);
 			}
 		}
 
 	get_mib_counters(hw, port->first_port, port->mib_port_cnt, counter);
 	n = hw->mib_cnt;
+
 	if (n > n_stats)
+	{
 		n = n_stats;
+	}
+
 	n_stats -= n;
+
 	for (i = 0; i < n; i++)
+	{
 		*data++ = counter[i];
+	}
 }
 
 /**
@@ -6579,7 +7397,7 @@ static void netdev_get_ethtool_stats(struct net_device *dev,
  * Return 0 if successful; otherwise an error code.
  */
 static int netdev_set_features(struct net_device *dev,
-	netdev_features_t features)
+							   netdev_features_t features)
 {
 	struct dev_priv *priv = netdev_priv(dev);
 	struct dev_info *hw_priv = priv->adapter;
@@ -6589,19 +7407,26 @@ static int netdev_set_features(struct net_device *dev,
 
 	/* see note in hw_setup() */
 	if (features & NETIF_F_RXCSUM)
+	{
 		hw->rx_cfg |= DMA_RX_CSUM_TCP | DMA_RX_CSUM_IP;
+	}
 	else
+	{
 		hw->rx_cfg &= ~(DMA_RX_CSUM_TCP | DMA_RX_CSUM_IP);
+	}
 
 	if (hw->enabled)
+	{
 		writel(hw->rx_cfg, hw->io + KS_DMA_RX_CTRL);
+	}
 
 	mutex_unlock(&hw_priv->lock);
 
 	return 0;
 }
 
-static const struct ethtool_ops netdev_ethtool_ops = {
+static const struct ethtool_ops netdev_ethtool_ops =
+{
 	.get_settings		= netdev_get_settings,
 	.set_settings		= netdev_set_settings,
 	.nway_reset		= netdev_nway_reset,
@@ -6629,12 +7454,16 @@ static const struct ethtool_ops netdev_ethtool_ops = {
  */
 
 static void update_link(struct net_device *dev, struct dev_priv *priv,
-	struct ksz_port *port)
+						struct ksz_port *port)
 {
-	if (priv->media_state != port->linked->state) {
+	if (priv->media_state != port->linked->state)
+	{
 		priv->media_state = port->linked->state;
+
 		if (netif_running(dev))
+		{
 			set_media_state(dev, media_connected);
+		}
 	}
 }
 
@@ -6647,32 +7476,46 @@ static void mib_read_work(struct work_struct *work)
 	int i;
 
 	next_jiffies = jiffies;
-	for (i = 0; i < hw->mib_port_cnt; i++) {
+
+	for (i = 0; i < hw->mib_port_cnt; i++)
+	{
 		mib = &hw->port_mib[i];
 
 		/* Reading MIB counters or requested to read. */
-		if (mib->cnt_ptr || 1 == hw_priv->counter[i].read) {
+		if (mib->cnt_ptr || 1 == hw_priv->counter[i].read)
+		{
 
 			/* Need to process receive interrupt. */
 			if (port_r_cnt(hw, i))
+			{
 				break;
+			}
+
 			hw_priv->counter[i].read = 0;
 
 			/* Finish reading counters. */
-			if (0 == mib->cnt_ptr) {
+			if (0 == mib->cnt_ptr)
+			{
 				hw_priv->counter[i].read = 2;
 				wake_up_interruptible(
 					&hw_priv->counter[i].counter);
 			}
-		} else if (time_after_eq(jiffies, hw_priv->counter[i].time)) {
+		}
+		else if (time_after_eq(jiffies, hw_priv->counter[i].time))
+		{
 			/* Only read MIB counters when the port is connected. */
 			if (media_connected == mib->state)
+			{
 				hw_priv->counter[i].read = 1;
+			}
+
 			next_jiffies += HZ * 1 * hw->mib_port_cnt;
 			hw_priv->counter[i].time = next_jiffies;
 
-		/* Port is just disconnected. */
-		} else if (mib->link_down) {
+			/* Port is just disconnected. */
+		}
+		else if (mib->link_down)
+		{
 			mib->link_down = 0;
 
 			/* Read counters one last time after link is lost. */
@@ -6688,12 +7531,16 @@ static void mib_monitor(unsigned long ptr)
 	mib_read_work(&hw_priv->mib_read);
 
 	/* This is used to verify Wake-on-LAN is working. */
-	if (hw_priv->pme_wait) {
-		if (time_is_before_eq_jiffies(hw_priv->pme_wait)) {
+	if (hw_priv->pme_wait)
+	{
+		if (time_is_before_eq_jiffies(hw_priv->pme_wait))
+		{
 			hw_clr_wol_pme_status(&hw_priv->hw);
 			hw_priv->pme_wait = 0;
 		}
-	} else if (hw_chk_wol_pme_status(&hw_priv->hw)) {
+	}
+	else if (hw_chk_wol_pme_status(&hw_priv->hw))
+	{
 
 		/* PME is asserted.  Wait 2 seconds to clear it. */
 		hw_priv->pme_wait = jiffies + HZ * 2;
@@ -6717,7 +7564,10 @@ static void dev_monitor(unsigned long ptr)
 	struct ksz_port *port = &priv->port;
 
 	if (!(hw->features & LINK_INT_WORKING))
+	{
 		port_get_link_speed(port);
+	}
+
 	update_link(dev, priv, port);
 
 	ksz_update_timer(&priv->monitor_timer_info);
@@ -6781,7 +7631,7 @@ static int __init netdev_init(struct net_device *dev)
 
 	/* 500 ms timeout */
 	ksz_init_timer(&priv->monitor_timer_info, 500 * HZ / 1000,
-		dev_monitor, dev);
+				   dev_monitor, dev);
 
 	/* 500 ms timeout */
 	dev->watchdog_timeo = HZ / 2;
@@ -6806,12 +7656,13 @@ static int __init netdev_init(struct net_device *dev)
 	priv->mii_if.phy_id = priv->port.first_port + 1;
 
 	priv->msg_enable = netif_msg_init(msg_enable,
-		(NETIF_MSG_DRV | NETIF_MSG_PROBE | NETIF_MSG_LINK));
+									  (NETIF_MSG_DRV | NETIF_MSG_PROBE | NETIF_MSG_LINK));
 
 	return 0;
 }
 
-static const struct net_device_ops netdev_ops = {
+static const struct net_device_ops netdev_ops =
+{
 	.ndo_init		= netdev_init,
 	.ndo_open		= netdev_open,
 	.ndo_stop		= netdev_close,
@@ -6832,12 +7683,15 @@ static const struct net_device_ops netdev_ops = {
 static void netdev_free(struct net_device *dev)
 {
 	if (dev->watchdog_timeo)
+	{
 		unregister_netdev(dev);
+	}
 
 	free_netdev(dev);
 }
 
-struct platform_info {
+struct platform_info
+{
 	struct dev_info dev_info;
 	struct net_device *netdev[SWITCH_PORT_NUM];
 };
@@ -6852,40 +7706,66 @@ static void get_mac_addr(struct dev_info *hw_priv, u8 *macaddr, int port)
 	int num;
 
 	i = j = num = got_num = 0;
-	while (j < ETH_ALEN) {
-		if (macaddr[i]) {
+
+	while (j < ETH_ALEN)
+	{
+		if (macaddr[i])
+		{
 			int digit;
 
 			got_num = 1;
 			digit = hex_to_bin(macaddr[i]);
+
 			if (digit >= 0)
+			{
 				num = num * 16 + digit;
+			}
 			else if (':' == macaddr[i])
+			{
 				got_num = 2;
+			}
 			else
+			{
 				break;
-		} else if (got_num)
+			}
+		}
+		else if (got_num)
+		{
 			got_num = 2;
+		}
 		else
+		{
 			break;
-		if (2 == got_num) {
-			if (MAIN_PORT == port) {
+		}
+
+		if (2 == got_num)
+		{
+			if (MAIN_PORT == port)
+			{
 				hw_priv->hw.override_addr[j++] = (u8) num;
 				hw_priv->hw.override_addr[5] +=
 					hw_priv->hw.id;
-			} else {
+			}
+			else
+			{
 				hw_priv->hw.ksz_switch->other_addr[j++] =
 					(u8) num;
 				hw_priv->hw.ksz_switch->other_addr[5] +=
 					hw_priv->hw.id;
 			}
+
 			num = got_num = 0;
 		}
+
 		i++;
 	}
-	if (ETH_ALEN == j) {
+
+	if (ETH_ALEN == j)
+	{
 		if (MAIN_PORT == port)
+		{
 			hw_priv->hw.mac_override = 1;
+		}
 	}
 }
 
@@ -6898,8 +7778,12 @@ static void read_other_addr(struct ksz_hw *hw)
 	struct ksz_switch *sw = hw->ksz_switch;
 
 	for (i = 0; i < 3; i++)
+	{
 		data[i] = eeprom_read(hw, i + EEPROM_DATA_OTHER_MAC_ADDR);
-	if ((data[0] || data[1] || data[2]) && data[0] != 0xffff) {
+	}
+
+	if ((data[0] || data[1] || data[2]) && data[0] != 0xffff)
+	{
 		sw->other_addr[5] = (u8) data[0];
 		sw->other_addr[4] = (u8)(data[0] >> 8);
 		sw->other_addr[3] = (u8) data[1];
@@ -6910,7 +7794,7 @@ static void read_other_addr(struct ksz_hw *hw)
 }
 
 #ifndef PCI_VENDOR_ID_MICREL_KS
-#define PCI_VENDOR_ID_MICREL_KS		0x16c6
+	#define PCI_VENDOR_ID_MICREL_KS		0x16c6
 #endif
 
 static int pcidev_init(struct pci_dev *pdev, const struct pci_device_id *id)
@@ -6933,29 +7817,43 @@ static int pcidev_init(struct pci_dev *pdev, const struct pci_device_id *id)
 	struct ksz_switch *sw = NULL;
 
 	result = pci_enable_device(pdev);
+
 	if (result)
+	{
 		return result;
+	}
 
 	result = -ENODEV;
 
 	if (pci_set_dma_mask(pdev, DMA_BIT_MASK(32)) ||
-			pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32)))
+		pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32)))
+	{
 		return result;
+	}
 
 	reg_base = pci_resource_start(pdev, 0);
 	reg_len = pci_resource_len(pdev, 0);
+
 	if ((pci_resource_flags(pdev, 0) & IORESOURCE_IO) != 0)
+	{
 		return result;
+	}
 
 	if (!request_mem_region(reg_base, reg_len, DRV_NAME))
+	{
 		return result;
+	}
+
 	pci_set_master(pdev);
 
 	result = -ENOMEM;
 
 	info = kzalloc(sizeof(struct platform_info), GFP_KERNEL);
+
 	if (!info)
+	{
 		goto pcidev_init_dev_err;
+	}
 
 	hw_priv = &info->dev_info;
 	hw_priv->pdev = pdev;
@@ -6963,13 +7861,21 @@ static int pcidev_init(struct pci_dev *pdev, const struct pci_device_id *id)
 	hw = &hw_priv->hw;
 
 	hw->io = ioremap(reg_base, reg_len);
+
 	if (!hw->io)
+	{
 		goto pcidev_init_io_err;
+	}
 
 	cnt = hw_init(hw);
-	if (!cnt) {
+
+	if (!cnt)
+	{
 		if (msg_enable & NETIF_MSG_PROBE)
+		{
 			pr_alert("chip not detected\n");
+		}
+
 		result = -ENODEV;
 		goto pcidev_init_alloc_err;
 	}
@@ -6988,32 +7894,44 @@ static int pcidev_init(struct pci_dev *pdev, const struct pci_device_id *id)
 	hw->mib_port_cnt = 1;
 
 	/* KSZ8842 has a switch with multiple ports. */
-	if (2 == cnt) {
+	if (2 == cnt)
+	{
 		if (fast_aging)
+		{
 			hw->overrides |= FAST_AGING;
+		}
 
 		hw->mib_cnt = TOTAL_PORT_COUNTER_NUM;
 
 		/* Multiple network device interfaces are required. */
-		if (multi_dev) {
+		if (multi_dev)
+		{
 			hw->dev_count = SWITCH_PORT_NUM;
 			hw->addr_list_size = SWITCH_PORT_NUM - 1;
 		}
 
 		/* Single network device has multiple ports. */
-		if (1 == hw->dev_count) {
+		if (1 == hw->dev_count)
+		{
 			port_count = SWITCH_PORT_NUM;
 			mib_port_count = SWITCH_PORT_NUM;
 		}
+
 		hw->mib_port_cnt = TOTAL_PORT_NUM;
 		hw->ksz_switch = kzalloc(sizeof(struct ksz_switch), GFP_KERNEL);
+
 		if (!hw->ksz_switch)
+		{
 			goto pcidev_init_alloc_err;
+		}
 
 		sw = hw->ksz_switch;
 	}
+
 	for (i = 0; i < hw->mib_port_cnt; i++)
+	{
 		hw->port_mib[i].mib_start = 0;
+	}
 
 	hw->parent = hw_priv;
 
@@ -7021,7 +7939,9 @@ static int pcidev_init(struct pci_dev *pdev, const struct pci_device_id *id)
 	hw_priv->mtu = (REGULAR_RX_BUF_SIZE + 3) & ~3;
 
 	if (ksz_alloc_mem(hw_priv))
+	{
 		goto pcidev_init_mem_err;
+	}
 
 	hw_priv->hw.id = net_device_present;
 
@@ -7029,26 +7949,38 @@ static int pcidev_init(struct pci_dev *pdev, const struct pci_device_id *id)
 	mutex_init(&hw_priv->lock);
 
 	for (i = 0; i < TOTAL_PORT_NUM; i++)
+	{
 		init_waitqueue_head(&hw_priv->counter[i].counter);
+	}
 
 	if (macaddr[0] != ':')
+	{
 		get_mac_addr(hw_priv, macaddr, MAIN_PORT);
+	}
 
 	/* Read MAC address and initialize override address if not overrided. */
 	hw_read_addr(hw);
 
 	/* Multiple device interfaces mode requires a second MAC address. */
-	if (hw->dev_count > 1) {
+	if (hw->dev_count > 1)
+	{
 		memcpy(sw->other_addr, hw->override_addr, ETH_ALEN);
 		read_other_addr(hw);
+
 		if (mac1addr[0] != ':')
+		{
 			get_mac_addr(hw_priv, mac1addr, OTHER_PORT);
+		}
 	}
 
 	hw_setup(hw);
+
 	if (hw->ksz_switch)
+	{
 		sw_setup(hw);
-	else {
+	}
+	else
+	{
 		hw_priv->wol_support = WOL_SUPPORT;
 		hw_priv->wol_enable = 0;
 	}
@@ -7057,12 +7989,17 @@ static int pcidev_init(struct pci_dev *pdev, const struct pci_device_id *id)
 
 	/* 500 ms timeout */
 	ksz_init_timer(&hw_priv->mib_timer_info, 500 * HZ / 1000,
-		mib_monitor, hw_priv);
+				   mib_monitor, hw_priv);
 
-	for (i = 0; i < hw->dev_count; i++) {
+	for (i = 0; i < hw->dev_count; i++)
+	{
 		dev = alloc_etherdev(sizeof(struct dev_priv));
+
 		if (!dev)
+		{
 			goto pcidev_init_reg_err;
+		}
+
 		SET_NETDEV_DEV(dev, &pdev->dev);
 		info->netdev[i] = dev;
 
@@ -7079,7 +8016,8 @@ static int pcidev_init(struct pci_dev *pdev, const struct pci_device_id *id)
 		port->hw = hw;
 		port->linked = &hw->port_info[port->first_port];
 
-		for (cnt = 0, pi = i; cnt < port_count; cnt++, pi++) {
+		for (cnt = 0, pi = i; cnt < port_count; cnt++, pi++)
+		{
 			hw->port_info[pi].port_id = pi;
 			hw->port_info[pi].pdev = dev;
 			hw->port_info[pi].state = media_disconnected;
@@ -7088,19 +8026,28 @@ static int pcidev_init(struct pci_dev *pdev, const struct pci_device_id *id)
 		dev->mem_start = (unsigned long) hw->io;
 		dev->mem_end = dev->mem_start + reg_len - 1;
 		dev->irq = pdev->irq;
+
 		if (MAIN_PORT == i)
 			memcpy(dev->dev_addr, hw_priv->hw.override_addr,
-			       ETH_ALEN);
-		else {
+				   ETH_ALEN);
+		else
+		{
 			memcpy(dev->dev_addr, sw->other_addr, ETH_ALEN);
+
 			if (ether_addr_equal(sw->other_addr, hw->override_addr))
+			{
 				dev->dev_addr[5] += port->first_port;
+			}
 		}
 
 		dev->netdev_ops = &netdev_ops;
 		dev->ethtool_ops = &netdev_ethtool_ops;
+
 		if (register_netdev(dev))
+		{
 			goto pcidev_init_reg_err;
+		}
+
 		port_set_power_saving(port, true);
 	}
 
@@ -7109,8 +8056,11 @@ static int pcidev_init(struct pci_dev *pdev, const struct pci_device_id *id)
 	return 0;
 
 pcidev_init_reg_err:
-	for (i = 0; i < hw->dev_count; i++) {
-		if (info->netdev[i]) {
+
+	for (i = 0; i < hw->dev_count; i++)
+	{
+		if (info->netdev[i])
+		{
 			netdev_free(info->netdev[i]);
 			info->netdev[i] = NULL;
 		}
@@ -7139,13 +8089,21 @@ static void pcidev_exit(struct pci_dev *pdev)
 	struct dev_info *hw_priv = &info->dev_info;
 
 	release_mem_region(pci_resource_start(pdev, 0),
-		pci_resource_len(pdev, 0));
-	for (i = 0; i < hw_priv->hw.dev_count; i++) {
+					   pci_resource_len(pdev, 0));
+
+	for (i = 0; i < hw_priv->hw.dev_count; i++)
+	{
 		if (info->netdev[i])
+		{
 			netdev_free(info->netdev[i]);
+		}
 	}
+
 	if (hw_priv->hw.io)
+	{
 		iounmap(hw_priv->hw.io);
+	}
+
 	ksz_free_mem(hw_priv);
 	kfree(hw_priv->hw.ksz_switch);
 	pci_dev_put(hw_priv->pdev);
@@ -7165,17 +8123,24 @@ static int pcidev_resume(struct pci_dev *pdev)
 	pci_enable_wake(pdev, PCI_D0, 0);
 
 	if (hw_priv->wol_enable)
+	{
 		hw_cfg_wol_pme(hw, 0);
-	for (i = 0; i < hw->dev_count; i++) {
-		if (info->netdev[i]) {
+	}
+
+	for (i = 0; i < hw->dev_count; i++)
+	{
+		if (info->netdev[i])
+		{
 			struct net_device *dev = info->netdev[i];
 
-			if (netif_running(dev)) {
+			if (netif_running(dev))
+			{
 				netdev_open(dev);
 				netif_device_attach(dev);
 			}
 		}
 	}
+
 	return 0;
 }
 
@@ -7189,17 +8154,22 @@ static int pcidev_suspend(struct pci_dev *pdev, pm_message_t state)
 	/* Need to find a way to retrieve the device IP address. */
 	static const u8 net_addr[] = { 192, 168, 1, 1 };
 
-	for (i = 0; i < hw->dev_count; i++) {
-		if (info->netdev[i]) {
+	for (i = 0; i < hw->dev_count; i++)
+	{
+		if (info->netdev[i])
+		{
 			struct net_device *dev = info->netdev[i];
 
-			if (netif_running(dev)) {
+			if (netif_running(dev))
+			{
 				netif_device_detach(dev);
 				netdev_close(dev);
 			}
 		}
 	}
-	if (hw_priv->wol_enable) {
+
+	if (hw_priv->wol_enable)
+	{
 		hw_enable_wol(hw, hw_priv->wol_enable, net_addr);
 		hw_cfg_wol_pme(hw, 1);
 	}
@@ -7213,17 +8183,23 @@ static int pcidev_suspend(struct pci_dev *pdev, pm_message_t state)
 
 static char pcidev_name[] = "ksz884xp";
 
-static const struct pci_device_id pcidev_table[] = {
-	{ PCI_VENDOR_ID_MICREL_KS, 0x8841,
-		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
-	{ PCI_VENDOR_ID_MICREL_KS, 0x8842,
-		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
+static const struct pci_device_id pcidev_table[] =
+{
+	{
+		PCI_VENDOR_ID_MICREL_KS, 0x8841,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0
+	},
+	{
+		PCI_VENDOR_ID_MICREL_KS, 0x8842,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0
+	},
 	{ 0 }
 };
 
 MODULE_DEVICE_TABLE(pci, pcidev_table);
 
-static struct pci_driver pci_device_driver = {
+static struct pci_driver pci_device_driver =
+{
 #ifdef CONFIG_PM
 	.suspend	= pcidev_suspend,
 	.resume		= pcidev_resume,

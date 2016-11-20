@@ -45,20 +45,20 @@
 	SNDRV_CTL_TLVD_ITEM(SNDRV_CTL_TLVT_CONTAINER, __VA_ARGS__)
 #define SNDRV_CTL_TLVD_DECLARE_CONTAINER(name, ...) \
 	unsigned int name[] = { \
-		SNDRV_CTL_TLVD_CONTAINER_ITEM(__VA_ARGS__) \
-	}
+							SNDRV_CTL_TLVD_CONTAINER_ITEM(__VA_ARGS__) \
+						  }
 
 #define SNDRV_CTL_TLVD_DB_SCALE_MASK	0xffff
 #define SNDRV_CTL_TLVD_DB_SCALE_MUTE	0x10000
 #define SNDRV_CTL_TLVD_DB_SCALE_ITEM(min, step, mute) \
 	SNDRV_CTL_TLVD_ITEM(SNDRV_CTL_TLVT_DB_SCALE, \
-			    (min), \
-			    ((step) & SNDRV_CTL_TLVD_DB_SCALE_MASK) | \
-			     ((mute) ? SNDRV_CTL_TLVD_DB_SCALE_MUTE : 0))
+						(min), \
+						((step) & SNDRV_CTL_TLVD_DB_SCALE_MASK) | \
+						((mute) ? SNDRV_CTL_TLVD_DB_SCALE_MUTE : 0))
 #define SNDRV_CTL_TLVD_DECLARE_DB_SCALE(name, min, step, mute) \
 	unsigned int name[] = { \
-		SNDRV_CTL_TLVD_DB_SCALE_ITEM(min, step, mute) \
-	}
+							SNDRV_CTL_TLVD_DB_SCALE_ITEM(min, step, mute) \
+						  }
 
 /* dB scale specified with min/max values instead of step */
 #define SNDRV_CTL_TLVD_DB_MINMAX_ITEM(min_dB, max_dB) \
@@ -67,20 +67,20 @@
 	SNDRV_CTL_TLVD_ITEM(SNDRV_CTL_TLVT_DB_MINMAX_MUTE, (min_dB), (max_dB))
 #define SNDRV_CTL_TLVD_DECLARE_DB_MINMAX(name, min_dB, max_dB) \
 	unsigned int name[] = { \
-		SNDRV_CTL_TLVD_DB_MINMAX_ITEM(min_dB, max_dB) \
-	}
+							SNDRV_CTL_TLVD_DB_MINMAX_ITEM(min_dB, max_dB) \
+						  }
 #define SNDRV_CTL_TLVD_DECLARE_DB_MINMAX_MUTE(name, min_dB, max_dB) \
 	unsigned int name[] = { \
-		SNDRV_CTL_TLVD_DB_MINMAX_MUTE_ITEM(min_dB, max_dB) \
-	}
+							SNDRV_CTL_TLVD_DB_MINMAX_MUTE_ITEM(min_dB, max_dB) \
+						  }
 
 /* linear volume between min_dB and max_dB (.01dB unit) */
 #define SNDRV_CTL_TLVD_DB_LINEAR_ITEM(min_dB, max_dB) \
 	SNDRV_CTL_TLVD_ITEM(SNDRV_CTL_TLVT_DB_LINEAR, (min_dB), (max_dB))
 #define SNDRV_CTL_TLVD_DECLARE_DB_LINEAR(name, min_dB, max_dB) \
 	unsigned int name[] = { \
-		SNDRV_CTL_TLVD_DB_LINEAR_ITEM(min_dB, max_dB) \
-	}
+							SNDRV_CTL_TLVD_DB_LINEAR_ITEM(min_dB, max_dB) \
+						  }
 
 /* dB range container:
  * Items in dB range container must be ordered by their values and by their
@@ -92,8 +92,8 @@
 	SNDRV_CTL_TLVD_ITEM(SNDRV_CTL_TLVT_DB_RANGE, __VA_ARGS__)
 #define SNDRV_CTL_TLVD_DECLARE_DB_RANGE(name, ...) \
 	unsigned int name[] = { \
-		SNDRV_CTL_TLVD_DB_RANGE_ITEM(__VA_ARGS__) \
-	}
+							SNDRV_CTL_TLVD_DB_RANGE_ITEM(__VA_ARGS__) \
+						  }
 
 #define SNDRV_CTL_TLVD_DB_GAIN_MUTE	-9999999
 

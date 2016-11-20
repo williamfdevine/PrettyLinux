@@ -67,9 +67,15 @@ int tick_is_oneshot_available(void)
 	struct clock_event_device *dev = __this_cpu_read(tick_cpu_device.evtdev);
 
 	if (!dev || !(dev->features & CLOCK_EVT_FEAT_ONESHOT))
+	{
 		return 0;
+	}
+
 	if (!(dev->features & CLOCK_EVT_FEAT_C3STOP))
+	{
 		return 1;
+	}
+
 	return tick_broadcast_oneshot_available();
 }
 
@@ -78,7 +84,8 @@ int tick_is_oneshot_available(void)
  */
 static void tick_periodic(int cpu)
 {
-	if (tick_do_timer_cpu == cpu) {
+	if (tick_do_timer_cpu == cpu)
+	{
 		write_seqlock(&jiffies_lock);
 
 		/* Keep track of the next tick event */
@@ -104,18 +111,26 @@ void tick_handle_periodic(struct clock_event_device *dev)
 	tick_periodic(cpu);
 
 #if defined(CONFIG_HIGH_RES_TIMERS) || defined(CONFIG_NO_HZ_COMMON)
+
 	/*
 	 * The cpu might have transitioned to HIGHRES or NOHZ mode via
 	 * update_process_times() -> run_local_timers() ->
 	 * hrtimer_run_queues().
 	 */
 	if (dev->event_handler != tick_handle_periodic)
+	{
 		return;
+	}
+
 #endif
 
 	if (!clockevent_state_oneshot(dev))
+	{
 		return;
-	for (;;) {
+	}
+
+	for (;;)
+	{
 		/*
 		 * Setup the next period for devices, which do not have
 		 * periodic mode:
@@ -123,7 +138,10 @@ void tick_handle_periodic(struct clock_event_device *dev)
 		next = ktime_add(next, tick_period);
 
 		if (!clockevents_program_event(dev, next, false))
+		{
 			return;
+		}
+
 		/*
 		 * Have to be careful here. If we're in oneshot mode,
 		 * before we call tick_periodic() in a loop, we need
@@ -134,7 +152,9 @@ void tick_handle_periodic(struct clock_event_device *dev)
 		 * the loop to trigger again and again.
 		 */
 		if (timekeeping_valid_for_hres())
+		{
 			tick_periodic(cpu);
+		}
 	}
 }
 
@@ -147,25 +167,36 @@ void tick_setup_periodic(struct clock_event_device *dev, int broadcast)
 
 	/* Broadcast setup ? */
 	if (!tick_device_is_functional(dev))
+	{
 		return;
+	}
 
 	if ((dev->features & CLOCK_EVT_FEAT_PERIODIC) &&
-	    !tick_broadcast_oneshot_active()) {
+		!tick_broadcast_oneshot_active())
+	{
 		clockevents_switch_state(dev, CLOCK_EVT_STATE_PERIODIC);
-	} else {
+	}
+	else
+	{
 		unsigned long seq;
 		ktime_t next;
 
-		do {
+		do
+		{
 			seq = read_seqbegin(&jiffies_lock);
 			next = tick_next_period;
-		} while (read_seqretry(&jiffies_lock, seq));
+		}
+		while (read_seqretry(&jiffies_lock, seq));
 
 		clockevents_switch_state(dev, CLOCK_EVT_STATE_ONESHOT);
 
-		for (;;) {
+		for (;;)
+		{
 			if (!clockevents_program_event(dev, next, false))
+			{
 				return;
+			}
+
 			next = ktime_add(next, tick_period);
 		}
 	}
@@ -175,8 +206,8 @@ void tick_setup_periodic(struct clock_event_device *dev, int broadcast)
  * Setup the tick device
  */
 static void tick_setup_device(struct tick_device *td,
-			      struct clock_event_device *newdev, int cpu,
-			      const struct cpumask *cpumask)
+							  struct clock_event_device *newdev, int cpu,
+							  const struct cpumask *cpumask)
 {
 	ktime_t next_event;
 	void (*handler)(struct clock_event_device *) = NULL;
@@ -184,16 +215,23 @@ static void tick_setup_device(struct tick_device *td,
 	/*
 	 * First device setup ?
 	 */
-	if (!td->evtdev) {
+	if (!td->evtdev)
+	{
 		/*
 		 * If no cpu took the do_timer update, assign it to
 		 * this cpu:
 		 */
-		if (tick_do_timer_cpu == TICK_DO_TIMER_BOOT) {
+		if (tick_do_timer_cpu == TICK_DO_TIMER_BOOT)
+		{
 			if (!tick_nohz_full_cpu(cpu))
+			{
 				tick_do_timer_cpu = cpu;
+			}
 			else
+			{
 				tick_do_timer_cpu = TICK_DO_TIMER_NONE;
+			}
+
 			tick_next_period = ktime_get();
 			tick_period = ktime_set(0, NSEC_PER_SEC / HZ);
 		}
@@ -202,7 +240,9 @@ static void tick_setup_device(struct tick_device *td,
 		 * Startup in periodic mode first.
 		 */
 		td->mode = TICKDEV_MODE_PERIODIC;
-	} else {
+	}
+	else
+	{
 		handler = td->evtdev->event_handler;
 		next_event = td->evtdev->next_event;
 		td->evtdev->event_handler = clockevents_handle_noop;
@@ -215,7 +255,9 @@ static void tick_setup_device(struct tick_device *td,
 	 * current cpu:
 	 */
 	if (!cpumask_equal(newdev->cpumask, cpumask))
+	{
 		irq_set_affinity(newdev->irq, cpumask);
+	}
 
 	/*
 	 * When global broadcasting is active, check if the current
@@ -225,12 +267,18 @@ static void tick_setup_device(struct tick_device *td,
 	 * current active broadcast state for this CPU.
 	 */
 	if (tick_device_uses_broadcast(newdev, cpu))
+	{
 		return;
+	}
 
 	if (td->mode == TICKDEV_MODE_PERIODIC)
+	{
 		tick_setup_periodic(newdev, 0);
+	}
 	else
+	{
 		tick_setup_oneshot(newdev, handler, next_event);
+	}
 }
 
 void tick_install_replacement(struct clock_event_device *newdev)
@@ -240,35 +288,56 @@ void tick_install_replacement(struct clock_event_device *newdev)
 
 	clockevents_exchange_device(td->evtdev, newdev);
 	tick_setup_device(td, newdev, cpu, cpumask_of(cpu));
+
 	if (newdev->features & CLOCK_EVT_FEAT_ONESHOT)
+	{
 		tick_oneshot_notify();
+	}
 }
 
 static bool tick_check_percpu(struct clock_event_device *curdev,
-			      struct clock_event_device *newdev, int cpu)
+							  struct clock_event_device *newdev, int cpu)
 {
 	if (!cpumask_test_cpu(cpu, newdev->cpumask))
+	{
 		return false;
+	}
+
 	if (cpumask_equal(newdev->cpumask, cpumask_of(cpu)))
+	{
 		return true;
+	}
+
 	/* Check if irq affinity can be set */
 	if (newdev->irq >= 0 && !irq_can_set_affinity(newdev->irq))
+	{
 		return false;
+	}
+
 	/* Prefer an existing cpu local device */
 	if (curdev && cpumask_equal(curdev->cpumask, cpumask_of(cpu)))
+	{
 		return false;
+	}
+
 	return true;
 }
 
 static bool tick_check_preferred(struct clock_event_device *curdev,
-				 struct clock_event_device *newdev)
+								 struct clock_event_device *newdev)
 {
 	/* Prefer oneshot capable device */
-	if (!(newdev->features & CLOCK_EVT_FEAT_ONESHOT)) {
+	if (!(newdev->features & CLOCK_EVT_FEAT_ONESHOT))
+	{
 		if (curdev && (curdev->features & CLOCK_EVT_FEAT_ONESHOT))
+		{
 			return false;
+		}
+
 		if (tick_oneshot_mode_active())
+		{
 			return false;
+		}
 	}
 
 	/*
@@ -276,8 +345,8 @@ static bool tick_check_preferred(struct clock_event_device *curdev,
 	 * rating than a non-CPU local device
 	 */
 	return !curdev ||
-		newdev->rating > curdev->rating ||
-	       !cpumask_equal(curdev->cpumask, newdev->cpumask);
+		   newdev->rating > curdev->rating ||
+		   !cpumask_equal(curdev->cpumask, newdev->cpumask);
 }
 
 /*
@@ -285,10 +354,12 @@ static bool tick_check_preferred(struct clock_event_device *curdev,
  * can be NULL !
  */
 bool tick_check_replacement(struct clock_event_device *curdev,
-			    struct clock_event_device *newdev)
+							struct clock_event_device *newdev)
 {
 	if (!tick_check_percpu(curdev, newdev, smp_processor_id()))
+	{
 		return false;
+	}
 
 	return tick_check_preferred(curdev, newdev);
 }
@@ -309,28 +380,40 @@ void tick_check_new_device(struct clock_event_device *newdev)
 
 	/* cpu local device ? */
 	if (!tick_check_percpu(curdev, newdev, cpu))
+	{
 		goto out_bc;
+	}
 
 	/* Preference decision */
 	if (!tick_check_preferred(curdev, newdev))
+	{
 		goto out_bc;
+	}
 
 	if (!try_module_get(newdev->owner))
+	{
 		return;
+	}
 
 	/*
 	 * Replace the eventually existing device by the new
 	 * device. If the current device is the broadcast device, do
 	 * not give it back to the clockevents layer !
 	 */
-	if (tick_is_broadcast_device(curdev)) {
+	if (tick_is_broadcast_device(curdev))
+	{
 		clockevents_shutdown(curdev);
 		curdev = NULL;
 	}
+
 	clockevents_exchange_device(curdev, newdev);
 	tick_setup_device(td, newdev, cpu, cpumask_of(cpu));
+
 	if (newdev->features & CLOCK_EVT_FEAT_ONESHOT)
+	{
 		tick_oneshot_notify();
+	}
+
 	return;
 
 out_bc:
@@ -356,7 +439,9 @@ int tick_broadcast_oneshot_control(enum tick_broadcast_state state)
 	struct tick_device *td = this_cpu_ptr(&tick_cpu_device);
 
 	if (!(td->evtdev->features & CLOCK_EVT_FEAT_C3STOP))
+	{
 		return 0;
+	}
 
 	return __tick_broadcast_oneshot_control(state);
 }
@@ -371,11 +456,12 @@ EXPORT_SYMBOL_GPL(tick_broadcast_oneshot_control);
  */
 void tick_handover_do_timer(void)
 {
-	if (tick_do_timer_cpu == smp_processor_id()) {
+	if (tick_do_timer_cpu == smp_processor_id())
+	{
 		int cpu = cpumask_first(cpu_online_mask);
 
 		tick_do_timer_cpu = (cpu < nr_cpu_ids) ? cpu :
-			TICK_DO_TIMER_NONE;
+							TICK_DO_TIMER_NONE;
 	}
 }
 
@@ -392,7 +478,9 @@ void tick_shutdown(unsigned int cpu)
 	struct clock_event_device *dev = td->evtdev;
 
 	td->mode = TICKDEV_MODE_PERIODIC;
-	if (dev) {
+
+	if (dev)
+	{
 		/*
 		 * Prevent that the clock events layer tries to call
 		 * the set mode function!
@@ -432,11 +520,17 @@ void tick_resume_local(void)
 	bool broadcast = tick_resume_check_broadcast();
 
 	clockevents_tick_resume(td->evtdev);
-	if (!broadcast) {
+
+	if (!broadcast)
+	{
 		if (td->mode == TICKDEV_MODE_PERIODIC)
+		{
 			tick_setup_periodic(td->evtdev, 0);
+		}
 		else
+		{
 			tick_resume_oneshot();
+		}
 	}
 }
 
@@ -487,11 +581,15 @@ void tick_freeze(void)
 	raw_spin_lock(&tick_freeze_lock);
 
 	tick_freeze_depth++;
-	if (tick_freeze_depth == num_online_cpus()) {
+
+	if (tick_freeze_depth == num_online_cpus())
+	{
 		trace_suspend_resume(TPS("timekeeping_freeze"),
-				     smp_processor_id(), true);
+							 smp_processor_id(), true);
 		timekeeping_suspend();
-	} else {
+	}
+	else
+	{
 		tick_suspend_local();
 	}
 
@@ -511,11 +609,14 @@ void tick_unfreeze(void)
 {
 	raw_spin_lock(&tick_freeze_lock);
 
-	if (tick_freeze_depth == num_online_cpus()) {
+	if (tick_freeze_depth == num_online_cpus())
+	{
 		timekeeping_resume();
 		trace_suspend_resume(TPS("timekeeping_freeze"),
-				     smp_processor_id(), false);
-	} else {
+							 smp_processor_id(), false);
+	}
+	else
+	{
 		tick_resume_local();
 	}
 

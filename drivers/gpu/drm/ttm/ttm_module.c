@@ -37,7 +37,8 @@
 static DECLARE_WAIT_QUEUE_HEAD(exit_q);
 static atomic_t device_released;
 
-static struct device_type ttm_drm_class_type = {
+static struct device_type ttm_drm_class_type =
+{
 	.name = "ttm",
 	/**
 	 * Add pm ops here.
@@ -50,7 +51,8 @@ static void ttm_drm_class_device_release(struct device *dev)
 	wake_up_all(&exit_q);
 }
 
-static struct device ttm_drm_class_device = {
+static struct device ttm_drm_class_device =
+{
 	.type = &ttm_drm_class_type,
 	.release = &ttm_drm_class_device_release
 };
@@ -67,13 +69,19 @@ static int __init ttm_init(void)
 	int ret;
 
 	ret = dev_set_name(&ttm_drm_class_device, "ttm");
+
 	if (unlikely(ret != 0))
+	{
 		return ret;
+	}
 
 	atomic_set(&device_released, 0);
 	ret = drm_class_device_register(&ttm_drm_class_device);
+
 	if (unlikely(ret != 0))
+	{
 		goto out_no_dev_reg;
+	}
 
 	return 0;
 out_no_dev_reg:

@@ -78,7 +78,8 @@ extern int tipc_net_id __read_mostly;
 extern int sysctl_tipc_rmem[3] __read_mostly;
 extern int sysctl_tipc_named_timeout __read_mostly;
 
-struct tipc_net {
+struct tipc_net
+{
 	u32 own_addr;
 	int net_id;
 	int random;
@@ -163,10 +164,10 @@ static inline int in_range(u16 val, u16 min, u16 max)
 }
 
 #ifdef CONFIG_SYSCTL
-int tipc_register_sysctl(void);
-void tipc_unregister_sysctl(void);
+	int tipc_register_sysctl(void);
+	void tipc_unregister_sysctl(void);
 #else
-#define tipc_register_sysctl() 0
-#define tipc_unregister_sysctl()
+	#define tipc_register_sysctl() 0
+	#define tipc_unregister_sysctl()
 #endif
 #endif

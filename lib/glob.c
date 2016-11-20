@@ -52,71 +52,105 @@ bool __pure glob_match(char const *pat, char const *str)
 	 * it against the remaining unmatched tail of str.  Return false
 	 * on mismatch, or true after matching the trailing nul bytes.
 	 */
-	for (;;) {
+	for (;;)
+	{
 		unsigned char c = *str++;
 		unsigned char d = *pat++;
 
-		switch (d) {
-		case '?':	/* Wildcard: anything but nul */
-			if (c == '\0')
-				return false;
-			break;
-		case '*':	/* Any-length wildcard */
-			if (*pat == '\0')	/* Optimize trailing * case */
-				return true;
-			back_pat = pat;
-			back_str = --str;	/* Allow zero-length match */
-			break;
-		case '[': {	/* Character class */
-			bool match = false, inverted = (*pat == '!');
-			char const *class = pat + inverted;
-			unsigned char a = *class++;
-
-			/*
-			 * Iterate over each span in the character class.
-			 * A span is either a single character a, or a
-			 * range a-b.  The first span may begin with ']'.
-			 */
-			do {
-				unsigned char b = a;
-
-				if (a == '\0')	/* Malformed */
-					goto literal;
-
-				if (class[0] == '-' && class[1] != ']') {
-					b = class[1];
-
-					if (b == '\0')
-						goto literal;
-
-					class += 2;
-					/* Any special action if a > b? */
+		switch (d)
+		{
+			case '?':	/* Wildcard: anything but nul */
+				if (c == '\0')
+				{
+					return false;
 				}
-				match |= (a <= c && c <= b);
-			} while ((a = *class++) != ']');
 
-			if (match == inverted)
-				goto backtrack;
-			pat = class;
-			}
-			break;
-		case '\\':
-			d = *pat++;
-			/*FALLTHROUGH*/
-		default:	/* Literal character */
-literal:
-			if (c == d) {
-				if (d == '\0')
-					return true;
 				break;
-			}
+
+			case '*':	/* Any-length wildcard */
+				if (*pat == '\0')	/* Optimize trailing * case */
+				{
+					return true;
+				}
+
+				back_pat = pat;
+				back_str = --str;	/* Allow zero-length match */
+				break;
+
+			case '[':  	/* Character class */
+				{
+					bool match = false, inverted = (*pat == '!');
+					char const *class = pat + inverted;
+					unsigned char a = *class++;
+
+					/*
+					 * Iterate over each span in the character class.
+					 * A span is either a single character a, or a
+					 * range a-b.  The first span may begin with ']'.
+					 */
+					do
+					{
+						unsigned char b = a;
+
+						if (a == '\0')	/* Malformed */
+						{
+							goto literal;
+						}
+
+						if (class[0] == '-' && class[1] != ']')
+						{
+							b = class[1];
+
+							if (b == '\0')
+							{
+								goto literal;
+							}
+
+							class += 2;
+
+							/* Any special action if a > b? */
+						}
+
+						match |= (a <= c && c <= b);
+					}
+					while ((a = *class++) != ']');
+
+					if (match == inverted)
+					{
+						goto backtrack;
+					}
+
+					pat = class;
+				}
+				break;
+
+			case '\\':
+				d = *pat++;
+
+			/*FALLTHROUGH*/
+			default:	/* Literal character */
+literal:
+				if (c == d)
+				{
+					if (d == '\0')
+					{
+						return true;
+					}
+
+					break;
+				}
+
 backtrack:
-			if (c == '\0' || !back_pat)
-				return false;	/* No point continuing */
-			/* Try again from last *, one character later in str. */
-			pat = back_pat;
-			str = ++back_str;
-			break;
+
+				if (c == '\0' || !back_pat)
+				{
+					return false;    /* No point continuing */
+				}
+
+				/* Try again from last *, one character later in str. */
+				pat = back_pat;
+				str = ++back_str;
+				break;
 		}
 	}
 }
@@ -132,7 +166,8 @@ EXPORT_SYMBOL(glob_match);
 static bool verbose = false;
 module_param(verbose, bool, 0);
 
-struct glob_test {
+struct glob_test
+{
 	char const *pat, *str;
 	bool expected;
 };
@@ -151,13 +186,19 @@ static bool __pure __init test(char const *pat, char const *str, bool expected)
 	char const *message;
 
 	if (!success)
+	{
 		message = msg_error;
+	}
 	else if (verbose)
+	{
 		message = msg_ok;
+	}
 	else
+	{
 		return success;
+	}
 
-	printk(message, pat, str, mismatch + 3*match);
+	printk(message, pat, str, mismatch + 3 * match);
 	return success;
 }
 
@@ -261,7 +302,8 @@ static int __init glob_init(void)
 	 * end of the tests.  Then come two null-terminated strings: the
 	 * pattern and the string to match it against.
 	 */
-	while (*p) {
+	while (*p)
+	{
 		bool expected = *p++ & 1;
 		char const *pat = p;
 

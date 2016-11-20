@@ -13,7 +13,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table flyvideo[] = {
+static struct rc_map_table flyvideo[] =
+{
 	{ 0x0f, KEY_0 },
 	{ 0x03, KEY_1 },
 	{ 0x04, KEY_2 },
@@ -45,7 +46,8 @@ static struct rc_map_table flyvideo[] = {
 	{ 0x0a, KEY_ANGLE },	/* no label, may be used as the PAUSE button */
 };
 
-static struct rc_map_list flyvideo_map = {
+static struct rc_map_list flyvideo_map =
+{
 	.map = {
 		.scan    = flyvideo,
 		.size    = ARRAY_SIZE(flyvideo),

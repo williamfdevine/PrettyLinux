@@ -23,7 +23,8 @@
 
 static DEFINE_MUTEX(wakelocks_lock);
 
-struct wakelock {
+struct wakelock
+{
 	char			*name;
 	struct rb_node		node;
 	struct wakeup_source	ws;
@@ -43,13 +44,20 @@ ssize_t pm_show_wakelocks(char *buf, bool show_active)
 
 	mutex_lock(&wakelocks_lock);
 
-	for (node = rb_first(&wakelocks_tree); node; node = rb_next(node)) {
+	for (node = rb_first(&wakelocks_tree); node; node = rb_next(node))
+	{
 		wl = rb_entry(node, struct wakelock, node);
+
 		if (wl->ws.active == show_active)
+		{
 			str += scnprintf(str, end - str, "%s ", wl->name);
+		}
 	}
+
 	if (str > buf)
+	{
 		str--;
+	}
 
 	str += scnprintf(str, end - str, "\n");
 
@@ -107,7 +115,8 @@ static void __wakelocks_gc(struct work_struct *work)
 	mutex_lock(&wakelocks_lock);
 
 	now = ktime_get();
-	list_for_each_entry_safe_reverse(wl, aux, &wakelocks_lru_list, lru) {
+	list_for_each_entry_safe_reverse(wl, aux, &wakelocks_lru_list, lru)
+	{
 		u64 idle_time_ns;
 		bool active;
 
@@ -117,9 +126,12 @@ static void __wakelocks_gc(struct work_struct *work)
 		spin_unlock_irq(&wl->ws.lock);
 
 		if (idle_time_ns < ((u64)WL_GC_TIME_SEC * NSEC_PER_SEC))
+		{
 			break;
+		}
 
-		if (!active) {
+		if (!active)
+		{
 			wakeup_source_remove(&wl->ws);
 			rb_erase(&wl->node, &wakelocks_tree);
 			list_del(&wl->lru);
@@ -136,7 +148,9 @@ static void __wakelocks_gc(struct work_struct *work)
 static void wakelocks_gc(void)
 {
 	if (++wakelocks_gc_count <= WL_GC_COUNT_MAX)
+	{
 		return;
+	}
 
 	schedule_work(&wakelock_work);
 }
@@ -147,45 +161,68 @@ static inline void wakelocks_gc(void) {}
 #endif /* !CONFIG_PM_WAKELOCKS_GC */
 
 static struct wakelock *wakelock_lookup_add(const char *name, size_t len,
-					    bool add_if_not_found)
+		bool add_if_not_found)
 {
 	struct rb_node **node = &wakelocks_tree.rb_node;
 	struct rb_node *parent = *node;
 	struct wakelock *wl;
 
-	while (*node) {
+	while (*node)
+	{
 		int diff;
 
 		parent = *node;
 		wl = rb_entry(*node, struct wakelock, node);
 		diff = strncmp(name, wl->name, len);
-		if (diff == 0) {
+
+		if (diff == 0)
+		{
 			if (wl->name[len])
+			{
 				diff = -1;
+			}
 			else
+			{
 				return wl;
+			}
 		}
+
 		if (diff < 0)
+		{
 			node = &(*node)->rb_left;
+		}
 		else
+		{
 			node = &(*node)->rb_right;
+		}
 	}
+
 	if (!add_if_not_found)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	if (wakelocks_limit_exceeded())
+	{
 		return ERR_PTR(-ENOSPC);
+	}
 
 	/* Not found, we have to add a new one. */
 	wl = kzalloc(sizeof(*wl), GFP_KERNEL);
+
 	if (!wl)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	wl->name = kstrndup(name, len, GFP_KERNEL);
-	if (!wl->name) {
+
+	if (!wl->name)
+	{
 		kfree(wl);
 		return ERR_PTR(-ENOMEM);
 	}
+
 	wl->ws.name = wl->name;
 	wakeup_source_add(&wl->ws);
 	rb_link_node(&wl->node, parent, node);
@@ -204,41 +241,58 @@ int pm_wake_lock(const char *buf)
 	int ret = 0;
 
 	if (!capable(CAP_BLOCK_SUSPEND))
+	{
 		return -EPERM;
+	}
 
 	while (*str && !isspace(*str))
+	{
 		str++;
+	}
 
 	len = str - buf;
-	if (!len)
-		return -EINVAL;
 
-	if (*str && *str != '\n') {
+	if (!len)
+	{
+		return -EINVAL;
+	}
+
+	if (*str && *str != '\n')
+	{
 		/* Find out if there's a valid timeout string appended. */
 		ret = kstrtou64(skip_spaces(str), 10, &timeout_ns);
+
 		if (ret)
+		{
 			return -EINVAL;
+		}
 	}
 
 	mutex_lock(&wakelocks_lock);
 
 	wl = wakelock_lookup_add(buf, len, true);
-	if (IS_ERR(wl)) {
+
+	if (IS_ERR(wl))
+	{
 		ret = PTR_ERR(wl);
 		goto out;
 	}
-	if (timeout_ns) {
+
+	if (timeout_ns)
+	{
 		u64 timeout_ms = timeout_ns + NSEC_PER_MSEC - 1;
 
 		do_div(timeout_ms, NSEC_PER_MSEC);
 		__pm_wakeup_event(&wl->ws, timeout_ms);
-	} else {
+	}
+	else
+	{
 		__pm_stay_awake(&wl->ws);
 	}
 
 	wakelocks_lru_most_recent(wl);
 
- out:
+out:
 	mutex_unlock(&wakelocks_lock);
 	return ret;
 }
@@ -250,31 +304,43 @@ int pm_wake_unlock(const char *buf)
 	int ret = 0;
 
 	if (!capable(CAP_BLOCK_SUSPEND))
+	{
 		return -EPERM;
+	}
 
 	len = strlen(buf);
-	if (!len)
-		return -EINVAL;
 
-	if (buf[len-1] == '\n')
+	if (!len)
+	{
+		return -EINVAL;
+	}
+
+	if (buf[len - 1] == '\n')
+	{
 		len--;
+	}
 
 	if (!len)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&wakelocks_lock);
 
 	wl = wakelock_lookup_add(buf, len, false);
-	if (IS_ERR(wl)) {
+
+	if (IS_ERR(wl))
+	{
 		ret = PTR_ERR(wl);
 		goto out;
 	}
+
 	__pm_relax(&wl->ws);
 
 	wakelocks_lru_most_recent(wl);
 	wakelocks_gc();
 
- out:
+out:
 	mutex_unlock(&wakelocks_lock);
 	return ret;
 }

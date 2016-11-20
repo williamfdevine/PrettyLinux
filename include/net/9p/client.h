@@ -37,7 +37,8 @@
  * @p9_proto_2000L: 9P2000.L extension
  */
 
-enum p9_proto_versions{
+enum p9_proto_versions
+{
 	p9_proto_legacy,
 	p9_proto_2000u,
 	p9_proto_2000L,
@@ -54,7 +55,8 @@ enum p9_proto_versions{
  * instatiation can be in.
  */
 
-enum p9_trans_status {
+enum p9_trans_status
+{
 	Connected,
 	BeginDisconnect,
 	Disconnected,
@@ -77,7 +79,8 @@ enum p9_trans_status {
  *
  */
 
-enum p9_req_status_t {
+enum p9_req_status_t
+{
 	REQ_STATUS_IDLE,
 	REQ_STATUS_ALLOC,
 	REQ_STATUS_UNSENT,
@@ -109,7 +112,8 @@ enum p9_req_status_t {
  *
  */
 
-struct p9_req_t {
+struct p9_req_t
+{
 	int status;
 	int t_err;
 	wait_queue_head_t *wq;
@@ -149,7 +153,8 @@ struct p9_req_t {
  * Bugs: duplicated data and potentially unnecessary elements.
  */
 
-struct p9_client {
+struct p9_client
+{
 	spinlock_t lock; /* protect client structure */
 	unsigned int msize;
 	unsigned char proto_version;
@@ -182,7 +187,8 @@ struct p9_client {
  * TODO: This needs lots of explanation.
  */
 
-struct p9_fid {
+struct p9_fid
+{
 	struct p9_client *clnt;
 	u32 fid;
 	int mode;
@@ -204,7 +210,8 @@ struct p9_fid {
  * @d_name: file name
  */
 
-struct p9_dirent {
+struct p9_dirent
+{
 	struct p9_qid qid;
 	u64 d_off;
 	unsigned char d_type;
@@ -215,25 +222,25 @@ struct iov_iter;
 
 int p9_client_statfs(struct p9_fid *fid, struct p9_rstatfs *sb);
 int p9_client_rename(struct p9_fid *fid, struct p9_fid *newdirfid,
-		     const char *name);
+					 const char *name);
 int p9_client_renameat(struct p9_fid *olddirfid, const char *old_name,
-		       struct p9_fid *newdirfid, const char *new_name);
+					   struct p9_fid *newdirfid, const char *new_name);
 struct p9_client *p9_client_create(const char *dev_name, char *options);
 void p9_client_destroy(struct p9_client *clnt);
 void p9_client_disconnect(struct p9_client *clnt);
 void p9_client_begin_disconnect(struct p9_client *clnt);
 struct p9_fid *p9_client_attach(struct p9_client *clnt, struct p9_fid *afid,
-				char *uname, kuid_t n_uname, char *aname);
+								char *uname, kuid_t n_uname, char *aname);
 struct p9_fid *p9_client_walk(struct p9_fid *oldfid, uint16_t nwname,
-		char **wnames, int clone);
+							  char **wnames, int clone);
 int p9_client_open(struct p9_fid *fid, int mode);
 int p9_client_fcreate(struct p9_fid *fid, char *name, u32 perm, int mode,
-							char *extension);
+					  char *extension);
 int p9_client_link(struct p9_fid *fid, struct p9_fid *oldfid, char *newname);
 int p9_client_symlink(struct p9_fid *fid, char *name, char *symname, kgid_t gid,
-							struct p9_qid *qid);
+					  struct p9_qid *qid);
 int p9_client_create_dotl(struct p9_fid *ofid, char *name, u32 flags, u32 mode,
-		kgid_t gid, struct p9_qid *qid);
+						  kgid_t gid, struct p9_qid *qid);
 int p9_client_clunk(struct p9_fid *fid);
 int p9_client_fsync(struct p9_fid *fid, int datasync);
 int p9_client_remove(struct p9_fid *fid);
@@ -242,18 +249,18 @@ int p9_client_read(struct p9_fid *fid, u64 offset, struct iov_iter *to, int *err
 int p9_client_write(struct p9_fid *fid, u64 offset, struct iov_iter *from, int *err);
 int p9_client_readdir(struct p9_fid *fid, char *data, u32 count, u64 offset);
 int p9dirent_read(struct p9_client *clnt, char *buf, int len,
-		  struct p9_dirent *dirent);
+				  struct p9_dirent *dirent);
 struct p9_wstat *p9_client_stat(struct p9_fid *fid);
 int p9_client_wstat(struct p9_fid *fid, struct p9_wstat *wst);
 int p9_client_setattr(struct p9_fid *fid, struct p9_iattr_dotl *attr);
 
 struct p9_stat_dotl *p9_client_getattr_dotl(struct p9_fid *fid,
-							u64 request_mask);
+		u64 request_mask);
 
 int p9_client_mknod_dotl(struct p9_fid *oldfid, char *name, int mode,
-			dev_t rdev, kgid_t gid, struct p9_qid *);
+						 dev_t rdev, kgid_t gid, struct p9_qid *);
 int p9_client_mkdir_dotl(struct p9_fid *fid, char *name, int mode,
-				kgid_t gid, struct p9_qid *);
+						 kgid_t gid, struct p9_qid *);
 int p9_client_lock_dotl(struct p9_fid *fid, struct p9_flock *flock, u8 *status);
 int p9_client_getlock_dotl(struct p9_fid *fid, struct p9_getlock *fl);
 struct p9_req_t *p9_tag_lookup(struct p9_client *, u16);

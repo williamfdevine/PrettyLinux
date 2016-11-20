@@ -85,7 +85,7 @@ static inline int __test_and_clear_bit(int nr, volatile unsigned long *addr)
 
 /* WARNING: non atomic and it can be reordered! */
 static inline int __test_and_change_bit(int nr,
-					    volatile unsigned long *addr)
+										volatile unsigned long *addr)
 {
 	unsigned long mask = BIT_MASK(nr);
 	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
@@ -102,7 +102,7 @@ static inline int __test_and_change_bit(int nr,
  */
 static inline int test_bit(int nr, const volatile unsigned long *addr)
 {
-	return 1UL & (addr[BIT_WORD(nr)] >> (nr & (BITS_PER_LONG-1)));
+	return 1UL & (addr[BIT_WORD(nr)] >> (nr & (BITS_PER_LONG - 1)));
 }
 
 #endif /* _ASM_GENERIC_BITOPS_NON_ATOMIC_H_ */

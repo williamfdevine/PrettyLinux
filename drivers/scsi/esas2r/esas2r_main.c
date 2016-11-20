@@ -66,8 +66,8 @@ static struct esas2r_adapter *esas2r_adapter_from_kobj(struct kobject *kobj)
 }
 
 static ssize_t read_fw(struct file *file, struct kobject *kobj,
-		       struct bin_attribute *attr,
-		       char *buf, loff_t off, size_t count)
+					   struct bin_attribute *attr,
+					   char *buf, loff_t off, size_t count)
 {
 	struct esas2r_adapter *a = esas2r_adapter_from_kobj(kobj);
 
@@ -75,8 +75,8 @@ static ssize_t read_fw(struct file *file, struct kobject *kobj,
 }
 
 static ssize_t write_fw(struct file *file, struct kobject *kobj,
-			struct bin_attribute *attr,
-			char *buf, loff_t off, size_t count)
+						struct bin_attribute *attr,
+						char *buf, loff_t off, size_t count)
 {
 	struct esas2r_adapter *a = esas2r_adapter_from_kobj(kobj);
 
@@ -84,8 +84,8 @@ static ssize_t write_fw(struct file *file, struct kobject *kobj,
 }
 
 static ssize_t read_fs(struct file *file, struct kobject *kobj,
-		       struct bin_attribute *attr,
-		       char *buf, loff_t off, size_t count)
+					   struct bin_attribute *attr,
+					   char *buf, loff_t off, size_t count)
 {
 	struct esas2r_adapter *a = esas2r_adapter_from_kobj(kobj);
 
@@ -93,8 +93,8 @@ static ssize_t read_fs(struct file *file, struct kobject *kobj,
 }
 
 static ssize_t write_fs(struct file *file, struct kobject *kobj,
-			struct bin_attribute *attr,
-			char *buf, loff_t off, size_t count)
+						struct bin_attribute *attr,
+						char *buf, loff_t off, size_t count)
 {
 	struct esas2r_adapter *a = esas2r_adapter_from_kobj(kobj);
 	int length = min(sizeof(struct esas2r_ioctl_fs), count);
@@ -103,14 +103,16 @@ static ssize_t write_fs(struct file *file, struct kobject *kobj,
 	result = esas2r_write_fs(a, buf, off, count);
 
 	if (result < 0)
+	{
 		result = 0;
+	}
 
 	return length;
 }
 
 static ssize_t read_vda(struct file *file, struct kobject *kobj,
-			struct bin_attribute *attr,
-			char *buf, loff_t off, size_t count)
+						struct bin_attribute *attr,
+						char *buf, loff_t off, size_t count)
 {
 	struct esas2r_adapter *a = esas2r_adapter_from_kobj(kobj);
 
@@ -118,8 +120,8 @@ static ssize_t read_vda(struct file *file, struct kobject *kobj,
 }
 
 static ssize_t write_vda(struct file *file, struct kobject *kobj,
-			 struct bin_attribute *attr,
-			 char *buf, loff_t off, size_t count)
+						 struct bin_attribute *attr,
+						 char *buf, loff_t off, size_t count)
 {
 	struct esas2r_adapter *a = esas2r_adapter_from_kobj(kobj);
 
@@ -127,8 +129,8 @@ static ssize_t write_vda(struct file *file, struct kobject *kobj,
 }
 
 static ssize_t read_live_nvram(struct file *file, struct kobject *kobj,
-			       struct bin_attribute *attr,
-			       char *buf, loff_t off, size_t count)
+							   struct bin_attribute *attr,
+							   char *buf, loff_t off, size_t count)
 {
 	struct esas2r_adapter *a = esas2r_adapter_from_kobj(kobj);
 	int length = min_t(size_t, sizeof(struct esas2r_sas_nvram), PAGE_SIZE);
@@ -138,19 +140,24 @@ static ssize_t read_live_nvram(struct file *file, struct kobject *kobj,
 }
 
 static ssize_t write_live_nvram(struct file *file, struct kobject *kobj,
-				struct bin_attribute *attr,
-				char *buf, loff_t off, size_t count)
+								struct bin_attribute *attr,
+								char *buf, loff_t off, size_t count)
 {
 	struct esas2r_adapter *a = esas2r_adapter_from_kobj(kobj);
 	struct esas2r_request *rq;
 	int result = -EFAULT;
 
 	rq = esas2r_alloc_request(a);
+
 	if (rq == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	if (esas2r_write_params(a, rq, (struct esas2r_sas_nvram *)buf))
+	{
 		result = count;
+	}
 
 	esas2r_free_request(a, rq);
 
@@ -158,8 +165,8 @@ static ssize_t write_live_nvram(struct file *file, struct kobject *kobj,
 }
 
 static ssize_t read_default_nvram(struct file *file, struct kobject *kobj,
-				  struct bin_attribute *attr,
-				  char *buf, loff_t off, size_t count)
+								  struct bin_attribute *attr,
+								  char *buf, loff_t off, size_t count)
 {
 	struct esas2r_adapter *a = esas2r_adapter_from_kobj(kobj);
 
@@ -169,17 +176,21 @@ static ssize_t read_default_nvram(struct file *file, struct kobject *kobj,
 }
 
 static ssize_t read_hw(struct file *file, struct kobject *kobj,
-		       struct bin_attribute *attr,
-		       char *buf, loff_t off, size_t count)
+					   struct bin_attribute *attr,
+					   char *buf, loff_t off, size_t count)
 {
 	struct esas2r_adapter *a = esas2r_adapter_from_kobj(kobj);
 	int length = min_t(size_t, sizeof(struct atto_ioctl), PAGE_SIZE);
 
 	if (!a->local_atto_ioctl)
+	{
 		return -ENOMEM;
+	}
 
 	if (handle_hba_ioctl(a, a->local_atto_ioctl) != IOCTL_SUCCESS)
+	{
 		return -ENOMEM;
+	}
 
 	memcpy(buf, a->local_atto_ioctl, length);
 
@@ -187,19 +198,22 @@ static ssize_t read_hw(struct file *file, struct kobject *kobj,
 }
 
 static ssize_t write_hw(struct file *file, struct kobject *kobj,
-			struct bin_attribute *attr,
-			char *buf, loff_t off, size_t count)
+						struct bin_attribute *attr,
+						char *buf, loff_t off, size_t count)
 {
 	struct esas2r_adapter *a = esas2r_adapter_from_kobj(kobj);
 	int length = min(sizeof(struct atto_ioctl), count);
 
-	if (!a->local_atto_ioctl) {
+	if (!a->local_atto_ioctl)
+	{
 		a->local_atto_ioctl = kmalloc(sizeof(struct atto_ioctl),
-					      GFP_KERNEL);
-		if (a->local_atto_ioctl == NULL) {
+									  GFP_KERNEL);
+
+		if (a->local_atto_ioctl == NULL)
+		{
 			esas2r_log(ESAS2R_LOG_WARN,
-				   "write_hw kzalloc failed for %d bytes",
-				   sizeof(struct atto_ioctl));
+					   "write_hw kzalloc failed for %d bytes",
+					   sizeof(struct atto_ioctl));
 			return -ENOMEM;
 		}
 	}
@@ -213,10 +227,10 @@ static ssize_t write_hw(struct file *file, struct kobject *kobj,
 #define ESAS2R_RW_BIN_ATTR(_name) \
 	struct bin_attribute bin_attr_ ## _name = { \
 		.attr	= \
-		{ .name = __stringify(_name), .mode  = S_IRUSR | S_IWUSR }, \
-		.size	= 0, \
-		.read	= read_ ## _name, \
-		.write	= write_ ## _name }
+				  { .name = __stringify(_name), .mode  = S_IRUSR | S_IWUSR }, \
+				  .size	= 0, \
+							.read	= read_ ## _name, \
+									  .write	= write_ ## _name }
 
 ESAS2R_RW_BIN_ATTR(fw);
 ESAS2R_RW_BIN_ATTR(fs);
@@ -224,14 +238,16 @@ ESAS2R_RW_BIN_ATTR(vda);
 ESAS2R_RW_BIN_ATTR(hw);
 ESAS2R_RW_BIN_ATTR(live_nvram);
 
-struct bin_attribute bin_attr_default_nvram = {
+struct bin_attribute bin_attr_default_nvram =
+{
 	.attr	= { .name = "default_nvram", .mode = S_IRUGO },
 	.size	= 0,
 	.read	= read_default_nvram,
 	.write	= NULL
 };
 
-static struct scsi_host_template driver_template = {
+static struct scsi_host_template driver_template =
+{
 	.module				= THIS_MODULE,
 	.show_info			= esas2r_show_info,
 	.name				= ESAS2R_LONGNAME,
@@ -248,7 +264,7 @@ static struct scsi_host_template driver_template = {
 	.this_id			= -1,
 	.sg_tablesize			= SG_CHUNK_SIZE,
 	.cmd_per_lun			=
-		ESAS2R_DEFAULT_CMD_PER_LUN,
+	ESAS2R_DEFAULT_CMD_PER_LUN,
 	.present			= 0,
 	.unchecked_isa_dma		= 0,
 	.use_clustering			= ENABLE_CLUSTERING,
@@ -261,77 +277,92 @@ static struct scsi_host_template driver_template = {
 int sgl_page_size = 512;
 module_param(sgl_page_size, int, 0);
 MODULE_PARM_DESC(sgl_page_size,
-		 "Scatter/gather list (SGL) page size in number of S/G "
-		 "entries.  If your application is doing a lot of very large "
-		 "transfers, you may want to increase the SGL page size.  "
-		 "Default 512.");
+				 "Scatter/gather list (SGL) page size in number of S/G "
+				 "entries.  If your application is doing a lot of very large "
+				 "transfers, you may want to increase the SGL page size.  "
+				 "Default 512.");
 
 int num_sg_lists = 1024;
 module_param(num_sg_lists, int, 0);
 MODULE_PARM_DESC(num_sg_lists,
-		 "Number of scatter/gather lists.  Default 1024.");
+				 "Number of scatter/gather lists.  Default 1024.");
 
 int sg_tablesize = SG_CHUNK_SIZE;
 module_param(sg_tablesize, int, 0);
 MODULE_PARM_DESC(sg_tablesize,
-		 "Maximum number of entries in a scatter/gather table.");
+				 "Maximum number of entries in a scatter/gather table.");
 
 int num_requests = 256;
 module_param(num_requests, int, 0);
 MODULE_PARM_DESC(num_requests,
-		 "Number of requests.  Default 256.");
+				 "Number of requests.  Default 256.");
 
 int num_ae_requests = 4;
 module_param(num_ae_requests, int, 0);
 MODULE_PARM_DESC(num_ae_requests,
-		 "Number of VDA asynchromous event requests.  Default 4.");
+				 "Number of VDA asynchromous event requests.  Default 4.");
 
 int cmd_per_lun = ESAS2R_DEFAULT_CMD_PER_LUN;
 module_param(cmd_per_lun, int, 0);
 MODULE_PARM_DESC(cmd_per_lun,
-		 "Maximum number of commands per LUN.  Default "
-		 DEFINED_NUM_TO_STR(ESAS2R_DEFAULT_CMD_PER_LUN) ".");
+				 "Maximum number of commands per LUN.  Default "
+				 DEFINED_NUM_TO_STR(ESAS2R_DEFAULT_CMD_PER_LUN) ".");
 
 int can_queue = 128;
 module_param(can_queue, int, 0);
 MODULE_PARM_DESC(can_queue,
-		 "Maximum number of commands per adapter.  Default 128.");
+				 "Maximum number of commands per adapter.  Default 128.");
 
 int esas2r_max_sectors = 0xFFFF;
 module_param(esas2r_max_sectors, int, 0);
 MODULE_PARM_DESC(esas2r_max_sectors,
-		 "Maximum number of disk sectors in a single data transfer.  "
-		 "Default 65535 (largest possible setting).");
+				 "Maximum number of disk sectors in a single data transfer.  "
+				 "Default 65535 (largest possible setting).");
 
 int interrupt_mode = 1;
 module_param(interrupt_mode, int, 0);
 MODULE_PARM_DESC(interrupt_mode,
-		 "Defines the interrupt mode to use.  0 for legacy"
-		 ", 1 for MSI.  Default is MSI (1).");
+				 "Defines the interrupt mode to use.  0 for legacy"
+				 ", 1 for MSI.  Default is MSI (1).");
 
 static struct pci_device_id
-	esas2r_pci_table[] = {
-	{ ATTO_VENDOR_ID, 0x0049,	  ATTO_VENDOR_ID, 0x0049,
-	  0,
-	  0, 0 },
-	{ ATTO_VENDOR_ID, 0x0049,	  ATTO_VENDOR_ID, 0x004A,
-	  0,
-	  0, 0 },
-	{ ATTO_VENDOR_ID, 0x0049,	  ATTO_VENDOR_ID, 0x004B,
-	  0,
-	  0, 0 },
-	{ ATTO_VENDOR_ID, 0x0049,	  ATTO_VENDOR_ID, 0x004C,
-	  0,
-	  0, 0 },
-	{ ATTO_VENDOR_ID, 0x0049,	  ATTO_VENDOR_ID, 0x004D,
-	  0,
-	  0, 0 },
-	{ ATTO_VENDOR_ID, 0x0049,	  ATTO_VENDOR_ID, 0x004E,
-	  0,
-	  0, 0 },
-	{ 0,		  0,		  0,		  0,
-	  0,
-	  0, 0 }
+	esas2r_pci_table[] =
+{
+	{
+		ATTO_VENDOR_ID, 0x0049,	  ATTO_VENDOR_ID, 0x0049,
+		0,
+		0, 0
+	},
+	{
+		ATTO_VENDOR_ID, 0x0049,	  ATTO_VENDOR_ID, 0x004A,
+		0,
+		0, 0
+	},
+	{
+		ATTO_VENDOR_ID, 0x0049,	  ATTO_VENDOR_ID, 0x004B,
+		0,
+		0, 0
+	},
+	{
+		ATTO_VENDOR_ID, 0x0049,	  ATTO_VENDOR_ID, 0x004C,
+		0,
+		0, 0
+	},
+	{
+		ATTO_VENDOR_ID, 0x0049,	  ATTO_VENDOR_ID, 0x004D,
+		0,
+		0, 0
+	},
+	{
+		ATTO_VENDOR_ID, 0x0049,	  ATTO_VENDOR_ID, 0x004E,
+		0,
+		0, 0
+	},
+	{
+		0,		  0,		  0,		  0,
+		0,
+		0, 0
+	}
 };
 
 MODULE_DEVICE_TABLE(pci, esas2r_pci_table);
@@ -343,7 +374,8 @@ static void
 esas2r_remove(struct pci_dev *pcid);
 
 static struct pci_driver
-	esas2r_pci_driver = {
+	esas2r_pci_driver =
+{
 	.name		= ESAS2R_DRVR_NAME,
 	.id_table	= esas2r_pci_table,
 	.probe		= esas2r_probe,
@@ -353,44 +385,48 @@ static struct pci_driver
 };
 
 static int esas2r_probe(struct pci_dev *pcid,
-			const struct pci_device_id *id)
+						const struct pci_device_id *id)
 {
 	struct Scsi_Host *host = NULL;
 	struct esas2r_adapter *a;
 	int err;
 
 	size_t host_alloc_size = sizeof(struct esas2r_adapter)
-				 + ((num_requests) +
-				    1) * sizeof(struct esas2r_request);
+							 + ((num_requests) +
+								1) * sizeof(struct esas2r_request);
 
 	esas2r_log_dev(ESAS2R_LOG_DEBG, &(pcid->dev),
-		       "esas2r_probe() 0x%02x 0x%02x 0x%02x 0x%02x",
-		       pcid->vendor,
-		       pcid->device,
-		       pcid->subsystem_vendor,
-		       pcid->subsystem_device);
+				   "esas2r_probe() 0x%02x 0x%02x 0x%02x 0x%02x",
+				   pcid->vendor,
+				   pcid->device,
+				   pcid->subsystem_vendor,
+				   pcid->subsystem_device);
 
 	esas2r_log_dev(ESAS2R_LOG_INFO, &(pcid->dev),
-		       "before pci_enable_device() "
-		       "enable_cnt: %d",
-		       pcid->enable_cnt.counter);
+				   "before pci_enable_device() "
+				   "enable_cnt: %d",
+				   pcid->enable_cnt.counter);
 
 	err = pci_enable_device(pcid);
-	if (err != 0) {
+
+	if (err != 0)
+	{
 		esas2r_log_dev(ESAS2R_LOG_CRIT, &(pcid->dev),
-			       "pci_enable_device() FAIL (%d)",
-			       err);
+					   "pci_enable_device() FAIL (%d)",
+					   err);
 		return -ENODEV;
 	}
 
 	esas2r_log_dev(ESAS2R_LOG_INFO, &(pcid->dev),
-		       "pci_enable_device() OK");
+				   "pci_enable_device() OK");
 	esas2r_log_dev(ESAS2R_LOG_INFO, &(pcid->dev),
-		       "after pci_enable_device() enable_cnt: %d",
-		       pcid->enable_cnt.counter);
+				   "after pci_enable_device() enable_cnt: %d",
+				   pcid->enable_cnt.counter);
 
 	host = scsi_host_alloc(&driver_template, host_alloc_size);
-	if (host == NULL) {
+
+	if (host == NULL)
+	{
 		esas2r_log(ESAS2R_LOG_CRIT, "scsi_host_alloc() FAIL");
 		return -ENODEV;
 	}
@@ -424,14 +460,15 @@ static int esas2r_probe(struct pci_dev *pcid,
 
 	pci_set_master(pcid);
 
-	if (!esas2r_init_adapter(host, pcid, found_adapters)) {
+	if (!esas2r_init_adapter(host, pcid, found_adapters))
+	{
 		esas2r_log(ESAS2R_LOG_CRIT,
-			   "unable to initialize device at PCI bus %x:%x",
-			   pcid->bus->number,
-			   pcid->devfn);
+				   "unable to initialize device at PCI bus %x:%x",
+				   pcid->bus->number,
+				   pcid->devfn);
 
 		esas2r_log_dev(ESAS2R_LOG_INFO, &(host->shost_gendev),
-			       "scsi_host_put() called");
+					   "scsi_host_put() called");
 
 		scsi_host_put(host);
 
@@ -440,7 +477,7 @@ static int esas2r_probe(struct pci_dev *pcid,
 	}
 
 	esas2r_log(ESAS2R_LOG_INFO, "pci_set_drvdata(%p, %p) called", pcid,
-		   host->hostdata);
+			   host->hostdata);
 
 	pci_set_drvdata(pcid, host);
 
@@ -448,19 +485,20 @@ static int esas2r_probe(struct pci_dev *pcid,
 
 	err = scsi_add_host(host, &pcid->dev);
 
-	if (err) {
+	if (err)
+	{
 		esas2r_log(ESAS2R_LOG_CRIT, "scsi_add_host returned %d", err);
 		esas2r_log_dev(ESAS2R_LOG_CRIT, &(host->shost_gendev),
-			       "scsi_add_host() FAIL");
+					   "scsi_add_host() FAIL");
 
 		esas2r_log_dev(ESAS2R_LOG_INFO, &(host->shost_gendev),
-			       "scsi_host_put() called");
+					   "scsi_host_put() called");
 
 		scsi_host_put(host);
 
 		esas2r_log_dev(ESAS2R_LOG_INFO, &(host->shost_gendev),
-			       "pci_set_drvdata(%p, NULL) called",
-			       pcid);
+					   "pci_set_drvdata(%p, NULL) called",
+					   pcid);
 
 		pci_set_drvdata(pcid, NULL);
 
@@ -471,47 +509,59 @@ static int esas2r_probe(struct pci_dev *pcid,
 	esas2r_fw_event_on(a);
 
 	esas2r_log_dev(ESAS2R_LOG_INFO, &(host->shost_gendev),
-		       "scsi_scan_host() called");
+				   "scsi_scan_host() called");
 
 	scsi_scan_host(host);
 
 	/* Add sysfs binary files */
 	if (sysfs_create_bin_file(&host->shost_dev.kobj, &bin_attr_fw))
 		esas2r_log_dev(ESAS2R_LOG_WARN, &(host->shost_gendev),
-			       "Failed to create sysfs binary file: fw");
+					   "Failed to create sysfs binary file: fw");
 	else
+	{
 		a->sysfs_fw_created = 1;
+	}
 
 	if (sysfs_create_bin_file(&host->shost_dev.kobj, &bin_attr_fs))
 		esas2r_log_dev(ESAS2R_LOG_WARN, &(host->shost_gendev),
-			       "Failed to create sysfs binary file: fs");
+					   "Failed to create sysfs binary file: fs");
 	else
+	{
 		a->sysfs_fs_created = 1;
+	}
 
 	if (sysfs_create_bin_file(&host->shost_dev.kobj, &bin_attr_vda))
 		esas2r_log_dev(ESAS2R_LOG_WARN, &(host->shost_gendev),
-			       "Failed to create sysfs binary file: vda");
+					   "Failed to create sysfs binary file: vda");
 	else
+	{
 		a->sysfs_vda_created = 1;
+	}
 
 	if (sysfs_create_bin_file(&host->shost_dev.kobj, &bin_attr_hw))
 		esas2r_log_dev(ESAS2R_LOG_WARN, &(host->shost_gendev),
-			       "Failed to create sysfs binary file: hw");
+					   "Failed to create sysfs binary file: hw");
 	else
+	{
 		a->sysfs_hw_created = 1;
+	}
 
 	if (sysfs_create_bin_file(&host->shost_dev.kobj, &bin_attr_live_nvram))
 		esas2r_log_dev(ESAS2R_LOG_WARN, &(host->shost_gendev),
-			       "Failed to create sysfs binary file: live_nvram");
+					   "Failed to create sysfs binary file: live_nvram");
 	else
+	{
 		a->sysfs_live_nvram_created = 1;
+	}
 
 	if (sysfs_create_bin_file(&host->shost_dev.kobj,
-				  &bin_attr_default_nvram))
+							  &bin_attr_default_nvram))
 		esas2r_log_dev(ESAS2R_LOG_WARN, &(host->shost_gendev),
-			       "Failed to create sysfs binary file: default_nvram");
+					   "Failed to create sysfs binary file: default_nvram");
 	else
+	{
 		a->sysfs_default_nvram_created = 1;
+	}
 
 	found_adapters++;
 
@@ -523,14 +573,16 @@ static void esas2r_remove(struct pci_dev *pdev)
 	struct Scsi_Host *host;
 	int index;
 
-	if (pdev == NULL) {
+	if (pdev == NULL)
+	{
 		esas2r_log(ESAS2R_LOG_WARN, "esas2r_remove pdev==NULL");
 		return;
 	}
 
 	host = pci_get_drvdata(pdev);
 
-	if (host == NULL) {
+	if (host == NULL)
+	{
 		/*
 		 * this can happen if pci_set_drvdata was already called
 		 * to clear the host pointer.  if this is the case, we
@@ -541,23 +593,25 @@ static void esas2r_remove(struct pci_dev *pdev)
 	}
 
 	esas2r_log_dev(ESAS2R_LOG_INFO, &(pdev->dev),
-		       "esas2r_remove(%p) called; "
-		       "host:%p", pdev,
-		       host);
+				   "esas2r_remove(%p) called; "
+				   "host:%p", pdev,
+				   host);
 
 	index = esas2r_cleanup(host);
 
 	if (index < 0)
 		esas2r_log_dev(ESAS2R_LOG_WARN, &(pdev->dev),
-			       "unknown host in %s",
-			       __func__);
+					   "unknown host in %s",
+					   __func__);
 
 	found_adapters--;
 
 	/* if this was the last adapter, clean up the rest of the driver */
 
 	if (found_adapters == 0)
+	{
 		esas2r_cleanup(NULL);
+	}
 }
 
 static int __init esas2r_init(void)
@@ -568,104 +622,140 @@ static int __init esas2r_init(void)
 
 	/* verify valid parameters */
 
-	if (can_queue < 1) {
+	if (can_queue < 1)
+	{
 		esas2r_log(ESAS2R_LOG_WARN,
-			   "warning: can_queue must be at least 1, value "
-			   "forced.");
+				   "warning: can_queue must be at least 1, value "
+				   "forced.");
 		can_queue = 1;
-	} else if (can_queue > 2048) {
+	}
+	else if (can_queue > 2048)
+	{
 		esas2r_log(ESAS2R_LOG_WARN,
-			   "warning: can_queue must be no larger than 2048, "
-			   "value forced.");
+				   "warning: can_queue must be no larger than 2048, "
+				   "value forced.");
 		can_queue = 2048;
 	}
 
-	if (cmd_per_lun < 1) {
+	if (cmd_per_lun < 1)
+	{
 		esas2r_log(ESAS2R_LOG_WARN,
-			   "warning: cmd_per_lun must be at least 1, value "
-			   "forced.");
+				   "warning: cmd_per_lun must be at least 1, value "
+				   "forced.");
 		cmd_per_lun = 1;
-	} else if (cmd_per_lun > 2048) {
+	}
+	else if (cmd_per_lun > 2048)
+	{
 		esas2r_log(ESAS2R_LOG_WARN,
-			   "warning: cmd_per_lun must be no larger than "
-			   "2048, value forced.");
+				   "warning: cmd_per_lun must be no larger than "
+				   "2048, value forced.");
 		cmd_per_lun = 2048;
 	}
 
-	if (sg_tablesize < 32) {
+	if (sg_tablesize < 32)
+	{
 		esas2r_log(ESAS2R_LOG_WARN,
-			   "warning: sg_tablesize must be at least 32, "
-			   "value forced.");
+				   "warning: sg_tablesize must be at least 32, "
+				   "value forced.");
 		sg_tablesize = 32;
 	}
 
-	if (esas2r_max_sectors < 1) {
+	if (esas2r_max_sectors < 1)
+	{
 		esas2r_log(ESAS2R_LOG_WARN,
-			   "warning: esas2r_max_sectors must be at least "
-			   "1, value forced.");
+				   "warning: esas2r_max_sectors must be at least "
+				   "1, value forced.");
 		esas2r_max_sectors = 1;
-	} else if (esas2r_max_sectors > 0xffff) {
+	}
+	else if (esas2r_max_sectors > 0xffff)
+	{
 		esas2r_log(ESAS2R_LOG_WARN,
-			   "warning: esas2r_max_sectors must be no larger "
-			   "than 0xffff, value forced.");
+				   "warning: esas2r_max_sectors must be no larger "
+				   "than 0xffff, value forced.");
 		esas2r_max_sectors = 0xffff;
 	}
 
 	sgl_page_size &= ~(ESAS2R_SGL_ALIGN - 1);
 
 	if (sgl_page_size < SGL_PG_SZ_MIN)
+	{
 		sgl_page_size = SGL_PG_SZ_MIN;
+	}
 	else if (sgl_page_size > SGL_PG_SZ_MAX)
+	{
 		sgl_page_size = SGL_PG_SZ_MAX;
+	}
 
 	if (num_sg_lists < NUM_SGL_MIN)
+	{
 		num_sg_lists = NUM_SGL_MIN;
+	}
 	else if (num_sg_lists > NUM_SGL_MAX)
+	{
 		num_sg_lists = NUM_SGL_MAX;
+	}
 
 	if (num_requests < NUM_REQ_MIN)
+	{
 		num_requests = NUM_REQ_MIN;
+	}
 	else if (num_requests > NUM_REQ_MAX)
+	{
 		num_requests = NUM_REQ_MAX;
+	}
 
 	if (num_ae_requests < NUM_AE_MIN)
+	{
 		num_ae_requests = NUM_AE_MIN;
+	}
 	else if (num_ae_requests > NUM_AE_MAX)
+	{
 		num_ae_requests = NUM_AE_MAX;
+	}
 
 	/* set up other globals */
 
 	for (i = 0; i < MAX_ADAPTERS; i++)
+	{
 		esas2r_adapters[i] = NULL;
+	}
 
 	/* initialize */
 
 	driver_template.module = THIS_MODULE;
 
 	if (pci_register_driver(&esas2r_pci_driver) != 0)
+	{
 		esas2r_log(ESAS2R_LOG_CRIT, "pci_register_driver FAILED");
+	}
 	else
+	{
 		esas2r_log(ESAS2R_LOG_INFO, "pci_register_driver() OK");
+	}
 
-	if (!found_adapters) {
+	if (!found_adapters)
+	{
 		pci_unregister_driver(&esas2r_pci_driver);
 		esas2r_cleanup(NULL);
 
 		esas2r_log(ESAS2R_LOG_CRIT,
-			   "driver will not be loaded because no ATTO "
-			   "%s devices were found",
-			   ESAS2R_DRVR_NAME);
+				   "driver will not be loaded because no ATTO "
+				   "%s devices were found",
+				   ESAS2R_DRVR_NAME);
 		return -1;
-	} else {
+	}
+	else
+	{
 		esas2r_log(ESAS2R_LOG_INFO, "found %d adapters",
-			   found_adapters);
+				   found_adapters);
 	}
 
 	return 0;
 }
 
 /* Handle ioctl calls to "/proc/scsi/esas2r/ATTOnode" */
-static const struct file_operations esas2r_proc_fops = {
+static const struct file_operations esas2r_proc_fops =
+{
 	.compat_ioctl	= esas2r_proc_ioctl,
 	.unlocked_ioctl = esas2r_proc_ioctl,
 };
@@ -676,18 +766,19 @@ static int esas2r_proc_major;
 long esas2r_proc_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
 {
 	return esas2r_ioctl_handler(esas2r_proc_host->hostdata,
-				    (int)cmd, (void __user *)arg);
+								(int)cmd, (void __user *)arg);
 }
 
 static void __exit esas2r_exit(void)
 {
 	esas2r_log(ESAS2R_LOG_INFO, "%s called", __func__);
 
-	if (esas2r_proc_major > 0) {
+	if (esas2r_proc_major > 0)
+	{
 		esas2r_log(ESAS2R_LOG_INFO, "unregister proc");
 
 		remove_proc_entry(ATTONODE_NAME,
-				  esas2r_proc_host->hostt->proc_dir);
+						  esas2r_proc_host->hostt->proc_dir);
 		unregister_chrdev(esas2r_proc_major, ESAS2R_DRVR_NAME);
 
 		esas2r_proc_major = 0;
@@ -708,45 +799,48 @@ int esas2r_show_info(struct seq_file *m, struct Scsi_Host *sh)
 	esas2r_log(ESAS2R_LOG_DEBG, "esas2r_show_info (%p,%d)", m, sh->host_no);
 
 	seq_printf(m, ESAS2R_LONGNAME "\n"
-		   "Driver version: "ESAS2R_VERSION_STR "\n"
-		   "Flash version: %s\n"
-		   "Firmware version: %s\n"
-		   "Copyright "ESAS2R_COPYRIGHT_YEARS "\n"
-		   "http://www.attotech.com\n"
-		   "\n",
-		   a->flash_rev,
-		   a->fw_rev[0] ? a->fw_rev : "(none)");
+			   "Driver version: "ESAS2R_VERSION_STR "\n"
+			   "Flash version: %s\n"
+			   "Firmware version: %s\n"
+			   "Copyright "ESAS2R_COPYRIGHT_YEARS "\n"
+			   "http://www.attotech.com\n"
+			   "\n",
+			   a->flash_rev,
+			   a->fw_rev[0] ? a->fw_rev : "(none)");
 
 
 	seq_printf(m, "Adapter information:\n"
-		   "--------------------\n"
-		   "Model: %s\n"
-		   "SAS address: %02X%02X%02X%02X:%02X%02X%02X%02X\n",
-		   esas2r_get_model_name(a),
-		   a->nvram->sas_addr[0],
-		   a->nvram->sas_addr[1],
-		   a->nvram->sas_addr[2],
-		   a->nvram->sas_addr[3],
-		   a->nvram->sas_addr[4],
-		   a->nvram->sas_addr[5],
-		   a->nvram->sas_addr[6],
-		   a->nvram->sas_addr[7]);
+			   "--------------------\n"
+			   "Model: %s\n"
+			   "SAS address: %02X%02X%02X%02X:%02X%02X%02X%02X\n",
+			   esas2r_get_model_name(a),
+			   a->nvram->sas_addr[0],
+			   a->nvram->sas_addr[1],
+			   a->nvram->sas_addr[2],
+			   a->nvram->sas_addr[3],
+			   a->nvram->sas_addr[4],
+			   a->nvram->sas_addr[5],
+			   a->nvram->sas_addr[6],
+			   a->nvram->sas_addr[7]);
 
 	seq_puts(m, "\n"
-		   "Discovered devices:\n"
-		   "\n"
-		   "   #  Target ID\n"
-		   "---------------\n");
+			 "Discovered devices:\n"
+			 "\n"
+			 "   #  Target ID\n"
+			 "---------------\n");
 
 	for (t = a->targetdb; t < a->targetdb_end; t++)
-		if (t->buffered_target_state == TS_PRESENT) {
+		if (t->buffered_target_state == TS_PRESENT)
+		{
 			seq_printf(m, " %3d   %3d\n",
-				   ++dev_count,
-				   (u16)(uintptr_t)(t - a->targetdb));
+					   ++dev_count,
+					   (u16)(uintptr_t)(t - a->targetdb));
 		}
 
 	if (dev_count == 0)
+	{
 		seq_puts(m, "none\n");
+	}
 
 	seq_putc(m, '\n');
 	return 0;
@@ -756,11 +850,15 @@ int esas2r_show_info(struct seq_file *m, struct Scsi_Host *sh)
 int esas2r_release(struct Scsi_Host *sh)
 {
 	esas2r_log_dev(ESAS2R_LOG_INFO, &(sh->shost_gendev),
-		       "esas2r_release() called");
+				   "esas2r_release() called");
 
 	esas2r_cleanup(sh);
+
 	if (sh->irq)
+	{
 		free_irq(sh->irq, NULL);
+	}
+
 	scsi_unregister(sh);
 	return 0;
 }
@@ -771,45 +869,48 @@ const char *esas2r_info(struct Scsi_Host *sh)
 	static char esas2r_info_str[512];
 
 	esas2r_log_dev(ESAS2R_LOG_INFO, &(sh->shost_gendev),
-		       "esas2r_info() called");
+				   "esas2r_info() called");
 
 	/*
 	 * if we haven't done so already, register as a char driver
 	 * and stick a node under "/proc/scsi/esas2r/ATTOnode"
 	 */
 
-	if (esas2r_proc_major <= 0) {
+	if (esas2r_proc_major <= 0)
+	{
 		esas2r_proc_host = sh;
 
 		esas2r_proc_major = register_chrdev(0, ESAS2R_DRVR_NAME,
-						    &esas2r_proc_fops);
+											&esas2r_proc_fops);
 
 		esas2r_log_dev(ESAS2R_LOG_DEBG, &(sh->shost_gendev),
-			       "register_chrdev (major %d)",
-			       esas2r_proc_major);
+					   "register_chrdev (major %d)",
+					   esas2r_proc_major);
 
-		if (esas2r_proc_major > 0) {
+		if (esas2r_proc_major > 0)
+		{
 			struct proc_dir_entry *pde;
 
 			pde = proc_create(ATTONODE_NAME, 0,
-					  sh->hostt->proc_dir,
-					  &esas2r_proc_fops);
+							  sh->hostt->proc_dir,
+							  &esas2r_proc_fops);
 
-			if (!pde) {
+			if (!pde)
+			{
 				esas2r_log_dev(ESAS2R_LOG_WARN,
-					       &(sh->shost_gendev),
-					       "failed to create_proc_entry");
+							   &(sh->shost_gendev),
+							   "failed to create_proc_entry");
 				esas2r_proc_major = -1;
 			}
 		}
 	}
 
 	sprintf(esas2r_info_str,
-		ESAS2R_LONGNAME " (bus 0x%02X, device 0x%02X, IRQ 0x%02X)"
-		" driver version: "ESAS2R_VERSION_STR "  firmware version: "
-		"%s\n",
-		a->pcid->bus->number, a->pcid->devfn, a->pcid->irq,
-		a->fw_rev[0] ? a->fw_rev : "(none)");
+			ESAS2R_LONGNAME " (bus 0x%02X, device 0x%02X, IRQ 0x%02X)"
+			" driver version: "ESAS2R_VERSION_STR "  firmware version: "
+			"%s\n",
+			a->pcid->bus->number, a->pcid->devfn, a->pcid->irq,
+			a->fw_rev[0] ? a->fw_rev : "(none)");
 
 	return esas2r_info_str;
 }
@@ -819,15 +920,18 @@ static u32 get_physaddr_from_sgc(struct esas2r_sg_context *sgc, u64 *addr)
 {
 	u32 len;
 
-	if (likely(sgc->cur_offset == sgc->exp_offset)) {
+	if (likely(sgc->cur_offset == sgc->exp_offset))
+	{
 		/*
 		 * the normal case: caller used all bytes from previous call, so
 		 * expected offset is the same as the current offset.
 		 */
 
-		if (sgc->sgel_count < sgc->num_sgel) {
+		if (sgc->sgel_count < sgc->num_sgel)
+		{
 			/* retrieve next segment, except for first time */
-			if (sgc->exp_offset > (u8 *)0) {
+			if (sgc->exp_offset > (u8 *)0)
+			{
 				/* advance current segment */
 				sgc->cur_sgel = sg_next(sgc->cur_sgel);
 				++(sgc->sgel_count);
@@ -840,10 +944,14 @@ static u32 get_physaddr_from_sgc(struct esas2r_sg_context *sgc, u64 *addr)
 			/* save the total # bytes returned to caller so far */
 			sgc->exp_offset += len;
 
-		} else {
+		}
+		else
+		{
 			len = 0;
 		}
-	} else if (sgc->cur_offset < sgc->exp_offset) {
+	}
+	else if (sgc->cur_offset < sgc->exp_offset)
+	{
 		/*
 		 * caller did not use all bytes from previous call. need to
 		 * compute the address based on current segment.
@@ -856,18 +964,20 @@ static u32 get_physaddr_from_sgc(struct esas2r_sg_context *sgc, u64 *addr)
 
 		/* calculate PA based on prev segment address and offsets */
 		*addr = *addr +
-			(sgc->cur_offset - sgc->exp_offset);
+				(sgc->cur_offset - sgc->exp_offset);
 
 		sgc->exp_offset += len;
 
 		/* re-calculate length based on offset */
 		len = lower_32_bits(
-			sgc->exp_offset - sgc->cur_offset);
-	} else {   /* if ( sgc->cur_offset > sgc->exp_offset ) */
-		   /*
-		    * we don't expect the caller to skip ahead.
-		    * cur_offset will never exceed the len we return
-		    */
+				  sgc->exp_offset - sgc->cur_offset);
+	}
+	else       /* if ( sgc->cur_offset > sgc->exp_offset ) */
+	{
+		/*
+		 * we don't expect the caller to skip ahead.
+		 * cur_offset will never exceed the len we return
+		 */
 		len = 0;
 	}
 
@@ -885,14 +995,17 @@ int esas2r_queuecommand(struct Scsi_Host *host, struct scsi_cmnd *cmd)
 	/* Assume success, if it fails we will fix the result later. */
 	cmd->result = DID_OK << 16;
 
-	if (unlikely(test_bit(AF_DEGRADED_MODE, &a->flags))) {
+	if (unlikely(test_bit(AF_DEGRADED_MODE, &a->flags)))
+	{
 		cmd->result = DID_NO_CONNECT << 16;
 		cmd->scsi_done(cmd);
 		return 0;
 	}
 
 	rq = esas2r_alloc_request(a);
-	if (unlikely(rq == NULL)) {
+
+	if (unlikely(rq == NULL))
+	{
 		esas2r_debug("esas2r_alloc_request failed");
 		return SCSI_MLQUEUE_HOST_BUSY;
 	}
@@ -900,11 +1013,16 @@ int esas2r_queuecommand(struct Scsi_Host *host, struct scsi_cmnd *cmd)
 	rq->cmd = cmd;
 	bufflen = scsi_bufflen(cmd);
 
-	if (likely(bufflen != 0)) {
+	if (likely(bufflen != 0))
+	{
 		if (cmd->sc_data_direction == DMA_TO_DEVICE)
+		{
 			rq->vrq->scsi.flags |= cpu_to_le32(FCP_CMND_WRD);
+		}
 		else if (cmd->sc_data_direction == DMA_FROM_DEVICE)
+		{
 			rq->vrq->scsi.flags |= cpu_to_le32(FCP_CMND_RDD);
+		}
 	}
 
 	memcpy(rq->vrq->scsi.cdb, cmd->cmnd, cmd->cmd_len);
@@ -924,21 +1042,23 @@ int esas2r_queuecommand(struct Scsi_Host *host, struct scsi_cmnd *cmd)
 	sgc.num_sgel = scsi_dma_map(cmd);
 	sgc.sgel_count = 0;
 
-	if (unlikely(sgc.num_sgel < 0)) {
+	if (unlikely(sgc.num_sgel < 0))
+	{
 		esas2r_free_request(a, rq);
 		return SCSI_MLQUEUE_HOST_BUSY;
 	}
 
 	sgc.get_phys_addr = (PGETPHYSADDR)get_physaddr_from_sgc;
 
-	if (unlikely(!esas2r_build_sg_list(a, rq, &sgc))) {
+	if (unlikely(!esas2r_build_sg_list(a, rq, &sgc)))
+	{
 		scsi_dma_unmap(cmd);
 		esas2r_free_request(a, rq);
 		return SCSI_MLQUEUE_HOST_BUSY;
 	}
 
 	esas2r_debug("start request %p to %d:%d\n", rq, (int)cmd->device->id,
-		     (int)cmd->device->lun);
+				 (int)cmd->device->lun);
 
 	esas2r_start_request(a, rq);
 
@@ -946,7 +1066,7 @@ int esas2r_queuecommand(struct Scsi_Host *host, struct scsi_cmnd *cmd)
 }
 
 static void complete_task_management_request(struct esas2r_adapter *a,
-					     struct esas2r_request *rq)
+		struct esas2r_request *rq)
 {
 	(*rq->task_management_status_ptr) = rq->req_stat;
 	esas2r_free_request(a, rq);
@@ -963,34 +1083,39 @@ static void complete_task_management_request(struct esas2r_adapter *a,
  * @return 0 on failure, 1 if command was not found, 2 if command was found
  */
 static int esas2r_check_active_queue(struct esas2r_adapter *a,
-				     struct esas2r_request **abort_request,
-				     struct scsi_cmnd *cmd,
-				     struct list_head *queue)
+									 struct esas2r_request **abort_request,
+									 struct scsi_cmnd *cmd,
+									 struct list_head *queue)
 {
 	bool found = false;
 	struct esas2r_request *ar = *abort_request;
 	struct esas2r_request *rq;
 	struct list_head *element, *next;
 
-	list_for_each_safe(element, next, queue) {
+	list_for_each_safe(element, next, queue)
+	{
 
 		rq = list_entry(element, struct esas2r_request, req_list);
 
-		if (rq->cmd == cmd) {
+		if (rq->cmd == cmd)
+		{
 
 			/* Found the request.  See what to do with it. */
-			if (queue == &a->active_list) {
+			if (queue == &a->active_list)
+			{
 				/*
 				 * We are searching the active queue, which
 				 * means that we need to send an abort request
 				 * to the firmware.
 				 */
 				ar = esas2r_alloc_request(a);
-				if (ar == NULL) {
+
+				if (ar == NULL)
+				{
 					esas2r_log_dev(ESAS2R_LOG_WARN,
-						       &(a->host->shost_gendev),
-						       "unable to allocate an abort request for cmd %p",
-						       cmd);
+								   &(a->host->shost_gendev),
+								   "unable to allocate an abort request for cmd %p",
+								   cmd);
 					return 0; /* Failure */
 				}
 
@@ -1002,16 +1127,18 @@ static int esas2r_check_active_queue(struct esas2r_adapter *a,
 				ar->vrq->scsi.length = 0;
 				ar->target_id = rq->target_id;
 				ar->vrq->scsi.flags |= cpu_to_le32(
-					(u8)le32_to_cpu(rq->vrq->scsi.flags));
+										   (u8)le32_to_cpu(rq->vrq->scsi.flags));
 
 				memset(ar->vrq->scsi.cdb, 0,
-				       sizeof(ar->vrq->scsi.cdb));
+					   sizeof(ar->vrq->scsi.cdb));
 
 				ar->vrq->scsi.flags |= cpu_to_le32(
-					FCP_CMND_TRM);
+										   FCP_CMND_TRM);
 				ar->vrq->scsi.u.abort_handle =
 					rq->vrq->scsi.handle;
-			} else {
+			}
+			else
+			{
 				/*
 				 * The request is pending but not active on
 				 * the firmware.  Just free it now and we'll
@@ -1028,7 +1155,9 @@ static int esas2r_check_active_queue(struct esas2r_adapter *a,
 	}
 
 	if (!found)
-		return 1;       /* Not found */
+	{
+		return 1;    /* Not found */
+	}
 
 	return 2;               /* found */
 
@@ -1046,7 +1175,8 @@ int esas2r_eh_abort(struct scsi_cmnd *cmd)
 
 	esas2r_log(ESAS2R_LOG_INFO, "eh_abort (%p)", cmd);
 
-	if (test_bit(AF_DEGRADED_MODE, &a->flags)) {
+	if (test_bit(AF_DEGRADED_MODE, &a->flags))
+	{
 		cmd->result = DID_ABORT << 16;
 
 		scsi_set_resid(cmd, 0);
@@ -1069,17 +1199,21 @@ check_active_queue:
 
 	result = esas2r_check_active_queue(a, &abort_request, cmd, queue);
 
-	if (!result) {
+	if (!result)
+	{
 		spin_unlock_irqrestore(&a->queue_lock, flags);
 		return FAILED;
-	} else if (result == 2 && (queue == &a->defer_list)) {
+	}
+	else if (result == 2 && (queue == &a->defer_list))
+	{
 		queue = &a->active_list;
 		goto check_active_queue;
 	}
 
 	spin_unlock_irqrestore(&a->queue_lock, flags);
 
-	if (abort_request) {
+	if (abort_request)
+	{
 		u8 task_management_status = RS_PENDING;
 
 		/*
@@ -1094,10 +1228,14 @@ check_active_queue:
 		esas2r_start_request(a, abort_request);
 
 		if (atomic_read(&a->disable_cnt) == 0)
+		{
 			esas2r_do_deferred_processes(a);
+		}
 
 		while (task_management_status == RS_PENDING)
+		{
 			msleep(10);
+		}
 
 		/*
 		 * Once we get here, the original request will have been
@@ -1128,24 +1266,35 @@ static int esas2r_host_bus_reset(struct scsi_cmnd *cmd, bool host_reset)
 		(struct esas2r_adapter *)cmd->device->host->hostdata;
 
 	if (test_bit(AF_DEGRADED_MODE, &a->flags))
+	{
 		return FAILED;
+	}
 
 	if (host_reset)
+	{
 		esas2r_reset_adapter(a);
+	}
 	else
+	{
 		esas2r_reset_bus(a);
+	}
 
 	/* above call sets the AF_OS_RESET flag.  wait for it to clear. */
 
-	while (test_bit(AF_OS_RESET, &a->flags)) {
+	while (test_bit(AF_OS_RESET, &a->flags))
+	{
 		msleep(10);
 
 		if (test_bit(AF_DEGRADED_MODE, &a->flags))
+		{
 			return FAILED;
+		}
 	}
 
 	if (test_bit(AF_DEGRADED_MODE, &a->flags))
+	{
 		return FAILED;
+	}
 
 	return SUCCESS;
 }
@@ -1173,22 +1322,29 @@ static int esas2r_dev_targ_reset(struct scsi_cmnd *cmd, bool target_reset)
 	bool completed;
 
 	if (test_bit(AF_DEGRADED_MODE, &a->flags))
+	{
 		return FAILED;
+	}
 
 retry:
 	rq = esas2r_alloc_request(a);
-	if (rq == NULL) {
-		if (target_reset) {
+
+	if (rq == NULL)
+	{
+		if (target_reset)
+		{
 			esas2r_log(ESAS2R_LOG_CRIT,
-				   "unable to allocate a request for a "
-				   "target reset (%d)!",
-				   cmd->device->id);
-		} else {
+					   "unable to allocate a request for a "
+					   "target reset (%d)!",
+					   cmd->device->id);
+		}
+		else
+		{
 			esas2r_log(ESAS2R_LOG_CRIT,
-				   "unable to allocate a request for a "
-				   "device reset (%d:%d)!",
-				   cmd->device->id,
-				   cmd->device->lun);
+					   "unable to allocate a request for a "
+					   "device reset (%d:%d)!",
+					   cmd->device->id,
+					   cmd->device->lun);
 		}
 
 
@@ -1202,33 +1358,44 @@ retry:
 	rq->comp_cb = complete_task_management_request;
 	rq->task_management_status_ptr = &task_management_status;
 
-	if (target_reset) {
+	if (target_reset)
+	{
 		esas2r_debug("issuing target reset (%p) to id %d", rq,
-			     cmd->device->id);
+					 cmd->device->id);
 		completed = esas2r_send_task_mgmt(a, rq, 0x20);
-	} else {
+	}
+	else
+	{
 		esas2r_debug("issuing device reset (%p) to id %d lun %d", rq,
-			     cmd->device->id, cmd->device->lun);
+					 cmd->device->id, cmd->device->lun);
 		completed = esas2r_send_task_mgmt(a, rq, 0x10);
 	}
 
-	if (completed) {
+	if (completed)
+	{
 		/* Task management cmd completed right away, need to free it. */
 
 		esas2r_free_request(a, rq);
-	} else {
+	}
+	else
+	{
 		/*
 		 * Wait for firmware to complete the request.  Completion
 		 * callback will free it.
 		 */
 		while (task_management_status == RS_PENDING)
+		{
 			msleep(10);
+		}
 	}
 
 	if (test_bit(AF_DEGRADED_MODE, &a->flags))
+	{
 		return FAILED;
+	}
 
-	if (task_management_status == RS_BUSY) {
+	if (task_management_status == RS_BUSY)
+	{
 		/*
 		 * Busy, probably because we are flashing.  Wait a bit and
 		 * try again.
@@ -1256,38 +1423,50 @@ int esas2r_target_reset(struct scsi_cmnd *cmd)
 }
 
 void esas2r_log_request_failure(struct esas2r_adapter *a,
-				struct esas2r_request *rq)
+								struct esas2r_request *rq)
 {
 	u8 reqstatus = rq->req_stat;
 
 	if (reqstatus == RS_SUCCESS)
+	{
 		return;
+	}
 
-	if (rq->vrq->scsi.function == VDA_FUNC_SCSI) {
-		if (reqstatus == RS_SCSI_ERROR) {
-			if (rq->func_rsp.scsi_rsp.sense_len >= 13) {
+	if (rq->vrq->scsi.function == VDA_FUNC_SCSI)
+	{
+		if (reqstatus == RS_SCSI_ERROR)
+		{
+			if (rq->func_rsp.scsi_rsp.sense_len >= 13)
+			{
 				esas2r_log(ESAS2R_LOG_WARN,
-					   "request failure - SCSI error %x ASC:%x ASCQ:%x CDB:%x",
-					   rq->sense_buf[2], rq->sense_buf[12],
-					   rq->sense_buf[13],
-					   rq->vrq->scsi.cdb[0]);
-			} else {
-				esas2r_log(ESAS2R_LOG_WARN,
-					   "request failure - SCSI error CDB:%x\n",
-					   rq->vrq->scsi.cdb[0]);
+						   "request failure - SCSI error %x ASC:%x ASCQ:%x CDB:%x",
+						   rq->sense_buf[2], rq->sense_buf[12],
+						   rq->sense_buf[13],
+						   rq->vrq->scsi.cdb[0]);
 			}
-		} else if ((rq->vrq->scsi.cdb[0] != INQUIRY
-			    && rq->vrq->scsi.cdb[0] != REPORT_LUNS)
-			   || (reqstatus != RS_SEL
-			       && reqstatus != RS_SEL2)) {
-			if ((reqstatus == RS_UNDERRUN) &&
-			    (rq->vrq->scsi.cdb[0] == INQUIRY)) {
-				/* Don't log inquiry underruns */
-			} else {
+			else
+			{
 				esas2r_log(ESAS2R_LOG_WARN,
-					   "request failure - cdb:%x reqstatus:%d target:%d",
-					   rq->vrq->scsi.cdb[0], reqstatus,
-					   rq->target_id);
+						   "request failure - SCSI error CDB:%x\n",
+						   rq->vrq->scsi.cdb[0]);
+			}
+		}
+		else if ((rq->vrq->scsi.cdb[0] != INQUIRY
+				  && rq->vrq->scsi.cdb[0] != REPORT_LUNS)
+				 || (reqstatus != RS_SEL
+					 && reqstatus != RS_SEL2))
+		{
+			if ((reqstatus == RS_UNDERRUN) &&
+				(rq->vrq->scsi.cdb[0] == INQUIRY))
+			{
+				/* Don't log inquiry underruns */
+			}
+			else
+			{
+				esas2r_log(ESAS2R_LOG_WARN,
+						   "request failure - cdb:%x reqstatus:%d target:%d",
+						   rq->vrq->scsi.cdb[0], reqstatus,
+						   rq->target_id);
 			}
 		}
 	}
@@ -1301,15 +1480,19 @@ void esas2r_wait_request(struct esas2r_adapter *a, struct esas2r_request *rq)
 	starttime = jiffies_to_msecs(jiffies);
 	timeout = rq->timeout ? rq->timeout : 5000;
 
-	while (true) {
+	while (true)
+	{
 		esas2r_polled_interrupt(a);
 
 		if (rq->req_stat != RS_STARTED)
+		{
 			break;
+		}
 
 		schedule_timeout_interruptible(msecs_to_jiffies(100));
 
-		if ((jiffies_to_msecs(jiffies) - starttime) > timeout) {
+		if ((jiffies_to_msecs(jiffies) - starttime) > timeout)
+		{
 			esas2r_hdebug("request TMO");
 			esas2r_bugon();
 
@@ -1326,9 +1509,10 @@ u32 esas2r_map_data_window(struct esas2r_adapter *a, u32 addr_lo)
 	u32 offset = addr_lo & (MW_DATA_WINDOW_SIZE - 1);
 	u32 base = addr_lo & -(signed int)MW_DATA_WINDOW_SIZE;
 
-	if (a->window_base != base) {
+	if (a->window_base != base)
+	{
 		esas2r_write_register_dword(a, MVR_PCI_WIN1_REMAP,
-					    base | MVRPW1R_ENABLE);
+									base | MVRPW1R_ENABLE);
 		esas2r_flush_register_dword(a, MVR_PCI_WIN1_REMAP);
 		a->window_base = base;
 	}
@@ -1338,13 +1522,14 @@ u32 esas2r_map_data_window(struct esas2r_adapter *a, u32 addr_lo)
 
 /* Read a block of data from chip memory */
 bool esas2r_read_mem_block(struct esas2r_adapter *a,
-			   void *to,
-			   u32 from,
-			   u32 size)
+						   void *to,
+						   u32 from,
+						   u32 size)
 {
 	u8 *end = (u8 *)to;
 
-	while (size) {
+	while (size)
+	{
 		u32 len;
 		u32 offset;
 		u32 iatvr;
@@ -1357,12 +1542,15 @@ bool esas2r_read_mem_block(struct esas2r_adapter *a,
 		len = size;
 
 		if (len > MW_DATA_WINDOW_SIZE - offset)
+		{
 			len = MW_DATA_WINDOW_SIZE - offset;
+		}
 
 		from += len;
 		size -= len;
 
-		while (len--) {
+		while (len--)
+		{
 			*end++ = esas2r_read_data_byte(a, offset);
 			offset++;
 		}
@@ -1382,105 +1570,110 @@ void esas2r_nuxi_mgt_data(u8 function, void *data)
 	struct atto_vda_buzzer_info *b;
 	u8 i;
 
-	switch (function) {
-	case VDAMGT_BUZZER_INFO:
-	case VDAMGT_BUZZER_SET:
+	switch (function)
+	{
+		case VDAMGT_BUZZER_INFO:
+		case VDAMGT_BUZZER_SET:
 
-		b = (struct atto_vda_buzzer_info *)data;
+			b = (struct atto_vda_buzzer_info *)data;
 
-		b->duration = le32_to_cpu(b->duration);
-		break;
+			b->duration = le32_to_cpu(b->duration);
+			break;
 
-	case VDAMGT_SCHEDULE_INFO:
-	case VDAMGT_SCHEDULE_EVENT:
+		case VDAMGT_SCHEDULE_INFO:
+		case VDAMGT_SCHEDULE_EVENT:
 
-		s = (struct atto_vda_schedule_info *)data;
+			s = (struct atto_vda_schedule_info *)data;
 
-		s->id = le32_to_cpu(s->id);
+			s->id = le32_to_cpu(s->id);
 
-		break;
+			break;
 
-	case VDAMGT_DEV_INFO:
-	case VDAMGT_DEV_CLEAN:
-	case VDAMGT_DEV_PT_INFO:
-	case VDAMGT_DEV_FEATURES:
-	case VDAMGT_DEV_PT_FEATURES:
-	case VDAMGT_DEV_OPERATION:
+		case VDAMGT_DEV_INFO:
+		case VDAMGT_DEV_CLEAN:
+		case VDAMGT_DEV_PT_INFO:
+		case VDAMGT_DEV_FEATURES:
+		case VDAMGT_DEV_PT_FEATURES:
+		case VDAMGT_DEV_OPERATION:
 
-		d = (struct atto_vda_devinfo *)data;
+			d = (struct atto_vda_devinfo *)data;
 
-		d->capacity = le64_to_cpu(d->capacity);
-		d->block_size = le32_to_cpu(d->block_size);
-		d->ses_dev_index = le16_to_cpu(d->ses_dev_index);
-		d->target_id = le16_to_cpu(d->target_id);
-		d->lun = le16_to_cpu(d->lun);
-		d->features = le16_to_cpu(d->features);
-		break;
+			d->capacity = le64_to_cpu(d->capacity);
+			d->block_size = le32_to_cpu(d->block_size);
+			d->ses_dev_index = le16_to_cpu(d->ses_dev_index);
+			d->target_id = le16_to_cpu(d->target_id);
+			d->lun = le16_to_cpu(d->lun);
+			d->features = le16_to_cpu(d->features);
+			break;
 
-	case VDAMGT_GRP_INFO:
-	case VDAMGT_GRP_CREATE:
-	case VDAMGT_GRP_DELETE:
-	case VDAMGT_ADD_STORAGE:
-	case VDAMGT_MEMBER_ADD:
-	case VDAMGT_GRP_COMMIT:
-	case VDAMGT_GRP_REBUILD:
-	case VDAMGT_GRP_COMMIT_INIT:
-	case VDAMGT_QUICK_RAID:
-	case VDAMGT_GRP_FEATURES:
-	case VDAMGT_GRP_COMMIT_INIT_AUTOMAP:
-	case VDAMGT_QUICK_RAID_INIT_AUTOMAP:
-	case VDAMGT_SPARE_LIST:
-	case VDAMGT_SPARE_ADD:
-	case VDAMGT_SPARE_REMOVE:
-	case VDAMGT_LOCAL_SPARE_ADD:
-	case VDAMGT_GRP_OPERATION:
+		case VDAMGT_GRP_INFO:
+		case VDAMGT_GRP_CREATE:
+		case VDAMGT_GRP_DELETE:
+		case VDAMGT_ADD_STORAGE:
+		case VDAMGT_MEMBER_ADD:
+		case VDAMGT_GRP_COMMIT:
+		case VDAMGT_GRP_REBUILD:
+		case VDAMGT_GRP_COMMIT_INIT:
+		case VDAMGT_QUICK_RAID:
+		case VDAMGT_GRP_FEATURES:
+		case VDAMGT_GRP_COMMIT_INIT_AUTOMAP:
+		case VDAMGT_QUICK_RAID_INIT_AUTOMAP:
+		case VDAMGT_SPARE_LIST:
+		case VDAMGT_SPARE_ADD:
+		case VDAMGT_SPARE_REMOVE:
+		case VDAMGT_LOCAL_SPARE_ADD:
+		case VDAMGT_GRP_OPERATION:
 
-		g = (struct atto_vda_grp_info *)data;
+			g = (struct atto_vda_grp_info *)data;
 
-		g->capacity = le64_to_cpu(g->capacity);
-		g->block_size = le32_to_cpu(g->block_size);
-		g->interleave = le32_to_cpu(g->interleave);
-		g->features = le16_to_cpu(g->features);
+			g->capacity = le64_to_cpu(g->capacity);
+			g->block_size = le32_to_cpu(g->block_size);
+			g->interleave = le32_to_cpu(g->interleave);
+			g->features = le16_to_cpu(g->features);
 
-		for (i = 0; i < 32; i++)
-			g->members[i] = le16_to_cpu(g->members[i]);
+			for (i = 0; i < 32; i++)
+			{
+				g->members[i] = le16_to_cpu(g->members[i]);
+			}
 
-		break;
+			break;
 
-	case VDAMGT_PART_INFO:
-	case VDAMGT_PART_MAP:
-	case VDAMGT_PART_UNMAP:
-	case VDAMGT_PART_AUTOMAP:
-	case VDAMGT_PART_SPLIT:
-	case VDAMGT_PART_MERGE:
+		case VDAMGT_PART_INFO:
+		case VDAMGT_PART_MAP:
+		case VDAMGT_PART_UNMAP:
+		case VDAMGT_PART_AUTOMAP:
+		case VDAMGT_PART_SPLIT:
+		case VDAMGT_PART_MERGE:
 
-		p = (struct atto_vdapart_info *)data;
+			p = (struct atto_vdapart_info *)data;
 
-		p->part_size = le64_to_cpu(p->part_size);
-		p->start_lba = le32_to_cpu(p->start_lba);
-		p->block_size = le32_to_cpu(p->block_size);
-		p->target_id = le16_to_cpu(p->target_id);
-		break;
+			p->part_size = le64_to_cpu(p->part_size);
+			p->start_lba = le32_to_cpu(p->start_lba);
+			p->block_size = le32_to_cpu(p->block_size);
+			p->target_id = le16_to_cpu(p->target_id);
+			break;
 
-	case VDAMGT_DEV_HEALTH_REQ:
+		case VDAMGT_DEV_HEALTH_REQ:
 
-		h = (struct atto_vda_dh_info *)data;
+			h = (struct atto_vda_dh_info *)data;
 
-		h->med_defect_cnt = le32_to_cpu(h->med_defect_cnt);
-		h->info_exc_cnt = le32_to_cpu(h->info_exc_cnt);
-		break;
+			h->med_defect_cnt = le32_to_cpu(h->med_defect_cnt);
+			h->info_exc_cnt = le32_to_cpu(h->info_exc_cnt);
+			break;
 
-	case VDAMGT_DEV_METRICS:
+		case VDAMGT_DEV_METRICS:
 
-		m = (struct atto_vda_metrics_info *)data;
+			m = (struct atto_vda_metrics_info *)data;
 
-		for (i = 0; i < 32; i++)
-			m->dev_indexes[i] = le16_to_cpu(m->dev_indexes[i]);
+			for (i = 0; i < 32; i++)
+			{
+				m->dev_indexes[i] = le16_to_cpu(m->dev_indexes[i]);
+			}
 
-		break;
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 }
 
@@ -1488,23 +1681,24 @@ void esas2r_nuxi_cfg_data(u8 function, void *data)
 {
 	struct atto_vda_cfg_init *ci;
 
-	switch (function) {
-	case VDA_CFG_INIT:
-	case VDA_CFG_GET_INIT:
-	case VDA_CFG_GET_INIT2:
+	switch (function)
+	{
+		case VDA_CFG_INIT:
+		case VDA_CFG_GET_INIT:
+		case VDA_CFG_GET_INIT2:
 
-		ci = (struct atto_vda_cfg_init *)data;
+			ci = (struct atto_vda_cfg_init *)data;
 
-		ci->date_time.year = le16_to_cpu(ci->date_time.year);
-		ci->sgl_page_size = le32_to_cpu(ci->sgl_page_size);
-		ci->vda_version = le32_to_cpu(ci->vda_version);
-		ci->epoch_time = le32_to_cpu(ci->epoch_time);
-		ci->ioctl_tunnel = le32_to_cpu(ci->ioctl_tunnel);
-		ci->num_targets_backend = le32_to_cpu(ci->num_targets_backend);
-		break;
+			ci->date_time.year = le16_to_cpu(ci->date_time.year);
+			ci->sgl_page_size = le32_to_cpu(ci->sgl_page_size);
+			ci->vda_version = le32_to_cpu(ci->vda_version);
+			ci->epoch_time = le32_to_cpu(ci->epoch_time);
+			ci->ioctl_tunnel = le32_to_cpu(ci->ioctl_tunnel);
+			ci->num_targets_backend = le32_to_cpu(ci->num_targets_backend);
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 }
 
@@ -1513,31 +1707,33 @@ void esas2r_nuxi_ae_data(union atto_vda_ae *ae)
 	struct atto_vda_ae_raid *r = &ae->raid;
 	struct atto_vda_ae_lu *l = &ae->lu;
 
-	switch (ae->hdr.bytype) {
-	case VDAAE_HDR_TYPE_RAID:
+	switch (ae->hdr.bytype)
+	{
+		case VDAAE_HDR_TYPE_RAID:
 
-		r->dwflags = le32_to_cpu(r->dwflags);
-		break;
+			r->dwflags = le32_to_cpu(r->dwflags);
+			break;
 
-	case VDAAE_HDR_TYPE_LU:
+		case VDAAE_HDR_TYPE_LU:
 
-		l->dwevent = le32_to_cpu(l->dwevent);
-		l->wphys_target_id = le16_to_cpu(l->wphys_target_id);
-		l->id.tgtlun.wtarget_id = le16_to_cpu(l->id.tgtlun.wtarget_id);
+			l->dwevent = le32_to_cpu(l->dwevent);
+			l->wphys_target_id = le16_to_cpu(l->wphys_target_id);
+			l->id.tgtlun.wtarget_id = le16_to_cpu(l->id.tgtlun.wtarget_id);
 
-		if (l->hdr.bylength >= offsetof(struct atto_vda_ae_lu, id)
-		    + sizeof(struct atto_vda_ae_lu_tgt_lun_raid)) {
-			l->id.tgtlun_raid.dwinterleave
-				= le32_to_cpu(l->id.tgtlun_raid.dwinterleave);
-			l->id.tgtlun_raid.dwblock_size
-				= le32_to_cpu(l->id.tgtlun_raid.dwblock_size);
-		}
+			if (l->hdr.bylength >= offsetof(struct atto_vda_ae_lu, id)
+				+ sizeof(struct atto_vda_ae_lu_tgt_lun_raid))
+			{
+				l->id.tgtlun_raid.dwinterleave
+					= le32_to_cpu(l->id.tgtlun_raid.dwinterleave);
+				l->id.tgtlun_raid.dwblock_size
+					= le32_to_cpu(l->id.tgtlun_raid.dwblock_size);
+			}
 
-		break;
+			break;
 
-	case VDAAE_HDR_TYPE_DISK:
-	default:
-		break;
+		case VDAAE_HDR_TYPE_DISK:
+		default:
+			break;
 	}
 }
 
@@ -1558,13 +1754,14 @@ struct esas2r_request *esas2r_alloc_request(struct esas2r_adapter *a)
 
 	spin_lock_irqsave(&a->request_lock, flags);
 
-	if (unlikely(list_empty(&a->avail_request))) {
+	if (unlikely(list_empty(&a->avail_request)))
+	{
 		spin_unlock_irqrestore(&a->request_lock, flags);
 		return NULL;
 	}
 
 	rq = list_first_entry(&a->avail_request, struct esas2r_request,
-			      comp_list);
+						  comp_list);
 	list_del(&rq->comp_list);
 	spin_unlock_irqrestore(&a->request_lock, flags);
 	esas2r_rq_init_request(rq, a);
@@ -1574,17 +1771,18 @@ struct esas2r_request *esas2r_alloc_request(struct esas2r_adapter *a)
 }
 
 void esas2r_complete_request_cb(struct esas2r_adapter *a,
-				struct esas2r_request *rq)
+								struct esas2r_request *rq)
 {
 	esas2r_debug("completing request %p\n", rq);
 
 	scsi_dma_unmap(rq->cmd);
 
-	if (unlikely(rq->req_stat != RS_SUCCESS)) {
+	if (unlikely(rq->req_stat != RS_SUCCESS))
+	{
 		esas2r_debug("[%x STATUS %x:%x (%x)]", rq->target_id,
-			     rq->req_stat,
-			     rq->func_rsp.scsi_rsp.scsi_stat,
-			     rq->cmd);
+					 rq->req_stat,
+					 rq->func_rsp.scsi_rsp.scsi_stat,
+					 rq->cmd);
 
 		rq->cmd->result =
 			((esas2r_req_status_to_error(rq->req_stat) << 16)
@@ -1592,10 +1790,12 @@ void esas2r_complete_request_cb(struct esas2r_adapter *a,
 
 		if (rq->req_stat == RS_UNDERRUN)
 			scsi_set_resid(rq->cmd,
-				       le32_to_cpu(rq->func_rsp.scsi_rsp.
-						   residual_length));
+						   le32_to_cpu(rq->func_rsp.scsi_rsp.
+									   residual_length));
 		else
+		{
 			scsi_set_resid(rq->cmd, 0);
+		}
 	}
 
 	rq->cmd->scsi_done(rq->cmd);
@@ -1608,25 +1808,32 @@ void esas2r_adapter_tasklet(unsigned long context)
 {
 	struct esas2r_adapter *a = (struct esas2r_adapter *)context;
 
-	if (unlikely(test_bit(AF2_TIMER_TICK, &a->flags2))) {
+	if (unlikely(test_bit(AF2_TIMER_TICK, &a->flags2)))
+	{
 		clear_bit(AF2_TIMER_TICK, &a->flags2);
 		esas2r_timer_tick(a);
 	}
 
-	if (likely(test_bit(AF2_INT_PENDING, &a->flags2))) {
+	if (likely(test_bit(AF2_INT_PENDING, &a->flags2)))
+	{
 		clear_bit(AF2_INT_PENDING, &a->flags2);
 		esas2r_adapter_interrupt(a);
 	}
 
 	if (esas2r_is_tasklet_pending(a))
+	{
 		esas2r_do_tasklet_tasks(a);
+	}
 
 	if (esas2r_is_tasklet_pending(a)
-	    || (test_bit(AF2_INT_PENDING, &a->flags2))
-	    || (test_bit(AF2_TIMER_TICK, &a->flags2))) {
+		|| (test_bit(AF2_INT_PENDING, &a->flags2))
+		|| (test_bit(AF2_TIMER_TICK, &a->flags2)))
+	{
 		clear_bit(AF_TASKLET_SCHEDULED, &a->flags);
 		esas2r_schedule_tasklet(a);
-	} else {
+	}
+	else
+	{
 		clear_bit(AF_TASKLET_SCHEDULED, &a->flags);
 	}
 }
@@ -1640,7 +1847,7 @@ void esas2r_kickoff_timer(struct esas2r_adapter *a)
 	a->timer.function = esas2r_timer_callback;
 	a->timer.data = (unsigned long)a;
 	a->timer.expires = jiffies +
-			   msecs_to_jiffies(100);
+					   msecs_to_jiffies(100);
 
 	add_timer(&a->timer);
 }
@@ -1700,7 +1907,8 @@ static void esas2r_add_device(struct esas2r_adapter *a, u16 target_id)
 
 	scsi_dev = scsi_device_lookup(a->host, 0, target_id, 0);
 
-	if (scsi_dev) {
+	if (scsi_dev)
+	{
 		esas2r_log_dev(
 			ESAS2R_LOG_WARN,
 			&(scsi_dev->
@@ -1708,7 +1916,9 @@ static void esas2r_add_device(struct esas2r_adapter *a, u16 target_id)
 			"scsi device already exists at id %d", target_id);
 
 		scsi_device_put(scsi_dev);
-	} else {
+	}
+	else
+	{
 		esas2r_log_dev(
 			ESAS2R_LOG_INFO,
 			&(a->host->
@@ -1717,7 +1927,9 @@ static void esas2r_add_device(struct esas2r_adapter *a, u16 target_id)
 			target_id);
 
 		ret = scsi_add_device(a->host, 0, target_id, 0);
-		if (ret) {
+
+		if (ret)
+		{
 			esas2r_log_dev(
 				ESAS2R_LOG_CRIT,
 				&(a->host->
@@ -1734,7 +1946,8 @@ static void esas2r_remove_device(struct esas2r_adapter *a, u16 target_id)
 
 	scsi_dev = scsi_device_lookup(a->host, 0, target_id, 0);
 
-	if (scsi_dev) {
+	if (scsi_dev)
+	{
 		scsi_device_set_state(scsi_dev, SDEV_OFFLINE);
 
 		esas2r_log_dev(
@@ -1753,7 +1966,9 @@ static void esas2r_remove_device(struct esas2r_adapter *a, u16 target_id)
 			"scsi_device_put() called");
 
 		scsi_device_put(scsi_dev);
-	} else {
+	}
+	else
+	{
 		esas2r_log_dev(
 			ESAS2R_LOG_WARN,
 			&(a->host->shost_gendev),
@@ -1771,77 +1986,78 @@ static void esas2r_send_ae_event(struct esas2r_fw_event_work *fw_event)
 	struct esas2r_vda_ae *ae = (struct esas2r_vda_ae *)fw_event->data;
 	char *type;
 
-	switch (ae->vda_ae.hdr.bytype) {
-	case VDAAE_HDR_TYPE_RAID:
-		type = "RAID group state change";
-		break;
+	switch (ae->vda_ae.hdr.bytype)
+	{
+		case VDAAE_HDR_TYPE_RAID:
+			type = "RAID group state change";
+			break;
 
-	case VDAAE_HDR_TYPE_LU:
-		type = "Mapped destination LU change";
-		break;
+		case VDAAE_HDR_TYPE_LU:
+			type = "Mapped destination LU change";
+			break;
 
-	case VDAAE_HDR_TYPE_DISK:
-		type = "Physical disk inventory change";
-		break;
+		case VDAAE_HDR_TYPE_DISK:
+			type = "Physical disk inventory change";
+			break;
 
-	case VDAAE_HDR_TYPE_RESET:
-		type = "Firmware reset";
-		break;
+		case VDAAE_HDR_TYPE_RESET:
+			type = "Firmware reset";
+			break;
 
-	case VDAAE_HDR_TYPE_LOG_INFO:
-		type = "Event Log message (INFO level)";
-		break;
+		case VDAAE_HDR_TYPE_LOG_INFO:
+			type = "Event Log message (INFO level)";
+			break;
 
-	case VDAAE_HDR_TYPE_LOG_WARN:
-		type = "Event Log message (WARN level)";
-		break;
+		case VDAAE_HDR_TYPE_LOG_WARN:
+			type = "Event Log message (WARN level)";
+			break;
 
-	case VDAAE_HDR_TYPE_LOG_CRIT:
-		type = "Event Log message (CRIT level)";
-		break;
+		case VDAAE_HDR_TYPE_LOG_CRIT:
+			type = "Event Log message (CRIT level)";
+			break;
 
-	case VDAAE_HDR_TYPE_LOG_FAIL:
-		type = "Event Log message (FAIL level)";
-		break;
+		case VDAAE_HDR_TYPE_LOG_FAIL:
+			type = "Event Log message (FAIL level)";
+			break;
 
-	case VDAAE_HDR_TYPE_NVC:
-		type = "NVCache change";
-		break;
+		case VDAAE_HDR_TYPE_NVC:
+			type = "NVCache change";
+			break;
 
-	case VDAAE_HDR_TYPE_TLG_INFO:
-		type = "Time stamped log message (INFO level)";
-		break;
+		case VDAAE_HDR_TYPE_TLG_INFO:
+			type = "Time stamped log message (INFO level)";
+			break;
 
-	case VDAAE_HDR_TYPE_TLG_WARN:
-		type = "Time stamped log message (WARN level)";
-		break;
+		case VDAAE_HDR_TYPE_TLG_WARN:
+			type = "Time stamped log message (WARN level)";
+			break;
 
-	case VDAAE_HDR_TYPE_TLG_CRIT:
-		type = "Time stamped log message (CRIT level)";
-		break;
+		case VDAAE_HDR_TYPE_TLG_CRIT:
+			type = "Time stamped log message (CRIT level)";
+			break;
 
-	case VDAAE_HDR_TYPE_PWRMGT:
-		type = "Power management";
-		break;
+		case VDAAE_HDR_TYPE_PWRMGT:
+			type = "Power management";
+			break;
 
-	case VDAAE_HDR_TYPE_MUTE:
-		type = "Mute button pressed";
-		break;
+		case VDAAE_HDR_TYPE_MUTE:
+			type = "Mute button pressed";
+			break;
 
-	case VDAAE_HDR_TYPE_DEV:
-		type = "Device attribute change";
-		break;
+		case VDAAE_HDR_TYPE_DEV:
+			type = "Device attribute change";
+			break;
 
-	default:
-		type = "Unknown";
-		break;
+		default:
+			type = "Unknown";
+			break;
 	}
 
 	esas2r_log(ESAS2R_LOG_WARN,
-		   "An async event of type \"%s\" was received from the firmware.  The event contents are:",
-		   type);
+			   "An async event of type \"%s\" was received from the firmware.  The event contents are:",
+			   type);
 	esas2r_log_hexdump(ESAS2R_LOG_WARN, &ae->vda_ae,
-			   ae->vda_ae.hdr.bylength);
+					   ae->vda_ae.hdr.bylength);
 
 }
 
@@ -1856,28 +2072,31 @@ esas2r_firmware_event_work(struct work_struct *work)
 	u16 target_id = *(u16 *)&fw_event->data[0];
 
 	if (a->fw_events_off)
+	{
 		goto done;
+	}
 
-	switch (fw_event->type) {
-	case fw_event_null:
-		break; /* do nothing */
+	switch (fw_event->type)
+	{
+		case fw_event_null:
+			break; /* do nothing */
 
-	case fw_event_lun_change:
-		esas2r_remove_device(a, target_id);
-		esas2r_add_device(a, target_id);
-		break;
+		case fw_event_lun_change:
+			esas2r_remove_device(a, target_id);
+			esas2r_add_device(a, target_id);
+			break;
 
-	case fw_event_present:
-		esas2r_add_device(a, target_id);
-		break;
+		case fw_event_present:
+			esas2r_add_device(a, target_id);
+			break;
 
-	case fw_event_not_present:
-		esas2r_remove_device(a, target_id);
-		break;
+		case fw_event_not_present:
+			esas2r_remove_device(a, target_id);
+			break;
 
-	case fw_event_vda_ae:
-		esas2r_send_ae_event(fw_event);
-		break;
+		case fw_event_vda_ae:
+			esas2r_send_ae_event(fw_event);
+			break;
 	}
 
 done:
@@ -1885,21 +2104,24 @@ done:
 }
 
 void esas2r_queue_fw_event(struct esas2r_adapter *a,
-			   enum fw_event_type type,
-			   void *data,
-			   int data_sz)
+						   enum fw_event_type type,
+						   void *data,
+						   int data_sz)
 {
 	struct esas2r_fw_event_work *fw_event;
 	unsigned long flags;
 
 	fw_event = kzalloc(sizeof(struct esas2r_fw_event_work), GFP_ATOMIC);
-	if (!fw_event) {
+
+	if (!fw_event)
+	{
 		esas2r_log(ESAS2R_LOG_WARN,
-			   "esas2r_queue_fw_event failed to alloc");
+				   "esas2r_queue_fw_event failed to alloc");
 		return;
 	}
 
-	if (type == fw_event_vda_ae) {
+	if (type == fw_event_vda_ae)
+	{
 		struct esas2r_vda_ae *ae =
 			(struct esas2r_vda_ae *)fw_event->data;
 
@@ -1907,7 +2129,9 @@ void esas2r_queue_fw_event(struct esas2r_adapter *a,
 		ae->bus_number = a->pcid->bus->number;
 		ae->devfn = a->pcid->devfn;
 		memcpy(&ae->vda_ae, data, sizeof(ae->vda_ae));
-	} else {
+	}
+	else
+	{
 		memcpy(fw_event->data, data, data_sz);
 	}
 
@@ -1924,45 +2148,47 @@ void esas2r_queue_fw_event(struct esas2r_adapter *a,
 }
 
 void esas2r_target_state_changed(struct esas2r_adapter *a, u16 targ_id,
-				 u8 state)
+								 u8 state)
 {
 	if (state == TS_LUN_CHANGE)
 		esas2r_queue_fw_event(a, fw_event_lun_change, &targ_id,
-				      sizeof(targ_id));
+							  sizeof(targ_id));
 	else if (state == TS_PRESENT)
 		esas2r_queue_fw_event(a, fw_event_present, &targ_id,
-				      sizeof(targ_id));
+							  sizeof(targ_id));
 	else if (state == TS_NOT_PRESENT)
 		esas2r_queue_fw_event(a, fw_event_not_present, &targ_id,
-				      sizeof(targ_id));
+							  sizeof(targ_id));
 }
 
 /* Translate status to a Linux SCSI mid-layer error code */
 int esas2r_req_status_to_error(u8 req_stat)
 {
-	switch (req_stat) {
-	case RS_OVERRUN:
-	case RS_UNDERRUN:
-	case RS_SUCCESS:
-	/*
-	 * NOTE: SCSI mid-layer wants a good status for a SCSI error, because
-	 *       it will check the scsi_stat value in the completion anyway.
-	 */
-	case RS_SCSI_ERROR:
-		return DID_OK;
+	switch (req_stat)
+	{
+		case RS_OVERRUN:
+		case RS_UNDERRUN:
+		case RS_SUCCESS:
 
-	case RS_SEL:
-	case RS_SEL2:
-		return DID_NO_CONNECT;
+		/*
+		 * NOTE: SCSI mid-layer wants a good status for a SCSI error, because
+		 *       it will check the scsi_stat value in the completion anyway.
+		 */
+		case RS_SCSI_ERROR:
+			return DID_OK;
 
-	case RS_RESET:
-		return DID_RESET;
+		case RS_SEL:
+		case RS_SEL2:
+			return DID_NO_CONNECT;
 
-	case RS_ABORTED:
-		return DID_ABORT;
+		case RS_RESET:
+			return DID_RESET;
 
-	case RS_BUSY:
-		return DID_BUS_BUSY;
+		case RS_ABORTED:
+			return DID_ABORT;
+
+		case RS_BUSY:
+			return DID_BUS_BUSY;
 	}
 
 	/* everything else is just an error. */

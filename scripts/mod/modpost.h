@@ -19,34 +19,34 @@
 
 #if KERNEL_ELFCLASS == ELFCLASS32
 
-#define Elf_Ehdr    Elf32_Ehdr
-#define Elf_Shdr    Elf32_Shdr
-#define Elf_Sym     Elf32_Sym
-#define Elf_Addr    Elf32_Addr
-#define Elf_Sword   Elf64_Sword
-#define Elf_Section Elf32_Half
-#define ELF_ST_BIND ELF32_ST_BIND
-#define ELF_ST_TYPE ELF32_ST_TYPE
+	#define Elf_Ehdr    Elf32_Ehdr
+	#define Elf_Shdr    Elf32_Shdr
+	#define Elf_Sym     Elf32_Sym
+	#define Elf_Addr    Elf32_Addr
+	#define Elf_Sword   Elf64_Sword
+	#define Elf_Section Elf32_Half
+	#define ELF_ST_BIND ELF32_ST_BIND
+	#define ELF_ST_TYPE ELF32_ST_TYPE
 
-#define Elf_Rel     Elf32_Rel
-#define Elf_Rela    Elf32_Rela
-#define ELF_R_SYM   ELF32_R_SYM
-#define ELF_R_TYPE  ELF32_R_TYPE
+	#define Elf_Rel     Elf32_Rel
+	#define Elf_Rela    Elf32_Rela
+	#define ELF_R_SYM   ELF32_R_SYM
+	#define ELF_R_TYPE  ELF32_R_TYPE
 #else
 
-#define Elf_Ehdr    Elf64_Ehdr
-#define Elf_Shdr    Elf64_Shdr
-#define Elf_Sym     Elf64_Sym
-#define Elf_Addr    Elf64_Addr
-#define Elf_Sword   Elf64_Sxword
-#define Elf_Section Elf64_Half
-#define ELF_ST_BIND ELF64_ST_BIND
-#define ELF_ST_TYPE ELF64_ST_TYPE
+	#define Elf_Ehdr    Elf64_Ehdr
+	#define Elf_Shdr    Elf64_Shdr
+	#define Elf_Sym     Elf64_Sym
+	#define Elf_Addr    Elf64_Addr
+	#define Elf_Sword   Elf64_Sxword
+	#define Elf_Section Elf64_Half
+	#define ELF_ST_BIND ELF64_ST_BIND
+	#define ELF_ST_TYPE ELF64_ST_TYPE
 
-#define Elf_Rel     Elf64_Rel
-#define Elf_Rela    Elf64_Rela
-#define ELF_R_SYM   ELF64_R_SYM
-#define ELF_R_TYPE  ELF64_R_TYPE
+	#define Elf_Rel     Elf64_Rel
+	#define Elf_Rela    Elf64_Rela
+	#define ELF_R_SYM   ELF64_R_SYM
+	#define ELF_R_TYPE  ELF64_R_TYPE
 #endif
 
 /* The 64-bit MIPS ELF ABI uses an unusual reloc format. */
@@ -66,26 +66,29 @@ typedef union
 } _Elf64_Mips_R_Info_union;
 
 #define ELF64_MIPS_R_SYM(i) \
-  ((__extension__ (_Elf64_Mips_R_Info_union)(i)).r_info_fields.r_sym)
+	((__extension__ (_Elf64_Mips_R_Info_union)(i)).r_info_fields.r_sym)
 
 #define ELF64_MIPS_R_TYPE(i) \
-  ((__extension__ (_Elf64_Mips_R_Info_union)(i)).r_info_fields.r_type1)
+	((__extension__ (_Elf64_Mips_R_Info_union)(i)).r_info_fields.r_type1)
 
 #if KERNEL_ELFDATA != HOST_ELFDATA
 
 static inline void __endian(const void *src, void *dest, unsigned int size)
 {
 	unsigned int i;
+
 	for (i = 0; i < size; i++)
-		((unsigned char*)dest)[i] = ((unsigned char*)src)[size - i-1];
+	{
+		((unsigned char *)dest)[i] = ((unsigned char *)src)[size - i - 1];
+	}
 }
 
 #define TO_NATIVE(x)						\
-({								\
-	typeof(x) __x;						\
-	__endian(&(x), &(__x), sizeof(__x));			\
-	__x;							\
-})
+	({								\
+		typeof(x) __x;						\
+		__endian(&(x), &(__x), sizeof(__x));			\
+		__x;							\
+	})
 
 #else /* endianness matches */
 
@@ -96,7 +99,8 @@ static inline void __endian(const void *src, void *dest, unsigned int size)
 #define NOFAIL(ptr)   do_nofail((ptr), #ptr)
 void *do_nofail(void *ptr, const char *expr);
 
-struct buffer {
+struct buffer
+{
 	char *p;
 	int pos;
 	int size;
@@ -108,7 +112,8 @@ buf_printf(struct buffer *buf, const char *fmt, ...);
 void
 buf_write(struct buffer *buf, const char *s, int len);
 
-struct module {
+struct module
+{
 	struct module *next;
 	const char *name;
 	int gpl_compatible;
@@ -122,7 +127,8 @@ struct module {
 	int is_dot_o;
 };
 
-struct elf_info {
+struct elf_info
+{
 	unsigned long size;
 	Elf_Ehdr     *hdr;
 	Elf_Shdr     *sechdrs;
@@ -161,31 +167,37 @@ static inline int is_shndx_special(unsigned int i)
 
 /* Accessor for sym->st_shndx, hides ugliness of "64k sections" */
 static inline unsigned int get_secindex(const struct elf_info *info,
-					const Elf_Sym *sym)
+										const Elf_Sym *sym)
 {
 	if (is_shndx_special(sym->st_shndx))
+	{
 		return SPECIAL(sym->st_shndx);
+	}
+
 	if (sym->st_shndx != SHN_XINDEX)
+	{
 		return sym->st_shndx;
+	}
+
 	return info->symtab_shndx_start[sym - info->symtab_start];
 }
 
 /* file2alias.c */
 extern unsigned int cross_build;
 void handle_moddevtable(struct module *mod, struct elf_info *info,
-			Elf_Sym *sym, const char *symname);
+						Elf_Sym *sym, const char *symname);
 void add_moddevtable(struct buffer *buf, struct module *mod);
 
 /* sumversion.c */
 void maybe_frob_rcs_version(const char *modfilename,
-			    char *version,
-			    void *modinfo,
-			    unsigned long modinfo_offset);
+							char *version,
+							void *modinfo,
+							unsigned long modinfo_offset);
 void get_src_version(const char *modname, char sum[], unsigned sumlen);
 
 /* from modpost.c */
 void *grab_file(const char *filename, unsigned long *size);
-char* get_next_line(unsigned long *pos, void *file, unsigned long size);
+char *get_next_line(unsigned long *pos, void *file, unsigned long size);
 void release_file(void *file, unsigned long size);
 
 void fatal(const char *fmt, ...);

@@ -32,21 +32,26 @@
  **************************************************************************/
 
 int efx_nic_alloc_buffer(struct efx_nic *efx, struct efx_buffer *buffer,
-			 unsigned int len, gfp_t gfp_flags)
+						 unsigned int len, gfp_t gfp_flags)
 {
 	buffer->addr = dma_zalloc_coherent(&efx->pci_dev->dev, len,
-					   &buffer->dma_addr, gfp_flags);
+									   &buffer->dma_addr, gfp_flags);
+
 	if (!buffer->addr)
+	{
 		return -ENOMEM;
+	}
+
 	buffer->len = len;
 	return 0;
 }
 
 void efx_nic_free_buffer(struct efx_nic *efx, struct efx_buffer *buffer)
 {
-	if (buffer->addr) {
+	if (buffer->addr)
+	{
 		dma_free_coherent(&efx->pci_dev->dev, buffer->len,
-				  buffer->addr, buffer->dma_addr);
+						  buffer->addr, buffer->dma_addr);
 		buffer->addr = NULL;
 	}
 }
@@ -82,68 +87,91 @@ int efx_nic_init_interrupt(struct efx_nic *efx)
 	unsigned int n_irqs;
 	int rc;
 
-	if (!EFX_INT_MODE_USE_MSI(efx)) {
+	if (!EFX_INT_MODE_USE_MSI(efx))
+	{
 		rc = request_irq(efx->legacy_irq,
-				 efx->type->irq_handle_legacy, IRQF_SHARED,
-				 efx->name, efx);
-		if (rc) {
+						 efx->type->irq_handle_legacy, IRQF_SHARED,
+						 efx->name, efx);
+
+		if (rc)
+		{
 			netif_err(efx, drv, efx->net_dev,
-				  "failed to hook legacy IRQ %d\n",
-				  efx->pci_dev->irq);
+					  "failed to hook legacy IRQ %d\n",
+					  efx->pci_dev->irq);
 			goto fail1;
 		}
+
 		return 0;
 	}
 
 #ifdef CONFIG_RFS_ACCEL
-	if (efx->interrupt_mode == EFX_INT_MODE_MSIX) {
+
+	if (efx->interrupt_mode == EFX_INT_MODE_MSIX)
+	{
 		efx->net_dev->rx_cpu_rmap =
 			alloc_irq_cpu_rmap(efx->n_rx_channels);
-		if (!efx->net_dev->rx_cpu_rmap) {
+
+		if (!efx->net_dev->rx_cpu_rmap)
+		{
 			rc = -ENOMEM;
 			goto fail1;
 		}
 	}
+
 #endif
 
 	/* Hook MSI or MSI-X interrupt */
 	n_irqs = 0;
-	efx_for_each_channel(channel, efx) {
+	efx_for_each_channel(channel, efx)
+	{
 		rc = request_irq(channel->irq, efx->type->irq_handle_msi,
-				 IRQF_PROBE_SHARED, /* Not shared */
-				 efx->msi_context[channel->channel].name,
-				 &efx->msi_context[channel->channel]);
-		if (rc) {
+						 IRQF_PROBE_SHARED, /* Not shared */
+						 efx->msi_context[channel->channel].name,
+						 &efx->msi_context[channel->channel]);
+
+		if (rc)
+		{
 			netif_err(efx, drv, efx->net_dev,
-				  "failed to hook IRQ %d\n", channel->irq);
+					  "failed to hook IRQ %d\n", channel->irq);
 			goto fail2;
 		}
+
 		++n_irqs;
 
 #ifdef CONFIG_RFS_ACCEL
+
 		if (efx->interrupt_mode == EFX_INT_MODE_MSIX &&
-		    channel->channel < efx->n_rx_channels) {
+			channel->channel < efx->n_rx_channels)
+		{
 			rc = irq_cpu_rmap_add(efx->net_dev->rx_cpu_rmap,
-					      channel->irq);
+								  channel->irq);
+
 			if (rc)
+			{
 				goto fail2;
+			}
 		}
+
 #endif
 	}
 
 	return 0;
 
- fail2:
+fail2:
 #ifdef CONFIG_RFS_ACCEL
 	free_irq_cpu_rmap(efx->net_dev->rx_cpu_rmap);
 	efx->net_dev->rx_cpu_rmap = NULL;
 #endif
-	efx_for_each_channel(channel, efx) {
+	efx_for_each_channel(channel, efx)
+	{
 		if (n_irqs-- == 0)
+		{
 			break;
+		}
+
 		free_irq(channel->irq, &efx->msi_context[channel->channel]);
 	}
- fail1:
+fail1:
 	return rc;
 }
 
@@ -156,12 +184,15 @@ void efx_nic_fini_interrupt(struct efx_nic *efx)
 	efx->net_dev->rx_cpu_rmap = NULL;
 #endif
 
-	if (EFX_INT_MODE_USE_MSI(efx)) {
+	if (EFX_INT_MODE_USE_MSI(efx))
+	{
 		/* Disable MSI/MSI-X interrupts */
 		efx_for_each_channel(channel, efx)
-			free_irq(channel->irq,
+		free_irq(channel->irq,
 				 &efx->msi_context[channel->channel]);
-	} else {
+	}
+	else
+	{
 		/* Disable legacy interrupt */
 		free_irq(efx->legacy_irq, efx);
 	}
@@ -176,16 +207,17 @@ void efx_nic_fini_interrupt(struct efx_nic *efx)
 #define REGISTER_REVISION_ED	4
 #define REGISTER_REVISION_EZ	4	/* latest EF10 revision */
 
-struct efx_nic_reg {
-	u32 offset:24;
-	u32 min_revision:3, max_revision:3;
+struct efx_nic_reg
+{
+	u32 offset: 24;
+	u32 min_revision: 3, max_revision: 3;
 };
 
 #define REGISTER(name, arch, min_rev, max_rev) {			\
-	arch ## R_ ## min_rev ## max_rev ## _ ## name,			\
-	REGISTER_REVISION_ ## arch ## min_rev,				\
-	REGISTER_REVISION_ ## arch ## max_rev				\
-}
+		arch ## R_ ## min_rev ## max_rev ## _ ## name,			\
+		REGISTER_REVISION_ ## arch ## min_rev,				\
+		REGISTER_REVISION_ ## arch ## max_rev				\
+	}
 #define REGISTER_AA(name) REGISTER(name, F, A, A)
 #define REGISTER_AB(name) REGISTER(name, F, A, B)
 #define REGISTER_AZ(name) REGISTER(name, F, A, Z)
@@ -194,7 +226,8 @@ struct efx_nic_reg {
 #define REGISTER_CZ(name) REGISTER(name, F, C, Z)
 #define REGISTER_DZ(name) REGISTER(name, E, D, Z)
 
-static const struct efx_nic_reg efx_nic_regs[] = {
+static const struct efx_nic_reg efx_nic_regs[] =
+{
 	REGISTER_AZ(ADR_REGION),
 	REGISTER_AZ(INT_EN_KER),
 	REGISTER_BZ(INT_EN_CHAR),
@@ -304,39 +337,41 @@ static const struct efx_nic_reg efx_nic_regs[] = {
 	REGISTER_DZ(MC_DB_HWRD),
 };
 
-struct efx_nic_reg_table {
-	u32 offset:24;
-	u32 min_revision:3, max_revision:3;
-	u32 step:6, rows:21;
+struct efx_nic_reg_table
+{
+	u32 offset: 24;
+	u32 min_revision: 3, max_revision: 3;
+	u32 step: 6, rows: 21;
 };
 
 #define REGISTER_TABLE_DIMENSIONS(_, offset, arch, min_rev, max_rev, step, rows) { \
-	offset,								\
-	REGISTER_REVISION_ ## arch ## min_rev,				\
-	REGISTER_REVISION_ ## arch ## max_rev,				\
-	step, rows							\
-}
+		offset,								\
+		REGISTER_REVISION_ ## arch ## min_rev,				\
+		REGISTER_REVISION_ ## arch ## max_rev,				\
+		step, rows							\
+	}
 #define REGISTER_TABLE(name, arch, min_rev, max_rev)			\
 	REGISTER_TABLE_DIMENSIONS(					\
-		name, arch ## R_ ## min_rev ## max_rev ## _ ## name,	\
-		arch, min_rev, max_rev,					\
-		arch ## R_ ## min_rev ## max_rev ## _ ## name ## _STEP,	\
-		arch ## R_ ## min_rev ## max_rev ## _ ## name ## _ROWS)
+			name, arch ## R_ ## min_rev ## max_rev ## _ ## name,	\
+			arch, min_rev, max_rev,					\
+			arch ## R_ ## min_rev ## max_rev ## _ ## name ## _STEP,	\
+			arch ## R_ ## min_rev ## max_rev ## _ ## name ## _ROWS)
 #define REGISTER_TABLE_AA(name) REGISTER_TABLE(name, F, A, A)
 #define REGISTER_TABLE_AZ(name) REGISTER_TABLE(name, F, A, Z)
 #define REGISTER_TABLE_BB(name) REGISTER_TABLE(name, F, B, B)
 #define REGISTER_TABLE_BZ(name) REGISTER_TABLE(name, F, B, Z)
 #define REGISTER_TABLE_BB_CZ(name)					\
 	REGISTER_TABLE_DIMENSIONS(name, FR_BZ_ ## name, F, B, B,	\
-				  FR_BZ_ ## name ## _STEP,		\
-				  FR_BB_ ## name ## _ROWS),		\
+							  FR_BZ_ ## name ## _STEP,		\
+							  FR_BB_ ## name ## _ROWS),		\
 	REGISTER_TABLE_DIMENSIONS(name, FR_BZ_ ## name, F, C, Z,	\
-				  FR_BZ_ ## name ## _STEP,		\
-				  FR_CZ_ ## name ## _ROWS)
+							  FR_BZ_ ## name ## _STEP,		\
+							  FR_CZ_ ## name ## _ROWS)
 #define REGISTER_TABLE_CZ(name) REGISTER_TABLE(name, F, C, Z)
 #define REGISTER_TABLE_DZ(name) REGISTER_TABLE(name, E, D, Z)
 
-static const struct efx_nic_reg_table efx_nic_reg_tables[] = {
+static const struct efx_nic_reg_table efx_nic_reg_tables[] =
+{
 	/* DRIVER is not used */
 	/* EVQ_RPTR, TIMER_COMMAND, USR_EV and {RX,TX}_DESC_UPD are WO */
 	REGISTER_TABLE_BB(TX_IPFIL_TBL),
@@ -352,9 +387,9 @@ static const struct efx_nic_reg_table efx_nic_reg_tables[] = {
 	 * 1K entries allows for some expansion of queue count and
 	 * size before we need to change the version. */
 	REGISTER_TABLE_DIMENSIONS(BUF_FULL_TBL_KER, FR_AA_BUF_FULL_TBL_KER,
-				  F, A, A, 8, 1024),
+	F, A, A, 8, 1024),
 	REGISTER_TABLE_DIMENSIONS(BUF_FULL_TBL, FR_BZ_BUF_FULL_TBL,
-				  F, B, Z, 8, 1024),
+	F, B, Z, 8, 1024),
 	REGISTER_TABLE_CZ(RX_MAC_FILTER_TBL0),
 	REGISTER_TABLE_BB_CZ(TIMER_TBL),
 	REGISTER_TABLE_BB_CZ(TX_PACE_TBL),
@@ -375,18 +410,22 @@ size_t efx_nic_get_regs_len(struct efx_nic *efx)
 	size_t len = 0;
 
 	for (reg = efx_nic_regs;
-	     reg < efx_nic_regs + ARRAY_SIZE(efx_nic_regs);
-	     reg++)
+		 reg < efx_nic_regs + ARRAY_SIZE(efx_nic_regs);
+		 reg++)
 		if (efx->type->revision >= reg->min_revision &&
-		    efx->type->revision <= reg->max_revision)
+			efx->type->revision <= reg->max_revision)
+		{
 			len += sizeof(efx_oword_t);
+		}
 
 	for (table = efx_nic_reg_tables;
-	     table < efx_nic_reg_tables + ARRAY_SIZE(efx_nic_reg_tables);
-	     table++)
+		 table < efx_nic_reg_tables + ARRAY_SIZE(efx_nic_reg_tables);
+		 table++)
 		if (efx->type->revision >= table->min_revision &&
-		    efx->type->revision <= table->max_revision)
+			efx->type->revision <= table->max_revision)
+		{
 			len += table->rows * min_t(size_t, table->step, 16);
+		}
 
 	return len;
 }
@@ -397,46 +436,58 @@ void efx_nic_get_regs(struct efx_nic *efx, void *buf)
 	const struct efx_nic_reg_table *table;
 
 	for (reg = efx_nic_regs;
-	     reg < efx_nic_regs + ARRAY_SIZE(efx_nic_regs);
-	     reg++) {
+		 reg < efx_nic_regs + ARRAY_SIZE(efx_nic_regs);
+		 reg++)
+	{
 		if (efx->type->revision >= reg->min_revision &&
-		    efx->type->revision <= reg->max_revision) {
+			efx->type->revision <= reg->max_revision)
+		{
 			efx_reado(efx, (efx_oword_t *)buf, reg->offset);
 			buf += sizeof(efx_oword_t);
 		}
 	}
 
 	for (table = efx_nic_reg_tables;
-	     table < efx_nic_reg_tables + ARRAY_SIZE(efx_nic_reg_tables);
-	     table++) {
+		 table < efx_nic_reg_tables + ARRAY_SIZE(efx_nic_reg_tables);
+		 table++)
+	{
 		size_t size, i;
 
 		if (!(efx->type->revision >= table->min_revision &&
-		      efx->type->revision <= table->max_revision))
+			  efx->type->revision <= table->max_revision))
+		{
 			continue;
+		}
 
 		size = min_t(size_t, table->step, 16);
 
-		for (i = 0; i < table->rows; i++) {
-			switch (table->step) {
-			case 4: /* 32-bit SRAM */
-				efx_readd(efx, buf, table->offset + 4 * i);
-				break;
-			case 8: /* 64-bit SRAM */
-				efx_sram_readq(efx,
-					       efx->membase + table->offset,
-					       buf, i);
-				break;
-			case 16: /* 128-bit-readable register */
-				efx_reado_table(efx, buf, table->offset, i);
-				break;
-			case 32: /* 128-bit register, interleaved */
-				efx_reado_table(efx, buf, table->offset, 2 * i);
-				break;
-			default:
-				WARN_ON(1);
-				return;
+		for (i = 0; i < table->rows; i++)
+		{
+			switch (table->step)
+			{
+				case 4: /* 32-bit SRAM */
+					efx_readd(efx, buf, table->offset + 4 * i);
+					break;
+
+				case 8: /* 64-bit SRAM */
+					efx_sram_readq(efx,
+								   efx->membase + table->offset,
+								   buf, i);
+					break;
+
+				case 16: /* 128-bit-readable register */
+					efx_reado_table(efx, buf, table->offset, i);
+					break;
+
+				case 32: /* 128-bit register, interleaved */
+					efx_reado_table(efx, buf, table->offset, 2 * i);
+					break;
+
+				default:
+					WARN_ON(1);
+					return;
 			}
+
 			buf += size;
 		}
 	}
@@ -454,18 +505,22 @@ void efx_nic_get_regs(struct efx_nic *efx, void *buf)
  * bits in the first @count bits of @mask for which a name is defined.
  */
 size_t efx_nic_describe_stats(const struct efx_hw_stat_desc *desc, size_t count,
-			      const unsigned long *mask, u8 *names)
+							  const unsigned long *mask, u8 *names)
 {
 	size_t visible = 0;
 	size_t index;
 
-	for_each_set_bit(index, mask, count) {
-		if (desc[index].name) {
-			if (names) {
+	for_each_set_bit(index, mask, count)
+	{
+		if (desc[index].name)
+		{
+			if (names)
+			{
 				strlcpy(names, desc[index].name,
-					ETH_GSTRING_LEN);
+						ETH_GSTRING_LEN);
 				names += ETH_GSTRING_LEN;
 			}
+
 			++visible;
 		}
 	}
@@ -488,36 +543,46 @@ size_t efx_nic_describe_stats(const struct efx_hw_stat_desc *desc, size_t count,
  *	directly stored to the corresponding elements of @stats
  */
 void efx_nic_update_stats(const struct efx_hw_stat_desc *desc, size_t count,
-			  const unsigned long *mask,
-			  u64 *stats, const void *dma_buf, bool accumulate)
+						  const unsigned long *mask,
+						  u64 *stats, const void *dma_buf, bool accumulate)
 {
 	size_t index;
 
-	for_each_set_bit(index, mask, count) {
-		if (desc[index].dma_width) {
+	for_each_set_bit(index, mask, count)
+	{
+		if (desc[index].dma_width)
+		{
 			const void *addr = dma_buf + desc[index].offset;
 			u64 val;
 
-			switch (desc[index].dma_width) {
-			case 16:
-				val = le16_to_cpup((__le16 *)addr);
-				break;
-			case 32:
-				val = le32_to_cpup((__le32 *)addr);
-				break;
-			case 64:
-				val = le64_to_cpup((__le64 *)addr);
-				break;
-			default:
-				WARN_ON(1);
-				val = 0;
-				break;
+			switch (desc[index].dma_width)
+			{
+				case 16:
+					val = le16_to_cpup((__le16 *)addr);
+					break;
+
+				case 32:
+					val = le32_to_cpup((__le32 *)addr);
+					break;
+
+				case 64:
+					val = le64_to_cpup((__le64 *)addr);
+					break;
+
+				default:
+					WARN_ON(1);
+					val = 0;
+					break;
 			}
 
 			if (accumulate)
+			{
 				stats[index] += val;
+			}
 			else
+			{
 				stats[index] = val;
+			}
 		}
 	}
 }
@@ -528,6 +593,7 @@ void efx_nic_fix_nodesc_drop_stat(struct efx_nic *efx, u64 *rx_nodesc_drops)
 	if (!(efx->net_dev->flags & IFF_UP) || !efx->rx_nodesc_drops_prev_state)
 		efx->rx_nodesc_drops_while_down +=
 			*rx_nodesc_drops - efx->rx_nodesc_drops_total;
+
 	efx->rx_nodesc_drops_total = *rx_nodesc_drops;
 	efx->rx_nodesc_drops_prev_state = !!(efx->net_dev->flags & IFF_UP);
 	*rx_nodesc_drops -= efx->rx_nodesc_drops_while_down;

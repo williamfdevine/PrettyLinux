@@ -31,13 +31,14 @@ static int a800_power_ctrl(struct dvb_usb_device *d, int onoff)
 
 /* assure to put cold to 0 for iManufacturer == 1 */
 static int a800_identify_state(struct usb_device *udev, struct dvb_usb_device_properties *props,
-	struct dvb_usb_device_description **desc, int *cold)
+							   struct dvb_usb_device_description **desc, int *cold)
 {
 	*cold = udev->descriptor.iManufacturer != 1;
 	return 0;
 }
 
-static struct rc_map_table rc_map_a800_table[] = {
+static struct rc_map_table rc_map_a800_table[] =
+{
 	{ 0x0201, KEY_MODE },      /* SOURCE */
 	{ 0x0200, KEY_POWER2 },      /* POWER */
 	{ 0x0205, KEY_1 },           /* 1 */
@@ -80,20 +81,28 @@ static int a800_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
 {
 	int ret;
 	u8 *key = kmalloc(5, GFP_KERNEL);
-	if (!key)
-		return -ENOMEM;
 
-	if (usb_control_msg(d->udev,usb_rcvctrlpipe(d->udev,0),
-				0x04, USB_TYPE_VENDOR | USB_DIR_IN, 0, 0, key, 5,
-				2000) != 5) {
+	if (!key)
+	{
+		return -ENOMEM;
+	}
+
+	if (usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0),
+						0x04, USB_TYPE_VENDOR | USB_DIR_IN, 0, 0, key, 5,
+						2000) != 5)
+	{
 		ret = -ENODEV;
 		goto out;
 	}
 
 	/* call the universal NEC remote processor, to find out the key's state and event */
-	dvb_usb_nec_rc_key_to_event(d,key,event,state);
+	dvb_usb_nec_rc_key_to_event(d, key, event, state);
+
 	if (key[0] != 0)
+	{
 		deb_rc("key: %*ph\n", 5, key);
+	}
+
 	ret = 0;
 out:
 	kfree(key);
@@ -104,21 +113,23 @@ out:
 static struct dvb_usb_device_properties a800_properties;
 
 static int a800_probe(struct usb_interface *intf,
-		const struct usb_device_id *id)
+					  const struct usb_device_id *id)
 {
 	return dvb_usb_device_init(intf, &a800_properties,
-				   THIS_MODULE, NULL, adapter_nr);
+							   THIS_MODULE, NULL, adapter_nr);
 }
 
 /* do not change the order of the ID table */
-static struct usb_device_id a800_table [] = {
-/* 00 */	{ USB_DEVICE(USB_VID_AVERMEDIA,     USB_PID_AVERMEDIA_DVBT_USB2_COLD) },
-/* 01 */	{ USB_DEVICE(USB_VID_AVERMEDIA,     USB_PID_AVERMEDIA_DVBT_USB2_WARM) },
-			{ }		/* Terminating entry */
+static struct usb_device_id a800_table [] =
+{
+	/* 00 */	{ USB_DEVICE(USB_VID_AVERMEDIA,     USB_PID_AVERMEDIA_DVBT_USB2_COLD) },
+	/* 01 */	{ USB_DEVICE(USB_VID_AVERMEDIA,     USB_PID_AVERMEDIA_DVBT_USB2_WARM) },
+	{ }		/* Terminating entry */
 };
 MODULE_DEVICE_TABLE (usb, a800_table);
 
-static struct dvb_usb_device_properties a800_properties = {
+static struct dvb_usb_device_properties a800_properties =
+{
 	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
 
 	.usb_ctrl = CYPRESS_FX2,
@@ -127,29 +138,30 @@ static struct dvb_usb_device_properties a800_properties = {
 	.num_adapters = 1,
 	.adapter = {
 		{
-		.num_frontends = 1,
-		.fe = {{
-			.caps = DVB_USB_ADAP_HAS_PID_FILTER | DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
-			.pid_filter_count = 32,
-			.streaming_ctrl   = dibusb2_0_streaming_ctrl,
-			.pid_filter       = dibusb_pid_filter,
-			.pid_filter_ctrl  = dibusb_pid_filter_ctrl,
+			.num_frontends = 1,
+			.fe = {{
+					.caps = DVB_USB_ADAP_HAS_PID_FILTER | DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
+					.pid_filter_count = 32,
+					.streaming_ctrl   = dibusb2_0_streaming_ctrl,
+					.pid_filter       = dibusb_pid_filter,
+					.pid_filter_ctrl  = dibusb_pid_filter_ctrl,
 
-			.frontend_attach  = dibusb_dib3000mc_frontend_attach,
-			.tuner_attach     = dibusb_dib3000mc_tuner_attach,
+					.frontend_attach  = dibusb_dib3000mc_frontend_attach,
+					.tuner_attach     = dibusb_dib3000mc_tuner_attach,
 
-			/* parameter for the MPEG2-data transfer */
+					/* parameter for the MPEG2-data transfer */
 					.stream = {
 						.type = USB_BULK,
-				.count = 7,
-				.endpoint = 0x06,
-				.u = {
-					.bulk = {
-						.buffersize = 4096,
-					}
+						.count = 7,
+						.endpoint = 0x06,
+						.u = {
+							.bulk = {
+								.buffersize = 4096,
+							}
+						}
+					},
 				}
 			},
-		}},
 			.size_of_priv     = sizeof(struct dibusb_state),
 		},
 	},
@@ -169,14 +181,16 @@ static struct dvb_usb_device_properties a800_properties = {
 	.generic_bulk_ctrl_endpoint = 0x01,
 	.num_device_descs = 1,
 	.devices = {
-		{   "AVerMedia AverTV DVB-T USB 2.0 (A800)",
+		{
+			"AVerMedia AverTV DVB-T USB 2.0 (A800)",
 			{ &a800_table[0], NULL },
 			{ &a800_table[1], NULL },
 		},
 	}
 };
 
-static struct usb_driver a800_driver = {
+static struct usb_driver a800_driver =
+{
 	.name		= "dvb_usb_a800",
 	.probe		= a800_probe,
 	.disconnect = dvb_usb_device_exit,

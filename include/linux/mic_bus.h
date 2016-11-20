@@ -29,7 +29,8 @@
 #include <linux/interrupt.h>
 #include <linux/dma-mapping.h>
 
-struct mbus_device_id {
+struct mbus_device_id
+{
 	__u32 device;
 	__u32 vendor;
 };
@@ -47,7 +48,8 @@ struct mbus_device_id {
  * be used to communicate with.
  * @index: unique position on the mbus bus
  */
-struct mbus_device {
+struct mbus_device
+{
 	void __iomem *mmio_va;
 	struct mbus_hw_ops *hw_ops;
 	struct mbus_device_id id;
@@ -62,7 +64,8 @@ struct mbus_device {
  * @probe: the function to call when a device is found.  Returns 0 or -errno.
  * @remove: the function to call when a device is removed.
  */
-struct mbus_driver {
+struct mbus_driver
+{
 	struct device_driver driver;
 	const struct mbus_device_id *id_table;
 	int (*probe)(struct mbus_device *dev);
@@ -78,21 +81,22 @@ struct mic_irq;
 /**
  * mbus_hw_ops - Hardware operations for accessing a MIC device on the MIC bus.
  */
-struct mbus_hw_ops {
-	struct mic_irq* (*request_threaded_irq)(struct mbus_device *mbdev,
-						irq_handler_t handler,
-						irq_handler_t thread_fn,
-						const char *name, void *data,
-						int intr_src);
+struct mbus_hw_ops
+{
+	struct mic_irq *(*request_threaded_irq)(struct mbus_device *mbdev,
+											irq_handler_t handler,
+											irq_handler_t thread_fn,
+											const char *name, void *data,
+											int intr_src);
 	void (*free_irq)(struct mbus_device *mbdev,
-			 struct mic_irq *cookie, void *data);
+					 struct mic_irq *cookie, void *data);
 	void (*ack_interrupt)(struct mbus_device *mbdev, int num);
 };
 
 struct mbus_device *
 mbus_register_device(struct device *pdev, int id, struct dma_map_ops *dma_ops,
-		     struct mbus_hw_ops *hw_ops, int index,
-		     void __iomem *mmio_va);
+					 struct mbus_hw_ops *hw_ops, int index,
+					 void __iomem *mmio_va);
 void mbus_unregister_device(struct mbus_device *mbdev);
 
 int mbus_register_driver(struct mbus_driver *drv);

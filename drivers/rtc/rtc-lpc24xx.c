@@ -64,7 +64,8 @@
 #define rtc_readl(dev, reg)		readl((dev)->rtc_base + (reg))
 #define rtc_writel(dev, reg, val)	writel((val), (dev)->rtc_base + (reg))
 
-struct lpc24xx_rtc {
+struct lpc24xx_rtc
+{
 	void __iomem *rtc_base;
 	struct rtc_device *rtc;
 	struct clk *clk_rtc;
@@ -151,7 +152,9 @@ static int lpc24xx_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *wkalrm)
 	rtc_writel(rtc, LPC24XX_ALYEAR, tm->tm_year);
 
 	if (wkalrm->enabled)
+	{
 		rtc_writel(rtc, LPC24XX_AMR, 0);
+	}
 
 	return 0;
 }
@@ -161,9 +164,13 @@ static int lpc24xx_rtc_alarm_irq_enable(struct device *dev, unsigned int enable)
 	struct lpc24xx_rtc *rtc = dev_get_drvdata(dev);
 
 	if (enable)
+	{
 		rtc_writel(rtc, LPC24XX_AMR, 0);
+	}
 	else
+	{
 		rtc_writel(rtc, LPC24XX_AMR, LPC24XX_ALARM_DISABLE);
+	}
 
 	return 0;
 }
@@ -176,7 +183,9 @@ static irqreturn_t lpc24xx_rtc_interrupt(int irq, void *data)
 
 	/* Check interrupt cause */
 	rtc_iir = rtc_readl(rtc, LPC24XX_ILR);
-	if (rtc_iir & LPC24XX_RTCALF) {
+
+	if (rtc_iir & LPC24XX_RTCALF)
+	{
 		events |= RTC_AF;
 		rtc_writel(rtc, LPC24XX_AMR, LPC24XX_ALARM_DISABLE);
 	}
@@ -188,7 +197,8 @@ static irqreturn_t lpc24xx_rtc_interrupt(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
-static const struct rtc_class_ops lpc24xx_rtc_ops = {
+static const struct rtc_class_ops lpc24xx_rtc_ops =
+{
 	.read_time		= lpc24xx_rtc_read_time,
 	.set_time		= lpc24xx_rtc_set_time,
 	.read_alarm		= lpc24xx_rtc_read_alarm,
@@ -203,40 +213,56 @@ static int lpc24xx_rtc_probe(struct platform_device *pdev)
 	int irq, ret;
 
 	rtc = devm_kzalloc(&pdev->dev, sizeof(*rtc), GFP_KERNEL);
+
 	if (!rtc)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	rtc->rtc_base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(rtc->rtc_base))
+	{
 		return PTR_ERR(rtc->rtc_base);
+	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_warn(&pdev->dev, "can't get interrupt resource\n");
 		return irq;
 	}
 
 	rtc->clk_rtc = devm_clk_get(&pdev->dev, "rtc");
-	if (IS_ERR(rtc->clk_rtc)) {
+
+	if (IS_ERR(rtc->clk_rtc))
+	{
 		dev_err(&pdev->dev, "error getting rtc clock\n");
 		return PTR_ERR(rtc->clk_rtc);
 	}
 
 	rtc->clk_reg = devm_clk_get(&pdev->dev, "reg");
-	if (IS_ERR(rtc->clk_reg)) {
+
+	if (IS_ERR(rtc->clk_reg))
+	{
 		dev_err(&pdev->dev, "error getting reg clock\n");
 		return PTR_ERR(rtc->clk_reg);
 	}
 
 	ret = clk_prepare_enable(rtc->clk_rtc);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to enable rtc clock\n");
 		return ret;
 	}
 
 	ret = clk_prepare_enable(rtc->clk_reg);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to enable reg clock\n");
 		goto disable_rtc_clk;
 	}
@@ -250,15 +276,19 @@ static int lpc24xx_rtc_probe(struct platform_device *pdev)
 	rtc_writel(rtc, LPC24XX_CCR, LPC24XX_CLKEN | LPC178X_CCALEN);
 
 	ret = devm_request_irq(&pdev->dev, irq, lpc24xx_rtc_interrupt, 0,
-			       pdev->name, rtc);
-	if (ret < 0) {
+						   pdev->name, rtc);
+
+	if (ret < 0)
+	{
 		dev_warn(&pdev->dev, "can't request interrupt\n");
 		goto disable_clks;
 	}
 
 	rtc->rtc = devm_rtc_device_register(&pdev->dev, "lpc24xx-rtc",
-					    &lpc24xx_rtc_ops, THIS_MODULE);
-	if (IS_ERR(rtc->rtc)) {
+										&lpc24xx_rtc_ops, THIS_MODULE);
+
+	if (IS_ERR(rtc->rtc))
+	{
 		dev_err(&pdev->dev, "can't register rtc device\n");
 		ret = PTR_ERR(rtc->rtc);
 		goto disable_clks;
@@ -289,13 +319,15 @@ static int lpc24xx_rtc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id lpc24xx_rtc_match[] = {
+static const struct of_device_id lpc24xx_rtc_match[] =
+{
 	{ .compatible = "nxp,lpc1788-rtc" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, lpc24xx_rtc_match);
 
-static struct platform_driver lpc24xx_rtc_driver = {
+static struct platform_driver lpc24xx_rtc_driver =
+{
 	.probe	= lpc24xx_rtc_probe,
 	.remove	= lpc24xx_rtc_remove,
 	.driver	= {

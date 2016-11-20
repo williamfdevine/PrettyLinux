@@ -41,7 +41,8 @@
  * providing 3 GPIO pins.
  */
 
-struct spi_lp8841_rtc {
+struct spi_lp8841_rtc
+{
 	void		*iomem;
 	unsigned long	state;
 };
@@ -50,9 +51,14 @@ static inline void
 setsck(struct spi_lp8841_rtc *data, int is_on)
 {
 	if (is_on)
+	{
 		data->state |= SPI_LP8841_RTC_CLK;
+	}
 	else
+	{
 		data->state &= ~SPI_LP8841_RTC_CLK;
+	}
+
 	writeb(data->state, data->iomem);
 }
 
@@ -60,9 +66,14 @@ static inline void
 setmosi(struct spi_lp8841_rtc *data, int is_on)
 {
 	if (is_on)
+	{
 		data->state |= SPI_LP8841_RTC_MOSI;
+	}
 	else
+	{
 		data->state &= ~SPI_LP8841_RTC_MOSI;
+	}
+
 	writeb(data->state, data->iomem);
 }
 
@@ -74,25 +85,32 @@ getmiso(struct spi_lp8841_rtc *data)
 
 static inline u32
 bitbang_txrx_be_cpha0_lsb(struct spi_lp8841_rtc *data,
-		unsigned usecs, unsigned cpol, unsigned flags,
-		u32 word, u8 bits)
+						  unsigned usecs, unsigned cpol, unsigned flags,
+						  u32 word, u8 bits)
 {
 	/* if (cpol == 0) this is SPI_MODE_0; else this is SPI_MODE_2 */
 
 	u32 shift = 32 - bits;
+
 	/* clock starts at inactive polarity */
-	for (; likely(bits); bits--) {
+	for (; likely(bits); bits--)
+	{
 
 		/* setup LSB (to slave) on leading edge */
 		if ((flags & SPI_MASTER_NO_TX) == 0)
+		{
 			setmosi(data, (word & 1));
+		}
 
 		usleep_range(usecs, usecs + 1);	/* T(setup) */
 
 		/* sample LSB (from slave) on trailing edge */
 		word >>= 1;
+
 		if ((flags & SPI_MASTER_NO_RX) == 0)
+		{
 			word |= (getmiso(data) << 31);
+		}
 
 		setsck(data, !cpol);
 		usleep_range(usecs, usecs + 1);
@@ -106,8 +124,8 @@ bitbang_txrx_be_cpha0_lsb(struct spi_lp8841_rtc *data,
 
 static int
 spi_lp8841_rtc_transfer_one(struct spi_master *master,
-			    struct spi_device *spi,
-			    struct spi_transfer *t)
+							struct spi_device *spi,
+							struct spi_transfer *t)
 {
 	struct spi_lp8841_rtc	*data = spi_master_get_devdata(master);
 	unsigned		count = t->len;
@@ -116,25 +134,34 @@ spi_lp8841_rtc_transfer_one(struct spi_master *master,
 	u8			word = 0;
 	int			ret = 0;
 
-	if (tx) {
+	if (tx)
+	{
 		data->state &= ~SPI_LP8841_RTC_nWE;
 		writeb(data->state, data->iomem);
-		while (likely(count > 0)) {
+
+		while (likely(count > 0))
+		{
 			word = *tx++;
 			bitbang_txrx_be_cpha0_lsb(data, 1, 0,
-					SPI_MASTER_NO_RX, word, 8);
+									  SPI_MASTER_NO_RX, word, 8);
 			count--;
 		}
-	} else if (rx) {
+	}
+	else if (rx)
+	{
 		data->state |= SPI_LP8841_RTC_nWE;
 		writeb(data->state, data->iomem);
-		while (likely(count > 0)) {
+
+		while (likely(count > 0))
+		{
 			word = bitbang_txrx_be_cpha0_lsb(data, 1, 0,
-					SPI_MASTER_NO_TX, word, 8);
+											 SPI_MASTER_NO_TX, word, 8);
 			*rx++ = word;
 			count--;
 		}
-	} else {
+	}
+	else
+	{
 		ret = -EINVAL;
 	}
 
@@ -150,7 +177,9 @@ spi_lp8841_rtc_set_cs(struct spi_device *spi, bool enable)
 
 	data->state = 0;
 	writeb(data->state, data->iomem);
-	if (enable) {
+
+	if (enable)
+	{
 		usleep_range(4, 5);
 		data->state |= SPI_LP8841_RTC_CE;
 		writeb(data->state, data->iomem);
@@ -161,17 +190,20 @@ spi_lp8841_rtc_set_cs(struct spi_device *spi, bool enable)
 static int
 spi_lp8841_rtc_setup(struct spi_device *spi)
 {
-	if ((spi->mode & SPI_CS_HIGH) == 0) {
+	if ((spi->mode & SPI_CS_HIGH) == 0)
+	{
 		dev_err(&spi->dev, "unsupported active low chip select\n");
 		return -EINVAL;
 	}
 
-	if ((spi->mode & SPI_LSB_FIRST) == 0) {
+	if ((spi->mode & SPI_LSB_FIRST) == 0)
+	{
 		dev_err(&spi->dev, "unsupported MSB first mode\n");
 		return -EINVAL;
 	}
 
-	if ((spi->mode & SPI_3WIRE) == 0) {
+	if ((spi->mode & SPI_3WIRE) == 0)
+	{
 		dev_err(&spi->dev, "unsupported wiring. 3 wires required\n");
 		return -EINVAL;
 	}
@@ -180,7 +212,8 @@ spi_lp8841_rtc_setup(struct spi_device *spi)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id spi_lp8841_rtc_dt_ids[] = {
+static const struct of_device_id spi_lp8841_rtc_dt_ids[] =
+{
 	{ .compatible = "icpdas,lp8841-spi-rtc" },
 	{ }
 };
@@ -197,8 +230,12 @@ spi_lp8841_rtc_probe(struct platform_device *pdev)
 	void				*iomem;
 
 	master = spi_alloc_master(&pdev->dev, sizeof(*data));
+
 	if (!master)
+	{
 		return -ENOMEM;
+	}
+
 	platform_set_drvdata(pdev, master);
 
 	master->flags = SPI_MASTER_HALF_DUPLEX;
@@ -219,14 +256,18 @@ spi_lp8841_rtc_probe(struct platform_device *pdev)
 	iomem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	data->iomem = devm_ioremap_resource(&pdev->dev, iomem);
 	ret = PTR_ERR_OR_ZERO(data->iomem);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to get IO address\n");
 		goto err_put_master;
 	}
 
 	/* register with the SPI framework */
 	ret = devm_spi_register_master(&pdev->dev, master);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "cannot register spi master\n");
 		goto err_put_master;
 	}
@@ -242,7 +283,8 @@ err_put_master:
 
 MODULE_ALIAS("platform:" DRIVER_NAME);
 
-static struct platform_driver spi_lp8841_rtc_driver = {
+static struct platform_driver spi_lp8841_rtc_driver =
+{
 	.driver = {
 		.name	= DRIVER_NAME,
 		.of_match_table = of_match_ptr(spi_lp8841_rtc_dt_ids),

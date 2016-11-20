@@ -31,7 +31,8 @@
 
 static inline const unsigned short *tvaudio_addrs(void)
 {
-	static const unsigned short addrs[] = {
+	static const unsigned short addrs[] =
+	{
 		I2C_ADDR_TDA8425   >> 1,
 		I2C_ADDR_TEA6300   >> 1,
 		I2C_ADDR_TEA6420   >> 1,

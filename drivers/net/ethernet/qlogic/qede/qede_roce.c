@@ -48,17 +48,21 @@ bool qede_roce_supported(struct qede_dev *dev)
 static void _qede_roce_dev_add(struct qede_dev *edev)
 {
 	if (!qedr_drv)
+	{
 		return;
+	}
 
 	edev->rdma_info.qedr_dev = qedr_drv->add(edev->cdev, edev->pdev,
-						 edev->ndev);
+							   edev->ndev);
 }
 
 static int qede_roce_create_wq(struct qede_dev *edev)
 {
 	INIT_LIST_HEAD(&edev->rdma_info.roce_event_list);
 	edev->rdma_info.roce_wq = create_singlethread_workqueue("roce_wq");
-	if (!edev->rdma_info.roce_wq) {
+
+	if (!edev->rdma_info.roce_wq)
+	{
 		DP_NOTICE(edev, "qedr: Could not create workqueue\n");
 		return -ENOMEM;
 	}
@@ -72,9 +76,11 @@ static void qede_roce_cleanup_event(struct qede_dev *edev)
 	struct qede_roce_event_work *event_node;
 
 	flush_workqueue(edev->rdma_info.roce_wq);
-	while (!list_empty(head)) {
+
+	while (!list_empty(head))
+	{
 		event_node = list_entry(head->next, struct qede_roce_event_work,
-					list);
+								list);
 		cancel_work_sync(&event_node->work);
 		list_del(&event_node->list);
 		kfree(event_node);
@@ -91,10 +97,14 @@ int qede_roce_dev_add(struct qede_dev *edev)
 {
 	int rc = 0;
 
-	if (qede_roce_supported(edev)) {
+	if (qede_roce_supported(edev))
+	{
 		rc = qede_roce_create_wq(edev);
+
 		if (rc)
+		{
 			return rc;
+		}
 
 		INIT_LIST_HEAD(&edev->rdma_info.entry);
 		mutex_lock(&qedr_dev_list_lock);
@@ -109,14 +119,19 @@ int qede_roce_dev_add(struct qede_dev *edev)
 static void _qede_roce_dev_remove(struct qede_dev *edev)
 {
 	if (qedr_drv && qedr_drv->remove && edev->rdma_info.qedr_dev)
+	{
 		qedr_drv->remove(edev->rdma_info.qedr_dev);
+	}
+
 	edev->rdma_info.qedr_dev = NULL;
 }
 
 void qede_roce_dev_remove(struct qede_dev *edev)
 {
 	if (!qede_roce_supported(edev))
+	{
 		return;
+	}
 
 	qede_roce_destroy_wq(edev);
 	mutex_lock(&qedr_dev_list_lock);
@@ -128,13 +143,17 @@ void qede_roce_dev_remove(struct qede_dev *edev)
 static void _qede_roce_dev_open(struct qede_dev *edev)
 {
 	if (qedr_drv && edev->rdma_info.qedr_dev && qedr_drv->notify)
+	{
 		qedr_drv->notify(edev->rdma_info.qedr_dev, QEDE_UP);
+	}
 }
 
 static void qede_roce_dev_open(struct qede_dev *edev)
 {
 	if (!qede_roce_supported(edev))
+	{
 		return;
+	}
 
 	mutex_lock(&qedr_dev_list_lock);
 	_qede_roce_dev_open(edev);
@@ -144,13 +163,17 @@ static void qede_roce_dev_open(struct qede_dev *edev)
 static void _qede_roce_dev_close(struct qede_dev *edev)
 {
 	if (qedr_drv && edev->rdma_info.qedr_dev && qedr_drv->notify)
+	{
 		qedr_drv->notify(edev->rdma_info.qedr_dev, QEDE_DOWN);
+	}
 }
 
 static void qede_roce_dev_close(struct qede_dev *edev)
 {
 	if (!qede_roce_supported(edev))
+	{
 		return;
+	}
 
 	mutex_lock(&qedr_dev_list_lock);
 	_qede_roce_dev_close(edev);
@@ -160,11 +183,17 @@ static void qede_roce_dev_close(struct qede_dev *edev)
 static void qede_roce_dev_shutdown(struct qede_dev *edev)
 {
 	if (!qede_roce_supported(edev))
+	{
 		return;
+	}
 
 	mutex_lock(&qedr_dev_list_lock);
+
 	if (qedr_drv && edev->rdma_info.qedr_dev && qedr_drv->notify)
+	{
 		qedr_drv->notify(edev->rdma_info.qedr_dev, QEDE_CLOSE);
+	}
+
 	mutex_unlock(&qedr_dev_list_lock);
 }
 
@@ -174,25 +203,32 @@ int qede_roce_register_driver(struct qedr_driver *drv)
 	u8 qedr_counter = 0;
 
 	mutex_lock(&qedr_dev_list_lock);
-	if (qedr_drv) {
+
+	if (qedr_drv)
+	{
 		mutex_unlock(&qedr_dev_list_lock);
 		return -EINVAL;
 	}
+
 	qedr_drv = drv;
 
-	list_for_each_entry(edev, &qedr_dev_list, rdma_info.entry) {
+	list_for_each_entry(edev, &qedr_dev_list, rdma_info.entry)
+	{
 		struct net_device *ndev;
 
 		qedr_counter++;
 		_qede_roce_dev_add(edev);
 		ndev = edev->ndev;
+
 		if (netif_running(ndev) && netif_oper_up(ndev))
+		{
 			_qede_roce_dev_open(edev);
+		}
 	}
 	mutex_unlock(&qedr_dev_list_lock);
 
 	DP_INFO(edev, "qedr: discovered and registered %d RoCE funcs\n",
-		qedr_counter);
+			qedr_counter);
 
 	return 0;
 }
@@ -203,9 +239,12 @@ void qede_roce_unregister_driver(struct qedr_driver *drv)
 	struct qede_dev *edev;
 
 	mutex_lock(&qedr_dev_list_lock);
-	list_for_each_entry(edev, &qedr_dev_list, rdma_info.entry) {
+	list_for_each_entry(edev, &qedr_dev_list, rdma_info.entry)
+	{
 		if (edev->rdma_info.qedr_dev)
+		{
 			_qede_roce_dev_remove(edev);
+		}
 	}
 	qedr_drv = NULL;
 	mutex_unlock(&qedr_dev_list_lock);
@@ -215,37 +254,48 @@ EXPORT_SYMBOL(qede_roce_unregister_driver);
 static void qede_roce_changeaddr(struct qede_dev *edev)
 {
 	if (!qede_roce_supported(edev))
+	{
 		return;
+	}
 
 	if (qedr_drv && edev->rdma_info.qedr_dev && qedr_drv->notify)
+	{
 		qedr_drv->notify(edev->rdma_info.qedr_dev, QEDE_CHANGE_ADDR);
+	}
 }
 
 struct qede_roce_event_work *qede_roce_get_free_event_node(struct qede_dev
-							   *edev)
+		*edev)
 {
 	struct qede_roce_event_work *event_node = NULL;
 	struct list_head *list_node = NULL;
 	bool found = false;
 
-	list_for_each(list_node, &edev->rdma_info.roce_event_list) {
+	list_for_each(list_node, &edev->rdma_info.roce_event_list)
+	{
 		event_node = list_entry(list_node, struct qede_roce_event_work,
-					list);
-		if (!work_pending(&event_node->work)) {
+								list);
+
+		if (!work_pending(&event_node->work))
+		{
 			found = true;
 			break;
 		}
 	}
 
-	if (!found) {
+	if (!found)
+	{
 		event_node = kzalloc(sizeof(*event_node), GFP_KERNEL);
-		if (!event_node) {
+
+		if (!event_node)
+		{
 			DP_NOTICE(edev,
-				  "qedr: Could not allocate memory for roce work\n");
+					  "qedr: Could not allocate memory for roce work\n");
 			return NULL;
 		}
+
 		list_add_tail(&event_node->list,
-			      &edev->rdma_info.roce_event_list);
+					  &edev->rdma_info.roce_event_list);
 	}
 
 	return event_node;
@@ -261,35 +311,45 @@ static void qede_roce_handle_event(struct work_struct *work)
 	event = event_node->event;
 	edev = event_node->ptr;
 
-	switch (event) {
-	case QEDE_UP:
-		qede_roce_dev_open(edev);
-		break;
-	case QEDE_DOWN:
-		qede_roce_dev_close(edev);
-		break;
-	case QEDE_CLOSE:
-		qede_roce_dev_shutdown(edev);
-		break;
-	case QEDE_CHANGE_ADDR:
-		qede_roce_changeaddr(edev);
-		break;
-	default:
-		DP_NOTICE(edev, "Invalid roce event %d", event);
+	switch (event)
+	{
+		case QEDE_UP:
+			qede_roce_dev_open(edev);
+			break;
+
+		case QEDE_DOWN:
+			qede_roce_dev_close(edev);
+			break;
+
+		case QEDE_CLOSE:
+			qede_roce_dev_shutdown(edev);
+			break;
+
+		case QEDE_CHANGE_ADDR:
+			qede_roce_changeaddr(edev);
+			break;
+
+		default:
+			DP_NOTICE(edev, "Invalid roce event %d", event);
 	}
 }
 
 static void qede_roce_add_event(struct qede_dev *edev,
-				enum qede_roce_event event)
+								enum qede_roce_event event)
 {
 	struct qede_roce_event_work *event_node;
 
 	if (!edev->rdma_info.qedr_dev)
+	{
 		return;
+	}
 
 	event_node = qede_roce_get_free_event_node(edev);
+
 	if (!event_node)
+	{
 		return;
+	}
 
 	event_node->event = event;
 	event_node->ptr = edev;

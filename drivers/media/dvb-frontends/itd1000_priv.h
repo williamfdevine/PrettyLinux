@@ -22,7 +22,8 @@
 #ifndef ITD1000_PRIV_H
 #define ITD1000_PRIV_H
 
-struct itd1000_state {
+struct itd1000_state
+{
 	struct itd1000_config *cfg;
 	struct i2c_adapter    *i2c;
 
@@ -34,7 +35,8 @@ struct itd1000_state {
 	u8 shadow[256];
 };
 
-enum itd1000_register {
+enum itd1000_register
+{
 	VCO_CHP1 = 0x65,
 	VCO_CHP2,
 	PLLCON1,

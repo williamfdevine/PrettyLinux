@@ -7,7 +7,8 @@
 extern const char *const pptp_msg_name[];
 
 /* state of the control session */
-enum pptp_ctrlsess_state {
+enum pptp_ctrlsess_state
+{
 	PPTP_SESSION_NONE,			/* no session present */
 	PPTP_SESSION_ERROR,			/* some session error */
 	PPTP_SESSION_STOPREQ,			/* stop_sess request seen */
@@ -16,7 +17,8 @@ enum pptp_ctrlsess_state {
 };
 
 /* state of the call inside the control session */
-enum pptp_ctrlcall_state {
+enum pptp_ctrlcall_state
+{
 	PPTP_CALL_NONE,
 	PPTP_CALL_ERROR,
 	PPTP_CALL_OUT_REQ,
@@ -28,7 +30,8 @@ enum pptp_ctrlcall_state {
 };
 
 /* conntrack private data */
-struct nf_ct_pptp_master {
+struct nf_ct_pptp_master
+{
 	enum pptp_ctrlsess_state sstate;	/* session state */
 	enum pptp_ctrlcall_state cstate;	/* call state */
 	__be16 pac_call_id;			/* call id of PAC */
@@ -39,7 +42,8 @@ struct nf_ct_pptp_master {
 	struct nf_ct_gre_keymap *keymap[IP_CT_DIR_MAX];
 };
 
-struct nf_nat_pptp {
+struct nf_nat_pptp
+{
 	__be16 pns_call_id;			/* NAT'ed PNS call id */
 	__be16 pac_call_id;			/* NAT'ed PAC call id */
 };
@@ -53,7 +57,8 @@ struct nf_nat_pptp {
 
 #define PPTP_MAGIC_COOKIE	0x1a2b3c4d
 
-struct pptp_pkt_hdr {
+struct pptp_pkt_hdr
+{
 	__u16	packetLength;
 	__be16	packetType;
 	__be32	magicCookie;
@@ -87,7 +92,8 @@ struct pptp_pkt_hdr {
 #define PPTP_BAD_CALLID			5
 #define PPTP_REMOVE_DEVICE_ERROR	6
 
-struct PptpControlHeader {
+struct PptpControlHeader
+{
 	__be16	messageType;
 	__u16	reserved;
 };
@@ -100,7 +106,8 @@ struct PptpControlHeader {
 #define PPTP_BEARER_CAP_ANALOG		0x1
 #define PPTP_BEARER_CAP_DIGITAL		0x2
 
-struct PptpStartSessionRequest {
+struct PptpStartSessionRequest
+{
 	__be16	protocolVersion;
 	__u16	reserved1;
 	__be32	framingCapability;
@@ -118,7 +125,8 @@ struct PptpStartSessionRequest {
 #define PPTP_START_NOT_AUTHORIZED	4
 #define PPTP_START_UNKNOWN_PROTOCOL	5
 
-struct PptpStartSessionReply {
+struct PptpStartSessionReply
+{
 	__be16	protocolVersion;
 	__u8	resultCode;
 	__u8	generalErrorCode;
@@ -135,7 +143,8 @@ struct PptpStartSessionReply {
 #define PPTP_STOP_PROTOCOL		2
 #define PPTP_STOP_LOCAL_SHUTDOWN	3
 
-struct PptpStopSessionRequest {
+struct PptpStopSessionRequest
+{
 	__u8	reason;
 	__u8	reserved1;
 	__u16	reserved2;
@@ -145,13 +154,15 @@ struct PptpStopSessionRequest {
 #define PPTP_STOP_OK			1
 #define PPTP_STOP_GENERAL_ERROR		2
 
-struct PptpStopSessionReply {
+struct PptpStopSessionReply
+{
 	__u8	resultCode;
 	__u8	generalErrorCode;
 	__u16	reserved1;
 };
 
-struct PptpEchoRequest {
+struct PptpEchoRequest
+{
 	__be32 identNumber;
 };
 
@@ -159,7 +170,8 @@ struct PptpEchoRequest {
 #define PPTP_ECHO_OK			1
 #define PPTP_ECHO_GENERAL_ERROR		2
 
-struct PptpEchoReply {
+struct PptpEchoReply
+{
 	__be32	identNumber;
 	__u8	resultCode;
 	__u8	generalErrorCode;
@@ -176,7 +188,8 @@ struct PptpEchoReply {
 #define PPTP_DIGITAL_TYPE		2
 #define PPTP_DONT_CARE_BEARER_TYPE	3
 
-struct PptpOutCallRequest {
+struct PptpOutCallRequest
+{
 	__be16	callID;
 	__be16	callSerialNumber;
 	__be32	minBPS;
@@ -200,7 +213,8 @@ struct PptpOutCallRequest {
 #define PPTP_OUTCALL_TIMEOUT		6
 #define PPTP_OUTCALL_DONT_ACCEPT	7
 
-struct PptpOutCallReply {
+struct PptpOutCallReply
+{
 	__be16	callID;
 	__be16	peersCallID;
 	__u8	resultCode;
@@ -212,7 +226,8 @@ struct PptpOutCallReply {
 	__be32	physChannelID;
 };
 
-struct PptpInCallRequest {
+struct PptpInCallRequest
+{
 	__be16	callID;
 	__be16	callSerialNumber;
 	__be32	callBearerType;
@@ -229,7 +244,8 @@ struct PptpInCallRequest {
 #define PPTP_INCALL_GENERAL_ERROR	2
 #define PPTP_INCALL_DONT_ACCEPT		3
 
-struct PptpInCallReply {
+struct PptpInCallReply
+{
 	__be16	callID;
 	__be16	peersCallID;
 	__u8	resultCode;
@@ -239,7 +255,8 @@ struct PptpInCallReply {
 	__u16	reserved;
 };
 
-struct PptpInCallConnected {
+struct PptpInCallConnected
+{
 	__be16	peersCallID;
 	__u16	reserved;
 	__be32	connectSpeed;
@@ -248,12 +265,14 @@ struct PptpInCallConnected {
 	__be32	callFramingType;
 };
 
-struct PptpClearCallRequest {
+struct PptpClearCallRequest
+{
 	__be16	callID;
 	__u16	reserved;
 };
 
-struct PptpCallDisconnectNotify {
+struct PptpCallDisconnectNotify
+{
 	__be16	callID;
 	__u8	resultCode;
 	__u8	generalErrorCode;
@@ -262,7 +281,8 @@ struct PptpCallDisconnectNotify {
 	__u8	callStatistics[128];
 };
 
-struct PptpWanErrorNotify {
+struct PptpWanErrorNotify
+{
 	__be16	peersCallID;
 	__u16	reserved;
 	__be32	crcErrors;
@@ -273,14 +293,16 @@ struct PptpWanErrorNotify {
 	__be32	alignmentErrors;
 };
 
-struct PptpSetLinkInfo {
+struct PptpSetLinkInfo
+{
 	__be16	peersCallID;
 	__u16	reserved;
 	__be32	sendAccm;
 	__be32	recvAccm;
 };
 
-union pptp_ctrl_union {
+union pptp_ctrl_union
+{
 	struct PptpStartSessionRequest	sreq;
 	struct PptpStartSessionReply	srep;
 	struct PptpStopSessionRequest	streq;
@@ -302,25 +324,25 @@ struct nf_conntrack_expect;
 
 extern int
 (*nf_nat_pptp_hook_outbound)(struct sk_buff *skb,
-			     struct nf_conn *ct, enum ip_conntrack_info ctinfo,
-			     unsigned int protoff,
-			     struct PptpControlHeader *ctlh,
-			     union pptp_ctrl_union *pptpReq);
+							 struct nf_conn *ct, enum ip_conntrack_info ctinfo,
+							 unsigned int protoff,
+							 struct PptpControlHeader *ctlh,
+							 union pptp_ctrl_union *pptpReq);
 
 extern int
 (*nf_nat_pptp_hook_inbound)(struct sk_buff *skb,
-			    struct nf_conn *ct, enum ip_conntrack_info ctinfo,
-			    unsigned int protoff,
-			    struct PptpControlHeader *ctlh,
-			    union pptp_ctrl_union *pptpReq);
+							struct nf_conn *ct, enum ip_conntrack_info ctinfo,
+							unsigned int protoff,
+							struct PptpControlHeader *ctlh,
+							union pptp_ctrl_union *pptpReq);
 
 extern void
 (*nf_nat_pptp_hook_exp_gre)(struct nf_conntrack_expect *exp_orig,
-			    struct nf_conntrack_expect *exp_reply);
+							struct nf_conntrack_expect *exp_reply);
 
 extern void
 (*nf_nat_pptp_hook_expectfn)(struct nf_conn *ct,
-			     struct nf_conntrack_expect *exp);
+							 struct nf_conntrack_expect *exp);
 
 #endif /* __KERNEL__ */
 #endif /* _NF_CONNTRACK_PPTP_H */

@@ -79,32 +79,32 @@ static const u64 shift = 1;
 #define L3_STATUS_0_MAD2DTA_REQ		(shift << 61)
 
 #define L3_STATUS_0_TIMEOUT_MASK	(L3_STATUS_0_MPUIA_BRST		\
-					| L3_STATUS_0_MPUIA_RSP		\
-					| L3_STATUS_0_IVAIA_BRST	\
-					| L3_STATUS_0_IVAIA_RSP		\
-					| L3_STATUS_0_SGXIA_BRST	\
-					| L3_STATUS_0_SGXIA_RSP		\
-					| L3_STATUS_0_CAMIA_BRST	\
-					| L3_STATUS_0_CAMIA_RSP		\
-					| L3_STATUS_0_DISPIA_BRST	\
-					| L3_STATUS_0_DISPIA_RSP	\
-					| L3_STATUS_0_DMARDIA_BRST	\
-					| L3_STATUS_0_DMARDIA_RSP	\
-					| L3_STATUS_0_DMAWRIA_BRST	\
-					| L3_STATUS_0_DMAWRIA_RSP	\
-					| L3_STATUS_0_USBOTGIA_BRST	\
-					| L3_STATUS_0_USBOTGIA_RSP	\
-					| L3_STATUS_0_USBHOSTIA_BRST	\
-					| L3_STATUS_0_SMSTA_REQ		\
-					| L3_STATUS_0_GPMCTA_REQ	\
-					| L3_STATUS_0_OCMRAMTA_REQ	\
-					| L3_STATUS_0_OCMROMTA_REQ	\
-					| L3_STATUS_0_IVATA_REQ		\
-					| L3_STATUS_0_SGXTA_REQ		\
-					| L3_STATUS_0_L4CORETA_REQ	\
-					| L3_STATUS_0_L4PERTA_REQ	\
-					| L3_STATUS_0_L4EMUTA_REQ	\
-					| L3_STATUS_0_MAD2DTA_REQ)
+									 | L3_STATUS_0_MPUIA_RSP		\
+									 | L3_STATUS_0_IVAIA_BRST	\
+									 | L3_STATUS_0_IVAIA_RSP		\
+									 | L3_STATUS_0_SGXIA_BRST	\
+									 | L3_STATUS_0_SGXIA_RSP		\
+									 | L3_STATUS_0_CAMIA_BRST	\
+									 | L3_STATUS_0_CAMIA_RSP		\
+									 | L3_STATUS_0_DISPIA_BRST	\
+									 | L3_STATUS_0_DISPIA_RSP	\
+									 | L3_STATUS_0_DMARDIA_BRST	\
+									 | L3_STATUS_0_DMARDIA_RSP	\
+									 | L3_STATUS_0_DMAWRIA_BRST	\
+									 | L3_STATUS_0_DMAWRIA_RSP	\
+									 | L3_STATUS_0_USBOTGIA_BRST	\
+									 | L3_STATUS_0_USBOTGIA_RSP	\
+									 | L3_STATUS_0_USBHOSTIA_BRST	\
+									 | L3_STATUS_0_SMSTA_REQ		\
+									 | L3_STATUS_0_GPMCTA_REQ	\
+									 | L3_STATUS_0_OCMRAMTA_REQ	\
+									 | L3_STATUS_0_OCMROMTA_REQ	\
+									 | L3_STATUS_0_IVATA_REQ		\
+									 | L3_STATUS_0_SGXTA_REQ		\
+									 | L3_STATUS_0_L4CORETA_REQ	\
+									 | L3_STATUS_0_L4PERTA_REQ	\
+									 | L3_STATUS_0_L4EMUTA_REQ	\
+									 | L3_STATUS_0_MAD2DTA_REQ)
 
 #define L3_SI_FLAG_STATUS_1		0x530
 
@@ -135,7 +135,8 @@ static const u64 shift = 1;
 #define L3_APPLICATION_ERROR		0x0
 #define L3_DEBUG_ERROR			0x1
 
-enum omap3_l3_initiator_id {
+enum omap3_l3_initiator_id
+{
 	/* LCD has 1 ID */
 	OMAP_L3_LCD = 29,
 	/* SAD2D has 1 ID */
@@ -179,7 +180,8 @@ enum omap3_l3_initiator_id {
 	OMAP_L3_USBHOST = 1,
 };
 
-enum omap3_l3_code {
+enum omap3_l3_code
+{
 	OMAP_L3_CODE_NOERROR = 0,
 	OMAP_L3_CODE_UNSUP_CMD = 1,
 	OMAP_L3_CODE_ADDR_HOLE = 2,
@@ -191,7 +193,8 @@ enum omap3_l3_code {
 	/* codes 9 - 15 are also reserved */
 };
 
-struct omap3_l3 {
+struct omap3_l3
+{
 	struct device *dev;
 	struct clk *ick;
 
@@ -202,11 +205,12 @@ struct omap3_l3 {
 	int app_irq;
 
 	/* true when and inband functional error occurs */
-	unsigned inband:1;
+	unsigned inband: 1;
 };
 
 /* offsets for l3 agents in order with the Flag status register */
-static unsigned int omap3_l3_app_bases[] = {
+static unsigned int omap3_l3_app_bases[] =
+{
 	/* MPU IA */
 	0x1400,
 	0x1400,
@@ -305,7 +309,8 @@ static unsigned int omap3_l3_app_bases[] = {
 	0,
 };
 
-static unsigned int omap3_l3_debug_bases[] = {
+static unsigned int omap3_l3_debug_bases[] =
+{
 	/* MPU DATA IA */
 	0x1400,
 	/* RESERVED */
@@ -321,7 +326,8 @@ static unsigned int omap3_l3_debug_bases[] = {
 	/* REST RESERVED */
 };
 
-static u32 *omap3_l3_bases[] = {
+static u32 *omap3_l3_bases[] =
+{
 	omap3_l3_app_bases,
 	omap3_l3_debug_bases,
 };
@@ -331,8 +337,8 @@ static u32 *omap3_l3_bases[] = {
  * <asm/io.h> at some point
  */
 #define __raw_writell(v, a)	(__chk_io_ptr(a), \
-				*(volatile u64 __force *)(a) = (v))
+							 *(volatile u64 __force *)(a) = (v))
 #define __raw_readll(a)		(__chk_io_ptr(a), \
-				*(volatile u64 __force *)(a))
+							 *(volatile u64 __force *)(a))
 
 #endif

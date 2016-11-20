@@ -76,7 +76,8 @@
  */
 
 /* SCCNXP platform data structure */
-struct sccnxp_pdata {
+struct sccnxp_pdata
+{
 	/* Shift for A0 line */
 	const u8		reg_shift;
 	/* Modem control lines configuration */

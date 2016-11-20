@@ -31,7 +31,8 @@
 
 #define TPM_DUMMY_BYTE			0xAA
 
-struct st33zp24_i2c_phy {
+struct st33zp24_i2c_phy
+{
 	struct i2c_client *client;
 	u8 buf[TPM_BUFSIZE + 1];
 	int io_lpcpd;
@@ -70,8 +71,12 @@ static int read8_reg(void *phy_id, u8 tpm_register, u8 *tpm_data, int tpm_size)
 
 	data = TPM_DUMMY_BYTE;
 	status = write8_reg(phy, tpm_register, &data, 1);
+
 	if (status == 2)
+	{
 		status = i2c_master_recv(phy->client, tpm_data, tpm_size);
+	}
+
 	return status;
 } /* read8_reg() */
 
@@ -85,10 +90,10 @@ static int read8_reg(void *phy_id, u8 tpm_register, u8 *tpm_data, int tpm_size)
  * @return: number of byte written successfully: should be one if success.
  */
 static int st33zp24_i2c_send(void *phy_id, u8 tpm_register, u8 *tpm_data,
-			     int tpm_size)
+							 int tpm_size)
 {
 	return write8_reg(phy_id, tpm_register | TPM_WRITE_DIRECTION, tpm_data,
-			  tpm_size);
+					  tpm_size);
 }
 
 /*
@@ -101,12 +106,13 @@ static int st33zp24_i2c_send(void *phy_id, u8 tpm_register, u8 *tpm_data,
  * @return: number of byte read successfully: should be one if success.
  */
 static int st33zp24_i2c_recv(void *phy_id, u8 tpm_register, u8 *tpm_data,
-			     int tpm_size)
+							 int tpm_size)
 {
 	return read8_reg(phy_id, tpm_register, tpm_data, tpm_size);
 }
 
-static const struct st33zp24_phy_ops i2c_phy_ops = {
+static const struct st33zp24_phy_ops i2c_phy_ops =
+{
 	.send = st33zp24_i2c_send,
 	.recv = st33zp24_i2c_recv,
 };
@@ -121,10 +127,12 @@ static int st33zp24_i2c_acpi_request_resources(struct i2c_client *client)
 
 	/* Get LPCPD GPIO from ACPI */
 	gpiod_lpcpd = devm_gpiod_get_index(dev, "TPM IO LPCPD", 1,
-					   GPIOD_OUT_HIGH);
-	if (IS_ERR(gpiod_lpcpd)) {
+									   GPIOD_OUT_HIGH);
+
+	if (IS_ERR(gpiod_lpcpd))
+	{
 		dev_err(&client->dev,
-			"Failed to retrieve lpcpd-gpios from acpi.\n");
+				"Failed to retrieve lpcpd-gpios from acpi.\n");
 		phy->io_lpcpd = -1;
 		/*
 		 * lpcpd pin is not specified. This is not an issue as
@@ -149,16 +157,20 @@ static int st33zp24_i2c_of_request_resources(struct i2c_client *client)
 	int ret;
 
 	pp = client->dev.of_node;
-	if (!pp) {
+
+	if (!pp)
+	{
 		dev_err(&client->dev, "No platform data\n");
 		return -ENODEV;
 	}
 
 	/* Get GPIO from device tree */
 	gpio = of_get_named_gpio(pp, "lpcpd-gpios", 0);
-	if (gpio < 0) {
+
+	if (gpio < 0)
+	{
 		dev_err(&client->dev,
-			"Failed to retrieve lpcpd-gpios from dts.\n");
+				"Failed to retrieve lpcpd-gpios from dts.\n");
 		phy->io_lpcpd = -1;
 		/*
 		 * lpcpd pin is not specified. This is not an issue as
@@ -167,13 +179,17 @@ static int st33zp24_i2c_of_request_resources(struct i2c_client *client)
 		 */
 		return 0;
 	}
+
 	/* GPIO request and configuration */
 	ret = devm_gpio_request_one(&client->dev, gpio,
-			GPIOF_OUT_INIT_HIGH, "TPM IO LPCPD");
-	if (ret) {
+								GPIOF_OUT_INIT_HIGH, "TPM IO LPCPD");
+
+	if (ret)
+	{
 		dev_err(&client->dev, "Failed to request lpcpd pin\n");
 		return -ENODEV;
 	}
+
 	phy->io_lpcpd = gpio;
 
 	return 0;
@@ -188,7 +204,9 @@ static int st33zp24_i2c_request_resources(struct i2c_client *client)
 	int ret;
 
 	pdata = client->dev.platform_data;
-	if (!pdata) {
+
+	if (!pdata)
+	{
 		dev_err(&client->dev, "No platform data\n");
 		return -ENODEV;
 	}
@@ -196,11 +214,14 @@ static int st33zp24_i2c_request_resources(struct i2c_client *client)
 	/* store for late use */
 	phy->io_lpcpd = pdata->io_lpcpd;
 
-	if (gpio_is_valid(pdata->io_lpcpd)) {
+	if (gpio_is_valid(pdata->io_lpcpd))
+	{
 		ret = devm_gpio_request_one(&client->dev,
-				pdata->io_lpcpd, GPIOF_OUT_INIT_HIGH,
-				"TPM IO_LPCPD");
-		if (ret) {
+									pdata->io_lpcpd, GPIOF_OUT_INIT_HIGH,
+									"TPM IO_LPCPD");
+
+		if (ret)
+		{
 			dev_err(&client->dev, "Failed to request lpcpd pin\n");
 			return ret;
 		}
@@ -217,47 +238,67 @@ static int st33zp24_i2c_request_resources(struct i2c_client *client)
  *	 -1 in other case.
  */
 static int st33zp24_i2c_probe(struct i2c_client *client,
-			      const struct i2c_device_id *id)
+							  const struct i2c_device_id *id)
 {
 	int ret;
 	struct st33zp24_platform_data *pdata;
 	struct st33zp24_i2c_phy *phy;
 
-	if (!client) {
+	if (!client)
+	{
 		pr_info("%s: i2c client is NULL. Device not accessible.\n",
-			__func__);
+				__func__);
 		return -ENODEV;
 	}
 
-	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+	{
 		dev_info(&client->dev, "client not i2c capable\n");
 		return -ENODEV;
 	}
 
 	phy = devm_kzalloc(&client->dev, sizeof(struct st33zp24_i2c_phy),
-			   GFP_KERNEL);
+					   GFP_KERNEL);
+
 	if (!phy)
+	{
 		return -ENOMEM;
+	}
 
 	phy->client = client;
 
 	pdata = client->dev.platform_data;
-	if (!pdata && client->dev.of_node) {
+
+	if (!pdata && client->dev.of_node)
+	{
 		ret = st33zp24_i2c_of_request_resources(client);
+
 		if (ret)
+		{
 			return ret;
-	} else if (pdata) {
+		}
+	}
+	else if (pdata)
+	{
 		ret = st33zp24_i2c_request_resources(client);
+
 		if (ret)
+		{
 			return ret;
-	} else if (ACPI_HANDLE(&client->dev)) {
+		}
+	}
+	else if (ACPI_HANDLE(&client->dev))
+	{
 		ret = st33zp24_i2c_acpi_request_resources(client);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return st33zp24_probe(phy, &i2c_phy_ops, &client->dev, client->irq,
-			      phy->io_lpcpd);
+						  phy->io_lpcpd);
 }
 
 /*
@@ -272,28 +313,32 @@ static int st33zp24_i2c_remove(struct i2c_client *client)
 	return st33zp24_remove(chip);
 }
 
-static const struct i2c_device_id st33zp24_i2c_id[] = {
+static const struct i2c_device_id st33zp24_i2c_id[] =
+{
 	{TPM_ST33_I2C, 0},
 	{}
 };
 MODULE_DEVICE_TABLE(i2c, st33zp24_i2c_id);
 
-static const struct of_device_id of_st33zp24_i2c_match[] = {
+static const struct of_device_id of_st33zp24_i2c_match[] =
+{
 	{ .compatible = "st,st33zp24-i2c", },
 	{}
 };
 MODULE_DEVICE_TABLE(of, of_st33zp24_i2c_match);
 
-static const struct acpi_device_id st33zp24_i2c_acpi_match[] = {
+static const struct acpi_device_id st33zp24_i2c_acpi_match[] =
+{
 	{"SMO3324"},
 	{}
 };
 MODULE_DEVICE_TABLE(acpi, st33zp24_i2c_acpi_match);
 
 static SIMPLE_DEV_PM_OPS(st33zp24_i2c_ops, st33zp24_pm_suspend,
-			 st33zp24_pm_resume);
+						 st33zp24_pm_resume);
 
-static struct i2c_driver st33zp24_i2c_driver = {
+static struct i2c_driver st33zp24_i2c_driver =
+{
 	.driver = {
 		.name = TPM_ST33_I2C,
 		.pm = &st33zp24_i2c_ops,

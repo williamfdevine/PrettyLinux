@@ -39,7 +39,8 @@
  * @wait_free_us: we'll give up after this many microseconds.
  */
 
-struct i2c_arbitrator_data {
+struct i2c_arbitrator_data
+{
 	int our_gpio;
 	int our_gpio_release;
 	int their_gpio;
@@ -62,17 +63,22 @@ static int i2c_arbitrator_select(struct i2c_mux_core *muxc, u32 chan)
 
 	/* Start a round of trying to claim the bus */
 	stop_time = jiffies + usecs_to_jiffies(arb->wait_free_us) + 1;
-	do {
+
+	do
+	{
 		/* Indicate that we want to claim the bus */
 		gpio_set_value(arb->our_gpio, !arb->our_gpio_release);
 		udelay(arb->slew_delay_us);
 
 		/* Wait for the other master to release it */
 		stop_retry = jiffies + usecs_to_jiffies(arb->wait_retry_us) + 1;
-		while (time_before(jiffies, stop_retry)) {
+
+		while (time_before(jiffies, stop_retry))
+		{
 			int gpio_val = !!gpio_get_value(arb->their_gpio);
 
-			if (gpio_val == arb->their_gpio_release) {
+			if (gpio_val == arb->their_gpio_release)
+			{
 				/* We got it, so return */
 				return 0;
 			}
@@ -84,7 +90,8 @@ static int i2c_arbitrator_select(struct i2c_mux_core *muxc, u32 chan)
 		gpio_set_value(arb->our_gpio, arb->our_gpio_release);
 
 		usleep_range(arb->wait_retry_us, arb->wait_retry_us * 2);
-	} while (time_before(jiffies, stop_time));
+	}
+	while (time_before(jiffies, stop_time));
 
 	/* Give up, release our claim */
 	gpio_set_value(arb->our_gpio, arb->our_gpio_release);
@@ -121,88 +128,133 @@ static int i2c_arbitrator_probe(struct platform_device *pdev)
 	int ret;
 
 	/* We only support probing from device tree; no platform_data */
-	if (!np) {
+	if (!np)
+	{
 		dev_err(dev, "Cannot find device tree node\n");
 		return -ENODEV;
 	}
-	if (dev_get_platdata(dev)) {
+
+	if (dev_get_platdata(dev))
+	{
 		dev_err(dev, "Platform data is not supported\n");
 		return -EINVAL;
 	}
 
 	muxc = i2c_mux_alloc(NULL, dev, 1, sizeof(*arb), I2C_MUX_ARBITRATOR,
-			     i2c_arbitrator_select, i2c_arbitrator_deselect);
+						 i2c_arbitrator_select, i2c_arbitrator_deselect);
+
 	if (!muxc)
+	{
 		return -ENOMEM;
+	}
+
 	arb = i2c_mux_priv(muxc);
 
 	platform_set_drvdata(pdev, muxc);
 
 	/* Request GPIOs */
 	ret = of_get_named_gpio_flags(np, "our-claim-gpio", 0, &gpio_flags);
-	if (!gpio_is_valid(ret)) {
+
+	if (!gpio_is_valid(ret))
+	{
 		if (ret != -EPROBE_DEFER)
+		{
 			dev_err(dev, "Error getting our-claim-gpio\n");
+		}
+
 		return ret;
 	}
+
 	arb->our_gpio = ret;
 	arb->our_gpio_release = !!(gpio_flags & OF_GPIO_ACTIVE_LOW);
 	out_init = (gpio_flags & OF_GPIO_ACTIVE_LOW) ?
-		GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW;
+			   GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW;
 	ret = devm_gpio_request_one(dev, arb->our_gpio, out_init,
-				    "our-claim-gpio");
-	if (ret) {
+								"our-claim-gpio");
+
+	if (ret)
+	{
 		if (ret != -EPROBE_DEFER)
+		{
 			dev_err(dev, "Error requesting our-claim-gpio\n");
+		}
+
 		return ret;
 	}
 
 	ret = of_get_named_gpio_flags(np, "their-claim-gpios", 0, &gpio_flags);
-	if (!gpio_is_valid(ret)) {
+
+	if (!gpio_is_valid(ret))
+	{
 		if (ret != -EPROBE_DEFER)
+		{
 			dev_err(dev, "Error getting their-claim-gpio\n");
+		}
+
 		return ret;
 	}
+
 	arb->their_gpio = ret;
 	arb->their_gpio_release = !!(gpio_flags & OF_GPIO_ACTIVE_LOW);
 	ret = devm_gpio_request_one(dev, arb->their_gpio, GPIOF_IN,
-				    "their-claim-gpio");
-	if (ret) {
+								"their-claim-gpio");
+
+	if (ret)
+	{
 		if (ret != -EPROBE_DEFER)
+		{
 			dev_err(dev, "Error requesting their-claim-gpio\n");
+		}
+
 		return ret;
 	}
 
 	/* At the moment we only support a single two master (us + 1 other) */
-	if (gpio_is_valid(of_get_named_gpio(np, "their-claim-gpios", 1))) {
+	if (gpio_is_valid(of_get_named_gpio(np, "their-claim-gpios", 1)))
+	{
 		dev_err(dev, "Only one other master is supported\n");
 		return -EINVAL;
 	}
 
 	/* Arbitration parameters */
 	if (of_property_read_u32(np, "slew-delay-us", &arb->slew_delay_us))
+	{
 		arb->slew_delay_us = 10;
+	}
+
 	if (of_property_read_u32(np, "wait-retry-us", &arb->wait_retry_us))
+	{
 		arb->wait_retry_us = 3000;
+	}
+
 	if (of_property_read_u32(np, "wait-free-us", &arb->wait_free_us))
+	{
 		arb->wait_free_us = 50000;
+	}
 
 	/* Find our parent */
 	parent_np = of_parse_phandle(np, "i2c-parent", 0);
-	if (!parent_np) {
+
+	if (!parent_np)
+	{
 		dev_err(dev, "Cannot parse i2c-parent\n");
 		return -EINVAL;
 	}
+
 	muxc->parent = of_get_i2c_adapter_by_node(parent_np);
 	of_node_put(parent_np);
-	if (!muxc->parent) {
+
+	if (!muxc->parent)
+	{
 		dev_err(dev, "Cannot find parent bus\n");
 		return -EPROBE_DEFER;
 	}
 
 	/* Actually add the mux adapter */
 	ret = i2c_mux_add_adapter(muxc, 0, 0, 0);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to add adapter\n");
 		i2c_put_adapter(muxc->parent);
 	}
@@ -219,13 +271,15 @@ static int i2c_arbitrator_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id i2c_arbitrator_of_match[] = {
+static const struct of_device_id i2c_arbitrator_of_match[] =
+{
 	{ .compatible = "i2c-arb-gpio-challenge", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, i2c_arbitrator_of_match);
 
-static struct platform_driver i2c_arbitrator_driver = {
+static struct platform_driver i2c_arbitrator_driver =
+{
 	.probe	= i2c_arbitrator_probe,
 	.remove	= i2c_arbitrator_remove,
 	.driver	= {

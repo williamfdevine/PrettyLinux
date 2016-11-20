@@ -46,7 +46,8 @@
 #include "lustre/lustre_idl.h"
 #include "lustre_dlm.h"
 
-enum obd_option {
+enum obd_option
+{
 	OBD_OPT_FORCE =	 0x0001,
 	OBD_OPT_FAILOVER =      0x0002,
 	OBD_OPT_ABORT_RECOV =   0x0004,
@@ -59,7 +60,8 @@ enum obd_option {
  * For every connected client there is an export structure on the server
  * attached to the same obd device.
  */
-struct obd_export {
+struct obd_export
+{
 	/**
 	 * Export handle, it's id is provided to client on connect
 	 * Subsequent client RPCs contain this handle id to identify
@@ -123,11 +125,11 @@ struct obd_export {
 	 */
 	struct obd_connect_data   exp_connect_data;
 	enum obd_option	   exp_flags;
-	unsigned long	     exp_failed:1,
-				  exp_disconnected:1,
-				  exp_connecting:1,
-				  exp_flvr_changed:1,
-				  exp_flvr_adapt:1;
+	unsigned long	     exp_failed: 1,
+			   exp_disconnected: 1,
+			   exp_connecting: 1,
+			   exp_flvr_changed: 1,
+			   exp_flvr_adapt: 1;
 	/* also protected by exp_lock */
 	enum lustre_sec_part      exp_sp_peer;
 	struct sptlrpc_flavor     exp_flvr;	     /* current */
@@ -156,7 +158,9 @@ static inline __u64 exp_connect_flags(struct obd_export *exp)
 static inline int exp_max_brw_size(struct obd_export *exp)
 {
 	if (exp_connect_flags(exp) & OBD_CONNECT_BRW_SIZE)
+	{
 		return exp->exp_connect_data.ocd_brw_size;
+	}
 
 	return ONE_MB_BRW_SIZE;
 }
@@ -207,9 +211,13 @@ static inline int exp_connect_layout(struct obd_export *exp)
 static inline bool exp_connect_lvb_type(struct obd_export *exp)
 {
 	if (exp_connect_flags(exp) & OBD_CONNECT_LVB_TYPE)
+	{
 		return true;
+	}
 	else
+	{
 		return false;
+	}
 }
 
 static inline bool imp_connect_lvb_type(struct obd_import *imp)
@@ -217,10 +225,15 @@ static inline bool imp_connect_lvb_type(struct obd_import *imp)
 	struct obd_connect_data *ocd;
 
 	ocd = &imp->imp_connect_data;
+
 	if (ocd->ocd_connect_flags & OBD_CONNECT_LVB_TYPE)
+	{
 		return true;
+	}
 	else
+	{
 		return false;
+	}
 }
 
 static inline __u64 exp_connect_ibits(struct obd_export *exp)
@@ -242,7 +255,8 @@ static inline bool imp_connect_disp_stripe(struct obd_import *imp)
 struct obd_export *class_conn2export(struct lustre_handle *conn);
 
 #define KKUC_CT_DATA_MAGIC	0x092013cea
-struct kkuc_ct_data {
+struct kkuc_ct_data
+{
 	__u32		kcd_magic;
 	struct obd_uuid	kcd_uuid;
 	__u32		kcd_archive;

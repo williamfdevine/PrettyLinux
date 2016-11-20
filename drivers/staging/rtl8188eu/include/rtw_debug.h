@@ -89,7 +89,7 @@ extern u32 GlobalDebugLevel;
 	do {								\
 		if (_level <= GlobalDebugLevel) {			\
 			pr_info("%s [0x%08x,%d]", DRIVER_PREFIX,	\
-				 (unsigned int)_comp, _level);		\
+					(unsigned int)_comp, _level);		\
 			pr_info fmt;					\
 		}							\
 	} while (0)
@@ -103,8 +103,8 @@ extern u32 GlobalDebugLevel;
 			pr_info(_titlestring);				\
 			for (__i = 0; __i < (int)_hexdatalen; __i++) {	\
 				pr_info("%02X%s", ptr[__i],		\
-					 (((__i + 1) % 4) == 0) ?	\
-					 "  " : " ");	\
+						(((__i + 1) % 4) == 0) ?	\
+						"  " : " ");	\
 				if (((__i + 1) % 16) == 0)		\
 					printk("\n");			\
 			}						\
@@ -113,28 +113,28 @@ extern u32 GlobalDebugLevel;
 	} while (0)
 
 int proc_get_drv_version(char *page, char **start,
-			 off_t offset, int count,
-			 int *eof, void *data);
+						 off_t offset, int count,
+						 int *eof, void *data);
 
 int proc_get_write_reg(char *page, char **start,
-		       off_t offset, int count,
-		       int *eof, void *data);
+					   off_t offset, int count,
+					   int *eof, void *data);
 
 int proc_set_write_reg(struct file *file, const char __user *buffer,
-		       unsigned long count, void *data);
+					   unsigned long count, void *data);
 int proc_get_read_reg(char *page, char **start,
-		      off_t offset, int count,
-		      int *eof, void *data);
+					  off_t offset, int count,
+					  int *eof, void *data);
 
 int proc_set_read_reg(struct file *file, const char __user *buffer,
-		      unsigned long count, void *data);
+					  unsigned long count, void *data);
 
 int proc_get_adapter_state(char *page, char **start,
-			   off_t offset, int count,
-			   int *eof, void *data);
+						   off_t offset, int count,
+						   int *eof, void *data);
 
 int proc_get_best_channel(char *page, char **start,
-			  off_t offset, int count,
-			  int *eof, void *data);
+						  off_t offset, int count,
+						  int *eof, void *data);
 
 #endif	/* __RTW_DEBUG_H__ */

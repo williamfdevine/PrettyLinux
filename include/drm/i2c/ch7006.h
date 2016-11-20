@@ -36,8 +36,10 @@
  * See "http://www.chrontel.com/pdf/7006.pdf" for their precise
  * meaning.
  */
-struct ch7006_encoder_params {
-	enum {
+struct ch7006_encoder_params
+{
+	enum
+	{
 		CH7006_FORMAT_RGB16 = 0,
 		CH7006_FORMAT_YCrCb24m16,
 		CH7006_FORMAT_RGB24m16,
@@ -50,34 +52,40 @@ struct ch7006_encoder_params {
 		CH7006_FORMAT_YCrCb24m8,
 	} input_format;
 
-	enum {
+	enum
+	{
 		CH7006_CLOCK_SLAVE = 0,
 		CH7006_CLOCK_MASTER,
 	} clock_mode;
 
-	enum {
+	enum
+	{
 		CH7006_CLOCK_EDGE_NEG = 0,
 		CH7006_CLOCK_EDGE_POS,
 	} clock_edge;
 
 	int xcm, pcm;
 
-	enum {
+	enum
+	{
 		CH7006_SYNC_SLAVE = 0,
 		CH7006_SYNC_MASTER,
 	} sync_direction;
 
-	enum {
+	enum
+	{
 		CH7006_SYNC_SEPARATED = 0,
 		CH7006_SYNC_EMBEDDED,
 	} sync_encoding;
 
-	enum {
+	enum
+	{
 		CH7006_POUT_1_8V = 0,
 		CH7006_POUT_3_3V,
 	} pout_level;
 
-	enum {
+	enum
+	{
 		CH7006_ACTIVE_HSYNC = 0,
 		CH7006_ACTIVE_DSTART,
 	} active_detect;

@@ -18,7 +18,8 @@
 #define TYPE_G2D_3X 3
 #define TYPE_G2D_4X 4
 
-struct g2d_dev {
+struct g2d_dev
+{
 	struct v4l2_device	v4l2_dev;
 	struct v4l2_m2m_dev	*m2m_dev;
 	struct video_device	*vfd;
@@ -34,7 +35,8 @@ struct g2d_dev {
 	wait_queue_head_t	irq_queue;
 };
 
-struct g2d_frame {
+struct g2d_frame
+{
 	/* Original dimensions */
 	u32	width;
 	u32	height;
@@ -53,7 +55,8 @@ struct g2d_frame {
 	u32	size;
 };
 
-struct g2d_ctx {
+struct g2d_ctx
+{
 	struct v4l2_fh fh;
 	struct g2d_dev		*dev;
 	struct g2d_frame	in;
@@ -65,14 +68,16 @@ struct g2d_ctx {
 	u32 flip;
 };
 
-struct g2d_fmt {
+struct g2d_fmt
+{
 	char	*name;
 	u32	fourcc;
 	int	depth;
 	u32	hw;
 };
 
-struct g2d_variant {
+struct g2d_variant
+{
 	unsigned short hw_rev;
 };
 
@@ -86,5 +91,5 @@ void g2d_clear_int(struct g2d_dev *d);
 void g2d_set_rop4(struct g2d_dev *d, u32 r);
 void g2d_set_flip(struct g2d_dev *d, u32 r);
 void g2d_set_v41_stretch(struct g2d_dev *d,
-			struct g2d_frame *src, struct g2d_frame *dst);
+						 struct g2d_frame *src, struct g2d_frame *dst);
 void g2d_set_cmd(struct g2d_dev *d, u32 c);

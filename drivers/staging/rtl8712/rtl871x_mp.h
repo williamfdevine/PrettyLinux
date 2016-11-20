@@ -59,7 +59,8 @@
 #define MAX_MP_XMITBUF_SZ	2048
 #define NR_MP_XMITFRAME		8
 
-struct mp_xmit_frame {
+struct mp_xmit_frame
+{
 	struct list_head list;
 	struct pkt_attrib attrib;
 	_pkt *pkt;
@@ -72,14 +73,16 @@ struct mp_xmit_frame {
 	u8 last[8];
 };
 
-struct mp_wiparam {
+struct mp_wiparam
+{
 	u32 bcompleted;
 	u32 act_type;
 	u32 io_offset;
 	u32 io_value;
 };
 
-struct mp_priv {
+struct mp_priv
+{
 	struct _adapter *papdater;
 	/*OID cmd handler*/
 	struct mp_wiparam workparam;
@@ -117,19 +120,22 @@ struct mp_priv {
 	u32 free_mp_xmitframe_cnt;
 };
 
-struct IOCMD_STRUCT {
+struct IOCMD_STRUCT
+{
 	u8	cmdclass;
 	u16	value;
 	u8	index;
 };
 
-struct rf_reg_param {
+struct rf_reg_param
+{
 	u32 path;
 	u32 offset;
 	u32 value;
 };
 
-struct bb_reg_param {
+struct bb_reg_param
+{
 	u32 offset;
 	u32 value;
 };
@@ -155,7 +161,8 @@ struct bb_reg_param {
 #define _LOOPBOOK_MODE_	1
 
 /* MP set force data rate base on the definition. */
-enum {
+enum
+{
 	/* CCK rate. */
 	MPT_RATE_1M,	/* 0 */
 	MPT_RATE_2M,
@@ -193,14 +200,16 @@ enum {
 };
 
 /* Represent Channel Width in HT Capabilities */
-enum HT_CHANNEL_WIDTH {
+enum HT_CHANNEL_WIDTH
+{
 	HT_CHANNEL_WIDTH_20 = 0,
 	HT_CHANNEL_WIDTH_40 = 1,
 };
 
 #define MAX_TX_PWR_INDEX_N_MODE 64	/* 0x3F */
 
-enum POWER_MODE {
+enum POWER_MODE
+{
 	POWER_LOW = 0,
 	POWER_NORMAL
 };
@@ -227,7 +236,8 @@ enum POWER_MODE {
  *	bit 12 : HT MPDU fail
  *	bit 15 : RX full drop
  */
-enum RXPHY_BITMASK {
+enum RXPHY_BITMASK
+{
 	OFDM_PPDU_BIT = 0,
 	OFDM_MPDU_OK_BIT,
 	OFDM_MPDU_FAIL_BIT,
@@ -240,7 +250,8 @@ enum RXPHY_BITMASK {
 	HT_MPDU_FAIL_BIT,
 };
 
-enum ENCRY_CTRL_STATE {
+enum ENCRY_CTRL_STATE
+{
 	HW_CONTROL,		/*hw encryption& decryption*/
 	SW_CONTROL,		/*sw encryption& decryption*/
 	HW_ENCRY_SW_DECRY,	/*hw encryption & sw decryption*/
@@ -258,14 +269,14 @@ u32 r8712_bb_reg_read(struct _adapter *Adapter, u16 offset);
 u8 r8712_bb_reg_write(struct _adapter *Adapter, u16 offset, u32 value);
 u32 r8712_rf_reg_read(struct _adapter *Adapter, u8 path, u8 offset);
 u8 r8712_rf_reg_write(struct _adapter *Adapter, u8 path,
-		      u8 offset, u32 value);
+					  u8 offset, u32 value);
 u32 r8712_get_bb_reg(struct _adapter *Adapter, u16 offset, u32 bitmask);
 u8 r8712_set_bb_reg(struct _adapter *Adapter, u16 offset,
-		    u32 bitmask, u32 value);
+					u32 bitmask, u32 value);
 u32 r8712_get_rf_reg(struct _adapter *Adapter, u8 path, u8 offset,
-		     u32 bitmask);
+					 u32 bitmask);
 u8 r8712_set_rf_reg(struct _adapter *Adapter, u8 path, u8 offset,
-		    u32 bitmask, u32 value);
+					u32 bitmask, u32 value);
 
 void r8712_SetChannel(struct _adapter *pAdapter);
 void r8712_SetTxPower(struct _adapter *pAdapte);

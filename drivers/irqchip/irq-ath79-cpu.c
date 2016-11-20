@@ -30,7 +30,8 @@
  * This array map the interrupt lines to the DDR write buffer channels.
  */
 
-static unsigned irq_wb_chan[8] = {
+static unsigned irq_wb_chan[8] =
+{
 	-1, -1, -1, -1, -1, -1, -1, -1,
 };
 
@@ -41,16 +42,23 @@ asmlinkage void plat_irq_dispatch(void)
 
 	pending = read_c0_status() & read_c0_cause() & ST0_IM;
 
-	if (!pending) {
+	if (!pending)
+	{
 		spurious_interrupt();
 		return;
 	}
 
 	pending >>= CAUSEB_IP;
-	while (pending) {
+
+	while (pending)
+	{
 		irq = fls(pending) - 1;
+
 		if (irq < ARRAY_SIZE(irq_wb_chan) && irq_wb_chan[irq] != -1)
+		{
 			ath79_ddr_wb_flush(irq_wb_chan[irq]);
+		}
+
 		do_IRQ(MIPS_CPU_IRQ_BASE + irq);
 		pending &= ~BIT(irq);
 	}
@@ -63,23 +71,30 @@ static int __init ar79_cpu_intc_of_init(
 
 	/* Fill the irq_wb_chan table */
 	count = of_count_phandle_with_args(
-		node, "qca,ddr-wb-channels", "#qca,ddr-wb-channel-cells");
+				node, "qca,ddr-wb-channels", "#qca,ddr-wb-channel-cells");
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		struct of_phandle_args args;
 		u32 irq = i;
 
 		of_property_read_u32_index(
 			node, "qca,ddr-wb-channel-interrupts", i, &irq);
+
 		if (irq >= ARRAY_SIZE(irq_wb_chan))
+		{
 			continue;
+		}
 
 		err = of_parse_phandle_with_args(
-			node, "qca,ddr-wb-channels",
-			"#qca,ddr-wb-channel-cells",
-			i, &args);
+				  node, "qca,ddr-wb-channels",
+				  "#qca,ddr-wb-channel-cells",
+				  i, &args);
+
 		if (err)
+		{
 			return err;
+		}
 
 		irq_wb_chan[irq] = args.args[0];
 	}
@@ -87,7 +102,7 @@ static int __init ar79_cpu_intc_of_init(
 	return mips_cpu_irq_of_init(node, parent);
 }
 IRQCHIP_DECLARE(ar79_cpu_intc, "qca,ar7100-cpu-intc",
-		ar79_cpu_intc_of_init);
+				ar79_cpu_intc_of_init);
 
 void __init ath79_cpu_irq_init(unsigned irq_wb_chan2, unsigned irq_wb_chan3)
 {

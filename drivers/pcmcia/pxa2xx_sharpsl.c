@@ -36,9 +36,13 @@ static void sharpsl_pcmcia_init_reset(struct soc_pcmcia_socket *skt)
 
 	/* Shared power controls need to be handled carefully */
 	if (platform_scoop_config->power_ctrl)
+	{
 		platform_scoop_config->power_ctrl(scoopdev->dev, 0x0000, skt->nr);
+	}
 	else
+	{
 		write_scoop_reg(scoopdev->dev, SCOOP_CPR, 0x0000);
+	}
 
 	scoopdev->keep_vs = NO_KEEP_VS;
 	scoopdev->keep_rd = 0;
@@ -46,7 +50,8 @@ static void sharpsl_pcmcia_init_reset(struct soc_pcmcia_socket *skt)
 
 static int sharpsl_pcmcia_hw_init(struct soc_pcmcia_socket *skt)
 {
-	if (SCOOP_DEV[skt->nr].cd_irq >= 0) {
+	if (SCOOP_DEV[skt->nr].cd_irq >= 0)
+	{
 		skt->stat[SOC_STAT_CD].irq = SCOOP_DEV[skt->nr].cd_irq;
 		skt->stat[SOC_STAT_CD].name = SCOOP_DEV[skt->nr].cd_irq_str;
 	}
@@ -57,7 +62,7 @@ static int sharpsl_pcmcia_hw_init(struct soc_pcmcia_socket *skt)
 }
 
 static void sharpsl_pcmcia_socket_state(struct soc_pcmcia_socket *skt,
-				    struct pcmcia_state *state)
+										struct pcmcia_state *state)
 {
 	unsigned short cpr, csr;
 	struct device *scoop = SCOOP_DEV[skt->nr].dev;
@@ -68,28 +73,36 @@ static void sharpsl_pcmcia_socket_state(struct soc_pcmcia_socket *skt,
 	write_scoop_reg(scoop, SCOOP_ISR, 0x0000);
 	write_scoop_reg(scoop, SCOOP_IRM, 0x0000);
 	csr = read_scoop_reg(scoop, SCOOP_CSR);
-	if (csr & 0x0004) {
+
+	if (csr & 0x0004)
+	{
 		/* card eject */
 		write_scoop_reg(scoop, SCOOP_CDR, 0x0000);
 		SCOOP_DEV[skt->nr].keep_vs = NO_KEEP_VS;
 	}
-	else if (!(SCOOP_DEV[skt->nr].keep_vs & NO_KEEP_VS)) {
+	else if (!(SCOOP_DEV[skt->nr].keep_vs & NO_KEEP_VS))
+	{
 		/* keep vs1,vs2 */
 		write_scoop_reg(scoop, SCOOP_CDR, 0x0000);
 		csr |= SCOOP_DEV[skt->nr].keep_vs;
 	}
-	else if (cpr & 0x0003) {
+	else if (cpr & 0x0003)
+	{
 		/* power on */
 		write_scoop_reg(scoop, SCOOP_CDR, 0x0000);
 		SCOOP_DEV[skt->nr].keep_vs = (csr & 0x00C0);
 	}
-	else {
+	else
+	{
 		/* card detect */
-	        if ((machine_is_spitz() || machine_is_borzoi()) && skt->nr == 1) {
-	                write_scoop_reg(scoop, SCOOP_CDR, 0x0000);
-	        } else {
-		        write_scoop_reg(scoop, SCOOP_CDR, 0x0002);
-	        }
+		if ((machine_is_spitz() || machine_is_borzoi()) && skt->nr == 1)
+		{
+			write_scoop_reg(scoop, SCOOP_CDR, 0x0000);
+		}
+		else
+		{
+			write_scoop_reg(scoop, SCOOP_CDR, 0x0002);
+		}
 	}
 
 	state->detect = (csr & 0x0004) ? 0 : 1;
@@ -100,30 +113,36 @@ static void sharpsl_pcmcia_socket_state(struct soc_pcmcia_socket *skt,
 	state->vs_3v  = (csr & 0x0040) ? 0 : 1;
 	state->vs_Xv  = (csr & 0x0080) ? 0 : 1;
 
-	if ((cpr & 0x0080) && ((cpr & 0x8040) != 0x8040)) {
+	if ((cpr & 0x0080) && ((cpr & 0x8040) != 0x8040))
+	{
 		printk(KERN_ERR "sharpsl_pcmcia_socket_state(): CPR=%04X, Low voltage!\n", cpr);
 	}
 }
 
 
 static int sharpsl_pcmcia_configure_socket(struct soc_pcmcia_socket *skt,
-				       const socket_state_t *state)
+		const socket_state_t *state)
 {
 	unsigned long flags;
 	struct device *scoop = SCOOP_DEV[skt->nr].dev;
 
 	unsigned short cpr, ncpr, ccr, nccr, mcr, nmcr, imr, nimr;
 
-	switch (state->Vcc) {
-	case	0:  	break;
-	case 	33: 	break;
-	case	50: 	break;
-	default:
-		 printk(KERN_ERR "sharpsl_pcmcia_configure_socket(): bad Vcc %u\n", state->Vcc);
-		 return -1;
+	switch (state->Vcc)
+	{
+		case	0:  	break;
+
+		case 	33: 	break;
+
+		case	50: 	break;
+
+		default:
+			printk(KERN_ERR "sharpsl_pcmcia_configure_socket(): bad Vcc %u\n", state->Vcc);
+			return -1;
 	}
 
-	if ((state->Vpp!=state->Vcc) && (state->Vpp!=0)) {
+	if ((state->Vpp != state->Vcc) && (state->Vpp != 0))
+	{
 		printk(KERN_ERR "CF slot cannot support Vpp %u\n", state->Vpp);
 		return -1;
 	}
@@ -135,44 +154,69 @@ static int sharpsl_pcmcia_configure_socket(struct soc_pcmcia_socket *skt,
 	nccr = (ccr = read_scoop_reg(scoop, SCOOP_CCR)) & ~0x0080;
 	nimr = (imr = read_scoop_reg(scoop, SCOOP_IMR)) & ~0x003E;
 
-	if ((machine_is_spitz() || machine_is_borzoi() || machine_is_akita()) && skt->nr == 0) {
-	        ncpr |= (state->Vcc == 33) ? 0x0002 :
-		        (state->Vcc == 50) ? 0x0002 : 0;
-	} else {
-	        ncpr |= (state->Vcc == 33) ? 0x0001 :
-		        (state->Vcc == 50) ? 0x0002 : 0;
+	if ((machine_is_spitz() || machine_is_borzoi() || machine_is_akita()) && skt->nr == 0)
+	{
+		ncpr |= (state->Vcc == 33) ? 0x0002 :
+				(state->Vcc == 50) ? 0x0002 : 0;
 	}
-	nmcr |= (state->flags&SS_IOCARD) ? 0x0010 : 0;
-	ncpr |= (state->flags&SS_OUTPUT_ENA) ? 0x0080 : 0;
-	nccr |= (state->flags&SS_RESET)? 0x0080: 0;
-	nimr |=	((skt->status&SS_DETECT) ? 0x0004 : 0)|
-			((skt->status&SS_READY)  ? 0x0002 : 0)|
-			((skt->status&SS_BATDEAD)? 0x0010 : 0)|
-			((skt->status&SS_BATWARN)? 0x0020 : 0)|
-			((skt->status&SS_STSCHG) ? 0x0010 : 0)|
-			((skt->status&SS_WRPROT) ? 0x0008 : 0);
+	else
+	{
+		ncpr |= (state->Vcc == 33) ? 0x0001 :
+				(state->Vcc == 50) ? 0x0002 : 0;
+	}
 
-	if (!(ncpr & 0x0003)) {
+	nmcr |= (state->flags & SS_IOCARD) ? 0x0010 : 0;
+	ncpr |= (state->flags & SS_OUTPUT_ENA) ? 0x0080 : 0;
+	nccr |= (state->flags & SS_RESET) ? 0x0080 : 0;
+	nimr |=	((skt->status & SS_DETECT) ? 0x0004 : 0) |
+			((skt->status & SS_READY)  ? 0x0002 : 0) |
+			((skt->status & SS_BATDEAD) ? 0x0010 : 0) |
+			((skt->status & SS_BATWARN) ? 0x0020 : 0) |
+			((skt->status & SS_STSCHG) ? 0x0010 : 0) |
+			((skt->status & SS_WRPROT) ? 0x0008 : 0);
+
+	if (!(ncpr & 0x0003))
+	{
 		SCOOP_DEV[skt->nr].keep_rd = 0;
-	} else if (!SCOOP_DEV[skt->nr].keep_rd) {
+	}
+	else if (!SCOOP_DEV[skt->nr].keep_rd)
+	{
 		if (nccr & 0x0080)
+		{
 			SCOOP_DEV[skt->nr].keep_rd = 1;
+		}
 		else
+		{
 			nccr |= 0x0080;
+		}
 	}
 
 	if (mcr != nmcr)
+	{
 		write_scoop_reg(scoop, SCOOP_MCR, nmcr);
-	if (cpr != ncpr) {
-		if (platform_scoop_config->power_ctrl)
-			platform_scoop_config->power_ctrl(scoop, ncpr , skt->nr);
-		else
-		        write_scoop_reg(scoop, SCOOP_CPR, ncpr);
 	}
+
+	if (cpr != ncpr)
+	{
+		if (platform_scoop_config->power_ctrl)
+		{
+			platform_scoop_config->power_ctrl(scoop, ncpr , skt->nr);
+		}
+		else
+		{
+			write_scoop_reg(scoop, SCOOP_CPR, ncpr);
+		}
+	}
+
 	if (ccr != nccr)
+	{
 		write_scoop_reg(scoop, SCOOP_CCR, nccr);
+	}
+
 	if (imr != nimr)
+	{
 		write_scoop_reg(scoop, SCOOP_IMR, nimr);
+	}
 
 	local_irq_restore(flags);
 
@@ -194,7 +238,8 @@ static void sharpsl_pcmcia_socket_suspend(struct soc_pcmcia_socket *skt)
 	sharpsl_pcmcia_init_reset(skt);
 }
 
-static struct pcmcia_low_level sharpsl_pcmcia_ops = {
+static struct pcmcia_low_level sharpsl_pcmcia_ops =
+{
 	.owner                  = THIS_MODULE,
 	.hw_init                = sharpsl_pcmcia_hw_init,
 	.socket_state           = sharpsl_pcmcia_socket_state,
@@ -210,12 +255,14 @@ static struct pcmcia_low_level sharpsl_pcmcia_ops = {
 
 int pcmcia_collie_init(struct device *dev)
 {
-       int ret = -ENODEV;
+	int ret = -ENODEV;
 
-       if (machine_is_collie())
-               ret = sa11xx_drv_pcmcia_probe(dev, &sharpsl_pcmcia_ops, 0, 1);
+	if (machine_is_collie())
+	{
+		ret = sa11xx_drv_pcmcia_probe(dev, &sharpsl_pcmcia_ops, 0, 1);
+	}
 
-       return ret;
+	return ret;
 }
 
 #else
@@ -227,23 +274,31 @@ static int __init sharpsl_pcmcia_init(void)
 	int ret;
 
 	if (!platform_scoop_config)
+	{
 		return -ENODEV;
+	}
 
 	sharpsl_pcmcia_ops.nr = platform_scoop_config->num_devs;
 	sharpsl_pcmcia_device = platform_device_alloc("pxa2xx-pcmcia", -1);
 
 	if (!sharpsl_pcmcia_device)
+	{
 		return -ENOMEM;
+	}
 
 	ret = platform_device_add_data(sharpsl_pcmcia_device,
-			&sharpsl_pcmcia_ops, sizeof(sharpsl_pcmcia_ops));
-	if (ret == 0) {
+								   &sharpsl_pcmcia_ops, sizeof(sharpsl_pcmcia_ops));
+
+	if (ret == 0)
+	{
 		sharpsl_pcmcia_device->dev.parent = platform_scoop_config->devs[0].dev;
 		ret = platform_device_add(sharpsl_pcmcia_device);
 	}
 
 	if (ret)
+	{
 		platform_device_put(sharpsl_pcmcia_device);
+	}
 
 	return ret;
 }

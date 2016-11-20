@@ -31,7 +31,8 @@
 #include "tmon.h"
 
 struct tmon_platform_data ptdata;
-const char *trip_type_name[] = {
+const char *trip_type_name[] =
+{
 	"critical",
 	"hot",
 	"passive",
@@ -47,10 +48,13 @@ int sysfs_set_ulong(char *path, char *filename, unsigned long val)
 	snprintf(filepath, 256, "%s/%s", path, filename);
 
 	fd = fopen(filepath, "w");
-	if (!fd) {
+
+	if (!fd)
+	{
 		syslog(LOG_ERR, "Err: open %s: %s\n", __func__, filepath);
 		return ret;
 	}
+
 	ret = fprintf(fd, "%lu", val);
 	fclose(fd);
 
@@ -71,10 +75,13 @@ static int sysfs_get_ulong(char *path, char *filename, unsigned long *p_ulong)
 	snprintf(filepath, 256, "%s/%s", path, filename);
 
 	fd = fopen(filepath, "r");
-	if (!fd) {
+
+	if (!fd)
+	{
 		syslog(LOG_ERR, "Err: open %s: %s\n", __func__, filepath);
 		return ret;
 	}
+
 	ret = fscanf(fd, "%lu", p_ulong);
 	fclose(fd);
 
@@ -90,10 +97,13 @@ static int sysfs_get_string(char *path, char *filename, char *str)
 	snprintf(filepath, 256, "%s/%s", path, filename);
 
 	fd = fopen(filepath, "r");
-	if (!fd) {
+
+	if (!fd)
+	{
 		syslog(LOG_ERR, "Err: open %s: %s\n", __func__, filepath);
 		return ret;
 	}
+
 	ret = fscanf(fd, "%256s", str);
 	fclose(fd);
 
@@ -108,8 +118,8 @@ static int probe_cdev(struct cdev_info *cdi, char *path)
 	sysfs_get_ulong(path, "cur_state", &cdi->cur_state);
 
 	syslog(LOG_INFO, "%s: %s: type %s, max %lu, curr %lu inst %d\n",
-		__func__, path,
-		cdi->type, cdi->max_state, cdi->cur_state, cdi->instance);
+		   __func__, path,
+		   cdi->type, cdi->max_state, cdi->cur_state, cdi->instance);
 
 	return 0;
 }
@@ -118,9 +128,12 @@ static int str_to_trip_type(char *name)
 {
 	int i;
 
-	for (i = 0; i < NR_THERMAL_TRIP_TYPE; i++) {
+	for (i = 0; i < NR_THERMAL_TRIP_TYPE; i++)
+	{
 		if (!strcmp(name, trip_type_name[i]))
+		{
 			return i;
+		}
 	}
 
 	return -ENOENT;
@@ -134,18 +147,24 @@ static int get_trip_point_data(char *tz_path, int tzid, int tpid)
 	int trip_type;
 
 	if (tpid >= MAX_NR_TRIP)
+	{
 		return -EINVAL;
+	}
+
 	/* check trip point type */
 	snprintf(filename, sizeof(filename), "trip_point_%d_type", tpid);
 	sysfs_get_string(tz_path, filename, temp_str);
 	trip_type = str_to_trip_type(temp_str);
-	if (trip_type < 0) {
+
+	if (trip_type < 0)
+	{
 		syslog(LOG_ERR, "%s:%s no matching type\n", __func__, temp_str);
 		return -ENOENT;
 	}
+
 	ptdata.tzi[tzid].tp[tpid].type = trip_type;
 	syslog(LOG_INFO, "%s:tz:%d tp:%d:type:%s type id %d\n", __func__, tzid,
-		tpid, temp_str, trip_type);
+		   tpid, temp_str, trip_type);
 
 	/* TODO: check attribute */
 
@@ -159,12 +178,17 @@ static int get_instance_id(char *name, int pos, int skip)
 	int i = 0;
 
 	ch = strtok(name, "_");
-	while (ch != NULL) {
+
+	while (ch != NULL)
+	{
 		++i;
 		syslog(LOG_INFO, "%s:%s:%s:%d", __func__, name, ch, i);
 		ch = strtok(NULL, "_");
+
 		if (pos == i)
+		{
 			return atol(ch + skip);
+		}
 	}
 
 	return -1;
@@ -172,28 +196,34 @@ static int get_instance_id(char *name, int pos, int skip)
 
 /* Find trip point info of a thermal zone */
 static int find_tzone_tp(char *tz_name, char *d_name, struct tz_info *tzi,
-			int tz_id)
+						 int tz_id)
 {
 	int tp_id;
 	unsigned long temp_ulong;
 
 	if (strstr(d_name, "trip_point") &&
-		strstr(d_name, "temp")) {
+		strstr(d_name, "temp"))
+	{
 		/* check if trip point temp is non-zero
 		 * ignore 0/invalid trip points
 		 */
 		sysfs_get_ulong(tz_name, d_name, &temp_ulong);
-		if (temp_ulong < MAX_TEMP_KC) {
+
+		if (temp_ulong < MAX_TEMP_KC)
+		{
 			tzi->nr_trip_pts++;
 			/* found a valid trip point */
 			tp_id = get_instance_id(d_name, 2, 0);
 			syslog(LOG_DEBUG, "tzone %s trip %d temp %lu tpnode %s",
-				tz_name, tp_id, temp_ulong, d_name);
-			if (tp_id < 0 || tp_id >= MAX_NR_TRIP) {
+				   tz_name, tp_id, temp_ulong, d_name);
+
+			if (tp_id < 0 || tp_id >= MAX_NR_TRIP)
+			{
 				syslog(LOG_ERR, "Failed to find TP inst %s\n",
-					d_name);
+					   d_name);
 				return -1;
 			}
+
 			get_trip_point_data(tz_name, tz_id, tp_id);
 			tzi->tp[tp_id].temp = temp_ulong;
 		}
@@ -204,7 +234,7 @@ static int find_tzone_tp(char *tz_name, char *d_name, struct tz_info *tzi,
 
 /* check cooling devices for binding info. */
 static int find_tzone_cdev(struct dirent *nl, char *tz_name,
-			struct tz_info *tzi, int tz_id, int cid)
+						   struct tz_info *tzi, int tz_id, int cid)
 {
 	unsigned long trip_instance = 0;
 	char cdev_name_linked[256];
@@ -212,46 +242,57 @@ static int find_tzone_cdev(struct dirent *nl, char *tz_name,
 	char cdev_trip_name[256];
 	int cdev_id;
 
-	if (nl->d_type == DT_LNK) {
+	if (nl->d_type == DT_LNK)
+	{
 		syslog(LOG_DEBUG, "TZ%d: cdev: %s cid %d\n", tz_id, nl->d_name,
-			cid);
+			   cid);
 		tzi->nr_cdev++;
-		if (tzi->nr_cdev > ptdata.nr_cooling_dev) {
+
+		if (tzi->nr_cdev > ptdata.nr_cooling_dev)
+		{
 			syslog(LOG_ERR, "Err: Too many cdev? %d\n",
-				tzi->nr_cdev);
+				   tzi->nr_cdev);
 			return -EINVAL;
 		}
+
 		/* find the link to real cooling device record binding */
 		snprintf(cdev_name, 256, "%s/%s", tz_name, nl->d_name);
 		memset(cdev_name_linked, 0, sizeof(cdev_name_linked));
+
 		if (readlink(cdev_name, cdev_name_linked,
-				sizeof(cdev_name_linked) - 1) != -1) {
+					 sizeof(cdev_name_linked) - 1) != -1)
+		{
 			cdev_id = get_instance_id(cdev_name_linked, 1,
-						sizeof("device") - 1);
+									  sizeof("device") - 1);
 			syslog(LOG_DEBUG, "cdev %s linked to %s : %d\n",
-				cdev_name, cdev_name_linked, cdev_id);
+				   cdev_name, cdev_name_linked, cdev_id);
 			tzi->cdev_binding |= (1 << cdev_id);
 
 			/* find the trip point in which the cdev is binded to
 			 * in this tzone
 			 */
 			snprintf(cdev_trip_name, 256, "%s%s", nl->d_name,
-				"_trip_point");
+					 "_trip_point");
 			sysfs_get_ulong(tz_name, cdev_trip_name,
-					&trip_instance);
+							&trip_instance);
+
 			/* validate trip point range, e.g. trip could return -1
 			 * when passive is enabled
 			 */
 			if (trip_instance > MAX_NR_TRIP)
+			{
 				trip_instance = 0;
+			}
+
 			tzi->trip_binding[cdev_id] |= 1 << trip_instance;
 			syslog(LOG_DEBUG, "cdev %s -> trip:%lu: 0x%lx %d\n",
-				cdev_name, trip_instance,
-				tzi->trip_binding[cdev_id],
-				cdev_id);
+				   cdev_name, trip_instance,
+				   tzi->trip_binding[cdev_id],
+				   cdev_id);
 
 
 		}
+
 		return 0;
 	}
 
@@ -292,50 +333,73 @@ static int scan_tzones(void)
 	int i, j, n, k = 0;
 
 	if (!ptdata.nr_tz_sensor)
+	{
 		return -1;
+	}
 
-	for (i = 0; i <= ptdata.max_tz_instance; i++) {
+	for (i = 0; i <= ptdata.max_tz_instance; i++)
+	{
 		memset(tz_name, 0, sizeof(tz_name));
 		snprintf(tz_name, 256, "%s/%s%d", THERMAL_SYSFS, TZONE, i);
 
 		dir = opendir(tz_name);
-		if (!dir) {
+
+		if (!dir)
+		{
 			syslog(LOG_INFO, "Thermal zone %s skipped\n", tz_name);
 			continue;
 		}
+
 		/* keep track of valid tzones */
 		n = scandir(tz_name, &namelist, 0, alphasort);
+
 		if (n < 0)
+		{
 			syslog(LOG_ERR, "scandir failed in %s",  tz_name);
-		else {
+		}
+		else
+		{
 			sysfs_get_string(tz_name, "type", ptdata.tzi[k].type);
 			ptdata.tzi[k].instance = i;
 			/* detect trip points and cdev attached to this tzone */
 			j = 0; /* index for cdev */
 			ptdata.tzi[k].nr_cdev = 0;
 			ptdata.tzi[k].nr_trip_pts = 0;
-			while (n--) {
+
+			while (n--)
+			{
 				char *temp_str;
 
 				if (find_tzone_tp(tz_name, namelist[n]->d_name,
-							&ptdata.tzi[k], k))
+								  &ptdata.tzi[k], k))
+				{
 					break;
+				}
+
 				temp_str = strstr(namelist[n]->d_name, "cdev");
-				if (!temp_str) {
+
+				if (!temp_str)
+				{
 					free(namelist[n]);
 					continue;
 				}
+
 				if (!find_tzone_cdev(namelist[n], tz_name,
-							&ptdata.tzi[k], i, j))
-					j++; /* increment cdev index */
+									 &ptdata.tzi[k], i, j))
+				{
+					j++;    /* increment cdev index */
+				}
+
 				free(namelist[n]);
 			}
+
 			free(namelist);
 		}
+
 		/*TODO: reverse trip points */
 		closedir(dir);
 		syslog(LOG_INFO, "TZ %d has %d cdev\n",	i,
-			ptdata.tzi[k].nr_cdev);
+			   ptdata.tzi[k].nr_cdev);
 		k++;
 	}
 
@@ -349,16 +413,21 @@ static int scan_cdevs(void)
 	char cdev_name[256];
 	int i, n, k = 0;
 
-	if (!ptdata.nr_cooling_dev) {
+	if (!ptdata.nr_cooling_dev)
+	{
 		fprintf(stderr, "No cooling devices found\n");
 		return 0;
 	}
-	for (i = 0; i <= ptdata.max_cdev_instance; i++) {
+
+	for (i = 0; i <= ptdata.max_cdev_instance; i++)
+	{
 		memset(cdev_name, 0, sizeof(cdev_name));
 		snprintf(cdev_name, 256, "%s/%s%d", THERMAL_SYSFS, CDEV, i);
 
 		dir = opendir(cdev_name);
-		if (!dir) {
+
+		if (!dir)
+		{
 			syslog(LOG_INFO, "Cooling dev %s skipped\n", cdev_name);
 			/* there is a gap in cooling device id, check again
 			 * for the same index.
@@ -367,22 +436,34 @@ static int scan_cdevs(void)
 		}
 
 		n = scandir(cdev_name, &namelist, 0, alphasort);
+
 		if (n < 0)
+		{
 			syslog(LOG_ERR, "scandir failed in %s",  cdev_name);
-		else {
+		}
+		else
+		{
 			sysfs_get_string(cdev_name, "type", ptdata.cdi[k].type);
 			ptdata.cdi[k].instance = i;
-			if (strstr(ptdata.cdi[k].type, ctrl_cdev)) {
+
+			if (strstr(ptdata.cdi[k].type, ctrl_cdev))
+			{
 				ptdata.cdi[k].flag |= CDEV_FLAG_IN_CONTROL;
 				syslog(LOG_DEBUG, "control cdev id %d\n", i);
 			}
+
 			while (n--)
+			{
 				free(namelist[n]);
+			}
+
 			free(namelist);
 		}
+
 		closedir(dir);
 		k++;
 	}
+
 	return 0;
 }
 
@@ -394,69 +475,95 @@ int probe_thermal_sysfs(void)
 	int n;
 
 	dir = opendir(THERMAL_SYSFS);
-	if (!dir) {
+
+	if (!dir)
+	{
 		fprintf(stderr, "\nNo thermal sysfs, exit\n");
 		return -1;
 	}
+
 	n = scandir(THERMAL_SYSFS, &namelist, 0, alphasort);
+
 	if (n < 0)
+	{
 		syslog(LOG_ERR, "scandir failed in thermal sysfs");
-	else {
+	}
+	else
+	{
 		/* detect number of thermal zones and cooling devices */
-		while (n--) {
+		while (n--)
+		{
 			int inst;
 
-			if (strstr(namelist[n]->d_name, CDEV)) {
+			if (strstr(namelist[n]->d_name, CDEV))
+			{
 				inst = get_instance_id(namelist[n]->d_name, 1,
-						sizeof("device") - 1);
+									   sizeof("device") - 1);
+
 				/* keep track of the max cooling device since
 				 * there may be gaps.
 				 */
 				if (inst > ptdata.max_cdev_instance)
+				{
 					ptdata.max_cdev_instance = inst;
+				}
 
 				syslog(LOG_DEBUG, "found cdev: %s %d %d\n",
-					namelist[n]->d_name,
-					ptdata.nr_cooling_dev,
-					ptdata.max_cdev_instance);
+					   namelist[n]->d_name,
+					   ptdata.nr_cooling_dev,
+					   ptdata.max_cdev_instance);
 				ptdata.nr_cooling_dev++;
-			} else if (strstr(namelist[n]->d_name, TZONE)) {
+			}
+			else if (strstr(namelist[n]->d_name, TZONE))
+			{
 				inst = get_instance_id(namelist[n]->d_name, 1,
-						sizeof("zone") - 1);
+									   sizeof("zone") - 1);
+
 				if (inst > ptdata.max_tz_instance)
+				{
 					ptdata.max_tz_instance = inst;
+				}
 
 				syslog(LOG_DEBUG, "found tzone: %s %d %d\n",
-					namelist[n]->d_name,
-					ptdata.nr_tz_sensor,
-					ptdata.max_tz_instance);
+					   namelist[n]->d_name,
+					   ptdata.nr_tz_sensor,
+					   ptdata.max_tz_instance);
 				ptdata.nr_tz_sensor++;
 			}
+
 			free(namelist[n]);
 		}
+
 		free(namelist);
 	}
+
 	syslog(LOG_INFO, "found %d tzone(s), %d cdev(s), target zone %d\n",
-		ptdata.nr_tz_sensor, ptdata.nr_cooling_dev,
-		target_thermal_zone);
+		   ptdata.nr_tz_sensor, ptdata.nr_cooling_dev,
+		   target_thermal_zone);
 	closedir(dir);
 
-	if (!ptdata.nr_tz_sensor) {
+	if (!ptdata.nr_tz_sensor)
+	{
 		fprintf(stderr, "\nNo thermal zones found, exit\n\n");
 		return -1;
 	}
 
-	ptdata.tzi = calloc(ptdata.max_tz_instance+1, sizeof(struct tz_info));
-	if (!ptdata.tzi) {
+	ptdata.tzi = calloc(ptdata.max_tz_instance + 1, sizeof(struct tz_info));
+
+	if (!ptdata.tzi)
+	{
 		fprintf(stderr, "Err: allocate tz_info\n");
 		return -1;
 	}
 
 	/* we still show thermal zone information if there is no cdev */
-	if (ptdata.nr_cooling_dev) {
+	if (ptdata.nr_cooling_dev)
+	{
 		ptdata.cdi = calloc(ptdata.max_cdev_instance + 1,
-				sizeof(struct cdev_info));
-		if (!ptdata.cdi) {
+							sizeof(struct cdev_info));
+
+		if (!ptdata.cdi)
+		{
 			free(ptdata.tzi);
 			fprintf(stderr, "Err: allocate cdev_info\n");
 			return -1;
@@ -465,9 +572,15 @@ int probe_thermal_sysfs(void)
 
 	/* now probe tzones */
 	if (scan_tzones())
+	{
 		return -1;
+	}
+
 	if (scan_cdevs())
+	{
 		return -1;
+	}
+
 	return 0;
 }
 
@@ -478,7 +591,10 @@ int zone_instance_to_index(int zone_inst)
 
 	for (i = 0; i < ptdata.nr_tz_sensor; i++)
 		if (ptdata.tzi[i].instance == zone_inst)
+		{
 			return i;
+		}
+
 	return -ENOENT;
 }
 
@@ -489,44 +605,62 @@ int update_thermal_data()
 	char tz_name[256];
 	static unsigned long samples;
 
-	if (!ptdata.nr_tz_sensor) {
+	if (!ptdata.nr_tz_sensor)
+	{
 		syslog(LOG_ERR, "No thermal zones found!\n");
 		return -1;
 	}
 
 	/* circular buffer for keeping historic data */
 	if (cur_thermal_record >= NR_THERMAL_RECORDS)
+	{
 		cur_thermal_record = 0;
+	}
+
 	gettimeofday(&trec[cur_thermal_record].tv, NULL);
-	if (tmon_log) {
+
+	if (tmon_log)
+	{
 		fprintf(tmon_log, "%lu ", ++samples);
 		fprintf(tmon_log, "%3.1f ", p_param.t_target);
 	}
-	for (i = 0; i < ptdata.nr_tz_sensor; i++) {
+
+	for (i = 0; i < ptdata.nr_tz_sensor; i++)
+	{
 		memset(tz_name, 0, sizeof(tz_name));
 		snprintf(tz_name, 256, "%s/%s%d", THERMAL_SYSFS, TZONE,
-			ptdata.tzi[i].instance);
+				 ptdata.tzi[i].instance);
 		sysfs_get_ulong(tz_name, "temp",
-				&trec[cur_thermal_record].temp[i]);
+						&trec[cur_thermal_record].temp[i]);
+
 		if (tmon_log)
 			fprintf(tmon_log, "%lu ",
-				trec[cur_thermal_record].temp[i]/1000);
+					trec[cur_thermal_record].temp[i] / 1000);
 	}
-	for (i = 0; i < ptdata.nr_cooling_dev; i++) {
+
+	for (i = 0; i < ptdata.nr_cooling_dev; i++)
+	{
 		char cdev_name[256];
 		unsigned long val;
 
 		snprintf(cdev_name, 256, "%s/%s%d", THERMAL_SYSFS, CDEV,
-			ptdata.cdi[i].instance);
+				 ptdata.cdi[i].instance);
 		probe_cdev(&ptdata.cdi[i], cdev_name);
 		val = ptdata.cdi[i].cur_state;
+
 		if (val > 1000000)
+		{
 			val = 0;
+		}
+
 		if (tmon_log)
+		{
 			fprintf(tmon_log, "%lu ", val);
+		}
 	}
 
-	if (tmon_log) {
+	if (tmon_log)
+	{
 		fprintf(tmon_log, "\n");
 		fflush(tmon_log);
 	}
@@ -541,24 +675,31 @@ void set_ctrl_state(unsigned long state)
 	unsigned long cdev_state;
 
 	if (no_control)
+	{
 		return;
+	}
+
 	/* set all ctrl cdev to the same state */
-	for (i = 0; i < ptdata.nr_cooling_dev; i++) {
-		if (ptdata.cdi[i].flag & CDEV_FLAG_IN_CONTROL) {
-			if (ptdata.cdi[i].max_state < 10) {
+	for (i = 0; i < ptdata.nr_cooling_dev; i++)
+	{
+		if (ptdata.cdi[i].flag & CDEV_FLAG_IN_CONTROL)
+		{
+			if (ptdata.cdi[i].max_state < 10)
+			{
 				strcpy(ctrl_cdev, "None.");
 				return;
 			}
+
 			/* scale to percentage of max_state */
-			cdev_state = state * ptdata.cdi[i].max_state/100;
+			cdev_state = state * ptdata.cdi[i].max_state / 100;
 			syslog(LOG_DEBUG,
-				"ctrl cdev %d set state %lu scaled to %lu\n",
-				ptdata.cdi[i].instance, state, cdev_state);
+				   "ctrl cdev %d set state %lu scaled to %lu\n",
+				   ptdata.cdi[i].instance, state, cdev_state);
 			snprintf(ctrl_cdev_path, 256, "%s/%s%d", THERMAL_SYSFS,
-				CDEV, ptdata.cdi[i].instance);
+					 CDEV, ptdata.cdi[i].instance);
 			syslog(LOG_DEBUG, "ctrl cdev path %s", ctrl_cdev_path);
 			sysfs_set_ulong(ctrl_cdev_path, "cur_state",
-					cdev_state);
+							cdev_state);
 		}
 	}
 }
@@ -572,20 +713,25 @@ void get_ctrl_state(unsigned long *state)
 	/* TODO: take average of all ctrl types. also consider change based on
 	 * uevent. Take the first reading for now.
 	 */
-	for (i = 0; i < ptdata.nr_cooling_dev; i++) {
-		if (ptdata.cdi[i].flag & CDEV_FLAG_IN_CONTROL) {
+	for (i = 0; i < ptdata.nr_cooling_dev; i++)
+	{
+		if (ptdata.cdi[i].flag & CDEV_FLAG_IN_CONTROL)
+		{
 			ctrl_cdev_id = ptdata.cdi[i].instance;
 			syslog(LOG_INFO, "ctrl cdev %d get state\n",
-				ptdata.cdi[i].instance);
+				   ptdata.cdi[i].instance);
 			break;
 		}
 	}
-	if (ctrl_cdev_id == -1) {
+
+	if (ctrl_cdev_id == -1)
+	{
 		*state = 0;
 		return;
 	}
+
 	snprintf(ctrl_cdev_path, 256, "%s/%s%d", THERMAL_SYSFS,
-		CDEV, ctrl_cdev_id);
+			 CDEV, ctrl_cdev_id);
 	sysfs_get_ulong(ctrl_cdev_path, "cur_state", state);
 }
 

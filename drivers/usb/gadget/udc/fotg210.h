@@ -211,19 +211,21 @@
 /* Device DMA Controller Parameter setting 3 Register (0x1CC) */
 #define FOTG210_CXPORT		0x1D0
 
-struct fotg210_request {
+struct fotg210_request
+{
 	struct usb_request	req;
 	struct list_head	queue;
 };
 
-struct fotg210_ep {
+struct fotg210_ep
+{
 	struct usb_ep		ep;
 	struct fotg210_udc	*fotg210;
 
 	struct list_head	queue;
-	unsigned		stall:1;
-	unsigned		wedged:1;
-	unsigned		use_dma:1;
+	unsigned		stall: 1;
+	unsigned		wedged: 1;
+	unsigned		use_dma: 1;
 
 	unsigned char		epnum;
 	unsigned char		type;
@@ -232,7 +234,8 @@ struct fotg210_ep {
 	const struct usb_endpoint_descriptor	*desc;
 };
 
-struct fotg210_udc {
+struct fotg210_udc
+{
 	spinlock_t		lock; /* protect the struct */
 	void __iomem		*reg;
 

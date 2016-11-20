@@ -25,8 +25,10 @@
 #define ENIC_RSS_KEYS		4
 #define ENIC_RSS_LEN		(ENIC_RSS_BYTES_PER_KEY * ENIC_RSS_KEYS)
 
-union vnic_rss_key {
-	struct {
+union vnic_rss_key
+{
+	struct
+	{
 		u8 b[ENIC_RSS_BYTES_PER_KEY];
 		u8 b_pad[6];
 	} key[ENIC_RSS_KEYS];
@@ -34,8 +36,10 @@ union vnic_rss_key {
 };
 
 /* RSS cpu array */
-union vnic_rss_cpu {
-	struct {
+union vnic_rss_cpu
+{
+	struct
+	{
 		u8 b[4] ;
 		u8 b_pad[4];
 	} cpu[32];

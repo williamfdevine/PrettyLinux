@@ -200,7 +200,8 @@
 #define WINVIEW_PT2254_DATA 0x20
 #define WINVIEW_PT2254_STROBE 0x80
 
-struct bttv_core {
+struct bttv_core
+{
 	/* device structs */
 	struct v4l2_device   v4l2_dev;
 	struct pci_dev       *pci;
@@ -214,7 +215,8 @@ struct bttv_core {
 
 struct bttv;
 
-struct tvcard {
+struct tvcard
+{
 	char *name;
 	void (*volume_gpio)(struct bttv *btv, __u16 volume);
 	void (*audio_mode_gpio)(struct bttv *btv, struct v4l2_tuner *tuner, int set);
@@ -231,28 +233,28 @@ struct tvcard {
 	unsigned int tuner_type;
 	u8 tuner_addr;
 	u8 video_inputs;	/* Number of inputs */
-	unsigned int svhs:4;	/* Which input is s-video */
+	unsigned int svhs: 4;	/* Which input is s-video */
 #define NO_SVHS	15
-	unsigned int pll:2;
+	unsigned int pll: 2;
 #define PLL_NONE 0
 #define PLL_28   1
 #define PLL_35   2
 #define PLL_14   3
 
 	/* i2c audio flags */
-	unsigned int no_msp34xx:1;
-	unsigned int no_tda7432:1;
-	unsigned int msp34xx_alt:1;
+	unsigned int no_msp34xx: 1;
+	unsigned int no_tda7432: 1;
+	unsigned int msp34xx_alt: 1;
 	/* Note: currently no card definition needs to mark the presence
 	   of a RDS saa6588 chip. If this is ever needed, then add a new
 	   'has_saa6588' bit here. */
 
-	unsigned int no_video:1; /* video pci function is unused */
-	unsigned int has_dvb:1;
-	unsigned int has_remote:1;
-	unsigned int has_radio:1;
-	unsigned int has_dig_in:1; /* Has digital input (always last input) */
-	unsigned int no_gpioirq:1;
+	unsigned int no_video: 1; /* video pci function is unused */
+	unsigned int has_dvb: 1;
+	unsigned int has_remote: 1;
+	unsigned int has_radio: 1;
+	unsigned int has_dig_in: 1; /* Has digital input (always last input) */
+	unsigned int no_gpioirq: 1;
 };
 
 extern struct tvcard bttv_tvcards[];
@@ -302,14 +304,14 @@ extern int bttv_handle_chipset(struct bttv *btv);
 /* this obsolete -- please use the sysfs-based
    interface below for new code */
 
-extern struct pci_dev* bttv_get_pcidev(unsigned int card);
+extern struct pci_dev *bttv_get_pcidev(unsigned int card);
 
 /* sets GPOE register (BT848_GPIO_OUT_EN) to new value:
    data | (current_GPOE_value & ~mask)
    returns negative value if error occurred
 */
 extern int bttv_gpio_enable(unsigned int card,
-			    unsigned long mask, unsigned long data);
+							unsigned long mask, unsigned long data);
 
 /* fills data with GPDATA register contents
    returns negative value if error occurred
@@ -321,7 +323,7 @@ extern int bttv_read_gpio(unsigned int card, unsigned long *data);
   returns negative value if error occurred
 */
 extern int bttv_write_gpio(unsigned int card,
-			   unsigned long mask, unsigned long data);
+						   unsigned long mask, unsigned long data);
 
 
 
@@ -329,14 +331,16 @@ extern int bttv_write_gpio(unsigned int card,
 /* ---------------------------------------------------------- */
 /* sysfs/driver-moded based gpio access interface             */
 
-struct bttv_sub_device {
+struct bttv_sub_device
+{
 	struct device    dev;
 	struct bttv_core *core;
 	struct list_head list;
 };
 #define to_bttv_sub_dev(x) container_of((x), struct bttv_sub_device, dev)
 
-struct bttv_sub_driver {
+struct bttv_sub_driver
+{
 	struct device_driver   drv;
 	char                   wanted[20];
 	int                    (*probe)(struct bttv_sub_device *sub);
@@ -370,7 +374,7 @@ void bttv_gpio_bits(struct bttv_core *core, u32 mask, u32 bits);
 
 extern int bttv_I2CRead(struct bttv *btv, unsigned char addr, char *probe_for);
 extern int bttv_I2CWrite(struct bttv *btv, unsigned char addr, unsigned char b1,
-			 unsigned char b2, int both);
+						 unsigned char b2, int both);
 extern void bttv_readee(struct bttv *btv, unsigned char *eedata, int addr);
 
 extern int bttv_input_init(struct bttv *dev);

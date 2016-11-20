@@ -152,7 +152,8 @@
 #define TEGRA20_I2S_FIFO_SCR_FIFO1_ATN_LVL_EIGHT_SLOTS	(TEGRA20_I2S_FIFO_ATN_LVL_EIGHT_SLOTS  << TEGRA20_I2S_FIFO_SCR_FIFO1_ATN_LVL_SHIFT)
 #define TEGRA20_I2S_FIFO_SCR_FIFO1_ATN_LVL_TWELVE_SLOTS	(TEGRA20_I2S_FIFO_ATN_LVL_TWELVE_SLOTS << TEGRA20_I2S_FIFO_SCR_FIFO1_ATN_LVL_SHIFT)
 
-struct tegra20_i2s {
+struct tegra20_i2s
+{
 	struct snd_soc_dai_driver dai;
 	struct clk *clk_i2s;
 	struct snd_dmaengine_dai_dma_data capture_dma_data;

@@ -27,7 +27,8 @@
 /*
  * RX crypto status
  */
-enum rx_crypto {
+enum rx_crypto
+{
 	RX_CRYPTO_SUCCESS = 0,
 	RX_CRYPTO_FAIL_ICV = 1,
 	RX_CRYPTO_FAIL_MIC = 2,
@@ -37,7 +38,8 @@ enum rx_crypto {
 /*
  * Antenna values
  */
-enum antenna {
+enum antenna
+{
 	ANTENNA_SW_DIVERSITY = 0,
 	ANTENNA_A = 1,
 	ANTENNA_B = 2,
@@ -47,7 +49,8 @@ enum antenna {
 /*
  * Led mode values.
  */
-enum led_mode {
+enum led_mode
+{
 	LED_MODE_DEFAULT = 0,
 	LED_MODE_TXRX_ACTIVITY = 1,
 	LED_MODE_SIGNAL_STRENGTH = 2,
@@ -58,7 +61,8 @@ enum led_mode {
 /*
  * TSF sync values
  */
-enum tsf_sync {
+enum tsf_sync
+{
 	TSF_SYNC_NONE = 0,
 	TSF_SYNC_INFRA = 1,
 	TSF_SYNC_ADHOC = 2,
@@ -68,17 +72,18 @@ enum tsf_sync {
 /*
  * Device states
  */
-enum dev_state {
+enum dev_state
+{
 	STATE_DEEP_SLEEP = 0,
 	STATE_SLEEP = 1,
 	STATE_STANDBY = 2,
 	STATE_AWAKE = 3,
 
-/*
- * Additional device states, these values are
- * not strict since they are not directly passed
- * into the device.
- */
+	/*
+	 * Additional device states, these values are
+	 * not strict since they are not directly passed
+	 * into the device.
+	 */
 	STATE_RADIO_ON,
 	STATE_RADIO_OFF,
 	STATE_RADIO_IRQ_ON,
@@ -88,7 +93,8 @@ enum dev_state {
 /*
  * IFS backoff values
  */
-enum ifs {
+enum ifs
+{
 	IFS_BACKOFF = 0,
 	IFS_SIFS = 1,
 	IFS_NEW_BACKOFF = 2,
@@ -98,7 +104,8 @@ enum ifs {
 /*
  * IFS backoff values for HT devices
  */
-enum txop {
+enum txop
+{
 	TXOP_HTTXOP = 0,
 	TXOP_PIFS = 1,
 	TXOP_SIFS = 2,
@@ -108,31 +115,33 @@ enum txop {
 /*
  * Cipher types for hardware encryption
  */
-enum cipher {
+enum cipher
+{
 	CIPHER_NONE = 0,
 	CIPHER_WEP64 = 1,
 	CIPHER_WEP128 = 2,
 	CIPHER_TKIP = 3,
 	CIPHER_AES = 4,
-/*
- * The following fields were added by rt61pci and rt73usb.
- */
+	/*
+	 * The following fields were added by rt61pci and rt73usb.
+	 */
 	CIPHER_CKIP64 = 5,
 	CIPHER_CKIP128 = 6,
 	CIPHER_TKIP_NO_MIC = 7, /* Don't send to device */
 
-/*
- * Max cipher type.
- * Note that CIPHER_NONE isn't counted, and CKIP64 and CKIP128
- * are excluded due to limitations in mac80211.
- */
+	/*
+	 * Max cipher type.
+	 * Note that CIPHER_NONE isn't counted, and CKIP64 and CKIP128
+	 * are excluded due to limitations in mac80211.
+	 */
 	CIPHER_MAX = 4,
 };
 
 /*
  * Rate modulations
  */
-enum rate_modulation {
+enum rate_modulation
+{
 	RATE_MODE_CCK = 0,
 	RATE_MODE_OFDM = 1,
 	RATE_MODE_HT_MIX = 2,
@@ -142,7 +151,8 @@ enum rate_modulation {
 /*
  * Firmware validation error codes
  */
-enum firmware_errors {
+enum firmware_errors
+{
 	FW_OK,
 	FW_BAD_CRC,
 	FW_BAD_LENGTH,
@@ -155,17 +165,20 @@ enum firmware_errors {
  * This will simplify the process of setting and reading a certain field
  * inside the register while making sure the process remains byte order safe.
  */
-struct rt2x00_field8 {
+struct rt2x00_field8
+{
 	u8 bit_offset;
 	u8 bit_mask;
 };
 
-struct rt2x00_field16 {
+struct rt2x00_field16
+{
 	u16 bit_offset;
 	u16 bit_mask;
 };
 
-struct rt2x00_field32 {
+struct rt2x00_field32
+{
 	u32 bit_offset;
 	u32 bit_mask;
 };
@@ -191,23 +204,23 @@ struct rt2x00_field32 {
 
 #define compile_ffs4(__x) \
 	__builtin_choose_expr(((__x) & 0x3), \
-			      (compile_ffs2((__x))), \
-			      (compile_ffs2((__x) >> 2) + 2))
+						  (compile_ffs2((__x))), \
+						  (compile_ffs2((__x) >> 2) + 2))
 
 #define compile_ffs8(__x) \
 	__builtin_choose_expr(((__x) & 0xf), \
-			      (compile_ffs4((__x))), \
-			      (compile_ffs4((__x) >> 4) + 4))
+						  (compile_ffs4((__x))), \
+						  (compile_ffs4((__x) >> 4) + 4))
 
 #define compile_ffs16(__x) \
 	__builtin_choose_expr(((__x) & 0xff), \
-			      (compile_ffs8((__x))), \
-			      (compile_ffs8((__x) >> 8) + 8))
+						  (compile_ffs8((__x))), \
+						  (compile_ffs8((__x) >> 8) + 8))
 
 #define compile_ffs32(__x) \
 	__builtin_choose_expr(((__x) & 0xffff), \
-			      (compile_ffs16((__x))), \
-			      (compile_ffs16((__x) >> 16) + 16))
+						  (compile_ffs16((__x))), \
+						  (compile_ffs16((__x) >> 16) + 16))
 
 /*
  * This macro will check the requirements for the FIELD{8,16,32} macros
@@ -216,48 +229,48 @@ struct rt2x00_field32 {
  */
 #define FIELD_CHECK(__mask, __type)			\
 	BUILD_BUG_ON(!(__mask) ||			\
-		     !is_valid_mask(__mask) ||		\
-		     (__mask) != (__type)(__mask))	\
+				 !is_valid_mask(__mask) ||		\
+				 (__mask) != (__type)(__mask))	\
 
 #define FIELD8(__mask)				\
-({						\
-	FIELD_CHECK(__mask, u8);		\
-	(struct rt2x00_field8) {		\
-		compile_ffs8(__mask), (__mask)	\
-	};					\
-})
+	({						\
+		FIELD_CHECK(__mask, u8);		\
+		(struct rt2x00_field8) {		\
+			compile_ffs8(__mask), (__mask)	\
+		};					\
+	})
 
 #define FIELD16(__mask)				\
-({						\
-	FIELD_CHECK(__mask, u16);		\
-	(struct rt2x00_field16) {		\
-		compile_ffs16(__mask), (__mask)	\
-	};					\
-})
+	({						\
+		FIELD_CHECK(__mask, u16);		\
+		(struct rt2x00_field16) {		\
+			compile_ffs16(__mask), (__mask)	\
+		};					\
+	})
 
 #define FIELD32(__mask)				\
-({						\
-	FIELD_CHECK(__mask, u32);		\
-	(struct rt2x00_field32) {		\
-		compile_ffs32(__mask), (__mask)	\
-	};					\
-})
+	({						\
+		FIELD_CHECK(__mask, u32);		\
+		(struct rt2x00_field32) {		\
+			compile_ffs32(__mask), (__mask)	\
+		};					\
+	})
 
 #define SET_FIELD(__reg, __type, __field, __value)\
-({						\
-	typecheck(__type, __field);		\
-	*(__reg) &= ~((__field).bit_mask);	\
-	*(__reg) |= ((__value) <<		\
-	    ((__field).bit_offset)) &		\
-	    ((__field).bit_mask);		\
-})
+	({						\
+		typecheck(__type, __field);		\
+		*(__reg) &= ~((__field).bit_mask);	\
+		*(__reg) |= ((__value) <<		\
+					 ((__field).bit_offset)) &		\
+					((__field).bit_mask);		\
+	})
 
 #define GET_FIELD(__reg, __type, __field)	\
-({						\
-	typecheck(__type, __field);		\
-	((__reg) & ((__field).bit_mask)) >>	\
-	    ((__field).bit_offset);		\
-})
+	({						\
+		typecheck(__type, __field);		\
+		((__reg) & ((__field).bit_mask)) >>	\
+										 ((__field).bit_offset);		\
+	})
 
 #define rt2x00_set_field32(__reg, __field, __value) \
 	SET_FIELD(__reg, struct rt2x00_field32, __field, __value)

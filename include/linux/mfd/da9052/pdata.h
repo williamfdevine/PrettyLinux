@@ -28,7 +28,8 @@
 
 struct da9052;
 
-struct da9052_pdata {
+struct da9052_pdata
+{
 	struct led_platform_data *pled;
 	int (*init) (struct da9052 *da9052);
 	int irq_base;

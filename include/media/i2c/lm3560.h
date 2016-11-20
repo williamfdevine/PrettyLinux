@@ -66,13 +66,15 @@
 #define LM3560_TORCH_BRT_REG_TO_uA(a)		\
 	((a) * LM3560_TORCH_BRT_STEP + LM3560_TORCH_BRT_MIN)
 
-enum lm3560_led_id {
+enum lm3560_led_id
+{
 	LM3560_LED0 = 0,
 	LM3560_LED1,
 	LM3560_LED_MAX
 };
 
-enum lm3560_peak_current {
+enum lm3560_peak_current
+{
 	LM3560_PEAK_1600mA = 0x00,
 	LM3560_PEAK_2300mA = 0x20,
 	LM3560_PEAK_3000mA = 0x40,
@@ -86,7 +88,8 @@ enum lm3560_peak_current {
  * @max_flash_brt: flash mode led brightness
  * @max_torch_brt: torch mode led brightness
  */
-struct lm3560_platform_data {
+struct lm3560_platform_data
+{
 	enum lm3560_peak_current peak;
 
 	u32 max_flash_timeout;

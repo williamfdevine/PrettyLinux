@@ -151,7 +151,8 @@
 
 #define TSCADC_CELLS		2
 
-struct ti_tscadc_dev {
+struct ti_tscadc_dev
+{
 	struct device *dev;
 	struct regmap *regmap;
 	void __iomem *tscadc_base;

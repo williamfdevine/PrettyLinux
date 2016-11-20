@@ -44,14 +44,15 @@
 static int heartbeat;
 module_param(heartbeat, int, 0);
 MODULE_PARM_DESC(heartbeat, "Watchdog heartbeats in seconds (default="
-		 __MODULE_STRING(LPC18XX_WDT_DEF_TIMEOUT) ")");
+				 __MODULE_STRING(LPC18XX_WDT_DEF_TIMEOUT) ")");
 
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default="
-		 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
-struct lpc18xx_wdt_dev {
+struct lpc18xx_wdt_dev
+{
 	struct watchdog_device	wdt_dev;
 	struct clk		*reg_clk;
 	struct clk		*wdt_clk;
@@ -87,7 +88,7 @@ static void lpc18xx_wdt_timer_feed(unsigned long data)
 
 	/* Use safe value (1/2 of real timeout) */
 	mod_timer(&lpc18xx_wdt->timer, jiffies +
-		  msecs_to_jiffies((wdt_dev->timeout * MSEC_PER_SEC) / 2));
+			  msecs_to_jiffies((wdt_dev->timeout * MSEC_PER_SEC) / 2));
 }
 
 /*
@@ -106,12 +107,12 @@ static void __lpc18xx_wdt_set_timeout(struct lpc18xx_wdt_dev *lpc18xx_wdt)
 	unsigned int val;
 
 	val = DIV_ROUND_UP(lpc18xx_wdt->wdt_dev.timeout * lpc18xx_wdt->clk_rate,
-			   LPC18XX_WDT_CLK_DIV);
+					   LPC18XX_WDT_CLK_DIV);
 	writel(val, lpc18xx_wdt->base + LPC18XX_WDT_TC);
 }
 
 static int lpc18xx_wdt_set_timeout(struct watchdog_device *wdt_dev,
-				   unsigned int new_timeout)
+								   unsigned int new_timeout)
 {
 	struct lpc18xx_wdt_dev *lpc18xx_wdt = watchdog_get_drvdata(wdt_dev);
 
@@ -136,7 +137,9 @@ static int lpc18xx_wdt_start(struct watchdog_device *wdt_dev)
 	unsigned int val;
 
 	if (timer_pending(&lpc18xx_wdt->timer))
+	{
 		del_timer(&lpc18xx_wdt->timer);
+	}
 
 	val = readl(lpc18xx_wdt->base + LPC18XX_WDT_MOD);
 	val |= LPC18XX_WDT_MOD_WDEN;
@@ -154,7 +157,7 @@ static int lpc18xx_wdt_start(struct watchdog_device *wdt_dev)
 }
 
 static int lpc18xx_wdt_restart(struct watchdog_device *wdt_dev,
-			       unsigned long action, void *data)
+							   unsigned long action, void *data)
 {
 	struct lpc18xx_wdt_dev *lpc18xx_wdt = watchdog_get_drvdata(wdt_dev);
 	unsigned long flags;
@@ -181,14 +184,16 @@ static int lpc18xx_wdt_restart(struct watchdog_device *wdt_dev,
 	return 0;
 }
 
-static struct watchdog_info lpc18xx_wdt_info = {
+static struct watchdog_info lpc18xx_wdt_info =
+{
 	.identity	= "NXP LPC18xx Watchdog",
 	.options	= WDIOF_SETTIMEOUT |
-			  WDIOF_KEEPALIVEPING |
-			  WDIOF_MAGICCLOSE,
+	WDIOF_KEEPALIVEPING |
+	WDIOF_MAGICCLOSE,
 };
 
-static const struct watchdog_ops lpc18xx_wdt_ops = {
+static const struct watchdog_ops lpc18xx_wdt_ops =
+{
 	.owner		= THIS_MODULE,
 	.start		= lpc18xx_wdt_start,
 	.stop		= lpc18xx_wdt_stop,
@@ -206,41 +211,57 @@ static int lpc18xx_wdt_probe(struct platform_device *pdev)
 	int ret;
 
 	lpc18xx_wdt = devm_kzalloc(dev, sizeof(*lpc18xx_wdt), GFP_KERNEL);
+
 	if (!lpc18xx_wdt)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	lpc18xx_wdt->base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(lpc18xx_wdt->base))
+	{
 		return PTR_ERR(lpc18xx_wdt->base);
+	}
 
 	lpc18xx_wdt->reg_clk = devm_clk_get(dev, "reg");
-	if (IS_ERR(lpc18xx_wdt->reg_clk)) {
+
+	if (IS_ERR(lpc18xx_wdt->reg_clk))
+	{
 		dev_err(dev, "failed to get the reg clock\n");
 		return PTR_ERR(lpc18xx_wdt->reg_clk);
 	}
 
 	lpc18xx_wdt->wdt_clk = devm_clk_get(dev, "wdtclk");
-	if (IS_ERR(lpc18xx_wdt->wdt_clk)) {
+
+	if (IS_ERR(lpc18xx_wdt->wdt_clk))
+	{
 		dev_err(dev, "failed to get the wdt clock\n");
 		return PTR_ERR(lpc18xx_wdt->wdt_clk);
 	}
 
 	ret = clk_prepare_enable(lpc18xx_wdt->reg_clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "could not prepare or enable sys clock\n");
 		return ret;
 	}
 
 	ret = clk_prepare_enable(lpc18xx_wdt->wdt_clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "could not prepare or enable wdt clock\n");
 		goto disable_reg_clk;
 	}
 
 	/* We use the clock rate to calculate timeouts */
 	lpc18xx_wdt->clk_rate = clk_get_rate(lpc18xx_wdt->wdt_clk);
-	if (lpc18xx_wdt->clk_rate == 0) {
+
+	if (lpc18xx_wdt->clk_rate == 0)
+	{
 		dev_err(dev, "failed to get clock rate\n");
 		ret = -EINVAL;
 		goto disable_wdt_clk;
@@ -250,13 +271,13 @@ static int lpc18xx_wdt_probe(struct platform_device *pdev)
 	lpc18xx_wdt->wdt_dev.ops = &lpc18xx_wdt_ops;
 
 	lpc18xx_wdt->wdt_dev.min_timeout = DIV_ROUND_UP(LPC18XX_WDT_TC_MIN *
-				LPC18XX_WDT_CLK_DIV, lpc18xx_wdt->clk_rate);
+									   LPC18XX_WDT_CLK_DIV, lpc18xx_wdt->clk_rate);
 
 	lpc18xx_wdt->wdt_dev.max_timeout = (LPC18XX_WDT_TC_MAX *
-				LPC18XX_WDT_CLK_DIV) / lpc18xx_wdt->clk_rate;
+										LPC18XX_WDT_CLK_DIV) / lpc18xx_wdt->clk_rate;
 
 	lpc18xx_wdt->wdt_dev.timeout = min(lpc18xx_wdt->wdt_dev.max_timeout,
-					   LPC18XX_WDT_DEF_TIMEOUT);
+									   LPC18XX_WDT_DEF_TIMEOUT);
 
 	spin_lock_init(&lpc18xx_wdt->lock);
 
@@ -268,7 +289,7 @@ static int lpc18xx_wdt_probe(struct platform_device *pdev)
 	__lpc18xx_wdt_set_timeout(lpc18xx_wdt);
 
 	setup_timer(&lpc18xx_wdt->timer, lpc18xx_wdt_timer_feed,
-		    (unsigned long)&lpc18xx_wdt->wdt_dev);
+				(unsigned long)&lpc18xx_wdt->wdt_dev);
 
 	watchdog_set_nowayout(&lpc18xx_wdt->wdt_dev, nowayout);
 	watchdog_set_restart_priority(&lpc18xx_wdt->wdt_dev, 128);
@@ -276,8 +297,11 @@ static int lpc18xx_wdt_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, lpc18xx_wdt);
 
 	ret = watchdog_register_device(&lpc18xx_wdt->wdt_dev);
+
 	if (ret)
+	{
 		goto disable_wdt_clk;
+	}
 
 	return 0;
 
@@ -309,13 +333,15 @@ static int lpc18xx_wdt_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id lpc18xx_wdt_match[] = {
+static const struct of_device_id lpc18xx_wdt_match[] =
+{
 	{ .compatible = "nxp,lpc1850-wwdt" },
 	{}
 };
 MODULE_DEVICE_TABLE(of, lpc18xx_wdt_match);
 
-static struct platform_driver lpc18xx_wdt_driver = {
+static struct platform_driver lpc18xx_wdt_driver =
+{
 	.driver = {
 		.name = "lpc18xx-wdt",
 		.of_match_table	= lpc18xx_wdt_match,

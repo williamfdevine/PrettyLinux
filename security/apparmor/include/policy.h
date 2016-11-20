@@ -52,14 +52,16 @@ extern const char *const aa_profile_mode_names[];
  * Either, with a set of profiles loaded at the namespace level or via
  * a mark and remove marked interface.
  */
-enum profile_mode {
+enum profile_mode
+{
 	APPARMOR_ENFORCE,	/* enforce access rules */
 	APPARMOR_COMPLAIN,	/* allow and log access violations */
 	APPARMOR_KILL,		/* kill task on access violation */
 	APPARMOR_UNCONFINED,	/* profile set to unconfined */
 };
 
-enum profile_flags {
+enum profile_flags
+{
 	PFLAG_HAT = 1,			/* profile is a hat */
 	PFLAG_NULL = 4,			/* profile is null learning profile */
 	PFLAG_IX_ON_NAME_ERROR = 8,	/* fallback to ix on name lookup fail */
@@ -82,7 +84,8 @@ struct aa_profile;
  * @list: list policy object is on
  * @profiles: head of the profiles list contained in the object
  */
-struct aa_policy {
+struct aa_policy
+{
 	char *name;
 	char *hname;
 	struct list_head list;
@@ -95,7 +98,8 @@ struct aa_policy {
  * @size: current size of profiles
  * @count: current count of profiles (includes null profiles)
  */
-struct aa_ns_acct {
+struct aa_ns_acct
+{
 	int max_size;
 	int max_count;
 	int size;
@@ -127,7 +131,8 @@ struct aa_ns_acct {
  * FIXME TODO: add vserver support of namespaces (can it all be done in
  *             userspace?)
  */
-struct aa_namespace {
+struct aa_namespace
+{
 	struct aa_policy base;
 	struct aa_namespace *parent;
 	struct mutex lock;
@@ -144,14 +149,16 @@ struct aa_namespace {
  * dfa: dfa pattern match
  * start: set of start states for the different classes of data
  */
-struct aa_policydb {
+struct aa_policydb
+{
 	/* Generic policy DFA specific rule types will be subsections of it */
 	struct aa_dfa *dfa;
 	unsigned int start[AA_CLASS_LAST + 1];
 
 };
 
-struct aa_replacedby {
+struct aa_replacedby
+{
 	struct kref count;
 	struct aa_profile __rcu *profile;
 };
@@ -195,7 +202,8 @@ struct aa_replacedby {
  * character.  If a profile name begins with / it will be considered when
  * determining profile attachment on "unconfined" tasks.
  */
-struct aa_profile {
+struct aa_profile
+{
 	struct aa_policy base;
 	struct kref count;
 	struct rcu_head rcu;
@@ -236,7 +244,7 @@ void aa_free_root_ns(void);
 void aa_free_namespace_kref(struct kref *kref);
 
 struct aa_namespace *aa_find_namespace(struct aa_namespace *root,
-				       const char *name);
+									   const char *name);
 
 
 void aa_free_replacedby_kref(struct kref *kref);
@@ -260,7 +268,7 @@ ssize_t aa_remove_profiles(char *name, size_t size);
 static inline struct aa_profile *aa_deref_parent(struct aa_profile *p)
 {
 	return rcu_dereference_protected(p->parent,
-					 mutex_is_locked(&p->ns->lock));
+									 mutex_is_locked(&p->ns->lock));
 }
 
 /**
@@ -273,7 +281,9 @@ static inline struct aa_profile *aa_deref_parent(struct aa_profile *p)
 static inline struct aa_profile *aa_get_profile(struct aa_profile *p)
 {
 	if (p)
+	{
 		kref_get(&(p->count));
+	}
 
 	return p;
 }
@@ -288,7 +298,9 @@ static inline struct aa_profile *aa_get_profile(struct aa_profile *p)
 static inline struct aa_profile *aa_get_profile_not0(struct aa_profile *p)
 {
 	if (p && kref_get_not0(&p->count))
+	{
 		return p;
+	}
 
 	return NULL;
 }
@@ -305,9 +317,13 @@ static inline struct aa_profile *aa_get_profile_rcu(struct aa_profile __rcu **p)
 	struct aa_profile *c;
 
 	rcu_read_lock();
-	do {
+
+	do
+	{
 		c = rcu_dereference(*p);
-	} while (c && !kref_get_not0(&c->count));
+	}
+	while (c && !kref_get_not0(&c->count));
+
 	rcu_read_unlock();
 
 	return c;
@@ -324,10 +340,14 @@ static inline struct aa_profile *aa_get_profile_rcu(struct aa_profile __rcu **p)
 static inline struct aa_profile *aa_get_newest_profile(struct aa_profile *p)
 {
 	if (!p)
+	{
 		return NULL;
+	}
 
 	if (PROFILE_INVALID(p))
+	{
 		return aa_get_profile_rcu(&p->replacedby->profile);
+	}
 
 	return aa_get_profile(p);
 }
@@ -339,13 +359,17 @@ static inline struct aa_profile *aa_get_newest_profile(struct aa_profile *p)
 static inline void aa_put_profile(struct aa_profile *p)
 {
 	if (p)
+	{
 		kref_put(&p->count, aa_free_profile_kref);
+	}
 }
 
 static inline struct aa_replacedby *aa_get_replacedby(struct aa_replacedby *p)
 {
 	if (p)
+	{
 		kref_get(&(p->count));
+	}
 
 	return p;
 }
@@ -353,16 +377,18 @@ static inline struct aa_replacedby *aa_get_replacedby(struct aa_replacedby *p)
 static inline void aa_put_replacedby(struct aa_replacedby *p)
 {
 	if (p)
+	{
 		kref_put(&p->count, aa_free_replacedby_kref);
+	}
 }
 
 /* requires profile list write lock held */
 static inline void __aa_update_replacedby(struct aa_profile *orig,
-					  struct aa_profile *new)
+		struct aa_profile *new)
 {
 	struct aa_profile *tmp;
 	tmp = rcu_dereference_protected(orig->replacedby->profile,
-					mutex_is_locked(&orig->ns->lock));
+									mutex_is_locked(&orig->ns->lock));
 	rcu_assign_pointer(orig->replacedby->profile, aa_get_profile(new));
 	orig->flags |= PFLAG_INVALID;
 	aa_put_profile(tmp);
@@ -378,7 +404,9 @@ static inline void __aa_update_replacedby(struct aa_profile *orig,
 static inline struct aa_namespace *aa_get_namespace(struct aa_namespace *ns)
 {
 	if (ns)
+	{
 		aa_get_profile(ns->unconfined);
+	}
 
 	return ns;
 }
@@ -392,13 +420,17 @@ static inline struct aa_namespace *aa_get_namespace(struct aa_namespace *ns)
 static inline void aa_put_namespace(struct aa_namespace *ns)
 {
 	if (ns)
+	{
 		aa_put_profile(ns->unconfined);
+	}
 }
 
 static inline int AUDIT_MODE(struct aa_profile *profile)
 {
 	if (aa_g_audit != AUDIT_NORMAL)
+	{
 		return aa_g_audit;
+	}
 
 	return profile->audit;
 }

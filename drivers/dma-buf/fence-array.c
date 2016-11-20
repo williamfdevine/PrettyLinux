@@ -40,7 +40,10 @@ static void fence_array_cb_func(struct fence *f, struct fence_cb *cb)
 	struct fence_array *array = array_cb->array;
 
 	if (atomic_dec_and_test(&array->num_pending))
+	{
 		fence_signal(&array->base);
+	}
+
 	fence_put(&array->base);
 }
 
@@ -50,7 +53,8 @@ static bool fence_array_enable_signaling(struct fence *fence)
 	struct fence_array_cb *cb = (void *)(&array[1]);
 	unsigned i;
 
-	for (i = 0; i < array->num_fences; ++i) {
+	for (i = 0; i < array->num_fences; ++i)
+	{
 		cb[i].array = array;
 		/*
 		 * As we may report that the fence is signaled before all
@@ -61,11 +65,16 @@ static bool fence_array_enable_signaling(struct fence *fence)
 		 * insufficient).
 		 */
 		fence_get(&array->base);
+
 		if (fence_add_callback(array->fences[i], &cb[i].cb,
-				       fence_array_cb_func)) {
+							   fence_array_cb_func))
+		{
 			fence_put(&array->base);
+
 			if (atomic_dec_and_test(&array->num_pending))
+			{
 				return false;
+			}
 		}
 	}
 
@@ -85,13 +94,16 @@ static void fence_array_release(struct fence *fence)
 	unsigned i;
 
 	for (i = 0; i < array->num_fences; ++i)
+	{
 		fence_put(array->fences[i]);
+	}
 
 	kfree(array->fences);
 	fence_free(fence);
 }
 
-const struct fence_ops fence_array_ops = {
+const struct fence_ops fence_array_ops =
+{
 	.get_driver_name = fence_array_get_driver_name,
 	.get_timeline_name = fence_array_get_timeline_name,
 	.enable_signaling = fence_array_enable_signaling,
@@ -120,8 +132,8 @@ EXPORT_SYMBOL(fence_array_ops);
  * signals, otherwise it signals when all fences in the array signal.
  */
 struct fence_array *fence_array_create(int num_fences, struct fence **fences,
-				       u64 context, unsigned seqno,
-				       bool signal_on_any)
+									   u64 context, unsigned seqno,
+									   bool signal_on_any)
 {
 	struct fence_array *array;
 	size_t size = sizeof(*array);
@@ -129,12 +141,15 @@ struct fence_array *fence_array_create(int num_fences, struct fence **fences,
 	/* Allocate the callback structures behind the array. */
 	size += num_fences * sizeof(struct fence_array_cb);
 	array = kzalloc(size, GFP_KERNEL);
+
 	if (!array)
+	{
 		return NULL;
+	}
 
 	spin_lock_init(&array->lock);
 	fence_init(&array->base, &fence_array_ops, &array->lock,
-		   context, seqno);
+			   context, seqno);
 
 	array->num_fences = num_fences;
 	atomic_set(&array->num_pending, signal_on_any ? 1 : num_fences);

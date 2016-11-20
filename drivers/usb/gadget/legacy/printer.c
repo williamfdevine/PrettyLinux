@@ -54,7 +54,7 @@ MODULE_PARM_DESC(iPNPstring, "MFG:linux;MDL:g_printer;CLS:PRINTER;SN:1;");
 
 /* Number of requests to allocate per endpoint, not used for ep0. */
 static unsigned qlen = 10;
-module_param(qlen, uint, S_IRUGO|S_IWUSR);
+module_param(qlen, uint, S_IRUGO | S_IWUSR);
 
 #define QLEN	qlen
 
@@ -68,7 +68,8 @@ static struct usb_function *f_printer;
  * descriptors are built on demand.
  */
 
-static struct usb_device_descriptor device_desc = {
+static struct usb_device_descriptor device_desc =
+{
 	.bLength =		sizeof device_desc,
 	.bDescriptorType =	USB_DT_DEVICE,
 	/* .bcdUSB = DYNAMIC */
@@ -92,24 +93,28 @@ static char				pnp_string[PNP_STRING_LEN] =
 	"XXMFG:linux;MDL:g_printer;CLS:PRINTER;SN:1;";
 
 /* static strings, in UTF-8 */
-static struct usb_string		strings [] = {
+static struct usb_string		strings [] =
+{
 	[USB_GADGET_MANUFACTURER_IDX].s = "",
 	[USB_GADGET_PRODUCT_IDX].s = product_desc,
 	[USB_GADGET_SERIAL_IDX].s =	serial_num,
 	{  }		/* end of list */
 };
 
-static struct usb_gadget_strings	stringtab_dev = {
+static struct usb_gadget_strings	stringtab_dev =
+{
 	.language	= 0x0409,	/* en-us */
 	.strings	= strings,
 };
 
-static struct usb_gadget_strings *dev_strings[] = {
+static struct usb_gadget_strings *dev_strings[] =
+{
 	&stringtab_dev,
 	NULL,
 };
 
-static struct usb_configuration printer_cfg_driver = {
+static struct usb_configuration printer_cfg_driver =
+{
 	.label			= "printer",
 	.bConfigurationValue	= 1,
 	.bmAttributes		= USB_CONFIG_ATT_ONE | USB_CONFIG_ATT_SELFPOWER,
@@ -124,18 +129,25 @@ static int printer_do_config(struct usb_configuration *c)
 
 	usb_gadget_set_selfpowered(gadget);
 
-	if (gadget_is_otg(gadget)) {
+	if (gadget_is_otg(gadget))
+	{
 		printer_cfg_driver.descriptors = otg_desc;
 		printer_cfg_driver.bmAttributes |= USB_CONFIG_ATT_WAKEUP;
 	}
 
 	f_printer = usb_get_function(fi_printer);
+
 	if (IS_ERR(f_printer))
+	{
 		return PTR_ERR(f_printer);
+	}
 
 	status = usb_add_function(c, f_printer);
+
 	if (status < 0)
+	{
 		usb_put_function(f_printer);
+	}
 
 	return status;
 }
@@ -146,11 +158,16 @@ static int printer_bind(struct usb_composite_dev *cdev)
 	int ret, len;
 
 	fi_printer = usb_get_function_instance("printer");
+
 	if (IS_ERR(fi_printer))
+	{
 		return PTR_ERR(fi_printer);
+	}
 
 	if (iPNPstring)
+	{
 		strlcpy(&pnp_string[2], iPNPstring, PNP_STRING_LEN - 2);
+	}
 
 	len = strlen(pnp_string);
 	pnp_string[0] = (len >> 8) & 0xFF;
@@ -162,29 +179,39 @@ static int printer_bind(struct usb_composite_dev *cdev)
 	opts->q_len = QLEN;
 
 	ret = usb_string_ids_tab(cdev, strings);
+
 	if (ret < 0)
+	{
 		goto fail_put_func_inst;
+	}
 
 	device_desc.iManufacturer = strings[USB_GADGET_MANUFACTURER_IDX].id;
 	device_desc.iProduct = strings[USB_GADGET_PRODUCT_IDX].id;
 	device_desc.iSerialNumber = strings[USB_GADGET_SERIAL_IDX].id;
 
-	if (gadget_is_otg(cdev->gadget) && !otg_desc[0]) {
+	if (gadget_is_otg(cdev->gadget) && !otg_desc[0])
+	{
 		struct usb_descriptor_header *usb_desc;
 
 		usb_desc = usb_otg_descriptor_alloc(cdev->gadget);
-		if (!usb_desc) {
+
+		if (!usb_desc)
+		{
 			ret = -ENOMEM;
 			goto fail_put_func_inst;
 		}
+
 		usb_otg_descriptor_init(cdev->gadget, usb_desc);
 		otg_desc[0] = usb_desc;
 		otg_desc[1] = NULL;
 	}
 
 	ret = usb_add_config(cdev, &printer_cfg_driver, printer_do_config);
+
 	if (ret)
+	{
 		goto fail_free_otg_desc;
+	}
 
 	usb_composite_overwrite_options(cdev, &coverwrite);
 	return ret;
@@ -208,7 +235,8 @@ static int printer_unbind(struct usb_composite_dev *cdev)
 	return 0;
 }
 
-static struct usb_composite_driver printer_driver = {
+static struct usb_composite_driver printer_driver =
+{
 	.name           = shortname,
 	.dev            = &device_desc,
 	.strings        = dev_strings,

@@ -26,7 +26,8 @@
  * The clock is an adjustable fractional divider with a busy bit to wait
  * when the divider is adjusted.
  */
-struct clk_frac {
+struct clk_frac
+{
 	struct clk_hw hw;
 	void __iomem *reg;
 	u8 shift;
@@ -37,7 +38,7 @@ struct clk_frac {
 #define to_clk_frac(_hw) container_of(_hw, struct clk_frac, hw)
 
 static unsigned long clk_frac_recalc_rate(struct clk_hw *hw,
-					  unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct clk_frac *frac = to_clk_frac(hw);
 	u32 div;
@@ -51,7 +52,7 @@ static unsigned long clk_frac_recalc_rate(struct clk_hw *hw,
 }
 
 static long clk_frac_round_rate(struct clk_hw *hw, unsigned long rate,
-				unsigned long *prate)
+								unsigned long *prate)
 {
 	struct clk_frac *frac = to_clk_frac(hw);
 	unsigned long parent_rate = *prate;
@@ -59,7 +60,9 @@ static long clk_frac_round_rate(struct clk_hw *hw, unsigned long rate,
 	u64 tmp, tmp_rate, result;
 
 	if (rate > parent_rate)
+	{
 		return -EINVAL;
+	}
 
 	tmp = rate;
 	tmp <<= frac->width;
@@ -67,17 +70,23 @@ static long clk_frac_round_rate(struct clk_hw *hw, unsigned long rate,
 	div = tmp;
 
 	if (!div)
+	{
 		return -EINVAL;
+	}
 
 	tmp_rate = (u64)parent_rate * div;
 	result = tmp_rate >> frac->width;
+
 	if ((result << frac->width) < tmp_rate)
+	{
 		result += 1;
+	}
+
 	return result;
 }
 
 static int clk_frac_set_rate(struct clk_hw *hw, unsigned long rate,
-			     unsigned long parent_rate)
+							 unsigned long parent_rate)
 {
 	struct clk_frac *frac = to_clk_frac(hw);
 	unsigned long flags;
@@ -85,7 +94,9 @@ static int clk_frac_set_rate(struct clk_hw *hw, unsigned long rate,
 	u64 tmp;
 
 	if (rate > parent_rate)
+	{
 		return -EINVAL;
+	}
 
 	tmp = rate;
 	tmp <<= frac->width;
@@ -93,7 +104,9 @@ static int clk_frac_set_rate(struct clk_hw *hw, unsigned long rate,
 	div = tmp;
 
 	if (!div)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_irqsave(&mxs_lock, flags);
 
@@ -107,27 +120,31 @@ static int clk_frac_set_rate(struct clk_hw *hw, unsigned long rate,
 	return mxs_clk_wait(frac->reg, frac->busy);
 }
 
-static struct clk_ops clk_frac_ops = {
+static struct clk_ops clk_frac_ops =
+{
 	.recalc_rate = clk_frac_recalc_rate,
 	.round_rate = clk_frac_round_rate,
 	.set_rate = clk_frac_set_rate,
 };
 
 struct clk *mxs_clk_frac(const char *name, const char *parent_name,
-			 void __iomem *reg, u8 shift, u8 width, u8 busy)
+						 void __iomem *reg, u8 shift, u8 width, u8 busy)
 {
 	struct clk_frac *frac;
 	struct clk *clk;
 	struct clk_init_data init;
 
 	frac = kzalloc(sizeof(*frac), GFP_KERNEL);
+
 	if (!frac)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init.name = name;
 	init.ops = &clk_frac_ops;
 	init.flags = CLK_SET_RATE_PARENT;
-	init.parent_names = (parent_name ? &parent_name: NULL);
+	init.parent_names = (parent_name ? &parent_name : NULL);
 	init.num_parents = (parent_name ? 1 : 0);
 
 	frac->reg = reg;
@@ -137,8 +154,11 @@ struct clk *mxs_clk_frac(const char *name, const char *parent_name,
 	frac->hw.init = &init;
 
 	clk = clk_register(NULL, &frac->hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(frac);
+	}
 
 	return clk;
 }

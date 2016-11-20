@@ -100,7 +100,8 @@
 /* Configuration Register bits. */
 #define CR_QUAD_EN_SPAN		BIT(1)	/* Spansion Quad I/O */
 
-enum read_mode {
+enum read_mode
+{
 	SPI_NOR_NORMAL = 0,
 	SPI_NOR_FAST,
 	SPI_NOR_DUAL,
@@ -108,7 +109,8 @@ enum read_mode {
 };
 
 #define SPI_NOR_MAX_CMD_SIZE	8
-enum spi_nor_ops {
+enum spi_nor_ops
+{
 	SPI_NOR_OPS_READ = 0,
 	SPI_NOR_OPS_WRITE,
 	SPI_NOR_OPS_ERASE,
@@ -116,7 +118,8 @@ enum spi_nor_ops {
 	SPI_NOR_OPS_UNLOCK,
 };
 
-enum spi_nor_option_flags {
+enum spi_nor_option_flags
+{
 	SNOR_F_USE_FSR		= BIT(0),
 	SNOR_F_HAS_SR_TB	= BIT(1),
 };
@@ -153,7 +156,8 @@ enum spi_nor_option_flags {
  *			completely locked
  * @priv:		the private data
  */
-struct spi_nor {
+struct spi_nor
+{
 	struct mtd_info		mtd;
 	struct mutex		lock;
 	struct device		*dev;
@@ -174,9 +178,9 @@ struct spi_nor {
 	int (*write_reg)(struct spi_nor *nor, u8 opcode, u8 *buf, int len);
 
 	ssize_t (*read)(struct spi_nor *nor, loff_t from,
-			size_t len, u_char *read_buf);
+					size_t len, u_char *read_buf);
 	ssize_t (*write)(struct spi_nor *nor, loff_t to,
-			size_t len, const u_char *write_buf);
+					 size_t len, const u_char *write_buf);
 	int (*erase)(struct spi_nor *nor, loff_t offs);
 
 	int (*flash_lock)(struct spi_nor *nor, loff_t ofs, uint64_t len);
@@ -187,7 +191,7 @@ struct spi_nor {
 };
 
 static inline void spi_nor_set_flash_node(struct spi_nor *nor,
-					  struct device_node *np)
+		struct device_node *np)
 {
 	mtd_set_of_node(&nor->mtd, np);
 }

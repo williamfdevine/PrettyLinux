@@ -152,7 +152,8 @@
 #define QSPI_WPSR_WPVSRC(src)           (((src) << 8) & QSPI_WPSR_WPVSRC)
 
 
-struct atmel_qspi {
+struct atmel_qspi
+{
 	void __iomem		*regs;
 	void __iomem		*mem;
 	struct clk		*clk;
@@ -164,15 +165,18 @@ struct atmel_qspi {
 	struct completion	cmd_completion;
 };
 
-struct atmel_qspi_command {
-	union {
-		struct {
-			u32	instruction:1;
-			u32	address:3;
-			u32	mode:1;
-			u32	dummy:1;
-			u32	data:1;
-			u32	reserved:25;
+struct atmel_qspi_command
+{
+	union
+	{
+		struct
+		{
+			u32	instruction: 1;
+			u32	address: 3;
+			u32	mode: 1;
+			u32	dummy: 1;
+			u32	data: 1;
+			u32	reserved: 25;
 		}		bits;
 		u32	word;
 	}	enable;
@@ -199,74 +203,97 @@ static inline void qspi_writel(struct atmel_qspi *aq, u32 reg, u32 value)
 }
 
 static int atmel_qspi_run_transfer(struct atmel_qspi *aq,
-				   const struct atmel_qspi_command *cmd)
+								   const struct atmel_qspi_command *cmd)
 {
 	void __iomem *ahb_mem;
 
 	/* Then fallback to a PIO transfer (memcpy() DOES NOT work!) */
 	ahb_mem = aq->mem;
+
 	if (cmd->enable.bits.address)
+	{
 		ahb_mem += cmd->address;
+	}
+
 	if (cmd->tx_buf)
+	{
 		_memcpy_toio(ahb_mem, cmd->tx_buf, cmd->buf_len);
+	}
 	else
+	{
 		_memcpy_fromio(cmd->rx_buf, ahb_mem, cmd->buf_len);
+	}
 
 	return 0;
 }
 
 #ifdef DEBUG
 static void atmel_qspi_debug_command(struct atmel_qspi *aq,
-				     const struct atmel_qspi_command *cmd,
-				     u32 ifr)
+									 const struct atmel_qspi_command *cmd,
+									 u32 ifr)
 {
 	u8 cmd_buf[SPI_NOR_MAX_CMD_SIZE];
 	size_t len = 0;
 	int i;
 
 	if (cmd->enable.bits.instruction)
+	{
 		cmd_buf[len++] = cmd->instruction;
+	}
 
-	for (i = cmd->enable.bits.address-1; i >= 0; --i)
+	for (i = cmd->enable.bits.address - 1; i >= 0; --i)
+	{
 		cmd_buf[len++] = (cmd->address >> (i << 3)) & 0xff;
+	}
 
 	if (cmd->enable.bits.mode)
+	{
 		cmd_buf[len++] = cmd->mode;
+	}
 
-	if (cmd->enable.bits.dummy) {
+	if (cmd->enable.bits.dummy)
+	{
 		int num = cmd->num_dummy_cycles;
 
-		switch (ifr & QSPI_IFR_WIDTH_MASK) {
-		case QSPI_IFR_WIDTH_SINGLE_BIT_SPI:
-		case QSPI_IFR_WIDTH_DUAL_OUTPUT:
-		case QSPI_IFR_WIDTH_QUAD_OUTPUT:
-			num >>= 3;
-			break;
-		case QSPI_IFR_WIDTH_DUAL_IO:
-		case QSPI_IFR_WIDTH_DUAL_CMD:
-			num >>= 2;
-			break;
-		case QSPI_IFR_WIDTH_QUAD_IO:
-		case QSPI_IFR_WIDTH_QUAD_CMD:
-			num >>= 1;
-			break;
-		default:
-			return;
+		switch (ifr & QSPI_IFR_WIDTH_MASK)
+		{
+			case QSPI_IFR_WIDTH_SINGLE_BIT_SPI:
+			case QSPI_IFR_WIDTH_DUAL_OUTPUT:
+			case QSPI_IFR_WIDTH_QUAD_OUTPUT:
+				num >>= 3;
+				break;
+
+			case QSPI_IFR_WIDTH_DUAL_IO:
+			case QSPI_IFR_WIDTH_DUAL_CMD:
+				num >>= 2;
+				break;
+
+			case QSPI_IFR_WIDTH_QUAD_IO:
+			case QSPI_IFR_WIDTH_QUAD_CMD:
+				num >>= 1;
+				break;
+
+			default:
+				return;
 		}
 
 		for (i = 0; i < num; ++i)
+		{
 			cmd_buf[len++] = 0;
+		}
 	}
 
 	/* Dump the SPI command */
 	print_hex_dump(KERN_DEBUG, "qspi cmd: ", DUMP_PREFIX_NONE,
-		       32, 1, cmd_buf, len, false);
+				   32, 1, cmd_buf, len, false);
 
 #ifdef VERBOSE_DEBUG
+
 	/* If verbose debug is enabled, also dump the TX data */
 	if (cmd->enable.bits.data && cmd->tx_buf)
 		print_hex_dump(KERN_DEBUG, "qspi tx : ", DUMP_PREFIX_NONE,
-			       32, 1, cmd->tx_buf, cmd->buf_len, false);
+					   32, 1, cmd->tx_buf, cmd->buf_len, false);
+
 #endif
 }
 #else
@@ -274,8 +301,8 @@ static void atmel_qspi_debug_command(struct atmel_qspi *aq,
 #endif
 
 static int atmel_qspi_run_command(struct atmel_qspi *aq,
-				  const struct atmel_qspi_command *cmd,
-				  u32 ifr_tfrtyp, u32 ifr_width)
+								  const struct atmel_qspi_command *cmd,
+								  u32 ifr_tfrtyp, u32 ifr_width)
 {
 	u32 iar, icr, ifr, sr;
 	int err = 0;
@@ -285,85 +312,102 @@ static int atmel_qspi_run_command(struct atmel_qspi *aq,
 	ifr = ifr_tfrtyp | ifr_width;
 
 	/* Compute instruction parameters */
-	if (cmd->enable.bits.instruction) {
+	if (cmd->enable.bits.instruction)
+	{
 		icr |= QSPI_ICR_INST(cmd->instruction);
 		ifr |= QSPI_IFR_INSTEN;
 	}
 
 	/* Compute address parameters */
-	switch (cmd->enable.bits.address) {
-	case 4:
-		ifr |= QSPI_IFR_ADDRL;
+	switch (cmd->enable.bits.address)
+	{
+		case 4:
+			ifr |= QSPI_IFR_ADDRL;
+
 		/* fall through to the 24bit (3 byte) address case. */
-	case 3:
-		iar = (cmd->enable.bits.data) ? 0 : cmd->address;
-		ifr |= QSPI_IFR_ADDREN;
-		break;
-	case 0:
-		break;
-	default:
-		return -EINVAL;
+		case 3:
+			iar = (cmd->enable.bits.data) ? 0 : cmd->address;
+			ifr |= QSPI_IFR_ADDREN;
+			break;
+
+		case 0:
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	/* Compute option parameters */
-	if (cmd->enable.bits.mode && cmd->num_mode_cycles) {
+	if (cmd->enable.bits.mode && cmd->num_mode_cycles)
+	{
 		u32 mode_cycle_bits, mode_bits;
 
 		icr |= QSPI_ICR_OPT(cmd->mode);
 		ifr |= QSPI_IFR_OPTEN;
 
-		switch (ifr & QSPI_IFR_WIDTH_MASK) {
-		case QSPI_IFR_WIDTH_SINGLE_BIT_SPI:
-		case QSPI_IFR_WIDTH_DUAL_OUTPUT:
-		case QSPI_IFR_WIDTH_QUAD_OUTPUT:
-			mode_cycle_bits = 1;
-			break;
-		case QSPI_IFR_WIDTH_DUAL_IO:
-		case QSPI_IFR_WIDTH_DUAL_CMD:
-			mode_cycle_bits = 2;
-			break;
-		case QSPI_IFR_WIDTH_QUAD_IO:
-		case QSPI_IFR_WIDTH_QUAD_CMD:
-			mode_cycle_bits = 4;
-			break;
-		default:
-			return -EINVAL;
+		switch (ifr & QSPI_IFR_WIDTH_MASK)
+		{
+			case QSPI_IFR_WIDTH_SINGLE_BIT_SPI:
+			case QSPI_IFR_WIDTH_DUAL_OUTPUT:
+			case QSPI_IFR_WIDTH_QUAD_OUTPUT:
+				mode_cycle_bits = 1;
+				break;
+
+			case QSPI_IFR_WIDTH_DUAL_IO:
+			case QSPI_IFR_WIDTH_DUAL_CMD:
+				mode_cycle_bits = 2;
+				break;
+
+			case QSPI_IFR_WIDTH_QUAD_IO:
+			case QSPI_IFR_WIDTH_QUAD_CMD:
+				mode_cycle_bits = 4;
+				break;
+
+			default:
+				return -EINVAL;
 		}
 
 		mode_bits = cmd->num_mode_cycles * mode_cycle_bits;
-		switch (mode_bits) {
-		case 1:
-			ifr |= QSPI_IFR_OPTL_1BIT;
-			break;
 
-		case 2:
-			ifr |= QSPI_IFR_OPTL_2BIT;
-			break;
+		switch (mode_bits)
+		{
+			case 1:
+				ifr |= QSPI_IFR_OPTL_1BIT;
+				break;
 
-		case 4:
-			ifr |= QSPI_IFR_OPTL_4BIT;
-			break;
+			case 2:
+				ifr |= QSPI_IFR_OPTL_2BIT;
+				break;
 
-		case 8:
-			ifr |= QSPI_IFR_OPTL_8BIT;
-			break;
+			case 4:
+				ifr |= QSPI_IFR_OPTL_4BIT;
+				break;
 
-		default:
-			return -EINVAL;
+			case 8:
+				ifr |= QSPI_IFR_OPTL_8BIT;
+				break;
+
+			default:
+				return -EINVAL;
 		}
 	}
 
 	/* Set number of dummy cycles */
 	if (cmd->enable.bits.dummy)
+	{
 		ifr |= QSPI_IFR_NBDUM(cmd->num_dummy_cycles);
+	}
 
 	/* Set data enable */
-	if (cmd->enable.bits.data) {
+	if (cmd->enable.bits.data)
+	{
 		ifr |= QSPI_IFR_DATAEN;
 
 		/* Special case for Continuous Read Mode */
 		if (!cmd->tx_buf && !cmd->rx_buf)
+		{
 			ifr |= QSPI_IFR_CRM;
+		}
 	}
 
 	/* Clear pending interrupts */
@@ -377,14 +421,19 @@ static int atmel_qspi_run_command(struct atmel_qspi *aq,
 
 	/* Skip to the final steps if there is no data */
 	if (!cmd->enable.bits.data)
+	{
 		goto no_data;
+	}
 
 	/* Dummy read of QSPI_IFR to synchronize APB and AHB accesses */
 	(void)qspi_readl(aq, QSPI_IFR);
 
 	/* Stop here for continuous read */
 	if (!cmd->tx_buf && !cmd->rx_buf)
+	{
 		return 0;
+	}
+
 	/* Send/Receive data */
 	err = atmel_qspi_run_transfer(aq, cmd);
 
@@ -392,37 +441,48 @@ static int atmel_qspi_run_command(struct atmel_qspi *aq,
 	qspi_writel(aq, QSPI_CR, QSPI_CR_LASTXFER);
 
 	if (err)
+	{
 		return err;
+	}
 
 #if defined(DEBUG) && defined(VERBOSE_DEBUG)
+
 	/*
 	 * If verbose debug is enabled, also dump the RX data in addition to
 	 * the SPI command previously dumped by atmel_qspi_debug_command()
 	 */
 	if (cmd->rx_buf)
 		print_hex_dump(KERN_DEBUG, "qspi rx : ", DUMP_PREFIX_NONE,
-			       32, 1, cmd->rx_buf, cmd->buf_len, false);
+					   32, 1, cmd->rx_buf, cmd->buf_len, false);
+
 #endif
 no_data:
 	/* Poll INSTRuction End status */
 	sr = qspi_readl(aq, QSPI_SR);
+
 	if ((sr & QSPI_SR_CMD_COMPLETED) == QSPI_SR_CMD_COMPLETED)
+	{
 		return err;
+	}
 
 	/* Wait for INSTRuction End interrupt */
 	reinit_completion(&aq->cmd_completion);
 	aq->pending = sr & QSPI_SR_CMD_COMPLETED;
 	qspi_writel(aq, QSPI_IER, QSPI_SR_CMD_COMPLETED);
+
 	if (!wait_for_completion_timeout(&aq->cmd_completion,
-					 msecs_to_jiffies(1000)))
+									 msecs_to_jiffies(1000)))
+	{
 		err = -ETIMEDOUT;
+	}
+
 	qspi_writel(aq, QSPI_IDR, QSPI_SR_CMD_COMPLETED);
 
 	return err;
 }
 
 static int atmel_qspi_read_reg(struct spi_nor *nor, u8 opcode,
-			       u8 *buf, int len)
+							   u8 *buf, int len)
 {
 	struct atmel_qspi *aq = nor->priv;
 	struct atmel_qspi_command cmd;
@@ -434,11 +494,11 @@ static int atmel_qspi_read_reg(struct spi_nor *nor, u8 opcode,
 	cmd.rx_buf = buf;
 	cmd.buf_len = len;
 	return atmel_qspi_run_command(aq, &cmd, QSPI_IFR_TFRTYP_TRSFR_READ,
-				      QSPI_IFR_WIDTH_SINGLE_BIT_SPI);
+								  QSPI_IFR_WIDTH_SINGLE_BIT_SPI);
 }
 
 static int atmel_qspi_write_reg(struct spi_nor *nor, u8 opcode,
-				u8 *buf, int len)
+								u8 *buf, int len)
 {
 	struct atmel_qspi *aq = nor->priv;
 	struct atmel_qspi_command cmd;
@@ -450,11 +510,11 @@ static int atmel_qspi_write_reg(struct spi_nor *nor, u8 opcode,
 	cmd.tx_buf = buf;
 	cmd.buf_len = len;
 	return atmel_qspi_run_command(aq, &cmd, QSPI_IFR_TFRTYP_TRSFR_WRITE,
-				      QSPI_IFR_WIDTH_SINGLE_BIT_SPI);
+								  QSPI_IFR_WIDTH_SINGLE_BIT_SPI);
 }
 
 static ssize_t atmel_qspi_write(struct spi_nor *nor, loff_t to, size_t len,
-				const u_char *write_buf)
+								const u_char *write_buf)
 {
 	struct atmel_qspi *aq = nor->priv;
 	struct atmel_qspi_command cmd;
@@ -469,7 +529,7 @@ static ssize_t atmel_qspi_write(struct spi_nor *nor, loff_t to, size_t len,
 	cmd.tx_buf = write_buf;
 	cmd.buf_len = len;
 	ret = atmel_qspi_run_command(aq, &cmd, QSPI_IFR_TFRTYP_TRSFR_WRITE_MEM,
-				     QSPI_IFR_WIDTH_SINGLE_BIT_SPI);
+								 QSPI_IFR_WIDTH_SINGLE_BIT_SPI);
 	return (ret < 0) ? ret : len;
 }
 
@@ -484,11 +544,11 @@ static int atmel_qspi_erase(struct spi_nor *nor, loff_t offs)
 	cmd.instruction = nor->erase_opcode;
 	cmd.address = (u32)offs;
 	return atmel_qspi_run_command(aq, &cmd, QSPI_IFR_TFRTYP_TRSFR_WRITE,
-				      QSPI_IFR_WIDTH_SINGLE_BIT_SPI);
+								  QSPI_IFR_WIDTH_SINGLE_BIT_SPI);
 }
 
 static ssize_t atmel_qspi_read(struct spi_nor *nor, loff_t from, size_t len,
-			       u_char *read_buf)
+							   u_char *read_buf)
 {
 	struct atmel_qspi *aq = nor->priv;
 	struct atmel_qspi_command cmd;
@@ -496,28 +556,32 @@ static ssize_t atmel_qspi_read(struct spi_nor *nor, loff_t from, size_t len,
 	u32 ifr_width;
 	ssize_t ret;
 
-	switch (nor->flash_read) {
-	case SPI_NOR_NORMAL:
-	case SPI_NOR_FAST:
-		ifr_width = QSPI_IFR_WIDTH_SINGLE_BIT_SPI;
-		break;
+	switch (nor->flash_read)
+	{
+		case SPI_NOR_NORMAL:
+		case SPI_NOR_FAST:
+			ifr_width = QSPI_IFR_WIDTH_SINGLE_BIT_SPI;
+			break;
 
-	case SPI_NOR_DUAL:
-		ifr_width = QSPI_IFR_WIDTH_DUAL_OUTPUT;
-		break;
+		case SPI_NOR_DUAL:
+			ifr_width = QSPI_IFR_WIDTH_DUAL_OUTPUT;
+			break;
 
-	case SPI_NOR_QUAD:
-		ifr_width = QSPI_IFR_WIDTH_QUAD_OUTPUT;
-		break;
+		case SPI_NOR_QUAD:
+			ifr_width = QSPI_IFR_WIDTH_QUAD_OUTPUT;
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
-	if (nor->read_dummy >= 2) {
+	if (nor->read_dummy >= 2)
+	{
 		num_mode_cycles = 2;
 		num_dummy_cycles = nor->read_dummy - 2;
-	} else {
+	}
+	else
+	{
 		num_mode_cycles = nor->read_dummy;
 		num_dummy_cycles = 0;
 	}
@@ -536,7 +600,7 @@ static ssize_t atmel_qspi_read(struct spi_nor *nor, loff_t from, size_t len,
 	cmd.rx_buf = read_buf;
 	cmd.buf_len = len;
 	ret = atmel_qspi_run_command(aq, &cmd, QSPI_IFR_TFRTYP_TRSFR_READ_MEM,
-				     ifr_width);
+								 ifr_width);
 	return (ret < 0) ? ret : len;
 }
 
@@ -553,13 +617,20 @@ static int atmel_qspi_init(struct atmel_qspi *aq)
 	qspi_writel(aq, QSPI_MR, mr);
 
 	src_rate = clk_get_rate(aq->clk);
+
 	if (!src_rate)
+	{
 		return -EINVAL;
+	}
 
 	/* Compute the QSPI baudrate */
 	scbr = DIV_ROUND_UP(src_rate, aq->clk_rate);
+
 	if (scbr > 0)
+	{
 		scbr--;
+	}
+
 	scr = QSPI_SCR_SCBR(scbr);
 	qspi_writel(aq, QSPI_SCR, scr);
 
@@ -579,11 +650,16 @@ static irqreturn_t atmel_qspi_interrupt(int irq, void *dev_id)
 	pending = status & mask;
 
 	if (!pending)
+	{
 		return IRQ_NONE;
+	}
 
 	aq->pending |= pending;
+
 	if ((aq->pending & QSPI_SR_CMD_COMPLETED) == QSPI_SR_CMD_COMPLETED)
+	{
 		complete(&aq->cmd_completion);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -598,11 +674,16 @@ static int atmel_qspi_probe(struct platform_device *pdev)
 	int irq, err = 0;
 
 	if (of_get_child_count(np) != 1)
+	{
 		return -ENODEV;
+	}
+
 	child = of_get_next_child(np, NULL);
 
 	aq = devm_kzalloc(&pdev->dev, sizeof(*aq), GFP_KERNEL);
-	if (!aq) {
+
+	if (!aq)
+	{
 		err = -ENOMEM;
 		goto exit;
 	}
@@ -614,7 +695,9 @@ static int atmel_qspi_probe(struct platform_device *pdev)
 	/* Map the registers */
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "qspi_base");
 	aq->regs = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(aq->regs)) {
+
+	if (IS_ERR(aq->regs))
+	{
 		dev_err(&pdev->dev, "missing registers\n");
 		err = PTR_ERR(aq->regs);
 		goto exit;
@@ -623,7 +706,9 @@ static int atmel_qspi_probe(struct platform_device *pdev)
 	/* Map the AHB memory */
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "qspi_mmap");
 	aq->mem = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(aq->mem)) {
+
+	if (IS_ERR(aq->mem))
+	{
 		dev_err(&pdev->dev, "missing AHB memory\n");
 		err = PTR_ERR(aq->mem);
 		goto exit;
@@ -631,7 +716,9 @@ static int atmel_qspi_probe(struct platform_device *pdev)
 
 	/* Get the peripheral clock */
 	aq->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(aq->clk)) {
+
+	if (IS_ERR(aq->clk))
+	{
 		dev_err(&pdev->dev, "missing peripheral clock\n");
 		err = PTR_ERR(aq->clk);
 		goto exit;
@@ -639,22 +726,30 @@ static int atmel_qspi_probe(struct platform_device *pdev)
 
 	/* Enable the peripheral clock */
 	err = clk_prepare_enable(aq->clk);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "failed to enable the peripheral clock\n");
 		goto exit;
 	}
 
 	/* Request the IRQ */
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "missing IRQ\n");
 		err = irq;
 		goto disable_clk;
 	}
+
 	err = devm_request_irq(&pdev->dev, irq, atmel_qspi_interrupt,
-			       0, dev_name(&pdev->dev), aq);
+						   0, dev_name(&pdev->dev), aq);
+
 	if (err)
+	{
 		goto disable_clk;
+	}
 
 	/* Setup the spi-nor */
 	nor = &aq->nor;
@@ -672,20 +767,32 @@ static int atmel_qspi_probe(struct platform_device *pdev)
 	nor->erase = atmel_qspi_erase;
 
 	err = of_property_read_u32(child, "spi-max-frequency", &aq->clk_rate);
+
 	if (err < 0)
+	{
 		goto disable_clk;
+	}
 
 	err = atmel_qspi_init(aq);
+
 	if (err)
+	{
 		goto disable_clk;
+	}
 
 	err = spi_nor_scan(nor, NULL, SPI_NOR_QUAD);
+
 	if (err)
+	{
 		goto disable_clk;
+	}
 
 	err = mtd_device_register(mtd, NULL, 0);
+
 	if (err)
+	{
 		goto disable_clk;
+	}
 
 	of_node_put(child);
 
@@ -710,14 +817,16 @@ static int atmel_qspi_remove(struct platform_device *pdev)
 }
 
 
-static const struct of_device_id atmel_qspi_dt_ids[] = {
+static const struct of_device_id atmel_qspi_dt_ids[] =
+{
 	{ .compatible = "atmel,sama5d2-qspi" },
 	{ /* sentinel */ }
 };
 
 MODULE_DEVICE_TABLE(of, atmel_qspi_dt_ids);
 
-static struct platform_driver atmel_qspi_driver = {
+static struct platform_driver atmel_qspi_driver =
+{
 	.driver = {
 		.name	= "atmel_qspi",
 		.of_match_table	= atmel_qspi_dt_ids,

@@ -38,12 +38,13 @@
 #undef pr_fmt
 
 #ifdef DEBUG
-#define pr_fmt(fmt)     KBUILD_MODNAME ": %s:%d: " fmt, __func__, __LINE__
+	#define pr_fmt(fmt)     KBUILD_MODNAME ": %s:%d: " fmt, __func__, __LINE__
 #else
-#define pr_fmt(fmt)     KBUILD_MODNAME ": " fmt
+	#define pr_fmt(fmt)     KBUILD_MODNAME ": " fmt
 #endif
 
-enum {
+enum
+{
 	usbip_debug_xmit	= (1 << 0),
 	usbip_debug_sysfs	= (1 << 1),
 	usbip_debug_urb		= (1 << 2),
@@ -146,7 +147,8 @@ extern struct device_attribute dev_attr_usbip_debug;
  * @direction: direction of the transfer
  * @ep: endpoint number
  */
-struct usbip_header_basic {
+struct usbip_header_basic
+{
 	__u32 command;
 	__u32 seqnum;
 	__u32 devid;
@@ -163,7 +165,8 @@ struct usbip_header_basic {
  * @interval: maximum time for the request on the server-side host controller
  * @setup: setup data for a control request
  */
-struct usbip_header_cmd_submit {
+struct usbip_header_cmd_submit
+{
 	__u32 transfer_flags;
 	__s32 transfer_buffer_length;
 
@@ -183,7 +186,8 @@ struct usbip_header_cmd_submit {
  * @number_of_packets: number of isochronous packets
  * @error_count: number of errors for isochronous transfers
  */
-struct usbip_header_ret_submit {
+struct usbip_header_ret_submit
+{
 	__s32 status;
 	__s32 actual_length;
 	__s32 start_frame;
@@ -195,7 +199,8 @@ struct usbip_header_ret_submit {
  * struct usbip_header_cmd_unlink - USBIP_CMD_UNLINK packet header
  * @seqnum: the URB seqnum to unlink
  */
-struct usbip_header_cmd_unlink {
+struct usbip_header_cmd_unlink
+{
 	__u32 seqnum;
 } __packed;
 
@@ -203,7 +208,8 @@ struct usbip_header_cmd_unlink {
  * struct usbip_header_ret_unlink - USBIP_RET_UNLINK packet header
  * @status: return status of the request
  */
-struct usbip_header_ret_unlink {
+struct usbip_header_ret_unlink
+{
 	__s32 status;
 } __packed;
 
@@ -212,10 +218,12 @@ struct usbip_header_ret_unlink {
  * @base: the basic header
  * @u: packet type dependent header
  */
-struct usbip_header {
+struct usbip_header
+{
 	struct usbip_header_basic base;
 
-	union {
+	union
+	{
 		struct usbip_header_cmd_submit	cmd_submit;
 		struct usbip_header_ret_submit	ret_submit;
 		struct usbip_header_cmd_unlink	cmd_unlink;
@@ -226,14 +234,16 @@ struct usbip_header {
 /*
  * This is the same as usb_iso_packet_descriptor but packed for pdu.
  */
-struct usbip_iso_packet_descriptor {
+struct usbip_iso_packet_descriptor
+{
 	__u32 offset;
 	__u32 length;			/* expected length */
 	__u32 actual_length;
 	__u32 status;
 } __packed;
 
-enum usbip_side {
+enum usbip_side
+{
 	USBIP_VHCI,
 	USBIP_STUB,
 	USBIP_VUDC,
@@ -264,7 +274,8 @@ enum usbip_side {
 #define	VDEV_EVENT_ERROR_MALLOC	(USBIP_EH_SHUTDOWN | USBIP_EH_UNUSABLE)
 
 /* a common structure for stub_device and vhci_device */
-struct usbip_device {
+struct usbip_device
+{
 	enum usbip_side side;
 	enum usbip_device_status status;
 
@@ -279,7 +290,8 @@ struct usbip_device {
 	unsigned long event;
 	wait_queue_head_t eh_waitq;
 
-	struct eh_ops {
+	struct eh_ops
+	{
 		void (*shutdown)(struct usbip_device *);
 		void (*reset)(struct usbip_device *);
 		void (*unusable)(struct usbip_device *);
@@ -287,15 +299,15 @@ struct usbip_device {
 };
 
 #define kthread_get_run(threadfn, data, namefmt, ...)			   \
-({									   \
-	struct task_struct *__k						   \
-		= kthread_create(threadfn, data, namefmt, ## __VA_ARGS__); \
-	if (!IS_ERR(__k)) {						   \
-		get_task_struct(__k);					   \
-		wake_up_process(__k);					   \
-	}								   \
-	__k;								   \
-})
+	({									   \
+		struct task_struct *__k						   \
+			= kthread_create(threadfn, data, namefmt, ## __VA_ARGS__); \
+		if (!IS_ERR(__k)) {						   \
+			get_task_struct(__k);					   \
+			wake_up_process(__k);					   \
+		}								   \
+		__k;								   \
+	})
 
 #define kthread_stop_put(k)		\
 	do {				\
@@ -310,10 +322,10 @@ void usbip_dump_header(struct usbip_header *pdu);
 int usbip_recv(struct socket *sock, void *buf, int size);
 
 void usbip_pack_pdu(struct usbip_header *pdu, struct urb *urb, int cmd,
-		    int pack);
+					int pack);
 void usbip_header_correct_endian(struct usbip_header *pdu, int send);
 
-struct usbip_iso_packet_descriptor*
+struct usbip_iso_packet_descriptor *
 usbip_alloc_iso_desc_pdu(struct urb *urb, ssize_t *bufflen);
 
 /* some members of urb must be substituted before. */

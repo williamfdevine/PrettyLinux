@@ -27,7 +27,8 @@
 #ifndef _UPT1_DEFS_H
 #define _UPT1_DEFS_H
 
-struct UPT1_TxStats {
+struct UPT1_TxStats
+{
 	u64			TSOPktsTxOK;  /* TSO pkts post-segmentation */
 	u64			TSOBytesTxOK;
 	u64			ucastPktsTxOK;
@@ -40,7 +41,8 @@ struct UPT1_TxStats {
 	u64			pktsTxDiscard;
 };
 
-struct UPT1_RxStats {
+struct UPT1_RxStats
+{
 	u64			LROPktsRxOK;    /* LRO pkts */
 	u64			LROBytesRxOK;   /* bytes from LRO pkts */
 	/* the following counters are for pkts from the wire, i.e., pre-LRO */
@@ -55,13 +57,15 @@ struct UPT1_RxStats {
 };
 
 /* interrupt moderation level */
-enum {
+enum
+{
 	UPT1_IML_NONE		= 0, /* no interrupt moderation */
 	UPT1_IML_HIGHEST	= 7, /* least intr generated */
 	UPT1_IML_ADAPTIVE	= 8, /* adpative intr moderation */
 };
 /* values for UPT1_RSSConf.hashFunc */
-enum {
+enum
+{
 	UPT1_RSS_HASH_TYPE_NONE      = 0x0,
 	UPT1_RSS_HASH_TYPE_IPV4      = 0x01,
 	UPT1_RSS_HASH_TYPE_TCP_IPV4  = 0x02,
@@ -69,7 +73,8 @@ enum {
 	UPT1_RSS_HASH_TYPE_TCP_IPV6  = 0x08,
 };
 
-enum {
+enum
+{
 	UPT1_RSS_HASH_FUNC_NONE      = 0x0,
 	UPT1_RSS_HASH_FUNC_TOEPLITZ  = 0x01,
 };
@@ -77,7 +82,8 @@ enum {
 #define UPT1_RSS_MAX_KEY_SIZE        40
 #define UPT1_RSS_MAX_IND_TABLE_SIZE  128
 
-struct UPT1_RSSConf {
+struct UPT1_RSSConf
+{
 	u16			hashType;
 	u16			hashFunc;
 	u16			hashKeySize;
@@ -87,7 +93,8 @@ struct UPT1_RSSConf {
 };
 
 /* features */
-enum {
+enum
+{
 	UPT1_F_RXCSUM		= cpu_to_le64(0x0001),   /* rx csum verification */
 	UPT1_F_RSS		= cpu_to_le64(0x0002),
 	UPT1_F_RXVLAN		= cpu_to_le64(0x0004),   /* VLAN tag stripping */

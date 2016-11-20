@@ -24,7 +24,8 @@
 /*
  * XFS global statistics
  */
-struct xfsstats {
+struct xfsstats
+{
 # define XFSSTAT_END_EXTENT_ALLOC	4
 	__uint32_t		xs_allocx;
 	__uint32_t		xs_allocb;
@@ -116,7 +117,7 @@ struct xfsstats {
 	__uint32_t		xb_page_retries;
 	__uint32_t		xb_page_found;
 	__uint32_t		xb_get_read;
-/* Version 2 btree counters */
+	/* Version 2 btree counters */
 #define XFSSTAT_END_ABTB_V2		(XFSSTAT_END_BUF+15)
 	__uint32_t		xs_abtb_2_lookup;
 	__uint32_t		xs_abtb_2_compare;
@@ -239,7 +240,7 @@ struct xfsstats {
 #define XFSSTAT_END_QM			(XFSSTAT_END_XQMSTAT+2)
 	__uint32_t		xs_qm_dquot;
 	__uint32_t		xs_qm_dquot_unused;
-/* Extra precision counters */
+	/* Extra precision counters */
 	__uint64_t		xs_xstrat_bytes;
 	__uint64_t		xs_write_bytes;
 	__uint64_t		xs_read_bytes;
@@ -250,22 +251,22 @@ void xfs_stats_clearall(struct xfsstats __percpu *stats);
 extern struct xstats xfsstats;
 
 #define XFS_STATS_INC(mp, v)					\
-do {								\
-	per_cpu_ptr(xfsstats.xs_stats, current_cpu())->v++;	\
-	per_cpu_ptr(mp->m_stats.xs_stats, current_cpu())->v++;	\
-} while (0)
+	do {								\
+		per_cpu_ptr(xfsstats.xs_stats, current_cpu())->v++;	\
+		per_cpu_ptr(mp->m_stats.xs_stats, current_cpu())->v++;	\
+	} while (0)
 
 #define XFS_STATS_DEC(mp, v)					\
-do {								\
-	per_cpu_ptr(xfsstats.xs_stats, current_cpu())->v--;	\
-	per_cpu_ptr(mp->m_stats.xs_stats, current_cpu())->v--;	\
-} while (0)
+	do {								\
+		per_cpu_ptr(xfsstats.xs_stats, current_cpu())->v--;	\
+		per_cpu_ptr(mp->m_stats.xs_stats, current_cpu())->v--;	\
+	} while (0)
 
 #define XFS_STATS_ADD(mp, v, inc)					\
-do {									\
-	per_cpu_ptr(xfsstats.xs_stats, current_cpu())->v += (inc);	\
-	per_cpu_ptr(mp->m_stats.xs_stats, current_cpu())->v += (inc);	\
-} while (0)
+	do {									\
+		per_cpu_ptr(xfsstats.xs_stats, current_cpu())->v += (inc);	\
+		per_cpu_ptr(mp->m_stats.xs_stats, current_cpu())->v += (inc);	\
+	} while (0)
 
 #if defined(CONFIG_PROC_FS)
 

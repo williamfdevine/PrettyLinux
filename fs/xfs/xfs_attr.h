@@ -71,7 +71,8 @@ struct xfs_attr_list_context;
  * along with its size.  We put an array of offsets at the top that each
  * reference an attrlist_ent_t and pack the attrlist_ent_t's at the bottom.
  */
-typedef struct attrlist {
+typedef struct attrlist
+{
 	__s32	al_count;	/* number of entries in attrlist */
 	__s32	al_more;	/* T/F: more attrs (do call again) */
 	__s32	al_offset[1];	/* byte offsets of attrs [var-sized] */
@@ -81,7 +82,8 @@ typedef struct attrlist {
  * Show the interesting info about one attribute.  This is what the
  * al_offset[i] entry points to.
  */
-typedef struct attrlist_ent {	/* data from attr_list() */
+typedef struct attrlist_ent  	/* data from attr_list() */
+{
 	__u32	a_valuelen;	/* number bytes in value of attr */
 	char	a_name[1];	/* attr name (NULL terminated) */
 } attrlist_ent_t;
@@ -97,7 +99,8 @@ typedef struct attrlist_ent {	/* data from attr_list() */
 /*
  * Kernel-internal version of the attrlist cursor.
  */
-typedef struct attrlist_cursor_kern {
+typedef struct attrlist_cursor_kern
+{
 	__u32	hashval;	/* hash value of next entry to add */
 	__u32	blkno;		/* block containing entry (suggestion) */
 	__u32	offset;		/* offset in list of equal-hashvals */
@@ -114,9 +117,10 @@ typedef struct attrlist_cursor_kern {
 
 /* Return 0 on success, or -errno; other state communicated via *context */
 typedef int (*put_listent_func_t)(struct xfs_attr_list_context *, int,
-			      unsigned char *, int, int);
+								  unsigned char *, int, int);
 
-typedef struct xfs_attr_list_context {
+typedef struct xfs_attr_list_context
+{
 	struct xfs_inode		*dp;		/* inode */
 	struct attrlist_cursor_kern	*cursor;	/* position in list */
 	char				*alist;		/* output buffer */
@@ -143,12 +147,12 @@ int xfs_attr_inactive(struct xfs_inode *dp);
 int xfs_attr_list_int(struct xfs_attr_list_context *);
 int xfs_inode_hasattr(struct xfs_inode *ip);
 int xfs_attr_get(struct xfs_inode *ip, const unsigned char *name,
-		 unsigned char *value, int *valuelenp, int flags);
+				 unsigned char *value, int *valuelenp, int flags);
 int xfs_attr_set(struct xfs_inode *dp, const unsigned char *name,
-		 unsigned char *value, int valuelen, int flags);
+				 unsigned char *value, int valuelen, int flags);
 int xfs_attr_remove(struct xfs_inode *dp, const unsigned char *name, int flags);
 int xfs_attr_list(struct xfs_inode *dp, char *buffer, int bufsize,
-		  int flags, struct attrlist_cursor_kern *cursor);
+				  int flags, struct attrlist_cursor_kern *cursor);
 
 
 #endif	/* __XFS_ATTR_H__ */

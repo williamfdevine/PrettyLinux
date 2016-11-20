@@ -287,7 +287,8 @@
 #define ASRMCR1i_OW16(v)		((v) << ASRMCR1i_OW16_SHIFT)
 
 
-enum asrc_pair_index {
+enum asrc_pair_index
+{
 	ASRC_INVALID_PAIR = -1,
 	ASRC_PAIR_A = 0,
 	ASRC_PAIR_B = 1,
@@ -296,7 +297,8 @@ enum asrc_pair_index {
 
 #define ASRC_PAIR_MAX_NUM	(ASRC_PAIR_C + 1)
 
-enum asrc_inclk {
+enum asrc_inclk
+{
 	INCLK_NONE = 0x03,
 	INCLK_ESAI_RX = 0x00,
 	INCLK_SSI1_RX = 0x01,
@@ -313,7 +315,8 @@ enum asrc_inclk {
 	INCLK_ASRCK1_CLK = 0x0f,
 };
 
-enum asrc_outclk {
+enum asrc_outclk
+{
 	OUTCLK_NONE = 0x03,
 	OUTCLK_ESAI_TX = 0x00,
 	OUTCLK_SSI1_TX = 0x01,
@@ -332,13 +335,15 @@ enum asrc_outclk {
 
 #define ASRC_CLK_MAX_NUM	16
 
-enum asrc_word_width {
+enum asrc_word_width
+{
 	ASRC_WIDTH_24_BIT = 0,
 	ASRC_WIDTH_16_BIT = 1,
 	ASRC_WIDTH_8_BIT = 2,
 };
 
-struct asrc_config {
+struct asrc_config
+{
 	enum asrc_pair_index pair;
 	unsigned int channel_num;
 	unsigned int buffer_num;
@@ -351,12 +356,14 @@ struct asrc_config {
 	enum asrc_outclk outclk;
 };
 
-struct asrc_req {
+struct asrc_req
+{
 	unsigned int chn_num;
 	enum asrc_pair_index index;
 };
 
-struct asrc_querybuf {
+struct asrc_querybuf
+{
 	unsigned int buffer_index;
 	unsigned int input_length;
 	unsigned int output_length;
@@ -364,19 +371,22 @@ struct asrc_querybuf {
 	unsigned long output_offset;
 };
 
-struct asrc_convert_buffer {
+struct asrc_convert_buffer
+{
 	void *input_buffer_vaddr;
 	void *output_buffer_vaddr;
 	unsigned int input_buffer_length;
 	unsigned int output_buffer_length;
 };
 
-struct asrc_status_flags {
+struct asrc_status_flags
+{
 	enum asrc_pair_index index;
 	unsigned int overload_error;
 };
 
-enum asrc_error_status {
+enum asrc_error_status
+{
 	ASRC_TASK_Q_OVERLOAD		= 0x01,
 	ASRC_OUTPUT_TASK_OVERLOAD	= 0x02,
 	ASRC_INPUT_TASK_OVERLOAD	= 0x04,
@@ -384,7 +394,8 @@ enum asrc_error_status {
 	ASRC_INPUT_BUFFER_UNDERRUN	= 0x10,
 };
 
-struct dma_block {
+struct dma_block
+{
 	dma_addr_t dma_paddr;
 	void *dma_vaddr;
 	unsigned int length;
@@ -404,20 +415,21 @@ struct dma_block {
  * @pos: hardware pointer position
  * @private: pair private area
  */
-struct fsl_asrc_pair {
-	struct fsl_asrc *asrc_priv;
-	struct asrc_config *config;
-	unsigned int error;
+struct fsl_asrc_pair
+{
+		struct fsl_asrc *asrc_priv;
+		struct asrc_config *config;
+		unsigned int error;
 
-	enum asrc_pair_index index;
-	unsigned int channels;
+		enum asrc_pair_index index;
+		unsigned int channels;
 
-	struct dma_async_tx_descriptor *desc[2];
-	struct dma_chan *dma_chan[2];
-	struct imx_dma_data dma_data;
-	unsigned int pos;
+		struct dma_async_tx_descriptor *desc[2];
+		struct dma_chan *dma_chan[2];
+		struct imx_dma_data dma_data;
+		unsigned int pos;
 
-	void *private;
+		void *private;
 };
 
 /**
@@ -440,7 +452,8 @@ struct fsl_asrc_pair {
  * @asrc_width: default sample width for ASoC Back-Ends
  * @regcache_cfg: store register value of REG_ASRCFG
  */
-struct fsl_asrc {
+struct fsl_asrc
+{
 	struct snd_dmaengine_dai_dma_data dma_params_rx;
 	struct snd_dmaengine_dai_dma_data dma_params_tx;
 	struct platform_device *pdev;

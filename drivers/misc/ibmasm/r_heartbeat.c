@@ -32,10 +32,12 @@
 
 /* the reverse heartbeat dot command */
 #pragma pack(1)
-static struct {
+static struct
+{
 	struct dot_command_header	header;
 	unsigned char			command[3];
-} rhb_dot_cmd = {
+} rhb_dot_cmd =
+{
 	.header = {
 		.type =		sp_read,
 		.command_size = 3,
@@ -65,27 +67,35 @@ int ibmasm_start_reverse_heartbeat(struct service_processor *sp, struct reverse_
 	int result = 1;
 
 	cmd = ibmasm_new_command(sp, sizeof rhb_dot_cmd);
-	if (!cmd)
-		return -ENOMEM;
 
-	while (times_failed < 3) {
+	if (!cmd)
+	{
+		return -ENOMEM;
+	}
+
+	while (times_failed < 3)
+	{
 		memcpy(cmd->buffer, (void *)&rhb_dot_cmd, sizeof rhb_dot_cmd);
 		cmd->status = IBMASM_CMD_PENDING;
 		ibmasm_exec_command(sp, cmd);
 		ibmasm_wait_for_response(cmd, IBMASM_CMD_TIMEOUT_NORMAL);
 
 		if (cmd->status != IBMASM_CMD_COMPLETE)
+		{
 			times_failed++;
+		}
 
 		wait_event_interruptible_timeout(rhb->wait,
-			rhb->stopped,
-			REVERSE_HEARTBEAT_TIMEOUT * HZ);
+										 rhb->stopped,
+										 REVERSE_HEARTBEAT_TIMEOUT * HZ);
 
-		if (signal_pending(current) || rhb->stopped) {
+		if (signal_pending(current) || rhb->stopped)
+		{
 			result = -EINTR;
 			break;
 		}
 	}
+
 	command_put(cmd);
 	rhb->stopped = 0;
 

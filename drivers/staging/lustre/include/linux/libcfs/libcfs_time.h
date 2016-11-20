@@ -71,7 +71,10 @@ static inline unsigned long cfs_time_shift(int seconds)
 static inline long cfs_timeout_cap(long timeout)
 {
 	if (timeout < CFS_TICK)
+	{
 		timeout = CFS_TICK;
+	}
+
 	return timeout;
 }
 

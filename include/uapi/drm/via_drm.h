@@ -44,9 +44,9 @@ extern "C" {
 #define VIA_MAX_CACHELINE_SIZE          64
 #define XVMCLOCKPTR(saPriv,lockNo)					\
 	((volatile struct drm_hw_lock *)(((((unsigned long) (saPriv)->XvMCLockArea) + \
-				      (VIA_MAX_CACHELINE_SIZE - 1)) &	\
-				     ~(VIA_MAX_CACHELINE_SIZE - 1)) +	\
-				    VIA_MAX_CACHELINE_SIZE*(lockNo)))
+									   (VIA_MAX_CACHELINE_SIZE - 1)) &	\
+									  ~(VIA_MAX_CACHELINE_SIZE - 1)) +	\
+									 VIA_MAX_CACHELINE_SIZE*(lockNo)))
 
 /* Each region is a minimum of 64k, and there are at most 64 of them.
  */
@@ -92,7 +92,7 @@ extern "C" {
 #define DRM_IOCTL_VIA_FLUSH	  DRM_IO(  DRM_COMMAND_BASE + DRM_VIA_FLUSH)
 #define DRM_IOCTL_VIA_PCICMD	  DRM_IOW( DRM_COMMAND_BASE + DRM_VIA_PCICMD, drm_via_cmdbuffer_t)
 #define DRM_IOCTL_VIA_CMDBUF_SIZE DRM_IOWR( DRM_COMMAND_BASE + DRM_VIA_CMDBUF_SIZE, \
-					    drm_via_cmdbuf_size_t)
+		drm_via_cmdbuf_size_t)
 #define DRM_IOCTL_VIA_WAIT_IRQ    DRM_IOWR( DRM_COMMAND_BASE + DRM_VIA_WAIT_IRQ, drm_via_irqwait_t)
 #define DRM_IOCTL_VIA_DMA_BLIT    DRM_IOW(DRM_COMMAND_BASE + DRM_VIA_DMA_BLIT, drm_via_dmablit_t)
 #define DRM_IOCTL_VIA_BLIT_SYNC   DRM_IOW(DRM_COMMAND_BASE + DRM_VIA_BLIT_SYNC, drm_via_blitsync_t)
@@ -116,17 +116,20 @@ extern "C" {
 #define VIA_MEM_MIXED   3
 #define VIA_MEM_UNKNOWN 4
 
-typedef struct {
+typedef struct
+{
 	__u32 offset;
 	__u32 size;
 } drm_via_agp_t;
 
-typedef struct {
+typedef struct
+{
 	__u32 offset;
 	__u32 size;
 } drm_via_fb_t;
 
-typedef struct {
+typedef struct
+{
 	__u32 context;
 	__u32 type;
 	__u32 size;
@@ -134,8 +137,10 @@ typedef struct {
 	unsigned long offset;
 } drm_via_mem_t;
 
-typedef struct _drm_via_init {
-	enum {
+typedef struct _drm_via_init
+{
+	enum
+	{
 		VIA_INIT_MAP = 0x01,
 		VIA_CLEANUP_MAP = 0x02
 	} func;
@@ -146,8 +151,10 @@ typedef struct _drm_via_init {
 	unsigned long agpAddr;
 } drm_via_init_t;
 
-typedef struct _drm_via_futex {
-	enum {
+typedef struct _drm_via_futex
+{
+	enum
+	{
 		VIA_FUTEX_WAIT = 0x00,
 		VIA_FUTEX_WAKE = 0X01
 	} func;
@@ -156,8 +163,10 @@ typedef struct _drm_via_futex {
 	__u32 val;
 } drm_via_futex_t;
 
-typedef struct _drm_via_dma_init {
-	enum {
+typedef struct _drm_via_dma_init
+{
+	enum
+	{
 		VIA_INIT_DMA = 0x01,
 		VIA_CLEANUP_DMA = 0x02,
 		VIA_DMA_INITIALIZED = 0x03
@@ -168,7 +177,8 @@ typedef struct _drm_via_dma_init {
 	unsigned long reg_pause_addr;
 } drm_via_dma_init_t;
 
-typedef struct _drm_via_cmdbuffer {
+typedef struct _drm_via_cmdbuffer
+{
 	char __user *buf;
 	unsigned long size;
 } drm_via_cmdbuffer_t;
@@ -176,13 +186,15 @@ typedef struct _drm_via_cmdbuffer {
 /* Warning: If you change the SAREA structure you must change the Xserver
  * structure as well */
 
-typedef struct _drm_via_tex_region {
+typedef struct _drm_via_tex_region
+{
 	unsigned char next, prev;	/* indices to form a circular LRU  */
 	unsigned char inUse;	/* owned by a client, or free? */
 	int age;		/* tracked by clients to update local LRU's */
 } drm_via_tex_region_t;
 
-typedef struct _drm_via_sarea {
+typedef struct _drm_via_sarea
+{
 	unsigned int dirty;
 	unsigned int nbox;
 	struct drm_clip_rect boxes[VIA_NR_SAREA_CLIPRECTS];
@@ -208,8 +220,10 @@ typedef struct _drm_via_sarea {
 	unsigned int pfCurrentOffset;
 } drm_via_sarea_t;
 
-typedef struct _drm_via_cmdbuf_size {
-	enum {
+typedef struct _drm_via_cmdbuf_size
+{
+	enum
+	{
 		VIA_CMDBUF_SPACE = 0x01,
 		VIA_CMDBUF_LAG = 0x02
 	} func;
@@ -217,7 +231,8 @@ typedef struct _drm_via_cmdbuf_size {
 	__u32 size;
 } drm_via_cmdbuf_size_t;
 
-typedef enum {
+typedef enum
+{
 	VIA_IRQ_ABSOLUTE = 0x0,
 	VIA_IRQ_RELATIVE = 0x1,
 	VIA_IRQ_SIGNAL = 0x10000000,
@@ -226,7 +241,8 @@ typedef enum {
 
 #define VIA_IRQ_FLAGS_MASK 0xF0000000
 
-enum drm_via_irqs {
+enum drm_via_irqs
+{
 	drm_via_irq_hqv0 = 0,
 	drm_via_irq_hqv1,
 	drm_via_irq_dma0_dd,
@@ -236,19 +252,22 @@ enum drm_via_irqs {
 	drm_via_irq_num
 };
 
-struct drm_via_wait_irq_request {
+struct drm_via_wait_irq_request
+{
 	unsigned irq;
 	via_irq_seq_type_t type;
 	__u32 sequence;
 	__u32 signal;
 };
 
-typedef union drm_via_irqwait {
+typedef union drm_via_irqwait
+{
 	struct drm_via_wait_irq_request request;
 	struct drm_wait_vblank_reply reply;
 } drm_via_irqwait_t;
 
-typedef struct drm_via_blitsync {
+typedef struct drm_via_blitsync
+{
 	__u32 sync_handle;
 	unsigned engine;
 } drm_via_blitsync_t;
@@ -259,7 +278,8 @@ typedef struct drm_via_blitsync {
  * interrupts.
  */
 
-typedef struct drm_via_dmablit {
+typedef struct drm_via_dmablit
+{
 	__u32 num_lines;
 	__u32 line_length;
 

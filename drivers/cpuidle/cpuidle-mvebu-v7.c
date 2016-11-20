@@ -26,26 +26,31 @@
 static int (*mvebu_v7_cpu_suspend)(int);
 
 static int mvebu_v7_enter_idle(struct cpuidle_device *dev,
-				struct cpuidle_driver *drv,
-				int index)
+							   struct cpuidle_driver *drv,
+							   int index)
 {
 	int ret;
 	bool deepidle = false;
 	cpu_pm_enter();
 
 	if (drv->states[index].flags & MVEBU_V7_FLAG_DEEP_IDLE)
+	{
 		deepidle = true;
+	}
 
 	ret = mvebu_v7_cpu_suspend(deepidle);
 	cpu_pm_exit();
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	return index;
 }
 
-static struct cpuidle_driver armadaxp_idle_driver = {
+static struct cpuidle_driver armadaxp_idle_driver =
+{
 	.name			= "armada_xp_idle",
 	.states[0]		= ARM_CPUIDLE_WFI_STATE,
 	.states[1]		= {
@@ -68,7 +73,8 @@ static struct cpuidle_driver armadaxp_idle_driver = {
 	.state_count = 3,
 };
 
-static struct cpuidle_driver armada370_idle_driver = {
+static struct cpuidle_driver armada370_idle_driver =
+{
 	.name			= "armada_370_idle",
 	.states[0]		= ARM_CPUIDLE_WFI_STATE,
 	.states[1]		= {
@@ -83,7 +89,8 @@ static struct cpuidle_driver armada370_idle_driver = {
 	.state_count = 2,
 };
 
-static struct cpuidle_driver armada38x_idle_driver = {
+static struct cpuidle_driver armada38x_idle_driver =
+{
 	.name			= "armada_38x_idle",
 	.states[0]		= ARM_CPUIDLE_WFI_STATE,
 	.states[1]		= {
@@ -102,28 +109,32 @@ static int mvebu_v7_cpuidle_probe(struct platform_device *pdev)
 	const struct platform_device_id *id = pdev->id_entry;
 
 	if (!id)
+	{
 		return -EINVAL;
+	}
 
 	mvebu_v7_cpu_suspend = pdev->dev.platform_data;
 
 	return cpuidle_register((struct cpuidle_driver *)id->driver_data, NULL);
 }
 
-static const struct platform_device_id mvebu_cpuidle_ids[] = {
+static const struct platform_device_id mvebu_cpuidle_ids[] =
+{
 	{
 		.name = "cpuidle-armada-xp",
-		.driver_data = (unsigned long)&armadaxp_idle_driver,
+		.driver_data = (unsigned long) &armadaxp_idle_driver,
 	}, {
 		.name = "cpuidle-armada-370",
-		.driver_data = (unsigned long)&armada370_idle_driver,
+		.driver_data = (unsigned long) &armada370_idle_driver,
 	}, {
 		.name = "cpuidle-armada-38x",
-		.driver_data = (unsigned long)&armada38x_idle_driver,
+		.driver_data = (unsigned long) &armada38x_idle_driver,
 	},
 	{}
 };
 
-static struct platform_driver mvebu_cpuidle_driver = {
+static struct platform_driver mvebu_cpuidle_driver =
+{
 	.probe = mvebu_v7_cpuidle_probe,
 	.driver = {
 		.name = "cpuidle-mbevu",

@@ -25,8 +25,8 @@
 MODULE_LICENSE("GPL");
 
 static ssize_t irst_show_wakeup_events(struct device *dev,
-				       struct device_attribute *attr,
-				       char *buf)
+									   struct device_attribute *attr,
+									   char *buf)
 {
 	struct acpi_device *acpi;
 	unsigned long long value;
@@ -35,15 +35,18 @@ static ssize_t irst_show_wakeup_events(struct device *dev,
 	acpi = to_acpi_device(dev);
 
 	status = acpi_evaluate_integer(acpi->handle, "GFFS", NULL, &value);
+
 	if (ACPI_FAILURE(status))
+	{
 		return -EINVAL;
+	}
 
 	return sprintf(buf, "%lld\n", value);
 }
 
 static ssize_t irst_store_wakeup_events(struct device *dev,
-					struct device_attribute *attr,
-					const char *buf, size_t count)
+										struct device_attribute *attr,
+										const char *buf, size_t count)
 {
 	struct acpi_device *acpi;
 	acpi_status status;
@@ -55,24 +58,29 @@ static ssize_t irst_store_wakeup_events(struct device *dev,
 	error = kstrtoul(buf, 0, &value);
 
 	if (error)
+	{
 		return error;
+	}
 
 	status = acpi_execute_simple_method(acpi->handle, "SFFS", value);
 
 	if (ACPI_FAILURE(status))
+	{
 		return -EINVAL;
+	}
 
 	return count;
 }
 
-static struct device_attribute irst_wakeup_attr = {
+static struct device_attribute irst_wakeup_attr =
+{
 	.attr = { .name = "wakeup_events", .mode = 0600 },
 	.show = irst_show_wakeup_events,
 	.store = irst_store_wakeup_events
 };
 
 static ssize_t irst_show_wakeup_time(struct device *dev,
-				     struct device_attribute *attr, char *buf)
+									 struct device_attribute *attr, char *buf)
 {
 	struct acpi_device *acpi;
 	unsigned long long value;
@@ -81,15 +89,18 @@ static ssize_t irst_show_wakeup_time(struct device *dev,
 	acpi = to_acpi_device(dev);
 
 	status = acpi_evaluate_integer(acpi->handle, "GFTV", NULL, &value);
+
 	if (ACPI_FAILURE(status))
+	{
 		return -EINVAL;
+	}
 
 	return sprintf(buf, "%lld\n", value);
 }
 
 static ssize_t irst_store_wakeup_time(struct device *dev,
-				      struct device_attribute *attr,
-				      const char *buf, size_t count)
+									  struct device_attribute *attr,
+									  const char *buf, size_t count)
 {
 	struct acpi_device *acpi;
 	acpi_status status;
@@ -101,17 +112,22 @@ static ssize_t irst_store_wakeup_time(struct device *dev,
 	error = kstrtoul(buf, 0, &value);
 
 	if (error)
+	{
 		return error;
+	}
 
 	status = acpi_execute_simple_method(acpi->handle, "SFTV", value);
 
 	if (ACPI_FAILURE(status))
+	{
 		return -EINVAL;
+	}
 
 	return count;
 }
 
-static struct device_attribute irst_timeout_attr = {
+static struct device_attribute irst_timeout_attr =
+{
 	.attr = { .name = "wakeup_time", .mode = 0600 },
 	.show = irst_show_wakeup_time,
 	.store = irst_store_wakeup_time
@@ -122,12 +138,18 @@ static int irst_add(struct acpi_device *acpi)
 	int error;
 
 	error = device_create_file(&acpi->dev, &irst_timeout_attr);
+
 	if (unlikely(error))
+	{
 		return error;
+	}
 
 	error = device_create_file(&acpi->dev, &irst_wakeup_attr);
+
 	if (unlikely(error))
+	{
 		device_remove_file(&acpi->dev, &irst_timeout_attr);
+	}
 
 	return error;
 }
@@ -140,12 +162,14 @@ static int irst_remove(struct acpi_device *acpi)
 	return 0;
 }
 
-static const struct acpi_device_id irst_ids[] = {
+static const struct acpi_device_id irst_ids[] =
+{
 	{"INT3392", 0},
 	{"", 0}
 };
 
-static struct acpi_driver irst_driver = {
+static struct acpi_driver irst_driver =
+{
 	.owner = THIS_MODULE,
 	.name = "intel_rapid_start",
 	.class = "intel_rapid_start",

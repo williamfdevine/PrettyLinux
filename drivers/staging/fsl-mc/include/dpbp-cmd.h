@@ -60,17 +60,20 @@
 #define DPBP_CMDID_SET_NOTIFICATIONS		0x01b0
 #define DPBP_CMDID_GET_NOTIFICATIONS		0x01b1
 
-struct dpbp_cmd_open {
+struct dpbp_cmd_open
+{
 	__le32 dpbp_id;
 };
 
 #define DPBP_ENABLE			0x1
 
-struct dpbp_rsp_is_enabled {
+struct dpbp_rsp_is_enabled
+{
 	u8 enabled;
 };
 
-struct dpbp_cmd_set_irq {
+struct dpbp_cmd_set_irq
+{
 	/* cmd word 0 */
 	u8 irq_index;
 	u8 pad[3];
@@ -81,12 +84,14 @@ struct dpbp_cmd_set_irq {
 	__le32 irq_num;
 };
 
-struct dpbp_cmd_get_irq {
+struct dpbp_cmd_get_irq
+{
 	__le32 pad;
 	u8 irq_index;
 };
 
-struct dpbp_rsp_get_irq {
+struct dpbp_rsp_get_irq
+{
 	/* response word 0 */
 	__le32 irq_val;
 	__le32 pad;
@@ -97,50 +102,60 @@ struct dpbp_rsp_get_irq {
 	__le32 type;
 };
 
-struct dpbp_cmd_set_irq_enable {
+struct dpbp_cmd_set_irq_enable
+{
 	u8 enable;
 	u8 pad[3];
 	u8 irq_index;
 };
 
-struct dpbp_cmd_get_irq_enable {
+struct dpbp_cmd_get_irq_enable
+{
 	__le32 pad;
 	u8 irq_index;
 };
 
-struct dpbp_rsp_get_irq_enable {
+struct dpbp_rsp_get_irq_enable
+{
 	u8 enabled;
 };
 
-struct dpbp_cmd_set_irq_mask {
+struct dpbp_cmd_set_irq_mask
+{
 	__le32 mask;
 	u8 irq_index;
 };
 
-struct dpbp_cmd_get_irq_mask {
+struct dpbp_cmd_get_irq_mask
+{
 	__le32 pad;
 	u8 irq_index;
 };
 
-struct dpbp_rsp_get_irq_mask {
+struct dpbp_rsp_get_irq_mask
+{
 	__le32 mask;
 };
 
-struct dpbp_cmd_get_irq_status {
+struct dpbp_cmd_get_irq_status
+{
 	__le32 status;
 	u8 irq_index;
 };
 
-struct dpbp_rsp_get_irq_status {
+struct dpbp_rsp_get_irq_status
+{
 	__le32 status;
 };
 
-struct dpbp_cmd_clear_irq_status {
+struct dpbp_cmd_clear_irq_status
+{
 	__le32 status;
 	u8 irq_index;
 };
 
-struct dpbp_rsp_get_attributes {
+struct dpbp_rsp_get_attributes
+{
 	/* response word 0 */
 	__le16 pad;
 	__le16 bpid;
@@ -150,7 +165,8 @@ struct dpbp_rsp_get_attributes {
 	__le16 version_minor;
 };
 
-struct dpbp_cmd_set_notifications {
+struct dpbp_cmd_set_notifications
+{
 	/* cmd word 0 */
 	__le32 depletion_entry;
 	__le32 depletion_exit;
@@ -166,7 +182,8 @@ struct dpbp_cmd_set_notifications {
 	__le64 message_iova;
 };
 
-struct dpbp_rsp_get_notifications {
+struct dpbp_rsp_get_notifications
+{
 	/* response word 0 */
 	__le32 depletion_entry;
 	__le32 depletion_exit;

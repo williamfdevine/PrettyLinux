@@ -69,17 +69,20 @@ void cfspi_xfer(struct work_struct *work)
 	/* Initialize state. */
 	cfspi->cmd = SPI_CMD_EOT;
 
-	for (;;) {
+	for (;;)
+	{
 
 		cfspi_dbg_state(cfspi, CFSPI_STATE_WAITING);
 
 		/* Wait for master talk or transmit event. */
 		wait_event_interruptible(cfspi->wait,
-				 test_bit(SPI_XFER, &cfspi->state) ||
-				 test_bit(SPI_TERMINATE, &cfspi->state));
+								 test_bit(SPI_XFER, &cfspi->state) ||
+								 test_bit(SPI_TERMINATE, &cfspi->state));
 
 		if (test_bit(SPI_TERMINATE, &cfspi->state))
+		{
 			return;
+		}
 
 #if CFSPI_DBG_PREFILL
 		/* Prefill buffers for easier debugging. */
@@ -89,8 +92,9 @@ void cfspi_xfer(struct work_struct *work)
 
 		cfspi_dbg_state(cfspi, CFSPI_STATE_AWAKE);
 
-	/* Check whether we have a committed frame. */
-		if (cfspi->tx_cpck_len) {
+		/* Check whether we have a committed frame. */
+		if (cfspi->tx_cpck_len)
+		{
 			int len;
 
 			cfspi_dbg_state(cfspi, CFSPI_STATE_FETCH_PKT);
@@ -100,7 +104,7 @@ void cfspi_xfer(struct work_struct *work)
 			ptr += SPI_IND_SZ;
 			len = cfspi_xmitfrm(cfspi, ptr, cfspi->tx_cpck_len);
 			WARN_ON(len != cfspi->tx_cpck_len);
-	}
+		}
 
 		cfspi_dbg_state(cfspi, CFSPI_STATE_GET_NEXT);
 
@@ -125,18 +129,20 @@ void cfspi_xfer(struct work_struct *work)
 
 		/* Add SPI TX frame alignment padding, if necessary. */
 		if (cfspi->tx_cpck_len &&
-			(cfspi->xfer.tx_dma_len % spi_frm_align)) {
+			(cfspi->xfer.tx_dma_len % spi_frm_align))
+		{
 
 			cfspi->xfer.tx_dma_len += spi_frm_align -
-			    (cfspi->xfer.tx_dma_len % spi_frm_align);
+									  (cfspi->xfer.tx_dma_len % spi_frm_align);
 		}
 
 		/* Add SPI RX frame alignment padding, if necessary. */
 		if (cfspi->rx_cpck_len &&
-			(cfspi->xfer.rx_dma_len % spi_frm_align)) {
+			(cfspi->xfer.rx_dma_len % spi_frm_align))
+		{
 
 			cfspi->xfer.rx_dma_len += spi_frm_align -
-			    (cfspi->xfer.rx_dma_len % spi_frm_align);
+									  (cfspi->xfer.rx_dma_len % spi_frm_align);
 		}
 
 		cfspi_dbg_state(cfspi, CFSPI_STATE_INIT_XFER);
@@ -165,7 +171,8 @@ void cfspi_xfer(struct work_struct *work)
 
 		cfspi_dbg_state(cfspi, CFSPI_STATE_XFER_DONE);
 
-		if (cfspi->cmd == SPI_CMD_EOT) {
+		if (cfspi->cmd == SPI_CMD_EOT)
+		{
 			/*
 			 * Clear the master talk bit. A xfer is always at
 			 *  least two bursts.
@@ -177,12 +184,13 @@ void cfspi_xfer(struct work_struct *work)
 
 		/* Make sure that the minimum toggle time is respected. */
 		if (SPI_XFER_TIME_USEC(cfspi->xfer.tx_dma_len,
-					cfspi->dev->clk_mhz) <
-			MIN_TRANSITION_TIME_USEC) {
+							   cfspi->dev->clk_mhz) <
+			MIN_TRANSITION_TIME_USEC)
+		{
 
 			udelay(MIN_TRANSITION_TIME_USEC -
-				SPI_XFER_TIME_USEC
-				(cfspi->xfer.tx_dma_len, cfspi->dev->clk_mhz));
+				   SPI_XFER_TIME_USEC
+				   (cfspi->xfer.tx_dma_len, cfspi->dev->clk_mhz));
 		}
 
 		cfspi_dbg_state(cfspi, CFSPI_STATE_SIG_INACTIVE);
@@ -191,7 +199,8 @@ void cfspi_xfer(struct work_struct *work)
 		cfspi->dev->sig_xfer(false, cfspi->dev);
 
 		/* Check whether we received a CAIF packet. */
-		if (cfspi->rx_cpck_len) {
+		if (cfspi->rx_cpck_len)
+		{
 			int len;
 
 			cfspi_dbg_state(cfspi, CFSPI_STATE_DELIVER_PKT);
@@ -219,11 +228,14 @@ void cfspi_xfer(struct work_struct *work)
 		debugfs_store_prev(cfspi);
 
 		/* Check whether the master issued an EOT command. */
-		if (cfspi->cmd == SPI_CMD_EOT) {
+		if (cfspi->cmd == SPI_CMD_EOT)
+		{
 			/* Reset state. */
 			cfspi->tx_cpck_len = 0;
 			cfspi->rx_cpck_len = 0;
-		} else {
+		}
+		else
+		{
 			/* Update state. */
 			cfspi->tx_cpck_len = cfspi->tx_npck_len;
 			cfspi->rx_cpck_len = cfspi->rx_npck_len;
@@ -236,19 +248,23 @@ void cfspi_xfer(struct work_struct *work)
 		 * are not supported.
 		 */
 		spin_lock_irqsave(&cfspi->lock, flags);
+
 		if (cfspi->cmd == SPI_CMD_EOT && !cfspi_xmitlen(cfspi)
 			&& !test_bit(SPI_SS_ON, &cfspi->state))
+		{
 			clear_bit(SPI_XFER, &cfspi->state);
+		}
 
 		spin_unlock_irqrestore(&cfspi->lock, flags);
 	}
 }
 
-struct platform_driver cfspi_spi_driver = {
+struct platform_driver cfspi_spi_driver =
+{
 	.probe = cfspi_spi_probe,
 	.remove = cfspi_spi_remove,
 	.driver = {
-		   .name = "cfspi_sspi",
-		   .owner = THIS_MODULE,
-		   },
+		.name = "cfspi_sspi",
+		.owner = THIS_MODULE,
+	},
 };

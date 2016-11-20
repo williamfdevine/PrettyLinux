@@ -33,7 +33,8 @@
 #include "callbacks.h"
 
 
-const char * const isdn_state_table[] = {
+const char *const isdn_state_table[] =
+{
 	"Closed",
 	"Call initiated",
 	"Overlap sending",
@@ -66,10 +67,12 @@ const char * const isdn_state_table[] = {
 
 #ifdef DEBUG_ERRS
 static
-struct CauseValue {
+struct CauseValue
+{
 	byte nr;
 	char *descr;
-} cvlist[] = {
+} cvlist[] =
+{
 	{0x01, "Unallocated (unassigned) number"},
 	{0x02, "No route to specified transit network"},
 	{0x03, "No route to destination"},
@@ -141,10 +144,12 @@ struct CauseValue {
 
 #endif
 
-static struct isdn_event_desc {
+static struct isdn_event_desc
+{
 	unsigned short ev;
 	char *desc;
-} isdn_event_table[] = {
+} isdn_event_table[] =
+{
 	{EV_USR_SETUP_REQ,     "CC->L3: Setup Request"},
 	{EV_USR_SETUP_RESP,    "CC->L3: Setup Response"},
 	{EV_USR_PROCED_REQ,    "CC->L3: Proceeding Request"},
@@ -170,7 +175,9 @@ char *strisdnevent(ushort ev)
 
 	for (entry = isdn_event_table; entry->ev; entry++)
 		if (entry->ev == ev)
+		{
 			break;
+		}
 
 	return entry->desc;
 }
@@ -179,7 +186,8 @@ char *strisdnevent(ushort ev)
  * Euro ISDN finite state machine
  */
 
-static struct fsm_timer_entry fsm_timers[] = {
+static struct fsm_timer_entry fsm_timers[] =
+{
 	{ST_CALL_PROC, 10},
 	{ST_DISC_REQ, 2},
 	{ST_ACTIVE_SELP, 5},
@@ -189,8 +197,9 @@ static struct fsm_timer_entry fsm_timers[] = {
 	{0xff, 0}
 };
 
-static struct fsm_entry fsm_table[] = {
-/* Connect Phase */
+static struct fsm_entry fsm_table[] =
+{
+	/* Connect Phase */
 	/* Outgoing */
 	{ST_NULL, ST_CALL_INIT, EV_USR_SETUP_REQ, cb_out_1},
 
@@ -254,7 +263,8 @@ static void pcbit_fsm_timer(unsigned long data)
 
 	dev = chan2dev(chan);
 
-	if (!dev) {
+	if (!dev)
+	{
 		printk(KERN_WARNING "pcbit: timer for unknown device\n");
 		return;
 	}
@@ -264,7 +274,7 @@ static void pcbit_fsm_timer(unsigned long data)
 
 
 void pcbit_fsm_event(struct pcbit_dev *dev, struct pcbit_chan *chan,
-		     unsigned short event, struct callb_data *data)
+					 unsigned short event, struct callb_data *data)
 {
 	struct fsm_entry *action;
 	struct fsm_timer_entry *tentry;
@@ -274,17 +284,21 @@ void pcbit_fsm_event(struct pcbit_dev *dev, struct pcbit_chan *chan,
 
 	for (action = fsm_table; action->init != 0xff; action++)
 		if (action->init == chan->fsm_state && action->event == event)
+		{
 			break;
+		}
 
-	if (action->init == 0xff) {
+	if (action->init == 0xff)
+	{
 
 		spin_unlock_irqrestore(&dev->lock, flags);
 		printk(KERN_DEBUG "fsm error: event %x on state %x\n",
-		       event, chan->fsm_state);
+			   event, chan->fsm_state);
 		return;
 	}
 
-	if (chan->fsm_timer.function) {
+	if (chan->fsm_timer.function)
+	{
 		del_timer(&chan->fsm_timer);
 		chan->fsm_timer.function = NULL;
 	}
@@ -295,9 +309,12 @@ void pcbit_fsm_event(struct pcbit_dev *dev, struct pcbit_chan *chan,
 
 	for (tentry = fsm_timers; tentry->init != 0xff; tentry++)
 		if (tentry->init == chan->fsm_state)
+		{
 			break;
+		}
 
-	if (tentry->init != 0xff) {
+	if (tentry->init != 0xff)
+	{
 		setup_timer(&chan->fsm_timer, &pcbit_fsm_timer, (ulong)chan);
 		mod_timer(&chan->fsm_timer, jiffies + tentry->timeout * HZ);
 	}
@@ -305,6 +322,8 @@ void pcbit_fsm_event(struct pcbit_dev *dev, struct pcbit_chan *chan,
 	spin_unlock_irqrestore(&dev->lock, flags);
 
 	if (action->callb)
+	{
 		action->callb(dev, chan, data);
+	}
 
 }

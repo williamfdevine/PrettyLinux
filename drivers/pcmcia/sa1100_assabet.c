@@ -36,34 +36,40 @@ assabet_pcmcia_configure_socket(struct soc_pcmcia_socket *skt, const socket_stat
 {
 	unsigned int mask;
 
-	switch (state->Vcc) {
-	case 0:
-		mask = 0;
-		break;
+	switch (state->Vcc)
+	{
+		case 0:
+			mask = 0;
+			break;
 
-	case 50:
-		printk(KERN_WARNING "%s(): CS asked for 5V, applying 3.3V...\n",
-			__func__);
+		case 50:
+			printk(KERN_WARNING "%s(): CS asked for 5V, applying 3.3V...\n",
+				   __func__);
 
-	case 33:  /* Can only apply 3.3V to the CF slot. */
-		mask = ASSABET_BCR_CF_PWR;
-		break;
+		case 33:  /* Can only apply 3.3V to the CF slot. */
+			mask = ASSABET_BCR_CF_PWR;
+			break;
 
-	default:
-		printk(KERN_ERR "%s(): unrecognized Vcc %u\n", __func__,
-			state->Vcc);
-		return -1;
+		default:
+			printk(KERN_ERR "%s(): unrecognized Vcc %u\n", __func__,
+				   state->Vcc);
+			return -1;
 	}
 
 	/* Silently ignore Vpp, speaker enable. */
 
 	if (state->flags & SS_RESET)
+	{
 		mask |= ASSABET_BCR_CF_RST;
+	}
+
 	if (!(state->flags & SS_OUTPUT_ENA))
+	{
 		mask |= ASSABET_BCR_CF_BUS_OFF;
+	}
 
 	ASSABET_BCR_frob(ASSABET_BCR_CF_RST | ASSABET_BCR_CF_PWR |
-			ASSABET_BCR_CF_BUS_OFF, mask);
+					 ASSABET_BCR_CF_BUS_OFF, mask);
 
 	return 0;
 }
@@ -80,7 +86,8 @@ static void assabet_pcmcia_socket_suspend(struct soc_pcmcia_socket *skt)
 	ASSABET_BCR_set(ASSABET_BCR_CF_BUS_OFF | ASSABET_BCR_CF_RST);
 }
 
-static struct pcmcia_low_level assabet_pcmcia_ops = { 
+static struct pcmcia_low_level assabet_pcmcia_ops =
+{
 	.owner			= THIS_MODULE,
 	.hw_init		= assabet_pcmcia_hw_init,
 	.socket_state		= soc_common_cf_socket_state,
@@ -93,7 +100,9 @@ int pcmcia_assabet_init(struct device *dev)
 	int ret = -ENODEV;
 
 	if (machine_is_assabet() && !machine_has_neponset())
+	{
 		ret = sa11xx_drv_pcmcia_probe(dev, &assabet_pcmcia_ops, 1, 1);
+	}
 
 	return ret;
 }

@@ -13,7 +13,8 @@ static void bt_link_release(struct device *dev)
 	kfree(conn);
 }
 
-static struct device_type bt_link = {
+static struct device_type bt_link =
+{
 	.name    = "link",
 	.release = bt_link_release,
 };
@@ -49,7 +50,8 @@ void hci_conn_add_sysfs(struct hci_conn *conn)
 
 	dev_set_name(&conn->dev, "%s:%d", hdev->name, conn->handle);
 
-	if (device_add(&conn->dev) < 0) {
+	if (device_add(&conn->dev) < 0)
+	{
 		BT_ERR("Failed to register connection device");
 		return;
 	}
@@ -62,14 +64,21 @@ void hci_conn_del_sysfs(struct hci_conn *conn)
 	struct hci_dev *hdev = conn->hdev;
 
 	if (!device_is_registered(&conn->dev))
+	{
 		return;
+	}
 
-	while (1) {
+	while (1)
+	{
 		struct device *dev;
 
 		dev = device_find_child(&conn->dev, NULL, __match_tty);
+
 		if (!dev)
+		{
 			break;
+		}
+
 		device_move(dev, NULL, DPM_ORDER_DEV_LAST);
 		put_device(dev);
 	}
@@ -86,7 +95,8 @@ static void bt_host_release(struct device *dev)
 	module_put(THIS_MODULE);
 }
 
-static struct device_type bt_host = {
+static struct device_type bt_host =
+{
 	.name    = "host",
 	.release = bt_host_release,
 };

@@ -8,7 +8,8 @@
 
 #define GTP_TPDU	255
 
-struct gtp0_header {	/* According to GSM TS 09.60. */
+struct gtp0_header  	/* According to GSM TS 09.60. */
+{
 	__u8	flags;
 	__u8	type;
 	__be16	length;
@@ -19,7 +20,8 @@ struct gtp0_header {	/* According to GSM TS 09.60. */
 	__be64	tid;
 } __attribute__ ((packed));
 
-struct gtp1_header {	/* According to 3GPP TS 29.060. */
+struct gtp1_header  	/* According to 3GPP TS 29.060. */
+{
 	__u8	flags;
 	__u8	type;
 	__be16	length;

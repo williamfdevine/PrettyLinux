@@ -22,21 +22,26 @@ struct ip_vs_pe *__ip_vs_pe_getbyname(const char *pe_name)
 	struct ip_vs_pe *pe;
 
 	IP_VS_DBG(10, "%s(): pe_name \"%s\"\n", __func__,
-		  pe_name);
+			  pe_name);
 
 	rcu_read_lock();
-	list_for_each_entry_rcu(pe, &ip_vs_pe, n_list) {
+	list_for_each_entry_rcu(pe, &ip_vs_pe, n_list)
+	{
 		/* Test and get the modules atomically */
 		if (pe->module &&
-		    !try_module_get(pe->module)) {
+			!try_module_get(pe->module))
+		{
 			/* This pe is just deleted */
 			continue;
 		}
-		if (strcmp(pe_name, pe->name)==0) {
+
+		if (strcmp(pe_name, pe->name) == 0)
+		{
 			/* HIT */
 			rcu_read_unlock();
 			return pe;
 		}
+
 		module_put(pe->module);
 	}
 	rcu_read_unlock();
@@ -53,7 +58,8 @@ struct ip_vs_pe *ip_vs_pe_getbyname(const char *name)
 	pe = __ip_vs_pe_getbyname(name);
 
 	/* If pe not found, load the module and search again */
-	if (!pe) {
+	if (!pe)
+	{
 		request_module("ip_vs_pe_%s", name);
 		pe = __ip_vs_pe_getbyname(name);
 	}
@@ -73,12 +79,14 @@ int register_ip_vs_pe(struct ip_vs_pe *pe)
 	/* Make sure that the pe with this name doesn't exist
 	 * in the pe list.
 	 */
-	list_for_each_entry(tmp, &ip_vs_pe, n_list) {
-		if (strcmp(tmp->name, pe->name) == 0) {
+	list_for_each_entry(tmp, &ip_vs_pe, n_list)
+	{
+		if (strcmp(tmp->name, pe->name) == 0)
+		{
 			mutex_unlock(&ip_vs_pe_mutex);
 			ip_vs_use_count_dec();
 			pr_err("%s(): [%s] pe already existed "
-			       "in the system\n", __func__, pe->name);
+				   "in the system\n", __func__, pe->name);
 			return -EINVAL;
 		}
 	}

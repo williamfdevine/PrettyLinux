@@ -58,7 +58,8 @@
 
 #define NUM_IRQS		64
 
-struct aspeed_vic {
+struct aspeed_vic
+{
 	void __iomem		*base;
 	u32			edge_sources[2];
 	struct irq_domain	*dom;
@@ -100,15 +101,22 @@ static void __exception_irq_entry avic_handle_irq(struct pt_regs *regs)
 	struct aspeed_vic *vic = system_avic;
 	u32 stat, irq;
 
-	for (;;) {
+	for (;;)
+	{
 		irq = 0;
 		stat = readl_relaxed(vic->base + AVIC_IRQ_STATUS);
-		if (!stat) {
+
+		if (!stat)
+		{
 			stat = readl_relaxed(vic->base + AVIC_IRQ_STATUS + 4);
 			irq = 32;
 		}
+
 		if (stat == 0)
+		{
 			break;
+		}
+
 		irq += ffs(stat) - 1;
 		handle_domain_irq(vic->dom, irq, regs);
 	}
@@ -122,7 +130,9 @@ static void avic_ack_irq(struct irq_data *d)
 
 	/* Clear edge latch for edge interrupts, nop for level */
 	if (vic->edge_sources[sidx] & sbit)
+	{
 		writel(sbit, vic->base + AVIC_EDGE_CLR + sidx * 4);
+	}
 }
 
 static void avic_mask_irq(struct irq_data *d)
@@ -155,10 +165,13 @@ static void avic_mask_ack_irq(struct irq_data *d)
 
 	/* Then clear edge latch for edge interrupts */
 	if (vic->edge_sources[sidx] & sbit)
+	{
 		writel(sbit, vic->base + AVIC_EDGE_CLR + sidx * 4);
+	}
 }
 
-static struct irq_chip avic_chip = {
+static struct irq_chip avic_chip =
+{
 	.name		= "AVIC",
 	.irq_ack	= avic_ack_irq,
 	.irq_mask	= avic_mask_irq,
@@ -167,7 +180,7 @@ static struct irq_chip avic_chip = {
 };
 
 static int avic_map(struct irq_domain *d, unsigned int irq,
-		    irq_hw_number_t hwirq)
+					irq_hw_number_t hwirq)
 {
 	struct aspeed_vic *vic = d->host_data;
 	unsigned int sidx = hwirq >> 5;
@@ -175,42 +188,61 @@ static int avic_map(struct irq_domain *d, unsigned int irq,
 
 	/* Check if interrupt exists */
 	if (sidx > 1)
+	{
 		return -EPERM;
+	}
 
 	if (vic->edge_sources[sidx] & sbit)
+	{
 		irq_set_chip_and_handler(irq, &avic_chip, handle_edge_irq);
+	}
 	else
+	{
 		irq_set_chip_and_handler(irq, &avic_chip, handle_level_irq);
+	}
+
 	irq_set_chip_data(irq, vic);
 	irq_set_probe(irq);
 	return 0;
 }
 
-static struct irq_domain_ops avic_dom_ops = {
+static struct irq_domain_ops avic_dom_ops =
+{
 	.map = avic_map,
 	.xlate = irq_domain_xlate_onetwocell,
 };
 
 static int __init avic_of_init(struct device_node *node,
-			       struct device_node *parent)
+							   struct device_node *parent)
 {
 	void __iomem *regs;
 	struct aspeed_vic *vic;
 
 	if (WARN(parent, "non-root Aspeed VIC not supported"))
+	{
 		return -EINVAL;
+	}
+
 	if (WARN(system_avic, "duplicate Aspeed VIC not supported"))
+	{
 		return -EINVAL;
+	}
 
 	regs = of_iomap(node, 0);
+
 	if (WARN_ON(!regs))
+	{
 		return -EIO;
+	}
 
 	vic = kzalloc(sizeof(struct aspeed_vic), GFP_KERNEL);
-	if (WARN_ON(!vic)) {
+
+	if (WARN_ON(!vic))
+	{
 		iounmap(regs);
 		return -ENOMEM;
 	}
+
 	vic->base = regs;
 
 	/* Initialize soures, all masked */
@@ -222,7 +254,7 @@ static int __init avic_of_init(struct device_node *node,
 
 	/* Register our domain */
 	vic->dom = irq_domain_add_simple(node, NUM_IRQS, 0,
-					 &avic_dom_ops, vic);
+									 &avic_dom_ops, vic);
 
 	return 0;
 }

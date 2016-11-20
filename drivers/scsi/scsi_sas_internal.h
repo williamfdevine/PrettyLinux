@@ -8,7 +8,8 @@
 #define SAS_END_DEV_ATTRS	5
 #define SAS_EXPANDER_ATTRS	7
 
-struct sas_internal {
+struct sas_internal
+{
 	struct scsi_transport_template t;
 	struct sas_function_template *f;
 	struct sas_domain_function_template *dft;

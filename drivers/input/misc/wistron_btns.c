@@ -57,7 +57,7 @@ MODULE_PARM_DESC(keymap, "Keymap name, if it can't be autodetected [generic, 155
 
 static struct platform_device *wistron_device;
 
- /* BIOS interface implementation */
+/* BIOS interface implementation */
 
 static void __iomem *bios_entry_point; /* BIOS routine entry point */
 static void __iomem *bios_code_map_base;
@@ -65,7 +65,8 @@ static void __iomem *bios_data_map_base;
 
 static u8 cmos_address;
 
-struct regs {
+struct regs
+{
 	u32 eax, ebx, ecx;
 };
 
@@ -76,13 +77,13 @@ static void call_bios(struct regs *regs)
 	preempt_disable();
 	local_irq_save(flags);
 	asm volatile ("pushl %%ebp;"
-		      "movl %7, %%ebp;"
-		      "call *%6;"
-		      "popl %%ebp"
-		      : "=a" (regs->eax), "=b" (regs->ebx), "=c" (regs->ecx)
-		      : "0" (regs->eax), "1" (regs->ebx), "2" (regs->ecx),
-			"m" (bios_entry_point), "m" (bios_data_map_base)
-		      : "edx", "edi", "esi", "memory");
+				  "movl %7, %%ebp;"
+				  "call *%6;"
+				  "popl %%ebp"
+				  : "=a" (regs->eax), "=b" (regs->ebx), "=c" (regs->ecx)
+				  : "0" (regs->eax), "1" (regs->ebx), "2" (regs->ecx),
+				  "m" (bios_entry_point), "m" (bios_data_map_base)
+				  : "edx", "edi", "esi", "memory");
 	local_irq_restore(flags);
 	preempt_enable();
 }
@@ -90,14 +91,18 @@ static void call_bios(struct regs *regs)
 static ssize_t __init locate_wistron_bios(void __iomem *base)
 {
 	static unsigned char __initdata signature[] =
-		{ 0x42, 0x21, 0x55, 0x30 };
+	{ 0x42, 0x21, 0x55, 0x30 };
 	ssize_t offset;
 
-	for (offset = 0; offset < 0x10000; offset += 0x10) {
+	for (offset = 0; offset < 0x10000; offset += 0x10)
+	{
 		if (check_signature(base + offset, signature,
-				    sizeof(signature)) != 0)
+							sizeof(signature)) != 0)
+		{
 			return offset;
+		}
 	}
+
 	return -1;
 }
 
@@ -109,7 +114,9 @@ static int __init map_bios(void)
 
 	base = ioremap(0xF0000, 0x10000); /* Can't fail */
 	offset = locate_wistron_bios(base);
-	if (offset < 0) {
+
+	if (offset < 0)
+	{
 		printk(KERN_ERR "wistron_btns: BIOS entry point not found\n");
 		iounmap(base);
 		return -ENODEV;
@@ -117,29 +124,39 @@ static int __init map_bios(void)
 
 	entry_point = readl(base + offset + 5);
 	printk(KERN_DEBUG
-		"wistron_btns: BIOS signature found at %p, entry point %08X\n",
-		base + offset, entry_point);
+		   "wistron_btns: BIOS signature found at %p, entry point %08X\n",
+		   base + offset, entry_point);
 
-	if (entry_point >= 0xF0000) {
+	if (entry_point >= 0xF0000)
+	{
 		bios_code_map_base = base;
 		bios_entry_point = bios_code_map_base + (entry_point & 0xFFFF);
-	} else {
+	}
+	else
+	{
 		iounmap(base);
 		bios_code_map_base = ioremap(entry_point & ~0x3FFF, 0x4000);
-		if (bios_code_map_base == NULL) {
+
+		if (bios_code_map_base == NULL)
+		{
 			printk(KERN_ERR
-				"wistron_btns: Can't map BIOS code at %08X\n",
-				entry_point & ~0x3FFF);
+				   "wistron_btns: Can't map BIOS code at %08X\n",
+				   entry_point & ~0x3FFF);
 			goto err;
 		}
+
 		bios_entry_point = bios_code_map_base + (entry_point & 0x3FFF);
 	}
+
 	/* The Windows driver maps 0x10000 bytes, we keep only one page... */
 	bios_data_map_base = ioremap(0x400, 0xc00);
-	if (bios_data_map_base == NULL) {
+
+	if (bios_data_map_base == NULL)
+	{
 		printk(KERN_ERR "wistron_btns: Can't map BIOS data\n");
 		goto err_code;
 	}
+
 	return 0;
 
 err_code:
@@ -154,7 +171,7 @@ static inline void unmap_bios(void)
 	iounmap(bios_data_map_base);
 }
 
- /* BIOS calls */
+/* BIOS calls */
 
 static u16 bios_pop_queue(void)
 {
@@ -242,22 +259,31 @@ static int __init dmi_matched(const struct dmi_system_id *dmi)
 	const struct key_entry *key;
 
 	keymap = dmi->driver_data;
-	for (key = keymap; key->type != KE_END; key++) {
+
+	for (key = keymap; key->type != KE_END; key++)
+	{
 		if (key->type == KE_WIFI)
+		{
 			have_wifi = true;
+		}
 		else if (key->type == KE_BLUETOOTH)
+		{
 			have_bluetooth = true;
+		}
 	}
+
 	leds_present = key->code & (FE_MAIL_LED | FE_WIFI_LED);
 
 	return 1;
 }
 
-static struct key_entry keymap_empty[] __initdata = {
+static struct key_entry keymap_empty[] __initdata =
+{
 	{ KE_END, 0 }
 };
 
-static struct key_entry keymap_fs_amilo_pro_v2000[] __initdata = {
+static struct key_entry keymap_fs_amilo_pro_v2000[] __initdata =
+{
 	{ KE_KEY,  0x01, {KEY_HELP} },
 	{ KE_KEY,  0x11, {KEY_PROG1} },
 	{ KE_KEY,  0x12, {KEY_PROG2} },
@@ -267,7 +293,8 @@ static struct key_entry keymap_fs_amilo_pro_v2000[] __initdata = {
 	{ KE_END,  0 }
 };
 
-static struct key_entry keymap_fs_amilo_pro_v3505[] __initdata = {
+static struct key_entry keymap_fs_amilo_pro_v3505[] __initdata =
+{
 	{ KE_KEY,       0x01, {KEY_HELP} },          /* Fn+F1 */
 	{ KE_KEY,       0x06, {KEY_DISPLAYTOGGLE} }, /* Fn+F4 */
 	{ KE_BLUETOOTH, 0x30 },                      /* Fn+F10 */
@@ -277,7 +304,8 @@ static struct key_entry keymap_fs_amilo_pro_v3505[] __initdata = {
 	{ KE_END,       0 }
 };
 
-static struct key_entry keymap_fs_amilo_pro_v8210[] __initdata = {
+static struct key_entry keymap_fs_amilo_pro_v8210[] __initdata =
+{
 	{ KE_KEY,       0x01, {KEY_HELP} },          /* Fn+F1 */
 	{ KE_KEY,       0x06, {KEY_DISPLAYTOGGLE} }, /* Fn+F4 */
 	{ KE_BLUETOOTH, 0x30 },                      /* Fn+F10 */
@@ -287,7 +315,8 @@ static struct key_entry keymap_fs_amilo_pro_v8210[] __initdata = {
 	{ KE_END,       FE_WIFI_LED }
 };
 
-static struct key_entry keymap_fujitsu_n3510[] __initdata = {
+static struct key_entry keymap_fujitsu_n3510[] __initdata =
+{
 	{ KE_KEY, 0x11, {KEY_PROG1} },
 	{ KE_KEY, 0x12, {KEY_PROG2} },
 	{ KE_KEY, 0x36, {KEY_WWW} },
@@ -299,7 +328,8 @@ static struct key_entry keymap_fujitsu_n3510[] __initdata = {
 	{ KE_END, 0 }
 };
 
-static struct key_entry keymap_wistron_ms2111[] __initdata = {
+static struct key_entry keymap_wistron_ms2111[] __initdata =
+{
 	{ KE_KEY,  0x11, {KEY_PROG1} },
 	{ KE_KEY,  0x12, {KEY_PROG2} },
 	{ KE_KEY,  0x13, {KEY_PROG3} },
@@ -308,7 +338,8 @@ static struct key_entry keymap_wistron_ms2111[] __initdata = {
 	{ KE_END, FE_MAIL_LED }
 };
 
-static struct key_entry keymap_wistron_md40100[] __initdata = {
+static struct key_entry keymap_wistron_md40100[] __initdata =
+{
 	{ KE_KEY, 0x01, {KEY_HELP} },
 	{ KE_KEY, 0x02, {KEY_CONFIG} },
 	{ KE_KEY, 0x31, {KEY_MAIL} },
@@ -317,7 +348,8 @@ static struct key_entry keymap_wistron_md40100[] __initdata = {
 	{ KE_END, FE_MAIL_LED | FE_WIFI_LED | FE_UNTESTED }
 };
 
-static struct key_entry keymap_wistron_ms2141[] __initdata = {
+static struct key_entry keymap_wistron_ms2141[] __initdata =
+{
 	{ KE_KEY,  0x11, {KEY_PROG1} },
 	{ KE_KEY,  0x12, {KEY_PROG2} },
 	{ KE_WIFI, 0x30 },
@@ -330,7 +362,8 @@ static struct key_entry keymap_wistron_ms2141[] __initdata = {
 	{ KE_END,  0 }
 };
 
-static struct key_entry keymap_acer_aspire_1500[] __initdata = {
+static struct key_entry keymap_acer_aspire_1500[] __initdata =
+{
 	{ KE_KEY, 0x01, {KEY_HELP} },
 	{ KE_KEY, 0x03, {KEY_POWER} },
 	{ KE_KEY, 0x11, {KEY_PROG1} },
@@ -343,7 +376,8 @@ static struct key_entry keymap_acer_aspire_1500[] __initdata = {
 	{ KE_END, FE_UNTESTED }
 };
 
-static struct key_entry keymap_acer_aspire_1600[] __initdata = {
+static struct key_entry keymap_acer_aspire_1600[] __initdata =
+{
 	{ KE_KEY, 0x01, {KEY_HELP} },
 	{ KE_KEY, 0x03, {KEY_POWER} },
 	{ KE_KEY, 0x08, {KEY_MUTE} },
@@ -359,7 +393,8 @@ static struct key_entry keymap_acer_aspire_1600[] __initdata = {
 };
 
 /* 3020 has been tested */
-static struct key_entry keymap_acer_aspire_5020[] __initdata = {
+static struct key_entry keymap_acer_aspire_5020[] __initdata =
+{
 	{ KE_KEY, 0x01, {KEY_HELP} },
 	{ KE_KEY, 0x03, {KEY_POWER} },
 	{ KE_KEY, 0x05, {KEY_SWITCHVIDEOMODE} }, /* Display selection */
@@ -373,7 +408,8 @@ static struct key_entry keymap_acer_aspire_5020[] __initdata = {
 	{ KE_END, FE_MAIL_LED | FE_UNTESTED }
 };
 
-static struct key_entry keymap_acer_travelmate_2410[] __initdata = {
+static struct key_entry keymap_acer_travelmate_2410[] __initdata =
+{
 	{ KE_KEY, 0x01, {KEY_HELP} },
 	{ KE_KEY, 0x6d, {KEY_POWER} },
 	{ KE_KEY, 0x11, {KEY_PROG1} },
@@ -386,7 +422,8 @@ static struct key_entry keymap_acer_travelmate_2410[] __initdata = {
 	{ KE_END, FE_MAIL_LED | FE_UNTESTED }
 };
 
-static struct key_entry keymap_acer_travelmate_110[] __initdata = {
+static struct key_entry keymap_acer_travelmate_110[] __initdata =
+{
 	{ KE_KEY, 0x01, {KEY_HELP} },
 	{ KE_KEY, 0x02, {KEY_CONFIG} },
 	{ KE_KEY, 0x03, {KEY_POWER} },
@@ -403,7 +440,8 @@ static struct key_entry keymap_acer_travelmate_110[] __initdata = {
 	{ KE_END, FE_MAIL_LED | FE_UNTESTED }
 };
 
-static struct key_entry keymap_acer_travelmate_300[] __initdata = {
+static struct key_entry keymap_acer_travelmate_300[] __initdata =
+{
 	{ KE_KEY, 0x01, {KEY_HELP} },
 	{ KE_KEY, 0x02, {KEY_CONFIG} },
 	{ KE_KEY, 0x03, {KEY_POWER} },
@@ -419,7 +457,8 @@ static struct key_entry keymap_acer_travelmate_300[] __initdata = {
 	{ KE_END, FE_MAIL_LED | FE_UNTESTED }
 };
 
-static struct key_entry keymap_acer_travelmate_380[] __initdata = {
+static struct key_entry keymap_acer_travelmate_380[] __initdata =
+{
 	{ KE_KEY, 0x01, {KEY_HELP} },
 	{ KE_KEY, 0x02, {KEY_CONFIG} },
 	{ KE_KEY, 0x03, {KEY_POWER} }, /* not 370 */
@@ -433,7 +472,8 @@ static struct key_entry keymap_acer_travelmate_380[] __initdata = {
 };
 
 /* unusual map */
-static struct key_entry keymap_acer_travelmate_220[] __initdata = {
+static struct key_entry keymap_acer_travelmate_220[] __initdata =
+{
 	{ KE_KEY, 0x01, {KEY_HELP} },
 	{ KE_KEY, 0x02, {KEY_CONFIG} },
 	{ KE_KEY, 0x11, {KEY_MAIL} },
@@ -443,7 +483,8 @@ static struct key_entry keymap_acer_travelmate_220[] __initdata = {
 	{ KE_END, FE_WIFI_LED | FE_UNTESTED }
 };
 
-static struct key_entry keymap_acer_travelmate_230[] __initdata = {
+static struct key_entry keymap_acer_travelmate_230[] __initdata =
+{
 	{ KE_KEY, 0x01, {KEY_HELP} },
 	{ KE_KEY, 0x02, {KEY_CONFIG} },
 	{ KE_KEY, 0x11, {KEY_PROG1} },
@@ -453,7 +494,8 @@ static struct key_entry keymap_acer_travelmate_230[] __initdata = {
 	{ KE_END, FE_WIFI_LED | FE_UNTESTED }
 };
 
-static struct key_entry keymap_acer_travelmate_240[] __initdata = {
+static struct key_entry keymap_acer_travelmate_240[] __initdata =
+{
 	{ KE_KEY, 0x01, {KEY_HELP} },
 	{ KE_KEY, 0x02, {KEY_CONFIG} },
 	{ KE_KEY, 0x03, {KEY_POWER} },
@@ -467,7 +509,8 @@ static struct key_entry keymap_acer_travelmate_240[] __initdata = {
 	{ KE_END, FE_UNTESTED }
 };
 
-static struct key_entry keymap_acer_travelmate_350[] __initdata = {
+static struct key_entry keymap_acer_travelmate_350[] __initdata =
+{
 	{ KE_KEY, 0x01, {KEY_HELP} },
 	{ KE_KEY, 0x02, {KEY_CONFIG} },
 	{ KE_KEY, 0x11, {KEY_PROG1} },
@@ -478,7 +521,8 @@ static struct key_entry keymap_acer_travelmate_350[] __initdata = {
 	{ KE_END, FE_MAIL_LED | FE_WIFI_LED | FE_UNTESTED }
 };
 
-static struct key_entry keymap_acer_travelmate_360[] __initdata = {
+static struct key_entry keymap_acer_travelmate_360[] __initdata =
+{
 	{ KE_KEY, 0x01, {KEY_HELP} },
 	{ KE_KEY, 0x02, {KEY_CONFIG} },
 	{ KE_KEY, 0x11, {KEY_PROG1} },
@@ -493,7 +537,8 @@ static struct key_entry keymap_acer_travelmate_360[] __initdata = {
 /* Wifi subsystem only activates the led. Therefore we need to pass
  * wifi event as a normal key, then userspace can really change the wifi state.
  * TODO we need to export led state to userspace (wifi and mail) */
-static struct key_entry keymap_acer_travelmate_610[] __initdata = {
+static struct key_entry keymap_acer_travelmate_610[] __initdata =
+{
 	{ KE_KEY, 0x01, {KEY_HELP} },
 	{ KE_KEY, 0x02, {KEY_CONFIG} },
 	{ KE_KEY, 0x11, {KEY_PROG1} },
@@ -505,7 +550,8 @@ static struct key_entry keymap_acer_travelmate_610[] __initdata = {
 	{ KE_END, FE_MAIL_LED | FE_WIFI_LED }
 };
 
-static struct key_entry keymap_acer_travelmate_630[] __initdata = {
+static struct key_entry keymap_acer_travelmate_630[] __initdata =
+{
 	{ KE_KEY, 0x01, {KEY_HELP} },
 	{ KE_KEY, 0x02, {KEY_CONFIG} },
 	{ KE_KEY, 0x03, {KEY_POWER} },
@@ -521,7 +567,8 @@ static struct key_entry keymap_acer_travelmate_630[] __initdata = {
 	{ KE_END, FE_MAIL_LED | FE_UNTESTED }
 };
 
-static struct key_entry keymap_aopen_1559as[] __initdata = {
+static struct key_entry keymap_aopen_1559as[] __initdata =
+{
 	{ KE_KEY,  0x01, {KEY_HELP} },
 	{ KE_KEY,  0x06, {KEY_PROG3} },
 	{ KE_KEY,  0x11, {KEY_PROG1} },
@@ -532,7 +579,8 @@ static struct key_entry keymap_aopen_1559as[] __initdata = {
 	{ KE_END,  0 },
 };
 
-static struct key_entry keymap_fs_amilo_d88x0[] __initdata = {
+static struct key_entry keymap_fs_amilo_d88x0[] __initdata =
+{
 	{ KE_KEY, 0x01, {KEY_HELP} },
 	{ KE_KEY, 0x08, {KEY_MUTE} },
 	{ KE_KEY, 0x31, {KEY_MAIL} },
@@ -543,7 +591,8 @@ static struct key_entry keymap_fs_amilo_d88x0[] __initdata = {
 	{ KE_END, FE_MAIL_LED | FE_WIFI_LED | FE_UNTESTED }
 };
 
-static struct key_entry keymap_wistron_md2900[] __initdata = {
+static struct key_entry keymap_wistron_md2900[] __initdata =
+{
 	{ KE_KEY, 0x01, {KEY_HELP} },
 	{ KE_KEY, 0x02, {KEY_CONFIG} },
 	{ KE_KEY, 0x11, {KEY_PROG1} },
@@ -554,7 +603,8 @@ static struct key_entry keymap_wistron_md2900[] __initdata = {
 	{ KE_END, FE_MAIL_LED | FE_UNTESTED }
 };
 
-static struct key_entry keymap_wistron_md96500[] __initdata = {
+static struct key_entry keymap_wistron_md96500[] __initdata =
+{
 	{ KE_KEY, 0x01, {KEY_HELP} },
 	{ KE_KEY, 0x02, {KEY_CONFIG} },
 	{ KE_KEY, 0x05, {KEY_SWITCHVIDEOMODE} }, /* Display selection */
@@ -575,7 +625,8 @@ static struct key_entry keymap_wistron_md96500[] __initdata = {
 	{ KE_END, 0 }
 };
 
-static struct key_entry keymap_wistron_generic[] __initdata = {
+static struct key_entry keymap_wistron_generic[] __initdata =
+{
 	{ KE_KEY, 0x01, {KEY_HELP} },
 	{ KE_KEY, 0x02, {KEY_CONFIG} },
 	{ KE_KEY, 0x03, {KEY_POWER} },
@@ -611,7 +662,8 @@ static struct key_entry keymap_wistron_generic[] __initdata = {
 	{ KE_END, 0 }
 };
 
-static struct key_entry keymap_aopen_1557[] __initdata = {
+static struct key_entry keymap_aopen_1557[] __initdata =
+{
 	{ KE_KEY,  0x01, {KEY_HELP} },
 	{ KE_KEY,  0x11, {KEY_PROG1} },
 	{ KE_KEY,  0x12, {KEY_PROG2} },
@@ -625,7 +677,8 @@ static struct key_entry keymap_aopen_1557[] __initdata = {
 	{ KE_END,  0 }
 };
 
-static struct key_entry keymap_prestigio[] __initdata = {
+static struct key_entry keymap_prestigio[] __initdata =
+{
 	{ KE_KEY,  0x11, {KEY_PROG1} },
 	{ KE_KEY,  0x12, {KEY_PROG2} },
 	{ KE_WIFI, 0x30 },
@@ -644,7 +697,8 @@ static struct key_entry keymap_prestigio[] __initdata = {
  * a list of buttons and their key codes (reported when loading this module
  * with force=1) and the output of dmidecode to $MODULE_AUTHOR.
  */
-static const struct dmi_system_id dmi_ids[] __initconst = {
+static const struct dmi_system_id dmi_ids[] __initconst =
+{
 	{
 		/* Fujitsu-Siemens Amilo Pro V2000 */
 		.callback = dmi_matched,
@@ -1000,12 +1054,17 @@ static int __init copy_keymap(void)
 	unsigned int length = 1;
 
 	for (key = keymap; key->type != KE_END; key++)
+	{
 		length++;
+	}
 
 	new_keymap = kmemdup(keymap, length * sizeof(struct key_entry),
-			     GFP_KERNEL);
+						 GFP_KERNEL);
+
 	if (!new_keymap)
+	{
 		return -ENOMEM;
+	}
 
 	keymap = new_keymap;
 
@@ -1015,112 +1074,158 @@ static int __init copy_keymap(void)
 static int __init select_keymap(void)
 {
 	dmi_check_system(dmi_ids);
-	if (keymap_name != NULL) {
+
+	if (keymap_name != NULL)
+	{
 		if (strcmp (keymap_name, "1557/MS2141") == 0)
+		{
 			keymap = keymap_wistron_ms2141;
+		}
 		else if (strcmp (keymap_name, "aopen1557") == 0)
+		{
 			keymap = keymap_aopen_1557;
+		}
 		else if (strcmp (keymap_name, "prestigio") == 0)
+		{
 			keymap = keymap_prestigio;
+		}
 		else if (strcmp (keymap_name, "generic") == 0)
+		{
 			keymap = keymap_wistron_generic;
-		else {
+		}
+		else
+		{
 			printk(KERN_ERR "wistron_btns: Keymap unknown\n");
 			return -EINVAL;
 		}
 	}
-	if (keymap == NULL) {
-		if (!force) {
+
+	if (keymap == NULL)
+	{
+		if (!force)
+		{
 			printk(KERN_ERR "wistron_btns: System unknown\n");
 			return -ENODEV;
 		}
+
 		keymap = keymap_empty;
 	}
 
 	return copy_keymap();
 }
 
- /* Input layer interface */
+/* Input layer interface */
 
 static struct input_polled_dev *wistron_idev;
 static unsigned long jiffies_last_press;
 static bool wifi_enabled;
 static bool bluetooth_enabled;
 
- /* led management */
+/* led management */
 static void wistron_mail_led_set(struct led_classdev *led_cdev,
-				enum led_brightness value)
+								 enum led_brightness value)
 {
 	bios_set_state(MAIL_LED, (value != LED_OFF) ? 1 : 0);
 }
 
 /* same as setting up wifi card, but for laptops on which the led is managed */
 static void wistron_wifi_led_set(struct led_classdev *led_cdev,
-				enum led_brightness value)
+								 enum led_brightness value)
 {
 	bios_set_state(WIFI, (value != LED_OFF) ? 1 : 0);
 }
 
-static struct led_classdev wistron_mail_led = {
+static struct led_classdev wistron_mail_led =
+{
 	.name			= "wistron:green:mail",
 	.brightness_set		= wistron_mail_led_set,
 };
 
-static struct led_classdev wistron_wifi_led = {
+static struct led_classdev wistron_wifi_led =
+{
 	.name			= "wistron:red:wifi",
 	.brightness_set		= wistron_wifi_led_set,
 };
 
 static void wistron_led_init(struct device *parent)
 {
-	if (leds_present & FE_WIFI_LED) {
+	if (leds_present & FE_WIFI_LED)
+	{
 		u16 wifi = bios_get_default_setting(WIFI);
-		if (wifi & 1) {
-			wistron_wifi_led.brightness = (wifi & 2) ? LED_FULL : LED_OFF;
-			if (led_classdev_register(parent, &wistron_wifi_led))
-				leds_present &= ~FE_WIFI_LED;
-			else
-				bios_set_state(WIFI, wistron_wifi_led.brightness);
 
-		} else
+		if (wifi & 1)
+		{
+			wistron_wifi_led.brightness = (wifi & 2) ? LED_FULL : LED_OFF;
+
+			if (led_classdev_register(parent, &wistron_wifi_led))
+			{
+				leds_present &= ~FE_WIFI_LED;
+			}
+			else
+			{
+				bios_set_state(WIFI, wistron_wifi_led.brightness);
+			}
+
+		}
+		else
+		{
 			leds_present &= ~FE_WIFI_LED;
+		}
 	}
 
-	if (leds_present & FE_MAIL_LED) {
+	if (leds_present & FE_MAIL_LED)
+	{
 		/* bios_get_default_setting(MAIL) always retuns 0, so just turn the led off */
 		wistron_mail_led.brightness = LED_OFF;
+
 		if (led_classdev_register(parent, &wistron_mail_led))
+		{
 			leds_present &= ~FE_MAIL_LED;
+		}
 		else
+		{
 			bios_set_state(MAIL_LED, wistron_mail_led.brightness);
+		}
 	}
 }
 
 static void wistron_led_remove(void)
 {
 	if (leds_present & FE_MAIL_LED)
+	{
 		led_classdev_unregister(&wistron_mail_led);
+	}
 
 	if (leds_present & FE_WIFI_LED)
+	{
 		led_classdev_unregister(&wistron_wifi_led);
+	}
 }
 
 static inline void wistron_led_suspend(void)
 {
 	if (leds_present & FE_MAIL_LED)
+	{
 		led_classdev_suspend(&wistron_mail_led);
+	}
 
 	if (leds_present & FE_WIFI_LED)
+	{
 		led_classdev_suspend(&wistron_wifi_led);
+	}
 }
 
 static inline void wistron_led_resume(void)
 {
 	if (leds_present & FE_MAIL_LED)
+	{
 		led_classdev_resume(&wistron_mail_led);
+	}
 
 	if (leds_present & FE_WIFI_LED)
+	{
 		led_classdev_resume(&wistron_wifi_led);
+	}
 }
 
 static void handle_key(u8 code)
@@ -1128,31 +1233,39 @@ static void handle_key(u8 code)
 	const struct key_entry *key =
 		sparse_keymap_entry_from_scancode(wistron_idev->input, code);
 
-	if (key) {
-		switch (key->type) {
-		case KE_WIFI:
-			if (have_wifi) {
-				wifi_enabled = !wifi_enabled;
-				bios_set_state(WIFI, wifi_enabled);
-			}
-			break;
+	if (key)
+	{
+		switch (key->type)
+		{
+			case KE_WIFI:
+				if (have_wifi)
+				{
+					wifi_enabled = !wifi_enabled;
+					bios_set_state(WIFI, wifi_enabled);
+				}
 
-		case KE_BLUETOOTH:
-			if (have_bluetooth) {
-				bluetooth_enabled = !bluetooth_enabled;
-				bios_set_state(BLUETOOTH, bluetooth_enabled);
-			}
-			break;
+				break;
 
-		default:
-			sparse_keymap_report_entry(wistron_idev->input,
-						   key, 1, true);
-			break;
+			case KE_BLUETOOTH:
+				if (have_bluetooth)
+				{
+					bluetooth_enabled = !bluetooth_enabled;
+					bios_set_state(BLUETOOTH, bluetooth_enabled);
+				}
+
+				break;
+
+			default:
+				sparse_keymap_report_entry(wistron_idev->input,
+										   key, 1, true);
+				break;
 		}
+
 		jiffies_last_press = jiffies;
-	} else
+	}
+	else
 		printk(KERN_NOTICE
-			"wistron_btns: Unknown key code %02X\n", code);
+			   "wistron_btns: Unknown key code %02X\n", code);
 }
 
 static void poll_bios(bool discard)
@@ -1160,13 +1273,21 @@ static void poll_bios(bool discard)
 	u8 qlen;
 	u16 val;
 
-	for (;;) {
+	for (;;)
+	{
 		qlen = CMOS_READ(cmos_address);
+
 		if (qlen == 0)
+		{
 			break;
+		}
+
 		val = bios_pop_queue();
+
 		if (val != 0 && !discard)
+		{
 			handle_key((u8)val);
+		}
 	}
 }
 
@@ -1182,37 +1303,47 @@ static void wistron_poll(struct input_polled_dev *dev)
 
 	/* Increase poll frequency if user is currently pressing keys (< 2s ago) */
 	if (time_before(jiffies, jiffies_last_press + 2 * HZ))
+	{
 		dev->poll_interval = POLL_INTERVAL_BURST;
+	}
 	else
+	{
 		dev->poll_interval = POLL_INTERVAL_DEFAULT;
+	}
 }
 
 static int wistron_setup_keymap(struct input_dev *dev,
-					  struct key_entry *entry)
+								struct key_entry *entry)
 {
-	switch (entry->type) {
+	switch (entry->type)
+	{
 
-	/* if wifi or bluetooth are not available, create normal keys */
-	case KE_WIFI:
-		if (!have_wifi) {
-			entry->type = KE_KEY;
-			entry->keycode = KEY_WLAN;
-		}
-		break;
+		/* if wifi or bluetooth are not available, create normal keys */
+		case KE_WIFI:
+			if (!have_wifi)
+			{
+				entry->type = KE_KEY;
+				entry->keycode = KEY_WLAN;
+			}
 
-	case KE_BLUETOOTH:
-		if (!have_bluetooth) {
-			entry->type = KE_KEY;
-			entry->keycode = KEY_BLUETOOTH;
-		}
-		break;
+			break;
 
-	case KE_END:
-		if (entry->code & FE_UNTESTED)
-			printk(KERN_WARNING "Untested laptop multimedia keys, "
-				"please report success or failure to "
-				"eric.piel@tremplin-utc.net\n");
-		break;
+		case KE_BLUETOOTH:
+			if (!have_bluetooth)
+			{
+				entry->type = KE_KEY;
+				entry->keycode = KEY_BLUETOOTH;
+			}
+
+			break;
+
+		case KE_END:
+			if (entry->code & FE_UNTESTED)
+				printk(KERN_WARNING "Untested laptop multimedia keys, "
+					   "please report success or failure to "
+					   "eric.piel@tremplin-utc.net\n");
+
+			break;
 	}
 
 	return 0;
@@ -1224,8 +1355,11 @@ static int setup_input_dev(void)
 	int error;
 
 	wistron_idev = input_allocate_polled_device();
+
 	if (!wistron_idev)
+	{
 		return -ENOMEM;
+	}
 
 	wistron_idev->open = wistron_flush;
 	wistron_idev->poll = wistron_poll;
@@ -1238,18 +1372,24 @@ static int setup_input_dev(void)
 	input_dev->dev.parent = &wistron_device->dev;
 
 	error = sparse_keymap_setup(input_dev, keymap, wistron_setup_keymap);
+
 	if (error)
+	{
 		goto err_free_dev;
+	}
 
 	error = input_register_polled_device(wistron_idev);
+
 	if (error)
+	{
 		goto err_free_keymap;
+	}
 
 	return 0;
 
- err_free_keymap:
+err_free_keymap:
 	sparse_keymap_free(input_dev);
- err_free_dev:
+err_free_dev:
 	input_free_polled_device(wistron_idev);
 	return error;
 }
@@ -1263,32 +1403,50 @@ static int wistron_probe(struct platform_device *dev)
 	bios_attach();
 	cmos_address = bios_get_cmos_address();
 
-	if (have_wifi) {
+	if (have_wifi)
+	{
 		u16 wifi = bios_get_default_setting(WIFI);
+
 		if (wifi & 1)
+		{
 			wifi_enabled = wifi & 2;
+		}
 		else
+		{
 			have_wifi = 0;
+		}
 
 		if (have_wifi)
+		{
 			bios_set_state(WIFI, wifi_enabled);
+		}
 	}
 
-	if (have_bluetooth) {
+	if (have_bluetooth)
+	{
 		u16 bt = bios_get_default_setting(BLUETOOTH);
+
 		if (bt & 1)
+		{
 			bluetooth_enabled = bt & 2;
+		}
 		else
+		{
 			have_bluetooth = false;
+		}
 
 		if (have_bluetooth)
+		{
 			bios_set_state(BLUETOOTH, bluetooth_enabled);
+		}
 	}
 
 	wistron_led_init(&dev->dev);
 
 	err = setup_input_dev();
-	if (err) {
+
+	if (err)
+	{
 		bios_detach();
 		return err;
 	}
@@ -1311,10 +1469,14 @@ static int wistron_remove(struct platform_device *dev)
 static int wistron_suspend(struct device *dev)
 {
 	if (have_wifi)
+	{
 		bios_set_state(WIFI, 0);
+	}
 
 	if (have_bluetooth)
+	{
 		bios_set_state(BLUETOOTH, 0);
+	}
 
 	wistron_led_suspend();
 
@@ -1324,10 +1486,14 @@ static int wistron_suspend(struct device *dev)
 static int wistron_resume(struct device *dev)
 {
 	if (have_wifi)
+	{
 		bios_set_state(WIFI, wifi_enabled);
+	}
 
 	if (have_bluetooth)
+	{
 		bios_set_state(BLUETOOTH, bluetooth_enabled);
+	}
 
 	wistron_led_resume();
 
@@ -1336,7 +1502,8 @@ static int wistron_resume(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops wistron_pm_ops = {
+static const struct dev_pm_ops wistron_pm_ops =
+{
 	.suspend	= wistron_suspend,
 	.resume		= wistron_resume,
 	.poweroff	= wistron_suspend,
@@ -1344,7 +1511,8 @@ static const struct dev_pm_ops wistron_pm_ops = {
 };
 #endif
 
-static struct platform_driver wistron_driver = {
+static struct platform_driver wistron_driver =
+{
 	.driver		= {
 		.name	= "wistron-bios",
 #ifdef CONFIG_PM
@@ -1360,36 +1528,50 @@ static int __init wb_module_init(void)
 	int err;
 
 	err = select_keymap();
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = map_bios();
+
 	if (err)
+	{
 		goto err_free_keymap;
+	}
 
 	err = platform_driver_register(&wistron_driver);
+
 	if (err)
+	{
 		goto err_unmap_bios;
+	}
 
 	wistron_device = platform_device_alloc("wistron-bios", -1);
-	if (!wistron_device) {
+
+	if (!wistron_device)
+	{
 		err = -ENOMEM;
 		goto err_unregister_driver;
 	}
 
 	err = platform_device_add(wistron_device);
+
 	if (err)
+	{
 		goto err_free_device;
+	}
 
 	return 0;
 
- err_free_device:
+err_free_device:
 	platform_device_put(wistron_device);
- err_unregister_driver:
+err_unregister_driver:
 	platform_driver_unregister(&wistron_driver);
- err_unmap_bios:
+err_unmap_bios:
 	unmap_bios();
- err_free_keymap:
+err_free_keymap:
 	kfree(keymap);
 
 	return err;

@@ -130,7 +130,7 @@
 	(MUSB_CSR0_P_SENTSTALL)
 #define MUSB_CSR0_H_WZC_BITS	\
 	(MUSB_CSR0_H_NAKTIMEOUT | MUSB_CSR0_H_RXSTALL \
-	| MUSB_CSR0_RXPKTRDY)
+	 | MUSB_CSR0_RXPKTRDY)
 
 /* TxType/RxType */
 #define MUSB_TYPE_SPEED		0xc0
@@ -176,10 +176,10 @@
 /* TXCSR bits to avoid zeroing (write zero clears, write 1 ignored) */
 #define MUSB_TXCSR_P_WZC_BITS	\
 	(MUSB_TXCSR_P_INCOMPTX | MUSB_TXCSR_P_SENTSTALL \
-	| MUSB_TXCSR_P_UNDERRUN | MUSB_TXCSR_FIFONOTEMPTY)
+	 | MUSB_TXCSR_P_UNDERRUN | MUSB_TXCSR_FIFONOTEMPTY)
 #define MUSB_TXCSR_H_WZC_BITS	\
 	(MUSB_TXCSR_H_NAKTIMEOUT | MUSB_TXCSR_H_RXSTALL \
-	| MUSB_TXCSR_H_ERROR | MUSB_TXCSR_FIFONOTEMPTY)
+	 | MUSB_TXCSR_H_ERROR | MUSB_TXCSR_FIFONOTEMPTY)
 
 /* RXCSR in Peripheral and Host mode */
 #define MUSB_RXCSR_AUTOCLEAR		0x8000
@@ -211,10 +211,10 @@
 /* RXCSR bits to avoid zeroing (write zero clears, write 1 ignored) */
 #define MUSB_RXCSR_P_WZC_BITS	\
 	(MUSB_RXCSR_P_SENTSTALL | MUSB_RXCSR_P_OVERRUN \
-	| MUSB_RXCSR_RXPKTRDY)
+	 | MUSB_RXCSR_RXPKTRDY)
 #define MUSB_RXCSR_H_WZC_BITS	\
 	(MUSB_RXCSR_H_RXSTALL | MUSB_RXCSR_H_ERROR \
-	| MUSB_RXCSR_DATAERROR | MUSB_RXCSR_RXPKTRDY)
+	 | MUSB_RXCSR_DATAERROR | MUSB_RXCSR_RXPKTRDY)
 
 /* HUBADDR */
 #define MUSB_HUBADDR_MULTI_TT		0x80
@@ -362,83 +362,83 @@ static inline u16 musb_read_hwvers(void __iomem *mbase)
 }
 
 static inline void musb_write_rxfunaddr(struct musb *musb, u8 epnum,
-		u8 qh_addr_reg)
+										u8 qh_addr_reg)
 {
 	musb_writeb(musb->mregs,
-		    musb->io.busctl_offset(epnum, MUSB_RXFUNCADDR),
-		    qh_addr_reg);
+				musb->io.busctl_offset(epnum, MUSB_RXFUNCADDR),
+				qh_addr_reg);
 }
 
 static inline void musb_write_rxhubaddr(struct musb *musb, u8 epnum,
-		u8 qh_h_addr_reg)
+										u8 qh_h_addr_reg)
 {
 	musb_writeb(musb->mregs, musb->io.busctl_offset(epnum, MUSB_RXHUBADDR),
-			qh_h_addr_reg);
+				qh_h_addr_reg);
 }
 
 static inline void musb_write_rxhubport(struct musb *musb, u8 epnum,
-		u8 qh_h_port_reg)
+										u8 qh_h_port_reg)
 {
 	musb_writeb(musb->mregs, musb->io.busctl_offset(epnum, MUSB_RXHUBPORT),
-			qh_h_port_reg);
+				qh_h_port_reg);
 }
 
 static inline void musb_write_txfunaddr(struct musb *musb, u8 epnum,
-		u8 qh_addr_reg)
+										u8 qh_addr_reg)
 {
 	musb_writeb(musb->mregs,
-		    musb->io.busctl_offset(epnum, MUSB_TXFUNCADDR),
-		    qh_addr_reg);
+				musb->io.busctl_offset(epnum, MUSB_TXFUNCADDR),
+				qh_addr_reg);
 }
 
 static inline void musb_write_txhubaddr(struct musb *musb, u8 epnum,
-		u8 qh_addr_reg)
+										u8 qh_addr_reg)
 {
 	musb_writeb(musb->mregs, musb->io.busctl_offset(epnum, MUSB_TXHUBADDR),
-			qh_addr_reg);
+				qh_addr_reg);
 }
 
 static inline void musb_write_txhubport(struct musb *musb, u8 epnum,
-		u8 qh_h_port_reg)
+										u8 qh_h_port_reg)
 {
 	musb_writeb(musb->mregs, musb->io.busctl_offset(epnum, MUSB_TXHUBPORT),
-			qh_h_port_reg);
+				qh_h_port_reg);
 }
 
 static inline u8 musb_read_rxfunaddr(struct musb *musb, u8 epnum)
 {
 	return musb_readb(musb->mregs,
-			  musb->io.busctl_offset(epnum, MUSB_RXFUNCADDR));
+					  musb->io.busctl_offset(epnum, MUSB_RXFUNCADDR));
 }
 
 static inline u8 musb_read_rxhubaddr(struct musb *musb, u8 epnum)
 {
 	return musb_readb(musb->mregs,
-			  musb->io.busctl_offset(epnum, MUSB_RXHUBADDR));
+					  musb->io.busctl_offset(epnum, MUSB_RXHUBADDR));
 }
 
 static inline u8 musb_read_rxhubport(struct musb *musb, u8 epnum)
 {
 	return musb_readb(musb->mregs,
-			  musb->io.busctl_offset(epnum, MUSB_RXHUBPORT));
+					  musb->io.busctl_offset(epnum, MUSB_RXHUBPORT));
 }
 
 static inline u8 musb_read_txfunaddr(struct musb *musb, u8 epnum)
 {
 	return musb_readb(musb->mregs,
-			  musb->io.busctl_offset(epnum, MUSB_TXFUNCADDR));
+					  musb->io.busctl_offset(epnum, MUSB_TXFUNCADDR));
 }
 
 static inline u8 musb_read_txhubaddr(struct musb *musb, u8 epnum)
 {
 	return musb_readb(musb->mregs,
-			  musb->io.busctl_offset(epnum, MUSB_TXHUBADDR));
+					  musb->io.busctl_offset(epnum, MUSB_TXHUBADDR));
 }
 
 static inline u8 musb_read_txhubport(struct musb *musb, u8 epnum)
 {
 	return musb_readb(musb->mregs,
-			  musb->io.busctl_offset(epnum, MUSB_TXHUBPORT));
+					  musb->io.busctl_offset(epnum, MUSB_TXHUBPORT));
 }
 
 #else /* CONFIG_BLACKFIN */
@@ -560,17 +560,17 @@ static inline u16 musb_read_hwvers(void __iomem *mbase)
 }
 
 static inline void musb_write_rxfunaddr(void __iomem *mbase, u8 epnum,
-		u8 qh_addr_req)
+										u8 qh_addr_req)
 {
 }
 
 static inline void musb_write_rxhubaddr(void __iomem *mbase, u8 epnum,
-		u8 qh_h_addr_reg)
+										u8 qh_h_addr_reg)
 {
 }
 
 static inline void musb_write_rxhubport(void __iomem *mbase, u8 epnum,
-		u8 qh_h_port_reg)
+										u8 qh_h_port_reg)
 {
 }
 

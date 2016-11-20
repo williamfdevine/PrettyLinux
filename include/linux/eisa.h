@@ -31,7 +31,8 @@
  * signature, slot number, and base address. dma_mask is set by
  * default to parent device mask..*/
 
-struct eisa_device {
+struct eisa_device
+{
 	struct eisa_device_id id;
 	int                   slot;
 	int                   state;
@@ -54,7 +55,8 @@ static inline int eisa_get_region_index (void *addr)
 	return (x >> 12);
 }
 
-struct eisa_driver {
+struct eisa_driver
+{
 	const struct eisa_device_id *id_table;
 	struct device_driver         driver;
 };
@@ -78,18 +80,19 @@ static inline void eisa_driver_unregister (struct eisa_driver *edrv) { }
 /* Mimics pci.h... */
 static inline void *eisa_get_drvdata (struct eisa_device *edev)
 {
-        return dev_get_drvdata(&edev->dev);
+	return dev_get_drvdata(&edev->dev);
 }
 
 static inline void eisa_set_drvdata (struct eisa_device *edev, void *data)
 {
-        dev_set_drvdata(&edev->dev, data);
+	dev_set_drvdata(&edev->dev, data);
 }
 
 /* The EISA root device. There's rumours about machines with multiple
  * busses (PA-RISC ?), so we try to handle that. */
 
-struct eisa_root_device {
+struct eisa_root_device
+{
 	struct device   *dev;	 /* Pointer to bridge device */
 	struct resource *res;
 	unsigned long    bus_base_addr;
@@ -103,9 +106,9 @@ struct eisa_root_device {
 int eisa_root_register (struct eisa_root_device *root);
 
 #ifdef CONFIG_EISA
-extern int EISA_bus;
+	extern int EISA_bus;
 #else
-# define EISA_bus 0
+	#define EISA_bus 0
 #endif
 
 #endif

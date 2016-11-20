@@ -61,7 +61,8 @@
 #define FF_CORE_UPDATE		5	/* Effect is being updated */
 #define FF_MODCORE_CNT		6
 
-struct iforce_core_effect {
+struct iforce_core_effect
+{
 	/* Information about where modifiers are stored in the device's memory */
 	struct resource mod1_chunk;
 	struct resource mod2_chunk;
@@ -88,7 +89,8 @@ struct iforce_core_effect {
 #define IFORCE_XMIT_RUNNING	0
 #define IFORCE_XMIT_AGAIN	1
 
-struct iforce_device {
+struct iforce_device
+{
 	u16 idvendor;
 	u16 idproduct;
 	char *name;
@@ -97,7 +99,8 @@ struct iforce_device {
 	signed short *ff;
 };
 
-struct iforce {
+struct iforce
+{
 	struct input_dev *dev;		/* Input device interface */
 	struct iforce_device *type;
 	int bus;
@@ -124,7 +127,7 @@ struct iforce {
 	unsigned char xmit_data[XMIT_SIZE];
 	unsigned long xmit_flags[1];
 
-					/* Force Feedback */
+	/* Force Feedback */
 	wait_queue_head_t wait;
 	struct resource device_memory;
 	struct iforce_core_effect core_effects[IFORCE_EFFECTS_MAX];
@@ -155,9 +158,9 @@ void iforce_usb_xmit(struct iforce *iforce);
 int iforce_init_device(struct iforce *iforce);
 
 /* iforce-packets.c */
-int iforce_control_playback(struct iforce*, u16 id, unsigned int);
+int iforce_control_playback(struct iforce *, u16 id, unsigned int);
 void iforce_process_packet(struct iforce *iforce, u16 cmd, unsigned char *data);
-int iforce_send_packet(struct iforce *iforce, u16 cmd, unsigned char* data);
+int iforce_send_packet(struct iforce *iforce, u16 cmd, unsigned char *data);
 void iforce_dump_packet(char *msg, u16 cmd, unsigned char *data) ;
 int iforce_get_id_packet(struct iforce *iforce, char *packet);
 

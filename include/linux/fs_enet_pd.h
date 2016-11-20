@@ -2,14 +2,14 @@
  * Platform information definitions for the
  * universal Freescale Ethernet driver.
  *
- * Copyright (c) 2003 Intracom S.A. 
+ * Copyright (c) 2003 Intracom S.A.
  *  by Pantelis Antoniou <panto@intracom.gr>
  *
- * 2005 (c) MontaVista Software, Inc. 
+ * 2005 (c) MontaVista Software, Inc.
  * Vitaly Bordug <vbordug@ru.mvista.com>
  *
- * This file is licensed under the terms of the GNU General Public License 
- * version 2. This program is licensed "as is" without any warranty of any 
+ * This file is licensed under the terms of the GNU General Public License
+ * version 2. This program is licensed "as is" without any warranty of any
  * kind, whether express or implied.
  */
 
@@ -24,7 +24,8 @@
 
 #define FS_ENET_NAME	"fs_enet"
 
-enum fs_id {
+enum fs_id
+{
 	fsid_fec1,
 	fsid_fec2,
 	fsid_fcc1,
@@ -41,55 +42,78 @@ enum fs_id {
 static inline int fs_get_fec_index(enum fs_id id)
 {
 	if (id >= fsid_fec1 && id <= fsid_fec2)
+	{
 		return id - fsid_fec1;
+	}
+
 	return -1;
 }
 
 static inline int fs_get_fcc_index(enum fs_id id)
 {
 	if (id >= fsid_fcc1 && id <= fsid_fcc3)
+	{
 		return id - fsid_fcc1;
+	}
+
 	return -1;
 }
 
 static inline int fs_get_scc_index(enum fs_id id)
 {
 	if (id >= fsid_scc1 && id <= fsid_scc4)
+	{
 		return id - fsid_scc1;
+	}
+
 	return -1;
 }
 
 static inline int fs_fec_index2id(int index)
 {
 	int id = fsid_fec1 + index - 1;
+
 	if (id >= fsid_fec1 && id <= fsid_fec2)
+	{
 		return id;
+	}
+
 	return FS_MAX_INDEX;
-		}
+}
 
 static inline int fs_fcc_index2id(int index)
 {
 	int id = fsid_fcc1 + index - 1;
+
 	if (id >= fsid_fcc1 && id <= fsid_fcc3)
+	{
 		return id;
+	}
+
 	return FS_MAX_INDEX;
 }
 
 static inline int fs_scc_index2id(int index)
 {
 	int id = fsid_scc1 + index - 1;
+
 	if (id >= fsid_scc1 && id <= fsid_scc4)
+	{
 		return id;
+	}
+
 	return FS_MAX_INDEX;
 }
 
-enum fs_mii_method {
+enum fs_mii_method
+{
 	fsmii_fixed,
 	fsmii_fec,
 	fsmii_bitbang,
 };
 
-enum fs_ioport {
+enum fs_ioport
+{
 	fsiop_porta,
 	fsiop_portb,
 	fsiop_portc,
@@ -97,12 +121,14 @@ enum fs_ioport {
 	fsiop_porte,
 };
 
-struct fs_mii_bit {
+struct fs_mii_bit
+{
 	u32 offset;
 	u8 bit;
 	u8 polarity;
 };
-struct fs_mii_bb_platform_info {
+struct fs_mii_bb_platform_info
+{
 	struct fs_mii_bit 	mdio_dir;
 	struct fs_mii_bit 	mdio_dat;
 	struct fs_mii_bit	mdc_dat;
@@ -110,7 +136,8 @@ struct fs_mii_bb_platform_info {
 	int irq[32]; 	/* irqs per phy's */
 };
 
-struct fs_platform_info {
+struct fs_platform_info
+{
 
 	void(*init_ioports)(struct fs_platform_info *);
 	/* device specific information */
@@ -130,7 +157,7 @@ struct fs_platform_info {
 	u32 mem_offset;
 	u32 dpram_offset;
 	u32 fcc_regs_c;
-	
+
 	u32 device_flags;
 
 	struct device_node *phy_node;
@@ -146,19 +173,29 @@ struct fs_platform_info {
 
 	struct clk *clk_per;	/* 'per' clock for register access */
 };
-struct fs_mii_fec_platform_info {
+struct fs_mii_fec_platform_info
+{
 	u32 irq[32];
 	u32 mii_speed;
 };
 
 static inline int fs_get_id(struct fs_platform_info *fpi)
 {
-	if(strstr(fpi->fs_type, "SCC"))
+	if (strstr(fpi->fs_type, "SCC"))
+	{
 		return fs_scc_index2id(fpi->fs_no);
-	if(strstr(fpi->fs_type, "FCC"))
+	}
+
+	if (strstr(fpi->fs_type, "FCC"))
+	{
 		return fs_fcc_index2id(fpi->fs_no);
-	if(strstr(fpi->fs_type, "FEC"))
+	}
+
+	if (strstr(fpi->fs_type, "FEC"))
+	{
 		return fs_fec_index2id(fpi->fs_no);
+	}
+
 	return fpi->fs_no;
 }
 

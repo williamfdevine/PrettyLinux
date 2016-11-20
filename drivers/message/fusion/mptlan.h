@@ -52,7 +52,7 @@
 /*****************************************************************************/
 
 #if !defined(__GENKSYMS__)
-#include <linux/module.h>
+	#include <linux/module.h>
 #endif
 
 #include <linux/netdevice.h>
@@ -73,7 +73,7 @@
 #include <asm/uaccess.h>
 #include <asm/io.h>
 
-    /* Override mptbase.h by pre-defining these! */
+/* Override mptbase.h by pre-defining these! */
 #define MODULEAUTHOR	"LSI Corporation"
 
 #include "mptbase.h"
@@ -83,8 +83,8 @@
 #define LANVER		MPT_LINUX_VERSION_COMMON
 
 #ifdef MODULE
-MODULE_AUTHOR(MODULEAUTHOR);
-MODULE_DESCRIPTION(LANAME);
+	MODULE_AUTHOR(MODULEAUTHOR);
+	MODULE_DESCRIPTION(LANAME);
 #endif
 /*****************************************************************************/
 
@@ -110,15 +110,15 @@ MODULE_DESCRIPTION(LANAME);
 
 /*****************************************************************************/
 #ifdef MPT_LAN_IO_DEBUG
-#define dioprintk(x)  printk x
+	#define dioprintk(x)  printk x
 #else
-#define dioprintk(x)
+	#define dioprintk(x)
 #endif
 
 #ifdef MPT_LAN_DEBUG
-#define dlprintk(x)  printk x
+	#define dlprintk(x)  printk x
 #else
-#define dlprintk(x)
+	#define dlprintk(x)
 #endif
 
 #define NETDEV_TO_LANPRIV_PTR(d)	((struct mpt_lan_priv *)netdev_priv(d))

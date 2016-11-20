@@ -48,7 +48,8 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
 
 /* ----------------------------------------------------------------------- */
 
-struct adv7170 {
+struct adv7170
+{
 	struct v4l2_subdev sd;
 	unsigned char reg[128];
 
@@ -63,7 +64,8 @@ static inline struct adv7170 *to_adv7170(struct v4l2_subdev *sd)
 
 static char *inputs[] = { "pass_through", "play_back" };
 
-static u32 adv7170_codes[] = {
+static u32 adv7170_codes[] =
+{
 	MEDIA_BUS_FMT_UYVY8_2X8,
 	MEDIA_BUS_FMT_UYVY8_1X16,
 };
@@ -87,7 +89,7 @@ static inline int adv7170_read(struct v4l2_subdev *sd, u8 reg)
 }
 
 static int adv7170_write_block(struct v4l2_subdev *sd,
-		     const u8 *data, unsigned int len)
+							   const u8 *data, unsigned int len)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct adv7170 *encoder = to_adv7170(sd);
@@ -96,34 +98,51 @@ static int adv7170_write_block(struct v4l2_subdev *sd,
 
 	/* the adv7170 has an autoincrement function, use it if
 	 * the adapter understands raw I2C */
-	if (i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
+	if (i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+	{
 		/* do raw I2C, not smbus compatible */
 		u8 block_data[32];
 		int block_len;
 
-		while (len >= 2) {
+		while (len >= 2)
+		{
 			block_len = 0;
 			block_data[block_len++] = reg = data[0];
-			do {
+
+			do
+			{
 				block_data[block_len++] =
-				    encoder->reg[reg++] = data[1];
+					encoder->reg[reg++] = data[1];
 				len -= 2;
 				data += 2;
-			} while (len >= 2 && data[0] == reg && block_len < 32);
+			}
+			while (len >= 2 && data[0] == reg && block_len < 32);
+
 			ret = i2c_master_send(client, block_data, block_len);
+
 			if (ret < 0)
+			{
 				break;
+			}
 		}
-	} else {
+	}
+	else
+	{
 		/* do some slow I2C emulation kind of thing */
-		while (len >= 2) {
+		while (len >= 2)
+		{
 			reg = *data++;
 			ret = adv7170_write(sd, reg, *data++);
+
 			if (ret < 0)
+			{
 				break;
+			}
+
 			len -= 2;
 		}
 	}
+
 	return ret;
 }
 
@@ -135,7 +154,8 @@ static int adv7170_write_block(struct v4l2_subdev *sd,
 #define TR1CAPT	    0x00
 #define TR1PLAY	    0x00
 
-static const unsigned char init_NTSC[] = {
+static const unsigned char init_NTSC[] =
+{
 	0x00, 0x10,		/* MR0 */
 	0x01, 0x20,		/* MR1 */
 	0x02, 0x0e,		/* MR2 RTC control: bits 2 and 1 */
@@ -164,7 +184,8 @@ static const unsigned char init_NTSC[] = {
 	0x19, 0x00,		/* Teletext Ctl */
 };
 
-static const unsigned char init_PAL[] = {
+static const unsigned char init_PAL[] =
+{
 	0x00, 0x71,		/* MR0 */
 	0x01, 0x20,		/* MR1 */
 	0x02, 0x0e,		/* MR2 RTC control: bits 2 and 1 */
@@ -200,30 +221,44 @@ static int adv7170_s_std_output(struct v4l2_subdev *sd, v4l2_std_id std)
 
 	v4l2_dbg(1, debug, sd, "set norm %llx\n", (unsigned long long)std);
 
-	if (std & V4L2_STD_NTSC) {
+	if (std & V4L2_STD_NTSC)
+	{
 		adv7170_write_block(sd, init_NTSC, sizeof(init_NTSC));
+
 		if (encoder->input == 0)
-			adv7170_write(sd, 0x02, 0x0e);	/* Enable genlock */
+		{
+			adv7170_write(sd, 0x02, 0x0e);    /* Enable genlock */
+		}
+
 		adv7170_write(sd, 0x07, TR0MODE | TR0RST);
 		adv7170_write(sd, 0x07, TR0MODE);
-	} else if (std & V4L2_STD_PAL) {
+	}
+	else if (std & V4L2_STD_PAL)
+	{
 		adv7170_write_block(sd, init_PAL, sizeof(init_PAL));
+
 		if (encoder->input == 0)
-			adv7170_write(sd, 0x02, 0x0e);	/* Enable genlock */
+		{
+			adv7170_write(sd, 0x02, 0x0e);    /* Enable genlock */
+		}
+
 		adv7170_write(sd, 0x07, TR0MODE | TR0RST);
 		adv7170_write(sd, 0x07, TR0MODE);
-	} else {
+	}
+	else
+	{
 		v4l2_dbg(1, debug, sd, "illegal norm: %llx\n",
-				(unsigned long long)std);
+				 (unsigned long long)std);
 		return -EINVAL;
 	}
+
 	v4l2_dbg(1, debug, sd, "switched to %llx\n", (unsigned long long)std);
 	encoder->norm = std;
 	return 0;
 }
 
 static int adv7170_s_routing(struct v4l2_subdev *sd,
-			     u32 input, u32 output, u32 config)
+							 u32 input, u32 output, u32 config)
 {
 	struct adv7170 *encoder = to_adv7170(sd);
 
@@ -232,61 +267,71 @@ static int adv7170_s_routing(struct v4l2_subdev *sd,
 	   input = 2: color bar */
 
 	v4l2_dbg(1, debug, sd, "set input from %s\n",
-			input == 0 ? "decoder" : "ZR36060");
+			 input == 0 ? "decoder" : "ZR36060");
 
-	switch (input) {
-	case 0:
-		adv7170_write(sd, 0x01, 0x20);
-		adv7170_write(sd, 0x08, TR1CAPT);	/* TR1 */
-		adv7170_write(sd, 0x02, 0x0e);	/* Enable genlock */
-		adv7170_write(sd, 0x07, TR0MODE | TR0RST);
-		adv7170_write(sd, 0x07, TR0MODE);
-		/* udelay(10); */
-		break;
+	switch (input)
+	{
+		case 0:
+			adv7170_write(sd, 0x01, 0x20);
+			adv7170_write(sd, 0x08, TR1CAPT);	/* TR1 */
+			adv7170_write(sd, 0x02, 0x0e);	/* Enable genlock */
+			adv7170_write(sd, 0x07, TR0MODE | TR0RST);
+			adv7170_write(sd, 0x07, TR0MODE);
+			/* udelay(10); */
+			break;
 
-	case 1:
-		adv7170_write(sd, 0x01, 0x00);
-		adv7170_write(sd, 0x08, TR1PLAY);	/* TR1 */
-		adv7170_write(sd, 0x02, 0x08);
-		adv7170_write(sd, 0x07, TR0MODE | TR0RST);
-		adv7170_write(sd, 0x07, TR0MODE);
-		/* udelay(10); */
-		break;
+		case 1:
+			adv7170_write(sd, 0x01, 0x00);
+			adv7170_write(sd, 0x08, TR1PLAY);	/* TR1 */
+			adv7170_write(sd, 0x02, 0x08);
+			adv7170_write(sd, 0x07, TR0MODE | TR0RST);
+			adv7170_write(sd, 0x07, TR0MODE);
+			/* udelay(10); */
+			break;
 
-	default:
-		v4l2_dbg(1, debug, sd, "illegal input: %d\n", input);
-		return -EINVAL;
+		default:
+			v4l2_dbg(1, debug, sd, "illegal input: %d\n", input);
+			return -EINVAL;
 	}
+
 	v4l2_dbg(1, debug, sd, "switched to %s\n", inputs[input]);
 	encoder->input = input;
 	return 0;
 }
 
 static int adv7170_enum_mbus_code(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_mbus_code_enum *code)
+								  struct v4l2_subdev_pad_config *cfg,
+								  struct v4l2_subdev_mbus_code_enum *code)
 {
 	if (code->pad || code->index >= ARRAY_SIZE(adv7170_codes))
+	{
 		return -EINVAL;
+	}
 
 	code->code = adv7170_codes[code->index];
 	return 0;
 }
 
 static int adv7170_get_fmt(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_format *format)
+						   struct v4l2_subdev_pad_config *cfg,
+						   struct v4l2_subdev_format *format)
 {
 	struct v4l2_mbus_framefmt *mf = &format->format;
 	u8 val = adv7170_read(sd, 0x7);
 
 	if (format->pad)
+	{
 		return -EINVAL;
+	}
 
 	if ((val & 0x40) == (1 << 6))
+	{
 		mf->code = MEDIA_BUS_FMT_UYVY8_1X16;
+	}
 	else
+	{
 		mf->code = MEDIA_BUS_FMT_UYVY8_2X8;
+	}
 
 	mf->colorspace  = V4L2_COLORSPACE_SMPTE170M;
 	mf->width       = 0;
@@ -297,51 +342,59 @@ static int adv7170_get_fmt(struct v4l2_subdev *sd,
 }
 
 static int adv7170_set_fmt(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_format *format)
+						   struct v4l2_subdev_pad_config *cfg,
+						   struct v4l2_subdev_format *format)
 {
 	struct v4l2_mbus_framefmt *mf = &format->format;
 	u8 val = adv7170_read(sd, 0x7);
 	int ret = 0;
 
 	if (format->pad)
-		return -EINVAL;
-
-	switch (mf->code) {
-	case MEDIA_BUS_FMT_UYVY8_2X8:
-		val &= ~0x40;
-		break;
-
-	case MEDIA_BUS_FMT_UYVY8_1X16:
-		val |= 0x40;
-		break;
-
-	default:
-		v4l2_dbg(1, debug, sd,
-			"illegal v4l2_mbus_framefmt code: %d\n", mf->code);
+	{
 		return -EINVAL;
 	}
 
+	switch (mf->code)
+	{
+		case MEDIA_BUS_FMT_UYVY8_2X8:
+			val &= ~0x40;
+			break;
+
+		case MEDIA_BUS_FMT_UYVY8_1X16:
+			val |= 0x40;
+			break;
+
+		default:
+			v4l2_dbg(1, debug, sd,
+					 "illegal v4l2_mbus_framefmt code: %d\n", mf->code);
+			return -EINVAL;
+	}
+
 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+	{
 		ret = adv7170_write(sd, 0x7, val);
+	}
 
 	return ret;
 }
 
 /* ----------------------------------------------------------------------- */
 
-static const struct v4l2_subdev_video_ops adv7170_video_ops = {
+static const struct v4l2_subdev_video_ops adv7170_video_ops =
+{
 	.s_std_output = adv7170_s_std_output,
 	.s_routing = adv7170_s_routing,
 };
 
-static const struct v4l2_subdev_pad_ops adv7170_pad_ops = {
+static const struct v4l2_subdev_pad_ops adv7170_pad_ops =
+{
 	.enum_mbus_code = adv7170_enum_mbus_code,
 	.get_fmt = adv7170_get_fmt,
 	.set_fmt = adv7170_set_fmt,
 };
 
-static const struct v4l2_subdev_ops adv7170_ops = {
+static const struct v4l2_subdev_ops adv7170_ops =
+{
 	.video = &adv7170_video_ops,
 	.pad = &adv7170_pad_ops,
 };
@@ -349,7 +402,7 @@ static const struct v4l2_subdev_ops adv7170_ops = {
 /* ----------------------------------------------------------------------- */
 
 static int adv7170_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct adv7170 *encoder;
 	struct v4l2_subdev *sd;
@@ -357,28 +410,40 @@ static int adv7170_probe(struct i2c_client *client,
 
 	/* Check if the adapter supports the needed features */
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		return -ENODEV;
+	}
 
 	v4l_info(client, "chip found @ 0x%x (%s)\n",
-			client->addr << 1, client->adapter->name);
+			 client->addr << 1, client->adapter->name);
 
 	encoder = devm_kzalloc(&client->dev, sizeof(*encoder), GFP_KERNEL);
+
 	if (encoder == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	sd = &encoder->sd;
 	v4l2_i2c_subdev_init(sd, client, &adv7170_ops);
 	encoder->norm = V4L2_STD_NTSC;
 	encoder->input = 0;
 
 	i = adv7170_write_block(sd, init_NTSC, sizeof(init_NTSC));
-	if (i >= 0) {
+
+	if (i >= 0)
+	{
 		i = adv7170_write(sd, 0x07, TR0MODE | TR0RST);
 		i = adv7170_write(sd, 0x07, TR0MODE);
 		i = adv7170_read(sd, 0x12);
 		v4l2_dbg(1, debug, sd, "revision %d\n", i & 1);
 	}
+
 	if (i < 0)
+	{
 		v4l2_dbg(1, debug, sd, "init error 0x%x\n", i);
+	}
+
 	return 0;
 }
 
@@ -392,14 +457,16 @@ static int adv7170_remove(struct i2c_client *client)
 
 /* ----------------------------------------------------------------------- */
 
-static const struct i2c_device_id adv7170_id[] = {
+static const struct i2c_device_id adv7170_id[] =
+{
 	{ "adv7170", 0 },
 	{ "adv7171", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, adv7170_id);
 
-static struct i2c_driver adv7170_driver = {
+static struct i2c_driver adv7170_driver =
+{
 	.driver = {
 		.name	= "adv7170",
 	},

@@ -45,20 +45,22 @@
 #ifndef ATVDA_H
 #define ATVDA_H
 
-struct __packed atto_dev_addr {
+struct __packed atto_dev_addr
+{
 	u64 dev_port;
 	u64 hba_port;
 	u8 lun;
 	u8 flags;
-	   #define VDA_DEVADDRF_SATA   0x01
-	   #define VDA_DEVADDRF_SSD    0x02
+#define VDA_DEVADDRF_SATA   0x01
+#define VDA_DEVADDRF_SSD    0x02
 	u8 link_speed; /* VDALINKSPEED_xxx */
 	u8 pad[1];
 };
 
 /* dev_addr2 was added for 64-bit alignment */
 
-struct __packed atto_dev_addr2 {
+struct __packed atto_dev_addr2
+{
 	u64 dev_port;
 	u64 hba_port;
 	u8 lun;
@@ -67,7 +69,8 @@ struct __packed atto_dev_addr2 {
 	u8 pad[5];
 };
 
-struct __packed atto_vda_sge {
+struct __packed atto_vda_sge
+{
 	u32 length;
 	u64 address;
 };
@@ -186,7 +189,8 @@ struct __packed atto_vda_sge {
 #define VDA_IOCTL_CSMI    0x01
 #define VDA_IOCTL_SMP     0x02
 
-struct __packed atto_vda_devinfo {
+struct __packed atto_vda_devinfo
+{
 	struct atto_dev_addr dev_addr;
 	u8 vendor_id[8];
 	u8 product_id[16];
@@ -195,82 +199,84 @@ struct __packed atto_vda_devinfo {
 	u32 block_size;
 	u8 dev_type;
 
-	union {
+	union
+	{
 		u8 dev_status;
-	    #define VDADEVSTAT_INVALID   0x00
-	    #define VDADEVSTAT_CORRUPT   VDADEVSTAT_INVALID
-	    #define VDADEVSTAT_ASSIGNED  0x01
-	    #define VDADEVSTAT_SPARE     0x02
-	    #define VDADEVSTAT_UNAVAIL   0x03
-	    #define VDADEVSTAT_PT_MAINT  0x04
-	    #define VDADEVSTAT_LCLSPARE  0x05
-	    #define VDADEVSTAT_UNUSEABLE 0x06
-	    #define VDADEVSTAT_AVAIL     0xFF
+#define VDADEVSTAT_INVALID   0x00
+#define VDADEVSTAT_CORRUPT   VDADEVSTAT_INVALID
+#define VDADEVSTAT_ASSIGNED  0x01
+#define VDADEVSTAT_SPARE     0x02
+#define VDADEVSTAT_UNAVAIL   0x03
+#define VDADEVSTAT_PT_MAINT  0x04
+#define VDADEVSTAT_LCLSPARE  0x05
+#define VDADEVSTAT_UNUSEABLE 0x06
+#define VDADEVSTAT_AVAIL     0xFF
 
 		u8 op_ctrl;
-	    #define VDA_DEV_OP_CTRL_START   0x01
-	    #define VDA_DEV_OP_CTRL_HALT    0x02
-	    #define VDA_DEV_OP_CTRL_RESUME  0x03
-	    #define VDA_DEV_OP_CTRL_CANCEL  0x04
+#define VDA_DEV_OP_CTRL_START   0x01
+#define VDA_DEV_OP_CTRL_HALT    0x02
+#define VDA_DEV_OP_CTRL_RESUME  0x03
+#define VDA_DEV_OP_CTRL_CANCEL  0x04
 	};
 
 	u8 member_state;
-	#define VDAMBRSTATE_ONLINE   0x00
-	#define VDAMBRSTATE_DEGRADED 0x01
-	#define VDAMBRSTATE_UNAVAIL  0x02
-	#define VDAMBRSTATE_FAULTED  0x03
-	#define VDAMBRSTATE_MISREAD  0x04
-	#define VDAMBRSTATE_INCOMPAT 0x05
+#define VDAMBRSTATE_ONLINE   0x00
+#define VDAMBRSTATE_DEGRADED 0x01
+#define VDAMBRSTATE_UNAVAIL  0x02
+#define VDAMBRSTATE_FAULTED  0x03
+#define VDAMBRSTATE_MISREAD  0x04
+#define VDAMBRSTATE_INCOMPAT 0x05
 
 	u8 operation;
-	#define VDAOP_NONE           0x00
-	#define VDAOP_REBUILD        0x01
-	#define VDAOP_ERASE          0x02
-	#define VDAOP_PATTERN        0x03
-	#define VDAOP_CONVERSION     0x04
-	#define VDAOP_FULL_INIT      0x05
-	#define VDAOP_QUICK_INIT     0x06
-	#define VDAOP_SECT_SCAN      0x07
-	#define VDAOP_SECT_SCAN_PARITY      0x08
-	#define VDAOP_SECT_SCAN_PARITY_FIX  0x09
-	#define VDAOP_RECOV_REBUILD  0x0A
+#define VDAOP_NONE           0x00
+#define VDAOP_REBUILD        0x01
+#define VDAOP_ERASE          0x02
+#define VDAOP_PATTERN        0x03
+#define VDAOP_CONVERSION     0x04
+#define VDAOP_FULL_INIT      0x05
+#define VDAOP_QUICK_INIT     0x06
+#define VDAOP_SECT_SCAN      0x07
+#define VDAOP_SECT_SCAN_PARITY      0x08
+#define VDAOP_SECT_SCAN_PARITY_FIX  0x09
+#define VDAOP_RECOV_REBUILD  0x0A
 
 	u8 op_status;
-	#define VDAOPSTAT_OK         0x00
-	#define VDAOPSTAT_FAULTED    0x01
-	#define VDAOPSTAT_HALTED     0x02
-	#define VDAOPSTAT_INT        0x03
+#define VDAOPSTAT_OK         0x00
+#define VDAOPSTAT_FAULTED    0x01
+#define VDAOPSTAT_HALTED     0x02
+#define VDAOPSTAT_INT        0x03
 
 	u8 progress; /* 0 - 100% */
 	u16 ses_dev_index;
-	#define VDASESDI_INVALID     0xFFFF
+#define VDASESDI_INVALID     0xFFFF
 
 	u8 serial_no[32];
 
-	union {
+	union
+	{
 		u16 target_id;
-	#define VDATGTID_INVALID     0xFFFF
+#define VDATGTID_INVALID     0xFFFF
 
 		u16 features_mask;
 	};
 
 	u16 lun;
 	u16 features;
-	#define VDADEVFEAT_ENC_SERV  0x0001
-	#define VDADEVFEAT_IDENT     0x0002
-	#define VDADEVFEAT_DH_SUPP   0x0004
-	#define VDADEVFEAT_PHYS_ID   0x0008
+#define VDADEVFEAT_ENC_SERV  0x0001
+#define VDADEVFEAT_IDENT     0x0002
+#define VDADEVFEAT_DH_SUPP   0x0004
+#define VDADEVFEAT_PHYS_ID   0x0008
 
 	u8 ses_element_id;
 	u8 link_speed;
-	#define VDALINKSPEED_UNKNOWN 0x00
-	#define VDALINKSPEED_1GB     0x01
-	#define VDALINKSPEED_1_5GB   0x02
-	#define VDALINKSPEED_2GB     0x03
-	#define VDALINKSPEED_3GB     0x04
-	#define VDALINKSPEED_4GB     0x05
-	#define VDALINKSPEED_6GB     0x06
-	#define VDALINKSPEED_8GB     0x07
+#define VDALINKSPEED_UNKNOWN 0x00
+#define VDALINKSPEED_1GB     0x01
+#define VDALINKSPEED_1_5GB   0x02
+#define VDALINKSPEED_2GB     0x03
+#define VDALINKSPEED_3GB     0x04
+#define VDALINKSPEED_4GB     0x05
+#define VDALINKSPEED_6GB     0x06
+#define VDALINKSPEED_8GB     0x07
 
 	u16 phys_target_id;
 	u8 reserved[2];
@@ -283,7 +289,8 @@ struct __packed atto_vda_devinfo {
  * the data will always be in little endian format.
  */
 
-struct __packed atto_vda_devinfo2 {
+struct __packed atto_vda_devinfo2
+{
 	struct atto_dev_addr dev_addr;
 	u8 vendor_id[8];
 	u8 product_id[16];
@@ -298,7 +305,8 @@ struct __packed atto_vda_devinfo2 {
 	u8 progress;
 	u16 ses_dev_index;
 	u8 serial_no[32];
-	union {
+	union
+	{
 		u16 target_id;
 		u16 features_mask;
 	};
@@ -310,17 +318,17 @@ struct __packed atto_vda_devinfo2 {
 	u16 phys_target_id;
 	u8 reserved[2];
 
-/* This is where fields specific to struct atto_vda_devinfo2 begin.  Note
- * that the structure version started at one so applications that unionize this
- * structure with atto_vda_dev_info can differentiate them if desired.
- */
+	/* This is where fields specific to struct atto_vda_devinfo2 begin.  Note
+	 * that the structure version started at one so applications that unionize this
+	 * structure with atto_vda_dev_info can differentiate them if desired.
+	 */
 
 	u8 version;
-	#define VDADEVINFO_VERSION0         0x00
-	#define VDADEVINFO_VERSION1         0x01
-	#define VDADEVINFO_VERSION2         0x02
-	#define VDADEVINFO_VERSION3         0x03
-	#define VDADEVINFO_VERSION          VDADEVINFO_VERSION3
+#define VDADEVINFO_VERSION0         0x00
+#define VDADEVINFO_VERSION1         0x01
+#define VDADEVINFO_VERSION2         0x02
+#define VDADEVINFO_VERSION3         0x03
+#define VDADEVINFO_VERSION          VDADEVINFO_VERSION3
 
 	u8 reserved2[3];
 
@@ -346,62 +354,64 @@ struct __packed atto_vda_devinfo2 {
 };
 
 
-struct __packed atto_vda_grp_info {
+struct __packed atto_vda_grp_info
+{
 	u8 grp_index;
-	#define VDA_MAX_RAID_GROUPS         32
+#define VDA_MAX_RAID_GROUPS         32
 
 	char grp_name[15];
 	u64 capacity;
 	u32 block_size;
 	u32 interleave;
 	u8 type;
-	#define VDA_GRP_TYPE_RAID0          0
-	#define VDA_GRP_TYPE_RAID1          1
-	#define VDA_GRP_TYPE_RAID4          4
-	#define VDA_GRP_TYPE_RAID5          5
-	#define VDA_GRP_TYPE_RAID6          6
-	#define VDA_GRP_TYPE_RAID10         10
-	#define VDA_GRP_TYPE_RAID40         40
-	#define VDA_GRP_TYPE_RAID50         50
-	#define VDA_GRP_TYPE_RAID60         60
-	#define VDA_GRP_TYPE_DVRAID_HS      252
-	#define VDA_GRP_TYPE_DVRAID_NOHS    253
-	#define VDA_GRP_TYPE_JBOD           254
-	#define VDA_GRP_TYPE_SPARE          255
+#define VDA_GRP_TYPE_RAID0          0
+#define VDA_GRP_TYPE_RAID1          1
+#define VDA_GRP_TYPE_RAID4          4
+#define VDA_GRP_TYPE_RAID5          5
+#define VDA_GRP_TYPE_RAID6          6
+#define VDA_GRP_TYPE_RAID10         10
+#define VDA_GRP_TYPE_RAID40         40
+#define VDA_GRP_TYPE_RAID50         50
+#define VDA_GRP_TYPE_RAID60         60
+#define VDA_GRP_TYPE_DVRAID_HS      252
+#define VDA_GRP_TYPE_DVRAID_NOHS    253
+#define VDA_GRP_TYPE_JBOD           254
+#define VDA_GRP_TYPE_SPARE          255
 
-	union {
+	union
+	{
 		u8 status;
-	    #define VDA_GRP_STAT_INVALID  0x00
-	    #define VDA_GRP_STAT_NEW      0x01
-	    #define VDA_GRP_STAT_WAITING  0x02
-	    #define VDA_GRP_STAT_ONLINE   0x03
-	    #define VDA_GRP_STAT_DEGRADED 0x04
-	    #define VDA_GRP_STAT_OFFLINE  0x05
-	    #define VDA_GRP_STAT_DELETED  0x06
-	    #define VDA_GRP_STAT_RECOV_BASIC    0x07
-	    #define VDA_GRP_STAT_RECOV_EXTREME  0x08
+#define VDA_GRP_STAT_INVALID  0x00
+#define VDA_GRP_STAT_NEW      0x01
+#define VDA_GRP_STAT_WAITING  0x02
+#define VDA_GRP_STAT_ONLINE   0x03
+#define VDA_GRP_STAT_DEGRADED 0x04
+#define VDA_GRP_STAT_OFFLINE  0x05
+#define VDA_GRP_STAT_DELETED  0x06
+#define VDA_GRP_STAT_RECOV_BASIC    0x07
+#define VDA_GRP_STAT_RECOV_EXTREME  0x08
 
 		u8 op_ctrl;
-	    #define VDA_GRP_OP_CTRL_START   0x01
-	    #define VDA_GRP_OP_CTRL_HALT    0x02
-	    #define VDA_GRP_OP_CTRL_RESUME  0x03
-	    #define VDA_GRP_OP_CTRL_CANCEL  0x04
+#define VDA_GRP_OP_CTRL_START   0x01
+#define VDA_GRP_OP_CTRL_HALT    0x02
+#define VDA_GRP_OP_CTRL_RESUME  0x03
+#define VDA_GRP_OP_CTRL_CANCEL  0x04
 	};
 
 	u8 rebuild_state;
-	#define VDA_RBLD_NONE      0x00
-	#define VDA_RBLD_REBUILD   0x01
-	#define VDA_RBLD_ERASE     0x02
-	#define VDA_RBLD_PATTERN   0x03
-	#define VDA_RBLD_CONV      0x04
-	#define VDA_RBLD_FULL_INIT 0x05
-	#define VDA_RBLD_QUICK_INIT 0x06
-	#define VDA_RBLD_SECT_SCAN 0x07
-	#define VDA_RBLD_SECT_SCAN_PARITY     0x08
-	#define VDA_RBLD_SECT_SCAN_PARITY_FIX 0x09
-	#define VDA_RBLD_RECOV_REBUILD 0x0A
-	#define VDA_RBLD_RECOV_BASIC   0x0B
-	#define VDA_RBLD_RECOV_EXTREME 0x0C
+#define VDA_RBLD_NONE      0x00
+#define VDA_RBLD_REBUILD   0x01
+#define VDA_RBLD_ERASE     0x02
+#define VDA_RBLD_PATTERN   0x03
+#define VDA_RBLD_CONV      0x04
+#define VDA_RBLD_FULL_INIT 0x05
+#define VDA_RBLD_QUICK_INIT 0x06
+#define VDA_RBLD_SECT_SCAN 0x07
+#define VDA_RBLD_SECT_SCAN_PARITY     0x08
+#define VDA_RBLD_SECT_SCAN_PARITY_FIX 0x09
+#define VDA_RBLD_RECOV_REBUILD 0x0A
+#define VDA_RBLD_RECOV_BASIC   0x0B
+#define VDA_RBLD_RECOV_EXTREME 0x0C
 
 	u8 span_depth;
 	u8 progress;
@@ -409,30 +419,31 @@ struct __packed atto_vda_grp_info {
 	u8 stripe_width;
 	u8 member_cnt;
 
-	union {
+	union
+	{
 		u16 members[32];
-	#define VDA_MEMBER_MISSING  0xFFFF
-	#define VDA_MEMBER_NEW      0xFFFE
+#define VDA_MEMBER_MISSING  0xFFFF
+#define VDA_MEMBER_NEW      0xFFFE
 		u16 features_mask;
 	};
 
 	u16 features;
-	#define VDA_GRP_FEAT_HOTSWAP    0x0001
-	#define VDA_GRP_FEAT_SPDRD_MASK 0x0006
-	#define VDA_GRP_FEAT_SPDRD_DIS  0x0000
-	#define VDA_GRP_FEAT_SPDRD_ENB  0x0002
-	#define VDA_GRP_FEAT_SPDRD_AUTO 0x0004
-	#define VDA_GRP_FEAT_IDENT      0x0008
-	#define VDA_GRP_FEAT_RBLDPRI_MASK 0x0030
-	#define VDA_GRP_FEAT_RBLDPRI_LOW  0x0010
-	#define VDA_GRP_FEAT_RBLDPRI_SAME 0x0020
-	#define VDA_GRP_FEAT_RBLDPRI_HIGH 0x0030
-	#define VDA_GRP_FEAT_WRITE_CACHE  0x0040
-	#define VDA_GRP_FEAT_RBLD_RESUME  0x0080
-	#define VDA_GRP_FEAT_SECT_RESUME  0x0100
-	#define VDA_GRP_FEAT_INIT_RESUME  0x0200
-	#define VDA_GRP_FEAT_SSD          0x0400
-	#define VDA_GRP_FEAT_BOOT_DEV     0x0800
+#define VDA_GRP_FEAT_HOTSWAP    0x0001
+#define VDA_GRP_FEAT_SPDRD_MASK 0x0006
+#define VDA_GRP_FEAT_SPDRD_DIS  0x0000
+#define VDA_GRP_FEAT_SPDRD_ENB  0x0002
+#define VDA_GRP_FEAT_SPDRD_AUTO 0x0004
+#define VDA_GRP_FEAT_IDENT      0x0008
+#define VDA_GRP_FEAT_RBLDPRI_MASK 0x0030
+#define VDA_GRP_FEAT_RBLDPRI_LOW  0x0010
+#define VDA_GRP_FEAT_RBLDPRI_SAME 0x0020
+#define VDA_GRP_FEAT_RBLDPRI_HIGH 0x0030
+#define VDA_GRP_FEAT_WRITE_CACHE  0x0040
+#define VDA_GRP_FEAT_RBLD_RESUME  0x0080
+#define VDA_GRP_FEAT_SECT_RESUME  0x0100
+#define VDA_GRP_FEAT_INIT_RESUME  0x0200
+#define VDA_GRP_FEAT_SSD          0x0400
+#define VDA_GRP_FEAT_BOOT_DEV     0x0800
 
 	/*
 	 * for backward compatibility, a prefetch value of zero means the
@@ -442,26 +453,27 @@ struct __packed atto_vda_grp_info {
 
 	u8 prefetch;
 	u8 op_status;
-	#define VDAGRPOPSTAT_MASK       0x0F
-	#define VDAGRPOPSTAT_INVALID    0x00
-	#define VDAGRPOPSTAT_OK         0x01
-	#define VDAGRPOPSTAT_FAULTED    0x02
-	#define VDAGRPOPSTAT_HALTED     0x03
-	#define VDAGRPOPSTAT_INT        0x04
-	#define VDAGRPOPPROC_MASK       0xF0
-	#define VDAGRPOPPROC_STARTABLE  0x10
-	#define VDAGRPOPPROC_CANCELABLE 0x20
-	#define VDAGRPOPPROC_RESUMABLE  0x40
-	#define VDAGRPOPPROC_HALTABLE   0x80
+#define VDAGRPOPSTAT_MASK       0x0F
+#define VDAGRPOPSTAT_INVALID    0x00
+#define VDAGRPOPSTAT_OK         0x01
+#define VDAGRPOPSTAT_FAULTED    0x02
+#define VDAGRPOPSTAT_HALTED     0x03
+#define VDAGRPOPSTAT_INT        0x04
+#define VDAGRPOPPROC_MASK       0xF0
+#define VDAGRPOPPROC_STARTABLE  0x10
+#define VDAGRPOPPROC_CANCELABLE 0x20
+#define VDAGRPOPPROC_RESUMABLE  0x40
+#define VDAGRPOPPROC_HALTABLE   0x80
 	u8 over_provision;
 	u8 reserved[3];
 
 };
 
 
-struct __packed atto_vdapart_info {
+struct __packed atto_vdapart_info
+{
 	u8 part_no;
-	#define VDA_MAX_PARTITIONS   128
+#define VDA_MAX_PARTITIONS   128
 
 	char grp_name[15];
 	u64 part_size;
@@ -471,86 +483,89 @@ struct __packed atto_vdapart_info {
 	u8 LUN;
 	char serial_no[41];
 	u8 features;
-	#define VDAPI_FEAT_WRITE_CACHE   0x01
+#define VDAPI_FEAT_WRITE_CACHE   0x01
 
 	u8 reserved[7];
 };
 
 
-struct __packed atto_vda_dh_info {
+struct __packed atto_vda_dh_info
+{
 	u8 req_type;
-	#define VDADH_RQTYPE_CACHE      0x01
-	#define VDADH_RQTYPE_FETCH      0x02
-	#define VDADH_RQTYPE_SET_STAT   0x03
-	#define VDADH_RQTYPE_GET_STAT   0x04
+#define VDADH_RQTYPE_CACHE      0x01
+#define VDADH_RQTYPE_FETCH      0x02
+#define VDADH_RQTYPE_SET_STAT   0x03
+#define VDADH_RQTYPE_GET_STAT   0x04
 
 	u8 req_qual;
-	#define VDADH_RQQUAL_SMART      0x01
-	#define VDADH_RQQUAL_MEDDEF     0x02
-	#define VDADH_RQQUAL_INFOEXC    0x04
+#define VDADH_RQQUAL_SMART      0x01
+#define VDADH_RQQUAL_MEDDEF     0x02
+#define VDADH_RQQUAL_INFOEXC    0x04
 
 	u8 num_smart_attribs;
 	u8 status;
-	#define VDADH_STAT_DISABLE      0x00
-	#define VDADH_STAT_ENABLE       0x01
+#define VDADH_STAT_DISABLE      0x00
+#define VDADH_STAT_ENABLE       0x01
 
 	u32 med_defect_cnt;
 	u32 info_exc_cnt;
 	u8 smart_status;
-	#define VDADH_SMARTSTAT_OK      0x00
-	#define VDADH_SMARTSTAT_ERR     0x01
+#define VDADH_SMARTSTAT_OK      0x00
+#define VDADH_SMARTSTAT_ERR     0x01
 
 	u8 reserved[35];
 	struct atto_vda_sge sge[1];
 };
 
 
-struct __packed atto_vda_dh_smart {
+struct __packed atto_vda_dh_smart
+{
 	u8 attrib_id;
 	u8 current_val;
 	u8 worst;
 	u8 threshold;
 	u8 raw_data[6];
 	u8 raw_attrib_status;
-	#define VDADHSM_RAWSTAT_PREFAIL_WARRANTY        0x01
-	#define VDADHSM_RAWSTAT_ONLINE_COLLECTION       0x02
-	#define VDADHSM_RAWSTAT_PERFORMANCE_ATTR        0x04
-	#define VDADHSM_RAWSTAT_ERROR_RATE_ATTR         0x08
-	#define VDADHSM_RAWSTAT_EVENT_COUNT_ATTR        0x10
-	#define VDADHSM_RAWSTAT_SELF_PRESERVING_ATTR    0x20
+#define VDADHSM_RAWSTAT_PREFAIL_WARRANTY        0x01
+#define VDADHSM_RAWSTAT_ONLINE_COLLECTION       0x02
+#define VDADHSM_RAWSTAT_PERFORMANCE_ATTR        0x04
+#define VDADHSM_RAWSTAT_ERROR_RATE_ATTR         0x08
+#define VDADHSM_RAWSTAT_EVENT_COUNT_ATTR        0x10
+#define VDADHSM_RAWSTAT_SELF_PRESERVING_ATTR    0x20
 
 	u8 calc_attrib_status;
-	#define VDADHSM_CALCSTAT_UNKNOWN                0x00
-	#define VDADHSM_CALCSTAT_GOOD                   0x01
-	#define VDADHSM_CALCSTAT_PREFAIL                0x02
-	#define VDADHSM_CALCSTAT_OLDAGE                 0x03
+#define VDADHSM_CALCSTAT_UNKNOWN                0x00
+#define VDADHSM_CALCSTAT_GOOD                   0x01
+#define VDADHSM_CALCSTAT_PREFAIL                0x02
+#define VDADHSM_CALCSTAT_OLDAGE                 0x03
 
 	u8 reserved[4];
 };
 
 
-struct __packed atto_vda_metrics_info {
+struct __packed atto_vda_metrics_info
+{
 	u8 data_version;
-	#define VDAMET_VERSION0         0x00
-	#define VDAMET_VERSION          VDAMET_VERSION0
+#define VDAMET_VERSION0         0x00
+#define VDAMET_VERSION          VDAMET_VERSION0
 
 	u8 metrics_action;
-	#define VDAMET_METACT_NONE      0x00
-	#define VDAMET_METACT_START     0x01
-	#define VDAMET_METACT_STOP      0x02
-	#define VDAMET_METACT_RETRIEVE  0x03
-	#define VDAMET_METACT_CLEAR     0x04
+#define VDAMET_METACT_NONE      0x00
+#define VDAMET_METACT_START     0x01
+#define VDAMET_METACT_STOP      0x02
+#define VDAMET_METACT_RETRIEVE  0x03
+#define VDAMET_METACT_CLEAR     0x04
 
 	u8 test_action;
-	#define VDAMET_TSTACT_NONE              0x00
-	#define VDAMET_TSTACT_STRT_INIT         0x01
-	#define VDAMET_TSTACT_STRT_READ         0x02
-	#define VDAMET_TSTACT_STRT_VERIFY       0x03
-	#define VDAMET_TSTACT_STRT_INIT_VERIFY  0x04
-	#define VDAMET_TSTACT_STOP              0x05
+#define VDAMET_TSTACT_NONE              0x00
+#define VDAMET_TSTACT_STRT_INIT         0x01
+#define VDAMET_TSTACT_STRT_READ         0x02
+#define VDAMET_TSTACT_STRT_VERIFY       0x03
+#define VDAMET_TSTACT_STRT_INIT_VERIFY  0x04
+#define VDAMET_TSTACT_STOP              0x05
 
 	u8 num_dev_indexes;
-	#define VDAMET_ALL_DEVICES      0xFF
+#define VDAMET_ALL_DEVICES      0xFF
 
 	u16 dev_indexes[32];
 	u8 reserved[12];
@@ -558,22 +573,23 @@ struct __packed atto_vda_metrics_info {
 };
 
 
-struct __packed atto_vda_metrics_data {
+struct __packed atto_vda_metrics_data
+{
 	u16 dev_index;
 	u16 length;
-	#define VDAMD_LEN_LAST          0x8000
-	#define VDAMD_LEN_MASK          0x0FFF
+#define VDAMD_LEN_LAST          0x8000
+#define VDAMD_LEN_MASK          0x0FFF
 
 	u32 flags;
-	#define VDAMDF_RUN          0x00000007
-	#define VDAMDF_RUN_READ     0x00000001
-	#define VDAMDF_RUN_WRITE    0x00000002
-	#define VDAMDF_RUN_ALL      0x00000004
-	#define VDAMDF_READ         0x00000010
-	#define VDAMDF_WRITE        0x00000020
-	#define VDAMDF_ALL          0x00000040
-	#define VDAMDF_DRIVETEST    0x40000000
-	#define VDAMDF_NEW          0x80000000
+#define VDAMDF_RUN          0x00000007
+#define VDAMDF_RUN_READ     0x00000001
+#define VDAMDF_RUN_WRITE    0x00000002
+#define VDAMDF_RUN_ALL      0x00000004
+#define VDAMDF_READ         0x00000010
+#define VDAMDF_WRITE        0x00000020
+#define VDAMDF_ALL          0x00000040
+#define VDAMDF_DRIVETEST    0x40000000
+#define VDAMDF_NEW          0x80000000
 
 	u64 total_read_data;
 	u64 total_write_data;
@@ -595,85 +611,89 @@ struct __packed atto_vda_metrics_data {
 };
 
 
-struct __packed atto_vda_schedule_info {
+struct __packed atto_vda_schedule_info
+{
 	u8 schedule_type;
-	#define VDASI_SCHTYPE_ONETIME   0x01
-	#define VDASI_SCHTYPE_DAILY     0x02
-	#define VDASI_SCHTYPE_WEEKLY    0x03
+#define VDASI_SCHTYPE_ONETIME   0x01
+#define VDASI_SCHTYPE_DAILY     0x02
+#define VDASI_SCHTYPE_WEEKLY    0x03
 
 	u8 operation;
-	#define VDASI_OP_NONE           0x00
-	#define VDASI_OP_CREATE         0x01
-	#define VDASI_OP_CANCEL         0x02
+#define VDASI_OP_NONE           0x00
+#define VDASI_OP_CREATE         0x01
+#define VDASI_OP_CANCEL         0x02
 
 	u8 hour;
 	u8 minute;
 	u8 day;
-	#define VDASI_DAY_NONE          0x00
+#define VDASI_DAY_NONE          0x00
 
 	u8 progress;
-	#define VDASI_PROG_NONE         0xFF
+#define VDASI_PROG_NONE         0xFF
 
 	u8 event_type;
-	#define VDASI_EVTTYPE_SECT_SCAN             0x01
-	#define VDASI_EVTTYPE_SECT_SCAN_PARITY      0x02
-	#define VDASI_EVTTYPE_SECT_SCAN_PARITY_FIX  0x03
+#define VDASI_EVTTYPE_SECT_SCAN             0x01
+#define VDASI_EVTTYPE_SECT_SCAN_PARITY      0x02
+#define VDASI_EVTTYPE_SECT_SCAN_PARITY_FIX  0x03
 
 	u8 recurrences;
-	#define VDASI_RECUR_FOREVER     0x00
+#define VDASI_RECUR_FOREVER     0x00
 
 	u32 id;
-	#define VDASI_ID_NONE           0x00
+#define VDASI_ID_NONE           0x00
 
 	char grp_name[15];
 	u8 reserved[85];
 };
 
 
-struct __packed atto_vda_n_vcache_info {
+struct __packed atto_vda_n_vcache_info
+{
 	u8 super_cap_status;
-	#define VDANVCI_SUPERCAP_NOT_PRESENT       0x00
-	#define VDANVCI_SUPERCAP_FULLY_CHARGED     0x01
-	#define VDANVCI_SUPERCAP_NOT_CHARGED       0x02
+#define VDANVCI_SUPERCAP_NOT_PRESENT       0x00
+#define VDANVCI_SUPERCAP_FULLY_CHARGED     0x01
+#define VDANVCI_SUPERCAP_NOT_CHARGED       0x02
 
 	u8 nvcache_module_status;
-	#define VDANVCI_NVCACHEMODULE_NOT_PRESENT  0x00
-	#define VDANVCI_NVCACHEMODULE_PRESENT      0x01
+#define VDANVCI_NVCACHEMODULE_NOT_PRESENT  0x00
+#define VDANVCI_NVCACHEMODULE_PRESENT      0x01
 
 	u8 protection_mode;
-	#define VDANVCI_PROTMODE_HI_PROTECT        0x00
-	#define VDANVCI_PROTMODE_HI_PERFORM        0x01
+#define VDANVCI_PROTMODE_HI_PROTECT        0x00
+#define VDANVCI_PROTMODE_HI_PERFORM        0x01
 
 	u8 reserved[109];
 };
 
 
-struct __packed atto_vda_buzzer_info {
+struct __packed atto_vda_buzzer_info
+{
 	u8 status;
-	#define VDABUZZI_BUZZER_OFF           0x00
-	#define VDABUZZI_BUZZER_ON            0x01
-	#define VDABUZZI_BUZZER_LAST          0x02
+#define VDABUZZI_BUZZER_OFF           0x00
+#define VDABUZZI_BUZZER_ON            0x01
+#define VDABUZZI_BUZZER_LAST          0x02
 
 	u8 reserved[3];
 	u32 duration;
-	#define VDABUZZI_DURATION_INDEFINITE  0xffffffff
+#define VDABUZZI_DURATION_INDEFINITE  0xffffffff
 
 	u8 reserved2[104];
 };
 
 
-struct  __packed atto_vda_adapter_info {
+struct  __packed atto_vda_adapter_info
+{
 	u8 version;
-	#define VDAADAPINFO_VERSION0         0x00
-	#define VDAADAPINFO_VERSION          VDAADAPINFO_VERSION0
+#define VDAADAPINFO_VERSION0         0x00
+#define VDAADAPINFO_VERSION          VDAADAPINFO_VERSION0
 
 	u8 reserved;
 	signed short utc_offset;
 	u32 utc_time;
 	u32 features;
-	#define VDA_ADAP_FEAT_IDENT     0x0001
-	#define VDA_ADAP_FEAT_BUZZ_ERR  0x0002
-	#define VDA_ADAP_FEAT_UTC_TIME  0x0004
+#define VDA_ADAP_FEAT_IDENT     0x0001
+#define VDA_ADAP_FEAT_BUZZ_ERR  0x0002
+#define VDA_ADAP_FEAT_UTC_TIME  0x0004
 
 	u32 valid_features;
 	char active_config[33];
@@ -683,25 +703,27 @@ struct  __packed atto_vda_adapter_info {
 };
 
 
-struct __packed atto_vda_temp_info {
+struct __packed atto_vda_temp_info
+{
 	u8 temp_index;
 	u8 max_op_temp;
 	u8 min_op_temp;
 	u8 op_temp_warn;
 	u8 temperature;
 	u8 type;
-	#define VDA_TEMP_TYPE_CPU  1
+#define VDA_TEMP_TYPE_CPU  1
 
 	u8 reserved[106];
 };
 
 
-struct __packed atto_vda_fan_info {
+struct __packed atto_vda_fan_info
+{
 	u8 fan_index;
 	u8 status;
-	#define VDA_FAN_STAT_UNKNOWN 0
-	#define VDA_FAN_STAT_NORMAL  1
-	#define VDA_FAN_STAT_FAIL    2
+#define VDA_FAN_STAT_UNKNOWN 0
+#define VDA_FAN_STAT_NORMAL  1
+#define VDA_FAN_STAT_FAIL    2
 
 	u16 crit_pvdafaninfothreshold;
 	u16 warn_threshold;
@@ -762,96 +784,100 @@ struct __packed atto_vda_fan_info {
 #define VDAMGT_BUZZER_SET       0x71
 
 
-struct __packed atto_vda_ae_hdr {
+struct __packed atto_vda_ae_hdr
+{
 	u8 bylength;
 	u8 byflags;
-	#define VDAAE_HDRF_EVENT_ACK    0x01
+#define VDAAE_HDRF_EVENT_ACK    0x01
 
 	u8 byversion;
-	#define VDAAE_HDR_VER_0         0
+#define VDAAE_HDR_VER_0         0
 
 	u8 bytype;
-	#define VDAAE_HDR_TYPE_RAID     1
-	#define VDAAE_HDR_TYPE_LU       2
-	#define VDAAE_HDR_TYPE_DISK     3
-	#define VDAAE_HDR_TYPE_RESET    4
-	#define VDAAE_HDR_TYPE_LOG_INFO 5
-	#define VDAAE_HDR_TYPE_LOG_WARN 6
-	#define VDAAE_HDR_TYPE_LOG_CRIT 7
-	#define VDAAE_HDR_TYPE_LOG_FAIL 8
-	#define VDAAE_HDR_TYPE_NVC      9
-	#define VDAAE_HDR_TYPE_TLG_INFO 10
-	#define VDAAE_HDR_TYPE_TLG_WARN 11
-	#define VDAAE_HDR_TYPE_TLG_CRIT 12
-	#define VDAAE_HDR_TYPE_PWRMGT   13
-	#define VDAAE_HDR_TYPE_MUTE     14
-	#define VDAAE_HDR_TYPE_DEV      15
+#define VDAAE_HDR_TYPE_RAID     1
+#define VDAAE_HDR_TYPE_LU       2
+#define VDAAE_HDR_TYPE_DISK     3
+#define VDAAE_HDR_TYPE_RESET    4
+#define VDAAE_HDR_TYPE_LOG_INFO 5
+#define VDAAE_HDR_TYPE_LOG_WARN 6
+#define VDAAE_HDR_TYPE_LOG_CRIT 7
+#define VDAAE_HDR_TYPE_LOG_FAIL 8
+#define VDAAE_HDR_TYPE_NVC      9
+#define VDAAE_HDR_TYPE_TLG_INFO 10
+#define VDAAE_HDR_TYPE_TLG_WARN 11
+#define VDAAE_HDR_TYPE_TLG_CRIT 12
+#define VDAAE_HDR_TYPE_PWRMGT   13
+#define VDAAE_HDR_TYPE_MUTE     14
+#define VDAAE_HDR_TYPE_DEV      15
 };
 
 
-struct  __packed atto_vda_ae_raid {
+struct  __packed atto_vda_ae_raid
+{
 	struct atto_vda_ae_hdr hdr;
 	u32 dwflags;
-	#define VDAAE_GROUP_STATE   0x00000001
-	#define VDAAE_RBLD_STATE    0x00000002
-	#define VDAAE_RBLD_PROG     0x00000004
-	#define VDAAE_MEMBER_CHG    0x00000008
-	#define VDAAE_PART_CHG      0x00000010
-	#define VDAAE_MEM_STATE_CHG 0x00000020
+#define VDAAE_GROUP_STATE   0x00000001
+#define VDAAE_RBLD_STATE    0x00000002
+#define VDAAE_RBLD_PROG     0x00000004
+#define VDAAE_MEMBER_CHG    0x00000008
+#define VDAAE_PART_CHG      0x00000010
+#define VDAAE_MEM_STATE_CHG 0x00000020
 
 	u8 bygroup_state;
-	#define VDAAE_RAID_INVALID  0
-	#define VDAAE_RAID_NEW      1
-	#define VDAAE_RAID_WAITING  2
-	#define VDAAE_RAID_ONLINE   3
-	#define VDAAE_RAID_DEGRADED 4
-	#define VDAAE_RAID_OFFLINE  5
-	#define VDAAE_RAID_DELETED  6
-	#define VDAAE_RAID_BASIC    7
-	#define VDAAE_RAID_EXTREME  8
-	#define VDAAE_RAID_UNKNOWN  9
+#define VDAAE_RAID_INVALID  0
+#define VDAAE_RAID_NEW      1
+#define VDAAE_RAID_WAITING  2
+#define VDAAE_RAID_ONLINE   3
+#define VDAAE_RAID_DEGRADED 4
+#define VDAAE_RAID_OFFLINE  5
+#define VDAAE_RAID_DELETED  6
+#define VDAAE_RAID_BASIC    7
+#define VDAAE_RAID_EXTREME  8
+#define VDAAE_RAID_UNKNOWN  9
 
 	u8 byrebuild_state;
-	#define VDAAE_RBLD_NONE       0
-	#define VDAAE_RBLD_REBUILD    1
-	#define VDAAE_RBLD_ERASE      2
-	#define VDAAE_RBLD_PATTERN    3
-	#define VDAAE_RBLD_CONV       4
-	#define VDAAE_RBLD_FULL_INIT  5
-	#define VDAAE_RBLD_QUICK_INIT 6
-	#define VDAAE_RBLD_SECT_SCAN  7
-	#define VDAAE_RBLD_SECT_SCAN_PARITY     8
-	#define VDAAE_RBLD_SECT_SCAN_PARITY_FIX 9
-	#define VDAAE_RBLD_RECOV_REBUILD 10
-	#define VDAAE_RBLD_UNKNOWN    11
+#define VDAAE_RBLD_NONE       0
+#define VDAAE_RBLD_REBUILD    1
+#define VDAAE_RBLD_ERASE      2
+#define VDAAE_RBLD_PATTERN    3
+#define VDAAE_RBLD_CONV       4
+#define VDAAE_RBLD_FULL_INIT  5
+#define VDAAE_RBLD_QUICK_INIT 6
+#define VDAAE_RBLD_SECT_SCAN  7
+#define VDAAE_RBLD_SECT_SCAN_PARITY     8
+#define VDAAE_RBLD_SECT_SCAN_PARITY_FIX 9
+#define VDAAE_RBLD_RECOV_REBUILD 10
+#define VDAAE_RBLD_UNKNOWN    11
 
 	u8 byrebuild_progress;
 	u8 op_status;
-	#define VDAAE_GRPOPSTAT_MASK       0x0F
-	#define VDAAE_GRPOPSTAT_INVALID    0x00
-	#define VDAAE_GRPOPSTAT_OK         0x01
-	#define VDAAE_GRPOPSTAT_FAULTED    0x02
-	#define VDAAE_GRPOPSTAT_HALTED     0x03
-	#define VDAAE_GRPOPSTAT_INT        0x04
-	#define VDAAE_GRPOPPROC_MASK       0xF0
-	#define VDAAE_GRPOPPROC_STARTABLE  0x10
-	#define VDAAE_GRPOPPROC_CANCELABLE 0x20
-	#define VDAAE_GRPOPPROC_RESUMABLE  0x40
-	#define VDAAE_GRPOPPROC_HALTABLE   0x80
+#define VDAAE_GRPOPSTAT_MASK       0x0F
+#define VDAAE_GRPOPSTAT_INVALID    0x00
+#define VDAAE_GRPOPSTAT_OK         0x01
+#define VDAAE_GRPOPSTAT_FAULTED    0x02
+#define VDAAE_GRPOPSTAT_HALTED     0x03
+#define VDAAE_GRPOPSTAT_INT        0x04
+#define VDAAE_GRPOPPROC_MASK       0xF0
+#define VDAAE_GRPOPPROC_STARTABLE  0x10
+#define VDAAE_GRPOPPROC_CANCELABLE 0x20
+#define VDAAE_GRPOPPROC_RESUMABLE  0x40
+#define VDAAE_GRPOPPROC_HALTABLE   0x80
 	char acname[15];
 	u8 byreserved;
 	u8 byreserved2[0x80 - 0x1C];
 };
 
 
-struct __packed atto_vda_ae_lu_tgt_lun {
+struct __packed atto_vda_ae_lu_tgt_lun
+{
 	u16 wtarget_id;
 	u8 bylun;
 	u8 byreserved;
 };
 
 
-struct __packed atto_vda_ae_lu_tgt_lun_raid {
+struct __packed atto_vda_ae_lu_tgt_lun_raid
+{
 	u16 wtarget_id;
 	u8 bylun;
 	u8 byreserved;
@@ -860,44 +886,48 @@ struct __packed atto_vda_ae_lu_tgt_lun_raid {
 };
 
 
-struct __packed atto_vda_ae_lu {
+struct __packed atto_vda_ae_lu
+{
 	struct atto_vda_ae_hdr hdr;
 	u32 dwevent;
-	#define VDAAE_LU_DISC        0x00000001
-	#define VDAAE_LU_LOST        0x00000002
-	#define VDAAE_LU_STATE       0x00000004
-	#define VDAAE_LU_PASSTHROUGH 0x10000000
-	#define VDAAE_LU_PHYS_ID     0x20000000
+#define VDAAE_LU_DISC        0x00000001
+#define VDAAE_LU_LOST        0x00000002
+#define VDAAE_LU_STATE       0x00000004
+#define VDAAE_LU_PASSTHROUGH 0x10000000
+#define VDAAE_LU_PHYS_ID     0x20000000
 
 	u8 bystate;
-	#define VDAAE_LU_UNDEFINED        0
-	#define VDAAE_LU_NOT_PRESENT      1
-	#define VDAAE_LU_OFFLINE          2
-	#define VDAAE_LU_ONLINE           3
-	#define VDAAE_LU_DEGRADED         4
-	#define VDAAE_LU_FACTORY_DISABLED 5
-	#define VDAAE_LU_DELETED          6
-	#define VDAAE_LU_BUSSCAN          7
-	#define VDAAE_LU_UNKNOWN          8
+#define VDAAE_LU_UNDEFINED        0
+#define VDAAE_LU_NOT_PRESENT      1
+#define VDAAE_LU_OFFLINE          2
+#define VDAAE_LU_ONLINE           3
+#define VDAAE_LU_DEGRADED         4
+#define VDAAE_LU_FACTORY_DISABLED 5
+#define VDAAE_LU_DELETED          6
+#define VDAAE_LU_BUSSCAN          7
+#define VDAAE_LU_UNKNOWN          8
 
 	u8 byreserved;
 	u16 wphys_target_id;
 
-	union {
+	union
+	{
 		struct atto_vda_ae_lu_tgt_lun tgtlun;
 		struct atto_vda_ae_lu_tgt_lun_raid tgtlun_raid;
 	} id;
 };
 
 
-struct __packed atto_vda_ae_disk {
+struct __packed atto_vda_ae_disk
+{
 	struct atto_vda_ae_hdr hdr;
 };
 
 
 #define VDAAE_LOG_STRSZ 64
 
-struct __packed atto_vda_ae_log {
+struct __packed atto_vda_ae_log
+{
 	struct atto_vda_ae_hdr hdr;
 	char aclog_ascii[VDAAE_LOG_STRSZ];
 };
@@ -905,25 +935,29 @@ struct __packed atto_vda_ae_log {
 
 #define VDAAE_TLG_STRSZ 56
 
-struct __packed atto_vda_ae_timestamp_log {
+struct __packed atto_vda_ae_timestamp_log
+{
 	struct atto_vda_ae_hdr hdr;
 	u32 dwtimestamp;
 	char aclog_ascii[VDAAE_TLG_STRSZ];
 };
 
 
-struct __packed atto_vda_ae_nvc {
+struct __packed atto_vda_ae_nvc
+{
 	struct atto_vda_ae_hdr hdr;
 };
 
 
-struct __packed atto_vda_ae_dev {
+struct __packed atto_vda_ae_dev
+{
 	struct atto_vda_ae_hdr hdr;
 	struct atto_dev_addr devaddr;
 };
 
 
-union atto_vda_ae {
+union atto_vda_ae
+{
 	struct atto_vda_ae_hdr hdr;
 	struct atto_vda_ae_disk disk;
 	struct atto_vda_ae_lu lu;
@@ -935,19 +969,20 @@ union atto_vda_ae {
 };
 
 
-struct __packed atto_vda_date_and_time {
+struct __packed atto_vda_date_and_time
+{
 	u8 flags;
-	#define VDA_DT_DAY_MASK   0x07
-	#define VDA_DT_DAY_NONE   0x00
-	#define VDA_DT_DAY_SUN    0x01
-	#define VDA_DT_DAY_MON    0x02
-	#define VDA_DT_DAY_TUE    0x03
-	#define VDA_DT_DAY_WED    0x04
-	#define VDA_DT_DAY_THU    0x05
-	#define VDA_DT_DAY_FRI    0x06
-	#define VDA_DT_DAY_SAT    0x07
-	#define VDA_DT_PM         0x40
-	#define VDA_DT_MILITARY   0x80
+#define VDA_DT_DAY_MASK   0x07
+#define VDA_DT_DAY_NONE   0x00
+#define VDA_DT_DAY_SUN    0x01
+#define VDA_DT_DAY_MON    0x02
+#define VDA_DT_DAY_TUE    0x03
+#define VDA_DT_DAY_WED    0x04
+#define VDA_DT_DAY_THU    0x05
+#define VDA_DT_DAY_FRI    0x06
+#define VDA_DT_DAY_SAT    0x07
+#define VDA_DT_PM         0x40
+#define VDA_DT_MILITARY   0x80
 
 	u8 seconds;
 	u8 minutes;
@@ -966,7 +1001,8 @@ struct __packed atto_vda_date_and_time {
 #define SGE_CHAIN_SZ    0x00FF0000      /*! mask of size of chained buffer    */
 
 
-struct __packed atto_vda_cfg_init {
+struct __packed atto_vda_cfg_init
+{
 	struct atto_vda_date_and_time date_time;
 	u32 sgl_page_size;
 	u32 vda_version;
@@ -975,13 +1011,13 @@ struct __packed atto_vda_cfg_init {
 	u32 fw_release;
 	u32 epoch_time;
 	u32 ioctl_tunnel;
-	#define VDA_ITF_MEM_RW           0x00000001
-	#define VDA_ITF_TRACE            0x00000002
-	#define VDA_ITF_SCSI_PASS_THRU   0x00000004
-	#define VDA_ITF_GET_DEV_ADDR     0x00000008
-	#define VDA_ITF_PHY_CTRL         0x00000010
-	#define VDA_ITF_CONN_CTRL        0x00000020
-	#define VDA_ITF_GET_DEV_INFO     0x00000040
+#define VDA_ITF_MEM_RW           0x00000001
+#define VDA_ITF_TRACE            0x00000002
+#define VDA_ITF_SCSI_PASS_THRU   0x00000004
+#define VDA_ITF_GET_DEV_ADDR     0x00000008
+#define VDA_ITF_PHY_CTRL         0x00000010
+#define VDA_ITF_CONN_CTRL        0x00000020
+#define VDA_ITF_GET_DEV_INFO     0x00000040
 
 	u32 num_targets_backend;
 	u8 reserved[0x48];
@@ -997,28 +1033,30 @@ struct __packed atto_vda_cfg_init {
 
 /*! physical region descriptor (PRD) aka scatter/gather entry */
 
-struct __packed atto_physical_region_description {
+struct __packed atto_physical_region_description
+{
 	u64 address;
 	u32 ctl_len;
-	#define PRD_LEN_LIMIT       0x003FFFFF
-	#define PRD_LEN_MAX         0x003FF000
-	#define PRD_NXT_PRD_CNT     0x0000007F
-	#define PRD_CHAIN           0x01000000
-	#define PRD_DATA            0x00000000
-	#define PRD_INT_SEL         0xF0000000
-	  #define PRD_INT_SEL_F0    0x00000000
-	  #define PRD_INT_SEL_F1    0x40000000
-	  #define PRD_INT_SEL_F2    0x80000000
-	  #define PRD_INT_SEL_F3    0xc0000000
-	  #define PRD_INT_SEL_SRAM  0x10000000
-	  #define PRD_INT_SEL_PBSR  0x20000000
+#define PRD_LEN_LIMIT       0x003FFFFF
+#define PRD_LEN_MAX         0x003FF000
+#define PRD_NXT_PRD_CNT     0x0000007F
+#define PRD_CHAIN           0x01000000
+#define PRD_DATA            0x00000000
+#define PRD_INT_SEL         0xF0000000
+#define PRD_INT_SEL_F0    0x00000000
+#define PRD_INT_SEL_F1    0x40000000
+#define PRD_INT_SEL_F2    0x80000000
+#define PRD_INT_SEL_F3    0xc0000000
+#define PRD_INT_SEL_SRAM  0x10000000
+#define PRD_INT_SEL_PBSR  0x20000000
 
 };
 
 /* Request types. NOTE that ALL requests have the same layout for the first
  * few bytes.
  */
-struct __packed atto_vda_req_header {
+struct __packed atto_vda_req_header
+{
 	u32 length;
 	u8 function;
 	u8 variable1;
@@ -1030,7 +1068,8 @@ struct __packed atto_vda_req_header {
 
 #define FCP_CDB_SIZE    16
 
-struct __packed atto_vda_scsi_req {
+struct __packed atto_vda_scsi_req
+{
 	u32 length;
 	u8 function;  /* VDA_FUNC_SCSI */
 	u8 sense_len;
@@ -1038,27 +1077,29 @@ struct __packed atto_vda_scsi_req {
 	u8 sg_list_offset;
 	u32 handle;
 	u32 flags;
-     #define FCP_CMND_LUN_MASK    0x000000FF
-     #define FCP_CMND_TA_MASK     0x00000700
-      #define FCP_CMND_TA_SIMPL_Q 0x00000000
-      #define FCP_CMND_TA_HEAD_Q  0x00000100
-      #define FCP_CMND_TA_ORDRD_Q 0x00000200
-      #define FCP_CMND_TA_ACA     0x00000400
-     #define FCP_CMND_PRI_MASK    0x00007800
-     #define FCP_CMND_TM_MASK     0x00FF0000
-      #define FCP_CMND_ATS        0x00020000
-      #define FCP_CMND_CTS        0x00040000
-      #define FCP_CMND_LRS        0x00100000
-      #define FCP_CMND_TRS        0x00200000
-      #define FCP_CMND_CLA        0x00400000
-      #define FCP_CMND_TRM        0x00800000
-     #define FCP_CMND_DATA_DIR    0x03000000
-      #define FCP_CMND_WRD        0x01000000
-      #define FCP_CMND_RDD        0x02000000
+#define FCP_CMND_LUN_MASK    0x000000FF
+#define FCP_CMND_TA_MASK     0x00000700
+#define FCP_CMND_TA_SIMPL_Q 0x00000000
+#define FCP_CMND_TA_HEAD_Q  0x00000100
+#define FCP_CMND_TA_ORDRD_Q 0x00000200
+#define FCP_CMND_TA_ACA     0x00000400
+#define FCP_CMND_PRI_MASK    0x00007800
+#define FCP_CMND_TM_MASK     0x00FF0000
+#define FCP_CMND_ATS        0x00020000
+#define FCP_CMND_CTS        0x00040000
+#define FCP_CMND_LRS        0x00100000
+#define FCP_CMND_TRS        0x00200000
+#define FCP_CMND_CLA        0x00400000
+#define FCP_CMND_TRM        0x00800000
+#define FCP_CMND_DATA_DIR    0x03000000
+#define FCP_CMND_WRD        0x01000000
+#define FCP_CMND_RDD        0x02000000
 
 	u8 cdb[FCP_CDB_SIZE];
-	union {
-		struct __packed {
+	union
+	{
+		struct __packed
+		{
 			u64 ppsense_buf;
 			u16 target_id;
 			u8 iblk_cnt_prd;
@@ -1068,7 +1109,8 @@ struct __packed atto_vda_scsi_req {
 		struct atto_physical_region_description sense_buff_prd;
 	};
 
-	union {
+	union
+	{
 		struct atto_vda_sge sge[1];
 
 		u32 abort_handle;
@@ -1078,7 +1120,8 @@ struct __packed atto_vda_scsi_req {
 };
 
 
-struct __packed atto_vda_flash_req {
+struct __packed atto_vda_flash_req
+{
 	u32 length;
 	u8 function; /* VDA_FUNC_FLASH */
 	u8 sub_func;
@@ -1089,8 +1132,10 @@ struct __packed atto_vda_flash_req {
 	u8 checksum;
 	u8 rsvd[3];
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			char file_name[16]; /* 8.3 fname, NULL term, wc=* */
 			struct atto_vda_sge sge[1];
 		} file;
@@ -1101,16 +1146,17 @@ struct __packed atto_vda_flash_req {
 };
 
 
-struct __packed atto_vda_diag_req {
+struct __packed atto_vda_diag_req
+{
 	u32 length;
 	u8 function; /* VDA_FUNC_DIAG */
 	u8 sub_func;
-	#define VDA_DIAG_STATUS   0x00
-	#define VDA_DIAG_RESET    0x01
-	#define VDA_DIAG_PAUSE    0x02
-	#define VDA_DIAG_RESUME   0x03
-	#define VDA_DIAG_READ     0x04
-	#define VDA_DIAG_WRITE    0x05
+#define VDA_DIAG_STATUS   0x00
+#define VDA_DIAG_RESET    0x01
+#define VDA_DIAG_PAUSE    0x02
+#define VDA_DIAG_RESUME   0x03
+#define VDA_DIAG_READ     0x04
+#define VDA_DIAG_WRITE    0x05
 
 	u8 chain_offset;
 	u8 sg_list_offset;
@@ -1121,7 +1167,8 @@ struct __packed atto_vda_diag_req {
 };
 
 
-struct __packed atto_vda_ae_req {
+struct __packed atto_vda_ae_req
+{
 	u32 length;
 	u8 function; /* VDA_FUNC_AE */
 	u8 reserved1;
@@ -1129,14 +1176,16 @@ struct __packed atto_vda_ae_req {
 	u8 sg_list_offset;
 	u32 handle;
 
-	union {
+	union
+	{
 		struct atto_vda_sge sge[1];
 		struct atto_physical_region_description prde[1];
 	};
 };
 
 
-struct __packed atto_vda_cli_req {
+struct __packed atto_vda_cli_req
+{
 	u32 length;
 	u8 function; /* VDA_FUNC_CLI */
 	u8 reserved1;
@@ -1148,7 +1197,8 @@ struct __packed atto_vda_cli_req {
 };
 
 
-struct __packed atto_vda_ioctl_req {
+struct __packed atto_vda_ioctl_req
+{
 	u32 length;
 	u8 function; /* VDA_FUNC_IOCTL */
 	u8 sub_func;
@@ -1156,13 +1206,16 @@ struct __packed atto_vda_ioctl_req {
 	u8 sg_list_offset;
 	u32 handle;
 
-	union {
+	union
+	{
 		struct atto_vda_sge reserved_sge;
 		struct atto_physical_region_description reserved_prde;
 	};
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u32 ctrl_code;
 			u16 target_id;
 			u8 lun;
@@ -1170,14 +1223,16 @@ struct __packed atto_vda_ioctl_req {
 		} csmi;
 	};
 
-	union {
+	union
+	{
 		struct atto_vda_sge sge[1];
 		struct atto_physical_region_description prde[1];
 	};
 };
 
 
-struct __packed atto_vda_cfg_req {
+struct __packed atto_vda_cfg_req
+{
 	u32 length;
 	u8 function; /* VDA_FUNC_CFG */
 	u8 sub_func;
@@ -1185,7 +1240,8 @@ struct __packed atto_vda_cfg_req {
 	u8 sg_list_offset;
 	u32 handle;
 
-	union {
+	union
+	{
 		u8 bytes[116];
 		struct atto_vda_cfg_init init;
 		struct atto_vda_sge sge;
@@ -1194,7 +1250,8 @@ struct __packed atto_vda_cfg_req {
 };
 
 
-struct __packed atto_vda_mgmt_req {
+struct __packed atto_vda_mgmt_req
+{
 	u32 length;
 	u8 function; /* VDA_FUNC_MGT */
 	u8 mgt_func;
@@ -1206,7 +1263,8 @@ struct __packed atto_vda_mgmt_req {
 	u16 dev_index;
 	u32 payld_length;
 	u32 pad;
-	union {
+	union
+	{
 		struct atto_vda_sge sge[2];
 		struct atto_physical_region_description prde[2];
 	};
@@ -1214,7 +1272,8 @@ struct __packed atto_vda_mgmt_req {
 };
 
 
-union atto_vda_req {
+union atto_vda_req
+{
 	struct atto_vda_scsi_req scsi;
 	struct atto_vda_flash_req flash;
 	struct atto_vda_diag_req diag;
@@ -1228,28 +1287,35 @@ union atto_vda_req {
 
 /* Outbound response structures */
 
-struct __packed atto_vda_scsi_rsp {
+struct __packed atto_vda_scsi_rsp
+{
 	u8 scsi_stat;
 	u8 sense_len;
 	u8 rsvd[2];
 	u32 residual_length;
 };
 
-struct __packed atto_vda_flash_rsp {
+struct __packed atto_vda_flash_rsp
+{
 	u32 file_size;
 };
 
-struct __packed atto_vda_ae_rsp {
+struct __packed atto_vda_ae_rsp
+{
 	u32 length;
 };
 
-struct __packed atto_vda_cli_rsp {
+struct __packed atto_vda_cli_rsp
+{
 	u32 cmd_rsp_len;
 };
 
-struct __packed atto_vda_ioctl_rsp {
-	union {
-		struct {
+struct __packed atto_vda_ioctl_rsp
+{
+	union
+	{
+		struct
+		{
 			u32 csmi_status;
 			u16 target_id;
 			u8 lun;
@@ -1258,19 +1324,22 @@ struct __packed atto_vda_ioctl_rsp {
 	};
 };
 
-struct __packed atto_vda_cfg_rsp {
+struct __packed atto_vda_cfg_rsp
+{
 	u16 vda_version;
 	u16 fw_release;
 	u32 fw_build;
 };
 
-struct __packed atto_vda_mgmt_rsp {
+struct __packed atto_vda_mgmt_rsp
+{
 	u32 length;
 	u16 dev_index;
 	u8 scan_generation;
 };
 
-union atto_vda_func_rsp {
+union atto_vda_func_rsp
+{
 	struct atto_vda_scsi_rsp scsi_rsp;
 	struct atto_vda_flash_rsp flash_rsp;
 	struct atto_vda_ae_rsp ae_rsp;
@@ -1281,7 +1350,8 @@ union atto_vda_func_rsp {
 	u32 dwords[2];
 };
 
-struct __packed atto_vda_ob_rsp {
+struct __packed atto_vda_ob_rsp
+{
 	u32 handle;
 	u8 req_stat;
 	u8 rsvd[3];
@@ -1290,12 +1360,15 @@ struct __packed atto_vda_ob_rsp {
 		func_rsp;
 };
 
-struct __packed atto_vda_ae_data {
+struct __packed atto_vda_ae_data
+{
 	u8 event_data[256];
 };
 
-struct __packed atto_vda_mgmt_data {
-	union {
+struct __packed atto_vda_mgmt_data
+{
+	union
+	{
 		u8 bytes[112];
 		struct atto_vda_devinfo dev_info;
 		struct atto_vda_grp_info grp_info;
@@ -1308,11 +1381,12 @@ struct __packed atto_vda_mgmt_data {
 	} data;
 };
 
-union atto_vda_rsp_data {
+union atto_vda_rsp_data
+{
 	struct atto_vda_ae_data ae_data;
 	struct atto_vda_mgmt_data mgt_data;
 	u8 sense_data[252];
-	#define SENSE_DATA_SZ   252;
+#define SENSE_DATA_SZ   252;
 	u8 bytes[256];
 };
 

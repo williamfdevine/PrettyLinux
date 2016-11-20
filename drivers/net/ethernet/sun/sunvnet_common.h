@@ -25,7 +25,8 @@
 
 #define	VNET_MAX_TXQS		16
 
-struct vnet_tx_entry {
+struct vnet_tx_entry
+{
 	struct sk_buff		*skb;
 	unsigned int		ncookies;
 	struct ldc_trans_cookie	cookies[VNET_MAXCOOKIES];
@@ -39,15 +40,16 @@ struct vnet;
  * vsw bit is not set, the net_device is available from ->vp->dev.
  * See the VNET_PORT_TO_NET_DEVICE macro below.
  */
-struct vnet_port {
+struct vnet_port
+{
 	struct vio_driver_state	vio;
 
 	struct hlist_node	hash;
 	u8			raddr[ETH_ALEN];
-	unsigned		switch_port:1;
-	unsigned		tso:1;
-	unsigned		vsw:1;
-	unsigned		__pad:13;
+	unsigned		switch_port: 1;
+	unsigned		tso: 1;
+	unsigned		vsw: 1;
+	unsigned		__pad: 13;
 
 	struct vnet		*vp;
 	struct net_device	*dev;
@@ -87,14 +89,16 @@ static inline unsigned int vnet_hashfn(u8 *mac)
 	return val & (VNET_PORT_HASH_MASK);
 }
 
-struct vnet_mcast_entry {
+struct vnet_mcast_entry
+{
 	u8			addr[ETH_ALEN];
 	u8			sent;
 	u8			hit;
 	struct vnet_mcast_entry	*next;
 };
 
-struct vnet {
+struct vnet
+{
 	/* Protects port_list and port_hash.  */
 	spinlock_t		lock;
 
@@ -127,10 +131,10 @@ int sunvnet_set_mac_addr_common(struct net_device *dev, void *p);
 void sunvnet_tx_timeout_common(struct net_device *dev);
 int sunvnet_change_mtu_common(struct net_device *dev, int new_mtu);
 int sunvnet_start_xmit_common(struct sk_buff *skb, struct net_device *dev,
-			   struct vnet_port *(*vnet_tx_port)
-			   (struct sk_buff *, struct net_device *));
+							  struct vnet_port * (*vnet_tx_port)
+							  (struct sk_buff *, struct net_device *));
 #ifdef CONFIG_NET_POLL_CONTROLLER
-void sunvnet_poll_controller_common(struct net_device *dev, struct vnet *vp);
+	void sunvnet_poll_controller_common(struct net_device *dev, struct vnet *vp);
 #endif
 void sunvnet_event_common(void *arg, int event);
 int sunvnet_send_attr_common(struct vio_driver_state *vio);

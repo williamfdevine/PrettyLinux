@@ -73,29 +73,34 @@ MODULE_FIRMWARE(PRISM2_USB_FWFILE);
 /*================================================================*/
 /* Local Types */
 
-struct s3datarec {
+struct s3datarec
+{
 	u32 len;
 	u32 addr;
 	u8 checksum;
 	u8 *data;
 };
 
-struct s3plugrec {
+struct s3plugrec
+{
 	u32 itemcode;
 	u32 addr;
 	u32 len;
 };
 
-struct s3crcrec {
+struct s3crcrec
+{
 	u32 addr;
 	u32 len;
 	unsigned int dowrite;
 };
 
-struct s3inforec {
+struct s3inforec
+{
 	u16 len;
 	u16 type;
-	union {
+	union
+	{
 		struct hfa384x_compident version;
 		struct hfa384x_caplevel compat;
 		u16 buildseq;
@@ -103,13 +108,15 @@ struct s3inforec {
 	} info;
 };
 
-struct pda {
+struct pda
+{
 	u8 buf[HFA384x_PDA_LEN_MAX];
 	struct hfa384x_pdrec *rec[HFA384x_PDA_RECS_MAX];
 	unsigned int nrec;
 };
 
-struct imgchunk {
+struct imgchunk
+{
 	u32 addr;	/* start address */
 	u32 len;	/* in bytes */
 	u16 crc;	/* CRC value (if it falls at a chunk boundary) */
@@ -161,7 +168,7 @@ static struct hfa384x_caplevel priid;
 /* Local Function Declarations */
 
 static int prism2_fwapply(const struct ihex_binrec *rfptr,
-struct wlandevice *wlandev);
+						  struct wlandevice *wlandev);
 
 static int read_fwfile(const struct ihex_binrec *rfptr);
 
@@ -172,13 +179,13 @@ static int read_cardpda(struct pda *pda, struct wlandevice *wlandev);
 static int mkpdrlist(struct pda *pda);
 
 static int plugimage(struct imgchunk *fchunk, unsigned int nfchunks,
-	      struct s3plugrec *s3plug, unsigned int ns3plug, struct pda *pda);
+					 struct s3plugrec *s3plug, unsigned int ns3plug, struct pda *pda);
 
 static int crcimage(struct imgchunk *fchunk, unsigned int nfchunks,
-	     struct s3crcrec *s3crc, unsigned int ns3crc);
+					struct s3crcrec *s3crc, unsigned int ns3crc);
 
 static int writeimage(struct wlandevice *wlandev, struct imgchunk *fchunk,
-	       unsigned int nfchunks);
+					  unsigned int nfchunks);
 static void free_chunks(struct imgchunk *fchunk, unsigned int *nfchunks);
 
 static void free_srecs(void);
@@ -206,19 +213,21 @@ static int prism2_fwtry(struct usb_device *udev, struct wlandevice *wlandev)
 	const struct firmware *fw_entry = NULL;
 
 	netdev_info(wlandev->netdev, "prism2_usb: Checking for firmware %s\n",
-	       PRISM2_USB_FWFILE);
+				PRISM2_USB_FWFILE);
+
 	if (request_ihex_firmware(&fw_entry,
-				  PRISM2_USB_FWFILE, &udev->dev) != 0) {
+							  PRISM2_USB_FWFILE, &udev->dev) != 0)
+	{
 		netdev_info(wlandev->netdev,
-		       "prism2_usb: Firmware not available, but not essential\n");
+					"prism2_usb: Firmware not available, but not essential\n");
 		netdev_info(wlandev->netdev,
-		       "prism2_usb: can continue to use card anyway.\n");
+					"prism2_usb: can continue to use card anyway.\n");
 		return 1;
 	}
 
 	netdev_info(wlandev->netdev,
-		    "prism2_usb: %s will be processed, size %zu\n",
-		    PRISM2_USB_FWFILE, fw_entry->size);
+				"prism2_usb: %s will be processed, size %zu\n",
+				PRISM2_USB_FWFILE, fw_entry->size);
 	prism2_fwapply((const struct ihex_binrec *)fw_entry->data, wlandev);
 
 	release_firmware(fw_entry);
@@ -239,7 +248,7 @@ static int prism2_fwtry(struct usb_device *udev, struct wlandevice *wlandev)
 *	~0	- failure
 ----------------------------------------------------------------*/
 static int prism2_fwapply(const struct ihex_binrec *rfptr,
-			  struct wlandevice *wlandev)
+						  struct wlandevice *wlandev)
 {
 	signed int result = 0;
 	struct p80211msg_dot11req_mibget getmsg;
@@ -276,7 +285,8 @@ static int prism2_fwapply(const struct ihex_binrec *rfptr,
 	prism2sta_ifstate(wlandev, P80211ENUM_ifstate_fwload);
 
 	/* Build the PDA we're going to use. */
-	if (read_cardpda(&pda, wlandev)) {
+	if (read_cardpda(&pda, wlandev))
+	{
 		netdev_err(wlandev->netdev, "load_cardpda failed, exiting.\n");
 		result = 1;
 		goto out;
@@ -301,8 +311,11 @@ static int prism2_fwapply(const struct ihex_binrec *rfptr,
 
 	/* DIDmsg_dot11req_mibget */
 	prism2mgmt_mibset_mibget(wlandev, &getmsg);
+
 	if (getmsg.resultcode.data != P80211ENUM_resultcode_success)
+	{
 		netdev_err(wlandev->netdev, "Couldn't fetch PRI-SUP info\n");
+	}
 
 	/* Already in host order */
 	priid.role = *data++;
@@ -313,49 +326,62 @@ static int prism2_fwapply(const struct ihex_binrec *rfptr,
 
 	/* Read the S3 file */
 	result = read_fwfile(rfptr);
-	if (result) {
+
+	if (result)
+	{
 		netdev_err(wlandev->netdev,
-			   "Failed to read the data exiting.\n");
+				   "Failed to read the data exiting.\n");
 		goto out;
 	}
 
 	result = validate_identity();
-	if (result) {
+
+	if (result)
+	{
 		netdev_err(wlandev->netdev, "Incompatible firmware image.\n");
 		goto out;
 	}
 
-	if (startaddr == 0x00000000) {
+	if (startaddr == 0x00000000)
+	{
 		netdev_err(wlandev->netdev,
-			   "Can't RAM download a Flash image!\n");
+				   "Can't RAM download a Flash image!\n");
 		result = 1;
 		goto out;
 	}
 
 	/* Make the image chunks */
 	result = mkimage(fchunk, &nfchunks);
-	if (result) {
+
+	if (result)
+	{
 		netdev_err(wlandev->netdev, "Failed to make image chunk.\n");
 		goto free_chunks;
 	}
 
 	/* Do any plugging */
 	result = plugimage(fchunk, nfchunks, s3plug, ns3plug, &pda);
-	if (result) {
+
+	if (result)
+	{
 		netdev_err(wlandev->netdev, "Failed to plug data.\n");
 		goto free_chunks;
 	}
 
 	/* Insert any CRCs */
 	result = crcimage(fchunk, nfchunks, s3crc, ns3crc);
-	if (result) {
+
+	if (result)
+	{
 		netdev_err(wlandev->netdev, "Failed to insert all CRCs\n");
 		goto free_chunks;
 	}
 
 	/* Write the image */
 	result = writeimage(wlandev, fchunk, nfchunks);
-	if (result) {
+
+	if (result)
+	{
 		netdev_err(wlandev->netdev, "Failed to ramwrite image data.\n");
 		goto free_chunks;
 	}
@@ -389,7 +415,7 @@ out:
 *	~0	failure
 ----------------------------------------------------------------*/
 static int crcimage(struct imgchunk *fchunk, unsigned int nfchunks,
-	     struct s3crcrec *s3crc, unsigned int ns3crc)
+					struct s3crcrec *s3crc, unsigned int ns3crc)
 {
 	int result = 0;
 	int i;
@@ -401,13 +427,19 @@ static int crcimage(struct imgchunk *fchunk, unsigned int nfchunks,
 	u8 *dest;
 	u32 chunkoff;
 
-	for (i = 0; i < ns3crc; i++) {
+	for (i = 0; i < ns3crc; i++)
+	{
 		if (!s3crc[i].dowrite)
+		{
 			continue;
+		}
+
 		crcstart = s3crc[i].addr;
 		crcend = s3crc[i].addr + s3crc[i].len;
+
 		/* Find chunk */
-		for (c = 0; c < nfchunks; c++) {
+		for (c = 0; c < nfchunks; c++)
+		{
 			cstart = fchunk[c].addr;
 			cend = fchunk[c].addr + fchunk[c].len;
 			/* the line below does an address & len match search */
@@ -419,11 +451,15 @@ static int crcimage(struct imgchunk *fchunk, unsigned int nfchunks,
 			/* note the -2 below, it's to make sure the chunk has */
 			/* space for the CRC value */
 			if (crcstart - 2 >= cstart && crcstart < cend)
+			{
 				break;
+			}
 		}
-		if (c >= nfchunks) {
+
+		if (c >= nfchunks)
+		{
 			pr_err("Failed to find chunk for crcrec[%d], addr=0x%06x len=%d , aborting crc.\n",
-			       i, s3crc[i].addr, s3crc[i].len);
+				   i, s3crc[i].addr, s3crc[i].len);
 			return 1;
 		}
 
@@ -435,6 +471,7 @@ static int crcimage(struct imgchunk *fchunk, unsigned int nfchunks,
 		*(dest + 1) = 0xc0;
 
 	}
+
 	return result;
 }
 
@@ -454,7 +491,9 @@ static void free_chunks(struct imgchunk *fchunk, unsigned int *nfchunks)
 	int i;
 
 	for (i = 0; i < *nfchunks; i++)
+	{
 		kfree(fchunk[i].data);
+	}
 
 	*nfchunks = 0;
 	memset(fchunk, 0, sizeof(*fchunk));
@@ -516,23 +555,30 @@ static int mkimage(struct imgchunk *clist, unsigned int *ccnt)
 	*ccnt = 0;
 
 	/* Establish the location and size of each chunk */
-	for (i = 0; i < ns3data; i++) {
-		if (s3data[i].addr == nextaddr) {
+	for (i = 0; i < ns3data; i++)
+	{
+		if (s3data[i].addr == nextaddr)
+		{
 			/* existing chunk, grow it */
 			clist[currchunk].len += s3data[i].len;
 			nextaddr += s3data[i].len;
-		} else {
+		}
+		else
+		{
 			/* New chunk */
 			(*ccnt)++;
 			currchunk = *ccnt - 1;
 			clist[currchunk].addr = s3data[i].addr;
 			clist[currchunk].len = s3data[i].len;
 			nextaddr = s3data[i].addr + s3data[i].len;
+
 			/* Expand the chunk if there is a CRC record at */
 			/* their beginning bound */
-			for (j = 0; j < ns3crc; j++) {
+			for (j = 0; j < ns3crc; j++)
+			{
 				if (s3crc[j].dowrite &&
-				    s3crc[j].addr == clist[currchunk].addr) {
+					s3crc[j].addr == clist[currchunk].addr)
+				{
 					clist[currchunk].addr -= 2;
 					clist[currchunk].len += 2;
 				}
@@ -544,31 +590,44 @@ static int mkimage(struct imgchunk *clist, unsigned int *ccnt)
 	/*  if this proves false, we'll need to add code to coalesce. */
 
 	/* Allocate buffer space for chunks */
-	for (i = 0; i < *ccnt; i++) {
+	for (i = 0; i < *ccnt; i++)
+	{
 		clist[i].data = kzalloc(clist[i].len, GFP_KERNEL);
-		if (!clist[i].data) {
+
+		if (!clist[i].data)
+		{
 			pr_err("failed to allocate image space, exitting.\n");
 			return 1;
 		}
+
 		pr_debug("chunk[%d]: addr=0x%06x len=%d\n",
-			 i, clist[i].addr, clist[i].len);
+				 i, clist[i].addr, clist[i].len);
 	}
 
 	/* Copy srec data to chunks */
-	for (i = 0; i < ns3data; i++) {
+	for (i = 0; i < ns3data; i++)
+	{
 		s3start = s3data[i].addr;
 		s3end = s3start + s3data[i].len - 1;
-		for (j = 0; j < *ccnt; j++) {
+
+		for (j = 0; j < *ccnt; j++)
+		{
 			cstart = clist[j].addr;
 			cend = cstart + clist[j].len - 1;
+
 			if (s3start >= cstart && s3end <= cend)
+			{
 				break;
+			}
 		}
-		if (((unsigned int)j) >= (*ccnt)) {
+
+		if (((unsigned int)j) >= (*ccnt))
+		{
 			pr_err("s3rec(a=0x%06x,l=%d), no chunk match, exiting.\n",
-			       s3start, s3data[i].len);
+				   s3start, s3data[i].len);
 			return 1;
 		}
+
 		coffset = s3start - cstart;
 		memcpy(clist[j].data + coffset, s3data[i].data, s3data[i].len);
 	}
@@ -597,32 +656,39 @@ static int mkpdrlist(struct pda *pda)
 
 	pda->nrec = 0;
 	curroff = 0;
+
 	while (curroff < (HFA384x_PDA_LEN_MAX / 2 - 1) &&
-	       le16_to_cpu(pda16[curroff + 1]) != HFA384x_PDR_END_OF_PDA) {
-		pda->rec[pda->nrec] = (struct hfa384x_pdrec *)&(pda16[curroff]);
+		   le16_to_cpu(pda16[curroff + 1]) != HFA384x_PDR_END_OF_PDA)
+	{
+		pda->rec[pda->nrec] = (struct hfa384x_pdrec *) & (pda16[curroff]);
 
 		if (le16_to_cpu(pda->rec[pda->nrec]->code) ==
-		    HFA384x_PDR_NICID) {
+			HFA384x_PDR_NICID)
+		{
 			memcpy(&nicid, &pda->rec[pda->nrec]->data.nicid,
-			       sizeof(nicid));
+				   sizeof(nicid));
 			nicid.id = le16_to_cpu(nicid.id);
 			nicid.variant = le16_to_cpu(nicid.variant);
 			nicid.major = le16_to_cpu(nicid.major);
 			nicid.minor = le16_to_cpu(nicid.minor);
 		}
+
 		if (le16_to_cpu(pda->rec[pda->nrec]->code) ==
-		    HFA384x_PDR_MFISUPRANGE) {
+			HFA384x_PDR_MFISUPRANGE)
+		{
 			memcpy(&rfid, &pda->rec[pda->nrec]->data.mfisuprange,
-			       sizeof(rfid));
+				   sizeof(rfid));
 			rfid.id = le16_to_cpu(rfid.id);
 			rfid.variant = le16_to_cpu(rfid.variant);
 			rfid.bottom = le16_to_cpu(rfid.bottom);
 			rfid.top = le16_to_cpu(rfid.top);
 		}
+
 		if (le16_to_cpu(pda->rec[pda->nrec]->code) ==
-		    HFA384x_PDR_CFISUPRANGE) {
+			HFA384x_PDR_CFISUPRANGE)
+		{
 			memcpy(&macid, &pda->rec[pda->nrec]->data.cfisuprange,
-			       sizeof(macid));
+				   sizeof(macid));
 			macid.id = le16_to_cpu(macid.id);
 			macid.variant = le16_to_cpu(macid.variant);
 			macid.bottom = le16_to_cpu(macid.bottom);
@@ -633,12 +699,15 @@ static int mkpdrlist(struct pda *pda)
 		curroff += le16_to_cpu(pda16[curroff]) + 1;
 
 	}
-	if (curroff >= (HFA384x_PDA_LEN_MAX / 2 - 1)) {
+
+	if (curroff >= (HFA384x_PDA_LEN_MAX / 2 - 1))
+	{
 		pr_err("no end record found or invalid lengths in PDR data, exiting. %x %d\n",
-		       curroff, pda->nrec);
+			   curroff, pda->nrec);
 		return 1;
 	}
-	pda->rec[pda->nrec] = (struct hfa384x_pdrec *)&(pda16[curroff]);
+
+	pda->rec[pda->nrec] = (struct hfa384x_pdrec *) & (pda16[curroff]);
 	(pda->nrec)++;
 	return 0;
 }
@@ -661,7 +730,7 @@ static int mkpdrlist(struct pda *pda)
 *	~0	failure
 ----------------------------------------------------------------*/
 static int plugimage(struct imgchunk *fchunk, unsigned int nfchunks,
-	      struct s3plugrec *s3plug, unsigned int ns3plug, struct pda *pda)
+					 struct s3plugrec *s3plug, unsigned int ns3plug, struct pda *pda)
 {
 	int result = 0;
 	int i;			/* plug index */
@@ -675,22 +744,32 @@ static int plugimage(struct imgchunk *fchunk, unsigned int nfchunks,
 	u8 *dest;
 
 	/* for each plug record */
-	for (i = 0; i < ns3plug; i++) {
+	for (i = 0; i < ns3plug; i++)
+	{
 		pstart = s3plug[i].addr;
 		pend = s3plug[i].addr + s3plug[i].len;
+
 		/* find the matching PDR (or filename) */
-		if (s3plug[i].itemcode != 0xffffffffUL) { /* not filename */
-			for (j = 0; j < pda->nrec; j++) {
+		if (s3plug[i].itemcode != 0xffffffffUL)   /* not filename */
+		{
+			for (j = 0; j < pda->nrec; j++)
+			{
 				if (s3plug[i].itemcode ==
-				    le16_to_cpu(pda->rec[j]->code))
+					le16_to_cpu(pda->rec[j]->code))
+				{
 					break;
+				}
 			}
-		} else {
+		}
+		else
+		{
 			j = -1;
 		}
-		if (j >= pda->nrec && j != -1) { /*  if no matching PDR, fail */
+
+		if (j >= pda->nrec && j != -1)   /*  if no matching PDR, fail */
+		{
 			pr_warn("warning: Failed to find PDR for plugrec 0x%04x.\n",
-				s3plug[i].itemcode);
+					s3plug[i].itemcode);
 			continue;	/* and move on to the next PDR */
 #if 0
 			/* MSM: They swear that unless it's the MAC address,
@@ -706,9 +785,10 @@ static int plugimage(struct imgchunk *fchunk, unsigned int nfchunks,
 		}
 
 		/* Validate plug len against PDR len */
-		if (j != -1 && s3plug[i].len < le16_to_cpu(pda->rec[j]->len)) {
+		if (j != -1 && s3plug[i].len < le16_to_cpu(pda->rec[j]->len))
+		{
 			pr_err("error: Plug vs. PDR len mismatch for plugrec 0x%04x, abort plugging.\n",
-			       s3plug[i].itemcode);
+				   s3plug[i].itemcode);
 			result = 1;
 			continue;
 		}
@@ -717,15 +797,21 @@ static int plugimage(struct imgchunk *fchunk, unsigned int nfchunks,
 		 * Validate plug address against
 		 * chunk data and identify chunk
 		 */
-		for (c = 0; c < nfchunks; c++) {
+		for (c = 0; c < nfchunks; c++)
+		{
 			cstart = fchunk[c].addr;
 			cend = fchunk[c].addr + fchunk[c].len;
+
 			if (pstart >= cstart && pend <= cend)
+			{
 				break;
+			}
 		}
-		if (c >= nfchunks) {
+
+		if (c >= nfchunks)
+		{
 			pr_err("error: Failed to find image chunk for plugrec 0x%04x.\n",
-			       s3plug[i].itemcode);
+				   s3plug[i].itemcode);
 			result = 1;
 			continue;
 		}
@@ -734,16 +820,20 @@ static int plugimage(struct imgchunk *fchunk, unsigned int nfchunks,
 		chunkoff = pstart - cstart;
 		dest = fchunk[c].data + chunkoff;
 		pr_debug("Plugging item 0x%04x @ 0x%06x, len=%d, cnum=%d coff=0x%06x\n",
-			 s3plug[i].itemcode, pstart, s3plug[i].len,
-			 c, chunkoff);
+				 s3plug[i].itemcode, pstart, s3plug[i].len,
+				 c, chunkoff);
 
-		if (j == -1) {	/* plug the filename */
+		if (j == -1)  	/* plug the filename */
+		{
 			memset(dest, 0, s3plug[i].len);
 			strncpy(dest, PRISM2_USB_FWFILE, s3plug[i].len - 1);
-		} else {	/* plug a PDR */
+		}
+		else  	/* plug a PDR */
+		{
 			memcpy(dest, &(pda->rec[j]->data), s3plug[i].len);
 		}
 	}
+
 	return result;
 
 }
@@ -772,8 +862,11 @@ static int read_cardpda(struct pda *pda, struct wlandevice *wlandev)
 	struct p80211msg_p2req_readpda *msg;
 
 	msg = kzalloc(sizeof(*msg), GFP_KERNEL);
+
 	if (!msg)
+	{
 		return -ENOMEM;
+	}
 
 	/* set up the msg */
 	msg->msgcode = DIDmsg_p2req_readpda;
@@ -786,13 +879,18 @@ static int read_cardpda(struct pda *pda, struct wlandevice *wlandev)
 	msg->resultcode.len = sizeof(u32);
 	msg->resultcode.status = P80211ENUM_msgitem_status_no_value;
 
-	if (prism2mgmt_readpda(wlandev, msg) != 0) {
+	if (prism2mgmt_readpda(wlandev, msg) != 0)
+	{
 		/* prism2mgmt_readpda prints an errno if appropriate */
 		result = -1;
-	} else if (msg->resultcode.data == P80211ENUM_resultcode_success) {
+	}
+	else if (msg->resultcode.data == P80211ENUM_resultcode_success)
+	{
 		memcpy(pda->buf, msg->pda.data, HFA384x_PDA_LEN_MAX);
 		result = mkpdrlist(pda);
-	} else {
+	}
+	else
+	{
 		/* resultcode must've been something other than success */
 		result = -1;
 	}
@@ -871,7 +969,8 @@ static int read_fwfile(const struct ihex_binrec *record)
 
 	pr_debug("Reading fw file ...\n");
 
-	while (record) {
+	while (record)
+	{
 
 		rcnt++;
 
@@ -883,87 +982,111 @@ static int read_fwfile(const struct ihex_binrec *record)
 		ptr16 = (u16 *)record->data;
 
 		/* parse what was an S3 srec and put it in the right array */
-		switch (addr) {
-		case S3ADDR_START:
-			startaddr = *ptr32;
-			pr_debug("  S7 start addr, record=%d addr=0x%08x\n",
-				      rcnt,
-				      startaddr);
-			break;
-		case S3ADDR_PLUG:
-			s3plug[ns3plug].itemcode = *ptr32;
-			s3plug[ns3plug].addr = *(ptr32 + 1);
-			s3plug[ns3plug].len = *(ptr32 + 2);
+		switch (addr)
+		{
+			case S3ADDR_START:
+				startaddr = *ptr32;
+				pr_debug("  S7 start addr, record=%d addr=0x%08x\n",
+						 rcnt,
+						 startaddr);
+				break;
 
-			pr_debug("  S3 plugrec, record=%d itemcode=0x%08x addr=0x%08x len=%d\n",
-				      rcnt,
-				      s3plug[ns3plug].itemcode,
-				      s3plug[ns3plug].addr,
-				      s3plug[ns3plug].len);
+			case S3ADDR_PLUG:
+				s3plug[ns3plug].itemcode = *ptr32;
+				s3plug[ns3plug].addr = *(ptr32 + 1);
+				s3plug[ns3plug].len = *(ptr32 + 2);
 
-			ns3plug++;
-			if (ns3plug == S3PLUG_MAX) {
-				pr_err("S3 plugrec limit reached - aborting\n");
-				return 1;
-			}
-			break;
-		case S3ADDR_CRC:
-			s3crc[ns3crc].addr = *ptr32;
-			s3crc[ns3crc].len = *(ptr32 + 1);
-			s3crc[ns3crc].dowrite = *(ptr32 + 2);
+				pr_debug("  S3 plugrec, record=%d itemcode=0x%08x addr=0x%08x len=%d\n",
+						 rcnt,
+						 s3plug[ns3plug].itemcode,
+						 s3plug[ns3plug].addr,
+						 s3plug[ns3plug].len);
 
-			pr_debug("  S3 crcrec, record=%d addr=0x%08x len=%d write=0x%08x\n",
-				      rcnt,
-				      s3crc[ns3crc].addr,
-				      s3crc[ns3crc].len,
-				      s3crc[ns3crc].dowrite);
-			ns3crc++;
-			if (ns3crc == S3CRC_MAX) {
-				pr_err("S3 crcrec limit reached - aborting\n");
-				return 1;
-			}
-			break;
-		case S3ADDR_INFO:
-			s3info[ns3info].len = *ptr16;
-			s3info[ns3info].type = *(ptr16 + 1);
+				ns3plug++;
 
-			pr_debug("  S3 inforec, record=%d len=0x%04x type=0x%04x\n",
-				      rcnt,
-				      s3info[ns3info].len,
-				      s3info[ns3info].type);
-			if (((s3info[ns3info].len - 1) * sizeof(u16)) >
-			   sizeof(s3info[ns3info].info)) {
-				pr_err("S3 inforec length too long - aborting\n");
-				return 1;
-			}
+				if (ns3plug == S3PLUG_MAX)
+				{
+					pr_err("S3 plugrec limit reached - aborting\n");
+					return 1;
+				}
 
-			tmpinfo = (u16 *)&(s3info[ns3info].info.version);
-			pr_debug("            info=");
-			for (i = 0; i < s3info[ns3info].len - 1; i++) {
-				tmpinfo[i] = *(ptr16 + 2 + i);
-				pr_debug("%04x ", tmpinfo[i]);
-			}
-			pr_debug("\n");
+				break;
 
-			ns3info++;
-			if (ns3info == S3INFO_MAX) {
-				pr_err("S3 inforec limit reached - aborting\n");
-				return 1;
-			}
-			break;
-		default:	/* Data record */
-			s3data[ns3data].addr = addr;
-			s3data[ns3data].len = len;
-			s3data[ns3data].data = (uint8_t *)record->data;
-			ns3data++;
-			if (ns3data == S3DATA_MAX) {
-				pr_err("S3 datarec limit reached - aborting\n");
-				return 1;
-			}
-			break;
+			case S3ADDR_CRC:
+				s3crc[ns3crc].addr = *ptr32;
+				s3crc[ns3crc].len = *(ptr32 + 1);
+				s3crc[ns3crc].dowrite = *(ptr32 + 2);
+
+				pr_debug("  S3 crcrec, record=%d addr=0x%08x len=%d write=0x%08x\n",
+						 rcnt,
+						 s3crc[ns3crc].addr,
+						 s3crc[ns3crc].len,
+						 s3crc[ns3crc].dowrite);
+				ns3crc++;
+
+				if (ns3crc == S3CRC_MAX)
+				{
+					pr_err("S3 crcrec limit reached - aborting\n");
+					return 1;
+				}
+
+				break;
+
+			case S3ADDR_INFO:
+				s3info[ns3info].len = *ptr16;
+				s3info[ns3info].type = *(ptr16 + 1);
+
+				pr_debug("  S3 inforec, record=%d len=0x%04x type=0x%04x\n",
+						 rcnt,
+						 s3info[ns3info].len,
+						 s3info[ns3info].type);
+
+				if (((s3info[ns3info].len - 1) * sizeof(u16)) >
+					sizeof(s3info[ns3info].info))
+				{
+					pr_err("S3 inforec length too long - aborting\n");
+					return 1;
+				}
+
+				tmpinfo = (u16 *) & (s3info[ns3info].info.version);
+				pr_debug("            info=");
+
+				for (i = 0; i < s3info[ns3info].len - 1; i++)
+				{
+					tmpinfo[i] = *(ptr16 + 2 + i);
+					pr_debug("%04x ", tmpinfo[i]);
+				}
+
+				pr_debug("\n");
+
+				ns3info++;
+
+				if (ns3info == S3INFO_MAX)
+				{
+					pr_err("S3 inforec limit reached - aborting\n");
+					return 1;
+				}
+
+				break;
+
+			default:	/* Data record */
+				s3data[ns3data].addr = addr;
+				s3data[ns3data].len = len;
+				s3data[ns3data].data = (uint8_t *)record->data;
+				ns3data++;
+
+				if (ns3data == S3DATA_MAX)
+				{
+					pr_err("S3 datarec limit reached - aborting\n");
+					return 1;
+				}
+
+				break;
 		}
+
 		record = ihex_next_binrec(record);
 	}
+
 	return 0;
 }
 
@@ -983,7 +1106,7 @@ static int read_fwfile(const struct ihex_binrec *record)
 *	~0	failure
 ----------------------------------------------------------------*/
 static int writeimage(struct wlandevice *wlandev, struct imgchunk *fchunk,
-	       unsigned int nfchunks)
+					  unsigned int nfchunks)
 {
 	int result = 0;
 	struct p80211msg_p2req_ramdl_state *rstmsg;
@@ -998,11 +1121,13 @@ static int writeimage(struct wlandevice *wlandev, struct imgchunk *fchunk,
 
 	rstmsg = kzalloc(sizeof(*rstmsg), GFP_KERNEL);
 	rwrmsg = kzalloc(sizeof(*rwrmsg), GFP_KERNEL);
-	if (!rstmsg || !rwrmsg) {
+
+	if (!rstmsg || !rwrmsg)
+	{
 		kfree(rstmsg);
 		kfree(rwrmsg);
 		netdev_err(wlandev->netdev,
-			   "writeimage: no memory for firmware download, aborting download\n");
+				   "writeimage: no memory for firmware download, aborting download\n");
 		return -ENOMEM;
 	}
 
@@ -1042,60 +1167,77 @@ static int writeimage(struct wlandevice *wlandev, struct imgchunk *fchunk,
 	rstmsg->exeaddr.data = startaddr;
 
 	result = prism2mgmt_ramdl_state(wlandev, rstmsg);
-	if (result) {
+
+	if (result)
+	{
 		netdev_err(wlandev->netdev,
-			   "writeimage state enable failed w/ result=%d, aborting download\n",
-			   result);
+				   "writeimage state enable failed w/ result=%d, aborting download\n",
+				   result);
 		goto free_result;
 	}
+
 	resultcode = rstmsg->resultcode.data;
-	if (resultcode != P80211ENUM_resultcode_success) {
+
+	if (resultcode != P80211ENUM_resultcode_success)
+	{
 		netdev_err(wlandev->netdev,
-			   "writeimage()->xxxdl_state msg indicates failure, w/ resultcode=%d, aborting download.\n",
-			   resultcode);
+				   "writeimage()->xxxdl_state msg indicates failure, w/ resultcode=%d, aborting download.\n",
+				   resultcode);
 		result = 1;
 		goto free_result;
 	}
 
 	/* Now, loop through the data chunks and send WRITESIZE_MAX data */
-	for (i = 0; i < nfchunks; i++) {
+	for (i = 0; i < nfchunks; i++)
+	{
 		nwrites = fchunk[i].len / WRITESIZE_MAX;
 		nwrites += (fchunk[i].len % WRITESIZE_MAX) ? 1 : 0;
 		curroff = 0;
-		for (j = 0; j < nwrites; j++) {
+
+		for (j = 0; j < nwrites; j++)
+		{
 			/* TODO Move this to a separate function */
 			int lenleft = fchunk[i].len - (WRITESIZE_MAX * j);
 
 			if (fchunk[i].len > WRITESIZE_MAX)
+			{
 				currlen = WRITESIZE_MAX;
+			}
 			else
+			{
 				currlen = lenleft;
+			}
+
 			curroff = j * WRITESIZE_MAX;
 			currdaddr = fchunk[i].addr + curroff;
 			/* Setup the message */
 			rwrmsg->addr.data = currdaddr;
 			rwrmsg->len.data = currlen;
 			memcpy(rwrmsg->data.data,
-			       fchunk[i].data + curroff, currlen);
+				   fchunk[i].data + curroff, currlen);
 
 			/* Send flashdl_write(pda) */
 			pr_debug
-			    ("Sending xxxdl_write message addr=%06x len=%d.\n",
-			     currdaddr, currlen);
+			("Sending xxxdl_write message addr=%06x len=%d.\n",
+			 currdaddr, currlen);
 
 			result = prism2mgmt_ramdl_write(wlandev, rwrmsg);
 
 			/* Check the results */
-			if (result) {
+			if (result)
+			{
 				netdev_err(wlandev->netdev,
-					   "writeimage chunk write failed w/ result=%d, aborting download\n",
-					   result);
+						   "writeimage chunk write failed w/ result=%d, aborting download\n",
+						   result);
 				goto free_result;
 			}
+
 			resultcode = rstmsg->resultcode.data;
-			if (resultcode != P80211ENUM_resultcode_success) {
+
+			if (resultcode != P80211ENUM_resultcode_success)
+			{
 				pr_err("writeimage()->xxxdl_write msg indicates failure, w/ resultcode=%d, aborting download.\n",
-				       resultcode);
+					   resultcode);
 				result = 1;
 				goto free_result;
 			}
@@ -1109,17 +1251,22 @@ static int writeimage(struct wlandevice *wlandev, struct imgchunk *fchunk,
 	rstmsg->exeaddr.data = 0;
 
 	result = prism2mgmt_ramdl_state(wlandev, rstmsg);
-	if (result) {
+
+	if (result)
+	{
 		netdev_err(wlandev->netdev,
-			   "writeimage state disable failed w/ result=%d, aborting download\n",
-			   result);
+				   "writeimage state disable failed w/ result=%d, aborting download\n",
+				   result);
 		goto free_result;
 	}
+
 	resultcode = rstmsg->resultcode.data;
-	if (resultcode != P80211ENUM_resultcode_success) {
+
+	if (resultcode != P80211ENUM_resultcode_success)
+	{
 		netdev_err(wlandev->netdev,
-			   "writeimage()->xxxdl_state msg indicates failure, w/ resultcode=%d, aborting download.\n",
-			   resultcode);
+				   "writeimage()->xxxdl_state msg indicates failure, w/ resultcode=%d, aborting download.\n",
+				   resultcode);
 		result = 1;
 		goto free_result;
 	}
@@ -1137,90 +1284,118 @@ static int validate_identity(void)
 	int trump = 0;
 
 	pr_debug("NIC ID: %#x v%d.%d.%d\n",
-		 nicid.id, nicid.major, nicid.minor, nicid.variant);
+			 nicid.id, nicid.major, nicid.minor, nicid.variant);
 	pr_debug("MFI ID: %#x v%d %d->%d\n",
-		 rfid.id, rfid.variant, rfid.bottom, rfid.top);
+			 rfid.id, rfid.variant, rfid.bottom, rfid.top);
 	pr_debug("CFI ID: %#x v%d %d->%d\n",
-		 macid.id, macid.variant, macid.bottom, macid.top);
+			 macid.id, macid.variant, macid.bottom, macid.top);
 	pr_debug("PRI ID: %#x v%d %d->%d\n",
-		 priid.id, priid.variant, priid.bottom, priid.top);
+			 priid.id, priid.variant, priid.bottom, priid.top);
 
-	for (i = 0; i < ns3info; i++) {
-		switch (s3info[i].type) {
-		case 1:
-			pr_debug("Version:  ID %#x %d.%d.%d\n",
-				 s3info[i].info.version.id,
-				 s3info[i].info.version.major,
-				 s3info[i].info.version.minor,
-				 s3info[i].info.version.variant);
-			break;
-		case 2:
-			pr_debug("Compat: Role %#x Id %#x v%d %d->%d\n",
-				 s3info[i].info.compat.role,
-				 s3info[i].info.compat.id,
-				 s3info[i].info.compat.variant,
-				 s3info[i].info.compat.bottom,
-				 s3info[i].info.compat.top);
+	for (i = 0; i < ns3info; i++)
+	{
+		switch (s3info[i].type)
+		{
+			case 1:
+				pr_debug("Version:  ID %#x %d.%d.%d\n",
+						 s3info[i].info.version.id,
+						 s3info[i].info.version.major,
+						 s3info[i].info.version.minor,
+						 s3info[i].info.version.variant);
+				break;
 
-			/* MAC compat range */
-			if ((s3info[i].info.compat.role == 1) &&
-			    (s3info[i].info.compat.id == 2)) {
-				if (s3info[i].info.compat.variant !=
-				    macid.variant) {
-					result = 2;
+			case 2:
+				pr_debug("Compat: Role %#x Id %#x v%d %d->%d\n",
+						 s3info[i].info.compat.role,
+						 s3info[i].info.compat.id,
+						 s3info[i].info.compat.variant,
+						 s3info[i].info.compat.bottom,
+						 s3info[i].info.compat.top);
+
+				/* MAC compat range */
+				if ((s3info[i].info.compat.role == 1) &&
+					(s3info[i].info.compat.id == 2))
+				{
+					if (s3info[i].info.compat.variant !=
+						macid.variant)
+					{
+						result = 2;
+					}
 				}
-			}
 
-			/* PRI compat range */
-			if ((s3info[i].info.compat.role == 1) &&
-			    (s3info[i].info.compat.id == 3)) {
-				if ((s3info[i].info.compat.bottom > priid.top)
-				    || (s3info[i].info.compat.top <
-					priid.bottom)) {
-					result = 3;
+				/* PRI compat range */
+				if ((s3info[i].info.compat.role == 1) &&
+					(s3info[i].info.compat.id == 3))
+				{
+					if ((s3info[i].info.compat.bottom > priid.top)
+						|| (s3info[i].info.compat.top <
+							priid.bottom))
+					{
+						result = 3;
+					}
 				}
-			}
-			/* SEC compat range */
-			if ((s3info[i].info.compat.role == 1) &&
-			    (s3info[i].info.compat.id == 4)) {
-				/* FIXME: isn't something missing here? */
-			}
 
-			break;
-		case 3:
-			pr_debug("Seq: %#x\n", s3info[i].info.buildseq);
+				/* SEC compat range */
+				if ((s3info[i].info.compat.role == 1) &&
+					(s3info[i].info.compat.id == 4))
+				{
+					/* FIXME: isn't something missing here? */
+				}
 
-			break;
-		case 4:
-			pr_debug("Platform:  ID %#x %d.%d.%d\n",
-				 s3info[i].info.version.id,
-				 s3info[i].info.version.major,
-				 s3info[i].info.version.minor,
-				 s3info[i].info.version.variant);
+				break;
 
-			if (nicid.id != s3info[i].info.version.id)
-				continue;
-			if (nicid.major != s3info[i].info.version.major)
-				continue;
-			if (nicid.minor != s3info[i].info.version.minor)
-				continue;
-			if ((nicid.variant != s3info[i].info.version.variant) &&
-			    (nicid.id != 0x8008))
-				continue;
+			case 3:
+				pr_debug("Seq: %#x\n", s3info[i].info.buildseq);
 
-			trump = 1;
-			break;
-		case 0x8001:
-			pr_debug("name inforec len %d\n", s3info[i].len);
+				break;
 
-			break;
-		default:
-			pr_debug("Unknown inforec type %d\n", s3info[i].type);
+			case 4:
+				pr_debug("Platform:  ID %#x %d.%d.%d\n",
+						 s3info[i].info.version.id,
+						 s3info[i].info.version.major,
+						 s3info[i].info.version.minor,
+						 s3info[i].info.version.variant);
+
+				if (nicid.id != s3info[i].info.version.id)
+				{
+					continue;
+				}
+
+				if (nicid.major != s3info[i].info.version.major)
+				{
+					continue;
+				}
+
+				if (nicid.minor != s3info[i].info.version.minor)
+				{
+					continue;
+				}
+
+				if ((nicid.variant != s3info[i].info.version.variant) &&
+					(nicid.id != 0x8008))
+				{
+					continue;
+				}
+
+				trump = 1;
+				break;
+
+			case 0x8001:
+				pr_debug("name inforec len %d\n", s3info[i].len);
+
+				break;
+
+			default:
+				pr_debug("Unknown inforec type %d\n", s3info[i].type);
 		}
 	}
+
 	/* walk through */
 
 	if (trump && (result != 2))
+	{
 		result = 0;
+	}
+
 	return result;
 }

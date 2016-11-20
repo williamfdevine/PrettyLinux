@@ -19,7 +19,8 @@ struct mapped_device;
 /*
  * One of these is allocated per request.
  */
-struct dm_rq_target_io {
+struct dm_rq_target_io
+{
 	struct mapped_device *md;
 	struct dm_target *ti;
 	struct request *orig, *clone;
@@ -39,7 +40,8 @@ struct dm_rq_target_io {
  * the bioset is created - this means the bio has to come at the end of the
  * struct.
  */
-struct dm_rq_clone_bio_info {
+struct dm_rq_clone_bio_info
+{
 	struct bio *orig;
 	struct dm_rq_target_io *tio;
 	struct bio clone;
@@ -61,6 +63,6 @@ unsigned dm_get_reserved_rq_based_ios(void);
 
 ssize_t dm_attr_rq_based_seq_io_merge_deadline_show(struct mapped_device *md, char *buf);
 ssize_t dm_attr_rq_based_seq_io_merge_deadline_store(struct mapped_device *md,
-						     const char *buf, size_t count);
+		const char *buf, size_t count);
 
 #endif

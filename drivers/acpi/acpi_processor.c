@@ -46,96 +46,113 @@ static int acpi_processor_errata_piix4(struct pci_dev *dev)
 
 
 	if (!dev)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Note that 'dev' references the PIIX4 ACPI Controller.
 	 */
 
-	switch (dev->revision) {
-	case 0:
-		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found PIIX4 A-step\n"));
-		break;
-	case 1:
-		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found PIIX4 B-step\n"));
-		break;
-	case 2:
-		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found PIIX4E\n"));
-		break;
-	case 3:
-		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found PIIX4M\n"));
-		break;
-	default:
-		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found unknown PIIX4\n"));
-		break;
+	switch (dev->revision)
+	{
+		case 0:
+			ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found PIIX4 A-step\n"));
+			break;
+
+		case 1:
+			ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found PIIX4 B-step\n"));
+			break;
+
+		case 2:
+			ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found PIIX4E\n"));
+			break;
+
+		case 3:
+			ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found PIIX4M\n"));
+			break;
+
+		default:
+			ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found unknown PIIX4\n"));
+			break;
 	}
 
-	switch (dev->revision) {
+	switch (dev->revision)
+	{
 
-	case 0:		/* PIIX4 A-step */
-	case 1:		/* PIIX4 B-step */
-		/*
-		 * See specification changes #13 ("Manual Throttle Duty Cycle")
-		 * and #14 ("Enabling and Disabling Manual Throttle"), plus
-		 * erratum #5 ("STPCLK# Deassertion Time") from the January
-		 * 2002 PIIX4 specification update.  Applies to only older
-		 * PIIX4 models.
-		 */
-		errata.piix4.throttle = 1;
+		case 0:		/* PIIX4 A-step */
+		case 1:		/* PIIX4 B-step */
+			/*
+			 * See specification changes #13 ("Manual Throttle Duty Cycle")
+			 * and #14 ("Enabling and Disabling Manual Throttle"), plus
+			 * erratum #5 ("STPCLK# Deassertion Time") from the January
+			 * 2002 PIIX4 specification update.  Applies to only older
+			 * PIIX4 models.
+			 */
+			errata.piix4.throttle = 1;
 
-	case 2:		/* PIIX4E */
-	case 3:		/* PIIX4M */
-		/*
-		 * See erratum #18 ("C3 Power State/BMIDE and Type-F DMA
-		 * Livelock") from the January 2002 PIIX4 specification update.
-		 * Applies to all PIIX4 models.
-		 */
+		case 2:		/* PIIX4E */
+		case 3:		/* PIIX4M */
+			/*
+			 * See erratum #18 ("C3 Power State/BMIDE and Type-F DMA
+			 * Livelock") from the January 2002 PIIX4 specification update.
+			 * Applies to all PIIX4 models.
+			 */
 
-		/*
-		 * BM-IDE
-		 * ------
-		 * Find the PIIX4 IDE Controller and get the Bus Master IDE
-		 * Status register address.  We'll use this later to read
-		 * each IDE controller's DMA status to make sure we catch all
-		 * DMA activity.
-		 */
-		dev = pci_get_subsys(PCI_VENDOR_ID_INTEL,
-				     PCI_DEVICE_ID_INTEL_82371AB,
-				     PCI_ANY_ID, PCI_ANY_ID, NULL);
-		if (dev) {
-			errata.piix4.bmisx = pci_resource_start(dev, 4);
-			pci_dev_put(dev);
-		}
+			/*
+			 * BM-IDE
+			 * ------
+			 * Find the PIIX4 IDE Controller and get the Bus Master IDE
+			 * Status register address.  We'll use this later to read
+			 * each IDE controller's DMA status to make sure we catch all
+			 * DMA activity.
+			 */
+			dev = pci_get_subsys(PCI_VENDOR_ID_INTEL,
+								 PCI_DEVICE_ID_INTEL_82371AB,
+								 PCI_ANY_ID, PCI_ANY_ID, NULL);
 
-		/*
-		 * Type-F DMA
-		 * ----------
-		 * Find the PIIX4 ISA Controller and read the Motherboard
-		 * DMA controller's status to see if Type-F (Fast) DMA mode
-		 * is enabled (bit 7) on either channel.  Note that we'll
-		 * disable C3 support if this is enabled, as some legacy
-		 * devices won't operate well if fast DMA is disabled.
-		 */
-		dev = pci_get_subsys(PCI_VENDOR_ID_INTEL,
-				     PCI_DEVICE_ID_INTEL_82371AB_0,
-				     PCI_ANY_ID, PCI_ANY_ID, NULL);
-		if (dev) {
-			pci_read_config_byte(dev, 0x76, &value1);
-			pci_read_config_byte(dev, 0x77, &value2);
-			if ((value1 & 0x80) || (value2 & 0x80))
-				errata.piix4.fdma = 1;
-			pci_dev_put(dev);
-		}
+			if (dev)
+			{
+				errata.piix4.bmisx = pci_resource_start(dev, 4);
+				pci_dev_put(dev);
+			}
 
-		break;
+			/*
+			 * Type-F DMA
+			 * ----------
+			 * Find the PIIX4 ISA Controller and read the Motherboard
+			 * DMA controller's status to see if Type-F (Fast) DMA mode
+			 * is enabled (bit 7) on either channel.  Note that we'll
+			 * disable C3 support if this is enabled, as some legacy
+			 * devices won't operate well if fast DMA is disabled.
+			 */
+			dev = pci_get_subsys(PCI_VENDOR_ID_INTEL,
+								 PCI_DEVICE_ID_INTEL_82371AB_0,
+								 PCI_ANY_ID, PCI_ANY_ID, NULL);
+
+			if (dev)
+			{
+				pci_read_config_byte(dev, 0x76, &value1);
+				pci_read_config_byte(dev, 0x77, &value2);
+
+				if ((value1 & 0x80) || (value2 & 0x80))
+				{
+					errata.piix4.fdma = 1;
+				}
+
+				pci_dev_put(dev);
+			}
+
+			break;
 	}
 
 	if (errata.piix4.bmisx)
 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-				  "Bus master activity detection (BM-IDE) erratum enabled\n"));
+						  "Bus master activity detection (BM-IDE) erratum enabled\n"));
+
 	if (errata.piix4.fdma)
 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-				  "Type-F DMA livelock erratum (C3 disabled)\n"));
+						  "Type-F DMA livelock erratum (C3 disabled)\n"));
 
 	return 0;
 }
@@ -149,9 +166,11 @@ static int acpi_processor_errata(void)
 	 * PIIX4
 	 */
 	dev = pci_get_subsys(PCI_VENDOR_ID_INTEL,
-			     PCI_DEVICE_ID_INTEL_82371AB_3, PCI_ANY_ID,
-			     PCI_ANY_ID, NULL);
-	if (dev) {
+						 PCI_DEVICE_ID_INTEL_82371AB_3, PCI_ANY_ID,
+						 PCI_ANY_ID, NULL);
+
+	if (dev)
+	{
 		result = acpi_processor_errata_piix4(dev);
 		pci_dev_put(dev);
 	}
@@ -165,7 +184,7 @@ static int acpi_processor_errata(void)
 
 #ifdef CONFIG_ACPI_HOTPLUG_CPU
 int __weak acpi_map_cpu(acpi_handle handle,
-		phys_cpuid_t physid, int *pcpu)
+						phys_cpuid_t physid, int *pcpu)
 {
 	return -ENODEV;
 }
@@ -194,21 +213,31 @@ static int acpi_processor_hotadd_init(struct acpi_processor *pr)
 	int ret;
 
 	if (invalid_phys_cpuid(pr->phys_id))
+	{
 		return -ENODEV;
+	}
 
 	status = acpi_evaluate_integer(pr->handle, "_STA", NULL, &sta);
+
 	if (ACPI_FAILURE(status) || !(sta & ACPI_STA_DEVICE_PRESENT))
+	{
 		return -ENODEV;
+	}
 
 	cpu_maps_update_begin();
 	cpu_hotplug_begin();
 
 	ret = acpi_map_cpu(pr->handle, pr->phys_id, &pr->id);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	ret = arch_register_cpu(pr->id);
-	if (ret) {
+
+	if (ret)
+	{
 		acpi_unmap_cpu(pr->id);
 		goto out;
 	}
@@ -249,56 +278,74 @@ static int acpi_processor_get_info(struct acpi_device *device)
 	 * Check to see if we have bus mastering arbitration control.  This
 	 * is required for proper C3 usage (to maintain cache coherency).
 	 */
-	if (acpi_gbl_FADT.pm2_control_block && acpi_gbl_FADT.pm2_control_length) {
+	if (acpi_gbl_FADT.pm2_control_block && acpi_gbl_FADT.pm2_control_length)
+	{
 		pr->flags.bm_control = 1;
 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-				  "Bus mastering arbitration control present\n"));
-	} else
+						  "Bus mastering arbitration control present\n"));
+	}
+	else
 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-				  "No bus mastering arbitration control\n"));
+						  "No bus mastering arbitration control\n"));
 
-	if (!strcmp(acpi_device_hid(device), ACPI_PROCESSOR_OBJECT_HID)) {
+	if (!strcmp(acpi_device_hid(device), ACPI_PROCESSOR_OBJECT_HID))
+	{
 		/* Declared with "Processor" statement; match ProcessorID */
 		status = acpi_evaluate_object(pr->handle, NULL, NULL, &buffer);
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			dev_err(&device->dev,
-				"Failed to evaluate processor object (0x%x)\n",
-				status);
+					"Failed to evaluate processor object (0x%x)\n",
+					status);
 			return -ENODEV;
 		}
 
 		pr->acpi_id = object.processor.proc_id;
-	} else {
+	}
+	else
+	{
 		/*
 		 * Declared with "Device" statement; match _UID.
 		 * Note that we don't handle string _UIDs yet.
 		 */
 		status = acpi_evaluate_integer(pr->handle, METHOD_NAME__UID,
-						NULL, &value);
-		if (ACPI_FAILURE(status)) {
+									   NULL, &value);
+
+		if (ACPI_FAILURE(status))
+		{
 			dev_err(&device->dev,
-				"Failed to evaluate processor _UID (0x%x)\n",
-				status);
+					"Failed to evaluate processor _UID (0x%x)\n",
+					status);
 			return -ENODEV;
 		}
+
 		device_declaration = 1;
 		pr->acpi_id = value;
 	}
 
 	pr->phys_id = acpi_get_phys_id(pr->handle, device_declaration,
-					pr->acpi_id);
+								   pr->acpi_id);
+
 	if (invalid_phys_cpuid(pr->phys_id))
+	{
 		acpi_handle_debug(pr->handle, "failed to get CPU physical ID.\n");
+	}
 
 	pr->id = acpi_map_cpuid(pr->phys_id, pr->acpi_id);
-	if (!cpu0_initialized && !acpi_has_cpu_in_madt()) {
+
+	if (!cpu0_initialized && !acpi_has_cpu_in_madt())
+	{
 		cpu0_initialized = 1;
+
 		/*
 		 * Handle UP system running SMP kernel, with no CPU
 		 * entry in MADT
 		 */
 		if (invalid_logical_cpuid(pr->id) && (num_online_cpus() == 1))
+		{
 			pr->id = 0;
+		}
 	}
 
 	/*
@@ -309,10 +356,14 @@ static int acpi_processor_get_info(struct acpi_device *device)
 	 *  NOTE: Even if the processor has a cpuid, it may not be present
 	 *  because cpuid <-> apicid mapping is persistent now.
 	 */
-	if (invalid_logical_cpuid(pr->id) || !cpu_present(pr->id)) {
+	if (invalid_logical_cpuid(pr->id) || !cpu_present(pr->id))
+	{
 		int ret = acpi_processor_hotadd_init(pr);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	/*
@@ -326,14 +377,17 @@ static int acpi_processor_get_info(struct acpi_device *device)
 	 */
 	sprintf(acpi_device_bid(device), "CPU%X", pr->id);
 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Processor [%d:%d]\n", pr->id,
-			  pr->acpi_id));
+					  pr->acpi_id));
 
 	if (!object.processor.pblk_address)
+	{
 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No PBLK (NULL address)\n"));
+	}
 	else if (object.processor.pblk_length != 6)
 		dev_err(&device->dev, "Invalid PBLK length [%d]\n",
-			    object.processor.pblk_length);
-	else {
+				object.processor.pblk_length);
+	else
+	{
 		pr->throttling.address = object.processor.pblk_address;
 		pr->throttling.duty_offset = acpi_gbl_FADT.duty_offset;
 		pr->throttling.duty_width = acpi_gbl_FADT.duty_width;
@@ -347,8 +401,11 @@ static int acpi_processor_get_info(struct acpi_device *device)
 	 * of /proc/cpuinfo
 	 */
 	status = acpi_evaluate_integer(pr->handle, "_SUN", NULL, &value);
+
 	if (ACPI_SUCCESS(status))
+	{
 		arch_fix_phys_package_id(pr->id, value);
+	}
 
 	return 0;
 }
@@ -362,17 +419,21 @@ static int acpi_processor_get_info(struct acpi_device *device)
 static DEFINE_PER_CPU(void *, processor_device_array);
 
 static int acpi_processor_add(struct acpi_device *device,
-					const struct acpi_device_id *id)
+							  const struct acpi_device_id *id)
 {
 	struct acpi_processor *pr;
 	struct device *dev;
 	int result = 0;
 
 	pr = kzalloc(sizeof(struct acpi_processor), GFP_KERNEL);
-	if (!pr)
-		return -ENOMEM;
 
-	if (!zalloc_cpumask_var(&pr->throttling.shared_cpu_map, GFP_KERNEL)) {
+	if (!pr)
+	{
+		return -ENOMEM;
+	}
+
+	if (!zalloc_cpumask_var(&pr->throttling.shared_cpu_map, GFP_KERNEL))
+	{
 		result = -ENOMEM;
 		goto err_free_pr;
 	}
@@ -383,12 +444,19 @@ static int acpi_processor_add(struct acpi_device *device,
 	device->driver_data = pr;
 
 	result = acpi_processor_get_info(device);
+
 	if (result) /* Processor is not physically present or unavailable */
+	{
 		return 0;
+	}
 
 #ifdef CONFIG_SMP
+
 	if (pr->id >= setup_max_cpus && pr->id != 0)
+	{
 		return 0;
+	}
+
 #endif
 
 	BUG_ON(pr->id >= nr_cpu_ids);
@@ -399,13 +467,15 @@ static int acpi_processor_add(struct acpi_device *device,
 	 * Don't trust it blindly
 	 */
 	if (per_cpu(processor_device_array, pr->id) != NULL &&
-	    per_cpu(processor_device_array, pr->id) != device) {
+		per_cpu(processor_device_array, pr->id) != device)
+	{
 		dev_warn(&device->dev,
-			"BIOS reported wrong ACPI id %d for the processor\n",
-			pr->id);
+				 "BIOS reported wrong ACPI id %d for the processor\n",
+				 pr->id);
 		/* Give up, but do not abort the namespace scan. */
 		goto err;
 	}
+
 	/*
 	 * processor_device_array is not cleared on errors to allow buggy BIOS
 	 * checks.
@@ -414,29 +484,36 @@ static int acpi_processor_add(struct acpi_device *device,
 	per_cpu(processors, pr->id) = pr;
 
 	dev = get_cpu_device(pr->id);
-	if (!dev) {
+
+	if (!dev)
+	{
 		result = -ENODEV;
 		goto err;
 	}
 
 	result = acpi_bind_one(dev, device);
+
 	if (result)
+	{
 		goto err;
+	}
 
 	pr->dev = dev;
 
 	/* Trigger the processor driver's .probe() if present. */
 	if (device_attach(dev) >= 0)
+	{
 		return 1;
+	}
 
 	dev_err(dev, "Processor driver could not be attached\n");
 	acpi_unbind_one(dev);
 
- err:
+err:
 	free_cpumask_var(pr->throttling.shared_cpu_map);
 	device->driver_data = NULL;
 	per_cpu(processors, pr->id) = NULL;
- err_free_pr:
+err_free_pr:
 	kfree(pr);
 	return result;
 }
@@ -451,11 +528,16 @@ static void acpi_processor_remove(struct acpi_device *device)
 	struct acpi_processor *pr;
 
 	if (!device || !acpi_driver_data(device))
+	{
 		return;
+	}
 
 	pr = acpi_driver_data(device);
+
 	if (pr->id >= nr_cpu_ids)
+	{
 		goto out;
+	}
 
 	/*
 	 * The only reason why we ever get here is CPU hot-removal.  The CPU is
@@ -484,7 +566,7 @@ static void acpi_processor_remove(struct acpi_device *device)
 
 	try_offline_node(cpu_to_node(pr->id));
 
- out:
+out:
 	free_cpumask_var(pr->throttling.shared_cpu_map);
 	kfree(pr);
 }
@@ -493,13 +575,14 @@ static void acpi_processor_remove(struct acpi_device *device)
 #ifdef CONFIG_X86
 static bool acpi_hwp_native_thermal_lvt_set;
 static acpi_status __init acpi_hwp_native_thermal_lvt_osc(acpi_handle handle,
-							  u32 lvl,
-							  void *context,
-							  void **rv)
+		u32 lvl,
+		void *context,
+		void **rv)
 {
 	u8 sb_uuid_str[] = "4077A616-290C-47BE-9EBD-D87058713953";
 	u32 capbuf[2];
-	struct acpi_osc_context osc_context = {
+	struct acpi_osc_context osc_context =
+	{
 		.uuid_str = sb_uuid_str,
 		.rev = 1,
 		.cap.length = 8,
@@ -507,21 +590,27 @@ static acpi_status __init acpi_hwp_native_thermal_lvt_osc(acpi_handle handle,
 	};
 
 	if (acpi_hwp_native_thermal_lvt_set)
+	{
 		return AE_CTRL_TERMINATE;
+	}
 
 	capbuf[0] = 0x0000;
 	capbuf[1] = 0x1000; /* set bit 12 */
 
-	if (ACPI_SUCCESS(acpi_run_osc(handle, &osc_context))) {
-		if (osc_context.ret.pointer && osc_context.ret.length > 1) {
+	if (ACPI_SUCCESS(acpi_run_osc(handle, &osc_context)))
+	{
+		if (osc_context.ret.pointer && osc_context.ret.length > 1)
+		{
 			u32 *capbuf_ret = osc_context.ret.pointer;
 
-			if (capbuf_ret[1] & 0x1000) {
+			if (capbuf_ret[1] & 0x1000)
+			{
 				acpi_handle_info(handle,
-					"_OSC native thermal LVT Acked\n");
+								 "_OSC native thermal LVT Acked\n");
 				acpi_hwp_native_thermal_lvt_set = true;
 			}
 		}
+
 		kfree(osc_context.ret.pointer);
 	}
 
@@ -530,14 +619,15 @@ static acpi_status __init acpi_hwp_native_thermal_lvt_osc(acpi_handle handle,
 
 void __init acpi_early_processor_osc(void)
 {
-	if (boot_cpu_has(X86_FEATURE_HWP)) {
+	if (boot_cpu_has(X86_FEATURE_HWP))
+	{
 		acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
-				    ACPI_UINT32_MAX,
-				    acpi_hwp_native_thermal_lvt_osc,
-				    NULL, NULL, NULL);
+							ACPI_UINT32_MAX,
+							acpi_hwp_native_thermal_lvt_osc,
+							NULL, NULL, NULL);
 		acpi_get_devices(ACPI_PROCESSOR_DEVICE_HID,
-				 acpi_hwp_native_thermal_lvt_osc,
-				 NULL, NULL);
+						 acpi_hwp_native_thermal_lvt_osc,
+						 NULL, NULL);
 	}
 }
 #endif
@@ -546,7 +636,8 @@ void __init acpi_early_processor_osc(void)
  * The following ACPI IDs are known to be suitable for representing as
  * processor devices.
  */
-static const struct acpi_device_id processor_device_ids[] = {
+static const struct acpi_device_id processor_device_ids[] =
+{
 
 	{ ACPI_PROCESSOR_OBJECT_HID, },
 	{ ACPI_PROCESSOR_DEVICE_HID, },
@@ -554,7 +645,8 @@ static const struct acpi_device_id processor_device_ids[] = {
 	{ }
 };
 
-static struct acpi_scan_handler processor_handler = {
+static struct acpi_scan_handler processor_handler =
+{
 	.ids = processor_device_ids,
 	.attach = acpi_processor_add,
 #ifdef CONFIG_ACPI_HOTPLUG_CPU
@@ -566,17 +658,19 @@ static struct acpi_scan_handler processor_handler = {
 };
 
 static int acpi_processor_container_attach(struct acpi_device *dev,
-					   const struct acpi_device_id *id)
+		const struct acpi_device_id *id)
 {
 	return 1;
 }
 
-static const struct acpi_device_id processor_container_ids[] = {
+static const struct acpi_device_id processor_container_ids[] =
+{
 	{ ACPI_PROCESSOR_CONTAINER_HID, },
 	{ }
 };
 
-static struct acpi_scan_handler processor_container_handler = {
+static struct acpi_scan_handler processor_container_handler =
+{
 	.ids = processor_container_ids,
 	.attach = acpi_processor_container_attach,
 };
@@ -588,12 +682,14 @@ static int nr_unique_ids __initdata;
 static int nr_duplicate_ids __initdata;
 
 /* Used to store the unique processor IDs */
-static int unique_processor_ids[] __initdata = {
+static int unique_processor_ids[] __initdata =
+{
 	[0 ... NR_CPUS - 1] = -1,
 };
 
 /* Used to store the duplicate processor IDs */
-static int duplicate_processor_ids[] __initdata = {
+static int duplicate_processor_ids[] __initdata =
+{
 	[0 ... NR_CPUS - 1] = -1,
 };
 
@@ -601,24 +697,31 @@ static void __init processor_validated_ids_update(int proc_id)
 {
 	int i;
 
-	if (nr_unique_ids == NR_CPUS||nr_duplicate_ids == NR_CPUS)
+	if (nr_unique_ids == NR_CPUS || nr_duplicate_ids == NR_CPUS)
+	{
 		return;
+	}
 
 	/*
 	 * Firstly, compare the proc_id with duplicate IDs, if the proc_id is
 	 * already in the IDs, do nothing.
 	 */
-	for (i = 0; i < nr_duplicate_ids; i++) {
+	for (i = 0; i < nr_duplicate_ids; i++)
+	{
 		if (duplicate_processor_ids[i] == proc_id)
+		{
 			return;
+		}
 	}
 
 	/*
 	 * Secondly, compare the proc_id with unique IDs, if the proc_id is in
 	 * the IDs, put it in the duplicate IDs.
 	 */
-	for (i = 0; i < nr_unique_ids; i++) {
-		if (unique_processor_ids[i] == proc_id) {
+	for (i = 0; i < nr_unique_ids; i++)
+	{
+		if (unique_processor_ids[i] == proc_id)
+		{
 			duplicate_processor_ids[nr_duplicate_ids] = proc_id;
 			nr_duplicate_ids++;
 			return;
@@ -633,19 +736,24 @@ static void __init processor_validated_ids_update(int proc_id)
 }
 
 static acpi_status __init acpi_processor_ids_walk(acpi_handle handle,
-						  u32 lvl,
-						  void *context,
-						  void **rv)
+		u32 lvl,
+		void *context,
+		void **rv)
 {
 	acpi_status status;
 	union acpi_object object = { 0 };
 	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
 
 	status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
+
 	if (ACPI_FAILURE(status))
+	{
 		acpi_handle_info(handle, "Not get the processor object\n");
+	}
 	else
+	{
 		processor_validated_ids_update(object.processor.proc_id);
+	}
 
 	return AE_OK;
 }
@@ -667,10 +775,14 @@ bool __init acpi_processor_validate_proc_id(int proc_id)
 	 * compare the proc_id with duplicate IDs, if the proc_id is already
 	 * in the duplicate IDs, return true, otherwise, return false.
 	 */
-	for (i = 0; i < nr_duplicate_ids; i++) {
+	for (i = 0; i < nr_duplicate_ids; i++)
+	{
 		if (duplicate_processor_ids[i] == proc_id)
+		{
 			return true;
+		}
 	}
+
 	return false;
 }
 

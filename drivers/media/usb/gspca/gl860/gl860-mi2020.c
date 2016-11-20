@@ -34,7 +34,8 @@ static u8 dat_hvflip3[] = {0x8c, 0x27, 0x3b};
 static u8 dat_hvflip5[] = {0x8c, 0xa1, 0x03};
 static u8 dat_hvflip6[] = {0x90, 0x00, 0x06};
 
-static struct idxdata tbl_middle_hvflip_low[] = {
+static struct idxdata tbl_middle_hvflip_low[] =
+{
 	{0x33, {0x90, 0x00, 0x06}},
 	{6, {0xff, 0xff, 0xff}},
 	{0x33, {0x90, 0x00, 0x06}},
@@ -45,7 +46,8 @@ static struct idxdata tbl_middle_hvflip_low[] = {
 	{6, {0xff, 0xff, 0xff}},
 };
 
-static struct idxdata tbl_middle_hvflip_big[] = {
+static struct idxdata tbl_middle_hvflip_big[] =
+{
 	{0x33, {0x8c, 0xa1, 0x03}}, {0x33, {0x90, 0x00, 0x01}},
 	{0x33, {0x8c, 0xa1, 0x20}}, {0x33, {0x90, 0x00, 0x00}},
 	{0x33, {0x8c, 0xa7, 0x02}}, {0x33, {0x90, 0x00, 0x00}},
@@ -55,7 +57,8 @@ static struct idxdata tbl_middle_hvflip_big[] = {
 	{0x33, {0x8c, 0xa7, 0x02}}, {0x33, {0x90, 0x00, 0x01}},
 };
 
-static struct idxdata tbl_end_hvflip[] = {
+static struct idxdata tbl_end_hvflip[] =
+{
 	{0x33, {0x8c, 0xa1, 0x02}}, {0x33, {0x90, 0x00, 0x1f}},
 	{6, {0xff, 0xff, 0xff}},
 	{0x33, {0x8c, 0xa1, 0x02}}, {0x33, {0x90, 0x00, 0x1f}},
@@ -70,20 +73,23 @@ static u8 dat_freq1[] = { 0x8c, 0xa4, 0x04 };
 static u8 dat_multi5[] = { 0x8c, 0xa1, 0x03 };
 static u8 dat_multi6[] = { 0x90, 0x00, 0x05 };
 
-static struct validx tbl_init_at_startup[] = {
+static struct validx tbl_init_at_startup[] =
+{
 	{0x0000, 0x0000}, {0x0010, 0x0010}, {0x0008, 0x00c0}, {0x0001, 0x00c1},
 	{0x0001, 0x00c2}, {0x0020, 0x0006}, {0x006a, 0x000d},
 	{53, 0xffff},
 	{0x0040, 0x0000}, {0x0063, 0x0006},
 };
 
-static struct validx tbl_common_0B[] = {
+static struct validx tbl_common_0B[] =
+{
 	{0x0002, 0x0004}, {0x006a, 0x0007}, {0x00ef, 0x0006}, {0x006a, 0x000d},
 	{0x0000, 0x00c0}, {0x0010, 0x0010}, {0x0003, 0x00c1}, {0x0042, 0x00c2},
 	{0x0004, 0x00d8}, {0x0000, 0x0058}, {0x0041, 0x0000},
 };
 
-static struct idxdata tbl_common_3B[] = {
+static struct idxdata tbl_common_3B[] =
+{
 	{0x33, {0x86, 0x25, 0x01}}, {0x33, {0x86, 0x25, 0x00}},
 	{2, {0xff, 0xff, 0xff}},
 	{0x30, {0x1a, 0x0a, 0xcc}}, {0x32, {0x02, 0x00, 0x08}},
@@ -220,7 +226,8 @@ static struct idxdata tbl_common_3B[] = {
 	{3, {0xff, 0xff, 0xff}},
 };
 
-static struct idxdata tbl_init_post_alt_low1[] = {
+static struct idxdata tbl_init_post_alt_low1[] =
+{
 	{0x33, {0x8c, 0x27, 0x15}}, {0x33, {0x90, 0x00, 0x25}},
 	{0x33, {0x8c, 0x22, 0x2e}}, {0x33, {0x90, 0x00, 0x81}},
 	{0x33, {0x8c, 0xa4, 0x08}}, {0x33, {0x90, 0x00, 0x17}},
@@ -231,7 +238,8 @@ static struct idxdata tbl_init_post_alt_low1[] = {
 	{0x33, {0x8c, 0x24, 0x13}}, {0x33, {0x90, 0x00, 0x9b}},
 };
 
-static struct idxdata tbl_init_post_alt_low2[] = {
+static struct idxdata tbl_init_post_alt_low2[] =
+{
 	{0x33, {0x8c, 0x27, 0x03}}, {0x33, {0x90, 0x03, 0x24}},
 	{0x33, {0x8c, 0x27, 0x05}}, {0x33, {0x90, 0x02, 0x58}},
 	{0x33, {0x8c, 0xa1, 0x03}}, {0x33, {0x90, 0x00, 0x05}},
@@ -240,7 +248,8 @@ static struct idxdata tbl_init_post_alt_low2[] = {
 	{2, {0xff, 0xff, 0xff}},
 };
 
-static struct idxdata tbl_init_post_alt_low3[] = {
+static struct idxdata tbl_init_post_alt_low3[] =
+{
 	{0x34, {0x1e, 0x8f, 0x09}}, {0x34, {0x1c, 0x01, 0x28}},
 	{0x34, {0x1e, 0x8f, 0x09}},
 	{2, {0xff, 0xff, 0xff}},
@@ -268,7 +277,8 @@ static struct idxdata tbl_init_post_alt_low3[] = {
 	{0x33, {0x8c, 0xa1, 0x03}}, {0x33, {0x90, 0x00, 0x06}},
 };
 
-static struct idxdata tbl_init_post_alt_big[] = {
+static struct idxdata tbl_init_post_alt_big[] =
+{
 	{0x33, {0x8c, 0xa1, 0x03}}, {0x33, {0x90, 0x00, 0x05}},
 	{2, {0xff, 0xff, 0xff}},
 	{0x33, {0x8c, 0xa1, 0x03}}, {0x33, {0x90, 0x00, 0x06}},
@@ -305,7 +315,8 @@ static struct idxdata tbl_init_post_alt_big[] = {
 	{51, {0xff, 0xff, 0xff}},
 };
 
-static struct idxdata tbl_init_post_alt_3B[] = {
+static struct idxdata tbl_init_post_alt_3B[] =
+{
 	{0x32, {0x10, 0x01, 0xf8}}, {0x34, {0xce, 0x01, 0xa8}},
 	{0x34, {0xd0, 0x66, 0x33}}, {0x34, {0xd2, 0x31, 0x9a}},
 	{0x34, {0xd4, 0x94, 0x63}}, {0x34, {0xd6, 0x4b, 0x25}},
@@ -412,7 +423,7 @@ static int mi2020_init_at_startup(struct gspca_dev *gspca_dev)
 	ctrl_in(gspca_dev, 0xc0, 2, 0x0000, 0x0004, 1, &c);
 
 	fetch_validx(gspca_dev, tbl_init_at_startup,
-			ARRAY_SIZE(tbl_init_at_startup));
+				 ARRAY_SIZE(tbl_init_at_startup));
 
 	ctrl_out(gspca_dev, 0x40,  1, 0x7a00, 0x8030,  0, NULL);
 	ctrl_in(gspca_dev, 0xc0,  2, 0x7a00, 0x8030,  1, &c);
@@ -420,8 +431,8 @@ static int mi2020_init_at_startup(struct gspca_dev *gspca_dev)
 	common(gspca_dev);
 
 	msleep(61);
-/*	ctrl_out(gspca_dev, 0x40, 11, 0x0000, 0x0000,  0, NULL); */
-/*	msleep(36); */
+	/*	ctrl_out(gspca_dev, 0x40, 11, 0x0000, 0x0000,  0, NULL); */
+	/*	msleep(36); */
 	ctrl_out(gspca_dev, 0x40,  1, 0x0001, 0x0000,  0, NULL);
 
 	return 0;
@@ -473,16 +484,23 @@ static int mi2020_init_post_alt(struct gspca_dev *gspca_dev)
 	dat_freq2[2] = freq ? 0xc0 : 0x80;
 	dat_multi1[2] = 0x9d;
 	dat_multi3[2] = dat_multi1[2] + 1;
-	if (wbal == 0) {
+
+	if (wbal == 0)
+	{
 		dat_multi4[2] = dat_multi2[2] = 0;
 		dat_wbal2[2] = 0x17;
-	} else if (wbal == 1) {
+	}
+	else if (wbal == 1)
+	{
 		dat_multi4[2] = dat_multi2[2] = 0;
 		dat_wbal2[2] = 0x35;
-	} else if (wbal == 2) {
+	}
+	else if (wbal == 2)
+	{
 		dat_multi4[2] = dat_multi2[2] = 0x20;
 		dat_wbal2[2] = 0x17;
 	}
+
 	dat_hvflip2[2] = 0x6c + 2 * (1 - flip) + (1 - mirror);
 	dat_hvflip4[2] = 0x24 + 2 * (1 - flip) + (1 - mirror);
 
@@ -498,65 +516,69 @@ static int mi2020_init_post_alt(struct gspca_dev *gspca_dev)
 	ctrl_out(gspca_dev, 0x40,  1, 0x0042, 0x00c2,  0, NULL);
 	ctrl_out(gspca_dev, 0x40,  1, 0x006a, 0x000d,  0, NULL);
 
-	switch (reso) {
-	case IMAGE_640:
-	case IMAGE_800:
-		if (reso != IMAGE_800)
-			ctrl_out(gspca_dev, 0x40,  3, 0x0000, 0x0200,
-				12, dat_640);
-		else
-			ctrl_out(gspca_dev, 0x40,  3, 0x0000, 0x0200,
-				12, dat_800);
+	switch (reso)
+	{
+		case IMAGE_640:
+		case IMAGE_800:
+			if (reso != IMAGE_800)
+				ctrl_out(gspca_dev, 0x40,  3, 0x0000, 0x0200,
+						 12, dat_640);
+			else
+				ctrl_out(gspca_dev, 0x40,  3, 0x0000, 0x0200,
+						 12, dat_800);
 
-		fetch_idxdata(gspca_dev, tbl_init_post_alt_low1,
-					ARRAY_SIZE(tbl_init_post_alt_low1));
+			fetch_idxdata(gspca_dev, tbl_init_post_alt_low1,
+						  ARRAY_SIZE(tbl_init_post_alt_low1));
 
-		if (reso == IMAGE_800)
-			fetch_idxdata(gspca_dev, tbl_init_post_alt_low2,
-					ARRAY_SIZE(tbl_init_post_alt_low2));
+			if (reso == IMAGE_800)
+				fetch_idxdata(gspca_dev, tbl_init_post_alt_low2,
+							  ARRAY_SIZE(tbl_init_post_alt_low2));
 
-		fetch_idxdata(gspca_dev, tbl_init_post_alt_low3,
-				ARRAY_SIZE(tbl_init_post_alt_low3));
+			fetch_idxdata(gspca_dev, tbl_init_post_alt_low3,
+						  ARRAY_SIZE(tbl_init_post_alt_low3));
 
-		ctrl_out(gspca_dev, 0x40, 1, 0x0010, 0x0010, 0, NULL);
-		ctrl_out(gspca_dev, 0x40, 1, 0x0000, 0x00c1, 0, NULL);
-		ctrl_out(gspca_dev, 0x40, 1, 0x0041, 0x00c2, 0, NULL);
-		msleep(120);
-		break;
+			ctrl_out(gspca_dev, 0x40, 1, 0x0010, 0x0010, 0, NULL);
+			ctrl_out(gspca_dev, 0x40, 1, 0x0000, 0x00c1, 0, NULL);
+			ctrl_out(gspca_dev, 0x40, 1, 0x0041, 0x00c2, 0, NULL);
+			msleep(120);
+			break;
 
-	case IMAGE_1280:
-	case IMAGE_1600:
-		if (reso == IMAGE_1280) {
-			ctrl_out(gspca_dev, 0x40, 3, 0x0000, 0x0200,
-					12, dat_1280);
-			ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033,
-					3, "\x8c\x27\x07");
-			ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033,
-					3, "\x90\x05\x04");
-			ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033,
-					3, "\x8c\x27\x09");
-			ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033,
-					3, "\x90\x04\x02");
-		} else {
-			ctrl_out(gspca_dev, 0x40, 3, 0x0000, 0x0200,
-					12, dat_1600);
-			ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033,
-					3, "\x8c\x27\x07");
-			ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033,
-					3, "\x90\x06\x40");
-			ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033,
-					3, "\x8c\x27\x09");
-			ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033,
-					3, "\x90\x04\xb0");
-		}
+		case IMAGE_1280:
+		case IMAGE_1600:
+			if (reso == IMAGE_1280)
+			{
+				ctrl_out(gspca_dev, 0x40, 3, 0x0000, 0x0200,
+						 12, dat_1280);
+				ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033,
+						 3, "\x8c\x27\x07");
+				ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033,
+						 3, "\x90\x05\x04");
+				ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033,
+						 3, "\x8c\x27\x09");
+				ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033,
+						 3, "\x90\x04\x02");
+			}
+			else
+			{
+				ctrl_out(gspca_dev, 0x40, 3, 0x0000, 0x0200,
+						 12, dat_1600);
+				ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033,
+						 3, "\x8c\x27\x07");
+				ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033,
+						 3, "\x90\x06\x40");
+				ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033,
+						 3, "\x8c\x27\x09");
+				ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033,
+						 3, "\x90\x04\xb0");
+			}
 
-		fetch_idxdata(gspca_dev, tbl_init_post_alt_big,
-				ARRAY_SIZE(tbl_init_post_alt_big));
+			fetch_idxdata(gspca_dev, tbl_init_post_alt_big,
+						  ARRAY_SIZE(tbl_init_post_alt_big));
 
-		ctrl_out(gspca_dev, 0x40, 1, 0x0001, 0x0010, 0, NULL);
-		ctrl_out(gspca_dev, 0x40, 1, 0x0000, 0x00c1, 0, NULL);
-		ctrl_out(gspca_dev, 0x40, 1, 0x0041, 0x00c2, 0, NULL);
-		msleep(1850);
+			ctrl_out(gspca_dev, 0x40, 1, 0x0001, 0x0010, 0, NULL);
+			ctrl_out(gspca_dev, 0x40, 1, 0x0000, 0x00c1, 0, NULL);
+			ctrl_out(gspca_dev, 0x40, 1, 0x0041, 0x00c2, 0, NULL);
+			msleep(1850);
 	}
 
 	ctrl_out(gspca_dev, 0x40, 1, 0x0040, 0x0000, 0, NULL);
@@ -579,7 +601,7 @@ static int mi2020_init_post_alt(struct gspca_dev *gspca_dev)
 	ctrl_in(gspca_dev, 0xc0, 2, 0x0000, 0x0000, 1, &c);
 
 	fetch_idxdata(gspca_dev, tbl_init_post_alt_3B,
-			ARRAY_SIZE(tbl_init_post_alt_3B));
+				  ARRAY_SIZE(tbl_init_post_alt_3B));
 
 	/* hvflip */
 	ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033, 3, dat_hvflip1);
@@ -592,13 +614,13 @@ static int mi2020_init_post_alt(struct gspca_dev *gspca_dev)
 
 	if (reso == IMAGE_640 || reso == IMAGE_800)
 		fetch_idxdata(gspca_dev, tbl_middle_hvflip_low,
-				ARRAY_SIZE(tbl_middle_hvflip_low));
+					  ARRAY_SIZE(tbl_middle_hvflip_low));
 	else
 		fetch_idxdata(gspca_dev, tbl_middle_hvflip_big,
-				ARRAY_SIZE(tbl_middle_hvflip_big));
+					  ARRAY_SIZE(tbl_middle_hvflip_big));
 
 	fetch_idxdata(gspca_dev, tbl_end_hvflip,
-			ARRAY_SIZE(tbl_end_hvflip));
+				  ARRAY_SIZE(tbl_end_hvflip));
 
 	sd->nbIm = 0;
 
@@ -616,17 +638,19 @@ static int mi2020_configure_alt(struct gspca_dev *gspca_dev)
 {
 	s32 reso = gspca_dev->cam.cam_mode[(s32) gspca_dev->curr_mode].priv;
 
-	switch (reso) {
-	case IMAGE_640:
-		gspca_dev->alt = 3 + 1;
-		break;
+	switch (reso)
+	{
+		case IMAGE_640:
+			gspca_dev->alt = 3 + 1;
+			break;
 
-	case IMAGE_800:
-	case IMAGE_1280:
-	case IMAGE_1600:
-		gspca_dev->alt = 1 + 1;
-		break;
+		case IMAGE_800:
+		case IMAGE_1280:
+		case IMAGE_1600:
+			gspca_dev->alt = 1 + 1;
+			break;
 	}
+
 	return 0;
 }
 
@@ -658,13 +682,16 @@ static int mi2020_camera_settings(struct gspca_dev *gspca_dev)
 	u8 dat_wbal2[] = {0x90, 0x00, 0x00};
 
 	/* Less than 4 images received -> too early to set the settings */
-	if (sd->nbIm < 4) {
+	if (sd->nbIm < 4)
+	{
 		sd->waitSet = 1;
 		return 0;
 	}
+
 	sd->waitSet = 0;
 
-	if (freq != sd->vold.AC50Hz) {
+	if (freq != sd->vold.AC50Hz)
+	{
 		sd->vold.AC50Hz = freq;
 
 		dat_freq2[2] = freq ? 0xc0 : 0x80;
@@ -673,23 +700,34 @@ static int mi2020_camera_settings(struct gspca_dev *gspca_dev)
 		msleep(20);
 	}
 
-	if (wbal != sd->vold.whitebal) {
+	if (wbal != sd->vold.whitebal)
+	{
 		sd->vold.whitebal = wbal;
+
 		if (wbal < 0 || wbal > sd->vmax.whitebal)
+		{
 			wbal = 0;
+		}
 
 		dat_multi1[2] = 0x9d;
 		dat_multi3[2] = dat_multi1[2] + 1;
-		if (wbal == 0) {
+
+		if (wbal == 0)
+		{
 			dat_multi4[2] = dat_multi2[2] = 0;
 			dat_wbal2[2] = 0x17;
-		} else if (wbal == 1) {
+		}
+		else if (wbal == 1)
+		{
 			dat_multi4[2] = dat_multi2[2] = 0;
 			dat_wbal2[2] = 0x35;
-		} else if (wbal == 2) {
+		}
+		else if (wbal == 2)
+		{
 			dat_multi4[2] = dat_multi2[2] = 0x20;
 			dat_wbal2[2] = 0x17;
 		}
+
 		ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033, 3, dat_multi1);
 		ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033, 3, dat_multi2);
 		ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033, 3, dat_multi3);
@@ -700,7 +738,8 @@ static int mi2020_camera_settings(struct gspca_dev *gspca_dev)
 		ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033, 3, dat_multi6);
 	}
 
-	if (mirror != sd->vold.mirror || flip != sd->vold.flip) {
+	if (mirror != sd->vold.mirror || flip != sd->vold.flip)
+	{
 		sd->vold.mirror = mirror;
 		sd->vold.flip   = flip;
 
@@ -708,7 +747,7 @@ static int mi2020_camera_settings(struct gspca_dev *gspca_dev)
 		dat_hvflip4[2] = 0x24 + 2 * (1 - flip) + (1 - mirror);
 
 		fetch_idxdata(gspca_dev, tbl_init_post_alt_3B,
-				ARRAY_SIZE(tbl_init_post_alt_3B));
+					  ARRAY_SIZE(tbl_init_post_alt_3B));
 
 		ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033, 3, dat_hvflip1);
 		ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033, 3, dat_hvflip2);
@@ -720,19 +759,23 @@ static int mi2020_camera_settings(struct gspca_dev *gspca_dev)
 
 		if (reso == IMAGE_640 || reso == IMAGE_800)
 			fetch_idxdata(gspca_dev, tbl_middle_hvflip_low,
-					ARRAY_SIZE(tbl_middle_hvflip_low));
+						  ARRAY_SIZE(tbl_middle_hvflip_low));
 		else
 			fetch_idxdata(gspca_dev, tbl_middle_hvflip_big,
-					ARRAY_SIZE(tbl_middle_hvflip_big));
+						  ARRAY_SIZE(tbl_middle_hvflip_big));
 
 		fetch_idxdata(gspca_dev, tbl_end_hvflip,
-				ARRAY_SIZE(tbl_end_hvflip));
+					  ARRAY_SIZE(tbl_end_hvflip));
 	}
 
-	if (bright != sd->vold.brightness) {
+	if (bright != sd->vold.brightness)
+	{
 		sd->vold.brightness = bright;
+
 		if (bright < 0 || bright > sd->vmax.brightness)
+		{
 			bright = 0;
+		}
 
 		dat_bright2[2] = bright;
 		ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033, 3, dat_bright1);
@@ -743,18 +786,30 @@ static int mi2020_camera_settings(struct gspca_dev *gspca_dev)
 		ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033, 3, dat_bright6);
 	}
 
-	if (cntr != sd->vold.contrast || gam != sd->vold.gamma) {
+	if (cntr != sd->vold.contrast || gam != sd->vold.gamma)
+	{
 		sd->vold.contrast = cntr;
+
 		if (cntr < 0 || cntr > sd->vmax.contrast)
+		{
 			cntr = 0;
+		}
+
 		sd->vold.gamma = gam;
+
 		if (gam < 0 || gam > sd->vmax.gamma)
+		{
 			gam = 0;
+		}
 
 		dat_multi1[2] = 0x6d;
 		dat_multi3[2] = dat_multi1[2] + 1;
+
 		if (cntr == 0)
+		{
 			cntr = 4;
+		}
+
 		dat_multi4[2] = dat_multi2[2] = cntr * 0x10 + 2 - gam;
 		ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033, 3, dat_multi1);
 		ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033, 3, dat_multi2);
@@ -764,10 +819,14 @@ static int mi2020_camera_settings(struct gspca_dev *gspca_dev)
 		ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033, 3, dat_multi6);
 	}
 
-	if (backlight != sd->vold.backlight) {
+	if (backlight != sd->vold.backlight)
+	{
 		sd->vold.backlight = backlight;
+
 		if (backlight < 0 || backlight > sd->vmax.backlight)
+		{
 			backlight = 0;
+		}
 
 		dat_multi1[2] = 0x9d;
 		dat_multi3[2] = dat_multi1[2] + 1;
@@ -780,16 +839,21 @@ static int mi2020_camera_settings(struct gspca_dev *gspca_dev)
 		ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0033, 3, dat_multi6);
 	}
 
-	if (sharp != sd->vold.sharpness) {
+	if (sharp != sd->vold.sharpness)
+	{
 		sd->vold.sharpness = sharp;
+
 		if (sharp < 0 || sharp > sd->vmax.sharpness)
+		{
 			sharp = 0;
+		}
 
 		dat_sharp[1] = sharp;
 		ctrl_out(gspca_dev, 0x40, 3, 0x7a00, 0x0032, 3, dat_sharp);
 	}
 
-	if (hue != sd->vold.hue) {
+	if (hue != sd->vold.hue)
+	{
 		sd->swapRB = hue;
 		sd->vold.hue = hue;
 	}

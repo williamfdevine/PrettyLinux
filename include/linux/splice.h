@@ -15,22 +15,24 @@
  */
 #define SPLICE_F_MOVE	(0x01)	/* move pages instead of copying */
 #define SPLICE_F_NONBLOCK (0x02) /* don't block on the pipe splicing (but */
-				 /* we may still block on the fd we splice */
-				 /* from/to, of course */
+/* we may still block on the fd we splice */
+/* from/to, of course */
 #define SPLICE_F_MORE	(0x04)	/* expect more data */
 #define SPLICE_F_GIFT	(0x08)	/* pages passed in are a gift */
 
 /*
  * Passed to the actors
  */
-struct splice_desc {
+struct splice_desc
+{
 	size_t total_len;		/* remaining length */
 	unsigned int len;		/* current length */
 	unsigned int flags;		/* splice flags */
 	/*
 	 * actor() private data
 	 */
-	union {
+	union
+	{
 		void __user *userptr;	/* memory to write to */
 		struct file *file;	/* file to read/write */
 		void *data;		/* cookie */
@@ -41,16 +43,18 @@ struct splice_desc {
 	bool need_wakeup;		/* need to wake up writer */
 };
 
-struct partial_page {
-	unsigned int offset;
-	unsigned int len;
-	unsigned long private;
+struct partial_page
+{
+		unsigned int offset;
+		unsigned int len;
+		unsigned long private;
 };
 
 /*
  * Passed to splice_to_pipe
  */
-struct splice_pipe_desc {
+struct splice_pipe_desc
+{
 	struct page **pages;		/* page map */
 	struct partial_page *partial;	/* pages[] may not be contig */
 	int nr_pages;			/* number of populated pages in map */
@@ -61,21 +65,21 @@ struct splice_pipe_desc {
 };
 
 typedef int (splice_actor)(struct pipe_inode_info *, struct pipe_buffer *,
-			   struct splice_desc *);
+						   struct splice_desc *);
 typedef int (splice_direct_actor)(struct pipe_inode_info *,
-				  struct splice_desc *);
+								  struct splice_desc *);
 
 extern ssize_t splice_from_pipe(struct pipe_inode_info *, struct file *,
-				loff_t *, size_t, unsigned int,
-				splice_actor *);
+								loff_t *, size_t, unsigned int,
+								splice_actor *);
 extern ssize_t __splice_from_pipe(struct pipe_inode_info *,
-				  struct splice_desc *, splice_actor *);
+								  struct splice_desc *, splice_actor *);
 extern ssize_t splice_to_pipe(struct pipe_inode_info *,
-			      struct splice_pipe_desc *);
+							  struct splice_pipe_desc *);
 extern ssize_t add_to_pipe(struct pipe_inode_info *,
-			      struct pipe_buffer *);
+						   struct pipe_buffer *);
 extern ssize_t splice_direct_to_actor(struct file *, struct splice_desc *,
-				      splice_direct_actor *);
+									  splice_direct_actor *);
 
 /*
  * for dynamic pipe sizing

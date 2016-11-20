@@ -22,7 +22,7 @@ static inline struct governor_attr *to_gov_attr(struct attribute *attr)
 }
 
 static ssize_t governor_show(struct kobject *kobj, struct attribute *attr,
-			     char *buf)
+							 char *buf)
 {
 	struct governor_attr *gattr = to_gov_attr(attr);
 
@@ -30,7 +30,7 @@ static ssize_t governor_show(struct kobject *kobj, struct attribute *attr,
 }
 
 static ssize_t governor_store(struct kobject *kobj, struct attribute *attr,
-			      const char *buf, size_t count)
+							  const char *buf, size_t count)
 {
 	struct gov_attr_set *attr_set = to_gov_attr_set(kobj);
 	struct governor_attr *gattr = to_gov_attr(attr);
@@ -42,7 +42,8 @@ static ssize_t governor_store(struct kobject *kobj, struct attribute *attr,
 	return ret;
 }
 
-const struct sysfs_ops governor_sysfs_ops = {
+const struct sysfs_ops governor_sysfs_ops =
+{
 	.show	= governor_show,
 	.store	= governor_store,
 };
@@ -74,8 +75,11 @@ unsigned int gov_attr_set_put(struct gov_attr_set *attr_set, struct list_head *l
 	list_del(list_node);
 	count = --attr_set->usage_count;
 	mutex_unlock(&attr_set->update_lock);
+
 	if (count)
+	{
 		return count;
+	}
 
 	kobject_put(&attr_set->kobj);
 	mutex_destroy(&attr_set->update_lock);

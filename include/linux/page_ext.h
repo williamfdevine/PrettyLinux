@@ -6,7 +6,8 @@
 #include <linux/stackdepot.h>
 
 struct pglist_data;
-struct page_ext_operations {
+struct page_ext_operations
+{
 	size_t offset;
 	size_t size;
 	bool (*need)(void);
@@ -25,7 +26,8 @@ struct page_ext_operations {
  * the flag before alloc_pages().
  */
 
-enum page_ext_flags {
+enum page_ext_flags
+{
 	PAGE_EXT_DEBUG_POISON,		/* Page is poisoned */
 	PAGE_EXT_DEBUG_GUARD,
 	PAGE_EXT_OWNER,
@@ -42,7 +44,8 @@ enum page_ext_flags {
  * All page_ext are allocated at boot or memory hotplug event,
  * then the page_ext for pfn always exists.
  */
-struct page_ext {
+struct page_ext
+{
 	unsigned long flags;
 };
 

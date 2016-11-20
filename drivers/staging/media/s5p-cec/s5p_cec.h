@@ -52,14 +52,16 @@
 /* CEC Tx buffer size */
 #define CEC_TX_BUFF_SIZE		16
 
-enum cec_state {
+enum cec_state
+{
 	STATE_IDLE,
 	STATE_BUSY,
 	STATE_DONE,
 	STATE_ERROR
 };
 
-struct s5p_cec_dev {
+struct s5p_cec_dev
+{
 	struct cec_adapter	*adap;
 	struct clk		*clk;
 	struct device		*dev;

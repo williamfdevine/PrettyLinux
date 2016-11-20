@@ -17,7 +17,8 @@
 
 #define MT6311_MAX_REGULATORS	2
 
-enum {
+enum
+{
 	MT6311_ID_VDVFS = 0,
 	MT6311_ID_VBIASN,
 };

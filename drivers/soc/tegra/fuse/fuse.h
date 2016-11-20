@@ -24,13 +24,15 @@
 
 struct tegra_fuse;
 
-struct tegra_fuse_info {
+struct tegra_fuse_info
+{
 	u32 (*read)(struct tegra_fuse *fuse, unsigned int offset);
 	unsigned int size;
 	unsigned int spare;
 };
 
-struct tegra_fuse_soc {
+struct tegra_fuse_soc
+{
 	void (*init)(struct tegra_fuse *fuse);
 	void (*speedo_init)(struct tegra_sku_info *info);
 	int (*probe)(struct tegra_fuse *fuse);
@@ -38,7 +40,8 @@ struct tegra_fuse_soc {
 	const struct tegra_fuse_info *info;
 };
 
-struct tegra_fuse {
+struct tegra_fuse
+{
 	struct device *dev;
 	void __iomem *base;
 	phys_addr_t phys;
@@ -49,7 +52,8 @@ struct tegra_fuse {
 	const struct tegra_fuse_soc *soc;
 
 	/* APBDMA on Tegra20 */
-	struct {
+	struct
+	{
 		struct mutex lock;
 		struct completion wait;
 		struct dma_chan *chan;
@@ -66,43 +70,43 @@ bool __init tegra_fuse_read_spare(unsigned int spare);
 u32 __init tegra_fuse_read_early(unsigned int offset);
 
 #ifdef CONFIG_ARCH_TEGRA_2x_SOC
-void tegra20_init_speedo_data(struct tegra_sku_info *sku_info);
+	void tegra20_init_speedo_data(struct tegra_sku_info *sku_info);
 #endif
 
 #ifdef CONFIG_ARCH_TEGRA_3x_SOC
-void tegra30_init_speedo_data(struct tegra_sku_info *sku_info);
+	void tegra30_init_speedo_data(struct tegra_sku_info *sku_info);
 #endif
 
 #ifdef CONFIG_ARCH_TEGRA_114_SOC
-void tegra114_init_speedo_data(struct tegra_sku_info *sku_info);
+	void tegra114_init_speedo_data(struct tegra_sku_info *sku_info);
 #endif
 
 #if defined(CONFIG_ARCH_TEGRA_124_SOC) || defined(CONFIG_ARCH_TEGRA_132_SOC)
-void tegra124_init_speedo_data(struct tegra_sku_info *sku_info);
+	void tegra124_init_speedo_data(struct tegra_sku_info *sku_info);
 #endif
 
 #ifdef CONFIG_ARCH_TEGRA_210_SOC
-void tegra210_init_speedo_data(struct tegra_sku_info *sku_info);
+	void tegra210_init_speedo_data(struct tegra_sku_info *sku_info);
 #endif
 
 #ifdef CONFIG_ARCH_TEGRA_2x_SOC
-extern const struct tegra_fuse_soc tegra20_fuse_soc;
+	extern const struct tegra_fuse_soc tegra20_fuse_soc;
 #endif
 
 #ifdef CONFIG_ARCH_TEGRA_3x_SOC
-extern const struct tegra_fuse_soc tegra30_fuse_soc;
+	extern const struct tegra_fuse_soc tegra30_fuse_soc;
 #endif
 
 #ifdef CONFIG_ARCH_TEGRA_114_SOC
-extern const struct tegra_fuse_soc tegra114_fuse_soc;
+	extern const struct tegra_fuse_soc tegra114_fuse_soc;
 #endif
 
 #if defined(CONFIG_ARCH_TEGRA_124_SOC) || defined(CONFIG_ARCH_TEGRA_132_SOC)
-extern const struct tegra_fuse_soc tegra124_fuse_soc;
+	extern const struct tegra_fuse_soc tegra124_fuse_soc;
 #endif
 
 #ifdef CONFIG_ARCH_TEGRA_210_SOC
-extern const struct tegra_fuse_soc tegra210_fuse_soc;
+	extern const struct tegra_fuse_soc tegra210_fuse_soc;
 #endif
 
 #endif

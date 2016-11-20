@@ -36,7 +36,8 @@
  * @quality:		Estimation of true entropy in RNG's bitstream
  *			(per mill).
  */
-struct hwrng {
+struct hwrng
+{
 	const char *name;
 	int (*init)(struct hwrng *rng);
 	void (*cleanup)(struct hwrng *rng);

@@ -68,8 +68,10 @@
 
 /*---------------------  Static Variables  --------------------------*/
 
-static const unsigned short cwRXBCNTSFOff[MAX_RATE] = {
-	17, 17, 17, 17, 34, 23, 17, 11, 8, 5, 4, 3};
+static const unsigned short cwRXBCNTSFOff[MAX_RATE] =
+{
+	17, 17, 17, 17, 34, 23, 17, 11, 8, 5, 4, 3
+};
 
 /*---------------------  Static Functions  --------------------------*/
 
@@ -106,87 +108,120 @@ s_vCalculateOFDMRParameter(
 	unsigned char *pbyRsvTime
 )
 {
-	switch (byRate) {
-	case RATE_6M:
-		if (bb_type == BB_TYPE_11A) { /* 5GHZ */
-			*pbyTxRate = 0x9B;
-			*pbyRsvTime = 44;
-		} else {
-			*pbyTxRate = 0x8B;
-			*pbyRsvTime = 50;
-		}
-		break;
+	switch (byRate)
+	{
+		case RATE_6M:
+			if (bb_type == BB_TYPE_11A)   /* 5GHZ */
+			{
+				*pbyTxRate = 0x9B;
+				*pbyRsvTime = 44;
+			}
+			else
+			{
+				*pbyTxRate = 0x8B;
+				*pbyRsvTime = 50;
+			}
 
-	case RATE_9M:
-		if (bb_type == BB_TYPE_11A) { /* 5GHZ */
-			*pbyTxRate = 0x9F;
-			*pbyRsvTime = 36;
-		} else {
-			*pbyTxRate = 0x8F;
-			*pbyRsvTime = 42;
-		}
-		break;
+			break;
 
-	case RATE_12M:
-		if (bb_type == BB_TYPE_11A) { /* 5GHZ */
-			*pbyTxRate = 0x9A;
-			*pbyRsvTime = 32;
-		} else {
-			*pbyTxRate = 0x8A;
-			*pbyRsvTime = 38;
-		}
-		break;
+		case RATE_9M:
+			if (bb_type == BB_TYPE_11A)   /* 5GHZ */
+			{
+				*pbyTxRate = 0x9F;
+				*pbyRsvTime = 36;
+			}
+			else
+			{
+				*pbyTxRate = 0x8F;
+				*pbyRsvTime = 42;
+			}
 
-	case RATE_18M:
-		if (bb_type == BB_TYPE_11A) { /* 5GHZ */
-			*pbyTxRate = 0x9E;
-			*pbyRsvTime = 28;
-		} else {
-			*pbyTxRate = 0x8E;
-			*pbyRsvTime = 34;
-		}
-		break;
+			break;
 
-	case RATE_36M:
-		if (bb_type == BB_TYPE_11A) { /* 5GHZ */
-			*pbyTxRate = 0x9D;
-			*pbyRsvTime = 24;
-		} else {
-			*pbyTxRate = 0x8D;
-			*pbyRsvTime = 30;
-		}
-		break;
+		case RATE_12M:
+			if (bb_type == BB_TYPE_11A)   /* 5GHZ */
+			{
+				*pbyTxRate = 0x9A;
+				*pbyRsvTime = 32;
+			}
+			else
+			{
+				*pbyTxRate = 0x8A;
+				*pbyRsvTime = 38;
+			}
 
-	case RATE_48M:
-		if (bb_type == BB_TYPE_11A) { /* 5GHZ */
-			*pbyTxRate = 0x98;
-			*pbyRsvTime = 24;
-		} else {
-			*pbyTxRate = 0x88;
-			*pbyRsvTime = 30;
-		}
-		break;
+			break;
 
-	case RATE_54M:
-		if (bb_type == BB_TYPE_11A) { /* 5GHZ */
-			*pbyTxRate = 0x9C;
-			*pbyRsvTime = 24;
-		} else {
-			*pbyTxRate = 0x8C;
-			*pbyRsvTime = 30;
-		}
-		break;
+		case RATE_18M:
+			if (bb_type == BB_TYPE_11A)   /* 5GHZ */
+			{
+				*pbyTxRate = 0x9E;
+				*pbyRsvTime = 28;
+			}
+			else
+			{
+				*pbyTxRate = 0x8E;
+				*pbyRsvTime = 34;
+			}
 
-	case RATE_24M:
-	default:
-		if (bb_type == BB_TYPE_11A) { /* 5GHZ */
-			*pbyTxRate = 0x99;
-			*pbyRsvTime = 28;
-		} else {
-			*pbyTxRate = 0x89;
-			*pbyRsvTime = 34;
-		}
-		break;
+			break;
+
+		case RATE_36M:
+			if (bb_type == BB_TYPE_11A)   /* 5GHZ */
+			{
+				*pbyTxRate = 0x9D;
+				*pbyRsvTime = 24;
+			}
+			else
+			{
+				*pbyTxRate = 0x8D;
+				*pbyRsvTime = 30;
+			}
+
+			break;
+
+		case RATE_48M:
+			if (bb_type == BB_TYPE_11A)   /* 5GHZ */
+			{
+				*pbyTxRate = 0x98;
+				*pbyRsvTime = 24;
+			}
+			else
+			{
+				*pbyTxRate = 0x88;
+				*pbyRsvTime = 30;
+			}
+
+			break;
+
+		case RATE_54M:
+			if (bb_type == BB_TYPE_11A)   /* 5GHZ */
+			{
+				*pbyTxRate = 0x9C;
+				*pbyRsvTime = 24;
+			}
+			else
+			{
+				*pbyTxRate = 0x8C;
+				*pbyRsvTime = 30;
+			}
+
+			break;
+
+		case RATE_24M:
+		default:
+			if (bb_type == BB_TYPE_11A)   /* 5GHZ */
+			{
+				*pbyTxRate = 0x99;
+				*pbyRsvTime = 28;
+			}
+			else
+			{
+				*pbyTxRate = 0x89;
+				*pbyRsvTime = 34;
+			}
+
+			break;
 	}
 }
 
@@ -213,96 +248,138 @@ bool CARDbSetPhyParameter(struct vnt_private *priv, u8 bb_type)
 	int i;
 
 	/* Set SIFS, DIFS, EIFS, SlotTime, CwMin */
-	if (bb_type == BB_TYPE_11A) {
-		if (priv->byRFType == RF_AIROHA7230) {
+	if (bb_type == BB_TYPE_11A)
+	{
+		if (priv->byRFType == RF_AIROHA7230)
+		{
 			/* AL7230 use single PAPE and connect to PAPE_2.4G */
 			MACvSetBBType(priv->PortOffset, BB_TYPE_11G);
 			priv->abyBBVGA[0] = 0x20;
 			priv->abyBBVGA[2] = 0x10;
 			priv->abyBBVGA[3] = 0x10;
 			BBbReadEmbedded(priv, 0xE7, &byData);
-			if (byData == 0x1C)
-				BBbWriteEmbedded(priv, 0xE7, priv->abyBBVGA[0]);
 
-		} else if (priv->byRFType == RF_UW2452) {
+			if (byData == 0x1C)
+			{
+				BBbWriteEmbedded(priv, 0xE7, priv->abyBBVGA[0]);
+			}
+
+		}
+		else if (priv->byRFType == RF_UW2452)
+		{
 			MACvSetBBType(priv->PortOffset, BB_TYPE_11A);
 			priv->abyBBVGA[0] = 0x18;
 			BBbReadEmbedded(priv, 0xE7, &byData);
-			if (byData == 0x14) {
+
+			if (byData == 0x14)
+			{
 				BBbWriteEmbedded(priv, 0xE7, priv->abyBBVGA[0]);
 				BBbWriteEmbedded(priv, 0xE1, 0x57);
 			}
-		} else {
+		}
+		else
+		{
 			MACvSetBBType(priv->PortOffset, BB_TYPE_11A);
 		}
+
 		BBbWriteEmbedded(priv, 0x88, 0x03);
 		bySlot = C_SLOT_SHORT;
 		bySIFS = C_SIFS_A;
 		byDIFS = C_SIFS_A + 2 * C_SLOT_SHORT;
 		byCWMaxMin = 0xA4;
-	} else if (bb_type == BB_TYPE_11B) {
+	}
+	else if (bb_type == BB_TYPE_11B)
+	{
 		MACvSetBBType(priv->PortOffset, BB_TYPE_11B);
-		if (priv->byRFType == RF_AIROHA7230) {
+
+		if (priv->byRFType == RF_AIROHA7230)
+		{
 			priv->abyBBVGA[0] = 0x1C;
 			priv->abyBBVGA[2] = 0x00;
 			priv->abyBBVGA[3] = 0x00;
 			BBbReadEmbedded(priv, 0xE7, &byData);
-			if (byData == 0x20)
-				BBbWriteEmbedded(priv, 0xE7, priv->abyBBVGA[0]);
 
-		} else if (priv->byRFType == RF_UW2452) {
+			if (byData == 0x20)
+			{
+				BBbWriteEmbedded(priv, 0xE7, priv->abyBBVGA[0]);
+			}
+
+		}
+		else if (priv->byRFType == RF_UW2452)
+		{
 			priv->abyBBVGA[0] = 0x14;
 			BBbReadEmbedded(priv, 0xE7, &byData);
-			if (byData == 0x18) {
+
+			if (byData == 0x18)
+			{
 				BBbWriteEmbedded(priv, 0xE7, priv->abyBBVGA[0]);
 				BBbWriteEmbedded(priv, 0xE1, 0xD3);
 			}
 		}
+
 		BBbWriteEmbedded(priv, 0x88, 0x02);
 		bySlot = C_SLOT_LONG;
 		bySIFS = C_SIFS_BG;
-		byDIFS = C_SIFS_BG + 2*C_SLOT_LONG;
+		byDIFS = C_SIFS_BG + 2 * C_SLOT_LONG;
 		byCWMaxMin = 0xA5;
-	} else { /* PK_TYPE_11GA & PK_TYPE_11GB */
+	}
+	else     /* PK_TYPE_11GA & PK_TYPE_11GB */
+	{
 		MACvSetBBType(priv->PortOffset, BB_TYPE_11G);
-		if (priv->byRFType == RF_AIROHA7230) {
+
+		if (priv->byRFType == RF_AIROHA7230)
+		{
 			priv->abyBBVGA[0] = 0x1C;
 			priv->abyBBVGA[2] = 0x00;
 			priv->abyBBVGA[3] = 0x00;
 			BBbReadEmbedded(priv, 0xE7, &byData);
-			if (byData == 0x20)
-				BBbWriteEmbedded(priv, 0xE7, priv->abyBBVGA[0]);
 
-		} else if (priv->byRFType == RF_UW2452) {
+			if (byData == 0x20)
+			{
+				BBbWriteEmbedded(priv, 0xE7, priv->abyBBVGA[0]);
+			}
+
+		}
+		else if (priv->byRFType == RF_UW2452)
+		{
 			priv->abyBBVGA[0] = 0x14;
 			BBbReadEmbedded(priv, 0xE7, &byData);
-			if (byData == 0x18) {
+
+			if (byData == 0x18)
+			{
 				BBbWriteEmbedded(priv, 0xE7, priv->abyBBVGA[0]);
 				BBbWriteEmbedded(priv, 0xE1, 0xD3);
 			}
 		}
+
 		BBbWriteEmbedded(priv, 0x88, 0x08);
 		bySIFS = C_SIFS_BG;
 
-		if (priv->bShortSlotTime) {
+		if (priv->bShortSlotTime)
+		{
 			bySlot = C_SLOT_SHORT;
 			byDIFS = C_SIFS_BG + 2 * C_SLOT_SHORT;
-		} else {
+		}
+		else
+		{
 			bySlot = C_SLOT_LONG;
-			byDIFS = C_SIFS_BG + 2*C_SLOT_LONG;
+			byDIFS = C_SIFS_BG + 2 * C_SLOT_LONG;
 		}
 
 		byCWMaxMin = 0xa4;
 
-		for (i = RATE_54M; i >= RATE_6M; i--) {
-			if (priv->basic_rates & ((u32)(0x1 << i))) {
+		for (i = RATE_54M; i >= RATE_6M; i--)
+		{
+			if (priv->basic_rates & ((u32)(0x1 << i)))
+			{
 				byCWMaxMin |= 0x1;
 				break;
 			}
 		}
 	}
 
-	if (priv->byRFType == RF_RFMD2959) {
+	if (priv->byRFType == RF_RFMD2959)
+	{
 		/*
 		 * bcs TX_PE will reserve 3 us hardware's processing
 		 * time here is 2 us.
@@ -316,28 +393,37 @@ bool CARDbSetPhyParameter(struct vnt_private *priv, u8 bb_type)
 		 */
 	}
 
-	if (priv->bySIFS != bySIFS) {
+	if (priv->bySIFS != bySIFS)
+	{
 		priv->bySIFS = bySIFS;
 		VNSvOutPortB(priv->PortOffset + MAC_REG_SIFS, priv->bySIFS);
 	}
-	if (priv->byDIFS != byDIFS) {
+
+	if (priv->byDIFS != byDIFS)
+	{
 		priv->byDIFS = byDIFS;
 		VNSvOutPortB(priv->PortOffset + MAC_REG_DIFS, priv->byDIFS);
 	}
-	if (priv->byEIFS != C_EIFS) {
+
+	if (priv->byEIFS != C_EIFS)
+	{
 		priv->byEIFS = C_EIFS;
 		VNSvOutPortB(priv->PortOffset + MAC_REG_EIFS, priv->byEIFS);
 	}
-	if (priv->bySlot != bySlot) {
+
+	if (priv->bySlot != bySlot)
+	{
 		priv->bySlot = bySlot;
 		VNSvOutPortB(priv->PortOffset + MAC_REG_SLOT, priv->bySlot);
 
 		BBvSetShortSlotTime(priv);
 	}
-	if (priv->byCWMaxMin != byCWMaxMin) {
+
+	if (priv->byCWMaxMin != byCWMaxMin)
+	{
 		priv->byCWMaxMin = byCWMaxMin;
 		VNSvOutPortB(priv->PortOffset + MAC_REG_CWMAXMIN0,
-			     priv->byCWMaxMin);
+					 priv->byCWMaxMin);
 	}
 
 	priv->byPacketType = CARDbyGetPktType(priv);
@@ -363,24 +449,26 @@ bool CARDbSetPhyParameter(struct vnt_private *priv, u8 bb_type)
  * Return Value: none
  */
 bool CARDbUpdateTSF(struct vnt_private *priv, unsigned char byRxRate,
-		    u64 qwBSSTimestamp)
+					u64 qwBSSTimestamp)
 {
 	u64 local_tsf;
 	u64 qwTSFOffset = 0;
 
 	CARDbGetCurrentTSF(priv, &local_tsf);
 
-	if (qwBSSTimestamp != local_tsf) {
+	if (qwBSSTimestamp != local_tsf)
+	{
 		qwTSFOffset = CARDqGetTSFOffset(byRxRate, qwBSSTimestamp,
-						local_tsf);
+										local_tsf);
 		/* adjust TSF, HW's TSF add TSF Offset reg */
 		VNSvOutPortD(priv->PortOffset + MAC_REG_TSFOFST,
-			     (u32)qwTSFOffset);
+					 (u32)qwTSFOffset);
 		VNSvOutPortD(priv->PortOffset + MAC_REG_TSFOFST + 4,
-			     (u32)(qwTSFOffset >> 32));
+					 (u32)(qwTSFOffset >> 32));
 		MACvRegBitsOn(priv->PortOffset, MAC_REG_TFTCTL,
-			      TFTCTL_TSFSYNCEN);
+					  TFTCTL_TSFSYNCEN);
 	}
+
 	return true;
 }
 
@@ -398,7 +486,7 @@ bool CARDbUpdateTSF(struct vnt_private *priv, unsigned char byRxRate,
  * Return Value: true if succeed; otherwise false
  */
 bool CARDbSetBeaconPeriod(struct vnt_private *priv,
-			  unsigned short wBeaconInterval)
+						  unsigned short wBeaconInterval)
 {
 	u64 qwNextTBTT = 0;
 
@@ -412,7 +500,7 @@ bool CARDbSetBeaconPeriod(struct vnt_private *priv,
 	/* Set NextTBTT */
 	VNSvOutPortD(priv->PortOffset + MAC_REG_NEXTTBTT, (u32)qwNextTBTT);
 	VNSvOutPortD(priv->PortOffset + MAC_REG_NEXTTBTT + 4,
-		     (u32)(qwNextTBTT >> 32));
+				 (u32)(qwNextTBTT >> 32));
 	MACvRegBitsOn(priv->PortOffset, MAC_REG_TFTCTL, TFTCTL_TBTTSYNCEN);
 
 	return true;
@@ -434,24 +522,27 @@ bool CARDbRadioPowerOff(struct vnt_private *priv)
 	bool bResult = true;
 
 	if (priv->bRadioOff)
+	{
 		return true;
+	}
 
-	switch (priv->byRFType) {
-	case RF_RFMD2959:
-		MACvWordRegBitsOff(priv->PortOffset, MAC_REG_SOFTPWRCTL,
-				   SOFTPWRCTL_TXPEINV);
-		MACvWordRegBitsOn(priv->PortOffset, MAC_REG_SOFTPWRCTL,
-				  SOFTPWRCTL_SWPE1);
-		break;
+	switch (priv->byRFType)
+	{
+		case RF_RFMD2959:
+			MACvWordRegBitsOff(priv->PortOffset, MAC_REG_SOFTPWRCTL,
+							   SOFTPWRCTL_TXPEINV);
+			MACvWordRegBitsOn(priv->PortOffset, MAC_REG_SOFTPWRCTL,
+							  SOFTPWRCTL_SWPE1);
+			break;
 
-	case RF_AIROHA:
-	case RF_AL2230S:
-	case RF_AIROHA7230:
-		MACvWordRegBitsOff(priv->PortOffset, MAC_REG_SOFTPWRCTL,
-				   SOFTPWRCTL_SWPE2);
-		MACvWordRegBitsOff(priv->PortOffset, MAC_REG_SOFTPWRCTL,
-				   SOFTPWRCTL_SWPE3);
-		break;
+		case RF_AIROHA:
+		case RF_AL2230S:
+		case RF_AIROHA7230:
+			MACvWordRegBitsOff(priv->PortOffset, MAC_REG_SOFTPWRCTL,
+							   SOFTPWRCTL_SWPE2);
+			MACvWordRegBitsOff(priv->PortOffset, MAC_REG_SOFTPWRCTL,
+							   SOFTPWRCTL_SWPE3);
+			break;
 	}
 
 	MACvRegBitsOff(priv->PortOffset, MAC_REG_HOSTCR, HOSTCR_RXON);
@@ -461,7 +552,7 @@ bool CARDbRadioPowerOff(struct vnt_private *priv)
 	priv->bRadioOff = true;
 	pr_debug("chester power off\n");
 	MACvRegBitsOn(priv->PortOffset, MAC_REG_GPIOCTL0,
-		      LED_ACTSET);  /* LED issue */
+				  LED_ACTSET);  /* LED issue */
 	return bResult;
 }
 
@@ -481,41 +572,53 @@ bool CARDbRadioPowerOn(struct vnt_private *priv)
 	bool bResult = true;
 
 	pr_debug("chester power on\n");
-	if (priv->bRadioControlOff) {
-		if (priv->bHWRadioOff)
-			pr_debug("chester bHWRadioOff\n");
-		if (priv->bRadioControlOff)
-			pr_debug("chester bRadioControlOff\n");
-		return false; }
 
-	if (!priv->bRadioOff) {
+	if (priv->bRadioControlOff)
+	{
+		if (priv->bHWRadioOff)
+		{
+			pr_debug("chester bHWRadioOff\n");
+		}
+
+		if (priv->bRadioControlOff)
+		{
+			pr_debug("chester bRadioControlOff\n");
+		}
+
+		return false;
+	}
+
+	if (!priv->bRadioOff)
+	{
 		pr_debug("chester pbRadioOff\n");
-		return true; }
+		return true;
+	}
 
 	BBvExitDeepSleep(priv, priv->byLocalID);
 
 	MACvRegBitsOn(priv->PortOffset, MAC_REG_HOSTCR, HOSTCR_RXON);
 
-	switch (priv->byRFType) {
-	case RF_RFMD2959:
-		MACvWordRegBitsOn(priv->PortOffset, MAC_REG_SOFTPWRCTL,
-				  SOFTPWRCTL_TXPEINV);
-		MACvWordRegBitsOff(priv->PortOffset, MAC_REG_SOFTPWRCTL,
-				   SOFTPWRCTL_SWPE1);
-		break;
+	switch (priv->byRFType)
+	{
+		case RF_RFMD2959:
+			MACvWordRegBitsOn(priv->PortOffset, MAC_REG_SOFTPWRCTL,
+							  SOFTPWRCTL_TXPEINV);
+			MACvWordRegBitsOff(priv->PortOffset, MAC_REG_SOFTPWRCTL,
+							   SOFTPWRCTL_SWPE1);
+			break;
 
-	case RF_AIROHA:
-	case RF_AL2230S:
-	case RF_AIROHA7230:
-		MACvWordRegBitsOn(priv->PortOffset, MAC_REG_SOFTPWRCTL,
-				  (SOFTPWRCTL_SWPE2 | SOFTPWRCTL_SWPE3));
-		break;
+		case RF_AIROHA:
+		case RF_AL2230S:
+		case RF_AIROHA7230:
+			MACvWordRegBitsOn(priv->PortOffset, MAC_REG_SOFTPWRCTL,
+							  (SOFTPWRCTL_SWPE2 | SOFTPWRCTL_SWPE3));
+			break;
 	}
 
 	priv->bRadioOff = false;
 	pr_debug("chester power on\n");
 	MACvRegBitsOff(priv->PortOffset, MAC_REG_GPIOCTL0,
-		       LED_ACTSET); /* LED issue */
+				   LED_ACTSET); /* LED issue */
 	return bResult;
 }
 
@@ -532,14 +635,19 @@ CARDvSafeResetTx(
 	priv->apTailTD[1] = priv->apCurrTD[1] = &(priv->apTD1Rings[0]);
 
 	for (uu = 0; uu < TYPE_MAXTD; uu++)
+	{
 		priv->iTDUsed[uu] = 0;
+	}
 
-	for (uu = 0; uu < priv->opts.tx_descs[0]; uu++) {
+	for (uu = 0; uu < priv->opts.tx_descs[0]; uu++)
+	{
 		pCurrTD = &(priv->apTD0Rings[uu]);
 		pCurrTD->td0.owner = OWNED_BY_HOST;
 		/* init all Tx Packet pointer to NULL */
 	}
-	for (uu = 0; uu < priv->opts.tx_descs[1]; uu++) {
+
+	for (uu = 0; uu < priv->opts.tx_descs[1]; uu++)
+	{
 		pCurrTD = &(priv->apTD1Rings[uu]);
 		pCurrTD->td0.owner = OWNED_BY_HOST;
 		/* init all Tx Packet pointer to NULL */
@@ -552,7 +660,7 @@ CARDvSafeResetTx(
 
 	/* set MAC Beacon TX pointer */
 	MACvSetCurrBCNTxDescAddr(priv->PortOffset,
-				 (priv->tx_beacon_dma));
+							 (priv->tx_beacon_dma));
 }
 
 /*
@@ -580,7 +688,8 @@ CARDvSafeResetRx(
 	priv->pCurrRD[1] = &(priv->aRD1Ring[0]);
 
 	/* init state, all RD is chip's */
-	for (uu = 0; uu < priv->opts.rx_descs0; uu++) {
+	for (uu = 0; uu < priv->opts.rx_descs0; uu++)
+	{
 		pDesc = &(priv->aRD0Ring[uu]);
 		pDesc->rd0.res_count = cpu_to_le16(priv->rx_buf_sz);
 		pDesc->rd0.owner = OWNED_BY_NIC;
@@ -588,7 +697,8 @@ CARDvSafeResetRx(
 	}
 
 	/* init state, all RD is chip's */
-	for (uu = 0; uu < priv->opts.rx_descs1; uu++) {
+	for (uu = 0; uu < priv->opts.rx_descs1; uu++)
+	{
 		pDesc = &(priv->aRD1Ring[uu]);
 		pDesc->rd0.res_count = cpu_to_le16(priv->rx_buf_sz);
 		pDesc->rd0.owner = OWNED_BY_NIC;
@@ -617,16 +727,20 @@ CARDvSafeResetRx(
  * Return Value: response Control frame rate
  */
 static unsigned short CARDwGetCCKControlRate(struct vnt_private *priv,
-					     unsigned short wRateIdx)
+		unsigned short wRateIdx)
 {
 	unsigned int ui = (unsigned int)wRateIdx;
 
-	while (ui > RATE_1M) {
+	while (ui > RATE_1M)
+	{
 		if (priv->basic_rates & ((u32)0x1 << ui))
+		{
 			return (unsigned short)ui;
+		}
 
 		ui--;
 	}
+
 	return (unsigned short)RATE_1M;
 }
 
@@ -643,25 +757,35 @@ static unsigned short CARDwGetCCKControlRate(struct vnt_private *priv,
  * Return Value: response Control frame rate
  */
 static unsigned short CARDwGetOFDMControlRate(struct vnt_private *priv,
-					      unsigned short wRateIdx)
+		unsigned short wRateIdx)
 {
 	unsigned int ui = (unsigned int)wRateIdx;
 
 	pr_debug("BASIC RATE: %X\n", priv->basic_rates);
 
-	if (!CARDbIsOFDMinBasicRate((void *)priv)) {
+	if (!CARDbIsOFDMinBasicRate((void *)priv))
+	{
 		pr_debug("CARDwGetOFDMControlRate:(NO OFDM) %d\n", wRateIdx);
+
 		if (wRateIdx > RATE_24M)
+		{
 			wRateIdx = RATE_24M;
+		}
+
 		return wRateIdx;
 	}
-	while (ui > RATE_11M) {
-		if (priv->basic_rates & ((u32)0x1 << ui)) {
+
+	while (ui > RATE_11M)
+	{
+		if (priv->basic_rates & ((u32)0x1 << ui))
+		{
 			pr_debug("CARDwGetOFDMControlRate : %d\n", ui);
 			return (unsigned short)ui;
 		}
+
 		ui--;
 	}
+
 	pr_debug("CARDwGetOFDMControlRate: 6M\n");
 	return (unsigned short)RATE_24M;
 }
@@ -690,18 +814,18 @@ void CARDvSetRSPINF(struct vnt_private *priv, u8 bb_type)
 
 	/* RSPINF_b_1 */
 	vnt_get_phy_field(priv, 14,
-			  CARDwGetCCKControlRate(priv, RATE_1M),
-			  PK_TYPE_11B, &phy.field_read);
+					  CARDwGetCCKControlRate(priv, RATE_1M),
+					  PK_TYPE_11B, &phy.field_read);
 
-	 /* swap over to get correct write order */
+	/* swap over to get correct write order */
 	swap(phy.swap[0], phy.swap[1]);
 
 	VNSvOutPortD(priv->PortOffset + MAC_REG_RSPINF_B_1, phy.field_write);
 
 	/* RSPINF_b_2 */
 	vnt_get_phy_field(priv, 14,
-			  CARDwGetCCKControlRate(priv, RATE_2M),
-			  PK_TYPE_11B, &phy.field_read);
+					  CARDwGetCCKControlRate(priv, RATE_2M),
+					  PK_TYPE_11B, &phy.field_read);
 
 	swap(phy.swap[0], phy.swap[1]);
 
@@ -709,8 +833,8 @@ void CARDvSetRSPINF(struct vnt_private *priv, u8 bb_type)
 
 	/* RSPINF_b_5 */
 	vnt_get_phy_field(priv, 14,
-			  CARDwGetCCKControlRate(priv, RATE_5M),
-			  PK_TYPE_11B, &phy.field_read);
+					  CARDwGetCCKControlRate(priv, RATE_5M),
+					  PK_TYPE_11B, &phy.field_read);
 
 	swap(phy.swap[0], phy.swap[1]);
 
@@ -718,8 +842,8 @@ void CARDvSetRSPINF(struct vnt_private *priv, u8 bb_type)
 
 	/* RSPINF_b_11 */
 	vnt_get_phy_field(priv, 14,
-			  CARDwGetCCKControlRate(priv, RATE_11M),
-			  PK_TYPE_11B, &phy.field_read);
+					  CARDwGetCCKControlRate(priv, RATE_11M),
+					  PK_TYPE_11B, &phy.field_read);
 
 	swap(phy.swap[0], phy.swap[1]);
 
@@ -727,75 +851,75 @@ void CARDvSetRSPINF(struct vnt_private *priv, u8 bb_type)
 
 	/* RSPINF_a_6 */
 	s_vCalculateOFDMRParameter(RATE_6M,
-				   bb_type,
-				   &byTxRate,
-				   &byRsvTime);
+							   bb_type,
+							   &byTxRate,
+							   &byRsvTime);
 	VNSvOutPortW(priv->PortOffset + MAC_REG_RSPINF_A_6,
-		     MAKEWORD(byTxRate, byRsvTime));
+				 MAKEWORD(byTxRate, byRsvTime));
 	/* RSPINF_a_9 */
 	s_vCalculateOFDMRParameter(RATE_9M,
-				   bb_type,
-				   &byTxRate,
-				   &byRsvTime);
+							   bb_type,
+							   &byTxRate,
+							   &byRsvTime);
 	VNSvOutPortW(priv->PortOffset + MAC_REG_RSPINF_A_9,
-		     MAKEWORD(byTxRate, byRsvTime));
+				 MAKEWORD(byTxRate, byRsvTime));
 	/* RSPINF_a_12 */
 	s_vCalculateOFDMRParameter(RATE_12M,
-				   bb_type,
-				   &byTxRate,
-				   &byRsvTime);
+							   bb_type,
+							   &byTxRate,
+							   &byRsvTime);
 	VNSvOutPortW(priv->PortOffset + MAC_REG_RSPINF_A_12,
-		     MAKEWORD(byTxRate, byRsvTime));
+				 MAKEWORD(byTxRate, byRsvTime));
 	/* RSPINF_a_18 */
 	s_vCalculateOFDMRParameter(RATE_18M,
-				   bb_type,
-				   &byTxRate,
-				   &byRsvTime);
+							   bb_type,
+							   &byTxRate,
+							   &byRsvTime);
 	VNSvOutPortW(priv->PortOffset + MAC_REG_RSPINF_A_18,
-		     MAKEWORD(byTxRate, byRsvTime));
+				 MAKEWORD(byTxRate, byRsvTime));
 	/* RSPINF_a_24 */
 	s_vCalculateOFDMRParameter(RATE_24M,
-				   bb_type,
-				   &byTxRate,
-				   &byRsvTime);
+							   bb_type,
+							   &byTxRate,
+							   &byRsvTime);
 	VNSvOutPortW(priv->PortOffset + MAC_REG_RSPINF_A_24,
-		     MAKEWORD(byTxRate, byRsvTime));
+				 MAKEWORD(byTxRate, byRsvTime));
 	/* RSPINF_a_36 */
 	s_vCalculateOFDMRParameter(CARDwGetOFDMControlRate(
-							   (void *)priv,
-							   RATE_36M),
-				   bb_type,
-				   &byTxRate,
-				   &byRsvTime);
+								   (void *)priv,
+								   RATE_36M),
+							   bb_type,
+							   &byTxRate,
+							   &byRsvTime);
 	VNSvOutPortW(priv->PortOffset + MAC_REG_RSPINF_A_36,
-		     MAKEWORD(byTxRate, byRsvTime));
+				 MAKEWORD(byTxRate, byRsvTime));
 	/* RSPINF_a_48 */
 	s_vCalculateOFDMRParameter(CARDwGetOFDMControlRate(
-							   (void *)priv,
-							   RATE_48M),
-				   bb_type,
-				   &byTxRate,
-				   &byRsvTime);
+								   (void *)priv,
+								   RATE_48M),
+							   bb_type,
+							   &byTxRate,
+							   &byRsvTime);
 	VNSvOutPortW(priv->PortOffset + MAC_REG_RSPINF_A_48,
-		     MAKEWORD(byTxRate, byRsvTime));
+				 MAKEWORD(byTxRate, byRsvTime));
 	/* RSPINF_a_54 */
 	s_vCalculateOFDMRParameter(CARDwGetOFDMControlRate(
-							   (void *)priv,
-							   RATE_54M),
-				   bb_type,
-				   &byTxRate,
-				   &byRsvTime);
+								   (void *)priv,
+								   RATE_54M),
+							   bb_type,
+							   &byTxRate,
+							   &byRsvTime);
 	VNSvOutPortW(priv->PortOffset + MAC_REG_RSPINF_A_54,
-		     MAKEWORD(byTxRate, byRsvTime));
+				 MAKEWORD(byTxRate, byRsvTime));
 	/* RSPINF_a_72 */
 	s_vCalculateOFDMRParameter(CARDwGetOFDMControlRate(
-							   (void *)priv,
-							   RATE_54M),
-				   bb_type,
-				   &byTxRate,
-				   &byRsvTime);
+								   (void *)priv,
+								   RATE_54M),
+							   bb_type,
+							   &byTxRate,
+							   &byRsvTime);
 	VNSvOutPortW(priv->PortOffset + MAC_REG_RSPINF_A_72,
-		     MAKEWORD(byTxRate, byRsvTime));
+				 MAKEWORD(byTxRate, byRsvTime));
 	/* Set to Page0 */
 	MACvSelectPage0(priv->PortOffset);
 
@@ -808,22 +932,31 @@ void CARDvUpdateBasicTopRate(struct vnt_private *priv)
 	unsigned char ii;
 
 	/* Determines the highest basic rate. */
-	for (ii = RATE_54M; ii >= RATE_6M; ii--) {
-		if ((priv->basic_rates) & ((u32)(1 << ii))) {
+	for (ii = RATE_54M; ii >= RATE_6M; ii--)
+	{
+		if ((priv->basic_rates) & ((u32)(1 << ii)))
+		{
 			byTopOFDM = ii;
 			break;
 		}
 	}
+
 	priv->byTopOFDMBasicRate = byTopOFDM;
 
-	for (ii = RATE_11M;; ii--) {
-		if ((priv->basic_rates) & ((u32)(1 << ii))) {
+	for (ii = RATE_11M;; ii--)
+	{
+		if ((priv->basic_rates) & ((u32)(1 << ii)))
+		{
 			byTopCCK = ii;
 			break;
 		}
+
 		if (ii == RATE_1M)
+		{
 			break;
+		}
 	}
+
 	priv->byTopCCKBasicRate = byTopCCK;
 }
 
@@ -831,21 +964,31 @@ bool CARDbIsOFDMinBasicRate(struct vnt_private *priv)
 {
 	int ii;
 
-	for (ii = RATE_54M; ii >= RATE_6M; ii--) {
+	for (ii = RATE_54M; ii >= RATE_6M; ii--)
+	{
 		if ((priv->basic_rates) & ((u32)BIT(ii)))
+		{
 			return true;
+		}
 	}
+
 	return false;
 }
 
 unsigned char CARDbyGetPktType(struct vnt_private *priv)
 {
 	if (priv->byBBType == BB_TYPE_11A || priv->byBBType == BB_TYPE_11B)
+	{
 		return (unsigned char)priv->byBBType;
+	}
 	else if (CARDbIsOFDMinBasicRate((void *)priv))
+	{
 		return PK_TYPE_11GA;
+	}
 	else
+	{
 		return PK_TYPE_11GB;
+	}
 }
 
 /*
@@ -861,16 +1004,19 @@ unsigned char CARDbyGetPktType(struct vnt_private *priv)
  * Return Value: none
  */
 void CARDvSetLoopbackMode(struct vnt_private *priv,
-			  unsigned short wLoopbackMode)
+						  unsigned short wLoopbackMode)
 {
-	switch (wLoopbackMode) {
-	case CARD_LB_NONE:
-	case CARD_LB_MAC:
-	case CARD_LB_PHY:
-		break;
-	default:
-		break;
+	switch (wLoopbackMode)
+	{
+		case CARD_LB_NONE:
+		case CARD_LB_MAC:
+		case CARD_LB_PHY:
+			break;
+
+		default:
+			break;
 	}
+
 	/* set MAC loopback */
 	MACvSetLoopbackMode(priv, LOBYTE(wLoopbackMode));
 	/* set Baseband loopback */
@@ -891,7 +1037,9 @@ bool CARDbSoftwareReset(struct vnt_private *priv)
 {
 	/* reset MAC */
 	if (!MACbSafeSoftwareReset(priv))
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -915,7 +1063,7 @@ u64 CARDqGetTSFOffset(unsigned char byRxRate, u64 qwTSF1, u64 qwTSF2)
 	u64 qwTSFOffset = 0;
 	unsigned short wRxBcnTSFOffst;
 
-	wRxBcnTSFOffst = cwRXBCNTSFOff[byRxRate%MAX_RATE];
+	wRxBcnTSFOffst = cwRXBCNTSFOff[byRxRate % MAX_RATE];
 
 	qwTSF2 += (u64)wRxBcnTSFOffst;
 
@@ -943,13 +1091,22 @@ bool CARDbGetCurrentTSF(struct vnt_private *priv, u64 *pqwCurrTSF)
 	unsigned char byData;
 
 	MACvRegBitsOn(dwIoBase, MAC_REG_TFTCTL, TFTCTL_TSFCNTRRD);
-	for (ww = 0; ww < W_MAX_TIMEOUT; ww++) {
+
+	for (ww = 0; ww < W_MAX_TIMEOUT; ww++)
+	{
 		VNSvInPortB(dwIoBase + MAC_REG_TFTCTL, &byData);
+
 		if (!(byData & TFTCTL_TSFCNTRRD))
+		{
 			break;
+		}
 	}
+
 	if (ww == W_MAX_TIMEOUT)
+	{
 		return false;
+	}
+
 	VNSvInPortD(dwIoBase + MAC_REG_TSFCNTR, (u32 *)pqwCurrTSF);
 	VNSvInPortD(dwIoBase + MAC_REG_TSFCNTR + 4, (u32 *)pqwCurrTSF + 1);
 
@@ -974,7 +1131,9 @@ u64 CARDqGetNextTBTT(u64 qwTSF, unsigned short wBeaconInterval)
 	u32 beacon_int;
 
 	beacon_int = wBeaconInterval * 1024;
-	if (beacon_int) {
+
+	if (beacon_int)
+	{
 		do_div(qwTSF, beacon_int);
 		qwTSF += 1;
 		qwTSF *= beacon_int;
@@ -997,7 +1156,7 @@ u64 CARDqGetNextTBTT(u64 qwTSF, unsigned short wBeaconInterval)
  * Return Value: none
  */
 void CARDvSetFirstNextTBTT(struct vnt_private *priv,
-			   unsigned short wBeaconInterval)
+						   unsigned short wBeaconInterval)
 {
 	void __iomem *dwIoBase = priv->PortOffset;
 	u64 qwNextTBTT = 0;
@@ -1026,7 +1185,7 @@ void CARDvSetFirstNextTBTT(struct vnt_private *priv,
  * Return Value: none
  */
 void CARDvUpdateNextTBTT(struct vnt_private *priv, u64 qwTSF,
-			 unsigned short wBeaconInterval)
+						 unsigned short wBeaconInterval)
 {
 	void __iomem *dwIoBase = priv->PortOffset;
 

@@ -29,16 +29,19 @@
 #define DRV_NAME	"dw_dmac"
 
 static struct dma_chan *dw_dma_of_xlate(struct of_phandle_args *dma_spec,
-					struct of_dma *ofdma)
+										struct of_dma *ofdma)
 {
 	struct dw_dma *dw = ofdma->of_dma_data;
-	struct dw_dma_slave slave = {
+	struct dw_dma_slave slave =
+	{
 		.dma_dev = dw->dma.dev,
 	};
 	dma_cap_mask_t cap;
 
 	if (dma_spec->args_count != 3)
+	{
 		return NULL;
+	}
 
 	slave.src_id = dma_spec->args[0];
 	slave.dst_id = dma_spec->args[0];
@@ -46,10 +49,12 @@ static struct dma_chan *dw_dma_of_xlate(struct of_phandle_args *dma_spec,
 	slave.p_master = dma_spec->args[2];
 
 	if (WARN_ON(slave.src_id >= DW_DMA_MAX_NR_REQUESTS ||
-		    slave.dst_id >= DW_DMA_MAX_NR_REQUESTS ||
-		    slave.m_master >= dw->pdata->nr_masters ||
-		    slave.p_master >= dw->pdata->nr_masters))
+				slave.dst_id >= DW_DMA_MAX_NR_REQUESTS ||
+				slave.m_master >= dw->pdata->nr_masters ||
+				slave.p_master >= dw->pdata->nr_masters))
+	{
 		return NULL;
+	}
 
 	dma_cap_zero(cap);
 	dma_cap_set(DMA_SLAVE, cap);
@@ -62,7 +67,8 @@ static struct dma_chan *dw_dma_of_xlate(struct of_phandle_args *dma_spec,
 static bool dw_dma_acpi_filter(struct dma_chan *chan, void *param)
 {
 	struct acpi_dma_spec *dma_spec = param;
-	struct dw_dma_slave slave = {
+	struct dw_dma_slave slave =
+	{
 		.dma_dev = dma_spec->dev,
 		.src_id = dma_spec->slave_id,
 		.dst_id = dma_spec->slave_id,
@@ -80,17 +86,23 @@ static void dw_dma_acpi_controller_register(struct dw_dma *dw)
 	int ret;
 
 	info = devm_kzalloc(dev, sizeof(*info), GFP_KERNEL);
+
 	if (!info)
+	{
 		return;
+	}
 
 	dma_cap_zero(info->dma_cap);
 	dma_cap_set(DMA_SLAVE, info->dma_cap);
 	info->filter_fn = dw_dma_acpi_filter;
 
 	ret = devm_acpi_dma_controller_register(dev, acpi_dma_simple_xlate,
-						info);
+											info);
+
 	if (ret)
+	{
 		dev_err(dev, "could not register acpi_dma_controller\n");
+	}
 }
 #else /* !CONFIG_ACPI */
 static inline void dw_dma_acpi_controller_register(struct dw_dma *dw) {}
@@ -106,44 +118,70 @@ dw_dma_parse_dt(struct platform_device *pdev)
 	u32 nr_masters;
 	u32 nr_channels;
 
-	if (!np) {
+	if (!np)
+	{
 		dev_err(&pdev->dev, "Missing DT data\n");
 		return NULL;
 	}
 
 	if (of_property_read_u32(np, "dma-masters", &nr_masters))
+	{
 		return NULL;
+	}
+
 	if (nr_masters < 1 || nr_masters > DW_DMA_MAX_NR_MASTERS)
+	{
 		return NULL;
+	}
 
 	if (of_property_read_u32(np, "dma-channels", &nr_channels))
+	{
 		return NULL;
+	}
 
 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+
 	if (!pdata)
+	{
 		return NULL;
+	}
 
 	pdata->nr_masters = nr_masters;
 	pdata->nr_channels = nr_channels;
 
 	if (of_property_read_bool(np, "is_private"))
+	{
 		pdata->is_private = true;
+	}
 
 	if (!of_property_read_u32(np, "chan_allocation_order", &tmp))
+	{
 		pdata->chan_allocation_order = (unsigned char)tmp;
+	}
 
 	if (!of_property_read_u32(np, "chan_priority", &tmp))
+	{
 		pdata->chan_priority = tmp;
+	}
 
 	if (!of_property_read_u32(np, "block_size", &tmp))
+	{
 		pdata->block_size = tmp;
+	}
 
-	if (!of_property_read_u32_array(np, "data-width", arr, nr_masters)) {
+	if (!of_property_read_u32_array(np, "data-width", arr, nr_masters))
+	{
 		for (tmp = 0; tmp < nr_masters; tmp++)
+		{
 			pdata->data_width[tmp] = arr[tmp];
-	} else if (!of_property_read_u32_array(np, "data_width", arr, nr_masters)) {
+		}
+	}
+	else if (!of_property_read_u32_array(np, "data_width", arr, nr_masters))
+	{
 		for (tmp = 0; tmp < nr_masters; tmp++)
+		{
 			pdata->data_width[tmp] = BIT(arr[tmp] & 0x07);
+		}
 	}
 
 	return pdata;
@@ -165,54 +203,83 @@ static int dw_probe(struct platform_device *pdev)
 	int err;
 
 	chip = devm_kzalloc(dev, sizeof(*chip), GFP_KERNEL);
+
 	if (!chip)
+	{
 		return -ENOMEM;
+	}
 
 	chip->irq = platform_get_irq(pdev, 0);
+
 	if (chip->irq < 0)
+	{
 		return chip->irq;
+	}
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	chip->regs = devm_ioremap_resource(dev, mem);
+
 	if (IS_ERR(chip->regs))
+	{
 		return PTR_ERR(chip->regs);
+	}
 
 	err = dma_coerce_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
+
 	if (err)
+	{
 		return err;
+	}
 
 	pdata = dev_get_platdata(dev);
+
 	if (!pdata)
+	{
 		pdata = dw_dma_parse_dt(pdev);
+	}
 
 	chip->dev = dev;
 	chip->pdata = pdata;
 
 	chip->clk = devm_clk_get(chip->dev, "hclk");
+
 	if (IS_ERR(chip->clk))
+	{
 		return PTR_ERR(chip->clk);
+	}
+
 	err = clk_prepare_enable(chip->clk);
+
 	if (err)
+	{
 		return err;
+	}
 
 	pm_runtime_enable(&pdev->dev);
 
 	err = dw_dma_probe(chip);
+
 	if (err)
+	{
 		goto err_dw_dma_probe;
+	}
 
 	platform_set_drvdata(pdev, chip);
 
-	if (pdev->dev.of_node) {
+	if (pdev->dev.of_node)
+	{
 		err = of_dma_controller_register(pdev->dev.of_node,
-						 dw_dma_of_xlate, chip->dw);
+										 dw_dma_of_xlate, chip->dw);
+
 		if (err)
 			dev_err(&pdev->dev,
-				"could not register of_dma_controller\n");
+					"could not register of_dma_controller\n");
 	}
 
 	if (ACPI_HANDLE(&pdev->dev))
+	{
 		dw_dma_acpi_controller_register(chip->dw);
+	}
 
 	return 0;
 
@@ -227,7 +294,9 @@ static int dw_remove(struct platform_device *pdev)
 	struct dw_dma_chip *chip = platform_get_drvdata(pdev);
 
 	if (pdev->dev.of_node)
+	{
 		of_dma_controller_free(pdev->dev.of_node);
+	}
 
 	dw_dma_remove(chip);
 	pm_runtime_disable(&pdev->dev);
@@ -257,7 +326,8 @@ static void dw_shutdown(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id dw_dma_of_id_table[] = {
+static const struct of_device_id dw_dma_of_id_table[] =
+{
 	{ .compatible = "snps,dma-spear1340" },
 	{}
 };
@@ -265,7 +335,8 @@ MODULE_DEVICE_TABLE(of, dw_dma_of_id_table);
 #endif
 
 #ifdef CONFIG_ACPI
-static const struct acpi_device_id dw_dma_acpi_id_table[] = {
+static const struct acpi_device_id dw_dma_acpi_id_table[] =
+{
 	{ "INTL9C60", 0 },
 	{ }
 };
@@ -296,11 +367,13 @@ static int dw_resume_early(struct device *dev)
 
 #endif /* CONFIG_PM_SLEEP */
 
-static const struct dev_pm_ops dw_dev_pm_ops = {
+static const struct dev_pm_ops dw_dev_pm_ops =
+{
 	SET_LATE_SYSTEM_SLEEP_PM_OPS(dw_suspend_late, dw_resume_early)
 };
 
-static struct platform_driver dw_driver = {
+static struct platform_driver dw_driver =
+{
 	.probe		= dw_probe,
 	.remove		= dw_remove,
 	.shutdown       = dw_shutdown,

@@ -34,15 +34,18 @@ gp104_disp_intr_error(struct nv50_disp *disp, int chid)
 	u32 unkn = nvkm_rd32(device, 0x6111f8 + (chid * 12));
 
 	nvkm_error(subdev, "chid %d mthd %04x data %08x %08x %08x\n",
-		   chid, (mthd & 0x0000ffc), data, mthd, unkn);
+			   chid, (mthd & 0x0000ffc), data, mthd, unkn);
 
-	if (chid < ARRAY_SIZE(disp->chan)) {
-		switch (mthd & 0xffc) {
-		case 0x0080:
-			nv50_disp_chan_mthd(disp->chan[chid], NV_DBG_ERROR);
-			break;
-		default:
-			break;
+	if (chid < ARRAY_SIZE(disp->chan))
+	{
+		switch (mthd & 0xffc)
+		{
+			case 0x0080:
+				nv50_disp_chan_mthd(disp->chan[chid], NV_DBG_ERROR);
+				break;
+
+			default:
+				break;
 		}
 	}
 
@@ -51,7 +54,8 @@ gp104_disp_intr_error(struct nv50_disp *disp, int chid)
 }
 
 static const struct nv50_disp_func
-gp104_disp = {
+	gp104_disp =
+{
 	.intr = gf119_disp_intr,
 	.intr_error = gp104_disp_intr_error,
 	.uevent = &gf119_disp_chan_uevent,

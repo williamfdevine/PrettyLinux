@@ -92,7 +92,8 @@
 
 #define RIIC_INIT_MSG	-1
 
-struct riic_dev {
+struct riic_dev
+{
 	void __iomem *base;
 	u8 *buf;
 	struct i2c_msg *msg;
@@ -104,7 +105,8 @@ struct riic_dev {
 	struct clk *clk;
 };
 
-struct riic_irq_desc {
+struct riic_irq_desc
+{
 	int res_num;
 	irq_handler_t isr;
 	char *name;
@@ -123,10 +125,14 @@ static int riic_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
 	u8 start_bit;
 
 	ret = clk_prepare_enable(riic->clk);
-	if (ret)
-		return ret;
 
-	if (readb(riic->base + RIIC_ICCR2) & ICCR2_BBSY) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (readb(riic->base + RIIC_ICCR2) & ICCR2_BBSY)
+	{
 		riic->err = -EBUSY;
 		goto out;
 	}
@@ -136,7 +142,8 @@ static int riic_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
 
 	writeb(0, riic->base + RIIC_ICSR2);
 
-	for (i = 0, start_bit = ICCR2_ST; i < num; i++) {
+	for (i = 0, start_bit = ICCR2_ST; i < num; i++)
+	{
 		riic->bytes_left = RIIC_INIT_MSG;
 		riic->buf = msgs[i].buf;
 		riic->msg = &msgs[i];
@@ -147,19 +154,24 @@ static int riic_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
 		writeb(start_bit, riic->base + RIIC_ICCR2);
 
 		time_left = wait_for_completion_timeout(&riic->msg_done, riic->adapter.timeout);
+
 		if (time_left == 0)
+		{
 			riic->err = -ETIMEDOUT;
+		}
 
 		if (riic->err)
+		{
 			break;
+		}
 
 		start_bit = ICCR2_RS;
 	}
 
- out:
+out:
 	clk_disable_unprepare(riic->clk);
 
-	return riic->err ?: num;
+	return riic->err ? : num;
 }
 
 static irqreturn_t riic_tdre_isr(int irq, void *data)
@@ -168,19 +180,29 @@ static irqreturn_t riic_tdre_isr(int irq, void *data)
 	u8 val;
 
 	if (!riic->bytes_left)
+	{
 		return IRQ_NONE;
+	}
 
-	if (riic->bytes_left == RIIC_INIT_MSG) {
+	if (riic->bytes_left == RIIC_INIT_MSG)
+	{
 		val = !!(riic->msg->flags & I2C_M_RD);
+
 		if (val)
 			/* On read, switch over to receive interrupt */
+		{
 			riic_clear_set_bit(riic, ICIER_TIE, ICIER_RIE, RIIC_ICIER);
+		}
 		else
 			/* On write, initialize length */
+		{
 			riic->bytes_left = riic->msg->len;
+		}
 
 		val |= (riic->msg->addr << 1);
-	} else {
+	}
+	else
+	{
 		val = *riic->buf;
 		riic->buf++;
 		riic->bytes_left--;
@@ -192,7 +214,9 @@ static irqreturn_t riic_tdre_isr(int irq, void *data)
 	 * 0 length then)
 	 */
 	if (riic->bytes_left == 0)
+	{
 		riic_clear_set_bit(riic, ICIER_TIE, ICIER_TEIE, RIIC_ICIER);
+	}
 
 	/*
 	 * This acks the TIE interrupt. We get another TIE immediately if our
@@ -208,16 +232,21 @@ static irqreturn_t riic_tend_isr(int irq, void *data)
 {
 	struct riic_dev *riic = data;
 
-	if (readb(riic->base + RIIC_ICSR2) & ICSR2_NACKF) {
+	if (readb(riic->base + RIIC_ICSR2) & ICSR2_NACKF)
+	{
 		/* We got a NACKIE */
 		readb(riic->base + RIIC_ICDRR);	/* dummy read */
 		riic->err = -ENXIO;
-	} else if (riic->bytes_left) {
+	}
+	else if (riic->bytes_left)
+	{
 		return IRQ_NONE;
 	}
 
 	if (riic->is_last || riic->err)
+	{
 		writeb(ICCR2_SP, riic->base + RIIC_ICCR2);
+	}
 
 	writeb(0, riic->base + RIIC_ICIER);
 	complete(&riic->msg_done);
@@ -230,24 +259,32 @@ static irqreturn_t riic_rdrf_isr(int irq, void *data)
 	struct riic_dev *riic = data;
 
 	if (!riic->bytes_left)
+	{
 		return IRQ_NONE;
+	}
 
-	if (riic->bytes_left == RIIC_INIT_MSG) {
+	if (riic->bytes_left == RIIC_INIT_MSG)
+	{
 		riic->bytes_left = riic->msg->len;
 		readb(riic->base + RIIC_ICDRR);	/* dummy read */
 		return IRQ_HANDLED;
 	}
 
-	if (riic->bytes_left == 1) {
+	if (riic->bytes_left == 1)
+	{
 		/* STOP must come before we set ACKBT! */
 		if (riic->is_last)
+		{
 			writeb(ICCR2_SP, riic->base + RIIC_ICCR2);
+		}
 
 		riic_clear_set_bit(riic, 0, ICMR3_ACKBT, RIIC_ICMR3);
 
 		writeb(0, riic->base + RIIC_ICIER);
 		complete(&riic->msg_done);
-	} else {
+	}
+	else
+	{
 		riic_clear_set_bit(riic, ICMR3_ACKBT, 0, RIIC_ICMR3);
 	}
 
@@ -264,7 +301,8 @@ static u32 riic_func(struct i2c_adapter *adap)
 	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
 }
 
-static const struct i2c_algorithm riic_algo = {
+static const struct i2c_algorithm riic_algo =
+{
 	.master_xfer	= riic_xfer,
 	.functionality	= riic_func,
 };
@@ -275,17 +313,22 @@ static int riic_init_hw(struct riic_dev *riic, u32 spd)
 	unsigned long rate;
 
 	ret = clk_prepare_enable(riic->clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/*
 	 * TODO: Implement formula to calculate the timing values depending on
 	 * variable parent clock rate and arbitrary bus speed
 	 */
 	rate = clk_get_rate(riic->clk);
-	if (rate != 33325000) {
+
+	if (rate != 33325000)
+	{
 		dev_err(&riic->adapter.dev,
-			"invalid parent clk (%lu). Must be 33325000Hz\n", rate);
+				"invalid parent clk (%lu). Must be 33325000Hz\n", rate);
 		clk_disable_unprepare(riic->clk);
 		return -EINVAL;
 	}
@@ -294,22 +337,25 @@ static int riic_init_hw(struct riic_dev *riic, u32 spd)
 	writeb(ICCR1_IICRST | ICCR1_SOWP, riic->base + RIIC_ICCR1);
 	riic_clear_set_bit(riic, 0, ICCR1_ICE, RIIC_ICCR1);
 
-	switch (spd) {
-	case 100000:
-		writeb(ICMR1_CKS(3), riic->base + RIIC_ICMR1);
-		writeb(ICBRH_SP100K, riic->base + RIIC_ICBRH);
-		writeb(ICBRL_SP100K, riic->base + RIIC_ICBRL);
-		break;
-	case 400000:
-		writeb(ICMR1_CKS(1), riic->base + RIIC_ICMR1);
-		writeb(ICBRH_SP400K, riic->base + RIIC_ICBRH);
-		writeb(ICBRL_SP400K, riic->base + RIIC_ICBRL);
-		break;
-	default:
-		dev_err(&riic->adapter.dev,
-			"unsupported bus speed (%dHz). Use 100000 or 400000\n", spd);
-		clk_disable_unprepare(riic->clk);
-		return -EINVAL;
+	switch (spd)
+	{
+		case 100000:
+			writeb(ICMR1_CKS(3), riic->base + RIIC_ICMR1);
+			writeb(ICBRH_SP100K, riic->base + RIIC_ICBRH);
+			writeb(ICBRL_SP100K, riic->base + RIIC_ICBRL);
+			break;
+
+		case 400000:
+			writeb(ICMR1_CKS(1), riic->base + RIIC_ICMR1);
+			writeb(ICBRH_SP400K, riic->base + RIIC_ICBRH);
+			writeb(ICBRL_SP400K, riic->base + RIIC_ICBRL);
+			break;
+
+		default:
+			dev_err(&riic->adapter.dev,
+					"unsupported bus speed (%dHz). Use 100000 or 400000\n", spd);
+			clk_disable_unprepare(riic->clk);
+			return -EINVAL;
 	}
 
 	writeb(0, riic->base + RIIC_ICSER);
@@ -322,7 +368,8 @@ static int riic_init_hw(struct riic_dev *riic, u32 spd)
 	return 0;
 }
 
-static struct riic_irq_desc riic_irqs[] = {
+static struct riic_irq_desc riic_irqs[] =
+{
 	{ .res_num = 0, .isr = riic_tend_isr, .name = "riic-tend" },
 	{ .res_num = 1, .isr = riic_rdrf_isr, .name = "riic-rdrf" },
 	{ .res_num = 2, .isr = riic_tdre_isr, .name = "riic-tdre" },
@@ -339,28 +386,42 @@ static int riic_i2c_probe(struct platform_device *pdev)
 	int i, ret;
 
 	riic = devm_kzalloc(&pdev->dev, sizeof(*riic), GFP_KERNEL);
+
 	if (!riic)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	riic->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(riic->base))
+	{
 		return PTR_ERR(riic->base);
+	}
 
 	riic->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(riic->clk)) {
+
+	if (IS_ERR(riic->clk))
+	{
 		dev_err(&pdev->dev, "missing controller clock");
 		return PTR_ERR(riic->clk);
 	}
 
-	for (i = 0; i < ARRAY_SIZE(riic_irqs); i++) {
+	for (i = 0; i < ARRAY_SIZE(riic_irqs); i++)
+	{
 		res = platform_get_resource(pdev, IORESOURCE_IRQ, riic_irqs[i].res_num);
+
 		if (!res)
+		{
 			return -ENODEV;
+		}
 
 		ret = devm_request_irq(&pdev->dev, res->start, riic_irqs[i].isr,
-					0, riic_irqs[i].name, riic);
-		if (ret) {
+							   0, riic_irqs[i].name, riic);
+
+		if (ret)
+		{
 			dev_err(&pdev->dev, "failed to request irq %s\n", riic_irqs[i].name);
 			return ret;
 		}
@@ -378,13 +439,19 @@ static int riic_i2c_probe(struct platform_device *pdev)
 
 	of_property_read_u32(np, "clock-frequency", &bus_rate);
 	ret = riic_init_hw(riic, bus_rate);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 
 	ret = i2c_add_adapter(adap);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	platform_set_drvdata(pdev, riic);
 
@@ -402,12 +469,14 @@ static int riic_i2c_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id riic_i2c_dt_ids[] = {
+static const struct of_device_id riic_i2c_dt_ids[] =
+{
 	{ .compatible = "renesas,riic-rz" },
 	{ /* Sentinel */ },
 };
 
-static struct platform_driver riic_i2c_driver = {
+static struct platform_driver riic_i2c_driver =
+{
 	.probe		= riic_i2c_probe,
 	.remove		= riic_i2c_remove,
 	.driver		= {

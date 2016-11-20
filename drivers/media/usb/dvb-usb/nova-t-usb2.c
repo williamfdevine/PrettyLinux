@@ -21,7 +21,8 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
 #define deb_ee(args...) dprintk(debug,0x02,args)
 
 /* Hauppauge NOVA-T USB2 keys */
-static struct rc_map_table rc_map_haupp_table[] = {
+static struct rc_map_table rc_map_haupp_table[] =
+{
 	{ 0x1e00, KEY_0 },
 	{ 0x1e01, KEY_1 },
 	{ 0x1e02, KEY_2 },
@@ -80,17 +81,25 @@ static int nova_t_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
 	struct dibusb_device_state *st = d->priv;
 
 	buf = kmalloc(5, GFP_KERNEL);
+
 	if (!buf)
+	{
 		return -ENOMEM;
+	}
 
 	buf[0] = DIBUSB_REQ_POLL_REMOTE;
 	buf[1] = 0x35;
 	ret = dvb_usb_generic_rw(d, buf, 2, buf, 5, 0);
+
 	if (ret < 0)
+	{
 		goto ret;
+	}
 
 	*state = REMOTE_NO_KEY_PRESSED;
-	switch (buf[0]) {
+
+	switch (buf[0])
+	{
 		case DIBUSB_RC_HAUPPAUGE_KEY_PRESSED:
 			raw = ((buf[1] << 8) | buf[2]) >> 3;
 			toggle = !!(raw & 0x800);
@@ -98,29 +107,39 @@ static int nova_t_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
 			custom = (raw >> 6) & 0x1f;
 
 			deb_rc("raw key code 0x%02x, 0x%02x, 0x%02x to c: %02x d: %02x toggle: %d\n",
-			       buf[1], buf[2], buf[3], custom, data, toggle);
+				   buf[1], buf[2], buf[3], custom, data, toggle);
 
-			for (i = 0; i < ARRAY_SIZE(rc_map_haupp_table); i++) {
+			for (i = 0; i < ARRAY_SIZE(rc_map_haupp_table); i++)
+			{
 				if (rc5_data(&rc_map_haupp_table[i]) == data &&
-					rc5_custom(&rc_map_haupp_table[i]) == custom) {
+					rc5_custom(&rc_map_haupp_table[i]) == custom)
+				{
 
 					deb_rc("c: %x, d: %x\n", rc5_data(&rc_map_haupp_table[i]),
-								 rc5_custom(&rc_map_haupp_table[i]));
+						   rc5_custom(&rc_map_haupp_table[i]));
 
 					*event = rc_map_haupp_table[i].keycode;
 					*state = REMOTE_KEY_PRESSED;
-					if (st->old_toggle == toggle) {
+
+					if (st->old_toggle == toggle)
+					{
 						if (st->last_repeat_count++ < 2)
+						{
 							*state = REMOTE_NO_KEY_PRESSED;
-					} else {
+						}
+					}
+					else
+					{
 						st->last_repeat_count = 0;
 						st->old_toggle = toggle;
 					}
+
 					break;
 				}
 			}
 
 			break;
+
 		case DIBUSB_RC_HAUPPAUGE_KEY_EMPTY:
 		default:
 			break;
@@ -141,8 +160,9 @@ static int nova_t_read_mac_address (struct dvb_usb_device *d, u8 mac[6])
 	mac[2] = 0xfe;
 
 	/* this is a complete guess, but works for my box */
-	for (i = 136; i < 139; i++) {
-		dibusb_read_eeprom_byte(d,i, &b);
+	for (i = 136; i < 139; i++)
+	{
+		dibusb_read_eeprom_byte(d, i, &b);
 
 		mac[5 - (i - 136)] = b;
 	}
@@ -154,21 +174,23 @@ static int nova_t_read_mac_address (struct dvb_usb_device *d, u8 mac[6])
 static struct dvb_usb_device_properties nova_t_properties;
 
 static int nova_t_probe(struct usb_interface *intf,
-		const struct usb_device_id *id)
+						const struct usb_device_id *id)
 {
 	return dvb_usb_device_init(intf, &nova_t_properties,
-				   THIS_MODULE, NULL, adapter_nr);
+							   THIS_MODULE, NULL, adapter_nr);
 }
 
 /* do not change the order of the ID table */
-static struct usb_device_id nova_t_table [] = {
-/* 00 */	{ USB_DEVICE(USB_VID_HAUPPAUGE,     USB_PID_WINTV_NOVA_T_USB2_COLD) },
-/* 01 */	{ USB_DEVICE(USB_VID_HAUPPAUGE,     USB_PID_WINTV_NOVA_T_USB2_WARM) },
-			{ }		/* Terminating entry */
+static struct usb_device_id nova_t_table [] =
+{
+	/* 00 */	{ USB_DEVICE(USB_VID_HAUPPAUGE,     USB_PID_WINTV_NOVA_T_USB2_COLD) },
+	/* 01 */	{ USB_DEVICE(USB_VID_HAUPPAUGE,     USB_PID_WINTV_NOVA_T_USB2_WARM) },
+	{ }		/* Terminating entry */
 };
 MODULE_DEVICE_TABLE(usb, nova_t_table);
 
-static struct dvb_usb_device_properties nova_t_properties = {
+static struct dvb_usb_device_properties nova_t_properties =
+{
 	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
 
 	.usb_ctrl = CYPRESS_FX2,
@@ -177,29 +199,30 @@ static struct dvb_usb_device_properties nova_t_properties = {
 	.num_adapters     = 1,
 	.adapter          = {
 		{
-		.num_frontends = 1,
-		.fe = {{
-			.caps = DVB_USB_ADAP_HAS_PID_FILTER | DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
-			.pid_filter_count = 32,
+			.num_frontends = 1,
+			.fe = {{
+					.caps = DVB_USB_ADAP_HAS_PID_FILTER | DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
+					.pid_filter_count = 32,
 
-			.streaming_ctrl   = dibusb2_0_streaming_ctrl,
-			.pid_filter       = dibusb_pid_filter,
-			.pid_filter_ctrl  = dibusb_pid_filter_ctrl,
-			.frontend_attach  = dibusb_dib3000mc_frontend_attach,
-			.tuner_attach     = dibusb_dib3000mc_tuner_attach,
+					.streaming_ctrl   = dibusb2_0_streaming_ctrl,
+					.pid_filter       = dibusb_pid_filter,
+					.pid_filter_ctrl  = dibusb_pid_filter_ctrl,
+					.frontend_attach  = dibusb_dib3000mc_frontend_attach,
+					.tuner_attach     = dibusb_dib3000mc_tuner_attach,
 
-			/* parameter for the MPEG2-data transfer */
+					/* parameter for the MPEG2-data transfer */
 					.stream = {
 						.type = USB_BULK,
-				.count = 7,
-				.endpoint = 0x06,
-				.u = {
-					.bulk = {
-						.buffersize = 4096,
-					}
+						.count = 7,
+						.endpoint = 0x06,
+						.u = {
+							.bulk = {
+								.buffersize = 4096,
+							}
+						}
+					},
 				}
 			},
-		}},
 			.size_of_priv     = sizeof(struct dibusb_state),
 		}
 	},
@@ -221,7 +244,8 @@ static struct dvb_usb_device_properties nova_t_properties = {
 
 	.num_device_descs = 1,
 	.devices = {
-		{   "Hauppauge WinTV-NOVA-T usb2",
+		{
+			"Hauppauge WinTV-NOVA-T usb2",
 			{ &nova_t_table[0], NULL },
 			{ &nova_t_table[1], NULL },
 		},
@@ -229,7 +253,8 @@ static struct dvb_usb_device_properties nova_t_properties = {
 	}
 };
 
-static struct usb_driver nova_t_driver = {
+static struct usb_driver nova_t_driver =
+{
 	.name		= "dvb_usb_nova_t_usb2",
 	.probe		= nova_t_probe,
 	.disconnect = dvb_usb_device_exit,

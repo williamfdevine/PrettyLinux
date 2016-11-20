@@ -35,8 +35,11 @@ char *qfprom_read(struct device *dev, const char *cname)
 	char *ret;
 
 	cell = nvmem_cell_get(dev, cname);
+
 	if (IS_ERR(cell))
+	{
 		return ERR_CAST(cell);
+	}
 
 	ret = nvmem_cell_read(cell, &data);
 	nvmem_cell_put(cell);
@@ -51,18 +54,21 @@ char *qfprom_read(struct device *dev, const char *cname)
  * resp.
  */
 void compute_intercept_slope(struct tsens_device *tmdev, u32 *p1,
-			     u32 *p2, u32 mode)
+							 u32 *p2, u32 mode)
 {
 	int i;
 	int num, den;
 
-	for (i = 0; i < tmdev->num_sensors; i++) {
+	for (i = 0; i < tmdev->num_sensors; i++)
+	{
 		dev_dbg(tmdev->dev,
-			"sensor%d - data_point1:%#x data_point2:%#x\n",
-			i, p1[i], p2[i]);
+				"sensor%d - data_point1:%#x data_point2:%#x\n",
+				i, p1[i], p2[i]);
 
 		tmdev->sensor[i].slope = SLOPE_DEFAULT;
-		if (mode == TWO_PT_CALIB) {
+
+		if (mode == TWO_PT_CALIB)
+		{
 			/*
 			 * slope (m) = adc_code2 - adc_code1 (y2 - y1)/
 			 *	temp_120_degc - temp_30_degc (x2 - x1)
@@ -74,8 +80,8 @@ void compute_intercept_slope(struct tsens_device *tmdev, u32 *p1,
 		}
 
 		tmdev->sensor[i].offset = (p1[i] * SLOPE_FACTOR) -
-				(CAL_DEGC_PT1 *
-				tmdev->sensor[i].slope);
+								  (CAL_DEGC_PT1 *
+								   tmdev->sensor[i].slope);
 		dev_dbg(tmdev->dev, "offset:%d\n", tmdev->sensor[i].offset);
 	}
 }
@@ -88,11 +94,17 @@ static inline int code_to_degc(u32 adc_code, const struct tsens_sensor *s)
 	den = s->slope;
 
 	if (num > 0)
+	{
 		degc = num + (den / 2);
+	}
 	else if (num < 0)
+	{
 		degc = num - (den / 2);
+	}
 	else
+	{
 		degc = num;
+	}
 
 	degc /= den;
 
@@ -108,8 +120,12 @@ int get_temp_common(struct tsens_device *tmdev, int id, int *temp)
 
 	sensor_addr = S0_ST_ADDR + s->hw_id * SN_ADDR_OFFSET;
 	ret = regmap_read(tmdev->map, sensor_addr, &code);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	last_temp = code & SN_ST_TEMP_MASK;
 
 	*temp = code_to_degc(last_temp, s) * 1000;
@@ -117,7 +133,8 @@ int get_temp_common(struct tsens_device *tmdev, int id, int *temp)
 	return 0;
 }
 
-static const struct regmap_config tsens_config = {
+static const struct regmap_config tsens_config =
+{
 	.reg_bits	= 32,
 	.val_bits	= 32,
 	.reg_stride	= 4,
@@ -128,11 +145,16 @@ int __init init_common(struct tsens_device *tmdev)
 	void __iomem *base;
 
 	base = of_iomap(tmdev->dev->of_node, 0);
+
 	if (!base)
+	{
 		return -EINVAL;
+	}
 
 	tmdev->map = devm_regmap_init_mmio(tmdev->dev, base, &tsens_config);
-	if (IS_ERR(tmdev->map)) {
+
+	if (IS_ERR(tmdev->map))
+	{
 		iounmap(base);
 		return PTR_ERR(tmdev->map);
 	}

@@ -20,7 +20,8 @@
 
 #define PNP_STRING_LEN			1024
 
-struct f_printer_opts {
+struct f_printer_opts
+{
 	struct usb_function_instance	func_inst;
 	int				minor;
 	char				pnp_string[PNP_STRING_LEN];

@@ -37,7 +37,8 @@
 
 struct radio_tea5777;
 
-struct radio_tea5777_ops {
+struct radio_tea5777_ops
+{
 	/*
 	 * Write the 6 bytes large write register of the tea5777
 	 *
@@ -61,7 +62,8 @@ struct radio_tea5777_ops {
 	int (*read_reg)(struct radio_tea5777 *tea, u32 *val);
 };
 
-struct radio_tea5777 {
+struct radio_tea5777
+{
 	struct v4l2_device *v4l2_dev;
 	struct v4l2_file_operations fops;
 	struct video_device vd;		/* video device */

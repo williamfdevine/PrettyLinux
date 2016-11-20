@@ -172,12 +172,14 @@
 
 /* platform data to pass configuration from lcd */
 
-enum ili9320_suspend {
+enum ili9320_suspend
+{
 	ILI9320_SUSPEND_OFF,
 	ILI9320_SUSPEND_DEEP,
 };
 
-struct ili9320_platdata {
+struct ili9320_platdata
+{
 	unsigned short	hsize;
 	unsigned short	vsize;
 

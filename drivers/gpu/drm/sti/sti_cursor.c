@@ -39,7 +39,8 @@
  * @size:   buffer size
  * @base:   virtual address
  */
-struct dma_pixmap {
+struct dma_pixmap
+{
 	dma_addr_t paddr;
 	size_t size;
 	void *base;
@@ -57,7 +58,8 @@ struct dma_pixmap {
  * @clut_paddr:   color look up table physical address
  * @pixmap:       pixmap dma buffer (clut8-format cursor)
  */
-struct sti_cursor {
+struct sti_cursor
+{
 	struct sti_plane plane;
 	struct device *dev;
 	void __iomem *regs;
@@ -68,14 +70,15 @@ struct sti_cursor {
 	struct dma_pixmap pixmap;
 };
 
-static const uint32_t cursor_supported_formats[] = {
+static const uint32_t cursor_supported_formats[] =
+{
 	DRM_FORMAT_ARGB8888,
 };
 
 #define to_sti_cursor(x) container_of(x, struct sti_cursor, plane)
 
 #define DBGFS_DUMP(reg) seq_printf(s, "\n  %-25s 0x%08X", #reg, \
-				   readl(cursor->regs + reg))
+								   readl(cursor->regs + reg))
 
 static void cursor_dbg_vpo(struct seq_file *s, u32 val)
 {
@@ -88,17 +91,21 @@ static void cursor_dbg_size(struct seq_file *s, u32 val)
 }
 
 static void cursor_dbg_pml(struct seq_file *s,
-			   struct sti_cursor *cursor, u32 val)
+						   struct sti_cursor *cursor, u32 val)
 {
 	if (cursor->pixmap.paddr == val)
+	{
 		seq_printf(s, "\tVirt @: %p", cursor->pixmap.base);
+	}
 }
 
 static void cursor_dbg_cml(struct seq_file *s,
-			   struct sti_cursor *cursor, u32 val)
+						   struct sti_cursor *cursor, u32 val)
 {
 	if (cursor->clut_paddr == val)
+	{
 		seq_printf(s, "\tVirt @: %p", cursor->clut);
+	}
 }
 
 static int cursor_dbg_show(struct seq_file *s, void *data)
@@ -107,7 +114,7 @@ static int cursor_dbg_show(struct seq_file *s, void *data)
 	struct sti_cursor *cursor = (struct sti_cursor *)node->info_ent->data;
 
 	seq_printf(s, "%s: (vaddr = 0x%p)",
-		   sti_plane_to_str(&cursor->plane), cursor->regs);
+			   sti_plane_to_str(&cursor->plane), cursor->regs);
 
 	DBGFS_DUMP(CUR_CTL);
 	DBGFS_DUMP(CUR_VPO);
@@ -126,21 +133,24 @@ static int cursor_dbg_show(struct seq_file *s, void *data)
 	return 0;
 }
 
-static struct drm_info_list cursor_debugfs_files[] = {
+static struct drm_info_list cursor_debugfs_files[] =
+{
 	{ "cursor", cursor_dbg_show, 0, NULL },
 };
 
 static int cursor_debugfs_init(struct sti_cursor *cursor,
-			       struct drm_minor *minor)
+							   struct drm_minor *minor)
 {
 	unsigned int i;
 
 	for (i = 0; i < ARRAY_SIZE(cursor_debugfs_files); i++)
+	{
 		cursor_debugfs_files[i].data = cursor;
+	}
 
 	return drm_debugfs_create_files(cursor_debugfs_files,
-					ARRAY_SIZE(cursor_debugfs_files),
-					minor->debugfs_root, minor);
+									ARRAY_SIZE(cursor_debugfs_files),
+									minor->debugfs_root, minor);
 }
 
 static void sti_cursor_argb8888_to_clut8(struct sti_cursor *cursor, u32 *src)
@@ -149,8 +159,10 @@ static void sti_cursor_argb8888_to_clut8(struct sti_cursor *cursor, u32 *src)
 	unsigned int i, j;
 	u32 a, r, g, b;
 
-	for (i = 0; i < cursor->height; i++) {
-		for (j = 0; j < cursor->width; j++) {
+	for (i = 0; i < cursor->height; i++)
+	{
+		for (j = 0; j < cursor->width; j++)
+		{
 			/* Pick the 2 higher bits of each component */
 			a = (*src >> 30) & 3;
 			r = (*src >> 22) & 3;
@@ -174,13 +186,13 @@ static void sti_cursor_init(struct sti_cursor *cursor)
 			for (g = 0; g < 4; g++)
 				for (b = 0; b < 4; b++)
 					*base++ = (a * 5) << 12 |
-						  (r * 5) << 8 |
-						  (g * 5) << 4 |
-						  (b * 5);
+							  (r * 5) << 8 |
+							  (g * 5) << 4 |
+							  (b * 5);
 }
 
 static int sti_cursor_atomic_check(struct drm_plane *drm_plane,
-				   struct drm_plane_state *state)
+								   struct drm_plane_state *state)
 {
 	struct sti_plane *plane = to_sti_plane(drm_plane);
 	struct sti_cursor *cursor = to_sti_cursor(plane);
@@ -193,7 +205,9 @@ static int sti_cursor_atomic_check(struct drm_plane *drm_plane,
 
 	/* no need for further checks if the plane is being disabled */
 	if (!crtc || !fb)
+	{
 		return 0;
+	}
 
 	crtc_state = drm_atomic_get_crtc_state(state->state, crtc);
 	mode = &crtc_state->mode;
@@ -206,52 +220,57 @@ static int sti_cursor_atomic_check(struct drm_plane *drm_plane,
 	src_h = state->src_h >> 16;
 
 	if (src_w < STI_CURS_MIN_SIZE ||
-	    src_h < STI_CURS_MIN_SIZE ||
-	    src_w > STI_CURS_MAX_SIZE ||
-	    src_h > STI_CURS_MAX_SIZE) {
+		src_h < STI_CURS_MIN_SIZE ||
+		src_w > STI_CURS_MAX_SIZE ||
+		src_h > STI_CURS_MAX_SIZE)
+	{
 		DRM_ERROR("Invalid cursor size (%dx%d)\n",
-				src_w, src_h);
+				  src_w, src_h);
 		return -EINVAL;
 	}
 
 	/* If the cursor size has changed, re-allocated the pixmap */
 	if (!cursor->pixmap.base ||
-	    (cursor->width != src_w) ||
-	    (cursor->height != src_h)) {
+		(cursor->width != src_w) ||
+		(cursor->height != src_h))
+	{
 		cursor->width = src_w;
 		cursor->height = src_h;
 
 		if (cursor->pixmap.base)
 			dma_free_wc(cursor->dev, cursor->pixmap.size,
-				    cursor->pixmap.base, cursor->pixmap.paddr);
+						cursor->pixmap.base, cursor->pixmap.paddr);
 
 		cursor->pixmap.size = cursor->width * cursor->height;
 
 		cursor->pixmap.base = dma_alloc_wc(cursor->dev,
-						   cursor->pixmap.size,
-						   &cursor->pixmap.paddr,
-						   GFP_KERNEL | GFP_DMA);
-		if (!cursor->pixmap.base) {
+										   cursor->pixmap.size,
+										   &cursor->pixmap.paddr,
+										   GFP_KERNEL | GFP_DMA);
+
+		if (!cursor->pixmap.base)
+		{
 			DRM_ERROR("Failed to allocate memory for pixmap\n");
 			return -EINVAL;
 		}
 	}
 
-	if (!drm_fb_cma_get_gem_obj(fb, 0)) {
+	if (!drm_fb_cma_get_gem_obj(fb, 0))
+	{
 		DRM_ERROR("Can't get CMA GEM object for fb\n");
 		return -EINVAL;
 	}
 
 	DRM_DEBUG_KMS("CRTC:%d (%s) drm plane:%d (%s)\n",
-		      crtc->base.id, sti_mixer_to_str(to_sti_mixer(crtc)),
-		      drm_plane->base.id, sti_plane_to_str(plane));
+				  crtc->base.id, sti_mixer_to_str(to_sti_mixer(crtc)),
+				  drm_plane->base.id, sti_plane_to_str(plane));
 	DRM_DEBUG_KMS("(%dx%d)@(%d,%d)\n", dst_w, dst_h, dst_x, dst_y);
 
 	return 0;
 }
 
 static void sti_cursor_atomic_update(struct drm_plane *drm_plane,
-				     struct drm_plane_state *oldstate)
+									 struct drm_plane_state *oldstate)
 {
 	struct drm_plane_state *state = drm_plane->state;
 	struct sti_plane *plane = to_sti_plane(drm_plane);
@@ -265,7 +284,9 @@ static void sti_cursor_atomic_update(struct drm_plane *drm_plane,
 	u32 val;
 
 	if (!crtc || !fb)
+	{
 		return;
+	}
 
 	mode = &crtc->mode;
 	dst_x = state->crtc_x;
@@ -305,25 +326,27 @@ static void sti_cursor_atomic_update(struct drm_plane *drm_plane,
 }
 
 static void sti_cursor_atomic_disable(struct drm_plane *drm_plane,
-				      struct drm_plane_state *oldstate)
+									  struct drm_plane_state *oldstate)
 {
 	struct sti_plane *plane = to_sti_plane(drm_plane);
 
-	if (!oldstate->crtc) {
+	if (!oldstate->crtc)
+	{
 		DRM_DEBUG_DRIVER("drm plane:%d not enabled\n",
-				 drm_plane->base.id);
+						 drm_plane->base.id);
 		return;
 	}
 
 	DRM_DEBUG_DRIVER("CRTC:%d (%s) drm plane:%d (%s)\n",
-			 oldstate->crtc->base.id,
-			 sti_mixer_to_str(to_sti_mixer(oldstate->crtc)),
-			 drm_plane->base.id, sti_plane_to_str(plane));
+					 oldstate->crtc->base.id,
+					 sti_mixer_to_str(to_sti_mixer(oldstate->crtc)),
+					 drm_plane->base.id, sti_plane_to_str(plane));
 
 	plane->status = STI_PLANE_DISABLING;
 }
 
-static const struct drm_plane_helper_funcs sti_cursor_helpers_funcs = {
+static const struct drm_plane_helper_funcs sti_cursor_helpers_funcs =
+{
 	.atomic_check = sti_cursor_atomic_check,
 	.atomic_update = sti_cursor_atomic_update,
 	.atomic_disable = sti_cursor_atomic_disable,
@@ -345,7 +368,8 @@ static int sti_cursor_late_register(struct drm_plane *drm_plane)
 	return cursor_debugfs_init(cursor, drm_plane->dev->primary);
 }
 
-static const struct drm_plane_funcs sti_cursor_plane_helpers_funcs = {
+static const struct drm_plane_funcs sti_cursor_plane_helpers_funcs =
+{
 	.update_plane = drm_atomic_helper_update_plane,
 	.disable_plane = drm_atomic_helper_disable_plane,
 	.destroy = sti_cursor_destroy,
@@ -357,16 +381,18 @@ static const struct drm_plane_funcs sti_cursor_plane_helpers_funcs = {
 };
 
 struct drm_plane *sti_cursor_create(struct drm_device *drm_dev,
-				    struct device *dev, int desc,
-				    void __iomem *baseaddr,
-				    unsigned int possible_crtcs)
+									struct device *dev, int desc,
+									void __iomem *baseaddr,
+									unsigned int possible_crtcs)
 {
 	struct sti_cursor *cursor;
 	size_t size;
 	int res;
 
 	cursor = devm_kzalloc(dev, sizeof(*cursor), GFP_KERNEL);
-	if (!cursor) {
+
+	if (!cursor)
+	{
 		DRM_ERROR("Failed to allocate memory for cursor\n");
 		return NULL;
 	}
@@ -374,9 +400,10 @@ struct drm_plane *sti_cursor_create(struct drm_device *drm_dev,
 	/* Allocate clut buffer */
 	size = 0x100 * sizeof(unsigned short);
 	cursor->clut = dma_alloc_wc(dev, size, &cursor->clut_paddr,
-				    GFP_KERNEL | GFP_DMA);
+								GFP_KERNEL | GFP_DMA);
 
-	if (!cursor->clut) {
+	if (!cursor->clut)
+	{
 		DRM_ERROR("Failed to allocate memory for cursor clut\n");
 		goto err_clut;
 	}
@@ -389,18 +416,20 @@ struct drm_plane *sti_cursor_create(struct drm_device *drm_dev,
 	sti_cursor_init(cursor);
 
 	res = drm_universal_plane_init(drm_dev, &cursor->plane.drm_plane,
-				       possible_crtcs,
-				       &sti_cursor_plane_helpers_funcs,
-				       cursor_supported_formats,
-				       ARRAY_SIZE(cursor_supported_formats),
-				       DRM_PLANE_TYPE_CURSOR, NULL);
-	if (res) {
+								   possible_crtcs,
+								   &sti_cursor_plane_helpers_funcs,
+								   cursor_supported_formats,
+								   ARRAY_SIZE(cursor_supported_formats),
+								   DRM_PLANE_TYPE_CURSOR, NULL);
+
+	if (res)
+	{
 		DRM_ERROR("Failed to initialize universal plane\n");
 		goto err_plane;
 	}
 
 	drm_plane_helper_add(&cursor->plane.drm_plane,
-			     &sti_cursor_helpers_funcs);
+						 &sti_cursor_helpers_funcs);
 
 	sti_plane_init_property(&cursor->plane, DRM_PLANE_TYPE_CURSOR);
 

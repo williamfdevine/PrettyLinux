@@ -15,7 +15,8 @@
 
 /* Mark Phalan <phalanm@o2.ie> */
 
-static struct rc_map_table pv951[] = {
+static struct rc_map_table pv951[] =
+{
 	{ 0x00, KEY_0 },
 	{ 0x01, KEY_1 },
 	{ 0x02, KEY_2 },
@@ -53,7 +54,8 @@ static struct rc_map_table pv951[] = {
 	{ 0x1c, KEY_TV },		/* PC/TV */
 };
 
-static struct rc_map_list pv951_map = {
+static struct rc_map_list pv951_map =
+{
 	.map = {
 		.scan    = pv951,
 		.size    = ARRAY_SIZE(pv951),

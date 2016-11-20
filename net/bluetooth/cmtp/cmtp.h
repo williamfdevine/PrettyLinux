@@ -36,24 +36,28 @@
 
 #define CMTP_LOOPBACK	0
 
-struct cmtp_connadd_req {
+struct cmtp_connadd_req
+{
 	int   sock;	/* Connected socket */
 	__u32 flags;
 };
 
-struct cmtp_conndel_req {
+struct cmtp_conndel_req
+{
 	bdaddr_t bdaddr;
 	__u32    flags;
 };
 
-struct cmtp_conninfo {
+struct cmtp_conninfo
+{
 	bdaddr_t bdaddr;
 	__u32    flags;
 	__u16    state;
 	int      num;
 };
 
-struct cmtp_connlist_req {
+struct cmtp_connlist_req
+{
 	__u32  cnum;
 	struct cmtp_conninfo __user *ci;
 };
@@ -67,7 +71,8 @@ int cmtp_get_conninfo(struct cmtp_conninfo *ci);
 #define CMTP_INTEROP_TIMEOUT	(HZ * 5)
 #define CMTP_INITIAL_MSGNUM	0xff00
 
-struct cmtp_session {
+struct cmtp_session
+{
 	struct list_head list;
 
 	struct socket *sock;
@@ -100,7 +105,8 @@ struct cmtp_session {
 	struct sk_buff *reassembly[16];
 };
 
-struct cmtp_application {
+struct cmtp_application
+{
 	struct list_head list;
 
 	unsigned long state;
@@ -112,7 +118,8 @@ struct cmtp_application {
 	__u16 msgnum;
 };
 
-struct cmtp_scb {
+struct cmtp_scb
+{
 	int id;
 	int data;
 };

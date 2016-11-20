@@ -53,14 +53,16 @@
 atomic_t netlabel_mgmt_protocount = ATOMIC_INIT(0);
 
 /* Argument struct for netlbl_domhsh_walk() */
-struct netlbl_domhsh_walk_arg {
+struct netlbl_domhsh_walk_arg
+{
 	struct netlink_callback *nl_cb;
 	struct sk_buff *skb;
 	u32 seq;
 };
 
 /* NetLabel Generic NETLINK CIPSOv4 family */
-static struct genl_family netlbl_mgmt_gnl_family = {
+static struct genl_family netlbl_mgmt_gnl_family =
+{
 	.id = GENL_ID_GENERATE,
 	.hdrsize = 0,
 	.name = NETLBL_NLTYPE_MGMT_NAME,
@@ -69,7 +71,8 @@ static struct genl_family netlbl_mgmt_gnl_family = {
 };
 
 /* NetLabel Netlink attribute policy */
-static const struct nla_policy netlbl_mgmt_genl_policy[NLBL_MGMT_A_MAX + 1] = {
+static const struct nla_policy netlbl_mgmt_genl_policy[NLBL_MGMT_A_MAX + 1] =
+{
 	[NLBL_MGMT_A_DOMAIN] = { .type = NLA_NUL_STRING },
 	[NLBL_MGMT_A_PROTOCOL] = { .type = NLA_U32 },
 	[NLBL_MGMT_A_VERSION] = { .type = NLA_U32 },
@@ -94,7 +97,7 @@ static const struct nla_policy netlbl_mgmt_genl_policy[NLBL_MGMT_A_MAX + 1] = {
  *
  */
 static int netlbl_mgmt_add_common(struct genl_info *info,
-				  struct netlbl_audit *audit_info)
+								  struct netlbl_audit *audit_info)
 {
 	int ret_val = -EINVAL;
 	struct netlbl_domaddr_map *addrmap = NULL;
@@ -106,17 +109,25 @@ static int netlbl_mgmt_add_common(struct genl_info *info,
 	struct netlbl_dom_map *entry = kzalloc(sizeof(*entry), GFP_KERNEL);
 
 	if (!entry)
+	{
 		return -ENOMEM;
+	}
+
 	entry->def.type = nla_get_u32(info->attrs[NLBL_MGMT_A_PROTOCOL]);
-	if (info->attrs[NLBL_MGMT_A_DOMAIN]) {
+
+	if (info->attrs[NLBL_MGMT_A_DOMAIN])
+	{
 		size_t tmp_size = nla_len(info->attrs[NLBL_MGMT_A_DOMAIN]);
 		entry->domain = kmalloc(tmp_size, GFP_KERNEL);
-		if (entry->domain == NULL) {
+
+		if (entry->domain == NULL)
+		{
 			ret_val = -ENOMEM;
 			goto add_free_entry;
 		}
+
 		nla_strlcpy(entry->domain,
-			    info->attrs[NLBL_MGMT_A_DOMAIN], tmp_size);
+					info->attrs[NLBL_MGMT_A_DOMAIN], tmp_size);
 	}
 
 	/* NOTE: internally we allow/use a entry->def.type value of
@@ -124,86 +135,123 @@ static int netlbl_mgmt_add_common(struct genl_info *info,
 	 *       to pass that as a protocol value because we need to know the
 	 *       "real" protocol */
 
-	switch (entry->def.type) {
-	case NETLBL_NLTYPE_UNLABELED:
-		if (info->attrs[NLBL_MGMT_A_FAMILY])
-			entry->family =
-				nla_get_u16(info->attrs[NLBL_MGMT_A_FAMILY]);
-		else
-			entry->family = AF_UNSPEC;
-		break;
-	case NETLBL_NLTYPE_CIPSOV4:
-		if (!info->attrs[NLBL_MGMT_A_CV4DOI])
-			goto add_free_domain;
+	switch (entry->def.type)
+	{
+		case NETLBL_NLTYPE_UNLABELED:
+			if (info->attrs[NLBL_MGMT_A_FAMILY])
+				entry->family =
+					nla_get_u16(info->attrs[NLBL_MGMT_A_FAMILY]);
+			else
+			{
+				entry->family = AF_UNSPEC;
+			}
 
-		tmp_val = nla_get_u32(info->attrs[NLBL_MGMT_A_CV4DOI]);
-		cipsov4 = cipso_v4_doi_getdef(tmp_val);
-		if (cipsov4 == NULL)
-			goto add_free_domain;
-		entry->family = AF_INET;
-		entry->def.cipso = cipsov4;
-		break;
+			break;
+
+		case NETLBL_NLTYPE_CIPSOV4:
+			if (!info->attrs[NLBL_MGMT_A_CV4DOI])
+			{
+				goto add_free_domain;
+			}
+
+			tmp_val = nla_get_u32(info->attrs[NLBL_MGMT_A_CV4DOI]);
+			cipsov4 = cipso_v4_doi_getdef(tmp_val);
+
+			if (cipsov4 == NULL)
+			{
+				goto add_free_domain;
+			}
+
+			entry->family = AF_INET;
+			entry->def.cipso = cipsov4;
+			break;
 #if IS_ENABLED(CONFIG_IPV6)
-	case NETLBL_NLTYPE_CALIPSO:
-		if (!info->attrs[NLBL_MGMT_A_CLPDOI])
-			goto add_free_domain;
 
-		tmp_val = nla_get_u32(info->attrs[NLBL_MGMT_A_CLPDOI]);
-		calipso = calipso_doi_getdef(tmp_val);
-		if (calipso == NULL)
-			goto add_free_domain;
-		entry->family = AF_INET6;
-		entry->def.calipso = calipso;
-		break;
+		case NETLBL_NLTYPE_CALIPSO:
+			if (!info->attrs[NLBL_MGMT_A_CLPDOI])
+			{
+				goto add_free_domain;
+			}
+
+			tmp_val = nla_get_u32(info->attrs[NLBL_MGMT_A_CLPDOI]);
+			calipso = calipso_doi_getdef(tmp_val);
+
+			if (calipso == NULL)
+			{
+				goto add_free_domain;
+			}
+
+			entry->family = AF_INET6;
+			entry->def.calipso = calipso;
+			break;
 #endif /* IPv6 */
-	default:
-		goto add_free_domain;
+
+		default:
+			goto add_free_domain;
 	}
 
 	if ((entry->family == AF_INET && info->attrs[NLBL_MGMT_A_IPV6ADDR]) ||
-	    (entry->family == AF_INET6 && info->attrs[NLBL_MGMT_A_IPV4ADDR]))
+		(entry->family == AF_INET6 && info->attrs[NLBL_MGMT_A_IPV4ADDR]))
+	{
 		goto add_doi_put_def;
+	}
 
-	if (info->attrs[NLBL_MGMT_A_IPV4ADDR]) {
+	if (info->attrs[NLBL_MGMT_A_IPV4ADDR])
+	{
 		struct in_addr *addr;
 		struct in_addr *mask;
 		struct netlbl_domaddr4_map *map;
 
 		addrmap = kzalloc(sizeof(*addrmap), GFP_KERNEL);
-		if (addrmap == NULL) {
+
+		if (addrmap == NULL)
+		{
 			ret_val = -ENOMEM;
 			goto add_doi_put_def;
 		}
+
 		INIT_LIST_HEAD(&addrmap->list4);
 		INIT_LIST_HEAD(&addrmap->list6);
 
 		if (nla_len(info->attrs[NLBL_MGMT_A_IPV4ADDR]) !=
-		    sizeof(struct in_addr)) {
+			sizeof(struct in_addr))
+		{
 			ret_val = -EINVAL;
 			goto add_free_addrmap;
 		}
+
 		if (nla_len(info->attrs[NLBL_MGMT_A_IPV4MASK]) !=
-		    sizeof(struct in_addr)) {
+			sizeof(struct in_addr))
+		{
 			ret_val = -EINVAL;
 			goto add_free_addrmap;
 		}
+
 		addr = nla_data(info->attrs[NLBL_MGMT_A_IPV4ADDR]);
 		mask = nla_data(info->attrs[NLBL_MGMT_A_IPV4MASK]);
 
 		map = kzalloc(sizeof(*map), GFP_KERNEL);
-		if (map == NULL) {
+
+		if (map == NULL)
+		{
 			ret_val = -ENOMEM;
 			goto add_free_addrmap;
 		}
+
 		map->list.addr = addr->s_addr & mask->s_addr;
 		map->list.mask = mask->s_addr;
 		map->list.valid = 1;
 		map->def.type = entry->def.type;
+
 		if (cipsov4)
+		{
 			map->def.cipso = cipsov4;
+		}
 
 		ret_val = netlbl_af4list_add(&map->list, &addrmap->list4);
-		if (ret_val != 0) {
+
+		if (ret_val != 0)
+		{
 			kfree(map);
 			goto add_free_addrmap;
 		}
@@ -212,37 +260,49 @@ static int netlbl_mgmt_add_common(struct genl_info *info,
 		entry->def.type = NETLBL_NLTYPE_ADDRSELECT;
 		entry->def.addrsel = addrmap;
 #if IS_ENABLED(CONFIG_IPV6)
-	} else if (info->attrs[NLBL_MGMT_A_IPV6ADDR]) {
+	}
+	else if (info->attrs[NLBL_MGMT_A_IPV6ADDR])
+	{
 		struct in6_addr *addr;
 		struct in6_addr *mask;
 		struct netlbl_domaddr6_map *map;
 
 		addrmap = kzalloc(sizeof(*addrmap), GFP_KERNEL);
-		if (addrmap == NULL) {
+
+		if (addrmap == NULL)
+		{
 			ret_val = -ENOMEM;
 			goto add_doi_put_def;
 		}
+
 		INIT_LIST_HEAD(&addrmap->list4);
 		INIT_LIST_HEAD(&addrmap->list6);
 
 		if (nla_len(info->attrs[NLBL_MGMT_A_IPV6ADDR]) !=
-		    sizeof(struct in6_addr)) {
+			sizeof(struct in6_addr))
+		{
 			ret_val = -EINVAL;
 			goto add_free_addrmap;
 		}
+
 		if (nla_len(info->attrs[NLBL_MGMT_A_IPV6MASK]) !=
-		    sizeof(struct in6_addr)) {
+			sizeof(struct in6_addr))
+		{
 			ret_val = -EINVAL;
 			goto add_free_addrmap;
 		}
+
 		addr = nla_data(info->attrs[NLBL_MGMT_A_IPV6ADDR]);
 		mask = nla_data(info->attrs[NLBL_MGMT_A_IPV6MASK]);
 
 		map = kzalloc(sizeof(*map), GFP_KERNEL);
-		if (map == NULL) {
+
+		if (map == NULL)
+		{
 			ret_val = -ENOMEM;
 			goto add_free_addrmap;
 		}
+
 		map->list.addr = *addr;
 		map->list.addr.s6_addr32[0] &= mask->s6_addr32[0];
 		map->list.addr.s6_addr32[1] &= mask->s6_addr32[1];
@@ -251,11 +311,16 @@ static int netlbl_mgmt_add_common(struct genl_info *info,
 		map->list.mask = *mask;
 		map->list.valid = 1;
 		map->def.type = entry->def.type;
+
 		if (calipso)
+		{
 			map->def.calipso = calipso;
+		}
 
 		ret_val = netlbl_af6list_add(&map->list, &addrmap->list6);
-		if (ret_val != 0) {
+
+		if (ret_val != 0)
+		{
 			kfree(map);
 			goto add_free_addrmap;
 		}
@@ -267,8 +332,11 @@ static int netlbl_mgmt_add_common(struct genl_info *info,
 	}
 
 	ret_val = netlbl_domhsh_add(entry, audit_info);
+
 	if (ret_val != 0)
+	{
 		goto add_free_addrmap;
+	}
 
 	return 0;
 
@@ -298,7 +366,7 @@ add_free_entry:
  *
  */
 static int netlbl_mgmt_listentry(struct sk_buff *skb,
-				 struct netlbl_dom_map *entry)
+								 struct netlbl_dom_map *entry)
 {
 	int ret_val = 0;
 	struct nlattr *nla_a;
@@ -308,114 +376,177 @@ static int netlbl_mgmt_listentry(struct sk_buff *skb,
 	struct netlbl_af6list *iter6;
 #endif
 
-	if (entry->domain != NULL) {
+	if (entry->domain != NULL)
+	{
 		ret_val = nla_put_string(skb,
-					 NLBL_MGMT_A_DOMAIN, entry->domain);
+								 NLBL_MGMT_A_DOMAIN, entry->domain);
+
 		if (ret_val != 0)
+		{
 			return ret_val;
+		}
 	}
 
 	ret_val = nla_put_u16(skb, NLBL_MGMT_A_FAMILY, entry->family);
+
 	if (ret_val != 0)
+	{
 		return ret_val;
+	}
 
-	switch (entry->def.type) {
-	case NETLBL_NLTYPE_ADDRSELECT:
-		nla_a = nla_nest_start(skb, NLBL_MGMT_A_SELECTORLIST);
-		if (nla_a == NULL)
-			return -ENOMEM;
+	switch (entry->def.type)
+	{
+		case NETLBL_NLTYPE_ADDRSELECT:
+			nla_a = nla_nest_start(skb, NLBL_MGMT_A_SELECTORLIST);
 
-		netlbl_af4list_foreach_rcu(iter4, &entry->def.addrsel->list4) {
-			struct netlbl_domaddr4_map *map4;
-			struct in_addr addr_struct;
-
-			nla_b = nla_nest_start(skb, NLBL_MGMT_A_ADDRSELECTOR);
-			if (nla_b == NULL)
+			if (nla_a == NULL)
+			{
 				return -ENOMEM;
-
-			addr_struct.s_addr = iter4->addr;
-			ret_val = nla_put_in_addr(skb, NLBL_MGMT_A_IPV4ADDR,
-						  addr_struct.s_addr);
-			if (ret_val != 0)
-				return ret_val;
-			addr_struct.s_addr = iter4->mask;
-			ret_val = nla_put_in_addr(skb, NLBL_MGMT_A_IPV4MASK,
-						  addr_struct.s_addr);
-			if (ret_val != 0)
-				return ret_val;
-			map4 = netlbl_domhsh_addr4_entry(iter4);
-			ret_val = nla_put_u32(skb, NLBL_MGMT_A_PROTOCOL,
-					      map4->def.type);
-			if (ret_val != 0)
-				return ret_val;
-			switch (map4->def.type) {
-			case NETLBL_NLTYPE_CIPSOV4:
-				ret_val = nla_put_u32(skb, NLBL_MGMT_A_CV4DOI,
-						      map4->def.cipso->doi);
-				if (ret_val != 0)
-					return ret_val;
-				break;
 			}
 
-			nla_nest_end(skb, nla_b);
-		}
+			netlbl_af4list_foreach_rcu(iter4, &entry->def.addrsel->list4)
+			{
+				struct netlbl_domaddr4_map *map4;
+				struct in_addr addr_struct;
+
+				nla_b = nla_nest_start(skb, NLBL_MGMT_A_ADDRSELECTOR);
+
+				if (nla_b == NULL)
+				{
+					return -ENOMEM;
+				}
+
+				addr_struct.s_addr = iter4->addr;
+				ret_val = nla_put_in_addr(skb, NLBL_MGMT_A_IPV4ADDR,
+										  addr_struct.s_addr);
+
+				if (ret_val != 0)
+				{
+					return ret_val;
+				}
+
+				addr_struct.s_addr = iter4->mask;
+				ret_val = nla_put_in_addr(skb, NLBL_MGMT_A_IPV4MASK,
+										  addr_struct.s_addr);
+
+				if (ret_val != 0)
+				{
+					return ret_val;
+				}
+
+				map4 = netlbl_domhsh_addr4_entry(iter4);
+				ret_val = nla_put_u32(skb, NLBL_MGMT_A_PROTOCOL,
+									  map4->def.type);
+
+				if (ret_val != 0)
+				{
+					return ret_val;
+				}
+
+				switch (map4->def.type)
+				{
+					case NETLBL_NLTYPE_CIPSOV4:
+						ret_val = nla_put_u32(skb, NLBL_MGMT_A_CV4DOI,
+											  map4->def.cipso->doi);
+
+						if (ret_val != 0)
+						{
+							return ret_val;
+						}
+
+						break;
+				}
+
+				nla_nest_end(skb, nla_b);
+			}
 #if IS_ENABLED(CONFIG_IPV6)
-		netlbl_af6list_foreach_rcu(iter6, &entry->def.addrsel->list6) {
-			struct netlbl_domaddr6_map *map6;
+			netlbl_af6list_foreach_rcu(iter6, &entry->def.addrsel->list6)
+			{
+				struct netlbl_domaddr6_map *map6;
 
-			nla_b = nla_nest_start(skb, NLBL_MGMT_A_ADDRSELECTOR);
-			if (nla_b == NULL)
-				return -ENOMEM;
+				nla_b = nla_nest_start(skb, NLBL_MGMT_A_ADDRSELECTOR);
 
-			ret_val = nla_put_in6_addr(skb, NLBL_MGMT_A_IPV6ADDR,
-						   &iter6->addr);
-			if (ret_val != 0)
-				return ret_val;
-			ret_val = nla_put_in6_addr(skb, NLBL_MGMT_A_IPV6MASK,
-						   &iter6->mask);
-			if (ret_val != 0)
-				return ret_val;
-			map6 = netlbl_domhsh_addr6_entry(iter6);
-			ret_val = nla_put_u32(skb, NLBL_MGMT_A_PROTOCOL,
-					      map6->def.type);
-			if (ret_val != 0)
-				return ret_val;
+				if (nla_b == NULL)
+				{
+					return -ENOMEM;
+				}
 
-			switch (map6->def.type) {
-			case NETLBL_NLTYPE_CALIPSO:
-				ret_val = nla_put_u32(skb, NLBL_MGMT_A_CLPDOI,
-						      map6->def.calipso->doi);
+				ret_val = nla_put_in6_addr(skb, NLBL_MGMT_A_IPV6ADDR,
+										   &iter6->addr);
+
 				if (ret_val != 0)
+				{
 					return ret_val;
-				break;
-			}
+				}
 
-			nla_nest_end(skb, nla_b);
-		}
+				ret_val = nla_put_in6_addr(skb, NLBL_MGMT_A_IPV6MASK,
+										   &iter6->mask);
+
+				if (ret_val != 0)
+				{
+					return ret_val;
+				}
+
+				map6 = netlbl_domhsh_addr6_entry(iter6);
+				ret_val = nla_put_u32(skb, NLBL_MGMT_A_PROTOCOL,
+									  map6->def.type);
+
+				if (ret_val != 0)
+				{
+					return ret_val;
+				}
+
+				switch (map6->def.type)
+				{
+					case NETLBL_NLTYPE_CALIPSO:
+						ret_val = nla_put_u32(skb, NLBL_MGMT_A_CLPDOI,
+											  map6->def.calipso->doi);
+
+						if (ret_val != 0)
+						{
+							return ret_val;
+						}
+
+						break;
+				}
+
+				nla_nest_end(skb, nla_b);
+			}
 #endif /* IPv6 */
 
-		nla_nest_end(skb, nla_a);
-		break;
-	case NETLBL_NLTYPE_UNLABELED:
-		ret_val = nla_put_u32(skb, NLBL_MGMT_A_PROTOCOL,
-				      entry->def.type);
-		break;
-	case NETLBL_NLTYPE_CIPSOV4:
-		ret_val = nla_put_u32(skb, NLBL_MGMT_A_PROTOCOL,
-				      entry->def.type);
-		if (ret_val != 0)
-			return ret_val;
-		ret_val = nla_put_u32(skb, NLBL_MGMT_A_CV4DOI,
-				      entry->def.cipso->doi);
-		break;
-	case NETLBL_NLTYPE_CALIPSO:
-		ret_val = nla_put_u32(skb, NLBL_MGMT_A_PROTOCOL,
-				      entry->def.type);
-		if (ret_val != 0)
-			return ret_val;
-		ret_val = nla_put_u32(skb, NLBL_MGMT_A_CLPDOI,
-				      entry->def.calipso->doi);
-		break;
+			nla_nest_end(skb, nla_a);
+			break;
+
+		case NETLBL_NLTYPE_UNLABELED:
+			ret_val = nla_put_u32(skb, NLBL_MGMT_A_PROTOCOL,
+								  entry->def.type);
+			break;
+
+		case NETLBL_NLTYPE_CIPSOV4:
+			ret_val = nla_put_u32(skb, NLBL_MGMT_A_PROTOCOL,
+								  entry->def.type);
+
+			if (ret_val != 0)
+			{
+				return ret_val;
+			}
+
+			ret_val = nla_put_u32(skb, NLBL_MGMT_A_CV4DOI,
+								  entry->def.cipso->doi);
+			break;
+
+		case NETLBL_NLTYPE_CALIPSO:
+			ret_val = nla_put_u32(skb, NLBL_MGMT_A_PROTOCOL,
+								  entry->def.type);
+
+			if (ret_val != 0)
+			{
+				return ret_val;
+			}
+
+			ret_val = nla_put_u32(skb, NLBL_MGMT_A_CLPDOI,
+								  entry->def.calipso->doi);
+			break;
 	}
 
 	return ret_val;
@@ -441,16 +572,18 @@ static int netlbl_mgmt_add(struct sk_buff *skb, struct genl_info *info)
 	struct netlbl_audit audit_info;
 
 	if ((!info->attrs[NLBL_MGMT_A_DOMAIN]) ||
-	    (!info->attrs[NLBL_MGMT_A_PROTOCOL]) ||
-	    (info->attrs[NLBL_MGMT_A_IPV4ADDR] &&
-	     info->attrs[NLBL_MGMT_A_IPV6ADDR]) ||
-	    (info->attrs[NLBL_MGMT_A_IPV4MASK] &&
-	     info->attrs[NLBL_MGMT_A_IPV6MASK]) ||
-	    ((info->attrs[NLBL_MGMT_A_IPV4ADDR] != NULL) ^
-	     (info->attrs[NLBL_MGMT_A_IPV4MASK] != NULL)) ||
-	    ((info->attrs[NLBL_MGMT_A_IPV6ADDR] != NULL) ^
-	     (info->attrs[NLBL_MGMT_A_IPV6MASK] != NULL)))
+		(!info->attrs[NLBL_MGMT_A_PROTOCOL]) ||
+		(info->attrs[NLBL_MGMT_A_IPV4ADDR] &&
+		 info->attrs[NLBL_MGMT_A_IPV6ADDR]) ||
+		(info->attrs[NLBL_MGMT_A_IPV4MASK] &&
+		 info->attrs[NLBL_MGMT_A_IPV6MASK]) ||
+		((info->attrs[NLBL_MGMT_A_IPV4ADDR] != NULL) ^
+		 (info->attrs[NLBL_MGMT_A_IPV4MASK] != NULL)) ||
+		((info->attrs[NLBL_MGMT_A_IPV6ADDR] != NULL) ^
+		 (info->attrs[NLBL_MGMT_A_IPV6MASK] != NULL)))
+	{
 		return -EINVAL;
+	}
 
 	netlbl_netlink_auditinfo(skb, &audit_info);
 
@@ -473,7 +606,9 @@ static int netlbl_mgmt_remove(struct sk_buff *skb, struct genl_info *info)
 	struct netlbl_audit audit_info;
 
 	if (!info->attrs[NLBL_MGMT_A_DOMAIN])
+	{
 		return -EINVAL;
+	}
 
 	netlbl_netlink_auditinfo(skb, &audit_info);
 
@@ -500,14 +635,20 @@ static int netlbl_mgmt_listall_cb(struct netlbl_dom_map *entry, void *arg)
 	void *data;
 
 	data = genlmsg_put(cb_arg->skb, NETLINK_CB(cb_arg->nl_cb->skb).portid,
-			   cb_arg->seq, &netlbl_mgmt_gnl_family,
-			   NLM_F_MULTI, NLBL_MGMT_C_LISTALL);
+					   cb_arg->seq, &netlbl_mgmt_gnl_family,
+					   NLM_F_MULTI, NLBL_MGMT_C_LISTALL);
+
 	if (data == NULL)
+	{
 		goto listall_cb_failure;
+	}
 
 	ret_val = netlbl_mgmt_listentry(cb_arg->skb, entry);
+
 	if (ret_val != 0)
+	{
 		goto listall_cb_failure;
+	}
 
 	cb_arg->seq++;
 	genlmsg_end(cb_arg->skb, data);
@@ -530,7 +671,7 @@ listall_cb_failure:
  *
  */
 static int netlbl_mgmt_listall(struct sk_buff *skb,
-			       struct netlink_callback *cb)
+							   struct netlink_callback *cb)
 {
 	struct netlbl_domhsh_walk_arg cb_arg;
 	u32 skip_bkt = cb->args[0];
@@ -541,9 +682,9 @@ static int netlbl_mgmt_listall(struct sk_buff *skb,
 	cb_arg.seq = cb->nlh->nlmsg_seq;
 
 	netlbl_domhsh_walk(&skip_bkt,
-			   &skip_chain,
-			   netlbl_mgmt_listall_cb,
-			   &cb_arg);
+					   &skip_chain,
+					   netlbl_mgmt_listall_cb,
+					   &cb_arg);
 
 	cb->args[0] = skip_bkt;
 	cb->args[1] = skip_chain;
@@ -565,15 +706,17 @@ static int netlbl_mgmt_adddef(struct sk_buff *skb, struct genl_info *info)
 	struct netlbl_audit audit_info;
 
 	if ((!info->attrs[NLBL_MGMT_A_PROTOCOL]) ||
-	    (info->attrs[NLBL_MGMT_A_IPV4ADDR] &&
-	     info->attrs[NLBL_MGMT_A_IPV6ADDR]) ||
-	    (info->attrs[NLBL_MGMT_A_IPV4MASK] &&
-	     info->attrs[NLBL_MGMT_A_IPV6MASK]) ||
-	    ((info->attrs[NLBL_MGMT_A_IPV4ADDR] != NULL) ^
-	     (info->attrs[NLBL_MGMT_A_IPV4MASK] != NULL)) ||
-	    ((info->attrs[NLBL_MGMT_A_IPV6ADDR] != NULL) ^
-	     (info->attrs[NLBL_MGMT_A_IPV6MASK] != NULL)))
+		(info->attrs[NLBL_MGMT_A_IPV4ADDR] &&
+		 info->attrs[NLBL_MGMT_A_IPV6ADDR]) ||
+		(info->attrs[NLBL_MGMT_A_IPV4MASK] &&
+		 info->attrs[NLBL_MGMT_A_IPV6MASK]) ||
+		((info->attrs[NLBL_MGMT_A_IPV4ADDR] != NULL) ^
+		 (info->attrs[NLBL_MGMT_A_IPV4MASK] != NULL)) ||
+		((info->attrs[NLBL_MGMT_A_IPV6ADDR] != NULL) ^
+		 (info->attrs[NLBL_MGMT_A_IPV6MASK] != NULL)))
+	{
 		return -EINVAL;
+	}
 
 	netlbl_netlink_auditinfo(skb, &audit_info);
 
@@ -619,28 +762,45 @@ static int netlbl_mgmt_listdef(struct sk_buff *skb, struct genl_info *info)
 	u16 family;
 
 	if (info->attrs[NLBL_MGMT_A_FAMILY])
+	{
 		family = nla_get_u16(info->attrs[NLBL_MGMT_A_FAMILY]);
+	}
 	else
+	{
 		family = AF_INET;
+	}
 
 	ans_skb = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
+
 	if (ans_skb == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	data = genlmsg_put_reply(ans_skb, info, &netlbl_mgmt_gnl_family,
-				 0, NLBL_MGMT_C_LISTDEF);
+							 0, NLBL_MGMT_C_LISTDEF);
+
 	if (data == NULL)
+	{
 		goto listdef_failure;
+	}
 
 	rcu_read_lock();
 	entry = netlbl_domhsh_getentry(NULL, family);
-	if (entry == NULL) {
+
+	if (entry == NULL)
+	{
 		ret_val = -ENOENT;
 		goto listdef_failure_lock;
 	}
+
 	ret_val = netlbl_mgmt_listentry(ans_skb, entry);
 	rcu_read_unlock();
+
 	if (ret_val != 0)
+	{
 		goto listdef_failure;
+	}
 
 	genlmsg_end(ans_skb, data);
 	return genlmsg_reply(ans_skb, info);
@@ -665,21 +825,27 @@ listdef_failure:
  *
  */
 static int netlbl_mgmt_protocols_cb(struct sk_buff *skb,
-				    struct netlink_callback *cb,
-				    u32 protocol)
+									struct netlink_callback *cb,
+									u32 protocol)
 {
 	int ret_val = -ENOMEM;
 	void *data;
 
 	data = genlmsg_put(skb, NETLINK_CB(cb->skb).portid, cb->nlh->nlmsg_seq,
-			   &netlbl_mgmt_gnl_family, NLM_F_MULTI,
-			   NLBL_MGMT_C_PROTOCOLS);
+					   &netlbl_mgmt_gnl_family, NLM_F_MULTI,
+					   NLBL_MGMT_C_PROTOCOLS);
+
 	if (data == NULL)
+	{
 		goto protocols_cb_failure;
+	}
 
 	ret_val = nla_put_u32(skb, NLBL_MGMT_A_PROTOCOL, protocol);
+
 	if (ret_val != 0)
+	{
 		goto protocols_cb_failure;
+	}
 
 	genlmsg_end(skb, data);
 	return 0;
@@ -699,32 +865,48 @@ protocols_cb_failure:
  *
  */
 static int netlbl_mgmt_protocols(struct sk_buff *skb,
-				 struct netlink_callback *cb)
+								 struct netlink_callback *cb)
 {
 	u32 protos_sent = cb->args[0];
 
-	if (protos_sent == 0) {
+	if (protos_sent == 0)
+	{
 		if (netlbl_mgmt_protocols_cb(skb,
-					     cb,
-					     NETLBL_NLTYPE_UNLABELED) < 0)
+									 cb,
+									 NETLBL_NLTYPE_UNLABELED) < 0)
+		{
 			goto protocols_return;
+		}
+
 		protos_sent++;
 	}
-	if (protos_sent == 1) {
+
+	if (protos_sent == 1)
+	{
 		if (netlbl_mgmt_protocols_cb(skb,
-					     cb,
-					     NETLBL_NLTYPE_CIPSOV4) < 0)
+									 cb,
+									 NETLBL_NLTYPE_CIPSOV4) < 0)
+		{
 			goto protocols_return;
+		}
+
 		protos_sent++;
 	}
+
 #if IS_ENABLED(CONFIG_IPV6)
-	if (protos_sent == 2) {
+
+	if (protos_sent == 2)
+	{
 		if (netlbl_mgmt_protocols_cb(skb,
-					     cb,
-					     NETLBL_NLTYPE_CALIPSO) < 0)
+									 cb,
+									 NETLBL_NLTYPE_CALIPSO) < 0)
+		{
 			goto protocols_return;
+		}
+
 		protos_sent++;
 	}
+
 #endif
 
 protocols_return:
@@ -749,18 +931,28 @@ static int netlbl_mgmt_version(struct sk_buff *skb, struct genl_info *info)
 	void *data;
 
 	ans_skb = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
+
 	if (ans_skb == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	data = genlmsg_put_reply(ans_skb, info, &netlbl_mgmt_gnl_family,
-				 0, NLBL_MGMT_C_VERSION);
+							 0, NLBL_MGMT_C_VERSION);
+
 	if (data == NULL)
+	{
 		goto version_failure;
+	}
 
 	ret_val = nla_put_u32(ans_skb,
-			      NLBL_MGMT_A_VERSION,
-			      NETLBL_PROTO_VERSION);
+						  NLBL_MGMT_A_VERSION,
+						  NETLBL_PROTO_VERSION);
+
 	if (ret_val != 0)
+	{
 		goto version_failure;
+	}
 
 	genlmsg_end(ans_skb, data);
 	return genlmsg_reply(ans_skb, info);
@@ -775,62 +967,63 @@ version_failure:
  * NetLabel Generic NETLINK Command Definitions
  */
 
-static const struct genl_ops netlbl_mgmt_genl_ops[] = {
+static const struct genl_ops netlbl_mgmt_genl_ops[] =
+{
 	{
-	.cmd = NLBL_MGMT_C_ADD,
-	.flags = GENL_ADMIN_PERM,
-	.policy = netlbl_mgmt_genl_policy,
-	.doit = netlbl_mgmt_add,
-	.dumpit = NULL,
+		.cmd = NLBL_MGMT_C_ADD,
+		.flags = GENL_ADMIN_PERM,
+		.policy = netlbl_mgmt_genl_policy,
+		.doit = netlbl_mgmt_add,
+		.dumpit = NULL,
 	},
 	{
-	.cmd = NLBL_MGMT_C_REMOVE,
-	.flags = GENL_ADMIN_PERM,
-	.policy = netlbl_mgmt_genl_policy,
-	.doit = netlbl_mgmt_remove,
-	.dumpit = NULL,
+		.cmd = NLBL_MGMT_C_REMOVE,
+		.flags = GENL_ADMIN_PERM,
+		.policy = netlbl_mgmt_genl_policy,
+		.doit = netlbl_mgmt_remove,
+		.dumpit = NULL,
 	},
 	{
-	.cmd = NLBL_MGMT_C_LISTALL,
-	.flags = 0,
-	.policy = netlbl_mgmt_genl_policy,
-	.doit = NULL,
-	.dumpit = netlbl_mgmt_listall,
+		.cmd = NLBL_MGMT_C_LISTALL,
+		.flags = 0,
+		.policy = netlbl_mgmt_genl_policy,
+		.doit = NULL,
+		.dumpit = netlbl_mgmt_listall,
 	},
 	{
-	.cmd = NLBL_MGMT_C_ADDDEF,
-	.flags = GENL_ADMIN_PERM,
-	.policy = netlbl_mgmt_genl_policy,
-	.doit = netlbl_mgmt_adddef,
-	.dumpit = NULL,
+		.cmd = NLBL_MGMT_C_ADDDEF,
+		.flags = GENL_ADMIN_PERM,
+		.policy = netlbl_mgmt_genl_policy,
+		.doit = netlbl_mgmt_adddef,
+		.dumpit = NULL,
 	},
 	{
-	.cmd = NLBL_MGMT_C_REMOVEDEF,
-	.flags = GENL_ADMIN_PERM,
-	.policy = netlbl_mgmt_genl_policy,
-	.doit = netlbl_mgmt_removedef,
-	.dumpit = NULL,
+		.cmd = NLBL_MGMT_C_REMOVEDEF,
+		.flags = GENL_ADMIN_PERM,
+		.policy = netlbl_mgmt_genl_policy,
+		.doit = netlbl_mgmt_removedef,
+		.dumpit = NULL,
 	},
 	{
-	.cmd = NLBL_MGMT_C_LISTDEF,
-	.flags = 0,
-	.policy = netlbl_mgmt_genl_policy,
-	.doit = netlbl_mgmt_listdef,
-	.dumpit = NULL,
+		.cmd = NLBL_MGMT_C_LISTDEF,
+		.flags = 0,
+		.policy = netlbl_mgmt_genl_policy,
+		.doit = netlbl_mgmt_listdef,
+		.dumpit = NULL,
 	},
 	{
-	.cmd = NLBL_MGMT_C_PROTOCOLS,
-	.flags = 0,
-	.policy = netlbl_mgmt_genl_policy,
-	.doit = NULL,
-	.dumpit = netlbl_mgmt_protocols,
+		.cmd = NLBL_MGMT_C_PROTOCOLS,
+		.flags = 0,
+		.policy = netlbl_mgmt_genl_policy,
+		.doit = NULL,
+		.dumpit = netlbl_mgmt_protocols,
 	},
 	{
-	.cmd = NLBL_MGMT_C_VERSION,
-	.flags = 0,
-	.policy = netlbl_mgmt_genl_policy,
-	.doit = netlbl_mgmt_version,
-	.dumpit = NULL,
+		.cmd = NLBL_MGMT_C_VERSION,
+		.flags = 0,
+		.policy = netlbl_mgmt_genl_policy,
+		.doit = netlbl_mgmt_version,
+		.dumpit = NULL,
 	},
 };
 
@@ -849,5 +1042,5 @@ static const struct genl_ops netlbl_mgmt_genl_ops[] = {
 int __init netlbl_mgmt_genl_init(void)
 {
 	return genl_register_family_with_ops(&netlbl_mgmt_gnl_family,
-					     netlbl_mgmt_genl_ops);
+										 netlbl_mgmt_genl_ops);
 }

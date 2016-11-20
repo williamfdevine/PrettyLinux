@@ -30,7 +30,7 @@
 /* Get number of dma segments required */
 #define BFI_MEM_DMA_NSEGS(_num_reqs, _req_sz)				\
 	((u16)(((((_num_reqs) * (_req_sz)) + BFI_MEM_DMA_SEG_SZ - 1) &	\
-	 ~(BFI_MEM_DMA_SEG_SZ - 1)) / BFI_MEM_DMA_SEG_SZ))
+			~(BFI_MEM_DMA_SEG_SZ - 1)) / BFI_MEM_DMA_SEG_SZ))
 
 /* Get num dma reqs - that fit in a segment */
 #define BFI_MEM_NREQS_SEG(_rqsz) (BFI_MEM_DMA_SEG_SZ / (_rqsz))
@@ -52,11 +52,14 @@
 /*
  * Msg header common to all msgs
  */
-struct bfi_mhdr_s {
+struct bfi_mhdr_s
+{
 	u8		msg_class;	/*  @ref bfi_mclass_t		    */
 	u8		msg_id;		/*  msg opcode with in the class   */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u8	qid;
 			u8	fn_lpu;	/*  msg destination		    */
 		} h2i;
@@ -68,16 +71,16 @@ struct bfi_mhdr_s {
 #define bfi_mhdr_2_fn(_mh)	((_mh)->mtag.h2i.fn_lpu >> 1)
 
 #define bfi_h2i_set(_mh, _mc, _op, _fn_lpu) do {		\
-	(_mh).msg_class		= (_mc);      \
-	(_mh).msg_id		= (_op);      \
-	(_mh).mtag.h2i.fn_lpu	= (_fn_lpu);      \
-} while (0)
+		(_mh).msg_class		= (_mc);      \
+		(_mh).msg_id		= (_op);      \
+		(_mh).mtag.h2i.fn_lpu	= (_fn_lpu);      \
+	} while (0)
 
 #define bfi_i2h_set(_mh, _mc, _op, _i2htok) do {		\
-	(_mh).msg_class		= (_mc);      \
-	(_mh).msg_id		= (_op);      \
-	(_mh).mtag.i2htok	= (_i2htok);      \
-} while (0)
+		(_mh).msg_class		= (_mc);      \
+		(_mh).msg_id		= (_op);      \
+		(_mh).mtag.i2htok	= (_i2htok);      \
+	} while (0)
 
 /*
  * Message opcodes: 0-127 to firmware, 128-255 to host
@@ -99,7 +102,8 @@ struct bfi_mhdr_s {
 /*
  * SG Flags
  */
-enum {
+enum
+{
 	BFI_SGE_DATA		= 0,	/*  data address, not last	     */
 	BFI_SGE_DATA_CPL	= 1,	/*  data addr, last in current page */
 	BFI_SGE_DATA_LAST	= 3,	/*  data address, last		     */
@@ -110,8 +114,10 @@ enum {
 /*
  * DMA addresses
  */
-union bfi_addr_u {
-	struct {
+union bfi_addr_u
+{
+	struct
+	{
 		__be32	addr_lo;
 		__be32	addr_hi;
 	} a32;
@@ -120,15 +126,16 @@ union bfi_addr_u {
 /*
  * Scatter Gather Element used for fast-path IO requests
  */
-struct bfi_sge_s {
+struct bfi_sge_s
+{
 #ifdef __BIG_ENDIAN
-	u32	flags:2,
-			rsvd:2,
-			sg_len:28;
+	u32	flags: 2,
+		rsvd: 2,
+		sg_len: 28;
 #else
-	u32	sg_len:28,
-			rsvd:2,
-			flags:2;
+	u32	sg_len: 28,
+		rsvd: 2,
+		flags: 2;
 #endif
 	union bfi_addr_u sga;
 };
@@ -136,7 +143,8 @@ struct bfi_sge_s {
 /**
  * Generic DMA addr-len pair.
  */
-struct bfi_alen_s {
+struct bfi_alen_s
+{
 	union bfi_addr_u	al_addr;	/* DMA addr of buffer	*/
 	u32			al_len;		/* length of buffer	*/
 };
@@ -147,7 +155,8 @@ struct bfi_alen_s {
 #define BFI_SGPG_DATA_SGES		7
 #define BFI_SGPG_SGES_MAX		(BFI_SGPG_DATA_SGES + 1)
 #define BFI_SGPG_RSVD_WD_LEN	8
-struct bfi_sgpg_s {
+struct bfi_sgpg_s
+{
 	struct bfi_sge_s sges[BFI_SGPG_SGES_MAX];
 	u32	rsvd[BFI_SGPG_RSVD_WD_LEN];
 };
@@ -163,9 +172,10 @@ struct bfi_sgpg_s {
  */
 #define BFI_LMSG_SZ		128
 #define BFI_LMSG_PL_WSZ	\
-			((BFI_LMSG_SZ - sizeof(struct bfi_mhdr_s)) / 4)
+	((BFI_LMSG_SZ - sizeof(struct bfi_mhdr_s)) / 4)
 
-struct bfi_msg_s {
+struct bfi_msg_s
+{
 	struct bfi_mhdr_s mhdr;
 	u32	pl[BFI_LMSG_PL_WSZ];
 };
@@ -174,7 +184,8 @@ struct bfi_msg_s {
  * Mailbox message structure
  */
 #define BFI_MBMSG_SZ		7
-struct bfi_mbmsg_s {
+struct bfi_mbmsg_s
+{
 	struct bfi_mhdr_s	mh;
 	u32		pl[BFI_MBMSG_SZ];
 };
@@ -182,7 +193,8 @@ struct bfi_mbmsg_s {
 /*
  * Supported PCI function class codes (personality)
  */
-enum bfi_pcifn_class {
+enum bfi_pcifn_class
+{
 	BFI_PCIFN_CLASS_FC  = 0x0c04,
 	BFI_PCIFN_CLASS_ETH = 0x0200,
 };
@@ -190,7 +202,8 @@ enum bfi_pcifn_class {
 /*
  * Message Classes
  */
-enum bfi_mclass {
+enum bfi_mclass
+{
 	BFI_MC_IOC		= 1,	/*  IO Controller (IOC)	    */
 	BFI_MC_DIAG		= 2,    /*  Diagnostic Msgs            */
 	BFI_MC_FLASH		= 3,	/*  Flash message class	*/
@@ -229,20 +242,23 @@ enum bfi_mclass {
 /*
  * Different asic generations
  */
-enum bfi_asic_gen {
+enum bfi_asic_gen
+{
 	BFI_ASIC_GEN_CB		= 1,	/* crossbow 8G FC		*/
 	BFI_ASIC_GEN_CT		= 2,	/* catapult 8G FC or 10G CNA	*/
 	BFI_ASIC_GEN_CT2	= 3,	/* catapult-2 16G FC or 10G CNA	*/
 };
 
-enum bfi_asic_mode {
+enum bfi_asic_mode
+{
 	BFI_ASIC_MODE_FC	= 1,	/* FC upto 8G speed		*/
 	BFI_ASIC_MODE_FC16	= 2,	/* FC upto 16G speed		*/
 	BFI_ASIC_MODE_ETH	= 3,	/* Ethernet ports		*/
 	BFI_ASIC_MODE_COMBO	= 4,	/* FC 16G and Ethernet 10G port	*/
 };
 
-enum bfi_ioc_h2i_msgs {
+enum bfi_ioc_h2i_msgs
+{
 	BFI_IOC_H2I_ENABLE_REQ		= 1,
 	BFI_IOC_H2I_DISABLE_REQ		= 2,
 	BFI_IOC_H2I_GETATTR_REQ		= 3,
@@ -250,7 +266,8 @@ enum bfi_ioc_h2i_msgs {
 	BFI_IOC_H2I_DBG_DUMP		= 5,
 };
 
-enum bfi_ioc_i2h_msgs {
+enum bfi_ioc_i2h_msgs
+{
 	BFI_IOC_I2H_ENABLE_REPLY	= BFA_I2HM(1),
 	BFI_IOC_I2H_DISABLE_REPLY	= BFA_I2HM(2),
 	BFI_IOC_I2H_GETATTR_REPLY	= BFA_I2HM(3),
@@ -261,13 +278,15 @@ enum bfi_ioc_i2h_msgs {
 /*
  * BFI_IOC_H2I_GETATTR_REQ message
  */
-struct bfi_ioc_getattr_req_s {
+struct bfi_ioc_getattr_req_s
+{
 	struct bfi_mhdr_s	mh;
 	union bfi_addr_u	attr_addr;
 };
 
 #define BFI_IOC_ATTR_UUID_SZ	16
-struct bfi_ioc_attr_s {
+struct bfi_ioc_attr_s
+{
 	wwn_t		mfg_pwwn;	/*  Mfg port wwn	   */
 	wwn_t		mfg_nwwn;	/*  Mfg node wwn	   */
 	mac_t		mfg_mac;	/*  Mfg mac		   */
@@ -301,7 +320,8 @@ struct bfi_ioc_attr_s {
 /*
  * BFI_IOC_I2H_GETATTR_REPLY message
  */
-struct bfi_ioc_getattr_reply_s {
+struct bfi_ioc_getattr_reply_s
+{
 	struct	bfi_mhdr_s	mh;	/*  Common msg header		*/
 	u8			status;	/*  cfg reply status		*/
 	u8			rsvd[3];
@@ -329,7 +349,8 @@ struct bfi_ioc_getattr_reply_s {
 #define BFA_IOC_FW_INV_SIGN	(0xdeaddead)
 #define BFI_IOC_MD5SUM_SZ	4
 
-struct bfi_ioc_fwver_s {
+struct bfi_ioc_fwver_s
+{
 #ifdef __BIG_ENDIAN
 	uint8_t patch;
 	uint8_t maint;
@@ -349,7 +370,8 @@ struct bfi_ioc_fwver_s {
 #endif
 };
 
-struct bfi_ioc_image_hdr_s {
+struct bfi_ioc_image_hdr_s
+{
 	u32	signature;	/* constant signature		*/
 	u8	asic_gen;	/* asic generation		*/
 	u8	asic_mode;
@@ -362,7 +384,8 @@ struct bfi_ioc_image_hdr_s {
 	u32	md5sum[BFI_IOC_MD5SUM_SZ];
 };
 
-enum bfi_ioc_img_ver_cmp_e {
+enum bfi_ioc_img_ver_cmp_e
+{
 	BFI_IOC_IMG_VER_INCOMP,
 	BFI_IOC_IMG_VER_OLD,
 	BFI_IOC_IMG_VER_SAME,
@@ -378,7 +401,8 @@ enum bfi_ioc_img_ver_cmp_e {
 	 ((u32)(__p0_mode)) << 8 |		\
 	 ((u32)(__p1_mode)))
 
-enum bfi_fwboot_type {
+enum bfi_fwboot_type
+{
 	BFI_FWBOOT_TYPE_NORMAL  = 0,
 	BFI_FWBOOT_TYPE_FLASH   = 1,
 	BFI_FWBOOT_TYPE_MEMTEST = 2,
@@ -388,12 +412,14 @@ enum bfi_fwboot_type {
 #define BFI_FWBOOT_TYPE_MEMTEST	2
 #define BFI_FWBOOT_ENV_OS       0
 
-enum bfi_port_mode {
+enum bfi_port_mode
+{
 	BFI_PORT_MODE_FC	= 1,
 	BFI_PORT_MODE_ETH	= 2,
 };
 
-struct bfi_ioc_hbeat_s {
+struct bfi_ioc_hbeat_s
+{
 	struct bfi_mhdr_s  mh;		/*  common msg header		*/
 	u32	   hb_count;	/*  current heart beat count	*/
 };
@@ -401,7 +427,8 @@ struct bfi_ioc_hbeat_s {
 /*
  * IOC hardware/firmware state
  */
-enum bfi_ioc_state {
+enum bfi_ioc_state
+{
 	BFI_IOC_UNINIT		= 0,	/*  not initialized		     */
 	BFI_IOC_INITING		= 1,	/*  h/w is being initialized	     */
 	BFI_IOC_HWINIT		= 2,	/*  h/w is initialized		     */
@@ -420,7 +447,8 @@ enum bfi_ioc_state {
 
 #define BFI_IOC_ENDIAN_SIG  0x12345678
 
-enum {
+enum
+{
 	BFI_ADAPTER_TYPE_FC	= 0x01,		/*  FC adapters	   */
 	BFI_ADAPTER_TYPE_MK	= 0x0f0000,	/*  adapter type mask     */
 	BFI_ADAPTER_TYPE_SH	= 16,	        /*  adapter type shift    */
@@ -435,7 +463,7 @@ enum {
 
 #define BFI_ADAPTER_GETP(__prop, __adap_prop)			\
 	(((__adap_prop) & BFI_ADAPTER_ ## __prop ## _MK) >>	\
-		BFI_ADAPTER_ ## __prop ## _SH)
+	 BFI_ADAPTER_ ## __prop ## _SH)
 #define BFI_ADAPTER_SETP(__prop, __val)				\
 	((__val) << BFI_ADAPTER_ ## __prop ## _SH)
 #define BFI_ADAPTER_IS_PROTO(__adap_type)			\
@@ -446,12 +474,13 @@ enum {
 	((__adap_type) & BFI_ADAPTER_UNSUPP)
 #define BFI_ADAPTER_IS_SPECIAL(__adap_type)			\
 	((__adap_type) & (BFI_ADAPTER_TTV | BFI_ADAPTER_PROTO |	\
-			BFI_ADAPTER_UNSUPP))
+					  BFI_ADAPTER_UNSUPP))
 
 /*
  * BFI_IOC_H2I_ENABLE_REQ & BFI_IOC_H2I_DISABLE_REQ messages
  */
-struct bfi_ioc_ctrl_req_s {
+struct bfi_ioc_ctrl_req_s
+{
 	struct bfi_mhdr_s	mh;
 	u16			clscode;
 	u16			rsvd;
@@ -463,7 +492,8 @@ struct bfi_ioc_ctrl_req_s {
 /*
  * BFI_IOC_I2H_ENABLE_REPLY & BFI_IOC_I2H_DISABLE_REPLY messages
  */
-struct bfi_ioc_ctrl_reply_s {
+struct bfi_ioc_ctrl_reply_s
+{
 	struct bfi_mhdr_s	mh;		/*  Common msg header     */
 	u8			status;		/*  enable/disable status */
 	u8			port_mode;	/*  bfa_mode_s	*/
@@ -477,7 +507,8 @@ struct bfi_ioc_ctrl_reply_s {
 /*
  * H2I Messages
  */
-union bfi_ioc_h2i_msg_u {
+union bfi_ioc_h2i_msg_u
+{
 	struct bfi_mhdr_s		mh;
 	struct bfi_ioc_ctrl_req_s	enable_req;
 	struct bfi_ioc_ctrl_req_s	disable_req;
@@ -488,7 +519,8 @@ union bfi_ioc_h2i_msg_u {
 /*
  * I2H Messages
  */
-union bfi_ioc_i2h_msg_u {
+union bfi_ioc_i2h_msg_u
+{
 	struct bfi_mhdr_s		mh;
 	struct bfi_ioc_ctrl_reply_s	fw_event;
 	u32			mboxmsg[BFI_IOC_MSGSZ];
@@ -508,7 +540,8 @@ union bfi_ioc_i2h_msg_u {
 /*
  * PBC boot lun configuration
  */
-struct bfi_pbc_blun_s {
+struct bfi_pbc_blun_s
+{
 	wwn_t		tgt_pwwn;
 	struct scsi_lun	tgt_lun;
 };
@@ -516,7 +549,8 @@ struct bfi_pbc_blun_s {
 /*
  * PBC virtual port configuration
  */
-struct bfi_pbc_vport_s {
+struct bfi_pbc_vport_s
+{
 	wwn_t		vp_pwwn;
 	wwn_t		vp_nwwn;
 };
@@ -524,7 +558,8 @@ struct bfi_pbc_vport_s {
 /*
  * BFI pre-boot configuration information
  */
-struct bfi_pbc_s {
+struct bfi_pbc_s
+{
 	u8		port_enabled;
 	u8		boot_enabled;
 	u8		nbluns;
@@ -551,20 +586,23 @@ struct bfi_pbc_s {
 /* q_depth must be power of 2 */
 #define BFI_MSGQ_FREE_CNT(_q)	((_q->ci - _q->pi - 1) & (_q->q_depth - 1))
 
-enum bfi_msgq_h2i_msgs_e {
+enum bfi_msgq_h2i_msgs_e
+{
 	BFI_MSGQ_H2I_INIT_REQ	= 1,
 	BFI_MSGQ_H2I_DOORBELL	= 2,
 	BFI_MSGQ_H2I_SHUTDOWN	= 3,
 };
 
-enum bfi_msgq_i2h_msgs_e {
+enum bfi_msgq_i2h_msgs_e
+{
 	BFI_MSGQ_I2H_INIT_RSP	= 1,
 	BFI_MSGQ_I2H_DOORBELL	= 2,
 };
 
 
 /* Messages(commands/responsed/AENS will have the following header */
-struct bfi_msgq_mhdr_s {
+struct bfi_msgq_mhdr_s
+{
 	u8		msg_class;
 	u8		msg_id;
 	u16	msg_token;
@@ -574,11 +612,11 @@ struct bfi_msgq_mhdr_s {
 };
 
 #define bfi_msgq_mhdr_set(_mh, _mc, _mid, _tok, _enet_id) do {        \
-	(_mh).msg_class		= (_mc);      \
-	(_mh).msg_id		= (_mid);      \
-	(_mh).msg_token		= (_tok);      \
-	(_mh).enet_id		= (_enet_id);      \
-} while (0)
+		(_mh).msg_class		= (_mc);      \
+		(_mh).msg_id		= (_mid);      \
+		(_mh).msg_token		= (_tok);      \
+		(_mh).enet_id		= (_enet_id);      \
+	} while (0)
 
 /*
  * Mailbox  for messaging interface
@@ -588,21 +626,24 @@ struct bfi_msgq_mhdr_s {
 #define BFI_MSGQ_RSP_ENTRY_SIZE		(64)    /* TBD */
 #define BFI_MSGQ_MSG_SIZE_MAX		(2048)  /* TBD */
 
-struct bfi_msgq_s {
+struct bfi_msgq_s
+{
 	union bfi_addr_u addr;
 	u16 q_depth;     /* Total num of entries in the queue */
 	u8 rsvd[2];
 };
 
 /* BFI_ENET_MSGQ_CFG_REQ TBD init or cfg? */
-struct bfi_msgq_cfg_req_s {
+struct bfi_msgq_cfg_req_s
+{
 	struct bfi_mhdr_s mh;
 	struct bfi_msgq_s cmdq;
 	struct bfi_msgq_s rspq;
 };
 
 /* BFI_ENET_MSGQ_CFG_RSP */
-struct bfi_msgq_cfg_rsp_s {
+struct bfi_msgq_cfg_rsp_s
+{
 	struct bfi_mhdr_s mh;
 	u8 cmd_status;
 	u8 rsvd[3];
@@ -610,14 +651,16 @@ struct bfi_msgq_cfg_rsp_s {
 
 
 /* BFI_MSGQ_H2I_DOORBELL */
-struct bfi_msgq_h2i_db_s {
+struct bfi_msgq_h2i_db_s
+{
 	struct bfi_mhdr_s mh;
 	u16 cmdq_pi;
 	u16 rspq_ci;
 };
 
 /* BFI_MSGQ_I2H_DOORBELL */
-struct bfi_msgq_i2h_db_s {
+struct bfi_msgq_i2h_db_s
+{
 	struct bfi_mhdr_s mh;
 	u16 rspq_pi;
 	u16 cmdq_ci;
@@ -628,14 +671,16 @@ struct bfi_msgq_i2h_db_s {
 /* BFI port specific */
 #pragma pack(1)
 
-enum bfi_port_h2i {
+enum bfi_port_h2i
+{
 	BFI_PORT_H2I_ENABLE_REQ         = (1),
 	BFI_PORT_H2I_DISABLE_REQ        = (2),
 	BFI_PORT_H2I_GET_STATS_REQ      = (3),
 	BFI_PORT_H2I_CLEAR_STATS_REQ    = (4),
 };
 
-enum bfi_port_i2h {
+enum bfi_port_i2h
+{
 	BFI_PORT_I2H_ENABLE_RSP         = BFA_I2HM(1),
 	BFI_PORT_I2H_DISABLE_RSP        = BFA_I2HM(2),
 	BFI_PORT_I2H_GET_STATS_RSP      = BFA_I2HM(3),
@@ -645,7 +690,8 @@ enum bfi_port_i2h {
 /*
  * Generic REQ type
  */
-struct bfi_port_generic_req_s {
+struct bfi_port_generic_req_s
+{
 	struct bfi_mhdr_s  mh;          /*  msg header		*/
 	u32     msgtag;         /*  msgtag for reply                */
 	u32     rsvd;
@@ -654,7 +700,8 @@ struct bfi_port_generic_req_s {
 /*
  * Generic RSP type
  */
-struct bfi_port_generic_rsp_s {
+struct bfi_port_generic_rsp_s
+{
 	struct bfi_mhdr_s  mh;          /*  common msg header               */
 	u8              status;         /*  port enable status              */
 	u8              rsvd[3];
@@ -664,12 +711,14 @@ struct bfi_port_generic_rsp_s {
 /*
  * BFI_PORT_H2I_GET_STATS_REQ
  */
-struct bfi_port_get_stats_req_s {
+struct bfi_port_get_stats_req_s
+{
 	struct bfi_mhdr_s  mh;          /*  common msg header               */
 	union bfi_addr_u   dma_addr;
 };
 
-union bfi_port_h2i_msg_u {
+union bfi_port_h2i_msg_u
+{
 	struct bfi_mhdr_s               mh;
 	struct bfi_port_generic_req_s   enable_req;
 	struct bfi_port_generic_req_s   disable_req;
@@ -677,7 +726,8 @@ union bfi_port_h2i_msg_u {
 	struct bfi_port_generic_req_s   clearstats_req;
 };
 
-union bfi_port_i2h_msg_u {
+union bfi_port_i2h_msg_u
+{
 	struct bfi_mhdr_s               mh;
 	struct bfi_port_generic_rsp_s   enable_rsp;
 	struct bfi_port_generic_rsp_s   disable_rsp;
@@ -690,7 +740,8 @@ union bfi_port_i2h_msg_u {
  *				ABLK
  *----------------------------------------------------------------------
  */
-enum bfi_ablk_h2i_msgs_e {
+enum bfi_ablk_h2i_msgs_e
+{
 	BFI_ABLK_H2I_QUERY		= 1,
 	BFI_ABLK_H2I_ADPT_CONFIG	= 2,
 	BFI_ABLK_H2I_PORT_CONFIG	= 3,
@@ -701,7 +752,8 @@ enum bfi_ablk_h2i_msgs_e {
 	BFI_ABLK_H2I_OPTROM_DISABLE	= 8,
 };
 
-enum bfi_ablk_i2h_msgs_e {
+enum bfi_ablk_i2h_msgs_e
+{
 	BFI_ABLK_I2H_QUERY		= BFA_I2HM(BFI_ABLK_H2I_QUERY),
 	BFI_ABLK_I2H_ADPT_CONFIG	= BFA_I2HM(BFI_ABLK_H2I_ADPT_CONFIG),
 	BFI_ABLK_I2H_PORT_CONFIG	= BFA_I2HM(BFI_ABLK_H2I_PORT_CONFIG),
@@ -713,13 +765,15 @@ enum bfi_ablk_i2h_msgs_e {
 };
 
 /* BFI_ABLK_H2I_QUERY */
-struct bfi_ablk_h2i_query_s {
+struct bfi_ablk_h2i_query_s
+{
 	struct bfi_mhdr_s	mh;
 	union bfi_addr_u	addr;
 };
 
 /* BFI_ABL_H2I_ADPT_CONFIG, BFI_ABLK_H2I_PORT_CONFIG */
-struct bfi_ablk_h2i_cfg_req_s {
+struct bfi_ablk_h2i_cfg_req_s
+{
 	struct bfi_mhdr_s	mh;
 	u8			mode;
 	u8			port;
@@ -730,7 +784,8 @@ struct bfi_ablk_h2i_cfg_req_s {
 /*
  * BFI_ABLK_H2I_PF_CREATE, BFI_ABLK_H2I_PF_DELETE,
  */
-struct bfi_ablk_h2i_pf_req_s {
+struct bfi_ablk_h2i_pf_req_s
+{
 	struct bfi_mhdr_s	mh;
 	u8			pcifn;
 	u8			port;
@@ -740,7 +795,8 @@ struct bfi_ablk_h2i_pf_req_s {
 };
 
 /* BFI_ABLK_H2I_OPTROM_ENABLE, BFI_ABLK_H2I_OPTROM_DISABLE */
-struct bfi_ablk_h2i_optrom_s {
+struct bfi_ablk_h2i_optrom_s
+{
 	struct bfi_mhdr_s	mh;
 };
 
@@ -753,7 +809,8 @@ struct bfi_ablk_h2i_optrom_s {
  * BFI_ABLK_I2H_OPTROM_ENABLE
  * BFI_ABLK_I2H_OPTROM_DISABLE
  */
-struct bfi_ablk_i2h_rsp_s {
+struct bfi_ablk_i2h_rsp_s
+{
 	struct bfi_mhdr_s	mh;
 	u8			status;
 	u8			pcifn;
@@ -766,13 +823,15 @@ struct bfi_ablk_i2h_rsp_s {
  */
 
 /* Mailbox commands from host to firmware */
-enum bfi_cee_h2i_msgs_e {
+enum bfi_cee_h2i_msgs_e
+{
 	BFI_CEE_H2I_GET_CFG_REQ = 1,
 	BFI_CEE_H2I_RESET_STATS = 2,
 	BFI_CEE_H2I_GET_STATS_REQ = 3,
 };
 
-enum bfi_cee_i2h_msgs_e {
+enum bfi_cee_i2h_msgs_e
+{
 	BFI_CEE_I2H_GET_CFG_RSP = BFA_I2HM(1),
 	BFI_CEE_I2H_RESET_STATS_RSP = BFA_I2HM(2),
 	BFI_CEE_I2H_GET_STATS_RSP = BFA_I2HM(3),
@@ -781,14 +840,16 @@ enum bfi_cee_i2h_msgs_e {
 /*
  * H2I command structure for resetting the stats
  */
-struct bfi_cee_reset_stats_s {
+struct bfi_cee_reset_stats_s
+{
 	struct bfi_mhdr_s  mh;
 };
 
 /*
  * Get configuration  command from host
  */
-struct bfi_cee_get_req_s {
+struct bfi_cee_get_req_s
+{
 	struct bfi_mhdr_s	mh;
 	union bfi_addr_u	dma_addr;
 };
@@ -796,7 +857,8 @@ struct bfi_cee_get_req_s {
 /*
  * Reply message from firmware
  */
-struct bfi_cee_get_rsp_s {
+struct bfi_cee_get_rsp_s
+{
 	struct bfi_mhdr_s	mh;
 	u8			cmd_status;
 	u8			rsvd[3];
@@ -805,14 +867,16 @@ struct bfi_cee_get_rsp_s {
 /*
  * Reply message from firmware
  */
-struct bfi_cee_stats_rsp_s {
+struct bfi_cee_stats_rsp_s
+{
 	struct bfi_mhdr_s	mh;
 	u8			cmd_status;
 	u8			rsvd[3];
 };
 
 /* Mailbox message structures from firmware to host	*/
-union bfi_cee_i2h_msg_u {
+union bfi_cee_i2h_msg_u
+{
 	struct bfi_mhdr_s		mh;
 	struct bfi_cee_get_rsp_s	get_rsp;
 	struct bfi_cee_stats_rsp_s	stats_rsp;
@@ -822,12 +886,14 @@ union bfi_cee_i2h_msg_u {
  * SFP related
  */
 
-enum bfi_sfp_h2i_e {
+enum bfi_sfp_h2i_e
+{
 	BFI_SFP_H2I_SHOW	= 1,
 	BFI_SFP_H2I_SCN		= 2,
 };
 
-enum bfi_sfp_i2h_e {
+enum bfi_sfp_i2h_e
+{
 	BFI_SFP_I2H_SHOW = BFA_I2HM(BFI_SFP_H2I_SHOW),
 	BFI_SFP_I2H_SCN	 = BFA_I2HM(BFI_SFP_H2I_SCN),
 };
@@ -835,7 +901,8 @@ enum bfi_sfp_i2h_e {
 /*
  *	SFP state change notification
  */
-struct bfi_sfp_scn_s {
+struct bfi_sfp_scn_s
+{
 	struct bfi_mhdr_s mhr;	/* host msg header        */
 	u8	event;
 	u8	sfpid;
@@ -846,7 +913,8 @@ struct bfi_sfp_scn_s {
 /*
  *	SFP state
  */
-enum bfa_sfp_stat_e {
+enum bfa_sfp_stat_e
+{
 	BFA_SFP_STATE_INIT	= 0,	/* SFP state is uninit	*/
 	BFA_SFP_STATE_REMOVED	= 1,	/* SFP is removed	*/
 	BFA_SFP_STATE_INSERTED	= 2,	/* SFP is inserted	*/
@@ -858,19 +926,22 @@ enum bfa_sfp_stat_e {
 /*
  *  SFP memory access type
  */
-enum bfi_sfp_mem_e {
+enum bfi_sfp_mem_e
+{
 	BFI_SFP_MEM_ALL		= 0x1,  /* access all data field */
 	BFI_SFP_MEM_DIAGEXT	= 0x2,  /* access diag ext data field only */
 };
 
-struct bfi_sfp_req_s {
+struct bfi_sfp_req_s
+{
 	struct bfi_mhdr_s	mh;
 	u8			memtype;
 	u8			rsvd[3];
 	struct bfi_alen_s	alen;
 };
 
-struct bfi_sfp_rsp_s {
+struct bfi_sfp_rsp_s
+{
 	struct bfi_mhdr_s	mh;
 	u8			status;
 	u8			state;
@@ -880,7 +951,8 @@ struct bfi_sfp_rsp_s {
 /*
  *	FLASH module specific
  */
-enum bfi_flash_h2i_msgs {
+enum bfi_flash_h2i_msgs
+{
 	BFI_FLASH_H2I_QUERY_REQ = 1,
 	BFI_FLASH_H2I_ERASE_REQ = 2,
 	BFI_FLASH_H2I_WRITE_REQ = 3,
@@ -888,7 +960,8 @@ enum bfi_flash_h2i_msgs {
 	BFI_FLASH_H2I_BOOT_VER_REQ = 5,
 };
 
-enum bfi_flash_i2h_msgs {
+enum bfi_flash_i2h_msgs
+{
 	BFI_FLASH_I2H_QUERY_RSP = BFA_I2HM(1),
 	BFI_FLASH_I2H_ERASE_RSP = BFA_I2HM(2),
 	BFI_FLASH_I2H_WRITE_RSP = BFA_I2HM(3),
@@ -900,7 +973,8 @@ enum bfi_flash_i2h_msgs {
 /*
  * Flash query request
  */
-struct bfi_flash_query_req_s {
+struct bfi_flash_query_req_s
+{
 	struct bfi_mhdr_s mh;	/* Common msg header */
 	struct bfi_alen_s alen;
 };
@@ -908,7 +982,8 @@ struct bfi_flash_query_req_s {
 /*
  * Flash erase request
  */
-struct bfi_flash_erase_req_s {
+struct bfi_flash_erase_req_s
+{
 	struct bfi_mhdr_s	mh;	/* Common msg header */
 	u32	type;	/* partition type */
 	u8	instance; /* partition instance */
@@ -918,7 +993,8 @@ struct bfi_flash_erase_req_s {
 /*
  * Flash write request
  */
-struct bfi_flash_write_req_s {
+struct bfi_flash_write_req_s
+{
 	struct bfi_mhdr_s mh;	/* Common msg header */
 	struct bfi_alen_s alen;
 	u32	type;	/* partition type */
@@ -932,7 +1008,8 @@ struct bfi_flash_write_req_s {
 /*
  * Flash read request
  */
-struct bfi_flash_read_req_s {
+struct bfi_flash_read_req_s
+{
 	struct bfi_mhdr_s mh;	/* Common msg header */
 	u32	type;		/* partition type */
 	u8	instance;	/* partition instance */
@@ -945,7 +1022,8 @@ struct bfi_flash_read_req_s {
 /*
  * Flash query response
  */
-struct bfi_flash_query_rsp_s {
+struct bfi_flash_query_rsp_s
+{
 	struct bfi_mhdr_s mh;	/* Common msg header */
 	u32	status;
 };
@@ -953,7 +1031,8 @@ struct bfi_flash_query_rsp_s {
 /*
  * Flash read response
  */
-struct bfi_flash_read_rsp_s {
+struct bfi_flash_read_rsp_s
+{
 	struct bfi_mhdr_s mh;	/* Common msg header */
 	u32	type;       /* partition type */
 	u8	instance;   /* partition instance */
@@ -965,7 +1044,8 @@ struct bfi_flash_read_rsp_s {
 /*
  * Flash write response
  */
-struct bfi_flash_write_rsp_s {
+struct bfi_flash_write_rsp_s
+{
 	struct bfi_mhdr_s mh;	/* Common msg header */
 	u32	type;       /* partition type */
 	u8	instance;   /* partition instance */
@@ -977,7 +1057,8 @@ struct bfi_flash_write_rsp_s {
 /*
  * Flash erase response
  */
-struct bfi_flash_erase_rsp_s {
+struct bfi_flash_erase_rsp_s
+{
 	struct bfi_mhdr_s mh;	/* Common msg header */
 	u32	type;		/* partition type */
 	u8	instance;	/* partition instance */
@@ -988,7 +1069,8 @@ struct bfi_flash_erase_rsp_s {
 /*
  * Flash event notification
  */
-struct bfi_flash_event_s {
+struct bfi_flash_event_s
+{
 	struct bfi_mhdr_s	mh;	/* Common msg header */
 	bfa_status_t		status;
 	u32			param;
@@ -999,7 +1081,8 @@ struct bfi_flash_event_s {
  *				DIAG
  *----------------------------------------------------------------------
  */
-enum bfi_diag_h2i {
+enum bfi_diag_h2i
+{
 	BFI_DIAG_H2I_PORTBEACON = 1,
 	BFI_DIAG_H2I_LOOPBACK = 2,
 	BFI_DIAG_H2I_FWPING = 3,
@@ -1009,7 +1092,8 @@ enum bfi_diag_h2i {
 	BFI_DIAG_H2I_DPORT	= 7,
 };
 
-enum bfi_diag_i2h {
+enum bfi_diag_i2h
+{
 	BFI_DIAG_I2H_PORTBEACON = BFA_I2HM(BFI_DIAG_H2I_PORTBEACON),
 	BFI_DIAG_I2H_LOOPBACK = BFA_I2HM(BFI_DIAG_H2I_LOOPBACK),
 	BFI_DIAG_I2H_FWPING = BFA_I2HM(BFI_DIAG_H2I_FWPING),
@@ -1025,7 +1109,8 @@ enum bfi_diag_i2h {
 #define BFI_BOOT_MEMTEST_RES_ADDR 0x900
 #define BFI_BOOT_MEMTEST_RES_SIG  0xA0A1A2A3
 
-struct bfi_diag_lb_req_s {
+struct bfi_diag_lb_req_s
+{
 	struct bfi_mhdr_s mh;
 	u32	loopcnt;
 	u32	pattern;
@@ -1034,12 +1119,14 @@ struct bfi_diag_lb_req_s {
 	u8	rsvd[2];
 };
 
-struct bfi_diag_lb_rsp_s {
+struct bfi_diag_lb_rsp_s
+{
 	struct bfi_mhdr_s  mh;          /* 4 bytes */
 	struct bfa_diag_loopback_result_s res; /* 16 bytes */
 };
 
-struct bfi_diag_fwping_req_s {
+struct bfi_diag_fwping_req_s
+{
 	struct bfi_mhdr_s mh;	/* 4 bytes */
 	struct bfi_alen_s alen; /* 12 bytes */
 	u32	data;           /* user input data pattern */
@@ -1048,7 +1135,8 @@ struct bfi_diag_fwping_req_s {
 	u8	rsv[3];
 };
 
-struct bfi_diag_fwping_rsp_s {
+struct bfi_diag_fwping_rsp_s
+{
 	struct bfi_mhdr_s  mh;          /* 4 bytes */
 	u32	data;           /* user input data pattern    */
 	u8	qtag;           /* track CPE vc               */
@@ -1059,7 +1147,8 @@ struct bfi_diag_fwping_rsp_s {
 /*
  * Temperature Sensor
  */
-struct bfi_diag_ts_req_s {
+struct bfi_diag_ts_req_s
+{
 	struct bfi_mhdr_s mh;	/* 4 bytes */
 	u16	temp;           /* 10-bit A/D value */
 	u16	brd_temp;       /* 9-bit board temp */
@@ -1070,7 +1159,8 @@ struct bfi_diag_ts_req_s {
 };
 #define bfi_diag_ts_rsp_t struct bfi_diag_ts_req_s
 
-struct bfi_diag_ledtest_req_s {
+struct bfi_diag_ledtest_req_s
+{
 	struct bfi_mhdr_s  mh;  /* 4 bytes */
 	u8	cmd;
 	u8	color;
@@ -1081,11 +1171,13 @@ struct bfi_diag_ledtest_req_s {
 };
 
 /* notify host led operation is done */
-struct bfi_diag_ledtest_rsp_s {
+struct bfi_diag_ledtest_rsp_s
+{
 	struct bfi_mhdr_s  mh;  /* 4 bytes */
 };
 
-struct bfi_diag_portbeacon_req_s {
+struct bfi_diag_portbeacon_req_s
+{
 	struct bfi_mhdr_s  mh;  /* 4 bytes */
 	u32	period; /* beaconing period */
 	u8	beacon; /* 1: beacon on */
@@ -1093,11 +1185,13 @@ struct bfi_diag_portbeacon_req_s {
 };
 
 /* notify host the beacon is off */
-struct bfi_diag_portbeacon_rsp_s {
+struct bfi_diag_portbeacon_rsp_s
+{
 	struct bfi_mhdr_s  mh;  /* 4 bytes */
 };
 
-struct bfi_diag_qtest_req_s {
+struct bfi_diag_qtest_req_s
+{
 	struct bfi_mhdr_s	mh;             /* 4 bytes */
 	u32	data[BFI_LMSG_PL_WSZ]; /* fill up tcm prefetch area */
 };
@@ -1106,7 +1200,8 @@ struct bfi_diag_qtest_req_s {
 /*
  *	D-port test
  */
-enum bfi_dport_req {
+enum bfi_dport_req
+{
 	BFI_DPORT_DISABLE	= 0,	/* disable dport request	*/
 	BFI_DPORT_ENABLE	= 1,	/* enable dport request		*/
 	BFI_DPORT_START		= 2,	/* start dport request	*/
@@ -1114,7 +1209,8 @@ enum bfi_dport_req {
 	BFI_DPORT_DYN_DISABLE	= 4,	/* disable dynamic dport request */
 };
 
-enum bfi_dport_scn {
+enum bfi_dport_scn
+{
 	BFI_DPORT_SCN_TESTSTART		= 1,
 	BFI_DPORT_SCN_TESTCOMP		= 2,
 	BFI_DPORT_SCN_SFP_REMOVED	= 3,
@@ -1126,7 +1222,8 @@ enum bfi_dport_scn {
 	BFI_DPORT_SCN_DDPORT_DISABLED	= 9,
 };
 
-struct bfi_diag_dport_req_s {
+struct bfi_diag_dport_req_s
+{
 	struct bfi_mhdr_s	mh;	/* 4 bytes                      */
 	u8			req;	/* request 1: enable 0: disable	*/
 	u8			rsvd[3];
@@ -1134,14 +1231,16 @@ struct bfi_diag_dport_req_s {
 	u32			payload;
 };
 
-struct bfi_diag_dport_rsp_s {
+struct bfi_diag_dport_rsp_s
+{
 	struct bfi_mhdr_s	mh;	/* header 4 bytes		*/
 	bfa_status_t		status;	/* reply status			*/
 	wwn_t			pwwn;	/* switch port wwn. 8 bytes	*/
 	wwn_t			nwwn;	/* switch node wwn. 8 bytes	*/
 };
 
-struct bfi_diag_dport_scn_teststart_s {
+struct bfi_diag_dport_scn_teststart_s
+{
 	wwn_t	pwwn;	/* switch port wwn. 8 bytes */
 	wwn_t	nwwn;	/* switch node wwn. 8 bytes */
 	u8	type;	/* bfa_diag_dport_test_type_e */
@@ -1150,29 +1249,33 @@ struct bfi_diag_dport_scn_teststart_s {
 	u32	numfrm; /* from switch uint in 1M */
 };
 
-struct bfi_diag_dport_scn_testcomp_s {
+struct bfi_diag_dport_scn_testcomp_s
+{
 	u8	status; /* bfa_diag_dport_test_status_e */
 	u8	speed;  /* bfa_port_speed_t  */
 	u16	numbuffer; /* from switch  */
 	u8	subtest_status[DPORT_TEST_MAX];  /* 4 bytes */
 	u32	latency;   /* from switch  */
 	u32	distance;  /* from swtich unit in meters  */
-			/* Buffers required to saturate the link */
+	/* Buffers required to saturate the link */
 	u16	frm_sz;	/* from switch for buf_reqd */
 	u8	rsvd[2];
 };
 
-struct bfi_diag_dport_scn_s {		/* max size == RDS_RMESZ	*/
+struct bfi_diag_dport_scn_s  		/* max size == RDS_RMESZ	*/
+{
 	struct bfi_mhdr_s	mh;	/* header 4 bytes		*/
 	u8			state;  /* new state			*/
 	u8			rsvd[3];
-	union {
+	union
+	{
 		struct bfi_diag_dport_scn_teststart_s teststart;
 		struct bfi_diag_dport_scn_testcomp_s testcomp;
 	} info;
 };
 
-union bfi_diag_dport_msg_u {
+union bfi_diag_dport_msg_u
+{
 	struct bfi_diag_dport_req_s	req;
 	struct bfi_diag_dport_rsp_s	rsp;
 	struct bfi_diag_dport_scn_s	scn;
@@ -1181,14 +1284,16 @@ union bfi_diag_dport_msg_u {
 /*
  *	PHY module specific
  */
-enum bfi_phy_h2i_msgs_e {
+enum bfi_phy_h2i_msgs_e
+{
 	BFI_PHY_H2I_QUERY_REQ = 1,
 	BFI_PHY_H2I_STATS_REQ = 2,
 	BFI_PHY_H2I_WRITE_REQ = 3,
 	BFI_PHY_H2I_READ_REQ = 4,
 };
 
-enum bfi_phy_i2h_msgs_e {
+enum bfi_phy_i2h_msgs_e
+{
 	BFI_PHY_I2H_QUERY_RSP = BFA_I2HM(1),
 	BFI_PHY_I2H_STATS_RSP = BFA_I2HM(2),
 	BFI_PHY_I2H_WRITE_RSP = BFA_I2HM(3),
@@ -1198,7 +1303,8 @@ enum bfi_phy_i2h_msgs_e {
 /*
  * External PHY query request
  */
-struct bfi_phy_query_req_s {
+struct bfi_phy_query_req_s
+{
 	struct bfi_mhdr_s	mh;             /* Common msg header */
 	u8			instance;
 	u8			rsv[3];
@@ -1208,7 +1314,8 @@ struct bfi_phy_query_req_s {
 /*
  * External PHY stats request
  */
-struct bfi_phy_stats_req_s {
+struct bfi_phy_stats_req_s
+{
 	struct bfi_mhdr_s	mh;             /* Common msg header */
 	u8			instance;
 	u8			rsv[3];
@@ -1218,7 +1325,8 @@ struct bfi_phy_stats_req_s {
 /*
  * External PHY write request
  */
-struct bfi_phy_write_req_s {
+struct bfi_phy_write_req_s
+{
 	struct bfi_mhdr_s	mh;             /* Common msg header */
 	u8		instance;
 	u8		last;
@@ -1231,7 +1339,8 @@ struct bfi_phy_write_req_s {
 /*
  * External PHY read request
  */
-struct bfi_phy_read_req_s {
+struct bfi_phy_read_req_s
+{
 	struct bfi_mhdr_s	mh;	/* Common msg header */
 	u8		instance;
 	u8		rsv[3];
@@ -1243,7 +1352,8 @@ struct bfi_phy_read_req_s {
 /*
  * External PHY query response
  */
-struct bfi_phy_query_rsp_s {
+struct bfi_phy_query_rsp_s
+{
 	struct bfi_mhdr_s	mh;	/* Common msg header */
 	u32			status;
 };
@@ -1251,7 +1361,8 @@ struct bfi_phy_query_rsp_s {
 /*
  * External PHY stats response
  */
-struct bfi_phy_stats_rsp_s {
+struct bfi_phy_stats_rsp_s
+{
 	struct bfi_mhdr_s	mh;	/* Common msg header */
 	u32			status;
 };
@@ -1259,7 +1370,8 @@ struct bfi_phy_stats_rsp_s {
 /*
  * External PHY read response
  */
-struct bfi_phy_read_rsp_s {
+struct bfi_phy_read_rsp_s
+{
 	struct bfi_mhdr_s	mh;	/* Common msg header */
 	u32			status;
 	u32		length;
@@ -1268,20 +1380,23 @@ struct bfi_phy_read_rsp_s {
 /*
  * External PHY write response
  */
-struct bfi_phy_write_rsp_s {
+struct bfi_phy_write_rsp_s
+{
 	struct bfi_mhdr_s	mh;	/* Common msg header */
 	u32			status;
 	u32			length;
 };
 
-enum bfi_fru_h2i_msgs {
+enum bfi_fru_h2i_msgs
+{
 	BFI_FRUVPD_H2I_WRITE_REQ = 1,
 	BFI_FRUVPD_H2I_READ_REQ = 2,
 	BFI_TFRU_H2I_WRITE_REQ = 3,
 	BFI_TFRU_H2I_READ_REQ = 4,
 };
 
-enum bfi_fru_i2h_msgs {
+enum bfi_fru_i2h_msgs
+{
 	BFI_FRUVPD_I2H_WRITE_RSP = BFA_I2HM(1),
 	BFI_FRUVPD_I2H_READ_RSP = BFA_I2HM(2),
 	BFI_TFRU_I2H_WRITE_RSP = BFA_I2HM(3),
@@ -1291,7 +1406,8 @@ enum bfi_fru_i2h_msgs {
 /*
  * FRU write request
  */
-struct bfi_fru_write_req_s {
+struct bfi_fru_write_req_s
+{
 	struct bfi_mhdr_s	mh;	/* Common msg header */
 	u8			last;
 	u8			rsv_1[3];
@@ -1305,7 +1421,8 @@ struct bfi_fru_write_req_s {
 /*
  * FRU read request
  */
-struct bfi_fru_read_req_s {
+struct bfi_fru_read_req_s
+{
 	struct bfi_mhdr_s	mh;	/* Common msg header */
 	u32			offset;
 	u32			length;
@@ -1315,7 +1432,8 @@ struct bfi_fru_read_req_s {
 /*
  * FRU response
  */
-struct bfi_fru_rsp_s {
+struct bfi_fru_rsp_s
+{
 	struct bfi_mhdr_s	mh;	/* Common msg header */
 	u32			status;
 	u32			length;

@@ -30,14 +30,16 @@ void ldmx_full_section(unsigned long *mem, int section)
 	unsigned long *ptr;
 	int i;
 
-	for (i = 0; i < SECTION_LONGS; i++) {
+	for (i = 0; i < SECTION_LONGS; i++)
+	{
 		ptr = &mem[(SECTION_LONGS * section) + i];
 		ldmx((unsigned long) &ptr);
 		ebb_lmr_reset();
 	}
 }
 
-unsigned long section_masks[] = {
+unsigned long section_masks[] =
+{
 	0x8000000000000000,
 	0xFF00000000000000,
 	0x0000000F70000000,
@@ -52,17 +54,24 @@ int ebb_lmr_section_test(unsigned long *mem)
 	unsigned long *mask = section_masks;
 	int i;
 
-	for (; *mask; mask++) {
+	for (; *mask; mask++)
+	{
 		mtspr(SPRN_LMSER, *mask);
 		printf("Testing mask 0x%016lx\n", mfspr(SPRN_LMSER));
 
-		for (i = 0; i < 64; i++) {
+		for (i = 0; i < 64; i++)
+		{
 			lmr_count = 0;
 			ldmx_full_section(mem, i);
+
 			if (*mask & (1UL << (63 - i)))
+			{
 				FAIL_IF(lmr_count != SECTION_LONGS);
+			}
 			else
+			{
 				FAIL_IF(lmr_count);
+			}
 		}
 	}
 
@@ -91,7 +100,9 @@ int ebb_lmr(void)
 
 	/* Read every single byte to ensure we get no false positives */
 	for (i = 0; i < SECTIONS; i++)
+	{
 		ldmx_full_section(test_mem, i);
+	}
 
 	FAIL_IF(lmr_count != 0);
 
@@ -137,7 +148,9 @@ int main(void)
 	int ret = test_harness(ebb_lmr, "ebb_lmr");
 
 	if (test_mem)
+	{
 		free(test_mem);
+	}
 
 	return ret;
 }

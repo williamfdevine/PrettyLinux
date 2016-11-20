@@ -23,7 +23,8 @@
 #define RPI_OLD_POWER_DOMAIN_USB		3
 #define RPI_OLD_POWER_DOMAIN_V3D		10
 
-struct rpi_power_domain {
+struct rpi_power_domain
+{
 	u32 domain;
 	bool enabled;
 	bool old_interface;
@@ -31,7 +32,8 @@ struct rpi_power_domain {
 	struct rpi_firmware *fw;
 };
 
-struct rpi_power_domains {
+struct rpi_power_domains
+{
 	bool has_new_interface;
 	struct genpd_onecell_data xlate;
 	struct rpi_firmware *fw;
@@ -42,7 +44,8 @@ struct rpi_power_domains {
  * Packet definition used by RPI_FIRMWARE_SET_POWER_STATE and
  * RPI_FIRMWARE_SET_DOMAIN_STATE
  */
-struct rpi_power_domain_packet {
+struct rpi_power_domain_packet
+{
 	u32 domain;
 	u32 on;
 } __packet;
@@ -58,10 +61,10 @@ static int rpi_firmware_set_power(struct rpi_power_domain *rpi_domain, bool on)
 	packet.domain = rpi_domain->domain;
 	packet.on = on;
 	return rpi_firmware_property(rpi_domain->fw,
-				     rpi_domain->old_interface ?
-				     RPI_FIRMWARE_SET_POWER_STATE :
-				     RPI_FIRMWARE_SET_DOMAIN_STATE,
-				     &packet, sizeof(packet));
+								 rpi_domain->old_interface ?
+								 RPI_FIRMWARE_SET_POWER_STATE :
+								 RPI_FIRMWARE_SET_DOMAIN_STATE,
+								 &packet, sizeof(packet));
 }
 
 static int rpi_domain_off(struct generic_pm_domain *domain)
@@ -81,7 +84,7 @@ static int rpi_domain_on(struct generic_pm_domain *domain)
 }
 
 static void rpi_common_init_power_domain(struct rpi_power_domains *rpi_domains,
-					 int xlate_index, const char *name)
+		int xlate_index, const char *name)
 {
 	struct rpi_power_domain *dom = &rpi_domains->domains[xlate_index];
 
@@ -105,12 +108,14 @@ static void rpi_common_init_power_domain(struct rpi_power_domains *rpi_domains,
 }
 
 static void rpi_init_power_domain(struct rpi_power_domains *rpi_domains,
-				  int xlate_index, const char *name)
+								  int xlate_index, const char *name)
 {
 	struct rpi_power_domain *dom = &rpi_domains->domains[xlate_index];
 
 	if (!rpi_domains->has_new_interface)
+	{
 		return;
+	}
 
 	/* The DT binding index is the firmware's domain index minus one. */
 	dom->domain = xlate_index + 1;
@@ -119,8 +124,8 @@ static void rpi_init_power_domain(struct rpi_power_domains *rpi_domains,
 }
 
 static void rpi_init_old_power_domain(struct rpi_power_domains *rpi_domains,
-				      int xlate_index, int domain,
-				      const char *name)
+									  int xlate_index, int domain,
+									  const char *name)
 {
 	struct rpi_power_domain *dom = &rpi_domains->domains[xlate_index];
 
@@ -148,8 +153,8 @@ rpi_has_new_domain_support(struct rpi_power_domains *rpi_domains)
 	packet.on = ~0;
 
 	ret = rpi_firmware_property(rpi_domains->fw,
-				    RPI_FIRMWARE_GET_DOMAIN_STATE,
-				    &packet, sizeof(packet));
+								RPI_FIRMWARE_GET_DOMAIN_STATE,
+								&packet, sizeof(packet));
 
 	return ret == 0 && packet.on != ~0;
 }
@@ -161,27 +166,38 @@ static int rpi_power_probe(struct platform_device *pdev)
 	struct rpi_power_domains *rpi_domains;
 
 	rpi_domains = devm_kzalloc(dev, sizeof(*rpi_domains), GFP_KERNEL);
+
 	if (!rpi_domains)
+	{
 		return -ENOMEM;
+	}
 
 	rpi_domains->xlate.domains =
 		devm_kzalloc(dev, sizeof(*rpi_domains->xlate.domains) *
-			     RPI_POWER_DOMAIN_COUNT, GFP_KERNEL);
+					 RPI_POWER_DOMAIN_COUNT, GFP_KERNEL);
+
 	if (!rpi_domains->xlate.domains)
+	{
 		return -ENOMEM;
+	}
 
 	rpi_domains->xlate.num_domains = RPI_POWER_DOMAIN_COUNT;
 
 	fw_np = of_parse_phandle(pdev->dev.of_node, "firmware", 0);
-	if (!fw_np) {
+
+	if (!fw_np)
+	{
 		dev_err(&pdev->dev, "no firmware node\n");
 		return -ENODEV;
 	}
 
 	rpi_domains->fw = rpi_firmware_get(fw_np);
 	of_node_put(fw_np);
+
 	if (!rpi_domains->fw)
+	{
 		return -EPROBE_DEFER;
+	}
 
 	rpi_domains->has_new_interface =
 		rpi_has_new_domain_support(rpi_domains);
@@ -190,7 +206,7 @@ static int rpi_power_probe(struct platform_device *pdev)
 	rpi_init_power_domain(rpi_domains, RPI_POWER_DOMAIN_I2C1, "I2C1");
 	rpi_init_power_domain(rpi_domains, RPI_POWER_DOMAIN_I2C2, "I2C2");
 	rpi_init_power_domain(rpi_domains, RPI_POWER_DOMAIN_VIDEO_SCALER,
-			      "VIDEO_SCALER");
+						  "VIDEO_SCALER");
 	rpi_init_power_domain(rpi_domains, RPI_POWER_DOMAIN_VPU1, "VPU1");
 	rpi_init_power_domain(rpi_domains, RPI_POWER_DOMAIN_HDMI, "HDMI");
 
@@ -199,7 +215,7 @@ static int rpi_power_probe(struct platform_device *pdev)
 	 * can turn it on even if the firmware hasn't been updated.
 	 */
 	rpi_init_old_power_domain(rpi_domains, RPI_POWER_DOMAIN_USB,
-				  RPI_OLD_POWER_DOMAIN_USB, "USB");
+							  RPI_OLD_POWER_DOMAIN_USB, "USB");
 
 	rpi_init_power_domain(rpi_domains, RPI_POWER_DOMAIN_VEC, "VEC");
 	rpi_init_power_domain(rpi_domains, RPI_POWER_DOMAIN_JPEG, "JPEG");
@@ -214,7 +230,7 @@ static int rpi_power_probe(struct platform_device *pdev)
 	rpi_init_power_domain(rpi_domains, RPI_POWER_DOMAIN_DSI0, "DSI0");
 	rpi_init_power_domain(rpi_domains, RPI_POWER_DOMAIN_DSI1, "DSI1");
 	rpi_init_power_domain(rpi_domains, RPI_POWER_DOMAIN_TRANSPOSER,
-			      "TRANSPOSER");
+						  "TRANSPOSER");
 	rpi_init_power_domain(rpi_domains, RPI_POWER_DOMAIN_CCP2TX, "CCP2TX");
 	rpi_init_power_domain(rpi_domains, RPI_POWER_DOMAIN_CDP, "CDP");
 	rpi_init_power_domain(rpi_domains, RPI_POWER_DOMAIN_ARM, "ARM");
@@ -226,13 +242,15 @@ static int rpi_power_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id rpi_power_of_match[] = {
+static const struct of_device_id rpi_power_of_match[] =
+{
 	{ .compatible = "raspberrypi,bcm2835-power", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, rpi_power_of_match);
 
-static struct platform_driver rpi_power_driver = {
+static struct platform_driver rpi_power_driver =
+{
 	.driver = {
 		.name = "raspberrypi-power",
 		.of_match_table = rpi_power_of_match,

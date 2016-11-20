@@ -31,7 +31,8 @@
 #define TC90522_I2C_DEV_SAT "tc90522sat"
 #define TC90522_I2C_DEV_TER "tc90522ter"
 
-struct tc90522_config {
+struct tc90522_config
+{
 	/* [OUT] frontend returned by driver */
 	struct dvb_frontend *fe;
 

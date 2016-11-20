@@ -16,18 +16,21 @@ struct device;
 extern const struct regmap_config adav80x_regmap_config;
 int adav80x_bus_probe(struct device *dev, struct regmap *regmap);
 
-enum adav80x_pll_src {
+enum adav80x_pll_src
+{
 	ADAV80X_PLL_SRC_XIN,
 	ADAV80X_PLL_SRC_XTAL,
 	ADAV80X_PLL_SRC_MCLKI,
 };
 
-enum adav80x_pll {
+enum adav80x_pll
+{
 	ADAV80X_PLL1 = 0,
 	ADAV80X_PLL2 = 1,
 };
 
-enum adav80x_clk_src {
+enum adav80x_clk_src
+{
 	ADAV80X_CLK_XIN = 0,
 	ADAV80X_CLK_MCLKI = 1,
 	ADAV80X_CLK_PLL1 = 2,

@@ -35,15 +35,19 @@ int octeon_setup_response_list(struct octeon_device *oct)
 	int i, ret = 0;
 	struct cavium_wq *cwq;
 
-	for (i = 0; i < MAX_RESPONSE_LISTS; i++) {
+	for (i = 0; i < MAX_RESPONSE_LISTS; i++)
+	{
 		INIT_LIST_HEAD(&oct->response_list[i].head);
 		spin_lock_init(&oct->response_list[i].lock);
 		atomic_set(&oct->response_list[i].pending_req_count, 0);
 	}
+
 	spin_lock_init(&oct->cmd_resp_wqlock);
 
 	oct->dma_comp_wq.wq = alloc_workqueue("dma-comp", WQ_MEM_RECLAIM, 0);
-	if (!oct->dma_comp_wq.wq) {
+
+	if (!oct->dma_comp_wq.wq)
+	{
 		dev_err(&oct->pci_dev->dev, "failed to create wq thread\n");
 		return -ENOMEM;
 	}
@@ -64,7 +68,7 @@ void octeon_delete_response_list(struct octeon_device *oct)
 }
 
 int lio_process_ordered_list(struct octeon_device *octeon_dev,
-			     u32 force_quit)
+							 u32 force_quit)
 {
 	struct octeon_response_list *ordered_sc_list;
 	struct octeon_soft_command *sc;
@@ -77,24 +81,30 @@ int lio_process_ordered_list(struct octeon_device *octeon_dev,
 
 	ordered_sc_list = &octeon_dev->response_list[OCTEON_ORDERED_SC_LIST];
 
-	do {
+	do
+	{
 		spin_lock_bh(&ordered_sc_list->lock);
 
-		if (ordered_sc_list->head.next == &ordered_sc_list->head) {
+		if (ordered_sc_list->head.next == &ordered_sc_list->head)
+		{
 			/* ordered_sc_list is empty; there is
 			 * nothing to process
 			 */
 			spin_unlock_bh
-			    (&ordered_sc_list->lock);
+			(&ordered_sc_list->lock);
 			return 1;
 		}
 
 		sc = (struct octeon_soft_command *)ordered_sc_list->
-		    head.next;
-		if (OCTEON_CN23XX_PF(octeon_dev)) {
+			 head.next;
+
+		if (OCTEON_CN23XX_PF(octeon_dev))
+		{
 			rdp = (struct octeon_instr_rdp *)&sc->cmd.cmd3.rdp;
 			rptr = sc->cmd.cmd3.rptr;
-		} else {
+		}
+		else
+		{
 			rdp = (struct octeon_instr_rdp *)&sc->cmd.cmd2.rdp;
 			rptr = sc->cmd.cmd2.rptr;
 		}
@@ -105,44 +115,53 @@ int lio_process_ordered_list(struct octeon_device *octeon_dev,
 		 * to where rptr is pointing to
 		 */
 		dma_sync_single_for_cpu(&octeon_dev->pci_dev->dev,
-					rptr, rdp->rlen,
-					DMA_FROM_DEVICE);
+								rptr, rdp->rlen,
+								DMA_FROM_DEVICE);
 		status64 = *sc->status_word;
 
-		if (status64 != COMPLETION_WORD_INIT) {
-			if ((status64 & 0xff) != 0xff) {
+		if (status64 != COMPLETION_WORD_INIT)
+		{
+			if ((status64 & 0xff) != 0xff)
+			{
 				octeon_swap_8B_data(&status64, 1);
-				if (((status64 & 0xff) != 0xff)) {
+
+				if (((status64 & 0xff) != 0xff))
+				{
 					status = (u32)(status64 &
-						       0xffffffffULL);
+								   0xffffffffULL);
 				}
 			}
-		} else if (force_quit || (sc->timeout &&
-			time_after(jiffies, (unsigned long)sc->timeout))) {
+		}
+		else if (force_quit || (sc->timeout &&
+								time_after(jiffies, (unsigned long)sc->timeout)))
+		{
 			status = OCTEON_REQUEST_TIMEOUT;
 		}
 
-		if (status != OCTEON_REQUEST_PENDING) {
+		if (status != OCTEON_REQUEST_PENDING)
+		{
 			/* we have received a response or we have timed out */
 			/* remove node from linked list */
 			list_del(&sc->node);
 			atomic_dec(&octeon_dev->response_list
-					  [OCTEON_ORDERED_SC_LIST].
-					  pending_req_count);
+					   [OCTEON_ORDERED_SC_LIST].
+					   pending_req_count);
 			spin_unlock_bh
-			    (&ordered_sc_list->lock);
+			(&ordered_sc_list->lock);
 
 			if (sc->callback)
 				sc->callback(octeon_dev, status,
-					     sc->callback_arg);
+							 sc->callback_arg);
 
 			request_complete++;
 
-		} else {
+		}
+		else
+		{
 			/* no response yet */
 			request_complete = 0;
 			spin_unlock_bh
-			    (&ordered_sc_list->lock);
+			(&ordered_sc_list->lock);
 		}
 
 		/* If we hit the Max Ordered requests to process every loop,
@@ -154,8 +173,11 @@ int lio_process_ordered_list(struct octeon_device *octeon_dev,
 		 * processed.
 		 */
 		if (request_complete >= resp_to_process)
+		{
 			break;
-	} while (request_complete);
+		}
+	}
+	while (request_complete);
 
 	return 0;
 }

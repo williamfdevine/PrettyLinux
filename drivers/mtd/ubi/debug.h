@@ -28,19 +28,19 @@ void ubi_dump_vid_hdr(const struct ubi_vid_hdr *vid_hdr);
 #include <linux/random.h>
 
 #define ubi_assert(expr)  do {                                               \
-	if (unlikely(!(expr))) {                                             \
-		pr_crit("UBI assert failed in %s at %u (pid %d)\n",          \
-		       __func__, __LINE__, current->pid);                    \
-		dump_stack();                                                \
-	}                                                                    \
-} while (0)
+		if (unlikely(!(expr))) {                                             \
+			pr_crit("UBI assert failed in %s at %u (pid %d)\n",          \
+					__func__, __LINE__, current->pid);                    \
+			dump_stack();                                                \
+		}                                                                    \
+	} while (0)
 
 #define ubi_dbg_print_hex_dump(l, ps, pt, r, g, b, len, a)                   \
-		print_hex_dump(l, ps, pt, r, g, b, len, a)
+	print_hex_dump(l, ps, pt, r, g, b, len, a)
 
 #define ubi_dbg_msg(type, fmt, ...) \
 	pr_debug("UBI DBG " type " (pid %d): " fmt "\n", current->pid,       \
-		 ##__VA_ARGS__)
+			 ##__VA_ARGS__)
 
 /* General debugging messages */
 #define dbg_gen(fmt, ...) ubi_dbg_msg("gen", fmt, ##__VA_ARGS__)
@@ -59,7 +59,7 @@ void ubi_dump_av(const struct ubi_ainf_volume *av);
 void ubi_dump_aeb(const struct ubi_ainf_peb *aeb, int type);
 void ubi_dump_mkvol_req(const struct ubi_mkvol_req *req);
 int ubi_self_check_all_ff(struct ubi_device *ubi, int pnum, int offset,
-			  int len);
+						  int len);
 int ubi_debugfs_init(void);
 void ubi_debugfs_exit(void);
 int ubi_debugfs_init_dev(struct ubi_device *ubi);
@@ -86,7 +86,10 @@ static inline int ubi_dbg_is_bgt_disabled(const struct ubi_device *ubi)
 static inline int ubi_dbg_is_bitflip(const struct ubi_device *ubi)
 {
 	if (ubi->dbg.emulate_bitflips)
+	{
 		return !(prandom_u32() % 200);
+	}
+
 	return 0;
 }
 
@@ -100,7 +103,10 @@ static inline int ubi_dbg_is_bitflip(const struct ubi_device *ubi)
 static inline int ubi_dbg_is_write_failure(const struct ubi_device *ubi)
 {
 	if (ubi->dbg.emulate_io_failures)
+	{
 		return !(prandom_u32() % 500);
+	}
+
 	return 0;
 }
 
@@ -114,7 +120,10 @@ static inline int ubi_dbg_is_write_failure(const struct ubi_device *ubi)
 static inline int ubi_dbg_is_erase_failure(const struct ubi_device *ubi)
 {
 	if (ubi->dbg.emulate_io_failures)
+	{
 		return !(prandom_u32() % 400);
+	}
+
 	return 0;
 }
 

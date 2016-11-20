@@ -41,7 +41,8 @@
 #include <linux/qed/qed_ll2_if.h>
 #include <linux/qed/rdma_common.h>
 
-enum qed_roce_ll2_tx_dest {
+enum qed_roce_ll2_tx_dest
+{
 	/* Light L2 TX Destination to the Network */
 	QED_ROCE_LL2_TX_DEST_NW,
 
@@ -54,7 +55,8 @@ enum qed_roce_ll2_tx_dest {
 
 /* rdma interface */
 
-enum qed_roce_qp_state {
+enum qed_roce_qp_state
+{
 	QED_ROCE_QP_STATE_RESET,
 	QED_ROCE_QP_STATE_INIT,
 	QED_ROCE_QP_STATE_RTR,
@@ -64,21 +66,24 @@ enum qed_roce_qp_state {
 	QED_ROCE_QP_STATE_SQE
 };
 
-enum qed_rdma_tid_type {
+enum qed_rdma_tid_type
+{
 	QED_RDMA_TID_REGISTERED_MR,
 	QED_RDMA_TID_FMR,
 	QED_RDMA_TID_MW_TYPE1,
 	QED_RDMA_TID_MW_TYPE2A
 };
 
-struct qed_rdma_events {
+struct qed_rdma_events
+{
 	void *context;
 	void (*affiliated_event)(void *context, u8 fw_event_code,
-				 void *fw_handle);
+							 void *fw_handle);
 	void (*unaffiliated_event)(void *context, u8 event_code);
 };
 
-struct qed_rdma_device {
+struct qed_rdma_device
+{
 	u32 vendor_id;
 	u32 vendor_part_id;
 	u32 hw_ver;
@@ -172,17 +177,20 @@ struct qed_rdma_device {
 	struct qed_rdma_events events;
 };
 
-enum qed_port_state {
+enum qed_port_state
+{
 	QED_RDMA_PORT_UP,
 	QED_RDMA_PORT_DOWN,
 };
 
-enum qed_roce_capability {
+enum qed_roce_capability
+{
 	QED_ROCE_V1 = 1 << 0,
 	QED_ROCE_V2 = 1 << 1,
 };
 
-struct qed_rdma_port {
+struct qed_rdma_port
+{
 	enum qed_port_state port_state;
 	int link_speed;
 	u64 max_msg_size;
@@ -194,7 +202,8 @@ struct qed_rdma_port {
 	enum qed_roce_capability capability;
 };
 
-struct qed_rdma_cnq_params {
+struct qed_rdma_cnq_params
+{
 	u8 num_pbl_pages;
 	u64 pbl_ptr;
 };
@@ -202,12 +211,14 @@ struct qed_rdma_cnq_params {
 /* The CQ Mode affects the CQ doorbell transaction size.
  * 64/32 bit machines should configure to 32/16 bits respectively.
  */
-enum qed_rdma_cq_mode {
+enum qed_rdma_cq_mode
+{
 	QED_RDMA_CQ_MODE_16_BITS,
 	QED_RDMA_CQ_MODE_32_BITS,
 };
 
-struct qed_roce_dcqcn_params {
+struct qed_roce_dcqcn_params
+{
 	u8 notification_point;
 	u8 reaction_point;
 
@@ -224,7 +235,8 @@ struct qed_roce_dcqcn_params {
 	u32 dcqcn_timeout_us;
 };
 
-struct qed_rdma_start_in_params {
+struct qed_rdma_start_in_params
+{
 	struct qed_rdma_events *events;
 	struct qed_rdma_cnq_params cnq_pbl_list[128];
 	u8 desired_cnq;
@@ -235,21 +247,24 @@ struct qed_rdma_start_in_params {
 	u8 iwarp_flags;
 };
 
-struct qed_rdma_add_user_out_params {
+struct qed_rdma_add_user_out_params
+{
 	u16 dpi;
 	u64 dpi_addr;
 	u64 dpi_phys_addr;
 	u32 dpi_size;
 };
 
-enum roce_mode {
+enum roce_mode
+{
 	ROCE_V1,
 	ROCE_V2_IPV4,
 	ROCE_V2_IPV6,
 	MAX_ROCE_MODE
 };
 
-union qed_gid {
+union qed_gid
+{
 	u8 bytes[16];
 	u16 words[8];
 	u32 dwords[4];
@@ -257,7 +272,8 @@ union qed_gid {
 	u32 ipv4_addr;
 };
 
-struct qed_rdma_register_tid_in_params {
+struct qed_rdma_register_tid_in_params
+{
 	u32 itid;
 	enum qed_rdma_tid_type tid_type;
 	u8 key;
@@ -284,7 +300,8 @@ struct qed_rdma_register_tid_in_params {
 	u64 dif_runt_addr;
 };
 
-struct qed_rdma_create_cq_in_params {
+struct qed_rdma_create_cq_in_params
+{
 	u32 cq_handle_lo;
 	u32 cq_handle_hi;
 	u32 cq_size;
@@ -297,7 +314,8 @@ struct qed_rdma_create_cq_in_params {
 	u16 int_timeout;
 };
 
-struct qed_rdma_create_srq_in_params {
+struct qed_rdma_create_srq_in_params
+{
 	u64 pbl_base_addr;
 	u64 prod_pair_addr;
 	u16 num_pages;
@@ -305,15 +323,18 @@ struct qed_rdma_create_srq_in_params {
 	u16 page_size;
 };
 
-struct qed_rdma_destroy_cq_in_params {
+struct qed_rdma_destroy_cq_in_params
+{
 	u16 icid;
 };
 
-struct qed_rdma_destroy_cq_out_params {
+struct qed_rdma_destroy_cq_out_params
+{
 	u16 num_cq_notif;
 };
 
-struct qed_rdma_create_qp_in_params {
+struct qed_rdma_create_qp_in_params
+{
 	u32 qp_handle_lo;
 	u32 qp_handle_hi;
 	u32 qp_handle_async_lo;
@@ -334,7 +355,8 @@ struct qed_rdma_create_qp_in_params {
 	u8 stats_queue;
 };
 
-struct qed_rdma_create_qp_out_params {
+struct qed_rdma_create_qp_out_params
+{
 	u32 qp_id;
 	u16 icid;
 	void *rq_pbl_virt;
@@ -343,7 +365,8 @@ struct qed_rdma_create_qp_out_params {
 	dma_addr_t sq_pbl_phys;
 };
 
-struct qed_rdma_modify_qp_in_params {
+struct qed_rdma_modify_qp_in_params
+{
 	u32 modify_flags;
 #define QED_RDMA_MODIFY_QP_VALID_NEW_STATE_MASK               0x1
 #define QED_RDMA_MODIFY_QP_VALID_NEW_STATE_SHIFT              0
@@ -409,7 +432,8 @@ struct qed_rdma_modify_qp_in_params {
 	enum roce_mode roce_mode;
 };
 
-struct qed_rdma_query_qp_out_params {
+struct qed_rdma_query_qp_out_params
+{
 	enum qed_roce_qp_state state;
 	u32 rq_psn;
 	u32 sq_psn;
@@ -435,27 +459,32 @@ struct qed_rdma_query_qp_out_params {
 	bool sqd_async;
 };
 
-struct qed_rdma_create_srq_out_params {
+struct qed_rdma_create_srq_out_params
+{
 	u16 srq_id;
 };
 
-struct qed_rdma_destroy_srq_in_params {
+struct qed_rdma_destroy_srq_in_params
+{
 	u16 srq_id;
 };
 
-struct qed_rdma_modify_srq_in_params {
+struct qed_rdma_modify_srq_in_params
+{
 	u32 wqe_limit;
 	u16 srq_id;
 };
 
-struct qed_rdma_stats_out_params {
+struct qed_rdma_stats_out_params
+{
 	u64 sent_bytes;
 	u64 sent_pkts;
 	u64 rcv_bytes;
 	u64 rcv_pkts;
 };
 
-struct qed_rdma_counters_out_params {
+struct qed_rdma_counters_out_params
+{
 	u64 pd_count;
 	u64 max_pd;
 	u64 dpi_count;
@@ -471,18 +500,21 @@ struct qed_rdma_counters_out_params {
 #define QED_ROCE_TX_HEAD_FAILURE        (1)
 #define QED_ROCE_TX_FRAG_FAILURE        (2)
 
-struct qed_roce_ll2_header {
+struct qed_roce_ll2_header
+{
 	void *vaddr;
 	dma_addr_t baddr;
 	size_t len;
 };
 
-struct qed_roce_ll2_buffer {
+struct qed_roce_ll2_buffer
+{
 	dma_addr_t baddr;
 	size_t len;
 };
 
-struct qed_roce_ll2_packet {
+struct qed_roce_ll2_packet
+{
 	struct qed_roce_ll2_header header;
 	int n_seg;
 	struct qed_roce_ll2_buffer payload[RDMA_MAX_SGE_PER_SQ_WQE];
@@ -490,24 +522,28 @@ struct qed_roce_ll2_packet {
 	enum qed_roce_ll2_tx_dest tx_dest;
 };
 
-struct qed_roce_ll2_tx_params {
+struct qed_roce_ll2_tx_params
+{
 	int reserved;
 };
 
-struct qed_roce_ll2_rx_params {
+struct qed_roce_ll2_rx_params
+{
 	u16 vlan_id;
 	u8 smac[ETH_ALEN];
 	int rc;
 };
 
-struct qed_roce_ll2_cbs {
+struct qed_roce_ll2_cbs
+{
 	void (*tx_cb)(void *pdev, struct qed_roce_ll2_packet *pkt);
 
 	void (*rx_cb)(void *pdev, struct qed_roce_ll2_packet *pkt,
-		      struct qed_roce_ll2_rx_params *params);
+				  struct qed_roce_ll2_rx_params *params);
 };
 
-struct qed_roce_ll2_params {
+struct qed_roce_ll2_params
+{
 	u16 max_rx_buffers;
 	u16 max_tx_buffers;
 	u16 mtu;
@@ -516,7 +552,8 @@ struct qed_roce_ll2_params {
 	void *cb_cookie;
 };
 
-struct qed_roce_ll2_info {
+struct qed_roce_ll2_info
+{
 	u8 handle;
 	struct qed_roce_ll2_cbs cbs;
 	u8 mac_address[ETH_ALEN];
@@ -526,77 +563,80 @@ struct qed_roce_ll2_info {
 	struct mutex lock;
 };
 
-enum qed_rdma_type {
+enum qed_rdma_type
+{
 	QED_RDMA_TYPE_ROCE,
 };
 
-struct qed_dev_rdma_info {
+struct qed_dev_rdma_info
+{
 	struct qed_dev_info common;
 	enum qed_rdma_type rdma_type;
 };
 
-struct qed_rdma_ops {
+struct qed_rdma_ops
+{
 	const struct qed_common_ops *common;
 
 	int (*fill_dev_info)(struct qed_dev *cdev,
-			     struct qed_dev_rdma_info *info);
+						 struct qed_dev_rdma_info *info);
 	void *(*rdma_get_rdma_ctx)(struct qed_dev *cdev);
 
 	int (*rdma_init)(struct qed_dev *dev,
-			 struct qed_rdma_start_in_params *iparams);
+					 struct qed_rdma_start_in_params *iparams);
 
 	int (*rdma_add_user)(void *rdma_cxt,
-			     struct qed_rdma_add_user_out_params *oparams);
+						 struct qed_rdma_add_user_out_params *oparams);
 
 	void (*rdma_remove_user)(void *rdma_cxt, u16 dpi);
 	int (*rdma_stop)(void *rdma_cxt);
-	struct qed_rdma_device* (*rdma_query_device)(void *rdma_cxt);
-	struct qed_rdma_port* (*rdma_query_port)(void *rdma_cxt);
+	struct qed_rdma_device *(*rdma_query_device)(void *rdma_cxt);
+	struct qed_rdma_port *(*rdma_query_port)(void *rdma_cxt);
 	int (*rdma_get_start_sb)(struct qed_dev *cdev);
 	int (*rdma_get_min_cnq_msix)(struct qed_dev *cdev);
 	void (*rdma_cnq_prod_update)(void *rdma_cxt, u8 cnq_index, u16 prod);
 	int (*rdma_get_rdma_int)(struct qed_dev *cdev,
-				 struct qed_int_info *info);
+							 struct qed_int_info *info);
 	int (*rdma_set_rdma_int)(struct qed_dev *cdev, u16 cnt);
 	int (*rdma_alloc_pd)(void *rdma_cxt, u16 *pd);
 	void (*rdma_dealloc_pd)(void *rdma_cxt, u16 pd);
 	int (*rdma_create_cq)(void *rdma_cxt,
-			      struct qed_rdma_create_cq_in_params *params,
-			      u16 *icid);
+						  struct qed_rdma_create_cq_in_params *params,
+						  u16 *icid);
 	int (*rdma_destroy_cq)(void *rdma_cxt,
-			       struct qed_rdma_destroy_cq_in_params *iparams,
-			       struct qed_rdma_destroy_cq_out_params *oparams);
+						   struct qed_rdma_destroy_cq_in_params *iparams,
+						   struct qed_rdma_destroy_cq_out_params *oparams);
 	struct qed_rdma_qp *
 	(*rdma_create_qp)(void *rdma_cxt,
-			  struct qed_rdma_create_qp_in_params *iparams,
-			  struct qed_rdma_create_qp_out_params *oparams);
+					  struct qed_rdma_create_qp_in_params *iparams,
+					  struct qed_rdma_create_qp_out_params *oparams);
 
 	int (*rdma_modify_qp)(void *roce_cxt, struct qed_rdma_qp *qp,
-			      struct qed_rdma_modify_qp_in_params *iparams);
+						  struct qed_rdma_modify_qp_in_params *iparams);
 
 	int (*rdma_query_qp)(void *rdma_cxt, struct qed_rdma_qp *qp,
-			     struct qed_rdma_query_qp_out_params *oparams);
+						 struct qed_rdma_query_qp_out_params *oparams);
 	int (*rdma_destroy_qp)(void *rdma_cxt, struct qed_rdma_qp *qp);
 	int
 	(*rdma_register_tid)(void *rdma_cxt,
-			     struct qed_rdma_register_tid_in_params *iparams);
+						 struct qed_rdma_register_tid_in_params *iparams);
 	int (*rdma_deregister_tid)(void *rdma_cxt, u32 itid);
 	int (*rdma_alloc_tid)(void *rdma_cxt, u32 *itid);
 	void (*rdma_free_tid)(void *rdma_cxt, u32 itid);
 	int (*roce_ll2_start)(struct qed_dev *cdev,
-			      struct qed_roce_ll2_params *params);
+						  struct qed_roce_ll2_params *params);
 	int (*roce_ll2_stop)(struct qed_dev *cdev);
 	int (*roce_ll2_tx)(struct qed_dev *cdev,
-			   struct qed_roce_ll2_packet *packet,
-			   struct qed_roce_ll2_tx_params *params);
+					   struct qed_roce_ll2_packet *packet,
+					   struct qed_roce_ll2_tx_params *params);
 	int (*roce_ll2_post_rx_buffer)(struct qed_dev *cdev,
-				       struct qed_roce_ll2_buffer *buf,
-				       u64 cookie, u8 notify_fw);
+								   struct qed_roce_ll2_buffer *buf,
+								   u64 cookie, u8 notify_fw);
 	int (*roce_ll2_set_mac_filter)(struct qed_dev *cdev,
-				       u8 *old_mac_address,
-				       u8 *new_mac_address);
+								   u8 *old_mac_address,
+								   u8 *new_mac_address);
 	int (*roce_ll2_stats)(struct qed_dev *cdev,
-			      struct qed_ll2_stats *stats);
+						  struct qed_ll2_stats *stats);
 };
 
 const struct qed_rdma_ops *qed_get_rdma_ops(void);

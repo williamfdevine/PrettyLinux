@@ -25,7 +25,8 @@
 
 #define WDT_SEC2TICKS(s)	((s) ? (((s) << 8) - 1) : 0)
 
-struct sama5d4_wdt {
+struct sama5d4_wdt
+{
 	struct watchdog_device	wdd;
 	void __iomem		*reg_base;
 	u32	config;
@@ -36,13 +37,13 @@ static bool nowayout = WATCHDOG_NOWAYOUT;
 
 module_param(wdt_timeout, int, 0);
 MODULE_PARM_DESC(wdt_timeout,
-	"Watchdog timeout in seconds. (default = "
-	__MODULE_STRING(WDT_DEFAULT_TIMEOUT) ")");
+				 "Watchdog timeout in seconds. (default = "
+				 __MODULE_STRING(WDT_DEFAULT_TIMEOUT) ")");
 
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout,
-	"Watchdog cannot be stopped once started (default="
-	__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "Watchdog cannot be stopped once started (default="
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 #define wdt_read(wdt, field) \
 	readl_relaxed((wdt)->reg_base + (field))
@@ -84,7 +85,7 @@ static int sama5d4_wdt_ping(struct watchdog_device *wdd)
 }
 
 static int sama5d4_wdt_set_timeout(struct watchdog_device *wdd,
-				 unsigned int timeout)
+								   unsigned int timeout)
 {
 	struct sama5d4_wdt *wdt = watchdog_get_drvdata(wdd);
 	u32 value = WDT_SEC2TICKS(timeout);
@@ -102,12 +103,14 @@ static int sama5d4_wdt_set_timeout(struct watchdog_device *wdd,
 	return 0;
 }
 
-static const struct watchdog_info sama5d4_wdt_info = {
+static const struct watchdog_info sama5d4_wdt_info =
+{
 	.options = WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE | WDIOF_KEEPALIVEPING,
 	.identity = "Atmel SAMA5D4 Watchdog",
 };
 
-static struct watchdog_ops sama5d4_wdt_ops = {
+static struct watchdog_ops sama5d4_wdt_ops =
+{
 	.owner = THIS_MODULE,
 	.start = sama5d4_wdt_start,
 	.stop = sama5d4_wdt_stop,
@@ -119,7 +122,8 @@ static irqreturn_t sama5d4_wdt_irq_handler(int irq, void *dev_id)
 {
 	struct sama5d4_wdt *wdt = platform_get_drvdata(dev_id);
 
-	if (wdt_read(wdt, AT91_WDT_SR)) {
+	if (wdt_read(wdt, AT91_WDT_SR))
+	{
 		pr_crit("Atmel Watchdog Software Reset\n");
 		emergency_restart();
 		pr_crit("Reboot didn't succeed\n");
@@ -135,16 +139,24 @@ static int of_sama5d4_wdt_init(struct device_node *np, struct sama5d4_wdt *wdt)
 	wdt->config = AT91_WDT_WDDIS;
 
 	if (!of_property_read_string(np, "atmel,watchdog-type", &tmp) &&
-	    !strcmp(tmp, "software"))
+		!strcmp(tmp, "software"))
+	{
 		wdt->config |= AT91_WDT_WDFIEN;
+	}
 	else
+	{
 		wdt->config |= AT91_WDT_WDRSTEN;
+	}
 
 	if (of_property_read_bool(np, "atmel,idle-halt"))
+	{
 		wdt->config |= AT91_WDT_WDIDLEHLT;
+	}
 
 	if (of_property_read_bool(np, "atmel,dbg-halt"))
+	{
 		wdt->config |= AT91_WDT_WDDBGHLT;
+	}
 
 	return 0;
 }
@@ -182,8 +194,11 @@ static int sama5d4_wdt_probe(struct platform_device *pdev)
 	int ret;
 
 	wdt = devm_kzalloc(&pdev->dev, sizeof(*wdt), GFP_KERNEL);
+
 	if (!wdt)
+	{
 		return -ENOMEM;
+	}
 
 	wdd = &wdt->wdd;
 	wdd->timeout = wdt_timeout;
@@ -196,46 +211,66 @@ static int sama5d4_wdt_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	regs = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(regs))
+	{
 		return PTR_ERR(regs);
+	}
 
 	wdt->reg_base = regs;
 
-	if (pdev->dev.of_node) {
+	if (pdev->dev.of_node)
+	{
 		irq = irq_of_parse_and_map(pdev->dev.of_node, 0);
+
 		if (!irq)
+		{
 			dev_warn(&pdev->dev, "failed to get IRQ from DT\n");
+		}
 
 		ret = of_sama5d4_wdt_init(pdev->dev.of_node, wdt);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
-	if ((wdt->config & AT91_WDT_WDFIEN) && irq) {
+	if ((wdt->config & AT91_WDT_WDFIEN) && irq)
+	{
 		ret = devm_request_irq(&pdev->dev, irq, sama5d4_wdt_irq_handler,
-				       IRQF_SHARED | IRQF_IRQPOLL |
-				       IRQF_NO_SUSPEND, pdev->name, pdev);
-		if (ret) {
+							   IRQF_SHARED | IRQF_IRQPOLL |
+							   IRQF_NO_SUSPEND, pdev->name, pdev);
+
+		if (ret)
+		{
 			dev_err(&pdev->dev,
-				"cannot register interrupt handler\n");
+					"cannot register interrupt handler\n");
 			return ret;
 		}
 	}
 
 	ret = watchdog_init_timeout(wdd, wdt_timeout, &pdev->dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to set timeout value\n");
 		return ret;
 	}
 
 	ret = sama5d4_wdt_init(wdt);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	watchdog_set_nowayout(wdd, nowayout);
 
 	ret = watchdog_register_device(wdd);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to register watchdog device\n");
 		return ret;
 	}
@@ -243,7 +278,7 @@ static int sama5d4_wdt_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, wdt);
 
 	dev_info(&pdev->dev, "initialized (timeout = %d sec, nowayout = %d)\n",
-		 wdt_timeout, nowayout);
+			 wdt_timeout, nowayout);
 
 	return 0;
 }
@@ -259,13 +294,15 @@ static int sama5d4_wdt_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id sama5d4_wdt_of_match[] = {
+static const struct of_device_id sama5d4_wdt_of_match[] =
+{
 	{ .compatible = "atmel,sama5d4-wdt", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, sama5d4_wdt_of_match);
 
-static struct platform_driver sama5d4_wdt_driver = {
+static struct platform_driver sama5d4_wdt_driver =
+{
 	.probe		= sama5d4_wdt_probe,
 	.remove		= sama5d4_wdt_remove,
 	.driver		= {

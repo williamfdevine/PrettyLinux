@@ -13,14 +13,15 @@
 #define HUB6(card, port)						\
 	{								\
 		.iobase		= 0x302,				\
-		.irq		= 3,					\
-		.uartclk	= 1843200,				\
-		.iotype		= UPIO_HUB6,				\
-		.flags		= UPF_BOOT_AUTOCONF,			\
-		.hub6		= (card) << 6 | (port) << 3 | 1,	\
+					  .irq		= 3,					\
+									.uartclk	= 1843200,				\
+											.iotype		= UPIO_HUB6,				\
+													.flags		= UPF_BOOT_AUTOCONF,			\
+															.hub6		= (card) << 6 | (port) << 3 | 1,	\
 	}
 
-static struct plat_serial8250_port hub6_data[] = {
+static struct plat_serial8250_port hub6_data[] =
+{
 	HUB6(0, 0),
 	HUB6(0, 1),
 	HUB6(0, 2),
@@ -36,7 +37,8 @@ static struct plat_serial8250_port hub6_data[] = {
 	{ },
 };
 
-static struct platform_device hub6_device = {
+static struct platform_device hub6_device =
+{
 	.name			= "serial8250",
 	.id			= PLAT8250_DEV_HUB6,
 	.dev			= {

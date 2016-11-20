@@ -27,7 +27,8 @@
 #define CHUNKSIZE 127
 
 /* This structure is used to track an open subchannel. */
-struct subch_data_s {
+struct subch_data_s
+{
 	nasid_t sd_nasid;	/* node on which the subchannel was opened */
 	int sd_subch;		/* subchannel number */
 	spinlock_t sd_rlock;	/* monitor lock for rsv */
@@ -41,7 +42,8 @@ struct subch_data_s {
 	char sd_wb[CHUNKSIZE];	/* write buffer */
 };
 
-struct sysctl_data_s {
+struct sysctl_data_s
+{
 	struct cdev scd_cdev;	/* Character device info */
 	nasid_t scd_nasid;	/* Node on which subchannels are opened. */
 };

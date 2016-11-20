@@ -65,8 +65,12 @@ static inline void clear_ahg(struct rvt_qp *qp)
 
 	priv->s_ahg->ahgcount = 0;
 	qp->s_flags &= ~(RVT_S_AHG_VALID | RVT_S_AHG_CLEAR);
+
 	if (priv->s_sde && qp->s_ahgidx >= 0)
+	{
 		sdma_ahg_free(priv->s_sde, qp->s_ahgidx);
+	}
+
 	qp->s_ahgidx = -1;
 }
 
@@ -89,8 +93,8 @@ __be32 hfi1_compute_aeth(struct rvt_qp *qp);
  * Called by the ib_create_qp() core verbs function.
  */
 struct ib_qp *hfi1_create_qp(struct ib_pd *ibpd,
-			     struct ib_qp_init_attr *init_attr,
-			     struct ib_udata *udata);
+							 struct ib_qp_init_attr *init_attr,
+							 struct ib_udata *udata);
 /**
  * hfi1_get_credit - flush the send work queue of a QP
  * @qp: the qp who's send work queue to flush
@@ -146,12 +150,12 @@ void hfi1_migrate_qp(struct rvt_qp *qp);
  * Functions provided by hfi1 driver for rdmavt to use
  */
 void *qp_priv_alloc(struct rvt_dev_info *rdi, struct rvt_qp *qp,
-		    gfp_t gfp);
+					gfp_t gfp);
 void qp_priv_free(struct rvt_dev_info *rdi, struct rvt_qp *qp);
 unsigned free_all_qps(struct rvt_dev_info *rdi);
 void notify_qp_reset(struct rvt_qp *qp);
 int get_pmtu_from_attr(struct rvt_dev_info *rdi, struct rvt_qp *qp,
-		       struct ib_qp_attr *attr);
+					   struct ib_qp_attr *attr);
 void flush_qp_waiters(struct rvt_qp *qp);
 void notify_error_qp(struct rvt_qp *qp);
 void stop_send_queue(struct rvt_qp *qp);

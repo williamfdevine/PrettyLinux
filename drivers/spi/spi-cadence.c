@@ -56,9 +56,9 @@
 #define CDNS_SPI_CR_SSFORCE	0x00004000 /* Manual SS Enable Mask */
 #define CDNS_SPI_CR_BAUD_DIV_4	0x00000008 /* Default Baud Div Mask */
 #define CDNS_SPI_CR_DEFAULT	(CDNS_SPI_CR_MSTREN | \
-					CDNS_SPI_CR_SSCTRL | \
-					CDNS_SPI_CR_SSFORCE | \
-					CDNS_SPI_CR_BAUD_DIV_4)
+							 CDNS_SPI_CR_SSCTRL | \
+							 CDNS_SPI_CR_SSFORCE | \
+							 CDNS_SPI_CR_BAUD_DIV_4)
 
 /*
  * SPI Configuration Register - Baud rate and slave select
@@ -83,7 +83,7 @@
 #define CDNS_SPI_IXR_MODF	0x00000002 /* SPI Mode Fault */
 #define CDNS_SPI_IXR_RXNEMTY 0x00000010 /* SPI RX FIFO Not Empty */
 #define CDNS_SPI_IXR_DEFAULT	(CDNS_SPI_IXR_TXOW | \
-					CDNS_SPI_IXR_MODF)
+								 CDNS_SPI_IXR_MODF)
 #define CDNS_SPI_IXR_TXFULL	0x00000008 /* SPI TX Full */
 #define CDNS_SPI_IXR_ALL	0x0000007F /* SPI all interrupts */
 
@@ -114,7 +114,8 @@
  * @dev_busy:		Device busy flag
  * @is_decoded_cs:	Flag for decoder property set or not
  */
-struct cdns_spi {
+struct cdns_spi
+{
 	void __iomem *regs;
 	struct clk *ref_clk;
 	struct clk *pclk;
@@ -154,14 +155,18 @@ static void cdns_spi_init_hw(struct cdns_spi *xspi)
 	u32 ctrl_reg = CDNS_SPI_CR_DEFAULT;
 
 	if (xspi->is_decoded_cs)
+	{
 		ctrl_reg |= CDNS_SPI_CR_PERI_SEL;
+	}
 
 	cdns_spi_write(xspi, CDNS_SPI_ER, CDNS_SPI_ER_DISABLE);
 	cdns_spi_write(xspi, CDNS_SPI_IDR, CDNS_SPI_IXR_ALL);
 
 	/* Clear the RX FIFO */
 	while (cdns_spi_read(xspi, CDNS_SPI_ISR) & CDNS_SPI_IXR_RXNEMTY)
+	{
 		cdns_spi_read(xspi, CDNS_SPI_RXD);
+	}
 
 	cdns_spi_write(xspi, CDNS_SPI_ISR, CDNS_SPI_IXR_ALL);
 	cdns_spi_write(xspi, CDNS_SPI_CR, ctrl_reg);
@@ -180,19 +185,23 @@ static void cdns_spi_chipselect(struct spi_device *spi, bool is_high)
 
 	ctrl_reg = cdns_spi_read(xspi, CDNS_SPI_CR);
 
-	if (is_high) {
+	if (is_high)
+	{
 		/* Deselect the slave */
 		ctrl_reg |= CDNS_SPI_CR_SSCTRL;
-	} else {
+	}
+	else
+	{
 		/* Select the slave */
 		ctrl_reg &= ~CDNS_SPI_CR_SSCTRL;
+
 		if (!(xspi->is_decoded_cs))
 			ctrl_reg |= ((~(CDNS_SPI_SS0 << spi->chip_select)) <<
-				     CDNS_SPI_SS_SHIFT) &
-				     CDNS_SPI_CR_SSCTRL;
+						 CDNS_SPI_SS_SHIFT) &
+						CDNS_SPI_CR_SSCTRL;
 		else
 			ctrl_reg |= (spi->chip_select << CDNS_SPI_SS_SHIFT) &
-				     CDNS_SPI_CR_SSCTRL;
+						CDNS_SPI_CR_SSCTRL;
 	}
 
 	cdns_spi_write(xspi, CDNS_SPI_CR, ctrl_reg);
@@ -214,12 +223,19 @@ static void cdns_spi_config_clock_mode(struct spi_device *spi)
 
 	/* Set the SPI clock phase and clock polarity */
 	new_ctrl_reg &= ~(CDNS_SPI_CR_CPHA | CDNS_SPI_CR_CPOL);
-	if (spi->mode & SPI_CPHA)
-		new_ctrl_reg |= CDNS_SPI_CR_CPHA;
-	if (spi->mode & SPI_CPOL)
-		new_ctrl_reg |= CDNS_SPI_CR_CPOL;
 
-	if (new_ctrl_reg != ctrl_reg) {
+	if (spi->mode & SPI_CPHA)
+	{
+		new_ctrl_reg |= CDNS_SPI_CR_CPHA;
+	}
+
+	if (spi->mode & SPI_CPOL)
+	{
+		new_ctrl_reg |= CDNS_SPI_CR_CPOL;
+	}
+
+	if (new_ctrl_reg != ctrl_reg)
+	{
 		/*
 		 * Just writing the CR register does not seem to apply the clock
 		 * setting changes. This is problematic when changing the clock
@@ -247,7 +263,7 @@ static void cdns_spi_config_clock_mode(struct spi_device *spi)
  * controller.
  */
 static void cdns_spi_config_clock_freq(struct spi_device *spi,
-				       struct spi_transfer *transfer)
+									   struct spi_transfer *transfer)
 {
 	struct cdns_spi *xspi = spi_master_get_devdata(spi->master);
 	u32 ctrl_reg, baud_rate_val;
@@ -258,18 +274,23 @@ static void cdns_spi_config_clock_freq(struct spi_device *spi,
 	ctrl_reg = cdns_spi_read(xspi, CDNS_SPI_CR);
 
 	/* Set the clock frequency */
-	if (xspi->speed_hz != transfer->speed_hz) {
+	if (xspi->speed_hz != transfer->speed_hz)
+	{
 		/* first valid value is 1 */
 		baud_rate_val = CDNS_SPI_BAUD_DIV_MIN;
+
 		while ((baud_rate_val < CDNS_SPI_BAUD_DIV_MAX) &&
-		       (frequency / (2 << baud_rate_val)) > transfer->speed_hz)
+			   (frequency / (2 << baud_rate_val)) > transfer->speed_hz)
+		{
 			baud_rate_val++;
+		}
 
 		ctrl_reg &= ~CDNS_SPI_CR_BAUD_DIV;
 		ctrl_reg |= baud_rate_val << CDNS_SPI_BAUD_DIV_SHIFT;
 
 		xspi->speed_hz = frequency / (2 << baud_rate_val);
 	}
+
 	cdns_spi_write(xspi, CDNS_SPI_CR, ctrl_reg);
 }
 
@@ -285,15 +306,15 @@ static void cdns_spi_config_clock_freq(struct spi_device *spi,
  * Return:	Always 0
  */
 static int cdns_spi_setup_transfer(struct spi_device *spi,
-				   struct spi_transfer *transfer)
+								   struct spi_transfer *transfer)
 {
 	struct cdns_spi *xspi = spi_master_get_devdata(spi->master);
 
 	cdns_spi_config_clock_freq(spi, transfer);
 
 	dev_dbg(&spi->dev, "%s, mode %d, %u bits/w, %u clock speed\n",
-		__func__, spi->mode, spi->bits_per_word,
-		xspi->speed_hz);
+			__func__, spi->mode, spi->bits_per_word,
+			xspi->speed_hz);
 
 	return 0;
 }
@@ -307,11 +328,16 @@ static void cdns_spi_fill_tx_fifo(struct cdns_spi *xspi)
 	unsigned long trans_cnt = 0;
 
 	while ((trans_cnt < CDNS_SPI_FIFO_DEPTH) &&
-	       (xspi->tx_bytes > 0)) {
+		   (xspi->tx_bytes > 0))
+	{
 		if (xspi->txbuf)
+		{
 			cdns_spi_write(xspi, CDNS_SPI_TXD, *xspi->txbuf++);
+		}
 		else
+		{
 			cdns_spi_write(xspi, CDNS_SPI_TXD, 0);
+		}
 
 		xspi->tx_bytes--;
 		trans_cnt++;
@@ -342,7 +368,8 @@ static irqreturn_t cdns_spi_irq(int irq, void *dev_id)
 	intr_status = cdns_spi_read(xspi, CDNS_SPI_ISR);
 	cdns_spi_write(xspi, CDNS_SPI_ISR, intr_status);
 
-	if (intr_status & CDNS_SPI_IXR_MODF) {
+	if (intr_status & CDNS_SPI_IXR_MODF)
+	{
 		/* Indicate that transfer is completed, the SPI subsystem will
 		 * identify the error as the remaining bytes to be
 		 * transferred is non-zero
@@ -350,32 +377,42 @@ static irqreturn_t cdns_spi_irq(int irq, void *dev_id)
 		cdns_spi_write(xspi, CDNS_SPI_IDR, CDNS_SPI_IXR_DEFAULT);
 		spi_finalize_current_transfer(master);
 		status = IRQ_HANDLED;
-	} else if (intr_status & CDNS_SPI_IXR_TXOW) {
+	}
+	else if (intr_status & CDNS_SPI_IXR_TXOW)
+	{
 		unsigned long trans_cnt;
 
 		trans_cnt = xspi->rx_bytes - xspi->tx_bytes;
 
 		/* Read out the data from the RX FIFO */
-		while (trans_cnt) {
+		while (trans_cnt)
+		{
 			u8 data;
 
 			data = cdns_spi_read(xspi, CDNS_SPI_RXD);
+
 			if (xspi->rxbuf)
+			{
 				*xspi->rxbuf++ = data;
+			}
 
 			xspi->rx_bytes--;
 			trans_cnt--;
 		}
 
-		if (xspi->tx_bytes) {
+		if (xspi->tx_bytes)
+		{
 			/* There is more data to send */
 			cdns_spi_fill_tx_fifo(xspi);
-		} else {
+		}
+		else
+		{
 			/* Transfer is completed */
 			cdns_spi_write(xspi, CDNS_SPI_IDR,
-				       CDNS_SPI_IXR_DEFAULT);
+						   CDNS_SPI_IXR_DEFAULT);
 			spi_finalize_current_transfer(master);
 		}
+
 		status = IRQ_HANDLED;
 	}
 
@@ -383,7 +420,7 @@ static irqreturn_t cdns_spi_irq(int irq, void *dev_id)
 }
 
 static int cdns_prepare_message(struct spi_master *master,
-				struct spi_message *msg)
+								struct spi_message *msg)
 {
 	cdns_spi_config_clock_mode(msg->spi);
 	return 0;
@@ -402,8 +439,8 @@ static int cdns_prepare_message(struct spi_master *master,
  * Return:	Number of bytes transferred in the last transfer
  */
 static int cdns_transfer_one(struct spi_master *master,
-			     struct spi_device *spi,
-			     struct spi_transfer *transfer)
+							 struct spi_device *spi,
+							 struct spi_transfer *transfer)
 {
 	struct cdns_spi *xspi = spi_master_get_devdata(master);
 
@@ -473,8 +510,11 @@ static int cdns_spi_probe(struct platform_device *pdev)
 	u32 num_cs;
 
 	master = spi_alloc_master(&pdev->dev, sizeof(*xspi));
+
 	if (!master)
+	{
 		return -ENOMEM;
+	}
 
 	xspi = spi_master_get_devdata(master);
 	master->dev.of_node = pdev->dev.of_node;
@@ -482,33 +522,43 @@ static int cdns_spi_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	xspi->regs = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(xspi->regs)) {
+
+	if (IS_ERR(xspi->regs))
+	{
 		ret = PTR_ERR(xspi->regs);
 		goto remove_master;
 	}
 
 	xspi->pclk = devm_clk_get(&pdev->dev, "pclk");
-	if (IS_ERR(xspi->pclk)) {
+
+	if (IS_ERR(xspi->pclk))
+	{
 		dev_err(&pdev->dev, "pclk clock not found.\n");
 		ret = PTR_ERR(xspi->pclk);
 		goto remove_master;
 	}
 
 	xspi->ref_clk = devm_clk_get(&pdev->dev, "ref_clk");
-	if (IS_ERR(xspi->ref_clk)) {
+
+	if (IS_ERR(xspi->ref_clk))
+	{
 		dev_err(&pdev->dev, "ref_clk clock not found.\n");
 		ret = PTR_ERR(xspi->ref_clk);
 		goto remove_master;
 	}
 
 	ret = clk_prepare_enable(xspi->pclk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Unable to enable APB clock.\n");
 		goto remove_master;
 	}
 
 	ret = clk_prepare_enable(xspi->ref_clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Unable to enable device clock.\n");
 		goto clk_dis_apb;
 	}
@@ -519,15 +569,23 @@ static int cdns_spi_probe(struct platform_device *pdev)
 	pm_runtime_set_active(&pdev->dev);
 
 	ret = of_property_read_u32(pdev->dev.of_node, "num-cs", &num_cs);
+
 	if (ret < 0)
+	{
 		master->num_chipselect = CDNS_SPI_DEFAULT_NUM_CS;
+	}
 	else
+	{
 		master->num_chipselect = num_cs;
+	}
 
 	ret = of_property_read_u32(pdev->dev.of_node, "is-decoded-cs",
-				   &xspi->is_decoded_cs);
+							   &xspi->is_decoded_cs);
+
 	if (ret < 0)
+	{
 		xspi->is_decoded_cs = 0;
+	}
 
 	/* SPI controller initializations */
 	cdns_spi_init_hw(xspi);
@@ -536,15 +594,19 @@ static int cdns_spi_probe(struct platform_device *pdev)
 	pm_runtime_put_autosuspend(&pdev->dev);
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq <= 0) {
+
+	if (irq <= 0)
+	{
 		ret = -ENXIO;
 		dev_err(&pdev->dev, "irq number is invalid\n");
 		goto clk_dis_all;
 	}
 
 	ret = devm_request_irq(&pdev->dev, irq, cdns_spi_irq,
-			       0, pdev->name, master);
-	if (ret != 0) {
+						   0, pdev->name, master);
+
+	if (ret != 0)
+	{
 		ret = -ENXIO;
 		dev_err(&pdev->dev, "request_irq failed\n");
 		goto clk_dis_all;
@@ -565,7 +627,9 @@ static int cdns_spi_probe(struct platform_device *pdev)
 	master->bits_per_word_mask = SPI_BPW_MASK(8);
 
 	ret = spi_register_master(master);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "spi_register_master failed\n");
 		goto clk_dis_all;
 	}
@@ -658,17 +722,22 @@ static int __maybe_unused cnds_runtime_resume(struct device *dev)
 	int ret;
 
 	ret = clk_prepare_enable(xspi->pclk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Cannot enable APB clock.\n");
 		return ret;
 	}
 
 	ret = clk_prepare_enable(xspi->ref_clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Cannot enable device clock.\n");
 		clk_disable(xspi->pclk);
 		return ret;
 	}
+
 	return 0;
 }
 
@@ -691,13 +760,15 @@ static int __maybe_unused cnds_runtime_suspend(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops cdns_spi_dev_pm_ops = {
+static const struct dev_pm_ops cdns_spi_dev_pm_ops =
+{
 	SET_RUNTIME_PM_OPS(cnds_runtime_suspend,
-			   cnds_runtime_resume, NULL)
+	cnds_runtime_resume, NULL)
 	SET_SYSTEM_SLEEP_PM_OPS(cdns_spi_suspend, cdns_spi_resume)
 };
 
-static const struct of_device_id cdns_spi_of_match[] = {
+static const struct of_device_id cdns_spi_of_match[] =
+{
 	{ .compatible = "xlnx,zynq-spi-r1p6" },
 	{ .compatible = "cdns,spi-r1p6" },
 	{ /* end of table */ }
@@ -705,7 +776,8 @@ static const struct of_device_id cdns_spi_of_match[] = {
 MODULE_DEVICE_TABLE(of, cdns_spi_of_match);
 
 /* cdns_spi_driver - This structure defines the SPI subsystem platform driver */
-static struct platform_driver cdns_spi_driver = {
+static struct platform_driver cdns_spi_driver =
+{
 	.probe	= cdns_spi_probe,
 	.remove	= cdns_spi_remove,
 	.driver = {

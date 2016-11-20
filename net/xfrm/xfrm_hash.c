@@ -17,13 +17,17 @@ struct hlist_head *xfrm_hash_alloc(unsigned int sz)
 	struct hlist_head *n;
 
 	if (sz <= PAGE_SIZE)
+	{
 		n = kzalloc(sz, GFP_KERNEL);
+	}
 	else if (hashdist)
+	{
 		n = vzalloc(sz);
+	}
 	else
 		n = (struct hlist_head *)
 			__get_free_pages(GFP_KERNEL | __GFP_NOWARN | __GFP_ZERO,
-					 get_order(sz));
+							 get_order(sz));
 
 	return n;
 }
@@ -31,9 +35,15 @@ struct hlist_head *xfrm_hash_alloc(unsigned int sz)
 void xfrm_hash_free(struct hlist_head *n, unsigned int sz)
 {
 	if (sz <= PAGE_SIZE)
+	{
 		kfree(n);
+	}
 	else if (hashdist)
+	{
 		vfree(n);
+	}
 	else
+	{
 		free_pages((unsigned long)n, get_order(sz));
+	}
 }

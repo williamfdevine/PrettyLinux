@@ -74,9 +74,11 @@
 #define TMO_E3	21	/* 21 < E3 */
 #define TMO_E4	500	/* 21 < E4 < 1000 */
 
-struct hac_priv {
+struct hac_priv
+{
 	unsigned long mmio;	/* HAC base address */
-} hac_cpu_data[] = {
+} hac_cpu_data[] =
+{
 #if defined(CONFIG_CPU_SUBTYPE_SH7760)
 	{
 		.mmio	= 0xFE240000,
@@ -99,25 +101,34 @@ struct hac_priv {
  * AC97 read/write flow as outlined in the SH7760 manual (pages 903-906)
  */
 static int hac_get_codec_data(struct hac_priv *hac, unsigned short r,
-			      unsigned short *v)
+							  unsigned short *v)
 {
 	unsigned int to1, to2, i;
 	unsigned short adr;
 
-	for (i = AC97_READ_RETRY; i; i--) {
+	for (i = AC97_READ_RETRY; i; i--)
+	{
 		*v = 0;
+
 		/* wait for HAC to receive something from the codec */
 		for (to1 = TMO_E4;
-		     to1 && !(HACREG(HACRSR) & RSR_STARY);
-		     --to1)
+			 to1 && !(HACREG(HACRSR) & RSR_STARY);
+			 --to1)
+		{
 			udelay(1);
-		for (to2 = TMO_E4; 
-		     to2 && !(HACREG(HACRSR) & RSR_STDRY);
-		     --to2)
+		}
+
+		for (to2 = TMO_E4;
+			 to2 && !(HACREG(HACRSR) & RSR_STDRY);
+			 --to2)
+		{
 			udelay(1);
+		}
 
 		if (!to1 && !to2)
-			return 0;	/* codec comm is down */
+		{
+			return 0;    /* codec comm is down */
+		}
 
 		adr = ((HACREG(HACCSAR) & CSAR_MASK) >> CSAR_SHIFT);
 		*v  = ((HACREG(HACCSDR) & CSDR_MASK) >> CSDR_SHIFT);
@@ -125,22 +136,26 @@ static int hac_get_codec_data(struct hac_priv *hac, unsigned short r,
 		HACREG(HACRSR) &= ~(RSR_STDRY | RSR_STARY);
 
 		if (r == adr)
+		{
 			break;
+		}
 
 		/* manual says: wait at least 21 usec before retrying */
 		udelay(21);
 	}
+
 	HACREG(HACRSR) &= ~(RSR_STDRY | RSR_STARY);
 	return i;
 }
 
 static unsigned short hac_read_codec_aux(struct hac_priv *hac,
-					 unsigned short reg)
+		unsigned short reg)
 {
 	unsigned short val;
 	unsigned int i, to;
 
-	for (i = AC97_READ_RETRY; i; i--) {
+	for (i = AC97_READ_RETRY; i; i--)
+	{
 		/* send_read_request */
 		local_irq_disable();
 		HACREG(HACTSR) &= ~(TSR_CMDAMT);
@@ -148,27 +163,34 @@ static unsigned short hac_read_codec_aux(struct hac_priv *hac,
 		local_irq_enable();
 
 		for (to = TMO_E3;
-		     to && !(HACREG(HACTSR) & TSR_CMDAMT);
-		     --to)
+			 to && !(HACREG(HACTSR) & TSR_CMDAMT);
+			 --to)
+		{
 			udelay(1);
+		}
 
 		HACREG(HACTSR) &= ~TSR_CMDAMT;
 		val = 0;
+
 		if (hac_get_codec_data(hac, reg, &val) != 0)
+		{
 			break;
+		}
 	}
 
 	return i ? val : ~0;
 }
 
 static void hac_ac97_write(struct snd_ac97 *ac97, unsigned short reg,
-			   unsigned short val)
+						   unsigned short val)
 {
 	int unit_id = 0 /* ac97->private_data */;
 	struct hac_priv *hac = &hac_cpu_data[unit_id];
 	unsigned int i, to;
+
 	/* write_codec_aux */
-	for (i = AC97_WRITE_RETRY; i; i--) {
+	for (i = AC97_WRITE_RETRY; i; i--)
+	{
 		/* send_write_request */
 		local_irq_disable();
 		HACREG(HACTSR) &= ~(TSR_CMDDMT | TSR_CMDAMT);
@@ -178,19 +200,25 @@ static void hac_ac97_write(struct snd_ac97 *ac97, unsigned short reg,
 
 		/* poll-wait for CMDAMT and CMDDMT */
 		for (to = TMO_E1;
-		     to && !(HACREG(HACTSR) & (TSR_CMDAMT|TSR_CMDDMT));
-		     --to)
+			 to && !(HACREG(HACTSR) & (TSR_CMDAMT | TSR_CMDDMT));
+			 --to)
+		{
 			udelay(1);
+		}
 
 		HACREG(HACTSR) &= ~(TSR_CMDAMT | TSR_CMDDMT);
+
 		if (to)
+		{
 			break;
+		}
+
 		/* timeout, try again */
 	}
 }
 
 static unsigned short hac_ac97_read(struct snd_ac97 *ac97,
-				    unsigned short reg)
+									unsigned short reg)
 {
 	int unit_id = 0 /* ac97->private_data */;
 	struct hac_priv *hac = &hac_cpu_data[unit_id];
@@ -206,11 +234,17 @@ static void hac_ac97_warmrst(struct snd_ac97 *ac97)
 	HACREG(HACCR) = CR_WMRT | CR_ST | CR_B9;
 	msleep(10);
 	HACREG(HACCR) = CR_ST | CR_B9;
+
 	for (tmo = 1000; (tmo > 0) && !(HACREG(HACCR) & CR_CR); tmo--)
+	{
 		udelay(1);
+	}
 
 	if (!tmo)
+	{
 		printk(KERN_INFO "hac: reset: AC97 link down!\n");
+	}
+
 	/* settings this bit lets us have a conversation with codec */
 	HACREG(HACACR) |= ACR_TX12ATOM;
 }
@@ -227,7 +261,8 @@ static void hac_ac97_coldrst(struct snd_ac97 *ac97)
 	hac_ac97_warmrst(ac97);
 }
 
-static struct snd_ac97_bus_ops hac_ac97_ops = {
+static struct snd_ac97_bus_ops hac_ac97_ops =
+{
 	.read	= hac_ac97_read,
 	.write	= hac_ac97_write,
 	.reset	= hac_ac97_coldrst,
@@ -235,25 +270,28 @@ static struct snd_ac97_bus_ops hac_ac97_ops = {
 };
 
 static int hac_hw_params(struct snd_pcm_substream *substream,
-			 struct snd_pcm_hw_params *params,
-			 struct snd_soc_dai *dai)
+						 struct snd_pcm_hw_params *params,
+						 struct snd_soc_dai *dai)
 {
 	struct hac_priv *hac = &hac_cpu_data[dai->id];
 	int d = substream->stream == SNDRV_PCM_STREAM_PLAYBACK ? 0 : 1;
 
-	switch (params->msbits) {
-	case 16:
-		HACREG(HACACR) |= d ?  ACR_DMARX16 :  ACR_DMATX16;
-		HACREG(HACACR) &= d ? ~ACR_DMARX20 : ~ACR_DMATX20;
-		break;
-	case 20:
-		HACREG(HACACR) &= d ? ~ACR_DMARX16 : ~ACR_DMATX16;
-		HACREG(HACACR) |= d ?  ACR_DMARX20 :  ACR_DMATX20;
-		break;
-	default:
-		pr_debug("hac: invalid depth %d bit\n", params->msbits);
-		return -EINVAL;
-		break;
+	switch (params->msbits)
+	{
+		case 16:
+			HACREG(HACACR) |= d ?  ACR_DMARX16 :  ACR_DMATX16;
+			HACREG(HACACR) &= d ? ~ACR_DMARX20 : ~ACR_DMATX20;
+			break;
+
+		case 20:
+			HACREG(HACACR) &= d ? ~ACR_DMARX16 : ~ACR_DMATX16;
+			HACREG(HACACR) |= d ?  ACR_DMARX20 :  ACR_DMATX20;
+			break;
+
+		default:
+			pr_debug("hac: invalid depth %d bit\n", params->msbits);
+			return -EINVAL;
+			break;
 	}
 
 	return 0;
@@ -265,62 +303,68 @@ static int hac_hw_params(struct snd_pcm_substream *substream,
 #define AC97_FMTS	\
 	SNDRV_PCM_FMTBIT_S16_LE
 
-static const struct snd_soc_dai_ops hac_dai_ops = {
+static const struct snd_soc_dai_ops hac_dai_ops =
+{
 	.hw_params	= hac_hw_params,
 };
 
-static struct snd_soc_dai_driver sh4_hac_dai[] = {
+static struct snd_soc_dai_driver sh4_hac_dai[] =
 {
-	.name			= "hac-dai.0",
-	.bus_control		= true,
-	.playback = {
-		.rates		= AC97_RATES,
-		.formats	= AC97_FMTS,
-		.channels_min	= 2,
-		.channels_max	= 2,
+	{
+		.name			= "hac-dai.0",
+		.bus_control		= true,
+		.playback = {
+			.rates		= AC97_RATES,
+			.formats	= AC97_FMTS,
+			.channels_min	= 2,
+			.channels_max	= 2,
+		},
+		.capture = {
+			.rates		= AC97_RATES,
+			.formats	= AC97_FMTS,
+			.channels_min	= 2,
+			.channels_max	= 2,
+		},
+		.ops = &hac_dai_ops,
 	},
-	.capture = {
-		.rates		= AC97_RATES,
-		.formats	= AC97_FMTS,
-		.channels_min	= 2,
-		.channels_max	= 2,
-	},
-	.ops = &hac_dai_ops,
-},
 #ifdef CONFIG_CPU_SUBTYPE_SH7760
-{
-	.name			= "hac-dai.1",
-	.id			= 1,
-	.playback = {
-		.rates		= AC97_RATES,
-		.formats	= AC97_FMTS,
-		.channels_min	= 2,
-		.channels_max	= 2,
-	},
-	.capture = {
-		.rates		= AC97_RATES,
-		.formats	= AC97_FMTS,
-		.channels_min	= 2,
-		.channels_max	= 2,
-	},
-	.ops = &hac_dai_ops,
+	{
+		.name			= "hac-dai.1",
+		.id			= 1,
+		.playback = {
+			.rates		= AC97_RATES,
+			.formats	= AC97_FMTS,
+			.channels_min	= 2,
+			.channels_max	= 2,
+		},
+		.capture = {
+			.rates		= AC97_RATES,
+			.formats	= AC97_FMTS,
+			.channels_min	= 2,
+			.channels_max	= 2,
+		},
+		.ops = &hac_dai_ops,
 
-},
+	},
 #endif
 };
 
-static const struct snd_soc_component_driver sh4_hac_component = {
+static const struct snd_soc_component_driver sh4_hac_component =
+{
 	.name		= "sh4-hac",
 };
 
 static int hac_soc_platform_probe(struct platform_device *pdev)
 {
 	ret = snd_soc_set_ac97_ops(&hac_ac97_ops);
+
 	if (ret != 0)
+	{
 		return ret;
+	}
 
 	return snd_soc_register_component(&pdev->dev, &sh4_hac_component,
-					  sh4_hac_dai, ARRAY_SIZE(sh4_hac_dai));
+									  sh4_hac_dai, ARRAY_SIZE(sh4_hac_dai));
 }
 
 static int hac_soc_platform_remove(struct platform_device *pdev)
@@ -330,9 +374,10 @@ static int hac_soc_platform_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver hac_pcm_driver = {
+static struct platform_driver hac_pcm_driver =
+{
 	.driver = {
-			.name = "hac-pcm-audio",
+		.name = "hac-pcm-audio",
 	},
 
 	.probe = hac_soc_platform_probe,

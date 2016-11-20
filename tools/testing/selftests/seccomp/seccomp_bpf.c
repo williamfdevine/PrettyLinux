@@ -40,32 +40,32 @@
 #include "test_harness.h"
 
 #ifndef PR_SET_PTRACER
-# define PR_SET_PTRACER 0x59616d61
+	#define PR_SET_PTRACER 0x59616d61
 #endif
 
 #ifndef PR_SET_NO_NEW_PRIVS
-#define PR_SET_NO_NEW_PRIVS 38
-#define PR_GET_NO_NEW_PRIVS 39
+	#define PR_SET_NO_NEW_PRIVS 38
+	#define PR_GET_NO_NEW_PRIVS 39
 #endif
 
 #ifndef PR_SECCOMP_EXT
-#define PR_SECCOMP_EXT 43
+	#define PR_SECCOMP_EXT 43
 #endif
 
 #ifndef SECCOMP_EXT_ACT
-#define SECCOMP_EXT_ACT 1
+	#define SECCOMP_EXT_ACT 1
 #endif
 
 #ifndef SECCOMP_EXT_ACT_TSYNC
-#define SECCOMP_EXT_ACT_TSYNC 1
+	#define SECCOMP_EXT_ACT_TSYNC 1
 #endif
 
 #ifndef SECCOMP_MODE_STRICT
-#define SECCOMP_MODE_STRICT 1
+	#define SECCOMP_MODE_STRICT 1
 #endif
 
 #ifndef SECCOMP_MODE_FILTER
-#define SECCOMP_MODE_FILTER 2
+	#define SECCOMP_MODE_FILTER 2
 #endif
 
 #ifndef SECCOMP_RET_KILL
@@ -79,7 +79,8 @@
 #define SECCOMP_RET_ACTION      0x7fff0000U
 #define SECCOMP_RET_DATA        0x0000ffffU
 
-struct seccomp_data {
+struct seccomp_data
+{
 	int nr;
 	__u32 arch;
 	__u64 instruction_pointer;
@@ -88,11 +89,11 @@ struct seccomp_data {
 #endif
 
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-#define syscall_arg(_n) (offsetof(struct seccomp_data, args[_n]))
+	#define syscall_arg(_n) (offsetof(struct seccomp_data, args[_n]))
 #elif __BYTE_ORDER == __BIG_ENDIAN
-#define syscall_arg(_n) (offsetof(struct seccomp_data, args[_n]) + sizeof(__u32))
+	#define syscall_arg(_n) (offsetof(struct seccomp_data, args[_n]) + sizeof(__u32))
 #else
-#error "wut? Unknown __BYTE_ORDER?!"
+	#error "wut? Unknown __BYTE_ORDER?!"
 #endif
 
 #define SIBLING_EXIT_UNKILLED	0xbadbeef
@@ -104,7 +105,8 @@ TEST(mode_strict_support)
 	long ret;
 
 	ret = prctl(PR_SET_SECCOMP, SECCOMP_MODE_STRICT, NULL, NULL, NULL);
-	ASSERT_EQ(0, ret) {
+	ASSERT_EQ(0, ret)
+	{
 		TH_LOG("Kernel does not support CONFIG_SECCOMP");
 	}
 	syscall(__NR_exit, 1);
@@ -115,12 +117,14 @@ TEST_SIGNAL(mode_strict_cannot_call_prctl, SIGKILL)
 	long ret;
 
 	ret = prctl(PR_SET_SECCOMP, SECCOMP_MODE_STRICT, NULL, NULL, NULL);
-	ASSERT_EQ(0, ret) {
+	ASSERT_EQ(0, ret)
+	{
 		TH_LOG("Kernel does not support CONFIG_SECCOMP");
 	}
 	syscall(__NR_prctl, PR_SET_SECCOMP, SECCOMP_MODE_FILTER,
-		NULL, NULL, NULL);
-	EXPECT_FALSE(true) {
+			NULL, NULL, NULL);
+	EXPECT_FALSE(true)
+	{
 		TH_LOG("Unreachable!");
 	}
 }
@@ -131,7 +135,8 @@ TEST(no_new_privs_support)
 	long ret;
 
 	ret = prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
-	EXPECT_EQ(0, ret) {
+	EXPECT_EQ(0, ret)
+	{
 		TH_LOG("Kernel does not support PR_SET_NO_NEW_PRIVS!");
 	}
 }
@@ -142,39 +147,48 @@ TEST(mode_filter_support)
 	long ret;
 
 	ret = prctl(PR_SET_NO_NEW_PRIVS, 1, NULL, 0, 0);
-	ASSERT_EQ(0, ret) {
+	ASSERT_EQ(0, ret)
+	{
 		TH_LOG("Kernel does not support PR_SET_NO_NEW_PRIVS!");
 	}
 	ret = prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, NULL, NULL, NULL);
 	EXPECT_EQ(-1, ret);
-	EXPECT_EQ(EFAULT, errno) {
+	EXPECT_EQ(EFAULT, errno)
+	{
 		TH_LOG("Kernel does not support CONFIG_SECCOMP_FILTER!");
 	}
 }
 
 TEST(mode_filter_without_nnp)
 {
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
-	struct sock_fprog prog = {
+	struct sock_fprog prog =
+	{
 		.len = (unsigned short)ARRAY_SIZE(filter),
 		.filter = filter,
 	};
 	long ret;
 
 	ret = prctl(PR_GET_NO_NEW_PRIVS, 0, NULL, 0, 0);
-	ASSERT_LE(0, ret) {
+	ASSERT_LE(0, ret)
+	{
 		TH_LOG("Expected 0 or unsupported for NO_NEW_PRIVS");
 	}
 	errno = 0;
 	ret = prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &prog, 0, 0);
+
 	/* Succeeds with CAP_SYS_ADMIN, fails without */
 	/* TODO(wad) check caps not euid */
-	if (geteuid()) {
+	if (geteuid())
+	{
 		EXPECT_EQ(-1, ret);
 		EXPECT_EQ(EACCES, errno);
-	} else {
+	}
+	else
+	{
 		EXPECT_EQ(0, ret);
 	}
 }
@@ -185,8 +199,9 @@ TEST(filter_size_limits)
 {
 	int i;
 	int count = BPF_MAXINSNS + 1;
-	struct sock_filter allow[] = {
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter allow[] =
+	{
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
 	struct sock_filter *filter;
 	struct sock_fprog prog = { };
@@ -196,7 +211,9 @@ TEST(filter_size_limits)
 	ASSERT_NE(NULL, filter);
 
 	for (i = 0; i < count; i++)
+	{
 		filter[i] = allow[0];
+	}
 
 	ret = prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
 	ASSERT_EQ(0, ret);
@@ -206,14 +223,16 @@ TEST(filter_size_limits)
 
 	/* Too many filter instructions in a single filter. */
 	ret = prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &prog, 0, 0);
-	ASSERT_NE(0, ret) {
+	ASSERT_NE(0, ret)
+	{
 		TH_LOG("Installing %d insn filter was allowed", prog.len);
 	}
 
 	/* One less is okay, though. */
 	prog.len -= 1;
 	ret = prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &prog, 0, 0);
-	ASSERT_EQ(0, ret) {
+	ASSERT_EQ(0, ret)
+	{
 		TH_LOG("Installing %d insn filter wasn't allowed", prog.len);
 	}
 }
@@ -222,8 +241,9 @@ TEST(filter_chain_limits)
 {
 	int i;
 	int count = BPF_MAXINSNS;
-	struct sock_filter allow[] = {
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter allow[] =
+	{
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
 	struct sock_filter *filter;
 	struct sock_fprog prog = { };
@@ -233,7 +253,9 @@ TEST(filter_chain_limits)
 	ASSERT_NE(NULL, filter);
 
 	for (i = 0; i < count; i++)
+	{
 		filter[i] = allow[0];
+	}
 
 	ret = prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
 	ASSERT_EQ(0, ret);
@@ -247,23 +269,31 @@ TEST(filter_chain_limits)
 	prog.len = count;
 
 	/* Too many total filter instructions. */
-	for (i = 0; i < MAX_INSNS_PER_PATH; i++) {
+	for (i = 0; i < MAX_INSNS_PER_PATH; i++)
+	{
 		ret = prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &prog, 0, 0);
+
 		if (ret != 0)
+		{
 			break;
+		}
 	}
-	ASSERT_NE(0, ret) {
+
+	ASSERT_NE(0, ret)
+	{
 		TH_LOG("Allowed %d %d-insn filters (total with penalties:%d)",
-		       i, count, i * (count + 4));
+			   i, count, i * (count + 4));
 	}
 }
 
 TEST(mode_filter_cannot_move_to_strict)
 {
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
-	struct sock_fprog prog = {
+	struct sock_fprog prog =
+	{
 		.len = (unsigned short)ARRAY_SIZE(filter),
 		.filter = filter,
 	};
@@ -283,10 +313,12 @@ TEST(mode_filter_cannot_move_to_strict)
 
 TEST(mode_filter_get_seccomp)
 {
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
-	struct sock_fprog prog = {
+	struct sock_fprog prog =
+	{
 		.len = (unsigned short)ARRAY_SIZE(filter),
 		.filter = filter,
 	};
@@ -308,10 +340,12 @@ TEST(mode_filter_get_seccomp)
 
 TEST(ALLOW_all)
 {
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
-	struct sock_fprog prog = {
+	struct sock_fprog prog =
+	{
 		.len = (unsigned short)ARRAY_SIZE(filter),
 		.filter = filter,
 	};
@@ -326,9 +360,11 @@ TEST(ALLOW_all)
 
 TEST(empty_prog)
 {
-	struct sock_filter filter[] = {
+	struct sock_filter filter[] =
+	{
 	};
-	struct sock_fprog prog = {
+	struct sock_fprog prog =
+	{
 		.len = (unsigned short)ARRAY_SIZE(filter),
 		.filter = filter,
 	};
@@ -344,10 +380,12 @@ TEST(empty_prog)
 
 TEST_SIGNAL(unknown_ret_is_kill_inside, SIGSYS)
 {
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_RET|BPF_K, 0x10000000U),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_RET | BPF_K, 0x10000000U),
 	};
-	struct sock_fprog prog = {
+	struct sock_fprog prog =
+	{
 		.len = (unsigned short)ARRAY_SIZE(filter),
 		.filter = filter,
 	};
@@ -358,7 +396,8 @@ TEST_SIGNAL(unknown_ret_is_kill_inside, SIGSYS)
 
 	ret = prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &prog);
 	ASSERT_EQ(0, ret);
-	EXPECT_EQ(0, syscall(__NR_getpid)) {
+	EXPECT_EQ(0, syscall(__NR_getpid))
+	{
 		TH_LOG("getpid() shouldn't ever return");
 	}
 }
@@ -366,10 +405,12 @@ TEST_SIGNAL(unknown_ret_is_kill_inside, SIGSYS)
 /* return code >= 0x80000000 is unused. */
 TEST_SIGNAL(unknown_ret_is_kill_above_allow, SIGSYS)
 {
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_RET|BPF_K, 0x90000000U),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_RET | BPF_K, 0x90000000U),
 	};
-	struct sock_fprog prog = {
+	struct sock_fprog prog =
+	{
 		.len = (unsigned short)ARRAY_SIZE(filter),
 		.filter = filter,
 	};
@@ -380,17 +421,20 @@ TEST_SIGNAL(unknown_ret_is_kill_above_allow, SIGSYS)
 
 	ret = prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &prog);
 	ASSERT_EQ(0, ret);
-	EXPECT_EQ(0, syscall(__NR_getpid)) {
+	EXPECT_EQ(0, syscall(__NR_getpid))
+	{
 		TH_LOG("getpid() shouldn't ever return");
 	}
 }
 
 TEST_SIGNAL(KILL_all, SIGSYS)
 {
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_KILL),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_KILL),
 	};
-	struct sock_fprog prog = {
+	struct sock_fprog prog =
+	{
 		.len = (unsigned short)ARRAY_SIZE(filter),
 		.filter = filter,
 	};
@@ -405,14 +449,16 @@ TEST_SIGNAL(KILL_all, SIGSYS)
 
 TEST_SIGNAL(KILL_one, SIGSYS)
 {
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_LD|BPF_W|BPF_ABS,
-			offsetof(struct seccomp_data, nr)),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_getpid, 0, 1),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_KILL),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
+		offsetof(struct seccomp_data, nr)),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_getpid, 0, 1),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_KILL),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
-	struct sock_fprog prog = {
+	struct sock_fprog prog =
+	{
 		.len = (unsigned short)ARRAY_SIZE(filter),
 		.filter = filter,
 	};
@@ -433,19 +479,21 @@ TEST_SIGNAL(KILL_one, SIGSYS)
 TEST_SIGNAL(KILL_one_arg_one, SIGSYS)
 {
 	void *fatal_address;
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_LD|BPF_W|BPF_ABS,
-			offsetof(struct seccomp_data, nr)),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_times, 1, 0),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
+		offsetof(struct seccomp_data, nr)),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_times, 1, 0),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 		/* Only both with lower 32-bit for now. */
-		BPF_STMT(BPF_LD|BPF_W|BPF_ABS, syscall_arg(0)),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K,
-			(unsigned long)&fatal_address, 0, 1),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_KILL),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+		BPF_STMT(BPF_LD | BPF_W | BPF_ABS, syscall_arg(0)),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K,
+		(unsigned long)&fatal_address, 0, 1),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_KILL),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
-	struct sock_fprog prog = {
+	struct sock_fprog prog =
+	{
 		.len = (unsigned short)ARRAY_SIZE(filter),
 		.filter = filter,
 	};
@@ -473,18 +521,20 @@ TEST_SIGNAL(KILL_one_arg_six, SIGSYS)
 #else
 	int sysno = __NR_mmap2;
 #endif
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_LD|BPF_W|BPF_ABS,
-			offsetof(struct seccomp_data, nr)),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, sysno, 1, 0),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
+		offsetof(struct seccomp_data, nr)),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, sysno, 1, 0),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 		/* Only both with lower 32-bit for now. */
-		BPF_STMT(BPF_LD|BPF_W|BPF_ABS, syscall_arg(5)),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, 0x0C0FFEE, 0, 1),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_KILL),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+		BPF_STMT(BPF_LD | BPF_W | BPF_ABS, syscall_arg(5)),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, 0x0C0FFEE, 0, 1),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_KILL),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
-	struct sock_fprog prog = {
+	struct sock_fprog prog =
+	{
 		.len = (unsigned short)ARRAY_SIZE(filter),
 		.filter = filter,
 	};
@@ -507,11 +557,11 @@ TEST_SIGNAL(KILL_one_arg_six, SIGSYS)
 
 	EXPECT_EQ(parent, syscall(__NR_getppid));
 	map1 = (void *)syscall(sysno,
-		NULL, page_size, PROT_READ, MAP_PRIVATE, fd, page_size);
+						   NULL, page_size, PROT_READ, MAP_PRIVATE, fd, page_size);
 	EXPECT_NE(MAP_FAILED, map1);
 	/* mmap2() should never return. */
 	map2 = (void *)syscall(sysno,
-		 NULL, page_size, PROT_READ, MAP_PRIVATE, fd, 0x0C0FFEE);
+						   NULL, page_size, PROT_READ, MAP_PRIVATE, fd, 0x0C0FFEE);
 	EXPECT_EQ(MAP_FAILED, map2);
 
 	/* The test failed, so clean up the resources. */
@@ -523,11 +573,13 @@ TEST_SIGNAL(KILL_one_arg_six, SIGSYS)
 /* TODO(wad) add 64-bit versus 32-bit arg tests. */
 TEST(arg_out_of_range)
 {
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_LD|BPF_W|BPF_ABS, syscall_arg(6)),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_LD | BPF_W | BPF_ABS, syscall_arg(6)),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
-	struct sock_fprog prog = {
+	struct sock_fprog prog =
+	{
 		.len = (unsigned short)ARRAY_SIZE(filter),
 		.filter = filter,
 	};
@@ -543,14 +595,16 @@ TEST(arg_out_of_range)
 
 TEST(ERRNO_valid)
 {
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_LD|BPF_W|BPF_ABS,
-			offsetof(struct seccomp_data, nr)),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_read, 0, 1),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ERRNO | E2BIG),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
+		offsetof(struct seccomp_data, nr)),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_read, 0, 1),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ERRNO | E2BIG),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
-	struct sock_fprog prog = {
+	struct sock_fprog prog =
+	{
 		.len = (unsigned short)ARRAY_SIZE(filter),
 		.filter = filter,
 	};
@@ -570,14 +624,16 @@ TEST(ERRNO_valid)
 
 TEST(ERRNO_zero)
 {
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_LD|BPF_W|BPF_ABS,
-			offsetof(struct seccomp_data, nr)),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_read, 0, 1),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ERRNO | 0),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
+		offsetof(struct seccomp_data, nr)),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_read, 0, 1),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ERRNO | 0),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
-	struct sock_fprog prog = {
+	struct sock_fprog prog =
+	{
 		.len = (unsigned short)ARRAY_SIZE(filter),
 		.filter = filter,
 	};
@@ -597,14 +653,16 @@ TEST(ERRNO_zero)
 
 TEST(ERRNO_capped)
 {
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_LD|BPF_W|BPF_ABS,
-			offsetof(struct seccomp_data, nr)),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_read, 0, 1),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ERRNO | 4096),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
+		offsetof(struct seccomp_data, nr)),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_read, 0, 1),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ERRNO | 4096),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
-	struct sock_fprog prog = {
+	struct sock_fprog prog =
+	{
 		.len = (unsigned short)ARRAY_SIZE(filter),
 		.filter = filter,
 	};
@@ -622,18 +680,20 @@ TEST(ERRNO_capped)
 	EXPECT_EQ(4095, errno);
 }
 
-FIXTURE_DATA(TRAP) {
+FIXTURE_DATA(TRAP)
+{
 	struct sock_fprog prog;
 };
 
 FIXTURE_SETUP(TRAP)
 {
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_LD|BPF_W|BPF_ABS,
-			offsetof(struct seccomp_data, nr)),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_getpid, 0, 1),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_TRAP),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
+		offsetof(struct seccomp_data, nr)),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_getpid, 0, 1),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_TRAP),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
 
 	memset(&self->prog, 0, sizeof(self->prog));
@@ -646,7 +706,9 @@ FIXTURE_SETUP(TRAP)
 FIXTURE_TEARDOWN(TRAP)
 {
 	if (self->prog.filter)
+	{
 		free(self->prog.filter);
+	}
 }
 
 TEST_F_SIGNAL(TRAP, dfl, SIGSYS)
@@ -697,11 +759,13 @@ TEST_F(TRAP, handler)
 	act.sa_sigaction = &TRAP_action;
 	act.sa_flags = SA_SIGINFO;
 	ret = sigaction(SIGSYS, &act, NULL);
-	ASSERT_EQ(0, ret) {
+	ASSERT_EQ(0, ret)
+	{
 		TH_LOG("sigaction failed");
 	}
 	ret = sigprocmask(SIG_UNBLOCK, &mask, NULL);
-	ASSERT_EQ(0, ret) {
+	ASSERT_EQ(0, ret)
+	{
 		TH_LOG("sigprocmask failed");
 	}
 
@@ -717,15 +781,16 @@ TEST_F(TRAP, handler)
 	/* Silence gcc warning about volatile. */
 	test = TRAP_nr;
 	EXPECT_EQ(SIGSYS, test);
-	struct local_sigsys {
+	struct local_sigsys
+	{
 		void *_call_addr;	/* calling user insn */
 		int _syscall;		/* triggering system call number */
 		unsigned int _arch;	/* AUDIT_ARCH_* of syscall */
 	} *sigsys = (struct local_sigsys *)
 #ifdef si_syscall
-		&(TRAP_info.si_call_addr);
+				& (TRAP_info.si_call_addr);
 #else
-		&TRAP_info.si_pid;
+				&TRAP_info.si_pid;
 #endif
 	EXPECT_EQ(__NR_getpid, sigsys->_syscall);
 	/* Make sure arch is non-zero. */
@@ -733,7 +798,8 @@ TEST_F(TRAP, handler)
 	EXPECT_NE(0, (unsigned long)sigsys->_call_addr);
 }
 
-FIXTURE_DATA(precedence) {
+FIXTURE_DATA(precedence)
+{
 	struct sock_fprog allow;
 	struct sock_fprog trace;
 	struct sock_fprog error;
@@ -743,36 +809,41 @@ FIXTURE_DATA(precedence) {
 
 FIXTURE_SETUP(precedence)
 {
-	struct sock_filter allow_insns[] = {
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter allow_insns[] =
+	{
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
-	struct sock_filter trace_insns[] = {
-		BPF_STMT(BPF_LD|BPF_W|BPF_ABS,
-			offsetof(struct seccomp_data, nr)),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_getpid, 1, 0),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_TRACE),
+	struct sock_filter trace_insns[] =
+	{
+		BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
+		offsetof(struct seccomp_data, nr)),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_getpid, 1, 0),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_TRACE),
 	};
-	struct sock_filter error_insns[] = {
-		BPF_STMT(BPF_LD|BPF_W|BPF_ABS,
-			offsetof(struct seccomp_data, nr)),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_getpid, 1, 0),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ERRNO),
+	struct sock_filter error_insns[] =
+	{
+		BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
+		offsetof(struct seccomp_data, nr)),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_getpid, 1, 0),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ERRNO),
 	};
-	struct sock_filter trap_insns[] = {
-		BPF_STMT(BPF_LD|BPF_W|BPF_ABS,
-			offsetof(struct seccomp_data, nr)),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_getpid, 1, 0),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_TRAP),
+	struct sock_filter trap_insns[] =
+	{
+		BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
+		offsetof(struct seccomp_data, nr)),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_getpid, 1, 0),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_TRAP),
 	};
-	struct sock_filter kill_insns[] = {
-		BPF_STMT(BPF_LD|BPF_W|BPF_ABS,
-			offsetof(struct seccomp_data, nr)),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_getpid, 1, 0),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_KILL),
+	struct sock_filter kill_insns[] =
+	{
+		BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
+		offsetof(struct seccomp_data, nr)),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_getpid, 1, 0),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_KILL),
 	};
 
 	memset(self, 0, sizeof(*self));
@@ -999,16 +1070,16 @@ TEST_F(precedence, trace_is_fourth_in_any_order)
 }
 
 #ifndef PTRACE_O_TRACESECCOMP
-#define PTRACE_O_TRACESECCOMP	0x00000080
+	#define PTRACE_O_TRACESECCOMP	0x00000080
 #endif
 
 /* Catch the Ubuntu 12.04 value error. */
 #if PTRACE_EVENT_SECCOMP != 7
-#undef PTRACE_EVENT_SECCOMP
+	#undef PTRACE_EVENT_SECCOMP
 #endif
 
 #ifndef PTRACE_EVENT_SECCOMP
-#define PTRACE_EVENT_SECCOMP 7
+	#define PTRACE_EVENT_SECCOMP 7
 #endif
 
 #define IS_SECCOMP_EVENT(status) ((status >> 16) == PTRACE_EVENT_SECCOMP)
@@ -1019,13 +1090,14 @@ void tracer_stop(int sig)
 }
 
 typedef void tracer_func_t(struct __test_metadata *_metadata,
-			   pid_t tracee, int status, void *args);
+						   pid_t tracee, int status, void *args);
 
 void start_tracer(struct __test_metadata *_metadata, int fd, pid_t tracee,
-	    tracer_func_t tracer_func, void *args, bool ptrace_syscall)
+				  tracer_func_t tracer_func, void *args, bool ptrace_syscall)
 {
 	int ret = -1;
-	struct sigaction action = {
+	struct sigaction action =
+	{
 		.sa_handler = tracer_stop,
 	};
 
@@ -1034,23 +1106,29 @@ void start_tracer(struct __test_metadata *_metadata, int fd, pid_t tracee,
 	ASSERT_EQ(0, sigaction(SIGUSR1, &action, NULL));
 
 	errno = 0;
+
 	while (ret == -1 && errno != EINVAL)
+	{
 		ret = ptrace(PTRACE_ATTACH, tracee, NULL, 0);
-	ASSERT_EQ(0, ret) {
+	}
+
+	ASSERT_EQ(0, ret)
+	{
 		kill(tracee, SIGKILL);
 	}
 	/* Wait for attach stop */
 	wait(NULL);
 
 	ret = ptrace(PTRACE_SETOPTIONS, tracee, NULL, ptrace_syscall ?
-						      PTRACE_O_TRACESYSGOOD :
-						      PTRACE_O_TRACESECCOMP);
-	ASSERT_EQ(0, ret) {
+				 PTRACE_O_TRACESYSGOOD :
+				 PTRACE_O_TRACESECCOMP);
+	ASSERT_EQ(0, ret)
+	{
 		TH_LOG("Failed to set PTRACE_O_TRACESECCOMP");
 		kill(tracee, SIGKILL);
 	}
 	ret = ptrace(ptrace_syscall ? PTRACE_SYSCALL : PTRACE_CONT,
-		     tracee, NULL, 0);
+				 tracee, NULL, 0);
 	ASSERT_EQ(0, ret);
 
 	/* Unblock the tracee */
@@ -1058,14 +1136,20 @@ void start_tracer(struct __test_metadata *_metadata, int fd, pid_t tracee,
 	ASSERT_EQ(0, close(fd));
 
 	/* Run until we're shut down. Must assert to stop execution. */
-	while (tracer_running) {
+	while (tracer_running)
+	{
 		int status;
 
 		if (wait(&status) != tracee)
+		{
 			continue;
+		}
+
 		if (WIFSIGNALED(status) || WIFEXITED(status))
 			/* Child is dead. Time to go. */
+		{
 			return;
+		}
 
 		/* Check if this is a seccomp event. */
 		ASSERT_EQ(!ptrace_syscall, IS_SECCOMP_EVENT(status));
@@ -1073,9 +1157,10 @@ void start_tracer(struct __test_metadata *_metadata, int fd, pid_t tracee,
 		tracer_func(_metadata, tracee, status, args);
 
 		ret = ptrace(ptrace_syscall ? PTRACE_SYSCALL : PTRACE_CONT,
-			     tracee, NULL, 0);
+					 tracee, NULL, 0);
 		ASSERT_EQ(0, ret);
 	}
+
 	/* Directly report the status of our test harness results. */
 	syscall(__NR_exit, _metadata->passed ? EXIT_SUCCESS : EXIT_FAILURE);
 }
@@ -1084,7 +1169,7 @@ void start_tracer(struct __test_metadata *_metadata, int fd, pid_t tracee,
 void cont_handler(int num)
 { }
 pid_t setup_trace_fixture(struct __test_metadata *_metadata,
-			  tracer_func_t func, void *args, bool ptrace_syscall)
+						  tracer_func_t func, void *args, bool ptrace_syscall)
 {
 	char sync;
 	int pipefd[2];
@@ -1098,12 +1183,15 @@ pid_t setup_trace_fixture(struct __test_metadata *_metadata,
 	tracer_pid = fork();
 	ASSERT_LE(0, tracer_pid);
 	signal(SIGALRM, cont_handler);
-	if (tracer_pid == 0) {
+
+	if (tracer_pid == 0)
+	{
 		close(pipefd[0]);
 		start_tracer(_metadata, pipefd[1], tracee, func, args,
-			     ptrace_syscall);
+					 ptrace_syscall);
 		syscall(__NR_exit, 0);
 	}
+
 	close(pipefd[1]);
 	prctl(PR_SET_PTRACER, tracer_pid, 0, 0, 0);
 	read(pipefd[0], &sync, 1);
@@ -1112,9 +1200,10 @@ pid_t setup_trace_fixture(struct __test_metadata *_metadata,
 	return tracer_pid;
 }
 void teardown_trace_fixture(struct __test_metadata *_metadata,
-			    pid_t tracer)
+							pid_t tracer)
 {
-	if (tracer) {
+	if (tracer)
+	{
 		int status;
 		/*
 		 * Extract the exit code from the other process and
@@ -1122,18 +1211,22 @@ void teardown_trace_fixture(struct __test_metadata *_metadata,
 		 */
 		ASSERT_EQ(0, kill(tracer, SIGUSR1));
 		ASSERT_EQ(tracer, waitpid(tracer, &status, 0));
+
 		if (WEXITSTATUS(status))
+		{
 			_metadata->passed = 0;
+		}
 	}
 }
 
 /* "poke" tracer arguments and function. */
-struct tracer_args_poke_t {
+struct tracer_args_poke_t
+{
 	unsigned long poke_addr;
 };
 
 void tracer_poke(struct __test_metadata *_metadata, pid_t tracee, int status,
-		 void *args)
+				 void *args)
 {
 	int ret;
 	unsigned long msg;
@@ -1142,7 +1235,8 @@ void tracer_poke(struct __test_metadata *_metadata, pid_t tracee, int status,
 	ret = ptrace(PTRACE_GETEVENTMSG, tracee, NULL, &msg);
 	EXPECT_EQ(0, ret);
 	/* If this fails, don't try to recover. */
-	ASSERT_EQ(0x1001, msg) {
+	ASSERT_EQ(0x1001, msg)
+	{
 		kill(tracee, SIGKILL);
 	}
 	/*
@@ -1154,7 +1248,8 @@ void tracer_poke(struct __test_metadata *_metadata, pid_t tracee, int status,
 	EXPECT_EQ(0, ret);
 }
 
-FIXTURE_DATA(TRACE_poke) {
+FIXTURE_DATA(TRACE_poke)
+{
 	struct sock_fprog prog;
 	pid_t tracer;
 	long poked;
@@ -1163,12 +1258,13 @@ FIXTURE_DATA(TRACE_poke) {
 
 FIXTURE_SETUP(TRACE_poke)
 {
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_LD|BPF_W|BPF_ABS,
-			offsetof(struct seccomp_data, nr)),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_read, 0, 1),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_TRACE | 0x1001),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
+		offsetof(struct seccomp_data, nr)),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_read, 0, 1),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_TRACE | 0x1001),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
 
 	self->poked = 0;
@@ -1183,14 +1279,17 @@ FIXTURE_SETUP(TRACE_poke)
 
 	/* Launch tracer. */
 	self->tracer = setup_trace_fixture(_metadata, tracer_poke,
-					   &self->tracer_args, false);
+									   &self->tracer_args, false);
 }
 
 FIXTURE_TEARDOWN(TRACE_poke)
 {
 	teardown_trace_fixture(_metadata, self->tracer);
+
 	if (self->prog.filter)
+	{
 		free(self->prog.filter);
+	}
 }
 
 TEST_F(TRACE_poke, read_has_side_effects)
@@ -1225,48 +1324,48 @@ TEST_F(TRACE_poke, getpid_runs_normally)
 }
 
 #if defined(__x86_64__)
-# define ARCH_REGS	struct user_regs_struct
-# define SYSCALL_NUM	orig_rax
-# define SYSCALL_RET	rax
+	#define ARCH_REGS	struct user_regs_struct
+	#define SYSCALL_NUM	orig_rax
+	#define SYSCALL_RET	rax
 #elif defined(__i386__)
-# define ARCH_REGS	struct user_regs_struct
-# define SYSCALL_NUM	orig_eax
-# define SYSCALL_RET	eax
+	#define ARCH_REGS	struct user_regs_struct
+	#define SYSCALL_NUM	orig_eax
+	#define SYSCALL_RET	eax
 #elif defined(__arm__)
-# define ARCH_REGS	struct pt_regs
-# define SYSCALL_NUM	ARM_r7
-# define SYSCALL_RET	ARM_r0
+	#define ARCH_REGS	struct pt_regs
+	#define SYSCALL_NUM	ARM_r7
+	#define SYSCALL_RET	ARM_r0
 #elif defined(__aarch64__)
-# define ARCH_REGS	struct user_pt_regs
-# define SYSCALL_NUM	regs[8]
-# define SYSCALL_RET	regs[0]
+	#define ARCH_REGS	struct user_pt_regs
+	#define SYSCALL_NUM	regs[8]
+	#define SYSCALL_RET	regs[0]
 #elif defined(__hppa__)
-# define ARCH_REGS	struct user_regs_struct
-# define SYSCALL_NUM	gr[20]
-# define SYSCALL_RET	gr[28]
+	#define ARCH_REGS	struct user_regs_struct
+	#define SYSCALL_NUM	gr[20]
+	#define SYSCALL_RET	gr[28]
 #elif defined(__powerpc__)
-# define ARCH_REGS	struct pt_regs
-# define SYSCALL_NUM	gpr[0]
-# define SYSCALL_RET	gpr[3]
+	#define ARCH_REGS	struct pt_regs
+	#define SYSCALL_NUM	gpr[0]
+	#define SYSCALL_RET	gpr[3]
 #elif defined(__s390__)
-# define ARCH_REGS     s390_regs
-# define SYSCALL_NUM   gprs[2]
-# define SYSCALL_RET   gprs[2]
+	#define ARCH_REGS     s390_regs
+	#define SYSCALL_NUM   gprs[2]
+	#define SYSCALL_RET   gprs[2]
 #elif defined(__mips__)
-# define ARCH_REGS	struct pt_regs
-# define SYSCALL_NUM	regs[2]
-# define SYSCALL_SYSCALL_NUM regs[4]
-# define SYSCALL_RET	regs[2]
-# define SYSCALL_NUM_RET_SHARE_REG
+	#define ARCH_REGS	struct pt_regs
+	#define SYSCALL_NUM	regs[2]
+	#define SYSCALL_SYSCALL_NUM regs[4]
+	#define SYSCALL_RET	regs[2]
+	#define SYSCALL_NUM_RET_SHARE_REG
 #else
-# error "Do not know how to find your architecture's registers and syscalls"
+	# error "Do not know how to find your architecture's registers and syscalls"
 #endif
 
 /* Use PTRACE_GETREGS and PTRACE_SETREGS when available. This is useful for
  * architectures without HAVE_ARCH_TRACEHOOK (e.g. User-mode Linux).
  */
 #if defined(__x86_64__) || defined(__i386__) || defined(__mips__)
-#define HAVE_GETREGS
+	#define HAVE_GETREGS
 #endif
 
 /* Architecture-specific syscall fetching routine. */
@@ -1274,7 +1373,8 @@ int get_syscall(struct __test_metadata *_metadata, pid_t tracee)
 {
 	ARCH_REGS regs;
 #ifdef HAVE_GETREGS
-	EXPECT_EQ(0, ptrace(PTRACE_GETREGS, tracee, 0, &regs)) {
+	EXPECT_EQ(0, ptrace(PTRACE_GETREGS, tracee, 0, &regs))
+	{
 		TH_LOG("PTRACE_GETREGS failed");
 		return -1;
 	}
@@ -1283,22 +1383,27 @@ int get_syscall(struct __test_metadata *_metadata, pid_t tracee)
 
 	iov.iov_base = &regs;
 	iov.iov_len = sizeof(regs);
-	EXPECT_EQ(0, ptrace(PTRACE_GETREGSET, tracee, NT_PRSTATUS, &iov)) {
+	EXPECT_EQ(0, ptrace(PTRACE_GETREGSET, tracee, NT_PRSTATUS, &iov))
+	{
 		TH_LOG("PTRACE_GETREGSET failed");
 		return -1;
 	}
 #endif
 
 #if defined(__mips__)
+
 	if (regs.SYSCALL_NUM == __NR_O32_Linux)
+	{
 		return regs.SYSCALL_SYSCALL_NUM;
+	}
+
 #endif
 	return regs.SYSCALL_NUM;
 }
 
 /* Architecture-specific syscall changing routine. */
 void change_syscall(struct __test_metadata *_metadata,
-		    pid_t tracee, int syscall)
+					pid_t tracee, int syscall)
 {
 	int ret;
 	ARCH_REGS regs;
@@ -1320,9 +1425,13 @@ void change_syscall(struct __test_metadata *_metadata,
 #elif defined(__mips__)
 	{
 		if (regs.SYSCALL_NUM == __NR_O32_Linux)
+		{
 			regs.SYSCALL_SYSCALL_NUM = syscall;
+		}
 		else
+		{
 			regs.SYSCALL_NUM = syscall;
+		}
 	}
 
 #elif defined(__arm__)
@@ -1342,12 +1451,13 @@ void change_syscall(struct __test_metadata *_metadata,
 		iov.iov_base = &syscall;
 		iov.iov_len = sizeof(syscall);
 		ret = ptrace(PTRACE_SETREGSET, tracee, NT_ARM_SYSTEM_CALL,
-			     &iov);
+					 &iov);
 		EXPECT_EQ(0, ret);
 	}
 
 #else
-	ASSERT_EQ(1, 0) {
+	ASSERT_EQ(1, 0)
+	{
 		TH_LOG("How is the syscall changed on this architecture?");
 	}
 #endif
@@ -1356,6 +1466,7 @@ void change_syscall(struct __test_metadata *_metadata,
 	if (syscall == -1)
 #ifdef SYSCALL_NUM_RET_SHARE_REG
 		TH_LOG("Can't modify syscall return on this architecture");
+
 #else
 		regs.SYSCALL_RET = 1;
 #endif
@@ -1371,7 +1482,7 @@ void change_syscall(struct __test_metadata *_metadata,
 }
 
 void tracer_syscall(struct __test_metadata *_metadata, pid_t tracee,
-		    int status, void *args)
+					int status, void *args)
 {
 	int ret;
 	unsigned long msg;
@@ -1381,32 +1492,37 @@ void tracer_syscall(struct __test_metadata *_metadata, pid_t tracee,
 	EXPECT_EQ(0, ret);
 
 	/* Validate and take action on expected syscalls. */
-	switch (msg) {
-	case 0x1002:
-		/* change getpid to getppid. */
-		EXPECT_EQ(__NR_getpid, get_syscall(_metadata, tracee));
-		change_syscall(_metadata, tracee, __NR_getppid);
-		break;
-	case 0x1003:
-		/* skip gettid. */
-		EXPECT_EQ(__NR_gettid, get_syscall(_metadata, tracee));
-		change_syscall(_metadata, tracee, -1);
-		break;
-	case 0x1004:
-		/* do nothing (allow getppid) */
-		EXPECT_EQ(__NR_getppid, get_syscall(_metadata, tracee));
-		break;
-	default:
-		EXPECT_EQ(0, msg) {
-			TH_LOG("Unknown PTRACE_GETEVENTMSG: 0x%lx", msg);
-			kill(tracee, SIGKILL);
-		}
+	switch (msg)
+	{
+		case 0x1002:
+			/* change getpid to getppid. */
+			EXPECT_EQ(__NR_getpid, get_syscall(_metadata, tracee));
+			change_syscall(_metadata, tracee, __NR_getppid);
+			break;
+
+		case 0x1003:
+			/* skip gettid. */
+			EXPECT_EQ(__NR_gettid, get_syscall(_metadata, tracee));
+			change_syscall(_metadata, tracee, -1);
+			break;
+
+		case 0x1004:
+			/* do nothing (allow getppid) */
+			EXPECT_EQ(__NR_getppid, get_syscall(_metadata, tracee));
+			break;
+
+		default:
+			EXPECT_EQ(0, msg)
+			{
+				TH_LOG("Unknown PTRACE_GETEVENTMSG: 0x%lx", msg);
+				kill(tracee, SIGKILL);
+			}
 	}
 
 }
 
 void tracer_ptrace(struct __test_metadata *_metadata, pid_t tracee,
-		   int status, void *args)
+				   int status, void *args)
 {
 	int ret, nr;
 	unsigned long msg;
@@ -1419,32 +1535,39 @@ void tracer_ptrace(struct __test_metadata *_metadata, pid_t tracee,
 
 	/* The only way to tell PTRACE_SYSCALL entry/exit is by counting. */
 	entry = !entry;
+
 	if (!entry)
+	{
 		return;
+	}
 
 	nr = get_syscall(_metadata, tracee);
 
 	if (nr == __NR_getpid)
+	{
 		change_syscall(_metadata, tracee, __NR_getppid);
+	}
 }
 
-FIXTURE_DATA(TRACE_syscall) {
+FIXTURE_DATA(TRACE_syscall)
+{
 	struct sock_fprog prog;
 	pid_t tracer, mytid, mypid, parent;
 };
 
 FIXTURE_SETUP(TRACE_syscall)
 {
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_LD|BPF_W|BPF_ABS,
-			offsetof(struct seccomp_data, nr)),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_getpid, 0, 1),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_TRACE | 0x1002),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_gettid, 0, 1),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_TRACE | 0x1003),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_getppid, 0, 1),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_TRACE | 0x1004),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
+		offsetof(struct seccomp_data, nr)),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_getpid, 0, 1),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_TRACE | 0x1002),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_gettid, 0, 1),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_TRACE | 0x1003),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_getppid, 0, 1),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_TRACE | 0x1004),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
 
 	memset(&self->prog, 0, sizeof(self->prog));
@@ -1456,7 +1579,8 @@ FIXTURE_SETUP(TRACE_syscall)
 	/* Prepare some testable syscall results. */
 	self->mytid = syscall(__NR_gettid);
 	ASSERT_GT(self->mytid, 0);
-	ASSERT_NE(self->mytid, 1) {
+	ASSERT_NE(self->mytid, 1)
+	{
 		TH_LOG("Running this test as init is not supported. :)");
 	}
 
@@ -1470,14 +1594,17 @@ FIXTURE_SETUP(TRACE_syscall)
 
 	/* Launch tracer. */
 	self->tracer = setup_trace_fixture(_metadata, tracer_syscall, NULL,
-					   false);
+									   false);
 }
 
 FIXTURE_TEARDOWN(TRACE_syscall)
 {
 	teardown_trace_fixture(_metadata, self->tracer);
+
 	if (self->prog.filter)
+	{
 		free(self->prog.filter);
+	}
 }
 
 TEST_F(TRACE_syscall, syscall_allowed)
@@ -1532,14 +1659,16 @@ TEST_F(TRACE_syscall, syscall_dropped)
 
 TEST_F(TRACE_syscall, skip_after_RET_TRACE)
 {
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_LD|BPF_W|BPF_ABS,
-			offsetof(struct seccomp_data, nr)),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_getppid, 0, 1),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ERRNO | EPERM),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
+		offsetof(struct seccomp_data, nr)),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_getppid, 0, 1),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ERRNO | EPERM),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
-	struct sock_fprog prog = {
+	struct sock_fprog prog =
+	{
 		.len = (unsigned short)ARRAY_SIZE(filter),
 		.filter = filter,
 	};
@@ -1563,14 +1692,16 @@ TEST_F(TRACE_syscall, skip_after_RET_TRACE)
 
 TEST_F_SIGNAL(TRACE_syscall, kill_after_RET_TRACE, SIGSYS)
 {
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_LD|BPF_W|BPF_ABS,
-			offsetof(struct seccomp_data, nr)),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_getppid, 0, 1),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_KILL),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
+		offsetof(struct seccomp_data, nr)),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_getppid, 0, 1),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_KILL),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
-	struct sock_fprog prog = {
+	struct sock_fprog prog =
+	{
 		.len = (unsigned short)ARRAY_SIZE(filter),
 		.filter = filter,
 	};
@@ -1593,14 +1724,16 @@ TEST_F_SIGNAL(TRACE_syscall, kill_after_RET_TRACE, SIGSYS)
 
 TEST_F(TRACE_syscall, skip_after_ptrace)
 {
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_LD|BPF_W|BPF_ABS,
-			offsetof(struct seccomp_data, nr)),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_getppid, 0, 1),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ERRNO | EPERM),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
+		offsetof(struct seccomp_data, nr)),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_getppid, 0, 1),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ERRNO | EPERM),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
-	struct sock_fprog prog = {
+	struct sock_fprog prog =
+	{
 		.len = (unsigned short)ARRAY_SIZE(filter),
 		.filter = filter,
 	};
@@ -1609,7 +1742,7 @@ TEST_F(TRACE_syscall, skip_after_ptrace)
 	/* Swap SECCOMP_RET_TRACE tracer for PTRACE_SYSCALL tracer. */
 	teardown_trace_fixture(_metadata, self->tracer);
 	self->tracer = setup_trace_fixture(_metadata, tracer_ptrace, NULL,
-					   true);
+									   true);
 
 	ret = prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
 	ASSERT_EQ(0, ret);
@@ -1625,14 +1758,16 @@ TEST_F(TRACE_syscall, skip_after_ptrace)
 
 TEST_F_SIGNAL(TRACE_syscall, kill_after_ptrace, SIGSYS)
 {
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_LD|BPF_W|BPF_ABS,
-			offsetof(struct seccomp_data, nr)),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_getppid, 0, 1),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_KILL),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
+		offsetof(struct seccomp_data, nr)),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_getppid, 0, 1),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_KILL),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
-	struct sock_fprog prog = {
+	struct sock_fprog prog =
+	{
 		.len = (unsigned short)ARRAY_SIZE(filter),
 		.filter = filter,
 	};
@@ -1641,7 +1776,7 @@ TEST_F_SIGNAL(TRACE_syscall, kill_after_ptrace, SIGSYS)
 	/* Swap SECCOMP_RET_TRACE tracer for PTRACE_SYSCALL tracer. */
 	teardown_trace_fixture(_metadata, self->tracer);
 	self->tracer = setup_trace_fixture(_metadata, tracer_ptrace, NULL,
-					   true);
+									   true);
 
 	ret = prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
 	ASSERT_EQ(0, ret);
@@ -1655,36 +1790,36 @@ TEST_F_SIGNAL(TRACE_syscall, kill_after_ptrace, SIGSYS)
 }
 
 #ifndef __NR_seccomp
-# if defined(__i386__)
-#  define __NR_seccomp 354
-# elif defined(__x86_64__)
-#  define __NR_seccomp 317
-# elif defined(__arm__)
-#  define __NR_seccomp 383
-# elif defined(__aarch64__)
-#  define __NR_seccomp 277
-# elif defined(__hppa__)
-#  define __NR_seccomp 338
-# elif defined(__powerpc__)
-#  define __NR_seccomp 358
-# elif defined(__s390__)
-#  define __NR_seccomp 348
-# else
-#  warning "seccomp syscall number unknown for this architecture"
-#  define __NR_seccomp 0xffff
-# endif
+	#if defined(__i386__)
+		#define __NR_seccomp 354
+	#elif defined(__x86_64__)
+		#define __NR_seccomp 317
+	#elif defined(__arm__)
+		#define __NR_seccomp 383
+	#elif defined(__aarch64__)
+		#define __NR_seccomp 277
+	#elif defined(__hppa__)
+		#define __NR_seccomp 338
+	#elif defined(__powerpc__)
+		#define __NR_seccomp 358
+	#elif defined(__s390__)
+		#define __NR_seccomp 348
+	#else
+		#  warning "seccomp syscall number unknown for this architecture"
+		#define __NR_seccomp 0xffff
+	#endif
 #endif
 
 #ifndef SECCOMP_SET_MODE_STRICT
-#define SECCOMP_SET_MODE_STRICT 0
+	#define SECCOMP_SET_MODE_STRICT 0
 #endif
 
 #ifndef SECCOMP_SET_MODE_FILTER
-#define SECCOMP_SET_MODE_FILTER 1
+	#define SECCOMP_SET_MODE_FILTER 1
 #endif
 
 #ifndef SECCOMP_FILTER_FLAG_TSYNC
-#define SECCOMP_FILTER_FLAG_TSYNC 1
+	#define SECCOMP_FILTER_FLAG_TSYNC 1
 #endif
 
 #ifndef seccomp
@@ -1697,120 +1832,143 @@ int seccomp(unsigned int op, unsigned int flags, void *args)
 
 TEST(seccomp_syscall)
 {
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
-	struct sock_fprog prog = {
+	struct sock_fprog prog =
+	{
 		.len = (unsigned short)ARRAY_SIZE(filter),
 		.filter = filter,
 	};
 	long ret;
 
 	ret = prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
-	ASSERT_EQ(0, ret) {
+	ASSERT_EQ(0, ret)
+	{
 		TH_LOG("Kernel does not support PR_SET_NO_NEW_PRIVS!");
 	}
 
 	/* Reject insane operation. */
 	ret = seccomp(-1, 0, &prog);
-	ASSERT_NE(ENOSYS, errno) {
+	ASSERT_NE(ENOSYS, errno)
+	{
 		TH_LOG("Kernel does not support seccomp syscall!");
 	}
-	EXPECT_EQ(EINVAL, errno) {
+	EXPECT_EQ(EINVAL, errno)
+	{
 		TH_LOG("Did not reject crazy op value!");
 	}
 
 	/* Reject strict with flags or pointer. */
 	ret = seccomp(SECCOMP_SET_MODE_STRICT, -1, NULL);
-	EXPECT_EQ(EINVAL, errno) {
+	EXPECT_EQ(EINVAL, errno)
+	{
 		TH_LOG("Did not reject mode strict with flags!");
 	}
 	ret = seccomp(SECCOMP_SET_MODE_STRICT, 0, &prog);
-	EXPECT_EQ(EINVAL, errno) {
+	EXPECT_EQ(EINVAL, errno)
+	{
 		TH_LOG("Did not reject mode strict with uargs!");
 	}
 
 	/* Reject insane args for filter. */
 	ret = seccomp(SECCOMP_SET_MODE_FILTER, -1, &prog);
-	EXPECT_EQ(EINVAL, errno) {
+	EXPECT_EQ(EINVAL, errno)
+	{
 		TH_LOG("Did not reject crazy filter flags!");
 	}
 	ret = seccomp(SECCOMP_SET_MODE_FILTER, 0, NULL);
-	EXPECT_EQ(EFAULT, errno) {
+	EXPECT_EQ(EFAULT, errno)
+	{
 		TH_LOG("Did not reject NULL filter!");
 	}
 
 	ret = seccomp(SECCOMP_SET_MODE_FILTER, 0, &prog);
-	EXPECT_EQ(0, errno) {
+	EXPECT_EQ(0, errno)
+	{
 		TH_LOG("Kernel does not support SECCOMP_SET_MODE_FILTER: %s",
-			strerror(errno));
+			   strerror(errno));
 	}
 }
 
 TEST(seccomp_syscall_mode_lock)
 {
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
-	struct sock_fprog prog = {
+	struct sock_fprog prog =
+	{
 		.len = (unsigned short)ARRAY_SIZE(filter),
 		.filter = filter,
 	};
 	long ret;
 
 	ret = prctl(PR_SET_NO_NEW_PRIVS, 1, NULL, 0, 0);
-	ASSERT_EQ(0, ret) {
+	ASSERT_EQ(0, ret)
+	{
 		TH_LOG("Kernel does not support PR_SET_NO_NEW_PRIVS!");
 	}
 
 	ret = seccomp(SECCOMP_SET_MODE_FILTER, 0, &prog);
-	ASSERT_NE(ENOSYS, errno) {
+	ASSERT_NE(ENOSYS, errno)
+	{
 		TH_LOG("Kernel does not support seccomp syscall!");
 	}
-	EXPECT_EQ(0, ret) {
+	EXPECT_EQ(0, ret)
+	{
 		TH_LOG("Could not install filter!");
 	}
 
 	/* Make sure neither entry point will switch to strict. */
 	ret = prctl(PR_SET_SECCOMP, SECCOMP_MODE_STRICT, 0, 0, 0);
-	EXPECT_EQ(EINVAL, errno) {
+	EXPECT_EQ(EINVAL, errno)
+	{
 		TH_LOG("Switched to mode strict!");
 	}
 
 	ret = seccomp(SECCOMP_SET_MODE_STRICT, 0, NULL);
-	EXPECT_EQ(EINVAL, errno) {
+	EXPECT_EQ(EINVAL, errno)
+	{
 		TH_LOG("Switched to mode strict!");
 	}
 }
 
 TEST(TSYNC_first)
 {
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
-	struct sock_fprog prog = {
+	struct sock_fprog prog =
+	{
 		.len = (unsigned short)ARRAY_SIZE(filter),
 		.filter = filter,
 	};
 	long ret;
 
 	ret = prctl(PR_SET_NO_NEW_PRIVS, 1, NULL, 0, 0);
-	ASSERT_EQ(0, ret) {
+	ASSERT_EQ(0, ret)
+	{
 		TH_LOG("Kernel does not support PR_SET_NO_NEW_PRIVS!");
 	}
 
 	ret = seccomp(SECCOMP_SET_MODE_FILTER, SECCOMP_FILTER_FLAG_TSYNC,
-		      &prog);
-	ASSERT_NE(ENOSYS, errno) {
+				  &prog);
+	ASSERT_NE(ENOSYS, errno)
+	{
 		TH_LOG("Kernel does not support seccomp syscall!");
 	}
-	EXPECT_EQ(0, ret) {
+	EXPECT_EQ(0, ret)
+	{
 		TH_LOG("Could not install initial filter with TSYNC!");
 	}
 }
 
 #define TSYNC_SIBLINGS 2
-struct tsync_sibling {
+struct tsync_sibling
+{
 	pthread_t tid;
 	pid_t system_tid;
 	sem_t *started;
@@ -1822,7 +1980,8 @@ struct tsync_sibling {
 	struct __test_metadata *metadata;
 };
 
-FIXTURE_DATA(TSYNC) {
+FIXTURE_DATA(TSYNC)
+{
 	struct sock_fprog root_prog, apply_prog;
 	struct tsync_sibling sibling[TSYNC_SIBLINGS];
 	sem_t started;
@@ -1833,15 +1992,17 @@ FIXTURE_DATA(TSYNC) {
 
 FIXTURE_SETUP(TSYNC)
 {
-	struct sock_filter root_filter[] = {
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter root_filter[] =
+	{
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
-	struct sock_filter apply_filter[] = {
-		BPF_STMT(BPF_LD|BPF_W|BPF_ABS,
-			offsetof(struct seccomp_data, nr)),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_read, 0, 1),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_KILL),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter apply_filter[] =
+	{
+		BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
+		offsetof(struct seccomp_data, nr)),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_read, 0, 1),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_KILL),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
 
 	memset(&self->root_prog, 0, sizeof(self->root_prog));
@@ -1884,21 +2045,32 @@ FIXTURE_TEARDOWN(TSYNC)
 	int sib = 0;
 
 	if (self->root_prog.filter)
+	{
 		free(self->root_prog.filter);
-	if (self->apply_prog.filter)
-		free(self->apply_prog.filter);
+	}
 
-	for ( ; sib < self->sibling_count; ++sib) {
+	if (self->apply_prog.filter)
+	{
+		free(self->apply_prog.filter);
+	}
+
+	for ( ; sib < self->sibling_count; ++sib)
+	{
 		struct tsync_sibling *s = &self->sibling[sib];
 		void *status;
 
 		if (!s->tid)
+		{
 			continue;
-		if (pthread_kill(s->tid, 0)) {
+		}
+
+		if (pthread_kill(s->tid, 0))
+		{
 			pthread_cancel(s->tid);
 			pthread_join(s->tid, &status);
 		}
 	}
+
 	pthread_mutex_destroy(&self->mutex);
 	pthread_cond_destroy(&self->cond);
 	sem_destroy(&self->started);
@@ -1912,26 +2084,39 @@ void *tsync_sibling(void *data)
 	me->system_tid = syscall(__NR_gettid);
 
 	pthread_mutex_lock(me->mutex);
-	if (me->diverge) {
+
+	if (me->diverge)
+	{
 		/* Just re-apply the root prog to fork the tree */
 		ret = prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER,
-				me->prog, 0, 0);
+					me->prog, 0, 0);
 	}
+
 	sem_post(me->started);
+
 	/* Return outside of started so parent notices failures. */
-	if (ret) {
+	if (ret)
+	{
 		pthread_mutex_unlock(me->mutex);
 		return (void *)SIBLING_EXIT_FAILURE;
 	}
-	do {
+
+	do
+	{
 		pthread_cond_wait(me->cond, me->mutex);
 		me->num_waits = me->num_waits - 1;
-	} while (me->num_waits);
+	}
+	while (me->num_waits);
+
 	pthread_mutex_unlock(me->mutex);
 
 	ret = prctl(PR_GET_NO_NEW_PRIVS, 0, 0, 0, 0);
+
 	if (!ret)
+	{
 		return (void *)SIBLING_EXIT_NEWPRIVS;
+	}
+
 	read(0, NULL, 0);
 	return (void *)SIBLING_EXIT_UNKILLED;
 }
@@ -1945,28 +2130,33 @@ TEST_F(TSYNC, siblings_fail_prctl)
 {
 	long ret;
 	void *status;
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_LD|BPF_W|BPF_ABS,
-			offsetof(struct seccomp_data, nr)),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_prctl, 0, 1),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ERRNO | EINVAL),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
+		offsetof(struct seccomp_data, nr)),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_prctl, 0, 1),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ERRNO | EINVAL),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
 	};
-	struct sock_fprog prog = {
+	struct sock_fprog prog =
+	{
 		.len = (unsigned short)ARRAY_SIZE(filter),
 		.filter = filter,
 	};
 
-	ASSERT_EQ(0, prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0)) {
+	ASSERT_EQ(0, prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0))
+	{
 		TH_LOG("Kernel does not support PR_SET_NO_NEW_PRIVS!");
 	}
 
 	/* Check prctl failure detection by requesting sib 0 diverge. */
 	ret = seccomp(SECCOMP_SET_MODE_FILTER, 0, &prog);
-	ASSERT_NE(ENOSYS, errno) {
+	ASSERT_NE(ENOSYS, errno)
+	{
 		TH_LOG("Kernel does not support seccomp syscall!");
 	}
-	ASSERT_EQ(0, ret) {
+	ASSERT_EQ(0, ret)
+	{
 		TH_LOG("setting filter failed");
 	}
 
@@ -1974,14 +2164,16 @@ TEST_F(TSYNC, siblings_fail_prctl)
 	tsync_start_sibling(&self->sibling[0]);
 	tsync_start_sibling(&self->sibling[1]);
 
-	while (self->sibling_count < TSYNC_SIBLINGS) {
+	while (self->sibling_count < TSYNC_SIBLINGS)
+	{
 		sem_wait(&self->started);
 		self->sibling_count++;
 	}
 
 	/* Signal the threads to clean up*/
 	pthread_mutex_lock(&self->mutex);
-	ASSERT_EQ(0, pthread_cond_broadcast(&self->cond)) {
+	ASSERT_EQ(0, pthread_cond_broadcast(&self->cond))
+	{
 		TH_LOG("cond broadcast non-zero");
 	}
 	pthread_mutex_unlock(&self->mutex);
@@ -1998,33 +2190,39 @@ TEST_F(TSYNC, two_siblings_with_ancestor)
 	long ret;
 	void *status;
 
-	ASSERT_EQ(0, prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0)) {
+	ASSERT_EQ(0, prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0))
+	{
 		TH_LOG("Kernel does not support PR_SET_NO_NEW_PRIVS!");
 	}
 
 	ret = seccomp(SECCOMP_SET_MODE_FILTER, 0, &self->root_prog);
-	ASSERT_NE(ENOSYS, errno) {
+	ASSERT_NE(ENOSYS, errno)
+	{
 		TH_LOG("Kernel does not support seccomp syscall!");
 	}
-	ASSERT_EQ(0, ret) {
+	ASSERT_EQ(0, ret)
+	{
 		TH_LOG("Kernel does not support SECCOMP_SET_MODE_FILTER!");
 	}
 	tsync_start_sibling(&self->sibling[0]);
 	tsync_start_sibling(&self->sibling[1]);
 
-	while (self->sibling_count < TSYNC_SIBLINGS) {
+	while (self->sibling_count < TSYNC_SIBLINGS)
+	{
 		sem_wait(&self->started);
 		self->sibling_count++;
 	}
 
 	ret = seccomp(SECCOMP_SET_MODE_FILTER, SECCOMP_FILTER_FLAG_TSYNC,
-		      &self->apply_prog);
-	ASSERT_EQ(0, ret) {
+				  &self->apply_prog);
+	ASSERT_EQ(0, ret)
+	{
 		TH_LOG("Could install filter on all threads!");
 	}
 	/* Tell the siblings to test the policy */
 	pthread_mutex_lock(&self->mutex);
-	ASSERT_EQ(0, pthread_cond_broadcast(&self->cond)) {
+	ASSERT_EQ(0, pthread_cond_broadcast(&self->cond))
+	{
 		TH_LOG("cond broadcast non-zero");
 	}
 	pthread_mutex_unlock(&self->mutex);
@@ -2042,14 +2240,17 @@ TEST_F(TSYNC, two_sibling_want_nnp)
 	/* start siblings before any prctl() operations */
 	tsync_start_sibling(&self->sibling[0]);
 	tsync_start_sibling(&self->sibling[1]);
-	while (self->sibling_count < TSYNC_SIBLINGS) {
+
+	while (self->sibling_count < TSYNC_SIBLINGS)
+	{
 		sem_wait(&self->started);
 		self->sibling_count++;
 	}
 
 	/* Tell the siblings to test no policy */
 	pthread_mutex_lock(&self->mutex);
-	ASSERT_EQ(0, pthread_cond_broadcast(&self->cond)) {
+	ASSERT_EQ(0, pthread_cond_broadcast(&self->cond))
+	{
 		TH_LOG("cond broadcast non-zero");
 	}
 	pthread_mutex_unlock(&self->mutex);
@@ -2069,27 +2270,33 @@ TEST_F(TSYNC, two_siblings_with_no_filter)
 	/* start siblings before any prctl() operations */
 	tsync_start_sibling(&self->sibling[0]);
 	tsync_start_sibling(&self->sibling[1]);
-	while (self->sibling_count < TSYNC_SIBLINGS) {
+
+	while (self->sibling_count < TSYNC_SIBLINGS)
+	{
 		sem_wait(&self->started);
 		self->sibling_count++;
 	}
 
-	ASSERT_EQ(0, prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0)) {
+	ASSERT_EQ(0, prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0))
+	{
 		TH_LOG("Kernel does not support PR_SET_NO_NEW_PRIVS!");
 	}
 
 	ret = seccomp(SECCOMP_SET_MODE_FILTER, SECCOMP_FILTER_FLAG_TSYNC,
-		      &self->apply_prog);
-	ASSERT_NE(ENOSYS, errno) {
+				  &self->apply_prog);
+	ASSERT_NE(ENOSYS, errno)
+	{
 		TH_LOG("Kernel does not support seccomp syscall!");
 	}
-	ASSERT_EQ(0, ret) {
+	ASSERT_EQ(0, ret)
+	{
 		TH_LOG("Could install filter on all threads!");
 	}
 
 	/* Tell the siblings to test the policy */
 	pthread_mutex_lock(&self->mutex);
-	ASSERT_EQ(0, pthread_cond_broadcast(&self->cond)) {
+	ASSERT_EQ(0, pthread_cond_broadcast(&self->cond))
+	{
 		TH_LOG("cond broadcast non-zero");
 	}
 	pthread_mutex_unlock(&self->mutex);
@@ -2106,35 +2313,41 @@ TEST_F(TSYNC, two_siblings_with_one_divergence)
 	long ret;
 	void *status;
 
-	ASSERT_EQ(0, prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0)) {
+	ASSERT_EQ(0, prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0))
+	{
 		TH_LOG("Kernel does not support PR_SET_NO_NEW_PRIVS!");
 	}
 
 	ret = seccomp(SECCOMP_SET_MODE_FILTER, 0, &self->root_prog);
-	ASSERT_NE(ENOSYS, errno) {
+	ASSERT_NE(ENOSYS, errno)
+	{
 		TH_LOG("Kernel does not support seccomp syscall!");
 	}
-	ASSERT_EQ(0, ret) {
+	ASSERT_EQ(0, ret)
+	{
 		TH_LOG("Kernel does not support SECCOMP_SET_MODE_FILTER!");
 	}
 	self->sibling[0].diverge = 1;
 	tsync_start_sibling(&self->sibling[0]);
 	tsync_start_sibling(&self->sibling[1]);
 
-	while (self->sibling_count < TSYNC_SIBLINGS) {
+	while (self->sibling_count < TSYNC_SIBLINGS)
+	{
 		sem_wait(&self->started);
 		self->sibling_count++;
 	}
 
 	ret = seccomp(SECCOMP_SET_MODE_FILTER, SECCOMP_FILTER_FLAG_TSYNC,
-		      &self->apply_prog);
-	ASSERT_EQ(self->sibling[0].system_tid, ret) {
+				  &self->apply_prog);
+	ASSERT_EQ(self->sibling[0].system_tid, ret)
+	{
 		TH_LOG("Did not fail on diverged sibling.");
 	}
 
 	/* Wake the threads */
 	pthread_mutex_lock(&self->mutex);
-	ASSERT_EQ(0, pthread_cond_broadcast(&self->cond)) {
+	ASSERT_EQ(0, pthread_cond_broadcast(&self->cond))
+	{
 		TH_LOG("cond broadcast non-zero");
 	}
 	pthread_mutex_unlock(&self->mutex);
@@ -2151,7 +2364,8 @@ TEST_F(TSYNC, two_siblings_not_under_filter)
 	long ret, sib;
 	void *status;
 
-	ASSERT_EQ(0, prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0)) {
+	ASSERT_EQ(0, prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0))
+	{
 		TH_LOG("Kernel does not support PR_SET_NO_NEW_PRIVS!");
 	}
 
@@ -2165,27 +2379,34 @@ TEST_F(TSYNC, two_siblings_not_under_filter)
 	tsync_start_sibling(&self->sibling[0]);
 	tsync_start_sibling(&self->sibling[1]);
 
-	while (self->sibling_count < TSYNC_SIBLINGS) {
+	while (self->sibling_count < TSYNC_SIBLINGS)
+	{
 		sem_wait(&self->started);
 		self->sibling_count++;
 	}
 
 	ret = seccomp(SECCOMP_SET_MODE_FILTER, 0, &self->root_prog);
-	ASSERT_NE(ENOSYS, errno) {
+	ASSERT_NE(ENOSYS, errno)
+	{
 		TH_LOG("Kernel does not support seccomp syscall!");
 	}
-	ASSERT_EQ(0, ret) {
+	ASSERT_EQ(0, ret)
+	{
 		TH_LOG("Kernel does not support SECCOMP_SET_MODE_FILTER!");
 	}
 
 	ret = seccomp(SECCOMP_SET_MODE_FILTER, SECCOMP_FILTER_FLAG_TSYNC,
-		      &self->apply_prog);
-	ASSERT_EQ(ret, self->sibling[0].system_tid) {
+				  &self->apply_prog);
+	ASSERT_EQ(ret, self->sibling[0].system_tid)
+	{
 		TH_LOG("Did not fail on diverged sibling.");
 	}
 	sib = 1;
+
 	if (ret == self->sibling[0].system_tid)
+	{
 		sib = 0;
+	}
 
 	pthread_mutex_lock(&self->mutex);
 
@@ -2195,21 +2416,27 @@ TEST_F(TSYNC, two_siblings_not_under_filter)
 	self->sibling[!sib].num_waits += 1;
 
 	/* Signal the thread to clean up*/
-	ASSERT_EQ(0, pthread_cond_broadcast(&self->cond)) {
+	ASSERT_EQ(0, pthread_cond_broadcast(&self->cond))
+	{
 		TH_LOG("cond broadcast non-zero");
 	}
 	pthread_mutex_unlock(&self->mutex);
 	pthread_join(self->sibling[sib].tid, &status);
 	EXPECT_EQ(SIBLING_EXIT_UNKILLED, (long)status);
+
 	/* Poll for actual task death. pthread_join doesn't guarantee it. */
 	while (!kill(self->sibling[sib].system_tid, 0))
+	{
 		sleep(0.1);
+	}
+
 	/* Switch to the remaining sibling */
 	sib = !sib;
 
 	ret = seccomp(SECCOMP_SET_MODE_FILTER, SECCOMP_FILTER_FLAG_TSYNC,
-		      &self->apply_prog);
-	ASSERT_EQ(0, ret) {
+				  &self->apply_prog);
+	ASSERT_EQ(0, ret)
+	{
 		TH_LOG("Expected the remaining sibling to sync");
 	};
 
@@ -2219,19 +2446,26 @@ TEST_F(TSYNC, two_siblings_not_under_filter)
 	 * the first broadcast, manually reduce the num_waits now.
 	 */
 	if (self->sibling[sib].num_waits > 1)
+	{
 		self->sibling[sib].num_waits = 1;
-	ASSERT_EQ(0, pthread_cond_broadcast(&self->cond)) {
+	}
+
+	ASSERT_EQ(0, pthread_cond_broadcast(&self->cond))
+	{
 		TH_LOG("cond broadcast non-zero");
 	}
 	pthread_mutex_unlock(&self->mutex);
 	pthread_join(self->sibling[sib].tid, &status);
 	EXPECT_EQ(0, (long)status);
+
 	/* Poll for actual task death. pthread_join doesn't guarantee it. */
 	while (!kill(self->sibling[sib].system_tid, 0))
+	{
 		sleep(0.1);
+	}
 
 	ret = seccomp(SECCOMP_SET_MODE_FILTER, SECCOMP_FILTER_FLAG_TSYNC,
-		      &self->apply_prog);
+				  &self->apply_prog);
 	ASSERT_EQ(0, ret);  /* just us chickens */
 }
 
@@ -2244,29 +2478,31 @@ TEST(syscall_restart)
 	int pipefd[2];
 	int status;
 	siginfo_t info = { };
-	struct sock_filter filter[] = {
-		BPF_STMT(BPF_LD|BPF_W|BPF_ABS,
-			 offsetof(struct seccomp_data, nr)),
+	struct sock_filter filter[] =
+	{
+		BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
+		offsetof(struct seccomp_data, nr)),
 
 #ifdef __NR_sigreturn
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_sigreturn, 6, 0),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_sigreturn, 6, 0),
 #endif
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_read, 5, 0),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_exit, 4, 0),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_rt_sigreturn, 3, 0),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_nanosleep, 4, 0),
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_restart_syscall, 4, 0),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_read, 5, 0),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_exit, 4, 0),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_rt_sigreturn, 3, 0),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_nanosleep, 4, 0),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_restart_syscall, 4, 0),
 
 		/* Allow __NR_write for easy logging. */
-		BPF_JUMP(BPF_JMP|BPF_JEQ|BPF_K, __NR_write, 0, 1),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_ALLOW),
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_KILL),
+		BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, __NR_write, 0, 1),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_KILL),
 		/* The nanosleep jump target. */
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_TRACE|0x100),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_TRACE | 0x100),
 		/* The restart_syscall jump target. */
-		BPF_STMT(BPF_RET|BPF_K, SECCOMP_RET_TRACE|0x200),
+		BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_TRACE | 0x200),
 	};
-	struct sock_fprog prog = {
+	struct sock_fprog prog =
+	{
 		.len = (unsigned short)ARRAY_SIZE(filter),
 		.filter = filter,
 	};
@@ -2278,7 +2514,9 @@ TEST(syscall_restart)
 
 	child_pid = fork();
 	ASSERT_LE(0, child_pid);
-	if (child_pid == 0) {
+
+	if (child_pid == 0)
+	{
 		/* Child uses EXPECT not ASSERT to deliver status correctly. */
 		char buf = ' ';
 		struct timespec timeout = { };
@@ -2289,48 +2527,56 @@ TEST(syscall_restart)
 
 		EXPECT_EQ(0, close(pipefd[1]));
 
-		EXPECT_EQ(0, prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0)) {
+		EXPECT_EQ(0, prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0))
+		{
 			TH_LOG("Kernel does not support PR_SET_NO_NEW_PRIVS!");
 		}
 
 		ret = prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &prog, 0, 0);
-		EXPECT_EQ(0, ret) {
+		EXPECT_EQ(0, ret)
+		{
 			TH_LOG("Failed to install filter!");
 		}
 
-		EXPECT_EQ(1, read(pipefd[0], &buf, 1)) {
+		EXPECT_EQ(1, read(pipefd[0], &buf, 1))
+		{
 			TH_LOG("Failed to read() sync from parent");
 		}
-		EXPECT_EQ('.', buf) {
+		EXPECT_EQ('.', buf)
+		{
 			TH_LOG("Failed to get sync data from read()");
 		}
 
 		/* Start nanosleep to be interrupted. */
 		timeout.tv_sec = 1;
 		errno = 0;
-		EXPECT_EQ(0, nanosleep(&timeout, NULL)) {
+		EXPECT_EQ(0, nanosleep(&timeout, NULL))
+		{
 			TH_LOG("Call to nanosleep() failed (errno %d)", errno);
 		}
 
 		/* Read final sync from parent. */
-		EXPECT_EQ(1, read(pipefd[0], &buf, 1)) {
+		EXPECT_EQ(1, read(pipefd[0], &buf, 1))
+		{
 			TH_LOG("Failed final read() from parent");
 		}
-		EXPECT_EQ('!', buf) {
+		EXPECT_EQ('!', buf)
+		{
 			TH_LOG("Failed to get final data from read()");
 		}
 
 		/* Directly report the status of our test harness results. */
 		syscall(__NR_exit, _metadata->passed ? EXIT_SUCCESS
-						     : EXIT_FAILURE);
+				: EXIT_FAILURE);
 	}
+
 	EXPECT_EQ(0, close(pipefd[0]));
 
 	/* Attach to child, setup options, and release. */
 	ASSERT_EQ(child_pid, waitpid(child_pid, &status, 0));
 	ASSERT_EQ(true, WIFSTOPPED(status));
 	ASSERT_EQ(0, ptrace(PTRACE_SETOPTIONS, child_pid, NULL,
-			    PTRACE_O_TRACESECCOMP));
+						PTRACE_O_TRACESECCOMP));
 	ASSERT_EQ(0, ptrace(PTRACE_CONT, child_pid, NULL, 0));
 	ASSERT_EQ(1, write(pipefd[1], ".", 1));
 
@@ -2386,9 +2632,12 @@ TEST(syscall_restart)
 	 * - compat ARM registers on ARM64 DO expose true syscall.
 	 */
 	ASSERT_EQ(0, uname(&utsbuf));
-	if (strncmp(utsbuf.machine, "arm", 3) == 0) {
+
+	if (strncmp(utsbuf.machine, "arm", 3) == 0)
+	{
 		EXPECT_EQ(__NR_nanosleep, ret);
-	} else
+	}
+	else
 #endif
 	{
 		EXPECT_EQ(__NR_restart_syscall, ret);
@@ -2400,8 +2649,11 @@ TEST(syscall_restart)
 	EXPECT_EQ(0, close(pipefd[1]));
 
 	ASSERT_EQ(child_pid, waitpid(child_pid, &status, 0));
+
 	if (WIFSIGNALED(status) || WEXITSTATUS(status))
+	{
 		_metadata->passed = 0;
+	}
 }
 
 /*

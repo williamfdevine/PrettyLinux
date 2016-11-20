@@ -32,7 +32,8 @@
 /* Threshold for coping with large bursts of losses */
 #define DCCPAV_BURST_THRESH	(DCCPAV_MAX_ACKVEC_LEN / 8)
 
-enum dccp_ackvec_states {
+enum dccp_ackvec_states
+{
 	DCCPAV_RECEIVED =	0x00,
 	DCCPAV_ECN_MARKED =	0x40,
 	DCCPAV_RESERVED =	0x80,
@@ -66,14 +67,15 @@ static inline u8 dccp_ackvec_state(const u8 *cell)
  * @av_overflow:   if 1 then buf_head == buf_tail indicates buffer wraparound
  * @av_records:	   list of %dccp_ackvec_record (Ack Vectors sent previously)
  */
-struct dccp_ackvec {
+struct dccp_ackvec
+{
 	u8			av_buf[DCCPAV_MAX_ACKVEC_LEN];
 	u16			av_buf_head;
 	u16			av_buf_tail;
-	u64			av_buf_ackno:48;
-	u64			av_tail_ackno:48;
+	u64			av_buf_ackno: 48;
+	u64			av_tail_ackno: 48;
 	bool			av_buf_nonce[DCCPAV_NUM_ACKVECS];
-	u8			av_overflow:1;
+	u8			av_overflow: 1;
 	struct list_head	av_records;
 };
 
@@ -92,13 +94,14 @@ struct dccp_ackvec {
  *
  * The list as a whole is sorted in descending order by @avr_ack_seqno.
  */
-struct dccp_ackvec_record {
+struct dccp_ackvec_record
+{
 	struct list_head avr_node;
-	u64		 avr_ack_seqno:48;
-	u64		 avr_ack_ackno:48;
+	u64		 avr_ack_seqno: 48;
+	u64		 avr_ack_ackno: 48;
 	u16		 avr_ack_ptr;
 	u8		 avr_ack_runlen;
-	u8		 avr_ack_nonce:1;
+	u8		 avr_ack_nonce: 1;
 };
 
 int dccp_ackvec_init(void);
@@ -126,10 +129,11 @@ static inline bool dccp_ackvec_is_empty(const struct dccp_ackvec *av)
  *
  * This structure is used by CCIDs to access Ack Vectors in a received skb.
  */
-struct dccp_ackvec_parsed {
+struct dccp_ackvec_parsed
+{
 	u8		 *vec,
-			 len,
-			 nonce:1;
+		len,
+		nonce: 1;
 	struct list_head node;
 };
 

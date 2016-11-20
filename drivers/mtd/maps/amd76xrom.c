@@ -27,7 +27,8 @@
 
 #define ROM_PROBE_STEP_SIZE (64*1024) /* 64KiB */
 
-struct amd76xrom_window {
+struct amd76xrom_window
+{
 	void __iomem *virt;
 	unsigned long phys;
 	unsigned long size;
@@ -36,7 +37,8 @@ struct amd76xrom_window {
 	struct pci_dev *pdev;
 };
 
-struct amd76xrom_map_info {
+struct amd76xrom_map_info
+{
 	struct list_head list;
 	struct map_info map;
 	struct mtd_info *mtd;
@@ -61,7 +63,8 @@ static uint win_size_bits;
 module_param(win_size_bits, uint, 0);
 MODULE_PARM_DESC(win_size_bits, "ROM window size bits override for 0x43 byte, normally set by BIOS.");
 
-static struct amd76xrom_window amd76xrom_window = {
+static struct amd76xrom_window amd76xrom_window =
+{
 	.maps = LIST_HEAD_INIT(amd76xrom_window.maps),
 };
 
@@ -70,7 +73,8 @@ static void amd76xrom_cleanup(struct amd76xrom_window *window)
 	struct amd76xrom_map_info *map, *scratch;
 	u8 byte;
 
-	if (window->pdev) {
+	if (window->pdev)
+	{
 		/* Disable writes through the rom window */
 		pci_read_config_byte(window->pdev, 0x40, &byte);
 		pci_write_config_byte(window->pdev, 0x40, byte & ~1);
@@ -78,19 +82,26 @@ static void amd76xrom_cleanup(struct amd76xrom_window *window)
 	}
 
 	/* Free all of the mtd devices */
-	list_for_each_entry_safe(map, scratch, &window->maps, list) {
-		if (map->rsrc.parent) {
+	list_for_each_entry_safe(map, scratch, &window->maps, list)
+	{
+		if (map->rsrc.parent)
+		{
 			release_resource(&map->rsrc);
 		}
+
 		mtd_device_unregister(map->mtd);
 		map_destroy(map->mtd);
 		list_del(&map->list);
 		kfree(map);
 	}
-	if (window->rsrc.parent)
-		release_resource(&window->rsrc);
 
-	if (window->virt) {
+	if (window->rsrc.parent)
+	{
+		release_resource(&window->rsrc);
+	}
+
+	if (window->virt)
+	{
 		iounmap(window->virt);
 		window->virt = NULL;
 		window->phys = 0;
@@ -101,7 +112,7 @@ static void amd76xrom_cleanup(struct amd76xrom_window *window)
 
 
 static int amd76xrom_init_one(struct pci_dev *pdev,
-			      const struct pci_device_id *ent)
+							  const struct pci_device_id *ent)
 {
 	static char *rom_probe_types[] = { "cfi_probe", "jedec_probe", NULL };
 	u8 byte;
@@ -124,15 +135,20 @@ static int amd76xrom_init_one(struct pci_dev *pdev,
 
 	/* Assume the rom window is properly setup, and find it's size */
 	pci_read_config_byte(pdev, 0x43, &byte);
-	if ((byte & ((1<<7)|(1<<6))) == ((1<<7)|(1<<6))) {
+
+	if ((byte & ((1 << 7) | (1 << 6))) == ((1 << 7) | (1 << 6)))
+	{
 		window->phys = 0xffb00000; /* 5MiB */
 	}
-	else if ((byte & (1<<7)) == (1<<7)) {
+	else if ((byte & (1 << 7)) == (1 << 7))
+	{
 		window->phys = 0xffc00000; /* 4MiB */
 	}
-	else {
+	else
+	{
 		window->phys = 0xffff0000; /* 64KiB */
 	}
+
 	window->size = 0xffffffffUL - window->phys + 1UL;
 
 	/*
@@ -146,11 +162,13 @@ static int amd76xrom_init_one(struct pci_dev *pdev,
 	window->rsrc.start = window->phys;
 	window->rsrc.end   = window->phys + window->size - 1;
 	window->rsrc.flags = IORESOURCE_MEM | IORESOURCE_BUSY;
-	if (request_resource(&iomem_resource, &window->rsrc)) {
+
+	if (request_resource(&iomem_resource, &window->rsrc))
+	{
 		window->rsrc.parent = NULL;
 		printk(KERN_ERR MOD_NAME
-		       " %s(): Unable to register resource %pR - kernel bug?\n",
-		       __func__, &window->rsrc);
+			   " %s(): Unable to register resource %pR - kernel bug?\n",
+			   __func__, &window->rsrc);
 		return -EBUSY;
 	}
 
@@ -163,79 +181,103 @@ static int amd76xrom_init_one(struct pci_dev *pdev,
 
 	/* For write accesses caches are useless */
 	window->virt = ioremap_nocache(window->phys, window->size);
-	if (!window->virt) {
+
+	if (!window->virt)
+	{
 		printk(KERN_ERR MOD_NAME ": ioremap(%08lx, %08lx) failed\n",
-			window->phys, window->size);
+			   window->phys, window->size);
 		goto out;
 	}
 
 	/* Get the first address to look for an rom chip at */
 	map_top = window->phys;
 #if 1
+
 	/* The probe sequence run over the firmware hub lock
 	 * registers sets them to 0x7 (no access).
 	 * Probe at most the last 4M of the address space.
 	 */
-	if (map_top < 0xffc00000) {
+	if (map_top < 0xffc00000)
+	{
 		map_top = 0xffc00000;
 	}
+
 #endif
+
 	/* Loop  through and look for rom chips */
-	while((map_top - 1) < 0xffffffffUL) {
+	while ((map_top - 1) < 0xffffffffUL)
+	{
 		struct cfi_private *cfi;
 		unsigned long offset;
 		int i;
 
-		if (!map) {
+		if (!map)
+		{
 			map = kmalloc(sizeof(*map), GFP_KERNEL);
 		}
-		if (!map) {
+
+		if (!map)
+		{
 			printk(KERN_ERR MOD_NAME ": kmalloc failed");
 			goto out;
 		}
+
 		memset(map, 0, sizeof(*map));
 		INIT_LIST_HEAD(&map->list);
 		map->map.name = map->map_name;
 		map->map.phys = map_top;
 		offset = map_top - window->phys;
 		map->map.virt = (void __iomem *)
-			(((unsigned long)(window->virt)) + offset);
+						(((unsigned long)(window->virt)) + offset);
 		map->map.size = 0xffffffffUL - map_top + 1UL;
 		/* Set the name of the map to the address I am trying */
 		sprintf(map->map_name, "%s @%08Lx",
-			MOD_NAME, (unsigned long long)map->map.phys);
+				MOD_NAME, (unsigned long long)map->map.phys);
 
 		/* There is no generic VPP support */
-		for(map->map.bankwidth = 32; map->map.bankwidth;
-			map->map.bankwidth >>= 1)
+		for (map->map.bankwidth = 32; map->map.bankwidth;
+			 map->map.bankwidth >>= 1)
 		{
 			char **probe_type;
+
 			/* Skip bankwidths that are not supported */
 			if (!map_bankwidth_supported(map->map.bankwidth))
+			{
 				continue;
+			}
 
 			/* Setup the map methods */
 			simple_map_init(&map->map);
 
 			/* Try all of the probe methods */
 			probe_type = rom_probe_types;
-			for(; *probe_type; probe_type++) {
+
+			for (; *probe_type; probe_type++)
+			{
 				map->mtd = do_map_probe(*probe_type, &map->map);
+
 				if (map->mtd)
+				{
 					goto found;
+				}
 			}
 		}
+
 		map_top += ROM_PROBE_STEP_SIZE;
 		continue;
-	found:
+found:
+
 		/* Trim the size if we are larger than the map */
-		if (map->mtd->size > map->map.size) {
+		if (map->mtd->size > map->map.size)
+		{
 			printk(KERN_WARNING MOD_NAME
-				" rom(%llu) larger than window(%lu). fixing...\n",
-				(unsigned long long)map->mtd->size, map->map.size);
+				   " rom(%llu) larger than window(%lu). fixing...\n",
+				   (unsigned long long)map->mtd->size, map->map.size);
 			map->mtd->size = map->map.size;
 		}
-		if (window->rsrc.parent) {
+
+		if (window->rsrc.parent)
+		{
 			/*
 			 * Registering the MTD device in iomem may not be possible
 			 * if there is a BIOS "reserved" and BUSY range.  If this
@@ -245,9 +287,11 @@ static int amd76xrom_init_one(struct pci_dev *pdev,
 			map->rsrc.start = map->map.phys;
 			map->rsrc.end   = map->map.phys + map->mtd->size - 1;
 			map->rsrc.flags = IORESOURCE_MEM | IORESOURCE_BUSY;
-			if (request_resource(&window->rsrc, &map->rsrc)) {
+
+			if (request_resource(&window->rsrc, &map->rsrc))
+			{
 				printk(KERN_ERR MOD_NAME
-					": cannot reserve MTD resource\n");
+					   ": cannot reserve MTD resource\n");
 				map->rsrc.parent = NULL;
 			}
 		}
@@ -256,13 +300,17 @@ static int amd76xrom_init_one(struct pci_dev *pdev,
 		map->map.virt = window->virt;
 		map->map.phys = window->phys;
 		cfi = map->map.fldrv_priv;
-		for(i = 0; i < cfi->numchips; i++) {
+
+		for (i = 0; i < cfi->numchips; i++)
+		{
 			cfi->chips[i].start += offset;
 		}
 
 		/* Now that the mtd devices is complete claim and export it */
 		map->mtd->owner = THIS_MODULE;
-		if (mtd_device_register(map->mtd, NULL, 0)) {
+
+		if (mtd_device_register(map->mtd, NULL, 0))
+		{
 			map_destroy(map->mtd);
 			map->mtd = NULL;
 			goto out;
@@ -277,14 +325,17 @@ static int amd76xrom_init_one(struct pci_dev *pdev,
 		map = NULL;
 	}
 
- out:
+out:
 	/* Free any left over map structures */
 	kfree(map);
+
 	/* See if I have any map structures */
-	if (list_empty(&window->maps)) {
+	if (list_empty(&window->maps))
+	{
 		amd76xrom_cleanup(window);
 		return -ENODEV;
 	}
+
 	return 0;
 }
 
@@ -296,11 +347,16 @@ static void amd76xrom_remove_one(struct pci_dev *pdev)
 	amd76xrom_cleanup(window);
 }
 
-static struct pci_device_id amd76xrom_pci_tbl[] = {
-	{ PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_VIPER_7410,
-		PCI_ANY_ID, PCI_ANY_ID, },
-	{ PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_VIPER_7440,
-		PCI_ANY_ID, PCI_ANY_ID, },
+static struct pci_device_id amd76xrom_pci_tbl[] =
+{
+	{
+		PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_VIPER_7410,
+		PCI_ANY_ID, PCI_ANY_ID,
+	},
+	{
+		PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_VIPER_7440,
+		PCI_ANY_ID, PCI_ANY_ID,
+	},
 	{ PCI_VENDOR_ID_AMD, 0x7468 }, /* amd8111 support */
 	{ 0, }
 };
@@ -308,7 +364,8 @@ static struct pci_device_id amd76xrom_pci_tbl[] = {
 MODULE_DEVICE_TABLE(pci, amd76xrom_pci_tbl);
 
 #if 0
-static struct pci_driver amd76xrom_driver = {
+static struct pci_driver amd76xrom_driver =
+{
 	.name =		MOD_NAME,
 	.id_table =	amd76xrom_pci_tbl,
 	.probe =	amd76xrom_init_one,
@@ -321,15 +378,22 @@ static int __init init_amd76xrom(void)
 	struct pci_dev *pdev;
 	struct pci_device_id *id;
 	pdev = NULL;
-	for(id = amd76xrom_pci_tbl; id->vendor; id++) {
+
+	for (id = amd76xrom_pci_tbl; id->vendor; id++)
+	{
 		pdev = pci_get_device(id->vendor, id->device, NULL);
-		if (pdev) {
+
+		if (pdev)
+		{
 			break;
 		}
 	}
-	if (pdev) {
+
+	if (pdev)
+	{
 		return amd76xrom_init_one(pdev, &amd76xrom_pci_tbl[0]);
 	}
+
 	return -ENXIO;
 #if 0
 	return pci_register_driver(&amd76xrom_driver);

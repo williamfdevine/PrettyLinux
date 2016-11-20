@@ -1,7 +1,7 @@
 /* 8390 core for usual drivers */
 
 static const char version[] =
-    "8390.c:v1.10cvs 9/23/94 Donald Becker (becker@cesdis.gsfc.nasa.gov)\n";
+	"8390.c:v1.10cvs 9/23/94 Donald Becker (becker@cesdis.gsfc.nasa.gov)\n";
 
 #include "lib8390.c"
 
@@ -55,7 +55,8 @@ void ei_poll(struct net_device *dev)
 EXPORT_SYMBOL(ei_poll);
 #endif
 
-const struct net_device_ops ei_netdev_ops = {
+const struct net_device_ops ei_netdev_ops =
+{
 	.ndo_open		= ei_open,
 	.ndo_stop		= ei_close,
 	.ndo_start_xmit		= ei_start_xmit,
@@ -74,8 +75,12 @@ EXPORT_SYMBOL(ei_netdev_ops);
 struct net_device *__alloc_ei_netdev(int size)
 {
 	struct net_device *dev = ____alloc_ei_netdev(size);
+
 	if (dev)
+	{
 		dev->netdev_ops = &ei_netdev_ops;
+	}
+
 	return dev;
 }
 EXPORT_SYMBOL(__alloc_ei_netdev);

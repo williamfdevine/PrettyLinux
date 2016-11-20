@@ -41,14 +41,18 @@ int kdb_get_kbd_char(void)
 	u_short keychar;
 
 	if (KDB_FLAG(NO_I8042) || KDB_FLAG(NO_VT_CONSOLE) ||
-	    (inb(KBD_STATUS_REG) == 0xff && inb(KBD_DATA_REG) == 0xff)) {
+		(inb(KBD_STATUS_REG) == 0xff && inb(KBD_DATA_REG) == 0xff))
+	{
 		kbd_exists = 0;
 		return -1;
 	}
+
 	kbd_exists = 1;
 
 	if ((inb(KBD_STATUS_REG) & KBD_STAT_OBF) == 0)
+	{
 		return -1;
+	}
 
 	/*
 	 * Fetch the scancode
@@ -60,7 +64,9 @@ int kdb_get_kbd_char(void)
 	 * Ignore mouse events.
 	 */
 	if (scanstatus & KBD_STAT_MOUSE_OBF)
+	{
 		return -1;
+	}
 
 	/*
 	 * Ignore release, trigger on make
@@ -69,31 +75,47 @@ int kdb_get_kbd_char(void)
 	 *  held down).
 	 */
 
-	if (((scancode&0x7f) == 0x2a) || ((scancode&0x7f) == 0x36)) {
+	if (((scancode & 0x7f) == 0x2a) || ((scancode & 0x7f) == 0x36))
+	{
 		/*
 		 * Next key may use shift table
 		 */
 		if ((scancode & 0x80) == 0)
+		{
 			shift_key = 1;
+		}
 		else
+		{
 			shift_key = 0;
+		}
+
 		return -1;
 	}
 
-	if ((scancode&0x7f) == 0x1d) {
+	if ((scancode & 0x7f) == 0x1d)
+	{
 		/*
 		 * Left ctrl key
 		 */
 		if ((scancode & 0x80) == 0)
+		{
 			ctrl_key = 1;
+		}
 		else
+		{
 			ctrl_key = 0;
+		}
+
 		return -1;
 	}
 
-	if ((scancode & 0x80) != 0) {
+	if ((scancode & 0x80) != 0)
+	{
 		if (scancode == 0x9c)
+		{
 			kbd_last_ret = 0;
+		}
+
 		return -1;
 	}
 
@@ -103,7 +125,8 @@ int kdb_get_kbd_char(void)
 	 * Translate scancode
 	 */
 
-	if (scancode == 0x3a) {
+	if (scancode == 0x3a)
+	{
 		/*
 		 * Toggle caps lock
 		 */
@@ -115,7 +138,8 @@ int kdb_get_kbd_char(void)
 		return -1;
 	}
 
-	if (scancode == 0x0e) {
+	if (scancode == 0x0e)
+	{
 		/*
 		 * Backspace
 		 */
@@ -123,27 +147,37 @@ int kdb_get_kbd_char(void)
 	}
 
 	/* Special Key */
-	switch (scancode) {
-	case 0xF: /* Tab */
-		return 9;
-	case 0x53: /* Del */
-		return 4;
-	case 0x47: /* Home */
-		return 1;
-	case 0x4F: /* End */
-		return 5;
-	case 0x4B: /* Left */
-		return 2;
-	case 0x48: /* Up */
-		return 16;
-	case 0x50: /* Down */
-		return 14;
-	case 0x4D: /* Right */
-		return 6;
+	switch (scancode)
+	{
+		case 0xF: /* Tab */
+			return 9;
+
+		case 0x53: /* Del */
+			return 4;
+
+		case 0x47: /* Home */
+			return 1;
+
+		case 0x4F: /* End */
+			return 5;
+
+		case 0x4B: /* Left */
+			return 2;
+
+		case 0x48: /* Up */
+			return 16;
+
+		case 0x50: /* Down */
+			return 14;
+
+		case 0x4D: /* Right */
+			return 6;
 	}
 
 	if (scancode == 0xe0)
+	{
 		return -1;
+	}
 
 	/*
 	 * For Japanese 86/106 keyboards
@@ -151,38 +185,62 @@ int kdb_get_kbd_char(void)
 	 * 	- Masahiro Adegawa
 	 */
 	if (scancode == 0x73)
+	{
 		scancode = 0x59;
+	}
 	else if (scancode == 0x7d)
+	{
 		scancode = 0x7c;
+	}
 
-	if (!shift_lock && !shift_key && !ctrl_key) {
+	if (!shift_lock && !shift_key && !ctrl_key)
+	{
 		keychar = plain_map[scancode];
-	} else if ((shift_lock || shift_key) && key_maps[1]) {
+	}
+	else if ((shift_lock || shift_key) && key_maps[1])
+	{
 		keychar = key_maps[1][scancode];
-	} else if (ctrl_key && key_maps[4]) {
+	}
+	else if (ctrl_key && key_maps[4])
+	{
 		keychar = key_maps[4][scancode];
-	} else {
+	}
+	else
+	{
 		keychar = 0x0020;
 		kdb_printf("Unknown state/scancode (%d)\n", scancode);
 	}
+
 	keychar &= 0x0fff;
+
 	if (keychar == '\t')
+	{
 		keychar = ' ';
-	switch (KTYP(keychar)) {
-	case KT_LETTER:
-	case KT_LATIN:
-		if (isprint(keychar))
-			break;		/* printable characters */
-		/* drop through */
-	case KT_SPEC:
-		if (keychar == K_ENTER)
-			break;
-		/* drop through */
-	default:
-		return -1;	/* ignore unprintables */
 	}
 
-	if (scancode == 0x1c) {
+	switch (KTYP(keychar))
+	{
+		case KT_LETTER:
+		case KT_LATIN:
+			if (isprint(keychar))
+			{
+				break;    /* printable characters */
+			}
+
+		/* drop through */
+		case KT_SPEC:
+			if (keychar == K_ENTER)
+			{
+				break;
+			}
+
+		/* drop through */
+		default:
+			return -1;	/* ignore unprintables */
+	}
+
+	if (scancode == 0x1c)
+	{
 		kbd_last_ret = 1;
 		return 13;
 	}
@@ -206,7 +264,9 @@ void kdb_kbd_cleanup_state(void)
 	 * gotten cleaned up.
 	 */
 	if (!kbd_last_ret)
+	{
 		return;
+	}
 
 	kbd_last_ret = 0;
 	/*
@@ -223,9 +283,12 @@ void kdb_kbd_cleanup_state(void)
 	 * + Need to handle mashed keys.
 	 */
 
-	while (1) {
+	while (1)
+	{
 		while ((inb(KBD_STATUS_REG) & KBD_STAT_OBF) == 0)
+		{
 			cpu_relax();
+		}
 
 		/*
 		 * Fetch the scancode.
@@ -237,7 +300,9 @@ void kdb_kbd_cleanup_state(void)
 		 * Skip mouse input.
 		 */
 		if (scanstatus & KBD_STAT_MOUSE_OBF)
+		{
 			continue;
+		}
 
 		/*
 		 * If we see 0xe0, this is either a break code for KP
@@ -256,7 +321,9 @@ void kdb_kbd_cleanup_state(void)
 		 * that break code would get leaked out.
 		 */
 		if (scancode != 0x9c)
+		{
 			continue;
+		}
 
 		return;
 	}

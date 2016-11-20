@@ -31,7 +31,7 @@ static dma_addr_t physaddr(struct drm_gem_object *obj)
 	struct msm_gem_object *msm_obj = to_msm_bo(obj);
 	struct msm_drm_private *priv = obj->dev->dev_private;
 	return (((dma_addr_t)msm_obj->vram_node->start) << PAGE_SHIFT) +
-			priv->vram.paddr;
+		   priv->vram.paddr;
 }
 
 static bool use_pages(struct drm_gem_object *obj)
@@ -42,7 +42,7 @@ static bool use_pages(struct drm_gem_object *obj)
 
 /* allocate pages from VRAM carveout, used when no IOMMU: */
 static struct page **get_pages_vram(struct drm_gem_object *obj,
-		int npages)
+									int npages)
 {
 	struct msm_gem_object *msm_obj = to_msm_bo(obj);
 	struct msm_drm_private *priv = obj->dev->dev_private;
@@ -51,18 +51,25 @@ static struct page **get_pages_vram(struct drm_gem_object *obj,
 	int ret, i;
 
 	p = drm_malloc_ab(npages, sizeof(struct page *));
+
 	if (!p)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	ret = drm_mm_insert_node(&priv->vram.mm, msm_obj->vram_node,
-			npages, 0, DRM_MM_SEARCH_DEFAULT);
-	if (ret) {
+							 npages, 0, DRM_MM_SEARCH_DEFAULT);
+
+	if (ret)
+	{
 		drm_free_large(p);
 		return ERR_PTR(ret);
 	}
 
 	paddr = physaddr(obj);
-	for (i = 0; i < npages; i++) {
+
+	for (i = 0; i < npages; i++)
+	{
 		p[i] = phys_to_page(paddr);
 		paddr += PAGE_SIZE;
 	}
@@ -75,24 +82,32 @@ static struct page **get_pages(struct drm_gem_object *obj)
 {
 	struct msm_gem_object *msm_obj = to_msm_bo(obj);
 
-	if (!msm_obj->pages) {
+	if (!msm_obj->pages)
+	{
 		struct drm_device *dev = obj->dev;
 		struct page **p;
 		int npages = obj->size >> PAGE_SHIFT;
 
 		if (use_pages(obj))
+		{
 			p = drm_gem_get_pages(obj);
+		}
 		else
+		{
 			p = get_pages_vram(obj, npages);
+		}
 
-		if (IS_ERR(p)) {
+		if (IS_ERR(p))
+		{
 			dev_err(dev->dev, "could not get pages: %ld\n",
 					PTR_ERR(p));
 			return p;
 		}
 
 		msm_obj->sgt = drm_prime_pages_to_sg(p, npages);
-		if (IS_ERR(msm_obj->sgt)) {
+
+		if (IS_ERR(msm_obj->sgt))
+		{
 			dev_err(dev->dev, "failed to allocate sgt\n");
 			return ERR_CAST(msm_obj->sgt);
 		}
@@ -102,9 +117,9 @@ static struct page **get_pages(struct drm_gem_object *obj)
 		/* For non-cached buffers, ensure the new pages are clean
 		 * because display controller, GPU, etc. are not coherent:
 		 */
-		if (msm_obj->flags & (MSM_BO_WC|MSM_BO_UNCACHED))
+		if (msm_obj->flags & (MSM_BO_WC | MSM_BO_UNCACHED))
 			dma_map_sg(dev->dev, msm_obj->sgt->sgl,
-					msm_obj->sgt->nents, DMA_BIDIRECTIONAL);
+					   msm_obj->sgt->nents, DMA_BIDIRECTIONAL);
 	}
 
 	return msm_obj->pages;
@@ -114,19 +129,24 @@ static void put_pages(struct drm_gem_object *obj)
 {
 	struct msm_gem_object *msm_obj = to_msm_bo(obj);
 
-	if (msm_obj->pages) {
+	if (msm_obj->pages)
+	{
 		/* For non-cached buffers, ensure the new pages are clean
 		 * because display controller, GPU, etc. are not coherent:
 		 */
-		if (msm_obj->flags & (MSM_BO_WC|MSM_BO_UNCACHED))
+		if (msm_obj->flags & (MSM_BO_WC | MSM_BO_UNCACHED))
 			dma_unmap_sg(obj->dev->dev, msm_obj->sgt->sgl,
-					msm_obj->sgt->nents, DMA_BIDIRECTIONAL);
+						 msm_obj->sgt->nents, DMA_BIDIRECTIONAL);
+
 		sg_free_table(msm_obj->sgt);
 		kfree(msm_obj->sgt);
 
 		if (use_pages(obj))
+		{
 			drm_gem_put_pages(obj, msm_obj->pages, true, false);
-		else {
+		}
+		else
+		{
 			drm_mm_remove_node(msm_obj->vram_node);
 			drm_free_large(msm_obj->pages);
 		}
@@ -151,18 +171,23 @@ void msm_gem_put_pages(struct drm_gem_object *obj)
 }
 
 int msm_gem_mmap_obj(struct drm_gem_object *obj,
-		struct vm_area_struct *vma)
+					 struct vm_area_struct *vma)
 {
 	struct msm_gem_object *msm_obj = to_msm_bo(obj);
 
 	vma->vm_flags &= ~VM_PFNMAP;
 	vma->vm_flags |= VM_MIXEDMAP;
 
-	if (msm_obj->flags & MSM_BO_WC) {
+	if (msm_obj->flags & MSM_BO_WC)
+	{
 		vma->vm_page_prot = pgprot_writecombine(vm_get_page_prot(vma->vm_flags));
-	} else if (msm_obj->flags & MSM_BO_UNCACHED) {
+	}
+	else if (msm_obj->flags & MSM_BO_UNCACHED)
+	{
 		vma->vm_page_prot = pgprot_noncached(vm_get_page_prot(vma->vm_flags));
-	} else {
+	}
+	else
+	{
 		/*
 		 * Shunt off cached objs to shmem file so they have their own
 		 * address_space (so unmap_mapping_range does what we want,
@@ -184,7 +209,9 @@ int msm_gem_mmap(struct file *filp, struct vm_area_struct *vma)
 	int ret;
 
 	ret = drm_gem_mmap(filp, vma);
-	if (ret) {
+
+	if (ret)
+	{
 		DBG("mmap failed: %d", ret);
 		return ret;
 	}
@@ -208,52 +235,63 @@ int msm_gem_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 	 * not a valid use-case so just bail.
 	 */
 	if (priv->struct_mutex_task == current)
+	{
 		return VM_FAULT_SIGBUS;
+	}
 
 	/* Make sure we don't parallel update on a fault, nor move or remove
 	 * something from beneath our feet
 	 */
 	ret = mutex_lock_interruptible(&dev->struct_mutex);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/* make sure we have pages attached now */
 	pages = get_pages(obj);
-	if (IS_ERR(pages)) {
+
+	if (IS_ERR(pages))
+	{
 		ret = PTR_ERR(pages);
 		goto out_unlock;
 	}
 
 	/* We don't use vmf->pgoff since that has the fake offset: */
 	pgoff = ((unsigned long)vmf->virtual_address -
-			vma->vm_start) >> PAGE_SHIFT;
+			 vma->vm_start) >> PAGE_SHIFT;
 
 	pfn = page_to_pfn(pages[pgoff]);
 
 	VERB("Inserting %p pfn %lx, pa %lx", vmf->virtual_address,
-			pfn, pfn << PAGE_SHIFT);
+		 pfn, pfn << PAGE_SHIFT);
 
 	ret = vm_insert_mixed(vma, (unsigned long)vmf->virtual_address,
-			__pfn_to_pfn_t(pfn, PFN_DEV));
+						  __pfn_to_pfn_t(pfn, PFN_DEV));
 
 out_unlock:
 	mutex_unlock(&dev->struct_mutex);
 out:
-	switch (ret) {
-	case -EAGAIN:
-	case 0:
-	case -ERESTARTSYS:
-	case -EINTR:
-	case -EBUSY:
-		/*
-		 * EBUSY is ok: this just means that another thread
-		 * already did the job.
-		 */
-		return VM_FAULT_NOPAGE;
-	case -ENOMEM:
-		return VM_FAULT_OOM;
-	default:
-		return VM_FAULT_SIGBUS;
+
+	switch (ret)
+	{
+		case -EAGAIN:
+		case 0:
+		case -ERESTARTSYS:
+		case -EINTR:
+		case -EBUSY:
+			/*
+			 * EBUSY is ok: this just means that another thread
+			 * already did the job.
+			 */
+			return VM_FAULT_NOPAGE;
+
+		case -ENOMEM:
+			return VM_FAULT_OOM;
+
+		default:
+			return VM_FAULT_SIGBUS;
 	}
 }
 
@@ -268,7 +306,8 @@ static uint64_t mmap_offset(struct drm_gem_object *obj)
 	/* Make it mmapable */
 	ret = drm_gem_create_mmap_offset(obj);
 
-	if (ret) {
+	if (ret)
+	{
 		dev_err(dev->dev, "could not allocate mmap offset\n");
 		return 0;
 	}
@@ -295,9 +334,12 @@ put_iova(struct drm_gem_object *obj)
 
 	WARN_ON(!mutex_is_locked(&dev->struct_mutex));
 
-	for (id = 0; id < ARRAY_SIZE(msm_obj->domain); id++) {
+	for (id = 0; id < ARRAY_SIZE(msm_obj->domain); id++)
+	{
 		struct msm_mmu *mmu = priv->mmus[id];
-		if (mmu && msm_obj->domain[id].iova) {
+
+		if (mmu && msm_obj->domain[id].iova)
+		{
 			uint32_t offset = msm_obj->domain[id].iova;
 			mmu->funcs->unmap(mmu, offset, msm_obj->sgt, obj->size);
 			msm_obj->domain[id].iova = 0;
@@ -313,36 +355,46 @@ put_iova(struct drm_gem_object *obj)
  * the refcnt counter needs to be atomic_t.
  */
 int msm_gem_get_iova_locked(struct drm_gem_object *obj, int id,
-		uint32_t *iova)
+							uint32_t *iova)
 {
 	struct msm_gem_object *msm_obj = to_msm_bo(obj);
 	int ret = 0;
 
-	if (!msm_obj->domain[id].iova) {
+	if (!msm_obj->domain[id].iova)
+	{
 		struct msm_drm_private *priv = obj->dev->dev_private;
 		struct page **pages = get_pages(obj);
 
 		if (IS_ERR(pages))
+		{
 			return PTR_ERR(pages);
+		}
 
-		if (iommu_present(&platform_bus_type)) {
+		if (iommu_present(&platform_bus_type))
+		{
 			struct msm_mmu *mmu = priv->mmus[id];
 			uint32_t offset;
 
 			if (WARN_ON(!mmu))
+			{
 				return -EINVAL;
+			}
 
 			offset = (uint32_t)mmap_offset(obj);
 			ret = mmu->funcs->map(mmu, offset, msm_obj->sgt,
-					obj->size, IOMMU_READ | IOMMU_WRITE);
+								  obj->size, IOMMU_READ | IOMMU_WRITE);
 			msm_obj->domain[id].iova = offset;
-		} else {
+		}
+		else
+		{
 			msm_obj->domain[id].iova = physaddr(obj);
 		}
 	}
 
 	if (!ret)
+	{
 		*iova = msm_obj->domain[id].iova;
+	}
 
 	return ret;
 }
@@ -356,7 +408,8 @@ int msm_gem_get_iova(struct drm_gem_object *obj, int id, uint32_t *iova)
 	/* this is safe right now because we don't unmap until the
 	 * bo is deleted:
 	 */
-	if (msm_obj->domain[id].iova) {
+	if (msm_obj->domain[id].iova)
+	{
 		*iova = msm_obj->domain[id].iova;
 		return 0;
 	}
@@ -388,23 +441,25 @@ void msm_gem_put_iova(struct drm_gem_object *obj, int id)
 }
 
 int msm_gem_dumb_create(struct drm_file *file, struct drm_device *dev,
-		struct drm_mode_create_dumb *args)
+						struct drm_mode_create_dumb *args)
 {
 	args->pitch = align_pitch(args->width, args->bpp);
 	args->size  = PAGE_ALIGN(args->pitch * args->height);
 	return msm_gem_new_handle(dev, file, args->size,
-			MSM_BO_SCANOUT | MSM_BO_WC, &args->handle);
+							  MSM_BO_SCANOUT | MSM_BO_WC, &args->handle);
 }
 
 int msm_gem_dumb_map_offset(struct drm_file *file, struct drm_device *dev,
-		uint32_t handle, uint64_t *offset)
+							uint32_t handle, uint64_t *offset)
 {
 	struct drm_gem_object *obj;
 	int ret = 0;
 
 	/* GEM does all our handle to object mapping */
 	obj = drm_gem_object_lookup(file, handle);
-	if (obj == NULL) {
+
+	if (obj == NULL)
+	{
 		ret = -ENOENT;
 		goto fail;
 	}
@@ -421,15 +476,25 @@ void *msm_gem_get_vaddr_locked(struct drm_gem_object *obj)
 {
 	struct msm_gem_object *msm_obj = to_msm_bo(obj);
 	WARN_ON(!mutex_is_locked(&obj->dev->struct_mutex));
-	if (!msm_obj->vaddr) {
+
+	if (!msm_obj->vaddr)
+	{
 		struct page **pages = get_pages(obj);
+
 		if (IS_ERR(pages))
+		{
 			return ERR_CAST(pages);
+		}
+
 		msm_obj->vaddr = vmap(pages, obj->size >> PAGE_SHIFT,
-				VM_MAP, pgprot_writecombine(PAGE_KERNEL));
+							  VM_MAP, pgprot_writecombine(PAGE_KERNEL));
+
 		if (msm_obj->vaddr == NULL)
+		{
 			return ERR_PTR(-ENOMEM);
+		}
 	}
+
 	msm_obj->vmap_count++;
 	return msm_obj->vaddr;
 }
@@ -468,7 +533,9 @@ int msm_gem_madvise(struct drm_gem_object *obj, unsigned madv)
 	WARN_ON(!mutex_is_locked(&obj->dev->struct_mutex));
 
 	if (msm_obj->madv != __MSM_MADV_PURGED)
+	{
 		msm_obj->madv = madv;
+	}
 
 	return (msm_obj->madv != __MSM_MADV_PURGED);
 }
@@ -498,10 +565,10 @@ void msm_gem_purge(struct drm_gem_object *obj)
 	 * To do this we must instruct the shmfs to drop all of its
 	 * backing pages, *now*.
 	 */
-	shmem_truncate_range(file_inode(obj->filp), 0, (loff_t)-1);
+	shmem_truncate_range(file_inode(obj->filp), 0, (loff_t) - 1);
 
 	invalidate_mapping_pages(file_inode(obj->filp)->i_mapping,
-			0, (loff_t)-1);
+							 0, (loff_t) - 1);
 }
 
 void msm_gem_vunmap(struct drm_gem_object *obj)
@@ -509,7 +576,9 @@ void msm_gem_vunmap(struct drm_gem_object *obj)
 	struct msm_gem_object *msm_obj = to_msm_bo(obj);
 
 	if (!msm_obj->vaddr || WARN_ON(!is_vunmapable(msm_obj)))
+	{
 		return;
+	}
 
 	vunmap(msm_obj->vaddr);
 	msm_obj->vaddr = NULL;
@@ -517,45 +586,64 @@ void msm_gem_vunmap(struct drm_gem_object *obj)
 
 /* must be called before _move_to_active().. */
 int msm_gem_sync_object(struct drm_gem_object *obj,
-		struct msm_fence_context *fctx, bool exclusive)
+						struct msm_fence_context *fctx, bool exclusive)
 {
 	struct msm_gem_object *msm_obj = to_msm_bo(obj);
 	struct reservation_object_list *fobj;
 	struct fence *fence;
 	int i, ret;
 
-	if (!exclusive) {
+	if (!exclusive)
+	{
 		/* NOTE: _reserve_shared() must happen before _add_shared_fence(),
 		 * which makes this a slightly strange place to call it.  OTOH this
 		 * is a convenient can-fail point to hook it in.  (And similar to
 		 * how etnaviv and nouveau handle this.)
 		 */
 		ret = reservation_object_reserve_shared(msm_obj->resv);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	fobj = reservation_object_get_list(msm_obj->resv);
-	if (!fobj || (fobj->shared_count == 0)) {
+
+	if (!fobj || (fobj->shared_count == 0))
+	{
 		fence = reservation_object_get_excl(msm_obj->resv);
+
 		/* don't need to wait on our own fences, since ring is fifo */
-		if (fence && (fence->context != fctx->context)) {
+		if (fence && (fence->context != fctx->context))
+		{
 			ret = fence_wait(fence, true);
+
 			if (ret)
+			{
 				return ret;
+			}
 		}
 	}
 
 	if (!exclusive || !fobj)
+	{
 		return 0;
+	}
 
-	for (i = 0; i < fobj->shared_count; i++) {
+	for (i = 0; i < fobj->shared_count; i++)
+	{
 		fence = rcu_dereference_protected(fobj->shared[i],
-						reservation_object_held(msm_obj->resv));
-		if (fence->context != fctx->context) {
+										  reservation_object_held(msm_obj->resv));
+
+		if (fence->context != fctx->context)
+		{
 			ret = fence_wait(fence, true);
+
 			if (ret)
+			{
 				return ret;
+			}
 		}
 	}
 
@@ -563,15 +651,21 @@ int msm_gem_sync_object(struct drm_gem_object *obj,
 }
 
 void msm_gem_move_to_active(struct drm_gem_object *obj,
-		struct msm_gpu *gpu, bool exclusive, struct fence *fence)
+							struct msm_gpu *gpu, bool exclusive, struct fence *fence)
 {
 	struct msm_gem_object *msm_obj = to_msm_bo(obj);
 	WARN_ON(msm_obj->madv != MSM_MADV_WILLNEED);
 	msm_obj->gpu = gpu;
+
 	if (exclusive)
+	{
 		reservation_object_add_excl_fence(msm_obj->resv, fence);
+	}
 	else
+	{
 		reservation_object_add_shared_fence(msm_obj->resv, fence);
+	}
+
 	list_del_init(&msm_obj->mm_list);
 	list_add_tail(&msm_obj->mm_list, &gpu->active_list);
 }
@@ -598,11 +692,16 @@ int msm_gem_cpu_prep(struct drm_gem_object *obj, uint32_t op, ktime_t *timeout)
 	long ret;
 
 	ret = reservation_object_wait_timeout_rcu(msm_obj->resv, write,
-						  true,  remain);
+			true,  remain);
+
 	if (ret == 0)
+	{
 		return remain == 0 ? -EBUSY : -ETIMEDOUT;
+	}
 	else if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* TODO cache maintenance */
 
@@ -617,13 +716,13 @@ int msm_gem_cpu_fini(struct drm_gem_object *obj)
 
 #ifdef CONFIG_DEBUG_FS
 static void describe_fence(struct fence *fence, const char *type,
-		struct seq_file *m)
+						   struct seq_file *m)
 {
 	if (!fence_is_signaled(fence))
 		seq_printf(m, "\t%9s: %s %s seq %u\n", type,
-				fence->ops->get_driver_name(fence),
-				fence->ops->get_timeline_name(fence),
-				fence->seqno);
+				   fence->ops->get_driver_name(fence),
+				   fence->ops->get_timeline_name(fence),
+				   fence->seqno);
 }
 
 void msm_gem_describe(struct drm_gem_object *obj, struct seq_file *m)
@@ -637,38 +736,48 @@ void msm_gem_describe(struct drm_gem_object *obj, struct seq_file *m)
 
 	WARN_ON(!mutex_is_locked(&obj->dev->struct_mutex));
 
-	switch (msm_obj->madv) {
-	case __MSM_MADV_PURGED:
-		madv = " purged";
-		break;
-	case MSM_MADV_DONTNEED:
-		madv = " purgeable";
-		break;
-	case MSM_MADV_WILLNEED:
-	default:
-		madv = "";
-		break;
+	switch (msm_obj->madv)
+	{
+		case __MSM_MADV_PURGED:
+			madv = " purged";
+			break;
+
+		case MSM_MADV_DONTNEED:
+			madv = " purgeable";
+			break;
+
+		case MSM_MADV_WILLNEED:
+		default:
+			madv = "";
+			break;
 	}
 
 	seq_printf(m, "%08x: %c %2d (%2d) %08llx %p %zu%s\n",
-			msm_obj->flags, is_active(msm_obj) ? 'A' : 'I',
-			obj->name, obj->refcount.refcount.counter,
-			off, msm_obj->vaddr, obj->size, madv);
+			   msm_obj->flags, is_active(msm_obj) ? 'A' : 'I',
+			   obj->name, obj->refcount.refcount.counter,
+			   off, msm_obj->vaddr, obj->size, madv);
 
 	rcu_read_lock();
 	fobj = rcu_dereference(robj->fence);
-	if (fobj) {
+
+	if (fobj)
+	{
 		unsigned int i, shared_count = fobj->shared_count;
 
-		for (i = 0; i < shared_count; i++) {
+		for (i = 0; i < shared_count; i++)
+		{
 			fence = rcu_dereference(fobj->shared[i]);
 			describe_fence(fence, "Shared", m);
 		}
 	}
 
 	fence = rcu_dereference(robj->fence_excl);
+
 	if (fence)
+	{
 		describe_fence(fence, "Exclusive", m);
+	}
+
 	rcu_read_unlock();
 }
 
@@ -678,7 +787,8 @@ void msm_gem_describe_objects(struct list_head *list, struct seq_file *m)
 	int count = 0;
 	size_t size = 0;
 
-	list_for_each_entry(msm_obj, list, mm_list) {
+	list_for_each_entry(msm_obj, list, mm_list)
+	{
 		struct drm_gem_object *obj = &msm_obj->base;
 		seq_printf(m, "   ");
 		msm_gem_describe(obj, m);
@@ -704,24 +814,33 @@ void msm_gem_free_object(struct drm_gem_object *obj)
 
 	put_iova(obj);
 
-	if (obj->import_attach) {
+	if (obj->import_attach)
+	{
 		if (msm_obj->vaddr)
+		{
 			dma_buf_vunmap(obj->import_attach->dmabuf, msm_obj->vaddr);
+		}
 
 		/* Don't drop the pages for imported dmabuf, as they are not
 		 * ours, just free the array we allocated:
 		 */
 		if (msm_obj->pages)
+		{
 			drm_free_large(msm_obj->pages);
+		}
 
 		drm_prime_gem_destroy(obj, msm_obj->sgt);
-	} else {
+	}
+	else
+	{
 		msm_gem_vunmap(obj);
 		put_pages(obj);
 	}
 
 	if (msm_obj->resv == &msm_obj->_resv)
+	{
 		reservation_object_fini(msm_obj->resv);
+	}
 
 	drm_gem_object_release(obj);
 
@@ -730,21 +849,26 @@ void msm_gem_free_object(struct drm_gem_object *obj)
 
 /* convenience method to construct a GEM buffer object, and userspace handle */
 int msm_gem_new_handle(struct drm_device *dev, struct drm_file *file,
-		uint32_t size, uint32_t flags, uint32_t *handle)
+					   uint32_t size, uint32_t flags, uint32_t *handle)
 {
 	struct drm_gem_object *obj;
 	int ret;
 
 	ret = mutex_lock_interruptible(&dev->struct_mutex);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	obj = msm_gem_new(dev, size, flags);
 
 	mutex_unlock(&dev->struct_mutex);
 
 	if (IS_ERR(obj))
+	{
 		return PTR_ERR(obj);
+	}
 
 	ret = drm_gem_handle_create(file, obj, handle);
 
@@ -755,51 +879,70 @@ int msm_gem_new_handle(struct drm_device *dev, struct drm_file *file,
 }
 
 static int msm_gem_new_impl(struct drm_device *dev,
-		uint32_t size, uint32_t flags,
-		struct reservation_object *resv,
-		struct drm_gem_object **obj)
+							uint32_t size, uint32_t flags,
+							struct reservation_object *resv,
+							struct drm_gem_object **obj)
 {
 	struct msm_drm_private *priv = dev->dev_private;
 	struct msm_gem_object *msm_obj;
 	unsigned sz;
 	bool use_vram = false;
 
-	switch (flags & MSM_BO_CACHE_MASK) {
-	case MSM_BO_UNCACHED:
-	case MSM_BO_CACHED:
-	case MSM_BO_WC:
-		break;
-	default:
-		dev_err(dev->dev, "invalid cache flag: %x\n",
-				(flags & MSM_BO_CACHE_MASK));
-		return -EINVAL;
+	switch (flags & MSM_BO_CACHE_MASK)
+	{
+		case MSM_BO_UNCACHED:
+		case MSM_BO_CACHED:
+		case MSM_BO_WC:
+			break;
+
+		default:
+			dev_err(dev->dev, "invalid cache flag: %x\n",
+					(flags & MSM_BO_CACHE_MASK));
+			return -EINVAL;
 	}
 
 	if (!iommu_present(&platform_bus_type))
+	{
 		use_vram = true;
+	}
 	else if ((flags & MSM_BO_STOLEN) && priv->vram.size)
+	{
 		use_vram = true;
+	}
 
 	if (WARN_ON(use_vram && !priv->vram.size))
+	{
 		return -EINVAL;
+	}
 
 	sz = sizeof(*msm_obj);
+
 	if (use_vram)
+	{
 		sz += sizeof(struct drm_mm_node);
+	}
 
 	msm_obj = kzalloc(sz, GFP_KERNEL);
+
 	if (!msm_obj)
+	{
 		return -ENOMEM;
+	}
 
 	if (use_vram)
+	{
 		msm_obj->vram_node = (void *)&msm_obj[1];
+	}
 
 	msm_obj->flags = flags;
 	msm_obj->madv = MSM_MADV_WILLNEED;
 
-	if (resv) {
+	if (resv)
+	{
 		msm_obj->resv = resv;
-	} else {
+	}
+	else
+	{
 		msm_obj->resv = &msm_obj->_resv;
 		reservation_object_init(msm_obj->resv);
 	}
@@ -813,7 +956,7 @@ static int msm_gem_new_impl(struct drm_device *dev,
 }
 
 struct drm_gem_object *msm_gem_new(struct drm_device *dev,
-		uint32_t size, uint32_t flags)
+								   uint32_t size, uint32_t flags)
 {
 	struct drm_gem_object *obj = NULL;
 	int ret;
@@ -823,14 +966,23 @@ struct drm_gem_object *msm_gem_new(struct drm_device *dev,
 	size = PAGE_ALIGN(size);
 
 	ret = msm_gem_new_impl(dev, size, flags, NULL, &obj);
-	if (ret)
-		goto fail;
 
-	if (use_pages(obj)) {
+	if (ret)
+	{
+		goto fail;
+	}
+
+	if (use_pages(obj))
+	{
 		ret = drm_gem_object_init(dev, obj, size);
+
 		if (ret)
+		{
 			goto fail;
-	} else {
+		}
+	}
+	else
+	{
 		drm_gem_private_object_init(dev, obj, size);
 	}
 
@@ -842,7 +994,7 @@ fail:
 }
 
 struct drm_gem_object *msm_gem_import(struct drm_device *dev,
-		struct dma_buf *dmabuf, struct sg_table *sgt)
+									  struct dma_buf *dmabuf, struct sg_table *sgt)
 {
 	struct msm_gem_object *msm_obj;
 	struct drm_gem_object *obj;
@@ -850,7 +1002,8 @@ struct drm_gem_object *msm_gem_import(struct drm_device *dev,
 	int ret, npages;
 
 	/* if we don't have IOMMU, don't bother pretending we can import: */
-	if (!iommu_present(&platform_bus_type)) {
+	if (!iommu_present(&platform_bus_type))
+	{
 		dev_err(dev->dev, "cannot import without IOMMU\n");
 		return ERR_PTR(-EINVAL);
 	}
@@ -858,8 +1011,11 @@ struct drm_gem_object *msm_gem_import(struct drm_device *dev,
 	size = PAGE_ALIGN(dmabuf->size);
 
 	ret = msm_gem_new_impl(dev, size, MSM_BO_WC, dmabuf->resv, &obj);
+
 	if (ret)
+	{
 		goto fail;
+	}
 
 	drm_gem_private_object_init(dev, obj, size);
 
@@ -868,14 +1024,19 @@ struct drm_gem_object *msm_gem_import(struct drm_device *dev,
 	msm_obj = to_msm_bo(obj);
 	msm_obj->sgt = sgt;
 	msm_obj->pages = drm_malloc_ab(npages, sizeof(struct page *));
-	if (!msm_obj->pages) {
+
+	if (!msm_obj->pages)
+	{
 		ret = -ENOMEM;
 		goto fail;
 	}
 
 	ret = drm_prime_sg_to_page_addr_arrays(sgt, msm_obj->pages, NULL, npages);
+
 	if (ret)
+	{
 		goto fail;
+	}
 
 	return obj;
 

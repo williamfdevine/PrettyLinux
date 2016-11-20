@@ -31,7 +31,8 @@
  ******************************************************************************/
 
 const struct gf100_gr_init
-gf108_gr_init_gpc_unk_0[] = {
+	gf108_gr_init_gpc_unk_0[] =
+{
 	{ 0x418604,   1, 0x04, 0x00000000 },
 	{ 0x418680,   1, 0x04, 0x00000000 },
 	{ 0x418714,   1, 0x04, 0x00000000 },
@@ -40,7 +41,8 @@ gf108_gr_init_gpc_unk_0[] = {
 };
 
 const struct gf100_gr_init
-gf108_gr_init_setup_1[] = {
+	gf108_gr_init_setup_1[] =
+{
 	{ 0x4188c8,   2, 0x04, 0x00000000 },
 	{ 0x4188d0,   1, 0x04, 0x00010000 },
 	{ 0x4188d4,   1, 0x04, 0x00000001 },
@@ -48,7 +50,8 @@ gf108_gr_init_setup_1[] = {
 };
 
 static const struct gf100_gr_init
-gf108_gr_init_gpc_unk_1[] = {
+	gf108_gr_init_gpc_unk_1[] =
+{
 	{ 0x418d00,   1, 0x04, 0x00000000 },
 	{ 0x418f08,   1, 0x04, 0x00000000 },
 	{ 0x418e00,   1, 0x04, 0x00000003 },
@@ -57,7 +60,8 @@ gf108_gr_init_gpc_unk_1[] = {
 };
 
 static const struct gf100_gr_init
-gf108_gr_init_pe_0[] = {
+	gf108_gr_init_pe_0[] =
+{
 	{ 0x41980c,   1, 0x04, 0x00000010 },
 	{ 0x419810,   1, 0x04, 0x00000000 },
 	{ 0x419814,   1, 0x04, 0x00000004 },
@@ -69,7 +73,8 @@ gf108_gr_init_pe_0[] = {
 };
 
 static const struct gf100_gr_pack
-gf108_gr_pack_mmio[] = {
+	gf108_gr_pack_mmio[] =
+{
 	{ gf100_gr_init_main_0 },
 	{ gf100_gr_init_fe_0 },
 	{ gf100_gr_init_pri_0 },
@@ -104,7 +109,8 @@ gf108_gr_pack_mmio[] = {
  ******************************************************************************/
 
 static const struct gf100_gr_func
-gf108_gr = {
+	gf108_gr =
+{
 	.init = gf100_gr_init,
 	.mmio = gf108_gr_pack_mmio,
 	.fecs.ucode = &gf100_gr_fecs_ucode,

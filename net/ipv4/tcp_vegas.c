@@ -113,14 +113,18 @@ void tcp_vegas_pkts_acked(struct sock *sk, const struct ack_sample *sample)
 	u32 vrtt;
 
 	if (sample->rtt_us < 0)
+	{
 		return;
+	}
 
 	/* Never allow zero rtt or baseRTT */
 	vrtt = sample->rtt_us + 1;
 
 	/* Filter to find propagation delay: */
 	if (vrtt < vegas->baseRTT)
+	{
 		vegas->baseRTT = vrtt;
+	}
 
 	/* Find the min RTT during the last RTT to find
 	 * the current prop. delay + queuing delay:
@@ -133,9 +137,13 @@ EXPORT_SYMBOL_GPL(tcp_vegas_pkts_acked);
 void tcp_vegas_state(struct sock *sk, u8 ca_state)
 {
 	if (ca_state == TCP_CA_Open)
+	{
 		vegas_enable(sk);
+	}
 	else
+	{
 		vegas_disable(sk);
+	}
 }
 EXPORT_SYMBOL_GPL(tcp_vegas_state);
 
@@ -151,14 +159,16 @@ EXPORT_SYMBOL_GPL(tcp_vegas_state);
 void tcp_vegas_cwnd_event(struct sock *sk, enum tcp_ca_event event)
 {
 	if (event == CA_EVENT_CWND_RESTART ||
-	    event == CA_EVENT_TX_START)
+		event == CA_EVENT_TX_START)
+	{
 		tcp_vegas_init(sk);
+	}
 }
 EXPORT_SYMBOL_GPL(tcp_vegas_cwnd_event);
 
 static inline u32 tcp_vegas_ssthresh(struct tcp_sock *tp)
 {
-	return  min(tp->snd_ssthresh, tp->snd_cwnd-1);
+	return  min(tp->snd_ssthresh, tp->snd_cwnd - 1);
 }
 
 static void tcp_vegas_cong_avoid(struct sock *sk, u32 ack, u32 acked)
@@ -166,12 +176,14 @@ static void tcp_vegas_cong_avoid(struct sock *sk, u32 ack, u32 acked)
 	struct tcp_sock *tp = tcp_sk(sk);
 	struct vegas *vegas = inet_csk_ca(sk);
 
-	if (!vegas->doing_vegas_now) {
+	if (!vegas->doing_vegas_now)
+	{
 		tcp_reno_cong_avoid(sk, ack, acked);
 		return;
 	}
 
-	if (after(ack, vegas->beg_snd_nxt)) {
+	if (after(ack, vegas->beg_snd_nxt))
+	{
 		/* Do the Vegas once-per-RTT cwnd adjustment. */
 
 		/* Save the extent of the current window so we can use this
@@ -188,12 +200,15 @@ static void tcp_vegas_cong_avoid(struct sock *sk, u32 ack, u32 acked)
 		 * If  we have 3 samples, we should be OK.
 		 */
 
-		if (vegas->cntRTT <= 2) {
+		if (vegas->cntRTT <= 2)
+		{
 			/* We don't have enough RTT samples to do the Vegas
 			 * calculation, so we'll behave like Reno.
 			 */
 			tcp_reno_cong_avoid(sk, ack, acked);
-		} else {
+		}
+		else
+		{
 			u32 rtt, diff;
 			u64 target_cwnd;
 
@@ -223,9 +238,10 @@ static void tcp_vegas_cong_avoid(struct sock *sk, u32 ack, u32 acked)
 			 * and the window we would like to have. This quantity
 			 * is the "Diff" from the Arizona Vegas papers.
 			 */
-			diff = tp->snd_cwnd * (rtt-vegas->baseRTT) / vegas->baseRTT;
+			diff = tp->snd_cwnd * (rtt - vegas->baseRTT) / vegas->baseRTT;
 
-			if (diff > gamma && tcp_in_slow_start(tp)) {
+			if (diff > gamma && tcp_in_slow_start(tp))
+			{
 				/* Going too fast. Time to slow down
 				 * and switch to congestion avoidance.
 				 */
@@ -237,31 +253,40 @@ static void tcp_vegas_cong_avoid(struct sock *sk, u32 ack, u32 acked)
 				 * truncation robs us of full link
 				 * utilization.
 				 */
-				tp->snd_cwnd = min(tp->snd_cwnd, (u32)target_cwnd+1);
+				tp->snd_cwnd = min(tp->snd_cwnd, (u32)target_cwnd + 1);
 				tp->snd_ssthresh = tcp_vegas_ssthresh(tp);
 
-			} else if (tcp_in_slow_start(tp)) {
+			}
+			else if (tcp_in_slow_start(tp))
+			{
 				/* Slow start.  */
 				tcp_slow_start(tp, acked);
-			} else {
+			}
+			else
+			{
 				/* Congestion avoidance. */
 
 				/* Figure out where we would like cwnd
 				 * to be.
 				 */
-				if (diff > beta) {
+				if (diff > beta)
+				{
 					/* The old window was too fast, so
 					 * we slow down.
 					 */
 					tp->snd_cwnd--;
 					tp->snd_ssthresh
 						= tcp_vegas_ssthresh(tp);
-				} else if (diff < alpha) {
+				}
+				else if (diff < alpha)
+				{
 					/* We don't have enough extra packets
 					 * in the network, so speed up.
 					 */
 					tp->snd_cwnd++;
-				} else {
+				}
+				else
+				{
 					/* Sending just as fast as we
 					 * should be.
 					 */
@@ -269,9 +294,13 @@ static void tcp_vegas_cong_avoid(struct sock *sk, u32 ack, u32 acked)
 			}
 
 			if (tp->snd_cwnd < 2)
+			{
 				tp->snd_cwnd = 2;
+			}
 			else if (tp->snd_cwnd > tp->snd_cwnd_clamp)
+			{
 				tp->snd_cwnd = tp->snd_cwnd_clamp;
+			}
 
 			tp->snd_ssthresh = tcp_current_ssthresh(sk);
 		}
@@ -282,29 +311,34 @@ static void tcp_vegas_cong_avoid(struct sock *sk, u32 ack, u32 acked)
 	}
 	/* Use normal slow start */
 	else if (tcp_in_slow_start(tp))
+	{
 		tcp_slow_start(tp, acked);
+	}
 }
 
 /* Extract info for Tcp socket info provided via netlink. */
 size_t tcp_vegas_get_info(struct sock *sk, u32 ext, int *attr,
-			  union tcp_cc_info *info)
+						  union tcp_cc_info *info)
 {
 	const struct vegas *ca = inet_csk_ca(sk);
 
-	if (ext & (1 << (INET_DIAG_VEGASINFO - 1))) {
+	if (ext & (1 << (INET_DIAG_VEGASINFO - 1)))
+	{
 		info->vegas.tcpv_enabled = ca->doing_vegas_now,
-		info->vegas.tcpv_rttcnt = ca->cntRTT,
-		info->vegas.tcpv_rtt = ca->baseRTT,
-		info->vegas.tcpv_minrtt = ca->minRTT,
+					info->vegas.tcpv_rttcnt = ca->cntRTT,
+								info->vegas.tcpv_rtt = ca->baseRTT,
+											info->vegas.tcpv_minrtt = ca->minRTT,
 
-		*attr = INET_DIAG_VEGASINFO;
+														*attr = INET_DIAG_VEGASINFO;
 		return sizeof(struct tcpvegas_info);
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(tcp_vegas_get_info);
 
-static struct tcp_congestion_ops tcp_vegas __read_mostly = {
+static struct tcp_congestion_ops tcp_vegas __read_mostly =
+{
 	.init		= tcp_vegas_init,
 	.ssthresh	= tcp_reno_ssthresh,
 	.cong_avoid	= tcp_vegas_cong_avoid,

@@ -70,10 +70,13 @@ bfin_jc_emudat_manager(void *arg)
 {
 	uint32_t inbound_len = 0, outbound_len = 0;
 
-	while (!kthread_should_stop()) {
+	while (!kthread_should_stop())
+	{
 		struct tty_struct *tty = tty_port_tty_get(&port);
+
 		/* no one left to give data to, so sleep */
-		if (tty == NULL && circ_empty(&bfin_jc_write_buf)) {
+		if (tty == NULL && circ_empty(&bfin_jc_write_buf))
+		{
 			pr_debug("waiting for readers\n");
 			__set_current_state(TASK_UNINTERRUPTIBLE);
 			schedule();
@@ -81,24 +84,36 @@ bfin_jc_emudat_manager(void *arg)
 		}
 
 		/* no data available, so just chill */
-		if (!(bfin_read_DBGSTAT() & EMUDIF) && circ_empty(&bfin_jc_write_buf)) {
+		if (!(bfin_read_DBGSTAT() & EMUDIF) && circ_empty(&bfin_jc_write_buf))
+		{
 			pr_debug("waiting for data (in_len = %i) (circ: %i %i)\n",
-				inbound_len, bfin_jc_write_buf.tail, bfin_jc_write_buf.head);
+					 inbound_len, bfin_jc_write_buf.tail, bfin_jc_write_buf.head);
 			tty_kref_put(tty);
+
 			if (inbound_len)
+			{
 				schedule();
+			}
 			else
+			{
 				schedule_timeout_interruptible(HZ);
+			}
+
 			continue;
 		}
 
 		/* if incoming data is ready, eat it */
-		if (bfin_read_DBGSTAT() & EMUDIF) {
+		if (bfin_read_DBGSTAT() & EMUDIF)
+		{
 			uint32_t emudat = bfin_read_emudat();
-			if (inbound_len == 0) {
+
+			if (inbound_len == 0)
+			{
 				pr_debug("incoming length: 0x%08x\n", emudat);
 				inbound_len = emudat;
-			} else {
+			}
+			else
+			{
 				size_t num_chars = (4 <= inbound_len ? 4 : inbound_len);
 				pr_debug("  incoming data: 0x%08x (pushing %zu)\n", emudat, num_chars);
 				inbound_len -= num_chars;
@@ -108,28 +123,37 @@ bfin_jc_emudat_manager(void *arg)
 		}
 
 		/* if outgoing data is ready, post it */
-		if (!(bfin_read_DBGSTAT() & EMUDOF) && !circ_empty(&bfin_jc_write_buf)) {
-			if (outbound_len == 0) {
+		if (!(bfin_read_DBGSTAT() & EMUDOF) && !circ_empty(&bfin_jc_write_buf))
+		{
+			if (outbound_len == 0)
+			{
 				outbound_len = circ_cnt(&bfin_jc_write_buf);
 				bfin_write_emudat(outbound_len);
 				pr_debug("outgoing length: 0x%08x\n", outbound_len);
-			} else {
+			}
+			else
+			{
 				int tail = bfin_jc_write_buf.tail;
 				size_t ate = (4 <= outbound_len ? 4 : outbound_len);
 				uint32_t emudat =
-				bfin_write_emudat_chars(
-					circ_byte(&bfin_jc_write_buf, tail + 0),
-					circ_byte(&bfin_jc_write_buf, tail + 1),
-					circ_byte(&bfin_jc_write_buf, tail + 2),
-					circ_byte(&bfin_jc_write_buf, tail + 3)
-				);
+					bfin_write_emudat_chars(
+						circ_byte(&bfin_jc_write_buf, tail + 0),
+						circ_byte(&bfin_jc_write_buf, tail + 1),
+						circ_byte(&bfin_jc_write_buf, tail + 2),
+						circ_byte(&bfin_jc_write_buf, tail + 3)
+					);
 				bfin_jc_write_buf.tail += ate;
 				outbound_len -= ate;
+
 				if (tty)
+				{
 					tty_wakeup(tty);
+				}
+
 				pr_debug("  outgoing data: 0x%08x (pushing %zu)\n", emudat, ate);
 			}
 		}
+
 		tty_kref_put(tty);
 	}
 
@@ -159,8 +183,12 @@ bfin_jc_close(struct tty_struct *tty, struct file *filp)
 	spin_lock_irqsave(&port.lock, flags);
 	last = --port.count == 0;
 	spin_unlock_irqrestore(&port.lock, flags);
+
 	if (last)
+	{
 		tty_port_tty_set(&port, NULL);
+	}
+
 	wake_up_process(bfin_jc_kthread);
 }
 
@@ -171,15 +199,19 @@ bfin_jc_circ_write(const unsigned char *buf, int count)
 	int i;
 	count = min(count, circ_free(&bfin_jc_write_buf));
 	pr_debug("going to write chunk of %i bytes\n", count);
+
 	for (i = 0; i < count; ++i)
+	{
 		circ_byte(&bfin_jc_write_buf, bfin_jc_write_buf.head + i) = buf[i];
+	}
+
 	bfin_jc_write_buf.head += i;
 	return i;
 }
 
 #ifndef CONFIG_BFIN_JTAG_COMM_CONSOLE
-# define console_lock()
-# define console_unlock()
+	#define console_lock()
+	#define console_unlock()
 #endif
 static int
 bfin_jc_write(struct tty_struct *tty, const unsigned char *buf, int count)
@@ -210,7 +242,8 @@ bfin_jc_chars_in_buffer(struct tty_struct *tty)
 	return circ_cnt(&bfin_jc_write_buf);
 }
 
-static const struct tty_operations bfin_jc_ops = {
+static const struct tty_operations bfin_jc_ops =
+{
 	.open            = bfin_jc_open,
 	.close           = bfin_jc_close,
 	.write           = bfin_jc_write,
@@ -225,19 +258,28 @@ static int __init bfin_jc_init(void)
 	int ret;
 
 	bfin_jc_kthread = kthread_create(bfin_jc_emudat_manager, NULL, DRV_NAME);
+
 	if (IS_ERR(bfin_jc_kthread))
+	{
 		return PTR_ERR(bfin_jc_kthread);
+	}
 
 	ret = -ENOMEM;
 
 	bfin_jc_write_buf.head = bfin_jc_write_buf.tail = 0;
 	bfin_jc_write_buf.buf = kmalloc(CIRC_SIZE, GFP_KERNEL);
+
 	if (!bfin_jc_write_buf.buf)
+	{
 		goto err_buf;
+	}
 
 	bfin_jc_driver = alloc_tty_driver(1);
+
 	if (!bfin_jc_driver)
+	{
 		goto err_driver;
+	}
 
 	tty_port_init(&port);
 
@@ -250,19 +292,22 @@ static int __init bfin_jc_init(void)
 	tty_port_link_device(&port, bfin_jc_driver, 0);
 
 	ret = tty_register_driver(bfin_jc_driver);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	pr_init(KERN_INFO DRV_NAME ": initialized\n");
 
 	return 0;
 
- err:
+err:
 	tty_port_destroy(&port);
 	put_tty_driver(bfin_jc_driver);
- err_driver:
+err_driver:
 	kfree(bfin_jc_write_buf.buf);
- err_buf:
+err_buf:
 	kthread_stop(bfin_jc_kthread);
 	return ret;
 }
@@ -283,13 +328,22 @@ static void
 bfin_jc_straight_buffer_write(const char *buf, unsigned count)
 {
 	unsigned ate = 0;
+
 	while (bfin_read_DBGSTAT() & EMUDOF)
+	{
 		continue;
+	}
+
 	bfin_write_emudat(count);
-	while (ate < count) {
+
+	while (ate < count)
+	{
 		while (bfin_read_DBGSTAT() & EMUDOF)
+		{
 			continue;
-		bfin_write_emudat_chars(buf[ate], buf[ate+1], buf[ate+2], buf[ate+3]);
+		}
+
+		bfin_write_emudat_chars(buf[ate], buf[ate + 1], buf[ate + 2], buf[ate + 3]);
 		ate += 4;
 	}
 }
@@ -300,9 +354,13 @@ static void
 bfin_jc_console_write(struct console *co, const char *buf, unsigned count)
 {
 	if (bfin_jc_kthread == NULL)
+	{
 		bfin_jc_straight_buffer_write(buf, count);
+	}
 	else
+	{
 		bfin_jc_circ_write(buf, count);
+	}
 }
 
 static struct tty_driver *
@@ -312,7 +370,8 @@ bfin_jc_console_device(struct console *co, int *index)
 	return bfin_jc_driver;
 }
 
-static struct console bfin_jc_console = {
+static struct console bfin_jc_console =
+{
 	.name    = DEV_NAME,
 	.write   = bfin_jc_console_write,
 	.device  = bfin_jc_console_device,
@@ -335,14 +394,15 @@ bfin_jc_early_write(struct console *co, const char *buf, unsigned int count)
 	bfin_jc_straight_buffer_write(buf, count);
 }
 
-static struct console bfin_jc_early_console __initdata = {
+static struct console bfin_jc_early_console __initdata =
+{
 	.name   = "early_BFJC",
 	.write   = bfin_jc_early_write,
 	.flags   = CON_ANYTIME | CON_PRINTBUFFER,
 	.index   = -1,
 };
 
-struct console * __init
+struct console *__init
 bfin_jc_early_init(unsigned int port, unsigned int cflag)
 {
 	return &bfin_jc_early_console;

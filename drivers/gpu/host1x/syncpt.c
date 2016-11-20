@@ -38,10 +38,14 @@ host1x_syncpt_base_request(struct host1x *host)
 
 	for (i = 0; i < host->info->nb_bases; i++)
 		if (!bases[i].requested)
+		{
 			break;
+		}
 
 	if (i >= host->info->nb_bases)
+	{
 		return NULL;
+	}
 
 	bases[i].requested = true;
 	return &bases[i];
@@ -50,12 +54,14 @@ host1x_syncpt_base_request(struct host1x *host)
 static void host1x_syncpt_base_free(struct host1x_syncpt_base *base)
 {
 	if (base)
+	{
 		base->requested = false;
+	}
 }
 
 static struct host1x_syncpt *host1x_syncpt_alloc(struct host1x *host,
-						 struct device *dev,
-						 unsigned long flags)
+		struct device *dev,
+		unsigned long flags)
 {
 	int i;
 	struct host1x_syncpt *sp = host->syncpt;
@@ -65,26 +71,39 @@ static struct host1x_syncpt *host1x_syncpt_alloc(struct host1x *host,
 		;
 
 	if (i >= host->info->nb_pts)
+	{
 		return NULL;
+	}
 
-	if (flags & HOST1X_SYNCPT_HAS_BASE) {
+	if (flags & HOST1X_SYNCPT_HAS_BASE)
+	{
 		sp->base = host1x_syncpt_base_request(host);
+
 		if (!sp->base)
+		{
 			return NULL;
+		}
 	}
 
 	name = kasprintf(GFP_KERNEL, "%02u-%s", sp->id,
-			dev ? dev_name(dev) : NULL);
+					 dev ? dev_name(dev) : NULL);
+
 	if (!name)
+	{
 		return NULL;
+	}
 
 	sp->dev = dev;
 	sp->name = name;
 
 	if (flags & HOST1X_SYNCPT_CLIENT_MANAGED)
+	{
 		sp->client_managed = true;
+	}
 	else
+	{
 		sp->client_managed = false;
+	}
 
 	return sp;
 }
@@ -104,19 +123,23 @@ u32 host1x_syncpt_incr_max(struct host1x_syncpt *sp, u32 incrs)
 }
 EXPORT_SYMBOL(host1x_syncpt_incr_max);
 
- /*
- * Write cached syncpoint and waitbase values to hardware.
- */
+/*
+* Write cached syncpoint and waitbase values to hardware.
+*/
 void host1x_syncpt_restore(struct host1x *host)
 {
 	struct host1x_syncpt *sp_base = host->syncpt;
 	unsigned int i;
 
 	for (i = 0; i < host1x_syncpt_nb_pts(host); i++)
+	{
 		host1x_hw_syncpt_restore(host, sp_base + i);
+	}
 
 	for (i = 0; i < host1x_syncpt_nb_bases(host); i++)
+	{
 		host1x_hw_syncpt_restore_wait_base(host, sp_base + i);
+	}
 
 	wmb();
 }
@@ -130,15 +153,22 @@ void host1x_syncpt_save(struct host1x *host)
 	struct host1x_syncpt *sp_base = host->syncpt;
 	unsigned int i;
 
-	for (i = 0; i < host1x_syncpt_nb_pts(host); i++) {
+	for (i = 0; i < host1x_syncpt_nb_pts(host); i++)
+	{
 		if (host1x_syncpt_client_managed(sp_base + i))
+		{
 			host1x_hw_syncpt_load(host, sp_base + i);
+		}
 		else
+		{
 			WARN_ON(!host1x_syncpt_idle(sp_base + i));
+		}
 	}
 
 	for (i = 0; i < host1x_syncpt_nb_bases(host); i++)
+	{
 		host1x_hw_syncpt_load_wait_base(host, sp_base + i);
+	}
 }
 
 /*
@@ -189,7 +219,7 @@ static bool syncpt_load_min_is_expired(struct host1x_syncpt *sp, u32 thresh)
  * Main entrypoint for syncpoint value waits.
  */
 int host1x_syncpt_wait(struct host1x_syncpt *sp, u32 thresh, long timeout,
-		       u32 *value)
+					   u32 *value)
 {
 	DECLARE_WAIT_QUEUE_HEAD_ONSTACK(wq);
 	void *ref;
@@ -198,83 +228,110 @@ int host1x_syncpt_wait(struct host1x_syncpt *sp, u32 thresh, long timeout,
 	u32 val;
 
 	if (value)
+	{
 		*value = 0;
+	}
 
 	/* first check cache */
-	if (host1x_syncpt_is_expired(sp, thresh)) {
+	if (host1x_syncpt_is_expired(sp, thresh))
+	{
 		if (value)
+		{
 			*value = host1x_syncpt_load(sp);
+		}
 
 		return 0;
 	}
 
 	/* try to read from register */
 	val = host1x_hw_syncpt_load(sp->host, sp);
-	if (host1x_syncpt_is_expired(sp, thresh)) {
+
+	if (host1x_syncpt_is_expired(sp, thresh))
+	{
 		if (value)
+		{
 			*value = val;
+		}
 
 		goto done;
 	}
 
-	if (!timeout) {
+	if (!timeout)
+	{
 		err = -EAGAIN;
 		goto done;
 	}
 
 	/* allocate a waiter */
 	waiter = kzalloc(sizeof(*waiter), GFP_KERNEL);
-	if (!waiter) {
+
+	if (!waiter)
+	{
 		err = -ENOMEM;
 		goto done;
 	}
 
 	/* schedule a wakeup when the syncpoint value is reached */
 	err = host1x_intr_add_action(sp->host, sp->id, thresh,
-				     HOST1X_INTR_ACTION_WAKEUP_INTERRUPTIBLE,
-				     &wq, waiter, &ref);
+								 HOST1X_INTR_ACTION_WAKEUP_INTERRUPTIBLE,
+								 &wq, waiter, &ref);
+
 	if (err)
+	{
 		goto done;
+	}
 
 	err = -EAGAIN;
+
 	/* Caller-specified timeout may be impractically low */
 	if (timeout < 0)
+	{
 		timeout = LONG_MAX;
+	}
 
 	/* wait for the syncpoint, or timeout, or signal */
-	while (timeout) {
+	while (timeout)
+	{
 		long check = min_t(long, SYNCPT_CHECK_PERIOD, timeout);
 		int remain;
 
 		remain = wait_event_interruptible_timeout(wq,
-				syncpt_load_min_is_expired(sp, thresh),
-				check);
-		if (remain > 0 || host1x_syncpt_is_expired(sp, thresh)) {
+				 syncpt_load_min_is_expired(sp, thresh),
+				 check);
+
+		if (remain > 0 || host1x_syncpt_is_expired(sp, thresh))
+		{
 			if (value)
+			{
 				*value = host1x_syncpt_load(sp);
+			}
 
 			err = 0;
 
 			break;
 		}
 
-		if (remain < 0) {
+		if (remain < 0)
+		{
 			err = remain;
 			break;
 		}
 
 		timeout -= check;
 
-		if (timeout && check_count <= MAX_STUCK_CHECK_COUNT) {
+		if (timeout && check_count <= MAX_STUCK_CHECK_COUNT)
+		{
 			dev_warn(sp->host->dev,
-				"%s: syncpoint id %u (%s) stuck waiting %d, timeout=%ld\n",
-				 current->comm, sp->id, sp->name,
-				 thresh, timeout);
+					 "%s: syncpoint id %u (%s) stuck waiting %d, timeout=%ld\n",
+					 current->comm, sp->id, sp->name,
+					 thresh, timeout);
 
 			host1x_debug_dump_syncpts(sp->host);
 
 			if (check_count == MAX_STUCK_CHECK_COUNT)
+			{
 				host1x_debug_dump(sp->host);
+			}
 
 			check_count++;
 		}
@@ -343,9 +400,13 @@ bool host1x_syncpt_is_expired(struct host1x_syncpt *sp, u32 thresh)
 	 * case we do a direct comparison.
 	 */
 	if (!host1x_syncpt_client_managed(sp))
+	{
 		return future_val - thresh >= current_val - thresh;
+	}
 	else
+	{
 		return (s32)(current_val - thresh) >= 0;
+	}
 }
 
 /* remove a wait pointed to by patch_addr */
@@ -361,22 +422,31 @@ int host1x_syncpt_init(struct host1x *host)
 	unsigned int i;
 
 	syncpt = devm_kcalloc(host->dev, host->info->nb_pts, sizeof(*syncpt),
-			      GFP_KERNEL);
+						  GFP_KERNEL);
+
 	if (!syncpt)
+	{
 		return -ENOMEM;
+	}
 
 	bases = devm_kcalloc(host->dev, host->info->nb_bases, sizeof(*bases),
-			     GFP_KERNEL);
-	if (!bases)
-		return -ENOMEM;
+						 GFP_KERNEL);
 
-	for (i = 0; i < host->info->nb_pts; i++) {
+	if (!bases)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < host->info->nb_pts; i++)
+	{
 		syncpt[i].id = i;
 		syncpt[i].host = host;
 	}
 
 	for (i = 0; i < host->info->nb_bases; i++)
+	{
 		bases[i].id = i;
+	}
 
 	host->syncpt = syncpt;
 	host->bases = bases;
@@ -385,14 +455,17 @@ int host1x_syncpt_init(struct host1x *host)
 
 	/* Allocate sync point to use for clearing waits for expired fences */
 	host->nop_sp = host1x_syncpt_alloc(host, NULL, 0);
+
 	if (!host->nop_sp)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
 
 struct host1x_syncpt *host1x_syncpt_request(struct device *dev,
-					    unsigned long flags)
+		unsigned long flags)
 {
 	struct host1x *host = dev_get_drvdata(dev->parent);
 
@@ -403,7 +476,9 @@ EXPORT_SYMBOL(host1x_syncpt_request);
 void host1x_syncpt_free(struct host1x_syncpt *sp)
 {
 	if (!sp)
+	{
 		return;
+	}
 
 	host1x_syncpt_base_free(sp->base);
 	kfree(sp->name);
@@ -420,7 +495,9 @@ void host1x_syncpt_deinit(struct host1x *host)
 	unsigned int i;
 
 	for (i = 0; i < host->info->nb_pts; i++, sp++)
+	{
 		kfree(sp->name);
+	}
 }
 
 /*
@@ -470,7 +547,9 @@ unsigned int host1x_syncpt_nb_mlocks(struct host1x *host)
 struct host1x_syncpt *host1x_syncpt_get(struct host1x *host, unsigned int id)
 {
 	if (host->info->nb_pts < id)
+	{
 		return NULL;
+	}
 
 	return host->syncpt + id;
 }

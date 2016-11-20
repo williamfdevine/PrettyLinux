@@ -29,7 +29,8 @@
 #define DAC_CH1		0
 #define DAC_CH2		1
 
-struct tosa_bl_data {
+struct tosa_bl_data
+{
 	struct i2c_client *i2c;
 	struct backlight_device *bl;
 
@@ -59,7 +60,9 @@ static int tosa_bl_update_status(struct backlight_device *dev)
 	int brightness = props->brightness;
 
 	if (power)
+	{
 		brightness = 0;
+	}
 
 	tosa_bl_set_backlight(data, brightness);
 
@@ -73,28 +76,34 @@ static int tosa_bl_get_brightness(struct backlight_device *dev)
 	return props->brightness;
 }
 
-static const struct backlight_ops bl_ops = {
+static const struct backlight_ops bl_ops =
+{
 	.get_brightness		= tosa_bl_get_brightness,
 	.update_status		= tosa_bl_update_status,
 };
 
 static int tosa_bl_probe(struct i2c_client *client,
-		const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct backlight_properties props;
 	struct tosa_bl_data *data;
 	int ret = 0;
 
 	data = devm_kzalloc(&client->dev, sizeof(struct tosa_bl_data),
-				GFP_KERNEL);
+						GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	data->comadj = sharpsl_param.comadj == -1 ? COMADJ_DEFAULT : sharpsl_param.comadj;
 
 	ret = devm_gpio_request_one(&client->dev, TOSA_GPIO_BL_C20MA,
-				GPIOF_OUT_INIT_LOW, "backlight");
-	if (ret) {
+								GPIOF_OUT_INIT_LOW, "backlight");
+
+	if (ret)
+	{
 		dev_dbg(&data->bl->dev, "Unable to request gpio!\n");
 		return ret;
 	}
@@ -106,9 +115,11 @@ static int tosa_bl_probe(struct i2c_client *client,
 	props.type = BACKLIGHT_RAW;
 	props.max_brightness = 512 - 1;
 	data->bl = devm_backlight_device_register(&client->dev, "tosa-bl",
-						&client->dev, data, &bl_ops,
-						&props);
-	if (IS_ERR(data->bl)) {
+			   &client->dev, data, &bl_ops,
+			   &props);
+
+	if (IS_ERR(data->bl))
+	{
 		ret = PTR_ERR(data->bl);
 		goto err_reg;
 	}
@@ -154,13 +165,15 @@ static int tosa_bl_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(tosa_bl_pm_ops, tosa_bl_suspend, tosa_bl_resume);
 
-static const struct i2c_device_id tosa_bl_id[] = {
+static const struct i2c_device_id tosa_bl_id[] =
+{
 	{ "tosa-bl", 0 },
 	{ },
 };
 MODULE_DEVICE_TABLE(i2c, tosa_bl_id);
 
-static struct i2c_driver tosa_bl_driver = {
+static struct i2c_driver tosa_bl_driver =
+{
 	.driver = {
 		.name		= "tosa-bl",
 		.pm		= &tosa_bl_pm_ops,

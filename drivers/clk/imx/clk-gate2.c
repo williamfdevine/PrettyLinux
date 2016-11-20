@@ -27,7 +27,8 @@
  * parent - fixed parent.  No clk_set_parent support
  */
 
-struct clk_gate2 {
+struct clk_gate2
+{
 	struct clk_hw hw;
 	void __iomem	*reg;
 	u8		bit_idx;
@@ -48,7 +49,9 @@ static int clk_gate2_enable(struct clk_hw *hw)
 	spin_lock_irqsave(gate->lock, flags);
 
 	if (gate->share_count && (*gate->share_count)++ > 0)
+	{
 		goto out;
+	}
 
 	reg = readl(gate->reg);
 	reg &= ~(3 << gate->bit_idx);
@@ -69,11 +72,16 @@ static void clk_gate2_disable(struct clk_hw *hw)
 
 	spin_lock_irqsave(gate->lock, flags);
 
-	if (gate->share_count) {
+	if (gate->share_count)
+	{
 		if (WARN_ON(*gate->share_count == 0))
+		{
 			goto out;
+		}
 		else if (--(*gate->share_count) > 0)
+		{
 			goto out;
+		}
 	}
 
 	reg = readl(gate->reg);
@@ -89,7 +97,9 @@ static int clk_gate2_reg_is_enabled(void __iomem *reg, u8 bit_idx)
 	u32 val = readl(reg);
 
 	if (((val >> bit_idx) & 1) == 1)
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -109,7 +119,8 @@ static void clk_gate2_disable_unused(struct clk_hw *hw)
 
 	spin_lock_irqsave(gate->lock, flags);
 
-	if (!gate->share_count || *gate->share_count == 0) {
+	if (!gate->share_count || *gate->share_count == 0)
+	{
 		reg = readl(gate->reg);
 		reg &= ~(3 << gate->bit_idx);
 		writel(reg, gate->reg);
@@ -118,7 +129,8 @@ static void clk_gate2_disable_unused(struct clk_hw *hw)
 	spin_unlock_irqrestore(gate->lock, flags);
 }
 
-static struct clk_ops clk_gate2_ops = {
+static struct clk_ops clk_gate2_ops =
+{
 	.enable = clk_gate2_enable,
 	.disable = clk_gate2_disable,
 	.disable_unused = clk_gate2_disable_unused,
@@ -126,18 +138,21 @@ static struct clk_ops clk_gate2_ops = {
 };
 
 struct clk *clk_register_gate2(struct device *dev, const char *name,
-		const char *parent_name, unsigned long flags,
-		void __iomem *reg, u8 bit_idx, u8 cgr_val,
-		u8 clk_gate2_flags, spinlock_t *lock,
-		unsigned int *share_count)
+							   const char *parent_name, unsigned long flags,
+							   void __iomem *reg, u8 bit_idx, u8 cgr_val,
+							   u8 clk_gate2_flags, spinlock_t *lock,
+							   unsigned int *share_count)
 {
 	struct clk_gate2 *gate;
 	struct clk *clk;
 	struct clk_init_data init;
 
 	gate = kzalloc(sizeof(struct clk_gate2), GFP_KERNEL);
+
 	if (!gate)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	/* struct clk_gate2 assignments */
 	gate->reg = reg;
@@ -156,8 +171,11 @@ struct clk *clk_register_gate2(struct device *dev, const char *name,
 	gate->hw.init = &init;
 
 	clk = clk_register(dev, &gate->hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(gate);
+	}
 
 	return clk;
 }

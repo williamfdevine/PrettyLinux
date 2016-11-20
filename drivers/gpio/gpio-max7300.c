@@ -17,7 +17,7 @@
 #include <linux/slab.h>
 
 static int max7300_i2c_write(struct device *dev, unsigned int reg,
-				unsigned int val)
+							 unsigned int val)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 
@@ -32,17 +32,22 @@ static int max7300_i2c_read(struct device *dev, unsigned int reg)
 }
 
 static int max7300_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct max7301 *ts;
 
 	if (!i2c_check_functionality(client->adapter,
-			I2C_FUNC_SMBUS_BYTE_DATA))
+								 I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		return -EIO;
+	}
 
 	ts = devm_kzalloc(&client->dev, sizeof(struct max7301), GFP_KERNEL);
+
 	if (!ts)
+	{
 		return -ENOMEM;
+	}
 
 	ts->read = max7300_i2c_read;
 	ts->write = max7300_i2c_write;
@@ -56,13 +61,15 @@ static int max7300_remove(struct i2c_client *client)
 	return __max730x_remove(&client->dev);
 }
 
-static const struct i2c_device_id max7300_id[] = {
+static const struct i2c_device_id max7300_id[] =
+{
 	{ "max7300", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, max7300_id);
 
-static struct i2c_driver max7300_driver = {
+static struct i2c_driver max7300_driver =
+{
 	.driver = {
 		.name = "max7300",
 	},

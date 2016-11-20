@@ -32,7 +32,8 @@
 #ifndef _ENA_ADMIN_H_
 #define _ENA_ADMIN_H_
 
-enum ena_admin_aq_opcode {
+enum ena_admin_aq_opcode
+{
 	ENA_ADMIN_CREATE_SQ	= 1,
 
 	ENA_ADMIN_DESTROY_SQ	= 2,
@@ -48,7 +49,8 @@ enum ena_admin_aq_opcode {
 	ENA_ADMIN_GET_STATS	= 11,
 };
 
-enum ena_admin_aq_completion_status {
+enum ena_admin_aq_completion_status
+{
 	ENA_ADMIN_SUCCESS			= 0,
 
 	ENA_ADMIN_RESOURCE_ALLOCATION_FAILURE	= 1,
@@ -65,7 +67,8 @@ enum ena_admin_aq_completion_status {
 	ENA_ADMIN_UNKNOWN_ERROR			= 6,
 };
 
-enum ena_admin_aq_feature_id {
+enum ena_admin_aq_feature_id
+{
 	ENA_ADMIN_DEVICE_ATTRIBUTES		= 1,
 
 	ENA_ADMIN_MAX_QUEUES_NUM		= 2,
@@ -91,7 +94,8 @@ enum ena_admin_aq_feature_id {
 	ENA_ADMIN_FEATURES_OPCODE_NUM		= 32,
 };
 
-enum ena_admin_placement_policy_type {
+enum ena_admin_placement_policy_type
+{
 	/* descriptors and headers are in host memory */
 	ENA_ADMIN_PLACEMENT_POLICY_HOST	= 1,
 
@@ -101,7 +105,8 @@ enum ena_admin_placement_policy_type {
 	ENA_ADMIN_PLACEMENT_POLICY_DEV	= 3,
 };
 
-enum ena_admin_link_types {
+enum ena_admin_link_types
+{
 	ENA_ADMIN_LINK_SPEED_1G		= 0x1,
 
 	ENA_ADMIN_LINK_SPEED_2_HALF_G	= 0x2,
@@ -123,7 +128,8 @@ enum ena_admin_link_types {
 	ENA_ADMIN_LINK_SPEED_400G	= 0x200,
 };
 
-enum ena_admin_completion_policy_type {
+enum ena_admin_completion_policy_type
+{
 	/* completion queue entry for each sq descriptor */
 	ENA_ADMIN_COMPLETION_POLICY_DESC		= 0,
 
@@ -145,19 +151,22 @@ enum ena_admin_completion_policy_type {
  * buffer (string format) with additional statistics per queue and per
  * device id
  */
-enum ena_admin_get_stats_type {
+enum ena_admin_get_stats_type
+{
 	ENA_ADMIN_GET_STATS_TYPE_BASIC		= 0,
 
 	ENA_ADMIN_GET_STATS_TYPE_EXTENDED	= 1,
 };
 
-enum ena_admin_get_stats_scope {
+enum ena_admin_get_stats_scope
+{
 	ENA_ADMIN_SPECIFIC_QUEUE	= 0,
 
 	ENA_ADMIN_ETH_TRAFFIC		= 1,
 };
 
-struct ena_admin_aq_common_desc {
+struct ena_admin_aq_common_desc
+{
 	/* 11:0 : command_id
 	 * 15:12 : reserved12
 	 */
@@ -180,13 +189,15 @@ struct ena_admin_aq_common_desc {
  * page list chunk. Used also at the end of indirect mode page list chunks,
  * for chaining.
  */
-struct ena_admin_ctrl_buff_info {
+struct ena_admin_ctrl_buff_info
+{
 	u32 length;
 
 	struct ena_common_mem_addr address;
 };
 
-struct ena_admin_sq {
+struct ena_admin_sq
+{
 	u16 sq_idx;
 
 	/* 4:0 : reserved
@@ -197,10 +208,12 @@ struct ena_admin_sq {
 	u8 reserved1;
 };
 
-struct ena_admin_aq_entry {
+struct ena_admin_aq_entry
+{
 	struct ena_admin_aq_common_desc aq_common_descriptor;
 
-	union {
+	union
+	{
 		u32 inline_data_w1[3];
 
 		struct ena_admin_ctrl_buff_info control_buffer;
@@ -209,7 +222,8 @@ struct ena_admin_aq_entry {
 	u32 inline_data_w4[12];
 };
 
-struct ena_admin_acq_common_desc {
+struct ena_admin_acq_common_desc
+{
 	/* command identifier to associate it with the aq descriptor
 	 * 11:0 : command_id
 	 * 15:12 : reserved12
@@ -229,13 +243,15 @@ struct ena_admin_acq_common_desc {
 	u16 sq_head_indx;
 };
 
-struct ena_admin_acq_entry {
+struct ena_admin_acq_entry
+{
 	struct ena_admin_acq_common_desc acq_common_descriptor;
 
 	u32 response_specific_data[14];
 };
 
-struct ena_admin_aq_create_sq_cmd {
+struct ena_admin_aq_create_sq_cmd
+{
 	struct ena_admin_aq_common_desc aq_common_descriptor;
 
 	/* 4:0 : reserved0_w1
@@ -293,13 +309,15 @@ struct ena_admin_aq_create_sq_cmd {
 	u32 reserved0_w8;
 };
 
-enum ena_admin_sq_direction {
+enum ena_admin_sq_direction
+{
 	ENA_ADMIN_SQ_DIRECTION_TX	= 1,
 
 	ENA_ADMIN_SQ_DIRECTION_RX	= 2,
 };
 
-struct ena_admin_acq_create_sq_resp_desc {
+struct ena_admin_acq_create_sq_resp_desc
+{
 	struct ena_admin_acq_common_desc acq_common_desc;
 
 	u16 sq_idx;
@@ -320,17 +338,20 @@ struct ena_admin_acq_create_sq_resp_desc {
 	u32 llq_headers_offset;
 };
 
-struct ena_admin_aq_destroy_sq_cmd {
+struct ena_admin_aq_destroy_sq_cmd
+{
 	struct ena_admin_aq_common_desc aq_common_descriptor;
 
 	struct ena_admin_sq sq;
 };
 
-struct ena_admin_acq_destroy_sq_resp_desc {
+struct ena_admin_acq_destroy_sq_resp_desc
+{
 	struct ena_admin_acq_common_desc acq_common_desc;
 };
 
-struct ena_admin_aq_create_cq_cmd {
+struct ena_admin_aq_create_cq_cmd
+{
 	struct ena_admin_aq_common_desc aq_common_descriptor;
 
 	/* 4:0 : reserved5
@@ -358,7 +379,8 @@ struct ena_admin_aq_create_cq_cmd {
 	struct ena_common_mem_addr cq_ba;
 };
 
-struct ena_admin_acq_create_cq_resp_desc {
+struct ena_admin_acq_create_cq_resp_desc
+{
 	struct ena_admin_acq_common_desc acq_common_desc;
 
 	u16 cq_idx;
@@ -373,7 +395,8 @@ struct ena_admin_acq_create_cq_resp_desc {
 	u32 cq_interrupt_unmask_register_offset;
 };
 
-struct ena_admin_aq_destroy_cq_cmd {
+struct ena_admin_aq_destroy_cq_cmd
+{
 	struct ena_admin_aq_common_desc aq_common_descriptor;
 
 	u16 cq_idx;
@@ -381,17 +404,20 @@ struct ena_admin_aq_destroy_cq_cmd {
 	u16 reserved1;
 };
 
-struct ena_admin_acq_destroy_cq_resp_desc {
+struct ena_admin_acq_destroy_cq_resp_desc
+{
 	struct ena_admin_acq_common_desc acq_common_desc;
 };
 
 /* ENA AQ Get Statistics command. Extended statistics are placed in control
  * buffer pointed by AQ entry
  */
-struct ena_admin_aq_get_stats_cmd {
+struct ena_admin_aq_get_stats_cmd
+{
 	struct ena_admin_aq_common_desc aq_common_descriptor;
 
-	union {
+	union
+	{
 		/* command specific inline data */
 		u32 inline_data_w1[3];
 
@@ -416,7 +442,8 @@ struct ena_admin_aq_get_stats_cmd {
 };
 
 /* Basic Statistics Command. */
-struct ena_admin_basic_stats {
+struct ena_admin_basic_stats
+{
 	u32 tx_bytes_low;
 
 	u32 tx_bytes_high;
@@ -438,13 +465,15 @@ struct ena_admin_basic_stats {
 	u32 rx_drops_high;
 };
 
-struct ena_admin_acq_get_stats_resp {
+struct ena_admin_acq_get_stats_resp
+{
 	struct ena_admin_acq_common_desc acq_common_desc;
 
 	struct ena_admin_basic_stats basic_stats;
 };
 
-struct ena_admin_get_set_feature_common_desc {
+struct ena_admin_get_set_feature_common_desc
+{
 	/* 1:0 : select - 0x1 - current value; 0x3 - default
 	 *    value
 	 * 7:3 : reserved3
@@ -457,7 +486,8 @@ struct ena_admin_get_set_feature_common_desc {
 	u16 reserved16;
 };
 
-struct ena_admin_device_attr_feature_desc {
+struct ena_admin_device_attr_feature_desc
+{
 	u32 impl_id;
 
 	u32 device_version;
@@ -481,7 +511,8 @@ struct ena_admin_device_attr_feature_desc {
 	u32 max_mtu;
 };
 
-struct ena_admin_queue_feature_desc {
+struct ena_admin_queue_feature_desc
+{
 	/* including LLQs */
 	u32 max_sq_num;
 
@@ -506,12 +537,14 @@ struct ena_admin_queue_feature_desc {
 	u16 max_packet_rx_descs;
 };
 
-struct ena_admin_set_feature_mtu_desc {
+struct ena_admin_set_feature_mtu_desc
+{
 	/* exclude L2 */
 	u32 mtu;
 };
 
-struct ena_admin_set_feature_host_attr_desc {
+struct ena_admin_set_feature_host_attr_desc
+{
 	/* host OS info base address in OS memory. host info is 4KB of
 	 * physically contiguous
 	 */
@@ -526,14 +559,16 @@ struct ena_admin_set_feature_host_attr_desc {
 	u32 debug_area_size;
 };
 
-struct ena_admin_feature_intr_moder_desc {
+struct ena_admin_feature_intr_moder_desc
+{
 	/* interrupt delay granularity in usec */
 	u16 intr_delay_resolution;
 
 	u16 reserved;
 };
 
-struct ena_admin_get_feature_link_desc {
+struct ena_admin_get_feature_link_desc
+{
 	/* Link speed in Mb */
 	u32 speed;
 
@@ -547,7 +582,8 @@ struct ena_admin_get_feature_link_desc {
 	u32 flags;
 };
 
-struct ena_admin_feature_aenq_desc {
+struct ena_admin_feature_aenq_desc
+{
 	/* bitmask for AENQ groups the device can report */
 	u32 supported_groups;
 
@@ -555,7 +591,8 @@ struct ena_admin_feature_aenq_desc {
 	u32 enabled_groups;
 };
 
-struct ena_admin_feature_offload_desc {
+struct ena_admin_feature_offload_desc
+{
 	/* 0 : TX_L3_csum_ipv4
 	 * 1 : TX_L4_ipv4_csum_part - The checksum field
 	 *    should be initialized with pseudo header checksum
@@ -580,13 +617,15 @@ struct ena_admin_feature_offload_desc {
 	u32 rx_enabled;
 };
 
-enum ena_admin_hash_functions {
+enum ena_admin_hash_functions
+{
 	ENA_ADMIN_TOEPLITZ	= 1,
 
 	ENA_ADMIN_CRC32		= 2,
 };
 
-struct ena_admin_feature_rss_flow_hash_control {
+struct ena_admin_feature_rss_flow_hash_control
+{
 	u32 keys_num;
 
 	u32 reserved;
@@ -594,7 +633,8 @@ struct ena_admin_feature_rss_flow_hash_control {
 	u32 key[10];
 };
 
-struct ena_admin_feature_rss_flow_hash_function {
+struct ena_admin_feature_rss_flow_hash_function
+{
 	/* 7:0 : funcs - bitmask of ena_admin_hash_functions */
 	u32 supported_func;
 
@@ -608,7 +648,8 @@ struct ena_admin_feature_rss_flow_hash_function {
 };
 
 /* RSS flow hash protocols */
-enum ena_admin_flow_hash_proto {
+enum ena_admin_flow_hash_proto
+{
 	ENA_ADMIN_RSS_TCP4	= 0,
 
 	ENA_ADMIN_RSS_UDP4	= 1,
@@ -629,7 +670,8 @@ enum ena_admin_flow_hash_proto {
 };
 
 /* RSS flow hash fields */
-enum ena_admin_flow_hash_fields {
+enum ena_admin_flow_hash_fields
+{
 	/* Ethernet Dest Addr */
 	ENA_ADMIN_RSS_L2_DA	= 0,
 
@@ -649,14 +691,16 @@ enum ena_admin_flow_hash_fields {
 	ENA_ADMIN_RSS_L4_SP	= 7,
 };
 
-struct ena_admin_proto_input {
+struct ena_admin_proto_input
+{
 	/* flow hash fields (bitwise according to ena_admin_flow_hash_fields) */
 	u16 fields;
 
 	u16 reserved2;
 };
 
-struct ena_admin_feature_rss_hash_control {
+struct ena_admin_feature_rss_hash_control
+{
 	struct ena_admin_proto_input supported_fields[ENA_ADMIN_RSS_PROTO_NUM];
 
 	struct ena_admin_proto_input selected_fields[ENA_ADMIN_RSS_PROTO_NUM];
@@ -666,7 +710,8 @@ struct ena_admin_feature_rss_hash_control {
 	struct ena_admin_proto_input reserved3[ENA_ADMIN_RSS_PROTO_NUM];
 };
 
-struct ena_admin_feature_rss_flow_hash_input {
+struct ena_admin_feature_rss_flow_hash_input
+{
 	/* supported hash input sorting
 	 * 1 : L3_sort - support swap L3 addresses if DA is
 	 *    smaller than SA
@@ -684,7 +729,8 @@ struct ena_admin_feature_rss_flow_hash_input {
 	u16 enabled_input_sort;
 };
 
-enum ena_admin_os_type {
+enum ena_admin_os_type
+{
 	ENA_ADMIN_OS_LINUX	= 1,
 
 	ENA_ADMIN_OS_WIN	= 2,
@@ -696,7 +742,8 @@ enum ena_admin_os_type {
 	ENA_ADMIN_OS_IPXE	= 5,
 };
 
-struct ena_admin_host_info {
+struct ena_admin_host_info
+{
 	/* defined in enum ena_admin_os_type */
 	u32 os_type;
 
@@ -722,13 +769,15 @@ struct ena_admin_host_info {
 	u32 supported_network_features[4];
 };
 
-struct ena_admin_rss_ind_table_entry {
+struct ena_admin_rss_ind_table_entry
+{
 	u16 cq_idx;
 
 	u16 reserved;
 };
 
-struct ena_admin_feature_rss_ind_table {
+struct ena_admin_feature_rss_ind_table
+{
 	/* min supported table size (2^min_size) */
 	u16 min_size;
 
@@ -749,7 +798,8 @@ struct ena_admin_feature_rss_ind_table {
 	struct ena_admin_rss_ind_table_entry inline_entry;
 };
 
-struct ena_admin_get_feat_cmd {
+struct ena_admin_get_feat_cmd
+{
 	struct ena_admin_aq_common_desc aq_common_descriptor;
 
 	struct ena_admin_ctrl_buff_info control_buffer;
@@ -759,10 +809,12 @@ struct ena_admin_get_feat_cmd {
 	u32 raw[11];
 };
 
-struct ena_admin_get_feat_resp {
+struct ena_admin_get_feat_resp
+{
 	struct ena_admin_acq_common_desc acq_common_desc;
 
-	union {
+	union
+	{
 		u32 raw[14];
 
 		struct ena_admin_device_attr_feature_desc dev_attr;
@@ -785,14 +837,16 @@ struct ena_admin_get_feat_resp {
 	} u;
 };
 
-struct ena_admin_set_feat_cmd {
+struct ena_admin_set_feat_cmd
+{
 	struct ena_admin_aq_common_desc aq_common_descriptor;
 
 	struct ena_admin_ctrl_buff_info control_buffer;
 
 	struct ena_admin_get_set_feature_common_desc feat_common;
 
-	union {
+	union
+	{
 		u32 raw[11];
 
 		/* mtu size */
@@ -815,15 +869,18 @@ struct ena_admin_set_feat_cmd {
 	} u;
 };
 
-struct ena_admin_set_feat_resp {
+struct ena_admin_set_feat_resp
+{
 	struct ena_admin_acq_common_desc acq_common_desc;
 
-	union {
+	union
+	{
 		u32 raw[14];
 	} u;
 };
 
-struct ena_admin_aenq_common_desc {
+struct ena_admin_aenq_common_desc
+{
 	u16 group;
 
 	u16 syndrom;
@@ -839,7 +896,8 @@ struct ena_admin_aenq_common_desc {
 };
 
 /* asynchronous event notification groups */
-enum ena_admin_aenq_group {
+enum ena_admin_aenq_group
+{
 	ENA_ADMIN_LINK_CHANGE		= 0,
 
 	ENA_ADMIN_FATAL_ERROR		= 1,
@@ -853,27 +911,31 @@ enum ena_admin_aenq_group {
 	ENA_ADMIN_AENQ_GROUPS_NUM	= 5,
 };
 
-enum ena_admin_aenq_notification_syndrom {
+enum ena_admin_aenq_notification_syndrom
+{
 	ENA_ADMIN_SUSPEND	= 0,
 
 	ENA_ADMIN_RESUME	= 1,
 };
 
-struct ena_admin_aenq_entry {
+struct ena_admin_aenq_entry
+{
 	struct ena_admin_aenq_common_desc aenq_common_desc;
 
 	/* command specific inline data */
 	u32 inline_data_w4[12];
 };
 
-struct ena_admin_aenq_link_change_desc {
+struct ena_admin_aenq_link_change_desc
+{
 	struct ena_admin_aenq_common_desc aenq_common_desc;
 
 	/* 0 : link_status */
 	u32 flags;
 };
 
-struct ena_admin_ena_mmio_req_read_less_resp {
+struct ena_admin_ena_mmio_req_read_less_resp
+{
 	u16 req_id;
 
 	u16 reg_off;

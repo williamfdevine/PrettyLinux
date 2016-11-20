@@ -21,11 +21,12 @@
  *
  * One for each consumer device.
  */
-struct regulator {
+struct regulator
+{
 	struct device *dev;
 	struct list_head list;
-	unsigned int always_on:1;
-	unsigned int bypass:1;
+	unsigned int always_on: 1;
+	unsigned int bypass: 1;
 	int uA_load;
 	int min_uV;
 	int max_uV;
@@ -37,15 +38,15 @@ struct regulator {
 
 #ifdef CONFIG_OF
 struct regulator_init_data *regulator_of_get_init_data(struct device *dev,
-			         const struct regulator_desc *desc,
-				 struct regulator_config *config,
-				 struct device_node **node);
+		const struct regulator_desc *desc,
+		struct regulator_config *config,
+		struct device_node **node);
 #else
 static inline struct regulator_init_data *
 regulator_of_get_init_data(struct device *dev,
-			   const struct regulator_desc *desc,
-			   struct regulator_config *config,
-			   struct device_node **node)
+						   const struct regulator_desc *desc,
+						   struct regulator_config *config,
+						   struct device_node **node)
 {
 	return NULL;
 }

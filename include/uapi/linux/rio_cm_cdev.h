@@ -40,21 +40,24 @@
 
 #include <linux/types.h>
 
-struct rio_cm_channel {
+struct rio_cm_channel
+{
 	__u16 id;
 	__u16 remote_channel;
 	__u16 remote_destid;
 	__u8 mport_id;
 };
 
-struct rio_cm_msg {
+struct rio_cm_msg
+{
 	__u16 ch_num;
 	__u16 size;
 	__u32 rxto;	/* receive timeout in mSec. 0 = blocking */
 	__u64 msg;
 };
 
-struct rio_cm_accept {
+struct rio_cm_accept
+{
 	__u16 ch_num;
 	__u16 pad0;
 	__u32 wait_to;	/* accept timeout in mSec. 0 = blocking */

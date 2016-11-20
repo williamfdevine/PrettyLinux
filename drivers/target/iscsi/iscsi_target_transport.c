@@ -10,11 +10,15 @@ struct iscsit_transport *iscsit_get_transport(int type)
 	struct iscsit_transport *t;
 
 	mutex_lock(&transport_mutex);
-	list_for_each_entry(t, &g_transport_list, t_node) {
-		if (t->transport_type == type) {
-			if (t->owner && !try_module_get(t->owner)) {
+	list_for_each_entry(t, &g_transport_list, t_node)
+	{
+		if (t->transport_type == type)
+		{
+			if (t->owner && !try_module_get(t->owner))
+			{
 				t = NULL;
 			}
+
 			mutex_unlock(&transport_mutex);
 			return t;
 		}

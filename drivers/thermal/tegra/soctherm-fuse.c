@@ -80,29 +80,36 @@ static s64 div64_s64_precise(s64 a, s32 b)
 }
 
 int tegra_calc_shared_calib(const struct tegra_soctherm_fuse *tfuse,
-			    struct tsensor_shared_calib *shared)
+							struct tsensor_shared_calib *shared)
 {
 	u32 val;
 	s32 shifted_cp, shifted_ft;
 	int err;
 
 	err = tegra_fuse_readl(FUSE_TSENSOR_COMMON, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	shared->base_cp = (val & tfuse->fuse_base_cp_mask) >>
-			  tfuse->fuse_base_cp_shift;
+					  tfuse->fuse_base_cp_shift;
 	shared->base_ft = (val & tfuse->fuse_base_ft_mask) >>
-			  tfuse->fuse_base_ft_shift;
+					  tfuse->fuse_base_ft_shift;
 
 	shifted_ft = (val & tfuse->fuse_shift_ft_mask) >>
-		     tfuse->fuse_shift_ft_shift;
+				 tfuse->fuse_shift_ft_shift;
 	shifted_ft = sign_extend32(shifted_ft, 4);
 
-	if (tfuse->fuse_spare_realignment) {
+	if (tfuse->fuse_spare_realignment)
+	{
 		err = tegra_fuse_readl(tfuse->fuse_spare_realignment, &val);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	shifted_cp = sign_extend32(val, 5);
@@ -114,8 +121,8 @@ int tegra_calc_shared_calib(const struct tegra_soctherm_fuse *tfuse,
 }
 
 int tegra_calc_tsensor_calib(const struct tegra_tsensor *sensor,
-			     const struct tsensor_shared_calib *shared,
-			     u32 *calibration)
+							 const struct tsensor_shared_calib *shared,
+							 u32 *calibration)
 {
 	const struct tegra_tsensor_group *sensor_group;
 	u32 val, calib;
@@ -129,12 +136,15 @@ int tegra_calc_tsensor_calib(const struct tegra_tsensor *sensor,
 	sensor_group = sensor->group;
 
 	err = tegra_fuse_readl(sensor->calib_fuse_offset, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	actual_tsensor_cp = (shared->base_cp * 64) + sign_extend32(val, 12);
 	val = (val & FUSE_TSENSOR_CALIB_FT_TS_BASE_MASK) >>
-	      FUSE_TSENSOR_CALIB_FT_TS_BASE_SHIFT;
+		  FUSE_TSENSOR_CALIB_FT_TS_BASE_SHIFT;
 	actual_tsensor_ft = (shared->base_ft * 32) + sign_extend32(val, 12);
 
 	delta_sens = actual_tsensor_ft - actual_tsensor_cp;
@@ -147,7 +157,7 @@ int tegra_calc_tsensor_calib(const struct tegra_tsensor *sensor,
 	therma = div64_s64_precise(temp, (s64)delta_sens * div);
 
 	temp = ((s64)actual_tsensor_ft * shared->actual_temp_cp) -
-		((s64)actual_tsensor_cp * shared->actual_temp_ft);
+		   ((s64)actual_tsensor_cp * shared->actual_temp_ft);
 	thermb = div64_s64_precise(temp, delta_sens);
 
 	temp = (s64)therma * sensor->fuse_corr_alpha;
@@ -157,7 +167,7 @@ int tegra_calc_tsensor_calib(const struct tegra_tsensor *sensor,
 	thermb = div64_s64_precise(temp, CALIB_COEFFICIENT);
 
 	calib = ((u16)therma << SENSOR_CONFIG2_THERMA_SHIFT) |
-		((u16)thermb << SENSOR_CONFIG2_THERMB_SHIFT);
+			((u16)thermb << SENSOR_CONFIG2_THERMB_SHIFT);
 
 	*calibration = calib;
 

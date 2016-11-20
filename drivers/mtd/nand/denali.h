@@ -438,7 +438,8 @@
 
 #define ECC_SECTOR_SIZE     512
 
-struct nand_buf {
+struct nand_buf
+{
 	int head;
 	int tail;
 	uint8_t *buf;
@@ -449,7 +450,8 @@ struct nand_buf {
 #define INTEL_MRST	2
 #define DT		3
 
-struct denali_nand_info {
+struct denali_nand_info
+{
 	struct nand_chip nand;
 	int flash_bank; /* currently selected chip */
 	int status;

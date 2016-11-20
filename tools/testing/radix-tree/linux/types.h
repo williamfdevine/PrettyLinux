@@ -14,7 +14,8 @@ static inline void INIT_LIST_HEAD(struct list_head *list)
 	list->prev = list;
 }
 
-typedef struct {
+typedef struct
+{
 	unsigned int x;
 } spinlock_t;
 

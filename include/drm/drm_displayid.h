@@ -51,20 +51,23 @@
 #define PRODUCT_TYPE_REPEATER 5
 #define PRODUCT_TYPE_DIRECT_DRIVE 6
 
-struct displayid_hdr {
+struct displayid_hdr
+{
 	u8 rev;
 	u8 bytes;
 	u8 prod_id;
 	u8 ext_count;
 } __packed;
 
-struct displayid_block {
+struct displayid_block
+{
 	u8 tag;
 	u8 rev;
 	u8 num_bytes;
 } __packed;
 
-struct displayid_tiled_block {
+struct displayid_tiled_block
+{
 	struct displayid_block base;
 	u8 tile_cap;
 	u8 topo[3];
@@ -73,7 +76,8 @@ struct displayid_tiled_block {
 	u8 topology_id[8];
 } __packed;
 
-struct displayid_detailed_timings_1 {
+struct displayid_detailed_timings_1
+{
 	u8 pixel_clock[3];
 	u8 flags;
 	u8 hactive[2];
@@ -86,7 +90,8 @@ struct displayid_detailed_timings_1 {
 	u8 vsw[2];
 } __packed;
 
-struct displayid_detailed_timing_block {
+struct displayid_detailed_timing_block
+{
 	struct displayid_block base;
 	struct displayid_detailed_timings_1 timings[0];
 };

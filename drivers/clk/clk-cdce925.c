@@ -39,7 +39,8 @@
 #define CDCE925_PLL_FREQUENCY_MAX	230000000ul
 struct clk_cdce925_chip;
 
-struct clk_cdce925_output {
+struct clk_cdce925_output
+{
 	struct clk_hw hw;
 	struct clk_cdce925_chip *chip;
 	u8 index;
@@ -48,7 +49,8 @@ struct clk_cdce925_output {
 #define to_clk_cdce925_output(_hw) \
 	container_of(_hw, struct clk_cdce925_output, hw)
 
-struct clk_cdce925_pll {
+struct clk_cdce925_pll
+{
 	struct clk_hw hw;
 	struct clk_cdce925_chip *chip;
 	u8 index;
@@ -57,7 +59,8 @@ struct clk_cdce925_pll {
 };
 #define to_clk_cdce925_pll(_hw)	container_of(_hw, struct clk_cdce925_pll, hw)
 
-struct clk_cdce925_chip {
+struct clk_cdce925_chip
+{
 	struct regmap *regmap;
 	struct i2c_client *i2c_client;
 	struct clk_cdce925_pll pll[NUMBER_OF_PLLS];
@@ -67,10 +70,13 @@ struct clk_cdce925_chip {
 /* ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** */
 
 static unsigned long cdce925_pll_calculate_rate(unsigned long parent_rate,
-	u16 n, u16 m)
+		u16 n, u16 m)
 {
 	if ((!m || !n) || (m == n))
-		return parent_rate; /* In bypass mode runs at same frequency */
+	{
+		return parent_rate;    /* In bypass mode runs at same frequency */
+	}
+
 	return mult_frac(parent_rate, (unsigned long)n, (unsigned long)m);
 }
 
@@ -84,36 +90,51 @@ static unsigned long cdce925_pll_recalc_rate(struct clk_hw *hw,
 }
 
 static void cdce925_pll_find_rate(unsigned long rate,
-		unsigned long parent_rate, u16 *n, u16 *m)
+								  unsigned long parent_rate, u16 *n, u16 *m)
 {
 	unsigned long un;
 	unsigned long um;
 	unsigned long g;
 
-	if (rate <= parent_rate) {
+	if (rate <= parent_rate)
+	{
 		/* Can always deliver parent_rate in bypass mode */
 		rate = parent_rate;
 		*n = 0;
 		*m = 0;
-	} else {
+	}
+	else
+	{
 		/* In PLL mode, need to apply min/max range */
 		if (rate < CDCE925_PLL_FREQUENCY_MIN)
+		{
 			rate = CDCE925_PLL_FREQUENCY_MIN;
+		}
 		else if (rate > CDCE925_PLL_FREQUENCY_MAX)
+		{
 			rate = CDCE925_PLL_FREQUENCY_MAX;
+		}
 
 		g = gcd(rate, parent_rate);
 		um = parent_rate / g;
 		un = rate / g;
+
 		/* When outside hw range, reduce to fit (rounding errors) */
-		while ((un > 4095) || (um > 511)) {
+		while ((un > 4095) || (um > 511))
+		{
 			un >>= 1;
 			um >>= 1;
 		}
+
 		if (un == 0)
+		{
 			un = 1;
+		}
+
 		if (um == 0)
+		{
 			um = 1;
+		}
 
 		*n = un;
 		*m = um;
@@ -121,7 +142,7 @@ static void cdce925_pll_find_rate(unsigned long rate,
 }
 
 static long cdce925_pll_round_rate(struct clk_hw *hw, unsigned long rate,
-		unsigned long *parent_rate)
+								   unsigned long *parent_rate)
 {
 	u16 n, m;
 
@@ -130,25 +151,28 @@ static long cdce925_pll_round_rate(struct clk_hw *hw, unsigned long rate,
 }
 
 static int cdce925_pll_set_rate(struct clk_hw *hw, unsigned long rate,
-		unsigned long parent_rate)
+								unsigned long parent_rate)
 {
 	struct clk_cdce925_pll *data = to_clk_cdce925_pll(hw);
 
-	if (!rate || (rate == parent_rate)) {
+	if (!rate || (rate == parent_rate))
+	{
 		data->m = 0; /* Bypass mode */
 		data->n = 0;
 		return 0;
 	}
 
 	if ((rate < CDCE925_PLL_FREQUENCY_MIN) ||
-		(rate > CDCE925_PLL_FREQUENCY_MAX)) {
+		(rate > CDCE925_PLL_FREQUENCY_MAX))
+	{
 		pr_debug("%s: rate %lu outside PLL range.\n", __func__, rate);
 		return -EINVAL;
 	}
 
-	if (rate < parent_rate) {
+	if (rate < parent_rate)
+	{
 		pr_debug("%s: rate %lu less than parent rate %lu.\n", __func__,
-			rate, parent_rate);
+				 rate, parent_rate);
 		return -EINVAL;
 	}
 
@@ -164,12 +188,18 @@ static u8 cdce925_pll_calc_p(u16 n, u16 m)
 	u16 r = n / m;
 
 	if (r >= 16)
+	{
 		return 0;
+	}
+
 	p = 4;
-	while (r > 1) {
+
+	while (r > 1)
+	{
 		r >>= 1;
 		--p;
 	}
+
 	return p;
 }
 
@@ -180,12 +210,22 @@ static u8 cdce925_pll_calc_range_bits(struct clk_hw *hw, u16 n, u16 m)
 	unsigned long rate = clk_get_rate(parent);
 
 	rate = mult_frac(rate, (unsigned long)n, (unsigned long)m);
+
 	if (rate >= 175000000)
+	{
 		return 0x3;
+	}
+
 	if (rate >= 150000000)
+	{
 		return 0x02;
+	}
+
 	if (rate >= 125000000)
+	{
 		return 0x01;
+	}
+
 	return 0x00;
 }
 
@@ -204,11 +244,14 @@ static int cdce925_pll_prepare(struct clk_hw *hw)
 	u8 reg_ofs = data->index * CDCE925_OFFSET_PLL;
 	unsigned i;
 
-	if ((!m || !n) || (m == n)) {
+	if ((!m || !n) || (m == n))
+	{
 		/* Set PLL mux to bypass mode, leave the rest as is */
 		regmap_update_bits(data->chip->regmap,
-			reg_ofs + CDCE925_PLL_MUX_OUTPUTS, 0x80, 0x80);
-	} else {
+						   reg_ofs + CDCE925_PLL_MUX_OUTPUTS, 0x80, 0x80);
+	}
+	else
+	{
 		/* According to data sheet: */
 		/* p = max(0, 4 - int(log2 (n/m))) */
 		p = cdce925_pll_calc_p(n, m);
@@ -216,30 +259,38 @@ static int cdce925_pll_prepare(struct clk_hw *hw)
 		nn = n * BIT(p);
 		/* q = int(nn/m) */
 		q = nn / m;
-		if ((q < 16) || (1 > 64)) {
+
+		if ((q < 16) || (1 > 64))
+		{
 			pr_debug("%s invalid q=%d\n", __func__, q);
 			return -EINVAL;
 		}
-		r = nn - (m*q);
-		if (r > 511) {
+
+		r = nn - (m * q);
+
+		if (r > 511)
+		{
 			pr_debug("%s invalid r=%d\n", __func__, r);
 			return -EINVAL;
 		}
+
 		pr_debug("%s n=%d m=%d p=%d q=%d r=%d\n", __func__,
-			n, m, p, q, r);
+				 n, m, p, q, r);
 		/* encode into register bits */
 		pll[0] = n >> 4;
 		pll[1] = ((n & 0x0F) << 4) | ((r >> 5) & 0x0F);
 		pll[2] = ((r & 0x1F) << 3) | ((q >> 3) & 0x07);
 		pll[3] = ((q & 0x07) << 5) | (p << 2) |
-				cdce925_pll_calc_range_bits(hw, n, m);
+				 cdce925_pll_calc_range_bits(hw, n, m);
+
 		/* Write to registers */
 		for (i = 0; i < ARRAY_SIZE(pll); ++i)
 			regmap_write(data->chip->regmap,
-				reg_ofs + CDCE925_PLL_MULDIV + i, pll[i]);
+						 reg_ofs + CDCE925_PLL_MULDIV + i, pll[i]);
+
 		/* Enable PLL */
 		regmap_update_bits(data->chip->regmap,
-			reg_ofs + CDCE925_PLL_MUX_OUTPUTS, 0x80, 0x00);
+						   reg_ofs + CDCE925_PLL_MUX_OUTPUTS, 0x80, 0x00);
 	}
 
 	return 0;
@@ -251,10 +302,11 @@ static void cdce925_pll_unprepare(struct clk_hw *hw)
 	u8 reg_ofs = data->index * CDCE925_OFFSET_PLL;
 
 	regmap_update_bits(data->chip->regmap,
-			reg_ofs + CDCE925_PLL_MUX_OUTPUTS, 0x80, 0x80);
+					   reg_ofs + CDCE925_PLL_MUX_OUTPUTS, 0x80, 0x80);
 }
 
-static const struct clk_ops cdce925_pll_ops = {
+static const struct clk_ops cdce925_pll_ops =
+{
 	.prepare = cdce925_pll_prepare,
 	.unprepare = cdce925_pll_unprepare,
 	.recalc_rate = cdce925_pll_recalc_rate,
@@ -265,43 +317,51 @@ static const struct clk_ops cdce925_pll_ops = {
 
 static void cdce925_clk_set_pdiv(struct clk_cdce925_output *data, u16 pdiv)
 {
-	switch (data->index) {
-	case 0:
-		regmap_update_bits(data->chip->regmap,
-			CDCE925_REG_Y1SPIPDIVH,
-			0x03, (pdiv >> 8) & 0x03);
-		regmap_write(data->chip->regmap, 0x03, pdiv & 0xFF);
-		break;
-	case 1:
-		regmap_update_bits(data->chip->regmap, 0x16, 0x7F, pdiv);
-		break;
-	case 2:
-		regmap_update_bits(data->chip->regmap, 0x17, 0x7F, pdiv);
-		break;
-	case 3:
-		regmap_update_bits(data->chip->regmap, 0x26, 0x7F, pdiv);
-		break;
-	case 4:
-		regmap_update_bits(data->chip->regmap, 0x27, 0x7F, pdiv);
-		break;
+	switch (data->index)
+	{
+		case 0:
+			regmap_update_bits(data->chip->regmap,
+							   CDCE925_REG_Y1SPIPDIVH,
+							   0x03, (pdiv >> 8) & 0x03);
+			regmap_write(data->chip->regmap, 0x03, pdiv & 0xFF);
+			break;
+
+		case 1:
+			regmap_update_bits(data->chip->regmap, 0x16, 0x7F, pdiv);
+			break;
+
+		case 2:
+			regmap_update_bits(data->chip->regmap, 0x17, 0x7F, pdiv);
+			break;
+
+		case 3:
+			regmap_update_bits(data->chip->regmap, 0x26, 0x7F, pdiv);
+			break;
+
+		case 4:
+			regmap_update_bits(data->chip->regmap, 0x27, 0x7F, pdiv);
+			break;
 	}
 }
 
 static void cdce925_clk_activate(struct clk_cdce925_output *data)
 {
-	switch (data->index) {
-	case 0:
-		regmap_update_bits(data->chip->regmap,
-			CDCE925_REG_Y1SPIPDIVH, 0x0c, 0x0c);
-		break;
-	case 1:
-	case 2:
-		regmap_update_bits(data->chip->regmap, 0x14, 0x03, 0x03);
-		break;
-	case 3:
-	case 4:
-		regmap_update_bits(data->chip->regmap, 0x24, 0x03, 0x03);
-		break;
+	switch (data->index)
+	{
+		case 0:
+			regmap_update_bits(data->chip->regmap,
+							   CDCE925_REG_Y1SPIPDIVH, 0x0c, 0x0c);
+			break;
+
+		case 1:
+		case 2:
+			regmap_update_bits(data->chip->regmap, 0x14, 0x03, 0x03);
+			break;
+
+		case 3:
+		case 4:
+			regmap_update_bits(data->chip->regmap, 0x24, 0x03, 0x03);
+			break;
 	}
 }
 
@@ -328,23 +388,34 @@ static unsigned long cdce925_clk_recalc_rate(struct clk_hw *hw,
 	struct clk_cdce925_output *data = to_clk_cdce925_output(hw);
 
 	if (data->pdiv)
+	{
 		return parent_rate / data->pdiv;
+	}
+
 	return 0;
 }
 
 static u16 cdce925_calc_divider(unsigned long rate,
-		unsigned long parent_rate)
+								unsigned long parent_rate)
 {
 	unsigned long divider;
 
 	if (!rate)
+	{
 		return 0;
+	}
+
 	if (rate >= parent_rate)
+	{
 		return 1;
+	}
 
 	divider = DIV_ROUND_CLOSEST(parent_rate, rate);
+
 	if (divider > 0x7F)
+	{
 		divider = 0x7F;
+	}
 
 	return (u16)divider;
 }
@@ -362,29 +433,41 @@ static unsigned long cdce925_clk_best_parent_rate(
 	u16 pdiv_now;
 
 	if (root_rate % rate == 0)
-		return root_rate; /* Don't need the PLL, use bypass */
+	{
+		return root_rate;    /* Don't need the PLL, use bypass */
+	}
 
 	pdiv_min = (u16)max(1ul, DIV_ROUND_UP(CDCE925_PLL_FREQUENCY_MIN, rate));
 	pdiv_max = (u16)min(127ul, CDCE925_PLL_FREQUENCY_MAX / rate);
 
 	if (pdiv_min > pdiv_max)
-		return 0; /* No can do? */
+	{
+		return 0;    /* No can do? */
+	}
 
 	pdiv_best = pdiv_min;
-	for (pdiv_now = pdiv_min; pdiv_now < pdiv_max; ++pdiv_now) {
+
+	for (pdiv_now = pdiv_min; pdiv_now < pdiv_max; ++pdiv_now)
+	{
 		unsigned long target_rate = rate * pdiv_now;
 		long pll_rate = clk_round_rate(pll, target_rate);
 		unsigned long actual_rate;
 		unsigned long rate_error;
 
 		if (pll_rate <= 0)
+		{
 			continue;
+		}
+
 		actual_rate = pll_rate / pdiv_now;
 		rate_error = abs((long)actual_rate - (long)rate);
-		if (rate_error < best_rate_error) {
+
+		if (rate_error < best_rate_error)
+		{
 			pdiv_best = pdiv_now;
 			best_rate_error = rate_error;
 		}
+
 		/* TODO: Consider PLL frequency based on smaller n/m values
 		 * and pick the better one if the error is equal */
 	}
@@ -393,24 +476,28 @@ static unsigned long cdce925_clk_best_parent_rate(
 }
 
 static long cdce925_clk_round_rate(struct clk_hw *hw, unsigned long rate,
-		unsigned long *parent_rate)
+								   unsigned long *parent_rate)
 {
 	unsigned long l_parent_rate = *parent_rate;
 	u16 divider = cdce925_calc_divider(rate, l_parent_rate);
 
-	if (l_parent_rate / divider != rate) {
+	if (l_parent_rate / divider != rate)
+	{
 		l_parent_rate = cdce925_clk_best_parent_rate(hw, rate);
 		divider = cdce925_calc_divider(rate, l_parent_rate);
 		*parent_rate = l_parent_rate;
 	}
 
 	if (divider)
+	{
 		return (long)(l_parent_rate / divider);
+	}
+
 	return 0;
 }
 
 static int cdce925_clk_set_rate(struct clk_hw *hw, unsigned long rate,
-		unsigned long parent_rate)
+								unsigned long parent_rate)
 {
 	struct clk_cdce925_output *data = to_clk_cdce925_output(hw);
 
@@ -419,7 +506,8 @@ static int cdce925_clk_set_rate(struct clk_hw *hw, unsigned long rate,
 	return 0;
 }
 
-static const struct clk_ops cdce925_clk_ops = {
+static const struct clk_ops cdce925_clk_ops =
+{
 	.prepare = cdce925_clk_prepare,
 	.unprepare = cdce925_clk_unprepare,
 	.recalc_rate = cdce925_clk_recalc_rate,
@@ -429,35 +517,46 @@ static const struct clk_ops cdce925_clk_ops = {
 
 
 static u16 cdce925_y1_calc_divider(unsigned long rate,
-		unsigned long parent_rate)
+								   unsigned long parent_rate)
 {
 	unsigned long divider;
 
 	if (!rate)
+	{
 		return 0;
+	}
+
 	if (rate >= parent_rate)
+	{
 		return 1;
+	}
 
 	divider = DIV_ROUND_CLOSEST(parent_rate, rate);
+
 	if (divider > 0x3FF) /* Y1 has 10-bit divider */
+	{
 		divider = 0x3FF;
+	}
 
 	return (u16)divider;
 }
 
 static long cdce925_clk_y1_round_rate(struct clk_hw *hw, unsigned long rate,
-		unsigned long *parent_rate)
+									  unsigned long *parent_rate)
 {
 	unsigned long l_parent_rate = *parent_rate;
 	u16 divider = cdce925_y1_calc_divider(rate, l_parent_rate);
 
 	if (divider)
+	{
 		return (long)(l_parent_rate / divider);
+	}
+
 	return 0;
 }
 
 static int cdce925_clk_y1_set_rate(struct clk_hw *hw, unsigned long rate,
-		unsigned long parent_rate)
+								   unsigned long parent_rate)
 {
 	struct clk_cdce925_output *data = to_clk_cdce925_output(hw);
 
@@ -466,7 +565,8 @@ static int cdce925_clk_y1_set_rate(struct clk_hw *hw, unsigned long rate,
 	return 0;
 }
 
-static const struct clk_ops cdce925_clk_y1_ops = {
+static const struct clk_ops cdce925_clk_y1_ops =
+{
 	.prepare = cdce925_clk_prepare,
 	.unprepare = cdce925_clk_unprepare,
 	.recalc_rate = cdce925_clk_recalc_rate,
@@ -475,7 +575,8 @@ static const struct clk_ops cdce925_clk_y1_ops = {
 };
 
 
-static struct regmap_config cdce925_regmap_config = {
+static struct regmap_config cdce925_regmap_config =
+{
 	.name = "configuration0",
 	.reg_bits = 8,
 	.val_bits = 8,
@@ -495,7 +596,9 @@ static int cdce925_regmap_i2c_write(
 	u8 reg_data[2];
 
 	if (count != 2)
+	{
 		return -ENOTSUPP;
+	}
 
 	/* First byte is command code */
 	reg_data[0] = CDCE925_I2C_COMMAND_BYTE_TRANSFER | ((u8 *)data)[0];
@@ -505,16 +608,23 @@ static int cdce925_regmap_i2c_write(
 			reg_data[0], reg_data[1]);
 
 	ret = i2c_master_send(i2c, reg_data, count);
+
 	if (likely(ret == count))
+	{
 		return 0;
+	}
 	else if (ret < 0)
+	{
 		return ret;
+	}
 	else
+	{
 		return -EIO;
+	}
 }
 
 static int cdce925_regmap_i2c_read(void *context,
-	   const void *reg, size_t reg_size, void *val, size_t val_size)
+								   const void *reg, size_t reg_size, void *val, size_t val_size)
 {
 	struct device *dev = context;
 	struct i2c_client *i2c = to_i2c_client(dev);
@@ -523,16 +633,22 @@ static int cdce925_regmap_i2c_read(void *context,
 	u8 reg_data[2];
 
 	if (reg_size != 1)
+	{
 		return -ENOTSUPP;
+	}
 
 	xfer[0].addr = i2c->addr;
 	xfer[0].flags = 0;
 	xfer[0].buf = reg_data;
-	if (val_size == 1) {
+
+	if (val_size == 1)
+	{
 		reg_data[0] =
 			CDCE925_I2C_COMMAND_BYTE_TRANSFER | ((u8 *)reg)[0];
 		xfer[0].len = 1;
-	} else {
+	}
+	else
+	{
 		reg_data[0] =
 			CDCE925_I2C_COMMAND_BLOCK_TRANSFER | ((u8 *)reg)[0];
 		reg_data[1] = val_size;
@@ -545,14 +661,21 @@ static int cdce925_regmap_i2c_read(void *context,
 	xfer[1].buf = val;
 
 	ret = i2c_transfer(i2c->adapter, xfer, 2);
-	if (likely(ret == 2)) {
+
+	if (likely(ret == 2))
+	{
 		dev_dbg(&i2c->dev, "%s(%zu, %zu) %#x %#x\n", __func__,
 				reg_size, val_size, reg_data[0], *((u8 *)val));
 		return 0;
-	} else if (ret < 0)
+	}
+	else if (ret < 0)
+	{
 		return ret;
+	}
 	else
+	{
 		return -EIO;
+	}
 }
 
 static struct clk_hw *
@@ -561,7 +684,8 @@ of_clk_cdce925_get(struct of_phandle_args *clkspec, void *_data)
 	struct clk_cdce925_chip *data = _data;
 	unsigned int idx = clkspec->args[0];
 
-	if (idx >= ARRAY_SIZE(data->clk)) {
+	if (idx >= ARRAY_SIZE(data->clk))
+	{
 		pr_err("%s: invalid index %u\n", __func__, idx);
 		return ERR_PTR(-EINVAL);
 	}
@@ -571,13 +695,14 @@ of_clk_cdce925_get(struct of_phandle_args *clkspec, void *_data)
 
 /* The CDCE925 uses a funky way to read/write registers. Bulk mode is
  * just weird, so just use the single byte mode exclusively. */
-static struct regmap_bus regmap_cdce925_bus = {
+static struct regmap_bus regmap_cdce925_bus =
+{
 	.write = cdce925_regmap_i2c_write,
 	.read = cdce925_regmap_i2c_read,
 };
 
 static int cdce925_probe(struct i2c_client *client,
-		const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct clk_cdce925_chip *data;
 	struct device_node *node = client->dev.of_node;
@@ -592,28 +717,38 @@ static int cdce925_probe(struct i2c_client *client,
 
 	dev_dbg(&client->dev, "%s\n", __func__);
 	data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	data->i2c_client = client;
 	data->regmap = devm_regmap_init(&client->dev, &regmap_cdce925_bus,
-			&client->dev, &cdce925_regmap_config);
-	if (IS_ERR(data->regmap)) {
+									&client->dev, &cdce925_regmap_config);
+
+	if (IS_ERR(data->regmap))
+	{
 		dev_err(&client->dev, "failed to allocate register map\n");
 		return PTR_ERR(data->regmap);
 	}
+
 	i2c_set_clientdata(client, data);
 
 	parent_name = of_clk_get_parent_name(node, 0);
-	if (!parent_name) {
+
+	if (!parent_name)
+	{
 		dev_err(&client->dev, "missing parent clock\n");
 		return -ENODEV;
 	}
+
 	dev_dbg(&client->dev, "parent is: %s\n", parent_name);
 
 	if (of_property_read_u32(node, "xtal-load-pf", &value) == 0)
 		regmap_write(data->regmap,
-			CDCE925_REG_XCSEL, (value << 3) & 0xF8);
+					 CDCE925_REG_XCSEL, (value << 3) & 0xF8);
+
 	/* PWDN bit */
 	regmap_update_bits(data->regmap, CDCE925_REG_GLOBAL1, BIT(4), 0);
 
@@ -626,40 +761,52 @@ static int cdce925_probe(struct i2c_client *client,
 	init.num_parents = parent_name ? 1 : 0;
 
 	/* Register PLL clocks */
-	for (i = 0; i < NUMBER_OF_PLLS; ++i) {
+	for (i = 0; i < NUMBER_OF_PLLS; ++i)
+	{
 		pll_clk_name[i] = kasprintf(GFP_KERNEL, "%s.pll%d",
-			client->dev.of_node->name, i);
+									client->dev.of_node->name, i);
 		init.name = pll_clk_name[i];
 		data->pll[i].chip = data;
 		data->pll[i].hw.init = &init;
 		data->pll[i].index = i;
 		err = devm_clk_hw_register(&client->dev, &data->pll[i].hw);
-		if (err) {
+
+		if (err)
+		{
 			dev_err(&client->dev, "Failed register PLL %d\n", i);
 			goto error;
 		}
-		sprintf(child_name, "PLL%d", i+1);
+
+		sprintf(child_name, "PLL%d", i + 1);
 		np_output = of_get_child_by_name(node, child_name);
+
 		if (!np_output)
+		{
 			continue;
+		}
+
 		if (!of_property_read_u32(np_output,
-			"clock-frequency", &value)) {
+								  "clock-frequency", &value))
+		{
 			err = clk_set_rate(data->pll[i].hw.clk, value);
+
 			if (err)
 				dev_err(&client->dev,
-					"unable to set PLL frequency %ud\n",
-					value);
+						"unable to set PLL frequency %ud\n",
+						value);
 		}
+
 		if (!of_property_read_u32(np_output,
-			"spread-spectrum", &value)) {
+								  "spread-spectrum", &value))
+		{
 			u8 flag = of_property_read_bool(np_output,
-				"spread-spectrum-center") ? 0x80 : 0x00;
+											"spread-spectrum-center") ? 0x80 : 0x00;
 			regmap_update_bits(data->regmap,
-				0x16 + (i*CDCE925_OFFSET_PLL),
-				0x80, flag);
+							   0x16 + (i * CDCE925_OFFSET_PLL),
+							   0x80, flag);
 			regmap_update_bits(data->regmap,
-				0x12 + (i*CDCE925_OFFSET_PLL),
-				0x07, value & 0x07);
+							   0x12 + (i * CDCE925_OFFSET_PLL),
+							   0x07, value & 0x07);
 		}
 	}
 
@@ -675,7 +822,9 @@ static int cdce925_probe(struct i2c_client *client,
 	data->clk[0].pdiv = 1;
 	err = devm_clk_hw_register(&client->dev, &data->clk[0].hw);
 	kfree(init.name); /* clock framework made a copy of the name */
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&client->dev, "clock registration Y1 failed\n");
 		goto error;
 	}
@@ -684,28 +833,36 @@ static int cdce925_probe(struct i2c_client *client,
 	init.ops = &cdce925_clk_ops;
 	init.flags = CLK_SET_RATE_PARENT;
 	init.num_parents = 1;
-	for (i = 1; i < NUMBER_OF_OUTPUTS; ++i) {
+
+	for (i = 1; i < NUMBER_OF_OUTPUTS; ++i)
+	{
 		init.name = kasprintf(GFP_KERNEL, "%s.Y%d",
-			client->dev.of_node->name, i+1);
+							  client->dev.of_node->name, i + 1);
 		data->clk[i].chip = data;
 		data->clk[i].hw.init = &init;
 		data->clk[i].index = i;
 		data->clk[i].pdiv = 1;
-		switch (i) {
-		case 1:
-		case 2:
-			/* Mux Y2/3 to PLL1 */
-			init.parent_names = &pll_clk_name[0];
-			break;
-		case 3:
-		case 4:
-			/* Mux Y4/5 to PLL2 */
-			init.parent_names = &pll_clk_name[1];
-			break;
+
+		switch (i)
+		{
+			case 1:
+			case 2:
+				/* Mux Y2/3 to PLL1 */
+				init.parent_names = &pll_clk_name[0];
+				break;
+
+			case 3:
+			case 4:
+				/* Mux Y4/5 to PLL2 */
+				init.parent_names = &pll_clk_name[1];
+				break;
 		}
+
 		err = devm_clk_hw_register(&client->dev, &data->clk[i].hw);
 		kfree(init.name); /* clock framework made a copy of the name */
-		if (err) {
+
+		if (err)
+		{
 			dev_err(&client->dev, "clock registration failed\n");
 			goto error;
 		}
@@ -713,33 +870,42 @@ static int cdce925_probe(struct i2c_client *client,
 
 	/* Register the output clocks */
 	err = of_clk_add_hw_provider(client->dev.of_node, of_clk_cdce925_get,
-				  data);
+								 data);
+
 	if (err)
+	{
 		dev_err(&client->dev, "unable to add OF clock provider\n");
+	}
 
 	err = 0;
 
 error:
+
 	for (i = 0; i < NUMBER_OF_PLLS; ++i)
 		/* clock framework made a copy of the name */
+	{
 		kfree(pll_clk_name[i]);
+	}
 
 	return err;
 }
 
-static const struct i2c_device_id cdce925_id[] = {
+static const struct i2c_device_id cdce925_id[] =
+{
 	{ "cdce925", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, cdce925_id);
 
-static const struct of_device_id clk_cdce925_of_match[] = {
+static const struct of_device_id clk_cdce925_of_match[] =
+{
 	{ .compatible = "ti,cdce925" },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, clk_cdce925_of_match);
 
-static struct i2c_driver cdce925_driver = {
+static struct i2c_driver cdce925_driver =
+{
 	.driver = {
 		.name = "cdce925",
 		.of_match_table = of_match_ptr(clk_cdce925_of_match),

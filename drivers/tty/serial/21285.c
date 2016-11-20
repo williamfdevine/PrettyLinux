@@ -56,7 +56,8 @@ static const char serial21285_name[] = "Footbridge UART";
 
 static void serial21285_stop_tx(struct uart_port *port)
 {
-	if (tx_enabled(port)) {
+	if (tx_enabled(port))
+	{
 		disable_irq_nosync(IRQ_CONTX);
 		tx_enabled(port) = 0;
 	}
@@ -64,7 +65,8 @@ static void serial21285_stop_tx(struct uart_port *port)
 
 static void serial21285_start_tx(struct uart_port *port)
 {
-	if (!tx_enabled(port)) {
+	if (!tx_enabled(port))
+	{
 		enable_irq(IRQ_CONTX);
 		tx_enabled(port) = 1;
 	}
@@ -72,7 +74,8 @@ static void serial21285_start_tx(struct uart_port *port)
 
 static void serial21285_stop_rx(struct uart_port *port)
 {
-	if (rx_enabled(port)) {
+	if (rx_enabled(port))
+	{
 		disable_irq_nosync(IRQ_CONRX);
 		rx_enabled(port) = 0;
 	}
@@ -84,32 +87,48 @@ static irqreturn_t serial21285_rx_chars(int irq, void *dev_id)
 	unsigned int status, ch, flag, rxs, max_count = 256;
 
 	status = *CSR_UARTFLG;
-	while (!(status & 0x10) && max_count--) {
+
+	while (!(status & 0x10) && max_count--)
+	{
 		ch = *CSR_UARTDR;
 		flag = TTY_NORMAL;
 		port->icount.rx++;
 
 		rxs = *CSR_RXSTAT | RXSTAT_DUMMY_READ;
-		if (unlikely(rxs & RXSTAT_ANYERR)) {
+
+		if (unlikely(rxs & RXSTAT_ANYERR))
+		{
 			if (rxs & RXSTAT_PARITY)
+			{
 				port->icount.parity++;
+			}
 			else if (rxs & RXSTAT_FRAME)
+			{
 				port->icount.frame++;
+			}
+
 			if (rxs & RXSTAT_OVERRUN)
+			{
 				port->icount.overrun++;
+			}
 
 			rxs &= port->read_status_mask;
 
 			if (rxs & RXSTAT_PARITY)
+			{
 				flag = TTY_PARITY;
+			}
 			else if (rxs & RXSTAT_FRAME)
+			{
 				flag = TTY_FRAME;
+			}
 		}
 
 		uart_insert_char(port, rxs, RXSTAT_OVERRUN, ch, flag);
 
 		status = *CSR_UARTFLG;
 	}
+
 	tty_flip_buffer_push(&port->state->port);
 
 	return IRQ_HANDLED;
@@ -121,32 +140,44 @@ static irqreturn_t serial21285_tx_chars(int irq, void *dev_id)
 	struct circ_buf *xmit = &port->state->xmit;
 	int count = 256;
 
-	if (port->x_char) {
+	if (port->x_char)
+	{
 		*CSR_UARTDR = port->x_char;
 		port->icount.tx++;
 		port->x_char = 0;
 		goto out;
 	}
-	if (uart_circ_empty(xmit) || uart_tx_stopped(port)) {
+
+	if (uart_circ_empty(xmit) || uart_tx_stopped(port))
+	{
 		serial21285_stop_tx(port);
 		goto out;
 	}
 
-	do {
+	do
+	{
 		*CSR_UARTDR = xmit->buf[xmit->tail];
 		xmit->tail = (xmit->tail + 1) & (UART_XMIT_SIZE - 1);
 		port->icount.tx++;
+
 		if (uart_circ_empty(xmit))
+		{
 			break;
-	} while (--count > 0 && !(*CSR_UARTFLG & 0x20));
+		}
+	}
+	while (--count > 0 && !(*CSR_UARTFLG & 0x20));
 
 	if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS)
+	{
 		uart_write_wakeup(port);
+	}
 
 	if (uart_circ_empty(xmit))
+	{
 		serial21285_stop_tx(port);
+	}
 
- out:
+out:
 	return IRQ_HANDLED;
 }
 
@@ -172,10 +203,16 @@ static void serial21285_break_ctl(struct uart_port *port, int break_state)
 
 	spin_lock_irqsave(&port->lock, flags);
 	h_lcr = *CSR_H_UBRLCR;
+
 	if (break_state)
+	{
 		h_lcr |= H_UBRLCR_BREAK;
+	}
 	else
+	{
 		h_lcr &= ~H_UBRLCR_BREAK;
+	}
+
 	*CSR_H_UBRLCR = h_lcr;
 	spin_unlock_irqrestore(&port->lock, flags);
 }
@@ -188,12 +225,17 @@ static int serial21285_startup(struct uart_port *port)
 	rx_enabled(port) = 1;
 
 	ret = request_irq(IRQ_CONRX, serial21285_rx_chars, 0,
-			  serial21285_name, port);
-	if (ret == 0) {
+					  serial21285_name, port);
+
+	if (ret == 0)
+	{
 		ret = request_irq(IRQ_CONTX, serial21285_tx_chars, 0,
-				  serial21285_name, port);
+						  serial21285_name, port);
+
 		if (ret)
+		{
 			free_irq(IRQ_CONRX, port);
+		}
 	}
 
 	return ret;
@@ -207,7 +249,7 @@ static void serial21285_shutdown(struct uart_port *port)
 
 static void
 serial21285_set_termios(struct uart_port *port, struct ktermios *termios,
-			struct ktermios *old)
+						struct ktermios *old)
 {
 	unsigned long flags;
 	unsigned int baud, quot, h_lcr, b;
@@ -226,36 +268,49 @@ serial21285_set_termios(struct uart_port *port, struct ktermios *termios,
 	/*
 	 * Ask the core to calculate the divisor for us.
 	 */
-	baud = uart_get_baud_rate(port, termios, old, 0, port->uartclk/16); 
+	baud = uart_get_baud_rate(port, termios, old, 0, port->uartclk / 16);
 	quot = uart_get_divisor(port, baud);
 	b = port->uartclk / (16 * quot);
 	tty_termios_encode_baud_rate(termios, b, b);
 
-	switch (termios->c_cflag & CSIZE) {
-	case CS5:
-		h_lcr = 0x00;
-		break;
-	case CS6:
-		h_lcr = 0x20;
-		break;
-	case CS7:
-		h_lcr = 0x40;
-		break;
-	default: /* CS8 */
-		h_lcr = 0x60;
-		break;
+	switch (termios->c_cflag & CSIZE)
+	{
+		case CS5:
+			h_lcr = 0x00;
+			break;
+
+		case CS6:
+			h_lcr = 0x20;
+			break;
+
+		case CS7:
+			h_lcr = 0x40;
+			break;
+
+		default: /* CS8 */
+			h_lcr = 0x60;
+			break;
 	}
 
 	if (termios->c_cflag & CSTOPB)
+	{
 		h_lcr |= H_UBRLCR_STOPB;
-	if (termios->c_cflag & PARENB) {
+	}
+
+	if (termios->c_cflag & PARENB)
+	{
 		h_lcr |= H_UBRLCR_PARENB;
+
 		if (!(termios->c_cflag & PARODD))
+		{
 			h_lcr |= H_UBRLCR_PAREVN;
+		}
 	}
 
 	if (port->fifosize)
+	{
 		h_lcr |= H_UBRLCR_FIFO;
+	}
 
 	spin_lock_irqsave(&port->lock, flags);
 
@@ -268,23 +323,34 @@ serial21285_set_termios(struct uart_port *port, struct ktermios *termios,
 	 * Which character status flags are we interested in?
 	 */
 	port->read_status_mask = RXSTAT_OVERRUN;
+
 	if (termios->c_iflag & INPCK)
+	{
 		port->read_status_mask |= RXSTAT_FRAME | RXSTAT_PARITY;
+	}
 
 	/*
 	 * Which character status flags should we ignore?
 	 */
 	port->ignore_status_mask = 0;
+
 	if (termios->c_iflag & IGNPAR)
+	{
 		port->ignore_status_mask |= RXSTAT_FRAME | RXSTAT_PARITY;
+	}
+
 	if (termios->c_iflag & IGNBRK && termios->c_iflag & IGNPAR)
+	{
 		port->ignore_status_mask |= RXSTAT_OVERRUN;
+	}
 
 	/*
 	 * Ignore all characters if CREAD is not set.
 	 */
 	if ((termios->c_cflag & CREAD) == 0)
+	{
 		port->ignore_status_mask |= RXSTAT_DUMMY_READ;
+	}
 
 	quot -= 1;
 
@@ -310,13 +376,15 @@ static void serial21285_release_port(struct uart_port *port)
 static int serial21285_request_port(struct uart_port *port)
 {
 	return request_mem_region(port->mapbase, 32, serial21285_name)
-			 != NULL ? 0 : -EBUSY;
+		   != NULL ? 0 : -EBUSY;
 }
 
 static void serial21285_config_port(struct uart_port *port, int flags)
 {
 	if (flags & UART_CONFIG_TYPE && serial21285_request_port(port) == 0)
+	{
 		port->type = PORT_21285;
+	}
 }
 
 /*
@@ -325,16 +393,27 @@ static void serial21285_config_port(struct uart_port *port, int flags)
 static int serial21285_verify_port(struct uart_port *port, struct serial_struct *ser)
 {
 	int ret = 0;
+
 	if (ser->type != PORT_UNKNOWN && ser->type != PORT_21285)
+	{
 		ret = -EINVAL;
+	}
+
 	if (ser->irq <= 0)
+	{
 		ret = -EINVAL;
+	}
+
 	if (ser->baud_base != port->uartclk / 16)
+	{
 		ret = -EINVAL;
+	}
+
 	return ret;
 }
 
-static struct uart_ops serial21285_ops = {
+static struct uart_ops serial21285_ops =
+{
 	.tx_empty	= serial21285_tx_empty,
 	.get_mctrl	= serial21285_get_mctrl,
 	.set_mctrl	= serial21285_set_mctrl,
@@ -352,7 +431,8 @@ static struct uart_ops serial21285_ops = {
 	.verify_port	= serial21285_verify_port,
 };
 
-static struct uart_port serial21285_port = {
+static struct uart_port serial21285_port =
+{
 	.mapbase	= 0x42000160,
 	.iotype		= UPIO_MEM,
 	.irq		= 0,
@@ -370,45 +450,58 @@ static void serial21285_setup_ports(void)
 static void serial21285_console_putchar(struct uart_port *port, int ch)
 {
 	while (*CSR_UARTFLG & 0x20)
+	{
 		barrier();
+	}
+
 	*CSR_UARTDR = ch;
 }
 
 static void
 serial21285_console_write(struct console *co, const char *s,
-			  unsigned int count)
+						  unsigned int count)
 {
 	uart_console_write(&serial21285_port, s, count, serial21285_console_putchar);
 }
 
 static void __init
 serial21285_get_options(struct uart_port *port, int *baud,
-			int *parity, int *bits)
+						int *parity, int *bits)
 {
-	if (*CSR_UARTCON == 1) {
+	if (*CSR_UARTCON == 1)
+	{
 		unsigned int tmp;
 
 		tmp = *CSR_H_UBRLCR;
-		switch (tmp & 0x60) {
-		case 0x00:
-			*bits = 5;
-			break;
-		case 0x20:
-			*bits = 6;
-			break;
-		case 0x40:
-			*bits = 7;
-			break;
-		default:
-		case 0x60:
-			*bits = 8;
-			break;
+
+		switch (tmp & 0x60)
+		{
+			case 0x00:
+				*bits = 5;
+				break;
+
+			case 0x20:
+				*bits = 6;
+				break;
+
+			case 0x40:
+				*bits = 7;
+				break;
+
+			default:
+			case 0x60:
+				*bits = 8;
+				break;
 		}
 
-		if (tmp & H_UBRLCR_PARENB) {
+		if (tmp & H_UBRLCR_PARENB)
+		{
 			*parity = 'o';
+
 			if (tmp & H_UBRLCR_PAREVN)
+			{
 				*parity = 'e';
+			}
 		}
 
 		tmp = *CSR_L_UBRLCR | (*CSR_M_UBRLCR << 8);
@@ -426,7 +519,9 @@ static int __init serial21285_console_setup(struct console *co, char *options)
 	int flow = 'n';
 
 	if (machine_is_personal_server())
+	{
 		baud = 57600;
+	}
 
 	/*
 	 * Check whether an invalid uart number has been specified, and
@@ -434,9 +529,13 @@ static int __init serial21285_console_setup(struct console *co, char *options)
 	 * console support.
 	 */
 	if (options)
+	{
 		uart_parse_options(options, &baud, &parity, &bits, &flow);
+	}
 	else
+	{
 		serial21285_get_options(port, &baud, &parity, &bits);
+	}
 
 	return uart_set_options(port, co, baud, parity, bits, flow);
 }
@@ -467,7 +566,8 @@ console_initcall(rs285_console_init);
 #define SERIAL_21285_CONSOLE	NULL
 #endif
 
-static struct uart_driver serial21285_reg = {
+static struct uart_driver serial21285_reg =
+{
 	.owner			= THIS_MODULE,
 	.driver_name		= "ttyFB",
 	.dev_name		= "ttyFB",
@@ -486,8 +586,11 @@ static int __init serial21285_init(void)
 	serial21285_setup_ports();
 
 	ret = uart_register_driver(&serial21285_reg);
+
 	if (ret == 0)
+	{
 		uart_add_one_port(&serial21285_reg, &serial21285_port);
+	}
 
 	return ret;
 }

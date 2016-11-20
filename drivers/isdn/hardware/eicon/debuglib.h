@@ -214,14 +214,14 @@ DBG_DECL(PRV3)
  * prototypes for debug register/deregister functions in "debuglib.c"
  */
 #ifdef DIVA_NO_DEBUGLIB
-#define DbgRegister(name, tag, mask) do { } while (0)
-#define DbgDeregister() do { } while (0)
-#define DbgSetLevel(mask) do { } while (0)
+	#define DbgRegister(name, tag, mask) do { } while (0)
+	#define DbgDeregister() do { } while (0)
+	#define DbgSetLevel(mask) do { } while (0)
 #else
-extern DIVA_DI_PRINTF dprintf;
-extern int  DbgRegister(char *drvName, char *drvTag, unsigned long dbgMask);
-extern void DbgDeregister(void);
-extern void DbgSetLevel(unsigned long dbgMask);
+	extern DIVA_DI_PRINTF dprintf;
+	extern int  DbgRegister(char *drvName, char *drvTag, unsigned long dbgMask);
+	extern void DbgDeregister(void);
+	extern void DbgSetLevel(unsigned long dbgMask);
 #endif
 /*
  * driver internal structure for debug handling;
@@ -235,7 +235,8 @@ typedef void (*DbgOld)(unsigned short, char *, va_list);
 typedef void (*DbgEv)(unsigned short, unsigned long, va_list);
 typedef void (*DbgIrq)(unsigned short, int, char *, va_list);
 typedef struct _DbgHandle_
-{ char    Registered; /* driver successfully registered */
+{
+	char    Registered; /* driver successfully registered */
 #define DBG_HANDLE_REG_NEW 0x01  /* this (new) structure    */
 #define DBG_HANDLE_REG_OLD 0x7f  /* old structure (see below)  */
 	char    Version;  /* version of this structure  */
@@ -243,7 +244,8 @@ typedef struct _DbgHandle_
 #define DBG_HANDLE_VER_EXT  2           /* pReserved points to extended info*/
 	short               id;   /* internal id of registered driver */
 	struct _DbgHandle_ *next;   /* ptr to next registered driver    */
-	struct /*LARGE_INTEGER*/ {
+	struct /*LARGE_INTEGER*/
+	{
 		unsigned long LowPart;
 		long          HighPart;
 	}     regTime;  /* timestamp for registration       */
@@ -260,7 +262,8 @@ typedef struct _DbgHandle_
 } _DbgHandle_;
 extern _DbgHandle_ myDriverDebugHandle;
 typedef struct _OldDbgHandle_
-{ struct _OldDbgHandle_ *next;
+{
+	struct _OldDbgHandle_ *next;
 	void                *pIrp;
 	long    regTime[2];
 	unsigned long       dbgMask;
@@ -313,10 +316,10 @@ typedef struct
 	} Data;
 } _DbgExtendedInfo_;
 #ifndef DIVA_NO_DEBUGLIB
-/* -------------------------------------------------------------
-   Function used for xlog-style debug
-   ------------------------------------------------------------- */
-#define XDI_USE_XLOG 1
-void xdi_dbg_xlog(char *x, ...);
+	/* -------------------------------------------------------------
+	Function used for xlog-style debug
+	------------------------------------------------------------- */
+	#define XDI_USE_XLOG 1
+	void xdi_dbg_xlog(char *x, ...);
 #endif /* DIVA_NO_DEBUGLIB */
 #endif /* __DEBUGLIB_H__ */

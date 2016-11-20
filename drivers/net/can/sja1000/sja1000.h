@@ -150,7 +150,8 @@
 /*
  * SJA1000 private data structure
  */
-struct sja1000_priv {
+struct sja1000_priv
+{
 	struct can_priv can;	/* must be the first member */
 	struct sk_buff *echo_skb;
 

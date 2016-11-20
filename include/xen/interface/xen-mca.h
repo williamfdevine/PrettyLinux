@@ -64,7 +64,8 @@
 #define MC_TYPE_EXTENDED	2
 #define MC_TYPE_RECOVERY	3
 
-struct mcinfo_common {
+struct mcinfo_common
+{
 	uint16_t type; /* structure type */
 	uint16_t size; /* size of this struct in bytes */
 };
@@ -78,7 +79,8 @@ struct mcinfo_common {
 #define MC_FLAG_MCE		(1 << 6)
 
 /* contains x86 global mc information */
-struct mcinfo_global {
+struct mcinfo_global
+{
 	struct mcinfo_common common;
 
 	uint16_t mc_domid; /* running domain at the time in error */
@@ -92,7 +94,8 @@ struct mcinfo_global {
 };
 
 /* contains x86 bank mc information */
-struct mcinfo_bank {
+struct mcinfo_bank
+{
 	struct mcinfo_common common;
 
 	uint16_t mc_bank; /* bank nr */
@@ -104,13 +107,15 @@ struct mcinfo_bank {
 	uint64_t mc_tsc;
 };
 
-struct mcinfo_msr {
+struct mcinfo_msr
+{
 	uint64_t reg; /* MSR */
 	uint64_t value; /* MSR value */
 };
 
 /* contains mc information from other or additional mc MSRs */
-struct mcinfo_extended {
+struct mcinfo_extended
+{
 	struct mcinfo_common common;
 	uint32_t mc_msrs; /* Number of msr with valid values. */
 	/*
@@ -146,13 +151,15 @@ struct mcinfo_extended {
  * Below interface used between XEN/DOM0 for passing XEN's recovery action
  * information to DOM0.
  */
-struct page_offline_action {
+struct page_offline_action
+{
 	/* Params for passing the offlined page number to DOM0 */
 	uint64_t mfn;
 	uint64_t status;
 };
 
-struct cpu_offline_action {
+struct cpu_offline_action
+{
 	/* Params for passing the identity of the offlined CPU to DOM0 */
 	uint32_t mc_socketid;
 	uint16_t mc_coreid;
@@ -160,12 +167,14 @@ struct cpu_offline_action {
 };
 
 #define MAX_UNION_SIZE 16
-struct mcinfo_recovery {
+struct mcinfo_recovery
+{
 	struct mcinfo_common common;
 	uint16_t mc_bank; /* bank nr */
 	uint8_t action_flags;
 	uint8_t action_types;
-	union {
+	union
+	{
 		struct page_offline_action page_retire;
 		struct cpu_offline_action cpu_offline;
 		uint8_t pad[MAX_UNION_SIZE];
@@ -174,7 +183,8 @@ struct mcinfo_recovery {
 
 
 #define MCINFO_MAXSIZE 768
-struct mc_info {
+struct mc_info
+{
 	/* Number of mcinfo_* entries in mi_data */
 	uint32_t mi_nentries;
 	uint32_t flags;
@@ -186,7 +196,8 @@ DEFINE_GUEST_HANDLE_STRUCT(mc_info);
 #define __MC_MSR_MCGCAP 0
 #define __MC_NMSRS 1
 #define MC_NCAPS 7
-struct mcinfo_logical_cpu {
+struct mcinfo_logical_cpu
+{
 	uint32_t mc_cpunr;
 	uint32_t mc_chipid;
 	uint16_t mc_coreid;
@@ -235,21 +246,27 @@ DEFINE_GUEST_HANDLE_STRUCT(mcinfo_logical_cpu);
  *    void x86_mcinfo_lookup(void *ret, struct mc_info *mi, uint16_t type);
  */
 static inline void x86_mcinfo_lookup(struct mcinfo_common **ret,
-				     struct mc_info *mi, uint16_t type)
+									 struct mc_info *mi, uint16_t type)
 {
 	uint32_t i;
 	struct mcinfo_common *mic;
 	bool found = 0;
 
 	if (!ret || !mi)
+	{
 		return;
+	}
 
 	mic = x86_mcinfo_first(mi);
-	for (i = 0; i < x86_mcinfo_nentries(mi); i++) {
-		if (mic->type == type) {
+
+	for (i = 0; i < x86_mcinfo_nentries(mi); i++)
+	{
+		if (mic->type == type)
+		{
 			found = 1;
 			break;
 		}
+
 		mic = x86_mcinfo_next(mic);
 	}
 
@@ -260,7 +277,8 @@ static inline void x86_mcinfo_lookup(struct mcinfo_common **ret,
  * Fetch machine check data from hypervisor.
  */
 #define XEN_MC_fetch		1
-struct xen_mc_fetch {
+struct xen_mc_fetch
+{
 	/*
 	 * IN: XEN_MC_NONURGENT, XEN_MC_URGENT,
 	 * XEN_MC_ACK if ack'king an earlier fetch
@@ -281,7 +299,8 @@ DEFINE_GUEST_HANDLE_STRUCT(xen_mc_fetch);
  * This tells the hypervisor to notify a DomU about the machine check error
  */
 #define XEN_MC_notifydomain	2
-struct xen_mc_notifydomain {
+struct xen_mc_notifydomain
+{
 	/* IN variables */
 	uint16_t mc_domid; /* The unprivileged domain to notify */
 	uint16_t mc_vcpuid; /* The vcpu in mc_domid to notify */
@@ -292,7 +311,8 @@ struct xen_mc_notifydomain {
 DEFINE_GUEST_HANDLE_STRUCT(xen_mc_notifydomain);
 
 #define XEN_MC_physcpuinfo	3
-struct xen_mc_physcpuinfo {
+struct xen_mc_physcpuinfo
+{
 	/* IN/OUT */
 	uint32_t ncpus;
 	uint32_t _pad0;
@@ -302,7 +322,8 @@ struct xen_mc_physcpuinfo {
 
 #define XEN_MC_msrinject	4
 #define MC_MSRINJ_MAXMSRS	8
-struct xen_mc_msrinject {
+struct xen_mc_msrinject
+{
 	/* IN */
 	uint32_t mcinj_cpunr; /* target processor id */
 	uint32_t mcinj_flags; /* see MC_MSRINJ_F_* below */
@@ -315,14 +336,17 @@ struct xen_mc_msrinject {
 #define MC_MSRINJ_F_INTERPOSE	0x1
 
 #define XEN_MC_mceinject	5
-struct xen_mc_mceinject {
+struct xen_mc_mceinject
+{
 	unsigned int mceinj_cpunr; /* target processor id */
 };
 
-struct xen_mc {
+struct xen_mc
+{
 	uint32_t cmd;
 	uint32_t interface_version; /* XEN_MCA_INTERFACE_VERSION */
-	union {
+	union
+	{
 		struct xen_mc_fetch        mc_fetch;
 		struct xen_mc_notifydomain mc_notifydomain;
 		struct xen_mc_physcpuinfo  mc_physcpuinfo;
@@ -333,7 +357,8 @@ struct xen_mc {
 DEFINE_GUEST_HANDLE_STRUCT(xen_mc);
 
 /* Fields are zero when not available */
-struct xen_mce {
+struct xen_mce
+{
 	__u64 status;
 	__u64 misc;
 	__u64 addr;
@@ -364,7 +389,8 @@ struct xen_mce {
 
 #define XEN_MCE_LOG_LEN 32
 
-struct xen_mce_log {
+struct xen_mce_log
+{
 	char signature[12]; /* "MACHINECHECK" */
 	unsigned len;	    /* = XEN_MCE_LOG_LEN */
 	unsigned next;

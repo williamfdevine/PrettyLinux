@@ -33,14 +33,17 @@ void lkdtm_WRITE_AFTER_FREE(void)
 	base = kmalloc(len, GFP_KERNEL);
 	pr_info("Allocated memory %p-%p\n", base, &base[offset * 2]);
 	pr_info("Attempting bad write to freed memory at %p\n",
-		&base[offset]);
+			&base[offset]);
 	kfree(base);
 	base[offset] = 0x0abcdef0;
 	/* Attempt to notice the overwrite. */
 	again = kmalloc(len, GFP_KERNEL);
 	kfree(again);
+
 	if (again != base)
+	{
 		pr_info("Hmm, didn't get the same memory range.\n");
+	}
 }
 
 void lkdtm_READ_AFTER_FREE(void)
@@ -55,13 +58,17 @@ void lkdtm_READ_AFTER_FREE(void)
 	size_t offset = (len / sizeof(*base)) / 2;
 
 	base = kmalloc(len, GFP_KERNEL);
-	if (!base) {
+
+	if (!base)
+	{
 		pr_info("Unable to allocate base memory.\n");
 		return;
 	}
 
 	val = kmalloc(len, GFP_KERNEL);
-	if (!val) {
+
+	if (!val)
+	{
 		pr_info("Unable to allocate val memory.\n");
 		kfree(base);
 		return;
@@ -75,11 +82,14 @@ void lkdtm_READ_AFTER_FREE(void)
 
 	pr_info("Attempting bad read from freed memory\n");
 	saw = base[offset];
-	if (saw != *val) {
+
+	if (saw != *val)
+	{
 		/* Good! Poisoning happened, so declare a win. */
 		pr_info("Memory correctly poisoned (%x)\n", saw);
 		BUG();
 	}
+
 	pr_info("Memory was not poisoned\n");
 
 	kfree(val);
@@ -88,7 +98,9 @@ void lkdtm_READ_AFTER_FREE(void)
 void lkdtm_WRITE_BUDDY_AFTER_FREE(void)
 {
 	unsigned long p = __get_free_page(GFP_KERNEL);
-	if (!p) {
+
+	if (!p)
+	{
 		pr_info("Unable to allocate free page\n");
 		return;
 	}
@@ -111,13 +123,16 @@ void lkdtm_READ_BUDDY_AFTER_FREE(void)
 	int saw, *val;
 	int *base;
 
-	if (!p) {
+	if (!p)
+	{
 		pr_info("Unable to allocate free page\n");
 		return;
 	}
 
 	val = kmalloc(1024, GFP_KERNEL);
-	if (!val) {
+
+	if (!val)
+	{
 		pr_info("Unable to allocate val memory.\n");
 		free_page(p);
 		return;
@@ -131,11 +146,14 @@ void lkdtm_READ_BUDDY_AFTER_FREE(void)
 	free_page(p);
 	pr_info("Attempting to read from freed memory\n");
 	saw = base[0];
-	if (saw != *val) {
+
+	if (saw != *val)
+	{
 		/* Good! Poisoning happened, so declare a win. */
 		pr_info("Memory correctly poisoned (%x)\n", saw);
 		BUG();
 	}
+
 	pr_info("Buddy page was not poisoned\n");
 
 	kfree(val);

@@ -64,7 +64,8 @@ static int ocfs2_fast_symlink_readpage(struct file *unused, struct page *page)
 	void *kaddr;
 	size_t len;
 
-	if (status < 0) {
+	if (status < 0)
+	{
 		mlog_errno(status);
 		return status;
 	}
@@ -82,11 +83,13 @@ static int ocfs2_fast_symlink_readpage(struct file *unused, struct page *page)
 	return 0;
 }
 
-const struct address_space_operations ocfs2_fast_symlink_aops = {
+const struct address_space_operations ocfs2_fast_symlink_aops =
+{
 	.readpage		= ocfs2_fast_symlink_readpage,
 };
 
-const struct inode_operations ocfs2_symlink_inode_operations = {
+const struct inode_operations ocfs2_symlink_inode_operations =
+{
 	.readlink	= generic_readlink,
 	.get_link	= page_get_link,
 	.getattr	= ocfs2_getattr,

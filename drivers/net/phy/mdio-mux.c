@@ -18,7 +18,8 @@
 
 struct mdio_mux_child_bus;
 
-struct mdio_mux_parent_bus {
+struct mdio_mux_parent_bus
+{
 	struct mii_bus *mii_bus;
 	int current_child;
 	int parent_id;
@@ -29,7 +30,8 @@ struct mdio_mux_parent_bus {
 	struct mdio_mux_child_bus *children;
 };
 
-struct mdio_mux_child_bus {
+struct mdio_mux_child_bus
+{
 	struct mii_bus *mii_bus;
 	struct mdio_mux_parent_bus *parent;
 	struct mdio_mux_child_bus *next;
@@ -47,8 +49,11 @@ static int mdio_mux_read(struct mii_bus *bus, int phy_id, int regnum)
 
 	mutex_lock_nested(&pb->mii_bus->mdio_lock, MDIO_MUTEX_MUX);
 	r = pb->switch_fn(pb->current_child, cb->bus_number, pb->switch_data);
+
 	if (r)
+	{
 		goto out;
+	}
 
 	pb->current_child = cb->bus_number;
 
@@ -63,7 +68,7 @@ out:
  * The parent bus' lock is used to order access to the switch_fn.
  */
 static int mdio_mux_write(struct mii_bus *bus, int phy_id,
-			  int regnum, u16 val)
+						  int regnum, u16 val)
 {
 	struct mdio_mux_child_bus *cb = bus->priv;
 	struct mdio_mux_parent_bus *pb = cb->parent;
@@ -72,8 +77,11 @@ static int mdio_mux_write(struct mii_bus *bus, int phy_id,
 
 	mutex_lock_nested(&pb->mii_bus->mdio_lock, MDIO_MUTEX_MUX);
 	r = pb->switch_fn(pb->current_child, cb->bus_number, pb->switch_data);
+
 	if (r)
+	{
 		goto out;
+	}
 
 	pb->current_child = cb->bus_number;
 
@@ -87,10 +95,10 @@ out:
 static int parent_count;
 
 int mdio_mux_init(struct device *dev,
-		  int (*switch_fn)(int cur, int desired, void *data),
-		  void **mux_handle,
-		  void *data,
-		  struct mii_bus *mux_bus)
+				  int (*switch_fn)(int cur, int desired, void *data),
+				  void **mux_handle,
+				  void *data,
+				  struct mii_bus *mux_bus)
 {
 	struct device_node *parent_bus_node;
 	struct device_node *child_bus_node;
@@ -100,27 +108,38 @@ int mdio_mux_init(struct device *dev,
 	struct mdio_mux_child_bus *cb;
 
 	if (!dev->of_node)
+	{
 		return -ENODEV;
+	}
 
-	if (!mux_bus) {
+	if (!mux_bus)
+	{
 		parent_bus_node = of_parse_phandle(dev->of_node,
-						   "mdio-parent-bus", 0);
+										   "mdio-parent-bus", 0);
 
 		if (!parent_bus_node)
+		{
 			return -ENODEV;
+		}
 
 		parent_bus = of_mdio_find_bus(parent_bus_node);
-		if (!parent_bus) {
+
+		if (!parent_bus)
+		{
 			ret_val = -EPROBE_DEFER;
 			goto err_parent_bus;
 		}
-	} else {
+	}
+	else
+	{
 		parent_bus_node = NULL;
 		parent_bus = mux_bus;
 	}
 
 	pb = devm_kzalloc(dev, sizeof(*pb), GFP_KERNEL);
-	if (pb == NULL) {
+
+	if (pb == NULL)
+	{
 		ret_val = -ENOMEM;
 		goto err_parent_bus;
 	}
@@ -133,49 +152,65 @@ int mdio_mux_init(struct device *dev,
 	pb->mii_bus = parent_bus;
 
 	ret_val = -ENODEV;
-	for_each_available_child_of_node(dev->of_node, child_bus_node) {
+	for_each_available_child_of_node(dev->of_node, child_bus_node)
+	{
 		u32 v;
 
 		r = of_property_read_u32(child_bus_node, "reg", &v);
+
 		if (r)
+		{
 			continue;
+		}
 
 		cb = devm_kzalloc(dev, sizeof(*cb), GFP_KERNEL);
-		if (cb == NULL) {
+
+		if (cb == NULL)
+		{
 			dev_err(dev,
-				"Error: Failed to allocate memory for child\n");
+					"Error: Failed to allocate memory for child\n");
 			ret_val = -ENOMEM;
 			of_node_put(child_bus_node);
 			break;
 		}
+
 		cb->bus_number = v;
 		cb->parent = pb;
 
 		cb->mii_bus = mdiobus_alloc();
-		if (!cb->mii_bus) {
+
+		if (!cb->mii_bus)
+		{
 			ret_val = -ENOMEM;
 			of_node_put(child_bus_node);
 			break;
 		}
+
 		cb->mii_bus->priv = cb;
 
 		cb->mii_bus->name = "mdio_mux";
 		snprintf(cb->mii_bus->id, MII_BUS_ID_SIZE, "%x.%x",
-			 pb->parent_id, v);
+				 pb->parent_id, v);
 		cb->mii_bus->parent = dev;
 		cb->mii_bus->read = mdio_mux_read;
 		cb->mii_bus->write = mdio_mux_write;
 		r = of_mdiobus_register(cb->mii_bus, child_bus_node);
-		if (r) {
+
+		if (r)
+		{
 			mdiobus_free(cb->mii_bus);
 			devm_kfree(dev, cb);
-		} else {
+		}
+		else
+		{
 			of_node_get(child_bus_node);
 			cb->next = pb->children;
 			pb->children = cb;
 		}
 	}
-	if (pb->children) {
+
+	if (pb->children)
+	{
 		*mux_handle = pb;
 		dev_info(dev, "Version " DRV_VERSION "\n");
 		return 0;
@@ -195,7 +230,8 @@ void mdio_mux_uninit(void *mux_handle)
 	struct mdio_mux_parent_bus *pb = mux_handle;
 	struct mdio_mux_child_bus *cb = pb->children;
 
-	while (cb) {
+	while (cb)
+	{
 		mdiobus_unregister(cb->mii_bus);
 		mdiobus_free(cb->mii_bus);
 		cb = cb->next;

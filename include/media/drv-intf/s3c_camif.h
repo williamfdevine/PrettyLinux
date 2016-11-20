@@ -23,7 +23,8 @@
  * @flags: the parallel bus flags defining signals polarity (V4L2_MBUS_*)
  * @use_field: 1 if parallel bus FIELD signal is used (only s3c64xx)
  */
-struct s3c_camif_sensor_info {
+struct s3c_camif_sensor_info
+{
 	struct i2c_board_info i2c_board_info;
 	unsigned long clock_frequency;
 	enum v4l2_mbus_type mbus_type;
@@ -32,7 +33,8 @@ struct s3c_camif_sensor_info {
 	u8 use_field;
 };
 
-struct s3c_camif_plat_data {
+struct s3c_camif_plat_data
+{
 	struct s3c_camif_sensor_info sensor;
 	int (*gpio_get)(void);
 	int (*gpio_put)(void);

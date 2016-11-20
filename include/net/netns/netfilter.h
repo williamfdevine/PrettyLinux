@@ -7,7 +7,8 @@ struct proc_dir_entry;
 struct nf_logger;
 struct nf_queue_handler;
 
-struct netns_nf {
+struct netns_nf
+{
 #if defined CONFIG_PROC_FS
 	struct proc_dir_entry *proc_netfilter;
 #endif

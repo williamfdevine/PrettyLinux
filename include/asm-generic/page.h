@@ -6,7 +6,7 @@
  */
 
 #ifdef CONFIG_MMU
-#error need to prove a real asm/page.h
+	#error need to prove a real asm/page.h
 #endif
 
 
@@ -14,9 +14,9 @@
 
 #define PAGE_SHIFT	12
 #ifdef __ASSEMBLY__
-#define PAGE_SIZE	(1 << PAGE_SHIFT)
+	#define PAGE_SIZE	(1 << PAGE_SHIFT)
 #else
-#define PAGE_SIZE	(1UL << PAGE_SHIFT)
+	#define PAGE_SIZE	(1UL << PAGE_SHIFT)
 #endif
 #define PAGE_MASK	(~(PAGE_SIZE-1))
 
@@ -33,16 +33,20 @@
 /*
  * These are used to make use of C type-checking..
  */
-typedef struct {
+typedef struct
+{
 	unsigned long pte;
 } pte_t;
-typedef struct {
+typedef struct
+{
 	unsigned long pmd[16];
 } pmd_t;
-typedef struct {
+typedef struct
+{
 	unsigned long pgd;
 } pgd_t;
-typedef struct {
+typedef struct
+{
 	unsigned long pgprot;
 } pgprot_t;
 typedef struct page *pgtable_t;
@@ -63,13 +67,13 @@ extern unsigned long memory_end;
 #endif /* !__ASSEMBLY__ */
 
 #ifdef CONFIG_KERNEL_RAM_BASE_ADDRESS
-#define PAGE_OFFSET		(CONFIG_KERNEL_RAM_BASE_ADDRESS)
+	#define PAGE_OFFSET		(CONFIG_KERNEL_RAM_BASE_ADDRESS)
 #else
-#define PAGE_OFFSET		(0)
+	#define PAGE_OFFSET		(0)
 #endif
 
 #ifndef ARCH_PFN_OFFSET
-#define ARCH_PFN_OFFSET		(PAGE_OFFSET >> PAGE_SHIFT)
+	#define ARCH_PFN_OFFSET		(PAGE_OFFSET >> PAGE_SHIFT)
 #endif
 
 #ifndef __ASSEMBLY__
@@ -84,13 +88,13 @@ extern unsigned long memory_end;
 #define page_to_virt(page)	pfn_to_virt(page_to_pfn(page))
 
 #ifndef page_to_phys
-#define page_to_phys(page)      ((dma_addr_t)page_to_pfn(page) << PAGE_SHIFT)
+	#define page_to_phys(page)      ((dma_addr_t)page_to_pfn(page) << PAGE_SHIFT)
 #endif
 
 #define pfn_valid(pfn)		((pfn) >= ARCH_PFN_OFFSET && ((pfn) - ARCH_PFN_OFFSET) < max_mapnr)
 
 #define	virt_addr_valid(kaddr)	(((void *)(kaddr) >= (void *)PAGE_OFFSET) && \
-				((void *)(kaddr) < (void *)memory_end))
+								 ((void *)(kaddr) < (void *)memory_end))
 
 #endif /* __ASSEMBLY__ */
 

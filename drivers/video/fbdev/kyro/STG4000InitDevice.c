@@ -75,13 +75,13 @@ static u16 CorePllControl = 0x70;
 #define    STG4K3_PLL_MAXR_VCO    500000000	/* Max VCO rate (restricted) */
 
 #define OS_DELAY(X) \
-{ \
-volatile u32 i,count=0; \
-    for(i=0;i<X;i++) count++; \
-}
+	{ \
+		volatile u32 i,count=0; \
+		for(i=0;i<X;i++) count++; \
+	}
 
 static u32 InitSDRAMRegisters(volatile STG4000REG __iomem *pSTGReg,
-			      u32 dwSubSysID, u32 dwRevID)
+							  u32 dwSubSysID, u32 dwRevID)
 {
 	u32 adwSDRAMArgCfg0[] = { 0xa0, 0x80, 0xa0, 0xa0, 0xa0 };
 	u32 adwSDRAMCfg1[] = { 0x8732, 0x8732, 0xa732, 0xa732, 0x8732 };
@@ -96,14 +96,20 @@ static u32 InitSDRAMRegisters(volatile STG4000REG __iomem *pSTGReg,
 	dwChipSpeedIdx = (dwSubSysID & 0x180) >> 7;
 
 	if (dwMemTypeIdx > 4 || dwChipSpeedIdx > 2)
+	{
 		return 0;
+	}
 
 	/* Program SD-RAM interface */
 	STG_WRITE_REG(SDRAMArbiterConf, adwSDRAMArgCfg0[dwMemTypeIdx]);
-	if (dwRevID < 5) {
+
+	if (dwRevID < 5)
+	{
 		STG_WRITE_REG(SDRAMConf0, 0x49A1);
 		STG_WRITE_REG(SDRAMConf1, adwSDRAMCfg1[dwMemTypeIdx]);
-	} else {
+	}
+	else
+	{
 		STG_WRITE_REG(SDRAMConf0, 0x4DF1);
 		STG_WRITE_REG(SDRAMConf1, adwSDRAMCfg2[dwMemTypeIdx]);
 	}
@@ -115,8 +121,8 @@ static u32 InitSDRAMRegisters(volatile STG4000REG __iomem *pSTGReg,
 }
 
 u32 ProgramClock(u32 refClock,
-		   u32 coreClock,
-		   u32 * FOut, u32 * ROut, u32 * POut)
+				 u32 coreClock,
+				 u32 *FOut, u32 *ROut, u32 *POut)
 {
 	u32 R = 0, F = 0, OD = 0, ODIndex = 0;
 	u32 ulBestR = 0, ulBestF = 0, ulBestOD = 0;
@@ -140,12 +146,14 @@ u32 ProgramClock(u32 refClock,
 	ulScaleClockReq = coreClock >> STG4K3_PLL_SCALER;
 
 	/* Iterate through post divider values */
-	for (ODIndex = 0; ODIndex < 3; ODIndex++) {
+	for (ODIndex = 0; ODIndex < 3; ODIndex++)
+	{
 		OD = ODValues[ODIndex];
 		R = STG4K3_PLL_MIN_R;
 
 		/* loop for pre-divider from min to max  */
-		while (R <= STG4K3_PLL_MAX_R) {
+		while (R <= STG4K3_PLL_MAX_R)
+		{
 			/* estimate required feedback multiplier */
 			ulTmp = R * (ulScaleClockReq << OD);
 
@@ -154,7 +162,9 @@ u32 ProgramClock(u32 refClock,
 
 			/* compensate for accuracy */
 			if (F > STG4K3_PLL_MIN_F)
+			{
 				F--;
+			}
 
 
 			/*
@@ -163,7 +173,8 @@ u32 ProgramClock(u32 refClock,
 			 * through F for best fit
 			 */
 			while ((F >= STG4K3_PLL_MIN_F) &&
-			       (F <= STG4K3_PLL_MAX_F)) {
+				   (F <= STG4K3_PLL_MAX_F))
+			{
 				/* Calc VCO at full accuracy */
 				ulVCO = refClock / R;
 				ulVCO = F * ulVCO;
@@ -175,49 +186,56 @@ u32 ProgramClock(u32 refClock,
 				 * against VCO limit
 				 */
 				if ((ulVCO >= STG4K3_PLL_MINR_VCO) &&
-				    ((ulVCO <= STG4K3_PLL_MAXR_VCO) ||
-				     ((coreClock > STG4K3_PLL_MAXR_VCO)
-				      && (ulVCO <= STG4K3_PLL_MAX_VCO)))) {
+					((ulVCO <= STG4K3_PLL_MAXR_VCO) ||
+					 ((coreClock > STG4K3_PLL_MAXR_VCO)
+					  && (ulVCO <= STG4K3_PLL_MAX_VCO))))
+				{
 					ulTmp = (ulVCO >> OD);	/* Clock = VCO / (2^OD) */
 
 					/* Is this clock good enough? */
 					if ((ulTmp >= ulMinClock)
-					    && (ulTmp <= ulMaxClock)) {
+						&& (ulTmp <= ulMaxClock))
+					{
 						ulPhaseScore = (((refClock / R) - (refClock / STG4K3_PLL_MAX_R))) / ((refClock - (refClock / STG4K3_PLL_MAX_R)) >> 10);
 
 						ulVcoScore = ((ulVCO - STG4K3_PLL_MINR_VCO)) / ((STG4K3_PLL_MAXR_VCO - STG4K3_PLL_MINR_VCO) >> 10);
 						ulScore = ulPhaseScore + ulVcoScore;
 
-						if (!ulBestScore) {
+						if (!ulBestScore)
+						{
 							ulBestVCO = ulVCO;
 							ulBestOD = OD;
 							ulBestF = F;
 							ulBestR = R;
 							ulBestClk = ulTmp;
 							ulBestScore =
-							    ulScore;
+								ulScore;
 						}
+
 						/* is this better, ( aim for highest Score) */
-			/*--------------------------------------------------------------------------
-                             Here we want to use a scoring system which will take account of both the
-                            value at the phase comparater and the VCO output
-                             to do this we will use a cumulative score between the two
-                          The way this ends up is that we choose the first value in the loop anyway
-                          but we shall keep this code in case new restrictions come into play
-                          --------------------------------------------------------------------------*/
-						if ((ulScore >= ulBestScore) && (OD > 0)) {
+						/*--------------------------------------------------------------------------
+						                 Here we want to use a scoring system which will take account of both the
+						                value at the phase comparater and the VCO output
+						                 to do this we will use a cumulative score between the two
+						              The way this ends up is that we choose the first value in the loop anyway
+						              but we shall keep this code in case new restrictions come into play
+						              --------------------------------------------------------------------------*/
+						if ((ulScore >= ulBestScore) && (OD > 0))
+						{
 							ulBestVCO = ulVCO;
 							ulBestOD = OD;
 							ulBestF = F;
 							ulBestR = R;
 							ulBestClk = ulTmp;
 							ulBestScore =
-							    ulScore;
+								ulScore;
 						}
 					}
 				}
+
 				F++;
 			}
+
 			R++;
 		}
 	}
@@ -226,14 +244,19 @@ u32 ProgramClock(u32 refClock,
 	   did we find anything?
 	   Then return RFOD
 	 */
-	if (ulBestScore) {
+	if (ulBestScore)
+	{
 		*ROut = ulBestR;
 		*FOut = ulBestF;
 
-		if ((ulBestOD == 2) || (ulBestOD == 3)) {
+		if ((ulBestOD == 2) || (ulBestOD == 3))
+		{
 			*POut = 3;
-		} else
+		}
+		else
+		{
 			*POut = ulBestOD;
+		}
 
 	}
 
@@ -261,26 +284,28 @@ int SetCoreClockPLL(volatile STG4000REG __iomem *pSTGReg, struct pci_dev *pDev)
 	STG_WRITE_REG(Thread1Enable, tmp);
 
 	STG_WRITE_REG(SoftwareReset,
-		      PMX2_SOFTRESET_REG_RST | PMX2_SOFTRESET_ROM_RST);
+				  PMX2_SOFTRESET_REG_RST | PMX2_SOFTRESET_ROM_RST);
 	STG_WRITE_REG(SoftwareReset,
-		      PMX2_SOFTRESET_REG_RST | PMX2_SOFTRESET_TA_RST |
-		      PMX2_SOFTRESET_ROM_RST);
+				  PMX2_SOFTRESET_REG_RST | PMX2_SOFTRESET_TA_RST |
+				  PMX2_SOFTRESET_ROM_RST);
 
 	/* Need to play around to reset TA */
 	STG_WRITE_REG(TAConfiguration, 0);
 	STG_WRITE_REG(SoftwareReset,
-		      PMX2_SOFTRESET_REG_RST | PMX2_SOFTRESET_ROM_RST);
+				  PMX2_SOFTRESET_REG_RST | PMX2_SOFTRESET_ROM_RST);
 	STG_WRITE_REG(SoftwareReset,
-		      PMX2_SOFTRESET_REG_RST | PMX2_SOFTRESET_TA_RST |
-		      PMX2_SOFTRESET_ROM_RST);
+				  PMX2_SOFTRESET_REG_RST | PMX2_SOFTRESET_TA_RST |
+				  PMX2_SOFTRESET_ROM_RST);
 
 	pci_read_config_word(pDev, PCI_CONFIG_SUBSYS_ID, &sub);
 
 	ulChipSpeed = InitSDRAMRegisters(pSTGReg, (u32)sub,
-		                         (u32)pDev->revision);
+									 (u32)pDev->revision);
 
 	if (ulChipSpeed == 0)
+	{
 		return -EINVAL;
+	}
 
 	ulCoreClock = ProgramClock(REF_FREQ, CORE_PLL_FREQ, &F, &R, &P);
 
@@ -302,7 +327,7 @@ int SetCoreClockPLL(volatile STG4000REG __iomem *pSTGReg, struct pci_dev *pDev)
 
 	/* Send bits 8:15 of the Core PLL Mode register */
 	tmp =
-	    ((CORE_PLL_MODE_REG_8_15 << 8) | ((core_pll & 0xFF00) >> 8));
+		((CORE_PLL_MODE_REG_8_15 << 8) | ((core_pll & 0xFF00) >> 8));
 	pci_write_config_word(pDev, CorePllControl, tmp);
 	OS_DELAY(1000000);
 

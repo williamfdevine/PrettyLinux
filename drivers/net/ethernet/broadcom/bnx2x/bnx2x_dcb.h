@@ -24,7 +24,8 @@
 #include "bnx2x_hsi.h"
 
 #define LLFC_DRIVER_TRAFFIC_TYPE_MAX 3 /* NW, iSCSI, FCoE */
-struct bnx2x_dcbx_app_params {
+struct bnx2x_dcbx_app_params
+{
 	u32 enabled;
 	u32 traffic_type_priority[LLFC_DRIVER_TRAFFIC_TYPE_MAX];
 };
@@ -35,7 +36,8 @@ struct bnx2x_dcbx_app_params {
 #define DCBX_COS_MAX_NUM_E3B0	BNX2X_MAX_COS_SUPPORT
 #define DCBX_COS_MAX_NUM	BNX2X_MAX_COS_SUPPORT
 
-struct bnx2x_dcbx_cos_params {
+struct bnx2x_dcbx_cos_params
+{
 	u32	bw_tbl;
 	u32	pri_bitmask;
 	/*
@@ -49,18 +51,21 @@ struct bnx2x_dcbx_cos_params {
 	u8	pauseable;
 };
 
-struct bnx2x_dcbx_pg_params {
+struct bnx2x_dcbx_pg_params
+{
 	u32 enabled;
 	u8 num_of_cos; /* valid COS entries */
 	struct bnx2x_dcbx_cos_params	cos_params[DCBX_COS_MAX_NUM];
 };
 
-struct bnx2x_dcbx_pfc_params {
+struct bnx2x_dcbx_pfc_params
+{
 	u32 enabled;
 	u32 priority_non_pauseable_mask;
 };
 
-struct bnx2x_dcbx_port_params {
+struct bnx2x_dcbx_port_params
+{
 	struct bnx2x_dcbx_pfc_params pfc;
 	struct bnx2x_dcbx_pg_params  ets;
 	struct bnx2x_dcbx_app_params app;
@@ -71,9 +76,10 @@ struct bnx2x_dcbx_port_params {
 #define BNX2X_DCBX_OVERWRITE_SETTINGS_ENABLE		1
 #define BNX2X_DCBX_OVERWRITE_SETTINGS_INVALID	(BNX2X_DCBX_CONFIG_INV_VALUE)
 #define BNX2X_IS_ETS_ENABLED(bp) ((bp)->dcb_state == BNX2X_DCB_STATE_ON &&\
-				  (bp)->dcbx_port_params.ets.enabled)
+								  (bp)->dcbx_port_params.ets.enabled)
 
-struct bnx2x_config_lldp_params {
+struct bnx2x_config_lldp_params
+{
 	u32 overwrite_settings;
 	u32 msg_tx_hold;
 	u32 msg_fast_tx;
@@ -82,18 +88,20 @@ struct bnx2x_config_lldp_params {
 	u32 tx_fast;
 };
 
-struct bnx2x_admin_priority_app_table {
-		u32 valid;
-		u32 priority;
+struct bnx2x_admin_priority_app_table
+{
+	u32 valid;
+	u32 priority;
 #define INVALID_TRAFFIC_TYPE_PRIORITY	(0xFFFFFFFF)
-		u32 traffic_type;
+	u32 traffic_type;
 #define TRAFFIC_TYPE_ETH		0
 #define TRAFFIC_TYPE_PORT		1
-		u32 app_id;
+	u32 app_id;
 };
 
 #define DCBX_CONFIG_MAX_APP_PROTOCOL 4
-struct bnx2x_config_dcbx_params {
+struct bnx2x_config_dcbx_params
+{
 	u32 overwrite_settings;
 	u32 admin_dcbx_version;
 	u32 admin_ets_enable;
@@ -121,7 +129,8 @@ struct bnx2x_config_dcbx_params {
 #define SET_FLAGS(flags, bits)		((flags) |= (bits))
 #define RESET_FLAGS(flags, bits)	((flags) &= ~(bits))
 
-enum {
+enum
+{
 	DCBX_READ_LOCAL_MIB,
 	DCBX_READ_REMOTE_MIB
 };
@@ -131,19 +140,21 @@ enum {
 
 #define PFC_VALUE_FRAME_SIZE				(512)
 #define PFC_QUANTA_IN_NANOSEC_FROM_SPEED_MEGA(mega_speed)  \
-				((1000 * PFC_VALUE_FRAME_SIZE)/(mega_speed))
+	((1000 * PFC_VALUE_FRAME_SIZE)/(mega_speed))
 
 #define PFC_BRB1_REG_HIGH_LLFC_LOW_THRESHOLD			130
 #define PFC_BRB1_REG_HIGH_LLFC_HIGH_THRESHOLD			170
 
-struct cos_entry_help_data {
+struct cos_entry_help_data
+{
 	u32			pri_join_mask;
 	u32			cos_bw;
 	u8			strict;
 	bool			pausable;
 };
 
-struct cos_help_data {
+struct cos_help_data
+{
 	struct cos_entry_help_data	data[DCBX_COS_MAX_NUM];
 	u8				num_of_cos;
 };
@@ -153,30 +164,32 @@ struct cos_help_data {
 #define DCBX_STRICT_PRIORITY			(15)
 #define DCBX_INVALID_COS_BW			(0xFFFFFFFF)
 #define DCBX_PFC_PRI_NON_PAUSE_MASK(bp)		\
-			((bp)->dcbx_port_params.pfc.priority_non_pauseable_mask)
+	((bp)->dcbx_port_params.pfc.priority_non_pauseable_mask)
 #define DCBX_PFC_PRI_PAUSE_MASK(bp)		\
-					((u8)~DCBX_PFC_PRI_NON_PAUSE_MASK(bp))
+	((u8)~DCBX_PFC_PRI_NON_PAUSE_MASK(bp))
 #define DCBX_PFC_PRI_GET_PAUSE(bp, pg_pri)	\
-				((pg_pri) & (DCBX_PFC_PRI_PAUSE_MASK(bp)))
+	((pg_pri) & (DCBX_PFC_PRI_PAUSE_MASK(bp)))
 #define DCBX_PFC_PRI_GET_NON_PAUSE(bp, pg_pri)	\
-			(DCBX_PFC_PRI_NON_PAUSE_MASK(bp) & (pg_pri))
+	(DCBX_PFC_PRI_NON_PAUSE_MASK(bp) & (pg_pri))
 #define DCBX_IS_PFC_PRI_SOME_PAUSE(bp, pg_pri)	\
-			(0 != DCBX_PFC_PRI_GET_PAUSE(bp, pg_pri))
+	(0 != DCBX_PFC_PRI_GET_PAUSE(bp, pg_pri))
 #define IS_DCBX_PFC_PRI_ONLY_PAUSE(bp, pg_pri)	\
-			(pg_pri == DCBX_PFC_PRI_GET_PAUSE((bp), (pg_pri)))
+	(pg_pri == DCBX_PFC_PRI_GET_PAUSE((bp), (pg_pri)))
 #define IS_DCBX_PFC_PRI_ONLY_NON_PAUSE(bp, pg_pri)\
-			((pg_pri) == DCBX_PFC_PRI_GET_NON_PAUSE((bp), (pg_pri)))
+	((pg_pri) == DCBX_PFC_PRI_GET_NON_PAUSE((bp), (pg_pri)))
 #define IS_DCBX_PFC_PRI_MIX_PAUSE(bp, pg_pri)	\
-			(!(IS_DCBX_PFC_PRI_ONLY_NON_PAUSE((bp), (pg_pri)) || \
-			 IS_DCBX_PFC_PRI_ONLY_PAUSE((bp), (pg_pri))))
+	(!(IS_DCBX_PFC_PRI_ONLY_NON_PAUSE((bp), (pg_pri)) || \
+	   IS_DCBX_PFC_PRI_ONLY_PAUSE((bp), (pg_pri))))
 
-struct pg_entry_help_data {
+struct pg_entry_help_data
+{
 	u8	num_of_dif_pri;
 	u8	pg;
 	u32	pg_priority;
 };
 
-struct pg_help_data {
+struct pg_help_data
+{
 	struct pg_entry_help_data	data[LLFC_DRIVER_TRAFFIC_TYPE_MAX];
 	u8				num_of_pg;
 };
@@ -187,7 +200,8 @@ void bnx2x_dcbx_update(struct work_struct *work);
 void bnx2x_dcbx_init_params(struct bnx2x *bp);
 void bnx2x_dcbx_set_state(struct bnx2x *bp, bool dcb_on, u32 dcbx_enabled);
 
-enum {
+enum
+{
 	BNX2X_DCBX_STATE_NEG_RECEIVED = 0x1,
 	BNX2X_DCBX_STATE_TX_PAUSED,
 	BNX2X_DCBX_STATE_TX_RELEASED
@@ -197,8 +211,8 @@ void bnx2x_dcbx_set_params(struct bnx2x *bp, u32 state);
 void bnx2x_dcbx_pmf_update(struct bnx2x *bp);
 /* DCB netlink */
 #ifdef BCM_DCBNL
-extern const struct dcbnl_rtnl_ops bnx2x_dcbnl_ops;
-int bnx2x_dcbnl_update_applist(struct bnx2x *bp, bool delall);
+	extern const struct dcbnl_rtnl_ops bnx2x_dcbnl_ops;
+	int bnx2x_dcbnl_update_applist(struct bnx2x *bp, bool delall);
 #endif /* BCM_DCBNL */
 
 int bnx2x_dcbx_stop_hw_tx(struct bnx2x *bp);

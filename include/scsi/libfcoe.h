@@ -60,7 +60,8 @@
  * @FIP_ST_VNMP_CLAIM:	VN2VN sent claim, waiting for responses
  * @FIP_ST_VNMP_UP:	VN2VN multipath mode operation
  */
-enum fip_state {
+enum fip_state
+{
 	FIP_ST_DISABLED,
 	FIP_ST_LINK_WAIT,
 	FIP_ST_AUTO,
@@ -78,7 +79,8 @@ enum fip_state {
  * The mode is the state that is to be entered after link up.
  * It must not change after fcoe_ctlr_init() sets it.
  */
-enum fip_mode {
+enum fip_mode
+{
 	FIP_MODE_AUTO = FIP_ST_AUTO,
 	FIP_MODE_NON_FIP,
 	FIP_MODE_FABRIC,
@@ -126,7 +128,8 @@ enum fip_mode {
  * needed by all FCoE low-level drivers (LLDs) as well as internal state
  * for FIP, and fields shared with the LLDS.
  */
-struct fcoe_ctlr {
+struct fcoe_ctlr
+{
 	enum fip_state state;
 	enum fip_mode mode;
 	struct fc_lport *lp;
@@ -161,7 +164,7 @@ struct fcoe_ctlr {
 
 	void (*send)(struct fcoe_ctlr *, struct sk_buff *);
 	void (*update_mac)(struct fc_lport *, u8 *addr);
-	u8 * (*get_src_addr)(struct fc_lport *);
+	u8 *(*get_src_addr)(struct fc_lport *);
 	struct mutex ctlr_mutex;
 	spinlock_t ctlr_lock;
 };
@@ -207,7 +210,8 @@ static inline void *fcoe_ctlr_priv(const struct fcoe_ctlr *ctlr)
  * When looking up an FCF, @switch_name, @fabric_name, @fc_map, @vfid, and
  * @fcf_mac together form the lookup key.
  */
-struct fcoe_fcf {
+struct fcoe_fcf
+{
 	struct list_head list;
 	struct work_struct event_work;
 	struct fcoe_ctlr *fip;
@@ -225,7 +229,7 @@ struct fcoe_fcf {
 	u8 flogi_sent;
 	u16 flags;
 	u32 fka_period;
-	u8 fd_flags:1;
+	u8 fd_flags: 1;
 };
 
 #define fcoe_fcf_to_fcf_dev(x)			\
@@ -240,7 +244,8 @@ struct fcoe_fcf {
  * @enode_mac:	E_Node control MAC address
  * @vn_mac:	VN_Node assigned MAC address for data
  */
-struct fcoe_rport {
+struct fcoe_rport
+{
 	unsigned long time;
 	u16 fcoe_len;
 	u16 flags;
@@ -257,17 +262,17 @@ int fcoe_ctlr_link_down(struct fcoe_ctlr *);
 int fcoe_ctlr_els_send(struct fcoe_ctlr *, struct fc_lport *, struct sk_buff *);
 void fcoe_ctlr_recv(struct fcoe_ctlr *, struct sk_buff *);
 int fcoe_ctlr_recv_flogi(struct fcoe_ctlr *, struct fc_lport *,
-			 struct fc_frame *);
+						 struct fc_frame *);
 
 /* libfcoe funcs */
 u64 fcoe_wwn_from_mac(unsigned char mac[], unsigned int, unsigned int);
 int fcoe_libfc_config(struct fc_lport *, struct fcoe_ctlr *,
-		      const struct libfc_function_template *, int init_fcp);
+					  const struct libfc_function_template *, int init_fcp);
 u32 fcoe_fc_crc(struct fc_frame *fp);
 int fcoe_start_io(struct sk_buff *skb);
 int fcoe_get_wwn(struct net_device *netdev, u64 *wwn, int type);
 void __fcoe_get_lesb(struct fc_lport *lport, struct fc_els_lesb *fc_lesb,
-		     struct net_device *netdev);
+					 struct net_device *netdev);
 void fcoe_wwn_to_str(u64 wwn, char *buf, int len);
 int fcoe_validate_vport_create(struct fc_vport *vport);
 int fcoe_link_speed_update(struct fc_lport *);
@@ -291,8 +296,8 @@ static inline bool is_fip_mode(struct fcoe_ctlr *fip)
  */
 #define MODULE_ALIAS_FCOE_PCI(ven, dev) \
 	MODULE_ALIAS("fcoe-pci:"	\
-		"v" __stringify(ven)	\
-		"d" __stringify(dev) "sv*sd*bc*sc*i*")
+				 "v" __stringify(ven)	\
+				 "d" __stringify(dev) "sv*sd*bc*sc*i*")
 
 /* the name of the default FCoE transport driver fcoe.ko */
 #define FCOE_TRANSPORT_DEFAULT	"fcoe"
@@ -310,7 +315,8 @@ static inline bool is_fip_mode(struct fcoe_ctlr *fip)
  * @enable:	handler to sysfs entry of enable for FCoE instances
  * @disable:	handler to sysfs entry of disable for FCoE instances
  */
-struct fcoe_transport {
+struct fcoe_transport
+{
 	char name[IFNAMSIZ];
 	bool attached;
 	struct list_head list;
@@ -331,7 +337,8 @@ struct fcoe_transport {
  * @crc_eof_offset: The offset into the CRC page pointing to available
  *		    memory for a new trailer
  */
-struct fcoe_percpu_s {
+struct fcoe_percpu_s
+{
 	struct task_struct *kthread;
 	struct work_struct work;
 	struct sk_buff_head fcoe_rx_list;
@@ -356,7 +363,8 @@ struct fcoe_percpu_s {
  * An instance of this structure is to be allocated along with the
  * Scsi_Host and libfc fc_lport structures.
  */
-struct fcoe_port {
+struct fcoe_port
+{
 	void		      *priv;
 	struct fc_lport	      *lport;
 	struct sk_buff_head   fcoe_pending_queue;
@@ -366,7 +374,7 @@ struct fcoe_port {
 	struct timer_list     timer;
 	struct work_struct    destroy_work;
 	u8		      data_src_addr[ETH_ALEN];
-	struct net_device * (*get_netdev)(const struct fc_lport *lport);
+	struct net_device *(*get_netdev)(const struct fc_lport *lport);
 };
 
 /**
@@ -384,7 +392,7 @@ void fcoe_clean_pending_queue(struct fc_lport *);
 void fcoe_check_wait_queue(struct fc_lport *lport, struct sk_buff *skb);
 void fcoe_queue_timer(ulong lport);
 int fcoe_get_paged_crc_eof(struct sk_buff *skb, int tlen,
-			   struct fcoe_percpu_s *fps);
+						   struct fcoe_percpu_s *fps);
 
 /* FCoE Sysfs helpers */
 void fcoe_fcf_get_selected(struct fcoe_fcf_device *);
@@ -394,7 +402,8 @@ void fcoe_ctlr_set_fip_mode(struct fcoe_ctlr_device *);
  * struct netdev_list
  * A mapping from netdevice to fcoe_transport
  */
-struct fcoe_netdev_mapping {
+struct fcoe_netdev_mapping
+{
 	struct list_head list;
 	struct net_device *netdev;
 	struct fcoe_transport *ft;
@@ -406,9 +415,9 @@ int fcoe_transport_detach(struct fcoe_transport *ft);
 
 /* sysfs store handler for ctrl_control interface */
 ssize_t fcoe_ctlr_create_store(struct bus_type *bus,
-			       const char *buf, size_t count);
+							   const char *buf, size_t count);
 ssize_t fcoe_ctlr_destroy_store(struct bus_type *bus,
-				const char *buf, size_t count);
+								const char *buf, size_t count);
 
 #endif /* _LIBFCOE_H */
 

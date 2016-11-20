@@ -13,7 +13,8 @@
 #include <linux/dmaengine.h>
 #include <linux/platform_data/dma-dw.h>
 
-enum {
+enum
+{
 	PORT_QUARK_X1000,
 	PORT_BYT,
 	PORT_MRFLD,
@@ -24,7 +25,8 @@ enum {
 	PORT_LPT,
 };
 
-struct pxa_spi_info {
+struct pxa_spi_info
+{
 	enum pxa_ssp_type type;
 	int port_id;
 	int num_chipselect;
@@ -56,7 +58,9 @@ static bool lpss_dma_filter(struct dma_chan *chan, void *param)
 	struct dw_dma_slave *dws = param;
 
 	if (dws->dma_dev != chan->device->dev)
+	{
 		return false;
+	}
 
 	chan->private = dws;
 	return true;
@@ -71,7 +75,8 @@ static int lpss_spi_setup(struct pci_dev *dev, struct pxa_spi_info *c)
 
 	dma_dev = pci_get_slot(dev->bus, PCI_DEVFN(PCI_SLOT(dev->devfn), 0));
 
-	if (c->tx_param) {
+	if (c->tx_param)
+	{
 		struct dw_dma_slave *slave = c->tx_param;
 
 		slave->dma_dev = &dma_dev->dev;
@@ -79,7 +84,8 @@ static int lpss_spi_setup(struct pci_dev *dev, struct pxa_spi_info *c)
 		slave->p_master = 1;
 	}
 
-	if (c->rx_param) {
+	if (c->rx_param)
+	{
 		struct dw_dma_slave *slave = c->rx_param;
 
 		slave->dma_dev = &dma_dev->dev;
@@ -93,26 +99,32 @@ static int lpss_spi_setup(struct pci_dev *dev, struct pxa_spi_info *c)
 
 static int mrfld_spi_setup(struct pci_dev *dev, struct pxa_spi_info *c)
 {
-	switch (PCI_FUNC(dev->devfn)) {
-	case 0:
-		c->port_id = 3;
-		c->num_chipselect = 1;
-		break;
-	case 1:
-		c->port_id = 5;
-		c->num_chipselect = 4;
-		break;
-	case 2:
-		c->port_id = 6;
-		c->num_chipselect = 1;
-		break;
-	default:
-		return -ENODEV;
+	switch (PCI_FUNC(dev->devfn))
+	{
+		case 0:
+			c->port_id = 3;
+			c->num_chipselect = 1;
+			break;
+
+		case 1:
+			c->port_id = 5;
+			c->num_chipselect = 4;
+			break;
+
+		case 2:
+			c->port_id = 6;
+			c->num_chipselect = 1;
+			break;
+
+		default:
+			return -ENODEV;
 	}
+
 	return 0;
 }
 
-static struct pxa_spi_info spi_info_configs[] = {
+static struct pxa_spi_info spi_info_configs[] =
+{
 	[PORT_CE4100] = {
 		.type = PXA25x_SSP,
 		.port_id =  -1,
@@ -168,7 +180,7 @@ static struct pxa_spi_info spi_info_configs[] = {
 };
 
 static int pxa2xx_spi_pci_probe(struct pci_dev *dev,
-		const struct pci_device_id *ent)
+								const struct pci_device_id *ent)
 {
 	struct platform_device_info pi;
 	int ret;
@@ -179,18 +191,29 @@ static int pxa2xx_spi_pci_probe(struct pci_dev *dev,
 	char buf[40];
 
 	ret = pcim_enable_device(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = pcim_iomap_regions(dev, 1 << 0, "PXA2xx SPI");
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	c = &spi_info_configs[ent->driver_data];
-	if (c->setup) {
+
+	if (c->setup)
+	{
 		ret = c->setup(dev, c);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	memset(&spi_pdata, 0, sizeof(spi_pdata));
@@ -209,9 +232,12 @@ static int pxa2xx_spi_pci_probe(struct pci_dev *dev,
 
 	snprintf(buf, sizeof(buf), "pxa2xx-spi.%d", ssp->port_id);
 	ssp->clk = clk_register_fixed_rate(&dev->dev, buf , NULL, 0,
-					   c->max_clk_rate);
-	 if (IS_ERR(ssp->clk))
+									   c->max_clk_rate);
+
+	if (IS_ERR(ssp->clk))
+	{
 		return PTR_ERR(ssp->clk);
+	}
 
 	memset(&pi, 0, sizeof(pi));
 	pi.fwnode = dev->dev.fwnode;
@@ -222,7 +248,9 @@ static int pxa2xx_spi_pci_probe(struct pci_dev *dev,
 	pi.size_data = sizeof(spi_pdata);
 
 	pdev = platform_device_register_full(&pi);
-	if (IS_ERR(pdev)) {
+
+	if (IS_ERR(pdev))
+	{
 		clk_unregister(ssp->clk);
 		return PTR_ERR(pdev);
 	}
@@ -243,7 +271,8 @@ static void pxa2xx_spi_pci_remove(struct pci_dev *dev)
 	clk_unregister(spi_pdata->ssp.clk);
 }
 
-static const struct pci_device_id pxa2xx_spi_pci_devices[] = {
+static const struct pci_device_id pxa2xx_spi_pci_devices[] =
+{
 	{ PCI_VDEVICE(INTEL, 0x0935), PORT_QUARK_X1000 },
 	{ PCI_VDEVICE(INTEL, 0x0f0e), PORT_BYT },
 	{ PCI_VDEVICE(INTEL, 0x1194), PORT_MRFLD },
@@ -256,7 +285,8 @@ static const struct pci_device_id pxa2xx_spi_pci_devices[] = {
 };
 MODULE_DEVICE_TABLE(pci, pxa2xx_spi_pci_devices);
 
-static struct pci_driver pxa2xx_spi_pci_driver = {
+static struct pci_driver pxa2xx_spi_pci_driver =
+{
 	.name           = "pxa2xx_spi_pci",
 	.id_table       = pxa2xx_spi_pci_devices,
 	.probe          = pxa2xx_spi_pci_probe,

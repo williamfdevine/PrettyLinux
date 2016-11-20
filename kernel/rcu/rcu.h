@@ -25,9 +25,9 @@
 
 #include <trace/events/rcu.h>
 #ifdef CONFIG_RCU_TRACE
-#define RCU_TRACE(stmt) stmt
+	#define RCU_TRACE(stmt) stmt
 #else /* #ifdef CONFIG_RCU_TRACE */
-#define RCU_TRACE(stmt)
+	#define RCU_TRACE(stmt)
 #endif /* #else #ifdef CONFIG_RCU_TRACE */
 
 /*
@@ -54,7 +54,7 @@
 #define DYNTICK_TASK_FLAG	   ((DYNTICK_TASK_NEST_VALUE / 8) * 2)
 #define DYNTICK_TASK_MASK	   ((DYNTICK_TASK_NEST_VALUE / 8) * 3)
 #define DYNTICK_TASK_EXIT_IDLE	   (DYNTICK_TASK_NEST_VALUE + \
-				    DYNTICK_TASK_FLAG)
+									DYNTICK_TASK_FLAG)
 
 /*
  * debug_rcu_head_queue()/debug_rcu_head_unqueue() are used internally
@@ -74,16 +74,16 @@ static inline int debug_rcu_head_queue(struct rcu_head *head)
 
 	r1 = debug_object_activate(head, &rcuhead_debug_descr);
 	debug_object_active_state(head, &rcuhead_debug_descr,
-				  STATE_RCU_HEAD_READY,
-				  STATE_RCU_HEAD_QUEUED);
+							  STATE_RCU_HEAD_READY,
+							  STATE_RCU_HEAD_QUEUED);
 	return r1;
 }
 
 static inline void debug_rcu_head_unqueue(struct rcu_head *head)
 {
 	debug_object_active_state(head, &rcuhead_debug_descr,
-				  STATE_RCU_HEAD_QUEUED,
-				  STATE_RCU_HEAD_READY);
+							  STATE_RCU_HEAD_QUEUED,
+							  STATE_RCU_HEAD_READY);
 	debug_object_deactivate(head, &rcuhead_debug_descr);
 }
 #else	/* !CONFIG_DEBUG_OBJECTS_RCU_HEAD */
@@ -108,12 +108,16 @@ static inline bool __rcu_reclaim(const char *rn, struct rcu_head *head)
 	unsigned long offset = (unsigned long)head->func;
 
 	rcu_lock_acquire(&rcu_callback_map);
-	if (__is_kfree_rcu_offset(offset)) {
+
+	if (__is_kfree_rcu_offset(offset))
+	{
 		RCU_TRACE(trace_rcu_invoke_kfree_callback(rn, head, offset));
 		kfree((void *)head - offset);
 		rcu_lock_release(&rcu_callback_map);
 		return true;
-	} else {
+	}
+	else
+	{
 		RCU_TRACE(trace_rcu_invoke_callback(rn, head));
 		head->func(head);
 		rcu_lock_release(&rcu_callback_map);
@@ -123,8 +127,8 @@ static inline bool __rcu_reclaim(const char *rn, struct rcu_head *head)
 
 #ifdef CONFIG_RCU_STALL_COMMON
 
-extern int rcu_cpu_stall_suppress;
-int rcu_jiffies_till_stall_check(void);
+	extern int rcu_cpu_stall_suppress;
+	int rcu_jiffies_till_stall_check(void);
 
 #endif /* #ifdef CONFIG_RCU_STALL_COMMON */
 

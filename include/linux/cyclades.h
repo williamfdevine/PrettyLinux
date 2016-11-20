@@ -20,23 +20,23 @@
  *
  *Revision 2.5  1998/08/03 16:57:01  ivan
  *added cyclades_idle_stats structure;
- * 
+ *
  *Revision 2.4  1998/06/01 12:09:53  ivan
  *removed closing_wait2 from cyclades_port structure;
  *
  *Revision 2.3  1998/03/16 18:01:12  ivan
- *changes in the cyclades_port structure to get it closer to the 
+ *changes in the cyclades_port structure to get it closer to the
  *standard serial port structure;
  *added constants for new ioctls;
  *
  *Revision 2.2  1998/02/17 16:50:00  ivan
- *changes in the cyclades_port structure (addition of shutdown_wait and 
+ *changes in the cyclades_port structure (addition of shutdown_wait and
  *chip_rev variables);
  *added constants for new ioctls and for CD1400 rev. numbers.
  *
  *Revision 2.1	1997/10/24 16:03:00  ivan
- *added rflow (which allows enabling the CD1400 special flow control 
- *feature) and rtsdtr_inv (which allows DTR/RTS pin inversion) to 
+ *added rflow (which allows enabling the CD1400 special flow control
+ *feature) and rtsdtr_inv (which allows DTR/RTS pin inversion) to
  *cyclades_port structure;
  *added Alpha support
  *
@@ -70,9 +70,11 @@
 
 
 /* Per card data structure */
-struct cyclades_card {
+struct cyclades_card
+{
 	void __iomem *base_addr;
-	union {
+	union
+	{
 		void __iomem *p9050;
 		struct RUNTIME_9060 __iomem *p9060;
 	} ctl_addr;
@@ -100,7 +102,8 @@ struct cyclades_card {
 /*
  * Statistics counters
  */
-struct cyclades_icount {
+struct cyclades_icount
+{
 	__u32	cts, dsr, rng, dcd, tx, rx;
 	__u32	frame, parity, overrun, brk;
 	__u32	buf_overrun;
@@ -108,22 +111,26 @@ struct cyclades_icount {
 
 /*
  * This is our internal structure for each serial port's state.
- * 
+ *
  * Many fields are paralleled by the structure used by the serial_struct
  * structure.
  *
  * For definitions of the flags field, see tty.h
  */
 
-struct cyclades_port {
+struct cyclades_port
+{
 	int                     magic;
 	struct tty_port		port;
 	struct cyclades_card	*card;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			void __iomem *base_addr;
 		} cyy;
-		struct {
+		struct
+		{
 			struct CH_CTRL __iomem	*ch_ctrl;
 			struct BUF_CTRL __iomem	*buf_ctrl;
 		} cyz;
@@ -135,8 +142,8 @@ struct cyclades_port {
 	int			ignore_status_mask;
 	int			timeout;
 	int			xmit_fifo_size;
-	int                     cor1,cor2,cor3,cor4,cor5;
-	int                     tbpr,tco,rbpr,rco;
+	int                     cor1, cor2, cor3, cor4, cor5;
+	int                     tbpr, tco, rbpr, rco;
 	int			baud;
 	int			rflow;
 	int			rtsdtr_inv;
@@ -148,8 +155,8 @@ struct cyclades_port {
 	int			xmit_head;
 	int			xmit_tail;
 	int			xmit_cnt;
-        int                     default_threshold;
-        int                     default_timeout;
+	int                     default_threshold;
+	int                     default_timeout;
 	unsigned long		rflush_count;
 	struct cyclades_monitor	mon;
 	struct cyclades_idle_stats	idle_stats;

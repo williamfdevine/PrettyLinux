@@ -60,7 +60,8 @@ int csio_msi = 2;
 static int dev_num;
 
 /* FCoE Adapter types & its description */
-static const struct csio_adap_desc csio_t5_fcoe_adapters[] = {
+static const struct csio_adap_desc csio_t5_fcoe_adapters[] =
+{
 	{"T580-Dbg 10G", "Chelsio T580-Dbg 10G [FCoE]"},
 	{"T520-CR 10G", "Chelsio T520-CR 10G [FCoE]"},
 	{"T522-CR 10G/1G", "Chelsio T522-CR 10G/1G [FCoE]"},
@@ -131,22 +132,33 @@ int csio_is_hw_removing(struct csio_hw *hw)
  */
 int
 csio_hw_wait_op_done_val(struct csio_hw *hw, int reg, uint32_t mask,
-			 int polarity, int attempts, int delay, uint32_t *valp)
+						 int polarity, int attempts, int delay, uint32_t *valp)
 {
 	uint32_t val;
-	while (1) {
+
+	while (1)
+	{
 		val = csio_rd_reg32(hw, reg);
 
-		if (!!(val & mask) == polarity) {
+		if (!!(val & mask) == polarity)
+		{
 			if (valp)
+			{
 				*valp = val;
+			}
+
 			return 0;
 		}
 
 		if (--attempts == 0)
+		{
 			return -EAGAIN;
+		}
+
 		if (delay)
+		{
 			udelay(delay);
+		}
 	}
 }
 
@@ -161,7 +173,7 @@ csio_hw_wait_op_done_val(struct csio_hw *hw, int reg, uint32_t mask,
  */
 void
 csio_hw_tp_wr_bits_indirect(struct csio_hw *hw, unsigned int addr,
-			unsigned int mask, unsigned int val)
+							unsigned int mask, unsigned int val)
 {
 	csio_wr_reg32(hw, addr, TP_PIO_ADDR_A);
 	val |= csio_rd_reg32(hw, TP_PIO_DATA_A) & ~mask;
@@ -170,7 +182,7 @@ csio_hw_tp_wr_bits_indirect(struct csio_hw *hw, unsigned int addr,
 
 void
 csio_set_reg_field(struct csio_hw *hw, uint32_t reg, uint32_t mask,
-		   uint32_t value)
+				   uint32_t value)
 {
 	uint32_t val = csio_rd_reg32(hw, reg) & ~mask;
 
@@ -184,7 +196,7 @@ static int
 csio_memory_write(struct csio_hw *hw, int mtype, u32 addr, u32 len, u32 *buf)
 {
 	return hw->chip_ops->chip_memory_rw(hw, MEMWIN_CSIOSTOR, mtype,
-					    addr, len, buf, 0);
+										addr, len, buf, 0);
 }
 
 /*
@@ -216,16 +228,21 @@ csio_hw_seeprom_read(struct csio_hw *hw, uint32_t addr, uint32_t *data)
 	uint32_t base = hw->params.pci.vpd_cap_addr;
 
 	if (addr >= EEPROMVSIZE || (addr & 3))
+	{
 		return -EINVAL;
+	}
 
 	pci_write_config_word(hw->pdev, base + PCI_VPD_ADDR, (uint16_t)addr);
 
-	do {
+	do
+	{
 		udelay(10);
 		pci_read_config_word(hw->pdev, base + PCI_VPD_ADDR, &val);
-	} while (!(val & PCI_VPD_ADDR_F) && --attempts);
+	}
+	while (!(val & PCI_VPD_ADDR_F) && --attempts);
 
-	if (!(val & PCI_VPD_ADDR_F)) {
+	if (!(val & PCI_VPD_ADDR_F))
+	{
 		csio_err(hw, "reading EEPROM address 0x%x failed\n", addr);
 		return -EINVAL;
 	}
@@ -240,7 +257,8 @@ csio_hw_seeprom_read(struct csio_hw *hw, uint32_t addr, uint32_t *data)
  * Partial EEPROM Vital Product Data structure.  Includes only the ID and
  * VPD-R sections.
  */
-struct t4_vpd_hdr {
+struct t4_vpd_hdr
+{
 	u8  id_tag;
 	u8  id_len[2];
 	u8  id_data[ID_LEN];
@@ -268,15 +286,19 @@ csio_hw_get_vpd_keyword_val(const struct t4_vpd_hdr *v, const char *kw)
 	len =  (uint16_t)vpdr_len[1] + ((uint16_t)vpdr_len[2] << 8);
 
 	if (len + sizeof(struct t4_vpd_hdr) > VPD_LEN)
+	{
 		return -EINVAL;
+	}
 
-	for (i = offset; (i + VPD_INFO_FLD_HDR_SIZE) <= (offset + len);) {
-		if (memcmp(buf + i , kw, 2) == 0) {
+	for (i = offset; (i + VPD_INFO_FLD_HDR_SIZE) <= (offset + len);)
+	{
+		if (memcmp(buf + i , kw, 2) == 0)
+		{
 			i += VPD_INFO_FLD_HDR_SIZE;
 			return i;
 		}
 
-		i += VPD_INFO_FLD_HDR_SIZE + buf[i+2];
+		i += VPD_INFO_FLD_HDR_SIZE + buf[i + 2];
 	}
 
 	return -EINVAL;
@@ -286,8 +308,11 @@ static int
 csio_pci_capability(struct pci_dev *pdev, int cap, int *pos)
 {
 	*pos = pci_find_capability(pdev, cap);
+
 	if (*pos)
+	{
 		return 0;
+	}
 
 	return -1;
 }
@@ -309,16 +334,24 @@ csio_hw_get_vpd_params(struct csio_hw *hw, struct csio_vpd *p)
 	char *s;
 
 	if (csio_is_valid_vpd(hw))
+	{
 		return 0;
+	}
 
 	ret = csio_pci_capability(hw->pdev, PCI_CAP_ID_VPD,
-				  &hw->params.pci.vpd_cap_addr);
+							  &hw->params.pci.vpd_cap_addr);
+
 	if (ret)
+	{
 		return -EINVAL;
+	}
 
 	vpd = kzalloc(VPD_LEN, GFP_ATOMIC);
+
 	if (vpd == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	/*
 	 * Card information normally starts at VPD_BASE but early cards had
@@ -327,9 +360,12 @@ csio_hw_get_vpd_params(struct csio_hw *hw, struct csio_vpd *p)
 	ret = csio_hw_seeprom_read(hw, VPD_BASE, (uint32_t *)(vpd));
 	addr = *vpd == 0x82 ? VPD_BASE : VPD_BASE_OLD;
 
-	for (i = 0; i < VPD_LEN; i += 4) {
+	for (i = 0; i < VPD_LEN; i += 4)
+	{
 		ret = csio_hw_seeprom_read(hw, addr + i, (uint32_t *)(vpd + i));
-		if (ret) {
+
+		if (ret)
+		{
 			kfree(vpd);
 			return ret;
 		}
@@ -341,23 +377,28 @@ csio_hw_get_vpd_params(struct csio_hw *hw, struct csio_vpd *p)
 	v = (const struct t4_vpd_hdr *)vpd;
 
 #define FIND_VPD_KW(var, name) do { \
-	var = csio_hw_get_vpd_keyword_val(v, name); \
-	if (var < 0) { \
-		csio_err(hw, "missing VPD keyword " name "\n"); \
-		kfree(vpd); \
-		return -EINVAL; \
-	} \
-} while (0)
+		var = csio_hw_get_vpd_keyword_val(v, name); \
+		if (var < 0) { \
+			csio_err(hw, "missing VPD keyword " name "\n"); \
+			kfree(vpd); \
+			return -EINVAL; \
+		} \
+	} while (0)
 
 	FIND_VPD_KW(i, "RV");
-	for (csum = 0; i >= 0; i--)
-		csum += vpd[i];
 
-	if (csum) {
+	for (csum = 0; i >= 0; i--)
+	{
+		csum += vpd[i];
+	}
+
+	if (csum)
+	{
 		csio_err(hw, "corrupted VPD EEPROM, actual csum %u\n", csum);
 		kfree(vpd);
 		return -EINVAL;
 	}
+
 	FIND_VPD_KW(ec, "EC");
 	FIND_VPD_KW(sn, "SN");
 #undef FIND_VPD_KW
@@ -390,21 +431,30 @@ csio_hw_get_vpd_params(struct csio_hw *hw, struct csio_vpd *p)
  */
 static int
 csio_hw_sf1_read(struct csio_hw *hw, uint32_t byte_cnt, int32_t cont,
-		 int32_t lock, uint32_t *valp)
+				 int32_t lock, uint32_t *valp)
 {
 	int ret;
 
 	if (!byte_cnt || byte_cnt > 4)
+	{
 		return -EINVAL;
+	}
+
 	if (csio_rd_reg32(hw, SF_OP_A) & SF_BUSY_F)
+	{
 		return -EBUSY;
+	}
 
 	csio_wr_reg32(hw,  SF_LOCK_V(lock) | SF_CONT_V(cont) |
-		      BYTECNT_V(byte_cnt - 1), SF_OP_A);
+				  BYTECNT_V(byte_cnt - 1), SF_OP_A);
 	ret = csio_hw_wait_op_done_val(hw, SF_OP_A, SF_BUSY_F, 0, SF_ATTEMPTS,
-				       10, NULL);
+								   10, NULL);
+
 	if (!ret)
+	{
 		*valp = csio_rd_reg32(hw, SF_DATA_A);
+	}
+
 	return ret;
 }
 
@@ -422,19 +472,24 @@ csio_hw_sf1_read(struct csio_hw *hw, uint32_t byte_cnt, int32_t cont,
  */
 static int
 csio_hw_sf1_write(struct csio_hw *hw, uint32_t byte_cnt, uint32_t cont,
-		  int32_t lock, uint32_t val)
+				  int32_t lock, uint32_t val)
 {
 	if (!byte_cnt || byte_cnt > 4)
+	{
 		return -EINVAL;
+	}
+
 	if (csio_rd_reg32(hw, SF_OP_A) & SF_BUSY_F)
+	{
 		return -EBUSY;
+	}
 
 	csio_wr_reg32(hw, val, SF_DATA_A);
 	csio_wr_reg32(hw, SF_CONT_V(cont) | BYTECNT_V(byte_cnt - 1) |
-		      OP_V(1) | SF_LOCK_V(lock), SF_OP_A);
+				  OP_V(1) | SF_LOCK_V(lock), SF_OP_A);
 
 	return csio_hw_wait_op_done_val(hw, SF_OP_A, SF_BUSY_F, 0, SF_ATTEMPTS,
-					10, NULL);
+									10, NULL);
 }
 
 /*
@@ -451,21 +506,36 @@ csio_hw_flash_wait_op(struct csio_hw *hw, int32_t attempts, int32_t delay)
 	int ret;
 	uint32_t status;
 
-	while (1) {
+	while (1)
+	{
 		ret = csio_hw_sf1_write(hw, 1, 1, 1, SF_RD_STATUS);
+
 		if (ret != 0)
+		{
 			return ret;
+		}
 
 		ret = csio_hw_sf1_read(hw, 1, 0, 1, &status);
+
 		if (ret != 0)
+		{
 			return ret;
+		}
 
 		if (!(status & 1))
+		{
 			return 0;
+		}
+
 		if (--attempts == 0)
+		{
 			return -EAGAIN;
+		}
+
 		if (delay)
+		{
 			msleep(delay);
+		}
 	}
 }
 
@@ -484,32 +554,51 @@ csio_hw_flash_wait_op(struct csio_hw *hw, int32_t attempts, int32_t delay)
  */
 static int
 csio_hw_read_flash(struct csio_hw *hw, uint32_t addr, uint32_t nwords,
-		  uint32_t *data, int32_t byte_oriented)
+				   uint32_t *data, int32_t byte_oriented)
 {
 	int ret;
 
 	if (addr + nwords * sizeof(uint32_t) > hw->params.sf_size || (addr & 3))
+	{
 		return -EINVAL;
+	}
 
 	addr = swab32(addr) | SF_RD_DATA_FAST;
 
 	ret = csio_hw_sf1_write(hw, 4, 1, 0, addr);
+
 	if (ret != 0)
+	{
 		return ret;
+	}
 
 	ret = csio_hw_sf1_read(hw, 1, 1, 0, data);
-	if (ret != 0)
-		return ret;
 
-	for ( ; nwords; nwords--, data++) {
-		ret = csio_hw_sf1_read(hw, 4, nwords > 1, nwords == 1, data);
-		if (nwords == 1)
-			csio_wr_reg32(hw, 0, SF_OP_A);    /* unlock SF */
-		if (ret)
-			return ret;
-		if (byte_oriented)
-			*data = (__force __u32) htonl(*data);
+	if (ret != 0)
+	{
+		return ret;
 	}
+
+	for ( ; nwords; nwords--, data++)
+	{
+		ret = csio_hw_sf1_read(hw, 4, nwords > 1, nwords == 1, data);
+
+		if (nwords == 1)
+		{
+			csio_wr_reg32(hw, 0, SF_OP_A);    /* unlock SF */
+		}
+
+		if (ret)
+		{
+			return ret;
+		}
+
+		if (byte_oriented)
+		{
+			*data = (__force __u32) htonl(*data);
+		}
+	}
+
 	return 0;
 }
 
@@ -525,49 +614,72 @@ csio_hw_read_flash(struct csio_hw *hw, uint32_t addr, uint32_t nwords,
  */
 static int
 csio_hw_write_flash(struct csio_hw *hw, uint32_t addr,
-		    uint32_t n, const uint8_t *data)
+					uint32_t n, const uint8_t *data)
 {
 	int ret = -EINVAL;
 	uint32_t buf[64];
 	uint32_t i, c, left, val, offset = addr & 0xff;
 
 	if (addr >= hw->params.sf_size || offset + n > SF_PAGE_SIZE)
+	{
 		return -EINVAL;
+	}
 
 	val = swab32(addr) | SF_PROG_PAGE;
 
 	ret = csio_hw_sf1_write(hw, 1, 0, 1, SF_WR_ENABLE);
+
 	if (ret != 0)
+	{
 		goto unlock;
+	}
 
 	ret = csio_hw_sf1_write(hw, 4, 1, 1, val);
-	if (ret != 0)
-		goto unlock;
 
-	for (left = n; left; left -= c) {
+	if (ret != 0)
+	{
+		goto unlock;
+	}
+
+	for (left = n; left; left -= c)
+	{
 		c = min(left, 4U);
+
 		for (val = 0, i = 0; i < c; ++i)
+		{
 			val = (val << 8) + *data++;
+		}
 
 		ret = csio_hw_sf1_write(hw, c, c != left, 1, val);
+
 		if (ret)
+		{
 			goto unlock;
+		}
 	}
+
 	ret = csio_hw_flash_wait_op(hw, 8, 1);
+
 	if (ret)
+	{
 		goto unlock;
+	}
 
 	csio_wr_reg32(hw, 0, SF_OP_A);    /* unlock SF */
 
 	/* Read the page to verify the write succeeded */
 	ret = csio_hw_read_flash(hw, addr & ~0xff, ARRAY_SIZE(buf), buf, 1);
-	if (ret)
-		return ret;
 
-	if (memcmp(data - n, (uint8_t *)buf + offset, n)) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (memcmp(data - n, (uint8_t *)buf + offset, n))
+	{
 		csio_err(hw,
-			 "failed to correctly write the flash page at %#x\n",
-			 addr);
+				 "failed to correctly write the flash page at %#x\n",
+				 addr);
 		return -EINVAL;
 	}
 
@@ -591,27 +703,40 @@ csio_hw_flash_erase_sectors(struct csio_hw *hw, int32_t start, int32_t end)
 {
 	int ret = 0;
 
-	while (start <= end) {
+	while (start <= end)
+	{
 
 		ret = csio_hw_sf1_write(hw, 1, 0, 1, SF_WR_ENABLE);
+
 		if (ret != 0)
+		{
 			goto out;
+		}
 
 		ret = csio_hw_sf1_write(hw, 4, 0, 1,
-					SF_ERASE_SECTOR | (start << 8));
+								SF_ERASE_SECTOR | (start << 8));
+
 		if (ret != 0)
+		{
 			goto out;
+		}
 
 		ret = csio_hw_flash_wait_op(hw, 14, 500);
+
 		if (ret != 0)
+		{
 			goto out;
+		}
 
 		start++;
 	}
+
 out:
+
 	if (ret)
 		csio_err(hw, "erase of flash sector %d failed, error %d\n",
-			 start, ret);
+				 start, ret);
+
 	csio_wr_reg32(hw, 0, SF_OP_A);    /* unlock SF */
 	return 0;
 }
@@ -620,10 +745,10 @@ static void
 csio_hw_print_fw_version(struct csio_hw *hw, char *str)
 {
 	csio_info(hw, "%s: %u.%u.%u.%u\n", str,
-		    FW_HDR_FW_VER_MAJOR_G(hw->fwrev),
-		    FW_HDR_FW_VER_MINOR_G(hw->fwrev),
-		    FW_HDR_FW_VER_MICRO_G(hw->fwrev),
-		    FW_HDR_FW_VER_BUILD_G(hw->fwrev));
+			  FW_HDR_FW_VER_MAJOR_G(hw->fwrev),
+			  FW_HDR_FW_VER_MINOR_G(hw->fwrev),
+			  FW_HDR_FW_VER_MICRO_G(hw->fwrev),
+			  FW_HDR_FW_VER_BUILD_G(hw->fwrev));
 }
 
 /*
@@ -637,8 +762,8 @@ static int
 csio_hw_get_fw_version(struct csio_hw *hw, uint32_t *vers)
 {
 	return csio_hw_read_flash(hw, FLASH_FW_START +
-				  offsetof(struct fw_hdr, fw_ver), 1,
-				  vers, 0);
+							  offsetof(struct fw_hdr, fw_ver), 1,
+							  vers, 0);
 }
 
 /*
@@ -652,8 +777,8 @@ static int
 csio_hw_get_tp_version(struct csio_hw *hw, u32 *vers)
 {
 	return csio_hw_read_flash(hw, FLASH_FW_START +
-			offsetof(struct fw_hdr, tp_microcode_ver), 1,
-			vers, 0);
+							  offsetof(struct fw_hdr, tp_microcode_ver), 1,
+							  vers, 0);
 }
 
 /*
@@ -676,36 +801,44 @@ csio_hw_fw_dload(struct csio_hw *hw, uint8_t *fw_data, uint32_t size)
 	struct fw_hdr *hdr = (struct fw_hdr *)fw_data;
 	uint32_t sf_sec_size;
 
-	if ((!hw->params.sf_size) || (!hw->params.sf_nsec)) {
+	if ((!hw->params.sf_size) || (!hw->params.sf_nsec))
+	{
 		csio_err(hw, "Serial Flash data invalid\n");
 		return -EINVAL;
 	}
 
-	if (!size) {
+	if (!size)
+	{
 		csio_err(hw, "FW image has no data\n");
 		return -EINVAL;
 	}
 
-	if (size & 511) {
+	if (size & 511)
+	{
 		csio_err(hw, "FW image size not multiple of 512 bytes\n");
 		return -EINVAL;
 	}
 
-	if (ntohs(hdr->len512) * 512 != size) {
+	if (ntohs(hdr->len512) * 512 != size)
+	{
 		csio_err(hw, "FW image size differs from size in FW header\n");
 		return -EINVAL;
 	}
 
-	if (size > FLASH_FW_MAX_SIZE) {
+	if (size > FLASH_FW_MAX_SIZE)
+	{
 		csio_err(hw, "FW image too large, max is %u bytes\n",
-			    FLASH_FW_MAX_SIZE);
+				 FLASH_FW_MAX_SIZE);
 		return -EINVAL;
 	}
 
 	for (csum = 0, i = 0; i < size / sizeof(csum); i++)
+	{
 		csum += ntohl(p[i]);
+	}
 
-	if (csum != 0xffffffff) {
+	if (csum != 0xffffffff)
+	{
 		csio_err(hw, "corrupted firmware image, checksum %#x\n", csum);
 		return -EINVAL;
 	}
@@ -714,11 +847,13 @@ csio_hw_fw_dload(struct csio_hw *hw, uint8_t *fw_data, uint32_t size)
 	i = DIV_ROUND_UP(size, sf_sec_size);        /* # of sectors spanned */
 
 	csio_dbg(hw, "Erasing sectors... start:%d end:%d\n",
-			  FLASH_FW_START_SEC, FLASH_FW_START_SEC + i - 1);
+			 FLASH_FW_START_SEC, FLASH_FW_START_SEC + i - 1);
 
 	ret = csio_hw_flash_erase_sectors(hw, FLASH_FW_START_SEC,
-					  FLASH_FW_START_SEC + i - 1);
-	if (ret) {
+									  FLASH_FW_START_SEC + i - 1);
+
+	if (ret)
+	{
 		csio_err(hw, "Flash Erase failed\n");
 		goto out;
 	}
@@ -731,30 +866,42 @@ csio_hw_fw_dload(struct csio_hw *hw, uint8_t *fw_data, uint32_t size)
 	memcpy(first_page, fw_data, SF_PAGE_SIZE);
 	((struct fw_hdr *)first_page)->fw_ver = htonl(0xffffffff);
 	ret = csio_hw_write_flash(hw, FLASH_FW_START, SF_PAGE_SIZE, first_page);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	csio_dbg(hw, "Writing Flash .. start:%d end:%d\n",
-		    FW_IMG_START, FW_IMG_START + size);
+			 FW_IMG_START, FW_IMG_START + size);
 
 	addr = FLASH_FW_START;
-	for (size -= SF_PAGE_SIZE; size; size -= SF_PAGE_SIZE) {
+
+	for (size -= SF_PAGE_SIZE; size; size -= SF_PAGE_SIZE)
+	{
 		addr += SF_PAGE_SIZE;
 		fw_data += SF_PAGE_SIZE;
 		ret = csio_hw_write_flash(hw, addr, SF_PAGE_SIZE, fw_data);
+
 		if (ret)
+		{
 			goto out;
+		}
 	}
 
 	ret = csio_hw_write_flash(hw,
-				  FLASH_FW_START +
-					offsetof(struct fw_hdr, fw_ver),
-				  sizeof(hdr->fw_ver),
-				  (const uint8_t *)&hdr->fw_ver);
+							  FLASH_FW_START +
+							  offsetof(struct fw_hdr, fw_ver),
+							  sizeof(hdr->fw_ver),
+							  (const uint8_t *)&hdr->fw_ver);
 
 out:
+
 	if (ret)
+	{
 		csio_err(hw, "firmware download failed, error %d\n", ret);
+	}
+
 	return ret;
 }
 
@@ -765,21 +912,39 @@ csio_hw_get_flash_params(struct csio_hw *hw)
 	uint32_t info = 0;
 
 	ret = csio_hw_sf1_write(hw, 1, 1, 0, SF_RD_ID);
+
 	if (!ret)
+	{
 		ret = csio_hw_sf1_read(hw, 3, 0, 1, &info);
+	}
+
 	csio_wr_reg32(hw, 0, SF_OP_A);    /* unlock SF */
+
 	if (ret != 0)
+	{
 		return ret;
+	}
 
 	if ((info & 0xff) != 0x20)		/* not a Numonix flash */
+	{
 		return -EINVAL;
+	}
+
 	info >>= 16;				/* log2 of size */
+
 	if (info >= 0x14 && info < 0x18)
+	{
 		hw->params.sf_nsec = 1 << (info - 16);
+	}
 	else if (info == 0x18)
+	{
 		hw->params.sf_nsec = 64;
+	}
 	else
+	{
 		return -EINVAL;
+	}
+
 	hw->params.sf_size = 1 << info;
 
 	return 0;
@@ -796,11 +961,14 @@ csio_hw_dev_ready(struct csio_hw *hw)
 	int cnt = 6;
 
 	while (((reg = csio_rd_reg32(hw, PL_WHOAMI_A)) == 0xFFFFFFFF) &&
-	       (--cnt != 0))
+		   (--cnt != 0))
+	{
 		mdelay(100);
+	}
 
 	if ((cnt == 0) && (((int32_t)(SOURCEPF_G(reg)) < 0) ||
-			   (SOURCEPF_G(reg) >= CSIO_MAX_PFN))) {
+					   (SOURCEPF_G(reg) >= CSIO_MAX_PFN)))
+	{
 		csio_err(hw, "PL_WHOAMI returned 0x%x, cnt:%d\n", reg, cnt);
 		return -EIO;
 	}
@@ -830,7 +998,9 @@ csio_do_hello(struct csio_hw *hw, enum csio_dev_state *state)
 	memset(state_str, 0, sizeof(state_str));
 
 	mbp = mempool_alloc(hw->mb_mempool, GFP_ATOMIC);
-	if (!mbp) {
+
+	if (!mbp)
+	{
 		rv = -ENOMEM;
 		CSIO_INC_STATS(hw, n_err_nomem);
 		goto out;
@@ -838,25 +1008,32 @@ csio_do_hello(struct csio_hw *hw, enum csio_dev_state *state)
 
 retry:
 	csio_mb_hello(hw, mbp, CSIO_MB_DEFAULT_TMO, hw->pfn,
-		      hw->pfn, CSIO_MASTER_MAY, NULL);
+				  hw->pfn, CSIO_MASTER_MAY, NULL);
 
 	rv = csio_mb_issue(hw, mbp);
-	if (rv) {
+
+	if (rv)
+	{
 		csio_err(hw, "failed to issue HELLO cmd. ret:%d.\n", rv);
 		goto out_free_mb;
 	}
 
 	csio_mb_process_hello_rsp(hw, mbp, &retval, state, &mpfn);
-	if (retval != FW_SUCCESS) {
+
+	if (retval != FW_SUCCESS)
+	{
 		csio_err(hw, "HELLO cmd failed with ret: %d\n", retval);
 		rv = -EINVAL;
 		goto out_free_mb;
 	}
 
 	/* Firmware has designated us to be master */
-	if (hw->pfn == mpfn) {
+	if (hw->pfn == mpfn)
+	{
 		hw->flags |= CSIO_HWF_MASTER;
-	} else if (*state == CSIO_DEV_STATE_UNINIT) {
+	}
+	else if (*state == CSIO_DEV_STATE_UNINIT)
+	{
 		/*
 		 * If we're not the Master PF then we need to wait around for
 		 * the Master PF Driver to finish setting up the adapter.
@@ -879,7 +1056,8 @@ retry:
 		 * "hello timeout" and we haven't exhausted our retries, try
 		 * again.  Otherwise bail with a timeout error.
 		 */
-		for (;;) {
+		for (;;)
+		{
 			uint32_t pcie_fw;
 
 			spin_unlock_irq(&hw->lock);
@@ -894,14 +1072,20 @@ retry:
 			 * our retries ...
 			 */
 			pcie_fw = csio_rd_reg32(hw, PCIE_FW_A);
-			if (!(pcie_fw & (PCIE_FW_ERR_F|PCIE_FW_INIT_F))) {
-				if (waiting <= 0) {
+
+			if (!(pcie_fw & (PCIE_FW_ERR_F | PCIE_FW_INIT_F)))
+			{
+				if (waiting <= 0)
+				{
 					if (retries-- > 0)
+					{
 						goto retry;
+					}
 
 					rv = -ETIMEDOUT;
 					break;
 				}
+
 				continue;
 			}
 
@@ -909,12 +1093,17 @@ retry:
 			 * We either have an Error or Initialized condition
 			 * report errors preferentially.
 			 */
-			if (state) {
-				if (pcie_fw & PCIE_FW_ERR_F) {
+			if (state)
+			{
+				if (pcie_fw & PCIE_FW_ERR_F)
+				{
 					*state = CSIO_DEV_STATE_ERR;
 					rv = -ETIMEDOUT;
-				} else if (pcie_fw & PCIE_FW_INIT_F)
+				}
+				else if (pcie_fw & PCIE_FW_INIT_F)
+				{
 					*state = CSIO_DEV_STATE_INIT;
+				}
 			}
 
 			/*
@@ -923,35 +1112,43 @@ retry:
 			 * for our caller.
 			 */
 			if (mpfn == PCIE_FW_MASTER_M &&
-			    (pcie_fw & PCIE_FW_MASTER_VLD_F))
+				(pcie_fw & PCIE_FW_MASTER_VLD_F))
+			{
 				mpfn = PCIE_FW_MASTER_G(pcie_fw);
+			}
+
 			break;
 		}
+
 		hw->flags &= ~CSIO_HWF_MASTER;
 	}
 
-	switch (*state) {
-	case CSIO_DEV_STATE_UNINIT:
-		strcpy(state_str, "Initializing");
-		break;
-	case CSIO_DEV_STATE_INIT:
-		strcpy(state_str, "Initialized");
-		break;
-	case CSIO_DEV_STATE_ERR:
-		strcpy(state_str, "Error");
-		break;
-	default:
-		strcpy(state_str, "Unknown");
-		break;
+	switch (*state)
+	{
+		case CSIO_DEV_STATE_UNINIT:
+			strcpy(state_str, "Initializing");
+			break;
+
+		case CSIO_DEV_STATE_INIT:
+			strcpy(state_str, "Initialized");
+			break;
+
+		case CSIO_DEV_STATE_ERR:
+			strcpy(state_str, "Error");
+			break;
+
+		default:
+			strcpy(state_str, "Unknown");
+			break;
 	}
 
 	if (hw->pfn == mpfn)
 		csio_info(hw, "PF: %d, Coming up as MASTER, HW state: %s\n",
-			hw->pfn, state_str);
+				  hw->pfn, state_str);
 	else
 		csio_info(hw,
-		    "PF: %d, Coming up as SLAVE, Master PF: %d, HW state: %s\n",
-		    hw->pfn, mpfn, state_str);
+				  "PF: %d, Coming up as SLAVE, Master PF: %d, HW state: %s\n",
+				  hw->pfn, mpfn, state_str);
 
 out_free_mb:
 	mempool_free(mbp, hw->mb_mempool);
@@ -971,21 +1168,26 @@ csio_do_bye(struct csio_hw *hw)
 	enum fw_retval retval;
 
 	mbp = mempool_alloc(hw->mb_mempool, GFP_ATOMIC);
-	if (!mbp) {
+
+	if (!mbp)
+	{
 		CSIO_INC_STATS(hw, n_err_nomem);
 		return -ENOMEM;
 	}
 
 	csio_mb_bye(hw, mbp, CSIO_MB_DEFAULT_TMO, NULL);
 
-	if (csio_mb_issue(hw, mbp)) {
+	if (csio_mb_issue(hw, mbp))
+	{
 		csio_err(hw, "Issue of BYE command failed\n");
 		mempool_free(mbp, hw->mb_mempool);
 		return -EINVAL;
 	}
 
 	retval = csio_mb_fw_retval(mbp);
-	if (retval != FW_SUCCESS) {
+
+	if (retval != FW_SUCCESS)
+	{
 		mempool_free(mbp, hw->mb_mempool);
 		return -EINVAL;
 	}
@@ -1010,7 +1212,8 @@ csio_do_reset(struct csio_hw *hw, bool fw_rst)
 	struct csio_mb	*mbp;
 	enum fw_retval retval;
 
-	if (!fw_rst) {
+	if (!fw_rst)
+	{
 		/* PIO reset */
 		csio_wr_reg32(hw, PIORSTMODE_F | PIORST_F, PL_RST_A);
 		mdelay(2000);
@@ -1018,22 +1221,27 @@ csio_do_reset(struct csio_hw *hw, bool fw_rst)
 	}
 
 	mbp = mempool_alloc(hw->mb_mempool, GFP_ATOMIC);
-	if (!mbp) {
+
+	if (!mbp)
+	{
 		CSIO_INC_STATS(hw, n_err_nomem);
 		return -ENOMEM;
 	}
 
 	csio_mb_reset(hw, mbp, CSIO_MB_DEFAULT_TMO,
-		      PIORSTMODE_F | PIORST_F, 0, NULL);
+				  PIORSTMODE_F | PIORST_F, 0, NULL);
 
-	if (csio_mb_issue(hw, mbp)) {
+	if (csio_mb_issue(hw, mbp))
+	{
 		csio_err(hw, "Issue of RESET command failed.n");
 		mempool_free(mbp, hw->mb_mempool);
 		return -EINVAL;
 	}
 
 	retval = csio_mb_fw_retval(mbp);
-	if (retval != FW_SUCCESS) {
+
+	if (retval != FW_SUCCESS)
+	{
 		csio_err(hw, "RESET cmd failed with ret:0x%x.\n", retval);
 		mempool_free(mbp, hw->mb_mempool);
 		return -EINVAL;
@@ -1052,12 +1260,14 @@ csio_hw_validate_caps(struct csio_hw *hw, struct csio_mb *mbp)
 
 	caps = ntohs(rsp->fcoecaps);
 
-	if (!(caps & FW_CAPS_CONFIG_FCOE_INITIATOR)) {
+	if (!(caps & FW_CAPS_CONFIG_FCOE_INITIATOR))
+	{
 		csio_err(hw, "No FCoE Initiator capability in the firmware.\n");
 		return -EINVAL;
 	}
 
-	if (!(caps & FW_CAPS_CONFIG_FCOE_CTRL_OFLD)) {
+	if (!(caps & FW_CAPS_CONFIG_FCOE_CTRL_OFLD))
+	{
 		csio_err(hw, "No FCoE Control Offload capability\n");
 		return -EINVAL;
 	}
@@ -1090,20 +1300,24 @@ csio_hw_fw_halt(struct csio_hw *hw, uint32_t mbox, int32_t force)
 	 * If a legitimate mailbox is provided, issue a RESET command
 	 * with a HALT indication.
 	 */
-	if (mbox <= PCIE_FW_MASTER_M) {
+	if (mbox <= PCIE_FW_MASTER_M)
+	{
 		struct csio_mb	*mbp;
 
 		mbp = mempool_alloc(hw->mb_mempool, GFP_ATOMIC);
-		if (!mbp) {
+
+		if (!mbp)
+		{
 			CSIO_INC_STATS(hw, n_err_nomem);
 			return -ENOMEM;
 		}
 
 		csio_mb_reset(hw, mbp, CSIO_MB_DEFAULT_TMO,
-			      PIORSTMODE_F | PIORST_F, FW_RESET_CMD_HALT_F,
-			      NULL);
+					  PIORSTMODE_F | PIORST_F, FW_RESET_CMD_HALT_F,
+					  NULL);
 
-		if (csio_mb_issue(hw, mbp)) {
+		if (csio_mb_issue(hw, mbp))
+		{
 			csio_err(hw, "Issue of RESET command failed!\n");
 			mempool_free(mbp, hw->mb_mempool);
 			return -EINVAL;
@@ -1126,10 +1340,11 @@ csio_hw_fw_halt(struct csio_hw *hw, uint32_t mbox, int32_t force)
 	 * for the incoming firmware to know that it's coming out of a HALT
 	 * rather than a RESET ... if it's new enough to understand that ...
 	 */
-	if (retval == 0 || force) {
+	if (retval == 0 || force)
+	{
 		csio_set_reg_field(hw, CIM_BOOT_CFG_A, UPCRST_F, UPCRST_F);
 		csio_set_reg_field(hw, PCIE_FW_A, PCIE_FW_HALT_F,
-				   PCIE_FW_HALT_F);
+						   PCIE_FW_HALT_F);
 	}
 
 	/*
@@ -1163,7 +1378,8 @@ csio_hw_fw_halt(struct csio_hw *hw, uint32_t mbox, int32_t force)
 static int
 csio_hw_fw_restart(struct csio_hw *hw, uint32_t mbox, int32_t reset)
 {
-	if (reset) {
+	if (reset)
+	{
 		/*
 		 * Since we're directing the RESET instead of the firmware
 		 * doing it automatically, we need to clear the PCIE_FW.HALT
@@ -1178,27 +1394,40 @@ csio_hw_fw_restart(struct csio_hw *hw, uint32_t mbox, int32_t reset)
 		 * valid mailbox or the RESET command failed, fall back to
 		 * hitting the chip with a hammer.
 		 */
-		if (mbox <= PCIE_FW_MASTER_M) {
+		if (mbox <= PCIE_FW_MASTER_M)
+		{
 			csio_set_reg_field(hw, CIM_BOOT_CFG_A, UPCRST_F, 0);
 			msleep(100);
+
 			if (csio_do_reset(hw, true) == 0)
+			{
 				return 0;
+			}
 		}
 
 		csio_wr_reg32(hw, PIORSTMODE_F | PIORST_F, PL_RST_A);
 		msleep(2000);
-	} else {
+	}
+	else
+	{
 		int ms;
 
 		csio_set_reg_field(hw, CIM_BOOT_CFG_A, UPCRST_F, 0);
-		for (ms = 0; ms < FW_CMD_MAX_TIMEOUT; ) {
+
+		for (ms = 0; ms < FW_CMD_MAX_TIMEOUT; )
+		{
 			if (!(csio_rd_reg32(hw, PCIE_FW_A) & PCIE_FW_HALT_F))
+			{
 				return 0;
+			}
+
 			msleep(100);
 			ms += 100;
 		}
+
 		return -ETIMEDOUT;
 	}
+
 	return 0;
 }
 
@@ -1225,18 +1454,24 @@ csio_hw_fw_restart(struct csio_hw *hw, uint32_t mbox, int32_t reset)
  */
 static int
 csio_hw_fw_upgrade(struct csio_hw *hw, uint32_t mbox,
-		  const u8 *fw_data, uint32_t size, int32_t force)
+				   const u8 *fw_data, uint32_t size, int32_t force)
 {
 	const struct fw_hdr *fw_hdr = (const struct fw_hdr *)fw_data;
 	int reset, ret;
 
 	ret = csio_hw_fw_halt(hw, mbox, force);
+
 	if (ret != 0 && !force)
+	{
 		return ret;
+	}
 
 	ret = csio_hw_fw_dload(hw, (uint8_t *) fw_data, size);
+
 	if (ret != 0)
+	{
 		return ret;
+	}
 
 	/*
 	 * Older versions of the firmware don't understand the new
@@ -1266,10 +1501,14 @@ csio_get_device_params(struct csio_hw *hw)
 
 	/* Initialize portids to -1 */
 	for (i = 0; i < CSIO_MAX_PPORTS; i++)
+	{
 		hw->pport[i].portid = -1;
+	}
 
 	mbp = mempool_alloc(hw->mb_mempool, GFP_ATOMIC);
-	if (!mbp) {
+
+	if (!mbp)
+	{
 		CSIO_INC_STATS(hw, n_err_nomem);
 		return -ENOMEM;
 	}
@@ -1289,18 +1528,22 @@ csio_get_device_params(struct csio_hw *hw)
 	param[5] = FW_PARAM_PFVF(IQFLINT_END);
 
 	csio_mb_params(hw, mbp, CSIO_MB_DEFAULT_TMO, hw->pfn, 0,
-		       ARRAY_SIZE(param), param, NULL, false, NULL);
-	if (csio_mb_issue(hw, mbp)) {
+				   ARRAY_SIZE(param), param, NULL, false, NULL);
+
+	if (csio_mb_issue(hw, mbp))
+	{
 		csio_err(hw, "Issue of FW_PARAMS_CMD(read) failed!\n");
 		mempool_free(mbp, hw->mb_mempool);
 		return -EINVAL;
 	}
 
 	csio_mb_process_read_params_rsp(hw, mbp, &retval,
-			ARRAY_SIZE(param), param);
-	if (retval != FW_SUCCESS) {
+									ARRAY_SIZE(param), param);
+
+	if (retval != FW_SUCCESS)
+	{
 		csio_err(hw, "FW_PARAMS_CMD(read) failed with ret:0x%x!\n",
-				retval);
+				 retval);
 		mempool_free(mbp, hw->mb_mempool);
 		return -EINVAL;
 	}
@@ -1313,11 +1556,12 @@ csio_get_device_params(struct csio_hw *hw)
 
 	/* Using FW configured max iqs & eqs */
 	if ((hw->flags & CSIO_HWF_USING_SOFT_PARAMS) ||
-		!csio_is_hw_master(hw)) {
+		!csio_is_hw_master(hw))
+	{
 		hw->cfg_niq = param[5] - param[4] + 1;
 		hw->cfg_neq = param[3] - param[2] + 1;
 		csio_dbg(hw, "Using fwconfig max niqs %d neqs %d\n",
-			hw->cfg_niq, hw->cfg_neq);
+				 hw->cfg_niq, hw->cfg_neq);
 	}
 
 	hw->port_vec &= csio_port_mask;
@@ -1325,14 +1569,19 @@ csio_get_device_params(struct csio_hw *hw)
 	hw->num_pports	= hweight32(hw->port_vec);
 
 	csio_dbg(hw, "Port vector: 0x%x, #ports: %d\n",
-		    hw->port_vec, hw->num_pports);
+			 hw->port_vec, hw->num_pports);
 
-	for (i = 0; i < hw->num_pports; i++) {
+	for (i = 0; i < hw->num_pports; i++)
+	{
 		while ((hw->port_vec & (1 << j)) == 0)
+		{
 			j++;
+		}
+
 		hw->pport[i].portid = j++;
 		csio_dbg(hw, "Found Port:%d\n", hw->pport[i].portid);
 	}
+
 	mempool_free(mbp, hw->mb_mempool);
 
 	return 0;
@@ -1352,7 +1601,9 @@ csio_config_device_caps(struct csio_hw *hw)
 	int rv = -EINVAL;
 
 	mbp = mempool_alloc(hw->mb_mempool, GFP_ATOMIC);
-	if (!mbp) {
+
+	if (!mbp)
+	{
 		CSIO_INC_STATS(hw, n_err_nomem);
 		return -ENOMEM;
 	}
@@ -1360,39 +1611,49 @@ csio_config_device_caps(struct csio_hw *hw)
 	/* Get device capabilities */
 	csio_mb_caps_config(hw, mbp, CSIO_MB_DEFAULT_TMO, 0, 0, 0, 0, NULL);
 
-	if (csio_mb_issue(hw, mbp)) {
+	if (csio_mb_issue(hw, mbp))
+	{
 		csio_err(hw, "Issue of FW_CAPS_CONFIG_CMD(r) failed!\n");
 		goto out;
 	}
 
 	retval = csio_mb_fw_retval(mbp);
-	if (retval != FW_SUCCESS) {
+
+	if (retval != FW_SUCCESS)
+	{
 		csio_err(hw, "FW_CAPS_CONFIG_CMD(r) returned %d!\n", retval);
 		goto out;
 	}
 
 	/* Validate device capabilities */
 	rv = csio_hw_validate_caps(hw, mbp);
+
 	if (rv != 0)
+	{
 		goto out;
+	}
 
 	/* Don't config device capabilities if already configured */
-	if (hw->fw_state == CSIO_DEV_STATE_INIT) {
+	if (hw->fw_state == CSIO_DEV_STATE_INIT)
+	{
 		rv = 0;
 		goto out;
 	}
 
 	/* Write back desired device capabilities */
 	csio_mb_caps_config(hw, mbp, CSIO_MB_DEFAULT_TMO, true, true,
-			    false, true, NULL);
+						false, true, NULL);
 
-	if (csio_mb_issue(hw, mbp)) {
+	if (csio_mb_issue(hw, mbp))
+	{
 		csio_err(hw, "Issue of FW_CAPS_CONFIG_CMD(w) failed!\n");
 		goto out;
 	}
 
 	retval = csio_mb_fw_retval(mbp);
-	if (retval != FW_SUCCESS) {
+
+	if (retval != FW_SUCCESS)
+	{
 		csio_err(hw, "FW_CAPS_CONFIG_CMD(w) returned %d!\n", retval);
 		goto out;
 	}
@@ -1417,49 +1678,58 @@ csio_enable_ports(struct csio_hw *hw)
 	int i;
 
 	mbp = mempool_alloc(hw->mb_mempool, GFP_ATOMIC);
-	if (!mbp) {
+
+	if (!mbp)
+	{
 		CSIO_INC_STATS(hw, n_err_nomem);
 		return -ENOMEM;
 	}
 
-	for (i = 0; i < hw->num_pports; i++) {
+	for (i = 0; i < hw->num_pports; i++)
+	{
 		portid = hw->pport[i].portid;
 
 		/* Read PORT information */
 		csio_mb_port(hw, mbp, CSIO_MB_DEFAULT_TMO, portid,
-			     false, 0, 0, NULL);
+					 false, 0, 0, NULL);
 
-		if (csio_mb_issue(hw, mbp)) {
+		if (csio_mb_issue(hw, mbp))
+		{
 			csio_err(hw, "failed to issue FW_PORT_CMD(r) port:%d\n",
-				 portid);
+					 portid);
 			mempool_free(mbp, hw->mb_mempool);
 			return -EINVAL;
 		}
 
 		csio_mb_process_read_port_rsp(hw, mbp, &retval,
-					      &hw->pport[i].pcap);
-		if (retval != FW_SUCCESS) {
+									  &hw->pport[i].pcap);
+
+		if (retval != FW_SUCCESS)
+		{
 			csio_err(hw, "FW_PORT_CMD(r) port:%d failed: 0x%x\n",
-				 portid, retval);
+					 portid, retval);
 			mempool_free(mbp, hw->mb_mempool);
 			return -EINVAL;
 		}
 
 		/* Write back PORT information */
 		csio_mb_port(hw, mbp, CSIO_MB_DEFAULT_TMO, portid, true,
-			     (PAUSE_RX | PAUSE_TX), hw->pport[i].pcap, NULL);
+					 (PAUSE_RX | PAUSE_TX), hw->pport[i].pcap, NULL);
 
-		if (csio_mb_issue(hw, mbp)) {
+		if (csio_mb_issue(hw, mbp))
+		{
 			csio_err(hw, "failed to issue FW_PORT_CMD(w) port:%d\n",
-				 portid);
+					 portid);
 			mempool_free(mbp, hw->mb_mempool);
 			return -EINVAL;
 		}
 
 		retval = csio_mb_fw_retval(mbp);
-		if (retval != FW_SUCCESS) {
+
+		if (retval != FW_SUCCESS)
+		{
 			csio_err(hw, "FW_PORT_CMD(w) port:%d failed :0x%x\n",
-				 portid, retval);
+					 portid, retval);
 			mempool_free(mbp, hw->mb_mempool);
 			return -EINVAL;
 		}
@@ -1485,7 +1755,9 @@ csio_get_fcoe_resinfo(struct csio_hw *hw)
 	enum fw_retval retval;
 
 	mbp = mempool_alloc(hw->mb_mempool, GFP_ATOMIC);
-	if (!mbp) {
+
+	if (!mbp)
+	{
 		CSIO_INC_STATS(hw, n_err_nomem);
 		return -ENOMEM;
 	}
@@ -1493,7 +1765,8 @@ csio_get_fcoe_resinfo(struct csio_hw *hw)
 	/* Get FCoE FW resource information */
 	csio_fcoe_read_res_info_init_mb(hw, mbp, CSIO_MB_DEFAULT_TMO, NULL);
 
-	if (csio_mb_issue(hw, mbp)) {
+	if (csio_mb_issue(hw, mbp))
+	{
 		csio_err(hw, "failed to issue FW_FCOE_RES_INFO_CMD\n");
 		mempool_free(mbp, hw->mb_mempool);
 		return -EINVAL;
@@ -1501,9 +1774,11 @@ csio_get_fcoe_resinfo(struct csio_hw *hw)
 
 	rsp = (struct fw_fcoe_res_info_cmd *)(mbp->mb);
 	retval = FW_CMD_RETVAL_G(ntohl(rsp->retval_len16));
-	if (retval != FW_SUCCESS) {
+
+	if (retval != FW_SUCCESS)
+	{
 		csio_err(hw, "FW_FCOE_RES_INFO_CMD failed with ret x%x\n",
-			 retval);
+				 retval);
 		mempool_free(mbp, hw->mb_mempool);
 		return -EINVAL;
 	}
@@ -1522,7 +1797,7 @@ csio_get_fcoe_resinfo(struct csio_hw *hw)
 	res_info->used_vnps = ntohl(rsp->used_vnps);
 
 	csio_dbg(hw, "max ssns:%d max xchgs:%d\n", res_info->max_ssns,
-						  res_info->max_xchgs);
+			 res_info->max_xchgs);
 	mempool_free(mbp, hw->mb_mempool);
 
 	return 0;
@@ -1536,7 +1811,9 @@ csio_hw_check_fwconfig(struct csio_hw *hw, u32 *param)
 	u32 _param[1];
 
 	mbp = mempool_alloc(hw->mb_mempool, GFP_ATOMIC);
-	if (!mbp) {
+
+	if (!mbp)
+	{
 		CSIO_INC_STATS(hw, n_err_nomem);
 		return -ENOMEM;
 	}
@@ -1546,21 +1823,25 @@ csio_hw_check_fwconfig(struct csio_hw *hw, u32 *param)
 	 * the firmware which has configuration file support.
 	 */
 	_param[0] = (FW_PARAMS_MNEM_V(FW_PARAMS_MNEM_DEV) |
-		     FW_PARAMS_PARAM_X_V(FW_PARAMS_PARAM_DEV_CF));
+				 FW_PARAMS_PARAM_X_V(FW_PARAMS_PARAM_DEV_CF));
 
 	csio_mb_params(hw, mbp, CSIO_MB_DEFAULT_TMO, hw->pfn, 0,
-		       ARRAY_SIZE(_param), _param, NULL, false, NULL);
-	if (csio_mb_issue(hw, mbp)) {
+				   ARRAY_SIZE(_param), _param, NULL, false, NULL);
+
+	if (csio_mb_issue(hw, mbp))
+	{
 		csio_err(hw, "Issue of FW_PARAMS_CMD(read) failed!\n");
 		mempool_free(mbp, hw->mb_mempool);
 		return -EINVAL;
 	}
 
 	csio_mb_process_read_params_rsp(hw, mbp, &retval,
-			ARRAY_SIZE(_param), _param);
-	if (retval != FW_SUCCESS) {
+									ARRAY_SIZE(_param), _param);
+
+	if (retval != FW_SUCCESS)
+	{
 		csio_err(hw, "FW_PARAMS_CMD(read) failed with ret:0x%x!\n",
-				retval);
+				 retval);
 		mempool_free(mbp, hw->mb_mempool);
 		return -EINVAL;
 	}
@@ -1582,23 +1863,30 @@ csio_hw_flash_config(struct csio_hw *hw, u32 *fw_cfg_param, char *path)
 	uint32_t *cfg_data;
 	int value_to_add = 0;
 
-	if (request_firmware(&cf, FW_CFG_NAME_T5, dev) < 0) {
+	if (request_firmware(&cf, FW_CFG_NAME_T5, dev) < 0)
+	{
 		csio_err(hw, "could not find config file %s, err: %d\n",
-			 FW_CFG_NAME_T5, ret);
+				 FW_CFG_NAME_T5, ret);
 		return -ENOENT;
 	}
 
-	if (cf->size%4 != 0)
+	if (cf->size % 4 != 0)
+	{
 		value_to_add = 4 - (cf->size % 4);
+	}
 
-	cfg_data = kzalloc(cf->size+value_to_add, GFP_KERNEL);
-	if (cfg_data == NULL) {
+	cfg_data = kzalloc(cf->size + value_to_add, GFP_KERNEL);
+
+	if (cfg_data == NULL)
+	{
 		ret = -ENOMEM;
 		goto leave;
 	}
 
 	memcpy((void *)cfg_data, (const void *)cf->data, cf->size);
-	if (csio_hw_check_fwconfig(hw, fw_cfg_param) != 0) {
+
+	if (csio_hw_check_fwconfig(hw, fw_cfg_param) != 0)
+	{
 		ret = -EINVAL;
 		goto leave;
 	}
@@ -1607,10 +1895,12 @@ csio_hw_flash_config(struct csio_hw *hw, u32 *fw_cfg_param, char *path)
 	maddr = FW_PARAMS_PARAM_Z_G(*fw_cfg_param) << 16;
 
 	ret = csio_memory_write(hw, mtype, maddr,
-				cf->size + value_to_add, cfg_data);
+							cf->size + value_to_add, cfg_data);
 
-	if ((ret == 0) && (value_to_add != 0)) {
-		union {
+	if ((ret == 0) && (value_to_add != 0))
+	{
+		union
+		{
 			u32 word;
 			char buf[4];
 		} last;
@@ -1618,13 +1908,19 @@ csio_hw_flash_config(struct csio_hw *hw, u32 *fw_cfg_param, char *path)
 		int i;
 
 		last.word = cfg_data[size >> 2];
+
 		for (i = value_to_add; i < 4; i++)
+		{
 			last.buf[i] = 0;
+		}
+
 		ret = csio_memory_write(hw, mtype, maddr + size, 4, &last.word);
 	}
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		csio_info(hw, "config file upgraded to %s\n",
-			  FW_CFG_NAME_T5);
+				  FW_CFG_NAME_T5);
 		snprintf(path, 64, "%s%s", "/lib/firmware/", FW_CFG_NAME_T5);
 	}
 
@@ -1664,10 +1960,14 @@ csio_hw_use_fwconfig(struct csio_hw *hw, int reset, u32 *fw_cfg_param)
 	/*
 	 * Reset device if necessary
 	 */
-	if (reset) {
+	if (reset)
+	{
 		rv = csio_do_reset(hw, true);
+
 		if (rv != 0)
+		{
 			goto bye;
+		}
 	}
 
 	/*
@@ -1678,7 +1978,9 @@ csio_hw_use_fwconfig(struct csio_hw *hw, int reset, u32 *fw_cfg_param)
 	spin_unlock_irq(&hw->lock);
 	rv = csio_hw_flash_config(hw, fw_cfg_param, path);
 	spin_lock_irq(&hw->lock);
-	if (rv != 0) {
+
+	if (rv != 0)
+	{
 		/*
 		 * config file was not found. Use default
 		 * config file from flash.
@@ -1686,17 +1988,22 @@ csio_hw_use_fwconfig(struct csio_hw *hw, int reset, u32 *fw_cfg_param)
 		config_name = "On FLASH";
 		mtype = FW_MEMTYPE_CF_FLASH;
 		maddr = hw->chip_ops->chip_flash_cfg_addr(hw);
-	} else {
+	}
+	else
+	{
 		config_name = path;
 		mtype = FW_PARAMS_PARAM_Y_G(*fw_cfg_param);
 		maddr = FW_PARAMS_PARAM_Z_G(*fw_cfg_param) << 16;
 	}
 
 	mbp = mempool_alloc(hw->mb_mempool, GFP_ATOMIC);
-	if (!mbp) {
+
+	if (!mbp)
+	{
 		CSIO_INC_STATS(hw, n_err_nomem);
 		return -ENOMEM;
 	}
+
 	/*
 	 * Tell the firmware to process the indicated Configuration File.
 	 * If there are no errors and the caller has provided return value
@@ -1707,34 +2014,38 @@ csio_hw_use_fwconfig(struct csio_hw *hw, int reset, u32 *fw_cfg_param)
 	CSIO_INIT_MBP(mbp, caps_cmd, CSIO_MB_DEFAULT_TMO, hw, NULL, 1);
 	caps_cmd->op_to_write =
 		htonl(FW_CMD_OP_V(FW_CAPS_CONFIG_CMD) |
-		      FW_CMD_REQUEST_F |
-		      FW_CMD_READ_F);
+			  FW_CMD_REQUEST_F |
+			  FW_CMD_READ_F);
 	caps_cmd->cfvalid_to_len16 =
 		htonl(FW_CAPS_CONFIG_CMD_CFVALID_F |
-		      FW_CAPS_CONFIG_CMD_MEMTYPE_CF_V(mtype) |
-		      FW_CAPS_CONFIG_CMD_MEMADDR64K_CF_V(maddr >> 16) |
-		      FW_LEN16(*caps_cmd));
+			  FW_CAPS_CONFIG_CMD_MEMTYPE_CF_V(mtype) |
+			  FW_CAPS_CONFIG_CMD_MEMADDR64K_CF_V(maddr >> 16) |
+			  FW_LEN16(*caps_cmd));
 
-	if (csio_mb_issue(hw, mbp)) {
+	if (csio_mb_issue(hw, mbp))
+	{
 		rv = -EINVAL;
 		goto bye;
 	}
 
 	rv = csio_mb_fw_retval(mbp);
-	 /* If the CAPS_CONFIG failed with an ENOENT (for a Firmware
-	  * Configuration File in FLASH), our last gasp effort is to use the
-	  * Firmware Configuration File which is embedded in the
-	  * firmware.  A very few early versions of the firmware didn't
-	  * have one embedded but we can ignore those.
-	  */
-	if (rv == ENOENT) {
+
+	/* If the CAPS_CONFIG failed with an ENOENT (for a Firmware
+	 * Configuration File in FLASH), our last gasp effort is to use the
+	 * Firmware Configuration File which is embedded in the
+	 * firmware.  A very few early versions of the firmware didn't
+	 * have one embedded but we can ignore those.
+	 */
+	if (rv == ENOENT)
+	{
 		CSIO_INIT_MBP(mbp, caps_cmd, CSIO_MB_DEFAULT_TMO, hw, NULL, 1);
 		caps_cmd->op_to_write = htonl(FW_CMD_OP_V(FW_CAPS_CONFIG_CMD) |
-					      FW_CMD_REQUEST_F |
-					      FW_CMD_READ_F);
+									  FW_CMD_REQUEST_F |
+									  FW_CMD_READ_F);
 		caps_cmd->cfvalid_to_len16 = htonl(FW_LEN16(*caps_cmd));
 
-		if (csio_mb_issue(hw, mbp)) {
+		if (csio_mb_issue(hw, mbp))
+		{
 			rv = -EINVAL;
 			goto bye;
 		}
@@ -1742,8 +2053,11 @@ csio_hw_use_fwconfig(struct csio_hw *hw, int reset, u32 *fw_cfg_param)
 		rv = csio_mb_fw_retval(mbp);
 		config_name = "Firmware Default";
 	}
+
 	if (rv != FW_SUCCESS)
+	{
 		goto bye;
+	}
 
 	finiver = ntohl(caps_cmd->finiver);
 	finicsum = ntohl(caps_cmd->finicsum);
@@ -1754,32 +2068,41 @@ csio_hw_use_fwconfig(struct csio_hw *hw, int reset, u32 *fw_cfg_param)
 	 */
 	caps_cmd->op_to_write =
 		htonl(FW_CMD_OP_V(FW_CAPS_CONFIG_CMD) |
-		      FW_CMD_REQUEST_F |
-		      FW_CMD_WRITE_F);
+			  FW_CMD_REQUEST_F |
+			  FW_CMD_WRITE_F);
 	caps_cmd->cfvalid_to_len16 = htonl(FW_LEN16(*caps_cmd));
 
-	if (csio_mb_issue(hw, mbp)) {
+	if (csio_mb_issue(hw, mbp))
+	{
 		rv = -EINVAL;
 		goto bye;
 	}
 
 	rv = csio_mb_fw_retval(mbp);
-	if (rv != FW_SUCCESS) {
+
+	if (rv != FW_SUCCESS)
+	{
 		csio_dbg(hw, "FW_CAPS_CONFIG_CMD returned %d!\n", rv);
 		goto bye;
 	}
 
 	mempool_free(mbp, hw->mb_mempool);
-	if (finicsum != cfcsum) {
+
+	if (finicsum != cfcsum)
+	{
 		csio_warn(hw,
-		      "Config File checksum mismatch: csum=%#x, computed=%#x\n",
-		      finicsum, cfcsum);
+				  "Config File checksum mismatch: csum=%#x, computed=%#x\n",
+				  finicsum, cfcsum);
 	}
 
 	/* Validate device capabilities */
 	rv = csio_hw_validate_caps(hw, mbp);
+
 	if (rv != 0)
+	{
 		goto bye;
+	}
+
 	/*
 	 * Note that we're operating with parameters
 	 * not supplied by the driver, rather than from hard-wired
@@ -1789,8 +2112,11 @@ csio_hw_use_fwconfig(struct csio_hw *hw, int reset, u32 *fw_cfg_param)
 
 	/* device parameters */
 	rv = csio_get_device_params(hw);
+
 	if (rv != 0)
+	{
 		goto bye;
+	}
 
 	/* Configure SGE */
 	csio_wr_sge_init(hw);
@@ -1803,16 +2129,20 @@ csio_hw_use_fwconfig(struct csio_hw *hw, int reset, u32 *fw_cfg_param)
 	csio_post_event(&hw->sm, CSIO_HWE_INIT);
 
 	csio_info(hw, "Successfully configure using Firmware "
-		  "Configuration File %s, version %#x, computed checksum %#x\n",
-		  config_name, finiver, cfcsum);
+			  "Configuration File %s, version %#x, computed checksum %#x\n",
+			  config_name, finiver, cfcsum);
 	return 0;
 
 	/*
 	 * Something bad happened.  Return the error ...
 	 */
 bye:
+
 	if (mbp)
+	{
 		mempool_free(mbp, hw->mb_mempool);
+	}
+
 	hw->flags &= ~CSIO_HWF_USING_SOFT_PARAMS;
 	csio_warn(hw, "Configuration file error %d\n", rv);
 	return rv;
@@ -1826,12 +2156,18 @@ static int fw_compatible(const struct fw_hdr *hdr1, const struct fw_hdr *hdr2)
 
 	/* short circuit if it's the exact same firmware version */
 	if (hdr1->chip == hdr2->chip && hdr1->fw_ver == hdr2->fw_ver)
+	{
 		return 1;
+	}
 
 #define SAME_INTF(x) (hdr1->intfver_##x == hdr2->intfver_##x)
+
 	if (hdr1->chip == hdr2->chip && SAME_INTF(nic) && SAME_INTF(vnic) &&
-	    SAME_INTF(ri) && SAME_INTF(iscsi) && SAME_INTF(fcoe))
+		SAME_INTF(ri) && SAME_INTF(iscsi) && SAME_INTF(fcoe))
+	{
 		return 1;
+	}
+
 #undef SAME_INTF
 
 	return 0;
@@ -1842,16 +2178,18 @@ static int fw_compatible(const struct fw_hdr *hdr1, const struct fw_hdr *hdr2)
  * firmware should be installed.
  */
 static int csio_should_install_fs_fw(struct csio_hw *hw, int card_fw_usable,
-				int k, int c)
+									 int k, int c)
 {
 	const char *reason;
 
-	if (!card_fw_usable) {
+	if (!card_fw_usable)
+	{
 		reason = "incompatible or unusable";
 		goto install;
 	}
 
-	if (k > c) {
+	if (k > c)
+	{
 		reason = "older than the version supported with this driver";
 		goto install;
 	}
@@ -1860,16 +2198,17 @@ static int csio_should_install_fs_fw(struct csio_hw *hw, int card_fw_usable,
 
 install:
 	csio_err(hw, "firmware on card (%u.%u.%u.%u) is %s, "
-		"installing firmware %u.%u.%u.%u on card.\n",
-		FW_HDR_FW_VER_MAJOR_G(c), FW_HDR_FW_VER_MINOR_G(c),
-		FW_HDR_FW_VER_MICRO_G(c), FW_HDR_FW_VER_BUILD_G(c), reason,
-		FW_HDR_FW_VER_MAJOR_G(k), FW_HDR_FW_VER_MINOR_G(k),
-		FW_HDR_FW_VER_MICRO_G(k), FW_HDR_FW_VER_BUILD_G(k));
+			 "installing firmware %u.%u.%u.%u on card.\n",
+			 FW_HDR_FW_VER_MAJOR_G(c), FW_HDR_FW_VER_MINOR_G(c),
+			 FW_HDR_FW_VER_MICRO_G(c), FW_HDR_FW_VER_BUILD_G(c), reason,
+			 FW_HDR_FW_VER_MAJOR_G(k), FW_HDR_FW_VER_MINOR_G(k),
+			 FW_HDR_FW_VER_MICRO_G(k), FW_HDR_FW_VER_BUILD_G(k));
 
 	return 1;
 }
 
-static struct fw_info fw_info_array[] = {
+static struct fw_info fw_info_array[] =
+{
 	{
 		.chip = CHELSIO_T5,
 		.fs_name = FW_CFG_NAME_T5,
@@ -1890,17 +2229,21 @@ static struct fw_info *find_fw_info(int chip)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(fw_info_array); i++) {
+	for (i = 0; i < ARRAY_SIZE(fw_info_array); i++)
+	{
 		if (fw_info_array[i].chip == chip)
+		{
 			return &fw_info_array[i];
+		}
 	}
+
 	return NULL;
 }
 
 static int csio_hw_prep_fw(struct csio_hw *hw, struct fw_info *fw_info,
-	       const u8 *fw_data, unsigned int fw_size,
-	       struct fw_hdr *card_fw, enum csio_dev_state state,
-	       int *reset)
+						   const u8 *fw_data, unsigned int fw_size,
+						   struct fw_hdr *card_fw, enum csio_dev_state state,
+						   int *reset)
 {
 	int ret, card_fw_usable, fs_fw_usable;
 	const struct fw_hdr *fs_fw;
@@ -1910,39 +2253,51 @@ static int csio_hw_prep_fw(struct csio_hw *hw, struct fw_info *fw_info,
 
 	/* Read the header of the firmware on the card */
 	ret = csio_hw_read_flash(hw, FLASH_FW_START,
-			    sizeof(*card_fw) / sizeof(uint32_t),
-			    (uint32_t *)card_fw, 1);
-	if (ret == 0) {
+							 sizeof(*card_fw) / sizeof(uint32_t),
+							 (uint32_t *)card_fw, 1);
+
+	if (ret == 0)
+	{
 		card_fw_usable = fw_compatible(drv_fw, (const void *)card_fw);
-	} else {
+	}
+	else
+	{
 		csio_err(hw,
-			"Unable to read card's firmware header: %d\n", ret);
+				 "Unable to read card's firmware header: %d\n", ret);
 		card_fw_usable = 0;
 	}
 
-	if (fw_data != NULL) {
+	if (fw_data != NULL)
+	{
 		fs_fw = (const void *)fw_data;
 		fs_fw_usable = fw_compatible(drv_fw, fs_fw);
-	} else {
+	}
+	else
+	{
 		fs_fw = NULL;
 		fs_fw_usable = 0;
 	}
 
 	if (card_fw_usable && card_fw->fw_ver == drv_fw->fw_ver &&
-	    (!fs_fw_usable || fs_fw->fw_ver == drv_fw->fw_ver)) {
+		(!fs_fw_usable || fs_fw->fw_ver == drv_fw->fw_ver))
+	{
 		/* Common case: the firmware on the card is an exact match and
 		 * the filesystem one is an exact match too, or the filesystem
 		 * one is absent/incompatible.
 		 */
-	} else if (fs_fw_usable && state == CSIO_DEV_STATE_UNINIT &&
-		   csio_should_install_fs_fw(hw, card_fw_usable,
-					be32_to_cpu(fs_fw->fw_ver),
-					be32_to_cpu(card_fw->fw_ver))) {
+	}
+	else if (fs_fw_usable && state == CSIO_DEV_STATE_UNINIT &&
+			 csio_should_install_fs_fw(hw, card_fw_usable,
+									   be32_to_cpu(fs_fw->fw_ver),
+									   be32_to_cpu(card_fw->fw_ver)))
+	{
 		ret = csio_hw_fw_upgrade(hw, hw->pfn, fw_data,
-				     fw_size, 0);
-		if (ret != 0) {
+								 fw_size, 0);
+
+		if (ret != 0)
+		{
 			csio_err(hw,
-				"failed to install firmware: %d\n", ret);
+					 "failed to install firmware: %d\n", ret);
 			goto bye;
 		}
 
@@ -1952,7 +2307,8 @@ static int csio_hw_prep_fw(struct csio_hw *hw, struct fw_info *fw_info,
 		*reset = 0;	/* already reset as part of load_fw */
 	}
 
-	if (!card_fw_usable) {
+	if (!card_fw_usable)
+	{
 		uint32_t d, c, k;
 
 		d = be32_to_cpu(drv_fw->fw_ver);
@@ -1960,16 +2316,16 @@ static int csio_hw_prep_fw(struct csio_hw *hw, struct fw_info *fw_info,
 		k = fs_fw ? be32_to_cpu(fs_fw->fw_ver) : 0;
 
 		csio_err(hw, "Cannot find a usable firmware: "
-			"chip state %d, "
-			"driver compiled with %d.%d.%d.%d, "
-			"card has %d.%d.%d.%d, filesystem has %d.%d.%d.%d\n",
-			state,
-			FW_HDR_FW_VER_MAJOR_G(d), FW_HDR_FW_VER_MINOR_G(d),
-			FW_HDR_FW_VER_MICRO_G(d), FW_HDR_FW_VER_BUILD_G(d),
-			FW_HDR_FW_VER_MAJOR_G(c), FW_HDR_FW_VER_MINOR_G(c),
-			FW_HDR_FW_VER_MICRO_G(c), FW_HDR_FW_VER_BUILD_G(c),
-			FW_HDR_FW_VER_MAJOR_G(k), FW_HDR_FW_VER_MINOR_G(k),
-			FW_HDR_FW_VER_MICRO_G(k), FW_HDR_FW_VER_BUILD_G(k));
+				 "chip state %d, "
+				 "driver compiled with %d.%d.%d.%d, "
+				 "card has %d.%d.%d.%d, filesystem has %d.%d.%d.%d\n",
+				 state,
+				 FW_HDR_FW_VER_MAJOR_G(d), FW_HDR_FW_VER_MINOR_G(d),
+				 FW_HDR_FW_VER_MICRO_G(d), FW_HDR_FW_VER_BUILD_G(d),
+				 FW_HDR_FW_VER_MAJOR_G(c), FW_HDR_FW_VER_MINOR_G(c),
+				 FW_HDR_FW_VER_MICRO_G(c), FW_HDR_FW_VER_BUILD_G(c),
+				 FW_HDR_FW_VER_MAJOR_G(k), FW_HDR_FW_VER_MINOR_G(k),
+				 FW_HDR_FW_VER_MICRO_G(k), FW_HDR_FW_VER_BUILD_G(k));
 		ret = EINVAL;
 		goto bye;
 	}
@@ -2004,17 +2360,22 @@ csio_hw_flash_fw(struct csio_hw *hw, int *reset)
 	 * against
 	 */
 	fw_info = find_fw_info(CHELSIO_CHIP_VERSION(hw->chip_id));
-	if (fw_info == NULL) {
+
+	if (fw_info == NULL)
+	{
 		csio_err(hw,
-			"unable to get firmware info for chip %d.\n",
-			CHELSIO_CHIP_VERSION(hw->chip_id));
+				 "unable to get firmware info for chip %d.\n",
+				 CHELSIO_CHIP_VERSION(hw->chip_id));
 		return -EINVAL;
 	}
 
-	if (request_firmware(&fw, FW_FNAME_T5, dev) < 0) {
+	if (request_firmware(&fw, FW_FNAME_T5, dev) < 0)
+	{
 		csio_err(hw, "could not find firmware image %s, err: %d\n",
-			 FW_FNAME_T5, ret);
-	} else {
+				 FW_FNAME_T5, ret);
+	}
+	else
+	{
 		fw_data = fw->data;
 		fw_size = fw->size;
 	}
@@ -2026,11 +2387,14 @@ csio_hw_flash_fw(struct csio_hw *hw, int *reset)
 
 	/* upgrade FW logic */
 	ret = csio_hw_prep_fw(hw, fw_info, fw_data, fw_size, card_fw,
-			 hw->fw_state, reset);
+						  hw->fw_state, reset);
 
 	/* Cleaning up */
 	if (fw != NULL)
+	{
 		release_firmware(fw);
+	}
+
 	kfree(card_fw);
 	return ret;
 }
@@ -2048,7 +2412,9 @@ csio_hw_configure(struct csio_hw *hw)
 	u32 param[1];
 
 	rv = csio_hw_dev_ready(hw);
-	if (rv != 0) {
+
+	if (rv != 0)
+	{
 		CSIO_INC_STATS(hw, n_err_fatal);
 		csio_post_event(&hw->sm, CSIO_HWE_FATAL);
 		goto out;
@@ -2059,7 +2425,9 @@ csio_hw_configure(struct csio_hw *hw)
 
 	/* Needed for FW download */
 	rv = csio_hw_get_flash_params(hw);
-	if (rv != 0) {
+
+	if (rv != 0)
+	{
 		csio_err(hw, "Failed to get serial flash params rv:%d\n", rv);
 		csio_post_event(&hw->sm, CSIO_HWE_FATAL);
 		goto out;
@@ -2068,18 +2436,23 @@ csio_hw_configure(struct csio_hw *hw)
 	/* Set PCIe completion timeout to 4 seconds */
 	if (pci_is_pcie(hw->pdev))
 		pcie_capability_clear_and_set_word(hw->pdev, PCI_EXP_DEVCTL2,
-				PCI_EXP_DEVCTL2_COMP_TIMEOUT, 0xd);
+										   PCI_EXP_DEVCTL2_COMP_TIMEOUT, 0xd);
 
 	hw->chip_ops->chip_set_mem_win(hw, MEMWIN_CSIOSTOR);
 
 	rv = csio_hw_get_fw_version(hw, &hw->fwrev);
+
 	if (rv != 0)
+	{
 		goto out;
+	}
 
 	csio_hw_print_fw_version(hw, "Firmware revision");
 
 	rv = csio_do_hello(hw, &hw->fw_state);
-	if (rv != 0) {
+
+	if (rv != 0)
+	{
 		CSIO_INC_STATS(hw, n_err_fatal);
 		csio_post_event(&hw->sm, CSIO_HWE_FATAL);
 		goto out;
@@ -2087,28 +2460,37 @@ csio_hw_configure(struct csio_hw *hw)
 
 	/* Read vpd */
 	rv = csio_hw_get_vpd_params(hw, &hw->vpd);
+
 	if (rv != 0)
+	{
 		goto out;
+	}
 
 	csio_hw_get_fw_version(hw, &hw->fwrev);
 	csio_hw_get_tp_version(hw, &hw->tp_vers);
-	if (csio_is_hw_master(hw) && hw->fw_state != CSIO_DEV_STATE_INIT) {
 
-			/* Do firmware update */
+	if (csio_is_hw_master(hw) && hw->fw_state != CSIO_DEV_STATE_INIT)
+	{
+
+		/* Do firmware update */
 		spin_unlock_irq(&hw->lock);
 		rv = csio_hw_flash_fw(hw, &reset);
 		spin_lock_irq(&hw->lock);
 
 		if (rv != 0)
+		{
 			goto out;
+		}
 
 		/* If the firmware doesn't support Configuration Files,
 		 * return an error.
 		 */
 		rv = csio_hw_check_fwconfig(hw, param);
-		if (rv != 0) {
+
+		if (rv != 0)
+		{
 			csio_info(hw, "Firmware doesn't support "
-				  "Firmware Configuration files\n");
+					  "Firmware Configuration files\n");
 			goto out;
 		}
 
@@ -2117,31 +2499,44 @@ csio_hw_configure(struct csio_hw *hw)
 		 * override the Configuration File in flash.
 		 */
 		rv = csio_hw_use_fwconfig(hw, reset, param);
-		if (rv == -ENOENT) {
+
+		if (rv == -ENOENT)
+		{
 			csio_info(hw, "Could not initialize "
-				  "adapter, error%d\n", rv);
-			goto out;
-		}
-		if (rv != 0) {
-			csio_info(hw, "Could not initialize "
-				  "adapter, error%d\n", rv);
+					  "adapter, error%d\n", rv);
 			goto out;
 		}
 
-	} else {
-		if (hw->fw_state == CSIO_DEV_STATE_INIT) {
+		if (rv != 0)
+		{
+			csio_info(hw, "Could not initialize "
+					  "adapter, error%d\n", rv);
+			goto out;
+		}
+
+	}
+	else
+	{
+		if (hw->fw_state == CSIO_DEV_STATE_INIT)
+		{
 
 			hw->flags |= CSIO_HWF_USING_SOFT_PARAMS;
 
 			/* device parameters */
 			rv = csio_get_device_params(hw);
+
 			if (rv != 0)
+			{
 				goto out;
+			}
 
 			/* Get device capabilities */
 			rv = csio_config_device_caps(hw);
+
 			if (rv != 0)
+			{
 				goto out;
+			}
 
 			/* Configure SGE */
 			csio_wr_sge_init(hw);
@@ -2169,22 +2564,29 @@ csio_hw_initialize(struct csio_hw *hw)
 	int rv;
 	int i;
 
-	if (csio_is_hw_master(hw) && hw->fw_state != CSIO_DEV_STATE_INIT) {
+	if (csio_is_hw_master(hw) && hw->fw_state != CSIO_DEV_STATE_INIT)
+	{
 		mbp = mempool_alloc(hw->mb_mempool, GFP_ATOMIC);
+
 		if (!mbp)
+		{
 			goto out;
+		}
 
 		csio_mb_initialize(hw, mbp, CSIO_MB_DEFAULT_TMO, NULL);
 
-		if (csio_mb_issue(hw, mbp)) {
+		if (csio_mb_issue(hw, mbp))
+		{
 			csio_err(hw, "Issue of FW_INITIALIZE_CMD failed!\n");
 			goto free_and_out;
 		}
 
 		retval = csio_mb_fw_retval(mbp);
-		if (retval != FW_SUCCESS) {
+
+		if (retval != FW_SUCCESS)
+		{
 			csio_err(hw, "FW_INITIALIZE_CMD returned 0x%x!\n",
-				 retval);
+					 retval);
 			goto free_and_out;
 		}
 
@@ -2192,7 +2594,9 @@ csio_hw_initialize(struct csio_hw *hw)
 	}
 
 	rv = csio_get_fcoe_resinfo(hw);
-	if (rv != 0) {
+
+	if (rv != 0)
+	{
 		csio_err(hw, "Failed to read fcoe resource info: %d\n", rv);
 		goto out;
 	}
@@ -2201,17 +2605,23 @@ csio_hw_initialize(struct csio_hw *hw)
 	rv = csio_config_queues(hw);
 	spin_lock_irq(&hw->lock);
 
-	if (rv != 0) {
+	if (rv != 0)
+	{
 		csio_err(hw, "Config of queues failed!: %d\n", rv);
 		goto out;
 	}
 
 	for (i = 0; i < hw->num_pports; i++)
+	{
 		hw->pport[i].mod_type = FW_PORT_MOD_TYPE_NA;
+	}
 
-	if (csio_is_hw_master(hw) && hw->fw_state != CSIO_DEV_STATE_INIT) {
+	if (csio_is_hw_master(hw) && hw->fw_state != CSIO_DEV_STATE_INIT)
+	{
 		rv = csio_enable_ports(hw);
-		if (rv != 0) {
+
+		if (rv != 0)
+		{
 			csio_err(hw, "Failed to enable ports: %d\n", rv);
 			goto out;
 		}
@@ -2247,10 +2657,10 @@ csio_hw_intr_enable(struct csio_hw *hw)
 	 */
 	if (hw->intr_mode == CSIO_IM_MSIX)
 		csio_set_reg_field(hw, MYPF_REG(PCIE_PF_CFG_A),
-				   AIVEC_V(AIVEC_M), vec);
+						   AIVEC_V(AIVEC_M), vec);
 	else if (hw->intr_mode == CSIO_IM_MSI)
 		csio_set_reg_field(hw, MYPF_REG(PCIE_PF_CFG_A),
-				   AIVEC_V(AIVEC_M), 0);
+						   AIVEC_V(AIVEC_M), 0);
 
 	csio_wr_reg32(hw, PF_INTR_MASK, MYPF_REG(PL_PF_INT_ENABLE_A));
 
@@ -2258,7 +2668,8 @@ csio_hw_intr_enable(struct csio_hw *hw)
 	csio_mb_intr_enable(hw);
 
 	/* These are common registers - only a master can modify them */
-	if (csio_is_hw_master(hw)) {
+	if (csio_is_hw_master(hw))
+	{
 		/*
 		 * Disable the Serial FLASH interrupt, if enabled!
 		 */
@@ -2266,14 +2677,14 @@ csio_hw_intr_enable(struct csio_hw *hw)
 		csio_wr_reg32(hw, pl, PL_INT_ENABLE_A);
 
 		csio_wr_reg32(hw, ERR_CPL_EXCEED_IQE_SIZE_F |
-			      EGRESS_SIZE_ERR_F | ERR_INVALID_CIDX_INC_F |
-			      ERR_CPL_OPCODE_0_F | ERR_DROPPED_DB_F |
-			      ERR_DATA_CPL_ON_HIGH_QID1_F |
-			      ERR_DATA_CPL_ON_HIGH_QID0_F | ERR_BAD_DB_PIDX3_F |
-			      ERR_BAD_DB_PIDX2_F | ERR_BAD_DB_PIDX1_F |
-			      ERR_BAD_DB_PIDX0_F | ERR_ING_CTXT_PRIO_F |
-			      ERR_EGR_CTXT_PRIO_F | INGRESS_SIZE_ERR_F,
-			      SGE_INT_ENABLE3_A);
+					  EGRESS_SIZE_ERR_F | ERR_INVALID_CIDX_INC_F |
+					  ERR_CPL_OPCODE_0_F | ERR_DROPPED_DB_F |
+					  ERR_DATA_CPL_ON_HIGH_QID1_F |
+					  ERR_DATA_CPL_ON_HIGH_QID0_F | ERR_BAD_DB_PIDX3_F |
+					  ERR_BAD_DB_PIDX2_F | ERR_BAD_DB_PIDX1_F |
+					  ERR_BAD_DB_PIDX0_F | ERR_ING_CTXT_PRIO_F |
+					  ERR_EGR_CTXT_PRIO_F | INGRESS_SIZE_ERR_F,
+					  SGE_INT_ENABLE3_A);
 		csio_set_reg_field(hw, PL_INT_MAP0_A, 0, 1 << pf);
 	}
 
@@ -2293,13 +2704,18 @@ csio_hw_intr_disable(struct csio_hw *hw)
 	uint32_t pf = SOURCEPF_G(csio_rd_reg32(hw, PL_WHOAMI_A));
 
 	if (!(hw->flags & CSIO_HWF_HW_INTR_ENABLED))
+	{
 		return;
+	}
 
 	hw->flags &= ~CSIO_HWF_HW_INTR_ENABLED;
 
 	csio_wr_reg32(hw, 0, MYPF_REG(PL_PF_INT_ENABLE_A));
+
 	if (csio_is_hw_master(hw))
+	{
 		csio_set_reg_field(hw, PL_INT_MAP0_A, 1 << pf, 0);
+	}
 
 	/* Turn off MB interrupts */
 	csio_mb_intr_disable(hw);
@@ -2332,15 +2748,16 @@ csio_hws_uninit(struct csio_hw *hw, enum csio_hw_ev evt)
 	hw->cur_evt = evt;
 	CSIO_INC_STATS(hw, n_evt_sm[evt]);
 
-	switch (evt) {
-	case CSIO_HWE_CFG:
-		csio_set_state(&hw->sm, csio_hws_configuring);
-		csio_hw_configure(hw);
-		break;
+	switch (evt)
+	{
+		case CSIO_HWE_CFG:
+			csio_set_state(&hw->sm, csio_hws_configuring);
+			csio_hw_configure(hw);
+			break;
 
-	default:
-		CSIO_INC_STATS(hw, n_evt_unexp);
-		break;
+		default:
+			CSIO_INC_STATS(hw, n_evt_unexp);
+			break;
 	}
 }
 
@@ -2357,28 +2774,30 @@ csio_hws_configuring(struct csio_hw *hw, enum csio_hw_ev evt)
 	hw->cur_evt = evt;
 	CSIO_INC_STATS(hw, n_evt_sm[evt]);
 
-	switch (evt) {
-	case CSIO_HWE_INIT:
-		csio_set_state(&hw->sm, csio_hws_initializing);
-		csio_hw_initialize(hw);
-		break;
+	switch (evt)
+	{
+		case CSIO_HWE_INIT:
+			csio_set_state(&hw->sm, csio_hws_initializing);
+			csio_hw_initialize(hw);
+			break;
 
-	case CSIO_HWE_INIT_DONE:
-		csio_set_state(&hw->sm, csio_hws_ready);
-		/* Fan out event to all lnode SMs */
-		csio_notify_lnodes(hw, CSIO_LN_NOTIFY_HWREADY);
-		break;
+		case CSIO_HWE_INIT_DONE:
+			csio_set_state(&hw->sm, csio_hws_ready);
+			/* Fan out event to all lnode SMs */
+			csio_notify_lnodes(hw, CSIO_LN_NOTIFY_HWREADY);
+			break;
 
-	case CSIO_HWE_FATAL:
-		csio_set_state(&hw->sm, csio_hws_uninit);
-		break;
+		case CSIO_HWE_FATAL:
+			csio_set_state(&hw->sm, csio_hws_uninit);
+			break;
 
-	case CSIO_HWE_PCI_REMOVE:
-		csio_do_bye(hw);
-		break;
-	default:
-		CSIO_INC_STATS(hw, n_evt_unexp);
-		break;
+		case CSIO_HWE_PCI_REMOVE:
+			csio_do_bye(hw);
+			break;
+
+		default:
+			CSIO_INC_STATS(hw, n_evt_unexp);
+			break;
 	}
 }
 
@@ -2395,28 +2814,29 @@ csio_hws_initializing(struct csio_hw *hw, enum csio_hw_ev evt)
 	hw->cur_evt = evt;
 	CSIO_INC_STATS(hw, n_evt_sm[evt]);
 
-	switch (evt) {
-	case CSIO_HWE_INIT_DONE:
-		csio_set_state(&hw->sm, csio_hws_ready);
+	switch (evt)
+	{
+		case CSIO_HWE_INIT_DONE:
+			csio_set_state(&hw->sm, csio_hws_ready);
 
-		/* Fan out event to all lnode SMs */
-		csio_notify_lnodes(hw, CSIO_LN_NOTIFY_HWREADY);
+			/* Fan out event to all lnode SMs */
+			csio_notify_lnodes(hw, CSIO_LN_NOTIFY_HWREADY);
 
-		/* Enable interrupts */
-		csio_hw_intr_enable(hw);
-		break;
+			/* Enable interrupts */
+			csio_hw_intr_enable(hw);
+			break;
 
-	case CSIO_HWE_FATAL:
-		csio_set_state(&hw->sm, csio_hws_uninit);
-		break;
+		case CSIO_HWE_FATAL:
+			csio_set_state(&hw->sm, csio_hws_uninit);
+			break;
 
-	case CSIO_HWE_PCI_REMOVE:
-		csio_do_bye(hw);
-		break;
+		case CSIO_HWE_PCI_REMOVE:
+			csio_do_bye(hw);
+			break;
 
-	default:
-		CSIO_INC_STATS(hw, n_evt_unexp);
-		break;
+		default:
+			CSIO_INC_STATS(hw, n_evt_unexp);
+			break;
 	}
 }
 
@@ -2436,36 +2856,42 @@ csio_hws_ready(struct csio_hw *hw, enum csio_hw_ev evt)
 	hw->cur_evt = evt;
 	CSIO_INC_STATS(hw, n_evt_sm[evt]);
 
-	switch (evt) {
-	case CSIO_HWE_HBA_RESET:
-	case CSIO_HWE_FW_DLOAD:
-	case CSIO_HWE_SUSPEND:
-	case CSIO_HWE_PCI_REMOVE:
-	case CSIO_HWE_PCIERR_DETECTED:
-		csio_set_state(&hw->sm, csio_hws_quiescing);
-		/* cleanup all outstanding cmds */
-		if (evt == CSIO_HWE_HBA_RESET ||
-		    evt == CSIO_HWE_PCIERR_DETECTED)
-			csio_scsim_cleanup_io(csio_hw_to_scsim(hw), false);
-		else
-			csio_scsim_cleanup_io(csio_hw_to_scsim(hw), true);
+	switch (evt)
+	{
+		case CSIO_HWE_HBA_RESET:
+		case CSIO_HWE_FW_DLOAD:
+		case CSIO_HWE_SUSPEND:
+		case CSIO_HWE_PCI_REMOVE:
+		case CSIO_HWE_PCIERR_DETECTED:
+			csio_set_state(&hw->sm, csio_hws_quiescing);
 
-		csio_hw_intr_disable(hw);
-		csio_hw_mbm_cleanup(hw);
-		csio_evtq_stop(hw);
-		csio_notify_lnodes(hw, CSIO_LN_NOTIFY_HWSTOP);
-		csio_evtq_flush(hw);
-		csio_mgmtm_cleanup(csio_hw_to_mgmtm(hw));
-		csio_post_event(&hw->sm, CSIO_HWE_QUIESCED);
-		break;
+			/* cleanup all outstanding cmds */
+			if (evt == CSIO_HWE_HBA_RESET ||
+				evt == CSIO_HWE_PCIERR_DETECTED)
+			{
+				csio_scsim_cleanup_io(csio_hw_to_scsim(hw), false);
+			}
+			else
+			{
+				csio_scsim_cleanup_io(csio_hw_to_scsim(hw), true);
+			}
 
-	case CSIO_HWE_FATAL:
-		csio_set_state(&hw->sm, csio_hws_uninit);
-		break;
+			csio_hw_intr_disable(hw);
+			csio_hw_mbm_cleanup(hw);
+			csio_evtq_stop(hw);
+			csio_notify_lnodes(hw, CSIO_LN_NOTIFY_HWSTOP);
+			csio_evtq_flush(hw);
+			csio_mgmtm_cleanup(csio_hw_to_mgmtm(hw));
+			csio_post_event(&hw->sm, CSIO_HWE_QUIESCED);
+			break;
 
-	default:
-		CSIO_INC_STATS(hw, n_evt_unexp);
-		break;
+		case CSIO_HWE_FATAL:
+			csio_set_state(&hw->sm, csio_hws_uninit);
+			break;
+
+		default:
+			CSIO_INC_STATS(hw, n_evt_unexp);
+			break;
 	}
 }
 
@@ -2482,50 +2908,54 @@ csio_hws_quiescing(struct csio_hw *hw, enum csio_hw_ev evt)
 	hw->cur_evt = evt;
 	CSIO_INC_STATS(hw, n_evt_sm[evt]);
 
-	switch (evt) {
-	case CSIO_HWE_QUIESCED:
-		switch (hw->evtflag) {
-		case CSIO_HWE_FW_DLOAD:
-			csio_set_state(&hw->sm, csio_hws_resetting);
-			/* Download firmware */
-			/* Fall through */
+	switch (evt)
+	{
+		case CSIO_HWE_QUIESCED:
+			switch (hw->evtflag)
+			{
+				case CSIO_HWE_FW_DLOAD:
+					csio_set_state(&hw->sm, csio_hws_resetting);
 
-		case CSIO_HWE_HBA_RESET:
-			csio_set_state(&hw->sm, csio_hws_resetting);
-			/* Start reset of the HBA */
-			csio_notify_lnodes(hw, CSIO_LN_NOTIFY_HWRESET);
-			csio_wr_destroy_queues(hw, false);
-			csio_do_reset(hw, false);
-			csio_post_event(&hw->sm, CSIO_HWE_HBA_RESET_DONE);
-			break;
+				/* Download firmware */
+				/* Fall through */
 
-		case CSIO_HWE_PCI_REMOVE:
-			csio_set_state(&hw->sm, csio_hws_removing);
-			csio_notify_lnodes(hw, CSIO_LN_NOTIFY_HWREMOVE);
-			csio_wr_destroy_queues(hw, true);
-			/* Now send the bye command */
-			csio_do_bye(hw);
-			break;
+				case CSIO_HWE_HBA_RESET:
+					csio_set_state(&hw->sm, csio_hws_resetting);
+					/* Start reset of the HBA */
+					csio_notify_lnodes(hw, CSIO_LN_NOTIFY_HWRESET);
+					csio_wr_destroy_queues(hw, false);
+					csio_do_reset(hw, false);
+					csio_post_event(&hw->sm, CSIO_HWE_HBA_RESET_DONE);
+					break;
 
-		case CSIO_HWE_SUSPEND:
-			csio_set_state(&hw->sm, csio_hws_quiesced);
-			break;
+				case CSIO_HWE_PCI_REMOVE:
+					csio_set_state(&hw->sm, csio_hws_removing);
+					csio_notify_lnodes(hw, CSIO_LN_NOTIFY_HWREMOVE);
+					csio_wr_destroy_queues(hw, true);
+					/* Now send the bye command */
+					csio_do_bye(hw);
+					break;
 
-		case CSIO_HWE_PCIERR_DETECTED:
-			csio_set_state(&hw->sm, csio_hws_pcierr);
-			csio_wr_destroy_queues(hw, false);
+				case CSIO_HWE_SUSPEND:
+					csio_set_state(&hw->sm, csio_hws_quiesced);
+					break;
+
+				case CSIO_HWE_PCIERR_DETECTED:
+					csio_set_state(&hw->sm, csio_hws_pcierr);
+					csio_wr_destroy_queues(hw, false);
+					break;
+
+				default:
+					CSIO_INC_STATS(hw, n_evt_unexp);
+					break;
+
+			}
+
 			break;
 
 		default:
 			CSIO_INC_STATS(hw, n_evt_unexp);
 			break;
-
-		}
-		break;
-
-	default:
-		CSIO_INC_STATS(hw, n_evt_unexp);
-		break;
 	}
 }
 
@@ -2542,15 +2972,16 @@ csio_hws_quiesced(struct csio_hw *hw, enum csio_hw_ev evt)
 	hw->cur_evt = evt;
 	CSIO_INC_STATS(hw, n_evt_sm[evt]);
 
-	switch (evt) {
-	case CSIO_HWE_RESUME:
-		csio_set_state(&hw->sm, csio_hws_configuring);
-		csio_hw_configure(hw);
-		break;
+	switch (evt)
+	{
+		case CSIO_HWE_RESUME:
+			csio_set_state(&hw->sm, csio_hws_configuring);
+			csio_hw_configure(hw);
+			break;
 
-	default:
-		CSIO_INC_STATS(hw, n_evt_unexp);
-		break;
+		default:
+			CSIO_INC_STATS(hw, n_evt_unexp);
+			break;
 	}
 }
 
@@ -2567,16 +2998,17 @@ csio_hws_resetting(struct csio_hw *hw, enum csio_hw_ev evt)
 	hw->cur_evt = evt;
 	CSIO_INC_STATS(hw, n_evt_sm[evt]);
 
-	switch (evt) {
-	case CSIO_HWE_HBA_RESET_DONE:
-		csio_evtq_start(hw);
-		csio_set_state(&hw->sm, csio_hws_configuring);
-		csio_hw_configure(hw);
-		break;
+	switch (evt)
+	{
+		case CSIO_HWE_HBA_RESET_DONE:
+			csio_evtq_start(hw);
+			csio_set_state(&hw->sm, csio_hws_configuring);
+			csio_hw_configure(hw);
+			break;
 
-	default:
-		CSIO_INC_STATS(hw, n_evt_unexp);
-		break;
+		default:
+			CSIO_INC_STATS(hw, n_evt_unexp);
+			break;
 	}
 }
 
@@ -2593,24 +3025,28 @@ csio_hws_removing(struct csio_hw *hw, enum csio_hw_ev evt)
 	hw->cur_evt = evt;
 	CSIO_INC_STATS(hw, n_evt_sm[evt]);
 
-	switch (evt) {
-	case CSIO_HWE_HBA_RESET:
-		if (!csio_is_hw_master(hw))
-			break;
-		/*
-		 * The BYE should have alerady been issued, so we cant
-		 * use the mailbox interface. Hence we use the PL_RST
-		 * register directly.
-		 */
-		csio_err(hw, "Resetting HW and waiting 2 seconds...\n");
-		csio_wr_reg32(hw, PIORSTMODE_F | PIORST_F, PL_RST_A);
-		mdelay(2000);
-		break;
+	switch (evt)
+	{
+		case CSIO_HWE_HBA_RESET:
+			if (!csio_is_hw_master(hw))
+			{
+				break;
+			}
 
-	/* Should never receive any new events */
-	default:
-		CSIO_INC_STATS(hw, n_evt_unexp);
-		break;
+			/*
+			 * The BYE should have alerady been issued, so we cant
+			 * use the mailbox interface. Hence we use the PL_RST
+			 * register directly.
+			 */
+			csio_err(hw, "Resetting HW and waiting 2 seconds...\n");
+			csio_wr_reg32(hw, PIORSTMODE_F | PIORST_F, PL_RST_A);
+			mdelay(2000);
+			break;
+
+		/* Should never receive any new events */
+		default:
+			CSIO_INC_STATS(hw, n_evt_unexp);
+			break;
 
 	}
 }
@@ -2628,16 +3064,17 @@ csio_hws_pcierr(struct csio_hw *hw, enum csio_hw_ev evt)
 	hw->cur_evt = evt;
 	CSIO_INC_STATS(hw, n_evt_sm[evt]);
 
-	switch (evt) {
-	case CSIO_HWE_PCIERR_SLOT_RESET:
-		csio_evtq_start(hw);
-		csio_set_state(&hw->sm, csio_hws_configuring);
-		csio_hw_configure(hw);
-		break;
+	switch (evt)
+	{
+		case CSIO_HWE_PCIERR_SLOT_RESET:
+			csio_evtq_start(hw);
+			csio_set_state(&hw->sm, csio_hws_configuring);
+			csio_hw_configure(hw);
+			break;
 
-	default:
-		CSIO_INC_STATS(hw, n_evt_unexp);
-		break;
+		default:
+			CSIO_INC_STATS(hw, n_evt_unexp);
+			break;
 	}
 }
 
@@ -2660,27 +3097,39 @@ csio_hws_pcierr(struct csio_hw *hw, enum csio_hw_ev evt)
  */
 int
 csio_handle_intr_status(struct csio_hw *hw, unsigned int reg,
-				 const struct intr_info *acts)
+						const struct intr_info *acts)
 {
 	int fatal = 0;
 	unsigned int mask = 0;
 	unsigned int status = csio_rd_reg32(hw, reg);
 
-	for ( ; acts->mask; ++acts) {
+	for ( ; acts->mask; ++acts)
+	{
 		if (!(status & acts->mask))
+		{
 			continue;
-		if (acts->fatal) {
+		}
+
+		if (acts->fatal)
+		{
 			fatal++;
 			csio_fatal(hw, "Fatal %s (0x%x)\n",
-				    acts->msg, status & acts->mask);
-		} else if (acts->msg)
+					   acts->msg, status & acts->mask);
+		}
+		else if (acts->msg)
 			csio_info(hw, "%s (0x%x)\n",
-				    acts->msg, status & acts->mask);
+					  acts->msg, status & acts->mask);
+
 		mask |= acts->mask;
 	}
+
 	status &= mask;
+
 	if (status)                           /* clear processed interrupts */
+	{
 		csio_wr_reg32(hw, status, reg);
+	}
+
 	return fatal;
 }
 
@@ -2689,14 +3138,17 @@ csio_handle_intr_status(struct csio_hw *hw, unsigned int reg,
  */
 static void csio_tp_intr_handler(struct csio_hw *hw)
 {
-	static struct intr_info tp_intr_info[] = {
+	static struct intr_info tp_intr_info[] =
+	{
 		{ 0x3fffffff, "TP parity error", -1, 1 },
 		{ FLMTXFLSTEMPTY_F, "TP out of Tx pages", -1, 1 },
 		{ 0, NULL, 0, 0 }
 	};
 
 	if (csio_handle_intr_status(hw, TP_INT_CAUSE_A, tp_intr_info))
+	{
 		csio_hw_fatal_err(hw);
+	}
 }
 
 /*
@@ -2706,60 +3158,84 @@ static void csio_sge_intr_handler(struct csio_hw *hw)
 {
 	uint64_t v;
 
-	static struct intr_info sge_intr_info[] = {
-		{ ERR_CPL_EXCEED_IQE_SIZE_F,
-		  "SGE received CPL exceeding IQE size", -1, 1 },
-		{ ERR_INVALID_CIDX_INC_F,
-		  "SGE GTS CIDX increment too large", -1, 0 },
+	static struct intr_info sge_intr_info[] =
+	{
+		{
+			ERR_CPL_EXCEED_IQE_SIZE_F,
+			"SGE received CPL exceeding IQE size", -1, 1
+		},
+		{
+			ERR_INVALID_CIDX_INC_F,
+			"SGE GTS CIDX increment too large", -1, 0
+		},
 		{ ERR_CPL_OPCODE_0_F, "SGE received 0-length CPL", -1, 0 },
 		{ ERR_DROPPED_DB_F, "SGE doorbell dropped", -1, 0 },
-		{ ERR_DATA_CPL_ON_HIGH_QID1_F | ERR_DATA_CPL_ON_HIGH_QID0_F,
-		  "SGE IQID > 1023 received CPL for FL", -1, 0 },
-		{ ERR_BAD_DB_PIDX3_F, "SGE DBP 3 pidx increment too large", -1,
-		  0 },
-		{ ERR_BAD_DB_PIDX2_F, "SGE DBP 2 pidx increment too large", -1,
-		  0 },
-		{ ERR_BAD_DB_PIDX1_F, "SGE DBP 1 pidx increment too large", -1,
-		  0 },
-		{ ERR_BAD_DB_PIDX0_F, "SGE DBP 0 pidx increment too large", -1,
-		  0 },
-		{ ERR_ING_CTXT_PRIO_F,
-		  "SGE too many priority ingress contexts", -1, 0 },
-		{ ERR_EGR_CTXT_PRIO_F,
-		  "SGE too many priority egress contexts", -1, 0 },
+		{
+			ERR_DATA_CPL_ON_HIGH_QID1_F | ERR_DATA_CPL_ON_HIGH_QID0_F,
+			"SGE IQID > 1023 received CPL for FL", -1, 0
+		},
+		{
+			ERR_BAD_DB_PIDX3_F, "SGE DBP 3 pidx increment too large", -1,
+			0
+		},
+		{
+			ERR_BAD_DB_PIDX2_F, "SGE DBP 2 pidx increment too large", -1,
+			0
+		},
+		{
+			ERR_BAD_DB_PIDX1_F, "SGE DBP 1 pidx increment too large", -1,
+			0
+		},
+		{
+			ERR_BAD_DB_PIDX0_F, "SGE DBP 0 pidx increment too large", -1,
+			0
+		},
+		{
+			ERR_ING_CTXT_PRIO_F,
+			"SGE too many priority ingress contexts", -1, 0
+		},
+		{
+			ERR_EGR_CTXT_PRIO_F,
+			"SGE too many priority egress contexts", -1, 0
+		},
 		{ INGRESS_SIZE_ERR_F, "SGE illegal ingress QID", -1, 0 },
 		{ EGRESS_SIZE_ERR_F, "SGE illegal egress QID", -1, 0 },
 		{ 0, NULL, 0, 0 }
 	};
 
 	v = (uint64_t)csio_rd_reg32(hw, SGE_INT_CAUSE1_A) |
-	    ((uint64_t)csio_rd_reg32(hw, SGE_INT_CAUSE2_A) << 32);
-	if (v) {
+		((uint64_t)csio_rd_reg32(hw, SGE_INT_CAUSE2_A) << 32);
+
+	if (v)
+	{
 		csio_fatal(hw, "SGE parity error (%#llx)\n",
-			    (unsigned long long)v);
+				   (unsigned long long)v);
 		csio_wr_reg32(hw, (uint32_t)(v & 0xFFFFFFFF),
-						SGE_INT_CAUSE1_A);
+					  SGE_INT_CAUSE1_A);
 		csio_wr_reg32(hw, (uint32_t)(v >> 32), SGE_INT_CAUSE2_A);
 	}
 
 	v |= csio_handle_intr_status(hw, SGE_INT_CAUSE3_A, sge_intr_info);
 
 	if (csio_handle_intr_status(hw, SGE_INT_CAUSE3_A, sge_intr_info) ||
-	    v != 0)
+		v != 0)
+	{
 		csio_hw_fatal_err(hw);
+	}
 }
 
 #define CIM_OBQ_INTR (OBQULP0PARERR_F | OBQULP1PARERR_F | OBQULP2PARERR_F |\
-		      OBQULP3PARERR_F | OBQSGEPARERR_F | OBQNCSIPARERR_F)
+					  OBQULP3PARERR_F | OBQSGEPARERR_F | OBQNCSIPARERR_F)
 #define CIM_IBQ_INTR (IBQTP0PARERR_F | IBQTP1PARERR_F | IBQULPPARERR_F |\
-		      IBQSGEHIPARERR_F | IBQSGELOPARERR_F | IBQNCSIPARERR_F)
+					  IBQSGEHIPARERR_F | IBQSGELOPARERR_F | IBQNCSIPARERR_F)
 
 /*
  * CIM interrupt handler.
  */
 static void csio_cim_intr_handler(struct csio_hw *hw)
 {
-	static struct intr_info cim_intr_info[] = {
+	static struct intr_info cim_intr_info[] =
+	{
 		{ PREFDROPINT_F, "CIM control register prefetch drop", -1, 1 },
 		{ CIM_OBQ_INTR, "CIM OBQ parity error", -1, 1 },
 		{ CIM_IBQ_INTR, "CIM IBQ parity error", -1, 1 },
@@ -2769,7 +3245,8 @@ static void csio_cim_intr_handler(struct csio_hw *hw)
 		{ TIEQOUTPARERRINT_F, "CIM TIEQ incoming parity error", -1, 1 },
 		{ 0, NULL, 0, 0 }
 	};
-	static struct intr_info cim_upintr_info[] = {
+	static struct intr_info cim_upintr_info[] =
+	{
 		{ RSVDSPACEINT_F, "CIM reserved space access", -1, 1 },
 		{ ILLTRANSINT_F, "CIM illegal transaction", -1, 1 },
 		{ ILLWRINT_F, "CIM illegal write", -1, 1 },
@@ -2804,11 +3281,14 @@ static void csio_cim_intr_handler(struct csio_hw *hw)
 	int fat;
 
 	fat = csio_handle_intr_status(hw, CIM_HOST_INT_CAUSE_A,
-				      cim_intr_info) +
-	      csio_handle_intr_status(hw, CIM_HOST_UPACC_INT_CAUSE_A,
-				      cim_upintr_info);
+								  cim_intr_info) +
+		  csio_handle_intr_status(hw, CIM_HOST_UPACC_INT_CAUSE_A,
+								  cim_upintr_info);
+
 	if (fat)
+	{
 		csio_hw_fatal_err(hw);
+	}
 }
 
 /*
@@ -2816,14 +3296,17 @@ static void csio_cim_intr_handler(struct csio_hw *hw)
  */
 static void csio_ulprx_intr_handler(struct csio_hw *hw)
 {
-	static struct intr_info ulprx_intr_info[] = {
+	static struct intr_info ulprx_intr_info[] =
+	{
 		{ 0x1800000, "ULPRX context error", -1, 1 },
 		{ 0x7fffff, "ULPRX parity error", -1, 1 },
 		{ 0, NULL, 0, 0 }
 	};
 
 	if (csio_handle_intr_status(hw, ULP_RX_INT_CAUSE_A, ulprx_intr_info))
+	{
 		csio_hw_fatal_err(hw);
+	}
 }
 
 /*
@@ -2831,21 +3314,32 @@ static void csio_ulprx_intr_handler(struct csio_hw *hw)
  */
 static void csio_ulptx_intr_handler(struct csio_hw *hw)
 {
-	static struct intr_info ulptx_intr_info[] = {
-		{ PBL_BOUND_ERR_CH3_F, "ULPTX channel 3 PBL out of bounds", -1,
-		  0 },
-		{ PBL_BOUND_ERR_CH2_F, "ULPTX channel 2 PBL out of bounds", -1,
-		  0 },
-		{ PBL_BOUND_ERR_CH1_F, "ULPTX channel 1 PBL out of bounds", -1,
-		  0 },
-		{ PBL_BOUND_ERR_CH0_F, "ULPTX channel 0 PBL out of bounds", -1,
-		  0 },
+	static struct intr_info ulptx_intr_info[] =
+	{
+		{
+			PBL_BOUND_ERR_CH3_F, "ULPTX channel 3 PBL out of bounds", -1,
+			0
+		},
+		{
+			PBL_BOUND_ERR_CH2_F, "ULPTX channel 2 PBL out of bounds", -1,
+			0
+		},
+		{
+			PBL_BOUND_ERR_CH1_F, "ULPTX channel 1 PBL out of bounds", -1,
+			0
+		},
+		{
+			PBL_BOUND_ERR_CH0_F, "ULPTX channel 0 PBL out of bounds", -1,
+			0
+		},
 		{ 0xfffffff, "ULPTX parity error", -1, 1 },
 		{ 0, NULL, 0, 0 }
 	};
 
 	if (csio_handle_intr_status(hw, ULP_TX_INT_CAUSE_A, ulptx_intr_info))
+	{
 		csio_hw_fatal_err(hw);
+	}
 }
 
 /*
@@ -2853,22 +3347,27 @@ static void csio_ulptx_intr_handler(struct csio_hw *hw)
  */
 static void csio_pmtx_intr_handler(struct csio_hw *hw)
 {
-	static struct intr_info pmtx_intr_info[] = {
+	static struct intr_info pmtx_intr_info[] =
+	{
 		{ PCMD_LEN_OVFL0_F, "PMTX channel 0 pcmd too large", -1, 1 },
 		{ PCMD_LEN_OVFL1_F, "PMTX channel 1 pcmd too large", -1, 1 },
 		{ PCMD_LEN_OVFL2_F, "PMTX channel 2 pcmd too large", -1, 1 },
 		{ ZERO_C_CMD_ERROR_F, "PMTX 0-length pcmd", -1, 1 },
 		{ 0xffffff0, "PMTX framing error", -1, 1 },
 		{ OESPI_PAR_ERROR_F, "PMTX oespi parity error", -1, 1 },
-		{ DB_OPTIONS_PAR_ERROR_F, "PMTX db_options parity error", -1,
-		  1 },
+		{
+			DB_OPTIONS_PAR_ERROR_F, "PMTX db_options parity error", -1,
+			1
+		},
 		{ ICSPI_PAR_ERROR_F, "PMTX icspi parity error", -1, 1 },
 		{ PMTX_C_PCMD_PAR_ERROR_F, "PMTX c_pcmd parity error", -1, 1},
 		{ 0, NULL, 0, 0 }
 	};
 
 	if (csio_handle_intr_status(hw, PM_TX_INT_CAUSE_A, pmtx_intr_info))
+	{
 		csio_hw_fatal_err(hw);
+	}
 }
 
 /*
@@ -2876,19 +3375,24 @@ static void csio_pmtx_intr_handler(struct csio_hw *hw)
  */
 static void csio_pmrx_intr_handler(struct csio_hw *hw)
 {
-	static struct intr_info pmrx_intr_info[] = {
+	static struct intr_info pmrx_intr_info[] =
+	{
 		{ ZERO_E_CMD_ERROR_F, "PMRX 0-length pcmd", -1, 1 },
 		{ 0x3ffff0, "PMRX framing error", -1, 1 },
 		{ OCSPI_PAR_ERROR_F, "PMRX ocspi parity error", -1, 1 },
-		{ DB_OPTIONS_PAR_ERROR_F, "PMRX db_options parity error", -1,
-		  1 },
+		{
+			DB_OPTIONS_PAR_ERROR_F, "PMRX db_options parity error", -1,
+			1
+		},
 		{ IESPI_PAR_ERROR_F, "PMRX iespi parity error", -1, 1 },
 		{ PMRX_E_PCMD_PAR_ERROR_F, "PMRX e_pcmd parity error", -1, 1},
 		{ 0, NULL, 0, 0 }
 	};
 
 	if (csio_handle_intr_status(hw, PM_RX_INT_CAUSE_A, pmrx_intr_info))
+	{
 		csio_hw_fatal_err(hw);
+	}
 }
 
 /*
@@ -2896,7 +3400,8 @@ static void csio_pmrx_intr_handler(struct csio_hw *hw)
  */
 static void csio_cplsw_intr_handler(struct csio_hw *hw)
 {
-	static struct intr_info cplsw_intr_info[] = {
+	static struct intr_info cplsw_intr_info[] =
+	{
 		{ CIM_OP_MAP_PERR_F, "CPLSW CIM op_map parity error", -1, 1 },
 		{ CIM_OVFL_ERROR_F, "CPLSW CIM overflow", -1, 1 },
 		{ TP_FRAMING_ERROR_F, "CPLSW TP framing error", -1, 1 },
@@ -2907,7 +3412,9 @@ static void csio_cplsw_intr_handler(struct csio_hw *hw)
 	};
 
 	if (csio_handle_intr_status(hw, CPL_INTR_CAUSE_A, cplsw_intr_info))
+	{
 		csio_hw_fatal_err(hw);
+	}
 }
 
 /*
@@ -2915,7 +3422,8 @@ static void csio_cplsw_intr_handler(struct csio_hw *hw)
  */
 static void csio_le_intr_handler(struct csio_hw *hw)
 {
-	static struct intr_info le_intr_info[] = {
+	static struct intr_info le_intr_info[] =
+	{
 		{ LIPMISS_F, "LE LIP miss", -1, 0 },
 		{ LIP0_F, "LE 0 LIP error", -1, 0 },
 		{ PARITYERR_F, "LE parity error", -1, 1 },
@@ -2925,7 +3433,9 @@ static void csio_le_intr_handler(struct csio_hw *hw)
 	};
 
 	if (csio_handle_intr_status(hw, LE_DB_INT_CAUSE_A, le_intr_info))
+	{
 		csio_hw_fatal_err(hw);
+	}
 }
 
 /*
@@ -2933,42 +3443,55 @@ static void csio_le_intr_handler(struct csio_hw *hw)
  */
 static void csio_mps_intr_handler(struct csio_hw *hw)
 {
-	static struct intr_info mps_rx_intr_info[] = {
+	static struct intr_info mps_rx_intr_info[] =
+	{
 		{ 0xffffff, "MPS Rx parity error", -1, 1 },
 		{ 0, NULL, 0, 0 }
 	};
-	static struct intr_info mps_tx_intr_info[] = {
+	static struct intr_info mps_tx_intr_info[] =
+	{
 		{ TPFIFO_V(TPFIFO_M), "MPS Tx TP FIFO parity error", -1, 1 },
 		{ NCSIFIFO_F, "MPS Tx NC-SI FIFO parity error", -1, 1 },
-		{ TXDATAFIFO_V(TXDATAFIFO_M), "MPS Tx data FIFO parity error",
-		  -1, 1 },
-		{ TXDESCFIFO_V(TXDESCFIFO_M), "MPS Tx desc FIFO parity error",
-		  -1, 1 },
+		{
+			TXDATAFIFO_V(TXDATAFIFO_M), "MPS Tx data FIFO parity error",
+			-1, 1
+		},
+		{
+			TXDESCFIFO_V(TXDESCFIFO_M), "MPS Tx desc FIFO parity error",
+			-1, 1
+		},
 		{ BUBBLE_F, "MPS Tx underflow", -1, 1 },
 		{ SECNTERR_F, "MPS Tx SOP/EOP error", -1, 1 },
 		{ FRMERR_F, "MPS Tx framing error", -1, 1 },
 		{ 0, NULL, 0, 0 }
 	};
-	static struct intr_info mps_trc_intr_info[] = {
+	static struct intr_info mps_trc_intr_info[] =
+	{
 		{ FILTMEM_V(FILTMEM_M), "MPS TRC filter parity error", -1, 1 },
-		{ PKTFIFO_V(PKTFIFO_M), "MPS TRC packet FIFO parity error",
-		  -1, 1 },
+		{
+			PKTFIFO_V(PKTFIFO_M), "MPS TRC packet FIFO parity error",
+			-1, 1
+		},
 		{ MISCPERR_F, "MPS TRC misc parity error", -1, 1 },
 		{ 0, NULL, 0, 0 }
 	};
-	static struct intr_info mps_stat_sram_intr_info[] = {
+	static struct intr_info mps_stat_sram_intr_info[] =
+	{
 		{ 0x1fffff, "MPS statistics SRAM parity error", -1, 1 },
 		{ 0, NULL, 0, 0 }
 	};
-	static struct intr_info mps_stat_tx_intr_info[] = {
+	static struct intr_info mps_stat_tx_intr_info[] =
+	{
 		{ 0xfffff, "MPS statistics Tx FIFO parity error", -1, 1 },
 		{ 0, NULL, 0, 0 }
 	};
-	static struct intr_info mps_stat_rx_intr_info[] = {
+	static struct intr_info mps_stat_rx_intr_info[] =
+	{
 		{ 0xffffff, "MPS statistics Rx FIFO parity error", -1, 1 },
 		{ 0, NULL, 0, 0 }
 	};
-	static struct intr_info mps_cls_intr_info[] = {
+	static struct intr_info mps_cls_intr_info[] =
+	{
 		{ MATCHSRAM_F, "MPS match SRAM parity error", -1, 1 },
 		{ MATCHTCAM_F, "MPS match TCAM parity error", -1, 1 },
 		{ HASHSRAM_F, "MPS hash SRAM parity error", -1, 1 },
@@ -2978,28 +3501,31 @@ static void csio_mps_intr_handler(struct csio_hw *hw)
 	int fat;
 
 	fat = csio_handle_intr_status(hw, MPS_RX_PERR_INT_CAUSE_A,
-				      mps_rx_intr_info) +
-	      csio_handle_intr_status(hw, MPS_TX_INT_CAUSE_A,
-				      mps_tx_intr_info) +
-	      csio_handle_intr_status(hw, MPS_TRC_INT_CAUSE_A,
-				      mps_trc_intr_info) +
-	      csio_handle_intr_status(hw, MPS_STAT_PERR_INT_CAUSE_SRAM_A,
-				      mps_stat_sram_intr_info) +
-	      csio_handle_intr_status(hw, MPS_STAT_PERR_INT_CAUSE_TX_FIFO_A,
-				      mps_stat_tx_intr_info) +
-	      csio_handle_intr_status(hw, MPS_STAT_PERR_INT_CAUSE_RX_FIFO_A,
-				      mps_stat_rx_intr_info) +
-	      csio_handle_intr_status(hw, MPS_CLS_INT_CAUSE_A,
-				      mps_cls_intr_info);
+								  mps_rx_intr_info) +
+		  csio_handle_intr_status(hw, MPS_TX_INT_CAUSE_A,
+								  mps_tx_intr_info) +
+		  csio_handle_intr_status(hw, MPS_TRC_INT_CAUSE_A,
+								  mps_trc_intr_info) +
+		  csio_handle_intr_status(hw, MPS_STAT_PERR_INT_CAUSE_SRAM_A,
+								  mps_stat_sram_intr_info) +
+		  csio_handle_intr_status(hw, MPS_STAT_PERR_INT_CAUSE_TX_FIFO_A,
+								  mps_stat_tx_intr_info) +
+		  csio_handle_intr_status(hw, MPS_STAT_PERR_INT_CAUSE_RX_FIFO_A,
+								  mps_stat_rx_intr_info) +
+		  csio_handle_intr_status(hw, MPS_CLS_INT_CAUSE_A,
+								  mps_cls_intr_info);
 
 	csio_wr_reg32(hw, 0, MPS_INT_CAUSE_A);
 	csio_rd_reg32(hw, MPS_INT_CAUSE_A);                    /* flush */
+
 	if (fat)
+	{
 		csio_hw_fatal_err(hw);
+	}
 }
 
 #define MEM_INT_MASK (PERR_INT_CAUSE_F | ECC_CE_INT_CAUSE_F | \
-		      ECC_UE_INT_CAUSE_F)
+					  ECC_UE_INT_CAUSE_F)
 
 /*
  * EDC/MC interrupt handler.
@@ -3010,30 +3536,44 @@ static void csio_mem_intr_handler(struct csio_hw *hw, int idx)
 
 	unsigned int addr, cnt_addr, v;
 
-	if (idx <= MEM_EDC1) {
+	if (idx <= MEM_EDC1)
+	{
 		addr = EDC_REG(EDC_INT_CAUSE_A, idx);
 		cnt_addr = EDC_REG(EDC_ECC_STATUS_A, idx);
-	} else {
+	}
+	else
+	{
 		addr = MC_INT_CAUSE_A;
 		cnt_addr = MC_ECC_STATUS_A;
 	}
 
 	v = csio_rd_reg32(hw, addr) & MEM_INT_MASK;
+
 	if (v & PERR_INT_CAUSE_F)
+	{
 		csio_fatal(hw, "%s FIFO parity error\n", name[idx]);
-	if (v & ECC_CE_INT_CAUSE_F) {
+	}
+
+	if (v & ECC_CE_INT_CAUSE_F)
+	{
 		uint32_t cnt = ECC_CECNT_G(csio_rd_reg32(hw, cnt_addr));
 
 		csio_wr_reg32(hw, ECC_CECNT_V(ECC_CECNT_M), cnt_addr);
 		csio_warn(hw, "%u %s correctable ECC data error%s\n",
-			    cnt, name[idx], cnt > 1 ? "s" : "");
+				  cnt, name[idx], cnt > 1 ? "s" : "");
 	}
+
 	if (v & ECC_UE_INT_CAUSE_F)
+	{
 		csio_fatal(hw, "%s uncorrectable ECC data error\n", name[idx]);
+	}
 
 	csio_wr_reg32(hw, v, addr);
+
 	if (v & (PERR_INT_CAUSE_F | ECC_UE_INT_CAUSE_F))
+	{
 		csio_hw_fatal_err(hw);
+	}
 }
 
 /*
@@ -3045,13 +3585,16 @@ static void csio_ma_intr_handler(struct csio_hw *hw)
 
 	if (status & MEM_PERR_INT_CAUSE_F)
 		csio_fatal(hw, "MA parity error, parity status %#x\n",
-			    csio_rd_reg32(hw, MA_PARITY_ERROR_STATUS_A));
-	if (status & MEM_WRAP_INT_CAUSE_F) {
+				   csio_rd_reg32(hw, MA_PARITY_ERROR_STATUS_A));
+
+	if (status & MEM_WRAP_INT_CAUSE_F)
+	{
 		v = csio_rd_reg32(hw, MA_INT_WRAP_STATUS_A);
 		csio_fatal(hw,
-		   "MA address wrap-around error by client %u to address %#x\n",
-		   MEM_WRAP_CLIENT_NUM_G(v), MEM_WRAP_ADDRESS_G(v) << 4);
+				   "MA address wrap-around error by client %u to address %#x\n",
+				   MEM_WRAP_CLIENT_NUM_G(v), MEM_WRAP_ADDRESS_G(v) << 4);
 	}
+
 	csio_wr_reg32(hw, status, MA_INT_CAUSE_A);
 	csio_hw_fatal_err(hw);
 }
@@ -3061,7 +3604,8 @@ static void csio_ma_intr_handler(struct csio_hw *hw)
  */
 static void csio_smb_intr_handler(struct csio_hw *hw)
 {
-	static struct intr_info smb_intr_info[] = {
+	static struct intr_info smb_intr_info[] =
+	{
 		{ MSTTXFIFOPARINT_F, "SMB master Tx FIFO parity error", -1, 1 },
 		{ MSTRXFIFOPARINT_F, "SMB master Rx FIFO parity error", -1, 1 },
 		{ SLVFIFOPARINT_F, "SMB slave FIFO parity error", -1, 1 },
@@ -3069,7 +3613,9 @@ static void csio_smb_intr_handler(struct csio_hw *hw)
 	};
 
 	if (csio_handle_intr_status(hw, SMB_INT_CAUSE_A, smb_intr_info))
+	{
 		csio_hw_fatal_err(hw);
+	}
 }
 
 /*
@@ -3077,7 +3623,8 @@ static void csio_smb_intr_handler(struct csio_hw *hw)
  */
 static void csio_ncsi_intr_handler(struct csio_hw *hw)
 {
-	static struct intr_info ncsi_intr_info[] = {
+	static struct intr_info ncsi_intr_info[] =
+	{
 		{ CIM_DM_PRTY_ERR_F, "NC-SI CIM parity error", -1, 1 },
 		{ MPS_DM_PRTY_ERR_F, "NC-SI MPS parity error", -1, 1 },
 		{ TXFIFO_PRTY_ERR_F, "NC-SI Tx FIFO parity error", -1, 1 },
@@ -3086,7 +3633,9 @@ static void csio_ncsi_intr_handler(struct csio_hw *hw)
 	};
 
 	if (csio_handle_intr_status(hw, NCSI_INT_CAUSE_A, ncsi_intr_info))
+	{
 		csio_hw_fatal_err(hw);
+	}
 }
 
 /*
@@ -3097,13 +3646,22 @@ static void csio_xgmac_intr_handler(struct csio_hw *hw, int port)
 	uint32_t v = csio_rd_reg32(hw, T5_PORT_REG(port, MAC_PORT_INT_CAUSE_A));
 
 	v &= TXFIFO_PRTY_ERR_F | RXFIFO_PRTY_ERR_F;
+
 	if (!v)
+	{
 		return;
+	}
 
 	if (v & TXFIFO_PRTY_ERR_F)
+	{
 		csio_fatal(hw, "XGMAC %d Tx FIFO parity error\n", port);
+	}
+
 	if (v & RXFIFO_PRTY_ERR_F)
+	{
 		csio_fatal(hw, "XGMAC %d Rx FIFO parity error\n", port);
+	}
+
 	csio_wr_reg32(hw, v, T5_PORT_REG(port, MAC_PORT_INT_CAUSE_A));
 	csio_hw_fatal_err(hw);
 }
@@ -3113,14 +3671,17 @@ static void csio_xgmac_intr_handler(struct csio_hw *hw, int port)
  */
 static void csio_pl_intr_handler(struct csio_hw *hw)
 {
-	static struct intr_info pl_intr_info[] = {
+	static struct intr_info pl_intr_info[] =
+	{
 		{ FATALPERR_F, "T4 fatal parity error", -1, 1 },
 		{ PERRVFID_F, "PL VFID_MAP parity error", -1, 1 },
 		{ 0, NULL, 0, 0 }
 	};
 
 	if (csio_handle_intr_status(hw, PL_PL_INT_CAUSE_A, pl_intr_info))
+	{
 		csio_hw_fatal_err(hw);
+	}
 }
 
 /*
@@ -3136,7 +3697,8 @@ csio_hw_slow_intr_handler(struct csio_hw *hw)
 {
 	uint32_t cause = csio_rd_reg32(hw, PL_INT_CAUSE_A);
 
-	if (!(cause & CSIO_GLBL_INTR_MASK)) {
+	if (!(cause & CSIO_GLBL_INTR_MASK))
+	{
 		CSIO_INC_STATS(hw, n_plint_unexp);
 		return 0;
 	}
@@ -3146,70 +3708,114 @@ csio_hw_slow_intr_handler(struct csio_hw *hw)
 	CSIO_INC_STATS(hw, n_plint_cnt);
 
 	if (cause & CIM_F)
+	{
 		csio_cim_intr_handler(hw);
+	}
 
 	if (cause & MPS_F)
+	{
 		csio_mps_intr_handler(hw);
+	}
 
 	if (cause & NCSI_F)
+	{
 		csio_ncsi_intr_handler(hw);
+	}
 
 	if (cause & PL_F)
+	{
 		csio_pl_intr_handler(hw);
+	}
 
 	if (cause & SMB_F)
+	{
 		csio_smb_intr_handler(hw);
+	}
 
 	if (cause & XGMAC0_F)
+	{
 		csio_xgmac_intr_handler(hw, 0);
+	}
 
 	if (cause & XGMAC1_F)
+	{
 		csio_xgmac_intr_handler(hw, 1);
+	}
 
 	if (cause & XGMAC_KR0_F)
+	{
 		csio_xgmac_intr_handler(hw, 2);
+	}
 
 	if (cause & XGMAC_KR1_F)
+	{
 		csio_xgmac_intr_handler(hw, 3);
+	}
 
 	if (cause & PCIE_F)
+	{
 		hw->chip_ops->chip_pcie_intr_handler(hw);
+	}
 
 	if (cause & MC_F)
+	{
 		csio_mem_intr_handler(hw, MEM_MC);
+	}
 
 	if (cause & EDC0_F)
+	{
 		csio_mem_intr_handler(hw, MEM_EDC0);
+	}
 
 	if (cause & EDC1_F)
+	{
 		csio_mem_intr_handler(hw, MEM_EDC1);
+	}
 
 	if (cause & LE_F)
+	{
 		csio_le_intr_handler(hw);
+	}
 
 	if (cause & TP_F)
+	{
 		csio_tp_intr_handler(hw);
+	}
 
 	if (cause & MA_F)
+	{
 		csio_ma_intr_handler(hw);
+	}
 
 	if (cause & PM_TX_F)
+	{
 		csio_pmtx_intr_handler(hw);
+	}
 
 	if (cause & PM_RX_F)
+	{
 		csio_pmrx_intr_handler(hw);
+	}
 
 	if (cause & ULP_RX_F)
+	{
 		csio_ulprx_intr_handler(hw);
+	}
 
 	if (cause & CPL_SWITCH_F)
+	{
 		csio_cplsw_intr_handler(hw);
+	}
 
 	if (cause & SGE_F)
+	{
 		csio_sge_intr_handler(hw);
+	}
 
 	if (cause & ULP_TX_F)
+	{
 		csio_ulptx_intr_handler(hw);
+	}
 
 	/* Clear the interrupts just processed for which we are the master. */
 	csio_wr_reg32(hw, cause & CSIO_GLBL_INTR_MASK, PL_INT_CAUSE_A);
@@ -3240,7 +3846,9 @@ csio_mberr_worker(void *data)
 	del_timer_sync(&mbm->timer);
 
 	spin_lock_irq(&hw->lock);
-	if (list_empty(&mbm->cbfn_q)) {
+
+	if (list_empty(&mbm->cbfn_q))
+	{
 		spin_unlock_irq(&hw->lock);
 		return;
 	}
@@ -3249,16 +3857,23 @@ csio_mberr_worker(void *data)
 	mbm->stats.n_cbfnq = 0;
 
 	/* Try to start waiting mailboxes */
-	if (!list_empty(&mbm->req_q)) {
+	if (!list_empty(&mbm->req_q))
+	{
 		mbp_next = list_first_entry(&mbm->req_q, struct csio_mb, list);
 		list_del_init(&mbp_next->list);
 
 		rv = csio_mb_issue(hw, mbp_next);
+
 		if (rv != 0)
+		{
 			list_add_tail(&mbp_next->list, &mbm->req_q);
+		}
 		else
+		{
 			CSIO_DEC_STATS(mbm, n_activeq);
+		}
 	}
+
 	spin_unlock_irq(&hw->lock);
 
 	/* Now callback completions */
@@ -3283,7 +3898,9 @@ csio_hw_mb_timer(uintptr_t data)
 
 	/* Call back the function for the timed-out Mailbox */
 	if (mbp)
+	{
 		mbp->mb_cbfn(hw, mbp);
+	}
 
 }
 
@@ -3313,27 +3930,34 @@ csio_hw_mbm_cleanup(struct csio_hw *hw)
  ****************************************************************************/
 int
 csio_enqueue_evt(struct csio_hw *hw, enum csio_evt type, void *evt_msg,
-			uint16_t len)
+				 uint16_t len)
 {
 	struct csio_evt_msg *evt_entry = NULL;
 
 	if (type >= CSIO_EVT_MAX)
+	{
 		return -EINVAL;
+	}
 
 	if (len > CSIO_EVT_MSG_SIZE)
+	{
 		return -EINVAL;
+	}
 
 	if (hw->flags & CSIO_HWF_FWEVT_STOP)
+	{
 		return -EINVAL;
+	}
 
-	if (list_empty(&hw->evt_free_q)) {
+	if (list_empty(&hw->evt_free_q))
+	{
 		csio_err(hw, "Failed to alloc evt entry, msg type %d len %d\n",
-			 type, len);
+				 type, len);
 		return -ENOMEM;
 	}
 
 	evt_entry = list_first_entry(&hw->evt_free_q,
-				     struct csio_evt_msg, list);
+								 struct csio_evt_msg, list);
 	list_del_init(&evt_entry->list);
 
 	/* copy event msg and queue the event */
@@ -3349,7 +3973,7 @@ csio_enqueue_evt(struct csio_hw *hw, enum csio_evt type, void *evt_msg,
 
 static int
 csio_enqueue_evt_lock(struct csio_hw *hw, enum csio_evt type, void *evt_msg,
-			uint16_t len, bool msg_sg)
+					  uint16_t len, bool msg_sg)
 {
 	struct csio_evt_msg *evt_entry = NULL;
 	struct csio_fl_dma_buf *fl_sg;
@@ -3358,42 +3982,55 @@ csio_enqueue_evt_lock(struct csio_hw *hw, enum csio_evt type, void *evt_msg,
 	int n, ret = 0;
 
 	if (type >= CSIO_EVT_MAX)
+	{
 		return -EINVAL;
+	}
 
 	if (len > CSIO_EVT_MSG_SIZE)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_irqsave(&hw->lock, flags);
-	if (hw->flags & CSIO_HWF_FWEVT_STOP) {
+
+	if (hw->flags & CSIO_HWF_FWEVT_STOP)
+	{
 		ret = -EINVAL;
 		goto out;
 	}
 
-	if (list_empty(&hw->evt_free_q)) {
+	if (list_empty(&hw->evt_free_q))
+	{
 		csio_err(hw, "Failed to alloc evt entry, msg type %d len %d\n",
-			 type, len);
+				 type, len);
 		ret = -ENOMEM;
 		goto out;
 	}
 
 	evt_entry = list_first_entry(&hw->evt_free_q,
-				     struct csio_evt_msg, list);
+								 struct csio_evt_msg, list);
 	list_del_init(&evt_entry->list);
 
 	/* copy event msg and queue the event */
 	evt_entry->type = type;
 
 	/* If Payload in SG list*/
-	if (msg_sg) {
+	if (msg_sg)
+	{
 		fl_sg = (struct csio_fl_dma_buf *) evt_msg;
-		for (n = 0; (n < CSIO_MAX_FLBUF_PER_IQWR && off < len); n++) {
+
+		for (n = 0; (n < CSIO_MAX_FLBUF_PER_IQWR && off < len); n++)
+		{
 			memcpy((void *)((uintptr_t)evt_entry->data + off),
-				fl_sg->flbufs[n].vaddr,
-				fl_sg->flbufs[n].len);
+				   fl_sg->flbufs[n].vaddr,
+				   fl_sg->flbufs[n].len);
 			off += fl_sg->flbufs[n].len;
 		}
-	} else
+	}
+	else
+	{
 		memcpy((void *)evt_entry->data, evt_msg, len);
+	}
 
 	list_add_tail(&evt_entry->list, &hw->evt_active_q);
 	CSIO_DEC_STATS(hw, n_evt_freeq);
@@ -3406,7 +4043,8 @@ out:
 static void
 csio_free_evt(struct csio_hw *hw, struct csio_evt_msg *evt_entry)
 {
-	if (evt_entry) {
+	if (evt_entry)
+	{
 		spin_lock_irq(&hw->lock);
 		list_del_init(&evt_entry->list);
 		list_add_tail(&evt_entry->list, &hw->evt_free_q);
@@ -3421,7 +4059,9 @@ csio_evtq_flush(struct csio_hw *hw)
 {
 	uint32_t count;
 	count = 30;
-	while (hw->flags & CSIO_HWF_FWEVT_PENDING && count--) {
+
+	while (hw->flags & CSIO_HWF_FWEVT_PENDING && count--)
+	{
 		spin_unlock_irq(&hw->lock);
 		msleep(2000);
 		spin_lock_irq(&hw->lock);
@@ -3449,13 +4089,16 @@ csio_evtq_cleanup(struct csio_hw *hw)
 
 	/* Release outstanding events from activeq to freeq*/
 	if (!list_empty(&hw->evt_active_q))
+	{
 		list_splice_tail_init(&hw->evt_active_q, &hw->evt_free_q);
+	}
 
 	hw->stats.n_evt_activeq = 0;
 	hw->flags &= ~CSIO_HWF_FWEVT_PENDING;
 
 	/* Freeup event entry */
-	list_for_each_safe(evt_entry, next_entry, &hw->evt_free_q) {
+	list_for_each_safe(evt_entry, next_entry, &hw->evt_free_q)
+	{
 		kfree(evt_entry);
 		CSIO_DEC_STATS(hw, n_evt_freeq);
 	}
@@ -3466,7 +4109,7 @@ csio_evtq_cleanup(struct csio_hw *hw)
 
 static void
 csio_process_fwevtq_entry(struct csio_hw *hw, void *wr, uint32_t len,
-			  struct csio_fl_dma_buf *flb, void *priv)
+						  struct csio_fl_dma_buf *flb, void *priv)
 {
 	__u8 op;
 	void *msg = NULL;
@@ -3474,9 +4117,13 @@ csio_process_fwevtq_entry(struct csio_hw *hw, void *wr, uint32_t len,
 	bool msg_sg = 0;
 
 	op = ((struct rss_header *) wr)->opcode;
-	if (op == CPL_FW6_PLD) {
+
+	if (op == CPL_FW6_PLD)
+	{
 		CSIO_INC_STATS(hw, n_cpl_fw6_pld);
-		if (!flb || !flb->totlen) {
+
+		if (!flb || !flb->totlen)
+		{
 			CSIO_INC_STATS(hw, n_cpl_unexp);
 			return;
 		}
@@ -3484,14 +4131,18 @@ csio_process_fwevtq_entry(struct csio_hw *hw, void *wr, uint32_t len,
 		msg = (void *) flb;
 		msg_len = flb->totlen;
 		msg_sg = 1;
-	} else if (op == CPL_FW6_MSG || op == CPL_FW4_MSG) {
+	}
+	else if (op == CPL_FW6_MSG || op == CPL_FW4_MSG)
+	{
 
 		CSIO_INC_STATS(hw, n_cpl_fw6_msg);
 		/* skip RSS header */
 		msg = (void *)((uintptr_t)wr + sizeof(__be64));
 		msg_len = (op == CPL_FW6_MSG) ? sizeof(struct cpl_fw6_msg) :
-			   sizeof(struct cpl_fw4_msg);
-	} else {
+				  sizeof(struct cpl_fw4_msg);
+	}
+	else
+	{
 		csio_warn(hw, "unexpected CPL %#x on FW event queue\n", op);
 		CSIO_INC_STATS(hw, n_cpl_unexp);
 		return;
@@ -3502,8 +4153,10 @@ csio_process_fwevtq_entry(struct csio_hw *hw, void *wr, uint32_t len,
 	 * in Event worker thread context
 	 */
 	if (csio_enqueue_evt_lock(hw, CSIO_EVT_FW, msg,
-				  (uint16_t)msg_len, msg_sg))
+							  (uint16_t)msg_len, msg_sg))
+	{
 		CSIO_INC_STATS(hw, n_evt_drop);
+	}
 }
 
 void
@@ -3519,73 +4172,95 @@ csio_evtq_worker(struct work_struct *work)
 	uint8_t evtq_stop = 0;
 
 	csio_dbg(hw, "event worker thread active evts#%d\n",
-		 hw->stats.n_evt_activeq);
+			 hw->stats.n_evt_activeq);
 
 	spin_lock_irq(&hw->lock);
-	while (!list_empty(&hw->evt_active_q)) {
+
+	while (!list_empty(&hw->evt_active_q))
+	{
 		list_splice_tail_init(&hw->evt_active_q, &evt_q);
 		spin_unlock_irq(&hw->lock);
 
-		list_for_each_safe(evt_entry, next_entry, &evt_q) {
+		list_for_each_safe(evt_entry, next_entry, &evt_q)
+		{
 			evt_msg = (struct csio_evt_msg *) evt_entry;
 
 			/* Drop events if queue is STOPPED */
 			spin_lock_irq(&hw->lock);
+
 			if (hw->flags & CSIO_HWF_FWEVT_STOP)
+			{
 				evtq_stop = 1;
+			}
+
 			spin_unlock_irq(&hw->lock);
-			if (evtq_stop) {
+
+			if (evtq_stop)
+			{
 				CSIO_INC_STATS(hw, n_evt_drop);
 				goto free_evt;
 			}
 
-			switch (evt_msg->type) {
-			case CSIO_EVT_FW:
-				msg = (struct cpl_fw6_msg *)(evt_msg->data);
+			switch (evt_msg->type)
+			{
+				case CSIO_EVT_FW:
+					msg = (struct cpl_fw6_msg *)(evt_msg->data);
 
-				if ((msg->opcode == CPL_FW6_MSG ||
-				     msg->opcode == CPL_FW4_MSG) &&
-				    !msg->type) {
-					rv = csio_mb_fwevt_handler(hw,
-								msg->data);
-					if (!rv)
-						break;
-					/* Handle any remaining fw events */
-					csio_fcoe_fwevt_handler(hw,
-							msg->opcode, msg->data);
-				} else if (msg->opcode == CPL_FW6_PLD) {
+					if ((msg->opcode == CPL_FW6_MSG ||
+						 msg->opcode == CPL_FW4_MSG) &&
+						!msg->type)
+					{
+						rv = csio_mb_fwevt_handler(hw,
+												   msg->data);
 
-					csio_fcoe_fwevt_handler(hw,
-							msg->opcode, msg->data);
-				} else {
-					csio_warn(hw,
-					     "Unhandled FW msg op %x type %x\n",
-						  msg->opcode, msg->type);
-					CSIO_INC_STATS(hw, n_evt_drop);
-				}
-				break;
+						if (!rv)
+						{
+							break;
+						}
 
-			case CSIO_EVT_MBX:
-				csio_mberr_worker(hw);
-				break;
+						/* Handle any remaining fw events */
+						csio_fcoe_fwevt_handler(hw,
+												msg->opcode, msg->data);
+					}
+					else if (msg->opcode == CPL_FW6_PLD)
+					{
 
-			case CSIO_EVT_DEV_LOSS:
-				memcpy(&rn, evt_msg->data, sizeof(rn));
-				csio_rnode_devloss_handler(rn);
-				break;
+						csio_fcoe_fwevt_handler(hw,
+												msg->opcode, msg->data);
+					}
+					else
+					{
+						csio_warn(hw,
+								  "Unhandled FW msg op %x type %x\n",
+								  msg->opcode, msg->type);
+						CSIO_INC_STATS(hw, n_evt_drop);
+					}
 
-			default:
-				csio_warn(hw, "Unhandled event %x on evtq\n",
-					  evt_msg->type);
-				CSIO_INC_STATS(hw, n_evt_unexp);
-				break;
+					break;
+
+				case CSIO_EVT_MBX:
+					csio_mberr_worker(hw);
+					break;
+
+				case CSIO_EVT_DEV_LOSS:
+					memcpy(&rn, evt_msg->data, sizeof(rn));
+					csio_rnode_devloss_handler(rn);
+					break;
+
+				default:
+					csio_warn(hw, "Unhandled event %x on evtq\n",
+							  evt_msg->type);
+					CSIO_INC_STATS(hw, n_evt_unexp);
+					break;
 			}
+
 free_evt:
 			csio_free_evt(hw, evt_msg);
 		}
 
 		spin_lock_irq(&hw->lock);
 	}
+
 	hw->flags &= ~CSIO_HWF_FWEVT_PENDING;
 	spin_unlock_irq(&hw->lock);
 }
@@ -3595,13 +4270,14 @@ csio_fwevtq_handler(struct csio_hw *hw)
 {
 	int rv;
 
-	if (csio_q_iqid(hw, hw->fwevt_iq_idx) == CSIO_MAX_QID) {
+	if (csio_q_iqid(hw, hw->fwevt_iq_idx) == CSIO_MAX_QID)
+	{
 		CSIO_INC_STATS(hw, n_int_stray);
 		return -EINVAL;
 	}
 
 	rv = csio_wr_process_iq_idx(hw, hw->fwevt_iq_idx,
-			   csio_process_fwevtq_entry, NULL);
+								csio_process_fwevtq_entry, NULL);
 	return rv;
 }
 
@@ -3624,9 +4300,12 @@ csio_mgmt_req_lookup(struct csio_mgmtm *mgmtm, struct csio_ioreq *io_req)
 	struct list_head *tmp;
 
 	/* Lookup ioreq in the ACTIVEQ */
-	list_for_each(tmp, &mgmtm->active_q) {
+	list_for_each(tmp, &mgmtm->active_q)
+	{
 		if (io_req == (struct csio_ioreq *)tmp)
+		{
 			return 0;
+		}
 	}
 	return -EINVAL;
 }
@@ -3650,19 +4329,25 @@ csio_mgmt_tmo_handler(uintptr_t data)
 
 	spin_lock_irq(&mgmtm->hw->lock);
 
-	list_for_each(tmp, &mgmtm->active_q) {
+	list_for_each(tmp, &mgmtm->active_q)
+	{
 		io_req = (struct csio_ioreq *) tmp;
 		io_req->tmo -= min_t(uint32_t, io_req->tmo, ECM_MIN_TMO);
 
-		if (!io_req->tmo) {
+		if (!io_req->tmo)
+		{
 			/* Dequeue the request from retry Q. */
 			tmp = csio_list_prev(tmp);
 			list_del_init(&io_req->sm.sm_list);
-			if (io_req->io_cbfn) {
+
+			if (io_req->io_cbfn)
+			{
 				/* io_req will be freed by completion handler */
 				io_req->wr_status = -ETIMEDOUT;
 				io_req->io_cbfn(mgmtm->hw, io_req);
-			} else {
+			}
+			else
+			{
 				CSIO_DB_ASSERT(0);
 			}
 		}
@@ -3671,7 +4356,8 @@ csio_mgmt_tmo_handler(uintptr_t data)
 	/* If retry queue is not empty, re-arm timer */
 	if (!list_empty(&mgmtm->active_q))
 		mod_timer(&mgmtm->mgmt_timer,
-			  jiffies + msecs_to_jiffies(ECM_MIN_TMO));
+				  jiffies + msecs_to_jiffies(ECM_MIN_TMO));
+
 	spin_unlock_irq(&mgmtm->hw->lock);
 }
 
@@ -3684,20 +4370,25 @@ csio_mgmtm_cleanup(struct csio_mgmtm *mgmtm)
 	uint32_t count;
 
 	count = 30;
+
 	/* Wait for all outstanding req to complete gracefully */
-	while ((!list_empty(&mgmtm->active_q)) && count--) {
+	while ((!list_empty(&mgmtm->active_q)) && count--)
+	{
 		spin_unlock_irq(&hw->lock);
 		msleep(2000);
 		spin_lock_irq(&hw->lock);
 	}
 
 	/* release outstanding req from ACTIVEQ */
-	list_for_each(tmp, &mgmtm->active_q) {
+	list_for_each(tmp, &mgmtm->active_q)
+	{
 		io_req = (struct csio_ioreq *) tmp;
 		tmp = csio_list_prev(tmp);
 		list_del_init(&io_req->sm.sm_list);
 		mgmtm->stats.n_active--;
-		if (io_req->io_cbfn) {
+
+		if (io_req->io_cbfn)
+		{
 			/* io_req will be freed by completion handler */
 			io_req->wr_status = -ETIMEDOUT;
 			io_req->io_cbfn(mgmtm->hw, io_req);
@@ -3769,9 +4460,13 @@ csio_hw_start(struct csio_hw *hw)
 	spin_unlock_irq(&hw->lock);
 
 	if (csio_is_hw_ready(hw))
+	{
 		return 0;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 }
 
 int
@@ -3780,9 +4475,13 @@ csio_hw_stop(struct csio_hw *hw)
 	csio_post_event(&hw->sm, CSIO_HWE_PCI_REMOVE);
 
 	if (csio_is_hw_removing(hw))
+	{
 		return 0;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 }
 
 /* Max reset retries */
@@ -3798,9 +4497,12 @@ int
 csio_hw_reset(struct csio_hw *hw)
 {
 	if (!csio_is_hw_master(hw))
+	{
 		return -EPERM;
+	}
 
-	if (hw->rst_retries >= CSIO_MAX_RESET_RETRIES) {
+	if (hw->rst_retries >= CSIO_MAX_RESET_RETRIES)
+	{
 		csio_dbg(hw, "Max hw reset attempts reached..");
 		return -EINVAL;
 	}
@@ -3808,12 +4510,16 @@ csio_hw_reset(struct csio_hw *hw)
 	hw->rst_retries++;
 	csio_post_event(&hw->sm, CSIO_HWE_HBA_RESET);
 
-	if (csio_is_hw_ready(hw)) {
+	if (csio_is_hw_ready(hw))
+	{
 		hw->rst_retries = 0;
 		hw->stats.n_reset_start = jiffies_to_msecs(jiffies);
 		return 0;
-	} else
+	}
+	else
+	{
 		return -EINVAL;
+	}
 }
 
 /*
@@ -3825,13 +4531,15 @@ csio_hw_get_device_id(struct csio_hw *hw)
 {
 	/* Is the adapter device id cached already ?*/
 	if (csio_is_dev_id_cached(hw))
+	{
 		return;
+	}
 
 	/* Get the PCI vendor & device id */
 	pci_read_config_word(hw->pdev, PCI_VENDOR_ID,
-			     &hw->params.pci.vendor_id);
+						 &hw->params.pci.vendor_id);
 	pci_read_config_word(hw->pdev, PCI_DEVICE_ID,
-			     &hw->params.pci.device_id);
+						 &hw->params.pci.device_id);
 
 	csio_dev_id_cached(hw);
 	hw->chip_id = (hw->params.pci.device_id & CSIO_HW_CHIP_MASK);
@@ -3849,17 +4557,21 @@ csio_hw_set_description(struct csio_hw *hw, uint16_t ven_id, uint16_t dev_id)
 {
 	uint32_t adap_type, prot_type;
 
-	if (ven_id == CSIO_VENDOR_ID) {
+	if (ven_id == CSIO_VENDOR_ID)
+	{
 		prot_type = (dev_id & CSIO_ASIC_DEVID_PROTO_MASK);
 		adap_type = (dev_id & CSIO_ASIC_DEVID_TYPE_MASK);
 
-		if (prot_type == CSIO_T5_FCOE_ASIC) {
+		if (prot_type == CSIO_T5_FCOE_ASIC)
+		{
 			memcpy(hw->hw_ver,
-			       csio_t5_fcoe_adapters[adap_type].model_no, 16);
+				   csio_t5_fcoe_adapters[adap_type].model_no, 16);
 			memcpy(hw->model_desc,
-			       csio_t5_fcoe_adapters[adap_type].description,
-			       32);
-		} else {
+				   csio_t5_fcoe_adapters[adap_type].description,
+				   32);
+		}
+		else
+		{
 			char tempName[32] = "Chelsio FCoE Controller";
 			memcpy(hw->model_desc, tempName, 32);
 		}
@@ -3908,26 +4620,42 @@ csio_hw_init(struct csio_hw *hw)
 
 	/* Init all the modules: Mailbox, WorkRequest and Transport */
 	if (csio_mbm_init(csio_hw_to_mbm(hw), hw, csio_hw_mb_timer))
+	{
 		goto err;
+	}
 
 	rv = csio_wrm_init(csio_hw_to_wrm(hw), hw);
+
 	if (rv)
+	{
 		goto err_mbm_exit;
+	}
 
 	rv = csio_scsim_init(csio_hw_to_scsim(hw), hw);
+
 	if (rv)
+	{
 		goto err_wrm_exit;
+	}
 
 	rv = csio_mgmtm_init(csio_hw_to_mgmtm(hw), hw);
+
 	if (rv)
+	{
 		goto err_scsim_exit;
+	}
+
 	/* Pre-allocate evtq and initialize them */
 	INIT_LIST_HEAD(&hw->evt_active_q);
 	INIT_LIST_HEAD(&hw->evt_free_q);
-	for (i = 0; i < csio_evtq_sz; i++) {
+
+	for (i = 0; i < csio_evtq_sz; i++)
+	{
 
 		evt_entry = kzalloc(sizeof(struct csio_evt_msg), GFP_KERNEL);
-		if (!evt_entry) {
+
+		if (!evt_entry)
+		{
 			rv = -ENOMEM;
 			csio_err(hw, "Failed to initialize eventq");
 			goto err_evtq_cleanup;

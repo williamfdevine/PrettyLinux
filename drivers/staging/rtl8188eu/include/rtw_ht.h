@@ -17,7 +17,8 @@
 
 #include <linux/ieee80211.h>
 
-struct ht_priv {
+struct ht_priv
+{
 	u32	ht_option;
 	u32	ampdu_enable;/* for enable Tx A-MPDU */
 	u8	bwmode;/*  */

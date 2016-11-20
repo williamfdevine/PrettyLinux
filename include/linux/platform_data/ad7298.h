@@ -13,7 +13,8 @@
  * struct ad7298_platform_data - Platform data for the ad7298 ADC driver
  * @ext_ref: Whether to use an external reference voltage.
  **/
-struct ad7298_platform_data {
+struct ad7298_platform_data
+{
 	bool ext_ref;
 };
 

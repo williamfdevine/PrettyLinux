@@ -55,7 +55,8 @@
 /* NR_GRANT_FRAMES must be less than or equal to that configured in Xen */
 #define NR_GRANT_FRAMES 4
 
-struct gnttab_free_callback {
+struct gnttab_free_callback
+{
 	struct gnttab_free_callback *next;
 	void (*fn)(void *);
 	void *arg;
@@ -83,7 +84,7 @@ int gnttab_suspend(void);
 int gnttab_resume(void);
 
 int gnttab_grant_foreign_access(domid_t domid, unsigned long frame,
-				int readonly);
+								int readonly);
 
 /*
  * End access through the given grant reference, iff the grant entry is no
@@ -99,7 +100,7 @@ int gnttab_end_foreign_access_ref(grant_ref_t ref, int readonly);
  * some time later.  page may be 0, in which case no freeing will occur.
  */
 void gnttab_end_foreign_access(grant_ref_t ref, int readonly,
-			       unsigned long page);
+							   unsigned long page);
 
 int gnttab_grant_foreign_transfer(domid_t domid, unsigned long pfn);
 
@@ -122,14 +123,14 @@ int gnttab_empty_grant_references(const grant_ref_t *pprivate_head);
 int gnttab_claim_grant_reference(grant_ref_t *pprivate_head);
 
 void gnttab_release_grant_reference(grant_ref_t *private_head,
-				    grant_ref_t release);
+									grant_ref_t release);
 
 void gnttab_request_free_callback(struct gnttab_free_callback *callback,
-				  void (*fn)(void *), void *arg, u16 count);
+								  void (*fn)(void *), void *arg, u16 count);
 void gnttab_cancel_free_callback(struct gnttab_free_callback *callback);
 
 void gnttab_grant_foreign_access_ref(grant_ref_t ref, domid_t domid,
-				     unsigned long frame, int readonly);
+									 unsigned long frame, int readonly);
 
 /* Give access to the first 4K of the page */
 static inline void gnttab_page_grant_foreign_access_ref_one(
@@ -137,22 +138,28 @@ static inline void gnttab_page_grant_foreign_access_ref_one(
 	struct page *page, int readonly)
 {
 	gnttab_grant_foreign_access_ref(ref, domid, xen_page_to_gfn(page),
-					readonly);
+									readonly);
 }
 
 void gnttab_grant_foreign_transfer_ref(grant_ref_t, domid_t domid,
-				       unsigned long pfn);
+									   unsigned long pfn);
 
 static inline void
 gnttab_set_map_op(struct gnttab_map_grant_ref *map, phys_addr_t addr,
-		  uint32_t flags, grant_ref_t ref, domid_t domid)
+				  uint32_t flags, grant_ref_t ref, domid_t domid)
 {
 	if (flags & GNTMAP_contains_pte)
+	{
 		map->host_addr = addr;
+	}
 	else if (xen_feature(XENFEAT_auto_translated_physmap))
+	{
 		map->host_addr = __pa(addr);
+	}
 	else
+	{
 		map->host_addr = addr;
+	}
 
 	map->flags = flags;
 	map->ref = ref;
@@ -161,14 +168,20 @@ gnttab_set_map_op(struct gnttab_map_grant_ref *map, phys_addr_t addr,
 
 static inline void
 gnttab_set_unmap_op(struct gnttab_unmap_grant_ref *unmap, phys_addr_t addr,
-		    uint32_t flags, grant_handle_t handle)
+					uint32_t flags, grant_handle_t handle)
 {
 	if (flags & GNTMAP_contains_pte)
+	{
 		unmap->host_addr = addr;
+	}
 	else if (xen_feature(XENFEAT_auto_translated_physmap))
+	{
 		unmap->host_addr = __pa(addr);
+	}
 	else
+	{
 		unmap->host_addr = addr;
+	}
 
 	unmap->handle = handle;
 	unmap->dev_bus_addr = 0;
@@ -176,11 +189,12 @@ gnttab_set_unmap_op(struct gnttab_unmap_grant_ref *unmap, phys_addr_t addr,
 
 int arch_gnttab_init(unsigned long nr_shared);
 int arch_gnttab_map_shared(xen_pfn_t *frames, unsigned long nr_gframes,
-			   unsigned long max_nr_gframes,
-			   void **__shared);
+						   unsigned long max_nr_gframes,
+						   void **__shared);
 void arch_gnttab_unmap(void *shared, unsigned long nr_gframes);
 
-struct grant_frames {
+struct grant_frames
+{
 	xen_pfn_t *pfn;
 	unsigned int count;
 	void *vaddr;
@@ -196,12 +210,12 @@ int gnttab_alloc_pages(int nr_pages, struct page **pages);
 void gnttab_free_pages(int nr_pages, struct page **pages);
 
 int gnttab_map_refs(struct gnttab_map_grant_ref *map_ops,
-		    struct gnttab_map_grant_ref *kmap_ops,
-		    struct page **pages, unsigned int count);
+					struct gnttab_map_grant_ref *kmap_ops,
+					struct page **pages, unsigned int count);
 int gnttab_unmap_refs(struct gnttab_unmap_grant_ref *unmap_ops,
-		      struct gnttab_unmap_grant_ref *kunmap_ops,
-		      struct page **pages, unsigned int count);
-void gnttab_unmap_refs_async(struct gntab_unmap_queue_data* item);
+					  struct gnttab_unmap_grant_ref *kunmap_ops,
+					  struct page **pages, unsigned int count);
+void gnttab_unmap_refs_async(struct gntab_unmap_queue_data *item);
 int gnttab_unmap_refs_sync(struct gntab_unmap_queue_data *item);
 
 
@@ -218,7 +232,8 @@ void gnttab_batch_map(struct gnttab_map_grant_ref *batch, unsigned count);
 void gnttab_batch_copy(struct gnttab_copy *batch, unsigned count);
 
 
-struct xen_page_foreign {
+struct xen_page_foreign
+{
 	domid_t domid;
 	grant_ref_t gref;
 };
@@ -226,7 +241,10 @@ struct xen_page_foreign {
 static inline struct xen_page_foreign *xen_page_foreign(struct page *page)
 {
 	if (!PageForeign(page))
+	{
 		return NULL;
+	}
+
 #if BITS_PER_LONG < 64
 	return (struct xen_page_foreign *)page->private;
 #else
@@ -244,31 +262,31 @@ static inline struct xen_page_foreign *xen_page_foreign(struct page *page)
  *	data: internal information
  */
 typedef void (*xen_grant_fn_t)(unsigned long gfn, unsigned int offset,
-			       unsigned int len, void *data);
+							   unsigned int len, void *data);
 
 void gnttab_foreach_grant_in_range(struct page *page,
-				   unsigned int offset,
-				   unsigned int len,
-				   xen_grant_fn_t fn,
-				   void *data);
+								   unsigned int offset,
+								   unsigned int len,
+								   xen_grant_fn_t fn,
+								   void *data);
 
 /* Helper to get to call fn only on the first "grant chunk" */
 static inline void gnttab_for_one_grant(struct page *page, unsigned int offset,
-					unsigned len, xen_grant_fn_t fn,
-					void *data)
+										unsigned len, xen_grant_fn_t fn,
+										void *data)
 {
 	/* The first request is limited to the size of one grant */
 	len = min_t(unsigned int, XEN_PAGE_SIZE - (offset & ~XEN_PAGE_MASK),
-		    len);
+				len);
 
 	gnttab_foreach_grant_in_range(page, offset, len, fn, data);
 }
 
 /* Get @nr_grefs grants from an array of page and call fn for each grant */
 void gnttab_foreach_grant(struct page **pages,
-			  unsigned int nr_grefs,
-			  xen_grant_fn_t fn,
-			  void *data);
+						  unsigned int nr_grefs,
+						  xen_grant_fn_t fn,
+						  void *data);
 
 /* Get the number of grant in a specified region
  *
@@ -276,7 +294,7 @@ void gnttab_foreach_grant(struct page **pages,
  * len: total length of data (can cross multiple page)
  */
 static inline unsigned int gnttab_count_grant(unsigned int start,
-					      unsigned int len)
+		unsigned int len)
 {
 	return XEN_PFN_UP(xen_offset_in_page(start) + len);
 }

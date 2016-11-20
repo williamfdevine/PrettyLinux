@@ -17,22 +17,26 @@
 
 #define RTL_FRAG_LEN 252
 
-struct rtl_download_cmd {
+struct rtl_download_cmd
+{
 	__u8 index;
 	__u8 data[RTL_FRAG_LEN];
 } __packed;
 
-struct rtl_download_response {
+struct rtl_download_response
+{
 	__u8 status;
 	__u8 index;
 } __packed;
 
-struct rtl_rom_version_evt {
+struct rtl_rom_version_evt
+{
 	__u8 status;
 	__u8 version;
 } __packed;
 
-struct rtl_epatch_header {
+struct rtl_epatch_header
+{
 	__u8 signature[8];
 	__le32 fw_version;
 	__le16 num_patches;

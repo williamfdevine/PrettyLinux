@@ -82,17 +82,24 @@ static int avma1cs_config(struct pcmcia_device *link)
 	dev_dbg(&link->dev, "avma1cs_config(0x%p)\n", link);
 
 	devname[0] = 0;
+
 	if (link->prod_id[1])
+	{
 		strlcpy(devname, link->prod_id[1], sizeof(devname));
+	}
 
 	if (pcmcia_loop_config(link, avma1cs_configcheck, NULL))
+	{
 		return -ENODEV;
+	}
 
-	do {
+	do
+	{
 		/*
 		 * allocate an interrupt line
 		 */
-		if (!link->irq) {
+		if (!link->irq)
+		{
 			/* undo */
 			pcmcia_disable_device(link);
 			break;
@@ -102,15 +109,19 @@ static int avma1cs_config(struct pcmcia_device *link)
 		 * configure the PCMCIA socket
 		 */
 		i = pcmcia_enable_device(link);
-		if (i != 0) {
+
+		if (i != 0)
+		{
 			pcmcia_disable_device(link);
 			break;
 		}
 
-	} while (0);
+	}
+	while (0);
 
 	/* If any step failed, release any partially configured state */
-	if (i != 0) {
+	if (i != 0)
+	{
 		avma1cs_release(link);
 		return -ENODEV;
 	}
@@ -121,13 +132,16 @@ static int avma1cs_config(struct pcmcia_device *link)
 	icard.typ = ISDN_CTYPE_A1_PCMCIA;
 
 	i = hisax_init_pcmcia(link, &busy, &icard);
-	if (i < 0) {
+
+	if (i < 0)
+	{
 		printk(KERN_ERR "avma1_cs: failed to initialize AVM A1 "
-		       "PCMCIA %d at i/o %#x\n", i,
-		       (unsigned int) link->resource[0]->start);
+			   "PCMCIA %d at i/o %#x\n", i,
+			   (unsigned int) link->resource[0]->start);
 		avma1cs_release(link);
 		return -ENODEV;
 	}
+
 	link->priv = (void *) (unsigned long) i;
 
 	return 0;
@@ -145,14 +159,16 @@ static void avma1cs_release(struct pcmcia_device *link)
 	pcmcia_disable_device(link);
 } /* avma1cs_release */
 
-static const struct pcmcia_device_id avma1cs_ids[] = {
+static const struct pcmcia_device_id avma1cs_ids[] =
+{
 	PCMCIA_DEVICE_PROD_ID12("AVM", "ISDN A", 0x95d42008, 0xadc9d4bb),
 	PCMCIA_DEVICE_PROD_ID12("ISDN", "CARD", 0x8d9761c8, 0x01c5aa7b),
 	PCMCIA_DEVICE_NULL
 };
 MODULE_DEVICE_TABLE(pcmcia, avma1cs_ids);
 
-static struct pcmcia_driver avma1cs_driver = {
+static struct pcmcia_driver avma1cs_driver =
+{
 	.owner		= THIS_MODULE,
 	.name		= "avma1_cs",
 	.probe		= avma1cs_probe,

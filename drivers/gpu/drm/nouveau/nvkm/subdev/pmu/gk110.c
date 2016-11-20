@@ -32,10 +32,12 @@ void
 gk110_pmu_pgob(struct nvkm_pmu *pmu, bool enable)
 {
 	struct nvkm_device *device = pmu->subdev.device;
-	static const struct {
+	static const struct
+	{
 		u32 addr;
 		u32 data;
-	} magic[] = {
+	} magic[] =
+	{
 		{ 0x020520, 0xfffffffc },
 		{ 0x020524, 0xfffffffe },
 		{ 0x020524, 0xfffffffc },
@@ -65,12 +67,15 @@ gk110_pmu_pgob(struct nvkm_pmu *pmu, bool enable)
 	nvkm_mask(device, 0x10a78c, 0x00000001, 0x00000000);
 
 	nvkm_mask(device, 0x0206b4, 0x00000000, 0x00000000);
-	for (i = 0; i < ARRAY_SIZE(magic); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(magic); i++)
+	{
 		nvkm_wr32(device, magic[i].addr, magic[i].data);
 		nvkm_msec(device, 2000,
-			if (!(nvkm_rd32(device, magic[i].addr) & 0x80000000))
-				break;
-		);
+
+				  if (!(nvkm_rd32(device, magic[i].addr) & 0x80000000))
+				  break;
+				 );
 	}
 
 	nvkm_mask(device, 0x10a78c, 0x00000002, 0x00000000);
@@ -83,7 +88,8 @@ gk110_pmu_pgob(struct nvkm_pmu *pmu, bool enable)
 }
 
 static const struct nvkm_pmu_func
-gk110_pmu = {
+	gk110_pmu =
+{
 	.code.data = gk110_pmu_code,
 	.code.size = sizeof(gk110_pmu_code),
 	.data.data = gk110_pmu_data,

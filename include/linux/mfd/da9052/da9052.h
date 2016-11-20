@@ -78,7 +78,8 @@
 #define DA9052_IRQ_GPI14	30
 #define DA9052_IRQ_GPI15	31
 
-enum da9052_chip_id {
+enum da9052_chip_id
+{
 	DA9052,
 	DA9053_AA,
 	DA9053_BA,
@@ -88,7 +89,8 @@ enum da9052_chip_id {
 
 struct da9052_pdata;
 
-struct da9052 {
+struct da9052
+{
 	struct device *dev;
 	struct regmap *regmap;
 
@@ -115,94 +117,131 @@ static inline int da9052_reg_read(struct da9052 *da9052, unsigned char reg)
 	int val, ret;
 
 	ret = regmap_read(da9052->regmap, reg, &val);
-	if (ret < 0)
-		return ret;
 
-	if (da9052->fix_io) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	if (da9052->fix_io)
+	{
 		ret = da9052->fix_io(da9052, reg);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	return val;
 }
 
 static inline int da9052_reg_write(struct da9052 *da9052, unsigned char reg,
-				    unsigned char val)
+								   unsigned char val)
 {
 	int ret;
 
 	ret = regmap_write(da9052->regmap, reg, val);
-	if (ret < 0)
-		return ret;
 
-	if (da9052->fix_io) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	if (da9052->fix_io)
+	{
 		ret = da9052->fix_io(da9052, reg);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	return ret;
 }
 
 static inline int da9052_group_read(struct da9052 *da9052, unsigned char reg,
-				     unsigned reg_cnt, unsigned char *val)
+									unsigned reg_cnt, unsigned char *val)
 {
 	int ret;
 	unsigned int tmp;
 	int i;
 
-	for (i = 0; i < reg_cnt; i++) {
+	for (i = 0; i < reg_cnt; i++)
+	{
 		ret = regmap_read(da9052->regmap, reg + i, &tmp);
 		val[i] = (unsigned char)tmp;
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
-	if (da9052->fix_io) {
+	if (da9052->fix_io)
+	{
 		ret = da9052->fix_io(da9052, reg);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	return ret;
 }
 
 static inline int da9052_group_write(struct da9052 *da9052, unsigned char reg,
-				      unsigned reg_cnt, unsigned char *val)
+									 unsigned reg_cnt, unsigned char *val)
 {
 	int ret = 0;
 	int i;
 
-	for (i = 0; i < reg_cnt; i++) {
+	for (i = 0; i < reg_cnt; i++)
+	{
 		ret = regmap_write(da9052->regmap, reg + i, val[i]);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
-	if (da9052->fix_io) {
+	if (da9052->fix_io)
+	{
 		ret = da9052->fix_io(da9052, reg);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	return ret;
 }
 
 static inline int da9052_reg_update(struct da9052 *da9052, unsigned char reg,
-				     unsigned char bit_mask,
-				     unsigned char reg_val)
+									unsigned char bit_mask,
+									unsigned char reg_val)
 {
 	int ret;
 
 	ret = regmap_update_bits(da9052->regmap, reg, bit_mask, reg_val);
-	if (ret < 0)
-		return ret;
 
-	if (da9052->fix_io) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	if (da9052->fix_io)
+	{
 		ret = da9052->fix_io(da9052, reg);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	return ret;
@@ -216,7 +255,7 @@ extern const struct regmap_config da9052_regmap_config;
 int da9052_irq_init(struct da9052 *da9052);
 int da9052_irq_exit(struct da9052 *da9052);
 int da9052_request_irq(struct da9052 *da9052, int irq, char *name,
-			   irq_handler_t handler, void *data);
+					   irq_handler_t handler, void *data);
 void da9052_free_irq(struct da9052 *da9052, int irq, void *data);
 
 int da9052_enable_irq(struct da9052 *da9052, int irq);

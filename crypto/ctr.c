@@ -21,22 +21,25 @@
 #include <linux/scatterlist.h>
 #include <linux/slab.h>
 
-struct crypto_ctr_ctx {
+struct crypto_ctr_ctx
+{
 	struct crypto_cipher *child;
 };
 
-struct crypto_rfc3686_ctx {
+struct crypto_rfc3686_ctx
+{
 	struct crypto_skcipher *child;
 	u8 nonce[CTR_RFC3686_NONCE_SIZE];
 };
 
-struct crypto_rfc3686_req_ctx {
+struct crypto_rfc3686_req_ctx
+{
 	u8 iv[CTR_RFC3686_BLOCK_SIZE];
 	struct skcipher_request subreq CRYPTO_MINALIGN_ATTR;
 };
 
 static int crypto_ctr_setkey(struct crypto_tfm *parent, const u8 *key,
-			     unsigned int keylen)
+							 unsigned int keylen)
 {
 	struct crypto_ctr_ctx *ctx = crypto_tfm_ctx(parent);
 	struct crypto_cipher *child = ctx->child;
@@ -44,16 +47,16 @@ static int crypto_ctr_setkey(struct crypto_tfm *parent, const u8 *key,
 
 	crypto_cipher_clear_flags(child, CRYPTO_TFM_REQ_MASK);
 	crypto_cipher_set_flags(child, crypto_tfm_get_flags(parent) &
-				CRYPTO_TFM_REQ_MASK);
+							CRYPTO_TFM_REQ_MASK);
 	err = crypto_cipher_setkey(child, key, keylen);
 	crypto_tfm_set_flags(parent, crypto_cipher_get_flags(child) &
-			     CRYPTO_TFM_RES_MASK);
+						 CRYPTO_TFM_RES_MASK);
 
 	return err;
 }
 
 static void crypto_ctr_crypt_final(struct blkcipher_walk *walk,
-				   struct crypto_cipher *tfm)
+								   struct crypto_cipher *tfm)
 {
 	unsigned int bsize = crypto_cipher_blocksize(tfm);
 	unsigned long alignmask = crypto_cipher_alignmask(tfm);
@@ -72,17 +75,18 @@ static void crypto_ctr_crypt_final(struct blkcipher_walk *walk,
 }
 
 static int crypto_ctr_crypt_segment(struct blkcipher_walk *walk,
-				    struct crypto_cipher *tfm)
+									struct crypto_cipher *tfm)
 {
 	void (*fn)(struct crypto_tfm *, u8 *, const u8 *) =
-		   crypto_cipher_alg(tfm)->cia_encrypt;
+		crypto_cipher_alg(tfm)->cia_encrypt;
 	unsigned int bsize = crypto_cipher_blocksize(tfm);
 	u8 *ctrblk = walk->iv;
 	u8 *src = walk->src.virt.addr;
 	u8 *dst = walk->dst.virt.addr;
 	unsigned int nbytes = walk->nbytes;
 
-	do {
+	do
+	{
 		/* create keystream */
 		fn(crypto_cipher_tfm(tfm), dst, ctrblk);
 		crypto_xor(dst, src, bsize);
@@ -92,16 +96,17 @@ static int crypto_ctr_crypt_segment(struct blkcipher_walk *walk,
 
 		src += bsize;
 		dst += bsize;
-	} while ((nbytes -= bsize) >= bsize);
+	}
+	while ((nbytes -= bsize) >= bsize);
 
 	return nbytes;
 }
 
 static int crypto_ctr_crypt_inplace(struct blkcipher_walk *walk,
-				    struct crypto_cipher *tfm)
+									struct crypto_cipher *tfm)
 {
 	void (*fn)(struct crypto_tfm *, u8 *, const u8 *) =
-		   crypto_cipher_alg(tfm)->cia_encrypt;
+		crypto_cipher_alg(tfm)->cia_encrypt;
 	unsigned int bsize = crypto_cipher_blocksize(tfm);
 	unsigned long alignmask = crypto_cipher_alignmask(tfm);
 	unsigned int nbytes = walk->nbytes;
@@ -110,7 +115,8 @@ static int crypto_ctr_crypt_inplace(struct blkcipher_walk *walk,
 	u8 tmp[bsize + alignmask];
 	u8 *keystream = PTR_ALIGN(tmp + 0, alignmask + 1);
 
-	do {
+	do
+	{
 		/* create keystream */
 		fn(crypto_cipher_tfm(tfm), keystream, ctrblk);
 		crypto_xor(src, keystream, bsize);
@@ -119,14 +125,15 @@ static int crypto_ctr_crypt_inplace(struct blkcipher_walk *walk,
 		crypto_inc(ctrblk, bsize);
 
 		src += bsize;
-	} while ((nbytes -= bsize) >= bsize);
+	}
+	while ((nbytes -= bsize) >= bsize);
 
 	return nbytes;
 }
 
 static int crypto_ctr_crypt(struct blkcipher_desc *desc,
-			      struct scatterlist *dst, struct scatterlist *src,
-			      unsigned int nbytes)
+							struct scatterlist *dst, struct scatterlist *src,
+							unsigned int nbytes)
 {
 	struct blkcipher_walk walk;
 	struct crypto_blkcipher *tfm = desc->tfm;
@@ -138,16 +145,22 @@ static int crypto_ctr_crypt(struct blkcipher_desc *desc,
 	blkcipher_walk_init(&walk, dst, src, nbytes);
 	err = blkcipher_walk_virt_block(desc, &walk, bsize);
 
-	while (walk.nbytes >= bsize) {
+	while (walk.nbytes >= bsize)
+	{
 		if (walk.src.virt.addr == walk.dst.virt.addr)
+		{
 			nbytes = crypto_ctr_crypt_inplace(&walk, child);
+		}
 		else
+		{
 			nbytes = crypto_ctr_crypt_segment(&walk, child);
+		}
 
 		err = blkcipher_walk_done(desc, &walk, nbytes);
 	}
 
-	if (walk.nbytes) {
+	if (walk.nbytes)
+	{
 		crypto_ctr_crypt_final(&walk, child);
 		err = blkcipher_walk_done(desc, &walk, 0);
 	}
@@ -163,8 +176,11 @@ static int crypto_ctr_init_tfm(struct crypto_tfm *tfm)
 	struct crypto_cipher *cipher;
 
 	cipher = crypto_spawn_cipher(spawn);
+
 	if (IS_ERR(cipher))
+	{
 		return PTR_ERR(cipher);
+	}
 
 	ctx->child = cipher;
 
@@ -185,26 +201,40 @@ static struct crypto_instance *crypto_ctr_alloc(struct rtattr **tb)
 	int err;
 
 	err = crypto_check_attr_type(tb, CRYPTO_ALG_TYPE_BLKCIPHER);
+
 	if (err)
+	{
 		return ERR_PTR(err);
+	}
 
 	alg = crypto_attr_alg(tb[1], CRYPTO_ALG_TYPE_CIPHER,
-				  CRYPTO_ALG_TYPE_MASK);
+						  CRYPTO_ALG_TYPE_MASK);
+
 	if (IS_ERR(alg))
+	{
 		return ERR_CAST(alg);
+	}
 
 	/* Block size must be >= 4 bytes. */
 	err = -EINVAL;
+
 	if (alg->cra_blocksize < 4)
+	{
 		goto out_put_alg;
+	}
 
 	/* If this is false we'd fail the alignment of crypto_inc. */
 	if (alg->cra_blocksize % 4)
+	{
 		goto out_put_alg;
+	}
 
 	inst = crypto_alloc_instance("ctr", alg);
+
 	if (IS_ERR(inst))
+	{
 		goto out;
+	}
 
 	inst->alg.cra_flags = CRYPTO_ALG_TYPE_BLKCIPHER;
 	inst->alg.cra_priority = alg->cra_priority;
@@ -242,7 +272,8 @@ static void crypto_ctr_free(struct crypto_instance *inst)
 	kfree(inst);
 }
 
-static struct crypto_template crypto_ctr_tmpl = {
+static struct crypto_template crypto_ctr_tmpl =
+{
 	.name = "ctr",
 	.alloc = crypto_ctr_alloc,
 	.free = crypto_ctr_free,
@@ -250,7 +281,7 @@ static struct crypto_template crypto_ctr_tmpl = {
 };
 
 static int crypto_rfc3686_setkey(struct crypto_skcipher *parent,
-				 const u8 *key, unsigned int keylen)
+								 const u8 *key, unsigned int keylen)
 {
 	struct crypto_rfc3686_ctx *ctx = crypto_skcipher_ctx(parent);
 	struct crypto_skcipher *child = ctx->child;
@@ -258,19 +289,21 @@ static int crypto_rfc3686_setkey(struct crypto_skcipher *parent,
 
 	/* the nonce is stored in bytes at end of key */
 	if (keylen < CTR_RFC3686_NONCE_SIZE)
+	{
 		return -EINVAL;
+	}
 
 	memcpy(ctx->nonce, key + (keylen - CTR_RFC3686_NONCE_SIZE),
-	       CTR_RFC3686_NONCE_SIZE);
+		   CTR_RFC3686_NONCE_SIZE);
 
 	keylen -= CTR_RFC3686_NONCE_SIZE;
 
 	crypto_skcipher_clear_flags(child, CRYPTO_TFM_REQ_MASK);
 	crypto_skcipher_set_flags(child, crypto_skcipher_get_flags(parent) &
-					 CRYPTO_TFM_REQ_MASK);
+							  CRYPTO_TFM_REQ_MASK);
 	err = crypto_skcipher_setkey(child, key, keylen);
 	crypto_skcipher_set_flags(parent, crypto_skcipher_get_flags(child) &
-					  CRYPTO_TFM_RES_MASK);
+							  CRYPTO_TFM_RES_MASK);
 
 	return err;
 }
@@ -296,9 +329,9 @@ static int crypto_rfc3686_crypt(struct skcipher_request *req)
 
 	skcipher_request_set_tfm(subreq, child);
 	skcipher_request_set_callback(subreq, req->base.flags,
-				      req->base.complete, req->base.data);
+								  req->base.complete, req->base.data);
 	skcipher_request_set_crypt(subreq, req->src, req->dst,
-				   req->cryptlen, iv);
+							   req->cryptlen, iv);
 
 	return crypto_skcipher_encrypt(subreq);
 }
@@ -313,15 +346,18 @@ static int crypto_rfc3686_init_tfm(struct crypto_skcipher *tfm)
 	unsigned int reqsize;
 
 	cipher = crypto_spawn_skcipher2(spawn);
+
 	if (IS_ERR(cipher))
+	{
 		return PTR_ERR(cipher);
+	}
 
 	ctx->child = cipher;
 
 	align = crypto_skcipher_alignmask(tfm);
 	align &= ~(crypto_tfm_ctx_alignment() - 1);
 	reqsize = align + sizeof(struct crypto_rfc3686_req_ctx) +
-		  crypto_skcipher_reqsize(cipher);
+			  crypto_skcipher_reqsize(cipher);
 	crypto_skcipher_set_reqsize(tfm, reqsize);
 
 	return 0;
@@ -343,7 +379,7 @@ static void crypto_rfc3686_free(struct skcipher_instance *inst)
 }
 
 static int crypto_rfc3686_create(struct crypto_template *tmpl,
-				 struct rtattr **tb)
+								 struct rtattr **tb)
 {
 	struct crypto_attr_type *algt;
 	struct skcipher_instance *inst;
@@ -353,48 +389,73 @@ static int crypto_rfc3686_create(struct crypto_template *tmpl,
 	int err;
 
 	algt = crypto_get_attr_type(tb);
+
 	if (IS_ERR(algt))
+	{
 		return PTR_ERR(algt);
+	}
 
 	if ((algt->type ^ CRYPTO_ALG_TYPE_SKCIPHER) & algt->mask)
+	{
 		return -EINVAL;
+	}
 
 	cipher_name = crypto_attr_alg_name(tb[1]);
+
 	if (IS_ERR(cipher_name))
+	{
 		return PTR_ERR(cipher_name);
+	}
 
 	inst = kzalloc(sizeof(*inst) + sizeof(*spawn), GFP_KERNEL);
+
 	if (!inst)
+	{
 		return -ENOMEM;
+	}
 
 	spawn = skcipher_instance_ctx(inst);
 
 	crypto_set_skcipher_spawn(spawn, skcipher_crypto_instance(inst));
 	err = crypto_grab_skcipher2(spawn, cipher_name, 0,
-				    crypto_requires_sync(algt->type,
-							 algt->mask));
+								crypto_requires_sync(algt->type,
+										algt->mask));
+
 	if (err)
+	{
 		goto err_free_inst;
+	}
 
 	alg = crypto_spawn_skcipher_alg(spawn);
 
 	/* We only support 16-byte blocks. */
 	err = -EINVAL;
+
 	if (crypto_skcipher_alg_ivsize(alg) != CTR_RFC3686_BLOCK_SIZE)
+	{
 		goto err_drop_spawn;
+	}
 
 	/* Not a stream cipher? */
 	if (alg->base.cra_blocksize != 1)
+	{
 		goto err_drop_spawn;
+	}
 
 	err = -ENAMETOOLONG;
+
 	if (snprintf(inst->alg.base.cra_name, CRYPTO_MAX_ALG_NAME,
-		     "rfc3686(%s)", alg->base.cra_name) >= CRYPTO_MAX_ALG_NAME)
+				 "rfc3686(%s)", alg->base.cra_name) >= CRYPTO_MAX_ALG_NAME)
+	{
 		goto err_drop_spawn;
+	}
+
 	if (snprintf(inst->alg.base.cra_driver_name, CRYPTO_MAX_ALG_NAME,
-		     "rfc3686(%s)", alg->base.cra_driver_name) >=
-	    CRYPTO_MAX_ALG_NAME)
+				 "rfc3686(%s)", alg->base.cra_driver_name) >=
+		CRYPTO_MAX_ALG_NAME)
+	{
 		goto err_drop_spawn;
+	}
 
 	inst->alg.base.cra_priority = alg->base.cra_priority;
 	inst->alg.base.cra_blocksize = 1;
@@ -405,9 +466,9 @@ static int crypto_rfc3686_create(struct crypto_template *tmpl,
 	inst->alg.ivsize = CTR_RFC3686_IV_SIZE;
 	inst->alg.chunksize = crypto_skcipher_alg_chunksize(alg);
 	inst->alg.min_keysize = crypto_skcipher_alg_min_keysize(alg) +
-				CTR_RFC3686_NONCE_SIZE;
+							CTR_RFC3686_NONCE_SIZE;
 	inst->alg.max_keysize = crypto_skcipher_alg_max_keysize(alg) +
-				CTR_RFC3686_NONCE_SIZE;
+							CTR_RFC3686_NONCE_SIZE;
 
 	inst->alg.setkey = crypto_rfc3686_setkey;
 	inst->alg.encrypt = crypto_rfc3686_crypt;
@@ -421,8 +482,11 @@ static int crypto_rfc3686_create(struct crypto_template *tmpl,
 	inst->free = crypto_rfc3686_free;
 
 	err = skcipher_register_instance(tmpl, inst);
+
 	if (err)
+	{
 		goto err_drop_spawn;
+	}
 
 out:
 	return err;
@@ -434,7 +498,8 @@ err_free_inst:
 	goto out;
 }
 
-static struct crypto_template crypto_rfc3686_tmpl = {
+static struct crypto_template crypto_rfc3686_tmpl =
+{
 	.name = "rfc3686",
 	.create = crypto_rfc3686_create,
 	.module = THIS_MODULE,
@@ -445,12 +510,18 @@ static int __init crypto_ctr_module_init(void)
 	int err;
 
 	err = crypto_register_template(&crypto_ctr_tmpl);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	err = crypto_register_template(&crypto_rfc3686_tmpl);
+
 	if (err)
+	{
 		goto out_drop_ctr;
+	}
 
 out:
 	return err;

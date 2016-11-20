@@ -41,13 +41,19 @@ nv10_devinit_meminit(struct nvkm_devinit *init)
 	int i, j, k;
 
 	if (device->card_type >= NV_11 && device->chipset >= 0x17)
+	{
 		mem_width_count = 3;
+	}
 	else
+	{
 		mem_width_count = 2;
+	}
 
 	/* Map the framebuffer aperture */
 	fb = fbmem_init(device);
-	if (!fb) {
+
+	if (!fb)
+	{
 		nvkm_error(subdev, "failed to map fb\n");
 		return;
 	}
@@ -55,18 +61,24 @@ nv10_devinit_meminit(struct nvkm_devinit *init)
 	nvkm_wr32(device, NV10_PFB_REFCTRL, NV10_PFB_REFCTRL_VALID_1);
 
 	/* Probe memory bus width */
-	for (i = 0; i < mem_width_count; i++) {
+	for (i = 0; i < mem_width_count; i++)
+	{
 		nvkm_mask(device, NV04_PFB_CFG0, 0x30, mem_width[i]);
 
-		for (j = 0; j < 4; j++) {
+		for (j = 0; j < 4; j++)
+		{
 			for (k = 0; k < 4; k++)
+			{
 				fbmem_poke(fb, 0x1c, 0);
+			}
 
 			fbmem_poke(fb, 0x1c, patt);
 			fbmem_poke(fb, 0x3c, 0);
 
 			if (fbmem_peek(fb, 0x1c) == patt)
+			{
 				goto mem_width_found;
+			}
 		}
 	}
 
@@ -74,7 +86,8 @@ mem_width_found:
 	patt <<= 1;
 
 	/* Probe amount of installed memory */
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		int off = nvkm_rd32(device, 0x10020c) - 0x100000;
 
 		fbmem_poke(fb, off, patt);
@@ -86,7 +99,9 @@ mem_width_found:
 		fbmem_peek(fb, 0);
 
 		if (fbmem_peek(fb, off) == patt)
+		{
 			goto amount_found;
+		}
 	}
 
 	/* IC missing - disable the upper half memory space. */
@@ -97,7 +112,8 @@ amount_found:
 }
 
 static const struct nvkm_devinit_func
-nv10_devinit = {
+	nv10_devinit =
+{
 	.dtor = nv04_devinit_dtor,
 	.preinit = nv04_devinit_preinit,
 	.post = nv04_devinit_post,
@@ -107,7 +123,7 @@ nv10_devinit = {
 
 int
 nv10_devinit_new(struct nvkm_device *device, int index,
-		 struct nvkm_devinit **pinit)
+				 struct nvkm_devinit **pinit)
 {
 	return nv04_devinit_new_(&nv10_devinit, device, index, pinit);
 }

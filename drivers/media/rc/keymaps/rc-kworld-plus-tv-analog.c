@@ -17,7 +17,8 @@
    Mauro Carvalho Chehab <mchehab@infradead.org>
  */
 
-static struct rc_map_table kworld_plus_tv_analog[] = {
+static struct rc_map_table kworld_plus_tv_analog[] =
+{
 	{ 0x0c, KEY_MEDIA },		/* Kworld key */
 	{ 0x16, KEY_CLOSECD },		/* -> ) */
 	{ 0x1d, KEY_POWER2 },
@@ -74,7 +75,8 @@ static struct rc_map_table kworld_plus_tv_analog[] = {
 	{ 0x23, KEY_GREEN},		/* C */
 };
 
-static struct rc_map_list kworld_plus_tv_analog_map = {
+static struct rc_map_list kworld_plus_tv_analog_map =
+{
 	.map = {
 		.scan    = kworld_plus_tv_analog,
 		.size    = ARRAY_SIZE(kworld_plus_tv_analog),

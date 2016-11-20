@@ -28,7 +28,8 @@
 #include <drm/drm_crtc.h>
 #include "intel_drv.h"
 
-struct intel_dvo_device {
+struct intel_dvo_device
+{
 	const char *name;
 	int type;
 	/* DVOA/B/C output register */
@@ -43,13 +44,14 @@ struct intel_dvo_device {
 	struct i2c_adapter *i2c_bus;
 };
 
-struct intel_dvo_dev_ops {
+struct intel_dvo_dev_ops
+{
 	/*
 	 * Initialize the device at startup time.
 	 * Returns NULL if the device does not exist.
 	 */
 	bool (*init)(struct intel_dvo_device *dvo,
-		     struct i2c_adapter *i2cbus);
+				 struct i2c_adapter *i2cbus);
 
 	/*
 	 * Called to allow the output a chance to create properties after the
@@ -75,7 +77,7 @@ struct intel_dvo_dev_ops {
 	 * \return MODE_OK if the mode is valid, or another MODE_* otherwise.
 	 */
 	int (*mode_valid)(struct intel_dvo_device *dvo,
-			  struct drm_display_mode *mode);
+					  struct drm_display_mode *mode);
 
 	/*
 	 * Callback for preparing mode changes on an output
@@ -95,8 +97,8 @@ struct intel_dvo_dev_ops {
 	 * after this function is called.
 	 */
 	void (*mode_set)(struct intel_dvo_device *dvo,
-			 const struct drm_display_mode *mode,
-			 const struct drm_display_mode *adjusted_mode);
+					 const struct drm_display_mode *mode,
+					 const struct drm_display_mode *adjusted_mode);
 
 	/*
 	 * Probe for a connected output, and return detect_status.

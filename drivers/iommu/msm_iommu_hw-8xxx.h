@@ -22,12 +22,12 @@
 
 #define GET_GLOBAL_REG(reg, base) (readl((base) + (reg)))
 #define GET_CTX_REG(reg, base, ctx) \
-				(readl((base) + (reg) + ((ctx) << CTX_SHIFT)))
+	(readl((base) + (reg) + ((ctx) << CTX_SHIFT)))
 
 #define SET_GLOBAL_REG(reg, base, val)	writel((val), ((base) + (reg)))
 
 #define SET_CTX_REG(reg, base, ctx, val) \
-			writel((val), ((base) + (reg) + ((ctx) << CTX_SHIFT)))
+	writel((val), ((base) + (reg) + ((ctx) << CTX_SHIFT)))
 
 /* Wrappers for numbered registers */
 #define SET_GLOBAL_REG_N(b, n, r, v) SET_GLOBAL_REG(b, ((r) + (n << 2)), (v))
@@ -46,10 +46,10 @@
 #define GET_FIELD(addr, mask, shift)  ((readl(addr) >> (shift)) & (mask))
 
 #define SET_FIELD(addr, mask, shift, v) \
-do { \
-	int t = readl(addr); \
-	writel((t & ~((mask) << (shift))) + (((v) & (mask)) << (shift)), addr);\
-} while (0)
+	do { \
+		int t = readl(addr); \
+		writel((t & ~((mask) << (shift))) + (((v) & (mask)) << (shift)), addr);\
+	} while (0)
 
 
 #define NUM_FL_PTE	4096
@@ -243,10 +243,10 @@ do { \
 
 /* ESYNR1 */
 #define SET_ESYNR1_AMEMTYPE(b, v) \
-			SET_GLOBAL_FIELD(b, ESYNR1, ESYNR1_AMEMTYPE, v)
+	SET_GLOBAL_FIELD(b, ESYNR1, ESYNR1_AMEMTYPE, v)
 #define SET_ESYNR1_ASHARED(b, v)  SET_GLOBAL_FIELD(b, ESYNR1, ESYNR1_ASHARED, v)
 #define SET_ESYNR1_AINNERSHARED(b, v) \
-			SET_GLOBAL_FIELD(b, ESYNR1, ESYNR1_AINNERSHARED, v)
+	SET_GLOBAL_FIELD(b, ESYNR1, ESYNR1_AINNERSHARED, v)
 #define SET_ESYNR1_APRIV(b, v)   SET_GLOBAL_FIELD(b, ESYNR1, ESYNR1_APRIV, v)
 #define SET_ESYNR1_APROTNS(b, v) SET_GLOBAL_FIELD(b, ESYNR1, ESYNR1_APROTNS, v)
 #define SET_ESYNR1_AINST(b, v)   SET_GLOBAL_FIELD(b, ESYNR1, ESYNR1_AINST, v)
@@ -362,7 +362,7 @@ do { \
 #define GET_ESYNR1_AMEMTYPE(b)   GET_GLOBAL_FIELD(b, ESYNR1, ESYNR1_AMEMTYPE)
 #define GET_ESYNR1_ASHARED(b)    GET_GLOBAL_FIELD(b, ESYNR1, ESYNR1_ASHARED)
 #define GET_ESYNR1_AINNERSHARED(b) \
-			GET_GLOBAL_FIELD(b, ESYNR1, ESYNR1_AINNERSHARED)
+	GET_GLOBAL_FIELD(b, ESYNR1, ESYNR1_AINNERSHARED)
 #define GET_ESYNR1_APRIV(b)      GET_GLOBAL_FIELD(b, ESYNR1, ESYNR1_APRIV)
 #define GET_ESYNR1_APROTNS(b)	 GET_GLOBAL_FIELD(b, ESYNR1, ESYNR1_APROTNS)
 #define GET_ESYNR1_AINST(b)	 GET_GLOBAL_FIELD(b, ESYNR1, ESYNR1_AINST)
@@ -465,9 +465,9 @@ do { \
 
 /* CONTEXTIDR */
 #define SET_CONTEXTIDR_ASID(b, c, v)   \
-		SET_CONTEXT_FIELD(b, c, CONTEXTIDR, CONTEXTIDR_ASID, v)
+	SET_CONTEXT_FIELD(b, c, CONTEXTIDR, CONTEXTIDR_ASID, v)
 #define SET_CONTEXTIDR_PROCID(b, c, v) \
-		SET_CONTEXT_FIELD(b, c, CONTEXTIDR, PROCID, v)
+	SET_CONTEXT_FIELD(b, c, CONTEXTIDR, PROCID, v)
 
 
 /* FSR */
@@ -494,7 +494,7 @@ do { \
 #define SET_AMEMTYPE(b, c, v)	 SET_CONTEXT_FIELD(b, c, FSYNR1, AMEMTYPE, v)
 #define SET_ASHARED(b, c, v)	 SET_CONTEXT_FIELD(b, c, FSYNR1, ASHARED, v)
 #define SET_AINNERSHARED(b, c, v)  \
-				SET_CONTEXT_FIELD(b, c, FSYNR1, AINNERSHARED, v)
+	SET_CONTEXT_FIELD(b, c, FSYNR1, AINNERSHARED, v)
 #define SET_APRIV(b, c, v)	 SET_CONTEXT_FIELD(b, c, FSYNR1, APRIV, v)
 #define SET_APROTNS(b, c, v)	 SET_CONTEXT_FIELD(b, c, FSYNR1, APROTNS, v)
 #define SET_AINST(b, c, v)	 SET_CONTEXT_FIELD(b, c, FSYNR1, AINST, v)
@@ -502,7 +502,7 @@ do { \
 #define SET_ABURST(b, c, v)	 SET_CONTEXT_FIELD(b, c, FSYNR1, ABURST, v)
 #define SET_ALEN(b, c, v)	 SET_CONTEXT_FIELD(b, c, FSYNR1, ALEN, v)
 #define SET_FSYNR1_ASIZE(b, c, v) \
-				SET_CONTEXT_FIELD(b, c, FSYNR1, FSYNR1_ASIZE, v)
+	SET_CONTEXT_FIELD(b, c, FSYNR1, FSYNR1_ASIZE, v)
 #define SET_ALOCK(b, c, v)	 SET_CONTEXT_FIELD(b, c, FSYNR1, ALOCK, v)
 #define SET_AFULL(b, c, v)	 SET_CONTEXT_FIELD(b, c, FSYNR1, AFULL, v)
 
@@ -534,9 +534,9 @@ do { \
 #define SET_FAULT_APF(b, c, v)	 SET_CONTEXT_FIELD(b, c, PAR, FAULT_APF, v)
 #define SET_FAULT_TLBMF(b, c, v) SET_CONTEXT_FIELD(b, c, PAR, FAULT_TLBMF, v)
 #define SET_FAULT_HTWDEEF(b, c, v) \
-				SET_CONTEXT_FIELD(b, c, PAR, FAULT_HTWDEEF, v)
+	SET_CONTEXT_FIELD(b, c, PAR, FAULT_HTWDEEF, v)
 #define SET_FAULT_HTWSEEF(b, c, v) \
-				SET_CONTEXT_FIELD(b, c, PAR, FAULT_HTWSEEF, v)
+	SET_CONTEXT_FIELD(b, c, PAR, FAULT_HTWSEEF, v)
 #define SET_FAULT_MHF(b, c, v)	 SET_CONTEXT_FIELD(b, c, PAR, FAULT_MHF, v)
 #define SET_FAULT_SL(b, c, v)	 SET_CONTEXT_FIELD(b, c, PAR, FAULT_SL, v)
 #define SET_FAULT_SS(b, c, v)	 SET_CONTEXT_FIELD(b, c, PAR, FAULT_SS, v)
@@ -588,9 +588,9 @@ do { \
 /* TLBLKCR */
 #define SET_LKE(b, c, v)	   SET_CONTEXT_FIELD(b, c, TLBLKCR, LKE, v)
 #define SET_TLBLKCR_TLBIALLCFG(b, c, v) \
-			SET_CONTEXT_FIELD(b, c, TLBLKCR, TLBLCKR_TLBIALLCFG, v)
+	SET_CONTEXT_FIELD(b, c, TLBLKCR, TLBLCKR_TLBIALLCFG, v)
 #define SET_TLBIASIDCFG(b, c, v) \
-			SET_CONTEXT_FIELD(b, c, TLBLKCR, TLBIASIDCFG, v)
+	SET_CONTEXT_FIELD(b, c, TLBLKCR, TLBIASIDCFG, v)
 #define SET_TLBIVAACFG(b, c, v)	SET_CONTEXT_FIELD(b, c, TLBLKCR, TLBIVAACFG, v)
 #define SET_FLOOR(b, c, v)	SET_CONTEXT_FIELD(b, c, TLBLKCR, FLOOR, v)
 #define SET_VICTIM(b, c, v)	SET_CONTEXT_FIELD(b, c, TLBLKCR, VICTIM, v)
@@ -654,7 +654,7 @@ do { \
 
 /* CONTEXTIDR */
 #define GET_CONTEXTIDR_ASID(b, c) \
-			GET_CONTEXT_FIELD(b, c, CONTEXTIDR, CONTEXTIDR_ASID)
+	GET_CONTEXT_FIELD(b, c, CONTEXTIDR, CONTEXTIDR_ASID)
 #define GET_CONTEXTIDR_PROCID(b, c) GET_CONTEXT_FIELD(b, c, CONTEXTIDR, PROCID)
 
 
@@ -712,7 +712,7 @@ do { \
 #define GET_OCPC7(b, c)		GET_CONTEXT_FIELD(b, c, NMRR, OCPC7)
 #define NMRR_ICP(nmrr, n)	(((nmrr) & (3 << ((n) * 2))) >> ((n) * 2))
 #define NMRR_OCP(nmrr, n)	(((nmrr) & (3 << ((n) * 2 + 16))) >> \
-								((n) * 2 + 16))
+							 ((n) * 2 + 16))
 
 /* PAR */
 #define GET_FAULT(b, c)		GET_CONTEXT_FIELD(b, c, PAR, FAULT)
@@ -776,7 +776,7 @@ do { \
 /* TLBLKCR */
 #define GET_LKE(b, c)		GET_CONTEXT_FIELD(b, c, TLBLKCR, LKE)
 #define GET_TLBLCKR_TLBIALLCFG(b, c) \
-			GET_CONTEXT_FIELD(b, c, TLBLKCR, TLBLCKR_TLBIALLCFG)
+	GET_CONTEXT_FIELD(b, c, TLBLKCR, TLBLCKR_TLBIALLCFG)
 #define GET_TLBIASIDCFG(b, c)   GET_CONTEXT_FIELD(b, c, TLBLKCR, TLBIASIDCFG)
 #define GET_TLBIVAACFG(b, c)	GET_CONTEXT_FIELD(b, c, TLBLKCR, TLBIVAACFG)
 #define GET_FLOOR(b, c)		GET_CONTEXT_FIELD(b, c, TLBLKCR, FLOOR)
@@ -904,7 +904,7 @@ do { \
 #define ESYNR1_AMEMTYPE      (ESYNR1_AMEMTYPE_MASK    << ESYNR1_AMEMTYPE_SHIFT)
 #define ESYNR1_ASHARED       (ESYNR1_ASHARED_MASK     << ESYNR1_ASHARED_SHIFT)
 #define ESYNR1_AINNERSHARED  (ESYNR1_AINNERSHARED_MASK<< \
-						ESYNR1_AINNERSHARED_SHIFT)
+							  ESYNR1_AINNERSHARED_SHIFT)
 #define ESYNR1_APRIV         (ESYNR1_APRIV_MASK       << ESYNR1_APRIV_SHIFT)
 #define ESYNR1_APROTNS       (ESYNR1_APROTNS_MASK     << ESYNR1_APROTNS_SHIFT)
 #define ESYNR1_AINST         (ESYNR1_AINST_MASK       << ESYNR1_AINST_SHIFT)

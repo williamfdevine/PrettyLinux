@@ -9,7 +9,8 @@
 #define XT_SYNPROXY_OPT_TIMESTAMP	0x08
 #define XT_SYNPROXY_OPT_ECN		0x10
 
-struct xt_synproxy_info {
+struct xt_synproxy_info
+{
 	__u8	options;
 	__u8	wscale;
 	__u16	mss;

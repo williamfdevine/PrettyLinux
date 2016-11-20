@@ -37,14 +37,14 @@
 static int timeout = WATCHDOG_TIMEOUT;
 module_param(timeout, int, 0);
 MODULE_PARM_DESC(timeout,
-	"Watchdog timeout in seconds. 1<= timeout <=131, default="
-				__MODULE_STRING(WATCHDOG_TIMEOUT) ".");
+				 "Watchdog timeout in seconds. 1<= timeout <=131, default="
+				 __MODULE_STRING(WATCHDOG_TIMEOUT) ".");
 
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout,
-	"Watchdog cannot be stopped once started (default="
-				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "Watchdog cannot be stopped once started (default="
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 static struct platform_device *geodewdt_platform_device;
 static unsigned long wdt_flags;
@@ -72,7 +72,9 @@ static void geodewdt_disable(void)
 static int geodewdt_set_heartbeat(int val)
 {
 	if (val < 1 || val > GEODEWDT_MAX_SECONDS)
+	{
 		return -EINVAL;
+	}
 
 	cs5535_mfgpt_write(wdt_timer, MFGPT_REG_SETUP, 0);
 	cs5535_mfgpt_write(wdt_timer, MFGPT_REG_CMP2, val * GEODEWDT_HZ);
@@ -86,10 +88,14 @@ static int geodewdt_set_heartbeat(int val)
 static int geodewdt_open(struct inode *inode, struct file *file)
 {
 	if (test_and_set_bit(WDT_FLAGS_OPEN, &wdt_flags))
+	{
 		return -EBUSY;
+	}
 
 	if (!test_and_clear_bit(WDT_FLAGS_ORPHAN, &wdt_flags))
+	{
 		__module_get(THIS_MODULE);
+	}
 
 	geodewdt_ping();
 	return nonseekable_open(inode, file);
@@ -97,10 +103,13 @@ static int geodewdt_open(struct inode *inode, struct file *file)
 
 static int geodewdt_release(struct inode *inode, struct file *file)
 {
-	if (safe_close) {
+	if (safe_close)
+	{
 		geodewdt_disable();
 		module_put(THIS_MODULE);
-	} else {
+	}
+	else
+	{
 		pr_crit("Unexpected close - watchdog is not stopping\n");
 		geodewdt_ping();
 
@@ -113,94 +122,115 @@ static int geodewdt_release(struct inode *inode, struct file *file)
 }
 
 static ssize_t geodewdt_write(struct file *file, const char __user *data,
-				size_t len, loff_t *ppos)
+							  size_t len, loff_t *ppos)
 {
-	if (len) {
-		if (!nowayout) {
+	if (len)
+	{
+		if (!nowayout)
+		{
 			size_t i;
 			safe_close = 0;
 
-			for (i = 0; i != len; i++) {
+			for (i = 0; i != len; i++)
+			{
 				char c;
 
 				if (get_user(c, data + i))
+				{
 					return -EFAULT;
+				}
 
 				if (c == 'V')
+				{
 					safe_close = 1;
+				}
 			}
 		}
 
 		geodewdt_ping();
 	}
+
 	return len;
 }
 
 static long geodewdt_ioctl(struct file *file, unsigned int cmd,
-				unsigned long arg)
+						   unsigned long arg)
 {
 	void __user *argp = (void __user *)arg;
 	int __user *p = argp;
 	int interval;
 
-	static const struct watchdog_info ident = {
+	static const struct watchdog_info ident =
+	{
 		.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING
 		| WDIOF_MAGICCLOSE,
 		.firmware_version =     1,
 		.identity =             WATCHDOG_NAME,
 	};
 
-	switch (cmd) {
-	case WDIOC_GETSUPPORT:
-		return copy_to_user(argp, &ident,
-				    sizeof(ident)) ? -EFAULT : 0;
-		break;
-
-	case WDIOC_GETSTATUS:
-	case WDIOC_GETBOOTSTATUS:
-		return put_user(0, p);
-
-	case WDIOC_SETOPTIONS:
+	switch (cmd)
 	{
-		int options, ret = -EINVAL;
+		case WDIOC_GETSUPPORT:
+			return copy_to_user(argp, &ident,
+								sizeof(ident)) ? -EFAULT : 0;
+			break;
 
-		if (get_user(options, p))
-			return -EFAULT;
+		case WDIOC_GETSTATUS:
+		case WDIOC_GETBOOTSTATUS:
+			return put_user(0, p);
 
-		if (options & WDIOS_DISABLECARD) {
-			geodewdt_disable();
-			ret = 0;
-		}
+		case WDIOC_SETOPTIONS:
+			{
+				int options, ret = -EINVAL;
 
-		if (options & WDIOS_ENABLECARD) {
+				if (get_user(options, p))
+				{
+					return -EFAULT;
+				}
+
+				if (options & WDIOS_DISABLECARD)
+				{
+					geodewdt_disable();
+					ret = 0;
+				}
+
+				if (options & WDIOS_ENABLECARD)
+				{
+					geodewdt_ping();
+					ret = 0;
+				}
+
+				return ret;
+			}
+
+		case WDIOC_KEEPALIVE:
 			geodewdt_ping();
-			ret = 0;
-		}
+			return 0;
 
-		return ret;
-	}
-	case WDIOC_KEEPALIVE:
-		geodewdt_ping();
-		return 0;
+		case WDIOC_SETTIMEOUT:
+			if (get_user(interval, p))
+			{
+				return -EFAULT;
+			}
 
-	case WDIOC_SETTIMEOUT:
-		if (get_user(interval, p))
-			return -EFAULT;
+			if (geodewdt_set_heartbeat(interval))
+			{
+				return -EINVAL;
+			}
 
-		if (geodewdt_set_heartbeat(interval))
-			return -EINVAL;
-	/* Fall through */
-	case WDIOC_GETTIMEOUT:
-		return put_user(timeout, p);
+		/* Fall through */
+		case WDIOC_GETTIMEOUT:
+			return put_user(timeout, p);
 
-	default:
-		return -ENOTTY;
+		default:
+			return -ENOTTY;
 	}
 
 	return 0;
 }
 
-static const struct file_operations geodewdt_fops = {
+static const struct file_operations geodewdt_fops =
+{
 	.owner          = THIS_MODULE,
 	.llseek         = no_llseek,
 	.write          = geodewdt_write,
@@ -209,7 +239,8 @@ static const struct file_operations geodewdt_fops = {
 	.release        = geodewdt_release,
 };
 
-static struct miscdevice geodewdt_miscdev = {
+static struct miscdevice geodewdt_miscdev =
+{
 	.minor = WATCHDOG_MINOR,
 	.name = "watchdog",
 	.fops = &geodewdt_fops,
@@ -220,7 +251,9 @@ static int __init geodewdt_probe(struct platform_device *dev)
 	int ret;
 
 	wdt_timer = cs5535_mfgpt_alloc_timer(MFGPT_TIMER_ANY, MFGPT_DOMAIN_WORKING);
-	if (!wdt_timer) {
+
+	if (!wdt_timer)
+	{
 		pr_err("No timers were available\n");
 		return -ENODEV;
 	}
@@ -228,7 +261,7 @@ static int __init geodewdt_probe(struct platform_device *dev)
 	/* Set up the timer */
 
 	cs5535_mfgpt_write(wdt_timer, MFGPT_REG_SETUP,
-			  GEODEWDT_SCALE | (3 << 8));
+					   GEODEWDT_SCALE | (3 << 8));
 
 	/* Set up comparator 2 to reset when the event fires */
 	cs5535_mfgpt_toggle_event(wdt_timer, MFGPT_CMP2, MFGPT_EVENT_RESET, 1);
@@ -236,7 +269,7 @@ static int __init geodewdt_probe(struct platform_device *dev)
 	/* Set up the initial timeout */
 
 	cs5535_mfgpt_write(wdt_timer, MFGPT_REG_CMP2,
-		timeout * GEODEWDT_HZ);
+					   timeout * GEODEWDT_HZ);
 
 	ret = misc_register(&geodewdt_miscdev);
 
@@ -254,7 +287,8 @@ static void geodewdt_shutdown(struct platform_device *dev)
 	geodewdt_disable();
 }
 
-static struct platform_driver geodewdt_driver = {
+static struct platform_driver geodewdt_driver =
+{
 	.remove		= geodewdt_remove,
 	.shutdown	= geodewdt_shutdown,
 	.driver		= {
@@ -267,13 +301,19 @@ static int __init geodewdt_init(void)
 	int ret;
 
 	geodewdt_platform_device = platform_device_register_simple(DRV_NAME,
-								-1, NULL, 0);
+							   -1, NULL, 0);
+
 	if (IS_ERR(geodewdt_platform_device))
+	{
 		return PTR_ERR(geodewdt_platform_device);
+	}
 
 	ret = platform_driver_probe(&geodewdt_driver, geodewdt_probe);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	return 0;
 err:

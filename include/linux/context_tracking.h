@@ -22,26 +22,34 @@ extern void context_tracking_user_exit(void);
 static inline void user_enter(void)
 {
 	if (context_tracking_is_enabled())
+	{
 		context_tracking_enter(CONTEXT_USER);
+	}
 
 }
 static inline void user_exit(void)
 {
 	if (context_tracking_is_enabled())
+	{
 		context_tracking_exit(CONTEXT_USER);
+	}
 }
 
 /* Called with interrupts disabled.  */
 static inline void user_enter_irqoff(void)
 {
 	if (context_tracking_is_enabled())
+	{
 		__context_tracking_enter(CONTEXT_USER);
+	}
 
 }
 static inline void user_exit_irqoff(void)
 {
 	if (context_tracking_is_enabled())
+	{
 		__context_tracking_exit(CONTEXT_USER);
+	}
 }
 
 static inline enum ctx_state exception_enter(void)
@@ -49,20 +57,28 @@ static inline enum ctx_state exception_enter(void)
 	enum ctx_state prev_ctx;
 
 	if (!context_tracking_is_enabled())
+	{
 		return 0;
+	}
 
 	prev_ctx = this_cpu_read(context_tracking.state);
+
 	if (prev_ctx != CONTEXT_KERNEL)
+	{
 		context_tracking_exit(prev_ctx);
+	}
 
 	return prev_ctx;
 }
 
 static inline void exception_exit(enum ctx_state prev_ctx)
 {
-	if (context_tracking_is_enabled()) {
+	if (context_tracking_is_enabled())
+	{
 		if (prev_ctx != CONTEXT_KERNEL)
+		{
 			context_tracking_enter(prev_ctx);
+		}
 	}
 }
 
@@ -77,7 +93,7 @@ static inline void exception_exit(enum ctx_state prev_ctx)
 static inline enum ctx_state ct_state(void)
 {
 	return context_tracking_is_enabled() ?
-		this_cpu_read(context_tracking.state) : CONTEXT_DISABLED;
+		   this_cpu_read(context_tracking.state) : CONTEXT_DISABLED;
 }
 #else
 static inline void user_enter(void) { }
@@ -103,12 +119,18 @@ static inline void context_tracking_init(void) { }
 static inline void guest_enter_irqoff(void)
 {
 	if (vtime_accounting_cpu_enabled())
+	{
 		vtime_guest_enter(current);
+	}
 	else
+	{
 		current->flags |= PF_VCPU;
+	}
 
 	if (context_tracking_is_enabled())
+	{
 		__context_tracking_enter(CONTEXT_GUEST);
+	}
 
 	/* KVM does not hold any references to rcu protected data when it
 	 * switches CPU into a guest mode. In fact switching to a guest mode
@@ -118,18 +140,26 @@ static inline void guest_enter_irqoff(void)
 	 * we do with user-mode execution.
 	 */
 	if (!context_tracking_cpu_is_enabled())
+	{
 		rcu_virt_note_context_switch(smp_processor_id());
+	}
 }
 
 static inline void guest_exit_irqoff(void)
 {
 	if (context_tracking_is_enabled())
+	{
 		__context_tracking_exit(CONTEXT_GUEST);
+	}
 
 	if (vtime_accounting_cpu_enabled())
+	{
 		vtime_guest_exit(current);
+	}
 	else
+	{
 		current->flags &= ~PF_VCPU;
+	}
 }
 
 #else

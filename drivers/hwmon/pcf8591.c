@@ -33,11 +33,11 @@
 static int input_mode;
 module_param(input_mode, int, 0);
 MODULE_PARM_DESC(input_mode,
-	"Analog input mode:\n"
-	" 0 = four single ended inputs\n"
-	" 1 = three differential inputs\n"
-	" 2 = single ended and differential mixed\n"
-	" 3 = two differential inputs\n");
+				 "Analog input mode:\n"
+				 " 0 = four single ended inputs\n"
+				 " 1 = three differential inputs\n"
+				 " 2 = single ended and differential mixed\n"
+				 " 3 = two differential inputs\n");
 
 /*
  * The PCF8591 control byte
@@ -76,7 +76,8 @@ MODULE_PARM_DESC(input_mode,
 /* Conversions */
 #define REG_TO_SIGNED(reg)	(((reg) & 0x80) ? ((reg) - 256) : (reg))
 
-struct pcf8591_data {
+struct pcf8591_data
+{
 	struct device *hwmon_dev;
 	struct mutex update_lock;
 
@@ -89,14 +90,14 @@ static int pcf8591_read_channel(struct device *dev, int channel);
 
 /* following are the sysfs callback functions */
 #define show_in_channel(channel)					\
-static ssize_t show_in##channel##_input(struct device *dev,		\
-					struct device_attribute *attr,	\
-					char *buf)			\
-{									\
-	return sprintf(buf, "%d\n", pcf8591_read_channel(dev, channel));\
-}									\
-static DEVICE_ATTR(in##channel##_input, S_IRUGO,			\
-		   show_in##channel##_input, NULL);
+	static ssize_t show_in##channel##_input(struct device *dev,		\
+											struct device_attribute *attr,	\
+											char *buf)			\
+	{									\
+		return sprintf(buf, "%d\n", pcf8591_read_channel(dev, channel));\
+	}									\
+	static DEVICE_ATTR(in##channel##_input, S_IRUGO,			\
+					   show_in##channel##_input, NULL);
 
 show_in_channel(0);
 show_in_channel(1);
@@ -104,15 +105,15 @@ show_in_channel(2);
 show_in_channel(3);
 
 static ssize_t show_out0_ouput(struct device *dev,
-			       struct device_attribute *attr, char *buf)
+							   struct device_attribute *attr, char *buf)
 {
 	struct pcf8591_data *data = i2c_get_clientdata(to_i2c_client(dev));
 	return sprintf(buf, "%d\n", data->aout * 10);
 }
 
 static ssize_t set_out0_output(struct device *dev,
-			       struct device_attribute *attr,
-			       const char *buf, size_t count)
+							   struct device_attribute *attr,
+							   const char *buf, size_t count)
 {
 	unsigned long val;
 	struct i2c_client *client = to_i2c_client(dev);
@@ -120,12 +121,18 @@ static ssize_t set_out0_output(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	val /= 10;
+
 	if (val > 255)
+	{
 		return -EINVAL;
+	}
 
 	data->aout = val;
 	i2c_smbus_write_byte_data(client, data->control, data->aout);
@@ -133,18 +140,18 @@ static ssize_t set_out0_output(struct device *dev,
 }
 
 static DEVICE_ATTR(out0_output, S_IWUSR | S_IRUGO,
-		   show_out0_ouput, set_out0_output);
+				   show_out0_ouput, set_out0_output);
 
 static ssize_t show_out0_enable(struct device *dev,
-				struct device_attribute *attr, char *buf)
+								struct device_attribute *attr, char *buf)
 {
 	struct pcf8591_data *data = i2c_get_clientdata(to_i2c_client(dev));
 	return sprintf(buf, "%u\n", !(!(data->control & PCF8591_CONTROL_AOEF)));
 }
 
 static ssize_t set_out0_enable(struct device *dev,
-			       struct device_attribute *attr,
-			       const char *buf, size_t count)
+							   struct device_attribute *attr,
+							   const char *buf, size_t count)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	struct pcf8591_data *data = i2c_get_clientdata(client);
@@ -152,23 +159,33 @@ static ssize_t set_out0_enable(struct device *dev,
 	int err;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mutex_lock(&data->update_lock);
+
 	if (val)
+	{
 		data->control |= PCF8591_CONTROL_AOEF;
+	}
 	else
+	{
 		data->control &= ~PCF8591_CONTROL_AOEF;
+	}
+
 	i2c_smbus_write_byte(client, data->control);
 	mutex_unlock(&data->update_lock);
 	return count;
 }
 
 static DEVICE_ATTR(out0_enable, S_IWUSR | S_IRUGO,
-		   show_out0_enable, set_out0_enable);
+				   show_out0_enable, set_out0_enable);
 
-static struct attribute *pcf8591_attributes[] = {
+static struct attribute *pcf8591_attributes[] =
+{
 	&dev_attr_out0_enable.attr,
 	&dev_attr_out0_output.attr,
 	&dev_attr_in0_input.attr,
@@ -176,17 +193,20 @@ static struct attribute *pcf8591_attributes[] = {
 	NULL
 };
 
-static const struct attribute_group pcf8591_attr_group = {
+static const struct attribute_group pcf8591_attr_group =
+{
 	.attrs = pcf8591_attributes,
 };
 
-static struct attribute *pcf8591_attributes_opt[] = {
+static struct attribute *pcf8591_attributes_opt[] =
+{
 	&dev_attr_in2_input.attr,
 	&dev_attr_in3_input.attr,
 	NULL
 };
 
-static const struct attribute_group pcf8591_attr_group_opt = {
+static const struct attribute_group pcf8591_attr_group_opt =
+{
 	.attrs = pcf8591_attributes_opt,
 };
 
@@ -195,15 +215,18 @@ static const struct attribute_group pcf8591_attr_group_opt = {
  */
 
 static int pcf8591_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct pcf8591_data *data;
 	int err;
 
 	data = devm_kzalloc(&client->dev, sizeof(struct pcf8591_data),
-			    GFP_KERNEL);
+						GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	i2c_set_clientdata(client, data);
 	mutex_init(&data->update_lock);
@@ -213,25 +236,38 @@ static int pcf8591_probe(struct i2c_client *client,
 
 	/* Register sysfs hooks */
 	err = sysfs_create_group(&client->dev.kobj, &pcf8591_attr_group);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* Register input2 if not in "two differential inputs" mode */
-	if (input_mode != 3) {
+	if (input_mode != 3)
+	{
 		err = device_create_file(&client->dev, &dev_attr_in2_input);
+
 		if (err)
+		{
 			goto exit_sysfs_remove;
+		}
 	}
 
 	/* Register input3 only in "four single ended inputs" mode */
-	if (input_mode == 0) {
+	if (input_mode == 0)
+	{
 		err = device_create_file(&client->dev, &dev_attr_in3_input);
+
 		if (err)
+		{
 			goto exit_sysfs_remove;
+		}
 	}
 
 	data->hwmon_dev = hwmon_device_register(&client->dev);
-	if (IS_ERR(data->hwmon_dev)) {
+
+	if (IS_ERR(data->hwmon_dev))
+	{
 		err = PTR_ERR(data->hwmon_dev);
 		goto exit_sysfs_remove;
 	}
@@ -278,9 +314,10 @@ static int pcf8591_read_channel(struct device *dev, int channel)
 
 	mutex_lock(&data->update_lock);
 
-	if ((data->control & PCF8591_CONTROL_AICH_MASK) != channel) {
+	if ((data->control & PCF8591_CONTROL_AICH_MASK) != channel)
+	{
 		data->control = (data->control & ~PCF8591_CONTROL_AICH_MASK)
-			      | channel;
+						| channel;
 		i2c_smbus_write_byte(client, data->control);
 
 		/*
@@ -289,24 +326,31 @@ static int pcf8591_read_channel(struct device *dev, int channel)
 		 */
 		i2c_smbus_read_byte(client);
 	}
+
 	value = i2c_smbus_read_byte(client);
 
 	mutex_unlock(&data->update_lock);
 
 	if ((channel == 2 && input_mode == 2) ||
-	    (channel != 3 && (input_mode == 1 || input_mode == 3)))
+		(channel != 3 && (input_mode == 1 || input_mode == 3)))
+	{
 		return 10 * REG_TO_SIGNED(value);
+	}
 	else
+	{
 		return 10 * value;
+	}
 }
 
-static const struct i2c_device_id pcf8591_id[] = {
+static const struct i2c_device_id pcf8591_id[] =
+{
 	{ "pcf8591", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, pcf8591_id);
 
-static struct i2c_driver pcf8591_driver = {
+static struct i2c_driver pcf8591_driver =
+{
 	.driver = {
 		.name	= "pcf8591",
 	},
@@ -317,10 +361,12 @@ static struct i2c_driver pcf8591_driver = {
 
 static int __init pcf8591_init(void)
 {
-	if (input_mode < 0 || input_mode > 3) {
+	if (input_mode < 0 || input_mode > 3)
+	{
 		pr_warn("invalid input_mode (%d)\n", input_mode);
 		input_mode = 0;
 	}
+
 	return i2c_add_driver(&pcf8591_driver);
 }
 

@@ -144,7 +144,8 @@
 #define CMD_MAX_ARGS_COUNT			(10)
 
 
-enum si476x_acf_status_report_bits {
+enum si476x_acf_status_report_bits
+{
 	SI476X_ACF_BLEND_INT	= (1 << 4),
 	SI476X_ACF_HIBLEND_INT	= (1 << 3),
 	SI476X_ACF_HICUT_INT	= (1 << 2),
@@ -157,14 +158,16 @@ enum si476x_acf_status_report_bits {
 	SI476X_ACF_STBLEND	= ~SI476X_ACF_PILOT,
 };
 
-enum si476x_agc_status_report_bits {
+enum si476x_agc_status_report_bits
+{
 	SI476X_AGC_MXHI		= (1 << 5),
 	SI476X_AGC_MXLO		= (1 << 4),
 	SI476X_AGC_LNAHI	= (1 << 3),
 	SI476X_AGC_LNALO	= (1 << 2),
 };
 
-enum si476x_errors {
+enum si476x_errors
+{
 	SI476X_ERR_BAD_COMMAND		= 0x10,
 	SI476X_ERR_BAD_ARG1		= 0x11,
 	SI476X_ERR_BAD_ARG2		= 0x12,
@@ -183,64 +186,82 @@ static int si476x_core_parse_and_nag_about_error(struct si476x_core *core)
 	char *cause;
 	u8 buffer[2];
 
-	if (core->revision != SI476X_REVISION_A10) {
+	if (core->revision != SI476X_REVISION_A10)
+	{
 		err = si476x_core_i2c_xfer(core, SI476X_I2C_RECV,
-					   buffer, sizeof(buffer));
-		if (err == sizeof(buffer)) {
-			switch (buffer[1]) {
-			case SI476X_ERR_BAD_COMMAND:
-				cause = "Bad command";
-				err = -EINVAL;
-				break;
-			case SI476X_ERR_BAD_ARG1:
-				cause = "Bad argument #1";
-				err = -EINVAL;
-				break;
-			case SI476X_ERR_BAD_ARG2:
-				cause = "Bad argument #2";
-				err = -EINVAL;
-				break;
-			case SI476X_ERR_BAD_ARG3:
-				cause = "Bad argument #3";
-				err = -EINVAL;
-				break;
-			case SI476X_ERR_BAD_ARG4:
-				cause = "Bad argument #4";
-				err = -EINVAL;
-				break;
-			case SI476X_ERR_BUSY:
-				cause = "Chip is busy";
-				err = -EBUSY;
-				break;
-			case SI476X_ERR_BAD_INTERNAL_MEMORY:
-				cause = "Bad internal memory";
-				err = -EIO;
-				break;
-			case SI476X_ERR_BAD_PATCH:
-				cause = "Bad patch";
-				err = -EINVAL;
-				break;
-			case SI476X_ERR_BAD_BOOT_MODE:
-				cause = "Bad boot mode";
-				err = -EINVAL;
-				break;
-			case SI476X_ERR_BAD_PROPERTY:
-				cause = "Bad property";
-				err = -EINVAL;
-				break;
-			default:
-				cause = "Unknown";
-				err = -EIO;
+								   buffer, sizeof(buffer));
+
+		if (err == sizeof(buffer))
+		{
+			switch (buffer[1])
+			{
+				case SI476X_ERR_BAD_COMMAND:
+					cause = "Bad command";
+					err = -EINVAL;
+					break;
+
+				case SI476X_ERR_BAD_ARG1:
+					cause = "Bad argument #1";
+					err = -EINVAL;
+					break;
+
+				case SI476X_ERR_BAD_ARG2:
+					cause = "Bad argument #2";
+					err = -EINVAL;
+					break;
+
+				case SI476X_ERR_BAD_ARG3:
+					cause = "Bad argument #3";
+					err = -EINVAL;
+					break;
+
+				case SI476X_ERR_BAD_ARG4:
+					cause = "Bad argument #4";
+					err = -EINVAL;
+					break;
+
+				case SI476X_ERR_BUSY:
+					cause = "Chip is busy";
+					err = -EBUSY;
+					break;
+
+				case SI476X_ERR_BAD_INTERNAL_MEMORY:
+					cause = "Bad internal memory";
+					err = -EIO;
+					break;
+
+				case SI476X_ERR_BAD_PATCH:
+					cause = "Bad patch";
+					err = -EINVAL;
+					break;
+
+				case SI476X_ERR_BAD_BOOT_MODE:
+					cause = "Bad boot mode";
+					err = -EINVAL;
+					break;
+
+				case SI476X_ERR_BAD_PROPERTY:
+					cause = "Bad property";
+					err = -EINVAL;
+					break;
+
+				default:
+					cause = "Unknown";
+					err = -EIO;
 			}
 
 			dev_err(&core->client->dev,
-				"[Chip error status]: %s\n", cause);
-		} else {
+					"[Chip error status]: %s\n", cause);
+		}
+		else
+		{
 			dev_err(&core->client->dev,
-				"Failed to fetch error code\n");
+					"Failed to fetch error code\n");
 			err = (err >= 0) ? -EIO : err;
 		}
-	} else {
+	}
+	else
+	{
 		err = -EIO;
 	}
 
@@ -264,23 +285,25 @@ static int si476x_core_parse_and_nag_about_error(struct si476x_core *core)
  * failure
  */
 static int si476x_core_send_command(struct si476x_core *core,
-				    const u8 command,
-				    const u8 args[],
-				    const int argn,
-				    u8 resp[],
-				    const int respn,
-				    const int usecs)
+									const u8 command,
+									const u8 args[],
+									const int argn,
+									u8 resp[],
+									const int respn,
+									const int usecs)
 {
 	struct i2c_client *client = core->client;
 	int err;
 	u8  data[CMD_MAX_ARGS_COUNT + 1];
 
-	if (argn > CMD_MAX_ARGS_COUNT) {
+	if (argn > CMD_MAX_ARGS_COUNT)
+	{
 		err = -ENOMEM;
 		goto exit;
 	}
 
-	if (!client->adapter) {
+	if (!client->adapter)
+	{
 		err = -ENODEV;
 		goto exit;
 	}
@@ -291,25 +314,28 @@ static int si476x_core_send_command(struct si476x_core *core,
 	dev_dbg(&client->dev, "Command:\n %*ph\n", argn + 1, data);
 
 	err = si476x_core_i2c_xfer(core, SI476X_I2C_SEND,
-				   (char *) data, argn + 1);
-	if (err != argn + 1) {
+							   (char *) data, argn + 1);
+
+	if (err != argn + 1)
+	{
 		dev_err(&core->client->dev,
-			"Error while sending command 0x%02x\n",
-			command);
+				"Error while sending command 0x%02x\n",
+				command);
 		err = (err >= 0) ? -EIO : err;
 		goto exit;
 	}
+
 	/* Set CTS to zero only after the command is send to avoid
 	 * possible racing conditions when working in polling mode */
 	atomic_set(&core->cts, 0);
 
 	/* if (unlikely(command == CMD_POWER_DOWN) */
 	if (!wait_event_timeout(core->command,
-				atomic_read(&core->cts),
-				usecs_to_jiffies(usecs) + 1))
+							atomic_read(&core->cts),
+							usecs_to_jiffies(usecs) + 1))
 		dev_warn(&core->client->dev,
-			 "(%s) [CMD 0x%02x] Answer timeout.\n",
-			 __func__, command);
+				 "(%s) [CMD 0x%02x] Answer timeout.\n",
+				 __func__, command);
 
 	/*
 	  When working in polling mode, for some reason the tuner will
@@ -318,37 +344,45 @@ static int si476x_core_send_command(struct si476x_core *core,
 	  tuner is actually completed the POWER_UP command. To
 	  workaround that we wait for second CTS to be reported
 	 */
-	if (unlikely(!core->client->irq && command == CMD_POWER_UP)) {
+	if (unlikely(!core->client->irq && command == CMD_POWER_UP))
+	{
 		if (!wait_event_timeout(core->command,
-					atomic_read(&core->cts),
-					usecs_to_jiffies(usecs) + 1))
+								atomic_read(&core->cts),
+								usecs_to_jiffies(usecs) + 1))
 			dev_warn(&core->client->dev,
-				 "(%s) Power up took too much time.\n",
-				 __func__);
+					 "(%s) Power up took too much time.\n",
+					 __func__);
 	}
 
 	/* Then get the response */
 	err = si476x_core_i2c_xfer(core, SI476X_I2C_RECV, resp, respn);
-	if (err != respn) {
+
+	if (err != respn)
+	{
 		dev_err(&core->client->dev,
-			"Error while reading response for command 0x%02x\n",
-			command);
+				"Error while reading response for command 0x%02x\n",
+				command);
 		err = (err >= 0) ? -EIO : err;
 		goto exit;
 	}
+
 	dev_dbg(&client->dev, "Response:\n %*ph\n", respn, resp);
 
 	err = 0;
 
-	if (resp[0] & SI476X_ERR) {
+	if (resp[0] & SI476X_ERR)
+	{
 		dev_err(&core->client->dev,
-			"[CMD 0x%02x] Chip set error flag\n", command);
+				"[CMD 0x%02x] Chip set error flag\n", command);
 		err = si476x_core_parse_and_nag_about_error(core);
 		goto exit;
 	}
 
 	if (!(resp[0] & SI476X_CTS))
+	{
 		err = -EBUSY;
+	}
+
 exit:
 	return err;
 }
@@ -356,7 +390,8 @@ exit:
 static int si476x_cmd_clear_stc(struct si476x_core *core)
 {
 	int err;
-	struct si476x_rsq_status_args args = {
+	struct si476x_rsq_status_args args =
+	{
 		.primary	= false,
 		.rsqack		= false,
 		.attune		= false,
@@ -364,34 +399,39 @@ static int si476x_cmd_clear_stc(struct si476x_core *core)
 		.stcack		= true,
 	};
 
-	switch (core->power_up_parameters.func) {
-	case SI476X_FUNC_FM_RECEIVER:
-		err = si476x_core_cmd_fm_rsq_status(core, &args, NULL);
-		break;
-	case SI476X_FUNC_AM_RECEIVER:
-		err = si476x_core_cmd_am_rsq_status(core, &args, NULL);
-		break;
-	default:
-		err = -EINVAL;
+	switch (core->power_up_parameters.func)
+	{
+		case SI476X_FUNC_FM_RECEIVER:
+			err = si476x_core_cmd_fm_rsq_status(core, &args, NULL);
+			break;
+
+		case SI476X_FUNC_AM_RECEIVER:
+			err = si476x_core_cmd_am_rsq_status(core, &args, NULL);
+			break;
+
+		default:
+			err = -EINVAL;
 	}
 
 	return err;
 }
 
 static int si476x_cmd_tune_seek_freq(struct si476x_core *core,
-				     uint8_t cmd,
-				     const uint8_t args[], size_t argn,
-				     uint8_t *resp, size_t respn)
+									 uint8_t cmd,
+									 const uint8_t args[], size_t argn,
+									 uint8_t *resp, size_t respn)
 {
 	int err;
 
 
 	atomic_set(&core->stc, 0);
 	err = si476x_core_send_command(core, cmd, args, argn, resp, respn,
-				       SI476X_TIMEOUT_TUNE);
-	if (!err) {
+								   SI476X_TIMEOUT_TUNE);
+
+	if (!err)
+	{
 		wait_event_killable(core->tuning,
-				    atomic_read(&core->stc));
+							atomic_read(&core->stc));
 		si476x_cmd_clear_stc(core);
 	}
 
@@ -411,15 +451,15 @@ static int si476x_cmd_tune_seek_freq(struct si476x_core *core,
  * failure
  */
 int si476x_core_cmd_func_info(struct si476x_core *core,
-			      struct si476x_func_info *info)
+							  struct si476x_func_info *info)
 {
 	int err;
 	u8  resp[CMD_FUNC_INFO_NRESP];
 
 	err = si476x_core_send_command(core, CMD_FUNC_INFO,
-				       NULL, 0,
-				       resp, ARRAY_SIZE(resp),
-				       SI476X_DEFAULT_TIMEOUT);
+								   NULL, 0,
+								   resp, ARRAY_SIZE(resp),
+								   SI476X_DEFAULT_TIMEOUT);
 
 	info->firmware.major    = resp[1];
 	info->firmware.minor[0] = resp[2];
@@ -442,10 +482,11 @@ EXPORT_SYMBOL_GPL(si476x_core_cmd_func_info);
  * failure
  */
 int si476x_core_cmd_set_property(struct si476x_core *core,
-				 u16 property, u16 value)
+								 u16 property, u16 value)
 {
 	u8       resp[CMD_SET_PROPERTY_NRESP];
-	const u8 args[CMD_SET_PROPERTY_NARGS] = {
+	const u8 args[CMD_SET_PROPERTY_NARGS] =
+	{
 		0x00,
 		msb(property),
 		lsb(property),
@@ -454,9 +495,9 @@ int si476x_core_cmd_set_property(struct si476x_core *core,
 	};
 
 	return si476x_core_send_command(core, CMD_SET_PROPERTY,
-					args, ARRAY_SIZE(args),
-					resp, ARRAY_SIZE(resp),
-					SI476X_DEFAULT_TIMEOUT);
+									args, ARRAY_SIZE(args),
+									resp, ARRAY_SIZE(resp),
+									SI476X_DEFAULT_TIMEOUT);
 }
 EXPORT_SYMBOL_GPL(si476x_core_cmd_set_property);
 
@@ -472,20 +513,26 @@ int si476x_core_cmd_get_property(struct si476x_core *core, u16 property)
 {
 	int err;
 	u8       resp[CMD_GET_PROPERTY_NRESP];
-	const u8 args[CMD_GET_PROPERTY_NARGS] = {
+	const u8 args[CMD_GET_PROPERTY_NARGS] =
+	{
 		0x00,
 		msb(property),
 		lsb(property),
 	};
 
 	err = si476x_core_send_command(core, CMD_GET_PROPERTY,
-				       args, ARRAY_SIZE(args),
-				       resp, ARRAY_SIZE(resp),
-				       SI476X_DEFAULT_TIMEOUT);
+								   args, ARRAY_SIZE(args),
+								   resp, ARRAY_SIZE(resp),
+								   SI476X_DEFAULT_TIMEOUT);
+
 	if (err < 0)
+	{
 		return err;
+	}
 	else
+	{
 		return get_unaligned_be16(resp + 2);
+	}
 }
 EXPORT_SYMBOL_GPL(si476x_core_cmd_get_property);
 
@@ -527,13 +574,14 @@ EXPORT_SYMBOL_GPL(si476x_core_cmd_get_property);
  * Function returns 0 on success and negative error code on failure
  */
 int si476x_core_cmd_dig_audio_pin_cfg(struct  si476x_core *core,
-				      enum si476x_dclk_config dclk,
-				      enum si476x_dfs_config  dfs,
-				      enum si476x_dout_config dout,
-				      enum si476x_xout_config xout)
+									  enum si476x_dclk_config dclk,
+									  enum si476x_dfs_config  dfs,
+									  enum si476x_dout_config dout,
+									  enum si476x_xout_config xout)
 {
 	u8       resp[CMD_DIG_AUDIO_PIN_CFG_NRESP];
-	const u8 args[CMD_DIG_AUDIO_PIN_CFG_NARGS] = {
+	const u8 args[CMD_DIG_AUDIO_PIN_CFG_NARGS] =
+	{
 		PIN_CFG_BYTE(dclk),
 		PIN_CFG_BYTE(dfs),
 		PIN_CFG_BYTE(dout),
@@ -541,9 +589,9 @@ int si476x_core_cmd_dig_audio_pin_cfg(struct  si476x_core *core,
 	};
 
 	return si476x_core_send_command(core, CMD_DIG_AUDIO_PIN_CFG,
-					args, ARRAY_SIZE(args),
-					resp, ARRAY_SIZE(resp),
-					SI476X_DEFAULT_TIMEOUT);
+									args, ARRAY_SIZE(args),
+									resp, ARRAY_SIZE(resp),
+									SI476X_DEFAULT_TIMEOUT);
 }
 EXPORT_SYMBOL_GPL(si476x_core_cmd_dig_audio_pin_cfg);
 
@@ -576,13 +624,14 @@ EXPORT_SYMBOL_GPL(si476x_core_cmd_dig_audio_pin_cfg);
  * Function returns 0 on success and negative error code on failure
  */
 int si476x_core_cmd_zif_pin_cfg(struct si476x_core *core,
-				enum si476x_iqclk_config iqclk,
-				enum si476x_iqfs_config iqfs,
-				enum si476x_iout_config iout,
-				enum si476x_qout_config qout)
+								enum si476x_iqclk_config iqclk,
+								enum si476x_iqfs_config iqfs,
+								enum si476x_iout_config iout,
+								enum si476x_qout_config qout)
 {
 	u8       resp[CMD_ZIF_PIN_CFG_NRESP];
-	const u8 args[CMD_ZIF_PIN_CFG_NARGS] = {
+	const u8 args[CMD_ZIF_PIN_CFG_NARGS] =
+	{
 		PIN_CFG_BYTE(iqclk),
 		PIN_CFG_BYTE(iqfs),
 		PIN_CFG_BYTE(iout),
@@ -590,9 +639,9 @@ int si476x_core_cmd_zif_pin_cfg(struct si476x_core *core,
 	};
 
 	return si476x_core_send_command(core, CMD_ZIF_PIN_CFG,
-					args, ARRAY_SIZE(args),
-					resp, ARRAY_SIZE(resp),
-					SI476X_DEFAULT_TIMEOUT);
+									args, ARRAY_SIZE(args),
+									resp, ARRAY_SIZE(resp),
+									SI476X_DEFAULT_TIMEOUT);
 }
 EXPORT_SYMBOL_GPL(si476x_core_cmd_zif_pin_cfg);
 
@@ -633,13 +682,14 @@ EXPORT_SYMBOL_GPL(si476x_core_cmd_zif_pin_cfg);
  * Function returns 0 on success and negative error code on failure
  */
 int si476x_core_cmd_ic_link_gpo_ctl_pin_cfg(struct si476x_core *core,
-					    enum si476x_icin_config icin,
-					    enum si476x_icip_config icip,
-					    enum si476x_icon_config icon,
-					    enum si476x_icop_config icop)
+		enum si476x_icin_config icin,
+		enum si476x_icip_config icip,
+		enum si476x_icon_config icon,
+		enum si476x_icop_config icop)
 {
 	u8       resp[CMD_IC_LINK_GPO_CTL_PIN_CFG_NRESP];
-	const u8 args[CMD_IC_LINK_GPO_CTL_PIN_CFG_NARGS] = {
+	const u8 args[CMD_IC_LINK_GPO_CTL_PIN_CFG_NARGS] =
+	{
 		PIN_CFG_BYTE(icin),
 		PIN_CFG_BYTE(icip),
 		PIN_CFG_BYTE(icon),
@@ -647,9 +697,9 @@ int si476x_core_cmd_ic_link_gpo_ctl_pin_cfg(struct si476x_core *core,
 	};
 
 	return si476x_core_send_command(core, CMD_IC_LINK_GPO_CTL_PIN_CFG,
-					args, ARRAY_SIZE(args),
-					resp, ARRAY_SIZE(resp),
-					SI476X_DEFAULT_TIMEOUT);
+									args, ARRAY_SIZE(args),
+									resp, ARRAY_SIZE(resp),
+									SI476X_DEFAULT_TIMEOUT);
 }
 EXPORT_SYMBOL_GPL(si476x_core_cmd_ic_link_gpo_ctl_pin_cfg);
 
@@ -667,17 +717,18 @@ EXPORT_SYMBOL_GPL(si476x_core_cmd_ic_link_gpo_ctl_pin_cfg);
  * Function returns 0 on success and negative error code on failure
  */
 int si476x_core_cmd_ana_audio_pin_cfg(struct si476x_core *core,
-				      enum si476x_lrout_config lrout)
+									  enum si476x_lrout_config lrout)
 {
 	u8       resp[CMD_ANA_AUDIO_PIN_CFG_NRESP];
-	const u8 args[CMD_ANA_AUDIO_PIN_CFG_NARGS] = {
+	const u8 args[CMD_ANA_AUDIO_PIN_CFG_NARGS] =
+	{
 		PIN_CFG_BYTE(lrout),
 	};
 
 	return si476x_core_send_command(core, CMD_ANA_AUDIO_PIN_CFG,
-					args, ARRAY_SIZE(args),
-					resp, ARRAY_SIZE(resp),
-					SI476X_DEFAULT_TIMEOUT);
+									args, ARRAY_SIZE(args),
+									resp, ARRAY_SIZE(resp),
+									SI476X_DEFAULT_TIMEOUT);
 }
 EXPORT_SYMBOL_GPL(si476x_core_cmd_ana_audio_pin_cfg);
 
@@ -701,35 +752,37 @@ EXPORT_SYMBOL_GPL(si476x_core_cmd_ana_audio_pin_cfg);
  * Function returns 0 on success and negative error code on failure
  */
 static int si476x_core_cmd_intb_pin_cfg_a10(struct si476x_core *core,
-					    enum si476x_intb_config intb,
-					    enum si476x_a1_config a1)
+		enum si476x_intb_config intb,
+		enum si476x_a1_config a1)
 {
 	u8       resp[CMD_INTB_PIN_CFG_A10_NRESP];
-	const u8 args[CMD_INTB_PIN_CFG_NARGS] = {
+	const u8 args[CMD_INTB_PIN_CFG_NARGS] =
+	{
 		PIN_CFG_BYTE(intb),
 		PIN_CFG_BYTE(a1),
 	};
 
 	return si476x_core_send_command(core, CMD_INTB_PIN_CFG,
-					args, ARRAY_SIZE(args),
-					resp, ARRAY_SIZE(resp),
-					SI476X_DEFAULT_TIMEOUT);
+									args, ARRAY_SIZE(args),
+									resp, ARRAY_SIZE(resp),
+									SI476X_DEFAULT_TIMEOUT);
 }
 
 static int si476x_core_cmd_intb_pin_cfg_a20(struct si476x_core *core,
-					    enum si476x_intb_config intb,
-					    enum si476x_a1_config a1)
+		enum si476x_intb_config intb,
+		enum si476x_a1_config a1)
 {
 	u8       resp[CMD_INTB_PIN_CFG_A20_NRESP];
-	const u8 args[CMD_INTB_PIN_CFG_NARGS] = {
+	const u8 args[CMD_INTB_PIN_CFG_NARGS] =
+	{
 		PIN_CFG_BYTE(intb),
 		PIN_CFG_BYTE(a1),
 	};
 
 	return si476x_core_send_command(core, CMD_INTB_PIN_CFG,
-					args, ARRAY_SIZE(args),
-					resp, ARRAY_SIZE(resp),
-					SI476X_DEFAULT_TIMEOUT);
+									args, ARRAY_SIZE(args),
+									resp, ARRAY_SIZE(resp),
+									SI476X_DEFAULT_TIMEOUT);
 }
 
 
@@ -750,20 +803,22 @@ static int si476x_core_cmd_intb_pin_cfg_a20(struct si476x_core *core,
  * Function returns 0 on success and negative error code on failure
  */
 int si476x_core_cmd_am_rsq_status(struct si476x_core *core,
-				  struct si476x_rsq_status_args *rsqargs,
-				  struct si476x_rsq_status_report *report)
+								  struct si476x_rsq_status_args *rsqargs,
+								  struct si476x_rsq_status_report *report)
 {
 	int err;
 	u8       resp[CMD_AM_RSQ_STATUS_NRESP];
-	const u8 args[CMD_AM_RSQ_STATUS_NARGS] = {
+	const u8 args[CMD_AM_RSQ_STATUS_NARGS] =
+	{
 		rsqargs->rsqack << 3 | rsqargs->attune << 2 |
 		rsqargs->cancel << 1 | rsqargs->stcack,
 	};
 
 	err = si476x_core_send_command(core, CMD_AM_RSQ_STATUS,
-				       args, ARRAY_SIZE(args),
-				       resp, ARRAY_SIZE(resp),
-				       SI476X_DEFAULT_TIMEOUT);
+								   args, ARRAY_SIZE(args),
+								   resp, ARRAY_SIZE(resp),
+								   SI476X_DEFAULT_TIMEOUT);
+
 	/*
 	 * Besides getting received signal quality information this
 	 * command can be used to just acknowledge different interrupt
@@ -772,7 +827,9 @@ int si476x_core_cmd_am_rsq_status(struct si476x_core *core,
 	 * unnecessary copying.
 	 */
 	if (!report)
+	{
 		return err;
+	}
 
 	report->snrhint		= 0x08 & resp[1];
 	report->snrlint		= 0x04 & resp[1];
@@ -799,23 +856,29 @@ int si476x_core_cmd_am_rsq_status(struct si476x_core *core,
 EXPORT_SYMBOL_GPL(si476x_core_cmd_am_rsq_status);
 
 int si476x_core_cmd_fm_acf_status(struct si476x_core *core,
-			     struct si476x_acf_status_report *report)
+								  struct si476x_acf_status_report *report)
 {
 	int err;
 	u8       resp[CMD_FM_ACF_STATUS_NRESP];
-	const u8 args[CMD_FM_ACF_STATUS_NARGS] = {
+	const u8 args[CMD_FM_ACF_STATUS_NARGS] =
+	{
 		0x0,
 	};
 
 	if (!report)
+	{
 		return -EINVAL;
+	}
 
 	err = si476x_core_send_command(core, CMD_FM_ACF_STATUS,
-				       args, ARRAY_SIZE(args),
-				       resp, ARRAY_SIZE(resp),
-				       SI476X_DEFAULT_TIMEOUT);
+								   args, ARRAY_SIZE(args),
+								   resp, ARRAY_SIZE(resp),
+								   SI476X_DEFAULT_TIMEOUT);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	report->blend_int	= resp[1] & SI476X_ACF_BLEND_INT;
 	report->hblend_int	= resp[1] & SI476X_ACF_HIBLEND_INT;
@@ -835,23 +898,29 @@ int si476x_core_cmd_fm_acf_status(struct si476x_core *core,
 EXPORT_SYMBOL_GPL(si476x_core_cmd_fm_acf_status);
 
 int si476x_core_cmd_am_acf_status(struct si476x_core *core,
-				  struct si476x_acf_status_report *report)
+								  struct si476x_acf_status_report *report)
 {
 	int err;
 	u8       resp[CMD_AM_ACF_STATUS_NRESP];
-	const u8 args[CMD_AM_ACF_STATUS_NARGS] = {
+	const u8 args[CMD_AM_ACF_STATUS_NARGS] =
+	{
 		0x0,
 	};
 
 	if (!report)
+	{
 		return -EINVAL;
+	}
 
 	err = si476x_core_send_command(core, CMD_AM_ACF_STATUS,
-				       args, ARRAY_SIZE(args),
-				       resp, ARRAY_SIZE(resp),
-				       SI476X_DEFAULT_TIMEOUT);
+								   args, ARRAY_SIZE(args),
+								   resp, ARRAY_SIZE(resp),
+								   SI476X_DEFAULT_TIMEOUT);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	report->blend_int	= resp[1] & SI476X_ACF_BLEND_INT;
 	report->hblend_int	= resp[1] & SI476X_ACF_HIBLEND_INT;
@@ -883,16 +952,17 @@ EXPORT_SYMBOL_GPL(si476x_core_cmd_am_acf_status);
  * Function returns 0 on success and negative error code on failure
  */
 int si476x_core_cmd_fm_seek_start(struct si476x_core *core,
-				  bool seekup, bool wrap)
+								  bool seekup, bool wrap)
 {
 	u8       resp[CMD_FM_SEEK_START_NRESP];
-	const u8 args[CMD_FM_SEEK_START_NARGS] = {
+	const u8 args[CMD_FM_SEEK_START_NARGS] =
+	{
 		seekup << 3 | wrap << 2,
 	};
 
 	return si476x_cmd_tune_seek_freq(core, CMD_FM_SEEK_START,
-					 args, sizeof(args),
-					 resp, sizeof(resp));
+									 args, sizeof(args),
+									 resp, sizeof(resp));
 }
 EXPORT_SYMBOL_GPL(si476x_core_cmd_fm_seek_start);
 
@@ -909,21 +979,23 @@ EXPORT_SYMBOL_GPL(si476x_core_cmd_fm_seek_start);
  * Function returns 0 on success and negative error code on failure
  */
 int si476x_core_cmd_fm_rds_status(struct si476x_core *core,
-				  bool status_only,
-				  bool mtfifo,
-				  bool intack,
-				  struct si476x_rds_status_report *report)
+								  bool status_only,
+								  bool mtfifo,
+								  bool intack,
+								  struct si476x_rds_status_report *report)
 {
 	int err;
 	u8       resp[CMD_FM_RDS_STATUS_NRESP];
-	const u8 args[CMD_FM_RDS_STATUS_NARGS] = {
+	const u8 args[CMD_FM_RDS_STATUS_NARGS] =
+	{
 		status_only << 2 | mtfifo << 1 | intack,
 	};
 
 	err = si476x_core_send_command(core, CMD_FM_RDS_STATUS,
-				       args, ARRAY_SIZE(args),
-				       resp, ARRAY_SIZE(resp),
-				       SI476X_DEFAULT_TIMEOUT);
+								   args, ARRAY_SIZE(args),
+								   resp, ARRAY_SIZE(resp),
+								   SI476X_DEFAULT_TIMEOUT);
+
 	/*
 	 * Besides getting RDS status information this command can be
 	 * used to just acknowledge different interrupt flags in those
@@ -931,7 +1003,9 @@ int si476x_core_cmd_fm_rds_status(struct si476x_core *core,
 	 * can pass NULL, and thus avoid unnecessary copying.
 	 */
 	if (err < 0 || report == NULL)
+	{
 		return err;
+	}
 
 	report->rdstpptyint	= 0x10 & resp[1];
 	report->rdspiint	= 0x08 & resp[1];
@@ -975,24 +1049,28 @@ int si476x_core_cmd_fm_rds_status(struct si476x_core *core,
 EXPORT_SYMBOL_GPL(si476x_core_cmd_fm_rds_status);
 
 int si476x_core_cmd_fm_rds_blockcount(struct si476x_core *core,
-				bool clear,
-				struct si476x_rds_blockcount_report *report)
+									  bool clear,
+									  struct si476x_rds_blockcount_report *report)
 {
 	int err;
 	u8       resp[CMD_FM_RDS_BLOCKCOUNT_NRESP];
-	const u8 args[CMD_FM_RDS_BLOCKCOUNT_NARGS] = {
+	const u8 args[CMD_FM_RDS_BLOCKCOUNT_NARGS] =
+	{
 		clear,
 	};
 
 	if (!report)
+	{
 		return -EINVAL;
+	}
 
 	err = si476x_core_send_command(core, CMD_FM_RDS_BLOCKCOUNT,
-				       args, ARRAY_SIZE(args),
-				       resp, ARRAY_SIZE(resp),
-				       SI476X_DEFAULT_TIMEOUT);
+								   args, ARRAY_SIZE(args),
+								   resp, ARRAY_SIZE(resp),
+								   SI476X_DEFAULT_TIMEOUT);
 
-	if (!err) {
+	if (!err)
+	{
 		report->expected	= get_unaligned_be16(resp + 2);
 		report->received	= get_unaligned_be16(resp + 4);
 		report->uncorrectable	= get_unaligned_be16(resp + 6);
@@ -1003,17 +1081,18 @@ int si476x_core_cmd_fm_rds_blockcount(struct si476x_core *core,
 EXPORT_SYMBOL_GPL(si476x_core_cmd_fm_rds_blockcount);
 
 int si476x_core_cmd_fm_phase_diversity(struct si476x_core *core,
-				       enum si476x_phase_diversity_mode mode)
+									   enum si476x_phase_diversity_mode mode)
 {
 	u8       resp[CMD_FM_PHASE_DIVERSITY_NRESP];
-	const u8 args[CMD_FM_PHASE_DIVERSITY_NARGS] = {
+	const u8 args[CMD_FM_PHASE_DIVERSITY_NARGS] =
+	{
 		mode & 0x07,
 	};
 
 	return si476x_core_send_command(core, CMD_FM_PHASE_DIVERSITY,
-					args, ARRAY_SIZE(args),
-					resp, ARRAY_SIZE(resp),
-					SI476X_DEFAULT_TIMEOUT);
+									args, ARRAY_SIZE(args),
+									resp, ARRAY_SIZE(resp),
+									SI476X_DEFAULT_TIMEOUT);
 }
 EXPORT_SYMBOL_GPL(si476x_core_cmd_fm_phase_diversity);
 /**
@@ -1033,9 +1112,9 @@ int si476x_core_cmd_fm_phase_div_status(struct si476x_core *core)
 	u8 resp[CMD_FM_PHASE_DIV_STATUS_NRESP];
 
 	err = si476x_core_send_command(core, CMD_FM_PHASE_DIV_STATUS,
-				       NULL, 0,
-				       resp, ARRAY_SIZE(resp),
-				       SI476X_DEFAULT_TIMEOUT);
+								   NULL, 0,
+								   resp, ARRAY_SIZE(resp),
+								   SI476X_DEFAULT_TIMEOUT);
 
 	return (err < 0) ? err : resp[1];
 }
@@ -1057,28 +1136,30 @@ EXPORT_SYMBOL_GPL(si476x_core_cmd_fm_phase_div_status);
  * Function returns 0 on success and negative error code on failure
  */
 int si476x_core_cmd_am_seek_start(struct si476x_core *core,
-				  bool seekup, bool wrap)
+								  bool seekup, bool wrap)
 {
 	u8       resp[CMD_AM_SEEK_START_NRESP];
-	const u8 args[CMD_AM_SEEK_START_NARGS] = {
+	const u8 args[CMD_AM_SEEK_START_NARGS] =
+	{
 		seekup << 3 | wrap << 2,
 	};
 
 	return si476x_cmd_tune_seek_freq(core,  CMD_AM_SEEK_START,
-					 args, sizeof(args),
-					 resp, sizeof(resp));
+									 args, sizeof(args),
+									 resp, sizeof(resp));
 }
 EXPORT_SYMBOL_GPL(si476x_core_cmd_am_seek_start);
 
 
 
 static int si476x_core_cmd_power_up_a10(struct si476x_core *core,
-					struct si476x_power_up_args *puargs)
+										struct si476x_power_up_args *puargs)
 {
 	u8       resp[CMD_POWER_UP_A10_NRESP];
 	const bool intsel = (core->pinmux.a1 == SI476X_A1_IRQ);
 	const bool ctsen  = (core->client->irq != 0);
-	const u8 args[CMD_POWER_UP_A10_NARGS] = {
+	const u8 args[CMD_POWER_UP_A10_NARGS] =
+	{
 		0xF7,		/* Reserved, always 0xF7 */
 		0x3F & puargs->xcload,	/* First two bits are reserved to be
 				 * zeros */
@@ -1090,18 +1171,19 @@ static int si476x_core_cmd_power_up_a10(struct si476x_core *core,
 	};
 
 	return si476x_core_send_command(core, CMD_POWER_UP,
-					args, ARRAY_SIZE(args),
-					resp, ARRAY_SIZE(resp),
-					SI476X_TIMEOUT_POWER_UP);
+									args, ARRAY_SIZE(args),
+									resp, ARRAY_SIZE(resp),
+									SI476X_TIMEOUT_POWER_UP);
 }
 
 static int si476x_core_cmd_power_up_a20(struct si476x_core *core,
-				 struct si476x_power_up_args *puargs)
+										struct si476x_power_up_args *puargs)
 {
 	u8       resp[CMD_POWER_UP_A20_NRESP];
 	const bool intsel = (core->pinmux.a1 == SI476X_A1_IRQ);
 	const bool ctsen  = (core->client->irq != 0);
-	const u8 args[CMD_POWER_UP_A20_NARGS] = {
+	const u8 args[CMD_POWER_UP_A20_NARGS] =
+	{
 		puargs->ibias6x << 7 | puargs->xstart,
 		0x3F & puargs->xcload,	/* First two bits are reserved to be
 					 * zeros */
@@ -1112,83 +1194,88 @@ static int si476x_core_cmd_power_up_a20(struct si476x_core *core,
 	};
 
 	return si476x_core_send_command(core, CMD_POWER_UP,
-					args, ARRAY_SIZE(args),
-					resp, ARRAY_SIZE(resp),
-					SI476X_TIMEOUT_POWER_UP);
+									args, ARRAY_SIZE(args),
+									resp, ARRAY_SIZE(resp),
+									SI476X_TIMEOUT_POWER_UP);
 }
 
 static int si476x_core_cmd_power_down_a10(struct si476x_core *core,
-					  struct si476x_power_down_args *pdargs)
+		struct si476x_power_down_args *pdargs)
 {
 	u8 resp[CMD_POWER_DOWN_A10_NRESP];
 
 	return si476x_core_send_command(core, CMD_POWER_DOWN,
-					NULL, 0,
-					resp, ARRAY_SIZE(resp),
-					SI476X_DEFAULT_TIMEOUT);
+									NULL, 0,
+									resp, ARRAY_SIZE(resp),
+									SI476X_DEFAULT_TIMEOUT);
 }
 
 static int si476x_core_cmd_power_down_a20(struct si476x_core *core,
-					  struct si476x_power_down_args *pdargs)
+		struct si476x_power_down_args *pdargs)
 {
 	u8 resp[CMD_POWER_DOWN_A20_NRESP];
-	const u8 args[CMD_POWER_DOWN_A20_NARGS] = {
+	const u8 args[CMD_POWER_DOWN_A20_NARGS] =
+	{
 		pdargs->xosc,
 	};
 	return si476x_core_send_command(core, CMD_POWER_DOWN,
-					args, ARRAY_SIZE(args),
-					resp, ARRAY_SIZE(resp),
-					SI476X_DEFAULT_TIMEOUT);
+									args, ARRAY_SIZE(args),
+									resp, ARRAY_SIZE(resp),
+									SI476X_DEFAULT_TIMEOUT);
 }
 
 static int si476x_core_cmd_am_tune_freq_a10(struct si476x_core *core,
-					struct si476x_tune_freq_args *tuneargs)
+		struct si476x_tune_freq_args *tuneargs)
 {
 
 	const int am_freq = tuneargs->freq;
 	u8       resp[CMD_AM_TUNE_FREQ_NRESP];
-	const u8 args[CMD_AM_TUNE_FREQ_NARGS] = {
+	const u8 args[CMD_AM_TUNE_FREQ_NARGS] =
+	{
 		(tuneargs->hd << 6),
 		msb(am_freq),
 		lsb(am_freq),
 	};
 
 	return si476x_cmd_tune_seek_freq(core, CMD_AM_TUNE_FREQ, args,
-					 sizeof(args),
-					 resp, sizeof(resp));
+									 sizeof(args),
+									 resp, sizeof(resp));
 }
 
 static int si476x_core_cmd_am_tune_freq_a20(struct si476x_core *core,
-					struct si476x_tune_freq_args *tuneargs)
+		struct si476x_tune_freq_args *tuneargs)
 {
 	const int am_freq = tuneargs->freq;
 	u8       resp[CMD_AM_TUNE_FREQ_NRESP];
-	const u8 args[CMD_AM_TUNE_FREQ_NARGS] = {
+	const u8 args[CMD_AM_TUNE_FREQ_NARGS] =
+	{
 		(tuneargs->zifsr << 6) | (tuneargs->injside & 0x03),
 		msb(am_freq),
 		lsb(am_freq),
 	};
 
 	return si476x_cmd_tune_seek_freq(core, CMD_AM_TUNE_FREQ,
-					 args, sizeof(args),
-					 resp, sizeof(resp));
+									 args, sizeof(args),
+									 resp, sizeof(resp));
 }
 
 static int si476x_core_cmd_fm_rsq_status_a10(struct si476x_core *core,
-					struct si476x_rsq_status_args *rsqargs,
-					struct si476x_rsq_status_report *report)
+		struct si476x_rsq_status_args *rsqargs,
+		struct si476x_rsq_status_report *report)
 {
 	int err;
 	u8       resp[CMD_FM_RSQ_STATUS_A10_NRESP];
-	const u8 args[CMD_FM_RSQ_STATUS_A10_NARGS] = {
+	const u8 args[CMD_FM_RSQ_STATUS_A10_NARGS] =
+	{
 		rsqargs->rsqack << 3 | rsqargs->attune << 2 |
 		rsqargs->cancel << 1 | rsqargs->stcack,
 	};
 
 	err = si476x_core_send_command(core, CMD_FM_RSQ_STATUS,
-				       args, ARRAY_SIZE(args),
-				       resp, ARRAY_SIZE(resp),
-				       SI476X_DEFAULT_TIMEOUT);
+								   args, ARRAY_SIZE(args),
+								   resp, ARRAY_SIZE(resp),
+								   SI476X_DEFAULT_TIMEOUT);
+
 	/*
 	 * Besides getting received signal quality information this
 	 * command can be used to just acknowledge different interrupt
@@ -1197,7 +1284,9 @@ static int si476x_core_cmd_fm_rsq_status_a10(struct si476x_core *core,
 	 * unnecessary copying.
 	 */
 	if (err < 0 || report == NULL)
+	{
 		return err;
+	}
 
 	report->multhint	= 0x80 & resp[1];
 	report->multlint	= 0x40 & resp[1];
@@ -1228,21 +1317,23 @@ static int si476x_core_cmd_fm_rsq_status_a10(struct si476x_core *core,
 }
 
 static int si476x_core_cmd_fm_rsq_status_a20(struct si476x_core *core,
-				     struct si476x_rsq_status_args *rsqargs,
-				     struct si476x_rsq_status_report *report)
+		struct si476x_rsq_status_args *rsqargs,
+		struct si476x_rsq_status_report *report)
 {
 	int err;
 	u8       resp[CMD_FM_RSQ_STATUS_A10_NRESP];
-	const u8 args[CMD_FM_RSQ_STATUS_A30_NARGS] = {
+	const u8 args[CMD_FM_RSQ_STATUS_A30_NARGS] =
+	{
 		rsqargs->primary << 4 | rsqargs->rsqack << 3 |
 		rsqargs->attune  << 2 | rsqargs->cancel << 1 |
 		rsqargs->stcack,
 	};
 
 	err = si476x_core_send_command(core, CMD_FM_RSQ_STATUS,
-				       args, ARRAY_SIZE(args),
-				       resp, ARRAY_SIZE(resp),
-				       SI476X_DEFAULT_TIMEOUT);
+								   args, ARRAY_SIZE(args),
+								   resp, ARRAY_SIZE(resp),
+								   SI476X_DEFAULT_TIMEOUT);
+
 	/*
 	 * Besides getting received signal quality information this
 	 * command can be used to just acknowledge different interrupt
@@ -1251,7 +1342,9 @@ static int si476x_core_cmd_fm_rsq_status_a20(struct si476x_core *core,
 	 * unnecessary copying.
 	 */
 	if (err < 0 || report == NULL)
+	{
 		return err;
+	}
 
 	report->multhint	= 0x80 & resp[1];
 	report->multlint	= 0x40 & resp[1];
@@ -1283,21 +1376,23 @@ static int si476x_core_cmd_fm_rsq_status_a20(struct si476x_core *core,
 
 
 static int si476x_core_cmd_fm_rsq_status_a30(struct si476x_core *core,
-					struct si476x_rsq_status_args *rsqargs,
-					struct si476x_rsq_status_report *report)
+		struct si476x_rsq_status_args *rsqargs,
+		struct si476x_rsq_status_report *report)
 {
 	int err;
 	u8       resp[CMD_FM_RSQ_STATUS_A30_NRESP];
-	const u8 args[CMD_FM_RSQ_STATUS_A30_NARGS] = {
+	const u8 args[CMD_FM_RSQ_STATUS_A30_NARGS] =
+	{
 		rsqargs->primary << 4 | rsqargs->rsqack << 3 |
 		rsqargs->attune << 2 | rsqargs->cancel << 1 |
 		rsqargs->stcack,
 	};
 
 	err = si476x_core_send_command(core, CMD_FM_RSQ_STATUS,
-				       args, ARRAY_SIZE(args),
-				       resp, ARRAY_SIZE(resp),
-				       SI476X_DEFAULT_TIMEOUT);
+								   args, ARRAY_SIZE(args),
+								   resp, ARRAY_SIZE(resp),
+								   SI476X_DEFAULT_TIMEOUT);
+
 	/*
 	 * Besides getting received signal quality information this
 	 * command can be used to just acknowledge different interrupt
@@ -1306,7 +1401,9 @@ static int si476x_core_cmd_fm_rsq_status_a30(struct si476x_core *core,
 	 * unnecessary copying.
 	 */
 	if (err < 0 || report == NULL)
+	{
 		return err;
+	}
 
 	report->multhint	= 0x80 & resp[1];
 	report->multlint	= 0x40 & resp[1];
@@ -1345,10 +1442,11 @@ static int si476x_core_cmd_fm_rsq_status_a30(struct si476x_core *core,
 }
 
 static int si476x_core_cmd_fm_tune_freq_a10(struct si476x_core *core,
-					struct si476x_tune_freq_args *tuneargs)
+		struct si476x_tune_freq_args *tuneargs)
 {
 	u8       resp[CMD_FM_TUNE_FREQ_NRESP];
-	const u8 args[CMD_FM_TUNE_FREQ_A10_NARGS] = {
+	const u8 args[CMD_FM_TUNE_FREQ_A10_NARGS] =
+	{
 		(tuneargs->hd << 6) | (tuneargs->tunemode << 4)
 		| (tuneargs->smoothmetrics << 2),
 		msb(tuneargs->freq),
@@ -1358,15 +1456,16 @@ static int si476x_core_cmd_fm_tune_freq_a10(struct si476x_core *core,
 	};
 
 	return si476x_cmd_tune_seek_freq(core, CMD_FM_TUNE_FREQ,
-					 args, sizeof(args),
-					 resp, sizeof(resp));
+									 args, sizeof(args),
+									 resp, sizeof(resp));
 }
 
 static int si476x_core_cmd_fm_tune_freq_a20(struct si476x_core *core,
-					struct si476x_tune_freq_args *tuneargs)
+		struct si476x_tune_freq_args *tuneargs)
 {
 	u8       resp[CMD_FM_TUNE_FREQ_NRESP];
-	const u8 args[CMD_FM_TUNE_FREQ_A20_NARGS] = {
+	const u8 args[CMD_FM_TUNE_FREQ_A20_NARGS] =
+	{
 		(tuneargs->hd << 6) | (tuneargs->tunemode << 4)
 		|  (tuneargs->smoothmetrics << 2) | (tuneargs->injside),
 		msb(tuneargs->freq),
@@ -1374,25 +1473,30 @@ static int si476x_core_cmd_fm_tune_freq_a20(struct si476x_core *core,
 	};
 
 	return si476x_cmd_tune_seek_freq(core, CMD_FM_TUNE_FREQ,
-					 args, sizeof(args),
-					 resp, sizeof(resp));
+									 args, sizeof(args),
+									 resp, sizeof(resp));
 }
 
 static int si476x_core_cmd_agc_status_a20(struct si476x_core *core,
-					struct si476x_agc_status_report *report)
+		struct si476x_agc_status_report *report)
 {
 	int err;
 	u8 resp[CMD_AGC_STATUS_NRESP_A20];
 
 	if (!report)
+	{
 		return -EINVAL;
+	}
 
 	err = si476x_core_send_command(core, CMD_AGC_STATUS,
-				       NULL, 0,
-				       resp, ARRAY_SIZE(resp),
-				       SI476X_DEFAULT_TIMEOUT);
+								   NULL, 0,
+								   resp, ARRAY_SIZE(resp),
+								   SI476X_DEFAULT_TIMEOUT);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	report->mxhi		= resp[1] & SI476X_AGC_MXHI;
 	report->mxlo		= resp[1] & SI476X_AGC_MXLO;
@@ -1407,20 +1511,25 @@ static int si476x_core_cmd_agc_status_a20(struct si476x_core *core,
 }
 
 static int si476x_core_cmd_agc_status_a10(struct si476x_core *core,
-					struct si476x_agc_status_report *report)
+		struct si476x_agc_status_report *report)
 {
 	int err;
 	u8 resp[CMD_AGC_STATUS_NRESP_A10];
 
 	if (!report)
+	{
 		return -EINVAL;
+	}
 
 	err = si476x_core_send_command(core, CMD_AGC_STATUS,
-				       NULL, 0,
-				       resp, ARRAY_SIZE(resp),
-				       SI476X_DEFAULT_TIMEOUT);
+								   NULL, 0,
+								   resp, ARRAY_SIZE(resp),
+								   SI476X_DEFAULT_TIMEOUT);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	report->mxhi	= resp[1] & SI476X_AGC_MXHI;
 	report->mxlo	= resp[1] & SI476X_AGC_MXLO;
@@ -1431,27 +1540,29 @@ static int si476x_core_cmd_agc_status_a10(struct si476x_core *core,
 }
 
 typedef int (*tune_freq_func_t) (struct si476x_core *core,
-				 struct si476x_tune_freq_args *tuneargs);
+								 struct si476x_tune_freq_args *tuneargs);
 
-static struct {
+static struct
+{
 	int (*power_up)(struct si476x_core *,
-			struct si476x_power_up_args *);
+					struct si476x_power_up_args *);
 	int (*power_down)(struct si476x_core *,
-			  struct si476x_power_down_args *);
+					  struct si476x_power_down_args *);
 
 	tune_freq_func_t fm_tune_freq;
 	tune_freq_func_t am_tune_freq;
 
 	int (*fm_rsq_status)(struct si476x_core *,
-			     struct si476x_rsq_status_args *,
-			     struct si476x_rsq_status_report *);
+						 struct si476x_rsq_status_args *,
+						 struct si476x_rsq_status_report *);
 
 	int (*agc_status)(struct si476x_core *,
-			  struct si476x_agc_status_report *);
+					  struct si476x_agc_status_report *);
 	int (*intb_pin_cfg)(struct si476x_core *core,
-			    enum si476x_intb_config intb,
-			    enum si476x_a1_config a1);
-} si476x_cmds_vtable[] = {
+						enum si476x_intb_config intb,
+						enum si476x_a1_config a1);
+} si476x_cmds_vtable[] =
+{
 	[SI476X_REVISION_A10] = {
 		.power_up	= si476x_core_cmd_power_up_a10,
 		.power_down	= si476x_core_cmd_power_down_a10,
@@ -1482,69 +1593,69 @@ static struct {
 };
 
 int si476x_core_cmd_power_up(struct si476x_core *core,
-			     struct si476x_power_up_args *args)
+							 struct si476x_power_up_args *args)
 {
 	BUG_ON(core->revision > SI476X_REVISION_A30 ||
-	       core->revision == -1);
+		   core->revision == -1);
 	return si476x_cmds_vtable[core->revision].power_up(core, args);
 }
 EXPORT_SYMBOL_GPL(si476x_core_cmd_power_up);
 
 int si476x_core_cmd_power_down(struct si476x_core *core,
-			       struct si476x_power_down_args *args)
+							   struct si476x_power_down_args *args)
 {
 	BUG_ON(core->revision > SI476X_REVISION_A30 ||
-	       core->revision == -1);
+		   core->revision == -1);
 	return si476x_cmds_vtable[core->revision].power_down(core, args);
 }
 EXPORT_SYMBOL_GPL(si476x_core_cmd_power_down);
 
 int si476x_core_cmd_fm_tune_freq(struct si476x_core *core,
-				 struct si476x_tune_freq_args *args)
+								 struct si476x_tune_freq_args *args)
 {
 	BUG_ON(core->revision > SI476X_REVISION_A30 ||
-	       core->revision == -1);
+		   core->revision == -1);
 	return si476x_cmds_vtable[core->revision].fm_tune_freq(core, args);
 }
 EXPORT_SYMBOL_GPL(si476x_core_cmd_fm_tune_freq);
 
 int si476x_core_cmd_am_tune_freq(struct si476x_core *core,
-				 struct si476x_tune_freq_args *args)
+								 struct si476x_tune_freq_args *args)
 {
 	BUG_ON(core->revision > SI476X_REVISION_A30 ||
-	       core->revision == -1);
+		   core->revision == -1);
 	return si476x_cmds_vtable[core->revision].am_tune_freq(core, args);
 }
 EXPORT_SYMBOL_GPL(si476x_core_cmd_am_tune_freq);
 
 int si476x_core_cmd_fm_rsq_status(struct si476x_core *core,
-				  struct si476x_rsq_status_args *args,
-				  struct si476x_rsq_status_report *report)
+								  struct si476x_rsq_status_args *args,
+								  struct si476x_rsq_status_report *report)
 
 {
 	BUG_ON(core->revision > SI476X_REVISION_A30 ||
-	       core->revision == -1);
+		   core->revision == -1);
 	return si476x_cmds_vtable[core->revision].fm_rsq_status(core, args,
-								report);
+			report);
 }
 EXPORT_SYMBOL_GPL(si476x_core_cmd_fm_rsq_status);
 
 int si476x_core_cmd_agc_status(struct si476x_core *core,
-				  struct si476x_agc_status_report *report)
+							   struct si476x_agc_status_report *report)
 
 {
 	BUG_ON(core->revision > SI476X_REVISION_A30 ||
-	       core->revision == -1);
+		   core->revision == -1);
 	return si476x_cmds_vtable[core->revision].agc_status(core, report);
 }
 EXPORT_SYMBOL_GPL(si476x_core_cmd_agc_status);
 
 int si476x_core_cmd_intb_pin_cfg(struct si476x_core *core,
-			    enum si476x_intb_config intb,
-			    enum si476x_a1_config a1)
+								 enum si476x_intb_config intb,
+								 enum si476x_a1_config a1)
 {
 	BUG_ON(core->revision > SI476X_REVISION_A30 ||
-	       core->revision == -1);
+		   core->revision == -1);
 
 	return si476x_cmds_vtable[core->revision].intb_pin_cfg(core, intb, a1);
 }

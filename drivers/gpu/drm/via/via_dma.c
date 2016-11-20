@@ -54,19 +54,19 @@
 #define VIA_VR_QUEUE_BUSY       0x00020000	/* Virtual Queue is busy */
 
 #define SetReg2DAGP(nReg, nData) {				\
-	*((uint32_t *)(vb)) = ((nReg) >> 2) | HALCYON_HEADER1;	\
-	*((uint32_t *)(vb) + 1) = (nData);			\
-	vb = ((uint32_t *)vb) + 2;				\
-	dev_priv->dma_low += 8;					\
-}
+		*((uint32_t *)(vb)) = ((nReg) >> 2) | HALCYON_HEADER1;	\
+		*((uint32_t *)(vb) + 1) = (nData);			\
+		vb = ((uint32_t *)vb) + 2;				\
+		dev_priv->dma_low += 8;					\
+	}
 
 #define via_flush_write_combine() mb()
 
 #define VIA_OUT_RING_QW(w1, w2)	do {		\
-	*vb++ = (w1);				\
-	*vb++ = (w2);				\
-	dev_priv->dma_low += 8;			\
-} while (0)
+		*vb++ = (w1);				\
+		*vb++ = (w2);				\
+		dev_priv->dma_low += 8;			\
+	} while (0)
 
 static void via_cmdbuf_start(drm_via_private_t *dev_priv);
 static void via_cmdbuf_pause(drm_via_private_t *dev_priv);
@@ -85,8 +85,8 @@ static uint32_t via_cmdbuf_space(drm_via_private_t *dev_priv)
 	uint32_t hw_addr = *(dev_priv->hw_addr_ptr) - agp_base;
 
 	return ((hw_addr <= dev_priv->dma_low) ?
-		(dev_priv->dma_high + hw_addr - dev_priv->dma_low) :
-		(hw_addr - dev_priv->dma_low));
+			(dev_priv->dma_high + hw_addr - dev_priv->dma_low) :
+			(hw_addr - dev_priv->dma_low));
 }
 
 /*
@@ -99,8 +99,8 @@ static uint32_t via_cmdbuf_lag(drm_via_private_t *dev_priv)
 	uint32_t hw_addr = *(dev_priv->hw_addr_ptr) - agp_base;
 
 	return ((hw_addr <= dev_priv->dma_low) ?
-		(dev_priv->dma_low - hw_addr) :
-		(dev_priv->dma_wrap + dev_priv->dma_low - hw_addr));
+			(dev_priv->dma_low - hw_addr) :
+			(dev_priv->dma_wrap + dev_priv->dma_low - hw_addr));
 }
 
 /*
@@ -118,17 +118,26 @@ via_cmdbuf_wait(drm_via_private_t *dev_priv, unsigned int size)
 	cur_addr = dev_priv->dma_low;
 	next_addr = cur_addr + size + 512 * 1024;
 	count = 1000000;
-	do {
+
+	do
+	{
 		hw_addr = *hw_addr_ptr - agp_base;
-		if (count-- == 0) {
+
+		if (count-- == 0)
+		{
 			DRM_ERROR
-			    ("via_cmdbuf_wait timed out hw %x cur_addr %x next_addr %x\n",
-			     hw_addr, cur_addr, next_addr);
+			("via_cmdbuf_wait timed out hw %x cur_addr %x next_addr %x\n",
+			 hw_addr, cur_addr, next_addr);
 			return -1;
 		}
+
 		if  ((cur_addr < hw_addr) && (next_addr >= hw_addr))
+		{
 			msleep(1);
-	} while ((cur_addr < hw_addr) && (next_addr >= hw_addr));
+		}
+	}
+	while ((cur_addr < hw_addr) && (next_addr >= hw_addr));
+
 	return 0;
 }
 
@@ -139,26 +148,32 @@ via_cmdbuf_wait(drm_via_private_t *dev_priv, unsigned int size)
  * Returns virtual pointer to ring buffer.
  */
 
-static inline uint32_t *via_check_dma(drm_via_private_t * dev_priv,
-				      unsigned int size)
+static inline uint32_t *via_check_dma(drm_via_private_t *dev_priv,
+									  unsigned int size)
 {
 	if ((dev_priv->dma_low + size + 4 * CMDBUF_ALIGNMENT_SIZE) >
-	    dev_priv->dma_high) {
+		dev_priv->dma_high)
+	{
 		via_cmdbuf_rewind(dev_priv);
 	}
+
 	if (via_cmdbuf_wait(dev_priv, size) != 0)
+	{
 		return NULL;
+	}
 
 	return (uint32_t *) (dev_priv->dma_ptr + dev_priv->dma_low);
 }
 
 int via_dma_cleanup(struct drm_device *dev)
 {
-	if (dev->dev_private) {
+	if (dev->dev_private)
+	{
 		drm_via_private_t *dev_priv =
-		    (drm_via_private_t *) dev->dev_private;
+			(drm_via_private_t *) dev->dev_private;
 
-		if (dev_priv->ring.virtual_start) {
+		if (dev_priv->ring.virtual_start)
+		{
 			via_cmdbuf_reset(dev_priv);
 
 			drm_legacy_ioremapfree(&dev_priv->ring.map, dev);
@@ -171,25 +186,29 @@ int via_dma_cleanup(struct drm_device *dev)
 }
 
 static int via_initialize(struct drm_device *dev,
-			  drm_via_private_t *dev_priv,
-			  drm_via_dma_init_t *init)
+						  drm_via_private_t *dev_priv,
+						  drm_via_dma_init_t *init)
 {
-	if (!dev_priv || !dev_priv->mmio) {
+	if (!dev_priv || !dev_priv->mmio)
+	{
 		DRM_ERROR("via_dma_init called before via_map_init\n");
 		return -EFAULT;
 	}
 
-	if (dev_priv->ring.virtual_start != NULL) {
+	if (dev_priv->ring.virtual_start != NULL)
+	{
 		DRM_ERROR("called again without calling cleanup\n");
 		return -EFAULT;
 	}
 
-	if (!dev->agp || !dev->agp->base) {
+	if (!dev->agp || !dev->agp->base)
+	{
 		DRM_ERROR("called with no agp memory available\n");
 		return -EFAULT;
 	}
 
-	if (dev_priv->chipset == VIA_DX9_0) {
+	if (dev_priv->chipset == VIA_DX9_0)
+	{
 		DRM_ERROR("AGP DMA is not supported on this chip\n");
 		return -EINVAL;
 	}
@@ -202,10 +221,11 @@ static int via_initialize(struct drm_device *dev,
 
 	drm_legacy_ioremap(&dev_priv->ring.map, dev);
 
-	if (dev_priv->ring.map.handle == NULL) {
+	if (dev_priv->ring.map.handle == NULL)
+	{
 		via_dma_cleanup(dev);
 		DRM_ERROR("can not ioremap virtual address for"
-			  " ring buffer\n");
+				  " ring buffer\n");
 		return -ENOMEM;
 	}
 
@@ -219,7 +239,7 @@ static int via_initialize(struct drm_device *dev,
 	dev_priv->last_pause_ptr = NULL;
 	dev_priv->hw_addr_ptr =
 		(volatile uint32_t *)((char *)dev_priv->mmio->handle +
-		init->reg_pause_addr);
+							  init->reg_pause_addr);
 
 	via_cmdbuf_start(dev_priv);
 
@@ -232,26 +252,40 @@ static int via_dma_init(struct drm_device *dev, void *data, struct drm_file *fil
 	drm_via_dma_init_t *init = data;
 	int retcode = 0;
 
-	switch (init->func) {
-	case VIA_INIT_DMA:
-		if (!capable(CAP_SYS_ADMIN))
-			retcode = -EPERM;
-		else
-			retcode = via_initialize(dev, dev_priv, init);
-		break;
-	case VIA_CLEANUP_DMA:
-		if (!capable(CAP_SYS_ADMIN))
-			retcode = -EPERM;
-		else
-			retcode = via_dma_cleanup(dev);
-		break;
-	case VIA_DMA_INITIALIZED:
-		retcode = (dev_priv->ring.virtual_start != NULL) ?
-			0 : -EFAULT;
-		break;
-	default:
-		retcode = -EINVAL;
-		break;
+	switch (init->func)
+	{
+		case VIA_INIT_DMA:
+			if (!capable(CAP_SYS_ADMIN))
+			{
+				retcode = -EPERM;
+			}
+			else
+			{
+				retcode = via_initialize(dev, dev_priv, init);
+			}
+
+			break;
+
+		case VIA_CLEANUP_DMA:
+			if (!capable(CAP_SYS_ADMIN))
+			{
+				retcode = -EPERM;
+			}
+			else
+			{
+				retcode = via_dma_cleanup(dev);
+			}
+
+			break;
+
+		case VIA_DMA_INITIALIZED:
+			retcode = (dev_priv->ring.virtual_start != NULL) ?
+					  0 : -EFAULT;
+			break;
+
+		default:
+			retcode = -EINVAL;
+			break;
 	}
 
 	return retcode;
@@ -265,16 +299,21 @@ static int via_dispatch_cmdbuffer(struct drm_device *dev, drm_via_cmdbuffer_t *c
 
 	dev_priv = (drm_via_private_t *) dev->dev_private;
 
-	if (dev_priv->ring.virtual_start == NULL) {
+	if (dev_priv->ring.virtual_start == NULL)
+	{
 		DRM_ERROR("called without initializing AGP ring buffer.\n");
 		return -EFAULT;
 	}
 
 	if (cmd->size > VIA_PCI_BUF_SIZE)
+	{
 		return -ENOMEM;
+	}
 
 	if (copy_from_user(dev_priv->pci_buf, cmd->buf, cmd->size))
+	{
 		return -EFAULT;
+	}
 
 	/*
 	 * Running this function on AGP memory is dead slow. Therefore
@@ -283,14 +322,18 @@ static int via_dispatch_cmdbuffer(struct drm_device *dev, drm_via_cmdbuffer_t *c
 	 */
 
 	if ((ret =
-	     via_verify_command_stream((uint32_t *) dev_priv->pci_buf,
-				       cmd->size, dev, 1))) {
+			 via_verify_command_stream((uint32_t *) dev_priv->pci_buf,
+									   cmd->size, dev, 1)))
+	{
 		return ret;
 	}
 
 	vb = via_check_dma(dev_priv, (cmd->size < 0x100) ? 0x102 : cmd->size);
+
 	if (vb == NULL)
+	{
 		return -EAGAIN;
+	}
 
 	memcpy(vb, dev_priv->pci_buf, cmd->size);
 
@@ -302,7 +345,10 @@ static int via_dispatch_cmdbuffer(struct drm_device *dev, drm_via_cmdbuffer_t *c
 	 */
 
 	if (cmd->size < 0x100)
+	{
 		via_pad_cache(dev_priv, (0x100 - cmd->size) >> 3);
+	}
+
 	via_cmdbuf_pause(dev_priv);
 
 	return 0;
@@ -313,7 +359,10 @@ int via_driver_dma_quiescent(struct drm_device *dev)
 	drm_via_private_t *dev_priv = dev->dev_private;
 
 	if (!via_wait_idle(dev_priv))
+	{
 		return -EBUSY;
+	}
+
 	return 0;
 }
 
@@ -339,25 +388,31 @@ static int via_cmdbuffer(struct drm_device *dev, void *data, struct drm_file *fi
 }
 
 static int via_dispatch_pci_cmdbuffer(struct drm_device *dev,
-				      drm_via_cmdbuffer_t *cmd)
+									  drm_via_cmdbuffer_t *cmd)
 {
 	drm_via_private_t *dev_priv = dev->dev_private;
 	int ret;
 
 	if (cmd->size > VIA_PCI_BUF_SIZE)
+	{
 		return -ENOMEM;
+	}
+
 	if (copy_from_user(dev_priv->pci_buf, cmd->buf, cmd->size))
+	{
 		return -EFAULT;
+	}
 
 	if ((ret =
-	     via_verify_command_stream((uint32_t *) dev_priv->pci_buf,
-				       cmd->size, dev, 0))) {
+			 via_verify_command_stream((uint32_t *) dev_priv->pci_buf,
+									   cmd->size, dev, 0)))
+	{
 		return ret;
 	}
 
 	ret =
-	    via_parse_command_stream(dev, (const uint32_t *)dev_priv->pci_buf,
-				     cmd->size);
+		via_parse_command_stream(dev, (const uint32_t *)dev_priv->pci_buf,
+								 cmd->size);
 	return ret;
 }
 
@@ -375,10 +430,13 @@ static int via_pci_cmdbuffer(struct drm_device *dev, void *data, struct drm_file
 }
 
 static inline uint32_t *via_align_buffer(drm_via_private_t *dev_priv,
-					 uint32_t * vb, int qw_count)
+		uint32_t *vb, int qw_count)
 {
 	for (; qw_count > 0; --qw_count)
+	{
 		VIA_OUT_RING_QW(HC_DUMMY, HC_DUMMY);
+	}
+
 	return vb;
 }
 
@@ -398,8 +456,8 @@ static inline uint32_t *via_get_dma(drm_via_private_t *dev_priv)
  * the regulator has already paused, restart it.
  */
 static int via_hook_segment(drm_via_private_t *dev_priv,
-			    uint32_t pause_addr_hi, uint32_t pause_addr_lo,
-			    int no_pci_fire)
+							uint32_t pause_addr_hi, uint32_t pause_addr_lo,
+							int no_pci_fire)
 {
 	int paused, count;
 	volatile uint32_t *paused_at = dev_priv->last_pause_ptr;
@@ -416,7 +474,7 @@ static int via_hook_segment(drm_via_private_t *dev_priv,
 
 	reader = *(dev_priv->hw_addr_ptr);
 	ptr = ((volatile char *)paused_at - dev_priv->dma_ptr) +
-		dev_priv->dma_offset + (uint32_t) dev_priv->agpAddr + 4;
+		  dev_priv->dma_offset + (uint32_t) dev_priv->agpAddr + 4;
 
 	dev_priv->last_pause_ptr = via_get_dma(dev_priv) - 1;
 
@@ -429,25 +487,36 @@ static int via_hook_segment(drm_via_private_t *dev_priv,
 
 	diff = (uint32_t) (ptr - reader) - dev_priv->dma_diff;
 	count = 10000000;
-	while (diff == 0 && count--) {
+
+	while (diff == 0 && count--)
+	{
 		paused = (VIA_READ(0x41c) & 0x80000000);
+
 		if (paused)
+		{
 			break;
+		}
+
 		reader = *(dev_priv->hw_addr_ptr);
 		diff = (uint32_t) (ptr - reader) - dev_priv->dma_diff;
 	}
 
 	paused = VIA_READ(0x41c) & 0x80000000;
 
-	if (paused && !no_pci_fire) {
+	if (paused && !no_pci_fire)
+	{
 		reader = *(dev_priv->hw_addr_ptr);
 		diff = (uint32_t) (ptr - reader) - dev_priv->dma_diff;
 		diff &= (dev_priv->dma_high - 1);
-		if (diff != 0 && diff < (dev_priv->dma_high >> 1)) {
+
+		if (diff != 0 && diff < (dev_priv->dma_high >> 1))
+		{
 			DRM_ERROR("Paused at incorrect address. "
-				  "0x%08x, 0x%08x 0x%08x\n",
-				  ptr, reader, dev_priv->dma_diff);
-		} else if (diff == 0) {
+					  "0x%08x, 0x%08x 0x%08x\n",
+					  ptr, reader, dev_priv->dma_diff);
+		}
+		else if (diff == 0)
+		{
 			/*
 			 * There is a concern that these writes may stall the PCI bus
 			 * if the GPU is not idle. However, idling the GPU first
@@ -460,6 +529,7 @@ static int via_hook_segment(drm_via_private_t *dev_priv,
 			VIA_READ(VIA_REG_TRANSPACE);
 		}
 	}
+
 	return paused;
 }
 
@@ -471,15 +541,18 @@ static int via_wait_idle(drm_via_private_t *dev_priv)
 		;
 
 	while (count && (VIA_READ(VIA_REG_STATUS) &
-			   (VIA_CMD_RGTR_BUSY | VIA_2D_ENG_BUSY |
-			    VIA_3D_ENG_BUSY)))
+					 (VIA_CMD_RGTR_BUSY | VIA_2D_ENG_BUSY |
+					  VIA_3D_ENG_BUSY)))
+	{
 		--count;
+	}
+
 	return count;
 }
 
 static uint32_t *via_align_cmd(drm_via_private_t *dev_priv, uint32_t cmd_type,
-			       uint32_t addr, uint32_t *cmd_addr_hi,
-			       uint32_t *cmd_addr_lo, int skip_wait)
+							   uint32_t addr, uint32_t *cmd_addr_hi,
+							   uint32_t *cmd_addr_lo, int skip_wait)
 {
 	uint32_t agp_base;
 	uint32_t cmd_addr, addr_lo, addr_hi;
@@ -487,19 +560,21 @@ static uint32_t *via_align_cmd(drm_via_private_t *dev_priv, uint32_t cmd_type,
 	uint32_t qw_pad_count;
 
 	if (!skip_wait)
+	{
 		via_cmdbuf_wait(dev_priv, 2 * CMDBUF_ALIGNMENT_SIZE);
+	}
 
 	vb = via_get_dma(dev_priv);
 	VIA_OUT_RING_QW(HC_HEADER2 | ((VIA_REG_TRANSET >> 2) << 12) |
-			(VIA_REG_TRANSPACE >> 2), HC_ParaType_PreCR << 16);
+					(VIA_REG_TRANSPACE >> 2), HC_ParaType_PreCR << 16);
 	agp_base = dev_priv->dma_offset + (uint32_t) dev_priv->agpAddr;
 	qw_pad_count = (CMDBUF_ALIGNMENT_SIZE >> 3) -
-	    ((dev_priv->dma_low & CMDBUF_ALIGNMENT_MASK) >> 3);
+				   ((dev_priv->dma_low & CMDBUF_ALIGNMENT_MASK) >> 3);
 
 	cmd_addr = (addr) ? addr :
-	    agp_base + dev_priv->dma_low - 8 + (qw_pad_count << 3);
+			   agp_base + dev_priv->dma_low - 8 + (qw_pad_count << 3);
 	addr_lo = ((HC_SubA_HAGPBpL << 24) | (cmd_type & HC_HAGPBpID_MASK) |
-		   (cmd_addr & HC_HAGPBpL_MASK));
+			   (cmd_addr & HC_HAGPBpL_MASK));
 	addr_hi = ((HC_SubA_HAGPBpH << 24) | (cmd_addr >> 24));
 
 	vb = via_align_buffer(dev_priv, vb, qw_pad_count - 1);
@@ -527,11 +602,11 @@ static void via_cmdbuf_start(drm_via_private_t *dev_priv)
 	start_addr_lo = ((HC_SubA_HAGPBstL << 24) | (start_addr & 0xFFFFFF));
 	end_addr_lo = ((HC_SubA_HAGPBendL << 24) | (end_addr & 0xFFFFFF));
 	command = ((HC_SubA_HAGPCMNT << 24) | (start_addr >> 24) |
-		   ((end_addr & 0xff000000) >> 16));
+			   ((end_addr & 0xff000000) >> 16));
 
 	dev_priv->last_pause_ptr =
-	    via_align_cmd(dev_priv, HC_HAGPBpID_PAUSE, 0,
-			  &pause_addr_hi, &pause_addr_lo, 1) - 1;
+		via_align_cmd(dev_priv, HC_HAGPBpID_PAUSE, 0,
+					  &pause_addr_hi, &pause_addr_lo, 1) - 1;
 
 	via_flush_write_combine();
 	(void) *(volatile uint32_t *)dev_priv->last_pause_ptr;
@@ -550,11 +625,12 @@ static void via_cmdbuf_start(drm_via_private_t *dev_priv)
 	dev_priv->dma_diff = 0;
 
 	count = 10000000;
+
 	while (!(VIA_READ(0x41c) & 0x80000000) && count--);
 
 	reader = *(dev_priv->hw_addr_ptr);
 	ptr = ((volatile char *)dev_priv->last_pause_ptr - dev_priv->dma_ptr) +
-	    dev_priv->dma_offset + (uint32_t) dev_priv->agpAddr + 4;
+		  dev_priv->dma_offset + (uint32_t) dev_priv->agpAddr + 4;
 
 	/*
 	 * This is the difference between where we tell the
@@ -594,7 +670,7 @@ static void via_cmdbuf_jump(drm_via_private_t *dev_priv)
 
 	agp_base = dev_priv->dma_offset + (uint32_t) dev_priv->agpAddr;
 	via_align_cmd(dev_priv, HC_HAGPBpID_JUMP, 0, &jump_addr_hi,
-		      &jump_addr_lo, 0);
+				  &jump_addr_lo, 0);
 
 	dev_priv->dma_wrap = dev_priv->dma_low;
 
@@ -603,17 +679,20 @@ static void via_cmdbuf_jump(drm_via_private_t *dev_priv)
 	 */
 
 	dev_priv->dma_low = 0;
+
 	if (via_cmdbuf_wait(dev_priv, CMDBUF_ALIGNMENT_SIZE) != 0)
+	{
 		DRM_ERROR("via_cmdbuf_jump failed\n");
+	}
 
 	via_dummy_bitblt(dev_priv);
 	via_dummy_bitblt(dev_priv);
 
 	last_pause_ptr =
-	    via_align_cmd(dev_priv, HC_HAGPBpID_PAUSE, 0, &pause_addr_hi,
-			  &pause_addr_lo, 0) - 1;
+		via_align_cmd(dev_priv, HC_HAGPBpID_PAUSE, 0, &pause_addr_hi,
+					  &pause_addr_lo, 0) - 1;
 	via_align_cmd(dev_priv, HC_HAGPBpID_PAUSE, 0, &pause_addr_hi,
-		      &pause_addr_lo, 0);
+				  &pause_addr_lo, 0);
 
 	*last_pause_ptr = pause_addr_lo;
 	dma_low_save1 = dev_priv->dma_low;
@@ -629,9 +708,9 @@ static void via_cmdbuf_jump(drm_via_private_t *dev_priv)
 
 	last_pause_ptr =
 		via_align_cmd(dev_priv, HC_HAGPBpID_PAUSE, 0, &pause_addr_hi,
-			      &pause_addr_lo, 0) - 1;
+					  &pause_addr_lo, 0) - 1;
 	via_align_cmd(dev_priv, HC_HAGPBpID_PAUSE, 0, &pause_addr_hi,
-		      &pause_addr_lo, 0);
+				  &pause_addr_lo, 0);
 	*last_pause_ptr = pause_addr_lo;
 
 	dma_low_save2 = dev_priv->dma_low;
@@ -682,50 +761,69 @@ static int via_cmdbuf_size(struct drm_device *dev, void *data, struct drm_file *
 
 	dev_priv = (drm_via_private_t *) dev->dev_private;
 
-	if (dev_priv->ring.virtual_start == NULL) {
+	if (dev_priv->ring.virtual_start == NULL)
+	{
 		DRM_ERROR("called without initializing AGP ring buffer.\n");
 		return -EFAULT;
 	}
 
 	count = 1000000;
 	tmp_size = d_siz->size;
-	switch (d_siz->func) {
-	case VIA_CMDBUF_SPACE:
-		while (((tmp_size = via_cmdbuf_space(dev_priv)) < d_siz->size)
-		       && --count) {
-			if (!d_siz->wait)
-				break;
-		}
-		if (!count) {
-			DRM_ERROR("VIA_CMDBUF_SPACE timed out.\n");
-			ret = -EAGAIN;
-		}
-		break;
-	case VIA_CMDBUF_LAG:
-		while (((tmp_size = via_cmdbuf_lag(dev_priv)) > d_siz->size)
-		       && --count) {
-			if (!d_siz->wait)
-				break;
-		}
-		if (!count) {
-			DRM_ERROR("VIA_CMDBUF_LAG timed out.\n");
-			ret = -EAGAIN;
-		}
-		break;
-	default:
-		ret = -EFAULT;
+
+	switch (d_siz->func)
+	{
+		case VIA_CMDBUF_SPACE:
+			while (((tmp_size = via_cmdbuf_space(dev_priv)) < d_siz->size)
+				   && --count)
+			{
+				if (!d_siz->wait)
+				{
+					break;
+				}
+			}
+
+			if (!count)
+			{
+				DRM_ERROR("VIA_CMDBUF_SPACE timed out.\n");
+				ret = -EAGAIN;
+			}
+
+			break;
+
+		case VIA_CMDBUF_LAG:
+			while (((tmp_size = via_cmdbuf_lag(dev_priv)) > d_siz->size)
+				   && --count)
+			{
+				if (!d_siz->wait)
+				{
+					break;
+				}
+			}
+
+			if (!count)
+			{
+				DRM_ERROR("VIA_CMDBUF_LAG timed out.\n");
+				ret = -EAGAIN;
+			}
+
+			break;
+
+		default:
+			ret = -EFAULT;
 	}
+
 	d_siz->size = tmp_size;
 
 	return ret;
 }
 
-const struct drm_ioctl_desc via_ioctls[] = {
+const struct drm_ioctl_desc via_ioctls[] =
+{
 	DRM_IOCTL_DEF_DRV(VIA_ALLOCMEM, via_mem_alloc, DRM_AUTH),
 	DRM_IOCTL_DEF_DRV(VIA_FREEMEM, via_mem_free, DRM_AUTH),
-	DRM_IOCTL_DEF_DRV(VIA_AGP_INIT, via_agp_init, DRM_AUTH|DRM_MASTER),
-	DRM_IOCTL_DEF_DRV(VIA_FB_INIT, via_fb_init, DRM_AUTH|DRM_MASTER),
-	DRM_IOCTL_DEF_DRV(VIA_MAP_INIT, via_map_init, DRM_AUTH|DRM_MASTER),
+	DRM_IOCTL_DEF_DRV(VIA_AGP_INIT, via_agp_init, DRM_AUTH | DRM_MASTER),
+	DRM_IOCTL_DEF_DRV(VIA_FB_INIT, via_fb_init, DRM_AUTH | DRM_MASTER),
+	DRM_IOCTL_DEF_DRV(VIA_MAP_INIT, via_map_init, DRM_AUTH | DRM_MASTER),
 	DRM_IOCTL_DEF_DRV(VIA_DEC_FUTEX, via_decoder_futex, DRM_AUTH),
 	DRM_IOCTL_DEF_DRV(VIA_DMA_INIT, via_dma_init, DRM_AUTH),
 	DRM_IOCTL_DEF_DRV(VIA_CMDBUFFER, via_cmdbuffer, DRM_AUTH),

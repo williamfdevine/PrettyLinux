@@ -46,11 +46,13 @@
 #define RPCRDMA_VERSION		1
 #define rpcrdma_version		cpu_to_be32(RPCRDMA_VERSION)
 
-enum {
+enum
+{
 	RPCRDMA_V1_DEF_INLINE_SIZE	= 1024,
 };
 
-struct rpcrdma_segment {
+struct rpcrdma_segment
+{
 	__be32 rs_handle;	/* Registered memory handle */
 	__be32 rs_length;	/* Length of the chunk in bytes */
 	__be64 rs_offset;	/* Chunk virtual address or offset */
@@ -59,7 +61,8 @@ struct rpcrdma_segment {
 /*
  * read chunk(s), encoded as a linked list.
  */
-struct rpcrdma_read_chunk {
+struct rpcrdma_read_chunk
+{
 	__be32 rc_discrim;	/* 1 indicates presence */
 	__be32 rc_position;	/* Position in XDR stream */
 	struct rpcrdma_segment rc_target;
@@ -68,37 +71,44 @@ struct rpcrdma_read_chunk {
 /*
  * write chunk, and reply chunk.
  */
-struct rpcrdma_write_chunk {
+struct rpcrdma_write_chunk
+{
 	struct rpcrdma_segment wc_target;
 };
 
 /*
  * write chunk(s), encoded as a counted array.
  */
-struct rpcrdma_write_array {
+struct rpcrdma_write_array
+{
 	__be32 wc_discrim;	/* 1 indicates presence */
 	__be32 wc_nchunks;	/* Array count */
 	struct rpcrdma_write_chunk wc_array[0];
 };
 
-struct rpcrdma_msg {
+struct rpcrdma_msg
+{
 	__be32 rm_xid;	/* Mirrors the RPC header xid */
 	__be32 rm_vers;	/* Version of this protocol */
 	__be32 rm_credit;	/* Buffers requested/granted */
 	__be32 rm_type;	/* Type of message (enum rpcrdma_proc) */
-	union {
+	union
+	{
 
-		struct {			/* no chunks */
+		struct  			/* no chunks */
+		{
 			__be32 rm_empty[3];	/* 3 empty chunk lists */
 		} rm_nochunks;
 
-		struct {			/* no chunks and padded */
+		struct  			/* no chunks and padded */
+		{
 			__be32 rm_align;	/* Padding alignment */
 			__be32 rm_thresh;	/* Padding threshold */
 			__be32 rm_pempty[3];	/* 3 empty chunk lists */
 		} rm_padded;
 
-		struct {
+		struct
+		{
 			__be32 rm_err;
 			__be32 rm_vers_low;
 			__be32 rm_vers_high;
@@ -115,12 +125,14 @@ struct rpcrdma_msg {
 #define RPCRDMA_HDRLEN_MIN	(sizeof(__be32) * 7)
 #define RPCRDMA_HDRLEN_ERR	(sizeof(__be32) * 5)
 
-enum rpcrdma_errcode {
+enum rpcrdma_errcode
+{
 	ERR_VERS = 1,
 	ERR_CHUNK = 2
 };
 
-enum rpcrdma_proc {
+enum rpcrdma_proc
+{
 	RDMA_MSG = 0,		/* An RPC call or reply msg */
 	RDMA_NOMSG = 1,		/* An RPC call or reply msg - separate body */
 	RDMA_MSGP = 2,		/* An RPC call or reply msg with padding */
@@ -141,7 +153,8 @@ enum rpcrdma_proc {
  * Add new fields at the end, and don't permute existing
  * fields.
  */
-struct rpcrdma_connect_private {
+struct rpcrdma_connect_private
+{
 	__be32			cp_magic;
 	u8			cp_version;
 	u8			cp_flags;
@@ -151,7 +164,8 @@ struct rpcrdma_connect_private {
 
 #define rpcrdma_cmp_magic	__cpu_to_be32(0xf6ab0e18)
 
-enum {
+enum
+{
 	RPCRDMA_CMP_VERSION		= 1,
 	RPCRDMA_CMP_F_SND_W_INV_OK	= BIT(0),
 };

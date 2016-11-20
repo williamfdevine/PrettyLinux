@@ -15,15 +15,16 @@
 #define TX_PAGES 12	/* Two Tx slots */
 
 /* The 8390 specific per-packet-header format. */
-struct e8390_pkt_hdr {
-  unsigned char status; /* status */
-  unsigned char next;   /* pointer to next packet. */
-  unsigned short count; /* header + packet length in bytes */
+struct e8390_pkt_hdr
+{
+	unsigned char status; /* status */
+	unsigned char next;   /* pointer to next packet. */
+	unsigned short count; /* header + packet length in bytes */
 };
 
 #ifdef CONFIG_NET_POLL_CONTROLLER
-void ei_poll(struct net_device *dev);
-void eip_poll(struct net_device *dev);
+	void ei_poll(struct net_device *dev);
+	void eip_poll(struct net_device *dev);
 #endif
 
 
@@ -64,7 +65,8 @@ static inline struct net_device *alloc_eip_netdev(void)
 }
 
 /* You have one of these per-board */
-struct ei_device {
+struct ei_device
+{
 	const char *name;
 	void (*reset_8390)(struct net_device *);
 	void (*get_8390_hdr)(struct net_device *, struct e8390_pkt_hdr *, int);
@@ -74,13 +76,13 @@ struct ei_device {
 	unsigned long rmem_end;
 	void __iomem *mem;
 	unsigned char mcfilter[8];
-	unsigned open:1;
-	unsigned word16:1;  		/* We have the 16-bit (vs 8-bit) version of the card. */
-	unsigned bigendian:1;		/* 16-bit big endian mode. Do NOT */
-					/* set this on random 8390 clones! */
-	unsigned txing:1;		/* Transmit Active */
-	unsigned irqlock:1;		/* 8390's intrs disabled when '1'. */
-	unsigned dmaing:1;		/* Remote DMA Active */
+	unsigned open: 1;
+	unsigned word16: 1;  		/* We have the 16-bit (vs 8-bit) version of the card. */
+	unsigned bigendian: 1;		/* 16-bit big endian mode. Do NOT */
+	/* set this on random 8390 clones! */
+	unsigned txing: 1;		/* Transmit Active */
+	unsigned irqlock: 1;		/* 8390's intrs disabled when '1'. */
+	unsigned dmaing: 1;		/* Remote DMA Active */
 	unsigned char tx_start_page, rx_start_page, stop_page;
 	unsigned char current_page;	/* Read pointer in buffer  */
 	unsigned char interface_num;	/* Net port (AUI, 10bT.) to use. */
@@ -112,11 +114,11 @@ struct ei_device {
 #define E8390_RX_IRQ_MASK	0x5
 
 #ifdef AX88796_PLATFORM
-#define E8390_RXCONFIG		(ei_status.rxcr_base | 0x04)
-#define E8390_RXOFF		(ei_status.rxcr_base | 0x20)
+	#define E8390_RXCONFIG		(ei_status.rxcr_base | 0x04)
+	#define E8390_RXOFF		(ei_status.rxcr_base | 0x20)
 #else
-#define E8390_RXCONFIG		0x4	/* EN0_RXCR: broadcasts, no multicast,errors */
-#define E8390_RXOFF		0x20	/* EN0_RXCR: Accept no packets */
+	#define E8390_RXCONFIG		0x4	/* EN0_RXCR: broadcasts, no multicast,errors */
+	#define E8390_RXOFF		0x20	/* EN0_RXCR: Accept no packets */
 #endif
 
 #define E8390_TXCONFIG		0x00	/* EN0_TXCR: Normal transmit mode */
@@ -141,14 +143,14 @@ struct ei_device {
  */
 
 #ifndef ei_inb
-#define ei_inb(_p)	inb(_p)
-#define ei_outb(_v,_p)	outb(_v,_p)
-#define ei_inb_p(_p)	inb(_p)
-#define ei_outb_p(_v,_p) outb(_v,_p)
+	#define ei_inb(_p)	inb(_p)
+	#define ei_outb(_v,_p)	outb(_v,_p)
+	#define ei_inb_p(_p)	inb(_p)
+	#define ei_outb_p(_v,_p) outb(_v,_p)
 #endif
 
 #ifndef EI_SHIFT
-#define EI_SHIFT(x)	(x)
+	#define EI_SHIFT(x)	(x)
 #endif
 
 #define E8390_CMD	EI_SHIFT(0x00)  /* The command register (for all pages) */

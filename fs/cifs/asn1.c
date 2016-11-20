@@ -90,7 +90,8 @@ static unsigned long MSKRB5_OID[7] = { 1, 2, 840, 48018, 1, 2, 2 };
 /*
  * ASN.1 context.
  */
-struct asn1_ctx {
+struct asn1_ctx
+{
 	int error;		/* Error condition */
 	unsigned char *pointer;	/* Octet just to be decoded */
 	unsigned char *begin;	/* First octet */
@@ -100,7 +101,8 @@ struct asn1_ctx {
 /*
  * Octet string (not null terminated)
  */
-struct asn1_octstr {
+struct asn1_octstr
+{
 	unsigned char *data;
 	unsigned int len;
 };
@@ -117,10 +119,12 @@ asn1_open(struct asn1_ctx *ctx, unsigned char *buf, unsigned int len)
 static unsigned char
 asn1_octet_decode(struct asn1_ctx *ctx, unsigned char *ch)
 {
-	if (ctx->pointer >= ctx->end) {
+	if (ctx->pointer >= ctx->end)
+	{
 		ctx->error = ASN1_ERR_DEC_EMPTY;
 		return 0;
 	}
+
 	*ch = *(ctx->pointer)++;
 	return 1;
 }
@@ -131,16 +135,22 @@ asn1_enum_decode(struct asn1_ctx *ctx, __le32 *val)
 {
 	unsigned char ch;
 
-	if (ctx->pointer >= ctx->end) {
+	if (ctx->pointer >= ctx->end)
+	{
 		ctx->error = ASN1_ERR_DEC_EMPTY;
 		return 0;
 	}
 
 	ch = *(ctx->pointer)++; /* ch has 0xa, ptr points to length octet */
+
 	if ((ch) == ASN1_ENUM)  /* if ch value is ENUM, 0xa */
-		*val = *(++(ctx->pointer)); /* value has enum value */
+	{
+		*val = *(++(ctx->pointer));    /* value has enum value */
+	}
 	else
+	{
 		return 0;
+	}
 
 	ctx->pointer++;
 	return 1;
@@ -154,32 +164,44 @@ asn1_tag_decode(struct asn1_ctx *ctx, unsigned int *tag)
 
 	*tag = 0;
 
-	do {
+	do
+	{
 		if (!asn1_octet_decode(ctx, &ch))
+		{
 			return 0;
+		}
+
 		*tag <<= 7;
 		*tag |= ch & 0x7F;
-	} while ((ch & 0x80) == 0x80);
+	}
+	while ((ch & 0x80) == 0x80);
+
 	return 1;
 }
 
 static unsigned char
 asn1_id_decode(struct asn1_ctx *ctx,
-	       unsigned int *cls, unsigned int *con, unsigned int *tag)
+			   unsigned int *cls, unsigned int *con, unsigned int *tag)
 {
 	unsigned char ch;
 
 	if (!asn1_octet_decode(ctx, &ch))
+	{
 		return 0;
+	}
 
 	*cls = (ch & 0xC0) >> 6;
 	*con = (ch & 0x20) >> 5;
 	*tag = (ch & 0x1F);
 
-	if (*tag == 0x1F) {
+	if (*tag == 0x1F)
+	{
 		if (!asn1_tag_decode(ctx, tag))
+		{
 			return 0;
+		}
 	}
+
 	return 1;
 }
 
@@ -189,22 +211,34 @@ asn1_length_decode(struct asn1_ctx *ctx, unsigned int *def, unsigned int *len)
 	unsigned char ch, cnt;
 
 	if (!asn1_octet_decode(ctx, &ch))
+	{
 		return 0;
+	}
 
 	if (ch == 0x80)
+	{
 		*def = 0;
-	else {
+	}
+	else
+	{
 		*def = 1;
 
 		if (ch < 0x80)
+		{
 			*len = ch;
-		else {
+		}
+		else
+		{
 			cnt = (unsigned char) (ch & 0x7F);
 			*len = 0;
 
-			while (cnt > 0) {
+			while (cnt > 0)
+			{
 				if (!asn1_octet_decode(ctx, &ch))
+				{
 					return 0;
+				}
+
 				*len <<= 8;
 				*len |= ch;
 				cnt--;
@@ -214,33 +248,46 @@ asn1_length_decode(struct asn1_ctx *ctx, unsigned int *def, unsigned int *len)
 
 	/* don't trust len bigger than ctx buffer */
 	if (*len > ctx->end - ctx->pointer)
+	{
 		return 0;
+	}
 
 	return 1;
 }
 
 static unsigned char
 asn1_header_decode(struct asn1_ctx *ctx,
-		   unsigned char **eoc,
-		   unsigned int *cls, unsigned int *con, unsigned int *tag)
+				   unsigned char **eoc,
+				   unsigned int *cls, unsigned int *con, unsigned int *tag)
 {
 	unsigned int def = 0;
 	unsigned int len = 0;
 
 	if (!asn1_id_decode(ctx, cls, con, tag))
+	{
 		return 0;
+	}
 
 	if (!asn1_length_decode(ctx, &def, &len))
+	{
 		return 0;
+	}
 
 	/* primitive shall be definite, indefinite shall be constructed */
 	if (*con == ASN1_PRI && !def)
+	{
 		return 0;
+	}
 
 	if (def)
+	{
 		*eoc = ctx->pointer + len;
+	}
 	else
+	{
 		*eoc = NULL;
+	}
+
 	return 1;
 }
 
@@ -249,28 +296,40 @@ asn1_eoc_decode(struct asn1_ctx *ctx, unsigned char *eoc)
 {
 	unsigned char ch;
 
-	if (eoc == NULL) {
+	if (eoc == NULL)
+	{
 		if (!asn1_octet_decode(ctx, &ch))
+		{
 			return 0;
+		}
 
-		if (ch != 0x00) {
+		if (ch != 0x00)
+		{
 			ctx->error = ASN1_ERR_DEC_EOC_MISMATCH;
 			return 0;
 		}
 
 		if (!asn1_octet_decode(ctx, &ch))
+		{
 			return 0;
+		}
 
-		if (ch != 0x00) {
+		if (ch != 0x00)
+		{
 			ctx->error = ASN1_ERR_DEC_EOC_MISMATCH;
 			return 0;
 		}
+
 		return 1;
-	} else {
-		if (ctx->pointer != eoc) {
+	}
+	else
+	{
+		if (ctx->pointer != eoc)
+		{
 			ctx->error = ASN1_ERR_DEC_LENGTH_MISMATCH;
 			return 0;
 		}
+
 		return 1;
 	}
 }
@@ -404,19 +463,24 @@ asn1_subid_decode(struct asn1_ctx *ctx, unsigned long *subid)
 
 	*subid = 0;
 
-	do {
+	do
+	{
 		if (!asn1_octet_decode(ctx, &ch))
+		{
 			return 0;
+		}
 
 		*subid <<= 7;
 		*subid |= ch & 0x7F;
-	} while ((ch & 0x80) == 0x80);
+	}
+	while ((ch & 0x80) == 0x80);
+
 	return 1;
 }
 
 static int
 asn1_oid_decode(struct asn1_ctx *ctx,
-		unsigned char *eoc, unsigned long **oid, unsigned int *len)
+				unsigned char *eoc, unsigned long **oid, unsigned int *len)
 {
 	unsigned long subid;
 	unsigned int size;
@@ -425,28 +489,39 @@ asn1_oid_decode(struct asn1_ctx *ctx,
 	size = eoc - ctx->pointer + 1;
 
 	/* first subid actually encodes first two subids */
-	if (size < 2 || size > UINT_MAX/sizeof(unsigned long))
+	if (size < 2 || size > UINT_MAX / sizeof(unsigned long))
+	{
 		return 0;
+	}
 
 	*oid = kmalloc(size * sizeof(unsigned long), GFP_ATOMIC);
+
 	if (*oid == NULL)
+	{
 		return 0;
+	}
 
 	optr = *oid;
 
-	if (!asn1_subid_decode(ctx, &subid)) {
+	if (!asn1_subid_decode(ctx, &subid))
+	{
 		kfree(*oid);
 		*oid = NULL;
 		return 0;
 	}
 
-	if (subid < 40) {
+	if (subid < 40)
+	{
 		optr[0] = 0;
 		optr[1] = subid;
-	} else if (subid < 80) {
+	}
+	else if (subid < 80)
+	{
 		optr[0] = 1;
 		optr[1] = subid - 40;
-	} else {
+	}
+	else
+	{
 		optr[0] = 2;
 		optr[1] = subid - 80;
 	}
@@ -454,45 +529,56 @@ asn1_oid_decode(struct asn1_ctx *ctx,
 	*len = 2;
 	optr += 2;
 
-	while (ctx->pointer < eoc) {
-		if (++(*len) > size) {
+	while (ctx->pointer < eoc)
+	{
+		if (++(*len) > size)
+		{
 			ctx->error = ASN1_ERR_DEC_BADVALUE;
 			kfree(*oid);
 			*oid = NULL;
 			return 0;
 		}
 
-		if (!asn1_subid_decode(ctx, optr++)) {
+		if (!asn1_subid_decode(ctx, optr++))
+		{
 			kfree(*oid);
 			*oid = NULL;
 			return 0;
 		}
 	}
+
 	return 1;
 }
 
 static int
 compare_oid(unsigned long *oid1, unsigned int oid1len,
-	    unsigned long *oid2, unsigned int oid2len)
+			unsigned long *oid2, unsigned int oid2len)
 {
 	unsigned int i;
 
 	if (oid1len != oid2len)
+	{
 		return 0;
-	else {
-		for (i = 0; i < oid1len; i++) {
+	}
+	else
+	{
+		for (i = 0; i < oid1len; i++)
+		{
 			if (oid1[i] != oid2[i])
+			{
 				return 0;
+			}
 		}
+
 		return 1;
 	}
 }
 
-	/* BB check for endian conversion issues here */
+/* BB check for endian conversion issues here */
 
 int
 decode_negTokenInit(unsigned char *security_blob, int length,
-		    struct TCP_Server_Info *server)
+					struct TCP_Server_Info *server)
 {
 	struct asn1_ctx ctx;
 	unsigned char *end;
@@ -505,111 +591,151 @@ decode_negTokenInit(unsigned char *security_blob, int length,
 	asn1_open(&ctx, security_blob, length);
 
 	/* GSSAPI header */
-	if (asn1_header_decode(&ctx, &end, &cls, &con, &tag) == 0) {
+	if (asn1_header_decode(&ctx, &end, &cls, &con, &tag) == 0)
+	{
 		cifs_dbg(FYI, "Error decoding negTokenInit header\n");
 		return 0;
-	} else if ((cls != ASN1_APL) || (con != ASN1_CON)
-		   || (tag != ASN1_EOC)) {
+	}
+	else if ((cls != ASN1_APL) || (con != ASN1_CON)
+			 || (tag != ASN1_EOC))
+	{
 		cifs_dbg(FYI, "cls = %d con = %d tag = %d\n", cls, con, tag);
 		return 0;
 	}
 
 	/* Check for SPNEGO OID -- remember to free obj->oid */
 	rc = asn1_header_decode(&ctx, &end, &cls, &con, &tag);
-	if (rc) {
+
+	if (rc)
+	{
 		if ((tag == ASN1_OJI) && (con == ASN1_PRI) &&
-		    (cls == ASN1_UNI)) {
+			(cls == ASN1_UNI))
+		{
 			rc = asn1_oid_decode(&ctx, end, &oid, &oidlen);
-			if (rc) {
+
+			if (rc)
+			{
 				rc = compare_oid(oid, oidlen, SPNEGO_OID,
-						 SPNEGO_OID_LEN);
+								 SPNEGO_OID_LEN);
 				kfree(oid);
 			}
-		} else
+		}
+		else
+		{
 			rc = 0;
+		}
 	}
 
 	/* SPNEGO OID not present or garbled -- bail out */
-	if (!rc) {
+	if (!rc)
+	{
 		cifs_dbg(FYI, "Error decoding negTokenInit header\n");
 		return 0;
 	}
 
 	/* SPNEGO */
-	if (asn1_header_decode(&ctx, &end, &cls, &con, &tag) == 0) {
+	if (asn1_header_decode(&ctx, &end, &cls, &con, &tag) == 0)
+	{
 		cifs_dbg(FYI, "Error decoding negTokenInit\n");
 		return 0;
-	} else if ((cls != ASN1_CTX) || (con != ASN1_CON)
-		   || (tag != ASN1_EOC)) {
+	}
+	else if ((cls != ASN1_CTX) || (con != ASN1_CON)
+			 || (tag != ASN1_EOC))
+	{
 		cifs_dbg(FYI, "cls = %d con = %d tag = %d end = %p (%d) exit 0\n",
-			 cls, con, tag, end, *end);
+				 cls, con, tag, end, *end);
 		return 0;
 	}
 
 	/* negTokenInit */
-	if (asn1_header_decode(&ctx, &end, &cls, &con, &tag) == 0) {
+	if (asn1_header_decode(&ctx, &end, &cls, &con, &tag) == 0)
+	{
 		cifs_dbg(FYI, "Error decoding negTokenInit\n");
 		return 0;
-	} else if ((cls != ASN1_UNI) || (con != ASN1_CON)
-		   || (tag != ASN1_SEQ)) {
+	}
+	else if ((cls != ASN1_UNI) || (con != ASN1_CON)
+			 || (tag != ASN1_SEQ))
+	{
 		cifs_dbg(FYI, "cls = %d con = %d tag = %d end = %p (%d) exit 1\n",
-			 cls, con, tag, end, *end);
+				 cls, con, tag, end, *end);
 		return 0;
 	}
 
 	/* sequence */
-	if (asn1_header_decode(&ctx, &end, &cls, &con, &tag) == 0) {
+	if (asn1_header_decode(&ctx, &end, &cls, &con, &tag) == 0)
+	{
 		cifs_dbg(FYI, "Error decoding 2nd part of negTokenInit\n");
 		return 0;
-	} else if ((cls != ASN1_CTX) || (con != ASN1_CON)
-		   || (tag != ASN1_EOC)) {
+	}
+	else if ((cls != ASN1_CTX) || (con != ASN1_CON)
+			 || (tag != ASN1_EOC))
+	{
 		cifs_dbg(FYI, "cls = %d con = %d tag = %d end = %p (%d) exit 0\n",
-			 cls, con, tag, end, *end);
+				 cls, con, tag, end, *end);
 		return 0;
 	}
 
 	/* sequence of */
 	if (asn1_header_decode
-	    (&ctx, &sequence_end, &cls, &con, &tag) == 0) {
+		(&ctx, &sequence_end, &cls, &con, &tag) == 0)
+	{
 		cifs_dbg(FYI, "Error decoding 2nd part of negTokenInit\n");
 		return 0;
-	} else if ((cls != ASN1_UNI) || (con != ASN1_CON)
-		   || (tag != ASN1_SEQ)) {
+	}
+	else if ((cls != ASN1_UNI) || (con != ASN1_CON)
+			 || (tag != ASN1_SEQ))
+	{
 		cifs_dbg(FYI, "cls = %d con = %d tag = %d end = %p (%d) exit 1\n",
-			 cls, con, tag, end, *end);
+				 cls, con, tag, end, *end);
 		return 0;
 	}
 
 	/* list of security mechanisms */
-	while (!asn1_eoc_decode(&ctx, sequence_end)) {
+	while (!asn1_eoc_decode(&ctx, sequence_end))
+	{
 		rc = asn1_header_decode(&ctx, &end, &cls, &con, &tag);
-		if (!rc) {
+
+		if (!rc)
+		{
 			cifs_dbg(FYI, "Error decoding negTokenInit hdr exit2\n");
 			return 0;
 		}
-		if ((tag == ASN1_OJI) && (con == ASN1_PRI)) {
-			if (asn1_oid_decode(&ctx, end, &oid, &oidlen)) {
+
+		if ((tag == ASN1_OJI) && (con == ASN1_PRI))
+		{
+			if (asn1_oid_decode(&ctx, end, &oid, &oidlen))
+			{
 
 				cifs_dbg(FYI, "OID len = %d oid = 0x%lx 0x%lx 0x%lx 0x%lx\n",
-					 oidlen, *oid, *(oid + 1), *(oid + 2),
-					 *(oid + 3));
+						 oidlen, *oid, *(oid + 1), *(oid + 2),
+						 *(oid + 3));
 
 				if (compare_oid(oid, oidlen, MSKRB5_OID,
-						MSKRB5_OID_LEN))
+								MSKRB5_OID_LEN))
+				{
 					server->sec_mskerberos = true;
+				}
 				else if (compare_oid(oid, oidlen, KRB5U2U_OID,
-						     KRB5U2U_OID_LEN))
+									 KRB5U2U_OID_LEN))
+				{
 					server->sec_kerberosu2u = true;
+				}
 				else if (compare_oid(oid, oidlen, KRB5_OID,
-						     KRB5_OID_LEN))
+									 KRB5_OID_LEN))
+				{
 					server->sec_kerberos = true;
+				}
 				else if (compare_oid(oid, oidlen, NTLMSSP_OID,
-						     NTLMSSP_OID_LEN))
+									 NTLMSSP_OID_LEN))
+				{
 					server->sec_ntlmssp = true;
+				}
 
 				kfree(oid);
 			}
-		} else {
+		}
+		else
+		{
 			cifs_dbg(FYI, "Should be an oid what is going on?\n");
 		}
 	}

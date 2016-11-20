@@ -6,9 +6,11 @@
 #include "nvsw.h"
 #include <core/notify.h>
 
-struct nv50_sw_chan {
+struct nv50_sw_chan
+{
 	struct nvkm_sw_chan base;
-	struct {
+	struct
+	{
 		struct nvkm_notify notify[4];
 		u32 ctxdma;
 		u64 offset;

@@ -103,7 +103,7 @@
 #define PCI1760_PWM_TIMEBASE		100000	/* 1 unit = 100 usec */
 
 static int pci1760_send_cmd(struct comedi_device *dev,
-			    unsigned char cmd, unsigned short val)
+							unsigned char cmd, unsigned short val)
 {
 	unsigned long timeout;
 
@@ -115,40 +115,55 @@ static int pci1760_send_cmd(struct comedi_device *dev,
 
 	/* datasheet says to allow up to 250 usec for the command to complete */
 	timeout = jiffies + usecs_to_jiffies(PCI1760_CMD_TIMEOUT);
-	do {
-		if (inb(dev->iobase + PCI1760_IMB_REG(2)) == cmd) {
+
+	do
+	{
+		if (inb(dev->iobase + PCI1760_IMB_REG(2)) == cmd)
+		{
 			/* command success; return the feedback data */
 			return inb(dev->iobase + PCI1760_IMB_REG(0)) |
-			       (inb(dev->iobase + PCI1760_IMB_REG(1)) << 8);
+				   (inb(dev->iobase + PCI1760_IMB_REG(1)) << 8);
 		}
+
 		cpu_relax();
-	} while (time_before(jiffies, timeout));
+	}
+	while (time_before(jiffies, timeout));
 
 	return -EBUSY;
 }
 
 static int pci1760_cmd(struct comedi_device *dev,
-		       unsigned char cmd, unsigned short val)
+					   unsigned char cmd, unsigned short val)
 {
 	int repeats;
 	int ret;
 
 	/* send PCI1760_CMD_CLR_IMB2 between identical commands */
-	if (inb(dev->iobase + PCI1760_IMB_REG(2)) == cmd) {
+	if (inb(dev->iobase + PCI1760_IMB_REG(2)) == cmd)
+	{
 		ret = pci1760_send_cmd(dev, PCI1760_CMD_CLR_IMB2, 0);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			/* timeout? try it once more */
 			ret = pci1760_send_cmd(dev, PCI1760_CMD_CLR_IMB2, 0);
+
 			if (ret < 0)
+			{
 				return -ETIMEDOUT;
+			}
 		}
 	}
 
 	/* datasheet says to keep retrying the command */
-	for (repeats = 0; repeats < PCI1760_CMD_RETRIES; repeats++) {
+	for (repeats = 0; repeats < PCI1760_CMD_RETRIES; repeats++)
+	{
 		ret = pci1760_send_cmd(dev, cmd, val);
+
 		if (ret >= 0)
+		{
 			return ret;
+		}
 	}
 
 	/* command failed! */
@@ -156,9 +171,9 @@ static int pci1760_cmd(struct comedi_device *dev,
 }
 
 static int pci1760_di_insn_bits(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_insn *insn,
-				unsigned int *data)
+								struct comedi_subdevice *s,
+								struct comedi_insn *insn,
+								unsigned int *data)
 {
 	data[1] = inb(dev->iobase + PCI1760_IMB_REG(3));
 
@@ -166,16 +181,20 @@ static int pci1760_di_insn_bits(struct comedi_device *dev,
 }
 
 static int pci1760_do_insn_bits(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_insn *insn,
-				unsigned int *data)
+								struct comedi_subdevice *s,
+								struct comedi_insn *insn,
+								unsigned int *data)
 {
 	int ret;
 
-	if (comedi_dio_update_state(s, data)) {
+	if (comedi_dio_update_state(s, data))
+	{
 		ret = pci1760_cmd(dev, PCI1760_CMD_SET_DO, s->state);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	data[1] = s->state;
@@ -187,119 +206,181 @@ static int pci1760_pwm_ns_to_div(unsigned int flags, unsigned int ns)
 {
 	unsigned int divisor;
 
-	switch (flags) {
-	case CMDF_ROUND_NEAREST:
-		divisor = DIV_ROUND_CLOSEST(ns, PCI1760_PWM_TIMEBASE);
-		break;
-	case CMDF_ROUND_UP:
-		divisor = DIV_ROUND_UP(ns, PCI1760_PWM_TIMEBASE);
-		break;
-	case CMDF_ROUND_DOWN:
-		divisor = ns / PCI1760_PWM_TIMEBASE;
-		break;
-	default:
-		return -EINVAL;
+	switch (flags)
+	{
+		case CMDF_ROUND_NEAREST:
+			divisor = DIV_ROUND_CLOSEST(ns, PCI1760_PWM_TIMEBASE);
+			break;
+
+		case CMDF_ROUND_UP:
+			divisor = DIV_ROUND_UP(ns, PCI1760_PWM_TIMEBASE);
+			break;
+
+		case CMDF_ROUND_DOWN:
+			divisor = ns / PCI1760_PWM_TIMEBASE;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	if (divisor < 1)
+	{
 		divisor = 1;
+	}
+
 	if (divisor > 0xffff)
+	{
 		divisor = 0xffff;
+	}
 
 	return divisor;
 }
 
 static int pci1760_pwm_enable(struct comedi_device *dev,
-			      unsigned int chan, bool enable)
+							  unsigned int chan, bool enable)
 {
 	int ret;
 
 	ret = pci1760_cmd(dev, PCI1760_CMD_GET_STATUS, PCI1760_CMD_ENA_PWM);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	if (enable)
+	{
 		ret |= BIT(chan);
+	}
 	else
+	{
 		ret &= ~BIT(chan);
+	}
 
 	return pci1760_cmd(dev, PCI1760_CMD_ENA_PWM, ret);
 }
 
 static int pci1760_pwm_insn_config(struct comedi_device *dev,
-				   struct comedi_subdevice *s,
-				   struct comedi_insn *insn,
-				   unsigned int *data)
+								   struct comedi_subdevice *s,
+								   struct comedi_insn *insn,
+								   unsigned int *data)
 {
 	unsigned int chan = CR_CHAN(insn->chanspec);
 	int hi_div;
 	int lo_div;
 	int ret;
 
-	switch (data[0]) {
-	case INSN_CONFIG_ARM:
-		ret = pci1760_pwm_enable(dev, chan, false);
-		if (ret < 0)
-			return ret;
+	switch (data[0])
+	{
+		case INSN_CONFIG_ARM:
+			ret = pci1760_pwm_enable(dev, chan, false);
 
-		if (data[1] > 0xffff)
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			if (data[1] > 0xffff)
+			{
+				return -EINVAL;
+			}
+
+			ret = pci1760_cmd(dev, PCI1760_CMD_SET_PWM_CNT(chan), data[1]);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			ret = pci1760_pwm_enable(dev, chan, true);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			break;
+
+		case INSN_CONFIG_DISARM:
+			ret = pci1760_pwm_enable(dev, chan, false);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			break;
+
+		case INSN_CONFIG_PWM_OUTPUT:
+			ret = pci1760_pwm_enable(dev, chan, false);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			hi_div = pci1760_pwm_ns_to_div(data[1], data[2]);
+			lo_div = pci1760_pwm_ns_to_div(data[3], data[4]);
+
+			if (hi_div < 0 || lo_div < 0)
+			{
+				return -EINVAL;
+			}
+
+			if ((hi_div * PCI1760_PWM_TIMEBASE) != data[2] ||
+				(lo_div * PCI1760_PWM_TIMEBASE) != data[4])
+			{
+				data[2] = hi_div * PCI1760_PWM_TIMEBASE;
+				data[4] = lo_div * PCI1760_PWM_TIMEBASE;
+				return -EAGAIN;
+			}
+
+			ret = pci1760_cmd(dev, PCI1760_CMD_SET_PWM_HI(chan), hi_div);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			ret = pci1760_cmd(dev, PCI1760_CMD_SET_PWM_LO(chan), lo_div);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			break;
+
+		case INSN_CONFIG_GET_PWM_OUTPUT:
+			hi_div = pci1760_cmd(dev, PCI1760_CMD_GET_STATUS,
+								 PCI1760_CMD_SET_PWM_HI(chan));
+			lo_div = pci1760_cmd(dev, PCI1760_CMD_GET_STATUS,
+								 PCI1760_CMD_SET_PWM_LO(chan));
+
+			if (hi_div < 0 || lo_div < 0)
+			{
+				return -ETIMEDOUT;
+			}
+
+			data[1] = hi_div * PCI1760_PWM_TIMEBASE;
+			data[2] = lo_div * PCI1760_PWM_TIMEBASE;
+			break;
+
+		case INSN_CONFIG_GET_PWM_STATUS:
+			ret = pci1760_cmd(dev, PCI1760_CMD_GET_STATUS,
+							  PCI1760_CMD_ENA_PWM);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			data[1] = (ret & BIT(chan)) ? 1 : 0;
+			break;
+
+		default:
 			return -EINVAL;
-		ret = pci1760_cmd(dev, PCI1760_CMD_SET_PWM_CNT(chan), data[1]);
-		if (ret < 0)
-			return ret;
-
-		ret = pci1760_pwm_enable(dev, chan, true);
-		if (ret < 0)
-			return ret;
-		break;
-	case INSN_CONFIG_DISARM:
-		ret = pci1760_pwm_enable(dev, chan, false);
-		if (ret < 0)
-			return ret;
-		break;
-	case INSN_CONFIG_PWM_OUTPUT:
-		ret = pci1760_pwm_enable(dev, chan, false);
-		if (ret < 0)
-			return ret;
-
-		hi_div = pci1760_pwm_ns_to_div(data[1], data[2]);
-		lo_div = pci1760_pwm_ns_to_div(data[3], data[4]);
-		if (hi_div < 0 || lo_div < 0)
-			return -EINVAL;
-		if ((hi_div * PCI1760_PWM_TIMEBASE) != data[2] ||
-		    (lo_div * PCI1760_PWM_TIMEBASE) != data[4]) {
-			data[2] = hi_div * PCI1760_PWM_TIMEBASE;
-			data[4] = lo_div * PCI1760_PWM_TIMEBASE;
-			return -EAGAIN;
-		}
-		ret = pci1760_cmd(dev, PCI1760_CMD_SET_PWM_HI(chan), hi_div);
-		if (ret < 0)
-			return ret;
-		ret = pci1760_cmd(dev, PCI1760_CMD_SET_PWM_LO(chan), lo_div);
-		if (ret < 0)
-			return ret;
-		break;
-	case INSN_CONFIG_GET_PWM_OUTPUT:
-		hi_div = pci1760_cmd(dev, PCI1760_CMD_GET_STATUS,
-				     PCI1760_CMD_SET_PWM_HI(chan));
-		lo_div = pci1760_cmd(dev, PCI1760_CMD_GET_STATUS,
-				     PCI1760_CMD_SET_PWM_LO(chan));
-		if (hi_div < 0 || lo_div < 0)
-			return -ETIMEDOUT;
-
-		data[1] = hi_div * PCI1760_PWM_TIMEBASE;
-		data[2] = lo_div * PCI1760_PWM_TIMEBASE;
-		break;
-	case INSN_CONFIG_GET_PWM_STATUS:
-		ret = pci1760_cmd(dev, PCI1760_CMD_GET_STATUS,
-				  PCI1760_CMD_ENA_PWM);
-		if (ret < 0)
-			return ret;
-
-		data[1] = (ret & BIT(chan)) ? 1 : 0;
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	return insn->n;
@@ -324,7 +405,8 @@ static void pci1760_reset(struct comedi_device *dev)
 	pci1760_cmd(dev, PCI1760_CMD_ENA_CNT_MATCH, 0);
 
 	/* set match and counter reset values */
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		pci1760_cmd(dev, PCI1760_CMD_SET_CNT_MATCH(i), 0x8000);
 		pci1760_cmd(dev, PCI1760_CMD_SET_CNT(i), 0x0000);
 	}
@@ -346,22 +428,29 @@ static void pci1760_reset(struct comedi_device *dev)
 }
 
 static int pci1760_auto_attach(struct comedi_device *dev,
-			       unsigned long context)
+							   unsigned long context)
 {
 	struct pci_dev *pcidev = comedi_to_pci_dev(dev);
 	struct comedi_subdevice *s;
 	int ret;
 
 	ret = comedi_pci_enable(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	dev->iobase = pci_resource_start(pcidev, 0);
 
 	pci1760_reset(dev);
 
 	ret = comedi_alloc_subdevices(dev, 4);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Digital Input subdevice */
 	s = &dev->subdevices[0];
@@ -383,8 +472,12 @@ static int pci1760_auto_attach(struct comedi_device *dev,
 
 	/* get the current state of the outputs */
 	ret = pci1760_cmd(dev, PCI1760_CMD_GET_DO, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	s->state	= ret;
 
 	/* PWM subdevice */
@@ -401,7 +494,8 @@ static int pci1760_auto_attach(struct comedi_device *dev,
 	return 0;
 }
 
-static struct comedi_driver pci1760_driver = {
+static struct comedi_driver pci1760_driver =
+{
 	.driver_name	= "adv_pci1760",
 	.module		= THIS_MODULE,
 	.auto_attach	= pci1760_auto_attach,
@@ -409,18 +503,20 @@ static struct comedi_driver pci1760_driver = {
 };
 
 static int pci1760_pci_probe(struct pci_dev *dev,
-			     const struct pci_device_id *id)
+							 const struct pci_device_id *id)
 {
 	return comedi_pci_auto_config(dev, &pci1760_driver, id->driver_data);
 }
 
-static const struct pci_device_id pci1760_pci_table[] = {
+static const struct pci_device_id pci1760_pci_table[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_ADVANTECH, 0x1760) },
 	{ 0 }
 };
 MODULE_DEVICE_TABLE(pci, pci1760_pci_table);
 
-static struct pci_driver pci1760_pci_driver = {
+static struct pci_driver pci1760_pci_driver =
+{
 	.name		= "adv_pci1760",
 	.id_table	= pci1760_pci_table,
 	.probe		= pci1760_pci_probe,

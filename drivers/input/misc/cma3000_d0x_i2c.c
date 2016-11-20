@@ -23,15 +23,17 @@
 #include "cma3000_d0x.h"
 
 static int cma3000_i2c_set(struct device *dev,
-			   u8 reg, u8 val, char *msg)
+						   u8 reg, u8 val, char *msg)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	int ret;
 
 	ret = i2c_smbus_write_byte_data(client, reg, val);
+
 	if (ret < 0)
 		dev_err(&client->dev,
-			"%s failed (%s, %d)\n", __func__, msg, ret);
+				"%s failed (%s, %d)\n", __func__, msg, ret);
+
 	return ret;
 }
 
@@ -41,13 +43,16 @@ static int cma3000_i2c_read(struct device *dev, u8 reg, char *msg)
 	int ret;
 
 	ret = i2c_smbus_read_byte_data(client, reg);
+
 	if (ret < 0)
 		dev_err(&client->dev,
-			"%s failed (%s, %d)\n", __func__, msg, ret);
+				"%s failed (%s, %d)\n", __func__, msg, ret);
+
 	return ret;
 }
 
-static const struct cma3000_bus_ops cma3000_i2c_bops = {
+static const struct cma3000_bus_ops cma3000_i2c_bops =
+{
 	.bustype	= BUS_I2C,
 #define CMA3000_BUSI2C     (0 << 4)
 	.ctrl_mod	= CMA3000_BUSI2C,
@@ -56,13 +61,16 @@ static const struct cma3000_bus_ops cma3000_i2c_bops = {
 };
 
 static int cma3000_i2c_probe(struct i2c_client *client,
-					const struct i2c_device_id *id)
+							 const struct i2c_device_id *id)
 {
 	struct cma3000_accl_data *data;
 
 	data = cma3000_init(&client->dev, client->irq, &cma3000_i2c_bops);
+
 	if (IS_ERR(data))
+	{
 		return PTR_ERR(data);
+	}
 
 	i2c_set_clientdata(client, data);
 
@@ -99,20 +107,23 @@ static int cma3000_i2c_resume(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops cma3000_i2c_pm_ops = {
+static const struct dev_pm_ops cma3000_i2c_pm_ops =
+{
 	.suspend	= cma3000_i2c_suspend,
 	.resume		= cma3000_i2c_resume,
 };
 #endif
 
-static const struct i2c_device_id cma3000_i2c_id[] = {
+static const struct i2c_device_id cma3000_i2c_id[] =
+{
 	{ "cma3000_d01", 0 },
 	{ },
 };
 
 MODULE_DEVICE_TABLE(i2c, cma3000_i2c_id);
 
-static struct i2c_driver cma3000_i2c_driver = {
+static struct i2c_driver cma3000_i2c_driver =
+{
 	.probe		= cma3000_i2c_probe,
 	.remove		= cma3000_i2c_remove,
 	.id_table	= cma3000_i2c_id,

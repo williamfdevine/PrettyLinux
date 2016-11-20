@@ -41,12 +41,14 @@
 
 #define CS_MMAP_SIZE	PAGE_SIZE
 
-struct char_queue {
+struct char_queue
+{
 	struct list_head	list;
 	u32			msg;
 };
 
-struct cs_char {
+struct cs_char
+{
 	unsigned int		opened;
 	struct hsi_client	*cl;
 	struct cs_hsi_iface	*hi;
@@ -88,8 +90,9 @@ struct cs_char {
 
 #define RX_PTR_BOUNDARY_SHIFT		8
 #define RX_PTR_MAX_SHIFT		(RX_PTR_BOUNDARY_SHIFT + \
-						CS_MAX_BUFFERS_SHIFT)
-struct cs_hsi_iface {
+								 CS_MAX_BUFFERS_SHIFT)
+struct cs_hsi_iface
+{
 	struct hsi_client		*cl;
 	struct hsi_client		*master;
 
@@ -147,15 +150,18 @@ static void cs_notify(u32 message, struct list_head *head)
 
 	spin_lock(&cs_char_data.lock);
 
-	if (!cs_char_data.opened) {
+	if (!cs_char_data.opened)
+	{
 		spin_unlock(&cs_char_data.lock);
 		goto out;
 	}
 
 	entry = kmalloc(sizeof(*entry), GFP_ATOMIC);
-	if (!entry) {
+
+	if (!entry)
+	{
 		dev_err(&cs_char_data.cl->device,
-			"Can't allocate new entry for the queue.\n");
+				"Can't allocate new entry for the queue.\n");
 		spin_unlock(&cs_char_data.lock);
 		goto out;
 	}
@@ -196,14 +202,17 @@ static void cs_notify_data(u32 message, int maxlength)
 
 	spin_lock(&cs_char_data.lock);
 	cs_char_data.dataind_pending++;
+
 	while (cs_char_data.dataind_pending > maxlength &&
-				!list_empty(&cs_char_data.dataind_queue)) {
+		   !list_empty(&cs_char_data.dataind_queue))
+	{
 		dev_dbg(&cs_char_data.cl->device, "data notification "
-		"queue overrun (%u entries)\n", cs_char_data.dataind_pending);
+				"queue overrun (%u entries)\n", cs_char_data.dataind_pending);
 
 		cs_pop_entry(&cs_char_data.dataind_queue);
 		cs_char_data.dataind_pending--;
 	}
+
 	spin_unlock(&cs_char_data.lock);
 }
 
@@ -235,21 +244,25 @@ static void cs_cmd_destructor(struct hsi_msg *msg)
 	dev_dbg(&cs_char_data.cl->device, "control cmd destructor\n");
 
 	if (hi->iface_state != CS_STATE_CLOSED)
+	{
 		dev_err(&hi->cl->device, "Cmd flushed while driver active\n");
+	}
 
 	if (msg->ttype == HSI_MSG_READ)
 		hi->control_state &=
 			~(SSI_CHANNEL_STATE_POLL | SSI_CHANNEL_STATE_READING);
 	else if (msg->ttype == HSI_MSG_WRITE &&
-			hi->control_state & SSI_CHANNEL_STATE_WRITING)
+			 hi->control_state & SSI_CHANNEL_STATE_WRITING)
+	{
 		hi->control_state &= ~SSI_CHANNEL_STATE_WRITING;
+	}
 
 	cs_release_cmd(msg);
 
 	spin_unlock(&hi->lock);
 }
 
-static struct hsi_msg *cs_claim_cmd(struct cs_hsi_iface* ssi)
+static struct hsi_msg *cs_claim_cmd(struct cs_hsi_iface *ssi)
 {
 	struct hsi_msg *msg;
 
@@ -266,7 +279,8 @@ static void cs_free_cmds(struct cs_hsi_iface *ssi)
 {
 	struct hsi_msg *msg, *tmp;
 
-	list_for_each_entry_safe(msg, tmp, &ssi->cmdqueue, link) {
+	list_for_each_entry_safe(msg, tmp, &ssi->cmdqueue, link)
+	{
 		list_del(&msg->link);
 		msg->destructor = NULL;
 		kfree(sg_virt(msg->sgt.sgl));
@@ -282,15 +296,23 @@ static int cs_alloc_cmds(struct cs_hsi_iface *hi)
 
 	INIT_LIST_HEAD(&hi->cmdqueue);
 
-	for (i = 0; i < CS_MAX_CMDS; i++) {
+	for (i = 0; i < CS_MAX_CMDS; i++)
+	{
 		msg = hsi_alloc_msg(1, GFP_KERNEL);
+
 		if (!msg)
+		{
 			goto out;
+		}
+
 		buf = kmalloc(sizeof(*buf), GFP_KERNEL);
-		if (!buf) {
+
+		if (!buf)
+		{
 			hsi_free_msg(msg);
 			goto out;
 		}
+
 		sg_init_one(msg->sgt.sgl, buf, sizeof(*buf));
 		msg->channel = cs_char_data.channel_id_cmd;
 		msg->context = hi;
@@ -312,18 +334,25 @@ static void cs_hsi_data_destructor(struct hsi_msg *msg)
 	dev_dbg(&cs_char_data.cl->device, "Freeing data %s message\n", dir);
 
 	spin_lock(&hi->lock);
+
 	if (hi->iface_state != CS_STATE_CLOSED)
 		dev_err(&cs_char_data.cl->device,
 				"Data %s flush while device active\n", dir);
+
 	if (msg->ttype == HSI_MSG_READ)
 		hi->data_state &=
 			~(SSI_CHANNEL_STATE_POLL | SSI_CHANNEL_STATE_READING);
 	else
+	{
 		hi->data_state &= ~SSI_CHANNEL_STATE_WRITING;
+	}
 
 	msg->status = HSI_STATUS_COMPLETED;
+
 	if (unlikely(waitqueue_active(&hi->datawait)))
+	{
 		wake_up_interruptible(&hi->datawait);
+	}
 
 	spin_unlock(&hi->lock);
 }
@@ -334,19 +363,25 @@ static int cs_hsi_alloc_data(struct cs_hsi_iface *hi)
 	int res = 0;
 
 	rxmsg = hsi_alloc_msg(1, GFP_KERNEL);
-	if (!rxmsg) {
+
+	if (!rxmsg)
+	{
 		res = -ENOMEM;
 		goto out1;
 	}
+
 	rxmsg->channel = cs_char_data.channel_id_data;
 	rxmsg->destructor = cs_hsi_data_destructor;
 	rxmsg->context = hi;
 
 	txmsg = hsi_alloc_msg(1, GFP_KERNEL);
-	if (!txmsg) {
+
+	if (!txmsg)
+	{
 		res = -ENOMEM;
 		goto out2;
 	}
+
 	txmsg->channel = cs_char_data.channel_id_data;
 	txmsg->destructor = cs_hsi_data_destructor;
 	txmsg->context = hi;
@@ -365,7 +400,7 @@ out1:
 static void cs_hsi_free_data_msg(struct hsi_msg *msg)
 {
 	WARN_ON(msg->status != HSI_STATUS_COMPLETED &&
-					msg->status != HSI_STATUS_ERROR);
+			msg->status != HSI_STATUS_ERROR);
 	hsi_free_msg(msg);
 }
 
@@ -376,12 +411,12 @@ static void cs_hsi_free_data(struct cs_hsi_iface *hi)
 }
 
 static inline void __cs_hsi_error_pre(struct cs_hsi_iface *hi,
-					struct hsi_msg *msg, const char *info,
-					unsigned int *state)
+									  struct hsi_msg *msg, const char *info,
+									  unsigned int *state)
 {
 	spin_lock(&hi->lock);
 	dev_err(&hi->cl->device, "HSI %s error, msg %d, state %u\n",
-		info, msg->status, *state);
+			info, msg->status, *state);
 }
 
 static inline void __cs_hsi_error_post(struct cs_hsi_iface *hi)
@@ -402,7 +437,7 @@ static inline void __cs_hsi_error_write_bits(unsigned int *state)
 }
 
 static void cs_hsi_control_read_error(struct cs_hsi_iface *hi,
-							struct hsi_msg *msg)
+									  struct hsi_msg *msg)
 {
 	__cs_hsi_error_pre(hi, msg, "control read", &hi->control_state);
 	cs_release_cmd(msg);
@@ -411,7 +446,7 @@ static void cs_hsi_control_read_error(struct cs_hsi_iface *hi,
 }
 
 static void cs_hsi_control_write_error(struct cs_hsi_iface *hi,
-							struct hsi_msg *msg)
+									   struct hsi_msg *msg)
 {
 	__cs_hsi_error_pre(hi, msg, "control write", &hi->control_state);
 	cs_release_cmd(msg);
@@ -428,7 +463,7 @@ static void cs_hsi_data_read_error(struct cs_hsi_iface *hi, struct hsi_msg *msg)
 }
 
 static void cs_hsi_data_write_error(struct cs_hsi_iface *hi,
-							struct hsi_msg *msg)
+									struct hsi_msg *msg)
 {
 	__cs_hsi_error_pre(hi, msg, "data write", &hi->data_state);
 	__cs_hsi_error_write_bits(&hi->data_state);
@@ -442,24 +477,30 @@ static void cs_hsi_read_on_control_complete(struct hsi_msg *msg)
 
 	spin_lock(&hi->lock);
 	hi->control_state &= ~SSI_CHANNEL_STATE_READING;
-	if (msg->status == HSI_STATUS_ERROR) {
+
+	if (msg->status == HSI_STATUS_ERROR)
+	{
 		dev_err(&hi->cl->device, "Control RX error detected\n");
 		spin_unlock(&hi->lock);
 		cs_hsi_control_read_error(hi, msg);
 		goto out;
 	}
+
 	dev_dbg(&hi->cl->device, "Read on control: %08X\n", cmd);
 	cs_release_cmd(msg);
-	if (hi->flags & CS_FEAT_TSTAMP_RX_CTRL) {
+
+	if (hi->flags & CS_FEAT_TSTAMP_RX_CTRL)
+	{
 		struct timespec tspec;
 		struct cs_timestamp *tstamp =
-			&hi->mmap_cfg->tstamp_rx_ctrl;
+				&hi->mmap_cfg->tstamp_rx_ctrl;
 
 		ktime_get_ts(&tspec);
 
 		tstamp->tv_sec = (__u32) tspec.tv_sec;
 		tstamp->tv_nsec = (__u32) tspec.tv_nsec;
 	}
+
 	spin_unlock(&hi->lock);
 
 	cs_notify_control(cmd);
@@ -473,7 +514,8 @@ static void cs_hsi_peek_on_control_complete(struct hsi_msg *msg)
 	struct cs_hsi_iface *hi = msg->context;
 	int ret;
 
-	if (msg->status == HSI_STATUS_ERROR) {
+	if (msg->status == HSI_STATUS_ERROR)
+	{
 		dev_err(&hi->cl->device, "Control peek RX error detected\n");
 		cs_hsi_control_read_error(hi, msg);
 		return;
@@ -485,8 +527,11 @@ static void cs_hsi_peek_on_control_complete(struct hsi_msg *msg)
 	msg->sgt.nents = 1;
 	msg->complete = cs_hsi_read_on_control_complete;
 	ret = hsi_async_read(hi->cl, msg);
+
 	if (ret)
+	{
 		cs_hsi_control_read_error(hi, msg);
+	}
 }
 
 static void cs_hsi_read_on_control(struct cs_hsi_iface *hi)
@@ -495,18 +540,23 @@ static void cs_hsi_read_on_control(struct cs_hsi_iface *hi)
 	int ret;
 
 	spin_lock(&hi->lock);
-	if (hi->control_state & SSI_CHANNEL_STATE_READING) {
+
+	if (hi->control_state & SSI_CHANNEL_STATE_READING)
+	{
 		dev_err(&hi->cl->device, "Control read already pending (%d)\n",
-			hi->control_state);
+				hi->control_state);
 		spin_unlock(&hi->lock);
 		return;
 	}
-	if (hi->control_state & SSI_CHANNEL_STATE_ERROR) {
+
+	if (hi->control_state & SSI_CHANNEL_STATE_ERROR)
+	{
 		dev_err(&hi->cl->device, "Control read error (%d)\n",
-			hi->control_state);
+				hi->control_state);
 		spin_unlock(&hi->lock);
 		return;
 	}
+
 	hi->control_state |= SSI_CHANNEL_STATE_READING;
 	dev_dbg(&hi->cl->device, "Issuing RX on control\n");
 	msg = cs_claim_cmd(hi);
@@ -515,24 +565,33 @@ static void cs_hsi_read_on_control(struct cs_hsi_iface *hi)
 	msg->sgt.nents = 0;
 	msg->complete = cs_hsi_peek_on_control_complete;
 	ret = hsi_async_read(hi->cl, msg);
+
 	if (ret)
+	{
 		cs_hsi_control_read_error(hi, msg);
+	}
 }
 
 static void cs_hsi_write_on_control_complete(struct hsi_msg *msg)
 {
 	struct cs_hsi_iface *hi = msg->context;
-	if (msg->status == HSI_STATUS_COMPLETED) {
+
+	if (msg->status == HSI_STATUS_COMPLETED)
+	{
 		spin_lock(&hi->lock);
 		hi->control_state &= ~SSI_CHANNEL_STATE_WRITING;
 		cs_release_cmd(msg);
 		spin_unlock(&hi->lock);
-	} else if (msg->status == HSI_STATUS_ERROR) {
+	}
+	else if (msg->status == HSI_STATUS_ERROR)
+	{
 		cs_hsi_control_write_error(hi, msg);
-	} else {
+	}
+	else
+	{
 		dev_err(&hi->cl->device,
-			"unexpected status in control write callback %d\n",
-			msg->status);
+				"unexpected status in control write callback %d\n",
+				msg->status);
 	}
 }
 
@@ -542,16 +601,21 @@ static int cs_hsi_write_on_control(struct cs_hsi_iface *hi, u32 message)
 	int ret;
 
 	spin_lock(&hi->lock);
-	if (hi->control_state & SSI_CHANNEL_STATE_ERROR) {
+
+	if (hi->control_state & SSI_CHANNEL_STATE_ERROR)
+	{
 		spin_unlock(&hi->lock);
 		return -EIO;
 	}
-	if (hi->control_state & SSI_CHANNEL_STATE_WRITING) {
+
+	if (hi->control_state & SSI_CHANNEL_STATE_WRITING)
+	{
 		dev_err(&hi->cl->device,
-			"Write still pending on control channel.\n");
+				"Write still pending on control channel.\n");
 		spin_unlock(&hi->lock);
 		return -EBUSY;
 	}
+
 	hi->control_state |= SSI_CHANNEL_STATE_WRITING;
 	msg = cs_claim_cmd(hi);
 	spin_unlock(&hi->lock);
@@ -560,11 +624,13 @@ static int cs_hsi_write_on_control(struct cs_hsi_iface *hi, u32 message)
 	msg->sgt.nents = 1;
 	msg->complete = cs_hsi_write_on_control_complete;
 	dev_dbg(&hi->cl->device,
-		"Sending control message %08X\n", message);
+			"Sending control message %08X\n", message);
 	ret = hsi_async_write(hi->cl, msg);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&hi->cl->device,
-			"async_write failed with %d\n", ret);
+				"async_write failed with %d\n", ret);
 		cs_hsi_control_write_error(hi, msg);
 	}
 
@@ -575,7 +641,8 @@ static int cs_hsi_write_on_control(struct cs_hsi_iface *hi, u32 message)
 	 * unexpectedly (and we cannot directly resubmit a new read from
 	 * the message destructor; see cs_cmd_destructor()).
 	 */
-	if (!(hi->control_state & SSI_CHANNEL_STATE_READING)) {
+	if (!(hi->control_state & SSI_CHANNEL_STATE_READING))
+	{
 		dev_err(&hi->cl->device, "Restarting control reads\n");
 		cs_hsi_read_on_control(hi);
 	}
@@ -588,7 +655,8 @@ static void cs_hsi_read_on_data_complete(struct hsi_msg *msg)
 	struct cs_hsi_iface *hi = msg->context;
 	u32 payload;
 
-	if (unlikely(msg->status == HSI_STATUS_ERROR)) {
+	if (unlikely(msg->status == HSI_STATUS_ERROR))
+	{
 		cs_hsi_data_read_error(hi, msg);
 		return;
 	}
@@ -602,8 +670,12 @@ static void cs_hsi_read_on_data_complete(struct hsi_msg *msg)
 	hi->rx_slot %= hi->rx_ptr_boundary;
 	/* expose current rx ptr in mmap area */
 	hi->mmap_cfg->rx_ptr = hi->rx_slot;
+
 	if (unlikely(waitqueue_active(&hi->datawait)))
+	{
 		wake_up_interruptible(&hi->datawait);
+	}
+
 	spin_unlock(&hi->lock);
 
 	cs_notify_data(payload, hi->rx_bufs);
@@ -616,11 +688,14 @@ static void cs_hsi_peek_on_data_complete(struct hsi_msg *msg)
 	u32 *address;
 	int ret;
 
-	if (unlikely(msg->status == HSI_STATUS_ERROR)) {
+	if (unlikely(msg->status == HSI_STATUS_ERROR))
+	{
 		cs_hsi_data_read_error(hi, msg);
 		return;
 	}
-	if (unlikely(hi->iface_state != CS_STATE_CONFIGURED)) {
+
+	if (unlikely(hi->iface_state != CS_STATE_CONFIGURED))
+	{
 		dev_err(&hi->cl->device, "Data received in invalid state\n");
 		cs_hsi_data_read_error(hi, msg);
 		return;
@@ -633,13 +708,16 @@ static void cs_hsi_peek_on_data_complete(struct hsi_msg *msg)
 	spin_unlock(&hi->lock);
 
 	address = (u32 *)(hi->mmap_base +
-				hi->rx_offsets[hi->rx_slot % hi->rx_bufs]);
+					  hi->rx_offsets[hi->rx_slot % hi->rx_bufs]);
 	sg_init_one(msg->sgt.sgl, address, hi->buf_size);
 	msg->sgt.nents = 1;
 	msg->complete = cs_hsi_read_on_data_complete;
 	ret = hsi_async_read(hi->cl, msg);
+
 	if (ret)
+	{
 		cs_hsi_data_read_error(hi, msg);
+	}
 }
 
 /*
@@ -649,7 +727,7 @@ static void cs_hsi_peek_on_data_complete(struct hsi_msg *msg)
 static inline int cs_state_xfer_active(unsigned int state)
 {
 	return (state & SSI_CHANNEL_STATE_WRITING) ||
-		(state & SSI_CHANNEL_STATE_READING);
+		   (state & SSI_CHANNEL_STATE_READING);
 }
 
 /*
@@ -666,13 +744,16 @@ static void cs_hsi_read_on_data(struct cs_hsi_iface *hi)
 	int ret;
 
 	spin_lock(&hi->lock);
+
 	if (hi->data_state &
-		(SSI_CHANNEL_STATE_READING | SSI_CHANNEL_STATE_POLL)) {
+		(SSI_CHANNEL_STATE_READING | SSI_CHANNEL_STATE_POLL))
+	{
 		dev_dbg(&hi->cl->device, "Data read already pending (%u)\n",
-			hi->data_state);
+				hi->data_state);
 		spin_unlock(&hi->lock);
 		return;
 	}
+
 	hi->data_state |= SSI_CHANNEL_STATE_POLL;
 	spin_unlock(&hi->lock);
 
@@ -682,21 +763,31 @@ static void cs_hsi_read_on_data(struct cs_hsi_iface *hi)
 	rxmsg->complete = cs_hsi_peek_on_data_complete;
 
 	ret = hsi_async_read(hi->cl, rxmsg);
+
 	if (ret)
+	{
 		cs_hsi_data_read_error(hi, rxmsg);
+	}
 }
 
 static void cs_hsi_write_on_data_complete(struct hsi_msg *msg)
 {
 	struct cs_hsi_iface *hi = msg->context;
 
-	if (msg->status == HSI_STATUS_COMPLETED) {
+	if (msg->status == HSI_STATUS_COMPLETED)
+	{
 		spin_lock(&hi->lock);
 		hi->data_state &= ~SSI_CHANNEL_STATE_WRITING;
+
 		if (unlikely(waitqueue_active(&hi->datawait)))
+		{
 			wake_up_interruptible(&hi->datawait);
+		}
+
 		spin_unlock(&hi->lock);
-	} else {
+	}
+	else
+	{
 		cs_hsi_data_write_error(hi, msg);
 	}
 }
@@ -708,21 +799,28 @@ static int cs_hsi_write_on_data(struct cs_hsi_iface *hi, unsigned int slot)
 	int ret;
 
 	spin_lock(&hi->lock);
-	if (hi->iface_state != CS_STATE_CONFIGURED) {
+
+	if (hi->iface_state != CS_STATE_CONFIGURED)
+	{
 		dev_err(&hi->cl->device, "Not configured, aborting\n");
 		ret = -EINVAL;
 		goto error;
 	}
-	if (hi->data_state & SSI_CHANNEL_STATE_ERROR) {
+
+	if (hi->data_state & SSI_CHANNEL_STATE_ERROR)
+	{
 		dev_err(&hi->cl->device, "HSI error, aborting\n");
 		ret = -EIO;
 		goto error;
 	}
-	if (hi->data_state & SSI_CHANNEL_STATE_WRITING) {
+
+	if (hi->data_state & SSI_CHANNEL_STATE_WRITING)
+	{
 		dev_err(&hi->cl->device, "Write pending on data channel.\n");
 		ret = -EBUSY;
 		goto error;
 	}
+
 	hi->data_state |= SSI_CHANNEL_STATE_WRITING;
 	spin_unlock(&hi->lock);
 
@@ -732,15 +830,21 @@ static int cs_hsi_write_on_data(struct cs_hsi_iface *hi, unsigned int slot)
 	sg_init_one(txmsg->sgt.sgl, address, hi->buf_size);
 	txmsg->complete = cs_hsi_write_on_data_complete;
 	ret = hsi_async_write(hi->cl, txmsg);
+
 	if (ret)
+	{
 		cs_hsi_data_write_error(hi, txmsg);
+	}
 
 	return ret;
 
 error:
 	spin_unlock(&hi->lock);
+
 	if (ret == -EIO)
+	{
 		cs_hsi_data_write_error(hi, hi->data_tx_msg);
+	}
 
 	return ret;
 }
@@ -755,20 +859,30 @@ static int cs_hsi_command(struct cs_hsi_iface *hi, u32 cmd)
 	int ret = 0;
 
 	local_bh_disable();
-	switch (cmd & TARGET_MASK) {
-	case TARGET_REMOTE:
-		ret = cs_hsi_write_on_control(hi, cmd);
-		break;
-	case TARGET_LOCAL:
-		if ((cmd & CS_CMD_MASK) == CS_TX_DATA_READY)
-			ret = cs_hsi_write_on_data(hi, cmd & CS_PARAM_MASK);
-		else
+
+	switch (cmd & TARGET_MASK)
+	{
+		case TARGET_REMOTE:
+			ret = cs_hsi_write_on_control(hi, cmd);
+			break;
+
+		case TARGET_LOCAL:
+			if ((cmd & CS_CMD_MASK) == CS_TX_DATA_READY)
+			{
+				ret = cs_hsi_write_on_data(hi, cmd & CS_PARAM_MASK);
+			}
+			else
+			{
+				ret = -EINVAL;
+			}
+
+			break;
+
+		default:
 			ret = -EINVAL;
-		break;
-	default:
-		ret = -EINVAL;
-		break;
+			break;
 	}
+
 	local_bh_enable();
 
 	return ret;
@@ -779,23 +893,31 @@ static void cs_hsi_set_wakeline(struct cs_hsi_iface *hi, bool new_state)
 	int change = 0;
 
 	spin_lock_bh(&hi->lock);
-	if (hi->wakeline_state != new_state) {
+
+	if (hi->wakeline_state != new_state)
+	{
 		hi->wakeline_state = new_state;
 		change = 1;
 		dev_dbg(&hi->cl->device, "setting wake line to %d (%p)\n",
-			new_state, hi->cl);
+				new_state, hi->cl);
 	}
+
 	spin_unlock_bh(&hi->lock);
 
-	if (change) {
+	if (change)
+	{
 		if (new_state)
+		{
 			ssip_slave_start_tx(hi->master);
+		}
 		else
+		{
 			ssip_slave_stop_tx(hi->master);
+		}
 	}
 
 	dev_dbg(&hi->cl->device, "wake line set to %d (%p)\n",
-		new_state, hi->cl);
+			new_state, hi->cl);
 }
 
 static void set_buffer_sizes(struct cs_hsi_iface *hi, int rx_bufs, int tx_bufs)
@@ -805,7 +927,8 @@ static void set_buffer_sizes(struct cs_hsi_iface *hi, int rx_bufs, int tx_bufs)
 	hi->mmap_cfg->rx_bufs = rx_bufs;
 	hi->mmap_cfg->tx_bufs = tx_bufs;
 
-	if (hi->flags & CS_FEAT_ROLLING_RX_COUNTER) {
+	if (hi->flags & CS_FEAT_ROLLING_RX_COUNTER)
+	{
 		/*
 		 * For more robust overrun detection, let the rx
 		 * pointer run in range 0..'boundary-1'. Boundary
@@ -815,25 +938,30 @@ static void set_buffer_sizes(struct cs_hsi_iface *hi, int rx_bufs, int tx_bufs)
 		 */
 		hi->rx_ptr_boundary = (rx_bufs << RX_PTR_BOUNDARY_SHIFT);
 		hi->mmap_cfg->rx_ptr_boundary = hi->rx_ptr_boundary;
-	} else {
+	}
+	else
+	{
 		hi->rx_ptr_boundary = hi->rx_bufs;
 	}
 }
 
 static int check_buf_params(struct cs_hsi_iface *hi,
-					const struct cs_buffer_config *buf_cfg)
+							const struct cs_buffer_config *buf_cfg)
 {
 	size_t buf_size_aligned = L1_CACHE_ALIGN(buf_cfg->buf_size) *
-					(buf_cfg->rx_bufs + buf_cfg->tx_bufs);
+							  (buf_cfg->rx_bufs + buf_cfg->tx_bufs);
 	size_t ctrl_size_aligned = L1_CACHE_ALIGN(sizeof(*hi->mmap_cfg));
 	int r = 0;
 
 	if (buf_cfg->rx_bufs > CS_MAX_BUFFERS ||
-					buf_cfg->tx_bufs > CS_MAX_BUFFERS) {
+		buf_cfg->tx_bufs > CS_MAX_BUFFERS)
+	{
 		r = -EINVAL;
-	} else if ((buf_size_aligned + ctrl_size_aligned) >= hi->mmap_size) {
+	}
+	else if ((buf_size_aligned + ctrl_size_aligned) >= hi->mmap_size)
+	{
 		dev_err(&hi->cl->device, "No space for the requested buffer "
-			"configuration\n");
+				"configuration\n");
 		r = -ENOBUFS;
 	}
 
@@ -849,20 +977,28 @@ static int cs_hsi_data_sync(struct cs_hsi_iface *hi)
 
 	spin_lock_bh(&hi->lock);
 
-	if (!cs_state_xfer_active(hi->data_state)) {
+	if (!cs_state_xfer_active(hi->data_state))
+	{
 		dev_dbg(&hi->cl->device, "hsi_data_sync break, idle\n");
 		goto out;
 	}
 
-	for (;;) {
+	for (;;)
+	{
 		int s;
 		DEFINE_WAIT(wait);
+
 		if (!cs_state_xfer_active(hi->data_state))
+		{
 			goto out;
-		if (signal_pending(current)) {
+		}
+
+		if (signal_pending(current))
+		{
 			r = -ERESTARTSYS;
 			goto out;
 		}
+
 		/**
 		 * prepare_to_wait must be called with hi->lock held
 		 * so that callbacks can check for waitqueue_active()
@@ -870,13 +1006,15 @@ static int cs_hsi_data_sync(struct cs_hsi_iface *hi)
 		prepare_to_wait(&hi->datawait, &wait, TASK_INTERRUPTIBLE);
 		spin_unlock_bh(&hi->lock);
 		s = schedule_timeout(
-			msecs_to_jiffies(CS_HSI_TRANSFER_TIMEOUT_MS));
+				msecs_to_jiffies(CS_HSI_TRANSFER_TIMEOUT_MS));
 		spin_lock_bh(&hi->lock);
 		finish_wait(&hi->datawait, &wait);
-		if (!s) {
+
+		if (!s)
+		{
 			dev_dbg(&hi->cl->device,
-				"hsi_data_sync timeout after %d ms\n",
-				CS_HSI_TRANSFER_TIMEOUT_MS);
+					"hsi_data_sync timeout after %d ms\n",
+					CS_HSI_TRANSFER_TIMEOUT_MS);
 			r = -EIO;
 			goto out;
 		}
@@ -890,7 +1028,7 @@ out:
 }
 
 static void cs_hsi_data_enable(struct cs_hsi_iface *hi,
-					struct cs_buffer_config *buf_cfg)
+							   struct cs_buffer_config *buf_cfg)
 {
 	unsigned int data_start, i;
 
@@ -908,18 +1046,21 @@ static void cs_hsi_data_enable(struct cs_hsi_iface *hi,
 			"setting data start at %u, cfg block %u, align %u\n",
 			data_start, sizeof(*hi->mmap_cfg), L1_CACHE_BYTES);
 
-	for (i = 0; i < hi->mmap_cfg->rx_bufs; i++) {
+	for (i = 0; i < hi->mmap_cfg->rx_bufs; i++)
+	{
 		hi->rx_offsets[i] = data_start + i * hi->slot_size;
 		hi->mmap_cfg->rx_offsets[i] = hi->rx_offsets[i];
 		dev_dbg(&hi->cl->device, "DL buf #%u at %u\n",
-					i, hi->rx_offsets[i]);
+				i, hi->rx_offsets[i]);
 	}
-	for (i = 0; i < hi->mmap_cfg->tx_bufs; i++) {
+
+	for (i = 0; i < hi->mmap_cfg->tx_bufs; i++)
+	{
 		hi->tx_offsets[i] = data_start +
-			(i + hi->mmap_cfg->rx_bufs) * hi->slot_size;
+							(i + hi->mmap_cfg->rx_bufs) * hi->slot_size;
 		hi->mmap_cfg->tx_offsets[i] = hi->tx_offsets[i];
 		dev_dbg(&hi->cl->device, "UL buf #%u at %u\n",
-					i, hi->rx_offsets[i]);
+				i, hi->rx_offsets[i]);
 	}
 
 	hi->iface_state = CS_STATE_CONFIGURED;
@@ -927,23 +1068,28 @@ static void cs_hsi_data_enable(struct cs_hsi_iface *hi,
 
 static void cs_hsi_data_disable(struct cs_hsi_iface *hi, int old_state)
 {
-	if (old_state == CS_STATE_CONFIGURED) {
+	if (old_state == CS_STATE_CONFIGURED)
+	{
 		dev_dbg(&hi->cl->device,
-			"closing data channel with slot size 0\n");
+				"closing data channel with slot size 0\n");
 		hi->iface_state = CS_STATE_OPENED;
 	}
 }
 
 static int cs_hsi_buf_config(struct cs_hsi_iface *hi,
-					struct cs_buffer_config *buf_cfg)
+							 struct cs_buffer_config *buf_cfg)
 {
 	int r = 0;
 	unsigned int old_state = hi->iface_state;
 
 	spin_lock_bh(&hi->lock);
+
 	/* Prevent new transactions during buffer reconfig */
 	if (old_state == CS_STATE_CONFIGURED)
+	{
 		hi->iface_state = CS_STATE_OPENED;
+	}
+
 	spin_unlock_bh(&hi->lock);
 
 	/*
@@ -951,15 +1097,21 @@ static int cs_hsi_buf_config(struct cs_hsi_iface *hi,
 	 * proceeding to change the buffer layout
 	 */
 	r = cs_hsi_data_sync(hi);
+
 	if (r < 0)
+	{
 		return r;
+	}
 
 	WARN_ON(cs_state_xfer_active(hi->data_state));
 
 	spin_lock_bh(&hi->lock);
 	r = check_buf_params(hi, buf_cfg);
+
 	if (r < 0)
+	{
 		goto error;
+	}
 
 	hi->buf_size = buf_cfg->buf_size;
 	hi->mmap_cfg->buf_size = hi->buf_size;
@@ -970,24 +1122,33 @@ static int cs_hsi_buf_config(struct cs_hsi_iface *hi,
 	hi->slot_size = 0;
 
 	if (hi->buf_size)
+	{
 		cs_hsi_data_enable(hi, buf_cfg);
+	}
 	else
+	{
 		cs_hsi_data_disable(hi, old_state);
+	}
 
 	spin_unlock_bh(&hi->lock);
 
-	if (old_state != hi->iface_state) {
-		if (hi->iface_state == CS_STATE_CONFIGURED) {
+	if (old_state != hi->iface_state)
+	{
+		if (hi->iface_state == CS_STATE_CONFIGURED)
+		{
 			pm_qos_add_request(&hi->pm_qos_req,
-				PM_QOS_CPU_DMA_LATENCY,
-				CS_QOS_LATENCY_FOR_DATA_USEC);
+							   PM_QOS_CPU_DMA_LATENCY,
+							   CS_QOS_LATENCY_FOR_DATA_USEC);
 			local_bh_disable();
 			cs_hsi_read_on_data(hi);
 			local_bh_enable();
-		} else if (old_state == CS_STATE_CONFIGURED) {
+		}
+		else if (old_state == CS_STATE_CONFIGURED)
+		{
 			pm_qos_remove_request(&hi->pm_qos_req);
 		}
 	}
+
 	return r;
 
 error:
@@ -996,17 +1157,19 @@ error:
 }
 
 static int cs_hsi_start(struct cs_hsi_iface **hi, struct hsi_client *cl,
-			unsigned long mmap_base, unsigned long mmap_size)
+						unsigned long mmap_base, unsigned long mmap_size)
 {
 	int err = 0;
 	struct cs_hsi_iface *hsi_if = kzalloc(sizeof(*hsi_if), GFP_KERNEL);
 
 	dev_dbg(&cl->device, "cs_hsi_start\n");
 
-	if (!hsi_if) {
+	if (!hsi_if)
+	{
 		err = -ENOMEM;
 		goto leave0;
 	}
+
 	spin_lock_init(&hsi_if->lock);
 	hsi_if->cl = cl;
 	hsi_if->iface_state = CS_STATE_CLOSED;
@@ -1016,28 +1179,41 @@ static int cs_hsi_start(struct cs_hsi_iface **hi, struct hsi_client *cl,
 	memset(hsi_if->mmap_cfg, 0, sizeof(*hsi_if->mmap_cfg));
 	init_waitqueue_head(&hsi_if->datawait);
 	err = cs_alloc_cmds(hsi_if);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(&cl->device, "Unable to alloc HSI messages\n");
 		goto leave1;
 	}
+
 	err = cs_hsi_alloc_data(hsi_if);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(&cl->device, "Unable to alloc HSI messages for data\n");
 		goto leave2;
 	}
+
 	err = hsi_claim_port(cl, 1);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(&cl->device,
 				"Could not open, HSI port already claimed\n");
 		goto leave3;
 	}
+
 	hsi_if->master = ssip_slave_get_master(cl);
-	if (IS_ERR(hsi_if->master)) {
+
+	if (IS_ERR(hsi_if->master))
+	{
 		err = PTR_ERR(hsi_if->master);
 		dev_err(&cl->device, "Could not get HSI master client\n");
 		goto leave4;
 	}
-	if (!ssip_slave_running(hsi_if->master)) {
+
+	if (!ssip_slave_running(hsi_if->master))
+	{
 		err = -ENODEV;
 		dev_err(&cl->device,
 				"HSI port not initialized\n");
@@ -1089,7 +1265,9 @@ static void cs_hsi_stop(struct cs_hsi_iface *hi)
 	WARN_ON(!cs_state_idle(hi->data_state));
 
 	if (pm_qos_request_active(&hi->pm_qos_req))
+	{
 		pm_qos_remove_request(&hi->pm_qos_req);
+	}
 
 	spin_lock_bh(&hi->lock);
 	cs_hsi_free_data(hi);
@@ -1110,7 +1288,8 @@ static int cs_char_vma_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 	return 0;
 }
 
-static const struct vm_operations_struct cs_char_vm_ops = {
+static const struct vm_operations_struct cs_char_vm_ops =
+{
 	.fault	= cs_char_vma_fault,
 };
 
@@ -1119,7 +1298,9 @@ static int cs_char_fasync(int fd, struct file *file, int on)
 	struct cs_char *csdata = file->private_data;
 
 	if (fasync_helper(fd, file, on, &csdata->async_queue) < 0)
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
@@ -1131,64 +1312,90 @@ static unsigned int cs_char_poll(struct file *file, poll_table *wait)
 
 	poll_wait(file, &cs_char_data.wait, wait);
 	spin_lock_bh(&csdata->lock);
+
 	if (!list_empty(&csdata->chardev_queue))
+	{
 		ret = POLLIN | POLLRDNORM;
+	}
 	else if (!list_empty(&csdata->dataind_queue))
+	{
 		ret = POLLIN | POLLRDNORM;
+	}
+
 	spin_unlock_bh(&csdata->lock);
 
 	return ret;
 }
 
 static ssize_t cs_char_read(struct file *file, char __user *buf, size_t count,
-								loff_t *unused)
+							loff_t *unused)
 {
 	struct cs_char *csdata = file->private_data;
 	u32 data;
 	ssize_t retval;
 
 	if (count < sizeof(data))
+	{
 		return -EINVAL;
+	}
 
-	for (;;) {
+	for (;;)
+	{
 		DEFINE_WAIT(wait);
 
 		spin_lock_bh(&csdata->lock);
-		if (!list_empty(&csdata->chardev_queue)) {
+
+		if (!list_empty(&csdata->chardev_queue))
+		{
 			data = cs_pop_entry(&csdata->chardev_queue);
-		} else if (!list_empty(&csdata->dataind_queue)) {
+		}
+		else if (!list_empty(&csdata->dataind_queue))
+		{
 			data = cs_pop_entry(&csdata->dataind_queue);
 			csdata->dataind_pending--;
-		} else {
+		}
+		else
+		{
 			data = 0;
 		}
+
 		spin_unlock_bh(&csdata->lock);
 
 		if (data)
+		{
 			break;
-		if (file->f_flags & O_NONBLOCK) {
+		}
+
+		if (file->f_flags & O_NONBLOCK)
+		{
 			retval = -EAGAIN;
 			goto out;
-		} else if (signal_pending(current)) {
+		}
+		else if (signal_pending(current))
+		{
 			retval = -ERESTARTSYS;
 			goto out;
 		}
+
 		prepare_to_wait_exclusive(&csdata->wait, &wait,
-						TASK_INTERRUPTIBLE);
+								  TASK_INTERRUPTIBLE);
 		schedule();
 		finish_wait(&csdata->wait, &wait);
 	}
 
 	retval = put_user(data, (u32 __user *)buf);
+
 	if (!retval)
+	{
 		retval = sizeof(data);
+	}
 
 out:
 	return retval;
 }
 
 static ssize_t cs_char_write(struct file *file, const char __user *buf,
-						size_t count, loff_t *unused)
+							 size_t count, loff_t *unused)
 {
 	struct cs_char *csdata = file->private_data;
 	u32 data;
@@ -1196,75 +1403,104 @@ static ssize_t cs_char_write(struct file *file, const char __user *buf,
 	ssize_t	retval;
 
 	if (count < sizeof(data))
+	{
 		return -EINVAL;
+	}
 
 	if (get_user(data, (u32 __user *)buf))
+	{
 		retval = -EFAULT;
+	}
 	else
+	{
 		retval = count;
+	}
 
 	err = cs_hsi_command(csdata->hi, data);
+
 	if (err < 0)
+	{
 		retval = err;
+	}
 
 	return retval;
 }
 
 static long cs_char_ioctl(struct file *file, unsigned int cmd,
-				unsigned long arg)
+						  unsigned long arg)
 {
 	struct cs_char *csdata = file->private_data;
 	int r = 0;
 
-	switch (cmd) {
-	case CS_GET_STATE: {
-		unsigned int state;
+	switch (cmd)
+	{
+		case CS_GET_STATE:
+			{
+				unsigned int state;
 
-		state = cs_hsi_get_state(csdata->hi);
-		if (copy_to_user((void __user *)arg, &state, sizeof(state)))
-			r = -EFAULT;
+				state = cs_hsi_get_state(csdata->hi);
 
-		break;
-	}
-	case CS_SET_WAKELINE: {
-		unsigned int state;
+				if (copy_to_user((void __user *)arg, &state, sizeof(state)))
+				{
+					r = -EFAULT;
+				}
 
-		if (copy_from_user(&state, (void __user *)arg, sizeof(state))) {
-			r = -EFAULT;
+				break;
+			}
+
+		case CS_SET_WAKELINE:
+			{
+				unsigned int state;
+
+				if (copy_from_user(&state, (void __user *)arg, sizeof(state)))
+				{
+					r = -EFAULT;
+					break;
+				}
+
+				if (state > 1)
+				{
+					r = -EINVAL;
+					break;
+				}
+
+				cs_hsi_set_wakeline(csdata->hi, !!state);
+
+				break;
+			}
+
+		case CS_GET_IF_VERSION:
+			{
+				unsigned int ifver = CS_IF_VERSION;
+
+				if (copy_to_user((void __user *)arg, &ifver, sizeof(ifver)))
+				{
+					r = -EFAULT;
+				}
+
+				break;
+			}
+
+		case CS_CONFIG_BUFS:
+			{
+				struct cs_buffer_config buf_cfg;
+
+				if (copy_from_user(&buf_cfg, (void __user *)arg,
+								   sizeof(buf_cfg)))
+				{
+					r = -EFAULT;
+				}
+				else
+				{
+					r = cs_hsi_buf_config(csdata->hi, &buf_cfg);
+				}
+
+				break;
+			}
+
+		default:
+			r = -ENOTTY;
 			break;
-		}
-
-		if (state > 1) {
-			r = -EINVAL;
-			break;
-		}
-
-		cs_hsi_set_wakeline(csdata->hi, !!state);
-
-		break;
-	}
-	case CS_GET_IF_VERSION: {
-		unsigned int ifver = CS_IF_VERSION;
-
-		if (copy_to_user((void __user *)arg, &ifver, sizeof(ifver)))
-			r = -EFAULT;
-
-		break;
-	}
-	case CS_CONFIG_BUFS: {
-		struct cs_buffer_config buf_cfg;
-
-		if (copy_from_user(&buf_cfg, (void __user *)arg,
-							sizeof(buf_cfg)))
-			r = -EFAULT;
-		else
-			r = cs_hsi_buf_config(csdata->hi, &buf_cfg);
-
-		break;
-	}
-	default:
-		r = -ENOTTY;
-		break;
 	}
 
 	return r;
@@ -1273,10 +1509,14 @@ static long cs_char_ioctl(struct file *file, unsigned int cmd,
 static int cs_char_mmap(struct file *file, struct vm_area_struct *vma)
 {
 	if (vma->vm_end < vma->vm_start)
+	{
 		return -EINVAL;
+	}
 
 	if (vma_pages(vma) != 1)
+	{
 		return -EINVAL;
+	}
 
 	vma->vm_flags |= VM_IO | VM_DONTDUMP | VM_DONTEXPAND;
 	vma->vm_ops = &cs_char_vm_ops;
@@ -1291,23 +1531,30 @@ static int cs_char_open(struct inode *unused, struct file *file)
 	unsigned long p;
 
 	spin_lock_bh(&cs_char_data.lock);
-	if (cs_char_data.opened) {
+
+	if (cs_char_data.opened)
+	{
 		ret = -EBUSY;
 		spin_unlock_bh(&cs_char_data.lock);
 		goto out1;
 	}
+
 	cs_char_data.opened = 1;
 	cs_char_data.dataind_pending = 0;
 	spin_unlock_bh(&cs_char_data.lock);
 
 	p = get_zeroed_page(GFP_KERNEL);
-	if (!p) {
+
+	if (!p)
+	{
 		ret = -ENOMEM;
 		goto out2;
 	}
 
 	ret = cs_hsi_start(&cs_char_data.hi, cs_char_data.cl, p, CS_MMAP_SIZE);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&cs_char_data.cl->device, "Unable to initialize HSI\n");
 		goto out3;
 	}
@@ -1335,8 +1582,10 @@ static void cs_free_char_queue(struct list_head *head)
 	struct char_queue *entry;
 	struct list_head *cursor, *next;
 
-	if (!list_empty(head)) {
-		list_for_each_safe(cursor, next, head) {
+	if (!list_empty(head))
+	{
+		list_for_each_safe(cursor, next, head)
+		{
 			entry = list_entry(cursor, struct char_queue, list);
 			list_del(&entry->list);
 			kfree(entry);
@@ -1361,7 +1610,8 @@ static int cs_char_release(struct inode *unused, struct file *file)
 	return 0;
 }
 
-static const struct file_operations cs_char_fops = {
+static const struct file_operations cs_char_fops =
+{
 	.owner		= THIS_MODULE,
 	.read		= cs_char_read,
 	.write		= cs_char_write,
@@ -1373,7 +1623,8 @@ static const struct file_operations cs_char_fops = {
 	.fasync		= cs_char_fasync,
 };
 
-static struct miscdevice cs_char_miscdev = {
+static struct miscdevice cs_char_miscdev =
+{
 	.minor	= MISC_DYNAMIC_MINOR,
 	.name	= "cmt_speech",
 	.fops	= &cs_char_fops
@@ -1394,24 +1645,31 @@ static int cs_hsi_client_probe(struct device *dev)
 	INIT_LIST_HEAD(&cs_char_data.dataind_queue);
 
 	cs_char_data.channel_id_cmd = hsi_get_channel_id_by_name(cl,
-		"speech-control");
-	if (cs_char_data.channel_id_cmd < 0) {
+								  "speech-control");
+
+	if (cs_char_data.channel_id_cmd < 0)
+	{
 		err = cs_char_data.channel_id_cmd;
 		dev_err(dev, "Could not get cmd channel (%d)\n", err);
 		return err;
 	}
 
 	cs_char_data.channel_id_data = hsi_get_channel_id_by_name(cl,
-		"speech-data");
-	if (cs_char_data.channel_id_data < 0) {
+								   "speech-data");
+
+	if (cs_char_data.channel_id_data < 0)
+	{
 		err = cs_char_data.channel_id_data;
 		dev_err(dev, "Could not get data channel (%d)\n", err);
 		return err;
 	}
 
 	err = misc_register(&cs_char_miscdev);
+
 	if (err)
+	{
 		dev_err(dev, "Failed to register: %d\n", err);
+	}
 
 	return err;
 }
@@ -1426,13 +1684,17 @@ static int cs_hsi_client_remove(struct device *dev)
 	hi = cs_char_data.hi;
 	cs_char_data.hi = NULL;
 	spin_unlock_bh(&cs_char_data.lock);
+
 	if (hi)
+	{
 		cs_hsi_stop(hi);
+	}
 
 	return 0;
 }
 
-static struct hsi_client_driver cs_hsi_driver = {
+static struct hsi_client_driver cs_hsi_driver =
+{
 	.driver = {
 		.name	= "cmt-speech",
 		.owner	= THIS_MODULE,

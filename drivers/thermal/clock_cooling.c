@@ -52,7 +52,8 @@
  * clock_cooling_device registered. In order to prevent corruption of this a
  * mutex @lock is used.
  */
-struct clock_cooling_device {
+struct clock_cooling_device
+{
 	int id;
 	struct device *dev;
 	struct thermal_cooling_device *cdev;
@@ -64,7 +65,7 @@ struct clock_cooling_device {
 	struct mutex lock; /* lock to protect the content of this struct */
 };
 #define to_clock_cooling_device(x) \
-		container_of(x, struct clock_cooling_device, clk_rate_change_nb)
+	container_of(x, struct clock_cooling_device, clk_rate_change_nb)
 static DEFINE_IDR(clock_idr);
 static DEFINE_MUTEX(cooling_clock_lock);
 
@@ -84,8 +85,12 @@ static int clock_cooling_get_idr(int *id)
 	mutex_lock(&cooling_clock_lock);
 	ret = idr_alloc(&clock_idr, NULL, 0, 0, GFP_KERNEL);
 	mutex_unlock(&cooling_clock_lock);
+
 	if (unlikely(ret < 0))
+	{
 		return ret;
+	}
+
 	*id = ret;
 
 	return 0;
@@ -104,7 +109,8 @@ static void release_idr(int id)
 
 /* Below code defines functions to be used for clock as cooling device */
 
-enum clock_cooling_property {
+enum clock_cooling_property
+{
 	GET_LEVEL,
 	GET_FREQ,
 	GET_MAXL,
@@ -130,9 +136,9 @@ enum clock_cooling_property {
  * Return: 0 on success, -EINVAL when invalid parameters are passed.
  */
 static int clock_cooling_get_property(struct clock_cooling_device *ccdev,
-				      unsigned long input,
-				      unsigned long *output,
-				      enum clock_cooling_property property)
+									  unsigned long input,
+									  unsigned long *output,
+									  enum clock_cooling_property property)
 {
 	int i;
 	unsigned long max_level = 0, level = 0;
@@ -141,19 +147,28 @@ static int clock_cooling_get_property(struct clock_cooling_device *ccdev,
 	struct cpufreq_frequency_table *pos, *table = ccdev->freq_table;
 
 	if (!output)
+	{
 		return -EINVAL;
+	}
 
 	if (!table)
+	{
 		return -EINVAL;
+	}
 
-	cpufreq_for_each_valid_entry(pos, table) {
+	cpufreq_for_each_valid_entry(pos, table)
+	{
 		/* ignore duplicate entry */
 		if (freq == pos->frequency)
+		{
 			continue;
+		}
 
 		/* get the frequency order */
 		if (freq != CPUFREQ_ENTRY_INVALID && descend == -1)
+		{
 			descend = freq > pos->frequency;
+		}
 
 		freq = pos->frequency;
 		max_level++;
@@ -161,39 +176,51 @@ static int clock_cooling_get_property(struct clock_cooling_device *ccdev,
 
 	/* No valid cpu frequency entry */
 	if (max_level == 0)
+	{
 		return -EINVAL;
+	}
 
 	/* max_level is an index, not a counter */
 	max_level--;
 
 	/* get max level */
-	if (property == GET_MAXL) {
+	if (property == GET_MAXL)
+	{
 		*output = max_level;
 		return 0;
 	}
 
 	if (property == GET_FREQ)
+	{
 		level = descend ? input : (max_level - input);
+	}
 
 	i = 0;
-	cpufreq_for_each_valid_entry(pos, table) {
+	cpufreq_for_each_valid_entry(pos, table)
+	{
 		/* ignore duplicate entry */
 		if (freq == pos->frequency)
+		{
 			continue;
+		}
 
 		/* now we have a valid frequency entry */
 		freq = pos->frequency;
 
-		if (property == GET_LEVEL && (unsigned int)input == freq) {
+		if (property == GET_LEVEL && (unsigned int)input == freq)
+		{
 			/* get level by frequency */
 			*output = descend ? i : (max_level - i);
 			return 0;
 		}
-		if (property == GET_FREQ && level == i) {
+
+		if (property == GET_FREQ && level == i)
+		{
 			/* get frequency by level */
 			*output = freq;
 			return 0;
 		}
+
 		i++;
 	}
 
@@ -212,14 +239,16 @@ static int clock_cooling_get_property(struct clock_cooling_device *ccdev,
  * otherwise.
  */
 unsigned long clock_cooling_get_level(struct thermal_cooling_device *cdev,
-				      unsigned long freq)
+									  unsigned long freq)
 {
 	struct clock_cooling_device *ccdev = cdev->devdata;
 	unsigned long val;
 
 	if (clock_cooling_get_property(ccdev, (unsigned long)freq, &val,
-				       GET_LEVEL))
+								   GET_LEVEL))
+	{
 		return THERMAL_CSTATE_INVALID;
+	}
 
 	return val;
 }
@@ -239,14 +268,17 @@ EXPORT_SYMBOL_GPL(clock_cooling_get_level);
  */
 static unsigned long
 clock_cooling_get_frequency(struct clock_cooling_device *ccdev,
-			    unsigned long level)
+							unsigned long level)
 {
 	int ret = 0;
 	unsigned long freq;
 
 	ret = clock_cooling_get_property(ccdev, level, &freq, GET_FREQ);
+
 	if (ret)
+	{
 		return 0;
+	}
 
 	return freq;
 }
@@ -264,7 +296,7 @@ clock_cooling_get_frequency(struct clock_cooling_device *ccdev,
  * cooling state).
  */
 static int clock_cooling_apply(struct clock_cooling_device *ccdev,
-			       unsigned long cooling_state)
+							   unsigned long cooling_state)
 {
 	unsigned long clip_freq, cur_freq;
 	int ret = 0;
@@ -272,20 +304,29 @@ static int clock_cooling_apply(struct clock_cooling_device *ccdev,
 	/* Here we write the clipping */
 	/* Check if the old cooling action is same as new cooling action */
 	if (ccdev->clock_state == cooling_state)
+	{
 		return 0;
+	}
 
 	clip_freq = clock_cooling_get_frequency(ccdev, cooling_state);
+
 	if (!clip_freq)
+	{
 		return -EINVAL;
+	}
 
 	cur_freq = clk_get_rate(ccdev->clk);
 
 	mutex_lock(&ccdev->lock);
 	ccdev->clock_state = cooling_state;
 	ccdev->clock_val = clip_freq;
+
 	/* enforce clock level */
 	if (cur_freq > clip_freq)
+	{
 		ret = clk_set_rate(ccdev->clk, clip_freq);
+	}
+
 	mutex_unlock(&ccdev->lock);
 
 	return ret;
@@ -304,26 +345,31 @@ static int clock_cooling_apply(struct clock_cooling_device *ccdev,
  * Return: NOTIFY_DONE (success) or NOTIFY_BAD (new_rate > thermal limit).
  */
 static int clock_cooling_clock_notifier(struct notifier_block *nb,
-					unsigned long event, void *data)
+										unsigned long event, void *data)
 {
 	struct clk_notifier_data *ndata = data;
 	struct clock_cooling_device *ccdev = to_clock_cooling_device(nb);
 
-	switch (event) {
-	case PRE_RATE_CHANGE:
-		/*
-		 * checks on current state
-		 * TODO: current method is not best we can find as it
-		 * allows possibly voltage transitions, in case DVFS
-		 * layer is also hijacking clock pre notifications.
-		 */
-		if (ndata->new_rate > ccdev->clock_val)
-			return NOTIFY_BAD;
+	switch (event)
+	{
+		case PRE_RATE_CHANGE:
+
+			/*
+			 * checks on current state
+			 * TODO: current method is not best we can find as it
+			 * allows possibly voltage transitions, in case DVFS
+			 * layer is also hijacking clock pre notifications.
+			 */
+			if (ndata->new_rate > ccdev->clock_val)
+			{
+				return NOTIFY_BAD;
+			}
+
 		/* fall through */
-	case POST_RATE_CHANGE:
-	case ABORT_RATE_CHANGE:
-	default:
-		return NOTIFY_DONE;
+		case POST_RATE_CHANGE:
+		case ABORT_RATE_CHANGE:
+		default:
+			return NOTIFY_DONE;
 	}
 }
 
@@ -340,15 +386,18 @@ static int clock_cooling_clock_notifier(struct notifier_block *nb,
  * Return: 0 on success, an error code otherwise.
  */
 static int clock_cooling_get_max_state(struct thermal_cooling_device *cdev,
-				       unsigned long *state)
+									   unsigned long *state)
 {
 	struct clock_cooling_device *ccdev = cdev->devdata;
 	unsigned long count = 0;
 	int ret;
 
 	ret = clock_cooling_get_property(ccdev, 0, &count, GET_MAXL);
+
 	if (!ret)
+	{
 		*state = count;
+	}
 
 	return ret;
 }
@@ -364,7 +413,7 @@ static int clock_cooling_get_max_state(struct thermal_cooling_device *cdev,
  * Return: 0 (success)
  */
 static int clock_cooling_get_cur_state(struct thermal_cooling_device *cdev,
-				       unsigned long *state)
+									   unsigned long *state)
 {
 	struct clock_cooling_device *ccdev = cdev->devdata;
 
@@ -384,7 +433,7 @@ static int clock_cooling_get_cur_state(struct thermal_cooling_device *cdev,
  * Return: 0 on success, an error code otherwise.
  */
 static int clock_cooling_set_cur_state(struct thermal_cooling_device *cdev,
-				       unsigned long state)
+									   unsigned long state)
 {
 	struct clock_cooling_device *clock_device = cdev->devdata;
 
@@ -392,7 +441,8 @@ static int clock_cooling_set_cur_state(struct thermal_cooling_device *cdev,
 }
 
 /* Bind clock callbacks to thermal cooling device ops */
-static struct thermal_cooling_device_ops const clock_cooling_ops = {
+static struct thermal_cooling_device_ops const clock_cooling_ops =
+{
 	.get_max_state = clock_cooling_get_max_state,
 	.get_cur_state = clock_cooling_get_cur_state,
 	.set_cur_state = clock_cooling_set_cur_state,
@@ -423,36 +473,51 @@ clock_cooling_register(struct device *dev, const char *clock_name)
 	int ret = 0;
 
 	ccdev = devm_kzalloc(dev, sizeof(*ccdev), GFP_KERNEL);
+
 	if (!ccdev)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	mutex_init(&ccdev->lock);
 	ccdev->dev = dev;
 	ccdev->clk = devm_clk_get(dev, clock_name);
+
 	if (IS_ERR(ccdev->clk))
+	{
 		return ERR_CAST(ccdev->clk);
+	}
 
 	ret = clock_cooling_get_idr(&ccdev->id);
+
 	if (ret)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	snprintf(dev_name, sizeof(dev_name), "thermal-clock-%d", ccdev->id);
 
 	cdev = thermal_cooling_device_register(dev_name, ccdev,
-					       &clock_cooling_ops);
-	if (IS_ERR(cdev)) {
+										   &clock_cooling_ops);
+
+	if (IS_ERR(cdev))
+	{
 		release_idr(ccdev->id);
 		return ERR_PTR(-EINVAL);
 	}
+
 	ccdev->cdev = cdev;
 	ccdev->clk_rate_change_nb.notifier_call = clock_cooling_clock_notifier;
 
 	/* Assuming someone has already filled the opp table for this device */
 	ret = dev_pm_opp_init_cpufreq_table(dev, &ccdev->freq_table);
-	if (ret) {
+
+	if (ret)
+	{
 		release_idr(ccdev->id);
 		return ERR_PTR(ret);
 	}
+
 	ccdev->clock_state = 0;
 	ccdev->clock_val = clock_cooling_get_frequency(ccdev, 0);
 
@@ -473,7 +538,9 @@ void clock_cooling_unregister(struct thermal_cooling_device *cdev)
 	struct clock_cooling_device *ccdev;
 
 	if (!cdev)
+	{
 		return;
+	}
 
 	ccdev = cdev->devdata;
 

@@ -17,27 +17,28 @@ void		cleanup_socket_xprt(void);
 #define RPC_DEF_MIN_RESVPORT	(665U)
 #define RPC_DEF_MAX_RESVPORT	(1023U)
 
-struct sock_xprt {
+struct sock_xprt
+{
 	struct rpc_xprt		xprt;
 
 	/*
 	 * Network layer
 	 */
-	struct socket *		sock;
-	struct sock *		inet;
+	struct socket 		*sock;
+	struct sock 		*inet;
 
 	/*
 	 * State of TCP reply receive
 	 */
 	__be32			tcp_fraghdr,
-				tcp_xid,
-				tcp_calldir;
+					tcp_xid,
+					tcp_calldir;
 
 	u32			tcp_offset,
 				tcp_reclen;
 
 	unsigned long		tcp_copied,
-				tcp_flags;
+				  tcp_flags;
 
 	/*
 	 * Connection of transports
@@ -53,7 +54,7 @@ struct sock_xprt {
 	 * UDP socket buffer size parameters
 	 */
 	size_t			rcvsize,
-				sndsize;
+					sndsize;
 
 	/*
 	 * Saved socket callback addresses

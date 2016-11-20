@@ -70,7 +70,8 @@ static atomic_t tw68_instance = ATOMIC_INIT(0);
  * the PCI ID database up to date.  Note that the entries must be
  * added under vendor 0x1797 (Techwell Inc.) as subsystem IDs.
  */
-static const struct pci_device_id tw68_pci_tbl[] = {
+static const struct pci_device_id tw68_pci_tbl[] =
+{
 	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_TECHWELL_6800)},
 	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_TECHWELL_6801)},
 	{PCI_DEVICE(PCI_VENDOR_ID_TECHWELL, PCI_DEVICE_ID_TECHWELL_6804)},
@@ -139,7 +140,7 @@ static int tw68_hw_init1(struct tw68_dev *dev)
 	tw_writeb(TW68_AGCGAIN, 0xf0);	/* 288	AGC gain when loop disabled */
 	tw_writeb(TW68_PEAKWT, 0xd8);	/* 28C	White peak threshold */
 	tw_writeb(TW68_CLMPL, 0x3c);	/* 290	Y channel clamp level */
-/*	tw_writeb(TW68_SYNCT, 0x38);*/	/* 294	Sync amplitude */
+	/*	tw_writeb(TW68_SYNCT, 0x38);*/	/* 294	Sync amplitude */
 	tw_writeb(TW68_SYNCT, 0x30);	/* 294	Sync amplitude */
 	tw_writeb(TW68_MISSCNT, 0x44);	/* 298	Horiz sync, VCR detect sens */
 	tw_writeb(TW68_PCLAMP, 0x28);	/* 29C	Clamp pos from PLL sync */
@@ -199,16 +200,28 @@ static irqreturn_t tw68_irq(int irq, void *dev_id)
 	int loop;
 
 	status = orig = tw_readl(TW68_INTSTAT) & dev->pci_irqmask;
+
 	/* Check if anything to do */
 	if (0 == status)
-		return IRQ_NONE;	/* Nope - return */
-	for (loop = 0; loop < 10; loop++) {
-		if (status & dev->board_virqmask)	/* video interrupt */
-			tw68_irq_video_done(dev, status);
-		status = tw_readl(TW68_INTSTAT) & dev->pci_irqmask;
-		if (0 == status)
-			return IRQ_HANDLED;
+	{
+		return IRQ_NONE;    /* Nope - return */
 	}
+
+	for (loop = 0; loop < 10; loop++)
+	{
+		if (status & dev->board_virqmask)	/* video interrupt */
+		{
+			tw68_irq_video_done(dev, status);
+		}
+
+		status = tw_readl(TW68_INTSTAT) & dev->pci_irqmask;
+
+		if (0 == status)
+		{
+			return IRQ_HANDLED;
+		}
+	}
+
 	dev_dbg(&dev->pci->dev, "%s: **** INTERRUPT NOT HANDLED - clearing mask (orig 0x%08x, cur 0x%08x)",
 			dev->name, orig, tw_readl(TW68_INTSTAT));
 	dev_dbg(&dev->pci->dev, "%s: pci_irqmask 0x%08x; board_virqmask 0x%08x ****\n",
@@ -218,35 +231,44 @@ static irqreturn_t tw68_irq(int irq, void *dev_id)
 }
 
 static int tw68_initdev(struct pci_dev *pci_dev,
-				     const struct pci_device_id *pci_id)
+						const struct pci_device_id *pci_id)
 {
 	struct tw68_dev *dev;
 	int vidnr = -1;
 	int err;
 
 	dev = devm_kzalloc(&pci_dev->dev, sizeof(*dev), GFP_KERNEL);
+
 	if (NULL == dev)
+	{
 		return -ENOMEM;
+	}
 
 	dev->instance = v4l2_device_set_name(&dev->v4l2_dev, "tw68",
-						&tw68_instance);
+										 &tw68_instance);
 
 	err = v4l2_device_register(&pci_dev->dev, &dev->v4l2_dev);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* pci init */
 	dev->pci = pci_dev;
-	if (pci_enable_device(pci_dev)) {
+
+	if (pci_enable_device(pci_dev))
+	{
 		err = -EIO;
 		goto fail1;
 	}
 
 	dev->name = dev->v4l2_dev.name;
 
-	if (UNSET != latency) {
+	if (UNSET != latency)
+	{
 		pr_info("%s: setting pci latency timer to %d\n",
-		       dev->name, latency);
+				dev->name, latency);
 		pci_write_config_byte(pci_dev, PCI_LATENCY_TIMER, latency);
 	}
 
@@ -254,63 +276,76 @@ static int tw68_initdev(struct pci_dev *pci_dev,
 	pci_read_config_byte(pci_dev, PCI_CLASS_REVISION, &dev->pci_rev);
 	pci_read_config_byte(pci_dev, PCI_LATENCY_TIMER,  &dev->pci_lat);
 	pr_info("%s: found at %s, rev: %d, irq: %d, latency: %d, mmio: 0x%llx\n",
-		dev->name, pci_name(pci_dev), dev->pci_rev, pci_dev->irq,
-		dev->pci_lat, (u64)pci_resource_start(pci_dev, 0));
+			dev->name, pci_name(pci_dev), dev->pci_rev, pci_dev->irq,
+			dev->pci_lat, (u64)pci_resource_start(pci_dev, 0));
 	pci_set_master(pci_dev);
 	err = pci_set_dma_mask(pci_dev, DMA_BIT_MASK(32));
-	if (err) {
+
+	if (err)
+	{
 		pr_info("%s: Oops: no 32bit PCI DMA ???\n", dev->name);
 		goto fail1;
 	}
 
-	switch (pci_id->device) {
-	case PCI_DEVICE_ID_TECHWELL_6800:	/* TW6800 */
-		dev->vdecoder = TW6800;
-		dev->board_virqmask = TW68_VID_INTS;
-		break;
-	case PCI_DEVICE_ID_TECHWELL_6801:	/* Video decoder for TW6802 */
-		dev->vdecoder = TW6801;
-		dev->board_virqmask = TW68_VID_INTS | TW68_VID_INTSX;
-		break;
-	case PCI_DEVICE_ID_TECHWELL_6804:	/* Video decoder for TW6804 */
-		dev->vdecoder = TW6804;
-		dev->board_virqmask = TW68_VID_INTS | TW68_VID_INTSX;
-		break;
-	default:
-		dev->vdecoder = TWXXXX;	/* To be announced */
-		dev->board_virqmask = TW68_VID_INTS | TW68_VID_INTSX;
-		break;
+	switch (pci_id->device)
+	{
+		case PCI_DEVICE_ID_TECHWELL_6800:	/* TW6800 */
+			dev->vdecoder = TW6800;
+			dev->board_virqmask = TW68_VID_INTS;
+			break;
+
+		case PCI_DEVICE_ID_TECHWELL_6801:	/* Video decoder for TW6802 */
+			dev->vdecoder = TW6801;
+			dev->board_virqmask = TW68_VID_INTS | TW68_VID_INTSX;
+			break;
+
+		case PCI_DEVICE_ID_TECHWELL_6804:	/* Video decoder for TW6804 */
+			dev->vdecoder = TW6804;
+			dev->board_virqmask = TW68_VID_INTS | TW68_VID_INTSX;
+			break;
+
+		default:
+			dev->vdecoder = TWXXXX;	/* To be announced */
+			dev->board_virqmask = TW68_VID_INTS | TW68_VID_INTSX;
+			break;
 	}
 
 	/* get mmio */
 	if (!request_mem_region(pci_resource_start(pci_dev, 0),
-				pci_resource_len(pci_dev, 0),
-				dev->name)) {
+							pci_resource_len(pci_dev, 0),
+							dev->name))
+	{
 		err = -EBUSY;
 		pr_err("%s: can't get MMIO memory @ 0x%llx\n",
-			dev->name,
-			(unsigned long long)pci_resource_start(pci_dev, 0));
+			   dev->name,
+			   (unsigned long long)pci_resource_start(pci_dev, 0));
 		goto fail1;
 	}
+
 	dev->lmmio = ioremap(pci_resource_start(pci_dev, 0),
-			     pci_resource_len(pci_dev, 0));
+						 pci_resource_len(pci_dev, 0));
 	dev->bmmio = (__u8 __iomem *)dev->lmmio;
-	if (NULL == dev->lmmio) {
+
+	if (NULL == dev->lmmio)
+	{
 		err = -EIO;
 		pr_err("%s: can't ioremap() MMIO memory\n",
-		       dev->name);
+			   dev->name);
 		goto fail2;
 	}
+
 	/* initialize hardware #1 */
 	/* Then do any initialisation wanted before interrupts are on */
 	tw68_hw_init1(dev);
 
 	/* get irq */
 	err = devm_request_irq(&pci_dev->dev, pci_dev->irq, tw68_irq,
-			  IRQF_SHARED, dev->name, dev);
-	if (err < 0) {
+						   IRQF_SHARED, dev->name, dev);
+
+	if (err < 0)
+	{
 		pr_err("%s: can't get IRQ %d\n",
-		       dev->name, pci_dev->irq);
+			   dev->name, pci_dev->irq);
 		goto fail3;
 	}
 
@@ -319,18 +354,24 @@ static int tw68_initdev(struct pci_dev *pci_dev,
 	 *  things unique for this card, then for general board
 	 */
 	if (dev->instance < TW68_MAXBOARDS)
+	{
 		vidnr = video_nr[dev->instance];
+	}
+
 	/* initialise video function first */
 	err = tw68_video_init2(dev, vidnr);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		pr_err("%s: can't register video device\n",
-		       dev->name);
+			   dev->name);
 		goto fail4;
 	}
+
 	tw_setl(TW68_INTMASK, dev->pci_irqmask);
 
 	pr_info("%s: registered device %s\n",
-	       dev->name, video_device_node_name(&dev->vdev));
+			dev->name, video_device_node_name(&dev->vdev));
 
 	return 0;
 
@@ -340,7 +381,7 @@ fail3:
 	iounmap(dev->lmmio);
 fail2:
 	release_mem_region(pci_resource_start(pci_dev, 0),
-			   pci_resource_len(pci_dev, 0));
+					   pci_resource_len(pci_dev, 0));
 fail1:
 	v4l2_device_unregister(&dev->v4l2_dev);
 	return err;
@@ -363,7 +404,7 @@ static void tw68_finidev(struct pci_dev *pci_dev)
 	/* release resources */
 	iounmap(dev->lmmio);
 	release_mem_region(pci_resource_start(pci_dev, 0),
-			   pci_resource_len(pci_dev, 0));
+					   pci_resource_len(pci_dev, 0));
 
 	v4l2_device_unregister(&dev->v4l2_dev);
 }
@@ -374,7 +415,7 @@ static int tw68_suspend(struct pci_dev *pci_dev , pm_message_t state)
 {
 	struct v4l2_device *v4l2_dev = pci_get_drvdata(pci_dev);
 	struct tw68_dev *dev = container_of(v4l2_dev,
-				struct tw68_dev, v4l2_dev);
+										struct tw68_dev, v4l2_dev);
 
 	tw_clearl(TW68_DMAC, TW68_DMAP_EN | TW68_FIFO_EN);
 	dev->pci_irqmask &= ~TW68_VID_INTS;
@@ -393,7 +434,7 @@ static int tw68_resume(struct pci_dev *pci_dev)
 {
 	struct v4l2_device *v4l2_dev = pci_get_drvdata(pci_dev);
 	struct tw68_dev *dev = container_of(v4l2_dev,
-					    struct tw68_dev, v4l2_dev);
+										struct tw68_dev, v4l2_dev);
 	struct tw68_buf *buf;
 	unsigned long flags;
 
@@ -421,7 +462,8 @@ static int tw68_resume(struct pci_dev *pci_dev)
 
 /* ----------------------------------------------------------- */
 
-static struct pci_driver tw68_pci_driver = {
+static struct pci_driver tw68_pci_driver =
+{
 	.name	  = "tw68",
 	.id_table = tw68_pci_tbl,
 	.probe	  = tw68_initdev,

@@ -32,15 +32,15 @@
 
 /* show configuration fields */
 #define sdio_config_attr(field, format_string)				\
-static ssize_t								\
-field##_show(struct device *dev, struct device_attribute *attr, char *buf)				\
-{									\
-	struct sdio_func *func;						\
-									\
-	func = dev_to_sdio_func (dev);					\
-	return sprintf (buf, format_string, func->field);		\
-}									\
-static DEVICE_ATTR_RO(field)
+	static ssize_t								\
+	field##_show(struct device *dev, struct device_attribute *attr, char *buf)				\
+	{									\
+		struct sdio_func *func;						\
+		\
+		func = dev_to_sdio_func (dev);					\
+		return sprintf (buf, format_string, func->field);		\
+	}									\
+	static DEVICE_ATTR_RO(field)
 
 sdio_config_attr(class, "0x%02x\n");
 sdio_config_attr(vendor, "0x%04x\n");
@@ -51,11 +51,12 @@ static ssize_t modalias_show(struct device *dev, struct device_attribute *attr, 
 	struct sdio_func *func = dev_to_sdio_func (dev);
 
 	return sprintf(buf, "sdio:c%02Xv%04Xd%04X\n",
-			func->class, func->vendor, func->device);
+				   func->class, func->vendor, func->device);
 }
 static DEVICE_ATTR_RO(modalias);
 
-static struct attribute *sdio_dev_attrs[] = {
+static struct attribute *sdio_dev_attrs[] =
+{
 	&dev_attr_class.attr,
 	&dev_attr_vendor.attr,
 	&dev_attr_device.attr,
@@ -65,28 +66,42 @@ static struct attribute *sdio_dev_attrs[] = {
 ATTRIBUTE_GROUPS(sdio_dev);
 
 static const struct sdio_device_id *sdio_match_one(struct sdio_func *func,
-	const struct sdio_device_id *id)
+		const struct sdio_device_id *id)
 {
 	if (id->class != (__u8)SDIO_ANY_ID && id->class != func->class)
+	{
 		return NULL;
+	}
+
 	if (id->vendor != (__u16)SDIO_ANY_ID && id->vendor != func->vendor)
+	{
 		return NULL;
+	}
+
 	if (id->device != (__u16)SDIO_ANY_ID && id->device != func->device)
+	{
 		return NULL;
+	}
+
 	return id;
 }
 
 static const struct sdio_device_id *sdio_match_device(struct sdio_func *func,
-	struct sdio_driver *sdrv)
+		struct sdio_driver *sdrv)
 {
 	const struct sdio_device_id *ids;
 
 	ids = sdrv->id_table;
 
-	if (ids) {
-		while (ids->class || ids->vendor || ids->device) {
+	if (ids)
+	{
+		while (ids->class || ids->vendor || ids->device)
+		{
 			if (sdio_match_one(func, ids))
+			{
 				return ids;
+			}
+
 			ids++;
 		}
 	}
@@ -100,7 +115,9 @@ static int sdio_bus_match(struct device *dev, struct device_driver *drv)
 	struct sdio_driver *sdrv = to_sdio_driver(drv);
 
 	if (sdio_match_device(func, sdrv))
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -111,17 +128,23 @@ sdio_bus_uevent(struct device *dev, struct kobj_uevent_env *env)
 	struct sdio_func *func = dev_to_sdio_func(dev);
 
 	if (add_uevent_var(env,
-			"SDIO_CLASS=%02X", func->class))
+					   "SDIO_CLASS=%02X", func->class))
+	{
 		return -ENOMEM;
-
-	if (add_uevent_var(env, 
-			"SDIO_ID=%04X:%04X", func->vendor, func->device))
-		return -ENOMEM;
+	}
 
 	if (add_uevent_var(env,
-			"MODALIAS=sdio:c%02Xv%04Xd%04X",
-			func->class, func->vendor, func->device))
+					   "SDIO_ID=%04X:%04X", func->vendor, func->device))
+	{
 		return -ENOMEM;
+	}
+
+	if (add_uevent_var(env,
+					   "MODALIAS=sdio:c%02Xv%04Xd%04X",
+					   func->class, func->vendor, func->device))
+	{
+		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -134,12 +157,18 @@ static int sdio_bus_probe(struct device *dev)
 	int ret;
 
 	id = sdio_match_device(func, drv);
+
 	if (!id)
+	{
 		return -ENODEV;
+	}
 
 	ret = dev_pm_domain_attach(dev, false);
+
 	if (ret == -EPROBE_DEFER)
+	{
 		return ret;
+	}
 
 	/* Unbound SDIO functions are always suspended.
 	 * During probe, the function is set active and the usage count
@@ -147,10 +176,14 @@ static int sdio_bus_probe(struct device *dev)
 	 * it should call pm_runtime_put_noidle() in its probe routine and
 	 * pm_runtime_get_noresume() in its remove routine.
 	 */
-	if (func->card->host->caps & MMC_CAP_POWER_OFF_CARD) {
+	if (func->card->host->caps & MMC_CAP_POWER_OFF_CARD)
+	{
 		ret = pm_runtime_get_sync(dev);
+
 		if (ret < 0)
+		{
 			goto disable_runtimepm;
+		}
 	}
 
 	/* Set the default block size so the driver is sure it's something
@@ -158,18 +191,28 @@ static int sdio_bus_probe(struct device *dev)
 	sdio_claim_host(func);
 	ret = sdio_set_block_size(func, 0);
 	sdio_release_host(func);
+
 	if (ret)
+	{
 		goto disable_runtimepm;
+	}
 
 	ret = drv->probe(func, id);
+
 	if (ret)
+	{
 		goto disable_runtimepm;
+	}
 
 	return 0;
 
 disable_runtimepm:
+
 	if (func->card->host->caps & MMC_CAP_POWER_OFF_CARD)
+	{
 		pm_runtime_put_noidle(dev);
+	}
+
 	dev_pm_domain_detach(dev, false);
 	return ret;
 }
@@ -182,13 +225,16 @@ static int sdio_bus_remove(struct device *dev)
 
 	/* Make sure card is powered before invoking ->remove() */
 	if (func->card->host->caps & MMC_CAP_POWER_OFF_CARD)
+	{
 		pm_runtime_get_sync(dev);
+	}
 
 	drv->remove(func);
 
-	if (func->irq_handler) {
+	if (func->irq_handler)
+	{
 		pr_warn("WARNING: driver %s did not remove its interrupt handler!\n",
-			drv->name);
+				drv->name);
 		sdio_claim_host(func);
 		sdio_release_irq(func);
 		sdio_release_host(func);
@@ -196,18 +242,23 @@ static int sdio_bus_remove(struct device *dev)
 
 	/* First, undo the increment made directly above */
 	if (func->card->host->caps & MMC_CAP_POWER_OFF_CARD)
+	{
 		pm_runtime_put_noidle(dev);
+	}
 
 	/* Then undo the runtime PM settings in sdio_bus_probe() */
 	if (func->card->host->caps & MMC_CAP_POWER_OFF_CARD)
+	{
 		pm_runtime_put_sync(dev);
+	}
 
 	dev_pm_domain_detach(dev, false);
 
 	return ret;
 }
 
-static const struct dev_pm_ops sdio_bus_pm_ops = {
+static const struct dev_pm_ops sdio_bus_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(pm_generic_suspend, pm_generic_resume)
 	SET_RUNTIME_PM_OPS(
 		pm_generic_runtime_suspend,
@@ -216,7 +267,8 @@ static const struct dev_pm_ops sdio_bus_pm_ops = {
 	)
 };
 
-static struct bus_type sdio_bus_type = {
+static struct bus_type sdio_bus_type =
+{
 	.name		= "sdio",
 	.dev_groups	= sdio_dev_groups,
 	.match		= sdio_bus_match,
@@ -278,8 +330,11 @@ struct sdio_func *sdio_alloc_func(struct mmc_card *card)
 	struct sdio_func *func;
 
 	func = kzalloc(sizeof(struct sdio_func), GFP_KERNEL);
+
 	if (!func)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	func->card = card;
 
@@ -324,8 +379,11 @@ int sdio_add_func(struct sdio_func *func)
 	sdio_acpi_set_handle(func);
 	device_enable_async_suspend(&func->dev);
 	ret = device_add(&func->dev);
+
 	if (ret == 0)
+	{
 		sdio_func_set_present(func);
+	}
 
 	return ret;
 }
@@ -339,7 +397,9 @@ int sdio_add_func(struct sdio_func *func)
 void sdio_remove_func(struct sdio_func *func)
 {
 	if (!sdio_func_present(func))
+	{
 		return;
+	}
 
 	device_del(&func->dev);
 	of_node_put(func->dev.of_node);

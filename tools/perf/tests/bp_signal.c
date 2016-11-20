@@ -71,11 +71,13 @@ static int test_function(void)
 }
 
 static void sig_handler_2(int signum __maybe_unused,
-			  siginfo_t *oh __maybe_unused,
-			  void *uc __maybe_unused)
+						  siginfo_t *oh __maybe_unused,
+						  void *uc __maybe_unused)
 {
 	overflows_2++;
-	if (overflows_2 > 10) {
+
+	if (overflows_2 > 10)
+	{
 		ioctl(fd1, PERF_EVENT_IOC_DISABLE, 0);
 		ioctl(fd2, PERF_EVENT_IOC_DISABLE, 0);
 		ioctl(fd3, PERF_EVENT_IOC_DISABLE, 0);
@@ -83,12 +85,13 @@ static void sig_handler_2(int signum __maybe_unused,
 }
 
 static void sig_handler(int signum __maybe_unused,
-			siginfo_t *oh __maybe_unused,
-			void *uc __maybe_unused)
+						siginfo_t *oh __maybe_unused,
+						void *uc __maybe_unused)
 {
 	overflows++;
 
-	if (overflows > 10) {
+	if (overflows > 10)
+	{
 		/*
 		 * This should be executed only once during
 		 * this test, if we are here for the 10th
@@ -126,13 +129,15 @@ static int __event(bool is_x, void *addr, int sig)
 	pe.exclude_hv = 1;
 
 	fd = sys_perf_event_open(&pe, 0, -1, -1,
-				 perf_event_open_cloexec_flag());
-	if (fd < 0) {
+							 perf_event_open_cloexec_flag());
+
+	if (fd < 0)
+	{
 		pr_debug("failed opening event %llx\n", pe.config);
 		return TEST_FAIL;
 	}
 
-	fcntl(fd, F_SETFL, O_RDWR|O_NONBLOCK|O_ASYNC);
+	fcntl(fd, F_SETFL, O_RDWR | O_NONBLOCK | O_ASYNC);
 	fcntl(fd, F_SETSIG, sig);
 	fcntl(fd, F_SETOWN, getpid());
 
@@ -157,7 +162,9 @@ static long long bp_count(int fd)
 	int ret;
 
 	ret = read(fd, &count, sizeof(long long));
-	if (ret != sizeof(long long)) {
+
+	if (ret != sizeof(long long))
+	{
 		pr_debug("failed to read: %d\n", ret);
 		return TEST_FAIL;
 	}
@@ -175,13 +182,16 @@ int test__bp_signal(int subtest __maybe_unused)
 	sa.sa_sigaction = (void *) sig_handler;
 	sa.sa_flags = SA_SIGINFO;
 
-	if (sigaction(SIGIO, &sa, NULL) < 0) {
+	if (sigaction(SIGIO, &sa, NULL) < 0)
+	{
 		pr_debug("failed setting up signal handler\n");
 		return TEST_FAIL;
 	}
 
 	sa.sa_sigaction = (void *) sig_handler_2;
-	if (sigaction(SIGUSR1, &sa, NULL) < 0) {
+
+	if (sigaction(SIGUSR1, &sa, NULL) < 0)
+	{
 		pr_debug("failed setting up signal handler 2\n");
 		return TEST_FAIL;
 	}
@@ -264,27 +274,40 @@ int test__bp_signal(int subtest __maybe_unused)
 	close(fd3);
 
 	pr_debug("count1 %lld, count2 %lld, count3 %lld, overflow %d, overflows_2 %d\n",
-		 count1, count2, count3, overflows, overflows_2);
+			 count1, count2, count3, overflows, overflows_2);
 
-	if (count1 != 1) {
+	if (count1 != 1)
+	{
 		if (count1 == 11)
+		{
 			pr_debug("failed: RF EFLAG recursion issue detected\n");
+		}
 		else
+		{
 			pr_debug("failed: wrong count for bp1%lld\n", count1);
+		}
 	}
 
 	if (overflows != 3)
+	{
 		pr_debug("failed: wrong overflow hit\n");
+	}
 
 	if (overflows_2 != 3)
+	{
 		pr_debug("failed: wrong overflow_2 hit\n");
+	}
 
 	if (count2 != 3)
+	{
 		pr_debug("failed: wrong count for bp2\n");
+	}
 
 	if (count3 != 2)
+	{
 		pr_debug("failed: wrong count for bp3\n");
+	}
 
 	return count1 == 1 && overflows == 3 && count2 == 3 && overflows_2 == 3 && count3 == 2 ?
-		TEST_OK : TEST_FAIL;
+		   TEST_OK : TEST_FAIL;
 }

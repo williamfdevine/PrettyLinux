@@ -64,7 +64,8 @@
 #define BROXTON_PMIC_WC_HRV	4
 
 /* Manage in two IRQ chips since mask registers are not consecutive */
-enum bxtwc_irqs {
+enum bxtwc_irqs
+{
 	/* Level 1 */
 	BXTWC_PWRBTN_LVL1_IRQ = 0,
 	BXTWC_TMU_LVL1_IRQ,
@@ -79,7 +80,8 @@ enum bxtwc_irqs {
 	BXTWC_PWRBTN_IRQ,
 };
 
-enum bxtwc_irqs_level2 {
+enum bxtwc_irqs_level2
+{
 	/* Level 2 */
 	BXTWC_THRM0_IRQ = 0,
 	BXTWC_THRM1_IRQ,
@@ -94,7 +96,8 @@ enum bxtwc_irqs_level2 {
 	BXTWC_CRIT_IRQ,
 };
 
-static const struct regmap_irq bxtwc_regmap_irqs[] = {
+static const struct regmap_irq bxtwc_regmap_irqs[] =
+{
 	REGMAP_IRQ_REG(BXTWC_PWRBTN_LVL1_IRQ, 0, BIT(0)),
 	REGMAP_IRQ_REG(BXTWC_TMU_LVL1_IRQ, 0, BIT(1)),
 	REGMAP_IRQ_REG(BXTWC_THRM_LVL1_IRQ, 0, BIT(2)),
@@ -106,7 +109,8 @@ static const struct regmap_irq bxtwc_regmap_irqs[] = {
 	REGMAP_IRQ_REG(BXTWC_PWRBTN_IRQ, 1, 0x03),
 };
 
-static const struct regmap_irq bxtwc_regmap_irqs_level2[] = {
+static const struct regmap_irq bxtwc_regmap_irqs_level2[] =
+{
 	REGMAP_IRQ_REG(BXTWC_THRM0_IRQ, 0, 0xff),
 	REGMAP_IRQ_REG(BXTWC_THRM1_IRQ, 1, 0xbf),
 	REGMAP_IRQ_REG(BXTWC_THRM2_IRQ, 2, 0xff),
@@ -120,7 +124,8 @@ static const struct regmap_irq bxtwc_regmap_irqs_level2[] = {
 	REGMAP_IRQ_REG(BXTWC_CRIT_IRQ, 9, 0x03),
 };
 
-static struct regmap_irq_chip bxtwc_regmap_irq_chip = {
+static struct regmap_irq_chip bxtwc_regmap_irq_chip =
+{
 	.name = "bxtwc_irq_chip",
 	.status_base = BXTWC_IRQLVL1,
 	.mask_base = BXTWC_MIRQLVL1,
@@ -129,7 +134,8 @@ static struct regmap_irq_chip bxtwc_regmap_irq_chip = {
 	.num_regs = 2,
 };
 
-static struct regmap_irq_chip bxtwc_regmap_irq_chip_level2 = {
+static struct regmap_irq_chip bxtwc_regmap_irq_chip_level2 =
+{
 	.name = "bxtwc_irq_chip_level2",
 	.status_base = BXTWC_THRM0IRQ,
 	.mask_base = BXTWC_MTHRM0IRQ,
@@ -138,35 +144,42 @@ static struct regmap_irq_chip bxtwc_regmap_irq_chip_level2 = {
 	.num_regs = 10,
 };
 
-static struct resource gpio_resources[] = {
+static struct resource gpio_resources[] =
+{
 	DEFINE_RES_IRQ_NAMED(BXTWC_GPIO0_IRQ, "GPIO0"),
 	DEFINE_RES_IRQ_NAMED(BXTWC_GPIO1_IRQ, "GPIO1"),
 };
 
-static struct resource adc_resources[] = {
+static struct resource adc_resources[] =
+{
 	DEFINE_RES_IRQ_NAMED(BXTWC_ADC_IRQ, "ADC"),
 };
 
-static struct resource usbc_resources[] = {
+static struct resource usbc_resources[] =
+{
 	DEFINE_RES_IRQ(BXTWC_USBC_IRQ),
 };
 
-static struct resource charger_resources[] = {
+static struct resource charger_resources[] =
+{
 	DEFINE_RES_IRQ_NAMED(BXTWC_CHGR0_IRQ, "CHARGER"),
 	DEFINE_RES_IRQ_NAMED(BXTWC_CHGR1_IRQ, "CHARGER1"),
 };
 
-static struct resource thermal_resources[] = {
+static struct resource thermal_resources[] =
+{
 	DEFINE_RES_IRQ(BXTWC_THRM0_IRQ),
 	DEFINE_RES_IRQ(BXTWC_THRM1_IRQ),
 	DEFINE_RES_IRQ(BXTWC_THRM2_IRQ),
 };
 
-static struct resource bcu_resources[] = {
+static struct resource bcu_resources[] =
+{
 	DEFINE_RES_IRQ_NAMED(BXTWC_BCU_IRQ, "BCU"),
 };
 
-static struct mfd_cell bxt_wc_dev[] = {
+static struct mfd_cell bxt_wc_dev[] =
+{
 	{
 		.name = "bxt_wcove_gpadc",
 		.num_resources = ARRAY_SIZE(adc_resources),
@@ -203,7 +216,7 @@ static struct mfd_cell bxt_wc_dev[] = {
 };
 
 static int regmap_ipc_byte_reg_read(void *context, unsigned int reg,
-				    unsigned int *val)
+									unsigned int *val)
 {
 	int ret;
 	int i2c_addr;
@@ -212,32 +225,41 @@ static int regmap_ipc_byte_reg_read(void *context, unsigned int reg,
 	struct intel_soc_pmic *pmic = context;
 
 	if (reg & REG_ADDR_MASK)
+	{
 		i2c_addr = (reg & REG_ADDR_MASK) >> REG_ADDR_SHIFT;
-	else {
+	}
+	else
+	{
 		i2c_addr = BXTWC_DEVICE1_ADDR;
-		if (!i2c_addr) {
+
+		if (!i2c_addr)
+		{
 			dev_err(pmic->dev, "I2C address not set\n");
 			return -EINVAL;
 		}
 	}
+
 	reg &= REG_OFFSET_MASK;
 
 	ipc_in[0] = reg;
 	ipc_in[1] = i2c_addr;
 	ret = intel_pmc_ipc_command(PMC_IPC_PMIC_ACCESS,
-			PMC_IPC_PMIC_ACCESS_READ,
-			ipc_in, sizeof(ipc_in), (u32 *)ipc_out, 1);
-	if (ret) {
+								PMC_IPC_PMIC_ACCESS_READ,
+								ipc_in, sizeof(ipc_in), (u32 *)ipc_out, 1);
+
+	if (ret)
+	{
 		dev_err(pmic->dev, "Failed to read from PMIC\n");
 		return ret;
 	}
+
 	*val = ipc_out[0];
 
 	return 0;
 }
 
 static int regmap_ipc_byte_reg_write(void *context, unsigned int reg,
-				       unsigned int val)
+									 unsigned int val)
 {
 	int ret;
 	int i2c_addr;
@@ -245,23 +267,31 @@ static int regmap_ipc_byte_reg_write(void *context, unsigned int reg,
 	struct intel_soc_pmic *pmic = context;
 
 	if (reg & REG_ADDR_MASK)
+	{
 		i2c_addr = (reg & REG_ADDR_MASK) >> REG_ADDR_SHIFT;
-	else {
+	}
+	else
+	{
 		i2c_addr = BXTWC_DEVICE1_ADDR;
-		if (!i2c_addr) {
+
+		if (!i2c_addr)
+		{
 			dev_err(pmic->dev, "I2C address not set\n");
 			return -EINVAL;
 		}
 	}
+
 	reg &= REG_OFFSET_MASK;
 
 	ipc_in[0] = reg;
 	ipc_in[1] = i2c_addr;
 	ipc_in[2] = val;
 	ret = intel_pmc_ipc_command(PMC_IPC_PMIC_ACCESS,
-			PMC_IPC_PMIC_ACCESS_WRITE,
-			ipc_in, sizeof(ipc_in), NULL, 0);
-	if (ret) {
+								PMC_IPC_PMIC_ACCESS_WRITE,
+								ipc_in, sizeof(ipc_in), NULL, 0);
+
+	if (ret)
+	{
 		dev_err(pmic->dev, "Failed to write to PMIC\n");
 		return ret;
 	}
@@ -272,30 +302,34 @@ static int regmap_ipc_byte_reg_write(void *context, unsigned int reg,
 /* sysfs interfaces to r/w PMIC registers, required by initial script */
 static unsigned long bxtwc_reg_addr;
 static ssize_t bxtwc_reg_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+							  struct device_attribute *attr, char *buf)
 {
 	return sprintf(buf, "0x%lx\n", bxtwc_reg_addr);
 }
 
 static ssize_t bxtwc_reg_store(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t count)
+							   struct device_attribute *attr, const char *buf, size_t count)
 {
-	if (kstrtoul(buf, 0, &bxtwc_reg_addr)) {
+	if (kstrtoul(buf, 0, &bxtwc_reg_addr))
+	{
 		dev_err(dev, "Invalid register address\n");
 		return -EINVAL;
 	}
+
 	return (ssize_t)count;
 }
 
 static ssize_t bxtwc_val_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+							  struct device_attribute *attr, char *buf)
 {
 	int ret;
 	unsigned int val;
 	struct intel_soc_pmic *pmic = dev_get_drvdata(dev);
 
 	ret = regmap_read(pmic->regmap, bxtwc_reg_addr, &val);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "Failed to read 0x%lx\n", bxtwc_reg_addr);
 		return -EIO;
 	}
@@ -304,38 +338,47 @@ static ssize_t bxtwc_val_show(struct device *dev,
 }
 
 static ssize_t bxtwc_val_store(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t count)
+							   struct device_attribute *attr, const char *buf, size_t count)
 {
 	int ret;
 	unsigned int val;
 	struct intel_soc_pmic *pmic = dev_get_drvdata(dev);
 
 	ret = kstrtouint(buf, 0, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = regmap_write(pmic->regmap, bxtwc_reg_addr, val);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "Failed to write value 0x%02x to address 0x%lx",
-			val, bxtwc_reg_addr);
+				val, bxtwc_reg_addr);
 		return -EIO;
 	}
+
 	return count;
 }
 
 static DEVICE_ATTR(addr, S_IWUSR | S_IRUSR, bxtwc_reg_show, bxtwc_reg_store);
 static DEVICE_ATTR(val, S_IWUSR | S_IRUSR, bxtwc_val_show, bxtwc_val_store);
-static struct attribute *bxtwc_attrs[] = {
+static struct attribute *bxtwc_attrs[] =
+{
 	&dev_attr_addr.attr,
 	&dev_attr_val.attr,
 	NULL
 };
 
-static const struct attribute_group bxtwc_group = {
+static const struct attribute_group bxtwc_group =
+{
 	.attrs = bxtwc_attrs,
 };
 
-static const struct regmap_config bxtwc_regmap_config = {
+static const struct regmap_config bxtwc_regmap_config =
+{
 	.reg_bits = 16,
 	.val_bits = 8,
 	.reg_write = regmap_ipc_byte_reg_write,
@@ -352,66 +395,86 @@ static int bxtwc_probe(struct platform_device *pdev)
 
 	handle = ACPI_HANDLE(&pdev->dev);
 	status = acpi_evaluate_integer(handle, "_HRV", NULL, &hrv);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		dev_err(&pdev->dev, "Failed to get PMIC hardware revision\n");
 		return -ENODEV;
 	}
-	if (hrv != BROXTON_PMIC_WC_HRV) {
+
+	if (hrv != BROXTON_PMIC_WC_HRV)
+	{
 		dev_err(&pdev->dev, "Invalid PMIC hardware revision: %llu\n",
-			hrv);
+				hrv);
 		return -ENODEV;
 	}
 
 	pmic = devm_kzalloc(&pdev->dev, sizeof(*pmic), GFP_KERNEL);
+
 	if (!pmic)
+	{
 		return -ENOMEM;
+	}
 
 	ret = platform_get_irq(pdev, 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Invalid IRQ\n");
 		return ret;
 	}
+
 	pmic->irq = ret;
 
 	dev_set_drvdata(&pdev->dev, pmic);
 	pmic->dev = &pdev->dev;
 
 	pmic->regmap = devm_regmap_init(&pdev->dev, NULL, pmic,
-					&bxtwc_regmap_config);
-	if (IS_ERR(pmic->regmap)) {
+									&bxtwc_regmap_config);
+
+	if (IS_ERR(pmic->regmap))
+	{
 		ret = PTR_ERR(pmic->regmap);
 		dev_err(&pdev->dev, "Failed to initialise regmap: %d\n", ret);
 		return ret;
 	}
 
 	ret = regmap_add_irq_chip(pmic->regmap, pmic->irq,
-				  IRQF_ONESHOT | IRQF_SHARED,
-				  0, &bxtwc_regmap_irq_chip,
-				  &pmic->irq_chip_data);
-	if (ret) {
+							  IRQF_ONESHOT | IRQF_SHARED,
+							  0, &bxtwc_regmap_irq_chip,
+							  &pmic->irq_chip_data);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to add IRQ chip\n");
 		return ret;
 	}
 
 	ret = regmap_add_irq_chip(pmic->regmap, pmic->irq,
-				  IRQF_ONESHOT | IRQF_SHARED,
-				  0, &bxtwc_regmap_irq_chip_level2,
-				  &pmic->irq_chip_data_level2);
-	if (ret) {
+							  IRQF_ONESHOT | IRQF_SHARED,
+							  0, &bxtwc_regmap_irq_chip_level2,
+							  &pmic->irq_chip_data_level2);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to add secondary IRQ chip\n");
 		goto err_irq_chip_level2;
 	}
 
 	ret = mfd_add_devices(&pdev->dev, PLATFORM_DEVID_NONE, bxt_wc_dev,
-			      ARRAY_SIZE(bxt_wc_dev), NULL, 0,
-			      NULL);
-	if (ret) {
+						  ARRAY_SIZE(bxt_wc_dev), NULL, 0,
+						  NULL);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to add devices\n");
 		goto err_mfd;
 	}
 
 	ret = sysfs_create_group(&pdev->dev.kobj, &bxtwc_group);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to create sysfs group %d\n", ret);
 		goto err_sysfs;
 	}
@@ -424,7 +487,7 @@ static int bxtwc_probe(struct platform_device *pdev)
 	 * charger interrutp work.
 	 */
 	regmap_update_bits(pmic->regmap, BXTWC_MIRQLVL1,
-				BXTWC_MIRQLVL1_MCHGR, 0);
+					   BXTWC_MIRQLVL1_MCHGR, 0);
 
 	return 0;
 
@@ -477,13 +540,15 @@ static int bxtwc_resume(struct device *dev)
 #endif
 static SIMPLE_DEV_PM_OPS(bxtwc_pm_ops, bxtwc_suspend, bxtwc_resume);
 
-static const struct acpi_device_id bxtwc_acpi_ids[] = {
+static const struct acpi_device_id bxtwc_acpi_ids[] =
+{
 	{ "INT34D3", },
 	{ }
 };
 MODULE_DEVICE_TABLE(acpi, pmic_acpi_ids);
 
-static struct platform_driver bxtwc_driver = {
+static struct platform_driver bxtwc_driver =
+{
 	.probe = bxtwc_probe,
 	.remove	= bxtwc_remove,
 	.shutdown = bxtwc_shutdown,

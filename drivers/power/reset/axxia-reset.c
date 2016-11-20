@@ -38,7 +38,7 @@
 static struct regmap *syscon;
 
 static int axxia_restart_handler(struct notifier_block *this,
-				 unsigned long mode, void *cmd)
+								 unsigned long mode, void *cmd)
 {
 	/* Access Key (0xab) */
 	regmap_write(syscon, SC_CRIT_WRITE_KEY, 0xab);
@@ -48,12 +48,13 @@ static int axxia_restart_handler(struct notifier_block *this,
 	regmap_write(syscon, SC_EFUSE_INT_STATUS, EFUSE_READ_DONE);
 	/* Assert chip reset */
 	regmap_update_bits(syscon, SC_RESET_CONTROL,
-			   RSTCTL_RST_CHIP, RSTCTL_RST_CHIP);
+					   RSTCTL_RST_CHIP, RSTCTL_RST_CHIP);
 
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block axxia_restart_nb = {
+static struct notifier_block axxia_restart_nb =
+{
 	.notifier_call = axxia_restart_handler,
 	.priority = 128,
 };
@@ -64,25 +65,32 @@ static int axxia_reset_probe(struct platform_device *pdev)
 	int err;
 
 	syscon = syscon_regmap_lookup_by_phandle(dev->of_node, "syscon");
-	if (IS_ERR(syscon)) {
+
+	if (IS_ERR(syscon))
+	{
 		pr_err("%s: syscon lookup failed\n", dev->of_node->name);
 		return PTR_ERR(syscon);
 	}
 
 	err = register_restart_handler(&axxia_restart_nb);
+
 	if (err)
+	{
 		dev_err(dev, "cannot register restart handler (err=%d)\n", err);
+	}
 
 	return err;
 }
 
-static const struct of_device_id of_axxia_reset_match[] = {
+static const struct of_device_id of_axxia_reset_match[] =
+{
 	{ .compatible = "lsi,axm55xx-reset", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, of_axxia_reset_match);
 
-static struct platform_driver axxia_reset_driver = {
+static struct platform_driver axxia_reset_driver =
+{
 	.probe = axxia_reset_probe,
 	.driver = {
 		.name = "axxia-reset",

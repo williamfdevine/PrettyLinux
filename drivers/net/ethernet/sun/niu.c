@@ -59,7 +59,8 @@ static void writeq(u64 val, void __iomem *reg)
 }
 #endif
 
-static const struct pci_device_id niu_pci_tbl[] = {
+static const struct pci_device_id niu_pci_tbl[] =
+{
 	{PCI_DEVICE(PCI_VENDOR_ID_SUN, 0xabcd)},
 	{}
 };
@@ -98,58 +99,76 @@ MODULE_PARM_DESC(debug, "NIU debug level");
 static int serdes_init_10g_serdes(struct niu *np);
 
 static int __niu_wait_bits_clear_mac(struct niu *np, unsigned long reg,
-				     u64 bits, int limit, int delay)
+									 u64 bits, int limit, int delay)
 {
-	while (--limit >= 0) {
+	while (--limit >= 0)
+	{
 		u64 val = nr64_mac(reg);
 
 		if (!(val & bits))
+		{
 			break;
+		}
+
 		udelay(delay);
 	}
+
 	if (limit < 0)
+	{
 		return -ENODEV;
+	}
+
 	return 0;
 }
 
 static int __niu_set_and_wait_clear_mac(struct niu *np, unsigned long reg,
-					u64 bits, int limit, int delay,
-					const char *reg_name)
+										u64 bits, int limit, int delay,
+										const char *reg_name)
 {
 	int err;
 
 	nw64_mac(reg, bits);
 	err = __niu_wait_bits_clear_mac(np, reg, bits, limit, delay);
+
 	if (err)
 		netdev_err(np->dev, "bits (%llx) of register %s would not clear, val[%llx]\n",
-			   (unsigned long long)bits, reg_name,
-			   (unsigned long long)nr64_mac(reg));
+				   (unsigned long long)bits, reg_name,
+				   (unsigned long long)nr64_mac(reg));
+
 	return err;
 }
 
 #define niu_set_and_wait_clear_mac(NP, REG, BITS, LIMIT, DELAY, REG_NAME) \
-({	BUILD_BUG_ON(LIMIT <= 0 || DELAY < 0); \
-	__niu_set_and_wait_clear_mac(NP, REG, BITS, LIMIT, DELAY, REG_NAME); \
-})
+	({	BUILD_BUG_ON(LIMIT <= 0 || DELAY < 0); \
+		__niu_set_and_wait_clear_mac(NP, REG, BITS, LIMIT, DELAY, REG_NAME); \
+	})
 
 static int __niu_wait_bits_clear_ipp(struct niu *np, unsigned long reg,
-				     u64 bits, int limit, int delay)
+									 u64 bits, int limit, int delay)
 {
-	while (--limit >= 0) {
+	while (--limit >= 0)
+	{
 		u64 val = nr64_ipp(reg);
 
 		if (!(val & bits))
+		{
 			break;
+		}
+
 		udelay(delay);
 	}
+
 	if (limit < 0)
+	{
 		return -ENODEV;
+	}
+
 	return 0;
 }
 
 static int __niu_set_and_wait_clear_ipp(struct niu *np, unsigned long reg,
-					u64 bits, int limit, int delay,
-					const char *reg_name)
+										u64 bits, int limit, int delay,
+										const char *reg_name)
 {
 	int err;
 	u64 val;
@@ -159,64 +178,78 @@ static int __niu_set_and_wait_clear_ipp(struct niu *np, unsigned long reg,
 	nw64_ipp(reg, val);
 
 	err = __niu_wait_bits_clear_ipp(np, reg, bits, limit, delay);
+
 	if (err)
 		netdev_err(np->dev, "bits (%llx) of register %s would not clear, val[%llx]\n",
-			   (unsigned long long)bits, reg_name,
-			   (unsigned long long)nr64_ipp(reg));
+				   (unsigned long long)bits, reg_name,
+				   (unsigned long long)nr64_ipp(reg));
+
 	return err;
 }
 
 #define niu_set_and_wait_clear_ipp(NP, REG, BITS, LIMIT, DELAY, REG_NAME) \
-({	BUILD_BUG_ON(LIMIT <= 0 || DELAY < 0); \
-	__niu_set_and_wait_clear_ipp(NP, REG, BITS, LIMIT, DELAY, REG_NAME); \
-})
+	({	BUILD_BUG_ON(LIMIT <= 0 || DELAY < 0); \
+		__niu_set_and_wait_clear_ipp(NP, REG, BITS, LIMIT, DELAY, REG_NAME); \
+	})
 
 static int __niu_wait_bits_clear(struct niu *np, unsigned long reg,
-				 u64 bits, int limit, int delay)
+								 u64 bits, int limit, int delay)
 {
-	while (--limit >= 0) {
+	while (--limit >= 0)
+	{
 		u64 val = nr64(reg);
 
 		if (!(val & bits))
+		{
 			break;
+		}
+
 		udelay(delay);
 	}
+
 	if (limit < 0)
+	{
 		return -ENODEV;
+	}
+
 	return 0;
 }
 
 #define niu_wait_bits_clear(NP, REG, BITS, LIMIT, DELAY) \
-({	BUILD_BUG_ON(LIMIT <= 0 || DELAY < 0); \
-	__niu_wait_bits_clear(NP, REG, BITS, LIMIT, DELAY); \
-})
+	({	BUILD_BUG_ON(LIMIT <= 0 || DELAY < 0); \
+		__niu_wait_bits_clear(NP, REG, BITS, LIMIT, DELAY); \
+	})
 
 static int __niu_set_and_wait_clear(struct niu *np, unsigned long reg,
-				    u64 bits, int limit, int delay,
-				    const char *reg_name)
+									u64 bits, int limit, int delay,
+									const char *reg_name)
 {
 	int err;
 
 	nw64(reg, bits);
 	err = __niu_wait_bits_clear(np, reg, bits, limit, delay);
+
 	if (err)
 		netdev_err(np->dev, "bits (%llx) of register %s would not clear, val[%llx]\n",
-			   (unsigned long long)bits, reg_name,
-			   (unsigned long long)nr64(reg));
+				   (unsigned long long)bits, reg_name,
+				   (unsigned long long)nr64(reg));
+
 	return err;
 }
 
 #define niu_set_and_wait_clear(NP, REG, BITS, LIMIT, DELAY, REG_NAME) \
-({	BUILD_BUG_ON(LIMIT <= 0 || DELAY < 0); \
-	__niu_set_and_wait_clear(NP, REG, BITS, LIMIT, DELAY, REG_NAME); \
-})
+	({	BUILD_BUG_ON(LIMIT <= 0 || DELAY < 0); \
+		__niu_set_and_wait_clear(NP, REG, BITS, LIMIT, DELAY, REG_NAME); \
+	})
 
 static void niu_ldg_rearm(struct niu *np, struct niu_ldg *lp, int on)
 {
 	u64 val = (u64) lp->timer;
 
 	if (on)
+	{
 		val |= LDG_IMGMT_ARM;
+	}
 
 	nw64(LDG_IMGMT(lp->ldg_num), val);
 }
@@ -227,21 +260,32 @@ static int niu_ldn_irq_enable(struct niu *np, int ldn, int on)
 	u64 val;
 
 	if (ldn < 0 || ldn > LDN_MAX)
+	{
 		return -EINVAL;
+	}
 
-	if (ldn < 64) {
+	if (ldn < 64)
+	{
 		mask_reg = LD_IM0(ldn);
 		bits = LD_IM0_MASK;
-	} else {
+	}
+	else
+	{
 		mask_reg = LD_IM1(ldn - 64);
 		bits = LD_IM1_MASK;
 	}
 
 	val = nr64(mask_reg);
+
 	if (on)
+	{
 		val &= ~bits;
+	}
 	else
+	{
 		val |= bits;
+	}
+
 	nw64(mask_reg, val);
 
 	return 0;
@@ -252,16 +296,23 @@ static int niu_enable_ldn_in_ldg(struct niu *np, struct niu_ldg *lp, int on)
 	struct niu_parent *parent = np->parent;
 	int i;
 
-	for (i = 0; i <= LDN_MAX; i++) {
+	for (i = 0; i <= LDN_MAX; i++)
+	{
 		int err;
 
 		if (parent->ldg_map[i] != lp->ldg_num)
+		{
 			continue;
+		}
 
 		err = niu_ldn_irq_enable(np, i, on);
+
 		if (err)
+		{
 			return err;
+		}
 	}
+
 	return 0;
 }
 
@@ -269,16 +320,23 @@ static int niu_enable_interrupts(struct niu *np, int on)
 {
 	int i;
 
-	for (i = 0; i < np->num_ldg; i++) {
+	for (i = 0; i < np->num_ldg; i++)
+	{
 		struct niu_ldg *lp = &np->ldg[i];
 		int err;
 
 		err = niu_enable_ldn_in_ldg(np, lp, on);
+
 		if (err)
+		{
 			return err;
+		}
 	}
+
 	for (i = 0; i < np->num_ldg; i++)
+	{
 		niu_ldg_rearm(np, &np->ldg[i], on);
+	}
 
 	return 0;
 }
@@ -298,10 +356,14 @@ static int mdio_wait(struct niu *np)
 	int limit = 1000;
 	u64 val;
 
-	while (--limit > 0) {
+	while (--limit > 0)
+	{
 		val = nr64(MIF_FRAME_OUTPUT);
+
 		if ((val >> MIF_FRAME_OUTPUT_TA_SHIFT) & 0x1)
+		{
 			return val & MIF_FRAME_OUTPUT_DATA;
+		}
 
 		udelay(10);
 	}
@@ -315,8 +377,11 @@ static int mdio_read(struct niu *np, int port, int dev, int reg)
 
 	nw64(MIF_FRAME_OUTPUT, MDIO_ADDR_OP(port, dev, reg));
 	err = mdio_wait(np);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	nw64(MIF_FRAME_OUTPUT, MDIO_READ_OP(port, dev));
 	return mdio_wait(np);
@@ -328,13 +393,19 @@ static int mdio_write(struct niu *np, int port, int dev, int reg, int data)
 
 	nw64(MIF_FRAME_OUTPUT, MDIO_ADDR_OP(port, dev, reg));
 	err = mdio_wait(np);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	nw64(MIF_FRAME_OUTPUT, MDIO_WRITE_OP(port, dev, data));
 	err = mdio_wait(np);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -351,8 +422,11 @@ static int mii_write(struct niu *np, int port, int reg, int data)
 
 	nw64(MIF_FRAME_OUTPUT, MII_WRITE_OP(port, reg, data));
 	err = mdio_wait(np);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -362,12 +436,14 @@ static int esr2_set_tx_cfg(struct niu *np, unsigned long channel, u32 val)
 	int err;
 
 	err = mdio_write(np, np->port, NIU_ESR2_DEV_ADDR,
-			 ESR2_TI_PLL_TX_CFG_L(channel),
-			 val & 0xffff);
+					 ESR2_TI_PLL_TX_CFG_L(channel),
+					 val & 0xffff);
+
 	if (!err)
 		err = mdio_write(np, np->port, NIU_ESR2_DEV_ADDR,
-				 ESR2_TI_PLL_TX_CFG_H(channel),
-				 val >> 16);
+						 ESR2_TI_PLL_TX_CFG_H(channel),
+						 val >> 16);
+
 	return err;
 }
 
@@ -376,12 +452,14 @@ static int esr2_set_rx_cfg(struct niu *np, unsigned long channel, u32 val)
 	int err;
 
 	err = mdio_write(np, np->port, NIU_ESR2_DEV_ADDR,
-			 ESR2_TI_PLL_RX_CFG_L(channel),
-			 val & 0xffff);
+					 ESR2_TI_PLL_RX_CFG_L(channel),
+					 val & 0xffff);
+
 	if (!err)
 		err = mdio_write(np, np->port, NIU_ESR2_DEV_ADDR,
-				 ESR2_TI_PLL_RX_CFG_H(channel),
-				 val >> 16);
+						 ESR2_TI_PLL_RX_CFG_H(channel),
+						 val >> 16);
+
 	return err;
 }
 
@@ -394,30 +472,39 @@ static int serdes_init_niu_10g_fiber(struct niu *np)
 
 	tx_cfg = (PLL_TX_CFG_ENTX | PLL_TX_CFG_SWING_1375MV);
 	rx_cfg = (PLL_RX_CFG_ENRX | PLL_RX_CFG_TERM_0P8VDDT |
-		  PLL_RX_CFG_ALIGN_ENA | PLL_RX_CFG_LOS_LTHRESH |
-		  PLL_RX_CFG_EQ_LP_ADAPTIVE);
+			  PLL_RX_CFG_ALIGN_ENA | PLL_RX_CFG_LOS_LTHRESH |
+			  PLL_RX_CFG_EQ_LP_ADAPTIVE);
 
-	if (lp->loopback_mode == LOOPBACK_PHY) {
+	if (lp->loopback_mode == LOOPBACK_PHY)
+	{
 		u16 test_cfg = PLL_TEST_CFG_LOOPBACK_CML_DIS;
 
 		mdio_write(np, np->port, NIU_ESR2_DEV_ADDR,
-			   ESR2_TI_PLL_TEST_CFG_L, test_cfg);
+				   ESR2_TI_PLL_TEST_CFG_L, test_cfg);
 
 		tx_cfg |= PLL_TX_CFG_ENTEST;
 		rx_cfg |= PLL_RX_CFG_ENTEST;
 	}
 
 	/* Initialize all 4 lanes of the SERDES.  */
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		int err = esr2_set_tx_cfg(np, i, tx_cfg);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		int err = esr2_set_rx_cfg(np, i, rx_cfg);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	return 0;
@@ -434,19 +521,22 @@ static int serdes_init_niu_1g_serdes(struct niu *np)
 	int err;
 
 	tx_cfg = (PLL_TX_CFG_ENTX | PLL_TX_CFG_SWING_1375MV |
-		  PLL_TX_CFG_RATE_HALF);
+			  PLL_TX_CFG_RATE_HALF);
 	rx_cfg = (PLL_RX_CFG_ENRX | PLL_RX_CFG_TERM_0P8VDDT |
-		  PLL_RX_CFG_ALIGN_ENA | PLL_RX_CFG_LOS_LTHRESH |
-		  PLL_RX_CFG_RATE_HALF);
+			  PLL_RX_CFG_ALIGN_ENA | PLL_RX_CFG_LOS_LTHRESH |
+			  PLL_RX_CFG_RATE_HALF);
 
 	if (np->port == 0)
+	{
 		rx_cfg |= PLL_RX_CFG_EQ_LP_ADAPTIVE;
+	}
 
-	if (lp->loopback_mode == LOOPBACK_PHY) {
+	if (lp->loopback_mode == LOOPBACK_PHY)
+	{
 		u16 test_cfg = PLL_TEST_CFG_LOOPBACK_CML_DIS;
 
 		mdio_write(np, np->port, NIU_ESR2_DEV_ADDR,
-			   ESR2_TI_PLL_TEST_CFG_L, test_cfg);
+				   ESR2_TI_PLL_TEST_CFG_L, test_cfg);
 
 		tx_cfg |= PLL_TX_CFG_ENTEST;
 		rx_cfg |= PLL_RX_CFG_ENTEST;
@@ -456,64 +546,82 @@ static int serdes_init_niu_1g_serdes(struct niu *np)
 	pll_cfg = (PLL_CFG_ENPLL | PLL_CFG_MPY_8X);
 
 	err = mdio_write(np, np->port, NIU_ESR2_DEV_ADDR,
-			 ESR2_TI_PLL_CFG_L, pll_cfg);
-	if (err) {
+					 ESR2_TI_PLL_CFG_L, pll_cfg);
+
+	if (err)
+	{
 		netdev_err(np->dev, "NIU Port %d %s() mdio write to ESR2_TI_PLL_CFG_L failed\n",
-			   np->port, __func__);
+				   np->port, __func__);
 		return err;
 	}
 
 	pll_sts = PLL_CFG_ENPLL;
 
 	err = mdio_write(np, np->port, NIU_ESR2_DEV_ADDR,
-			 ESR2_TI_PLL_STS_L, pll_sts);
-	if (err) {
+					 ESR2_TI_PLL_STS_L, pll_sts);
+
+	if (err)
+	{
 		netdev_err(np->dev, "NIU Port %d %s() mdio write to ESR2_TI_PLL_STS_L failed\n",
-			   np->port, __func__);
+				   np->port, __func__);
 		return err;
 	}
 
 	udelay(200);
 
 	/* Initialize all 4 lanes of the SERDES.  */
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		err = esr2_set_tx_cfg(np, i, tx_cfg);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		err = esr2_set_rx_cfg(np, i, rx_cfg);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
-	switch (np->port) {
-	case 0:
-		val = (ESR_INT_SRDY0_P0 | ESR_INT_DET0_P0);
-		mask = val;
-		break;
-
-	case 1:
-		val = (ESR_INT_SRDY0_P1 | ESR_INT_DET0_P1);
-		mask = val;
-		break;
-
-	default:
-		return -EINVAL;
-	}
-
-	while (max_retry--) {
-		sig = nr64(ESR_INT_SIGNALS);
-		if ((sig & mask) == val)
+	switch (np->port)
+	{
+		case 0:
+			val = (ESR_INT_SRDY0_P0 | ESR_INT_DET0_P0);
+			mask = val;
 			break;
+
+		case 1:
+			val = (ESR_INT_SRDY0_P1 | ESR_INT_DET0_P1);
+			mask = val;
+			break;
+
+		default:
+			return -EINVAL;
+	}
+
+	while (max_retry--)
+	{
+		sig = nr64(ESR_INT_SIGNALS);
+
+		if ((sig & mask) == val)
+		{
+			break;
+		}
 
 		mdelay(500);
 	}
 
-	if ((sig & mask) != val) {
+	if ((sig & mask) != val)
+	{
 		netdev_err(np->dev, "Port %u signal bits [%08x] are not [%08x]\n",
-			   np->port, (int)(sig & mask), (int)val);
+				   np->port, (int)(sig & mask), (int)val);
 		return -ENODEV;
 	}
 
@@ -531,14 +639,15 @@ static int serdes_init_niu_10g_serdes(struct niu *np)
 
 	tx_cfg = (PLL_TX_CFG_ENTX | PLL_TX_CFG_SWING_1375MV);
 	rx_cfg = (PLL_RX_CFG_ENRX | PLL_RX_CFG_TERM_0P8VDDT |
-		  PLL_RX_CFG_ALIGN_ENA | PLL_RX_CFG_LOS_LTHRESH |
-		  PLL_RX_CFG_EQ_LP_ADAPTIVE);
+			  PLL_RX_CFG_ALIGN_ENA | PLL_RX_CFG_LOS_LTHRESH |
+			  PLL_RX_CFG_EQ_LP_ADAPTIVE);
 
-	if (lp->loopback_mode == LOOPBACK_PHY) {
+	if (lp->loopback_mode == LOOPBACK_PHY)
+	{
 		u16 test_cfg = PLL_TEST_CFG_LOOPBACK_CML_DIS;
 
 		mdio_write(np, np->port, NIU_ESR2_DEV_ADDR,
-			   ESR2_TI_PLL_TEST_CFG_L, test_cfg);
+				   ESR2_TI_PLL_TEST_CFG_L, test_cfg);
 
 		tx_cfg |= PLL_TX_CFG_ENTEST;
 		rx_cfg |= PLL_RX_CFG_ENTEST;
@@ -548,90 +657,113 @@ static int serdes_init_niu_10g_serdes(struct niu *np)
 	pll_cfg = (PLL_CFG_ENPLL | PLL_CFG_MPY_10X);
 
 	err = mdio_write(np, np->port, NIU_ESR2_DEV_ADDR,
-			 ESR2_TI_PLL_CFG_L, pll_cfg & 0xffff);
-	if (err) {
+					 ESR2_TI_PLL_CFG_L, pll_cfg & 0xffff);
+
+	if (err)
+	{
 		netdev_err(np->dev, "NIU Port %d %s() mdio write to ESR2_TI_PLL_CFG_L failed\n",
-			   np->port, __func__);
+				   np->port, __func__);
 		return err;
 	}
 
 	pll_sts = PLL_CFG_ENPLL;
 
 	err = mdio_write(np, np->port, NIU_ESR2_DEV_ADDR,
-			 ESR2_TI_PLL_STS_L, pll_sts & 0xffff);
-	if (err) {
+					 ESR2_TI_PLL_STS_L, pll_sts & 0xffff);
+
+	if (err)
+	{
 		netdev_err(np->dev, "NIU Port %d %s() mdio write to ESR2_TI_PLL_STS_L failed\n",
-			   np->port, __func__);
+				   np->port, __func__);
 		return err;
 	}
 
 	udelay(200);
 
 	/* Initialize all 4 lanes of the SERDES.  */
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		err = esr2_set_tx_cfg(np, i, tx_cfg);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		err = esr2_set_rx_cfg(np, i, rx_cfg);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	/* check if serdes is ready */
 
-	switch (np->port) {
-	case 0:
-		mask = ESR_INT_SIGNALS_P0_BITS;
-		val = (ESR_INT_SRDY0_P0 |
-		       ESR_INT_DET0_P0 |
-		       ESR_INT_XSRDY_P0 |
-		       ESR_INT_XDP_P0_CH3 |
-		       ESR_INT_XDP_P0_CH2 |
-		       ESR_INT_XDP_P0_CH1 |
-		       ESR_INT_XDP_P0_CH0);
-		break;
+	switch (np->port)
+	{
+		case 0:
+			mask = ESR_INT_SIGNALS_P0_BITS;
+			val = (ESR_INT_SRDY0_P0 |
+				   ESR_INT_DET0_P0 |
+				   ESR_INT_XSRDY_P0 |
+				   ESR_INT_XDP_P0_CH3 |
+				   ESR_INT_XDP_P0_CH2 |
+				   ESR_INT_XDP_P0_CH1 |
+				   ESR_INT_XDP_P0_CH0);
+			break;
 
-	case 1:
-		mask = ESR_INT_SIGNALS_P1_BITS;
-		val = (ESR_INT_SRDY0_P1 |
-		       ESR_INT_DET0_P1 |
-		       ESR_INT_XSRDY_P1 |
-		       ESR_INT_XDP_P1_CH3 |
-		       ESR_INT_XDP_P1_CH2 |
-		       ESR_INT_XDP_P1_CH1 |
-		       ESR_INT_XDP_P1_CH0);
-		break;
+		case 1:
+			mask = ESR_INT_SIGNALS_P1_BITS;
+			val = (ESR_INT_SRDY0_P1 |
+				   ESR_INT_DET0_P1 |
+				   ESR_INT_XSRDY_P1 |
+				   ESR_INT_XDP_P1_CH3 |
+				   ESR_INT_XDP_P1_CH2 |
+				   ESR_INT_XDP_P1_CH1 |
+				   ESR_INT_XDP_P1_CH0);
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
-	while (max_retry--) {
+	while (max_retry--)
+	{
 		sig = nr64(ESR_INT_SIGNALS);
+
 		if ((sig & mask) == val)
+		{
 			break;
+		}
 
 		mdelay(500);
 	}
 
-	if ((sig & mask) != val) {
+	if ((sig & mask) != val)
+	{
 		pr_info("NIU Port %u signal bits [%08x] are not [%08x] for 10G...trying 1G\n",
-			np->port, (int)(sig & mask), (int)val);
+				np->port, (int)(sig & mask), (int)val);
 
 		/* 10G failed, try initializing at 1G */
 		err = serdes_init_niu_1g_serdes(np);
-		if (!err) {
+
+		if (!err)
+		{
 			np->flags &= ~NIU_FLAGS_10G;
 			np->mac_xcvr = MAC_XCVR_PCS;
-		}  else {
+		}
+		else
+		{
 			netdev_err(np->dev, "Port %u 10G/1G SERDES Link Failed\n",
-				   np->port);
+					   np->port);
 			return -ENODEV;
 		}
 	}
+
 	return 0;
 }
 
@@ -640,14 +772,21 @@ static int esr_read_rxtx_ctrl(struct niu *np, unsigned long chan, u32 *val)
 	int err;
 
 	err = mdio_read(np, np->port, NIU_ESR_DEV_ADDR, ESR_RXTX_CTRL_L(chan));
-	if (err >= 0) {
+
+	if (err >= 0)
+	{
 		*val = (err & 0xffff);
 		err = mdio_read(np, np->port, NIU_ESR_DEV_ADDR,
-				ESR_RXTX_CTRL_H(chan));
+						ESR_RXTX_CTRL_H(chan));
+
 		if (err >= 0)
+		{
 			*val |= ((err & 0xffff) << 16);
+		}
+
 		err = 0;
 	}
+
 	return err;
 }
 
@@ -656,16 +795,21 @@ static int esr_read_glue0(struct niu *np, unsigned long chan, u32 *val)
 	int err;
 
 	err = mdio_read(np, np->port, NIU_ESR_DEV_ADDR,
-			ESR_GLUE_CTRL0_L(chan));
-	if (err >= 0) {
+					ESR_GLUE_CTRL0_L(chan));
+
+	if (err >= 0)
+	{
 		*val = (err & 0xffff);
 		err = mdio_read(np, np->port, NIU_ESR_DEV_ADDR,
-				ESR_GLUE_CTRL0_H(chan));
-		if (err >= 0) {
+						ESR_GLUE_CTRL0_H(chan));
+
+		if (err >= 0)
+		{
 			*val |= ((err & 0xffff) << 16);
 			err = 0;
 		}
 	}
+
 	return err;
 }
 
@@ -674,16 +818,21 @@ static int esr_read_reset(struct niu *np, u32 *val)
 	int err;
 
 	err = mdio_read(np, np->port, NIU_ESR_DEV_ADDR,
-			ESR_RXTX_RESET_CTRL_L);
-	if (err >= 0) {
+					ESR_RXTX_RESET_CTRL_L);
+
+	if (err >= 0)
+	{
 		*val = (err & 0xffff);
 		err = mdio_read(np, np->port, NIU_ESR_DEV_ADDR,
-				ESR_RXTX_RESET_CTRL_H);
-		if (err >= 0) {
+						ESR_RXTX_RESET_CTRL_H);
+
+		if (err >= 0)
+		{
 			*val |= ((err & 0xffff) << 16);
 			err = 0;
 		}
 	}
+
 	return err;
 }
 
@@ -692,10 +841,12 @@ static int esr_write_rxtx_ctrl(struct niu *np, unsigned long chan, u32 val)
 	int err;
 
 	err = mdio_write(np, np->port, NIU_ESR_DEV_ADDR,
-			 ESR_RXTX_CTRL_L(chan), val & 0xffff);
+					 ESR_RXTX_CTRL_L(chan), val & 0xffff);
+
 	if (!err)
 		err = mdio_write(np, np->port, NIU_ESR_DEV_ADDR,
-				 ESR_RXTX_CTRL_H(chan), (val >> 16));
+						 ESR_RXTX_CTRL_H(chan), (val >> 16));
+
 	return err;
 }
 
@@ -704,10 +855,12 @@ static int esr_write_glue0(struct niu *np, unsigned long chan, u32 val)
 	int err;
 
 	err = mdio_write(np, np->port, NIU_ESR_DEV_ADDR,
-			ESR_GLUE_CTRL0_L(chan), val & 0xffff);
+					 ESR_GLUE_CTRL0_L(chan), val & 0xffff);
+
 	if (!err)
 		err = mdio_write(np, np->port, NIU_ESR_DEV_ADDR,
-				 ESR_GLUE_CTRL0_H(chan), (val >> 16));
+						 ESR_GLUE_CTRL0_H(chan), (val >> 16));
+
 	return err;
 }
 
@@ -717,33 +870,54 @@ static int esr_reset(struct niu *np)
 	int err;
 
 	err = mdio_write(np, np->port, NIU_ESR_DEV_ADDR,
-			 ESR_RXTX_RESET_CTRL_L, 0x0000);
+					 ESR_RXTX_RESET_CTRL_L, 0x0000);
+
 	if (err)
+	{
 		return err;
+	}
+
 	err = mdio_write(np, np->port, NIU_ESR_DEV_ADDR,
-			 ESR_RXTX_RESET_CTRL_H, 0xffff);
+					 ESR_RXTX_RESET_CTRL_H, 0xffff);
+
 	if (err)
+	{
 		return err;
+	}
+
 	udelay(200);
 
 	err = mdio_write(np, np->port, NIU_ESR_DEV_ADDR,
-			 ESR_RXTX_RESET_CTRL_L, 0xffff);
+					 ESR_RXTX_RESET_CTRL_L, 0xffff);
+
 	if (err)
+	{
 		return err;
+	}
+
 	udelay(200);
 
 	err = mdio_write(np, np->port, NIU_ESR_DEV_ADDR,
-			 ESR_RXTX_RESET_CTRL_H, 0x0000);
+					 ESR_RXTX_RESET_CTRL_H, 0x0000);
+
 	if (err)
+	{
 		return err;
+	}
+
 	udelay(200);
 
 	err = esr_read_reset(np, &reset);
+
 	if (err)
+	{
 		return err;
-	if (reset != 0) {
+	}
+
+	if (reset != 0)
+	{
 		netdev_err(np->dev, "Port %u ESR_RESET did not clear [%08x]\n",
-			   np->port, reset);
+				   np->port, reset);
 		return -ENODEV;
 	}
 
@@ -757,122 +931,153 @@ static int serdes_init_10g(struct niu *np)
 	u64 ctrl_val, test_cfg_val, sig, mask, val;
 	int err;
 
-	switch (np->port) {
-	case 0:
-		ctrl_reg = ENET_SERDES_0_CTRL_CFG;
-		test_cfg_reg = ENET_SERDES_0_TEST_CFG;
-		break;
-	case 1:
-		ctrl_reg = ENET_SERDES_1_CTRL_CFG;
-		test_cfg_reg = ENET_SERDES_1_TEST_CFG;
-		break;
+	switch (np->port)
+	{
+		case 0:
+			ctrl_reg = ENET_SERDES_0_CTRL_CFG;
+			test_cfg_reg = ENET_SERDES_0_TEST_CFG;
+			break;
 
-	default:
-		return -EINVAL;
+		case 1:
+			ctrl_reg = ENET_SERDES_1_CTRL_CFG;
+			test_cfg_reg = ENET_SERDES_1_TEST_CFG;
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	ctrl_val = (ENET_SERDES_CTRL_SDET_0 |
-		    ENET_SERDES_CTRL_SDET_1 |
-		    ENET_SERDES_CTRL_SDET_2 |
-		    ENET_SERDES_CTRL_SDET_3 |
-		    (0x5 << ENET_SERDES_CTRL_EMPH_0_SHIFT) |
-		    (0x5 << ENET_SERDES_CTRL_EMPH_1_SHIFT) |
-		    (0x5 << ENET_SERDES_CTRL_EMPH_2_SHIFT) |
-		    (0x5 << ENET_SERDES_CTRL_EMPH_3_SHIFT) |
-		    (0x1 << ENET_SERDES_CTRL_LADJ_0_SHIFT) |
-		    (0x1 << ENET_SERDES_CTRL_LADJ_1_SHIFT) |
-		    (0x1 << ENET_SERDES_CTRL_LADJ_2_SHIFT) |
-		    (0x1 << ENET_SERDES_CTRL_LADJ_3_SHIFT));
+				ENET_SERDES_CTRL_SDET_1 |
+				ENET_SERDES_CTRL_SDET_2 |
+				ENET_SERDES_CTRL_SDET_3 |
+				(0x5 << ENET_SERDES_CTRL_EMPH_0_SHIFT) |
+				(0x5 << ENET_SERDES_CTRL_EMPH_1_SHIFT) |
+				(0x5 << ENET_SERDES_CTRL_EMPH_2_SHIFT) |
+				(0x5 << ENET_SERDES_CTRL_EMPH_3_SHIFT) |
+				(0x1 << ENET_SERDES_CTRL_LADJ_0_SHIFT) |
+				(0x1 << ENET_SERDES_CTRL_LADJ_1_SHIFT) |
+				(0x1 << ENET_SERDES_CTRL_LADJ_2_SHIFT) |
+				(0x1 << ENET_SERDES_CTRL_LADJ_3_SHIFT));
 	test_cfg_val = 0;
 
-	if (lp->loopback_mode == LOOPBACK_PHY) {
+	if (lp->loopback_mode == LOOPBACK_PHY)
+	{
 		test_cfg_val |= ((ENET_TEST_MD_PAD_LOOPBACK <<
-				  ENET_SERDES_TEST_MD_0_SHIFT) |
-				 (ENET_TEST_MD_PAD_LOOPBACK <<
-				  ENET_SERDES_TEST_MD_1_SHIFT) |
-				 (ENET_TEST_MD_PAD_LOOPBACK <<
-				  ENET_SERDES_TEST_MD_2_SHIFT) |
-				 (ENET_TEST_MD_PAD_LOOPBACK <<
-				  ENET_SERDES_TEST_MD_3_SHIFT));
+						  ENET_SERDES_TEST_MD_0_SHIFT) |
+						 (ENET_TEST_MD_PAD_LOOPBACK <<
+						  ENET_SERDES_TEST_MD_1_SHIFT) |
+						 (ENET_TEST_MD_PAD_LOOPBACK <<
+						  ENET_SERDES_TEST_MD_2_SHIFT) |
+						 (ENET_TEST_MD_PAD_LOOPBACK <<
+						  ENET_SERDES_TEST_MD_3_SHIFT));
 	}
 
 	nw64(ctrl_reg, ctrl_val);
 	nw64(test_cfg_reg, test_cfg_val);
 
 	/* Initialize all 4 lanes of the SERDES.  */
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		u32 rxtx_ctrl, glue0;
 
 		err = esr_read_rxtx_ctrl(np, i, &rxtx_ctrl);
+
 		if (err)
+		{
 			return err;
+		}
+
 		err = esr_read_glue0(np, i, &glue0);
+
 		if (err)
+		{
 			return err;
+		}
 
 		rxtx_ctrl &= ~(ESR_RXTX_CTRL_VMUXLO);
 		rxtx_ctrl |= (ESR_RXTX_CTRL_ENSTRETCH |
-			      (2 << ESR_RXTX_CTRL_VMUXLO_SHIFT));
+					  (2 << ESR_RXTX_CTRL_VMUXLO_SHIFT));
 
 		glue0 &= ~(ESR_GLUE_CTRL0_SRATE |
-			   ESR_GLUE_CTRL0_THCNT |
-			   ESR_GLUE_CTRL0_BLTIME);
+				   ESR_GLUE_CTRL0_THCNT |
+				   ESR_GLUE_CTRL0_BLTIME);
 		glue0 |= (ESR_GLUE_CTRL0_RXLOSENAB |
-			  (0xf << ESR_GLUE_CTRL0_SRATE_SHIFT) |
-			  (0xff << ESR_GLUE_CTRL0_THCNT_SHIFT) |
-			  (BLTIME_300_CYCLES <<
-			   ESR_GLUE_CTRL0_BLTIME_SHIFT));
+				  (0xf << ESR_GLUE_CTRL0_SRATE_SHIFT) |
+				  (0xff << ESR_GLUE_CTRL0_THCNT_SHIFT) |
+				  (BLTIME_300_CYCLES <<
+				   ESR_GLUE_CTRL0_BLTIME_SHIFT));
 
 		err = esr_write_rxtx_ctrl(np, i, rxtx_ctrl);
+
 		if (err)
+		{
 			return err;
+		}
+
 		err = esr_write_glue0(np, i, glue0);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	err = esr_reset(np);
+
 	if (err)
+	{
 		return err;
-
-	sig = nr64(ESR_INT_SIGNALS);
-	switch (np->port) {
-	case 0:
-		mask = ESR_INT_SIGNALS_P0_BITS;
-		val = (ESR_INT_SRDY0_P0 |
-		       ESR_INT_DET0_P0 |
-		       ESR_INT_XSRDY_P0 |
-		       ESR_INT_XDP_P0_CH3 |
-		       ESR_INT_XDP_P0_CH2 |
-		       ESR_INT_XDP_P0_CH1 |
-		       ESR_INT_XDP_P0_CH0);
-		break;
-
-	case 1:
-		mask = ESR_INT_SIGNALS_P1_BITS;
-		val = (ESR_INT_SRDY0_P1 |
-		       ESR_INT_DET0_P1 |
-		       ESR_INT_XSRDY_P1 |
-		       ESR_INT_XDP_P1_CH3 |
-		       ESR_INT_XDP_P1_CH2 |
-		       ESR_INT_XDP_P1_CH1 |
-		       ESR_INT_XDP_P1_CH0);
-		break;
-
-	default:
-		return -EINVAL;
 	}
 
-	if ((sig & mask) != val) {
-		if (np->flags & NIU_FLAGS_HOTPLUG_PHY) {
+	sig = nr64(ESR_INT_SIGNALS);
+
+	switch (np->port)
+	{
+		case 0:
+			mask = ESR_INT_SIGNALS_P0_BITS;
+			val = (ESR_INT_SRDY0_P0 |
+				   ESR_INT_DET0_P0 |
+				   ESR_INT_XSRDY_P0 |
+				   ESR_INT_XDP_P0_CH3 |
+				   ESR_INT_XDP_P0_CH2 |
+				   ESR_INT_XDP_P0_CH1 |
+				   ESR_INT_XDP_P0_CH0);
+			break;
+
+		case 1:
+			mask = ESR_INT_SIGNALS_P1_BITS;
+			val = (ESR_INT_SRDY0_P1 |
+				   ESR_INT_DET0_P1 |
+				   ESR_INT_XSRDY_P1 |
+				   ESR_INT_XDP_P1_CH3 |
+				   ESR_INT_XDP_P1_CH2 |
+				   ESR_INT_XDP_P1_CH1 |
+				   ESR_INT_XDP_P1_CH0);
+			break;
+
+		default:
+			return -EINVAL;
+	}
+
+	if ((sig & mask) != val)
+	{
+		if (np->flags & NIU_FLAGS_HOTPLUG_PHY)
+		{
 			np->flags &= ~NIU_FLAGS_HOTPLUG_PHY_PRESENT;
 			return 0;
 		}
+
 		netdev_err(np->dev, "Port %u signal bits [%08x] are not [%08x]\n",
-			   np->port, (int)(sig & mask), (int)val);
+				   np->port, (int)(sig & mask), (int)val);
 		return -ENODEV;
 	}
+
 	if (np->flags & NIU_FLAGS_HOTPLUG_PHY)
+	{
 		np->flags |= NIU_FLAGS_HOTPLUG_PHY_PRESENT;
+	}
+
 	return 0;
 }
 
@@ -882,22 +1087,29 @@ static int serdes_init_1g(struct niu *np)
 
 	val = nr64(ENET_SERDES_1_PLL_CFG);
 	val &= ~ENET_SERDES_PLL_FBDIV2;
-	switch (np->port) {
-	case 0:
-		val |= ENET_SERDES_PLL_HRATE0;
-		break;
-	case 1:
-		val |= ENET_SERDES_PLL_HRATE1;
-		break;
-	case 2:
-		val |= ENET_SERDES_PLL_HRATE2;
-		break;
-	case 3:
-		val |= ENET_SERDES_PLL_HRATE3;
-		break;
-	default:
-		return -EINVAL;
+
+	switch (np->port)
+	{
+		case 0:
+			val |= ENET_SERDES_PLL_HRATE0;
+			break;
+
+		case 1:
+			val |= ENET_SERDES_PLL_HRATE1;
+			break;
+
+		case 2:
+			val |= ENET_SERDES_PLL_HRATE2;
+			break;
+
+		case 3:
+			val |= ENET_SERDES_PLL_HRATE3;
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	nw64(ENET_SERDES_1_PLL_CFG, val);
 
 	return 0;
@@ -912,48 +1124,53 @@ static int serdes_init_1g_serdes(struct niu *np)
 	u64 reset_val, val_rd;
 
 	val = ENET_SERDES_PLL_HRATE0 | ENET_SERDES_PLL_HRATE1 |
-		ENET_SERDES_PLL_HRATE2 | ENET_SERDES_PLL_HRATE3 |
-		ENET_SERDES_PLL_FBDIV0;
-	switch (np->port) {
-	case 0:
-		reset_val =  ENET_SERDES_RESET_0;
-		ctrl_reg = ENET_SERDES_0_CTRL_CFG;
-		test_cfg_reg = ENET_SERDES_0_TEST_CFG;
-		pll_cfg = ENET_SERDES_0_PLL_CFG;
-		break;
-	case 1:
-		reset_val =  ENET_SERDES_RESET_1;
-		ctrl_reg = ENET_SERDES_1_CTRL_CFG;
-		test_cfg_reg = ENET_SERDES_1_TEST_CFG;
-		pll_cfg = ENET_SERDES_1_PLL_CFG;
-		break;
+		  ENET_SERDES_PLL_HRATE2 | ENET_SERDES_PLL_HRATE3 |
+		  ENET_SERDES_PLL_FBDIV0;
 
-	default:
-		return -EINVAL;
+	switch (np->port)
+	{
+		case 0:
+			reset_val =  ENET_SERDES_RESET_0;
+			ctrl_reg = ENET_SERDES_0_CTRL_CFG;
+			test_cfg_reg = ENET_SERDES_0_TEST_CFG;
+			pll_cfg = ENET_SERDES_0_PLL_CFG;
+			break;
+
+		case 1:
+			reset_val =  ENET_SERDES_RESET_1;
+			ctrl_reg = ENET_SERDES_1_CTRL_CFG;
+			test_cfg_reg = ENET_SERDES_1_TEST_CFG;
+			pll_cfg = ENET_SERDES_1_PLL_CFG;
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	ctrl_val = (ENET_SERDES_CTRL_SDET_0 |
-		    ENET_SERDES_CTRL_SDET_1 |
-		    ENET_SERDES_CTRL_SDET_2 |
-		    ENET_SERDES_CTRL_SDET_3 |
-		    (0x5 << ENET_SERDES_CTRL_EMPH_0_SHIFT) |
-		    (0x5 << ENET_SERDES_CTRL_EMPH_1_SHIFT) |
-		    (0x5 << ENET_SERDES_CTRL_EMPH_2_SHIFT) |
-		    (0x5 << ENET_SERDES_CTRL_EMPH_3_SHIFT) |
-		    (0x1 << ENET_SERDES_CTRL_LADJ_0_SHIFT) |
-		    (0x1 << ENET_SERDES_CTRL_LADJ_1_SHIFT) |
-		    (0x1 << ENET_SERDES_CTRL_LADJ_2_SHIFT) |
-		    (0x1 << ENET_SERDES_CTRL_LADJ_3_SHIFT));
+				ENET_SERDES_CTRL_SDET_1 |
+				ENET_SERDES_CTRL_SDET_2 |
+				ENET_SERDES_CTRL_SDET_3 |
+				(0x5 << ENET_SERDES_CTRL_EMPH_0_SHIFT) |
+				(0x5 << ENET_SERDES_CTRL_EMPH_1_SHIFT) |
+				(0x5 << ENET_SERDES_CTRL_EMPH_2_SHIFT) |
+				(0x5 << ENET_SERDES_CTRL_EMPH_3_SHIFT) |
+				(0x1 << ENET_SERDES_CTRL_LADJ_0_SHIFT) |
+				(0x1 << ENET_SERDES_CTRL_LADJ_1_SHIFT) |
+				(0x1 << ENET_SERDES_CTRL_LADJ_2_SHIFT) |
+				(0x1 << ENET_SERDES_CTRL_LADJ_3_SHIFT));
 	test_cfg_val = 0;
 
-	if (lp->loopback_mode == LOOPBACK_PHY) {
+	if (lp->loopback_mode == LOOPBACK_PHY)
+	{
 		test_cfg_val |= ((ENET_TEST_MD_PAD_LOOPBACK <<
-				  ENET_SERDES_TEST_MD_0_SHIFT) |
-				 (ENET_TEST_MD_PAD_LOOPBACK <<
-				  ENET_SERDES_TEST_MD_1_SHIFT) |
-				 (ENET_TEST_MD_PAD_LOOPBACK <<
-				  ENET_SERDES_TEST_MD_2_SHIFT) |
-				 (ENET_TEST_MD_PAD_LOOPBACK <<
-				  ENET_SERDES_TEST_MD_3_SHIFT));
+						  ENET_SERDES_TEST_MD_0_SHIFT) |
+						 (ENET_TEST_MD_PAD_LOOPBACK <<
+						  ENET_SERDES_TEST_MD_1_SHIFT) |
+						 (ENET_TEST_MD_PAD_LOOPBACK <<
+						  ENET_SERDES_TEST_MD_2_SHIFT) |
+						 (ENET_TEST_MD_PAD_LOOPBACK <<
+						  ENET_SERDES_TEST_MD_3_SHIFT));
 	}
 
 	nw64(ENET_SERDES_RESET, reset_val);
@@ -967,57 +1184,75 @@ static int serdes_init_1g_serdes(struct niu *np)
 	mdelay(2000);
 
 	/* Initialize all 4 lanes of the SERDES.  */
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		u32 rxtx_ctrl, glue0;
 
 		err = esr_read_rxtx_ctrl(np, i, &rxtx_ctrl);
+
 		if (err)
+		{
 			return err;
+		}
+
 		err = esr_read_glue0(np, i, &glue0);
+
 		if (err)
+		{
 			return err;
+		}
 
 		rxtx_ctrl &= ~(ESR_RXTX_CTRL_VMUXLO);
 		rxtx_ctrl |= (ESR_RXTX_CTRL_ENSTRETCH |
-			      (2 << ESR_RXTX_CTRL_VMUXLO_SHIFT));
+					  (2 << ESR_RXTX_CTRL_VMUXLO_SHIFT));
 
 		glue0 &= ~(ESR_GLUE_CTRL0_SRATE |
-			   ESR_GLUE_CTRL0_THCNT |
-			   ESR_GLUE_CTRL0_BLTIME);
+				   ESR_GLUE_CTRL0_THCNT |
+				   ESR_GLUE_CTRL0_BLTIME);
 		glue0 |= (ESR_GLUE_CTRL0_RXLOSENAB |
-			  (0xf << ESR_GLUE_CTRL0_SRATE_SHIFT) |
-			  (0xff << ESR_GLUE_CTRL0_THCNT_SHIFT) |
-			  (BLTIME_300_CYCLES <<
-			   ESR_GLUE_CTRL0_BLTIME_SHIFT));
+				  (0xf << ESR_GLUE_CTRL0_SRATE_SHIFT) |
+				  (0xff << ESR_GLUE_CTRL0_THCNT_SHIFT) |
+				  (BLTIME_300_CYCLES <<
+				   ESR_GLUE_CTRL0_BLTIME_SHIFT));
 
 		err = esr_write_rxtx_ctrl(np, i, rxtx_ctrl);
+
 		if (err)
+		{
 			return err;
+		}
+
 		err = esr_write_glue0(np, i, glue0);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 
 	sig = nr64(ESR_INT_SIGNALS);
-	switch (np->port) {
-	case 0:
-		val = (ESR_INT_SRDY0_P0 | ESR_INT_DET0_P0);
-		mask = val;
-		break;
 
-	case 1:
-		val = (ESR_INT_SRDY0_P1 | ESR_INT_DET0_P1);
-		mask = val;
-		break;
+	switch (np->port)
+	{
+		case 0:
+			val = (ESR_INT_SRDY0_P0 | ESR_INT_DET0_P0);
+			mask = val;
+			break;
 
-	default:
-		return -EINVAL;
+		case 1:
+			val = (ESR_INT_SRDY0_P1 | ESR_INT_DET0_P1);
+			mask = val;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
-	if ((sig & mask) != val) {
+	if ((sig & mask) != val)
+	{
 		netdev_err(np->dev, "Port %u signal bits [%08x] are not [%08x]\n",
-			   np->port, (int)(sig & mask), (int)val);
+				   np->port, (int)(sig & mask), (int)val);
 		return -ENODEV;
 	}
 
@@ -1041,7 +1276,8 @@ static int link_status_1g_serdes(struct niu *np, int *link_up_p)
 
 	val = nr64_pcs(PCS_MII_STAT);
 
-	if (val & PCS_MII_STAT_LINK_STATUS) {
+	if (val & PCS_MII_STAT_LINK_STATUS)
+	{
 		link_up = 1;
 		current_speed = SPEED_1000;
 		current_duplex = DUPLEX_FULL;
@@ -1066,7 +1302,9 @@ static int link_status_10g_serdes(struct niu *np, int *link_up_p)
 	u8 current_duplex;
 
 	if (!(np->flags & NIU_FLAGS_10G))
+	{
 		return link_status_1g_serdes(np, link_up_p);
+	}
 
 	current_speed = SPEED_INVALID;
 	current_duplex = DUPLEX_INVALID;
@@ -1074,14 +1312,19 @@ static int link_status_10g_serdes(struct niu *np, int *link_up_p)
 
 	val = nr64_xpcs(XPCS_STATUS(0));
 	val2 = nr64_mac(XMAC_INTER2);
-	if (val2 & 0x01000000)
-		link_ok = 0;
 
-	if ((val & 0x1000ULL) && link_ok) {
+	if (val2 & 0x01000000)
+	{
+		link_ok = 0;
+	}
+
+	if ((val & 0x1000ULL) && link_ok)
+	{
 		link_up = 1;
 		current_speed = SPEED_10000;
 		current_duplex = DUPLEX_FULL;
 	}
+
 	lp->active_speed = current_speed;
 	lp->active_duplex = current_duplex;
 	spin_unlock_irqrestore(&np->lock, flags);
@@ -1097,64 +1340,119 @@ static int link_status_mii(struct niu *np, int *link_up_p)
 	int supported, advertising, active_speed, active_duplex;
 
 	err = mii_read(np, np->phy_addr, MII_BMCR);
+
 	if (unlikely(err < 0))
+	{
 		return err;
+	}
+
 	bmcr = err;
 
 	err = mii_read(np, np->phy_addr, MII_BMSR);
+
 	if (unlikely(err < 0))
+	{
 		return err;
+	}
+
 	bmsr = err;
 
 	err = mii_read(np, np->phy_addr, MII_ADVERTISE);
+
 	if (unlikely(err < 0))
+	{
 		return err;
+	}
+
 	advert = err;
 
 	err = mii_read(np, np->phy_addr, MII_LPA);
+
 	if (unlikely(err < 0))
+	{
 		return err;
+	}
+
 	lpa = err;
 
-	if (likely(bmsr & BMSR_ESTATEN)) {
+	if (likely(bmsr & BMSR_ESTATEN))
+	{
 		err = mii_read(np, np->phy_addr, MII_ESTATUS);
+
 		if (unlikely(err < 0))
+		{
 			return err;
+		}
+
 		estatus = err;
 
 		err = mii_read(np, np->phy_addr, MII_CTRL1000);
+
 		if (unlikely(err < 0))
+		{
 			return err;
+		}
+
 		ctrl1000 = err;
 
 		err = mii_read(np, np->phy_addr, MII_STAT1000);
+
 		if (unlikely(err < 0))
+		{
 			return err;
+		}
+
 		stat1000 = err;
-	} else
+	}
+	else
+	{
 		estatus = ctrl1000 = stat1000 = 0;
+	}
 
 	supported = 0;
+
 	if (bmsr & BMSR_ANEGCAPABLE)
+	{
 		supported |= SUPPORTED_Autoneg;
+	}
+
 	if (bmsr & BMSR_10HALF)
+	{
 		supported |= SUPPORTED_10baseT_Half;
+	}
+
 	if (bmsr & BMSR_10FULL)
+	{
 		supported |= SUPPORTED_10baseT_Full;
+	}
+
 	if (bmsr & BMSR_100HALF)
+	{
 		supported |= SUPPORTED_100baseT_Half;
+	}
+
 	if (bmsr & BMSR_100FULL)
+	{
 		supported |= SUPPORTED_100baseT_Full;
+	}
+
 	if (estatus & ESTATUS_1000_THALF)
+	{
 		supported |= SUPPORTED_1000baseT_Half;
+	}
+
 	if (estatus & ESTATUS_1000_TFULL)
+	{
 		supported |= SUPPORTED_1000baseT_Full;
+	}
+
 	lp->supported = supported;
 
 	advertising = mii_adv_to_ethtool_adv_t(advert);
 	advertising |= mii_ctrl1000_to_ethtool_adv_t(ctrl1000);
 
-	if (bmcr & BMCR_ANENABLE) {
+	if (bmcr & BMCR_ANENABLE)
+	{
 		int neg, neg1000;
 
 		lp->active_autoneg = 1;
@@ -1164,34 +1462,60 @@ static int link_status_mii(struct niu *np, int *link_up_p)
 		neg1000 = (ctrl1000 << 2) & stat1000;
 
 		if (neg1000 & (LPA_1000FULL | LPA_1000HALF))
+		{
 			active_speed = SPEED_1000;
+		}
 		else if (neg & LPA_100)
+		{
 			active_speed = SPEED_100;
+		}
 		else if (neg & (LPA_10HALF | LPA_10FULL))
+		{
 			active_speed = SPEED_10;
+		}
 		else
+		{
 			active_speed = SPEED_INVALID;
+		}
 
 		if ((neg1000 & LPA_1000FULL) || (neg & LPA_DUPLEX))
+		{
 			active_duplex = DUPLEX_FULL;
+		}
 		else if (active_speed != SPEED_INVALID)
+		{
 			active_duplex = DUPLEX_HALF;
+		}
 		else
+		{
 			active_duplex = DUPLEX_INVALID;
-	} else {
+		}
+	}
+	else
+	{
 		lp->active_autoneg = 0;
 
 		if ((bmcr & BMCR_SPEED1000) && !(bmcr & BMCR_SPEED100))
+		{
 			active_speed = SPEED_1000;
+		}
 		else if (bmcr & BMCR_SPEED100)
+		{
 			active_speed = SPEED_100;
+		}
 		else
+		{
 			active_speed = SPEED_10;
+		}
 
 		if (bmcr & BMCR_FULLDPLX)
+		{
 			active_duplex = DUPLEX_FULL;
+		}
 		else
+		{
 			active_duplex = DUPLEX_HALF;
+		}
 	}
 
 	lp->active_advertising = advertising;
@@ -1219,31 +1543,49 @@ static int link_status_1g_rgmii(struct niu *np, int *link_up_p)
 	err = -EINVAL;
 
 	err = mii_read(np, np->phy_addr, MII_BMSR);
+
 	if (err < 0)
+	{
 		goto out;
+	}
 
 	bmsr = err;
-	if (bmsr & BMSR_LSTATUS) {
+
+	if (bmsr & BMSR_LSTATUS)
+	{
 		u16 adv, lpa;
 
 		err = mii_read(np, np->phy_addr, MII_ADVERTISE);
+
 		if (err < 0)
+		{
 			goto out;
+		}
+
 		adv = err;
 
 		err = mii_read(np, np->phy_addr, MII_LPA);
+
 		if (err < 0)
+		{
 			goto out;
+		}
+
 		lpa = err;
 
 		err = mii_read(np, np->phy_addr, MII_ESTATUS);
+
 		if (err < 0)
+		{
 			goto out;
+		}
+
 		link_up = 1;
 		current_speed = SPEED_1000;
 		current_duplex = DUPLEX_FULL;
 
 	}
+
 	lp->active_speed = current_speed;
 	lp->active_duplex = current_duplex;
 	err = 0;
@@ -1276,29 +1618,47 @@ static int bcm8704_reset(struct niu *np)
 	int err, limit;
 
 	err = mdio_read(np, np->phy_addr,
-			BCM8704_PHYXS_DEV_ADDR, MII_BMCR);
+					BCM8704_PHYXS_DEV_ADDR, MII_BMCR);
+
 	if (err < 0 || err == 0xffff)
+	{
 		return err;
+	}
+
 	err |= BMCR_RESET;
 	err = mdio_write(np, np->phy_addr, BCM8704_PHYXS_DEV_ADDR,
-			 MII_BMCR, err);
+					 MII_BMCR, err);
+
 	if (err)
+	{
 		return err;
+	}
 
 	limit = 1000;
-	while (--limit >= 0) {
+
+	while (--limit >= 0)
+	{
 		err = mdio_read(np, np->phy_addr,
-				BCM8704_PHYXS_DEV_ADDR, MII_BMCR);
+						BCM8704_PHYXS_DEV_ADDR, MII_BMCR);
+
 		if (err < 0)
+		{
 			return err;
+		}
+
 		if (!(err & BMCR_RESET))
+		{
 			break;
+		}
 	}
-	if (limit < 0) {
+
+	if (limit < 0)
+	{
 		netdev_err(np->dev, "Port %u PHY will not reset (bmcr=%04x)\n",
-			   np->port, (err & 0xffff));
+				   np->port, (err & 0xffff));
 		return -ENODEV;
 	}
+
 	return 0;
 }
 
@@ -1308,11 +1668,19 @@ static int bcm8704_reset(struct niu *np)
 static int bcm8704_user_dev3_readback(struct niu *np, int reg)
 {
 	int err = mdio_read(np, np->phy_addr, BCM8704_USER_DEV3_ADDR, reg);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	err = mdio_read(np, np->phy_addr, BCM8704_USER_DEV3_ADDR, reg);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	return 0;
 }
 
@@ -1322,16 +1690,23 @@ static int bcm8706_init_user_dev3(struct niu *np)
 
 
 	err = mdio_read(np, np->phy_addr, BCM8704_USER_DEV3_ADDR,
-			BCM8704_USER_OPT_DIGITAL_CTRL);
+					BCM8704_USER_OPT_DIGITAL_CTRL);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	err &= ~USER_ODIG_CTRL_GPIOS;
 	err |= (0x3 << USER_ODIG_CTRL_GPIOS_SHIFT);
 	err |=  USER_ODIG_CTRL_RESV2;
 	err = mdio_write(np, np->phy_addr, BCM8704_USER_DEV3_ADDR,
-			 BCM8704_USER_OPT_DIGITAL_CTRL, err);
+					 BCM8704_USER_OPT_DIGITAL_CTRL, err);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mdelay(1000);
 
@@ -1343,45 +1718,65 @@ static int bcm8704_init_user_dev3(struct niu *np)
 	int err;
 
 	err = mdio_write(np, np->phy_addr,
-			 BCM8704_USER_DEV3_ADDR, BCM8704_USER_CONTROL,
-			 (USER_CONTROL_OPTXRST_LVL |
-			  USER_CONTROL_OPBIASFLT_LVL |
-			  USER_CONTROL_OBTMPFLT_LVL |
-			  USER_CONTROL_OPPRFLT_LVL |
-			  USER_CONTROL_OPTXFLT_LVL |
-			  USER_CONTROL_OPRXLOS_LVL |
-			  USER_CONTROL_OPRXFLT_LVL |
-			  USER_CONTROL_OPTXON_LVL |
-			  (0x3f << USER_CONTROL_RES1_SHIFT)));
+					 BCM8704_USER_DEV3_ADDR, BCM8704_USER_CONTROL,
+					 (USER_CONTROL_OPTXRST_LVL |
+					  USER_CONTROL_OPBIASFLT_LVL |
+					  USER_CONTROL_OBTMPFLT_LVL |
+					  USER_CONTROL_OPPRFLT_LVL |
+					  USER_CONTROL_OPTXFLT_LVL |
+					  USER_CONTROL_OPRXLOS_LVL |
+					  USER_CONTROL_OPRXFLT_LVL |
+					  USER_CONTROL_OPTXON_LVL |
+					  (0x3f << USER_CONTROL_RES1_SHIFT)));
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = mdio_write(np, np->phy_addr,
-			 BCM8704_USER_DEV3_ADDR, BCM8704_USER_PMD_TX_CONTROL,
-			 (USER_PMD_TX_CTL_XFP_CLKEN |
-			  (1 << USER_PMD_TX_CTL_TX_DAC_TXD_SH) |
-			  (2 << USER_PMD_TX_CTL_TX_DAC_TXCK_SH) |
-			  USER_PMD_TX_CTL_TSCK_LPWREN));
+					 BCM8704_USER_DEV3_ADDR, BCM8704_USER_PMD_TX_CONTROL,
+					 (USER_PMD_TX_CTL_XFP_CLKEN |
+					  (1 << USER_PMD_TX_CTL_TX_DAC_TXD_SH) |
+					  (2 << USER_PMD_TX_CTL_TX_DAC_TXCK_SH) |
+					  USER_PMD_TX_CTL_TSCK_LPWREN));
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = bcm8704_user_dev3_readback(np, BCM8704_USER_CONTROL);
+
 	if (err)
+	{
 		return err;
+	}
+
 	err = bcm8704_user_dev3_readback(np, BCM8704_USER_PMD_TX_CONTROL);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = mdio_read(np, np->phy_addr, BCM8704_USER_DEV3_ADDR,
-			BCM8704_USER_OPT_DIGITAL_CTRL);
+					BCM8704_USER_OPT_DIGITAL_CTRL);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	err &= ~USER_ODIG_CTRL_GPIOS;
 	err |= (0x3 << USER_ODIG_CTRL_GPIOS_SHIFT);
 	err = mdio_write(np, np->phy_addr, BCM8704_USER_DEV3_ADDR,
-			 BCM8704_USER_OPT_DIGITAL_CTRL, err);
+					 BCM8704_USER_OPT_DIGITAL_CTRL, err);
+
 	if (err)
+	{
 		return err;
+	}
 
 	mdelay(1000);
 
@@ -1393,15 +1788,18 @@ static int mrvl88x2011_act_led(struct niu *np, int val)
 	int	err;
 
 	err  = mdio_read(np, np->phy_addr, MRVL88X2011_USER_DEV2_ADDR,
-		MRVL88X2011_LED_8_TO_11_CTL);
-	if (err < 0)
-		return err;
+					 MRVL88X2011_LED_8_TO_11_CTL);
 
-	err &= ~MRVL88X2011_LED(MRVL88X2011_LED_ACT,MRVL88X2011_LED_CTL_MASK);
-	err |=  MRVL88X2011_LED(MRVL88X2011_LED_ACT,val);
+	if (err < 0)
+	{
+		return err;
+	}
+
+	err &= ~MRVL88X2011_LED(MRVL88X2011_LED_ACT, MRVL88X2011_LED_CTL_MASK);
+	err |=  MRVL88X2011_LED(MRVL88X2011_LED_ACT, val);
 
 	return mdio_write(np, np->phy_addr, MRVL88X2011_USER_DEV2_ADDR,
-			  MRVL88X2011_LED_8_TO_11_CTL, err);
+					  MRVL88X2011_LED_8_TO_11_CTL, err);
 }
 
 static int mrvl88x2011_led_blink_rate(struct niu *np, int rate)
@@ -1409,13 +1807,15 @@ static int mrvl88x2011_led_blink_rate(struct niu *np, int rate)
 	int	err;
 
 	err = mdio_read(np, np->phy_addr, MRVL88X2011_USER_DEV2_ADDR,
-			MRVL88X2011_LED_BLINK_CTL);
-	if (err >= 0) {
+					MRVL88X2011_LED_BLINK_CTL);
+
+	if (err >= 0)
+	{
 		err &= ~MRVL88X2011_LED_BLKRATE_MASK;
 		err |= (rate << 4);
 
 		err = mdio_write(np, np->phy_addr, MRVL88X2011_USER_DEV2_ADDR,
-				 MRVL88X2011_LED_BLINK_CTL, err);
+						 MRVL88X2011_LED_BLINK_CTL, err);
 	}
 
 	return err;
@@ -1427,44 +1827,66 @@ static int xcvr_init_10g_mrvl88x2011(struct niu *np)
 
 	/* Set LED functions */
 	err = mrvl88x2011_led_blink_rate(np, MRVL88X2011_LED_BLKRATE_134MS);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* led activity */
 	err = mrvl88x2011_act_led(np, MRVL88X2011_LED_CTL_OFF);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = mdio_read(np, np->phy_addr, MRVL88X2011_USER_DEV3_ADDR,
-			MRVL88X2011_GENERAL_CTL);
+					MRVL88X2011_GENERAL_CTL);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err |= MRVL88X2011_ENA_XFPREFCLK;
 
 	err = mdio_write(np, np->phy_addr, MRVL88X2011_USER_DEV3_ADDR,
-			 MRVL88X2011_GENERAL_CTL, err);
+					 MRVL88X2011_GENERAL_CTL, err);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = mdio_read(np, np->phy_addr, MRVL88X2011_USER_DEV1_ADDR,
-			MRVL88X2011_PMA_PMD_CTL_1);
+					MRVL88X2011_PMA_PMD_CTL_1);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	if (np->link_config.loopback_mode == LOOPBACK_MAC)
+	{
 		err |= MRVL88X2011_LOOPBACK;
+	}
 	else
+	{
 		err &= ~MRVL88X2011_LOOPBACK;
+	}
 
 	err = mdio_write(np, np->phy_addr, MRVL88X2011_USER_DEV1_ADDR,
-			 MRVL88X2011_PMA_PMD_CTL_1, err);
+					 MRVL88X2011_PMA_PMD_CTL_1, err);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* Enable PMD  */
 	return mdio_write(np, np->phy_addr, MRVL88X2011_USER_DEV1_ADDR,
-			  MRVL88X2011_10G_PMD_TX_DIS, MRVL88X2011_ENA_PMDTX);
+					  MRVL88X2011_10G_PMD_TX_DIS, MRVL88X2011_ENA_PMDTX);
 }
 
 
@@ -1475,51 +1897,83 @@ static int xcvr_diag_bcm870x(struct niu *np)
 
 #if 1
 	err = mdio_read(np, np->phy_addr, BCM8704_PMA_PMD_DEV_ADDR,
-			MII_STAT1000);
+					MII_STAT1000);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	pr_info("Port %u PMA_PMD(MII_STAT1000) [%04x]\n", np->port, err);
 
 	err = mdio_read(np, np->phy_addr, BCM8704_USER_DEV3_ADDR, 0x20);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	pr_info("Port %u USER_DEV3(0x20) [%04x]\n", np->port, err);
 
 	err = mdio_read(np, np->phy_addr, BCM8704_PHYXS_DEV_ADDR,
-			MII_NWAYTEST);
+					MII_NWAYTEST);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	pr_info("Port %u PHYXS(MII_NWAYTEST) [%04x]\n", np->port, err);
 #endif
 
 	/* XXX dig this out it might not be so useful XXX */
 	err = mdio_read(np, np->phy_addr, BCM8704_USER_DEV3_ADDR,
-			BCM8704_USER_ANALOG_STATUS0);
+					BCM8704_USER_ANALOG_STATUS0);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	err = mdio_read(np, np->phy_addr, BCM8704_USER_DEV3_ADDR,
-			BCM8704_USER_ANALOG_STATUS0);
+					BCM8704_USER_ANALOG_STATUS0);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	analog_stat0 = err;
 
 	err = mdio_read(np, np->phy_addr, BCM8704_USER_DEV3_ADDR,
-			BCM8704_USER_TX_ALARM_STATUS);
+					BCM8704_USER_TX_ALARM_STATUS);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	err = mdio_read(np, np->phy_addr, BCM8704_USER_DEV3_ADDR,
-			BCM8704_USER_TX_ALARM_STATUS);
+					BCM8704_USER_TX_ALARM_STATUS);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	tx_alarm_status = err;
 
-	if (analog_stat0 != 0x03fc) {
-		if ((analog_stat0 == 0x43bc) && (tx_alarm_status != 0)) {
+	if (analog_stat0 != 0x03fc)
+	{
+		if ((analog_stat0 == 0x43bc) && (tx_alarm_status != 0))
+		{
 			pr_info("Port %u cable not connected or bad cable\n",
-				np->port);
-		} else if (analog_stat0 == 0x639c) {
+					np->port);
+		}
+		else if (analog_stat0 == 0x639c)
+		{
 			pr_info("Port %u optical module is bad or missing\n",
-				np->port);
+					np->port);
 		}
 	}
 
@@ -1532,19 +1986,27 @@ static int xcvr_10g_set_lb_bcm870x(struct niu *np)
 	int err;
 
 	err = mdio_read(np, np->phy_addr, BCM8704_PCS_DEV_ADDR,
-			MII_BMCR);
+					MII_BMCR);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err &= ~BMCR_LOOPBACK;
 
 	if (lp->loopback_mode == LOOPBACK_MAC)
+	{
 		err |= BMCR_LOOPBACK;
+	}
 
 	err = mdio_write(np, np->phy_addr, BCM8704_PCS_DEV_ADDR,
-			 MII_BMCR, err);
+					 MII_BMCR, err);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -1555,8 +2017,10 @@ static int xcvr_init_10g_bcm8706(struct niu *np)
 	u64 val;
 
 	if ((np->flags & NIU_FLAGS_HOTPLUG_PHY) &&
-	    (np->flags & NIU_FLAGS_HOTPLUG_PHY_PRESENT) == 0)
-			return err;
+		(np->flags & NIU_FLAGS_HOTPLUG_PHY_PRESENT) == 0)
+	{
+		return err;
+	}
 
 	val = nr64_mac(XMAC_CONFIG);
 	val &= ~XMAC_CONFIG_LED_POLARITY;
@@ -1568,20 +2032,32 @@ static int xcvr_init_10g_bcm8706(struct niu *np)
 	nw64(MIF_CONFIG, val);
 
 	err = bcm8704_reset(np);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = xcvr_10g_set_lb_bcm870x(np);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = bcm8706_init_user_dev3(np);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = xcvr_diag_bcm870x(np);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -1591,20 +2067,32 @@ static int xcvr_init_10g_bcm8704(struct niu *np)
 	int err;
 
 	err = bcm8704_reset(np);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = bcm8704_init_user_dev3(np);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = xcvr_10g_set_lb_bcm870x(np);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err =  xcvr_diag_bcm870x(np);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -1628,14 +2116,15 @@ static int xcvr_init_10g(struct niu *np)
 	phy_id = np->parent->phy_probe_info.phy_id[phy_id][np->port];
 
 	/* handle different phy types */
-	switch (phy_id & NIU_PHY_ID_MASK) {
-	case NIU_PHY_ID_MRVL88X2011:
-		err = xcvr_init_10g_mrvl88x2011(np);
-		break;
+	switch (phy_id & NIU_PHY_ID_MASK)
+	{
+		case NIU_PHY_ID_MRVL88X2011:
+			err = xcvr_init_10g_mrvl88x2011(np);
+			break;
 
-	default: /* bcom 8704 */
-		err = xcvr_init_10g_bcm8704(np);
-		break;
+		default: /* bcom 8704 */
+			err = xcvr_init_10g_bcm8704(np);
+			break;
 	}
 
 	return err;
@@ -1646,21 +2135,34 @@ static int mii_reset(struct niu *np)
 	int limit, err;
 
 	err = mii_write(np, np->phy_addr, MII_BMCR, BMCR_RESET);
+
 	if (err)
+	{
 		return err;
+	}
 
 	limit = 1000;
-	while (--limit >= 0) {
+
+	while (--limit >= 0)
+	{
 		udelay(500);
 		err = mii_read(np, np->phy_addr, MII_BMCR);
+
 		if (err < 0)
+		{
 			return err;
+		}
+
 		if (!(err & BMCR_RESET))
+		{
 			break;
+		}
 	}
-	if (limit < 0) {
+
+	if (limit < 0)
+	{
 		netdev_err(np->dev, "Port %u MII would not reset, bmcr[%04x]\n",
-			   np->port, err);
+				   np->port, err);
 		return -ENODEV;
 	}
 
@@ -1678,51 +2180,84 @@ static int xcvr_init_1g_rgmii(struct niu *np)
 	nw64(MIF_CONFIG, val);
 
 	err = mii_reset(np);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = mii_read(np, np->phy_addr, MII_BMSR);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	bmsr = err;
 
 	estat = 0;
-	if (bmsr & BMSR_ESTATEN) {
+
+	if (bmsr & BMSR_ESTATEN)
+	{
 		err = mii_read(np, np->phy_addr, MII_ESTATUS);
+
 		if (err < 0)
+		{
 			return err;
+		}
+
 		estat = err;
 	}
 
 	bmcr = 0;
 	err = mii_write(np, np->phy_addr, MII_BMCR, bmcr);
-	if (err)
-		return err;
 
-	if (bmsr & BMSR_ESTATEN) {
+	if (err)
+	{
+		return err;
+	}
+
+	if (bmsr & BMSR_ESTATEN)
+	{
 		u16 ctrl1000 = 0;
 
 		if (estat & ESTATUS_1000_TFULL)
+		{
 			ctrl1000 |= ADVERTISE_1000FULL;
+		}
+
 		err = mii_write(np, np->phy_addr, MII_CTRL1000, ctrl1000);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	bmcr = (BMCR_SPEED1000 | BMCR_FULLDPLX);
 
 	err = mii_write(np, np->phy_addr, MII_BMCR, bmcr);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = mii_read(np, np->phy_addr, MII_BMCR);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	bmcr = mii_read(np, np->phy_addr, MII_BMCR);
 
 	err = mii_read(np, np->phy_addr, MII_BMSR);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -1734,129 +2269,219 @@ static int mii_init_common(struct niu *np)
 	int err;
 
 	err = mii_reset(np);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = mii_read(np, np->phy_addr, MII_BMSR);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	bmsr = err;
 
 	estat = 0;
-	if (bmsr & BMSR_ESTATEN) {
+
+	if (bmsr & BMSR_ESTATEN)
+	{
 		err = mii_read(np, np->phy_addr, MII_ESTATUS);
+
 		if (err < 0)
+		{
 			return err;
+		}
+
 		estat = err;
 	}
 
 	bmcr = 0;
 	err = mii_write(np, np->phy_addr, MII_BMCR, bmcr);
-	if (err)
-		return err;
 
-	if (lp->loopback_mode == LOOPBACK_MAC) {
-		bmcr |= BMCR_LOOPBACK;
-		if (lp->active_speed == SPEED_1000)
-			bmcr |= BMCR_SPEED1000;
-		if (lp->active_duplex == DUPLEX_FULL)
-			bmcr |= BMCR_FULLDPLX;
+	if (err)
+	{
+		return err;
 	}
 
-	if (lp->loopback_mode == LOOPBACK_PHY) {
+	if (lp->loopback_mode == LOOPBACK_MAC)
+	{
+		bmcr |= BMCR_LOOPBACK;
+
+		if (lp->active_speed == SPEED_1000)
+		{
+			bmcr |= BMCR_SPEED1000;
+		}
+
+		if (lp->active_duplex == DUPLEX_FULL)
+		{
+			bmcr |= BMCR_FULLDPLX;
+		}
+	}
+
+	if (lp->loopback_mode == LOOPBACK_PHY)
+	{
 		u16 aux;
 
 		aux = (BCM5464R_AUX_CTL_EXT_LB |
-		       BCM5464R_AUX_CTL_WRITE_1);
+			   BCM5464R_AUX_CTL_WRITE_1);
 		err = mii_write(np, np->phy_addr, BCM5464R_AUX_CTL, aux);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
-	if (lp->autoneg) {
+	if (lp->autoneg)
+	{
 		u16 ctrl1000;
 
 		adv = ADVERTISE_CSMA | ADVERTISE_PAUSE_CAP;
+
 		if ((bmsr & BMSR_10HALF) &&
 			(lp->advertising & ADVERTISED_10baseT_Half))
+		{
 			adv |= ADVERTISE_10HALF;
+		}
+
 		if ((bmsr & BMSR_10FULL) &&
 			(lp->advertising & ADVERTISED_10baseT_Full))
+		{
 			adv |= ADVERTISE_10FULL;
+		}
+
 		if ((bmsr & BMSR_100HALF) &&
 			(lp->advertising & ADVERTISED_100baseT_Half))
+		{
 			adv |= ADVERTISE_100HALF;
+		}
+
 		if ((bmsr & BMSR_100FULL) &&
 			(lp->advertising & ADVERTISED_100baseT_Full))
+		{
 			adv |= ADVERTISE_100FULL;
-		err = mii_write(np, np->phy_addr, MII_ADVERTISE, adv);
-		if (err)
-			return err;
+		}
 
-		if (likely(bmsr & BMSR_ESTATEN)) {
+		err = mii_write(np, np->phy_addr, MII_ADVERTISE, adv);
+
+		if (err)
+		{
+			return err;
+		}
+
+		if (likely(bmsr & BMSR_ESTATEN))
+		{
 			ctrl1000 = 0;
+
 			if ((estat & ESTATUS_1000_THALF) &&
 				(lp->advertising & ADVERTISED_1000baseT_Half))
+			{
 				ctrl1000 |= ADVERTISE_1000HALF;
+			}
+
 			if ((estat & ESTATUS_1000_TFULL) &&
 				(lp->advertising & ADVERTISED_1000baseT_Full))
+			{
 				ctrl1000 |= ADVERTISE_1000FULL;
+			}
+
 			err = mii_write(np, np->phy_addr,
-					MII_CTRL1000, ctrl1000);
+							MII_CTRL1000, ctrl1000);
+
 			if (err)
+			{
 				return err;
+			}
 		}
 
 		bmcr |= (BMCR_ANENABLE | BMCR_ANRESTART);
-	} else {
+	}
+	else
+	{
 		/* !lp->autoneg */
 		int fulldpx;
 
-		if (lp->duplex == DUPLEX_FULL) {
+		if (lp->duplex == DUPLEX_FULL)
+		{
 			bmcr |= BMCR_FULLDPLX;
 			fulldpx = 1;
-		} else if (lp->duplex == DUPLEX_HALF)
+		}
+		else if (lp->duplex == DUPLEX_HALF)
+		{
 			fulldpx = 0;
+		}
 		else
+		{
 			return -EINVAL;
+		}
 
-		if (lp->speed == SPEED_1000) {
+		if (lp->speed == SPEED_1000)
+		{
 			/* if X-full requested while not supported, or
 			   X-half requested while not supported... */
 			if ((fulldpx && !(estat & ESTATUS_1000_TFULL)) ||
 				(!fulldpx && !(estat & ESTATUS_1000_THALF)))
+			{
 				return -EINVAL;
+			}
+
 			bmcr |= BMCR_SPEED1000;
-		} else if (lp->speed == SPEED_100) {
+		}
+		else if (lp->speed == SPEED_100)
+		{
 			if ((fulldpx && !(bmsr & BMSR_100FULL)) ||
 				(!fulldpx && !(bmsr & BMSR_100HALF)))
+			{
 				return -EINVAL;
+			}
+
 			bmcr |= BMCR_SPEED100;
-		} else if (lp->speed == SPEED_10) {
+		}
+		else if (lp->speed == SPEED_10)
+		{
 			if ((fulldpx && !(bmsr & BMSR_10FULL)) ||
 				(!fulldpx && !(bmsr & BMSR_10HALF)))
+			{
 				return -EINVAL;
-		} else
+			}
+		}
+		else
+		{
 			return -EINVAL;
+		}
 	}
 
 	err = mii_write(np, np->phy_addr, MII_BMCR, bmcr);
+
 	if (err)
+	{
 		return err;
+	}
 
 #if 0
 	err = mii_read(np, np->phy_addr, MII_BMCR);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	bmcr = err;
 
 	err = mii_read(np, np->phy_addr, MII_BMSR);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	bmsr = err;
 
 	pr_info("Port %u after MII init bmcr[%04x] bmsr[%04x]\n",
-		np->port, bmcr, bmsr);
+			np->port, bmcr, bmsr);
 #endif
 
 	return 0;
@@ -1880,8 +2505,11 @@ static int niu_xcvr_init(struct niu *np)
 	int err;
 
 	err = 0;
+
 	if (ops->xcvr_init)
+	{
 		err = ops->xcvr_init(np);
+	}
 
 	return err;
 }
@@ -1892,8 +2520,11 @@ static int niu_serdes_init(struct niu *np)
 	int err;
 
 	err = 0;
+
 	if (ops->serdes_init)
+	{
 		err = ops->serdes_init(np);
+	}
 
 	return err;
 }
@@ -1907,13 +2538,14 @@ static int niu_link_status_common(struct niu *np, int link_up)
 	struct net_device *dev = np->dev;
 	unsigned long flags;
 
-	if (!netif_carrier_ok(dev) && link_up) {
+	if (!netif_carrier_ok(dev) && link_up)
+	{
 		netif_info(np, link, dev, "Link is up at %s, %s duplex\n",
-			   lp->active_speed == SPEED_10000 ? "10Gb/sec" :
-			   lp->active_speed == SPEED_1000 ? "1Gb/sec" :
-			   lp->active_speed == SPEED_100 ? "100Mbit/sec" :
-			   "10Mbit/sec",
-			   lp->active_duplex == DUPLEX_FULL ? "full" : "half");
+				   lp->active_speed == SPEED_10000 ? "10Gb/sec" :
+				   lp->active_speed == SPEED_1000 ? "1Gb/sec" :
+				   lp->active_speed == SPEED_100 ? "100Mbit/sec" :
+				   "10Mbit/sec",
+				   lp->active_duplex == DUPLEX_FULL ? "full" : "half");
 
 		spin_lock_irqsave(&np->lock, flags);
 		niu_init_xif(np);
@@ -1921,7 +2553,9 @@ static int niu_link_status_common(struct niu *np, int link_up)
 		spin_unlock_irqrestore(&np->lock, flags);
 
 		netif_carrier_on(dev);
-	} else if (netif_carrier_ok(dev) && !link_up) {
+	}
+	else if (netif_carrier_ok(dev) && !link_up)
+	{
 		netif_warn(np, link, dev, "Link is down\n");
 		spin_lock_irqsave(&np->lock, flags);
 		niu_handle_led(np, 0);
@@ -1939,50 +2573,67 @@ static int link_status_10g_mrvl(struct niu *np, int *link_up_p)
 	link_up = 0;
 
 	err = mdio_read(np, np->phy_addr, MRVL88X2011_USER_DEV1_ADDR,
-			MRVL88X2011_10G_PMD_STATUS_2);
+					MRVL88X2011_10G_PMD_STATUS_2);
+
 	if (err < 0)
+	{
 		goto out;
+	}
 
 	/* Check PMA/PMD Register: 1.0001.2 == 1 */
 	err = mdio_read(np, np->phy_addr, MRVL88X2011_USER_DEV1_ADDR,
-			MRVL88X2011_PMA_PMD_STATUS_1);
+					MRVL88X2011_PMA_PMD_STATUS_1);
+
 	if (err < 0)
+	{
 		goto out;
+	}
 
 	pma_status = ((err & MRVL88X2011_LNK_STATUS_OK) ? 1 : 0);
 
-        /* Check PMC Register : 3.0001.2 == 1: read twice */
+	/* Check PMC Register : 3.0001.2 == 1: read twice */
 	err = mdio_read(np, np->phy_addr, MRVL88X2011_USER_DEV3_ADDR,
-			MRVL88X2011_PMA_PMD_STATUS_1);
+					MRVL88X2011_PMA_PMD_STATUS_1);
+
 	if (err < 0)
+	{
 		goto out;
+	}
 
 	err = mdio_read(np, np->phy_addr, MRVL88X2011_USER_DEV3_ADDR,
-			MRVL88X2011_PMA_PMD_STATUS_1);
+					MRVL88X2011_PMA_PMD_STATUS_1);
+
 	if (err < 0)
+	{
 		goto out;
+	}
 
 	pcs_status = ((err & MRVL88X2011_LNK_STATUS_OK) ? 1 : 0);
 
-        /* Check XGXS Register : 4.0018.[0-3,12] */
+	/* Check XGXS Register : 4.0018.[0-3,12] */
 	err = mdio_read(np, np->phy_addr, MRVL88X2011_USER_DEV4_ADDR,
-			MRVL88X2011_10G_XGXS_LANE_STAT);
+					MRVL88X2011_10G_XGXS_LANE_STAT);
+
 	if (err < 0)
+	{
 		goto out;
+	}
 
 	if (err == (PHYXS_XGXS_LANE_STAT_ALINGED | PHYXS_XGXS_LANE_STAT_LANE3 |
-		    PHYXS_XGXS_LANE_STAT_LANE2 | PHYXS_XGXS_LANE_STAT_LANE1 |
-		    PHYXS_XGXS_LANE_STAT_LANE0 | PHYXS_XGXS_LANE_STAT_MAGIC |
-		    0x800))
+				PHYXS_XGXS_LANE_STAT_LANE2 | PHYXS_XGXS_LANE_STAT_LANE1 |
+				PHYXS_XGXS_LANE_STAT_LANE0 | PHYXS_XGXS_LANE_STAT_MAGIC |
+				0x800))
+	{
 		link_up = (pma_status && pcs_status) ? 1 : 0;
+	}
 
 	np->link_config.active_speed = SPEED_10000;
 	np->link_config.active_duplex = DUPLEX_FULL;
 	err = 0;
 out:
 	mrvl88x2011_act_led(np, (link_up ?
-				 MRVL88X2011_LED_CTL_PCS_ACT :
-				 MRVL88X2011_LED_CTL_OFF));
+							 MRVL88X2011_LED_CTL_PCS_ACT :
+							 MRVL88X2011_LED_CTL_OFF));
 
 	*link_up_p = link_up;
 	return err;
@@ -1994,35 +2645,49 @@ static int link_status_10g_bcm8706(struct niu *np, int *link_up_p)
 	link_up = 0;
 
 	err = mdio_read(np, np->phy_addr, BCM8704_PMA_PMD_DEV_ADDR,
-			BCM8704_PMD_RCV_SIGDET);
+					BCM8704_PMD_RCV_SIGDET);
+
 	if (err < 0 || err == 0xffff)
+	{
 		goto out;
-	if (!(err & PMD_RCV_SIGDET_GLOBAL)) {
+	}
+
+	if (!(err & PMD_RCV_SIGDET_GLOBAL))
+	{
 		err = 0;
 		goto out;
 	}
 
 	err = mdio_read(np, np->phy_addr, BCM8704_PCS_DEV_ADDR,
-			BCM8704_PCS_10G_R_STATUS);
-	if (err < 0)
-		goto out;
+					BCM8704_PCS_10G_R_STATUS);
 
-	if (!(err & PCS_10G_R_STATUS_BLK_LOCK)) {
+	if (err < 0)
+	{
+		goto out;
+	}
+
+	if (!(err & PCS_10G_R_STATUS_BLK_LOCK))
+	{
 		err = 0;
 		goto out;
 	}
 
 	err = mdio_read(np, np->phy_addr, BCM8704_PHYXS_DEV_ADDR,
-			BCM8704_PHYXS_XGXS_LANE_STAT);
+					BCM8704_PHYXS_XGXS_LANE_STAT);
+
 	if (err < 0)
+	{
 		goto out;
+	}
+
 	if (err != (PHYXS_XGXS_LANE_STAT_ALINGED |
-		    PHYXS_XGXS_LANE_STAT_MAGIC |
-		    PHYXS_XGXS_LANE_STAT_PATTEST |
-		    PHYXS_XGXS_LANE_STAT_LANE3 |
-		    PHYXS_XGXS_LANE_STAT_LANE2 |
-		    PHYXS_XGXS_LANE_STAT_LANE1 |
-		    PHYXS_XGXS_LANE_STAT_LANE0)) {
+				PHYXS_XGXS_LANE_STAT_MAGIC |
+				PHYXS_XGXS_LANE_STAT_PATTEST |
+				PHYXS_XGXS_LANE_STAT_LANE3 |
+				PHYXS_XGXS_LANE_STAT_LANE2 |
+				PHYXS_XGXS_LANE_STAT_LANE1 |
+				PHYXS_XGXS_LANE_STAT_LANE0))
+	{
 		err = 0;
 		np->link_config.active_speed = SPEED_INVALID;
 		np->link_config.active_duplex = DUPLEX_INVALID;
@@ -2046,34 +2711,48 @@ static int link_status_10g_bcom(struct niu *np, int *link_up_p)
 	link_up = 0;
 
 	err = mdio_read(np, np->phy_addr, BCM8704_PMA_PMD_DEV_ADDR,
-			BCM8704_PMD_RCV_SIGDET);
+					BCM8704_PMD_RCV_SIGDET);
+
 	if (err < 0)
+	{
 		goto out;
-	if (!(err & PMD_RCV_SIGDET_GLOBAL)) {
+	}
+
+	if (!(err & PMD_RCV_SIGDET_GLOBAL))
+	{
 		err = 0;
 		goto out;
 	}
 
 	err = mdio_read(np, np->phy_addr, BCM8704_PCS_DEV_ADDR,
-			BCM8704_PCS_10G_R_STATUS);
+					BCM8704_PCS_10G_R_STATUS);
+
 	if (err < 0)
+	{
 		goto out;
-	if (!(err & PCS_10G_R_STATUS_BLK_LOCK)) {
+	}
+
+	if (!(err & PCS_10G_R_STATUS_BLK_LOCK))
+	{
 		err = 0;
 		goto out;
 	}
 
 	err = mdio_read(np, np->phy_addr, BCM8704_PHYXS_DEV_ADDR,
-			BCM8704_PHYXS_XGXS_LANE_STAT);
+					BCM8704_PHYXS_XGXS_LANE_STAT);
+
 	if (err < 0)
+	{
 		goto out;
+	}
 
 	if (err != (PHYXS_XGXS_LANE_STAT_ALINGED |
-		    PHYXS_XGXS_LANE_STAT_MAGIC |
-		    PHYXS_XGXS_LANE_STAT_LANE3 |
-		    PHYXS_XGXS_LANE_STAT_LANE2 |
-		    PHYXS_XGXS_LANE_STAT_LANE1 |
-		    PHYXS_XGXS_LANE_STAT_LANE0)) {
+				PHYXS_XGXS_LANE_STAT_MAGIC |
+				PHYXS_XGXS_LANE_STAT_LANE3 |
+				PHYXS_XGXS_LANE_STAT_LANE2 |
+				PHYXS_XGXS_LANE_STAT_LANE1 |
+				PHYXS_XGXS_LANE_STAT_LANE0))
+	{
 		err = 0;
 		goto out;
 	}
@@ -2095,21 +2774,23 @@ static int link_status_10g(struct niu *np, int *link_up_p)
 
 	spin_lock_irqsave(&np->lock, flags);
 
-	if (np->link_config.loopback_mode == LOOPBACK_DISABLED) {
+	if (np->link_config.loopback_mode == LOOPBACK_DISABLED)
+	{
 		int phy_id;
 
 		phy_id = phy_decode(np->parent->port_phy, np->port);
 		phy_id = np->parent->phy_probe_info.phy_id[phy_id][np->port];
 
 		/* handle different phy types */
-		switch (phy_id & NIU_PHY_ID_MASK) {
-		case NIU_PHY_ID_MRVL88X2011:
-			err = link_status_10g_mrvl(np, link_up_p);
-			break;
+		switch (phy_id & NIU_PHY_ID_MASK)
+		{
+			case NIU_PHY_ID_MRVL88X2011:
+				err = link_status_10g_mrvl(np, link_up_p);
+				break;
 
-		default: /* bcom 8704 */
-			err = link_status_10g_bcom(np, link_up_p);
-			break;
+			default: /* bcom 8704 */
+				err = link_status_10g_bcom(np, link_up_p);
+				break;
 		}
 	}
 
@@ -2123,35 +2804,40 @@ static int niu_10g_phy_present(struct niu *np)
 	u64 sig, mask, val;
 
 	sig = nr64(ESR_INT_SIGNALS);
-	switch (np->port) {
-	case 0:
-		mask = ESR_INT_SIGNALS_P0_BITS;
-		val = (ESR_INT_SRDY0_P0 |
-		       ESR_INT_DET0_P0 |
-		       ESR_INT_XSRDY_P0 |
-		       ESR_INT_XDP_P0_CH3 |
-		       ESR_INT_XDP_P0_CH2 |
-		       ESR_INT_XDP_P0_CH1 |
-		       ESR_INT_XDP_P0_CH0);
-		break;
 
-	case 1:
-		mask = ESR_INT_SIGNALS_P1_BITS;
-		val = (ESR_INT_SRDY0_P1 |
-		       ESR_INT_DET0_P1 |
-		       ESR_INT_XSRDY_P1 |
-		       ESR_INT_XDP_P1_CH3 |
-		       ESR_INT_XDP_P1_CH2 |
-		       ESR_INT_XDP_P1_CH1 |
-		       ESR_INT_XDP_P1_CH0);
-		break;
+	switch (np->port)
+	{
+		case 0:
+			mask = ESR_INT_SIGNALS_P0_BITS;
+			val = (ESR_INT_SRDY0_P0 |
+				   ESR_INT_DET0_P0 |
+				   ESR_INT_XSRDY_P0 |
+				   ESR_INT_XDP_P0_CH3 |
+				   ESR_INT_XDP_P0_CH2 |
+				   ESR_INT_XDP_P0_CH1 |
+				   ESR_INT_XDP_P0_CH0);
+			break;
 
-	default:
-		return 0;
+		case 1:
+			mask = ESR_INT_SIGNALS_P1_BITS;
+			val = (ESR_INT_SRDY0_P1 |
+				   ESR_INT_DET0_P1 |
+				   ESR_INT_XSRDY_P1 |
+				   ESR_INT_XDP_P1_CH3 |
+				   ESR_INT_XDP_P1_CH2 |
+				   ESR_INT_XDP_P1_CH1 |
+				   ESR_INT_XDP_P1_CH0);
+			break;
+
+		default:
+			return 0;
 	}
 
 	if ((sig & mask) != val)
+	{
 		return 0;
+	}
+
 	return 1;
 }
 
@@ -2164,38 +2850,57 @@ static int link_status_10g_hotplug(struct niu *np, int *link_up_p)
 
 	spin_lock_irqsave(&np->lock, flags);
 
-	if (np->link_config.loopback_mode == LOOPBACK_DISABLED) {
+	if (np->link_config.loopback_mode == LOOPBACK_DISABLED)
+	{
 		phy_present_prev = (np->flags & NIU_FLAGS_HOTPLUG_PHY_PRESENT) ?
-			1 : 0;
+						   1 : 0;
 		phy_present = niu_10g_phy_present(np);
-		if (phy_present != phy_present_prev) {
+
+		if (phy_present != phy_present_prev)
+		{
 			/* state change */
-			if (phy_present) {
+			if (phy_present)
+			{
 				/* A NEM was just plugged in */
 				np->flags |= NIU_FLAGS_HOTPLUG_PHY_PRESENT;
+
 				if (np->phy_ops->xcvr_init)
+				{
 					err = np->phy_ops->xcvr_init(np);
-				if (err) {
+				}
+
+				if (err)
+				{
 					err = mdio_read(np, np->phy_addr,
-						BCM8704_PHYXS_DEV_ADDR, MII_BMCR);
-					if (err == 0xffff) {
+									BCM8704_PHYXS_DEV_ADDR, MII_BMCR);
+
+					if (err == 0xffff)
+					{
 						/* No mdio, back-to-back XAUI */
 						goto out;
 					}
+
 					/* debounce */
 					np->flags &= ~NIU_FLAGS_HOTPLUG_PHY_PRESENT;
 				}
-			} else {
+			}
+			else
+			{
 				np->flags &= ~NIU_FLAGS_HOTPLUG_PHY_PRESENT;
 				*link_up_p = 0;
 				netif_warn(np, link, np->dev,
-					   "Hotplug PHY Removed\n");
+						   "Hotplug PHY Removed\n");
 			}
 		}
+
 out:
-		if (np->flags & NIU_FLAGS_HOTPLUG_PHY_PRESENT) {
+
+		if (np->flags & NIU_FLAGS_HOTPLUG_PHY_PRESENT)
+		{
 			err = link_status_10g_bcm8706(np, link_up_p);
-			if (err == 0xffff) {
+
+			if (err == 0xffff)
+			{
 				/* No mdio, back-to-back XAUI: it is C10NEM */
 				*link_up_p = 1;
 				np->link_config.active_speed = SPEED_10000;
@@ -2215,8 +2920,11 @@ static int niu_link_status(struct niu *np, int *link_up_p)
 	int err;
 
 	err = 0;
+
 	if (ops->link_status)
+	{
 		err = ops->link_status(np, link_up_p);
+	}
 
 	return err;
 }
@@ -2228,139 +2936,171 @@ static void niu_timer(unsigned long __opaque)
 	int err, link_up;
 
 	err = niu_link_status(np, &link_up);
+
 	if (!err)
+	{
 		niu_link_status_common(np, link_up);
+	}
 
 	if (netif_carrier_ok(np->dev))
+	{
 		off = 5 * HZ;
+	}
 	else
+	{
 		off = 1 * HZ;
+	}
+
 	np->timer.expires = jiffies + off;
 
 	add_timer(&np->timer);
 }
 
-static const struct niu_phy_ops phy_ops_10g_serdes = {
+static const struct niu_phy_ops phy_ops_10g_serdes =
+{
 	.serdes_init		= serdes_init_10g_serdes,
 	.link_status		= link_status_10g_serdes,
 };
 
-static const struct niu_phy_ops phy_ops_10g_serdes_niu = {
+static const struct niu_phy_ops phy_ops_10g_serdes_niu =
+{
 	.serdes_init		= serdes_init_niu_10g_serdes,
 	.link_status		= link_status_10g_serdes,
 };
 
-static const struct niu_phy_ops phy_ops_1g_serdes_niu = {
+static const struct niu_phy_ops phy_ops_1g_serdes_niu =
+{
 	.serdes_init		= serdes_init_niu_1g_serdes,
 	.link_status		= link_status_1g_serdes,
 };
 
-static const struct niu_phy_ops phy_ops_1g_rgmii = {
+static const struct niu_phy_ops phy_ops_1g_rgmii =
+{
 	.xcvr_init		= xcvr_init_1g_rgmii,
 	.link_status		= link_status_1g_rgmii,
 };
 
-static const struct niu_phy_ops phy_ops_10g_fiber_niu = {
+static const struct niu_phy_ops phy_ops_10g_fiber_niu =
+{
 	.serdes_init		= serdes_init_niu_10g_fiber,
 	.xcvr_init		= xcvr_init_10g,
 	.link_status		= link_status_10g,
 };
 
-static const struct niu_phy_ops phy_ops_10g_fiber = {
+static const struct niu_phy_ops phy_ops_10g_fiber =
+{
 	.serdes_init		= serdes_init_10g,
 	.xcvr_init		= xcvr_init_10g,
 	.link_status		= link_status_10g,
 };
 
-static const struct niu_phy_ops phy_ops_10g_fiber_hotplug = {
+static const struct niu_phy_ops phy_ops_10g_fiber_hotplug =
+{
 	.serdes_init		= serdes_init_10g,
 	.xcvr_init		= xcvr_init_10g_bcm8706,
 	.link_status		= link_status_10g_hotplug,
 };
 
-static const struct niu_phy_ops phy_ops_niu_10g_hotplug = {
+static const struct niu_phy_ops phy_ops_niu_10g_hotplug =
+{
 	.serdes_init		= serdes_init_niu_10g_fiber,
 	.xcvr_init		= xcvr_init_10g_bcm8706,
 	.link_status		= link_status_10g_hotplug,
 };
 
-static const struct niu_phy_ops phy_ops_10g_copper = {
+static const struct niu_phy_ops phy_ops_10g_copper =
+{
 	.serdes_init		= serdes_init_10g,
 	.link_status		= link_status_10g, /* XXX */
 };
 
-static const struct niu_phy_ops phy_ops_1g_fiber = {
+static const struct niu_phy_ops phy_ops_1g_fiber =
+{
 	.serdes_init		= serdes_init_1g,
 	.xcvr_init		= xcvr_init_1g,
 	.link_status		= link_status_1g,
 };
 
-static const struct niu_phy_ops phy_ops_1g_copper = {
+static const struct niu_phy_ops phy_ops_1g_copper =
+{
 	.xcvr_init		= xcvr_init_1g,
 	.link_status		= link_status_1g,
 };
 
-struct niu_phy_template {
+struct niu_phy_template
+{
 	const struct niu_phy_ops	*ops;
 	u32				phy_addr_base;
 };
 
-static const struct niu_phy_template phy_template_niu_10g_fiber = {
+static const struct niu_phy_template phy_template_niu_10g_fiber =
+{
 	.ops		= &phy_ops_10g_fiber_niu,
 	.phy_addr_base	= 16,
 };
 
-static const struct niu_phy_template phy_template_niu_10g_serdes = {
+static const struct niu_phy_template phy_template_niu_10g_serdes =
+{
 	.ops		= &phy_ops_10g_serdes_niu,
 	.phy_addr_base	= 0,
 };
 
-static const struct niu_phy_template phy_template_niu_1g_serdes = {
+static const struct niu_phy_template phy_template_niu_1g_serdes =
+{
 	.ops		= &phy_ops_1g_serdes_niu,
 	.phy_addr_base	= 0,
 };
 
-static const struct niu_phy_template phy_template_10g_fiber = {
+static const struct niu_phy_template phy_template_10g_fiber =
+{
 	.ops		= &phy_ops_10g_fiber,
 	.phy_addr_base	= 8,
 };
 
-static const struct niu_phy_template phy_template_10g_fiber_hotplug = {
+static const struct niu_phy_template phy_template_10g_fiber_hotplug =
+{
 	.ops		= &phy_ops_10g_fiber_hotplug,
 	.phy_addr_base	= 8,
 };
 
-static const struct niu_phy_template phy_template_niu_10g_hotplug = {
+static const struct niu_phy_template phy_template_niu_10g_hotplug =
+{
 	.ops		= &phy_ops_niu_10g_hotplug,
 	.phy_addr_base	= 8,
 };
 
-static const struct niu_phy_template phy_template_10g_copper = {
+static const struct niu_phy_template phy_template_10g_copper =
+{
 	.ops		= &phy_ops_10g_copper,
 	.phy_addr_base	= 10,
 };
 
-static const struct niu_phy_template phy_template_1g_fiber = {
+static const struct niu_phy_template phy_template_1g_fiber =
+{
 	.ops		= &phy_ops_1g_fiber,
 	.phy_addr_base	= 0,
 };
 
-static const struct niu_phy_template phy_template_1g_copper = {
+static const struct niu_phy_template phy_template_1g_copper =
+{
 	.ops		= &phy_ops_1g_copper,
 	.phy_addr_base	= 0,
 };
 
-static const struct niu_phy_template phy_template_1g_rgmii = {
+static const struct niu_phy_template phy_template_1g_rgmii =
+{
 	.ops		= &phy_ops_1g_rgmii,
 	.phy_addr_base	= 0,
 };
 
-static const struct niu_phy_template phy_template_10g_serdes = {
+static const struct niu_phy_template phy_template_10g_serdes =
+{
 	.ops		= &phy_ops_10g_serdes,
 	.phy_addr_base	= 0,
 };
 
-static int niu_atca_port_num[4] = {
+static int niu_atca_port_num[4] =
+{
 	0, 0,  11, 10
 };
 
@@ -2370,44 +3110,48 @@ static int serdes_init_10g_serdes(struct niu *np)
 	unsigned long ctrl_reg, test_cfg_reg, pll_cfg, i;
 	u64 ctrl_val, test_cfg_val, sig, mask, val;
 
-	switch (np->port) {
-	case 0:
-		ctrl_reg = ENET_SERDES_0_CTRL_CFG;
-		test_cfg_reg = ENET_SERDES_0_TEST_CFG;
-		pll_cfg = ENET_SERDES_0_PLL_CFG;
-		break;
-	case 1:
-		ctrl_reg = ENET_SERDES_1_CTRL_CFG;
-		test_cfg_reg = ENET_SERDES_1_TEST_CFG;
-		pll_cfg = ENET_SERDES_1_PLL_CFG;
-		break;
+	switch (np->port)
+	{
+		case 0:
+			ctrl_reg = ENET_SERDES_0_CTRL_CFG;
+			test_cfg_reg = ENET_SERDES_0_TEST_CFG;
+			pll_cfg = ENET_SERDES_0_PLL_CFG;
+			break;
 
-	default:
-		return -EINVAL;
+		case 1:
+			ctrl_reg = ENET_SERDES_1_CTRL_CFG;
+			test_cfg_reg = ENET_SERDES_1_TEST_CFG;
+			pll_cfg = ENET_SERDES_1_PLL_CFG;
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	ctrl_val = (ENET_SERDES_CTRL_SDET_0 |
-		    ENET_SERDES_CTRL_SDET_1 |
-		    ENET_SERDES_CTRL_SDET_2 |
-		    ENET_SERDES_CTRL_SDET_3 |
-		    (0x5 << ENET_SERDES_CTRL_EMPH_0_SHIFT) |
-		    (0x5 << ENET_SERDES_CTRL_EMPH_1_SHIFT) |
-		    (0x5 << ENET_SERDES_CTRL_EMPH_2_SHIFT) |
-		    (0x5 << ENET_SERDES_CTRL_EMPH_3_SHIFT) |
-		    (0x1 << ENET_SERDES_CTRL_LADJ_0_SHIFT) |
-		    (0x1 << ENET_SERDES_CTRL_LADJ_1_SHIFT) |
-		    (0x1 << ENET_SERDES_CTRL_LADJ_2_SHIFT) |
-		    (0x1 << ENET_SERDES_CTRL_LADJ_3_SHIFT));
+				ENET_SERDES_CTRL_SDET_1 |
+				ENET_SERDES_CTRL_SDET_2 |
+				ENET_SERDES_CTRL_SDET_3 |
+				(0x5 << ENET_SERDES_CTRL_EMPH_0_SHIFT) |
+				(0x5 << ENET_SERDES_CTRL_EMPH_1_SHIFT) |
+				(0x5 << ENET_SERDES_CTRL_EMPH_2_SHIFT) |
+				(0x5 << ENET_SERDES_CTRL_EMPH_3_SHIFT) |
+				(0x1 << ENET_SERDES_CTRL_LADJ_0_SHIFT) |
+				(0x1 << ENET_SERDES_CTRL_LADJ_1_SHIFT) |
+				(0x1 << ENET_SERDES_CTRL_LADJ_2_SHIFT) |
+				(0x1 << ENET_SERDES_CTRL_LADJ_3_SHIFT));
 	test_cfg_val = 0;
 
-	if (lp->loopback_mode == LOOPBACK_PHY) {
+	if (lp->loopback_mode == LOOPBACK_PHY)
+	{
 		test_cfg_val |= ((ENET_TEST_MD_PAD_LOOPBACK <<
-				  ENET_SERDES_TEST_MD_0_SHIFT) |
-				 (ENET_TEST_MD_PAD_LOOPBACK <<
-				  ENET_SERDES_TEST_MD_1_SHIFT) |
-				 (ENET_TEST_MD_PAD_LOOPBACK <<
-				  ENET_SERDES_TEST_MD_2_SHIFT) |
-				 (ENET_TEST_MD_PAD_LOOPBACK <<
-				  ENET_SERDES_TEST_MD_3_SHIFT));
+						  ENET_SERDES_TEST_MD_0_SHIFT) |
+						 (ENET_TEST_MD_PAD_LOOPBACK <<
+						  ENET_SERDES_TEST_MD_1_SHIFT) |
+						 (ENET_TEST_MD_PAD_LOOPBACK <<
+						  ENET_SERDES_TEST_MD_2_SHIFT) |
+						 (ENET_TEST_MD_PAD_LOOPBACK <<
+						  ENET_SERDES_TEST_MD_3_SHIFT));
 	}
 
 	esr_reset(np);
@@ -2416,76 +3160,98 @@ static int serdes_init_10g_serdes(struct niu *np)
 	nw64(test_cfg_reg, test_cfg_val);
 
 	/* Initialize all 4 lanes of the SERDES.  */
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		u32 rxtx_ctrl, glue0;
 		int err;
 
 		err = esr_read_rxtx_ctrl(np, i, &rxtx_ctrl);
+
 		if (err)
+		{
 			return err;
+		}
+
 		err = esr_read_glue0(np, i, &glue0);
+
 		if (err)
+		{
 			return err;
+		}
 
 		rxtx_ctrl &= ~(ESR_RXTX_CTRL_VMUXLO);
 		rxtx_ctrl |= (ESR_RXTX_CTRL_ENSTRETCH |
-			      (2 << ESR_RXTX_CTRL_VMUXLO_SHIFT));
+					  (2 << ESR_RXTX_CTRL_VMUXLO_SHIFT));
 
 		glue0 &= ~(ESR_GLUE_CTRL0_SRATE |
-			   ESR_GLUE_CTRL0_THCNT |
-			   ESR_GLUE_CTRL0_BLTIME);
+				   ESR_GLUE_CTRL0_THCNT |
+				   ESR_GLUE_CTRL0_BLTIME);
 		glue0 |= (ESR_GLUE_CTRL0_RXLOSENAB |
-			  (0xf << ESR_GLUE_CTRL0_SRATE_SHIFT) |
-			  (0xff << ESR_GLUE_CTRL0_THCNT_SHIFT) |
-			  (BLTIME_300_CYCLES <<
-			   ESR_GLUE_CTRL0_BLTIME_SHIFT));
+				  (0xf << ESR_GLUE_CTRL0_SRATE_SHIFT) |
+				  (0xff << ESR_GLUE_CTRL0_THCNT_SHIFT) |
+				  (BLTIME_300_CYCLES <<
+				   ESR_GLUE_CTRL0_BLTIME_SHIFT));
 
 		err = esr_write_rxtx_ctrl(np, i, rxtx_ctrl);
+
 		if (err)
+		{
 			return err;
+		}
+
 		err = esr_write_glue0(np, i, glue0);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 
 	sig = nr64(ESR_INT_SIGNALS);
-	switch (np->port) {
-	case 0:
-		mask = ESR_INT_SIGNALS_P0_BITS;
-		val = (ESR_INT_SRDY0_P0 |
-		       ESR_INT_DET0_P0 |
-		       ESR_INT_XSRDY_P0 |
-		       ESR_INT_XDP_P0_CH3 |
-		       ESR_INT_XDP_P0_CH2 |
-		       ESR_INT_XDP_P0_CH1 |
-		       ESR_INT_XDP_P0_CH0);
-		break;
 
-	case 1:
-		mask = ESR_INT_SIGNALS_P1_BITS;
-		val = (ESR_INT_SRDY0_P1 |
-		       ESR_INT_DET0_P1 |
-		       ESR_INT_XSRDY_P1 |
-		       ESR_INT_XDP_P1_CH3 |
-		       ESR_INT_XDP_P1_CH2 |
-		       ESR_INT_XDP_P1_CH1 |
-		       ESR_INT_XDP_P1_CH0);
-		break;
+	switch (np->port)
+	{
+		case 0:
+			mask = ESR_INT_SIGNALS_P0_BITS;
+			val = (ESR_INT_SRDY0_P0 |
+				   ESR_INT_DET0_P0 |
+				   ESR_INT_XSRDY_P0 |
+				   ESR_INT_XDP_P0_CH3 |
+				   ESR_INT_XDP_P0_CH2 |
+				   ESR_INT_XDP_P0_CH1 |
+				   ESR_INT_XDP_P0_CH0);
+			break;
 
-	default:
-		return -EINVAL;
+		case 1:
+			mask = ESR_INT_SIGNALS_P1_BITS;
+			val = (ESR_INT_SRDY0_P1 |
+				   ESR_INT_DET0_P1 |
+				   ESR_INT_XSRDY_P1 |
+				   ESR_INT_XDP_P1_CH3 |
+				   ESR_INT_XDP_P1_CH2 |
+				   ESR_INT_XDP_P1_CH1 |
+				   ESR_INT_XDP_P1_CH0);
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
-	if ((sig & mask) != val) {
+	if ((sig & mask) != val)
+	{
 		int err;
 		err = serdes_init_1g_serdes(np);
-		if (!err) {
+
+		if (!err)
+		{
 			np->flags &= ~NIU_FLAGS_10G;
 			np->mac_xcvr = MAC_XCVR_PCS;
-		}  else {
+		}
+		else
+		{
 			netdev_err(np->dev, "Port %u 10G/1G SERDES Link Failed\n",
-				   np->port);
+					   np->port);
 			return -ENODEV;
 		}
 	}
@@ -2500,96 +3266,136 @@ static int niu_determine_phy_disposition(struct niu *np)
 	const struct niu_phy_template *tp;
 	u32 phy_addr_off = 0;
 
-	if (plat_type == PLAT_TYPE_NIU) {
+	if (plat_type == PLAT_TYPE_NIU)
+	{
 		switch (np->flags &
-			(NIU_FLAGS_10G |
-			 NIU_FLAGS_FIBER |
-			 NIU_FLAGS_XCVR_SERDES)) {
-		case NIU_FLAGS_10G | NIU_FLAGS_XCVR_SERDES:
-			/* 10G Serdes */
-			tp = &phy_template_niu_10g_serdes;
-			break;
-		case NIU_FLAGS_XCVR_SERDES:
-			/* 1G Serdes */
-			tp = &phy_template_niu_1g_serdes;
-			break;
-		case NIU_FLAGS_10G | NIU_FLAGS_FIBER:
+				(NIU_FLAGS_10G |
+				 NIU_FLAGS_FIBER |
+				 NIU_FLAGS_XCVR_SERDES))
+		{
+			case NIU_FLAGS_10G | NIU_FLAGS_XCVR_SERDES:
+				/* 10G Serdes */
+				tp = &phy_template_niu_10g_serdes;
+				break;
+
+			case NIU_FLAGS_XCVR_SERDES:
+				/* 1G Serdes */
+				tp = &phy_template_niu_1g_serdes;
+				break;
+
+			case NIU_FLAGS_10G | NIU_FLAGS_FIBER:
+
 			/* 10G Fiber */
-		default:
-			if (np->flags & NIU_FLAGS_HOTPLUG_PHY) {
-				tp = &phy_template_niu_10g_hotplug;
-				if (np->port == 0)
-					phy_addr_off = 8;
-				if (np->port == 1)
-					phy_addr_off = 12;
-			} else {
-				tp = &phy_template_niu_10g_fiber;
-				phy_addr_off += np->port;
-			}
-			break;
+			default:
+				if (np->flags & NIU_FLAGS_HOTPLUG_PHY)
+				{
+					tp = &phy_template_niu_10g_hotplug;
+
+					if (np->port == 0)
+					{
+						phy_addr_off = 8;
+					}
+
+					if (np->port == 1)
+					{
+						phy_addr_off = 12;
+					}
+				}
+				else
+				{
+					tp = &phy_template_niu_10g_fiber;
+					phy_addr_off += np->port;
+				}
+
+				break;
 		}
-	} else {
+	}
+	else
+	{
 		switch (np->flags &
-			(NIU_FLAGS_10G |
-			 NIU_FLAGS_FIBER |
-			 NIU_FLAGS_XCVR_SERDES)) {
-		case 0:
-			/* 1G copper */
-			tp = &phy_template_1g_copper;
-			if (plat_type == PLAT_TYPE_VF_P0)
-				phy_addr_off = 10;
-			else if (plat_type == PLAT_TYPE_VF_P1)
-				phy_addr_off = 26;
-
-			phy_addr_off += (np->port ^ 0x3);
-			break;
-
-		case NIU_FLAGS_10G:
-			/* 10G copper */
-			tp = &phy_template_10g_copper;
-			break;
-
-		case NIU_FLAGS_FIBER:
-			/* 1G fiber */
-			tp = &phy_template_1g_fiber;
-			break;
-
-		case NIU_FLAGS_10G | NIU_FLAGS_FIBER:
-			/* 10G fiber */
-			tp = &phy_template_10g_fiber;
-			if (plat_type == PLAT_TYPE_VF_P0 ||
-			    plat_type == PLAT_TYPE_VF_P1)
-				phy_addr_off = 8;
-			phy_addr_off += np->port;
-			if (np->flags & NIU_FLAGS_HOTPLUG_PHY) {
-				tp = &phy_template_10g_fiber_hotplug;
-				if (np->port == 0)
-					phy_addr_off = 8;
-				if (np->port == 1)
-					phy_addr_off = 12;
-			}
-			break;
-
-		case NIU_FLAGS_10G | NIU_FLAGS_XCVR_SERDES:
-		case NIU_FLAGS_XCVR_SERDES | NIU_FLAGS_FIBER:
-		case NIU_FLAGS_XCVR_SERDES:
-			switch(np->port) {
+				(NIU_FLAGS_10G |
+				 NIU_FLAGS_FIBER |
+				 NIU_FLAGS_XCVR_SERDES))
+		{
 			case 0:
-			case 1:
-				tp = &phy_template_10g_serdes;
+				/* 1G copper */
+				tp = &phy_template_1g_copper;
+
+				if (plat_type == PLAT_TYPE_VF_P0)
+				{
+					phy_addr_off = 10;
+				}
+				else if (plat_type == PLAT_TYPE_VF_P1)
+				{
+					phy_addr_off = 26;
+				}
+
+				phy_addr_off += (np->port ^ 0x3);
 				break;
-			case 2:
-			case 3:
-				tp = &phy_template_1g_rgmii;
+
+			case NIU_FLAGS_10G:
+				/* 10G copper */
+				tp = &phy_template_10g_copper;
 				break;
+
+			case NIU_FLAGS_FIBER:
+				/* 1G fiber */
+				tp = &phy_template_1g_fiber;
+				break;
+
+			case NIU_FLAGS_10G | NIU_FLAGS_FIBER:
+				/* 10G fiber */
+				tp = &phy_template_10g_fiber;
+
+				if (plat_type == PLAT_TYPE_VF_P0 ||
+					plat_type == PLAT_TYPE_VF_P1)
+				{
+					phy_addr_off = 8;
+				}
+
+				phy_addr_off += np->port;
+
+				if (np->flags & NIU_FLAGS_HOTPLUG_PHY)
+				{
+					tp = &phy_template_10g_fiber_hotplug;
+
+					if (np->port == 0)
+					{
+						phy_addr_off = 8;
+					}
+
+					if (np->port == 1)
+					{
+						phy_addr_off = 12;
+					}
+				}
+
+				break;
+
+			case NIU_FLAGS_10G | NIU_FLAGS_XCVR_SERDES:
+			case NIU_FLAGS_XCVR_SERDES | NIU_FLAGS_FIBER:
+			case NIU_FLAGS_XCVR_SERDES:
+				switch (np->port)
+				{
+					case 0:
+					case 1:
+						tp = &phy_template_10g_serdes;
+						break;
+
+					case 2:
+					case 3:
+						tp = &phy_template_1g_rgmii;
+						break;
+
+					default:
+						return -EINVAL;
+				}
+
+				phy_addr_off = niu_atca_port_num[np->port];
+				break;
+
 			default:
 				return -EINVAL;
-			}
-			phy_addr_off = niu_atca_port_num[np->port];
-			break;
-
-		default:
-			return -EINVAL;
 		}
 	}
 
@@ -2604,19 +3410,33 @@ static int niu_init_link(struct niu *np)
 	struct niu_parent *parent = np->parent;
 	int err, ignore;
 
-	if (parent->plat_type == PLAT_TYPE_NIU) {
+	if (parent->plat_type == PLAT_TYPE_NIU)
+	{
 		err = niu_xcvr_init(np);
+
 		if (err)
+		{
 			return err;
+		}
+
 		msleep(200);
 	}
+
 	err = niu_serdes_init(np);
+
 	if (err && !(np->flags & NIU_FLAGS_HOTPLUG_PHY))
+	{
 		return err;
+	}
+
 	msleep(200);
 	err = niu_xcvr_init(np);
+
 	if (!err || (np->flags & NIU_FLAGS_HOTPLUG_PHY))
+	{
 		niu_link_status(np, &ignore);
+	}
+
 	return 0;
 }
 
@@ -2626,11 +3446,14 @@ static void niu_set_primary_mac(struct niu *np, unsigned char *addr)
 	u16 reg1 = addr[2] << 8 | addr[3];
 	u16 reg2 = addr[0] << 8 | addr[1];
 
-	if (np->flags & NIU_FLAGS_XMAC) {
+	if (np->flags & NIU_FLAGS_XMAC)
+	{
 		nw64_mac(XMAC_ADDR0, reg0);
 		nw64_mac(XMAC_ADDR1, reg1);
 		nw64_mac(XMAC_ADDR2, reg2);
-	} else {
+	}
+	else
+	{
 		nw64_mac(BMAC_ADDR0, reg0);
 		nw64_mac(BMAC_ADDR1, reg1);
 		nw64_mac(BMAC_ADDR2, reg2);
@@ -2640,9 +3463,13 @@ static void niu_set_primary_mac(struct niu *np, unsigned char *addr)
 static int niu_num_alt_addr(struct niu *np)
 {
 	if (np->flags & NIU_FLAGS_XMAC)
+	{
 		return XMAC_NUM_ALT_ADDR;
+	}
 	else
+	{
 		return BMAC_NUM_ALT_ADDR;
+	}
 }
 
 static int niu_set_alt_mac(struct niu *np, int index, unsigned char *addr)
@@ -2652,13 +3479,18 @@ static int niu_set_alt_mac(struct niu *np, int index, unsigned char *addr)
 	u16 reg2 = addr[0] << 8 | addr[1];
 
 	if (index >= niu_num_alt_addr(np))
+	{
 		return -EINVAL;
+	}
 
-	if (np->flags & NIU_FLAGS_XMAC) {
+	if (np->flags & NIU_FLAGS_XMAC)
+	{
 		nw64_mac(XMAC_ALT_ADDR0(index), reg0);
 		nw64_mac(XMAC_ALT_ADDR1(index), reg1);
 		nw64_mac(XMAC_ALT_ADDR2(index), reg2);
-	} else {
+	}
+	else
+	{
 		nw64_mac(BMAC_ALT_ADDR0(index), reg0);
 		nw64_mac(BMAC_ALT_ADDR1(index), reg1);
 		nw64_mac(BMAC_ALT_ADDR2(index), reg2);
@@ -2673,70 +3505,96 @@ static int niu_enable_alt_mac(struct niu *np, int index, int on)
 	u64 val, mask;
 
 	if (index >= niu_num_alt_addr(np))
+	{
 		return -EINVAL;
+	}
 
-	if (np->flags & NIU_FLAGS_XMAC) {
+	if (np->flags & NIU_FLAGS_XMAC)
+	{
 		reg = XMAC_ADDR_CMPEN;
 		mask = 1 << index;
-	} else {
+	}
+	else
+	{
 		reg = BMAC_ADDR_CMPEN;
 		mask = 1 << (index + 1);
 	}
 
 	val = nr64_mac(reg);
+
 	if (on)
+	{
 		val |= mask;
+	}
 	else
+	{
 		val &= ~mask;
+	}
+
 	nw64_mac(reg, val);
 
 	return 0;
 }
 
 static void __set_rdc_table_num_hw(struct niu *np, unsigned long reg,
-				   int num, int mac_pref)
+								   int num, int mac_pref)
 {
 	u64 val = nr64_mac(reg);
 	val &= ~(HOST_INFO_MACRDCTBLN | HOST_INFO_MPR);
 	val |= num;
+
 	if (mac_pref)
+	{
 		val |= HOST_INFO_MPR;
+	}
+
 	nw64_mac(reg, val);
 }
 
 static int __set_rdc_table_num(struct niu *np,
-			       int xmac_index, int bmac_index,
-			       int rdc_table_num, int mac_pref)
+							   int xmac_index, int bmac_index,
+							   int rdc_table_num, int mac_pref)
 {
 	unsigned long reg;
 
 	if (rdc_table_num & ~HOST_INFO_MACRDCTBLN)
+	{
 		return -EINVAL;
+	}
+
 	if (np->flags & NIU_FLAGS_XMAC)
+	{
 		reg = XMAC_HOST_INFO(xmac_index);
+	}
 	else
+	{
 		reg = BMAC_HOST_INFO(bmac_index);
+	}
+
 	__set_rdc_table_num_hw(np, reg, rdc_table_num, mac_pref);
 	return 0;
 }
 
 static int niu_set_primary_mac_rdc_table(struct niu *np, int table_num,
-					 int mac_pref)
+		int mac_pref)
 {
 	return __set_rdc_table_num(np, 17, 0, table_num, mac_pref);
 }
 
 static int niu_set_multicast_mac_rdc_table(struct niu *np, int table_num,
-					   int mac_pref)
+		int mac_pref)
 {
 	return __set_rdc_table_num(np, 16, 8, table_num, mac_pref);
 }
 
 static int niu_set_alt_mac_rdc_table(struct niu *np, int idx,
-				     int table_num, int mac_pref)
+									 int table_num, int mac_pref)
 {
 	if (idx >= niu_num_alt_addr(np))
+	{
 		return -EINVAL;
+	}
+
 	return __set_rdc_table_num(np, idx, idx + 1, table_num, mac_pref);
 }
 
@@ -2749,29 +3607,39 @@ static u64 vlan_entry_set_parity(u64 reg_val)
 	port23_mask = 0xff00;
 
 	if (hweight64(reg_val & port01_mask) & 1)
+	{
 		reg_val |= ENET_VLAN_TBL_PARITY0;
+	}
 	else
+	{
 		reg_val &= ~ENET_VLAN_TBL_PARITY0;
+	}
 
 	if (hweight64(reg_val & port23_mask) & 1)
+	{
 		reg_val |= ENET_VLAN_TBL_PARITY1;
+	}
 	else
+	{
 		reg_val &= ~ENET_VLAN_TBL_PARITY1;
+	}
 
 	return reg_val;
 }
 
 static void vlan_tbl_write(struct niu *np, unsigned long index,
-			   int port, int vpr, int rdc_table)
+						   int port, int vpr, int rdc_table)
 {
 	u64 reg_val = nr64(ENET_VLAN_TBL(index));
 
 	reg_val &= ~((ENET_VLAN_TBL_VPR |
-		      ENET_VLAN_TBL_VLANRDCTBLN) <<
-		     ENET_VLAN_TBL_SHIFT(port));
+				  ENET_VLAN_TBL_VLANRDCTBLN) <<
+				 ENET_VLAN_TBL_SHIFT(port));
+
 	if (vpr)
 		reg_val |= (ENET_VLAN_TBL_VPR <<
-			    ENET_VLAN_TBL_SHIFT(port));
+					ENET_VLAN_TBL_SHIFT(port));
+
 	reg_val |= (rdc_table << ENET_VLAN_TBL_SHIFT(port));
 
 	reg_val = vlan_entry_set_parity(reg_val);
@@ -2784,20 +3652,29 @@ static void vlan_tbl_clear(struct niu *np)
 	int i;
 
 	for (i = 0; i < ENET_VLAN_TBL_NUM_ENTRIES; i++)
+	{
 		nw64(ENET_VLAN_TBL(i), 0);
+	}
 }
 
 static int tcam_wait_bit(struct niu *np, u64 bit)
 {
 	int limit = 1000;
 
-	while (--limit > 0) {
+	while (--limit > 0)
+	{
 		if (nr64(TCAM_CTL) & bit)
+		{
 			break;
+		}
+
 		udelay(1);
 	}
+
 	if (limit <= 0)
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 }
@@ -2813,13 +3690,15 @@ static int tcam_flush(struct niu *np, int index)
 
 #if 0
 static int tcam_read(struct niu *np, int index,
-		     u64 *key, u64 *mask)
+					 u64 *key, u64 *mask)
 {
 	int err;
 
 	nw64(TCAM_CTL, (TCAM_CTL_RWC_TCAM_READ | index));
 	err = tcam_wait_bit(np, TCAM_CTL_STAT);
-	if (!err) {
+
+	if (!err)
+	{
 		key[0] = nr64(TCAM_KEY_0);
 		key[1] = nr64(TCAM_KEY_1);
 		key[2] = nr64(TCAM_KEY_2);
@@ -2829,12 +3708,13 @@ static int tcam_read(struct niu *np, int index,
 		mask[2] = nr64(TCAM_KEY_MASK_2);
 		mask[3] = nr64(TCAM_KEY_MASK_3);
 	}
+
 	return err;
 }
 #endif
 
 static int tcam_write(struct niu *np, int index,
-		      u64 *key, u64 *mask)
+					  u64 *key, u64 *mask)
 {
 	nw64(TCAM_KEY_0, key[0]);
 	nw64(TCAM_KEY_1, key[1]);
@@ -2856,8 +3736,11 @@ static int tcam_assoc_read(struct niu *np, int index, u64 *data)
 
 	nw64(TCAM_CTL, (TCAM_CTL_RWC_RAM_READ | index));
 	err = tcam_wait_bit(np, TCAM_CTL_STAT);
+
 	if (!err)
+	{
 		*data = nr64(TCAM_KEY_1);
+	}
 
 	return err;
 }
@@ -2876,9 +3759,14 @@ static void tcam_enable(struct niu *np, int on)
 	u64 val = nr64(FFLP_CFG_1);
 
 	if (on)
+	{
 		val &= ~FFLP_CFG_1_TCAM_DIS;
+	}
 	else
+	{
 		val |= FFLP_CFG_1_TCAM_DIS;
+	}
+
 	nw64(FFLP_CFG_1, val);
 }
 
@@ -2887,8 +3775,8 @@ static void tcam_set_lat_and_ratio(struct niu *np, u64 latency, u64 ratio)
 	u64 val = nr64(FFLP_CFG_1);
 
 	val &= ~(FFLP_CFG_1_FFLPINITDONE |
-		 FFLP_CFG_1_CAMLAT |
-		 FFLP_CFG_1_CAMRATIO);
+			 FFLP_CFG_1_CAMLAT |
+			 FFLP_CFG_1_CAMRATIO);
 	val |= (latency << FFLP_CFG_1_CAMLAT_SHIFT);
 	val |= (ratio << FFLP_CFG_1_CAMRATIO_SHIFT);
 	nw64(FFLP_CFG_1, val);
@@ -2899,21 +3787,29 @@ static void tcam_set_lat_and_ratio(struct niu *np, u64 latency, u64 ratio)
 }
 
 static int tcam_user_eth_class_enable(struct niu *np, unsigned long class,
-				      int on)
+									  int on)
 {
 	unsigned long reg;
 	u64 val;
 
 	if (class < CLASS_CODE_ETHERTYPE1 ||
-	    class > CLASS_CODE_ETHERTYPE2)
+		class > CLASS_CODE_ETHERTYPE2)
+	{
 		return -EINVAL;
+	}
 
 	reg = L2_CLS(class - CLASS_CODE_ETHERTYPE1);
 	val = nr64(reg);
+
 	if (on)
+	{
 		val |= L2_CLS_VLD;
+	}
 	else
+	{
 		val &= ~L2_CLS_VLD;
+	}
+
 	nw64(reg, val);
 
 	return 0;
@@ -2921,15 +3817,17 @@ static int tcam_user_eth_class_enable(struct niu *np, unsigned long class,
 
 #if 0
 static int tcam_user_eth_class_set(struct niu *np, unsigned long class,
-				   u64 ether_type)
+								   u64 ether_type)
 {
 	unsigned long reg;
 	u64 val;
 
 	if (class < CLASS_CODE_ETHERTYPE1 ||
-	    class > CLASS_CODE_ETHERTYPE2 ||
-	    (ether_type & ~(u64)0xffff) != 0)
+		class > CLASS_CODE_ETHERTYPE2 ||
+		(ether_type & ~(u64)0xffff) != 0)
+	{
 		return -EINVAL;
+	}
 
 	reg = L2_CLS(class - CLASS_CODE_ETHERTYPE1);
 	val = nr64(reg);
@@ -2942,46 +3840,60 @@ static int tcam_user_eth_class_set(struct niu *np, unsigned long class,
 #endif
 
 static int tcam_user_ip_class_enable(struct niu *np, unsigned long class,
-				     int on)
+									 int on)
 {
 	unsigned long reg;
 	u64 val;
 
 	if (class < CLASS_CODE_USER_PROG1 ||
-	    class > CLASS_CODE_USER_PROG4)
+		class > CLASS_CODE_USER_PROG4)
+	{
 		return -EINVAL;
+	}
 
 	reg = L3_CLS(class - CLASS_CODE_USER_PROG1);
 	val = nr64(reg);
+
 	if (on)
+	{
 		val |= L3_CLS_VALID;
+	}
 	else
+	{
 		val &= ~L3_CLS_VALID;
+	}
+
 	nw64(reg, val);
 
 	return 0;
 }
 
 static int tcam_user_ip_class_set(struct niu *np, unsigned long class,
-				  int ipv6, u64 protocol_id,
-				  u64 tos_mask, u64 tos_val)
+								  int ipv6, u64 protocol_id,
+								  u64 tos_mask, u64 tos_val)
 {
 	unsigned long reg;
 	u64 val;
 
 	if (class < CLASS_CODE_USER_PROG1 ||
-	    class > CLASS_CODE_USER_PROG4 ||
-	    (protocol_id & ~(u64)0xff) != 0 ||
-	    (tos_mask & ~(u64)0xff) != 0 ||
-	    (tos_val & ~(u64)0xff) != 0)
+		class > CLASS_CODE_USER_PROG4 ||
+		(protocol_id & ~(u64)0xff) != 0 ||
+		(tos_mask & ~(u64)0xff) != 0 ||
+		(tos_val & ~(u64)0xff) != 0)
+	{
 		return -EINVAL;
+	}
 
 	reg = L3_CLS(class - CLASS_CODE_USER_PROG1);
 	val = nr64(reg);
 	val &= ~(L3_CLS_IPVER | L3_CLS_PID |
-		 L3_CLS_TOSMASK | L3_CLS_TOS);
+			 L3_CLS_TOSMASK | L3_CLS_TOS);
+
 	if (ipv6)
+	{
 		val |= L3_CLS_IPVER;
+	}
+
 	val |= (protocol_id << L3_CLS_PID_SHIFT);
 	val |= (tos_mask << L3_CLS_TOSMASK_SHIFT);
 	val |= (tos_val << L3_CLS_TOS_SHIFT);
@@ -2997,17 +3909,27 @@ static int tcam_early_init(struct niu *np)
 
 	tcam_enable(np, 0);
 	tcam_set_lat_and_ratio(np,
-			       DEFAULT_TCAM_LATENCY,
-			       DEFAULT_TCAM_ACCESS_RATIO);
-	for (i = CLASS_CODE_ETHERTYPE1; i <= CLASS_CODE_ETHERTYPE2; i++) {
+						   DEFAULT_TCAM_LATENCY,
+						   DEFAULT_TCAM_ACCESS_RATIO);
+
+	for (i = CLASS_CODE_ETHERTYPE1; i <= CLASS_CODE_ETHERTYPE2; i++)
+	{
 		err = tcam_user_eth_class_enable(np, i, 0);
+
 		if (err)
+		{
 			return err;
+		}
 	}
-	for (i = CLASS_CODE_USER_PROG1; i <= CLASS_CODE_USER_PROG4; i++) {
+
+	for (i = CLASS_CODE_USER_PROG1; i <= CLASS_CODE_USER_PROG4; i++)
+	{
 		err = tcam_user_ip_class_enable(np, i, 0);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	return 0;
@@ -3017,11 +3939,16 @@ static int tcam_flush_all(struct niu *np)
 {
 	unsigned long i;
 
-	for (i = 0; i < np->parent->tcam_num_entries; i++) {
+	for (i = 0; i < np->parent->tcam_num_entries; i++)
+	{
 		int err = tcam_flush(np, i);
+
 		if (err)
+		{
 			return err;
+		}
 	}
+
 	return 0;
 }
 
@@ -3032,38 +3959,48 @@ static u64 hash_addr_regval(unsigned long index, unsigned long num_entries)
 
 #if 0
 static int hash_read(struct niu *np, unsigned long partition,
-		     unsigned long index, unsigned long num_entries,
-		     u64 *data)
+					 unsigned long index, unsigned long num_entries,
+					 u64 *data)
 {
 	u64 val = hash_addr_regval(index, num_entries);
 	unsigned long i;
 
 	if (partition >= FCRAM_NUM_PARTITIONS ||
-	    index + num_entries > FCRAM_SIZE)
+		index + num_entries > FCRAM_SIZE)
+	{
 		return -EINVAL;
+	}
 
 	nw64(HASH_TBL_ADDR(partition), val);
+
 	for (i = 0; i < num_entries; i++)
+	{
 		data[i] = nr64(HASH_TBL_DATA(partition));
+	}
 
 	return 0;
 }
 #endif
 
 static int hash_write(struct niu *np, unsigned long partition,
-		      unsigned long index, unsigned long num_entries,
-		      u64 *data)
+					  unsigned long index, unsigned long num_entries,
+					  u64 *data)
 {
 	u64 val = hash_addr_regval(index, num_entries);
 	unsigned long i;
 
 	if (partition >= FCRAM_NUM_PARTITIONS ||
-	    index + (num_entries * 8) > FCRAM_SIZE)
+		index + (num_entries * 8) > FCRAM_SIZE)
+	{
 		return -EINVAL;
+	}
 
 	nw64(HASH_TBL_ADDR(partition), val);
+
 	for (i = 0; i < num_entries; i++)
+	{
 		nw64(HASH_TBL_DATA(partition), data[i]);
+	}
 
 	return 0;
 }
@@ -3100,15 +4037,17 @@ static void fflp_set_timings(struct niu *np)
 }
 
 static int fflp_set_partition(struct niu *np, u64 partition,
-			      u64 mask, u64 base, int enable)
+							  u64 mask, u64 base, int enable)
 {
 	unsigned long reg;
 	u64 val;
 
 	if (partition >= FCRAM_NUM_PARTITIONS ||
-	    (mask & ~(u64)0x1f) != 0 ||
-	    (base & ~(u64)0x1f) != 0)
+		(mask & ~(u64)0x1f) != 0 ||
+		(base & ~(u64)0x1f) != 0)
+	{
 		return -EINVAL;
+	}
 
 	reg = FLW_PRT_SEL(partition);
 
@@ -3116,8 +4055,12 @@ static int fflp_set_partition(struct niu *np, u64 partition,
 	val &= ~(FLW_PRT_SEL_EXT | FLW_PRT_SEL_MASK | FLW_PRT_SEL_BASE);
 	val |= (mask << FLW_PRT_SEL_MASK_SHIFT);
 	val |= (base << FLW_PRT_SEL_BASE_SHIFT);
+
 	if (enable)
+	{
 		val |= FLW_PRT_SEL_EXT;
+	}
+
 	nw64(reg, val);
 
 	return 0;
@@ -3127,11 +4070,16 @@ static int fflp_disable_all_partitions(struct niu *np)
 {
 	unsigned long i;
 
-	for (i = 0; i < FCRAM_NUM_PARTITIONS; i++) {
+	for (i = 0; i < FCRAM_NUM_PARTITIONS; i++)
+	{
 		int err = fflp_set_partition(np, 0, 0, 0, 0);
+
 		if (err)
+		{
 			return err;
+		}
 	}
+
 	return 0;
 }
 
@@ -3140,9 +4088,14 @@ static void fflp_llcsnap_enable(struct niu *np, int on)
 	u64 val = nr64(FFLP_CFG_1);
 
 	if (on)
+	{
 		val |= FFLP_CFG_1_LLCSNAP;
+	}
 	else
+	{
 		val &= ~FFLP_CFG_1_LLCSNAP;
+	}
+
 	nw64(FFLP_CFG_1, val);
 }
 
@@ -3151,9 +4104,14 @@ static void fflp_errors_enable(struct niu *np, int on)
 	u64 val = nr64(FFLP_CFG_1);
 
 	if (on)
+	{
 		val &= ~FFLP_CFG_1_ERRORDIS;
+	}
 	else
+	{
 		val |= FFLP_CFG_1_ERRORDIS;
+	}
+
 	nw64(FFLP_CFG_1, val);
 }
 
@@ -3166,11 +4124,16 @@ static int fflp_hash_clear(struct niu *np)
 	memset(&ent, 0, sizeof(ent));
 	ent.header = HASH_HEADER_EXT;
 
-	for (i = 0; i < FCRAM_SIZE; i += sizeof(ent)) {
+	for (i = 0; i < FCRAM_SIZE; i += sizeof(ent))
+	{
 		int err = hash_write(np, 0, i, 1, (u64 *) &ent);
+
 		if (err)
+		{
 			return err;
+		}
 	}
+
 	return 0;
 }
 
@@ -3184,42 +4147,56 @@ static int fflp_early_init(struct niu *np)
 
 	parent = np->parent;
 	err = 0;
-	if (!(parent->flags & PARENT_FLGS_CLS_HWINIT)) {
-		if (np->parent->plat_type != PLAT_TYPE_NIU) {
+
+	if (!(parent->flags & PARENT_FLGS_CLS_HWINIT))
+	{
+		if (np->parent->plat_type != PLAT_TYPE_NIU)
+		{
 			fflp_reset(np);
 			fflp_set_timings(np);
 			err = fflp_disable_all_partitions(np);
-			if (err) {
+
+			if (err)
+			{
 				netif_printk(np, probe, KERN_DEBUG, np->dev,
-					     "fflp_disable_all_partitions failed, err=%d\n",
-					     err);
+							 "fflp_disable_all_partitions failed, err=%d\n",
+							 err);
 				goto out;
 			}
 		}
 
 		err = tcam_early_init(np);
-		if (err) {
+
+		if (err)
+		{
 			netif_printk(np, probe, KERN_DEBUG, np->dev,
-				     "tcam_early_init failed, err=%d\n", err);
+						 "tcam_early_init failed, err=%d\n", err);
 			goto out;
 		}
+
 		fflp_llcsnap_enable(np, 1);
 		fflp_errors_enable(np, 0);
 		nw64(H1POLY, 0);
 		nw64(H2POLY, 0);
 
 		err = tcam_flush_all(np);
-		if (err) {
+
+		if (err)
+		{
 			netif_printk(np, probe, KERN_DEBUG, np->dev,
-				     "tcam_flush_all failed, err=%d\n", err);
+						 "tcam_flush_all failed, err=%d\n", err);
 			goto out;
 		}
-		if (np->parent->plat_type != PLAT_TYPE_NIU) {
+
+		if (np->parent->plat_type != PLAT_TYPE_NIU)
+		{
 			err = fflp_hash_clear(np);
-			if (err) {
+
+			if (err)
+			{
 				netif_printk(np, probe, KERN_DEBUG, np->dev,
-					     "fflp_hash_clear failed, err=%d\n",
-					     err);
+							 "fflp_hash_clear failed, err=%d\n",
+							 err);
 				goto out;
 			}
 		}
@@ -3228,6 +4205,7 @@ static int fflp_early_init(struct niu *np)
 
 		parent->flags |= PARENT_FLGS_CLS_HWINIT;
 	}
+
 out:
 	niu_unlock_parent(np, flags);
 	return err;
@@ -3236,8 +4214,10 @@ out:
 static int niu_set_flow_key(struct niu *np, unsigned long class_code, u64 key)
 {
 	if (class_code < CLASS_CODE_USER_PROG1 ||
-	    class_code > CLASS_CODE_SCTP_IPV6)
+		class_code > CLASS_CODE_SCTP_IPV6)
+	{
 		return -EINVAL;
+	}
 
 	nw64(FLOW_KEY(class_code - CLASS_CODE_USER_PROG1), key);
 	return 0;
@@ -3246,8 +4226,10 @@ static int niu_set_flow_key(struct niu *np, unsigned long class_code, u64 key)
 static int niu_set_tcam_key(struct niu *np, unsigned long class_code, u64 key)
 {
 	if (class_code < CLASS_CODE_USER_PROG1 ||
-	    class_code > CLASS_CODE_SCTP_IPV6)
+		class_code > CLASS_CODE_SCTP_IPV6)
+	{
 		return -EINVAL;
+	}
 
 	nw64(TCAM_KEY(class_code - CLASS_CODE_USER_PROG1), key);
 	return 0;
@@ -3258,8 +4240,11 @@ static u16 tcam_get_index(struct niu *np, u16 idx)
 {
 	/* One entry reserved for IP fragment rule */
 	if (idx >= (np->clas.tcam_sz - 1))
+	{
 		idx = 0;
-	return np->clas.tcam_top + ((idx+1) * np->parent->num_ports);
+	}
+
+	return np->clas.tcam_top + ((idx + 1) * np->parent->num_ports);
 }
 
 static u16 tcam_get_size(struct niu *np)
@@ -3275,7 +4260,7 @@ static u16 tcam_get_valid_entry_cnt(struct niu *np)
 }
 
 static void niu_rx_skb_append(struct sk_buff *skb, struct page *page,
-			      u32 offset, u32 size, u32 truesize)
+							  u32 offset, u32 size, u32 truesize)
 {
 	skb_fill_page_desc(skb, skb_shinfo(skb)->nr_frags, page, offset, size);
 
@@ -3293,19 +4278,23 @@ static unsigned int niu_hash_rxaddr(struct rx_ring_info *rp, u64 a)
 }
 
 static struct page *niu_find_rxpage(struct rx_ring_info *rp, u64 addr,
-				    struct page ***link)
+									struct page ***link)
 {
 	unsigned int h = niu_hash_rxaddr(rp, addr);
 	struct page *p, **pp;
 
 	addr &= PAGE_MASK;
 	pp = &rp->rxhash[h];
-	for (; (p = *pp) != NULL; pp = (struct page **) &p->mapping) {
-		if (p->index == addr) {
+
+	for (; (p = *pp) != NULL; pp = (struct page **) &p->mapping)
+	{
+		if (p->index == addr)
+		{
 			*link = pp;
 			goto found;
 		}
 	}
+
 	BUG();
 
 found:
@@ -3322,28 +4311,37 @@ static void niu_hash_page(struct rx_ring_info *rp, struct page *page, u64 base)
 }
 
 static int niu_rbr_add_page(struct niu *np, struct rx_ring_info *rp,
-			    gfp_t mask, int start_index)
+							gfp_t mask, int start_index)
 {
 	struct page *page;
 	u64 addr;
 	int i;
 
 	page = alloc_page(mask);
+
 	if (!page)
+	{
 		return -ENOMEM;
+	}
 
 	addr = np->ops->map_page(np->device, page, 0,
-				 PAGE_SIZE, DMA_FROM_DEVICE);
-	if (!addr) {
+							 PAGE_SIZE, DMA_FROM_DEVICE);
+
+	if (!addr)
+	{
 		__free_page(page);
 		return -ENOMEM;
 	}
 
 	niu_hash_page(rp, page, addr);
-	if (rp->rbr_blocks_per_page > 1)
-		page_ref_add(page, rp->rbr_blocks_per_page - 1);
 
-	for (i = 0; i < rp->rbr_blocks_per_page; i++) {
+	if (rp->rbr_blocks_per_page > 1)
+	{
+		page_ref_add(page, rp->rbr_blocks_per_page - 1);
+	}
+
+	for (i = 0; i < rp->rbr_blocks_per_page; i++)
+	{
 		__le32 *rbr = &rp->rbr[start_index + i];
 
 		*rbr = cpu_to_le32(addr >> RBR_DESCR_ADDR_SHIFT);
@@ -3358,20 +4356,27 @@ static void niu_rbr_refill(struct niu *np, struct rx_ring_info *rp, gfp_t mask)
 	int index = rp->rbr_index;
 
 	rp->rbr_pending++;
-	if ((rp->rbr_pending % rp->rbr_blocks_per_page) == 0) {
+
+	if ((rp->rbr_pending % rp->rbr_blocks_per_page) == 0)
+	{
 		int err = niu_rbr_add_page(np, rp, mask, index);
 
-		if (unlikely(err)) {
+		if (unlikely(err))
+		{
 			rp->rbr_pending--;
 			return;
 		}
 
 		rp->rbr_index += rp->rbr_blocks_per_page;
 		BUG_ON(rp->rbr_index > rp->rbr_table_size);
-		if (rp->rbr_index == rp->rbr_table_size)
-			rp->rbr_index = 0;
 
-		if (rp->rbr_pending >= rp->rbr_kick_thresh) {
+		if (rp->rbr_index == rp->rbr_table_size)
+		{
+			rp->rbr_index = 0;
+		}
+
+		if (rp->rbr_pending >= rp->rbr_kick_thresh)
+		{
 			nw64(RBR_KICK(rp->rx_channel), rp->rbr_pending);
 			rp->rbr_pending = 0;
 		}
@@ -3384,7 +4389,9 @@ static int niu_rx_pkt_ignore(struct niu *np, struct rx_ring_info *rp)
 	int num_rcr = 0;
 
 	rp->rx_dropped++;
-	while (1) {
+
+	while (1)
+	{
 		struct page *page, **link;
 		u64 addr, val;
 		u32 rcr_size;
@@ -3393,15 +4400,17 @@ static int niu_rx_pkt_ignore(struct niu *np, struct rx_ring_info *rp)
 
 		val = le64_to_cpup(&rp->rcr[index]);
 		addr = (val & RCR_ENTRY_PKT_BUF_ADDR) <<
-			RCR_ENTRY_PKT_BUF_ADDR_SHIFT;
+			   RCR_ENTRY_PKT_BUF_ADDR_SHIFT;
 		page = niu_find_rxpage(rp, addr, &link);
 
 		rcr_size = rp->rbr_sizes[(val & RCR_ENTRY_PKTBUFSZ) >>
-					 RCR_ENTRY_PKTBUFSZ_SHIFT];
-		if ((page->index + PAGE_SIZE) - rcr_size == addr) {
+								 RCR_ENTRY_PKTBUFSZ_SHIFT];
+
+		if ((page->index + PAGE_SIZE) - rcr_size == addr)
+		{
 			*link = (struct page *) page->mapping;
 			np->ops->unmap_page(np->device, page->index,
-					    PAGE_SIZE, DMA_FROM_DEVICE);
+								PAGE_SIZE, DMA_FROM_DEVICE);
 			page->index = 0;
 			page->mapping = NULL;
 			__free_page(page);
@@ -3409,17 +4418,21 @@ static int niu_rx_pkt_ignore(struct niu *np, struct rx_ring_info *rp)
 		}
 
 		index = NEXT_RCR(rp, index);
+
 		if (!(val & RCR_ENTRY_MULTI))
+		{
 			break;
+		}
 
 	}
+
 	rp->rcr_index = index;
 
 	return num_rcr;
 }
 
 static int niu_process_rx_pkt(struct napi_struct *napi, struct niu *np,
-			      struct rx_ring_info *rp)
+							  struct rx_ring_info *rp)
 {
 	unsigned int index = rp->rcr_index;
 	struct rx_pkt_hdr1 *rh;
@@ -3427,11 +4440,16 @@ static int niu_process_rx_pkt(struct napi_struct *napi, struct niu *np,
 	int len, num_rcr;
 
 	skb = netdev_alloc_skb(np->dev, RX_SKB_ALLOC_SIZE);
+
 	if (unlikely(!skb))
+	{
 		return niu_rx_pkt_ignore(np, rp);
+	}
 
 	num_rcr = 0;
-	while (1) {
+
+	while (1)
+	{
 		struct page *page, **link;
 		u32 rcr_size, append_size;
 		u64 addr, val, off;
@@ -3441,48 +4459,67 @@ static int niu_process_rx_pkt(struct napi_struct *napi, struct niu *np,
 		val = le64_to_cpup(&rp->rcr[index]);
 
 		len = (val & RCR_ENTRY_L2_LEN) >>
-			RCR_ENTRY_L2_LEN_SHIFT;
+			  RCR_ENTRY_L2_LEN_SHIFT;
 		len -= ETH_FCS_LEN;
 
 		addr = (val & RCR_ENTRY_PKT_BUF_ADDR) <<
-			RCR_ENTRY_PKT_BUF_ADDR_SHIFT;
+			   RCR_ENTRY_PKT_BUF_ADDR_SHIFT;
 		page = niu_find_rxpage(rp, addr, &link);
 
 		rcr_size = rp->rbr_sizes[(val & RCR_ENTRY_PKTBUFSZ) >>
-					 RCR_ENTRY_PKTBUFSZ_SHIFT];
+								 RCR_ENTRY_PKTBUFSZ_SHIFT];
 
 		off = addr & ~PAGE_MASK;
 		append_size = rcr_size;
-		if (num_rcr == 1) {
+
+		if (num_rcr == 1)
+		{
 			int ptype;
 
 			ptype = (val >> RCR_ENTRY_PKT_TYPE_SHIFT);
+
 			if ((ptype == RCR_PKT_TYPE_TCP ||
-			     ptype == RCR_PKT_TYPE_UDP) &&
-			    !(val & (RCR_ENTRY_NOPORT |
-				     RCR_ENTRY_ERROR)))
+				 ptype == RCR_PKT_TYPE_UDP) &&
+				!(val & (RCR_ENTRY_NOPORT |
+						 RCR_ENTRY_ERROR)))
+			{
 				skb->ip_summed = CHECKSUM_UNNECESSARY;
+			}
 			else
+			{
 				skb_checksum_none_assert(skb);
-		} else if (!(val & RCR_ENTRY_MULTI))
+			}
+		}
+		else if (!(val & RCR_ENTRY_MULTI))
+		{
 			append_size = len - skb->len;
+		}
 
 		niu_rx_skb_append(skb, page, off, append_size, rcr_size);
-		if ((page->index + rp->rbr_block_size) - rcr_size == addr) {
+
+		if ((page->index + rp->rbr_block_size) - rcr_size == addr)
+		{
 			*link = (struct page *) page->mapping;
 			np->ops->unmap_page(np->device, page->index,
-					    PAGE_SIZE, DMA_FROM_DEVICE);
+								PAGE_SIZE, DMA_FROM_DEVICE);
 			page->index = 0;
 			page->mapping = NULL;
 			rp->rbr_refill_pending++;
-		} else
+		}
+		else
+		{
 			get_page(page);
+		}
 
 		index = NEXT_RCR(rp, index);
+
 		if (!(val & RCR_ENTRY_MULTI))
+		{
 			break;
+		}
 
 	}
+
 	rp->rcr_index = index;
 
 	len += sizeof(*rh);
@@ -3490,13 +4527,15 @@ static int niu_process_rx_pkt(struct napi_struct *napi, struct niu *np,
 	__pskb_pull_tail(skb, len);
 
 	rh = (struct rx_pkt_hdr1 *) skb->data;
+
 	if (np->dev->features & NETIF_F_RXHASH)
 		skb_set_hash(skb,
-			     ((u32)rh->hashval2_0 << 24 |
-			      (u32)rh->hashval2_1 << 16 |
-			      (u32)rh->hashval1_1 << 8 |
-			      (u32)rh->hashval1_2 << 0),
-			     PKT_HASH_TYPE_L3);
+					 ((u32)rh->hashval2_0 << 24 |
+					  (u32)rh->hashval2_1 << 16 |
+					  (u32)rh->hashval1_1 << 8 |
+					  (u32)rh->hashval1_2 << 0),
+					 PKT_HASH_TYPE_L3);
+
 	skb_pull(skb, sizeof(*rh));
 
 	rp->rx_packets++;
@@ -3515,10 +4554,15 @@ static int niu_rbr_fill(struct niu *np, struct rx_ring_info *rp, gfp_t mask)
 	int err, index = rp->rbr_index;
 
 	err = 0;
-	while (index < (rp->rbr_table_size - blocks_per_page)) {
+
+	while (index < (rp->rbr_table_size - blocks_per_page))
+	{
 		err = niu_rbr_add_page(np, rp, mask, index);
+
 		if (unlikely(err))
+		{
 			break;
+		}
 
 		index += blocks_per_page;
 	}
@@ -3531,16 +4575,19 @@ static void niu_rbr_free(struct niu *np, struct rx_ring_info *rp)
 {
 	int i;
 
-	for (i = 0; i < MAX_RBR_RING_SIZE; i++) {
+	for (i = 0; i < MAX_RBR_RING_SIZE; i++)
+	{
 		struct page *page;
 
 		page = rp->rxhash[i];
-		while (page) {
+
+		while (page)
+		{
 			struct page *next = (struct page *) page->mapping;
 			u64 base = page->index;
 
 			np->ops->unmap_page(np->device, base, PAGE_SIZE,
-					    DMA_FROM_DEVICE);
+								DMA_FROM_DEVICE);
 			page->index = 0;
 			page->mapping = NULL;
 
@@ -3551,7 +4598,10 @@ static void niu_rbr_free(struct niu *np, struct rx_ring_info *rp)
 	}
 
 	for (i = 0; i < rp->rbr_table_size; i++)
+	{
 		rp->rbr[i] = cpu_to_le32(0);
+	}
+
 	rp->rbr_index = 0;
 }
 
@@ -3568,27 +4618,33 @@ static int release_tx_packet(struct niu *np, struct tx_ring_info *rp, int idx)
 
 	rp->tx_packets++;
 	rp->tx_bytes += (((tx_flags & TXHDR_LEN) >> TXHDR_LEN_SHIFT) -
-			 ((tx_flags & TXHDR_PAD) / 2));
+					 ((tx_flags & TXHDR_PAD) / 2));
 
 	len = skb_headlen(skb);
 	np->ops->unmap_single(np->device, tb->mapping,
-			      len, DMA_TO_DEVICE);
+						  len, DMA_TO_DEVICE);
 
 	if (le64_to_cpu(rp->descr[idx]) & TX_DESC_MARK)
+	{
 		rp->mark_pending--;
+	}
 
 	tb->skb = NULL;
-	do {
+
+	do
+	{
 		idx = NEXT_TX(rp, idx);
 		len -= MAX_TX_DESC_LEN;
-	} while (len > 0);
+	}
+	while (len > 0);
 
-	for (i = 0; i < skb_shinfo(skb)->nr_frags; i++) {
+	for (i = 0; i < skb_shinfo(skb)->nr_frags; i++)
+	{
 		tb = &rp->tx_buffs[idx];
 		BUG_ON(tb->skb != NULL);
 		np->ops->unmap_page(np->device, tb->mapping,
-				    skb_frag_size(&skb_shinfo(skb)->frags[i]),
-				    DMA_TO_DEVICE);
+							skb_frag_size(&skb_shinfo(skb)->frags[i]),
+							DMA_TO_DEVICE);
 		idx = NEXT_TX(rp, idx);
 	}
 
@@ -3610,40 +4666,51 @@ static void niu_tx_work(struct niu *np, struct tx_ring_info *rp)
 	txq = netdev_get_tx_queue(np->dev, index);
 
 	cs = rp->tx_cs;
+
 	if (unlikely(!(cs & (TX_CS_MK | TX_CS_MMK))))
+	{
 		goto out;
+	}
 
 	tmp = pkt_cnt = (cs & TX_CS_PKT_CNT) >> TX_CS_PKT_CNT_SHIFT;
 	pkt_cnt = (pkt_cnt - rp->last_pkt_cnt) &
-		(TX_CS_PKT_CNT >> TX_CS_PKT_CNT_SHIFT);
+			  (TX_CS_PKT_CNT >> TX_CS_PKT_CNT_SHIFT);
 
 	rp->last_pkt_cnt = tmp;
 
 	cons = rp->cons;
 
 	netif_printk(np, tx_done, KERN_DEBUG, np->dev,
-		     "%s() pkt_cnt[%u] cons[%d]\n", __func__, pkt_cnt, cons);
+				 "%s() pkt_cnt[%u] cons[%d]\n", __func__, pkt_cnt, cons);
 
 	while (pkt_cnt--)
+	{
 		cons = release_tx_packet(np, rp, cons);
+	}
 
 	rp->cons = cons;
 	smp_mb();
 
 out:
+
 	if (unlikely(netif_tx_queue_stopped(txq) &&
-		     (niu_tx_avail(rp) > NIU_TX_WAKEUP_THRESH(rp)))) {
+				 (niu_tx_avail(rp) > NIU_TX_WAKEUP_THRESH(rp))))
+	{
 		__netif_tx_lock(txq, smp_processor_id());
+
 		if (netif_tx_queue_stopped(txq) &&
-		    (niu_tx_avail(rp) > NIU_TX_WAKEUP_THRESH(rp)))
+			(niu_tx_avail(rp) > NIU_TX_WAKEUP_THRESH(rp)))
+		{
 			netif_tx_wake_queue(txq);
+		}
+
 		__netif_tx_unlock(txq);
 	}
 }
 
 static inline void niu_sync_rx_discard_stats(struct niu *np,
-					     struct rx_ring_info *rp,
-					     const int limit)
+		struct rx_ring_info *rp,
+		const int limit)
 {
 	/* This elaborate scheme is needed for reading the RX discard
 	 * counters, as they are only 16-bit and can overflow quickly,
@@ -3665,36 +4732,42 @@ static inline void niu_sync_rx_discard_stats(struct niu *np,
 	 * Block Ring) prefetch buffer is empty.
 	 */
 	misc = nr64(RXMISC(rx_channel));
-	if (unlikely((misc & RXMISC_COUNT) > limit)) {
+
+	if (unlikely((misc & RXMISC_COUNT) > limit))
+	{
 		nw64(RXMISC(rx_channel), 0);
 		rp->rx_errors += misc & RXMISC_COUNT;
 
 		if (unlikely(misc & RXMISC_OFLOW))
 			dev_err(np->device, "rx-%d: Counter overflow RXMISC discard\n",
-				rx_channel);
+					rx_channel);
 
 		netif_printk(np, rx_err, KERN_DEBUG, np->dev,
-			     "rx-%d: MISC drop=%u over=%u\n",
-			     rx_channel, misc, misc-limit);
+					 "rx-%d: MISC drop=%u over=%u\n",
+					 rx_channel, misc, misc - limit);
 	}
 
 	/* WRED (Weighted Random Early Discard) by hardware */
 	wred = nr64(RED_DIS_CNT(rx_channel));
-	if (unlikely((wred & RED_DIS_CNT_COUNT) > limit)) {
+
+	if (unlikely((wred & RED_DIS_CNT_COUNT) > limit))
+	{
 		nw64(RED_DIS_CNT(rx_channel), 0);
 		rp->rx_dropped += wred & RED_DIS_CNT_COUNT;
 
 		if (unlikely(wred & RED_DIS_CNT_OFLOW))
+		{
 			dev_err(np->device, "rx-%d: Counter overflow WRED discard\n", rx_channel);
+		}
 
 		netif_printk(np, rx_err, KERN_DEBUG, np->dev,
-			     "rx-%d: WRED drop=%u over=%u\n",
-			     rx_channel, wred, wred-limit);
+					 "rx-%d: WRED drop=%u over=%u\n",
+					 rx_channel, wred, wred - limit);
 	}
 }
 
 static int niu_rx_work(struct napi_struct *napi, struct niu *np,
-		       struct rx_ring_info *rp, int budget)
+					   struct rx_ring_info *rp, int budget)
 {
 	int qlen, rcr_done = 0, work_done = 0;
 	struct rxdma_mailbox *mbox = rp->mbox;
@@ -3711,33 +4784,41 @@ static int niu_rx_work(struct napi_struct *napi, struct niu *np,
 	mbox->rcrstat_a = 0;
 
 	netif_printk(np, rx_status, KERN_DEBUG, np->dev,
-		     "%s(chan[%d]), stat[%llx] qlen=%d\n",
-		     __func__, rp->rx_channel, (unsigned long long)stat, qlen);
+				 "%s(chan[%d]), stat[%llx] qlen=%d\n",
+				 __func__, rp->rx_channel, (unsigned long long)stat, qlen);
 
 	rcr_done = work_done = 0;
 	qlen = min(qlen, budget);
-	while (work_done < qlen) {
+
+	while (work_done < qlen)
+	{
 		rcr_done += niu_process_rx_pkt(napi, np, rp);
 		work_done++;
 	}
 
-	if (rp->rbr_refill_pending >= rp->rbr_kick_thresh) {
+	if (rp->rbr_refill_pending >= rp->rbr_kick_thresh)
+	{
 		unsigned int i;
 
 		for (i = 0; i < rp->rbr_refill_pending; i++)
+		{
 			niu_rbr_refill(np, rp, GFP_ATOMIC);
+		}
+
 		rp->rbr_refill_pending = 0;
 	}
 
 	stat = (RX_DMA_CTL_STAT_MEX |
-		((u64)work_done << RX_DMA_CTL_STAT_PKTREAD_SHIFT) |
-		((u64)rcr_done << RX_DMA_CTL_STAT_PTRREAD_SHIFT));
+			((u64)work_done << RX_DMA_CTL_STAT_PKTREAD_SHIFT) |
+			((u64)rcr_done << RX_DMA_CTL_STAT_PTRREAD_SHIFT));
 
 	nw64(RX_DMA_CTL_STAT(rp->rx_channel), stat);
 
 	/* Only sync discards stats when qlen indicate potential for drops */
 	if (qlen > 10)
+	{
 		niu_sync_rx_discard_stats(np, rp, 0x7FFF);
+	}
 
 	return work_done;
 }
@@ -3750,27 +4831,35 @@ static int niu_poll_core(struct niu *np, struct niu_ldg *lp, int budget)
 	int i, work_done = 0;
 
 	netif_printk(np, intr, KERN_DEBUG, np->dev,
-		     "%s() v0[%016llx]\n", __func__, (unsigned long long)v0);
+				 "%s() v0[%016llx]\n", __func__, (unsigned long long)v0);
 
-	for (i = 0; i < np->num_tx_rings; i++) {
+	for (i = 0; i < np->num_tx_rings; i++)
+	{
 		struct tx_ring_info *rp = &np->tx_rings[i];
+
 		if (tx_vec & (1 << rp->tx_channel))
+		{
 			niu_tx_work(np, rp);
+		}
+
 		nw64(LD_IM0(LDN_TXDMA(rp->tx_channel)), 0);
 	}
 
-	for (i = 0; i < np->num_rx_rings; i++) {
+	for (i = 0; i < np->num_rx_rings; i++)
+	{
 		struct rx_ring_info *rp = &np->rx_rings[i];
 
-		if (rx_vec & (1 << rp->rx_channel)) {
+		if (rx_vec & (1 << rp->rx_channel))
+		{
 			int this_work_done;
 
 			this_work_done = niu_rx_work(&lp->napi, np, rp,
-						     budget);
+										 budget);
 
 			budget -= this_work_done;
 			work_done += this_work_done;
 		}
+
 		nw64(LD_IM0(LDN_RXDMA(rp->rx_channel)), 0);
 	}
 
@@ -3785,46 +4874,89 @@ static int niu_poll(struct napi_struct *napi, int budget)
 
 	work_done = niu_poll_core(np, lp, budget);
 
-	if (work_done < budget) {
+	if (work_done < budget)
+	{
 		napi_complete(napi);
 		niu_ldg_rearm(np, lp, 1);
 	}
+
 	return work_done;
 }
 
 static void niu_log_rxchan_errors(struct niu *np, struct rx_ring_info *rp,
-				  u64 stat)
+								  u64 stat)
 {
 	netdev_err(np->dev, "RX channel %u errors ( ", rp->rx_channel);
 
 	if (stat & RX_DMA_CTL_STAT_RBR_TMOUT)
+	{
 		pr_cont("RBR_TMOUT ");
+	}
+
 	if (stat & RX_DMA_CTL_STAT_RSP_CNT_ERR)
+	{
 		pr_cont("RSP_CNT ");
+	}
+
 	if (stat & RX_DMA_CTL_STAT_BYTE_EN_BUS)
+	{
 		pr_cont("BYTE_EN_BUS ");
+	}
+
 	if (stat & RX_DMA_CTL_STAT_RSP_DAT_ERR)
+	{
 		pr_cont("RSP_DAT ");
+	}
+
 	if (stat & RX_DMA_CTL_STAT_RCR_ACK_ERR)
+	{
 		pr_cont("RCR_ACK ");
+	}
+
 	if (stat & RX_DMA_CTL_STAT_RCR_SHA_PAR)
+	{
 		pr_cont("RCR_SHA_PAR ");
+	}
+
 	if (stat & RX_DMA_CTL_STAT_RBR_PRE_PAR)
+	{
 		pr_cont("RBR_PRE_PAR ");
+	}
+
 	if (stat & RX_DMA_CTL_STAT_CONFIG_ERR)
+	{
 		pr_cont("CONFIG ");
+	}
+
 	if (stat & RX_DMA_CTL_STAT_RCRINCON)
+	{
 		pr_cont("RCRINCON ");
+	}
+
 	if (stat & RX_DMA_CTL_STAT_RCRFULL)
+	{
 		pr_cont("RCRFULL ");
+	}
+
 	if (stat & RX_DMA_CTL_STAT_RBRFULL)
+	{
 		pr_cont("RBRFULL ");
+	}
+
 	if (stat & RX_DMA_CTL_STAT_RBRLOGPAGE)
+	{
 		pr_cont("RBRLOGPAGE ");
+	}
+
 	if (stat & RX_DMA_CTL_STAT_CFIGLOGPAGE)
+	{
 		pr_cont("CFIGLOGPAGE ");
+	}
+
 	if (stat & RX_DMA_CTL_STAT_DC_FIFO_ERR)
+	{
 		pr_cont("DC_FIDO ");
+	}
 
 	pr_cont(")\n");
 }
@@ -3836,44 +4968,70 @@ static int niu_rx_error(struct niu *np, struct rx_ring_info *rp)
 
 
 	if (stat & (RX_DMA_CTL_STAT_CHAN_FATAL |
-		    RX_DMA_CTL_STAT_PORT_FATAL))
+				RX_DMA_CTL_STAT_PORT_FATAL))
+	{
 		err = -EINVAL;
+	}
 
-	if (err) {
+	if (err)
+	{
 		netdev_err(np->dev, "RX channel %u error, stat[%llx]\n",
-			   rp->rx_channel,
-			   (unsigned long long) stat);
+				   rp->rx_channel,
+				   (unsigned long long) stat);
 
 		niu_log_rxchan_errors(np, rp, stat);
 	}
 
 	nw64(RX_DMA_CTL_STAT(rp->rx_channel),
-	     stat & RX_DMA_CTL_WRITE_CLEAR_ERRS);
+		 stat & RX_DMA_CTL_WRITE_CLEAR_ERRS);
 
 	return err;
 }
 
 static void niu_log_txchan_errors(struct niu *np, struct tx_ring_info *rp,
-				  u64 cs)
+								  u64 cs)
 {
 	netdev_err(np->dev, "TX channel %u errors ( ", rp->tx_channel);
 
 	if (cs & TX_CS_MBOX_ERR)
+	{
 		pr_cont("MBOX ");
+	}
+
 	if (cs & TX_CS_PKT_SIZE_ERR)
+	{
 		pr_cont("PKT_SIZE ");
+	}
+
 	if (cs & TX_CS_TX_RING_OFLOW)
+	{
 		pr_cont("TX_RING_OFLOW ");
+	}
+
 	if (cs & TX_CS_PREF_BUF_PAR_ERR)
+	{
 		pr_cont("PREF_BUF_PAR ");
+	}
+
 	if (cs & TX_CS_NACK_PREF)
+	{
 		pr_cont("NACK_PREF ");
+	}
+
 	if (cs & TX_CS_NACK_PKT_RD)
+	{
 		pr_cont("NACK_PKT_RD ");
+	}
+
 	if (cs & TX_CS_CONF_PART_ERR)
+	{
 		pr_cont("CONF_PART ");
+	}
+
 	if (cs & TX_CS_PKT_PRT_ERR)
+	{
 		pr_cont("PKT_PTR ");
+	}
 
 	pr_cont(")\n");
 }
@@ -3887,10 +5045,10 @@ static int niu_tx_error(struct niu *np, struct tx_ring_info *rp)
 	logl = nr64(TX_RNG_ERR_LOGL(rp->tx_channel));
 
 	netdev_err(np->dev, "TX channel %u error, cs[%llx] logh[%llx] logl[%llx]\n",
-		   rp->tx_channel,
-		   (unsigned long long)cs,
-		   (unsigned long long)logh,
-		   (unsigned long long)logl);
+			   rp->tx_channel,
+			   (unsigned long long)cs,
+			   (unsigned long long)logh,
+			   (unsigned long long)logl);
 
 	niu_log_txchan_errors(np, rp, cs);
 
@@ -3902,15 +5060,18 @@ static int niu_mif_interrupt(struct niu *np)
 	u64 mif_status = nr64(MIF_STATUS);
 	int phy_mdint = 0;
 
-	if (np->flags & NIU_FLAGS_XMAC) {
+	if (np->flags & NIU_FLAGS_XMAC)
+	{
 		u64 xrxmac_stat = nr64_mac(XRXMAC_STATUS);
 
 		if (xrxmac_stat & XRXMAC_STATUS_PHY_MDINT)
+		{
 			phy_mdint = 1;
+		}
 	}
 
 	netdev_err(np->dev, "MIF interrupt, stat[%llx] phy_mdint(%d)\n",
-		   (unsigned long long)mif_status, phy_mdint);
+			   (unsigned long long)mif_status, phy_mdint);
 
 	return -ENODEV;
 }
@@ -3921,70 +5082,160 @@ static void niu_xmac_interrupt(struct niu *np)
 	u64 val;
 
 	val = nr64_mac(XTXMAC_STATUS);
+
 	if (val & XTXMAC_STATUS_FRAME_CNT_EXP)
+	{
 		mp->tx_frames += TXMAC_FRM_CNT_COUNT;
+	}
+
 	if (val & XTXMAC_STATUS_BYTE_CNT_EXP)
+	{
 		mp->tx_bytes += TXMAC_BYTE_CNT_COUNT;
+	}
+
 	if (val & XTXMAC_STATUS_TXFIFO_XFR_ERR)
+	{
 		mp->tx_fifo_errors++;
+	}
+
 	if (val & XTXMAC_STATUS_TXMAC_OFLOW)
+	{
 		mp->tx_overflow_errors++;
+	}
+
 	if (val & XTXMAC_STATUS_MAX_PSIZE_ERR)
+	{
 		mp->tx_max_pkt_size_errors++;
+	}
+
 	if (val & XTXMAC_STATUS_TXMAC_UFLOW)
+	{
 		mp->tx_underflow_errors++;
+	}
 
 	val = nr64_mac(XRXMAC_STATUS);
+
 	if (val & XRXMAC_STATUS_LCL_FLT_STATUS)
+	{
 		mp->rx_local_faults++;
+	}
+
 	if (val & XRXMAC_STATUS_RFLT_DET)
+	{
 		mp->rx_remote_faults++;
+	}
+
 	if (val & XRXMAC_STATUS_LFLT_CNT_EXP)
+	{
 		mp->rx_link_faults += LINK_FAULT_CNT_COUNT;
+	}
+
 	if (val & XRXMAC_STATUS_ALIGNERR_CNT_EXP)
+	{
 		mp->rx_align_errors += RXMAC_ALIGN_ERR_CNT_COUNT;
+	}
+
 	if (val & XRXMAC_STATUS_RXFRAG_CNT_EXP)
+	{
 		mp->rx_frags += RXMAC_FRAG_CNT_COUNT;
+	}
+
 	if (val & XRXMAC_STATUS_RXMULTF_CNT_EXP)
+	{
 		mp->rx_mcasts += RXMAC_MC_FRM_CNT_COUNT;
+	}
+
 	if (val & XRXMAC_STATUS_RXBCAST_CNT_EXP)
+	{
 		mp->rx_bcasts += RXMAC_BC_FRM_CNT_COUNT;
+	}
+
 	if (val & XRXMAC_STATUS_RXBCAST_CNT_EXP)
+	{
 		mp->rx_bcasts += RXMAC_BC_FRM_CNT_COUNT;
+	}
+
 	if (val & XRXMAC_STATUS_RXHIST1_CNT_EXP)
+	{
 		mp->rx_hist_cnt1 += RXMAC_HIST_CNT1_COUNT;
+	}
+
 	if (val & XRXMAC_STATUS_RXHIST2_CNT_EXP)
+	{
 		mp->rx_hist_cnt2 += RXMAC_HIST_CNT2_COUNT;
+	}
+
 	if (val & XRXMAC_STATUS_RXHIST3_CNT_EXP)
+	{
 		mp->rx_hist_cnt3 += RXMAC_HIST_CNT3_COUNT;
+	}
+
 	if (val & XRXMAC_STATUS_RXHIST4_CNT_EXP)
+	{
 		mp->rx_hist_cnt4 += RXMAC_HIST_CNT4_COUNT;
+	}
+
 	if (val & XRXMAC_STATUS_RXHIST5_CNT_EXP)
+	{
 		mp->rx_hist_cnt5 += RXMAC_HIST_CNT5_COUNT;
+	}
+
 	if (val & XRXMAC_STATUS_RXHIST6_CNT_EXP)
+	{
 		mp->rx_hist_cnt6 += RXMAC_HIST_CNT6_COUNT;
+	}
+
 	if (val & XRXMAC_STATUS_RXHIST7_CNT_EXP)
+	{
 		mp->rx_hist_cnt7 += RXMAC_HIST_CNT7_COUNT;
+	}
+
 	if (val & XRXMAC_STATUS_RXOCTET_CNT_EXP)
+	{
 		mp->rx_octets += RXMAC_BT_CNT_COUNT;
+	}
+
 	if (val & XRXMAC_STATUS_CVIOLERR_CNT_EXP)
+	{
 		mp->rx_code_violations += RXMAC_CD_VIO_CNT_COUNT;
+	}
+
 	if (val & XRXMAC_STATUS_LENERR_CNT_EXP)
+	{
 		mp->rx_len_errors += RXMAC_MPSZER_CNT_COUNT;
+	}
+
 	if (val & XRXMAC_STATUS_CRCERR_CNT_EXP)
+	{
 		mp->rx_crc_errors += RXMAC_CRC_ER_CNT_COUNT;
+	}
+
 	if (val & XRXMAC_STATUS_RXUFLOW)
+	{
 		mp->rx_underflows++;
+	}
+
 	if (val & XRXMAC_STATUS_RXOFLOW)
+	{
 		mp->rx_overflows++;
+	}
 
 	val = nr64_mac(XMAC_FC_STAT);
+
 	if (val & XMAC_FC_STAT_TX_MAC_NPAUSE)
+	{
 		mp->pause_off_state++;
+	}
+
 	if (val & XMAC_FC_STAT_TX_MAC_PAUSE)
+	{
 		mp->pause_on_state++;
+	}
+
 	if (val & XMAC_FC_STAT_RX_MAC_RPAUSE)
+	{
 		mp->pause_received++;
+	}
 }
 
 static void niu_bmac_interrupt(struct niu *np)
@@ -3993,42 +5244,82 @@ static void niu_bmac_interrupt(struct niu *np)
 	u64 val;
 
 	val = nr64_mac(BTXMAC_STATUS);
+
 	if (val & BTXMAC_STATUS_UNDERRUN)
+	{
 		mp->tx_underflow_errors++;
+	}
+
 	if (val & BTXMAC_STATUS_MAX_PKT_ERR)
+	{
 		mp->tx_max_pkt_size_errors++;
+	}
+
 	if (val & BTXMAC_STATUS_BYTE_CNT_EXP)
+	{
 		mp->tx_bytes += BTXMAC_BYTE_CNT_COUNT;
+	}
+
 	if (val & BTXMAC_STATUS_FRAME_CNT_EXP)
+	{
 		mp->tx_frames += BTXMAC_FRM_CNT_COUNT;
+	}
 
 	val = nr64_mac(BRXMAC_STATUS);
+
 	if (val & BRXMAC_STATUS_OVERFLOW)
+	{
 		mp->rx_overflows++;
+	}
+
 	if (val & BRXMAC_STATUS_FRAME_CNT_EXP)
+	{
 		mp->rx_frames += BRXMAC_FRAME_CNT_COUNT;
+	}
+
 	if (val & BRXMAC_STATUS_ALIGN_ERR_EXP)
+	{
 		mp->rx_align_errors += BRXMAC_ALIGN_ERR_CNT_COUNT;
+	}
+
 	if (val & BRXMAC_STATUS_CRC_ERR_EXP)
+	{
 		mp->rx_crc_errors += BRXMAC_ALIGN_ERR_CNT_COUNT;
+	}
+
 	if (val & BRXMAC_STATUS_LEN_ERR_EXP)
+	{
 		mp->rx_len_errors += BRXMAC_CODE_VIOL_ERR_CNT_COUNT;
+	}
 
 	val = nr64_mac(BMAC_CTRL_STATUS);
+
 	if (val & BMAC_CTRL_STATUS_NOPAUSE)
+	{
 		mp->pause_off_state++;
+	}
+
 	if (val & BMAC_CTRL_STATUS_PAUSE)
+	{
 		mp->pause_on_state++;
+	}
+
 	if (val & BMAC_CTRL_STATUS_PAUSE_RECV)
+	{
 		mp->pause_received++;
+	}
 }
 
 static int niu_mac_interrupt(struct niu *np)
 {
 	if (np->flags & NIU_FLAGS_XMAC)
+	{
 		niu_xmac_interrupt(np);
+	}
 	else
+	{
 		niu_bmac_interrupt(np);
+	}
 
 	return 0;
 }
@@ -4038,27 +5329,59 @@ static void niu_log_device_error(struct niu *np, u64 stat)
 	netdev_err(np->dev, "Core device errors ( ");
 
 	if (stat & SYS_ERR_MASK_META2)
+	{
 		pr_cont("META2 ");
+	}
+
 	if (stat & SYS_ERR_MASK_META1)
+	{
 		pr_cont("META1 ");
+	}
+
 	if (stat & SYS_ERR_MASK_PEU)
+	{
 		pr_cont("PEU ");
+	}
+
 	if (stat & SYS_ERR_MASK_TXC)
+	{
 		pr_cont("TXC ");
+	}
+
 	if (stat & SYS_ERR_MASK_RDMC)
+	{
 		pr_cont("RDMC ");
+	}
+
 	if (stat & SYS_ERR_MASK_TDMC)
+	{
 		pr_cont("TDMC ");
+	}
+
 	if (stat & SYS_ERR_MASK_ZCP)
+	{
 		pr_cont("ZCP ");
+	}
+
 	if (stat & SYS_ERR_MASK_FFLP)
+	{
 		pr_cont("FFLP ");
+	}
+
 	if (stat & SYS_ERR_MASK_IPP)
+	{
 		pr_cont("IPP ");
+	}
+
 	if (stat & SYS_ERR_MASK_MAC)
+	{
 		pr_cont("MAC ");
+	}
+
 	if (stat & SYS_ERR_MASK_SMX)
+	{
 		pr_cont("SMX ");
+	}
 
 	pr_cont(")\n");
 }
@@ -4068,7 +5391,7 @@ static int niu_device_error(struct niu *np)
 	u64 stat = nr64(SYS_ERR_STAT);
 
 	netdev_err(np->dev, "Core device error, stat[%llx]\n",
-		   (unsigned long long)stat);
+			   (unsigned long long)stat);
 
 	niu_log_device_error(np, stat);
 
@@ -4076,7 +5399,7 @@ static int niu_device_error(struct niu *np)
 }
 
 static int niu_slowpath_interrupt(struct niu *np, struct niu_ldg *lp,
-			      u64 v0, u64 v1, u64 v2)
+								  u64 v0, u64 v1, u64 v2)
 {
 
 	int i, err = 0;
@@ -4085,82 +5408,114 @@ static int niu_slowpath_interrupt(struct niu *np, struct niu_ldg *lp,
 	lp->v1 = v1;
 	lp->v2 = v2;
 
-	if (v1 & 0x00000000ffffffffULL) {
+	if (v1 & 0x00000000ffffffffULL)
+	{
 		u32 rx_vec = (v1 & 0xffffffff);
 
-		for (i = 0; i < np->num_rx_rings; i++) {
+		for (i = 0; i < np->num_rx_rings; i++)
+		{
 			struct rx_ring_info *rp = &np->rx_rings[i];
 
-			if (rx_vec & (1 << rp->rx_channel)) {
+			if (rx_vec & (1 << rp->rx_channel))
+			{
 				int r = niu_rx_error(np, rp);
-				if (r) {
+
+				if (r)
+				{
 					err = r;
-				} else {
+				}
+				else
+				{
 					if (!v0)
 						nw64(RX_DMA_CTL_STAT(rp->rx_channel),
-						     RX_DMA_CTL_STAT_MEX);
+							 RX_DMA_CTL_STAT_MEX);
 				}
 			}
 		}
 	}
-	if (v1 & 0x7fffffff00000000ULL) {
+
+	if (v1 & 0x7fffffff00000000ULL)
+	{
 		u32 tx_vec = (v1 >> 32) & 0x7fffffff;
 
-		for (i = 0; i < np->num_tx_rings; i++) {
+		for (i = 0; i < np->num_tx_rings; i++)
+		{
 			struct tx_ring_info *rp = &np->tx_rings[i];
 
-			if (tx_vec & (1 << rp->tx_channel)) {
+			if (tx_vec & (1 << rp->tx_channel))
+			{
 				int r = niu_tx_error(np, rp);
+
 				if (r)
+				{
 					err = r;
+				}
 			}
 		}
 	}
-	if ((v0 | v1) & 0x8000000000000000ULL) {
+
+	if ((v0 | v1) & 0x8000000000000000ULL)
+	{
 		int r = niu_mif_interrupt(np);
+
 		if (r)
+		{
 			err = r;
-	}
-	if (v2) {
-		if (v2 & 0x01ef) {
-			int r = niu_mac_interrupt(np);
-			if (r)
-				err = r;
 		}
-		if (v2 & 0x0210) {
-			int r = niu_device_error(np);
+	}
+
+	if (v2)
+	{
+		if (v2 & 0x01ef)
+		{
+			int r = niu_mac_interrupt(np);
+
 			if (r)
+			{
 				err = r;
+			}
+		}
+
+		if (v2 & 0x0210)
+		{
+			int r = niu_device_error(np);
+
+			if (r)
+			{
+				err = r;
+			}
 		}
 	}
 
 	if (err)
+	{
 		niu_enable_interrupts(np, 0);
+	}
 
 	return err;
 }
 
 static void niu_rxchan_intr(struct niu *np, struct rx_ring_info *rp,
-			    int ldn)
+							int ldn)
 {
 	struct rxdma_mailbox *mbox = rp->mbox;
 	u64 stat_write, stat = le64_to_cpup(&mbox->rx_dma_ctl_stat);
 
 	stat_write = (RX_DMA_CTL_STAT_RCRTHRES |
-		      RX_DMA_CTL_STAT_RCRTO);
+				  RX_DMA_CTL_STAT_RCRTO);
 	nw64(RX_DMA_CTL_STAT(rp->rx_channel), stat_write);
 
 	netif_printk(np, intr, KERN_DEBUG, np->dev,
-		     "%s() stat[%llx]\n", __func__, (unsigned long long)stat);
+				 "%s() stat[%llx]\n", __func__, (unsigned long long)stat);
 }
 
 static void niu_txchan_intr(struct niu *np, struct tx_ring_info *rp,
-			    int ldn)
+							int ldn)
 {
 	rp->tx_cs = nr64(TX_CS(rp->tx_channel));
 
 	netif_printk(np, intr, KERN_DEBUG, np->dev,
-		     "%s() cs[%llx]\n", __func__, (unsigned long long)rp->tx_cs);
+				 "%s() cs[%llx]\n", __func__, (unsigned long long)rp->tx_cs);
 }
 
 static void __niu_fastpath_interrupt(struct niu *np, int ldg, u64 v0)
@@ -4172,35 +5527,48 @@ static void __niu_fastpath_interrupt(struct niu *np, int ldg, u64 v0)
 	tx_vec = (v0 >> 32);
 	rx_vec = (v0 & 0xffffffff);
 
-	for (i = 0; i < np->num_rx_rings; i++) {
+	for (i = 0; i < np->num_rx_rings; i++)
+	{
 		struct rx_ring_info *rp = &np->rx_rings[i];
 		int ldn = LDN_RXDMA(rp->rx_channel);
 
 		if (parent->ldg_map[ldn] != ldg)
+		{
 			continue;
+		}
 
 		nw64(LD_IM0(ldn), LD_IM0_MASK);
+
 		if (rx_vec & (1 << rp->rx_channel))
+		{
 			niu_rxchan_intr(np, rp, ldn);
+		}
 	}
 
-	for (i = 0; i < np->num_tx_rings; i++) {
+	for (i = 0; i < np->num_tx_rings; i++)
+	{
 		struct tx_ring_info *rp = &np->tx_rings[i];
 		int ldn = LDN_TXDMA(rp->tx_channel);
 
 		if (parent->ldg_map[ldn] != ldg)
+		{
 			continue;
+		}
 
 		nw64(LD_IM0(ldn), LD_IM0_MASK);
+
 		if (tx_vec & (1 << rp->tx_channel))
+		{
 			niu_txchan_intr(np, rp, ldn);
+		}
 	}
 }
 
 static void niu_schedule_napi(struct niu *np, struct niu_ldg *lp,
-			      u64 v0, u64 v1, u64 v2)
+							  u64 v0, u64 v1, u64 v2)
 {
-	if (likely(napi_schedule_prep(&lp->napi))) {
+	if (likely(napi_schedule_prep(&lp->napi)))
+	{
 		lp->v0 = v0;
 		lp->v1 = v1;
 		lp->v2 = v2;
@@ -4219,7 +5587,7 @@ static irqreturn_t niu_interrupt(int irq, void *dev_id)
 
 	if (netif_msg_intr(np))
 		printk(KERN_DEBUG KBUILD_MODNAME ": " "%s() ldg[%p](%d)",
-		       __func__, lp, ldg);
+			   __func__, lp, ldg);
 
 	spin_lock_irqsave(&np->lock, flags);
 
@@ -4229,24 +5597,35 @@ static irqreturn_t niu_interrupt(int irq, void *dev_id)
 
 	if (netif_msg_intr(np))
 		pr_cont(" v0[%llx] v1[%llx] v2[%llx]\n",
-		       (unsigned long long) v0,
-		       (unsigned long long) v1,
-		       (unsigned long long) v2);
+				(unsigned long long) v0,
+				(unsigned long long) v1,
+				(unsigned long long) v2);
 
-	if (unlikely(!v0 && !v1 && !v2)) {
+	if (unlikely(!v0 && !v1 && !v2))
+	{
 		spin_unlock_irqrestore(&np->lock, flags);
 		return IRQ_NONE;
 	}
 
-	if (unlikely((v0 & ((u64)1 << LDN_MIF)) || v1 || v2)) {
+	if (unlikely((v0 & ((u64)1 << LDN_MIF)) || v1 || v2))
+	{
 		int err = niu_slowpath_interrupt(np, lp, v0, v1, v2);
+
 		if (err)
+		{
 			goto out;
+		}
 	}
+
 	if (likely(v0 & ~((u64)1 << LDN_MIF)))
+	{
 		niu_schedule_napi(np, lp, v0, v1, v2);
+	}
 	else
+	{
 		niu_ldg_rearm(np, lp, 1);
+	}
+
 out:
 	spin_unlock_irqrestore(&np->lock, flags);
 
@@ -4255,53 +5634,65 @@ out:
 
 static void niu_free_rx_ring_info(struct niu *np, struct rx_ring_info *rp)
 {
-	if (rp->mbox) {
+	if (rp->mbox)
+	{
 		np->ops->free_coherent(np->device,
-				       sizeof(struct rxdma_mailbox),
-				       rp->mbox, rp->mbox_dma);
+							   sizeof(struct rxdma_mailbox),
+							   rp->mbox, rp->mbox_dma);
 		rp->mbox = NULL;
 	}
-	if (rp->rcr) {
+
+	if (rp->rcr)
+	{
 		np->ops->free_coherent(np->device,
-				       MAX_RCR_RING_SIZE * sizeof(__le64),
-				       rp->rcr, rp->rcr_dma);
+							   MAX_RCR_RING_SIZE * sizeof(__le64),
+							   rp->rcr, rp->rcr_dma);
 		rp->rcr = NULL;
 		rp->rcr_table_size = 0;
 		rp->rcr_index = 0;
 	}
-	if (rp->rbr) {
+
+	if (rp->rbr)
+	{
 		niu_rbr_free(np, rp);
 
 		np->ops->free_coherent(np->device,
-				       MAX_RBR_RING_SIZE * sizeof(__le32),
-				       rp->rbr, rp->rbr_dma);
+							   MAX_RBR_RING_SIZE * sizeof(__le32),
+							   rp->rbr, rp->rbr_dma);
 		rp->rbr = NULL;
 		rp->rbr_table_size = 0;
 		rp->rbr_index = 0;
 	}
+
 	kfree(rp->rxhash);
 	rp->rxhash = NULL;
 }
 
 static void niu_free_tx_ring_info(struct niu *np, struct tx_ring_info *rp)
 {
-	if (rp->mbox) {
+	if (rp->mbox)
+	{
 		np->ops->free_coherent(np->device,
-				       sizeof(struct txdma_mailbox),
-				       rp->mbox, rp->mbox_dma);
+							   sizeof(struct txdma_mailbox),
+							   rp->mbox, rp->mbox_dma);
 		rp->mbox = NULL;
 	}
-	if (rp->descr) {
+
+	if (rp->descr)
+	{
 		int i;
 
-		for (i = 0; i < MAX_TX_RING_SIZE; i++) {
+		for (i = 0; i < MAX_TX_RING_SIZE; i++)
+		{
 			if (rp->tx_buffs[i].skb)
+			{
 				(void) release_tx_packet(np, rp, i);
+			}
 		}
 
 		np->ops->free_coherent(np->device,
-				       MAX_TX_RING_SIZE * sizeof(__le64),
-				       rp->descr, rp->descr_dma);
+							   MAX_TX_RING_SIZE * sizeof(__le64),
+							   rp->descr, rp->descr_dma);
 		rp->descr = NULL;
 		rp->pending = 0;
 		rp->prod = 0;
@@ -4314,23 +5705,29 @@ static void niu_free_channels(struct niu *np)
 {
 	int i;
 
-	if (np->rx_rings) {
-		for (i = 0; i < np->num_rx_rings; i++) {
+	if (np->rx_rings)
+	{
+		for (i = 0; i < np->num_rx_rings; i++)
+		{
 			struct rx_ring_info *rp = &np->rx_rings[i];
 
 			niu_free_rx_ring_info(np, rp);
 		}
+
 		kfree(np->rx_rings);
 		np->rx_rings = NULL;
 		np->num_rx_rings = 0;
 	}
 
-	if (np->tx_rings) {
-		for (i = 0; i < np->num_tx_rings; i++) {
+	if (np->tx_rings)
+	{
+		for (i = 0; i < np->num_tx_rings; i++)
+		{
 			struct tx_ring_info *rp = &np->tx_rings[i];
 
 			niu_free_tx_ring_info(np, rp);
 		}
+
 		kfree(np->tx_rings);
 		np->tx_rings = NULL;
 		np->num_tx_rings = 0;
@@ -4338,49 +5735,69 @@ static void niu_free_channels(struct niu *np)
 }
 
 static int niu_alloc_rx_ring_info(struct niu *np,
-				  struct rx_ring_info *rp)
+								  struct rx_ring_info *rp)
 {
 	BUILD_BUG_ON(sizeof(struct rxdma_mailbox) != 64);
 
 	rp->rxhash = kcalloc(MAX_RBR_RING_SIZE, sizeof(struct page *),
-			     GFP_KERNEL);
+						 GFP_KERNEL);
+
 	if (!rp->rxhash)
+	{
 		return -ENOMEM;
+	}
 
 	rp->mbox = np->ops->alloc_coherent(np->device,
-					   sizeof(struct rxdma_mailbox),
-					   &rp->mbox_dma, GFP_KERNEL);
+									   sizeof(struct rxdma_mailbox),
+									   &rp->mbox_dma, GFP_KERNEL);
+
 	if (!rp->mbox)
+	{
 		return -ENOMEM;
-	if ((unsigned long)rp->mbox & (64UL - 1)) {
+	}
+
+	if ((unsigned long)rp->mbox & (64UL - 1))
+	{
 		netdev_err(np->dev, "Coherent alloc gives misaligned RXDMA mailbox %p\n",
-			   rp->mbox);
+				   rp->mbox);
 		return -EINVAL;
 	}
 
 	rp->rcr = np->ops->alloc_coherent(np->device,
-					  MAX_RCR_RING_SIZE * sizeof(__le64),
-					  &rp->rcr_dma, GFP_KERNEL);
+									  MAX_RCR_RING_SIZE * sizeof(__le64),
+									  &rp->rcr_dma, GFP_KERNEL);
+
 	if (!rp->rcr)
+	{
 		return -ENOMEM;
-	if ((unsigned long)rp->rcr & (64UL - 1)) {
+	}
+
+	if ((unsigned long)rp->rcr & (64UL - 1))
+	{
 		netdev_err(np->dev, "Coherent alloc gives misaligned RXDMA RCR table %p\n",
-			   rp->rcr);
+				   rp->rcr);
 		return -EINVAL;
 	}
+
 	rp->rcr_table_size = MAX_RCR_RING_SIZE;
 	rp->rcr_index = 0;
 
 	rp->rbr = np->ops->alloc_coherent(np->device,
-					  MAX_RBR_RING_SIZE * sizeof(__le32),
-					  &rp->rbr_dma, GFP_KERNEL);
+									  MAX_RBR_RING_SIZE * sizeof(__le32),
+									  &rp->rbr_dma, GFP_KERNEL);
+
 	if (!rp->rbr)
+	{
 		return -ENOMEM;
-	if ((unsigned long)rp->rbr & (64UL - 1)) {
+	}
+
+	if ((unsigned long)rp->rbr & (64UL - 1))
+	{
 		netdev_err(np->dev, "Coherent alloc gives misaligned RXDMA RBR table %p\n",
-			   rp->rbr);
+				   rp->rbr);
 		return -EINVAL;
 	}
+
 	rp->rbr_table_size = MAX_RBR_RING_SIZE;
 	rp->rbr_index = 0;
 	rp->rbr_pending = 0;
@@ -4396,34 +5813,47 @@ static void niu_set_max_burst(struct niu *np, struct tx_ring_info *rp)
 	 * utilization of DRR amongst the rings.
 	 */
 	rp->max_burst = mtu + 32;
+
 	if (rp->max_burst > 4096)
+	{
 		rp->max_burst = 4096;
+	}
 }
 
 static int niu_alloc_tx_ring_info(struct niu *np,
-				  struct tx_ring_info *rp)
+								  struct tx_ring_info *rp)
 {
 	BUILD_BUG_ON(sizeof(struct txdma_mailbox) != 64);
 
 	rp->mbox = np->ops->alloc_coherent(np->device,
-					   sizeof(struct txdma_mailbox),
-					   &rp->mbox_dma, GFP_KERNEL);
+									   sizeof(struct txdma_mailbox),
+									   &rp->mbox_dma, GFP_KERNEL);
+
 	if (!rp->mbox)
+	{
 		return -ENOMEM;
-	if ((unsigned long)rp->mbox & (64UL - 1)) {
+	}
+
+	if ((unsigned long)rp->mbox & (64UL - 1))
+	{
 		netdev_err(np->dev, "Coherent alloc gives misaligned TXDMA mailbox %p\n",
-			   rp->mbox);
+				   rp->mbox);
 		return -EINVAL;
 	}
 
 	rp->descr = np->ops->alloc_coherent(np->device,
-					    MAX_TX_RING_SIZE * sizeof(__le64),
-					    &rp->descr_dma, GFP_KERNEL);
+										MAX_TX_RING_SIZE * sizeof(__le64),
+										&rp->descr_dma, GFP_KERNEL);
+
 	if (!rp->descr)
+	{
 		return -ENOMEM;
-	if ((unsigned long)rp->descr & (64UL - 1)) {
+	}
+
+	if ((unsigned long)rp->descr & (64UL - 1))
+	{
 		netdev_err(np->dev, "Coherent alloc gives misaligned TXDMA descr table %p\n",
-			   rp->descr);
+				   rp->descr);
 		return -EINVAL;
 	}
 
@@ -4447,23 +5877,29 @@ static void niu_size_rbr(struct niu *np, struct rx_ring_info *rp)
 	bss = min(PAGE_SHIFT, 15);
 
 	rp->rbr_block_size = 1 << bss;
-	rp->rbr_blocks_per_page = 1 << (PAGE_SHIFT-bss);
+	rp->rbr_blocks_per_page = 1 << (PAGE_SHIFT - bss);
 
 	rp->rbr_sizes[0] = 256;
 	rp->rbr_sizes[1] = 1024;
-	if (np->dev->mtu > ETH_DATA_LEN) {
-		switch (PAGE_SIZE) {
-		case 4 * 1024:
-			rp->rbr_sizes[2] = 4096;
-			break;
 
-		default:
-			rp->rbr_sizes[2] = 8192;
-			break;
+	if (np->dev->mtu > ETH_DATA_LEN)
+	{
+		switch (PAGE_SIZE)
+		{
+			case 4 * 1024:
+				rp->rbr_sizes[2] = 4096;
+				break;
+
+			default:
+				rp->rbr_sizes[2] = 8192;
+				break;
 		}
-	} else {
+	}
+	else
+	{
 		rp->rbr_sizes[2] = 2048;
 	}
+
 	rp->rbr_sizes[3] = rp->rbr_block_size;
 }
 
@@ -4478,7 +5914,9 @@ static int niu_alloc_channels(struct niu *np)
 
 	port = np->port;
 	first_rx_channel = first_tx_channel = 0;
-	for (i = 0; i < port; i++) {
+
+	for (i = 0; i < port; i++)
+	{
 		first_rx_channel += parent->rxchan_per_port[i];
 		first_tx_channel += parent->txchan_per_port[i];
 	}
@@ -4487,10 +5925,13 @@ static int niu_alloc_channels(struct niu *np)
 	num_tx_rings = parent->txchan_per_port[port];
 
 	rx_rings = kcalloc(num_rx_rings, sizeof(struct rx_ring_info),
-			   GFP_KERNEL);
+					   GFP_KERNEL);
 	err = -ENOMEM;
+
 	if (!rx_rings)
+	{
 		goto out_err;
+	}
 
 	np->num_rx_rings = num_rx_rings;
 	smp_wmb();
@@ -4498,15 +5939,19 @@ static int niu_alloc_channels(struct niu *np)
 
 	netif_set_real_num_rx_queues(np->dev, num_rx_rings);
 
-	for (i = 0; i < np->num_rx_rings; i++) {
+	for (i = 0; i < np->num_rx_rings; i++)
+	{
 		struct rx_ring_info *rp = &np->rx_rings[i];
 
 		rp->np = np;
 		rp->rx_channel = first_rx_channel + i;
 
 		err = niu_alloc_rx_ring_info(np, rp);
+
 		if (err)
+		{
 			goto out_err;
+		}
 
 		niu_size_rbr(np, rp);
 
@@ -4518,19 +5963,28 @@ static int niu_alloc_channels(struct niu *np)
 		rp->rcr_pkt_threshold = 16;
 		rp->rcr_timeout = 8;
 		rp->rbr_kick_thresh = RBR_REFILL_MIN;
+
 		if (rp->rbr_kick_thresh < rp->rbr_blocks_per_page)
+		{
 			rp->rbr_kick_thresh = rp->rbr_blocks_per_page;
+		}
 
 		err = niu_rbr_fill(np, rp, GFP_KERNEL);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	tx_rings = kcalloc(num_tx_rings, sizeof(struct tx_ring_info),
-			   GFP_KERNEL);
+					   GFP_KERNEL);
 	err = -ENOMEM;
+
 	if (!tx_rings)
+	{
 		goto out_err;
+	}
 
 	np->num_tx_rings = num_tx_rings;
 	smp_wmb();
@@ -4538,15 +5992,19 @@ static int niu_alloc_channels(struct niu *np)
 
 	netif_set_real_num_tx_queues(np->dev, num_tx_rings);
 
-	for (i = 0; i < np->num_tx_rings; i++) {
+	for (i = 0; i < np->num_tx_rings; i++)
+	{
 		struct tx_ring_info *rp = &np->tx_rings[i];
 
 		rp->np = np;
 		rp->tx_channel = first_tx_channel + i;
 
 		err = niu_alloc_tx_ring_info(np, rp);
+
 		if (err)
+		{
 			goto out_err;
+		}
 	}
 
 	return 0;
@@ -4560,11 +6018,16 @@ static int niu_tx_cs_sng_poll(struct niu *np, int channel)
 {
 	int limit = 1000;
 
-	while (--limit > 0) {
+	while (--limit > 0)
+	{
 		u64 val = nr64(TX_CS(channel));
+
 		if (val & TX_CS_SNG_STATE)
+		{
 			return 0;
+		}
 	}
+
 	return -ENODEV;
 }
 
@@ -4582,11 +6045,16 @@ static int niu_tx_cs_reset_poll(struct niu *np, int channel)
 {
 	int limit = 1000;
 
-	while (--limit > 0) {
+	while (--limit > 0)
+	{
 		u64 val = nr64(TX_CS(channel));
+
 		if (!(val & TX_CS_RST))
+		{
 			return 0;
+		}
 	}
+
 	return -ENODEV;
 }
 
@@ -4599,8 +6067,11 @@ static int niu_tx_channel_reset(struct niu *np, int channel)
 	nw64(TX_CS(channel), val);
 
 	err = niu_tx_cs_reset_poll(np, channel);
+
 	if (!err)
+	{
 		nw64(TX_RING_KICK(channel), 0);
+	}
 
 	return err;
 }
@@ -4634,13 +6105,21 @@ static void niu_txc_enable_port(struct niu *np, int on)
 	niu_lock_parent(np, flags);
 	val = nr64(TXC_CONTROL);
 	mask = (u64)1 << np->port;
-	if (on) {
+
+	if (on)
+	{
 		val |= TXC_CONTROL_ENABLE | mask;
-	} else {
-		val &= ~mask;
-		if ((val & ~TXC_CONTROL_ENABLE) == 0)
-			val &= ~TXC_CONTROL_ENABLE;
 	}
+	else
+	{
+		val &= ~mask;
+
+		if ((val & ~TXC_CONTROL_ENABLE) == 0)
+		{
+			val &= ~TXC_CONTROL_ENABLE;
+		}
+	}
+
 	nw64(TXC_CONTROL, val);
 	niu_unlock_parent(np, flags);
 }
@@ -4661,12 +6140,16 @@ static void niu_txc_port_dma_enable(struct niu *np, int on)
 {
 	u64 val = 0;
 
-	if (on) {
+	if (on)
+	{
 		int i;
 
 		for (i = 0; i < np->num_tx_rings; i++)
+		{
 			val |= (1 << np->tx_rings[i].tx_channel);
+		}
 	}
+
 	nw64(TXC_PORT_DMA(np->port), val);
 }
 
@@ -4676,24 +6159,34 @@ static int niu_init_one_tx_channel(struct niu *np, struct tx_ring_info *rp)
 	u64 val, ring_len;
 
 	err = niu_tx_channel_stop(np, channel);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = niu_tx_channel_reset(np, channel);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = niu_tx_channel_lpage_init(np, channel);
+
 	if (err)
+	{
 		return err;
+	}
 
 	nw64(TXC_DMA_MAX(channel), rp->max_burst);
 	nw64(TX_ENT_MSK(channel), 0);
 
 	if (rp->descr_dma & ~(TX_RNG_CFIG_STADDR_BASE |
-			      TX_RNG_CFIG_STADDR)) {
+						  TX_RNG_CFIG_STADDR))
+	{
 		netdev_err(np->dev, "TX ring channel %d DMA addr (%llx) is not aligned\n",
-			   channel, (unsigned long long)rp->descr_dma);
+				   channel, (unsigned long long)rp->descr_dma);
 		return -EINVAL;
 	}
 
@@ -4705,15 +6198,17 @@ static int niu_init_one_tx_channel(struct niu *np, struct tx_ring_info *rp)
 	ring_len = (rp->pending / 8);
 
 	val = ((ring_len << TX_RNG_CFIG_LEN_SHIFT) |
-	       rp->descr_dma);
+		   rp->descr_dma);
 	nw64(TX_RNG_CFIG(channel), val);
 
 	if (((rp->mbox_dma >> 32) & ~TXDMA_MBH_MBADDR) ||
-	    ((u32)rp->mbox_dma & ~TXDMA_MBL_MBADDR)) {
+		((u32)rp->mbox_dma & ~TXDMA_MBL_MBADDR))
+	{
 		netdev_err(np->dev, "TX ring channel %d MBOX addr (%llx) has invalid bits\n",
-			    channel, (unsigned long long)rp->mbox_dma);
+				   channel, (unsigned long long)rp->mbox_dma);
 		return -EINVAL;
 	}
+
 	nw64(TXDMA_MBH(channel), rp->mbox_dma >> 32);
 	nw64(TXDMA_MBL(channel), rp->mbox_dma & TXDMA_MBL_MBADDR);
 
@@ -4729,14 +6224,15 @@ static void niu_init_rdc_groups(struct niu *np)
 	struct niu_rdc_tables *tp = &np->parent->rdc_group_cfg[np->port];
 	int i, first_table_num = tp->first_table_num;
 
-	for (i = 0; i < tp->num_tables; i++) {
+	for (i = 0; i < tp->num_tables; i++)
+	{
 		struct rdc_table *tbl = &tp->tables[i];
 		int this_table = first_table_num + i;
 		int slot;
 
 		for (slot = 0; slot < NIU_RDC_TABLE_SLOTS; slot++)
 			nw64(RDC_TBL(this_table, slot),
-			     tbl->rxdma_channel[slot]);
+				 tbl->rxdma_channel[slot]);
 	}
 
 	nw64(DEF_RDC(np->port), np->parent->rdc_default[np->port]);
@@ -4747,16 +6243,18 @@ static void niu_init_drr_weight(struct niu *np)
 	int type = phy_decode(np->parent->port_phy, np->port);
 	u64 val;
 
-	switch (type) {
-	case PORT_TYPE_10G:
-		val = PT_DRR_WEIGHT_DEFAULT_10G;
-		break;
+	switch (type)
+	{
+		case PORT_TYPE_10G:
+			val = PT_DRR_WEIGHT_DEFAULT_10G;
+			break;
 
-	case PORT_TYPE_1G:
-	default:
-		val = PT_DRR_WEIGHT_DEFAULT_1G;
-		break;
+		case PORT_TYPE_1G:
+		default:
+			val = PT_DRR_WEIGHT_DEFAULT_1G;
+			break;
 	}
+
 	nw64(PT_DRR_WT(np->port), val);
 }
 
@@ -4768,17 +6266,27 @@ static int niu_init_hostinfo(struct niu *np)
 	int first_rdc_table = tp->first_table_num;
 
 	err = niu_set_primary_mac_rdc_table(np, first_rdc_table, 1);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = niu_set_multicast_mac_rdc_table(np, first_rdc_table, 1);
-	if (err)
-		return err;
 
-	for (i = 0; i < num_alt; i++) {
+	if (err)
+	{
+		return err;
+	}
+
+	for (i = 0; i < num_alt; i++)
+	{
 		err = niu_set_alt_mac_rdc_table(np, i, first_rdc_table, 1);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	return 0;
@@ -4787,8 +6295,8 @@ static int niu_init_hostinfo(struct niu *np)
 static int niu_rx_channel_reset(struct niu *np, int channel)
 {
 	return niu_set_and_wait_clear(np, RXDMA_CFIG1(channel),
-				      RXDMA_CFIG1_RST, 1000, 10,
-				      "RXDMA_CFIG1");
+								  RXDMA_CFIG1_RST, 1000, 10,
+								  "RXDMA_CFIG1");
 }
 
 static int niu_rx_channel_lpage_init(struct niu *np, int channel)
@@ -4815,9 +6323,9 @@ static void niu_rx_channel_wred_init(struct niu *np, struct rx_ring_info *rp)
 	u64 val;
 
 	val = (((u64)rp->nonsyn_window << RDC_RED_PARA_WIN_SHIFT) |
-	       ((u64)rp->nonsyn_threshold << RDC_RED_PARA_THRE_SHIFT) |
-	       ((u64)rp->syn_window << RDC_RED_PARA_WIN_SYN_SHIFT) |
-	       ((u64)rp->syn_threshold << RDC_RED_PARA_THRE_SYN_SHIFT));
+		   ((u64)rp->nonsyn_threshold << RDC_RED_PARA_THRE_SHIFT) |
+		   ((u64)rp->syn_window << RDC_RED_PARA_WIN_SYN_SHIFT) |
+		   ((u64)rp->syn_threshold << RDC_RED_PARA_THRE_SYN_SHIFT));
 	nw64(RDC_RED_PARA(rp->rx_channel), val);
 }
 
@@ -4826,75 +6334,99 @@ static int niu_compute_rbr_cfig_b(struct rx_ring_info *rp, u64 *ret)
 	u64 val = 0;
 
 	*ret = 0;
-	switch (rp->rbr_block_size) {
-	case 4 * 1024:
-		val |= (RBR_BLKSIZE_4K << RBR_CFIG_B_BLKSIZE_SHIFT);
-		break;
-	case 8 * 1024:
-		val |= (RBR_BLKSIZE_8K << RBR_CFIG_B_BLKSIZE_SHIFT);
-		break;
-	case 16 * 1024:
-		val |= (RBR_BLKSIZE_16K << RBR_CFIG_B_BLKSIZE_SHIFT);
-		break;
-	case 32 * 1024:
-		val |= (RBR_BLKSIZE_32K << RBR_CFIG_B_BLKSIZE_SHIFT);
-		break;
-	default:
-		return -EINVAL;
+
+	switch (rp->rbr_block_size)
+	{
+		case 4 * 1024:
+			val |= (RBR_BLKSIZE_4K << RBR_CFIG_B_BLKSIZE_SHIFT);
+			break;
+
+		case 8 * 1024:
+			val |= (RBR_BLKSIZE_8K << RBR_CFIG_B_BLKSIZE_SHIFT);
+			break;
+
+		case 16 * 1024:
+			val |= (RBR_BLKSIZE_16K << RBR_CFIG_B_BLKSIZE_SHIFT);
+			break;
+
+		case 32 * 1024:
+			val |= (RBR_BLKSIZE_32K << RBR_CFIG_B_BLKSIZE_SHIFT);
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	val |= RBR_CFIG_B_VLD2;
-	switch (rp->rbr_sizes[2]) {
-	case 2 * 1024:
-		val |= (RBR_BUFSZ2_2K << RBR_CFIG_B_BUFSZ2_SHIFT);
-		break;
-	case 4 * 1024:
-		val |= (RBR_BUFSZ2_4K << RBR_CFIG_B_BUFSZ2_SHIFT);
-		break;
-	case 8 * 1024:
-		val |= (RBR_BUFSZ2_8K << RBR_CFIG_B_BUFSZ2_SHIFT);
-		break;
-	case 16 * 1024:
-		val |= (RBR_BUFSZ2_16K << RBR_CFIG_B_BUFSZ2_SHIFT);
-		break;
 
-	default:
-		return -EINVAL;
+	switch (rp->rbr_sizes[2])
+	{
+		case 2 * 1024:
+			val |= (RBR_BUFSZ2_2K << RBR_CFIG_B_BUFSZ2_SHIFT);
+			break;
+
+		case 4 * 1024:
+			val |= (RBR_BUFSZ2_4K << RBR_CFIG_B_BUFSZ2_SHIFT);
+			break;
+
+		case 8 * 1024:
+			val |= (RBR_BUFSZ2_8K << RBR_CFIG_B_BUFSZ2_SHIFT);
+			break;
+
+		case 16 * 1024:
+			val |= (RBR_BUFSZ2_16K << RBR_CFIG_B_BUFSZ2_SHIFT);
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	val |= RBR_CFIG_B_VLD1;
-	switch (rp->rbr_sizes[1]) {
-	case 1 * 1024:
-		val |= (RBR_BUFSZ1_1K << RBR_CFIG_B_BUFSZ1_SHIFT);
-		break;
-	case 2 * 1024:
-		val |= (RBR_BUFSZ1_2K << RBR_CFIG_B_BUFSZ1_SHIFT);
-		break;
-	case 4 * 1024:
-		val |= (RBR_BUFSZ1_4K << RBR_CFIG_B_BUFSZ1_SHIFT);
-		break;
-	case 8 * 1024:
-		val |= (RBR_BUFSZ1_8K << RBR_CFIG_B_BUFSZ1_SHIFT);
-		break;
 
-	default:
-		return -EINVAL;
+	switch (rp->rbr_sizes[1])
+	{
+		case 1 * 1024:
+			val |= (RBR_BUFSZ1_1K << RBR_CFIG_B_BUFSZ1_SHIFT);
+			break;
+
+		case 2 * 1024:
+			val |= (RBR_BUFSZ1_2K << RBR_CFIG_B_BUFSZ1_SHIFT);
+			break;
+
+		case 4 * 1024:
+			val |= (RBR_BUFSZ1_4K << RBR_CFIG_B_BUFSZ1_SHIFT);
+			break;
+
+		case 8 * 1024:
+			val |= (RBR_BUFSZ1_8K << RBR_CFIG_B_BUFSZ1_SHIFT);
+			break;
+
+		default:
+			return -EINVAL;
 	}
-	val |= RBR_CFIG_B_VLD0;
-	switch (rp->rbr_sizes[0]) {
-	case 256:
-		val |= (RBR_BUFSZ0_256 << RBR_CFIG_B_BUFSZ0_SHIFT);
-		break;
-	case 512:
-		val |= (RBR_BUFSZ0_512 << RBR_CFIG_B_BUFSZ0_SHIFT);
-		break;
-	case 1 * 1024:
-		val |= (RBR_BUFSZ0_1K << RBR_CFIG_B_BUFSZ0_SHIFT);
-		break;
-	case 2 * 1024:
-		val |= (RBR_BUFSZ0_2K << RBR_CFIG_B_BUFSZ0_SHIFT);
-		break;
 
-	default:
-		return -EINVAL;
+	val |= RBR_CFIG_B_VLD0;
+
+	switch (rp->rbr_sizes[0])
+	{
+		case 256:
+			val |= (RBR_BUFSZ0_256 << RBR_CFIG_B_BUFSZ0_SHIFT);
+			break;
+
+		case 512:
+			val |= (RBR_BUFSZ0_512 << RBR_CFIG_B_BUFSZ0_SHIFT);
+			break;
+
+		case 1 * 1024:
+			val |= (RBR_BUFSZ0_1K << RBR_CFIG_B_BUFSZ0_SHIFT);
+			break;
+
+		case 2 * 1024:
+			val |= (RBR_BUFSZ0_2K << RBR_CFIG_B_BUFSZ0_SHIFT);
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	*ret = val;
@@ -4907,19 +6439,33 @@ static int niu_enable_rx_channel(struct niu *np, int channel, int on)
 	int limit;
 
 	if (on)
+	{
 		val |= RXDMA_CFIG1_EN;
+	}
 	else
+	{
 		val &= ~RXDMA_CFIG1_EN;
+	}
+
 	nw64(RXDMA_CFIG1(channel), val);
 
 	limit = 1000;
-	while (--limit > 0) {
+
+	while (--limit > 0)
+	{
 		if (nr64(RXDMA_CFIG1(channel)) & RXDMA_CFIG1_QST)
+		{
 			break;
+		}
+
 		udelay(10);
 	}
+
 	if (limit <= 0)
+	{
 		return -ENODEV;
+	}
+
 	return 0;
 }
 
@@ -4929,43 +6475,56 @@ static int niu_init_one_rx_channel(struct niu *np, struct rx_ring_info *rp)
 	u64 val;
 
 	err = niu_rx_channel_reset(np, channel);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = niu_rx_channel_lpage_init(np, channel);
+
 	if (err)
+	{
 		return err;
+	}
 
 	niu_rx_channel_wred_init(np, rp);
 
 	nw64(RX_DMA_ENT_MSK(channel), RX_DMA_ENT_MSK_RBR_EMPTY);
 	nw64(RX_DMA_CTL_STAT(channel),
-	     (RX_DMA_CTL_STAT_MEX |
-	      RX_DMA_CTL_STAT_RCRTHRES |
-	      RX_DMA_CTL_STAT_RCRTO |
-	      RX_DMA_CTL_STAT_RBR_EMPTY));
+		 (RX_DMA_CTL_STAT_MEX |
+		  RX_DMA_CTL_STAT_RCRTHRES |
+		  RX_DMA_CTL_STAT_RCRTO |
+		  RX_DMA_CTL_STAT_RBR_EMPTY));
 	nw64(RXDMA_CFIG1(channel), rp->mbox_dma >> 32);
 	nw64(RXDMA_CFIG2(channel),
-	     ((rp->mbox_dma & RXDMA_CFIG2_MBADDR_L) |
-	      RXDMA_CFIG2_FULL_HDR));
+		 ((rp->mbox_dma & RXDMA_CFIG2_MBADDR_L) |
+		  RXDMA_CFIG2_FULL_HDR));
 	nw64(RBR_CFIG_A(channel),
-	     ((u64)rp->rbr_table_size << RBR_CFIG_A_LEN_SHIFT) |
-	     (rp->rbr_dma & (RBR_CFIG_A_STADDR_BASE | RBR_CFIG_A_STADDR)));
+		 ((u64)rp->rbr_table_size << RBR_CFIG_A_LEN_SHIFT) |
+		 (rp->rbr_dma & (RBR_CFIG_A_STADDR_BASE | RBR_CFIG_A_STADDR)));
 	err = niu_compute_rbr_cfig_b(rp, &val);
+
 	if (err)
+	{
 		return err;
+	}
+
 	nw64(RBR_CFIG_B(channel), val);
 	nw64(RCRCFIG_A(channel),
-	     ((u64)rp->rcr_table_size << RCRCFIG_A_LEN_SHIFT) |
-	     (rp->rcr_dma & (RCRCFIG_A_STADDR_BASE | RCRCFIG_A_STADDR)));
+		 ((u64)rp->rcr_table_size << RCRCFIG_A_LEN_SHIFT) |
+		 (rp->rcr_dma & (RCRCFIG_A_STADDR_BASE | RCRCFIG_A_STADDR)));
 	nw64(RCRCFIG_B(channel),
-	     ((u64)rp->rcr_pkt_threshold << RCRCFIG_B_PTHRES_SHIFT) |
-	     RCRCFIG_B_ENTOUT |
-	     ((u64)rp->rcr_timeout << RCRCFIG_B_TIMEOUT_SHIFT));
+		 ((u64)rp->rcr_pkt_threshold << RCRCFIG_B_PTHRES_SHIFT) |
+		 RCRCFIG_B_ENTOUT |
+		 ((u64)rp->rcr_timeout << RCRCFIG_B_TIMEOUT_SHIFT));
 
 	err = niu_enable_rx_channel(np, channel, 1);
+
 	if (err)
+	{
 		return err;
+	}
 
 	nw64(RBR_KICK(channel), rp->rbr_index);
 
@@ -4993,15 +6552,22 @@ static int niu_init_rx_channels(struct niu *np)
 	niu_init_drr_weight(np);
 
 	err = niu_init_hostinfo(np);
-	if (err)
-		return err;
 
-	for (i = 0; i < np->num_rx_rings; i++) {
+	if (err)
+	{
+		return err;
+	}
+
+	for (i = 0; i < np->num_rx_rings; i++)
+	{
 		struct rx_ring_info *rp = &np->rx_rings[i];
 
 		err = niu_init_one_rx_channel(np, rp);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	return 0;
@@ -5024,13 +6590,21 @@ static int niu_set_ip_frag_rule(struct niu *np)
 	tp->key[1] = TCAM_V4KEY1_NOPORT;
 	tp->key_mask[1] = TCAM_V4KEY1_NOPORT;
 	tp->assoc_data = (TCAM_ASSOCDATA_TRES_USE_OFFSET |
-			  ((u64)0 << TCAM_ASSOCDATA_OFFSET_SHIFT));
+					  ((u64)0 << TCAM_ASSOCDATA_OFFSET_SHIFT));
 	err = tcam_write(np, index, tp->key, tp->key_mask);
+
 	if (err)
+	{
 		return err;
+	}
+
 	err = tcam_assoc_write(np, index, tp->assoc_data);
+
 	if (err)
+	{
 		return err;
+	}
+
 	tp->valid = 1;
 	cp->tcam_valid_entries++;
 
@@ -5047,39 +6621,58 @@ static int niu_init_classifier_hw(struct niu *np)
 	nw64(H2POLY, cp->h2_init);
 
 	err = niu_init_hostinfo(np);
-	if (err)
-		return err;
 
-	for (i = 0; i < ENET_VLAN_TBL_NUM_ENTRIES; i++) {
+	if (err)
+	{
+		return err;
+	}
+
+	for (i = 0; i < ENET_VLAN_TBL_NUM_ENTRIES; i++)
+	{
 		struct niu_vlan_rdc *vp = &cp->vlan_mappings[i];
 
 		vlan_tbl_write(np, i, np->port,
-			       vp->vlan_pref, vp->rdc_num);
+					   vp->vlan_pref, vp->rdc_num);
 	}
 
-	for (i = 0; i < cp->num_alt_mac_mappings; i++) {
+	for (i = 0; i < cp->num_alt_mac_mappings; i++)
+	{
 		struct niu_altmac_rdc *ap = &cp->alt_mac_mappings[i];
 
 		err = niu_set_alt_mac_rdc_table(np, ap->alt_mac_num,
-						ap->rdc_num, ap->mac_pref);
+										ap->rdc_num, ap->mac_pref);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
-	for (i = CLASS_CODE_USER_PROG1; i <= CLASS_CODE_SCTP_IPV6; i++) {
+	for (i = CLASS_CODE_USER_PROG1; i <= CLASS_CODE_SCTP_IPV6; i++)
+	{
 		int index = i - CLASS_CODE_USER_PROG1;
 
 		err = niu_set_tcam_key(np, i, parent->tcam_key[index]);
+
 		if (err)
+		{
 			return err;
+		}
+
 		err = niu_set_flow_key(np, i, parent->flow_key[index]);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	err = niu_set_ip_frag_rule(np);
+
 	if (err)
+	{
 		return err;
+	}
 
 	tcam_enable(np, 1);
 
@@ -5095,12 +6688,12 @@ static int niu_zcp_write(struct niu *np, int index, u64 *data)
 	nw64(ZCP_RAM_DATA4, data[4]);
 	nw64(ZCP_RAM_BE, ZCP_RAM_BE_VAL);
 	nw64(ZCP_RAM_ACC,
-	     (ZCP_RAM_ACC_WRITE |
-	      (0 << ZCP_RAM_ACC_ZFCID_SHIFT) |
-	      (ZCP_RAM_SEL_CFIFO(np->port) << ZCP_RAM_ACC_RAM_SEL_SHIFT)));
+		 (ZCP_RAM_ACC_WRITE |
+		  (0 << ZCP_RAM_ACC_ZFCID_SHIFT) |
+		  (ZCP_RAM_SEL_CFIFO(np->port) << ZCP_RAM_ACC_RAM_SEL_SHIFT)));
 
 	return niu_wait_bits_clear(np, ZCP_RAM_ACC, ZCP_RAM_ACC_BUSY,
-				   1000, 100);
+							   1000, 100);
 }
 
 static int niu_zcp_read(struct niu *np, int index, u64 *data)
@@ -5108,23 +6701,27 @@ static int niu_zcp_read(struct niu *np, int index, u64 *data)
 	int err;
 
 	err = niu_wait_bits_clear(np, ZCP_RAM_ACC, ZCP_RAM_ACC_BUSY,
-				  1000, 100);
-	if (err) {
+							  1000, 100);
+
+	if (err)
+	{
 		netdev_err(np->dev, "ZCP read busy won't clear, ZCP_RAM_ACC[%llx]\n",
-			   (unsigned long long)nr64(ZCP_RAM_ACC));
+				   (unsigned long long)nr64(ZCP_RAM_ACC));
 		return err;
 	}
 
 	nw64(ZCP_RAM_ACC,
-	     (ZCP_RAM_ACC_READ |
-	      (0 << ZCP_RAM_ACC_ZFCID_SHIFT) |
-	      (ZCP_RAM_SEL_CFIFO(np->port) << ZCP_RAM_ACC_RAM_SEL_SHIFT)));
+		 (ZCP_RAM_ACC_READ |
+		  (0 << ZCP_RAM_ACC_ZFCID_SHIFT) |
+		  (ZCP_RAM_SEL_CFIFO(np->port) << ZCP_RAM_ACC_RAM_SEL_SHIFT)));
 
 	err = niu_wait_bits_clear(np, ZCP_RAM_ACC, ZCP_RAM_ACC_BUSY,
-				  1000, 100);
-	if (err) {
+							  1000, 100);
+
+	if (err)
+	{
 		netdev_err(np->dev, "ZCP read busy2 won't clear, ZCP_RAM_ACC[%llx]\n",
-			   (unsigned long long)nr64(ZCP_RAM_ACC));
+				   (unsigned long long)nr64(ZCP_RAM_ACC));
 		return err;
 	}
 
@@ -5154,13 +6751,21 @@ static int niu_init_zcp(struct niu *np)
 	u64 data[5], rbuf[5];
 	int i, max, err;
 
-	if (np->parent->plat_type != PLAT_TYPE_NIU) {
+	if (np->parent->plat_type != PLAT_TYPE_NIU)
+	{
 		if (np->port == 0 || np->port == 1)
+		{
 			max = ATLAS_P0_P1_CFIFO_ENTRIES;
+		}
 		else
+		{
 			max = ATLAS_P2_P3_CFIFO_ENTRIES;
-	} else
+		}
+	}
+	else
+	{
 		max = NIU_CFIFO_ENTRIES;
+	}
 
 	data[0] = 0;
 	data[1] = 0;
@@ -5168,13 +6773,21 @@ static int niu_init_zcp(struct niu *np)
 	data[3] = 0;
 	data[4] = 0;
 
-	for (i = 0; i < max; i++) {
+	for (i = 0; i < max; i++)
+	{
 		err = niu_zcp_write(np, i, data);
+
 		if (err)
+		{
 			return err;
+		}
+
 		err = niu_zcp_read(np, i, rbuf);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	niu_zcp_cfifo_reset(np);
@@ -5213,7 +6826,7 @@ static void niu_ipp_read(struct niu *np, int index, u64 *data)
 static int niu_ipp_reset(struct niu *np)
 {
 	return niu_set_and_wait_clear_ipp(np, IPP_CFIG, IPP_CFIG_SOFT_RST,
-					  1000, 100, "IPP_CFIG");
+									  1000, 100, "IPP_CFIG");
 }
 
 static int niu_init_ipp(struct niu *np)
@@ -5221,13 +6834,21 @@ static int niu_init_ipp(struct niu *np)
 	u64 data[5], rbuf[5], val;
 	int i, max, err;
 
-	if (np->parent->plat_type != PLAT_TYPE_NIU) {
+	if (np->parent->plat_type != PLAT_TYPE_NIU)
+	{
 		if (np->port == 0 || np->port == 1)
+		{
 			max = ATLAS_P0_P1_DFIFO_ENTRIES;
+		}
 		else
+		{
 			max = ATLAS_P2_P3_DFIFO_ENTRIES;
-	} else
+		}
+	}
+	else
+	{
 		max = NIU_DFIFO_ENTRIES;
+	}
 
 	data[0] = 0;
 	data[1] = 0;
@@ -5235,7 +6856,8 @@ static int niu_init_ipp(struct niu *np)
 	data[3] = 0;
 	data[4] = 0;
 
-	for (i = 0; i < max; i++) {
+	for (i = 0; i < max; i++)
+	{
 		niu_ipp_write(np, i, data);
 		niu_ipp_read(np, i, rbuf);
 	}
@@ -5244,8 +6866,11 @@ static int niu_init_ipp(struct niu *np)
 	(void) nr64_ipp(IPP_INT_STAT);
 
 	err = niu_ipp_reset(np);
+
 	if (err)
+	{
 		return err;
+	}
 
 	(void) nr64_ipp(IPP_PKT_DIS);
 	(void) nr64_ipp(IPP_BAD_CS_CNT);
@@ -5258,10 +6883,10 @@ static int niu_init_ipp(struct niu *np)
 	val = nr64_ipp(IPP_CFIG);
 	val &= ~IPP_CFIG_IP_MAX_PKT;
 	val |= (IPP_CFIG_IPP_ENABLE |
-		IPP_CFIG_DFIFO_ECC_EN |
-		IPP_CFIG_DROP_BAD_CRC |
-		IPP_CFIG_CKSUM_EN |
-		(0x1ffff << IPP_CFIG_IP_MAX_PKT_SHIFT));
+			IPP_CFIG_DFIFO_ECC_EN |
+			IPP_CFIG_DROP_BAD_CRC |
+			IPP_CFIG_CKSUM_EN |
+			(0x1ffff << IPP_CFIG_IP_MAX_PKT_SHIFT));
 	nw64_ipp(IPP_CFIG, val);
 
 	return 0;
@@ -5273,11 +6898,15 @@ static void niu_handle_led(struct niu *np, int status)
 	val = nr64_mac(XMAC_CONFIG);
 
 	if ((np->flags & NIU_FLAGS_10G) != 0 &&
-	    (np->flags & NIU_FLAGS_FIBER) != 0) {
-		if (status) {
+		(np->flags & NIU_FLAGS_FIBER) != 0)
+	{
+		if (status)
+		{
 			val |= XMAC_CONFIG_LED_POLARITY;
 			val &= ~XMAC_CONFIG_FORCE_LED_ON;
-		} else {
+		}
+		else
+		{
 			val |= XMAC_CONFIG_FORCE_LED_ON;
 			val &= ~XMAC_CONFIG_LED_POLARITY;
 		}
@@ -5291,7 +6920,8 @@ static void niu_init_xif_xmac(struct niu *np)
 	struct niu_link_config *lp = &np->link_config;
 	u64 val;
 
-	if (np->flags & NIU_FLAGS_XCVR_SERDES) {
+	if (np->flags & NIU_FLAGS_XCVR_SERDES)
+	{
 		val = nr64(MIF_CONFIG);
 		val |= MIF_CONFIG_ATCA_GE;
 		nw64(MIF_CONFIG, val);
@@ -5302,42 +6932,65 @@ static void niu_init_xif_xmac(struct niu *np)
 
 	val |= XMAC_CONFIG_TX_OUTPUT_EN;
 
-	if (lp->loopback_mode == LOOPBACK_MAC) {
+	if (lp->loopback_mode == LOOPBACK_MAC)
+	{
 		val &= ~XMAC_CONFIG_SEL_POR_CLK_SRC;
 		val |= XMAC_CONFIG_LOOPBACK;
-	} else {
+	}
+	else
+	{
 		val &= ~XMAC_CONFIG_LOOPBACK;
 	}
 
-	if (np->flags & NIU_FLAGS_10G) {
+	if (np->flags & NIU_FLAGS_10G)
+	{
 		val &= ~XMAC_CONFIG_LFS_DISABLE;
-	} else {
+	}
+	else
+	{
 		val |= XMAC_CONFIG_LFS_DISABLE;
+
 		if (!(np->flags & NIU_FLAGS_FIBER) &&
-		    !(np->flags & NIU_FLAGS_XCVR_SERDES))
+			!(np->flags & NIU_FLAGS_XCVR_SERDES))
+		{
 			val |= XMAC_CONFIG_1G_PCS_BYPASS;
+		}
 		else
+		{
 			val &= ~XMAC_CONFIG_1G_PCS_BYPASS;
+		}
 	}
 
 	val &= ~XMAC_CONFIG_10G_XPCS_BYPASS;
 
 	if (lp->active_speed == SPEED_100)
+	{
 		val |= XMAC_CONFIG_SEL_CLK_25MHZ;
+	}
 	else
+	{
 		val &= ~XMAC_CONFIG_SEL_CLK_25MHZ;
+	}
 
 	nw64_mac(XMAC_CONFIG, val);
 
 	val = nr64_mac(XMAC_CONFIG);
 	val &= ~XMAC_CONFIG_MODE_MASK;
-	if (np->flags & NIU_FLAGS_10G) {
+
+	if (np->flags & NIU_FLAGS_10G)
+	{
 		val |= XMAC_CONFIG_MODE_XGMII;
-	} else {
+	}
+	else
+	{
 		if (lp->active_speed == SPEED_1000)
+		{
 			val |= XMAC_CONFIG_MODE_GMII;
+		}
 		else
+		{
 			val |= XMAC_CONFIG_MODE_MII;
+		}
 	}
 
 	nw64_mac(XMAC_CONFIG, val);
@@ -5351,24 +7004,36 @@ static void niu_init_xif_bmac(struct niu *np)
 	val = BMAC_XIF_CONFIG_TX_OUTPUT_EN;
 
 	if (lp->loopback_mode == LOOPBACK_MAC)
+	{
 		val |= BMAC_XIF_CONFIG_MII_LOOPBACK;
+	}
 	else
+	{
 		val &= ~BMAC_XIF_CONFIG_MII_LOOPBACK;
+	}
 
 	if (lp->active_speed == SPEED_1000)
+	{
 		val |= BMAC_XIF_CONFIG_GMII_MODE;
+	}
 	else
+	{
 		val &= ~BMAC_XIF_CONFIG_GMII_MODE;
+	}
 
 	val &= ~(BMAC_XIF_CONFIG_LINK_LED |
-		 BMAC_XIF_CONFIG_LED_POLARITY);
+			 BMAC_XIF_CONFIG_LED_POLARITY);
 
 	if (!(np->flags & NIU_FLAGS_10G) &&
-	    !(np->flags & NIU_FLAGS_FIBER) &&
-	    lp->active_speed == SPEED_100)
+		!(np->flags & NIU_FLAGS_FIBER) &&
+		lp->active_speed == SPEED_100)
+	{
 		val |= BMAC_XIF_CONFIG_25MHZ_CLOCK;
+	}
 	else
+	{
 		val &= ~BMAC_XIF_CONFIG_25MHZ_CLOCK;
+	}
 
 	nw64_mac(BMAC_XIF_CONFIG, val);
 }
@@ -5376,9 +7041,13 @@ static void niu_init_xif_bmac(struct niu *np)
 static void niu_init_xif(struct niu *np)
 {
 	if (np->flags & NIU_FLAGS_XMAC)
+	{
 		niu_init_xif_xmac(np);
+	}
 	else
+	{
 		niu_init_xif_bmac(np);
+	}
 }
 
 static void niu_pcs_mii_reset(struct niu *np)
@@ -5387,7 +7056,9 @@ static void niu_pcs_mii_reset(struct niu *np)
 	u64 val = nr64_pcs(PCS_MII_CTL);
 	val |= PCS_MII_CTL_RST;
 	nw64_pcs(PCS_MII_CTL, val);
-	while ((--limit >= 0) && (val & PCS_MII_CTL_RST)) {
+
+	while ((--limit >= 0) && (val & PCS_MII_CTL_RST))
+	{
 		udelay(100);
 		val = nr64_pcs(PCS_MII_CTL);
 	}
@@ -5399,7 +7070,9 @@ static void niu_xpcs_reset(struct niu *np)
 	u64 val = nr64_xpcs(XPCS_CONTROL1);
 	val |= XPCS_CONTROL1_RESET;
 	nw64_xpcs(XPCS_CONTROL1, val);
-	while ((--limit >= 0) && (val & XPCS_CONTROL1_RESET)) {
+
+	while ((--limit >= 0) && (val & XPCS_CONTROL1_RESET))
+	{
 		udelay(100);
 		val = nr64_xpcs(XPCS_CONTROL1);
 	}
@@ -5411,59 +7084,70 @@ static int niu_init_pcs(struct niu *np)
 	u64 val;
 
 	switch (np->flags & (NIU_FLAGS_10G |
-			     NIU_FLAGS_FIBER |
-			     NIU_FLAGS_XCVR_SERDES)) {
-	case NIU_FLAGS_FIBER:
-		/* 1G fiber */
-		nw64_pcs(PCS_CONF, PCS_CONF_MASK | PCS_CONF_ENABLE);
-		nw64_pcs(PCS_DPATH_MODE, 0);
-		niu_pcs_mii_reset(np);
-		break;
+						 NIU_FLAGS_FIBER |
+						 NIU_FLAGS_XCVR_SERDES))
+	{
+		case NIU_FLAGS_FIBER:
+			/* 1G fiber */
+			nw64_pcs(PCS_CONF, PCS_CONF_MASK | PCS_CONF_ENABLE);
+			nw64_pcs(PCS_DPATH_MODE, 0);
+			niu_pcs_mii_reset(np);
+			break;
 
-	case NIU_FLAGS_10G:
-	case NIU_FLAGS_10G | NIU_FLAGS_FIBER:
-	case NIU_FLAGS_10G | NIU_FLAGS_XCVR_SERDES:
-		/* 10G SERDES */
-		if (!(np->flags & NIU_FLAGS_XMAC))
-			return -EINVAL;
+		case NIU_FLAGS_10G:
+		case NIU_FLAGS_10G | NIU_FLAGS_FIBER:
+		case NIU_FLAGS_10G | NIU_FLAGS_XCVR_SERDES:
 
-		/* 10G copper or fiber */
-		val = nr64_mac(XMAC_CONFIG);
-		val &= ~XMAC_CONFIG_10G_XPCS_BYPASS;
-		nw64_mac(XMAC_CONFIG, val);
+			/* 10G SERDES */
+			if (!(np->flags & NIU_FLAGS_XMAC))
+			{
+				return -EINVAL;
+			}
 
-		niu_xpcs_reset(np);
+			/* 10G copper or fiber */
+			val = nr64_mac(XMAC_CONFIG);
+			val &= ~XMAC_CONFIG_10G_XPCS_BYPASS;
+			nw64_mac(XMAC_CONFIG, val);
 
-		val = nr64_xpcs(XPCS_CONTROL1);
-		if (lp->loopback_mode == LOOPBACK_PHY)
-			val |= XPCS_CONTROL1_LOOPBACK;
-		else
-			val &= ~XPCS_CONTROL1_LOOPBACK;
-		nw64_xpcs(XPCS_CONTROL1, val);
+			niu_xpcs_reset(np);
 
-		nw64_xpcs(XPCS_DESKEW_ERR_CNT, 0);
-		(void) nr64_xpcs(XPCS_SYMERR_CNT01);
-		(void) nr64_xpcs(XPCS_SYMERR_CNT23);
-		break;
+			val = nr64_xpcs(XPCS_CONTROL1);
+
+			if (lp->loopback_mode == LOOPBACK_PHY)
+			{
+				val |= XPCS_CONTROL1_LOOPBACK;
+			}
+			else
+			{
+				val &= ~XPCS_CONTROL1_LOOPBACK;
+			}
+
+			nw64_xpcs(XPCS_CONTROL1, val);
+
+			nw64_xpcs(XPCS_DESKEW_ERR_CNT, 0);
+			(void) nr64_xpcs(XPCS_SYMERR_CNT01);
+			(void) nr64_xpcs(XPCS_SYMERR_CNT23);
+			break;
 
 
-	case NIU_FLAGS_XCVR_SERDES:
-		/* 1G SERDES */
-		niu_pcs_mii_reset(np);
-		nw64_pcs(PCS_CONF, PCS_CONF_MASK | PCS_CONF_ENABLE);
-		nw64_pcs(PCS_DPATH_MODE, 0);
-		break;
+		case NIU_FLAGS_XCVR_SERDES:
+			/* 1G SERDES */
+			niu_pcs_mii_reset(np);
+			nw64_pcs(PCS_CONF, PCS_CONF_MASK | PCS_CONF_ENABLE);
+			nw64_pcs(PCS_DPATH_MODE, 0);
+			break;
 
-	case 0:
+		case 0:
+
 		/* 1G copper */
-	case NIU_FLAGS_XCVR_SERDES | NIU_FLAGS_FIBER:
-		/* 1G RGMII FIBER */
-		nw64_pcs(PCS_DPATH_MODE, PCS_DPATH_MODE_MII);
-		niu_pcs_mii_reset(np);
-		break;
+		case NIU_FLAGS_XCVR_SERDES | NIU_FLAGS_FIBER:
+			/* 1G RGMII FIBER */
+			nw64_pcs(PCS_DPATH_MODE, PCS_DPATH_MODE_MII);
+			niu_pcs_mii_reset(np);
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
@@ -5472,9 +7156,9 @@ static int niu_init_pcs(struct niu *np)
 static int niu_reset_tx_xmac(struct niu *np)
 {
 	return niu_set_and_wait_clear_mac(np, XTXMAC_SW_RST,
-					  (XTXMAC_SW_RST_REG_RS |
-					   XTXMAC_SW_RST_SOFT_RST),
-					  1000, 100, "XTXMAC_SW_RST");
+									  (XTXMAC_SW_RST_REG_RS |
+									   XTXMAC_SW_RST_SOFT_RST),
+									  1000, 100, "XTXMAC_SW_RST");
 }
 
 static int niu_reset_tx_bmac(struct niu *np)
@@ -5483,15 +7167,22 @@ static int niu_reset_tx_bmac(struct niu *np)
 
 	nw64_mac(BTXMAC_SW_RST, BTXMAC_SW_RST_RESET);
 	limit = 1000;
-	while (--limit >= 0) {
+
+	while (--limit >= 0)
+	{
 		if (!(nr64_mac(BTXMAC_SW_RST) & BTXMAC_SW_RST_RESET))
+		{
 			break;
+		}
+
 		udelay(100);
 	}
-	if (limit < 0) {
+
+	if (limit < 0)
+	{
 		dev_err(np->device, "Port %u TX BMAC would not reset, BTXMAC_SW_RST[%llx]\n",
-			np->port,
-			(unsigned long long) nr64_mac(BTXMAC_SW_RST));
+				np->port,
+				(unsigned long long) nr64_mac(BTXMAC_SW_RST));
 		return -ENODEV;
 	}
 
@@ -5501,9 +7192,13 @@ static int niu_reset_tx_bmac(struct niu *np)
 static int niu_reset_tx_mac(struct niu *np)
 {
 	if (np->flags & NIU_FLAGS_XMAC)
+	{
 		return niu_reset_tx_xmac(np);
+	}
 	else
+	{
 		return niu_reset_tx_bmac(np);
+	}
 }
 
 static void niu_init_tx_xmac(struct niu *np, u64 min, u64 max)
@@ -5512,7 +7207,7 @@ static void niu_init_tx_xmac(struct niu *np, u64 min, u64 max)
 
 	val = nr64_mac(XMAC_MIN);
 	val &= ~(XMAC_MIN_TX_MIN_PKT_SIZE |
-		 XMAC_MIN_RX_MIN_PKT_SIZE);
+			 XMAC_MIN_RX_MIN_PKT_SIZE);
 	val |= (min << XMAC_MIN_RX_MIN_PKT_SIZE_SHFT);
 	val |= (min << XMAC_MIN_TX_MIN_PKT_SIZE_SHFT);
 	nw64_mac(XMAC_MIN, val);
@@ -5522,20 +7217,25 @@ static void niu_init_tx_xmac(struct niu *np, u64 min, u64 max)
 	nw64_mac(XTXMAC_STAT_MSK, ~(u64)0);
 
 	val = nr64_mac(XMAC_IPG);
-	if (np->flags & NIU_FLAGS_10G) {
+
+	if (np->flags & NIU_FLAGS_10G)
+	{
 		val &= ~XMAC_IPG_IPG_XGMII;
 		val |= (IPG_12_15_XGMII << XMAC_IPG_IPG_XGMII_SHIFT);
-	} else {
+	}
+	else
+	{
 		val &= ~XMAC_IPG_IPG_MII_GMII;
 		val |= (IPG_12_MII_GMII << XMAC_IPG_IPG_MII_GMII_SHIFT);
 	}
+
 	nw64_mac(XMAC_IPG, val);
 
 	val = nr64_mac(XMAC_CONFIG);
 	val &= ~(XMAC_CONFIG_ALWAYS_NO_CRC |
-		 XMAC_CONFIG_STRETCH_MODE |
-		 XMAC_CONFIG_VAR_MIN_IPG_EN |
-		 XMAC_CONFIG_TX_ENABLE);
+			 XMAC_CONFIG_STRETCH_MODE |
+			 XMAC_CONFIG_VAR_MIN_IPG_EN |
+			 XMAC_CONFIG_TX_ENABLE);
 	nw64_mac(XMAC_CONFIG, val);
 
 	nw64_mac(TXMAC_FRM_CNT, 0);
@@ -5555,7 +7255,7 @@ static void niu_init_tx_bmac(struct niu *np, u64 min, u64 max)
 
 	val = nr64_mac(BTXMAC_CONFIG);
 	val &= ~(BTXMAC_CONFIG_FCS_DISABLE |
-		 BTXMAC_CONFIG_ENABLE);
+			 BTXMAC_CONFIG_ENABLE);
 	nw64_mac(BTXMAC_CONFIG, val);
 }
 
@@ -5564,10 +7264,15 @@ static void niu_init_tx_mac(struct niu *np)
 	u64 min, max;
 
 	min = 64;
+
 	if (np->dev->mtu > ETH_DATA_LEN)
+	{
 		max = 9216;
+	}
 	else
+	{
 		max = 1522;
+	}
 
 	/* The XMAC_MIN register only accepts values for TX min which
 	 * have the low 3 bits cleared.
@@ -5575,9 +7280,13 @@ static void niu_init_tx_mac(struct niu *np)
 	BUG_ON(min & 0x7);
 
 	if (np->flags & NIU_FLAGS_XMAC)
+	{
 		niu_init_tx_xmac(np, min, max);
+	}
 	else
+	{
 		niu_init_tx_bmac(np, min, max);
+	}
 }
 
 static int niu_reset_rx_xmac(struct niu *np)
@@ -5585,18 +7294,25 @@ static int niu_reset_rx_xmac(struct niu *np)
 	int limit;
 
 	nw64_mac(XRXMAC_SW_RST,
-		 XRXMAC_SW_RST_REG_RS | XRXMAC_SW_RST_SOFT_RST);
+			 XRXMAC_SW_RST_REG_RS | XRXMAC_SW_RST_SOFT_RST);
 	limit = 1000;
-	while (--limit >= 0) {
+
+	while (--limit >= 0)
+	{
 		if (!(nr64_mac(XRXMAC_SW_RST) & (XRXMAC_SW_RST_REG_RS |
-						 XRXMAC_SW_RST_SOFT_RST)))
+										 XRXMAC_SW_RST_SOFT_RST)))
+		{
 			break;
+		}
+
 		udelay(100);
 	}
-	if (limit < 0) {
+
+	if (limit < 0)
+	{
 		dev_err(np->device, "Port %u RX XMAC would not reset, XRXMAC_SW_RST[%llx]\n",
-			np->port,
-			(unsigned long long) nr64_mac(XRXMAC_SW_RST));
+				np->port,
+				(unsigned long long) nr64_mac(XRXMAC_SW_RST));
 		return -ENODEV;
 	}
 
@@ -5609,15 +7325,22 @@ static int niu_reset_rx_bmac(struct niu *np)
 
 	nw64_mac(BRXMAC_SW_RST, BRXMAC_SW_RST_RESET);
 	limit = 1000;
-	while (--limit >= 0) {
+
+	while (--limit >= 0)
+	{
 		if (!(nr64_mac(BRXMAC_SW_RST) & BRXMAC_SW_RST_RESET))
+		{
 			break;
+		}
+
 		udelay(100);
 	}
-	if (limit < 0) {
+
+	if (limit < 0)
+	{
 		dev_err(np->device, "Port %u RX BMAC would not reset, BRXMAC_SW_RST[%llx]\n",
-			np->port,
-			(unsigned long long) nr64_mac(BRXMAC_SW_RST));
+				np->port,
+				(unsigned long long) nr64_mac(BRXMAC_SW_RST));
 		return -ENODEV;
 	}
 
@@ -5627,9 +7350,13 @@ static int niu_reset_rx_bmac(struct niu *np)
 static int niu_reset_rx_mac(struct niu *np)
 {
 	if (np->flags & NIU_FLAGS_XMAC)
+	{
 		return niu_reset_rx_xmac(np);
+	}
 	else
+	{
 		return niu_reset_rx_bmac(np);
+	}
 }
 
 static void niu_init_rx_xmac(struct niu *np)
@@ -5645,25 +7372,29 @@ static void niu_init_rx_xmac(struct niu *np)
 	nw64_mac(XMAC_ADD_FILT2, 0);
 	nw64_mac(XMAC_ADD_FILT12_MASK, 0);
 	nw64_mac(XMAC_ADD_FILT00_MASK, 0);
+
 	for (i = 0; i < MAC_NUM_HASH; i++)
+	{
 		nw64_mac(XMAC_HASH_TBL(i), 0);
+	}
+
 	nw64_mac(XRXMAC_STAT_MSK, ~(u64)0);
 	niu_set_primary_mac_rdc_table(np, first_rdc_table, 1);
 	niu_set_multicast_mac_rdc_table(np, first_rdc_table, 1);
 
 	val = nr64_mac(XMAC_CONFIG);
 	val &= ~(XMAC_CONFIG_RX_MAC_ENABLE |
-		 XMAC_CONFIG_PROMISCUOUS |
-		 XMAC_CONFIG_PROMISC_GROUP |
-		 XMAC_CONFIG_ERR_CHK_DIS |
-		 XMAC_CONFIG_RX_CRC_CHK_DIS |
-		 XMAC_CONFIG_RESERVED_MULTICAST |
-		 XMAC_CONFIG_RX_CODEV_CHK_DIS |
-		 XMAC_CONFIG_ADDR_FILTER_EN |
-		 XMAC_CONFIG_RCV_PAUSE_ENABLE |
-		 XMAC_CONFIG_STRIP_CRC |
-		 XMAC_CONFIG_PASS_FLOW_CTRL |
-		 XMAC_CONFIG_MAC2IPP_PKT_CNT_EN);
+			 XMAC_CONFIG_PROMISCUOUS |
+			 XMAC_CONFIG_PROMISC_GROUP |
+			 XMAC_CONFIG_ERR_CHK_DIS |
+			 XMAC_CONFIG_RX_CRC_CHK_DIS |
+			 XMAC_CONFIG_RESERVED_MULTICAST |
+			 XMAC_CONFIG_RX_CODEV_CHK_DIS |
+			 XMAC_CONFIG_ADDR_FILTER_EN |
+			 XMAC_CONFIG_RCV_PAUSE_ENABLE |
+			 XMAC_CONFIG_STRIP_CRC |
+			 XMAC_CONFIG_PASS_FLOW_CTRL |
+			 XMAC_CONFIG_MAC2IPP_PKT_CNT_EN);
 	val |= (XMAC_CONFIG_HASH_FILTER_EN);
 	nw64_mac(XMAC_CONFIG, val);
 
@@ -5697,20 +7428,24 @@ static void niu_init_rx_bmac(struct niu *np)
 	nw64_mac(BMAC_ADD_FILT2, 0);
 	nw64_mac(BMAC_ADD_FILT12_MASK, 0);
 	nw64_mac(BMAC_ADD_FILT00_MASK, 0);
+
 	for (i = 0; i < MAC_NUM_HASH; i++)
+	{
 		nw64_mac(BMAC_HASH_TBL(i), 0);
+	}
+
 	niu_set_primary_mac_rdc_table(np, first_rdc_table, 1);
 	niu_set_multicast_mac_rdc_table(np, first_rdc_table, 1);
 	nw64_mac(BRXMAC_STATUS_MASK, ~(u64)0);
 
 	val = nr64_mac(BRXMAC_CONFIG);
 	val &= ~(BRXMAC_CONFIG_ENABLE |
-		 BRXMAC_CONFIG_STRIP_PAD |
-		 BRXMAC_CONFIG_STRIP_FCS |
-		 BRXMAC_CONFIG_PROMISC |
-		 BRXMAC_CONFIG_PROMISC_GRP |
-		 BRXMAC_CONFIG_ADDR_FILT_EN |
-		 BRXMAC_CONFIG_DISCARD_DIS);
+			 BRXMAC_CONFIG_STRIP_PAD |
+			 BRXMAC_CONFIG_STRIP_FCS |
+			 BRXMAC_CONFIG_PROMISC |
+			 BRXMAC_CONFIG_PROMISC_GRP |
+			 BRXMAC_CONFIG_ADDR_FILT_EN |
+			 BRXMAC_CONFIG_DISCARD_DIS);
 	val |= (BRXMAC_CONFIG_HASH_FILT_EN);
 	nw64_mac(BRXMAC_CONFIG, val);
 
@@ -5724,9 +7459,13 @@ static void niu_init_rx_mac(struct niu *np)
 	niu_set_primary_mac(np, np->dev->dev_addr);
 
 	if (np->flags & NIU_FLAGS_XMAC)
+	{
 		niu_init_rx_xmac(np);
+	}
 	else
+	{
 		niu_init_rx_bmac(np);
+	}
 }
 
 static void niu_enable_tx_xmac(struct niu *np, int on)
@@ -5734,9 +7473,14 @@ static void niu_enable_tx_xmac(struct niu *np, int on)
 	u64 val = nr64_mac(XMAC_CONFIG);
 
 	if (on)
+	{
 		val |= XMAC_CONFIG_TX_ENABLE;
+	}
 	else
+	{
 		val &= ~XMAC_CONFIG_TX_ENABLE;
+	}
+
 	nw64_mac(XMAC_CONFIG, val);
 }
 
@@ -5745,18 +7489,27 @@ static void niu_enable_tx_bmac(struct niu *np, int on)
 	u64 val = nr64_mac(BTXMAC_CONFIG);
 
 	if (on)
+	{
 		val |= BTXMAC_CONFIG_ENABLE;
+	}
 	else
+	{
 		val &= ~BTXMAC_CONFIG_ENABLE;
+	}
+
 	nw64_mac(BTXMAC_CONFIG, val);
 }
 
 static void niu_enable_tx_mac(struct niu *np, int on)
 {
 	if (np->flags & NIU_FLAGS_XMAC)
+	{
 		niu_enable_tx_xmac(np, on);
+	}
 	else
+	{
 		niu_enable_tx_bmac(np, on);
+	}
 }
 
 static void niu_enable_rx_xmac(struct niu *np, int on)
@@ -5764,17 +7517,27 @@ static void niu_enable_rx_xmac(struct niu *np, int on)
 	u64 val = nr64_mac(XMAC_CONFIG);
 
 	val &= ~(XMAC_CONFIG_HASH_FILTER_EN |
-		 XMAC_CONFIG_PROMISCUOUS);
+			 XMAC_CONFIG_PROMISCUOUS);
 
 	if (np->flags & NIU_FLAGS_MCAST)
+	{
 		val |= XMAC_CONFIG_HASH_FILTER_EN;
+	}
+
 	if (np->flags & NIU_FLAGS_PROMISC)
+	{
 		val |= XMAC_CONFIG_PROMISCUOUS;
+	}
 
 	if (on)
+	{
 		val |= XMAC_CONFIG_RX_MAC_ENABLE;
+	}
 	else
+	{
 		val &= ~XMAC_CONFIG_RX_MAC_ENABLE;
+	}
+
 	nw64_mac(XMAC_CONFIG, val);
 }
 
@@ -5783,26 +7546,40 @@ static void niu_enable_rx_bmac(struct niu *np, int on)
 	u64 val = nr64_mac(BRXMAC_CONFIG);
 
 	val &= ~(BRXMAC_CONFIG_HASH_FILT_EN |
-		 BRXMAC_CONFIG_PROMISC);
+			 BRXMAC_CONFIG_PROMISC);
 
 	if (np->flags & NIU_FLAGS_MCAST)
+	{
 		val |= BRXMAC_CONFIG_HASH_FILT_EN;
+	}
+
 	if (np->flags & NIU_FLAGS_PROMISC)
+	{
 		val |= BRXMAC_CONFIG_PROMISC;
+	}
 
 	if (on)
+	{
 		val |= BRXMAC_CONFIG_ENABLE;
+	}
 	else
+	{
 		val &= ~BRXMAC_CONFIG_ENABLE;
+	}
+
 	nw64_mac(BRXMAC_CONFIG, val);
 }
 
 static void niu_enable_rx_mac(struct niu *np, int on)
 {
 	if (np->flags & NIU_FLAGS_XMAC)
+	{
 		niu_enable_rx_xmac(np, on);
+	}
 	else
+	{
 		niu_enable_rx_bmac(np, on);
+	}
 }
 
 static int niu_init_mac(struct niu *np)
@@ -5811,16 +7588,27 @@ static int niu_init_mac(struct niu *np)
 
 	niu_init_xif(np);
 	err = niu_init_pcs(np);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = niu_reset_tx_mac(np);
+
 	if (err)
+	{
 		return err;
+	}
+
 	niu_init_tx_mac(np);
 	err = niu_reset_rx_mac(np);
+
 	if (err)
+	{
 		return err;
+	}
+
 	niu_init_rx_mac(np);
 
 	/* This looks hookey but the RX MAC reset we just did will
@@ -5845,7 +7633,8 @@ static void niu_stop_tx_channels(struct niu *np)
 {
 	int i;
 
-	for (i = 0; i < np->num_tx_rings; i++) {
+	for (i = 0; i < np->num_tx_rings; i++)
+	{
 		struct tx_ring_info *rp = &np->tx_rings[i];
 
 		niu_stop_one_tx_channel(np, rp);
@@ -5861,7 +7650,8 @@ static void niu_reset_tx_channels(struct niu *np)
 {
 	int i;
 
-	for (i = 0; i < np->num_tx_rings; i++) {
+	for (i = 0; i < np->num_tx_rings; i++)
+	{
 		struct tx_ring_info *rp = &np->tx_rings[i];
 
 		niu_reset_one_tx_channel(np, rp);
@@ -5877,7 +7667,8 @@ static void niu_stop_rx_channels(struct niu *np)
 {
 	int i;
 
-	for (i = 0; i < np->num_rx_rings; i++) {
+	for (i = 0; i < np->num_rx_rings; i++)
+	{
 		struct rx_ring_info *rp = &np->rx_rings[i];
 
 		niu_stop_one_rx_channel(np, rp);
@@ -5898,7 +7689,8 @@ static void niu_reset_rx_channels(struct niu *np)
 {
 	int i;
 
-	for (i = 0; i < np->num_rx_rings; i++) {
+	for (i = 0; i < np->num_rx_rings; i++)
+	{
 		struct rx_ring_info *rp = &np->rx_rings[i];
 
 		niu_reset_one_rx_channel(np, rp);
@@ -5913,22 +7705,26 @@ static void niu_disable_ipp(struct niu *np)
 	rd = nr64_ipp(IPP_DFIFO_RD_PTR);
 	wr = nr64_ipp(IPP_DFIFO_WR_PTR);
 	limit = 100;
-	while (--limit >= 0 && (rd != wr)) {
+
+	while (--limit >= 0 && (rd != wr))
+	{
 		rd = nr64_ipp(IPP_DFIFO_RD_PTR);
 		wr = nr64_ipp(IPP_DFIFO_WR_PTR);
 	}
+
 	if (limit < 0 &&
-	    (rd != 0 && wr != 1)) {
+		(rd != 0 && wr != 1))
+	{
 		netdev_err(np->dev, "IPP would not quiesce, rd_ptr[%llx] wr_ptr[%llx]\n",
-			   (unsigned long long)nr64_ipp(IPP_DFIFO_RD_PTR),
-			   (unsigned long long)nr64_ipp(IPP_DFIFO_WR_PTR));
+				   (unsigned long long)nr64_ipp(IPP_DFIFO_RD_PTR),
+				   (unsigned long long)nr64_ipp(IPP_DFIFO_WR_PTR));
 	}
 
 	val = nr64_ipp(IPP_CFIG);
 	val &= ~(IPP_CFIG_IPP_ENABLE |
-		 IPP_CFIG_DFIFO_ECC_EN |
-		 IPP_CFIG_DROP_BAD_CRC |
-		 IPP_CFIG_CKSUM_EN);
+			 IPP_CFIG_DFIFO_ECC_EN |
+			 IPP_CFIG_DROP_BAD_CRC |
+			 IPP_CFIG_CKSUM_EN);
 	nw64_ipp(IPP_CFIG, val);
 
 	(void) niu_ipp_reset(np);
@@ -5944,38 +7740,58 @@ static int niu_init_hw(struct niu *np)
 	niu_txc_set_imask(np, 0);
 
 	netif_printk(np, ifup, KERN_DEBUG, np->dev, "Initialize TX channels\n");
-	for (i = 0; i < np->num_tx_rings; i++) {
+
+	for (i = 0; i < np->num_tx_rings; i++)
+	{
 		struct tx_ring_info *rp = &np->tx_rings[i];
 
 		err = niu_init_one_tx_channel(np, rp);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	netif_printk(np, ifup, KERN_DEBUG, np->dev, "Initialize RX channels\n");
 	err = niu_init_rx_channels(np);
+
 	if (err)
+	{
 		goto out_uninit_tx_channels;
+	}
 
 	netif_printk(np, ifup, KERN_DEBUG, np->dev, "Initialize classifier\n");
 	err = niu_init_classifier_hw(np);
+
 	if (err)
+	{
 		goto out_uninit_rx_channels;
+	}
 
 	netif_printk(np, ifup, KERN_DEBUG, np->dev, "Initialize ZCP\n");
 	err = niu_init_zcp(np);
+
 	if (err)
+	{
 		goto out_uninit_rx_channels;
+	}
 
 	netif_printk(np, ifup, KERN_DEBUG, np->dev, "Initialize IPP\n");
 	err = niu_init_ipp(np);
+
 	if (err)
+	{
 		goto out_uninit_rx_channels;
+	}
 
 	netif_printk(np, ifup, KERN_DEBUG, np->dev, "Initialize MAC\n");
 	err = niu_init_mac(np);
+
 	if (err)
+	{
 		goto out_uninit_ipp;
+	}
 
 	return 0;
 
@@ -6027,19 +7843,21 @@ static void niu_set_irq_name(struct niu *np)
 
 	sprintf(np->irq_name[0], "%s:MAC", np->dev->name);
 
-	if (port == 0) {
+	if (port == 0)
+	{
 		sprintf(np->irq_name[1], "%s:MIF", np->dev->name);
 		sprintf(np->irq_name[2], "%s:SYSERR", np->dev->name);
 		j = 3;
 	}
 
-	for (i = 0; i < np->num_ldg - j; i++) {
+	for (i = 0; i < np->num_ldg - j; i++)
+	{
 		if (i < np->num_rx_rings)
-			sprintf(np->irq_name[i+j], "%s-rx-%d",
-				np->dev->name, i);
+			sprintf(np->irq_name[i + j], "%s-rx-%d",
+					np->dev->name, i);
 		else if (i < np->num_tx_rings + np->num_rx_rings)
-			sprintf(np->irq_name[i+j], "%s-tx-%d", np->dev->name,
-				i - np->num_rx_rings);
+			sprintf(np->irq_name[i + j], "%s-tx-%d", np->dev->name,
+					i - np->num_rx_rings);
 	}
 }
 
@@ -6050,24 +7868,32 @@ static int niu_request_irq(struct niu *np)
 	niu_set_irq_name(np);
 
 	err = 0;
-	for (i = 0; i < np->num_ldg; i++) {
+
+	for (i = 0; i < np->num_ldg; i++)
+	{
 		struct niu_ldg *lp = &np->ldg[i];
 
 		err = request_irq(lp->irq, niu_interrupt, IRQF_SHARED,
-				  np->irq_name[i], lp);
+						  np->irq_name[i], lp);
+
 		if (err)
+		{
 			goto out_free_irqs;
+		}
 
 	}
 
 	return 0;
 
 out_free_irqs:
-	for (j = 0; j < i; j++) {
+
+	for (j = 0; j < i; j++)
+	{
 		struct niu_ldg *lp = &np->ldg[j];
 
 		free_irq(lp->irq, lp);
 	}
+
 	return err;
 }
 
@@ -6075,7 +7901,8 @@ static void niu_free_irq(struct niu *np)
 {
 	int i;
 
-	for (i = 0; i < np->num_ldg; i++) {
+	for (i = 0; i < np->num_ldg; i++)
+	{
 		struct niu_ldg *lp = &np->ldg[i];
 
 		free_irq(lp->irq, lp);
@@ -6087,7 +7914,9 @@ static void niu_enable_napi(struct niu *np)
 	int i;
 
 	for (i = 0; i < np->num_ldg; i++)
+	{
 		napi_enable(&np->ldg[i].napi);
+	}
 }
 
 static void niu_disable_napi(struct niu *np)
@@ -6095,7 +7924,9 @@ static void niu_disable_napi(struct niu *np)
 	int i;
 
 	for (i = 0; i < np->num_ldg; i++)
+	{
 		napi_disable(&np->ldg[i].napi);
+	}
 }
 
 static int niu_open(struct net_device *dev)
@@ -6106,36 +7937,51 @@ static int niu_open(struct net_device *dev)
 	netif_carrier_off(dev);
 
 	err = niu_alloc_channels(np);
+
 	if (err)
+	{
 		goto out_err;
+	}
 
 	err = niu_enable_interrupts(np, 0);
+
 	if (err)
+	{
 		goto out_free_channels;
+	}
 
 	err = niu_request_irq(np);
+
 	if (err)
+	{
 		goto out_free_channels;
+	}
 
 	niu_enable_napi(np);
 
 	spin_lock_irq(&np->lock);
 
 	err = niu_init_hw(np);
-	if (!err) {
+
+	if (!err)
+	{
 		init_timer(&np->timer);
 		np->timer.expires = jiffies + HZ;
 		np->timer.data = (unsigned long) np;
 		np->timer.function = niu_timer;
 
 		err = niu_enable_interrupts(np, 1);
+
 		if (err)
+		{
 			niu_stop_hw(np);
+		}
 	}
 
 	spin_unlock_irq(&np->lock);
 
-	if (err) {
+	if (err)
+	{
 		niu_disable_napi(np);
 		goto out_free_irq;
 	}
@@ -6143,7 +7989,9 @@ static int niu_open(struct net_device *dev)
 	netif_tx_start_all_queues(dev);
 
 	if (np->link_config.loopback_mode != LOOPBACK_DISABLED)
+	{
 		netif_carrier_on(dev);
+	}
 
 	add_timer(&np->timer);
 
@@ -6231,13 +8079,17 @@ static void niu_sync_bmac_stats(struct niu *np)
 static void niu_sync_mac_stats(struct niu *np)
 {
 	if (np->flags & NIU_FLAGS_XMAC)
+	{
 		niu_sync_xmac_stats(np);
+	}
 	else
+	{
 		niu_sync_bmac_stats(np);
+	}
 }
 
 static void niu_get_rx_stats(struct niu *np,
-			     struct rtnl_link_stats64 *stats)
+							 struct rtnl_link_stats64 *stats)
 {
 	u64 pkts, dropped, errors, bytes;
 	struct rx_ring_info *rx_rings;
@@ -6246,10 +8098,14 @@ static void niu_get_rx_stats(struct niu *np,
 	pkts = dropped = errors = bytes = 0;
 
 	rx_rings = ACCESS_ONCE(np->rx_rings);
-	if (!rx_rings)
-		goto no_rings;
 
-	for (i = 0; i < np->num_rx_rings; i++) {
+	if (!rx_rings)
+	{
+		goto no_rings;
+	}
+
+	for (i = 0; i < np->num_rx_rings; i++)
+	{
 		struct rx_ring_info *rp = &rx_rings[i];
 
 		niu_sync_rx_discard_stats(np, rp, 0);
@@ -6268,7 +8124,7 @@ no_rings:
 }
 
 static void niu_get_tx_stats(struct niu *np,
-			     struct rtnl_link_stats64 *stats)
+							 struct rtnl_link_stats64 *stats)
 {
 	u64 pkts, errors, bytes;
 	struct tx_ring_info *tx_rings;
@@ -6277,10 +8133,14 @@ static void niu_get_tx_stats(struct niu *np,
 	pkts = errors = bytes = 0;
 
 	tx_rings = ACCESS_ONCE(np->tx_rings);
-	if (!tx_rings)
-		goto no_rings;
 
-	for (i = 0; i < np->num_tx_rings; i++) {
+	if (!tx_rings)
+	{
+		goto no_rings;
+	}
+
+	for (i = 0; i < np->num_tx_rings; i++)
+	{
 		struct tx_ring_info *rp = &tx_rings[i];
 
 		pkts += rp->tx_packets;
@@ -6295,11 +8155,12 @@ no_rings:
 }
 
 static struct rtnl_link_stats64 *niu_get_stats(struct net_device *dev,
-					       struct rtnl_link_stats64 *stats)
+		struct rtnl_link_stats64 *stats)
 {
 	struct niu *np = netdev_priv(dev);
 
-	if (netif_running(dev)) {
+	if (netif_running(dev))
+	{
 		niu_get_rx_stats(np, stats);
 		niu_get_tx_stats(np, stats);
 	}
@@ -6312,7 +8173,9 @@ static void niu_load_hash_xmac(struct niu *np, u16 *hash)
 	int i;
 
 	for (i = 0; i < 16; i++)
+	{
 		nw64_mac(XMAC_HASH_TBL(i), hash[i]);
+	}
 }
 
 static void niu_load_hash_bmac(struct niu *np, u16 *hash)
@@ -6320,15 +8183,21 @@ static void niu_load_hash_bmac(struct niu *np, u16 *hash)
 	int i;
 
 	for (i = 0; i < 16; i++)
+	{
 		nw64_mac(BMAC_HASH_TBL(i), hash[i]);
+	}
 }
 
 static void niu_load_hash(struct niu *np, u16 *hash)
 {
 	if (np->flags & NIU_FLAGS_XMAC)
+	{
 		niu_load_hash_xmac(np, hash);
+	}
 	else
+	{
 		niu_load_hash_bmac(np, hash);
+	}
 }
 
 static void niu_set_rx_mode(struct net_device *dev)
@@ -6343,50 +8212,80 @@ static void niu_set_rx_mode(struct net_device *dev)
 	niu_enable_rx_mac(np, 0);
 
 	np->flags &= ~(NIU_FLAGS_MCAST | NIU_FLAGS_PROMISC);
+
 	if (dev->flags & IFF_PROMISC)
+	{
 		np->flags |= NIU_FLAGS_PROMISC;
+	}
+
 	if ((dev->flags & IFF_ALLMULTI) || (!netdev_mc_empty(dev)))
+	{
 		np->flags |= NIU_FLAGS_MCAST;
+	}
 
 	alt_cnt = netdev_uc_count(dev);
-	if (alt_cnt > niu_num_alt_addr(np)) {
+
+	if (alt_cnt > niu_num_alt_addr(np))
+	{
 		alt_cnt = 0;
 		np->flags |= NIU_FLAGS_PROMISC;
 	}
 
-	if (alt_cnt) {
+	if (alt_cnt)
+	{
 		int index = 0;
 
-		netdev_for_each_uc_addr(ha, dev) {
+		netdev_for_each_uc_addr(ha, dev)
+		{
 			err = niu_set_alt_mac(np, index, ha->addr);
+
 			if (err)
 				netdev_warn(dev, "Error %d adding alt mac %d\n",
-					    err, index);
+							err, index);
+
 			err = niu_enable_alt_mac(np, index, 1);
+
 			if (err)
 				netdev_warn(dev, "Error %d enabling alt mac %d\n",
-					    err, index);
+							err, index);
 
 			index++;
 		}
-	} else {
+	}
+	else
+	{
 		int alt_start;
+
 		if (np->flags & NIU_FLAGS_XMAC)
+		{
 			alt_start = 0;
+		}
 		else
+		{
 			alt_start = 1;
-		for (i = alt_start; i < niu_num_alt_addr(np); i++) {
+		}
+
+		for (i = alt_start; i < niu_num_alt_addr(np); i++)
+		{
 			err = niu_enable_alt_mac(np, i, 0);
+
 			if (err)
 				netdev_warn(dev, "Error %d disabling alt mac %d\n",
-					    err, i);
+							err, i);
 		}
 	}
-	if (dev->flags & IFF_ALLMULTI) {
+
+	if (dev->flags & IFF_ALLMULTI)
+	{
 		for (i = 0; i < 16; i++)
+		{
 			hash[i] = 0xffff;
-	} else if (!netdev_mc_empty(dev)) {
-		netdev_for_each_mc_addr(ha, dev) {
+		}
+	}
+	else if (!netdev_mc_empty(dev))
+	{
+		netdev_for_each_mc_addr(ha, dev)
+		{
 			u32 crc = ether_crc_le(ETH_ALEN, ha->addr);
 
 			crc >>= 24;
@@ -6395,7 +8294,9 @@ static void niu_set_rx_mode(struct net_device *dev)
 	}
 
 	if (np->flags & NIU_FLAGS_MCAST)
+	{
 		niu_load_hash(np, hash);
+	}
 
 	niu_enable_rx_mac(np, 1);
 	spin_unlock_irqrestore(&np->lock, flags);
@@ -6408,12 +8309,16 @@ static int niu_set_mac_addr(struct net_device *dev, void *p)
 	unsigned long flags;
 
 	if (!is_valid_ether_addr(addr->sa_data))
+	{
 		return -EADDRNOTAVAIL;
+	}
 
 	memcpy(dev->dev_addr, addr->sa_data, ETH_ALEN);
 
 	if (!netif_running(dev))
+	{
 		return 0;
+	}
 
 	spin_lock_irqsave(&np->lock, flags);
 	niu_enable_rx_mac(np, 0);
@@ -6455,15 +8360,20 @@ static void niu_reset_buffers(struct niu *np)
 {
 	int i, j, k, err;
 
-	if (np->rx_rings) {
-		for (i = 0; i < np->num_rx_rings; i++) {
+	if (np->rx_rings)
+	{
+		for (i = 0; i < np->num_rx_rings; i++)
+		{
 			struct rx_ring_info *rp = &np->rx_rings[i];
 
-			for (j = 0, k = 0; j < MAX_RBR_RING_SIZE; j++) {
+			for (j = 0, k = 0; j < MAX_RBR_RING_SIZE; j++)
+			{
 				struct page *page;
 
 				page = rp->rxhash[j];
-				while (page) {
+
+				while (page)
+				{
 					struct page *next =
 						(struct page *) page->mapping;
 					u64 base = page->index;
@@ -6472,10 +8382,15 @@ static void niu_reset_buffers(struct niu *np)
 					page = next;
 				}
 			}
-			for (; k < MAX_RBR_RING_SIZE; k++) {
+
+			for (; k < MAX_RBR_RING_SIZE; k++)
+			{
 				err = niu_rbr_add_page(np, rp, GFP_ATOMIC, k);
+
 				if (unlikely(err))
+				{
 					break;
+				}
 			}
 
 			rp->rbr_index = rp->rbr_table_size - 1;
@@ -6484,13 +8399,19 @@ static void niu_reset_buffers(struct niu *np)
 			rp->rbr_refill_pending = 0;
 		}
 	}
-	if (np->tx_rings) {
-		for (i = 0; i < np->num_tx_rings; i++) {
+
+	if (np->tx_rings)
+	{
+		for (i = 0; i < np->num_tx_rings; i++)
+		{
 			struct tx_ring_info *rp = &np->tx_rings[i];
 
-			for (j = 0; j < MAX_TX_RING_SIZE; j++) {
+			for (j = 0; j < MAX_TX_RING_SIZE; j++)
+			{
 				if (rp->tx_buffs[j].skb)
+				{
 					(void) release_tx_packet(np, rp, j);
+				}
 			}
 
 			rp->pending = MAX_TX_RING_SIZE;
@@ -6508,7 +8429,9 @@ static void niu_reset_task(struct work_struct *work)
 	int err;
 
 	spin_lock_irqsave(&np->lock, flags);
-	if (!netif_running(np->dev)) {
+
+	if (!netif_running(np->dev))
+	{
 		spin_unlock_irqrestore(&np->lock, flags);
 		return;
 	}
@@ -6530,7 +8453,9 @@ static void niu_reset_task(struct work_struct *work)
 	spin_lock_irqsave(&np->lock, flags);
 
 	err = niu_init_hw(np);
-	if (!err) {
+
+	if (!err)
+	{
 		np->timer.expires = jiffies + HZ;
 		add_timer(&np->timer);
 		niu_netif_start(np);
@@ -6544,25 +8469,25 @@ static void niu_tx_timeout(struct net_device *dev)
 	struct niu *np = netdev_priv(dev);
 
 	dev_err(np->device, "%s: Transmit timed out, resetting\n",
-		dev->name);
+			dev->name);
 
 	schedule_work(&np->reset_task);
 }
 
 static void niu_set_txd(struct tx_ring_info *rp, int index,
-			u64 mapping, u64 len, u64 mark,
-			u64 n_frags)
+						u64 mapping, u64 len, u64 mark,
+						u64 n_frags)
 {
 	__le64 *desc = &rp->descr[index];
 
 	*desc = cpu_to_le64(mark |
-			    (n_frags << TX_DESC_NUM_PTR_SHIFT) |
-			    (len << TX_DESC_TR_LEN_SHIFT) |
-			    (mapping & TX_DESC_SAD));
+						(n_frags << TX_DESC_NUM_PTR_SHIFT) |
+						(len << TX_DESC_TR_LEN_SHIFT) |
+						(mapping & TX_DESC_SAD));
 }
 
 static u64 niu_compute_tx_flags(struct sk_buff *skb, struct ethhdr *ehdr,
-				u64 pad_bytes, u64 len)
+								u64 pad_bytes, u64 len)
 {
 	u16 eth_proto, eth_proto_inner;
 	u64 csum_bits, l3off, ihl, ret;
@@ -6571,7 +8496,9 @@ static u64 niu_compute_tx_flags(struct sk_buff *skb, struct ethhdr *ehdr,
 
 	eth_proto = be16_to_cpu(ehdr->h_proto);
 	eth_proto_inner = eth_proto;
-	if (eth_proto == ETH_P_8021Q) {
+
+	if (eth_proto == ETH_P_8021Q)
+	{
 		struct vlan_ethhdr *vp = (struct vlan_ethhdr *) ehdr;
 		__be16 val = vp->h_vlan_encapsulated_proto;
 
@@ -6579,32 +8506,38 @@ static u64 niu_compute_tx_flags(struct sk_buff *skb, struct ethhdr *ehdr,
 	}
 
 	ipv6 = ihl = 0;
-	switch (skb->protocol) {
-	case cpu_to_be16(ETH_P_IP):
-		ip_proto = ip_hdr(skb)->protocol;
-		ihl = ip_hdr(skb)->ihl;
-		break;
-	case cpu_to_be16(ETH_P_IPV6):
-		ip_proto = ipv6_hdr(skb)->nexthdr;
-		ihl = (40 >> 2);
-		ipv6 = 1;
-		break;
-	default:
-		ip_proto = ihl = 0;
-		break;
+
+	switch (skb->protocol)
+	{
+		case cpu_to_be16(ETH_P_IP):
+			ip_proto = ip_hdr(skb)->protocol;
+			ihl = ip_hdr(skb)->ihl;
+			break;
+
+		case cpu_to_be16(ETH_P_IPV6):
+			ip_proto = ipv6_hdr(skb)->nexthdr;
+			ihl = (40 >> 2);
+			ipv6 = 1;
+			break;
+
+		default:
+			ip_proto = ihl = 0;
+			break;
 	}
 
 	csum_bits = TXHDR_CSUM_NONE;
-	if (skb->ip_summed == CHECKSUM_PARTIAL) {
+
+	if (skb->ip_summed == CHECKSUM_PARTIAL)
+	{
 		u64 start, stuff;
 
 		csum_bits = (ip_proto == IPPROTO_TCP ?
-			     TXHDR_CSUM_TCP :
-			     (ip_proto == IPPROTO_UDP ?
-			      TXHDR_CSUM_UDP : TXHDR_CSUM_SCTP));
+					 TXHDR_CSUM_TCP :
+					 (ip_proto == IPPROTO_UDP ?
+					  TXHDR_CSUM_UDP : TXHDR_CSUM_SCTP));
 
 		start = skb_checksum_start_offset(skb) -
-			(pad_bytes + sizeof(struct tx_pkt_hdr));
+				(pad_bytes + sizeof(struct tx_pkt_hdr));
 		stuff = start + skb->csum_offset;
 
 		csum_bits |= (start / 2) << TXHDR_L4START_SHIFT;
@@ -6612,22 +8545,22 @@ static u64 niu_compute_tx_flags(struct sk_buff *skb, struct ethhdr *ehdr,
 	}
 
 	l3off = skb_network_offset(skb) -
-		(pad_bytes + sizeof(struct tx_pkt_hdr));
+			(pad_bytes + sizeof(struct tx_pkt_hdr));
 
 	ret = (((pad_bytes / 2) << TXHDR_PAD_SHIFT) |
-	       (len << TXHDR_LEN_SHIFT) |
-	       ((l3off / 2) << TXHDR_L3START_SHIFT) |
-	       (ihl << TXHDR_IHL_SHIFT) |
-	       ((eth_proto_inner < ETH_P_802_3_MIN) ? TXHDR_LLC : 0) |
-	       ((eth_proto == ETH_P_8021Q) ? TXHDR_VLAN : 0) |
-	       (ipv6 ? TXHDR_IP_VER : 0) |
-	       csum_bits);
+		   (len << TXHDR_LEN_SHIFT) |
+		   ((l3off / 2) << TXHDR_L3START_SHIFT) |
+		   (ihl << TXHDR_IHL_SHIFT) |
+		   ((eth_proto_inner < ETH_P_802_3_MIN) ? TXHDR_LLC : 0) |
+		   ((eth_proto == ETH_P_8021Q) ? TXHDR_VLAN : 0) |
+		   (ipv6 ? TXHDR_IP_VER : 0) |
+		   csum_bits);
 
 	return ret;
 }
 
 static netdev_tx_t niu_start_xmit(struct sk_buff *skb,
-				  struct net_device *dev)
+								  struct net_device *dev)
 {
 	struct niu *np = netdev_priv(dev);
 	unsigned long align, headroom;
@@ -6643,7 +8576,8 @@ static netdev_tx_t niu_start_xmit(struct sk_buff *skb,
 	rp = &np->tx_rings[i];
 	txq = netdev_get_tx_queue(dev, i);
 
-	if (niu_tx_avail(rp) <= (skb_shinfo(skb)->nr_frags + 1)) {
+	if (niu_tx_avail(rp) <= (skb_shinfo(skb)->nr_frags + 1))
+	{
 		netif_tx_stop_queue(txq);
 		dev_err(np->device, "%s: BUG! Tx ring full when queue awake!\n", dev->name);
 		rp->tx_errors++;
@@ -6651,19 +8585,30 @@ static netdev_tx_t niu_start_xmit(struct sk_buff *skb,
 	}
 
 	if (eth_skb_pad(skb))
+	{
 		goto out;
+	}
 
 	len = sizeof(struct tx_pkt_hdr) + 15;
-	if (skb_headroom(skb) < len) {
+
+	if (skb_headroom(skb) < len)
+	{
 		struct sk_buff *skb_new;
 
 		skb_new = skb_realloc_headroom(skb, len);
+
 		if (!skb_new)
+		{
 			goto out_drop;
+		}
+
 		kfree_skb(skb);
 		skb = skb_new;
-	} else
+	}
+	else
+	{
 		skb_orphan(skb);
+	}
 
 	align = ((unsigned long) skb->data & (16 - 1));
 	headroom = align + sizeof(struct tx_pkt_hdr);
@@ -6677,7 +8622,7 @@ static netdev_tx_t niu_start_xmit(struct sk_buff *skb,
 
 	len = skb_headlen(skb);
 	mapping = np->ops->map_single(np->device, skb->data,
-				      len, DMA_TO_DEVICE);
+								  len, DMA_TO_DEVICE);
 
 	prod = rp->prod;
 
@@ -6685,7 +8630,9 @@ static netdev_tx_t niu_start_xmit(struct sk_buff *skb,
 	rp->tx_buffs[prod].mapping = mapping;
 
 	mrk = TX_DESC_SOP;
-	if (++rp->mark_counter == rp->mark_freq) {
+
+	if (++rp->mark_counter == rp->mark_freq)
+	{
 		rp->mark_counter = 0;
 		mrk |= TX_DESC_MARK;
 		rp->mark_pending++;
@@ -6693,16 +8640,21 @@ static netdev_tx_t niu_start_xmit(struct sk_buff *skb,
 
 	tlen = len;
 	nfg = skb_shinfo(skb)->nr_frags;
-	while (tlen > 0) {
+
+	while (tlen > 0)
+	{
 		tlen -= MAX_TX_DESC_LEN;
 		nfg++;
 	}
 
-	while (len > 0) {
+	while (len > 0)
+	{
 		unsigned int this_len = len;
 
 		if (this_len > MAX_TX_DESC_LEN)
+		{
 			this_len = MAX_TX_DESC_LEN;
+		}
 
 		niu_set_txd(rp, prod, mapping, this_len, mrk, nfg);
 		mrk = nfg = 0;
@@ -6712,13 +8664,14 @@ static netdev_tx_t niu_start_xmit(struct sk_buff *skb,
 		len -= this_len;
 	}
 
-	for (i = 0; i <  skb_shinfo(skb)->nr_frags; i++) {
+	for (i = 0; i <  skb_shinfo(skb)->nr_frags; i++)
+	{
 		const skb_frag_t *frag = &skb_shinfo(skb)->frags[i];
 
 		len = skb_frag_size(frag);
 		mapping = np->ops->map_page(np->device, skb_frag_page(frag),
-					    frag->page_offset, len,
-					    DMA_TO_DEVICE);
+									frag->page_offset, len,
+									DMA_TO_DEVICE);
 
 		rp->tx_buffs[prod].skb = NULL;
 		rp->tx_buffs[prod].mapping = mapping;
@@ -6729,15 +8682,22 @@ static netdev_tx_t niu_start_xmit(struct sk_buff *skb,
 	}
 
 	if (prod < rp->prod)
+	{
 		rp->wrap_bit ^= TX_RING_KICK_WRAP;
+	}
+
 	rp->prod = prod;
 
 	nw64(TX_RING_KICK(rp->tx_channel), rp->wrap_bit | (prod << 3));
 
-	if (unlikely(niu_tx_avail(rp) <= (MAX_SKB_FRAGS + 1))) {
+	if (unlikely(niu_tx_avail(rp) <= (MAX_SKB_FRAGS + 1)))
+	{
 		netif_tx_stop_queue(txq);
+
 		if (niu_tx_avail(rp) > NIU_TX_WAKEUP_THRESH(rp))
+		{
 			netif_tx_wake_queue(txq);
+		}
 	}
 
 out:
@@ -6755,7 +8715,9 @@ static int niu_change_mtu(struct net_device *dev, int new_mtu)
 	int err, orig_jumbo, new_jumbo;
 
 	if (new_mtu < 68 || new_mtu > NIU_MAX_MTU)
+	{
 		return -EINVAL;
+	}
 
 	orig_jumbo = (dev->mtu > ETH_DATA_LEN);
 	new_jumbo = (new_mtu > ETH_DATA_LEN);
@@ -6763,8 +8725,10 @@ static int niu_change_mtu(struct net_device *dev, int new_mtu)
 	dev->mtu = new_mtu;
 
 	if (!netif_running(dev) ||
-	    (orig_jumbo == new_jumbo))
+		(orig_jumbo == new_jumbo))
+	{
 		return 0;
+	}
 
 	niu_full_shutdown(np, dev);
 
@@ -6773,29 +8737,41 @@ static int niu_change_mtu(struct net_device *dev, int new_mtu)
 	niu_enable_napi(np);
 
 	err = niu_alloc_channels(np);
+
 	if (err)
+	{
 		return err;
+	}
 
 	spin_lock_irq(&np->lock);
 
 	err = niu_init_hw(np);
-	if (!err) {
+
+	if (!err)
+	{
 		init_timer(&np->timer);
 		np->timer.expires = jiffies + HZ;
 		np->timer.data = (unsigned long) np;
 		np->timer.function = niu_timer;
 
 		err = niu_enable_interrupts(np, 1);
+
 		if (err)
+		{
 			niu_stop_hw(np);
+		}
 	}
 
 	spin_unlock_irq(&np->lock);
 
-	if (!err) {
+	if (!err)
+	{
 		netif_tx_start_all_queues(dev);
+
 		if (np->link_config.loopback_mode != LOOPBACK_DISABLED)
+		{
 			netif_carrier_on(dev);
+		}
 
 		add_timer(&np->timer);
 	}
@@ -6804,7 +8780,7 @@ static int niu_change_mtu(struct net_device *dev, int new_mtu)
 }
 
 static void niu_get_drvinfo(struct net_device *dev,
-			    struct ethtool_drvinfo *info)
+							struct ethtool_drvinfo *info)
 {
 	struct niu *np = netdev_priv(dev);
 	struct niu_vpd *vpd = &np->vpd;
@@ -6812,10 +8788,11 @@ static void niu_get_drvinfo(struct net_device *dev,
 	strlcpy(info->driver, DRV_MODULE_NAME, sizeof(info->driver));
 	strlcpy(info->version, DRV_MODULE_VERSION, sizeof(info->version));
 	snprintf(info->fw_version, sizeof(info->fw_version), "%d.%d",
-		vpd->fcode_major, vpd->fcode_minor);
+			 vpd->fcode_major, vpd->fcode_minor);
+
 	if (np->parent->plat_type != PLAT_TYPE_NIU)
 		strlcpy(info->bus_info, pci_name(np->pdev),
-			sizeof(info->bus_info));
+				sizeof(info->bus_info));
 }
 
 static int niu_get_settings(struct net_device *dev, struct ethtool_cmd *cmd)
@@ -6834,7 +8811,7 @@ static int niu_get_settings(struct net_device *dev, struct ethtool_cmd *cmd)
 	cmd->duplex = lp->active_duplex;
 	cmd->port = (np->flags & NIU_FLAGS_FIBER) ? PORT_FIBRE : PORT_TP;
 	cmd->transceiver = (np->flags & NIU_FLAGS_XCVR_SERDES) ?
-		XCVR_EXTERNAL : XCVR_INTERNAL;
+					   XCVR_EXTERNAL : XCVR_INTERNAL;
 
 	return 0;
 }
@@ -6868,7 +8845,9 @@ static int niu_nway_reset(struct net_device *dev)
 	struct niu *np = netdev_priv(dev);
 
 	if (np->link_config.autoneg)
+	{
 		return niu_init_link(np);
+	}
 
 	return 0;
 }
@@ -6881,7 +8860,7 @@ static int niu_get_eeprom_len(struct net_device *dev)
 }
 
 static int niu_get_eeprom(struct net_device *dev,
-			  struct ethtool_eeprom *eeprom, u8 *data)
+						  struct ethtool_eeprom *eeprom, u8 *data)
 {
 	struct niu *np = netdev_priv(dev);
 	u32 offset, len, val;
@@ -6890,19 +8869,31 @@ static int niu_get_eeprom(struct net_device *dev,
 	len = eeprom->len;
 
 	if (offset + len < offset)
+	{
 		return -EINVAL;
-	if (offset >= np->eeprom_len)
-		return -EINVAL;
-	if (offset + len > np->eeprom_len)
-		len = eeprom->len = np->eeprom_len - offset;
+	}
 
-	if (offset & 3) {
+	if (offset >= np->eeprom_len)
+	{
+		return -EINVAL;
+	}
+
+	if (offset + len > np->eeprom_len)
+	{
+		len = eeprom->len = np->eeprom_len - offset;
+	}
+
+	if (offset & 3)
+	{
 		u32 b_offset, b_count;
 
 		b_offset = offset & 3;
 		b_count = 4 - b_offset;
+
 		if (b_count > len)
+		{
 			b_count = len;
+		}
 
 		val = nr64(ESPC_NCR((offset - b_offset) / 4));
 		memcpy(data, ((char *)&val) + b_offset, b_count);
@@ -6910,84 +8901,105 @@ static int niu_get_eeprom(struct net_device *dev,
 		len -= b_count;
 		offset += b_count;
 	}
-	while (len >= 4) {
+
+	while (len >= 4)
+	{
 		val = nr64(ESPC_NCR(offset / 4));
 		memcpy(data, &val, 4);
 		data += 4;
 		len -= 4;
 		offset += 4;
 	}
-	if (len) {
+
+	if (len)
+	{
 		val = nr64(ESPC_NCR(offset / 4));
 		memcpy(data, &val, len);
 	}
+
 	return 0;
 }
 
 static void niu_ethflow_to_l3proto(int flow_type, u8 *pid)
 {
-	switch (flow_type) {
-	case TCP_V4_FLOW:
-	case TCP_V6_FLOW:
-		*pid = IPPROTO_TCP;
-		break;
-	case UDP_V4_FLOW:
-	case UDP_V6_FLOW:
-		*pid = IPPROTO_UDP;
-		break;
-	case SCTP_V4_FLOW:
-	case SCTP_V6_FLOW:
-		*pid = IPPROTO_SCTP;
-		break;
-	case AH_V4_FLOW:
-	case AH_V6_FLOW:
-		*pid = IPPROTO_AH;
-		break;
-	case ESP_V4_FLOW:
-	case ESP_V6_FLOW:
-		*pid = IPPROTO_ESP;
-		break;
-	default:
-		*pid = 0;
-		break;
+	switch (flow_type)
+	{
+		case TCP_V4_FLOW:
+		case TCP_V6_FLOW:
+			*pid = IPPROTO_TCP;
+			break;
+
+		case UDP_V4_FLOW:
+		case UDP_V6_FLOW:
+			*pid = IPPROTO_UDP;
+			break;
+
+		case SCTP_V4_FLOW:
+		case SCTP_V6_FLOW:
+			*pid = IPPROTO_SCTP;
+			break;
+
+		case AH_V4_FLOW:
+		case AH_V6_FLOW:
+			*pid = IPPROTO_AH;
+			break;
+
+		case ESP_V4_FLOW:
+		case ESP_V6_FLOW:
+			*pid = IPPROTO_ESP;
+			break;
+
+		default:
+			*pid = 0;
+			break;
 	}
 }
 
 static int niu_class_to_ethflow(u64 class, int *flow_type)
 {
-	switch (class) {
-	case CLASS_CODE_TCP_IPV4:
-		*flow_type = TCP_V4_FLOW;
-		break;
-	case CLASS_CODE_UDP_IPV4:
-		*flow_type = UDP_V4_FLOW;
-		break;
-	case CLASS_CODE_AH_ESP_IPV4:
-		*flow_type = AH_V4_FLOW;
-		break;
-	case CLASS_CODE_SCTP_IPV4:
-		*flow_type = SCTP_V4_FLOW;
-		break;
-	case CLASS_CODE_TCP_IPV6:
-		*flow_type = TCP_V6_FLOW;
-		break;
-	case CLASS_CODE_UDP_IPV6:
-		*flow_type = UDP_V6_FLOW;
-		break;
-	case CLASS_CODE_AH_ESP_IPV6:
-		*flow_type = AH_V6_FLOW;
-		break;
-	case CLASS_CODE_SCTP_IPV6:
-		*flow_type = SCTP_V6_FLOW;
-		break;
-	case CLASS_CODE_USER_PROG1:
-	case CLASS_CODE_USER_PROG2:
-	case CLASS_CODE_USER_PROG3:
-	case CLASS_CODE_USER_PROG4:
-		*flow_type = IP_USER_FLOW;
-		break;
-	default:
-		return -EINVAL;
+	switch (class)
+	{
+		case CLASS_CODE_TCP_IPV4:
+			*flow_type = TCP_V4_FLOW;
+			break;
+
+		case CLASS_CODE_UDP_IPV4:
+			*flow_type = UDP_V4_FLOW;
+			break;
+
+		case CLASS_CODE_AH_ESP_IPV4:
+			*flow_type = AH_V4_FLOW;
+			break;
+
+		case CLASS_CODE_SCTP_IPV4:
+			*flow_type = SCTP_V4_FLOW;
+			break;
+
+		case CLASS_CODE_TCP_IPV6:
+			*flow_type = TCP_V6_FLOW;
+			break;
+
+		case CLASS_CODE_UDP_IPV6:
+			*flow_type = UDP_V6_FLOW;
+			break;
+
+		case CLASS_CODE_AH_ESP_IPV6:
+			*flow_type = AH_V6_FLOW;
+			break;
+
+		case CLASS_CODE_SCTP_IPV6:
+			*flow_type = SCTP_V6_FLOW;
+			break;
+
+		case CLASS_CODE_USER_PROG1:
+		case CLASS_CODE_USER_PROG2:
+		case CLASS_CODE_USER_PROG3:
+		case CLASS_CODE_USER_PROG4:
+			*flow_type = IP_USER_FLOW;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
@@ -6995,37 +9007,46 @@ static int niu_class_to_ethflow(u64 class, int *flow_type)
 
 static int niu_ethflow_to_class(int flow_type, u64 *class)
 {
-	switch (flow_type) {
-	case TCP_V4_FLOW:
-		*class = CLASS_CODE_TCP_IPV4;
-		break;
-	case UDP_V4_FLOW:
-		*class = CLASS_CODE_UDP_IPV4;
-		break;
-	case AH_ESP_V4_FLOW:
-	case AH_V4_FLOW:
-	case ESP_V4_FLOW:
-		*class = CLASS_CODE_AH_ESP_IPV4;
-		break;
-	case SCTP_V4_FLOW:
-		*class = CLASS_CODE_SCTP_IPV4;
-		break;
-	case TCP_V6_FLOW:
-		*class = CLASS_CODE_TCP_IPV6;
-		break;
-	case UDP_V6_FLOW:
-		*class = CLASS_CODE_UDP_IPV6;
-		break;
-	case AH_ESP_V6_FLOW:
-	case AH_V6_FLOW:
-	case ESP_V6_FLOW:
-		*class = CLASS_CODE_AH_ESP_IPV6;
-		break;
-	case SCTP_V6_FLOW:
-		*class = CLASS_CODE_SCTP_IPV6;
-		break;
-	default:
-		return 0;
+	switch (flow_type)
+	{
+		case TCP_V4_FLOW:
+			*class = CLASS_CODE_TCP_IPV4;
+			break;
+
+		case UDP_V4_FLOW:
+			*class = CLASS_CODE_UDP_IPV4;
+			break;
+
+		case AH_ESP_V4_FLOW:
+		case AH_V4_FLOW:
+		case ESP_V4_FLOW:
+			*class = CLASS_CODE_AH_ESP_IPV4;
+			break;
+
+		case SCTP_V4_FLOW:
+			*class = CLASS_CODE_SCTP_IPV4;
+			break;
+
+		case TCP_V6_FLOW:
+			*class = CLASS_CODE_TCP_IPV6;
+			break;
+
+		case UDP_V6_FLOW:
+			*class = CLASS_CODE_UDP_IPV6;
+			break;
+
+		case AH_ESP_V6_FLOW:
+		case AH_V6_FLOW:
+		case ESP_V6_FLOW:
+			*class = CLASS_CODE_AH_ESP_IPV6;
+			break;
+
+		case SCTP_V6_FLOW:
+			*class = CLASS_CODE_SCTP_IPV6;
+			break;
+
+		default:
+			return 0;
 	}
 
 	return 1;
@@ -7036,19 +9057,39 @@ static u64 niu_flowkey_to_ethflow(u64 flow_key)
 	u64 ethflow = 0;
 
 	if (flow_key & FLOW_KEY_L2DA)
+	{
 		ethflow |= RXH_L2DA;
+	}
+
 	if (flow_key & FLOW_KEY_VLAN)
+	{
 		ethflow |= RXH_VLAN;
+	}
+
 	if (flow_key & FLOW_KEY_IPSA)
+	{
 		ethflow |= RXH_IP_SRC;
+	}
+
 	if (flow_key & FLOW_KEY_IPDA)
+	{
 		ethflow |= RXH_IP_DST;
+	}
+
 	if (flow_key & FLOW_KEY_PROTO)
+	{
 		ethflow |= RXH_L3_PROTO;
+	}
+
 	if (flow_key & (FLOW_KEY_L4_BYTE12 << FLOW_KEY_L4_0_SHIFT))
+	{
 		ethflow |= RXH_L4_B_0_1;
+	}
+
 	if (flow_key & (FLOW_KEY_L4_BYTE12 << FLOW_KEY_L4_1_SHIFT))
+	{
 		ethflow |= RXH_L4_B_2_3;
+	}
 
 	return ethflow;
 
@@ -7059,19 +9100,39 @@ static int niu_ethflow_to_flowkey(u64 ethflow, u64 *flow_key)
 	u64 key = 0;
 
 	if (ethflow & RXH_L2DA)
+	{
 		key |= FLOW_KEY_L2DA;
+	}
+
 	if (ethflow & RXH_VLAN)
+	{
 		key |= FLOW_KEY_VLAN;
+	}
+
 	if (ethflow & RXH_IP_SRC)
+	{
 		key |= FLOW_KEY_IPSA;
+	}
+
 	if (ethflow & RXH_IP_DST)
+	{
 		key |= FLOW_KEY_IPDA;
+	}
+
 	if (ethflow & RXH_L3_PROTO)
+	{
 		key |= FLOW_KEY_PROTO;
+	}
+
 	if (ethflow & RXH_L4_B_0_1)
+	{
 		key |= (FLOW_KEY_L4_BYTE12 << FLOW_KEY_L4_0_SHIFT);
+	}
+
 	if (ethflow & RXH_L4_B_2_3)
+	{
 		key |= (FLOW_KEY_L4_BYTE12 << FLOW_KEY_L4_1_SHIFT);
+	}
 
 	*flow_key = key;
 
@@ -7086,19 +9147,24 @@ static int niu_get_hash_opts(struct niu *np, struct ethtool_rxnfc *nfc)
 	nfc->data = 0;
 
 	if (!niu_ethflow_to_class(nfc->flow_type, &class))
+	{
 		return -EINVAL;
+	}
 
 	if (np->parent->tcam_key[class - CLASS_CODE_USER_PROG1] &
-	    TCAM_KEY_DISC)
+		TCAM_KEY_DISC)
+	{
 		nfc->data = RXH_DISCARD;
+	}
 	else
 		nfc->data = niu_flowkey_to_ethflow(np->parent->flow_key[class -
-						      CLASS_CODE_USER_PROG1]);
+										   CLASS_CODE_USER_PROG1]);
+
 	return 0;
 }
 
 static void niu_get_ip4fs_from_tcam_key(struct niu_tcam_entry *tp,
-					struct ethtool_rx_flow_spec *fsp)
+										struct ethtool_rx_flow_spec *fsp)
 {
 	u32 tmp;
 	u16 prt;
@@ -7116,65 +9182,69 @@ static void niu_get_ip4fs_from_tcam_key(struct niu_tcam_entry *tp,
 	fsp->m_u.tcp_ip4_spec.ip4dst = cpu_to_be32(tmp);
 
 	fsp->h_u.tcp_ip4_spec.tos = (tp->key[2] & TCAM_V4KEY2_TOS) >>
-		TCAM_V4KEY2_TOS_SHIFT;
+								TCAM_V4KEY2_TOS_SHIFT;
 	fsp->m_u.tcp_ip4_spec.tos = (tp->key_mask[2] & TCAM_V4KEY2_TOS) >>
-		TCAM_V4KEY2_TOS_SHIFT;
+								TCAM_V4KEY2_TOS_SHIFT;
 
-	switch (fsp->flow_type) {
-	case TCP_V4_FLOW:
-	case UDP_V4_FLOW:
-	case SCTP_V4_FLOW:
-		prt = ((tp->key[2] & TCAM_V4KEY2_PORT_SPI) >>
-			TCAM_V4KEY2_PORT_SPI_SHIFT) >> 16;
-		fsp->h_u.tcp_ip4_spec.psrc = cpu_to_be16(prt);
+	switch (fsp->flow_type)
+	{
+		case TCP_V4_FLOW:
+		case UDP_V4_FLOW:
+		case SCTP_V4_FLOW:
+			prt = ((tp->key[2] & TCAM_V4KEY2_PORT_SPI) >>
+				   TCAM_V4KEY2_PORT_SPI_SHIFT) >> 16;
+			fsp->h_u.tcp_ip4_spec.psrc = cpu_to_be16(prt);
 
-		prt = ((tp->key[2] & TCAM_V4KEY2_PORT_SPI) >>
-			TCAM_V4KEY2_PORT_SPI_SHIFT) & 0xffff;
-		fsp->h_u.tcp_ip4_spec.pdst = cpu_to_be16(prt);
+			prt = ((tp->key[2] & TCAM_V4KEY2_PORT_SPI) >>
+				   TCAM_V4KEY2_PORT_SPI_SHIFT) & 0xffff;
+			fsp->h_u.tcp_ip4_spec.pdst = cpu_to_be16(prt);
 
-		prt = ((tp->key_mask[2] & TCAM_V4KEY2_PORT_SPI) >>
-			TCAM_V4KEY2_PORT_SPI_SHIFT) >> 16;
-		fsp->m_u.tcp_ip4_spec.psrc = cpu_to_be16(prt);
+			prt = ((tp->key_mask[2] & TCAM_V4KEY2_PORT_SPI) >>
+				   TCAM_V4KEY2_PORT_SPI_SHIFT) >> 16;
+			fsp->m_u.tcp_ip4_spec.psrc = cpu_to_be16(prt);
 
-		prt = ((tp->key_mask[2] & TCAM_V4KEY2_PORT_SPI) >>
-			 TCAM_V4KEY2_PORT_SPI_SHIFT) & 0xffff;
-		fsp->m_u.tcp_ip4_spec.pdst = cpu_to_be16(prt);
-		break;
-	case AH_V4_FLOW:
-	case ESP_V4_FLOW:
-		tmp = (tp->key[2] & TCAM_V4KEY2_PORT_SPI) >>
-			TCAM_V4KEY2_PORT_SPI_SHIFT;
-		fsp->h_u.ah_ip4_spec.spi = cpu_to_be32(tmp);
+			prt = ((tp->key_mask[2] & TCAM_V4KEY2_PORT_SPI) >>
+				   TCAM_V4KEY2_PORT_SPI_SHIFT) & 0xffff;
+			fsp->m_u.tcp_ip4_spec.pdst = cpu_to_be16(prt);
+			break;
 
-		tmp = (tp->key_mask[2] & TCAM_V4KEY2_PORT_SPI) >>
-			TCAM_V4KEY2_PORT_SPI_SHIFT;
-		fsp->m_u.ah_ip4_spec.spi = cpu_to_be32(tmp);
-		break;
-	case IP_USER_FLOW:
-		tmp = (tp->key[2] & TCAM_V4KEY2_PORT_SPI) >>
-			TCAM_V4KEY2_PORT_SPI_SHIFT;
-		fsp->h_u.usr_ip4_spec.l4_4_bytes = cpu_to_be32(tmp);
+		case AH_V4_FLOW:
+		case ESP_V4_FLOW:
+			tmp = (tp->key[2] & TCAM_V4KEY2_PORT_SPI) >>
+				  TCAM_V4KEY2_PORT_SPI_SHIFT;
+			fsp->h_u.ah_ip4_spec.spi = cpu_to_be32(tmp);
 
-		tmp = (tp->key_mask[2] & TCAM_V4KEY2_PORT_SPI) >>
-			TCAM_V4KEY2_PORT_SPI_SHIFT;
-		fsp->m_u.usr_ip4_spec.l4_4_bytes = cpu_to_be32(tmp);
+			tmp = (tp->key_mask[2] & TCAM_V4KEY2_PORT_SPI) >>
+				  TCAM_V4KEY2_PORT_SPI_SHIFT;
+			fsp->m_u.ah_ip4_spec.spi = cpu_to_be32(tmp);
+			break;
 
-		fsp->h_u.usr_ip4_spec.proto =
-			(tp->key[2] & TCAM_V4KEY2_PROTO) >>
-			TCAM_V4KEY2_PROTO_SHIFT;
-		fsp->m_u.usr_ip4_spec.proto =
-			(tp->key_mask[2] & TCAM_V4KEY2_PROTO) >>
-			TCAM_V4KEY2_PROTO_SHIFT;
+		case IP_USER_FLOW:
+			tmp = (tp->key[2] & TCAM_V4KEY2_PORT_SPI) >>
+				  TCAM_V4KEY2_PORT_SPI_SHIFT;
+			fsp->h_u.usr_ip4_spec.l4_4_bytes = cpu_to_be32(tmp);
 
-		fsp->h_u.usr_ip4_spec.ip_ver = ETH_RX_NFC_IP4;
-		break;
-	default:
-		break;
+			tmp = (tp->key_mask[2] & TCAM_V4KEY2_PORT_SPI) >>
+				  TCAM_V4KEY2_PORT_SPI_SHIFT;
+			fsp->m_u.usr_ip4_spec.l4_4_bytes = cpu_to_be32(tmp);
+
+			fsp->h_u.usr_ip4_spec.proto =
+				(tp->key[2] & TCAM_V4KEY2_PROTO) >>
+				TCAM_V4KEY2_PROTO_SHIFT;
+			fsp->m_u.usr_ip4_spec.proto =
+				(tp->key_mask[2] & TCAM_V4KEY2_PROTO) >>
+				TCAM_V4KEY2_PROTO_SHIFT;
+
+			fsp->h_u.usr_ip4_spec.ip_ver = ETH_RX_NFC_IP4;
+			break;
+
+		default:
+			break;
 	}
 }
 
 static int niu_get_ethtool_tcam_entry(struct niu *np,
-				      struct ethtool_rxnfc *nfc)
+									  struct ethtool_rxnfc *nfc)
 {
 	struct niu_parent *parent = np->parent;
 	struct niu_tcam_entry *tp;
@@ -7186,65 +9256,84 @@ static int niu_get_ethtool_tcam_entry(struct niu *np,
 	idx = tcam_get_index(np, (u16)nfc->fs.location);
 
 	tp = &parent->tcam[idx];
-	if (!tp->valid) {
+
+	if (!tp->valid)
+	{
 		netdev_info(np->dev, "niu%d: entry [%d] invalid for idx[%d]\n",
-			    parent->index, (u16)nfc->fs.location, idx);
+					parent->index, (u16)nfc->fs.location, idx);
 		return -EINVAL;
 	}
 
 	/* fill the flow spec entry */
 	class = (tp->key[0] & TCAM_V4KEY0_CLASS_CODE) >>
-		TCAM_V4KEY0_CLASS_CODE_SHIFT;
+				TCAM_V4KEY0_CLASS_CODE_SHIFT;
 	ret = niu_class_to_ethflow(class, &fsp->flow_type);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		netdev_info(np->dev, "niu%d: niu_class_to_ethflow failed\n",
-			    parent->index);
+					parent->index);
 		goto out;
 	}
 
-	if (fsp->flow_type == AH_V4_FLOW || fsp->flow_type == AH_V6_FLOW) {
+	if (fsp->flow_type == AH_V4_FLOW || fsp->flow_type == AH_V6_FLOW)
+	{
 		u32 proto = (tp->key[2] & TCAM_V4KEY2_PROTO) >>
-			TCAM_V4KEY2_PROTO_SHIFT;
-		if (proto == IPPROTO_ESP) {
+					TCAM_V4KEY2_PROTO_SHIFT;
+
+		if (proto == IPPROTO_ESP)
+		{
 			if (fsp->flow_type == AH_V4_FLOW)
+			{
 				fsp->flow_type = ESP_V4_FLOW;
+			}
 			else
+			{
 				fsp->flow_type = ESP_V6_FLOW;
+			}
 		}
 	}
 
-	switch (fsp->flow_type) {
-	case TCP_V4_FLOW:
-	case UDP_V4_FLOW:
-	case SCTP_V4_FLOW:
-	case AH_V4_FLOW:
-	case ESP_V4_FLOW:
-		niu_get_ip4fs_from_tcam_key(tp, fsp);
-		break;
-	case TCP_V6_FLOW:
-	case UDP_V6_FLOW:
-	case SCTP_V6_FLOW:
-	case AH_V6_FLOW:
-	case ESP_V6_FLOW:
-		/* Not yet implemented */
-		ret = -EINVAL;
-		break;
-	case IP_USER_FLOW:
-		niu_get_ip4fs_from_tcam_key(tp, fsp);
-		break;
-	default:
-		ret = -EINVAL;
-		break;
+	switch (fsp->flow_type)
+	{
+		case TCP_V4_FLOW:
+		case UDP_V4_FLOW:
+		case SCTP_V4_FLOW:
+		case AH_V4_FLOW:
+		case ESP_V4_FLOW:
+			niu_get_ip4fs_from_tcam_key(tp, fsp);
+			break;
+
+		case TCP_V6_FLOW:
+		case UDP_V6_FLOW:
+		case SCTP_V6_FLOW:
+		case AH_V6_FLOW:
+		case ESP_V6_FLOW:
+			/* Not yet implemented */
+			ret = -EINVAL;
+			break;
+
+		case IP_USER_FLOW:
+			niu_get_ip4fs_from_tcam_key(tp, fsp);
+			break;
+
+		default:
+			ret = -EINVAL;
+			break;
 	}
 
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	if (tp->assoc_data & TCAM_ASSOCDATA_DISC)
+	{
 		fsp->ring_cookie = RX_CLS_FLOW_DISC;
+	}
 	else
 		fsp->ring_cookie = (tp->assoc_data & TCAM_ASSOCDATA_OFFSET) >>
-			TCAM_ASSOCDATA_OFFSET_SHIFT;
+						   TCAM_ASSOCDATA_OFFSET_SHIFT;
 
 	/* put the tcam size here */
 	nfc->data = tcam_get_size(np);
@@ -7253,8 +9342,8 @@ out:
 }
 
 static int niu_get_ethtool_tcam_all(struct niu *np,
-				    struct ethtool_rxnfc *nfc,
-				    u32 *rule_locs)
+									struct ethtool_rxnfc *nfc,
+									u32 *rule_locs)
 {
 	struct niu_parent *parent = np->parent;
 	struct niu_tcam_entry *tp;
@@ -7266,18 +9355,27 @@ static int niu_get_ethtool_tcam_all(struct niu *np,
 	nfc->data = tcam_get_size(np);
 
 	niu_lock_parent(np, flags);
-	for (cnt = 0, i = 0; i < nfc->data; i++) {
+
+	for (cnt = 0, i = 0; i < nfc->data; i++)
+	{
 		idx = tcam_get_index(np, i);
 		tp = &parent->tcam[idx];
+
 		if (!tp->valid)
+		{
 			continue;
-		if (cnt == nfc->rule_cnt) {
+		}
+
+		if (cnt == nfc->rule_cnt)
+		{
 			ret = -EMSGSIZE;
 			break;
 		}
+
 		rule_locs[cnt] = i;
 		cnt++;
 	}
+
 	niu_unlock_parent(np, flags);
 
 	nfc->rule_cnt = cnt;
@@ -7286,30 +9384,36 @@ static int niu_get_ethtool_tcam_all(struct niu *np,
 }
 
 static int niu_get_nfc(struct net_device *dev, struct ethtool_rxnfc *cmd,
-		       u32 *rule_locs)
+					   u32 *rule_locs)
 {
 	struct niu *np = netdev_priv(dev);
 	int ret = 0;
 
-	switch (cmd->cmd) {
-	case ETHTOOL_GRXFH:
-		ret = niu_get_hash_opts(np, cmd);
-		break;
-	case ETHTOOL_GRXRINGS:
-		cmd->data = np->num_rx_rings;
-		break;
-	case ETHTOOL_GRXCLSRLCNT:
-		cmd->rule_cnt = tcam_get_valid_entry_cnt(np);
-		break;
-	case ETHTOOL_GRXCLSRULE:
-		ret = niu_get_ethtool_tcam_entry(np, cmd);
-		break;
-	case ETHTOOL_GRXCLSRLALL:
-		ret = niu_get_ethtool_tcam_all(np, cmd, rule_locs);
-		break;
-	default:
-		ret = -EINVAL;
-		break;
+	switch (cmd->cmd)
+	{
+		case ETHTOOL_GRXFH:
+			ret = niu_get_hash_opts(np, cmd);
+			break;
+
+		case ETHTOOL_GRXRINGS:
+			cmd->data = np->num_rx_rings;
+			break;
+
+		case ETHTOOL_GRXCLSRLCNT:
+			cmd->rule_cnt = tcam_get_valid_entry_cnt(np);
+			break;
+
+		case ETHTOOL_GRXCLSRULE:
+			ret = niu_get_ethtool_tcam_entry(np, cmd);
+			break;
+
+		case ETHTOOL_GRXCLSRLALL:
+			ret = niu_get_ethtool_tcam_all(np, cmd, rule_locs);
+			break;
+
+		default:
+			ret = -EINVAL;
+			break;
 	}
 
 	return ret;
@@ -7322,31 +9426,39 @@ static int niu_set_hash_opts(struct niu *np, struct ethtool_rxnfc *nfc)
 	unsigned long flags;
 
 	if (!niu_ethflow_to_class(nfc->flow_type, &class))
+	{
 		return -EINVAL;
+	}
 
 	if (class < CLASS_CODE_USER_PROG1 ||
-	    class > CLASS_CODE_SCTP_IPV6)
+		class > CLASS_CODE_SCTP_IPV6)
+	{
 		return -EINVAL;
+	}
 
-	if (nfc->data & RXH_DISCARD) {
+	if (nfc->data & RXH_DISCARD)
+	{
 		niu_lock_parent(np, flags);
 		flow_key = np->parent->tcam_key[class -
-					       CLASS_CODE_USER_PROG1];
+										CLASS_CODE_USER_PROG1];
 		flow_key |= TCAM_KEY_DISC;
 		nw64(TCAM_KEY(class - CLASS_CODE_USER_PROG1), flow_key);
 		np->parent->tcam_key[class - CLASS_CODE_USER_PROG1] = flow_key;
 		niu_unlock_parent(np, flags);
 		return 0;
-	} else {
+	}
+	else
+	{
 		/* Discard was set before, but is not set now */
 		if (np->parent->tcam_key[class - CLASS_CODE_USER_PROG1] &
-		    TCAM_KEY_DISC) {
+			TCAM_KEY_DISC)
+		{
 			niu_lock_parent(np, flags);
 			flow_key = np->parent->tcam_key[class -
-					       CLASS_CODE_USER_PROG1];
+											CLASS_CODE_USER_PROG1];
 			flow_key &= ~TCAM_KEY_DISC;
 			nw64(TCAM_KEY(class - CLASS_CODE_USER_PROG1),
-			     flow_key);
+				 flow_key);
 			np->parent->tcam_key[class - CLASS_CODE_USER_PROG1] =
 				flow_key;
 			niu_unlock_parent(np, flags);
@@ -7354,7 +9466,9 @@ static int niu_set_hash_opts(struct niu *np, struct ethtool_rxnfc *nfc)
 	}
 
 	if (!niu_ethflow_to_flowkey(nfc->data, &flow_key))
+	{
 		return -EINVAL;
+	}
 
 	niu_lock_parent(np, flags);
 	nw64(FLOW_KEY(class - CLASS_CODE_USER_PROG1), flow_key);
@@ -7365,8 +9479,8 @@ static int niu_set_hash_opts(struct niu *np, struct ethtool_rxnfc *nfc)
 }
 
 static void niu_get_tcamkey_from_ip4fs(struct ethtool_rx_flow_spec *fsp,
-				       struct niu_tcam_entry *tp,
-				       int l2_rdc_tab, u64 class)
+									   struct niu_tcam_entry *tp,
+									   int l2_rdc_tab, u64 class)
 {
 	u8 pid = 0;
 	u32 sip, dip, sipm, dipm, spi, spim;
@@ -7389,51 +9503,58 @@ static void niu_get_tcamkey_from_ip4fs(struct ethtool_rx_flow_spec *fsp,
 	tp->key_mask[3] |= dipm;
 
 	tp->key[2] |= ((u64)fsp->h_u.tcp_ip4_spec.tos <<
-		       TCAM_V4KEY2_TOS_SHIFT);
+				   TCAM_V4KEY2_TOS_SHIFT);
 	tp->key_mask[2] |= ((u64)fsp->m_u.tcp_ip4_spec.tos <<
-			    TCAM_V4KEY2_TOS_SHIFT);
-	switch (fsp->flow_type) {
-	case TCP_V4_FLOW:
-	case UDP_V4_FLOW:
-	case SCTP_V4_FLOW:
-		sport = be16_to_cpu(fsp->h_u.tcp_ip4_spec.psrc);
-		spm = be16_to_cpu(fsp->m_u.tcp_ip4_spec.psrc);
-		dport = be16_to_cpu(fsp->h_u.tcp_ip4_spec.pdst);
-		dpm = be16_to_cpu(fsp->m_u.tcp_ip4_spec.pdst);
+						TCAM_V4KEY2_TOS_SHIFT);
 
-		tp->key[2] |= (((u64)sport << 16) | dport);
-		tp->key_mask[2] |= (((u64)spm << 16) | dpm);
-		niu_ethflow_to_l3proto(fsp->flow_type, &pid);
-		break;
-	case AH_V4_FLOW:
-	case ESP_V4_FLOW:
-		spi = be32_to_cpu(fsp->h_u.ah_ip4_spec.spi);
-		spim = be32_to_cpu(fsp->m_u.ah_ip4_spec.spi);
+	switch (fsp->flow_type)
+	{
+		case TCP_V4_FLOW:
+		case UDP_V4_FLOW:
+		case SCTP_V4_FLOW:
+			sport = be16_to_cpu(fsp->h_u.tcp_ip4_spec.psrc);
+			spm = be16_to_cpu(fsp->m_u.tcp_ip4_spec.psrc);
+			dport = be16_to_cpu(fsp->h_u.tcp_ip4_spec.pdst);
+			dpm = be16_to_cpu(fsp->m_u.tcp_ip4_spec.pdst);
 
-		tp->key[2] |= spi;
-		tp->key_mask[2] |= spim;
-		niu_ethflow_to_l3proto(fsp->flow_type, &pid);
-		break;
-	case IP_USER_FLOW:
-		spi = be32_to_cpu(fsp->h_u.usr_ip4_spec.l4_4_bytes);
-		spim = be32_to_cpu(fsp->m_u.usr_ip4_spec.l4_4_bytes);
+			tp->key[2] |= (((u64)sport << 16) | dport);
+			tp->key_mask[2] |= (((u64)spm << 16) | dpm);
+			niu_ethflow_to_l3proto(fsp->flow_type, &pid);
+			break;
 
-		tp->key[2] |= spi;
-		tp->key_mask[2] |= spim;
-		pid = fsp->h_u.usr_ip4_spec.proto;
-		break;
-	default:
-		break;
+		case AH_V4_FLOW:
+		case ESP_V4_FLOW:
+			spi = be32_to_cpu(fsp->h_u.ah_ip4_spec.spi);
+			spim = be32_to_cpu(fsp->m_u.ah_ip4_spec.spi);
+
+			tp->key[2] |= spi;
+			tp->key_mask[2] |= spim;
+			niu_ethflow_to_l3proto(fsp->flow_type, &pid);
+			break;
+
+		case IP_USER_FLOW:
+			spi = be32_to_cpu(fsp->h_u.usr_ip4_spec.l4_4_bytes);
+			spim = be32_to_cpu(fsp->m_u.usr_ip4_spec.l4_4_bytes);
+
+			tp->key[2] |= spi;
+			tp->key_mask[2] |= spim;
+			pid = fsp->h_u.usr_ip4_spec.proto;
+			break;
+
+		default:
+			break;
 	}
 
 	tp->key[2] |= ((u64)pid << TCAM_V4KEY2_PROTO_SHIFT);
-	if (pid) {
+
+	if (pid)
+	{
 		tp->key_mask[2] |= TCAM_V4KEY2_PROTO;
 	}
 }
 
 static int niu_add_ethtool_tcam_entry(struct niu *np,
-				      struct ethtool_rxnfc *nfc)
+									  struct ethtool_rxnfc *nfc)
 {
 	struct niu_parent *parent = np->parent;
 	struct niu_tcam_entry *tp;
@@ -7448,56 +9569,80 @@ static int niu_add_ethtool_tcam_entry(struct niu *np,
 	ret = 0;
 
 	idx = nfc->fs.location;
-	if (idx >= tcam_get_size(np))
-		return -EINVAL;
 
-	if (fsp->flow_type == IP_USER_FLOW) {
+	if (idx >= tcam_get_size(np))
+	{
+		return -EINVAL;
+	}
+
+	if (fsp->flow_type == IP_USER_FLOW)
+	{
 		int i;
 		int add_usr_cls = 0;
 		struct ethtool_usrip4_spec *uspec = &fsp->h_u.usr_ip4_spec;
 		struct ethtool_usrip4_spec *umask = &fsp->m_u.usr_ip4_spec;
 
 		if (uspec->ip_ver != ETH_RX_NFC_IP4)
+		{
 			return -EINVAL;
+		}
 
 		niu_lock_parent(np, flags);
 
-		for (i = 0; i < NIU_L3_PROG_CLS; i++) {
-			if (parent->l3_cls[i]) {
-				if (uspec->proto == parent->l3_cls_pid[i]) {
+		for (i = 0; i < NIU_L3_PROG_CLS; i++)
+		{
+			if (parent->l3_cls[i])
+			{
+				if (uspec->proto == parent->l3_cls_pid[i])
+				{
 					class = parent->l3_cls[i];
 					parent->l3_cls_refcnt[i]++;
 					add_usr_cls = 1;
 					break;
 				}
-			} else {
+			}
+			else
+			{
 				/* Program new user IP class */
-				switch (i) {
-				case 0:
-					class = CLASS_CODE_USER_PROG1;
-					break;
-				case 1:
-					class = CLASS_CODE_USER_PROG2;
-					break;
-				case 2:
-					class = CLASS_CODE_USER_PROG3;
-					break;
-				case 3:
-					class = CLASS_CODE_USER_PROG4;
-					break;
-				default:
-					break;
+				switch (i)
+				{
+					case 0:
+						class = CLASS_CODE_USER_PROG1;
+						break;
+
+					case 1:
+						class = CLASS_CODE_USER_PROG2;
+						break;
+
+					case 2:
+						class = CLASS_CODE_USER_PROG3;
+						break;
+
+					case 3:
+						class = CLASS_CODE_USER_PROG4;
+						break;
+
+					default:
+						break;
 				}
+
 				ret = tcam_user_ip_class_set(np, class, 0,
-							     uspec->proto,
-							     uspec->tos,
-							     umask->tos);
+											 uspec->proto,
+											 uspec->tos,
+											 umask->tos);
+
 				if (ret)
+				{
 					goto out;
+				}
 
 				ret = tcam_user_ip_class_enable(np, class, 1);
+
 				if (ret)
+				{
 					goto out;
+				}
+
 				parent->l3_cls[i] = class;
 				parent->l3_cls_pid[i] = uspec->proto;
 				parent->l3_cls_refcnt[i]++;
@@ -7505,15 +9650,21 @@ static int niu_add_ethtool_tcam_entry(struct niu *np,
 				break;
 			}
 		}
-		if (!add_usr_cls) {
+
+		if (!add_usr_cls)
+		{
 			netdev_info(np->dev, "niu%d: %s(): Could not find/insert class for pid %d\n",
-				    parent->index, __func__, uspec->proto);
+						parent->index, __func__, uspec->proto);
 			ret = -EINVAL;
 			goto out;
 		}
+
 		niu_unlock_parent(np, flags);
-	} else {
-		if (!niu_ethflow_to_class(fsp->flow_type, &class)) {
+	}
+	else
+	{
+		if (!niu_ethflow_to_class(fsp->flow_type, &class))
+		{
 			return -EINVAL;
 		}
 	}
@@ -7526,57 +9677,71 @@ static int niu_add_ethtool_tcam_entry(struct niu *np,
 	memset(tp, 0, sizeof(*tp));
 
 	/* fill in the tcam key and mask */
-	switch (fsp->flow_type) {
-	case TCP_V4_FLOW:
-	case UDP_V4_FLOW:
-	case SCTP_V4_FLOW:
-	case AH_V4_FLOW:
-	case ESP_V4_FLOW:
-		niu_get_tcamkey_from_ip4fs(fsp, tp, l2_rdc_table, class);
-		break;
-	case TCP_V6_FLOW:
-	case UDP_V6_FLOW:
-	case SCTP_V6_FLOW:
-	case AH_V6_FLOW:
-	case ESP_V6_FLOW:
-		/* Not yet implemented */
-		netdev_info(np->dev, "niu%d: In %s(): flow %d for IPv6 not implemented\n",
-			    parent->index, __func__, fsp->flow_type);
-		ret = -EINVAL;
-		goto out;
-	case IP_USER_FLOW:
-		niu_get_tcamkey_from_ip4fs(fsp, tp, l2_rdc_table, class);
-		break;
-	default:
-		netdev_info(np->dev, "niu%d: In %s(): Unknown flow type %d\n",
-			    parent->index, __func__, fsp->flow_type);
-		ret = -EINVAL;
-		goto out;
+	switch (fsp->flow_type)
+	{
+		case TCP_V4_FLOW:
+		case UDP_V4_FLOW:
+		case SCTP_V4_FLOW:
+		case AH_V4_FLOW:
+		case ESP_V4_FLOW:
+			niu_get_tcamkey_from_ip4fs(fsp, tp, l2_rdc_table, class);
+			break;
+
+		case TCP_V6_FLOW:
+		case UDP_V6_FLOW:
+		case SCTP_V6_FLOW:
+		case AH_V6_FLOW:
+		case ESP_V6_FLOW:
+			/* Not yet implemented */
+			netdev_info(np->dev, "niu%d: In %s(): flow %d for IPv6 not implemented\n",
+						parent->index, __func__, fsp->flow_type);
+			ret = -EINVAL;
+			goto out;
+
+		case IP_USER_FLOW:
+			niu_get_tcamkey_from_ip4fs(fsp, tp, l2_rdc_table, class);
+			break;
+
+		default:
+			netdev_info(np->dev, "niu%d: In %s(): Unknown flow type %d\n",
+						parent->index, __func__, fsp->flow_type);
+			ret = -EINVAL;
+			goto out;
 	}
 
 	/* fill in the assoc data */
-	if (fsp->ring_cookie == RX_CLS_FLOW_DISC) {
+	if (fsp->ring_cookie == RX_CLS_FLOW_DISC)
+	{
 		tp->assoc_data = TCAM_ASSOCDATA_DISC;
-	} else {
-		if (fsp->ring_cookie >= np->num_rx_rings) {
+	}
+	else
+	{
+		if (fsp->ring_cookie >= np->num_rx_rings)
+		{
 			netdev_info(np->dev, "niu%d: In %s(): Invalid RX ring %lld\n",
-				    parent->index, __func__,
-				    (long long)fsp->ring_cookie);
+						parent->index, __func__,
+						(long long)fsp->ring_cookie);
 			ret = -EINVAL;
 			goto out;
 		}
+
 		tp->assoc_data = (TCAM_ASSOCDATA_TRES_USE_OFFSET |
-				  (fsp->ring_cookie <<
-				   TCAM_ASSOCDATA_OFFSET_SHIFT));
+						  (fsp->ring_cookie <<
+						   TCAM_ASSOCDATA_OFFSET_SHIFT));
 	}
 
 	err = tcam_write(np, idx, tp->key, tp->key_mask);
-	if (err) {
+
+	if (err)
+	{
 		ret = -EINVAL;
 		goto out;
 	}
+
 	err = tcam_assoc_write(np, idx, tp->assoc_data);
-	if (err) {
+
+	if (err)
+	{
 		ret = -EINVAL;
 		goto out;
 	}
@@ -7600,7 +9765,9 @@ static int niu_del_ethtool_tcam_entry(struct niu *np, u32 loc)
 	int ret = 0;
 
 	if (loc >= tcam_get_size(np))
+	{
 		return -EINVAL;
+	}
 
 	niu_lock_parent(np, flags);
 
@@ -7609,38 +9776,54 @@ static int niu_del_ethtool_tcam_entry(struct niu *np, u32 loc)
 
 	/* if the entry is of a user defined class, then update*/
 	class = (tp->key[0] & TCAM_V4KEY0_CLASS_CODE) >>
-		TCAM_V4KEY0_CLASS_CODE_SHIFT;
+				TCAM_V4KEY0_CLASS_CODE_SHIFT;
 
-	if (class >= CLASS_CODE_USER_PROG1 && class <= CLASS_CODE_USER_PROG4) {
+	if (class >= CLASS_CODE_USER_PROG1 && class <= CLASS_CODE_USER_PROG4)
+	{
 		int i;
-		for (i = 0; i < NIU_L3_PROG_CLS; i++) {
-			if (parent->l3_cls[i] == class) {
+
+		for (i = 0; i < NIU_L3_PROG_CLS; i++)
+		{
+			if (parent->l3_cls[i] == class)
+			{
 				parent->l3_cls_refcnt[i]--;
-				if (!parent->l3_cls_refcnt[i]) {
+
+				if (!parent->l3_cls_refcnt[i])
+				{
 					/* disable class */
 					ret = tcam_user_ip_class_enable(np,
-									class,
-									0);
+													class,
+													0);
+
 					if (ret)
+					{
 						goto out;
+					}
+
 					parent->l3_cls[i] = 0;
 					parent->l3_cls_pid[i] = 0;
 				}
+
 				break;
 			}
 		}
-		if (i == NIU_L3_PROG_CLS) {
+
+		if (i == NIU_L3_PROG_CLS)
+		{
 			netdev_info(np->dev, "niu%d: In %s(): Usr class 0x%llx not found\n",
-				    parent->index, __func__,
-				    (unsigned long long)class);
+						parent->index, __func__,
+						(unsigned long long)class);
 			ret = -EINVAL;
 			goto out;
 		}
 	}
 
 	ret = tcam_flush(np, idx);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/* invalidate the entry */
 	tp->valid = 0;
@@ -7656,27 +9839,33 @@ static int niu_set_nfc(struct net_device *dev, struct ethtool_rxnfc *cmd)
 	struct niu *np = netdev_priv(dev);
 	int ret = 0;
 
-	switch (cmd->cmd) {
-	case ETHTOOL_SRXFH:
-		ret = niu_set_hash_opts(np, cmd);
-		break;
-	case ETHTOOL_SRXCLSRLINS:
-		ret = niu_add_ethtool_tcam_entry(np, cmd);
-		break;
-	case ETHTOOL_SRXCLSRLDEL:
-		ret = niu_del_ethtool_tcam_entry(np, cmd->fs.location);
-		break;
-	default:
-		ret = -EINVAL;
-		break;
+	switch (cmd->cmd)
+	{
+		case ETHTOOL_SRXFH:
+			ret = niu_set_hash_opts(np, cmd);
+			break;
+
+		case ETHTOOL_SRXCLSRLINS:
+			ret = niu_add_ethtool_tcam_entry(np, cmd);
+			break;
+
+		case ETHTOOL_SRXCLSRLDEL:
+			ret = niu_del_ethtool_tcam_entry(np, cmd->fs.location);
+			break;
+
+		default:
+			ret = -EINVAL;
+			break;
 	}
 
 	return ret;
 }
 
-static const struct {
+static const struct
+{
 	const char string[ETH_GSTRING_LEN];
-} niu_xmac_stat_keys[] = {
+} niu_xmac_stat_keys[] =
+{
 	{ "tx_frames" },
 	{ "tx_bytes" },
 	{ "tx_fifo_errors" },
@@ -7710,9 +9899,11 @@ static const struct {
 
 #define NUM_XMAC_STAT_KEYS	ARRAY_SIZE(niu_xmac_stat_keys)
 
-static const struct {
+static const struct
+{
 	const char string[ETH_GSTRING_LEN];
-} niu_bmac_stat_keys[] = {
+} niu_bmac_stat_keys[] =
+{
 	{ "tx_underflow_errors" },
 	{ "tx_max_pkt_size_errors" },
 	{ "tx_bytes" },
@@ -7729,9 +9920,11 @@ static const struct {
 
 #define NUM_BMAC_STAT_KEYS	ARRAY_SIZE(niu_bmac_stat_keys)
 
-static const struct {
+static const struct
+{
 	const char string[ETH_GSTRING_LEN];
-} niu_rxchan_stat_keys[] = {
+} niu_rxchan_stat_keys[] =
+{
 	{ "rx_channel" },
 	{ "rx_packets" },
 	{ "rx_bytes" },
@@ -7741,9 +9934,11 @@ static const struct {
 
 #define NUM_RXCHAN_STAT_KEYS	ARRAY_SIZE(niu_rxchan_stat_keys)
 
-static const struct {
+static const struct
+{
 	const char string[ETH_GSTRING_LEN];
-} niu_txchan_stat_keys[] = {
+} niu_txchan_stat_keys[] =
+{
 	{ "tx_channel" },
 	{ "tx_packets" },
 	{ "tx_bytes" },
@@ -7758,25 +9953,34 @@ static void niu_get_strings(struct net_device *dev, u32 stringset, u8 *data)
 	int i;
 
 	if (stringset != ETH_SS_STATS)
+	{
 		return;
+	}
 
-	if (np->flags & NIU_FLAGS_XMAC) {
+	if (np->flags & NIU_FLAGS_XMAC)
+	{
 		memcpy(data, niu_xmac_stat_keys,
-		       sizeof(niu_xmac_stat_keys));
+			   sizeof(niu_xmac_stat_keys));
 		data += sizeof(niu_xmac_stat_keys);
-	} else {
+	}
+	else
+	{
 		memcpy(data, niu_bmac_stat_keys,
-		       sizeof(niu_bmac_stat_keys));
+			   sizeof(niu_bmac_stat_keys));
 		data += sizeof(niu_bmac_stat_keys);
 	}
-	for (i = 0; i < np->num_rx_rings; i++) {
+
+	for (i = 0; i < np->num_rx_rings; i++)
+	{
 		memcpy(data, niu_rxchan_stat_keys,
-		       sizeof(niu_rxchan_stat_keys));
+			   sizeof(niu_rxchan_stat_keys));
 		data += sizeof(niu_rxchan_stat_keys);
 	}
-	for (i = 0; i < np->num_tx_rings; i++) {
+
+	for (i = 0; i < np->num_tx_rings; i++)
+	{
 		memcpy(data, niu_txchan_stat_keys,
-		       sizeof(niu_txchan_stat_keys));
+			   sizeof(niu_txchan_stat_keys));
 		data += sizeof(niu_txchan_stat_keys);
 	}
 }
@@ -7786,32 +9990,40 @@ static int niu_get_sset_count(struct net_device *dev, int stringset)
 	struct niu *np = netdev_priv(dev);
 
 	if (stringset != ETH_SS_STATS)
+	{
 		return -EINVAL;
+	}
 
 	return (np->flags & NIU_FLAGS_XMAC ?
-		 NUM_XMAC_STAT_KEYS :
-		 NUM_BMAC_STAT_KEYS) +
-		(np->num_rx_rings * NUM_RXCHAN_STAT_KEYS) +
-		(np->num_tx_rings * NUM_TXCHAN_STAT_KEYS);
+			NUM_XMAC_STAT_KEYS :
+			NUM_BMAC_STAT_KEYS) +
+		   (np->num_rx_rings * NUM_RXCHAN_STAT_KEYS) +
+		   (np->num_tx_rings * NUM_TXCHAN_STAT_KEYS);
 }
 
 static void niu_get_ethtool_stats(struct net_device *dev,
-				  struct ethtool_stats *stats, u64 *data)
+								  struct ethtool_stats *stats, u64 *data)
 {
 	struct niu *np = netdev_priv(dev);
 	int i;
 
 	niu_sync_mac_stats(np);
-	if (np->flags & NIU_FLAGS_XMAC) {
+
+	if (np->flags & NIU_FLAGS_XMAC)
+	{
 		memcpy(data, &np->mac_stats.xmac,
-		       sizeof(struct niu_xmac_stats));
+			   sizeof(struct niu_xmac_stats));
 		data += (sizeof(struct niu_xmac_stats) / sizeof(u64));
-	} else {
+	}
+	else
+	{
 		memcpy(data, &np->mac_stats.bmac,
-		       sizeof(struct niu_bmac_stats));
+			   sizeof(struct niu_bmac_stats));
 		data += (sizeof(struct niu_bmac_stats) / sizeof(u64));
 	}
-	for (i = 0; i < np->num_rx_rings; i++) {
+
+	for (i = 0; i < np->num_rx_rings; i++)
+	{
 		struct rx_ring_info *rp = &np->rx_rings[i];
 
 		niu_sync_rx_discard_stats(np, rp, 0);
@@ -7823,7 +10035,9 @@ static void niu_get_ethtool_stats(struct net_device *dev,
 		data[4] = rp->rx_errors;
 		data += 5;
 	}
-	for (i = 0; i < np->num_tx_rings; i++) {
+
+	for (i = 0; i < np->num_tx_rings; i++)
+	{
 		struct tx_ring_info *rp = &np->tx_rings[i];
 
 		data[0] = rp->tx_channel;
@@ -7837,69 +10051,90 @@ static void niu_get_ethtool_stats(struct net_device *dev,
 static u64 niu_led_state_save(struct niu *np)
 {
 	if (np->flags & NIU_FLAGS_XMAC)
+	{
 		return nr64_mac(XMAC_CONFIG);
+	}
 	else
+	{
 		return nr64_mac(BMAC_XIF_CONFIG);
+	}
 }
 
 static void niu_led_state_restore(struct niu *np, u64 val)
 {
 	if (np->flags & NIU_FLAGS_XMAC)
+	{
 		nw64_mac(XMAC_CONFIG, val);
+	}
 	else
+	{
 		nw64_mac(BMAC_XIF_CONFIG, val);
+	}
 }
 
 static void niu_force_led(struct niu *np, int on)
 {
 	u64 val, reg, bit;
 
-	if (np->flags & NIU_FLAGS_XMAC) {
+	if (np->flags & NIU_FLAGS_XMAC)
+	{
 		reg = XMAC_CONFIG;
 		bit = XMAC_CONFIG_FORCE_LED_ON;
-	} else {
+	}
+	else
+	{
 		reg = BMAC_XIF_CONFIG;
 		bit = BMAC_XIF_CONFIG_LINK_LED;
 	}
 
 	val = nr64_mac(reg);
+
 	if (on)
+	{
 		val |= bit;
+	}
 	else
+	{
 		val &= ~bit;
+	}
+
 	nw64_mac(reg, val);
 }
 
 static int niu_set_phys_id(struct net_device *dev,
-			   enum ethtool_phys_id_state state)
+						   enum ethtool_phys_id_state state)
 
 {
 	struct niu *np = netdev_priv(dev);
 
 	if (!netif_running(dev))
+	{
 		return -EAGAIN;
+	}
 
-	switch (state) {
-	case ETHTOOL_ID_ACTIVE:
-		np->orig_led_state = niu_led_state_save(np);
-		return 1;	/* cycle on/off once per second */
+	switch (state)
+	{
+		case ETHTOOL_ID_ACTIVE:
+			np->orig_led_state = niu_led_state_save(np);
+			return 1;	/* cycle on/off once per second */
 
-	case ETHTOOL_ID_ON:
-		niu_force_led(np, 1);
-		break;
+		case ETHTOOL_ID_ON:
+			niu_force_led(np, 1);
+			break;
 
-	case ETHTOOL_ID_OFF:
-		niu_force_led(np, 0);
-		break;
+		case ETHTOOL_ID_OFF:
+			niu_force_led(np, 0);
+			break;
 
-	case ETHTOOL_ID_INACTIVE:
-		niu_led_state_restore(np, np->orig_led_state);
+		case ETHTOOL_ID_INACTIVE:
+			niu_led_state_restore(np, np->orig_led_state);
 	}
 
 	return 0;
 }
 
-static const struct ethtool_ops niu_ethtool_ops = {
+static const struct ethtool_ops niu_ethtool_ops =
+{
 	.get_drvinfo		= niu_get_drvinfo,
 	.get_link		= ethtool_op_get_link,
 	.get_msglevel		= niu_get_msglevel,
@@ -7918,29 +10153,39 @@ static const struct ethtool_ops niu_ethtool_ops = {
 };
 
 static int niu_ldg_assign_ldn(struct niu *np, struct niu_parent *parent,
-			      int ldg, int ldn)
+							  int ldg, int ldn)
 {
 	if (ldg < NIU_LDG_MIN || ldg > NIU_LDG_MAX)
+	{
 		return -EINVAL;
+	}
+
 	if (ldn < 0 || ldn > LDN_MAX)
+	{
 		return -EINVAL;
+	}
 
 	parent->ldg_map[ldn] = ldg;
 
-	if (np->parent->plat_type == PLAT_TYPE_NIU) {
+	if (np->parent->plat_type == PLAT_TYPE_NIU)
+	{
 		/* On N2 NIU, the ldn-->ldg assignments are setup and fixed by
 		 * the firmware, and we're not supposed to change them.
 		 * Validate the mapping, because if it's wrong we probably
 		 * won't get any interrupts and that's painful to debug.
 		 */
-		if (nr64(LDG_NUM(ldn)) != ldg) {
+		if (nr64(LDG_NUM(ldn)) != ldg)
+		{
 			dev_err(np->device, "Port %u, mis-matched LDG assignment for ldn %d, should be %d is %llu\n",
-				np->port, ldn, ldg,
-				(unsigned long long) nr64(LDG_NUM(ldn)));
+					np->port, ldn, ldg,
+					(unsigned long long) nr64(LDG_NUM(ldn)));
 			return -EINVAL;
 		}
-	} else
+	}
+	else
+	{
 		nw64(LDG_NUM(ldn), ldg);
+	}
 
 	return 0;
 }
@@ -7948,7 +10193,9 @@ static int niu_ldg_assign_ldn(struct niu *np, struct niu_parent *parent,
 static int niu_set_ldg_timer_res(struct niu *np, int res)
 {
 	if (res < 0 || res > LDG_TIMER_RES_VAL)
+	{
 		return -EINVAL;
+	}
 
 
 	nw64(LDG_TIMER_RES, res);
@@ -7959,9 +10206,11 @@ static int niu_set_ldg_timer_res(struct niu *np, int res)
 static int niu_set_ldg_sid(struct niu *np, int ldg, int func, int vector)
 {
 	if ((ldg < NIU_LDG_MIN || ldg > NIU_LDG_MAX) ||
-	    (func < 0 || func > 3) ||
-	    (vector < 0 || vector > 0x1f))
+		(func < 0 || func > 3) ||
+		(vector < 0 || vector > 0x1f))
+	{
 		return -EINVAL;
+	}
 
 	nw64(SID(ldg), (func << SID_FUNC_SHIFT) | vector);
 
@@ -7971,39 +10220,57 @@ static int niu_set_ldg_sid(struct niu *np, int ldg, int func, int vector)
 static int niu_pci_eeprom_read(struct niu *np, u32 addr)
 {
 	u64 frame, frame_base = (ESPC_PIO_STAT_READ_START |
-				 (addr << ESPC_PIO_STAT_ADDR_SHIFT));
+							 (addr << ESPC_PIO_STAT_ADDR_SHIFT));
 	int limit;
 
 	if (addr > (ESPC_PIO_STAT_ADDR >> ESPC_PIO_STAT_ADDR_SHIFT))
+	{
 		return -EINVAL;
+	}
 
 	frame = frame_base;
 	nw64(ESPC_PIO_STAT, frame);
 	limit = 64;
-	do {
+
+	do
+	{
 		udelay(5);
 		frame = nr64(ESPC_PIO_STAT);
+
 		if (frame & ESPC_PIO_STAT_READ_END)
+		{
 			break;
-	} while (limit--);
-	if (!(frame & ESPC_PIO_STAT_READ_END)) {
+		}
+	}
+	while (limit--);
+
+	if (!(frame & ESPC_PIO_STAT_READ_END))
+	{
 		dev_err(np->device, "EEPROM read timeout frame[%llx]\n",
-			(unsigned long long) frame);
+				(unsigned long long) frame);
 		return -ENODEV;
 	}
 
 	frame = frame_base;
 	nw64(ESPC_PIO_STAT, frame);
 	limit = 64;
-	do {
+
+	do
+	{
 		udelay(5);
 		frame = nr64(ESPC_PIO_STAT);
+
 		if (frame & ESPC_PIO_STAT_READ_END)
+		{
 			break;
-	} while (limit--);
-	if (!(frame & ESPC_PIO_STAT_READ_END)) {
+		}
+	}
+	while (limit--);
+
+	if (!(frame & ESPC_PIO_STAT_READ_END))
+	{
 		dev_err(np->device, "EEPROM read timeout frame[%llx]\n",
-			(unsigned long long) frame);
+				(unsigned long long) frame);
 		return -ENODEV;
 	}
 
@@ -8017,11 +10284,18 @@ static int niu_pci_eeprom_read16(struct niu *np, u32 off)
 	u16 val;
 
 	if (err < 0)
+	{
 		return err;
+	}
+
 	val = (err << 8);
 	err = niu_pci_eeprom_read(np, off + 1);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	val |= (err & 0xff);
 
 	return val;
@@ -8033,12 +10307,17 @@ static int niu_pci_eeprom_read16_swp(struct niu *np, u32 off)
 	u16 val;
 
 	if (err < 0)
+	{
 		return err;
+	}
 
 	val = (err & 0xff);
 	err = niu_pci_eeprom_read(np, off + 1);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	val |= (err & 0xff) << 8;
 
@@ -8046,20 +10325,31 @@ static int niu_pci_eeprom_read16_swp(struct niu *np, u32 off)
 }
 
 static int niu_pci_vpd_get_propname(struct niu *np, u32 off, char *namebuf,
-				    int namebuf_len)
+									int namebuf_len)
 {
 	int i;
 
-	for (i = 0; i < namebuf_len; i++) {
+	for (i = 0; i < namebuf_len; i++)
+	{
 		int err = niu_pci_eeprom_read(np, off + i);
+
 		if (err < 0)
+		{
 			return err;
+		}
+
 		*namebuf++ = err;
+
 		if (!err)
+		{
 			break;
+		}
 	}
+
 	if (i >= namebuf_len)
+	{
 		return -EINVAL;
+	}
 
 	return i + 1;
 }
@@ -8071,23 +10361,32 @@ static void niu_vpd_parse_version(struct niu *np)
 	const char *s = vpd->version;
 	int i;
 
-	for (i = 0; i < len - 5; i++) {
+	for (i = 0; i < len - 5; i++)
+	{
 		if (!strncmp(s + i, "FCode ", 6))
+		{
 			break;
+		}
 	}
+
 	if (i >= len - 5)
+	{
 		return;
+	}
 
 	s += i + 5;
 	sscanf(s, "%d.%d", &vpd->fcode_major, &vpd->fcode_minor);
 
 	netif_printk(np, probe, KERN_DEBUG, np->dev,
-		     "VPD_SCAN: FCODE major(%d) minor(%d)\n",
-		     vpd->fcode_major, vpd->fcode_minor);
+				 "VPD_SCAN: FCODE major(%d) minor(%d)\n",
+				 vpd->fcode_major, vpd->fcode_minor);
+
 	if (vpd->fcode_major > NIU_VPD_MIN_MAJOR ||
-	    (vpd->fcode_major == NIU_VPD_MIN_MAJOR &&
-	     vpd->fcode_minor >= NIU_VPD_MIN_MINOR))
+		(vpd->fcode_major == NIU_VPD_MIN_MAJOR &&
+		 vpd->fcode_minor >= NIU_VPD_MIN_MINOR))
+	{
 		np->flags |= NIU_FLAGS_VPD_VALID;
+	}
 }
 
 /* ESPC_PIO_EN_ENABLE must be set */
@@ -8103,71 +10402,98 @@ static int niu_pci_vpd_scan_props(struct niu *np, u32 start, u32 end)
 #define FOUND_MASK_ALL		0x0000003f
 
 	netif_printk(np, probe, KERN_DEBUG, np->dev,
-		     "VPD_SCAN: start[%x] end[%x]\n", start, end);
-	while (start < end) {
+				 "VPD_SCAN: start[%x] end[%x]\n", start, end);
+
+	while (start < end)
+	{
 		int len, err, prop_len;
 		char namebuf[64];
 		u8 *prop_buf;
 		int max_len;
 
-		if (found_mask == FOUND_MASK_ALL) {
+		if (found_mask == FOUND_MASK_ALL)
+		{
 			niu_vpd_parse_version(np);
 			return 1;
 		}
 
 		err = niu_pci_eeprom_read(np, start + 2);
+
 		if (err < 0)
+		{
 			return err;
+		}
+
 		len = err;
 		start += 3;
 
 		prop_len = niu_pci_eeprom_read(np, start + 4);
 		err = niu_pci_vpd_get_propname(np, start + 5, namebuf, 64);
+
 		if (err < 0)
+		{
 			return err;
+		}
 
 		prop_buf = NULL;
 		max_len = 0;
-		if (!strcmp(namebuf, "model")) {
+
+		if (!strcmp(namebuf, "model"))
+		{
 			prop_buf = np->vpd.model;
 			max_len = NIU_VPD_MODEL_MAX;
 			found_mask |= FOUND_MASK_MODEL;
-		} else if (!strcmp(namebuf, "board-model")) {
+		}
+		else if (!strcmp(namebuf, "board-model"))
+		{
 			prop_buf = np->vpd.board_model;
 			max_len = NIU_VPD_BD_MODEL_MAX;
 			found_mask |= FOUND_MASK_BMODEL;
-		} else if (!strcmp(namebuf, "version")) {
+		}
+		else if (!strcmp(namebuf, "version"))
+		{
 			prop_buf = np->vpd.version;
 			max_len = NIU_VPD_VERSION_MAX;
 			found_mask |= FOUND_MASK_VERS;
-		} else if (!strcmp(namebuf, "local-mac-address")) {
+		}
+		else if (!strcmp(namebuf, "local-mac-address"))
+		{
 			prop_buf = np->vpd.local_mac;
 			max_len = ETH_ALEN;
 			found_mask |= FOUND_MASK_MAC;
-		} else if (!strcmp(namebuf, "num-mac-addresses")) {
+		}
+		else if (!strcmp(namebuf, "num-mac-addresses"))
+		{
 			prop_buf = &np->vpd.mac_num;
 			max_len = 1;
 			found_mask |= FOUND_MASK_NMAC;
-		} else if (!strcmp(namebuf, "phy-type")) {
+		}
+		else if (!strcmp(namebuf, "phy-type"))
+		{
 			prop_buf = np->vpd.phy_type;
 			max_len = NIU_VPD_PHY_TYPE_MAX;
 			found_mask |= FOUND_MASK_PHY;
 		}
 
-		if (max_len && prop_len > max_len) {
+		if (max_len && prop_len > max_len)
+		{
 			dev_err(np->device, "Property '%s' length (%d) is too long\n", namebuf, prop_len);
 			return -EINVAL;
 		}
 
-		if (prop_buf) {
+		if (prop_buf)
+		{
 			u32 off = start + 5 + err;
 			int i;
 
 			netif_printk(np, probe, KERN_DEBUG, np->dev,
-				     "VPD_SCAN: Reading in property [%s] len[%d]\n",
-				     namebuf, prop_len);
+						 "VPD_SCAN: Reading in property [%s] len[%d]\n",
+						 namebuf, prop_len);
+
 			for (i = 0; i < prop_len; i++)
+			{
 				*prop_buf++ = niu_pci_eeprom_read(np, off + i);
+			}
 		}
 
 		start += len;
@@ -8183,22 +10509,32 @@ static void niu_pci_vpd_fetch(struct niu *np, u32 start)
 	int err;
 
 	err = niu_pci_eeprom_read16_swp(np, start + 1);
+
 	if (err < 0)
+	{
 		return;
+	}
 
 	offset = err + 3;
 
-	while (start + offset < ESPC_EEPROM_SIZE) {
+	while (start + offset < ESPC_EEPROM_SIZE)
+	{
 		u32 here = start + offset;
 		u32 end;
 
 		err = niu_pci_eeprom_read(np, here);
+
 		if (err != 0x90)
+		{
 			return;
+		}
 
 		err = niu_pci_eeprom_read16_swp(np, here + 1);
+
 		if (err < 0)
+		{
 			return;
+		}
 
 		here = start + offset + 3;
 		end = start + offset + err;
@@ -8206,8 +10542,11 @@ static void niu_pci_vpd_fetch(struct niu *np, u32 start)
 		offset += err;
 
 		err = niu_pci_vpd_scan_props(np, here, end);
+
 		if (err < 0 || err == 1)
+		{
 			return;
+		}
 	}
 }
 
@@ -8217,49 +10556,79 @@ static u32 niu_pci_vpd_offset(struct niu *np)
 	u32 start = 0, end = ESPC_EEPROM_SIZE, ret;
 	int err;
 
-	while (start < end) {
+	while (start < end)
+	{
 		ret = start;
 
 		/* ROM header signature?  */
 		err = niu_pci_eeprom_read16(np, start +  0);
+
 		if (err != 0x55aa)
+		{
 			return 0;
+		}
 
 		/* Apply offset to PCI data structure.  */
 		err = niu_pci_eeprom_read16(np, start + 23);
+
 		if (err < 0)
+		{
 			return 0;
+		}
+
 		start += err;
 
 		/* Check for "PCIR" signature.  */
 		err = niu_pci_eeprom_read16(np, start +  0);
+
 		if (err != 0x5043)
+		{
 			return 0;
+		}
+
 		err = niu_pci_eeprom_read16(np, start +  2);
+
 		if (err != 0x4952)
+		{
 			return 0;
+		}
 
 		/* Check for OBP image type.  */
 		err = niu_pci_eeprom_read(np, start + 20);
+
 		if (err < 0)
+		{
 			return 0;
-		if (err != 0x01) {
+		}
+
+		if (err != 0x01)
+		{
 			err = niu_pci_eeprom_read(np, ret + 2);
+
 			if (err < 0)
+			{
 				return 0;
+			}
 
 			start = ret + (err * 512);
 			continue;
 		}
 
 		err = niu_pci_eeprom_read16_swp(np, start + 8);
+
 		if (err < 0)
+		{
 			return err;
+		}
+
 		ret += err;
 
 		err = niu_pci_eeprom_read(np, ret + 0);
+
 		if (err != 0x82)
+		{
 			return 0;
+		}
 
 		return ret;
 	}
@@ -8269,35 +10638,47 @@ static u32 niu_pci_vpd_offset(struct niu *np)
 
 static int niu_phy_type_prop_decode(struct niu *np, const char *phy_prop)
 {
-	if (!strcmp(phy_prop, "mif")) {
+	if (!strcmp(phy_prop, "mif"))
+	{
 		/* 1G copper, MII */
 		np->flags &= ~(NIU_FLAGS_FIBER |
-			       NIU_FLAGS_10G);
+					   NIU_FLAGS_10G);
 		np->mac_xcvr = MAC_XCVR_MII;
-	} else if (!strcmp(phy_prop, "xgf")) {
+	}
+	else if (!strcmp(phy_prop, "xgf"))
+	{
 		/* 10G fiber, XPCS */
 		np->flags |= (NIU_FLAGS_10G |
-			      NIU_FLAGS_FIBER);
+					  NIU_FLAGS_FIBER);
 		np->mac_xcvr = MAC_XCVR_XPCS;
-	} else if (!strcmp(phy_prop, "pcs")) {
+	}
+	else if (!strcmp(phy_prop, "pcs"))
+	{
 		/* 1G fiber, PCS */
 		np->flags &= ~NIU_FLAGS_10G;
 		np->flags |= NIU_FLAGS_FIBER;
 		np->mac_xcvr = MAC_XCVR_PCS;
-	} else if (!strcmp(phy_prop, "xgc")) {
+	}
+	else if (!strcmp(phy_prop, "xgc"))
+	{
 		/* 10G copper, XPCS */
 		np->flags |= NIU_FLAGS_10G;
 		np->flags &= ~NIU_FLAGS_FIBER;
 		np->mac_xcvr = MAC_XCVR_XPCS;
-	} else if (!strcmp(phy_prop, "xgsd") || !strcmp(phy_prop, "gsd")) {
+	}
+	else if (!strcmp(phy_prop, "xgsd") || !strcmp(phy_prop, "gsd"))
+	{
 		/* 10G Serdes or 1G Serdes, default to 10G */
 		np->flags |= NIU_FLAGS_10G;
 		np->flags &= ~NIU_FLAGS_FIBER;
 		np->flags |= NIU_FLAGS_XCVR_SERDES;
 		np->mac_xcvr = MAC_XCVR_XPCS;
-	} else {
+	}
+	else
+	{
 		return -EINVAL;
 	}
+
 	return 0;
 }
 
@@ -8306,15 +10687,18 @@ static int niu_pci_vpd_get_nports(struct niu *np)
 	int ports = 0;
 
 	if ((!strcmp(np->vpd.model, NIU_QGC_LP_MDL_STR)) ||
-	    (!strcmp(np->vpd.model, NIU_QGC_PEM_MDL_STR)) ||
-	    (!strcmp(np->vpd.model, NIU_MARAMBA_MDL_STR)) ||
-	    (!strcmp(np->vpd.model, NIU_KIMI_MDL_STR)) ||
-	    (!strcmp(np->vpd.model, NIU_ALONSO_MDL_STR))) {
+		(!strcmp(np->vpd.model, NIU_QGC_PEM_MDL_STR)) ||
+		(!strcmp(np->vpd.model, NIU_MARAMBA_MDL_STR)) ||
+		(!strcmp(np->vpd.model, NIU_KIMI_MDL_STR)) ||
+		(!strcmp(np->vpd.model, NIU_ALONSO_MDL_STR)))
+	{
 		ports = 4;
-	} else if ((!strcmp(np->vpd.model, NIU_2XGF_LP_MDL_STR)) ||
-		   (!strcmp(np->vpd.model, NIU_2XGF_PEM_MDL_STR)) ||
-		   (!strcmp(np->vpd.model, NIU_FOXXY_MDL_STR)) ||
-		   (!strcmp(np->vpd.model, NIU_2XGF_MRVL_MDL_STR))) {
+	}
+	else if ((!strcmp(np->vpd.model, NIU_2XGF_LP_MDL_STR)) ||
+			 (!strcmp(np->vpd.model, NIU_2XGF_PEM_MDL_STR)) ||
+			 (!strcmp(np->vpd.model, NIU_FOXXY_MDL_STR)) ||
+			 (!strcmp(np->vpd.model, NIU_2XGF_MRVL_MDL_STR)))
+	{
 		ports = 2;
 	}
 
@@ -8327,7 +10711,8 @@ static void niu_pci_vpd_validate(struct niu *np)
 	struct niu_vpd *vpd = &np->vpd;
 	u8 val8;
 
-	if (!is_valid_ether_addr(&vpd->local_mac[0])) {
+	if (!is_valid_ether_addr(&vpd->local_mac[0]))
+	{
 		dev_err(np->device, "VPD MAC invalid, falling back to SPROM\n");
 
 		np->flags &= ~NIU_FLAGS_VPD_VALID;
@@ -8335,23 +10720,33 @@ static void niu_pci_vpd_validate(struct niu *np)
 	}
 
 	if (!strcmp(np->vpd.model, NIU_ALONSO_MDL_STR) ||
-	    !strcmp(np->vpd.model, NIU_KIMI_MDL_STR)) {
+		!strcmp(np->vpd.model, NIU_KIMI_MDL_STR))
+	{
 		np->flags |= NIU_FLAGS_10G;
 		np->flags &= ~NIU_FLAGS_FIBER;
 		np->flags |= NIU_FLAGS_XCVR_SERDES;
 		np->mac_xcvr = MAC_XCVR_PCS;
-		if (np->port > 1) {
+
+		if (np->port > 1)
+		{
 			np->flags |= NIU_FLAGS_FIBER;
 			np->flags &= ~NIU_FLAGS_10G;
 		}
+
 		if (np->flags & NIU_FLAGS_10G)
+		{
 			np->mac_xcvr = MAC_XCVR_XPCS;
-	} else if (!strcmp(np->vpd.model, NIU_FOXXY_MDL_STR)) {
+		}
+	}
+	else if (!strcmp(np->vpd.model, NIU_FOXXY_MDL_STR))
+	{
 		np->flags |= (NIU_FLAGS_10G | NIU_FLAGS_FIBER |
-			      NIU_FLAGS_HOTPLUG_PHY);
-	} else if (niu_phy_type_prop_decode(np, np->vpd.phy_type)) {
+					  NIU_FLAGS_HOTPLUG_PHY);
+	}
+	else if (niu_phy_type_prop_decode(np, np->vpd.phy_type))
+	{
 		dev_err(np->device, "Illegal phy string [%s]\n",
-			np->vpd.phy_type);
+				np->vpd.phy_type);
 		dev_err(np->device, "Falling back to SPROM\n");
 		np->flags &= ~NIU_FLAGS_VPD_VALID;
 		return;
@@ -8361,8 +10756,11 @@ static void niu_pci_vpd_validate(struct niu *np)
 
 	val8 = dev->dev_addr[5];
 	dev->dev_addr[5] += np->port;
+
 	if (dev->dev_addr[5] < val8)
+	{
 		dev->dev_addr[4]++;
+	}
 }
 
 static int niu_pci_probe_sprom(struct niu *np)
@@ -8379,86 +10777,99 @@ static int niu_pci_probe_sprom(struct niu *np)
 	np->eeprom_len = len;
 
 	netif_printk(np, probe, KERN_DEBUG, np->dev,
-		     "SPROM: Image size %llu\n", (unsigned long long)val);
+				 "SPROM: Image size %llu\n", (unsigned long long)val);
 
 	sum = 0;
-	for (i = 0; i < len; i++) {
+
+	for (i = 0; i < len; i++)
+	{
 		val = nr64(ESPC_NCR(i));
 		sum += (val >>  0) & 0xff;
 		sum += (val >>  8) & 0xff;
 		sum += (val >> 16) & 0xff;
 		sum += (val >> 24) & 0xff;
 	}
+
 	netif_printk(np, probe, KERN_DEBUG, np->dev,
-		     "SPROM: Checksum %x\n", (int)(sum & 0xff));
-	if ((sum & 0xff) != 0xab) {
+				 "SPROM: Checksum %x\n", (int)(sum & 0xff));
+
+	if ((sum & 0xff) != 0xab)
+	{
 		dev_err(np->device, "Bad SPROM checksum (%x, should be 0xab)\n", (int)(sum & 0xff));
 		return -EINVAL;
 	}
 
 	val = nr64(ESPC_PHY_TYPE);
-	switch (np->port) {
-	case 0:
-		val8 = (val & ESPC_PHY_TYPE_PORT0) >>
-			ESPC_PHY_TYPE_PORT0_SHIFT;
-		break;
-	case 1:
-		val8 = (val & ESPC_PHY_TYPE_PORT1) >>
-			ESPC_PHY_TYPE_PORT1_SHIFT;
-		break;
-	case 2:
-		val8 = (val & ESPC_PHY_TYPE_PORT2) >>
-			ESPC_PHY_TYPE_PORT2_SHIFT;
-		break;
-	case 3:
-		val8 = (val & ESPC_PHY_TYPE_PORT3) >>
-			ESPC_PHY_TYPE_PORT3_SHIFT;
-		break;
-	default:
-		dev_err(np->device, "Bogus port number %u\n",
-			np->port);
-		return -EINVAL;
+
+	switch (np->port)
+	{
+		case 0:
+			val8 = (val & ESPC_PHY_TYPE_PORT0) >>
+				   ESPC_PHY_TYPE_PORT0_SHIFT;
+			break;
+
+		case 1:
+			val8 = (val & ESPC_PHY_TYPE_PORT1) >>
+				   ESPC_PHY_TYPE_PORT1_SHIFT;
+			break;
+
+		case 2:
+			val8 = (val & ESPC_PHY_TYPE_PORT2) >>
+				   ESPC_PHY_TYPE_PORT2_SHIFT;
+			break;
+
+		case 3:
+			val8 = (val & ESPC_PHY_TYPE_PORT3) >>
+				   ESPC_PHY_TYPE_PORT3_SHIFT;
+			break;
+
+		default:
+			dev_err(np->device, "Bogus port number %u\n",
+					np->port);
+			return -EINVAL;
 	}
+
 	netif_printk(np, probe, KERN_DEBUG, np->dev,
-		     "SPROM: PHY type %x\n", val8);
+				 "SPROM: PHY type %x\n", val8);
 
-	switch (val8) {
-	case ESPC_PHY_TYPE_1G_COPPER:
-		/* 1G copper, MII */
-		np->flags &= ~(NIU_FLAGS_FIBER |
-			       NIU_FLAGS_10G);
-		np->mac_xcvr = MAC_XCVR_MII;
-		break;
+	switch (val8)
+	{
+		case ESPC_PHY_TYPE_1G_COPPER:
+			/* 1G copper, MII */
+			np->flags &= ~(NIU_FLAGS_FIBER |
+						   NIU_FLAGS_10G);
+			np->mac_xcvr = MAC_XCVR_MII;
+			break;
 
-	case ESPC_PHY_TYPE_1G_FIBER:
-		/* 1G fiber, PCS */
-		np->flags &= ~NIU_FLAGS_10G;
-		np->flags |= NIU_FLAGS_FIBER;
-		np->mac_xcvr = MAC_XCVR_PCS;
-		break;
+		case ESPC_PHY_TYPE_1G_FIBER:
+			/* 1G fiber, PCS */
+			np->flags &= ~NIU_FLAGS_10G;
+			np->flags |= NIU_FLAGS_FIBER;
+			np->mac_xcvr = MAC_XCVR_PCS;
+			break;
 
-	case ESPC_PHY_TYPE_10G_COPPER:
-		/* 10G copper, XPCS */
-		np->flags |= NIU_FLAGS_10G;
-		np->flags &= ~NIU_FLAGS_FIBER;
-		np->mac_xcvr = MAC_XCVR_XPCS;
-		break;
+		case ESPC_PHY_TYPE_10G_COPPER:
+			/* 10G copper, XPCS */
+			np->flags |= NIU_FLAGS_10G;
+			np->flags &= ~NIU_FLAGS_FIBER;
+			np->mac_xcvr = MAC_XCVR_XPCS;
+			break;
 
-	case ESPC_PHY_TYPE_10G_FIBER:
-		/* 10G fiber, XPCS */
-		np->flags |= (NIU_FLAGS_10G |
-			      NIU_FLAGS_FIBER);
-		np->mac_xcvr = MAC_XCVR_XPCS;
-		break;
+		case ESPC_PHY_TYPE_10G_FIBER:
+			/* 10G fiber, XPCS */
+			np->flags |= (NIU_FLAGS_10G |
+						  NIU_FLAGS_FIBER);
+			np->mac_xcvr = MAC_XCVR_XPCS;
+			break;
 
-	default:
-		dev_err(np->device, "Bogus SPROM phy type %u\n", val8);
-		return -EINVAL;
+		default:
+			dev_err(np->device, "Bogus SPROM phy type %u\n", val8);
+			return -EINVAL;
 	}
 
 	val = nr64(ESPC_MAC_ADDR0);
 	netif_printk(np, probe, KERN_DEBUG, np->dev,
-		     "SPROM: MAC_ADDR0[%08llx]\n", (unsigned long long)val);
+				 "SPROM: MAC_ADDR0[%08llx]\n", (unsigned long long)val);
 	dev->dev_addr[0] = (val >>  0) & 0xff;
 	dev->dev_addr[1] = (val >>  8) & 0xff;
 	dev->dev_addr[2] = (val >> 16) & 0xff;
@@ -8466,28 +10877,36 @@ static int niu_pci_probe_sprom(struct niu *np)
 
 	val = nr64(ESPC_MAC_ADDR1);
 	netif_printk(np, probe, KERN_DEBUG, np->dev,
-		     "SPROM: MAC_ADDR1[%08llx]\n", (unsigned long long)val);
+				 "SPROM: MAC_ADDR1[%08llx]\n", (unsigned long long)val);
 	dev->dev_addr[4] = (val >>  0) & 0xff;
 	dev->dev_addr[5] = (val >>  8) & 0xff;
 
-	if (!is_valid_ether_addr(&dev->dev_addr[0])) {
+	if (!is_valid_ether_addr(&dev->dev_addr[0]))
+	{
 		dev_err(np->device, "SPROM MAC address invalid [ %pM ]\n",
-			dev->dev_addr);
+				dev->dev_addr);
 		return -EINVAL;
 	}
 
 	val8 = dev->dev_addr[5];
 	dev->dev_addr[5] += np->port;
+
 	if (dev->dev_addr[5] < val8)
+	{
 		dev->dev_addr[4]++;
+	}
 
 	val = nr64(ESPC_MOD_STR_LEN);
 	netif_printk(np, probe, KERN_DEBUG, np->dev,
-		     "SPROM: MOD_STR_LEN[%llu]\n", (unsigned long long)val);
-	if (val >= 8 * 4)
-		return -EINVAL;
+				 "SPROM: MOD_STR_LEN[%llu]\n", (unsigned long long)val);
 
-	for (i = 0; i < val; i += 4) {
+	if (val >= 8 * 4)
+	{
+		return -EINVAL;
+	}
+
+	for (i = 0; i < val; i += 4)
+	{
 		u64 tmp = nr64(ESPC_NCR(5 + (i / 4)));
 
 		np->vpd.model[i + 3] = (tmp >>  0) & 0xff;
@@ -8495,15 +10914,20 @@ static int niu_pci_probe_sprom(struct niu *np)
 		np->vpd.model[i + 1] = (tmp >> 16) & 0xff;
 		np->vpd.model[i + 0] = (tmp >> 24) & 0xff;
 	}
+
 	np->vpd.model[val] = '\0';
 
 	val = nr64(ESPC_BD_MOD_STR_LEN);
 	netif_printk(np, probe, KERN_DEBUG, np->dev,
-		     "SPROM: BD_MOD_STR_LEN[%llu]\n", (unsigned long long)val);
-	if (val >= 4 * 4)
-		return -EINVAL;
+				 "SPROM: BD_MOD_STR_LEN[%llu]\n", (unsigned long long)val);
 
-	for (i = 0; i < val; i += 4) {
+	if (val >= 4 * 4)
+	{
+		return -EINVAL;
+	}
+
+	for (i = 0; i < val; i += 4)
+	{
 		u64 tmp = nr64(ESPC_NCR(14 + (i / 4)));
 
 		np->vpd.board_model[i + 3] = (tmp >>  0) & 0xff;
@@ -8511,12 +10935,13 @@ static int niu_pci_probe_sprom(struct niu *np)
 		np->vpd.board_model[i + 1] = (tmp >> 16) & 0xff;
 		np->vpd.board_model[i + 0] = (tmp >> 24) & 0xff;
 	}
+
 	np->vpd.board_model[val] = '\0';
 
 	np->vpd.mac_num =
 		nr64(ESPC_NUM_PORTS_MACS) & ESPC_NUM_PORTS_MACS_VAL;
 	netif_printk(np, probe, KERN_DEBUG, np->dev,
-		     "SPROM: NUM_PORTS_MACS[%d]\n", np->vpd.mac_num);
+				 "SPROM: NUM_PORTS_MACS[%d]\n", np->vpd.mac_num);
 
 	return 0;
 }
@@ -8526,65 +10951,89 @@ static int niu_get_and_validate_port(struct niu *np)
 	struct niu_parent *parent = np->parent;
 
 	if (np->port <= 1)
+	{
 		np->flags |= NIU_FLAGS_XMAC;
+	}
 
-	if (!parent->num_ports) {
-		if (parent->plat_type == PLAT_TYPE_NIU) {
+	if (!parent->num_ports)
+	{
+		if (parent->plat_type == PLAT_TYPE_NIU)
+		{
 			parent->num_ports = 2;
-		} else {
+		}
+		else
+		{
 			parent->num_ports = niu_pci_vpd_get_nports(np);
-			if (!parent->num_ports) {
+
+			if (!parent->num_ports)
+			{
 				/* Fall back to SPROM as last resort.
 				 * This will fail on most cards.
 				 */
 				parent->num_ports = nr64(ESPC_NUM_PORTS_MACS) &
-					ESPC_NUM_PORTS_MACS_VAL;
+									ESPC_NUM_PORTS_MACS_VAL;
 
 				/* All of the current probing methods fail on
 				 * Maramba on-board parts.
 				 */
 				if (!parent->num_ports)
+				{
 					parent->num_ports = 4;
+				}
 			}
 		}
 	}
 
 	if (np->port >= parent->num_ports)
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 }
 
 static int phy_record(struct niu_parent *parent, struct phy_probe_info *p,
-		      int dev_id_1, int dev_id_2, u8 phy_port, int type)
+					  int dev_id_1, int dev_id_2, u8 phy_port, int type)
 {
 	u32 id = (dev_id_1 << 16) | dev_id_2;
 	u8 idx;
 
 	if (dev_id_1 < 0 || dev_id_2 < 0)
+	{
 		return 0;
-	if (type == PHY_TYPE_PMA_PMD || type == PHY_TYPE_PCS) {
+	}
+
+	if (type == PHY_TYPE_PMA_PMD || type == PHY_TYPE_PCS)
+	{
 		/* Because of the NIU_PHY_ID_MASK being applied, the 8704
 		 * test covers the 8706 as well.
 		 */
 		if (((id & NIU_PHY_ID_MASK) != NIU_PHY_ID_BCM8704) &&
-		    ((id & NIU_PHY_ID_MASK) != NIU_PHY_ID_MRVL88X2011))
+			((id & NIU_PHY_ID_MASK) != NIU_PHY_ID_MRVL88X2011))
+		{
 			return 0;
-	} else {
+		}
+	}
+	else
+	{
 		if ((id & NIU_PHY_ID_MASK) != NIU_PHY_ID_BCM5464R)
+		{
 			return 0;
+		}
 	}
 
 	pr_info("niu%d: Found PHY %08x type %s at phy_port %u\n",
-		parent->index, id,
-		type == PHY_TYPE_PMA_PMD ? "PMA/PMD" :
-		type == PHY_TYPE_PCS ? "PCS" : "MII",
-		phy_port);
+			parent->index, id,
+			type == PHY_TYPE_PMA_PMD ? "PMA/PMD" :
+			type == PHY_TYPE_PCS ? "PCS" : "MII",
+			phy_port);
 
-	if (p->cur[type] >= NIU_MAX_PORTS) {
+	if (p->cur[type] >= NIU_MAX_PORTS)
+	{
 		pr_err("Too many PHY ports\n");
 		return -EINVAL;
 	}
+
 	idx = p->cur[type];
 	p->phy_id[type][idx] = id;
 	p->phy_port[type][idx] = phy_port;
@@ -8596,13 +11045,20 @@ static int port_has_10g(struct phy_probe_info *p, int port)
 {
 	int i;
 
-	for (i = 0; i < p->cur[PHY_TYPE_PMA_PMD]; i++) {
+	for (i = 0; i < p->cur[PHY_TYPE_PMA_PMD]; i++)
+	{
 		if (p->phy_port[PHY_TYPE_PMA_PMD][i] == port)
+		{
 			return 1;
+		}
 	}
-	for (i = 0; i < p->cur[PHY_TYPE_PCS]; i++) {
+
+	for (i = 0; i < p->cur[PHY_TYPE_PCS]; i++)
+	{
 		if (p->phy_port[PHY_TYPE_PCS][i] == port)
+		{
 			return 1;
+		}
 	}
 
 	return 0;
@@ -8614,10 +11070,16 @@ static int count_10g_ports(struct phy_probe_info *p, int *lowest)
 
 	cnt = 0;
 	*lowest = 32;
-	for (port = 8; port < 32; port++) {
-		if (port_has_10g(p, port)) {
+
+	for (port = 8; port < 32; port++)
+	{
+		if (port_has_10g(p, port))
+		{
 			if (!cnt)
+			{
 				*lowest = port;
+			}
+
 			cnt++;
 		}
 	}
@@ -8628,8 +11090,11 @@ static int count_10g_ports(struct phy_probe_info *p, int *lowest)
 static int count_1g_ports(struct phy_probe_info *p, int *lowest)
 {
 	*lowest = 32;
+
 	if (p->cur[PHY_TYPE_MII])
+	{
 		*lowest = p->phy_port[PHY_TYPE_MII][0];
+	}
 
 	return p->cur[PHY_TYPE_MII];
 }
@@ -8639,81 +11104,102 @@ static void niu_n2_divide_channels(struct niu_parent *parent)
 	int num_ports = parent->num_ports;
 	int i;
 
-	for (i = 0; i < num_ports; i++) {
+	for (i = 0; i < num_ports; i++)
+	{
 		parent->rxchan_per_port[i] = (16 / num_ports);
 		parent->txchan_per_port[i] = (16 / num_ports);
 
 		pr_info("niu%d: Port %u [%u RX chans] [%u TX chans]\n",
-			parent->index, i,
-			parent->rxchan_per_port[i],
-			parent->txchan_per_port[i]);
+				parent->index, i,
+				parent->rxchan_per_port[i],
+				parent->txchan_per_port[i]);
 	}
 }
 
 static void niu_divide_channels(struct niu_parent *parent,
-				int num_10g, int num_1g)
+								int num_10g, int num_1g)
 {
 	int num_ports = parent->num_ports;
 	int rx_chans_per_10g, rx_chans_per_1g;
 	int tx_chans_per_10g, tx_chans_per_1g;
 	int i, tot_rx, tot_tx;
 
-	if (!num_10g || !num_1g) {
+	if (!num_10g || !num_1g)
+	{
 		rx_chans_per_10g = rx_chans_per_1g =
-			(NIU_NUM_RXCHAN / num_ports);
+							   (NIU_NUM_RXCHAN / num_ports);
 		tx_chans_per_10g = tx_chans_per_1g =
-			(NIU_NUM_TXCHAN / num_ports);
-	} else {
+							   (NIU_NUM_TXCHAN / num_ports);
+	}
+	else
+	{
 		rx_chans_per_1g = NIU_NUM_RXCHAN / 8;
 		rx_chans_per_10g = (NIU_NUM_RXCHAN -
-				    (rx_chans_per_1g * num_1g)) /
-			num_10g;
+							(rx_chans_per_1g * num_1g)) /
+						   num_10g;
 
 		tx_chans_per_1g = NIU_NUM_TXCHAN / 6;
 		tx_chans_per_10g = (NIU_NUM_TXCHAN -
-				    (tx_chans_per_1g * num_1g)) /
-			num_10g;
+							(tx_chans_per_1g * num_1g)) /
+						   num_10g;
 	}
 
 	tot_rx = tot_tx = 0;
-	for (i = 0; i < num_ports; i++) {
+
+	for (i = 0; i < num_ports; i++)
+	{
 		int type = phy_decode(parent->port_phy, i);
 
-		if (type == PORT_TYPE_10G) {
+		if (type == PORT_TYPE_10G)
+		{
 			parent->rxchan_per_port[i] = rx_chans_per_10g;
 			parent->txchan_per_port[i] = tx_chans_per_10g;
-		} else {
+		}
+		else
+		{
 			parent->rxchan_per_port[i] = rx_chans_per_1g;
 			parent->txchan_per_port[i] = tx_chans_per_1g;
 		}
+
 		pr_info("niu%d: Port %u [%u RX chans] [%u TX chans]\n",
-			parent->index, i,
-			parent->rxchan_per_port[i],
-			parent->txchan_per_port[i]);
+				parent->index, i,
+				parent->rxchan_per_port[i],
+				parent->txchan_per_port[i]);
 		tot_rx += parent->rxchan_per_port[i];
 		tot_tx += parent->txchan_per_port[i];
 	}
 
-	if (tot_rx > NIU_NUM_RXCHAN) {
+	if (tot_rx > NIU_NUM_RXCHAN)
+	{
 		pr_err("niu%d: Too many RX channels (%d), resetting to one per port\n",
-		       parent->index, tot_rx);
+			   parent->index, tot_rx);
+
 		for (i = 0; i < num_ports; i++)
+		{
 			parent->rxchan_per_port[i] = 1;
+		}
 	}
-	if (tot_tx > NIU_NUM_TXCHAN) {
+
+	if (tot_tx > NIU_NUM_TXCHAN)
+	{
 		pr_err("niu%d: Too many TX channels (%d), resetting to one per port\n",
-		       parent->index, tot_tx);
+			   parent->index, tot_tx);
+
 		for (i = 0; i < num_ports; i++)
+		{
 			parent->txchan_per_port[i] = 1;
+		}
 	}
-	if (tot_rx < NIU_NUM_RXCHAN || tot_tx < NIU_NUM_TXCHAN) {
+
+	if (tot_rx < NIU_NUM_RXCHAN || tot_tx < NIU_NUM_TXCHAN)
+	{
 		pr_warn("niu%d: Driver bug, wasted channels, RX[%d] TX[%d]\n",
-			parent->index, tot_rx, tot_tx);
+				parent->index, tot_rx, tot_tx);
 	}
 }
 
 static void niu_divide_rdc_groups(struct niu_parent *parent,
-				  int num_10g, int num_1g)
+								  int num_10g, int num_1g)
 {
 	int i, num_ports = parent->num_ports;
 	int rdc_group, rdc_groups_per_port;
@@ -8724,7 +11210,8 @@ static void niu_divide_rdc_groups(struct niu_parent *parent,
 
 	rdc_channel_base = 0;
 
-	for (i = 0; i < num_ports; i++) {
+	for (i = 0; i < num_ports; i++)
+	{
 		struct niu_rdc_tables *tp = &parent->rdc_group_cfg[i];
 		int grp, num_channels = parent->rxchan_per_port[i];
 		int this_channel_offset;
@@ -8732,21 +11219,28 @@ static void niu_divide_rdc_groups(struct niu_parent *parent,
 		tp->first_table_num = rdc_group;
 		tp->num_tables = rdc_groups_per_port;
 		this_channel_offset = 0;
-		for (grp = 0; grp < tp->num_tables; grp++) {
+
+		for (grp = 0; grp < tp->num_tables; grp++)
+		{
 			struct rdc_table *rt = &tp->tables[grp];
 			int slot;
 
 			pr_info("niu%d: Port %d RDC tbl(%d) [ ",
-				parent->index, i, tp->first_table_num + grp);
-			for (slot = 0; slot < NIU_RDC_TABLE_SLOTS; slot++) {
+					parent->index, i, tp->first_table_num + grp);
+
+			for (slot = 0; slot < NIU_RDC_TABLE_SLOTS; slot++)
+			{
 				rt->rxdma_channel[slot] =
 					rdc_channel_base + this_channel_offset;
 
 				pr_cont("%d ", rt->rxdma_channel[slot]);
 
 				if (++this_channel_offset == num_channels)
+				{
 					this_channel_offset = 0;
+				}
 			}
+
 			pr_cont("]\n");
 		}
 
@@ -8758,7 +11252,7 @@ static void niu_divide_rdc_groups(struct niu_parent *parent,
 }
 
 static int fill_phy_probe_info(struct niu *np, struct niu_parent *parent,
-			       struct phy_probe_info *info)
+							   struct phy_probe_info *info)
 {
 	unsigned long flags;
 	int port, err;
@@ -8768,32 +11262,46 @@ static int fill_phy_probe_info(struct niu *np, struct niu_parent *parent,
 	/* Port 0 to 7 are reserved for onboard Serdes, probe the rest.  */
 	niu_lock_parent(np, flags);
 	err = 0;
-	for (port = 8; port < 32; port++) {
+
+	for (port = 8; port < 32; port++)
+	{
 		int dev_id_1, dev_id_2;
 
 		dev_id_1 = mdio_read(np, port,
-				     NIU_PMA_PMD_DEV_ADDR, MII_PHYSID1);
+							 NIU_PMA_PMD_DEV_ADDR, MII_PHYSID1);
 		dev_id_2 = mdio_read(np, port,
-				     NIU_PMA_PMD_DEV_ADDR, MII_PHYSID2);
+							 NIU_PMA_PMD_DEV_ADDR, MII_PHYSID2);
 		err = phy_record(parent, info, dev_id_1, dev_id_2, port,
-				 PHY_TYPE_PMA_PMD);
+						 PHY_TYPE_PMA_PMD);
+
 		if (err)
+		{
 			break;
+		}
+
 		dev_id_1 = mdio_read(np, port,
-				     NIU_PCS_DEV_ADDR, MII_PHYSID1);
+							 NIU_PCS_DEV_ADDR, MII_PHYSID1);
 		dev_id_2 = mdio_read(np, port,
-				     NIU_PCS_DEV_ADDR, MII_PHYSID2);
+							 NIU_PCS_DEV_ADDR, MII_PHYSID2);
 		err = phy_record(parent, info, dev_id_1, dev_id_2, port,
-				 PHY_TYPE_PCS);
+						 PHY_TYPE_PCS);
+
 		if (err)
+		{
 			break;
+		}
+
 		dev_id_1 = mii_read(np, port, MII_PHYSID1);
 		dev_id_2 = mii_read(np, port, MII_PHYSID2);
 		err = phy_record(parent, info, dev_id_1, dev_id_2, port,
-				 PHY_TYPE_MII);
+						 PHY_TYPE_MII);
+
 		if (err)
+		{
 			break;
+		}
 	}
+
 	niu_unlock_parent(np, flags);
 
 	return err;
@@ -8810,114 +11318,151 @@ static int walk_phys(struct niu *np, struct niu_parent *parent)
 	num_10g = num_1g = 0;
 
 	if (!strcmp(np->vpd.model, NIU_ALONSO_MDL_STR) ||
-	    !strcmp(np->vpd.model, NIU_KIMI_MDL_STR)) {
+		!strcmp(np->vpd.model, NIU_KIMI_MDL_STR))
+	{
 		num_10g = 0;
 		num_1g = 2;
 		parent->plat_type = PLAT_TYPE_ATCA_CP3220;
 		parent->num_ports = 4;
 		val = (phy_encode(PORT_TYPE_1G, 0) |
-		       phy_encode(PORT_TYPE_1G, 1) |
-		       phy_encode(PORT_TYPE_1G, 2) |
-		       phy_encode(PORT_TYPE_1G, 3));
-	} else if (!strcmp(np->vpd.model, NIU_FOXXY_MDL_STR)) {
+			   phy_encode(PORT_TYPE_1G, 1) |
+			   phy_encode(PORT_TYPE_1G, 2) |
+			   phy_encode(PORT_TYPE_1G, 3));
+	}
+	else if (!strcmp(np->vpd.model, NIU_FOXXY_MDL_STR))
+	{
 		num_10g = 2;
 		num_1g = 0;
 		parent->num_ports = 2;
 		val = (phy_encode(PORT_TYPE_10G, 0) |
-		       phy_encode(PORT_TYPE_10G, 1));
-	} else if ((np->flags & NIU_FLAGS_XCVR_SERDES) &&
-		   (parent->plat_type == PLAT_TYPE_NIU)) {
+			   phy_encode(PORT_TYPE_10G, 1));
+	}
+	else if ((np->flags & NIU_FLAGS_XCVR_SERDES) &&
+			 (parent->plat_type == PLAT_TYPE_NIU))
+	{
 		/* this is the Monza case */
-		if (np->flags & NIU_FLAGS_10G) {
+		if (np->flags & NIU_FLAGS_10G)
+		{
 			val = (phy_encode(PORT_TYPE_10G, 0) |
-			       phy_encode(PORT_TYPE_10G, 1));
-		} else {
-			val = (phy_encode(PORT_TYPE_1G, 0) |
-			       phy_encode(PORT_TYPE_1G, 1));
+				   phy_encode(PORT_TYPE_10G, 1));
 		}
-	} else {
+		else
+		{
+			val = (phy_encode(PORT_TYPE_1G, 0) |
+				   phy_encode(PORT_TYPE_1G, 1));
+		}
+	}
+	else
+	{
 		err = fill_phy_probe_info(np, parent, info);
+
 		if (err)
+		{
 			return err;
+		}
 
 		num_10g = count_10g_ports(info, &lowest_10g);
 		num_1g = count_1g_ports(info, &lowest_1g);
 
-		switch ((num_10g << 4) | num_1g) {
-		case 0x24:
-			if (lowest_1g == 10)
-				parent->plat_type = PLAT_TYPE_VF_P0;
-			else if (lowest_1g == 26)
-				parent->plat_type = PLAT_TYPE_VF_P1;
-			else
-				goto unknown_vg_1g_port;
+		switch ((num_10g << 4) | num_1g)
+		{
+			case 0x24:
+				if (lowest_1g == 10)
+				{
+					parent->plat_type = PLAT_TYPE_VF_P0;
+				}
+				else if (lowest_1g == 26)
+				{
+					parent->plat_type = PLAT_TYPE_VF_P1;
+				}
+				else
+				{
+					goto unknown_vg_1g_port;
+				}
 
 			/* fallthru */
-		case 0x22:
-			val = (phy_encode(PORT_TYPE_10G, 0) |
-			       phy_encode(PORT_TYPE_10G, 1) |
-			       phy_encode(PORT_TYPE_1G, 2) |
-			       phy_encode(PORT_TYPE_1G, 3));
-			break;
-
-		case 0x20:
-			val = (phy_encode(PORT_TYPE_10G, 0) |
-			       phy_encode(PORT_TYPE_10G, 1));
-			break;
-
-		case 0x10:
-			val = phy_encode(PORT_TYPE_10G, np->port);
-			break;
-
-		case 0x14:
-			if (lowest_1g == 10)
-				parent->plat_type = PLAT_TYPE_VF_P0;
-			else if (lowest_1g == 26)
-				parent->plat_type = PLAT_TYPE_VF_P1;
-			else
-				goto unknown_vg_1g_port;
-
-			/* fallthru */
-		case 0x13:
-			if ((lowest_10g & 0x7) == 0)
+			case 0x22:
 				val = (phy_encode(PORT_TYPE_10G, 0) |
-				       phy_encode(PORT_TYPE_1G, 1) |
-				       phy_encode(PORT_TYPE_1G, 2) |
-				       phy_encode(PORT_TYPE_1G, 3));
-			else
+					   phy_encode(PORT_TYPE_10G, 1) |
+					   phy_encode(PORT_TYPE_1G, 2) |
+					   phy_encode(PORT_TYPE_1G, 3));
+				break;
+
+			case 0x20:
+				val = (phy_encode(PORT_TYPE_10G, 0) |
+					   phy_encode(PORT_TYPE_10G, 1));
+				break;
+
+			case 0x10:
+				val = phy_encode(PORT_TYPE_10G, np->port);
+				break;
+
+			case 0x14:
+				if (lowest_1g == 10)
+				{
+					parent->plat_type = PLAT_TYPE_VF_P0;
+				}
+				else if (lowest_1g == 26)
+				{
+					parent->plat_type = PLAT_TYPE_VF_P1;
+				}
+				else
+				{
+					goto unknown_vg_1g_port;
+				}
+
+			/* fallthru */
+			case 0x13:
+				if ((lowest_10g & 0x7) == 0)
+					val = (phy_encode(PORT_TYPE_10G, 0) |
+						   phy_encode(PORT_TYPE_1G, 1) |
+						   phy_encode(PORT_TYPE_1G, 2) |
+						   phy_encode(PORT_TYPE_1G, 3));
+				else
+					val = (phy_encode(PORT_TYPE_1G, 0) |
+						   phy_encode(PORT_TYPE_10G, 1) |
+						   phy_encode(PORT_TYPE_1G, 2) |
+						   phy_encode(PORT_TYPE_1G, 3));
+
+				break;
+
+			case 0x04:
+				if (lowest_1g == 10)
+				{
+					parent->plat_type = PLAT_TYPE_VF_P0;
+				}
+				else if (lowest_1g == 26)
+				{
+					parent->plat_type = PLAT_TYPE_VF_P1;
+				}
+				else
+				{
+					goto unknown_vg_1g_port;
+				}
+
 				val = (phy_encode(PORT_TYPE_1G, 0) |
-				       phy_encode(PORT_TYPE_10G, 1) |
-				       phy_encode(PORT_TYPE_1G, 2) |
-				       phy_encode(PORT_TYPE_1G, 3));
-			break;
+					   phy_encode(PORT_TYPE_1G, 1) |
+					   phy_encode(PORT_TYPE_1G, 2) |
+					   phy_encode(PORT_TYPE_1G, 3));
+				break;
 
-		case 0x04:
-			if (lowest_1g == 10)
-				parent->plat_type = PLAT_TYPE_VF_P0;
-			else if (lowest_1g == 26)
-				parent->plat_type = PLAT_TYPE_VF_P1;
-			else
-				goto unknown_vg_1g_port;
-
-			val = (phy_encode(PORT_TYPE_1G, 0) |
-			       phy_encode(PORT_TYPE_1G, 1) |
-			       phy_encode(PORT_TYPE_1G, 2) |
-			       phy_encode(PORT_TYPE_1G, 3));
-			break;
-
-		default:
-			pr_err("Unsupported port config 10G[%d] 1G[%d]\n",
-			       num_10g, num_1g);
-			return -EINVAL;
+			default:
+				pr_err("Unsupported port config 10G[%d] 1G[%d]\n",
+					   num_10g, num_1g);
+				return -EINVAL;
 		}
 	}
 
 	parent->port_phy = val;
 
 	if (parent->plat_type == PLAT_TYPE_NIU)
+	{
 		niu_n2_divide_channels(parent);
+	}
 	else
+	{
 		niu_divide_channels(parent, num_10g, num_1g);
+	}
 
 	niu_divide_rdc_groups(parent, num_10g, num_1g);
 
@@ -8933,18 +11478,27 @@ static int niu_probe_ports(struct niu *np)
 	struct niu_parent *parent = np->parent;
 	int err, i;
 
-	if (parent->port_phy == PORT_PHY_UNKNOWN) {
+	if (parent->port_phy == PORT_PHY_UNKNOWN)
+	{
 		err = walk_phys(np, parent);
+
 		if (err)
+		{
 			return err;
+		}
 
 		niu_set_ldg_timer_res(np, 2);
+
 		for (i = 0; i <= LDN_MAX; i++)
+		{
 			niu_ldn_irq_enable(np, i, 0);
+		}
 	}
 
 	if (parent->port_phy == PORT_PHY_INVALID)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -8966,13 +11520,13 @@ static void niu_link_config_init(struct niu *np)
 	struct niu_link_config *lp = &np->link_config;
 
 	lp->advertising = (ADVERTISED_10baseT_Half |
-			   ADVERTISED_10baseT_Full |
-			   ADVERTISED_100baseT_Half |
-			   ADVERTISED_100baseT_Full |
-			   ADVERTISED_1000baseT_Half |
-			   ADVERTISED_1000baseT_Full |
-			   ADVERTISED_10000baseT_Full |
-			   ADVERTISED_Autoneg);
+					   ADVERTISED_10baseT_Full |
+					   ADVERTISED_100baseT_Half |
+					   ADVERTISED_100baseT_Full |
+					   ADVERTISED_1000baseT_Half |
+					   ADVERTISED_1000baseT_Full |
+					   ADVERTISED_10000baseT_Full |
+					   ADVERTISED_Autoneg);
 	lp->speed = lp->active_speed = SPEED_INVALID;
 	lp->duplex = DUPLEX_FULL;
 	lp->active_duplex = DUPLEX_INVALID;
@@ -8988,38 +11542,39 @@ static void niu_link_config_init(struct niu *np)
 
 static int niu_init_mac_ipp_pcs_base(struct niu *np)
 {
-	switch (np->port) {
-	case 0:
-		np->mac_regs = np->regs + XMAC_PORT0_OFF;
-		np->ipp_off  = 0x00000;
-		np->pcs_off  = 0x04000;
-		np->xpcs_off = 0x02000;
-		break;
+	switch (np->port)
+	{
+		case 0:
+			np->mac_regs = np->regs + XMAC_PORT0_OFF;
+			np->ipp_off  = 0x00000;
+			np->pcs_off  = 0x04000;
+			np->xpcs_off = 0x02000;
+			break;
 
-	case 1:
-		np->mac_regs = np->regs + XMAC_PORT1_OFF;
-		np->ipp_off  = 0x08000;
-		np->pcs_off  = 0x0a000;
-		np->xpcs_off = 0x08000;
-		break;
+		case 1:
+			np->mac_regs = np->regs + XMAC_PORT1_OFF;
+			np->ipp_off  = 0x08000;
+			np->pcs_off  = 0x0a000;
+			np->xpcs_off = 0x08000;
+			break;
 
-	case 2:
-		np->mac_regs = np->regs + BMAC_PORT2_OFF;
-		np->ipp_off  = 0x04000;
-		np->pcs_off  = 0x0e000;
-		np->xpcs_off = ~0UL;
-		break;
+		case 2:
+			np->mac_regs = np->regs + BMAC_PORT2_OFF;
+			np->ipp_off  = 0x04000;
+			np->pcs_off  = 0x0e000;
+			np->xpcs_off = ~0UL;
+			break;
 
-	case 3:
-		np->mac_regs = np->regs + BMAC_PORT3_OFF;
-		np->ipp_off  = 0x0c000;
-		np->pcs_off  = 0x12000;
-		np->xpcs_off = ~0UL;
-		break;
+		case 3:
+			np->mac_regs = np->regs + BMAC_PORT3_OFF;
+			np->ipp_off  = 0x0c000;
+			np->pcs_off  = 0x12000;
+			np->xpcs_off = ~0UL;
+			break;
 
-	default:
-		dev_err(np->device, "Port %u is invalid, cannot compute MAC block offset\n", np->port);
-		return -EINVAL;
+		default:
+			dev_err(np->device, "Port %u is invalid, cannot compute MAC block offset\n", np->port);
+			return -EINVAL;
 	}
 
 	return 0;
@@ -9034,28 +11589,38 @@ static void niu_try_msix(struct niu *np, u8 *ldg_num_map)
 	u8 first_ldg;
 
 	first_ldg = (NIU_NUM_LDG / parent->num_ports) * np->port;
+
 	for (i = 0; i < (NIU_NUM_LDG / parent->num_ports); i++)
+	{
 		ldg_num_map[i] = first_ldg + i;
+	}
 
 	num_irqs = (parent->rxchan_per_port[np->port] +
-		    parent->txchan_per_port[np->port] +
-		    (np->port == 0 ? 3 : 1));
+				parent->txchan_per_port[np->port] +
+				(np->port == 0 ? 3 : 1));
 	BUG_ON(num_irqs > (NIU_NUM_LDG / parent->num_ports));
 
-	for (i = 0; i < num_irqs; i++) {
+	for (i = 0; i < num_irqs; i++)
+	{
 		msi_vec[i].vector = 0;
 		msi_vec[i].entry = i;
 	}
 
 	num_irqs = pci_enable_msix_range(pdev, msi_vec, 1, num_irqs);
-	if (num_irqs < 0) {
+
+	if (num_irqs < 0)
+	{
 		np->flags &= ~NIU_FLAGS_MSIX;
 		return;
 	}
 
 	np->flags |= NIU_FLAGS_MSIX;
+
 	for (i = 0; i < num_irqs; i++)
+	{
 		np->ldg[i].irq = msi_vec[i].vector;
+	}
+
 	np->num_ldg = num_irqs;
 }
 
@@ -9067,10 +11632,14 @@ static int niu_n2_irq_init(struct niu *np, u8 *ldg_num_map)
 	int i;
 
 	int_prop = of_get_property(op->dev.of_node, "interrupts", NULL);
-	if (!int_prop)
-		return -ENODEV;
 
-	for (i = 0; i < op->archdata.num_irqs; i++) {
+	if (!int_prop)
+	{
+		return -ENODEV;
+	}
+
+	for (i = 0; i < op->archdata.num_irqs; i++)
+	{
 		ldg_num_map[i] = int_prop[i];
 		np->ldg[i].irq = op->archdata.irqs[i];
 	}
@@ -9093,15 +11662,25 @@ static int niu_ldg_init(struct niu *np)
 
 	np->num_ldg = 1;
 	np->ldg[0].irq = np->dev->irq;
-	if (parent->plat_type == PLAT_TYPE_NIU) {
+
+	if (parent->plat_type == PLAT_TYPE_NIU)
+	{
 		err = niu_n2_irq_init(np, ldg_num_map);
+
 		if (err)
+		{
 			return err;
-	} else
+		}
+	}
+	else
+	{
 		niu_try_msix(np, ldg_num_map);
+	}
 
 	port = np->port;
-	for (i = 0; i < np->num_ldg; i++) {
+
+	for (i = 0; i < np->num_ldg; i++)
+	{
 		struct niu_ldg *lp = &np->ldg[i];
 
 		netif_napi_add(np->dev, &lp->napi, niu_poll, 64);
@@ -9114,10 +11693,14 @@ static int niu_ldg_init(struct niu *np)
 		 * to the correct values that will route the LDG to the proper
 		 * interrupt in the NCU interrupt table.
 		 */
-		if (np->parent->plat_type != PLAT_TYPE_NIU) {
+		if (np->parent->plat_type != PLAT_TYPE_NIU)
+		{
 			err = niu_set_ldg_sid(np, lp->ldg_num, port, i);
+
 			if (err)
+			{
 				return err;
+			}
 		}
 	}
 
@@ -9135,66 +11718,110 @@ static int niu_ldg_init(struct niu *np)
 	ldg_rotor = 0;
 
 	err = niu_ldg_assign_ldn(np, parent, ldg_num_map[ldg_rotor],
-				  LDN_MAC(port));
+							 LDN_MAC(port));
+
 	if (err)
+	{
 		return err;
+	}
 
 	ldg_rotor++;
+
 	if (ldg_rotor == np->num_ldg)
+	{
 		ldg_rotor = 0;
+	}
 
-	if (port == 0) {
+	if (port == 0)
+	{
 		err = niu_ldg_assign_ldn(np, parent,
-					 ldg_num_map[ldg_rotor],
-					 LDN_MIF);
+								 ldg_num_map[ldg_rotor],
+								 LDN_MIF);
+
 		if (err)
+		{
 			return err;
+		}
 
 		ldg_rotor++;
+
 		if (ldg_rotor == np->num_ldg)
+		{
 			ldg_rotor = 0;
+		}
 
 		err = niu_ldg_assign_ldn(np, parent,
-					 ldg_num_map[ldg_rotor],
-					 LDN_DEVICE_ERROR);
+								 ldg_num_map[ldg_rotor],
+								 LDN_DEVICE_ERROR);
+
 		if (err)
+		{
 			return err;
+		}
 
 		ldg_rotor++;
+
 		if (ldg_rotor == np->num_ldg)
+		{
 			ldg_rotor = 0;
+		}
 
 	}
 
 	first_chan = 0;
+
 	for (i = 0; i < port; i++)
+	{
 		first_chan += parent->rxchan_per_port[i];
+	}
+
 	num_chan = parent->rxchan_per_port[port];
 
-	for (i = first_chan; i < (first_chan + num_chan); i++) {
+	for (i = first_chan; i < (first_chan + num_chan); i++)
+	{
 		err = niu_ldg_assign_ldn(np, parent,
-					 ldg_num_map[ldg_rotor],
-					 LDN_RXDMA(i));
+								 ldg_num_map[ldg_rotor],
+								 LDN_RXDMA(i));
+
 		if (err)
+		{
 			return err;
+		}
+
 		ldg_rotor++;
+
 		if (ldg_rotor == np->num_ldg)
+		{
 			ldg_rotor = 0;
+		}
 	}
 
 	first_chan = 0;
+
 	for (i = 0; i < port; i++)
+	{
 		first_chan += parent->txchan_per_port[i];
+	}
+
 	num_chan = parent->txchan_per_port[port];
-	for (i = first_chan; i < (first_chan + num_chan); i++) {
+
+	for (i = first_chan; i < (first_chan + num_chan); i++)
+	{
 		err = niu_ldg_assign_ldn(np, parent,
-					 ldg_num_map[ldg_rotor],
-					 LDN_TXDMA(i));
+								 ldg_num_map[ldg_rotor],
+								 LDN_TXDMA(i));
+
 		if (err)
+		{
 			return err;
+		}
+
 		ldg_rotor++;
+
 		if (ldg_rotor == np->num_ldg)
+		{
 			ldg_rotor = 0;
+		}
 	}
 
 	return 0;
@@ -9203,7 +11830,9 @@ static int niu_ldg_init(struct niu *np)
 static void niu_ldg_free(struct niu *np)
 {
 	if (np->flags & NIU_FLAGS_MSIX)
+	{
 		pci_disable_msix(np->pdev);
+	}
 }
 
 static int niu_get_of_props(struct niu *np)
@@ -9217,42 +11846,58 @@ static int niu_get_of_props(struct niu *np)
 	int prop_len;
 
 	if (np->parent->plat_type == PLAT_TYPE_NIU)
+	{
 		dp = np->op->dev.of_node;
+	}
 	else
+	{
 		dp = pci_device_to_OF_node(np->pdev);
+	}
 
 	phy_type = of_get_property(dp, "phy-type", &prop_len);
-	if (!phy_type) {
+
+	if (!phy_type)
+	{
 		netdev_err(dev, "%s: OF node lacks phy-type property\n",
-			   dp->full_name);
+				   dp->full_name);
 		return -EINVAL;
 	}
 
 	if (!strcmp(phy_type, "none"))
+	{
 		return -ENODEV;
+	}
 
 	strcpy(np->vpd.phy_type, phy_type);
 
-	if (niu_phy_type_prop_decode(np, np->vpd.phy_type)) {
+	if (niu_phy_type_prop_decode(np, np->vpd.phy_type))
+	{
 		netdev_err(dev, "%s: Illegal phy string [%s]\n",
-			   dp->full_name, np->vpd.phy_type);
+				   dp->full_name, np->vpd.phy_type);
 		return -EINVAL;
 	}
 
 	mac_addr = of_get_property(dp, "local-mac-address", &prop_len);
-	if (!mac_addr) {
+
+	if (!mac_addr)
+	{
 		netdev_err(dev, "%s: OF node lacks local-mac-address property\n",
-			   dp->full_name);
+				   dp->full_name);
 		return -EINVAL;
 	}
-	if (prop_len != dev->addr_len) {
+
+	if (prop_len != dev->addr_len)
+	{
 		netdev_err(dev, "%s: OF MAC address prop len (%d) is wrong\n",
-			   dp->full_name, prop_len);
+				   dp->full_name, prop_len);
 	}
+
 	memcpy(dev->dev_addr, mac_addr, dev->addr_len);
-	if (!is_valid_ether_addr(&dev->dev_addr[0])) {
+
+	if (!is_valid_ether_addr(&dev->dev_addr[0]))
+	{
 		netdev_err(dev, "%s: OF MAC address is invalid\n",
-			   dp->full_name);
+				   dp->full_name);
 		netdev_err(dev, "%s: [ %pM ]\n", dp->full_name, dev->dev_addr);
 		return -EINVAL;
 	}
@@ -9260,11 +11905,14 @@ static int niu_get_of_props(struct niu *np)
 	model = of_get_property(dp, "model", &prop_len);
 
 	if (model)
+	{
 		strcpy(np->vpd.model, model);
+	}
 
-	if (of_find_property(dp, "hot-swappable-phy", &prop_len)) {
+	if (of_find_property(dp, "hot-swappable-phy", &prop_len))
+	{
 		np->flags |= (NIU_FLAGS_10G | NIU_FLAGS_FIBER |
-			NIU_FLAGS_HOTPLUG_PHY);
+					  NIU_FLAGS_HOTPLUG_PHY);
 	}
 
 	return 0;
@@ -9279,52 +11927,85 @@ static int niu_get_invariants(struct niu *np)
 	u32 offset;
 
 	err = niu_get_of_props(np);
+
 	if (err == -ENODEV)
+	{
 		return err;
+	}
 
 	have_props = !err;
 
 	err = niu_init_mac_ipp_pcs_base(np);
+
 	if (err)
+	{
 		return err;
+	}
 
-	if (have_props) {
+	if (have_props)
+	{
 		err = niu_get_and_validate_port(np);
-		if (err)
-			return err;
 
-	} else  {
+		if (err)
+		{
+			return err;
+		}
+
+	}
+	else
+	{
 		if (np->parent->plat_type == PLAT_TYPE_NIU)
+		{
 			return -EINVAL;
+		}
 
 		nw64(ESPC_PIO_EN, ESPC_PIO_EN_ENABLE);
 		offset = niu_pci_vpd_offset(np);
 		netif_printk(np, probe, KERN_DEBUG, np->dev,
-			     "%s() VPD offset [%08x]\n", __func__, offset);
-		if (offset)
-			niu_pci_vpd_fetch(np, offset);
-		nw64(ESPC_PIO_EN, 0);
+					 "%s() VPD offset [%08x]\n", __func__, offset);
 
-		if (np->flags & NIU_FLAGS_VPD_VALID) {
-			niu_pci_vpd_validate(np);
-			err = niu_get_and_validate_port(np);
-			if (err)
-				return err;
+		if (offset)
+		{
+			niu_pci_vpd_fetch(np, offset);
 		}
 
-		if (!(np->flags & NIU_FLAGS_VPD_VALID)) {
+		nw64(ESPC_PIO_EN, 0);
+
+		if (np->flags & NIU_FLAGS_VPD_VALID)
+		{
+			niu_pci_vpd_validate(np);
 			err = niu_get_and_validate_port(np);
+
 			if (err)
+			{
 				return err;
+			}
+		}
+
+		if (!(np->flags & NIU_FLAGS_VPD_VALID))
+		{
+			err = niu_get_and_validate_port(np);
+
+			if (err)
+			{
+				return err;
+			}
+
 			err = niu_pci_probe_sprom(np);
+
 			if (err)
+			{
 				return err;
+			}
 		}
 	}
 
 	err = niu_probe_ports(np);
+
 	if (err)
+	{
 		return err;
+	}
 
 	niu_ldg_init(np);
 
@@ -9332,8 +12013,11 @@ static int niu_get_invariants(struct niu *np)
 	niu_link_config_init(np);
 
 	err = niu_determine_phy_disposition(np);
+
 	if (!err)
+	{
 		err = niu_init_link(np);
+	}
 
 	return err;
 }
@@ -9343,7 +12027,7 @@ static DEFINE_MUTEX(niu_parent_lock);
 static int niu_parent_index;
 
 static ssize_t show_port_phy(struct device *dev,
-			     struct device_attribute *attr, char *buf)
+							 struct device_attribute *attr, char *buf)
 {
 	struct platform_device *plat_dev = to_platform_device(dev);
 	struct niu_parent *p = dev_get_platdata(&plat_dev->dev);
@@ -9352,57 +12036,72 @@ static ssize_t show_port_phy(struct device *dev,
 	int i;
 
 	if (port_phy == PORT_PHY_UNKNOWN ||
-	    port_phy == PORT_PHY_INVALID)
+		port_phy == PORT_PHY_INVALID)
+	{
 		return 0;
+	}
 
-	for (i = 0; i < p->num_ports; i++) {
+	for (i = 0; i < p->num_ports; i++)
+	{
 		const char *type_str;
 		int type;
 
 		type = phy_decode(port_phy, i);
+
 		if (type == PORT_TYPE_10G)
+		{
 			type_str = "10G";
+		}
 		else
+		{
 			type_str = "1G";
+		}
+
 		buf += sprintf(buf,
-			       (i == 0) ? "%s" : " %s",
-			       type_str);
+					   (i == 0) ? "%s" : " %s",
+					   type_str);
 	}
+
 	buf += sprintf(buf, "\n");
 	return buf - orig_buf;
 }
 
 static ssize_t show_plat_type(struct device *dev,
-			      struct device_attribute *attr, char *buf)
+							  struct device_attribute *attr, char *buf)
 {
 	struct platform_device *plat_dev = to_platform_device(dev);
 	struct niu_parent *p = dev_get_platdata(&plat_dev->dev);
 	const char *type_str;
 
-	switch (p->plat_type) {
-	case PLAT_TYPE_ATLAS:
-		type_str = "atlas";
-		break;
-	case PLAT_TYPE_NIU:
-		type_str = "niu";
-		break;
-	case PLAT_TYPE_VF_P0:
-		type_str = "vf_p0";
-		break;
-	case PLAT_TYPE_VF_P1:
-		type_str = "vf_p1";
-		break;
-	default:
-		type_str = "unknown";
-		break;
+	switch (p->plat_type)
+	{
+		case PLAT_TYPE_ATLAS:
+			type_str = "atlas";
+			break;
+
+		case PLAT_TYPE_NIU:
+			type_str = "niu";
+			break;
+
+		case PLAT_TYPE_VF_P0:
+			type_str = "vf_p0";
+			break;
+
+		case PLAT_TYPE_VF_P1:
+			type_str = "vf_p1";
+			break;
+
+		default:
+			type_str = "unknown";
+			break;
 	}
 
 	return sprintf(buf, "%s\n", type_str);
 }
 
 static ssize_t __show_chan_per_port(struct device *dev,
-				    struct device_attribute *attr, char *buf,
-				    int rx)
+									struct device_attribute *attr, char *buf,
+									int rx)
 {
 	struct platform_device *plat_dev = to_platform_device(dev);
 	struct niu_parent *p = dev_get_platdata(&plat_dev->dev);
@@ -9412,30 +12111,32 @@ static ssize_t __show_chan_per_port(struct device *dev,
 
 	arr = (rx ? p->rxchan_per_port : p->txchan_per_port);
 
-	for (i = 0; i < p->num_ports; i++) {
+	for (i = 0; i < p->num_ports; i++)
+	{
 		buf += sprintf(buf,
-			       (i == 0) ? "%d" : " %d",
-			       arr[i]);
+					   (i == 0) ? "%d" : " %d",
+					   arr[i]);
 	}
+
 	buf += sprintf(buf, "\n");
 
 	return buf - orig_buf;
 }
 
 static ssize_t show_rxchan_per_port(struct device *dev,
-				    struct device_attribute *attr, char *buf)
+									struct device_attribute *attr, char *buf)
 {
 	return __show_chan_per_port(dev, attr, buf, 1);
 }
 
 static ssize_t show_txchan_per_port(struct device *dev,
-				    struct device_attribute *attr, char *buf)
+									struct device_attribute *attr, char *buf)
 {
 	return __show_chan_per_port(dev, attr, buf, 1);
 }
 
 static ssize_t show_num_ports(struct device *dev,
-			      struct device_attribute *attr, char *buf)
+							  struct device_attribute *attr, char *buf)
 {
 	struct platform_device *plat_dev = to_platform_device(dev);
 	struct niu_parent *p = dev_get_platdata(&plat_dev->dev);
@@ -9443,7 +12144,8 @@ static ssize_t show_num_ports(struct device *dev,
 	return sprintf(buf, "%d\n", p->num_ports);
 }
 
-static struct device_attribute niu_parent_attributes[] = {
+static struct device_attribute niu_parent_attributes[] =
+{
 	__ATTR(port_phy, S_IRUGO, show_port_phy, NULL),
 	__ATTR(plat_type, S_IRUGO, show_plat_type, NULL),
 	__ATTR(rxchan_per_port, S_IRUGO, show_rxchan_per_port, NULL),
@@ -9453,27 +12155,37 @@ static struct device_attribute niu_parent_attributes[] = {
 };
 
 static struct niu_parent *niu_new_parent(struct niu *np,
-					 union niu_parent_id *id, u8 ptype)
+		union niu_parent_id *id, u8 ptype)
 {
 	struct platform_device *plat_dev;
 	struct niu_parent *p;
 	int i;
 
 	plat_dev = platform_device_register_simple("niu-board", niu_parent_index,
-						   NULL, 0);
-	if (IS_ERR(plat_dev))
-		return NULL;
+			   NULL, 0);
 
-	for (i = 0; niu_parent_attributes[i].attr.name; i++) {
+	if (IS_ERR(plat_dev))
+	{
+		return NULL;
+	}
+
+	for (i = 0; niu_parent_attributes[i].attr.name; i++)
+	{
 		int err = device_create_file(&plat_dev->dev,
-					     &niu_parent_attributes[i]);
+									 &niu_parent_attributes[i]);
+
 		if (err)
+		{
 			goto fail_unregister;
+		}
 	}
 
 	p = kzalloc(sizeof(*p), GFP_KERNEL);
+
 	if (!p)
+	{
 		goto fail_unregister;
+	}
 
 	p->index = niu_parent_index++;
 
@@ -9490,24 +12202,30 @@ static struct niu_parent *niu_new_parent(struct niu *np,
 	p->rxdma_clock_divider = 7500;
 
 	p->tcam_num_entries = NIU_PCI_TCAM_ENTRIES;
-	if (p->plat_type == PLAT_TYPE_NIU)
-		p->tcam_num_entries = NIU_NONPCI_TCAM_ENTRIES;
 
-	for (i = CLASS_CODE_USER_PROG1; i <= CLASS_CODE_SCTP_IPV6; i++) {
+	if (p->plat_type == PLAT_TYPE_NIU)
+	{
+		p->tcam_num_entries = NIU_NONPCI_TCAM_ENTRIES;
+	}
+
+	for (i = CLASS_CODE_USER_PROG1; i <= CLASS_CODE_SCTP_IPV6; i++)
+	{
 		int index = i - CLASS_CODE_USER_PROG1;
 
 		p->tcam_key[index] = TCAM_KEY_TSEL;
 		p->flow_key[index] = (FLOW_KEY_IPSA |
-				      FLOW_KEY_IPDA |
-				      FLOW_KEY_PROTO |
-				      (FLOW_KEY_L4_BYTE12 <<
-				       FLOW_KEY_L4_0_SHIFT) |
-				      (FLOW_KEY_L4_BYTE12 <<
-				       FLOW_KEY_L4_1_SHIFT));
+							  FLOW_KEY_IPDA |
+							  FLOW_KEY_PROTO |
+							  (FLOW_KEY_L4_BYTE12 <<
+							   FLOW_KEY_L4_0_SHIFT) |
+							  (FLOW_KEY_L4_BYTE12 <<
+							   FLOW_KEY_L4_1_SHIFT));
 	}
 
 	for (i = 0; i < LDN_MAX + 1; i++)
+	{
 		p->ldg_map[i] = LDG_INVALID;
+	}
 
 	return p;
 
@@ -9517,35 +12235,44 @@ fail_unregister:
 }
 
 static struct niu_parent *niu_get_parent(struct niu *np,
-					 union niu_parent_id *id, u8 ptype)
+		union niu_parent_id *id, u8 ptype)
 {
 	struct niu_parent *p, *tmp;
 	int port = np->port;
 
 	mutex_lock(&niu_parent_lock);
 	p = NULL;
-	list_for_each_entry(tmp, &niu_parent_list, list) {
-		if (!memcmp(id, &tmp->id, sizeof(*id))) {
+	list_for_each_entry(tmp, &niu_parent_list, list)
+	{
+		if (!memcmp(id, &tmp->id, sizeof(*id)))
+		{
 			p = tmp;
 			break;
 		}
 	}
-	if (!p)
-		p = niu_new_parent(np, id, ptype);
 
-	if (p) {
+	if (!p)
+	{
+		p = niu_new_parent(np, id, ptype);
+	}
+
+	if (p)
+	{
 		char port_name[6];
 		int err;
 
 		sprintf(port_name, "port%d", port);
 		err = sysfs_create_link(&p->plat_dev->dev.kobj,
-					&np->device->kobj,
-					port_name);
-		if (!err) {
+								&np->device->kobj,
+								port_name);
+
+		if (!err)
+		{
 			p->ports[port] = np;
 			atomic_inc(&p->refcnt);
 		}
 	}
+
 	mutex_unlock(&niu_parent_lock);
 
 	return p;
@@ -9560,7 +12287,7 @@ static void niu_put_parent(struct niu *np)
 	BUG_ON(!p || p->ports[port] != np);
 
 	netif_printk(np, probe, KERN_DEBUG, np->dev,
-		     "%s() port[%u]\n", __func__, port);
+				 "%s() port[%u]\n", __func__, port);
 
 	sprintf(port_name, "port%d", port);
 
@@ -9571,7 +12298,8 @@ static void niu_put_parent(struct niu *np)
 	p->ports[port] = NULL;
 	np->parent = NULL;
 
-	if (atomic_dec_and_test(&p->refcnt)) {
+	if (atomic_dec_and_test(&p->refcnt))
+	{
 		list_del(&p->list);
 		platform_device_unregister(p->plat_dev);
 	}
@@ -9580,51 +12308,56 @@ static void niu_put_parent(struct niu *np)
 }
 
 static void *niu_pci_alloc_coherent(struct device *dev, size_t size,
-				    u64 *handle, gfp_t flag)
+									u64 *handle, gfp_t flag)
 {
 	dma_addr_t dh;
 	void *ret;
 
 	ret = dma_alloc_coherent(dev, size, &dh, flag);
+
 	if (ret)
+	{
 		*handle = dh;
+	}
+
 	return ret;
 }
 
 static void niu_pci_free_coherent(struct device *dev, size_t size,
-				  void *cpu_addr, u64 handle)
+								  void *cpu_addr, u64 handle)
 {
 	dma_free_coherent(dev, size, cpu_addr, handle);
 }
 
 static u64 niu_pci_map_page(struct device *dev, struct page *page,
-			    unsigned long offset, size_t size,
-			    enum dma_data_direction direction)
+							unsigned long offset, size_t size,
+							enum dma_data_direction direction)
 {
 	return dma_map_page(dev, page, offset, size, direction);
 }
 
 static void niu_pci_unmap_page(struct device *dev, u64 dma_address,
-			       size_t size, enum dma_data_direction direction)
+							   size_t size, enum dma_data_direction direction)
 {
 	dma_unmap_page(dev, dma_address, size, direction);
 }
 
 static u64 niu_pci_map_single(struct device *dev, void *cpu_addr,
-			      size_t size,
-			      enum dma_data_direction direction)
+							  size_t size,
+							  enum dma_data_direction direction)
 {
 	return dma_map_single(dev, cpu_addr, size, direction);
 }
 
 static void niu_pci_unmap_single(struct device *dev, u64 dma_address,
-				 size_t size,
-				 enum dma_data_direction direction)
+								 size_t size,
+								 enum dma_data_direction direction)
 {
 	dma_unmap_single(dev, dma_address, size, direction);
 }
 
-static const struct niu_ops niu_pci_ops = {
+static const struct niu_ops niu_pci_ops =
+{
 	.alloc_coherent	= niu_pci_alloc_coherent,
 	.free_coherent	= niu_pci_free_coherent,
 	.map_page	= niu_pci_map_page,
@@ -9638,20 +12371,25 @@ static void niu_driver_version(void)
 	static int niu_version_printed;
 
 	if (niu_version_printed++ == 0)
+	{
 		pr_info("%s", version);
+	}
 }
 
 static struct net_device *niu_alloc_and_init(struct device *gen_dev,
-					     struct pci_dev *pdev,
-					     struct platform_device *op,
-					     const struct niu_ops *ops, u8 port)
+		struct pci_dev *pdev,
+		struct platform_device *op,
+		const struct niu_ops *ops, u8 port)
 {
 	struct net_device *dev;
 	struct niu *np;
 
 	dev = alloc_etherdev_mq(sizeof(struct niu), NIU_NUM_TXCHAN);
+
 	if (!dev)
+	{
 		return NULL;
+	}
 
 	SET_NETDEV_DEV(dev, gen_dev);
 
@@ -9672,7 +12410,8 @@ static struct net_device *niu_alloc_and_init(struct device *gen_dev,
 	return dev;
 }
 
-static const struct net_device_ops niu_netdev_ops = {
+static const struct net_device_ops niu_netdev_ops =
+{
 	.ndo_open		= niu_open,
 	.ndo_stop		= niu_close,
 	.ndo_start_xmit		= niu_start_xmit,
@@ -9698,7 +12437,8 @@ static void niu_device_announce(struct niu *np)
 
 	pr_info("%s: NIU Ethernet %pM\n", dev->name, dev->dev_addr);
 
-	if (np->parent->plat_type == PLAT_TYPE_ATCA_CP3220) {
+	if (np->parent->plat_type == PLAT_TYPE_ATCA_CP3220)
+	{
 		pr_info("%s: Port type[%s] mode[%s:%s] XCVR[%s] phy[%s]\n",
 				dev->name,
 				(np->flags & NIU_FLAGS_XMAC ? "XMAC" : "BMAC"),
@@ -9707,7 +12447,9 @@ static void niu_device_announce(struct niu *np)
 				(np->mac_xcvr == MAC_XCVR_MII ? "MII" :
 				 (np->mac_xcvr == MAC_XCVR_PCS ? "PCS" : "XPCS")),
 				np->vpd.phy_type);
-	} else {
+	}
+	else
+	{
 		pr_info("%s: Port type[%s] mode[%s:%s] XCVR[%s] phy[%s]\n",
 				dev->name,
 				(np->flags & NIU_FLAGS_XMAC ? "XMAC" : "BMAC"),
@@ -9728,7 +12470,7 @@ static void niu_set_basic_features(struct net_device *dev)
 }
 
 static int niu_pci_init_one(struct pci_dev *pdev,
-			    const struct pci_device_id *ent)
+							const struct pci_device_id *ent)
 {
 	union niu_parent_id parent_id;
 	struct net_device *dev;
@@ -9739,36 +12481,45 @@ static int niu_pci_init_one(struct pci_dev *pdev,
 	niu_driver_version();
 
 	err = pci_enable_device(pdev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "Cannot enable PCI device, aborting\n");
 		return err;
 	}
 
 	if (!(pci_resource_flags(pdev, 0) & IORESOURCE_MEM) ||
-	    !(pci_resource_flags(pdev, 2) & IORESOURCE_MEM)) {
+		!(pci_resource_flags(pdev, 2) & IORESOURCE_MEM))
+	{
 		dev_err(&pdev->dev, "Cannot find proper PCI device base addresses, aborting\n");
 		err = -ENODEV;
 		goto err_out_disable_pdev;
 	}
 
 	err = pci_request_regions(pdev, DRV_MODULE_NAME);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "Cannot obtain PCI resources, aborting\n");
 		goto err_out_disable_pdev;
 	}
 
-	if (!pci_is_pcie(pdev)) {
+	if (!pci_is_pcie(pdev))
+	{
 		dev_err(&pdev->dev, "Cannot find PCI Express capability, aborting\n");
 		err = -ENODEV;
 		goto err_out_free_res;
 	}
 
 	dev = niu_alloc_and_init(&pdev->dev, pdev, NULL,
-				 &niu_pci_ops, PCI_FUNC(pdev->devfn));
-	if (!dev) {
+							 &niu_pci_ops, PCI_FUNC(pdev->devfn));
+
+	if (!dev)
+	{
 		err = -ENOMEM;
 		goto err_out_free_res;
 	}
+
 	np = netdev_priv(dev);
 
 	memset(&parent_id, 0, sizeof(parent_id));
@@ -9777,31 +12528,41 @@ static int niu_pci_init_one(struct pci_dev *pdev,
 	parent_id.pci.device = PCI_SLOT(pdev->devfn);
 
 	np->parent = niu_get_parent(np, &parent_id,
-				    PLAT_TYPE_ATLAS);
-	if (!np->parent) {
+								PLAT_TYPE_ATLAS);
+
+	if (!np->parent)
+	{
 		err = -ENOMEM;
 		goto err_out_free_dev;
 	}
 
 	pcie_capability_clear_and_set_word(pdev, PCI_EXP_DEVCTL,
-		PCI_EXP_DEVCTL_NOSNOOP_EN,
-		PCI_EXP_DEVCTL_CERE | PCI_EXP_DEVCTL_NFERE |
-		PCI_EXP_DEVCTL_FERE | PCI_EXP_DEVCTL_URRE |
-		PCI_EXP_DEVCTL_RELAX_EN);
+									   PCI_EXP_DEVCTL_NOSNOOP_EN,
+									   PCI_EXP_DEVCTL_CERE | PCI_EXP_DEVCTL_NFERE |
+									   PCI_EXP_DEVCTL_FERE | PCI_EXP_DEVCTL_URRE |
+									   PCI_EXP_DEVCTL_RELAX_EN);
 
 	dma_mask = DMA_BIT_MASK(44);
 	err = pci_set_dma_mask(pdev, dma_mask);
-	if (!err) {
+
+	if (!err)
+	{
 		dev->features |= NETIF_F_HIGHDMA;
 		err = pci_set_consistent_dma_mask(pdev, dma_mask);
-		if (err) {
+
+		if (err)
+		{
 			dev_err(&pdev->dev, "Unable to obtain 44 bit DMA for consistent allocations, aborting\n");
 			goto err_out_release_parent;
 		}
 	}
-	if (err) {
+
+	if (err)
+	{
 		err = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
-		if (err) {
+
+		if (err)
+		{
 			dev_err(&pdev->dev, "No usable DMA configuration, aborting\n");
 			goto err_out_release_parent;
 		}
@@ -9812,7 +12573,9 @@ static int niu_pci_init_one(struct pci_dev *pdev,
 	dev->priv_flags |= IFF_UNICAST_FLT;
 
 	np->regs = pci_ioremap_bar(pdev, 0);
-	if (!np->regs) {
+
+	if (!np->regs)
+	{
 		dev_err(&pdev->dev, "Cannot map device registers, aborting\n");
 		err = -ENOMEM;
 		goto err_out_release_parent;
@@ -9826,14 +12589,21 @@ static int niu_pci_init_one(struct pci_dev *pdev,
 	niu_assign_netdev_ops(dev);
 
 	err = niu_get_invariants(np);
-	if (err) {
+
+	if (err)
+	{
 		if (err != -ENODEV)
+		{
 			dev_err(&pdev->dev, "Problem fetching invariants of chip, aborting\n");
+		}
+
 		goto err_out_iounmap;
 	}
 
 	err = register_netdev(dev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "Cannot register net device, aborting\n");
 		goto err_out_iounmap;
 	}
@@ -9845,7 +12615,9 @@ static int niu_pci_init_one(struct pci_dev *pdev,
 	return 0;
 
 err_out_iounmap:
-	if (np->regs) {
+
+	if (np->regs)
+	{
 		iounmap(np->regs);
 		np->regs = NULL;
 	}
@@ -9869,11 +12641,14 @@ static void niu_pci_remove_one(struct pci_dev *pdev)
 {
 	struct net_device *dev = pci_get_drvdata(pdev);
 
-	if (dev) {
+	if (dev)
+	{
 		struct niu *np = netdev_priv(dev);
 
 		unregister_netdev(dev);
-		if (np->regs) {
+
+		if (np->regs)
+		{
 			iounmap(np->regs);
 			np->regs = NULL;
 		}
@@ -9895,7 +12670,9 @@ static int niu_suspend(struct pci_dev *pdev, pm_message_t state)
 	unsigned long flags;
 
 	if (!netif_running(dev))
+	{
 		return 0;
+	}
 
 	flush_work(&np->reset_task);
 	niu_netif_stop(np);
@@ -9925,7 +12702,9 @@ static int niu_resume(struct pci_dev *pdev)
 	int err;
 
 	if (!netif_running(dev))
+	{
 		return 0;
+	}
 
 	pci_restore_state(pdev);
 
@@ -9934,7 +12713,9 @@ static int niu_resume(struct pci_dev *pdev)
 	spin_lock_irqsave(&np->lock, flags);
 
 	err = niu_init_hw(np);
-	if (!err) {
+
+	if (!err)
+	{
 		np->timer.expires = jiffies + HZ;
 		add_timer(&np->timer);
 		niu_netif_start(np);
@@ -9945,7 +12726,8 @@ static int niu_resume(struct pci_dev *pdev)
 	return err;
 }
 
-static struct pci_driver niu_pci_driver = {
+static struct pci_driver niu_pci_driver =
+{
 	.name		= DRV_MODULE_NAME,
 	.id_table	= niu_pci_tbl,
 	.probe		= niu_pci_init_one,
@@ -9956,13 +12738,16 @@ static struct pci_driver niu_pci_driver = {
 
 #ifdef CONFIG_SPARC64
 static void *niu_phys_alloc_coherent(struct device *dev, size_t size,
-				     u64 *dma_addr, gfp_t flag)
+									 u64 *dma_addr, gfp_t flag)
 {
 	unsigned long order = get_order(size);
 	unsigned long page = __get_free_pages(flag, order);
 
 	if (page == 0UL)
+	{
 		return NULL;
+	}
+
 	memset((char *)page, 0, PAGE_SIZE << order);
 	*dma_addr = __pa(page);
 
@@ -9970,7 +12755,7 @@ static void *niu_phys_alloc_coherent(struct device *dev, size_t size,
 }
 
 static void niu_phys_free_coherent(struct device *dev, size_t size,
-				   void *cpu_addr, u64 handle)
+								   void *cpu_addr, u64 handle)
 {
 	unsigned long order = get_order(size);
 
@@ -9978,33 +12763,34 @@ static void niu_phys_free_coherent(struct device *dev, size_t size,
 }
 
 static u64 niu_phys_map_page(struct device *dev, struct page *page,
-			     unsigned long offset, size_t size,
-			     enum dma_data_direction direction)
+							 unsigned long offset, size_t size,
+							 enum dma_data_direction direction)
 {
 	return page_to_phys(page) + offset;
 }
 
 static void niu_phys_unmap_page(struct device *dev, u64 dma_address,
-				size_t size, enum dma_data_direction direction)
+								size_t size, enum dma_data_direction direction)
 {
 	/* Nothing to do.  */
 }
 
 static u64 niu_phys_map_single(struct device *dev, void *cpu_addr,
-			       size_t size,
-			       enum dma_data_direction direction)
+							   size_t size,
+							   enum dma_data_direction direction)
 {
 	return __pa(cpu_addr);
 }
 
 static void niu_phys_unmap_single(struct device *dev, u64 dma_address,
-				  size_t size,
-				  enum dma_data_direction direction)
+								  size_t size,
+								  enum dma_data_direction direction)
 {
 	/* Nothing to do.  */
 }
 
-static const struct niu_ops niu_phys_ops = {
+static const struct niu_ops niu_phys_ops =
+{
 	.alloc_coherent	= niu_phys_alloc_coherent,
 	.free_coherent	= niu_phys_free_coherent,
 	.map_page	= niu_phys_map_page,
@@ -10024,26 +12810,33 @@ static int niu_of_probe(struct platform_device *op)
 	niu_driver_version();
 
 	reg = of_get_property(op->dev.of_node, "reg", NULL);
-	if (!reg) {
+
+	if (!reg)
+	{
 		dev_err(&op->dev, "%s: No 'reg' property, aborting\n",
-			op->dev.of_node->full_name);
+				op->dev.of_node->full_name);
 		return -ENODEV;
 	}
 
 	dev = niu_alloc_and_init(&op->dev, NULL, op,
-				 &niu_phys_ops, reg[0] & 0x1);
-	if (!dev) {
+							 &niu_phys_ops, reg[0] & 0x1);
+
+	if (!dev)
+	{
 		err = -ENOMEM;
 		goto err_out;
 	}
+
 	np = netdev_priv(dev);
 
 	memset(&parent_id, 0, sizeof(parent_id));
 	parent_id.of = of_get_parent(op->dev.of_node);
 
 	np->parent = niu_get_parent(np, &parent_id,
-				    PLAT_TYPE_NIU);
-	if (!np->parent) {
+								PLAT_TYPE_NIU);
+
+	if (!np->parent)
+	{
 		err = -ENOMEM;
 		goto err_out_free_dev;
 	}
@@ -10051,27 +12844,33 @@ static int niu_of_probe(struct platform_device *op)
 	niu_set_basic_features(dev);
 
 	np->regs = of_ioremap(&op->resource[1], 0,
-			      resource_size(&op->resource[1]),
-			      "niu regs");
-	if (!np->regs) {
+						  resource_size(&op->resource[1]),
+						  "niu regs");
+
+	if (!np->regs)
+	{
 		dev_err(&op->dev, "Cannot map device registers, aborting\n");
 		err = -ENOMEM;
 		goto err_out_release_parent;
 	}
 
 	np->vir_regs_1 = of_ioremap(&op->resource[2], 0,
-				    resource_size(&op->resource[2]),
-				    "niu vregs-1");
-	if (!np->vir_regs_1) {
+								resource_size(&op->resource[2]),
+								"niu vregs-1");
+
+	if (!np->vir_regs_1)
+	{
 		dev_err(&op->dev, "Cannot map device vir registers 1, aborting\n");
 		err = -ENOMEM;
 		goto err_out_iounmap;
 	}
 
 	np->vir_regs_2 = of_ioremap(&op->resource[3], 0,
-				    resource_size(&op->resource[3]),
-				    "niu vregs-2");
-	if (!np->vir_regs_2) {
+								resource_size(&op->resource[3]),
+								"niu vregs-2");
+
+	if (!np->vir_regs_2)
+	{
 		dev_err(&op->dev, "Cannot map device vir registers 2, aborting\n");
 		err = -ENOMEM;
 		goto err_out_iounmap;
@@ -10080,14 +12879,21 @@ static int niu_of_probe(struct platform_device *op)
 	niu_assign_netdev_ops(dev);
 
 	err = niu_get_invariants(np);
-	if (err) {
+
+	if (err)
+	{
 		if (err != -ENODEV)
+		{
 			dev_err(&op->dev, "Problem fetching invariants of chip, aborting\n");
+		}
+
 		goto err_out_iounmap;
 	}
 
 	err = register_netdev(dev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&op->dev, "Cannot register net device, aborting\n");
 		goto err_out_iounmap;
 	}
@@ -10099,21 +12905,25 @@ static int niu_of_probe(struct platform_device *op)
 	return 0;
 
 err_out_iounmap:
-	if (np->vir_regs_1) {
+
+	if (np->vir_regs_1)
+	{
 		of_iounmap(&op->resource[2], np->vir_regs_1,
-			   resource_size(&op->resource[2]));
+				   resource_size(&op->resource[2]));
 		np->vir_regs_1 = NULL;
 	}
 
-	if (np->vir_regs_2) {
+	if (np->vir_regs_2)
+	{
 		of_iounmap(&op->resource[3], np->vir_regs_2,
-			   resource_size(&op->resource[3]));
+				   resource_size(&op->resource[3]));
 		np->vir_regs_2 = NULL;
 	}
 
-	if (np->regs) {
+	if (np->regs)
+	{
 		of_iounmap(&op->resource[1], np->regs,
-			   resource_size(&op->resource[1]));
+				   resource_size(&op->resource[1]));
 		np->regs = NULL;
 	}
 
@@ -10131,26 +12941,30 @@ static int niu_of_remove(struct platform_device *op)
 {
 	struct net_device *dev = platform_get_drvdata(op);
 
-	if (dev) {
+	if (dev)
+	{
 		struct niu *np = netdev_priv(dev);
 
 		unregister_netdev(dev);
 
-		if (np->vir_regs_1) {
+		if (np->vir_regs_1)
+		{
 			of_iounmap(&op->resource[2], np->vir_regs_1,
-				   resource_size(&op->resource[2]));
+					   resource_size(&op->resource[2]));
 			np->vir_regs_1 = NULL;
 		}
 
-		if (np->vir_regs_2) {
+		if (np->vir_regs_2)
+		{
 			of_iounmap(&op->resource[3], np->vir_regs_2,
-				   resource_size(&op->resource[3]));
+					   resource_size(&op->resource[3]));
 			np->vir_regs_2 = NULL;
 		}
 
-		if (np->regs) {
+		if (np->regs)
+		{
 			of_iounmap(&op->resource[1], np->regs,
-				   resource_size(&op->resource[1]));
+					   resource_size(&op->resource[1]));
 			np->regs = NULL;
 		}
 
@@ -10160,10 +12974,12 @@ static int niu_of_remove(struct platform_device *op)
 
 		free_netdev(dev);
 	}
+
 	return 0;
 }
 
-static const struct of_device_id niu_match[] = {
+static const struct of_device_id niu_match[] =
+{
 	{
 		.name = "network",
 		.compatible = "SUNW,niusl",
@@ -10172,7 +12988,8 @@ static const struct of_device_id niu_match[] = {
 };
 MODULE_DEVICE_TABLE(of, niu_match);
 
-static struct platform_driver niu_of_driver = {
+static struct platform_driver niu_of_driver =
+{
 	.driver = {
 		.name = "niu",
 		.of_match_table = niu_match,
@@ -10195,11 +13012,16 @@ static int __init niu_init(void)
 	err = platform_driver_register(&niu_of_driver);
 #endif
 
-	if (!err) {
+	if (!err)
+	{
 		err = pci_register_driver(&niu_pci_driver);
 #ifdef CONFIG_SPARC64
+
 		if (err)
+		{
 			platform_driver_unregister(&niu_of_driver);
+		}
+
 #endif
 	}
 

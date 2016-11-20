@@ -18,7 +18,8 @@
  *	internal 2.5V reference is used. If set to false a external reference is
  *	used.
  */
-struct ad7887_platform_data {
+struct ad7887_platform_data
+{
 	bool en_dual;
 	bool use_onchip_ref;
 };

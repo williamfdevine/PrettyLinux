@@ -18,7 +18,8 @@
 #include <linux/mfd/da9055/core.h>
 #include <linux/mfd/da9055/reg.h>
 
-struct da9055_onkey {
+struct da9055_onkey
+{
 	struct da9055 *da9055;
 	struct input_dev *input;
 	struct delayed_work work;
@@ -29,15 +30,21 @@ static void da9055_onkey_query(struct da9055_onkey *onkey)
 	int key_stat;
 
 	key_stat = da9055_reg_read(onkey->da9055, DA9055_REG_STATUS_A);
-	if (key_stat < 0) {
+
+	if (key_stat < 0)
+	{
 		dev_err(onkey->da9055->dev,
-			"Failed to read onkey event %d\n", key_stat);
-	} else {
+				"Failed to read onkey event %d\n", key_stat);
+	}
+	else
+	{
 		key_stat &= DA9055_NOKEY_STS;
+
 		/*
 		 * Onkey status bit is cleared when onkey button is released.
 		 */
-		if (!key_stat) {
+		if (!key_stat)
+		{
 			input_report_key(onkey->input, KEY_POWER, 0);
 			input_sync(onkey->input);
 		}
@@ -48,14 +55,16 @@ static void da9055_onkey_query(struct da9055_onkey *onkey)
 	 * Hence the deassertion of the pin is simulated through work queue.
 	 */
 	if (key_stat)
+	{
 		schedule_delayed_work(&onkey->work, msecs_to_jiffies(10));
+	}
 
 }
 
 static void da9055_onkey_work(struct work_struct *work)
 {
 	struct da9055_onkey *onkey = container_of(work, struct da9055_onkey,
-						  work.work);
+								 work.work);
 
 	da9055_onkey_query(onkey);
 }
@@ -80,20 +89,26 @@ static int da9055_onkey_probe(struct platform_device *pdev)
 	int irq, err;
 
 	irq = platform_get_irq_byname(pdev, "ONKEY");
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev,
-			"Failed to get an IRQ for input device, %d\n", irq);
+				"Failed to get an IRQ for input device, %d\n", irq);
 		return -EINVAL;
 	}
 
 	onkey = devm_kzalloc(&pdev->dev, sizeof(*onkey), GFP_KERNEL);
-	if (!onkey) {
+
+	if (!onkey)
+	{
 		dev_err(&pdev->dev, "Failed to allocate memory\n");
 		return -ENOMEM;
 	}
 
 	input_dev = input_allocate_device();
-	if (!input_dev) {
+
+	if (!input_dev)
+	{
 		dev_err(&pdev->dev, "Failed to allocate memory\n");
 		return -ENOMEM;
 	}
@@ -110,19 +125,23 @@ static int da9055_onkey_probe(struct platform_device *pdev)
 	INIT_DELAYED_WORK(&onkey->work, da9055_onkey_work);
 
 	err = request_threaded_irq(irq, NULL, da9055_onkey_irq,
-				   IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
-				   "ONKEY", onkey);
-	if (err < 0) {
+							   IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
+							   "ONKEY", onkey);
+
+	if (err < 0)
+	{
 		dev_err(&pdev->dev,
-			"Failed to register ONKEY IRQ %d, error = %d\n",
-			irq, err);
+				"Failed to register ONKEY IRQ %d, error = %d\n",
+				irq, err);
 		goto err_free_input;
 	}
 
 	err = input_register_device(input_dev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "Unable to register input device, %d\n",
-			err);
+				err);
 		goto err_free_irq;
 	}
 
@@ -152,7 +171,8 @@ static int da9055_onkey_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver da9055_onkey_driver = {
+static struct platform_driver da9055_onkey_driver =
+{
 	.probe	= da9055_onkey_probe,
 	.remove	= da9055_onkey_remove,
 	.driver = {

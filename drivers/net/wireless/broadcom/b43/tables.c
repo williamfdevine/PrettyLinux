@@ -30,7 +30,8 @@
 #include "phy_g.h"
 
 
-const u32 b43_tab_rotor[] = {
+const u32 b43_tab_rotor[] =
+{
 	0xFEB93FFD, 0xFEC63FFD,	/* 0 */
 	0xFED23FFD, 0xFEDF3FFD,
 	0xFEEC3FFE, 0xFEF83FFE,
@@ -60,7 +61,8 @@ const u32 b43_tab_rotor[] = {
 	0x01473FFD,
 };
 
-const u32 b43_tab_retard[] = {
+const u32 b43_tab_retard[] =
+{
 	0xDB93CB87, 0xD666CF64,	/* 0 */
 	0xD1FDD358, 0xCDA6D826,
 	0xCA38DD9F, 0xC729E2B4,
@@ -90,7 +92,8 @@ const u32 b43_tab_retard[] = {
 	0x246DCB87,
 };
 
-const u16 b43_tab_finefreqa[] = {
+const u16 b43_tab_finefreqa[] =
+{
 	0x0082, 0x0082, 0x0102, 0x0182,	/* 0 */
 	0x0202, 0x0282, 0x0302, 0x0382,
 	0x0402, 0x0482, 0x0502, 0x0582,
@@ -157,7 +160,8 @@ const u16 b43_tab_finefreqa[] = {
 	0x2A40, 0x2A60, 0x2A60, 0x2A60,
 };
 
-const u16 b43_tab_finefreqg[] = {
+const u16 b43_tab_finefreqg[] =
+{
 	0x0089, 0x02E9, 0x0409, 0x04E9,	/* 0 */
 	0x05A9, 0x0669, 0x0709, 0x0789,
 	0x0829, 0x08A9, 0x0929, 0x0989,
@@ -224,27 +228,32 @@ const u16 b43_tab_finefreqg[] = {
 	0x5EE0, 0x5FA0, 0x6080, 0x61C0,
 };
 
-const u16 b43_tab_noisea2[] = {
+const u16 b43_tab_noisea2[] =
+{
 	0x0001, 0x0001, 0x0001, 0xFFFE,
 	0xFFFE, 0x3FFF, 0x1000, 0x0393,
 };
 
-const u16 b43_tab_noisea3[] = {
+const u16 b43_tab_noisea3[] =
+{
 	0x5E5E, 0x5E5E, 0x5E5E, 0x3F48,
 	0x4C4C, 0x4C4C, 0x4C4C, 0x2D36,
 };
 
-const u16 b43_tab_noiseg1[] = {
+const u16 b43_tab_noiseg1[] =
+{
 	0x013C, 0x01F5, 0x031A, 0x0631,
 	0x0001, 0x0001, 0x0001, 0x0001,
 };
 
-const u16 b43_tab_noiseg2[] = {
+const u16 b43_tab_noiseg2[] =
+{
 	0x5484, 0x3C40, 0x0000, 0x0000,
 	0x0000, 0x0000, 0x0000, 0x0000,
 };
 
-const u16 b43_tab_noisescalea2[] = {
+const u16 b43_tab_noisescalea2[] =
+{
 	0x6767, 0x6767, 0x6767, 0x6767, /* 0 */
 	0x6767, 0x6767, 0x6767, 0x6767,
 	0x6767, 0x6767, 0x6767, 0x6767,
@@ -254,7 +263,8 @@ const u16 b43_tab_noisescalea2[] = {
 	0x6767, 0x6767, 0x0067,
 };
 
-const u16 b43_tab_noisescalea3[] = {
+const u16 b43_tab_noisescalea3[] =
+{
 	0x2323, 0x2323, 0x2323, 0x2323, /* 0 */
 	0x2323, 0x2323, 0x2323, 0x2323,
 	0x2323, 0x2323, 0x2323, 0x2323,
@@ -264,7 +274,8 @@ const u16 b43_tab_noisescalea3[] = {
 	0x2323, 0x2323, 0x0023,
 };
 
-const u16 b43_tab_noisescaleg1[] = {
+const u16 b43_tab_noisescaleg1[] =
+{
 	0x6C77, 0x5162, 0x3B40, 0x3335,	/* 0 */
 	0x2F2D, 0x2A2A, 0x2527, 0x1F21,
 	0x1A1D, 0x1719, 0x1616, 0x1414,
@@ -274,7 +285,8 @@ const u16 b43_tab_noisescaleg1[] = {
 	0x5140, 0x6C62, 0x0077,
 };
 
-const u16 b43_tab_noisescaleg2[] = {
+const u16 b43_tab_noisescaleg2[] =
+{
 	0xD8DD, 0xCBD4, 0xBCC0, 0xB6B7,	/* 0 */
 	0xB2B0, 0xADAD, 0xA7A9, 0x9FA1,
 	0x969B, 0x9195, 0x8F8F, 0x8A8A,
@@ -284,7 +296,8 @@ const u16 b43_tab_noisescaleg2[] = {
 	0xCBC0, 0xD8D4, 0x00DD,
 };
 
-const u16 b43_tab_noisescaleg3[] = {
+const u16 b43_tab_noisescaleg3[] =
+{
 	0xA4A4, 0xA4A4, 0xA4A4, 0xA4A4,	/* 0 */
 	0xA4A4, 0xA4A4, 0xA4A4, 0xA4A4,
 	0xA4A4, 0xA4A4, 0xA4A4, 0xA4A4,
@@ -294,7 +307,8 @@ const u16 b43_tab_noisescaleg3[] = {
 	0xA4A4, 0xA4A4, 0x00A4,
 };
 
-const u16 b43_tab_sigmasqr1[] = {
+const u16 b43_tab_sigmasqr1[] =
+{
 	0x007A, 0x0075, 0x0071, 0x006C,	/* 0 */
 	0x0067, 0x0063, 0x005E, 0x0059,
 	0x0054, 0x0050, 0x004B, 0x0046,
@@ -311,7 +325,8 @@ const u16 b43_tab_sigmasqr1[] = {
 	0x007A,
 };
 
-const u16 b43_tab_sigmasqr2[] = {
+const u16 b43_tab_sigmasqr2[] =
+{
 	0x00DE, 0x00DC, 0x00DA, 0x00D8,	/* 0 */
 	0x00D6, 0x00D4, 0x00D2, 0x00CF,
 	0x00CD, 0x00CA, 0x00C7, 0x00C4,
@@ -328,14 +343,16 @@ const u16 b43_tab_sigmasqr2[] = {
 	0x00DE,
 };
 
-const u16 b43_tab_rssiagc1[] = {
+const u16 b43_tab_rssiagc1[] =
+{
 	0xFFF8, 0xFFF8, 0xFFF8, 0xFFF8, /* 0 */
 	0xFFF8, 0xFFF9, 0xFFFC, 0xFFFE,
 	0xFFF8, 0xFFF8, 0xFFF8, 0xFFF8,
 	0xFFF8, 0xFFF8, 0xFFF8, 0xFFF8,
 };
 
-const u16 b43_tab_rssiagc2[] = {
+const u16 b43_tab_rssiagc2[] =
+{
 	0x0820, 0x0820, 0x0920, 0x0C38, /* 0 */
 	0x0820, 0x0820, 0x0820, 0x0820,
 	0x0820, 0x0820, 0x0920, 0x0A38,
@@ -361,15 +378,15 @@ static inline void assert_sizes(void)
 	BUILD_BUG_ON(B43_TAB_NOISEG1_SIZE != ARRAY_SIZE(b43_tab_noiseg1));
 	BUILD_BUG_ON(B43_TAB_NOISEG2_SIZE != ARRAY_SIZE(b43_tab_noiseg2));
 	BUILD_BUG_ON(B43_TAB_NOISESCALE_SIZE !=
-		     ARRAY_SIZE(b43_tab_noisescalea2));
+				 ARRAY_SIZE(b43_tab_noisescalea2));
 	BUILD_BUG_ON(B43_TAB_NOISESCALE_SIZE !=
-		     ARRAY_SIZE(b43_tab_noisescalea3));
+				 ARRAY_SIZE(b43_tab_noisescalea3));
 	BUILD_BUG_ON(B43_TAB_NOISESCALE_SIZE !=
-		     ARRAY_SIZE(b43_tab_noisescaleg1));
+				 ARRAY_SIZE(b43_tab_noisescaleg1));
 	BUILD_BUG_ON(B43_TAB_NOISESCALE_SIZE !=
-		     ARRAY_SIZE(b43_tab_noisescaleg2));
+				 ARRAY_SIZE(b43_tab_noisescaleg2));
 	BUILD_BUG_ON(B43_TAB_NOISESCALE_SIZE !=
-		     ARRAY_SIZE(b43_tab_noisescaleg3));
+				 ARRAY_SIZE(b43_tab_noisescaleg3));
 	BUILD_BUG_ON(B43_TAB_SIGMASQR_SIZE != ARRAY_SIZE(b43_tab_sigmasqr1));
 	BUILD_BUG_ON(B43_TAB_SIGMASQR_SIZE != ARRAY_SIZE(b43_tab_sigmasqr2));
 	BUILD_BUG_ON(B43_TAB_RSSIAGC1_SIZE != ARRAY_SIZE(b43_tab_rssiagc1));
@@ -382,12 +399,15 @@ u16 b43_ofdmtab_read16(struct b43_wldev *dev, u16 table, u16 offset)
 	u16 addr;
 
 	addr = table + offset;
+
 	if ((gphy->ofdmtab_addr_direction != B43_OFDMTAB_DIRECTION_READ) ||
-	    (addr - 1 != gphy->ofdmtab_addr)) {
+		(addr - 1 != gphy->ofdmtab_addr))
+	{
 		/* The hardware has a different address in memory. Update it. */
 		b43_phy_write(dev, B43_PHY_OTABLECTL, addr);
 		gphy->ofdmtab_addr_direction = B43_OFDMTAB_DIRECTION_READ;
 	}
+
 	gphy->ofdmtab_addr = addr;
 
 	return b43_phy_read(dev, B43_PHY_OTABLEI);
@@ -397,18 +417,21 @@ u16 b43_ofdmtab_read16(struct b43_wldev *dev, u16 table, u16 offset)
 }
 
 void b43_ofdmtab_write16(struct b43_wldev *dev, u16 table,
-			 u16 offset, u16 value)
+						 u16 offset, u16 value)
 {
 	struct b43_phy_g *gphy = dev->phy.g;
 	u16 addr;
 
 	addr = table + offset;
+
 	if ((gphy->ofdmtab_addr_direction != B43_OFDMTAB_DIRECTION_WRITE) ||
-	    (addr - 1 != gphy->ofdmtab_addr)) {
+		(addr - 1 != gphy->ofdmtab_addr))
+	{
 		/* The hardware has a different address in memory. Update it. */
 		b43_phy_write(dev, B43_PHY_OTABLECTL, addr);
 		gphy->ofdmtab_addr_direction = B43_OFDMTAB_DIRECTION_WRITE;
 	}
+
 	gphy->ofdmtab_addr = addr;
 	b43_phy_write(dev, B43_PHY_OTABLEI, value);
 }
@@ -420,12 +443,15 @@ u32 b43_ofdmtab_read32(struct b43_wldev *dev, u16 table, u16 offset)
 	u16 addr;
 
 	addr = table + offset;
+
 	if ((gphy->ofdmtab_addr_direction != B43_OFDMTAB_DIRECTION_READ) ||
-	    (addr - 1 != gphy->ofdmtab_addr)) {
+		(addr - 1 != gphy->ofdmtab_addr))
+	{
 		/* The hardware has a different address in memory. Update it. */
 		b43_phy_write(dev, B43_PHY_OTABLECTL, addr);
 		gphy->ofdmtab_addr_direction = B43_OFDMTAB_DIRECTION_READ;
 	}
+
 	gphy->ofdmtab_addr = addr;
 	ret = b43_phy_read(dev, B43_PHY_OTABLEQ);
 	ret <<= 16;
@@ -435,18 +461,21 @@ u32 b43_ofdmtab_read32(struct b43_wldev *dev, u16 table, u16 offset)
 }
 
 void b43_ofdmtab_write32(struct b43_wldev *dev, u16 table,
-			 u16 offset, u32 value)
+						 u16 offset, u32 value)
 {
 	struct b43_phy_g *gphy = dev->phy.g;
 	u16 addr;
 
 	addr = table + offset;
+
 	if ((gphy->ofdmtab_addr_direction != B43_OFDMTAB_DIRECTION_WRITE) ||
-	    (addr - 1 != gphy->ofdmtab_addr)) {
+		(addr - 1 != gphy->ofdmtab_addr))
+	{
 		/* The hardware has a different address in memory. Update it. */
 		b43_phy_write(dev, B43_PHY_OTABLECTL, addr);
 		gphy->ofdmtab_addr_direction = B43_OFDMTAB_DIRECTION_WRITE;
 	}
+
 	gphy->ofdmtab_addr = addr;
 
 	b43_phy_write(dev, B43_PHY_OTABLEI, value);

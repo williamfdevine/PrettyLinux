@@ -188,7 +188,8 @@ MODULE_LICENSE("GPL");
 * mga_dev : represents one ks0127 chip.
 ****************************************************************************/
 
-struct adjust {
+struct adjust
+{
 	int	contrast;
 	int	bright;
 	int	hue;
@@ -196,7 +197,8 @@ struct adjust {
 	int	vgain;
 };
 
-struct ks0127 {
+struct ks0127
+{
 	struct v4l2_subdev sd;
 	v4l2_std_id	norm;
 	u8 		regs[256];
@@ -221,7 +223,10 @@ static void init_reg_defaults(void)
 	u8 *table = reg_defaults;
 
 	if (initialized)
+	{
 		return;
+	}
+
 	initialized = 1;
 
 	table[KS_CMDA]     = 0x2c;  /* VSE=0, CCIR 601, autodetect standard */
@@ -316,7 +321,8 @@ static u8 ks0127_read(struct v4l2_subdev *sd, u8 reg)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	char val = 0;
-	struct i2c_msg msgs[] = {
+	struct i2c_msg msgs[] =
+	{
 		{
 			.addr = client->addr,
 			.len = sizeof(reg),
@@ -332,8 +338,11 @@ static u8 ks0127_read(struct v4l2_subdev *sd, u8 reg)
 	int ret;
 
 	ret = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
+
 	if (ret != ARRAY_SIZE(msgs))
+	{
 		v4l2_dbg(1, debug, sd, "read error\n");
+	}
 
 	return val;
 }
@@ -346,7 +355,9 @@ static void ks0127_write(struct v4l2_subdev *sd, u8 reg, u8 val)
 	char msg[] = { reg, val };
 
 	if (i2c_master_send(client, msg, sizeof(msg)) != sizeof(msg))
+	{
 		v4l2_dbg(1, debug, sd, "write error\n");
+	}
 
 	ks->regs[reg] = val;
 }
@@ -379,163 +390,179 @@ static void ks0127_init(struct v4l2_subdev *sd)
 	/* (except STAT, 0x21, 0x22, TEST and 0x38,0x39) */
 
 	for (i = 1; i < 33; i++)
+	{
 		ks0127_write(sd, i, table[i]);
+	}
 
 	for (i = 35; i < 40; i++)
+	{
 		ks0127_write(sd, i, table[i]);
+	}
 
 	for (i = 41; i < 56; i++)
+	{
 		ks0127_write(sd, i, table[i]);
+	}
 
 	for (i = 58; i < 64; i++)
+	{
 		ks0127_write(sd, i, table[i]);
+	}
 
 
-	if ((ks0127_read(sd, KS_STAT) & 0x80) == 0) {
+	if ((ks0127_read(sd, KS_STAT) & 0x80) == 0)
+	{
 		v4l2_dbg(1, debug, sd, "ks0122s found\n");
 		return;
 	}
 
-	switch (ks0127_read(sd, KS_CMDE) & 0x0f) {
-	case 0:
-		v4l2_dbg(1, debug, sd, "ks0127 found\n");
-		break;
+	switch (ks0127_read(sd, KS_CMDE) & 0x0f)
+	{
+		case 0:
+			v4l2_dbg(1, debug, sd, "ks0127 found\n");
+			break;
 
-	case 9:
-		v4l2_dbg(1, debug, sd, "ks0127B Revision A found\n");
-		break;
+		case 9:
+			v4l2_dbg(1, debug, sd, "ks0127B Revision A found\n");
+			break;
 
-	default:
-		v4l2_dbg(1, debug, sd, "unknown revision\n");
-		break;
+		default:
+			v4l2_dbg(1, debug, sd, "unknown revision\n");
+			break;
 	}
 }
 
 static int ks0127_s_routing(struct v4l2_subdev *sd,
-			    u32 input, u32 output, u32 config)
+							u32 input, u32 output, u32 config)
 {
 	struct ks0127 *ks = to_ks0127(sd);
 
-	switch (input) {
-	case KS_INPUT_COMPOSITE_1:
-	case KS_INPUT_COMPOSITE_2:
-	case KS_INPUT_COMPOSITE_3:
-	case KS_INPUT_COMPOSITE_4:
-	case KS_INPUT_COMPOSITE_5:
-	case KS_INPUT_COMPOSITE_6:
-		v4l2_dbg(1, debug, sd,
-			"s_routing %d: Composite\n", input);
-		/* autodetect 50/60 Hz */
-		ks0127_and_or(sd, KS_CMDA,   0xfc, 0x00);
-		/* VSE=0 */
-		ks0127_and_or(sd, KS_CMDA,   ~0x40, 0x00);
-		/* set input line */
-		ks0127_and_or(sd, KS_CMDB,   0xb0, input);
-		/* non-freerunning mode */
-		ks0127_and_or(sd, KS_CMDC,   0x70, 0x0a);
-		/* analog input */
-		ks0127_and_or(sd, KS_CMDD,   0x03, 0x00);
-		/* enable chroma demodulation */
-		ks0127_and_or(sd, KS_CTRACK, 0xcf, 0x00);
-		/* chroma trap, HYBWR=1 */
-		ks0127_and_or(sd, KS_LUMA,   0x00,
-			       (reg_defaults[KS_LUMA])|0x0c);
-		/* scaler fullbw, luma comb off */
-		ks0127_and_or(sd, KS_VERTIA, 0x08, 0x81);
-		/* manual chroma comb .25 .5 .25 */
-		ks0127_and_or(sd, KS_VERTIC, 0x0f, 0x90);
+	switch (input)
+	{
+		case KS_INPUT_COMPOSITE_1:
+		case KS_INPUT_COMPOSITE_2:
+		case KS_INPUT_COMPOSITE_3:
+		case KS_INPUT_COMPOSITE_4:
+		case KS_INPUT_COMPOSITE_5:
+		case KS_INPUT_COMPOSITE_6:
+			v4l2_dbg(1, debug, sd,
+					 "s_routing %d: Composite\n", input);
+			/* autodetect 50/60 Hz */
+			ks0127_and_or(sd, KS_CMDA,   0xfc, 0x00);
+			/* VSE=0 */
+			ks0127_and_or(sd, KS_CMDA,   ~0x40, 0x00);
+			/* set input line */
+			ks0127_and_or(sd, KS_CMDB,   0xb0, input);
+			/* non-freerunning mode */
+			ks0127_and_or(sd, KS_CMDC,   0x70, 0x0a);
+			/* analog input */
+			ks0127_and_or(sd, KS_CMDD,   0x03, 0x00);
+			/* enable chroma demodulation */
+			ks0127_and_or(sd, KS_CTRACK, 0xcf, 0x00);
+			/* chroma trap, HYBWR=1 */
+			ks0127_and_or(sd, KS_LUMA,   0x00,
+						  (reg_defaults[KS_LUMA]) | 0x0c);
+			/* scaler fullbw, luma comb off */
+			ks0127_and_or(sd, KS_VERTIA, 0x08, 0x81);
+			/* manual chroma comb .25 .5 .25 */
+			ks0127_and_or(sd, KS_VERTIC, 0x0f, 0x90);
 
-		/* chroma path delay */
-		ks0127_and_or(sd, KS_CHROMB, 0x0f, 0x90);
+			/* chroma path delay */
+			ks0127_and_or(sd, KS_CHROMB, 0x0f, 0x90);
 
-		ks0127_write(sd, KS_UGAIN, reg_defaults[KS_UGAIN]);
-		ks0127_write(sd, KS_VGAIN, reg_defaults[KS_VGAIN]);
-		ks0127_write(sd, KS_UVOFFH, reg_defaults[KS_UVOFFH]);
-		ks0127_write(sd, KS_UVOFFL, reg_defaults[KS_UVOFFL]);
-		break;
+			ks0127_write(sd, KS_UGAIN, reg_defaults[KS_UGAIN]);
+			ks0127_write(sd, KS_VGAIN, reg_defaults[KS_VGAIN]);
+			ks0127_write(sd, KS_UVOFFH, reg_defaults[KS_UVOFFH]);
+			ks0127_write(sd, KS_UVOFFL, reg_defaults[KS_UVOFFL]);
+			break;
 
-	case KS_INPUT_SVIDEO_1:
-	case KS_INPUT_SVIDEO_2:
-	case KS_INPUT_SVIDEO_3:
-		v4l2_dbg(1, debug, sd,
-			"s_routing %d: S-Video\n", input);
-		/* autodetect 50/60 Hz */
-		ks0127_and_or(sd, KS_CMDA,   0xfc, 0x00);
-		/* VSE=0 */
-		ks0127_and_or(sd, KS_CMDA,   ~0x40, 0x00);
-		/* set input line */
-		ks0127_and_or(sd, KS_CMDB,   0xb0, input);
-		/* non-freerunning mode */
-		ks0127_and_or(sd, KS_CMDC,   0x70, 0x0a);
-		/* analog input */
-		ks0127_and_or(sd, KS_CMDD,   0x03, 0x00);
-		/* enable chroma demodulation */
-		ks0127_and_or(sd, KS_CTRACK, 0xcf, 0x00);
-		ks0127_and_or(sd, KS_LUMA, 0x00,
-			       reg_defaults[KS_LUMA]);
-		/* disable luma comb */
-		ks0127_and_or(sd, KS_VERTIA, 0x08,
-			       (reg_defaults[KS_VERTIA]&0xf0)|0x01);
-		ks0127_and_or(sd, KS_VERTIC, 0x0f,
-			       reg_defaults[KS_VERTIC]&0xf0);
+		case KS_INPUT_SVIDEO_1:
+		case KS_INPUT_SVIDEO_2:
+		case KS_INPUT_SVIDEO_3:
+			v4l2_dbg(1, debug, sd,
+					 "s_routing %d: S-Video\n", input);
+			/* autodetect 50/60 Hz */
+			ks0127_and_or(sd, KS_CMDA,   0xfc, 0x00);
+			/* VSE=0 */
+			ks0127_and_or(sd, KS_CMDA,   ~0x40, 0x00);
+			/* set input line */
+			ks0127_and_or(sd, KS_CMDB,   0xb0, input);
+			/* non-freerunning mode */
+			ks0127_and_or(sd, KS_CMDC,   0x70, 0x0a);
+			/* analog input */
+			ks0127_and_or(sd, KS_CMDD,   0x03, 0x00);
+			/* enable chroma demodulation */
+			ks0127_and_or(sd, KS_CTRACK, 0xcf, 0x00);
+			ks0127_and_or(sd, KS_LUMA, 0x00,
+						  reg_defaults[KS_LUMA]);
+			/* disable luma comb */
+			ks0127_and_or(sd, KS_VERTIA, 0x08,
+						  (reg_defaults[KS_VERTIA] & 0xf0) | 0x01);
+			ks0127_and_or(sd, KS_VERTIC, 0x0f,
+						  reg_defaults[KS_VERTIC] & 0xf0);
 
-		ks0127_and_or(sd, KS_CHROMB, 0x0f,
-			       reg_defaults[KS_CHROMB]&0xf0);
+			ks0127_and_or(sd, KS_CHROMB, 0x0f,
+						  reg_defaults[KS_CHROMB] & 0xf0);
 
-		ks0127_write(sd, KS_UGAIN, reg_defaults[KS_UGAIN]);
-		ks0127_write(sd, KS_VGAIN, reg_defaults[KS_VGAIN]);
-		ks0127_write(sd, KS_UVOFFH, reg_defaults[KS_UVOFFH]);
-		ks0127_write(sd, KS_UVOFFL, reg_defaults[KS_UVOFFL]);
-		break;
+			ks0127_write(sd, KS_UGAIN, reg_defaults[KS_UGAIN]);
+			ks0127_write(sd, KS_VGAIN, reg_defaults[KS_VGAIN]);
+			ks0127_write(sd, KS_UVOFFH, reg_defaults[KS_UVOFFH]);
+			ks0127_write(sd, KS_UVOFFL, reg_defaults[KS_UVOFFL]);
+			break;
 
-	case KS_INPUT_YUV656:
-		v4l2_dbg(1, debug, sd, "s_routing 15: YUV656\n");
-		if (ks->norm & V4L2_STD_525_60)
-			/* force 60 Hz */
-			ks0127_and_or(sd, KS_CMDA,   0xfc, 0x03);
-		else
-			/* force 50 Hz */
-			ks0127_and_or(sd, KS_CMDA,   0xfc, 0x02);
+		case KS_INPUT_YUV656:
+			v4l2_dbg(1, debug, sd, "s_routing 15: YUV656\n");
 
-		ks0127_and_or(sd, KS_CMDA,   0xff, 0x40); /* VSE=1 */
-		/* set input line and VALIGN */
-		ks0127_and_or(sd, KS_CMDB,   0xb0, (input | 0x40));
-		/* freerunning mode, */
-		/* TSTGEN = 1 TSTGFR=11 TSTGPH=0 TSTGPK=0  VMEM=1*/
-		ks0127_and_or(sd, KS_CMDC,   0x70, 0x87);
-		/* digital input, SYNDIR = 0 INPSL=01 CLKDIR=0 EAV=0 */
-		ks0127_and_or(sd, KS_CMDD,   0x03, 0x08);
-		/* disable chroma demodulation */
-		ks0127_and_or(sd, KS_CTRACK, 0xcf, 0x30);
-		/* HYPK =01 CTRAP = 0 HYBWR=0 PED=1 RGBH=1 UNIT=1 */
-		ks0127_and_or(sd, KS_LUMA,   0x00, 0x71);
-		ks0127_and_or(sd, KS_VERTIC, 0x0f,
-			       reg_defaults[KS_VERTIC]&0xf0);
+			if (ks->norm & V4L2_STD_525_60)
+				/* force 60 Hz */
+			{
+				ks0127_and_or(sd, KS_CMDA,   0xfc, 0x03);
+			}
+			else
+				/* force 50 Hz */
+			{
+				ks0127_and_or(sd, KS_CMDA,   0xfc, 0x02);
+			}
 
-		/* scaler fullbw, luma comb off */
-		ks0127_and_or(sd, KS_VERTIA, 0x08, 0x81);
+			ks0127_and_or(sd, KS_CMDA,   0xff, 0x40); /* VSE=1 */
+			/* set input line and VALIGN */
+			ks0127_and_or(sd, KS_CMDB,   0xb0, (input | 0x40));
+			/* freerunning mode, */
+			/* TSTGEN = 1 TSTGFR=11 TSTGPH=0 TSTGPK=0  VMEM=1*/
+			ks0127_and_or(sd, KS_CMDC,   0x70, 0x87);
+			/* digital input, SYNDIR = 0 INPSL=01 CLKDIR=0 EAV=0 */
+			ks0127_and_or(sd, KS_CMDD,   0x03, 0x08);
+			/* disable chroma demodulation */
+			ks0127_and_or(sd, KS_CTRACK, 0xcf, 0x30);
+			/* HYPK =01 CTRAP = 0 HYBWR=0 PED=1 RGBH=1 UNIT=1 */
+			ks0127_and_or(sd, KS_LUMA,   0x00, 0x71);
+			ks0127_and_or(sd, KS_VERTIC, 0x0f,
+						  reg_defaults[KS_VERTIC] & 0xf0);
 
-		ks0127_and_or(sd, KS_CHROMB, 0x0f,
-			       reg_defaults[KS_CHROMB]&0xf0);
+			/* scaler fullbw, luma comb off */
+			ks0127_and_or(sd, KS_VERTIA, 0x08, 0x81);
 
-		ks0127_and_or(sd, KS_CON, 0x00, 0x00);
-		ks0127_and_or(sd, KS_BRT, 0x00, 32);	/* spec: 34 */
+			ks0127_and_or(sd, KS_CHROMB, 0x0f,
+						  reg_defaults[KS_CHROMB] & 0xf0);
+
+			ks0127_and_or(sd, KS_CON, 0x00, 0x00);
+			ks0127_and_or(sd, KS_BRT, 0x00, 32);	/* spec: 34 */
 			/* spec: 229 (e5) */
-		ks0127_and_or(sd, KS_SAT, 0x00, 0xe8);
-		ks0127_and_or(sd, KS_HUE, 0x00, 0);
+			ks0127_and_or(sd, KS_SAT, 0x00, 0xe8);
+			ks0127_and_or(sd, KS_HUE, 0x00, 0);
 
-		ks0127_and_or(sd, KS_UGAIN, 0x00, 238);
-		ks0127_and_or(sd, KS_VGAIN, 0x00, 0x00);
+			ks0127_and_or(sd, KS_UGAIN, 0x00, 238);
+			ks0127_and_or(sd, KS_VGAIN, 0x00, 0x00);
 
-		/*UOFF:0x30, VOFF:0x30, TSTCGN=1 */
-		ks0127_and_or(sd, KS_UVOFFH, 0x00, 0x4f);
-		ks0127_and_or(sd, KS_UVOFFL, 0x00, 0x00);
-		break;
+			/*UOFF:0x30, VOFF:0x30, TSTCGN=1 */
+			ks0127_and_or(sd, KS_UVOFFH, 0x00, 0x4f);
+			ks0127_and_or(sd, KS_UVOFFL, 0x00, 0x00);
+			break;
 
-	default:
-		v4l2_dbg(1, debug, sd,
-			"s_routing: Unknown input %d\n", input);
-		break;
+		default:
+			v4l2_dbg(1, debug, sd,
+					 "s_routing: Unknown input %d\n", input);
+			break;
 	}
 
 	/* hack: CDMLPF sometimes spontaneously switches on; */
@@ -552,56 +579,76 @@ static int ks0127_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
 	ks0127_and_or(sd, KS_DEMOD, 0xf0, 0x00);
 
 	ks->norm = std;
-	if (std & V4L2_STD_NTSC) {
+
+	if (std & V4L2_STD_NTSC)
+	{
 		v4l2_dbg(1, debug, sd,
-			"s_std: NTSC_M\n");
+				 "s_std: NTSC_M\n");
 		ks0127_and_or(sd, KS_CHROMA, 0x9f, 0x20);
-	} else if (std & V4L2_STD_PAL_N) {
+	}
+	else if (std & V4L2_STD_PAL_N)
+	{
 		v4l2_dbg(1, debug, sd,
-			"s_std: NTSC_N (fixme)\n");
+				 "s_std: NTSC_N (fixme)\n");
 		ks0127_and_or(sd, KS_CHROMA, 0x9f, 0x40);
-	} else if (std & V4L2_STD_PAL) {
+	}
+	else if (std & V4L2_STD_PAL)
+	{
 		v4l2_dbg(1, debug, sd,
-			"s_std: PAL_N\n");
+				 "s_std: PAL_N\n");
 		ks0127_and_or(sd, KS_CHROMA, 0x9f, 0x20);
-	} else if (std & V4L2_STD_PAL_M) {
+	}
+	else if (std & V4L2_STD_PAL_M)
+	{
 		v4l2_dbg(1, debug, sd,
-			"s_std: PAL_M (fixme)\n");
+				 "s_std: PAL_M (fixme)\n");
 		ks0127_and_or(sd, KS_CHROMA, 0x9f, 0x40);
-	} else if (std & V4L2_STD_SECAM) {
+	}
+	else if (std & V4L2_STD_SECAM)
+	{
 		v4l2_dbg(1, debug, sd,
-			"s_std: SECAM\n");
+				 "s_std: SECAM\n");
 
 		/* set to secam autodetection */
 		ks0127_and_or(sd, KS_CHROMA, 0xdf, 0x20);
 		ks0127_and_or(sd, KS_DEMOD, 0xf0, 0x00);
-		schedule_timeout_interruptible(HZ/10+1);
+		schedule_timeout_interruptible(HZ / 10 + 1);
 
 		/* did it autodetect? */
 		if (!(ks0127_read(sd, KS_DEMOD) & 0x40))
 			/* force to secam mode */
+		{
 			ks0127_and_or(sd, KS_DEMOD, 0xf0, 0x0f);
-	} else {
-		v4l2_dbg(1, debug, sd, "s_std: Unknown norm %llx\n",
-			       (unsigned long long)std);
+		}
 	}
+	else
+	{
+		v4l2_dbg(1, debug, sd, "s_std: Unknown norm %llx\n",
+				 (unsigned long long)std);
+	}
+
 	return 0;
 }
 
 static int ks0127_s_stream(struct v4l2_subdev *sd, int enable)
 {
 	v4l2_dbg(1, debug, sd, "s_stream(%d)\n", enable);
-	if (enable) {
+
+	if (enable)
+	{
 		/* All output pins on */
 		ks0127_and_or(sd, KS_OFMTA, 0xcf, 0x30);
 		/* Obey the OEN pin */
 		ks0127_and_or(sd, KS_CDEM, 0x7f, 0x00);
-	} else {
+	}
+	else
+	{
 		/* Video output pins off */
 		ks0127_and_or(sd, KS_OFMTA, 0xcf, 0x00);
 		/* Ignore the OEN pin */
 		ks0127_and_or(sd, KS_CDEM, 0x7f, 0x80);
 	}
+
 	return 0;
 }
 
@@ -612,25 +659,48 @@ static int ks0127_status(struct v4l2_subdev *sd, u32 *pstatus, v4l2_std_id *pstd
 	v4l2_std_id std = pstd ? *pstd : V4L2_STD_ALL;
 
 	status = ks0127_read(sd, KS_STAT);
+
 	if (!(status & 0x20))		 /* NOVID not set */
+	{
 		stat = 0;
-	if (!(status & 0x01)) {		      /* CLOCK set */
+	}
+
+	if (!(status & 0x01))  		      /* CLOCK set */
+	{
 		stat |= V4L2_IN_ST_NO_COLOR;
 		std = V4L2_STD_UNKNOWN;
-	} else {
-		if ((status & 0x08))		   /* PALDET set */
-			std &= V4L2_STD_PAL;
-		else
-			std &= V4L2_STD_NTSC;
 	}
-	if ((status & 0x10))		   /* PALDET set */
-		std &= V4L2_STD_525_60;
 	else
+	{
+		if ((status & 0x08))		   /* PALDET set */
+		{
+			std &= V4L2_STD_PAL;
+		}
+		else
+		{
+			std &= V4L2_STD_NTSC;
+		}
+	}
+
+	if ((status & 0x10))		   /* PALDET set */
+	{
+		std &= V4L2_STD_525_60;
+	}
+	else
+	{
 		std &= V4L2_STD_625_50;
+	}
+
 	if (pstd)
+	{
 		*pstd = std;
+	}
+
 	if (pstatus)
+	{
 		*pstatus = stat;
+	}
+
 	return 0;
 }
 
@@ -648,7 +718,8 @@ static int ks0127_g_input_status(struct v4l2_subdev *sd, u32 *status)
 
 /* ----------------------------------------------------------------------- */
 
-static const struct v4l2_subdev_video_ops ks0127_video_ops = {
+static const struct v4l2_subdev_video_ops ks0127_video_ops =
+{
 	.s_std = ks0127_s_std,
 	.s_routing = ks0127_s_routing,
 	.s_stream = ks0127_s_stream,
@@ -656,7 +727,8 @@ static const struct v4l2_subdev_video_ops ks0127_video_ops = {
 	.g_input_status = ks0127_g_input_status,
 };
 
-static const struct v4l2_subdev_ops ks0127_ops = {
+static const struct v4l2_subdev_ops ks0127_ops =
+{
 	.video = &ks0127_video_ops,
 };
 
@@ -669,12 +741,16 @@ static int ks0127_probe(struct i2c_client *client, const struct i2c_device_id *i
 	struct v4l2_subdev *sd;
 
 	v4l_info(client, "%s chip found @ 0x%x (%s)\n",
-		client->addr == (I2C_KS0127_ADDON >> 1) ? "addon" : "on-board",
-		client->addr << 1, client->adapter->name);
+			 client->addr == (I2C_KS0127_ADDON >> 1) ? "addon" : "on-board",
+			 client->addr << 1, client->adapter->name);
 
 	ks = devm_kzalloc(&client->dev, sizeof(*ks), GFP_KERNEL);
+
 	if (ks == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	sd = &ks->sd;
 	v4l2_i2c_subdev_init(sd, client, &ks0127_ops);
 
@@ -698,7 +774,8 @@ static int ks0127_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id ks0127_id[] = {
+static const struct i2c_device_id ks0127_id[] =
+{
 	{ "ks0127", 0 },
 	{ "ks0127b", 0 },
 	{ "ks0122s", 0 },
@@ -706,7 +783,8 @@ static const struct i2c_device_id ks0127_id[] = {
 };
 MODULE_DEVICE_TABLE(i2c, ks0127_id);
 
-static struct i2c_driver ks0127_driver = {
+static struct i2c_driver ks0127_driver =
+{
 	.driver = {
 		.name	= "ks0127",
 	},

@@ -24,7 +24,8 @@
  * accessed with the net_generic() call.
  */
 
-struct net_generic {
+struct net_generic
+{
 	unsigned int len;
 	struct rcu_head rcu;
 

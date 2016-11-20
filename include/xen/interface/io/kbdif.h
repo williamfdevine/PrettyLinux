@@ -45,20 +45,23 @@
  */
 #define XENKBD_TYPE_POS     4
 
-struct xenkbd_motion {
+struct xenkbd_motion
+{
 	uint8_t type;		/* XENKBD_TYPE_MOTION */
 	int32_t rel_x;		/* relative X motion */
 	int32_t rel_y;		/* relative Y motion */
 	int32_t rel_z;		/* relative Z motion (wheel) */
 };
 
-struct xenkbd_key {
+struct xenkbd_key
+{
 	uint8_t type;		/* XENKBD_TYPE_KEY */
 	uint8_t pressed;	/* 1 if pressed; 0 otherwise */
 	uint32_t keycode;	/* KEY_* from linux/input.h */
 };
 
-struct xenkbd_position {
+struct xenkbd_position
+{
 	uint8_t type;		/* XENKBD_TYPE_POS */
 	int32_t abs_x;		/* absolute X position (in FB pixels) */
 	int32_t abs_y;		/* absolute Y position (in FB pixels) */
@@ -67,7 +70,8 @@ struct xenkbd_position {
 
 #define XENKBD_IN_EVENT_SIZE 40
 
-union xenkbd_in_event {
+union xenkbd_in_event
+{
 	uint8_t type;
 	struct xenkbd_motion motion;
 	struct xenkbd_key key;
@@ -85,7 +89,8 @@ union xenkbd_in_event {
 
 #define XENKBD_OUT_EVENT_SIZE 40
 
-union xenkbd_out_event {
+union xenkbd_out_event
+{
 	uint8_t type;
 	char pad[XENKBD_OUT_EVENT_SIZE];
 };
@@ -108,7 +113,8 @@ union xenkbd_out_event {
 #define XENKBD_OUT_RING_REF(page, idx) \
 	(XENKBD_OUT_RING((page))[(idx) % XENKBD_OUT_RING_LEN])
 
-struct xenkbd_page {
+struct xenkbd_page
+{
 	uint32_t in_cons, in_prod;
 	uint32_t out_cons, out_prod;
 };

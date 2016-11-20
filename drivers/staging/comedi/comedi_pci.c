@@ -61,17 +61,27 @@ int comedi_pci_enable(struct comedi_device *dev)
 	int rc;
 
 	if (!pcidev)
+	{
 		return -ENODEV;
+	}
 
 	rc = pci_enable_device(pcidev);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	rc = pci_request_regions(pcidev, dev->board_name);
+
 	if (rc < 0)
+	{
 		pci_disable_device(pcidev);
+	}
 	else
+	{
 		dev->ioenabled = true;
+	}
 
 	return rc;
 }
@@ -90,10 +100,12 @@ void comedi_pci_disable(struct comedi_device *dev)
 {
 	struct pci_dev *pcidev = comedi_to_pci_dev(dev);
 
-	if (pcidev && dev->ioenabled) {
+	if (pcidev && dev->ioenabled)
+	{
 		pci_release_regions(pcidev);
 		pci_disable_device(pcidev);
 	}
+
 	dev->ioenabled = false;
 }
 EXPORT_SYMBOL_GPL(comedi_pci_disable);
@@ -117,16 +129,22 @@ void comedi_pci_detach(struct comedi_device *dev)
 	struct pci_dev *pcidev = comedi_to_pci_dev(dev);
 
 	if (!pcidev || !dev->ioenabled)
+	{
 		return;
+	}
 
-	if (dev->irq) {
+	if (dev->irq)
+	{
 		free_irq(dev->irq, dev);
 		dev->irq = 0;
 	}
-	if (dev->mmio) {
+
+	if (dev->mmio)
+	{
 		iounmap(dev->mmio);
 		dev->mmio = NULL;
 	}
+
 	comedi_pci_disable(dev);
 }
 EXPORT_SYMBOL_GPL(comedi_pci_detach);
@@ -147,8 +165,8 @@ EXPORT_SYMBOL_GPL(comedi_pci_detach);
  * a negative error number on failure).
  */
 int comedi_pci_auto_config(struct pci_dev *pcidev,
-			   struct comedi_driver *driver,
-			   unsigned long context)
+						   struct comedi_driver *driver,
+						   unsigned long context)
 {
 	return comedi_auto_config(&pcidev->dev, driver, context);
 }
@@ -186,16 +204,21 @@ EXPORT_SYMBOL_GPL(comedi_pci_auto_unconfig);
  * Return: 0 on success, or a negative error number on failure.
  */
 int comedi_pci_driver_register(struct comedi_driver *comedi_driver,
-			       struct pci_driver *pci_driver)
+							   struct pci_driver *pci_driver)
 {
 	int ret;
 
 	ret = comedi_driver_register(comedi_driver);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = pci_register_driver(pci_driver);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		comedi_driver_unregister(comedi_driver);
 		return ret;
 	}
@@ -214,7 +237,7 @@ EXPORT_SYMBOL_GPL(comedi_pci_driver_register);
  * directly, use the module_comedi_pci_driver() helper macro instead.
  */
 void comedi_pci_driver_unregister(struct comedi_driver *comedi_driver,
-				  struct pci_driver *pci_driver)
+								  struct pci_driver *pci_driver)
 {
 	pci_unregister_driver(pci_driver);
 	comedi_driver_unregister(comedi_driver);

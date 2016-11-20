@@ -20,7 +20,8 @@
 #define TX        1  /* similar to USB_DIR_IN  but can be used as an index */
 
 /* DMA layout of transfer descriptors */
-struct ci_hw_td {
+struct ci_hw_td
+{
 	/* 0 */
 	u32 next;
 #define TD_TERMINATE          BIT(0)
@@ -43,7 +44,8 @@ struct ci_hw_td {
 } __attribute__ ((packed, aligned(4)));
 
 /* DMA layout of queue heads */
-struct ci_hw_qh {
+struct ci_hw_qh
+{
 	/* 0 */
 	u32 cap;
 #define QH_IOS                BIT(15)
@@ -60,7 +62,8 @@ struct ci_hw_qh {
 	struct usb_ctrlrequest   setup;
 } __attribute__ ((packed, aligned(4)));
 
-struct td_node {
+struct td_node
+{
 	struct list_head	td;
 	dma_addr_t		dma;
 	struct ci_hw_td		*ptr;
@@ -75,7 +78,8 @@ struct td_node {
  * @zptr: transfer descriptor for the zero packet
  * @zdma: dma address of the zero packet's transfer descriptor
  */
-struct ci_hw_req {
+struct ci_hw_req
+{
 	struct usb_request	req;
 	struct list_head	queue;
 	struct list_head	tds;

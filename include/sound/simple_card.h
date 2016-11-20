@@ -15,7 +15,8 @@
 #include <sound/soc.h>
 #include <sound/simple_card_utils.h>
 
-struct asoc_simple_card_info {
+struct asoc_simple_card_info
+{
 	const char *name;
 	const char *card;
 	const char *codec;

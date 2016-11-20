@@ -25,7 +25,8 @@
 
 #define VPBE_DISPLAY_MAX_DEVICES 2
 
-enum vpbe_display_device_id {
+enum vpbe_display_device_id
+{
 	VPBE_DISPLAY_DEVICE_0,
 	VPBE_DISPLAY_DEVICE_1
 };
@@ -36,11 +37,11 @@ enum vpbe_display_device_id {
 #define VPBE_DISPLAY_MINOR_RELEASE              0
 #define VPBE_DISPLAY_BUILD                      1
 #define VPBE_DISPLAY_VERSION_CODE ((VPBE_DISPLAY_MAJOR_RELEASE << 16) | \
-	(VPBE_DISPLAY_MINOR_RELEASE << 8)  | \
-	VPBE_DISPLAY_BUILD)
+								   (VPBE_DISPLAY_MINOR_RELEASE << 8)  | \
+								   VPBE_DISPLAY_BUILD)
 
 #define VPBE_DISPLAY_VALID_FIELD(field)   ((V4L2_FIELD_NONE == field) || \
-	 (V4L2_FIELD_ANY == field) || (V4L2_FIELD_INTERLACED == field))
+		(V4L2_FIELD_ANY == field) || (V4L2_FIELD_INTERLACED == field))
 
 /* Exp ratio numerator and denominator constants */
 #define VPBE_DISPLAY_H_EXP_RATIO_N	9
@@ -53,7 +54,8 @@ enum vpbe_display_device_id {
 #define VPBE_DISPLAY_ZOOM_2X	2
 
 /* Structures */
-struct display_layer_info {
+struct display_layer_info
+{
 	int enable;
 	/* Layer ID used by Display Manager */
 	enum osd_layer id;
@@ -64,13 +66,15 @@ struct display_layer_info {
 	enum osd_v_exp_ratio v_exp;
 };
 
-struct vpbe_disp_buffer {
+struct vpbe_disp_buffer
+{
 	struct vb2_v4l2_buffer vb;
 	struct list_head list;
 };
 
 /* vpbe display object structure */
-struct vpbe_layer {
+struct vpbe_layer
+{
 	/* Pointer to the vpbe_display */
 	struct vpbe_display *disp_dev;
 	/* Pointer pointing to current v4l2_buffer */
@@ -109,7 +113,8 @@ struct vpbe_layer {
 };
 
 /* vpbe device structure */
-struct vpbe_display {
+struct vpbe_display
+{
 	/* layer specific parameters */
 	/* lock for isr updates to buf layers*/
 	spinlock_t dma_queue_lock;
@@ -120,7 +125,8 @@ struct vpbe_display {
 	struct osd_state *osd_device;
 };
 
-struct buf_config_params {
+struct buf_config_params
+{
 	unsigned char min_numbuffers;
 	unsigned char numbuffers[VPBE_DISPLAY_MAX_DEVICES];
 	unsigned int min_bufsize[VPBE_DISPLAY_MAX_DEVICES];

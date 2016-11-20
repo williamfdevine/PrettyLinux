@@ -32,7 +32,8 @@ extern "C" {
 
 #define OMAP_PARAM_CHIPSET_ID	1	/* ie. 0x3430, 0x4430, etc */
 
-struct drm_omap_param {
+struct drm_omap_param
+{
 	uint64_t param;			/* in */
 	uint64_t value;			/* in (set_param), out (get_param) */
 };
@@ -52,15 +53,18 @@ struct drm_omap_param {
 #define OMAP_BO_TILED_32	0x00000300
 #define OMAP_BO_TILED		(OMAP_BO_TILED_8 | OMAP_BO_TILED_16 | OMAP_BO_TILED_32)
 
-union omap_gem_size {
+union omap_gem_size
+{
 	uint32_t bytes;		/* (for non-tiled formats) */
-	struct {
+	struct
+	{
 		uint16_t width;
 		uint16_t height;
 	} tiled;		/* (for tiled formats) */
 };
 
-struct drm_omap_gem_new {
+struct drm_omap_gem_new
+{
 	union omap_gem_size size;	/* in */
 	uint32_t flags;			/* in */
 	uint32_t handle;		/* out */
@@ -68,17 +72,20 @@ struct drm_omap_gem_new {
 };
 
 /* mask of operations: */
-enum omap_gem_op {
+enum omap_gem_op
+{
 	OMAP_GEM_READ = 0x01,
 	OMAP_GEM_WRITE = 0x02,
 };
 
-struct drm_omap_gem_cpu_prep {
+struct drm_omap_gem_cpu_prep
+{
 	uint32_t handle;		/* buffer handle (in) */
 	uint32_t op;			/* mask of omap_gem_op (in) */
 };
 
-struct drm_omap_gem_cpu_fini {
+struct drm_omap_gem_cpu_fini
+{
 	uint32_t handle;		/* buffer handle (in) */
 	uint32_t op;			/* mask of omap_gem_op (in) */
 	/* TODO maybe here we pass down info about what regions are touched
@@ -89,7 +96,8 @@ struct drm_omap_gem_cpu_fini {
 	uint32_t __pad;
 };
 
-struct drm_omap_gem_info {
+struct drm_omap_gem_info
+{
 	uint32_t handle;		/* buffer handle (in) */
 	uint32_t pad;
 	uint64_t offset;		/* mmap offset (out) */

@@ -18,17 +18,19 @@
 #include "qed.h"
 #include "qed_hsi.h"
 
-enum spq_mode {
+enum spq_mode
+{
 	QED_SPQ_MODE_BLOCK,     /* Client will poll a designated mem. address */
 	QED_SPQ_MODE_CB,        /* Client supplies a callback */
 	QED_SPQ_MODE_EBLOCK,    /* QED should block until completion */
 };
 
-struct qed_spq_comp_cb {
+struct qed_spq_comp_cb
+{
 	void	(*function)(struct qed_hwfn *,
-			    void *,
-			    union event_ring_data *,
-			    u8 fw_return_code);
+						void *,
+						union event_ring_data *,
+						u8 fw_return_code);
 	void	*cookie;
 };
 
@@ -42,7 +44,7 @@ struct qed_spq_comp_cb {
  * @return int
  */
 int qed_eth_cqe_completion(struct qed_hwfn *p_hwfn,
-			   struct eth_slow_path_rx_cqe *cqe);
+						   struct eth_slow_path_rx_cqe *cqe);
 
 /**
  *  @file
@@ -50,7 +52,8 @@ int qed_eth_cqe_completion(struct qed_hwfn *p_hwfn,
  *  QED Slow-hwfn queue interface
  */
 
-union ramrod_data {
+union ramrod_data
+{
 	struct pf_start_ramrod_data pf_start;
 	struct pf_update_ramrod_data pf_update;
 	struct rx_queue_start_ramrod_data rx_queue_start;
@@ -99,22 +102,26 @@ union ramrod_data {
 
 #define EQ_MAX_CREDIT   0xffffffff
 
-enum spq_priority {
+enum spq_priority
+{
 	QED_SPQ_PRIORITY_NORMAL,
 	QED_SPQ_PRIORITY_HIGH,
 };
 
-union qed_spq_req_comp {
+union qed_spq_req_comp
+{
 	struct qed_spq_comp_cb	cb;
 	u64			*done_addr;
 };
 
-struct qed_spq_comp_done {
+struct qed_spq_comp_done
+{
 	u64	done;
 	u8	fw_return_code;
 };
 
-struct qed_spq_entry {
+struct qed_spq_entry
+{
 	struct list_head		list;
 
 	u8				flags;
@@ -134,17 +141,20 @@ struct qed_spq_entry {
 	struct qed_spq_comp_done	comp_done; /* SPQ_MODE_EBLOCK */
 };
 
-struct qed_eq {
+struct qed_eq
+{
 	struct qed_chain	chain;
 	u8			eq_sb_index;    /* index within the SB */
 	__le16			*p_fw_cons;     /* ptr to index value */
 };
 
-struct qed_consq {
+struct qed_consq
+{
 	struct qed_chain chain;
 };
 
-struct qed_spq {
+struct qed_spq
+{
 	spinlock_t		lock; /* SPQ lock */
 
 	struct list_head	unlimited_pending;
@@ -185,8 +195,8 @@ struct qed_spq {
  * @return int
  */
 int qed_spq_post(struct qed_hwfn *p_hwfn,
-		 struct qed_spq_entry *p_ent,
-		 u8 *fw_return_code);
+				 struct qed_spq_entry *p_ent,
+				 u8 *fw_return_code);
 
 /**
  * @brief qed_spq_allocate - Alloocates & initializes the SPQ and EQ.
@@ -224,7 +234,7 @@ void qed_spq_free(struct qed_hwfn *p_hwfn);
  */
 int
 qed_spq_get_entry(struct qed_hwfn *p_hwfn,
-		  struct qed_spq_entry **pp_ent);
+				  struct qed_spq_entry **pp_ent);
 
 /**
  * @brief qed_spq_return_entry - Return an entry to spq free
@@ -234,7 +244,7 @@ qed_spq_get_entry(struct qed_hwfn *p_hwfn,
  * @param p_ent
  */
 void qed_spq_return_entry(struct qed_hwfn *p_hwfn,
-			  struct qed_spq_entry *p_ent);
+						  struct qed_spq_entry *p_ent);
 /**
  * @brief qed_eq_allocate - Allocates & initializes an EQ struct
  *
@@ -244,7 +254,7 @@ void qed_spq_return_entry(struct qed_hwfn *p_hwfn,
  * @return struct qed_eq* - a newly allocated structure; NULL upon error.
  */
 struct qed_eq *qed_eq_alloc(struct qed_hwfn *p_hwfn,
-			    u16 num_elem);
+							u16 num_elem);
 
 /**
  * @brief qed_eq_setup - Reset the SPQ to its start state.
@@ -253,7 +263,7 @@ struct qed_eq *qed_eq_alloc(struct qed_hwfn *p_hwfn,
  * @param p_eq
  */
 void qed_eq_setup(struct qed_hwfn *p_hwfn,
-		  struct qed_eq *p_eq);
+				  struct qed_eq *p_eq);
 
 /**
  * @brief qed_eq_deallocate - deallocates the given EQ struct.
@@ -262,7 +272,7 @@ void qed_eq_setup(struct qed_hwfn *p_hwfn,
  * @param p_eq
  */
 void qed_eq_free(struct qed_hwfn *p_hwfn,
-		 struct qed_eq *p_eq);
+				 struct qed_eq *p_eq);
 
 /**
  * @brief qed_eq_prod_update - update the FW with default EQ producer
@@ -271,7 +281,7 @@ void qed_eq_free(struct qed_hwfn *p_hwfn,
  * @param prod
  */
 void qed_eq_prod_update(struct qed_hwfn *p_hwfn,
-			u16 prod);
+						u16 prod);
 
 /**
  * @brief qed_eq_completion - Completes currently pending EQ elements
@@ -282,7 +292,7 @@ void qed_eq_prod_update(struct qed_hwfn *p_hwfn,
  * @return int
  */
 int qed_eq_completion(struct qed_hwfn *p_hwfn,
-		      void *cookie);
+					  void *cookie);
 
 /**
  * @brief qed_spq_completion - Completes a single event
@@ -294,9 +304,9 @@ int qed_eq_completion(struct qed_hwfn *p_hwfn,
  * @return int
  */
 int qed_spq_completion(struct qed_hwfn *p_hwfn,
-		       __le16 echo,
-		       u8 fw_return_code,
-		       union event_ring_data *p_data);
+					   __le16 echo,
+					   u8 fw_return_code,
+					   union event_ring_data *p_data);
 
 /**
  * @brief qed_spq_get_cid - Given p_hwfn, return cid for the hwfn's SPQ
@@ -325,7 +335,7 @@ struct qed_consq *qed_consq_alloc(struct qed_hwfn *p_hwfn);
  * @param p_eq
  */
 void qed_consq_setup(struct qed_hwfn *p_hwfn,
-		     struct qed_consq *p_consq);
+					 struct qed_consq *p_consq);
 
 /**
  * @brief qed_consq_free - deallocates the given ConsQ struct.
@@ -334,7 +344,7 @@ void qed_consq_setup(struct qed_hwfn *p_hwfn,
  * @param p_eq
  */
 void qed_consq_free(struct qed_hwfn *p_hwfn,
-		    struct qed_consq *p_consq);
+					struct qed_consq *p_consq);
 
 /**
  * @file
@@ -345,7 +355,8 @@ void qed_consq_free(struct qed_hwfn *p_hwfn,
 #define QED_SP_EQ_COMPLETION  0x01
 #define QED_SP_CQE_COMPLETION 0x02
 
-struct qed_sp_init_data {
+struct qed_sp_init_data
+{
 	u32			cid;
 	u16			opaque_fid;
 
@@ -355,10 +366,10 @@ struct qed_sp_init_data {
 };
 
 int qed_sp_init_request(struct qed_hwfn *p_hwfn,
-			struct qed_spq_entry **pp_ent,
-			u8 cmd,
-			u8 protocol,
-			struct qed_sp_init_data *p_data);
+						struct qed_spq_entry **pp_ent,
+						u8 cmd,
+						u8 protocol,
+						struct qed_sp_init_data *p_data);
 
 /**
  * @brief qed_sp_pf_start - PF Function Start Ramrod
@@ -380,8 +391,8 @@ int qed_sp_init_request(struct qed_hwfn *p_hwfn,
  */
 
 int qed_sp_pf_start(struct qed_hwfn *p_hwfn,
-		    struct qed_tunn_start_params *p_tunn,
-		    enum qed_mf_mode mode, bool allow_npar_tx_switch);
+					struct qed_tunn_start_params *p_tunn,
+					enum qed_mf_mode mode, bool allow_npar_tx_switch);
 
 /**
  * @brief qed_sp_pf_update - PF Function Update Ramrod
@@ -413,9 +424,9 @@ int qed_sp_pf_update(struct qed_hwfn *p_hwfn);
 int qed_sp_pf_stop(struct qed_hwfn *p_hwfn);
 
 int qed_sp_pf_update_tunn_cfg(struct qed_hwfn *p_hwfn,
-			      struct qed_tunn_update_params *p_tunn,
-			      enum spq_mode comp_mode,
-			      struct qed_spq_comp_cb *p_comp_data);
+							  struct qed_tunn_update_params *p_tunn,
+							  enum spq_mode comp_mode,
+							  struct qed_spq_comp_cb *p_comp_data);
 /**
  * @brief qed_sp_heartbeat_ramrod - Send empty Ramrod
  *

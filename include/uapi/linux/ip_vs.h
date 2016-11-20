@@ -97,25 +97,25 @@
 
 /* Initial bits allowed in backup server */
 #define IP_VS_CONN_F_BACKUP_MASK (IP_VS_CONN_F_FWD_MASK | \
-				  IP_VS_CONN_F_NOOUTPUT | \
-				  IP_VS_CONN_F_INACTIVE | \
-				  IP_VS_CONN_F_SEQ_MASK | \
-				  IP_VS_CONN_F_NO_CPORT | \
-				  IP_VS_CONN_F_TEMPLATE \
-				 )
+								  IP_VS_CONN_F_NOOUTPUT | \
+								  IP_VS_CONN_F_INACTIVE | \
+								  IP_VS_CONN_F_SEQ_MASK | \
+								  IP_VS_CONN_F_NO_CPORT | \
+								  IP_VS_CONN_F_TEMPLATE \
+								 )
 
 /* Bits allowed to update in backup server */
 #define IP_VS_CONN_F_BACKUP_UPD_MASK (IP_VS_CONN_F_INACTIVE | \
-				      IP_VS_CONN_F_SEQ_MASK)
+									  IP_VS_CONN_F_SEQ_MASK)
 
 /* Flags that are not sent to backup server start from bit 16 */
 #define IP_VS_CONN_F_NFCT	(1 << 16)	/* use netfilter conntrack */
 
 /* Connection flags from destination that can be changed by user space */
 #define IP_VS_CONN_F_DEST_MASK (IP_VS_CONN_F_FWD_MASK | \
-				IP_VS_CONN_F_ONE_PACKET | \
-				IP_VS_CONN_F_NFCT | \
-				0)
+								IP_VS_CONN_F_ONE_PACKET | \
+								IP_VS_CONN_F_NFCT | \
+								0)
 
 #define IP_VS_SCHEDNAME_MAXLEN	16
 #define IP_VS_PENAME_MAXLEN	16
@@ -127,7 +127,8 @@
  *	The struct ip_vs_service_user and struct ip_vs_dest_user are
  *	used to set IPVS rules through setsockopt.
  */
-struct ip_vs_service_user {
+struct ip_vs_service_user
+{
 	/* virtual service addresses */
 	__u16		protocol;
 	__be32			addr;		/* virtual ip address */
@@ -142,7 +143,8 @@ struct ip_vs_service_user {
 };
 
 
-struct ip_vs_dest_user {
+struct ip_vs_dest_user
+{
 	/* destination server address */
 	__be32			addr;
 	__be16			port;
@@ -160,7 +162,8 @@ struct ip_vs_dest_user {
 /*
  *	IPVS statistics object (for user space)
  */
-struct ip_vs_stats_user {
+struct ip_vs_stats_user
+{
 	__u32                   conns;          /* connections scheduled */
 	__u32                   inpkts;         /* incoming packets */
 	__u32                   outpkts;        /* outgoing packets */
@@ -176,7 +179,8 @@ struct ip_vs_stats_user {
 
 
 /* The argument to IP_VS_SO_GET_INFO */
-struct ip_vs_getinfo {
+struct ip_vs_getinfo
+{
 	/* version number */
 	unsigned int		version;
 
@@ -189,7 +193,8 @@ struct ip_vs_getinfo {
 
 
 /* The argument to IP_VS_SO_GET_SERVICE */
-struct ip_vs_service_entry {
+struct ip_vs_service_entry
+{
 	/* which service: user fills in these */
 	__u16		protocol;
 	__be32			addr;		/* virtual address */
@@ -210,7 +215,8 @@ struct ip_vs_service_entry {
 };
 
 
-struct ip_vs_dest_entry {
+struct ip_vs_dest_entry
+{
 	__be32			addr;		/* destination address */
 	__be16			port;
 	unsigned int		conn_flags;	/* connection flags */
@@ -229,7 +235,8 @@ struct ip_vs_dest_entry {
 
 
 /* The argument to IP_VS_SO_GET_DESTS */
-struct ip_vs_get_dests {
+struct ip_vs_get_dests
+{
 	/* which service: user fills in these */
 	__u16		protocol;
 	__be32			addr;		/* virtual address */
@@ -245,7 +252,8 @@ struct ip_vs_get_dests {
 
 
 /* The argument to IP_VS_SO_GET_SERVICES */
-struct ip_vs_get_services {
+struct ip_vs_get_services
+{
 	/* number of virtual services */
 	unsigned int		num_services;
 
@@ -255,7 +263,8 @@ struct ip_vs_get_services {
 
 
 /* The argument to IP_VS_SO_GET_TIMEOUT */
-struct ip_vs_timeout_user {
+struct ip_vs_timeout_user
+{
 	int			tcp_timeout;
 	int			tcp_fin_timeout;
 	int			udp_timeout;
@@ -263,7 +272,8 @@ struct ip_vs_timeout_user {
 
 
 /* The argument to IP_VS_SO_GET_DAEMON */
-struct ip_vs_daemon_user {
+struct ip_vs_daemon_user
+{
 	/* sync daemon state (master/backup) */
 	int			state;
 
@@ -285,13 +295,15 @@ struct ip_vs_daemon_user {
 #define IPVS_GENL_NAME		"IPVS"
 #define IPVS_GENL_VERSION	0x1
 
-struct ip_vs_flags {
+struct ip_vs_flags
+{
 	__u32 flags;
 	__u32 mask;
 };
 
 /* Generic Netlink command attributes */
-enum {
+enum
+{
 	IPVS_CMD_UNSPEC = 0,
 
 	IPVS_CMD_NEW_SERVICE,		/* add service */
@@ -323,7 +335,8 @@ enum {
 #define IPVS_CMD_MAX (__IPVS_CMD_MAX - 1)
 
 /* Attributes used in the first level of commands */
-enum {
+enum
+{
 	IPVS_CMD_ATTR_UNSPEC = 0,
 	IPVS_CMD_ATTR_SERVICE,		/* nested service attribute */
 	IPVS_CMD_ATTR_DEST,		/* nested destination attribute */
@@ -341,7 +354,8 @@ enum {
  *
  * Used inside nested attribute IPVS_CMD_ATTR_SERVICE
  */
-enum {
+enum
+{
 	IPVS_SVC_ATTR_UNSPEC = 0,
 	IPVS_SVC_ATTR_AF,		/* address family */
 	IPVS_SVC_ATTR_PROTOCOL,		/* virtual service protocol */
@@ -370,7 +384,8 @@ enum {
  *
  * Used inside nested attribute IPVS_CMD_ATTR_DEST
  */
-enum {
+enum
+{
 	IPVS_DEST_ATTR_UNSPEC = 0,
 	IPVS_DEST_ATTR_ADDR,		/* real server address */
 	IPVS_DEST_ATTR_PORT,		/* real server port */
@@ -401,7 +416,8 @@ enum {
  *
  * Used inside nested attribute IPVS_CMD_ATTR_DAEMON
  */
-enum {
+enum
+{
 	IPVS_DAEMON_ATTR_UNSPEC = 0,
 	IPVS_DAEMON_ATTR_STATE,		/* sync daemon state (master/backup) */
 	IPVS_DAEMON_ATTR_MCAST_IFN,	/* multicast interface name */
@@ -422,7 +438,8 @@ enum {
  * Used inside nested attributes IPVS_SVC_ATTR_STATS, IPVS_DEST_ATTR_STATS,
  * IPVS_SVC_ATTR_STATS64 and IPVS_DEST_ATTR_STATS64.
  */
-enum {
+enum
+{
 	IPVS_STATS_ATTR_UNSPEC = 0,
 	IPVS_STATS_ATTR_CONNS,		/* connections scheduled */
 	IPVS_STATS_ATTR_INPKTS,		/* incoming packets */
@@ -442,7 +459,8 @@ enum {
 #define IPVS_STATS_ATTR_MAX (__IPVS_STATS_ATTR_MAX - 1)
 
 /* Attributes used in response to IPVS_CMD_GET_INFO command */
-enum {
+enum
+{
 	IPVS_INFO_ATTR_UNSPEC = 0,
 	IPVS_INFO_ATTR_VERSION,		/* IPVS version number */
 	IPVS_INFO_ATTR_CONN_TAB_SIZE,	/* size of connection hash table */

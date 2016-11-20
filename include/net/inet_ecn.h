@@ -7,7 +7,8 @@
 #include <net/inet_sock.h>
 #include <net/dsfield.h>
 
-enum {
+enum
+{
 	INET_ECN_NOT_ECT = 0,
 	INET_ECN_ECT_1 = 1,
 	INET_ECN_ECT_0 = 2,
@@ -44,32 +45,38 @@ static inline __u8 INET_ECN_encapsulate(__u8 outer, __u8 inner)
 {
 	outer &= ~INET_ECN_MASK;
 	outer |= !INET_ECN_is_ce(inner) ? (inner & INET_ECN_MASK) :
-					  INET_ECN_ECT_0;
+			 INET_ECN_ECT_0;
 	return outer;
 }
 
 static inline void INET_ECN_xmit(struct sock *sk)
 {
 	inet_sk(sk)->tos |= INET_ECN_ECT_0;
+
 	if (inet6_sk(sk) != NULL)
+	{
 		inet6_sk(sk)->tclass |= INET_ECN_ECT_0;
+	}
 }
 
 static inline void INET_ECN_dontxmit(struct sock *sk)
 {
 	inet_sk(sk)->tos &= ~INET_ECN_MASK;
+
 	if (inet6_sk(sk) != NULL)
+	{
 		inet6_sk(sk)->tclass &= ~INET_ECN_MASK;
+	}
 }
 
 #define IP6_ECN_flow_init(label) do {		\
-      (label) &= ~htonl(INET_ECN_MASK << 20);	\
-    } while (0)
+		(label) &= ~htonl(INET_ECN_MASK << 20);	\
+	} while (0)
 
 #define	IP6_ECN_flow_xmit(sk, label) do {				\
-	if (INET_ECN_is_capable(inet6_sk(sk)->tclass))			\
-		(label) |= htonl(INET_ECN_ECT_0 << 20);			\
-    } while (0)
+		if (INET_ECN_is_capable(inet6_sk(sk)->tclass))			\
+			(label) |= htonl(INET_ECN_ECT_0 << 20);			\
+	} while (0)
 
 static inline int IP_ECN_set_ce(struct iphdr *iph)
 {
@@ -84,7 +91,9 @@ static inline int IP_ECN_set_ce(struct iphdr *iph)
 	 * INET_ECN_CE      => 00
 	 */
 	if (!(ecn & 2))
+	{
 		return !ecn;
+	}
 
 	/*
 	 * The following gives us:
@@ -93,7 +102,7 @@ static inline int IP_ECN_set_ce(struct iphdr *iph)
 	 */
 	check += (__force u16)htons(0xFFFB) + (__force u16)htons(ecn);
 
-	iph->check = (__force __sum16)(check + (check>=0xFFFF));
+	iph->check = (__force __sum16)(check + (check >= 0xFFFF));
 	iph->tos |= INET_ECN_CE;
 	return 1;
 }
@@ -122,20 +131,24 @@ static inline int IP6_ECN_set_ce(struct sk_buff *skb, struct ipv6hdr *iph)
 	__be32 from, to;
 
 	if (INET_ECN_is_not_ect(ipv6_get_dsfield(iph)))
+	{
 		return 0;
+	}
 
 	from = *(__be32 *)iph;
 	to = from | htonl(INET_ECN_CE << 20);
 	*(__be32 *)iph = to;
+
 	if (skb->ip_summed == CHECKSUM_COMPLETE)
 		skb->csum = csum_add(csum_sub(skb->csum, (__force __wsum)from),
-				     (__force __wsum)to);
+							 (__force __wsum)to);
+
 	return 1;
 }
 
 static inline void IP6_ECN_clear(struct ipv6hdr *iph)
 {
-	*(__be32*)iph &= ~htonl(INET_ECN_MASK << 20);
+	*(__be32 *)iph &= ~htonl(INET_ECN_MASK << 20);
 }
 
 static inline void ipv6_copy_dscp(unsigned int dscp, struct ipv6hdr *inner)
@@ -146,18 +159,25 @@ static inline void ipv6_copy_dscp(unsigned int dscp, struct ipv6hdr *inner)
 
 static inline int INET_ECN_set_ce(struct sk_buff *skb)
 {
-	switch (skb->protocol) {
-	case cpu_to_be16(ETH_P_IP):
-		if (skb_network_header(skb) + sizeof(struct iphdr) <=
-		    skb_tail_pointer(skb))
-			return IP_ECN_set_ce(ip_hdr(skb));
-		break;
+	switch (skb->protocol)
+	{
+		case cpu_to_be16(ETH_P_IP):
+			if (skb_network_header(skb) + sizeof(struct iphdr) <=
+				skb_tail_pointer(skb))
+			{
+				return IP_ECN_set_ce(ip_hdr(skb));
+			}
 
-	case cpu_to_be16(ETH_P_IPV6):
-		if (skb_network_header(skb) + sizeof(struct ipv6hdr) <=
-		    skb_tail_pointer(skb))
-			return IP6_ECN_set_ce(skb, ipv6_hdr(skb));
-		break;
+			break;
+
+		case cpu_to_be16(ETH_P_IPV6):
+			if (skb_network_header(skb) + sizeof(struct ipv6hdr) <=
+				skb_tail_pointer(skb))
+			{
+				return IP6_ECN_set_ce(skb, ipv6_hdr(skb));
+			}
+
+			break;
 	}
 
 	return 0;
@@ -188,52 +208,70 @@ static inline int INET_ECN_set_ce(struct sk_buff *skb)
  *          2 if packet should be dropped
  */
 static inline int INET_ECN_decapsulate(struct sk_buff *skb,
-				       __u8 outer, __u8 inner)
+									   __u8 outer, __u8 inner)
 {
-	if (INET_ECN_is_not_ect(inner)) {
-		switch (outer & INET_ECN_MASK) {
-		case INET_ECN_NOT_ECT:
-			return 0;
-		case INET_ECN_ECT_0:
-		case INET_ECN_ECT_1:
-			return 1;
-		case INET_ECN_CE:
-			return 2;
+	if (INET_ECN_is_not_ect(inner))
+	{
+		switch (outer & INET_ECN_MASK)
+		{
+			case INET_ECN_NOT_ECT:
+				return 0;
+
+			case INET_ECN_ECT_0:
+			case INET_ECN_ECT_1:
+				return 1;
+
+			case INET_ECN_CE:
+				return 2;
 		}
 	}
 
 	if (INET_ECN_is_ce(outer))
+	{
 		INET_ECN_set_ce(skb);
+	}
 
 	return 0;
 }
 
 static inline int IP_ECN_decapsulate(const struct iphdr *oiph,
-				     struct sk_buff *skb)
+									 struct sk_buff *skb)
 {
 	__u8 inner;
 
 	if (skb->protocol == htons(ETH_P_IP))
+	{
 		inner = ip_hdr(skb)->tos;
+	}
 	else if (skb->protocol == htons(ETH_P_IPV6))
+	{
 		inner = ipv6_get_dsfield(ipv6_hdr(skb));
+	}
 	else
+	{
 		return 0;
+	}
 
 	return INET_ECN_decapsulate(skb, oiph->tos, inner);
 }
 
 static inline int IP6_ECN_decapsulate(const struct ipv6hdr *oipv6h,
-				      struct sk_buff *skb)
+									  struct sk_buff *skb)
 {
 	__u8 inner;
 
 	if (skb->protocol == htons(ETH_P_IP))
+	{
 		inner = ip_hdr(skb)->tos;
+	}
 	else if (skb->protocol == htons(ETH_P_IPV6))
+	{
 		inner = ipv6_get_dsfield(ipv6_hdr(skb));
+	}
 	else
+	{
 		return 0;
+	}
 
 	return INET_ECN_decapsulate(skb, ipv6_get_dsfield(oipv6h), inner);
 }

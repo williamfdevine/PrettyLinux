@@ -32,7 +32,8 @@
 #define MSG_DISPLAY_CTRL	0xf /* H3100 only */
 
 /* state of receiver parser */
-enum rx_state {
+enum rx_state
+{
 	STATE_SOF = 0,     /* Next byte should be start of frame */
 	STATE_ID,          /* Next byte is ID & message length   */
 	STATE_DATA,        /* Next byte is a data byte           */
@@ -45,7 +46,8 @@ enum rx_state {
  * @index: current index into TX buffer
  * @buf: TX buffer
  */
-struct ipaq_micro_txdev {
+struct ipaq_micro_txdev
+{
 	u8 len;
 	u8 index;
 	u8 buf[TX_BUF_SIZE];
@@ -60,7 +62,8 @@ struct ipaq_micro_txdev {
  * @index: RX buffer index
  * @buf: RX buffer
  */
-struct ipaq_micro_rxdev {
+struct ipaq_micro_rxdev
+{
 	enum rx_state state;
 	unsigned char chksum;
 	u8            id;
@@ -79,7 +82,8 @@ struct ipaq_micro_rxdev {
  * @ack: a completion that will be completed when RX is complete
  * @node: list node if message gets queued
  */
-struct ipaq_micro_msg {
+struct ipaq_micro_msg
+{
 	u8 id;
 	u8 tx_len;
 	u8 tx_data[TX_BUF_SIZE];
@@ -105,7 +109,8 @@ struct ipaq_micro_msg {
  * @ts: callback for asynchronous touchscreen events
  * @ts_data: data to pass along with key events
  */
-struct ipaq_micro {
+struct ipaq_micro
+{
 	struct device *dev;
 	void __iomem *base;
 	void __iomem *sdlc;
@@ -126,7 +131,7 @@ ipaq_micro_tx_msg(struct ipaq_micro *micro, struct ipaq_micro_msg *msg);
 
 static inline int
 ipaq_micro_tx_msg_sync(struct ipaq_micro *micro,
-		       struct ipaq_micro_msg *msg)
+					   struct ipaq_micro_msg *msg)
 {
 	int ret;
 
@@ -139,7 +144,7 @@ ipaq_micro_tx_msg_sync(struct ipaq_micro *micro,
 
 static inline int
 ipaq_micro_tx_msg_async(struct ipaq_micro *micro,
-			struct ipaq_micro_msg *msg)
+						struct ipaq_micro_msg *msg)
 {
 	init_completion(&msg->ack);
 	return ipaq_micro_tx_msg(micro, msg);

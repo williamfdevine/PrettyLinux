@@ -22,8 +22,11 @@ static struct dm_cache_policy_type *__find_policy(const char *name)
 	struct dm_cache_policy_type *t;
 
 	list_for_each_entry(t, &register_list, list)
-		if (!strcmp(t->name, name))
-			return t;
+
+	if (!strcmp(t->name, name))
+	{
+		return t;
+	}
 
 	return NULL;
 }
@@ -32,7 +35,8 @@ static struct dm_cache_policy_type *__get_policy_once(const char *name)
 {
 	struct dm_cache_policy_type *t = __find_policy(name);
 
-	if (t && !try_module_get(t->owner)) {
+	if (t && !try_module_get(t->owner))
+	{
 		DMWARN("couldn't get module %s", name);
 		t = ERR_PTR(-EINVAL);
 	}
@@ -56,17 +60,25 @@ static struct dm_cache_policy_type *get_policy(const char *name)
 	struct dm_cache_policy_type *t;
 
 	t = get_policy_once(name);
+
 	if (IS_ERR(t))
+	{
 		return NULL;
+	}
 
 	if (t)
+	{
 		return t;
+	}
 
 	request_module("dm-cache-%s", name);
 
 	t = get_policy_once(name);
+
 	if (IS_ERR(t))
+	{
 		return NULL;
+	}
 
 	return t;
 }
@@ -81,19 +93,25 @@ int dm_cache_policy_register(struct dm_cache_policy_type *type)
 	int r;
 
 	/* One size fits all for now */
-	if (type->hint_size != 0 && type->hint_size != 4) {
+	if (type->hint_size != 0 && type->hint_size != 4)
+	{
 		DMWARN("hint size must be 0 or 4 but %llu supplied.", (unsigned long long) type->hint_size);
 		return -EINVAL;
 	}
 
 	spin_lock(&register_lock);
-	if (__find_policy(type->name)) {
+
+	if (__find_policy(type->name))
+	{
 		DMWARN("attempt to register policy under duplicate name %s", type->name);
 		r = -EINVAL;
-	} else {
+	}
+	else
+	{
 		list_add(&type->list, &register_list);
 		r = 0;
 	}
+
 	spin_unlock(&register_lock);
 
 	return r;
@@ -109,24 +127,29 @@ void dm_cache_policy_unregister(struct dm_cache_policy_type *type)
 EXPORT_SYMBOL_GPL(dm_cache_policy_unregister);
 
 struct dm_cache_policy *dm_cache_policy_create(const char *name,
-					       dm_cblock_t cache_size,
-					       sector_t origin_size,
-					       sector_t cache_block_size)
+		dm_cblock_t cache_size,
+		sector_t origin_size,
+		sector_t cache_block_size)
 {
 	struct dm_cache_policy *p = NULL;
 	struct dm_cache_policy_type *type;
 
 	type = get_policy(name);
-	if (!type) {
+
+	if (!type)
+	{
 		DMWARN("unknown policy type");
 		return ERR_PTR(-EINVAL);
 	}
 
 	p = type->create(cache_size, origin_size, cache_block_size);
-	if (!p) {
+
+	if (!p)
+	{
 		put_policy(type);
 		return ERR_PTR(-ENOMEM);
 	}
+
 	p->private = type;
 
 	return p;
@@ -148,7 +171,9 @@ const char *dm_cache_policy_get_name(struct dm_cache_policy *p)
 
 	/* if t->real is set then an alias was used (e.g. "default") */
 	if (t->real)
+	{
 		return t->real->name;
+	}
 
 	return t->name;
 }

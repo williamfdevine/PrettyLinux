@@ -15,7 +15,7 @@
  * Enable dprintk() debugging support for nfs client.
  */
 #ifdef CONFIG_NFS_DEBUG
-# define NFS_DEBUG
+	#define NFS_DEBUG
 #endif
 
 #include <linux/in.h>
@@ -46,21 +46,24 @@
 /*
  * NFSv3/v4 Access mode cache entry
  */
-struct nfs_access_entry {
+struct nfs_access_entry
+{
 	struct rb_node		rb_node;
 	struct list_head	lru;
 	unsigned long		jiffies;
-	struct rpc_cred *	cred;
+	struct rpc_cred 	*cred;
 	int			mask;
 	struct rcu_head		rcu_head;
 };
 
-struct nfs_lockowner {
+struct nfs_lockowner
+{
 	fl_owner_t l_owner;
 	pid_t l_pid;
 };
 
-struct nfs_lock_context {
+struct nfs_lock_context
+{
 	atomic_t count;
 	struct list_head list;
 	struct nfs_open_context *open_context;
@@ -69,7 +72,8 @@ struct nfs_lock_context {
 };
 
 struct nfs4_state;
-struct nfs_open_context {
+struct nfs_open_context
+{
 	struct nfs_lock_context lock_context;
 	struct dentry *dentry;
 	struct rpc_cred *cred;
@@ -86,7 +90,8 @@ struct nfs_open_context {
 	struct nfs4_threshold	*mdsthreshold;
 };
 
-struct nfs_open_dir_context {
+struct nfs_open_dir_context
+{
 	struct list_head list;
 	struct rpc_cred *cred;
 	unsigned long attr_gencount;
@@ -105,7 +110,8 @@ struct posix_acl;
 /*
  * nfs fs inode data in memory
  */
-struct nfs_inode {
+struct nfs_inode
+{
 	/*
 	 * The 64bit 'inode number'
 	 */
@@ -169,7 +175,7 @@ struct nfs_inode {
 
 #if IS_ENABLED(CONFIG_NFS_V4)
 	struct nfs4_cached_acl	*nfs4_acl;
-        /* NFSv4 state */
+	/* NFSv4 state */
 	struct list_head	open_states;
 	struct nfs_delegation __rcu *delegation;
 	struct rw_semaphore	rwsem;
@@ -284,11 +290,15 @@ static inline void nfs_mark_for_revalidate(struct inode *inode)
 
 	spin_lock(&inode->i_lock);
 	nfsi->cache_validity |= NFS_INO_INVALID_ATTR |
-				NFS_INO_REVAL_PAGECACHE |
-				NFS_INO_INVALID_ACCESS |
-				NFS_INO_INVALID_ACL;
+							NFS_INO_REVAL_PAGECACHE |
+							NFS_INO_INVALID_ACCESS |
+							NFS_INO_INVALID_ACL;
+
 	if (S_ISDIR(inode->i_mode))
+	{
 		nfsi->cache_validity |= NFS_INO_INVALID_DATA;
+	}
+
 	spin_unlock(&inode->i_lock);
 }
 
@@ -297,7 +307,7 @@ static inline int nfs_server_capable(struct inode *inode, int cap)
 	return NFS_SERVER(inode)->caps & cap;
 }
 
-static inline void nfs_set_verifier(struct dentry * dentry, unsigned long verf)
+static inline void nfs_set_verifier(struct dentry *dentry, unsigned long verf)
 {
 	dentry->d_time = verf;
 }
@@ -334,7 +344,7 @@ extern void nfs_zap_mapping(struct inode *inode, struct address_space *mapping);
 extern void nfs_zap_caches(struct inode *);
 extern void nfs_invalidate_atime(struct inode *);
 extern struct inode *nfs_fhget(struct super_block *, struct nfs_fh *,
-				struct nfs_fattr *, struct nfs4_label *);
+							   struct nfs_fattr *, struct nfs4_label *);
 extern int nfs_refresh_inode(struct inode *, struct nfs_fattr *);
 extern int nfs_post_op_update_inode(struct inode *inode, struct nfs_fattr *fattr);
 extern int nfs_post_op_update_inode_force_wcc(struct inode *inode, struct nfs_fattr *fattr);
@@ -354,7 +364,7 @@ extern int nfs_revalidate_mapping_rcu(struct inode *inode);
 extern int nfs_setattr(struct dentry *, struct iattr *);
 extern void nfs_setattr_update_inode(struct inode *inode, struct iattr *attr, struct nfs_fattr *);
 extern void nfs_setsecurity(struct inode *inode, struct nfs_fattr *fattr,
-				struct nfs4_label *label);
+							struct nfs4_label *label);
 extern struct nfs_open_context *get_nfs_open_context(struct nfs_open_context *ctx);
 extern void put_nfs_open_context(struct nfs_open_context *ctx);
 extern struct nfs_open_context *nfs_find_open_context(struct inode *inode, struct rpc_cred *cred, fmode_t mode);
@@ -401,7 +411,7 @@ static inline u32 nfs_display_fhandle_hash(const struct nfs_fh *fh)
 	return 0;
 }
 static inline void nfs_display_fhandle(const struct nfs_fh *fh,
-				       const char *caption)
+									   const char *caption)
 {
 }
 #endif
@@ -418,7 +428,7 @@ extern __be32 root_nfs_parse_addr(char *name); /*__init*/
  */
 extern const struct file_operations nfs_file_operations;
 #if IS_ENABLED(CONFIG_NFS_V4)
-extern const struct file_operations nfs4_file_operations;
+	extern const struct file_operations nfs4_file_operations;
 #endif /* CONFIG_NFS_V4 */
 extern const struct address_space_operations nfs_file_aops;
 extern const struct address_space_operations nfs_dir_aops;
@@ -430,12 +440,17 @@ static inline struct nfs_open_context *nfs_file_open_context(struct file *filp)
 
 static inline struct rpc_cred *nfs_file_cred(struct file *file)
 {
-	if (file != NULL) {
+	if (file != NULL)
+	{
 		struct nfs_open_context *ctx =
 			nfs_file_open_context(file);
+
 		if (ctx)
+		{
 			return ctx->cred;
+		}
 	}
+
 	return NULL;
 }
 
@@ -444,9 +459,9 @@ static inline struct rpc_cred *nfs_file_cred(struct file *file)
  */
 extern ssize_t nfs_direct_IO(struct kiocb *, struct iov_iter *);
 extern ssize_t nfs_file_direct_read(struct kiocb *iocb,
-			struct iov_iter *iter);
+									struct iov_iter *iter);
 extern ssize_t nfs_file_direct_write(struct kiocb *iocb,
-			struct iov_iter *iter);
+									 struct iov_iter *iter);
 
 /*
  * linux/fs/nfs/dir.c
@@ -456,7 +471,7 @@ extern const struct dentry_operations nfs_dentry_operations;
 
 extern void nfs_force_lookup_revalidate(struct inode *dir);
 extern int nfs_instantiate(struct dentry *dentry, struct nfs_fh *fh,
-			struct nfs_fattr *fattr, struct nfs4_label *label);
+						   struct nfs_fattr *fattr, struct nfs4_label *label);
 extern int nfs_may_open(struct inode *inode, struct rpc_cred *cred, int openflags);
 extern void nfs_access_zap_cache(struct inode *inode);
 
@@ -469,11 +484,11 @@ extern const struct inode_operations nfs_symlink_inode_operations;
  * linux/fs/nfs/sysctl.c
  */
 #ifdef CONFIG_SYSCTL
-extern int nfs_register_sysctl(void);
-extern void nfs_unregister_sysctl(void);
+	extern int nfs_register_sysctl(void);
+	extern void nfs_unregister_sysctl(void);
 #else
-#define nfs_register_sysctl() 0
-#define nfs_unregister_sysctl() do { } while(0)
+	#define nfs_register_sysctl() 0
+	#define nfs_unregister_sysctl() do { } while(0)
 #endif
 
 /*
@@ -505,7 +520,7 @@ extern int  nfs_updatepage(struct file *, struct page *, unsigned int, unsigned 
 extern int nfs_sync_inode(struct inode *inode);
 extern int nfs_wb_all(struct inode *inode);
 extern int nfs_wb_single_page(struct inode *inode, struct page *page, bool launder);
-extern int nfs_wb_page_cancel(struct inode *inode, struct page* page);
+extern int nfs_wb_page_cancel(struct inode *inode, struct page *page);
 extern int  nfs_commit_inode(struct inode *, int);
 extern struct nfs_commit_data *nfs_commitdata_alloc(void);
 extern void nfs_commit_free(struct nfs_commit_data *data);
@@ -533,9 +548,9 @@ nfs_have_writebacks(struct inode *inode)
  */
 extern int  nfs_readpage(struct file *, struct page *);
 extern int  nfs_readpages(struct file *, struct address_space *,
-		struct list_head *, unsigned);
+						  struct list_head *, unsigned);
 extern int  nfs_readpage_async(struct nfs_open_context *, struct inode *,
-			       struct page *);
+							   struct page *);
 
 /*
  * inline functions
@@ -550,8 +565,12 @@ static inline ino_t
 nfs_fileid_to_ino_t(u64 fileid)
 {
 	ino_t ino = (ino_t) fileid;
+
 	if (sizeof(ino_t) < sizeof(u64))
-		ino ^= fileid >> (sizeof(u64)-sizeof(ino_t)) * 8;
+	{
+		ino ^= fileid >> (sizeof(u64) - sizeof(ino_t)) * 8;
+	}
+
 	return ino;
 }
 
@@ -559,11 +578,11 @@ nfs_fileid_to_ino_t(u64 fileid)
 
 
 # undef ifdebug
-# ifdef NFS_DEBUG
-#  define ifdebug(fac)		if (unlikely(nfs_debug & NFSDBG_##fac))
-#  define NFS_IFDEBUG(x)	x
-# else
-#  define ifdebug(fac)		if (0)
-#  define NFS_IFDEBUG(x)
-# endif
+#ifdef NFS_DEBUG
+	#define ifdebug(fac)		if (unlikely(nfs_debug & NFSDBG_##fac))
+	#define NFS_IFDEBUG(x)	x
+#else
+	#define ifdebug(fac)		if (0)
+	#define NFS_IFDEBUG(x)
+#endif
 #endif

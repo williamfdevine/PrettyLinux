@@ -66,7 +66,7 @@ static void Init_ODM_ComInfo_88E(struct adapter *Adapter)
 	dm_odm->BbSwingFlagOfdm = false;
 
 	pdmpriv->InitODMFlag =	ODM_RF_CALIBRATION |
-				ODM_RF_TX_PWR_TRACK;
+							ODM_RF_TX_PWR_TRACK;
 
 	dm_odm->SupportAbility = pdmpriv->InitODMFlag;
 }
@@ -82,21 +82,25 @@ static void Update_ODM_ComInfo_88E(struct adapter *Adapter)
 	int i;
 
 	pdmpriv->InitODMFlag =	ODM_BB_DIG |
-				ODM_BB_RA_MASK |
-				ODM_BB_DYNAMIC_TXPWR |
-				ODM_BB_FA_CNT |
-				ODM_BB_RSSI_MONITOR |
-				ODM_BB_CCK_PD |
-				ODM_BB_PWR_SAVE |
-				ODM_MAC_EDCA_TURBO |
-				ODM_RF_CALIBRATION |
-				ODM_RF_TX_PWR_TRACK;
-	if (hal_data->AntDivCfg)
-		pdmpriv->InitODMFlag |= ODM_BB_ANT_DIV;
+							ODM_BB_RA_MASK |
+							ODM_BB_DYNAMIC_TXPWR |
+							ODM_BB_FA_CNT |
+							ODM_BB_RSSI_MONITOR |
+							ODM_BB_CCK_PD |
+							ODM_BB_PWR_SAVE |
+							ODM_MAC_EDCA_TURBO |
+							ODM_RF_CALIBRATION |
+							ODM_RF_TX_PWR_TRACK;
 
-	if (Adapter->registrypriv.mp_mode == 1) {
+	if (hal_data->AntDivCfg)
+	{
+		pdmpriv->InitODMFlag |= ODM_BB_ANT_DIV;
+	}
+
+	if (Adapter->registrypriv.mp_mode == 1)
+	{
 		pdmpriv->InitODMFlag =	ODM_RF_CALIBRATION |
-					ODM_RF_TX_PWR_TRACK;
+								ODM_RF_TX_PWR_TRACK;
 	}
 
 	dm_odm->SupportAbility = pdmpriv->InitODMFlag;
@@ -121,7 +125,9 @@ static void Update_ODM_ComInfo_88E(struct adapter *Adapter)
 	dm_odm->BbSwingFlagOfdm = false;
 
 	for (i = 0; i < NUM_STA; i++)
+	{
 		ODM_CmnInfoPtrArrayHook(dm_odm, ODM_CMNINFO_STA_STATUS, i, NULL);
+	}
 }
 
 void rtl8188e_InitHalDm(struct adapter *Adapter)
@@ -145,19 +151,28 @@ void rtw_hal_dm_watchdog(struct adapter *Adapter)
 	hw_init_completed = Adapter->hw_init_completed;
 
 	if (!hw_init_completed)
+	{
 		goto skip_dm;
+	}
 
 	/* ODM */
 	pmlmepriv = &Adapter->mlmepriv;
 
 	if ((check_fwstate(pmlmepriv, WIFI_AP_STATE)) ||
-	    (check_fwstate(pmlmepriv, WIFI_ADHOC_STATE |
-			   WIFI_ADHOC_MASTER_STATE))) {
+		(check_fwstate(pmlmepriv, WIFI_ADHOC_STATE |
+					   WIFI_ADHOC_MASTER_STATE)))
+	{
 		if (Adapter->stapriv.asoc_sta_count > 2)
+		{
 			bLinked = true;
-	} else {/* Station mode */
+		}
+	}
+	else    /* Station mode */
+	{
 		if (check_fwstate(pmlmepriv, _FW_LINKED))
+		{
 			bLinked = true;
+		}
 	}
 
 	Adapter->HalData->odmpriv.bLinked = bLinked;
@@ -182,9 +197,11 @@ void rtw_hal_dm_init(struct adapter *Adapter)
 /*  Compare RSSI for deciding antenna */
 void rtw_hal_antdiv_rssi_compared(struct adapter *Adapter, struct wlan_bssid_ex *dst, struct wlan_bssid_ex *src)
 {
-	if (0 != Adapter->HalData->AntDivCfg) {
+	if (0 != Adapter->HalData->AntDivCfg)
+	{
 		/* select optimum_antenna for before linked =>For antenna diversity */
-		if (dst->Rssi >=  src->Rssi) {/* keep org parameter */
+		if (dst->Rssi >=  src->Rssi)  /* keep org parameter */
+		{
 			src->Rssi = dst->Rssi;
 			src->PhyInfo.Optimum_antenna = dst->PhyInfo.Optimum_antenna;
 		}
@@ -200,19 +217,26 @@ u8 rtw_hal_antdiv_before_linked(struct adapter *Adapter)
 
 	/*  Condition that does not need to use antenna diversity. */
 	if (Adapter->HalData->AntDivCfg == 0)
+	{
 		return false;
+	}
 
 	if (check_fwstate(pmlmepriv, _FW_LINKED))
+	{
 		return false;
+	}
 
-	if (dm_swat_tbl->SWAS_NoLink_State == 0) {
+	if (dm_swat_tbl->SWAS_NoLink_State == 0)
+	{
 		/* switch channel */
 		dm_swat_tbl->SWAS_NoLink_State = 1;
 		dm_swat_tbl->CurAntenna = (dm_swat_tbl->CurAntenna == Antenna_A) ? Antenna_B : Antenna_A;
 
 		rtw_antenna_select_cmd(Adapter, dm_swat_tbl->CurAntenna, false);
 		return true;
-	} else {
+	}
+	else
+	{
 		dm_swat_tbl->SWAS_NoLink_State = 0;
 		return false;
 	}

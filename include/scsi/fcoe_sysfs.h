@@ -27,7 +27,8 @@
 struct fcoe_ctlr_device;
 struct fcoe_fcf_device;
 
-struct fcoe_sysfs_function_template {
+struct fcoe_sysfs_function_template
+{
 	void (*get_fcoe_ctlr_link_fail)(struct fcoe_ctlr_device *);
 	void (*get_fcoe_ctlr_vlink_fail)(struct fcoe_ctlr_device *);
 	void (*get_fcoe_ctlr_miss_fka)(struct fcoe_ctlr_device *);
@@ -43,19 +44,22 @@ struct fcoe_sysfs_function_template {
 #define dev_to_ctlr(d)					\
 	container_of((d), struct fcoe_ctlr_device, dev)
 
-enum fip_conn_type {
+enum fip_conn_type
+{
 	FIP_CONN_TYPE_UNKNOWN,
 	FIP_CONN_TYPE_FABRIC,
 	FIP_CONN_TYPE_VN2VN,
 };
 
-enum ctlr_enabled_state {
+enum ctlr_enabled_state
+{
 	FCOE_CTLR_ENABLED,
 	FCOE_CTLR_DISABLED,
 	FCOE_CTLR_UNUSED,
 };
 
-struct fcoe_ctlr_device {
+struct fcoe_ctlr_device
+{
 	u32				id;
 
 	struct device			dev;
@@ -83,14 +87,16 @@ static inline void *fcoe_ctlr_device_priv(const struct fcoe_ctlr_device *ctlr)
 }
 
 /* fcf states */
-enum fcf_state {
+enum fcf_state
+{
 	FCOE_FCF_STATE_UNKNOWN,
 	FCOE_FCF_STATE_DISCONNECTED,
 	FCOE_FCF_STATE_CONNECTED,
 	FCOE_FCF_STATE_DELETED,
 };
 
-struct fcoe_fcf_device {
+struct fcoe_fcf_device
+{
 	u32		    id;
 	struct device	    dev;
 	struct list_head    peers;
@@ -120,11 +126,11 @@ struct fcoe_fcf_device {
 	((x)->priv)
 
 struct fcoe_ctlr_device *fcoe_ctlr_device_add(struct device *parent,
-			    struct fcoe_sysfs_function_template *f,
-			    int priv_size);
+		struct fcoe_sysfs_function_template *f,
+		int priv_size);
 void fcoe_ctlr_device_delete(struct fcoe_ctlr_device *);
 struct fcoe_fcf_device *fcoe_fcf_device_add(struct fcoe_ctlr_device *,
-					    struct fcoe_fcf_device *);
+		struct fcoe_fcf_device *);
 void fcoe_fcf_device_delete(struct fcoe_fcf_device *);
 
 int __init fcoe_sysfs_setup(void);

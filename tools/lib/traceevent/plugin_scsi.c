@@ -163,7 +163,7 @@ scsi_trace_rw6(struct trace_seq *p, unsigned char *cdb, int len)
 	txlen = cdb[4];
 
 	trace_seq_printf(p, "lba=%llu txlen=%llu",
-			 (unsigned long long)lba, (unsigned long long)txlen);
+					 (unsigned long long)lba, (unsigned long long)txlen);
 	trace_seq_putc(p, 0);
 	return ret;
 }
@@ -182,11 +182,13 @@ scsi_trace_rw10(struct trace_seq *p, unsigned char *cdb, int len)
 	txlen |=  cdb[8];
 
 	trace_seq_printf(p, "lba=%llu txlen=%llu protect=%u",
-			 (unsigned long long)lba, (unsigned long long)txlen,
-			 cdb[1] >> 5);
+					 (unsigned long long)lba, (unsigned long long)txlen,
+					 cdb[1] >> 5);
 
 	if (cdb[0] == WRITE_SAME)
+	{
 		trace_seq_printf(p, " unmap=%u", cdb[1] >> 3 & 1);
+	}
 
 	trace_seq_putc(p, 0);
 	return ret;
@@ -208,8 +210,8 @@ scsi_trace_rw12(struct trace_seq *p, unsigned char *cdb, int len)
 	txlen |=  cdb[9];
 
 	trace_seq_printf(p, "lba=%llu txlen=%llu protect=%u",
-			 (unsigned long long)lba, (unsigned long long)txlen,
-			 cdb[1] >> 5);
+					 (unsigned long long)lba, (unsigned long long)txlen,
+					 cdb[1] >> 5);
 	trace_seq_putc(p, 0);
 	return ret;
 }
@@ -234,11 +236,13 @@ scsi_trace_rw16(struct trace_seq *p, unsigned char *cdb, int len)
 	txlen |=  cdb[13];
 
 	trace_seq_printf(p, "lba=%llu txlen=%llu protect=%u",
-			 (unsigned long long)lba, (unsigned long long)txlen,
-			 cdb[1] >> 5);
+					 (unsigned long long)lba, (unsigned long long)txlen,
+					 cdb[1] >> 5);
 
 	if (cdb[0] == WRITE_SAME_16)
+	{
 		trace_seq_printf(p, " unmap=%u", cdb[1] >> 3 & 1);
+	}
 
 	trace_seq_putc(p, 0);
 	return ret;
@@ -251,22 +255,27 @@ scsi_trace_rw32(struct trace_seq *p, unsigned char *cdb, int len)
 	sector_t lba = 0, txlen = 0;
 	u32 ei_lbrt = 0;
 
-	switch (SERVICE_ACTION32(cdb)) {
-	case READ_32:
-		cmd = "READ";
-		break;
-	case VERIFY_32:
-		cmd = "VERIFY";
-		break;
-	case WRITE_32:
-		cmd = "WRITE";
-		break;
-	case WRITE_SAME_32:
-		cmd = "WRITE_SAME";
-		break;
-	default:
-		trace_seq_printf(p, "UNKNOWN");
-		goto out;
+	switch (SERVICE_ACTION32(cdb))
+	{
+		case READ_32:
+			cmd = "READ";
+			break;
+
+		case VERIFY_32:
+			cmd = "VERIFY";
+			break;
+
+		case WRITE_32:
+			cmd = "WRITE";
+			break;
+
+		case WRITE_SAME_32:
+			cmd = "WRITE_SAME";
+			break;
+
+		default:
+			trace_seq_printf(p, "UNKNOWN");
+			goto out;
 	}
 
 	lba |= ((u64)cdb[12] << 56);
@@ -287,11 +296,13 @@ scsi_trace_rw32(struct trace_seq *p, unsigned char *cdb, int len)
 	txlen |=  cdb[31];
 
 	trace_seq_printf(p, "%s_32 lba=%llu txlen=%llu protect=%u ei_lbrt=%u",
-			 cmd, (unsigned long long)lba,
-			 (unsigned long long)txlen, cdb[10] >> 5, ei_lbrt);
+					 cmd, (unsigned long long)lba,
+					 (unsigned long long)txlen, cdb[10] >> 5, ei_lbrt);
 
 	if (SERVICE_ACTION32(cdb) == WRITE_SAME_32)
+	{
 		trace_seq_printf(p, " unmap=%u", cdb[10] >> 3 & 1);
+	}
 
 out:
 	trace_seq_putc(p, 0);
@@ -316,16 +327,19 @@ scsi_trace_service_action_in(struct trace_seq *p, unsigned char *cdb, int len)
 	sector_t lba = 0;
 	u32 alloc_len = 0;
 
-	switch (SERVICE_ACTION16(cdb)) {
-	case SAI_READ_CAPACITY_16:
-		cmd = "READ_CAPACITY_16";
-		break;
-	case SAI_GET_LBA_STATUS:
-		cmd = "GET_LBA_STATUS";
-		break;
-	default:
-		trace_seq_printf(p, "UNKNOWN");
-		goto out;
+	switch (SERVICE_ACTION16(cdb))
+	{
+		case SAI_READ_CAPACITY_16:
+			cmd = "READ_CAPACITY_16";
+			break;
+
+		case SAI_GET_LBA_STATUS:
+			cmd = "GET_LBA_STATUS";
+			break;
+
+		default:
+			trace_seq_printf(p, "UNKNOWN");
+			goto out;
 	}
 
 	lba |= ((u64)cdb[2] << 56);
@@ -342,7 +356,7 @@ scsi_trace_service_action_in(struct trace_seq *p, unsigned char *cdb, int len)
 	alloc_len |=  cdb[13];
 
 	trace_seq_printf(p, "%s lba=%llu alloc_len=%u", cmd,
-			 (unsigned long long)lba, alloc_len);
+					 (unsigned long long)lba, alloc_len);
 
 out:
 	trace_seq_putc(p, 0);
@@ -352,14 +366,16 @@ out:
 static const char *
 scsi_trace_varlen(struct trace_seq *p, unsigned char *cdb, int len)
 {
-	switch (SERVICE_ACTION32(cdb)) {
-	case READ_32:
-	case VERIFY_32:
-	case WRITE_32:
-	case WRITE_SAME_32:
-		return scsi_trace_rw32(p, cdb, len);
-	default:
-		return scsi_trace_misc(p, cdb, len);
+	switch (SERVICE_ACTION32(cdb))
+	{
+		case READ_32:
+		case VERIFY_32:
+		case WRITE_32:
+		case WRITE_SAME_32:
+			return scsi_trace_rw32(p, cdb, len);
+
+		default:
+			return scsi_trace_misc(p, cdb, len);
 	}
 }
 
@@ -376,37 +392,45 @@ scsi_trace_misc(struct trace_seq *p, unsigned char *cdb, int len)
 const char *
 scsi_trace_parse_cdb(struct trace_seq *p, unsigned char *cdb, int len)
 {
-	switch (cdb[0]) {
-	case READ_6:
-	case WRITE_6:
-		return scsi_trace_rw6(p, cdb, len);
-	case READ_10:
-	case VERIFY:
-	case WRITE_10:
-	case WRITE_SAME:
-		return scsi_trace_rw10(p, cdb, len);
-	case READ_12:
-	case VERIFY_12:
-	case WRITE_12:
-		return scsi_trace_rw12(p, cdb, len);
-	case READ_16:
-	case VERIFY_16:
-	case WRITE_16:
-	case WRITE_SAME_16:
-		return scsi_trace_rw16(p, cdb, len);
-	case UNMAP:
-		return scsi_trace_unmap(p, cdb, len);
-	case SERVICE_ACTION_IN_16:
-		return scsi_trace_service_action_in(p, cdb, len);
-	case VARIABLE_LENGTH_CMD:
-		return scsi_trace_varlen(p, cdb, len);
-	default:
-		return scsi_trace_misc(p, cdb, len);
+	switch (cdb[0])
+	{
+		case READ_6:
+		case WRITE_6:
+			return scsi_trace_rw6(p, cdb, len);
+
+		case READ_10:
+		case VERIFY:
+		case WRITE_10:
+		case WRITE_SAME:
+			return scsi_trace_rw10(p, cdb, len);
+
+		case READ_12:
+		case VERIFY_12:
+		case WRITE_12:
+			return scsi_trace_rw12(p, cdb, len);
+
+		case READ_16:
+		case VERIFY_16:
+		case WRITE_16:
+		case WRITE_SAME_16:
+			return scsi_trace_rw16(p, cdb, len);
+
+		case UNMAP:
+			return scsi_trace_unmap(p, cdb, len);
+
+		case SERVICE_ACTION_IN_16:
+			return scsi_trace_service_action_in(p, cdb, len);
+
+		case VARIABLE_LENGTH_CMD:
+			return scsi_trace_varlen(p, cdb, len);
+
+		default:
+			return scsi_trace_misc(p, cdb, len);
 	}
 }
 
 unsigned long long process_scsi_trace_parse_cdb(struct trace_seq *s,
-						unsigned long long *args)
+		unsigned long long *args)
 {
 	scsi_trace_parse_cdb(s, (unsigned char *) (unsigned long) args[1], args[2]);
 	return 0;
@@ -415,18 +439,18 @@ unsigned long long process_scsi_trace_parse_cdb(struct trace_seq *s,
 int PEVENT_PLUGIN_LOADER(struct pevent *pevent)
 {
 	pevent_register_print_function(pevent,
-				       process_scsi_trace_parse_cdb,
-				       PEVENT_FUNC_ARG_STRING,
-				       "scsi_trace_parse_cdb",
-				       PEVENT_FUNC_ARG_PTR,
-				       PEVENT_FUNC_ARG_PTR,
-				       PEVENT_FUNC_ARG_INT,
-				       PEVENT_FUNC_ARG_VOID);
+								   process_scsi_trace_parse_cdb,
+								   PEVENT_FUNC_ARG_STRING,
+								   "scsi_trace_parse_cdb",
+								   PEVENT_FUNC_ARG_PTR,
+								   PEVENT_FUNC_ARG_PTR,
+								   PEVENT_FUNC_ARG_INT,
+								   PEVENT_FUNC_ARG_VOID);
 	return 0;
 }
 
 void PEVENT_PLUGIN_UNLOADER(struct pevent *pevent)
 {
 	pevent_unregister_print_function(pevent, process_scsi_trace_parse_cdb,
-					 "scsi_trace_parse_cdb");
+									 "scsi_trace_parse_cdb");
 }

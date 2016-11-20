@@ -30,8 +30,8 @@ static int whc_update_di(struct whc *whc, int idx)
 	le_writel(bit, whc->base + WUSBDIBUPDATED + offset);
 
 	return whci_wait_for(&whc->umc->dev,
-			     whc->base + WUSBDIBUPDATED + offset, bit, 0,
-			     100, "DI update");
+						 whc->base + WUSBDIBUPDATED + offset, bit, 0,
+						 100, "DI update");
 }
 
 /*
@@ -62,20 +62,23 @@ void whc_wusbhc_stop(struct wusbhc *wusbhc, int delay)
 	now_time = le_readl(whc->base + WUSBTIME) & WUSBTIME_CHANNEL_TIME_MASK;
 	stop_time = (now_time + ((delay * 8) << 7)) & 0x00ffffff;
 	ret = whc_do_gencmd(whc, WUSBGENCMDSTS_CHAN_STOP, stop_time, NULL, 0);
+
 	if (ret == 0)
+	{
 		msleep(delay);
+	}
 }
 
 int whc_mmcie_add(struct wusbhc *wusbhc, u8 interval, u8 repeat_cnt,
-		  u8 handle, struct wuie_hdr *wuie)
+				  u8 handle, struct wuie_hdr *wuie)
 {
 	struct whc *whc = wusbhc_to_whc(wusbhc);
 	u32 params;
 
 	params = (interval << 24)
-		| (repeat_cnt << 16)
-		| (wuie->bLength << 8)
-		| handle;
+			 | (repeat_cnt << 16)
+			 | (wuie->bLength << 8)
+			 | handle;
 
 	return whc_do_gencmd(whc, WUSBGENCMDSTS_MMCIE_ADD, params, wuie, wuie->bLength);
 }
@@ -95,7 +98,9 @@ int whc_bwa_set(struct wusbhc *wusbhc, s8 stream_index, const struct uwb_mas_bm 
 	struct whc *whc = wusbhc_to_whc(wusbhc);
 
 	if (stream_index >= 0)
+	{
 		whc_write_wusbcmd(whc, WUSBCMD_WUSBSI_MASK, WUSBCMD_WUSBSI(stream_index));
+	}
 
 	return whc_do_gencmd(whc, WUSBGENCMDSTS_SET_MAS, 0, (void *)mas_bm, sizeof(*mas_bm));
 }
@@ -130,8 +135,8 @@ int whc_set_num_dnts(struct wusbhc *wusbhc, u8 interval, u8 slots)
 	u32 dntsctrl;
 
 	dntsctrl = WUSBDNTSCTRL_ACTIVE
-		| WUSBDNTSCTRL_INTERVAL(interval)
-		| WUSBDNTSCTRL_SLOTS(slots);
+			   | WUSBDNTSCTRL_INTERVAL(interval)
+			   | WUSBDNTSCTRL_SLOTS(slots);
 
 	le_writel(dntsctrl, whc->base + WUSBDNTSCTRL);
 
@@ -139,7 +144,7 @@ int whc_set_num_dnts(struct wusbhc *wusbhc, u8 interval, u8 slots)
 }
 
 static int whc_set_key(struct whc *whc, u8 key_index, uint32_t tkid,
-		       const void *key, size_t key_size, bool is_gtk)
+					   const void *key, size_t key_size, bool is_gtk)
 {
 	uint32_t setkeycmd;
 	uint32_t seckey[4];
@@ -148,16 +153,23 @@ static int whc_set_key(struct whc *whc, u8 key_index, uint32_t tkid,
 
 	memcpy(seckey, key, key_size);
 	setkeycmd = WUSBSETSECKEYCMD_SET | WUSBSETSECKEYCMD_IDX(key_index);
+
 	if (is_gtk)
+	{
 		setkeycmd |= WUSBSETSECKEYCMD_GTK;
+	}
 
 	le_writel(tkid, whc->base + WUSBTKID);
+
 	for (i = 0; i < 4; i++)
-		le_writel(seckey[i], whc->base + WUSBSECKEY + 4*i);
+	{
+		le_writel(seckey[i], whc->base + WUSBSECKEY + 4 * i);
+	}
+
 	le_writel(setkeycmd, whc->base + WUSBSETSECKEYCMD);
 
 	ret = whci_wait_for(&whc->umc->dev, whc->base + WUSBSETSECKEYCMD,
-			    WUSBSETSECKEYCMD_SET, 0, 100, "set key");
+						WUSBSETSECKEYCMD_SET, 0, 100, "set key");
 
 	return ret;
 }
@@ -169,7 +181,7 @@ static int whc_set_key(struct whc *whc, u8 key_index, uint32_t tkid,
  * device's port index.
  */
 int whc_set_ptk(struct wusbhc *wusbhc, u8 port_idx, u32 tkid,
-		const void *ptk, size_t key_size)
+				const void *ptk, size_t key_size)
 {
 	struct whc *whc = wusbhc_to_whc(wusbhc);
 	struct di_buf_entry *di = &whc->di_buf[port_idx];
@@ -177,15 +189,22 @@ int whc_set_ptk(struct wusbhc *wusbhc, u8 port_idx, u32 tkid,
 
 	mutex_lock(&whc->mutex);
 
-	if (ptk) {
+	if (ptk)
+	{
 		ret = whc_set_key(whc, port_idx, tkid, ptk, key_size, false);
+
 		if (ret)
+		{
 			goto out;
+		}
 
 		di->addr_sec_info &= ~WHC_DI_KEY_IDX_MASK;
 		di->addr_sec_info |= WHC_DI_SECURE | WHC_DI_KEY_IDX(port_idx);
-	} else
+	}
+	else
+	{
 		di->addr_sec_info &= ~WHC_DI_SECURE;
+	}
 
 	ret = whc_update_di(whc, port_idx);
 out:
@@ -200,7 +219,7 @@ out:
  * N_DEVICES entries are for the per-device PTKs).
  */
 int whc_set_gtk(struct wusbhc *wusbhc, u32 tkid,
-		const void *gtk, size_t key_size)
+				const void *gtk, size_t key_size)
 {
 	struct whc *whc = wusbhc_to_whc(wusbhc);
 	int ret;

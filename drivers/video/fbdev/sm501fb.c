@@ -35,7 +35,7 @@
 #include <asm/div64.h>
 
 #ifdef CONFIG_PM
-#include <linux/pm.h>
+	#include <linux/pm.h>
 #endif
 
 #include <linux/sm501.h>
@@ -46,7 +46,8 @@
 static char *fb_mode = "640x480-16@60";
 static unsigned long default_bpp = 16;
 
-static struct fb_videomode sm501_default_mode = {
+static struct fb_videomode sm501_default_mode =
+{
 	.refresh	= 60,
 	.xres		= 640,
 	.yres		= 480,
@@ -63,7 +64,8 @@ static struct fb_videomode sm501_default_mode = {
 
 #define NR_PALETTE	256
 
-enum sm501_controller {
+enum sm501_controller
+{
 	HEAD_CRT	= 0,
 	HEAD_PANEL	= 1,
 };
@@ -74,14 +76,16 @@ enum sm501_controller {
  * allocation. The sm_addr field is stored as an offset as it is often used
  * against both the physical and mapped addresses.
  */
-struct sm501_mem {
+struct sm501_mem
+{
 	unsigned long	 size;
 	unsigned long	 sm_addr;	/* offset from base of sm501 fb. */
 	void __iomem	*k_addr;
 };
 
 /* private data that is shared between all frambuffers* */
-struct sm501fb_info {
+struct sm501fb_info
+{
 	struct device		*dev;
 	struct fb_info		*fb[2];		/* fb info for both heads */
 	struct resource		*fbmem_res;	/* framebuffer resource */
@@ -101,7 +105,8 @@ struct sm501fb_info {
 };
 
 /* per-framebuffer private data */
-struct sm501fb_par {
+struct sm501fb_par
+{
 	u32			 pseudo_palette[16];
 
 	enum sm501_controller	 head;
@@ -120,13 +125,13 @@ struct sm501fb_par {
 static inline int h_total(struct fb_var_screeninfo *var)
 {
 	return var->xres + var->left_margin +
-		var->right_margin + var->hsync_len;
+		   var->right_margin + var->hsync_len;
 }
 
 static inline int v_total(struct fb_var_screeninfo *var)
 {
 	return var->yres + var->upper_margin +
-		var->lower_margin + var->vsync_len;
+		   var->lower_margin + var->vsync_len;
 }
 
 /* sm501fb_sync_regs()
@@ -168,74 +173,95 @@ static inline void sm501fb_sync_regs(struct sm501fb_info *info)
 #define SM501_MEMF_ACCEL		(8)
 
 static int sm501_alloc_mem(struct sm501fb_info *inf, struct sm501_mem *mem,
-			   unsigned int why, size_t size, u32 smem_len)
+						   unsigned int why, size_t size, u32 smem_len)
 {
 	struct sm501fb_par *par;
 	struct fb_info *fbi;
 	unsigned int ptr;
 	unsigned int end;
 
-	switch (why) {
-	case SM501_MEMF_CURSOR:
-		ptr = inf->fbmem_len - size;
-		inf->fbmem_len = ptr;	/* adjust available memory. */
-		break;
+	switch (why)
+	{
+		case SM501_MEMF_CURSOR:
+			ptr = inf->fbmem_len - size;
+			inf->fbmem_len = ptr;	/* adjust available memory. */
+			break;
 
-	case SM501_MEMF_PANEL:
-		if (size > inf->fbmem_len)
-			return -ENOMEM;
+		case SM501_MEMF_PANEL:
+			if (size > inf->fbmem_len)
+			{
+				return -ENOMEM;
+			}
 
-		ptr = inf->fbmem_len - size;
-		fbi = inf->fb[HEAD_CRT];
+			ptr = inf->fbmem_len - size;
+			fbi = inf->fb[HEAD_CRT];
 
-		/* round down, some programs such as directfb do not draw
-		 * 0,0 correctly unless the start is aligned to a page start.
-		 */
+			/* round down, some programs such as directfb do not draw
+			 * 0,0 correctly unless the start is aligned to a page start.
+			 */
 
-		if (ptr > 0)
-			ptr &= ~(PAGE_SIZE - 1);
+			if (ptr > 0)
+			{
+				ptr &= ~(PAGE_SIZE - 1);
+			}
 
-		if (fbi && ptr < smem_len)
-			return -ENOMEM;
+			if (fbi && ptr < smem_len)
+			{
+				return -ENOMEM;
+			}
 
-		break;
+			break;
 
-	case SM501_MEMF_CRT:
-		ptr = 0;
+		case SM501_MEMF_CRT:
+			ptr = 0;
 
-		/* check to see if we have panel memory allocated
-		 * which would put an limit on available memory. */
+			/* check to see if we have panel memory allocated
+			 * which would put an limit on available memory. */
 
-		fbi = inf->fb[HEAD_PANEL];
-		if (fbi) {
-			par = fbi->par;
-			end = par->screen.k_addr ? par->screen.sm_addr : inf->fbmem_len;
-		} else
-			end = inf->fbmem_len;
+			fbi = inf->fb[HEAD_PANEL];
 
-		if ((ptr + size) > end)
-			return -ENOMEM;
+			if (fbi)
+			{
+				par = fbi->par;
+				end = par->screen.k_addr ? par->screen.sm_addr : inf->fbmem_len;
+			}
+			else
+			{
+				end = inf->fbmem_len;
+			}
 
-		break;
+			if ((ptr + size) > end)
+			{
+				return -ENOMEM;
+			}
 
-	case SM501_MEMF_ACCEL:
-		fbi = inf->fb[HEAD_CRT];
-		ptr = fbi ? smem_len : 0;
+			break;
 
-		fbi = inf->fb[HEAD_PANEL];
-		if (fbi) {
-			par = fbi->par;
-			end = par->screen.sm_addr;
-		} else
-			end = inf->fbmem_len;
+		case SM501_MEMF_ACCEL:
+			fbi = inf->fb[HEAD_CRT];
+			ptr = fbi ? smem_len : 0;
 
-		if ((ptr + size) > end)
-			return -ENOMEM;
+			fbi = inf->fb[HEAD_PANEL];
 
-		break;
+			if (fbi)
+			{
+				par = fbi->par;
+				end = par->screen.sm_addr;
+			}
+			else
+			{
+				end = inf->fbmem_len;
+			}
 
-	default:
-		return -EINVAL;
+			if ((ptr + size) > end)
+			{
+				return -ENOMEM;
+			}
+
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	mem->size    = size;
@@ -243,7 +269,7 @@ static int sm501_alloc_mem(struct sm501fb_info *inf, struct sm501_mem *mem,
 	mem->k_addr  = inf->fbmem + ptr;
 
 	dev_dbg(inf->dev, "%s: result %08lx, %p - %u, %zd\n",
-		__func__, mem->sm_addr, mem->k_addr, why, size);
+			__func__, mem->sm_addr, mem->k_addr, why, size);
 
 	return 0;
 }
@@ -258,7 +284,7 @@ static int sm501_alloc_mem(struct sm501fb_info *inf, struct sm501_mem *mem,
 
 static unsigned long sm501fb_ps_to_hz(unsigned long psvalue)
 {
-	unsigned long long numerator=1000000000000ULL;
+	unsigned long long numerator = 1000000000000ULL;
 
 	/* 10^12 / picosecond period gives frequency in Hz */
 	do_div(numerator, psvalue);
@@ -276,13 +302,14 @@ static unsigned long sm501fb_ps_to_hz(unsigned long psvalue)
 */
 
 static void sm501fb_setup_gamma(struct sm501fb_info *fbi,
-				unsigned long palette)
+								unsigned long palette)
 {
 	unsigned long value = 0;
 	int offset;
 
 	/* set gamma values */
-	for (offset = 0; offset < 256 * 4; offset += 4) {
+	for (offset = 0; offset < 256 * 4; offset += 4)
+	{
 		smc501_writel(value, fbi->regs + palette + offset);
 		value += 0x010101; 	/* Advance RGB by 1,1,1.*/
 	}
@@ -294,7 +321,7 @@ static void sm501fb_setup_gamma(struct sm501fb_info *fbi,
 */
 
 static int sm501fb_check_var(struct fb_var_screeninfo *var,
-			     struct fb_info *info)
+							 struct fb_info *info)
 {
 	struct sm501fb_par  *par = info->par;
 	struct sm501fb_info *sm  = par->info;
@@ -303,94 +330,121 @@ static int sm501fb_check_var(struct fb_var_screeninfo *var,
 	/* check we can fit these values into the registers */
 
 	if (var->hsync_len > 255 || var->vsync_len > 63)
+	{
 		return -EINVAL;
+	}
 
 	/* hdisplay end and hsync start */
 	if ((var->xres + var->right_margin) > 4096)
+	{
 		return -EINVAL;
+	}
 
 	/* vdisplay end and vsync start */
 	if ((var->yres + var->lower_margin) > 2048)
+	{
 		return -EINVAL;
+	}
 
 	/* hard limits of device */
 
 	if (h_total(var) > 4096 || v_total(var) > 2048)
+	{
 		return -EINVAL;
+	}
 
 	/* check our line length is going to be 128 bit aligned */
 
 	tmp = (var->xres * var->bits_per_pixel) / 8;
+
 	if ((tmp & 15) != 0)
+	{
 		return -EINVAL;
+	}
 
 	/* check the virtual size */
 
 	if (var->xres_virtual > 4096 || var->yres_virtual > 2048)
+	{
 		return -EINVAL;
+	}
 
 	/* can cope with 8,16 or 32bpp */
 
 	if (var->bits_per_pixel <= 8)
+	{
 		var->bits_per_pixel = 8;
+	}
 	else if (var->bits_per_pixel <= 16)
+	{
 		var->bits_per_pixel = 16;
+	}
 	else if (var->bits_per_pixel == 24)
+	{
 		var->bits_per_pixel = 32;
+	}
 
 	/* set r/g/b positions and validate bpp */
-	switch(var->bits_per_pixel) {
-	case 8:
-		var->red.length		= var->bits_per_pixel;
-		var->red.offset		= 0;
-		var->green.length	= var->bits_per_pixel;
-		var->green.offset	= 0;
-		var->blue.length	= var->bits_per_pixel;
-		var->blue.offset	= 0;
-		var->transp.length	= 0;
-		var->transp.offset	= 0;
-
-		break;
-
-	case 16:
-		if (sm->pdata->flags & SM501_FBPD_SWAP_FB_ENDIAN) {
-			var->blue.offset	= 11;
-			var->green.offset	= 5;
+	switch (var->bits_per_pixel)
+	{
+		case 8:
+			var->red.length		= var->bits_per_pixel;
 			var->red.offset		= 0;
-		} else {
-			var->red.offset		= 11;
-			var->green.offset	= 5;
+			var->green.length	= var->bits_per_pixel;
+			var->green.offset	= 0;
+			var->blue.length	= var->bits_per_pixel;
 			var->blue.offset	= 0;
-		}
-		var->transp.offset	= 0;
-
-		var->red.length		= 5;
-		var->green.length	= 6;
-		var->blue.length	= 5;
-		var->transp.length	= 0;
-		break;
-
-	case 32:
-		if (sm->pdata->flags & SM501_FBPD_SWAP_FB_ENDIAN) {
+			var->transp.length	= 0;
 			var->transp.offset	= 0;
-			var->red.offset		= 8;
-			var->green.offset	= 16;
-			var->blue.offset	= 24;
-		} else {
-			var->transp.offset	= 24;
-			var->red.offset		= 16;
-			var->green.offset	= 8;
-			var->blue.offset	= 0;
-		}
 
-		var->red.length		= 8;
-		var->green.length	= 8;
-		var->blue.length	= 8;
-		var->transp.length	= 0;
-		break;
+			break;
 
-	default:
-		return -EINVAL;
+		case 16:
+			if (sm->pdata->flags & SM501_FBPD_SWAP_FB_ENDIAN)
+			{
+				var->blue.offset	= 11;
+				var->green.offset	= 5;
+				var->red.offset		= 0;
+			}
+			else
+			{
+				var->red.offset		= 11;
+				var->green.offset	= 5;
+				var->blue.offset	= 0;
+			}
+
+			var->transp.offset	= 0;
+
+			var->red.length		= 5;
+			var->green.length	= 6;
+			var->blue.length	= 5;
+			var->transp.length	= 0;
+			break;
+
+		case 32:
+			if (sm->pdata->flags & SM501_FBPD_SWAP_FB_ENDIAN)
+			{
+				var->transp.offset	= 0;
+				var->red.offset		= 8;
+				var->green.offset	= 16;
+				var->blue.offset	= 24;
+			}
+			else
+			{
+				var->transp.offset	= 24;
+				var->red.offset		= 16;
+				var->green.offset	= 8;
+				var->blue.offset	= 0;
+			}
+
+			var->red.length		= 8;
+			var->green.length	= 8;
+			var->blue.length	= 8;
+			var->transp.length	= 0;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
@@ -404,7 +458,7 @@ static int sm501fb_check_var(struct fb_var_screeninfo *var,
 */
 
 static int sm501fb_check_var_crt(struct fb_var_screeninfo *var,
-				 struct fb_info *info)
+								 struct fb_info *info)
 {
 	return sm501fb_check_var(var, info);
 }
@@ -416,7 +470,7 @@ static int sm501fb_check_var_crt(struct fb_var_screeninfo *var,
 */
 
 static int sm501fb_check_var_pnl(struct fb_var_screeninfo *var,
-				 struct fb_info *info)
+								 struct fb_info *info)
 {
 	return sm501fb_check_var(var, info);
 }
@@ -427,7 +481,7 @@ static int sm501fb_check_var_pnl(struct fb_var_screeninfo *var,
 */
 
 static int sm501fb_set_par_common(struct fb_info *info,
-				  struct fb_var_screeninfo *var)
+								  struct fb_var_screeninfo *var)
 {
 	struct sm501fb_par  *par = info->par;
 	struct sm501fb_info *fbi = par->info;
@@ -439,50 +493,53 @@ static int sm501fb_set_par_common(struct fb_info *info,
 	unsigned int smem_len;
 
 	dev_dbg(fbi->dev, "%s: %dx%d, bpp = %d, virtual %dx%d\n",
-		__func__, var->xres, var->yres, var->bits_per_pixel,
-		var->xres_virtual, var->yres_virtual);
+			__func__, var->xres, var->yres, var->bits_per_pixel,
+			var->xres_virtual, var->yres_virtual);
 
-	switch (par->head) {
-	case HEAD_CRT:
-		mem_type = SM501_MEMF_CRT;
-		clock_type = SM501_CLOCK_V2XCLK;
-		head_addr = SM501_DC_CRT_FB_ADDR;
-		break;
+	switch (par->head)
+	{
+		case HEAD_CRT:
+			mem_type = SM501_MEMF_CRT;
+			clock_type = SM501_CLOCK_V2XCLK;
+			head_addr = SM501_DC_CRT_FB_ADDR;
+			break;
 
-	case HEAD_PANEL:
-		mem_type = SM501_MEMF_PANEL;
-		clock_type = SM501_CLOCK_P2XCLK;
-		head_addr = SM501_DC_PANEL_FB_ADDR;
-		break;
+		case HEAD_PANEL:
+			mem_type = SM501_MEMF_PANEL;
+			clock_type = SM501_CLOCK_P2XCLK;
+			head_addr = SM501_DC_PANEL_FB_ADDR;
+			break;
 
-	default:
-		mem_type = 0;		/* stop compiler warnings */
-		head_addr = 0;
-		clock_type = 0;
+		default:
+			mem_type = 0;		/* stop compiler warnings */
+			head_addr = 0;
+			clock_type = 0;
 	}
 
-	switch (var->bits_per_pixel) {
-	case 8:
-		info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
-		break;
+	switch (var->bits_per_pixel)
+	{
+		case 8:
+			info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
+			break;
 
-	case 16:
-		info->fix.visual = FB_VISUAL_TRUECOLOR;
-		break;
+		case 16:
+			info->fix.visual = FB_VISUAL_TRUECOLOR;
+			break;
 
-	case 32:
-		info->fix.visual = FB_VISUAL_TRUECOLOR;
-		break;
+		case 32:
+			info->fix.visual = FB_VISUAL_TRUECOLOR;
+			break;
 	}
 
 	/* allocate fb memory within 501 */
-	info->fix.line_length = (var->xres_virtual * var->bits_per_pixel)/8;
+	info->fix.line_length = (var->xres_virtual * var->bits_per_pixel) / 8;
 	smem_len = info->fix.line_length * var->yres_virtual;
 
 	dev_dbg(fbi->dev, "%s: line length = %u\n", __func__,
-		info->fix.line_length);
+			info->fix.line_length);
 
-	if (sm501_alloc_mem(fbi, &par->screen, mem_type, smem_len, smem_len)) {
+	if (sm501_alloc_mem(fbi, &par->screen, mem_type, smem_len, smem_len))
+	{
 		dev_err(fbi->dev, "no memory available\n");
 		return -ENOMEM;
 	}
@@ -498,22 +555,22 @@ static int sm501fb_set_par_common(struct fb_info *info,
 	/* set start of framebuffer to the screen */
 
 	smc501_writel(par->screen.sm_addr | SM501_ADDR_FLIP,
-			fbi->regs + head_addr);
+				  fbi->regs + head_addr);
 
 	/* program CRT clock  */
 
 	pixclock = sm501fb_ps_to_hz(var->pixclock);
 
 	sm501pixclock = sm501_set_clock(fbi->dev->parent, clock_type,
-					pixclock);
+									pixclock);
 
 	/* update fb layer with actual clock used */
 	var->pixclock = sm501fb_hz_to_ps(sm501pixclock);
 
 	dev_dbg(fbi->dev, "%s: pixclock(ps) = %u, pixclock(Hz)  = %lu, "
-	       "sm501pixclock = %lu,  error = %ld%%\n",
-	       __func__, var->pixclock, pixclock, sm501pixclock,
-	       ((pixclock - sm501pixclock)*100)/pixclock);
+			"sm501pixclock = %lu,  error = %ld%%\n",
+			__func__, var->pixclock, pixclock, sm501pixclock,
+			((pixclock - sm501pixclock) * 100) / pixclock);
 
 	return 0;
 }
@@ -524,7 +581,7 @@ static int sm501fb_set_par_common(struct fb_info *info,
 */
 
 static void sm501fb_set_par_geometry(struct fb_info *info,
-				     struct fb_var_screeninfo *var)
+									 struct fb_var_screeninfo *var)
 {
 	struct sm501fb_par  *par = info->par;
 	struct sm501fb_info *fbi = par->info;
@@ -532,17 +589,21 @@ static void sm501fb_set_par_geometry(struct fb_info *info,
 	unsigned long reg;
 
 	if (par->head == HEAD_CRT)
+	{
 		base += SM501_DC_CRT_H_TOT;
+	}
 	else
+	{
 		base += SM501_DC_PANEL_H_TOT;
+	}
 
 	/* set framebuffer width and display width */
 
 	reg = info->fix.line_length;
-	reg |= ((var->xres * var->bits_per_pixel)/8) << 16;
+	reg |= ((var->xres * var->bits_per_pixel) / 8) << 16;
 
 	smc501_writel(reg, fbi->regs + (par->head == HEAD_CRT ?
-		    SM501_DC_CRT_FB_OFFSET :  SM501_DC_PANEL_FB_OFFSET));
+									SM501_DC_CRT_FB_OFFSET :  SM501_DC_PANEL_FB_OFFSET));
 
 	/* program horizontal total */
 
@@ -578,7 +639,7 @@ static void sm501fb_set_par_geometry(struct fb_info *info,
 */
 
 static int sm501fb_pan_crt(struct fb_var_screeninfo *var,
-			   struct fb_info *info)
+						   struct fb_info *info)
 {
 	struct sm501fb_par  *par = info->par;
 	struct sm501fb_info *fbi = par->info;
@@ -595,7 +656,7 @@ static int sm501fb_pan_crt(struct fb_var_screeninfo *var,
 	smc501_writel(reg, fbi->regs + SM501_DC_CRT_CONTROL);
 
 	reg = (par->screen.sm_addr + xoffs +
-	       var->yoffset * info->fix.line_length);
+		   var->yoffset * info->fix.line_length);
 	smc501_writel(reg | SM501_ADDR_FLIP, fbi->regs + SM501_DC_CRT_FB_ADDR);
 
 	sm501fb_sync_regs(fbi);
@@ -608,7 +669,7 @@ static int sm501fb_pan_crt(struct fb_var_screeninfo *var,
 */
 
 static int sm501fb_pan_pnl(struct fb_var_screeninfo *var,
-			   struct fb_info *info)
+						   struct fb_info *info)
 {
 	struct sm501fb_par  *par = info->par;
 	struct sm501fb_info *fbi = par->info;
@@ -647,30 +708,37 @@ static int sm501fb_set_par_crt(struct fb_info *info)
 	control = smc501_readl(fbi->regs + SM501_DC_CRT_CONTROL);
 
 	control &= (SM501_DC_CRT_CONTROL_PIXEL_MASK |
-		    SM501_DC_CRT_CONTROL_GAMMA |
-		    SM501_DC_CRT_CONTROL_BLANK |
-		    SM501_DC_CRT_CONTROL_SEL |
-		    SM501_DC_CRT_CONTROL_CP |
-		    SM501_DC_CRT_CONTROL_TVP);
+				SM501_DC_CRT_CONTROL_GAMMA |
+				SM501_DC_CRT_CONTROL_BLANK |
+				SM501_DC_CRT_CONTROL_SEL |
+				SM501_DC_CRT_CONTROL_CP |
+				SM501_DC_CRT_CONTROL_TVP);
 
 	/* set the sync polarities before we check data source  */
 
 	if ((var->sync & FB_SYNC_HOR_HIGH_ACT) == 0)
+	{
 		control |= SM501_DC_CRT_CONTROL_HSP;
+	}
 
 	if ((var->sync & FB_SYNC_VERT_HIGH_ACT) == 0)
+	{
 		control |= SM501_DC_CRT_CONTROL_VSP;
+	}
 
-	if ((control & SM501_DC_CRT_CONTROL_SEL) == 0) {
+	if ((control & SM501_DC_CRT_CONTROL_SEL) == 0)
+	{
 		/* the head is displaying panel data... */
 
 		sm501_alloc_mem(fbi, &par->screen, SM501_MEMF_CRT, 0,
-				info->fix.smem_len);
+						info->fix.smem_len);
 		goto out_update;
 	}
 
 	ret = sm501fb_set_par_common(info, var);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(fbi->dev, "failed to set common parameters\n");
 		return ret;
 	}
@@ -680,30 +748,31 @@ static int sm501fb_set_par_crt(struct fb_info *info)
 
 	control |= SM501_FIFO_3;	/* fill if >3 free slots */
 
-	switch(var->bits_per_pixel) {
-	case 8:
-		control |= SM501_DC_CRT_CONTROL_8BPP;
-		break;
+	switch (var->bits_per_pixel)
+	{
+		case 8:
+			control |= SM501_DC_CRT_CONTROL_8BPP;
+			break;
 
-	case 16:
-		control |= SM501_DC_CRT_CONTROL_16BPP;
-		sm501fb_setup_gamma(fbi, SM501_DC_CRT_PALETTE);
-		break;
+		case 16:
+			control |= SM501_DC_CRT_CONTROL_16BPP;
+			sm501fb_setup_gamma(fbi, SM501_DC_CRT_PALETTE);
+			break;
 
-	case 32:
-		control |= SM501_DC_CRT_CONTROL_32BPP;
-		sm501fb_setup_gamma(fbi, SM501_DC_CRT_PALETTE);
-		break;
+		case 32:
+			control |= SM501_DC_CRT_CONTROL_32BPP;
+			sm501fb_setup_gamma(fbi, SM501_DC_CRT_PALETTE);
+			break;
 
-	default:
-		BUG();
+		default:
+			BUG();
 	}
 
 	control |= SM501_DC_CRT_CONTROL_SEL;	/* CRT displays CRT data */
 	control |= SM501_DC_CRT_CONTROL_TE;	/* enable CRT timing */
 	control |= SM501_DC_CRT_CONTROL_ENABLE;	/* enable CRT plane */
 
- out_update:
+out_update:
 	dev_dbg(fbi->dev, "new control is %08lx\n", control);
 
 	smc501_writel(control, fbi->regs + SM501_DC_CRT_CONTROL);
@@ -720,7 +789,8 @@ static void sm501fb_panel_power(struct sm501fb_info *fbi, int to)
 
 	control = smc501_readl(ctrl_reg);
 
-	if (to && (control & SM501_DC_PANEL_CONTROL_VDD) == 0) {
+	if (to && (control & SM501_DC_PANEL_CONTROL_VDD) == 0)
+	{
 		/* enable panel power */
 
 		control |= SM501_DC_PANEL_CONTROL_VDD;	/* FPVDDEN */
@@ -735,45 +805,67 @@ static void sm501fb_panel_power(struct sm501fb_info *fbi, int to)
 
 		/* VBIASEN */
 
-		if (!(pd->flags & SM501FB_FLAG_PANEL_NO_VBIASEN)) {
+		if (!(pd->flags & SM501FB_FLAG_PANEL_NO_VBIASEN))
+		{
 			if (pd->flags & SM501FB_FLAG_PANEL_INV_VBIASEN)
+			{
 				control &= ~SM501_DC_PANEL_CONTROL_BIAS;
+			}
 			else
+			{
 				control |= SM501_DC_PANEL_CONTROL_BIAS;
+			}
 
 			smc501_writel(control, ctrl_reg);
 			sm501fb_sync_regs(fbi);
 			mdelay(10);
 		}
 
-		if (!(pd->flags & SM501FB_FLAG_PANEL_NO_FPEN)) {
+		if (!(pd->flags & SM501FB_FLAG_PANEL_NO_FPEN))
+		{
 			if (pd->flags & SM501FB_FLAG_PANEL_INV_FPEN)
+			{
 				control &= ~SM501_DC_PANEL_CONTROL_FPEN;
+			}
 			else
+			{
 				control |= SM501_DC_PANEL_CONTROL_FPEN;
+			}
 
 			smc501_writel(control, ctrl_reg);
 			sm501fb_sync_regs(fbi);
 			mdelay(10);
 		}
-	} else if (!to && (control & SM501_DC_PANEL_CONTROL_VDD) != 0) {
+	}
+	else if (!to && (control & SM501_DC_PANEL_CONTROL_VDD) != 0)
+	{
 		/* disable panel power */
-		if (!(pd->flags & SM501FB_FLAG_PANEL_NO_FPEN)) {
+		if (!(pd->flags & SM501FB_FLAG_PANEL_NO_FPEN))
+		{
 			if (pd->flags & SM501FB_FLAG_PANEL_INV_FPEN)
+			{
 				control |= SM501_DC_PANEL_CONTROL_FPEN;
+			}
 			else
+			{
 				control &= ~SM501_DC_PANEL_CONTROL_FPEN;
+			}
 
 			smc501_writel(control, ctrl_reg);
 			sm501fb_sync_regs(fbi);
 			mdelay(10);
 		}
 
-		if (!(pd->flags & SM501FB_FLAG_PANEL_NO_VBIASEN)) {
+		if (!(pd->flags & SM501FB_FLAG_PANEL_NO_VBIASEN))
+		{
 			if (pd->flags & SM501FB_FLAG_PANEL_INV_VBIASEN)
+			{
 				control |= SM501_DC_PANEL_CONTROL_BIAS;
+			}
 			else
+			{
 				control &= ~SM501_DC_PANEL_CONTROL_BIAS;
+			}
 
 			smc501_writel(control, ctrl_reg);
 			sm501fb_sync_regs(fbi);
@@ -813,8 +905,11 @@ static int sm501fb_set_par_pnl(struct fb_info *info)
 	/* activate this new configuration */
 
 	ret = sm501fb_set_par_common(info, var);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	sm501fb_pan_pnl(var, info);
 	sm501fb_set_par_geometry(info, var);
@@ -823,36 +918,37 @@ static int sm501fb_set_par_pnl(struct fb_info *info)
 
 	control = smc501_readl(fbi->regs + SM501_DC_PANEL_CONTROL);
 	control &= (SM501_DC_PANEL_CONTROL_GAMMA |
-		    SM501_DC_PANEL_CONTROL_VDD  |
-		    SM501_DC_PANEL_CONTROL_DATA |
-		    SM501_DC_PANEL_CONTROL_BIAS |
-		    SM501_DC_PANEL_CONTROL_FPEN |
-		    SM501_DC_PANEL_CONTROL_CP |
-		    SM501_DC_PANEL_CONTROL_CK |
-		    SM501_DC_PANEL_CONTROL_HP |
-		    SM501_DC_PANEL_CONTROL_VP |
-		    SM501_DC_PANEL_CONTROL_HPD |
-		    SM501_DC_PANEL_CONTROL_VPD);
+				SM501_DC_PANEL_CONTROL_VDD  |
+				SM501_DC_PANEL_CONTROL_DATA |
+				SM501_DC_PANEL_CONTROL_BIAS |
+				SM501_DC_PANEL_CONTROL_FPEN |
+				SM501_DC_PANEL_CONTROL_CP |
+				SM501_DC_PANEL_CONTROL_CK |
+				SM501_DC_PANEL_CONTROL_HP |
+				SM501_DC_PANEL_CONTROL_VP |
+				SM501_DC_PANEL_CONTROL_HPD |
+				SM501_DC_PANEL_CONTROL_VPD);
 
 	control |= SM501_FIFO_3;	/* fill if >3 free slots */
 
-	switch(var->bits_per_pixel) {
-	case 8:
-		control |= SM501_DC_PANEL_CONTROL_8BPP;
-		break;
+	switch (var->bits_per_pixel)
+	{
+		case 8:
+			control |= SM501_DC_PANEL_CONTROL_8BPP;
+			break;
 
-	case 16:
-		control |= SM501_DC_PANEL_CONTROL_16BPP;
-		sm501fb_setup_gamma(fbi, SM501_DC_PANEL_PALETTE);
-		break;
+		case 16:
+			control |= SM501_DC_PANEL_CONTROL_16BPP;
+			sm501fb_setup_gamma(fbi, SM501_DC_PANEL_PALETTE);
+			break;
 
-	case 32:
-		control |= SM501_DC_PANEL_CONTROL_32BPP;
-		sm501fb_setup_gamma(fbi, SM501_DC_PANEL_PALETTE);
-		break;
+		case 32:
+			control |= SM501_DC_PANEL_CONTROL_32BPP;
+			sm501fb_setup_gamma(fbi, SM501_DC_PANEL_PALETTE);
+			break;
 
-	default:
-		BUG();
+		default:
+			BUG();
 	}
 
 	smc501_writel(0x0, fbi->regs + SM501_DC_PANEL_PANNING_CONTROL);
@@ -872,10 +968,14 @@ static int sm501fb_set_par_pnl(struct fb_info *info)
 	control |= SM501_DC_PANEL_CONTROL_EN;	/* enable PANEL gfx plane */
 
 	if ((var->sync & FB_SYNC_HOR_HIGH_ACT) == 0)
+	{
 		control |= SM501_DC_PANEL_CONTROL_HSP;
+	}
 
 	if ((var->sync & FB_SYNC_VERT_HIGH_ACT) == 0)
+	{
 		control |= SM501_DC_PANEL_CONTROL_VSP;
+	}
 
 	smc501_writel(control, fbi->regs + SM501_DC_PANEL_CONTROL);
 	sm501fb_sync_regs(fbi);
@@ -883,7 +983,7 @@ static int sm501fb_set_par_pnl(struct fb_info *info)
 	/* ensure the panel interface is not tristated at this point */
 
 	sm501_modify_reg(fbi->dev->parent, SM501_SYSTEM_CONTROL,
-			 0, SM501_SYSCTRL_PANEL_TRISTATE);
+					 0, SM501_SYSCTRL_PANEL_TRISTATE);
 
 	/* power the panel up */
 	sm501fb_panel_power(fbi, 1);
@@ -899,7 +999,7 @@ static int sm501fb_set_par_pnl(struct fb_info *info)
 */
 
 static inline unsigned int chan_to_field(unsigned int chan,
-					 struct fb_bitfield *bf)
+		struct fb_bitfield *bf)
 {
 	chan &= 0xffff;
 	chan >>= 16 - bf->length;
@@ -912,8 +1012,8 @@ static inline unsigned int chan_to_field(unsigned int chan,
 */
 
 static int sm501fb_setcolreg(unsigned regno,
-			     unsigned red, unsigned green, unsigned blue,
-			     unsigned transp, struct fb_info *info)
+							 unsigned red, unsigned green, unsigned blue,
+							 unsigned transp, struct fb_info *info)
 {
 	struct sm501fb_par  *par = info->par;
 	struct sm501fb_info *fbi = par->info;
@@ -921,38 +1021,47 @@ static int sm501fb_setcolreg(unsigned regno,
 	unsigned int val;
 
 	if (par->head == HEAD_CRT)
+	{
 		base += SM501_DC_CRT_PALETTE;
+	}
 	else
+	{
 		base += SM501_DC_PANEL_PALETTE;
+	}
 
-	switch (info->fix.visual) {
-	case FB_VISUAL_TRUECOLOR:
-		/* true-colour, use pseuo-palette */
+	switch (info->fix.visual)
+	{
+		case FB_VISUAL_TRUECOLOR:
 
-		if (regno < 16) {
-			u32 *pal = par->pseudo_palette;
+			/* true-colour, use pseuo-palette */
 
-			val  = chan_to_field(red,   &info->var.red);
-			val |= chan_to_field(green, &info->var.green);
-			val |= chan_to_field(blue,  &info->var.blue);
+			if (regno < 16)
+			{
+				u32 *pal = par->pseudo_palette;
 
-			pal[regno] = val;
-		}
-		break;
+				val  = chan_to_field(red,   &info->var.red);
+				val |= chan_to_field(green, &info->var.green);
+				val |= chan_to_field(blue,  &info->var.blue);
 
-	case FB_VISUAL_PSEUDOCOLOR:
-		if (regno < 256) {
-			val = (red >> 8) << 16;
-			val |= (green >> 8) << 8;
-			val |= blue >> 8;
+				pal[regno] = val;
+			}
 
-			smc501_writel(val, base + (regno * 4));
-		}
+			break;
 
-		break;
+		case FB_VISUAL_PSEUDOCOLOR:
+			if (regno < 256)
+			{
+				val = (red >> 8) << 16;
+				val |= (green >> 8) << 8;
+				val |= blue >> 8;
 
-	default:
-		return 1;   /* unknown type */
+				smc501_writel(val, base + (regno * 4));
+			}
+
+			break;
+
+		default:
+			return 1;   /* unknown type */
 	}
 
 	return 0;
@@ -970,20 +1079,21 @@ static int sm501fb_blank_pnl(int blank_mode, struct fb_info *info)
 
 	dev_dbg(fbi->dev, "%s(mode=%d, %p)\n", __func__, blank_mode, info);
 
-	switch (blank_mode) {
-	case FB_BLANK_POWERDOWN:
-		sm501fb_panel_power(fbi, 0);
-		break;
+	switch (blank_mode)
+	{
+		case FB_BLANK_POWERDOWN:
+			sm501fb_panel_power(fbi, 0);
+			break;
 
-	case FB_BLANK_UNBLANK:
-		sm501fb_panel_power(fbi, 1);
-		break;
+		case FB_BLANK_UNBLANK:
+			sm501fb_panel_power(fbi, 1);
+			break;
 
-	case FB_BLANK_NORMAL:
-	case FB_BLANK_VSYNC_SUSPEND:
-	case FB_BLANK_HSYNC_SUSPEND:
-	default:
-		return 1;
+		case FB_BLANK_NORMAL:
+		case FB_BLANK_VSYNC_SUSPEND:
+		case FB_BLANK_HSYNC_SUSPEND:
+		default:
+			return 1;
 	}
 
 	return 0;
@@ -1004,25 +1114,26 @@ static int sm501fb_blank_crt(int blank_mode, struct fb_info *info)
 
 	ctrl = smc501_readl(fbi->regs + SM501_DC_CRT_CONTROL);
 
-	switch (blank_mode) {
-	case FB_BLANK_POWERDOWN:
-		ctrl &= ~SM501_DC_CRT_CONTROL_ENABLE;
-		sm501_misc_control(fbi->dev->parent, SM501_MISC_DAC_POWER, 0);
+	switch (blank_mode)
+	{
+		case FB_BLANK_POWERDOWN:
+			ctrl &= ~SM501_DC_CRT_CONTROL_ENABLE;
+			sm501_misc_control(fbi->dev->parent, SM501_MISC_DAC_POWER, 0);
 
-	case FB_BLANK_NORMAL:
-		ctrl |= SM501_DC_CRT_CONTROL_BLANK;
-		break;
+		case FB_BLANK_NORMAL:
+			ctrl |= SM501_DC_CRT_CONTROL_BLANK;
+			break;
 
-	case FB_BLANK_UNBLANK:
-		ctrl &= ~SM501_DC_CRT_CONTROL_BLANK;
-		ctrl |=  SM501_DC_CRT_CONTROL_ENABLE;
-		sm501_misc_control(fbi->dev->parent, 0, SM501_MISC_DAC_POWER);
-		break;
+		case FB_BLANK_UNBLANK:
+			ctrl &= ~SM501_DC_CRT_CONTROL_BLANK;
+			ctrl |=  SM501_DC_CRT_CONTROL_ENABLE;
+			sm501_misc_control(fbi->dev->parent, 0, SM501_MISC_DAC_POWER);
+			break;
 
-	case FB_BLANK_VSYNC_SUSPEND:
-	case FB_BLANK_HSYNC_SUSPEND:
-	default:
-		return 1;
+		case FB_BLANK_VSYNC_SUSPEND:
+		case FB_BLANK_HSYNC_SUSPEND:
+		default:
+			return 1;
 
 	}
 
@@ -1048,37 +1159,50 @@ static int sm501fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
 	dev_dbg(fbi->dev, "%s(%p,%p)\n", __func__, info, cursor);
 
 	if (par->head == HEAD_CRT)
+	{
 		base += SM501_DC_CRT_HWC_BASE;
+	}
 	else
+	{
 		base += SM501_DC_PANEL_HWC_BASE;
+	}
 
 	/* check not being asked to exceed capabilities */
 
 	if (cursor->image.width > 64)
+	{
 		return -EINVAL;
+	}
 
 	if (cursor->image.height > 64)
+	{
 		return -EINVAL;
+	}
 
 	if (cursor->image.depth > 1)
+	{
 		return -EINVAL;
+	}
 
 	hwc_addr = smc501_readl(base + SM501_OFF_HWC_ADDR);
 
 	if (cursor->enable)
 		smc501_writel(hwc_addr | SM501_HWC_EN,
-				base + SM501_OFF_HWC_ADDR);
+					  base + SM501_OFF_HWC_ADDR);
 	else
 		smc501_writel(hwc_addr & ~SM501_HWC_EN,
-				base + SM501_OFF_HWC_ADDR);
+					  base + SM501_OFF_HWC_ADDR);
 
 	/* set data */
-	if (cursor->set & FB_CUR_SETPOS) {
+	if (cursor->set & FB_CUR_SETPOS)
+	{
 		unsigned int x = cursor->image.dx;
 		unsigned int y = cursor->image.dy;
 
 		if (x >= 2048 || y >= 2048 )
+		{
 			return -EINVAL;
+		}
 
 		dev_dbg(fbi->dev, "set position %d,%d\n", x, y);
 
@@ -1087,20 +1211,21 @@ static int sm501fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
 		smc501_writel(x | (y << 16), base + SM501_OFF_HWC_LOC);
 	}
 
-	if (cursor->set & FB_CUR_SETCMAP) {
+	if (cursor->set & FB_CUR_SETCMAP)
+	{
 		unsigned int bg_col = cursor->image.bg_color;
 		unsigned int fg_col = cursor->image.fg_color;
 
 		dev_dbg(fbi->dev, "%s: update cmap (%08x,%08x)\n",
-			__func__, bg_col, fg_col);
+				__func__, bg_col, fg_col);
 
 		bg = ((info->cmap.red[bg_col] & 0xF8) << 8) |
-			((info->cmap.green[bg_col] & 0xFC) << 3) |
-			((info->cmap.blue[bg_col] & 0xF8) >> 3);
+			 ((info->cmap.green[bg_col] & 0xFC) << 3) |
+			 ((info->cmap.blue[bg_col] & 0xF8) >> 3);
 
 		fg = ((info->cmap.red[fg_col] & 0xF8) << 8) |
-			((info->cmap.green[fg_col] & 0xFC) << 3) |
-			((info->cmap.blue[fg_col] & 0xF8) >> 3);
+			 ((info->cmap.green[fg_col] & 0xFC) << 3) |
+			 ((info->cmap.blue[fg_col] & 0xF8) >> 3);
 
 		dev_dbg(fbi->dev, "fgcol %08lx, bgcol %08lx\n", fg, bg);
 
@@ -1109,7 +1234,8 @@ static int sm501fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
 	}
 
 	if (cursor->set & FB_CUR_SETSIZE ||
-	    cursor->set & (FB_CUR_SETIMAGE | FB_CUR_SETSHAPE)) {
+		cursor->set & (FB_CUR_SETIMAGE | FB_CUR_SETSHAPE))
+	{
 		/* SM501 cursor is a two bpp 64x64 bitmap this routine
 		 * clears it to transparent then combines the cursor
 		 * shape plane with the colour plane to set the
@@ -1123,22 +1249,30 @@ static int sm501fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
 		unsigned int   op;
 
 		dev_dbg(fbi->dev, "%s: setting shape (%d,%d)\n",
-			__func__, cursor->image.width, cursor->image.height);
+				__func__, cursor->image.width, cursor->image.height);
 
-		for (op = 0; op < (64*64*2)/8; op+=4)
+		for (op = 0; op < (64 * 64 * 2) / 8; op += 4)
+		{
 			smc501_writel(0x0, dst + op);
+		}
 
-		for (y = 0; y < cursor->image.height; y++) {
-			for (x = 0; x < cursor->image.width; x++) {
-				if ((x % 8) == 0) {
+		for (y = 0; y < cursor->image.height; y++)
+		{
+			for (x = 0; x < cursor->image.width; x++)
+			{
+				if ((x % 8) == 0)
+				{
 					dcol = *pcol++;
 					dmsk = *pmsk++;
-				} else {
+				}
+				else
+				{
 					dcol >>= 1;
 					dmsk >>= 1;
 				}
 
-				if (dmsk & 1) {
+				if (dmsk & 1)
+				{
 					op = (dcol & 1) ? 1 : 3;
 					op <<= ((x % 4) * 2);
 
@@ -1146,7 +1280,8 @@ static int sm501fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
 					writeb(op, dst + (x / 4));
 				}
 			}
-			dst += (64*2)/8;
+
+			dst += (64 * 2) / 8;
 		}
 	}
 
@@ -1160,7 +1295,7 @@ static int sm501fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
 */
 
 static ssize_t sm501fb_crtsrc_show(struct device *dev,
-			       struct device_attribute *attr, char *buf)
+								   struct device_attribute *attr, char *buf)
 {
 	struct sm501fb_info *info = dev_get_drvdata(dev);
 	unsigned long ctrl;
@@ -1177,32 +1312,43 @@ static ssize_t sm501fb_crtsrc_show(struct device *dev,
 */
 
 static ssize_t sm501fb_crtsrc_store(struct device *dev,
-				struct device_attribute *attr,
-				const char *buf, size_t len)
+									struct device_attribute *attr,
+									const char *buf, size_t len)
 {
 	struct sm501fb_info *info = dev_get_drvdata(dev);
 	enum sm501_controller head;
 	unsigned long ctrl;
 
 	if (len < 1)
+	{
 		return -EINVAL;
+	}
 
 	if (strncasecmp(buf, "crt", 3) == 0)
+	{
 		head = HEAD_CRT;
+	}
 	else if (strncasecmp(buf, "panel", 5) == 0)
+	{
 		head = HEAD_PANEL;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	dev_info(dev, "setting crt source to head %d\n", head);
 
 	ctrl = smc501_readl(info->regs + SM501_DC_CRT_CONTROL);
 
-	if (head == HEAD_CRT) {
+	if (head == HEAD_CRT)
+	{
 		ctrl |= SM501_DC_CRT_CONTROL_SEL;
 		ctrl |= SM501_DC_CRT_CONTROL_ENABLE;
 		ctrl |= SM501_DC_CRT_CONTROL_TE;
-	} else {
+	}
+	else
+	{
 		ctrl &= ~SM501_DC_CRT_CONTROL_SEL;
 		ctrl &= ~SM501_DC_CRT_CONTROL_ENABLE;
 		ctrl &= ~SM501_DC_CRT_CONTROL_TE;
@@ -1222,7 +1368,7 @@ static DEVICE_ATTR(crt_src, 0664, sm501fb_crtsrc_show, sm501fb_crtsrc_store);
  * show the primary sm501 registers
 */
 static int sm501fb_show_regs(struct sm501fb_info *info, char *ptr,
-			     unsigned int start, unsigned int len)
+							 unsigned int start, unsigned int len)
 {
 	void __iomem *mem = info->regs;
 	char *buf = ptr;
@@ -1230,7 +1376,7 @@ static int sm501fb_show_regs(struct sm501fb_info *info, char *ptr,
 
 	for (reg = start; reg < (len + start); reg += 4)
 		ptr += sprintf(ptr, "%08x = %08x\n", reg,
-				smc501_readl(mem + reg));
+					   smc501_readl(mem + reg));
 
 	return ptr - buf;
 }
@@ -1241,7 +1387,7 @@ static int sm501fb_show_regs(struct sm501fb_info *info, char *ptr,
 */
 
 static ssize_t sm501fb_debug_show_crt(struct device *dev,
-				  struct device_attribute *attr, char *buf)
+									  struct device_attribute *attr, char *buf)
 {
 	struct sm501fb_info *info = dev_get_drvdata(dev);
 	char *ptr = buf;
@@ -1260,7 +1406,7 @@ static DEVICE_ATTR(fbregs_crt, 0444, sm501fb_debug_show_crt, NULL);
 */
 
 static ssize_t sm501fb_debug_show_pnl(struct device *dev,
-				  struct device_attribute *attr, char *buf)
+									  struct device_attribute *attr, char *buf)
 {
 	struct sm501fb_info *info = dev_get_drvdata(dev);
 	char *ptr = buf;
@@ -1282,14 +1428,18 @@ static int sm501fb_sync(struct fb_info *info)
 
 	/* wait for the 2d engine to be ready */
 	while ((count > 0) &&
-	       (smc501_readl(fbi->regs + SM501_SYSTEM_CONTROL) &
-		SM501_SYSCTRL_2D_ENGINE_STATUS) != 0)
+		   (smc501_readl(fbi->regs + SM501_SYSTEM_CONTROL) &
+			SM501_SYSCTRL_2D_ENGINE_STATUS) != 0)
+	{
 		count--;
+	}
 
-	if (count <= 0) {
+	if (count <= 0)
+	{
 		dev_err(info->dev, "Timeout waiting for 2d engine sync\n");
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -1307,25 +1457,42 @@ static void sm501fb_copyarea(struct fb_info *info, const struct fb_copyarea *are
 
 	/* source clip */
 	if ((sx >= info->var.xres_virtual) ||
-	    (sy >= info->var.yres_virtual))
+		(sy >= info->var.yres_virtual))
 		/* source Area not within virtual screen, skipping */
+	{
 		return;
+	}
+
 	if ((sx + width) >= info->var.xres_virtual)
+	{
 		width = info->var.xres_virtual - sx - 1;
+	}
+
 	if ((sy + height) >= info->var.yres_virtual)
+	{
 		height = info->var.yres_virtual - sy - 1;
+	}
 
 	/* dest clip */
 	if ((dx >= info->var.xres_virtual) ||
-	    (dy >= info->var.yres_virtual))
+		(dy >= info->var.yres_virtual))
 		/* Destination Area not within virtual screen, skipping */
+	{
 		return;
-	if ((dx + width) >= info->var.xres_virtual)
-		width = info->var.xres_virtual - dx - 1;
-	if ((dy + height) >= info->var.yres_virtual)
-		height = info->var.yres_virtual - dy - 1;
+	}
 
-	if ((sx < dx) || (sy < dy)) {
+	if ((dx + width) >= info->var.xres_virtual)
+	{
+		width = info->var.xres_virtual - dx - 1;
+	}
+
+	if ((dy + height) >= info->var.yres_virtual)
+	{
+		height = info->var.yres_virtual - dy - 1;
+	}
+
+	if ((sx < dx) || (sy < dy))
+	{
 		rtl = 1 << 27;
 		sx += width - 1;
 		dx += width - 1;
@@ -1334,32 +1501,37 @@ static void sm501fb_copyarea(struct fb_info *info, const struct fb_copyarea *are
 	}
 
 	if (sm501fb_sync(info))
+	{
 		return;
+	}
 
 	/* set the base addresses */
 	smc501_writel(par->screen.sm_addr, fbi->regs2d + SM501_2D_SOURCE_BASE);
 	smc501_writel(par->screen.sm_addr,
-			fbi->regs2d + SM501_2D_DESTINATION_BASE);
+				  fbi->regs2d + SM501_2D_DESTINATION_BASE);
 
 	/* set the window width */
 	smc501_writel((info->var.xres << 16) | info->var.xres,
-	       fbi->regs2d + SM501_2D_WINDOW_WIDTH);
+				  fbi->regs2d + SM501_2D_WINDOW_WIDTH);
 
 	/* set window stride */
 	smc501_writel((info->var.xres_virtual << 16) | info->var.xres_virtual,
-	       fbi->regs2d + SM501_2D_PITCH);
+				  fbi->regs2d + SM501_2D_PITCH);
 
 	/* set data format */
-	switch (info->var.bits_per_pixel) {
-	case 8:
-		smc501_writel(0, fbi->regs2d + SM501_2D_STRETCH);
-		break;
-	case 16:
-		smc501_writel(0x00100000, fbi->regs2d + SM501_2D_STRETCH);
-		break;
-	case 32:
-		smc501_writel(0x00200000, fbi->regs2d + SM501_2D_STRETCH);
-		break;
+	switch (info->var.bits_per_pixel)
+	{
+		case 8:
+			smc501_writel(0, fbi->regs2d + SM501_2D_STRETCH);
+			break;
+
+		case 16:
+			smc501_writel(0x00100000, fbi->regs2d + SM501_2D_STRETCH);
+			break;
+
+		case 32:
+			smc501_writel(0x00200000, fbi->regs2d + SM501_2D_STRETCH);
+			break;
 	}
 
 	/* 2d compare mask */
@@ -1386,41 +1558,54 @@ static void sm501fb_fillrect(struct fb_info *info, const struct fb_fillrect *rec
 	int width = rect->width, height = rect->height;
 
 	if ((rect->dx >= info->var.xres_virtual) ||
-	    (rect->dy >= info->var.yres_virtual))
+		(rect->dy >= info->var.yres_virtual))
 		/* Rectangle not within virtual screen, skipping */
+	{
 		return;
+	}
+
 	if ((rect->dx + width) >= info->var.xres_virtual)
+	{
 		width = info->var.xres_virtual - rect->dx - 1;
+	}
+
 	if ((rect->dy + height) >= info->var.yres_virtual)
+	{
 		height = info->var.yres_virtual - rect->dy - 1;
+	}
 
 	if (sm501fb_sync(info))
+	{
 		return;
+	}
 
 	/* set the base addresses */
 	smc501_writel(par->screen.sm_addr, fbi->regs2d + SM501_2D_SOURCE_BASE);
 	smc501_writel(par->screen.sm_addr,
-			fbi->regs2d + SM501_2D_DESTINATION_BASE);
+				  fbi->regs2d + SM501_2D_DESTINATION_BASE);
 
 	/* set the window width */
 	smc501_writel((info->var.xres << 16) | info->var.xres,
-	       fbi->regs2d + SM501_2D_WINDOW_WIDTH);
+				  fbi->regs2d + SM501_2D_WINDOW_WIDTH);
 
 	/* set window stride */
 	smc501_writel((info->var.xres_virtual << 16) | info->var.xres_virtual,
-	       fbi->regs2d + SM501_2D_PITCH);
+				  fbi->regs2d + SM501_2D_PITCH);
 
 	/* set data format */
-	switch (info->var.bits_per_pixel) {
-	case 8:
-		smc501_writel(0, fbi->regs2d + SM501_2D_STRETCH);
-		break;
-	case 16:
-		smc501_writel(0x00100000, fbi->regs2d + SM501_2D_STRETCH);
-		break;
-	case 32:
-		smc501_writel(0x00200000, fbi->regs2d + SM501_2D_STRETCH);
-		break;
+	switch (info->var.bits_per_pixel)
+	{
+		case 8:
+			smc501_writel(0, fbi->regs2d + SM501_2D_STRETCH);
+			break;
+
+		case 16:
+			smc501_writel(0x00100000, fbi->regs2d + SM501_2D_STRETCH);
+			break;
+
+		case 32:
+			smc501_writel(0x00200000, fbi->regs2d + SM501_2D_STRETCH);
+			break;
 	}
 
 	/* 2d compare mask */
@@ -1434,7 +1619,7 @@ static void sm501fb_fillrect(struct fb_info *info, const struct fb_fillrect *rec
 
 	/* x y */
 	smc501_writel((rect->dx << 16) | rect->dy,
-			fbi->regs2d + SM501_2D_DESTINATION);
+				  fbi->regs2d + SM501_2D_DESTINATION);
 
 	/* w/h */
 	smc501_writel((width << 16) | height, fbi->regs2d + SM501_2D_DIMENSION);
@@ -1444,7 +1629,8 @@ static void sm501fb_fillrect(struct fb_info *info, const struct fb_fillrect *rec
 }
 
 
-static struct fb_ops sm501fb_ops_crt = {
+static struct fb_ops sm501fb_ops_crt =
+{
 	.owner		= THIS_MODULE,
 	.fb_check_var	= sm501fb_check_var_crt,
 	.fb_set_par	= sm501fb_set_par_crt,
@@ -1458,7 +1644,8 @@ static struct fb_ops sm501fb_ops_crt = {
 	.fb_sync	= sm501fb_sync,
 };
 
-static struct fb_ops sm501fb_ops_pnl = {
+static struct fb_ops sm501fb_ops_pnl =
+{
 	.owner		= THIS_MODULE,
 	.fb_check_var	= sm501fb_check_var_pnl,
 	.fb_set_par	= sm501fb_set_par_pnl,
@@ -1484,7 +1671,9 @@ static int sm501_init_cursor(struct fb_info *fbi, unsigned int reg_base)
 	int ret;
 
 	if (fbi == NULL)
+	{
 		return 0;
+	}
 
 	par = fbi->par;
 	info = par->info;
@@ -1492,14 +1681,17 @@ static int sm501_init_cursor(struct fb_info *fbi, unsigned int reg_base)
 	par->cursor_regs = info->regs + reg_base;
 
 	ret = sm501_alloc_mem(info, &par->cursor, SM501_MEMF_CURSOR, 1024,
-			      fbi->fix.smem_len);
+						  fbi->fix.smem_len);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* initialise the colour registers */
 
 	smc501_writel(par->cursor.sm_addr,
-			par->cursor_regs + SM501_OFF_HWC_ADDR);
+				  par->cursor_regs + SM501_OFF_HWC_ADDR);
 
 	smc501_writel(0x00, par->cursor_regs + SM501_OFF_HWC_LOC);
 	smc501_writel(0x00, par->cursor_regs + SM501_OFF_HWC_COLOR_1_2);
@@ -1515,7 +1707,7 @@ static int sm501_init_cursor(struct fb_info *fbi, unsigned int reg_base)
 */
 
 static int sm501fb_start(struct sm501fb_info *info,
-			 struct platform_device *pdev)
+						 struct platform_device *pdev)
 {
 	struct resource	*res;
 	struct device *dev = &pdev->dev;
@@ -1523,7 +1715,9 @@ static int sm501fb_start(struct sm501fb_info *info,
 	int ret;
 
 	info->irq = ret = platform_get_irq(pdev, 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		/* we currently do not use the IRQ */
 		dev_warn(dev, "no irq for device\n");
 	}
@@ -1531,24 +1725,29 @@ static int sm501fb_start(struct sm501fb_info *info,
 	/* allocate, reserve and remap resources for display
 	 * controller registers */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (res == NULL) {
+
+	if (res == NULL)
+	{
 		dev_err(dev, "no resource definition for registers\n");
 		ret = -ENOENT;
 		goto err_release;
 	}
 
 	info->regs_res = request_mem_region(res->start,
-					    resource_size(res),
-					    pdev->name);
+										resource_size(res),
+										pdev->name);
 
-	if (info->regs_res == NULL) {
+	if (info->regs_res == NULL)
+	{
 		dev_err(dev, "cannot claim registers\n");
 		ret = -ENXIO;
 		goto err_release;
 	}
 
 	info->regs = ioremap(res->start, resource_size(res));
-	if (info->regs == NULL) {
+
+	if (info->regs == NULL)
+	{
 		dev_err(dev, "cannot remap registers\n");
 		ret = -ENXIO;
 		goto err_regs_res;
@@ -1557,24 +1756,29 @@ static int sm501fb_start(struct sm501fb_info *info,
 	/* allocate, reserve and remap resources for 2d
 	 * controller registers */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-	if (res == NULL) {
+
+	if (res == NULL)
+	{
 		dev_err(dev, "no resource definition for 2d registers\n");
 		ret = -ENOENT;
 		goto err_regs_map;
 	}
 
 	info->regs2d_res = request_mem_region(res->start,
-					      resource_size(res),
-					      pdev->name);
+										  resource_size(res),
+										  pdev->name);
 
-	if (info->regs2d_res == NULL) {
+	if (info->regs2d_res == NULL)
+	{
 		dev_err(dev, "cannot claim registers\n");
 		ret = -ENXIO;
 		goto err_regs_map;
 	}
 
 	info->regs2d = ioremap(res->start, resource_size(res));
-	if (info->regs2d == NULL) {
+
+	if (info->regs2d == NULL)
+	{
 		dev_err(dev, "cannot remap registers\n");
 		ret = -ENXIO;
 		goto err_regs2d_res;
@@ -1582,23 +1786,29 @@ static int sm501fb_start(struct sm501fb_info *info,
 
 	/* allocate, reserve resources for framebuffer */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 2);
-	if (res == NULL) {
+
+	if (res == NULL)
+	{
 		dev_err(dev, "no memory resource defined\n");
 		ret = -ENXIO;
 		goto err_regs2d_map;
 	}
 
 	info->fbmem_res = request_mem_region(res->start,
-					     resource_size(res),
-					     pdev->name);
-	if (info->fbmem_res == NULL) {
+										 resource_size(res),
+										 pdev->name);
+
+	if (info->fbmem_res == NULL)
+	{
 		dev_err(dev, "cannot claim framebuffer\n");
 		ret = -ENXIO;
 		goto err_regs2d_map;
 	}
 
 	info->fbmem = ioremap(res->start, resource_size(res));
-	if (info->fbmem == NULL) {
+
+	if (info->fbmem == NULL)
+	{
 		dev_err(dev, "cannot remap framebuffer\n");
 		goto err_mem_res;
 	}
@@ -1610,7 +1820,9 @@ static int sm501fb_start(struct sm501fb_info *info,
 
 	/* clear palette ram - undefined at power on */
 	for (k = 0; k < (256 * 3); k++)
+	{
 		smc501_writel(0, info->regs + SM501_DC_PANEL_PALETTE + (k * 4));
+	}
 
 	/* enable display controller */
 	sm501_unit_power(dev->parent, SM501_GATE_DISPLAY, 1);
@@ -1624,25 +1836,25 @@ static int sm501fb_start(struct sm501fb_info *info,
 
 	return 0; /* everything is setup */
 
- err_mem_res:
+err_mem_res:
 	release_mem_region(info->fbmem_res->start,
-			   resource_size(info->fbmem_res));
+					   resource_size(info->fbmem_res));
 
- err_regs2d_map:
+err_regs2d_map:
 	iounmap(info->regs2d);
 
- err_regs2d_res:
+err_regs2d_res:
 	release_mem_region(info->regs2d_res->start,
-			   resource_size(info->regs2d_res));
+					   resource_size(info->regs2d_res));
 
- err_regs_map:
+err_regs_map:
 	iounmap(info->regs);
 
- err_regs_res:
+err_regs_res:
 	release_mem_region(info->regs_res->start,
-			   resource_size(info->regs_res));
+					   resource_size(info->regs_res));
 
- err_release:
+err_release:
 	return ret;
 }
 
@@ -1653,19 +1865,19 @@ static void sm501fb_stop(struct sm501fb_info *info)
 
 	iounmap(info->fbmem);
 	release_mem_region(info->fbmem_res->start,
-			   resource_size(info->fbmem_res));
+					   resource_size(info->fbmem_res));
 
 	iounmap(info->regs2d);
 	release_mem_region(info->regs2d_res->start,
-			   resource_size(info->regs2d_res));
+					   resource_size(info->regs2d_res));
 
 	iounmap(info->regs);
 	release_mem_region(info->regs_res->start,
-			   resource_size(info->regs_res));
+					   resource_size(info->regs_res));
 }
 
 static int sm501fb_init_fb(struct fb_info *fb, enum sm501_controller head,
-			   const char *fbname)
+						   const char *fbname)
 {
 	struct sm501_platdata_fbsub *pd;
 	struct sm501fb_par *par = fb->par;
@@ -1674,39 +1886,42 @@ static int sm501fb_init_fb(struct fb_info *fb, enum sm501_controller head,
 	unsigned int enable;
 	int ret;
 
-	switch (head) {
-	case HEAD_CRT:
-		pd = info->pdata->fb_crt;
-		ctrl = smc501_readl(info->regs + SM501_DC_CRT_CONTROL);
-		enable = (ctrl & SM501_DC_CRT_CONTROL_ENABLE) ? 1 : 0;
+	switch (head)
+	{
+		case HEAD_CRT:
+			pd = info->pdata->fb_crt;
+			ctrl = smc501_readl(info->regs + SM501_DC_CRT_CONTROL);
+			enable = (ctrl & SM501_DC_CRT_CONTROL_ENABLE) ? 1 : 0;
 
-		/* ensure we set the correct source register */
-		if (info->pdata->fb_route != SM501_FB_CRT_PANEL) {
-			ctrl |= SM501_DC_CRT_CONTROL_SEL;
-			smc501_writel(ctrl, info->regs + SM501_DC_CRT_CONTROL);
-		}
+			/* ensure we set the correct source register */
+			if (info->pdata->fb_route != SM501_FB_CRT_PANEL)
+			{
+				ctrl |= SM501_DC_CRT_CONTROL_SEL;
+				smc501_writel(ctrl, info->regs + SM501_DC_CRT_CONTROL);
+			}
 
-		break;
+			break;
 
-	case HEAD_PANEL:
-		pd = info->pdata->fb_pnl;
-		ctrl = smc501_readl(info->regs + SM501_DC_PANEL_CONTROL);
-		enable = (ctrl & SM501_DC_PANEL_CONTROL_EN) ? 1 : 0;
-		break;
+		case HEAD_PANEL:
+			pd = info->pdata->fb_pnl;
+			ctrl = smc501_readl(info->regs + SM501_DC_PANEL_CONTROL);
+			enable = (ctrl & SM501_DC_PANEL_CONTROL_EN) ? 1 : 0;
+			break;
 
-	default:
-		pd = NULL;		/* stop compiler warnings */
-		ctrl = 0;
-		enable = 0;
-		BUG();
+		default:
+			pd = NULL;		/* stop compiler warnings */
+			ctrl = 0;
+			enable = 0;
+			BUG();
 	}
 
 	dev_info(info->dev, "fb %s %sabled at start\n",
-		 fbname, enable ? "en" : "dis");
+			 fbname, enable ? "en" : "dis");
 
 	/* check to see if our routing allows this */
 
-	if (head == HEAD_CRT && info->pdata->fb_route == SM501_FB_CRT_PANEL) {
+	if (head == HEAD_CRT && info->pdata->fb_route == SM501_FB_CRT_PANEL)
+	{
 		ctrl &= ~SM501_DC_CRT_CONTROL_SEL;
 		smc501_writel(ctrl, info->regs + SM501_DC_CRT_CONTROL);
 		enable = 0;
@@ -1715,26 +1930,36 @@ static int sm501fb_init_fb(struct fb_info *fb, enum sm501_controller head,
 	strlcpy(fb->fix.id, fbname, sizeof(fb->fix.id));
 
 	memcpy(&par->ops,
-	       (head == HEAD_CRT) ? &sm501fb_ops_crt : &sm501fb_ops_pnl,
-	       sizeof(struct fb_ops));
+		   (head == HEAD_CRT) ? &sm501fb_ops_crt : &sm501fb_ops_pnl,
+		   sizeof(struct fb_ops));
 
 	/* update ops dependent on what we've been passed */
 
 	if ((pd->flags & SM501FB_FLAG_USE_HWCURSOR) == 0)
+	{
 		par->ops.fb_cursor = NULL;
+	}
 
 	fb->fbops = &par->ops;
 	fb->flags = FBINFO_FLAG_DEFAULT | FBINFO_READS_FAST |
-		FBINFO_HWACCEL_COPYAREA | FBINFO_HWACCEL_FILLRECT |
-		FBINFO_HWACCEL_XPAN | FBINFO_HWACCEL_YPAN;
+				FBINFO_HWACCEL_COPYAREA | FBINFO_HWACCEL_FILLRECT |
+				FBINFO_HWACCEL_XPAN | FBINFO_HWACCEL_YPAN;
 
 #if defined(CONFIG_OF)
 #ifdef __BIG_ENDIAN
+
 	if (of_get_property(info->dev->parent->of_node, "little-endian", NULL))
+	{
 		fb->flags |= FBINFO_FOREIGN_ENDIAN;
+	}
+
 #else
+
 	if (of_get_property(info->dev->parent->of_node, "big-endian", NULL))
+	{
 		fb->flags |= FBINFO_FOREIGN_ENDIAN;
+	}
+
 #endif
 #endif
 	/* fixed data */
@@ -1754,93 +1979,116 @@ static int sm501fb_init_fb(struct fb_info *fb, enum sm501_controller head,
 	fb->var.vmode		= FB_VMODE_NONINTERLACED;
 	fb->var.bits_per_pixel  = 16;
 
-	if (info->edid_data) {
-			/* Now build modedb from EDID */
-			fb_edid_to_monspecs(info->edid_data, &fb->monspecs);
-			fb_videomode_to_modelist(fb->monspecs.modedb,
-						 fb->monspecs.modedb_len,
-						 &fb->modelist);
+	if (info->edid_data)
+	{
+		/* Now build modedb from EDID */
+		fb_edid_to_monspecs(info->edid_data, &fb->monspecs);
+		fb_videomode_to_modelist(fb->monspecs.modedb,
+								 fb->monspecs.modedb_len,
+								 &fb->modelist);
 	}
 
-	if (enable && (pd->flags & SM501FB_FLAG_USE_INIT_MODE) && 0) {
+	if (enable && (pd->flags & SM501FB_FLAG_USE_INIT_MODE) && 0)
+	{
 		/* TODO read the mode from the current display */
-	} else {
-		if (pd->def_mode) {
+	}
+	else
+	{
+		if (pd->def_mode)
+		{
 			dev_info(info->dev, "using supplied mode\n");
 			fb_videomode_to_var(&fb->var, pd->def_mode);
 
 			fb->var.bits_per_pixel = pd->def_bpp ? pd->def_bpp : 8;
 			fb->var.xres_virtual = fb->var.xres;
 			fb->var.yres_virtual = fb->var.yres;
-		} else {
-			if (info->edid_data) {
+		}
+		else
+		{
+			if (info->edid_data)
+			{
 				ret = fb_find_mode(&fb->var, fb, fb_mode,
-					fb->monspecs.modedb,
-					fb->monspecs.modedb_len,
-					&sm501_default_mode, default_bpp);
+								   fb->monspecs.modedb,
+								   fb->monspecs.modedb_len,
+								   &sm501_default_mode, default_bpp);
 				/* edid_data is no longer needed, free it */
 				kfree(info->edid_data);
-			} else {
+			}
+			else
+			{
 				ret = fb_find_mode(&fb->var, fb,
-					   NULL, NULL, 0, NULL, 8);
+								   NULL, NULL, 0, NULL, 8);
 			}
 
-			switch (ret) {
-			case 1:
-				dev_info(info->dev, "using mode specified in "
-						"@mode\n");
-				break;
-			case 2:
-				dev_info(info->dev, "using mode specified in "
-					"@mode with ignored refresh rate\n");
-				break;
-			case 3:
-				dev_info(info->dev, "using mode default "
-					"mode\n");
-				break;
-			case 4:
-				dev_info(info->dev, "using mode from list\n");
-				break;
-			default:
-				dev_info(info->dev, "ret = %d\n", ret);
-				dev_info(info->dev, "failed to find mode\n");
-				return -EINVAL;
+			switch (ret)
+			{
+				case 1:
+					dev_info(info->dev, "using mode specified in "
+							 "@mode\n");
+					break;
+
+				case 2:
+					dev_info(info->dev, "using mode specified in "
+							 "@mode with ignored refresh rate\n");
+					break;
+
+				case 3:
+					dev_info(info->dev, "using mode default "
+							 "mode\n");
+					break;
+
+				case 4:
+					dev_info(info->dev, "using mode from list\n");
+					break;
+
+				default:
+					dev_info(info->dev, "ret = %d\n", ret);
+					dev_info(info->dev, "failed to find mode\n");
+					return -EINVAL;
 			}
 		}
 	}
 
 	/* initialise and set the palette */
-	if (fb_alloc_cmap(&fb->cmap, NR_PALETTE, 0)) {
+	if (fb_alloc_cmap(&fb->cmap, NR_PALETTE, 0))
+	{
 		dev_err(info->dev, "failed to allocate cmap memory\n");
 		return -ENOMEM;
 	}
+
 	fb_set_cmap(&fb->cmap, fb);
 
 	ret = (fb->fbops->fb_check_var)(&fb->var, fb);
+
 	if (ret)
+	{
 		dev_err(info->dev, "check_var() failed on initial setup?\n");
+	}
 
 	return 0;
 }
 
 /* default platform data if none is supplied (ie, PCI device) */
 
-static struct sm501_platdata_fbsub sm501fb_pdata_crt = {
+static struct sm501_platdata_fbsub sm501fb_pdata_crt =
+{
 	.flags		= (SM501FB_FLAG_USE_INIT_MODE |
-			   SM501FB_FLAG_USE_HWCURSOR |
-			   SM501FB_FLAG_USE_HWACCEL |
-			   SM501FB_FLAG_DISABLE_AT_EXIT),
+	SM501FB_FLAG_USE_HWCURSOR |
+	SM501FB_FLAG_USE_HWACCEL |
+	SM501FB_FLAG_DISABLE_AT_EXIT),
 
 };
 
-static struct sm501_platdata_fbsub sm501fb_pdata_pnl = {
+static struct sm501_platdata_fbsub sm501fb_pdata_pnl =
+{
 	.flags		= (SM501FB_FLAG_USE_INIT_MODE |
-			   SM501FB_FLAG_USE_HWCURSOR |
-			   SM501FB_FLAG_USE_HWACCEL |
-			   SM501FB_FLAG_DISABLE_AT_EXIT),
+	SM501FB_FLAG_USE_HWCURSOR |
+	SM501FB_FLAG_USE_HWACCEL |
+	SM501FB_FLAG_DISABLE_AT_EXIT),
 };
 
-static struct sm501_platdata_fb sm501fb_def_pdata = {
+static struct sm501_platdata_fb sm501fb_def_pdata =
+{
 	.fb_route		= SM501_FB_OWN,
 	.fb_crt			= &sm501fb_pdata_crt,
 	.fb_pnl			= &sm501fb_pdata_pnl,
@@ -1850,7 +2098,7 @@ static char driver_name_crt[] = "sm501fb-crt";
 static char driver_name_pnl[] = "sm501fb-panel";
 
 static int sm501fb_probe_one(struct sm501fb_info *info,
-			     enum sm501_controller head)
+							 enum sm501_controller head)
 {
 	unsigned char *name = (head == HEAD_CRT) ? "crt" : "panel";
 	struct sm501_platdata_fbsub *pd;
@@ -1860,13 +2108,16 @@ static int sm501fb_probe_one(struct sm501fb_info *info,
 	pd = (head == HEAD_CRT) ? info->pdata->fb_crt : info->pdata->fb_pnl;
 
 	/* Do not initialise if we've not been given any platform data */
-	if (pd == NULL) {
+	if (pd == NULL)
+	{
 		dev_info(info->dev, "no data for fb %s (disabled)\n", name);
 		return 0;
 	}
 
 	fbi = framebuffer_alloc(sizeof(struct sm501fb_par), info->dev);
-	if (fbi == NULL) {
+
+	if (fbi == NULL)
+	{
 		dev_err(info->dev, "cannot allocate %s framebuffer\n", name);
 		return -ENOMEM;
 	}
@@ -1884,7 +2135,7 @@ static int sm501fb_probe_one(struct sm501fb_info *info,
 /* Free up anything allocated by sm501fb_init_fb */
 
 static void sm501_free_init_fb(struct sm501fb_info *info,
-				enum sm501_controller head)
+							   enum sm501_controller head)
 {
 	struct fb_info *fbi = info->fb[head];
 
@@ -1892,24 +2143,30 @@ static void sm501_free_init_fb(struct sm501fb_info *info,
 }
 
 static int sm501fb_start_one(struct sm501fb_info *info,
-			     enum sm501_controller head, const char *drvname)
+							 enum sm501_controller head, const char *drvname)
 {
 	struct fb_info *fbi = info->fb[head];
 	int ret;
 
 	if (!fbi)
+	{
 		return 0;
+	}
 
 	mutex_init(&info->fb[head]->mm_lock);
 
 	ret = sm501fb_init_fb(info->fb[head], head, drvname);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(info->dev, "cannot initialise fb %s\n", drvname);
 		return ret;
 	}
 
 	ret = register_framebuffer(info->fb[head]);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(info->dev, "failed to register fb %s\n", drvname);
 		sm501_free_init_fb(info, head);
 		return ret;
@@ -1929,7 +2186,9 @@ static int sm501fb_probe(struct platform_device *pdev)
 	/* allocate our framebuffers */
 
 	info = kzalloc(sizeof(struct sm501fb_info), GFP_KERNEL);
-	if (!info) {
+
+	if (!info)
+	{
 		dev_err(dev, "failed to allocate state\n");
 		return -ENOMEM;
 	}
@@ -1937,12 +2196,14 @@ static int sm501fb_probe(struct platform_device *pdev)
 	info->dev = dev = &pdev->dev;
 	platform_set_drvdata(pdev, info);
 
-	if (dev->parent->platform_data) {
+	if (dev->parent->platform_data)
+	{
 		struct sm501_platdata *pd = dev->parent->platform_data;
 		info->pdata = pd->fb;
 	}
 
-	if (info->pdata == NULL) {
+	if (info->pdata == NULL)
+	{
 		int found = 0;
 #if defined(CONFIG_OF)
 		struct device_node *np = pdev->dev.parent->of_node;
@@ -1951,21 +2212,35 @@ static int sm501fb_probe(struct platform_device *pdev)
 		int len;
 
 		info->pdata = &sm501fb_def_pdata;
-		if (np) {
+
+		if (np)
+		{
 			/* Get EDID */
 			cp = of_get_property(np, "mode", &len);
+
 			if (cp)
+			{
 				strcpy(fb_mode, cp);
+			}
+
 			prop = of_get_property(np, "edid", &len);
-			if (prop && len == EDID_LENGTH) {
+
+			if (prop && len == EDID_LENGTH)
+			{
 				info->edid_data = kmemdup(prop, EDID_LENGTH,
-							  GFP_KERNEL);
+										  GFP_KERNEL);
+
 				if (info->edid_data)
+				{
 					found = 1;
+				}
 			}
 		}
+
 #endif
-		if (!found) {
+
+		if (!found)
+		{
 			dev_info(dev, "using default configuration data\n");
 			info->pdata = &sm501fb_def_pdata;
 		}
@@ -1974,19 +2249,24 @@ static int sm501fb_probe(struct platform_device *pdev)
 	/* probe for the presence of each panel */
 
 	ret = sm501fb_probe_one(info, HEAD_CRT);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "failed to probe CRT\n");
 		goto err_alloc;
 	}
 
 	ret = sm501fb_probe_one(info, HEAD_PANEL);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "failed to probe PANEL\n");
 		goto err_probed_crt;
 	}
 
 	if (info->fb[HEAD_PANEL] == NULL &&
-	    info->fb[HEAD_CRT] == NULL) {
+		info->fb[HEAD_CRT] == NULL)
+	{
 		dev_err(dev, "no framebuffers found\n");
 		ret = -ENODEV;
 		goto err_alloc;
@@ -1995,19 +2275,25 @@ static int sm501fb_probe(struct platform_device *pdev)
 	/* get the resources for both of the framebuffers */
 
 	ret = sm501fb_start(info, pdev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "cannot initialise SM501\n");
 		goto err_probed_panel;
 	}
 
 	ret = sm501fb_start_one(info, HEAD_CRT, driver_name_crt);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to start CRT\n");
 		goto err_started;
 	}
 
 	ret = sm501fb_start_one(info, HEAD_PANEL, driver_name_pnl);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to start Panel\n");
 		goto err_started_crt;
 	}
@@ -2015,16 +2301,25 @@ static int sm501fb_probe(struct platform_device *pdev)
 	/* create device files */
 
 	ret = device_create_file(dev, &dev_attr_crt_src);
+
 	if (ret)
+	{
 		goto err_started_panel;
+	}
 
 	ret = device_create_file(dev, &dev_attr_fbregs_pnl);
+
 	if (ret)
+	{
 		goto err_attached_crtsrc_file;
+	}
 
 	ret = device_create_file(dev, &dev_attr_fbregs_crt);
+
 	if (ret)
+	{
 		goto err_attached_pnlregs_file;
+	}
 
 	/* we registered, return ok */
 	return 0;
@@ -2090,13 +2385,15 @@ static int sm501fb_remove(struct platform_device *pdev)
 #ifdef CONFIG_PM
 
 static int sm501fb_suspend_fb(struct sm501fb_info *info,
-			      enum sm501_controller head)
+							  enum sm501_controller head)
 {
 	struct fb_info *fbi = info->fb[head];
 	struct sm501fb_par *par = fbi->par;
 
 	if (par->screen.size == 0)
+	{
 		return 0;
+	}
 
 	/* blank the relevant interface to ensure unit power minimised */
 	(par->ops.fb_blank)(FB_BLANK_POWERDOWN, fbi);
@@ -2110,13 +2407,17 @@ static int sm501fb_suspend_fb(struct sm501fb_info *info,
 	/* backup copies in case chip is powered down over suspend */
 
 	par->store_fb = vmalloc(par->screen.size);
-	if (par->store_fb == NULL) {
+
+	if (par->store_fb == NULL)
+	{
 		dev_err(info->dev, "no memory to store screen\n");
 		return -ENOMEM;
 	}
 
 	par->store_cursor = vmalloc(par->cursor.size);
-	if (par->store_cursor == NULL) {
+
+	if (par->store_cursor == NULL)
+	{
 		dev_err(info->dev, "no memory to store cursor\n");
 		goto err_nocursor;
 	}
@@ -2129,7 +2430,7 @@ static int sm501fb_suspend_fb(struct sm501fb_info *info,
 
 	return 0;
 
- err_nocursor:
+err_nocursor:
 	vfree(par->store_fb);
 	par->store_fb = NULL;
 
@@ -2137,13 +2438,15 @@ static int sm501fb_suspend_fb(struct sm501fb_info *info,
 }
 
 static void sm501fb_resume_fb(struct sm501fb_info *info,
-			      enum sm501_controller head)
+							  enum sm501_controller head)
 {
 	struct fb_info *fbi = info->fb[head];
 	struct sm501fb_par *par = fbi->par;
 
 	if (par->screen.size == 0)
+	{
 		return;
+	}
 
 	/* re-activate the configuration */
 
@@ -2156,11 +2459,11 @@ static void sm501fb_resume_fb(struct sm501fb_info *info,
 
 	if (par->store_fb)
 		memcpy_toio(par->screen.k_addr, par->store_fb,
-			    par->screen.size);
+					par->screen.size);
 
 	if (par->store_cursor)
 		memcpy_toio(par->cursor.k_addr, par->store_cursor,
-			    par->cursor.size);
+					par->cursor.size);
 
 	console_lock();
 	fb_set_suspend(fbi, 0);
@@ -2190,7 +2493,7 @@ static int sm501fb_suspend(struct platform_device *pdev, pm_message_t state)
 }
 
 #define SM501_CRT_CTRL_SAVE (SM501_DC_CRT_CONTROL_TVP |        \
-			     SM501_DC_CRT_CONTROL_SEL)
+							 SM501_DC_CRT_CONTROL_SEL)
 
 
 static int sm501fb_resume(struct platform_device *pdev)
@@ -2218,7 +2521,8 @@ static int sm501fb_resume(struct platform_device *pdev)
 #define sm501fb_resume  NULL
 #endif
 
-static struct platform_driver sm501fb_driver = {
+static struct platform_driver sm501fb_driver =
+{
 	.probe		= sm501fb_probe,
 	.remove		= sm501fb_remove,
 	.suspend	= sm501fb_suspend,
@@ -2232,7 +2536,7 @@ module_platform_driver(sm501fb_driver);
 
 module_param_named(mode, fb_mode, charp, 0);
 MODULE_PARM_DESC(mode,
-	"Specify resolution as \"<xres>x<yres>[-<bpp>][@<refresh>]\" ");
+				 "Specify resolution as \"<xres>x<yres>[-<bpp>][@<refresh>]\" ");
 module_param_named(bpp, default_bpp, ulong, 0);
 MODULE_PARM_DESC(bpp, "Specify bit-per-pixel if not specified mode");
 MODULE_AUTHOR("Ben Dooks, Vincent Sanders");

@@ -34,8 +34,12 @@ static void pc236_intr_update(struct comedi_device *dev, bool enable)
 
 	spin_lock_irqsave(&dev->spinlock, flags);
 	devpriv->enable_irq = enable;
+
 	if (board->intr_update_cb)
+	{
 		board->intr_update_cb(dev, enable);
+	}
+
 	spin_unlock_irqrestore(&dev->spinlock, flags);
 }
 
@@ -54,28 +58,35 @@ static bool pc236_intr_check(struct comedi_device *dev)
 	unsigned long flags;
 
 	spin_lock_irqsave(&dev->spinlock, flags);
-	if (devpriv->enable_irq) {
+
+	if (devpriv->enable_irq)
+	{
 		if (board->intr_chk_clr_cb)
+		{
 			retval = board->intr_chk_clr_cb(dev);
+		}
 		else
+		{
 			retval = true;
+		}
 	}
+
 	spin_unlock_irqrestore(&dev->spinlock, flags);
 
 	return retval;
 }
 
 static int pc236_intr_insn(struct comedi_device *dev,
-			   struct comedi_subdevice *s, struct comedi_insn *insn,
-			   unsigned int *data)
+						   struct comedi_subdevice *s, struct comedi_insn *insn,
+						   unsigned int *data)
 {
 	data[1] = 0;
 	return insn->n;
 }
 
 static int pc236_intr_cmdtest(struct comedi_device *dev,
-			      struct comedi_subdevice *s,
-			      struct comedi_cmd *cmd)
+							  struct comedi_subdevice *s,
+							  struct comedi_cmd *cmd)
 {
 	int err = 0;
 
@@ -88,7 +99,9 @@ static int pc236_intr_cmdtest(struct comedi_device *dev,
 	err |= comedi_check_trigger_src(&cmd->stop_src, TRIG_NONE);
 
 	if (err)
+	{
 		return 1;
+	}
 
 	/* Step 2a : make sure trigger sources are unique */
 	/* Step 2b : and mutually compatible */
@@ -99,11 +112,13 @@ static int pc236_intr_cmdtest(struct comedi_device *dev,
 	err |= comedi_check_trigger_arg_is(&cmd->scan_begin_arg, 0);
 	err |= comedi_check_trigger_arg_is(&cmd->convert_arg, 0);
 	err |= comedi_check_trigger_arg_is(&cmd->scan_end_arg,
-					   cmd->chanlist_len);
+									   cmd->chanlist_len);
 	err |= comedi_check_trigger_arg_is(&cmd->stop_arg, 0);
 
 	if (err)
+	{
 		return 3;
+	}
 
 	/* Step 4: fix up any arguments */
 
@@ -120,7 +135,7 @@ static int pc236_intr_cmd(struct comedi_device *dev, struct comedi_subdevice *s)
 }
 
 static int pc236_intr_cancel(struct comedi_device *dev,
-			     struct comedi_subdevice *s)
+							 struct comedi_subdevice *s)
 {
 	pc236_intr_update(dev, false);
 
@@ -134,15 +149,18 @@ static irqreturn_t pc236_interrupt(int irq, void *d)
 	bool handled;
 
 	handled = pc236_intr_check(dev);
-	if (dev->attached && handled) {
+
+	if (dev->attached && handled)
+	{
 		comedi_buf_write_samples(s, &s->state, 1);
 		comedi_handle_events(dev, s);
 	}
+
 	return IRQ_RETVAL(handled);
 }
 
 int amplc_pc236_common_attach(struct comedi_device *dev, unsigned long iobase,
-			      unsigned int irq, unsigned long req_irq_flags)
+							  unsigned int irq, unsigned long req_irq_flags)
 {
 	struct comedi_subdevice *s;
 	int ret;
@@ -150,22 +168,31 @@ int amplc_pc236_common_attach(struct comedi_device *dev, unsigned long iobase,
 	dev->iobase = iobase;
 
 	ret = comedi_alloc_subdevices(dev, 2);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	s = &dev->subdevices[0];
 	/* digital i/o subdevice (8255) */
 	ret = subdev_8255_init(dev, s, NULL, 0x00);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	s = &dev->subdevices[1];
 	dev->read_subdev = s;
 	s->type = COMEDI_SUBD_UNUSED;
 	pc236_intr_update(dev, false);
-	if (irq) {
+
+	if (irq)
+	{
 		if (request_irq(irq, pc236_interrupt, req_irq_flags,
-				dev->board_name, dev) >= 0) {
+						dev->board_name, dev) >= 0)
+		{
 			dev->irq = irq;
 			s->type = COMEDI_SUBD_DI;
 			s->subdev_flags = SDF_READABLE | SDF_CMD_READ;

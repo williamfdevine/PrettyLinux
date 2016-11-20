@@ -35,7 +35,9 @@ void
 qcaspi_spi_error(struct qcaspi *qca)
 {
 	if (qca->sync != QCASPI_SYNC_READY)
+	{
 		return;
+	}
 
 	netdev_err(qca->net_dev, "spi error\n");
 	qca->sync = QCASPI_SYNC_UNKNOWN;
@@ -53,14 +55,17 @@ qcaspi_read_register(struct qcaspi *qca, u16 reg, u16 *result)
 
 	tx_data = cpu_to_be16(QCA7K_SPI_READ | QCA7K_SPI_INTERNAL | reg);
 
-	if (qca->legacy_mode) {
+	if (qca->legacy_mode)
+	{
 		msg = &qca->spi_msg1;
 		transfer = &qca->spi_xfer1;
 		transfer->tx_buf = &tx_data;
 		transfer->rx_buf = NULL;
 		transfer->len = QCASPI_CMD_LEN;
 		spi_sync(qca->spi_dev, msg);
-	} else {
+	}
+	else
+	{
 		msg = &qca->spi_msg2;
 		transfer = &qca->spi_xfer2[0];
 		transfer->tx_buf = &tx_data;
@@ -68,18 +73,25 @@ qcaspi_read_register(struct qcaspi *qca, u16 reg, u16 *result)
 		transfer->len = QCASPI_CMD_LEN;
 		transfer = &qca->spi_xfer2[1];
 	}
+
 	transfer->tx_buf = NULL;
 	transfer->rx_buf = &rx_data;
 	transfer->len = QCASPI_CMD_LEN;
 	ret = spi_sync(qca->spi_dev, msg);
 
 	if (!ret)
+	{
 		ret = msg->status;
+	}
 
 	if (ret)
+	{
 		qcaspi_spi_error(qca);
+	}
 	else
+	{
 		*result = be16_to_cpu(rx_data);
+	}
 
 	return ret;
 }
@@ -95,14 +107,17 @@ qcaspi_write_register(struct qcaspi *qca, u16 reg, u16 value)
 	tx_data[0] = cpu_to_be16(QCA7K_SPI_WRITE | QCA7K_SPI_INTERNAL | reg);
 	tx_data[1] = cpu_to_be16(value);
 
-	if (qca->legacy_mode) {
+	if (qca->legacy_mode)
+	{
 		msg = &qca->spi_msg1;
 		transfer = &qca->spi_xfer1;
 		transfer->tx_buf = &tx_data[0];
 		transfer->rx_buf = NULL;
 		transfer->len = QCASPI_CMD_LEN;
 		spi_sync(qca->spi_dev, msg);
-	} else {
+	}
+	else
+	{
 		msg = &qca->spi_msg2;
 		transfer = &qca->spi_xfer2[0];
 		transfer->tx_buf = &tx_data[0];
@@ -110,16 +125,21 @@ qcaspi_write_register(struct qcaspi *qca, u16 reg, u16 value)
 		transfer->len = QCASPI_CMD_LEN;
 		transfer = &qca->spi_xfer2[1];
 	}
+
 	transfer->tx_buf = &tx_data[1];
 	transfer->rx_buf = NULL;
 	transfer->len = QCASPI_CMD_LEN;
 	ret = spi_sync(qca->spi_dev, msg);
 
 	if (!ret)
+	{
 		ret = msg->status;
+	}
 
 	if (ret)
+	{
 		qcaspi_spi_error(qca);
+	}
 
 	return ret;
 }
@@ -140,10 +160,14 @@ qcaspi_tx_cmd(struct qcaspi *qca, u16 cmd)
 	ret = spi_sync(qca->spi_dev, msg);
 
 	if (!ret)
+	{
 		ret = msg->status;
+	}
 
 	if (ret)
+	{
 		qcaspi_spi_error(qca);
+	}
 
 	return ret;
 }

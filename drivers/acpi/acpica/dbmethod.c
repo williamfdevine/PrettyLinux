@@ -55,7 +55,7 @@ ACPI_MODULE_NAME("dbmethod")
 /* Local prototypes */
 static acpi_status
 acpi_db_walk_for_execute(acpi_handle obj_handle,
-			 u32 nesting_level, void *context, void **return_value);
+						 u32 nesting_level, void *context, void **return_value);
 
 /*******************************************************************************
  *
@@ -74,13 +74,14 @@ acpi_db_walk_for_execute(acpi_handle obj_handle,
 
 void
 acpi_db_set_method_breakpoint(char *location,
-			      struct acpi_walk_state *walk_state,
-			      union acpi_parse_object *op)
+							  struct acpi_walk_state *walk_state,
+							  union acpi_parse_object *op)
 {
 	u32 address;
 	u32 aml_offset;
 
-	if (!op) {
+	if (!op)
+	{
 		acpi_os_printf("There is no method currently executing\n");
 		return;
 	}
@@ -89,10 +90,12 @@ acpi_db_set_method_breakpoint(char *location,
 
 	address = strtoul(location, NULL, 16);
 	aml_offset = (u32)ACPI_PTR_DIFF(op->common.aml,
-					walk_state->parser_state.aml_start);
-	if (address <= aml_offset) {
+									walk_state->parser_state.aml_start);
+
+	if (address <= aml_offset)
+	{
 		acpi_os_printf("Breakpoint %X is beyond current address %X\n",
-			       address, aml_offset);
+					   address, aml_offset);
 	}
 
 	/* Save breakpoint in current walk */
@@ -117,7 +120,8 @@ acpi_db_set_method_breakpoint(char *location,
 void acpi_db_set_method_call_breakpoint(union acpi_parse_object *op)
 {
 
-	if (!op) {
+	if (!op)
+	{
 		acpi_os_printf("There is no method currently executing\n");
 		return;
 	}
@@ -154,23 +158,30 @@ void acpi_db_set_method_data(char *type_arg, char *index_arg, char *value_arg)
 
 	acpi_ut_strupr(type_arg);
 	type = type_arg[0];
-	if ((type != 'L') && (type != 'A') && (type != 'N')) {
+
+	if ((type != 'L') && (type != 'A') && (type != 'N'))
+	{
 		acpi_os_printf("Invalid SET operand: %s\n", type_arg);
 		return;
 	}
 
 	value = strtoul(value_arg, NULL, 16);
 
-	if (type == 'N') {
+	if (type == 'N')
+	{
 		node = acpi_db_convert_to_node(index_arg);
-		if (!node) {
+
+		if (!node)
+		{
 			return;
 		}
 
-		if (node->type != ACPI_TYPE_INTEGER) {
+		if (node->type != ACPI_TYPE_INTEGER)
+		{
 			acpi_os_printf("Can only set Integer nodes\n");
 			return;
 		}
+
 		obj_desc = node->object;
 		obj_desc->integer.value = value;
 		return;
@@ -181,7 +192,9 @@ void acpi_db_set_method_data(char *type_arg, char *index_arg, char *value_arg)
 	index = strtoul(index_arg, NULL, 16);
 
 	walk_state = acpi_ds_get_current_walk_state(acpi_gbl_current_walk_list);
-	if (!walk_state) {
+
+	if (!walk_state)
+	{
 		acpi_os_printf("There is no method currently executing\n");
 		return;
 	}
@@ -189,63 +202,72 @@ void acpi_db_set_method_data(char *type_arg, char *index_arg, char *value_arg)
 	/* Create and initialize the new object */
 
 	obj_desc = acpi_ut_create_integer_object((u64)value);
-	if (!obj_desc) {
+
+	if (!obj_desc)
+	{
 		acpi_os_printf("Could not create an internal object\n");
 		return;
 	}
 
 	/* Store the new object into the target */
 
-	switch (type) {
-	case 'A':
+	switch (type)
+	{
+		case 'A':
 
-		/* Set a method argument */
+			/* Set a method argument */
 
-		if (index > ACPI_METHOD_MAX_ARG) {
-			acpi_os_printf("Arg%u - Invalid argument name\n",
-				       index);
-			goto cleanup;
-		}
+			if (index > ACPI_METHOD_MAX_ARG)
+			{
+				acpi_os_printf("Arg%u - Invalid argument name\n",
+							   index);
+				goto cleanup;
+			}
 
-		status = acpi_ds_store_object_to_local(ACPI_REFCLASS_ARG,
-						       index, obj_desc,
-						       walk_state);
-		if (ACPI_FAILURE(status)) {
-			goto cleanup;
-		}
+			status = acpi_ds_store_object_to_local(ACPI_REFCLASS_ARG,
+												   index, obj_desc,
+												   walk_state);
 
-		obj_desc = walk_state->arguments[index].object;
+			if (ACPI_FAILURE(status))
+			{
+				goto cleanup;
+			}
 
-		acpi_os_printf("Arg%u: ", index);
-		acpi_db_display_internal_object(obj_desc, walk_state);
-		break;
+			obj_desc = walk_state->arguments[index].object;
 
-	case 'L':
+			acpi_os_printf("Arg%u: ", index);
+			acpi_db_display_internal_object(obj_desc, walk_state);
+			break;
 
-		/* Set a method local */
+		case 'L':
 
-		if (index > ACPI_METHOD_MAX_LOCAL) {
-			acpi_os_printf
-			    ("Local%u - Invalid local variable name\n", index);
-			goto cleanup;
-		}
+			/* Set a method local */
 
-		status = acpi_ds_store_object_to_local(ACPI_REFCLASS_LOCAL,
-						       index, obj_desc,
-						       walk_state);
-		if (ACPI_FAILURE(status)) {
-			goto cleanup;
-		}
+			if (index > ACPI_METHOD_MAX_LOCAL)
+			{
+				acpi_os_printf
+				("Local%u - Invalid local variable name\n", index);
+				goto cleanup;
+			}
 
-		obj_desc = walk_state->local_variables[index].object;
+			status = acpi_ds_store_object_to_local(ACPI_REFCLASS_LOCAL,
+												   index, obj_desc,
+												   walk_state);
 
-		acpi_os_printf("Local%u: ", index);
-		acpi_db_display_internal_object(obj_desc, walk_state);
-		break;
+			if (ACPI_FAILURE(status))
+			{
+				goto cleanup;
+			}
 
-	default:
+			obj_desc = walk_state->local_variables[index].object;
 
-		break;
+			acpi_os_printf("Local%u: ", index);
+			acpi_db_display_internal_object(obj_desc, walk_state);
+			break;
+
+		default:
+
+			break;
 	}
 
 cleanup:
@@ -270,14 +292,17 @@ void acpi_db_disassemble_aml(char *statements, union acpi_parse_object *op)
 {
 	u32 num_statements = 8;
 
-	if (!op) {
+	if (!op)
+	{
 		acpi_os_printf("There is no method currently executing\n");
 		return;
 	}
 
-	if (statements) {
+	if (statements)
+	{
 		num_statements = strtoul(statements, NULL, 0);
 	}
+
 #ifdef ACPI_DISASSEMBLER
 	acpi_dm_disassemble(NULL, op, num_statements);
 #endif
@@ -305,35 +330,44 @@ acpi_status acpi_db_disassemble_method(char *name)
 	struct acpi_namespace_node *method;
 
 	method = acpi_db_convert_to_node(name);
-	if (!method) {
+
+	if (!method)
+	{
 		return (AE_BAD_PARAMETER);
 	}
 
-	if (method->type != ACPI_TYPE_METHOD) {
+	if (method->type != ACPI_TYPE_METHOD)
+	{
 		ACPI_ERROR((AE_INFO, "%s (%s): Object must be a control method",
-			    name, acpi_ut_get_type_name(method->type)));
+					name, acpi_ut_get_type_name(method->type)));
 		return (AE_BAD_PARAMETER);
 	}
 
 	obj_desc = method->object;
 
 	op = acpi_ps_create_scope_op(obj_desc->method.aml_start);
-	if (!op) {
+
+	if (!op)
+	{
 		return (AE_NO_MEMORY);
 	}
 
 	/* Create and initialize a new walk state */
 
 	walk_state = acpi_ds_create_walk_state(0, op, NULL, NULL);
-	if (!walk_state) {
+
+	if (!walk_state)
+	{
 		return (AE_NO_MEMORY);
 	}
 
 	status = acpi_ds_init_aml_walk(walk_state, op, NULL,
-				       obj_desc->method.aml_start,
-				       obj_desc->method.aml_length, NULL,
-				       ACPI_IMODE_LOAD_PASS1);
-	if (ACPI_FAILURE(status)) {
+								   obj_desc->method.aml_start,
+								   obj_desc->method.aml_length, NULL,
+								   ACPI_IMODE_LOAD_PASS1);
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
@@ -343,7 +377,9 @@ acpi_status acpi_db_disassemble_method(char *name)
 	/* Push start scope on scope stack and make it current */
 
 	status = acpi_ds_scope_stack_push(method, method->type, walk_state);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
@@ -389,12 +425,12 @@ acpi_status acpi_db_disassemble_method(char *name)
 
 static acpi_status
 acpi_db_walk_for_execute(acpi_handle obj_handle,
-			 u32 nesting_level, void *context, void **return_value)
+						 u32 nesting_level, void *context, void **return_value)
 {
 	struct acpi_namespace_node *node =
-	    (struct acpi_namespace_node *)obj_handle;
+		(struct acpi_namespace_node *)obj_handle;
 	struct acpi_db_execute_walk *info =
-	    (struct acpi_db_execute_walk *)context;
+		(struct acpi_db_execute_walk *)context;
 	struct acpi_buffer return_obj;
 	acpi_status status;
 	char *pathname;
@@ -405,34 +441,43 @@ acpi_db_walk_for_execute(acpi_handle obj_handle,
 	const union acpi_predefined_info *predefined;
 
 	predefined = acpi_ut_match_predefined_method(node->name.ascii);
-	if (!predefined) {
+
+	if (!predefined)
+	{
 		return (AE_OK);
 	}
 
-	if (node->type == ACPI_TYPE_LOCAL_SCOPE) {
+	if (node->type == ACPI_TYPE_LOCAL_SCOPE)
+	{
 		return (AE_OK);
 	}
 
 	pathname = acpi_ns_get_external_pathname(node);
-	if (!pathname) {
+
+	if (!pathname)
+	{
 		return (AE_OK);
 	}
 
 	/* Get the object info for number of method parameters */
 
 	status = acpi_get_object_info(obj_handle, &obj_info);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return (status);
 	}
 
 	param_objects.pointer = NULL;
 	param_objects.count = 0;
 
-	if (obj_info->type == ACPI_TYPE_METHOD) {
+	if (obj_info->type == ACPI_TYPE_METHOD)
+	{
 
 		/* Setup default parameters */
 
-		for (i = 0; i < obj_info->param_count; i++) {
+		for (i = 0; i < obj_info->param_count; i++)
+		{
 			params[i].type = ACPI_TYPE_INTEGER;
 			params[i].integer.value = 1;
 		}
@@ -452,7 +497,7 @@ acpi_db_walk_for_execute(acpi_handle obj_handle,
 	status = acpi_evaluate_object(node, NULL, &param_objects, &return_obj);
 
 	acpi_os_printf("%-32s returned %s\n", pathname,
-		       acpi_format_exception(status));
+				   acpi_format_exception(status));
 	acpi_gbl_method_executing = FALSE;
 	ACPI_FREE(pathname);
 
@@ -463,7 +508,9 @@ acpi_db_walk_for_execute(acpi_handle obj_handle,
 	/* Update count, check if we have executed enough methods */
 
 	info->count++;
-	if (info->count >= info->max_count) {
+
+	if (info->count >= info->max_count)
+	{
 		status = AE_CTRL_TERMINATE;
 	}
 
@@ -493,9 +540,9 @@ void acpi_db_evaluate_predefined_names(void)
 	/* Search all nodes in namespace */
 
 	(void)acpi_walk_namespace(ACPI_TYPE_ANY, ACPI_ROOT_OBJECT,
-				  ACPI_UINT32_MAX, acpi_db_walk_for_execute,
-				  NULL, (void *)&info, NULL);
+							  ACPI_UINT32_MAX, acpi_db_walk_for_execute,
+							  NULL, (void *)&info, NULL);
 
 	acpi_os_printf("Evaluated %u predefined names in the namespace\n",
-		       info.count);
+				   info.count);
 }

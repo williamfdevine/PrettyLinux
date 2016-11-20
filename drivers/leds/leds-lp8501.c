@@ -88,7 +88,7 @@ static void lp8501_set_led_current(struct lp55xx_led *led, u8 led_current)
 {
 	led->led_current = led_current;
 	lp55xx_write(led->chip, LP8501_REG_LED_CURRENT_BASE + led->chan_nr,
-		led_current);
+				 led_current);
 }
 
 static int lp8501_post_init_device(struct lp55xx_chip *chip)
@@ -97,40 +97,51 @@ static int lp8501_post_init_device(struct lp55xx_chip *chip)
 	u8 val = LP8501_DEFAULT_CFG;
 
 	ret = lp55xx_write(chip, LP8501_REG_ENABLE, LP8501_ENABLE);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Chip startup time is 500 us, 1 - 2 ms gives some margin */
 	usleep_range(1000, 2000);
 
 	if (chip->pdata->clock_mode != LP55XX_CLOCK_EXT)
+	{
 		val |= LP8501_INT_CLK;
+	}
 
 	ret = lp55xx_write(chip, LP8501_REG_CONFIG, val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Power selection for each output */
 	return lp55xx_update_bits(chip, LP8501_REG_PWR_CONFIG,
-				LP8501_PWR_CONFIG_M, chip->pdata->pwr_sel);
+							  LP8501_PWR_CONFIG_M, chip->pdata->pwr_sel);
 }
 
 static void lp8501_load_engine(struct lp55xx_chip *chip)
 {
 	enum lp55xx_engine_index idx = chip->engine_idx;
-	u8 mask[] = {
+	u8 mask[] =
+	{
 		[LP55XX_ENGINE_1] = LP8501_MODE_ENG1_M,
 		[LP55XX_ENGINE_2] = LP8501_MODE_ENG2_M,
 		[LP55XX_ENGINE_3] = LP8501_MODE_ENG3_M,
 	};
 
-	u8 val[] = {
+	u8 val[] =
+	{
 		[LP55XX_ENGINE_1] = LP8501_LOAD_ENG1,
 		[LP55XX_ENGINE_2] = LP8501_LOAD_ENG2,
 		[LP55XX_ENGINE_3] = LP8501_LOAD_ENG3,
 	};
 
-	u8 page_sel[] = {
+	u8 page_sel[] =
+	{
 		[LP55XX_ENGINE_1] = LP8501_PAGE_ENG1,
 		[LP55XX_ENGINE_2] = LP8501_PAGE_ENG2,
 		[LP55XX_ENGINE_3] = LP8501_PAGE_ENG3,
@@ -154,7 +165,9 @@ static void lp8501_turn_off_channels(struct lp55xx_chip *chip)
 	int i;
 
 	for (i = 0; i < LP8501_MAX_LEDS; i++)
+	{
 		lp55xx_write(chip, LP8501_REG_LED_PWM_BASE + i, 0);
+	}
 }
 
 static void lp8501_run_engine(struct lp55xx_chip *chip, bool start)
@@ -164,7 +177,8 @@ static void lp8501_run_engine(struct lp55xx_chip *chip, bool start)
 	u8 exec;
 
 	/* stop engine */
-	if (!start) {
+	if (!start)
+	{
 		lp8501_stop_engine(chip);
 		lp8501_turn_off_channels(chip);
 		return;
@@ -176,25 +190,34 @@ static void lp8501_run_engine(struct lp55xx_chip *chip, bool start)
 	 */
 
 	ret = lp55xx_read(chip, LP8501_REG_OP_MODE, &mode);
+
 	if (ret)
+	{
 		return;
+	}
 
 	ret = lp55xx_read(chip, LP8501_REG_ENABLE, &exec);
+
 	if (ret)
+	{
 		return;
+	}
 
 	/* change operation mode to RUN only when each engine is loading */
-	if (LP8501_ENG1_IS_LOADING(mode)) {
+	if (LP8501_ENG1_IS_LOADING(mode))
+	{
 		mode = (mode & ~LP8501_MODE_ENG1_M) | LP8501_RUN_ENG1;
 		exec = (exec & ~LP8501_EXEC_ENG1_M) | LP8501_RUN_ENG1;
 	}
 
-	if (LP8501_ENG2_IS_LOADING(mode)) {
+	if (LP8501_ENG2_IS_LOADING(mode))
+	{
 		mode = (mode & ~LP8501_MODE_ENG2_M) | LP8501_RUN_ENG2;
 		exec = (exec & ~LP8501_EXEC_ENG2_M) | LP8501_RUN_ENG2;
 	}
 
-	if (LP8501_ENG3_IS_LOADING(mode)) {
+	if (LP8501_ENG3_IS_LOADING(mode))
+	{
 		mode = (mode & ~LP8501_MODE_ENG3_M) | LP8501_RUN_ENG3;
 		exec = (exec & ~LP8501_EXEC_ENG3_M) | LP8501_RUN_ENG3;
 	}
@@ -206,7 +229,7 @@ static void lp8501_run_engine(struct lp55xx_chip *chip, bool start)
 }
 
 static int lp8501_update_program_memory(struct lp55xx_chip *chip,
-					const u8 *data, size_t size)
+										const u8 *data, size_t size)
 {
 	u8 pattern[LP8501_PROGRAM_LENGTH] = {0};
 	unsigned cmd;
@@ -219,18 +242,28 @@ static int lp8501_update_program_memory(struct lp55xx_chip *chip,
 
 	/* clear program memory before updating */
 	for (i = 0; i < LP8501_PROGRAM_LENGTH; i++)
+	{
 		lp55xx_write(chip, LP8501_REG_PROG_MEM + i, 0);
+	}
 
 	i = 0;
-	while ((offset < size - 1) && (i < LP8501_PROGRAM_LENGTH)) {
+
+	while ((offset < size - 1) && (i < LP8501_PROGRAM_LENGTH))
+	{
 		/* separate sscanfs because length is working only for %s */
 		ret = sscanf(data + offset, "%2s%n ", c, &nrchars);
+
 		if (ret != 1)
+		{
 			goto err;
+		}
 
 		ret = sscanf(c, "%2x", &cmd);
+
 		if (ret != 1)
+		{
 			goto err;
+		}
 
 		pattern[i] = (u8)cmd;
 		offset += nrchars;
@@ -239,11 +272,16 @@ static int lp8501_update_program_memory(struct lp55xx_chip *chip,
 
 	/* Each instruction is 16bit long. Check that length is even */
 	if (i % 2)
+	{
 		goto err;
+	}
 
 	update_size = i;
+
 	for (i = 0; i < update_size; i++)
+	{
 		lp55xx_write(chip, LP8501_REG_PROG_MEM + i, pattern[i]);
+	}
 
 	return 0;
 
@@ -256,9 +294,10 @@ static void lp8501_firmware_loaded(struct lp55xx_chip *chip)
 {
 	const struct firmware *fw = chip->fw;
 
-	if (fw->size > LP8501_PROGRAM_LENGTH) {
+	if (fw->size > LP8501_PROGRAM_LENGTH)
+	{
 		dev_err(&chip->cl->dev, "firmware data size overflow: %zu\n",
-			fw->size);
+				fw->size);
 		return;
 	}
 
@@ -279,14 +318,15 @@ static int lp8501_led_brightness(struct lp55xx_led *led)
 
 	mutex_lock(&chip->lock);
 	ret = lp55xx_write(chip, LP8501_REG_LED_PWM_BASE + led->chan_nr,
-		     led->brightness);
+					   led->brightness);
 	mutex_unlock(&chip->lock);
 
 	return ret;
 }
 
 /* Chip specific configurations */
-static struct lp55xx_device_config lp8501_cfg = {
+static struct lp55xx_device_config lp8501_cfg =
+{
 	.reset = {
 		.addr = LP8501_REG_RESET,
 		.val  = LP8501_RESET,
@@ -304,7 +344,7 @@ static struct lp55xx_device_config lp8501_cfg = {
 };
 
 static int lp8501_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	int ret;
 	struct lp55xx_chip *chip;
@@ -312,25 +352,38 @@ static int lp8501_probe(struct i2c_client *client,
 	struct lp55xx_platform_data *pdata = dev_get_platdata(&client->dev);
 	struct device_node *np = client->dev.of_node;
 
-	if (!pdata) {
-		if (np) {
+	if (!pdata)
+	{
+		if (np)
+		{
 			pdata = lp55xx_of_populate_pdata(&client->dev, np);
+
 			if (IS_ERR(pdata))
+			{
 				return PTR_ERR(pdata);
-		} else {
+			}
+		}
+		else
+		{
 			dev_err(&client->dev, "no platform data\n");
 			return -EINVAL;
 		}
 	}
 
 	chip = devm_kzalloc(&client->dev, sizeof(*chip), GFP_KERNEL);
+
 	if (!chip)
+	{
 		return -ENOMEM;
+	}
 
 	led = devm_kzalloc(&client->dev,
-			sizeof(*led) * pdata->num_channels, GFP_KERNEL);
+					   sizeof(*led) * pdata->num_channels, GFP_KERNEL);
+
 	if (!led)
+	{
 		return -ENOMEM;
+	}
 
 	chip->cl = client;
 	chip->pdata = pdata;
@@ -341,17 +394,25 @@ static int lp8501_probe(struct i2c_client *client,
 	i2c_set_clientdata(client, led);
 
 	ret = lp55xx_init_device(chip);
+
 	if (ret)
+	{
 		goto err_init;
+	}
 
 	dev_info(&client->dev, "%s Programmable led chip found\n", id->name);
 
 	ret = lp55xx_register_leds(led, chip);
+
 	if (ret)
+	{
 		goto err_register_leds;
+	}
 
 	ret = lp55xx_register_sysfs(chip);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&client->dev, "registering sysfs failed\n");
 		goto err_register_sysfs;
 	}
@@ -379,14 +440,16 @@ static int lp8501_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id lp8501_id[] = {
+static const struct i2c_device_id lp8501_id[] =
+{
 	{ "lp8501",  0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, lp8501_id);
 
 #ifdef CONFIG_OF
-static const struct of_device_id of_lp8501_leds_match[] = {
+static const struct of_device_id of_lp8501_leds_match[] =
+{
 	{ .compatible = "ti,lp8501", },
 	{},
 };
@@ -394,7 +457,8 @@ static const struct of_device_id of_lp8501_leds_match[] = {
 MODULE_DEVICE_TABLE(of, of_lp8501_leds_match);
 #endif
 
-static struct i2c_driver lp8501_driver = {
+static struct i2c_driver lp8501_driver =
+{
 	.driver = {
 		.name	= "lp8501",
 		.of_match_table = of_match_ptr(of_lp8501_leds_match),

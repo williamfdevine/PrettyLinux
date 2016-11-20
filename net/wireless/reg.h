@@ -16,7 +16,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-enum ieee80211_regd_source {
+enum ieee80211_regd_source
+{
 	REGD_SOURCE_INTERNAL_DB,
 	REGD_SOURCE_CRDA,
 };
@@ -29,7 +30,7 @@ bool reg_supported_dfs_region(enum nl80211_dfs_regions dfs_region);
 enum nl80211_dfs_regions reg_get_dfs_region(struct wiphy *wiphy);
 
 int regulatory_hint_user(const char *alpha2,
-			 enum nl80211_user_reg_hint_type user_reg_hint_type);
+						 enum nl80211_user_reg_hint_type user_reg_hint_type);
 
 /**
  * regulatory_hint_indoor - hint operation in indoor env. or not
@@ -52,10 +53,10 @@ int __init regulatory_init(void);
 void regulatory_exit(void);
 
 int set_regdom(const struct ieee80211_regdomain *rd,
-	       enum ieee80211_regd_source regd_src);
+			   enum ieee80211_regd_source regd_src);
 
 unsigned int reg_get_max_bandwidth(const struct ieee80211_regdomain *rd,
-				   const struct ieee80211_reg_rule *rule);
+								   const struct ieee80211_reg_rule *rule);
 
 bool reg_last_request_cell_base(void);
 const struct ieee80211_regdomain *get_wiphy_regdom(struct wiphy *wiphy);
@@ -79,8 +80,8 @@ const struct ieee80211_regdomain *get_wiphy_regdom(struct wiphy *wiphy);
  * set the wiphy->disable_beacon_hints to true.
  */
 int regulatory_hint_found_beacon(struct wiphy *wiphy,
-				 struct ieee80211_channel *beacon_chan,
-				 gfp_t gfp);
+								 struct ieee80211_channel *beacon_chan,
+								 gfp_t gfp);
 
 /**
  * regulatory_hint_country_ie - hints a country IE as a regulatory domain
@@ -104,9 +105,9 @@ int regulatory_hint_found_beacon(struct wiphy *wiphy,
  * information for a band the BSS is not present in it will be ignored.
  */
 void regulatory_hint_country_ie(struct wiphy *wiphy,
-			 enum nl80211_band band,
-			 const u8 *country_ie,
-			 u8 country_ie_len);
+								enum nl80211_band band,
+								const u8 *country_ie,
+								u8 country_ie_len);
 
 /**
  * regulatory_hint_disconnect - informs all devices have been disconneted

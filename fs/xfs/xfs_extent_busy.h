@@ -31,7 +31,8 @@ struct xfs_alloc_arg;
  * Note that we use the transaction ID to record the transaction, not the
  * transaction structure itself. See xfs_extent_busy_insert() for details.
  */
-struct xfs_extent_busy {
+struct xfs_extent_busy
+{
 	struct rb_node	rb_node;	/* ag by-bno indexed search tree */
 	struct list_head list;		/* transaction busy extent list */
 	xfs_agnumber_t	agno;
@@ -44,23 +45,23 @@ struct xfs_extent_busy {
 
 void
 xfs_extent_busy_insert(struct xfs_trans *tp, xfs_agnumber_t agno,
-	xfs_agblock_t bno, xfs_extlen_t len, unsigned int flags);
+					   xfs_agblock_t bno, xfs_extlen_t len, unsigned int flags);
 
 void
 xfs_extent_busy_clear(struct xfs_mount *mp, struct list_head *list,
-	bool do_discard);
+					  bool do_discard);
 
 int
 xfs_extent_busy_search(struct xfs_mount *mp, xfs_agnumber_t agno,
-	xfs_agblock_t bno, xfs_extlen_t len);
+					   xfs_agblock_t bno, xfs_extlen_t len);
 
 void
 xfs_extent_busy_reuse(struct xfs_mount *mp, xfs_agnumber_t agno,
-	xfs_agblock_t fbno, xfs_extlen_t flen, bool userdata);
+					  xfs_agblock_t fbno, xfs_extlen_t flen, bool userdata);
 
 void
 xfs_extent_busy_trim(struct xfs_alloc_arg *args, xfs_agblock_t bno,
-	xfs_extlen_t len, xfs_agblock_t *rbno, xfs_extlen_t *rlen);
+					 xfs_extlen_t len, xfs_agblock_t *rbno, xfs_extlen_t *rlen);
 
 int
 xfs_extent_busy_ag_cmp(void *priv, struct list_head *a, struct list_head *b);

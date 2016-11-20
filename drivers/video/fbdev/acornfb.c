@@ -58,7 +58,8 @@
  * have.  Allow 1% either way on the nominal for TVs.
  */
 #define NR_MONTYPES	6
-static struct fb_monspecs monspecs[NR_MONTYPES] = {
+static struct fb_monspecs monspecs[NR_MONTYPES] =
+{
 	{	/* TV		*/
 		.hfmin	= 15469,
 		.hfmax	= 15781,
@@ -138,31 +139,42 @@ static void acornfb_set_timing(struct fb_info *info)
 	vidc.control		= acornfb_default_control();
 
 	vcr = var->vsync_len + var->upper_margin + var->yres +
-	      var->lower_margin;
+		  var->lower_margin;
 
-	if ((var->vmode & FB_VMODE_MASK) == FB_VMODE_INTERLACED) {
+	if ((var->vmode & FB_VMODE_MASK) == FB_VMODE_INTERLACED)
+	{
 		vidc.v_cycle = (vcr - 3) / 2;
 		vidc.control |= VIDC20_CTRL_INT;
-	} else
+	}
+	else
+	{
 		vidc.v_cycle = vcr - 2;
+	}
 
-	switch (var->bits_per_pixel) {
-	case  1: vidc.control |= VIDC20_CTRL_1BPP;	break;
-	case  2: vidc.control |= VIDC20_CTRL_2BPP;	break;
-	case  4: vidc.control |= VIDC20_CTRL_4BPP;	break;
-	default:
-	case  8: vidc.control |= VIDC20_CTRL_8BPP;	break;
-	case 16: vidc.control |= VIDC20_CTRL_16BPP;	break;
-	case 32: vidc.control |= VIDC20_CTRL_32BPP;	break;
+	switch (var->bits_per_pixel)
+	{
+		case  1: vidc.control |= VIDC20_CTRL_1BPP;	break;
+
+		case  2: vidc.control |= VIDC20_CTRL_2BPP;	break;
+
+		case  4: vidc.control |= VIDC20_CTRL_4BPP;	break;
+
+		default:
+		case  8: vidc.control |= VIDC20_CTRL_8BPP;	break;
+
+		case 16: vidc.control |= VIDC20_CTRL_16BPP;	break;
+
+		case 32: vidc.control |= VIDC20_CTRL_32BPP;	break;
 	}
 
 	acornfb_vidc20_find_rates(&vidc, var);
 	fsize = var->vsync_len + var->upper_margin + var->lower_margin - 1;
 
-	if (memcmp(&current_vidc, &vidc, sizeof(vidc))) {
+	if (memcmp(&current_vidc, &vidc, sizeof(vidc)))
+	{
 		current_vidc = vidc;
 
-		vidc_writel(VIDC20_CTRL| vidc.control);
+		vidc_writel(VIDC20_CTRL | vidc.control);
 		vidc_writel(0xd0000000 | vidc.pll_ctl);
 		vidc_writel(0x80000000 | vidc.h_cycle);
 		vidc_writel(0x81000000 | vidc.h_sync_width);
@@ -187,25 +199,38 @@ static void acornfb_set_timing(struct fb_info *info)
 	ext_ctl = acornfb_default_econtrol();
 
 	if (var->sync & FB_SYNC_COMP_HIGH_ACT) /* should be FB_SYNC_COMP */
+	{
 		ext_ctl |= VIDC20_ECTL_HS_NCSYNC | VIDC20_ECTL_VS_NCSYNC;
-	else {
+	}
+	else
+	{
 		if (var->sync & FB_SYNC_HOR_HIGH_ACT)
+		{
 			ext_ctl |= VIDC20_ECTL_HS_HSYNC;
+		}
 		else
+		{
 			ext_ctl |= VIDC20_ECTL_HS_NHSYNC;
+		}
 
 		if (var->sync & FB_SYNC_VERT_HIGH_ACT)
+		{
 			ext_ctl |= VIDC20_ECTL_VS_VSYNC;
+		}
 		else
+		{
 			ext_ctl |= VIDC20_ECTL_VS_NVSYNC;
+		}
 	}
 
 	vidc_writel(VIDC20_ECTL | ext_ctl);
 
 	words_per_line = var->xres * var->bits_per_pixel / 32;
 
-	if (current_par.using_vram && info->fix.smem_len == 2048*1024)
+	if (current_par.using_vram && info->fix.smem_len == 2048 * 1024)
+	{
 		words_per_line /= 2;
+	}
 
 	/* RiscPC doesn't use the VIDC's VRAM control. */
 	dat_ctl = VIDC20_DCTL_VRAM_DIS | VIDC20_DCTL_SNA | words_per_line;
@@ -217,15 +242,19 @@ static void acornfb_set_timing(struct fb_info *info)
 	 * 2MB VRAM	64bit
 	 */
 	if (current_par.using_vram && current_par.vram_half_sam == 2048)
+	{
 		dat_ctl |= VIDC20_DCTL_BUS_D63_0;
+	}
 	else
+	{
 		dat_ctl |= VIDC20_DCTL_BUS_D31_0;
+	}
 
 	vidc_writel(VIDC20_DCTL | dat_ctl);
 
 #ifdef DEBUG_MODE_SELECTION
 	printk(KERN_DEBUG "VIDC registers for %dx%dx%d:\n", var->xres,
-	       var->yres, var->bits_per_pixel);
+		   var->yres, var->bits_per_pixel);
 	printk(KERN_DEBUG " H-cycle          : %d\n", vidc.h_cycle);
 	printk(KERN_DEBUG " H-sync-width     : %d\n", vidc.h_sync_width);
 	printk(KERN_DEBUG " H-border-start   : %d\n", vidc.h_border_start);
@@ -267,14 +296,17 @@ static void acornfb_set_timing(struct fb_info *info)
  */
 static int
 acornfb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
-		  u_int trans, struct fb_info *info)
+				  u_int trans, struct fb_info *info)
 {
 	union palette pal;
 
 	if (regno >= current_par.palette_size)
+	{
 		return 1;
+	}
 
-	if (regno < 16 && info->fix.visual == FB_VISUAL_DIRECTCOLOR) {
+	if (regno < 16 && info->fix.visual == FB_VISUAL_DIRECTCOLOR)
+	{
 		u32 pseudo_val;
 
 		pseudo_val  = regno << info->var.red.offset;
@@ -291,19 +323,24 @@ acornfb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
 
 	current_par.palette[regno] = pal;
 
-	if (info->var.bits_per_pixel == 16) {
+	if (info->var.bits_per_pixel == 16)
+	{
 		int i;
 
 		pal.p = 0;
 		vidc_writel(0x10000000);
-		for (i = 0; i < 256; i += 1) {
+
+		for (i = 0; i < 256; i += 1)
+		{
 			pal.vidc20.red   = current_par.palette[ i       & 31].vidc20.red;
 			pal.vidc20.green = current_par.palette[(i >> 1) & 31].vidc20.green;
 			pal.vidc20.blue  = current_par.palette[(i >> 2) & 31].vidc20.blue;
 			vidc_writel(pal.p);
 			/* Palette register pointer auto-increments */
 		}
-	} else {
+	}
+	else
+	{
 		vidc_writel(0x10000000 | regno);
 		vidc_writel(pal.p);
 	}
@@ -331,9 +368,13 @@ acornfb_adjust_timing(struct fb_info *info, struct fb_var_screeninfo *var, u_int
 	var->xoffset = 0;
 
 	if (current_par.using_vram)
+	{
 		sam_size = current_par.vram_half_sam * 2;
+	}
 	else
+	{
 		sam_size = 16;
+	}
 
 	/*
 	 * Now, find a value for yres_virtual which allows
@@ -350,30 +391,44 @@ acornfb_adjust_timing(struct fb_info *info, struct fb_var_screeninfo *var, u_int
 	 * available, reject it.
 	 */
 	if (min_size > info->fix.smem_len)
+	{
 		return -EINVAL;
+	}
 
 	/* Find int 'y', such that y * fll == s * sam < maxsize
 	 * y = s * sam / fll; s = maxsize / sam
 	 */
 	for (size = info->fix.smem_len;
-	     nr_y = size / font_line_len, min_size <= size;
-	     size -= sam_size) {
+		 nr_y = size / font_line_len, min_size <= size;
+		 size -= sam_size)
+	{
 		if (nr_y * font_line_len == size)
+		{
 			break;
+		}
 	}
+
 	nr_y *= fontht;
 
-	if (var->accel_flags & FB_ACCELF_TEXT) {
-		if (min_size > size) {
+	if (var->accel_flags & FB_ACCELF_TEXT)
+	{
+		if (min_size > size)
+		{
 			/*
 			 * failed, use ypan
 			 */
 			size = info->fix.smem_len;
 			var->yres_virtual = size / (font_line_len / fontht);
-		} else
+		}
+		else
+		{
 			var->yres_virtual = nr_y;
-	} else if (var->yres_virtual > nr_y)
+		}
+	}
+	else if (var->yres_virtual > nr_y)
+	{
 		var->yres_virtual = nr_y;
+	}
 
 	current_par.screen_end = info->fix.smem_start + size;
 
@@ -381,40 +436,56 @@ acornfb_adjust_timing(struct fb_info *info, struct fb_var_screeninfo *var, u_int
 	 * Fix yres & yoffset if needed.
 	 */
 	if (var->yres > var->yres_virtual)
+	{
 		var->yres = var->yres_virtual;
+	}
 
-	if (var->vmode & FB_VMODE_YWRAP) {
+	if (var->vmode & FB_VMODE_YWRAP)
+	{
 		if (var->yoffset > var->yres_virtual)
+		{
 			var->yoffset = var->yres_virtual;
-	} else {
+		}
+	}
+	else
+	{
 		if (var->yoffset + var->yres > var->yres_virtual)
+		{
 			var->yoffset = var->yres_virtual - var->yres;
+		}
 	}
 
 	/* hsync_len must be even */
 	var->hsync_len = (var->hsync_len + 1) & ~1;
 
 #if defined(HAS_VIDC20)
+
 	/* left_margin must be even */
-	if (var->left_margin & 1) {
+	if (var->left_margin & 1)
+	{
 		var->left_margin += 1;
 		var->right_margin -= 1;
 	}
 
 	/* right_margin must be even */
 	if (var->right_margin & 1)
+	{
 		var->right_margin += 1;
+	}
+
 #endif
 
 	if (var->vsync_len < 1)
+	{
 		var->vsync_len = 1;
+	}
 
 	return 0;
 }
 
 static int
 acornfb_validate_timing(struct fb_var_screeninfo *var,
-			struct fb_monspecs *monspecs)
+						struct fb_monspecs *monspecs)
 {
 	unsigned long hs, vs;
 
@@ -427,12 +498,12 @@ acornfb_validate_timing(struct fb_var_screeninfo *var,
 	 */
 	hs = 1953125000 / var->pixclock;
 	hs = hs * 512 /
-	     (var->xres + var->left_margin + var->right_margin + var->hsync_len);
+		 (var->xres + var->left_margin + var->right_margin + var->hsync_len);
 	vs = hs /
-	     (var->yres + var->upper_margin + var->lower_margin + var->vsync_len);
+		 (var->yres + var->upper_margin + var->lower_margin + var->vsync_len);
 
 	return (vs >= monspecs->vfmin && vs <= monspecs->vfmax &&
-		hs >= monspecs->hfmin && hs <= monspecs->hfmax) ? 0 : -EINVAL;
+			hs >= monspecs->hfmin && hs <= monspecs->hfmax) ? 0 : -EINVAL;
 }
 
 static inline void
@@ -463,56 +534,64 @@ acornfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 	var->blue.msb_right = 0;
 	var->transp.msb_right = 0;
 
-	switch (var->bits_per_pixel) {
-	case 1:	case 2:	case 4:	case 8:
-		var->red.offset    = 0;
-		var->red.length    = var->bits_per_pixel;
-		var->green         = var->red;
-		var->blue          = var->red;
-		var->transp.offset = 0;
-		var->transp.length = 0;
-		break;
+	switch (var->bits_per_pixel)
+	{
+		case 1:	case 2:	case 4:	case 8:
+			var->red.offset    = 0;
+			var->red.length    = var->bits_per_pixel;
+			var->green         = var->red;
+			var->blue          = var->red;
+			var->transp.offset = 0;
+			var->transp.length = 0;
+			break;
 
 #ifdef HAS_VIDC20
-	case 16:
-		var->red.offset    = 0;
-		var->red.length    = 5;
-		var->green.offset  = 5;
-		var->green.length  = 5;
-		var->blue.offset   = 10;
-		var->blue.length   = 5;
-		var->transp.offset = 15;
-		var->transp.length = 1;
-		break;
 
-	case 32:
-		var->red.offset    = 0;
-		var->red.length    = 8;
-		var->green.offset  = 8;
-		var->green.length  = 8;
-		var->blue.offset   = 16;
-		var->blue.length   = 8;
-		var->transp.offset = 24;
-		var->transp.length = 4;
-		break;
+		case 16:
+			var->red.offset    = 0;
+			var->red.length    = 5;
+			var->green.offset  = 5;
+			var->green.length  = 5;
+			var->blue.offset   = 10;
+			var->blue.length   = 5;
+			var->transp.offset = 15;
+			var->transp.length = 1;
+			break;
+
+		case 32:
+			var->red.offset    = 0;
+			var->red.length    = 8;
+			var->green.offset  = 8;
+			var->green.length  = 8;
+			var->blue.offset   = 16;
+			var->blue.length   = 8;
+			var->transp.offset = 24;
+			var->transp.length = 4;
+			break;
 #endif
-	default:
-		return -EINVAL;
+
+		default:
+			return -EINVAL;
 	}
 
 	/*
 	 * Check to see if the pixel rate is valid.
 	 */
 	if (!acornfb_valid_pixrate(var))
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Validate and adjust the resolution to
 	 * match the video generator hardware.
 	 */
 	err = acornfb_adjust_timing(info, var, fontht);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/*
 	 * Validate the timing against the
@@ -523,35 +602,42 @@ acornfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 
 static int acornfb_set_par(struct fb_info *info)
 {
-	switch (info->var.bits_per_pixel) {
-	case 1:
-		current_par.palette_size = 2;
-		info->fix.visual = FB_VISUAL_MONO10;
-		break;
-	case 2:
-		current_par.palette_size = 4;
-		info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
-		break;
-	case 4:
-		current_par.palette_size = 16;
-		info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
-		break;
-	case 8:
-		current_par.palette_size = VIDC_PALETTE_SIZE;
-		info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
-		break;
+	switch (info->var.bits_per_pixel)
+	{
+		case 1:
+			current_par.palette_size = 2;
+			info->fix.visual = FB_VISUAL_MONO10;
+			break;
+
+		case 2:
+			current_par.palette_size = 4;
+			info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
+			break;
+
+		case 4:
+			current_par.palette_size = 16;
+			info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
+			break;
+
+		case 8:
+			current_par.palette_size = VIDC_PALETTE_SIZE;
+			info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
+			break;
 #ifdef HAS_VIDC20
-	case 16:
-		current_par.palette_size = 32;
-		info->fix.visual = FB_VISUAL_DIRECTCOLOR;
-		break;
-	case 32:
-		current_par.palette_size = VIDC_PALETTE_SIZE;
-		info->fix.visual = FB_VISUAL_DIRECTCOLOR;
-		break;
+
+		case 16:
+			current_par.palette_size = 32;
+			info->fix.visual = FB_VISUAL_DIRECTCOLOR;
+			break;
+
+		case 32:
+			current_par.palette_size = VIDC_PALETTE_SIZE;
+			info->fix.visual = FB_VISUAL_DIRECTCOLOR;
+			break;
 #endif
-	default:
-		BUG();
+
+		default:
+			BUG();
 	}
 
 	info->fix.line_length	= (info->var.xres * info->var.bits_per_pixel) / 8;
@@ -571,10 +657,13 @@ static int acornfb_set_par(struct fb_info *info)
 		start = info->fix.smem_start;
 		size  = current_par.screen_end;
 
-		if (current_par.using_vram) {
+		if (current_par.using_vram)
+		{
 			size -= current_par.vram_half_sam;
 			control = DMA_CR_E | (current_par.vram_half_sam / 256);
-		} else {
+		}
+		else
+		{
 			size -= 16;
 			control = DMA_CR_E | DMA_CR_D | 16;
 		}
@@ -597,17 +686,22 @@ acornfb_pan_display(struct fb_var_screeninfo *var, struct fb_info *info)
 	u_int y_bottom = var->yoffset;
 
 	if (!(var->vmode & FB_VMODE_YWRAP))
+	{
 		y_bottom += info->var.yres;
+	}
 
 	if (y_bottom > info->var.yres_virtual)
+	{
 		return -EINVAL;
+	}
 
 	acornfb_update_dma(info, var);
 
 	return 0;
 }
 
-static struct fb_ops acornfb_ops = {
+static struct fb_ops acornfb_ops =
+{
 	.owner		= THIS_MODULE,
 	.fb_check_var	= acornfb_check_var,
 	.fb_set_par	= acornfb_set_par,
@@ -621,7 +715,8 @@ static struct fb_ops acornfb_ops = {
 /*
  * Everything after here is initialisation!!!
  */
-static struct fb_videomode modedb[] = {
+static struct fb_videomode modedb[] =
+{
 	{	/* 320x256 @ 50Hz */
 		NULL, 50,  320,  256, 125000,  92,  62,  35, 19,  38, 2,
 		FB_SYNC_COMP_HIGH_ACT,
@@ -673,7 +768,8 @@ static struct fb_videomode modedb[] = {
 	}
 };
 
-static struct fb_videomode acornfb_default_mode = {
+static struct fb_videomode acornfb_default_mode =
+{
 	.name =		NULL,
 	.refresh =	60,
 	.xres =		640,
@@ -694,7 +790,10 @@ static void acornfb_init_fbinfo(void)
 	static int first = 1;
 
 	if (!first)
+	{
 		return;
+	}
+
 	first = 0;
 
 	fb_info.fbops		= &acornfb_ops;
@@ -769,39 +868,61 @@ static void acornfb_parse_mon(char *opt)
 	current_par.montype = -2;
 
 	fb_info.monspecs.hfmin = simple_strtoul(p, &p, 0);
+
 	if (*p == '-')
+	{
 		fb_info.monspecs.hfmax = simple_strtoul(p + 1, &p, 0);
+	}
 	else
+	{
 		fb_info.monspecs.hfmax = fb_info.monspecs.hfmin;
+	}
 
 	if (*p != ':')
+	{
 		goto bad;
+	}
 
 	fb_info.monspecs.vfmin = simple_strtoul(p + 1, &p, 0);
+
 	if (*p == '-')
+	{
 		fb_info.monspecs.vfmax = simple_strtoul(p + 1, &p, 0);
+	}
 	else
+	{
 		fb_info.monspecs.vfmax = fb_info.monspecs.vfmin;
+	}
 
 	if (*p != ':')
+	{
 		goto check_values;
+	}
 
 	fb_info.monspecs.dpms = simple_strtoul(p + 1, &p, 0);
 
 	if (*p != ':')
+	{
 		goto check_values;
+	}
 
 	fb_info.var.width = simple_strtoul(p + 1, &p, 0);
 
 	if (*p != ':')
+	{
 		goto check_values;
+	}
 
 	fb_info.var.height = simple_strtoul(p + 1, NULL, 0);
 
 check_values:
+
 	if (fb_info.monspecs.hfmax < fb_info.monspecs.hfmin ||
-	    fb_info.monspecs.vfmax < fb_info.monspecs.vfmin)
+		fb_info.monspecs.vfmax < fb_info.monspecs.vfmin)
+	{
 		goto bad;
+	}
+
 	return;
 
 bad:
@@ -813,40 +934,58 @@ static void acornfb_parse_montype(char *opt)
 {
 	current_par.montype = -2;
 
-	if (strncmp(opt, "tv", 2) == 0) {
+	if (strncmp(opt, "tv", 2) == 0)
+	{
 		opt += 2;
 		current_par.montype = 0;
-	} else if (strncmp(opt, "multi", 5) == 0) {
+	}
+	else if (strncmp(opt, "multi", 5) == 0)
+	{
 		opt += 5;
 		current_par.montype = 1;
-	} else if (strncmp(opt, "hires", 5) == 0) {
+	}
+	else if (strncmp(opt, "hires", 5) == 0)
+	{
 		opt += 5;
 		current_par.montype = 2;
-	} else if (strncmp(opt, "vga", 3) == 0) {
+	}
+	else if (strncmp(opt, "vga", 3) == 0)
+	{
 		opt += 3;
 		current_par.montype = 3;
-	} else if (strncmp(opt, "svga", 4) == 0) {
+	}
+	else if (strncmp(opt, "svga", 4) == 0)
+	{
 		opt += 4;
 		current_par.montype = 4;
-	} else if (strncmp(opt, "auto", 4) == 0) {
+	}
+	else if (strncmp(opt, "auto", 4) == 0)
+	{
 		opt += 4;
 		current_par.montype = -1;
-	} else if (isdigit(*opt))
+	}
+	else if (isdigit(*opt))
+	{
 		current_par.montype = simple_strtoul(opt, &opt, 0);
+	}
 
 	if (current_par.montype == -2 ||
-	    current_par.montype > NR_MONTYPES) {
+		current_par.montype > NR_MONTYPES)
+	{
 		printk(KERN_ERR "acornfb: unknown monitor type: %s\n",
-			opt);
+			   opt);
 		current_par.montype = -1;
-	} else
-	if (opt && *opt) {
+	}
+	else if (opt && *opt)
+	{
 		if (strcmp(opt, ",dpms") == 0)
+		{
 			current_par.dpms = 1;
+		}
 		else
 			printk(KERN_ERR
-			       "acornfb: unknown monitor option: %s\n",
-			       opt);
+				   "acornfb: unknown monitor option: %s\n",
+				   opt);
 	}
 }
 
@@ -856,26 +995,32 @@ static void acornfb_parse_dram(char *opt)
 
 	size = simple_strtoul(opt, &opt, 0);
 
-	if (opt) {
-		switch (*opt) {
-		case 'M':
-		case 'm':
-			size *= 1024;
-		case 'K':
-		case 'k':
-			size *= 1024;
-		default:
-			break;
+	if (opt)
+	{
+		switch (*opt)
+		{
+			case 'M':
+			case 'm':
+				size *= 1024;
+
+			case 'K':
+			case 'k':
+				size *= 1024;
+
+			default:
+				break;
 		}
 	}
 
 	current_par.dram_size = size;
 }
 
-static struct options {
+static struct options
+{
 	char *name;
 	void (*parse)(char *opt);
-} opt_table[] = {
+} opt_table[] =
+{
 	{ "mon",     acornfb_parse_mon     },
 	{ "montype", acornfb_parse_montype },
 	{ "dram",    acornfb_parse_dram    },
@@ -888,21 +1033,28 @@ static int acornfb_setup(char *options)
 	char *opt;
 
 	if (!options || !*options)
+	{
 		return 0;
+	}
 
 	acornfb_init_fbinfo();
 
-	while ((opt = strsep(&options, ",")) != NULL) {
+	while ((opt = strsep(&options, ",")) != NULL)
+	{
 		if (!*opt)
+		{
 			continue;
+		}
 
-		for (optp = opt_table; optp->name; optp++) {
+		for (optp = opt_table; optp->name; optp++)
+		{
 			int optlen;
 
 			optlen = strlen(optp->name);
 
 			if (strncmp(opt, optp->name, optlen) == 0 &&
-			    opt[optlen] == ':') {
+				opt[optlen] == ':')
+			{
 				optp->parse(opt + optlen + 1);
 				break;
 			}
@@ -910,8 +1062,9 @@ static int acornfb_setup(char *options)
 
 		if (!optp->name)
 			printk(KERN_ERR "acornfb: unknown parameter: %s\n",
-			       opt);
+				   opt);
 	}
+
 	return 0;
 }
 
@@ -940,7 +1093,8 @@ free_unused_pages(unsigned int virtual_start, unsigned int virtual_end)
 	virtual_start = PAGE_ALIGN(virtual_start);
 	virtual_end = PAGE_ALIGN(virtual_end);
 
-	while (virtual_start < virtual_end) {
+	while (virtual_start < virtual_end)
+	{
 		struct page *page;
 
 		/*
@@ -966,7 +1120,10 @@ static int acornfb_probe(struct platform_device *dev)
 	char *option = NULL;
 
 	if (fb_get_options("acornfb", &option))
+	{
 		return -ENODEV;
+	}
+
 	acornfb_setup(option);
 
 	acornfb_init_fbinfo();
@@ -974,12 +1131,17 @@ static int acornfb_probe(struct platform_device *dev)
 	current_par.dev = &dev->dev;
 
 	if (current_par.montype == -1)
+	{
 		current_par.montype = acornfb_detect_monitortype();
+	}
 
 	if (current_par.montype == -1 || current_par.montype > NR_MONTYPES)
+	{
 		current_par.montype = 4;
+	}
 
-	if (current_par.montype >= 0) {
+	if (current_par.montype >= 0)
+	{
 		fb_info.monspecs = monspecs[current_par.montype];
 		fb_info.monspecs.dpms = current_par.dpms;
 	}
@@ -987,18 +1149,21 @@ static int acornfb_probe(struct platform_device *dev)
 	/*
 	 * Try to select a suitable default mode
 	 */
-	for (i = 0; i < ARRAY_SIZE(modedb); i++) {
+	for (i = 0; i < ARRAY_SIZE(modedb); i++)
+	{
 		unsigned long hs;
 
 		hs = modedb[i].refresh *
-		     (modedb[i].yres + modedb[i].upper_margin +
-		      modedb[i].lower_margin + modedb[i].vsync_len);
+			 (modedb[i].yres + modedb[i].upper_margin +
+			  modedb[i].lower_margin + modedb[i].vsync_len);
+
 		if (modedb[i].xres == DEFAULT_XRES &&
-		    modedb[i].yres == DEFAULT_YRES &&
-		    modedb[i].refresh >= fb_info.monspecs.vfmin &&
-		    modedb[i].refresh <= fb_info.monspecs.vfmax &&
-		    hs                >= fb_info.monspecs.hfmin &&
-		    hs                <= fb_info.monspecs.hfmax) {
+			modedb[i].yres == DEFAULT_YRES &&
+			modedb[i].refresh >= fb_info.monspecs.vfmin &&
+			modedb[i].refresh <= fb_info.monspecs.vfmax &&
+			hs                >= fb_info.monspecs.hfmin &&
+			hs                <= fb_info.monspecs.hfmax)
+		{
 			acornfb_default_mode = modedb[i];
 			break;
 		}
@@ -1013,25 +1178,35 @@ static int acornfb_probe(struct platform_device *dev)
 	 * a Risc PC.  However, if the user has specified
 	 * an amount of DRAM then use that instead.
 	 */
-	if (vram_size && !current_par.dram_size) {
+	if (vram_size && !current_par.dram_size)
+	{
 		size = vram_size;
 		current_par.vram_half_sam = vram_size / 1024;
 		current_par.using_vram = 1;
-	} else if (current_par.dram_size)
+	}
+	else if (current_par.dram_size)
+	{
 		size = current_par.dram_size;
+	}
 	else
+	{
 		size = MAX_SIZE;
+	}
 
 	/*
 	 * Limit maximum screen size.
 	 */
 	if (size > MAX_SIZE)
+	{
 		size = MAX_SIZE;
+	}
 
 	size = PAGE_ALIGN(size);
 
 #if defined(HAS_VIDC20)
-	if (!current_par.using_vram) {
+
+	if (!current_par.using_vram)
+	{
 		dma_addr_t handle;
 		void *base;
 
@@ -1041,16 +1216,19 @@ static int acornfb_probe(struct platform_device *dev)
 		 * VRAM.
 		 */
 		base = dma_alloc_wc(current_par.dev, size, &handle,
-				    GFP_KERNEL);
-		if (base == NULL) {
+							GFP_KERNEL);
+
+		if (base == NULL)
+		{
 			printk(KERN_ERR "acornfb: unable to allocate screen "
-			       "memory\n");
+				   "memory\n");
 			return -ENOMEM;
 		}
 
 		fb_info.screen_base = base;
 		fb_info.fix.smem_start = handle;
 	}
+
 #endif
 	fb_info.fix.smem_len = size;
 	current_par.palette_size   = VIDC_PALETTE_SIZE;
@@ -1060,71 +1238,89 @@ static int acornfb_probe(struct platform_device *dev)
 	 * find it, then we can't restore it if we change
 	 * the resolution, so we disable this feature.
 	 */
-	do {
+	do
+	{
 		rc = fb_find_mode(&fb_info.var, &fb_info, NULL, modedb,
-				 ARRAY_SIZE(modedb),
-				 &acornfb_default_mode, DEFAULT_BPP);
+						  ARRAY_SIZE(modedb),
+						  &acornfb_default_mode, DEFAULT_BPP);
+
 		/*
 		 * If we found an exact match, all ok.
 		 */
 		if (rc == 1)
+		{
 			break;
+		}
 
 		rc = fb_find_mode(&fb_info.var, &fb_info, NULL, NULL, 0,
-				  &acornfb_default_mode, DEFAULT_BPP);
+						  &acornfb_default_mode, DEFAULT_BPP);
+
 		/*
 		 * If we found an exact match, all ok.
 		 */
 		if (rc == 1)
+		{
 			break;
+		}
 
 		rc = fb_find_mode(&fb_info.var, &fb_info, NULL, modedb,
-				 ARRAY_SIZE(modedb),
-				 &acornfb_default_mode, DEFAULT_BPP);
+						  ARRAY_SIZE(modedb),
+						  &acornfb_default_mode, DEFAULT_BPP);
+
 		if (rc)
+		{
 			break;
+		}
 
 		rc = fb_find_mode(&fb_info.var, &fb_info, NULL, NULL, 0,
-				  &acornfb_default_mode, DEFAULT_BPP);
-	} while (0);
+						  &acornfb_default_mode, DEFAULT_BPP);
+	}
+	while (0);
 
 	/*
 	 * If we didn't find an exact match, try the
 	 * generic database.
 	 */
-	if (rc == 0) {
+	if (rc == 0)
+	{
 		printk("Acornfb: no valid mode found\n");
 		return -EINVAL;
 	}
 
 	h_sync = 1953125000 / fb_info.var.pixclock;
 	h_sync = h_sync * 512 / (fb_info.var.xres + fb_info.var.left_margin +
-		 fb_info.var.right_margin + fb_info.var.hsync_len);
+							 fb_info.var.right_margin + fb_info.var.hsync_len);
 	v_sync = h_sync / (fb_info.var.yres + fb_info.var.upper_margin +
-		 fb_info.var.lower_margin + fb_info.var.vsync_len);
+					   fb_info.var.lower_margin + fb_info.var.vsync_len);
 
 	printk(KERN_INFO "Acornfb: %dkB %cRAM, %s, using %dx%d, "
-		"%d.%03dkHz, %dHz\n",
-		fb_info.fix.smem_len / 1024,
-		current_par.using_vram ? 'V' : 'D',
-		VIDC_NAME, fb_info.var.xres, fb_info.var.yres,
-		h_sync / 1000, h_sync % 1000, v_sync);
+		   "%d.%03dkHz, %dHz\n",
+		   fb_info.fix.smem_len / 1024,
+		   current_par.using_vram ? 'V' : 'D',
+		   VIDC_NAME, fb_info.var.xres, fb_info.var.yres,
+		   h_sync / 1000, h_sync % 1000, v_sync);
 
 	printk(KERN_INFO "Acornfb: Monitor: %d.%03d-%d.%03dkHz, %d-%dHz%s\n",
-		fb_info.monspecs.hfmin / 1000, fb_info.monspecs.hfmin % 1000,
-		fb_info.monspecs.hfmax / 1000, fb_info.monspecs.hfmax % 1000,
-		fb_info.monspecs.vfmin, fb_info.monspecs.vfmax,
-		fb_info.monspecs.dpms ? ", DPMS" : "");
+		   fb_info.monspecs.hfmin / 1000, fb_info.monspecs.hfmin % 1000,
+		   fb_info.monspecs.hfmax / 1000, fb_info.monspecs.hfmax % 1000,
+		   fb_info.monspecs.vfmin, fb_info.monspecs.vfmax,
+		   fb_info.monspecs.dpms ? ", DPMS" : "");
 
 	if (fb_set_var(&fb_info, &fb_info.var))
+	{
 		printk(KERN_ERR "Acornfb: unable to set display parameters\n");
+	}
 
 	if (register_framebuffer(&fb_info) < 0)
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
-static struct platform_driver acornfb_driver = {
+static struct platform_driver acornfb_driver =
+{
 	.probe	= acornfb_probe,
 	.driver	= {
 		.name	= "acornfb",

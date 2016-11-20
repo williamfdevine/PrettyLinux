@@ -62,7 +62,8 @@ extern void diva_get_vserial_number(PISDN_ADAPTER IoAdapter, char *buf);
 extern int divasfunc_init(int dbgmask);
 extern void divasfunc_exit(void);
 
-typedef struct _diva_os_thread_dpc {
+typedef struct _diva_os_thread_dpc
+{
 	struct tasklet_struct divas_task;
 	diva_os_soft_isr_t *psoft_isr;
 } diva_os_thread_dpc_t;
@@ -80,79 +81,103 @@ typedef struct _diva_os_thread_dpc {
 */
 
 #if !defined(PCI_DEVICE_ID_EICON_MAESTRAP_2)
-#define PCI_DEVICE_ID_EICON_MAESTRAP_2       0xE015
+	#define PCI_DEVICE_ID_EICON_MAESTRAP_2       0xE015
 #endif
 
 #if !defined(PCI_DEVICE_ID_EICON_4BRI_VOIP)
-#define PCI_DEVICE_ID_EICON_4BRI_VOIP        0xE016
+	#define PCI_DEVICE_ID_EICON_4BRI_VOIP        0xE016
 #endif
 
 #if !defined(PCI_DEVICE_ID_EICON_4BRI_2_VOIP)
-#define PCI_DEVICE_ID_EICON_4BRI_2_VOIP      0xE017
+	#define PCI_DEVICE_ID_EICON_4BRI_2_VOIP      0xE017
 #endif
 
 #if !defined(PCI_DEVICE_ID_EICON_BRI2M_2)
-#define PCI_DEVICE_ID_EICON_BRI2M_2          0xE018
+	#define PCI_DEVICE_ID_EICON_BRI2M_2          0xE018
 #endif
 
 #if !defined(PCI_DEVICE_ID_EICON_MAESTRAP_2_VOIP)
-#define PCI_DEVICE_ID_EICON_MAESTRAP_2_VOIP  0xE019
+	#define PCI_DEVICE_ID_EICON_MAESTRAP_2_VOIP  0xE019
 #endif
 
 #if !defined(PCI_DEVICE_ID_EICON_2F)
-#define PCI_DEVICE_ID_EICON_2F               0xE01A
+	#define PCI_DEVICE_ID_EICON_2F               0xE01A
 #endif
 
 #if !defined(PCI_DEVICE_ID_EICON_BRI2M_2_VOIP)
-#define PCI_DEVICE_ID_EICON_BRI2M_2_VOIP     0xE01B
+	#define PCI_DEVICE_ID_EICON_BRI2M_2_VOIP     0xE01B
 #endif
 
 /*
   This table should be sorted by PCI device ID
 */
-static struct pci_device_id divas_pci_tbl[] = {
+static struct pci_device_id divas_pci_tbl[] =
+{
 	/* Diva Server BRI-2M PCI 0xE010 */
-	{ PCI_VDEVICE(EICON, PCI_DEVICE_ID_EICON_MAESTRA),
-	  CARDTYPE_MAESTRA_PCI },
+	{
+		PCI_VDEVICE(EICON, PCI_DEVICE_ID_EICON_MAESTRA),
+		CARDTYPE_MAESTRA_PCI
+	},
 	/* Diva Server 4BRI-8M PCI 0xE012 */
-	{ PCI_VDEVICE(EICON, PCI_DEVICE_ID_EICON_MAESTRAQ),
-	  CARDTYPE_DIVASRV_Q_8M_PCI },
+	{
+		PCI_VDEVICE(EICON, PCI_DEVICE_ID_EICON_MAESTRAQ),
+		CARDTYPE_DIVASRV_Q_8M_PCI
+	},
 	/* Diva Server 4BRI-8M 2.0 PCI 0xE013 */
-	{ PCI_VDEVICE(EICON, PCI_DEVICE_ID_EICON_MAESTRAQ_U),
-	  CARDTYPE_DIVASRV_Q_8M_V2_PCI },
+	{
+		PCI_VDEVICE(EICON, PCI_DEVICE_ID_EICON_MAESTRAQ_U),
+		CARDTYPE_DIVASRV_Q_8M_V2_PCI
+	},
 	/* Diva Server PRI-30M PCI 0xE014 */
-	{ PCI_VDEVICE(EICON, PCI_DEVICE_ID_EICON_MAESTRAP),
-	  CARDTYPE_DIVASRV_P_30M_PCI },
+	{
+		PCI_VDEVICE(EICON, PCI_DEVICE_ID_EICON_MAESTRAP),
+		CARDTYPE_DIVASRV_P_30M_PCI
+	},
 	/* Diva Server PRI 2.0 adapter 0xE015 */
-	{ PCI_VDEVICE(EICON, PCI_DEVICE_ID_EICON_MAESTRAP_2),
-	  CARDTYPE_DIVASRV_P_30M_V2_PCI },
+	{
+		PCI_VDEVICE(EICON, PCI_DEVICE_ID_EICON_MAESTRAP_2),
+		CARDTYPE_DIVASRV_P_30M_V2_PCI
+	},
 	/* Diva Server Voice 4BRI-8M PCI 0xE016 */
-	{ PCI_VDEVICE(EICON, PCI_DEVICE_ID_EICON_4BRI_VOIP),
-	  CARDTYPE_DIVASRV_VOICE_Q_8M_PCI },
+	{
+		PCI_VDEVICE(EICON, PCI_DEVICE_ID_EICON_4BRI_VOIP),
+		CARDTYPE_DIVASRV_VOICE_Q_8M_PCI
+	},
 	/* Diva Server Voice 4BRI-8M 2.0 PCI 0xE017 */
-	{ PCI_VDEVICE(EICON, PCI_DEVICE_ID_EICON_4BRI_2_VOIP),
-	  CARDTYPE_DIVASRV_VOICE_Q_8M_V2_PCI },
+	{
+		PCI_VDEVICE(EICON, PCI_DEVICE_ID_EICON_4BRI_2_VOIP),
+		CARDTYPE_DIVASRV_VOICE_Q_8M_V2_PCI
+	},
 	/* Diva Server BRI-2M 2.0 PCI 0xE018 */
-	{ PCI_VDEVICE(EICON, PCI_DEVICE_ID_EICON_BRI2M_2),
-	  CARDTYPE_DIVASRV_B_2M_V2_PCI },
+	{
+		PCI_VDEVICE(EICON, PCI_DEVICE_ID_EICON_BRI2M_2),
+		CARDTYPE_DIVASRV_B_2M_V2_PCI
+	},
 	/* Diva Server Voice PRI 2.0 PCI 0xE019 */
-	{ PCI_VDEVICE(EICON, PCI_DEVICE_ID_EICON_MAESTRAP_2_VOIP),
-	  CARDTYPE_DIVASRV_VOICE_P_30M_V2_PCI },
+	{
+		PCI_VDEVICE(EICON, PCI_DEVICE_ID_EICON_MAESTRAP_2_VOIP),
+		CARDTYPE_DIVASRV_VOICE_P_30M_V2_PCI
+	},
 	/* Diva Server 2FX 0xE01A */
-	{ PCI_VDEVICE(EICON, PCI_DEVICE_ID_EICON_2F),
-	  CARDTYPE_DIVASRV_B_2F_PCI },
+	{
+		PCI_VDEVICE(EICON, PCI_DEVICE_ID_EICON_2F),
+		CARDTYPE_DIVASRV_B_2F_PCI
+	},
 	/* Diva Server Voice BRI-2M 2.0 PCI 0xE01B */
-	{ PCI_VDEVICE(EICON, PCI_DEVICE_ID_EICON_BRI2M_2_VOIP),
-	  CARDTYPE_DIVASRV_VOICE_B_2M_V2_PCI },
+	{
+		PCI_VDEVICE(EICON, PCI_DEVICE_ID_EICON_BRI2M_2_VOIP),
+		CARDTYPE_DIVASRV_VOICE_B_2M_V2_PCI
+	},
 	{ 0, }			/* 0 terminated list. */
 };
 MODULE_DEVICE_TABLE(pci, divas_pci_tbl);
 
 static int divas_init_one(struct pci_dev *pdev,
-			  const struct pci_device_id *ent);
+						  const struct pci_device_id *ent);
 static void divas_remove_one(struct pci_dev *pdev);
 
-static struct pci_driver diva_pci_driver = {
+static struct pci_driver diva_pci_driver =
+{
 	.name     = "divas",
 	.probe    = divas_init_one,
 	.remove   = divas_remove_one,
@@ -166,12 +191,18 @@ static char *getrev(const char *revision)
 {
 	char *rev;
 	char *p;
-	if ((p = strchr(revision, ':'))) {
+
+	if ((p = strchr(revision, ':')))
+	{
 		rev = p + 2;
 		p = strchr(rev, '$');
 		*--p = 0;
-	} else
+	}
+	else
+	{
 		rev = "1.0";
+	}
+
 	return rev;
 }
 
@@ -193,7 +224,7 @@ void divas_get_version(char *p)
 
 	strcpy(tmprev, main_revision);
 	sprintf(p, "%s: %s(%s) %s(%s) major=%d\n", DRIVERLNAME, DRIVERRELEASE_DIVAS,
-		getrev(tmprev), diva_xdi_common_code_build, DIVA_BUILD, major);
+			getrev(tmprev), diva_xdi_common_code_build, DIVA_BUILD, major);
 }
 
 /* --------------------------------------------------------------------------
@@ -212,7 +243,7 @@ byte diva_os_get_pci_func(void *pci_dev_handle)
 }
 
 unsigned long divasa_get_pci_irq(unsigned char bus, unsigned char func,
-				 void *pci_dev_handle)
+								 void *pci_dev_handle)
 {
 	unsigned char irq = 0;
 	struct pci_dev *dev = (struct pci_dev *) pci_dev_handle;
@@ -223,12 +254,13 @@ unsigned long divasa_get_pci_irq(unsigned char bus, unsigned char func,
 }
 
 unsigned long divasa_get_pci_bar(unsigned char bus, unsigned char func,
-				 int bar, void *pci_dev_handle)
+								 int bar, void *pci_dev_handle)
 {
 	unsigned long ret = 0;
 	struct pci_dev *dev = (struct pci_dev *) pci_dev_handle;
 
-	if (bar < 6) {
+	if (bar < 6)
+	{
 		ret = dev->resource[bar].start;
 	}
 
@@ -236,13 +268,18 @@ unsigned long divasa_get_pci_bar(unsigned char bus, unsigned char func,
 
 	{
 		unsigned long type = (ret & 0x00000001);
-		if (type & PCI_BASE_ADDRESS_SPACE_IO) {
+
+		if (type & PCI_BASE_ADDRESS_SPACE_IO)
+		{
 			DBG_TRC(("  I/O"));
 			ret &= PCI_BASE_ADDRESS_IO_MASK;
-		} else {
+		}
+		else
+		{
 			DBG_TRC(("  memory"));
 			ret &= PCI_BASE_ADDRESS_MEM_MASK;
 		}
+
 		DBG_TRC(("  final=%08x", ret));
 	}
 
@@ -250,81 +287,97 @@ unsigned long divasa_get_pci_bar(unsigned char bus, unsigned char func,
 }
 
 void PCIwrite(byte bus, byte func, int offset, void *data, int length,
-	      void *pci_dev_handle)
+			  void *pci_dev_handle)
 {
 	struct pci_dev *dev = (struct pci_dev *) pci_dev_handle;
 
-	switch (length) {
-	case 1:		/* byte */
-		pci_write_config_byte(dev, offset,
-				      *(unsigned char *) data);
-		break;
-	case 2:		/* word */
-		pci_write_config_word(dev, offset,
-				      *(unsigned short *) data);
-		break;
-	case 4:		/* dword */
-		pci_write_config_dword(dev, offset,
-				       *(unsigned int *) data);
-		break;
+	switch (length)
+	{
+		case 1:		/* byte */
+			pci_write_config_byte(dev, offset,
+								  *(unsigned char *) data);
+			break;
 
-	default:		/* buffer */
-		if (!(length % 4) && !(length & 0x03)) {	/* Copy as dword */
-			dword *p = (dword *) data;
-			length /= 4;
+		case 2:		/* word */
+			pci_write_config_word(dev, offset,
+								  *(unsigned short *) data);
+			break;
 
-			while (length--) {
-				pci_write_config_dword(dev, offset,
-						       *(unsigned int *)
-						       p++);
+		case 4:		/* dword */
+			pci_write_config_dword(dev, offset,
+								   *(unsigned int *) data);
+			break;
+
+		default:		/* buffer */
+			if (!(length % 4) && !(length & 0x03))  	/* Copy as dword */
+			{
+				dword *p = (dword *) data;
+				length /= 4;
+
+				while (length--)
+				{
+					pci_write_config_dword(dev, offset,
+										   *(unsigned int *)
+										   p++);
+				}
 			}
-		} else {	/* copy as byte stream */
-			byte *p = (byte *) data;
+			else  	/* copy as byte stream */
+			{
+				byte *p = (byte *) data;
 
-			while (length--) {
-				pci_write_config_byte(dev, offset,
-						      *(unsigned char *)
-						      p++);
+				while (length--)
+				{
+					pci_write_config_byte(dev, offset,
+										  *(unsigned char *)
+										  p++);
+				}
 			}
-		}
 	}
 }
 
 void PCIread(byte bus, byte func, int offset, void *data, int length,
-	     void *pci_dev_handle)
+			 void *pci_dev_handle)
 {
 	struct pci_dev *dev = (struct pci_dev *) pci_dev_handle;
 
-	switch (length) {
-	case 1:		/* byte */
-		pci_read_config_byte(dev, offset, (unsigned char *) data);
-		break;
-	case 2:		/* word */
-		pci_read_config_word(dev, offset, (unsigned short *) data);
-		break;
-	case 4:		/* dword */
-		pci_read_config_dword(dev, offset, (unsigned int *) data);
-		break;
+	switch (length)
+	{
+		case 1:		/* byte */
+			pci_read_config_byte(dev, offset, (unsigned char *) data);
+			break;
 
-	default:		/* buffer */
-		if (!(length % 4) && !(length & 0x03)) {	/* Copy as dword */
-			dword *p = (dword *) data;
-			length /= 4;
+		case 2:		/* word */
+			pci_read_config_word(dev, offset, (unsigned short *) data);
+			break;
 
-			while (length--) {
-				pci_read_config_dword(dev, offset,
-						      (unsigned int *)
-						      p++);
+		case 4:		/* dword */
+			pci_read_config_dword(dev, offset, (unsigned int *) data);
+			break;
+
+		default:		/* buffer */
+			if (!(length % 4) && !(length & 0x03))  	/* Copy as dword */
+			{
+				dword *p = (dword *) data;
+				length /= 4;
+
+				while (length--)
+				{
+					pci_read_config_dword(dev, offset,
+										  (unsigned int *)
+										  p++);
+				}
 			}
-		} else {	/* copy as byte stream */
-			byte *p = (byte *) data;
+			else  	/* copy as byte stream */
+			{
+				byte *p = (byte *) data;
 
-			while (length--) {
-				pci_read_config_byte(dev, offset,
-						     (unsigned char *)
-						     p++);
+				while (length--)
+				{
+					pci_read_config_byte(dev, offset,
+										 (unsigned char *)
+										 p++);
+				}
 			}
-		}
 	}
 }
 
@@ -334,9 +387,9 @@ void PCIread(byte bus, byte func, int offset, void *data, int length,
   interface
 */
 static void *diva_pci_alloc_consistent(struct pci_dev *hwdev,
-				       size_t size,
-				       dma_addr_t *dma_handle,
-				       void **addr_handle)
+									   size_t size,
+									   dma_addr_t *dma_handle,
+									   void **addr_handle)
 {
 	void *addr = pci_alloc_consistent(hwdev, size, dma_handle);
 
@@ -346,33 +399,37 @@ static void *diva_pci_alloc_consistent(struct pci_dev *hwdev,
 }
 
 void diva_init_dma_map(void *hdev,
-		       struct _diva_dma_map_entry **ppmap, int nentries)
+					   struct _diva_dma_map_entry **ppmap, int nentries)
 {
 	struct pci_dev *pdev = (struct pci_dev *) hdev;
 	struct _diva_dma_map_entry *pmap =
 		diva_alloc_dma_map(hdev, nentries);
 
-	if (pmap) {
+	if (pmap)
+	{
 		int i;
 		dma_addr_t dma_handle;
 		void *cpu_addr;
 		void *addr_handle;
 
-		for (i = 0; i < nentries; i++) {
+		for (i = 0; i < nentries; i++)
+		{
 			if (!(cpu_addr = diva_pci_alloc_consistent(pdev,
-								   PAGE_SIZE,
-								   &dma_handle,
-								   &addr_handle)))
+							 PAGE_SIZE,
+							 &dma_handle,
+							 &addr_handle)))
 			{
 				break;
 			}
+
 			diva_init_dma_map_entry(pmap, i, cpu_addr,
-						(dword) dma_handle,
-						addr_handle);
+									(dword) dma_handle,
+									addr_handle);
 			DBG_TRC(("dma map alloc [%d]=(%08lx:%08x:%08lx)",
-				 i, (unsigned long) cpu_addr,
-				 (dword) dma_handle,
-				 (unsigned long) addr_handle))}
+					 i, (unsigned long) cpu_addr,
+					 (dword) dma_handle,
+					 (unsigned long) addr_handle))
+		}
 	}
 
 	*ppmap = pmap;
@@ -391,19 +448,23 @@ void diva_free_dma_map(void *hdev, struct _diva_dma_map_entry *pmap)
 	dma_addr_t dma_handle;
 	void *addr_handle;
 
-	for (i = 0; (pmap != NULL); i++) {
+	for (i = 0; (pmap != NULL); i++)
+	{
 		diva_get_dma_map_entry(pmap, i, &cpu_addr, &phys_addr);
-		if (!cpu_addr) {
+
+		if (!cpu_addr)
+		{
 			break;
 		}
+
 		addr_handle = diva_get_entry_handle(pmap, i);
 		dma_handle = (dma_addr_t) phys_addr;
 		pci_free_consistent(pdev, PAGE_SIZE, addr_handle,
-				    dma_handle);
+							dma_handle);
 		DBG_TRC(("dma map free [%d]=(%08lx:%08x:%08lx)", i,
-			 (unsigned long) cpu_addr, (dword) dma_handle,
-			 (unsigned long) addr_handle))
-			}
+				 (unsigned long) cpu_addr, (dword) dma_handle,
+				 (unsigned long) addr_handle))
+	}
 
 	diva_free_dma_mapping(pmap);
 }
@@ -415,16 +476,21 @@ void diva_free_dma_map(void *hdev, struct _diva_dma_map_entry *pmap)
 
 int
 diva_os_register_io_port(void *adapter, int on, unsigned long port,
-			 unsigned long length, const char *name, int id)
+						 unsigned long length, const char *name, int id)
 {
-	if (on) {
-		if (!request_region(port, length, name)) {
+	if (on)
+	{
+		if (!request_region(port, length, name))
+		{
 			DBG_ERR(("A: I/O: can't register port=%08x", port))
-				return (-1);
+			return (-1);
 		}
-	} else {
+	}
+	else
+	{
 		release_region(port, length);
 	}
+
 	return (0);
 }
 
@@ -437,7 +503,8 @@ void __iomem *divasa_remap_pci_bar(diva_os_xdi_adapter_t *a, int id, unsigned lo
 
 void divasa_unmap_pci_bar(void __iomem *bar)
 {
-	if (bar) {
+	if (bar)
+	{
 		iounmap(bar);
 	}
 }
@@ -481,7 +548,7 @@ inline void outpp(void __iomem *addr, word p)
 int diva_os_register_irq(void *context, byte irq, const char *name)
 {
 	int result = request_irq(irq, diva_os_irq_wrapper,
-				 IRQF_SHARED, name, context);
+							 IRQF_SHARED, name, context);
 	return (result);
 }
 
@@ -502,15 +569,18 @@ static void diva_os_dpc_proc(unsigned long context)
 }
 
 int diva_os_initialize_soft_isr(diva_os_soft_isr_t *psoft_isr,
-				diva_os_soft_isr_callback_t callback,
-				void *callback_context)
+								diva_os_soft_isr_callback_t callback,
+								void *callback_context)
 {
 	diva_os_thread_dpc_t *pdpc;
 
 	pdpc = (diva_os_thread_dpc_t *) diva_os_malloc(0, sizeof(*pdpc));
-	if (!(psoft_isr->object = pdpc)) {
+
+	if (!(psoft_isr->object = pdpc))
+	{
 		return (-1);
 	}
+
 	memset(pdpc, 0x00, sizeof(*pdpc));
 	psoft_isr->callback = callback;
 	psoft_isr->callback_context = callback_context;
@@ -522,7 +592,8 @@ int diva_os_initialize_soft_isr(diva_os_soft_isr_t *psoft_isr,
 
 int diva_os_schedule_soft_isr(diva_os_soft_isr_t *psoft_isr)
 {
-	if (psoft_isr && psoft_isr->object) {
+	if (psoft_isr && psoft_isr->object)
+	{
 		diva_os_thread_dpc_t *pdpc =
 			(diva_os_thread_dpc_t *) psoft_isr->object;
 
@@ -539,7 +610,8 @@ int diva_os_cancel_soft_isr(diva_os_soft_isr_t *psoft_isr)
 
 void diva_os_remove_soft_isr(diva_os_soft_isr_t *psoft_isr)
 {
-	if (psoft_isr && psoft_isr->object) {
+	if (psoft_isr && psoft_isr->object)
+	{
 		diva_os_thread_dpc_t *pdpc =
 			(diva_os_thread_dpc_t *) psoft_isr->object;
 		void *mem;
@@ -557,18 +629,22 @@ void diva_os_remove_soft_isr(diva_os_soft_isr_t *psoft_isr)
 static int
 xdi_copy_to_user(void *os_handle, void __user *dst, const void *src, int length)
 {
-	if (copy_to_user(dst, src, length)) {
+	if (copy_to_user(dst, src, length))
+	{
 		return (-EFAULT);
 	}
+
 	return (length);
 }
 
 static int
 xdi_copy_from_user(void *os_handle, void *dst, const void __user *src, int length)
 {
-	if (copy_from_user(dst, src, length)) {
+	if (copy_from_user(dst, src, length))
+	{
 		return (-EFAULT);
 	}
+
 	return (length);
 }
 
@@ -582,83 +658,104 @@ static int divas_open(struct inode *inode, struct file *file)
 
 static int divas_release(struct inode *inode, struct file *file)
 {
-	if (file->private_data) {
+	if (file->private_data)
+	{
 		diva_xdi_close_adapter(file->private_data, file);
 	}
+
 	return (0);
 }
 
 static ssize_t divas_write(struct file *file, const char __user *buf,
-			   size_t count, loff_t *ppos)
+						   size_t count, loff_t *ppos)
 {
 	int ret = -EINVAL;
 
-	if (!file->private_data) {
+	if (!file->private_data)
+	{
 		file->private_data = diva_xdi_open_adapter(file, buf,
-							   count,
-							   xdi_copy_from_user);
+							 count,
+							 xdi_copy_from_user);
 	}
-	if (!file->private_data) {
+
+	if (!file->private_data)
+	{
 		return (-ENODEV);
 	}
 
 	ret = diva_xdi_write(file->private_data, file,
-			     buf, count, xdi_copy_from_user);
-	switch (ret) {
-	case -1:		/* Message should be removed from rx mailbox first */
-		ret = -EBUSY;
-		break;
-	case -2:		/* invalid adapter was specified in this call */
-		ret = -ENOMEM;
-		break;
-	case -3:
-		ret = -ENXIO;
-		break;
+						 buf, count, xdi_copy_from_user);
+
+	switch (ret)
+	{
+		case -1:		/* Message should be removed from rx mailbox first */
+			ret = -EBUSY;
+			break;
+
+		case -2:		/* invalid adapter was specified in this call */
+			ret = -ENOMEM;
+			break;
+
+		case -3:
+			ret = -ENXIO;
+			break;
 	}
+
 	DBG_TRC(("write: ret %d", ret));
 	return (ret);
 }
 
 static ssize_t divas_read(struct file *file, char __user *buf,
-			  size_t count, loff_t *ppos)
+						  size_t count, loff_t *ppos)
 {
 	int ret = -EINVAL;
 
-	if (!file->private_data) {
+	if (!file->private_data)
+	{
 		file->private_data = diva_xdi_open_adapter(file, buf,
-							   count,
-							   xdi_copy_from_user);
+							 count,
+							 xdi_copy_from_user);
 	}
-	if (!file->private_data) {
+
+	if (!file->private_data)
+	{
 		return (-ENODEV);
 	}
 
 	ret = diva_xdi_read(file->private_data, file,
-			    buf, count, xdi_copy_to_user);
-	switch (ret) {
-	case -1:		/* RX mailbox is empty */
-		ret = -EAGAIN;
-		break;
-	case -2:		/* no memory, mailbox was cleared, last command is failed */
-		ret = -ENOMEM;
-		break;
-	case -3:		/* can't copy to user, retry */
-		ret = -EFAULT;
-		break;
+						buf, count, xdi_copy_to_user);
+
+	switch (ret)
+	{
+		case -1:		/* RX mailbox is empty */
+			ret = -EAGAIN;
+			break;
+
+		case -2:		/* no memory, mailbox was cleared, last command is failed */
+			ret = -ENOMEM;
+			break;
+
+		case -3:		/* can't copy to user, retry */
+			ret = -EFAULT;
+			break;
 	}
+
 	DBG_TRC(("read: ret %d", ret));
 	return (ret);
 }
 
 static unsigned int divas_poll(struct file *file, poll_table *wait)
 {
-	if (!file->private_data) {
+	if (!file->private_data)
+	{
 		return (POLLERR);
 	}
+
 	return (POLLIN | POLLRDNORM);
 }
 
-static const struct file_operations divas_fops = {
+static const struct file_operations divas_fops =
+{
 	.owner   = THIS_MODULE,
 	.llseek  = no_llseek,
 	.read    = divas_read,
@@ -678,7 +775,7 @@ static int __init divas_register_chrdev(void)
 	if ((major = register_chrdev(0, DEVNAME, &divas_fops)) < 0)
 	{
 		printk(KERN_ERR "%s: failed to create /dev entry.\n",
-		       DRIVERLNAME);
+			   DRIVERLNAME);
 		return (0);
 	}
 
@@ -695,51 +792,55 @@ static int divas_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 	u8 new_latency = 32;
 
 	DBG_TRC(("%s bus: %08x fn: %08x insertion.\n",
-		 CardProperties[ent->driver_data].Name,
-		 pdev->bus->number, pdev->devfn))
-		printk(KERN_INFO "%s: %s bus: %08x fn: %08x insertion.\n",
-		       DRIVERLNAME, CardProperties[ent->driver_data].Name,
-		       pdev->bus->number, pdev->devfn);
-
-	if (pci_enable_device(pdev)) {
-		DBG_TRC(("%s: %s bus: %08x fn: %08x device init failed.\n",
-			 DRIVERLNAME,
 			 CardProperties[ent->driver_data].Name,
-			 pdev->bus->number,
-			 pdev->devfn))
-			printk(KERN_ERR
-			       "%s: %s bus: %08x fn: %08x device init failed.\n",
-			       DRIVERLNAME,
-			       CardProperties[ent->driver_data].
-			       Name, pdev->bus->number,
-			       pdev->devfn);
+			 pdev->bus->number, pdev->devfn))
+	printk(KERN_INFO "%s: %s bus: %08x fn: %08x insertion.\n",
+		   DRIVERLNAME, CardProperties[ent->driver_data].Name,
+		   pdev->bus->number, pdev->devfn);
+
+	if (pci_enable_device(pdev))
+	{
+		DBG_TRC(("%s: %s bus: %08x fn: %08x device init failed.\n",
+				 DRIVERLNAME,
+				 CardProperties[ent->driver_data].Name,
+				 pdev->bus->number,
+				 pdev->devfn))
+		printk(KERN_ERR
+			   "%s: %s bus: %08x fn: %08x device init failed.\n",
+			   DRIVERLNAME,
+			   CardProperties[ent->driver_data].
+			   Name, pdev->bus->number,
+			   pdev->devfn);
 		return (-EIO);
 	}
 
 	pci_set_master(pdev);
 
 	pci_read_config_byte(pdev, PCI_LATENCY_TIMER, &pci_latency);
-	if (!pci_latency) {
+
+	if (!pci_latency)
+	{
 		DBG_TRC(("%s: bus: %08x fn: %08x fix latency.\n",
-			 DRIVERLNAME, pdev->bus->number, pdev->devfn))
-			printk(KERN_INFO
-			       "%s: bus: %08x fn: %08x fix latency.\n",
-			       DRIVERLNAME, pdev->bus->number, pdev->devfn);
+				 DRIVERLNAME, pdev->bus->number, pdev->devfn))
+		printk(KERN_INFO
+			   "%s: bus: %08x fn: %08x fix latency.\n",
+			   DRIVERLNAME, pdev->bus->number, pdev->devfn);
 		pci_write_config_byte(pdev, PCI_LATENCY_TIMER, new_latency);
 	}
 
-	if (!(pdiva = diva_driver_add_card(pdev, ent->driver_data))) {
+	if (!(pdiva = diva_driver_add_card(pdev, ent->driver_data)))
+	{
 		DBG_TRC(("%s: %s bus: %08x fn: %08x card init failed.\n",
-			 DRIVERLNAME,
-			 CardProperties[ent->driver_data].Name,
-			 pdev->bus->number,
-			 pdev->devfn))
-			printk(KERN_ERR
-			       "%s: %s bus: %08x fn: %08x card init failed.\n",
-			       DRIVERLNAME,
-			       CardProperties[ent->driver_data].
-			       Name, pdev->bus->number,
-			       pdev->devfn);
+				 DRIVERLNAME,
+				 CardProperties[ent->driver_data].Name,
+				 pdev->bus->number,
+				 pdev->devfn))
+		printk(KERN_ERR
+			   "%s: %s bus: %08x fn: %08x card init failed.\n",
+			   DRIVERLNAME,
+			   CardProperties[ent->driver_data].
+			   Name, pdev->bus->number,
+			   pdev->devfn);
 		return (-EIO);
 	}
 
@@ -753,11 +854,12 @@ static void divas_remove_one(struct pci_dev *pdev)
 	void *pdiva = pci_get_drvdata(pdev);
 
 	DBG_TRC(("bus: %08x fn: %08x removal.\n",
-		 pdev->bus->number, pdev->devfn))
-		printk(KERN_INFO "%s: bus: %08x fn: %08x removal.\n",
-		       DRIVERLNAME, pdev->bus->number, pdev->devfn);
+			 pdev->bus->number, pdev->devfn))
+	printk(KERN_INFO "%s: bus: %08x fn: %08x removal.\n",
+		   DRIVERLNAME, pdev->bus->number, pdev->devfn);
 
-	if (pdiva) {
+	if (pdiva)
+	{
 		diva_driver_remove_card(pdiva);
 	}
 
@@ -775,7 +877,7 @@ static int __init divas_init(void)
 	printk(KERN_INFO "%s: Rel:%s  Rev:", DRIVERLNAME, DRIVERRELEASE_DIVAS);
 	strcpy(tmprev, main_revision);
 	printk("%s  Build: %s(%s)\n", getrev(tmprev),
-	       diva_xdi_common_code_build, DIVA_BUILD);
+		   diva_xdi_common_code_build, DIVA_BUILD);
 	printk(KERN_INFO "%s: support for: ", DRIVERLNAME);
 #ifdef CONFIG_ISDN_DIVAS_BRIPCI
 	printk("BRI/PCI ");
@@ -785,14 +887,16 @@ static int __init divas_init(void)
 #endif
 	printk("adapters\n");
 
-	if (!divasfunc_init(dbgmask)) {
+	if (!divasfunc_init(dbgmask))
+	{
 		printk(KERN_ERR "%s: failed to connect to DIDD.\n",
-		       DRIVERLNAME);
+			   DRIVERLNAME);
 		ret = -EIO;
 		goto out;
 	}
 
-	if (!divas_register_chrdev()) {
+	if (!divas_register_chrdev())
+	{
 #ifdef MODULE
 		divasfunc_exit();
 #endif
@@ -800,27 +904,30 @@ static int __init divas_init(void)
 		goto out;
 	}
 
-	if (!create_divas_proc()) {
+	if (!create_divas_proc())
+	{
 #ifdef MODULE
 		divas_unregister_chrdev();
 		divasfunc_exit();
 #endif
 		printk(KERN_ERR "%s: failed to create proc entry.\n",
-		       DRIVERLNAME);
+			   DRIVERLNAME);
 		ret = -EIO;
 		goto out;
 	}
 
-	if ((ret = pci_register_driver(&diva_pci_driver))) {
+	if ((ret = pci_register_driver(&diva_pci_driver)))
+	{
 #ifdef MODULE
 		remove_divas_proc();
 		divas_unregister_chrdev();
 		divasfunc_exit();
 #endif
 		printk(KERN_ERR "%s: failed to init pci driver.\n",
-		       DRIVERLNAME);
+			   DRIVERLNAME);
 		goto out;
 	}
+
 	printk(KERN_INFO "%s: started with major %d\n", DRIVERLNAME, major);
 
 out:

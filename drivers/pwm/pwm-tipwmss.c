@@ -22,7 +22,8 @@
 #include <linux/pm_runtime.h>
 #include <linux/of_device.h>
 
-static const struct of_device_id pwmss_of_match[] = {
+static const struct of_device_id pwmss_of_match[] =
+{
 	{ .compatible	= "ti,am33xx-pwmss" },
 	{},
 };
@@ -37,8 +38,11 @@ static int pwmss_probe(struct platform_device *pdev)
 
 	/* Populate all the child nodes here... */
 	ret = of_platform_populate(node, NULL, NULL, &pdev->dev);
+
 	if (ret)
+	{
 		dev_err(&pdev->dev, "no child node found\n");
+	}
 
 	return ret;
 }
@@ -49,7 +53,8 @@ static int pwmss_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver pwmss_driver = {
+static struct platform_driver pwmss_driver =
+{
 	.driver	= {
 		.name	= "pwmss",
 		.of_match_table	= pwmss_of_match,

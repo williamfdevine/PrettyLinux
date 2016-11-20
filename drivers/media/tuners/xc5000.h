@@ -30,7 +30,8 @@ struct i2c_adapter;
 #define XC5000A 1
 #define XC5000C 2
 
-struct xc5000_config {
+struct xc5000_config
+{
 	u8   i2c_address;
 	u32  if_khz;
 	u8   radio_input;
@@ -59,12 +60,12 @@ struct xc5000_config {
 
 #if IS_REACHABLE(CONFIG_MEDIA_TUNER_XC5000)
 extern struct dvb_frontend *xc5000_attach(struct dvb_frontend *fe,
-					  struct i2c_adapter *i2c,
-					  const struct xc5000_config *cfg);
+		struct i2c_adapter *i2c,
+		const struct xc5000_config *cfg);
 #else
 static inline struct dvb_frontend *xc5000_attach(struct dvb_frontend *fe,
-						 struct i2c_adapter *i2c,
-						 const struct xc5000_config *cfg)
+		struct i2c_adapter *i2c,
+		const struct xc5000_config *cfg)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;

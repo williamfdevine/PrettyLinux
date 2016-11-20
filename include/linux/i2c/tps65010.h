@@ -192,7 +192,8 @@ struct i2c_client;
  * which hands the (now-valid) GPIOs to other drivers, or which puts
  * devices in their initial states using these GPIOs.
  */
-struct tps65010_board {
+struct tps65010_board
+{
 	int				base;
 	unsigned			outmask;
 

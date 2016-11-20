@@ -44,7 +44,8 @@
  * CAIF Link Layer with the flow control function.
  *
  */
- struct caif_dev_common {
+struct caif_dev_common
+{
 	void (*flowctrl)(struct net_device *net, int on);
 	enum caif_link_selector link_select;
 	int use_frag;

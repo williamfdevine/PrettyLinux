@@ -5,7 +5,8 @@
  * Determines how hard direct compaction should try to succeed.
  * Lower value means higher priority, analogically to reclaim priority.
  */
-enum compact_priority {
+enum compact_priority
+{
 	COMPACT_PRIO_SYNC_FULL,
 	MIN_COMPACT_PRIORITY = COMPACT_PRIO_SYNC_FULL,
 	COMPACT_PRIO_SYNC_LIGHT,
@@ -17,7 +18,8 @@ enum compact_priority {
 
 /* Return values for compact_zone() and try_to_compact_pages() */
 /* When adding new states, please adjust include/trace/events/compaction.h */
-enum compact_result {
+enum compact_result
+{
 	/* For more detailed tracepoint output - internal to compaction */
 	COMPACT_NOT_SUITABLE_ZONE,
 	/*
@@ -85,10 +87,10 @@ static inline unsigned long compact_gap(unsigned int order)
 #ifdef CONFIG_COMPACTION
 extern int sysctl_compact_memory;
 extern int sysctl_compaction_handler(struct ctl_table *table, int write,
-			void __user *buffer, size_t *length, loff_t *ppos);
+									 void __user *buffer, size_t *length, loff_t *ppos);
 extern int sysctl_extfrag_threshold;
 extern int sysctl_extfrag_handler(struct ctl_table *table, int write,
-			void __user *buffer, size_t *length, loff_t *ppos);
+								  void __user *buffer, size_t *length, loff_t *ppos);
 extern int sysctl_compact_unevictable_allowed;
 
 extern int fragmentation_index(struct zone *zone, unsigned int order);
@@ -102,7 +104,7 @@ extern enum compact_result compaction_suitable(struct zone *zone, int order,
 extern void defer_compaction(struct zone *zone, int order);
 extern bool compaction_deferred(struct zone *zone, int order);
 extern void compaction_defer_reset(struct zone *zone, int order,
-				bool alloc_success);
+								   bool alloc_success);
 extern bool compaction_restarting(struct zone *zone, int order);
 
 /* Compaction has made some progress and retrying makes sense */
@@ -114,7 +116,9 @@ static inline bool compaction_made_progress(enum compact_result result)
 	 * pageblocks.
 	 */
 	if (result == COMPACT_SUCCESS)
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -124,7 +128,9 @@ static inline bool compaction_failed(enum compact_result result)
 {
 	/* All zones were scanned completely and still not result. */
 	if (result == COMPACT_COMPLETE)
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -140,7 +146,9 @@ static inline bool compaction_withdrawn(enum compact_result result)
 	 * so the regular reclaim has to try harder and reclaim something.
 	 */
 	if (result == COMPACT_SKIPPED)
+	{
 		return true;
+	}
 
 	/*
 	 * If compaction is deferred for high-order allocations, it is
@@ -150,28 +158,34 @@ static inline bool compaction_withdrawn(enum compact_result result)
 	 * instead of entering direct reclaim.
 	 */
 	if (result == COMPACT_DEFERRED)
+	{
 		return true;
+	}
 
 	/*
 	 * If compaction in async mode encounters contention or blocks higher
 	 * priority task we back off early rather than cause stalls.
 	 */
 	if (result == COMPACT_CONTENDED)
+	{
 		return true;
+	}
 
 	/*
 	 * Page scanners have met but we haven't scanned full zones so this
 	 * is a back off in fact.
 	 */
 	if (result == COMPACT_PARTIAL_SKIPPED)
+	{
 		return true;
+	}
 
 	return false;
 }
 
 
 bool compaction_zonelist_suitable(struct alloc_context *ac, int order,
-					int alloc_flags);
+								  int alloc_flags);
 
 extern int kcompactd_run(int nid);
 extern void kcompactd_stop(int nid);
@@ -183,7 +197,7 @@ static inline void reset_isolation_suitable(pg_data_t *pgdat)
 }
 
 static inline enum compact_result compaction_suitable(struct zone *zone, int order,
-					int alloc_flags, int classzone_idx)
+		int alloc_flags, int classzone_idx)
 {
 	return COMPACT_SKIPPED;
 }

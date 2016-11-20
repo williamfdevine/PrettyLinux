@@ -3,11 +3,13 @@
 
 #include <linux/types.h>
 
-enum xt_cluster_flags {
+enum xt_cluster_flags
+{
 	XT_CLUSTER_F_INV	= (1 << 0)
 };
 
-struct xt_cluster_match_info {
+struct xt_cluster_match_info
+{
 	__u32 total_nodes;
 	__u32 node_mask;
 	__u32 hash_seed;

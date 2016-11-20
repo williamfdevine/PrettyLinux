@@ -30,15 +30,17 @@ static int add_part(int slot, struct cmdline_subpart *subpart, void *param)
 	struct parsed_partitions *state = (struct parsed_partitions *)param;
 
 	if (slot >= state->limit)
+	{
 		return 1;
+	}
 
 	put_partition(state, slot, subpart->from >> 9,
-		      subpart->size >> 9);
+				  subpart->size >> 9);
 
 	info = &state->parts[slot].info;
 
 	label_min = min_t(int, sizeof(info->volname) - 1,
-			  sizeof(subpart->name));
+					  sizeof(subpart->name));
 	strncpy(info->volname, subpart->name, label_min);
 	info->volname[label_min] = '\0';
 
@@ -70,24 +72,34 @@ int cmdline_partition(struct parsed_partitions *state)
 	char bdev[BDEVNAME_SIZE];
 	struct cmdline_parts *parts;
 
-	if (cmdline) {
+	if (cmdline)
+	{
 		if (bdev_parts)
+		{
 			cmdline_parts_free(&bdev_parts);
+		}
 
-		if (cmdline_parts_parse(&bdev_parts, cmdline)) {
+		if (cmdline_parts_parse(&bdev_parts, cmdline))
+		{
 			cmdline = NULL;
 			return -1;
 		}
+
 		cmdline = NULL;
 	}
 
 	if (!bdev_parts)
+	{
 		return 0;
+	}
 
 	bdevname(state->bdev, bdev);
 	parts = cmdline_parts_find(bdev_parts, bdev);
+
 	if (!parts)
+	{
 		return 0;
+	}
 
 	disk_size = get_capacity(state->bdev->bd_disk) << 9;
 

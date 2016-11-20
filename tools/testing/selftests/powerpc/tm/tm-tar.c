@@ -61,25 +61,32 @@ int test_tar(void)
 
 			: [res]"=r"(result)
 			: [tar]"i"(SPRN_TAR)
-			   : "memory", "r0", "r4", "r7");
+			: "memory", "r0", "r4", "r7");
 
 		/* If result is anything else other than 7 or 9, the tar
 		 * value must have been corrupted. */
 		if ((result != 7) && (result != 9))
+		{
 			return 1;
+		}
 	}
+
 	return 0;
 }
 
 int main(int argc, char *argv[])
 {
 	/* A low number of iterations (eg 100) can cause a false pass */
-	if (argc > 1) {
-		if (strcmp(argv[1], "-h") == 0) {
+	if (argc > 1)
+	{
+		if (strcmp(argv[1], "-h") == 0)
+		{
 			printf("Syntax:\n\t%s [<num loops>]\n",
-			       argv[0]);
+				   argv[0]);
 			return 1;
-		} else {
+		}
+		else
+		{
 			num_loops = atoi(argv[1]);
 		}
 	}

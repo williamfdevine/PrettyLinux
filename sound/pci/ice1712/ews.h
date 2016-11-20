@@ -23,15 +23,15 @@
  *   along with this program; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  *
- */      
+ */
 
 #define EWS_DEVICE_DESC \
-		"{TerraTec,EWX 24/96},"\
-		"{TerraTec,EWS 88MT},"\
-		"{TerraTec,EWS 88D},"\
-		"{TerraTec,DMX 6Fire},"\
-		"{TerraTec,Phase 88}," \
-		"{terrasoniq,TS 88},"
+	"{TerraTec,EWX 24/96},"\
+	"{TerraTec,EWS 88MT},"\
+	"{TerraTec,EWS 88D},"\
+	"{TerraTec,DMX 6Fire},"\
+	"{TerraTec,Phase 88}," \
+	"{terrasoniq,TS 88},"
 
 #define ICE1712_SUBDEVICE_EWX2496	0x3b153011
 #define ICE1712_SUBDEVICE_EWS88MT	0x3b151511

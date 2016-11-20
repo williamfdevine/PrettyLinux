@@ -42,7 +42,8 @@
 #define ATUSB_ALLOC_DELAY_MS	100	/* delay after failed allocation */
 #define ATUSB_TX_TIMEOUT_MS	200	/* on the air timeout */
 
-struct atusb {
+struct atusb
+{
 	struct ieee802154_hw *hw;
 	struct usb_device *usb_dev;
 	int shutdown;			/* non-zero if shutting down */
@@ -67,24 +68,29 @@ struct atusb {
  */
 
 static int atusb_control_msg(struct atusb *atusb, unsigned int pipe,
-			     __u8 request, __u8 requesttype,
-			     __u16 value, __u16 index,
-			     void *data, __u16 size, int timeout)
+							 __u8 request, __u8 requesttype,
+							 __u16 value, __u16 index,
+							 void *data, __u16 size, int timeout)
 {
 	struct usb_device *usb_dev = atusb->usb_dev;
 	int ret;
 
 	if (atusb->err)
+	{
 		return atusb->err;
+	}
 
 	ret = usb_control_msg(usb_dev, pipe, request, requesttype,
-			      value, index, data, size, timeout);
-	if (ret < 0) {
+						  value, index, data, size, timeout);
+
+	if (ret < 0)
+	{
 		atusb->err = ret;
 		dev_err(&usb_dev->dev,
-			"atusb_control_msg: req 0x%02x val 0x%x idx 0x%x, error %d\n",
-			request, value, index, ret);
+				"atusb_control_msg: req 0x%02x val 0x%x idx 0x%x, error %d\n",
+				request, value, index, ret);
 	}
+
 	return ret;
 }
 
@@ -94,7 +100,7 @@ static int atusb_command(struct atusb *atusb, uint8_t cmd, uint8_t arg)
 
 	dev_dbg(&usb_dev->dev, "atusb_command: cmd = 0x%x\n", cmd);
 	return atusb_control_msg(atusb, usb_sndctrlpipe(usb_dev, 0),
-				 cmd, ATUSB_REQ_TO_DEV, arg, 0, NULL, 0, 1000);
+							 cmd, ATUSB_REQ_TO_DEV, arg, 0, NULL, 0, 1000);
 }
 
 static int atusb_write_reg(struct atusb *atusb, uint8_t reg, uint8_t value)
@@ -102,10 +108,10 @@ static int atusb_write_reg(struct atusb *atusb, uint8_t reg, uint8_t value)
 	struct usb_device *usb_dev = atusb->usb_dev;
 
 	dev_dbg(&usb_dev->dev, "atusb_write_reg: 0x%02x <- 0x%02x\n",
-		reg, value);
+			reg, value);
 	return atusb_control_msg(atusb, usb_sndctrlpipe(usb_dev, 0),
-				 ATUSB_REG_WRITE, ATUSB_REQ_TO_DEV,
-				 value, reg, NULL, 0, 1000);
+							 ATUSB_REG_WRITE, ATUSB_REQ_TO_DEV,
+							 value, reg, NULL, 0, 1000);
 }
 
 static int atusb_read_reg(struct atusb *atusb, uint8_t reg)
@@ -116,20 +122,20 @@ static int atusb_read_reg(struct atusb *atusb, uint8_t reg)
 
 	dev_dbg(&usb_dev->dev, "atusb: reg = 0x%x\n", reg);
 	ret = atusb_control_msg(atusb, usb_rcvctrlpipe(usb_dev, 0),
-				ATUSB_REG_READ, ATUSB_REQ_FROM_DEV,
-				0, reg, &value, 1, 1000);
+							ATUSB_REG_READ, ATUSB_REQ_FROM_DEV,
+							0, reg, &value, 1, 1000);
 	return ret >= 0 ? value : ret;
 }
 
 static int atusb_write_subreg(struct atusb *atusb, uint8_t reg, uint8_t mask,
-			      uint8_t shift, uint8_t value)
+							  uint8_t shift, uint8_t value)
 {
 	struct usb_device *usb_dev = atusb->usb_dev;
 	uint8_t orig, tmp;
 	int ret = 0;
 
 	dev_dbg(&usb_dev->dev, "atusb_write_subreg: 0x%02x <- 0x%02x\n",
-		reg, value);
+			reg, value);
 
 	orig = atusb_read_reg(atusb, reg);
 
@@ -140,7 +146,9 @@ static int atusb_write_subreg(struct atusb *atusb, uint8_t reg, uint8_t mask,
 	tmp |= (value << shift) & mask;
 
 	if (tmp != orig)
+	{
 		ret = atusb_write_reg(atusb, reg, tmp);
+	}
 
 	return ret;
 }
@@ -168,53 +176,68 @@ static int atusb_submit_rx_urb(struct atusb *atusb, struct urb *urb)
 	struct sk_buff *skb = urb->context;
 	int ret;
 
-	if (!skb) {
+	if (!skb)
+	{
 		skb = alloc_skb(MAX_RX_XFER, GFP_KERNEL);
-		if (!skb) {
+
+		if (!skb)
+		{
 			dev_warn_ratelimited(&usb_dev->dev,
-					     "atusb_in: can't allocate skb\n");
+								 "atusb_in: can't allocate skb\n");
 			return -ENOMEM;
 		}
+
 		skb_put(skb, MAX_RX_XFER);
 		SKB_ATUSB(skb) = atusb;
 	}
 
 	usb_fill_bulk_urb(urb, usb_dev, usb_rcvbulkpipe(usb_dev, 1),
-			  skb->data, MAX_RX_XFER, atusb_in, skb);
+					  skb->data, MAX_RX_XFER, atusb_in, skb);
 	usb_anchor_urb(urb, &atusb->rx_urbs);
 
 	ret = usb_submit_urb(urb, GFP_KERNEL);
-	if (ret) {
+
+	if (ret)
+	{
 		usb_unanchor_urb(urb);
 		kfree_skb(skb);
 		urb->context = NULL;
 	}
+
 	return ret;
 }
 
 static void atusb_work_urbs(struct work_struct *work)
 {
 	struct atusb *atusb =
-	    container_of(to_delayed_work(work), struct atusb, work);
+		container_of(to_delayed_work(work), struct atusb, work);
 	struct usb_device *usb_dev = atusb->usb_dev;
 	struct urb *urb;
 	int ret;
 
 	if (atusb->shutdown)
+	{
 		return;
+	}
 
-	do {
+	do
+	{
 		urb = usb_get_from_anchor(&atusb->idle_urbs);
+
 		if (!urb)
+		{
 			return;
+		}
+
 		ret = atusb_submit_rx_urb(atusb, urb);
-	} while (!ret);
+	}
+	while (!ret);
 
 	usb_anchor_urb(urb, &atusb->idle_urbs);
 	dev_warn_ratelimited(&usb_dev->dev,
-			     "atusb_in: can't allocate/submit URB (%d)\n", ret);
+						 "atusb_in: can't allocate/submit URB (%d)\n", ret);
 	schedule_delayed_work(&atusb->work,
-			      msecs_to_jiffies(ATUSB_ALLOC_DELAY_MS) + 1);
+						  msecs_to_jiffies(ATUSB_ALLOC_DELAY_MS) + 1);
 }
 
 /* ----- Asynchronous USB -------------------------------------------------- */
@@ -225,18 +248,25 @@ static void atusb_tx_done(struct atusb *atusb, uint8_t seq)
 	uint8_t expect = atusb->tx_ack_seq;
 
 	dev_dbg(&usb_dev->dev, "atusb_tx_done (0x%02x/0x%02x)\n", seq, expect);
-	if (seq == expect) {
+
+	if (seq == expect)
+	{
 		/* TODO check for ifs handling in firmware */
 		ieee802154_xmit_complete(atusb->hw, atusb->tx_skb, false);
-	} else {
+	}
+	else
+	{
 		/* TODO I experience this case when atusb has a tx complete
 		 * irq before probing, we should fix the firmware it's an
 		 * unlikely case now that seq == expect is then true, but can
 		 * happen and fail with a tx_skb = NULL;
 		 */
 		ieee802154_wake_queue(atusb->hw);
+
 		if (atusb->tx_skb)
+		{
 			dev_kfree_skb_irq(atusb->tx_skb);
+		}
 	}
 }
 
@@ -247,25 +277,29 @@ static void atusb_in_good(struct urb *urb)
 	struct atusb *atusb = SKB_ATUSB(skb);
 	uint8_t len, lqi;
 
-	if (!urb->actual_length) {
+	if (!urb->actual_length)
+	{
 		dev_dbg(&usb_dev->dev, "atusb_in: zero-sized URB ?\n");
 		return;
 	}
 
 	len = *skb->data;
 
-	if (urb->actual_length == 1) {
+	if (urb->actual_length == 1)
+	{
 		atusb_tx_done(atusb, len);
 		return;
 	}
 
-	if (len + 1 > urb->actual_length - 1) {
+	if (len + 1 > urb->actual_length - 1)
+	{
 		dev_dbg(&usb_dev->dev, "atusb_in: frame len %d+1 > URB %u-1\n",
-			len, urb->actual_length);
+				len, urb->actual_length);
 		return;
 	}
 
-	if (!ieee802154_is_valid_psdu_len(len)) {
+	if (!ieee802154_is_valid_psdu_len(len))
+	{
 		dev_dbg(&usb_dev->dev, "atusb_in: frame corrupted\n");
 		return;
 	}
@@ -285,21 +319,30 @@ static void atusb_in(struct urb *urb)
 	struct atusb *atusb = SKB_ATUSB(skb);
 
 	dev_dbg(&usb_dev->dev, "atusb_in: status %d len %d\n",
-		urb->status, urb->actual_length);
-	if (urb->status) {
-		if (urb->status == -ENOENT) { /* being killed */
+			urb->status, urb->actual_length);
+
+	if (urb->status)
+	{
+		if (urb->status == -ENOENT)   /* being killed */
+		{
 			kfree_skb(skb);
 			urb->context = NULL;
 			return;
 		}
+
 		dev_dbg(&usb_dev->dev, "atusb_in: URB error %d\n", urb->status);
-	} else {
+	}
+	else
+	{
 		atusb_in_good(urb);
 	}
 
 	usb_anchor_urb(urb, &atusb->idle_urbs);
+
 	if (!atusb->shutdown)
+	{
 		schedule_delayed_work(&atusb->work, 0);
+	}
 }
 
 /* ----- URB allocation/deallocation --------------------------------------- */
@@ -308,10 +351,15 @@ static void atusb_free_urbs(struct atusb *atusb)
 {
 	struct urb *urb;
 
-	while (1) {
+	while (1)
+	{
 		urb = usb_get_from_anchor(&atusb->idle_urbs);
+
 		if (!urb)
+		{
 			break;
+		}
+
 		kfree_skb(urb->context);
 		usb_free_urb(urb);
 	}
@@ -321,15 +369,20 @@ static int atusb_alloc_urbs(struct atusb *atusb, int n)
 {
 	struct urb *urb;
 
-	while (n) {
+	while (n)
+	{
 		urb = usb_alloc_urb(0, GFP_KERNEL);
-		if (!urb) {
+
+		if (!urb)
+		{
 			atusb_free_urbs(atusb);
 			return -ENOMEM;
 		}
+
 		usb_anchor_urb(urb, &atusb->idle_urbs);
 		n--;
 	}
+
 	return 0;
 }
 
@@ -353,9 +406,9 @@ static int atusb_xmit(struct ieee802154_hw *hw, struct sk_buff *skb)
 	atusb->tx_dr.wLength = cpu_to_le16(skb->len);
 
 	usb_fill_control_urb(atusb->tx_urb, usb_dev,
-			     usb_sndctrlpipe(usb_dev, 0),
-			     (unsigned char *)&atusb->tx_dr, skb->data,
-			     skb->len, atusb_xmit_complete, NULL);
+						 usb_sndctrlpipe(usb_dev, 0),
+						 (unsigned char *)&atusb->tx_dr, skb->data,
+						 skb->len, atusb_xmit_complete, NULL);
 	ret = usb_submit_urb(atusb->tx_urb, GFP_ATOMIC);
 	dev_dbg(&usb_dev->dev, "atusb_xmit done (%d)\n", ret);
 	return ret;
@@ -367,8 +420,12 @@ static int atusb_channel(struct ieee802154_hw *hw, u8 page, u8 channel)
 	int ret;
 
 	ret = atusb_write_subreg(atusb, SR_CHANNEL, channel);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	msleep(1);	/* @@@ ugly synchronization */
 	return 0;
 }
@@ -381,13 +438,14 @@ static int atusb_ed(struct ieee802154_hw *hw, u8 *level)
 }
 
 static int atusb_set_hw_addr_filt(struct ieee802154_hw *hw,
-				  struct ieee802154_hw_addr_filt *filt,
-				  unsigned long changed)
+								  struct ieee802154_hw_addr_filt *filt,
+								  unsigned long changed)
 {
 	struct atusb *atusb = hw->priv;
 	struct device *dev = &atusb->usb_dev->dev;
 
-	if (changed & IEEE802154_AFILT_SADDR_CHANGED) {
+	if (changed & IEEE802154_AFILT_SADDR_CHANGED)
+	{
 		u16 addr = le16_to_cpu(filt->short_addr);
 
 		dev_vdbg(dev, "atusb_set_hw_addr_filt called for saddr\n");
@@ -395,7 +453,8 @@ static int atusb_set_hw_addr_filt(struct ieee802154_hw *hw,
 		atusb_write_reg(atusb, RG_SHORT_ADDR_1, addr >> 8);
 	}
 
-	if (changed & IEEE802154_AFILT_PANID_CHANGED) {
+	if (changed & IEEE802154_AFILT_PANID_CHANGED)
+	{
 		u16 pan = le16_to_cpu(filt->pan_id);
 
 		dev_vdbg(dev, "atusb_set_hw_addr_filt called for pan id\n");
@@ -403,22 +462,32 @@ static int atusb_set_hw_addr_filt(struct ieee802154_hw *hw,
 		atusb_write_reg(atusb, RG_PAN_ID_1, pan >> 8);
 	}
 
-	if (changed & IEEE802154_AFILT_IEEEADDR_CHANGED) {
+	if (changed & IEEE802154_AFILT_IEEEADDR_CHANGED)
+	{
 		u8 i, addr[IEEE802154_EXTENDED_ADDR_LEN];
 
 		memcpy(addr, &filt->ieee_addr, IEEE802154_EXTENDED_ADDR_LEN);
 		dev_vdbg(dev, "atusb_set_hw_addr_filt called for IEEE addr\n");
+
 		for (i = 0; i < 8; i++)
+		{
 			atusb_write_reg(atusb, RG_IEEE_ADDR_0 + i, addr[i]);
+		}
 	}
 
-	if (changed & IEEE802154_AFILT_PANC_CHANGED) {
+	if (changed & IEEE802154_AFILT_PANC_CHANGED)
+	{
 		dev_vdbg(dev,
-			 "atusb_set_hw_addr_filt called for panc change\n");
+				 "atusb_set_hw_addr_filt called for panc change\n");
+
 		if (filt->pan_coord)
+		{
 			atusb_write_subreg(atusb, SR_AACK_I_AM_COORD, 1);
+		}
 		else
+		{
 			atusb_write_subreg(atusb, SR_AACK_I_AM_COORD, 0);
+		}
 	}
 
 	return atusb_get_and_clear_error(atusb);
@@ -434,8 +503,12 @@ static int atusb_start(struct ieee802154_hw *hw)
 	schedule_delayed_work(&atusb->work, 0);
 	atusb_command(atusb, ATUSB_RX_MODE, 1);
 	ret = atusb_get_and_clear_error(atusb);
+
 	if (ret < 0)
+	{
 		usb_kill_anchored_urbs(&atusb->idle_urbs);
+	}
+
 	return ret;
 }
 
@@ -451,7 +524,8 @@ static void atusb_stop(struct ieee802154_hw *hw)
 }
 
 #define ATUSB_MAX_TX_POWERS 0xF
-static const s32 atusb_powers[ATUSB_MAX_TX_POWERS + 1] = {
+static const s32 atusb_powers[ATUSB_MAX_TX_POWERS + 1] =
+{
 	300, 280, 230, 180, 130, 70, 0, -100, -200, -300, -400, -500, -700,
 	-900, -1200, -1700,
 };
@@ -462,16 +536,20 @@ atusb_set_txpower(struct ieee802154_hw *hw, s32 mbm)
 	struct atusb *atusb = hw->priv;
 	u32 i;
 
-	for (i = 0; i < hw->phy->supported.tx_powers_size; i++) {
+	for (i = 0; i < hw->phy->supported.tx_powers_size; i++)
+	{
 		if (hw->phy->supported.tx_powers[i] == mbm)
+		{
 			return atusb_write_subreg(atusb, SR_TX_PWR_23X, i);
+		}
 	}
 
 	return -EINVAL;
 }
 
 #define ATUSB_MAX_ED_LEVELS 0xF
-static const s32 atusb_ed_levels[ATUSB_MAX_ED_LEVELS + 1] = {
+static const s32 atusb_ed_levels[ATUSB_MAX_ED_LEVELS + 1] =
+{
 	-9100, -8900, -8700, -8500, -8300, -8100, -7900, -7700, -7500, -7300,
 	-7100, -6900, -6700, -6500, -6300, -6100,
 };
@@ -483,27 +561,35 @@ atusb_set_cca_mode(struct ieee802154_hw *hw, const struct wpan_phy_cca *cca)
 	u8 val;
 
 	/* mapping 802.15.4 to driver spec */
-	switch (cca->mode) {
-	case NL802154_CCA_ENERGY:
-		val = 1;
-		break;
-	case NL802154_CCA_CARRIER:
-		val = 2;
-		break;
-	case NL802154_CCA_ENERGY_CARRIER:
-		switch (cca->opt) {
-		case NL802154_CCA_OPT_ENERGY_CARRIER_AND:
-			val = 3;
+	switch (cca->mode)
+	{
+		case NL802154_CCA_ENERGY:
+			val = 1;
 			break;
-		case NL802154_CCA_OPT_ENERGY_CARRIER_OR:
-			val = 0;
+
+		case NL802154_CCA_CARRIER:
+			val = 2;
 			break;
+
+		case NL802154_CCA_ENERGY_CARRIER:
+			switch (cca->opt)
+			{
+				case NL802154_CCA_OPT_ENERGY_CARRIER_AND:
+					val = 3;
+					break;
+
+				case NL802154_CCA_OPT_ENERGY_CARRIER_OR:
+					val = 0;
+					break;
+
+				default:
+					return -EINVAL;
+			}
+
+			break;
+
 		default:
 			return -EINVAL;
-		}
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	return atusb_write_subreg(atusb, SR_CCA_MODE, val);
@@ -515,9 +601,12 @@ atusb_set_cca_ed_level(struct ieee802154_hw *hw, s32 mbm)
 	struct atusb *atusb = hw->priv;
 	u32 i;
 
-	for (i = 0; i < hw->phy->supported.cca_ed_levels_size; i++) {
+	for (i = 0; i < hw->phy->supported.cca_ed_levels_size; i++)
+	{
 		if (hw->phy->supported.cca_ed_levels[i] == mbm)
+		{
 			return atusb_write_subreg(atusb, SR_CCA_ED_THRES, i);
+		}
 	}
 
 	return -EINVAL;
@@ -530,12 +619,18 @@ atusb_set_csma_params(struct ieee802154_hw *hw, u8 min_be, u8 max_be, u8 retries
 	int ret;
 
 	ret = atusb_write_subreg(atusb, SR_MIN_BE, min_be);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = atusb_write_subreg(atusb, SR_MAX_BE, max_be);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return atusb_write_subreg(atusb, SR_MAX_CSMA_RETRIES, retries);
 }
@@ -546,28 +641,44 @@ atusb_set_promiscuous_mode(struct ieee802154_hw *hw, const bool on)
 	struct atusb *atusb = hw->priv;
 	int ret;
 
-	if (on) {
+	if (on)
+	{
 		ret = atusb_write_subreg(atusb, SR_AACK_DIS_ACK, 1);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		ret = atusb_write_subreg(atusb, SR_AACK_PROM_MODE, 1);
+
 		if (ret < 0)
+		{
 			return ret;
-	} else {
+		}
+	}
+	else
+	{
 		ret = atusb_write_subreg(atusb, SR_AACK_PROM_MODE, 0);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		ret = atusb_write_subreg(atusb, SR_AACK_DIS_ACK, 0);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
 }
 
-static struct ieee802154_ops atusb_ops = {
+static struct ieee802154_ops atusb_ops =
+{
 	.owner			= THIS_MODULE,
 	.xmit_async		= atusb_xmit,
 	.ed			= atusb_ed,
@@ -592,16 +703,19 @@ static int atusb_get_and_show_revision(struct atusb *atusb)
 
 	/* Get a couple of the ATMega Firmware values */
 	ret = atusb_control_msg(atusb, usb_rcvctrlpipe(usb_dev, 0),
-				ATUSB_ID, ATUSB_REQ_FROM_DEV, 0, 0,
-				buffer, 3, 1000);
+							ATUSB_ID, ATUSB_REQ_FROM_DEV, 0, 0,
+							buffer, 3, 1000);
+
 	if (ret >= 0)
 		dev_info(&usb_dev->dev,
-			 "Firmware: major: %u, minor: %u, hardware type: %u\n",
-			 buffer[0], buffer[1], buffer[2]);
-	if (buffer[0] == 0 && buffer[1] < 2) {
+				 "Firmware: major: %u, minor: %u, hardware type: %u\n",
+				 buffer[0], buffer[1], buffer[2]);
+
+	if (buffer[0] == 0 && buffer[1] < 2)
+	{
 		dev_info(&usb_dev->dev,
-			 "Firmware version (%u.%u) is predates our first public release.",
-			 buffer[0], buffer[1]);
+				 "Firmware version (%u.%u) is predates our first public release.",
+				 buffer[0], buffer[1]);
 		dev_info(&usb_dev->dev, "Please update to version 0.2 or newer");
 	}
 
@@ -615,9 +729,11 @@ static int atusb_get_and_show_build(struct atusb *atusb)
 	int ret;
 
 	ret = atusb_control_msg(atusb, usb_rcvctrlpipe(usb_dev, 0),
-				ATUSB_BUILD, ATUSB_REQ_FROM_DEV, 0, 0,
-				build, ATUSB_BUILD_SIZE, 1000);
-	if (ret >= 0) {
+							ATUSB_BUILD, ATUSB_REQ_FROM_DEV, 0, 0,
+							build, ATUSB_BUILD_SIZE, 1000);
+
+	if (ret >= 0)
+	{
 		build[ret] = 0;
 		dev_info(&usb_dev->dev, "Firmware: build %s\n", build);
 	}
@@ -637,27 +753,33 @@ static int atusb_get_and_show_chip(struct atusb *atusb)
 	version_num = atusb_read_reg(atusb, RG_VERSION_NUM);
 
 	if (atusb->err)
+	{
 		return atusb->err;
+	}
 
-	if ((man_id_1 << 8 | man_id_0) != ATUSB_JEDEC_ATMEL) {
+	if ((man_id_1 << 8 | man_id_0) != ATUSB_JEDEC_ATMEL)
+	{
 		dev_err(&usb_dev->dev,
-			"non-Atmel transceiver xxxx%02x%02x\n",
-			man_id_1, man_id_0);
+				"non-Atmel transceiver xxxx%02x%02x\n",
+				man_id_1, man_id_0);
 		goto fail;
 	}
 
-	switch (part_num) {
-	case 2:
-		chip = "AT86RF230";
-		break;
-	case 3:
-		chip = "AT86RF231";
-		break;
-	default:
-		dev_err(&usb_dev->dev,
-			"unexpected transceiver, part 0x%02x version 0x%02x\n",
-			part_num, version_num);
-		goto fail;
+	switch (part_num)
+	{
+		case 2:
+			chip = "AT86RF230";
+			break;
+
+		case 3:
+			chip = "AT86RF231";
+			break;
+
+		default:
+			dev_err(&usb_dev->dev,
+					"unexpected transceiver, part 0x%02x version 0x%02x\n",
+					part_num, version_num);
+			goto fail;
 	}
 
 	dev_info(&usb_dev->dev, "ATUSB: %s version %d\n", chip, version_num);
@@ -672,7 +794,7 @@ fail:
 /* ----- Setup ------------------------------------------------------------- */
 
 static int atusb_probe(struct usb_interface *interface,
-		       const struct usb_device_id *id)
+					   const struct usb_device_id *id)
 {
 	struct usb_device *usb_dev = interface_to_usbdev(interface);
 	struct ieee802154_hw *hw;
@@ -680,8 +802,11 @@ static int atusb_probe(struct usb_interface *interface,
 	int ret = -ENOMEM;
 
 	hw = ieee802154_alloc_hw(sizeof(struct atusb), &atusb_ops);
+
 	if (!hw)
+	{
 		return -ENOMEM;
+	}
 
 	atusb = hw->priv;
 	atusb->hw = hw;
@@ -695,27 +820,32 @@ static int atusb_probe(struct usb_interface *interface,
 	init_usb_anchor(&atusb->rx_urbs);
 
 	if (atusb_alloc_urbs(atusb, ATUSB_NUM_RX_URBS))
+	{
 		goto fail;
+	}
 
 	atusb->tx_dr.bRequestType = ATUSB_REQ_TO_DEV;
 	atusb->tx_dr.bRequest = ATUSB_TX;
 	atusb->tx_dr.wValue = cpu_to_le16(0);
 
 	atusb->tx_urb = usb_alloc_urb(0, GFP_ATOMIC);
+
 	if (!atusb->tx_urb)
+	{
 		goto fail;
+	}
 
 	hw->parent = &usb_dev->dev;
 	hw->flags = IEEE802154_HW_TX_OMIT_CKSUM | IEEE802154_HW_AFILT |
-		    IEEE802154_HW_PROMISCUOUS | IEEE802154_HW_CSMA_PARAMS;
+				IEEE802154_HW_PROMISCUOUS | IEEE802154_HW_CSMA_PARAMS;
 
 	hw->phy->flags = WPAN_PHY_FLAG_TXPOWER | WPAN_PHY_FLAG_CCA_ED_LEVEL |
-			 WPAN_PHY_FLAG_CCA_MODE;
+					 WPAN_PHY_FLAG_CCA_MODE;
 
 	hw->phy->supported.cca_modes = BIT(NL802154_CCA_ENERGY) |
-		BIT(NL802154_CCA_CARRIER) | BIT(NL802154_CCA_ENERGY_CARRIER);
+								   BIT(NL802154_CCA_CARRIER) | BIT(NL802154_CCA_ENERGY_CARRIER);
 	hw->phy->supported.cca_opts = BIT(NL802154_CCA_OPT_ENERGY_CARRIER_AND) |
-		BIT(NL802154_CCA_OPT_ENERGY_CARRIER_OR);
+								  BIT(NL802154_CCA_OPT_ENERGY_CARRIER_OR);
 
 	hw->phy->supported.cca_ed_levels = atusb_ed_levels;
 	hw->phy->supported.cca_ed_levels_size = ARRAY_SIZE(atusb_ed_levels);
@@ -736,16 +866,21 @@ static int atusb_probe(struct usb_interface *interface,
 	atusb_get_and_show_revision(atusb);
 	atusb_get_and_show_build(atusb);
 	ret = atusb_get_and_clear_error(atusb);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&atusb->usb_dev->dev,
-			"%s: initialization failed, error = %d\n",
-			__func__, ret);
+				"%s: initialization failed, error = %d\n",
+				__func__, ret);
 		goto fail;
 	}
 
 	ret = ieee802154_register_hw(hw);
+
 	if (ret)
+	{
 		goto fail;
+	}
 
 	/* If we just powered on, we're now in P_ON and need to enter TRX_OFF
 	 * explicitly. Any resets after that will send us straight to TRX_OFF,
@@ -782,12 +917,15 @@ static int atusb_probe(struct usb_interface *interface,
 	atusb_write_reg(atusb, RG_IRQ_MASK, 0xff);
 
 	ret = atusb_get_and_clear_error(atusb);
+
 	if (!ret)
+	{
 		return 0;
+	}
 
 	dev_err(&atusb->usb_dev->dev,
-		"%s: setup failed, error = %d\n",
-		__func__, ret);
+			"%s: setup failed, error = %d\n",
+			__func__, ret);
 
 	ieee802154_unregister_hw(hw);
 fail:
@@ -824,10 +962,11 @@ static void atusb_disconnect(struct usb_interface *interface)
 }
 
 /* The devices we work with */
-static const struct usb_device_id atusb_device_table[] = {
+static const struct usb_device_id atusb_device_table[] =
+{
 	{
 		.match_flags		= USB_DEVICE_ID_MATCH_DEVICE |
-					  USB_DEVICE_ID_MATCH_INT_INFO,
+		USB_DEVICE_ID_MATCH_INT_INFO,
 		.idVendor		= ATUSB_VENDOR_ID,
 		.idProduct		= ATUSB_PRODUCT_ID,
 		.bInterfaceClass	= USB_CLASS_VENDOR_SPEC
@@ -837,7 +976,8 @@ static const struct usb_device_id atusb_device_table[] = {
 };
 MODULE_DEVICE_TABLE(usb, atusb_device_table);
 
-static struct usb_driver atusb_driver = {
+static struct usb_driver atusb_driver =
+{
 	.name		= "atusb",
 	.probe		= atusb_probe,
 	.disconnect	= atusb_disconnect,

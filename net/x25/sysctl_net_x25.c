@@ -17,7 +17,8 @@ static int max_timer[] = { 300 * HZ };
 
 static struct ctl_table_header *x25_table_header;
 
-static struct ctl_table x25_table[] = {
+static struct ctl_table x25_table[] =
+{
 	{
 		.procname =	"restart_request_timeout",
 		.data =		&sysctl_x25_restart_request_timeout,

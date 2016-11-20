@@ -65,7 +65,7 @@
 #define   MAL2_CFG_WMBS_MASK	0x00030000
 #define   MAL2_CFG_PLBLE	0x00008000
 #define   MAL2_CFG_DEFAULT	(MAL2_CFG_RMBS_MASK | MAL2_CFG_WMBS_MASK | \
-				 MAL2_CFG_RPP_10 | MAL2_CFG_WPP_10)
+							 MAL2_CFG_RPP_10 | MAL2_CFG_WPP_10)
 
 #define MAL_ESR			0x01
 #define   MAL_ESR_EVB		0x80000000
@@ -108,7 +108,7 @@
 
 #define   MAL_IER_SOC_EVENTS	(MAL_IER_PTE | MAL_IER_PRE | MAL_IER_PWE)
 #define   MAL_IER_EVENTS	(MAL_IER_SOC_EVENTS | MAL_IER_DE | \
-				 MAL_IER_OTE | MAL_IER_OE | MAL_IER_PE)
+							 MAL_IER_OTE | MAL_IER_OE | MAL_IER_PE)
 
 #define MAL_TXCASR		0x04
 #define MAL_TXCARR		0x05
@@ -142,7 +142,8 @@ static inline int mal_tx_chunks(int len)
 #define MAL_CHAN_MASK(n)	(0x80000000 >> (n))
 
 /* MAL Buffer Descriptor structure */
-struct mal_descriptor {
+struct mal_descriptor
+{
 	u16 ctrl;		/* MAL / Commac status control bits */
 	u16 data_len;		/* Max length is 4K-1 (12 bits)     */
 	u32 data_ptr;		/* pointer to actual data buffer    */
@@ -165,14 +166,16 @@ struct mal_descriptor {
 #define MAL_TX_CTRL_LAST	0x1000
 #define MAL_TX_CTRL_INTR	0x0400
 
-struct mal_commac_ops {
+struct mal_commac_ops
+{
 	void	(*poll_tx) (void *dev);
 	int	(*poll_rx) (void *dev, int budget);
 	int	(*peek_rx) (void *dev);
 	void	(*rxde) (void *dev);
 };
 
-struct mal_commac {
+struct mal_commac
+{
 	struct mal_commac_ops	*ops;
 	void			*dev;
 	struct list_head	poll_list;
@@ -184,7 +187,8 @@ struct mal_commac {
 	struct list_head	list;
 };
 
-struct mal_instance {
+struct mal_instance
+{
 	int			version;
 	dcr_host_t		dcr_host;
 
@@ -237,7 +241,8 @@ static inline void set_mal_dcrn(struct mal_instance *mal, int reg, u32 val)
  */
 #define MAL_FTR_COMMON_ERR_INT	0x00000002
 
-enum {
+enum
+{
 	MAL_FTRS_ALWAYS = 0,
 
 	MAL_FTRS_POSSIBLE =
@@ -251,10 +256,10 @@ enum {
 };
 
 static inline int mal_has_feature(struct mal_instance *dev,
-		unsigned long feature)
+								  unsigned long feature)
 {
 	return (MAL_FTRS_ALWAYS & feature) ||
-		(MAL_FTRS_POSSIBLE & dev->features & feature);
+		   (MAL_FTRS_POSSIBLE & dev->features & feature);
 }
 
 /* Register MAL devices */
@@ -262,9 +267,9 @@ int mal_init(void);
 void mal_exit(void);
 
 int mal_register_commac(struct mal_instance *mal,
-			struct mal_commac *commac);
+						struct mal_commac *commac);
 void mal_unregister_commac(struct mal_instance *mal,
-			   struct mal_commac *commac);
+						   struct mal_commac *commac);
 int mal_set_rcbs(struct mal_instance *mal, int channel, unsigned long size);
 
 /* Returns BD ring offset for a particular channel
@@ -286,7 +291,8 @@ void mal_poll_add(struct mal_instance *mal, struct mal_commac *commac);
 void mal_poll_del(struct mal_instance *mal, struct mal_commac *commac);
 
 /* Ethtool MAL registers */
-struct mal_regs {
+struct mal_regs
+{
 	u32 tx_count;
 	u32 rx_count;
 

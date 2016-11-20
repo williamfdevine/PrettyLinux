@@ -24,10 +24,11 @@
 #include "bnx2x_vfpf.h"
 #include "bnx2x.h"
 
-enum sample_bulletin_result {
-	   PFVF_BULLETIN_UNCHANGED,
-	   PFVF_BULLETIN_UPDATED,
-	   PFVF_BULLETIN_CRC_ERR
+enum sample_bulletin_result
+{
+	PFVF_BULLETIN_UNCHANGED,
+	PFVF_BULLETIN_UPDATED,
+	PFVF_BULLETIN_CRC_ERR
 };
 
 #ifdef CONFIG_BNX2X_SRIOV
@@ -40,7 +41,8 @@ extern struct workqueue_struct *bnx2x_iov_wq;
 #define BNX2X_VF_MAX_QUEUES		16
 #define BNX2X_VF_MAX_TPA_AGG_QUEUES	8
 
-struct bnx2x_sriov {
+struct bnx2x_sriov
+{
 	u32 first_vf_in_pf;
 
 	/* standard SRIOV capability fields, mostly for debugging */
@@ -58,18 +60,21 @@ struct bnx2x_sriov {
 };
 
 /* bars */
-struct bnx2x_vf_bar {
+struct bnx2x_vf_bar
+{
 	u64 bar;
 	u32 size;
 };
 
-struct bnx2x_vf_bar_info {
+struct bnx2x_vf_bar_info
+{
 	struct bnx2x_vf_bar bars[PCI_SRIOV_NUM_BARS];
 	u8 nr_bars;
 };
 
 /* vf queue (used both for rx or tx) */
-struct bnx2x_vf_queue {
+struct bnx2x_vf_queue
+{
 	struct eth_context		*cxt;
 
 	/* MACs object */
@@ -96,7 +101,8 @@ struct bnx2x_vf_queue {
 /* struct bnx2x_vf_queue_construct_params - prepare queue construction
  * parameters: q-init, q-setup and SB index
  */
-struct bnx2x_vf_queue_construct_params {
+struct bnx2x_vf_queue_construct_params
+{
 	struct bnx2x_queue_state_params		qstate;
 	struct bnx2x_queue_setup_params		prep_qsetup;
 };
@@ -106,7 +112,8 @@ struct bnx2x_virtf;
 
 /* VFOP definitions */
 
-struct bnx2x_vf_mac_vlan_filter {
+struct bnx2x_vf_mac_vlan_filter
+{
 	int type;
 #define BNX2X_VF_FILTER_MAC	BIT(0)
 #define BNX2X_VF_FILTER_VLAN	BIT(1)
@@ -118,13 +125,15 @@ struct bnx2x_vf_mac_vlan_filter {
 	u16 vid;
 };
 
-struct bnx2x_vf_mac_vlan_filters {
+struct bnx2x_vf_mac_vlan_filters
+{
 	int count;
 	struct bnx2x_vf_mac_vlan_filter filters[];
 };
 
 /* vf context */
-struct bnx2x_virtf {
+struct bnx2x_virtf
+{
 	u16 cfg_flags;
 #define VF_CFG_STATS_COALESCE	0x1
 #define VF_CFG_EXT_BULLETIN	0x2
@@ -213,13 +222,13 @@ struct bnx2x_virtf {
 #define BNX2X_NR_VIRTFN(bp)	((bp)->vfdb->sriov.nr_virtfn)
 
 #define for_each_vf(bp, var) \
-		for ((var) = 0; (var) < BNX2X_NR_VIRTFN(bp); (var)++)
+	for ((var) = 0; (var) < BNX2X_NR_VIRTFN(bp); (var)++)
 
 #define for_each_vfq(vf, var) \
-		for ((var) = 0; (var) < vf_rxq_count(vf); (var)++)
+	for ((var) = 0; (var) < vf_rxq_count(vf); (var)++)
 
 #define for_each_vf_sb(vf, var) \
-		for ((var) = 0; (var) < vf_sb_count(vf); (var)++)
+	for ((var) = 0; (var) < vf_sb_count(vf); (var)++)
 
 #define is_vf_multi(vf)	(vf_rxq_count(vf) > 1)
 
@@ -233,16 +242,16 @@ struct bnx2x_virtf {
 
 #define GET_NUM_VFS_PER_PATH(bp)	64 /* use max possible value */
 #define GET_NUM_VFS_PER_PF(bp)		((bp)->vfdb ? (bp)->vfdb->sriov.total \
-						    : 0)
+									 : 0)
 #define VF_MAC_CREDIT_CNT		1
 #define VF_VLAN_CREDIT_CNT		2 /* VLAN0 + 'real' VLAN */
 
 /* locking and unlocking the channel mutex */
 void bnx2x_lock_vf_pf_channel(struct bnx2x *bp, struct bnx2x_virtf *vf,
-			      enum channel_tlvs tlv);
+							  enum channel_tlvs tlv);
 
 void bnx2x_unlock_vf_pf_channel(struct bnx2x *bp, struct bnx2x_virtf *vf,
-				enum channel_tlvs expected_tlv);
+								enum channel_tlvs expected_tlv);
 
 /* VF mail box (aka vf-pf channel) */
 
@@ -253,14 +262,16 @@ void bnx2x_unlock_vf_pf_channel(struct bnx2x *bp, struct bnx2x_virtf *vf,
 
 #define MBX_MSG_ALIGN	8
 #define MBX_MSG_ALIGNED_SIZE	(roundup(sizeof(struct bnx2x_vf_mbx_msg), \
-				MBX_MSG_ALIGN))
+								 MBX_MSG_ALIGN))
 
-struct bnx2x_vf_mbx_msg {
+struct bnx2x_vf_mbx_msg
+{
 	union vfpf_tlvs req;
 	union pfvf_tlvs resp;
 };
 
-struct bnx2x_vf_mbx {
+struct bnx2x_vf_mbx
+{
 	struct bnx2x_vf_mbx_msg *msg;
 	dma_addr_t msg_mapping;
 
@@ -271,56 +282,66 @@ struct bnx2x_vf_mbx {
 	struct vfpf_first_tlv first_tlv;	/* saved VF request header */
 };
 
-struct bnx2x_vf_sp {
-	union {
+struct bnx2x_vf_sp
+{
+	union
+	{
 		struct eth_classify_rules_ramrod_data	e2;
 	} mac_rdata;
 
-	union {
+	union
+	{
 		struct eth_classify_rules_ramrod_data	e2;
 	} vlan_rdata;
 
-	union {
+	union
+	{
 		struct eth_classify_rules_ramrod_data	e2;
 	} vlan_mac_rdata;
 
-	union {
+	union
+	{
 		struct eth_filter_rules_ramrod_data	e2;
 	} rx_mode_rdata;
 
-	union {
+	union
+	{
 		struct eth_multicast_rules_ramrod_data  e2;
 	} mcast_rdata;
 
-	union {
+	union
+	{
 		struct client_init_ramrod_data  init_data;
 		struct client_update_ramrod_data update_data;
 	} q_data;
 
-	union {
+	union
+	{
 		struct eth_rss_update_ramrod_data e2;
 	} rss_rdata;
 };
 
-struct hw_dma {
+struct hw_dma
+{
 	void *addr;
 	dma_addr_t mapping;
 	size_t size;
 };
 
-struct bnx2x_vfdb {
+struct bnx2x_vfdb
+{
 #define BP_VFDB(bp)		((bp)->vfdb)
 	/* vf array */
 	struct bnx2x_virtf	*vfs;
 #define BP_VF(bp, idx)		((BP_VFDB(bp) && (bp)->vfdb->vfs) ? \
-					&((bp)->vfdb->vfs[idx]) : NULL)
+							 &((bp)->vfdb->vfs[idx]) : NULL)
 #define bnx2x_vf(bp, idx, var)	((bp)->vfdb->vfs[idx].var)
 
 	/* queue array - for all vfs */
 	struct bnx2x_vf_queue *vfqs;
 
 	/* vf HW contexts */
-	struct hw_dma		context[BNX2X_VF_CIDS/ILT_PAGE_CIDS];
+	struct hw_dma		context[BNX2X_VF_CIDS / ILT_PAGE_CIDS];
 #define	BP_VF_CXT_PAGE(bp, i)	(&(bp)->vfdb->context[i])
 
 	/* SR-IOV information */
@@ -338,11 +359,11 @@ struct bnx2x_vfdb {
 
 	struct hw_dma		sp_dma;
 #define bnx2x_vf_sp(bp, vf, field) ((bp)->vfdb->sp_dma.addr +		\
-		(vf)->index * sizeof(struct bnx2x_vf_sp) +		\
-		offsetof(struct bnx2x_vf_sp, field))
+									(vf)->index * sizeof(struct bnx2x_vf_sp) +		\
+									offsetof(struct bnx2x_vf_sp, field))
 #define bnx2x_vf_sp_map(bp, vf, field) ((bp)->vfdb->sp_dma.mapping +	\
-		(vf)->index * sizeof(struct bnx2x_vf_sp) +		\
-		offsetof(struct bnx2x_vf_sp, field))
+										(vf)->index * sizeof(struct bnx2x_vf_sp) +		\
+										offsetof(struct bnx2x_vf_sp, field))
 
 #define FLRD_VFS_DWORDS (BNX2X_MAX_NUM_OF_VFS / 32)
 	u32 flrd_vfs[FLRD_VFS_DWORDS];
@@ -384,9 +405,13 @@ static u8 vfq_cl_id(struct bnx2x_virtf *vf, struct bnx2x_vf_queue *q)
 static inline u8 vfq_stat_id(struct bnx2x_virtf *vf, struct bnx2x_vf_queue *q)
 {
 	if (vf->cfg_flags & VF_CFG_STATS_COALESCE)
+	{
 		return vf->leading_rss;
+	}
 	else
+	{
 		return vfq_cl_id(vf, q);
+	}
 }
 
 static inline u8 vfq_qzone_id(struct bnx2x_virtf *vf, struct bnx2x_vf_queue *q)
@@ -405,14 +430,14 @@ int bnx2x_iov_chip_cleanup(struct bnx2x *bp);
 void bnx2x_iov_init_dq(struct bnx2x *bp);
 void bnx2x_iov_init_dmae(struct bnx2x *bp);
 void bnx2x_iov_set_queue_sp_obj(struct bnx2x *bp, int vf_cid,
-				struct bnx2x_queue_sp_obj **q_obj);
+								struct bnx2x_queue_sp_obj **q_obj);
 int bnx2x_iov_eq_sp_event(struct bnx2x *bp, union event_ring_elem *elem);
 void bnx2x_iov_adjust_stats_req(struct bnx2x *bp);
 void bnx2x_iov_storm_stats_update(struct bnx2x *bp);
 /* global vf mailbox routines */
 void bnx2x_vf_mbx(struct bnx2x *bp);
 void bnx2x_vf_mbx_schedule(struct bnx2x *bp,
-			   struct vf_pf_event_data *vfpf_event);
+						   struct vf_pf_event_data *vfpf_event);
 void bnx2x_vf_enable_mbx(struct bnx2x *bp, u8 abs_vfid);
 
 /* CORE VF API */
@@ -420,53 +445,53 @@ typedef u8 bnx2x_mac_addr_t[ETH_ALEN];
 
 /* acquire */
 int bnx2x_vf_acquire(struct bnx2x *bp, struct bnx2x_virtf *vf,
-		     struct vf_pf_resc_request *resc);
+					 struct vf_pf_resc_request *resc);
 /* init */
 int bnx2x_vf_init(struct bnx2x *bp, struct bnx2x_virtf *vf,
-		  dma_addr_t *sb_map);
+				  dma_addr_t *sb_map);
 
 /* VFOP queue construction helpers */
 void bnx2x_vfop_qctor_dump_tx(struct bnx2x *bp, struct bnx2x_virtf *vf,
-			    struct bnx2x_queue_init_params *init_params,
-			    struct bnx2x_queue_setup_params *setup_params,
-			    u16 q_idx, u16 sb_idx);
+							  struct bnx2x_queue_init_params *init_params,
+							  struct bnx2x_queue_setup_params *setup_params,
+							  u16 q_idx, u16 sb_idx);
 
 void bnx2x_vfop_qctor_dump_rx(struct bnx2x *bp, struct bnx2x_virtf *vf,
-			    struct bnx2x_queue_init_params *init_params,
-			    struct bnx2x_queue_setup_params *setup_params,
-			    u16 q_idx, u16 sb_idx);
+							  struct bnx2x_queue_init_params *init_params,
+							  struct bnx2x_queue_setup_params *setup_params,
+							  u16 q_idx, u16 sb_idx);
 
 void bnx2x_vfop_qctor_prep(struct bnx2x *bp,
-			   struct bnx2x_virtf *vf,
-			   struct bnx2x_vf_queue *q,
-			   struct bnx2x_vf_queue_construct_params *p,
-			   unsigned long q_type);
+						   struct bnx2x_virtf *vf,
+						   struct bnx2x_vf_queue *q,
+						   struct bnx2x_vf_queue_construct_params *p,
+						   unsigned long q_type);
 
 int bnx2x_vf_mac_vlan_config_list(struct bnx2x *bp, struct bnx2x_virtf *vf,
-				  struct bnx2x_vf_mac_vlan_filters *filters,
-				  int qid, bool drv_only);
+								  struct bnx2x_vf_mac_vlan_filters *filters,
+								  int qid, bool drv_only);
 
 int bnx2x_vf_queue_setup(struct bnx2x *bp, struct bnx2x_virtf *vf, int qid,
-			 struct bnx2x_vf_queue_construct_params *qctor);
+						 struct bnx2x_vf_queue_construct_params *qctor);
 
 int bnx2x_vf_queue_teardown(struct bnx2x *bp, struct bnx2x_virtf *vf, int qid);
 
 int bnx2x_vf_mcast(struct bnx2x *bp, struct bnx2x_virtf *vf,
-		   bnx2x_mac_addr_t *mcasts, int mc_num, bool drv_only);
+				   bnx2x_mac_addr_t *mcasts, int mc_num, bool drv_only);
 
 int bnx2x_vf_rxmode(struct bnx2x *bp, struct bnx2x_virtf *vf,
-		    int qid, unsigned long accept_flags);
+					int qid, unsigned long accept_flags);
 
 int bnx2x_vf_close(struct bnx2x *bp, struct bnx2x_virtf *vf);
 
 int bnx2x_vf_free(struct bnx2x *bp, struct bnx2x_virtf *vf);
 
 int bnx2x_vf_rss_update(struct bnx2x *bp, struct bnx2x_virtf *vf,
-			struct bnx2x_config_rss_params *rss);
+						struct bnx2x_config_rss_params *rss);
 
 int bnx2x_vf_tpa_update(struct bnx2x *bp, struct bnx2x_virtf *vf,
-			struct vfpf_tpa_tlv *tlv,
-			struct bnx2x_queue_update_tpa_params *params);
+						struct vfpf_tpa_tlv *tlv,
+						struct bnx2x_queue_update_tpa_params *params);
 
 /* VF release ~ VF close + VF release-resources
  *
@@ -491,7 +516,7 @@ bool bnx2x_tlv_supported(u16 tlvtype);
 u32 bnx2x_crc_vf_bulletin(struct pf_vf_bulletin_content *bulletin);
 int bnx2x_post_vf_bulletin(struct bnx2x *bp, int vf);
 void bnx2x_vf_bulletin_finalize(struct pf_vf_bulletin_content *bulletin,
-				bool support_long);
+								bool support_long);
 
 enum sample_bulletin_result bnx2x_sample_bulletin(struct bnx2x *bp);
 
@@ -502,25 +527,25 @@ int bnx2x_vfpf_release(struct bnx2x *bp);
 int bnx2x_vfpf_init(struct bnx2x *bp);
 void bnx2x_vfpf_close_vf(struct bnx2x *bp);
 int bnx2x_vfpf_setup_q(struct bnx2x *bp, struct bnx2x_fastpath *fp,
-		       bool is_leading);
+					   bool is_leading);
 int bnx2x_vfpf_config_mac(struct bnx2x *bp, u8 *addr, u8 vf_qid, bool set);
 int bnx2x_vfpf_config_rss(struct bnx2x *bp,
-			  struct bnx2x_config_rss_params *params);
+						  struct bnx2x_config_rss_params *params);
 int bnx2x_vfpf_set_mcast(struct net_device *dev);
 int bnx2x_vfpf_storm_rx_mode(struct bnx2x *bp);
 
 static inline void bnx2x_vf_fill_fw_str(struct bnx2x *bp, char *buf,
-					size_t buf_len)
+										size_t buf_len)
 {
 	strlcpy(buf, bp->acquire_resp.pfdev_info.fw_ver, buf_len);
 }
 
 static inline int bnx2x_vf_ustorm_prods_offset(struct bnx2x *bp,
-					       struct bnx2x_fastpath *fp)
+		struct bnx2x_fastpath *fp)
 {
 	return PXP_VF_ADDR_USDM_QUEUES_START +
-		bp->acquire_resp.resc.hw_qid[fp->index] *
-		sizeof(struct ustorm_queue_zone_data);
+		   bp->acquire_resp.resc.hw_qid[fp->index] *
+		   sizeof(struct ustorm_queue_zone_data);
 }
 
 enum sample_bulletin_result bnx2x_sample_bulletin(struct bnx2x *bp);
@@ -556,13 +581,13 @@ int bnx2x_vfpf_update_vlan(struct bnx2x *bp, u16 vid, u8 vf_qid, bool add);
 #define VF_VLAN_CREDIT_CNT		0
 
 static inline void bnx2x_iov_set_queue_sp_obj(struct bnx2x *bp, int vf_cid,
-				struct bnx2x_queue_sp_obj **q_obj) {}
+		struct bnx2x_queue_sp_obj **q_obj) {}
 static inline void bnx2x_vf_handle_flr_event(struct bnx2x *bp) {}
 static inline int bnx2x_iov_eq_sp_event(struct bnx2x *bp,
-					union event_ring_elem *elem) {return 1; }
+										union event_ring_elem *elem) {return 1; }
 static inline void bnx2x_vf_mbx(struct bnx2x *bp) {}
 static inline void bnx2x_vf_mbx_schedule(struct bnx2x *bp,
-					 struct vf_pf_event_data *vfpf_event) {}
+		struct vf_pf_event_data *vfpf_event) {}
 static inline int bnx2x_iov_init_ilt(struct bnx2x *bp, u16 line) {return line; }
 static inline void bnx2x_iov_init_dq(struct bnx2x *bp) {}
 static inline int bnx2x_iov_alloc_mem(struct bnx2x *bp) {return 0; }
@@ -570,29 +595,29 @@ static inline void bnx2x_iov_free_mem(struct bnx2x *bp) {}
 static inline int bnx2x_iov_chip_cleanup(struct bnx2x *bp) {return 0; }
 static inline void bnx2x_iov_init_dmae(struct bnx2x *bp) {}
 static inline int bnx2x_iov_init_one(struct bnx2x *bp, int int_mode_param,
-				     int num_vfs_param) {return 0; }
+									 int num_vfs_param) {return 0; }
 static inline void bnx2x_iov_remove_one(struct bnx2x *bp) {}
 static inline int bnx2x_enable_sriov(struct bnx2x *bp) {return 0; }
 static inline void bnx2x_disable_sriov(struct bnx2x *bp) {}
 static inline int bnx2x_vfpf_acquire(struct bnx2x *bp,
-				     u8 tx_count, u8 rx_count) {return 0; }
+									 u8 tx_count, u8 rx_count) {return 0; }
 static inline int bnx2x_vfpf_release(struct bnx2x *bp) {return 0; }
 static inline int bnx2x_vfpf_init(struct bnx2x *bp) {return 0; }
 static inline void bnx2x_vfpf_close_vf(struct bnx2x *bp) {}
 static inline int bnx2x_vfpf_setup_q(struct bnx2x *bp, struct bnx2x_fastpath *fp, bool is_leading) {return 0; }
 static inline int bnx2x_vfpf_config_mac(struct bnx2x *bp, u8 *addr,
-					u8 vf_qid, bool set) {return 0; }
+										u8 vf_qid, bool set) {return 0; }
 static inline int bnx2x_vfpf_config_rss(struct bnx2x *bp,
-					struct bnx2x_config_rss_params *params) {return 0; }
+										struct bnx2x_config_rss_params *params) {return 0; }
 static inline int bnx2x_vfpf_set_mcast(struct net_device *dev) {return 0; }
 static inline int bnx2x_vfpf_storm_rx_mode(struct bnx2x *bp) {return 0; }
 static inline int bnx2x_iov_nic_init(struct bnx2x *bp) {return 0; }
 static inline int bnx2x_vf_headroom(struct bnx2x *bp) {return 0; }
 static inline void bnx2x_iov_adjust_stats_req(struct bnx2x *bp) {}
 static inline void bnx2x_vf_fill_fw_str(struct bnx2x *bp, char *buf,
-					size_t buf_len) {}
+										size_t buf_len) {}
 static inline int bnx2x_vf_ustorm_prods_offset(struct bnx2x *bp,
-					       struct bnx2x_fastpath *fp) {return 0; }
+		struct bnx2x_fastpath *fp) {return 0; }
 static inline enum sample_bulletin_result bnx2x_sample_bulletin(struct bnx2x *bp)
 {
 	return PFVF_BULLETIN_UNCHANGED;
@@ -616,10 +641,10 @@ static inline void bnx2x_iov_link_update(struct bnx2x *bp) {}
 static inline int bnx2x_iov_link_update_vf(struct bnx2x *bp, int idx) {return 0; }
 
 static inline int bnx2x_set_vf_link_state(struct net_device *dev, int vf,
-					  int link_state) {return 0; }
+		int link_state) {return 0; }
 struct pf_vf_bulletin_content;
 static inline void bnx2x_vf_bulletin_finalize(struct pf_vf_bulletin_content *bulletin,
-					      bool support_long) {}
+		bool support_long) {}
 
 static inline int bnx2x_vfpf_update_vlan(struct bnx2x *bp, u16 vid, u8 vf_qid, bool add) {return 0; }
 

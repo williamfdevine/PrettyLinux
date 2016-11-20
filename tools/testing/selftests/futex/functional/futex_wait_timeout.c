@@ -36,7 +36,7 @@ void usage(char *prog)
 	printf("  -h	Display this help message\n");
 	printf("  -t N	Timeout in nanoseconds (default: 100,000)\n");
 	printf("  -v L	Verbosity level: %d=QUIET %d=CRITICAL %d=INFO\n",
-	       VQUIET, VCRITICAL, VINFO);
+		   VQUIET, VCRITICAL, VINFO);
 }
 
 int main(int argc, char *argv[])
@@ -46,28 +46,34 @@ int main(int argc, char *argv[])
 	int res, ret = RET_PASS;
 	int c;
 
-	while ((c = getopt(argc, argv, "cht:v:")) != -1) {
-		switch (c) {
-		case 'c':
-			log_color(1);
-			break;
-		case 'h':
-			usage(basename(argv[0]));
-			exit(0);
-		case 't':
-			timeout_ns = atoi(optarg);
-			break;
-		case 'v':
-			log_verbosity(atoi(optarg));
-			break;
-		default:
-			usage(basename(argv[0]));
-			exit(1);
+	while ((c = getopt(argc, argv, "cht:v:")) != -1)
+	{
+		switch (c)
+		{
+			case 'c':
+				log_color(1);
+				break;
+
+			case 'h':
+				usage(basename(argv[0]));
+				exit(0);
+
+			case 't':
+				timeout_ns = atoi(optarg);
+				break;
+
+			case 'v':
+				log_verbosity(atoi(optarg));
+				break;
+
+			default:
+				usage(basename(argv[0]));
+				exit(1);
 		}
 	}
 
 	printf("%s: Block on a futex and wait for timeout\n",
-	       basename(argv[0]));
+		   basename(argv[0]));
 	printf("\tArguments: timeout=%ldns\n", timeout_ns);
 
 	/* initialize timeout */
@@ -76,7 +82,9 @@ int main(int argc, char *argv[])
 
 	info("Calling futex_wait on f1: %u @ %p\n", f1, &f1);
 	res = futex_wait(&f1, f1, &to, FUTEX_PRIVATE_FLAG);
-	if (!res || errno != ETIMEDOUT) {
+
+	if (!res || errno != ETIMEDOUT)
+	{
 		fail("futex_wait returned %d\n", ret < 0 ? errno : ret);
 		ret = RET_FAIL;
 	}

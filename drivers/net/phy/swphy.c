@@ -22,14 +22,16 @@
 
 #define MII_REGS_NUM 29
 
-struct swmii_regs {
+struct swmii_regs
+{
 	u16 bmcr;
 	u16 bmsr;
 	u16 lpa;
 	u16 lpagb;
 };
 
-enum {
+enum
+{
 	SWMII_SPEED_10 = 0,
 	SWMII_SPEED_100,
 	SWMII_SPEED_1000,
@@ -42,7 +44,8 @@ enum {
  * This means the speed table must contain both duplex settings, and the
  * duplex table must contain all speed settings.
  */
-static const struct swmii_regs speed[] = {
+static const struct swmii_regs speed[] =
+{
 	[SWMII_SPEED_10] = {
 		.bmcr  = BMCR_FULLDPLX,
 		.lpa   = LPA_10FULL | LPA_10HALF,
@@ -59,7 +62,8 @@ static const struct swmii_regs speed[] = {
 	},
 };
 
-static const struct swmii_regs duplex[] = {
+static const struct swmii_regs duplex[] =
+{
 	[SWMII_DUPLEX_HALF] = {
 		.bmcr  = ~BMCR_FULLDPLX,
 		.bmsr  = BMSR_ESTATEN | BMSR_100HALF,
@@ -76,15 +80,19 @@ static const struct swmii_regs duplex[] = {
 
 static int swphy_decode_speed(int speed)
 {
-	switch (speed) {
-	case 1000:
-		return SWMII_SPEED_1000;
-	case 100:
-		return SWMII_SPEED_100;
-	case 10:
-		return SWMII_SPEED_10;
-	default:
-		return -EINVAL;
+	switch (speed)
+	{
+		case 1000:
+			return SWMII_SPEED_1000;
+
+		case 100:
+			return SWMII_SPEED_100;
+
+		case 10:
+			return SWMII_SPEED_10;
+
+		default:
+			return -EINVAL;
 	}
 }
 
@@ -100,13 +108,17 @@ int swphy_validate_state(const struct fixed_phy_status *state)
 {
 	int err;
 
-	if (state->link) {
+	if (state->link)
+	{
 		err = swphy_decode_speed(state->speed);
-		if (err < 0) {
+
+		if (err < 0)
+		{
 			pr_warn("swphy: unknown speed\n");
 			return -EINVAL;
 		}
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(swphy_validate_state);
@@ -127,17 +139,23 @@ int swphy_read_reg(int reg, const struct fixed_phy_status *state)
 	u16 lpa = 0;
 
 	if (reg > MII_REGS_NUM)
+	{
 		return -1;
+	}
 
 	speed_index = swphy_decode_speed(state->speed);
+
 	if (WARN_ON(speed_index < 0))
+	{
 		return 0;
+	}
 
 	duplex_index = state->duplex ? SWMII_DUPLEX_FULL : SWMII_DUPLEX_HALF;
 
 	bmsr |= speed[speed_index].bmsr & duplex[duplex_index].bmsr;
 
-	if (state->link) {
+	if (state->link)
+	{
 		bmsr |= BMSR_LSTATUS | BMSR_ANEGCOMPLETE;
 
 		bmcr  |= speed[speed_index].bmcr  & duplex[duplex_index].bmcr;
@@ -145,35 +163,44 @@ int swphy_read_reg(int reg, const struct fixed_phy_status *state)
 		lpagb |= speed[speed_index].lpagb & duplex[duplex_index].lpagb;
 
 		if (state->pause)
+		{
 			lpa |= LPA_PAUSE_CAP;
+		}
 
 		if (state->asym_pause)
+		{
 			lpa |= LPA_PAUSE_ASYM;
+		}
 	}
 
-	switch (reg) {
-	case MII_BMCR:
-		return bmcr;
-	case MII_BMSR:
-		return bmsr;
-	case MII_PHYSID1:
-	case MII_PHYSID2:
-		return 0;
-	case MII_LPA:
-		return lpa;
-	case MII_STAT1000:
-		return lpagb;
+	switch (reg)
+	{
+		case MII_BMCR:
+			return bmcr;
 
-	/*
-	 * We do not support emulating Clause 45 over Clause 22 register
-	 * reads.  Return an error instead of bogus data.
-	 */
-	case MII_MMD_CTRL:
-	case MII_MMD_DATA:
-		return -1;
+		case MII_BMSR:
+			return bmsr;
 
-	default:
-		return 0xffff;
+		case MII_PHYSID1:
+		case MII_PHYSID2:
+			return 0;
+
+		case MII_LPA:
+			return lpa;
+
+		case MII_STAT1000:
+			return lpagb;
+
+		/*
+		 * We do not support emulating Clause 45 over Clause 22 register
+		 * reads.  Return an error instead of bogus data.
+		 */
+		case MII_MMD_CTRL:
+		case MII_MMD_DATA:
+			return -1;
+
+		default:
+			return 0xffff;
 	}
 }
 EXPORT_SYMBOL_GPL(swphy_read_reg);

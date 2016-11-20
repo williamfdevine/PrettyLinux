@@ -49,13 +49,13 @@ static struct workqueue_struct *usnic_uiom_wq;
 
 #define USNIC_UIOM_PAGE_CHUNK						\
 	((PAGE_SIZE - offsetof(struct usnic_uiom_chunk, page_list))	/\
-	((void *) &((struct usnic_uiom_chunk *) 0)->page_list[1] -	\
-	(void *) &((struct usnic_uiom_chunk *) 0)->page_list[0]))
+	 ((void *) &((struct usnic_uiom_chunk *) 0)->page_list[1] -	\
+	  (void *) &((struct usnic_uiom_chunk *) 0)->page_list[0]))
 
 static void usnic_uiom_reg_account(struct work_struct *work)
 {
 	struct usnic_uiom_reg *umem = container_of(work,
-						struct usnic_uiom_reg, work);
+								  struct usnic_uiom_reg, work);
 
 	down_write(&umem->mm->mmap_sem);
 	umem->mm->locked_vm -= umem->diff;
@@ -65,13 +65,13 @@ static void usnic_uiom_reg_account(struct work_struct *work)
 }
 
 static int usnic_uiom_dma_fault(struct iommu_domain *domain,
-				struct device *dev,
-				unsigned long iova, int flags,
-				void *token)
+								struct device *dev,
+								unsigned long iova, int flags,
+								void *token)
 {
 	usnic_err("Device %s iommu fault domain 0x%pK va 0x%lx flags 0x%x\n",
-		dev_name(dev),
-		domain, iova, flags);
+			  dev_name(dev),
+			  domain, iova, flags);
 	return -ENOSYS;
 }
 
@@ -83,12 +83,18 @@ static void usnic_uiom_put_pages(struct list_head *chunk_list, int dirty)
 	int i;
 	dma_addr_t pa;
 
-	list_for_each_entry_safe(chunk, tmp, chunk_list, list) {
-		for_each_sg(chunk->page_list, sg, chunk->nents, i) {
+	list_for_each_entry_safe(chunk, tmp, chunk_list, list)
+	{
+		for_each_sg(chunk->page_list, sg, chunk->nents, i)
+		{
 			page = sg_page(sg);
 			pa = sg_phys(sg);
+
 			if (dirty)
+			{
 				set_page_dirty_lock(page);
+			}
+
 			put_page(page);
 			usnic_dbg("pa: %pa\n", &pa);
 		}
@@ -97,7 +103,7 @@ static void usnic_uiom_put_pages(struct list_head *chunk_list, int dirty)
 }
 
 static int usnic_uiom_get_pages(unsigned long addr, size_t size, int writable,
-				int dmasync, struct list_head *chunk_list)
+								int dmasync, struct list_head *chunk_list)
 {
 	struct page **page_list;
 	struct scatterlist *sg;
@@ -114,13 +120,18 @@ static int usnic_uiom_get_pages(unsigned long addr, size_t size, int writable,
 	unsigned int gup_flags;
 
 	if (!can_do_mlock())
+	{
 		return -EPERM;
+	}
 
 	INIT_LIST_HEAD(chunk_list);
 
 	page_list = (struct page **) __get_free_page(GFP_KERNEL);
+
 	if (!page_list)
+	{
 		return -ENOMEM;
+	}
 
 	npages = PAGE_ALIGN(size + (addr & ~PAGE_MASK)) >> PAGE_SHIFT;
 
@@ -129,7 +140,8 @@ static int usnic_uiom_get_pages(unsigned long addr, size_t size, int writable,
 	locked = npages + current->mm->locked_vm;
 	lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
 
-	if ((locked > lock_limit) && !capable(CAP_IPC_LOCK)) {
+	if ((locked > lock_limit) && !capable(CAP_IPC_LOCK))
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
@@ -141,36 +153,43 @@ static int usnic_uiom_get_pages(unsigned long addr, size_t size, int writable,
 	cur_base = addr & PAGE_MASK;
 	ret = 0;
 
-	while (npages) {
+	while (npages)
+	{
 		ret = get_user_pages(cur_base,
-					min_t(unsigned long, npages,
-					PAGE_SIZE / sizeof(struct page *)),
-					gup_flags, page_list, NULL);
+							 min_t(unsigned long, npages,
+								   PAGE_SIZE / sizeof(struct page *)),
+							 gup_flags, page_list, NULL);
 
 		if (ret < 0)
+		{
 			goto out;
+		}
 
 		npages -= ret;
 		off = 0;
 
-		while (ret) {
+		while (ret)
+		{
 			chunk = kmalloc(sizeof(*chunk) +
-					sizeof(struct scatterlist) *
-					min_t(int, ret, USNIC_UIOM_PAGE_CHUNK),
-					GFP_KERNEL);
-			if (!chunk) {
+							sizeof(struct scatterlist) *
+							min_t(int, ret, USNIC_UIOM_PAGE_CHUNK),
+							GFP_KERNEL);
+
+			if (!chunk)
+			{
 				ret = -ENOMEM;
 				goto out;
 			}
 
 			chunk->nents = min_t(int, ret, USNIC_UIOM_PAGE_CHUNK);
 			sg_init_table(chunk->page_list, chunk->nents);
-			for_each_sg(chunk->page_list, sg, chunk->nents, i) {
+			for_each_sg(chunk->page_list, sg, chunk->nents, i)
+			{
 				sg_set_page(sg, page_list[i + off],
-						PAGE_SIZE, 0);
+							PAGE_SIZE, 0);
 				pa = sg_phys(sg);
 				usnic_dbg("va: 0x%lx pa: %pa\n",
-						cur_base + i*PAGE_SIZE, &pa);
+						  cur_base + i * PAGE_SIZE, &pa);
 			}
 			cur_base += chunk->nents * PAGE_SIZE;
 			ret -= chunk->nents;
@@ -182,10 +201,15 @@ static int usnic_uiom_get_pages(unsigned long addr, size_t size, int writable,
 	}
 
 out:
+
 	if (ret < 0)
+	{
 		usnic_uiom_put_pages(chunk_list, 0);
+	}
 	else
+	{
 		current->mm->locked_vm = locked;
+	}
 
 	up_write(&current->mm->mmap_sem);
 	free_page((unsigned long) page_list);
@@ -193,15 +217,18 @@ out:
 }
 
 static void usnic_uiom_unmap_sorted_intervals(struct list_head *intervals,
-						struct usnic_uiom_pd *pd)
+		struct usnic_uiom_pd *pd)
 {
 	struct usnic_uiom_interval_node *interval, *tmp;
 	long unsigned va, size;
 
-	list_for_each_entry_safe(interval, tmp, intervals, link) {
+	list_for_each_entry_safe(interval, tmp, intervals, link)
+	{
 		va = interval->start << PAGE_SHIFT;
 		size = ((interval->last - interval->start) + 1) << PAGE_SHIFT;
-		while (size > 0) {
+
+		while (size > 0)
+		{
 			/* Workaround for RH 970401 */
 			usnic_dbg("va 0x%lx size 0x%lx", va, PAGE_SIZE);
 			iommu_unmap(pd->domain, va, PAGE_SIZE);
@@ -212,8 +239,8 @@ static void usnic_uiom_unmap_sorted_intervals(struct list_head *intervals,
 }
 
 static void __usnic_uiom_reg_release(struct usnic_uiom_pd *pd,
-					struct usnic_uiom_reg *uiomr,
-					int dirty)
+									 struct usnic_uiom_reg *uiomr,
+									 int dirty)
 {
 	int npages;
 	unsigned long vpn_start, vpn_last;
@@ -227,12 +254,16 @@ static void __usnic_uiom_reg_release(struct usnic_uiom_pd *pd,
 
 	spin_lock(&pd->lock);
 	usnic_uiom_remove_interval(&pd->rb_root, vpn_start,
-					vpn_last, &rm_intervals);
+							   vpn_last, &rm_intervals);
 	usnic_uiom_unmap_sorted_intervals(&rm_intervals, pd);
 
-	list_for_each_entry_safe(interval, tmp, &rm_intervals, link) {
+	list_for_each_entry_safe(interval, tmp, &rm_intervals, link)
+	{
 		if (interval->flags & IOMMU_WRITE)
+		{
 			writable = 1;
+		}
+
 		list_del(&interval->link);
 		kfree(interval);
 	}
@@ -242,7 +273,7 @@ static void __usnic_uiom_reg_release(struct usnic_uiom_pd *pd,
 }
 
 static int usnic_uiom_map_sorted_intervals(struct list_head *intervals,
-						struct usnic_uiom_reg *uiomr)
+		struct usnic_uiom_reg *uiomr)
 {
 	int i, err;
 	size_t size;
@@ -258,15 +289,22 @@ static int usnic_uiom_map_sorted_intervals(struct list_head *intervals,
 
 	flags |= (uiomr->writable) ? IOMMU_WRITE : 0;
 	chunk = list_first_entry(&uiomr->chunk_list, struct usnic_uiom_chunk,
-									list);
-	list_for_each_entry(interval_node, intervals, link) {
+							 list);
+	list_for_each_entry(interval_node, intervals, link)
+	{
 iter_chunk:
-		for (i = 0; i < chunk->nents; i++, va += PAGE_SIZE) {
-			pa = sg_phys(&chunk->page_list[i]);
-			if ((va >> PAGE_SHIFT) < interval_node->start)
-				continue;
 
-			if ((va >> PAGE_SHIFT) == interval_node->start) {
+		for (i = 0; i < chunk->nents; i++, va += PAGE_SIZE)
+		{
+			pa = sg_phys(&chunk->page_list[i]);
+
+			if ((va >> PAGE_SHIFT) < interval_node->start)
+			{
+				continue;
+			}
+
+			if ((va >> PAGE_SHIFT) == interval_node->start)
+			{
 				/* First page of the interval */
 				va_start = va;
 				pa_start = pa;
@@ -276,50 +314,61 @@ iter_chunk:
 			WARN_ON(va_start == -EINVAL);
 
 			if ((pa_end + PAGE_SIZE != pa) &&
-					(pa != pa_start)) {
+				(pa != pa_start))
+			{
 				/* PAs are not contiguous */
 				size = pa_end - pa_start + PAGE_SIZE;
 				usnic_dbg("va 0x%lx pa %pa size 0x%zx flags 0x%x",
-					va_start, &pa_start, size, flags);
+						  va_start, &pa_start, size, flags);
 				err = iommu_map(pd->domain, va_start, pa_start,
-							size, flags);
-				if (err) {
+								size, flags);
+
+				if (err)
+				{
 					usnic_err("Failed to map va 0x%lx pa %pa size 0x%zx with err %d\n",
-						va_start, &pa_start, size, err);
+							  va_start, &pa_start, size, err);
 					goto err_out;
 				}
+
 				va_start = va;
 				pa_start = pa;
 				pa_end = pa;
 			}
 
-			if ((va >> PAGE_SHIFT) == interval_node->last) {
+			if ((va >> PAGE_SHIFT) == interval_node->last)
+			{
 				/* Last page of the interval */
 				size = pa - pa_start + PAGE_SIZE;
 				usnic_dbg("va 0x%lx pa %pa size 0x%zx flags 0x%x\n",
-					va_start, &pa_start, size, flags);
+						  va_start, &pa_start, size, flags);
 				err = iommu_map(pd->domain, va_start, pa_start,
-						size, flags);
-				if (err) {
+								size, flags);
+
+				if (err)
+				{
 					usnic_err("Failed to map va 0x%lx pa %pa size 0x%zx with err %d\n",
-						va_start, &pa_start, size, err);
+							  va_start, &pa_start, size, err);
 					goto err_out;
 				}
+
 				break;
 			}
 
 			if (pa != pa_start)
+			{
 				pa_end += PAGE_SIZE;
+			}
 		}
 
-		if (i == chunk->nents) {
+		if (i == chunk->nents)
+		{
 			/*
 			 * Hit last entry of the chunk,
 			 * hence advance to next chunk
 			 */
 			chunk = list_first_entry(&chunk->list,
-							struct usnic_uiom_chunk,
-							list);
+									 struct usnic_uiom_chunk,
+									 list);
 			goto iter_chunk;
 		}
 	}
@@ -332,8 +381,8 @@ err_out:
 }
 
 struct usnic_uiom_reg *usnic_uiom_reg_get(struct usnic_uiom_pd *pd,
-						unsigned long addr, size_t size,
-						int writable, int dmasync)
+		unsigned long addr, size_t size,
+		int writable, int dmasync)
 {
 	struct usnic_uiom_reg *uiomr;
 	unsigned long va_base, vpn_start, vpn_last;
@@ -357,8 +406,11 @@ struct usnic_uiom_reg *usnic_uiom_reg_get(struct usnic_uiom_pd *pd,
 	vpn_last = vpn_start + npages - 1;
 
 	uiomr = kmalloc(sizeof(*uiomr), GFP_KERNEL);
+
 	if (!uiomr)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	uiomr->va = va_base;
 	uiomr->offset = offset;
@@ -367,38 +419,46 @@ struct usnic_uiom_reg *usnic_uiom_reg_get(struct usnic_uiom_pd *pd,
 	uiomr->pd = pd;
 
 	err = usnic_uiom_get_pages(addr, size, writable, dmasync,
-					&uiomr->chunk_list);
-	if (err) {
+							   &uiomr->chunk_list);
+
+	if (err)
+	{
 		usnic_err("Failed get_pages vpn [0x%lx,0x%lx] err %d\n",
-				vpn_start, vpn_last, err);
+				  vpn_start, vpn_last, err);
 		goto out_free_uiomr;
 	}
 
 	spin_lock(&pd->lock);
 	err = usnic_uiom_get_intervals_diff(vpn_start, vpn_last,
-						(writable) ? IOMMU_WRITE : 0,
-						IOMMU_WRITE,
-						&pd->rb_root,
-						&sorted_diff_intervals);
-	if (err) {
+										(writable) ? IOMMU_WRITE : 0,
+										IOMMU_WRITE,
+										&pd->rb_root,
+										&sorted_diff_intervals);
+
+	if (err)
+	{
 		usnic_err("Failed disjoint interval vpn [0x%lx,0x%lx] err %d\n",
-						vpn_start, vpn_last, err);
+				  vpn_start, vpn_last, err);
 		goto out_put_pages;
 	}
 
 	err = usnic_uiom_map_sorted_intervals(&sorted_diff_intervals, uiomr);
-	if (err) {
+
+	if (err)
+	{
 		usnic_err("Failed map interval vpn [0x%lx,0x%lx] err %d\n",
-						vpn_start, vpn_last, err);
+				  vpn_start, vpn_last, err);
 		goto out_put_intervals;
 
 	}
 
 	err = usnic_uiom_insert_interval(&pd->rb_root, vpn_start, vpn_last,
-					(writable) ? IOMMU_WRITE : 0);
-	if (err) {
+									 (writable) ? IOMMU_WRITE : 0);
+
+	if (err)
+	{
 		usnic_err("Failed insert interval vpn [0x%lx,0x%lx] err %d\n",
-						vpn_start, vpn_last, err);
+				  vpn_start, vpn_last, err);
 		goto out_unmap_intervals;
 	}
 
@@ -427,7 +487,9 @@ void usnic_uiom_reg_release(struct usnic_uiom_reg *uiomr, int closing)
 	__usnic_uiom_reg_release(uiomr->pd, uiomr, 1);
 
 	mm = get_task_mm(current);
-	if (!mm) {
+
+	if (!mm)
+	{
 		kfree(uiomr);
 		return;
 	}
@@ -442,8 +504,10 @@ void usnic_uiom_reg_release(struct usnic_uiom_reg *uiomr, int closing)
 	 * up here and not be able to take the mmap_sem.  In that case
 	 * we defer the vm_locked accounting to the system workqueue.
 	 */
-	if (closing) {
-		if (!down_write_trylock(&mm->mmap_sem)) {
+	if (closing)
+	{
+		if (!down_write_trylock(&mm->mmap_sem))
+		{
 			INIT_WORK(&uiomr->work, usnic_uiom_reg_account);
 			uiomr->mm = mm;
 			uiomr->diff = diff;
@@ -451,8 +515,11 @@ void usnic_uiom_reg_release(struct usnic_uiom_reg *uiomr, int closing)
 			queue_work(usnic_uiom_wq, &uiomr->work);
 			return;
 		}
-	} else
+	}
+	else
+	{
 		down_write(&mm->mmap_sem);
+	}
 
 	current->mm->locked_vm -= diff;
 	up_write(&mm->mmap_sem);
@@ -466,11 +533,16 @@ struct usnic_uiom_pd *usnic_uiom_alloc_pd(void)
 	void *domain;
 
 	pd = kzalloc(sizeof(*pd), GFP_KERNEL);
+
 	if (!pd)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	pd->domain = domain = iommu_domain_alloc(&pci_bus_type);
-	if (!domain) {
+
+	if (!domain)
+	{
 		usnic_err("Failed to allocate IOMMU domain");
 		kfree(pd);
 		return ERR_PTR(-ENOMEM);
@@ -496,17 +568,25 @@ int usnic_uiom_attach_dev_to_pd(struct usnic_uiom_pd *pd, struct device *dev)
 	int err;
 
 	uiom_dev = kzalloc(sizeof(*uiom_dev), GFP_ATOMIC);
+
 	if (!uiom_dev)
+	{
 		return -ENOMEM;
+	}
+
 	uiom_dev->dev = dev;
 
 	err = iommu_attach_device(pd->domain, dev);
-	if (err)
-		goto out_free_dev;
 
-	if (!iommu_capable(dev->bus, IOMMU_CAP_CACHE_COHERENCY)) {
+	if (err)
+	{
+		goto out_free_dev;
+	}
+
+	if (!iommu_capable(dev->bus, IOMMU_CAP_CACHE_COHERENCY))
+	{
 		usnic_err("IOMMU of %s does not support cache coherency\n",
-				dev_name(dev));
+				  dev_name(dev));
 		err = -EINVAL;
 		goto out_detach_device;
 	}
@@ -531,16 +611,19 @@ void usnic_uiom_detach_dev_from_pd(struct usnic_uiom_pd *pd, struct device *dev)
 	int found = 0;
 
 	spin_lock(&pd->lock);
-	list_for_each_entry(uiom_dev, &pd->devs, link) {
-		if (uiom_dev->dev == dev) {
+	list_for_each_entry(uiom_dev, &pd->devs, link)
+	{
+		if (uiom_dev->dev == dev)
+		{
 			found = 1;
 			break;
 		}
 	}
 
-	if (!found) {
+	if (!found)
+	{
 		usnic_err("Unable to free dev %s - not found\n",
-				dev_name(dev));
+				  dev_name(dev));
 		spin_unlock(&pd->lock);
 		return;
 	}
@@ -560,12 +643,15 @@ struct device **usnic_uiom_get_dev_list(struct usnic_uiom_pd *pd)
 
 	spin_lock(&pd->lock);
 	devs = kcalloc(pd->dev_cnt + 1, sizeof(*devs), GFP_ATOMIC);
-	if (!devs) {
+
+	if (!devs)
+	{
 		devs = ERR_PTR(-ENOMEM);
 		goto out;
 	}
 
-	list_for_each_entry(uiom_dev, &pd->devs, link) {
+	list_for_each_entry(uiom_dev, &pd->devs, link)
+	{
 		devs[i++] = uiom_dev->dev;
 	}
 out:
@@ -580,13 +666,16 @@ void usnic_uiom_free_dev_list(struct device **devs)
 
 int usnic_uiom_init(char *drv_name)
 {
-	if (!iommu_present(&pci_bus_type)) {
+	if (!iommu_present(&pci_bus_type))
+	{
 		usnic_err("IOMMU required but not present or enabled.  USNIC QPs will not function w/o enabling IOMMU\n");
 		return -EPERM;
 	}
 
 	usnic_uiom_wq = create_workqueue(drv_name);
-	if (!usnic_uiom_wq) {
+
+	if (!usnic_uiom_wq)
+	{
 		usnic_err("Unable to alloc wq for drv %s\n", drv_name);
 		return -ENOMEM;
 	}

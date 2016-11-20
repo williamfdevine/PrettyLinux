@@ -51,13 +51,15 @@
 #define AR5523_TX_WD_TIMEOUT	(HZ * 2)
 #define AR5523_FLUSH_TIMEOUT	(HZ * 3)
 
-enum AR5523_flags {
+enum AR5523_flags
+{
 	AR5523_HW_UP,
 	AR5523_USB_DISCONNECTED,
 	AR5523_CONNECTED
 };
 
-struct ar5523_tx_cmd {
+struct ar5523_tx_cmd
+{
 	struct ar5523		*ar;
 	struct urb		*urb_tx;
 	void			*buf_tx;
@@ -71,20 +73,23 @@ struct ar5523_tx_cmd {
 /* This struct is placed in tx_info->driver_data. It must not be larger
  *  than IEEE80211_TX_INFO_DRIVER_DATA_SIZE.
  */
-struct ar5523_tx_data {
+struct ar5523_tx_data
+{
 	struct list_head	list;
 	struct ar5523		*ar;
 	struct urb		*urb;
 };
 
-struct ar5523_rx_data {
+struct ar5523_rx_data
+{
 	struct	list_head	list;
 	struct ar5523		*ar;
 	struct urb		*urb;
 	struct sk_buff		*skb;
 };
 
-struct ar5523 {
+struct ar5523
+{
 	struct usb_device	*dev;
 	struct ieee80211_hw	*hw;
 
@@ -142,10 +147,10 @@ struct ar5523 {
  * any messages on USB disconnect.
  */
 #define ar5523_err(ar, format, arg...) \
-do { \
-	if (!test_bit(AR5523_USB_DISCONNECTED, &ar->flags)) { \
-		dev_err(&(ar)->dev->dev, format, ## arg); \
-	} \
-} while (0)
+	do { \
+		if (!test_bit(AR5523_USB_DISCONNECTED, &ar->flags)) { \
+			dev_err(&(ar)->dev->dev, format, ## arg); \
+		} \
+	} while (0)
 #define ar5523_info(ar, format, arg...)	\
 	dev_info(&(ar)->dev->dev, format, ## arg)

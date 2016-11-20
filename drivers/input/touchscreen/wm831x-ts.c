@@ -60,7 +60,8 @@
 #define WM831X_TCH_DATA_SHIFT                        0  /* TCH_DATA - [11:0] */
 #define WM831X_TCH_DATA_WIDTH                       12  /* TCH_DATA - [11:0] */
 
-struct wm831x_ts {
+struct wm831x_ts
+{
 	struct input_dev *input_dev;
 	struct wm831x *wm831x;
 	unsigned int data_irq;
@@ -75,10 +76,13 @@ static void wm831x_pd_data_work(struct work_struct *work)
 	struct wm831x_ts *wm831x_ts =
 		container_of(work, struct wm831x_ts, pd_data_work);
 
-	if (wm831x_ts->pen_down) {
+	if (wm831x_ts->pen_down)
+	{
 		enable_irq(wm831x_ts->data_irq);
 		dev_dbg(wm831x_ts->wm831x->dev, "IRQ PD->DATA done\n");
-	} else {
+	}
+	else
+	{
 		enable_irq(wm831x_ts->pd_irq);
 		dev_dbg(wm831x_ts->wm831x->dev, "IRQ DATA->PD done\n");
 	}
@@ -94,18 +98,24 @@ static irqreturn_t wm831x_ts_data_irq(int irq, void *irq_data)
 	int i, ret;
 
 	if (wm831x_ts->pressure)
+	{
 		count = 3;
+	}
 	else
+	{
 		count = 2;
+	}
 
 	wm831x_set_bits(wm831x, WM831X_INTERRUPT_STATUS_1,
-			WM831X_TCHDATA_EINT, WM831X_TCHDATA_EINT);
+					WM831X_TCHDATA_EINT, WM831X_TCHDATA_EINT);
 
 	ret = wm831x_bulk_read(wm831x, WM831X_TOUCH_DATA_X, count,
-			       data);
-	if (ret != 0) {
+						   data);
+
+	if (ret != 0)
+	{
 		dev_err(wm831x->dev, "Failed to read touch data: %d\n",
-			ret);
+				ret);
 		return IRQ_NONE;
 	}
 
@@ -114,16 +124,21 @@ static irqreturn_t wm831x_ts_data_irq(int irq, void *irq_data)
 	 * individual reading does so.
 	 */
 	wm831x_ts->pen_down = true;
-	for (i = 0; i < count; i++) {
-		if (!(data[i] & WM831X_TCH_PD)) {
+
+	for (i = 0; i < count; i++)
+	{
+		if (!(data[i] & WM831X_TCH_PD))
+		{
 			wm831x_ts->pen_down = false;
 			continue;
 		}
+
 		input_report_abs(wm831x_ts->input_dev, data_types[i],
-				 data[i] & WM831X_TCH_DATA_MASK);
+						 data[i] & WM831X_TCH_DATA_MASK);
 	}
 
-	if (!wm831x_ts->pen_down) {
+	if (!wm831x_ts->pen_down)
+	{
 		/* Switch from data to pen down */
 		dev_dbg(wm831x->dev, "IRQ DATA->PD\n");
 
@@ -131,23 +146,25 @@ static irqreturn_t wm831x_ts_data_irq(int irq, void *irq_data)
 
 		/* Don't need data any more */
 		wm831x_set_bits(wm831x, WM831X_TOUCH_CONTROL_1,
-				WM831X_TCH_X_ENA | WM831X_TCH_Y_ENA |
-				WM831X_TCH_Z_ENA, 0);
+						WM831X_TCH_X_ENA | WM831X_TCH_Y_ENA |
+						WM831X_TCH_Z_ENA, 0);
 
 		/* Flush any final samples that arrived while reading */
 		wm831x_set_bits(wm831x, WM831X_INTERRUPT_STATUS_1,
-				WM831X_TCHDATA_EINT, WM831X_TCHDATA_EINT);
+						WM831X_TCHDATA_EINT, WM831X_TCHDATA_EINT);
 
 		wm831x_bulk_read(wm831x, WM831X_TOUCH_DATA_X, count, data);
 
 		if (wm831x_ts->pressure)
 			input_report_abs(wm831x_ts->input_dev,
-					 ABS_PRESSURE, 0);
+							 ABS_PRESSURE, 0);
 
 		input_report_key(wm831x_ts->input_dev, BTN_TOUCH, 0);
 
 		schedule_work(&wm831x_ts->pd_data_work);
-	} else {
+	}
+	else
+	{
 		input_report_key(wm831x_ts->input_dev, BTN_TOUCH, 1);
 	}
 
@@ -163,20 +180,24 @@ static irqreturn_t wm831x_ts_pen_down_irq(int irq, void *irq_data)
 	int ena = 0;
 
 	if (wm831x_ts->pen_down)
+	{
 		return IRQ_HANDLED;
+	}
 
 	disable_irq_nosync(wm831x_ts->pd_irq);
 
 	/* Start collecting data */
 	if (wm831x_ts->pressure)
+	{
 		ena |= WM831X_TCH_Z_ENA;
+	}
 
 	wm831x_set_bits(wm831x, WM831X_TOUCH_CONTROL_1,
-			WM831X_TCH_X_ENA | WM831X_TCH_Y_ENA | WM831X_TCH_Z_ENA,
-			WM831X_TCH_X_ENA | WM831X_TCH_Y_ENA | ena);
+					WM831X_TCH_X_ENA | WM831X_TCH_Y_ENA | WM831X_TCH_Z_ENA,
+					WM831X_TCH_X_ENA | WM831X_TCH_Y_ENA | ena);
 
 	wm831x_set_bits(wm831x, WM831X_INTERRUPT_STATUS_1,
-			WM831X_TCHPD_EINT, WM831X_TCHPD_EINT);
+					WM831X_TCHPD_EINT, WM831X_TCHPD_EINT);
 
 	wm831x_ts->pen_down = true;
 
@@ -193,12 +214,12 @@ static int wm831x_ts_input_open(struct input_dev *idev)
 	struct wm831x *wm831x = wm831x_ts->wm831x;
 
 	wm831x_set_bits(wm831x, WM831X_TOUCH_CONTROL_1,
-			WM831X_TCH_ENA | WM831X_TCH_CVT_ENA |
-			WM831X_TCH_X_ENA | WM831X_TCH_Y_ENA |
-			WM831X_TCH_Z_ENA, WM831X_TCH_ENA);
+					WM831X_TCH_ENA | WM831X_TCH_CVT_ENA |
+					WM831X_TCH_X_ENA | WM831X_TCH_Y_ENA |
+					WM831X_TCH_Z_ENA, WM831X_TCH_ENA);
 
 	wm831x_set_bits(wm831x, WM831X_TOUCH_CONTROL_1,
-			WM831X_TCH_CVT_ENA, WM831X_TCH_CVT_ENA);
+					WM831X_TCH_CVT_ENA, WM831X_TCH_CVT_ENA);
 
 	return 0;
 }
@@ -210,8 +231,8 @@ static void wm831x_ts_input_close(struct input_dev *idev)
 
 	/* Shut the controller down, disabling all other functionality too */
 	wm831x_set_bits(wm831x, WM831X_TOUCH_CONTROL_1,
-			WM831X_TCH_ENA | WM831X_TCH_X_ENA |
-			WM831X_TCH_Y_ENA | WM831X_TCH_Z_ENA, 0);
+					WM831X_TCH_ENA | WM831X_TCH_X_ENA |
+					WM831X_TCH_Y_ENA | WM831X_TCH_Z_ENA, 0);
 
 	/* Make sure any pending IRQs are done, the above will prevent
 	 * new ones firing.
@@ -225,7 +246,8 @@ static void wm831x_ts_input_close(struct input_dev *idev)
 	/* If we ended up with the pen down then make sure we revert back
 	 * to pen detection state for the next time we start up.
 	 */
-	if (wm831x_ts->pen_down) {
+	if (wm831x_ts->pen_down)
+	{
 		disable_irq(wm831x_ts->data_irq);
 		enable_irq(wm831x_ts->pd_irq);
 		wm831x_ts->pen_down = false;
@@ -242,12 +264,16 @@ static int wm831x_ts_probe(struct platform_device *pdev)
 	int error, irqf;
 
 	if (core_pdata)
+	{
 		pdata = core_pdata->touch;
+	}
 
 	wm831x_ts = devm_kzalloc(&pdev->dev, sizeof(struct wm831x_ts),
-				 GFP_KERNEL);
+							 GFP_KERNEL);
 	input_dev = devm_input_allocate_device(&pdev->dev);
-	if (!wm831x_ts || !input_dev) {
+
+	if (!wm831x_ts || !input_dev)
+	{
 		error = -ENOMEM;
 		goto err_alloc;
 	}
@@ -261,87 +287,117 @@ static int wm831x_ts_probe(struct platform_device *pdev)
 	 * from the WM831x IRQ controller.
 	 */
 	wm831x_ts->data_irq = wm831x_irq(wm831x,
-					 platform_get_irq_byname(pdev,
-								 "TCHDATA"));
+									 platform_get_irq_byname(pdev,
+											 "TCHDATA"));
+
 	if (pdata && pdata->data_irq)
+	{
 		wm831x_ts->data_irq = pdata->data_irq;
+	}
 
 	wm831x_ts->pd_irq = wm831x_irq(wm831x,
-				       platform_get_irq_byname(pdev, "TCHPD"));
+								   platform_get_irq_byname(pdev, "TCHPD"));
+
 	if (pdata && pdata->pd_irq)
+	{
 		wm831x_ts->pd_irq = pdata->pd_irq;
+	}
 
 	if (pdata)
+	{
 		wm831x_ts->pressure = pdata->pressure;
+	}
 	else
+	{
 		wm831x_ts->pressure = true;
+	}
 
 	/* Five wire touchscreens can't report pressure */
-	if (pdata && pdata->fivewire) {
+	if (pdata && pdata->fivewire)
+	{
 		wm831x_set_bits(wm831x, WM831X_TOUCH_CONTROL_2,
-				WM831X_TCH_5WIRE, WM831X_TCH_5WIRE);
+						WM831X_TCH_5WIRE, WM831X_TCH_5WIRE);
 
 		/* Pressure measurements are not possible for five wire mode */
 		WARN_ON(pdata->pressure && pdata->fivewire);
 		wm831x_ts->pressure = false;
-	} else {
+	}
+	else
+	{
 		wm831x_set_bits(wm831x, WM831X_TOUCH_CONTROL_2,
-				WM831X_TCH_5WIRE, 0);
+						WM831X_TCH_5WIRE, 0);
 	}
 
-	if (pdata) {
-		switch (pdata->isel) {
-		default:
-			dev_err(&pdev->dev, "Unsupported ISEL setting: %d\n",
-				pdata->isel);
+	if (pdata)
+	{
+		switch (pdata->isel)
+		{
+			default:
+				dev_err(&pdev->dev, "Unsupported ISEL setting: %d\n",
+						pdata->isel);
+
 			/* Fall through */
-		case 200:
-		case 0:
-			wm831x_set_bits(wm831x, WM831X_TOUCH_CONTROL_2,
-					WM831X_TCH_ISEL, 0);
-			break;
-		case 400:
-			wm831x_set_bits(wm831x, WM831X_TOUCH_CONTROL_2,
-					WM831X_TCH_ISEL, WM831X_TCH_ISEL);
-			break;
+			case 200:
+			case 0:
+				wm831x_set_bits(wm831x, WM831X_TOUCH_CONTROL_2,
+								WM831X_TCH_ISEL, 0);
+				break;
+
+			case 400:
+				wm831x_set_bits(wm831x, WM831X_TOUCH_CONTROL_2,
+								WM831X_TCH_ISEL, WM831X_TCH_ISEL);
+				break;
 		}
 	}
 
 	wm831x_set_bits(wm831x, WM831X_TOUCH_CONTROL_2,
-			WM831X_TCH_PDONLY, 0);
+					WM831X_TCH_PDONLY, 0);
 
 	/* Default to 96 samples/sec */
 	wm831x_set_bits(wm831x, WM831X_TOUCH_CONTROL_1,
-			WM831X_TCH_RATE_MASK, 6);
+					WM831X_TCH_RATE_MASK, 6);
 
 	if (pdata && pdata->data_irqf)
+	{
 		irqf = pdata->data_irqf;
+	}
 	else
+	{
 		irqf = IRQF_TRIGGER_HIGH;
+	}
 
 	error = request_threaded_irq(wm831x_ts->data_irq,
-				     NULL, wm831x_ts_data_irq,
-				     irqf | IRQF_ONESHOT,
-				     "Touchscreen data", wm831x_ts);
-	if (error) {
+								 NULL, wm831x_ts_data_irq,
+								 irqf | IRQF_ONESHOT,
+								 "Touchscreen data", wm831x_ts);
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "Failed to request data IRQ %d: %d\n",
-			wm831x_ts->data_irq, error);
+				wm831x_ts->data_irq, error);
 		goto err_alloc;
 	}
+
 	disable_irq(wm831x_ts->data_irq);
 
 	if (pdata && pdata->pd_irqf)
+	{
 		irqf = pdata->pd_irqf;
+	}
 	else
+	{
 		irqf = IRQF_TRIGGER_HIGH;
+	}
 
 	error = request_threaded_irq(wm831x_ts->pd_irq,
-				     NULL, wm831x_ts_pen_down_irq,
-				     irqf | IRQF_ONESHOT,
-				     "Touchscreen pen down", wm831x_ts);
-	if (error) {
+								 NULL, wm831x_ts_pen_down_irq,
+								 irqf | IRQF_ONESHOT,
+								 "Touchscreen pen down", wm831x_ts);
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "Failed to request pen down IRQ %d: %d\n",
-			wm831x_ts->pd_irq, error);
+				wm831x_ts->pd_irq, error);
 		goto err_data_irq;
 	}
 
@@ -357,15 +413,21 @@ static int wm831x_ts_probe(struct platform_device *pdev)
 
 	input_set_abs_params(input_dev, ABS_X, 0, 4095, 5, 0);
 	input_set_abs_params(input_dev, ABS_Y, 0, 4095, 5, 0);
+
 	if (wm831x_ts->pressure)
+	{
 		input_set_abs_params(input_dev, ABS_PRESSURE, 0, 4095, 5, 0);
+	}
 
 	input_set_drvdata(input_dev, wm831x_ts);
 	input_dev->dev.parent = &pdev->dev;
 
 	error = input_register_device(input_dev);
+
 	if (error)
+	{
 		goto err_pd_irq;
+	}
 
 	platform_set_drvdata(pdev, wm831x_ts);
 	return 0;
@@ -389,7 +451,8 @@ static int wm831x_ts_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver wm831x_ts_driver = {
+static struct platform_driver wm831x_ts_driver =
+{
 	.driver = {
 		.name = "wm831x-touch",
 	},

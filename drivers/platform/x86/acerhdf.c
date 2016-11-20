@@ -77,9 +77,9 @@
 #define ACERHDF_MAX_INTERVAL 15
 
 #ifdef START_IN_KERNEL_MODE
-static int kernelmode = 1;
+	static int kernelmode = 1;
 #else
-static int kernelmode;
+	static int kernelmode;
 #endif
 
 static unsigned int interval = 10;
@@ -114,24 +114,28 @@ MODULE_PARM_DESC(force_product, "Force BIOS product and omit BIOS check");
  *	cmd_auto: to set the BIOS in control of the fan. The BIOS regulates then
  *		the fan speed depending on the temperature
  */
-struct fancmd {
+struct fancmd
+{
 	u8 cmd_off;
 	u8 cmd_auto;
 };
 
-struct manualcmd {
+struct manualcmd
+{
 	u8 mreg;
 	u8 moff;
 };
 
 /* default register and command to disable fan in manual mode */
-static const struct manualcmd mcmd = {
+static const struct manualcmd mcmd =
+{
 	.mreg = 0x94,
 	.moff = 0xff,
 };
 
 /* BIOS settings */
-struct bios_settings {
+struct bios_settings
+{
 	const char *vendor;
 	const char *product;
 	const char *version;
@@ -142,7 +146,8 @@ struct bios_settings {
 };
 
 /* Register addresses and values for different BIOS versions */
-static const struct bios_settings bios_tbl[] = {
+static const struct bios_settings bios_tbl[] =
+{
 	/* AOA110 */
 	{"Acer", "AOA110", "v0.3109", 0x55, 0x58, {0x1f, 0x00}, 0},
 	{"Acer", "AOA110", "v0.3114", 0x55, 0x58, {0x1f, 0x00}, 0},
@@ -262,7 +267,8 @@ static const struct bios_settings *bios_cfg __read_mostly;
  * this struct is used to instruct thermal layer to use bang_bang instead of
  * default governor for acerhdf
  */
-static struct thermal_zone_params acerhdf_zone_params = {
+static struct thermal_zone_params acerhdf_zone_params =
+{
 	.governor_name = "bang_bang",
 };
 
@@ -271,7 +277,9 @@ static int acerhdf_get_temp(int *temp)
 	u8 read_temp;
 
 	if (ec_read(bios_cfg->tempreg, &read_temp))
+	{
 		return -EINVAL;
+	}
 
 	*temp = read_temp * 1000;
 
@@ -283,12 +291,18 @@ static int acerhdf_get_fanstate(int *state)
 	u8 fan;
 
 	if (ec_read(bios_cfg->fanreg, &fan))
+	{
 		return -EINVAL;
+	}
 
 	if (fan != bios_cfg->cmd.cmd_off)
+	{
 		*state = ACERHDF_FAN_AUTO;
+	}
 	else
+	{
 		*state = ACERHDF_FAN_OFF;
+	}
 
 	return 0;
 }
@@ -298,44 +312,58 @@ static void acerhdf_change_fanstate(int state)
 	unsigned char cmd;
 
 	if (verbose)
+	{
 		pr_notice("fan %s\n", state == ACERHDF_FAN_OFF ? "OFF" : "ON");
+	}
 
-	if ((state != ACERHDF_FAN_OFF) && (state != ACERHDF_FAN_AUTO)) {
+	if ((state != ACERHDF_FAN_OFF) && (state != ACERHDF_FAN_AUTO))
+	{
 		pr_err("invalid fan state %d requested, setting to auto!\n",
-		       state);
+			   state);
 		state = ACERHDF_FAN_AUTO;
 	}
 
 	cmd = (state == ACERHDF_FAN_OFF) ? bios_cfg->cmd.cmd_off
-					 : bios_cfg->cmd.cmd_auto;
+		  : bios_cfg->cmd.cmd_auto;
 	fanstate = state;
 
 	ec_write(bios_cfg->fanreg, cmd);
 
-	if (bios_cfg->mcmd_enable && state == ACERHDF_FAN_OFF) {
+	if (bios_cfg->mcmd_enable && state == ACERHDF_FAN_OFF)
+	{
 		if (verbose)
+		{
 			pr_notice("turning off fan manually\n");
+		}
+
 		ec_write(mcmd.mreg, mcmd.moff);
 	}
 }
 
 static void acerhdf_check_param(struct thermal_zone_device *thermal)
 {
-	if (fanon > ACERHDF_MAX_FANON) {
+	if (fanon > ACERHDF_MAX_FANON)
+	{
 		pr_err("fanon temperature too high, set to %d\n",
-		       ACERHDF_MAX_FANON);
+			   ACERHDF_MAX_FANON);
 		fanon = ACERHDF_MAX_FANON;
 	}
 
-	if (kernelmode && prev_interval != interval) {
-		if (interval > ACERHDF_MAX_INTERVAL) {
+	if (kernelmode && prev_interval != interval)
+	{
+		if (interval > ACERHDF_MAX_INTERVAL)
+		{
 			pr_err("interval too high, set to %d\n",
-			       ACERHDF_MAX_INTERVAL);
+				   ACERHDF_MAX_INTERVAL);
 			interval = ACERHDF_MAX_INTERVAL;
 		}
+
 		if (verbose)
+		{
 			pr_notice("interval changed to: %d\n", interval);
-		thermal->polling_delay = interval*1000;
+		}
+
+		thermal->polling_delay = interval * 1000;
 		prev_interval = interval;
 	}
 }
@@ -353,42 +381,55 @@ static int acerhdf_get_ec_temp(struct thermal_zone_device *thermal, int *t)
 	acerhdf_check_param(thermal);
 
 	err = acerhdf_get_temp(&temp);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (verbose)
+	{
 		pr_notice("temp %d\n", temp);
+	}
 
 	*t = temp;
 	return 0;
 }
 
 static int acerhdf_bind(struct thermal_zone_device *thermal,
-			struct thermal_cooling_device *cdev)
+						struct thermal_cooling_device *cdev)
 {
 	/* if the cooling device is the one from acerhdf bind it */
 	if (cdev != cl_dev)
+	{
 		return 0;
+	}
 
 	if (thermal_zone_bind_cooling_device(thermal, 0, cdev,
-			THERMAL_NO_LIMIT, THERMAL_NO_LIMIT,
-			THERMAL_WEIGHT_DEFAULT)) {
+										 THERMAL_NO_LIMIT, THERMAL_NO_LIMIT,
+										 THERMAL_WEIGHT_DEFAULT))
+	{
 		pr_err("error binding cooling dev\n");
 		return -EINVAL;
 	}
+
 	return 0;
 }
 
 static int acerhdf_unbind(struct thermal_zone_device *thermal,
-			  struct thermal_cooling_device *cdev)
+						  struct thermal_cooling_device *cdev)
 {
 	if (cdev != cl_dev)
+	{
 		return 0;
+	}
 
-	if (thermal_zone_unbind_cooling_device(thermal, 0, cdev)) {
+	if (thermal_zone_unbind_cooling_device(thermal, 0, cdev))
+	{
 		pr_err("error unbinding cooling dev\n");
 		return -EINVAL;
 	}
+
 	return 0;
 }
 
@@ -396,27 +437,33 @@ static inline void acerhdf_revert_to_bios_mode(void)
 {
 	acerhdf_change_fanstate(ACERHDF_FAN_AUTO);
 	kernelmode = 0;
+
 	if (thz_dev)
+	{
 		thz_dev->polling_delay = 0;
+	}
+
 	pr_notice("kernel mode fan control OFF\n");
 }
 static inline void acerhdf_enable_kernelmode(void)
 {
 	kernelmode = 1;
 
-	thz_dev->polling_delay = interval*1000;
+	thz_dev->polling_delay = interval * 1000;
 	thermal_zone_device_update(thz_dev, THERMAL_EVENT_UNSPECIFIED);
 	pr_notice("kernel mode fan control ON\n");
 }
 
 static int acerhdf_get_mode(struct thermal_zone_device *thermal,
-			    enum thermal_device_mode *mode)
+							enum thermal_device_mode *mode)
 {
 	if (verbose)
+	{
 		pr_notice("kernel mode fan control %d\n", kernelmode);
+	}
 
 	*mode = (kernelmode) ? THERMAL_DEVICE_ENABLED
-			     : THERMAL_DEVICE_DISABLED;
+			: THERMAL_DEVICE_DISABLED;
 
 	return 0;
 }
@@ -428,34 +475,46 @@ static int acerhdf_get_mode(struct thermal_zone_device *thermal,
  * disabled: the BIOS takes control of the fan.
  */
 static int acerhdf_set_mode(struct thermal_zone_device *thermal,
-			    enum thermal_device_mode mode)
+							enum thermal_device_mode mode)
 {
 	if (mode == THERMAL_DEVICE_DISABLED && kernelmode)
+	{
 		acerhdf_revert_to_bios_mode();
+	}
 	else if (mode == THERMAL_DEVICE_ENABLED && !kernelmode)
+	{
 		acerhdf_enable_kernelmode();
+	}
 
 	return 0;
 }
 
 static int acerhdf_get_trip_type(struct thermal_zone_device *thermal, int trip,
-				 enum thermal_trip_type *type)
+								 enum thermal_trip_type *type)
 {
 	if (trip == 0)
+	{
 		*type = THERMAL_TRIP_ACTIVE;
+	}
 	else if (trip == 1)
+	{
 		*type = THERMAL_TRIP_CRITICAL;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
 static int acerhdf_get_trip_hyst(struct thermal_zone_device *thermal, int trip,
-				 int *temp)
+								 int *temp)
 {
 	if (trip != 0)
+	{
 		return -EINVAL;
+	}
 
 	*temp = fanon - fanoff;
 
@@ -463,27 +522,34 @@ static int acerhdf_get_trip_hyst(struct thermal_zone_device *thermal, int trip,
 }
 
 static int acerhdf_get_trip_temp(struct thermal_zone_device *thermal, int trip,
-				 int *temp)
+								 int *temp)
 {
 	if (trip == 0)
+	{
 		*temp = fanon;
+	}
 	else if (trip == 1)
+	{
 		*temp = ACERHDF_TEMP_CRIT;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
 static int acerhdf_get_crit_temp(struct thermal_zone_device *thermal,
-				 int *temperature)
+								 int *temperature)
 {
 	*temperature = ACERHDF_TEMP_CRIT;
 	return 0;
 }
 
 /* bind callback functions to thermalzone */
-static struct thermal_zone_device_ops acerhdf_dev_ops = {
+static struct thermal_zone_device_ops acerhdf_dev_ops =
+{
 	.bind = acerhdf_bind,
 	.unbind = acerhdf_unbind,
 	.get_temp = acerhdf_get_ec_temp,
@@ -501,7 +567,7 @@ static struct thermal_zone_device_ops acerhdf_dev_ops = {
  * get maximal fan cooling state
  */
 static int acerhdf_get_max_state(struct thermal_cooling_device *cdev,
-				 unsigned long *state)
+								 unsigned long *state)
 {
 	*state = 1;
 
@@ -509,13 +575,16 @@ static int acerhdf_get_max_state(struct thermal_cooling_device *cdev,
 }
 
 static int acerhdf_get_cur_state(struct thermal_cooling_device *cdev,
-				 unsigned long *state)
+								 unsigned long *state)
 {
 	int err = 0, tmp;
 
 	err = acerhdf_get_fanstate(&tmp);
+
 	if (err)
+	{
 		return err;
+	}
 
 	*state = (tmp == ACERHDF_FAN_AUTO) ? 1 : 0;
 	return 0;
@@ -523,32 +592,46 @@ static int acerhdf_get_cur_state(struct thermal_cooling_device *cdev,
 
 /* change current fan state - is overwritten when running in kernel mode */
 static int acerhdf_set_cur_state(struct thermal_cooling_device *cdev,
-				 unsigned long state)
+								 unsigned long state)
 {
 	int cur_temp, cur_state, err = 0;
 
 	if (!kernelmode)
+	{
 		return 0;
+	}
 
 	err = acerhdf_get_temp(&cur_temp);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("error reading temperature, hand off control to BIOS\n");
 		goto err_out;
 	}
 
 	err = acerhdf_get_fanstate(&cur_state);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("error reading fan state, hand off control to BIOS\n");
 		goto err_out;
 	}
 
-	if (state == 0) {
+	if (state == 0)
+	{
 		if (cur_state == ACERHDF_FAN_AUTO)
+		{
 			acerhdf_change_fanstate(ACERHDF_FAN_OFF);
-	} else {
-		if (cur_state == ACERHDF_FAN_OFF)
-			acerhdf_change_fanstate(ACERHDF_FAN_AUTO);
+		}
 	}
+	else
+	{
+		if (cur_state == ACERHDF_FAN_OFF)
+		{
+			acerhdf_change_fanstate(ACERHDF_FAN_AUTO);
+		}
+	}
+
 	return 0;
 
 err_out:
@@ -557,7 +640,8 @@ err_out:
 }
 
 /* bind fan callbacks to fan device */
-static struct thermal_cooling_device_ops acerhdf_cooling_ops = {
+static struct thermal_cooling_device_ops acerhdf_cooling_ops =
+{
 	.get_max_state = acerhdf_get_max_state,
 	.get_cur_state = acerhdf_get_cur_state,
 	.set_cur_state = acerhdf_set_cur_state,
@@ -567,10 +651,14 @@ static struct thermal_cooling_device_ops acerhdf_cooling_ops = {
 static int acerhdf_suspend(struct device *dev)
 {
 	if (kernelmode)
+	{
 		acerhdf_change_fanstate(ACERHDF_FAN_AUTO);
+	}
 
 	if (verbose)
+	{
 		pr_notice("going suspend\n");
+	}
 
 	return 0;
 }
@@ -585,12 +673,14 @@ static int acerhdf_remove(struct platform_device *device)
 	return 0;
 }
 
-static const struct dev_pm_ops acerhdf_pm_ops = {
+static const struct dev_pm_ops acerhdf_pm_ops =
+{
 	.suspend = acerhdf_suspend,
 	.freeze  = acerhdf_suspend,
 };
 
-static struct platform_driver acerhdf_driver = {
+static struct platform_driver acerhdf_driver =
+{
 	.driver = {
 		.name  = "acerhdf",
 		.pm    = &acerhdf_pm_ops,
@@ -608,8 +698,10 @@ static int str_starts_with(const char *str, const char *start)
 	start_len = strlen(start);
 
 	if (str_len >= start_len &&
-			!strncmp(str, start, start_len))
+		!strncmp(str, start, start_len))
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -625,20 +717,23 @@ static int acerhdf_check_hardware(void)
 	version = dmi_get_system_info(DMI_BIOS_VERSION);
 	product = dmi_get_system_info(DMI_PRODUCT_NAME);
 
-	if (!vendor || !version || !product) {
+	if (!vendor || !version || !product)
+	{
 		pr_err("error getting hardware information\n");
 		return -EINVAL;
 	}
 
 	pr_info("Acer Aspire One Fan driver, v.%s\n", DRV_VER);
 
-	if (force_bios[0]) {
+	if (force_bios[0])
+	{
 		version = force_bios;
 		pr_info("forcing BIOS version: %s\n", version);
 		kernelmode = 0;
 	}
 
-	if (force_product[0]) {
+	if (force_product[0])
+	{
 		product = force_product;
 		pr_info("forcing BIOS product: %s\n", product);
 		kernelmode = 0;
@@ -646,25 +741,28 @@ static int acerhdf_check_hardware(void)
 
 	if (verbose)
 		pr_info("BIOS info: %s %s, product: %s\n",
-			vendor, version, product);
+				vendor, version, product);
 
 	/* search BIOS version and vendor in BIOS settings table */
-	for (bt = bios_tbl; bt->vendor[0]; bt++) {
+	for (bt = bios_tbl; bt->vendor[0]; bt++)
+	{
 		/*
 		 * check if actual hardware BIOS vendor, product and version
 		 * IDs start with the strings of BIOS table entry
 		 */
 		if (str_starts_with(vendor, bt->vendor) &&
-				str_starts_with(product, bt->product) &&
-				str_starts_with(version, bt->version)) {
+			str_starts_with(product, bt->product) &&
+			str_starts_with(version, bt->version))
+		{
 			bios_cfg = bt;
 			break;
 		}
 	}
 
-	if (!bios_cfg) {
+	if (!bios_cfg)
+	{
 		pr_err("unknown (unsupported) BIOS version %s/%s/%s, please report, aborting!\n",
-		       vendor, product, version);
+			   vendor, product, version);
 		return -EINVAL;
 	}
 
@@ -672,7 +770,8 @@ static int acerhdf_check_hardware(void)
 	 * if started with kernel mode off, prevent the kernel from switching
 	 * off the fan
 	 */
-	if (!kernelmode) {
+	if (!kernelmode)
+	{
 		pr_notice("Fan control off, to enable do:\n");
 		pr_notice("echo -n \"enabled\" > /sys/class/thermal/thermal_zone0/mode\n");
 	}
@@ -685,17 +784,26 @@ static int acerhdf_register_platform(void)
 	int err = 0;
 
 	err = platform_driver_register(&acerhdf_driver);
+
 	if (err)
+	{
 		return err;
+	}
 
 	acerhdf_dev = platform_device_alloc("acerhdf", -1);
-	if (!acerhdf_dev) {
+
+	if (!acerhdf_dev)
+	{
 		err = -ENOMEM;
 		goto err_device_alloc;
 	}
+
 	err = platform_device_add(acerhdf_dev);
+
 	if (err)
+	{
 		goto err_device_add;
+	}
 
 	return 0;
 
@@ -715,22 +823,28 @@ static void acerhdf_unregister_platform(void)
 static int acerhdf_register_thermal(void)
 {
 	cl_dev = thermal_cooling_device_register("acerhdf-fan", NULL,
-						 &acerhdf_cooling_ops);
+			 &acerhdf_cooling_ops);
 
 	if (IS_ERR(cl_dev))
+	{
 		return -EINVAL;
+	}
 
 	thz_dev = thermal_zone_device_register("acerhdf", 2, 0, NULL,
-					      &acerhdf_dev_ops,
-					      &acerhdf_zone_params, 0,
-					      (kernelmode) ? interval*1000 : 0);
+										   &acerhdf_dev_ops,
+										   &acerhdf_zone_params, 0,
+										   (kernelmode) ? interval * 1000 : 0);
+
 	if (IS_ERR(thz_dev))
+	{
 		return -EINVAL;
+	}
 
 	if (strcmp(thz_dev->governor->name,
-				acerhdf_zone_params.governor_name)) {
+			   acerhdf_zone_params.governor_name))
+	{
 		pr_err("Didn't get thermal governor %s, perhaps not compiled into thermal subsystem.\n",
-				acerhdf_zone_params.governor_name);
+			   acerhdf_zone_params.governor_name);
 		return -EINVAL;
 	}
 
@@ -739,12 +853,14 @@ static int acerhdf_register_thermal(void)
 
 static void acerhdf_unregister_thermal(void)
 {
-	if (cl_dev) {
+	if (cl_dev)
+	{
 		thermal_cooling_device_unregister(cl_dev);
 		cl_dev = NULL;
 	}
 
-	if (thz_dev) {
+	if (thz_dev)
+	{
 		thermal_zone_device_unregister(thz_dev);
 		thz_dev = NULL;
 	}
@@ -755,16 +871,25 @@ static int __init acerhdf_init(void)
 	int err = 0;
 
 	err = acerhdf_check_hardware();
+
 	if (err)
+	{
 		goto out_err;
+	}
 
 	err = acerhdf_register_platform();
+
 	if (err)
+	{
 		goto out_err;
+	}
 
 	err = acerhdf_register_thermal();
+
 	if (err)
+	{
 		goto err_unreg;
+	}
 
 	return 0;
 

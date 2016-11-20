@@ -25,25 +25,29 @@
 #include <linux/workqueue.h>
 #include "dvb_ca_en50221.h"
 
-enum mantis_sbuf_status {
+enum mantis_sbuf_status
+{
 	MANTIS_SBUF_DATA_AVAIL		= 1,
 	MANTIS_SBUF_DATA_EMPTY		= 2,
 	MANTIS_SBUF_DATA_OVFLW		= 3
 };
 
-struct mantis_slot {
+struct mantis_slot
+{
 	u32				timeout;
 	u32				slave_cfg;
 	u32				bar;
 };
 
 /* Physical layer */
-enum mantis_slot_state {
+enum mantis_slot_state
+{
 	MODULE_INSERTED			= 3,
 	MODULE_XTRACTED			= 4
 };
 
-struct mantis_ca {
+struct mantis_ca
+{
 	struct mantis_slot		slot[4];
 
 	struct work_struct		hif_evm_work;

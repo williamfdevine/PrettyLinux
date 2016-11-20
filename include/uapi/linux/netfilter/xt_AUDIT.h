@@ -14,7 +14,8 @@
 
 #include <linux/types.h>
 
-enum {
+enum
+{
 	XT_AUDIT_TYPE_ACCEPT = 0,
 	XT_AUDIT_TYPE_DROP,
 	XT_AUDIT_TYPE_REJECT,
@@ -23,7 +24,8 @@ enum {
 
 #define XT_AUDIT_TYPE_MAX (__XT_AUDIT_TYPE_MAX - 1)
 
-struct xt_audit_info {
+struct xt_audit_info
+{
 	__u8 type; /* XT_AUDIT_TYPE_* */
 };
 

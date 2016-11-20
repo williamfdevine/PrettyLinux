@@ -31,7 +31,8 @@
  *****************************************************************************/
 #define nvkm_instobj(p) container_of((p), struct nvkm_instobj, memory)
 
-struct nvkm_instobj {
+struct nvkm_instobj
+{
 	struct nvkm_memory memory;
 	struct nvkm_memory *parent;
 	struct nvkm_instmem *imem;
@@ -105,7 +106,8 @@ nvkm_instobj_dtor(struct nvkm_memory *memory)
 }
 
 const struct nvkm_memory_func
-nvkm_instobj_func = {
+	nvkm_instobj_func =
+{
 	.dtor = nvkm_instobj_dtor,
 	.target = nvkm_instobj_target,
 	.addr = nvkm_instobj_addr,
@@ -137,8 +139,12 @@ nvkm_instobj_acquire_slow(struct nvkm_memory *memory)
 {
 	struct nvkm_instobj *iobj = nvkm_instobj(memory);
 	iobj->map = nvkm_kmap(iobj->parent);
+
 	if (iobj->map)
+	{
 		memory->func = &nvkm_instobj_func;
+	}
+
 	return iobj->map;
 }
 
@@ -157,7 +163,8 @@ nvkm_instobj_wr32_slow(struct nvkm_memory *memory, u64 offset, u32 data)
 }
 
 const struct nvkm_memory_func
-nvkm_instobj_func_slow = {
+	nvkm_instobj_func_slow =
+{
 	.dtor = nvkm_instobj_dtor,
 	.target = nvkm_instobj_target,
 	.addr = nvkm_instobj_addr,
@@ -172,7 +179,7 @@ nvkm_instobj_func_slow = {
 
 int
 nvkm_instobj_new(struct nvkm_instmem *imem, u32 size, u32 align, bool zero,
-		 struct nvkm_memory **pmemory)
+				 struct nvkm_memory **pmemory)
 {
 	struct nvkm_memory *memory = NULL;
 	struct nvkm_instobj *iobj;
@@ -180,11 +187,16 @@ nvkm_instobj_new(struct nvkm_instmem *imem, u32 size, u32 align, bool zero,
 	int ret;
 
 	ret = imem->func->memory_new(imem, size, align, zero, &memory);
-	if (ret)
-		goto done;
 
-	if (!imem->func->persistent) {
-		if (!(iobj = kzalloc(sizeof(*iobj), GFP_KERNEL))) {
+	if (ret)
+	{
+		goto done;
+	}
+
+	if (!imem->func->persistent)
+	{
+		if (!(iobj = kzalloc(sizeof(*iobj), GFP_KERNEL)))
+		{
 			ret = -ENOMEM;
 			goto done;
 		}
@@ -198,20 +210,32 @@ nvkm_instobj_new(struct nvkm_instmem *imem, u32 size, u32 align, bool zero,
 		memory = &iobj->memory;
 	}
 
-	if (!imem->func->zero && zero) {
+	if (!imem->func->zero && zero)
+	{
 		void __iomem *map = nvkm_kmap(memory);
-		if (unlikely(!map)) {
+
+		if (unlikely(!map))
+		{
 			for (offset = 0; offset < size; offset += 4)
+			{
 				nvkm_wo32(memory, offset, 0x00000000);
-		} else {
+			}
+		}
+		else
+		{
 			memset_io(map, 0x00, size);
 		}
+
 		nvkm_done(memory);
 	}
 
 done:
+
 	if (ret)
+	{
 		nvkm_memory_del(&memory);
+	}
+
 	*pmemory = memory;
 	return ret;
 }
@@ -240,19 +264,28 @@ nvkm_instmem_fini(struct nvkm_subdev *subdev, bool suspend)
 	int i;
 
 	if (imem->func->fini)
+	{
 		imem->func->fini(imem);
+	}
 
-	if (suspend) {
-		list_for_each_entry(iobj, &imem->list, head) {
+	if (suspend)
+	{
+		list_for_each_entry(iobj, &imem->list, head)
+		{
 			struct nvkm_memory *memory = iobj->parent;
 			u64 size = nvkm_memory_size(memory);
 
 			iobj->suspend = vmalloc(size);
+
 			if (!iobj->suspend)
+			{
 				return -ENOMEM;
+			}
 
 			for (i = 0; i < size; i += 4)
+			{
 				iobj->suspend[i / 4] = nvkm_ro32(memory, i);
+			}
 		}
 	}
 
@@ -263,8 +296,12 @@ static int
 nvkm_instmem_oneinit(struct nvkm_subdev *subdev)
 {
 	struct nvkm_instmem *imem = nvkm_instmem(subdev);
+
 	if (imem->func->oneinit)
+	{
 		return imem->func->oneinit(imem);
+	}
+
 	return 0;
 }
 
@@ -275,12 +312,18 @@ nvkm_instmem_init(struct nvkm_subdev *subdev)
 	struct nvkm_instobj *iobj;
 	int i;
 
-	list_for_each_entry(iobj, &imem->list, head) {
-		if (iobj->suspend) {
+	list_for_each_entry(iobj, &imem->list, head)
+	{
+		if (iobj->suspend)
+		{
 			struct nvkm_memory *memory = iobj->parent;
 			u64 size = nvkm_memory_size(memory);
+
 			for (i = 0; i < size; i += 4)
+			{
 				nvkm_wo32(memory, i, iobj->suspend[i / 4]);
+			}
+
 			vfree(iobj->suspend);
 			iobj->suspend = NULL;
 		}
@@ -293,13 +336,18 @@ static void *
 nvkm_instmem_dtor(struct nvkm_subdev *subdev)
 {
 	struct nvkm_instmem *imem = nvkm_instmem(subdev);
+
 	if (imem->func->dtor)
+	{
 		return imem->func->dtor(imem);
+	}
+
 	return imem;
 }
 
 static const struct nvkm_subdev_func
-nvkm_instmem = {
+	nvkm_instmem =
+{
 	.dtor = nvkm_instmem_dtor,
 	.oneinit = nvkm_instmem_oneinit,
 	.init = nvkm_instmem_init,
@@ -308,8 +356,8 @@ nvkm_instmem = {
 
 void
 nvkm_instmem_ctor(const struct nvkm_instmem_func *func,
-		  struct nvkm_device *device, int index,
-		  struct nvkm_instmem *imem)
+				  struct nvkm_device *device, int index,
+				  struct nvkm_instmem *imem)
 {
 	nvkm_subdev_ctor(&nvkm_instmem, device, index, &imem->subdev);
 	imem->func = func;

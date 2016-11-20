@@ -35,8 +35,9 @@
 
 
 __thread double darray[] = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0,
-		     1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0,
-		     2.1};
+							1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0,
+							2.1
+						   };
 
 int threads_starting;
 int running;
@@ -47,8 +48,11 @@ void *preempt_fpu_c(void *p)
 {
 	int i;
 	srand(pthread_self());
+
 	for (i = 0; i < 21; i++)
+	{
 		darray[i] = rand();
+	}
 
 	/* Test failed if it ever returns */
 	preempt_fpu(darray, &threads_starting, &running);
@@ -67,7 +71,9 @@ int test_preempt_fpu(void)
 
 	running = true;
 	threads_starting = threads;
-	for (i = 0; i < threads; i++) {
+
+	for (i = 0; i < threads; i++)
+	{
 		rc = pthread_create(&tids[i], NULL, preempt_fpu_c, NULL);
 		FAIL_IF(rc);
 	}
@@ -75,8 +81,12 @@ int test_preempt_fpu(void)
 	setbuf(stdout, NULL);
 	/* Not really necessary but nice to wait for every thread to start */
 	printf("\tWaiting for all workers to start...");
-	while(threads_starting)
+
+	while (threads_starting)
+	{
 		asm volatile("": : :"memory");
+	}
+
 	printf("done\n");
 
 	printf("\tWaiting for %d seconds to let some workers get preempted...", PREEMPT_TIME);
@@ -89,7 +99,9 @@ int test_preempt_fpu(void)
 	 * r5 will have loaded the value of running.
 	 */
 	running = 0;
-	for (i = 0; i < threads; i++) {
+
+	for (i = 0; i < threads; i++)
+	{
 		void *rc_p;
 		pthread_join(tids[i], &rc_p);
 
@@ -98,9 +110,13 @@ int test_preempt_fpu(void)
 		 * returned
 		 */
 		if ((long) rc_p)
+		{
 			printf("oops\n");
+		}
+
 		FAIL_IF((long) rc_p);
 	}
+
 	printf("done\n");
 
 	free(tids);

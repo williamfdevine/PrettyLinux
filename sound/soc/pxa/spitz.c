@@ -37,7 +37,7 @@
 #define SPITZ_SPK_ON    0
 #define SPITZ_SPK_OFF   1
 
- /* audio clock in Hz - rounded from 12.235MHz */
+/* audio clock in Hz - rounded from 12.235MHz */
 #define SPITZ_AUDIO_CLOCK 12288000
 
 static int spitz_jack_func;
@@ -49,58 +49,67 @@ static void spitz_ext_control(struct snd_soc_dapm_context *dapm)
 	snd_soc_dapm_mutex_lock(dapm);
 
 	if (spitz_spk_func == SPITZ_SPK_ON)
+	{
 		snd_soc_dapm_enable_pin_unlocked(dapm, "Ext Spk");
+	}
 	else
+	{
 		snd_soc_dapm_disable_pin_unlocked(dapm, "Ext Spk");
+	}
 
 	/* set up jack connection */
-	switch (spitz_jack_func) {
-	case SPITZ_HP:
-		/* enable and unmute hp jack, disable mic bias */
-		snd_soc_dapm_disable_pin_unlocked(dapm, "Headset Jack");
-		snd_soc_dapm_disable_pin_unlocked(dapm, "Mic Jack");
-		snd_soc_dapm_disable_pin_unlocked(dapm, "Line Jack");
-		snd_soc_dapm_enable_pin_unlocked(dapm, "Headphone Jack");
-		gpio_set_value(SPITZ_GPIO_MUTE_L, 1);
-		gpio_set_value(SPITZ_GPIO_MUTE_R, 1);
-		break;
-	case SPITZ_MIC:
-		/* enable mic jack and bias, mute hp */
-		snd_soc_dapm_disable_pin_unlocked(dapm, "Headphone Jack");
-		snd_soc_dapm_disable_pin_unlocked(dapm, "Headset Jack");
-		snd_soc_dapm_disable_pin_unlocked(dapm, "Line Jack");
-		snd_soc_dapm_enable_pin_unlocked(dapm, "Mic Jack");
-		gpio_set_value(SPITZ_GPIO_MUTE_L, 0);
-		gpio_set_value(SPITZ_GPIO_MUTE_R, 0);
-		break;
-	case SPITZ_LINE:
-		/* enable line jack, disable mic bias and mute hp */
-		snd_soc_dapm_disable_pin_unlocked(dapm, "Headphone Jack");
-		snd_soc_dapm_disable_pin_unlocked(dapm, "Headset Jack");
-		snd_soc_dapm_disable_pin_unlocked(dapm, "Mic Jack");
-		snd_soc_dapm_enable_pin_unlocked(dapm, "Line Jack");
-		gpio_set_value(SPITZ_GPIO_MUTE_L, 0);
-		gpio_set_value(SPITZ_GPIO_MUTE_R, 0);
-		break;
-	case SPITZ_HEADSET:
-		/* enable and unmute headset jack enable mic bias, mute L hp */
-		snd_soc_dapm_disable_pin_unlocked(dapm, "Headphone Jack");
-		snd_soc_dapm_enable_pin_unlocked(dapm, "Mic Jack");
-		snd_soc_dapm_disable_pin_unlocked(dapm, "Line Jack");
-		snd_soc_dapm_enable_pin_unlocked(dapm, "Headset Jack");
-		gpio_set_value(SPITZ_GPIO_MUTE_L, 0);
-		gpio_set_value(SPITZ_GPIO_MUTE_R, 1);
-		break;
-	case SPITZ_HP_OFF:
+	switch (spitz_jack_func)
+	{
+		case SPITZ_HP:
+			/* enable and unmute hp jack, disable mic bias */
+			snd_soc_dapm_disable_pin_unlocked(dapm, "Headset Jack");
+			snd_soc_dapm_disable_pin_unlocked(dapm, "Mic Jack");
+			snd_soc_dapm_disable_pin_unlocked(dapm, "Line Jack");
+			snd_soc_dapm_enable_pin_unlocked(dapm, "Headphone Jack");
+			gpio_set_value(SPITZ_GPIO_MUTE_L, 1);
+			gpio_set_value(SPITZ_GPIO_MUTE_R, 1);
+			break;
 
-		/* jack removed, everything off */
-		snd_soc_dapm_disable_pin_unlocked(dapm, "Headphone Jack");
-		snd_soc_dapm_disable_pin_unlocked(dapm, "Headset Jack");
-		snd_soc_dapm_disable_pin_unlocked(dapm, "Mic Jack");
-		snd_soc_dapm_disable_pin_unlocked(dapm, "Line Jack");
-		gpio_set_value(SPITZ_GPIO_MUTE_L, 0);
-		gpio_set_value(SPITZ_GPIO_MUTE_R, 0);
-		break;
+		case SPITZ_MIC:
+			/* enable mic jack and bias, mute hp */
+			snd_soc_dapm_disable_pin_unlocked(dapm, "Headphone Jack");
+			snd_soc_dapm_disable_pin_unlocked(dapm, "Headset Jack");
+			snd_soc_dapm_disable_pin_unlocked(dapm, "Line Jack");
+			snd_soc_dapm_enable_pin_unlocked(dapm, "Mic Jack");
+			gpio_set_value(SPITZ_GPIO_MUTE_L, 0);
+			gpio_set_value(SPITZ_GPIO_MUTE_R, 0);
+			break;
+
+		case SPITZ_LINE:
+			/* enable line jack, disable mic bias and mute hp */
+			snd_soc_dapm_disable_pin_unlocked(dapm, "Headphone Jack");
+			snd_soc_dapm_disable_pin_unlocked(dapm, "Headset Jack");
+			snd_soc_dapm_disable_pin_unlocked(dapm, "Mic Jack");
+			snd_soc_dapm_enable_pin_unlocked(dapm, "Line Jack");
+			gpio_set_value(SPITZ_GPIO_MUTE_L, 0);
+			gpio_set_value(SPITZ_GPIO_MUTE_R, 0);
+			break;
+
+		case SPITZ_HEADSET:
+			/* enable and unmute headset jack enable mic bias, mute L hp */
+			snd_soc_dapm_disable_pin_unlocked(dapm, "Headphone Jack");
+			snd_soc_dapm_enable_pin_unlocked(dapm, "Mic Jack");
+			snd_soc_dapm_disable_pin_unlocked(dapm, "Line Jack");
+			snd_soc_dapm_enable_pin_unlocked(dapm, "Headset Jack");
+			gpio_set_value(SPITZ_GPIO_MUTE_L, 0);
+			gpio_set_value(SPITZ_GPIO_MUTE_R, 1);
+			break;
+
+		case SPITZ_HP_OFF:
+
+			/* jack removed, everything off */
+			snd_soc_dapm_disable_pin_unlocked(dapm, "Headphone Jack");
+			snd_soc_dapm_disable_pin_unlocked(dapm, "Headset Jack");
+			snd_soc_dapm_disable_pin_unlocked(dapm, "Mic Jack");
+			snd_soc_dapm_disable_pin_unlocked(dapm, "Line Jack");
+			gpio_set_value(SPITZ_GPIO_MUTE_L, 0);
+			gpio_set_value(SPITZ_GPIO_MUTE_R, 0);
+			break;
 	}
 
 	snd_soc_dapm_sync_unlocked(dapm);
@@ -119,7 +128,7 @@ static int spitz_startup(struct snd_pcm_substream *substream)
 }
 
 static int spitz_hw_params(struct snd_pcm_substream *substream,
-	struct snd_pcm_hw_params *params)
+						   struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
@@ -127,54 +136,65 @@ static int spitz_hw_params(struct snd_pcm_substream *substream,
 	unsigned int clk = 0;
 	int ret = 0;
 
-	switch (params_rate(params)) {
-	case 8000:
-	case 16000:
-	case 48000:
-	case 96000:
-		clk = 12288000;
-		break;
-	case 11025:
-	case 22050:
-	case 44100:
-		clk = 11289600;
-		break;
+	switch (params_rate(params))
+	{
+		case 8000:
+		case 16000:
+		case 48000:
+		case 96000:
+			clk = 12288000;
+			break;
+
+		case 11025:
+		case 22050:
+		case 44100:
+			clk = 11289600;
+			break;
 	}
 
 	/* set the codec system clock for DAC and ADC */
 	ret = snd_soc_dai_set_sysclk(codec_dai, WM8750_SYSCLK, clk,
-		SND_SOC_CLOCK_IN);
+								 SND_SOC_CLOCK_IN);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* set the I2S system clock as input (unused) */
 	ret = snd_soc_dai_set_sysclk(cpu_dai, PXA2XX_I2S_SYSCLK, 0,
-		SND_SOC_CLOCK_IN);
+								 SND_SOC_CLOCK_IN);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
 
-static struct snd_soc_ops spitz_ops = {
+static struct snd_soc_ops spitz_ops =
+{
 	.startup = spitz_startup,
 	.hw_params = spitz_hw_params,
 };
 
 static int spitz_get_jack(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
+						  struct snd_ctl_elem_value *ucontrol)
 {
 	ucontrol->value.enumerated.item[0] = spitz_jack_func;
 	return 0;
 }
 
 static int spitz_set_jack(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
+						  struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_card *card = snd_kcontrol_chip(kcontrol);
 
 	if (spitz_jack_func == ucontrol->value.enumerated.item[0])
+	{
 		return 0;
+	}
 
 	spitz_jack_func = ucontrol->value.enumerated.item[0];
 	spitz_ext_control(&card->dapm);
@@ -182,19 +202,21 @@ static int spitz_set_jack(struct snd_kcontrol *kcontrol,
 }
 
 static int spitz_get_spk(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
+						 struct snd_ctl_elem_value *ucontrol)
 {
 	ucontrol->value.enumerated.item[0] = spitz_spk_func;
 	return 0;
 }
 
 static int spitz_set_spk(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
+						 struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_card *card = snd_kcontrol_chip(kcontrol);
 
 	if (spitz_spk_func == ucontrol->value.enumerated.item[0])
+	{
 		return 0;
+	}
 
 	spitz_spk_func = ucontrol->value.enumerated.item[0];
 	spitz_ext_control(&card->dapm);
@@ -202,14 +224,15 @@ static int spitz_set_spk(struct snd_kcontrol *kcontrol,
 }
 
 static int spitz_mic_bias(struct snd_soc_dapm_widget *w,
-	struct snd_kcontrol *k, int event)
+						  struct snd_kcontrol *k, int event)
 {
 	gpio_set_value_cansleep(spitz_mic_gpio, SND_SOC_DAPM_EVENT_ON(event));
 	return 0;
 }
 
 /* spitz machine dapm widgets */
-static const struct snd_soc_dapm_widget wm8750_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget wm8750_dapm_widgets[] =
+{
 	SND_SOC_DAPM_HP("Headphone Jack", NULL),
 	SND_SOC_DAPM_MIC("Mic Jack", spitz_mic_bias),
 	SND_SOC_DAPM_SPK("Ext Spk", NULL),
@@ -220,7 +243,8 @@ static const struct snd_soc_dapm_widget wm8750_dapm_widgets[] = {
 };
 
 /* Spitz machine audio_map */
-static const struct snd_soc_dapm_route spitz_audio_map[] = {
+static const struct snd_soc_dapm_route spitz_audio_map[] =
+{
 
 	/* headphone connected to LOUT1, ROUT1 */
 	{"Headphone Jack", NULL, "LOUT1"},
@@ -242,22 +266,26 @@ static const struct snd_soc_dapm_route spitz_audio_map[] = {
 };
 
 static const char *jack_function[] = {"Headphone", "Mic", "Line", "Headset",
-	"Off"};
+									  "Off"
+									 };
 static const char *spk_function[] = {"On", "Off"};
-static const struct soc_enum spitz_enum[] = {
+static const struct soc_enum spitz_enum[] =
+{
 	SOC_ENUM_SINGLE_EXT(5, jack_function),
 	SOC_ENUM_SINGLE_EXT(2, spk_function),
 };
 
-static const struct snd_kcontrol_new wm8750_spitz_controls[] = {
+static const struct snd_kcontrol_new wm8750_spitz_controls[] =
+{
 	SOC_ENUM_EXT("Jack Function", spitz_enum[0], spitz_get_jack,
-		spitz_set_jack),
+	spitz_set_jack),
 	SOC_ENUM_EXT("Speaker Function", spitz_enum[1], spitz_get_spk,
-		spitz_set_spk),
+	spitz_set_spk),
 };
 
 /* spitz digital audio interface glue - connects codec <--> CPU */
-static struct snd_soc_dai_link spitz_dai = {
+static struct snd_soc_dai_link spitz_dai =
+{
 	.name = "wm8750",
 	.stream_name = "WM8750",
 	.cpu_dai_name = "pxa2xx-i2s",
@@ -265,12 +293,13 @@ static struct snd_soc_dai_link spitz_dai = {
 	.platform_name = "pxa-pcm-audio",
 	.codec_name = "wm8750.0-001b",
 	.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
-		   SND_SOC_DAIFMT_CBS_CFS,
+	SND_SOC_DAIFMT_CBS_CFS,
 	.ops = &spitz_ops,
 };
 
 /* spitz audio machine driver */
-static struct snd_soc_card snd_soc_spitz = {
+static struct snd_soc_card snd_soc_spitz =
+{
 	.name = "Spitz",
 	.owner = THIS_MODULE,
 	.dai_link = &spitz_dai,
@@ -291,24 +320,36 @@ static int spitz_probe(struct platform_device *pdev)
 	int ret;
 
 	if (machine_is_akita())
+	{
 		spitz_mic_gpio = AKITA_GPIO_MIC_BIAS;
+	}
 	else
+	{
 		spitz_mic_gpio = SPITZ_GPIO_MIC_BIAS;
+	}
 
 	ret = gpio_request(spitz_mic_gpio, "MIC GPIO");
+
 	if (ret)
+	{
 		goto err1;
+	}
 
 	ret = gpio_direction_output(spitz_mic_gpio, 0);
+
 	if (ret)
+	{
 		goto err2;
+	}
 
 	card->dev = &pdev->dev;
 
 	ret = devm_snd_soc_register_card(&pdev->dev, card);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
-			ret);
+				ret);
 		goto err2;
 	}
 
@@ -326,7 +367,8 @@ static int spitz_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver spitz_driver = {
+static struct platform_driver spitz_driver =
+{
 	.driver		= {
 		.name	= "spitz-audio",
 		.pm     = &snd_soc_pm_ops,

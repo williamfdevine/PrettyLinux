@@ -49,12 +49,12 @@ MODULE_PARM_DESC(irq, "IRQ (optional)");
 
 static inline void port_write(unsigned char p, unsigned char d)
 {
-	outb(d, base+p);
+	outb(d, base + p);
 }
 
 static inline unsigned char port_read(unsigned char p)
 {
-	return inb(base+p);
+	return inb(base + p);
 }
 
 /* ----- Unified line operation functions --------------------------------- */
@@ -65,9 +65,13 @@ static inline void line_set(int state, const struct lineop *op)
 
 	/* Touch only the bit(s) needed */
 	if ((op->inverted && !state) || (!op->inverted && state))
+	{
 		port_write(op->port, oldval | op->val);
+	}
 	else
+	{
 		port_write(op->port, oldval & ~op->val);
+	}
 }
 
 static inline int line_get(const struct lineop *op)
@@ -75,7 +79,7 @@ static inline int line_get(const struct lineop *op)
 	u8 oldval = port_read(op->port);
 
 	return ((op->inverted && (oldval & op->val) != op->val)
-	    || (!op->inverted && (oldval & op->val) == op->val));
+			|| (!op->inverted && (oldval & op->val) == op->val));
 }
 
 /* ----- I2C algorithm call-back functions and structures ----------------- */
@@ -103,7 +107,8 @@ static int parport_getsda(void *data)
 /* Encapsulate the functions above in the correct structure
    Note that getscl will be set to NULL by the attaching code for adapters
    that cannot read SCL back */
-static struct i2c_algo_bit_data parport_algo_data = {
+static struct i2c_algo_bit_data parport_algo_data =
+{
 	.setsda		= parport_setsda,
 	.setscl		= parport_setscl,
 	.getsda		= parport_getsda,
@@ -114,7 +119,8 @@ static struct i2c_algo_bit_data parport_algo_data = {
 
 /* ----- Driver registration ---------------------------------------------- */
 
-static struct i2c_adapter parport_adapter = {
+static struct i2c_adapter parport_adapter =
+{
 	.owner		= THIS_MODULE,
 	.class		= I2C_CLASS_HWMON,
 	.algo_data	= &parport_algo_data,
@@ -122,11 +128,13 @@ static struct i2c_adapter parport_adapter = {
 };
 
 /* SMBus alert support */
-static struct i2c_smbus_alert_setup alert_data = {
+static struct i2c_smbus_alert_setup alert_data =
+{
 	.alert_edge_triggered	= 1,
 };
 static struct i2c_client *ara;
-static struct lineop parport_ctrl_irq = {
+static struct lineop parport_ctrl_irq =
+{
 	.val		= (1 << 4),
 	.port		= PORT_CTRL,
 };
@@ -138,8 +146,10 @@ static int i2c_parport_probe(struct platform_device *pdev)
 	/* Reset hardware to a sane state (SCL and SDA high) */
 	parport_setsda(NULL, 1);
 	parport_setscl(NULL, 1);
+
 	/* Other init if needed (power on...) */
-	if (adapter_parm[type].init.val) {
+	if (adapter_parm[type].init.val)
+	{
 		line_set(1, &adapter_parm[type].init);
 		/* Give powered devices some time to settle */
 		msleep(100);
@@ -147,19 +157,27 @@ static int i2c_parport_probe(struct platform_device *pdev)
 
 	parport_adapter.dev.parent = &pdev->dev;
 	err = i2c_bit_add_bus(&parport_adapter);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "Unable to register with I2C\n");
 		return err;
 	}
 
 	/* Setup SMBus alert if supported */
-	if (adapter_parm[type].smbus_alert && irq) {
+	if (adapter_parm[type].smbus_alert && irq)
+	{
 		alert_data.irq = irq;
 		ara = i2c_setup_smbus_alert(&parport_adapter, &alert_data);
+
 		if (ara)
+		{
 			line_set(1, &parport_ctrl_irq);
+		}
 		else
+		{
 			dev_warn(&pdev->dev, "Failed to register ARA client\n");
+		}
 	}
 
 	return 0;
@@ -167,21 +185,26 @@ static int i2c_parport_probe(struct platform_device *pdev)
 
 static int i2c_parport_remove(struct platform_device *pdev)
 {
-	if (ara) {
+	if (ara)
+	{
 		line_set(0, &parport_ctrl_irq);
 		i2c_unregister_device(ara);
 		ara = NULL;
 	}
+
 	i2c_del_adapter(&parport_adapter);
 
 	/* Un-init if needed (power off...) */
 	if (adapter_parm[type].init.val)
+	{
 		line_set(0, &adapter_parm[type].init);
+	}
 
 	return 0;
 }
 
-static struct platform_driver i2c_parport_driver = {
+static struct platform_driver i2c_parport_driver =
+{
 	.driver = {
 		.name	= DRVNAME,
 	},
@@ -194,16 +217,20 @@ static int __init i2c_parport_device_add(u16 address)
 	int err;
 
 	pdev = platform_device_alloc(DRVNAME, -1);
-	if (!pdev) {
+
+	if (!pdev)
+	{
 		err = -ENOMEM;
 		printk(KERN_ERR DRVNAME ": Device allocation failed\n");
 		goto exit;
 	}
 
 	err = platform_device_add(pdev);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR DRVNAME ": Device addition failed (%d)\n",
-		       err);
+			   err);
 		goto exit_device_put;
 	}
 
@@ -219,38 +246,53 @@ static int __init i2c_parport_init(void)
 {
 	int err;
 
-	if (type < 0) {
+	if (type < 0)
+	{
 		printk(KERN_ERR DRVNAME ": adapter type unspecified\n");
 		return -ENODEV;
 	}
 
-	if (type >= ARRAY_SIZE(adapter_parm)) {
+	if (type >= ARRAY_SIZE(adapter_parm))
+	{
 		printk(KERN_ERR DRVNAME ": invalid type (%d)\n", type);
 		return -ENODEV;
 	}
 
-	if (base == 0) {
+	if (base == 0)
+	{
 		pr_info(DRVNAME ": using default base 0x%x\n", DEFAULT_BASE);
 		base = DEFAULT_BASE;
 	}
 
 	if (!request_region(base, 3, DRVNAME))
+	{
 		return -EBUSY;
+	}
 
 	if (irq != 0)
+	{
 		pr_info(DRVNAME ": using irq %d\n", irq);
+	}
 
 	if (!adapter_parm[type].getscl.val)
+	{
 		parport_algo_data.getscl = NULL;
+	}
 
 	/* Sets global pdev as a side effect */
 	err = i2c_parport_device_add(base);
+
 	if (err)
+	{
 		goto exit_release;
+	}
 
 	err = platform_driver_register(&i2c_parport_driver);
+
 	if (err)
+	{
 		goto exit_device;
+	}
 
 	return 0;
 

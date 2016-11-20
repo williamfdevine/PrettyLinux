@@ -26,7 +26,7 @@
 #include <sys/shm.h>
 #include <linux/futex.h>
 #ifdef __powerpc__
-#include <altivec.h>
+	#include <altivec.h>
 #endif
 #include "../utils.h"
 
@@ -57,18 +57,28 @@ static void __attribute__((__target__("no-vsx"))) altivec_touch_fn(void)
 static void touch(void)
 {
 	if (touch_vdso)
+	{
 		gettimeofday(&tv, NULL);
+	}
 
 	if (touch_fp)
+	{
 		fp += 0.1;
+	}
 
 #ifdef __powerpc__
+
 	if (touch_altivec)
+	{
 		altivec_touch_fn();
+	}
+
 #endif
 
 	if (touch_vector)
+	{
 		c = a + b;
+	}
 
 	asm volatile("# %0 %1 %2": : "r"(&tv), "r"(&fp), "r"(&c));
 }
@@ -84,12 +94,14 @@ static void start_thread_on(void *(*fn)(void *), void *arg, unsigned long cpu)
 
 	pthread_attr_init(&attr);
 
-	if (pthread_attr_setaffinity_np(&attr, sizeof(cpu_set_t), &cpuset)) {
+	if (pthread_attr_setaffinity_np(&attr, sizeof(cpu_set_t), &cpuset))
+	{
 		perror("pthread_attr_setaffinity_np");
 		exit(1);
 	}
 
-	if (pthread_create(&tid, &attr, fn, arg)) {
+	if (pthread_create(&tid, &attr, fn, arg))
+	{
 		perror("pthread_create");
 		exit(1);
 	}
@@ -101,18 +113,23 @@ static void start_process_on(void *(*fn)(void *), void *arg, unsigned long cpu)
 	cpu_set_t cpuset;
 
 	pid = fork();
-	if (pid == -1) {
+
+	if (pid == -1)
+	{
 		perror("fork");
 		exit(1);
 	}
 
 	if (pid)
+	{
 		return;
+	}
 
 	CPU_ZERO(&cpuset);
 	CPU_SET(cpu, &cpuset);
 
-	if (sched_setaffinity(0, sizeof(cpuset), &cpuset)) {
+	if (sched_setaffinity(0, sizeof(cpuset), &cpuset))
+	{
 		perror("sched_setaffinity");
 		exit(1);
 	}
@@ -133,7 +150,9 @@ static void sigalrm_handler(int junk)
 	iterations_prev = i;
 
 	if (--timeout == 0)
+	{
 		kill(0, SIGUSR1);
+	}
 
 	alarm(1);
 }
@@ -143,7 +162,8 @@ static void sigusr1_handler(int junk)
 	exit(0);
 }
 
-struct actions {
+struct actions
+{
 	void (*setup)(int, int);
 	void *(*thread1)(void *);
 	void *(*thread2)(void *);
@@ -158,7 +178,9 @@ static int pipe_fd2[2];
 static void pipe_setup(int cpu1, int cpu2)
 {
 	if (pipe(pipe_fd1) || pipe(pipe_fd2))
+	{
 		exit(1);
+	}
 }
 
 static void *pipe_thread1(void *arg)
@@ -166,7 +188,8 @@ static void *pipe_thread1(void *arg)
 	signal(SIGALRM, sigalrm_handler);
 	alarm(1);
 
-	while (1) {
+	while (1)
+	{
 		assert(read(pipe_fd1[READ], &c, 1) == 1);
 		touch();
 
@@ -181,7 +204,8 @@ static void *pipe_thread1(void *arg)
 
 static void *pipe_thread2(void *arg)
 {
-	while (1) {
+	while (1)
+	{
 		assert(write(pipe_fd1[WRITE], &c, 1) == 1);
 		touch();
 
@@ -192,7 +216,8 @@ static void *pipe_thread2(void *arg)
 	return NULL;
 }
 
-static struct actions pipe_actions = {
+static struct actions pipe_actions =
+{
 	.setup = pipe_setup,
 	.thread1 = pipe_thread1,
 	.thread2 = pipe_thread2,
@@ -200,7 +225,8 @@ static struct actions pipe_actions = {
 
 static void yield_setup(int cpu1, int cpu2)
 {
-	if (cpu1 != cpu2) {
+	if (cpu1 != cpu2)
+	{
 		fprintf(stderr, "Both threads must be on the same CPU for yield test\n");
 		exit(1);
 	}
@@ -211,7 +237,8 @@ static void *yield_thread1(void *arg)
 	signal(SIGALRM, sigalrm_handler);
 	alarm(1);
 
-	while (1) {
+	while (1)
+	{
 		sched_yield();
 		touch();
 
@@ -223,7 +250,8 @@ static void *yield_thread1(void *arg)
 
 static void *yield_thread2(void *arg)
 {
-	while (1) {
+	while (1)
+	{
 		sched_yield();
 		touch();
 	}
@@ -231,25 +259,26 @@ static void *yield_thread2(void *arg)
 	return NULL;
 }
 
-static struct actions yield_actions = {
+static struct actions yield_actions =
+{
 	.setup = yield_setup,
 	.thread1 = yield_thread1,
 	.thread2 = yield_thread2,
 };
 
 static long sys_futex(void *addr1, int op, int val1, struct timespec *timeout,
-		      void *addr2, int val3)
+					  void *addr2, int val3)
 {
 	return syscall(SYS_futex, addr1, op, val1, timeout, addr2, val3);
 }
 
 static unsigned long cmpxchg(unsigned long *p, unsigned long expected,
-			     unsigned long desired)
+							 unsigned long desired)
 {
 	unsigned long exp = expected;
 
 	__atomic_compare_exchange_n(p, &exp, desired, 0,
-				    __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
+								__ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
 	return exp;
 }
 
@@ -263,13 +292,19 @@ static int mutex_lock(unsigned long *m)
 	int c;
 
 	c = cmpxchg(m, 0, 1);
+
 	if (!c)
+	{
 		return 0;
+	}
 
 	if (c == 1)
+	{
 		c = xchg(m, 2);
+	}
 
-	while (c) {
+	while (c)
+	{
 		sys_futex(m, FUTEX_WAIT, 2, NULL, NULL, 0);
 		c = xchg(m, 2);
 	}
@@ -280,9 +315,13 @@ static int mutex_lock(unsigned long *m)
 static int mutex_unlock(unsigned long *m)
 {
 	if (*m == 2)
+	{
 		*m = 0;
+	}
 	else if (xchg(m, 0) == 1)
+	{
 		return 0;
+	}
 
 	sys_futex(m, FUTEX_WAKE, 1, NULL, NULL, 0);
 
@@ -297,13 +336,17 @@ static void futex_setup(int cpu1, int cpu2)
 	void *shmaddr;
 
 	shmid = shmget(IPC_PRIVATE, getpagesize(), SHM_R | SHM_W);
-	if (shmid < 0) {
+
+	if (shmid < 0)
+	{
 		perror("shmget");
 		exit(1);
 	}
 
 	shmaddr = shmat(shmid, NULL, 0);
-	if (shmaddr == (char *)-1) {
+
+	if (shmaddr == (char *) - 1)
+	{
 		perror("shmat");
 		shmctl(shmid, IPC_RMID, NULL);
 		exit(1);
@@ -326,7 +369,8 @@ static void *futex_thread1(void *arg)
 	signal(SIGALRM, sigalrm_handler);
 	alarm(1);
 
-	while (1) {
+	while (1)
+	{
 		mutex_lock(m2);
 		mutex_unlock(m1);
 
@@ -338,7 +382,8 @@ static void *futex_thread1(void *arg)
 
 static void *futex_thread2(void *arg)
 {
-	while (1) {
+	while (1)
+	{
 		mutex_unlock(m2);
 		mutex_lock(m1);
 	}
@@ -346,7 +391,8 @@ static void *futex_thread2(void *arg)
 	return NULL;
 }
 
-static struct actions futex_actions = {
+static struct actions futex_actions =
+{
 	.setup = futex_setup,
 	.thread1 = futex_thread1,
 	.thread2 = futex_thread2,
@@ -354,7 +400,8 @@ static struct actions futex_actions = {
 
 static int processes;
 
-static struct option options[] = {
+static struct option options[] =
+{
 	{ "test", required_argument, 0, 't' },
 	{ "process", no_argument, &processes, 1 },
 	{ "timeout", required_argument, 0, 's' },
@@ -389,54 +436,75 @@ int main(int argc, char *argv[])
 	int cpu2;
 	static void (*start_fn)(void *(*fn)(void *), void *arg, unsigned long cpu);
 
-	while (1) {
+	while (1)
+	{
 		int option_index = 0;
 
 		c = getopt_long(argc, argv, "", options, &option_index);
 
 		if (c == -1)
+		{
 			break;
+		}
 
-		switch (c) {
-		case 0:
-			if (options[option_index].flag != 0)
-				break;
+		switch (c)
+		{
+			case 0:
+				if (options[option_index].flag != 0)
+				{
+					break;
+				}
 
-			usage();
-			exit(1);
-			break;
-
-		case 't':
-			if (!strcmp(optarg, "pipe")) {
-				actions = &pipe_actions;
-			} else if (!strcmp(optarg, "yield")) {
-				actions = &yield_actions;
-			} else if (!strcmp(optarg, "futex")) {
-				actions = &futex_actions;
-			} else {
 				usage();
 				exit(1);
-			}
-			break;
+				break;
 
-		case 's':
-			timeout = atoi(optarg);
-			break;
+			case 't':
+				if (!strcmp(optarg, "pipe"))
+				{
+					actions = &pipe_actions;
+				}
+				else if (!strcmp(optarg, "yield"))
+				{
+					actions = &yield_actions;
+				}
+				else if (!strcmp(optarg, "futex"))
+				{
+					actions = &futex_actions;
+				}
+				else
+				{
+					usage();
+					exit(1);
+				}
 
-		default:
-			usage();
-			exit(1);
+				break;
+
+			case 's':
+				timeout = atoi(optarg);
+				break;
+
+			default:
+				usage();
+				exit(1);
 		}
 	}
 
 	if (processes)
+	{
 		start_fn = start_process_on;
+	}
 	else
+	{
 		start_fn = start_thread_on;
+	}
 
-	if (((argc - optind) != 2)) {
+	if (((argc - optind) != 2))
+	{
 		cpu1 = cpu2 = pick_online_cpu();
-	} else {
+	}
+	else
+	{
 		cpu1 = atoi(argv[optind++]);
 		cpu2 = atoi(argv[optind++]);
 	}
@@ -444,15 +512,21 @@ int main(int argc, char *argv[])
 	printf("Using %s with ", processes ? "processes" : "threads");
 
 	if (actions == &pipe_actions)
+	{
 		printf("pipe");
+	}
 	else if (actions == &yield_actions)
+	{
 		printf("yield");
+	}
 	else
+	{
 		printf("futex");
+	}
 
 	printf(" on cpus %d/%d touching FP:%s altivec:%s vector:%s vdso:%s\n",
-	       cpu1, cpu2, touch_fp ?  "yes" : "no", touch_altivec ? "yes" : "no",
-	       touch_vector ? "yes" : "no", touch_vdso ? "yes" : "no");
+		   cpu1, cpu2, touch_fp ?  "yes" : "no", touch_altivec ? "yes" : "no",
+		   touch_vector ? "yes" : "no", touch_vdso ? "yes" : "no");
 
 	/* Create a new process group so we can signal everyone for exit */
 	setpgid(getpid(), getpid());
@@ -465,7 +539,9 @@ int main(int argc, char *argv[])
 	start_fn(actions->thread2, NULL, cpu2);
 
 	while (1)
+	{
 		sleep(3600);
+	}
 
 	return 0;
 }

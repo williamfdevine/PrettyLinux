@@ -81,7 +81,8 @@ extern const struct attribute_group *genwqe_attribute_groups[];
 /**
  * struct genwqe_reg - Genwqe data dump functionality
  */
-struct genwqe_reg {
+struct genwqe_reg
+{
 	u32 addr;
 	u32 idx;
 	u64 val;
@@ -90,7 +91,8 @@ struct genwqe_reg {
 /*
  * enum genwqe_dbg_type - Specify chip unit to dump/debug
  */
-enum genwqe_dbg_type {
+enum genwqe_dbg_type
+{
 	GENWQE_DBG_UNIT0 = 0,  /* captured before prev errs cleared */
 	GENWQE_DBG_UNIT1 = 1,
 	GENWQE_DBG_UNIT2 = 2,
@@ -160,7 +162,8 @@ enum genwqe_dbg_type {
  * this we need to pin/swap-in the memory and request a DMA address
  * for it.
  */
-enum dma_mapping_type {
+enum dma_mapping_type
+{
 	GENWQE_MAPPING_RAW = 0,		/* contignous memory buffer */
 	GENWQE_MAPPING_SGL_TEMP,	/* sglist dynamically used */
 	GENWQE_MAPPING_SGL_PINNED,	/* sglist used with pinning */
@@ -169,7 +172,8 @@ enum dma_mapping_type {
 /**
  * struct dma_mapping - Information about memory mappings done by the driver
  */
-struct dma_mapping {
+struct dma_mapping
+{
 	enum dma_mapping_type type;
 
 	void *u_vaddr;			/* user-space vaddr/non-aligned */
@@ -186,7 +190,7 @@ struct dma_mapping {
 };
 
 static inline void genwqe_mapping_init(struct dma_mapping *m,
-				       enum dma_mapping_type type)
+									   enum dma_mapping_type type)
 {
 	memset(m, 0, sizeof(*m));
 	m->type = type;
@@ -210,7 +214,8 @@ static inline void genwqe_mapping_init(struct dma_mapping *m,
  * @ddcb_waitq:        Wait on next DDCB finishing
  */
 
-struct ddcb_queue {
+struct ddcb_queue
+{
 	int ddcb_max;			/* amount of DDCBs  */
 	int ddcb_next;			/* next available DDCB num */
 	int ddcb_act;			/* DDCB to be processed */
@@ -247,7 +252,8 @@ struct ddcb_queue {
  */
 #define GENWQE_FFDC_REGS	(3 + (8 * (2 + 2 * 64)))
 
-struct genwqe_ffdc {
+struct genwqe_ffdc
+{
 	unsigned int entries;
 	struct genwqe_reg *regs;
 };
@@ -272,7 +278,8 @@ struct genwqe_ffdc {
  * destroyed when it goes away. It holds data to maintain the queue as
  * well as data needed to feed the user interfaces.
  */
-struct genwqe_dev {
+struct genwqe_dev
+{
 	enum genwqe_card_state card_state;
 	spinlock_t print_lock;
 
@@ -331,7 +338,8 @@ struct genwqe_dev {
 /**
  * enum genwqe_requ_state - State of a DDCB execution request
  */
-enum genwqe_requ_state {
+enum genwqe_requ_state
+{
 	GENWQE_REQU_NEW      = 0,
 	GENWQE_REQU_ENQUEUED = 1,
 	GENWQE_REQU_TAPPED   = 2,
@@ -349,7 +357,8 @@ enum genwqe_requ_state {
  * @page:           buffer for partial pages if needed
  * @page_dma_addr:  dma address partial pages
  */
-struct genwqe_sgl {
+struct genwqe_sgl
+{
 	dma_addr_t sgl_dma_addr;
 	struct sg_entry *sgl;
 	size_t sgl_size;	/* size of sgl */
@@ -370,10 +379,10 @@ struct genwqe_sgl {
 };
 
 int genwqe_alloc_sync_sgl(struct genwqe_dev *cd, struct genwqe_sgl *sgl,
-			  void __user *user_addr, size_t user_size);
+						  void __user *user_addr, size_t user_size);
 
 int genwqe_setup_sgl(struct genwqe_dev *cd, struct genwqe_sgl *sgl,
-		     dma_addr_t *dma_list);
+					 dma_addr_t *dma_list);
 
 int genwqe_free_sync_sgl(struct genwqe_dev *cd, struct genwqe_sgl *sgl);
 
@@ -381,7 +390,8 @@ int genwqe_free_sync_sgl(struct genwqe_dev *cd, struct genwqe_sgl *sgl);
  * struct ddcb_requ - Kernel internal representation of the DDCB request
  * @cmd:          User space representation of the DDCB execution request
  */
-struct ddcb_requ {
+struct ddcb_requ
+{
 	/* kernel specific content */
 	enum genwqe_requ_state req_state; /* request status */
 	int num;			  /* ddcb_no for this request */
@@ -398,7 +408,8 @@ struct ddcb_requ {
 /**
  * struct genwqe_file - Information for open GenWQE devices
  */
-struct genwqe_file {
+struct genwqe_file
+{
 	struct genwqe_dev *cd;
 	struct genwqe_driver *client;
 	struct file *filp;
@@ -472,30 +483,33 @@ u64 genwqe_read_vreg(struct genwqe_dev *cd, u32 reg, int func);
 /* FFDC Buffer Management */
 int  genwqe_ffdc_buff_size(struct genwqe_dev *cd, int unit_id);
 int  genwqe_ffdc_buff_read(struct genwqe_dev *cd, int unit_id,
-			   struct genwqe_reg *regs, unsigned int max_regs);
+						   struct genwqe_reg *regs, unsigned int max_regs);
 int  genwqe_read_ffdc_regs(struct genwqe_dev *cd, struct genwqe_reg *regs,
-			   unsigned int max_regs, int all);
+						   unsigned int max_regs, int all);
 int  genwqe_ffdc_dump_dma(struct genwqe_dev *cd,
-			  struct genwqe_reg *regs, unsigned int max_regs);
+						  struct genwqe_reg *regs, unsigned int max_regs);
 
 int  genwqe_init_debug_data(struct genwqe_dev *cd,
-			    struct genwqe_debug_data *d);
+							struct genwqe_debug_data *d);
 
 void genwqe_init_crc32(void);
 int  genwqe_read_app_id(struct genwqe_dev *cd, char *app_name, int len);
 
 /* Memory allocation/deallocation; dma address handling */
 int  genwqe_user_vmap(struct genwqe_dev *cd, struct dma_mapping *m,
-		      void *uaddr, unsigned long size,
-		      struct ddcb_requ *req);
+					  void *uaddr, unsigned long size,
+					  struct ddcb_requ *req);
 
 int  genwqe_user_vunmap(struct genwqe_dev *cd, struct dma_mapping *m,
-			struct ddcb_requ *req);
+						struct ddcb_requ *req);
 
 static inline bool dma_mapping_used(struct dma_mapping *m)
 {
 	if (!m)
+	{
 		return 0;
+	}
+
 	return m->size != 0;
 }
 
@@ -509,7 +523,7 @@ static inline bool dma_mapping_used(struct dma_mapping *m)
  * buildup and teardown.
  */
 int  __genwqe_execute_ddcb(struct genwqe_dev *cd,
-			   struct genwqe_ddcb_cmd *cmd, unsigned int f_flags);
+						   struct genwqe_ddcb_cmd *cmd, unsigned int f_flags);
 
 /**
  * __genwqe_execute_raw_ddcb() - Execute DDCB request without addr translation
@@ -521,11 +535,11 @@ int  __genwqe_execute_ddcb(struct genwqe_dev *cd,
  * modification.
  */
 int  __genwqe_execute_raw_ddcb(struct genwqe_dev *cd,
-			       struct genwqe_ddcb_cmd *cmd,
-			       unsigned int f_flags);
+							   struct genwqe_ddcb_cmd *cmd,
+							   unsigned int f_flags);
 int  __genwqe_enqueue_ddcb(struct genwqe_dev *cd,
-			   struct ddcb_requ *req,
-			   unsigned int f_flags);
+						   struct ddcb_requ *req,
+						   unsigned int f_flags);
 
 int  __genwqe_wait_ddcb(struct genwqe_dev *cd, struct ddcb_requ *req);
 int  __genwqe_purge_ddcb(struct genwqe_dev *cd, struct ddcb_requ *req);
@@ -537,9 +551,9 @@ int __genwqe_writel(struct genwqe_dev *cd, u64 byte_offs, u32 val);
 u32 __genwqe_readl(struct genwqe_dev *cd, u64 byte_offs);
 
 void *__genwqe_alloc_consistent(struct genwqe_dev *cd, size_t size,
-				 dma_addr_t *dma_handle);
+								dma_addr_t *dma_handle);
 void __genwqe_free_consistent(struct genwqe_dev *cd, size_t size,
-			      void *vaddr, dma_addr_t dma_handle);
+							  void *vaddr, dma_addr_t dma_handle);
 
 /* Base clock frequency in MHz */
 int  genwqe_base_clock_frequency(struct genwqe_dev *cd);

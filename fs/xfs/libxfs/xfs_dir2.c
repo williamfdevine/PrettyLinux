@@ -41,7 +41,8 @@ struct xfs_name xfs_name_dotdot = { (unsigned char *)"..", 2, XFS_DIR3_FT_DIR };
  * for file type specification. This will be propagated into the directory
  * structure if appropriate for the given operation and filesystem config.
  */
-const unsigned char xfs_mode_to_ftype[S_IFMT >> S_SHIFT] = {
+const unsigned char xfs_mode_to_ftype[S_IFMT >> S_SHIFT] =
+{
 	[0]			= XFS_DIR3_FT_UNKNOWN,
 	[S_IFREG >> S_SHIFT]    = XFS_DIR3_FT_REG_FILE,
 	[S_IFDIR >> S_SHIFT]    = XFS_DIR3_FT_DIR,
@@ -64,7 +65,9 @@ xfs_ascii_ci_hashname(
 	int		i;
 
 	for (i = 0, hash = 0; i < name->len; i++)
+	{
 		hash = tolower(name->name[i]) ^ rol32(hash, 7);
+	}
 
 	return hash;
 }
@@ -79,21 +82,32 @@ xfs_ascii_ci_compname(
 	int		i;
 
 	if (args->namelen != len)
+	{
 		return XFS_CMP_DIFFERENT;
+	}
 
 	result = XFS_CMP_EXACT;
-	for (i = 0; i < len; i++) {
+
+	for (i = 0; i < len; i++)
+	{
 		if (args->name[i] == name[i])
+		{
 			continue;
+		}
+
 		if (tolower(args->name[i]) != tolower(name[i]))
+		{
 			return XFS_CMP_DIFFERENT;
+		}
+
 		result = XFS_CMP_CASE;
 	}
 
 	return result;
 }
 
-static struct xfs_nameops xfs_ascii_ci_nameops = {
+static struct xfs_nameops xfs_ascii_ci_nameops =
+{
 	.hashname	= xfs_ascii_ci_hashname,
 	.compname	= xfs_ascii_ci_compname,
 };
@@ -108,17 +122,19 @@ xfs_da_mount(
 
 	ASSERT(mp->m_sb.sb_versionnum & XFS_SB_VERSION_DIRV2BIT);
 	ASSERT((1 << (mp->m_sb.sb_blocklog + mp->m_sb.sb_dirblklog)) <=
-	       XFS_MAX_BLOCKSIZE);
+		   XFS_MAX_BLOCKSIZE);
 
 	mp->m_dir_inode_ops = xfs_dir_get_ops(mp, NULL);
 	mp->m_nondir_inode_ops = xfs_nondir_get_ops(mp, NULL);
 
 	nodehdr_size = mp->m_dir_inode_ops->node_hdr_size;
 	mp->m_dir_geo = kmem_zalloc(sizeof(struct xfs_da_geometry),
-				    KM_SLEEP | KM_MAYFAIL);
+								KM_SLEEP | KM_MAYFAIL);
 	mp->m_attr_geo = kmem_zalloc(sizeof(struct xfs_da_geometry),
-				     KM_SLEEP | KM_MAYFAIL);
-	if (!mp->m_dir_geo || !mp->m_attr_geo) {
+								 KM_SLEEP | KM_MAYFAIL);
+
+	if (!mp->m_dir_geo || !mp->m_attr_geo)
+	{
 		kmem_free(mp->m_dir_geo);
 		kmem_free(mp->m_attr_geo);
 		return -ENOMEM;
@@ -139,7 +155,7 @@ xfs_da_mount(
 	dageo->leafblk = xfs_dir2_byte_to_da(dageo, XFS_DIR2_LEAF_OFFSET);
 	dageo->freeblk = xfs_dir2_byte_to_da(dageo, XFS_DIR2_FREE_OFFSET);
 	dageo->node_ents = (dageo->blksize - nodehdr_size) /
-				(uint)sizeof(xfs_da_node_entry_t);
+					   (uint)sizeof(xfs_da_node_entry_t);
 	dageo->magicpct = (dageo->blksize * 37) / 100;
 
 	/* set up attribute geometry - single fsb only */
@@ -149,13 +165,17 @@ xfs_da_mount(
 	dageo->blksize = 1 << dageo->blklog;
 	dageo->fsbcount = 1;
 	dageo->node_ents = (dageo->blksize - nodehdr_size) /
-				(uint)sizeof(xfs_da_node_entry_t);
+					   (uint)sizeof(xfs_da_node_entry_t);
 	dageo->magicpct = (dageo->blksize * 37) / 100;
 
 	if (xfs_sb_version_hasasciici(&mp->m_sb))
+	{
 		mp->m_dirnameops = &xfs_ascii_ci_nameops;
+	}
 	else
+	{
 		mp->m_dirnameops = &xfs_default_nameops;
+	}
 
 	return 0;
 }
@@ -178,10 +198,17 @@ xfs_dir_isempty(
 	xfs_dir2_sf_hdr_t	*sfp;
 
 	ASSERT(S_ISDIR(VFS_I(dp)->i_mode));
+
 	if (dp->i_d.di_size == 0)	/* might happen during shutdown. */
+	{
 		return 1;
+	}
+
 	if (dp->i_d.di_size > XFS_IFORK_DSIZE(dp))
+	{
 		return 0;
+	}
+
 	sfp = (xfs_dir2_sf_hdr_t *)dp->i_df.if_u1.if_data;
 	return !sfp->count;
 }
@@ -210,13 +237,16 @@ xfs_dir_ino_validate(
 		agblkno != 0 &&
 		ioff < (1 << mp->m_sb.sb_inopblog) &&
 		XFS_AGINO_TO_INO(mp, agno, agino) == ino;
+
 	if (unlikely(XFS_TEST_ERROR(!ino_ok, mp, XFS_ERRTAG_DIR_INO_VALIDATE,
-			XFS_RANDOM_DIR_INO_VALIDATE))) {
+								XFS_RANDOM_DIR_INO_VALIDATE)))
+	{
 		xfs_warn(mp, "Invalid inode number 0x%Lx",
-				(unsigned long long) ino);
+				 (unsigned long long) ino);
 		XFS_ERROR_REPORT("xfs_dir_ino_validate", XFS_ERRLEVEL_LOW, mp);
 		return -EFSCORRUPTED;
 	}
+
 	return 0;
 }
 
@@ -234,12 +264,18 @@ xfs_dir_init(
 
 	ASSERT(S_ISDIR(VFS_I(dp)->i_mode));
 	error = xfs_dir_ino_validate(tp->t_mountp, pdp->i_ino);
+
 	if (error)
+	{
 		return error;
+	}
 
 	args = kmem_zalloc(sizeof(*args), KM_SLEEP | KM_NOFS);
+
 	if (!args)
+	{
 		return -ENOMEM;
+	}
 
 	args->geo = dp->i_mount->m_dir_geo;
 	args->dp = dp;
@@ -268,16 +304,25 @@ xfs_dir_createname(
 	int			v;		/* type-checking value */
 
 	ASSERT(S_ISDIR(VFS_I(dp)->i_mode));
-	if (inum) {
+
+	if (inum)
+	{
 		rval = xfs_dir_ino_validate(tp->t_mountp, inum);
+
 		if (rval)
+		{
 			return rval;
+		}
+
 		XFS_STATS_INC(dp->i_mount, xs_dir_create);
 	}
 
 	args = kmem_zalloc(sizeof(*args), KM_SLEEP | KM_NOFS);
+
 	if (!args)
+	{
 		return -ENOMEM;
+	}
 
 	args->geo = dp->i_mount->m_dir_geo;
 	args->name = name->name;
@@ -292,29 +337,46 @@ xfs_dir_createname(
 	args->whichfork = XFS_DATA_FORK;
 	args->trans = tp;
 	args->op_flags = XFS_DA_OP_ADDNAME | XFS_DA_OP_OKNOENT;
-	if (!inum)
-		args->op_flags |= XFS_DA_OP_JUSTCHECK;
 
-	if (dp->i_d.di_format == XFS_DINODE_FMT_LOCAL) {
+	if (!inum)
+	{
+		args->op_flags |= XFS_DA_OP_JUSTCHECK;
+	}
+
+	if (dp->i_d.di_format == XFS_DINODE_FMT_LOCAL)
+	{
 		rval = xfs_dir2_sf_addname(args);
 		goto out_free;
 	}
 
 	rval = xfs_dir2_isblock(args, &v);
+
 	if (rval)
+	{
 		goto out_free;
-	if (v) {
+	}
+
+	if (v)
+	{
 		rval = xfs_dir2_block_addname(args);
 		goto out_free;
 	}
 
 	rval = xfs_dir2_isleaf(args, &v);
+
 	if (rval)
+	{
 		goto out_free;
+	}
+
 	if (v)
+	{
 		rval = xfs_dir2_leaf_addname(args);
+	}
 	else
+	{
 		rval = xfs_dir2_node_addname(args);
+	}
 
 out_free:
 	kmem_free(args);
@@ -332,14 +394,22 @@ xfs_dir_cilookup_result(
 	int		len)
 {
 	if (args->cmpresult == XFS_CMP_DIFFERENT)
+	{
 		return -ENOENT;
+	}
+
 	if (args->cmpresult != XFS_CMP_CASE ||
-					!(args->op_flags & XFS_DA_OP_CILOOKUP))
+		!(args->op_flags & XFS_DA_OP_CILOOKUP))
+	{
 		return -EEXIST;
+	}
 
 	args->value = kmem_alloc(len, KM_NOFS | KM_MAYFAIL);
+
 	if (!args->value)
+	{
 		return -ENOMEM;
+	}
 
 	memcpy(args->value, name, len);
 	args->valuelen = len;
@@ -386,41 +456,67 @@ xfs_dir_lookup(
 	args->whichfork = XFS_DATA_FORK;
 	args->trans = tp;
 	args->op_flags = XFS_DA_OP_OKNOENT;
+
 	if (ci_name)
+	{
 		args->op_flags |= XFS_DA_OP_CILOOKUP;
+	}
 
 	lock_mode = xfs_ilock_data_map_shared(dp);
-	if (dp->i_d.di_format == XFS_DINODE_FMT_LOCAL) {
+
+	if (dp->i_d.di_format == XFS_DINODE_FMT_LOCAL)
+	{
 		rval = xfs_dir2_sf_lookup(args);
 		goto out_check_rval;
 	}
 
 	rval = xfs_dir2_isblock(args, &v);
+
 	if (rval)
+	{
 		goto out_free;
-	if (v) {
+	}
+
+	if (v)
+	{
 		rval = xfs_dir2_block_lookup(args);
 		goto out_check_rval;
 	}
 
 	rval = xfs_dir2_isleaf(args, &v);
+
 	if (rval)
+	{
 		goto out_free;
+	}
+
 	if (v)
+	{
 		rval = xfs_dir2_leaf_lookup(args);
+	}
 	else
+	{
 		rval = xfs_dir2_node_lookup(args);
+	}
 
 out_check_rval:
+
 	if (rval == -EEXIST)
+	{
 		rval = 0;
-	if (!rval) {
+	}
+
+	if (!rval)
+	{
 		*inum = args->inumber;
-		if (ci_name) {
+
+		if (ci_name)
+		{
 			ci_name->name = args->value;
 			ci_name->len = args->valuelen;
 		}
 	}
+
 out_free:
 	xfs_iunlock(dp, lock_mode);
 	kmem_free(args);
@@ -448,8 +544,11 @@ xfs_dir_removename(
 	XFS_STATS_INC(dp->i_mount, xs_dir_remove);
 
 	args = kmem_zalloc(sizeof(*args), KM_SLEEP | KM_NOFS);
+
 	if (!args)
+	{
 		return -ENOMEM;
+	}
 
 	args->geo = dp->i_mount->m_dir_geo;
 	args->name = name->name;
@@ -464,26 +563,41 @@ xfs_dir_removename(
 	args->whichfork = XFS_DATA_FORK;
 	args->trans = tp;
 
-	if (dp->i_d.di_format == XFS_DINODE_FMT_LOCAL) {
+	if (dp->i_d.di_format == XFS_DINODE_FMT_LOCAL)
+	{
 		rval = xfs_dir2_sf_removename(args);
 		goto out_free;
 	}
 
 	rval = xfs_dir2_isblock(args, &v);
+
 	if (rval)
+	{
 		goto out_free;
-	if (v) {
+	}
+
+	if (v)
+	{
 		rval = xfs_dir2_block_removename(args);
 		goto out_free;
 	}
 
 	rval = xfs_dir2_isleaf(args, &v);
+
 	if (rval)
+	{
 		goto out_free;
+	}
+
 	if (v)
+	{
 		rval = xfs_dir2_leaf_removename(args);
+	}
 	else
+	{
 		rval = xfs_dir2_node_removename(args);
+	}
+
 out_free:
 	kmem_free(args);
 	return rval;
@@ -509,12 +623,18 @@ xfs_dir_replace(
 	ASSERT(S_ISDIR(VFS_I(dp)->i_mode));
 
 	rval = xfs_dir_ino_validate(tp->t_mountp, inum);
+
 	if (rval)
+	{
 		return rval;
+	}
 
 	args = kmem_zalloc(sizeof(*args), KM_SLEEP | KM_NOFS);
+
 	if (!args)
+	{
 		return -ENOMEM;
+	}
 
 	args->geo = dp->i_mount->m_dir_geo;
 	args->name = name->name;
@@ -529,26 +649,41 @@ xfs_dir_replace(
 	args->whichfork = XFS_DATA_FORK;
 	args->trans = tp;
 
-	if (dp->i_d.di_format == XFS_DINODE_FMT_LOCAL) {
+	if (dp->i_d.di_format == XFS_DINODE_FMT_LOCAL)
+	{
 		rval = xfs_dir2_sf_replace(args);
 		goto out_free;
 	}
 
 	rval = xfs_dir2_isblock(args, &v);
+
 	if (rval)
+	{
 		goto out_free;
-	if (v) {
+	}
+
+	if (v)
+	{
 		rval = xfs_dir2_block_replace(args);
 		goto out_free;
 	}
 
 	rval = xfs_dir2_isleaf(args, &v);
+
 	if (rval)
+	{
 		goto out_free;
+	}
+
 	if (v)
+	{
 		rval = xfs_dir2_leaf_replace(args);
+	}
 	else
+	{
 		rval = xfs_dir2_node_replace(args);
+	}
+
 out_free:
 	kmem_free(args);
 	return rval;
@@ -597,23 +732,30 @@ xfs_dir2_grow_inode(
 	count = args->geo->fsbcount;
 
 	error = xfs_da_grow_inode_int(args, &bno, count);
+
 	if (error)
+	{
 		return error;
+	}
 
 	*dbp = xfs_dir2_da_to_db(args->geo, (xfs_dablk_t)bno);
 
 	/*
 	 * Update file's size if this is the data space and it grew.
 	 */
-	if (space == XFS_DIR2_DATA_SPACE) {
+	if (space == XFS_DIR2_DATA_SPACE)
+	{
 		xfs_fsize_t	size;		/* directory file (data) size */
 
 		size = XFS_FSB_TO_B(mp, bno + count);
-		if (size > dp->i_d.di_size) {
+
+		if (size > dp->i_d.di_size)
+		{
 			dp->i_d.di_size = size;
 			xfs_trans_log_inode(args->trans, dp, XFS_ILOG_CORE);
 		}
 	}
+
 	return 0;
 }
 
@@ -629,7 +771,10 @@ xfs_dir2_isblock(
 	int			rval;
 
 	if ((rval = xfs_bmap_last_offset(args->dp, &last, XFS_DATA_FORK)))
+	{
 		return rval;
+	}
+
 	rval = XFS_FSB_TO_B(args->dp->i_mount, last) == args->geo->blksize;
 	ASSERT(rval == 0 || args->dp->i_d.di_size == args->geo->blksize);
 	*vp = rval;
@@ -648,7 +793,10 @@ xfs_dir2_isleaf(
 	int			rval;
 
 	if ((rval = xfs_bmap_last_offset(args->dp, &last, XFS_DATA_FORK)))
+	{
 		return rval;
+	}
+
 	*vp = last == args->geo->leafblk + args->geo->fsbcount;
 	return 0;
 }
@@ -681,8 +829,10 @@ xfs_dir2_shrink_inode(
 
 	/* Unmap the fsblock(s). */
 	error = xfs_bunmapi(tp, dp, da, args->geo->fsbcount, 0, 0,
-			    args->firstblock, args->dfops, &done);
-	if (error) {
+						args->firstblock, args->dfops, &done);
+
+	if (error)
+	{
 		/*
 		 * ENOSPC actually can happen if we're in a removename with no
 		 * space reservation, and the resulting block removal would
@@ -697,32 +847,48 @@ xfs_dir2_shrink_inode(
 		 */
 		return error;
 	}
+
 	ASSERT(done);
 	/*
 	 * Invalidate the buffer from the transaction.
 	 */
 	xfs_trans_binval(tp, bp);
+
 	/*
 	 * If it's not a data block, we're done.
 	 */
 	if (db >= xfs_dir2_byte_to_db(args->geo, XFS_DIR2_LEAF_OFFSET))
+	{
 		return 0;
+	}
+
 	/*
 	 * If the block isn't the last one in the directory, we're done.
 	 */
 	if (dp->i_d.di_size > xfs_dir2_db_off_to_byte(args->geo, db + 1, 0))
+	{
 		return 0;
+	}
+
 	bno = da;
-	if ((error = xfs_bmap_last_before(tp, dp, &bno, XFS_DATA_FORK))) {
+
+	if ((error = xfs_bmap_last_before(tp, dp, &bno, XFS_DATA_FORK)))
+	{
 		/*
 		 * This can't really happen unless there's kernel corruption.
 		 */
 		return error;
 	}
+
 	if (db == args->geo->datablk)
+	{
 		ASSERT(bno == 0);
+	}
 	else
+	{
 		ASSERT(bno > 0);
+	}
+
 	/*
 	 * Set the size to the new last block.
 	 */

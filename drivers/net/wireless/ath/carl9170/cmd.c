@@ -42,51 +42,65 @@
 
 int carl9170_write_reg(struct ar9170 *ar, const u32 reg, const u32 val)
 {
-	const __le32 buf[2] = {
+	const __le32 buf[2] =
+	{
 		cpu_to_le32(reg),
 		cpu_to_le32(val),
 	};
 	int err;
 
 	err = carl9170_exec_cmd(ar, CARL9170_CMD_WREG, sizeof(buf),
-				(u8 *) buf, 0, NULL);
-	if (err) {
-		if (net_ratelimit()) {
+							(u8 *) buf, 0, NULL);
+
+	if (err)
+	{
+		if (net_ratelimit())
+		{
 			wiphy_err(ar->hw->wiphy, "writing reg %#x "
-				"(val %#x) failed (%d)\n", reg, val, err);
+					  "(val %#x) failed (%d)\n", reg, val, err);
 		}
 	}
+
 	return err;
 }
 
 int carl9170_read_mreg(struct ar9170 *ar, const int nregs,
-		       const u32 *regs, u32 *out)
+					   const u32 *regs, u32 *out)
 {
 	int i, err;
 	__le32 *offs, *res;
 
 	/* abuse "out" for the register offsets, must be same length */
 	offs = (__le32 *)out;
+
 	for (i = 0; i < nregs; i++)
+	{
 		offs[i] = cpu_to_le32(regs[i]);
+	}
 
 	/* also use the same buffer for the input */
 	res = (__le32 *)out;
 
 	err = carl9170_exec_cmd(ar, CARL9170_CMD_RREG,
-				4 * nregs, (u8 *)offs,
-				4 * nregs, (u8 *)res);
-	if (err) {
-		if (net_ratelimit()) {
+							4 * nregs, (u8 *)offs,
+							4 * nregs, (u8 *)res);
+
+	if (err)
+	{
+		if (net_ratelimit())
+		{
 			wiphy_err(ar->hw->wiphy, "reading regs failed (%d)\n",
-				  err);
+					  err);
 		}
+
 		return err;
 	}
 
 	/* convert result to cpu endian */
 	for (i = 0; i < nregs; i++)
+	{
 		out[i] = le32_to_cpu(res[i]);
+	}
 
 	return 0;
 }
@@ -102,12 +116,16 @@ int carl9170_echo_test(struct ar9170 *ar, const u32 v)
 	int err;
 
 	err = carl9170_exec_cmd(ar, CARL9170_CMD_ECHO,
-				4, (u8 *)&v,
-				4, (u8 *)&echores);
-	if (err)
-		return err;
+							4, (u8 *)&v,
+							4, (u8 *)&echores);
 
-	if (v != echores) {
+	if (err)
+	{
+		return err;
+	}
+
+	if (v != echores)
+	{
 		wiphy_info(ar->hw->wiphy, "wrong echo %x != %x", v, echores);
 		return -EINVAL;
 	}
@@ -116,12 +134,14 @@ int carl9170_echo_test(struct ar9170 *ar, const u32 v)
 }
 
 struct carl9170_cmd *carl9170_cmd_buf(struct ar9170 *ar,
-	const enum carl9170_cmd_oids cmd, const unsigned int len)
+									  const enum carl9170_cmd_oids cmd, const unsigned int len)
 {
 	struct carl9170_cmd *tmp;
 
 	tmp = kzalloc(sizeof(struct carl9170_cmd_head) + len, GFP_ATOMIC);
-	if (tmp) {
+
+	if (tmp)
+	{
 		tmp->hdr.cmd = cmd;
 		tmp->hdr.len = len;
 	}
@@ -135,8 +155,11 @@ int carl9170_reboot(struct ar9170 *ar)
 	int err;
 
 	cmd = carl9170_cmd_buf(ar, CARL9170_CMD_REBOOT_ASYNC, 0);
+
 	if (!cmd)
+	{
 		return -ENOMEM;
+	}
 
 	err = __carl9170_exec_cmd(ar, cmd, true);
 	return err;
@@ -145,18 +168,21 @@ int carl9170_reboot(struct ar9170 *ar)
 int carl9170_mac_reset(struct ar9170 *ar)
 {
 	return carl9170_exec_cmd(ar, CARL9170_CMD_SWRST,
-				 0, NULL, 0, NULL);
+							 0, NULL, 0, NULL);
 }
 
 int carl9170_bcn_ctrl(struct ar9170 *ar, const unsigned int vif_id,
-		       const u32 mode, const u32 addr, const u32 len)
+					  const u32 mode, const u32 addr, const u32 len)
 {
 	struct carl9170_cmd *cmd;
 
 	cmd = carl9170_cmd_buf(ar, CARL9170_CMD_BCN_CTRL_ASYNC,
-			       sizeof(struct carl9170_bcn_ctrl_cmd));
+						   sizeof(struct carl9170_bcn_ctrl_cmd));
+
 	if (!cmd)
+	{
 		return -ENOMEM;
+	}
 
 	cmd->bcn_ctrl.vif_id = cpu_to_le32(vif_id);
 	cmd->bcn_ctrl.mode = cpu_to_le32(mode);
@@ -174,19 +200,25 @@ int carl9170_collect_tally(struct ar9170 *ar)
 	int err;
 
 	err = carl9170_exec_cmd(ar, CARL9170_CMD_TALLY, 0, NULL,
-				sizeof(tally), (u8 *)&tally);
+							sizeof(tally), (u8 *)&tally);
+
 	if (err)
+	{
 		return err;
+	}
 
 	tick = le32_to_cpu(tally.tick);
-	if (tick) {
+
+	if (tick)
+	{
 		ar->tally.active += le32_to_cpu(tally.active) / tick;
 		ar->tally.cca += le32_to_cpu(tally.cca) / tick;
 		ar->tally.tx_time += le32_to_cpu(tally.tx_time) / tick;
 		ar->tally.rx_total += le32_to_cpu(tally.rx_total);
 		ar->tally.rx_overrun += le32_to_cpu(tally.rx_overrun);
 
-		if (ar->channel) {
+		if (ar->channel)
+		{
 			info = &ar->survey[ar->channel->hw_value];
 			info->time = ar->tally.active;
 			info->time_busy = ar->tally.cca;
@@ -196,6 +228,7 @@ int carl9170_collect_tally(struct ar9170 *ar)
 			do_div(info->time_tx, 1000);
 		}
 	}
+
 	return 0;
 }
 
@@ -205,14 +238,20 @@ int carl9170_powersave(struct ar9170 *ar, const bool ps)
 	u32 state;
 
 	cmd = carl9170_cmd_buf(ar, CARL9170_CMD_PSM_ASYNC,
-			       sizeof(struct carl9170_psm));
-	if (!cmd)
-		return -ENOMEM;
+						   sizeof(struct carl9170_psm));
 
-	if (ps) {
+	if (!cmd)
+	{
+		return -ENOMEM;
+	}
+
+	if (ps)
+	{
 		/* Sleep until next TBTT */
 		state = CARL9170_PSM_SLEEP | 1;
-	} else {
+	}
+	else
+	{
 		/* wake up immediately */
 		state = 1;
 	}

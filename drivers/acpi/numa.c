@@ -37,9 +37,9 @@ static nodemask_t nodes_found_map = NODE_MASK_NONE;
 
 /* maps to convert between proximity domain and logical node ID */
 static int pxm_to_node_map[MAX_PXM_DOMAINS]
-			= { [0 ... MAX_PXM_DOMAINS - 1] = NUMA_NO_NODE };
+	= { [0 ... MAX_PXM_DOMAINS - 1] = NUMA_NO_NODE };
 static int node_to_pxm_map[MAX_NUMNODES]
-			= { [0 ... MAX_NUMNODES - 1] = PXM_INVAL };
+	= { [0 ... MAX_NUMNODES - 1] = PXM_INVAL };
 
 unsigned char acpi_srat_revision __initdata;
 int acpi_numa __initdata;
@@ -47,23 +47,34 @@ int acpi_numa __initdata;
 int pxm_to_node(int pxm)
 {
 	if (pxm < 0)
+	{
 		return NUMA_NO_NODE;
+	}
+
 	return pxm_to_node_map[pxm];
 }
 
 int node_to_pxm(int node)
 {
 	if (node < 0)
+	{
 		return PXM_INVAL;
+	}
+
 	return node_to_pxm_map[node];
 }
 
 static void __acpi_map_pxm_to_node(int pxm, int node)
 {
 	if (pxm_to_node_map[pxm] == NUMA_NO_NODE || node < pxm_to_node_map[pxm])
+	{
 		pxm_to_node_map[pxm] = node;
+	}
+
 	if (node_to_pxm_map[node] == PXM_INVAL || pxm < node_to_pxm_map[node])
+	{
 		node_to_pxm_map[node] = pxm;
+	}
 }
 
 int acpi_map_pxm_to_node(int pxm)
@@ -71,13 +82,19 @@ int acpi_map_pxm_to_node(int pxm)
 	int node;
 
 	if (pxm < 0 || pxm >= MAX_PXM_DOMAINS)
+	{
 		return NUMA_NO_NODE;
+	}
 
 	node = pxm_to_node_map[pxm];
 
-	if (node == NUMA_NO_NODE) {
+	if (node == NUMA_NO_NODE)
+	{
 		if (nodes_weight(nodes_found_map) >= MAX_NUMNODES)
+		{
 			return NUMA_NO_NODE;
+		}
+
 		node = first_unset_node(nodes_found_map);
 		__acpi_map_pxm_to_node(pxm, node);
 		node_set(node, nodes_found_map);
@@ -108,13 +125,19 @@ int acpi_map_pxm_to_online_node(int pxm)
 	node = acpi_map_pxm_to_node(pxm);
 
 	if (node == NUMA_NO_NODE)
+	{
 		node = 0;
+	}
 
-	if (!node_online(node)) {
+	if (!node_online(node))
+	{
 		min_dist = INT_MAX;
-		for_each_online_node(n) {
+		for_each_online_node(n)
+		{
 			dist = node_distance(node, n);
-			if (dist < min_dist) {
+
+			if (dist < min_dist)
+			{
 				min_dist = dist;
 				node = n;
 			}
@@ -128,64 +151,65 @@ EXPORT_SYMBOL(acpi_map_pxm_to_online_node);
 static void __init
 acpi_table_print_srat_entry(struct acpi_subtable_header *header)
 {
-	switch (header->type) {
-	case ACPI_SRAT_TYPE_CPU_AFFINITY:
-		{
-			struct acpi_srat_cpu_affinity *p =
-			    (struct acpi_srat_cpu_affinity *)header;
-			pr_debug("SRAT Processor (id[0x%02x] eid[0x%02x]) in proximity domain %d %s\n",
-				 p->apic_id, p->local_sapic_eid,
-				 p->proximity_domain_lo,
-				 (p->flags & ACPI_SRAT_CPU_ENABLED) ?
-				 "enabled" : "disabled");
-		}
-		break;
+	switch (header->type)
+	{
+		case ACPI_SRAT_TYPE_CPU_AFFINITY:
+			{
+				struct acpi_srat_cpu_affinity *p =
+					(struct acpi_srat_cpu_affinity *)header;
+				pr_debug("SRAT Processor (id[0x%02x] eid[0x%02x]) in proximity domain %d %s\n",
+						 p->apic_id, p->local_sapic_eid,
+						 p->proximity_domain_lo,
+						 (p->flags & ACPI_SRAT_CPU_ENABLED) ?
+						 "enabled" : "disabled");
+			}
+			break;
 
-	case ACPI_SRAT_TYPE_MEMORY_AFFINITY:
-		{
-			struct acpi_srat_mem_affinity *p =
-			    (struct acpi_srat_mem_affinity *)header;
-			pr_debug("SRAT Memory (0x%lx length 0x%lx) in proximity domain %d %s%s%s\n",
-				 (unsigned long)p->base_address,
-				 (unsigned long)p->length,
-				 p->proximity_domain,
-				 (p->flags & ACPI_SRAT_MEM_ENABLED) ?
-				 "enabled" : "disabled",
-				 (p->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE) ?
-				 " hot-pluggable" : "",
-				 (p->flags & ACPI_SRAT_MEM_NON_VOLATILE) ?
-				 " non-volatile" : "");
-		}
-		break;
+		case ACPI_SRAT_TYPE_MEMORY_AFFINITY:
+			{
+				struct acpi_srat_mem_affinity *p =
+					(struct acpi_srat_mem_affinity *)header;
+				pr_debug("SRAT Memory (0x%lx length 0x%lx) in proximity domain %d %s%s%s\n",
+						 (unsigned long)p->base_address,
+						 (unsigned long)p->length,
+						 p->proximity_domain,
+						 (p->flags & ACPI_SRAT_MEM_ENABLED) ?
+						 "enabled" : "disabled",
+						 (p->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE) ?
+						 " hot-pluggable" : "",
+						 (p->flags & ACPI_SRAT_MEM_NON_VOLATILE) ?
+						 " non-volatile" : "");
+			}
+			break;
 
-	case ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY:
-		{
-			struct acpi_srat_x2apic_cpu_affinity *p =
-			    (struct acpi_srat_x2apic_cpu_affinity *)header;
-			pr_debug("SRAT Processor (x2apicid[0x%08x]) in proximity domain %d %s\n",
-				 p->apic_id,
-				 p->proximity_domain,
-				 (p->flags & ACPI_SRAT_CPU_ENABLED) ?
-				 "enabled" : "disabled");
-		}
-		break;
+		case ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY:
+			{
+				struct acpi_srat_x2apic_cpu_affinity *p =
+					(struct acpi_srat_x2apic_cpu_affinity *)header;
+				pr_debug("SRAT Processor (x2apicid[0x%08x]) in proximity domain %d %s\n",
+						 p->apic_id,
+						 p->proximity_domain,
+						 (p->flags & ACPI_SRAT_CPU_ENABLED) ?
+						 "enabled" : "disabled");
+			}
+			break;
 
-	case ACPI_SRAT_TYPE_GICC_AFFINITY:
-		{
-			struct acpi_srat_gicc_affinity *p =
-			    (struct acpi_srat_gicc_affinity *)header;
-			pr_debug("SRAT Processor (acpi id[0x%04x]) in proximity domain %d %s\n",
-				 p->acpi_processor_uid,
-				 p->proximity_domain,
-				 (p->flags & ACPI_SRAT_GICC_ENABLED) ?
-				 "enabled" : "disabled");
-		}
-		break;
+		case ACPI_SRAT_TYPE_GICC_AFFINITY:
+			{
+				struct acpi_srat_gicc_affinity *p =
+					(struct acpi_srat_gicc_affinity *)header;
+				pr_debug("SRAT Processor (acpi id[0x%04x]) in proximity domain %d %s\n",
+						 p->acpi_processor_uid,
+						 p->proximity_domain,
+						 (p->flags & ACPI_SRAT_GICC_ENABLED) ?
+						 "enabled" : "disabled");
+			}
+			break;
 
-	default:
-		pr_warn("Found unsupported SRAT entry (type = 0x%x)\n",
-			header->type);
-		break;
+		default:
+			pr_warn("Found unsupported SRAT entry (type = 0x%x)\n",
+					header->type);
+			break;
 	}
 }
 
@@ -199,16 +223,27 @@ static int __init slit_valid(struct acpi_table_slit *slit)
 {
 	int i, j;
 	int d = slit->locality_count;
-	for (i = 0; i < d; i++) {
-		for (j = 0; j < d; j++)  {
-			u8 val = slit->entry[d*i + j];
-			if (i == j) {
+
+	for (i = 0; i < d; i++)
+	{
+		for (j = 0; j < d; j++)
+		{
+			u8 val = slit->entry[d * i + j];
+
+			if (i == j)
+			{
 				if (val != LOCAL_DISTANCE)
+				{
 					return 0;
-			} else if (val <= LOCAL_DISTANCE)
+				}
+			}
+			else if (val <= LOCAL_DISTANCE)
+			{
 				return 0;
+			}
 		}
 	}
+
 	return 1;
 }
 
@@ -233,20 +268,26 @@ void __init acpi_numa_slit_init(struct acpi_table_slit *slit)
 {
 	int i, j;
 
-	for (i = 0; i < slit->locality_count; i++) {
+	for (i = 0; i < slit->locality_count; i++)
+	{
 		const int from_node = pxm_to_node(i);
 
 		if (from_node == NUMA_NO_NODE)
+		{
 			continue;
+		}
 
-		for (j = 0; j < slit->locality_count; j++) {
+		for (j = 0; j < slit->locality_count; j++)
+		{
 			const int to_node = pxm_to_node(j);
 
 			if (to_node == NUMA_NO_NODE)
+			{
 				continue;
+			}
 
 			numa_set_distance(from_node, to_node,
-				slit->entry[slit->locality_count * i + j]);
+							  slit->entry[slit->locality_count * i + j]);
 		}
 	}
 }
@@ -263,49 +304,66 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
 	int node, pxm;
 
 	if (srat_disabled())
+	{
 		goto out_err;
-	if (ma->header.length < sizeof(struct acpi_srat_mem_affinity)) {
+	}
+
+	if (ma->header.length < sizeof(struct acpi_srat_mem_affinity))
+	{
 		pr_err("SRAT: Unexpected header length: %d\n",
-		       ma->header.length);
+			   ma->header.length);
 		goto out_err_bad_srat;
 	}
+
 	if ((ma->flags & ACPI_SRAT_MEM_ENABLED) == 0)
+	{
 		goto out_err;
+	}
+
 	hotpluggable = ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE;
+
 	if (hotpluggable && !IS_ENABLED(CONFIG_MEMORY_HOTPLUG))
+	{
 		goto out_err;
+	}
 
 	start = ma->base_address;
 	end = start + ma->length;
 	pxm = ma->proximity_domain;
+
 	if (acpi_srat_revision <= 1)
+	{
 		pxm &= 0xff;
+	}
 
 	node = acpi_map_pxm_to_node(pxm);
-	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
+
+	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES)
+	{
 		pr_err("SRAT: Too many proximity domains.\n");
 		goto out_err_bad_srat;
 	}
 
-	if (numa_add_memblk(node, start, end) < 0) {
+	if (numa_add_memblk(node, start, end) < 0)
+	{
 		pr_err("SRAT: Failed to add memblk to node %u [mem %#010Lx-%#010Lx]\n",
-		       node, (unsigned long long) start,
-		       (unsigned long long) end - 1);
+			   node, (unsigned long long) start,
+			   (unsigned long long) end - 1);
 		goto out_err_bad_srat;
 	}
 
 	node_set(node, numa_nodes_parsed);
 
 	pr_info("SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx]%s%s\n",
-		node, pxm,
-		(unsigned long long) start, (unsigned long long) end - 1,
-		hotpluggable ? " hotplug" : "",
-		ma->flags & ACPI_SRAT_MEM_NON_VOLATILE ? " non-volatile" : "");
+			node, pxm,
+			(unsigned long long) start, (unsigned long long) end - 1,
+			hotpluggable ? " hotplug" : "",
+			ma->flags & ACPI_SRAT_MEM_NON_VOLATILE ? " non-volatile" : "");
 
 	/* Mark hotplug range in memblock. */
 	if (hotpluggable && memblock_mark_hotplug(start, ma->length))
 		pr_warn("SRAT: Failed to mark hotplug range [mem %#010Lx-%#010Lx] in memblock\n",
-			(unsigned long long)start, (unsigned long long)end - 1);
+				(unsigned long long)start, (unsigned long long)end - 1);
 
 	max_possible_pfn = max(max_possible_pfn, PFN_UP(end - 1));
 
@@ -321,10 +379,12 @@ static int __init acpi_parse_slit(struct acpi_table_header *table)
 {
 	struct acpi_table_slit *slit = (struct acpi_table_slit *)table;
 
-	if (!slit_valid(slit)) {
+	if (!slit_valid(slit))
+	{
 		pr_info("SLIT table looks invalid. Not used.\n");
 		return -EINVAL;
 	}
+
 	acpi_numa_slit_init(slit);
 
 	return 0;
@@ -338,13 +398,16 @@ acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa)
 
 static int __init
 acpi_parse_x2apic_affinity(struct acpi_subtable_header *header,
-			   const unsigned long end)
+						   const unsigned long end)
 {
 	struct acpi_srat_x2apic_cpu_affinity *processor_affinity;
 
 	processor_affinity = (struct acpi_srat_x2apic_cpu_affinity *)header;
+
 	if (!processor_affinity)
+	{
 		return -EINVAL;
+	}
 
 	acpi_table_print_srat_entry(header);
 
@@ -356,13 +419,16 @@ acpi_parse_x2apic_affinity(struct acpi_subtable_header *header,
 
 static int __init
 acpi_parse_processor_affinity(struct acpi_subtable_header *header,
-			      const unsigned long end)
+							  const unsigned long end)
 {
 	struct acpi_srat_cpu_affinity *processor_affinity;
 
 	processor_affinity = (struct acpi_srat_cpu_affinity *)header;
+
 	if (!processor_affinity)
+	{
 		return -EINVAL;
+	}
 
 	acpi_table_print_srat_entry(header);
 
@@ -374,13 +440,16 @@ acpi_parse_processor_affinity(struct acpi_subtable_header *header,
 
 static int __init
 acpi_parse_gicc_affinity(struct acpi_subtable_header *header,
-			 const unsigned long end)
+						 const unsigned long end)
 {
 	struct acpi_srat_gicc_affinity *processor_affinity;
 
 	processor_affinity = (struct acpi_srat_gicc_affinity *)header;
+
 	if (!processor_affinity)
+	{
 		return -EINVAL;
+	}
 
 	acpi_table_print_srat_entry(header);
 
@@ -393,20 +462,26 @@ acpi_parse_gicc_affinity(struct acpi_subtable_header *header,
 static int __initdata parsed_numa_memblks;
 
 static int __init
-acpi_parse_memory_affinity(struct acpi_subtable_header * header,
-			   const unsigned long end)
+acpi_parse_memory_affinity(struct acpi_subtable_header *header,
+						   const unsigned long end)
 {
 	struct acpi_srat_mem_affinity *memory_affinity;
 
 	memory_affinity = (struct acpi_srat_mem_affinity *)header;
+
 	if (!memory_affinity)
+	{
 		return -EINVAL;
+	}
 
 	acpi_table_print_srat_entry(header);
 
 	/* let architecture-dependent part to do it */
 	if (!acpi_numa_memory_affinity_init(memory_affinity))
+	{
 		parsed_numa_memblks++;
+	}
+
 	return 0;
 }
 
@@ -423,11 +498,11 @@ static int __init acpi_parse_srat(struct acpi_table_header *table)
 
 static int __init
 acpi_table_parse_srat(enum acpi_srat_type id,
-		      acpi_tbl_entry_handler handler, unsigned int max_entries)
+					  acpi_tbl_entry_handler handler, unsigned int max_entries)
 {
 	return acpi_table_parse_entries(ACPI_SIG_SRAT,
-					    sizeof(struct acpi_table_srat), id,
-					    handler, max_entries);
+									sizeof(struct acpi_table_srat), id,
+									handler, max_entries);
 }
 
 int __init acpi_numa_init(void)
@@ -435,7 +510,9 @@ int __init acpi_numa_init(void)
 	int cnt = 0;
 
 	if (acpi_disabled)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * Should not limit number with cpu num that is from NR_CPUS or nr_cpus=
@@ -444,7 +521,8 @@ int __init acpi_numa_init(void)
 	 */
 
 	/* SRAT: Static Resource Affinity Table */
-	if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat)) {
+	if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat))
+	{
 		struct acpi_subtable_proc srat_proc[3];
 
 		memset(srat_proc, 0, sizeof(srat_proc));
@@ -456,21 +534,26 @@ int __init acpi_numa_init(void)
 		srat_proc[2].handler = acpi_parse_gicc_affinity;
 
 		acpi_table_parse_entries_array(ACPI_SIG_SRAT,
-					sizeof(struct acpi_table_srat),
-					srat_proc, ARRAY_SIZE(srat_proc), 0);
+									   sizeof(struct acpi_table_srat),
+									   srat_proc, ARRAY_SIZE(srat_proc), 0);
 
 		cnt = acpi_table_parse_srat(ACPI_SRAT_TYPE_MEMORY_AFFINITY,
-					    acpi_parse_memory_affinity,
-					    NR_NODE_MEMBLKS);
+									acpi_parse_memory_affinity,
+									NR_NODE_MEMBLKS);
 	}
 
 	/* SLIT: System Locality Information Table */
 	acpi_table_parse(ACPI_SIG_SLIT, acpi_parse_slit);
 
 	if (cnt < 0)
+	{
 		return cnt;
+	}
 	else if (!parsed_numa_memblks)
+	{
 		return -ENOENT;
+	}
+
 	return 0;
 }
 
@@ -481,13 +564,20 @@ static int acpi_get_pxm(acpi_handle h)
 	acpi_handle handle;
 	acpi_handle phandle = h;
 
-	do {
+	do
+	{
 		handle = phandle;
 		status = acpi_evaluate_integer(handle, "_PXM", NULL, &pxm);
+
 		if (ACPI_SUCCESS(status))
+		{
 			return pxm;
+		}
+
 		status = acpi_get_parent(handle, &phandle);
-	} while (ACPI_SUCCESS(status));
+	}
+	while (ACPI_SUCCESS(status));
+
 	return -1;
 }
 

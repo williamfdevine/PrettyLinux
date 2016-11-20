@@ -166,7 +166,8 @@ extern unsigned int gru_max_gids;
 /*
  * GRU statistics.
  */
-struct gru_stats_s {
+struct gru_stats_s
+{
 	atomic_long_t vdata_alloc;
 	atomic_long_t vdata_free;
 	atomic_long_t gts_alloc;
@@ -247,10 +248,12 @@ struct gru_stats_s {
 };
 
 enum mcs_op {cchop_allocate, cchop_start, cchop_interrupt, cchop_interrupt_sync,
-	cchop_deallocate, tfhop_write_only, tfhop_write_restart,
-	tghop_invalidate, mcsop_last};
+			 cchop_deallocate, tfhop_write_only, tfhop_write_restart,
+			 tghop_invalidate, mcsop_last
+			};
 
-struct mcs_op_statistic {
+struct mcs_op_statistic
+{
 	atomic_long_t	count;
 	atomic_long_t	total;
 	unsigned long	max;
@@ -274,9 +277,9 @@ extern struct mcs_op_statistic mcs_op_statistics[mcsop_last];
 #define GRU_STEAL_DELAY		((HZ * 200) / 1000)
 
 #define STAT(id)	do {						\
-				if (gru_options & OPT_STATS)		\
-					atomic_long_inc(&gru_stats.id);	\
-			} while (0)
+		if (gru_options & OPT_STATS)		\
+			atomic_long_inc(&gru_stats.id);	\
+	} while (0)
 
 #ifdef CONFIG_SGI_GRU_DEBUG
 #define gru_dbg(dev, fmt, x...)						\
@@ -310,14 +313,16 @@ struct gru_state;
  * This structure is pointed to from the mmstruct via the notifier pointer.
  * There is one of these per address space.
  */
-struct gru_mm_tracker {				/* pack to reduce size */
-	unsigned int		mt_asid_gen:24;	/* ASID wrap count */
-	unsigned int		mt_asid:24;	/* current base ASID for gru */
-	unsigned short		mt_ctxbitmap:16;/* bitmap of contexts using
+struct gru_mm_tracker  				/* pack to reduce size */
+{
+	unsigned int		mt_asid_gen: 24;	/* ASID wrap count */
+	unsigned int		mt_asid: 24;	/* current base ASID for gru */
+	unsigned short		mt_ctxbitmap: 16;/* bitmap of contexts using
 						   asid */
 } __attribute__ ((packed));
 
-struct gru_mm_struct {
+struct gru_mm_struct
+{
 	struct mmu_notifier	ms_notifier;
 	atomic_t		ms_refcnt;
 	spinlock_t		ms_asid_lock;	/* protects ASID assignment */
@@ -332,7 +337,8 @@ struct gru_mm_struct {
  * One of these structures is allocated when a GSEG is mmaped. The
  * structure is pointed to by the vma->vm_private_data field in the vma struct.
  */
-struct gru_vma_data {
+struct gru_vma_data
+{
 	spinlock_t		vd_lock;	/* Serialize access to vma */
 	struct list_head	vd_head;	/* head of linked list of gts */
 	long			vd_user_options;/* misc user option flags */
@@ -345,7 +351,8 @@ struct gru_vma_data {
  * One of these is allocated for each thread accessing a mmaped GRU. A linked
  * list of these structure is hung off the struct gru_vma_data in the mm_struct.
  */
-struct gru_thread_state {
+struct gru_thread_state
+{
 	struct list_head	ts_next;	/* list - head at vma-private */
 	struct mutex		ts_ctxlock;	/* load/unload CTX lock */
 	struct mm_struct	*ts_mm;		/* mm currently mapped to
@@ -397,7 +404,7 @@ struct gru_thread_state {
  */
 #define TSID(a, v)		(((a) - (v)->vm_start) / GRU_GSEG_PAGESIZE)
 #define UGRUADDR(gts)		((gts)->ts_vma->vm_start +		\
-					(gts)->ts_tsid * GRU_GSEG_PAGESIZE)
+							 (gts)->ts_tsid * GRU_GSEG_PAGESIZE)
 
 #define NULLCTX			(-1)	/* if context not loaded into GRU */
 
@@ -408,7 +415,8 @@ struct gru_thread_state {
 /*
  * One of these exists for each GRU chiplet.
  */
-struct gru_state {
+struct gru_state
+{
 	struct gru_blade_state	*gs_blade;		/* GRU state for entire
 							   blade */
 	unsigned long		gs_gru_base_paddr;	/* Physical address of
@@ -455,7 +463,8 @@ struct gru_state {
 /*
  * This structure contains the GRU state for all the GRUs on a blade.
  */
-struct gru_blade_state {
+struct gru_blade_state
+{
 	void			*kernel_cb;		/* First kernel
 							   reserved cb */
 	void			*kernel_dsr;		/* First kernel
@@ -505,13 +514,13 @@ struct gru_blade_state {
 
 /* Convert a user CB number to the actual CBRNUM */
 #define thread_cbr_number(gts, n) ((gts)->ts_cbr_idx[(n) / GRU_CBR_AU_SIZE] \
-				  * GRU_CBR_AU_SIZE + (n) % GRU_CBR_AU_SIZE)
+								   * GRU_CBR_AU_SIZE + (n) % GRU_CBR_AU_SIZE)
 
 /* Convert a gid to a pointer to the GRU */
 #define GID_TO_GRU(gid)							\
 	(gru_base[(gid) / GRU_CHIPLETS_PER_BLADE] ?			\
-		(&gru_base[(gid) / GRU_CHIPLETS_PER_BLADE]->		\
-			bs_grus[(gid) % GRU_CHIPLETS_PER_BLADE]) :	\
+	 (&gru_base[(gid) / GRU_CHIPLETS_PER_BLADE]->		\
+	  bs_grus[(gid) % GRU_CHIPLETS_PER_BLADE]) :	\
 	 NULL)
 
 /* Scan all active GRUs in a GRU bitmap */
@@ -521,8 +530,8 @@ struct gru_blade_state {
 /* Scan all active GRUs on a specific blade */
 #define for_each_gru_on_blade(gru, nid, i)				\
 	for ((gru) = gru_base[nid]->bs_grus, (i) = 0;			\
-			(i) < GRU_CHIPLETS_PER_BLADE;			\
-			(i)++, (gru)++)
+		 (i) < GRU_CHIPLETS_PER_BLADE;			\
+		 (i)++, (gru)++)
 
 /* Scan all GRUs */
 #define foreach_gid(gid)						\
@@ -540,19 +549,19 @@ struct gru_blade_state {
 /* Scan each CBR in a CBR bitmap. Note: multiple CBRs in an allocation unit */
 #define for_each_cbr_in_allocation_map(i, map, k)			\
 	for_each_set_bit((k), (map), GRU_CBR_AU)			\
-		for ((i) = (k)*GRU_CBR_AU_SIZE;				\
-				(i) < ((k) + 1) * GRU_CBR_AU_SIZE; (i)++)
+	for ((i) = (k)*GRU_CBR_AU_SIZE;				\
+		 (i) < ((k) + 1) * GRU_CBR_AU_SIZE; (i)++)
 
 /* Scan each DSR in a DSR bitmap. Note: multiple DSRs in an allocation unit */
 #define for_each_dsr_in_allocation_map(i, map, k)			\
 	for_each_set_bit((k), (const unsigned long *)(map), GRU_DSR_AU)	\
-		for ((i) = (k) * GRU_DSR_AU_CL;				\
-				(i) < ((k) + 1) * GRU_DSR_AU_CL; (i)++)
+	for ((i) = (k) * GRU_DSR_AU_CL;				\
+		 (i) < ((k) + 1) * GRU_DSR_AU_CL; (i)++)
 
 #define gseg_physical_address(gru, ctxnum)				\
-		((gru)->gs_gru_base_paddr + ctxnum * GRU_GSEG_STRIDE)
+	((gru)->gs_gru_base_paddr + ctxnum * GRU_GSEG_STRIDE)
 #define gseg_virtual_address(gru, ctxnum)				\
-		((gru)->gs_gru_base_vaddr + ctxnum * GRU_GSEG_STRIDE)
+	((gru)->gs_gru_base_vaddr + ctxnum * GRU_GSEG_STRIDE)
 
 /*-----------------------------------------------------------------------------
  * Lock / Unlock GRU handles
@@ -570,7 +579,9 @@ static inline int __trylock_handle(void *h)
 static inline void __lock_handle(void *h)
 {
 	while (test_and_set_bit(1, h))
+	{
 		cpu_relax();
+	}
 }
 
 static inline void __unlock_handle(void *h)
@@ -589,7 +600,7 @@ static inline void lock_cch_handle(struct gru_context_configuration_handle *cch)
 }
 
 static inline void unlock_cch_handle(struct gru_context_configuration_handle
-				     *cch)
+									 *cch)
 {
 	__unlock_handle(cch);
 }
@@ -617,7 +628,7 @@ static inline int is_kernel_context(struct gru_thread_state *gts)
 #define uv_cpu_socket_number(p)		((cpu_physical_id(p) >> 5) & 1)
 #define uv_cpu_ht_number(p)		(cpu_physical_id(p) & 1)
 #define uv_cpu_core_number(p)		(((cpu_physical_id(p) >> 2) & 4) |	\
-					((cpu_physical_id(p) >> 1) & 3))
+									 ((cpu_physical_id(p) >> 1) & 3))
 /*-----------------------------------------------------------------------------
  * Function prototypes & externs
  */
@@ -627,11 +638,11 @@ extern const struct vm_operations_struct gru_vm_ops;
 extern struct device *grudev;
 
 extern struct gru_vma_data *gru_alloc_vma_data(struct vm_area_struct *vma,
-				int tsid);
+		int tsid);
 extern struct gru_thread_state *gru_find_thread_state(struct vm_area_struct
-				*vma, int tsid);
+		*vma, int tsid);
 extern struct gru_thread_state *gru_alloc_thread_state(struct vm_area_struct
-				*vma, int tsid);
+		*vma, int tsid);
 extern struct gru_state *gru_assign_gru_context(struct gru_thread_state *gts);
 extern void gru_load_context(struct gru_thread_state *gts);
 extern void gru_steal_context(struct gru_thread_state *gts);
@@ -671,7 +682,7 @@ extern void gru_drop_mmu_notifier(struct gru_mm_struct *gms);
 
 extern int gru_ktest(unsigned long arg);
 extern void gru_flush_tlb_range(struct gru_mm_struct *gms, unsigned long start,
-					unsigned long len);
+								unsigned long len);
 
 extern unsigned long gru_options;
 

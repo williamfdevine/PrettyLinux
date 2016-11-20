@@ -7,7 +7,8 @@
 
 struct fw_unit;
 
-enum cmp_direction {
+enum cmp_direction
+{
 	CMP_INPUT = 0,
 	CMP_OUTPUT,
 };
@@ -22,7 +23,8 @@ enum cmp_direction {
  * There is no corresponding oPCR created on the local computer, so it is not
  * possible to overlay connections on top of this one.
  */
-struct cmp_connection {
+struct cmp_connection
+{
 	int speed;
 	/* private: */
 	bool connected;
@@ -35,14 +37,14 @@ struct cmp_connection {
 };
 
 int cmp_connection_init(struct cmp_connection *connection,
-			struct fw_unit *unit,
-			enum cmp_direction direction,
-			unsigned int pcr_index);
+						struct fw_unit *unit,
+						enum cmp_direction direction,
+						unsigned int pcr_index);
 int cmp_connection_check_used(struct cmp_connection *connection, bool *used);
 void cmp_connection_destroy(struct cmp_connection *connection);
 
 int cmp_connection_establish(struct cmp_connection *connection,
-			     unsigned int max_payload);
+							 unsigned int max_payload);
 int cmp_connection_update(struct cmp_connection *connection);
 void cmp_connection_break(struct cmp_connection *connection);
 

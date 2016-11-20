@@ -33,7 +33,8 @@
 
 struct sh_mtu2_device;
 
-struct sh_mtu2_channel {
+struct sh_mtu2_channel
+{
 	struct sh_mtu2_device *mtu;
 	unsigned int index;
 
@@ -42,7 +43,8 @@ struct sh_mtu2_channel {
 	struct clock_event_device ced;
 };
 
-struct sh_mtu2_device {
+struct sh_mtu2_device
+{
 	struct platform_device *pdev;
 
 	void __iomem *mapbase;
@@ -147,7 +149,8 @@ struct sh_mtu2_device {
 #define TSR_TGFB		(1 << 1)
 #define TSR_TGFA		(1 << 0)
 
-static unsigned long mtu2_reg_offs[] = {
+static unsigned long mtu2_reg_offs[] =
+{
 	[TCR] = 0,
 	[TMDR] = 1,
 	[TIOR] = 2,
@@ -162,30 +165,42 @@ static inline unsigned long sh_mtu2_read(struct sh_mtu2_channel *ch, int reg_nr)
 	unsigned long offs;
 
 	if (reg_nr == TSTR)
+	{
 		return ioread8(ch->mtu->mapbase + 0x280);
+	}
 
 	offs = mtu2_reg_offs[reg_nr];
 
 	if ((reg_nr == TCNT) || (reg_nr == TGR))
+	{
 		return ioread16(ch->base + offs);
+	}
 	else
+	{
 		return ioread8(ch->base + offs);
+	}
 }
 
 static inline void sh_mtu2_write(struct sh_mtu2_channel *ch, int reg_nr,
-				unsigned long value)
+								 unsigned long value)
 {
 	unsigned long offs;
 
 	if (reg_nr == TSTR)
+	{
 		return iowrite8(value, ch->mtu->mapbase + 0x280);
+	}
 
 	offs = mtu2_reg_offs[reg_nr];
 
 	if ((reg_nr == TCNT) || (reg_nr == TGR))
+	{
 		iowrite16(value, ch->base + offs);
+	}
 	else
+	{
 		iowrite8(value, ch->base + offs);
+	}
 }
 
 static void sh_mtu2_start_stop_ch(struct sh_mtu2_channel *ch, int start)
@@ -197,9 +212,13 @@ static void sh_mtu2_start_stop_ch(struct sh_mtu2_channel *ch, int start)
 	value = sh_mtu2_read(ch, TSTR);
 
 	if (start)
+	{
 		value |= 1 << ch->index;
+	}
 	else
+	{
 		value &= ~(1 << ch->index);
+	}
 
 	sh_mtu2_write(ch, TSTR, value);
 	raw_spin_unlock_irqrestore(&ch->mtu->lock, flags);
@@ -216,9 +235,11 @@ static int sh_mtu2_enable(struct sh_mtu2_channel *ch)
 
 	/* enable clock */
 	ret = clk_enable(ch->mtu->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&ch->mtu->pdev->dev, "ch%u: cannot enable clock\n",
-			ch->index);
+				ch->index);
 		return ret;
 	}
 
@@ -226,7 +247,7 @@ static int sh_mtu2_enable(struct sh_mtu2_channel *ch)
 	sh_mtu2_start_stop_ch(ch, 0);
 
 	rate = clk_get_rate(ch->mtu->clk) / 64;
-	periodic = (rate + HZ/2) / HZ;
+	periodic = (rate + HZ / 2) / HZ;
 
 	/*
 	 * "Periodic Counter Operation"
@@ -234,7 +255,7 @@ static int sh_mtu2_enable(struct sh_mtu2_channel *ch)
 	 */
 	sh_mtu2_write(ch, TCR, TCR_CCLR_TGRA | TCR_TPSC_P64);
 	sh_mtu2_write(ch, TIOR, TIOC_IOCH(TIOR_OC_0_CLEAR) |
-		      TIOC_IOCL(TIOR_OC_0_CLEAR));
+				  TIOC_IOCL(TIOR_OC_0_CLEAR));
 	sh_mtu2_write(ch, TGR, periodic);
 	sh_mtu2_write(ch, TCNT, 0);
 	sh_mtu2_write(ch, TMDR, TMDR_MD_NORMAL);
@@ -281,7 +302,9 @@ static int sh_mtu2_clock_event_shutdown(struct clock_event_device *ced)
 	struct sh_mtu2_channel *ch = ced_to_sh_mtu2(ced);
 
 	if (clockevent_state_periodic(ced))
+	{
 		sh_mtu2_disable(ch);
+	}
 
 	return 0;
 }
@@ -291,10 +314,12 @@ static int sh_mtu2_clock_event_set_periodic(struct clock_event_device *ced)
 	struct sh_mtu2_channel *ch = ced_to_sh_mtu2(ced);
 
 	if (clockevent_state_periodic(ced))
+	{
 		sh_mtu2_disable(ch);
+	}
 
 	dev_info(&ch->mtu->pdev->dev, "ch%u: used for periodic clock events\n",
-		 ch->index);
+			 ch->index);
 	sh_mtu2_enable(ch);
 	return 0;
 }
@@ -310,7 +335,7 @@ static void sh_mtu2_clock_event_resume(struct clock_event_device *ced)
 }
 
 static void sh_mtu2_register_clockevent(struct sh_mtu2_channel *ch,
-					const char *name)
+										const char *name)
 {
 	struct clock_event_device *ced = &ch->ced;
 
@@ -324,7 +349,7 @@ static void sh_mtu2_register_clockevent(struct sh_mtu2_channel *ch,
 	ced->resume = sh_mtu2_clock_event_resume;
 
 	dev_info(&ch->mtu->pdev->dev, "ch%u: used for clock events\n",
-		 ch->index);
+			 ch->index);
 	clockevents_register_device(ced);
 }
 
@@ -337,9 +362,10 @@ static int sh_mtu2_register(struct sh_mtu2_channel *ch, const char *name)
 }
 
 static int sh_mtu2_setup_channel(struct sh_mtu2_channel *ch, unsigned int index,
-				 struct sh_mtu2_device *mtu)
+								 struct sh_mtu2_device *mtu)
 {
-	static const unsigned int channel_offsets[] = {
+	static const unsigned int channel_offsets[] =
+	{
 		0x300, 0x380, 0x000,
 	};
 	char name[6];
@@ -350,17 +376,21 @@ static int sh_mtu2_setup_channel(struct sh_mtu2_channel *ch, unsigned int index,
 
 	sprintf(name, "tgi%ua", index);
 	irq = platform_get_irq_byname(mtu->pdev, name);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		/* Skip channels with no declared interrupt. */
 		return 0;
 	}
 
 	ret = request_irq(irq, sh_mtu2_interrupt,
-			  IRQF_TIMER | IRQF_IRQPOLL | IRQF_NOBALANCING,
-			  dev_name(&ch->mtu->pdev->dev), ch);
-	if (ret) {
+					  IRQF_TIMER | IRQF_IRQPOLL | IRQF_NOBALANCING,
+					  dev_name(&ch->mtu->pdev->dev), ch);
+
+	if (ret)
+	{
 		dev_err(&ch->mtu->pdev->dev, "ch%u: failed to request irq %d\n",
-			index, irq);
+				index, irq);
 		return ret;
 	}
 
@@ -375,20 +405,25 @@ static int sh_mtu2_map_memory(struct sh_mtu2_device *mtu)
 	struct resource *res;
 
 	res = platform_get_resource(mtu->pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&mtu->pdev->dev, "failed to get I/O memory\n");
 		return -ENXIO;
 	}
 
 	mtu->mapbase = ioremap_nocache(res->start, resource_size(res));
+
 	if (mtu->mapbase == NULL)
+	{
 		return -ENXIO;
+	}
 
 	return 0;
 }
 
 static int sh_mtu2_setup(struct sh_mtu2_device *mtu,
-			 struct platform_device *pdev)
+						 struct platform_device *pdev)
 {
 	unsigned int i;
 	int ret;
@@ -399,18 +434,25 @@ static int sh_mtu2_setup(struct sh_mtu2_device *mtu,
 
 	/* Get hold of clock. */
 	mtu->clk = clk_get(&mtu->pdev->dev, "fck");
-	if (IS_ERR(mtu->clk)) {
+
+	if (IS_ERR(mtu->clk))
+	{
 		dev_err(&mtu->pdev->dev, "cannot get clock\n");
 		return PTR_ERR(mtu->clk);
 	}
 
 	ret = clk_prepare(mtu->clk);
+
 	if (ret < 0)
+	{
 		goto err_clk_put;
+	}
 
 	/* Map the memory resource. */
 	ret = sh_mtu2_map_memory(mtu);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&mtu->pdev->dev, "failed to remap I/O memory\n");
 		goto err_clk_unprepare;
 	}
@@ -419,16 +461,22 @@ static int sh_mtu2_setup(struct sh_mtu2_device *mtu,
 	mtu->num_channels = 3;
 
 	mtu->channels = kzalloc(sizeof(*mtu->channels) * mtu->num_channels,
-				GFP_KERNEL);
-	if (mtu->channels == NULL) {
+							GFP_KERNEL);
+
+	if (mtu->channels == NULL)
+	{
 		ret = -ENOMEM;
 		goto err_unmap;
 	}
 
-	for (i = 0; i < mtu->num_channels; ++i) {
+	for (i = 0; i < mtu->num_channels; ++i)
+	{
 		ret = sh_mtu2_setup_channel(&mtu->channels[i], i, mtu);
+
 		if (ret < 0)
+		{
 			goto err_unmap;
+		}
 	}
 
 	platform_set_drvdata(pdev, mtu);
@@ -450,34 +498,49 @@ static int sh_mtu2_probe(struct platform_device *pdev)
 	struct sh_mtu2_device *mtu = platform_get_drvdata(pdev);
 	int ret;
 
-	if (!is_early_platform_device(pdev)) {
+	if (!is_early_platform_device(pdev))
+	{
 		pm_runtime_set_active(&pdev->dev);
 		pm_runtime_enable(&pdev->dev);
 	}
 
-	if (mtu) {
+	if (mtu)
+	{
 		dev_info(&pdev->dev, "kept as earlytimer\n");
 		goto out;
 	}
 
 	mtu = kzalloc(sizeof(*mtu), GFP_KERNEL);
+
 	if (mtu == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	ret = sh_mtu2_setup(mtu, pdev);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(mtu);
 		pm_runtime_idle(&pdev->dev);
 		return ret;
 	}
-	if (is_early_platform_device(pdev))
-		return 0;
 
- out:
+	if (is_early_platform_device(pdev))
+	{
+		return 0;
+	}
+
+out:
+
 	if (mtu->has_clockevent)
+	{
 		pm_runtime_irq_safe(&pdev->dev);
+	}
 	else
+	{
 		pm_runtime_idle(&pdev->dev);
+	}
 
 	return 0;
 }
@@ -487,19 +550,22 @@ static int sh_mtu2_remove(struct platform_device *pdev)
 	return -EBUSY; /* cannot unregister clockevent */
 }
 
-static const struct platform_device_id sh_mtu2_id_table[] = {
+static const struct platform_device_id sh_mtu2_id_table[] =
+{
 	{ "sh-mtu2", 0 },
 	{ },
 };
 MODULE_DEVICE_TABLE(platform, sh_mtu2_id_table);
 
-static const struct of_device_id sh_mtu2_of_table[] __maybe_unused = {
+static const struct of_device_id sh_mtu2_of_table[] __maybe_unused =
+{
 	{ .compatible = "renesas,mtu2" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, sh_mtu2_of_table);
 
-static struct platform_driver sh_mtu2_device_driver = {
+static struct platform_driver sh_mtu2_device_driver =
+{
 	.probe		= sh_mtu2_probe,
 	.remove		= sh_mtu2_remove,
 	.driver		= {

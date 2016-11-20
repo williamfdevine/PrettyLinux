@@ -37,7 +37,9 @@ static struct posix_clock *get_posix_clock(struct file *fp)
 	down_read(&clk->rwsem);
 
 	if (!clk->zombie)
+	{
 		return clk;
+	}
 
 	up_read(&clk->rwsem);
 
@@ -50,16 +52,20 @@ static void put_posix_clock(struct posix_clock *clk)
 }
 
 static ssize_t posix_clock_read(struct file *fp, char __user *buf,
-				size_t count, loff_t *ppos)
+								size_t count, loff_t *ppos)
 {
 	struct posix_clock *clk = get_posix_clock(fp);
 	int err = -EINVAL;
 
 	if (!clk)
+	{
 		return -ENODEV;
+	}
 
 	if (clk->ops.read)
+	{
 		err = clk->ops.read(clk, fp->f_flags, buf, count);
+	}
 
 	put_posix_clock(clk);
 
@@ -72,10 +78,14 @@ static unsigned int posix_clock_poll(struct file *fp, poll_table *wait)
 	unsigned int result = 0;
 
 	if (!clk)
+	{
 		return POLLERR;
+	}
 
 	if (clk->ops.poll)
+	{
 		result = clk->ops.poll(clk, fp, wait);
+	}
 
 	put_posix_clock(clk);
 
@@ -88,10 +98,14 @@ static int posix_clock_fasync(int fd, struct file *fp, int on)
 	int err = 0;
 
 	if (!clk)
+	{
 		return -ENODEV;
+	}
 
 	if (clk->ops.fasync)
+	{
 		err = clk->ops.fasync(clk, fd, fp, on);
+	}
 
 	put_posix_clock(clk);
 
@@ -104,10 +118,14 @@ static int posix_clock_mmap(struct file *fp, struct vm_area_struct *vma)
 	int err = -ENODEV;
 
 	if (!clk)
+	{
 		return -ENODEV;
+	}
 
 	if (clk->ops.mmap)
+	{
 		err = clk->ops.mmap(clk, vma);
+	}
 
 	put_posix_clock(clk);
 
@@ -115,16 +133,20 @@ static int posix_clock_mmap(struct file *fp, struct vm_area_struct *vma)
 }
 
 static long posix_clock_ioctl(struct file *fp,
-			      unsigned int cmd, unsigned long arg)
+							  unsigned int cmd, unsigned long arg)
 {
 	struct posix_clock *clk = get_posix_clock(fp);
 	int err = -ENOTTY;
 
 	if (!clk)
+	{
 		return -ENODEV;
+	}
 
 	if (clk->ops.ioctl)
+	{
 		err = clk->ops.ioctl(clk, cmd, arg);
+	}
 
 	put_posix_clock(clk);
 
@@ -133,16 +155,20 @@ static long posix_clock_ioctl(struct file *fp,
 
 #ifdef CONFIG_COMPAT
 static long posix_clock_compat_ioctl(struct file *fp,
-				     unsigned int cmd, unsigned long arg)
+									 unsigned int cmd, unsigned long arg)
 {
 	struct posix_clock *clk = get_posix_clock(fp);
 	int err = -ENOTTY;
 
 	if (!clk)
+	{
 		return -ENODEV;
+	}
 
 	if (clk->ops.ioctl)
+	{
 		err = clk->ops.ioctl(clk, cmd, arg);
+	}
 
 	put_posix_clock(clk);
 
@@ -158,19 +184,27 @@ static int posix_clock_open(struct inode *inode, struct file *fp)
 
 	down_read(&clk->rwsem);
 
-	if (clk->zombie) {
+	if (clk->zombie)
+	{
 		err = -ENODEV;
 		goto out;
 	}
-	if (clk->ops.open)
-		err = clk->ops.open(clk, fp->f_mode);
-	else
-		err = 0;
 
-	if (!err) {
+	if (clk->ops.open)
+	{
+		err = clk->ops.open(clk, fp->f_mode);
+	}
+	else
+	{
+		err = 0;
+	}
+
+	if (!err)
+	{
 		kref_get(&clk->kref);
 		fp->private_data = clk;
 	}
+
 out:
 	up_read(&clk->rwsem);
 	return err;
@@ -182,7 +216,9 @@ static int posix_clock_release(struct inode *inode, struct file *fp)
 	int err = 0;
 
 	if (clk->ops.release)
+	{
 		err = clk->ops.release(clk);
+	}
 
 	kref_put(&clk->kref, delete_clock);
 
@@ -191,7 +227,8 @@ static int posix_clock_release(struct inode *inode, struct file *fp)
 	return err;
 }
 
-static const struct file_operations posix_clock_file_operations = {
+static const struct file_operations posix_clock_file_operations =
+{
 	.owner		= THIS_MODULE,
 	.llseek		= no_llseek,
 	.read		= posix_clock_read,
@@ -226,7 +263,9 @@ static void delete_clock(struct kref *kref)
 	struct posix_clock *clk = container_of(kref, struct posix_clock, kref);
 
 	if (clk->release)
+	{
 		clk->release(clk);
+	}
 }
 
 void posix_clock_unregister(struct posix_clock *clk)
@@ -241,7 +280,8 @@ void posix_clock_unregister(struct posix_clock *clk)
 }
 EXPORT_SYMBOL_GPL(posix_clock_unregister);
 
-struct posix_clock_desc {
+struct posix_clock_desc
+{
 	struct file *fp;
 	struct posix_clock *clk;
 };
@@ -252,18 +292,26 @@ static int get_clock_desc(const clockid_t id, struct posix_clock_desc *cd)
 	int err = -EINVAL;
 
 	if (!fp)
+	{
 		return err;
+	}
 
 	if (fp->f_op->open != posix_clock_open || !fp->private_data)
+	{
 		goto out;
+	}
 
 	cd->fp = fp;
 	cd->clk = get_posix_clock(fp);
 
 	err = cd->clk ? 0 : -ENODEV;
 out:
+
 	if (err)
+	{
 		fput(fp);
+	}
+
 	return err;
 }
 
@@ -279,18 +327,27 @@ static int pc_clock_adjtime(clockid_t id, struct timex *tx)
 	int err;
 
 	err = get_clock_desc(id, &cd);
-	if (err)
-		return err;
 
-	if ((cd.fp->f_mode & FMODE_WRITE) == 0) {
+	if (err)
+	{
+		return err;
+	}
+
+	if ((cd.fp->f_mode & FMODE_WRITE) == 0)
+	{
 		err = -EACCES;
 		goto out;
 	}
 
 	if (cd.clk->ops.clock_adjtime)
+	{
 		err = cd.clk->ops.clock_adjtime(cd.clk, tx);
+	}
 	else
+	{
 		err = -EOPNOTSUPP;
+	}
+
 out:
 	put_clock_desc(&cd);
 
@@ -303,13 +360,20 @@ static int pc_clock_gettime(clockid_t id, struct timespec *ts)
 	int err;
 
 	err = get_clock_desc(id, &cd);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (cd.clk->ops.clock_gettime)
+	{
 		err = cd.clk->ops.clock_gettime(cd.clk, ts);
+	}
 	else
+	{
 		err = -EOPNOTSUPP;
+	}
 
 	put_clock_desc(&cd);
 
@@ -322,13 +386,20 @@ static int pc_clock_getres(clockid_t id, struct timespec *ts)
 	int err;
 
 	err = get_clock_desc(id, &cd);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (cd.clk->ops.clock_getres)
+	{
 		err = cd.clk->ops.clock_getres(cd.clk, ts);
+	}
 	else
+	{
 		err = -EOPNOTSUPP;
+	}
 
 	put_clock_desc(&cd);
 
@@ -341,18 +412,27 @@ static int pc_clock_settime(clockid_t id, const struct timespec *ts)
 	int err;
 
 	err = get_clock_desc(id, &cd);
-	if (err)
-		return err;
 
-	if ((cd.fp->f_mode & FMODE_WRITE) == 0) {
+	if (err)
+	{
+		return err;
+	}
+
+	if ((cd.fp->f_mode & FMODE_WRITE) == 0)
+	{
 		err = -EACCES;
 		goto out;
 	}
 
 	if (cd.clk->ops.clock_settime)
+	{
 		err = cd.clk->ops.clock_settime(cd.clk, ts);
+	}
 	else
+	{
 		err = -EOPNOTSUPP;
+	}
+
 out:
 	put_clock_desc(&cd);
 
@@ -366,13 +446,20 @@ static int pc_timer_create(struct k_itimer *kit)
 	int err;
 
 	err = get_clock_desc(id, &cd);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (cd.clk->ops.timer_create)
+	{
 		err = cd.clk->ops.timer_create(cd.clk, kit);
+	}
 	else
+	{
 		err = -EOPNOTSUPP;
+	}
 
 	put_clock_desc(&cd);
 
@@ -386,13 +473,20 @@ static int pc_timer_delete(struct k_itimer *kit)
 	int err;
 
 	err = get_clock_desc(id, &cd);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (cd.clk->ops.timer_delete)
+	{
 		err = cd.clk->ops.timer_delete(cd.clk, kit);
+	}
 	else
+	{
 		err = -EOPNOTSUPP;
+	}
 
 	put_clock_desc(&cd);
 
@@ -405,36 +499,48 @@ static void pc_timer_gettime(struct k_itimer *kit, struct itimerspec *ts)
 	struct posix_clock_desc cd;
 
 	if (get_clock_desc(id, &cd))
+	{
 		return;
+	}
 
 	if (cd.clk->ops.timer_gettime)
+	{
 		cd.clk->ops.timer_gettime(cd.clk, kit, ts);
+	}
 
 	put_clock_desc(&cd);
 }
 
 static int pc_timer_settime(struct k_itimer *kit, int flags,
-			    struct itimerspec *ts, struct itimerspec *old)
+							struct itimerspec *ts, struct itimerspec *old)
 {
 	clockid_t id = kit->it_clock;
 	struct posix_clock_desc cd;
 	int err;
 
 	err = get_clock_desc(id, &cd);
+
 	if (err)
+	{
 		return err;
+	}
 
 	if (cd.clk->ops.timer_settime)
+	{
 		err = cd.clk->ops.timer_settime(cd.clk, kit, flags, ts, old);
+	}
 	else
+	{
 		err = -EOPNOTSUPP;
+	}
 
 	put_clock_desc(&cd);
 
 	return err;
 }
 
-struct k_clock clock_posix_dynamic = {
+struct k_clock clock_posix_dynamic =
+{
 	.clock_getres	= pc_clock_getres,
 	.clock_set	= pc_clock_settime,
 	.clock_get	= pc_clock_gettime,

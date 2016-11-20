@@ -9,7 +9,8 @@
 
 
 /* associates an integer enumerator with a pattern string. */
-struct match_token {
+struct match_token
+{
 	int token;
 	const char *pattern;
 };
@@ -20,7 +21,8 @@ typedef struct match_token match_table_t[];
 enum {MAX_OPT_ARGS = 3};
 
 /* Describe the location within a string of a substring */
-typedef struct {
+typedef struct
+{
 	char *from;
 	char *to;
 } substring_t;

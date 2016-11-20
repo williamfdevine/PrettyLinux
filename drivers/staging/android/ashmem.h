@@ -20,8 +20,8 @@
 
 /* support of 32bit userspace on 64bit platforms */
 #ifdef CONFIG_COMPAT
-#define COMPAT_ASHMEM_SET_SIZE		_IOW(__ASHMEMIOC, 3, compat_size_t)
-#define COMPAT_ASHMEM_SET_PROT_MASK	_IOW(__ASHMEMIOC, 5, unsigned int)
+	#define COMPAT_ASHMEM_SET_SIZE		_IOW(__ASHMEMIOC, 3, compat_size_t)
+	#define COMPAT_ASHMEM_SET_PROT_MASK	_IOW(__ASHMEMIOC, 5, unsigned int)
 #endif
 
 #endif	/* _LINUX_ASHMEM_H */

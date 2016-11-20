@@ -70,8 +70,12 @@ int v4l2_fh_open(struct file *filp)
 	struct v4l2_fh *fh = kzalloc(sizeof(*fh), GFP_KERNEL);
 
 	filp->private_data = fh;
+
 	if (fh == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	v4l2_fh_init(fh, vdev);
 	v4l2_fh_add(fh);
 	return 0;
@@ -92,7 +96,10 @@ EXPORT_SYMBOL_GPL(v4l2_fh_del);
 void v4l2_fh_exit(struct v4l2_fh *fh)
 {
 	if (fh->vdev == NULL)
+	{
 		return;
+	}
+
 	v4l_disable_media_source(fh->vdev);
 	v4l2_event_unsubscribe_all(fh);
 	fh->vdev = NULL;
@@ -103,11 +110,13 @@ int v4l2_fh_release(struct file *filp)
 {
 	struct v4l2_fh *fh = filp->private_data;
 
-	if (fh) {
+	if (fh)
+	{
 		v4l2_fh_del(fh);
 		v4l2_fh_exit(fh);
 		kfree(fh);
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL_GPL(v4l2_fh_release);
@@ -118,7 +127,10 @@ int v4l2_fh_is_singular(struct v4l2_fh *fh)
 	int is_singular;
 
 	if (fh == NULL || fh->vdev == NULL)
+	{
 		return 0;
+	}
+
 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
 	is_singular = list_is_singular(&fh->list);
 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);

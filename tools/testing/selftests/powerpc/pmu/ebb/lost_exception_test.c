@@ -50,7 +50,8 @@ static int test_body(void)
 
 	mtspr(SPRN_PMC4, pmc_sample_period(sample_period));
 
-	while (ebb_state.stats.ebb_count < 1000000) {
+	while (ebb_state.stats.ebb_count < 1000000)
+	{
 		/*
 		 * We are trying to get the EBB exception to race exactly with
 		 * us entering the kernel to do the syscall. We then need the
@@ -60,16 +61,24 @@ static int test_body(void)
 		 */
 
 		for (i = 0; i < 100000; i++)
+		{
 			sched_yield();
+		}
 
 		/* Change the sample period slightly to try and hit the race */
 		if (sample_period >= (orig_period + 200))
+		{
 			sample_period = orig_period;
+		}
 		else
+		{
 			sample_period++;
+		}
 
 		if (sample_period > max_period)
+		{
 			max_period = sample_period;
+		}
 	}
 
 	ebb_freeze_pmcs();

@@ -67,20 +67,23 @@ static inline void check_sizes(void)
 #define B_ERROR      0x02	/* set with B_DONE */
 #define B_TIMEOUT    0x04	/* set with B_DONE & B_ERROR */
 
-enum cxlflash_lr_state {
+enum cxlflash_lr_state
+{
 	LINK_RESET_INVALID,
 	LINK_RESET_REQUIRED,
 	LINK_RESET_COMPLETE
 };
 
-enum cxlflash_init_state {
+enum cxlflash_init_state
+{
 	INIT_STATE_NONE,
 	INIT_STATE_PCI,
 	INIT_STATE_AFU,
 	INIT_STATE_SCSI
 };
 
-enum cxlflash_state {
+enum cxlflash_state
+{
 	STATE_NORMAL,	/* Normal running state, everything good */
 	STATE_RESET,	/* Reset state, trying to reset/recover */
 	STATE_FAILTERM	/* Failed/terminating state, error out users/threads */
@@ -91,7 +94,8 @@ enum cxlflash_state {
  * only from that context.
  */
 
-struct cxlflash_cfg {
+struct cxlflash_cfg
+{
 	struct afu *afu;
 	struct cxl_context *mcctx;
 
@@ -129,7 +133,8 @@ struct cxlflash_cfg {
 	enum cxlflash_state state;
 };
 
-struct afu_cmd {
+struct afu_cmd
+{
 	struct sisl_ioarcb rcb;	/* IOARCB (cache line aligned) */
 	struct sisl_ioasa sa;	/* IOASA must follow IOARCB */
 	spinlock_t slock;
@@ -139,7 +144,7 @@ struct afu_cmd {
 	int slot;
 	atomic_t free;
 
-	u8 cmd_tmf:1;
+	u8 cmd_tmf: 1;
 
 	/* As per the SISLITE spec the IOARCB EA has to be 16-byte aligned.
 	 * However for performance reasons the IOARCB/IOASA should be
@@ -147,7 +152,8 @@ struct afu_cmd {
 	 */
 } __aligned(cache_line_size());
 
-struct afu {
+struct afu
+{
 	/* Stuff requiring alignment go first. */
 
 	u64 rrq_entry[NUM_RRQ_ENTRY];	/* 2K RRQ */

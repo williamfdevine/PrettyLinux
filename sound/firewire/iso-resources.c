@@ -54,9 +54,13 @@ static unsigned int packet_bandwidth(unsigned int max_payload_bytes, int speed)
 
 	/* convert to bandwidth units (quadlets at S1600 = bytes at S400) */
 	if (speed <= SCODE_400)
+	{
 		s400_bytes = bytes * (1 << (SCODE_400 - speed));
+	}
 	else
+	{
 		s400_bytes = DIV_ROUND_UP(bytes, 1 << (speed - SCODE_400));
+	}
 
 	return s400_bytes;
 }
@@ -78,12 +82,19 @@ static int current_bandwidth_overhead(struct fw_card *card)
 
 static int wait_isoch_resource_delay_after_bus_reset(struct fw_card *card)
 {
-	for (;;) {
+	for (;;)
+	{
 		s64 delay = (card->reset_jiffies + HZ) - get_jiffies_64();
+
 		if (delay <= 0)
+		{
 			return 0;
+		}
+
 		if (schedule_timeout_interruptible(delay) > 0)
+		{
 			return -ERESTARTSYS;
+		}
 	}
 }
 
@@ -103,13 +114,15 @@ static int wait_isoch_resource_delay_after_bus_reset(struct fw_card *card)
  * fw_iso_resources_free() when the resources are not longer needed.
  */
 int fw_iso_resources_allocate(struct fw_iso_resources *r,
-			      unsigned int max_payload_bytes, int speed)
+							  unsigned int max_payload_bytes, int speed)
 {
 	struct fw_card *card = fw_parent_device(r->unit)->card;
 	int bandwidth, channel, err;
 
 	if (WARN_ON(r->allocated))
+	{
 		return -EBADFD;
+	}
 
 	r->bandwidth = packet_bandwidth(max_payload_bytes, speed);
 
@@ -120,28 +133,37 @@ retry_after_bus_reset:
 	spin_unlock_irq(&card->lock);
 
 	err = wait_isoch_resource_delay_after_bus_reset(card);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	mutex_lock(&r->mutex);
 
 	bandwidth = r->bandwidth + r->bandwidth_overhead;
 	fw_iso_resource_manage(card, r->generation, r->channels_mask,
-			       &channel, &bandwidth, true);
-	if (channel == -EAGAIN) {
+						   &channel, &bandwidth, true);
+
+	if (channel == -EAGAIN)
+	{
 		mutex_unlock(&r->mutex);
 		goto retry_after_bus_reset;
 	}
-	if (channel >= 0) {
+
+	if (channel >= 0)
+	{
 		r->channel = channel;
 		r->allocated = true;
-	} else {
+	}
+	else
+	{
 		if (channel == -EBUSY)
 			dev_err(&r->unit->device,
-				"isochronous resources exhausted\n");
+					"isochronous resources exhausted\n");
 		else
 			dev_err(&r->unit->device,
-				"isochronous resource allocation failed\n");
+					"isochronous resource allocation failed\n");
 	}
 
 	mutex_unlock(&r->mutex);
@@ -168,7 +190,8 @@ int fw_iso_resources_update(struct fw_iso_resources *r)
 
 	mutex_lock(&r->mutex);
 
-	if (!r->allocated) {
+	if (!r->allocated)
+	{
 		mutex_unlock(&r->mutex);
 		return 0;
 	}
@@ -181,19 +204,22 @@ int fw_iso_resources_update(struct fw_iso_resources *r)
 	bandwidth = r->bandwidth + r->bandwidth_overhead;
 
 	fw_iso_resource_manage(card, r->generation, 1uLL << r->channel,
-			       &channel, &bandwidth, true);
+						   &channel, &bandwidth, true);
+
 	/*
 	 * When another bus reset happens, pretend that the allocation
 	 * succeeded; we will try again for the new generation later.
 	 */
-	if (channel < 0 && channel != -EAGAIN) {
+	if (channel < 0 && channel != -EAGAIN)
+	{
 		r->allocated = false;
+
 		if (channel == -EBUSY)
 			dev_err(&r->unit->device,
-				"isochronous resources exhausted\n");
+					"isochronous resources exhausted\n");
 		else
 			dev_err(&r->unit->device,
-				"isochronous resource allocation failed\n");
+					"isochronous resource allocation failed\n");
 	}
 
 	mutex_unlock(&r->mutex);
@@ -215,13 +241,15 @@ void fw_iso_resources_free(struct fw_iso_resources *r)
 
 	mutex_lock(&r->mutex);
 
-	if (r->allocated) {
+	if (r->allocated)
+	{
 		bandwidth = r->bandwidth + r->bandwidth_overhead;
 		fw_iso_resource_manage(card, r->generation, 1uLL << r->channel,
-				       &channel, &bandwidth, false);
+							   &channel, &bandwidth, false);
+
 		if (channel < 0)
 			dev_err(&r->unit->device,
-				"isochronous resource deallocation failed\n");
+					"isochronous resource deallocation failed\n");
 
 		r->allocated = false;
 	}

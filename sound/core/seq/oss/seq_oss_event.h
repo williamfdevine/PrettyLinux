@@ -29,23 +29,26 @@
 #define LONG_EVENT_SIZE		8
 
 /* short event (4bytes) */
-struct evrec_short {
+struct evrec_short
+{
 	unsigned char code;
 	unsigned char parm1;
 	unsigned char dev;
 	unsigned char parm2;
 };
-	
+
 /* short note events (4bytes) */
-struct evrec_note {
+struct evrec_note
+{
 	unsigned char code;
 	unsigned char chn;
 	unsigned char note;
 	unsigned char vel;
 };
-	
+
 /* long timer events (8bytes) */
-struct evrec_timer {
+struct evrec_timer
+{
 	unsigned char code;
 	unsigned char cmd;
 	unsigned char dummy1, dummy2;
@@ -53,7 +56,8 @@ struct evrec_timer {
 };
 
 /* long extended events (8bytes) */
-struct evrec_extended {
+struct evrec_extended
+{
 	unsigned char code;
 	unsigned char cmd;
 	unsigned char dev;
@@ -62,7 +66,8 @@ struct evrec_extended {
 };
 
 /* long channel events (8bytes) */
-struct evrec_long {
+struct evrec_long
+{
 	unsigned char code;
 	unsigned char dev;
 	unsigned char cmd;
@@ -70,9 +75,10 @@ struct evrec_long {
 	unsigned char p1, p2;
 	unsigned short val;
 };
-	
+
 /* channel voice events (8bytes) */
-struct evrec_voice {
+struct evrec_voice
+{
 	unsigned char code;
 	unsigned char dev;
 	unsigned char cmd;
@@ -82,14 +88,16 @@ struct evrec_voice {
 };
 
 /* sysex events (8bytes) */
-struct evrec_sysex {
+struct evrec_sysex
+{
 	unsigned char code;
 	unsigned char dev;
 	unsigned char buf[6];
 };
 
 /* event record */
-union evrec {
+union evrec
+{
 	struct evrec_short s;
 	struct evrec_note n;
 	struct evrec_long l;

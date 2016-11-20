@@ -58,14 +58,16 @@
 #define LM3530_ALS_IMPD_700Ohm		(0x0E)
 #define LM3530_ALS_IMPD_667Ohm		(0x0F)
 
-enum lm3530_mode {
+enum lm3530_mode
+{
 	LM3530_BL_MODE_MANUAL = 0,	/* "man" */
 	LM3530_BL_MODE_ALS,		/* "als" */
 	LM3530_BL_MODE_PWM,		/* "pwm" */
 };
 
 /* ALS input select */
-enum lm3530_als_mode {
+enum lm3530_als_mode
+{
 	LM3530_INPUT_AVRG = 0,	/* ALS1 and ALS2 input average */
 	LM3530_INPUT_ALS1,	/* ALS1 Input */
 	LM3530_INPUT_ALS2,	/* ALS2 Input */
@@ -73,7 +75,8 @@ enum lm3530_als_mode {
 };
 
 /* PWM Platform Specific Data */
-struct lm3530_pwm_data {
+struct lm3530_pwm_data
+{
 	void (*pwm_set_intensity) (int brightness, int max_brightness);
 	int (*pwm_get_intensity) (int max_brightness);
 };
@@ -95,7 +98,8 @@ struct lm3530_pwm_data {
  * @brt_val: brightness value (0-127)
  * @pwm_data: PWM control functions (only valid when the mode is PWM)
  */
-struct lm3530_platform_data {
+struct lm3530_platform_data
+{
 	enum lm3530_mode mode;
 	enum lm3530_als_mode als_input_mode;
 

@@ -57,14 +57,18 @@ enum nvkm_pcie_speed
 g84_pcie_cur_speed(struct nvkm_pci *pci)
 {
 	u32 reg_v = nvkm_pci_rd32(pci, 0x88) & 0x30000;
-	switch (reg_v) {
-	case 0x30000:
-		return NVKM_PCIE_SPEED_8_0;
-	case 0x20000:
-		return NVKM_PCIE_SPEED_5_0;
-	case 0x10000:
-	default:
-		return NVKM_PCIE_SPEED_2_5;
+
+	switch (reg_v)
+	{
+		case 0x30000:
+			return NVKM_PCIE_SPEED_8_0;
+
+		case 0x20000:
+			return NVKM_PCIE_SPEED_5_0;
+
+		case 0x10000:
+		default:
+			return NVKM_PCIE_SPEED_2_5;
 	}
 }
 
@@ -72,8 +76,12 @@ enum nvkm_pcie_speed
 g84_pcie_max_speed(struct nvkm_pci *pci)
 {
 	u32 reg_v = nvkm_pci_rd32(pci, 0x460) & 0x3300;
+
 	if (reg_v == 0x2200)
+	{
 		return NVKM_PCIE_SPEED_5_0;
+	}
+
 	return NVKM_PCIE_SPEED_2_5;
 }
 
@@ -83,9 +91,13 @@ g84_pcie_set_link_speed(struct nvkm_pci *pci, enum nvkm_pcie_speed speed)
 	u32 mask_value;
 
 	if (speed == NVKM_PCIE_SPEED_5_0)
+	{
 		mask_value = 0x20;
+	}
 	else
+	{
 		mask_value = 0x10;
+	}
 
 	nvkm_pci_mask(pci, 0x460, 0x30, mask_value);
 	nvkm_pci_mask(pci, 0x460, 0x1, 0x1);
@@ -104,7 +116,9 @@ g84_pci_init(struct nvkm_pci *pci)
 {
 	/* The following only concerns PCIe cards. */
 	if (!pci_is_pcie(pci->pdev))
+	{
 		return;
+	}
 
 	/* Tag field is 8-bit long, regardless of EXT_TAG.
 	 * However, if EXT_TAG is disabled, only the lower 5 bits of the tag
@@ -117,9 +131,13 @@ g84_pci_init(struct nvkm_pci *pci)
 	 * Fixes fdo#86537
 	 */
 	if (nvkm_pci_rd32(pci, 0x007c) & 0x00000020)
+	{
 		nvkm_pci_mask(pci, 0x0080, 0x00000100, 0x00000100);
+	}
 	else
+	{
 		nvkm_pci_mask(pci, 0x041c, 0x00000060, 0x00000000);
+	}
 }
 
 int
@@ -131,7 +149,8 @@ g84_pcie_init(struct nvkm_pci *pci)
 }
 
 static const struct nvkm_pci_func
-g84_pci_func = {
+	g84_pci_func =
+{
 	.init = g84_pci_init,
 	.rd32 = nv40_pci_rd32,
 	.wr08 = nv40_pci_wr08,

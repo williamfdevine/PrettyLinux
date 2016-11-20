@@ -41,12 +41,14 @@ struct i40iw_sc_dev;
 struct i40iw_sc_qp;
 struct i40iw_sc_cq;
 
-enum puda_resource_type {
+enum puda_resource_type
+{
 	I40IW_PUDA_RSRC_TYPE_ILQ = 1,
 	I40IW_PUDA_RSRC_TYPE_IEQ
 };
 
-enum puda_rsrc_complete {
+enum puda_rsrc_complete
+{
 	PUDA_CQ_CREATED = 1,
 	PUDA_QP_CREATED,
 	PUDA_TX_COMPLETE,
@@ -54,7 +56,8 @@ enum puda_rsrc_complete {
 	PUDA_HASH_CRC_COMPLETE
 };
 
-struct i40iw_puda_completion_info {
+struct i40iw_puda_completion_info
+{
 	struct i40iw_qp_uk *qp;
 	u8 q_type;
 	u8 vlan_valid;
@@ -66,7 +69,8 @@ struct i40iw_puda_completion_info {
 	u32 wqe_idx;
 };
 
-struct i40iw_puda_send_info {
+struct i40iw_puda_send_info
+{
 	u64 paddr;		/* Physical address */
 	u32 len;
 	u8 tcplen;
@@ -76,7 +80,8 @@ struct i40iw_puda_send_info {
 	void *scratch;
 };
 
-struct i40iw_puda_buf {
+struct i40iw_puda_buf
+{
 	struct list_head list;	/* MUST be first entry */
 	struct i40iw_dma_mem mem;	/* DMA memory for the buffer */
 	struct i40iw_puda_buf *next;	/* for alloclist in rsrc struct */
@@ -96,7 +101,8 @@ struct i40iw_puda_buf {
 	u32 seqnum;
 };
 
-struct i40iw_puda_rsrc_info {
+struct i40iw_puda_rsrc_info
+{
 	enum puda_resource_type type;	/* ILQ or IEQ */
 	u32 count;
 	u16 pd_id;
@@ -111,7 +117,8 @@ struct i40iw_puda_rsrc_info {
 	void (*xmit_complete)(struct i40iw_sc_dev *, void *);
 };
 
-struct i40iw_puda_rsrc {
+struct i40iw_puda_rsrc
+{
 	struct i40iw_sc_cq cq;
 	struct i40iw_sc_qp qp;
 	struct i40iw_sc_pd sc_pd;
@@ -155,29 +162,29 @@ struct i40iw_puda_rsrc {
 
 struct i40iw_puda_buf *i40iw_puda_get_bufpool(struct i40iw_puda_rsrc *rsrc);
 void i40iw_puda_ret_bufpool(struct i40iw_puda_rsrc *rsrc,
-			    struct i40iw_puda_buf *buf);
+							struct i40iw_puda_buf *buf);
 void i40iw_puda_send_buf(struct i40iw_puda_rsrc *rsrc,
-			 struct i40iw_puda_buf *buf);
+						 struct i40iw_puda_buf *buf);
 enum i40iw_status_code i40iw_puda_send(struct i40iw_sc_qp *qp,
-				       struct i40iw_puda_send_info *info);
+									   struct i40iw_puda_send_info *info);
 enum i40iw_status_code i40iw_puda_create_rsrc(struct i40iw_sc_dev *dev,
-					      struct i40iw_puda_rsrc_info *info);
+		struct i40iw_puda_rsrc_info *info);
 void i40iw_puda_dele_resources(struct i40iw_sc_dev *dev,
-			       enum puda_resource_type type,
-			       bool reset);
+							   enum puda_resource_type type,
+							   bool reset);
 enum i40iw_status_code i40iw_puda_poll_completion(struct i40iw_sc_dev *dev,
-						  struct i40iw_sc_cq *cq, u32 *compl_err);
+		struct i40iw_sc_cq *cq, u32 *compl_err);
 void i40iw_ieq_cleanup_qp(struct i40iw_sc_dev *dev, struct i40iw_sc_qp *qp);
 
 struct i40iw_sc_qp *i40iw_ieq_get_qp(struct i40iw_sc_dev *dev,
-				     struct i40iw_puda_buf *buf);
+									 struct i40iw_puda_buf *buf);
 enum i40iw_status_code i40iw_puda_get_tcpip_info(struct i40iw_puda_completion_info *info,
-						 struct i40iw_puda_buf *buf);
+		struct i40iw_puda_buf *buf);
 enum i40iw_status_code i40iw_ieq_check_mpacrc(struct shash_desc *desc,
-					      void *addr, u32 length, u32 value);
+		void *addr, u32 length, u32 value);
 enum i40iw_status_code i40iw_init_hash_desc(struct shash_desc **desc);
 void i40iw_ieq_mpa_crc_ae(struct i40iw_sc_dev *dev, struct i40iw_sc_qp *qp);
 void i40iw_free_hash_desc(struct shash_desc *desc);
 void i40iw_ieq_update_tcpip_info(struct i40iw_puda_buf *buf, u16 length,
-				 u32 seqnum);
+								 u32 seqnum);
 #endif

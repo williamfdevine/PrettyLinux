@@ -85,31 +85,33 @@ unsigned int sysctl_max_tx_window = 7;
 
 static int irlap_param_baud_rate(void *instance, irda_param_t *param, int get);
 static int irlap_param_link_disconnect(void *instance, irda_param_t *parm,
-				       int get);
+									   int get);
 static int irlap_param_max_turn_time(void *instance, irda_param_t *param,
-				     int get);
+									 int get);
 static int irlap_param_data_size(void *instance, irda_param_t *param, int get);
 static int irlap_param_window_size(void *instance, irda_param_t *param,
-				   int get);
+								   int get);
 static int irlap_param_additional_bofs(void *instance, irda_param_t *parm,
-				       int get);
+									   int get);
 static int irlap_param_min_turn_time(void *instance, irda_param_t *param,
-				     int get);
+									 int get);
 
 #ifndef CONFIG_IRDA_DYNAMIC_WINDOW
-static __u32 irlap_requested_line_capacity(struct qos_info *qos);
+	static __u32 irlap_requested_line_capacity(struct qos_info *qos);
 #endif
 
 static __u32 min_turn_times[]  = { 10000, 5000, 1000, 500, 100, 50, 10, 0 }; /* us */
 static __u32 baud_rates[]      = { 2400, 9600, 19200, 38400, 57600, 115200, 576000,
-				   1152000, 4000000, 16000000 };           /* bps */
+								   1152000, 4000000, 16000000
+								 };           /* bps */
 static __u32 data_sizes[]      = { 64, 128, 256, 512, 1024, 2048 };        /* bytes */
 static __u32 add_bofs[]        = { 48, 24, 12, 5, 3, 2, 1, 0 };            /* bytes */
 static __u32 max_turn_times[]  = { 500, 250, 100, 50 };                    /* ms */
 static __u32 link_disc_times[] = { 3, 8, 12, 16, 20, 25, 30, 40 };         /* secs */
 
-static __u32 max_line_capacities[10][4] = {
-       /* 500 ms     250 ms  100 ms  50 ms (max turn time) */
+static __u32 max_line_capacities[10][4] =
+{
+	/* 500 ms     250 ms  100 ms  50 ms (max turn time) */
 	{    100,      0,      0,     0 }, /*     2400 bps */
 	{    400,      0,      0,     0 }, /*     9600 bps */
 	{    800,      0,      0,     0 }, /*    19200 bps */
@@ -122,29 +124,32 @@ static __u32 max_line_capacities[10][4] = {
 	{ 800000, 400000, 160000, 80000 }, /* 16000000 bps */
 };
 
-static const pi_minor_info_t pi_minor_call_table_type_0[] = {
+static const pi_minor_info_t pi_minor_call_table_type_0[] =
+{
 	{ NULL, 0 },
-/* 01 */{ irlap_param_baud_rate,       PV_INTEGER | PV_LITTLE_ENDIAN },
-	{ NULL, 0 },
-	{ NULL, 0 },
-	{ NULL, 0 },
+	/* 01 */{ irlap_param_baud_rate,       PV_INTEGER | PV_LITTLE_ENDIAN },
 	{ NULL, 0 },
 	{ NULL, 0 },
 	{ NULL, 0 },
-/* 08 */{ irlap_param_link_disconnect, PV_INT_8_BITS }
+	{ NULL, 0 },
+	{ NULL, 0 },
+	{ NULL, 0 },
+	/* 08 */{ irlap_param_link_disconnect, PV_INT_8_BITS }
 };
 
-static const pi_minor_info_t pi_minor_call_table_type_1[] = {
+static const pi_minor_info_t pi_minor_call_table_type_1[] =
+{
 	{ NULL, 0 },
 	{ NULL, 0 },
-/* 82 */{ irlap_param_max_turn_time,   PV_INT_8_BITS },
-/* 83 */{ irlap_param_data_size,       PV_INT_8_BITS },
-/* 84 */{ irlap_param_window_size,     PV_INT_8_BITS },
-/* 85 */{ irlap_param_additional_bofs, PV_INT_8_BITS },
-/* 86 */{ irlap_param_min_turn_time,   PV_INT_8_BITS },
+	/* 82 */{ irlap_param_max_turn_time,   PV_INT_8_BITS },
+	/* 83 */{ irlap_param_data_size,       PV_INT_8_BITS },
+	/* 84 */{ irlap_param_window_size,     PV_INT_8_BITS },
+	/* 85 */{ irlap_param_additional_bofs, PV_INT_8_BITS },
+	/* 86 */{ irlap_param_min_turn_time,   PV_INT_8_BITS },
 };
 
-static const pi_major_info_t pi_major_call_table[] = {
+static const pi_major_info_t pi_major_call_table[] =
+{
 	{ pi_minor_call_table_type_0, 9 },
 	{ pi_minor_call_table_type_1, 7 },
 };
@@ -166,9 +171,12 @@ static inline int value_index(__u32 value, __u32 *array, int size)
 {
 	int i;
 
-	for (i=0; i < size; i++)
+	for (i = 0; i < size; i++)
 		if (array[i] == value)
+		{
 			break;
+		}
+
 	return i;
 }
 
@@ -199,19 +207,25 @@ static int msb_index (__u16 word)
 	 * would expect driver authors to catch that pretty early and be
 	 * able to check precisely what's going on. If a end user sees this,
 	 * it's very likely the peer. - Jean II */
-	if (word == 0) {
+	if (word == 0)
+	{
 		net_warn_ratelimited("%s(), Detected buggy peer, adjust null PV to 0x1!\n",
-				     __func__);
+							 __func__);
 		/* The only safe choice (we don't know the array size) */
 		word = 0x1;
 	}
 
-	while (msb) {
+	while (msb)
+	{
 		if (word & msb)
-			break;   /* Found it! */
-		msb >>=1;
+		{
+			break;    /* Found it! */
+		}
+
+		msb >>= 1;
 		index--;
 	}
+
 	return index;
 }
 
@@ -226,17 +240,25 @@ static inline int value_lower_bits(__u32 value, __u32 *array, int size, __u16 *f
 	__u16	mask = 0x1;
 	__u16	result = 0x0;
 
-	for (i=0; i < size; i++) {
+	for (i = 0; i < size; i++)
+	{
 		/* Add the current value to the bit field, shift mask */
 		result |= mask;
 		mask <<= 1;
+
 		/* Finished ? */
 		if (array[i] >= value)
+		{
 			break;
+		}
 	}
+
 	/* Send back a valid index */
-	if(i >= size)
-	  i = size - 1;	/* Last item */
+	if (i >= size)
+	{
+		i = size - 1;    /* Last item */
+	}
+
 	*field = result;
 	return i;
 }
@@ -252,18 +274,27 @@ static inline int value_highest_bit(__u32 value, __u32 *array, int size, __u16 *
 	__u16	mask = 0x1;
 	__u16	result = 0x0;
 
-	for (i=0; i < size; i++) {
+	for (i = 0; i < size; i++)
+	{
 		/* Finished ? */
 		if (array[i] <= value)
+		{
 			break;
+		}
+
 		/* Shift mask */
 		mask <<= 1;
 	}
+
 	/* Set the current value to the bit field */
 	result |= mask;
+
 	/* Send back a valid index */
-	if(i >= size)
-	  i = size - 1;	/* Last item */
+	if (i >= size)
+	{
+		i = size - 1;    /* Last item */
+	}
+
 	*field = result;
 	return i;
 }
@@ -311,12 +342,12 @@ void irda_init_max_qos_capabilies(struct qos_info *qos)
 	/* Use sysctl to set some configurable values... */
 	/* Set configured max speed */
 	i = value_lower_bits(sysctl_max_baud_rate, baud_rates, 10,
-			     &qos->baud_rate.bits);
+						 &qos->baud_rate.bits);
 	sysctl_max_baud_rate = index_value(i, baud_rates);
 
 	/* Set configured max disc time */
 	i = value_lower_bits(sysctl_max_noreply_time, link_disc_times, 8,
-			     &qos->link_disc_time.bits);
+						 &qos->link_disc_time.bits);
 	sysctl_max_noreply_time = index_value(i, link_disc_times);
 
 	/* LSB is first byte, MSB is second byte */
@@ -346,15 +377,16 @@ static void irlap_adjust_qos_settings(struct qos_info *qos)
 	 * Make sure the mintt is sensible.
 	 * Main culprit : Ericsson T39. - Jean II
 	 */
-	if (sysctl_min_tx_turn_time > qos->min_turn_time.value) {
+	if (sysctl_min_tx_turn_time > qos->min_turn_time.value)
+	{
 		int i;
 
 		net_warn_ratelimited("%s(), Detected buggy peer, adjust mtt to %dus!\n",
-				     __func__, sysctl_min_tx_turn_time);
+							 __func__, sysctl_min_tx_turn_time);
 
 		/* We don't really need bits, but easier this way */
 		i = value_highest_bit(sysctl_min_tx_turn_time, min_turn_times,
-				      8, &qos->min_turn_time.bits);
+							  8, &qos->min_turn_time.bits);
 		sysctl_min_tx_turn_time = index_value(i, min_turn_times);
 		qos->min_turn_time.value = sysctl_min_tx_turn_time;
 	}
@@ -364,10 +396,10 @@ static void irlap_adjust_qos_settings(struct qos_info *qos)
 	 * is less than 115200
 	 */
 	if ((qos->baud_rate.value < 115200) &&
-	    (qos->max_turn_time.value < 500))
+		(qos->max_turn_time.value < 500))
 	{
 		pr_debug("%s(), adjusting max turn time from %d to 500 ms\n",
-			 __func__, qos->max_turn_time.value);
+				 __func__, qos->max_turn_time.value);
 		qos->max_turn_time.value = 500;
 	}
 
@@ -377,44 +409,61 @@ static void irlap_adjust_qos_settings(struct qos_info *qos)
 	 */
 	index = value_index(qos->data_size.value, data_sizes, 6);
 	line_capacity = irlap_max_line_capacity(qos->baud_rate.value,
-						qos->max_turn_time.value);
+											qos->max_turn_time.value);
 
 #ifdef CONFIG_IRDA_DYNAMIC_WINDOW
-	while ((qos->data_size.value > line_capacity) && (index > 0)) {
+
+	while ((qos->data_size.value > line_capacity) && (index > 0))
+	{
 		qos->data_size.value = data_sizes[index--];
 		pr_debug("%s(), reducing data size to %d\n",
-			 __func__, qos->data_size.value);
+				 __func__, qos->data_size.value);
 	}
+
 #else /* Use method described in section 6.6.11 of IrLAP */
-	while (irlap_requested_line_capacity(qos) > line_capacity) {
+
+	while (irlap_requested_line_capacity(qos) > line_capacity)
+	{
 		IRDA_ASSERT(index != 0, return;);
 
 		/* Must be able to send at least one frame */
-		if (qos->window_size.value > 1) {
+		if (qos->window_size.value > 1)
+		{
 			qos->window_size.value--;
 			pr_debug("%s(), reducing window size to %d\n",
-				 __func__, qos->window_size.value);
-		} else if (index > 1) {
+					 __func__, qos->window_size.value);
+		}
+		else if (index > 1)
+		{
 			qos->data_size.value = data_sizes[index--];
 			pr_debug("%s(), reducing data size to %d\n",
-				 __func__, qos->data_size.value);
-		} else {
+					 __func__, qos->data_size.value);
+		}
+		else
+		{
 			net_warn_ratelimited("%s(), nothing more we can do!\n",
-					     __func__);
+								 __func__);
 		}
 	}
+
 #endif /* CONFIG_IRDA_DYNAMIC_WINDOW */
+
 	/*
 	 * Fix tx data size according to user limits - Jean II
 	 */
 	if (qos->data_size.value > sysctl_max_tx_data_size)
 		/* Allow non discrete adjustement to avoid losing capacity */
+	{
 		qos->data_size.value = sysctl_max_tx_data_size;
+	}
+
 	/*
 	 * Override Tx window if user request it. - Jean II
 	 */
 	if (qos->window_size.value > sysctl_max_tx_window)
+	{
 		qos->window_size.value = sysctl_max_tx_window;
+	}
 }
 
 /*
@@ -429,7 +478,7 @@ int irlap_qos_negotiate(struct irlap_cb *self, struct sk_buff *skb)
 	int ret;
 
 	ret = irda_param_extract_all(self, skb->data, skb->len,
-				     &irlap_param_info);
+								 &irlap_param_info);
 
 	/* Convert the negotiated bits to values */
 	irda_qos_bits_to_value(&self->qos_tx);
@@ -438,19 +487,19 @@ int irlap_qos_negotiate(struct irlap_cb *self, struct sk_buff *skb)
 	irlap_adjust_qos_settings(&self->qos_tx);
 
 	pr_debug("Setting BAUD_RATE to %d bps.\n",
-		 self->qos_tx.baud_rate.value);
+			 self->qos_tx.baud_rate.value);
 	pr_debug("Setting DATA_SIZE to %d bytes\n",
-		 self->qos_tx.data_size.value);
+			 self->qos_tx.data_size.value);
 	pr_debug("Setting WINDOW_SIZE to %d\n",
-		 self->qos_tx.window_size.value);
+			 self->qos_tx.window_size.value);
 	pr_debug("Setting XBOFS to %d\n",
-		 self->qos_tx.additional_bofs.value);
+			 self->qos_tx.additional_bofs.value);
 	pr_debug("Setting MAX_TURN_TIME to %d ms.\n",
-		 self->qos_tx.max_turn_time.value);
+			 self->qos_tx.max_turn_time.value);
 	pr_debug("Setting MIN_TURN_TIME to %d usecs.\n",
-		 self->qos_tx.min_turn_time.value);
+			 self->qos_tx.min_turn_time.value);
 	pr_debug("Setting LINK_DISC to %d secs.\n",
-		 self->qos_tx.link_disc_time.value);
+			 self->qos_tx.link_disc_time.value);
 	return ret;
 }
 
@@ -461,57 +510,85 @@ int irlap_qos_negotiate(struct irlap_cb *self, struct sk_buff *skb)
  *
  */
 int irlap_insert_qos_negotiation_params(struct irlap_cb *self,
-					struct sk_buff *skb)
+										struct sk_buff *skb)
 {
 	int ret;
 
 	/* Insert data rate */
 	ret = irda_param_insert(self, PI_BAUD_RATE, skb_tail_pointer(skb),
-				skb_tailroom(skb), &irlap_param_info);
+							skb_tailroom(skb), &irlap_param_info);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	skb_put(skb, ret);
 
 	/* Insert max turnaround time */
 	ret = irda_param_insert(self, PI_MAX_TURN_TIME, skb_tail_pointer(skb),
-				skb_tailroom(skb), &irlap_param_info);
+							skb_tailroom(skb), &irlap_param_info);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	skb_put(skb, ret);
 
 	/* Insert data size */
 	ret = irda_param_insert(self, PI_DATA_SIZE, skb_tail_pointer(skb),
-				skb_tailroom(skb), &irlap_param_info);
+							skb_tailroom(skb), &irlap_param_info);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	skb_put(skb, ret);
 
 	/* Insert window size */
 	ret = irda_param_insert(self, PI_WINDOW_SIZE, skb_tail_pointer(skb),
-				skb_tailroom(skb), &irlap_param_info);
+							skb_tailroom(skb), &irlap_param_info);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	skb_put(skb, ret);
 
 	/* Insert additional BOFs */
 	ret = irda_param_insert(self, PI_ADD_BOFS, skb_tail_pointer(skb),
-				skb_tailroom(skb), &irlap_param_info);
+							skb_tailroom(skb), &irlap_param_info);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	skb_put(skb, ret);
 
 	/* Insert minimum turnaround time */
 	ret = irda_param_insert(self, PI_MIN_TURN_TIME, skb_tail_pointer(skb),
-				skb_tailroom(skb), &irlap_param_info);
+							skb_tailroom(skb), &irlap_param_info);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	skb_put(skb, ret);
 
 	/* Insert link disconnect/threshold time */
 	ret = irda_param_insert(self, PI_LINK_DISC, skb_tail_pointer(skb),
-				skb_tailroom(skb), &irlap_param_info);
+							skb_tailroom(skb), &irlap_param_info);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	skb_put(skb, ret);
 
 	return 0;
@@ -532,11 +609,14 @@ static int irlap_param_baud_rate(void *instance, irda_param_t *param, int get)
 	IRDA_ASSERT(self != NULL, return -1;);
 	IRDA_ASSERT(self->magic == LAP_MAGIC, return -1;);
 
-	if (get) {
+	if (get)
+	{
 		param->pv.i = self->qos_rx.baud_rate.bits;
 		pr_debug("%s(), baud rate = 0x%02x\n",
-			 __func__, param->pv.i);
-	} else {
+				 __func__, param->pv.i);
+	}
+	else
+	{
 		/*
 		 *  Stations must agree on baud rate, so calculate
 		 *  intersection
@@ -559,7 +639,7 @@ static int irlap_param_baud_rate(void *instance, irda_param_t *param, int get)
  *
  */
 static int irlap_param_link_disconnect(void *instance, irda_param_t *param,
-				       int get)
+									   int get)
 {
 	__u16 final;
 
@@ -569,8 +649,11 @@ static int irlap_param_link_disconnect(void *instance, irda_param_t *param,
 	IRDA_ASSERT(self->magic == LAP_MAGIC, return -1;);
 
 	if (get)
+	{
 		param->pv.i = self->qos_rx.link_disc_time.bits;
-	else {
+	}
+	else
+	{
 		/*
 		 *  Stations must agree on link disconnect/threshold
 		 *  time.
@@ -582,6 +665,7 @@ static int irlap_param_link_disconnect(void *instance, irda_param_t *param,
 		self->qos_tx.link_disc_time.bits = final;
 		self->qos_rx.link_disc_time.bits = final;
 	}
+
 	return 0;
 }
 
@@ -593,7 +677,7 @@ static int irlap_param_link_disconnect(void *instance, irda_param_t *param,
  *
  */
 static int irlap_param_max_turn_time(void *instance, irda_param_t *param,
-				     int get)
+									 int get)
 {
 	struct irlap_cb *self = (struct irlap_cb *) instance;
 
@@ -601,9 +685,13 @@ static int irlap_param_max_turn_time(void *instance, irda_param_t *param,
 	IRDA_ASSERT(self->magic == LAP_MAGIC, return -1;);
 
 	if (get)
+	{
 		param->pv.i = self->qos_rx.max_turn_time.bits;
+	}
 	else
+	{
 		self->qos_tx.max_turn_time.bits = (__u8) param->pv.i;
+	}
 
 	return 0;
 }
@@ -623,9 +711,13 @@ static int irlap_param_data_size(void *instance, irda_param_t *param, int get)
 	IRDA_ASSERT(self->magic == LAP_MAGIC, return -1;);
 
 	if (get)
+	{
 		param->pv.i = self->qos_rx.data_size.bits;
+	}
 	else
+	{
 		self->qos_tx.data_size.bits = (__u8) param->pv.i;
+	}
 
 	return 0;
 }
@@ -638,7 +730,7 @@ static int irlap_param_data_size(void *instance, irda_param_t *param, int get)
  *
  */
 static int irlap_param_window_size(void *instance, irda_param_t *param,
-				   int get)
+								   int get)
 {
 	struct irlap_cb *self = (struct irlap_cb *) instance;
 
@@ -646,9 +738,13 @@ static int irlap_param_window_size(void *instance, irda_param_t *param,
 	IRDA_ASSERT(self->magic == LAP_MAGIC, return -1;);
 
 	if (get)
+	{
 		param->pv.i = self->qos_rx.window_size.bits;
+	}
 	else
+	{
 		self->qos_tx.window_size.bits = (__u8) param->pv.i;
+	}
 
 	return 0;
 }
@@ -667,9 +763,13 @@ static int irlap_param_additional_bofs(void *instance, irda_param_t *param, int 
 	IRDA_ASSERT(self->magic == LAP_MAGIC, return -1;);
 
 	if (get)
+	{
 		param->pv.i = self->qos_rx.additional_bofs.bits;
+	}
 	else
+	{
 		self->qos_tx.additional_bofs.bits = (__u8) param->pv.i;
+	}
 
 	return 0;
 }
@@ -681,7 +781,7 @@ static int irlap_param_additional_bofs(void *instance, irda_param_t *param, int 
  *    will be negotiated independently for each station
  */
 static int irlap_param_min_turn_time(void *instance, irda_param_t *param,
-				     int get)
+									 int get)
 {
 	struct irlap_cb *self = (struct irlap_cb *) instance;
 
@@ -689,9 +789,13 @@ static int irlap_param_min_turn_time(void *instance, irda_param_t *param,
 	IRDA_ASSERT(self->magic == LAP_MAGIC, return -1;);
 
 	if (get)
+	{
 		param->pv.i = self->qos_rx.min_turn_time.bits;
+	}
 	else
+	{
 		self->qos_tx.min_turn_time.bits = (__u8) param->pv.i;
+	}
 
 	return 0;
 }
@@ -705,21 +809,21 @@ static int irlap_param_min_turn_time(void *instance, irda_param_t *param,
 __u32 irlap_max_line_capacity(__u32 speed, __u32 max_turn_time)
 {
 	__u32 line_capacity;
-	int i,j;
+	int i, j;
 
 	pr_debug("%s(), speed=%d, max_turn_time=%d\n",
-		 __func__, speed, max_turn_time);
+			 __func__, speed, max_turn_time);
 
 	i = value_index(speed, baud_rates, 10);
 	j = value_index(max_turn_time, max_turn_times, 4);
 
-	IRDA_ASSERT(((i >=0) && (i <10)), return 0;);
-	IRDA_ASSERT(((j >=0) && (j <4)), return 0;);
+	IRDA_ASSERT(((i >= 0) && (i < 10)), return 0;);
+	IRDA_ASSERT(((j >= 0) && (j < 4)), return 0;);
 
 	line_capacity = max_line_capacities[i][j];
 
 	pr_debug("%s(), line capacity=%d bytes\n",
-		 __func__, line_capacity);
+			 __func__, line_capacity);
 
 	return line_capacity;
 }
@@ -730,12 +834,12 @@ static __u32 irlap_requested_line_capacity(struct qos_info *qos)
 	__u32 line_capacity;
 
 	line_capacity = qos->window_size.value *
-		(qos->data_size.value + 6 + qos->additional_bofs.value) +
-		irlap_min_turn_time_in_bytes(qos->baud_rate.value,
-					     qos->min_turn_time.value);
+					(qos->data_size.value + 6 + qos->additional_bofs.value) +
+					irlap_min_turn_time_in_bytes(qos->baud_rate.value,
+							qos->min_turn_time.value);
 
 	pr_debug("%s(), requested line capacity=%d\n",
-		 __func__, line_capacity);
+			 __func__, line_capacity);
 
 	return line_capacity;
 }
@@ -754,7 +858,7 @@ void irda_qos_bits_to_value(struct qos_info *qos)
 	qos->data_size.value = data_sizes[index];
 
 	index = msb_index(qos->window_size.bits);
-	qos->window_size.value = index+1;
+	qos->window_size.value = index + 1;
 
 	index = msb_index(qos->min_turn_time.bits);
 	qos->min_turn_time.value = min_turn_times[index];

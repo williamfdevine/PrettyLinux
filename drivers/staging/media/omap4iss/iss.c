@@ -33,7 +33,7 @@
 
 #define ISS_PRINT_REGISTER(iss, name)\
 	dev_dbg(iss->dev, "###ISS " #name "=0x%08x\n", \
-		iss_reg_read(iss, OMAP4_ISS_MEM_TOP, ISS_##name))
+			iss_reg_read(iss, OMAP4_ISS_MEM_TOP, ISS_##name))
 
 static void iss_print_status(struct iss_device *iss)
 {
@@ -74,15 +74,15 @@ static void omap4iss_flush(struct iss_device *iss)
 static void omap4iss_isp_enable_interrupts(struct iss_device *iss)
 {
 	static const u32 isp_irq = ISP5_IRQ_OCP_ERR |
-				   ISP5_IRQ_RSZ_FIFO_IN_BLK_ERR |
-				   ISP5_IRQ_RSZ_FIFO_OVF |
-				   ISP5_IRQ_RSZ_INT_DMA |
-				   ISP5_IRQ_ISIF_INT(0);
+							   ISP5_IRQ_RSZ_FIFO_IN_BLK_ERR |
+							   ISP5_IRQ_RSZ_FIFO_OVF |
+							   ISP5_IRQ_RSZ_INT_DMA |
+							   ISP5_IRQ_ISIF_INT(0);
 
 	/* Enable ISP interrupts */
 	iss_reg_write(iss, OMAP4_ISS_MEM_ISP_SYS1, ISP5_IRQSTATUS(0), isp_irq);
 	iss_reg_write(iss, OMAP4_ISS_MEM_ISP_SYS1, ISP5_IRQENABLE_SET(0),
-		      isp_irq);
+				  isp_irq);
 }
 
 /*
@@ -101,14 +101,16 @@ static void omap4iss_isp_disable_interrupts(struct iss_device *iss)
 static void iss_enable_interrupts(struct iss_device *iss)
 {
 	static const u32 hl_irq = ISS_HL_IRQ_CSIA | ISS_HL_IRQ_CSIB
-				| ISS_HL_IRQ_ISP(0);
+							  | ISS_HL_IRQ_ISP(0);
 
 	/* Enable HL interrupts */
 	iss_reg_write(iss, OMAP4_ISS_MEM_TOP, ISS_HL_IRQSTATUS(5), hl_irq);
 	iss_reg_write(iss, OMAP4_ISS_MEM_TOP, ISS_HL_IRQENABLE_SET(5), hl_irq);
 
 	if (iss->regs[OMAP4_ISS_MEM_ISP_SYS1])
+	{
 		omap4iss_isp_enable_interrupts(iss);
+	}
 }
 
 /*
@@ -118,13 +120,15 @@ static void iss_enable_interrupts(struct iss_device *iss)
 static void iss_disable_interrupts(struct iss_device *iss)
 {
 	if (iss->regs[OMAP4_ISS_MEM_ISP_SYS1])
+	{
 		omap4iss_isp_disable_interrupts(iss);
+	}
 
 	iss_reg_write(iss, OMAP4_ISS_MEM_TOP, ISS_HL_IRQENABLE_CLR(5), ~0);
 }
 
 int omap4iss_get_external_info(struct iss_pipeline *pipe,
-			       struct media_link *link)
+							   struct media_link *link)
 {
 	struct iss_device *iss =
 		container_of(pipe, struct iss_video, pipe)->iss;
@@ -133,27 +137,36 @@ int omap4iss_get_external_info(struct iss_pipeline *pipe,
 	int ret;
 
 	if (!pipe->external)
+	{
 		return 0;
+	}
 
 	if (pipe->external_rate)
+	{
 		return 0;
+	}
 
 	memset(&fmt, 0, sizeof(fmt));
 
 	fmt.pad = link->source->index;
 	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
 	ret = v4l2_subdev_call(media_entity_to_v4l2_subdev(link->sink->entity),
-			       pad, get_fmt, NULL, &fmt);
+						   pad, get_fmt, NULL, &fmt);
+
 	if (ret < 0)
+	{
 		return -EPIPE;
+	}
 
 	pipe->external_bpp = omap4iss_video_format_info(fmt.format.code)->bpp;
 
 	ctrl = v4l2_ctrl_find(pipe->external->ctrl_handler,
-			      V4L2_CID_PIXEL_RATE);
-	if (!ctrl) {
+						  V4L2_CID_PIXEL_RATE);
+
+	if (!ctrl)
+	{
 		dev_warn(iss->dev, "no pixel rate control in subdev %s\n",
-			 pipe->external->name);
+				 pipe->external->name);
 		return -EPIPE;
 	}
 
@@ -172,7 +185,7 @@ int omap4iss_get_external_info(struct iss_pipeline *pipe,
  * and the ISP platform data.
  */
 void omap4iss_configure_bridge(struct iss_device *iss,
-			       enum ipipeif_input_entity input)
+							   enum ipipeif_input_entity input)
 {
 	u32 issctrl_val;
 	u32 isp5ctrl_val;
@@ -183,23 +196,24 @@ void omap4iss_configure_bridge(struct iss_device *iss,
 
 	isp5ctrl_val = iss_reg_read(iss, OMAP4_ISS_MEM_ISP_SYS1, ISP5_CTRL);
 
-	switch (input) {
-	case IPIPEIF_INPUT_CSI2A:
-		issctrl_val |= ISS_CTRL_INPUT_SEL_CSI2A;
-		break;
+	switch (input)
+	{
+		case IPIPEIF_INPUT_CSI2A:
+			issctrl_val |= ISS_CTRL_INPUT_SEL_CSI2A;
+			break;
 
-	case IPIPEIF_INPUT_CSI2B:
-		issctrl_val |= ISS_CTRL_INPUT_SEL_CSI2B;
-		break;
+		case IPIPEIF_INPUT_CSI2B:
+			issctrl_val |= ISS_CTRL_INPUT_SEL_CSI2B;
+			break;
 
-	default:
-		return;
+		default:
+			return;
 	}
 
 	issctrl_val |= ISS_CTRL_SYNC_DETECT_VS_RAISING;
 
 	isp5ctrl_val |= ISP5_CTRL_VD_PULSE_EXT | ISP5_CTRL_PSYNC_CLK_SEL |
-			ISP5_CTRL_SYNC_ENABLE;
+					ISP5_CTRL_SYNC_ENABLE;
 
 	iss_reg_write(iss, OMAP4_ISS_MEM_TOP, ISS_CTRL, issctrl_val);
 	iss_reg_write(iss, OMAP4_ISS_MEM_ISP_SYS1, ISP5_CTRL, isp5ctrl_val);
@@ -208,7 +222,8 @@ void omap4iss_configure_bridge(struct iss_device *iss,
 #ifdef ISS_ISR_DEBUG
 static void iss_isr_dbg(struct iss_device *iss, u32 irqstatus)
 {
-	static const char * const name[] = {
+	static const char *const name[] =
+	{
 		"ISP_0",
 		"ISP_1",
 		"ISP_2",
@@ -246,16 +261,21 @@ static void iss_isr_dbg(struct iss_device *iss, u32 irqstatus)
 
 	dev_dbg(iss->dev, "ISS IRQ: ");
 
-	for (i = 0; i < ARRAY_SIZE(name); i++) {
+	for (i = 0; i < ARRAY_SIZE(name); i++)
+	{
 		if ((1 << i) & irqstatus)
+		{
 			pr_cont("%s ", name[i]);
+		}
 	}
+
 	pr_cont("\n");
 }
 
 static void iss_isp_isr_dbg(struct iss_device *iss, u32 irqstatus)
 {
-	static const char * const name[] = {
+	static const char *const name[] =
+	{
 		"ISIF_0",
 		"ISIF_1",
 		"ISIF_2",
@@ -293,10 +313,14 @@ static void iss_isp_isr_dbg(struct iss_device *iss, u32 irqstatus)
 
 	dev_dbg(iss->dev, "ISP IRQ: ");
 
-	for (i = 0; i < ARRAY_SIZE(name); i++) {
+	for (i = 0; i < ARRAY_SIZE(name); i++)
+	{
 		if ((1 << i) & irqstatus)
+		{
 			pr_cont("%s ", name[i]);
+		}
 	}
+
 	pr_cont("\n");
 }
 #endif
@@ -314,10 +338,10 @@ static void iss_isp_isr_dbg(struct iss_device *iss, u32 irqstatus)
 static irqreturn_t iss_isr(int irq, void *_iss)
 {
 	static const u32 ipipeif_events = ISP5_IRQ_IPIPEIF_IRQ |
-					  ISP5_IRQ_ISIF_INT(0);
+									  ISP5_IRQ_ISIF_INT(0);
 	static const u32 resizer_events = ISP5_IRQ_RSZ_FIFO_IN_BLK_ERR |
-					  ISP5_IRQ_RSZ_FIFO_OVF |
-					  ISP5_IRQ_RSZ_INT_DMA;
+									  ISP5_IRQ_RSZ_FIFO_OVF |
+									  ISP5_IRQ_RSZ_INT_DMA;
 	struct iss_device *iss = _iss;
 	u32 irqstatus;
 
@@ -325,28 +349,36 @@ static irqreturn_t iss_isr(int irq, void *_iss)
 	iss_reg_write(iss, OMAP4_ISS_MEM_TOP, ISS_HL_IRQSTATUS(5), irqstatus);
 
 	if (irqstatus & ISS_HL_IRQ_CSIA)
+	{
 		omap4iss_csi2_isr(&iss->csi2a);
+	}
 
 	if (irqstatus & ISS_HL_IRQ_CSIB)
+	{
 		omap4iss_csi2_isr(&iss->csi2b);
+	}
 
-	if (irqstatus & ISS_HL_IRQ_ISP(0)) {
+	if (irqstatus & ISS_HL_IRQ_ISP(0))
+	{
 		u32 isp_irqstatus = iss_reg_read(iss, OMAP4_ISS_MEM_ISP_SYS1,
-						 ISP5_IRQSTATUS(0));
+										 ISP5_IRQSTATUS(0));
 		iss_reg_write(iss, OMAP4_ISS_MEM_ISP_SYS1, ISP5_IRQSTATUS(0),
-			      isp_irqstatus);
+					  isp_irqstatus);
 
 		if (isp_irqstatus & ISP5_IRQ_OCP_ERR)
+		{
 			dev_dbg(iss->dev, "ISP5 OCP Error!\n");
+		}
 
-		if (isp_irqstatus & ipipeif_events) {
+		if (isp_irqstatus & ipipeif_events)
+		{
 			omap4iss_ipipeif_isr(&iss->ipipeif,
-					     isp_irqstatus & ipipeif_events);
+								 isp_irqstatus & ipipeif_events);
 		}
 
 		if (isp_irqstatus & resizer_events)
 			omap4iss_resizer_isr(&iss->resizer,
-					     isp_irqstatus & resizer_events);
+								 isp_irqstatus & resizer_events);
 
 #ifdef ISS_ISR_DEBUG
 		iss_isp_isr_dbg(iss, isp_irqstatus);
@@ -362,7 +394,8 @@ static irqreturn_t iss_isr(int irq, void *_iss)
 	return IRQ_HANDLED;
 }
 
-static const struct media_device_ops iss_media_ops = {
+static const struct media_device_ops iss_media_ops =
+{
 	.link_notify = v4l2_pipeline_link_notify,
 };
 
@@ -384,7 +417,7 @@ static const struct media_device_ops iss_media_ops = {
  * subdev start error.
  */
 static int iss_pipeline_disable(struct iss_pipeline *pipe,
-				struct media_entity *until)
+								struct media_entity *until)
 {
 	struct iss_device *iss = pipe->output->iss;
 	struct media_entity *entity;
@@ -394,24 +427,37 @@ static int iss_pipeline_disable(struct iss_pipeline *pipe,
 	int ret;
 
 	entity = &pipe->output->video.entity;
-	while (1) {
+
+	while (1)
+	{
 		pad = &entity->pads[0];
+
 		if (!(pad->flags & MEDIA_PAD_FL_SINK))
+		{
 			break;
+		}
 
 		pad = media_entity_remote_pad(pad);
+
 		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+		{
 			break;
+		}
 
 		entity = pad->entity;
+
 		if (entity == until)
+		{
 			break;
+		}
 
 		subdev = media_entity_to_v4l2_subdev(entity);
 		ret = v4l2_subdev_call(subdev, video, s_stream, 0);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_warn(iss->dev, "%s: module stop timeout.\n",
-				 subdev->name);
+					 subdev->name);
 			/* If the entity failed to stopped, assume it has
 			 * crashed. Mark it as such, the ISS will be reset when
 			 * applications will release it.
@@ -436,7 +482,7 @@ static int iss_pipeline_disable(struct iss_pipeline *pipe,
  * operation otherwise.
  */
 static int iss_pipeline_enable(struct iss_pipeline *pipe,
-			       enum iss_pipeline_stream_state mode)
+							   enum iss_pipeline_stream_state mode)
 {
 	struct iss_device *iss = pipe->output->iss;
 	struct media_entity *entity;
@@ -452,7 +498,9 @@ static int iss_pipeline_enable(struct iss_pipeline *pipe,
 	 * stop, making the problem worse).
 	 */
 	if (media_entity_enum_intersects(&pipe->ent_enum, &iss->crashed))
+	{
 		return -EIO;
+	}
 
 	spin_lock_irqsave(&pipe->lock, flags);
 	pipe->state &= ~(ISS_PIPELINE_IDLE_INPUT | ISS_PIPELINE_IDLE_OUTPUT);
@@ -461,27 +509,39 @@ static int iss_pipeline_enable(struct iss_pipeline *pipe,
 	pipe->do_propagation = false;
 
 	entity = &pipe->output->video.entity;
-	while (1) {
+
+	while (1)
+	{
 		pad = &entity->pads[0];
+
 		if (!(pad->flags & MEDIA_PAD_FL_SINK))
+		{
 			break;
+		}
 
 		pad = media_entity_remote_pad(pad);
+
 		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+		{
 			break;
+		}
 
 		entity = pad->entity;
 		subdev = media_entity_to_v4l2_subdev(entity);
 
 		ret = v4l2_subdev_call(subdev, video, s_stream, mode);
-		if (ret < 0 && ret != -ENOIOCTLCMD) {
+
+		if (ret < 0 && ret != -ENOIOCTLCMD)
+		{
 			iss_pipeline_disable(pipe, entity);
 			return ret;
 		}
 
 		if (subdev == &iss->csi2a.subdev ||
-		    subdev == &iss->csi2b.subdev)
+			subdev == &iss->csi2b.subdev)
+		{
 			pipe->do_propagation = true;
+		}
 	}
 
 	iss_print_status(pipe->output->iss);
@@ -501,17 +561,23 @@ static int iss_pipeline_enable(struct iss_pipeline *pipe,
  * fails, except when stopping the pipeline.
  */
 int omap4iss_pipeline_set_stream(struct iss_pipeline *pipe,
-				 enum iss_pipeline_stream_state state)
+								 enum iss_pipeline_stream_state state)
 {
 	int ret;
 
 	if (state == ISS_PIPELINE_STREAM_STOPPED)
+	{
 		ret = iss_pipeline_disable(pipe, NULL);
+	}
 	else
+	{
 		ret = iss_pipeline_enable(pipe, state);
+	}
 
 	if (ret == 0 || state == ISS_PIPELINE_STREAM_STOPPED)
+	{
 		pipe->stream_state = state;
+	}
 
 	return ret;
 }
@@ -528,9 +594,14 @@ int omap4iss_pipeline_set_stream(struct iss_pipeline *pipe,
 void omap4iss_pipeline_cancel_stream(struct iss_pipeline *pipe)
 {
 	if (pipe->input)
+	{
 		omap4iss_video_cancel_stream(pipe->input);
+	}
+
 	if (pipe->output)
+	{
 		omap4iss_video_cancel_stream(pipe->output);
+	}
 }
 
 /*
@@ -548,10 +619,17 @@ static int iss_pipeline_is_last(struct media_entity *me)
 	struct media_pad *pad;
 
 	if (!me->pipe)
+	{
 		return 0;
+	}
+
 	pipe = to_iss_pipeline(me);
+
 	if (pipe->stream_state == ISS_PIPELINE_STREAM_STOPPED)
+	{
 		return 0;
+	}
+
 	pad = media_entity_remote_pad(&pipe->output->pad);
 	return pad->entity == me;
 }
@@ -561,12 +639,14 @@ static int iss_reset(struct iss_device *iss)
 	unsigned int timeout;
 
 	iss_reg_set(iss, OMAP4_ISS_MEM_TOP, ISS_HL_SYSCONFIG,
-		    ISS_HL_SYSCONFIG_SOFTRESET);
+				ISS_HL_SYSCONFIG_SOFTRESET);
 
 	timeout = iss_poll_condition_timeout(
-		!(iss_reg_read(iss, OMAP4_ISS_MEM_TOP, ISS_HL_SYSCONFIG) &
-		ISS_HL_SYSCONFIG_SOFTRESET), 1000, 10, 100);
-	if (timeout) {
+				  !(iss_reg_read(iss, OMAP4_ISS_MEM_TOP, ISS_HL_SYSCONFIG) &
+					ISS_HL_SYSCONFIG_SOFTRESET), 1000, 10, 100);
+
+	if (timeout)
+	{
 		dev_err(iss->dev, "ISS reset timeout\n");
 		return -ETIMEDOUT;
 	}
@@ -582,27 +662,31 @@ static int iss_isp_reset(struct iss_device *iss)
 
 	/* Fist, ensure that the ISP is IDLE (no transactions happening) */
 	iss_reg_update(iss, OMAP4_ISS_MEM_ISP_SYS1, ISP5_SYSCONFIG,
-		       ISP5_SYSCONFIG_STANDBYMODE_MASK,
-		       ISP5_SYSCONFIG_STANDBYMODE_SMART);
+				   ISP5_SYSCONFIG_STANDBYMODE_MASK,
+				   ISP5_SYSCONFIG_STANDBYMODE_SMART);
 
 	iss_reg_set(iss, OMAP4_ISS_MEM_ISP_SYS1, ISP5_CTRL, ISP5_CTRL_MSTANDBY);
 
 	timeout = iss_poll_condition_timeout(
-		iss_reg_read(iss, OMAP4_ISS_MEM_ISP_SYS1, ISP5_CTRL) &
-		ISP5_CTRL_MSTANDBY_WAIT, 1000000, 1000, 1500);
-	if (timeout) {
+				  iss_reg_read(iss, OMAP4_ISS_MEM_ISP_SYS1, ISP5_CTRL) &
+				  ISP5_CTRL_MSTANDBY_WAIT, 1000000, 1000, 1500);
+
+	if (timeout)
+	{
 		dev_err(iss->dev, "ISP5 standby timeout\n");
 		return -ETIMEDOUT;
 	}
 
 	/* Now finally, do the reset */
 	iss_reg_set(iss, OMAP4_ISS_MEM_ISP_SYS1, ISP5_SYSCONFIG,
-		    ISP5_SYSCONFIG_SOFTRESET);
+				ISP5_SYSCONFIG_SOFTRESET);
 
 	timeout = iss_poll_condition_timeout(
-		!(iss_reg_read(iss, OMAP4_ISS_MEM_ISP_SYS1, ISP5_SYSCONFIG) &
-		ISP5_SYSCONFIG_SOFTRESET), 1000000, 1000, 1500);
-	if (timeout) {
+				  !(iss_reg_read(iss, OMAP4_ISS_MEM_ISP_SYS1, ISP5_SYSCONFIG) &
+					ISP5_SYSCONFIG_SOFTRESET), 1000000, 1000, 1500);
+
+	if (timeout)
+	{
 		dev_err(iss->dev, "ISP5 reset timeout\n");
 		return -ETIMEDOUT;
 	}
@@ -620,16 +704,18 @@ static int iss_isp_reset(struct iss_device *iss)
  * yes, makes the caller to sleep while waiting for such event.
  */
 int omap4iss_module_sync_idle(struct media_entity *me, wait_queue_head_t *wait,
-			      atomic_t *stopping)
+							  atomic_t *stopping)
 {
 	struct iss_pipeline *pipe = to_iss_pipeline(me);
 	struct iss_video *video = pipe->output;
 	unsigned long flags;
 
 	if (pipe->stream_state == ISS_PIPELINE_STREAM_STOPPED ||
-	    (pipe->stream_state == ISS_PIPELINE_STREAM_SINGLESHOT &&
-	     !iss_pipeline_ready(pipe)))
+		(pipe->stream_state == ISS_PIPELINE_STREAM_SINGLESHOT &&
+		 !iss_pipeline_ready(pipe)))
+	{
 		return 0;
+	}
 
 	/*
 	 * atomic_set() doesn't include memory barrier on ARM platform for SMP
@@ -648,18 +734,25 @@ int omap4iss_module_sync_idle(struct media_entity *me, wait_queue_head_t *wait,
 	 * module wants to be idle.
 	 */
 	if (!iss_pipeline_is_last(me))
+	{
 		return 0;
+	}
 
 	spin_lock_irqsave(&video->qlock, flags);
-	if (video->dmaqueue_flags & ISS_VIDEO_DMAQUEUE_UNDERRUN) {
+
+	if (video->dmaqueue_flags & ISS_VIDEO_DMAQUEUE_UNDERRUN)
+	{
 		spin_unlock_irqrestore(&video->qlock, flags);
 		atomic_set(stopping, 0);
 		smp_wmb();
 		return 0;
 	}
+
 	spin_unlock_irqrestore(&video->qlock, flags);
+
 	if (!wait_event_timeout(*wait, !atomic_read(stopping),
-				msecs_to_jiffies(1000))) {
+							msecs_to_jiffies(1000)))
+	{
 		atomic_set(stopping, 0);
 		smp_wmb();
 		return -ETIMEDOUT;
@@ -678,9 +771,10 @@ int omap4iss_module_sync_idle(struct media_entity *me, wait_queue_head_t *wait,
  * Returns 1 if it was stopping or 0 otherwise.
  */
 int omap4iss_module_sync_is_stopping(wait_queue_head_t *wait,
-				     atomic_t *stopping)
+									 atomic_t *stopping)
 {
-	if (atomic_cmpxchg(stopping, 1, 0)) {
+	if (atomic_cmpxchg(stopping, 1, 0))
+	{
 		wake_up(wait);
 		return 1;
 	}
@@ -693,8 +787,8 @@ int omap4iss_module_sync_is_stopping(wait_queue_head_t *wait,
  */
 
 #define ISS_CLKCTRL_MASK	(ISS_CLKCTRL_CSI2_A |\
-				 ISS_CLKCTRL_CSI2_B |\
-				 ISS_CLKCTRL_ISP)
+							 ISS_CLKCTRL_CSI2_B |\
+							 ISS_CLKCTRL_ISP)
 
 static int __iss_subclk_update(struct iss_device *iss)
 {
@@ -702,33 +796,45 @@ static int __iss_subclk_update(struct iss_device *iss)
 	int ret = 0, timeout = 1000;
 
 	if (iss->subclk_resources & OMAP4_ISS_SUBCLK_CSI2_A)
+	{
 		clk |= ISS_CLKCTRL_CSI2_A;
+	}
 
 	if (iss->subclk_resources & OMAP4_ISS_SUBCLK_CSI2_B)
+	{
 		clk |= ISS_CLKCTRL_CSI2_B;
+	}
 
 	if (iss->subclk_resources & OMAP4_ISS_SUBCLK_ISP)
+	{
 		clk |= ISS_CLKCTRL_ISP;
+	}
 
 	iss_reg_update(iss, OMAP4_ISS_MEM_TOP, ISS_CLKCTRL,
-		       ISS_CLKCTRL_MASK, clk);
+				   ISS_CLKCTRL_MASK, clk);
 
 	/* Wait for HW assertion */
-	while (--timeout > 0) {
+	while (--timeout > 0)
+	{
 		udelay(1);
+
 		if ((iss_reg_read(iss, OMAP4_ISS_MEM_TOP, ISS_CLKSTAT) &
-		    ISS_CLKCTRL_MASK) == clk)
+			 ISS_CLKCTRL_MASK) == clk)
+		{
 			break;
+		}
 	}
 
 	if (!timeout)
+	{
 		ret = -EBUSY;
+	}
 
 	return ret;
 }
 
 int omap4iss_subclk_enable(struct iss_device *iss,
-			   enum iss_subclk_resource res)
+						   enum iss_subclk_resource res)
 {
 	iss->subclk_resources |= res;
 
@@ -736,7 +842,7 @@ int omap4iss_subclk_enable(struct iss_device *iss,
 }
 
 int omap4iss_subclk_disable(struct iss_device *iss,
-			    enum iss_subclk_resource res)
+							enum iss_subclk_resource res)
 {
 	iss->subclk_resources &= ~res;
 
@@ -744,40 +850,52 @@ int omap4iss_subclk_disable(struct iss_device *iss,
 }
 
 #define ISS_ISP5_CLKCTRL_MASK	(ISP5_CTRL_BL_CLK_ENABLE |\
-				 ISP5_CTRL_ISIF_CLK_ENABLE |\
-				 ISP5_CTRL_H3A_CLK_ENABLE |\
-				 ISP5_CTRL_RSZ_CLK_ENABLE |\
-				 ISP5_CTRL_IPIPE_CLK_ENABLE |\
-				 ISP5_CTRL_IPIPEIF_CLK_ENABLE)
+								 ISP5_CTRL_ISIF_CLK_ENABLE |\
+								 ISP5_CTRL_H3A_CLK_ENABLE |\
+								 ISP5_CTRL_RSZ_CLK_ENABLE |\
+								 ISP5_CTRL_IPIPE_CLK_ENABLE |\
+								 ISP5_CTRL_IPIPEIF_CLK_ENABLE)
 
 static void __iss_isp_subclk_update(struct iss_device *iss)
 {
 	u32 clk = 0;
 
 	if (iss->isp_subclk_resources & OMAP4_ISS_ISP_SUBCLK_ISIF)
+	{
 		clk |= ISP5_CTRL_ISIF_CLK_ENABLE;
+	}
 
 	if (iss->isp_subclk_resources & OMAP4_ISS_ISP_SUBCLK_H3A)
+	{
 		clk |= ISP5_CTRL_H3A_CLK_ENABLE;
+	}
 
 	if (iss->isp_subclk_resources & OMAP4_ISS_ISP_SUBCLK_RSZ)
+	{
 		clk |= ISP5_CTRL_RSZ_CLK_ENABLE;
+	}
 
 	if (iss->isp_subclk_resources & OMAP4_ISS_ISP_SUBCLK_IPIPE)
+	{
 		clk |= ISP5_CTRL_IPIPE_CLK_ENABLE;
+	}
 
 	if (iss->isp_subclk_resources & OMAP4_ISS_ISP_SUBCLK_IPIPEIF)
+	{
 		clk |= ISP5_CTRL_IPIPEIF_CLK_ENABLE;
+	}
 
 	if (clk)
+	{
 		clk |= ISP5_CTRL_BL_CLK_ENABLE;
+	}
 
 	iss_reg_update(iss, OMAP4_ISS_MEM_ISP_SYS1, ISP5_CTRL,
-		       ISS_ISP5_CLKCTRL_MASK, clk);
+				   ISS_ISP5_CLKCTRL_MASK, clk);
 }
 
 void omap4iss_isp_subclk_enable(struct iss_device *iss,
-				enum iss_isp_subclk_resource res)
+								enum iss_isp_subclk_resource res)
 {
 	iss->isp_subclk_resources |= res;
 
@@ -785,7 +903,7 @@ void omap4iss_isp_subclk_enable(struct iss_device *iss,
 }
 
 void omap4iss_isp_subclk_disable(struct iss_device *iss,
-				 enum iss_isp_subclk_resource res)
+								 enum iss_isp_subclk_resource res)
 {
 	iss->isp_subclk_resources &= ~res;
 
@@ -803,13 +921,17 @@ static int iss_enable_clocks(struct iss_device *iss)
 	int ret;
 
 	ret = clk_enable(iss->iss_fck);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(iss->dev, "clk_enable iss_fck failed\n");
 		return ret;
 	}
 
 	ret = clk_enable(iss->iss_ctrlclk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(iss->dev, "clk_enable iss_ctrlclk failed\n");
 		clk_disable(iss->iss_fck);
 		return ret;
@@ -831,13 +953,17 @@ static void iss_disable_clocks(struct iss_device *iss)
 static int iss_get_clocks(struct iss_device *iss)
 {
 	iss->iss_fck = devm_clk_get(iss->dev, "iss_fck");
-	if (IS_ERR(iss->iss_fck)) {
+
+	if (IS_ERR(iss->iss_fck))
+	{
 		dev_err(iss->dev, "Unable to get iss_fck clock info\n");
 		return PTR_ERR(iss->iss_fck);
 	}
 
 	iss->iss_ctrlclk = devm_clk_get(iss->dev, "iss_ctrlclk");
-	if (IS_ERR(iss->iss_ctrlclk)) {
+
+	if (IS_ERR(iss->iss_ctrlclk))
+	{
 		dev_err(iss->dev, "Unable to get iss_ctrlclk clock info\n");
 		return PTR_ERR(iss->iss_ctrlclk);
 	}
@@ -860,13 +986,19 @@ struct iss_device *omap4iss_get(struct iss_device *iss)
 	struct iss_device *__iss = iss;
 
 	if (!iss)
+	{
 		return NULL;
+	}
 
 	mutex_lock(&iss->iss_mutex);
-	if (iss->ref_count > 0)
-		goto out;
 
-	if (iss_enable_clocks(iss) < 0) {
+	if (iss->ref_count > 0)
+	{
+		goto out;
+	}
+
+	if (iss_enable_clocks(iss) < 0)
+	{
 		__iss = NULL;
 		goto out;
 	}
@@ -874,8 +1006,12 @@ struct iss_device *omap4iss_get(struct iss_device *iss)
 	iss_enable_interrupts(iss);
 
 out:
+
 	if (__iss)
+	{
 		iss->ref_count++;
+	}
+
 	mutex_unlock(&iss->iss_mutex);
 
 	return __iss;
@@ -890,27 +1026,36 @@ out:
 void omap4iss_put(struct iss_device *iss)
 {
 	if (!iss)
+	{
 		return;
+	}
 
 	mutex_lock(&iss->iss_mutex);
 	BUG_ON(iss->ref_count == 0);
-	if (--iss->ref_count == 0) {
+
+	if (--iss->ref_count == 0)
+	{
 		iss_disable_interrupts(iss);
+
 		/* Reset the ISS if an entity has failed to stop. This is the
 		 * only way to recover from such conditions, although it would
 		 * be worth investigating whether resetting the ISP only can't
 		 * fix the problem in some cases.
 		 */
 		if (!media_entity_enum_empty(&iss->crashed))
+		{
 			iss_reset(iss);
+		}
+
 		iss_disable_clocks(iss);
 	}
+
 	mutex_unlock(&iss->iss_mutex);
 }
 
 static int iss_map_mem_resource(struct platform_device *pdev,
-				struct iss_device *iss,
-				enum iss_mem_resources res)
+								struct iss_device *iss,
+								enum iss_mem_resources res)
 {
 	struct resource *mem;
 
@@ -946,37 +1091,46 @@ static void iss_unregister_entities(struct iss_device *iss)
  */
 static struct v4l2_subdev *
 iss_register_subdev_group(struct iss_device *iss,
-			  struct iss_subdev_i2c_board_info *board_info)
+						  struct iss_subdev_i2c_board_info *board_info)
 {
 	struct v4l2_subdev *sensor = NULL;
 	unsigned int first;
 
 	if (!board_info->board_info)
+	{
 		return NULL;
+	}
 
-	for (first = 1; board_info->board_info; ++board_info, first = 0) {
+	for (first = 1; board_info->board_info; ++board_info, first = 0)
+	{
 		struct v4l2_subdev *subdev;
 		struct i2c_adapter *adapter;
 
 		adapter = i2c_get_adapter(board_info->i2c_adapter_id);
-		if (!adapter) {
+
+		if (!adapter)
+		{
 			dev_err(iss->dev,
-				"%s: Unable to get I2C adapter %d for device %s\n",
-				__func__, board_info->i2c_adapter_id,
-				board_info->board_info->type);
+					"%s: Unable to get I2C adapter %d for device %s\n",
+					__func__, board_info->i2c_adapter_id,
+					board_info->board_info->type);
 			continue;
 		}
 
 		subdev = v4l2_i2c_new_subdev_board(&iss->v4l2_dev, adapter,
-				board_info->board_info, NULL);
-		if (!subdev) {
+										   board_info->board_info, NULL);
+
+		if (!subdev)
+		{
 			dev_err(iss->dev, "Unable to register subdev %s\n",
-				board_info->board_info->type);
+					board_info->board_info->type);
 			continue;
 		}
 
 		if (first)
+		{
 			sensor = subdev;
+		}
 	}
 
 	return sensor;
@@ -990,55 +1144,78 @@ static int iss_register_entities(struct iss_device *iss)
 
 	iss->media_dev.dev = iss->dev;
 	strlcpy(iss->media_dev.model, "TI OMAP4 ISS",
-		sizeof(iss->media_dev.model));
+			sizeof(iss->media_dev.model));
 	iss->media_dev.hw_revision = iss->revision;
 	iss->media_dev.ops = &iss_media_ops;
 	ret = media_device_register(&iss->media_dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(iss->dev, "Media device registration failed (%d)\n",
-			ret);
+				ret);
 		return ret;
 	}
 
 	iss->v4l2_dev.mdev = &iss->media_dev;
 	ret = v4l2_device_register(iss->dev, &iss->v4l2_dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(iss->dev, "V4L2 device registration failed (%d)\n",
-			ret);
+				ret);
 		goto done;
 	}
 
 	/* Register internal entities */
 	ret = omap4iss_csi2_register_entities(&iss->csi2a, &iss->v4l2_dev);
+
 	if (ret < 0)
+	{
 		goto done;
+	}
 
 	ret = omap4iss_csi2_register_entities(&iss->csi2b, &iss->v4l2_dev);
+
 	if (ret < 0)
+	{
 		goto done;
+	}
 
 	ret = omap4iss_ipipeif_register_entities(&iss->ipipeif, &iss->v4l2_dev);
+
 	if (ret < 0)
+	{
 		goto done;
+	}
 
 	ret = omap4iss_ipipe_register_entities(&iss->ipipe, &iss->v4l2_dev);
+
 	if (ret < 0)
+	{
 		goto done;
+	}
 
 	ret = omap4iss_resizer_register_entities(&iss->resizer, &iss->v4l2_dev);
+
 	if (ret < 0)
+	{
 		goto done;
+	}
 
 	/* Register external entities */
-	for (subdevs = pdata->subdevs; subdevs && subdevs->subdevs; ++subdevs) {
+	for (subdevs = pdata->subdevs; subdevs && subdevs->subdevs; ++subdevs)
+	{
 		struct v4l2_subdev *sensor;
 		struct media_entity *input;
 		unsigned int flags;
 		unsigned int pad;
 
 		sensor = iss_register_subdev_group(iss, subdevs->subdevs);
+
 		if (!sensor)
+		{
 			continue;
+		}
 
 		sensor->host_priv = subdevs;
 
@@ -1046,39 +1223,46 @@ static int iss_register_entities(struct iss_device *iss)
 		 * CSI2a receiver through CSIPHY1, or
 		 * CSI2b receiver through CSIPHY2
 		 */
-		switch (subdevs->interface) {
-		case ISS_INTERFACE_CSI2A_PHY1:
-			input = &iss->csi2a.subdev.entity;
-			pad = CSI2_PAD_SINK;
-			flags = MEDIA_LNK_FL_IMMUTABLE
-			      | MEDIA_LNK_FL_ENABLED;
-			break;
+		switch (subdevs->interface)
+		{
+			case ISS_INTERFACE_CSI2A_PHY1:
+				input = &iss->csi2a.subdev.entity;
+				pad = CSI2_PAD_SINK;
+				flags = MEDIA_LNK_FL_IMMUTABLE
+						| MEDIA_LNK_FL_ENABLED;
+				break;
 
-		case ISS_INTERFACE_CSI2B_PHY2:
-			input = &iss->csi2b.subdev.entity;
-			pad = CSI2_PAD_SINK;
-			flags = MEDIA_LNK_FL_IMMUTABLE
-			      | MEDIA_LNK_FL_ENABLED;
-			break;
+			case ISS_INTERFACE_CSI2B_PHY2:
+				input = &iss->csi2b.subdev.entity;
+				pad = CSI2_PAD_SINK;
+				flags = MEDIA_LNK_FL_IMMUTABLE
+						| MEDIA_LNK_FL_ENABLED;
+				break;
 
-		default:
-			dev_err(iss->dev, "invalid interface type %u\n",
-				subdevs->interface);
-			ret = -EINVAL;
-			goto done;
+			default:
+				dev_err(iss->dev, "invalid interface type %u\n",
+						subdevs->interface);
+				ret = -EINVAL;
+				goto done;
 		}
 
 		ret = media_create_pad_link(&sensor->entity, 0, input, pad,
-					    flags);
+									flags);
+
 		if (ret < 0)
+		{
 			goto done;
+		}
 	}
 
 	ret = v4l2_device_register_subdev_nodes(&iss->v4l2_dev);
 
 done:
+
 	if (ret < 0)
+	{
 		iss_unregister_entities(iss);
+	}
 
 	return ret;
 }
@@ -1094,53 +1278,74 @@ static int iss_create_links(struct iss_device *iss)
 	int ret;
 
 	ret = omap4iss_csi2_create_links(iss);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(iss->dev, "CSI2 pads links creation failed\n");
 		return ret;
 	}
 
 	ret = omap4iss_ipipeif_create_links(iss);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(iss->dev, "ISP IPIPEIF pads links creation failed\n");
 		return ret;
 	}
 
 	ret = omap4iss_resizer_create_links(iss);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(iss->dev, "ISP RESIZER pads links creation failed\n");
 		return ret;
 	}
 
 	/* Connect the submodules. */
 	ret = media_create_pad_link(
-			&iss->csi2a.subdev.entity, CSI2_PAD_SOURCE,
-			&iss->ipipeif.subdev.entity, IPIPEIF_PAD_SINK, 0);
+			  &iss->csi2a.subdev.entity, CSI2_PAD_SOURCE,
+			  &iss->ipipeif.subdev.entity, IPIPEIF_PAD_SINK, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = media_create_pad_link(
-			&iss->csi2b.subdev.entity, CSI2_PAD_SOURCE,
-			&iss->ipipeif.subdev.entity, IPIPEIF_PAD_SINK, 0);
+			  &iss->csi2b.subdev.entity, CSI2_PAD_SOURCE,
+			  &iss->ipipeif.subdev.entity, IPIPEIF_PAD_SINK, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = media_create_pad_link(
-			&iss->ipipeif.subdev.entity, IPIPEIF_PAD_SOURCE_VP,
-			&iss->resizer.subdev.entity, RESIZER_PAD_SINK, 0);
+			  &iss->ipipeif.subdev.entity, IPIPEIF_PAD_SOURCE_VP,
+			  &iss->resizer.subdev.entity, RESIZER_PAD_SINK, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = media_create_pad_link(
-			&iss->ipipeif.subdev.entity, IPIPEIF_PAD_SOURCE_VP,
-			&iss->ipipe.subdev.entity, IPIPE_PAD_SINK, 0);
+			  &iss->ipipeif.subdev.entity, IPIPEIF_PAD_SOURCE_VP,
+			  &iss->ipipe.subdev.entity, IPIPE_PAD_SINK, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = media_create_pad_link(
-			&iss->ipipe.subdev.entity, IPIPE_PAD_SOURCE_VP,
-			&iss->resizer.subdev.entity, RESIZER_PAD_SINK, 0);
+			  &iss->ipipe.subdev.entity, IPIPE_PAD_SOURCE_VP,
+			  &iss->resizer.subdev.entity, RESIZER_PAD_SINK, 0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 };
@@ -1158,31 +1363,41 @@ static int iss_initialize_modules(struct iss_device *iss)
 	int ret;
 
 	ret = omap4iss_csiphy_init(iss);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(iss->dev, "CSI PHY initialization failed\n");
 		goto error_csiphy;
 	}
 
 	ret = omap4iss_csi2_init(iss);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(iss->dev, "CSI2 initialization failed\n");
 		goto error_csi2;
 	}
 
 	ret = omap4iss_ipipeif_init(iss);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(iss->dev, "ISP IPIPEIF initialization failed\n");
 		goto error_ipipeif;
 	}
 
 	ret = omap4iss_ipipe_init(iss);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(iss->dev, "ISP IPIPE initialization failed\n");
 		goto error_ipipe;
 	}
 
 	ret = omap4iss_resizer_init(iss);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(iss->dev, "ISP RESIZER initialization failed\n");
 		goto error_resizer;
 	}
@@ -1208,11 +1423,16 @@ static int iss_probe(struct platform_device *pdev)
 	int ret;
 
 	if (!pdata)
+	{
 		return -EINVAL;
+	}
 
 	iss = devm_kzalloc(&pdev->dev, sizeof(*iss), GFP_KERNEL);
+
 	if (!iss)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&iss->iss_mutex);
 
@@ -1230,64 +1450,91 @@ static int iss_probe(struct platform_device *pdev)
 	 * phandle.
 	 */
 	iss->syscon = syscon_regmap_lookup_by_compatible("syscon");
-	if (IS_ERR(iss->syscon)) {
+
+	if (IS_ERR(iss->syscon))
+	{
 		ret = PTR_ERR(iss->syscon);
 		goto error;
 	}
 
 	/* Clocks */
 	ret = iss_map_mem_resource(pdev, iss, OMAP4_ISS_MEM_TOP);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
 
 	ret = iss_get_clocks(iss);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
 
 	if (!omap4iss_get(iss))
+	{
 		goto error;
+	}
 
 	ret = iss_reset(iss);
+
 	if (ret < 0)
+	{
 		goto error_iss;
+	}
 
 	iss->revision = iss_reg_read(iss, OMAP4_ISS_MEM_TOP, ISS_HL_REVISION);
 	dev_info(iss->dev, "Revision %08x found\n", iss->revision);
 
-	for (i = 1; i < OMAP4_ISS_MEM_LAST; i++) {
+	for (i = 1; i < OMAP4_ISS_MEM_LAST; i++)
+	{
 		ret = iss_map_mem_resource(pdev, iss, i);
+
 		if (ret)
+		{
 			goto error_iss;
+		}
 	}
 
 	/* Configure BTE BW_LIMITER field to max recommended value (1 GB) */
 	iss_reg_update(iss, OMAP4_ISS_MEM_BTE, BTE_CTRL,
-		       BTE_CTRL_BW_LIMITER_MASK,
-		       18 << BTE_CTRL_BW_LIMITER_SHIFT);
+				   BTE_CTRL_BW_LIMITER_MASK,
+				   18 << BTE_CTRL_BW_LIMITER_SHIFT);
 
 	/* Perform ISP reset */
 	ret = omap4iss_subclk_enable(iss, OMAP4_ISS_SUBCLK_ISP);
+
 	if (ret < 0)
+	{
 		goto error_iss;
+	}
 
 	ret = iss_isp_reset(iss);
+
 	if (ret < 0)
+	{
 		goto error_iss;
+	}
 
 	dev_info(iss->dev, "ISP Revision %08x found\n",
-		 iss_reg_read(iss, OMAP4_ISS_MEM_ISP_SYS1, ISP5_REVISION));
+			 iss_reg_read(iss, OMAP4_ISS_MEM_ISP_SYS1, ISP5_REVISION));
 
 	/* Interrupt */
 	ret = platform_get_irq(pdev, 0);
-	if (ret <= 0) {
+
+	if (ret <= 0)
+	{
 		dev_err(iss->dev, "No IRQ resource\n");
 		ret = -ENODEV;
 		goto error_iss;
 	}
+
 	iss->irq_num = ret;
 
 	if (devm_request_irq(iss->dev, iss->irq_num, iss_isr, IRQF_SHARED,
-			     "OMAP4 ISS", iss)) {
+						 "OMAP4 ISS", iss))
+	{
 		dev_err(iss->dev, "Unable to request IRQ\n");
 		ret = -EINVAL;
 		goto error_iss;
@@ -1295,20 +1542,32 @@ static int iss_probe(struct platform_device *pdev)
 
 	/* Entities */
 	ret = iss_initialize_modules(iss);
+
 	if (ret < 0)
+	{
 		goto error_iss;
+	}
 
 	ret = iss_register_entities(iss);
+
 	if (ret < 0)
+	{
 		goto error_modules;
+	}
 
 	ret = media_entity_enum_init(&iss->crashed, &iss->media_dev);
+
 	if (ret)
+	{
 		goto error_entities;
+	}
 
 	ret = iss_create_links(iss);
+
 	if (ret < 0)
+	{
 		goto error_entities;
+	}
 
 	omap4iss_put(iss);
 
@@ -1338,13 +1597,15 @@ static int iss_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct platform_device_id omap4iss_id_table[] = {
+static const struct platform_device_id omap4iss_id_table[] =
+{
 	{ "omap4iss", 0 },
 	{ },
 };
 MODULE_DEVICE_TABLE(platform, omap4iss_id_table);
 
-static struct platform_driver iss_driver = {
+static struct platform_driver iss_driver =
+{
 	.probe		= iss_probe,
 	.remove		= iss_remove,
 	.id_table	= omap4iss_id_table,

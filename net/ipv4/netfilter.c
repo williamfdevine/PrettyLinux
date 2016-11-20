@@ -27,11 +27,18 @@ int ip_route_me_harder(struct net *net, struct sk_buff *skb, unsigned int addr_t
 	unsigned int hh_len;
 
 	if (addr_type == RTN_UNSPEC)
+	{
 		addr_type = inet_addr_type(net, saddr);
+	}
+
 	if (addr_type == RTN_LOCAL || addr_type == RTN_UNICAST)
+	{
 		flags |= FLOWI_FLAG_ANYSRC;
+	}
 	else
+	{
 		saddr = 0;
+	}
 
 	/* some non-standard hacks like ipt_REJECT.c:send_reset() can cause
 	 * packets with foreign saddr to appear on the NF_INET_LOCAL_OUT hook.
@@ -43,34 +50,49 @@ int ip_route_me_harder(struct net *net, struct sk_buff *skb, unsigned int addr_t
 	fl4.flowi4_mark = skb->mark;
 	fl4.flowi4_flags = flags;
 	rt = ip_route_output_key(net, &fl4);
+
 	if (IS_ERR(rt))
+	{
 		return PTR_ERR(rt);
+	}
 
 	/* Drop old route. */
 	skb_dst_drop(skb);
 	skb_dst_set(skb, &rt->dst);
 
 	if (skb_dst(skb)->error)
+	{
 		return skb_dst(skb)->error;
+	}
 
 #ifdef CONFIG_XFRM
+
 	if (!(IPCB(skb)->flags & IPSKB_XFRM_TRANSFORMED) &&
-	    xfrm_decode_session(skb, flowi4_to_flowi(&fl4), AF_INET) == 0) {
+		xfrm_decode_session(skb, flowi4_to_flowi(&fl4), AF_INET) == 0)
+	{
 		struct dst_entry *dst = skb_dst(skb);
 		skb_dst_set(skb, NULL);
 		dst = xfrm_lookup(net, dst, flowi4_to_flowi(&fl4), skb->sk, 0);
+
 		if (IS_ERR(dst))
+		{
 			return PTR_ERR(dst);
+		}
+
 		skb_dst_set(skb, dst);
 	}
+
 #endif
 
 	/* Change in oif may mean change in hh_len. */
 	hh_len = skb_dst(skb)->dev->hard_header_len;
+
 	if (skb_headroom(skb) < hh_len &&
-	    pskb_expand_head(skb, HH_DATA_ALIGN(hh_len - skb_headroom(skb)),
-				0, GFP_ATOMIC))
+		pskb_expand_head(skb, HH_DATA_ALIGN(hh_len - skb_headroom(skb)),
+						 0, GFP_ATOMIC))
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -81,7 +103,8 @@ EXPORT_SYMBOL(ip_route_me_harder);
  * returns control to the table.
  */
 
-struct ip_rt_info {
+struct ip_rt_info
+{
 	__be32 daddr;
 	__be32 saddr;
 	u_int8_t tos;
@@ -89,11 +112,12 @@ struct ip_rt_info {
 };
 
 static void nf_ip_saveroute(const struct sk_buff *skb,
-			    struct nf_queue_entry *entry)
+							struct nf_queue_entry *entry)
 {
 	struct ip_rt_info *rt_info = nf_queue_entry_reroute(entry);
 
-	if (entry->state.hook == NF_INET_LOCAL_OUT) {
+	if (entry->state.hook == NF_INET_LOCAL_OUT)
+	{
 		const struct iphdr *iph = ip_hdr(skb);
 
 		rt_info->tos = iph->tos;
@@ -104,85 +128,109 @@ static void nf_ip_saveroute(const struct sk_buff *skb,
 }
 
 static int nf_ip_reroute(struct net *net, struct sk_buff *skb,
-			 const struct nf_queue_entry *entry)
+						 const struct nf_queue_entry *entry)
 {
 	const struct ip_rt_info *rt_info = nf_queue_entry_reroute(entry);
 
-	if (entry->state.hook == NF_INET_LOCAL_OUT) {
+	if (entry->state.hook == NF_INET_LOCAL_OUT)
+	{
 		const struct iphdr *iph = ip_hdr(skb);
 
 		if (!(iph->tos == rt_info->tos &&
-		      skb->mark == rt_info->mark &&
-		      iph->daddr == rt_info->daddr &&
-		      iph->saddr == rt_info->saddr))
+			  skb->mark == rt_info->mark &&
+			  iph->daddr == rt_info->daddr &&
+			  iph->saddr == rt_info->saddr))
+		{
 			return ip_route_me_harder(net, skb, RTN_UNSPEC);
+		}
 	}
+
 	return 0;
 }
 
 __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
-			    unsigned int dataoff, u_int8_t protocol)
+					   unsigned int dataoff, u_int8_t protocol)
 {
 	const struct iphdr *iph = ip_hdr(skb);
 	__sum16 csum = 0;
 
-	switch (skb->ip_summed) {
-	case CHECKSUM_COMPLETE:
-		if (hook != NF_INET_PRE_ROUTING && hook != NF_INET_LOCAL_IN)
-			break;
-		if ((protocol == 0 && !csum_fold(skb->csum)) ||
-		    !csum_tcpudp_magic(iph->saddr, iph->daddr,
-				       skb->len - dataoff, protocol,
-				       skb->csum)) {
-			skb->ip_summed = CHECKSUM_UNNECESSARY;
-			break;
-		}
+	switch (skb->ip_summed)
+	{
+		case CHECKSUM_COMPLETE:
+			if (hook != NF_INET_PRE_ROUTING && hook != NF_INET_LOCAL_IN)
+			{
+				break;
+			}
+
+			if ((protocol == 0 && !csum_fold(skb->csum)) ||
+				!csum_tcpudp_magic(iph->saddr, iph->daddr,
+								   skb->len - dataoff, protocol,
+								   skb->csum))
+			{
+				skb->ip_summed = CHECKSUM_UNNECESSARY;
+				break;
+			}
+
 		/* fall through */
-	case CHECKSUM_NONE:
-		if (protocol == 0)
-			skb->csum = 0;
-		else
-			skb->csum = csum_tcpudp_nofold(iph->saddr, iph->daddr,
-						       skb->len - dataoff,
-						       protocol, 0);
-		csum = __skb_checksum_complete(skb);
+		case CHECKSUM_NONE:
+			if (protocol == 0)
+			{
+				skb->csum = 0;
+			}
+			else
+				skb->csum = csum_tcpudp_nofold(iph->saddr, iph->daddr,
+											   skb->len - dataoff,
+											   protocol, 0);
+
+			csum = __skb_checksum_complete(skb);
 	}
+
 	return csum;
 }
 EXPORT_SYMBOL(nf_ip_checksum);
 
 static __sum16 nf_ip_checksum_partial(struct sk_buff *skb, unsigned int hook,
-				      unsigned int dataoff, unsigned int len,
-				      u_int8_t protocol)
+									  unsigned int dataoff, unsigned int len,
+									  u_int8_t protocol)
 {
 	const struct iphdr *iph = ip_hdr(skb);
 	__sum16 csum = 0;
 
-	switch (skb->ip_summed) {
-	case CHECKSUM_COMPLETE:
-		if (len == skb->len - dataoff)
-			return nf_ip_checksum(skb, hook, dataoff, protocol);
+	switch (skb->ip_summed)
+	{
+		case CHECKSUM_COMPLETE:
+			if (len == skb->len - dataoff)
+			{
+				return nf_ip_checksum(skb, hook, dataoff, protocol);
+			}
+
 		/* fall through */
-	case CHECKSUM_NONE:
-		skb->csum = csum_tcpudp_nofold(iph->saddr, iph->daddr, protocol,
-					       skb->len - dataoff, 0);
-		skb->ip_summed = CHECKSUM_NONE;
-		return __skb_checksum_complete_head(skb, dataoff + len);
+		case CHECKSUM_NONE:
+			skb->csum = csum_tcpudp_nofold(iph->saddr, iph->daddr, protocol,
+										   skb->len - dataoff, 0);
+			skb->ip_summed = CHECKSUM_NONE;
+			return __skb_checksum_complete_head(skb, dataoff + len);
 	}
+
 	return csum;
 }
 
 static int nf_ip_route(struct net *net, struct dst_entry **dst,
-		       struct flowi *fl, bool strict __always_unused)
+					   struct flowi *fl, bool strict __always_unused)
 {
 	struct rtable *rt = ip_route_output_key(net, &fl->u.ip4);
+
 	if (IS_ERR(rt))
+	{
 		return PTR_ERR(rt);
+	}
+
 	*dst = &rt->dst;
 	return 0;
 }
 
-static const struct nf_afinfo nf_ip_afinfo = {
+static const struct nf_afinfo nf_ip_afinfo =
+{
 	.family			= AF_INET,
 	.checksum		= nf_ip_checksum,
 	.checksum_partial	= nf_ip_checksum_partial,

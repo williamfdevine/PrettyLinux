@@ -91,13 +91,14 @@ static void sw_i2c_wait(void)
 	 * use non-ultimate for loop below is safe
 	 */
 
-    /* Change wait algorithm to use PCI bus clock,
-     * it's more reliable than counter loop ..
-     * write 0x61 to 0x3ce and read from 0x3cf
-     */
+	/* Change wait algorithm to use PCI bus clock,
+	 * it's more reliable than counter loop ..
+	 * write 0x61 to 0x3ce and read from 0x3cf
+	 */
 	int i, tmp;
 
-	for (i = 0; i < 600; i++) {
+	for (i = 0; i < 600; i++)
+	{
 		tmp = i;
 		tmp += i;
 	}
@@ -121,14 +122,18 @@ static void sw_i2c_scl(unsigned char value)
 	unsigned long gpio_dir;
 
 	gpio_dir = PEEK32(sw_i2c_clk_gpio_data_dir_reg);
-	if (value) {    /* High */
+
+	if (value)      /* High */
+	{
 		/*
 		 * Set direction as input. This will automatically
 		 * pull the signal up.
 		 */
 		gpio_dir &= ~(1 << sw_i2c_clk_gpio);
 		POKE32(sw_i2c_clk_gpio_data_dir_reg, gpio_dir);
-	} else {        /* Low */
+	}
+	else            /* Low */
+	{
 		/* Set the signal down */
 		gpio_data = PEEK32(sw_i2c_clk_gpio_data_reg);
 		gpio_data &= ~(1 << sw_i2c_clk_gpio);
@@ -158,14 +163,18 @@ static void sw_i2c_sda(unsigned char value)
 	unsigned long gpio_dir;
 
 	gpio_dir = PEEK32(sw_i2c_data_gpio_data_dir_reg);
-	if (value) {    /* High */
+
+	if (value)      /* High */
+	{
 		/*
 		 * Set direction as input. This will automatically
 		 * pull the signal up.
 		 */
 		gpio_dir &= ~(1 << sw_i2c_data_gpio);
 		POKE32(sw_i2c_data_gpio_data_dir_reg, gpio_dir);
-	} else {        /* Low */
+	}
+	else            /* Low */
+	{
 		/* Set the signal down */
 		gpio_data = PEEK32(sw_i2c_data_gpio_data_reg);
 		gpio_data &= ~(1 << sw_i2c_data_gpio);
@@ -191,17 +200,24 @@ static unsigned char sw_i2c_read_sda(void)
 
 	/* Make sure that the direction is input (High) */
 	gpio_dir = PEEK32(sw_i2c_data_gpio_data_dir_reg);
-	if ((gpio_dir & dir_mask) != ~dir_mask) {
+
+	if ((gpio_dir & dir_mask) != ~dir_mask)
+	{
 		gpio_dir &= ~(1 << sw_i2c_data_gpio);
 		POKE32(sw_i2c_data_gpio_data_dir_reg, gpio_dir);
 	}
 
 	/* Now read the SDA line */
 	gpio_data = PEEK32(sw_i2c_data_gpio_data_reg);
+
 	if (gpio_data & (1 << sw_i2c_data_gpio))
+	{
 		return 1;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 /*
@@ -250,15 +266,20 @@ static long sw_i2c_write_byte(unsigned char data)
 	int i;
 
 	/* Sending the data bit by bit */
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		/* Set SCL to low */
 		sw_i2c_scl(0);
 
 		/* Send data bit */
 		if ((value & 0x80) != 0)
+		{
 			sw_i2c_sda(1);
+		}
 		else
+		{
 			sw_i2c_sda(0);
+		}
 
 		sw_i2c_wait();
 
@@ -280,9 +301,12 @@ static long sw_i2c_write_byte(unsigned char data)
 	sw_i2c_wait();
 
 	/* Read SDA, until SDA==0 */
-	for (i = 0; i < 0xff; i++) {
+	for (i = 0; i < 0xff; i++)
+	{
 		if (!sw_i2c_read_sda())
+		{
 			break;
+		}
 
 		sw_i2c_scl(0);
 		sw_i2c_wait();
@@ -295,9 +319,13 @@ static long sw_i2c_write_byte(unsigned char data)
 	sw_i2c_sda(1);
 
 	if (i < 0xff)
+	{
 		return 0;
+	}
 	else
+	{
 		return -1;
+	}
 }
 
 /*
@@ -315,7 +343,8 @@ static unsigned char sw_i2c_read_byte(unsigned char ack)
 	int i;
 	unsigned char data = 0;
 
-	for (i = 7; i >= 0; i--) {
+	for (i = 7; i >= 0; i--)
+	{
 		/* Set the SCL to Low and SDA to High (Input) */
 		sw_i2c_scl(0);
 		sw_i2c_sda(1);
@@ -330,7 +359,9 @@ static unsigned char sw_i2c_read_byte(unsigned char ack)
 	}
 
 	if (ack)
+	{
 		sw_i2c_ack();
+	}
 
 	/* Set the SCL Low and SDA High */
 	sw_i2c_scl(0);
@@ -351,7 +382,7 @@ static unsigned char sw_i2c_read_byte(unsigned char ack)
  *       0   - Success
  */
 static long sm750le_i2c_init(unsigned char clk_gpio,
-			     unsigned char data_gpio)
+							 unsigned char data_gpio)
 {
 	int i;
 
@@ -373,7 +404,9 @@ static long sm750le_i2c_init(unsigned char clk_gpio,
 
 	/* Clear the i2c lines. */
 	for (i = 0; i < 9; i++)
+	{
 		sw_i2c_stop();
+	}
 
 	return 0;
 }
@@ -401,10 +434,14 @@ long sm750_sw_i2c_init(
 	 * range is only from [0..63]
 	 */
 	if ((clk_gpio > 31) || (data_gpio > 31))
+	{
 		return -1;
+	}
 
 	if (sm750_get_chip_type() == SM750LE)
+	{
 		return sm750le_i2c_init(clk_gpio, data_gpio);
+	}
 
 	/* Initialize the GPIO pin for the i2c Clock Register */
 	sw_i2c_clk_gpio_mux_reg = GPIO_MUX;
@@ -424,16 +461,18 @@ long sm750_sw_i2c_init(
 
 	/* Enable the GPIO pins for the i2c Clock and Data (GPIO MUX) */
 	POKE32(sw_i2c_clk_gpio_mux_reg,
-	       PEEK32(sw_i2c_clk_gpio_mux_reg) & ~(1 << sw_i2c_clk_gpio));
+		   PEEK32(sw_i2c_clk_gpio_mux_reg) & ~(1 << sw_i2c_clk_gpio));
 	POKE32(sw_i2c_data_gpio_mux_reg,
-	       PEEK32(sw_i2c_data_gpio_mux_reg) & ~(1 << sw_i2c_data_gpio));
+		   PEEK32(sw_i2c_data_gpio_mux_reg) & ~(1 << sw_i2c_data_gpio));
 
 	/* Enable GPIO power */
 	enableGPIO(1);
 
 	/* Clear the i2c lines. */
 	for (i = 0; i < 9; i++)
+	{
 		sw_i2c_stop();
+	}
 
 	return 0;
 }
@@ -504,8 +543,9 @@ long sm750_sw_i2c_write_reg(
 	 * in order for the writing processed to be successful
 	 */
 	if ((sw_i2c_write_byte(addr) != 0) ||
-	    (sw_i2c_write_byte(reg) != 0) ||
-	    (sw_i2c_write_byte(data) != 0)) {
+		(sw_i2c_write_byte(reg) != 0) ||
+		(sw_i2c_write_byte(data) != 0))
+	{
 		ret = -1;
 	}
 

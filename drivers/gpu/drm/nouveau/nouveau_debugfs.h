@@ -7,7 +7,8 @@
 
 #include "nouveau_drv.h"
 
-struct nouveau_debugfs {
+struct nouveau_debugfs
+{
 	struct nvif_object ctrl;
 };
 
@@ -25,7 +26,7 @@ extern void nouveau_debugfs_fini(struct nouveau_drm *);
 static inline int
 nouveau_drm_debugfs_init(struct drm_minor *minor)
 {
-       return 0;
+	return 0;
 }
 
 static inline void

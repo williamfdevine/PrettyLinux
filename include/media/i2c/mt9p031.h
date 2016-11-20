@@ -8,7 +8,8 @@ struct v4l2_subdev;
  * @ext_freq: Input clock frequency
  * @target_freq: Pixel clock frequency
  */
-struct mt9p031_platform_data {
+struct mt9p031_platform_data
+{
 	int ext_freq;
 	int target_freq;
 };

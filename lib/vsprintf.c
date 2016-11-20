@@ -33,7 +33,7 @@
 #include <linux/uuid.h>
 #include <net/addrconf.h>
 #ifdef CONFIG_BLOCK
-#include <linux/blkdev.h>
+	#include <linux/blkdev.h>
 #endif
 
 #include "../mm/internal.h"	/* For the trace_print_flags arrays */
@@ -64,7 +64,9 @@ unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int bas
 	cp += (rv & ~KSTRTOX_OVERFLOW);
 
 	if (endp)
+	{
 		*endp = (char *)cp;
+	}
 
 	return result;
 }
@@ -95,7 +97,9 @@ EXPORT_SYMBOL(simple_strtoul);
 long simple_strtol(const char *cp, char **endp, unsigned int base)
 {
 	if (*cp == '-')
+	{
 		return -simple_strtoul(cp + 1, endp, base);
+	}
 
 	return simple_strtoul(cp, endp, base);
 }
@@ -112,7 +116,9 @@ EXPORT_SYMBOL(simple_strtol);
 long long simple_strtoll(const char *cp, char **endp, unsigned int base)
 {
 	if (*cp == '-')
+	{
 		return -simple_strtoull(cp + 1, endp, base);
+	}
 
 	return simple_strtoull(cp, endp, base);
 }
@@ -123,9 +129,11 @@ int skip_atoi(const char **s)
 {
 	int i = 0;
 
-	do {
-		i = i*10 + *((*s)++) - '0';
-	} while (isdigit(**s));
+	do
+	{
+		i = i * 10 + *((*s)++) - '0';
+	}
+	while (isdigit(**s));
 
 	return i;
 }
@@ -155,7 +163,8 @@ int skip_atoi(const char **s)
  * for all x <= 43698.
  */
 
-static const u16 decpair[100] = {
+static const u16 decpair[100] =
+{
 #define _(x) (__force u16) cpu_to_le16(((x % 10) | ((x / 10) << 8)) + 0x3030)
 	_( 0), _( 1), _( 2), _( 3), _( 4), _( 5), _( 6), _( 7), _( 8), _( 9),
 	_(10), _(11), _(12), _(13), _(14), _(15), _(16), _(17), _(18), _(19),
@@ -183,29 +192,35 @@ char *put_dec_trunc8(char *buf, unsigned r)
 
 	/* 1 <= r < 10^8 */
 	if (r < 100)
+	{
 		goto out_r;
+	}
 
 	/* 100 <= r < 10^8 */
 	q = (r * (u64)0x28f5c29) >> 32;
-	*((u16 *)buf) = decpair[r - 100*q];
+	*((u16 *)buf) = decpair[r - 100 * q];
 	buf += 2;
 
 	/* 1 <= q < 10^6 */
 	if (q < 100)
+	{
 		goto out_q;
+	}
 
 	/*  100 <= q < 10^6 */
 	r = (q * (u64)0x28f5c29) >> 32;
-	*((u16 *)buf) = decpair[q - 100*r];
+	*((u16 *)buf) = decpair[q - 100 * r];
 	buf += 2;
 
 	/* 1 <= r < 10^4 */
 	if (r < 100)
+	{
 		goto out_r;
+	}
 
 	/* 100 <= r < 10^4 */
 	q = (r * 0x147b) >> 19;
-	*((u16 *)buf) = decpair[r - 100*q];
+	*((u16 *)buf) = decpair[r - 100 * q];
 	buf += 2;
 out_q:
 	/* 1 <= q < 100 */
@@ -225,17 +240,17 @@ char *put_dec_full8(char *buf, unsigned r)
 
 	/* 0 <= r < 10^8 */
 	q = (r * (u64)0x28f5c29) >> 32;
-	*((u16 *)buf) = decpair[r - 100*q];
+	*((u16 *)buf) = decpair[r - 100 * q];
 	buf += 2;
 
 	/* 0 <= q < 10^6 */
 	r = (q * (u64)0x28f5c29) >> 32;
-	*((u16 *)buf) = decpair[q - 100*r];
+	*((u16 *)buf) = decpair[q - 100 * r];
 	buf += 2;
 
 	/* 0 <= r < 10^4 */
 	q = (r * 0x147b) >> 19;
-	*((u16 *)buf) = decpair[r - 100*q];
+	*((u16 *)buf) = decpair[r - 100 * q];
 	buf += 2;
 
 	/* 0 <= q < 100 */
@@ -247,11 +262,17 @@ char *put_dec_full8(char *buf, unsigned r)
 static noinline_for_stack
 char *put_dec(char *buf, unsigned long long n)
 {
-	if (n >= 100*1000*1000)
-		buf = put_dec_full8(buf, do_div(n, 100*1000*1000));
+	if (n >= 100 * 1000 * 1000)
+	{
+		buf = put_dec_full8(buf, do_div(n, 100 * 1000 * 1000));
+	}
+
 	/* 1 <= n <= 1.6e11 */
-	if (n >= 100*1000*1000)
-		buf = put_dec_full8(buf, do_div(n, 100*1000*1000));
+	if (n >= 100 * 1000 * 1000)
+	{
+		buf = put_dec_full8(buf, do_div(n, 100 * 1000 * 1000));
+	}
+
 	/* 1 <= n < 1e8 */
 	return put_dec_trunc8(buf, n);
 }
@@ -265,7 +286,7 @@ put_dec_full4(char *buf, unsigned r)
 
 	/* 0 <= r < 10^4 */
 	q = (r * 0x147b) >> 19;
-	*((u16 *)buf) = decpair[r - 100*q];
+	*((u16 *)buf) = decpair[r - 100 * q];
 	buf += 2;
 	/* 0 <= q < 100 */
 	*((u16 *)buf) = decpair[q];
@@ -281,10 +302,10 @@ put_dec_full4(char *buf, unsigned r)
 static noinline_for_stack
 unsigned put_dec_helper4(char *buf, unsigned x)
 {
-        uint32_t q = (x * (uint64_t)0x346DC5D7) >> 43;
+	uint32_t q = (x * (uint64_t)0x346DC5D7) >> 43;
 
-        put_dec_full4(buf, x - q * 10000);
-        return q;
+	put_dec_full4(buf, x - q * 10000);
+	return q;
 }
 
 /* Based on code by Douglas W. Jones found at
@@ -297,8 +318,10 @@ char *put_dec(char *buf, unsigned long long n)
 {
 	uint32_t d3, d2, d1, q, h;
 
-	if (n < 100*1000*1000)
+	if (n < 100 * 1000 * 1000)
+	{
 		return put_dec_trunc8(buf, n);
+	}
 
 	d1  = ((uint32_t)n >> 16); /* implicit "& 0xffff" */
 	h   = (n >> 32);
@@ -311,17 +334,22 @@ char *put_dec(char *buf, unsigned long long n)
 	q = put_dec_helper4(buf, q);
 
 	q += 7671 * d3 + 9496 * d2 + 6 * d1;
-	q = put_dec_helper4(buf+4, q);
+	q = put_dec_helper4(buf + 4, q);
 
 	q += 4749 * d3 + 42 * d2;
-	q = put_dec_helper4(buf+8, q);
+	q = put_dec_helper4(buf + 8, q);
 
 	q += 281 * d3;
 	buf += 12;
+
 	if (q)
+	{
 		buf = put_dec_trunc8(buf, q);
+	}
 	else while (buf[-1] == '0')
-		--buf;
+		{
+			--buf;
+		}
 
 	return buf;
 }
@@ -341,17 +369,26 @@ int num_to_str(char *buf, int size, unsigned long long num)
 	int idx, len;
 
 	/* put_dec() may work incorrectly for num = 0 (generate "", not "0") */
-	if (num <= 9) {
+	if (num <= 9)
+	{
 		tmp[0] = '0' + num;
 		len = 1;
-	} else {
+	}
+	else
+	{
 		len = put_dec(tmp, num) - tmp;
 	}
 
 	if (len > size)
+	{
 		return 0;
+	}
+
 	for (idx = 0; idx < len; ++idx)
+	{
 		buf[idx] = tmp[len - idx - 1];
+	}
+
 	return len;
 }
 
@@ -363,7 +400,8 @@ int num_to_str(char *buf, int size, unsigned long long num)
 #define SMALL	32		/* use lowercase in hex (must be 32 == 0x20) */
 #define SPECIAL	64		/* prefix hex with "0x", octal with "0" */
 
-enum format_type {
+enum format_type
+{
 	FORMAT_TYPE_NONE, /* Just a string part */
 	FORMAT_TYPE_WIDTH,
 	FORMAT_TYPE_PRECISION,
@@ -385,19 +423,20 @@ enum format_type {
 	FORMAT_TYPE_PTRDIFF
 };
 
-struct printf_spec {
-	unsigned int	type:8;		/* format_type enum */
-	signed int	field_width:24;	/* width of output field */
-	unsigned int	flags:8;	/* flags to number() */
-	unsigned int	base:8;		/* number base, 8, 10 or 16 only */
-	signed int	precision:16;	/* # of digits/chars */
+struct printf_spec
+{
+	unsigned int	type: 8;		/* format_type enum */
+	signed int	field_width: 24;	/* width of output field */
+	unsigned int	flags: 8;	/* flags to number() */
+	unsigned int	base: 8;		/* number base, 8, 10 or 16 only */
+	signed int	precision: 16;	/* # of digits/chars */
 } __packed;
 #define FIELD_WIDTH_MAX ((1 << 23) - 1)
 #define PRECISION_MAX ((1 << 15) - 1)
 
 static noinline_for_stack
 char *number(char *buf, char *end, unsigned long long num,
-	     struct printf_spec spec)
+			 struct printf_spec spec)
 {
 	/* put_dec requires 2-byte alignment of the buffer. */
 	char tmp[3 * sizeof(num)] __aligned(2);
@@ -414,104 +453,179 @@ char *number(char *buf, char *end, unsigned long long num,
 	/* locase = 0 or 0x20. ORing digits or letters with 'locase'
 	 * produces same digits or (maybe lowercased) letters */
 	locase = (spec.flags & SMALL);
+
 	if (spec.flags & LEFT)
+	{
 		spec.flags &= ~ZEROPAD;
+	}
+
 	sign = 0;
-	if (spec.flags & SIGN) {
-		if ((signed long long)num < 0) {
+
+	if (spec.flags & SIGN)
+	{
+		if ((signed long long)num < 0)
+		{
 			sign = '-';
 			num = -(signed long long)num;
 			field_width--;
-		} else if (spec.flags & PLUS) {
+		}
+		else if (spec.flags & PLUS)
+		{
 			sign = '+';
 			field_width--;
-		} else if (spec.flags & SPACE) {
+		}
+		else if (spec.flags & SPACE)
+		{
 			sign = ' ';
 			field_width--;
 		}
 	}
-	if (need_pfx) {
+
+	if (need_pfx)
+	{
 		if (spec.base == 16)
+		{
 			field_width -= 2;
+		}
 		else if (!is_zero)
+		{
 			field_width--;
+		}
 	}
 
 	/* generate full string in tmp[], in reverse order */
 	i = 0;
+
 	if (num < spec.base)
+	{
 		tmp[i++] = hex_asc_upper[num] | locase;
-	else if (spec.base != 10) { /* 8 or 16 */
+	}
+	else if (spec.base != 10)   /* 8 or 16 */
+	{
 		int mask = spec.base - 1;
 		int shift = 3;
 
 		if (spec.base == 16)
+		{
 			shift = 4;
-		do {
+		}
+
+		do
+		{
 			tmp[i++] = (hex_asc_upper[((unsigned char)num) & mask] | locase);
 			num >>= shift;
-		} while (num);
-	} else { /* base 10 */
+		}
+		while (num);
+	}
+	else     /* base 10 */
+	{
 		i = put_dec(tmp, num) - tmp;
 	}
 
 	/* printing 100 using %2d gives "100", not "00" */
 	if (i > precision)
+	{
 		precision = i;
+	}
+
 	/* leading space padding */
 	field_width -= precision;
-	if (!(spec.flags & (ZEROPAD | LEFT))) {
-		while (--field_width >= 0) {
+
+	if (!(spec.flags & (ZEROPAD | LEFT)))
+	{
+		while (--field_width >= 0)
+		{
 			if (buf < end)
+			{
 				*buf = ' ';
+			}
+
 			++buf;
 		}
 	}
+
 	/* sign */
-	if (sign) {
+	if (sign)
+	{
 		if (buf < end)
+		{
 			*buf = sign;
+		}
+
 		++buf;
 	}
+
 	/* "0x" / "0" prefix */
-	if (need_pfx) {
-		if (spec.base == 16 || !is_zero) {
+	if (need_pfx)
+	{
+		if (spec.base == 16 || !is_zero)
+		{
 			if (buf < end)
+			{
 				*buf = '0';
+			}
+
 			++buf;
 		}
-		if (spec.base == 16) {
+
+		if (spec.base == 16)
+		{
 			if (buf < end)
+			{
 				*buf = ('X' | locase);
+			}
+
 			++buf;
 		}
 	}
+
 	/* zero or space padding */
-	if (!(spec.flags & LEFT)) {
+	if (!(spec.flags & LEFT))
+	{
 		char c = ' ' + (spec.flags & ZEROPAD);
 		BUILD_BUG_ON(' ' + ZEROPAD != '0');
-		while (--field_width >= 0) {
+
+		while (--field_width >= 0)
+		{
 			if (buf < end)
+			{
 				*buf = c;
+			}
+
 			++buf;
 		}
 	}
+
 	/* hmm even more zero padding? */
-	while (i <= --precision) {
+	while (i <= --precision)
+	{
 		if (buf < end)
+		{
 			*buf = '0';
+		}
+
 		++buf;
 	}
+
 	/* actual digits of result */
-	while (--i >= 0) {
+	while (--i >= 0)
+	{
 		if (buf < end)
+		{
 			*buf = tmp[i];
+		}
+
 		++buf;
 	}
+
 	/* trailing space padding */
-	while (--field_width >= 0) {
+	while (--field_width >= 0)
+	{
 		if (buf < end)
+		{
 			*buf = ' ';
+		}
+
 		++buf;
 	}
 
@@ -535,18 +649,30 @@ char *special_hex_number(char *buf, char *end, unsigned long long num, int size)
 static void move_right(char *buf, char *end, unsigned len, unsigned spaces)
 {
 	size_t size;
+
 	if (buf >= end)	/* nowhere to put anything */
+	{
 		return;
+	}
+
 	size = end - buf;
-	if (size <= spaces) {
+
+	if (size <= spaces)
+	{
 		memset(buf, ' ', size);
 		return;
 	}
-	if (len) {
+
+	if (len)
+	{
 		if (len > size - spaces)
+		{
 			len = size - spaces;
+		}
+
 		memmove(buf + spaces, buf, len);
 	}
+
 	memset(buf, ' ', spaces);
 }
 
@@ -564,18 +690,29 @@ char *widen_string(char *buf, int n, char *end, struct printf_spec spec)
 	unsigned spaces;
 
 	if (likely(n >= spec.field_width))
+	{
 		return buf;
+	}
+
 	/* we want to pad the sucker */
 	spaces = spec.field_width - n;
-	if (!(spec.flags & LEFT)) {
+
+	if (!(spec.flags & LEFT))
+	{
 		move_right(buf - n, end, n, spaces);
 		return buf + spaces;
 	}
-	while (spaces--) {
+
+	while (spaces--)
+	{
 		if (buf < end)
+		{
 			*buf = ' ';
+		}
+
 		++buf;
 	}
+
 	return buf;
 }
 
@@ -586,60 +723,92 @@ char *string(char *buf, char *end, const char *s, struct printf_spec spec)
 	size_t lim = spec.precision;
 
 	if ((unsigned long)s < PAGE_SIZE)
+	{
 		s = "(null)";
+	}
 
-	while (lim--) {
+	while (lim--)
+	{
 		char c = *s++;
+
 		if (!c)
+		{
 			break;
+		}
+
 		if (buf < end)
+		{
 			*buf = c;
+		}
+
 		++buf;
 		++len;
 	}
+
 	return widen_string(buf, len, end, spec);
 }
 
 static noinline_for_stack
 char *dentry_name(char *buf, char *end, const struct dentry *d, struct printf_spec spec,
-		  const char *fmt)
+				  const char *fmt)
 {
 	const char *array[4], *s;
 	const struct dentry *p;
 	int depth;
 	int i, n;
 
-	switch (fmt[1]) {
+	switch (fmt[1])
+	{
 		case '2': case '3': case '4':
 			depth = fmt[1] - '0';
 			break;
+
 		default:
 			depth = 1;
 	}
 
 	rcu_read_lock();
-	for (i = 0; i < depth; i++, d = p) {
+
+	for (i = 0; i < depth; i++, d = p)
+	{
 		p = ACCESS_ONCE(d->d_parent);
 		array[i] = ACCESS_ONCE(d->d_name.name);
-		if (p == d) {
+
+		if (p == d)
+		{
 			if (i)
+			{
 				array[i] = "";
+			}
+
 			i++;
 			break;
 		}
 	}
+
 	s = array[--i];
-	for (n = 0; n != spec.precision; n++, buf++) {
+
+	for (n = 0; n != spec.precision; n++, buf++)
+	{
 		char c = *s++;
-		if (!c) {
+
+		if (!c)
+		{
 			if (!i)
+			{
 				break;
+			}
+
 			c = '/';
 			s = array[--i];
 		}
+
 		if (buf < end)
+		{
 			*buf = c;
+		}
 	}
+
 	rcu_read_unlock();
 	return widen_string(buf, n, end, spec);
 }
@@ -647,26 +816,34 @@ char *dentry_name(char *buf, char *end, const struct dentry *d, struct printf_sp
 #ifdef CONFIG_BLOCK
 static noinline_for_stack
 char *bdev_name(char *buf, char *end, struct block_device *bdev,
-		struct printf_spec spec, const char *fmt)
+				struct printf_spec spec, const char *fmt)
 {
 	struct gendisk *hd = bdev->bd_disk;
-	
+
 	buf = string(buf, end, hd->disk_name, spec);
-	if (bdev->bd_part->partno) {
-		if (isdigit(hd->disk_name[strlen(hd->disk_name)-1])) {
+
+	if (bdev->bd_part->partno)
+	{
+		if (isdigit(hd->disk_name[strlen(hd->disk_name) - 1]))
+		{
 			if (buf < end)
+			{
 				*buf = 'p';
+			}
+
 			buf++;
 		}
+
 		buf = number(buf, end, bdev->bd_part->partno, spec);
 	}
+
 	return buf;
 }
 #endif
 
 static noinline_for_stack
 char *symbol_string(char *buf, char *end, void *ptr,
-		    struct printf_spec spec, const char *fmt)
+					struct printf_spec spec, const char *fmt)
 {
 	unsigned long value;
 #ifdef CONFIG_KALLSYMS
@@ -674,16 +851,26 @@ char *symbol_string(char *buf, char *end, void *ptr,
 #endif
 
 	if (fmt[1] == 'R')
+	{
 		ptr = __builtin_extract_return_addr(ptr);
+	}
+
 	value = (unsigned long)ptr;
 
 #ifdef CONFIG_KALLSYMS
+
 	if (*fmt == 'B')
+	{
 		sprint_backtrace(sym, value);
+	}
 	else if (*fmt != 'f' && *fmt != 's')
+	{
 		sprint_symbol(sym, value);
+	}
 	else
+	{
 		sprint_symbol_no_offset(sym, value);
+	}
 
 	return string(buf, end, sym, spec);
 #else
@@ -693,7 +880,7 @@ char *symbol_string(char *buf, char *end, void *ptr,
 
 static noinline_for_stack
 char *resource_string(char *buf, char *end, struct resource *res,
-		      struct printf_spec spec, const char *fmt)
+					  struct printf_spec spec, const char *fmt)
 {
 #ifndef IO_RSRC_PRINTK_SIZE
 #define IO_RSRC_PRINTK_SIZE	6
@@ -702,35 +889,41 @@ char *resource_string(char *buf, char *end, struct resource *res,
 #ifndef MEM_RSRC_PRINTK_SIZE
 #define MEM_RSRC_PRINTK_SIZE	10
 #endif
-	static const struct printf_spec io_spec = {
+	static const struct printf_spec io_spec =
+	{
 		.base = 16,
 		.field_width = IO_RSRC_PRINTK_SIZE,
 		.precision = -1,
 		.flags = SPECIAL | SMALL | ZEROPAD,
 	};
-	static const struct printf_spec mem_spec = {
+	static const struct printf_spec mem_spec =
+	{
 		.base = 16,
 		.field_width = MEM_RSRC_PRINTK_SIZE,
 		.precision = -1,
 		.flags = SPECIAL | SMALL | ZEROPAD,
 	};
-	static const struct printf_spec bus_spec = {
+	static const struct printf_spec bus_spec =
+	{
 		.base = 16,
 		.field_width = 2,
 		.precision = -1,
 		.flags = SMALL | ZEROPAD,
 	};
-	static const struct printf_spec dec_spec = {
+	static const struct printf_spec dec_spec =
+	{
 		.base = 10,
 		.precision = -1,
 		.flags = 0,
 	};
-	static const struct printf_spec str_spec = {
+	static const struct printf_spec str_spec =
+	{
 		.field_width = -1,
 		.precision = 10,
 		.flags = LEFT,
 	};
-	static const struct printf_spec flag_spec = {
+	static const struct printf_spec flag_spec =
+	{
 		.base = 16,
 		.precision = -1,
 		.flags = SPECIAL | SMALL,
@@ -742,57 +935,91 @@ char *resource_string(char *buf, char *end, struct resource *res,
 #define FLAG_BUF_SIZE		(2 * sizeof(res->flags))
 #define DECODED_BUF_SIZE	sizeof("[mem - 64bit pref window disabled]")
 #define RAW_BUF_SIZE		sizeof("[mem - flags 0x]")
-	char sym[max(2*RSRC_BUF_SIZE + DECODED_BUF_SIZE,
-		     2*RSRC_BUF_SIZE + FLAG_BUF_SIZE + RAW_BUF_SIZE)];
+	char sym[max(2 * RSRC_BUF_SIZE + DECODED_BUF_SIZE,
+				 2 * RSRC_BUF_SIZE + FLAG_BUF_SIZE + RAW_BUF_SIZE)];
 
 	char *p = sym, *pend = sym + sizeof(sym);
 	int decode = (fmt[0] == 'R') ? 1 : 0;
 	const struct printf_spec *specp;
 
 	*p++ = '[';
-	if (res->flags & IORESOURCE_IO) {
+
+	if (res->flags & IORESOURCE_IO)
+	{
 		p = string(p, pend, "io  ", str_spec);
 		specp = &io_spec;
-	} else if (res->flags & IORESOURCE_MEM) {
+	}
+	else if (res->flags & IORESOURCE_MEM)
+	{
 		p = string(p, pend, "mem ", str_spec);
 		specp = &mem_spec;
-	} else if (res->flags & IORESOURCE_IRQ) {
+	}
+	else if (res->flags & IORESOURCE_IRQ)
+	{
 		p = string(p, pend, "irq ", str_spec);
 		specp = &dec_spec;
-	} else if (res->flags & IORESOURCE_DMA) {
+	}
+	else if (res->flags & IORESOURCE_DMA)
+	{
 		p = string(p, pend, "dma ", str_spec);
 		specp = &dec_spec;
-	} else if (res->flags & IORESOURCE_BUS) {
+	}
+	else if (res->flags & IORESOURCE_BUS)
+	{
 		p = string(p, pend, "bus ", str_spec);
 		specp = &bus_spec;
-	} else {
+	}
+	else
+	{
 		p = string(p, pend, "??? ", str_spec);
 		specp = &mem_spec;
 		decode = 0;
 	}
-	if (decode && res->flags & IORESOURCE_UNSET) {
+
+	if (decode && res->flags & IORESOURCE_UNSET)
+	{
 		p = string(p, pend, "size ", str_spec);
 		p = number(p, pend, resource_size(res), *specp);
-	} else {
+	}
+	else
+	{
 		p = number(p, pend, res->start, *specp);
-		if (res->start != res->end) {
+
+		if (res->start != res->end)
+		{
 			*p++ = '-';
 			p = number(p, pend, res->end, *specp);
 		}
 	}
-	if (decode) {
+
+	if (decode)
+	{
 		if (res->flags & IORESOURCE_MEM_64)
+		{
 			p = string(p, pend, " 64bit", str_spec);
+		}
+
 		if (res->flags & IORESOURCE_PREFETCH)
+		{
 			p = string(p, pend, " pref", str_spec);
+		}
+
 		if (res->flags & IORESOURCE_WINDOW)
+		{
 			p = string(p, pend, " window", str_spec);
+		}
+
 		if (res->flags & IORESOURCE_DISABLED)
+		{
 			p = string(p, pend, " disabled", str_spec);
-	} else {
+		}
+	}
+	else
+	{
 		p = string(p, pend, " flags ", str_spec);
 		p = number(p, pend, res->flags, flag_spec);
 	}
+
 	*p++ = ']';
 	*p = '\0';
 
@@ -801,7 +1028,7 @@ char *resource_string(char *buf, char *end, struct resource *res,
 
 static noinline_for_stack
 char *hex_string(char *buf, char *end, u8 *addr, struct printf_spec spec,
-		 const char *fmt)
+				 const char *fmt)
 {
 	int i, len = 1;		/* if we pass '%ph[CDN]', field width remains
 				   negative value, fallback to the default */
@@ -809,41 +1036,63 @@ char *hex_string(char *buf, char *end, u8 *addr, struct printf_spec spec,
 
 	if (spec.field_width == 0)
 		/* nothing to print */
+	{
 		return buf;
+	}
 
 	if (ZERO_OR_NULL_PTR(addr))
 		/* NULL pointer */
+	{
 		return string(buf, end, NULL, spec);
+	}
 
-	switch (fmt[1]) {
-	case 'C':
-		separator = ':';
-		break;
-	case 'D':
-		separator = '-';
-		break;
-	case 'N':
-		separator = 0;
-		break;
-	default:
-		separator = ' ';
-		break;
+	switch (fmt[1])
+	{
+		case 'C':
+			separator = ':';
+			break;
+
+		case 'D':
+			separator = '-';
+			break;
+
+		case 'N':
+			separator = 0;
+			break;
+
+		default:
+			separator = ' ';
+			break;
 	}
 
 	if (spec.field_width > 0)
+	{
 		len = min_t(int, spec.field_width, 64);
+	}
 
-	for (i = 0; i < len; ++i) {
+	for (i = 0; i < len; ++i)
+	{
 		if (buf < end)
+		{
 			*buf = hex_asc_hi(addr[i]);
-		++buf;
-		if (buf < end)
-			*buf = hex_asc_lo(addr[i]);
+		}
+
 		++buf;
 
-		if (separator && i != len - 1) {
+		if (buf < end)
+		{
+			*buf = hex_asc_lo(addr[i]);
+		}
+
+		++buf;
+
+		if (separator && i != len - 1)
+		{
 			if (buf < end)
+			{
 				*buf = separator;
+			}
+
 			++buf;
 		}
 	}
@@ -853,7 +1102,7 @@ char *hex_string(char *buf, char *end, u8 *addr, struct printf_spec spec,
 
 static noinline_for_stack
 char *bitmap_string(char *buf, char *end, unsigned long *bitmap,
-		    struct printf_spec spec, const char *fmt)
+					struct printf_spec spec, const char *fmt)
 {
 	const int CHUNKSZ = 32;
 	int nr_bits = max_t(int, spec.field_width, 0);
@@ -861,14 +1110,19 @@ char *bitmap_string(char *buf, char *end, unsigned long *bitmap,
 	bool first = true;
 
 	/* reused to print numbers */
-	spec = (struct printf_spec){ .flags = SMALL | ZEROPAD, .base = 16 };
+	spec = (struct printf_spec) { .flags = SMALL | ZEROPAD, .base = 16 };
 
 	chunksz = nr_bits & (CHUNKSZ - 1);
+
 	if (chunksz == 0)
+	{
 		chunksz = CHUNKSZ;
+	}
 
 	i = ALIGN(nr_bits, CHUNKSZ) - CHUNKSZ;
-	for (; i >= 0; i -= CHUNKSZ) {
+
+	for (; i >= 0; i -= CHUNKSZ)
+	{
 		u32 chunkmask, val;
 		int word, bit;
 
@@ -877,11 +1131,16 @@ char *bitmap_string(char *buf, char *end, unsigned long *bitmap,
 		bit = i % BITS_PER_LONG;
 		val = (bitmap[word] >> bit) & chunkmask;
 
-		if (!first) {
+		if (!first)
+		{
 			if (buf < end)
+			{
 				*buf = ',';
+			}
+
 			buf++;
 		}
+
 		first = false;
 
 		spec.field_width = DIV_ROUND_UP(chunksz, 4);
@@ -889,12 +1148,13 @@ char *bitmap_string(char *buf, char *end, unsigned long *bitmap,
 
 		chunksz = CHUNKSZ;
 	}
+
 	return buf;
 }
 
 static noinline_for_stack
 char *bitmap_list_string(char *buf, char *end, unsigned long *bitmap,
-			 struct printf_spec spec, const char *fmt)
+						 struct printf_spec spec, const char *fmt)
 {
 	int nr_bits = max_t(int, spec.field_width, 0);
 	/* current bit is 'cur', most recently seen range is [rbot, rtop] */
@@ -902,26 +1162,41 @@ char *bitmap_list_string(char *buf, char *end, unsigned long *bitmap,
 	bool first = true;
 
 	/* reused to print numbers */
-	spec = (struct printf_spec){ .base = 10 };
+	spec = (struct printf_spec) { .base = 10 };
 
 	rbot = cur = find_first_bit(bitmap, nr_bits);
-	while (cur < nr_bits) {
+
+	while (cur < nr_bits)
+	{
 		rtop = cur;
 		cur = find_next_bit(bitmap, nr_bits, cur + 1);
-		if (cur < nr_bits && cur <= rtop + 1)
-			continue;
 
-		if (!first) {
+		if (cur < nr_bits && cur <= rtop + 1)
+		{
+			continue;
+		}
+
+		if (!first)
+		{
 			if (buf < end)
+			{
 				*buf = ',';
+			}
+
 			buf++;
 		}
+
 		first = false;
 
 		buf = number(buf, end, rbot, spec);
-		if (rbot < rtop) {
+
+		if (rbot < rtop)
+		{
 			if (buf < end)
+			{
 				*buf = '-';
+			}
+
 			buf++;
 
 			buf = number(buf, end, rtop, spec);
@@ -929,12 +1204,13 @@ char *bitmap_list_string(char *buf, char *end, unsigned long *bitmap,
 
 		rbot = cur;
 	}
+
 	return buf;
 }
 
 static noinline_for_stack
 char *mac_address_string(char *buf, char *end, u8 *addr,
-			 struct printf_spec spec, const char *fmt)
+						 struct printf_spec spec, const char *fmt)
 {
 	char mac_addr[sizeof("xx:xx:xx:xx:xx:xx")];
 	char *p = mac_addr;
@@ -942,29 +1218,39 @@ char *mac_address_string(char *buf, char *end, u8 *addr,
 	char separator;
 	bool reversed = false;
 
-	switch (fmt[1]) {
-	case 'F':
-		separator = '-';
-		break;
+	switch (fmt[1])
+	{
+		case 'F':
+			separator = '-';
+			break;
 
-	case 'R':
-		reversed = true;
+		case 'R':
+			reversed = true;
+
 		/* fall through */
 
-	default:
-		separator = ':';
-		break;
+		default:
+			separator = ':';
+			break;
 	}
 
-	for (i = 0; i < 6; i++) {
+	for (i = 0; i < 6; i++)
+	{
 		if (reversed)
+		{
 			p = hex_byte_pack(p, addr[5 - i]);
+		}
 		else
+		{
 			p = hex_byte_pack(p, addr[i]);
+		}
 
 		if (fmt[0] == 'M' && i != 5)
+		{
 			*p++ = separator;
+		}
 	}
+
 	*p = '\0';
 
 	return string(buf, end, mac_addr, spec);
@@ -978,43 +1264,63 @@ char *ip4_string(char *p, const u8 *addr, const char *fmt)
 	int index;
 	int step;
 
-	switch (fmt[2]) {
-	case 'h':
+	switch (fmt[2])
+	{
+		case 'h':
 #ifdef __BIG_ENDIAN
-		index = 0;
-		step = 1;
+			index = 0;
+			step = 1;
 #else
-		index = 3;
-		step = -1;
+			index = 3;
+			step = -1;
 #endif
-		break;
-	case 'l':
-		index = 3;
-		step = -1;
-		break;
-	case 'n':
-	case 'b':
-	default:
-		index = 0;
-		step = 1;
-		break;
+			break;
+
+		case 'l':
+			index = 3;
+			step = -1;
+			break;
+
+		case 'n':
+		case 'b':
+		default:
+			index = 0;
+			step = 1;
+			break;
 	}
-	for (i = 0; i < 4; i++) {
+
+	for (i = 0; i < 4; i++)
+	{
 		char temp[4] __aligned(2);	/* hold each IP quad in reverse order */
 		int digits = put_dec_trunc8(temp, addr[index]) - temp;
-		if (leading_zeros) {
+
+		if (leading_zeros)
+		{
 			if (digits < 3)
+			{
 				*p++ = '0';
+			}
+
 			if (digits < 2)
+			{
 				*p++ = '0';
+			}
 		}
+
 		/* reverse the digits in the quad */
 		while (digits--)
+		{
 			*p++ = temp[digits];
+		}
+
 		if (i < 3)
+		{
 			*p++ = '.';
+		}
+
 		index += step;
 	}
+
 	*p = '\0';
 
 	return p;
@@ -1040,64 +1346,104 @@ char *ip6_compressed_string(char *p, const char *addr)
 	memset(zerolength, 0, sizeof(zerolength));
 
 	if (useIPv4)
+	{
 		range = 6;
+	}
 	else
+	{
 		range = 8;
+	}
 
 	/* find position of longest 0 run */
-	for (i = 0; i < range; i++) {
-		for (j = i; j < range; j++) {
+	for (i = 0; i < range; i++)
+	{
+		for (j = i; j < range; j++)
+		{
 			if (in6.s6_addr16[j] != 0)
+			{
 				break;
+			}
+
 			zerolength[i]++;
 		}
 	}
-	for (i = 0; i < range; i++) {
-		if (zerolength[i] > longest) {
+
+	for (i = 0; i < range; i++)
+	{
+		if (zerolength[i] > longest)
+		{
 			longest = zerolength[i];
 			colonpos = i;
 		}
 	}
+
 	if (longest == 1)		/* don't compress a single 0 */
+	{
 		colonpos = -1;
+	}
 
 	/* emit address */
-	for (i = 0; i < range; i++) {
-		if (i == colonpos) {
+	for (i = 0; i < range; i++)
+	{
+		if (i == colonpos)
+		{
 			if (needcolon || i == 0)
+			{
 				*p++ = ':';
+			}
+
 			*p++ = ':';
 			needcolon = false;
 			i += longest - 1;
 			continue;
 		}
-		if (needcolon) {
+
+		if (needcolon)
+		{
 			*p++ = ':';
 			needcolon = false;
 		}
+
 		/* hex u16 without leading 0s */
 		word = ntohs(in6.s6_addr16[i]);
 		hi = word >> 8;
 		lo = word & 0xff;
-		if (hi) {
+
+		if (hi)
+		{
 			if (hi > 0x0f)
+			{
 				p = hex_byte_pack(p, hi);
+			}
 			else
+			{
 				*p++ = hex_asc_lo(hi);
+			}
+
 			p = hex_byte_pack(p, lo);
 		}
 		else if (lo > 0x0f)
+		{
 			p = hex_byte_pack(p, lo);
+		}
 		else
+		{
 			*p++ = hex_asc_lo(lo);
+		}
+
 		needcolon = true;
 	}
 
-	if (useIPv4) {
+	if (useIPv4)
+	{
 		if (needcolon)
+		{
 			*p++ = ':';
+		}
+
 		p = ip4_string(p, &in6.s6_addr[12], "I4");
 	}
+
 	*p = '\0';
 
 	return p;
@@ -1108,12 +1454,17 @@ char *ip6_string(char *p, const char *addr, const char *fmt)
 {
 	int i;
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		p = hex_byte_pack(p, *addr++);
 		p = hex_byte_pack(p, *addr++);
+
 		if (fmt[0] == 'I' && i != 7)
+		{
 			*p++ = ':';
+		}
 	}
+
 	*p = '\0';
 
 	return p;
@@ -1121,21 +1472,25 @@ char *ip6_string(char *p, const char *addr, const char *fmt)
 
 static noinline_for_stack
 char *ip6_addr_string(char *buf, char *end, const u8 *addr,
-		      struct printf_spec spec, const char *fmt)
+					  struct printf_spec spec, const char *fmt)
 {
 	char ip6_addr[sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:255.255.255.255")];
 
 	if (fmt[0] == 'I' && fmt[2] == 'c')
+	{
 		ip6_compressed_string(ip6_addr, addr);
+	}
 	else
+	{
 		ip6_string(ip6_addr, addr, fmt);
+	}
 
 	return string(buf, end, ip6_addr, spec);
 }
 
 static noinline_for_stack
 char *ip4_addr_string(char *buf, char *end, const u8 *addr,
-		      struct printf_spec spec, const char *fmt)
+					  struct printf_spec spec, const char *fmt)
 {
 	char ip4_addr[sizeof("255.255.255.255")];
 
@@ -1146,61 +1501,80 @@ char *ip4_addr_string(char *buf, char *end, const u8 *addr,
 
 static noinline_for_stack
 char *ip6_addr_string_sa(char *buf, char *end, const struct sockaddr_in6 *sa,
-			 struct printf_spec spec, const char *fmt)
+						 struct printf_spec spec, const char *fmt)
 {
 	bool have_p = false, have_s = false, have_f = false, have_c = false;
 	char ip6_addr[sizeof("[xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:255.255.255.255]") +
-		      sizeof(":12345") + sizeof("/123456789") +
-		      sizeof("%1234567890")];
+				  sizeof(":12345") + sizeof("/123456789") +
+				  sizeof("%1234567890")];
 	char *p = ip6_addr, *pend = ip6_addr + sizeof(ip6_addr);
 	const u8 *addr = (const u8 *) &sa->sin6_addr;
 	char fmt6[2] = { fmt[0], '6' };
 	u8 off = 0;
 
 	fmt++;
-	while (isalpha(*++fmt)) {
-		switch (*fmt) {
-		case 'p':
-			have_p = true;
-			break;
-		case 'f':
-			have_f = true;
-			break;
-		case 's':
-			have_s = true;
-			break;
-		case 'c':
-			have_c = true;
-			break;
+
+	while (isalpha(*++fmt))
+	{
+		switch (*fmt)
+		{
+			case 'p':
+				have_p = true;
+				break;
+
+			case 'f':
+				have_f = true;
+				break;
+
+			case 's':
+				have_s = true;
+				break;
+
+			case 'c':
+				have_c = true;
+				break;
 		}
 	}
 
-	if (have_p || have_s || have_f) {
+	if (have_p || have_s || have_f)
+	{
 		*p = '[';
 		off = 1;
 	}
 
 	if (fmt6[0] == 'I' && have_c)
+	{
 		p = ip6_compressed_string(ip6_addr + off, addr);
+	}
 	else
+	{
 		p = ip6_string(ip6_addr + off, addr, fmt6);
+	}
 
 	if (have_p || have_s || have_f)
+	{
 		*p++ = ']';
+	}
 
-	if (have_p) {
+	if (have_p)
+	{
 		*p++ = ':';
 		p = number(p, pend, ntohs(sa->sin6_port), spec);
 	}
-	if (have_f) {
+
+	if (have_f)
+	{
 		*p++ = '/';
 		p = number(p, pend, ntohl(sa->sin6_flowinfo &
-					  IPV6_FLOWINFO_MASK), spec);
+								  IPV6_FLOWINFO_MASK), spec);
 	}
-	if (have_s) {
+
+	if (have_s)
+	{
 		*p++ = '%';
 		p = number(p, pend, sa->sin6_scope_id, spec);
 	}
+
 	*p = '\0';
 
 	return string(buf, end, ip6_addr, spec);
@@ -1208,7 +1582,7 @@ char *ip6_addr_string_sa(char *buf, char *end, const struct sockaddr_in6 *sa,
 
 static noinline_for_stack
 char *ip4_addr_string_sa(char *buf, char *end, const struct sockaddr_in *sa,
-			 struct printf_spec spec, const char *fmt)
+						 struct printf_spec spec, const char *fmt)
 {
 	bool have_p = false;
 	char *p, ip4_addr[sizeof("255.255.255.255") + sizeof(":12345")];
@@ -1217,25 +1591,32 @@ char *ip4_addr_string_sa(char *buf, char *end, const struct sockaddr_in *sa,
 	char fmt4[3] = { fmt[0], '4', 0 };
 
 	fmt++;
-	while (isalpha(*++fmt)) {
-		switch (*fmt) {
-		case 'p':
-			have_p = true;
-			break;
-		case 'h':
-		case 'l':
-		case 'n':
-		case 'b':
-			fmt4[2] = *fmt;
-			break;
+
+	while (isalpha(*++fmt))
+	{
+		switch (*fmt)
+		{
+			case 'p':
+				have_p = true;
+				break;
+
+			case 'h':
+			case 'l':
+			case 'n':
+			case 'b':
+				fmt4[2] = *fmt;
+				break;
 		}
 	}
 
 	p = ip4_string(ip4_addr, addr, fmt4);
-	if (have_p) {
+
+	if (have_p)
+	{
 		*p++ = ':';
 		p = number(p, pend, ntohs(sa->sin_port), spec);
 	}
+
 	*p = '\0';
 
 	return string(buf, end, ip4_addr, spec);
@@ -1243,7 +1624,7 @@ char *ip4_addr_string_sa(char *buf, char *end, const struct sockaddr_in *sa,
 
 static noinline_for_stack
 char *escaped_string(char *buf, char *end, u8 *addr, struct printf_spec spec,
-		     const char *fmt)
+					 const char *fmt)
 {
 	bool found = true;
 	int count = 1;
@@ -1251,43 +1632,59 @@ char *escaped_string(char *buf, char *end, u8 *addr, struct printf_spec spec,
 	int len;
 
 	if (spec.field_width == 0)
-		return buf;				/* nothing to print */
+	{
+		return buf;    /* nothing to print */
+	}
 
 	if (ZERO_OR_NULL_PTR(addr))
-		return string(buf, end, NULL, spec);	/* NULL pointer */
+	{
+		return string(buf, end, NULL, spec);    /* NULL pointer */
+	}
 
 
-	do {
-		switch (fmt[count++]) {
-		case 'a':
-			flags |= ESCAPE_ANY;
-			break;
-		case 'c':
-			flags |= ESCAPE_SPECIAL;
-			break;
-		case 'h':
-			flags |= ESCAPE_HEX;
-			break;
-		case 'n':
-			flags |= ESCAPE_NULL;
-			break;
-		case 'o':
-			flags |= ESCAPE_OCTAL;
-			break;
-		case 'p':
-			flags |= ESCAPE_NP;
-			break;
-		case 's':
-			flags |= ESCAPE_SPACE;
-			break;
-		default:
-			found = false;
-			break;
+	do
+	{
+		switch (fmt[count++])
+		{
+			case 'a':
+				flags |= ESCAPE_ANY;
+				break;
+
+			case 'c':
+				flags |= ESCAPE_SPECIAL;
+				break;
+
+			case 'h':
+				flags |= ESCAPE_HEX;
+				break;
+
+			case 'n':
+				flags |= ESCAPE_NULL;
+				break;
+
+			case 'o':
+				flags |= ESCAPE_OCTAL;
+				break;
+
+			case 'p':
+				flags |= ESCAPE_NP;
+				break;
+
+			case 's':
+				flags |= ESCAPE_SPACE;
+				break;
+
+			default:
+				found = false;
+				break;
 		}
-	} while (found);
+	}
+	while (found);
 
 	if (!flags)
+	{
 		flags = ESCAPE_ANY_NP;
+	}
 
 	len = spec.field_width < 0 ? 1 : spec.field_width;
 
@@ -1303,7 +1700,7 @@ char *escaped_string(char *buf, char *end, u8 *addr, struct printf_spec spec,
 
 static noinline_for_stack
 char *uuid_string(char *buf, char *end, const u8 *addr,
-		  struct printf_spec spec, const char *fmt)
+				  struct printf_spec spec, const char *fmt)
 {
 	char uuid[UUID_STRING_LEN + 1];
 	char *p = uuid;
@@ -1311,29 +1708,39 @@ char *uuid_string(char *buf, char *end, const u8 *addr,
 	const u8 *index = uuid_be_index;
 	bool uc = false;
 
-	switch (*(++fmt)) {
-	case 'L':
-		uc = true;		/* fall-through */
-	case 'l':
-		index = uuid_le_index;
-		break;
-	case 'B':
-		uc = true;
-		break;
+	switch (*(++fmt))
+	{
+		case 'L':
+			uc = true;		/* fall-through */
+
+		case 'l':
+			index = uuid_le_index;
+			break;
+
+		case 'B':
+			uc = true;
+			break;
 	}
 
-	for (i = 0; i < 16; i++) {
+	for (i = 0; i < 16; i++)
+	{
 		if (uc)
+		{
 			p = hex_byte_pack_upper(p, addr[index[i]]);
+		}
 		else
+		{
 			p = hex_byte_pack(p, addr[index[i]]);
-		switch (i) {
-		case 3:
-		case 5:
-		case 7:
-		case 9:
-			*p++ = '-';
-			break;
+		}
+
+		switch (i)
+		{
+			case 3:
+			case 5:
+			case 7:
+			case 9:
+				*p++ = '-';
+				break;
 		}
 	}
 
@@ -1348,15 +1755,17 @@ char *netdev_bits(char *buf, char *end, const void *addr, const char *fmt)
 	unsigned long long num;
 	int size;
 
-	switch (fmt[1]) {
-	case 'F':
-		num = *(const netdev_features_t *)addr;
-		size = sizeof(netdev_features_t);
-		break;
-	default:
-		num = (unsigned long)addr;
-		size = sizeof(unsigned long);
-		break;
+	switch (fmt[1])
+	{
+		case 'F':
+			num = *(const netdev_features_t *)addr;
+			size = sizeof(netdev_features_t);
+			break;
+
+		default:
+			num = (unsigned long)addr;
+			size = sizeof(unsigned long);
+			break;
 	}
 
 	return special_hex_number(buf, end, num, size);
@@ -1368,16 +1777,18 @@ char *address_val(char *buf, char *end, const void *addr, const char *fmt)
 	unsigned long long num;
 	int size;
 
-	switch (fmt[1]) {
-	case 'd':
-		num = *(const dma_addr_t *)addr;
-		size = sizeof(dma_addr_t);
-		break;
-	case 'p':
-	default:
-		num = *(const phys_addr_t *)addr;
-		size = sizeof(phys_addr_t);
-		break;
+	switch (fmt[1])
+	{
+		case 'd':
+			num = *(const dma_addr_t *)addr;
+			size = sizeof(dma_addr_t);
+			break;
+
+		case 'p':
+		default:
+			num = *(const phys_addr_t *)addr;
+			size = sizeof(phys_addr_t);
+			break;
 	}
 
 	return special_hex_number(buf, end, num, size);
@@ -1385,58 +1796,74 @@ char *address_val(char *buf, char *end, const void *addr, const char *fmt)
 
 static noinline_for_stack
 char *clock(char *buf, char *end, struct clk *clk, struct printf_spec spec,
-	    const char *fmt)
+			const char *fmt)
 {
 	if (!IS_ENABLED(CONFIG_HAVE_CLK) || !clk)
+	{
 		return string(buf, end, NULL, spec);
+	}
 
-	switch (fmt[1]) {
-	case 'r':
-		return number(buf, end, clk_get_rate(clk), spec);
+	switch (fmt[1])
+	{
+		case 'r':
+			return number(buf, end, clk_get_rate(clk), spec);
 
-	case 'n':
-	default:
+		case 'n':
+		default:
 #ifdef CONFIG_COMMON_CLK
-		return string(buf, end, __clk_get_name(clk), spec);
+			return string(buf, end, __clk_get_name(clk), spec);
 #else
-		return special_hex_number(buf, end, (unsigned long)clk, sizeof(unsigned long));
+			return special_hex_number(buf, end, (unsigned long)clk, sizeof(unsigned long));
 #endif
 	}
 }
 
 static
 char *format_flags(char *buf, char *end, unsigned long flags,
-					const struct trace_print_flags *names)
+				   const struct trace_print_flags *names)
 {
 	unsigned long mask;
-	const struct printf_spec strspec = {
+	const struct printf_spec strspec =
+	{
 		.field_width = -1,
 		.precision = -1,
 	};
-	const struct printf_spec numspec = {
-		.flags = SPECIAL|SMALL,
+	const struct printf_spec numspec =
+	{
+		.flags = SPECIAL | SMALL,
 		.field_width = -1,
 		.precision = -1,
 		.base = 16,
 	};
 
-	for ( ; flags && names->name; names++) {
+	for ( ; flags && names->name; names++)
+	{
 		mask = names->mask;
+
 		if ((flags & mask) != mask)
+		{
 			continue;
+		}
 
 		buf = string(buf, end, names->name, strspec);
 
 		flags &= ~mask;
-		if (flags) {
+
+		if (flags)
+		{
 			if (buf < end)
+			{
 				*buf = '|';
+			}
+
 			buf++;
 		}
 	}
 
 	if (flags)
+	{
 		buf = number(buf, end, flags, numspec);
+	}
 
 	return buf;
 }
@@ -1447,24 +1874,28 @@ char *flags_string(char *buf, char *end, void *flags_ptr, const char *fmt)
 	unsigned long flags;
 	const struct trace_print_flags *names;
 
-	switch (fmt[1]) {
-	case 'p':
-		flags = *(unsigned long *)flags_ptr;
-		/* Remove zone id */
-		flags &= (1UL << NR_PAGEFLAGS) - 1;
-		names = pageflag_names;
-		break;
-	case 'v':
-		flags = *(unsigned long *)flags_ptr;
-		names = vmaflag_names;
-		break;
-	case 'g':
-		flags = *(gfp_t *)flags_ptr;
-		names = gfpflag_names;
-		break;
-	default:
-		WARN_ONCE(1, "Unsupported flags modifier: %c\n", fmt[1]);
-		return buf;
+	switch (fmt[1])
+	{
+		case 'p':
+			flags = *(unsigned long *)flags_ptr;
+			/* Remove zone id */
+			flags &= (1UL << NR_PAGEFLAGS) - 1;
+			names = pageflag_names;
+			break;
+
+		case 'v':
+			flags = *(unsigned long *)flags_ptr;
+			names = vmaflag_names;
+			break;
+
+		case 'g':
+			flags = *(gfp_t *)flags_ptr;
+			names = gfpflag_names;
+			break;
+
+		default:
+			WARN_ONCE(1, "Unsupported flags modifier: %c\n", fmt[1]);
+			return buf;
 	}
 
 	return format_flags(buf, end, flags, names);
@@ -1572,158 +2003,207 @@ int kptr_restrict __read_mostly;
  */
 static noinline_for_stack
 char *pointer(const char *fmt, char *buf, char *end, void *ptr,
-	      struct printf_spec spec)
+			  struct printf_spec spec)
 {
 	const int default_width = 2 * sizeof(void *);
 
-	if (!ptr && *fmt != 'K') {
+	if (!ptr && *fmt != 'K')
+	{
 		/*
 		 * Print (null) with the same width as a pointer so it makes
 		 * tabular output look nice.
 		 */
 		if (spec.field_width == -1)
+		{
 			spec.field_width = default_width;
+		}
+
 		return string(buf, end, "(null)", spec);
 	}
 
-	switch (*fmt) {
-	case 'F':
-	case 'f':
-		ptr = dereference_function_descriptor(ptr);
+	switch (*fmt)
+	{
+		case 'F':
+		case 'f':
+			ptr = dereference_function_descriptor(ptr);
+
 		/* Fallthrough */
-	case 'S':
-	case 's':
-	case 'B':
-		return symbol_string(buf, end, ptr, spec, fmt);
-	case 'R':
-	case 'r':
-		return resource_string(buf, end, ptr, spec, fmt);
-	case 'h':
-		return hex_string(buf, end, ptr, spec, fmt);
-	case 'b':
-		switch (fmt[1]) {
-		case 'l':
-			return bitmap_list_string(buf, end, ptr, spec, fmt);
-		default:
-			return bitmap_string(buf, end, ptr, spec, fmt);
-		}
-	case 'M':			/* Colon separated: 00:01:02:03:04:05 */
-	case 'm':			/* Contiguous: 000102030405 */
-					/* [mM]F (FDDI) */
-					/* [mM]R (Reverse order; Bluetooth) */
-		return mac_address_string(buf, end, ptr, spec, fmt);
-	case 'I':			/* Formatted IP supported
+		case 'S':
+		case 's':
+		case 'B':
+			return symbol_string(buf, end, ptr, spec, fmt);
+
+		case 'R':
+		case 'r':
+			return resource_string(buf, end, ptr, spec, fmt);
+
+		case 'h':
+			return hex_string(buf, end, ptr, spec, fmt);
+
+		case 'b':
+			switch (fmt[1])
+			{
+				case 'l':
+					return bitmap_list_string(buf, end, ptr, spec, fmt);
+
+				default:
+					return bitmap_string(buf, end, ptr, spec, fmt);
+			}
+
+		case 'M':			/* Colon separated: 00:01:02:03:04:05 */
+		case 'm':			/* Contiguous: 000102030405 */
+			/* [mM]F (FDDI) */
+			/* [mM]R (Reverse order; Bluetooth) */
+			return mac_address_string(buf, end, ptr, spec, fmt);
+
+		case 'I':			/* Formatted IP supported
 					 * 4:	1.2.3.4
 					 * 6:	0001:0203:...:0708
 					 * 6c:	1::708 or 1::1.2.3.4
 					 */
-	case 'i':			/* Contiguous:
+		case 'i':			/* Contiguous:
 					 * 4:	001.002.003.004
 					 * 6:   000102...0f
 					 */
-		switch (fmt[1]) {
-		case '6':
-			return ip6_addr_string(buf, end, ptr, spec, fmt);
-		case '4':
-			return ip4_addr_string(buf, end, ptr, spec, fmt);
-		case 'S': {
-			const union {
-				struct sockaddr		raw;
-				struct sockaddr_in	v4;
-				struct sockaddr_in6	v6;
-			} *sa = ptr;
+			switch (fmt[1])
+			{
+				case '6':
+					return ip6_addr_string(buf, end, ptr, spec, fmt);
 
-			switch (sa->raw.sa_family) {
-			case AF_INET:
-				return ip4_addr_string_sa(buf, end, &sa->v4, spec, fmt);
-			case AF_INET6:
-				return ip6_addr_string_sa(buf, end, &sa->v6, spec, fmt);
-			default:
-				return string(buf, end, "(invalid address)", spec);
-			}}
-		}
-		break;
-	case 'E':
-		return escaped_string(buf, end, ptr, spec, fmt);
-	case 'U':
-		return uuid_string(buf, end, ptr, spec, fmt);
-	case 'V':
-		{
-			va_list va;
+				case '4':
+					return ip4_addr_string(buf, end, ptr, spec, fmt);
 
-			va_copy(va, *((struct va_format *)ptr)->va);
-			buf += vsnprintf(buf, end > buf ? end - buf : 0,
-					 ((struct va_format *)ptr)->fmt, va);
-			va_end(va);
-			return buf;
-		}
-	case 'K':
-		switch (kptr_restrict) {
-		case 0:
-			/* Always print %pK values */
-			break;
-		case 1: {
-			const struct cred *cred;
+				case 'S':
+					{
+						const union
+						{
+							struct sockaddr		raw;
+							struct sockaddr_in	v4;
+							struct sockaddr_in6	v6;
+						} *sa = ptr;
 
-			/*
-			 * kptr_restrict==1 cannot be used in IRQ context
-			 * because its test for CAP_SYSLOG would be meaningless.
-			 */
-			if (in_irq() || in_serving_softirq() || in_nmi()) {
-				if (spec.field_width == -1)
-					spec.field_width = default_width;
-				return string(buf, end, "pK-error", spec);
+						switch (sa->raw.sa_family)
+						{
+							case AF_INET:
+								return ip4_addr_string_sa(buf, end, &sa->v4, spec, fmt);
+
+							case AF_INET6:
+								return ip6_addr_string_sa(buf, end, &sa->v6, spec, fmt);
+
+							default:
+								return string(buf, end, "(invalid address)", spec);
+						}
+					}
 			}
 
-			/*
-			 * Only print the real pointer value if the current
-			 * process has CAP_SYSLOG and is running with the
-			 * same credentials it started with. This is because
-			 * access to files is checked at open() time, but %pK
-			 * checks permission at read() time. We don't want to
-			 * leak pointer values if a binary opens a file using
-			 * %pK and then elevates privileges before reading it.
-			 */
-			cred = current_cred();
-			if (!has_capability_noaudit(current, CAP_SYSLOG) ||
-			    !uid_eq(cred->euid, cred->uid) ||
-			    !gid_eq(cred->egid, cred->gid))
-				ptr = NULL;
 			break;
-		}
-		case 2:
-		default:
-			/* Always print 0's for %pK */
-			ptr = NULL;
-			break;
-		}
-		break;
 
-	case 'N':
-		return netdev_bits(buf, end, ptr, fmt);
-	case 'a':
-		return address_val(buf, end, ptr, fmt);
-	case 'd':
-		return dentry_name(buf, end, ptr, spec, fmt);
-	case 'C':
-		return clock(buf, end, ptr, spec, fmt);
-	case 'D':
-		return dentry_name(buf, end,
-				   ((const struct file *)ptr)->f_path.dentry,
-				   spec, fmt);
+		case 'E':
+			return escaped_string(buf, end, ptr, spec, fmt);
+
+		case 'U':
+			return uuid_string(buf, end, ptr, spec, fmt);
+
+		case 'V':
+			{
+				va_list va;
+
+				va_copy(va, *((struct va_format *)ptr)->va);
+				buf += vsnprintf(buf, end > buf ? end - buf : 0,
+								 ((struct va_format *)ptr)->fmt, va);
+				va_end(va);
+				return buf;
+			}
+
+		case 'K':
+			switch (kptr_restrict)
+			{
+				case 0:
+					/* Always print %pK values */
+					break;
+
+				case 1:
+					{
+						const struct cred *cred;
+
+						/*
+						 * kptr_restrict==1 cannot be used in IRQ context
+						 * because its test for CAP_SYSLOG would be meaningless.
+						 */
+						if (in_irq() || in_serving_softirq() || in_nmi())
+						{
+							if (spec.field_width == -1)
+							{
+								spec.field_width = default_width;
+							}
+
+							return string(buf, end, "pK-error", spec);
+						}
+
+						/*
+						 * Only print the real pointer value if the current
+						 * process has CAP_SYSLOG and is running with the
+						 * same credentials it started with. This is because
+						 * access to files is checked at open() time, but %pK
+						 * checks permission at read() time. We don't want to
+						 * leak pointer values if a binary opens a file using
+						 * %pK and then elevates privileges before reading it.
+						 */
+						cred = current_cred();
+
+						if (!has_capability_noaudit(current, CAP_SYSLOG) ||
+							!uid_eq(cred->euid, cred->uid) ||
+							!gid_eq(cred->egid, cred->gid))
+						{
+							ptr = NULL;
+						}
+
+						break;
+					}
+
+				case 2:
+				default:
+					/* Always print 0's for %pK */
+					ptr = NULL;
+					break;
+			}
+
+			break;
+
+		case 'N':
+			return netdev_bits(buf, end, ptr, fmt);
+
+		case 'a':
+			return address_val(buf, end, ptr, fmt);
+
+		case 'd':
+			return dentry_name(buf, end, ptr, spec, fmt);
+
+		case 'C':
+			return clock(buf, end, ptr, spec, fmt);
+
+		case 'D':
+			return dentry_name(buf, end,
+							   ((const struct file *)ptr)->f_path.dentry,
+							   spec, fmt);
 #ifdef CONFIG_BLOCK
-	case 'g':
-		return bdev_name(buf, end, ptr, spec, fmt);
+
+		case 'g':
+			return bdev_name(buf, end, ptr, spec, fmt);
 #endif
 
-	case 'G':
-		return flags_string(buf, end, ptr, fmt);
+		case 'G':
+			return flags_string(buf, end, ptr, fmt);
 	}
+
 	spec.flags |= SMALL;
-	if (spec.field_width == -1) {
+
+	if (spec.field_width == -1)
+	{
 		spec.field_width = default_width;
 		spec.flags |= ZEROPAD;
 	}
+
 	spec.base = 16;
 
 	return number(buf, end, (unsigned long) ptr, spec);
@@ -1756,19 +2236,25 @@ int format_decode(const char *fmt, struct printf_spec *spec)
 	char qualifier;
 
 	/* we finished early by reading the field width */
-	if (spec->type == FORMAT_TYPE_WIDTH) {
-		if (spec->field_width < 0) {
+	if (spec->type == FORMAT_TYPE_WIDTH)
+	{
+		if (spec->field_width < 0)
+		{
 			spec->field_width = -spec->field_width;
 			spec->flags |= LEFT;
 		}
+
 		spec->type = FORMAT_TYPE_NONE;
 		goto precision;
 	}
 
 	/* we finished early by reading the precision */
-	if (spec->type == FORMAT_TYPE_PRECISION) {
+	if (spec->type == FORMAT_TYPE_PRECISION)
+	{
 		if (spec->precision < 0)
+		{
 			spec->precision = 0;
+		}
 
 		spec->type = FORMAT_TYPE_NONE;
 		goto qualifier;
@@ -1777,42 +2263,59 @@ int format_decode(const char *fmt, struct printf_spec *spec)
 	/* By default */
 	spec->type = FORMAT_TYPE_NONE;
 
-	for (; *fmt ; ++fmt) {
+	for (; *fmt ; ++fmt)
+	{
 		if (*fmt == '%')
+		{
 			break;
+		}
 	}
 
 	/* Return the current non-format string */
 	if (fmt != start || !*fmt)
+	{
 		return fmt - start;
+	}
 
 	/* Process flags */
 	spec->flags = 0;
 
-	while (1) { /* this also skips first '%' */
+	while (1)   /* this also skips first '%' */
+	{
 		bool found = true;
 
 		++fmt;
 
-		switch (*fmt) {
-		case '-': spec->flags |= LEFT;    break;
-		case '+': spec->flags |= PLUS;    break;
-		case ' ': spec->flags |= SPACE;   break;
-		case '#': spec->flags |= SPECIAL; break;
-		case '0': spec->flags |= ZEROPAD; break;
-		default:  found = false;
+		switch (*fmt)
+		{
+			case '-': spec->flags |= LEFT;    break;
+
+			case '+': spec->flags |= PLUS;    break;
+
+			case ' ': spec->flags |= SPACE;   break;
+
+			case '#': spec->flags |= SPECIAL; break;
+
+			case '0': spec->flags |= ZEROPAD; break;
+
+			default:  found = false;
 		}
 
 		if (!found)
+		{
 			break;
+		}
 	}
 
 	/* get field width */
 	spec->field_width = -1;
 
 	if (isdigit(*fmt))
+	{
 		spec->field_width = skip_atoi(&fmt);
-	else if (*fmt == '*') {
+	}
+	else if (*fmt == '*')
+	{
 		/* it's the next argument */
 		spec->type = FORMAT_TYPE_WIDTH;
 		return ++fmt - start;
@@ -1821,13 +2324,22 @@ int format_decode(const char *fmt, struct printf_spec *spec)
 precision:
 	/* get the precision */
 	spec->precision = -1;
-	if (*fmt == '.') {
+
+	if (*fmt == '.')
+	{
 		++fmt;
-		if (isdigit(*fmt)) {
+
+		if (isdigit(*fmt))
+		{
 			spec->precision = skip_atoi(&fmt);
+
 			if (spec->precision < 0)
+			{
 				spec->precision = 0;
-		} else if (*fmt == '*') {
+			}
+		}
+		else if (*fmt == '*')
+		{
 			/* it's the next argument */
 			spec->type = FORMAT_TYPE_PRECISION;
 			return ++fmt - start;
@@ -1837,14 +2349,21 @@ precision:
 qualifier:
 	/* get the conversion qualifier */
 	qualifier = 0;
+
 	if (*fmt == 'h' || _tolower(*fmt) == 'l' ||
-	    _tolower(*fmt) == 'z' || *fmt == 't') {
+		_tolower(*fmt) == 'z' || *fmt == 't')
+	{
 		qualifier = *fmt++;
-		if (unlikely(qualifier == *fmt)) {
-			if (qualifier == 'l') {
+
+		if (unlikely(qualifier == *fmt))
+		{
+			if (qualifier == 'l')
+			{
 				qualifier = 'L';
 				++fmt;
-			} else if (qualifier == 'h') {
+			}
+			else if (qualifier == 'h')
+			{
 				qualifier = 'H';
 				++fmt;
 			}
@@ -1853,42 +2372,46 @@ qualifier:
 
 	/* default base */
 	spec->base = 10;
-	switch (*fmt) {
-	case 'c':
-		spec->type = FORMAT_TYPE_CHAR;
-		return ++fmt - start;
 
-	case 's':
-		spec->type = FORMAT_TYPE_STR;
-		return ++fmt - start;
+	switch (*fmt)
+	{
+		case 'c':
+			spec->type = FORMAT_TYPE_CHAR;
+			return ++fmt - start;
 
-	case 'p':
-		spec->type = FORMAT_TYPE_PTR;
-		return ++fmt - start;
+		case 's':
+			spec->type = FORMAT_TYPE_STR;
+			return ++fmt - start;
 
-	case '%':
-		spec->type = FORMAT_TYPE_PERCENT_CHAR;
-		return ++fmt - start;
+		case 'p':
+			spec->type = FORMAT_TYPE_PTR;
+			return ++fmt - start;
 
-	/* integer number formats - set up the flags and "break" */
-	case 'o':
-		spec->base = 8;
-		break;
+		case '%':
+			spec->type = FORMAT_TYPE_PERCENT_CHAR;
+			return ++fmt - start;
 
-	case 'x':
-		spec->flags |= SMALL;
+		/* integer number formats - set up the flags and "break" */
+		case 'o':
+			spec->base = 8;
+			break;
 
-	case 'X':
-		spec->base = 16;
-		break;
+		case 'x':
+			spec->flags |= SMALL;
 
-	case 'd':
-	case 'i':
-		spec->flags |= SIGN;
-	case 'u':
-		break;
+		case 'X':
+			spec->base = 16;
+			break;
 
-	case 'n':
+		case 'd':
+		case 'i':
+			spec->flags |= SIGN;
+
+		case 'u':
+			break;
+
+		case 'n':
+
 		/*
 		 * Since %n poses a greater security risk than
 		 * utility, treat it as any other invalid or
@@ -1896,28 +2419,41 @@ qualifier:
 		 */
 		/* Fall-through */
 
-	default:
-		WARN_ONCE(1, "Please remove unsupported %%%c in format string\n", *fmt);
-		spec->type = FORMAT_TYPE_INVALID;
-		return fmt - start;
+		default:
+			WARN_ONCE(1, "Please remove unsupported %%%c in format string\n", *fmt);
+			spec->type = FORMAT_TYPE_INVALID;
+			return fmt - start;
 	}
 
 	if (qualifier == 'L')
+	{
 		spec->type = FORMAT_TYPE_LONG_LONG;
-	else if (qualifier == 'l') {
+	}
+	else if (qualifier == 'l')
+	{
 		BUILD_BUG_ON(FORMAT_TYPE_ULONG + SIGN != FORMAT_TYPE_LONG);
 		spec->type = FORMAT_TYPE_ULONG + (spec->flags & SIGN);
-	} else if (_tolower(qualifier) == 'z') {
+	}
+	else if (_tolower(qualifier) == 'z')
+	{
 		spec->type = FORMAT_TYPE_SIZE_T;
-	} else if (qualifier == 't') {
+	}
+	else if (qualifier == 't')
+	{
 		spec->type = FORMAT_TYPE_PTRDIFF;
-	} else if (qualifier == 'H') {
+	}
+	else if (qualifier == 'H')
+	{
 		BUILD_BUG_ON(FORMAT_TYPE_UBYTE + SIGN != FORMAT_TYPE_BYTE);
 		spec->type = FORMAT_TYPE_UBYTE + (spec->flags & SIGN);
-	} else if (qualifier == 'h') {
+	}
+	else if (qualifier == 'h')
+	{
 		BUILD_BUG_ON(FORMAT_TYPE_USHORT + SIGN != FORMAT_TYPE_SHORT);
 		spec->type = FORMAT_TYPE_USHORT + (spec->flags & SIGN);
-	} else {
+	}
+	else
+	{
 		BUILD_BUG_ON(FORMAT_TYPE_UINT + SIGN != FORMAT_TYPE_INT);
 		spec->type = FORMAT_TYPE_UINT + (spec->flags & SIGN);
 	}
@@ -1929,7 +2465,9 @@ static void
 set_field_width(struct printf_spec *spec, int width)
 {
 	spec->field_width = width;
-	if (WARN_ONCE(spec->field_width != width, "field width %d too large", width)) {
+
+	if (WARN_ONCE(spec->field_width != width, "field width %d too large", width))
+	{
 		spec->field_width = clamp(width, -FIELD_WIDTH_MAX, FIELD_WIDTH_MAX);
 	}
 }
@@ -1938,7 +2476,9 @@ static void
 set_precision(struct printf_spec *spec, int prec)
 {
 	spec->precision = prec;
-	if (WARN_ONCE(spec->precision != prec, "precision %d too large", prec)) {
+
+	if (WARN_ONCE(spec->precision != prec, "precision %d too large", prec))
+	{
 		spec->precision = clamp(prec, 0, PRECISION_MAX);
 	}
 }
@@ -1980,147 +2520,205 @@ int vsnprintf(char *buf, size_t size, const char *fmt, va_list args)
 	/* Reject out-of-range values early.  Large positive sizes are
 	   used for unknown buffer sizes. */
 	if (WARN_ON_ONCE(size > INT_MAX))
+	{
 		return 0;
+	}
 
 	str = buf;
 	end = buf + size;
 
 	/* Make sure end is always >= buf */
-	if (end < buf) {
-		end = ((void *)-1);
+	if (end < buf)
+	{
+		end = ((void *) - 1);
 		size = end - buf;
 	}
 
-	while (*fmt) {
+	while (*fmt)
+	{
 		const char *old_fmt = fmt;
 		int read = format_decode(fmt, &spec);
 
 		fmt += read;
 
-		switch (spec.type) {
-		case FORMAT_TYPE_NONE: {
-			int copy = read;
-			if (str < end) {
-				if (copy > end - str)
-					copy = end - str;
-				memcpy(str, old_fmt, copy);
-			}
-			str += read;
-			break;
-		}
+		switch (spec.type)
+		{
+			case FORMAT_TYPE_NONE:
+				{
+					int copy = read;
 
-		case FORMAT_TYPE_WIDTH:
-			set_field_width(&spec, va_arg(args, int));
-			break;
-
-		case FORMAT_TYPE_PRECISION:
-			set_precision(&spec, va_arg(args, int));
-			break;
-
-		case FORMAT_TYPE_CHAR: {
-			char c;
-
-			if (!(spec.flags & LEFT)) {
-				while (--spec.field_width > 0) {
 					if (str < end)
-						*str = ' ';
+					{
+						if (copy > end - str)
+						{
+							copy = end - str;
+						}
+
+						memcpy(str, old_fmt, copy);
+					}
+
+					str += read;
+					break;
+				}
+
+			case FORMAT_TYPE_WIDTH:
+				set_field_width(&spec, va_arg(args, int));
+				break;
+
+			case FORMAT_TYPE_PRECISION:
+				set_precision(&spec, va_arg(args, int));
+				break;
+
+			case FORMAT_TYPE_CHAR:
+				{
+					char c;
+
+					if (!(spec.flags & LEFT))
+					{
+						while (--spec.field_width > 0)
+						{
+							if (str < end)
+							{
+								*str = ' ';
+							}
+
+							++str;
+
+						}
+					}
+
+					c = (unsigned char) va_arg(args, int);
+
+					if (str < end)
+					{
+						*str = c;
+					}
+
 					++str;
 
+					while (--spec.field_width > 0)
+					{
+						if (str < end)
+						{
+							*str = ' ';
+						}
+
+						++str;
+					}
+
+					break;
 				}
-			}
-			c = (unsigned char) va_arg(args, int);
-			if (str < end)
-				*str = c;
-			++str;
-			while (--spec.field_width > 0) {
+
+			case FORMAT_TYPE_STR:
+				str = string(str, end, va_arg(args, char *), spec);
+				break;
+
+			case FORMAT_TYPE_PTR:
+				str = pointer(fmt, str, end, va_arg(args, void *),
+							  spec);
+
+				while (isalnum(*fmt))
+				{
+					fmt++;
+				}
+
+				break;
+
+			case FORMAT_TYPE_PERCENT_CHAR:
 				if (str < end)
-					*str = ' ';
+				{
+					*str = '%';
+				}
+
 				++str;
-			}
-			break;
-		}
+				break;
 
-		case FORMAT_TYPE_STR:
-			str = string(str, end, va_arg(args, char *), spec);
-			break;
+			case FORMAT_TYPE_INVALID:
+				/*
+				 * Presumably the arguments passed gcc's type
+				 * checking, but there is no safe or sane way
+				 * for us to continue parsing the format and
+				 * fetching from the va_list; the remaining
+				 * specifiers and arguments would be out of
+				 * sync.
+				 */
+				goto out;
 
-		case FORMAT_TYPE_PTR:
-			str = pointer(fmt, str, end, va_arg(args, void *),
-				      spec);
-			while (isalnum(*fmt))
-				fmt++;
-			break;
-
-		case FORMAT_TYPE_PERCENT_CHAR:
-			if (str < end)
-				*str = '%';
-			++str;
-			break;
-
-		case FORMAT_TYPE_INVALID:
-			/*
-			 * Presumably the arguments passed gcc's type
-			 * checking, but there is no safe or sane way
-			 * for us to continue parsing the format and
-			 * fetching from the va_list; the remaining
-			 * specifiers and arguments would be out of
-			 * sync.
-			 */
-			goto out;
-
-		default:
-			switch (spec.type) {
-			case FORMAT_TYPE_LONG_LONG:
-				num = va_arg(args, long long);
-				break;
-			case FORMAT_TYPE_ULONG:
-				num = va_arg(args, unsigned long);
-				break;
-			case FORMAT_TYPE_LONG:
-				num = va_arg(args, long);
-				break;
-			case FORMAT_TYPE_SIZE_T:
-				if (spec.flags & SIGN)
-					num = va_arg(args, ssize_t);
-				else
-					num = va_arg(args, size_t);
-				break;
-			case FORMAT_TYPE_PTRDIFF:
-				num = va_arg(args, ptrdiff_t);
-				break;
-			case FORMAT_TYPE_UBYTE:
-				num = (unsigned char) va_arg(args, int);
-				break;
-			case FORMAT_TYPE_BYTE:
-				num = (signed char) va_arg(args, int);
-				break;
-			case FORMAT_TYPE_USHORT:
-				num = (unsigned short) va_arg(args, int);
-				break;
-			case FORMAT_TYPE_SHORT:
-				num = (short) va_arg(args, int);
-				break;
-			case FORMAT_TYPE_INT:
-				num = (int) va_arg(args, int);
-				break;
 			default:
-				num = va_arg(args, unsigned int);
-			}
+				switch (spec.type)
+				{
+					case FORMAT_TYPE_LONG_LONG:
+						num = va_arg(args, long long);
+						break;
 
-			str = number(str, end, num, spec);
+					case FORMAT_TYPE_ULONG:
+						num = va_arg(args, unsigned long);
+						break;
+
+					case FORMAT_TYPE_LONG:
+						num = va_arg(args, long);
+						break;
+
+					case FORMAT_TYPE_SIZE_T:
+						if (spec.flags & SIGN)
+						{
+							num = va_arg(args, ssize_t);
+						}
+						else
+						{
+							num = va_arg(args, size_t);
+						}
+
+						break;
+
+					case FORMAT_TYPE_PTRDIFF:
+						num = va_arg(args, ptrdiff_t);
+						break;
+
+					case FORMAT_TYPE_UBYTE:
+						num = (unsigned char) va_arg(args, int);
+						break;
+
+					case FORMAT_TYPE_BYTE:
+						num = (signed char) va_arg(args, int);
+						break;
+
+					case FORMAT_TYPE_USHORT:
+						num = (unsigned short) va_arg(args, int);
+						break;
+
+					case FORMAT_TYPE_SHORT:
+						num = (short) va_arg(args, int);
+						break;
+
+					case FORMAT_TYPE_INT:
+						num = (int) va_arg(args, int);
+						break;
+
+					default:
+						num = va_arg(args, unsigned int);
+				}
+
+				str = number(str, end, num, spec);
 		}
 	}
 
 out:
-	if (size > 0) {
+
+	if (size > 0)
+	{
 		if (str < end)
+		{
 			*str = '\0';
+		}
 		else
+		{
 			end[-1] = '\0';
+		}
 	}
 
 	/* the trailing null byte doesn't count towards the total */
-	return str-buf;
+	return str - buf;
 
 }
 EXPORT_SYMBOL(vsnprintf);
@@ -2147,9 +2745,15 @@ int vscnprintf(char *buf, size_t size, const char *fmt, va_list args)
 	i = vsnprintf(buf, size, fmt, args);
 
 	if (likely(i < size))
+	{
 		return i;
+	}
+
 	if (size != 0)
+	{
 		return size - 1;
+	}
+
 	return 0;
 }
 EXPORT_SYMBOL(vscnprintf);
@@ -2283,94 +2887,116 @@ int vbin_printf(u32 *bin_buf, size_t size, const char *fmt, va_list args)
 	end = (char *)(bin_buf + size);
 
 #define save_arg(type)							\
-do {									\
-	if (sizeof(type) == 8) {					\
-		unsigned long long value;				\
-		str = PTR_ALIGN(str, sizeof(u32));			\
-		value = va_arg(args, unsigned long long);		\
-		if (str + sizeof(type) <= end) {			\
-			*(u32 *)str = *(u32 *)&value;			\
-			*(u32 *)(str + 4) = *((u32 *)&value + 1);	\
-		}							\
-	} else {							\
-		unsigned long value;					\
-		str = PTR_ALIGN(str, sizeof(type));			\
-		value = va_arg(args, int);				\
-		if (str + sizeof(type) <= end)				\
-			*(typeof(type) *)str = (type)value;		\
-	}								\
-	str += sizeof(type);						\
-} while (0)
+	do {									\
+		if (sizeof(type) == 8) {					\
+			unsigned long long value;				\
+			str = PTR_ALIGN(str, sizeof(u32));			\
+			value = va_arg(args, unsigned long long);		\
+			if (str + sizeof(type) <= end) {			\
+				*(u32 *)str = *(u32 *)&value;			\
+				*(u32 *)(str + 4) = *((u32 *)&value + 1);	\
+			}							\
+		} else {							\
+			unsigned long value;					\
+			str = PTR_ALIGN(str, sizeof(type));			\
+			value = va_arg(args, int);				\
+			if (str + sizeof(type) <= end)				\
+				*(typeof(type) *)str = (type)value;		\
+		}								\
+		str += sizeof(type);						\
+	} while (0)
 
-	while (*fmt) {
+	while (*fmt)
+	{
 		int read = format_decode(fmt, &spec);
 
 		fmt += read;
 
-		switch (spec.type) {
-		case FORMAT_TYPE_NONE:
-		case FORMAT_TYPE_PERCENT_CHAR:
-			break;
-		case FORMAT_TYPE_INVALID:
-			goto out;
-
-		case FORMAT_TYPE_WIDTH:
-		case FORMAT_TYPE_PRECISION:
-			save_arg(int);
-			break;
-
-		case FORMAT_TYPE_CHAR:
-			save_arg(char);
-			break;
-
-		case FORMAT_TYPE_STR: {
-			const char *save_str = va_arg(args, char *);
-			size_t len;
-
-			if ((unsigned long)save_str > (unsigned long)-PAGE_SIZE
-					|| (unsigned long)save_str < PAGE_SIZE)
-				save_str = "(null)";
-			len = strlen(save_str) + 1;
-			if (str + len < end)
-				memcpy(str, save_str, len);
-			str += len;
-			break;
-		}
-
-		case FORMAT_TYPE_PTR:
-			save_arg(void *);
-			/* skip all alphanumeric pointer suffixes */
-			while (isalnum(*fmt))
-				fmt++;
-			break;
-
-		default:
-			switch (spec.type) {
-
-			case FORMAT_TYPE_LONG_LONG:
-				save_arg(long long);
+		switch (spec.type)
+		{
+			case FORMAT_TYPE_NONE:
+			case FORMAT_TYPE_PERCENT_CHAR:
 				break;
-			case FORMAT_TYPE_ULONG:
-			case FORMAT_TYPE_LONG:
-				save_arg(unsigned long);
+
+			case FORMAT_TYPE_INVALID:
+				goto out;
+
+			case FORMAT_TYPE_WIDTH:
+			case FORMAT_TYPE_PRECISION:
+				save_arg(int);
 				break;
-			case FORMAT_TYPE_SIZE_T:
-				save_arg(size_t);
-				break;
-			case FORMAT_TYPE_PTRDIFF:
-				save_arg(ptrdiff_t);
-				break;
-			case FORMAT_TYPE_UBYTE:
-			case FORMAT_TYPE_BYTE:
+
+			case FORMAT_TYPE_CHAR:
 				save_arg(char);
 				break;
-			case FORMAT_TYPE_USHORT:
-			case FORMAT_TYPE_SHORT:
-				save_arg(short);
+
+			case FORMAT_TYPE_STR:
+				{
+					const char *save_str = va_arg(args, char *);
+					size_t len;
+
+					if ((unsigned long)save_str > (unsigned long) - PAGE_SIZE
+						|| (unsigned long)save_str < PAGE_SIZE)
+					{
+						save_str = "(null)";
+					}
+
+					len = strlen(save_str) + 1;
+
+					if (str + len < end)
+					{
+						memcpy(str, save_str, len);
+					}
+
+					str += len;
+					break;
+				}
+
+			case FORMAT_TYPE_PTR:
+				save_arg(void *);
+
+				/* skip all alphanumeric pointer suffixes */
+				while (isalnum(*fmt))
+				{
+					fmt++;
+				}
+
 				break;
+
 			default:
-				save_arg(int);
-			}
+				switch (spec.type)
+				{
+
+					case FORMAT_TYPE_LONG_LONG:
+						save_arg(long long);
+						break;
+
+					case FORMAT_TYPE_ULONG:
+					case FORMAT_TYPE_LONG:
+						save_arg(unsigned long);
+						break;
+
+					case FORMAT_TYPE_SIZE_T:
+						save_arg(size_t);
+						break;
+
+					case FORMAT_TYPE_PTRDIFF:
+						save_arg(ptrdiff_t);
+						break;
+
+					case FORMAT_TYPE_UBYTE:
+					case FORMAT_TYPE_BYTE:
+						save_arg(char);
+						break;
+
+					case FORMAT_TYPE_USHORT:
+					case FORMAT_TYPE_SHORT:
+						save_arg(short);
+						break;
+
+					default:
+						save_arg(int);
+				}
 		}
 	}
 
@@ -2409,150 +3035,204 @@ int bstr_printf(char *buf, size_t size, const char *fmt, const u32 *bin_buf)
 	const char *args = (const char *)bin_buf;
 
 	if (WARN_ON_ONCE(size > INT_MAX))
+	{
 		return 0;
+	}
 
 	str = buf;
 	end = buf + size;
 
 #define get_arg(type)							\
-({									\
-	typeof(type) value;						\
-	if (sizeof(type) == 8) {					\
-		args = PTR_ALIGN(args, sizeof(u32));			\
-		*(u32 *)&value = *(u32 *)args;				\
-		*((u32 *)&value + 1) = *(u32 *)(args + 4);		\
-	} else {							\
-		args = PTR_ALIGN(args, sizeof(type));			\
-		value = *(typeof(type) *)args;				\
-	}								\
-	args += sizeof(type);						\
-	value;								\
-})
+	({									\
+		typeof(type) value;						\
+		if (sizeof(type) == 8) {					\
+			args = PTR_ALIGN(args, sizeof(u32));			\
+			*(u32 *)&value = *(u32 *)args;				\
+			*((u32 *)&value + 1) = *(u32 *)(args + 4);		\
+		} else {							\
+			args = PTR_ALIGN(args, sizeof(type));			\
+			value = *(typeof(type) *)args;				\
+		}								\
+		args += sizeof(type);						\
+		value;								\
+	})
 
 	/* Make sure end is always >= buf */
-	if (end < buf) {
-		end = ((void *)-1);
+	if (end < buf)
+	{
+		end = ((void *) - 1);
 		size = end - buf;
 	}
 
-	while (*fmt) {
+	while (*fmt)
+	{
 		const char *old_fmt = fmt;
 		int read = format_decode(fmt, &spec);
 
 		fmt += read;
 
-		switch (spec.type) {
-		case FORMAT_TYPE_NONE: {
-			int copy = read;
-			if (str < end) {
-				if (copy > end - str)
-					copy = end - str;
-				memcpy(str, old_fmt, copy);
-			}
-			str += read;
-			break;
-		}
+		switch (spec.type)
+		{
+			case FORMAT_TYPE_NONE:
+				{
+					int copy = read;
 
-		case FORMAT_TYPE_WIDTH:
-			set_field_width(&spec, get_arg(int));
-			break;
-
-		case FORMAT_TYPE_PRECISION:
-			set_precision(&spec, get_arg(int));
-			break;
-
-		case FORMAT_TYPE_CHAR: {
-			char c;
-
-			if (!(spec.flags & LEFT)) {
-				while (--spec.field_width > 0) {
 					if (str < end)
-						*str = ' ';
-					++str;
+					{
+						if (copy > end - str)
+						{
+							copy = end - str;
+						}
+
+						memcpy(str, old_fmt, copy);
+					}
+
+					str += read;
+					break;
 				}
-			}
-			c = (unsigned char) get_arg(char);
-			if (str < end)
-				*str = c;
-			++str;
-			while (--spec.field_width > 0) {
+
+			case FORMAT_TYPE_WIDTH:
+				set_field_width(&spec, get_arg(int));
+				break;
+
+			case FORMAT_TYPE_PRECISION:
+				set_precision(&spec, get_arg(int));
+				break;
+
+			case FORMAT_TYPE_CHAR:
+				{
+					char c;
+
+					if (!(spec.flags & LEFT))
+					{
+						while (--spec.field_width > 0)
+						{
+							if (str < end)
+							{
+								*str = ' ';
+							}
+
+							++str;
+						}
+					}
+
+					c = (unsigned char) get_arg(char);
+
+					if (str < end)
+					{
+						*str = c;
+					}
+
+					++str;
+
+					while (--spec.field_width > 0)
+					{
+						if (str < end)
+						{
+							*str = ' ';
+						}
+
+						++str;
+					}
+
+					break;
+				}
+
+			case FORMAT_TYPE_STR:
+				{
+					const char *str_arg = args;
+					args += strlen(str_arg) + 1;
+					str = string(str, end, (char *)str_arg, spec);
+					break;
+				}
+
+			case FORMAT_TYPE_PTR:
+				str = pointer(fmt, str, end, get_arg(void *), spec);
+
+				while (isalnum(*fmt))
+				{
+					fmt++;
+				}
+
+				break;
+
+			case FORMAT_TYPE_PERCENT_CHAR:
 				if (str < end)
-					*str = ' ';
+				{
+					*str = '%';
+				}
+
 				++str;
-			}
-			break;
-		}
+				break;
 
-		case FORMAT_TYPE_STR: {
-			const char *str_arg = args;
-			args += strlen(str_arg) + 1;
-			str = string(str, end, (char *)str_arg, spec);
-			break;
-		}
+			case FORMAT_TYPE_INVALID:
+				goto out;
 
-		case FORMAT_TYPE_PTR:
-			str = pointer(fmt, str, end, get_arg(void *), spec);
-			while (isalnum(*fmt))
-				fmt++;
-			break;
-
-		case FORMAT_TYPE_PERCENT_CHAR:
-			if (str < end)
-				*str = '%';
-			++str;
-			break;
-
-		case FORMAT_TYPE_INVALID:
-			goto out;
-
-		default: {
-			unsigned long long num;
-
-			switch (spec.type) {
-
-			case FORMAT_TYPE_LONG_LONG:
-				num = get_arg(long long);
-				break;
-			case FORMAT_TYPE_ULONG:
-			case FORMAT_TYPE_LONG:
-				num = get_arg(unsigned long);
-				break;
-			case FORMAT_TYPE_SIZE_T:
-				num = get_arg(size_t);
-				break;
-			case FORMAT_TYPE_PTRDIFF:
-				num = get_arg(ptrdiff_t);
-				break;
-			case FORMAT_TYPE_UBYTE:
-				num = get_arg(unsigned char);
-				break;
-			case FORMAT_TYPE_BYTE:
-				num = get_arg(signed char);
-				break;
-			case FORMAT_TYPE_USHORT:
-				num = get_arg(unsigned short);
-				break;
-			case FORMAT_TYPE_SHORT:
-				num = get_arg(short);
-				break;
-			case FORMAT_TYPE_UINT:
-				num = get_arg(unsigned int);
-				break;
 			default:
-				num = get_arg(int);
-			}
+				{
+					unsigned long long num;
 
-			str = number(str, end, num, spec);
-		} /* default: */
+					switch (spec.type)
+					{
+
+						case FORMAT_TYPE_LONG_LONG:
+							num = get_arg(long long);
+							break;
+
+						case FORMAT_TYPE_ULONG:
+						case FORMAT_TYPE_LONG:
+							num = get_arg(unsigned long);
+							break;
+
+						case FORMAT_TYPE_SIZE_T:
+							num = get_arg(size_t);
+							break;
+
+						case FORMAT_TYPE_PTRDIFF:
+							num = get_arg(ptrdiff_t);
+							break;
+
+						case FORMAT_TYPE_UBYTE:
+							num = get_arg(unsigned char);
+							break;
+
+						case FORMAT_TYPE_BYTE:
+							num = get_arg(signed char);
+							break;
+
+						case FORMAT_TYPE_USHORT:
+							num = get_arg(unsigned short);
+							break;
+
+						case FORMAT_TYPE_SHORT:
+							num = get_arg(short);
+							break;
+
+						case FORMAT_TYPE_UINT:
+							num = get_arg(unsigned int);
+							break;
+
+						default:
+							num = get_arg(int);
+					}
+
+					str = number(str, end, num, spec);
+				} /* default: */
 		} /* switch(spec.type) */
 	} /* while(*fmt) */
 
 out:
-	if (size > 0) {
+
+	if (size > 0)
+	{
 		if (str < end)
+		{
 			*str = '\0';
+		}
 		else
+		{
 			end[-1] = '\0';
+		}
 	}
 
 #undef get_arg
@@ -2601,69 +3281,103 @@ int vsscanf(const char *buf, const char *fmt, va_list args)
 	int num = 0;
 	u8 qualifier;
 	unsigned int base;
-	union {
+	union
+	{
 		long long s;
 		unsigned long long u;
 	} val;
 	s16 field_width;
 	bool is_sign;
 
-	while (*fmt) {
+	while (*fmt)
+	{
 		/* skip any white space in format */
 		/* white space in format matchs any amount of
 		 * white space, including none, in the input.
 		 */
-		if (isspace(*fmt)) {
+		if (isspace(*fmt))
+		{
 			fmt = skip_spaces(++fmt);
 			str = skip_spaces(str);
 		}
 
 		/* anything that is not a conversion must match exactly */
-		if (*fmt != '%' && *fmt) {
+		if (*fmt != '%' && *fmt)
+		{
 			if (*fmt++ != *str++)
+			{
 				break;
+			}
+
 			continue;
 		}
 
 		if (!*fmt)
+		{
 			break;
+		}
+
 		++fmt;
 
 		/* skip this conversion.
 		 * advance both strings to next white space
 		 */
-		if (*fmt == '*') {
+		if (*fmt == '*')
+		{
 			if (!*str)
+			{
 				break;
-			while (!isspace(*fmt) && *fmt != '%' && *fmt) {
+			}
+
+			while (!isspace(*fmt) && *fmt != '%' && *fmt)
+			{
 				/* '%*[' not yet supported, invalid format */
 				if (*fmt == '[')
+				{
 					return num;
+				}
+
 				fmt++;
 			}
+
 			while (!isspace(*str) && *str)
+			{
 				str++;
+			}
+
 			continue;
 		}
 
 		/* get field width */
 		field_width = -1;
-		if (isdigit(*fmt)) {
+
+		if (isdigit(*fmt))
+		{
 			field_width = skip_atoi(&fmt);
+
 			if (field_width <= 0)
+			{
 				break;
+			}
 		}
 
 		/* get conversion qualifier */
 		qualifier = -1;
+
 		if (*fmt == 'h' || _tolower(*fmt) == 'l' ||
-		    _tolower(*fmt) == 'z') {
+			_tolower(*fmt) == 'z')
+		{
 			qualifier = *fmt++;
-			if (unlikely(qualifier == *fmt)) {
-				if (qualifier == 'h') {
+
+			if (unlikely(qualifier == *fmt))
+			{
+				if (qualifier == 'h')
+				{
 					qualifier = 'H';
 					fmt++;
-				} else if (qualifier == 'l') {
+				}
+				else if (qualifier == 'l')
+				{
 					qualifier = 'L';
 					fmt++;
 				}
@@ -2671,9 +3385,12 @@ int vsscanf(const char *buf, const char *fmt, va_list args)
 		}
 
 		if (!*fmt)
+		{
 			break;
+		}
 
-		if (*fmt == 'n') {
+		if (*fmt == 'n')
+		{
 			/* return number of characters read so far */
 			*va_arg(args, int *) = str - buf;
 			++fmt;
@@ -2681,112 +3398,160 @@ int vsscanf(const char *buf, const char *fmt, va_list args)
 		}
 
 		if (!*str)
+		{
 			break;
+		}
 
 		base = 10;
 		is_sign = false;
 
-		switch (*fmt++) {
-		case 'c':
+		switch (*fmt++)
 		{
-			char *s = (char *)va_arg(args, char*);
-			if (field_width == -1)
-				field_width = 1;
-			do {
-				*s++ = *str++;
-			} while (--field_width > 0 && *str);
-			num++;
-		}
-		continue;
-		case 's':
-		{
-			char *s = (char *)va_arg(args, char *);
-			if (field_width == -1)
-				field_width = SHRT_MAX;
-			/* first, skip leading white space in buffer */
-			str = skip_spaces(str);
+			case 'c':
+				{
+					char *s = (char *)va_arg(args, char *);
 
-			/* now copy until next white space */
-			while (*str && !isspace(*str) && field_width--)
-				*s++ = *str++;
-			*s = '\0';
-			num++;
-		}
-		continue;
-		/*
-		 * Warning: This implementation of the '[' conversion specifier
-		 * deviates from its glibc counterpart in the following ways:
-		 * (1) It does NOT support ranges i.e. '-' is NOT a special
-		 *     character
-		 * (2) It cannot match the closing bracket ']' itself
-		 * (3) A field width is required
-		 * (4) '%*[' (discard matching input) is currently not supported
-		 *
-		 * Example usage:
-		 * ret = sscanf("00:0a:95","%2[^:]:%2[^:]:%2[^:]",
-		 *		buf1, buf2, buf3);
-		 * if (ret < 3)
-		 *    // etc..
-		 */
-		case '[':
-		{
-			char *s = (char *)va_arg(args, char *);
-			DECLARE_BITMAP(set, 256) = {0};
-			unsigned int len = 0;
-			bool negate = (*fmt == '^');
+					if (field_width == -1)
+					{
+						field_width = 1;
+					}
 
-			/* field width is required */
-			if (field_width == -1)
+					do
+					{
+						*s++ = *str++;
+					}
+					while (--field_width > 0 && *str);
+
+					num++;
+				}
+
+				continue;
+
+			case 's':
+				{
+					char *s = (char *)va_arg(args, char *);
+
+					if (field_width == -1)
+					{
+						field_width = SHRT_MAX;
+					}
+
+					/* first, skip leading white space in buffer */
+					str = skip_spaces(str);
+
+					/* now copy until next white space */
+					while (*str && !isspace(*str) && field_width--)
+					{
+						*s++ = *str++;
+					}
+
+					*s = '\0';
+					num++;
+				}
+
+				continue;
+
+			/*
+			 * Warning: This implementation of the '[' conversion specifier
+			 * deviates from its glibc counterpart in the following ways:
+			 * (1) It does NOT support ranges i.e. '-' is NOT a special
+			 *     character
+			 * (2) It cannot match the closing bracket ']' itself
+			 * (3) A field width is required
+			 * (4) '%*[' (discard matching input) is currently not supported
+			 *
+			 * Example usage:
+			 * ret = sscanf("00:0a:95","%2[^:]:%2[^:]:%2[^:]",
+			 *		buf1, buf2, buf3);
+			 * if (ret < 3)
+			 *    // etc..
+			 */
+			case '[':
+				{
+					char *s = (char *)va_arg(args, char *);
+					DECLARE_BITMAP(set, 256) = {0};
+					unsigned int len = 0;
+					bool negate = (*fmt == '^');
+
+					/* field width is required */
+					if (field_width == -1)
+					{
+						return num;
+					}
+
+					if (negate)
+					{
+						++fmt;
+					}
+
+					for ( ; *fmt && *fmt != ']'; ++fmt, ++len)
+					{
+						set_bit((u8)*fmt, set);
+					}
+
+					/* no ']' or no character set found */
+					if (!*fmt || !len)
+					{
+						return num;
+					}
+
+					++fmt;
+
+					if (negate)
+					{
+						bitmap_complement(set, set, 256);
+						/* exclude null '\0' byte */
+						clear_bit(0, set);
+					}
+
+					/* match must be non-empty */
+					if (!test_bit((u8)*str, set))
+					{
+						return num;
+					}
+
+					while (test_bit((u8)*str, set) && field_width--)
+					{
+						*s++ = *str++;
+					}
+
+					*s = '\0';
+					++num;
+				}
+
+				continue;
+
+			case 'o':
+				base = 8;
+				break;
+
+			case 'x':
+			case 'X':
+				base = 16;
+				break;
+
+			case 'i':
+				base = 0;
+
+			case 'd':
+				is_sign = true;
+
+			case 'u':
+				break;
+
+			case '%':
+
+				/* looking for '%' in str */
+				if (*str++ != '%')
+				{
+					return num;
+				}
+
+				continue;
+
+			default:
+				/* invalid format; stop here */
 				return num;
-
-			if (negate)
-				++fmt;
-
-			for ( ; *fmt && *fmt != ']'; ++fmt, ++len)
-				set_bit((u8)*fmt, set);
-
-			/* no ']' or no character set found */
-			if (!*fmt || !len)
-				return num;
-			++fmt;
-
-			if (negate) {
-				bitmap_complement(set, set, 256);
-				/* exclude null '\0' byte */
-				clear_bit(0, set);
-			}
-
-			/* match must be non-empty */
-			if (!test_bit((u8)*str, set))
-				return num;
-
-			while (test_bit((u8)*str, set) && field_width--)
-				*s++ = *str++;
-			*s = '\0';
-			++num;
-		}
-		continue;
-		case 'o':
-			base = 8;
-			break;
-		case 'x':
-		case 'X':
-			base = 16;
-			break;
-		case 'i':
-			base = 0;
-		case 'd':
-			is_sign = true;
-		case 'u':
-			break;
-		case '%':
-			/* looking for '%' in str */
-			if (*str++ != '%')
-				return num;
-			continue;
-		default:
-			/* invalid format; stop here */
-			return num;
 		}
 
 		/* have some sort of integer conversion.
@@ -2795,77 +3560,127 @@ int vsscanf(const char *buf, const char *fmt, va_list args)
 		str = skip_spaces(str);
 
 		digit = *str;
+
 		if (is_sign && digit == '-')
+		{
 			digit = *(str + 1);
+		}
 
 		if (!digit
-		    || (base == 16 && !isxdigit(digit))
-		    || (base == 10 && !isdigit(digit))
-		    || (base == 8 && (!isdigit(digit) || digit > '7'))
-		    || (base == 0 && !isdigit(digit)))
+			|| (base == 16 && !isxdigit(digit))
+			|| (base == 10 && !isdigit(digit))
+			|| (base == 8 && (!isdigit(digit) || digit > '7'))
+			|| (base == 0 && !isdigit(digit)))
+		{
 			break;
+		}
 
 		if (is_sign)
 			val.s = qualifier != 'L' ?
-				simple_strtol(str, &next, base) :
-				simple_strtoll(str, &next, base);
+					simple_strtol(str, &next, base) :
+					simple_strtoll(str, &next, base);
 		else
 			val.u = qualifier != 'L' ?
-				simple_strtoul(str, &next, base) :
-				simple_strtoull(str, &next, base);
+					simple_strtoul(str, &next, base) :
+					simple_strtoull(str, &next, base);
 
-		if (field_width > 0 && next - str > field_width) {
+		if (field_width > 0 && next - str > field_width)
+		{
 			if (base == 0)
+			{
 				_parse_integer_fixup_radix(str, &base);
-			while (next - str > field_width) {
+			}
+
+			while (next - str > field_width)
+			{
 				if (is_sign)
+				{
 					val.s = div_s64(val.s, base);
+				}
 				else
+				{
 					val.u = div_u64(val.u, base);
+				}
+
 				--next;
 			}
 		}
 
-		switch (qualifier) {
-		case 'H':	/* that's 'hh' in format */
-			if (is_sign)
-				*va_arg(args, signed char *) = val.s;
-			else
-				*va_arg(args, unsigned char *) = val.u;
-			break;
-		case 'h':
-			if (is_sign)
-				*va_arg(args, short *) = val.s;
-			else
-				*va_arg(args, unsigned short *) = val.u;
-			break;
-		case 'l':
-			if (is_sign)
-				*va_arg(args, long *) = val.s;
-			else
-				*va_arg(args, unsigned long *) = val.u;
-			break;
-		case 'L':
-			if (is_sign)
-				*va_arg(args, long long *) = val.s;
-			else
-				*va_arg(args, unsigned long long *) = val.u;
-			break;
-		case 'Z':
-		case 'z':
-			*va_arg(args, size_t *) = val.u;
-			break;
-		default:
-			if (is_sign)
-				*va_arg(args, int *) = val.s;
-			else
-				*va_arg(args, unsigned int *) = val.u;
-			break;
+		switch (qualifier)
+		{
+			case 'H':	/* that's 'hh' in format */
+				if (is_sign)
+				{
+					*va_arg(args, signed char *) = val.s;
+				}
+				else
+				{
+					*va_arg(args, unsigned char *) = val.u;
+				}
+
+				break;
+
+			case 'h':
+				if (is_sign)
+				{
+					*va_arg(args, short *) = val.s;
+				}
+				else
+				{
+					*va_arg(args, unsigned short *) = val.u;
+				}
+
+				break;
+
+			case 'l':
+				if (is_sign)
+				{
+					*va_arg(args, long *) = val.s;
+				}
+				else
+				{
+					*va_arg(args, unsigned long *) = val.u;
+				}
+
+				break;
+
+			case 'L':
+				if (is_sign)
+				{
+					*va_arg(args, long long *) = val.s;
+				}
+				else
+				{
+					*va_arg(args, unsigned long long *) = val.u;
+				}
+
+				break;
+
+			case 'Z':
+			case 'z':
+				*va_arg(args, size_t *) = val.u;
+				break;
+
+			default:
+				if (is_sign)
+				{
+					*va_arg(args, int *) = val.s;
+				}
+				else
+				{
+					*va_arg(args, unsigned int *) = val.u;
+				}
+
+				break;
 		}
+
 		num++;
 
 		if (!next)
+		{
 			break;
+		}
+
 		str = next;
 	}
 

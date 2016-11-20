@@ -75,7 +75,8 @@ csio_list_deleted(struct list_head *list)
 /* State machine */
 typedef void (*csio_sm_state_t)(void *, uint32_t);
 
-struct csio_sm {
+struct csio_sm
+{
 	struct list_head	sm_list;
 	csio_sm_state_t		sm_state;
 };
@@ -113,9 +114,9 @@ csio_match_state(void *smp, void *state)
 #define	CSIO_ASSERT(cond)		BUG_ON(!(cond))
 
 #ifdef __CSIO_DEBUG__
-#define CSIO_DB_ASSERT(__c)		CSIO_ASSERT((__c))
+	#define CSIO_DB_ASSERT(__c)		CSIO_ASSERT((__c))
 #else
-#define CSIO_DB_ASSERT(__c)
+	#define CSIO_DB_ASSERT(__c)
 #endif
 
 #endif /* ifndef __CSIO_DEFS_H__ */

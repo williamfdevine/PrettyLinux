@@ -21,7 +21,8 @@
 
 #include "rocker_hw.h"
 
-struct rocker_desc_info {
+struct rocker_desc_info
+{
 	char *data; /* mapped */
 	size_t data_size;
 	size_t tlv_size;
@@ -29,7 +30,8 @@ struct rocker_desc_info {
 	dma_addr_t mapaddr;
 };
 
-struct rocker_dma_ring_info {
+struct rocker_dma_ring_info
+{
 	size_t size;
 	u32 head;
 	u32 tail;
@@ -41,7 +43,8 @@ struct rocker_dma_ring_info {
 
 struct rocker;
 
-struct rocker_port {
+struct rocker_port
+{
 	struct net_device *dev;
 	struct rocker *rocker;
 	void *wpriv;
@@ -54,17 +57,19 @@ struct rocker_port {
 };
 
 struct rocker_port *rocker_port_dev_lower_find(struct net_device *dev,
-					       struct rocker *rocker);
+		struct rocker *rocker);
 
 struct rocker_world_ops;
 
-struct rocker {
+struct rocker
+{
 	struct pci_dev *pdev;
 	u8 __iomem *hw_addr;
 	struct msix_entry *msix_entries;
 	unsigned int port_count;
 	struct rocker_port **ports;
-	struct {
+	struct
+	{
 		u64 id;
 	} hw;
 	spinlock_t cmd_ring_lock;		/* for cmd ring accesses */
@@ -76,21 +81,22 @@ struct rocker {
 };
 
 typedef int (*rocker_cmd_prep_cb_t)(const struct rocker_port *rocker_port,
-				    struct rocker_desc_info *desc_info,
-				    void *priv);
+									struct rocker_desc_info *desc_info,
+									void *priv);
 
 typedef int (*rocker_cmd_proc_cb_t)(const struct rocker_port *rocker_port,
-				    const struct rocker_desc_info *desc_info,
-				    void *priv);
+									const struct rocker_desc_info *desc_info,
+									void *priv);
 
 int rocker_cmd_exec(struct rocker_port *rocker_port, bool nowait,
-		    rocker_cmd_prep_cb_t prepare, void *prepare_priv,
-		    rocker_cmd_proc_cb_t process, void *process_priv);
+					rocker_cmd_prep_cb_t prepare, void *prepare_priv,
+					rocker_cmd_proc_cb_t process, void *process_priv);
 
 int rocker_port_set_learning(struct rocker_port *rocker_port,
-			     bool learning);
+							 bool learning);
 
-struct rocker_world_ops {
+struct rocker_world_ops
+{
 	const char *kind;
 	size_t priv_size;
 	size_t port_priv_size;
@@ -104,47 +110,47 @@ struct rocker_world_ops {
 	int (*port_open)(struct rocker_port *rocker_port);
 	void (*port_stop)(struct rocker_port *rocker_port);
 	int (*port_attr_stp_state_set)(struct rocker_port *rocker_port,
-				       u8 state,
-				       struct switchdev_trans *trans);
+								   u8 state,
+								   struct switchdev_trans *trans);
 	int (*port_attr_bridge_flags_set)(struct rocker_port *rocker_port,
-					  unsigned long brport_flags,
-					  struct switchdev_trans *trans);
+									  unsigned long brport_flags,
+									  struct switchdev_trans *trans);
 	int (*port_attr_bridge_flags_get)(const struct rocker_port *rocker_port,
-					  unsigned long *p_brport_flags);
+									  unsigned long *p_brport_flags);
 	int (*port_attr_bridge_ageing_time_set)(struct rocker_port *rocker_port,
-						u32 ageing_time,
-						struct switchdev_trans *trans);
+											u32 ageing_time,
+											struct switchdev_trans *trans);
 	int (*port_obj_vlan_add)(struct rocker_port *rocker_port,
-				 const struct switchdev_obj_port_vlan *vlan,
-				 struct switchdev_trans *trans);
+							 const struct switchdev_obj_port_vlan *vlan,
+							 struct switchdev_trans *trans);
 	int (*port_obj_vlan_del)(struct rocker_port *rocker_port,
-				 const struct switchdev_obj_port_vlan *vlan);
+							 const struct switchdev_obj_port_vlan *vlan);
 	int (*port_obj_vlan_dump)(const struct rocker_port *rocker_port,
-				  struct switchdev_obj_port_vlan *vlan,
-				  switchdev_obj_dump_cb_t *cb);
+							  struct switchdev_obj_port_vlan *vlan,
+							  switchdev_obj_dump_cb_t *cb);
 	int (*port_obj_fdb_add)(struct rocker_port *rocker_port,
-				const struct switchdev_obj_port_fdb *fdb,
-				struct switchdev_trans *trans);
+							const struct switchdev_obj_port_fdb *fdb,
+							struct switchdev_trans *trans);
 	int (*port_obj_fdb_del)(struct rocker_port *rocker_port,
-				const struct switchdev_obj_port_fdb *fdb);
+							const struct switchdev_obj_port_fdb *fdb);
 	int (*port_obj_fdb_dump)(const struct rocker_port *rocker_port,
-				 struct switchdev_obj_port_fdb *fdb,
-				 switchdev_obj_dump_cb_t *cb);
+							 struct switchdev_obj_port_fdb *fdb,
+							 switchdev_obj_dump_cb_t *cb);
 	int (*port_master_linked)(struct rocker_port *rocker_port,
-				  struct net_device *master);
+							  struct net_device *master);
 	int (*port_master_unlinked)(struct rocker_port *rocker_port,
-				    struct net_device *master);
+								struct net_device *master);
 	int (*port_neigh_update)(struct rocker_port *rocker_port,
-				 struct neighbour *n);
+							 struct neighbour *n);
 	int (*port_neigh_destroy)(struct rocker_port *rocker_port,
-				  struct neighbour *n);
+							  struct neighbour *n);
 	int (*port_ev_mac_vlan_seen)(struct rocker_port *rocker_port,
-				     const unsigned char *addr,
-				     __be16 vlan_id);
+								 const unsigned char *addr,
+								 __be16 vlan_id);
 	int (*fib4_add)(struct rocker *rocker,
-			const struct fib_entry_notifier_info *fen_info);
+					const struct fib_entry_notifier_info *fen_info);
 	int (*fib4_del)(struct rocker *rocker,
-			const struct fib_entry_notifier_info *fen_info);
+					const struct fib_entry_notifier_info *fen_info);
 	void (*fib4_abort)(struct rocker *rocker);
 };
 

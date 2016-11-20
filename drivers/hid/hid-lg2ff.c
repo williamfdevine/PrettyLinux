@@ -27,12 +27,13 @@
 
 #include "hid-lg.h"
 
-struct lg2ff_device {
+struct lg2ff_device
+{
 	struct hid_report *report;
 };
 
 static int play_effect(struct input_dev *dev, void *data,
-			 struct ff_effect *effect)
+					   struct ff_effect *effect)
 {
 	struct hid_device *hid = input_get_drvdata(dev);
 	struct lg2ff_device *lg2ff = data;
@@ -41,14 +42,17 @@ static int play_effect(struct input_dev *dev, void *data,
 	strong = effect->u.rumble.strong_magnitude;
 	weak = effect->u.rumble.weak_magnitude;
 
-	if (weak || strong) {
+	if (weak || strong)
+	{
 		weak = weak * 0xff / 0xffff;
 		strong = strong * 0xff / 0xffff;
 
 		lg2ff->report->field[0]->value[0] = 0x51;
 		lg2ff->report->field[0]->value[2] = weak;
 		lg2ff->report->field[0]->value[4] = strong;
-	} else {
+	}
+	else
+	{
 		lg2ff->report->field[0]->value[0] = 0xf3;
 		lg2ff->report->field[0]->value[2] = 0x00;
 		lg2ff->report->field[0]->value[4] = 0x00;
@@ -63,23 +67,31 @@ int lg2ff_init(struct hid_device *hid)
 	struct lg2ff_device *lg2ff;
 	struct hid_report *report;
 	struct hid_input *hidinput = list_entry(hid->inputs.next,
-						struct hid_input, list);
+											struct hid_input, list);
 	struct input_dev *dev = hidinput->input;
 	int error;
 
 	/* Check that the report looks ok */
 	report = hid_validate_values(hid, HID_OUTPUT_REPORT, 0, 0, 7);
+
 	if (!report)
+	{
 		return -ENODEV;
+	}
 
 	lg2ff = kmalloc(sizeof(struct lg2ff_device), GFP_KERNEL);
+
 	if (!lg2ff)
+	{
 		return -ENOMEM;
+	}
 
 	set_bit(FF_RUMBLE, dev->ffbit);
 
 	error = input_ff_create_memless(dev, lg2ff, play_effect);
-	if (error) {
+
+	if (error)
+	{
 		kfree(lg2ff);
 		return error;
 	}

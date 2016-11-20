@@ -72,12 +72,14 @@
 #define WM8978_CACHEREGNUM			58
 
 /* Clock divider Id's */
-enum wm8978_clk_id {
+enum wm8978_clk_id
+{
 	WM8978_OPCLKRATE,
 	WM8978_BCLKDIV,
 };
 
-enum wm8978_sysclk_src {
+enum wm8978_sysclk_src
+{
 	WM8978_PLL,
 	WM8978_MCLK
 };

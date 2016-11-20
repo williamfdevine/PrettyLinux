@@ -43,18 +43,18 @@
  * set this to enable debugging on general functions
  */
 #if 0
-#define dbg(fmt, args...) do { printk(KERN_INFO fmt, ## args); } while(0)
+	#define dbg(fmt, args...) do { printk(KERN_INFO fmt, ## args); } while(0)
 #else
-#define dbg(fmt, args...) do { } while (0)
+	#define dbg(fmt, args...) do { } while (0)
 #endif
 
 /*
  * set this to enable debugging on 2D acceleration
  */
 #if 0
-#define dbg_blit(fmt, args...) do { printk(KERN_INFO BLIT fmt, ## args); } while (0)
+	#define dbg_blit(fmt, args...) do { printk(KERN_INFO BLIT fmt, ## args); } while (0)
 #else
-#define dbg_blit(fmt, args...) do { } while (0)
+	#define dbg_blit(fmt, args...) do { } while (0)
 #endif
 
 /*
@@ -65,7 +65,8 @@ static DEFINE_SPINLOCK(s1d13xxxfb_bitblt_lock);
 /*
  * list of card production ids
  */
-static const int s1d13xxxfb_prod_ids[] = {
+static const int s1d13xxxfb_prod_ids[] =
+{
 	S1D13505_PROD_ID,
 	S1D13506_PROD_ID,
 	S1D13806_PROD_ID,
@@ -74,7 +75,8 @@ static const int s1d13xxxfb_prod_ids[] = {
 /*
  * List of card strings
  */
-static const char *s1d13xxxfb_prod_names[] = {
+static const char *s1d13xxxfb_prod_names[] =
+{
 	"S1D13505",
 	"S1D13506",
 	"S1D13806",
@@ -83,7 +85,8 @@ static const char *s1d13xxxfb_prod_names[] = {
 /*
  * here we define the default struct fb_fix_screeninfo
  */
-static const struct fb_fix_screeninfo s1d13xxxfb_fix = {
+static const struct fb_fix_screeninfo s1d13xxxfb_fix =
+{
 	.id		= S1D_FBID,
 	.type		= FB_TYPE_PACKED_PIXELS,
 	.visual		= FB_VISUAL_PSEUDOCOLOR,
@@ -97,7 +100,7 @@ static inline u8
 s1d13xxxfb_readreg(struct s1d13xxxfb_par *par, u16 regno)
 {
 #if defined(CONFIG_PLAT_M32700UT) || defined(CONFIG_PLAT_OPSPUT) || defined(CONFIG_PLAT_MAPPI3)
-	regno=((regno & 1) ? (regno & ~1L) : (regno + 1));
+	regno = ((regno & 1) ? (regno & ~1L) : (regno + 1));
 #endif
 	return readb(par->regs + regno);
 }
@@ -106,26 +109,30 @@ static inline void
 s1d13xxxfb_writereg(struct s1d13xxxfb_par *par, u16 regno, u8 value)
 {
 #if defined(CONFIG_PLAT_M32700UT) || defined(CONFIG_PLAT_OPSPUT) || defined(CONFIG_PLAT_MAPPI3)
-	regno=((regno & 1) ? (regno & ~1L) : (regno + 1));
+	regno = ((regno & 1) ? (regno & ~1L) : (regno + 1));
 #endif
 	writeb(value, par->regs + regno);
 }
 
 static inline void
 s1d13xxxfb_runinit(struct s1d13xxxfb_par *par,
-			const struct s1d13xxxfb_regval *initregs,
-			const unsigned int size)
+				   const struct s1d13xxxfb_regval *initregs,
+				   const unsigned int size)
 {
 	int i;
 
-	for (i = 0; i < size; i++) {
-        	if ((initregs[i].addr == S1DREG_DELAYOFF) ||
-				(initregs[i].addr == S1DREG_DELAYON))
+	for (i = 0; i < size; i++)
+	{
+		if ((initregs[i].addr == S1DREG_DELAYOFF) ||
+			(initregs[i].addr == S1DREG_DELAYON))
+		{
 			mdelay((int)initregs[i].value);
-        	else {
+		}
+		else
+		{
 			s1d13xxxfb_writereg(par, initregs[i].addr, initregs[i].value);
 		}
-        }
+	}
 
 	/* make sure the hardware can cope with us */
 	mdelay(1);
@@ -137,9 +144,13 @@ lcd_enable(struct s1d13xxxfb_par *par, int enable)
 	u8 mode = s1d13xxxfb_readreg(par, S1DREG_COM_DISP_MODE);
 
 	if (enable)
+	{
 		mode |= 0x01;
+	}
 	else
+	{
 		mode &= ~0x01;
+	}
 
 	s1d13xxxfb_writereg(par, S1DREG_COM_DISP_MODE, mode);
 }
@@ -150,9 +161,13 @@ crt_enable(struct s1d13xxxfb_par *par, int enable)
 	u8 mode = s1d13xxxfb_readreg(par, S1DREG_COM_DISP_MODE);
 
 	if (enable)
+	{
 		mode |= 0x02;
+	}
 	else
+	{
 		mode &= ~0x02;
+	}
 
 	s1d13xxxfb_writereg(par, S1DREG_COM_DISP_MODE, mode);
 }
@@ -210,23 +225,30 @@ s1d13xxxfb_set_par(struct fb_info *info)
 	dbg("s1d13xxxfb_set_par: bpp=%d\n", info->var.bits_per_pixel);
 
 	if ((s1dfb->display & 0x01))	/* LCD */
-		val = s1d13xxxfb_readreg(s1dfb, S1DREG_LCD_DISP_MODE);   /* read colour control */
+	{
+		val = s1d13xxxfb_readreg(s1dfb, S1DREG_LCD_DISP_MODE);    /* read colour control */
+	}
 	else	/* CRT */
-		val = s1d13xxxfb_readreg(s1dfb, S1DREG_CRT_DISP_MODE);   /* read colour control */
+	{
+		val = s1d13xxxfb_readreg(s1dfb, S1DREG_CRT_DISP_MODE);    /* read colour control */
+	}
 
 	val &= ~0x07;
 
-	switch (info->var.bits_per_pixel) {
+	switch (info->var.bits_per_pixel)
+	{
 		case 4:
 			dbg("pseudo colour 4\n");
 			s1d13xxxfb_setup_pseudocolour(info);
 			val |= 2;
 			break;
+
 		case 8:
 			dbg("pseudo colour 8\n");
 			s1d13xxxfb_setup_pseudocolour(info);
 			val |= 3;
 			break;
+
 		case 16:
 			dbg("true colour\n");
 			s1d13xxxfb_setup_truecolour(info);
@@ -241,9 +263,13 @@ s1d13xxxfb_set_par(struct fb_info *info)
 	dbg("writing %02x to display mode register\n", val);
 
 	if ((s1dfb->display & 0x01))	/* LCD */
+	{
 		s1d13xxxfb_writereg(s1dfb, S1DREG_LCD_DISP_MODE, val);
+	}
 	else	/* CRT */
+	{
 		s1d13xxxfb_writereg(s1dfb, S1DREG_CRT_DISP_MODE, val);
+	}
 
 	info->fix.line_length  = info->var.xres * info->var.bits_per_pixel;
 	info->fix.line_length /= 8;
@@ -268,24 +294,31 @@ s1d13xxxfb_set_par(struct fb_info *info)
  */
 static int
 s1d13xxxfb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
-			u_int transp, struct fb_info *info)
+					 u_int transp, struct fb_info *info)
 {
 	struct s1d13xxxfb_par *s1dfb = info->par;
 	unsigned int pseudo_val;
 
 	if (regno >= S1D_PALETTE_SIZE)
+	{
 		return -EINVAL;
+	}
 
 	dbg("s1d13xxxfb_setcolreg: %d: rgb=%d,%d,%d, tr=%d\n",
-		    regno, red, green, blue, transp);
+		regno, red, green, blue, transp);
 
 	if (info->var.grayscale)
-		red = green = blue = (19595*red + 38470*green + 7471*blue) >> 16;
+	{
+		red = green = blue = (19595 * red + 38470 * green + 7471 * blue) >> 16;
+	}
 
-	switch (info->fix.visual) {
+	switch (info->fix.visual)
+	{
 		case FB_VISUAL_TRUECOLOR:
 			if (regno >= 16)
+			{
 				return -EINVAL;
+			}
 
 			/* deal with creating pseudo-palette entries */
 
@@ -294,7 +327,7 @@ s1d13xxxfb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
 			pseudo_val |= (blue  >> 11) << info->var.blue.offset;
 
 			dbg("s1d13xxxfb_setcolreg: pseudo %d, val %08x\n",
-				    regno, pseudo_val);
+				regno, pseudo_val);
 
 #if defined(CONFIG_PLAT_MAPPI)
 			((u32 *)info->pseudo_palette)[regno] = cpu_to_le16(pseudo_val);
@@ -303,6 +336,7 @@ s1d13xxxfb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
 #endif
 
 			break;
+
 		case FB_VISUAL_PSEUDOCOLOR:
 			s1d13xxxfb_writereg(s1dfb, S1DREG_LKUP_ADDR, regno);
 			s1d13xxxfb_writereg(s1dfb, S1DREG_LKUP_DATA, red);
@@ -310,6 +344,7 @@ s1d13xxxfb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
 			s1d13xxxfb_writereg(s1dfb, S1DREG_LKUP_DATA, blue);
 
 			break;
+
 		default:
 			return -ENOSYS;
 	}
@@ -341,21 +376,31 @@ s1d13xxxfb_blank(int blank_mode, struct fb_info *info)
 
 	dbg("s1d13xxxfb_blank: blank=%d, info=%p\n", blank_mode, info);
 
-	switch (blank_mode) {
+	switch (blank_mode)
+	{
 		case FB_BLANK_UNBLANK:
 		case FB_BLANK_NORMAL:
 			if ((par->display & 0x01) != 0)
+			{
 				lcd_enable(par, 1);
+			}
+
 			if ((par->display & 0x02) != 0)
+			{
 				crt_enable(par, 1);
+			}
+
 			break;
+
 		case FB_BLANK_VSYNC_SUSPEND:
 		case FB_BLANK_HSYNC_SUSPEND:
 			break;
+
 		case FB_BLANK_POWERDOWN:
 			lcd_enable(par, 0);
 			crt_enable(par, 0);
 			break;
+
 		default:
 			return -EINVAL;
 	}
@@ -382,19 +427,26 @@ s1d13xxxfb_pan_display(struct fb_var_screeninfo *var, struct fb_info *info)
 	u32 start;
 
 	if (var->xoffset != 0)	/* not yet ... */
+	{
 		return -EINVAL;
+	}
 
 	if (var->yoffset + info->var.yres > info->var.yres_virtual)
+	{
 		return -EINVAL;
+	}
 
 	start = (info->fix.line_length >> 1) * var->yoffset;
 
-	if ((par->display & 0x01)) {
+	if ((par->display & 0x01))
+	{
 		/* LCD */
 		s1d13xxxfb_writereg(par, S1DREG_LCD_DISP_START0, (start & 0xff));
 		s1d13xxxfb_writereg(par, S1DREG_LCD_DISP_START1, ((start >> 8) & 0xff));
 		s1d13xxxfb_writereg(par, S1DREG_LCD_DISP_START2, ((start >> 16) & 0x0f));
-	} else {
+	}
+	else
+	{
 		/* CRT */
 		s1d13xxxfb_writereg(par, S1DREG_CRT_DISP_START0, (start & 0xff));
 		s1d13xxxfb_writereg(par, S1DREG_CRT_DISP_START1, ((start >> 8) & 0xff));
@@ -420,9 +472,12 @@ s1d13xxxfb_pan_display(struct fb_var_screeninfo *var, struct fb_info *info)
 static u8
 bltbit_wait_bitclear(struct fb_info *info, u8 bit, int timeout)
 {
-	while (s1d13xxxfb_readreg(info->par, S1DREG_BBLT_CTL0) & bit) {
+	while (s1d13xxxfb_readreg(info->par, S1DREG_BBLT_CTL0) & bit)
+	{
 		udelay(10);
-		if (!--timeout) {
+
+		if (!--timeout)
+		{
 			dbg_blit("wait_bitclear timeout\n");
 			break;
 		}
@@ -457,12 +512,15 @@ s1d13xxxfb_bitblt_copyarea(struct fb_info *info, const struct fb_copyarea *area)
 	stride = bpp * info->var.xres;
 
 	/* reverse, calculate the last pixel in rectangle */
-	if ((dy > sy) || ((dy == sy) && (dx >= sx))) {
+	if ((dy > sy) || ((dy == sy) && (dx >= sx)))
+	{
 		dst = (((dy + height - 1) * stride) + (bpp * (dx + width - 1)));
 		src = (((sy + height - 1) * stride) + (bpp * (sx + width - 1)));
 		reverse = 1;
-	/* not reverse, calculate the first pixel in rectangle */
-	} else { /* (y * xres) + (bpp * x) */
+		/* not reverse, calculate the first pixel in rectangle */
+	}
+	else     /* (y * xres) + (bpp * x) */
+	{
 		dst = (dy * stride) + (bpp * dx);
 		src = (sy * stride) + (bpp * sx);
 	}
@@ -485,10 +543,13 @@ s1d13xxxfb_bitblt_copyarea(struct fb_info *info, const struct fb_copyarea *area)
 	s1d13xxxfb_writereg(info->par, S1DREG_BBLT_HEIGHT1, (height >> 8));
 
 	/* negative direction ROP */
-	if (reverse == 1) {
+	if (reverse == 1)
+	{
 		dbg_blit("(copyarea) negative rop\n");
 		s1d13xxxfb_writereg(info->par, S1DREG_BBLT_OP, 0x03);
-	} else /* positive direction ROP */ {
+	}
+	else /* positive direction ROP */
+	{
 		s1d13xxxfb_writereg(info->par, S1DREG_BBLT_OP, 0x02);
 		dbg_blit("(copyarea) positive rop\n");
 	}
@@ -508,7 +569,7 @@ s1d13xxxfb_bitblt_copyarea(struct fb_info *info, const struct fb_copyarea *area)
 	dbg_blit("(copyarea) width=%d, height=%d\n", width - 1, height - 1);
 	dbg_blit("(copyarea) stride=%d\n", stride);
 	dbg_blit("(copyarea) bpp=%d=0x0%d, mem_offset1=%d, mem_offset2=%d\n", bpp, (bpp >> 1),
-		(stride >> 1) & 0xff, stride >> 9);
+			 (stride >> 1) & 0xff, stride >> 9);
 
 	s1d13xxxfb_writereg(info->par, S1DREG_BBLT_CC_EXP, 0x0c);
 
@@ -547,13 +608,13 @@ s1d13xxxfb_bitblt_solidfill(struct fb_info *info, const struct fb_fillrect *rect
 	dest = ((rect->dy * screen_stride) + (bpp * rect->dx));
 
 	dbg_blit("(solidfill) dx=%d, dy=%d, stride=%d, dest=%d\n"
-		 "(solidfill) : rect_width=%d, rect_height=%d\n",
-				rect->dx, rect->dy, screen_stride, dest,
-				rect->width - 1, rect->height - 1);
+			 "(solidfill) : rect_width=%d, rect_height=%d\n",
+			 rect->dx, rect->dy, screen_stride, dest,
+			 rect->width - 1, rect->height - 1);
 
 	dbg_blit("(solidfill) : xres=%d, yres=%d, bpp=%d\n",
-				info->var.xres, info->var.yres,
-				info->var.bits_per_pixel);
+			 info->var.xres, info->var.yres,
+			 info->var.bits_per_pixel);
 	dbg_blit("(solidfill) : rop=%d\n", rect->rop);
 
 	/* We split the destination into the three registers */
@@ -570,11 +631,14 @@ s1d13xxxfb_bitblt_solidfill(struct fb_info *info, const struct fb_fillrect *rect
 	s1d13xxxfb_writereg(info->par, S1DREG_BBLT_HEIGHT1, (rect->height >> 8));
 
 	if (info->fix.visual == FB_VISUAL_TRUECOLOR ||
-		info->fix.visual == FB_VISUAL_DIRECTCOLOR) {
+		info->fix.visual == FB_VISUAL_DIRECTCOLOR)
+	{
 		fg = ((u32 *)info->pseudo_palette)[rect->color];
 		dbg_blit("(solidfill) truecolor/directcolor\n");
 		dbg_blit("(solidfill) pseudo_palette[%d] = %d\n", rect->color, fg);
-	} else {
+	}
+	else
+	{
 		fg = rect->color;
 		dbg_blit("(solidfill) color = %d\n", rect->color);
 	}
@@ -607,7 +671,8 @@ s1d13xxxfb_bitblt_solidfill(struct fb_info *info, const struct fb_fillrect *rect
 }
 
 /* framebuffer information structures */
-static struct fb_ops s1d13xxxfb_fbops = {
+static struct fb_ops s1d13xxxfb_fbops =
+{
 	.owner		= THIS_MODULE,
 	.fb_set_par	= s1d13xxxfb_set_par,
 	.fb_setcolreg	= s1d13xxxfb_setcolreg,
@@ -621,7 +686,8 @@ static struct fb_ops s1d13xxxfb_fbops = {
 	.fb_imageblit	= cfb_imageblit,
 };
 
-static int s1d13xxxfb_width_tab[2][4] = {
+static int s1d13xxxfb_width_tab[2][4] =
+{
 	{4, 8, 16, -1},
 	{9, 12, 18, -1},
 };
@@ -662,28 +728,38 @@ static void s1d13xxxfb_fetch_hw_state(struct fb_info *info)
 	lcd_enabled = (par->display & 0x01) != 0;
 
 	if (lcd_enabled && crt_enabled)
+	{
 		printk(KERN_WARNING PFX "Warning: LCD and CRT detected, using LCD\n");
+	}
 
 	if (lcd_enabled)
+	{
 		display = s1d13xxxfb_readreg(par, S1DREG_LCD_DISP_MODE);
+	}
 	else	/* CRT */
+	{
 		display = s1d13xxxfb_readreg(par, S1DREG_CRT_DISP_MODE);
+	}
 
 	bpp = display & 0x07;
 
-	switch (bpp) {
+	switch (bpp)
+	{
 		case 2:	/* 4 bpp */
 		case 3:	/* 8 bpp */
 			var->bits_per_pixel = 8;
 			var->red.offset = var->green.offset = var->blue.offset = 0;
 			var->red.length = var->green.length = var->blue.length = 8;
 			break;
+
 		case 5:	/* 16 bpp */
 			s1d13xxxfb_setup_truecolour(info);
 			break;
+
 		default:
 			dbg("bpp: %i\n", bpp);
 	}
+
 	fb_alloc_cmap(&info->cmap, 256, 0);
 
 	/* LCD info */
@@ -693,21 +769,25 @@ static void s1d13xxxfb_fetch_hw_state(struct fb_info *info)
 	is_tft = (panel & 0x01) != 0;
 	lcd_bpp = s1d13xxxfb_width_tab[is_tft][(panel >> 4) & 3];
 
-	if (lcd_enabled) {
+	if (lcd_enabled)
+	{
 		xres = (s1d13xxxfb_readreg(par, S1DREG_LCD_DISP_HWIDTH) + 1) * 8;
 		yres = (s1d13xxxfb_readreg(par, S1DREG_LCD_DISP_VHEIGHT0) +
-			((s1d13xxxfb_readreg(par, S1DREG_LCD_DISP_VHEIGHT1) & 0x03) << 8) + 1);
+				((s1d13xxxfb_readreg(par, S1DREG_LCD_DISP_VHEIGHT1) & 0x03) << 8) + 1);
 
 		offset = (s1d13xxxfb_readreg(par, S1DREG_LCD_MEM_OFF0) +
-			((s1d13xxxfb_readreg(par, S1DREG_LCD_MEM_OFF1) & 0x7) << 8));
-	} else { /* crt */
+				  ((s1d13xxxfb_readreg(par, S1DREG_LCD_MEM_OFF1) & 0x7) << 8));
+	}
+	else     /* crt */
+	{
 		xres = (s1d13xxxfb_readreg(par, S1DREG_CRT_DISP_HWIDTH) + 1) * 8;
 		yres = (s1d13xxxfb_readreg(par, S1DREG_CRT_DISP_VHEIGHT0) +
-			((s1d13xxxfb_readreg(par, S1DREG_CRT_DISP_VHEIGHT1) & 0x03) << 8) + 1);
+				((s1d13xxxfb_readreg(par, S1DREG_CRT_DISP_VHEIGHT1) & 0x03) << 8) + 1);
 
 		offset = (s1d13xxxfb_readreg(par, S1DREG_CRT_MEM_OFF0) +
-			((s1d13xxxfb_readreg(par, S1DREG_CRT_MEM_OFF1) & 0x7) << 8));
+				  ((s1d13xxxfb_readreg(par, S1DREG_CRT_MEM_OFF1) & 0x7) << 8));
 	}
+
 	xres_virtual = offset * 16 / var->bits_per_pixel;
 	yres_virtual = fix->smem_len / (offset * 2);
 
@@ -738,9 +818,12 @@ s1d13xxxfb_remove(struct platform_device *pdev)
 	struct fb_info *info = platform_get_drvdata(pdev);
 	struct s1d13xxxfb_par *par = NULL;
 
-	if (info) {
+	if (info)
+	{
 		par = info->par;
-		if (par && par->regs) {
+
+		if (par && par->regs)
+		{
 			/* disable output & enable powersave */
 			s1d13xxxfb_writereg(par, S1DREG_COM_DISP_MODE, 0x00);
 			s1d13xxxfb_writereg(par, S1DREG_PS_CNF, 0x11);
@@ -750,15 +833,17 @@ s1d13xxxfb_remove(struct platform_device *pdev)
 		fb_dealloc_cmap(&info->cmap);
 
 		if (info->screen_base)
+		{
 			iounmap(info->screen_base);
+		}
 
 		framebuffer_release(info);
 	}
 
 	release_mem_region(pdev->resource[0].start,
-			pdev->resource[0].end - pdev->resource[0].start +1);
+					   pdev->resource[0].end - pdev->resource[0].start + 1);
 	release_mem_region(pdev->resource[1].start,
-			pdev->resource[1].end - pdev->resource[1].start +1);
+					   pdev->resource[1].end - pdev->resource[1].start + 1);
 	return 0;
 }
 
@@ -777,42 +862,52 @@ static int s1d13xxxfb_probe(struct platform_device *pdev)
 
 	/* enable platform-dependent hardware glue, if any */
 	if (dev_get_platdata(&pdev->dev))
+	{
 		pdata = dev_get_platdata(&pdev->dev);
+	}
 
 	if (pdata && pdata->platform_init_video)
+	{
 		pdata->platform_init_video();
+	}
 
-	if (pdev->num_resources != 2) {
+	if (pdev->num_resources != 2)
+	{
 		dev_err(&pdev->dev, "invalid num_resources: %i\n",
-		       pdev->num_resources);
+				pdev->num_resources);
 		ret = -ENODEV;
 		goto bail;
 	}
 
 	/* resource[0] is VRAM, resource[1] is registers */
 	if (pdev->resource[0].flags != IORESOURCE_MEM
-			|| pdev->resource[1].flags != IORESOURCE_MEM) {
+		|| pdev->resource[1].flags != IORESOURCE_MEM)
+	{
 		dev_err(&pdev->dev, "invalid resource type\n");
 		ret = -ENODEV;
 		goto bail;
 	}
 
 	if (!request_mem_region(pdev->resource[0].start,
-		pdev->resource[0].end - pdev->resource[0].start +1, "s1d13xxxfb mem")) {
+							pdev->resource[0].end - pdev->resource[0].start + 1, "s1d13xxxfb mem"))
+	{
 		dev_dbg(&pdev->dev, "request_mem_region failed\n");
 		ret = -EBUSY;
 		goto bail;
 	}
 
 	if (!request_mem_region(pdev->resource[1].start,
-		pdev->resource[1].end - pdev->resource[1].start +1, "s1d13xxxfb regs")) {
+							pdev->resource[1].end - pdev->resource[1].start + 1, "s1d13xxxfb regs"))
+	{
 		dev_dbg(&pdev->dev, "request_mem_region failed\n");
 		ret = -EBUSY;
 		goto bail;
 	}
 
 	info = framebuffer_alloc(sizeof(struct s1d13xxxfb_par) + sizeof(u32) * 256, &pdev->dev);
-	if (!info) {
+
+	if (!info)
+	{
 		ret = -ENOMEM;
 		goto bail;
 	}
@@ -820,18 +915,22 @@ static int s1d13xxxfb_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, info);
 	default_par = info->par;
 	default_par->regs = ioremap_nocache(pdev->resource[1].start,
-			pdev->resource[1].end - pdev->resource[1].start +1);
-	if (!default_par->regs) {
+										pdev->resource[1].end - pdev->resource[1].start + 1);
+
+	if (!default_par->regs)
+	{
 		printk(KERN_ERR PFX "unable to map registers\n");
 		ret = -ENOMEM;
 		goto bail;
 	}
+
 	info->pseudo_palette = default_par->pseudo_palette;
 
 	info->screen_base = ioremap_nocache(pdev->resource[0].start,
-			pdev->resource[0].end - pdev->resource[0].start +1);
+										pdev->resource[0].end - pdev->resource[0].start + 1);
 
-	if (!info->screen_base) {
+	if (!info->screen_base)
+	{
 		printk(KERN_ERR PFX "unable to map framebuffer\n");
 		ret = -ENOMEM;
 		goto bail;
@@ -843,8 +942,10 @@ static int s1d13xxxfb_probe(struct platform_device *pdev)
 	revision = s1d13xxxfb_readreg(default_par, S1DREG_REV_CODE) & 0x3;
 	ret = -ENODEV;
 
-	for (i = 0; i < ARRAY_SIZE(s1d13xxxfb_prod_ids); i++) {
-		if (prod_id == s1d13xxxfb_prod_ids[i]) {
+	for (i = 0; i < ARRAY_SIZE(s1d13xxxfb_prod_ids); i++)
+	{
+		if (prod_id == s1d13xxxfb_prod_ids[i])
+		{
 			/* looks like we got it in our list */
 			default_par->prod_id = prod_id;
 			default_par->revision = revision;
@@ -853,14 +954,17 @@ static int s1d13xxxfb_probe(struct platform_device *pdev)
 		}
 	}
 
-	if (!ret) {
+	if (!ret)
+	{
 		printk(KERN_INFO PFX "chip production id %i = %s\n",
-			prod_id, s1d13xxxfb_prod_names[i]);
+			   prod_id, s1d13xxxfb_prod_names[i]);
 		printk(KERN_INFO PFX "chip revision %i\n", revision);
-	} else {
+	}
+	else
+	{
 		printk(KERN_INFO PFX
-			"unknown chip production id %i, revision %i\n",
-			prod_id, revision);
+			   "unknown chip production id %i, revision %i\n",
+			   prod_id, revision);
 		printk(KERN_INFO PFX "please contact maintainer\n");
 		goto bail;
 	}
@@ -872,30 +976,35 @@ static int s1d13xxxfb_probe(struct platform_device *pdev)
 	info->fix.smem_len = pdev->resource[0].end - pdev->resource[0].start + 1;
 
 	printk(KERN_INFO PFX "regs mapped at 0x%p, fb %d KiB mapped at 0x%p\n",
-	       default_par->regs, info->fix.smem_len / 1024, info->screen_base);
+		   default_par->regs, info->fix.smem_len / 1024, info->screen_base);
 
 	info->par = default_par;
 	info->flags = FBINFO_DEFAULT | FBINFO_HWACCEL_YPAN;
 	info->fbops = &s1d13xxxfb_fbops;
 
-	switch(prod_id) {
-	case S1D13506_PROD_ID:	/* activate acceleration */
-		s1d13xxxfb_fbops.fb_fillrect = s1d13xxxfb_bitblt_solidfill;
-		s1d13xxxfb_fbops.fb_copyarea = s1d13xxxfb_bitblt_copyarea;
-		info->flags = FBINFO_DEFAULT | FBINFO_HWACCEL_YPAN |
-			FBINFO_HWACCEL_FILLRECT | FBINFO_HWACCEL_COPYAREA;
-		break;
-	default:
-		break;
+	switch (prod_id)
+	{
+		case S1D13506_PROD_ID:	/* activate acceleration */
+			s1d13xxxfb_fbops.fb_fillrect = s1d13xxxfb_bitblt_solidfill;
+			s1d13xxxfb_fbops.fb_copyarea = s1d13xxxfb_bitblt_copyarea;
+			info->flags = FBINFO_DEFAULT | FBINFO_HWACCEL_YPAN |
+						  FBINFO_HWACCEL_FILLRECT | FBINFO_HWACCEL_COPYAREA;
+			break;
+
+		default:
+			break;
 	}
 
 	/* perform "manual" chip initialization, if needed */
 	if (pdata && pdata->initregs)
+	{
 		s1d13xxxfb_runinit(info->par, pdata->initregs, pdata->initregssize);
+	}
 
 	s1d13xxxfb_fetch_hw_state(info);
 
-	if (register_framebuffer(info) < 0) {
+	if (register_framebuffer(info) < 0)
+	{
 		ret = -EINVAL;
 		goto bail;
 	}
@@ -922,13 +1031,19 @@ static int s1d13xxxfb_suspend(struct platform_device *dev, pm_message_t state)
 	crt_enable(s1dfb, 0);
 
 	if (dev_get_platdata(&dev->dev))
+	{
 		pdata = dev_get_platdata(&dev->dev);
+	}
 
 #if 0
-	if (!s1dfb->disp_save)
-		s1dfb->disp_save = kmalloc(info->fix.smem_len, GFP_KERNEL);
 
-	if (!s1dfb->disp_save) {
+	if (!s1dfb->disp_save)
+	{
+		s1dfb->disp_save = kmalloc(info->fix.smem_len, GFP_KERNEL);
+	}
+
+	if (!s1dfb->disp_save)
+	{
 		printk(KERN_ERR PFX "no memory to save screen\n");
 		return -ENOMEM;
 	}
@@ -939,9 +1054,12 @@ static int s1d13xxxfb_suspend(struct platform_device *dev, pm_message_t state)
 #endif
 
 	if (!s1dfb->regs_save)
+	{
 		s1dfb->regs_save = kmalloc(info->fix.mmio_len, GFP_KERNEL);
+	}
 
-	if (!s1dfb->regs_save) {
+	if (!s1dfb->regs_save)
+	{
 		printk(KERN_ERR PFX "no memory to save registers");
 		return -ENOMEM;
 	}
@@ -953,9 +1071,13 @@ static int s1d13xxxfb_suspend(struct platform_device *dev, pm_message_t state)
 	s1d13xxxfb_writereg(s1dfb, S1DREG_PS_CNF, 0x11);
 
 	if (pdata && pdata->platform_suspend_video)
+	{
 		return pdata->platform_suspend_video();
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 static int s1d13xxxfb_resume(struct platform_device *dev)
@@ -969,36 +1091,52 @@ static int s1d13xxxfb_resume(struct platform_device *dev)
 
 	/* do not let go until SDRAM "wakes up" */
 	while ((s1d13xxxfb_readreg(s1dfb, S1DREG_PS_STATUS) & 0x01))
+	{
 		udelay(10);
+	}
 
 	if (dev_get_platdata(&dev->dev))
+	{
 		pdata = dev_get_platdata(&dev->dev);
+	}
 
-	if (s1dfb->regs_save) {
+	if (s1dfb->regs_save)
+	{
 		/* will write RO regs, *should* get away with it :) */
 		memcpy_toio(s1dfb->regs, s1dfb->regs_save, info->fix.mmio_len);
 		kfree(s1dfb->regs_save);
 	}
 
-	if (s1dfb->disp_save) {
+	if (s1dfb->disp_save)
+	{
 		memcpy_toio(info->screen_base, s1dfb->disp_save,
-				info->fix.smem_len);
+					info->fix.smem_len);
 		kfree(s1dfb->disp_save);	/* XXX kmalloc()'d when? */
 	}
 
 	if ((s1dfb->display & 0x01) != 0)
+	{
 		lcd_enable(s1dfb, 1);
+	}
+
 	if ((s1dfb->display & 0x02) != 0)
+	{
 		crt_enable(s1dfb, 1);
+	}
 
 	if (pdata && pdata->platform_resume_video)
+	{
 		return pdata->platform_resume_video();
+	}
 	else
+	{
 		return 0;
+	}
 }
 #endif /* CONFIG_PM */
 
-static struct platform_driver s1d13xxxfb_driver = {
+static struct platform_driver s1d13xxxfb_driver =
+{
 	.probe		= s1d13xxxfb_probe,
 	.remove		= s1d13xxxfb_remove,
 #ifdef CONFIG_PM
@@ -1016,8 +1154,12 @@ s1d13xxxfb_init(void)
 {
 
 #ifndef MODULE
+
 	if (fb_get_options("s1d13xxxfb", NULL))
+	{
 		return -ENODEV;
+	}
+
 #endif
 
 	return platform_driver_register(&s1d13xxxfb_driver);

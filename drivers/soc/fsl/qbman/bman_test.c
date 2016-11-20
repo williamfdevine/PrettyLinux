@@ -40,7 +40,10 @@ static int test_init(void)
 	int loop = 1;
 
 	while (loop--)
+	{
 		bman_test_api();
+	}
+
 #endif
 	return 0;
 }

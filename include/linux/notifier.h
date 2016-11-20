@@ -6,7 +6,7 @@
  *
  *				Alan Cox <Alan.Cox@linux.org>
  */
- 
+
 #ifndef _LINUX_NOTIFIER_H
 #define _LINUX_NOTIFIER_H
 #include <linux/errno.h>
@@ -50,29 +50,34 @@
 struct notifier_block;
 
 typedef	int (*notifier_fn_t)(struct notifier_block *nb,
-			unsigned long action, void *data);
+							 unsigned long action, void *data);
 
-struct notifier_block {
+struct notifier_block
+{
 	notifier_fn_t notifier_call;
 	struct notifier_block __rcu *next;
 	int priority;
 };
 
-struct atomic_notifier_head {
+struct atomic_notifier_head
+{
 	spinlock_t lock;
 	struct notifier_block __rcu *head;
 };
 
-struct blocking_notifier_head {
+struct blocking_notifier_head
+{
 	struct rw_semaphore rwsem;
 	struct notifier_block __rcu *head;
 };
 
-struct raw_notifier_head {
+struct raw_notifier_head
+{
 	struct notifier_block __rcu *head;
 };
 
-struct srcu_notifier_head {
+struct srcu_notifier_head
+{
 	struct mutex mutex;
 	struct srcu_struct srcu;
 	struct notifier_block __rcu *head;
@@ -93,27 +98,27 @@ struct srcu_notifier_head {
 /* srcu_notifier_heads must be initialized and cleaned up dynamically */
 extern void srcu_init_notifier_head(struct srcu_notifier_head *nh);
 #define srcu_cleanup_notifier_head(name)	\
-		cleanup_srcu_struct(&(name)->srcu);
+	cleanup_srcu_struct(&(name)->srcu);
 
 #define ATOMIC_NOTIFIER_INIT(name) {				\
 		.lock = __SPIN_LOCK_UNLOCKED(name.lock),	\
-		.head = NULL }
+				.head = NULL }
 #define BLOCKING_NOTIFIER_INIT(name) {				\
 		.rwsem = __RWSEM_INITIALIZER((name).rwsem),	\
-		.head = NULL }
+				 .head = NULL }
 #define RAW_NOTIFIER_INIT(name)	{				\
 		.head = NULL }
 /* srcu_notifier_heads cannot be initialized statically */
 
 #define ATOMIC_NOTIFIER_HEAD(name)				\
 	struct atomic_notifier_head name =			\
-		ATOMIC_NOTIFIER_INIT(name)
+			ATOMIC_NOTIFIER_INIT(name)
 #define BLOCKING_NOTIFIER_HEAD(name)				\
 	struct blocking_notifier_head name =			\
-		BLOCKING_NOTIFIER_INIT(name)
+			BLOCKING_NOTIFIER_INIT(name)
 #define RAW_NOTIFIER_HEAD(name)					\
 	struct raw_notifier_head name =				\
-		RAW_NOTIFIER_INIT(name)
+			RAW_NOTIFIER_INIT(name)
 
 #ifdef __KERNEL__
 
@@ -122,13 +127,13 @@ extern int atomic_notifier_chain_register(struct atomic_notifier_head *nh,
 extern int blocking_notifier_chain_register(struct blocking_notifier_head *nh,
 		struct notifier_block *nb);
 extern int raw_notifier_chain_register(struct raw_notifier_head *nh,
-		struct notifier_block *nb);
+									   struct notifier_block *nb);
 extern int srcu_notifier_chain_register(struct srcu_notifier_head *nh,
-		struct notifier_block *nb);
+										struct notifier_block *nb);
 
 extern int blocking_notifier_chain_cond_register(
-		struct blocking_notifier_head *nh,
-		struct notifier_block *nb);
+	struct blocking_notifier_head *nh,
+	struct notifier_block *nb);
 
 extern int atomic_notifier_chain_unregister(struct atomic_notifier_head *nh,
 		struct notifier_block *nb);
@@ -140,27 +145,27 @@ extern int srcu_notifier_chain_unregister(struct srcu_notifier_head *nh,
 		struct notifier_block *nb);
 
 extern int atomic_notifier_call_chain(struct atomic_notifier_head *nh,
-		unsigned long val, void *v);
+									  unsigned long val, void *v);
 extern int __atomic_notifier_call_chain(struct atomic_notifier_head *nh,
-	unsigned long val, void *v, int nr_to_call, int *nr_calls);
+										unsigned long val, void *v, int nr_to_call, int *nr_calls);
 extern int blocking_notifier_call_chain(struct blocking_notifier_head *nh,
-		unsigned long val, void *v);
+										unsigned long val, void *v);
 extern int __blocking_notifier_call_chain(struct blocking_notifier_head *nh,
-	unsigned long val, void *v, int nr_to_call, int *nr_calls);
+		unsigned long val, void *v, int nr_to_call, int *nr_calls);
 extern int raw_notifier_call_chain(struct raw_notifier_head *nh,
-		unsigned long val, void *v);
+								   unsigned long val, void *v);
 extern int __raw_notifier_call_chain(struct raw_notifier_head *nh,
-	unsigned long val, void *v, int nr_to_call, int *nr_calls);
+									 unsigned long val, void *v, int nr_to_call, int *nr_calls);
 extern int srcu_notifier_call_chain(struct srcu_notifier_head *nh,
-		unsigned long val, void *v);
+									unsigned long val, void *v);
 extern int __srcu_notifier_call_chain(struct srcu_notifier_head *nh,
-	unsigned long val, void *v, int nr_to_call, int *nr_calls);
+									  unsigned long val, void *v, int nr_to_call, int *nr_calls);
 
 #define NOTIFY_DONE		0x0000		/* Don't care */
 #define NOTIFY_OK		0x0001		/* Suits me */
 #define NOTIFY_STOP_MASK	0x8000		/* Don't call further */
 #define NOTIFY_BAD		(NOTIFY_STOP_MASK|0x0002)
-						/* Bad/Veto action */
+/* Bad/Veto action */
 /*
  * Clean way to return from the notifier and stop further calls.
  */
@@ -170,7 +175,9 @@ extern int __srcu_notifier_call_chain(struct srcu_notifier_head *nh,
 static inline int notifier_from_errno(int err)
 {
 	if (err)
+	{
 		return NOTIFY_STOP_MASK | (NOTIFY_OK - err);
+	}
 
 	return NOTIFY_OK;
 }
@@ -184,12 +191,12 @@ static inline int notifier_to_errno(int ret)
 
 /*
  *	Declared notifiers so far. I can imagine quite a few more chains
- *	over time (eg laptop power reset chains, reboot chain (to clean 
+ *	over time (eg laptop power reset chains, reboot chain (to clean
  *	device units up), device [un]mount chain, module load/unload chain,
- *	low memory chain, screenblank chain (for plug in modular screenblankers) 
+ *	low memory chain, screenblank chain (for plug in modular screenblankers)
  *	VC switch chains (for loadable kernel svgalib VC switch helpers) etc...
  */
- 
+
 /* CPU notfiers are defined in include/linux/cpu.h. */
 
 /* netdevice notifiers are defined in include/linux/netdevice.h */

@@ -26,20 +26,23 @@
 #define INTEL_PT_ABORT_TX	(1 << 1)
 #define INTEL_PT_ASYNC		(1 << 2)
 
-enum intel_pt_sample_type {
+enum intel_pt_sample_type
+{
 	INTEL_PT_BRANCH		= 1 << 0,
 	INTEL_PT_INSTRUCTION	= 1 << 1,
 	INTEL_PT_TRANSACTION	= 1 << 2,
 };
 
-enum intel_pt_period_type {
+enum intel_pt_period_type
+{
 	INTEL_PT_PERIOD_NONE,
 	INTEL_PT_PERIOD_INSTRUCTIONS,
 	INTEL_PT_PERIOD_TICKS,
 	INTEL_PT_PERIOD_MTC,
 };
 
-enum {
+enum
+{
 	INTEL_PT_ERR_NOMEM = 1,
 	INTEL_PT_ERR_INTERN,
 	INTEL_PT_ERR_BADPKT,
@@ -53,7 +56,8 @@ enum {
 	INTEL_PT_ERR_MAX,
 };
 
-struct intel_pt_state {
+struct intel_pt_state
+{
 	enum intel_pt_sample_type type;
 	int err;
 	uint64_t from_ip;
@@ -70,7 +74,8 @@ struct intel_pt_state {
 
 struct intel_pt_insn;
 
-struct intel_pt_buffer {
+struct intel_pt_buffer
+{
 	const unsigned char *buf;
 	size_t len;
 	bool consecutive;
@@ -78,11 +83,12 @@ struct intel_pt_buffer {
 	uint64_t trace_nr;
 };
 
-struct intel_pt_params {
+struct intel_pt_params
+{
 	int (*get_trace)(struct intel_pt_buffer *buffer, void *data);
 	int (*walk_insn)(struct intel_pt_insn *intel_pt_insn,
-			 uint64_t *insn_cnt_ptr, uint64_t *ip, uint64_t to_ip,
-			 uint64_t max_insn_cnt, void *data);
+					 uint64_t *insn_cnt_ptr, uint64_t *ip, uint64_t to_ip,
+					 uint64_t max_insn_cnt, void *data);
 	bool (*pgd_ip)(uint64_t ip, void *data);
 	void *data;
 	bool return_compression;
@@ -102,8 +108,8 @@ void intel_pt_decoder_free(struct intel_pt_decoder *decoder);
 const struct intel_pt_state *intel_pt_decode(struct intel_pt_decoder *decoder);
 
 unsigned char *intel_pt_find_overlap(unsigned char *buf_a, size_t len_a,
-				     unsigned char *buf_b, size_t len_b,
-				     bool have_tsc);
+									 unsigned char *buf_b, size_t len_b,
+									 bool have_tsc);
 
 int intel_pt__strerror(int code, char *buf, size_t buflen);
 

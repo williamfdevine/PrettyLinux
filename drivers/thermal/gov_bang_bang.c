@@ -30,29 +30,39 @@ static void thermal_zone_trip_update(struct thermal_zone_device *tz, int trip)
 
 	tz->ops->get_trip_temp(tz, trip, &trip_temp);
 
-	if (!tz->ops->get_trip_hyst) {
+	if (!tz->ops->get_trip_hyst)
+	{
 		pr_warn_once("Undefined get_trip_hyst for thermal zone %s - "
-				"running with default hysteresis zero\n", tz->type);
+					 "running with default hysteresis zero\n", tz->type);
 		trip_hyst = 0;
-	} else
+	}
+	else
+	{
 		tz->ops->get_trip_hyst(tz, trip, &trip_hyst);
+	}
 
 	dev_dbg(&tz->device, "Trip%d[temp=%d]:temp=%d:hyst=%d\n",
-				trip, trip_temp, tz->temperature,
-				trip_hyst);
+			trip, trip_temp, tz->temperature,
+			trip_hyst);
 
 	mutex_lock(&tz->lock);
 
-	list_for_each_entry(instance, &tz->thermal_instances, tz_node) {
+	list_for_each_entry(instance, &tz->thermal_instances, tz_node)
+	{
 		if (instance->trip != trip)
+		{
 			continue;
+		}
 
 		/* in case fan is in initial state, switch the fan off */
 		if (instance->target == THERMAL_NO_TARGET)
+		{
 			instance->target = 0;
+		}
 
 		/* in case fan is neither on nor off set the fan to active */
-		if (instance->target != 0 && instance->target != 1) {
+		if (instance->target != 0 && instance->target != 1)
+		{
 			pr_warn("Thermal instance %s controlled by bang-bang has unexpected state: %ld\n",
 					instance->name, instance->target);
 			instance->target = 1;
@@ -63,13 +73,17 @@ static void thermal_zone_trip_update(struct thermal_zone_device *tz, int trip)
 		 * the fan in case it falls below trip_temp minus hysteresis
 		 */
 		if (instance->target == 0 && tz->temperature >= trip_temp)
+		{
 			instance->target = 1;
+		}
 		else if (instance->target == 1 &&
-				tz->temperature <= trip_temp - trip_hyst)
+				 tz->temperature <= trip_temp - trip_hyst)
+		{
 			instance->target = 0;
+		}
 
 		dev_dbg(&instance->cdev->device, "target=%d\n",
-					(int)instance->target);
+				(int)instance->target);
 
 		mutex_lock(&instance->cdev->lock);
 		instance->cdev->updated = false; /* cdev needs update */
@@ -115,14 +129,15 @@ static int bang_bang_control(struct thermal_zone_device *tz, int trip)
 	mutex_lock(&tz->lock);
 
 	list_for_each_entry(instance, &tz->thermal_instances, tz_node)
-		thermal_cdev_update(instance->cdev);
+	thermal_cdev_update(instance->cdev);
 
 	mutex_unlock(&tz->lock);
 
 	return 0;
 }
 
-static struct thermal_governor thermal_gov_bang_bang = {
+static struct thermal_governor thermal_gov_bang_bang =
+{
 	.name		= "bang_bang",
 	.throttle	= bang_bang_control,
 };

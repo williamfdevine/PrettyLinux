@@ -40,69 +40,90 @@ of_coresight_get_endpoint_device(struct device_node *endpoint)
 	 * platform bus.
 	 */
 	dev = bus_find_device(&platform_bus_type, NULL,
-			      endpoint, of_dev_node_match);
+						  endpoint, of_dev_node_match);
+
 	if (dev)
+	{
 		return dev;
+	}
 
 	/*
 	 * We have a configurable component - circle through the AMBA bus
 	 * looking for the device that matches the endpoint node.
 	 */
 	return bus_find_device(&amba_bustype, NULL,
-			       endpoint, of_dev_node_match);
+						   endpoint, of_dev_node_match);
 }
 
 static void of_coresight_get_ports(struct device_node *node,
-				   int *nr_inport, int *nr_outport)
+								   int *nr_inport, int *nr_outport)
 {
 	struct device_node *ep = NULL;
 	int in = 0, out = 0;
 
-	do {
+	do
+	{
 		ep = of_graph_get_next_endpoint(node, ep);
+
 		if (!ep)
+		{
 			break;
+		}
 
 		if (of_property_read_bool(ep, "slave-mode"))
+		{
 			in++;
+		}
 		else
+		{
 			out++;
+		}
 
-	} while (ep);
+	}
+	while (ep);
 
 	*nr_inport = in;
 	*nr_outport = out;
 }
 
 static int of_coresight_alloc_memory(struct device *dev,
-			struct coresight_platform_data *pdata)
+									 struct coresight_platform_data *pdata)
 {
 	/* List of output port on this component */
 	pdata->outports = devm_kzalloc(dev, pdata->nr_outport *
-				       sizeof(*pdata->outports),
-				       GFP_KERNEL);
+								   sizeof(*pdata->outports),
+								   GFP_KERNEL);
+
 	if (!pdata->outports)
+	{
 		return -ENOMEM;
+	}
 
 	/* Children connected to this component via @outports */
 	pdata->child_names = devm_kzalloc(dev, pdata->nr_outport *
-					  sizeof(*pdata->child_names),
-					  GFP_KERNEL);
+									  sizeof(*pdata->child_names),
+									  GFP_KERNEL);
+
 	if (!pdata->child_names)
+	{
 		return -ENOMEM;
+	}
 
 	/* Port number on the child this component is connected to */
 	pdata->child_ports = devm_kzalloc(dev, pdata->nr_outport *
-					  sizeof(*pdata->child_ports),
-					  GFP_KERNEL);
+									  sizeof(*pdata->child_ports),
+									  GFP_KERNEL);
+
 	if (!pdata->child_ports)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
 
 struct coresight_platform_data *of_get_coresight_platform_data(
-				struct device *dev, struct device_node *node)
+	struct device *dev, struct device_node *node)
 {
 	int i = 0, ret = 0, cpu;
 	struct coresight_platform_data *pdata;
@@ -114,8 +135,11 @@ struct coresight_platform_data *of_get_coresight_platform_data(
 	struct device_node *rport = NULL;
 
 	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
+
 	if (!pdata)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	/* Use device name as sysfs handle */
 	pdata->name = dev_name(dev);
@@ -123,30 +147,42 @@ struct coresight_platform_data *of_get_coresight_platform_data(
 	/* Get the number of input and output port for this component */
 	of_coresight_get_ports(node, &pdata->nr_inport, &pdata->nr_outport);
 
-	if (pdata->nr_outport) {
+	if (pdata->nr_outport)
+	{
 		ret = of_coresight_alloc_memory(dev, pdata);
+
 		if (ret)
+		{
 			return ERR_PTR(ret);
+		}
 
 		/* Iterate through each port to discover topology */
-		do {
+		do
+		{
 			/* Get a handle on a port */
 			ep = of_graph_get_next_endpoint(node, ep);
+
 			if (!ep)
+			{
 				break;
+			}
 
 			/*
 			 * No need to deal with input ports, processing for as
 			 * processing for output ports will deal with them.
 			 */
 			if (of_find_property(ep, "slave-mode", NULL))
+			{
 				continue;
+			}
 
 			/* Get a handle on the local endpoint */
 			ret = of_graph_parse_endpoint(ep, &endpoint);
 
 			if (ret)
+			{
 				continue;
+			}
 
 			/* The local out port number */
 			pdata->outports[i] = endpoint.id;
@@ -159,31 +195,43 @@ struct coresight_platform_data *of_get_coresight_platform_data(
 			rport = of_graph_get_remote_port(ep);
 
 			if (!rparent || !rport)
+			{
 				continue;
+			}
 
 			if (of_graph_parse_endpoint(rport, &rendpoint))
+			{
 				continue;
+			}
 
 			rdev = of_coresight_get_endpoint_device(rparent);
+
 			if (!rdev)
+			{
 				return ERR_PTR(-EPROBE_DEFER);
+			}
 
 			pdata->child_names[i] = dev_name(rdev);
 			pdata->child_ports[i] = rendpoint.id;
 
 			i++;
-		} while (ep);
+		}
+		while (ep);
 	}
 
 	/* Affinity defaults to CPU0 */
 	pdata->cpu = 0;
 	dn = of_parse_phandle(node, "cpu", 0);
-	for (cpu = 0; dn && cpu < nr_cpu_ids; cpu++) {
-		if (dn == of_get_cpu_node(cpu, NULL)) {
+
+	for (cpu = 0; dn && cpu < nr_cpu_ids; cpu++)
+	{
+		if (dn == of_get_cpu_node(cpu, NULL))
+		{
 			pdata->cpu = cpu;
 			break;
 		}
 	}
+
 	of_node_put(dn);
 
 	return pdata;

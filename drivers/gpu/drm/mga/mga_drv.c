@@ -39,11 +39,13 @@
 
 static int mga_driver_device_is_agp(struct drm_device *dev);
 
-static struct pci_device_id pciidlist[] = {
+static struct pci_device_id pciidlist[] =
+{
 	mga_PCI_IDS
 };
 
-static const struct file_operations mga_driver_fops = {
+static const struct file_operations mga_driver_fops =
+{
 	.owner = THIS_MODULE,
 	.open = drm_open,
 	.release = drm_release,
@@ -56,10 +58,11 @@ static const struct file_operations mga_driver_fops = {
 	.llseek = noop_llseek,
 };
 
-static struct drm_driver driver = {
+static struct drm_driver driver =
+{
 	.driver_features =
-	    DRIVER_USE_AGP | DRIVER_PCI_DMA | DRIVER_LEGACY |
-	    DRIVER_HAVE_DMA | DRIVER_HAVE_IRQ | DRIVER_IRQ_SHARED,
+	DRIVER_USE_AGP | DRIVER_PCI_DMA | DRIVER_LEGACY |
+	DRIVER_HAVE_DMA | DRIVER_HAVE_IRQ | DRIVER_IRQ_SHARED,
 	.dev_priv_size = sizeof(drm_mga_buf_priv_t),
 	.load = mga_driver_load,
 	.unload = mga_driver_unload,
@@ -85,7 +88,8 @@ static struct drm_driver driver = {
 	.patchlevel = DRIVER_PATCHLEVEL,
 };
 
-static struct pci_driver mga_pci_driver = {
+static struct pci_driver mga_pci_driver =
+{
 	.name = DRIVER_NAME,
 	.id_table = pciidlist,
 };
@@ -134,8 +138,9 @@ static int mga_driver_device_is_agp(struct drm_device *dev)
 	 */
 
 	if ((pdev->device == 0x0525) && pdev->bus->self
-	    && (pdev->bus->self->vendor == 0x3388)
-	    && (pdev->bus->self->device == 0x0021)) {
+		&& (pdev->bus->self->vendor == 0x3388)
+		&& (pdev->bus->self->device == 0x0021))
+	{
 		return 0;
 	}
 

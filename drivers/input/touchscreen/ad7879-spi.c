@@ -29,7 +29,7 @@
  */
 
 static int ad7879_spi_xfer(struct spi_device *spi,
-			   u16 cmd, u8 count, u16 *tx_buf, u16 *rx_buf)
+						   u16 cmd, u8 count, u16 *tx_buf, u16 *rx_buf)
 {
 	struct spi_message msg;
 	struct spi_transfer *xfers;
@@ -40,14 +40,19 @@ static int ad7879_spi_xfer(struct spi_device *spi,
 	int ret;
 
 	xfers = spi_data = kzalloc(sizeof(*xfers) * (count + 2), GFP_KERNEL);
+
 	if (!spi_data)
+	{
 		return -ENOMEM;
+	}
 
 	spi_message_init(&msg);
 
 	command = spi_data;
 	command[0] = cmd;
-	if (count == 1) {
+
+	if (count == 1)
+	{
 		/* ad7879_spi_{read,write} gave us buf on stack */
 		command[1] = *tx_buf;
 		tx_buf = &command[1];
@@ -61,11 +66,18 @@ static int ad7879_spi_xfer(struct spi_device *spi,
 	spi_message_add_tail(&xfers[0], &msg);
 	++xfers;
 
-	for (idx = 0; idx < count; ++idx) {
+	for (idx = 0; idx < count; ++idx)
+	{
 		if (rx_buf)
+		{
 			xfers[idx].rx_buf = &rx_buf[idx];
+		}
+
 		if (tx_buf)
+		{
 			xfers[idx].tx_buf = &tx_buf[idx];
+		}
+
 		xfers[idx].len = 2;
 		spi_message_add_tail(&xfers[idx], &msg);
 	}
@@ -73,7 +85,9 @@ static int ad7879_spi_xfer(struct spi_device *spi,
 	ret = spi_sync(spi, &msg);
 
 	if (count == 1)
+	{
 		_rx_buf[0] = command[2];
+	}
 
 	kfree(spi_data);
 
@@ -81,7 +95,7 @@ static int ad7879_spi_xfer(struct spi_device *spi,
 }
 
 static int ad7879_spi_multi_read(struct device *dev,
-				 u8 first_reg, u8 count, u16 *buf)
+								 u8 first_reg, u8 count, u16 *buf)
 {
 	struct spi_device *spi = to_spi_device(dev);
 
@@ -104,7 +118,8 @@ static int ad7879_spi_write(struct device *dev, u8 reg, u16 val)
 	return ad7879_spi_xfer(spi, AD7879_WRITECMD(reg), 1, &val, &dummy);
 }
 
-static const struct ad7879_bus_ops ad7879_spi_bus_ops = {
+static const struct ad7879_bus_ops ad7879_spi_bus_ops =
+{
 	.bustype	= BUS_SPI,
 	.read		= ad7879_spi_read,
 	.multi_read	= ad7879_spi_multi_read,
@@ -117,21 +132,27 @@ static int ad7879_spi_probe(struct spi_device *spi)
 	int err;
 
 	/* don't exceed max specified SPI CLK frequency */
-	if (spi->max_speed_hz > MAX_SPI_FREQ_HZ) {
+	if (spi->max_speed_hz > MAX_SPI_FREQ_HZ)
+	{
 		dev_err(&spi->dev, "SPI CLK %d Hz?\n", spi->max_speed_hz);
 		return -EINVAL;
 	}
 
 	spi->bits_per_word = 16;
 	err = spi_setup(spi);
-	if (err) {
-	        dev_dbg(&spi->dev, "spi master doesn't support 16 bits/word\n");
-	        return err;
+
+	if (err)
+	{
+		dev_dbg(&spi->dev, "spi master doesn't support 16 bits/word\n");
+		return err;
 	}
 
 	ts = ad7879_probe(&spi->dev, AD7879_DEVID, spi->irq, &ad7879_spi_bus_ops);
+
 	if (IS_ERR(ts))
+	{
 		return PTR_ERR(ts);
+	}
 
 	spi_set_drvdata(spi, ts);
 
@@ -148,14 +169,16 @@ static int ad7879_spi_remove(struct spi_device *spi)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id ad7879_spi_dt_ids[] = {
+static const struct of_device_id ad7879_spi_dt_ids[] =
+{
 	{ .compatible = "adi,ad7879", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, ad7879_spi_dt_ids);
 #endif
 
-static struct spi_driver ad7879_spi_driver = {
+static struct spi_driver ad7879_spi_driver =
+{
 	.driver = {
 		.name	= "ad7879",
 		.pm	= &ad7879_pm_ops,

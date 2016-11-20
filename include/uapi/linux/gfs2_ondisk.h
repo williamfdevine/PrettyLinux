@@ -53,7 +53,8 @@
  * An on-disk inode number
  */
 
-struct gfs2_inum {
+struct gfs2_inum
+{
 	__be64 no_formal_ino;
 	__be64 no_addr;
 };
@@ -78,13 +79,15 @@ struct gfs2_inum {
 #define GFS2_METATYPE_ED	11
 #define GFS2_METATYPE_QC	14
 
-struct gfs2_meta_header {
+struct gfs2_meta_header
+{
 	__be32 mh_magic;
 	__be32 mh_type;
 	__be64 __pad0;		/* Was generation number in gfs1 */
 	__be32 mh_format;
 	/* This union is to keep userspace happy */
-	union {
+	union
+	{
 		__be32 mh_jid;		/* Was incarnation number in gfs1 */
 		__be32 __pad1;
 	};
@@ -109,7 +112,8 @@ struct gfs2_meta_header {
    Includes: the fencing zero at the end */
 #define GFS2_LOCKNAME_LEN	64
 
-struct gfs2_sb {
+struct gfs2_sb
+{
 	struct gfs2_meta_header sb_header;
 
 	__be32 sb_fs_format;
@@ -137,7 +141,8 @@ struct gfs2_sb {
  * resource index structure
  */
 
-struct gfs2_rindex {
+struct gfs2_rindex
+{
 	__be64 ri_addr;	/* grp block disk address */
 	__be32 ri_length;	/* length of rgrp header in fs blocks */
 	__u32 __pad;
@@ -170,7 +175,8 @@ struct gfs2_rindex {
 #define GFS2_RGF_NOALLOC	0x00000008
 #define GFS2_RGF_TRIMMED	0x00000010
 
-struct gfs2_rgrp_lvb {
+struct gfs2_rgrp_lvb
+{
 	__be32 rl_magic;
 	__be32 rl_flags;
 	__be32 rl_free;
@@ -180,7 +186,8 @@ struct gfs2_rgrp_lvb {
 	__be32 __pad;
 };
 
-struct gfs2_rgrp {
+struct gfs2_rgrp
+{
 	struct gfs2_meta_header rg_header;
 
 	__be32 rg_flags;
@@ -196,7 +203,8 @@ struct gfs2_rgrp {
  * quota structure
  */
 
-struct gfs2_quota {
+struct gfs2_quota
+{
 	__be64 qu_limit;
 	__be64 qu_warn;
 	__be64 qu_value;
@@ -213,7 +221,8 @@ struct gfs2_quota {
 #define DT2IF(dt) (((dt) << 12) & S_IFMT)
 #define IF2DT(sif) (((sif) & S_IFMT) >> 12)
 
-enum {
+enum
+{
 	gfs2fl_Jdata		= 0,
 	gfs2fl_ExHash		= 1,
 	gfs2fl_Unused		= 2,
@@ -246,7 +255,8 @@ enum {
 #define GFS2_DIF_INHERIT_DIRECTIO	0x40000000 /* only in gfs1 */
 #define GFS2_DIF_INHERIT_JDATA		0x80000000
 
-struct gfs2_dinode {
+struct gfs2_dinode
+{
 	struct gfs2_meta_header di_header;
 
 	struct gfs2_inum di_num;
@@ -264,7 +274,7 @@ struct gfs2_dinode {
 	__be32 di_minor;	/* device minor number */
 
 	/* This section varies from gfs1. Padding added to align with
-         * remainder of dinode
+	     * remainder of dinode
 	 */
 	__be64 di_goal_meta;	/* rgrp to alloc from next */
 	__be64 di_goal_data;	/* data block goal */
@@ -300,16 +310,19 @@ struct gfs2_dinode {
 #define GFS2_MIN_DIRENT_SIZE (GFS2_DIRENT_SIZE(1))
 
 
-struct gfs2_dirent {
+struct gfs2_dirent
+{
 	struct gfs2_inum de_inum;
 	__be32 de_hash;
 	__be16 de_rec_len;
 	__be16 de_name_len;
 	__be16 de_type;
 	__be16 de_rahead;
-	union {
+	union
+	{
 		__u8 __pad[12];
-		struct {
+		struct
+		{
 			__u32 de_cookie; /* ondisk value not used */
 			__u8 pad3[8];
 		};
@@ -320,7 +333,8 @@ struct gfs2_dirent {
  * Header of leaf directory nodes
  */
 
-struct gfs2_leaf {
+struct gfs2_leaf
+{
 	struct gfs2_meta_header lf_header;
 
 	__be16 lf_depth;		/* Depth of leaf */
@@ -328,9 +342,11 @@ struct gfs2_leaf {
 	__be32 lf_dirent_format;	/* Format of the dirents */
 	__be64 lf_next;			/* Next leaf, if overflow */
 
-	union {
+	union
+	{
 		__u8 lf_reserved[64];
-		struct {
+		struct
+		{
 			__be64 lf_inode;	/* Dir inode number */
 			__be32 lf_dist;		/* Dist from inode on chain */
 			__be32 lf_nsec;		/* Last ins/del usecs */
@@ -379,7 +395,8 @@ struct gfs2_leaf {
 
 #define GFS2_EAFLAG_LAST	0x01	/* last ea in block */
 
-struct gfs2_ea_header {
+struct gfs2_ea_header
+{
 	__be32 ea_rec_len;
 	__be32 ea_data_len;
 	__u8 ea_name_len;	/* no NULL pointer after the string */
@@ -395,7 +412,8 @@ struct gfs2_ea_header {
 
 #define GFS2_LOG_HEAD_UNMOUNT	0x00000001	/* log is clean */
 
-struct gfs2_log_header {
+struct gfs2_log_header
+{
 	struct gfs2_meta_header lh_header;
 
 	__be64 lh_sequence;	/* Sequence number of this transaction */
@@ -421,7 +439,8 @@ struct gfs2_log_header {
 /* ld_data1 is the number of data blocks in the descriptor.
    ld_data2 is unused. */
 
-struct gfs2_log_descriptor {
+struct gfs2_log_descriptor
+{
 	struct gfs2_meta_header ld_header;
 
 	__be32 ld_type;		/* GFS2_LOG_DESC_... */
@@ -440,7 +459,8 @@ struct gfs2_log_descriptor {
 
 #define GFS2_INUM_QUANTUM	1048576
 
-struct gfs2_inum_range {
+struct gfs2_inum_range
+{
 	__be64 ir_start;
 	__be64 ir_length;
 };
@@ -451,7 +471,8 @@ struct gfs2_inum_range {
  * blocks.
  */
 
-struct gfs2_statfs_change {
+struct gfs2_statfs_change
+{
 	__be64 sc_total;
 	__be64 sc_free;
 	__be64 sc_dinodes;
@@ -465,18 +486,20 @@ struct gfs2_statfs_change {
 
 #define GFS2_QCF_USER		0x00000001
 
-struct gfs2_quota_change {
+struct gfs2_quota_change
+{
 	__be64 qc_change;
 	__be32 qc_flags;	/* GFS2_QCF_... */
 	__be32 qc_id;
 };
 
-struct gfs2_quota_lvb {
-        __be32 qb_magic;
-        __u32 __pad;
-        __be64 qb_limit;      /* Hard limit of # blocks to alloc */
-        __be64 qb_warn;       /* Warn user when alloc is above this # */
-        __be64 qb_value;       /* Current # blocks allocated */
+struct gfs2_quota_lvb
+{
+	__be32 qb_magic;
+	__u32 __pad;
+	__be64 qb_limit;      /* Hard limit of # blocks to alloc */
+	__be64 qb_warn;       /* Warn user when alloc is above this # */
+	__be64 qb_value;       /* Current # blocks allocated */
 };
 
 #endif /* __GFS2_ONDISK_DOT_H__ */

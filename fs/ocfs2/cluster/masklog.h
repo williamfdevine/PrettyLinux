@@ -107,7 +107,7 @@
 
 #define MLOG_INITIAL_AND_MASK (ML_ERROR|ML_NOTICE)
 #ifndef MLOG_MASK_PREFIX
-#define MLOG_MASK_PREFIX 0
+	#define MLOG_MASK_PREFIX 0
 #endif
 
 /*
@@ -116,14 +116,15 @@
  * When enabled, allow all masks.
  */
 #if defined(CONFIG_OCFS2_DEBUG_MASKLOG)
-#define ML_ALLOWED_BITS ~0
+	#define ML_ALLOWED_BITS ~0
 #else
-#define ML_ALLOWED_BITS (ML_ERROR|ML_NOTICE)
+	#define ML_ALLOWED_BITS (ML_ERROR|ML_NOTICE)
 #endif
 
 #define MLOG_MAX_BITS 64
 
-struct mlog_bits {
+struct mlog_bits
+{
 	unsigned long words[MLOG_MAX_BITS / BITS_PER_LONG];
 };
 
@@ -135,65 +136,65 @@ extern struct mlog_bits mlog_and_bits, mlog_not_bits;
 	( (u32)(mask & 0xffffffff) & bits.words[0] || 	\
 	  ((u64)(mask) >> 32) & bits.words[1] )
 #define __mlog_set_u64(mask, bits) do {			\
-	bits.words[0] |= (u32)(mask & 0xffffffff);	\
-       	bits.words[1] |= (u64)(mask) >> 32;		\
-} while (0)
+		bits.words[0] |= (u32)(mask & 0xffffffff);	\
+		bits.words[1] |= (u64)(mask) >> 32;		\
+	} while (0)
 #define __mlog_clear_u64(mask, bits) do {		\
-	bits.words[0] &= ~((u32)(mask & 0xffffffff));	\
-       	bits.words[1] &= ~((u64)(mask) >> 32);		\
-} while (0)
+		bits.words[0] &= ~((u32)(mask & 0xffffffff));	\
+		bits.words[1] &= ~((u64)(mask) >> 32);		\
+	} while (0)
 #define MLOG_BITS_RHS(mask) {				\
-	{						\
-		[0] = (u32)(mask & 0xffffffff),		\
-		[1] = (u64)(mask) >> 32,		\
-	}						\
-}
+		{						\
+			[0] = (u32)(mask & 0xffffffff),		\
+				  [1] = (u64)(mask) >> 32,		\
+		}						\
+	}
 
 #else /* 32bit long above, 64bit long below */
 
 #define __mlog_test_u64(mask, bits)	((mask) & bits.words[0])
 #define __mlog_set_u64(mask, bits) do {		\
-	bits.words[0] |= (mask);		\
-} while (0)
+		bits.words[0] |= (mask);		\
+	} while (0)
 #define __mlog_clear_u64(mask, bits) do {	\
-	bits.words[0] &= ~(mask);		\
-} while (0)
+		bits.words[0] &= ~(mask);		\
+	} while (0)
 #define MLOG_BITS_RHS(mask) { { (mask) } }
 
 #endif
 
 __printf(4, 5)
 void __mlog_printk(const u64 *m, const char *func, int line,
-		   const char *fmt, ...);
+				   const char *fmt, ...);
 
 /*
  * Testing before the __mlog_printk call lets the compiler eliminate the
  * call completely when (m & ML_ALLOWED_BITS) is 0.
  */
 #define mlog(mask, fmt, ...)						\
-do {									\
-	u64 _m = MLOG_MASK_PREFIX | (mask);				\
-	if (_m & ML_ALLOWED_BITS)					\
-		__mlog_printk(&_m, __func__, __LINE__, fmt,		\
-			      ##__VA_ARGS__);				\
-} while (0)
+	do {									\
+		u64 _m = MLOG_MASK_PREFIX | (mask);				\
+		if (_m & ML_ALLOWED_BITS)					\
+			__mlog_printk(&_m, __func__, __LINE__, fmt,		\
+						  ##__VA_ARGS__);				\
+	} while (0)
 
 #define mlog_errno(st) ({						\
-	int _st = (st);							\
-	if (_st != -ERESTARTSYS && _st != -EINTR &&			\
-	    _st != AOP_TRUNCATED_PAGE && _st != -ENOSPC &&		\
-	    _st != -EDQUOT)						\
-		mlog(ML_ERROR, "status = %lld\n", (long long)_st);	\
-	_st;								\
-})
+		int _st = (st);							\
+		if (_st != -ERESTARTSYS && _st != -EINTR &&			\
+			_st != AOP_TRUNCATED_PAGE && _st != -ENOSPC &&		\
+			_st != -EDQUOT)						\
+			mlog(ML_ERROR, "status = %lld\n", (long long)_st);	\
+		_st;								\
+	})
 
 #define mlog_bug_on_msg(cond, fmt, args...) do {			\
-	if (cond) {							\
-		mlog(ML_ERROR, "bug expression: " #cond "\n");		\
-		mlog(ML_ERROR, fmt, ##args);				\
-		BUG();							\
-	}								\
-} while (0)
+		if (cond) {							\
+			mlog(ML_ERROR, "bug expression: " #cond "\n");		\
+			mlog(ML_ERROR, fmt, ##args);				\
+			BUG();							\
+		}								\
+	} while (0)
 
 #include <linux/kobject.h>
 #include <linux/sysfs.h>

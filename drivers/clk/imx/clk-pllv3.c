@@ -37,7 +37,8 @@
  * IMX PLL clock version 3, found on i.MX6 series.  Divider for pllv3
  * is actually a multiplier, and always sits at bit 0.
  */
-struct clk_pllv3 {
+struct clk_pllv3
+{
 	struct clk_hw	hw;
 	void __iomem	*base;
 	u32		power_bit;
@@ -56,16 +57,26 @@ static int clk_pllv3_wait_lock(struct clk_pllv3 *pll)
 
 	/* No need to wait for lock when pll is not powered up */
 	if ((pll->powerup_set && !val) || (!pll->powerup_set && val))
+	{
 		return 0;
+	}
 
 	/* Wait for PLL to lock */
-	do {
+	do
+	{
 		if (readl_relaxed(pll->base) & BM_PLL_LOCK)
+		{
 			break;
+		}
+
 		if (time_after(jiffies, timeout))
+		{
 			break;
+		}
+
 		usleep_range(50, 500);
-	} while (1);
+	}
+	while (1);
 
 	return readl_relaxed(pll->base) & BM_PLL_LOCK ? 0 : -ETIMEDOUT;
 }
@@ -76,10 +87,16 @@ static int clk_pllv3_prepare(struct clk_hw *hw)
 	u32 val;
 
 	val = readl_relaxed(pll->base);
+
 	if (pll->powerup_set)
+	{
 		val |= pll->power_bit;
+	}
 	else
+	{
 		val &= ~pll->power_bit;
+	}
+
 	writel_relaxed(val, pll->base);
 
 	return clk_pllv3_wait_lock(pll);
@@ -91,10 +108,16 @@ static void clk_pllv3_unprepare(struct clk_hw *hw)
 	u32 val;
 
 	val = readl_relaxed(pll->base);
+
 	if (pll->powerup_set)
+	{
 		val &= ~pll->power_bit;
+	}
 	else
+	{
 		val |= pll->power_bit;
+	}
+
 	writel_relaxed(val, pll->base);
 }
 
@@ -103,13 +126,15 @@ static int clk_pllv3_is_prepared(struct clk_hw *hw)
 	struct clk_pllv3 *pll = to_clk_pllv3(hw);
 
 	if (readl_relaxed(pll->base) & BM_PLL_LOCK)
+	{
 		return 1;
+	}
 
 	return 0;
 }
 
 static unsigned long clk_pllv3_recalc_rate(struct clk_hw *hw,
-					   unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct clk_pllv3 *pll = to_clk_pllv3(hw);
 	u32 div = (readl_relaxed(pll->base) >> pll->div_shift)  & pll->div_mask;
@@ -118,26 +143,32 @@ static unsigned long clk_pllv3_recalc_rate(struct clk_hw *hw,
 }
 
 static long clk_pllv3_round_rate(struct clk_hw *hw, unsigned long rate,
-				 unsigned long *prate)
+								 unsigned long *prate)
 {
 	unsigned long parent_rate = *prate;
 
 	return (rate >= parent_rate * 22) ? parent_rate * 22 :
-					    parent_rate * 20;
+		   parent_rate * 20;
 }
 
 static int clk_pllv3_set_rate(struct clk_hw *hw, unsigned long rate,
-		unsigned long parent_rate)
+							  unsigned long parent_rate)
 {
 	struct clk_pllv3 *pll = to_clk_pllv3(hw);
 	u32 val, div;
 
 	if (rate == parent_rate * 22)
+	{
 		div = 1;
+	}
 	else if (rate == parent_rate * 20)
+	{
 		div = 0;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	val = readl_relaxed(pll->base);
 	val &= ~(pll->div_mask << pll->div_shift);
@@ -147,7 +178,8 @@ static int clk_pllv3_set_rate(struct clk_hw *hw, unsigned long rate,
 	return clk_pllv3_wait_lock(pll);
 }
 
-static const struct clk_ops clk_pllv3_ops = {
+static const struct clk_ops clk_pllv3_ops =
+{
 	.prepare	= clk_pllv3_prepare,
 	.unprepare	= clk_pllv3_unprepare,
 	.is_prepared	= clk_pllv3_is_prepared,
@@ -157,7 +189,7 @@ static const struct clk_ops clk_pllv3_ops = {
 };
 
 static unsigned long clk_pllv3_sys_recalc_rate(struct clk_hw *hw,
-					       unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct clk_pllv3 *pll = to_clk_pllv3(hw);
 	u32 div = readl_relaxed(pll->base) & pll->div_mask;
@@ -166,7 +198,7 @@ static unsigned long clk_pllv3_sys_recalc_rate(struct clk_hw *hw,
 }
 
 static long clk_pllv3_sys_round_rate(struct clk_hw *hw, unsigned long rate,
-				     unsigned long *prate)
+									 unsigned long *prate)
 {
 	unsigned long parent_rate = *prate;
 	unsigned long min_rate = parent_rate * 54 / 2;
@@ -174,16 +206,21 @@ static long clk_pllv3_sys_round_rate(struct clk_hw *hw, unsigned long rate,
 	u32 div;
 
 	if (rate > max_rate)
+	{
 		rate = max_rate;
+	}
 	else if (rate < min_rate)
+	{
 		rate = min_rate;
+	}
+
 	div = rate * 2 / parent_rate;
 
 	return parent_rate * div / 2;
 }
 
 static int clk_pllv3_sys_set_rate(struct clk_hw *hw, unsigned long rate,
-		unsigned long parent_rate)
+								  unsigned long parent_rate)
 {
 	struct clk_pllv3 *pll = to_clk_pllv3(hw);
 	unsigned long min_rate = parent_rate * 54 / 2;
@@ -191,7 +228,9 @@ static int clk_pllv3_sys_set_rate(struct clk_hw *hw, unsigned long rate,
 	u32 val, div;
 
 	if (rate < min_rate || rate > max_rate)
+	{
 		return -EINVAL;
+	}
 
 	div = rate * 2 / parent_rate;
 	val = readl_relaxed(pll->base);
@@ -202,7 +241,8 @@ static int clk_pllv3_sys_set_rate(struct clk_hw *hw, unsigned long rate,
 	return clk_pllv3_wait_lock(pll);
 }
 
-static const struct clk_ops clk_pllv3_sys_ops = {
+static const struct clk_ops clk_pllv3_sys_ops =
+{
 	.prepare	= clk_pllv3_prepare,
 	.unprepare	= clk_pllv3_unprepare,
 	.is_prepared	= clk_pllv3_is_prepared,
@@ -212,7 +252,7 @@ static const struct clk_ops clk_pllv3_sys_ops = {
 };
 
 static unsigned long clk_pllv3_av_recalc_rate(struct clk_hw *hw,
-					      unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct clk_pllv3 *pll = to_clk_pllv3(hw);
 	u32 mfn = readl_relaxed(pll->base + PLL_NUM_OFFSET);
@@ -227,7 +267,7 @@ static unsigned long clk_pllv3_av_recalc_rate(struct clk_hw *hw,
 }
 
 static long clk_pllv3_av_round_rate(struct clk_hw *hw, unsigned long rate,
-				    unsigned long *prate)
+									unsigned long *prate)
 {
 	unsigned long parent_rate = *prate;
 	unsigned long min_rate = parent_rate * 27;
@@ -237,9 +277,13 @@ static long clk_pllv3_av_round_rate(struct clk_hw *hw, unsigned long rate,
 	u64 temp64;
 
 	if (rate > max_rate)
+	{
 		rate = max_rate;
+	}
 	else if (rate < min_rate)
+	{
 		rate = min_rate;
+	}
 
 	div = rate / parent_rate;
 	temp64 = (u64) (rate - div * parent_rate);
@@ -255,7 +299,7 @@ static long clk_pllv3_av_round_rate(struct clk_hw *hw, unsigned long rate,
 }
 
 static int clk_pllv3_av_set_rate(struct clk_hw *hw, unsigned long rate,
-		unsigned long parent_rate)
+								 unsigned long parent_rate)
 {
 	struct clk_pllv3 *pll = to_clk_pllv3(hw);
 	unsigned long min_rate = parent_rate * 27;
@@ -265,7 +309,9 @@ static int clk_pllv3_av_set_rate(struct clk_hw *hw, unsigned long rate,
 	u64 temp64;
 
 	if (rate < min_rate || rate > max_rate)
+	{
 		return -EINVAL;
+	}
 
 	div = rate / parent_rate;
 	temp64 = (u64) (rate - div * parent_rate);
@@ -283,7 +329,8 @@ static int clk_pllv3_av_set_rate(struct clk_hw *hw, unsigned long rate,
 	return clk_pllv3_wait_lock(pll);
 }
 
-static const struct clk_ops clk_pllv3_av_ops = {
+static const struct clk_ops clk_pllv3_av_ops =
+{
 	.prepare	= clk_pllv3_prepare,
 	.unprepare	= clk_pllv3_unprepare,
 	.is_prepared	= clk_pllv3_is_prepared,
@@ -293,14 +340,15 @@ static const struct clk_ops clk_pllv3_av_ops = {
 };
 
 static unsigned long clk_pllv3_enet_recalc_rate(struct clk_hw *hw,
-						unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct clk_pllv3 *pll = to_clk_pllv3(hw);
 
 	return pll->ref_clock;
 }
 
-static const struct clk_ops clk_pllv3_enet_ops = {
+static const struct clk_ops clk_pllv3_enet_ops =
+{
 	.prepare	= clk_pllv3_prepare,
 	.unprepare	= clk_pllv3_unprepare,
 	.is_prepared	= clk_pllv3_is_prepared,
@@ -308,8 +356,8 @@ static const struct clk_ops clk_pllv3_enet_ops = {
 };
 
 struct clk *imx_clk_pllv3(enum imx_pllv3_type type, const char *name,
-			  const char *parent_name, void __iomem *base,
-			  u32 div_mask)
+						  const char *parent_name, void __iomem *base,
+						  u32 div_mask)
 {
 	struct clk_pllv3 *pll;
 	const struct clk_ops *ops;
@@ -317,36 +365,47 @@ struct clk *imx_clk_pllv3(enum imx_pllv3_type type, const char *name,
 	struct clk_init_data init;
 
 	pll = kzalloc(sizeof(*pll), GFP_KERNEL);
+
 	if (!pll)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	pll->power_bit = BM_PLL_POWER;
 
-	switch (type) {
-	case IMX_PLLV3_SYS:
-		ops = &clk_pllv3_sys_ops;
-		break;
-	case IMX_PLLV3_USB_VF610:
-		pll->div_shift = 1;
-	case IMX_PLLV3_USB:
-		ops = &clk_pllv3_ops;
-		pll->powerup_set = true;
-		break;
-	case IMX_PLLV3_AV:
-		ops = &clk_pllv3_av_ops;
-		break;
-	case IMX_PLLV3_ENET_IMX7:
-		pll->power_bit = IMX7_ENET_PLL_POWER;
-		pll->ref_clock = 1000000000;
-		ops = &clk_pllv3_enet_ops;
-		break;
-	case IMX_PLLV3_ENET:
-		pll->ref_clock = 500000000;
-		ops = &clk_pllv3_enet_ops;
-		break;
-	default:
-		ops = &clk_pllv3_ops;
+	switch (type)
+	{
+		case IMX_PLLV3_SYS:
+			ops = &clk_pllv3_sys_ops;
+			break;
+
+		case IMX_PLLV3_USB_VF610:
+			pll->div_shift = 1;
+
+		case IMX_PLLV3_USB:
+			ops = &clk_pllv3_ops;
+			pll->powerup_set = true;
+			break;
+
+		case IMX_PLLV3_AV:
+			ops = &clk_pllv3_av_ops;
+			break;
+
+		case IMX_PLLV3_ENET_IMX7:
+			pll->power_bit = IMX7_ENET_PLL_POWER;
+			pll->ref_clock = 1000000000;
+			ops = &clk_pllv3_enet_ops;
+			break;
+
+		case IMX_PLLV3_ENET:
+			pll->ref_clock = 500000000;
+			ops = &clk_pllv3_enet_ops;
+			break;
+
+		default:
+			ops = &clk_pllv3_ops;
 	}
+
 	pll->base = base;
 	pll->div_mask = div_mask;
 
@@ -359,8 +418,11 @@ struct clk *imx_clk_pllv3(enum imx_pllv3_type type, const char *name,
 	pll->hw.init = &init;
 
 	clk = clk_register(NULL, &pll->hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(pll);
+	}
 
 	return clk;
 }

@@ -11,7 +11,8 @@
 #ifndef __CS42L56_H
 #define __CS42L56_H
 
-struct cs42l56_platform_data {
+struct cs42l56_platform_data
+{
 
 	/* GPIO for Reset */
 	unsigned int gpio_nreset;

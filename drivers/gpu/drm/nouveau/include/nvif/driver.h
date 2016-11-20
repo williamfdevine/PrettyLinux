@@ -1,10 +1,11 @@
 #ifndef __NVIF_DRIVER_H__
 #define __NVIF_DRIVER_H__
 
-struct nvif_driver {
+struct nvif_driver
+{
 	const char *name;
 	int (*init)(const char *name, u64 device, const char *cfg,
-		    const char *dbg, void **priv);
+				const char *dbg, void **priv);
 	void (*fini)(void *priv);
 	int (*suspend)(void *priv);
 	int (*resume)(void *priv);

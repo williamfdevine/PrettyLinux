@@ -25,13 +25,17 @@ static struct nvm_target *gen_find_target(struct gen_dev *gn, const char *name)
 	struct nvm_target *tgt;
 
 	list_for_each_entry(tgt, &gn->targets, list)
-		if (!strcmp(name, tgt->disk->disk_name))
-			return tgt;
+
+	if (!strcmp(name, tgt->disk->disk_name))
+	{
+		return tgt;
+	}
 
 	return NULL;
 }
 
-static const struct block_device_operations gen_fops = {
+static const struct block_device_operations gen_fops =
+{
 	.owner		= THIS_MODULE,
 };
 
@@ -46,32 +50,47 @@ static int gen_create_tgt(struct nvm_dev *dev, struct nvm_ioctl_create *create)
 	void *targetdata;
 
 	tt = nvm_find_target_type(create->tgttype, 1);
-	if (!tt) {
+
+	if (!tt)
+	{
 		pr_err("nvm: target type %s not found\n", create->tgttype);
 		return -EINVAL;
 	}
 
 	mutex_lock(&gn->lock);
 	t = gen_find_target(gn, create->tgtname);
-	if (t) {
+
+	if (t)
+	{
 		pr_err("nvm: target name already exists.\n");
 		mutex_unlock(&gn->lock);
 		return -EINVAL;
 	}
+
 	mutex_unlock(&gn->lock);
 
 	t = kmalloc(sizeof(struct nvm_target), GFP_KERNEL);
+
 	if (!t)
+	{
 		return -ENOMEM;
+	}
 
 	tqueue = blk_alloc_queue_node(GFP_KERNEL, dev->q->node);
+
 	if (!tqueue)
+	{
 		goto err_t;
+	}
+
 	blk_queue_make_request(tqueue, tt->make_rq);
 
 	tdisk = alloc_disk(0);
+
 	if (!tdisk)
+	{
 		goto err_queue;
+	}
 
 	sprintf(tdisk->disk_name, "%s", create->tgtname);
 	tdisk->flags = GENHD_FL_EXT_DEVT;
@@ -81,8 +100,11 @@ static int gen_create_tgt(struct nvm_dev *dev, struct nvm_ioctl_create *create)
 	tdisk->queue = tqueue;
 
 	targetdata = tt->init(dev, tdisk, s->lun_begin, s->lun_end);
+
 	if (IS_ERR(targetdata))
+	{
 		goto err_init;
+	}
 
 	tdisk->private_data = targetdata;
 	tqueue->queuedata = targetdata;
@@ -120,7 +142,9 @@ static void __gen_remove_target(struct nvm_target *t)
 	blk_cleanup_queue(q);
 
 	if (tt->exit)
+	{
 		tt->exit(tdisk->private_data);
+	}
 
 	put_disk(tdisk);
 
@@ -144,14 +168,19 @@ static int gen_remove_tgt(struct nvm_dev *dev, struct nvm_ioctl_remove *remove)
 	struct nvm_target *t;
 
 	if (!gn)
+	{
 		return 1;
+	}
 
 	mutex_lock(&gn->lock);
 	t = gen_find_target(gn, remove->tgtname);
-	if (!t) {
+
+	if (!t)
+	{
 		mutex_unlock(&gn->lock);
 		return 1;
 	}
+
 	__gen_remove_target(t);
 	mutex_unlock(&gn->lock);
 
@@ -166,25 +195,34 @@ static int gen_get_area(struct nvm_dev *dev, sector_t *lba, sector_t len)
 	sector_t max_sectors = (dev->sec_size * dev->total_secs) >> 9;
 
 	if (len > max_sectors)
+	{
 		return -EINVAL;
+	}
 
 	area = kmalloc(sizeof(struct gen_area), GFP_KERNEL);
+
 	if (!area)
+	{
 		return -ENOMEM;
+	}
 
 	prev = NULL;
 
 	spin_lock(&dev->lock);
-	list_for_each_entry(next, &gn->area_list, list) {
-		if (begin + len > next->begin) {
+	list_for_each_entry(next, &gn->area_list, list)
+	{
+		if (begin + len > next->begin)
+		{
 			begin = next->end;
 			prev = next;
 			continue;
 		}
+
 		break;
 	}
 
-	if ((begin + len) > max_sectors) {
+	if ((begin + len) > max_sectors)
+	{
 		spin_unlock(&dev->lock);
 		kfree(area);
 		return -EINVAL;
@@ -194,9 +232,14 @@ static int gen_get_area(struct nvm_dev *dev, sector_t *lba, sector_t len)
 	area->end = begin + len;
 
 	if (prev) /* insert into sorted order */
+	{
 		list_add(&area->list, &prev->list);
+	}
 	else
+	{
 		list_add(&area->list, &gn->area_list);
+	}
+
 	spin_unlock(&dev->lock);
 
 	return 0;
@@ -208,9 +251,12 @@ static void gen_put_area(struct nvm_dev *dev, sector_t begin)
 	struct gen_area *area;
 
 	spin_lock(&dev->lock);
-	list_for_each_entry(area, &gn->area_list, list) {
+	list_for_each_entry(area, &gn->area_list, list)
+	{
 		if (area->begin != begin)
+		{
 			continue;
+		}
 
 		list_del(&area->list);
 		spin_unlock(&dev->lock);
@@ -226,9 +272,13 @@ static void gen_blocks_free(struct nvm_dev *dev)
 	struct gen_lun *lun;
 	int i;
 
-	gen_for_each_lun(gn, lun, i) {
+	gen_for_each_lun(gn, lun, i)
+	{
 		if (!lun->vlun.blocks)
+		{
 			break;
+		}
+
 		vfree(lun->vlun.blocks);
 	}
 }
@@ -246,10 +296,14 @@ static int gen_luns_init(struct nvm_dev *dev, struct gen_dev *gn)
 	int i;
 
 	gn->luns = kcalloc(dev->nr_luns, sizeof(struct gen_lun), GFP_KERNEL);
-	if (!gn->luns)
-		return -ENOMEM;
 
-	gen_for_each_lun(gn, lun, i) {
+	if (!gn->luns)
+	{
+		return -ENOMEM;
+	}
+
+	gen_for_each_lun(gn, lun, i)
+	{
 		spin_lock_init(&lun->vlun.lock);
 		INIT_LIST_HEAD(&lun->free_list);
 		INIT_LIST_HEAD(&lun->used_list);
@@ -265,7 +319,7 @@ static int gen_luns_init(struct nvm_dev *dev, struct gen_dev *gn)
 }
 
 static int gen_block_bb(struct gen_dev *gn, struct ppa_addr ppa,
-							u8 *blks, int nr_blks)
+						u8 *blks, int nr_blks)
 {
 	struct nvm_dev *dev = gn->dev;
 	struct gen_lun *lun;
@@ -273,14 +327,20 @@ static int gen_block_bb(struct gen_dev *gn, struct ppa_addr ppa,
 	int i;
 
 	nr_blks = nvm_bb_tbl_fold(dev, blks, nr_blks);
+
 	if (nr_blks < 0)
+	{
 		return nr_blks;
+	}
 
 	lun = &gn->luns[(dev->luns_per_chnl * ppa.g.ch) + ppa.g.lun];
 
-	for (i = 0; i < nr_blks; i++) {
+	for (i = 0; i < nr_blks; i++)
+	{
 		if (blks[i] == 0)
+		{
 			continue;
+		}
 
 		blk = &lun->vlun.blocks[i];
 		list_move_tail(&blk->list, &lun->bb_list);
@@ -300,15 +360,18 @@ static int gen_block_map(u64 slba, u32 nlb, __le64 *entries, void *private)
 	u64 i;
 	int lun_id;
 
-	if (unlikely(elba > dev->total_secs)) {
+	if (unlikely(elba > dev->total_secs))
+	{
 		pr_err("gen: L2P data from device is out of bounds!\n");
 		return -EINVAL;
 	}
 
-	for (i = 0; i < nlb; i++) {
+	for (i = 0; i < nlb; i++)
+	{
 		u64 pba = le64_to_cpu(entries[i]);
 
-		if (unlikely(pba >= dev->total_secs && pba != U64_MAX)) {
+		if (unlikely(pba >= dev->total_secs && pba != U64_MAX))
+		{
 			pr_err("gen: L2P data entry is out of bounds!\n");
 			return -EINVAL;
 		}
@@ -318,7 +381,9 @@ static int gen_block_map(u64 slba, u32 nlb, __le64 *entries, void *private)
 		 * information.
 		 */
 		if (!pba)
+		{
 			continue;
+		}
 
 		/* resolve block from physical address */
 		lun_id = div_u64(pba, dev->sec_per_lun);
@@ -328,7 +393,8 @@ static int gen_block_map(u64 slba, u32 nlb, __le64 *entries, void *private)
 		pba = pba - (dev->sec_per_lun * lun_id);
 		blk = &lun->vlun.blocks[div_u64(pba, dev->sec_per_blk)];
 
-		if (!blk->state) {
+		if (!blk->state)
+		{
 			/* at this point, we don't know anything about the
 			 * block. It's up to the FTL on top to re-etablish the
 			 * block state. The block is assumed to be open.
@@ -352,18 +418,25 @@ static int gen_blocks_init(struct nvm_dev *dev, struct gen_dev *gn)
 
 	nr_blks = dev->blks_per_lun * dev->plane_mode;
 	blks = kmalloc(nr_blks, GFP_KERNEL);
-	if (!blks)
-		return -ENOMEM;
 
-	gen_for_each_lun(gn, lun, lun_iter) {
+	if (!blks)
+	{
+		return -ENOMEM;
+	}
+
+	gen_for_each_lun(gn, lun, lun_iter)
+	{
 		lun->vlun.blocks = vzalloc(sizeof(struct nvm_block) *
-							dev->blks_per_lun);
-		if (!lun->vlun.blocks) {
+								   dev->blks_per_lun);
+
+		if (!lun->vlun.blocks)
+		{
 			kfree(blks);
 			return -ENOMEM;
 		}
 
-		for (blk_iter = 0; blk_iter < dev->blks_per_lun; blk_iter++) {
+		for (blk_iter = 0; blk_iter < dev->blks_per_lun; blk_iter++)
+		{
 			block = &lun->vlun.blocks[blk_iter];
 
 			INIT_LIST_HEAD(&block->list);
@@ -372,7 +445,8 @@ static int gen_blocks_init(struct nvm_dev *dev, struct gen_dev *gn)
 			block->id = cur_block_id++;
 
 			/* First block is reserved for device */
-			if (unlikely(lun_iter == 0 && blk_iter == 0)) {
+			if (unlikely(lun_iter == 0 && blk_iter == 0))
+			{
 				lun->vlun.nr_free_blocks--;
 				continue;
 			}
@@ -380,7 +454,8 @@ static int gen_blocks_init(struct nvm_dev *dev, struct gen_dev *gn)
 			list_add_tail(&block->list, &lun->free_list);
 		}
 
-		if (dev->ops->get_bb_tbl) {
+		if (dev->ops->get_bb_tbl)
+		{
 			struct ppa_addr ppa;
 
 			ppa.ppa = 0;
@@ -388,19 +463,28 @@ static int gen_blocks_init(struct nvm_dev *dev, struct gen_dev *gn)
 			ppa.g.lun = lun->vlun.lun_id;
 
 			ret = nvm_get_bb_tbl(dev, ppa, blks);
+
 			if (ret)
+			{
 				pr_err("gen: could not get BB table\n");
+			}
 
 			ret = gen_block_bb(gn, ppa, blks, nr_blks);
+
 			if (ret)
+			{
 				pr_err("gen: BB table map failed\n");
+			}
 		}
 	}
 
-	if ((dev->identity.dom & NVM_RSP_L2P) && dev->ops->get_l2p_tbl) {
+	if ((dev->identity.dom & NVM_RSP_L2P) && dev->ops->get_l2p_tbl)
+	{
 		ret = dev->ops->get_l2p_tbl(dev, 0, dev->total_secs,
-							gen_block_map, dev);
-		if (ret) {
+									gen_block_map, dev);
+
+		if (ret)
+		{
 			pr_err("gen: could not read L2P table.\n");
 			pr_warn("gen: default block initialization");
 		}
@@ -424,11 +508,16 @@ static int gen_register(struct nvm_dev *dev)
 	int ret;
 
 	if (!try_module_get(THIS_MODULE))
+	{
 		return -ENODEV;
+	}
 
 	gn = kzalloc(sizeof(struct gen_dev), GFP_KERNEL);
+
 	if (!gn)
+	{
 		return -ENOMEM;
+	}
 
 	gn->dev = dev;
 	gn->nr_luns = dev->nr_luns;
@@ -438,13 +527,17 @@ static int gen_register(struct nvm_dev *dev)
 	dev->mp = gn;
 
 	ret = gen_luns_init(dev, gn);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("gen: could not initialize luns\n");
 		goto err;
 	}
 
 	ret = gen_blocks_init(dev, gn);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("gen: could not initialize blocks\n");
 		goto err;
 	}
@@ -462,9 +555,13 @@ static void gen_unregister(struct nvm_dev *dev)
 	struct nvm_target *t, *tmp;
 
 	mutex_lock(&gn->lock);
-	list_for_each_entry_safe(t, tmp, &gn->targets, list) {
+	list_for_each_entry_safe(t, tmp, &gn->targets, list)
+	{
 		if (t->dev != dev)
+		{
 			continue;
+		}
+
 		__gen_remove_target(t);
 	}
 	mutex_unlock(&gn->lock);
@@ -474,21 +571,25 @@ static void gen_unregister(struct nvm_dev *dev)
 }
 
 static struct nvm_block *gen_get_blk(struct nvm_dev *dev,
-				struct nvm_lun *vlun, unsigned long flags)
+									 struct nvm_lun *vlun, unsigned long flags)
 {
 	struct gen_lun *lun = container_of(vlun, struct gen_lun, vlun);
 	struct nvm_block *blk = NULL;
 	int is_gc = flags & NVM_IOTYPE_GC;
 
 	spin_lock(&vlun->lock);
-	if (list_empty(&lun->free_list)) {
+
+	if (list_empty(&lun->free_list))
+	{
 		pr_err_ratelimited("gen: lun %u have no free pages available",
-								lun->vlun.id);
+						   lun->vlun.id);
 		goto out;
 	}
 
 	if (!is_gc && lun->vlun.nr_free_blocks < lun->reserved_blocks)
+	{
 		goto out;
+	}
 
 	blk = list_first_entry(&lun->free_list, struct nvm_block, list);
 
@@ -506,19 +607,26 @@ static void gen_put_blk(struct nvm_dev *dev, struct nvm_block *blk)
 	struct gen_lun *lun = container_of(vlun, struct gen_lun, vlun);
 
 	spin_lock(&vlun->lock);
-	if (blk->state & NVM_BLK_ST_TGT) {
+
+	if (blk->state & NVM_BLK_ST_TGT)
+	{
 		list_move_tail(&blk->list, &lun->free_list);
 		lun->vlun.nr_free_blocks++;
 		blk->state = NVM_BLK_ST_FREE;
-	} else if (blk->state & NVM_BLK_ST_BAD) {
+	}
+	else if (blk->state & NVM_BLK_ST_BAD)
+	{
 		list_move_tail(&blk->list, &lun->bb_list);
 		blk->state = NVM_BLK_ST_BAD;
-	} else {
+	}
+	else
+	{
 		WARN_ON_ONCE(1);
 		pr_err("gen: erroneous block type (%lu -> %u)\n",
-							blk->id, blk->state);
+			   blk->id, blk->state);
 		list_move_tail(&blk->list, &lun->bb_list);
 	}
+
 	spin_unlock(&vlun->lock);
 }
 
@@ -529,16 +637,17 @@ static void gen_mark_blk(struct nvm_dev *dev, struct ppa_addr ppa, int type)
 	struct nvm_block *blk;
 
 	pr_debug("gen: ppa  (ch: %u lun: %u blk: %u pg: %u) -> %u\n",
-			ppa.g.ch, ppa.g.lun, ppa.g.blk, ppa.g.pg, type);
+			 ppa.g.ch, ppa.g.lun, ppa.g.blk, ppa.g.pg, type);
 
 	if (unlikely(ppa.g.ch > dev->nr_chnls ||
-					ppa.g.lun > dev->luns_per_chnl ||
-					ppa.g.blk > dev->blks_per_lun)) {
+				 ppa.g.lun > dev->luns_per_chnl ||
+				 ppa.g.blk > dev->blks_per_lun))
+	{
 		WARN_ON_ONCE(1);
 		pr_err("gen: ppa broken (ch: %u > %u lun: %u > %u blk: %u > %u",
-				ppa.g.ch, dev->nr_chnls,
-				ppa.g.lun, dev->luns_per_chnl,
-				ppa.g.blk, dev->blks_per_lun);
+			   ppa.g.ch, dev->nr_chnls,
+			   ppa.g.lun, dev->luns_per_chnl,
+			   ppa.g.blk, dev->blks_per_lun);
 		return;
 	}
 
@@ -561,13 +670,16 @@ static void gen_mark_blk_bad(struct nvm_dev *dev, struct nvm_rq *rqd)
 	nvm_addr_to_generic_mode(dev, rqd);
 
 	/* look up blocks and mark them as bad */
-	if (rqd->nr_ppas == 1) {
+	if (rqd->nr_ppas == 1)
+	{
 		gen_mark_blk(dev, rqd->ppa_addr, NVM_BLK_ST_BAD);
 		return;
 	}
 
 	while ((bit = find_next_bit(comp_bits, max_secs, bit + 1)) < max_secs)
+	{
 		gen_mark_blk(dev, rqd->ppa_list[bit], NVM_BLK_ST_BAD);
+	}
 }
 
 static void gen_end_io(struct nvm_rq *rqd)
@@ -575,7 +687,9 @@ static void gen_end_io(struct nvm_rq *rqd)
 	struct nvm_tgt_instance *ins = rqd->ins;
 
 	if (rqd->error == NVM_RSP_ERR_FAILWRITE)
+	{
 		gen_mark_blk_bad(rqd->dev, rqd);
+	}
 
 	ins->tt->end_io(rqd);
 }
@@ -583,7 +697,9 @@ static void gen_end_io(struct nvm_rq *rqd)
 static int gen_submit_io(struct nvm_dev *dev, struct nvm_rq *rqd)
 {
 	if (!dev->ops->submit_io)
+	{
 		return -ENODEV;
+	}
 
 	/* Convert address space */
 	nvm_generic_to_addr_mode(dev, rqd);
@@ -594,7 +710,7 @@ static int gen_submit_io(struct nvm_dev *dev, struct nvm_rq *rqd)
 }
 
 static int gen_erase_blk(struct nvm_dev *dev, struct nvm_block *blk,
-							unsigned long flags)
+						 unsigned long flags)
 {
 	struct ppa_addr addr = block_to_ppa(dev, blk);
 
@@ -616,7 +732,9 @@ static struct nvm_lun *gen_get_lun(struct nvm_dev *dev, int lunid)
 	struct gen_dev *gn = dev->mp;
 
 	if (unlikely(lunid >= dev->nr_luns))
+	{
 		return NULL;
+	}
 
 	return &gn->luns[lunid].vlun;
 }
@@ -628,17 +746,19 @@ static void gen_lun_info_print(struct nvm_dev *dev)
 	unsigned int i;
 
 
-	gen_for_each_lun(gn, lun, i) {
+	gen_for_each_lun(gn, lun, i)
+	{
 		spin_lock(&lun->vlun.lock);
 
 		pr_info("%s: lun%8u\t%u\n", dev->name, i,
-						lun->vlun.nr_free_blocks);
+				lun->vlun.nr_free_blocks);
 
 		spin_unlock(&lun->vlun.lock);
 	}
 }
 
-static struct nvmm_type gen = {
+static struct nvmm_type gen =
+{
 	.name			= "gennvm",
 	.version		= {0, 1, 0},
 

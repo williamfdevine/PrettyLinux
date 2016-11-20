@@ -21,7 +21,8 @@
 
 #define DM_KCOPYD_IGNORE_ERROR 1
 
-struct dm_kcopyd_throttle {
+struct dm_kcopyd_throttle
+{
 	unsigned throttle;
 	unsigned num_io_jobs;
 	unsigned io_period;
@@ -39,9 +40,9 @@ struct dm_kcopyd_throttle {
  * the amount of throttling.
  */
 #define DECLARE_DM_KCOPYD_THROTTLE_WITH_MODULE_PARM(name, description)	\
-static struct dm_kcopyd_throttle dm_kcopyd_throttle = { 100, 0, 0, 0, 0 }; \
-module_param_named(name, dm_kcopyd_throttle.throttle, uint, 0644); \
-MODULE_PARM_DESC(name, description)
+	static struct dm_kcopyd_throttle dm_kcopyd_throttle = { 100, 0, 0, 0, 0 }; \
+	module_param_named(name, dm_kcopyd_throttle.throttle, uint, 0644); \
+	MODULE_PARM_DESC(name, description)
 
 /*
  * To use kcopyd you must first create a dm_kcopyd_client object.
@@ -59,11 +60,11 @@ void dm_kcopyd_client_destroy(struct dm_kcopyd_client *kc);
  * write_err is a bitset, with 1 bit for each destination region
  */
 typedef void (*dm_kcopyd_notify_fn)(int read_err, unsigned long write_err,
-				    void *context);
+									void *context);
 
 int dm_kcopyd_copy(struct dm_kcopyd_client *kc, struct dm_io_region *from,
-		   unsigned num_dests, struct dm_io_region *dests,
-		   unsigned flags, dm_kcopyd_notify_fn fn, void *context);
+				   unsigned num_dests, struct dm_io_region *dests,
+				   unsigned flags, dm_kcopyd_notify_fn fn, void *context);
 
 /*
  * Prepare a callback and submit it via the kcopyd thread.
@@ -77,12 +78,12 @@ int dm_kcopyd_copy(struct dm_kcopyd_client *kc, struct dm_io_region *from,
  * The callback is issued from the kcopyd thread.
  */
 void *dm_kcopyd_prepare_callback(struct dm_kcopyd_client *kc,
-				 dm_kcopyd_notify_fn fn, void *context);
+								 dm_kcopyd_notify_fn fn, void *context);
 void dm_kcopyd_do_callback(void *job, int read_err, unsigned long write_err);
 
 int dm_kcopyd_zero(struct dm_kcopyd_client *kc,
-		   unsigned num_dests, struct dm_io_region *dests,
-		   unsigned flags, dm_kcopyd_notify_fn fn, void *context);
+				   unsigned num_dests, struct dm_io_region *dests,
+				   unsigned flags, dm_kcopyd_notify_fn fn, void *context);
 
 #endif	/* __KERNEL__ */
 #endif	/* _LINUX_DM_KCOPYD_H */

@@ -63,14 +63,22 @@ int emac_mii_reset_phy(struct mii_phy *phy)
 
 	udelay(300);
 
-	while (--limit) {
+	while (--limit)
+	{
 		val = phy_read(phy, MII_BMCR);
+
 		if (val >= 0 && (val & BMCR_RESET) == 0)
+		{
 			break;
+		}
+
 		udelay(10);
 	}
+
 	if ((val & BMCR_ISOLATE) && limit > 0)
+	{
 		phy_write(phy, MII_BMCR, val & ~BMCR_ISOLATE);
+	}
 
 	return limit <= 0;
 }
@@ -87,16 +95,25 @@ int emac_mii_reset_gpcs(struct mii_phy *phy)
 
 	udelay(300);
 
-	while (--limit) {
+	while (--limit)
+	{
 		val = gpcs_phy_read(phy, MII_BMCR);
+
 		if (val >= 0 && (val & BMCR_RESET) == 0)
+		{
 			break;
+		}
+
 		udelay(10);
 	}
-	if ((val & BMCR_ISOLATE) && limit > 0)
-		gpcs_phy_write(phy, MII_BMCR, val & ~BMCR_ISOLATE);
 
-	if (limit > 0 && phy->mode == PHY_MODE_SGMII) {
+	if ((val & BMCR_ISOLATE) && limit > 0)
+	{
+		gpcs_phy_write(phy, MII_BMCR, val & ~BMCR_ISOLATE);
+	}
+
+	if (limit > 0 && phy->mode == PHY_MODE_SGMII)
+	{
 		/* Configure GPCS interface to recommended setting for SGMII */
 		gpcs_phy_write(phy, 0x04, 0x8120); /* AsymPause, FDX */
 		gpcs_phy_write(phy, 0x07, 0x2801); /* msg_pg, toggle */
@@ -117,8 +134,12 @@ static int genmii_setup_aneg(struct mii_phy *phy, u32 advertise)
 	phy->advertising = advertise;
 
 	ctl = phy_read(phy, MII_BMCR);
+
 	if (ctl < 0)
+	{
 		return ctl;
+	}
+
 	ctl &= ~(BMCR_FULLDPLX | BMCR_SPEED100 | BMCR_SPEED1000 | BMCR_ANENABLE);
 
 	/* First clear the PHY */
@@ -126,34 +147,69 @@ static int genmii_setup_aneg(struct mii_phy *phy, u32 advertise)
 
 	/* Setup standard advertise */
 	adv = phy_read(phy, MII_ADVERTISE);
+
 	if (adv < 0)
+	{
 		return adv;
+	}
+
 	adv &= ~(ADVERTISE_ALL | ADVERTISE_100BASE4 | ADVERTISE_PAUSE_CAP |
-		 ADVERTISE_PAUSE_ASYM);
+			 ADVERTISE_PAUSE_ASYM);
+
 	if (advertise & ADVERTISED_10baseT_Half)
+	{
 		adv |= ADVERTISE_10HALF;
+	}
+
 	if (advertise & ADVERTISED_10baseT_Full)
+	{
 		adv |= ADVERTISE_10FULL;
+	}
+
 	if (advertise & ADVERTISED_100baseT_Half)
+	{
 		adv |= ADVERTISE_100HALF;
+	}
+
 	if (advertise & ADVERTISED_100baseT_Full)
+	{
 		adv |= ADVERTISE_100FULL;
+	}
+
 	if (advertise & ADVERTISED_Pause)
+	{
 		adv |= ADVERTISE_PAUSE_CAP;
+	}
+
 	if (advertise & ADVERTISED_Asym_Pause)
+	{
 		adv |= ADVERTISE_PAUSE_ASYM;
+	}
+
 	phy_write(phy, MII_ADVERTISE, adv);
 
 	if (phy->features &
-	    (SUPPORTED_1000baseT_Full | SUPPORTED_1000baseT_Half)) {
+		(SUPPORTED_1000baseT_Full | SUPPORTED_1000baseT_Half))
+	{
 		adv = phy_read(phy, MII_CTRL1000);
+
 		if (adv < 0)
+		{
 			return adv;
+		}
+
 		adv &= ~(ADVERTISE_1000FULL | ADVERTISE_1000HALF);
+
 		if (advertise & ADVERTISED_1000baseT_Full)
+		{
 			adv |= ADVERTISE_1000FULL;
+		}
+
 		if (advertise & ADVERTISED_1000baseT_Half)
+		{
 			adv |= ADVERTISE_1000HALF;
+		}
+
 		phy_write(phy, MII_CTRL1000, adv);
 	}
 
@@ -175,28 +231,40 @@ static int genmii_setup_forced(struct mii_phy *phy, int speed, int fd)
 	phy->pause = phy->asym_pause = 0;
 
 	ctl = phy_read(phy, MII_BMCR);
+
 	if (ctl < 0)
+	{
 		return ctl;
+	}
+
 	ctl &= ~(BMCR_FULLDPLX | BMCR_SPEED100 | BMCR_SPEED1000 | BMCR_ANENABLE);
 
 	/* First clear the PHY */
 	phy_write(phy, MII_BMCR, ctl | BMCR_RESET);
 
 	/* Select speed & duplex */
-	switch (speed) {
-	case SPEED_10:
-		break;
-	case SPEED_100:
-		ctl |= BMCR_SPEED100;
-		break;
-	case SPEED_1000:
-		ctl |= BMCR_SPEED1000;
-		break;
-	default:
-		return -EINVAL;
+	switch (speed)
+	{
+		case SPEED_10:
+			break;
+
+		case SPEED_100:
+			ctl |= BMCR_SPEED100;
+			break;
+
+		case SPEED_1000:
+			ctl |= BMCR_SPEED1000;
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	if (fd == DUPLEX_FULL)
+	{
 		ctl |= BMCR_FULLDPLX;
+	}
+
 	phy_write(phy, MII_BMCR, ctl);
 
 	return 0;
@@ -209,28 +277,42 @@ static int genmii_poll_link(struct mii_phy *phy)
 	/* Clear latched value with dummy read */
 	phy_read(phy, MII_BMSR);
 	status = phy_read(phy, MII_BMSR);
+
 	if (status < 0 || (status & BMSR_LSTATUS) == 0)
+	{
 		return 0;
+	}
+
 	if (phy->autoneg == AUTONEG_ENABLE && !(status & BMSR_ANEGCOMPLETE))
+	{
 		return 0;
+	}
+
 	return 1;
 }
 
 static int genmii_read_link(struct mii_phy *phy)
 {
-	if (phy->autoneg == AUTONEG_ENABLE) {
+	if (phy->autoneg == AUTONEG_ENABLE)
+	{
 		int glpa = 0;
 		int lpa = phy_read(phy, MII_LPA) & phy_read(phy, MII_ADVERTISE);
+
 		if (lpa < 0)
+		{
 			return lpa;
+		}
 
 		if (phy->features &
-		    (SUPPORTED_1000baseT_Full | SUPPORTED_1000baseT_Half)) {
+			(SUPPORTED_1000baseT_Full | SUPPORTED_1000baseT_Half))
+		{
 			int adv = phy_read(phy, MII_CTRL1000);
 			glpa = phy_read(phy, MII_STAT1000);
 
 			if (glpa < 0 || adv < 0)
+			{
 				return adv;
+			}
 
 			glpa &= adv << 2;
 		}
@@ -239,51 +321,83 @@ static int genmii_read_link(struct mii_phy *phy)
 		phy->duplex = DUPLEX_HALF;
 		phy->pause = phy->asym_pause = 0;
 
-		if (glpa & (LPA_1000FULL | LPA_1000HALF)) {
+		if (glpa & (LPA_1000FULL | LPA_1000HALF))
+		{
 			phy->speed = SPEED_1000;
-			if (glpa & LPA_1000FULL)
-				phy->duplex = DUPLEX_FULL;
-		} else if (lpa & (LPA_100FULL | LPA_100HALF)) {
-			phy->speed = SPEED_100;
-			if (lpa & LPA_100FULL)
-				phy->duplex = DUPLEX_FULL;
-		} else if (lpa & LPA_10FULL)
-			phy->duplex = DUPLEX_FULL;
 
-		if (phy->duplex == DUPLEX_FULL) {
+			if (glpa & LPA_1000FULL)
+			{
+				phy->duplex = DUPLEX_FULL;
+			}
+		}
+		else if (lpa & (LPA_100FULL | LPA_100HALF))
+		{
+			phy->speed = SPEED_100;
+
+			if (lpa & LPA_100FULL)
+			{
+				phy->duplex = DUPLEX_FULL;
+			}
+		}
+		else if (lpa & LPA_10FULL)
+		{
+			phy->duplex = DUPLEX_FULL;
+		}
+
+		if (phy->duplex == DUPLEX_FULL)
+		{
 			phy->pause = lpa & LPA_PAUSE_CAP ? 1 : 0;
 			phy->asym_pause = lpa & LPA_PAUSE_ASYM ? 1 : 0;
 		}
-	} else {
+	}
+	else
+	{
 		int bmcr = phy_read(phy, MII_BMCR);
+
 		if (bmcr < 0)
+		{
 			return bmcr;
+		}
 
 		if (bmcr & BMCR_FULLDPLX)
+		{
 			phy->duplex = DUPLEX_FULL;
+		}
 		else
+		{
 			phy->duplex = DUPLEX_HALF;
+		}
+
 		if (bmcr & BMCR_SPEED1000)
+		{
 			phy->speed = SPEED_1000;
+		}
 		else if (bmcr & BMCR_SPEED100)
+		{
 			phy->speed = SPEED_100;
+		}
 		else
+		{
 			phy->speed = SPEED_10;
+		}
 
 		phy->pause = phy->asym_pause = 0;
 	}
+
 	return 0;
 }
 
 /* Generic implementation for most 10/100/1000 PHYs */
-static struct mii_phy_ops generic_phy_ops = {
+static struct mii_phy_ops generic_phy_ops =
+{
 	.setup_aneg	= genmii_setup_aneg,
 	.setup_forced	= genmii_setup_forced,
 	.poll_link	= genmii_poll_link,
 	.read_link	= genmii_read_link
 };
 
-static struct mii_phy_def genmii_phy_def = {
+static struct mii_phy_def genmii_phy_def =
+{
 	.phy_id		= 0x00000000,
 	.phy_id_mask	= 0x00000000,
 	.name		= "Generic MII",
@@ -307,40 +421,48 @@ static int cis8201_init(struct mii_phy *phy)
 	int epcr;
 
 	epcr = phy_read(phy, MII_CIS8201_EPCR);
+
 	if (epcr < 0)
+	{
 		return epcr;
+	}
 
 	epcr &= ~EPCR_MODE_MASK;
 
-	switch (phy->mode) {
-	case PHY_MODE_TBI:
-		epcr |= EPCR_TBI_MODE;
-		break;
-	case PHY_MODE_RTBI:
-		epcr |= EPCR_RTBI_MODE;
-		break;
-	case PHY_MODE_GMII:
-		epcr |= EPCR_GMII_MODE;
-		break;
-	case PHY_MODE_RGMII:
-	default:
-		epcr |= EPCR_RGMII_MODE;
+	switch (phy->mode)
+	{
+		case PHY_MODE_TBI:
+			epcr |= EPCR_TBI_MODE;
+			break;
+
+		case PHY_MODE_RTBI:
+			epcr |= EPCR_RTBI_MODE;
+			break;
+
+		case PHY_MODE_GMII:
+			epcr |= EPCR_GMII_MODE;
+			break;
+
+		case PHY_MODE_RGMII:
+		default:
+			epcr |= EPCR_RGMII_MODE;
 	}
 
 	phy_write(phy, MII_CIS8201_EPCR, epcr);
 
 	/* MII regs override strap pins */
 	phy_write(phy, MII_CIS8201_ACSR,
-		  phy_read(phy, MII_CIS8201_ACSR) | ACSR_PIN_PRIO_SELECT);
+			  phy_read(phy, MII_CIS8201_ACSR) | ACSR_PIN_PRIO_SELECT);
 
 	/* Disable TX_EN -> CRS echo mode, otherwise 10/HDX doesn't work */
 	phy_write(phy, MII_CIS8201_10BTCSR,
-		  phy_read(phy, MII_CIS8201_10BTCSR) | TENBTCSR_ECHO_DISABLE);
+			  phy_read(phy, MII_CIS8201_10BTCSR) | TENBTCSR_ECHO_DISABLE);
 
 	return 0;
 }
 
-static struct mii_phy_ops cis8201_phy_ops = {
+static struct mii_phy_ops cis8201_phy_ops =
+{
 	.init		= cis8201_init,
 	.setup_aneg	= genmii_setup_aneg,
 	.setup_forced	= genmii_setup_forced,
@@ -348,14 +470,16 @@ static struct mii_phy_ops cis8201_phy_ops = {
 	.read_link	= genmii_read_link
 };
 
-static struct mii_phy_def cis8201_phy_def = {
+static struct mii_phy_def cis8201_phy_def =
+{
 	.phy_id		= 0x000fc410,
 	.phy_id_mask	= 0x000ffff0,
 	.name		= "CIS8201 Gigabit Ethernet",
 	.ops		= &cis8201_phy_ops
 };
 
-static struct mii_phy_def bcm5248_phy_def = {
+static struct mii_phy_def bcm5248_phy_def =
+{
 
 	.phy_id		= 0x0143bc00,
 	.phy_id_mask	= 0x0ffffff0,
@@ -420,7 +544,8 @@ static int et1011c_init(struct mii_phy *phy)
 	return 0;
 }
 
-static struct mii_phy_ops et1011c_phy_ops = {
+static struct mii_phy_ops et1011c_phy_ops =
+{
 	.init		= et1011c_init,
 	.setup_aneg	= genmii_setup_aneg,
 	.setup_forced	= genmii_setup_forced,
@@ -428,7 +553,8 @@ static struct mii_phy_ops et1011c_phy_ops = {
 	.read_link	= genmii_read_link
 };
 
-static struct mii_phy_def et1011c_phy_def = {
+static struct mii_phy_def et1011c_phy_def =
+{
 	.phy_id		= 0x0282f000,
 	.phy_id_mask	= 0x0fffff00,
 	.name		= "ET1011C Gigabit Ethernet",
@@ -439,7 +565,8 @@ static struct mii_phy_def et1011c_phy_def = {
 
 
 
-static struct mii_phy_ops m88e1111_phy_ops = {
+static struct mii_phy_ops m88e1111_phy_ops =
+{
 	.init		= m88e1111_init,
 	.setup_aneg	= genmii_setup_aneg,
 	.setup_forced	= genmii_setup_forced,
@@ -447,7 +574,8 @@ static struct mii_phy_ops m88e1111_phy_ops = {
 	.read_link	= genmii_read_link
 };
 
-static struct mii_phy_def m88e1111_phy_def = {
+static struct mii_phy_def m88e1111_phy_def =
+{
 
 	.phy_id		= 0x01410CC0,
 	.phy_id_mask	= 0x0ffffff0,
@@ -455,7 +583,8 @@ static struct mii_phy_def m88e1111_phy_def = {
 	.ops		= &m88e1111_phy_ops,
 };
 
-static struct mii_phy_ops m88e1112_phy_ops = {
+static struct mii_phy_ops m88e1112_phy_ops =
+{
 	.init		= m88e1112_init,
 	.setup_aneg	= genmii_setup_aneg,
 	.setup_forced	= genmii_setup_forced,
@@ -463,7 +592,8 @@ static struct mii_phy_ops m88e1112_phy_ops = {
 	.read_link	= genmii_read_link
 };
 
-static struct mii_phy_def m88e1112_phy_def = {
+static struct mii_phy_def m88e1112_phy_def =
+{
 	.phy_id		= 0x01410C90,
 	.phy_id_mask	= 0x0ffffff0,
 	.name		= "Marvell 88E1112 Ethernet",
@@ -480,7 +610,8 @@ static int ar8035_init(struct mii_phy *phy)
 	return 0;
 }
 
-static struct mii_phy_ops ar8035_phy_ops = {
+static struct mii_phy_ops ar8035_phy_ops =
+{
 	.init		= ar8035_init,
 	.setup_aneg	= genmii_setup_aneg,
 	.setup_forced	= genmii_setup_forced,
@@ -488,14 +619,16 @@ static struct mii_phy_ops ar8035_phy_ops = {
 	.read_link	= genmii_read_link,
 };
 
-static struct mii_phy_def ar8035_phy_def = {
+static struct mii_phy_def ar8035_phy_def =
+{
 	.phy_id		= 0x004dd070,
 	.phy_id_mask	= 0xfffffff0,
 	.name		= "Atheros 8035 Gigabit Ethernet",
 	.ops		= &ar8035_phy_ops,
 };
 
-static struct mii_phy_def *mii_phy_table[] = {
+static struct mii_phy_def *mii_phy_table[] =
+{
 	&et1011c_phy_def,
 	&cis8201_phy_def,
 	&bcm5248_phy_def,
@@ -521,40 +654,74 @@ int emac_mii_phy_probe(struct mii_phy *phy, int address)
 
 	/* Take PHY out of isolate mode and reset it. */
 	if (emac_mii_reset_phy(phy))
+	{
 		return -ENODEV;
+	}
 
 	/* Read ID and find matching entry */
 	id = (phy_read(phy, MII_PHYSID1) << 16) | phy_read(phy, MII_PHYSID2);
+
 	for (i = 0; (def = mii_phy_table[i]) != NULL; i++)
 		if ((id & def->phy_id_mask) == def->phy_id)
+		{
 			break;
+		}
+
 	/* Should never be NULL (we have a generic entry), but... */
 	if (!def)
+	{
 		return -ENODEV;
+	}
 
 	phy->def = def;
 
 	/* Determine PHY features if needed */
 	phy->features = def->features;
-	if (!phy->features) {
+
+	if (!phy->features)
+	{
 		u16 bmsr = phy_read(phy, MII_BMSR);
+
 		if (bmsr & BMSR_ANEGCAPABLE)
+		{
 			phy->features |= SUPPORTED_Autoneg;
-		if (bmsr & BMSR_10HALF)
-			phy->features |= SUPPORTED_10baseT_Half;
-		if (bmsr & BMSR_10FULL)
-			phy->features |= SUPPORTED_10baseT_Full;
-		if (bmsr & BMSR_100HALF)
-			phy->features |= SUPPORTED_100baseT_Half;
-		if (bmsr & BMSR_100FULL)
-			phy->features |= SUPPORTED_100baseT_Full;
-		if (bmsr & BMSR_ESTATEN) {
-			u16 esr = phy_read(phy, MII_ESTATUS);
-			if (esr & ESTATUS_1000_TFULL)
-				phy->features |= SUPPORTED_1000baseT_Full;
-			if (esr & ESTATUS_1000_THALF)
-				phy->features |= SUPPORTED_1000baseT_Half;
 		}
+
+		if (bmsr & BMSR_10HALF)
+		{
+			phy->features |= SUPPORTED_10baseT_Half;
+		}
+
+		if (bmsr & BMSR_10FULL)
+		{
+			phy->features |= SUPPORTED_10baseT_Full;
+		}
+
+		if (bmsr & BMSR_100HALF)
+		{
+			phy->features |= SUPPORTED_100baseT_Half;
+		}
+
+		if (bmsr & BMSR_100FULL)
+		{
+			phy->features |= SUPPORTED_100baseT_Full;
+		}
+
+		if (bmsr & BMSR_ESTATEN)
+		{
+			u16 esr = phy_read(phy, MII_ESTATUS);
+
+			if (esr & ESTATUS_1000_TFULL)
+			{
+				phy->features |= SUPPORTED_1000baseT_Full;
+			}
+
+			if (esr & ESTATUS_1000_THALF)
+			{
+				phy->features |= SUPPORTED_1000baseT_Half;
+			}
+		}
+
 		phy->features |= SUPPORTED_MII;
 	}
 

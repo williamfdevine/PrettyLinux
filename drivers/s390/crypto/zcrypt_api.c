@@ -51,11 +51,11 @@
  */
 MODULE_AUTHOR("IBM Corporation");
 MODULE_DESCRIPTION("Cryptographic Coprocessor interface, " \
-		   "Copyright IBM Corp. 2001, 2012");
+				   "Copyright IBM Corp. 2001, 2012");
 MODULE_LICENSE("GPL");
 
 static int zcrypt_hwrng_seed = 1;
-module_param_named(hwrng_seed, zcrypt_hwrng_seed, int, S_IRUSR|S_IRGRP);
+module_param_named(hwrng_seed, zcrypt_hwrng_seed, int, S_IRUSR | S_IRGRP);
 MODULE_PARM_DESC(hwrng_seed, "Turn on/off hwrng auto seed, default is 1 (on).");
 
 static DEFINE_SPINLOCK(zcrypt_device_lock);
@@ -81,7 +81,7 @@ static struct dentry *debugfs_root;
  * Device attributes common for all crypto devices.
  */
 static ssize_t zcrypt_type_show(struct device *dev,
-				struct device_attribute *attr, char *buf)
+								struct device_attribute *attr, char *buf)
 {
 	struct zcrypt_device *zdev = to_ap_dev(dev)->private;
 	return snprintf(buf, PAGE_SIZE, "%s\n", zdev->type_string);
@@ -90,38 +90,47 @@ static ssize_t zcrypt_type_show(struct device *dev,
 static DEVICE_ATTR(type, 0444, zcrypt_type_show, NULL);
 
 static ssize_t zcrypt_online_show(struct device *dev,
-				  struct device_attribute *attr, char *buf)
+								  struct device_attribute *attr, char *buf)
 {
 	struct zcrypt_device *zdev = to_ap_dev(dev)->private;
 	return snprintf(buf, PAGE_SIZE, "%d\n", zdev->online);
 }
 
 static ssize_t zcrypt_online_store(struct device *dev,
-				   struct device_attribute *attr,
-				   const char *buf, size_t count)
+								   struct device_attribute *attr,
+								   const char *buf, size_t count)
 {
 	struct zcrypt_device *zdev = to_ap_dev(dev)->private;
 	int online;
 
 	if (sscanf(buf, "%d\n", &online) != 1 || online < 0 || online > 1)
+	{
 		return -EINVAL;
+	}
+
 	zdev->online = online;
 	ZCRYPT_DBF_DEV(DBF_INFO, zdev, "dev%04xo%dman", zdev->ap_dev->qid,
-		       zdev->online);
+				   zdev->online);
+
 	if (!online)
+	{
 		ap_flush_queue(zdev->ap_dev);
+	}
+
 	return count;
 }
 
 static DEVICE_ATTR(online, 0644, zcrypt_online_show, zcrypt_online_store);
 
-static struct attribute * zcrypt_device_attrs[] = {
+static struct attribute *zcrypt_device_attrs[] =
+{
 	&dev_attr_type.attr,
 	&dev_attr_online.attr,
 	NULL,
 };
 
-static struct attribute_group zcrypt_device_attr_group = {
+static struct attribute_group zcrypt_device_attr_group =
+{
 	.attrs = zcrypt_device_attrs,
 };
 
@@ -132,14 +141,16 @@ static struct attribute_group zcrypt_device_attr_group = {
  */
 static inline int zcrypt_process_rescan(void)
 {
-	if (atomic_read(&zcrypt_rescan_req)) {
+	if (atomic_read(&zcrypt_rescan_req))
+	{
 		atomic_set(&zcrypt_rescan_req, 0);
 		atomic_inc(&zcrypt_rescan_count);
 		ap_bus_force_rescan();
 		ZCRYPT_DBF_COMMON(DBF_INFO, "rescan%07d",
-				  atomic_inc_return(&zcrypt_rescan_count));
+						  atomic_inc_return(&zcrypt_rescan_count));
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -157,16 +168,27 @@ static void __zcrypt_increase_preference(struct zcrypt_device *zdev)
 	struct list_head *l;
 
 	if (zdev->speed_rating == 0)
+	{
 		return;
-	for (l = zdev->list.prev; l != &zcrypt_device_list; l = l->prev) {
-		tmp = list_entry(l, struct zcrypt_device, list);
-		if ((tmp->request_count + 1) * tmp->speed_rating <=
-		    (zdev->request_count + 1) * zdev->speed_rating &&
-		    tmp->speed_rating != 0)
-			break;
 	}
+
+	for (l = zdev->list.prev; l != &zcrypt_device_list; l = l->prev)
+	{
+		tmp = list_entry(l, struct zcrypt_device, list);
+
+		if ((tmp->request_count + 1) * tmp->speed_rating <=
+			(zdev->request_count + 1) * zdev->speed_rating &&
+			tmp->speed_rating != 0)
+		{
+			break;
+		}
+	}
+
 	if (l == zdev->list.prev)
+	{
 		return;
+	}
+
 	/* Move zdev behind l */
 	list_move(&zdev->list, l);
 }
@@ -185,16 +207,27 @@ static void __zcrypt_decrease_preference(struct zcrypt_device *zdev)
 	struct list_head *l;
 
 	if (zdev->speed_rating == 0)
+	{
 		return;
-	for (l = zdev->list.next; l != &zcrypt_device_list; l = l->next) {
-		tmp = list_entry(l, struct zcrypt_device, list);
-		if ((tmp->request_count + 1) * tmp->speed_rating >
-		    (zdev->request_count + 1) * zdev->speed_rating ||
-		    tmp->speed_rating == 0)
-			break;
 	}
+
+	for (l = zdev->list.next; l != &zcrypt_device_list; l = l->next)
+	{
+		tmp = list_entry(l, struct zcrypt_device, list);
+
+		if ((tmp->request_count + 1) * tmp->speed_rating >
+			(zdev->request_count + 1) * zdev->speed_rating ||
+			tmp->speed_rating == 0)
+		{
+			break;
+		}
+	}
+
 	if (l == zdev->list.next)
+	{
 		return;
+	}
+
 	/* Move zdev before l */
 	list_move_tail(&zdev->list, l);
 }
@@ -223,11 +256,19 @@ struct zcrypt_device *zcrypt_device_alloc(size_t max_response_size)
 	struct zcrypt_device *zdev;
 
 	zdev = kzalloc(sizeof(struct zcrypt_device), GFP_KERNEL);
+
 	if (!zdev)
+	{
 		return NULL;
+	}
+
 	zdev->reply.message = kmalloc(max_response_size, GFP_KERNEL);
+
 	if (!zdev->reply.message)
+	{
 		goto out_free;
+	}
+
 	zdev->reply.length = max_response_size;
 	spin_lock_init(&zdev->lock);
 	INIT_LIST_HEAD(&zdev->list);
@@ -258,26 +299,39 @@ int zcrypt_device_register(struct zcrypt_device *zdev)
 	int rc;
 
 	if (!zdev->ops)
+	{
 		return -ENODEV;
+	}
+
 	rc = sysfs_create_group(&zdev->ap_dev->device.kobj,
-				&zcrypt_device_attr_group);
+							&zcrypt_device_attr_group);
+
 	if (rc)
+	{
 		goto out;
+	}
+
 	get_device(&zdev->ap_dev->device);
 	kref_init(&zdev->refcount);
 	spin_lock_bh(&zcrypt_device_lock);
 	zdev->online = 1;	/* New devices are online by default. */
 	ZCRYPT_DBF_DEV(DBF_INFO, zdev, "dev%04xo%dreg", zdev->ap_dev->qid,
-		       zdev->online);
+				   zdev->online);
 	list_add_tail(&zdev->list, &zcrypt_device_list);
 	__zcrypt_increase_preference(zdev);
 	zcrypt_device_count++;
 	spin_unlock_bh(&zcrypt_device_lock);
-	if (zdev->ops->rng) {
+
+	if (zdev->ops->rng)
+	{
 		rc = zcrypt_rng_device_add();
+
 		if (rc)
+		{
 			goto out_unregister;
+		}
 	}
+
 	return 0;
 
 out_unregister:
@@ -286,7 +340,7 @@ out_unregister:
 	list_del_init(&zdev->list);
 	spin_unlock_bh(&zcrypt_device_lock);
 	sysfs_remove_group(&zdev->ap_dev->device.kobj,
-			   &zcrypt_device_attr_group);
+					   &zcrypt_device_attr_group);
 	put_device(&zdev->ap_dev->device);
 	zcrypt_device_put(zdev);
 out:
@@ -303,13 +357,16 @@ EXPORT_SYMBOL(zcrypt_device_register);
 void zcrypt_device_unregister(struct zcrypt_device *zdev)
 {
 	if (zdev->ops->rng)
+	{
 		zcrypt_rng_device_remove();
+	}
+
 	spin_lock_bh(&zcrypt_device_lock);
 	zcrypt_device_count--;
 	list_del_init(&zdev->list);
 	spin_unlock_bh(&zcrypt_device_lock);
 	sysfs_remove_group(&zdev->ap_dev->device.kobj,
-			   &zcrypt_device_attr_group);
+					   &zcrypt_device_attr_group);
 	put_device(&zdev->ap_dev->device);
 	zcrypt_device_put(zdev);
 }
@@ -338,15 +395,20 @@ struct zcrypt_ops *__ops_lookup(unsigned char *name, int variant)
 	int found = 0;
 
 	spin_lock_bh(&zcrypt_ops_list_lock);
-	list_for_each_entry(zops, &zcrypt_ops_list, list) {
+	list_for_each_entry(zops, &zcrypt_ops_list, list)
+	{
 		if ((zops->variant == variant) &&
-		    (!strncmp(zops->name, name, sizeof(zops->name)))) {
+			(!strncmp(zops->name, name, sizeof(zops->name))))
+		{
 			found = 1;
 			break;
 		}
 	}
+
 	if (!found || !try_module_get(zops->owner))
+	{
 		zops = NULL;
+	}
 
 	spin_unlock_bh(&zcrypt_ops_list_lock);
 
@@ -358,10 +420,13 @@ struct zcrypt_ops *zcrypt_msgtype_request(unsigned char *name, int variant)
 	struct zcrypt_ops *zops = NULL;
 
 	zops = __ops_lookup(name, variant);
-	if (!zops) {
+
+	if (!zops)
+	{
 		request_module("%s", name);
 		zops = __ops_lookup(name, variant);
 	}
+
 	return zops;
 }
 EXPORT_SYMBOL(zcrypt_msgtype_request);
@@ -369,7 +434,9 @@ EXPORT_SYMBOL(zcrypt_msgtype_request);
 void zcrypt_msgtype_release(struct zcrypt_ops *zops)
 {
 	if (zops)
+	{
 		module_put(zops->owner);
+	}
 }
 EXPORT_SYMBOL(zcrypt_msgtype_release);
 
@@ -379,7 +446,7 @@ EXPORT_SYMBOL(zcrypt_msgtype_release);
  * This function is not supported beyond zcrypt 1.3.1.
  */
 static ssize_t zcrypt_read(struct file *filp, char __user *buf,
-			   size_t count, loff_t *f_pos)
+						   size_t count, loff_t *f_pos)
 {
 	return -EPERM;
 }
@@ -390,7 +457,7 @@ static ssize_t zcrypt_read(struct file *filp, char __user *buf,
  * Write is is not allowed
  */
 static ssize_t zcrypt_write(struct file *filp, const char __user *buf,
-			    size_t count, loff_t *f_pos)
+							size_t count, loff_t *f_pos)
 {
 	return -EPERM;
 }
@@ -426,7 +493,10 @@ static long zcrypt_rsa_modexpo(struct ica_rsa_modexpo *mex)
 	int rc;
 
 	if (mex->outputdatalength < mex->inputdatalength)
+	{
 		return -EINVAL;
+	}
+
 	/*
 	 * As long as outputdatalength is big enough, we can set the
 	 * outputdatalength equal to the inputdatalength, since that is the
@@ -435,24 +505,33 @@ static long zcrypt_rsa_modexpo(struct ica_rsa_modexpo *mex)
 	mex->outputdatalength = mex->inputdatalength;
 
 	spin_lock_bh(&zcrypt_device_lock);
-	list_for_each_entry(zdev, &zcrypt_device_list, list) {
+	list_for_each_entry(zdev, &zcrypt_device_list, list)
+	{
 		if (!zdev->online ||
-		    !zdev->ops->rsa_modexpo ||
-		    zdev->min_mod_size > mex->inputdatalength ||
-		    zdev->max_mod_size < mex->inputdatalength)
+			!zdev->ops->rsa_modexpo ||
+			zdev->min_mod_size > mex->inputdatalength ||
+			zdev->max_mod_size < mex->inputdatalength)
+		{
 			continue;
+		}
+
 		zcrypt_device_get(zdev);
 		get_device(&zdev->ap_dev->device);
 		zdev->request_count++;
 		__zcrypt_decrease_preference(zdev);
-		if (try_module_get(zdev->ap_dev->drv->driver.owner)) {
+
+		if (try_module_get(zdev->ap_dev->drv->driver.owner))
+		{
 			spin_unlock_bh(&zcrypt_device_lock);
 			rc = zdev->ops->rsa_modexpo(zdev, mex);
 			spin_lock_bh(&zcrypt_device_lock);
 			module_put(zdev->ap_dev->drv->driver.owner);
 		}
 		else
+		{
 			rc = -EAGAIN;
+		}
+
 		zdev->request_count--;
 		__zcrypt_increase_preference(zdev);
 		put_device(&zdev->ap_dev->device);
@@ -471,7 +550,10 @@ static long zcrypt_rsa_crt(struct ica_rsa_modexpo_crt *crt)
 	int rc, copied;
 
 	if (crt->outputdatalength < crt->inputdatalength)
+	{
 		return -EINVAL;
+	}
+
 	/*
 	 * As long as outputdatalength is big enough, we can set the
 	 * outputdatalength equal to the inputdatalength, since that is the
@@ -480,39 +562,58 @@ static long zcrypt_rsa_crt(struct ica_rsa_modexpo_crt *crt)
 	crt->outputdatalength = crt->inputdatalength;
 
 	copied = 0;
- restart:
+restart:
 	spin_lock_bh(&zcrypt_device_lock);
-	list_for_each_entry(zdev, &zcrypt_device_list, list) {
+	list_for_each_entry(zdev, &zcrypt_device_list, list)
+	{
 		if (!zdev->online ||
-		    !zdev->ops->rsa_modexpo_crt ||
-		    zdev->min_mod_size > crt->inputdatalength ||
-		    zdev->max_mod_size < crt->inputdatalength)
+			!zdev->ops->rsa_modexpo_crt ||
+			zdev->min_mod_size > crt->inputdatalength ||
+			zdev->max_mod_size < crt->inputdatalength)
+		{
 			continue;
-		if (zdev->short_crt && crt->inputdatalength > 240) {
+		}
+
+		if (zdev->short_crt && crt->inputdatalength > 240)
+		{
 			/*
 			 * Check inputdata for leading zeros for cards
 			 * that can't handle np_prime, bp_key, or
 			 * u_mult_inv > 128 bytes.
 			 */
-			if (copied == 0) {
+			if (copied == 0)
+			{
 				unsigned int len;
 				spin_unlock_bh(&zcrypt_device_lock);
+
 				/* len is max 256 / 2 - 120 = 8
 				 * For bigger device just assume len of leading
 				 * 0s is 8 as stated in the requirements for
 				 * ica_rsa_modexpo_crt struct in zcrypt.h.
 				 */
 				if (crt->inputdatalength <= 256)
+				{
 					len = crt->inputdatalength / 2 - 120;
+				}
 				else
+				{
 					len = 8;
+				}
+
 				if (len > sizeof(z1))
+				{
 					return -EFAULT;
+				}
+
 				z1 = z2 = z3 = 0;
+
 				if (copy_from_user(&z1, crt->np_prime, len) ||
-				    copy_from_user(&z2, crt->bp_key, len) ||
-				    copy_from_user(&z3, crt->u_mult_inv, len))
+					copy_from_user(&z2, crt->bp_key, len) ||
+					copy_from_user(&z3, crt->u_mult_inv, len))
+				{
 					return -EFAULT;
+				}
+
 				z1 = z2 = z3 = 0;
 				copied = 1;
 				/*
@@ -521,22 +622,31 @@ static long zcrypt_rsa_crt(struct ica_rsa_modexpo_crt *crt)
 				 */
 				goto restart;
 			}
+
 			if (z1 != 0ULL || z2 != 0ULL || z3 != 0ULL)
 				/* The device can't handle this request. */
+			{
 				continue;
+			}
 		}
+
 		zcrypt_device_get(zdev);
 		get_device(&zdev->ap_dev->device);
 		zdev->request_count++;
 		__zcrypt_decrease_preference(zdev);
-		if (try_module_get(zdev->ap_dev->drv->driver.owner)) {
+
+		if (try_module_get(zdev->ap_dev->drv->driver.owner))
+		{
 			spin_unlock_bh(&zcrypt_device_lock);
 			rc = zdev->ops->rsa_modexpo_crt(zdev, crt);
 			spin_lock_bh(&zcrypt_device_lock);
 			module_put(zdev->ap_dev->drv->driver.owner);
 		}
 		else
+		{
 			rc = -EAGAIN;
+		}
+
 		zdev->request_count--;
 		__zcrypt_increase_preference(zdev);
 		put_device(&zdev->ap_dev->device);
@@ -554,24 +664,33 @@ static long zcrypt_send_cprb(struct ica_xcRB *xcRB)
 	int rc;
 
 	spin_lock_bh(&zcrypt_device_lock);
-	list_for_each_entry(zdev, &zcrypt_device_list, list) {
+	list_for_each_entry(zdev, &zcrypt_device_list, list)
+	{
 		if (!zdev->online || !zdev->ops->send_cprb ||
-		   (zdev->ops->variant == MSGTYPE06_VARIANT_EP11) ||
-		   (xcRB->user_defined != AUTOSELECT &&
-		    AP_QID_DEVICE(zdev->ap_dev->qid) != xcRB->user_defined))
+			(zdev->ops->variant == MSGTYPE06_VARIANT_EP11) ||
+			(xcRB->user_defined != AUTOSELECT &&
+			 AP_QID_DEVICE(zdev->ap_dev->qid) != xcRB->user_defined))
+		{
 			continue;
+		}
+
 		zcrypt_device_get(zdev);
 		get_device(&zdev->ap_dev->device);
 		zdev->request_count++;
 		__zcrypt_decrease_preference(zdev);
-		if (try_module_get(zdev->ap_dev->drv->driver.owner)) {
+
+		if (try_module_get(zdev->ap_dev->drv->driver.owner))
+		{
 			spin_unlock_bh(&zcrypt_device_lock);
 			rc = zdev->ops->send_cprb(zdev, xcRB);
 			spin_lock_bh(&zcrypt_device_lock);
 			module_put(zdev->ap_dev->drv->driver.owner);
 		}
 		else
+		{
 			rc = -EAGAIN;
+		}
+
 		zdev->request_count--;
 		__zcrypt_increase_preference(zdev);
 		put_device(&zdev->ap_dev->device);
@@ -583,22 +702,26 @@ static long zcrypt_send_cprb(struct ica_xcRB *xcRB)
 	return -ENODEV;
 }
 
-struct ep11_target_dev_list {
+struct ep11_target_dev_list
+{
 	unsigned short		targets_num;
 	struct ep11_target_dev	*targets;
 };
 
 static bool is_desired_ep11dev(unsigned int dev_qid,
-			       struct ep11_target_dev_list dev_list)
+							   struct ep11_target_dev_list dev_list)
 {
 	int n;
 
-	for (n = 0; n < dev_list.targets_num; n++, dev_list.targets++) {
+	for (n = 0; n < dev_list.targets_num; n++, dev_list.targets++)
+	{
 		if ((AP_QID_DEVICE(dev_qid) == dev_list.targets->ap_id) &&
-		    (AP_QID_QUEUE(dev_qid) == dev_list.targets->dom_id)) {
+			(AP_QID_QUEUE(dev_qid) == dev_list.targets->dom_id))
+		{
 			return true;
 		}
 	}
+
 	return false;
 }
 
@@ -607,7 +730,8 @@ static long zcrypt_send_ep11_cprb(struct ep11_urb *xcrb)
 	struct zcrypt_device *zdev;
 	bool autoselect = false;
 	int rc;
-	struct ep11_target_dev_list ep11_dev_list = {
+	struct ep11_target_dev_list ep11_dev_list =
+	{
 		.targets_num	=  0x00,
 		.targets	=  NULL,
 	};
@@ -616,46 +740,64 @@ static long zcrypt_send_ep11_cprb(struct ep11_urb *xcrb)
 
 	/* empty list indicates autoselect (all available targets) */
 	if (ep11_dev_list.targets_num == 0)
+	{
 		autoselect = true;
-	else {
+	}
+	else
+	{
 		ep11_dev_list.targets = kcalloc((unsigned short)
-						xcrb->targets_num,
-						sizeof(struct ep11_target_dev),
-						GFP_KERNEL);
+										xcrb->targets_num,
+										sizeof(struct ep11_target_dev),
+										GFP_KERNEL);
+
 		if (!ep11_dev_list.targets)
+		{
 			return -ENOMEM;
+		}
 
 		if (copy_from_user(ep11_dev_list.targets,
-				   (struct ep11_target_dev __force __user *)
-				   xcrb->targets, xcrb->targets_num *
-				   sizeof(struct ep11_target_dev)))
+						   (struct ep11_target_dev __force __user *)
+						   xcrb->targets, xcrb->targets_num *
+						   sizeof(struct ep11_target_dev)))
+		{
 			return -EFAULT;
+		}
 	}
 
 	spin_lock_bh(&zcrypt_device_lock);
-	list_for_each_entry(zdev, &zcrypt_device_list, list) {
+	list_for_each_entry(zdev, &zcrypt_device_list, list)
+	{
 		/* check if device is eligible */
 		if (!zdev->online ||
-		    zdev->ops->variant != MSGTYPE06_VARIANT_EP11)
+			zdev->ops->variant != MSGTYPE06_VARIANT_EP11)
+		{
 			continue;
+		}
 
 		/* check if device is selected as valid target */
 		if (!is_desired_ep11dev(zdev->ap_dev->qid, ep11_dev_list) &&
-		    !autoselect)
+			!autoselect)
+		{
 			continue;
+		}
 
 		zcrypt_device_get(zdev);
 		get_device(&zdev->ap_dev->device);
 		zdev->request_count++;
 		__zcrypt_decrease_preference(zdev);
-		if (try_module_get(zdev->ap_dev->drv->driver.owner)) {
+
+		if (try_module_get(zdev->ap_dev->drv->driver.owner))
+		{
 			spin_unlock_bh(&zcrypt_device_lock);
 			rc = zdev->ops->send_ep11_cprb(zdev, xcrb);
 			spin_lock_bh(&zcrypt_device_lock);
 			module_put(zdev->ap_dev->drv->driver.owner);
-		} else {
+		}
+		else
+		{
 			rc = -EAGAIN;
-		  }
+		}
+
 		zdev->request_count--;
 		__zcrypt_increase_preference(zdev);
 		put_device(&zdev->ap_dev->device);
@@ -673,20 +815,30 @@ static long zcrypt_rng(char *buffer)
 	int rc;
 
 	spin_lock_bh(&zcrypt_device_lock);
-	list_for_each_entry(zdev, &zcrypt_device_list, list) {
+	list_for_each_entry(zdev, &zcrypt_device_list, list)
+	{
 		if (!zdev->online || !zdev->ops->rng)
+		{
 			continue;
+		}
+
 		zcrypt_device_get(zdev);
 		get_device(&zdev->ap_dev->device);
 		zdev->request_count++;
 		__zcrypt_decrease_preference(zdev);
-		if (try_module_get(zdev->ap_dev->drv->driver.owner)) {
+
+		if (try_module_get(zdev->ap_dev->drv->driver.owner))
+		{
 			spin_unlock_bh(&zcrypt_device_lock);
 			rc = zdev->ops->rng(zdev, buffer);
 			spin_lock_bh(&zcrypt_device_lock);
 			module_put(zdev->ap_dev->drv->driver.owner);
-		} else
+		}
+		else
+		{
 			rc = -EAGAIN;
+		}
+
 		zdev->request_count--;
 		__zcrypt_increase_preference(zdev);
 		put_device(&zdev->ap_dev->device);
@@ -705,8 +857,8 @@ static void zcrypt_status_mask(char status[AP_DEVICES])
 	memset(status, 0, sizeof(char) * AP_DEVICES);
 	spin_lock_bh(&zcrypt_device_lock);
 	list_for_each_entry(zdev, &zcrypt_device_list, list)
-		status[AP_QID_DEVICE(zdev->ap_dev->qid)] =
-			zdev->online ? zdev->user_space_type : 0x0d;
+	status[AP_QID_DEVICE(zdev->ap_dev->qid)] =
+		zdev->online ? zdev->user_space_type : 0x0d;
 	spin_unlock_bh(&zcrypt_device_lock);
 }
 
@@ -716,7 +868,8 @@ static void zcrypt_qdepth_mask(char qdepth[AP_DEVICES])
 
 	memset(qdepth, 0, sizeof(char)	* AP_DEVICES);
 	spin_lock_bh(&zcrypt_device_lock);
-	list_for_each_entry(zdev, &zcrypt_device_list, list) {
+	list_for_each_entry(zdev, &zcrypt_device_list, list)
+	{
 		spin_lock(&zdev->ap_dev->lock);
 		qdepth[AP_QID_DEVICE(zdev->ap_dev->qid)] =
 			zdev->ap_dev->pendingq_count +
@@ -732,7 +885,8 @@ static void zcrypt_perdev_reqcnt(int reqcnt[AP_DEVICES])
 
 	memset(reqcnt, 0, sizeof(int) * AP_DEVICES);
 	spin_lock_bh(&zcrypt_device_lock);
-	list_for_each_entry(zdev, &zcrypt_device_list, list) {
+	list_for_each_entry(zdev, &zcrypt_device_list, list)
+	{
 		spin_lock(&zdev->ap_dev->lock);
 		reqcnt[AP_QID_DEVICE(zdev->ap_dev->qid)] =
 			zdev->ap_dev->total_request_count;
@@ -747,7 +901,8 @@ static int zcrypt_pendingq_count(void)
 	int pendingq_count = 0;
 
 	spin_lock_bh(&zcrypt_device_lock);
-	list_for_each_entry(zdev, &zcrypt_device_list, list) {
+	list_for_each_entry(zdev, &zcrypt_device_list, list)
+	{
 		spin_lock(&zdev->ap_dev->lock);
 		pendingq_count += zdev->ap_dev->pendingq_count;
 		spin_unlock(&zdev->ap_dev->lock);
@@ -762,7 +917,8 @@ static int zcrypt_requestq_count(void)
 	int requestq_count = 0;
 
 	spin_lock_bh(&zcrypt_device_lock);
-	list_for_each_entry(zdev, &zcrypt_device_list, list) {
+	list_for_each_entry(zdev, &zcrypt_device_list, list)
+	{
 		spin_lock(&zdev->ap_dev->lock);
 		requestq_count += zdev->ap_dev->requestq_count;
 		spin_unlock(&zdev->ap_dev->lock);
@@ -778,8 +934,12 @@ static int zcrypt_count_type(int type)
 
 	spin_lock_bh(&zcrypt_device_lock);
 	list_for_each_entry(zdev, &zcrypt_device_list, list)
-		if (zdev->user_space_type == type)
-			device_count++;
+
+	if (zdev->user_space_type == type)
+	{
+		device_count++;
+	}
+
 	spin_unlock_bh(&zcrypt_device_lock);
 	return device_count;
 }
@@ -795,8 +955,12 @@ static long zcrypt_ica_status(struct file *filp, unsigned long arg)
 	int ret;
 
 	pstat = kzalloc(sizeof(*pstat), GFP_KERNEL);
+
 	if (!pstat)
+	{
 		return -ENOMEM;
+	}
+
 	pstat->totalcount = zcrypt_device_count;
 	pstat->leedslitecount = zcrypt_count_type(ZCRYPT_PCICA);
 	pstat->leeds2count = zcrypt_count_type(ZCRYPT_PCICC);
@@ -807,153 +971,249 @@ static long zcrypt_ica_status(struct file *filp, unsigned long arg)
 	zcrypt_status_mask(pstat->status);
 	zcrypt_qdepth_mask(pstat->qdepth);
 	ret = 0;
+
 	if (copy_to_user((void __user *) arg, pstat, sizeof(*pstat)))
+	{
 		ret = -EFAULT;
+	}
+
 	kfree(pstat);
 	return ret;
 }
 
 static long zcrypt_unlocked_ioctl(struct file *filp, unsigned int cmd,
-				  unsigned long arg)
+								  unsigned long arg)
 {
 	int rc;
 
-	switch (cmd) {
-	case ICARSAMODEXPO: {
-		struct ica_rsa_modexpo __user *umex = (void __user *) arg;
-		struct ica_rsa_modexpo mex;
-		if (copy_from_user(&mex, umex, sizeof(mex)))
-			return -EFAULT;
-		do {
-			rc = zcrypt_rsa_modexpo(&mex);
-		} while (rc == -EAGAIN);
-		/* on failure: retry once again after a requested rescan */
-		if ((rc == -ENODEV) && (zcrypt_process_rescan()))
-			do {
-				rc = zcrypt_rsa_modexpo(&mex);
-			} while (rc == -EAGAIN);
-		if (rc)
-			return rc;
-		return put_user(mex.outputdatalength, &umex->outputdatalength);
-	}
-	case ICARSACRT: {
-		struct ica_rsa_modexpo_crt __user *ucrt = (void __user *) arg;
-		struct ica_rsa_modexpo_crt crt;
-		if (copy_from_user(&crt, ucrt, sizeof(crt)))
-			return -EFAULT;
-		do {
-			rc = zcrypt_rsa_crt(&crt);
-		} while (rc == -EAGAIN);
-		/* on failure: retry once again after a requested rescan */
-		if ((rc == -ENODEV) && (zcrypt_process_rescan()))
-			do {
-				rc = zcrypt_rsa_crt(&crt);
-			} while (rc == -EAGAIN);
-		if (rc)
-			return rc;
-		return put_user(crt.outputdatalength, &ucrt->outputdatalength);
-	}
-	case ZSECSENDCPRB: {
-		struct ica_xcRB __user *uxcRB = (void __user *) arg;
-		struct ica_xcRB xcRB;
-		if (copy_from_user(&xcRB, uxcRB, sizeof(xcRB)))
-			return -EFAULT;
-		do {
-			rc = zcrypt_send_cprb(&xcRB);
-		} while (rc == -EAGAIN);
-		/* on failure: retry once again after a requested rescan */
-		if ((rc == -ENODEV) && (zcrypt_process_rescan()))
-			do {
-				rc = zcrypt_send_cprb(&xcRB);
-			} while (rc == -EAGAIN);
-		if (copy_to_user(uxcRB, &xcRB, sizeof(xcRB)))
-			return -EFAULT;
-		return rc;
-	}
-	case ZSENDEP11CPRB: {
-		struct ep11_urb __user *uxcrb = (void __user *)arg;
-		struct ep11_urb xcrb;
-		if (copy_from_user(&xcrb, uxcrb, sizeof(xcrb)))
-			return -EFAULT;
-		do {
-			rc = zcrypt_send_ep11_cprb(&xcrb);
-		} while (rc == -EAGAIN);
-		/* on failure: retry once again after a requested rescan */
-		if ((rc == -ENODEV) && (zcrypt_process_rescan()))
-			do {
-				rc = zcrypt_send_ep11_cprb(&xcrb);
-			} while (rc == -EAGAIN);
-		if (copy_to_user(uxcrb, &xcrb, sizeof(xcrb)))
-			return -EFAULT;
-		return rc;
-	}
-	case Z90STAT_STATUS_MASK: {
-		char status[AP_DEVICES];
-		zcrypt_status_mask(status);
-		if (copy_to_user((char __user *) arg, status,
-				 sizeof(char) * AP_DEVICES))
-			return -EFAULT;
-		return 0;
-	}
-	case Z90STAT_QDEPTH_MASK: {
-		char qdepth[AP_DEVICES];
-		zcrypt_qdepth_mask(qdepth);
-		if (copy_to_user((char __user *) arg, qdepth,
-				 sizeof(char) * AP_DEVICES))
-			return -EFAULT;
-		return 0;
-	}
-	case Z90STAT_PERDEV_REQCNT: {
-		int reqcnt[AP_DEVICES];
-		zcrypt_perdev_reqcnt(reqcnt);
-		if (copy_to_user((int __user *) arg, reqcnt,
-				 sizeof(int) * AP_DEVICES))
-			return -EFAULT;
-		return 0;
-	}
-	case Z90STAT_REQUESTQ_COUNT:
-		return put_user(zcrypt_requestq_count(), (int __user *) arg);
-	case Z90STAT_PENDINGQ_COUNT:
-		return put_user(zcrypt_pendingq_count(), (int __user *) arg);
-	case Z90STAT_TOTALOPEN_COUNT:
-		return put_user(atomic_read(&zcrypt_open_count),
-				(int __user *) arg);
-	case Z90STAT_DOMAIN_INDEX:
-		return put_user(ap_domain_index, (int __user *) arg);
-	/*
-	 * Deprecated ioctls. Don't add another device count ioctl,
-	 * you can count them yourself in the user space with the
-	 * output of the Z90STAT_STATUS_MASK ioctl.
-	 */
-	case ICAZ90STATUS:
-		return zcrypt_ica_status(filp, arg);
-	case Z90STAT_TOTALCOUNT:
-		return put_user(zcrypt_device_count, (int __user *) arg);
-	case Z90STAT_PCICACOUNT:
-		return put_user(zcrypt_count_type(ZCRYPT_PCICA),
-				(int __user *) arg);
-	case Z90STAT_PCICCCOUNT:
-		return put_user(zcrypt_count_type(ZCRYPT_PCICC),
-				(int __user *) arg);
-	case Z90STAT_PCIXCCMCL2COUNT:
-		return put_user(zcrypt_count_type(ZCRYPT_PCIXCC_MCL2),
-				(int __user *) arg);
-	case Z90STAT_PCIXCCMCL3COUNT:
-		return put_user(zcrypt_count_type(ZCRYPT_PCIXCC_MCL3),
-				(int __user *) arg);
-	case Z90STAT_PCIXCCCOUNT:
-		return put_user(zcrypt_count_type(ZCRYPT_PCIXCC_MCL2) +
-				zcrypt_count_type(ZCRYPT_PCIXCC_MCL3),
-				(int __user *) arg);
-	case Z90STAT_CEX2CCOUNT:
-		return put_user(zcrypt_count_type(ZCRYPT_CEX2C),
-				(int __user *) arg);
-	case Z90STAT_CEX2ACOUNT:
-		return put_user(zcrypt_count_type(ZCRYPT_CEX2A),
-				(int __user *) arg);
-	default:
-		/* unknown ioctl number */
-		return -ENOIOCTLCMD;
+	switch (cmd)
+	{
+		case ICARSAMODEXPO:
+			{
+				struct ica_rsa_modexpo __user *umex = (void __user *) arg;
+				struct ica_rsa_modexpo mex;
+
+				if (copy_from_user(&mex, umex, sizeof(mex)))
+				{
+					return -EFAULT;
+				}
+
+				do
+				{
+					rc = zcrypt_rsa_modexpo(&mex);
+				}
+				while (rc == -EAGAIN);
+
+				/* on failure: retry once again after a requested rescan */
+				if ((rc == -ENODEV) && (zcrypt_process_rescan()))
+					do
+					{
+						rc = zcrypt_rsa_modexpo(&mex);
+					}
+					while (rc == -EAGAIN);
+
+				if (rc)
+				{
+					return rc;
+				}
+
+				return put_user(mex.outputdatalength, &umex->outputdatalength);
+			}
+
+		case ICARSACRT:
+			{
+				struct ica_rsa_modexpo_crt __user *ucrt = (void __user *) arg;
+				struct ica_rsa_modexpo_crt crt;
+
+				if (copy_from_user(&crt, ucrt, sizeof(crt)))
+				{
+					return -EFAULT;
+				}
+
+				do
+				{
+					rc = zcrypt_rsa_crt(&crt);
+				}
+				while (rc == -EAGAIN);
+
+				/* on failure: retry once again after a requested rescan */
+				if ((rc == -ENODEV) && (zcrypt_process_rescan()))
+					do
+					{
+						rc = zcrypt_rsa_crt(&crt);
+					}
+					while (rc == -EAGAIN);
+
+				if (rc)
+				{
+					return rc;
+				}
+
+				return put_user(crt.outputdatalength, &ucrt->outputdatalength);
+			}
+
+		case ZSECSENDCPRB:
+			{
+				struct ica_xcRB __user *uxcRB = (void __user *) arg;
+				struct ica_xcRB xcRB;
+
+				if (copy_from_user(&xcRB, uxcRB, sizeof(xcRB)))
+				{
+					return -EFAULT;
+				}
+
+				do
+				{
+					rc = zcrypt_send_cprb(&xcRB);
+				}
+				while (rc == -EAGAIN);
+
+				/* on failure: retry once again after a requested rescan */
+				if ((rc == -ENODEV) && (zcrypt_process_rescan()))
+					do
+					{
+						rc = zcrypt_send_cprb(&xcRB);
+					}
+					while (rc == -EAGAIN);
+
+				if (copy_to_user(uxcRB, &xcRB, sizeof(xcRB)))
+				{
+					return -EFAULT;
+				}
+
+				return rc;
+			}
+
+		case ZSENDEP11CPRB:
+			{
+				struct ep11_urb __user *uxcrb = (void __user *)arg;
+				struct ep11_urb xcrb;
+
+				if (copy_from_user(&xcrb, uxcrb, sizeof(xcrb)))
+				{
+					return -EFAULT;
+				}
+
+				do
+				{
+					rc = zcrypt_send_ep11_cprb(&xcrb);
+				}
+				while (rc == -EAGAIN);
+
+				/* on failure: retry once again after a requested rescan */
+				if ((rc == -ENODEV) && (zcrypt_process_rescan()))
+					do
+					{
+						rc = zcrypt_send_ep11_cprb(&xcrb);
+					}
+					while (rc == -EAGAIN);
+
+				if (copy_to_user(uxcrb, &xcrb, sizeof(xcrb)))
+				{
+					return -EFAULT;
+				}
+
+				return rc;
+			}
+
+		case Z90STAT_STATUS_MASK:
+			{
+				char status[AP_DEVICES];
+				zcrypt_status_mask(status);
+
+				if (copy_to_user((char __user *) arg, status,
+								 sizeof(char) * AP_DEVICES))
+				{
+					return -EFAULT;
+				}
+
+				return 0;
+			}
+
+		case Z90STAT_QDEPTH_MASK:
+			{
+				char qdepth[AP_DEVICES];
+				zcrypt_qdepth_mask(qdepth);
+
+				if (copy_to_user((char __user *) arg, qdepth,
+								 sizeof(char) * AP_DEVICES))
+				{
+					return -EFAULT;
+				}
+
+				return 0;
+			}
+
+		case Z90STAT_PERDEV_REQCNT:
+			{
+				int reqcnt[AP_DEVICES];
+				zcrypt_perdev_reqcnt(reqcnt);
+
+				if (copy_to_user((int __user *) arg, reqcnt,
+								 sizeof(int) * AP_DEVICES))
+				{
+					return -EFAULT;
+				}
+
+				return 0;
+			}
+
+		case Z90STAT_REQUESTQ_COUNT:
+			return put_user(zcrypt_requestq_count(), (int __user *) arg);
+
+		case Z90STAT_PENDINGQ_COUNT:
+			return put_user(zcrypt_pendingq_count(), (int __user *) arg);
+
+		case Z90STAT_TOTALOPEN_COUNT:
+			return put_user(atomic_read(&zcrypt_open_count),
+							(int __user *) arg);
+
+		case Z90STAT_DOMAIN_INDEX:
+			return put_user(ap_domain_index, (int __user *) arg);
+
+		/*
+		 * Deprecated ioctls. Don't add another device count ioctl,
+		 * you can count them yourself in the user space with the
+		 * output of the Z90STAT_STATUS_MASK ioctl.
+		 */
+		case ICAZ90STATUS:
+			return zcrypt_ica_status(filp, arg);
+
+		case Z90STAT_TOTALCOUNT:
+			return put_user(zcrypt_device_count, (int __user *) arg);
+
+		case Z90STAT_PCICACOUNT:
+			return put_user(zcrypt_count_type(ZCRYPT_PCICA),
+							(int __user *) arg);
+
+		case Z90STAT_PCICCCOUNT:
+			return put_user(zcrypt_count_type(ZCRYPT_PCICC),
+							(int __user *) arg);
+
+		case Z90STAT_PCIXCCMCL2COUNT:
+			return put_user(zcrypt_count_type(ZCRYPT_PCIXCC_MCL2),
+							(int __user *) arg);
+
+		case Z90STAT_PCIXCCMCL3COUNT:
+			return put_user(zcrypt_count_type(ZCRYPT_PCIXCC_MCL3),
+							(int __user *) arg);
+
+		case Z90STAT_PCIXCCCOUNT:
+			return put_user(zcrypt_count_type(ZCRYPT_PCIXCC_MCL2) +
+							zcrypt_count_type(ZCRYPT_PCIXCC_MCL3),
+							(int __user *) arg);
+
+		case Z90STAT_CEX2CCOUNT:
+			return put_user(zcrypt_count_type(ZCRYPT_CEX2C),
+							(int __user *) arg);
+
+		case Z90STAT_CEX2ACOUNT:
+			return put_user(zcrypt_count_type(ZCRYPT_CEX2A),
+							(int __user *) arg);
+
+		default:
+			/* unknown ioctl number */
+			return -ENOIOCTLCMD;
 	}
 }
 
@@ -961,7 +1221,8 @@ static long zcrypt_unlocked_ioctl(struct file *filp, unsigned int cmd,
 /*
  * ioctl32 conversion routines
  */
-struct compat_ica_rsa_modexpo {
+struct compat_ica_rsa_modexpo
+{
 	compat_uptr_t	inputdata;
 	unsigned int	inputdatalength;
 	compat_uptr_t	outputdata;
@@ -971,7 +1232,7 @@ struct compat_ica_rsa_modexpo {
 };
 
 static long trans_modexpo32(struct file *filp, unsigned int cmd,
-			    unsigned long arg)
+							unsigned long arg)
 {
 	struct compat_ica_rsa_modexpo __user *umex32 = compat_ptr(arg);
 	struct compat_ica_rsa_modexpo mex32;
@@ -979,28 +1240,42 @@ static long trans_modexpo32(struct file *filp, unsigned int cmd,
 	long rc;
 
 	if (copy_from_user(&mex32, umex32, sizeof(mex32)))
+	{
 		return -EFAULT;
+	}
+
 	mex64.inputdata = compat_ptr(mex32.inputdata);
 	mex64.inputdatalength = mex32.inputdatalength;
 	mex64.outputdata = compat_ptr(mex32.outputdata);
 	mex64.outputdatalength = mex32.outputdatalength;
 	mex64.b_key = compat_ptr(mex32.b_key);
 	mex64.n_modulus = compat_ptr(mex32.n_modulus);
-	do {
+
+	do
+	{
 		rc = zcrypt_rsa_modexpo(&mex64);
-	} while (rc == -EAGAIN);
+	}
+	while (rc == -EAGAIN);
+
 	/* on failure: retry once again after a requested rescan */
 	if ((rc == -ENODEV) && (zcrypt_process_rescan()))
-		do {
+		do
+		{
 			rc = zcrypt_rsa_modexpo(&mex64);
-		} while (rc == -EAGAIN);
+		}
+		while (rc == -EAGAIN);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	return put_user(mex64.outputdatalength,
-			&umex32->outputdatalength);
+					&umex32->outputdatalength);
 }
 
-struct compat_ica_rsa_modexpo_crt {
+struct compat_ica_rsa_modexpo_crt
+{
 	compat_uptr_t	inputdata;
 	unsigned int	inputdatalength;
 	compat_uptr_t	outputdata;
@@ -1013,7 +1288,7 @@ struct compat_ica_rsa_modexpo_crt {
 };
 
 static long trans_modexpo_crt32(struct file *filp, unsigned int cmd,
-				unsigned long arg)
+								unsigned long arg)
 {
 	struct compat_ica_rsa_modexpo_crt __user *ucrt32 = compat_ptr(arg);
 	struct compat_ica_rsa_modexpo_crt crt32;
@@ -1021,31 +1296,45 @@ static long trans_modexpo_crt32(struct file *filp, unsigned int cmd,
 	long rc;
 
 	if (copy_from_user(&crt32, ucrt32, sizeof(crt32)))
+	{
 		return -EFAULT;
+	}
+
 	crt64.inputdata = compat_ptr(crt32.inputdata);
 	crt64.inputdatalength = crt32.inputdatalength;
-	crt64.outputdata=  compat_ptr(crt32.outputdata);
+	crt64.outputdata =  compat_ptr(crt32.outputdata);
 	crt64.outputdatalength = crt32.outputdatalength;
 	crt64.bp_key = compat_ptr(crt32.bp_key);
 	crt64.bq_key = compat_ptr(crt32.bq_key);
 	crt64.np_prime = compat_ptr(crt32.np_prime);
 	crt64.nq_prime = compat_ptr(crt32.nq_prime);
 	crt64.u_mult_inv = compat_ptr(crt32.u_mult_inv);
-	do {
+
+	do
+	{
 		rc = zcrypt_rsa_crt(&crt64);
-	} while (rc == -EAGAIN);
+	}
+	while (rc == -EAGAIN);
+
 	/* on failure: retry once again after a requested rescan */
 	if ((rc == -ENODEV) && (zcrypt_process_rescan()))
-		do {
+		do
+		{
 			rc = zcrypt_rsa_crt(&crt64);
-		} while (rc == -EAGAIN);
+		}
+		while (rc == -EAGAIN);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	return put_user(crt64.outputdatalength,
-			&ucrt32->outputdatalength);
+					&ucrt32->outputdatalength);
 }
 
-struct compat_ica_xcRB {
+struct compat_ica_xcRB
+{
 	unsigned short	agent_ID;
 	unsigned int	user_defined;
 	unsigned short	request_ID;
@@ -1066,7 +1355,7 @@ struct compat_ica_xcRB {
 } __attribute__((packed));
 
 static long trans_xcRB32(struct file *filp, unsigned int cmd,
-			 unsigned long arg)
+						 unsigned long arg)
 {
 	struct compat_ica_xcRB __user *uxcRB32 = compat_ptr(arg);
 	struct compat_ica_xcRB xcRB32;
@@ -1074,7 +1363,10 @@ static long trans_xcRB32(struct file *filp, unsigned int cmd,
 	long rc;
 
 	if (copy_from_user(&xcRB32, uxcRB32, sizeof(xcRB32)))
+	{
 		return -EFAULT;
+	}
+
 	xcRB64.agent_ID = xcRB32.agent_ID;
 	xcRB64.user_defined = xcRB32.user_defined;
 	xcRB64.request_ID = xcRB32.request_ID;
@@ -1095,31 +1387,51 @@ static long trans_xcRB32(struct file *filp, unsigned int cmd,
 		compat_ptr(xcRB32.reply_data_addr);
 	xcRB64.priority_window = xcRB32.priority_window;
 	xcRB64.status = xcRB32.status;
-	do {
+
+	do
+	{
 		rc = zcrypt_send_cprb(&xcRB64);
-	} while (rc == -EAGAIN);
+	}
+	while (rc == -EAGAIN);
+
 	/* on failure: retry once again after a requested rescan */
 	if ((rc == -ENODEV) && (zcrypt_process_rescan()))
-		do {
+		do
+		{
 			rc = zcrypt_send_cprb(&xcRB64);
-		} while (rc == -EAGAIN);
+		}
+		while (rc == -EAGAIN);
+
 	xcRB32.reply_control_blk_length = xcRB64.reply_control_blk_length;
 	xcRB32.reply_data_length = xcRB64.reply_data_length;
 	xcRB32.status = xcRB64.status;
+
 	if (copy_to_user(uxcRB32, &xcRB32, sizeof(xcRB32)))
-			return -EFAULT;
+	{
+		return -EFAULT;
+	}
+
 	return rc;
 }
 
 static long zcrypt_compat_ioctl(struct file *filp, unsigned int cmd,
-			 unsigned long arg)
+								unsigned long arg)
 {
 	if (cmd == ICARSAMODEXPO)
+	{
 		return trans_modexpo32(filp, cmd, arg);
+	}
+
 	if (cmd == ICARSACRT)
+	{
 		return trans_modexpo_crt32(filp, cmd, arg);
+	}
+
 	if (cmd == ZSECSENDCPRB)
+	{
 		return trans_xcRB32(filp, cmd, arg);
+	}
+
 	return zcrypt_unlocked_ioctl(filp, cmd, arg);
 }
 #endif
@@ -1127,7 +1439,8 @@ static long zcrypt_compat_ioctl(struct file *filp, unsigned int cmd,
 /*
  * Misc device file operations.
  */
-static const struct file_operations zcrypt_fops = {
+static const struct file_operations zcrypt_fops =
+{
 	.owner		= THIS_MODULE,
 	.read		= zcrypt_read,
 	.write		= zcrypt_write,
@@ -1143,7 +1456,8 @@ static const struct file_operations zcrypt_fops = {
 /*
  * Misc device.
  */
-static struct miscdevice zcrypt_misc_device = {
+static struct miscdevice zcrypt_misc_device =
+{
 	.minor	    = MISC_DYNAMIC_MINOR,
 	.name	    = "z90crypt",
 	.fops	    = &zcrypt_fops,
@@ -1159,7 +1473,10 @@ static void sprintcl(struct seq_file *m, unsigned char *addr, unsigned int len)
 	int i;
 
 	for (i = 0; i < len; i++)
+	{
 		seq_printf(m, "%01x", (unsigned int) addr[i]);
+	}
+
 	seq_putc(m, ' ');
 }
 
@@ -1169,39 +1486,51 @@ static void sprintrw(struct seq_file *m, unsigned char *addr, unsigned int len)
 
 	seq_printf(m, "	   ");
 	inl = 0;
-	for (c = 0; c < (len / 16); c++) {
-		sprintcl(m, addr+inl, 16);
+
+	for (c = 0; c < (len / 16); c++)
+	{
+		sprintcl(m, addr + inl, 16);
 		inl += 16;
 	}
-	cx = len%16;
-	if (cx) {
-		sprintcl(m, addr+inl, cx);
+
+	cx = len % 16;
+
+	if (cx)
+	{
+		sprintcl(m, addr + inl, cx);
 		inl += cx;
 	}
+
 	seq_putc(m, '\n');
 }
 
 static void sprinthx(unsigned char *title, struct seq_file *m,
-		     unsigned char *addr, unsigned int len)
+					 unsigned char *addr, unsigned int len)
 {
 	int inl, r, rx;
 
 	seq_printf(m, "\n%s\n", title);
 	inl = 0;
-	for (r = 0; r < (len / 64); r++) {
-		sprintrw(m, addr+inl, 64);
+
+	for (r = 0; r < (len / 64); r++)
+	{
+		sprintrw(m, addr + inl, 64);
 		inl += 64;
 	}
+
 	rx = len % 64;
-	if (rx) {
-		sprintrw(m, addr+inl, rx);
+
+	if (rx)
+	{
+		sprintrw(m, addr + inl, rx);
 		inl += rx;
 	}
+
 	seq_putc(m, '\n');
 }
 
 static void sprinthx4(unsigned char *title, struct seq_file *m,
-		      unsigned int *array, unsigned int len)
+					  unsigned int *array, unsigned int len)
 {
 	seq_printf(m, "\n%s\n", title);
 	seq_hex_dump(m, "    ", DUMP_PREFIX_NONE, 32, 4, array, len, false);
@@ -1213,15 +1542,15 @@ static int zcrypt_proc_show(struct seq_file *m, void *v)
 	char workarea[sizeof(int) * AP_DEVICES];
 
 	seq_printf(m, "\nzcrypt version: %d.%d.%d\n",
-		   ZCRYPT_VERSION, ZCRYPT_RELEASE, ZCRYPT_VARIANT);
+			   ZCRYPT_VERSION, ZCRYPT_RELEASE, ZCRYPT_VARIANT);
 	seq_printf(m, "Cryptographic domain: %d\n", ap_domain_index);
 	seq_printf(m, "Total device count: %d\n", zcrypt_device_count);
 	seq_printf(m, "PCICA count: %d\n", zcrypt_count_type(ZCRYPT_PCICA));
 	seq_printf(m, "PCICC count: %d\n", zcrypt_count_type(ZCRYPT_PCICC));
 	seq_printf(m, "PCIXCC MCL2 count: %d\n",
-		   zcrypt_count_type(ZCRYPT_PCIXCC_MCL2));
+			   zcrypt_count_type(ZCRYPT_PCIXCC_MCL2));
 	seq_printf(m, "PCIXCC MCL3 count: %d\n",
-		   zcrypt_count_type(ZCRYPT_PCIXCC_MCL3));
+			   zcrypt_count_type(ZCRYPT_PCIXCC_MCL3));
 	seq_printf(m, "CEX2C count: %d\n", zcrypt_count_type(ZCRYPT_CEX2C));
 	seq_printf(m, "CEX2A count: %d\n", zcrypt_count_type(ZCRYPT_CEX2A));
 	seq_printf(m, "CEX3C count: %d\n", zcrypt_count_type(ZCRYPT_CEX3C));
@@ -1229,16 +1558,16 @@ static int zcrypt_proc_show(struct seq_file *m, void *v)
 	seq_printf(m, "requestq count: %d\n", zcrypt_requestq_count());
 	seq_printf(m, "pendingq count: %d\n", zcrypt_pendingq_count());
 	seq_printf(m, "Total open handles: %d\n\n",
-		   atomic_read(&zcrypt_open_count));
+			   atomic_read(&zcrypt_open_count));
 	zcrypt_status_mask(workarea);
 	sprinthx("Online devices: 1=PCICA 2=PCICC 3=PCIXCC(MCL2) "
-		 "4=PCIXCC(MCL3) 5=CEX2C 6=CEX2A 7=CEX3C 8=CEX3A",
-		 m, workarea, AP_DEVICES);
+			 "4=PCIXCC(MCL3) 5=CEX2C 6=CEX2A 7=CEX3C 8=CEX3A",
+			 m, workarea, AP_DEVICES);
 	zcrypt_qdepth_mask(workarea);
 	sprinthx("Waiting work element counts", m, workarea, AP_DEVICES);
 	zcrypt_perdev_reqcnt((int *) workarea);
 	sprinthx4("Per-device successfully completed request counts",
-		  m, (unsigned int *) workarea, AP_DEVICES);
+			  m, (unsigned int *) workarea, AP_DEVICES);
 	return 0;
 }
 
@@ -1253,11 +1582,14 @@ static void zcrypt_disable_card(int index)
 
 	spin_lock_bh(&zcrypt_device_lock);
 	list_for_each_entry(zdev, &zcrypt_device_list, list)
-		if (AP_QID_DEVICE(zdev->ap_dev->qid) == index) {
-			zdev->online = 0;
-			ap_flush_queue(zdev->ap_dev);
-			break;
-		}
+
+	if (AP_QID_DEVICE(zdev->ap_dev->qid) == index)
+	{
+		zdev->online = 0;
+		ap_flush_queue(zdev->ap_dev);
+		break;
+	}
+
 	spin_unlock_bh(&zcrypt_device_lock);
 }
 
@@ -1267,47 +1599,69 @@ static void zcrypt_enable_card(int index)
 
 	spin_lock_bh(&zcrypt_device_lock);
 	list_for_each_entry(zdev, &zcrypt_device_list, list)
-		if (AP_QID_DEVICE(zdev->ap_dev->qid) == index) {
-			zdev->online = 1;
-			break;
-		}
+
+	if (AP_QID_DEVICE(zdev->ap_dev->qid) == index)
+	{
+		zdev->online = 1;
+		break;
+	}
+
 	spin_unlock_bh(&zcrypt_device_lock);
 }
 
 static ssize_t zcrypt_proc_write(struct file *file, const char __user *buffer,
-				 size_t count, loff_t *pos)
+								 size_t count, loff_t *pos)
 {
 	unsigned char *lbuf, *ptr;
 	size_t local_count;
 	int j;
 
 	if (count <= 0)
+	{
 		return 0;
+	}
 
 #define LBUFSIZE 1200UL
 	lbuf = kmalloc(LBUFSIZE, GFP_KERNEL);
+
 	if (!lbuf)
+	{
 		return 0;
+	}
 
 	local_count = min(LBUFSIZE - 1, count);
-	if (copy_from_user(lbuf, buffer, local_count) != 0) {
+
+	if (copy_from_user(lbuf, buffer, local_count) != 0)
+	{
 		kfree(lbuf);
 		return -EFAULT;
 	}
+
 	lbuf[local_count] = '\0';
 
 	ptr = strstr(lbuf, "Online devices");
+
 	if (!ptr)
+	{
 		goto out;
+	}
+
 	ptr = strstr(ptr, "\n");
+
 	if (!ptr)
+	{
 		goto out;
+	}
+
 	ptr++;
 
 	if (strstr(ptr, "Waiting work element counts") == NULL)
+	{
 		goto out;
+	}
 
-	for (j = 0; j < 64 && *ptr; ptr++) {
+	for (j = 0; j < 64 && *ptr; ptr++)
+	{
 		/*
 		 * '0' for no device, '1' for PCICA, '2' for PCICC,
 		 * '3' for PCIXCC_MCL2, '4' for PCIXCC_MCL3,
@@ -1315,20 +1669,30 @@ static ssize_t zcrypt_proc_write(struct file *file, const char __user *buffer,
 		 * '7' for CEX3C and '8' for CEX3A
 		 */
 		if (*ptr >= '0' && *ptr <= '8')
+		{
 			j++;
+		}
 		else if (*ptr == 'd' || *ptr == 'D')
+		{
 			zcrypt_disable_card(j++);
+		}
 		else if (*ptr == 'e' || *ptr == 'E')
+		{
 			zcrypt_enable_card(j++);
+		}
 		else if (*ptr != ' ' && *ptr != '\t')
+		{
 			break;
+		}
 	}
+
 out:
 	kfree(lbuf);
 	return count;
 }
 
-static const struct file_operations zcrypt_proc_fops = {
+static const struct file_operations zcrypt_proc_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= zcrypt_proc_open,
 	.read		= seq_read,
@@ -1350,20 +1714,30 @@ static int zcrypt_rng_data_read(struct hwrng *rng, u32 *data)
 	 * We don't need locking here because the RNG API guarantees serialized
 	 * read method calls.
 	 */
-	if (zcrypt_rng_buffer_index == 0) {
+	if (zcrypt_rng_buffer_index == 0)
+	{
 		rc = zcrypt_rng((char *) zcrypt_rng_buffer);
+
 		/* on failure: retry once again after a requested rescan */
 		if ((rc == -ENODEV) && (zcrypt_process_rescan()))
+		{
 			rc = zcrypt_rng((char *) zcrypt_rng_buffer);
+		}
+
 		if (rc < 0)
+		{
 			return -EIO;
-		zcrypt_rng_buffer_index = rc / sizeof *data;
+		}
+
+		zcrypt_rng_buffer_index = rc / sizeof * data;
 	}
+
 	*data = zcrypt_rng_buffer[--zcrypt_rng_buffer_index];
-	return sizeof *data;
+	return sizeof * data;
 }
 
-static struct hwrng zcrypt_rng_dev = {
+static struct hwrng zcrypt_rng_dev =
+{
 	.name		= "zcrypt",
 	.data_read	= zcrypt_rng_data_read,
 	.quality	= 990,
@@ -1374,21 +1748,38 @@ static int zcrypt_rng_device_add(void)
 	int rc = 0;
 
 	mutex_lock(&zcrypt_rng_mutex);
-	if (zcrypt_rng_device_count == 0) {
+
+	if (zcrypt_rng_device_count == 0)
+	{
 		zcrypt_rng_buffer = (u32 *) get_zeroed_page(GFP_KERNEL);
-		if (!zcrypt_rng_buffer) {
+
+		if (!zcrypt_rng_buffer)
+		{
 			rc = -ENOMEM;
 			goto out;
 		}
+
 		zcrypt_rng_buffer_index = 0;
+
 		if (!zcrypt_hwrng_seed)
+		{
 			zcrypt_rng_dev.quality = 0;
+		}
+
 		rc = hwrng_register(&zcrypt_rng_dev);
+
 		if (rc)
+		{
 			goto out_free;
+		}
+
 		zcrypt_rng_device_count = 1;
-	} else
+	}
+	else
+	{
 		zcrypt_rng_device_count++;
+	}
+
 	mutex_unlock(&zcrypt_rng_mutex);
 	return 0;
 
@@ -1403,10 +1794,13 @@ static void zcrypt_rng_device_remove(void)
 {
 	mutex_lock(&zcrypt_rng_mutex);
 	zcrypt_rng_device_count--;
-	if (zcrypt_rng_device_count == 0) {
+
+	if (zcrypt_rng_device_count == 0)
+	{
 		hwrng_unregister(&zcrypt_rng_dev);
 		free_page((unsigned long) zcrypt_rng_buffer);
 	}
+
 	mutex_unlock(&zcrypt_rng_mutex);
 }
 
@@ -1442,19 +1836,27 @@ int __init zcrypt_api_init(void)
 	int rc;
 
 	rc = zcrypt_debug_init();
+
 	if (rc)
+	{
 		goto out;
+	}
 
 	atomic_set(&zcrypt_rescan_req, 0);
 
 	/* Register the request sprayer. */
 	rc = misc_register(&zcrypt_misc_device);
+
 	if (rc < 0)
+	{
 		goto out;
+	}
 
 	/* Set up the proc file system */
 	zcrypt_entry = proc_create("driver/z90crypt", 0644, NULL, &zcrypt_proc_fops);
-	if (!zcrypt_entry) {
+
+	if (!zcrypt_entry)
+	{
 		rc = -ENOMEM;
 		goto out_misc;
 	}

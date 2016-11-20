@@ -54,12 +54,14 @@
  * 1.3 - CXD2841ER demod, ASCOT2E and HORUS3A tuners
  * 1.4 - CXD2854ER demod, HELENE tuner
 */
-enum netup_hw_rev {
+enum netup_hw_rev
+{
 	NETUP_HW_REV_1_3 = 0x18F6,
 	NETUP_HW_REV_1_4 = 0x18F7
 };
 
-struct netup_dma {
+struct netup_dma
+{
 	u8			num;
 	spinlock_t		lock;
 	struct netup_unidvb_dev	*ndev;
@@ -76,7 +78,8 @@ struct netup_dma {
 	struct timer_list	timeout;
 };
 
-enum netup_i2c_state {
+enum netup_i2c_state
+{
 	STATE_DONE,
 	STATE_WAIT,
 	STATE_WANT_READ,
@@ -86,7 +89,8 @@ enum netup_i2c_state {
 
 struct netup_i2c_regs;
 
-struct netup_i2c {
+struct netup_i2c
+{
 	spinlock_t			lock;
 	wait_queue_head_t		wq;
 	struct i2c_adapter		adap;
@@ -97,7 +101,8 @@ struct netup_i2c {
 	u32				xmit_size;
 };
 
-struct netup_ci_state {
+struct netup_ci_state
+{
 	struct dvb_ca_en50221		ca;
 	u8 __iomem			*membase8_config;
 	u8 __iomem			*membase8_io;
@@ -108,7 +113,8 @@ struct netup_ci_state {
 
 struct netup_spi;
 
-struct netup_unidvb_dev {
+struct netup_unidvb_dev
+{
 	struct pci_dev			*pci_dev;
 	int				pci_bus;
 	int				pci_slot;
@@ -137,7 +143,7 @@ irqreturn_t netup_ci_interrupt(struct netup_unidvb_dev *ndev);
 irqreturn_t netup_i2c_interrupt(struct netup_i2c *i2c);
 irqreturn_t netup_spi_interrupt(struct netup_spi *spi);
 int netup_unidvb_ci_register(struct netup_unidvb_dev *dev,
-			     int num, struct pci_dev *pci_dev);
+							 int num, struct pci_dev *pci_dev);
 void netup_unidvb_ci_unregister(struct netup_unidvb_dev *dev, int num);
 int netup_spi_init(struct netup_unidvb_dev *ndev);
 void netup_spi_release(struct netup_unidvb_dev *ndev);

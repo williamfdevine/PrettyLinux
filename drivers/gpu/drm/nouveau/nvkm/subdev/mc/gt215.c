@@ -24,7 +24,8 @@
 #include "priv.h"
 
 static const struct nvkm_mc_map
-gt215_mc_reset[] = {
+	gt215_mc_reset[] =
+{
 	{ 0x04008000, NVKM_ENGINE_MSVLD },
 	{ 0x01020000, NVKM_ENGINE_MSPDEC },
 	{ 0x00802000, NVKM_ENGINE_CE0 },
@@ -35,7 +36,8 @@ gt215_mc_reset[] = {
 };
 
 static const struct nvkm_mc_map
-gt215_mc_intr[] = {
+	gt215_mc_intr[] =
+{
 	{ 0x04000000, NVKM_ENGINE_DISP },
 	{ 0x00400000, NVKM_ENGINE_CE0 },
 	{ 0x00020000, NVKM_ENGINE_MSPDEC },
@@ -60,7 +62,8 @@ gt215_mc_intr_mask(struct nvkm_mc *mc, u32 mask, u32 stat)
 }
 
 static const struct nvkm_mc_func
-gt215_mc = {
+	gt215_mc =
+{
 	.init = nv50_mc_init,
 	.intr = gt215_mc_intr,
 	.intr_unarm = nv04_mc_intr_unarm,

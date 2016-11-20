@@ -19,22 +19,22 @@ extern u32 fsnotify_recalc_mask(struct hlist_head *head);
 
 /* compare two groups for sorting of marks lists */
 extern int fsnotify_compare_groups(struct fsnotify_group *a,
-				   struct fsnotify_group *b);
+								   struct fsnotify_group *b);
 
 extern void fsnotify_set_inode_mark_mask_locked(struct fsnotify_mark *fsn_mark,
-						__u32 mask);
+		__u32 mask);
 /* Add mark to a proper place in mark list */
 extern int fsnotify_add_mark_list(struct hlist_head *head,
-				  struct fsnotify_mark *mark,
-				  int allow_dups);
+								  struct fsnotify_mark *mark,
+								  int allow_dups);
 /* add a mark to an inode */
 extern int fsnotify_add_inode_mark(struct fsnotify_mark *mark,
-				   struct fsnotify_group *group, struct inode *inode,
-				   int allow_dups);
+								   struct fsnotify_group *group, struct inode *inode,
+								   int allow_dups);
 /* add a mark to a vfsmount */
 extern int fsnotify_add_vfsmount_mark(struct fsnotify_mark *mark,
-				      struct fsnotify_group *group, struct vfsmount *mnt,
-				      int allow_dups);
+									  struct fsnotify_group *group, struct vfsmount *mnt,
+									  int allow_dups);
 
 /* vfsmount specific destruction of a mark */
 extern void fsnotify_destroy_vfsmount_mark(struct fsnotify_mark *mark);
@@ -42,7 +42,7 @@ extern void fsnotify_destroy_vfsmount_mark(struct fsnotify_mark *mark);
 extern void fsnotify_destroy_inode_mark(struct fsnotify_mark *mark);
 /* Find mark belonging to given group in the list of marks */
 extern struct fsnotify_mark *fsnotify_find_mark(struct hlist_head *head,
-						struct fsnotify_group *group);
+		struct fsnotify_group *group);
 /* Destroy all marks in the given list protected by 'lock' */
 extern void fsnotify_destroy_marks(struct hlist_head *head, spinlock_t *lock);
 /* run the list of all marks associated with inode and destroy them */
@@ -54,7 +54,7 @@ static inline void fsnotify_clear_marks_by_inode(struct inode *inode)
 static inline void fsnotify_clear_marks_by_mount(struct vfsmount *mnt)
 {
 	fsnotify_destroy_marks(&real_mount(mnt)->mnt_fsnotify_marks,
-			       &mnt->mnt_root->d_lock);
+						   &mnt->mnt_root->d_lock);
 }
 /* prepare for freeing all marks associated with given group */
 extern void fsnotify_detach_group_marks(struct fsnotify_group *group);

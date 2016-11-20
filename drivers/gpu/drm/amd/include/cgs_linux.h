@@ -36,8 +36,8 @@
  * Return:  0 on success, -errno otherwise
  */
 typedef int (*cgs_irq_source_set_func_t)(void *private_data,
-					 unsigned src_id, unsigned type,
-					 int enabled);
+		unsigned src_id, unsigned type,
+		int enabled);
 
 /**
  * cgs_irq_handler_func() - Interrupt handler callback
@@ -50,7 +50,7 @@ typedef int (*cgs_irq_source_set_func_t)(void *private_data,
  * Return:  0 on success, -errno otherwise
  */
 typedef int (*cgs_irq_handler_func_t)(void *private_data,
-				      unsigned src_id, const uint32_t *iv_entry);
+									  unsigned src_id, const uint32_t *iv_entry);
 
 /**
  * cgs_add_irq_source() - Add an IRQ source
@@ -67,10 +67,10 @@ typedef int (*cgs_irq_handler_func_t)(void *private_data,
  * Return:  0 on success, -errno otherwise
  */
 typedef int (*cgs_add_irq_source_t)(struct cgs_device *cgs_device, unsigned src_id,
-				    unsigned num_types,
-				    cgs_irq_source_set_func_t set,
-				    cgs_irq_handler_func_t handler,
-				    void *private_data);
+									unsigned num_types,
+									cgs_irq_source_set_func_t set,
+									cgs_irq_handler_func_t handler,
+									void *private_data);
 
 /**
  * cgs_irq_get() - Request enabling an IRQ source and type
@@ -100,7 +100,8 @@ typedef int (*cgs_irq_get_t)(struct cgs_device *cgs_device, unsigned src_id, uns
  */
 typedef int (*cgs_irq_put_t)(struct cgs_device *cgs_device, unsigned src_id, unsigned type);
 
-struct cgs_os_ops {
+struct cgs_os_ops
+{
 	/* IRQ handling */
 	cgs_add_irq_source_t add_irq_source;
 	cgs_irq_get_t irq_get;
@@ -109,7 +110,7 @@ struct cgs_os_ops {
 
 #define cgs_add_irq_source(dev,src_id,num_types,set,handler,private_data) \
 	CGS_OS_CALL(add_irq_source,dev,src_id,num_types,set,handler,	\
-		    private_data)
+				private_data)
 #define cgs_irq_get(dev,src_id,type)		\
 	CGS_OS_CALL(irq_get,dev,src_id,type)
 #define cgs_irq_put(dev,src_id,type)		\

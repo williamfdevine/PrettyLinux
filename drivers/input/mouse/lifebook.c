@@ -21,7 +21,8 @@
 #include "psmouse.h"
 #include "lifebook.h"
 
-struct lifebook_data {
+struct lifebook_data
+{
 	struct input_dev *dev2;		/* Relative device */
 	char phys[32];
 };
@@ -44,7 +45,8 @@ static int lifebook_set_6byte_proto(const struct dmi_system_id *d)
 	return 1;
 }
 
-static const struct dmi_system_id lifebook_dmi_table[] __initconst = {
+static const struct dmi_system_id lifebook_dmi_table[] __initconst =
+{
 	{
 		/* FLORA-ie 55mi */
 		.matches = {
@@ -139,61 +141,88 @@ static psmouse_ret_t lifebook_process_byte(struct psmouse *psmouse)
 	unsigned char *packet = psmouse->packet;
 	bool relative_packet = packet[0] & 0x08;
 
-	if (relative_packet || !lifebook_use_6byte_proto) {
+	if (relative_packet || !lifebook_use_6byte_proto)
+	{
 		if (psmouse->pktcnt != 3)
+		{
 			return PSMOUSE_GOOD_DATA;
-	} else {
-		switch (psmouse->pktcnt) {
-		case 1:
-			return (packet[0] & 0xf8) == 0x00 ?
-				PSMOUSE_GOOD_DATA : PSMOUSE_BAD_DATA;
-		case 2:
-			return PSMOUSE_GOOD_DATA;
-		case 3:
-			return ((packet[2] & 0x30) << 2) == (packet[2] & 0xc0) ?
-				PSMOUSE_GOOD_DATA : PSMOUSE_BAD_DATA;
-		case 4:
-			return (packet[3] & 0xf8) == 0xc0 ?
-				PSMOUSE_GOOD_DATA : PSMOUSE_BAD_DATA;
-		case 5:
-			return (packet[4] & 0xc0) == (packet[2] & 0xc0) ?
-				PSMOUSE_GOOD_DATA : PSMOUSE_BAD_DATA;
-		case 6:
-			if (((packet[5] & 0x30) << 2) != (packet[5] & 0xc0))
-				return PSMOUSE_BAD_DATA;
-			if ((packet[5] & 0xc0) != (packet[1] & 0xc0))
-				return PSMOUSE_BAD_DATA;
-			break; /* report data */
+		}
+	}
+	else
+	{
+		switch (psmouse->pktcnt)
+		{
+			case 1:
+				return (packet[0] & 0xf8) == 0x00 ?
+					   PSMOUSE_GOOD_DATA : PSMOUSE_BAD_DATA;
+
+			case 2:
+				return PSMOUSE_GOOD_DATA;
+
+			case 3:
+				return ((packet[2] & 0x30) << 2) == (packet[2] & 0xc0) ?
+					   PSMOUSE_GOOD_DATA : PSMOUSE_BAD_DATA;
+
+			case 4:
+				return (packet[3] & 0xf8) == 0xc0 ?
+					   PSMOUSE_GOOD_DATA : PSMOUSE_BAD_DATA;
+
+			case 5:
+				return (packet[4] & 0xc0) == (packet[2] & 0xc0) ?
+					   PSMOUSE_GOOD_DATA : PSMOUSE_BAD_DATA;
+
+			case 6:
+				if (((packet[5] & 0x30) << 2) != (packet[5] & 0xc0))
+				{
+					return PSMOUSE_BAD_DATA;
+				}
+
+				if ((packet[5] & 0xc0) != (packet[1] & 0xc0))
+				{
+					return PSMOUSE_BAD_DATA;
+				}
+
+				break; /* report data */
 		}
 	}
 
-	if (relative_packet) {
+	if (relative_packet)
+	{
 		if (!dev2)
 			psmouse_warn(psmouse,
-				     "got relative packet but no relative device set up\n");
-	} else {
-		if (lifebook_use_6byte_proto) {
+						 "got relative packet but no relative device set up\n");
+	}
+	else
+	{
+		if (lifebook_use_6byte_proto)
+		{
 			input_report_abs(dev1, ABS_X,
-				((packet[1] & 0x3f) << 6) | (packet[2] & 0x3f));
+							 ((packet[1] & 0x3f) << 6) | (packet[2] & 0x3f));
 			input_report_abs(dev1, ABS_Y,
-				4096 - (((packet[4] & 0x3f) << 6) | (packet[5] & 0x3f)));
-		} else {
-			input_report_abs(dev1, ABS_X,
-				(packet[1] | ((packet[0] & 0x30) << 4)));
-			input_report_abs(dev1, ABS_Y,
-				1024 - (packet[2] | ((packet[0] & 0xC0) << 2)));
+							 4096 - (((packet[4] & 0x3f) << 6) | (packet[5] & 0x3f)));
 		}
+		else
+		{
+			input_report_abs(dev1, ABS_X,
+							 (packet[1] | ((packet[0] & 0x30) << 4)));
+			input_report_abs(dev1, ABS_Y,
+							 1024 - (packet[2] | ((packet[0] & 0xC0) << 2)));
+		}
+
 		input_report_key(dev1, BTN_TOUCH, packet[0] & 0x04);
 		input_sync(dev1);
 	}
 
-	if (dev2) {
-		if (relative_packet) {
+	if (dev2)
+	{
+		if (relative_packet)
+		{
 			input_report_rel(dev2, REL_X,
-				((packet[0] & 0x10) ? packet[1] - 256 : packet[1]));
+							 ((packet[0] & 0x10) ? packet[1] - 256 : packet[1]));
 			input_report_rel(dev2, REL_Y,
-				 -(int)((packet[0] & 0x20) ? packet[2] - 256 : packet[2]));
+							 -(int)((packet[0] & 0x20) ? packet[2] - 256 : packet[2]));
 		}
+
 		input_report_key(dev2, BTN_LEFT, packet[0] & 0x01);
 		input_report_key(dev2, BTN_RIGHT, packet[0] & 0x02);
 		input_sync(dev2);
@@ -208,7 +237,9 @@ static int lifebook_absolute_mode(struct psmouse *psmouse)
 	unsigned char param;
 
 	if (psmouse_reset(psmouse))
+	{
 		return -1;
+	}
 
 	/*
 	 * Enable absolute output -- ps2_command fails always but if
@@ -235,7 +266,9 @@ static void lifebook_set_resolution(struct psmouse *psmouse, unsigned int resolu
 	unsigned char p;
 
 	if (resolution == 0 || resolution > 400)
+	{
 		resolution = 400;
+	}
 
 	p = params[resolution / 100];
 	ps2_command(&psmouse->ps2dev, &p, PSMOUSE_CMD_SETRES);
@@ -247,23 +280,31 @@ static void lifebook_disconnect(struct psmouse *psmouse)
 	struct lifebook_data *priv = psmouse->private;
 
 	psmouse_reset(psmouse);
-	if (priv) {
+
+	if (priv)
+	{
 		input_unregister_device(priv->dev2);
 		kfree(priv);
 	}
+
 	psmouse->private = NULL;
 }
 
 int lifebook_detect(struct psmouse *psmouse, bool set_properties)
 {
 	if (!lifebook_present)
+	{
 		return -1;
+	}
 
 	if (desired_serio_phys &&
-	    strcmp(psmouse->ps2dev.serio->phys, desired_serio_phys))
+		strcmp(psmouse->ps2dev.serio->phys, desired_serio_phys))
+	{
 		return -1;
+	}
 
-	if (set_properties) {
+	if (set_properties)
+	{
 		psmouse->vendor = "Fujitsu";
 		psmouse->name = "Lifebook TouchScreen";
 	}
@@ -279,12 +320,15 @@ static int lifebook_create_relative_device(struct psmouse *psmouse)
 
 	priv = kzalloc(sizeof(struct lifebook_data), GFP_KERNEL);
 	dev2 = input_allocate_device();
+
 	if (!priv || !dev2)
+	{
 		goto err_out;
+	}
 
 	priv->dev2 = dev2;
 	snprintf(priv->phys, sizeof(priv->phys),
-		 "%s/input1", psmouse->ps2dev.serio->phys);
+			 "%s/input1", psmouse->ps2dev.serio->phys);
 
 	dev2->phys = priv->phys;
 	dev2->name = "LBPS/2 Fujitsu Lifebook Touchpad";
@@ -297,16 +341,19 @@ static int lifebook_create_relative_device(struct psmouse *psmouse)
 	dev2->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REL);
 	dev2->relbit[BIT_WORD(REL_X)] = BIT_MASK(REL_X) | BIT_MASK(REL_Y);
 	dev2->keybit[BIT_WORD(BTN_LEFT)] =
-				BIT_MASK(BTN_LEFT) | BIT_MASK(BTN_RIGHT);
+		BIT_MASK(BTN_LEFT) | BIT_MASK(BTN_RIGHT);
 
 	error = input_register_device(priv->dev2);
+
 	if (error)
+	{
 		goto err_out;
+	}
 
 	psmouse->private = priv;
 	return 0;
 
- err_out:
+err_out:
 	input_free_device(dev2);
 	kfree(priv);
 	return error;
@@ -318,7 +365,9 @@ int lifebook_init(struct psmouse *psmouse)
 	int max_coord = lifebook_use_6byte_proto ? 4096 : 1024;
 
 	if (lifebook_absolute_mode(psmouse))
+	{
 		return -1;
+	}
 
 	dev1->evbit[0] = BIT_MASK(EV_ABS) | BIT_MASK(EV_KEY);
 	dev1->relbit[0] = 0;
@@ -327,8 +376,10 @@ int lifebook_init(struct psmouse *psmouse)
 	input_set_abs_params(dev1, ABS_X, 0, max_coord, 0, 0);
 	input_set_abs_params(dev1, ABS_Y, 0, max_coord, 0, 0);
 
-	if (!desired_serio_phys) {
-		if (lifebook_create_relative_device(psmouse)) {
+	if (!desired_serio_phys)
+	{
+		if (lifebook_create_relative_device(psmouse))
+		{
 			lifebook_relative_mode(psmouse);
 			return -1;
 		}

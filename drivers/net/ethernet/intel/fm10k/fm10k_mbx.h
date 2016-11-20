@@ -94,7 +94,8 @@ struct fm10k_mbx_info;
  *	       that the remote endpoint is either done sending, or when the
  *	       remote endpoint has fallen back into connect.
  */
-enum fm10k_mbx_state {
+enum fm10k_mbx_state
+{
 	FM10K_STATE_CLOSED,
 	FM10K_STATE_CONNECT,
 	FM10K_STATE_OPEN,
@@ -164,7 +165,8 @@ enum fm10k_mbx_state {
 #define FM10K_MSG_ERR_NO_SHIFT			16
 #define FM10K_MSG_ERR_NO_SIZE			16
 
-enum fm10k_msg_type {
+enum fm10k_msg_type
+{
 	FM10K_MSG_DATA			= 0x8,
 	FM10K_MSG_CONNECT		= 0xC,
 	FM10K_MSG_DISCONNECT		= 0xD,
@@ -230,20 +232,22 @@ enum fm10k_msg_type {
 
 #define FM10K_MBX_CRC_SEED		0xFFFF
 
-struct fm10k_mbx_ops {
+struct fm10k_mbx_ops
+{
 	s32 (*connect)(struct fm10k_hw *, struct fm10k_mbx_info *);
 	void (*disconnect)(struct fm10k_hw *, struct fm10k_mbx_info *);
 	bool (*rx_ready)(struct fm10k_mbx_info *);
 	bool (*tx_ready)(struct fm10k_mbx_info *, u16);
 	bool (*tx_complete)(struct fm10k_mbx_info *);
 	s32 (*enqueue_tx)(struct fm10k_hw *, struct fm10k_mbx_info *,
-			  const u32 *);
+					  const u32 *);
 	s32 (*process)(struct fm10k_hw *, struct fm10k_mbx_info *);
 	s32 (*register_handlers)(struct fm10k_mbx_info *,
-				 const struct fm10k_msg_data *);
+							 const struct fm10k_msg_data *);
 };
 
-struct fm10k_mbx_fifo {
+struct fm10k_mbx_fifo
+{
 	u32 *buffer;
 	u16 head;
 	u16 tail;
@@ -264,7 +268,8 @@ struct fm10k_mbx_fifo {
 #define FM10K_MBX_INIT_TIMEOUT	2000 /* number of retries on mailbox */
 #define FM10K_MBX_INIT_DELAY	500  /* microseconds between retries */
 
-struct fm10k_mbx_info {
+struct fm10k_mbx_info
+{
 	/* function pointers for mailbox operations */
 	struct fm10k_mbx_ops ops;
 	const struct fm10k_msg_data *msg_data;
@@ -304,8 +309,8 @@ struct fm10k_mbx_info {
 };
 
 s32 fm10k_pfvf_mbx_init(struct fm10k_hw *, struct fm10k_mbx_info *,
-			const struct fm10k_msg_data *, u8);
+						const struct fm10k_msg_data *, u8);
 s32 fm10k_sm_mbx_init(struct fm10k_hw *, struct fm10k_mbx_info *,
-		      const struct fm10k_msg_data *);
+					  const struct fm10k_msg_data *);
 
 #endif /* _FM10K_MBX_H_ */

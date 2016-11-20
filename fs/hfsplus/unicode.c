@@ -20,16 +20,22 @@ static inline u16 case_fold(u16 c)
 	u16 tmp;
 
 	tmp = hfsplus_case_fold_table[c >> 8];
+
 	if (tmp)
+	{
 		tmp = hfsplus_case_fold_table[tmp + (c & 0xff)];
+	}
 	else
+	{
 		tmp = c;
+	}
+
 	return tmp;
 }
 
 /* Compare unicode strings, return values like normal strcmp */
 int hfsplus_strcasecmp(const struct hfsplus_unistr *s1,
-		       const struct hfsplus_unistr *s2)
+					   const struct hfsplus_unistr *s2)
 {
 	u16 len1, len2, c1, c2;
 	const hfsplus_unichr *p1, *p2;
@@ -39,30 +45,39 @@ int hfsplus_strcasecmp(const struct hfsplus_unistr *s1,
 	p1 = s1->unicode;
 	p2 = s2->unicode;
 
-	while (1) {
+	while (1)
+	{
 		c1 = c2 = 0;
 
-		while (len1 && !c1) {
+		while (len1 && !c1)
+		{
 			c1 = case_fold(be16_to_cpu(*p1));
 			p1++;
 			len1--;
 		}
-		while (len2 && !c2) {
+
+		while (len2 && !c2)
+		{
 			c2 = case_fold(be16_to_cpu(*p2));
 			p2++;
 			len2--;
 		}
 
 		if (c1 != c2)
+		{
 			return (c1 < c2) ? -1 : 1;
+		}
+
 		if (!c1 && !c2)
+		{
 			return 0;
+		}
 	}
 }
 
 /* Compare names as a sequence of 16-bit unsigned integers */
 int hfsplus_strcmp(const struct hfsplus_unistr *s1,
-		   const struct hfsplus_unistr *s2)
+				   const struct hfsplus_unistr *s2)
 {
 	u16 len1, len2, c1, c2;
 	const hfsplus_unichr *p1, *p2;
@@ -73,17 +88,22 @@ int hfsplus_strcmp(const struct hfsplus_unistr *s1,
 	p1 = s1->unicode;
 	p2 = s2->unicode;
 
-	for (len = min(len1, len2); len > 0; len--) {
+	for (len = min(len1, len2); len > 0; len--)
+	{
 		c1 = be16_to_cpu(*p1);
 		c2 = be16_to_cpu(*p2);
+
 		if (c1 != c2)
+		{
 			return c1 < c2 ? -1 : 1;
+		}
+
 		p1++;
 		p2++;
 	}
 
 	return len1 < len2 ? -1 :
-	       len1 > len2 ? 1 : 0;
+		   len1 > len2 ? 1 : 0;
 }
 
 
@@ -104,23 +124,37 @@ static u16 *hfsplus_compose_lookup(u16 *p, u16 cc)
 
 	s = 1;
 	e = p[1];
+
 	if (!e || cc < p[s * 2] || cc > p[e * 2])
+	{
 		return NULL;
-	do {
+	}
+
+	do
+	{
 		i = (s + e) / 2;
+
 		if (cc > p[i * 2])
+		{
 			s = i + 1;
+		}
 		else if (cc < p[i * 2])
+		{
 			e = i - 1;
+		}
 		else
+		{
 			return hfsplus_compose_table + p[i * 2 + 1];
-	} while (s <= e);
+		}
+	}
+	while (s <= e);
+
 	return NULL;
 }
 
 int hfsplus_uni2asc(struct super_block *sb,
-		const struct hfsplus_unistr *ustr,
-		char *astr, int *len_p)
+					const struct hfsplus_unistr *ustr,
+					char *astr, int *len_p)
 {
 	const hfsplus_unichr *ip;
 	struct nls_table *nls = HFSPLUS_SB(sb)->nls;
@@ -136,112 +170,182 @@ int hfsplus_uni2asc(struct super_block *sb,
 	ce1 = NULL;
 	compose = !test_bit(HFSPLUS_SB_NODECOMPOSE, &HFSPLUS_SB(sb)->flags);
 
-	while (ustrlen > 0) {
+	while (ustrlen > 0)
+	{
 		c0 = be16_to_cpu(*ip++);
 		ustrlen--;
+
 		/* search for single decomposed char */
 		if (likely(compose))
+		{
 			ce1 = hfsplus_compose_lookup(hfsplus_compose_table, c0);
+		}
+
 		if (ce1)
+		{
 			cc = ce1[0];
+		}
 		else
+		{
 			cc = 0;
-		if (cc) {
+		}
+
+		if (cc)
+		{
 			/* start of a possibly decomposed Hangul char */
 			if (cc != 0xffff)
+			{
 				goto done;
+			}
+
 			if (!ustrlen)
+			{
 				goto same;
+			}
+
 			c1 = be16_to_cpu(*ip) - Hangul_VBase;
-			if (c1 < Hangul_VCount) {
+
+			if (c1 < Hangul_VCount)
+			{
 				/* compose the Hangul char */
 				cc = (c0 - Hangul_LBase) * Hangul_VCount;
 				cc = (cc + c1) * Hangul_TCount;
 				cc += Hangul_SBase;
 				ip++;
 				ustrlen--;
+
 				if (!ustrlen)
+				{
 					goto done;
+				}
+
 				c1 = be16_to_cpu(*ip) - Hangul_TBase;
-				if (c1 > 0 && c1 < Hangul_TCount) {
+
+				if (c1 > 0 && c1 < Hangul_TCount)
+				{
 					cc += c1;
 					ip++;
 					ustrlen--;
 				}
+
 				goto done;
 			}
 		}
-		while (1) {
+
+		while (1)
+		{
 			/* main loop for common case of not composed chars */
 			if (!ustrlen)
+			{
 				goto same;
+			}
+
 			c1 = be16_to_cpu(*ip);
+
 			if (likely(compose))
 				ce1 = hfsplus_compose_lookup(
-					hfsplus_compose_table, c1);
+						  hfsplus_compose_table, c1);
+
 			if (ce1)
-				break;
-			switch (c0) {
-			case 0:
-				c0 = 0x2400;
-				break;
-			case '/':
-				c0 = ':';
+			{
 				break;
 			}
+
+			switch (c0)
+			{
+				case 0:
+					c0 = 0x2400;
+					break;
+
+				case '/':
+					c0 = ':';
+					break;
+			}
+
 			res = nls->uni2char(c0, op, len);
-			if (res < 0) {
+
+			if (res < 0)
+			{
 				if (res == -ENAMETOOLONG)
+				{
 					goto out;
+				}
+
 				*op = '?';
 				res = 1;
 			}
+
 			op += res;
 			len -= res;
 			c0 = c1;
 			ip++;
 			ustrlen--;
 		}
+
 		ce2 = hfsplus_compose_lookup(ce1, c0);
-		if (ce2) {
+
+		if (ce2)
+		{
 			i = 1;
-			while (i < ustrlen) {
+
+			while (i < ustrlen)
+			{
 				ce1 = hfsplus_compose_lookup(ce2,
-					be16_to_cpu(ip[i]));
+											 be16_to_cpu(ip[i]));
+
 				if (!ce1)
+				{
 					break;
+				}
+
 				i++;
 				ce2 = ce1;
 			}
+
 			cc = ce2[0];
-			if (cc) {
+
+			if (cc)
+			{
 				ip += i;
 				ustrlen -= i;
 				goto done;
 			}
 		}
+
 same:
-		switch (c0) {
-		case 0:
-			cc = 0x2400;
-			break;
-		case '/':
-			cc = ':';
-			break;
-		default:
-			cc = c0;
+
+		switch (c0)
+		{
+			case 0:
+				cc = 0x2400;
+				break;
+
+			case '/':
+				cc = ':';
+				break;
+
+			default:
+				cc = c0;
 		}
+
 done:
 		res = nls->uni2char(cc, op, len);
-		if (res < 0) {
+
+		if (res < 0)
+		{
 			if (res == -ENAMETOOLONG)
+			{
 				goto out;
+			}
+
 			*op = '?';
 			res = 1;
 		}
+
 		op += res;
 		len -= res;
 	}
+
 	res = 0;
 out:
 	*len_p = (char *)op - astr;
@@ -253,21 +357,27 @@ out:
  * Returns the number of ASCII characters corresponding to the unicode char.
  */
 static inline int asc2unichar(struct super_block *sb, const char *astr, int len,
-			      wchar_t *uc)
+							  wchar_t *uc)
 {
 	int size = HFSPLUS_SB(sb)->nls->char2uni(astr, len, uc);
-	if (size <= 0) {
+
+	if (size <= 0)
+	{
 		*uc = '?';
 		size = 1;
 	}
-	switch (*uc) {
-	case 0x2400:
-		*uc = 0;
-		break;
-	case ':':
-		*uc = '/';
-		break;
+
+	switch (*uc)
+	{
+		case 0x2400:
+			*uc = 0;
+			break;
+
+		case ':':
+			*uc = '/';
+			break;
 	}
+
 	return size;
 }
 
@@ -277,55 +387,89 @@ static inline u16 *decompose_unichar(wchar_t uc, int *size)
 	int off;
 
 	off = hfsplus_decompose_table[(uc >> 12) & 0xf];
+
 	if (off == 0 || off == 0xffff)
+	{
 		return NULL;
+	}
 
 	off = hfsplus_decompose_table[off + ((uc >> 8) & 0xf)];
+
 	if (!off)
+	{
 		return NULL;
+	}
 
 	off = hfsplus_decompose_table[off + ((uc >> 4) & 0xf)];
+
 	if (!off)
+	{
 		return NULL;
+	}
 
 	off = hfsplus_decompose_table[off + (uc & 0xf)];
 	*size = off & 3;
+
 	if (*size == 0)
+	{
 		return NULL;
+	}
+
 	return hfsplus_decompose_table + (off / 4);
 }
 
 int hfsplus_asc2uni(struct super_block *sb,
-		    struct hfsplus_unistr *ustr, int max_unistr_len,
-		    const char *astr, int len)
+					struct hfsplus_unistr *ustr, int max_unistr_len,
+					const char *astr, int len)
 {
 	int size, dsize, decompose;
 	u16 *dstr, outlen = 0;
 	wchar_t c;
 
 	decompose = !test_bit(HFSPLUS_SB_NODECOMPOSE, &HFSPLUS_SB(sb)->flags);
-	while (outlen < max_unistr_len && len > 0) {
+
+	while (outlen < max_unistr_len && len > 0)
+	{
 		size = asc2unichar(sb, astr, len, &c);
 
 		if (decompose)
+		{
 			dstr = decompose_unichar(c, &dsize);
+		}
 		else
+		{
 			dstr = NULL;
-		if (dstr) {
+		}
+
+		if (dstr)
+		{
 			if (outlen + dsize > max_unistr_len)
+			{
 				break;
-			do {
+			}
+
+			do
+			{
 				ustr->unicode[outlen++] = cpu_to_be16(*dstr++);
-			} while (--dsize > 0);
-		} else
+			}
+			while (--dsize > 0);
+		}
+		else
+		{
 			ustr->unicode[outlen++] = cpu_to_be16(c);
+		}
 
 		astr += size;
 		len -= size;
 	}
+
 	ustr->length = cpu_to_be16(outlen);
+
 	if (len > 0)
+	{
 		return -ENAMETOOLONG;
+	}
+
 	return 0;
 }
 
@@ -349,32 +493,57 @@ int hfsplus_hash_dentry(const struct dentry *dentry, struct qstr *str)
 	hash = init_name_hash(dentry);
 	astr = str->name;
 	len = str->len;
-	while (len > 0) {
+
+	while (len > 0)
+	{
 		int uninitialized_var(dsize);
 		size = asc2unichar(sb, astr, len, &c);
 		astr += size;
 		len -= size;
 
 		if (decompose)
+		{
 			dstr = decompose_unichar(c, &dsize);
+		}
 		else
+		{
 			dstr = NULL;
-		if (dstr) {
-			do {
+		}
+
+		if (dstr)
+		{
+			do
+			{
 				c2 = *dstr++;
+
 				if (casefold)
+				{
 					c2 = case_fold(c2);
+				}
+
 				if (!casefold || c2)
+				{
 					hash = partial_name_hash(c2, hash);
-			} while (--dsize > 0);
-		} else {
+				}
+			}
+			while (--dsize > 0);
+		}
+		else
+		{
 			c2 = c;
+
 			if (casefold)
+			{
 				c2 = case_fold(c2);
+			}
+
 			if (!casefold || c2)
+			{
 				hash = partial_name_hash(c2, hash);
+			}
 		}
 	}
+
 	str->hash = end_name_hash(hash);
 
 	return 0;
@@ -386,7 +555,7 @@ int hfsplus_hash_dentry(const struct dentry *dentry, struct qstr *str)
  * if the appropriate bits are (un)set on the superblock.
  */
 int hfsplus_compare_dentry(const struct dentry *dentry,
-		unsigned int len, const char *str, const struct qstr *name)
+						   unsigned int len, const char *str, const struct qstr *name)
 {
 	struct super_block *sb = dentry->d_sb;
 	int casefold, decompose, size;
@@ -405,29 +574,40 @@ int hfsplus_compare_dentry(const struct dentry *dentry,
 	dsize1 = dsize2 = 0;
 	dstr1 = dstr2 = NULL;
 
-	while (len1 > 0 && len2 > 0) {
-		if (!dsize1) {
+	while (len1 > 0 && len2 > 0)
+	{
+		if (!dsize1)
+		{
 			size = asc2unichar(sb, astr1, len1, &c);
 			astr1 += size;
 			len1 -= size;
 
 			if (decompose)
+			{
 				dstr1 = decompose_unichar(c, &dsize1);
-			if (!decompose || !dstr1) {
+			}
+
+			if (!decompose || !dstr1)
+			{
 				c1 = c;
 				dstr1 = &c1;
 				dsize1 = 1;
 			}
 		}
 
-		if (!dsize2) {
+		if (!dsize2)
+		{
 			size = asc2unichar(sb, astr2, len2, &c);
 			astr2 += size;
 			len2 -= size;
 
 			if (decompose)
+			{
 				dstr2 = decompose_unichar(c, &dsize2);
-			if (!decompose || !dstr2) {
+			}
+
+			if (!decompose || !dstr2)
+			{
 				c2 = c;
 				dstr2 = &c2;
 				dsize2 = 1;
@@ -436,24 +616,36 @@ int hfsplus_compare_dentry(const struct dentry *dentry,
 
 		c1 = *dstr1;
 		c2 = *dstr2;
-		if (casefold) {
+
+		if (casefold)
+		{
 			c1 = case_fold(c1);
-			if (!c1) {
+
+			if (!c1)
+			{
 				dstr1++;
 				dsize1--;
 				continue;
 			}
+
 			c2 = case_fold(c2);
-			if (!c2) {
+
+			if (!c2)
+			{
 				dstr2++;
 				dsize2--;
 				continue;
 			}
 		}
+
 		if (c1 < c2)
+		{
 			return -1;
+		}
 		else if (c1 > c2)
+		{
 			return 1;
+		}
 
 		dstr1++;
 		dsize1--;
@@ -462,8 +654,14 @@ int hfsplus_compare_dentry(const struct dentry *dentry,
 	}
 
 	if (len1 < len2)
+	{
 		return -1;
+	}
+
 	if (len1 > len2)
+	{
 		return 1;
+	}
+
 	return 0;
 }

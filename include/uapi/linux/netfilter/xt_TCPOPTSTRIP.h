@@ -8,7 +8,8 @@
 #define tcpoptstrip_test_bit(bmap, idx) \
 	(((1U << (idx & 31)) & bmap[(idx) >> 5]) != 0)
 
-struct xt_tcpoptstrip_target_info {
+struct xt_tcpoptstrip_target_info
+{
 	__u32 strip_bmap[8];
 };
 

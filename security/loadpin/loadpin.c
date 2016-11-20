@@ -34,12 +34,12 @@ static void report_load(const char *origin, struct file *file, char *operation)
 	cmdline = kstrdup_quotable_cmdline(current, GFP_KERNEL);
 
 	pr_notice("%s %s obj=%s%s%s pid=%d cmdline=%s%s%s\n",
-		  origin, operation,
-		  (pathname && pathname[0] != '<') ? "\"" : "",
-		  pathname,
-		  (pathname && pathname[0] != '<') ? "\"" : "",
-		  task_pid_nr(current),
-		  cmdline ? "\"" : "", cmdline, cmdline ? "\"" : "");
+			  origin, operation,
+			  (pathname && pathname[0] != '<') ? "\"" : "",
+			  pathname,
+			  (pathname && pathname[0] != '<') ? "\"" : "",
+			  task_pid_nr(current),
+			  cmdline ? "\"" : "", cmdline, cmdline ? "\"" : "");
 
 	kfree(cmdline);
 	kfree(pathname);
@@ -53,13 +53,15 @@ static DEFINE_SPINLOCK(pinned_root_spinlock);
 static int zero;
 static int one = 1;
 
-static struct ctl_path loadpin_sysctl_path[] = {
+static struct ctl_path loadpin_sysctl_path[] =
+{
 	{ .procname = "kernel", },
 	{ .procname = "loadpin", },
 	{ }
 };
 
-static struct ctl_table loadpin_sysctl_table[] = {
+static struct ctl_table loadpin_sysctl_table[] =
+{
 	{
 		.procname       = "enabled",
 		.data           = &enabled,
@@ -84,23 +86,35 @@ static void check_pinning_enforcement(struct super_block *mnt_sb)
 	 * If load pinning is not enforced via a read-only block
 	 * device, allow sysctl to change modes for testing.
 	 */
-	if (mnt_sb->s_bdev) {
+	if (mnt_sb->s_bdev)
+	{
 		ro = bdev_read_only(mnt_sb->s_bdev);
 		pr_info("dev(%u,%u): %s\n",
-			MAJOR(mnt_sb->s_bdev->bd_dev),
-			MINOR(mnt_sb->s_bdev->bd_dev),
-			ro ? "read-only" : "writable");
-	} else
+				MAJOR(mnt_sb->s_bdev->bd_dev),
+				MINOR(mnt_sb->s_bdev->bd_dev),
+				ro ? "read-only" : "writable");
+	}
+	else
+	{
 		pr_info("mnt_sb lacks block device, treating as: writable\n");
+	}
 
-	if (!ro) {
+	if (!ro)
+	{
 		if (!register_sysctl_paths(loadpin_sysctl_path,
-					   loadpin_sysctl_table))
+								   loadpin_sysctl_table))
+		{
 			pr_notice("sysctl registration failed!\n");
+		}
 		else
+		{
 			pr_info("load pinning can be disabled.\n");
-	} else
+		}
+	}
+	else
+	{
 		pr_info("load pinning engaged.\n");
+	}
 }
 #else
 static void check_pinning_enforcement(struct super_block *mnt_sb)
@@ -116,7 +130,8 @@ static void loadpin_sb_free_security(struct super_block *mnt_sb)
 	 * pinning, we acknowledge the superblock release, but make sure
 	 * no other modules or firmware can be loaded.
 	 */
-	if (!IS_ERR_OR_NULL(pinned_root) && mnt_sb == pinned_root) {
+	if (!IS_ERR_OR_NULL(pinned_root) && mnt_sb == pinned_root)
+	{
 		pinned_root = ERR_PTR(-EIO);
 		pr_info("umount pinned fs: refusing further loads\n");
 	}
@@ -128,8 +143,10 @@ static int loadpin_read_file(struct file *file, enum kernel_read_file_id id)
 	const char *origin = kernel_read_file_id_str(id);
 
 	/* This handles the older init_module API that has a NULL file. */
-	if (!file) {
-		if (!enabled) {
+	if (!file)
+	{
+		if (!enabled)
+		{
 			report_load(origin, NULL, "old-api-pinning-ignored");
 			return 0;
 		}
@@ -142,11 +159,13 @@ static int loadpin_read_file(struct file *file, enum kernel_read_file_id id)
 
 	/* First loaded module/firmware defines the root for all others. */
 	spin_lock(&pinned_root_spinlock);
+
 	/*
 	 * pinned_root is only NULL at startup. Otherwise, it is either
 	 * a valid reference, or an ERR_PTR.
 	 */
-	if (!pinned_root) {
+	if (!pinned_root)
+	{
 		pinned_root = load_root;
 		/*
 		 * Unlock now since it's only pinned_root we care about.
@@ -157,12 +176,16 @@ static int loadpin_read_file(struct file *file, enum kernel_read_file_id id)
 		spin_unlock(&pinned_root_spinlock);
 		check_pinning_enforcement(pinned_root);
 		report_load(origin, file, "pinned");
-	} else {
+	}
+	else
+	{
 		spin_unlock(&pinned_root_spinlock);
 	}
 
-	if (IS_ERR_OR_NULL(pinned_root) || load_root != pinned_root) {
-		if (unlikely(!enabled)) {
+	if (IS_ERR_OR_NULL(pinned_root) || load_root != pinned_root)
+	{
+		if (unlikely(!enabled))
+		{
 			report_load(origin, file, "pinning-ignored");
 			return 0;
 		}
@@ -174,7 +197,8 @@ static int loadpin_read_file(struct file *file, enum kernel_read_file_id id)
 	return 0;
 }
 
-static struct security_hook_list loadpin_hooks[] = {
+static struct security_hook_list loadpin_hooks[] =
+{
 	LSM_HOOK_INIT(sb_free_security, loadpin_sb_free_security),
 	LSM_HOOK_INIT(kernel_read_file, loadpin_read_file),
 };

@@ -155,8 +155,8 @@ static int __init set_reset_devices(char *str)
 
 __setup("reset_devices", set_reset_devices);
 
-static const char *argv_init[MAX_INIT_ARGS+2] = { "init", NULL, };
-const char *envp_init[MAX_INIT_ENVS+2] = { "HOME=/", "TERM=linux", NULL, };
+static const char *argv_init[MAX_INIT_ARGS + 2] = { "init", NULL, };
+const char *envp_init[MAX_INIT_ENVS + 2] = { "HOME=/", "TERM=linux", NULL, };
 static const char *panic_later, *panic_param;
 
 extern const struct obs_kernel_param __setup_start[], __setup_end[];
@@ -167,25 +167,39 @@ static bool __init obsolete_checksetup(char *line)
 	bool had_early_param = false;
 
 	p = __setup_start;
-	do {
+
+	do
+	{
 		int n = strlen(p->str);
-		if (parameqn(line, p->str, n)) {
-			if (p->early) {
+
+		if (parameqn(line, p->str, n))
+		{
+			if (p->early)
+			{
 				/* Already done in parse_early_param?
 				 * (Needs exact match on param part).
 				 * Keep iterating, as we can have early
 				 * params and __setups of same names 8( */
 				if (line[n] == '\0' || line[n] == '=')
+				{
 					had_early_param = true;
-			} else if (!p->setup_func) {
+				}
+			}
+			else if (!p->setup_func)
+			{
 				pr_warn("Parameter %s is obsolete, ignored\n",
-					p->str);
+						p->str);
 				return true;
-			} else if (p->setup_func(line + n))
+			}
+			else if (p->setup_func(line + n))
+			{
 				return true;
+			}
 		}
+
 		p++;
-	} while (p < __setup_end);
+	}
+	while (p < __setup_end);
 
 	return had_early_param;
 }
@@ -194,7 +208,7 @@ static bool __init obsolete_checksetup(char *line)
  * This should be approx 2 Bo*oMips to start (note initial shift), and will
  * still work even if initially too large, it will just take slightly longer
  */
-unsigned long loops_per_jiffy = (1<<12);
+unsigned long loops_per_jiffy = (1 << 12);
 EXPORT_SYMBOL(loops_per_jiffy);
 
 static int __init debug_kernel(char *str)
@@ -221,7 +235,8 @@ static int __init loglevel(char *str)
 	 * to prevent blind crashes (when loglevel being set to 0) that
 	 * are quite hard to debug
 	 */
-	if (get_option(&str, &newlevel)) {
+	if (get_option(&str, &newlevel))
+	{
 		console_loglevel = newlevel;
 		return 0;
 	}
@@ -233,40 +248,53 @@ early_param("loglevel", loglevel);
 
 /* Change NUL term back to "=", to make "param" the whole string. */
 static int __init repair_env_string(char *param, char *val,
-				    const char *unused, void *arg)
+									const char *unused, void *arg)
 {
-	if (val) {
+	if (val)
+	{
 		/* param=val or param="val"? */
-		if (val == param+strlen(param)+1)
+		if (val == param + strlen(param) + 1)
+		{
 			val[-1] = '=';
-		else if (val == param+strlen(param)+2) {
+		}
+		else if (val == param + strlen(param) + 2)
+		{
 			val[-2] = '=';
-			memmove(val-1, val, strlen(val)+1);
+			memmove(val - 1, val, strlen(val) + 1);
 			val--;
-		} else
+		}
+		else
+		{
 			BUG();
+		}
 	}
+
 	return 0;
 }
 
 /* Anything after -- gets handed straight to init. */
 static int __init set_init_arg(char *param, char *val,
-			       const char *unused, void *arg)
+							   const char *unused, void *arg)
 {
 	unsigned int i;
 
 	if (panic_later)
+	{
 		return 0;
+	}
 
 	repair_env_string(param, val, unused, NULL);
 
-	for (i = 0; argv_init[i]; i++) {
-		if (i == MAX_INIT_ARGS) {
+	for (i = 0; argv_init[i]; i++)
+	{
+		if (i == MAX_INIT_ARGS)
+		{
 			panic_later = "init";
 			panic_param = param;
 			return 0;
 		}
 	}
+
 	argv_init[i] = param;
 	return 0;
 }
@@ -276,44 +304,65 @@ static int __init set_init_arg(char *param, char *val,
  * unused parameters (modprobe will find them in /proc/cmdline).
  */
 static int __init unknown_bootoption(char *param, char *val,
-				     const char *unused, void *arg)
+									 const char *unused, void *arg)
 {
 	repair_env_string(param, val, unused, NULL);
 
 	/* Handle obsolete-style parameters */
 	if (obsolete_checksetup(param))
+	{
 		return 0;
+	}
 
 	/* Unused module parameter. */
 	if (strchr(param, '.') && (!val || strchr(param, '.') < val))
+	{
 		return 0;
+	}
 
 	if (panic_later)
+	{
 		return 0;
+	}
 
-	if (val) {
+	if (val)
+	{
 		/* Environment option */
 		unsigned int i;
-		for (i = 0; envp_init[i]; i++) {
-			if (i == MAX_INIT_ENVS) {
+
+		for (i = 0; envp_init[i]; i++)
+		{
+			if (i == MAX_INIT_ENVS)
+			{
 				panic_later = "env";
 				panic_param = param;
 			}
+
 			if (!strncmp(param, envp_init[i], val - param))
+			{
 				break;
+			}
 		}
+
 		envp_init[i] = param;
-	} else {
+	}
+	else
+	{
 		/* Command line option */
 		unsigned int i;
-		for (i = 0; argv_init[i]; i++) {
-			if (i == MAX_INIT_ARGS) {
+
+		for (i = 0; argv_init[i]; i++)
+		{
+			if (i == MAX_INIT_ARGS)
+			{
 				panic_later = "init";
 				panic_param = param;
 			}
 		}
+
 		argv_init[i] = param;
 	}
+
 	return 0;
 }
 
@@ -322,6 +371,7 @@ static int __init init_setup(char *str)
 	unsigned int i;
 
 	execute_command = str;
+
 	/*
 	 * In case LILO is going to boot us with default command line,
 	 * it prepends "auto" before the whole cmdline which makes
@@ -329,7 +379,10 @@ static int __init init_setup(char *str)
 	 * So we ignore all arguments entered _before_ init=... [MJ]
 	 */
 	for (i = 1; i < MAX_INIT_ARGS; i++)
+	{
 		argv_init[i] = NULL;
+	}
+
 	return 1;
 }
 __setup("init=", init_setup);
@@ -339,9 +392,13 @@ static int __init rdinit_setup(char *str)
 	unsigned int i;
 
 	ramdisk_execute_command = str;
+
 	/* See "auto" comment in init_setup */
 	for (i = 1; i < MAX_INIT_ARGS; i++)
+	{
 		argv_init[i] = NULL;
+	}
+
 	return 1;
 }
 __setup("rdinit=", rdinit_setup);
@@ -410,19 +467,24 @@ static noinline void __ref rest_init(void)
 
 /* Check for early params. */
 static int __init do_early_param(char *param, char *val,
-				 const char *unused, void *arg)
+								 const char *unused, void *arg)
 {
 	const struct obs_kernel_param *p;
 
-	for (p = __setup_start; p < __setup_end; p++) {
+	for (p = __setup_start; p < __setup_end; p++)
+	{
 		if ((p->early && parameq(param, p->str)) ||
-		    (strcmp(param, "console") == 0 &&
-		     strcmp(p->str, "earlycon") == 0)
-		) {
+			(strcmp(param, "console") == 0 &&
+			 strcmp(p->str, "earlycon") == 0)
+		   )
+		{
 			if (p->setup_func(val) != 0)
+			{
 				pr_warn("Malformed early option '%s'\n", param);
+			}
 		}
 	}
+
 	/* We accept everything at this stage. */
 	return 0;
 }
@@ -430,7 +492,7 @@ static int __init do_early_param(char *param, char *val,
 void __init parse_early_options(char *cmdline)
 {
 	parse_args("early options", cmdline, NULL, 0, 0, 0, NULL,
-		   do_early_param);
+			   do_early_param);
 }
 
 /* Arch code calls this early on, or if not, just before other parsing. */
@@ -440,7 +502,9 @@ void __init parse_early_param(void)
 	static char tmp_cmdline[COMMAND_LINE_SIZE] __initdata;
 
 	if (done)
+	{
 		return;
+	}
 
 	/* All fall through to do_early_param. */
 	strlcpy(tmp_cmdline, boot_command_line, COMMAND_LINE_SIZE);
@@ -495,10 +559,10 @@ asmlinkage __visible void __init start_kernel(void)
 	local_irq_disable();
 	early_boot_irqs_disabled = true;
 
-/*
- * Interrupts are still disabled. Do necessary setups, then
- * enable them
- */
+	/*
+	 * Interrupts are still disabled. Do necessary setups, then
+	 * enable them
+	 */
 	boot_cpu_init();
 	page_address_init();
 	pr_notice("%s", linux_banner);
@@ -516,12 +580,13 @@ asmlinkage __visible void __init start_kernel(void)
 	pr_notice("Kernel command line: %s\n", boot_command_line);
 	parse_early_param();
 	after_dashes = parse_args("Booting kernel",
-				  static_command_line, __start___param,
-				  __stop___param - __start___param,
-				  -1, -1, NULL, &unknown_bootoption);
+							  static_command_line, __start___param,
+							  __stop___param - __start___param,
+							  -1, -1, NULL, &unknown_bootoption);
+
 	if (!IS_ERR_OR_NULL(after_dashes))
 		parse_args("Setting init args", after_dashes, NULL, 0, -1, -1,
-			   NULL, set_init_arg);
+				   NULL, set_init_arg);
 
 	jump_label_init();
 
@@ -547,9 +612,13 @@ asmlinkage __visible void __init start_kernel(void)
 	 * fragile until we cpu_idle() for the first time.
 	 */
 	preempt_disable();
+
 	if (WARN(!irqs_disabled(),
-		 "Interrupts were enabled *very* early, fixing it\n"))
+			 "Interrupts were enabled *very* early, fixing it\n"))
+	{
 		local_irq_disable();
+	}
+
 	idr_init_cache();
 	rcu_init();
 
@@ -585,9 +654,10 @@ asmlinkage __visible void __init start_kernel(void)
 	 * this. But we do want output early, in case something goes wrong.
 	 */
 	console_init();
+
 	if (panic_later)
 		panic("Too many boot %s vars at `%s'", panic_later,
-		      panic_param);
+			  panic_param);
 
 	lockdep_info();
 
@@ -599,29 +669,40 @@ asmlinkage __visible void __init start_kernel(void)
 	locking_selftest();
 
 #ifdef CONFIG_BLK_DEV_INITRD
+
 	if (initrd_start && !initrd_below_start_ok &&
-	    page_to_pfn(virt_to_page((void *)initrd_start)) < min_low_pfn) {
+		page_to_pfn(virt_to_page((void *)initrd_start)) < min_low_pfn)
+	{
 		pr_crit("initrd overwritten (0x%08lx < 0x%08lx) - disabling it.\n",
-		    page_to_pfn(virt_to_page((void *)initrd_start)),
-		    min_low_pfn);
+				page_to_pfn(virt_to_page((void *)initrd_start)),
+				min_low_pfn);
 		initrd_start = 0;
 	}
+
 #endif
 	page_ext_init();
 	debug_objects_mem_init();
 	kmemleak_init();
 	setup_per_cpu_pageset();
 	numa_policy_init();
+
 	if (late_time_init)
+	{
 		late_time_init();
+	}
+
 	sched_clock_init();
 	calibrate_delay();
 	pidmap_init();
 	anon_vma_init();
 	acpi_early_init();
 #ifdef CONFIG_X86
+
 	if (efi_enabled(EFI_RUNTIME_SERVICES))
+	{
 		efi_enter_virtual_mode();
+	}
+
 #endif
 #ifdef CONFIG_X86_ESPFIX64
 	/* Should be run before the first non-init thread is created */
@@ -651,7 +732,8 @@ asmlinkage __visible void __init start_kernel(void)
 	acpi_subsystem_init();
 	sfi_init_late();
 
-	if (efi_enabled(EFI_RUNTIME_SERVICES)) {
+	if (efi_enabled(EFI_RUNTIME_SERVICES))
+	{
 		efi_late_init();
 		efi_free_boot_services();
 	}
@@ -669,7 +751,10 @@ static void __init do_ctors(void)
 	ctor_fn_t *fn = (ctor_fn_t *) __ctors_start;
 
 	for (; fn < (ctor_fn_t *) __ctors_end; fn++)
+	{
 		(*fn)();
+	}
+
 #endif
 }
 
@@ -677,7 +762,8 @@ bool initcall_debug;
 core_param(initcall_debug, initcall_debug, bool, 0644);
 
 #ifdef CONFIG_KALLSYMS
-struct blacklist_entry {
+struct blacklist_entry
+{
 	struct list_head next;
 	char *buf;
 };
@@ -690,16 +776,20 @@ static int __init initcall_blacklist(char *str)
 	struct blacklist_entry *entry;
 
 	/* str argument is a comma-separated list of functions */
-	do {
+	do
+	{
 		str_entry = strsep(&str, ",");
-		if (str_entry) {
+
+		if (str_entry)
+		{
 			pr_debug("blacklisting initcall %s\n", str_entry);
 			entry = alloc_bootmem(sizeof(*entry));
 			entry->buf = alloc_bootmem(strlen(str_entry) + 1);
 			strcpy(entry->buf, str_entry);
 			list_add(&entry->next, &blacklisted_initcalls);
 		}
-	} while (str_entry);
+	}
+	while (str_entry);
 
 	return 0;
 }
@@ -711,7 +801,9 @@ static bool __init_or_module initcall_blacklisted(initcall_t fn)
 	unsigned long addr;
 
 	if (list_empty(&blacklisted_initcalls))
+	{
 		return false;
+	}
 
 	addr = (unsigned long) dereference_function_descriptor(fn);
 	sprint_symbol_no_offset(fn_name, addr);
@@ -722,8 +814,10 @@ static bool __init_or_module initcall_blacklisted(initcall_t fn)
 	 */
 	strreplace(fn_name, ' ', '\0');
 
-	list_for_each_entry(entry, &blacklisted_initcalls, next) {
-		if (!strcmp(fn_name, entry->buf)) {
+	list_for_each_entry(entry, &blacklisted_initcalls, next)
+	{
+		if (!strcmp(fn_name, entry->buf))
+		{
 			pr_debug("initcall %s blacklisted\n", fn_name);
 			return true;
 		}
@@ -758,7 +852,7 @@ static int __init_or_module do_one_initcall_debug(initcall_t fn)
 	delta = ktime_sub(rettime, calltime);
 	duration = (unsigned long long) ktime_to_ns(delta) >> 10;
 	printk(KERN_DEBUG "initcall %pF returned %d after %lld usecs\n",
-		 fn, ret, duration);
+		   fn, ret, duration);
 
 	return ret;
 }
@@ -770,23 +864,33 @@ int __init_or_module do_one_initcall(initcall_t fn)
 	char msgbuf[64];
 
 	if (initcall_blacklisted(fn))
+	{
 		return -EPERM;
+	}
 
 	if (initcall_debug)
+	{
 		ret = do_one_initcall_debug(fn);
+	}
 	else
+	{
 		ret = fn();
+	}
 
 	msgbuf[0] = 0;
 
-	if (preempt_count() != count) {
+	if (preempt_count() != count)
+	{
 		sprintf(msgbuf, "preemption imbalance ");
 		preempt_count_set(count);
 	}
-	if (irqs_disabled()) {
+
+	if (irqs_disabled())
+	{
 		strlcat(msgbuf, "disabled interrupts ", sizeof(msgbuf));
 		local_irq_enable();
 	}
+
 	WARN(msgbuf[0], "initcall %pF returned with %s\n", fn, msgbuf);
 
 	add_latent_entropy();
@@ -805,7 +909,8 @@ extern initcall_t __initcall6_start[];
 extern initcall_t __initcall7_start[];
 extern initcall_t __initcall_end[];
 
-static initcall_t *initcall_levels[] __initdata = {
+static initcall_t *initcall_levels[] __initdata =
+{
 	__initcall0_start,
 	__initcall1_start,
 	__initcall2_start,
@@ -818,7 +923,8 @@ static initcall_t *initcall_levels[] __initdata = {
 };
 
 /* Keep these in sync with initcalls in include/linux/init.h */
-static char *initcall_level_names[] __initdata = {
+static char *initcall_level_names[] __initdata =
+{
 	"early",
 	"core",
 	"postcore",
@@ -835,13 +941,15 @@ static void __init do_initcall_level(int level)
 
 	strcpy(initcall_command_line, saved_command_line);
 	parse_args(initcall_level_names[level],
-		   initcall_command_line, __start___param,
-		   __stop___param - __start___param,
-		   level, level,
-		   NULL, &repair_env_string);
+			   initcall_command_line, __start___param,
+			   __stop___param - __start___param,
+			   level, level,
+			   NULL, &repair_env_string);
 
-	for (fn = initcall_levels[level]; fn < initcall_levels[level+1]; fn++)
+	for (fn = initcall_levels[level]; fn < initcall_levels[level + 1]; fn++)
+	{
 		do_one_initcall(*fn);
+	}
 }
 
 static void __init do_initcalls(void)
@@ -849,7 +957,9 @@ static void __init do_initcalls(void)
 	int level;
 
 	for (level = 0; level < ARRAY_SIZE(initcall_levels) - 1; level++)
+	{
 		do_initcall_level(level);
+	}
 }
 
 /*
@@ -876,7 +986,9 @@ static void __init do_pre_smp_initcalls(void)
 	initcall_t *fn;
 
 	for (fn = __initcall_start; fn < __initcall0_start; fn++)
+	{
 		do_one_initcall(*fn);
+	}
 }
 
 /*
@@ -894,8 +1006,8 @@ static int run_init_process(const char *init_filename)
 {
 	argv_init[0] = init_filename;
 	return do_execve(getname_kernel(init_filename),
-		(const char __user *const __user *)argv_init,
-		(const char __user *const __user *)envp_init);
+					 (const char __user * const __user *)argv_init,
+					 (const char __user * const __user *)envp_init);
 }
 
 static int try_to_run_init_process(const char *init_filename)
@@ -904,9 +1016,10 @@ static int try_to_run_init_process(const char *init_filename)
 
 	ret = run_init_process(init_filename);
 
-	if (ret && ret != -ENOENT) {
+	if (ret && ret != -ENOENT)
+	{
 		pr_err("Starting init: %s exists but couldn't execute it (error %d)\n",
-		       init_filename, ret);
+			   init_filename, ret);
 	}
 
 	return ret;
@@ -925,9 +1038,13 @@ __setup("rodata=", set_debug_rodata);
 static void mark_readonly(void)
 {
 	if (rodata_enabled)
+	{
 		mark_rodata_ro();
+	}
 	else
+	{
 		pr_info("Kernel memory protection disabled.\n");
+	}
 }
 #else
 static inline void mark_readonly(void)
@@ -952,12 +1069,17 @@ static int __ref kernel_init(void *unused)
 
 	rcu_end_inkernel_boot();
 
-	if (ramdisk_execute_command) {
+	if (ramdisk_execute_command)
+	{
 		ret = run_init_process(ramdisk_execute_command);
+
 		if (!ret)
+		{
 			return 0;
+		}
+
 		pr_err("Failed to execute %s (error %d)\n",
-		       ramdisk_execute_command, ret);
+			   ramdisk_execute_command, ret);
 	}
 
 	/*
@@ -966,21 +1088,29 @@ static int __ref kernel_init(void *unused)
 	 * The Bourne shell can be used instead of init if we are
 	 * trying to recover a really broken machine.
 	 */
-	if (execute_command) {
+	if (execute_command)
+	{
 		ret = run_init_process(execute_command);
+
 		if (!ret)
+		{
 			return 0;
+		}
+
 		panic("Requested init %s failed (error %d).",
-		      execute_command, ret);
+			  execute_command, ret);
 	}
+
 	if (!try_to_run_init_process("/sbin/init") ||
-	    !try_to_run_init_process("/etc/init") ||
-	    !try_to_run_init_process("/bin/init") ||
-	    !try_to_run_init_process("/bin/sh"))
+		!try_to_run_init_process("/etc/init") ||
+		!try_to_run_init_process("/bin/init") ||
+		!try_to_run_init_process("/bin/sh"))
+	{
 		return 0;
+	}
 
 	panic("No working init found.  Try passing init= option to kernel. "
-	      "See Linux Documentation/init.txt for guidance.");
+		  "See Linux Documentation/init.txt for guidance.");
 }
 
 static noinline void __init kernel_init_freeable(void)
@@ -1018,7 +1148,9 @@ static noinline void __init kernel_init_freeable(void)
 
 	/* Open the /dev/console on the rootfs, this should never fail */
 	if (sys_open((const char __user *) "/dev/console", O_RDWR, 0) < 0)
+	{
 		pr_err("Warning: unable to open an initial console.\n");
+	}
 
 	(void) sys_dup(0);
 	(void) sys_dup(0);
@@ -1028,9 +1160,12 @@ static noinline void __init kernel_init_freeable(void)
 	 */
 
 	if (!ramdisk_execute_command)
+	{
 		ramdisk_execute_command = "/init";
+	}
 
-	if (sys_access((const char __user *) ramdisk_execute_command, 0) != 0) {
+	if (sys_access((const char __user *) ramdisk_execute_command, 0) != 0)
+	{
 		ramdisk_execute_command = NULL;
 		prepare_namespace();
 	}

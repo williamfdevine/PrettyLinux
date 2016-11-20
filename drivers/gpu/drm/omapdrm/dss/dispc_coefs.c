@@ -22,7 +22,8 @@
 #include "omapdss.h"
 #include "dispc.h"
 
-static const struct dispc_coef coef3_M8[8] = {
+static const struct dispc_coef coef3_M8[8] =
+{
 	{ 0,  0, 128,  0, 0 },
 	{ 0, -4, 123,  9, 0 },
 	{ 0, -4, 108, 24, 0 },
@@ -33,7 +34,8 @@ static const struct dispc_coef coef3_M8[8] = {
 	{ 0,  9, 123, -4, 0 },
 };
 
-static const struct dispc_coef coef3_M9[8] = {
+static const struct dispc_coef coef3_M9[8] =
+{
 	{ 0,  6, 116,  6, 0 },
 	{ 0,  0, 112, 16, 0 },
 	{ 0, -2, 100, 30, 0 },
@@ -44,7 +46,8 @@ static const struct dispc_coef coef3_M9[8] = {
 	{ 0, 16, 112,  0, 0 },
 };
 
-static const struct dispc_coef coef3_M10[8] = {
+static const struct dispc_coef coef3_M10[8] =
+{
 	{ 0, 10, 108, 10, 0 },
 	{ 0,  3, 104, 21, 0 },
 	{ 0,  0,  94, 34, 0 },
@@ -55,7 +58,8 @@ static const struct dispc_coef coef3_M10[8] = {
 	{ 0, 21, 104,  3, 0 },
 };
 
-static const struct dispc_coef coef3_M11[8] = {
+static const struct dispc_coef coef3_M11[8] =
+{
 	{ 0, 14, 100, 14, 0 },
 	{ 0,  6,  98, 24, 0 },
 	{ 0,  2,  90, 36, 0 },
@@ -66,7 +70,8 @@ static const struct dispc_coef coef3_M11[8] = {
 	{ 0, 24,  98,  6, 0 },
 };
 
-static const struct dispc_coef coef3_M12[8] = {
+static const struct dispc_coef coef3_M12[8] =
+{
 	{ 0, 16,  96, 16, 0 },
 	{ 0,  9,  93, 26, 0 },
 	{ 0,  4,  86, 38, 0 },
@@ -77,7 +82,8 @@ static const struct dispc_coef coef3_M12[8] = {
 	{ 0, 26,  93,  9, 0 },
 };
 
-static const struct dispc_coef coef3_M13[8] = {
+static const struct dispc_coef coef3_M13[8] =
+{
 	{ 0, 18,  92, 18, 0 },
 	{ 0, 10,  90, 28, 0 },
 	{ 0,  5,  83, 40, 0 },
@@ -88,7 +94,8 @@ static const struct dispc_coef coef3_M13[8] = {
 	{ 0, 28,  90, 10, 0 },
 };
 
-static const struct dispc_coef coef3_M14[8] = {
+static const struct dispc_coef coef3_M14[8] =
+{
 	{ 0, 20, 88, 20, 0 },
 	{ 0, 12, 86, 30, 0 },
 	{ 0,  6, 81, 41, 0 },
@@ -99,7 +106,8 @@ static const struct dispc_coef coef3_M14[8] = {
 	{ 0, 30, 86, 12, 0 },
 };
 
-static const struct dispc_coef coef3_M16[8] = {
+static const struct dispc_coef coef3_M16[8] =
+{
 	{ 0, 22, 84, 22, 0 },
 	{ 0, 14, 82, 32, 0 },
 	{ 0,  8, 78, 42, 0 },
@@ -110,7 +118,8 @@ static const struct dispc_coef coef3_M16[8] = {
 	{ 0, 32, 82, 14, 0 },
 };
 
-static const struct dispc_coef coef3_M19[8] = {
+static const struct dispc_coef coef3_M19[8] =
+{
 	{ 0, 24, 80, 24, 0 },
 	{ 0, 16, 79, 33, 0 },
 	{ 0,  9, 76, 43, 0 },
@@ -121,7 +130,8 @@ static const struct dispc_coef coef3_M19[8] = {
 	{ 0, 33, 79, 16, 0 },
 };
 
-static const struct dispc_coef coef3_M22[8] = {
+static const struct dispc_coef coef3_M22[8] =
+{
 	{ 0, 25, 78, 25, 0 },
 	{ 0, 17, 77, 34, 0 },
 	{ 0, 10, 74, 44, 0 },
@@ -132,7 +142,8 @@ static const struct dispc_coef coef3_M22[8] = {
 	{ 0, 34, 77, 17, 0 },
 };
 
-static const struct dispc_coef coef3_M26[8] = {
+static const struct dispc_coef coef3_M26[8] =
+{
 	{ 0, 26, 76, 26, 0 },
 	{ 0, 19, 74, 35, 0 },
 	{ 0, 11, 72, 45, 0 },
@@ -143,7 +154,8 @@ static const struct dispc_coef coef3_M26[8] = {
 	{ 0, 35, 74, 19, 0 },
 };
 
-static const struct dispc_coef coef3_M32[8] = {
+static const struct dispc_coef coef3_M32[8] =
+{
 	{ 0, 27, 74, 27, 0 },
 	{ 0, 19, 73, 36, 0 },
 	{ 0, 12, 71, 45, 0 },
@@ -154,7 +166,8 @@ static const struct dispc_coef coef3_M32[8] = {
 	{ 0, 36, 73, 19, 0 },
 };
 
-static const struct dispc_coef coef5_M8[8] = {
+static const struct dispc_coef coef5_M8[8] =
+{
 	{   0,   0, 128,   0,   0 },
 	{  -2,  14, 125, -10,   1 },
 	{  -6,  33, 114, -15,   2 },
@@ -165,7 +178,8 @@ static const struct dispc_coef coef5_M8[8] = {
 	{   1, -10, 125,  14,  -2 },
 };
 
-static const struct dispc_coef coef5_M9[8] = {
+static const struct dispc_coef coef5_M9[8] =
+{
 	{  -3,  10, 114,  10,  -3 },
 	{  -6,  24, 111,   0,  -1 },
 	{  -8,  40, 103,  -7,   0 },
@@ -176,7 +190,8 @@ static const struct dispc_coef coef5_M9[8] = {
 	{  -1,   0, 111,  24,  -6 },
 };
 
-static const struct dispc_coef coef5_M10[8] = {
+static const struct dispc_coef coef5_M10[8] =
+{
 	{  -4,  18, 100,  18,  -4 },
 	{  -6,  30,  99,   8,  -3 },
 	{  -8,  44,  93,   0,  -1 },
@@ -187,7 +202,8 @@ static const struct dispc_coef coef5_M10[8] = {
 	{  -3,   8,  99,  30,  -6 },
 };
 
-static const struct dispc_coef coef5_M11[8] = {
+static const struct dispc_coef coef5_M11[8] =
+{
 	{  -5,  23,  92,  23,  -5 },
 	{  -6,  34,  90,  13,  -3 },
 	{  -6,  45,  85,   6,  -2 },
@@ -198,7 +214,8 @@ static const struct dispc_coef coef5_M11[8] = {
 	{  -3,  13,  90,  34,  -6 },
 };
 
-static const struct dispc_coef coef5_M12[8] = {
+static const struct dispc_coef coef5_M12[8] =
+{
 	{  -4,  26,  84,  26,  -4 },
 	{  -5,  36,  82,  18,  -3 },
 	{  -4,  46,  78,  10,  -2 },
@@ -209,7 +226,8 @@ static const struct dispc_coef coef5_M12[8] = {
 	{  -3,  18,  82,  36,  -5 },
 };
 
-static const struct dispc_coef coef5_M13[8] = {
+static const struct dispc_coef coef5_M13[8] =
+{
 	{  -3,  28,  78,  28,  -3 },
 	{  -3,  37,  76,  21,  -3 },
 	{  -2,  45,  73,  14,  -2 },
@@ -220,7 +238,8 @@ static const struct dispc_coef coef5_M13[8] = {
 	{  -3,  21,  76,  37,  -3 },
 };
 
-static const struct dispc_coef coef5_M14[8] = {
+static const struct dispc_coef coef5_M14[8] =
+{
 	{  -2,  30,  72,  30,  -2 },
 	{  -1,  37,  71,  23,  -2 },
 	{   0,  45,  69,  16,  -2 },
@@ -231,7 +250,8 @@ static const struct dispc_coef coef5_M14[8] = {
 	{  -2,  23,  71,  37,  -1 },
 };
 
-static const struct dispc_coef coef5_M16[8] = {
+static const struct dispc_coef coef5_M16[8] =
+{
 	{   0,  31,  66,  31,   0 },
 	{   1,  38,  65,  25,  -1 },
 	{   3,  44,  62,  20,  -1 },
@@ -242,7 +262,8 @@ static const struct dispc_coef coef5_M16[8] = {
 	{  -1,  25,  65,  38,   1 },
 };
 
-static const struct dispc_coef coef5_M19[8] = {
+static const struct dispc_coef coef5_M19[8] =
+{
 	{   3,  32,  58,  32,   3 },
 	{   4,  38,  58,  27,   1 },
 	{   7,  42,  55,  23,   1 },
@@ -253,7 +274,8 @@ static const struct dispc_coef coef5_M19[8] = {
 	{   1,  27,  58,  38,   4 },
 };
 
-static const struct dispc_coef coef5_M22[8] = {
+static const struct dispc_coef coef5_M22[8] =
+{
 	{   4,  33,  54,  33,   4 },
 	{   6,  37,  54,  28,   3 },
 	{   9,  41,  53,  24,   1 },
@@ -264,7 +286,8 @@ static const struct dispc_coef coef5_M22[8] = {
 	{   3,  28,  54,  37,   6 },
 };
 
-static const struct dispc_coef coef5_M26[8] = {
+static const struct dispc_coef coef5_M26[8] =
+{
 	{   6,  33,  50,  33,   6 },
 	{   8,  36,  51,  29,   4 },
 	{  11,  40,  50,  25,   2 },
@@ -275,7 +298,8 @@ static const struct dispc_coef coef5_M26[8] = {
 	{   4,  29,  51,  36,   8 },
 };
 
-static const struct dispc_coef coef5_M32[8] = {
+static const struct dispc_coef coef5_M32[8] =
+{
 	{   7,  33,  48,  33,   7 },
 	{  10,  36,  48,  29,   5 },
 	{  13,  39,  47,  26,   3 },
@@ -289,12 +313,14 @@ static const struct dispc_coef coef5_M32[8] = {
 const struct dispc_coef *dispc_ovl_get_scale_coef(int inc, int five_taps)
 {
 	int i;
-	static const struct {
+	static const struct
+	{
 		int Mmin;
 		int Mmax;
 		const struct dispc_coef *coef_3;
 		const struct dispc_coef *coef_5;
-	} coefs[] = {
+	} coefs[] =
+	{
 		{ 27, 32, coef3_M32, coef5_M32 },
 		{ 23, 26, coef3_M26, coef5_M26 },
 		{ 20, 22, coef3_M22, coef5_M22 },
@@ -318,8 +344,12 @@ const struct dispc_coef *dispc_ovl_get_scale_coef(int inc, int five_taps)
 	};
 
 	inc /= 128;
+
 	for (i = 0; i < ARRAY_SIZE(coefs); ++i)
 		if (inc >= coefs[i].Mmin && inc <= coefs[i].Mmax)
+		{
 			return five_taps ? coefs[i].coef_5 : coefs[i].coef_3;
+		}
+
 	return NULL;
 }

@@ -25,7 +25,7 @@
 
 #define PROC_INTERFACE     /* add code for /proc/scsi/wd33c93/xxx interface */
 #ifdef  PROC_INTERFACE
-#define PROC_STATISTICS    /* add code for keeping various real time stats */
+	#define PROC_STATISTICS    /* add code for keeping various real time stats */
 #endif
 
 #define SYNC_DEBUG         /* extra info on sync negotiation printed */
@@ -34,9 +34,9 @@
 
 
 #ifdef DEBUGGING_ON
-#define DB(f,a) if (hostdata->args & (f)) a;
+	#define DB(f,a) if (hostdata->args & (f)) a;
 #else
-#define DB(f,a)
+	#define DB(f,a)
 #endif
 
 #define uchar unsigned char
@@ -109,17 +109,17 @@
 
 /* Command Status Register definitions */
 
-  /* reset state interrupts */
+/* reset state interrupts */
 #define CSR_RESET    0x00
 #define CSR_RESET_AF    0x01
 
-  /* successful completion interrupts */
+/* successful completion interrupts */
 #define CSR_RESELECT    0x10
 #define CSR_SELECT      0x11
 #define CSR_SEL_XFER_DONE  0x16
 #define CSR_XFER_DONE      0x18
 
-  /* paused or aborted interrupts */
+/* paused or aborted interrupts */
 #define CSR_MSGIN    0x20
 #define CSR_SDP         0x21
 #define CSR_SEL_ABORT      0x22
@@ -127,7 +127,7 @@
 #define CSR_RESEL_ABORT_AM 0x27
 #define CSR_ABORT    0x28
 
-  /* terminated interrupts */
+/* terminated interrupts */
 #define CSR_INVALID     0x40
 #define CSR_UNEXP_DISC     0x41
 #define CSR_TIMEOUT     0x42
@@ -136,13 +136,13 @@
 #define CSR_BAD_STATUS     0x45
 #define CSR_UNEXP    0x48
 
-  /* service required interrupts */
+/* service required interrupts */
 #define CSR_RESEL    0x80
 #define CSR_RESEL_AM    0x81
 #define CSR_DISC     0x85
 #define CSR_SRV_REQ     0x88
 
-   /* Own ID/CDB Size register */
+/* Own ID/CDB Size register */
 #define OWNID_EAF    0x08
 #define OWNID_EHP    0x10
 #define OWNID_RAF    0x20
@@ -150,15 +150,15 @@
 #define OWNID_FS_12  0x40
 #define OWNID_FS_16  0x80
 
-   /* define these so we don't have to change a2091.c, etc. */
+/* define these so we don't have to change a2091.c, etc. */
 #define WD33C93_FS_8_10  OWNID_FS_8
 #define WD33C93_FS_12_15 OWNID_FS_12
 #define WD33C93_FS_16_20 OWNID_FS_16
 
-   /* pass input-clock explicitly. accepted mhz values are 8-10,12-20 */
+/* pass input-clock explicitly. accepted mhz values are 8-10,12-20 */
 #define WD33C93_FS_MHZ(mhz) (mhz)
 
-   /* Control register */
+/* Control register */
 #define CTRL_HSP     0x01
 #define CTRL_HA      0x02
 #define CTRL_IDI     0x04
@@ -169,40 +169,41 @@
 #define CTRL_BUS     0x40
 #define CTRL_DMA     0x80
 
-   /* Timeout Period register */
+/* Timeout Period register */
 #define TIMEOUT_PERIOD_VALUE  20    /* 20 = 200 ms */
 
-   /* Synchronous Transfer Register */
+/* Synchronous Transfer Register */
 #define STR_FSS      0x80
 
-   /* Destination ID register */
+/* Destination ID register */
 #define DSTID_DPD    0x40
 #define DATA_OUT_DIR 0
 #define DATA_IN_DIR  1
 #define DSTID_SCC    0x80
 
-   /* Source ID register */
+/* Source ID register */
 #define SRCID_MASK   0x07
 #define SRCID_SIV    0x08
 #define SRCID_DSP    0x20
 #define SRCID_ES     0x40
 #define SRCID_ER     0x80
 
-   /* This is what the 3393 chip looks like to us */
-typedef struct {
+/* This is what the 3393 chip looks like to us */
+typedef struct
+{
 #ifdef CONFIG_WD33C93_PIO
-   unsigned int   SASR;
-   unsigned int   SCMD;
+	unsigned int   SASR;
+	unsigned int   SCMD;
 #else
-   volatile unsigned char  *SASR;
-   volatile unsigned char  *SCMD;
+	volatile unsigned char  *SASR;
+	volatile unsigned char  *SCMD;
 #endif
 } wd33c93_regs;
 
 
 typedef int (*dma_setup_t) (struct scsi_cmnd *SCpnt, int dir_in);
 typedef void (*dma_stop_t) (struct Scsi_Host *instance,
-		struct scsi_cmnd *SCpnt, int status);
+							struct scsi_cmnd *SCpnt, int status);
 
 
 #define ILLEGAL_STATUS_BYTE   0xff
@@ -213,64 +214,66 @@ typedef void (*dma_stop_t) (struct Scsi_Host *instance,
 #define OPTIMUM_SX_PER   252     /* (ns) best we can do (mult-of-4) */
 #define OPTIMUM_SX_OFF   12      /* size of wd3393 fifo */
 
-struct sx_period {
-   unsigned int   period_ns;
-   uchar          reg_value;
-   };
+struct sx_period
+{
+	unsigned int   period_ns;
+	uchar          reg_value;
+};
 
 /* FEF: defines for hostdata->dma_buffer_pool */
 
 #define BUF_CHIP_ALLOCED 0
 #define BUF_SCSI_ALLOCED 1
 
-struct WD33C93_hostdata {
-    struct Scsi_Host *next;
-    wd33c93_regs     regs;
-    spinlock_t       lock;
-    uchar            clock_freq;
-    uchar            chip;             /* what kind of wd33c93? */
-    uchar            microcode;        /* microcode rev */
-    uchar            dma_buffer_pool;  /* FEF: buffer from chip_ram? */
-    int              dma_dir;          /* data transfer dir. */
-    dma_setup_t      dma_setup;
-    dma_stop_t       dma_stop;
-    unsigned int     dma_xfer_mask;
-    uchar            *dma_bounce_buffer;
-    unsigned int     dma_bounce_len;
-    volatile uchar   busy[8];          /* index = target, bit = lun */
-    volatile struct scsi_cmnd *input_Q;       /* commands waiting to be started */
-    volatile struct scsi_cmnd *selecting;     /* trying to select this command */
-    volatile struct scsi_cmnd *connected;     /* currently connected command */
-    volatile struct scsi_cmnd *disconnected_Q;/* commands waiting for reconnect */
-    uchar            state;            /* what we are currently doing */
-    uchar            dma;              /* current state of DMA (on/off) */
-    uchar            level2;           /* extent to which Level-2 commands are used */
-    uchar            disconnect;       /* disconnect/reselect policy */
-    unsigned int     args;             /* set from command-line argument */
-    uchar            incoming_msg[8];  /* filled during message_in phase */
-    int              incoming_ptr;     /* mainly used with EXTENDED messages */
-    uchar            outgoing_msg[8];  /* send this during next message_out */
-    int              outgoing_len;     /* length of outgoing message */
-    unsigned int     default_sx_per;   /* default transfer period for SCSI bus */
-    uchar            sync_xfer[8];     /* sync_xfer reg settings per target */
-    uchar            sync_stat[8];     /* status of sync negotiation per target */
-    uchar            no_sync;          /* bitmask: don't do sync on these targets */
-    uchar            no_dma;           /* set this flag to disable DMA */
-    uchar            dma_mode;         /* DMA Burst Mode or Single Byte DMA */
-    uchar            fast;             /* set this flag to enable Fast SCSI */
-    struct sx_period sx_table[9];      /* transfer periods for actual DTC-setting */
+struct WD33C93_hostdata
+{
+	struct Scsi_Host *next;
+	wd33c93_regs     regs;
+	spinlock_t       lock;
+	uchar            clock_freq;
+	uchar            chip;             /* what kind of wd33c93? */
+	uchar            microcode;        /* microcode rev */
+	uchar            dma_buffer_pool;  /* FEF: buffer from chip_ram? */
+	int              dma_dir;          /* data transfer dir. */
+	dma_setup_t      dma_setup;
+	dma_stop_t       dma_stop;
+	unsigned int     dma_xfer_mask;
+	uchar            *dma_bounce_buffer;
+	unsigned int     dma_bounce_len;
+	volatile uchar   busy[8];          /* index = target, bit = lun */
+	volatile struct scsi_cmnd *input_Q;       /* commands waiting to be started */
+	volatile struct scsi_cmnd *selecting;     /* trying to select this command */
+	volatile struct scsi_cmnd *connected;     /* currently connected command */
+	volatile struct scsi_cmnd *disconnected_Q;/* commands waiting for reconnect */
+	uchar            state;            /* what we are currently doing */
+	uchar            dma;              /* current state of DMA (on/off) */
+	uchar            level2;           /* extent to which Level-2 commands are used */
+	uchar            disconnect;       /* disconnect/reselect policy */
+	unsigned int     args;             /* set from command-line argument */
+	uchar            incoming_msg[8];  /* filled during message_in phase */
+	int              incoming_ptr;     /* mainly used with EXTENDED messages */
+	uchar            outgoing_msg[8];  /* send this during next message_out */
+	int              outgoing_len;     /* length of outgoing message */
+	unsigned int     default_sx_per;   /* default transfer period for SCSI bus */
+	uchar            sync_xfer[8];     /* sync_xfer reg settings per target */
+	uchar            sync_stat[8];     /* status of sync negotiation per target */
+	uchar            no_sync;          /* bitmask: don't do sync on these targets */
+	uchar            no_dma;           /* set this flag to disable DMA */
+	uchar            dma_mode;         /* DMA Burst Mode or Single Byte DMA */
+	uchar            fast;             /* set this flag to enable Fast SCSI */
+	struct sx_period sx_table[9];      /* transfer periods for actual DTC-setting */
 #ifdef PROC_INTERFACE
-    uchar            proc;             /* bitmask: what's in proc output */
+	uchar            proc;             /* bitmask: what's in proc output */
 #ifdef PROC_STATISTICS
-    unsigned long    cmd_cnt[8];       /* # of commands issued per target */
-    unsigned long    int_cnt;          /* # of interrupts serviced */
-    unsigned long    pio_cnt;          /* # of pio data transfers */
-    unsigned long    dma_cnt;          /* # of DMA data transfers */
-    unsigned long    disc_allowed_cnt[8]; /* # of disconnects allowed per target */
-    unsigned long    disc_done_cnt[8]; /* # of disconnects done per target*/
+	unsigned long    cmd_cnt[8];       /* # of commands issued per target */
+	unsigned long    int_cnt;          /* # of interrupts serviced */
+	unsigned long    pio_cnt;          /* # of pio data transfers */
+	unsigned long    dma_cnt;          /* # of DMA data transfers */
+	unsigned long    disc_allowed_cnt[8]; /* # of disconnects allowed per target */
+	unsigned long    disc_done_cnt[8]; /* # of disconnects done per target*/
 #endif
 #endif
-    };
+};
 
 
 /* defines for hostdata->chip */
@@ -341,7 +344,7 @@ struct WD33C93_hostdata {
 
 
 void wd33c93_init (struct Scsi_Host *instance, const wd33c93_regs regs,
-         dma_setup_t setup, dma_stop_t stop, int clock_freq);
+				   dma_setup_t setup, dma_stop_t stop, int clock_freq);
 int wd33c93_abort (struct scsi_cmnd *cmd);
 int wd33c93_queuecommand (struct Scsi_Host *h, struct scsi_cmnd *cmd);
 void wd33c93_intr (struct Scsi_Host *instance);

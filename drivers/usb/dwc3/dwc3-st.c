@@ -89,7 +89,8 @@
  * @rstc_rst:		reset controller for softreset signal
  */
 
-struct st_dwc3 {
+struct st_dwc3
+{
 	struct device *dev;
 	void __iomem *glue_base;
 	struct regmap *regmap;
@@ -122,49 +123,53 @@ static int st_dwc3_drd_init(struct st_dwc3 *dwc3_data)
 	int err;
 
 	err = regmap_read(dwc3_data->regmap, dwc3_data->syscfg_reg_off, &val);
+
 	if (err)
+	{
 		return err;
+	}
 
 	val &= USB3_CONTROL_MASK;
 
-	switch (dwc3_data->dr_mode) {
-	case USB_DR_MODE_PERIPHERAL:
+	switch (dwc3_data->dr_mode)
+	{
+		case USB_DR_MODE_PERIPHERAL:
 
-		val &= ~(USB3_DELAY_VBUSVALID
-			| USB3_SEL_FORCE_OPMODE | USB3_FORCE_OPMODE(0x3)
-			| USB3_SEL_FORCE_DPPULLDOWN2 | USB3_FORCE_DPPULLDOWN2
-			| USB3_SEL_FORCE_DMPULLDOWN2 | USB3_FORCE_DMPULLDOWN2);
+			val &= ~(USB3_DELAY_VBUSVALID
+					 | USB3_SEL_FORCE_OPMODE | USB3_FORCE_OPMODE(0x3)
+					 | USB3_SEL_FORCE_DPPULLDOWN2 | USB3_FORCE_DPPULLDOWN2
+					 | USB3_SEL_FORCE_DMPULLDOWN2 | USB3_FORCE_DMPULLDOWN2);
 
-		/*
-		 * USB3_PORT2_FORCE_VBUSVALID When '1' and when
-		 * USB3_PORT2_DEVICE_NOT_HOST = 1, forces VBUSVLDEXT2 input
-		 * of the pico PHY to 1.
-		 */
+			/*
+			 * USB3_PORT2_FORCE_VBUSVALID When '1' and when
+			 * USB3_PORT2_DEVICE_NOT_HOST = 1, forces VBUSVLDEXT2 input
+			 * of the pico PHY to 1.
+			 */
 
-		val |= USB3_DEVICE_NOT_HOST | USB3_FORCE_VBUSVALID;
-		break;
+			val |= USB3_DEVICE_NOT_HOST | USB3_FORCE_VBUSVALID;
+			break;
 
-	case USB_DR_MODE_HOST:
+		case USB_DR_MODE_HOST:
 
-		val &= ~(USB3_DEVICE_NOT_HOST | USB3_FORCE_VBUSVALID
-			| USB3_SEL_FORCE_OPMODE	| USB3_FORCE_OPMODE(0x3)
-			| USB3_SEL_FORCE_DPPULLDOWN2 | USB3_FORCE_DPPULLDOWN2
-			| USB3_SEL_FORCE_DMPULLDOWN2 | USB3_FORCE_DMPULLDOWN2);
+			val &= ~(USB3_DEVICE_NOT_HOST | USB3_FORCE_VBUSVALID
+					 | USB3_SEL_FORCE_OPMODE	| USB3_FORCE_OPMODE(0x3)
+					 | USB3_SEL_FORCE_DPPULLDOWN2 | USB3_FORCE_DPPULLDOWN2
+					 | USB3_SEL_FORCE_DMPULLDOWN2 | USB3_FORCE_DMPULLDOWN2);
 
-		/*
-		 * USB3_DELAY_VBUSVALID is ANDed with USB_C_VBUSVALID. Thus,
-		 * when set to ‘0‘, it can delay the arrival of VBUSVALID
-		 * information to VBUSVLDEXT2 input of the pico PHY.
-		 * We don't want to do that so we set the bit to '1'.
-		 */
+			/*
+			 * USB3_DELAY_VBUSVALID is ANDed with USB_C_VBUSVALID. Thus,
+			 * when set to ‘0‘, it can delay the arrival of VBUSVALID
+			 * information to VBUSVLDEXT2 input of the pico PHY.
+			 * We don't want to do that so we set the bit to '1'.
+			 */
 
-		val |= USB3_DELAY_VBUSVALID;
-		break;
+			val |= USB3_DELAY_VBUSVALID;
+			break;
 
-	default:
-		dev_err(dwc3_data->dev, "Unsupported mode of operation %d\n",
-			dwc3_data->dr_mode);
-		return -EINVAL;
+		default:
+			dev_err(dwc3_data->dev, "Unsupported mode of operation %d\n",
+					dwc3_data->dr_mode);
+			return -EINVAL;
 	}
 
 	return regmap_write(dwc3_data->regmap, dwc3_data->syscfg_reg_off, val);
@@ -186,8 +191,8 @@ static void st_dwc3_init(struct st_dwc3 *dwc3_data)
 	reg = st_dwc3_readl(dwc3_data->glue_base, USB2_VBUS_MNGMNT_SEL1);
 
 	reg |= SEL_OVERRIDE_VBUSVALID(USB2_VBUS_UTMIOTG) |
-		SEL_OVERRIDE_POWERPRESENT(USB2_VBUS_UTMIOTG) |
-		SEL_OVERRIDE_BVALID(USB2_VBUS_UTMIOTG);
+		   SEL_OVERRIDE_POWERPRESENT(USB2_VBUS_UTMIOTG) |
+		   SEL_OVERRIDE_BVALID(USB2_VBUS_UTMIOTG);
 
 	st_dwc3_writel(dwc3_data->glue_base, USB2_VBUS_MNGMNT_SEL1, reg);
 
@@ -207,24 +212,35 @@ static int st_dwc3_probe(struct platform_device *pdev)
 	int ret;
 
 	dwc3_data = devm_kzalloc(dev, sizeof(*dwc3_data), GFP_KERNEL);
+
 	if (!dwc3_data)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "reg-glue");
 	dwc3_data->glue_base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(dwc3_data->glue_base))
+	{
 		return PTR_ERR(dwc3_data->glue_base);
+	}
 
 	regmap = syscon_regmap_lookup_by_phandle(node, "st,syscfg");
+
 	if (IS_ERR(regmap))
+	{
 		return PTR_ERR(regmap);
+	}
 
 	dma_set_coherent_mask(dev, dev->coherent_dma_mask);
 	dwc3_data->dev = dev;
 	dwc3_data->regmap = regmap;
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "syscfg-reg");
-	if (!res) {
+
+	if (!res)
+	{
 		ret = -ENXIO;
 		goto undo_platform_dev_alloc;
 	}
@@ -232,11 +248,13 @@ static int st_dwc3_probe(struct platform_device *pdev)
 	dwc3_data->syscfg_reg_off = res->start;
 
 	dev_vdbg(&pdev->dev, "glue-logic addr 0x%p, syscfg-reg offset 0x%x\n",
-		 dwc3_data->glue_base, dwc3_data->syscfg_reg_off);
+			 dwc3_data->glue_base, dwc3_data->syscfg_reg_off);
 
 	dwc3_data->rstc_pwrdn =
 		devm_reset_control_get_exclusive(dev, "powerdown");
-	if (IS_ERR(dwc3_data->rstc_pwrdn)) {
+
+	if (IS_ERR(dwc3_data->rstc_pwrdn))
+	{
 		dev_err(&pdev->dev, "could not get power controller\n");
 		ret = PTR_ERR(dwc3_data->rstc_pwrdn);
 		goto undo_platform_dev_alloc;
@@ -247,7 +265,9 @@ static int st_dwc3_probe(struct platform_device *pdev)
 
 	dwc3_data->rstc_rst =
 		devm_reset_control_get_shared(dev, "softreset");
-	if (IS_ERR(dwc3_data->rstc_rst)) {
+
+	if (IS_ERR(dwc3_data->rstc_rst))
+	{
 		dev_err(&pdev->dev, "could not get reset controller\n");
 		ret = PTR_ERR(dwc3_data->rstc_rst);
 		goto undo_powerdown;
@@ -257,7 +277,9 @@ static int st_dwc3_probe(struct platform_device *pdev)
 	reset_control_deassert(dwc3_data->rstc_rst);
 
 	child = of_get_child_by_name(node, "dwc3");
-	if (!child) {
+
+	if (!child)
+	{
 		dev_err(&pdev->dev, "failed to find dwc3 core node\n");
 		ret = -ENODEV;
 		goto undo_softreset;
@@ -265,13 +287,17 @@ static int st_dwc3_probe(struct platform_device *pdev)
 
 	/* Allocate and initialize the core */
 	ret = of_platform_populate(node, NULL, NULL, dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to add dwc3 core\n");
 		goto undo_softreset;
 	}
 
 	child_pdev = of_find_device_by_node(child);
-	if (!child_pdev) {
+
+	if (!child_pdev)
+	{
 		dev_err(dev, "failed to find dwc3 core device\n");
 		ret = -ENODEV;
 		goto undo_softreset;
@@ -286,7 +312,9 @@ static int st_dwc3_probe(struct platform_device *pdev)
 	 * as soon as OTG is available.
 	 */
 	ret = st_dwc3_drd_init(dwc3_data);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "drd initialisation failed\n");
 		goto undo_softreset;
 	}
@@ -342,7 +370,9 @@ static int st_dwc3_resume(struct device *dev)
 	reset_control_deassert(dwc3_data->rstc_rst);
 
 	ret = st_dwc3_drd_init(dwc3_data);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "drd initialisation failed\n");
 		return ret;
 	}
@@ -356,14 +386,16 @@ static int st_dwc3_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(st_dwc3_dev_pm_ops, st_dwc3_suspend, st_dwc3_resume);
 
-static const struct of_device_id st_dwc3_match[] = {
+static const struct of_device_id st_dwc3_match[] =
+{
 	{ .compatible = "st,stih407-dwc3" },
 	{ /* sentinel */ },
 };
 
 MODULE_DEVICE_TABLE(of, st_dwc3_match);
 
-static struct platform_driver st_dwc3_driver = {
+static struct platform_driver st_dwc3_driver =
+{
 	.probe = st_dwc3_probe,
 	.remove = st_dwc3_remove,
 	.driver = {

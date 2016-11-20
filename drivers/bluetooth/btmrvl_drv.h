@@ -43,7 +43,8 @@
 /* Time to wait for command response in millisecond */
 #define WAIT_UNTIL_CMD_RESP		msecs_to_jiffies(5000)
 
-enum rdwr_status {
+enum rdwr_status
+{
 	RDWR_STATUS_SUCCESS = 0,
 	RDWR_STATUS_FAILURE = 1,
 	RDWR_STATUS_DONE = 2
@@ -54,20 +55,23 @@ enum rdwr_status {
 #define FW_DUMP_DONE            0xFF
 #define FW_DUMP_READ_DONE       0xFE
 
-struct memory_type_mapping {
+struct memory_type_mapping
+{
 	u8 mem_name[FW_DUMP_MAX_NAME_LEN];
 	u8 *mem_ptr;
 	u32 mem_size;
 	u8 done_flag;
 };
 
-struct btmrvl_thread {
+struct btmrvl_thread
+{
 	struct task_struct *task;
 	wait_queue_head_t wait_q;
 	void *priv;
 };
 
-struct btmrvl_device {
+struct btmrvl_device
+{
 	void *card;
 	struct hci_dev *hcidev;
 
@@ -87,7 +91,8 @@ struct btmrvl_device {
 	u8 sendcmdflag;
 };
 
-struct btmrvl_adapter {
+struct btmrvl_adapter
+{
 	void *hw_regs_buf;
 	u8 *hw_regs;
 	u32 int_count;
@@ -103,12 +108,13 @@ struct btmrvl_adapter {
 	bool is_suspending;
 };
 
-struct btmrvl_private {
+struct btmrvl_private
+{
 	struct btmrvl_device btmrvl_dev;
 	struct btmrvl_adapter *adapter;
 	struct btmrvl_thread main_thread;
 	int (*hw_host_to_card)(struct btmrvl_private *priv,
-				u8 *payload, u16 nb);
+						   u8 *payload, u16 nb);
 	int (*hw_wakeup_firmware)(struct btmrvl_private *priv);
 	int (*hw_process_int_status)(struct btmrvl_private *priv);
 	void (*firmware_dump)(struct btmrvl_private *priv);
@@ -161,7 +167,8 @@ struct btmrvl_private {
 #define BT_CAL_HDR_LEN			4
 #define BT_CAL_DATA_SIZE		28
 
-struct btmrvl_event {
+struct btmrvl_event
+{
 	u8 ec;		/* event counter */
 	u8 length;
 	u8 data[4];

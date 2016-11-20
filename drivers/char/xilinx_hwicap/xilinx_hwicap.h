@@ -39,7 +39,8 @@
 
 #include <linux/io.h>
 
-struct hwicap_drvdata {
+struct hwicap_drvdata
+{
 	u32 write_buffer_in_use;  /* Always in [0,3] */
 	u8 write_buffer[4];
 	u32 read_buffer_in_use;	  /* Always in [0,3] */
@@ -60,15 +61,16 @@ struct hwicap_drvdata {
 	struct mutex sem;
 };
 
-struct hwicap_driver_config {
+struct hwicap_driver_config
+{
 	/* Read configuration data given by size into the data buffer.
 	   Return 0 if successful. */
 	int (*get_configuration)(struct hwicap_drvdata *drvdata, u32 *data,
-			u32 size);
+							 u32 size);
 	/* Write configuration data given by size from the data buffer.
 	   Return 0 if successful. */
 	int (*set_configuration)(struct hwicap_drvdata *drvdata, u32 *data,
-			u32 size);
+							 u32 size);
 	/* Get the status register, bit pattern given by:
 	 * D8 - 0 = configuration error
 	 * D7 - 1 = alignment found
@@ -119,7 +121,8 @@ struct hwicap_driver_config {
 #define XHI_FAR_BRAM_BLOCK          1
 #define XHI_FAR_BRAM_INT_BLOCK      2
 
-struct config_registers {
+struct config_registers
+{
 	u32 CRC;
 	u32 FAR;
 	u32 FDRI;
@@ -168,10 +171,10 @@ struct config_registers {
 #define XHI_DUMMY_PACKET            0xFFFFFFFFUL
 #define XHI_NOOP_PACKET             (XHI_TYPE_1 << XHI_TYPE_SHIFT)
 #define XHI_TYPE_2_READ ((XHI_TYPE_2 << XHI_TYPE_SHIFT) | \
-			(XHI_OP_READ << XHI_OP_SHIFT))
+						 (XHI_OP_READ << XHI_OP_SHIFT))
 
 #define XHI_TYPE_2_WRITE ((XHI_TYPE_2 << XHI_TYPE_SHIFT) | \
-			(XHI_OP_WRITE << XHI_OP_SHIFT))
+						  (XHI_OP_WRITE << XHI_OP_SHIFT))
 
 #define XHI_TYPE2_CNT_MASK          0x07FFFFFF
 
@@ -201,8 +204,8 @@ struct config_registers {
 static inline u32 hwicap_type_1_read(u32 reg)
 {
 	return (XHI_TYPE_1 << XHI_TYPE_SHIFT) |
-		(reg << XHI_REGISTER_SHIFT) |
-		(XHI_OP_READ << XHI_OP_SHIFT);
+		   (reg << XHI_REGISTER_SHIFT) |
+		   (XHI_OP_READ << XHI_OP_SHIFT);
 }
 
 /**
@@ -212,8 +215,8 @@ static inline u32 hwicap_type_1_read(u32 reg)
 static inline u32 hwicap_type_1_write(u32 reg)
 {
 	return (XHI_TYPE_1 << XHI_TYPE_SHIFT) |
-		(reg << XHI_REGISTER_SHIFT) |
-		(XHI_OP_WRITE << XHI_OP_SHIFT);
+		   (reg << XHI_REGISTER_SHIFT) |
+		   (XHI_OP_WRITE << XHI_OP_SHIFT);
 }
 
 #endif

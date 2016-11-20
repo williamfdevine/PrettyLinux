@@ -22,7 +22,8 @@
 
 #include "clock.h"
 
-static struct ti_dt_clk am43xx_clks[] = {
+static struct ti_dt_clk am43xx_clks[] =
+{
 	DT_CLK(NULL, "clk_32768_ck", "clk_32768_ck"),
 	DT_CLK(NULL, "clk_rc32k_ck", "clk_rc32k_ck"),
 	DT_CLK(NULL, "virt_19200000_ck", "virt_19200000_ck"),

@@ -19,40 +19,48 @@
 static unsigned long led_delay = 50;
 module_param(led_delay, ulong, 0644);
 MODULE_PARM_DESC(led_delay,
-		"blink delay time for activity leds (msecs, default: 50).");
+				 "blink delay time for activity leds (msecs, default: 50).");
 
 /* Trigger a LED event in response to a CAN device event */
 void can_led_event(struct net_device *netdev, enum can_led_event event)
 {
 	struct can_priv *priv = netdev_priv(netdev);
 
-	switch (event) {
-	case CAN_LED_EVENT_OPEN:
-		led_trigger_event(priv->tx_led_trig, LED_FULL);
-		led_trigger_event(priv->rx_led_trig, LED_FULL);
-		led_trigger_event(priv->rxtx_led_trig, LED_FULL);
-		break;
-	case CAN_LED_EVENT_STOP:
-		led_trigger_event(priv->tx_led_trig, LED_OFF);
-		led_trigger_event(priv->rx_led_trig, LED_OFF);
-		led_trigger_event(priv->rxtx_led_trig, LED_OFF);
-		break;
-	case CAN_LED_EVENT_TX:
-		if (led_delay) {
-			led_trigger_blink_oneshot(priv->tx_led_trig,
-						  &led_delay, &led_delay, 1);
-			led_trigger_blink_oneshot(priv->rxtx_led_trig,
-						  &led_delay, &led_delay, 1);
-		}
-		break;
-	case CAN_LED_EVENT_RX:
-		if (led_delay) {
-			led_trigger_blink_oneshot(priv->rx_led_trig,
-						  &led_delay, &led_delay, 1);
-			led_trigger_blink_oneshot(priv->rxtx_led_trig,
-						  &led_delay, &led_delay, 1);
-		}
-		break;
+	switch (event)
+	{
+		case CAN_LED_EVENT_OPEN:
+			led_trigger_event(priv->tx_led_trig, LED_FULL);
+			led_trigger_event(priv->rx_led_trig, LED_FULL);
+			led_trigger_event(priv->rxtx_led_trig, LED_FULL);
+			break;
+
+		case CAN_LED_EVENT_STOP:
+			led_trigger_event(priv->tx_led_trig, LED_OFF);
+			led_trigger_event(priv->rx_led_trig, LED_OFF);
+			led_trigger_event(priv->rxtx_led_trig, LED_OFF);
+			break;
+
+		case CAN_LED_EVENT_TX:
+			if (led_delay)
+			{
+				led_trigger_blink_oneshot(priv->tx_led_trig,
+										  &led_delay, &led_delay, 1);
+				led_trigger_blink_oneshot(priv->rxtx_led_trig,
+										  &led_delay, &led_delay, 1);
+			}
+
+			break;
+
+		case CAN_LED_EVENT_RX:
+			if (led_delay)
+			{
+				led_trigger_blink_oneshot(priv->rx_led_trig,
+										  &led_delay, &led_delay, 1);
+				led_trigger_blink_oneshot(priv->rxtx_led_trig,
+										  &led_delay, &led_delay, 1);
+			}
+
+			break;
 	}
 }
 EXPORT_SYMBOL_GPL(can_led_event);
@@ -76,24 +84,26 @@ void devm_can_led_init(struct net_device *netdev)
 	void *res;
 
 	res = devres_alloc(can_led_release, 0, GFP_KERNEL);
-	if (!res) {
+
+	if (!res)
+	{
 		netdev_err(netdev, "cannot register LED triggers\n");
 		return;
 	}
 
 	snprintf(priv->tx_led_trig_name, sizeof(priv->tx_led_trig_name),
-		 "%s-tx", netdev->name);
+			 "%s-tx", netdev->name);
 	snprintf(priv->rx_led_trig_name, sizeof(priv->rx_led_trig_name),
-		 "%s-rx", netdev->name);
+			 "%s-rx", netdev->name);
 	snprintf(priv->rxtx_led_trig_name, sizeof(priv->rxtx_led_trig_name),
-		 "%s-rxtx", netdev->name);
+			 "%s-rxtx", netdev->name);
 
 	led_trigger_register_simple(priv->tx_led_trig_name,
-				    &priv->tx_led_trig);
+								&priv->tx_led_trig);
 	led_trigger_register_simple(priv->rx_led_trig_name,
-				    &priv->rx_led_trig);
+								&priv->rx_led_trig);
 	led_trigger_register_simple(priv->rxtx_led_trig_name,
-				    &priv->rxtx_led_trig);
+								&priv->rxtx_led_trig);
 
 	devres_add(&netdev->dev, res);
 }
@@ -101,19 +111,24 @@ EXPORT_SYMBOL_GPL(devm_can_led_init);
 
 /* NETDEV rename notifier to rename the associated led triggers too */
 static int can_led_notifier(struct notifier_block *nb, unsigned long msg,
-			    void *ptr)
+							void *ptr)
 {
 	struct net_device *netdev = netdev_notifier_info_to_dev(ptr);
 	struct can_priv *priv = safe_candev_priv(netdev);
 	char name[CAN_LED_NAME_SZ];
 
 	if (!priv)
+	{
 		return NOTIFY_DONE;
+	}
 
 	if (!priv->tx_led_trig || !priv->rx_led_trig || !priv->rxtx_led_trig)
+	{
 		return NOTIFY_DONE;
+	}
 
-	if (msg == NETDEV_CHANGENAME) {
+	if (msg == NETDEV_CHANGENAME)
+	{
 		snprintf(name, sizeof(name), "%s-tx", netdev->name);
 		led_trigger_rename_static(name, priv->tx_led_trig);
 
@@ -128,7 +143,8 @@ static int can_led_notifier(struct notifier_block *nb, unsigned long msg,
 }
 
 /* notifier block for netdevice event */
-static struct notifier_block can_netdev_notifier __read_mostly = {
+static struct notifier_block can_netdev_notifier __read_mostly =
+{
 	.notifier_call = can_led_notifier,
 };
 

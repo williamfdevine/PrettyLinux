@@ -46,40 +46,40 @@
 #define HW_QUEUE_ENTRY		8
 
 #define WEP_IV(pattrib_iv, dot11txpn, keyidx)\
-do {\
-	pattrib_iv[0] = dot11txpn._byte_.TSC0;\
-	pattrib_iv[1] = dot11txpn._byte_.TSC1;\
-	pattrib_iv[2] = dot11txpn._byte_.TSC2;\
-	pattrib_iv[3] = ((keyidx & 0x3)<<6);\
-	dot11txpn.val = (dot11txpn.val == 0xffffff) ? 0 : (dot11txpn.val+1);\
-} while (0)
+	do {\
+		pattrib_iv[0] = dot11txpn._byte_.TSC0;\
+		pattrib_iv[1] = dot11txpn._byte_.TSC1;\
+		pattrib_iv[2] = dot11txpn._byte_.TSC2;\
+		pattrib_iv[3] = ((keyidx & 0x3)<<6);\
+		dot11txpn.val = (dot11txpn.val == 0xffffff) ? 0 : (dot11txpn.val+1);\
+	} while (0)
 
 
 #define TKIP_IV(pattrib_iv, dot11txpn, keyidx)\
-do {\
-	pattrib_iv[0] = dot11txpn._byte_.TSC1;\
-	pattrib_iv[1] = (dot11txpn._byte_.TSC1 | 0x20) & 0x7f;\
-	pattrib_iv[2] = dot11txpn._byte_.TSC0;\
-	pattrib_iv[3] = BIT(5) | ((keyidx & 0x3)<<6);\
-	pattrib_iv[4] = dot11txpn._byte_.TSC2;\
-	pattrib_iv[5] = dot11txpn._byte_.TSC3;\
-	pattrib_iv[6] = dot11txpn._byte_.TSC4;\
-	pattrib_iv[7] = dot11txpn._byte_.TSC5;\
-	dot11txpn.val = dot11txpn.val == 0xffffffffffffULL ? 0 : (dot11txpn.val+1);\
-} while (0)
+	do {\
+		pattrib_iv[0] = dot11txpn._byte_.TSC1;\
+		pattrib_iv[1] = (dot11txpn._byte_.TSC1 | 0x20) & 0x7f;\
+		pattrib_iv[2] = dot11txpn._byte_.TSC0;\
+		pattrib_iv[3] = BIT(5) | ((keyidx & 0x3)<<6);\
+		pattrib_iv[4] = dot11txpn._byte_.TSC2;\
+		pattrib_iv[5] = dot11txpn._byte_.TSC3;\
+		pattrib_iv[6] = dot11txpn._byte_.TSC4;\
+		pattrib_iv[7] = dot11txpn._byte_.TSC5;\
+		dot11txpn.val = dot11txpn.val == 0xffffffffffffULL ? 0 : (dot11txpn.val+1);\
+	} while (0)
 
 #define AES_IV(pattrib_iv, dot11txpn, keyidx)\
-do {							\
-	pattrib_iv[0] = dot11txpn._byte_.TSC0;		\
-	pattrib_iv[1] = dot11txpn._byte_.TSC1;		\
-	pattrib_iv[2] = 0;				\
-	pattrib_iv[3] = BIT(5) | ((keyidx & 0x3)<<6);	\
-	pattrib_iv[4] = dot11txpn._byte_.TSC2;		\
-	pattrib_iv[5] = dot11txpn._byte_.TSC3;		\
-	pattrib_iv[6] = dot11txpn._byte_.TSC4;		\
-	pattrib_iv[7] = dot11txpn._byte_.TSC5;		\
-	dot11txpn.val = dot11txpn.val == 0xffffffffffffULL ? 0 : (dot11txpn.val+1);\
-} while (0)
+	do {							\
+		pattrib_iv[0] = dot11txpn._byte_.TSC0;		\
+		pattrib_iv[1] = dot11txpn._byte_.TSC1;		\
+		pattrib_iv[2] = 0;				\
+		pattrib_iv[3] = BIT(5) | ((keyidx & 0x3)<<6);	\
+		pattrib_iv[4] = dot11txpn._byte_.TSC2;		\
+		pattrib_iv[5] = dot11txpn._byte_.TSC3;		\
+		pattrib_iv[6] = dot11txpn._byte_.TSC4;		\
+		pattrib_iv[7] = dot11txpn._byte_.TSC5;		\
+		dot11txpn.val = dot11txpn.val == 0xffffffffffffULL ? 0 : (dot11txpn.val+1);\
+	} while (0)
 
 #define HWXMIT_ENTRY	4
 
@@ -88,7 +88,8 @@ do {							\
 #define PACKET_OFFSET_SZ (8)
 #define TXDESC_OFFSET (TXDESC_SIZE + PACKET_OFFSET_SZ)
 
-struct tx_desc {
+struct tx_desc
+{
 	/* DWORD 0 */
 	__le32 txdw0;
 	__le32 txdw1;
@@ -100,13 +101,15 @@ struct tx_desc {
 	__le32 txdw7;
 };
 
-struct	hw_xmit	{
+struct	hw_xmit
+{
 	struct __queue *sta_queue;
 	int	accnt;
 };
 
 /* reduce size */
-struct pkt_attrib {
+struct pkt_attrib
+{
 	u8	type;
 	u8	subtype;
 	u8	bswenc;
@@ -166,14 +169,16 @@ struct pkt_attrib {
 
 #define TXAGG_FRAMETAG	0x08
 
-struct  submit_ctx {
+struct  submit_ctx
+{
 	u32 submit_time; /* */
 	u32 timeout_ms; /* <0: not synchronous, 0: wait forever, >0: up to ms waiting */
 	int status; /* status for operation */
 	struct completion done;
 };
 
-enum {
+enum
+{
 	RTW_SCTX_SUBMITTED = -1,
 	RTW_SCTX_DONE_SUCCESS = 0,
 	RTW_SCTX_DONE_UNKNOWN,
@@ -192,7 +197,8 @@ void rtw_sctx_init(struct submit_ctx *sctx, int timeout_ms);
 int rtw_sctx_wait(struct submit_ctx *sctx);
 void rtw_sctx_done_err(struct submit_ctx **sctx, int status);
 
-struct xmit_buf {
+struct xmit_buf
+{
 	struct list_head list;
 	struct adapter *padapter;
 	u8 *pallocated_buf;
@@ -210,7 +216,8 @@ struct xmit_buf {
 	int last[8];
 };
 
-struct xmit_frame {
+struct xmit_frame
+{
 	struct list_head list;
 	struct pkt_attrib attrib;
 	struct sk_buff *pkt;
@@ -224,13 +231,15 @@ struct xmit_frame {
 	u8 ack_report;
 };
 
-struct tx_servq {
+struct tx_servq
+{
 	struct list_head tx_pending;
 	struct __queue sta_pending;
 	int qcnt;
 };
 
-struct sta_xmit_priv {
+struct sta_xmit_priv
+{
 	spinlock_t lock;
 	int	option;
 	int	apsd_setting;	/* When bit mask is on, the associated edca
@@ -244,7 +253,8 @@ struct sta_xmit_priv {
 	u16 txseq_tid[16];
 };
 
-struct	hw_txqueue {
+struct	hw_txqueue
+{
 	volatile int	head;
 	volatile int	tail;
 	volatile int	free_sz;	/* in units of 64 bytes */
@@ -255,7 +265,8 @@ struct	hw_txqueue {
 	int	ac_tag;
 };
 
-struct	xmit_priv {
+struct	xmit_priv
+{
 	spinlock_t lock;
 	struct __queue be_pending;
 	struct __queue bk_pending;
@@ -305,40 +316,40 @@ struct	xmit_priv {
 
 struct xmit_buf *rtw_alloc_xmitbuf_ext(struct xmit_priv *pxmitpriv);
 s32 rtw_free_xmitbuf_ext(struct xmit_priv *pxmitpriv,
-			 struct xmit_buf *pxmitbuf);
+						 struct xmit_buf *pxmitbuf);
 struct xmit_buf *rtw_alloc_xmitbuf(struct xmit_priv *pxmitpriv);
 s32 rtw_free_xmitbuf(struct xmit_priv *pxmitpriv,
-		     struct xmit_buf *pxmitbuf);
+					 struct xmit_buf *pxmitbuf);
 void rtw_count_tx_stats(struct adapter *padapter,
-			struct xmit_frame *pxmitframe, int sz);
+						struct xmit_frame *pxmitframe, int sz);
 void rtw_update_protection(struct adapter *padapter, u8 *ie, uint ie_len);
 s32 rtw_make_wlanhdr(struct adapter *padapter, u8 *hdr,
-		     struct pkt_attrib *pattrib);
+					 struct pkt_attrib *pattrib);
 s32 rtw_put_snap(u8 *data, u16 h_proto);
 
 struct xmit_frame *rtw_alloc_xmitframe(struct xmit_priv *pxmitpriv);
 s32 rtw_free_xmitframe(struct xmit_priv *pxmitpriv,
-		       struct xmit_frame *pxmitframe);
+					   struct xmit_frame *pxmitframe);
 void rtw_free_xmitframe_queue(struct xmit_priv *pxmitpriv,
-			      struct __queue *pframequeue);
+							  struct __queue *pframequeue);
 struct tx_servq *rtw_get_sta_pending(struct adapter *padapter,
-				     struct sta_info *psta, int up, u8 *ac);
+									 struct sta_info *psta, int up, u8 *ac);
 s32 rtw_xmitframe_enqueue(struct adapter *padapter,
-			  struct xmit_frame *pxmitframe);
+						  struct xmit_frame *pxmitframe);
 struct xmit_frame *rtw_dequeue_xframe(struct xmit_priv *pxmitpriv,
-				      struct hw_xmit *phwxmit_i, int entry);
+									  struct hw_xmit *phwxmit_i, int entry);
 
 s32 rtw_xmit_classifier(struct adapter *padapter,
-			struct xmit_frame *pxmitframe);
+						struct xmit_frame *pxmitframe);
 u32 rtw_calculate_wlan_pkt_size_by_attribue(struct pkt_attrib *pattrib);
 #define rtw_wlan_pkt_size(f) rtw_calculate_wlan_pkt_size_by_attribue(&f->attrib)
 s32 rtw_xmitframe_coalesce(struct adapter *padapter, struct sk_buff *pkt,
-			   struct xmit_frame *pxmitframe);
+						   struct xmit_frame *pxmitframe);
 s32 _rtw_init_hw_txqueue(struct hw_txqueue *phw_txqueue, u8 ac_tag);
 void _rtw_init_sta_xmit_priv(struct sta_xmit_priv *psta_xmitpriv);
 s32 rtw_txframes_pending(struct adapter *padapter);
 s32 rtw_txframes_sta_ac_pending(struct adapter *padapter,
-				struct pkt_attrib *pattrib);
+								struct pkt_attrib *pattrib);
 void rtw_init_hwxmits(struct hw_xmit *phwxmit, int entry);
 s32 _rtw_init_xmit_priv(struct xmit_priv *pxmitpriv, struct adapter *padapter);
 void _rtw_free_xmit_priv(struct xmit_priv *pxmitpriv);
@@ -347,10 +358,10 @@ void rtw_free_hwxmits(struct adapter *padapter);
 s32 rtw_xmit(struct adapter *padapter, struct sk_buff **pkt);
 
 #if defined(CONFIG_88EU_AP_MODE)
-int xmitframe_enqueue_for_sleeping_sta(struct adapter *padapter, struct xmit_frame *pxmitframe);
-void stop_sta_xmit(struct adapter *padapter, struct sta_info *psta);
-void wakeup_sta_to_xmit(struct adapter *padapter, struct sta_info *psta);
-void xmit_delivery_enabled_frames(struct adapter *padapter, struct sta_info *psta);
+	int xmitframe_enqueue_for_sleeping_sta(struct adapter *padapter, struct xmit_frame *pxmitframe);
+	void stop_sta_xmit(struct adapter *padapter, struct sta_info *psta);
+	void wakeup_sta_to_xmit(struct adapter *padapter, struct sta_info *psta);
+	void xmit_delivery_enabled_frames(struct adapter *padapter, struct sta_info *psta);
 #endif
 
 u8	qos_acm(u8 acm_mask, u8 priority);

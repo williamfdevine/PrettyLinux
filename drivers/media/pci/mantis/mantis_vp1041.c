@@ -42,7 +42,8 @@
 #define MANTIS_MODEL_NAME	"VP-1041"
 #define MANTIS_DEV_TYPE		"DSS/DVB-S/DVB-S2"
 
-static const struct stb0899_s1_reg vp1041_stb0899_s1_init_1[] = {
+static const struct stb0899_s1_reg vp1041_stb0899_s1_init_1[] =
+{
 
 	/* 0x0000000b, *//* SYSREG */
 	{ STB0899_DEV_ID		, 0x30 },
@@ -130,7 +131,8 @@ static const struct stb0899_s1_reg vp1041_stb0899_s1_init_1[] = {
 	{ 0xffff			, 0xff },
 };
 
-static const struct stb0899_s1_reg vp1041_stb0899_s1_init_3[] = {
+static const struct stb0899_s1_reg vp1041_stb0899_s1_init_3[] =
+{
 	{ STB0899_DEMOD         	, 0x00 },
 	{ STB0899_RCOMPC        	, 0xc9 },
 	{ STB0899_AGC1CN        	, 0x01 },
@@ -263,7 +265,8 @@ static const struct stb0899_s1_reg vp1041_stb0899_s1_init_3[] = {
 	{ 0xffff			, 0xff },
 };
 
-static struct stb0899_config vp1041_stb0899_config = {
+static struct stb0899_config vp1041_stb0899_config =
+{
 	.init_dev		= vp1041_stb0899_s1_init_1,
 	.init_s2_demod		= stb0899_s2_init_2,
 	.init_s1_demod		= vp1041_stb0899_s1_init_3,
@@ -300,7 +303,8 @@ static struct stb0899_config vp1041_stb0899_config = {
 	.tuner_set_rfsiggain	= NULL,
 };
 
-static struct stb6100_config vp1041_stb6100_config = {
+static struct stb6100_config vp1041_stb6100_config =
+{
 	.tuner_address	= 0x60,
 	.refclock	= 27000000,
 };
@@ -312,26 +316,37 @@ static int vp1041_frontend_init(struct mantis_pci *mantis, struct dvb_frontend *
 	int err = 0;
 
 	err = mantis_frontend_power(mantis, POWER_ON);
-	if (err == 0) {
+
+	if (err == 0)
+	{
 		mantis_frontend_soft_reset(mantis);
 		msleep(250);
 		mantis->fe = dvb_attach(stb0899_attach, &vp1041_stb0899_config, adapter);
-		if (mantis->fe) {
-			dprintk(MANTIS_ERROR, 1,
-				"found STB0899 DVB-S/DVB-S2 frontend @0x%02x",
-				vp1041_stb0899_config.demod_address);
 
-			if (dvb_attach(stb6100_attach, mantis->fe, &vp1041_stb6100_config, adapter)) {
+		if (mantis->fe)
+		{
+			dprintk(MANTIS_ERROR, 1,
+					"found STB0899 DVB-S/DVB-S2 frontend @0x%02x",
+					vp1041_stb0899_config.demod_address);
+
+			if (dvb_attach(stb6100_attach, mantis->fe, &vp1041_stb6100_config, adapter))
+			{
 				if (!dvb_attach(lnbp21_attach, mantis->fe, adapter, 0, 0))
+				{
 					dprintk(MANTIS_ERROR, 1, "No LNBP21 found!");
+				}
 			}
-		} else {
+		}
+		else
+		{
 			return -EREMOTEIO;
 		}
-	} else {
+	}
+	else
+	{
 		dprintk(MANTIS_ERROR, 1, "Frontend on <%s> POWER ON failed! <%d>",
-			adapter->name,
-			err);
+				adapter->name,
+				err);
 
 		return -EIO;
 	}
@@ -342,7 +357,8 @@ static int vp1041_frontend_init(struct mantis_pci *mantis, struct dvb_frontend *
 	return 0;
 }
 
-struct mantis_hwconfig vp1041_config = {
+struct mantis_hwconfig vp1041_config =
+{
 	.model_name	= MANTIS_MODEL_NAME,
 	.dev_type	= MANTIS_DEV_TYPE,
 	.ts_size	= MANTIS_TS_188,

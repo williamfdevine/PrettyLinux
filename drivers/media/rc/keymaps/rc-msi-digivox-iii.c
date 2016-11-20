@@ -25,7 +25,8 @@
 /* Uses NEC extended 0x61d6. */
 /* This remote seems to be same as rc-kworld-315u.c. Anyhow, add new remote
    since rc-kworld-315u.c lacks NEC extended address byte. */
-static struct rc_map_table msi_digivox_iii[] = {
+static struct rc_map_table msi_digivox_iii[] =
+{
 	{ 0x61d601, KEY_VIDEO },           /* Source */
 	{ 0x61d602, KEY_3 },
 	{ 0x61d603, KEY_POWER },           /* ShutDown */
@@ -60,7 +61,8 @@ static struct rc_map_table msi_digivox_iii[] = {
 	{ 0x61d643, KEY_POWER2 },          /* [red power button] */
 };
 
-static struct rc_map_list msi_digivox_iii_map = {
+static struct rc_map_list msi_digivox_iii_map =
+{
 	.map = {
 		.scan    = msi_digivox_iii,
 		.size    = ARRAY_SIZE(msi_digivox_iii),

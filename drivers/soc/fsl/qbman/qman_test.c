@@ -39,18 +39,28 @@ static int test_init(void)
 	int loop = 1;
 	int err = 0;
 
-	while (loop--) {
+	while (loop--)
+	{
 #ifdef CONFIG_FSL_QMAN_TEST_STASH
 		err = qman_test_stash();
+
 		if (err)
+		{
 			break;
+		}
+
 #endif
 #ifdef CONFIG_FSL_QMAN_TEST_API
 		err = qman_test_api();
+
 		if (err)
+		{
 			break;
+		}
+
 #endif
 	}
+
 	return err;
 }
 

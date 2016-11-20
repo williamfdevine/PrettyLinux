@@ -23,10 +23,12 @@
 static int stm_console_link(struct stm_source_data *data);
 static void stm_console_unlink(struct stm_source_data *data);
 
-static struct stm_console {
+static struct stm_console
+{
 	struct stm_source_data	data;
 	struct console		console;
-} stm_console = {
+} stm_console =
+{
 	.data	= {
 		.name		= "console",
 		.nr_chans	= 1,

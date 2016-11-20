@@ -3,7 +3,8 @@
 
 #include <linux/types.h>
 
-enum {
+enum
+{
 	TS_FSM_SPECIFIC,	/* specific character */
 	TS_FSM_WILDCARD,	/* any character */
 	TS_FSM_DIGIT,		/* isdigit() */
@@ -22,7 +23,8 @@ enum {
 };
 #define TS_FSM_TYPE_MAX (__TS_FSM_TYPE_MAX - 1)
 
-enum {
+enum
+{
 	TS_FSM_SINGLE,		/* 1 occurrence */
 	TS_FSM_PERHAPS,		/* 1 or 0 occurrence */
 	TS_FSM_ANY,		/* 0..n occurrences */

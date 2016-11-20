@@ -80,15 +80,16 @@ extern int decnet_log_martians;
 
 static void dn_log_martian(struct sk_buff *skb, const char *msg)
 {
-	if (decnet_log_martians) {
+	if (decnet_log_martians)
+	{
 		char *devname = skb->dev ? skb->dev->name : "???";
 		struct dn_skb_cb *cb = DN_SKB_CB(skb);
 		net_info_ratelimited("DECnet: Martian packet (%s) dev=%s src=0x%04hx dst=0x%04hx srcport=0x%04hx dstport=0x%04hx\n",
-				     msg, devname,
-				     le16_to_cpu(cb->src),
-				     le16_to_cpu(cb->dst),
-				     le16_to_cpu(cb->src_port),
-				     le16_to_cpu(cb->dst_port));
+							 msg, devname,
+							 le16_to_cpu(cb->src),
+							 le16_to_cpu(cb->dst),
+							 le16_to_cpu(cb->src_port),
+							 le16_to_cpu(cb->dst_port));
 	}
 }
 
@@ -103,31 +104,41 @@ static void dn_ack(struct sock *sk, struct sk_buff *skb, unsigned short ack)
 	unsigned short type = ((ack >> 12) & 0x0003);
 	int wakeup = 0;
 
-	switch (type) {
-	case 0: /* ACK - Data */
-		if (dn_after(ack, scp->ackrcv_dat)) {
-			scp->ackrcv_dat = ack & 0x0fff;
-			wakeup |= dn_nsp_check_xmit_queue(sk, skb,
-							  &scp->data_xmit_queue,
-							  ack);
-		}
-		break;
-	case 1: /* NAK - Data */
-		break;
-	case 2: /* ACK - OtherData */
-		if (dn_after(ack, scp->ackrcv_oth)) {
-			scp->ackrcv_oth = ack & 0x0fff;
-			wakeup |= dn_nsp_check_xmit_queue(sk, skb,
-							  &scp->other_xmit_queue,
-							  ack);
-		}
-		break;
-	case 3: /* NAK - OtherData */
-		break;
+	switch (type)
+	{
+		case 0: /* ACK - Data */
+			if (dn_after(ack, scp->ackrcv_dat))
+			{
+				scp->ackrcv_dat = ack & 0x0fff;
+				wakeup |= dn_nsp_check_xmit_queue(sk, skb,
+												  &scp->data_xmit_queue,
+												  ack);
+			}
+
+			break;
+
+		case 1: /* NAK - Data */
+			break;
+
+		case 2: /* ACK - OtherData */
+			if (dn_after(ack, scp->ackrcv_oth))
+			{
+				scp->ackrcv_oth = ack & 0x0fff;
+				wakeup |= dn_nsp_check_xmit_queue(sk, skb,
+												  &scp->other_xmit_queue,
+												  ack);
+			}
+
+			break;
+
+		case 3: /* NAK - OtherData */
+			break;
 	}
 
 	if (wakeup && !sock_flag(sk, SOCK_DEAD))
+	{
 		sk->sk_state_change(sk);
+	}
 }
 
 /*
@@ -140,28 +151,44 @@ static int dn_process_ack(struct sock *sk, struct sk_buff *skb, int oth)
 	unsigned short ack;
 
 	if (skb->len < 2)
+	{
 		return len;
+	}
 
-	if ((ack = le16_to_cpu(*ptr)) & 0x8000) {
+	if ((ack = le16_to_cpu(*ptr)) & 0x8000)
+	{
 		skb_pull(skb, 2);
 		ptr++;
 		len += 2;
-		if ((ack & 0x4000) == 0) {
+
+		if ((ack & 0x4000) == 0)
+		{
 			if (oth)
+			{
 				ack ^= 0x2000;
+			}
+
 			dn_ack(sk, skb, ack);
 		}
 	}
 
 	if (skb->len < 2)
+	{
 		return len;
+	}
 
-	if ((ack = le16_to_cpu(*ptr)) & 0x8000) {
+	if ((ack = le16_to_cpu(*ptr)) & 0x8000)
+	{
 		skb_pull(skb, 2);
 		len += 2;
-		if ((ack & 0x4000) == 0) {
+
+		if ((ack & 0x4000) == 0)
+		{
 			if (oth)
+			{
 				ack ^= 0x2000;
+			}
+
 			dn_ack(sk, skb, ack);
 		}
 	}
@@ -185,10 +212,16 @@ static inline int dn_check_idf(unsigned char **pptr, int *len, unsigned char max
 	unsigned char flen = *ptr++;
 
 	(*len)--;
+
 	if (flen > max)
+	{
 		return -1;
+	}
+
 	if ((flen + follow_on) > *len)
+	{
 		return -1;
+	}
 
 	*len -= flen;
 	*pptr = ptr + flen;
@@ -201,18 +234,20 @@ static inline int dn_check_idf(unsigned char **pptr, int *len, unsigned char max
  * the reason field means "don't reply" otherwise a disc init is sent with
  * the specified reason code.
  */
-static struct {
+static struct
+{
 	unsigned short reason;
 	const char *text;
-} ci_err_table[] = {
- { 0,             "CI: Truncated message" },
- { NSP_REASON_ID, "CI: Destination username error" },
- { NSP_REASON_ID, "CI: Destination username type" },
- { NSP_REASON_US, "CI: Source username error" },
- { 0,             "CI: Truncated at menuver" },
- { 0,             "CI: Truncated before access or user data" },
- { NSP_REASON_IO, "CI: Access data format error" },
- { NSP_REASON_IO, "CI: User data format error" }
+} ci_err_table[] =
+{
+	{ 0,             "CI: Truncated message" },
+	{ NSP_REASON_ID, "CI: Destination username error" },
+	{ NSP_REASON_ID, "CI: Destination username type" },
+	{ NSP_REASON_US, "CI: Source username error" },
+	{ 0,             "CI: Truncated at menuver" },
+	{ 0,             "CI: Truncated before access or user data" },
+	{ NSP_REASON_IO, "CI: Access data format error" },
+	{ NSP_REASON_IO, "CI: User data format error" }
 };
 
 /*
@@ -249,7 +284,9 @@ static struct sock *dn_find_listener(struct sk_buff *skb, unsigned short *reason
 	cb->segsize  = le16_to_cpu(msg->segsize);
 
 	if (!pskb_may_pull(skb, sizeof(*msg)))
+	{
 		goto err_out;
+	}
 
 	skb_pull(skb, sizeof(*msg));
 
@@ -261,12 +298,18 @@ static struct sock *dn_find_listener(struct sk_buff *skb, unsigned short *reason
 	 */
 	dstlen = dn_username2sockaddr(ptr, len, &dstaddr, &type);
 	err++;
+
 	if (dstlen < 0)
+	{
 		goto err_out;
+	}
 
 	err++;
+
 	if (type > 1)
+	{
 		goto err_out;
+	}
 
 	len -= dstlen;
 	ptr += dstlen;
@@ -276,14 +319,20 @@ static struct sock *dn_find_listener(struct sk_buff *skb, unsigned short *reason
 	 */
 	srclen = dn_username2sockaddr(ptr, len, &srcaddr, &type);
 	err++;
+
 	if (srclen < 0)
+	{
 		goto err_out;
+	}
 
 	len -= srclen;
 	ptr += srclen;
 	err++;
+
 	if (len < 1)
+	{
 		goto err_out;
+	}
 
 	menuver = *ptr;
 	ptr++;
@@ -293,29 +342,46 @@ static struct sock *dn_find_listener(struct sk_buff *skb, unsigned short *reason
 	 * 4. Check that optional data actually exists if menuver says it does
 	 */
 	err++;
+
 	if ((menuver & (DN_MENUVER_ACC | DN_MENUVER_USR)) && (len < 1))
+	{
 		goto err_out;
+	}
 
 	/*
 	 * 5. Check optional access data format
 	 */
 	err++;
-	if (menuver & DN_MENUVER_ACC) {
+
+	if (menuver & DN_MENUVER_ACC)
+	{
 		if (dn_check_idf(&ptr, &len, 39, 1))
+		{
 			goto err_out;
+		}
+
 		if (dn_check_idf(&ptr, &len, 39, 1))
+		{
 			goto err_out;
+		}
+
 		if (dn_check_idf(&ptr, &len, 39, (menuver & DN_MENUVER_USR) ? 1 : 0))
+		{
 			goto err_out;
+		}
 	}
 
 	/*
 	 * 6. Check optional user data format
 	 */
 	err++;
-	if (menuver & DN_MENUVER_USR) {
+
+	if (menuver & DN_MENUVER_USR)
+	{
 		if (dn_check_idf(&ptr, &len, 16, 0))
+		{
 			goto err_out;
+		}
 	}
 
 	/*
@@ -331,7 +397,8 @@ err_out:
 
 static void dn_nsp_conn_init(struct sock *sk, struct sk_buff *skb)
 {
-	if (sk_acceptq_is_full(sk)) {
+	if (sk_acceptq_is_full(sk))
+	{
 		kfree_skb(skb);
 		return;
 	}
@@ -348,14 +415,17 @@ static void dn_nsp_conn_conf(struct sock *sk, struct sk_buff *skb)
 	unsigned char *ptr;
 
 	if (skb->len < 4)
+	{
 		goto out;
+	}
 
 	ptr = skb->data;
 	cb->services = *ptr++;
 	cb->info = *ptr++;
 	cb->segsize = le16_to_cpu(*(__le16 *)ptr);
 
-	if ((scp->state == DN_CI) || (scp->state == DN_CD)) {
+	if ((scp->state == DN_CI) || (scp->state == DN_CD))
+	{
 		scp->persist = 0;
 		scp->addrrem = cb->src_port;
 		sk->sk_state = TCP_ESTABLISHED;
@@ -365,19 +435,28 @@ static void dn_nsp_conn_conf(struct sock *sk, struct sk_buff *skb)
 		scp->segsize_rem = cb->segsize;
 
 		if ((scp->services_rem & NSP_FC_MASK) == NSP_FC_NONE)
+		{
 			scp->max_window = decnet_no_fc_max_cwnd;
+		}
 
-		if (skb->len > 0) {
+		if (skb->len > 0)
+		{
 			u16 dlen = *skb->data;
-			if ((dlen <= 16) && (dlen <= skb->len)) {
+
+			if ((dlen <= 16) && (dlen <= skb->len))
+			{
 				scp->conndata_in.opt_optl = cpu_to_le16(dlen);
 				skb_copy_from_linear_data_offset(skb, 1,
-					      scp->conndata_in.opt_data, dlen);
+												 scp->conndata_in.opt_data, dlen);
 			}
 		}
+
 		dn_nsp_send_link(sk, DN_NOCHANGE, 0);
+
 		if (!sock_flag(sk, SOCK_DEAD))
+		{
 			sk->sk_state_change(sk);
+		}
 	}
 
 out:
@@ -388,7 +467,8 @@ static void dn_nsp_conn_ack(struct sock *sk, struct sk_buff *skb)
 {
 	struct dn_scp *scp = DN_SK(sk);
 
-	if (scp->state == DN_CI) {
+	if (scp->state == DN_CI)
+	{
 		scp->state = DN_CD;
 		scp->persist = 0;
 	}
@@ -403,7 +483,9 @@ static void dn_nsp_disc_init(struct sock *sk, struct sk_buff *skb)
 	unsigned short reason;
 
 	if (skb->len < 2)
+	{
 		goto out;
+	}
 
 	reason = le16_to_cpu(*(__le16 *)skb->data);
 	skb_pull(skb, 2);
@@ -412,9 +494,12 @@ static void dn_nsp_disc_init(struct sock *sk, struct sk_buff *skb)
 	scp->discdata_in.opt_optl   = 0;
 	memset(scp->discdata_in.opt_data, 0, 16);
 
-	if (skb->len > 0) {
+	if (skb->len > 0)
+	{
 		u16 dlen = *skb->data;
-		if ((dlen <= 16) && (dlen <= skb->len)) {
+
+		if ((dlen <= 16) && (dlen <= skb->len))
+		{
 			scp->discdata_in.opt_optl = cpu_to_le16(dlen);
 			skb_copy_from_linear_data_offset(skb, 1, scp->discdata_in.opt_data, dlen);
 		}
@@ -423,24 +508,31 @@ static void dn_nsp_disc_init(struct sock *sk, struct sk_buff *skb)
 	scp->addrrem = cb->src_port;
 	sk->sk_state = TCP_CLOSE;
 
-	switch (scp->state) {
-	case DN_CI:
-	case DN_CD:
-		scp->state = DN_RJ;
-		sk->sk_err = ECONNREFUSED;
-		break;
-	case DN_RUN:
-		sk->sk_shutdown |= SHUTDOWN_MASK;
-		scp->state = DN_DN;
-		break;
-	case DN_DI:
-		scp->state = DN_DIC;
-		break;
+	switch (scp->state)
+	{
+		case DN_CI:
+		case DN_CD:
+			scp->state = DN_RJ;
+			sk->sk_err = ECONNREFUSED;
+			break;
+
+		case DN_RUN:
+			sk->sk_shutdown |= SHUTDOWN_MASK;
+			scp->state = DN_DN;
+			break;
+
+		case DN_DI:
+			scp->state = DN_DIC;
+			break;
 	}
 
-	if (!sock_flag(sk, SOCK_DEAD)) {
+	if (!sock_flag(sk, SOCK_DEAD))
+	{
 		if (sk->sk_socket->state != SS_UNCONNECTED)
+		{
 			sk->sk_socket->state = SS_DISCONNECTING;
+		}
+
 		sk->sk_state_change(sk);
 	}
 
@@ -450,9 +542,11 @@ static void dn_nsp_disc_init(struct sock *sk, struct sk_buff *skb)
 	 * possibly also the CD state. Obviously we shouldn't reply with
 	 * a message if we don't know what the end point is.
 	 */
-	if (scp->addrrem) {
+	if (scp->addrrem)
+	{
 		dn_nsp_send_disc(sk, NSP_DISCCONF, NSP_REASON_DC, GFP_ATOMIC);
 	}
+
 	scp->persist_fxn = dn_destroy_timer;
 	scp->persist = dn_nsp_persist(sk);
 
@@ -470,34 +564,51 @@ static void dn_nsp_disc_conf(struct sock *sk, struct sk_buff *skb)
 	unsigned short reason;
 
 	if (skb->len != 2)
+	{
 		goto out;
+	}
 
 	reason = le16_to_cpu(*(__le16 *)skb->data);
 
 	sk->sk_state = TCP_CLOSE;
 
-	switch (scp->state) {
-	case DN_CI:
-		scp->state = DN_NR;
-		break;
-	case DN_DR:
-		if (reason == NSP_REASON_DC)
-			scp->state = DN_DRC;
-		if (reason == NSP_REASON_NL)
+	switch (scp->state)
+	{
+		case DN_CI:
+			scp->state = DN_NR;
+			break;
+
+		case DN_DR:
+			if (reason == NSP_REASON_DC)
+			{
+				scp->state = DN_DRC;
+			}
+
+			if (reason == NSP_REASON_NL)
+			{
+				scp->state = DN_CN;
+			}
+
+			break;
+
+		case DN_DI:
+			scp->state = DN_DIC;
+			break;
+
+		case DN_RUN:
+			sk->sk_shutdown |= SHUTDOWN_MASK;
+
+		case DN_CC:
 			scp->state = DN_CN;
-		break;
-	case DN_DI:
-		scp->state = DN_DIC;
-		break;
-	case DN_RUN:
-		sk->sk_shutdown |= SHUTDOWN_MASK;
-	case DN_CC:
-		scp->state = DN_CN;
 	}
 
-	if (!sock_flag(sk, SOCK_DEAD)) {
+	if (!sock_flag(sk, SOCK_DEAD))
+	{
 		if (sk->sk_socket->state != SS_UNCONNECTED)
+		{
 			sk->sk_socket->state = SS_DISCONNECTING;
+		}
+
 		sk->sk_state_change(sk);
 	}
 
@@ -519,7 +630,9 @@ static void dn_nsp_linkservice(struct sock *sk, struct sk_buff *skb)
 	unsigned char fctype = scp->services_rem & NSP_FC_MASK;
 
 	if (skb->len != 4)
+	{
 		goto out;
+	}
 
 	segnum = le16_to_cpu(*(__le16 *)ptr);
 	ptr += 2;
@@ -532,43 +645,64 @@ static void dn_nsp_linkservice(struct sock *sk, struct sk_buff *skb)
 	 * for now though.
 	 */
 	if (lsflags & 0xf8)
+	{
 		goto out;
+	}
 
-	if (seq_next(scp->numoth_rcv, segnum)) {
+	if (seq_next(scp->numoth_rcv, segnum))
+	{
 		seq_add(&scp->numoth_rcv, 1);
-		switch(lsflags & 0x04) { /* FCVAL INT */
-		case 0x00: /* Normal Request */
-			switch(lsflags & 0x03) { /* FCVAL MOD */
-			case 0x00: /* Request count */
-				if (fcval < 0) {
-					unsigned char p_fcval = -fcval;
-					if ((scp->flowrem_dat > p_fcval) &&
-					    (fctype == NSP_FC_SCMC)) {
-						scp->flowrem_dat -= p_fcval;
-					}
-				} else if (fcval > 0) {
-					scp->flowrem_dat += fcval;
+
+		switch (lsflags & 0x04)  /* FCVAL INT */
+		{
+			case 0x00: /* Normal Request */
+				switch (lsflags & 0x03)  /* FCVAL MOD */
+				{
+					case 0x00: /* Request count */
+						if (fcval < 0)
+						{
+							unsigned char p_fcval = -fcval;
+
+							if ((scp->flowrem_dat > p_fcval) &&
+								(fctype == NSP_FC_SCMC))
+							{
+								scp->flowrem_dat -= p_fcval;
+							}
+						}
+						else if (fcval > 0)
+						{
+							scp->flowrem_dat += fcval;
+							wake_up = 1;
+						}
+
+						break;
+
+					case 0x01: /* Stop outgoing data */
+						scp->flowrem_sw = DN_DONTSEND;
+						break;
+
+					case 0x02: /* Ok to start again */
+						scp->flowrem_sw = DN_SEND;
+						dn_nsp_output(sk);
+						wake_up = 1;
+				}
+
+				break;
+
+			case 0x04: /* Interrupt Request */
+				if (fcval > 0)
+				{
+					scp->flowrem_oth += fcval;
 					wake_up = 1;
 				}
+
 				break;
-			case 0x01: /* Stop outgoing data */
-				scp->flowrem_sw = DN_DONTSEND;
-				break;
-			case 0x02: /* Ok to start again */
-				scp->flowrem_sw = DN_SEND;
-				dn_nsp_output(sk);
-				wake_up = 1;
-			}
-			break;
-		case 0x04: /* Interrupt Request */
-			if (fcval > 0) {
-				scp->flowrem_oth += fcval;
-				wake_up = 1;
-			}
-			break;
 		}
+
 		if (wake_up && !sock_flag(sk, SOCK_DEAD))
+		{
 			sk->sk_state_change(sk);
+		}
 	}
 
 	dn_nsp_send_oth_ack(sk);
@@ -590,20 +724,27 @@ static __inline__ int dn_queue_skb(struct sock *sk, struct sk_buff *skb, int sig
 	   number of warnings when compiling with -W --ANK
 	 */
 	if (atomic_read(&sk->sk_rmem_alloc) + skb->truesize >=
-	    (unsigned int)sk->sk_rcvbuf) {
+		(unsigned int)sk->sk_rcvbuf)
+	{
 		err = -ENOMEM;
 		goto out;
 	}
 
 	err = sk_filter(sk, skb);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	skb_set_owner_r(skb, sk);
 	skb_queue_tail(queue, skb);
 
 	if (!sock_flag(sk, SOCK_DEAD))
+	{
 		sk->sk_data_ready(sk);
+	}
+
 out:
 	return err;
 }
@@ -616,14 +757,18 @@ static void dn_nsp_otherdata(struct sock *sk, struct sk_buff *skb)
 	int queued = 0;
 
 	if (skb->len < 2)
+	{
 		goto out;
+	}
 
 	cb->segnum = segnum = le16_to_cpu(*(__le16 *)skb->data);
 	skb_pull(skb, 2);
 
-	if (seq_next(scp->numoth_rcv, segnum)) {
+	if (seq_next(scp->numoth_rcv, segnum))
+	{
 
-		if (dn_queue_skb(sk, skb, SIGURG, &scp->other_receive_queue) == 0) {
+		if (dn_queue_skb(sk, skb, SIGURG, &scp->other_receive_queue) == 0)
+		{
 			seq_add(&scp->numoth_rcv, 1);
 			scp->other_report = 0;
 			queued = 1;
@@ -632,8 +777,11 @@ static void dn_nsp_otherdata(struct sock *sk, struct sk_buff *skb)
 
 	dn_nsp_send_oth_ack(sk);
 out:
+
 	if (!queued)
+	{
 		kfree_skb(skb);
+	}
 }
 
 static void dn_nsp_data(struct sock *sk, struct sk_buff *skb)
@@ -644,18 +792,23 @@ static void dn_nsp_data(struct sock *sk, struct sk_buff *skb)
 	struct dn_scp *scp = DN_SK(sk);
 
 	if (skb->len < 2)
+	{
 		goto out;
+	}
 
 	cb->segnum = segnum = le16_to_cpu(*(__le16 *)skb->data);
 	skb_pull(skb, 2);
 
-	if (seq_next(scp->numdat_rcv, segnum)) {
-		if (dn_queue_skb(sk, skb, SIGIO, &sk->sk_receive_queue) == 0) {
+	if (seq_next(scp->numdat_rcv, segnum))
+	{
+		if (dn_queue_skb(sk, skb, SIGIO, &sk->sk_receive_queue) == 0)
+		{
 			seq_add(&scp->numdat_rcv, 1);
 			queued = 1;
 		}
 
-		if ((scp->flowloc_sw == DN_SEND) && dn_congested(sk)) {
+		if ((scp->flowloc_sw == DN_SEND) && dn_congested(sk))
+		{
 			scp->flowloc_sw = DN_DONTSEND;
 			dn_nsp_send_link(sk, DN_DONTSEND, 0);
 		}
@@ -663,8 +816,11 @@ static void dn_nsp_data(struct sock *sk, struct sk_buff *skb)
 
 	dn_nsp_send_data_ack(sk);
 out:
+
 	if (!queued)
+	{
 		kfree_skb(skb);
+	}
 }
 
 /*
@@ -676,11 +832,15 @@ static void dn_returned_conn_init(struct sock *sk, struct sk_buff *skb)
 {
 	struct dn_scp *scp = DN_SK(sk);
 
-	if (scp->state == DN_CI) {
+	if (scp->state == DN_CI)
+	{
 		scp->state = DN_NC;
 		sk->sk_state = TCP_CLOSE;
+
 		if (!sock_flag(sk, SOCK_DEAD))
+		{
 			sk->sk_state_change(sk);
+		}
 	}
 
 	kfree_skb(skb);
@@ -693,19 +853,24 @@ static int dn_nsp_no_socket(struct sk_buff *skb, unsigned short reason)
 
 	/* Must not reply to returned packets */
 	if (cb->rt_flags & DN_RT_F_RTS)
+	{
 		goto out;
+	}
 
-	if ((reason != NSP_REASON_OK) && ((cb->nsp_flags & 0x0c) == 0x08)) {
-		switch (cb->nsp_flags & 0x70) {
-		case 0x10:
-		case 0x60: /* (Retransmitted) Connect Init */
-			dn_nsp_return_disc(skb, NSP_DISCINIT, reason);
-			ret = NET_RX_SUCCESS;
-			break;
-		case 0x20: /* Connect Confirm */
-			dn_nsp_return_disc(skb, NSP_DISCCONF, reason);
-			ret = NET_RX_SUCCESS;
-			break;
+	if ((reason != NSP_REASON_OK) && ((cb->nsp_flags & 0x0c) == 0x08))
+	{
+		switch (cb->nsp_flags & 0x70)
+		{
+			case 0x10:
+			case 0x60: /* (Retransmitted) Connect Init */
+				dn_nsp_return_disc(skb, NSP_DISCINIT, reason);
+				ret = NET_RX_SUCCESS;
+				break;
+
+			case 0x20: /* Connect Confirm */
+				dn_nsp_return_disc(skb, NSP_DISCCONF, reason);
+				ret = NET_RX_SUCCESS;
+				break;
 		}
 	}
 
@@ -715,7 +880,7 @@ out:
 }
 
 static int dn_nsp_rx_packet(struct net *net, struct sock *sk2,
-			    struct sk_buff *skb)
+							struct sk_buff *skb)
 {
 	struct dn_skb_cb *cb = DN_SKB_CB(skb);
 	struct sock *sk = NULL;
@@ -723,37 +888,51 @@ static int dn_nsp_rx_packet(struct net *net, struct sock *sk2,
 	unsigned short reason = NSP_REASON_NL;
 
 	if (!pskb_may_pull(skb, 2))
+	{
 		goto free_out;
+	}
 
 	skb_reset_transport_header(skb);
 	cb->nsp_flags = *ptr++;
 
 	if (decnet_debug_level & 2)
+	{
 		printk(KERN_DEBUG "dn_nsp_rx: Message type 0x%02x\n", (int)cb->nsp_flags);
+	}
 
 	if (cb->nsp_flags & 0x83)
+	{
 		goto free_out;
+	}
 
 	/*
 	 * Filter out conninits and useless packet types
 	 */
-	if ((cb->nsp_flags & 0x0c) == 0x08) {
-		switch (cb->nsp_flags & 0x70) {
-		case 0x00: /* NOP */
-		case 0x70: /* Reserved */
-		case 0x50: /* Reserved, Phase II node init */
-			goto free_out;
-		case 0x10:
-		case 0x60:
-			if (unlikely(cb->rt_flags & DN_RT_F_RTS))
+	if ((cb->nsp_flags & 0x0c) == 0x08)
+	{
+		switch (cb->nsp_flags & 0x70)
+		{
+			case 0x00: /* NOP */
+			case 0x70: /* Reserved */
+			case 0x50: /* Reserved, Phase II node init */
 				goto free_out;
-			sk = dn_find_listener(skb, &reason);
-			goto got_it;
+
+			case 0x10:
+			case 0x60:
+				if (unlikely(cb->rt_flags & DN_RT_F_RTS))
+				{
+					goto free_out;
+				}
+
+				sk = dn_find_listener(skb, &reason);
+				goto got_it;
 		}
 	}
 
 	if (!pskb_may_pull(skb, 3))
+	{
 		goto free_out;
+	}
 
 	/*
 	 * Grab the destination address.
@@ -765,7 +944,8 @@ static int dn_nsp_rx_packet(struct net *net, struct sock *sk2,
 	/*
 	 * If not a connack, grab the source address too.
 	 */
-	if (pskb_may_pull(skb, 5)) {
+	if (pskb_may_pull(skb, 5))
+	{
 		cb->src_port = *(__le16 *)ptr;
 		ptr += 2;
 		skb_pull(skb, 5);
@@ -775,7 +955,8 @@ static int dn_nsp_rx_packet(struct net *net, struct sock *sk2,
 	 * Returned packets...
 	 * Swap src & dst and look up in the normal way.
 	 */
-	if (unlikely(cb->rt_flags & DN_RT_F_RTS)) {
+	if (unlikely(cb->rt_flags & DN_RT_F_RTS))
+	{
 		__le16 tmp = cb->dst_port;
 		cb->dst_port = cb->src_port;
 		cb->src_port = tmp;
@@ -789,7 +970,9 @@ static int dn_nsp_rx_packet(struct net *net, struct sock *sk2,
 	 */
 	sk = dn_find_by_skb(skb);
 got_it:
-	if (sk != NULL) {
+
+	if (sk != NULL)
+	{
 		struct dn_scp *scp = DN_SK(sk);
 
 		/* Reset backoff */
@@ -798,9 +981,12 @@ got_it:
 		/*
 		 * We linearize everything except data segments here.
 		 */
-		if (cb->nsp_flags & ~0x60) {
+		if (cb->nsp_flags & ~0x60)
+		{
 			if (unlikely(skb_linearize(skb)))
+			{
 				goto free_out;
+			}
 		}
 
 		return sk_receive_skb(sk, skb, 0);
@@ -816,8 +1002,8 @@ free_out:
 int dn_nsp_rx(struct sk_buff *skb)
 {
 	return NF_HOOK(NFPROTO_DECNET, NF_DN_LOCAL_IN,
-		       &init_net, NULL, skb, skb->dev, NULL,
-		       dn_nsp_rx_packet);
+				   &init_net, NULL, skb, skb->dev, NULL,
+				   dn_nsp_rx_packet);
 }
 
 /*
@@ -830,54 +1016,75 @@ int dn_nsp_backlog_rcv(struct sock *sk, struct sk_buff *skb)
 	struct dn_scp *scp = DN_SK(sk);
 	struct dn_skb_cb *cb = DN_SKB_CB(skb);
 
-	if (cb->rt_flags & DN_RT_F_RTS) {
+	if (cb->rt_flags & DN_RT_F_RTS)
+	{
 		if (cb->nsp_flags == 0x18 || cb->nsp_flags == 0x68)
+		{
 			dn_returned_conn_init(sk, skb);
+		}
 		else
+		{
 			kfree_skb(skb);
+		}
+
 		return NET_RX_SUCCESS;
 	}
 
 	/*
 	 * Control packet.
 	 */
-	if ((cb->nsp_flags & 0x0c) == 0x08) {
-		switch (cb->nsp_flags & 0x70) {
-		case 0x10:
-		case 0x60:
-			dn_nsp_conn_init(sk, skb);
-			break;
-		case 0x20:
-			dn_nsp_conn_conf(sk, skb);
-			break;
-		case 0x30:
-			dn_nsp_disc_init(sk, skb);
-			break;
-		case 0x40:
-			dn_nsp_disc_conf(sk, skb);
-			break;
+	if ((cb->nsp_flags & 0x0c) == 0x08)
+	{
+		switch (cb->nsp_flags & 0x70)
+		{
+			case 0x10:
+			case 0x60:
+				dn_nsp_conn_init(sk, skb);
+				break;
+
+			case 0x20:
+				dn_nsp_conn_conf(sk, skb);
+				break;
+
+			case 0x30:
+				dn_nsp_disc_init(sk, skb);
+				break;
+
+			case 0x40:
+				dn_nsp_disc_conf(sk, skb);
+				break;
 		}
 
-	} else if (cb->nsp_flags == 0x24) {
+	}
+	else if (cb->nsp_flags == 0x24)
+	{
 		/*
 		 * Special for connacks, 'cos they don't have
 		 * ack data or ack otherdata info.
 		 */
 		dn_nsp_conn_ack(sk, skb);
-	} else {
+	}
+	else
+	{
 		int other = 1;
 
 		/* both data and ack frames can kick a CC socket into RUN */
-		if ((scp->state == DN_CC) && !sock_flag(sk, SOCK_DEAD)) {
+		if ((scp->state == DN_CC) && !sock_flag(sk, SOCK_DEAD))
+		{
 			scp->state = DN_RUN;
 			sk->sk_state = TCP_ESTABLISHED;
 			sk->sk_state_change(sk);
 		}
 
 		if ((cb->nsp_flags & 0x1c) == 0)
+		{
 			other = 0;
+		}
+
 		if (cb->nsp_flags == 0x04)
+		{
 			other = 0;
+		}
 
 		/*
 		 * Read out ack data here, this applies equally
@@ -891,23 +1098,31 @@ int dn_nsp_backlog_rcv(struct sock *sk, struct sk_buff *skb)
 		 * suitable routine for dealing with it, otherwise
 		 * the packet is an ack and can be discarded.
 		 */
-		if ((cb->nsp_flags & 0x0c) == 0) {
+		if ((cb->nsp_flags & 0x0c) == 0)
+		{
 
 			if (scp->state != DN_RUN)
+			{
 				goto free_out;
-
-			switch (cb->nsp_flags) {
-			case 0x10: /* LS */
-				dn_nsp_linkservice(sk, skb);
-				break;
-			case 0x30: /* OD */
-				dn_nsp_otherdata(sk, skb);
-				break;
-			default:
-				dn_nsp_data(sk, skb);
 			}
 
-		} else { /* Ack, chuck it out here */
+			switch (cb->nsp_flags)
+			{
+				case 0x10: /* LS */
+					dn_nsp_linkservice(sk, skb);
+					break;
+
+				case 0x30: /* OD */
+					dn_nsp_otherdata(sk, skb);
+					break;
+
+				default:
+					dn_nsp_data(sk, skb);
+			}
+
+		}
+		else     /* Ack, chuck it out here */
+		{
 free_out:
 			kfree_skb(skb);
 		}

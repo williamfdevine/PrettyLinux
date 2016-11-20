@@ -90,9 +90,9 @@
 #	define	EnableNormal	~(FrameReceived | FrameSent)
 #	define	EnableErrors	(FrameReceived | FrameSent)
 #	define	RxErrorMask	(RxFrameCntExp | RxAlignCntExp | RxCRCCntExp | \
-				 RxLenCntExp | RxOverFlow | RxCodeViolation)
+						 RxLenCntExp | RxOverFlow | RxCodeViolation)
 #	define	TxErrorMask	(TxUnderrun | TxMaxSizeError | TxExcessCollExp | \
-				 TxLateCollExp | TxNetworkCollExp | TxDeferTimerExp)
+						 TxLateCollExp | TxNetworkCollExp | TxDeferTimerExp)
 
 /* transmit control */
 #define	TXRST		0x420   /* transmit reset */

@@ -30,11 +30,12 @@
 #define WM8400_DCDC1 4
 #define WM8400_DCDC2 5
 
-struct wm8400_platform_data {
+struct wm8400_platform_data
+{
 	int (*platform_init)(struct device *dev);
 };
 
 int wm8400_register_regulator(struct device *dev, int reg,
-			      struct regulator_init_data *initdata);
+							  struct regulator_init_data *initdata);
 
 #endif

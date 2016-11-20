@@ -1,7 +1,8 @@
 #ifndef _UAPI_LINUX_GTP_H_
 #define _UAPI_LINUX_GTP_H_
 
-enum gtp_genl_cmds {
+enum gtp_genl_cmds
+{
 	GTP_CMD_NEWPDP,
 	GTP_CMD_DELPDP,
 	GTP_CMD_GETPDP,
@@ -9,12 +10,14 @@ enum gtp_genl_cmds {
 	GTP_CMD_MAX,
 };
 
-enum gtp_version {
+enum gtp_version
+{
 	GTP_V0 = 0,
 	GTP_V1,
 };
 
-enum gtp_attrs {
+enum gtp_attrs
+{
 	GTPA_UNSPEC = 0,
 	GTPA_LINK,
 	GTPA_VERSION,

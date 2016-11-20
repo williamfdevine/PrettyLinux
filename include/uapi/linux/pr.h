@@ -1,7 +1,8 @@
 #ifndef _UAPI_PR_H
 #define _UAPI_PR_H
 
-enum pr_type {
+enum pr_type
+{
 	PR_WRITE_EXCLUSIVE		= 1,
 	PR_EXCLUSIVE_ACCESS		= 2,
 	PR_WRITE_EXCLUSIVE_REG_ONLY	= 3,
@@ -10,27 +11,31 @@ enum pr_type {
 	PR_EXCLUSIVE_ACCESS_ALL_REGS	= 6,
 };
 
-struct pr_reservation {
+struct pr_reservation
+{
 	__u64	key;
 	__u32	type;
 	__u32	flags;
 };
 
-struct pr_registration {
+struct pr_registration
+{
 	__u64	old_key;
 	__u64	new_key;
 	__u32	flags;
 	__u32	__pad;
 };
 
-struct pr_preempt {
+struct pr_preempt
+{
 	__u64	old_key;
 	__u64	new_key;
 	__u32	type;
 	__u32	flags;
 };
 
-struct pr_clear {
+struct pr_clear
+{
 	__u64	key;
 	__u32	flags;
 	__u32	__pad;

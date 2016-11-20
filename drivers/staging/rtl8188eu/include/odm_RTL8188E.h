@@ -29,12 +29,12 @@ void rtl88eu_dm_antenna_div_init(struct odm_dm_struct *dm_odm);
 void rtl88eu_dm_antenna_diversity(struct odm_dm_struct *dm_odm);
 
 void rtl88eu_dm_set_tx_ant_by_tx_info(struct odm_dm_struct *dm_odm, u8 *desc,
-				      u8 mac_id);
+									  u8 mac_id);
 
 void rtl88eu_dm_update_rx_idle_ant(struct odm_dm_struct *dm_odm, u8 ant);
 
 void rtl88eu_dm_ant_sel_statistics(struct odm_dm_struct *dm_odm, u8 antsel_tr_mux,
-				   u32 mac_id, u8 rx_pwdb_all);
+								   u32 mac_id, u8 rx_pwdb_all);
 
 void odm_FastAntTraining(struct odm_dm_struct *pDM_Odm);
 

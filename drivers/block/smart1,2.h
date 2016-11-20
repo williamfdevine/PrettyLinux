@@ -41,73 +41,81 @@
  */
 static void smart4_submit_command(ctlr_info_t *h, cmdlist_t *c)
 {
-        writel(c->busaddr, h->vaddr + S42XX_REQUEST_PORT_OFFSET);
+	writel(c->busaddr, h->vaddr + S42XX_REQUEST_PORT_OFFSET);
 }
 
-/*  
- *  This card is the opposite of the other cards.  
- *   0 turns interrupts on... 
- *   0x08 turns them off... 
+/*
+ *  This card is the opposite of the other cards.
+ *   0 turns interrupts on...
+ *   0x08 turns them off...
  */
 static void smart4_intr_mask(ctlr_info_t *h, unsigned long val)
 {
-	if (val) 
-	{ /* Turn interrupts on */
-		writel(0, h->vaddr + S42XX_REPLY_INTR_MASK_OFFSET);
-	} else /* Turn them off */
+	if (val)
 	{
-        	writel( S42XX_INTR_OFF, 
-			h->vaddr + S42XX_REPLY_INTR_MASK_OFFSET);
+		/* Turn interrupts on */
+		writel(0, h->vaddr + S42XX_REPLY_INTR_MASK_OFFSET);
+	}
+	else   /* Turn them off */
+	{
+		writel( S42XX_INTR_OFF,
+				h->vaddr + S42XX_REPLY_INTR_MASK_OFFSET);
 	}
 }
 
 /*
- *  For older cards FIFO Full = 0. 
- *  On this card 0 means there is room, anything else FIFO Full. 
- * 
- */ 
+ *  For older cards FIFO Full = 0.
+ *  On this card 0 means there is room, anything else FIFO Full.
+ *
+ */
 static unsigned long smart4_fifo_full(ctlr_info_t *h)
 {
-	
-        return (!readl(h->vaddr + S42XX_REQUEST_PORT_OFFSET));
+
+	return (!readl(h->vaddr + S42XX_REQUEST_PORT_OFFSET));
 }
 
-/* This type of controller returns -1 if the fifo is empty, 
+/* This type of controller returns -1 if the fifo is empty,
  *    Not 0 like the others.
- *    And we need to let it know we read a value out 
- */ 
+ *    And we need to let it know we read a value out
+ */
 static unsigned long smart4_completed(ctlr_info_t *h)
 {
-	long register_value 
+	long register_value
 		= readl(h->vaddr + S42XX_REPLY_PORT_OFFSET);
 
 	/* Fifo is empty */
-	if( register_value == 0xffffffff)
-		return 0; 	
+	if ( register_value == 0xffffffff)
+	{
+		return 0;
+	}
 
 	/* Need to let it know we got the reply */
 	/* We do this by writing a 0 to the port we just read from */
 	writel(0, h->vaddr + S42XX_REPLY_PORT_OFFSET);
 
-	return ((unsigned long) register_value); 
+	return ((unsigned long) register_value);
 }
 
- /*
- *  This hardware returns interrupt pending at a different place and 
- *  it does not tell us if the fifo is empty, we will have check  
- *  that by getting a 0 back from the command_completed call. 
- */
+/*
+*  This hardware returns interrupt pending at a different place and
+*  it does not tell us if the fifo is empty, we will have check
+*  that by getting a 0 back from the command_completed call.
+*/
 static unsigned long smart4_intr_pending(ctlr_info_t *h)
 {
-	unsigned long register_value  = 
+	unsigned long register_value  =
 		readl(h->vaddr + S42XX_INTR_STATUS);
 
-	if( register_value &  S42XX_INTR_PENDING) 
-		return  FIFO_NOT_EMPTY;	
+	if ( register_value &  S42XX_INTR_PENDING)
+	{
+		return  FIFO_NOT_EMPTY;
+	}
+
 	return 0 ;
 }
 
-static struct access_method smart4_access = {
+static struct access_method smart4_access =
+{
 	smart4_submit_command,
 	smart4_intr_mask,
 	smart4_fifo_full,
@@ -143,7 +151,8 @@ static unsigned long smart2_intr_pending(ctlr_info_t *h)
 	return readl(h->vaddr + INTR_PENDING);
 }
 
-static struct access_method smart2_access = {
+static struct access_method smart2_access =
+{
 	smart2_submit_command,
 	smart2_intr_mask,
 	smart2_fifo_full,
@@ -179,7 +188,8 @@ static unsigned long smart2e_intr_pending(ctlr_info_t *h)
 	return inl(h->io_mem_addr + INTR_PENDING);
 }
 
-static struct access_method smart2e_access = {
+static struct access_method smart2e_access =
+{
 	smart2e_submit_command,
 	smart2e_intr_mask,
 	smart2e_fifo_full,
@@ -222,12 +232,15 @@ static void smart1_submit_command(ctlr_info_t *h, cmdlist_t *c)
 
 static void smart1_intr_mask(ctlr_info_t *h, unsigned long val)
 {
-	if (val == 1) {
+	if (val == 1)
+	{
 		outb(0xFD, h->io_mem_addr + SMART1_SYSTEM_DOORBELL);
 		outb(CHANNEL_BUSY, h->io_mem_addr + SMART1_LOCAL_DOORBELL);
 		outb(0x01, h->io_mem_addr + SMART1_INTR_MASK);
 		outb(0x01, h->io_mem_addr + SMART1_SYSTEM_MASK);
-	} else {
+	}
+	else
+	{
 		outb(0, h->io_mem_addr + 0xC8E);
 	}
 }
@@ -244,7 +257,8 @@ static unsigned long smart1_completed(ctlr_info_t *h)
 	unsigned char status;
 	unsigned long cmd;
 
-	if (inb(h->io_mem_addr + SMART1_SYSTEM_DOORBELL) & CHANNEL_BUSY) {
+	if (inb(h->io_mem_addr + SMART1_SYSTEM_DOORBELL) & CHANNEL_BUSY)
+	{
 		outb(CHANNEL_BUSY, h->io_mem_addr + SMART1_SYSTEM_DOORBELL);
 
 		cmd = inl(h->io_mem_addr + SMART1_COMPLETE_ADDR);
@@ -255,10 +269,13 @@ static unsigned long smart1_completed(ctlr_info_t *h)
 		/*
 		 * this is x86 (actually compaq x86) only, so it's ok
 		 */
-		if (cmd) ((cmdlist_t*)bus_to_virt(cmd))->req.hdr.rcode = status;
-	} else {
+		if (cmd) { ((cmdlist_t *)bus_to_virt(cmd))->req.hdr.rcode = status; }
+	}
+	else
+	{
 		cmd = 0;
 	}
+
 	return cmd;
 }
 
@@ -269,7 +286,8 @@ static unsigned long smart1_intr_pending(ctlr_info_t *h)
 	return chan;
 }
 
-static struct access_method smart1_access = {
+static struct access_method smart1_access =
+{
 	smart1_submit_command,
 	smart1_intr_mask,
 	smart1_fifo_full,

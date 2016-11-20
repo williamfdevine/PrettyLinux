@@ -47,7 +47,8 @@
  */
 
 /* driver specific data */
-struct qmi_wwan_state {
+struct qmi_wwan_state
+{
 	struct usb_driver *subdriver;
 	atomic_t pmcount;
 	unsigned long flags;
@@ -55,11 +56,13 @@ struct qmi_wwan_state {
 	struct usb_interface *data;
 };
 
-enum qmi_wwan_flags {
+enum qmi_wwan_flags
+{
 	QMI_WWAN_FLAG_RAWIP = 1 << 0,
 };
 
-enum qmi_wwan_quirks {
+enum qmi_wwan_quirks
+{
 	QMI_WWAN_QUIRK_DTR = 1 << 0,	/* needs "set DTR" request */
 };
 
@@ -68,14 +71,17 @@ static void qmi_wwan_netdev_setup(struct net_device *net)
 	struct usbnet *dev = netdev_priv(net);
 	struct qmi_wwan_state *info = (void *)&dev->data;
 
-	if (info->flags & QMI_WWAN_FLAG_RAWIP) {
+	if (info->flags & QMI_WWAN_FLAG_RAWIP)
+	{
 		net->header_ops      = NULL;  /* No header */
 		net->type            = ARPHRD_NONE;
 		net->hard_header_len = 0;
 		net->addr_len        = 0;
 		net->flags           = IFF_POINTOPOINT | IFF_NOARP | IFF_MULTICAST;
 		netdev_dbg(net, "mode: raw IP\n");
-	} else if (!net->header_ops) { /* don't bother if already set */
+	}
+	else if (!net->header_ops)     /* don't bother if already set */
+	{
 		ether_setup(net);
 		netdev_dbg(net, "mode: Ethernet\n");
 	}
@@ -100,17 +106,24 @@ static ssize_t raw_ip_store(struct device *d,  struct device_attribute *attr, co
 	int ret;
 
 	if (strtobool(buf, &enable))
+	{
 		return -EINVAL;
+	}
 
 	/* no change? */
 	if (enable == (info->flags & QMI_WWAN_FLAG_RAWIP))
+	{
 		return len;
+	}
 
 	if (!rtnl_trylock())
+	{
 		return restart_syscall();
+	}
 
 	/* we don't want to modify a running netdev */
-	if (netif_running(dev->net)) {
+	if (netif_running(dev->net))
+	{
 		netdev_err(dev->net, "Cannot change a running device\n");
 		ret = -EBUSY;
 		goto err;
@@ -119,15 +132,22 @@ static ssize_t raw_ip_store(struct device *d,  struct device_attribute *attr, co
 	/* let other drivers deny the change */
 	ret = call_netdevice_notifiers(NETDEV_PRE_TYPE_CHANGE, dev->net);
 	ret = notifier_to_errno(ret);
-	if (ret) {
+
+	if (ret)
+	{
 		netdev_err(dev->net, "Type change was refused\n");
 		goto err;
 	}
 
 	if (enable)
+	{
 		info->flags |= QMI_WWAN_FLAG_RAWIP;
+	}
 	else
+	{
 		info->flags &= ~QMI_WWAN_FLAG_RAWIP;
+	}
+
 	qmi_wwan_netdev_setup(dev->net);
 	call_netdevice_notifiers(NETDEV_POST_TYPE_CHANGE, dev->net);
 	ret = len;
@@ -138,12 +158,14 @@ err:
 
 static DEVICE_ATTR_RW(raw_ip);
 
-static struct attribute *qmi_wwan_sysfs_attrs[] = {
+static struct attribute *qmi_wwan_sysfs_attrs[] =
+{
 	&dev_attr_raw_ip.attr,
 	NULL,
 };
 
-static struct attribute_group qmi_wwan_sysfs_attr_group = {
+static struct attribute_group qmi_wwan_sysfs_attr_group =
+{
 	.name = "qmi",
 	.attrs = qmi_wwan_sysfs_attrs,
 };
@@ -181,37 +203,57 @@ static int qmi_wwan_rx_fixup(struct usbnet *dev, struct sk_buff *skb)
 
 	/* This check is no longer done by usbnet */
 	if (skb->len < dev->net->hard_header_len)
+	{
 		return 0;
-
-	switch (skb->data[0] & 0xf0) {
-	case 0x40:
-		proto = htons(ETH_P_IP);
-		break;
-	case 0x60:
-		proto = htons(ETH_P_IPV6);
-		break;
-	case 0x00:
-		if (rawip)
-			return 0;
-		if (is_multicast_ether_addr(skb->data))
-			return 1;
-		/* possibly bogus destination - rewrite just in case */
-		skb_reset_mac_header(skb);
-		goto fix_dest;
-	default:
-		if (rawip)
-			return 0;
-		/* pass along other packets without modifications */
-		return 1;
 	}
-	if (rawip) {
+
+	switch (skb->data[0] & 0xf0)
+	{
+		case 0x40:
+			proto = htons(ETH_P_IP);
+			break;
+
+		case 0x60:
+			proto = htons(ETH_P_IPV6);
+			break;
+
+		case 0x00:
+			if (rawip)
+			{
+				return 0;
+			}
+
+			if (is_multicast_ether_addr(skb->data))
+			{
+				return 1;
+			}
+
+			/* possibly bogus destination - rewrite just in case */
+			skb_reset_mac_header(skb);
+			goto fix_dest;
+
+		default:
+			if (rawip)
+			{
+				return 0;
+			}
+
+			/* pass along other packets without modifications */
+			return 1;
+	}
+
+	if (rawip)
+	{
 		skb->dev = dev->net; /* normally set by eth_type_trans */
 		skb->protocol = proto;
 		return 1;
 	}
 
 	if (skb_headroom(skb) < ETH_HLEN)
+	{
 		return 0;
+	}
+
 	skb_push(skb, ETH_HLEN);
 	skb_reset_mac_header(skb);
 	eth_hdr(skb)->h_proto = proto;
@@ -234,15 +276,23 @@ static int qmi_wwan_mac_addr(struct net_device *dev, void *p)
 	struct sockaddr *addr = p;
 
 	ret = eth_prepare_mac_addr_change(dev, p);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	if (possibly_iphdr(addr->sa_data))
+	{
 		return -EADDRNOTAVAIL;
+	}
+
 	eth_commit_mac_addr_change(dev, p);
 	return 0;
 }
 
-static const struct net_device_ops qmi_wwan_netdev_ops = {
+static const struct net_device_ops qmi_wwan_netdev_ops =
+{
 	.ndo_open		= usbnet_open,
 	.ndo_stop		= usbnet_stop,
 	.ndo_start_xmit		= usbnet_start_xmit,
@@ -261,18 +311,23 @@ static int qmi_wwan_manage_power(struct usbnet *dev, int on)
 	int rv;
 
 	dev_dbg(&dev->intf->dev, "%s() pmcount=%d, on=%d\n", __func__,
-		atomic_read(&info->pmcount), on);
+			atomic_read(&info->pmcount), on);
 
 	if ((on && atomic_add_return(1, &info->pmcount) == 1) ||
-	    (!on && atomic_dec_and_test(&info->pmcount))) {
+		(!on && atomic_dec_and_test(&info->pmcount)))
+	{
 		/* need autopm_get/put here to ensure the usbcore sees
 		 * the new value
 		 */
 		rv = usb_autopm_get_interface(dev->intf);
 		dev->intf->needs_remote_wakeup = on;
+
 		if (!rv)
+		{
 			usb_autopm_put_interface(dev->intf);
+		}
 	}
+
 	return 0;
 }
 
@@ -282,7 +337,10 @@ static int qmi_wwan_cdc_wdm_manage_power(struct usb_interface *intf, int on)
 
 	/* can be called while disconnecting */
 	if (!dev)
+	{
 		return 0;
+	}
+
 	return qmi_wwan_manage_power(dev, on);
 }
 
@@ -295,15 +353,21 @@ static int qmi_wwan_register_subdriver(struct usbnet *dev)
 
 	/* collect bulk endpoints */
 	rv = usbnet_get_endpoints(dev, info->data);
+
 	if (rv < 0)
+	{
 		goto err;
+	}
 
 	/* update status endpoint if separate control interface */
 	if (info->control != info->data)
+	{
 		dev->status = &info->control->cur_altsetting->endpoint[0];
+	}
 
 	/* require interrupt endpoint for subdriver */
-	if (!dev->status) {
+	if (!dev->status)
+	{
 		rv = -EINVAL;
 		goto err;
 	}
@@ -313,8 +377,10 @@ static int qmi_wwan_register_subdriver(struct usbnet *dev)
 
 	/* register subdriver */
 	subdriver = usb_cdc_wdm_register(info->control, &dev->status->desc,
-					 4096, &qmi_wwan_cdc_wdm_manage_power);
-	if (IS_ERR(subdriver)) {
+									 4096, &qmi_wwan_cdc_wdm_manage_power);
+
+	if (IS_ERR(subdriver))
+	{
 		dev_err(&info->control->dev, "subdriver registration failed\n");
 		rv = PTR_ERR(subdriver);
 		goto err;
@@ -340,8 +406,8 @@ static int qmi_wwan_change_dtr(struct usbnet *dev, bool on)
 	u8 intf = dev->intf->cur_altsetting->desc.bInterfaceNumber;
 
 	return usbnet_write_cmd(dev, USB_CDC_REQ_SET_CONTROL_LINE_STATE,
-				USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
-				on ? 0x01 : 0x00, intf, NULL, 0);
+							USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
+							on ? 0x01 : 0x00, intf, NULL, 0);
 }
 
 static int qmi_wwan_bind(struct usbnet *dev, struct usb_interface *intf)
@@ -357,7 +423,7 @@ static int qmi_wwan_bind(struct usbnet *dev, struct usb_interface *intf)
 	struct usb_cdc_parsed_header hdr;
 
 	BUILD_BUG_ON((sizeof(((struct usbnet *)0)->data) <
-		      sizeof(struct qmi_wwan_state)));
+				  sizeof(struct qmi_wwan_state)));
 
 	/* set up initial state */
 	info->control = intf;
@@ -369,15 +435,18 @@ static int qmi_wwan_bind(struct usbnet *dev, struct usb_interface *intf)
 	cdc_ether = hdr.usb_cdc_ether_desc;
 
 	/* Use separate control and data interfaces if we found a CDC Union */
-	if (cdc_union) {
+	if (cdc_union)
+	{
 		info->data = usb_ifnum_to_if(dev->udev,
-					     cdc_union->bSlaveInterface0);
+									 cdc_union->bSlaveInterface0);
+
 		if (desc->bInterfaceNumber != cdc_union->bMasterInterface0 ||
-		    !info->data) {
+			!info->data)
+		{
 			dev_err(&intf->dev,
-				"bogus CDC Union: master=%u, slave=%u\n",
-				cdc_union->bMasterInterface0,
-				cdc_union->bSlaveInterface0);
+					"bogus CDC Union: master=%u, slave=%u\n",
+					cdc_union->bMasterInterface0,
+					cdc_union->bSlaveInterface0);
 
 			/* ignore and continue... */
 			cdc_union = NULL;
@@ -386,20 +455,27 @@ static int qmi_wwan_bind(struct usbnet *dev, struct usb_interface *intf)
 	}
 
 	/* errors aren't fatal - we can live with the dynamic address */
-	if (cdc_ether) {
+	if (cdc_ether)
+	{
 		dev->hard_mtu = le16_to_cpu(cdc_ether->wMaxSegmentSize);
 		usbnet_get_ethernet_addr(dev, cdc_ether->iMACAddress);
 	}
 
 	/* claim data interface and set it up */
-	if (info->control != info->data) {
+	if (info->control != info->data)
+	{
 		status = usb_driver_claim_interface(driver, info->data, dev);
+
 		if (status < 0)
+		{
 			goto err;
+		}
 	}
 
 	status = qmi_wwan_register_subdriver(dev);
-	if (status < 0 && info->control != info->data) {
+
+	if (status < 0 && info->control != info->data)
+	{
 		usb_set_intfdata(info->data, NULL);
 		usb_driver_release_interface(driver, info->data);
 	}
@@ -422,7 +498,8 @@ static int qmi_wwan_bind(struct usbnet *dev, struct usb_interface *intf)
 	 * need a quirk flag in the device ID table.
 	 */
 	if (dev->driver_info->data & QMI_WWAN_QUIRK_DTR ||
-	    le16_to_cpu(dev->udev->descriptor.bcdUSB) >= 0x0201) {
+		le16_to_cpu(dev->udev->descriptor.bcdUSB) >= 0x0201)
+	{
 		qmi_wwan_manage_power(dev, 1);
 		qmi_wwan_change_dtr(dev, true);
 	}
@@ -432,14 +509,18 @@ static int qmi_wwan_bind(struct usbnet *dev, struct usb_interface *intf)
 	 * buggy firmware MAC address, replace it with a random address,
 	 */
 	if (ether_addr_equal(dev->net->dev_addr, default_modem_addr) ||
-	    ether_addr_equal(dev->net->dev_addr, buggy_fw_addr))
+		ether_addr_equal(dev->net->dev_addr, buggy_fw_addr))
+	{
 		eth_hw_addr_random(dev->net);
+	}
 
 	/* make MAC addr easily distinguishable from an IP header */
-	if (possibly_iphdr(dev->net->dev_addr)) {
+	if (possibly_iphdr(dev->net->dev_addr))
+	{
 		dev->net->dev_addr[0] |= 0x02;	/* set local assignment bit */
 		dev->net->dev_addr[0] &= 0xbf;	/* clear "IP" bit */
 	}
+
 	dev->net->netdev_ops = &qmi_wwan_netdev_ops;
 	dev->net->sysfs_groups[0] = &qmi_wwan_sysfs_attr_group;
 err:
@@ -453,22 +534,30 @@ static void qmi_wwan_unbind(struct usbnet *dev, struct usb_interface *intf)
 	struct usb_interface *other;
 
 	if (info->subdriver && info->subdriver->disconnect)
+	{
 		info->subdriver->disconnect(info->control);
+	}
 
 	/* disable MDM9x30 quirk */
-	if (le16_to_cpu(dev->udev->descriptor.bcdUSB) >= 0x0201) {
+	if (le16_to_cpu(dev->udev->descriptor.bcdUSB) >= 0x0201)
+	{
 		qmi_wwan_change_dtr(dev, false);
 		qmi_wwan_manage_power(dev, 0);
 	}
 
 	/* allow user to unbind using either control or data */
 	if (intf == info->control)
+	{
 		other = info->data;
+	}
 	else
+	{
 		other = info->control;
+	}
 
 	/* only if not shared */
-	if (other && intf != other) {
+	if (other && intf != other)
+	{
 		usb_set_intfdata(other, NULL);
 		usb_driver_release_interface(driver, other);
 	}
@@ -495,14 +584,23 @@ static int qmi_wwan_suspend(struct usb_interface *intf, pm_message_t message)
 	 * to recover device from previous suspend failure.
 	 */
 	ret = usbnet_suspend(intf, message);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	if (intf == info->control && info->subdriver &&
-	    info->subdriver->suspend)
+		info->subdriver->suspend)
+	{
 		ret = info->subdriver->suspend(intf, message);
+	}
+
 	if (ret < 0)
+	{
 		usbnet_resume(intf);
+	}
+
 err:
 	return ret;
 }
@@ -513,20 +611,31 @@ static int qmi_wwan_resume(struct usb_interface *intf)
 	struct qmi_wwan_state *info = (void *)&dev->data;
 	int ret = 0;
 	bool callsub = (intf == info->control && info->subdriver &&
-			info->subdriver->resume);
+					info->subdriver->resume);
 
 	if (callsub)
+	{
 		ret = info->subdriver->resume(intf);
+	}
+
 	if (ret < 0)
+	{
 		goto err;
+	}
+
 	ret = usbnet_resume(intf);
+
 	if (ret < 0 && callsub)
+	{
 		info->subdriver->suspend(intf, PMSG_SUSPEND);
+	}
+
 err:
 	return ret;
 }
 
-static const struct driver_info	qmi_wwan_info = {
+static const struct driver_info	qmi_wwan_info =
+{
 	.description	= "WWAN/QMI device",
 	.flags		= FLAG_WWAN,
 	.bind		= qmi_wwan_bind,
@@ -535,7 +644,8 @@ static const struct driver_info	qmi_wwan_info = {
 	.rx_fixup       = qmi_wwan_rx_fixup,
 };
 
-static const struct driver_info	qmi_wwan_info_quirk_dtr = {
+static const struct driver_info	qmi_wwan_info_quirk_dtr =
+{
 	.description	= "WWAN/QMI device",
 	.flags		= FLAG_WWAN,
 	.bind		= qmi_wwan_bind,
@@ -565,98 +675,99 @@ static const struct driver_info	qmi_wwan_info_quirk_dtr = {
 #define QMI_GOBI_DEVICE(vend, prod) \
 	QMI_FIXED_INTF(vend, prod, 0)
 
-static const struct usb_device_id products[] = {
+static const struct usb_device_id products[] =
+{
 	/* 1. CDC ECM like devices match on the control interface */
 	{	/* Huawei E392, E398 and possibly others sharing both device id and more... */
 		USB_VENDOR_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, USB_CLASS_VENDOR_SPEC, 1, 9),
-		.driver_info        = (unsigned long)&qmi_wwan_info,
+		.driver_info        = (unsigned long) &qmi_wwan_info,
 	},
 	{	/* Vodafone/Huawei K5005 (12d1:14c8) and similar modems */
 		USB_VENDOR_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, USB_CLASS_VENDOR_SPEC, 1, 57),
-		.driver_info        = (unsigned long)&qmi_wwan_info,
+		.driver_info        = (unsigned long) &qmi_wwan_info,
 	},
 	{	/* HUAWEI_INTERFACE_NDIS_CONTROL_QUALCOMM */
 		USB_VENDOR_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, USB_CLASS_VENDOR_SPEC, 0x01, 0x69),
-		.driver_info        = (unsigned long)&qmi_wwan_info,
+		.driver_info        = (unsigned long) &qmi_wwan_info,
 	},
 
 	/* 2. Combined interface devices matching on class+protocol */
 	{	/* Huawei E367 and possibly others in "Windows mode" */
 		USB_VENDOR_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, USB_CLASS_VENDOR_SPEC, 1, 7),
-		.driver_info        = (unsigned long)&qmi_wwan_info,
+		.driver_info        = (unsigned long) &qmi_wwan_info,
 	},
 	{	/* Huawei E392, E398 and possibly others in "Windows mode" */
 		USB_VENDOR_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, USB_CLASS_VENDOR_SPEC, 1, 17),
-		.driver_info        = (unsigned long)&qmi_wwan_info,
+		.driver_info        = (unsigned long) &qmi_wwan_info,
 	},
 	{	/* HUAWEI_NDIS_SINGLE_INTERFACE_VDF */
 		USB_VENDOR_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, USB_CLASS_VENDOR_SPEC, 0x01, 0x37),
-		.driver_info        = (unsigned long)&qmi_wwan_info,
+		.driver_info        = (unsigned long) &qmi_wwan_info,
 	},
 	{	/* HUAWEI_INTERFACE_NDIS_HW_QUALCOMM */
 		USB_VENDOR_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, USB_CLASS_VENDOR_SPEC, 0x01, 0x67),
-		.driver_info        = (unsigned long)&qmi_wwan_info,
+		.driver_info        = (unsigned long) &qmi_wwan_info,
 	},
 	{	/* Pantech UML290, P4200 and more */
 		USB_VENDOR_AND_INTERFACE_INFO(0x106c, USB_CLASS_VENDOR_SPEC, 0xf0, 0xff),
-		.driver_info        = (unsigned long)&qmi_wwan_info,
+		.driver_info        = (unsigned long) &qmi_wwan_info,
 	},
 	{	/* Pantech UML290 - newer firmware */
 		USB_VENDOR_AND_INTERFACE_INFO(0x106c, USB_CLASS_VENDOR_SPEC, 0xf1, 0xff),
-		.driver_info        = (unsigned long)&qmi_wwan_info,
+		.driver_info        = (unsigned long) &qmi_wwan_info,
 	},
 	{	/* Novatel USB551L and MC551 */
 		USB_DEVICE_AND_INTERFACE_INFO(0x1410, 0xb001,
-		                              USB_CLASS_COMM,
-		                              USB_CDC_SUBCLASS_ETHERNET,
-		                              USB_CDC_PROTO_NONE),
-		.driver_info        = (unsigned long)&qmi_wwan_info,
+		USB_CLASS_COMM,
+		USB_CDC_SUBCLASS_ETHERNET,
+		USB_CDC_PROTO_NONE),
+		.driver_info        = (unsigned long) &qmi_wwan_info,
 	},
 	{	/* Novatel E362 */
 		USB_DEVICE_AND_INTERFACE_INFO(0x1410, 0x9010,
-		                              USB_CLASS_COMM,
-		                              USB_CDC_SUBCLASS_ETHERNET,
-		                              USB_CDC_PROTO_NONE),
-		.driver_info        = (unsigned long)&qmi_wwan_info,
+		USB_CLASS_COMM,
+		USB_CDC_SUBCLASS_ETHERNET,
+		USB_CDC_PROTO_NONE),
+		.driver_info        = (unsigned long) &qmi_wwan_info,
 	},
 	{	/* Novatel Expedite E371 */
 		USB_DEVICE_AND_INTERFACE_INFO(0x1410, 0x9011,
-		                              USB_CLASS_COMM,
-		                              USB_CDC_SUBCLASS_ETHERNET,
-		                              USB_CDC_PROTO_NONE),
-		.driver_info        = (unsigned long)&qmi_wwan_info,
+		USB_CLASS_COMM,
+		USB_CDC_SUBCLASS_ETHERNET,
+		USB_CDC_PROTO_NONE),
+		.driver_info        = (unsigned long) &qmi_wwan_info,
 	},
 	{	/* Dell Wireless 5800 (Novatel E362) */
 		USB_DEVICE_AND_INTERFACE_INFO(0x413C, 0x8195,
-					      USB_CLASS_COMM,
-					      USB_CDC_SUBCLASS_ETHERNET,
-					      USB_CDC_PROTO_NONE),
-		.driver_info        = (unsigned long)&qmi_wwan_info,
+		USB_CLASS_COMM,
+		USB_CDC_SUBCLASS_ETHERNET,
+		USB_CDC_PROTO_NONE),
+		.driver_info        = (unsigned long) &qmi_wwan_info,
 	},
 	{	/* Dell Wireless 5800 V2 (Novatel E362) */
 		USB_DEVICE_AND_INTERFACE_INFO(0x413C, 0x8196,
-					      USB_CLASS_COMM,
-					      USB_CDC_SUBCLASS_ETHERNET,
-					      USB_CDC_PROTO_NONE),
-		.driver_info        = (unsigned long)&qmi_wwan_info,
+		USB_CLASS_COMM,
+		USB_CDC_SUBCLASS_ETHERNET,
+		USB_CDC_PROTO_NONE),
+		.driver_info        = (unsigned long) &qmi_wwan_info,
 	},
 	{	/* Dell Wireless 5804 (Novatel E371) */
 		USB_DEVICE_AND_INTERFACE_INFO(0x413C, 0x819b,
-					      USB_CLASS_COMM,
-					      USB_CDC_SUBCLASS_ETHERNET,
-					      USB_CDC_PROTO_NONE),
-		.driver_info        = (unsigned long)&qmi_wwan_info,
+		USB_CLASS_COMM,
+		USB_CDC_SUBCLASS_ETHERNET,
+		USB_CDC_PROTO_NONE),
+		.driver_info        = (unsigned long) &qmi_wwan_info,
 	},
 	{	/* ADU960S */
 		USB_DEVICE_AND_INTERFACE_INFO(0x16d5, 0x650a,
-					      USB_CLASS_COMM,
-					      USB_CDC_SUBCLASS_ETHERNET,
-					      USB_CDC_PROTO_NONE),
-		.driver_info        = (unsigned long)&qmi_wwan_info,
+		USB_CLASS_COMM,
+		USB_CDC_SUBCLASS_ETHERNET,
+		USB_CDC_PROTO_NONE),
+		.driver_info        = (unsigned long) &qmi_wwan_info,
 	},
 	{	/* HP lt4112 LTE/HSPA+ Gobi 4G Module (Huawei me906e) */
 		USB_DEVICE_AND_INTERFACE_INFO(0x03f0, 0x581d, USB_CLASS_VENDOR_SPEC, 1, 7),
-		.driver_info = (unsigned long)&qmi_wwan_info,
+		.driver_info = (unsigned long) &qmi_wwan_info,
 	},
 
 	/* 3. Combined interface devices matching on interface number */
@@ -988,16 +1099,18 @@ static bool quectel_ec20_detected(struct usb_interface *intf)
 	struct usb_device *dev = interface_to_usbdev(intf);
 
 	if (dev->actconfig &&
-	    le16_to_cpu(dev->descriptor.idVendor) == 0x05c6 &&
-	    le16_to_cpu(dev->descriptor.idProduct) == 0x9215 &&
-	    dev->actconfig->desc.bNumInterfaces == 5)
+		le16_to_cpu(dev->descriptor.idVendor) == 0x05c6 &&
+		le16_to_cpu(dev->descriptor.idProduct) == 0x9215 &&
+		dev->actconfig->desc.bNumInterfaces == 5)
+	{
 		return true;
+	}
 
 	return false;
 }
 
 static int qmi_wwan_probe(struct usb_interface *intf,
-			  const struct usb_device_id *prod)
+						  const struct usb_device_id *prod)
 {
 	struct usb_device_id *id = (struct usb_device_id *)prod;
 	struct usb_interface_descriptor *desc = &intf->cur_altsetting->desc;
@@ -1007,13 +1120,15 @@ static int qmi_wwan_probe(struct usb_interface *intf,
 	 * reimplemented here by using a magic "blacklist" value
 	 * instead of 0 in the static device id table
 	 */
-	if (!id->driver_info) {
+	if (!id->driver_info)
+	{
 		dev_dbg(&intf->dev, "setting defaults for dynamic device id\n");
 		id->driver_info = (unsigned long)&qmi_wwan_info;
 	}
 
 	/* Quectel EC20 quirk where we've QMI on interface 4 instead of 0 */
-	if (quectel_ec20_detected(intf) && desc->bInterfaceNumber == 0) {
+	if (quectel_ec20_detected(intf) && desc->bInterfaceNumber == 0)
+	{
 		dev_dbg(&intf->dev, "Quectel EC20 quirk, skipping interface 0\n");
 		return -ENODEV;
 	}
@@ -1021,7 +1136,8 @@ static int qmi_wwan_probe(struct usb_interface *intf,
 	return usbnet_probe(intf, id);
 }
 
-static struct usb_driver qmi_wwan_driver = {
+static struct usb_driver qmi_wwan_driver =
+{
 	.name		      = "qmi_wwan",
 	.id_table	      = products,
 	.probe		      = qmi_wwan_probe,

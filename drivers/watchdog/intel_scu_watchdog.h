@@ -42,7 +42,8 @@
 /* Ajustment to clock tick frequency to make timing come out right */
 #define FREQ_ADJUSTMENT 8
 
-struct intel_scu_watchdog_dev {
+struct intel_scu_watchdog_dev
+{
 	ulong driver_open;
 	ulong driver_closed;
 	u32 timer_started;

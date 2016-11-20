@@ -29,14 +29,16 @@
 #undef DRIVER_NAME
 
 #ifdef CONFIG_SIR_BFIN_DMA
-struct dma_rx_buf {
+struct dma_rx_buf
+{
 	char *buf;
 	int head;
 	int tail;
 };
 #endif
 
-struct bfin_sir_port {
+struct bfin_sir_port
+{
 	unsigned char __iomem   *membase;
 	unsigned int            irq;
 	unsigned int            lsr;
@@ -52,14 +54,16 @@ struct bfin_sir_port {
 	unsigned int            rx_dma_channel;
 };
 
-struct bfin_sir_port_res {
+struct bfin_sir_port_res
+{
 	unsigned long   base_addr;
 	int             irq;
 	unsigned int    rx_dma_channel;
 	unsigned int    tx_dma_channel;
 };
 
-struct bfin_sir_self {
+struct bfin_sir_self
+{
 	struct bfin_sir_port    *sir_port;
 	spinlock_t              lock;
 	unsigned int            open;
@@ -84,7 +88,8 @@ struct bfin_sir_self {
 
 #include <asm/bfin_serial.h>
 
-static const unsigned short per[][4] = {
+static const unsigned short per[][4] =
+{
 	/* rx pin      tx pin     NULL  uart_number */
 	{P_UART0_RX, P_UART0_TX,    0,    0},
 	{P_UART1_RX, P_UART1_TX,    0,    1},

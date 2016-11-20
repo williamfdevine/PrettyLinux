@@ -18,19 +18,29 @@ struct soundbus_dev *soundbus_dev_get(struct soundbus_dev *dev)
 	struct device *tmp;
 
 	if (!dev)
+	{
 		return NULL;
+	}
+
 	tmp = get_device(&dev->ofdev.dev);
+
 	if (tmp)
+	{
 		return to_soundbus_device(tmp);
+	}
 	else
+	{
 		return NULL;
+	}
 }
 EXPORT_SYMBOL_GPL(soundbus_dev_get);
 
 void soundbus_dev_put(struct soundbus_dev *dev)
 {
 	if (dev)
+	{
 		put_device(&dev->ofdev.dev);
+	}
 }
 EXPORT_SYMBOL_GPL(soundbus_dev_put);
 
@@ -44,13 +54,18 @@ static int soundbus_probe(struct device *dev)
 	soundbus_dev = to_soundbus_device(dev);
 
 	if (!drv->probe)
+	{
 		return error;
+	}
 
 	soundbus_dev_get(soundbus_dev);
 
 	error = drv->probe(soundbus_dev);
+
 	if (error)
+	{
 		soundbus_dev_put(soundbus_dev);
+	}
 
 	return error;
 }
@@ -58,48 +73,69 @@ static int soundbus_probe(struct device *dev)
 
 static int soundbus_uevent(struct device *dev, struct kobj_uevent_env *env)
 {
-	struct soundbus_dev * soundbus_dev;
-	struct platform_device * of;
+	struct soundbus_dev *soundbus_dev;
+	struct platform_device *of;
 	const char *compat;
 	int retval = 0;
 	int cplen, seen = 0;
 
 	if (!dev)
+	{
 		return -ENODEV;
+	}
 
 	soundbus_dev = to_soundbus_device(dev);
+
 	if (!soundbus_dev)
+	{
 		return -ENODEV;
+	}
 
 	of = &soundbus_dev->ofdev;
 
 	/* stuff we want to pass to /sbin/hotplug */
 	retval = add_uevent_var(env, "OF_NAME=%s", of->dev.of_node->name);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	retval = add_uevent_var(env, "OF_TYPE=%s", of->dev.of_node->type);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	/* Since the compatible field can contain pretty much anything
 	 * it's not really legal to split it out with commas. We split it
 	 * up using a number of environment variables instead. */
 
 	compat = of_get_property(of->dev.of_node, "compatible", &cplen);
-	while (compat && cplen > 0) {
+
+	while (compat && cplen > 0)
+	{
 		int tmp = env->buflen;
 		retval = add_uevent_var(env, "OF_COMPATIBLE_%d=%s", seen, compat);
+
 		if (retval)
+		{
 			return retval;
+		}
+
 		compat += env->buflen - tmp;
 		cplen -= env->buflen - tmp;
 		seen += 1;
 	}
 
 	retval = add_uevent_var(env, "OF_COMPATIBLE_N=%d", seen);
+
 	if (retval)
+	{
 		return retval;
+	}
+
 	retval = add_uevent_var(env, "MODALIAS=%s", soundbus_dev->modalias);
 
 	return retval;
@@ -107,11 +143,14 @@ static int soundbus_uevent(struct device *dev, struct kobj_uevent_env *env)
 
 static int soundbus_device_remove(struct device *dev)
 {
-	struct soundbus_dev * soundbus_dev = to_soundbus_device(dev);
-	struct soundbus_driver * drv = to_soundbus_driver(dev->driver);
+	struct soundbus_dev *soundbus_dev = to_soundbus_device(dev);
+	struct soundbus_driver *drv = to_soundbus_driver(dev->driver);
 
 	if (dev->driver && drv->remove)
+	{
 		drv->remove(soundbus_dev);
+	}
+
 	soundbus_dev_put(soundbus_dev);
 
 	return 0;
@@ -119,16 +158,19 @@ static int soundbus_device_remove(struct device *dev)
 
 static void soundbus_device_shutdown(struct device *dev)
 {
-	struct soundbus_dev * soundbus_dev = to_soundbus_device(dev);
-	struct soundbus_driver * drv = to_soundbus_driver(dev->driver);
+	struct soundbus_dev *soundbus_dev = to_soundbus_device(dev);
+	struct soundbus_driver *drv = to_soundbus_driver(dev->driver);
 
 	if (dev->driver && drv->shutdown)
+	{
 		drv->shutdown(soundbus_dev);
+	}
 }
 
 /* soundbus_dev_attrs is declared in sysfs.c */
 ATTRIBUTE_GROUPS(soundbus_dev);
-static struct bus_type soundbus_bus_type = {
+static struct bus_type soundbus_bus_type =
+{
 	.name		= "aoa-soundbus",
 	.probe		= soundbus_probe,
 	.uevent		= soundbus_uevent,
@@ -143,9 +185,10 @@ int soundbus_add_one(struct soundbus_dev *dev)
 
 	/* sanity checks */
 	if (!dev->attach_codec ||
-	    !dev->ofdev.dev.of_node ||
-	    dev->pcmname ||
-	    dev->pcmid != -1) {
+		!dev->ofdev.dev.of_node ||
+		dev->pcmname ||
+		dev->pcmid != -1)
+	{
 		printk(KERN_ERR "soundbus: adding device failed sanity check!\n");
 		return -EINVAL;
 	}

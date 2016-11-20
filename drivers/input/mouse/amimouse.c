@@ -49,10 +49,13 @@ static irqreturn_t amimouse_interrupt(int irq, void *data)
 	dx = nx - amimouse_lastx;
 	dy = ny - amimouse_lasty;
 
-	if (dx < -127) dx = (256 + nx) - amimouse_lastx;
-	if (dx >  127) dx = (nx - 256) - amimouse_lastx;
-	if (dy < -127) dy = (256 + ny) - amimouse_lasty;
-	if (dy >  127) dy = (ny - 256) - amimouse_lasty;
+	if (dx < -127) { dx = (256 + nx) - amimouse_lastx; }
+
+	if (dx >  127) { dx = (nx - 256) - amimouse_lastx; }
+
+	if (dy < -127) { dy = (256 + ny) - amimouse_lasty; }
+
+	if (dy >  127) { dy = (ny - 256) - amimouse_lasty; }
 
 	amimouse_lastx = nx;
 	amimouse_lasty = ny;
@@ -82,9 +85,12 @@ static int amimouse_open(struct input_dev *dev)
 	amimouse_lasty = joy0dat >> 8;
 
 	error = request_irq(IRQ_AMIGA_VERTB, amimouse_interrupt, 0, "amimouse",
-			    dev);
+						dev);
+
 	if (error)
+	{
 		dev_err(&dev->dev, "Can't allocate irq %d\n", IRQ_AMIGA_VERTB);
+	}
 
 	return error;
 }
@@ -100,8 +106,11 @@ static int __init amimouse_probe(struct platform_device *pdev)
 	struct input_dev *dev;
 
 	dev = input_allocate_device();
+
 	if (!dev)
+	{
 		return -ENOMEM;
+	}
 
 	dev->name = pdev->name;
 	dev->phys = "amimouse/input0";
@@ -113,13 +122,15 @@ static int __init amimouse_probe(struct platform_device *pdev)
 	dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REL);
 	dev->relbit[0] = BIT_MASK(REL_X) | BIT_MASK(REL_Y);
 	dev->keybit[BIT_WORD(BTN_LEFT)] = BIT_MASK(BTN_LEFT) |
-		BIT_MASK(BTN_MIDDLE) | BIT_MASK(BTN_RIGHT);
+									  BIT_MASK(BTN_MIDDLE) | BIT_MASK(BTN_RIGHT);
 	dev->open = amimouse_open;
 	dev->close = amimouse_close;
 	dev->dev.parent = &pdev->dev;
 
 	err = input_register_device(dev);
-	if (err) {
+
+	if (err)
+	{
 		input_free_device(dev);
 		return err;
 	}
@@ -137,7 +148,8 @@ static int __exit amimouse_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver amimouse_driver = {
+static struct platform_driver amimouse_driver =
+{
 	.remove = __exit_p(amimouse_remove),
 	.driver   = {
 		.name	= "amiga-mouse",

@@ -72,14 +72,16 @@
 enum { WM_VOL_HP, WM_VOL_DAC, WM_VOL_ADC, WM_NUM_VOLS };
 enum { WM_SW_DAC, WM_SW_BYPASS, WM_NUM_SWITCHES };
 
-struct snd_wm8776 {
+struct snd_wm8776
+{
 	unsigned char addr;
 	unsigned short regs[WM8776_NUM_REGS];
 	unsigned char volumes[WM_NUM_VOLS][2];
 	unsigned int switch_bits;
 };
 
-struct snd_maya44 {
+struct snd_maya44
+{
 	struct snd_ice1712 *ice;
 	struct snd_wm8776 wm[2];
 	struct mutex mutex;
@@ -88,15 +90,15 @@ struct snd_maya44 {
 
 /* write the given register and save the data to the cache */
 static void wm8776_write(struct snd_ice1712 *ice, struct snd_wm8776 *wm,
-			 unsigned char reg, unsigned short val)
+						 unsigned char reg, unsigned short val)
 {
 	/*
 	 * WM8776 registers are up to 9 bits wide, bit 8 is placed in the LSB
 	 * of the address field
 	 */
 	snd_vt1724_write_i2c(ice, wm->addr,
-			     (reg << 1) | ((val >> 8) & 1),
-			     val & 0xff);
+						 (reg << 1) | ((val >> 8) & 1),
+						 val & 0xff);
 	wm->regs[reg] = val;
 }
 
@@ -104,14 +106,17 @@ static void wm8776_write(struct snd_ice1712 *ice, struct snd_wm8776 *wm,
  * update the given register with and/or mask and save the data to the cache
  */
 static int wm8776_write_bits(struct snd_ice1712 *ice, struct snd_wm8776 *wm,
-			     unsigned char reg,
-			     unsigned short mask, unsigned short val)
+							 unsigned char reg,
+							 unsigned short mask, unsigned short val)
 {
 	val |= wm->regs[reg] & ~mask;
-	if (val != wm->regs[reg]) {
+
+	if (val != wm->regs[reg])
+	{
 		wm8776_write(ice, wm, reg, val);
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -120,7 +125,8 @@ static int wm8776_write_bits(struct snd_ice1712 *ice, struct snd_wm8776 *wm,
  * WM8776 volume controls
  */
 
-struct maya_vol_info {
+struct maya_vol_info
+{
 	unsigned int maxval;		/* volume range: 0..maxval */
 	unsigned char regs[2];		/* left and right registers */
 	unsigned short mask;		/* value mask */
@@ -130,7 +136,8 @@ struct maya_vol_info {
 	unsigned char mux_bits[2];	/* extra bits for ADC mute */
 };
 
-static struct maya_vol_info vol_info[WM_NUM_VOLS] = {
+static struct maya_vol_info vol_info[WM_NUM_VOLS] =
+{
 	[WM_VOL_HP] = {
 		.maxval = 80,
 		.regs = { WM8776_REG_HEADPHONE_L, WM8776_REG_HEADPHONE_R },
@@ -169,7 +176,7 @@ static const DECLARE_TLV_DB_SCALE(db_scale_dac, -12750, 50, 1);
 static const DECLARE_TLV_DB_SCALE(db_scale_adc, -2100, 50, 1);
 
 static int maya_vol_info(struct snd_kcontrol *kcontrol,
-			 struct snd_ctl_elem_info *uinfo)
+						 struct snd_ctl_elem_info *uinfo)
 {
 	unsigned int idx = kcontrol->private_value;
 	struct maya_vol_info *vol = &vol_info[idx];
@@ -182,7 +189,7 @@ static int maya_vol_info(struct snd_kcontrol *kcontrol,
 }
 
 static int maya_vol_get(struct snd_kcontrol *kcontrol,
-			struct snd_ctl_elem_value *ucontrol)
+						struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_maya44 *chip = snd_kcontrol_chip(kcontrol);
 	struct snd_wm8776 *wm =
@@ -197,7 +204,7 @@ static int maya_vol_get(struct snd_kcontrol *kcontrol,
 }
 
 static int maya_vol_put(struct snd_kcontrol *kcontrol,
-			struct snd_ctl_elem_value *ucontrol)
+						struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_maya44 *chip = snd_kcontrol_chip(kcontrol);
 	struct snd_wm8776 *wm =
@@ -208,25 +215,42 @@ static int maya_vol_put(struct snd_kcontrol *kcontrol,
 	int ch, changed = 0;
 
 	mutex_lock(&chip->mutex);
-	for (ch = 0; ch < 2; ch++) {
+
+	for (ch = 0; ch < 2; ch++)
+	{
 		val = ucontrol->value.integer.value[ch];
+
 		if (val > vol->maxval)
+		{
 			val = vol->maxval;
+		}
+
 		if (val == wm->volumes[idx][ch])
+		{
 			continue;
+		}
+
 		if (!val)
+		{
 			data = vol->mute;
+		}
 		else
+		{
 			data = (val - 1) + vol->offset;
+		}
+
 		data |= vol->update;
 		changed |= wm8776_write_bits(chip->ice, wm, vol->regs[ch],
-					     vol->mask | vol->update, data);
+									 vol->mask | vol->update, data);
+
 		if (vol->mux_bits[ch])
 			wm8776_write_bits(chip->ice, wm, WM8776_REG_ADC_MUX,
-					  vol->mux_bits[ch],
-					  val ? 0 : vol->mux_bits[ch]);
+							  vol->mux_bits[ch],
+							  val ? 0 : vol->mux_bits[ch]);
+
 		wm->volumes[idx][ch] = val;
 	}
+
 	mutex_unlock(&chip->mutex);
 	return changed;
 }
@@ -243,7 +267,7 @@ static int maya_vol_put(struct snd_kcontrol *kcontrol,
 #define maya_sw_info	snd_ctl_boolean_mono_info
 
 static int maya_sw_get(struct snd_kcontrol *kcontrol,
-		       struct snd_ctl_elem_value *ucontrol)
+					   struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_maya44 *chip = snd_kcontrol_chip(kcontrol);
 	struct snd_wm8776 *wm =
@@ -255,7 +279,7 @@ static int maya_sw_get(struct snd_kcontrol *kcontrol,
 }
 
 static int maya_sw_put(struct snd_kcontrol *kcontrol,
-		       struct snd_ctl_elem_value *ucontrol)
+					   struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_maya44 *chip = snd_kcontrol_chip(kcontrol);
 	struct snd_wm8776 *wm =
@@ -268,12 +292,16 @@ static int maya_sw_put(struct snd_kcontrol *kcontrol,
 	mask = 1 << idx;
 	wm->switch_bits &= ~mask;
 	val = ucontrol->value.integer.value[0];
+
 	if (val)
+	{
 		wm->switch_bits |= mask;
+	}
+
 	mask = GET_SW_VAL_MASK(kcontrol->private_value);
 	changed = wm8776_write_bits(chip->ice, wm,
-				    GET_SW_VAL_REG(kcontrol->private_value),
-				    mask, val ? mask : 0);
+								GET_SW_VAL_REG(kcontrol->private_value),
+								mask, val ? mask : 0);
 	mutex_unlock(&chip->mutex);
 	return changed;
 }
@@ -295,12 +323,16 @@ static int maya_sw_put(struct snd_kcontrol *kcontrol,
 #define GET_GPIO_VAL_INV(val)		(((val) >> 8) & 1)
 
 static int maya_set_gpio_bits(struct snd_ice1712 *ice, unsigned int mask,
-			      unsigned int bits)
+							  unsigned int bits)
 {
 	unsigned int data;
 	data = snd_ice1712_gpio_read(ice);
+
 	if ((data & mask) == bits)
+	{
 		return 0;
+	}
+
 	snd_ice1712_gpio_write(ice, (data & ~mask) | bits);
 	return 1;
 }
@@ -308,21 +340,25 @@ static int maya_set_gpio_bits(struct snd_ice1712 *ice, unsigned int mask,
 #define maya_gpio_sw_info	snd_ctl_boolean_mono_info
 
 static int maya_gpio_sw_get(struct snd_kcontrol *kcontrol,
-			    struct snd_ctl_elem_value *ucontrol)
+							struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_maya44 *chip = snd_kcontrol_chip(kcontrol);
 	unsigned int shift = GET_GPIO_VAL_SHIFT(kcontrol->private_value);
 	unsigned int val;
 
 	val = (snd_ice1712_gpio_read(chip->ice) >> shift) & 1;
+
 	if (GET_GPIO_VAL_INV(kcontrol->private_value))
+	{
 		val = !val;
+	}
+
 	ucontrol->value.integer.value[0] = val;
 	return 0;
 }
 
 static int maya_gpio_sw_put(struct snd_kcontrol *kcontrol,
-			    struct snd_ctl_elem_value *ucontrol)
+							struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_maya44 *chip = snd_kcontrol_chip(kcontrol);
 	unsigned int shift = GET_GPIO_VAL_SHIFT(kcontrol->private_value);
@@ -332,8 +368,12 @@ static int maya_gpio_sw_put(struct snd_kcontrol *kcontrol,
 	mutex_lock(&chip->mutex);
 	mask = 1 << shift;
 	val = ucontrol->value.integer.value[0];
+
 	if (GET_GPIO_VAL_INV(kcontrol->private_value))
+	{
 		val = !val;
+	}
+
 	val = val ? mask : 0;
 	changed = maya_set_gpio_bits(chip->ice, mask, val);
 	mutex_unlock(&chip->mutex);
@@ -351,33 +391,38 @@ static int maya_gpio_sw_put(struct snd_kcontrol *kcontrol,
 static void wm8776_select_input(struct snd_maya44 *chip, int idx, int line)
 {
 	wm8776_write_bits(chip->ice, &chip->wm[idx], WM8776_REG_ADC_MUX,
-			  0x1f, 1 << line);
+					  0x1f, 1 << line);
 }
 
 static int maya_rec_src_info(struct snd_kcontrol *kcontrol,
-			     struct snd_ctl_elem_info *uinfo)
+							 struct snd_ctl_elem_info *uinfo)
 {
-	static const char * const texts[] = { "Line", "Mic" };
+	static const char *const texts[] = { "Line", "Mic" };
 
 	return snd_ctl_enum_info(uinfo, 1, ARRAY_SIZE(texts), texts);
 }
 
 static int maya_rec_src_get(struct snd_kcontrol *kcontrol,
-			    struct snd_ctl_elem_value *ucontrol)
+							struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_maya44 *chip = snd_kcontrol_chip(kcontrol);
 	int sel;
 
 	if (snd_ice1712_gpio_read(chip->ice) & (1 << GPIO_MIC_RELAY))
+	{
 		sel = 1;
+	}
 	else
+	{
 		sel = 0;
+	}
+
 	ucontrol->value.enumerated.item[0] = sel;
 	return 0;
 }
 
 static int maya_rec_src_put(struct snd_kcontrol *kcontrol,
-			    struct snd_ctl_elem_value *ucontrol)
+							struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_maya44 *chip = snd_kcontrol_chip(kcontrol);
 	int sel = ucontrol->value.enumerated.item[0];
@@ -385,7 +430,7 @@ static int maya_rec_src_put(struct snd_kcontrol *kcontrol,
 
 	mutex_lock(&chip->mutex);
 	changed = maya_set_gpio_bits(chip->ice, 1 << GPIO_MIC_RELAY,
-				     sel ? (1 << GPIO_MIC_RELAY) : 0);
+								 sel ? (1 << GPIO_MIC_RELAY) : 0);
 	wm8776_select_input(chip, 0, sel ? MAYA_MIC_IN : MAYA_LINE_IN);
 	mutex_unlock(&chip->mutex);
 	return changed;
@@ -396,9 +441,10 @@ static int maya_rec_src_put(struct snd_kcontrol *kcontrol,
  * ice1724 switches as defined in snd_vt1724_pro_route_info (ice1724.c).
  */
 static int maya_pb_route_info(struct snd_kcontrol *kcontrol,
-			      struct snd_ctl_elem_info *uinfo)
+							  struct snd_ctl_elem_info *uinfo)
 {
-	static const char * const texts[] = {
+	static const char *const texts[] =
+	{
 		"PCM Out", /* 0 */
 		"Input 1", "Input 2", "Input 3", "Input 4"
 	};
@@ -409,12 +455,12 @@ static int maya_pb_route_info(struct snd_kcontrol *kcontrol,
 static int maya_pb_route_shift(int idx)
 {
 	static const unsigned char shift[10] =
-		{ 8, 20, 0, 3, 11, 23, 14, 26, 17, 29 };
+	{ 8, 20, 0, 3, 11, 23, 14, 26, 17, 29 };
 	return shift[idx % 10];
 }
 
 static int maya_pb_route_get(struct snd_kcontrol *kcontrol,
-			     struct snd_ctl_elem_value *ucontrol)
+							 struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_maya44 *chip = snd_kcontrol_chip(kcontrol);
 	int idx = snd_ctl_get_ioffidx(kcontrol, &ucontrol->id);
@@ -424,13 +470,13 @@ static int maya_pb_route_get(struct snd_kcontrol *kcontrol,
 }
 
 static int maya_pb_route_put(struct snd_kcontrol *kcontrol,
-			     struct snd_ctl_elem_value *ucontrol)
+							 struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_maya44 *chip = snd_kcontrol_chip(kcontrol);
 	int idx = snd_ctl_get_ioffidx(kcontrol, &ucontrol->id);
 	return snd_ice1724_put_route_val(chip->ice,
-					 ucontrol->value.enumerated.item[0],
-					 maya_pb_route_shift(idx));
+									 ucontrol->value.enumerated.item[0],
+									 maya_pb_route_shift(idx));
 }
 
 
@@ -438,12 +484,13 @@ static int maya_pb_route_put(struct snd_kcontrol *kcontrol,
  * controls to be added
  */
 
-static struct snd_kcontrol_new maya_controls[] = {
+static struct snd_kcontrol_new maya_controls[] =
+{
 	{
 		.name = "Crossmix Playback Volume",
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.access = SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			SNDRV_CTL_ELEM_ACCESS_TLV_READ,
+		SNDRV_CTL_ELEM_ACCESS_TLV_READ,
 		.info = maya_vol_info,
 		.get = maya_vol_get,
 		.put = maya_vol_put,
@@ -455,7 +502,7 @@ static struct snd_kcontrol_new maya_controls[] = {
 		.name = "PCM Playback Volume",
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.access = SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			SNDRV_CTL_ELEM_ACCESS_TLV_READ,
+		SNDRV_CTL_ELEM_ACCESS_TLV_READ,
 		.info = maya_vol_info,
 		.get = maya_vol_get,
 		.put = maya_vol_put,
@@ -467,7 +514,7 @@ static struct snd_kcontrol_new maya_controls[] = {
 		.name = "Line Capture Volume",
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.access = SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			SNDRV_CTL_ELEM_ACCESS_TLV_READ,
+		SNDRV_CTL_ELEM_ACCESS_TLV_READ,
 		.info = maya_vol_info,
 		.get = maya_vol_get,
 		.put = maya_vol_put,
@@ -482,7 +529,7 @@ static struct snd_kcontrol_new maya_controls[] = {
 		.get = maya_sw_get,
 		.put = maya_sw_put,
 		.private_value = COMPOSE_SW_VAL(WM_SW_DAC,
-						WM8776_REG_OUTPUT_MUX, 0x01),
+		WM8776_REG_OUTPUT_MUX, 0x01),
 		.count = 2,
 	},
 	{
@@ -492,7 +539,7 @@ static struct snd_kcontrol_new maya_controls[] = {
 		.get = maya_sw_get,
 		.put = maya_sw_put,
 		.private_value = COMPOSE_SW_VAL(WM_SW_BYPASS,
-						WM8776_REG_OUTPUT_MUX, 0x04),
+		WM8776_REG_OUTPUT_MUX, 0x04),
 		.count = 2,
 	},
 	{
@@ -532,12 +579,17 @@ static int maya44_add_controls(struct snd_ice1712 *ice)
 {
 	int err, i;
 
-	for (i = 0; i < ARRAY_SIZE(maya_controls); i++) {
+	for (i = 0; i < ARRAY_SIZE(maya_controls); i++)
+	{
 		err = snd_ctl_add(ice->card, snd_ctl_new1(&maya_controls[i],
-							  ice->spec));
+						  ice->spec));
+
 		if (err < 0)
+		{
 			return err;
+		}
 	}
+
 	return 0;
 }
 
@@ -546,9 +598,10 @@ static int maya44_add_controls(struct snd_ice1712 *ice)
  * initialize a wm8776 chip
  */
 static void wm8776_init(struct snd_ice1712 *ice,
-			struct snd_wm8776 *wm, unsigned int addr)
+						struct snd_wm8776 *wm, unsigned int addr)
 {
-	static const unsigned short inits_wm8776[] = {
+	static const unsigned short inits_wm8776[] =
+	{
 		0x02, 0x100, /* R2: headphone L+R muted + update */
 		0x05, 0x100, /* R5: DAC output L+R muted + update */
 		0x06, 0x000, /* R6: DAC output phase normal */
@@ -565,10 +618,10 @@ static void wm8776_init(struct snd_ice1712 *ice,
 				enable zero cross detection */
 		0x0f, 0x100, /* R15: ADC right muted,
 				enable zero cross detection */
-			     /* R16: ALC...*/
+		/* R16: ALC...*/
 		0x11, 0x000, /* R17: disable ALC */
-			     /* R18: ALC...*/
-			     /* R19: noise gate...*/
+		/* R18: ALC...*/
+		/* R19: noise gate...*/
 		0x15, 0x000, /* R21: ADC input mux init, mute all inputs */
 		0x16, 0x001, /* R22: output mux, select DAC */
 		0xff, 0xff
@@ -583,7 +636,9 @@ static void wm8776_init(struct snd_ice1712 *ice,
 	wm->switch_bits = (1 << WM_SW_DAC);
 
 	ptr = inits_wm8776;
-	while (*ptr != 0xff) {
+
+	while (*ptr != 0xff)
+	{
 		reg = *ptr++;
 		data = *ptr++;
 		wm8776_write(ice, wm, reg, data);
@@ -604,34 +659,43 @@ static void set_rate(struct snd_ice1712 *ice, unsigned int rate)
 	unsigned int ratio, adc_ratio, val;
 	int i;
 
-	switch (rate) {
-	case 192000:
-		ratio = WM8776_CLOCK_RATIO_128FS;
-		break;
-	case 176400:
-		ratio = WM8776_CLOCK_RATIO_128FS;
-		break;
-	case 96000:
-		ratio = WM8776_CLOCK_RATIO_256FS;
-		break;
-	case 88200:
-		ratio = WM8776_CLOCK_RATIO_384FS;
-		break;
-	case 48000:
-		ratio = WM8776_CLOCK_RATIO_512FS;
-		break;
-	case 44100:
-		ratio = WM8776_CLOCK_RATIO_512FS;
-		break;
-	case 32000:
-		ratio = WM8776_CLOCK_RATIO_768FS;
-		break;
-	case 0:
-		/* no hint - S/PDIF input is master, simply return */
-		return;
-	default:
-		snd_BUG();
-		return;
+	switch (rate)
+	{
+		case 192000:
+			ratio = WM8776_CLOCK_RATIO_128FS;
+			break;
+
+		case 176400:
+			ratio = WM8776_CLOCK_RATIO_128FS;
+			break;
+
+		case 96000:
+			ratio = WM8776_CLOCK_RATIO_256FS;
+			break;
+
+		case 88200:
+			ratio = WM8776_CLOCK_RATIO_384FS;
+			break;
+
+		case 48000:
+			ratio = WM8776_CLOCK_RATIO_512FS;
+			break;
+
+		case 44100:
+			ratio = WM8776_CLOCK_RATIO_512FS;
+			break;
+
+		case 32000:
+			ratio = WM8776_CLOCK_RATIO_768FS;
+			break;
+
+		case 0:
+			/* no hint - S/PDIF input is master, simply return */
+			return;
+
+		default:
+			snd_BUG();
+			return;
 	}
 
 	/*
@@ -641,19 +705,28 @@ static void set_rate(struct snd_ice1712 *ice, unsigned int rate)
 	 * Setting the rate is not really necessary in slave mode.
 	 */
 	adc_ratio = ratio;
+
 	if (adc_ratio < WM8776_CLOCK_RATIO_256FS)
+	{
 		adc_ratio = WM8776_CLOCK_RATIO_256FS;
+	}
 
 	val = adc_ratio;
+
 	if (adc_ratio == WM8776_CLOCK_RATIO_256FS)
+	{
 		val |= 8;
+	}
+
 	val |= ratio << 4;
 
 	mutex_lock(&chip->mutex);
+
 	for (i = 0; i < 2; i++)
 		wm8776_write_bits(ice, &chip->wm[i],
-				  WM8776_REG_MASTER_MODE_CONTROL,
-				  0x180, val);
+						  WM8776_REG_MASTER_MODE_CONTROL,
+						  0x180, val);
+
 	mutex_unlock(&chip->mutex);
 }
 
@@ -661,12 +734,14 @@ static void set_rate(struct snd_ice1712 *ice, unsigned int rate)
  * supported sample rates (to override the default one)
  */
 
-static unsigned int rates[] = {
+static unsigned int rates[] =
+{
 	32000, 44100, 48000, 64000, 88200, 96000, 176400, 192000
 };
 
 /* playback rates: 32..192 kHz */
-static struct snd_pcm_hw_constraint_list dac_rates = {
+static struct snd_pcm_hw_constraint_list dac_rates =
+{
 	.count = ARRAY_SIZE(rates),
 	.list = rates,
 	.mask = 0
@@ -676,7 +751,8 @@ static struct snd_pcm_hw_constraint_list dac_rates = {
 /*
  * chip addresses on I2C bus
  */
-static unsigned char wm8776_addr[2] = {
+static unsigned char wm8776_addr[2] =
+{
 	0x34, 0x36, /* codec 0 & 1 */
 };
 
@@ -689,8 +765,12 @@ static int maya44_init(struct snd_ice1712 *ice)
 	struct snd_maya44 *chip;
 
 	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
+
 	if (!chip)
+	{
 		return -ENOMEM;
+	}
+
 	mutex_init(&chip->mutex);
 	chip->ice = ice;
 	ice->spec = chip;
@@ -700,7 +780,8 @@ static int maya44_init(struct snd_ice1712 *ice)
 	ice->num_total_adcs = 4;
 	ice->akm_codecs = 0;
 
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		wm8776_init(ice, &chip->wm[i], wm8776_addr[i]);
 		wm8776_select_input(chip, i, MAYA_LINE_IN);
 	}
@@ -726,15 +807,16 @@ static int maya44_init(struct snd_ice1712 *ice)
  * hence the driver needs to sets up it properly.
  */
 
-static unsigned char maya44_eeprom[] = {
+static unsigned char maya44_eeprom[] =
+{
 	[ICE_EEP2_SYSCONF]     = 0x45,
-		/* clock xin1=49.152MHz, mpu401, 2 stereo ADCs+DACs */
+	/* clock xin1=49.152MHz, mpu401, 2 stereo ADCs+DACs */
 	[ICE_EEP2_ACLINK]      = 0x80,
-		/* I2S */
+	/* I2S */
 	[ICE_EEP2_I2S]         = 0xf8,
-		/* vol, 96k, 24bit, 192k */
+	/* vol, 96k, 24bit, 192k */
 	[ICE_EEP2_SPDIF]       = 0xc3,
-		/* enable spdif out, spdif out supp, spdif-in, ext spdif out */
+	/* enable spdif out, spdif out supp, spdif-in, ext spdif out */
 	[ICE_EEP2_GPIO_DIR]    = 0xff,
 	[ICE_EEP2_GPIO_DIR1]   = 0xff,
 	[ICE_EEP2_GPIO_DIR2]   = 0xff,
@@ -742,13 +824,14 @@ static unsigned char maya44_eeprom[] = {
 	[ICE_EEP2_GPIO_MASK1]  = 0/*0xff*/,
 	[ICE_EEP2_GPIO_MASK2]  = 0/*0x7f*/,
 	[ICE_EEP2_GPIO_STATE]  = (1 << GPIO_PHANTOM_OFF) |
-			(1 << GPIO_SPDIF_IN_INV),
+	(1 << GPIO_SPDIF_IN_INV),
 	[ICE_EEP2_GPIO_STATE1] = 0x00,
 	[ICE_EEP2_GPIO_STATE2] = 0x00,
 };
 
 /* entry point */
-struct snd_ice1712_card_info snd_vt1724_maya44_cards[] = {
+struct snd_ice1712_card_info snd_vt1724_maya44_cards[] =
+{
 	{
 		.subvendor = VT1724_SUBDEVICE_MAYA44,
 		.name = "ESI Maya44",

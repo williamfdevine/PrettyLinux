@@ -43,43 +43,59 @@ static void header_in(struct dlm_header *hd)
 
 static int to_dlm_errno(int err)
 {
-	switch (err) {
-	case -EDEADLK:
-		return -DLM_ERRNO_EDEADLK;
-	case -EBADR:
-		return -DLM_ERRNO_EBADR;
-	case -EBADSLT:
-		return -DLM_ERRNO_EBADSLT;
-	case -EPROTO:
-		return -DLM_ERRNO_EPROTO;
-	case -EOPNOTSUPP:
-		return -DLM_ERRNO_EOPNOTSUPP;
-	case -ETIMEDOUT:
-		return -DLM_ERRNO_ETIMEDOUT;
-	case -EINPROGRESS:
-		return -DLM_ERRNO_EINPROGRESS;
+	switch (err)
+	{
+		case -EDEADLK:
+			return -DLM_ERRNO_EDEADLK;
+
+		case -EBADR:
+			return -DLM_ERRNO_EBADR;
+
+		case -EBADSLT:
+			return -DLM_ERRNO_EBADSLT;
+
+		case -EPROTO:
+			return -DLM_ERRNO_EPROTO;
+
+		case -EOPNOTSUPP:
+			return -DLM_ERRNO_EOPNOTSUPP;
+
+		case -ETIMEDOUT:
+			return -DLM_ERRNO_ETIMEDOUT;
+
+		case -EINPROGRESS:
+			return -DLM_ERRNO_EINPROGRESS;
 	}
+
 	return err;
 }
 
 static int from_dlm_errno(int err)
 {
-	switch (err) {
-	case -DLM_ERRNO_EDEADLK:
-		return -EDEADLK;
-	case -DLM_ERRNO_EBADR:
-		return -EBADR;
-	case -DLM_ERRNO_EBADSLT:
-		return -EBADSLT;
-	case -DLM_ERRNO_EPROTO:
-		return -EPROTO;
-	case -DLM_ERRNO_EOPNOTSUPP:
-		return -EOPNOTSUPP;
-	case -DLM_ERRNO_ETIMEDOUT:
-		return -ETIMEDOUT;
-	case -DLM_ERRNO_EINPROGRESS:
-		return -EINPROGRESS;
+	switch (err)
+	{
+		case -DLM_ERRNO_EDEADLK:
+			return -EDEADLK;
+
+		case -DLM_ERRNO_EBADR:
+			return -EBADR;
+
+		case -DLM_ERRNO_EBADSLT:
+			return -EBADSLT;
+
+		case -DLM_ERRNO_EPROTO:
+			return -EPROTO;
+
+		case -DLM_ERRNO_EOPNOTSUPP:
+			return -EOPNOTSUPP;
+
+		case -DLM_ERRNO_ETIMEDOUT:
+			return -ETIMEDOUT;
+
+		case -DLM_ERRNO_EINPROGRESS:
+			return -EINPROGRESS;
 	}
+
 	return err;
 }
 

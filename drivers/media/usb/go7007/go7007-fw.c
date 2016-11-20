@@ -41,8 +41,8 @@
 #define	FLAG_MODE_MPEG4		(1<<3)
 #define	FLAG_MODE_H263		(1<<4)
 #define FLAG_MODE_ALL		(FLAG_MODE_MJPEG | FLAG_MODE_MPEG1 | \
-					FLAG_MODE_MPEG2 | FLAG_MODE_MPEG4 | \
-					FLAG_MODE_H263)
+							 FLAG_MODE_MPEG2 | FLAG_MODE_MPEG4 | \
+							 FLAG_MODE_H263)
 #define FLAG_SPECIAL		(1<<8)
 
 #define SPECIAL_FRM_HEAD	0
@@ -56,7 +56,8 @@
 
 /* Little data class for creating MPEG headers bit-by-bit */
 
-struct code_gen {
+struct code_gen
+{
 	unsigned char *p; /* destination */
 	u32 a; /* collects bits at the top of the variable */
 	int b; /* bit position of most recently-written bit */
@@ -66,22 +67,23 @@ struct code_gen {
 #define CODE_GEN(name, dest) struct code_gen name = { dest, 0, 32, 0 }
 
 #define CODE_ADD(name, val, length) do { \
-	name.b -= (length); \
-	name.a |= (val) << name.b; \
-	while (name.b <= 24) { \
-		*name.p = name.a >> 24; \
-		++name.p; \
-		name.a <<= 8; \
-		name.b += 8; \
-		name.len += 8; \
-	} \
-} while (0)
+		name.b -= (length); \
+		name.a |= (val) << name.b; \
+		while (name.b <= 24) { \
+			*name.p = name.a >> 24; \
+			++name.p; \
+			name.a <<= 8; \
+			name.b += 8; \
+			name.len += 8; \
+		} \
+	} while (0)
 
 #define CODE_LENGTH(name) (name.len + (32 - name.b))
 
 /* Tables for creating the bitrate control data */
 
-static const s16 converge_speed_ip[101] = {
+static const s16 converge_speed_ip[101] =
+{
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -95,7 +97,8 @@ static const s16 converge_speed_ip[101] = {
 	100
 };
 
-static const s16 converge_speed_ipb[101] = {
+static const s16 converge_speed_ipb[101] =
+{
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 4, 4, 4, 4, 4,
@@ -109,8 +112,10 @@ static const s16 converge_speed_ipb[101] = {
 	300
 };
 
-static const s16 LAMBDA_table[4][101] = {
-	{	16, 16, 16, 16, 17, 17, 17, 18, 18, 18,
+static const s16 LAMBDA_table[4][101] =
+{
+	{
+		16, 16, 16, 16, 17, 17, 17, 18, 18, 18,
 		19, 19, 19, 20, 20, 20, 21, 21, 22, 22,
 		22, 23, 23, 24, 24, 25, 25, 25, 26, 26,
 		27, 27, 28, 28, 29, 29, 30, 31, 31, 32,
@@ -165,7 +170,8 @@ static const s16 LAMBDA_table[4][101] = {
 
 /* MPEG blank frame generation tables */
 
-enum mpeg_frame_type {
+enum mpeg_frame_type
+{
 	PFRAME,
 	BFRAME_PRE,
 	BFRAME_POST,
@@ -173,7 +179,8 @@ enum mpeg_frame_type {
 	BFRAME_EMPTY
 };
 
-static const u32 addrinctab[33][2] = {
+static const u32 addrinctab[33][2] =
+{
 	{ 0x01, 1 },	{ 0x03, 3 },	{ 0x02, 3 },	{ 0x03, 4 },
 	{ 0x02, 4 },	{ 0x03, 5 },	{ 0x02, 5 },	{ 0x07, 7 },
 	{ 0x06, 7 },	{ 0x0b, 8 },	{ 0x0a, 8 },	{ 0x09, 8 },
@@ -187,8 +194,9 @@ static const u32 addrinctab[33][2] = {
 
 /* Standard JPEG tables */
 
-static const u8 default_intra_quant_table[] = {
-	 8, 16, 19, 22, 26, 27, 29, 34,
+static const u8 default_intra_quant_table[] =
+{
+	8, 16, 19, 22, 26, 27, 29, 34,
 	16, 16, 22, 24, 27, 29, 34, 37,
 	19, 22, 26, 27, 29, 34, 34, 38,
 	22, 22, 26, 27, 29, 34, 37, 40,
@@ -198,27 +206,33 @@ static const u8 default_intra_quant_table[] = {
 	27, 29, 35, 38, 46, 56, 69, 83
 };
 
-static const u8 bits_dc_luminance[] = {
+static const u8 bits_dc_luminance[] =
+{
 	0, 0, 1, 5, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0
 };
 
-static const u8 val_dc_luminance[] = {
+static const u8 val_dc_luminance[] =
+{
 	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
 };
 
-static const u8 bits_dc_chrominance[] = {
+static const u8 bits_dc_chrominance[] =
+{
 	0, 0, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0
 };
 
-static const u8 val_dc_chrominance[] = {
+static const u8 val_dc_chrominance[] =
+{
 	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
 };
 
-static const u8 bits_ac_luminance[] = {
+static const u8 bits_ac_luminance[] =
+{
 	0, 0, 2, 1, 3, 3, 2, 4, 3, 5, 5, 4, 4, 0, 0, 1, 0x7d
 };
 
-static const u8 val_ac_luminance[] = {
+static const u8 val_ac_luminance[] =
+{
 	0x01, 0x02, 0x03, 0x00, 0x04, 0x11, 0x05, 0x12,
 	0x21, 0x31, 0x41, 0x06, 0x13, 0x51, 0x61, 0x07,
 	0x22, 0x71, 0x14, 0x32, 0x81, 0x91, 0xa1, 0x08,
@@ -242,11 +256,13 @@ static const u8 val_ac_luminance[] = {
 	0xf9, 0xfa
 };
 
-static const u8 bits_ac_chrominance[] = {
+static const u8 bits_ac_chrominance[] =
+{
 	0, 0, 2, 1, 2, 4, 4, 3, 4, 7, 5, 4, 4, 0, 1, 2, 0x77
 };
 
-static const u8 val_ac_chrominance[] = {
+static const u8 val_ac_chrominance[] =
+{
 	0x00, 0x01, 0x02, 0x03, 0x11, 0x04, 0x05, 0x21,
 	0x31, 0x06, 0x12, 0x41, 0x51, 0x07, 0x61, 0x71,
 	0x13, 0x22, 0x32, 0x81, 0x08, 0x14, 0x42, 0x91,
@@ -275,7 +291,8 @@ static const u8 val_ac_chrominance[] = {
  * OK, let's do this mapping on the actual table above so it doesn't have
  * to be done on the fly.
  */
-static const int zz[64] = {
+static const int zz[64] =
+{
 	0,   1,  8, 16,  9,  2,  3, 10, 17, 24, 32, 25, 18, 11,  4,  5,
 	12, 19, 26, 33, 40, 48, 41, 34, 27, 20, 13,  6,  7, 14, 21, 28,
 	35, 42, 49, 56, 57, 50, 43, 36, 29, 22, 15, 23, 30, 37, 44, 51,
@@ -287,10 +304,14 @@ static int copy_packages(__le16 *dest, u16 *src, int pkg_cnt, int space)
 	int i, cnt = pkg_cnt * 32;
 
 	if (space < cnt)
+	{
 		return -1;
+	}
 
 	for (i = 0; i < cnt; ++i)
+	{
 		dest[i] = cpu_to_le16p(src + i);
+	}
 
 	return cnt;
 }
@@ -307,9 +328,13 @@ static int mjpeg_frame_header(struct go7007 *go, unsigned char *buf, int q)
 	buf[p++] = 2 + 65;
 	buf[p++] = 0;
 	buf[p++] = default_intra_quant_table[0];
+
 	for (i = 1; i < 64; ++i)
 		/* buf[p++] = (default_intra_quant_table[i] * q) >> 3; */
+	{
 		buf[p++] = (default_intra_quant_table[zz[i]] * q) >> 3;
+	}
+
 	buf[p++] = 0xff;
 	buf[p++] = 0xc0;
 	buf[p++] = 0;
@@ -378,19 +403,26 @@ static int gen_mjpeghdr_to_package(struct go7007 *go, __le16 *code, int space)
 	int size = 0, i, off = 0, chunk;
 
 	buf = kzalloc(4096, GFP_KERNEL);
-	if (buf == NULL)
-		return -ENOMEM;
 
-	for (i = 1; i < 32; ++i) {
+	if (buf == NULL)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 1; i < 32; ++i)
+	{
 		mjpeg_frame_header(go, buf + size, i);
 		size += 80;
 	}
+
 	chunk = mjpeg_frame_header(go, buf + size, 1);
 	memmove(buf + size, buf + size + 80, chunk - 80);
 	size += chunk - 80;
 
-	for (i = 0; i < size; i += chunk * 2) {
-		if (space - off < 32) {
+	for (i = 0; i < size; i += chunk * 2)
+	{
+		if (space - off < 32)
+		{
 			off = -1;
 			goto done;
 		}
@@ -398,16 +430,25 @@ static int gen_mjpeghdr_to_package(struct go7007 *go, __le16 *code, int space)
 		code[off + 1] = __cpu_to_le16(0x8000 | mem);
 
 		chunk = 28;
-		if (mem + chunk > 0x4000)
-			chunk = 0x4000 - mem;
-		if (i + 2 * chunk > size)
-			chunk = (size - i) / 2;
 
-		if (chunk < 28) {
+		if (mem + chunk > 0x4000)
+		{
+			chunk = 0x4000 - mem;
+		}
+
+		if (i + 2 * chunk > size)
+		{
+			chunk = (size - i) / 2;
+		}
+
+		if (chunk < 28)
+		{
 			code[off] = __cpu_to_le16(0x4000 | chunk);
 			code[off + 31] = __cpu_to_le16(addr++);
 			mem = 0x3e00;
-		} else {
+		}
+		else
+		{
 			code[off] = __cpu_to_le16(0x1000 | 28);
 			code[off + 31] = 0;
 			mem += 28;
@@ -416,109 +457,162 @@ static int gen_mjpeghdr_to_package(struct go7007 *go, __le16 *code, int space)
 		memcpy(&code[off + 2], buf + i, chunk * 2);
 		off += 32;
 	}
+
 done:
 	kfree(buf);
 	return off;
 }
 
 static int mpeg1_frame_header(struct go7007 *go, unsigned char *buf,
-		int modulo, int pict_struct, enum mpeg_frame_type frame)
+							  int modulo, int pict_struct, enum mpeg_frame_type frame)
 {
 	int i, j, mb_code, mb_len;
 	int rows = go->interlace_coding ? go->height / 32 : go->height / 16;
 	CODE_GEN(c, buf + 6);
 
-	switch (frame) {
-	case PFRAME:
-		mb_code = 0x1;
-		mb_len = 3;
-		break;
-	case BFRAME_PRE:
-		mb_code = 0x2;
-		mb_len = 4;
-		break;
-	case BFRAME_POST:
-		mb_code = 0x2;
-		mb_len = 3;
-		break;
-	case BFRAME_BIDIR:
-		mb_code = 0x2;
-		mb_len = 2;
-		break;
-	default: /* keep the compiler happy */
-		mb_code = mb_len = 0;
-		break;
+	switch (frame)
+	{
+		case PFRAME:
+			mb_code = 0x1;
+			mb_len = 3;
+			break;
+
+		case BFRAME_PRE:
+			mb_code = 0x2;
+			mb_len = 4;
+			break;
+
+		case BFRAME_POST:
+			mb_code = 0x2;
+			mb_len = 3;
+			break;
+
+		case BFRAME_BIDIR:
+			mb_code = 0x2;
+			mb_len = 2;
+			break;
+
+		default: /* keep the compiler happy */
+			mb_code = mb_len = 0;
+			break;
 	}
 
 	CODE_ADD(c, frame == PFRAME ? 0x2 : 0x3, 13);
 	CODE_ADD(c, 0xffff, 16);
 	CODE_ADD(c, go->format == V4L2_PIX_FMT_MPEG2 ? 0x7 : 0x4, 4);
+
 	if (frame != PFRAME)
+	{
 		CODE_ADD(c, go->format == V4L2_PIX_FMT_MPEG2 ? 0x7 : 0x4, 4);
+	}
 	else
-		CODE_ADD(c, 0, 4); /* Is this supposed to be here?? */
+	{
+		CODE_ADD(c, 0, 4);    /* Is this supposed to be here?? */
+	}
+
 	CODE_ADD(c, 0, 3); /* What is this?? */
 	/* Byte-align with zeros */
 	j = 8 - (CODE_LENGTH(c) % 8);
-	if (j != 8)
-		CODE_ADD(c, 0, j);
 
-	if (go->format == V4L2_PIX_FMT_MPEG2) {
+	if (j != 8)
+	{
+		CODE_ADD(c, 0, j);
+	}
+
+	if (go->format == V4L2_PIX_FMT_MPEG2)
+	{
 		CODE_ADD(c, 0x1, 24);
 		CODE_ADD(c, 0xb5, 8);
 		CODE_ADD(c, 0x844, 12);
 		CODE_ADD(c, frame == PFRAME ? 0xff : 0x44, 8);
-		if (go->interlace_coding) {
+
+		if (go->interlace_coding)
+		{
 			CODE_ADD(c, pict_struct, 4);
+
 			if (go->dvd_mode)
+			{
 				CODE_ADD(c, 0x000, 11);
+			}
 			else
+			{
 				CODE_ADD(c, 0x200, 11);
-		} else {
+			}
+		}
+		else
+		{
 			CODE_ADD(c, 0x3, 4);
 			CODE_ADD(c, 0x20c, 11);
 		}
+
 		/* Byte-align with zeros */
 		j = 8 - (CODE_LENGTH(c) % 8);
+
 		if (j != 8)
+		{
 			CODE_ADD(c, 0, j);
+		}
 	}
 
-	for (i = 0; i < rows; ++i) {
+	for (i = 0; i < rows; ++i)
+	{
 		CODE_ADD(c, 1, 24);
 		CODE_ADD(c, i + 1, 8);
 		CODE_ADD(c, 0x2, 6);
 		CODE_ADD(c, 0x1, 1);
 		CODE_ADD(c, mb_code, mb_len);
-		if (go->interlace_coding) {
+
+		if (go->interlace_coding)
+		{
 			CODE_ADD(c, 0x1, 2);
 			CODE_ADD(c, pict_struct == 1 ? 0x0 : 0x1, 1);
 		}
-		if (frame == BFRAME_BIDIR) {
+
+		if (frame == BFRAME_BIDIR)
+		{
 			CODE_ADD(c, 0x3, 2);
+
 			if (go->interlace_coding)
+			{
 				CODE_ADD(c, pict_struct == 1 ? 0x0 : 0x1, 1);
+			}
 		}
+
 		CODE_ADD(c, 0x3, 2);
+
 		for (j = (go->width >> 4) - 2; j >= 33; j -= 33)
+		{
 			CODE_ADD(c, 0x8, 11);
+		}
+
 		CODE_ADD(c, addrinctab[j][0], addrinctab[j][1]);
 		CODE_ADD(c, mb_code, mb_len);
-		if (go->interlace_coding) {
+
+		if (go->interlace_coding)
+		{
 			CODE_ADD(c, 0x1, 2);
 			CODE_ADD(c, pict_struct == 1 ? 0x0 : 0x1, 1);
 		}
-		if (frame == BFRAME_BIDIR) {
+
+		if (frame == BFRAME_BIDIR)
+		{
 			CODE_ADD(c, 0x3, 2);
+
 			if (go->interlace_coding)
+			{
 				CODE_ADD(c, pict_struct == 1 ? 0x0 : 0x1, 1);
+			}
 		}
+
 		CODE_ADD(c, 0x3, 2);
 
 		/* Byte-align with zeros */
 		j = 8 - (CODE_LENGTH(c) % 8);
+
 		if (j != 8)
+		{
 			CODE_ADD(c, 0, j);
+		}
 	}
 
 	i = CODE_LENGTH(c) + 4 * 8;
@@ -534,50 +628,66 @@ static int mpeg1_sequence_header(struct go7007 *go, unsigned char *buf, int ext)
 	int i, aspect_ratio, picture_rate;
 	CODE_GEN(c, buf + 6);
 
-	if (go->format == V4L2_PIX_FMT_MPEG1) {
-		switch (go->aspect_ratio) {
-		case GO7007_RATIO_4_3:
-			aspect_ratio = go->standard == GO7007_STD_NTSC ? 3 : 2;
-			break;
-		case GO7007_RATIO_16_9:
-			aspect_ratio = go->standard == GO7007_STD_NTSC ? 5 : 4;
-			break;
-		default:
-			aspect_ratio = 1;
-			break;
-		}
-	} else {
-		switch (go->aspect_ratio) {
-		case GO7007_RATIO_4_3:
-			aspect_ratio = 2;
-			break;
-		case GO7007_RATIO_16_9:
-			aspect_ratio = 3;
-			break;
-		default:
-			aspect_ratio = 1;
-			break;
+	if (go->format == V4L2_PIX_FMT_MPEG1)
+	{
+		switch (go->aspect_ratio)
+		{
+			case GO7007_RATIO_4_3:
+				aspect_ratio = go->standard == GO7007_STD_NTSC ? 3 : 2;
+				break;
+
+			case GO7007_RATIO_16_9:
+				aspect_ratio = go->standard == GO7007_STD_NTSC ? 5 : 4;
+				break;
+
+			default:
+				aspect_ratio = 1;
+				break;
 		}
 	}
-	switch (go->sensor_framerate) {
-	case 24000:
-		picture_rate = 1;
-		break;
-	case 24024:
-		picture_rate = 2;
-		break;
-	case 25025:
-		picture_rate = go->interlace_coding ? 6 : 3;
-		break;
-	case 30000:
-		picture_rate = go->interlace_coding ? 7 : 4;
-		break;
-	case 30030:
-		picture_rate = go->interlace_coding ? 8 : 5;
-		break;
-	default:
-		picture_rate = 5; /* 30 fps seems like a reasonable default */
-		break;
+	else
+	{
+		switch (go->aspect_ratio)
+		{
+			case GO7007_RATIO_4_3:
+				aspect_ratio = 2;
+				break;
+
+			case GO7007_RATIO_16_9:
+				aspect_ratio = 3;
+				break;
+
+			default:
+				aspect_ratio = 1;
+				break;
+		}
+	}
+
+	switch (go->sensor_framerate)
+	{
+		case 24000:
+			picture_rate = 1;
+			break;
+
+		case 24024:
+			picture_rate = 2;
+			break;
+
+		case 25025:
+			picture_rate = go->interlace_coding ? 6 : 3;
+			break;
+
+		case 30000:
+			picture_rate = go->interlace_coding ? 7 : 4;
+			break;
+
+		case 30030:
+			picture_rate = go->interlace_coding ? 8 : 5;
+			break;
+
+		default:
+			picture_rate = 5; /* 30 fps seems like a reasonable default */
+			break;
 	}
 
 	CODE_ADD(c, go->width, 12);
@@ -591,25 +701,39 @@ static int mpeg1_sequence_header(struct go7007 *go, unsigned char *buf, int ext)
 
 	/* Byte-align with zeros */
 	i = 8 - (CODE_LENGTH(c) % 8);
-	if (i != 8)
-		CODE_ADD(c, 0, i);
 
-	if (go->format == V4L2_PIX_FMT_MPEG2) {
+	if (i != 8)
+	{
+		CODE_ADD(c, 0, i);
+	}
+
+	if (go->format == V4L2_PIX_FMT_MPEG2)
+	{
 		CODE_ADD(c, 0x1, 24);
 		CODE_ADD(c, 0xb5, 8);
 		CODE_ADD(c, 0x148, 12);
+
 		if (go->interlace_coding)
+		{
 			CODE_ADD(c, 0x20001, 20);
+		}
 		else
+		{
 			CODE_ADD(c, 0xa0001, 20);
+		}
+
 		CODE_ADD(c, 0, 16);
 
 		/* Byte-align with zeros */
 		i = 8 - (CODE_LENGTH(c) % 8);
-		if (i != 8)
-			CODE_ADD(c, 0, i);
 
-		if (ext) {
+		if (i != 8)
+		{
+			CODE_ADD(c, 0, i);
+		}
+
+		if (ext)
+		{
 			CODE_ADD(c, 0x1, 24);
 			CODE_ADD(c, 0xb52, 12);
 			CODE_ADD(c, go->standard == GO7007_STD_NTSC ? 2 : 1, 3);
@@ -621,8 +745,11 @@ static int mpeg1_sequence_header(struct go7007 *go, unsigned char *buf, int ext)
 
 			/* Byte-align with zeros */
 			i = 8 - (CODE_LENGTH(c) % 8);
+
 			if (i != 8)
+			{
 				CODE_ADD(c, 0, i);
+			}
 		}
 	}
 
@@ -637,7 +764,7 @@ static int mpeg1_sequence_header(struct go7007 *go, unsigned char *buf, int ext)
 }
 
 static int gen_mpeg1hdr_to_package(struct go7007 *go,
-					__le16 *code, int space, int *framelen)
+								   __le16 *code, int space, int *framelen)
 {
 	u8 *buf;
 	u16 mem = 0x3e00;
@@ -645,41 +772,55 @@ static int gen_mpeg1hdr_to_package(struct go7007 *go,
 	int i, off = 0, chunk;
 
 	buf = kzalloc(5120, GFP_KERNEL);
+
 	if (buf == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	framelen[0] = mpeg1_frame_header(go, buf, 0, 1, PFRAME);
+
 	if (go->interlace_coding)
 		framelen[0] += mpeg1_frame_header(go, buf + framelen[0] / 8,
-							0, 2, PFRAME);
+										  0, 2, PFRAME);
+
 	buf[0] = framelen[0] & 0xff;
 	buf[1] = framelen[0] >> 8;
 	i = 368;
 	framelen[1] = mpeg1_frame_header(go, buf + i, 0, 1, BFRAME_PRE);
+
 	if (go->interlace_coding)
 		framelen[1] += mpeg1_frame_header(go, buf + i + framelen[1] / 8,
-							0, 2, BFRAME_PRE);
+										  0, 2, BFRAME_PRE);
+
 	buf[i] = framelen[1] & 0xff;
 	buf[i + 1] = framelen[1] >> 8;
 	i += 1632;
 	framelen[2] = mpeg1_frame_header(go, buf + i, 0, 1, BFRAME_POST);
+
 	if (go->interlace_coding)
 		framelen[2] += mpeg1_frame_header(go, buf + i + framelen[2] / 8,
-							0, 2, BFRAME_POST);
+										  0, 2, BFRAME_POST);
+
 	buf[i] = framelen[2] & 0xff;
 	buf[i + 1] = framelen[2] >> 8;
 	i += 1432;
 	framelen[3] = mpeg1_frame_header(go, buf + i, 0, 1, BFRAME_BIDIR);
+
 	if (go->interlace_coding)
 		framelen[3] += mpeg1_frame_header(go, buf + i + framelen[3] / 8,
-							0, 2, BFRAME_BIDIR);
+										  0, 2, BFRAME_BIDIR);
+
 	buf[i] = framelen[3] & 0xff;
 	buf[i + 1] = framelen[3] >> 8;
 	i += 1632 + 16;
 	mpeg1_sequence_header(go, buf + i, 0);
 	i += 40;
-	for (i = 0; i < 5120; i += chunk * 2) {
-		if (space - off < 32) {
+
+	for (i = 0; i < 5120; i += chunk * 2)
+	{
+		if (space - off < 32)
+		{
 			off = -1;
 			goto done;
 		}
@@ -687,19 +828,30 @@ static int gen_mpeg1hdr_to_package(struct go7007 *go,
 		code[off + 1] = __cpu_to_le16(0x8000 | mem);
 
 		chunk = 28;
-		if (mem + chunk > 0x4000)
-			chunk = 0x4000 - mem;
-		if (i + 2 * chunk > 5120)
-			chunk = (5120 - i) / 2;
 
-		if (chunk < 28) {
+		if (mem + chunk > 0x4000)
+		{
+			chunk = 0x4000 - mem;
+		}
+
+		if (i + 2 * chunk > 5120)
+		{
+			chunk = (5120 - i) / 2;
+		}
+
+		if (chunk < 28)
+		{
 			code[off] = __cpu_to_le16(0x4000 | chunk);
 			code[off + 31] = __cpu_to_le16(addr);
-			if (mem + chunk == 0x4000) {
+
+			if (mem + chunk == 0x4000)
+			{
 				mem = 0x3e00;
 				++addr;
 			}
-		} else {
+		}
+		else
+		{
 			code[off] = __cpu_to_le16(0x1000 | 28);
 			code[off + 31] = 0;
 			mem += 28;
@@ -708,6 +860,7 @@ static int gen_mpeg1hdr_to_package(struct go7007 *go,
 		memcpy(&code[off + 2], buf + i, chunk * 2);
 		off += 32;
 	}
+
 done:
 	kfree(buf);
 	return off;
@@ -719,44 +872,64 @@ static int vti_bitlen(struct go7007 *go)
 
 	for (i = 31; (max_time_incr & ((1 << i) - 1)) == max_time_incr; --i)
 		;
+
 	return i + 1;
 }
 
 static int mpeg4_frame_header(struct go7007 *go, unsigned char *buf,
-		int modulo, enum mpeg_frame_type frame)
+							  int modulo, enum mpeg_frame_type frame)
 {
 	int i;
 	CODE_GEN(c, buf + 6);
 	int mb_count = (go->width >> 4) * (go->height >> 4);
 
 	CODE_ADD(c, frame == PFRAME ? 0x1 : 0x2, 2);
+
 	if (modulo)
+	{
 		CODE_ADD(c, 0x1, 1);
+	}
+
 	CODE_ADD(c, 0x1, 2);
 	CODE_ADD(c, 0, vti_bitlen(go));
 	CODE_ADD(c, 0x3, 2);
+
 	if (frame == PFRAME)
+	{
 		CODE_ADD(c, 0, 1);
+	}
+
 	CODE_ADD(c, 0xc, 11);
+
 	if (frame != PFRAME)
+	{
 		CODE_ADD(c, 0x4, 3);
-	if (frame != BFRAME_EMPTY) {
-		for (i = 0; i < mb_count; ++i) {
-			switch (frame) {
-			case PFRAME:
-				CODE_ADD(c, 0x1, 1);
-				break;
-			case BFRAME_PRE:
-				CODE_ADD(c, 0x47, 8);
-				break;
-			case BFRAME_POST:
-				CODE_ADD(c, 0x27, 7);
-				break;
-			case BFRAME_BIDIR:
-				CODE_ADD(c, 0x5f, 8);
-				break;
-			case BFRAME_EMPTY: /* keep compiler quiet */
-				break;
+	}
+
+	if (frame != BFRAME_EMPTY)
+	{
+		for (i = 0; i < mb_count; ++i)
+		{
+			switch (frame)
+			{
+				case PFRAME:
+					CODE_ADD(c, 0x1, 1);
+					break;
+
+				case BFRAME_PRE:
+					CODE_ADD(c, 0x47, 8);
+					break;
+
+				case BFRAME_POST:
+					CODE_ADD(c, 0x27, 7);
+					break;
+
+				case BFRAME_BIDIR:
+					CODE_ADD(c, 0x5f, 8);
+					break;
+
+				case BFRAME_EMPTY: /* keep compiler quiet */
+					break;
 			}
 		}
 	}
@@ -779,23 +952,27 @@ static int mpeg4_frame_header(struct go7007 *go, unsigned char *buf,
 static int mpeg4_sequence_header(struct go7007 *go, unsigned char *buf, int ext)
 {
 	const unsigned char head[] = { 0x00, 0x00, 0x01, 0xb0, go->pali,
-		0x00, 0x00, 0x01, 0xb5, 0x09,
-		0x00, 0x00, 0x01, 0x00,
-		0x00, 0x00, 0x01, 0x20, };
+								   0x00, 0x00, 0x01, 0xb5, 0x09,
+								   0x00, 0x00, 0x01, 0x00,
+								   0x00, 0x00, 0x01, 0x20,
+								 };
 	int i, aspect_ratio;
 	int fps = go->sensor_framerate / go->fps_scale;
 	CODE_GEN(c, buf + 2 + sizeof(head));
 
-	switch (go->aspect_ratio) {
-	case GO7007_RATIO_4_3:
-		aspect_ratio = go->standard == GO7007_STD_NTSC ? 3 : 2;
-		break;
-	case GO7007_RATIO_16_9:
-		aspect_ratio = go->standard == GO7007_STD_NTSC ? 5 : 4;
-		break;
-	default:
-		aspect_ratio = 1;
-		break;
+	switch (go->aspect_ratio)
+	{
+		case GO7007_RATIO_4_3:
+			aspect_ratio = go->standard == GO7007_STD_NTSC ? 3 : 2;
+			break;
+
+		case GO7007_RATIO_16_9:
+			aspect_ratio = go->standard == GO7007_STD_NTSC ? 5 : 4;
+			break;
+
+		default:
+			aspect_ratio = 1;
+			break;
 	}
 
 	memcpy(buf + 2, head, sizeof(head));
@@ -823,7 +1000,7 @@ static int mpeg4_sequence_header(struct go7007 *go, unsigned char *buf, int ext)
 }
 
 static int gen_mpeg4hdr_to_package(struct go7007 *go,
-					__le16 *code, int space, int *framelen)
+								   __le16 *code, int space, int *framelen)
 {
 	u8 *buf;
 	u16 mem = 0x3e00;
@@ -831,8 +1008,11 @@ static int gen_mpeg4hdr_to_package(struct go7007 *go,
 	int i, off = 0, chunk;
 
 	buf = kzalloc(5120, GFP_KERNEL);
+
 	if (buf == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	framelen[0] = mpeg4_frame_header(go, buf, 0, PFRAME);
 	i = 368;
@@ -846,8 +1026,11 @@ static int gen_mpeg4hdr_to_package(struct go7007 *go,
 	i += 16;
 	mpeg4_sequence_header(go, buf + i, 0);
 	i += 40;
-	for (i = 0; i < 5120; i += chunk * 2) {
-		if (space - off < 32) {
+
+	for (i = 0; i < 5120; i += chunk * 2)
+	{
+		if (space - off < 32)
+		{
 			off = -1;
 			goto done;
 		}
@@ -855,19 +1038,30 @@ static int gen_mpeg4hdr_to_package(struct go7007 *go,
 		code[off + 1] = __cpu_to_le16(0x8000 | mem);
 
 		chunk = 28;
-		if (mem + chunk > 0x4000)
-			chunk = 0x4000 - mem;
-		if (i + 2 * chunk > 5120)
-			chunk = (5120 - i) / 2;
 
-		if (chunk < 28) {
+		if (mem + chunk > 0x4000)
+		{
+			chunk = 0x4000 - mem;
+		}
+
+		if (i + 2 * chunk > 5120)
+		{
+			chunk = (5120 - i) / 2;
+		}
+
+		if (chunk < 28)
+		{
 			code[off] = __cpu_to_le16(0x4000 | chunk);
 			code[off + 31] = __cpu_to_le16(addr);
-			if (mem + chunk == 0x4000) {
+
+			if (mem + chunk == 0x4000)
+			{
 				mem = 0x3e00;
 				++addr;
 			}
-		} else {
+		}
+		else
+		{
 			code[off] = __cpu_to_le16(0x1000 | 28);
 			code[off + 31] = 0;
 			mem += 28;
@@ -876,6 +1070,7 @@ static int gen_mpeg4hdr_to_package(struct go7007 *go,
 		memcpy(&code[off + 2], buf + i, chunk * 2);
 		off += 32;
 	}
+
 	mem = 0x3e00;
 	addr = go->ipb ? 0x14f9 : 0x0af9;
 	memset(buf, 0, 5120);
@@ -889,8 +1084,11 @@ static int gen_mpeg4hdr_to_package(struct go7007 *go,
 	i += 1632;
 	mpeg4_frame_header(go, buf + i, 1, BFRAME_EMPTY);
 	i += 16;
-	for (i = 0; i < 5120; i += chunk * 2) {
-		if (space - off < 32) {
+
+	for (i = 0; i < 5120; i += chunk * 2)
+	{
+		if (space - off < 32)
+		{
 			off = -1;
 			goto done;
 		}
@@ -898,19 +1096,30 @@ static int gen_mpeg4hdr_to_package(struct go7007 *go,
 		code[off + 1] = __cpu_to_le16(0x8000 | mem);
 
 		chunk = 28;
-		if (mem + chunk > 0x4000)
-			chunk = 0x4000 - mem;
-		if (i + 2 * chunk > 5120)
-			chunk = (5120 - i) / 2;
 
-		if (chunk < 28) {
+		if (mem + chunk > 0x4000)
+		{
+			chunk = 0x4000 - mem;
+		}
+
+		if (i + 2 * chunk > 5120)
+		{
+			chunk = (5120 - i) / 2;
+		}
+
+		if (chunk < 28)
+		{
 			code[off] = __cpu_to_le16(0x4000 | chunk);
 			code[off + 31] = __cpu_to_le16(addr);
-			if (mem + chunk == 0x4000) {
+
+			if (mem + chunk == 0x4000)
+			{
 				mem = 0x3e00;
 				++addr;
 			}
-		} else {
+		}
+		else
+		{
 			code[off] = __cpu_to_le16(0x1000 | 28);
 			code[off + 31] = 0;
 			mem += 28;
@@ -919,21 +1128,22 @@ static int gen_mpeg4hdr_to_package(struct go7007 *go,
 		memcpy(&code[off + 2], buf + i, chunk * 2);
 		off += 32;
 	}
+
 done:
 	kfree(buf);
 	return off;
 }
 
 static int brctrl_to_package(struct go7007 *go,
-					__le16 *code, int space, int *framelen)
+							 __le16 *code, int space, int *framelen)
 {
 	int converge_speed = 0;
 	int lambda = (go->format == V4L2_PIX_FMT_MJPEG || go->dvd_mode) ?
-				100 : 0;
+				 100 : 0;
 	int peak_rate = 6 * go->bitrate / 5;
 	int vbv_buffer = go->format == V4L2_PIX_FMT_MJPEG ?
-				go->bitrate :
-				(go->dvd_mode ? 900000 : peak_rate);
+					 go->bitrate :
+					 (go->dvd_mode ? 900000 : peak_rate);
 	int fps = go->sensor_framerate / go->fps_scale;
 	int q = 0;
 	/* Bizarre math below depends on rounding errors in division */
@@ -941,24 +1151,26 @@ static int brctrl_to_package(struct go7007 *go,
 	u32 sgop_peak_addr = peak_rate / 32 * 1001 / fps;
 	u32 total_expt_addr = go->bitrate / 32 * 1000 / fps * (fps / 1000);
 	u32 vbv_alert_addr = vbv_buffer * 3 / (4 * 32);
-	u32 cplx[] = {
-		q > 0 ? sgop_expt_addr * q :
-			2 * go->width * go->height * (go->ipb ? 6 : 4) / 32,
-		q > 0 ? sgop_expt_addr * q :
-			2 * go->width * go->height * (go->ipb ? 6 : 4) / 32,
-		q > 0 ? sgop_expt_addr * q :
-			2 * go->width * go->height * (go->ipb ? 6 : 4) / 32,
-		q > 0 ? sgop_expt_addr * q :
-			2 * go->width * go->height * (go->ipb ? 6 : 4) / 32,
+	u32 cplx[] =
+	{
+		q > 0 ? sgop_expt_addr *q :
+		2 * go->width *go->height *(go->ipb ? 6 : 4) / 32,
+		q > 0 ? sgop_expt_addr *q :
+		2 * go->width *go->height *(go->ipb ? 6 : 4) / 32,
+		q > 0 ? sgop_expt_addr *q :
+		2 * go->width *go->height *(go->ipb ? 6 : 4) / 32,
+		q > 0 ? sgop_expt_addr *q :
+		2 * go->width *go->height *(go->ipb ? 6 : 4) / 32,
 	};
 	u32 calc_q = q > 0 ? q : cplx[0] / sgop_expt_addr;
-	u16 pack[] = {
+	u16 pack[] =
+	{
 		0x200e,		0x0000,
 		0xBF20,		go->ipb ? converge_speed_ipb[converge_speed]
-					: converge_speed_ip[converge_speed],
+		: converge_speed_ip[converge_speed],
 		0xBF21,		go->ipb ? 2 : 0,
 		0xBF22,		go->ipb ? LAMBDA_table[0][lambda / 2 + 50]
-					: 32767,
+		: 32767,
 		0xBF23,		go->ipb ? LAMBDA_table[1][lambda] : 32767,
 		0xBF24,		32767,
 		0xBF25,		lambda > 99 ? 32767 : LAMBDA_table[3][lambda],
@@ -1013,7 +1225,7 @@ static int brctrl_to_package(struct go7007 *go,
 		0xBF43,		0,
 		0xBF44,		0,
 		0xBF45,		0,
-		0xBF46,		(go->width >> 4) * (go->height >> 4),
+		0xBF46,		(go->width >> 4) *(go->height >> 4),
 		0xBF47,		0,
 		0xBF64,		0,
 		0xBF65,		0,
@@ -1088,17 +1300,18 @@ static int config_package(struct go7007 *go, __le16 *code, int space)
 	int brc_window_size = fps;
 	int q_min = 2, q_max = 31;
 	int THACCoeffSet0 = 0;
-	u16 pack[] = {
+	u16 pack[] =
+	{
 		0x200e,		0x0000,
 		0xc002,		0x14b4,
 		0xc003,		0x28b4,
 		0xc004,		0x3c5a,
 		0xdc05,		0x2a77,
 		0xc6c3,		go->format == V4L2_PIX_FMT_MPEG4 ? 0 :
-				(go->format == V4L2_PIX_FMT_H263 ? 0 : 1),
+		(go->format == V4L2_PIX_FMT_H263 ? 0 : 1),
 		0xc680,		go->format == V4L2_PIX_FMT_MPEG4 ? 0xf1 :
-				(go->format == V4L2_PIX_FMT_H263 ? 0x61 :
-									0xd3),
+		(go->format == V4L2_PIX_FMT_H263 ? 0x61 :
+		0xd3),
 		0xc780,		0x0140,
 		0xe009,		0x0001,
 		0xc60f,		0x0008,
@@ -1113,26 +1326,26 @@ static int config_package(struct go7007 *go, __le16 *code, int space)
 		0xe402,		0x018b,
 		0xe401,		0x8b01,
 		0xd472,		(go->board_info->sensor_flags &
-							GO7007_SENSOR_TV) &&
-						(!go->interlace_coding) ?
-					0x01b0 : 0x0170,
+		GO7007_SENSOR_TV) &&
+		(!go->interlace_coding) ?
+		0x01b0 : 0x0170,
 		0xd475,		(go->board_info->sensor_flags &
-							GO7007_SENSOR_TV) &&
-						(!go->interlace_coding) ?
-					0x0008 : 0x0009,
+		GO7007_SENSOR_TV) &&
+		(!go->interlace_coding) ?
+		0x0008 : 0x0009,
 		0xc404,		go->interlace_coding ? 0x44 :
-				(go->format == V4L2_PIX_FMT_MPEG4 ? 0x11 :
-				(go->format == V4L2_PIX_FMT_MPEG1 ? 0x02 :
-				(go->format == V4L2_PIX_FMT_MPEG2 ? 0x04 :
-				(go->format == V4L2_PIX_FMT_H263  ? 0x08 :
-								     0x20)))),
+		(go->format == V4L2_PIX_FMT_MPEG4 ? 0x11 :
+		(go->format == V4L2_PIX_FMT_MPEG1 ? 0x02 :
+		(go->format == V4L2_PIX_FMT_MPEG2 ? 0x04 :
+		(go->format == V4L2_PIX_FMT_H263  ? 0x08 :
+		0x20)))),
 		0xbf0a,		(go->format == V4L2_PIX_FMT_MPEG4 ? 8 :
-				(go->format == V4L2_PIX_FMT_MPEG1 ? 1 :
-				(go->format == V4L2_PIX_FMT_MPEG2 ? 2 :
-				(go->format == V4L2_PIX_FMT_H263 ? 4 : 16)))) |
-				((go->repeat_seqhead ? 1 : 0) << 6) |
-				((go->dvd_mode ? 1 : 0) << 9) |
-				((go->gop_header_enable ? 1 : 0) << 10),
+		(go->format == V4L2_PIX_FMT_MPEG1 ? 1 :
+		(go->format == V4L2_PIX_FMT_MPEG2 ? 2 :
+		(go->format == V4L2_PIX_FMT_H263 ? 4 : 16)))) |
+		((go->repeat_seqhead ? 1 : 0) << 6) |
+		((go->dvd_mode ? 1 : 0) << 9) |
+		((go->gop_header_enable ? 1 : 0) << 10),
 		0xbf0b,		0,
 		0xdd5a,		go->ipb ? 0x14 : 0x0a,
 		0xbf0c,		0,
@@ -1170,7 +1383,7 @@ static int config_package(struct go7007 *go, __le16 *code, int space)
 		0xbfe2,		0,
 		0xbfe3,		go->ipb ? 3 : 1,
 		0xc031,		go->board_info->sensor_flags &
-					GO7007_SENSOR_VBI ? 1 : 0,
+		GO7007_SENSOR_VBI ? 1 : 0,
 		0xc01c,		0x1f,
 		0xdd8c,		0x15,
 		0xdd94,		0x15,
@@ -1188,14 +1401,14 @@ static int config_package(struct go7007 *go, __le16 *code, int space)
 		0xbfea,		0,
 		0xbfeb,		0,
 		0xbfec,		(go->interlace_coding ? 1 << 15 : 0) |
-					(go->modet_enable ? 0xa : 0) |
-					(go->board_info->sensor_flags &
-						GO7007_SENSOR_VBI ? 1 : 0),
+		(go->modet_enable ? 0xa : 0) |
+		(go->board_info->sensor_flags &
+		GO7007_SENSOR_VBI ? 1 : 0),
 		0xbfed,		0,
 		0xbfee,		0,
 		0xbfef,		0,
 		0xbff0,		go->board_info->sensor_flags &
-					GO7007_SENSOR_TV ? 0xf060 : 0xb060,
+		GO7007_SENSOR_TV ? 0xf060 : 0xb060,
 		0xbff1,		0,
 		0,		0,
 	};
@@ -1204,15 +1417,16 @@ static int config_package(struct go7007 *go, __le16 *code, int space)
 }
 
 static int seqhead_to_package(struct go7007 *go, __le16 *code, int space,
-	int (*sequence_header_func)(struct go7007 *go,
-		unsigned char *buf, int ext))
+							  int (*sequence_header_func)(struct go7007 *go,
+									  unsigned char *buf, int ext))
 {
 	int vop_time_increment_bitlength = vti_bitlen(go);
 	int fps = go->sensor_framerate / go->fps_scale *
-					(go->interlace_coding ? 2 : 1);
+			  (go->interlace_coding ? 2 : 1);
 	unsigned char buf[40] = { };
 	int len = sequence_header_func(go, buf, 1);
-	u16 pack[] = {
+	u16 pack[] =
+	{
 		0x2006,		0,
 		0xbf08,		fps,
 		0xbf09,		0,
@@ -1274,11 +1488,13 @@ static int relative_prime(int big, int little)
 {
 	int remainder;
 
-	while (little != 0) {
+	while (little != 0)
+	{
 		remainder = big % little;
 		big = little;
 		little = remainder;
 	}
+
 	return big;
 }
 
@@ -1288,10 +1504,11 @@ static int avsync_to_package(struct go7007 *go, __le16 *code, int space)
 	int ratio = arate / go->sensor_framerate;
 	int adjratio = ratio * 215 / 100;
 	int rprime = relative_prime(go->sensor_framerate,
-					arate % go->sensor_framerate);
+								arate % go->sensor_framerate);
 	int f1 = (arate % go->sensor_framerate) / rprime;
 	int f2 = (go->sensor_framerate - arate % go->sensor_framerate) / rprime;
-	u16 pack[] = {
+	u16 pack[] =
+	{
 		0x200e,		0,
 		0xbf98,		(u16)((-adjratio) & 0xffff),
 		0xbf99,		(u16)((-adjratio) >> 16),
@@ -1316,7 +1533,8 @@ static int avsync_to_package(struct go7007 *go, __le16 *code, int space)
 static int final_package(struct go7007 *go, __le16 *code, int space)
 {
 	int rows = go->interlace_coding ? go->height / 32 : go->height / 16;
-	u16 pack[] = {
+	u16 pack[] =
+	{
 		0x8000,
 		0,
 		0,
@@ -1326,39 +1544,39 @@ static int final_package(struct go7007 *go, __le16 *code, int space)
 		0,
 		2,
 		((go->board_info->sensor_flags & GO7007_SENSOR_TV) &&
-						(!go->interlace_coding) ?
-					(1 << 14) | (1 << 9) : 0) |
-			((go->encoder_subsample ? 1 : 0) << 8) |
-			(go->board_info->sensor_flags &
-				GO7007_SENSOR_CONFIG_MASK),
+		(!go->interlace_coding) ?
+		(1 << 14) | (1 << 9) : 0) |
+		((go->encoder_subsample ? 1 : 0) << 8) |
+		(go->board_info->sensor_flags &
+		GO7007_SENSOR_CONFIG_MASK),
 		((go->encoder_v_halve ? 1 : 0) << 14) |
-			(go->encoder_v_halve ? rows << 9 : rows << 8) |
-			(go->encoder_h_halve ? 1 << 6 : 0) |
-			(go->encoder_h_halve ? go->width >> 3 : go->width >> 4),
+		(go->encoder_v_halve ? rows << 9 : rows << 8) |
+		(go->encoder_h_halve ? 1 << 6 : 0) |
+		(go->encoder_h_halve ? go->width >> 3 : go->width >> 4),
 		(1 << 15) | (go->encoder_v_offset << 6) |
-			(1 << 7) | (go->encoder_h_offset >> 2),
+		(1 << 7) | (go->encoder_h_offset >> 2),
 		(1 << 6),
 		0,
 		0,
 		((go->fps_scale - 1) << 8) |
-			(go->board_info->sensor_flags & GO7007_SENSOR_TV ?
-						(1 << 7) : 0) |
-			0x41,
+		(go->board_info->sensor_flags & GO7007_SENSOR_TV ?
+		(1 << 7) : 0) |
+		0x41,
 		go->ipb ? 0xd4c : 0x36b,
 		(rows << 8) | (go->width >> 4),
 		go->format == V4L2_PIX_FMT_MPEG4 ? 0x0404 : 0,
 		(1 << 15) | ((go->interlace_coding ? 1 : 0) << 13) |
-			((go->closed_gop ? 1 : 0) << 12) |
-			((go->format == V4L2_PIX_FMT_MPEG4 ? 1 : 0) << 11) |
+		((go->closed_gop ? 1 : 0) << 12) |
+		((go->format == V4L2_PIX_FMT_MPEG4 ? 1 : 0) << 11) |
 		/*	(1 << 9) |   */
-			((go->ipb ? 3 : 0) << 7) |
-			((go->modet_enable ? 1 : 0) << 2) |
-			((go->dvd_mode ? 1 : 0) << 1) | 1,
+		((go->ipb ? 3 : 0) << 7) |
+		((go->modet_enable ? 1 : 0) << 2) |
+		((go->dvd_mode ? 1 : 0) << 1) | 1,
 		(go->format == V4L2_PIX_FMT_MPEG1 ? 0x89a0 :
-			(go->format == V4L2_PIX_FMT_MPEG2 ? 0x89a0 :
-			(go->format == V4L2_PIX_FMT_MJPEG ? 0x89a0 :
-			(go->format == V4L2_PIX_FMT_MPEG4 ? 0x8920 :
-			(go->format == V4L2_PIX_FMT_H263 ? 0x8920 : 0))))),
+		(go->format == V4L2_PIX_FMT_MPEG2 ? 0x89a0 :
+		(go->format == V4L2_PIX_FMT_MJPEG ? 0x89a0 :
+		(go->format == V4L2_PIX_FMT_MPEG4 ? 0x8920 :
+		(go->format == V4L2_PIX_FMT_H263 ? 0x8920 : 0))))),
 		go->ipb ? 0x1f15 : 0x1f0b,
 		go->ipb ? 0x0015 : 0x000b,
 		go->ipb ? 0xa800 : 0x5800,
@@ -1370,7 +1588,7 @@ static int final_package(struct go7007 *go, __le16 *code, int space)
 		0x0020 + 0x034b * 4,
 		0x0020 + 0x034b * 5,
 		go->ipb ? (go->gop_size / 3) : go->gop_size,
-		(go->height >> 4) * (go->width >> 4) * 110 / 100,
+		(go->height >> 4) *(go->width >> 4) * 110 / 100,
 	};
 
 	return copy_packages(code, pack, 1, space);
@@ -1379,12 +1597,13 @@ static int final_package(struct go7007 *go, __le16 *code, int space)
 static int audio_to_package(struct go7007 *go, __le16 *code, int space)
 {
 	int clock_config = ((go->board_info->audio_flags &
-				GO7007_AUDIO_I2S_MASTER ? 1 : 0) << 11) |
-			((go->board_info->audio_flags &
-				GO7007_AUDIO_OKI_MODE ? 1 : 0) << 8) |
-			(((go->board_info->audio_bclk_div / 4) - 1) << 4) |
-			(go->board_info->audio_main_div - 1);
-	u16 pack[] = {
+						 GO7007_AUDIO_I2S_MASTER ? 1 : 0) << 11) |
+					   ((go->board_info->audio_flags &
+						 GO7007_AUDIO_OKI_MODE ? 1 : 0) << 8) |
+					   (((go->board_info->audio_bclk_div / 4) - 1) << 4) |
+					   (go->board_info->audio_main_div - 1);
+	u16 pack[] =
+	{
 		0x200d,		0,
 		0x9002,		0,
 		0x9002,		0,
@@ -1398,11 +1617,11 @@ static int audio_to_package(struct go7007 *go, __le16 *code, int space)
 		0x9040,		0,
 		0x9000,		clock_config,
 		0x9001,		(go->board_info->audio_flags & 0xffff) |
-					(1 << 9),
+		(1 << 9),
 		0x9000,		((go->board_info->audio_flags &
-						GO7007_AUDIO_I2S_MASTER ?
-						1 : 0) << 10) |
-					clock_config,
+		GO7007_AUDIO_I2S_MASTER ?
+		1 : 0) << 10) |
+		clock_config,
 		0,		0,
 		0,		0,
 		0x2005,		0,
@@ -1434,7 +1653,8 @@ static int modet_to_package(struct go7007 *go, __le16 *code, int space)
 	bool has_modet3 = go->modet[3].enable;
 	int ret, mb, i, addr, cnt = 0;
 	u16 pack[32];
-	u16 thresholds[] = {
+	u16 thresholds[] =
+	{
 		0x200e,		0,
 		0xbf82,		has_modet0 ? go->modet[0].pixel_threshold : 32767,
 		0xbf83,		has_modet1 ? go->modet[1].pixel_threshold : 32767,
@@ -1454,94 +1674,135 @@ static int modet_to_package(struct go7007 *go, __le16 *code, int space)
 	};
 
 	ret = copy_packages(code, thresholds, 1, space);
+
 	if (ret < 0)
+	{
 		return -1;
+	}
+
 	cnt += ret;
 
 	addr = 0xbac0;
 	memset(pack, 0, 64);
 	i = 0;
-	for (mb = 0; mb < 1624; ++mb) {
+
+	for (mb = 0; mb < 1624; ++mb)
+	{
 		pack[i * 2 + 3] <<= 2;
 		pack[i * 2 + 3] |= go->modet_map[mb];
+
 		if (mb % 8 != 7)
+		{
 			continue;
+		}
+
 		pack[i * 2 + 2] = addr++;
 		++i;
-		if (i == 10 || mb == 1623) {
+
+		if (i == 10 || mb == 1623)
+		{
 			pack[0] = 0x2000 | i;
 			ret = copy_packages(code + cnt, pack, 1, space - cnt);
+
 			if (ret < 0)
+			{
 				return -1;
+			}
+
 			cnt += ret;
 			i = 0;
 			memset(pack, 0, 64);
 		}
+
 		pack[i * 2 + 3] = 0;
 	}
 
 	memset(pack, 0, 64);
 	i = 0;
-	for (addr = 0xbb90; addr < 0xbbfa; ++addr) {
+
+	for (addr = 0xbb90; addr < 0xbbfa; ++addr)
+	{
 		pack[i * 2 + 2] = addr;
 		pack[i * 2 + 3] = 0;
 		++i;
-		if (i == 10 || addr == 0xbbf9) {
+
+		if (i == 10 || addr == 0xbbf9)
+		{
 			pack[0] = 0x2000 | i;
 			ret = copy_packages(code + cnt, pack, 1, space - cnt);
+
 			if (ret < 0)
+			{
 				return -1;
+			}
+
 			cnt += ret;
 			i = 0;
 			memset(pack, 0, 64);
 		}
 	}
+
 	return cnt;
 }
 
 static int do_special(struct go7007 *go, u16 type, __le16 *code, int space,
-			int *framelen)
+					  int *framelen)
 {
-	switch (type) {
-	case SPECIAL_FRM_HEAD:
-		switch (go->format) {
-		case V4L2_PIX_FMT_MJPEG:
-			return gen_mjpeghdr_to_package(go, code, space);
-		case V4L2_PIX_FMT_MPEG1:
-		case V4L2_PIX_FMT_MPEG2:
-			return gen_mpeg1hdr_to_package(go, code, space,
-								framelen);
-		case V4L2_PIX_FMT_MPEG4:
-			return gen_mpeg4hdr_to_package(go, code, space,
-								framelen);
-		}
-	case SPECIAL_BRC_CTRL:
-		return brctrl_to_package(go, code, space, framelen);
-	case SPECIAL_CONFIG:
-		return config_package(go, code, space);
-	case SPECIAL_SEQHEAD:
-		switch (go->format) {
-		case V4L2_PIX_FMT_MPEG1:
-		case V4L2_PIX_FMT_MPEG2:
-			return seqhead_to_package(go, code, space,
-					mpeg1_sequence_header);
-		case V4L2_PIX_FMT_MPEG4:
-			return seqhead_to_package(go, code, space,
-					mpeg4_sequence_header);
-		default:
-			return 0;
-		}
-	case SPECIAL_AV_SYNC:
-		return avsync_to_package(go, code, space);
-	case SPECIAL_FINAL:
-		return final_package(go, code, space);
-	case SPECIAL_AUDIO:
-		return audio_to_package(go, code, space);
-	case SPECIAL_MODET:
-		return modet_to_package(go, code, space);
+	switch (type)
+	{
+		case SPECIAL_FRM_HEAD:
+			switch (go->format)
+			{
+				case V4L2_PIX_FMT_MJPEG:
+					return gen_mjpeghdr_to_package(go, code, space);
+
+				case V4L2_PIX_FMT_MPEG1:
+				case V4L2_PIX_FMT_MPEG2:
+					return gen_mpeg1hdr_to_package(go, code, space,
+												   framelen);
+
+				case V4L2_PIX_FMT_MPEG4:
+					return gen_mpeg4hdr_to_package(go, code, space,
+												   framelen);
+			}
+
+		case SPECIAL_BRC_CTRL:
+			return brctrl_to_package(go, code, space, framelen);
+
+		case SPECIAL_CONFIG:
+			return config_package(go, code, space);
+
+		case SPECIAL_SEQHEAD:
+			switch (go->format)
+			{
+				case V4L2_PIX_FMT_MPEG1:
+				case V4L2_PIX_FMT_MPEG2:
+					return seqhead_to_package(go, code, space,
+											  mpeg1_sequence_header);
+
+				case V4L2_PIX_FMT_MPEG4:
+					return seqhead_to_package(go, code, space,
+											  mpeg4_sequence_header);
+
+				default:
+					return 0;
+			}
+
+		case SPECIAL_AV_SYNC:
+			return avsync_to_package(go, code, space);
+
+		case SPECIAL_FINAL:
+			return final_package(go, code, space);
+
+		case SPECIAL_AUDIO:
+			return audio_to_package(go, code, space);
+
+		case SPECIAL_MODET:
+			return modet_to_package(go, code, space);
 	}
+
 	dev_err(go->dev,
-		"firmware file contains unsupported feature %04x\n", type);
+			"firmware file contains unsupported feature %04x\n", type);
 	return -1;
 }
 
@@ -1554,66 +1815,93 @@ int go7007_construct_fw_image(struct go7007 *go, u8 **fw, int *fwlen)
 	int mode_flag;
 	int ret;
 
-	switch (go->format) {
-	case V4L2_PIX_FMT_MJPEG:
-		mode_flag = FLAG_MODE_MJPEG;
-		break;
-	case V4L2_PIX_FMT_MPEG1:
-		mode_flag = FLAG_MODE_MPEG1;
-		break;
-	case V4L2_PIX_FMT_MPEG2:
-		mode_flag = FLAG_MODE_MPEG2;
-		break;
-	case V4L2_PIX_FMT_MPEG4:
-		mode_flag = FLAG_MODE_MPEG4;
-		break;
-	default:
-		return -1;
+	switch (go->format)
+	{
+		case V4L2_PIX_FMT_MJPEG:
+			mode_flag = FLAG_MODE_MJPEG;
+			break;
+
+		case V4L2_PIX_FMT_MPEG1:
+			mode_flag = FLAG_MODE_MPEG1;
+			break;
+
+		case V4L2_PIX_FMT_MPEG2:
+			mode_flag = FLAG_MODE_MPEG2;
+			break;
+
+		case V4L2_PIX_FMT_MPEG4:
+			mode_flag = FLAG_MODE_MPEG4;
+			break;
+
+		default:
+			return -1;
 	}
-	if (request_firmware(&fw_entry, GO7007_FW_NAME, go->dev)) {
+
+	if (request_firmware(&fw_entry, GO7007_FW_NAME, go->dev))
+	{
 		dev_err(go->dev,
-			"unable to load firmware from file \"%s\"\n",
-			GO7007_FW_NAME);
+				"unable to load firmware from file \"%s\"\n",
+				GO7007_FW_NAME);
 		return -1;
 	}
+
 	code = kzalloc(codespace * 2, GFP_KERNEL);
+
 	if (code == NULL)
+	{
 		goto fw_failed;
+	}
 
 	src = (__le16 *)fw_entry->data;
 	srclen = fw_entry->size / 2;
-	while (srclen >= 2) {
+
+	while (srclen >= 2)
+	{
 		chunk_flags = __le16_to_cpu(src[0]);
 		chunk_len = __le16_to_cpu(src[1]);
-		if (chunk_len + 2 > srclen) {
+
+		if (chunk_len + 2 > srclen)
+		{
 			dev_err(go->dev,
-				"firmware file \"%s\" appears to be corrupted\n",
-				GO7007_FW_NAME);
+					"firmware file \"%s\" appears to be corrupted\n",
+					GO7007_FW_NAME);
 			goto fw_failed;
 		}
-		if (chunk_flags & mode_flag) {
-			if (chunk_flags & FLAG_SPECIAL) {
+
+		if (chunk_flags & mode_flag)
+		{
+			if (chunk_flags & FLAG_SPECIAL)
+			{
 				ret = do_special(go, __le16_to_cpu(src[2]),
-					&code[i], codespace - i, framelen);
-				if (ret < 0) {
+								 &code[i], codespace - i, framelen);
+
+				if (ret < 0)
+				{
 					dev_err(go->dev,
-						"insufficient memory for firmware construction\n");
+							"insufficient memory for firmware construction\n");
 					goto fw_failed;
 				}
+
 				i += ret;
-			} else {
-				if (codespace - i < chunk_len) {
+			}
+			else
+			{
+				if (codespace - i < chunk_len)
+				{
 					dev_err(go->dev,
-						"insufficient memory for firmware construction\n");
+							"insufficient memory for firmware construction\n");
 					goto fw_failed;
 				}
+
 				memcpy(&code[i], &src[2], chunk_len * 2);
 				i += chunk_len;
 			}
 		}
+
 		srclen -= chunk_len + 2;
 		src += chunk_len + 2;
 	}
+
 	release_firmware(fw_entry);
 	*fw = (u8 *)code;
 	*fwlen = i * 2;

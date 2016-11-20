@@ -79,13 +79,16 @@ acpi_ns_execute_table(u32 table_index, struct acpi_namespace_node *start_node)
 	ACPI_FUNCTION_TRACE(ns_execute_table);
 
 	status = acpi_get_table_by_index(table_index, &table);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
 	}
 
 	/* Table must consist of at least a complete header */
 
-	if (table->length < sizeof(struct acpi_table_header)) {
+	if (table->length < sizeof(struct acpi_table_header))
+	{
 		return_ACPI_STATUS(AE_BAD_HEADER);
 	}
 
@@ -93,27 +96,33 @@ acpi_ns_execute_table(u32 table_index, struct acpi_namespace_node *start_node)
 	aml_length = table->length - sizeof(struct acpi_table_header);
 
 	status = acpi_tb_get_owner_id(table_index, &owner_id);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
 	}
 
 	/* Create, initialize, and link a new temporary method object */
 
 	method_obj = acpi_ut_create_internal_object(ACPI_TYPE_METHOD);
-	if (!method_obj) {
+
+	if (!method_obj)
+	{
 		return_ACPI_STATUS(AE_NO_MEMORY);
 	}
 
 	/* Allocate the evaluation information block */
 
 	info = ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_evaluate_info));
-	if (!info) {
+
+	if (!info)
+	{
 		status = AE_NO_MEMORY;
 		goto cleanup;
 	}
 
 	ACPI_DEBUG_PRINT((ACPI_DB_PARSE,
-			  "Create table code block: %p\n", method_obj));
+					  "Create table code block: %p\n", method_obj));
 
 	method_obj->method.aml_start = aml_start;
 	method_obj->method.aml_length = aml_length;
@@ -125,7 +134,9 @@ acpi_ns_execute_table(u32 table_index, struct acpi_namespace_node *start_node)
 	info->obj_desc = method_obj;
 	info->node_flags = info->node->flags;
 	info->full_pathname = acpi_ns_get_normalized_pathname(info->node, TRUE);
-	if (!info->full_pathname) {
+
+	if (!info->full_pathname)
+	{
 		status = AE_NO_MEMORY;
 		goto cleanup;
 	}
@@ -133,10 +144,13 @@ acpi_ns_execute_table(u32 table_index, struct acpi_namespace_node *start_node)
 	status = acpi_ps_execute_table(info);
 
 cleanup:
-	if (info) {
+
+	if (info)
+	{
 		ACPI_FREE(info->full_pathname);
 		info->full_pathname = NULL;
 	}
+
 	ACPI_FREE(info);
 	acpi_ut_remove_reference(method_obj);
 	return_ACPI_STATUS(status);
@@ -157,8 +171,8 @@ cleanup:
 
 acpi_status
 acpi_ns_one_complete_parse(u32 pass_number,
-			   u32 table_index,
-			   struct acpi_namespace_node *start_node)
+						   u32 table_index,
+						   struct acpi_namespace_node *start_node)
 {
 	union acpi_parse_object *parse_root;
 	acpi_status status;
@@ -171,13 +185,16 @@ acpi_ns_one_complete_parse(u32 pass_number,
 	ACPI_FUNCTION_TRACE(ns_one_complete_parse);
 
 	status = acpi_get_table_by_index(table_index, &table);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
 	}
 
 	/* Table must consist of at least a complete header */
 
-	if (table->length < sizeof(struct acpi_table_header)) {
+	if (table->length < sizeof(struct acpi_table_header))
+	{
 		return_ACPI_STATUS(AE_BAD_HEADER);
 	}
 
@@ -185,29 +202,37 @@ acpi_ns_one_complete_parse(u32 pass_number,
 	aml_length = table->length - sizeof(struct acpi_table_header);
 
 	status = acpi_tb_get_owner_id(table_index, &owner_id);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
 	}
 
 	/* Create and init a Root Node */
 
 	parse_root = acpi_ps_create_scope_op(aml_start);
-	if (!parse_root) {
+
+	if (!parse_root)
+	{
 		return_ACPI_STATUS(AE_NO_MEMORY);
 	}
 
 	/* Create and initialize a new walk state */
 
 	walk_state = acpi_ds_create_walk_state(owner_id, NULL, NULL, NULL);
-	if (!walk_state) {
+
+	if (!walk_state)
+	{
 		acpi_ps_free_op(parse_root);
 		return_ACPI_STATUS(AE_NO_MEMORY);
 	}
 
 	status = acpi_ds_init_aml_walk(walk_state, parse_root, NULL,
-				       aml_start, aml_length, NULL,
-				       (u8)pass_number);
-	if (ACPI_FAILURE(status)) {
+								   aml_start, aml_length, NULL,
+								   (u8)pass_number);
+
+	if (ACPI_FAILURE(status))
+	{
 		acpi_ds_delete_walk_state(walk_state);
 		goto cleanup;
 	}
@@ -215,17 +240,21 @@ acpi_ns_one_complete_parse(u32 pass_number,
 	/* Found OSDT table, enable the namespace override feature */
 
 	if (ACPI_COMPARE_NAME(table->signature, ACPI_SIG_OSDT) &&
-	    pass_number == ACPI_IMODE_LOAD_PASS1) {
+		pass_number == ACPI_IMODE_LOAD_PASS1)
+	{
 		walk_state->namespace_override = TRUE;
 	}
 
 	/* start_node is the default location to load the table */
 
-	if (start_node && start_node != acpi_gbl_root_node) {
+	if (start_node && start_node != acpi_gbl_root_node)
+	{
 		status =
-		    acpi_ds_scope_stack_push(start_node, ACPI_TYPE_METHOD,
-					     walk_state);
-		if (ACPI_FAILURE(status)) {
+			acpi_ds_scope_stack_push(start_node, ACPI_TYPE_METHOD,
+									 walk_state);
+
+		if (ACPI_FAILURE(status))
+		{
 			acpi_ds_delete_walk_state(walk_state);
 			goto cleanup;
 		}
@@ -234,7 +263,7 @@ acpi_ns_one_complete_parse(u32 pass_number,
 	/* Parse the AML */
 
 	ACPI_DEBUG_PRINT((ACPI_DB_PARSE,
-			  "*PARSE* pass %u parse\n", pass_number));
+					  "*PARSE* pass %u parse\n", pass_number));
 	acpi_ex_enter_interpreter();
 	status = acpi_ps_parse_aml(walk_state);
 	acpi_ex_exit_interpreter();
@@ -264,14 +293,19 @@ acpi_ns_parse_table(u32 table_index, struct acpi_namespace_node *start_node)
 
 	ACPI_FUNCTION_TRACE(ns_parse_table);
 
-	if (acpi_gbl_parse_table_as_term_list) {
+	if (acpi_gbl_parse_table_as_term_list)
+	{
 		ACPI_DEBUG_PRINT((ACPI_DB_PARSE, "**** Start load pass\n"));
 
 		status = acpi_ns_execute_table(table_index, start_node);
-		if (ACPI_FAILURE(status)) {
+
+		if (ACPI_FAILURE(status))
+		{
 			return_ACPI_STATUS(status);
 		}
-	} else {
+	}
+	else
+	{
 		/*
 		 * AML Parse, pass 1
 		 *
@@ -285,8 +319,10 @@ acpi_ns_parse_table(u32 table_index, struct acpi_namespace_node *start_node)
 		ACPI_DEBUG_PRINT((ACPI_DB_PARSE, "**** Start pass 1\n"));
 
 		status = acpi_ns_one_complete_parse(ACPI_IMODE_LOAD_PASS1,
-						    table_index, start_node);
-		if (ACPI_FAILURE(status)) {
+											table_index, start_node);
+
+		if (ACPI_FAILURE(status))
+		{
 			return_ACPI_STATUS(status);
 		}
 
@@ -301,8 +337,10 @@ acpi_ns_parse_table(u32 table_index, struct acpi_namespace_node *start_node)
 		 */
 		ACPI_DEBUG_PRINT((ACPI_DB_PARSE, "**** Start pass 2\n"));
 		status = acpi_ns_one_complete_parse(ACPI_IMODE_LOAD_PASS2,
-						    table_index, start_node);
-		if (ACPI_FAILURE(status)) {
+											table_index, start_node);
+
+		if (ACPI_FAILURE(status))
+		{
 			return_ACPI_STATUS(status);
 		}
 	}

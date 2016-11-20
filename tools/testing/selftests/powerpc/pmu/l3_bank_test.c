@@ -28,7 +28,9 @@ static int l3_bank_test(void)
 	FAIL_IF(event_open(&event));
 
 	for (i = 0; i < MALLOC_SIZE; i += 0x10000)
+	{
 		p[i] = i;
+	}
 
 	event_read(&event);
 	event_report(&event);

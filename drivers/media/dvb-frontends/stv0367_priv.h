@@ -28,14 +28,14 @@
 #define STV0367_PRIV_H
 
 #ifndef TRUE
-    #define TRUE (1 == 1)
+	#define TRUE (1 == 1)
 #endif
 #ifndef FALSE
-    #define FALSE (!TRUE)
+	#define FALSE (!TRUE)
 #endif
 
 #ifndef NULL
-#define NULL 0
+	#define NULL 0
 #endif
 
 /* MACRO definitions */
@@ -44,17 +44,18 @@
 #define MIN(X, Y) ((X) <= (Y) ? (X) : (Y))
 #define INRANGE(X, Y, Z) \
 	((((X) <= (Y)) && ((Y) <= (Z))) || \
-	(((Z) <= (Y)) && ((Y) <= (X))) ? 1 : 0)
+	 (((Z) <= (Y)) && ((Y) <= (X))) ? 1 : 0)
 
 #ifndef MAKEWORD
-#define MAKEWORD(X, Y) (((X) << 8) + (Y))
+	#define MAKEWORD(X, Y) (((X) << 8) + (Y))
 #endif
 
 #define LSB(X) (((X) & 0xff))
 #define MSB(Y) (((Y) >> 8) & 0xff)
 #define MMSB(Y)(((Y) >> 16) & 0xff)
 
-enum stv0367_ter_signal_type {
+enum stv0367_ter_signal_type
+{
 	FE_TER_NOAGC = 0,
 	FE_TER_AGCOK = 5,
 	FE_TER_NOTPS = 6,
@@ -71,7 +72,8 @@ enum stv0367_ter_signal_type {
 	FE_TER_SWNOK = 18
 };
 
-enum stv0367_ts_mode {
+enum stv0367_ts_mode
+{
 	STV0367_OUTPUTMODE_DEFAULT,
 	STV0367_SERIAL_PUNCT_CLOCK,
 	STV0367_SERIAL_CONT_CLOCK,
@@ -79,20 +81,23 @@ enum stv0367_ts_mode {
 	STV0367_DVBCI_CLOCK
 };
 
-enum stv0367_clk_pol {
+enum stv0367_clk_pol
+{
 	STV0367_CLOCKPOLARITY_DEFAULT,
 	STV0367_RISINGEDGE_CLOCK,
 	STV0367_FALLINGEDGE_CLOCK
 };
 
-enum stv0367_ter_bw {
+enum stv0367_ter_bw
+{
 	FE_TER_CHAN_BW_6M = 6,
 	FE_TER_CHAN_BW_7M = 7,
 	FE_TER_CHAN_BW_8M = 8
 };
 
 #if 0
-enum FE_TER_Rate_TPS {
+enum FE_TER_Rate_TPS
+{
 	FE_TER_TPS_1_2 = 0,
 	FE_TER_TPS_2_3 = 1,
 	FE_TER_TPS_3_4 = 2,
@@ -101,20 +106,23 @@ enum FE_TER_Rate_TPS {
 };
 #endif
 
-enum stv0367_ter_mode {
+enum stv0367_ter_mode
+{
 	FE_TER_MODE_2K,
 	FE_TER_MODE_8K,
 	FE_TER_MODE_4K
 };
 #if 0
-enum FE_TER_Hierarchy_Alpha {
+enum FE_TER_Hierarchy_Alpha
+{
 	FE_TER_HIER_ALPHA_NONE,	/* Regular modulation */
 	FE_TER_HIER_ALPHA_1,	/* Hierarchical modulation a = 1*/
 	FE_TER_HIER_ALPHA_2,	/* Hierarchical modulation a = 2*/
 	FE_TER_HIER_ALPHA_4	/* Hierarchical modulation a = 4*/
 };
 #endif
-enum stv0367_ter_hierarchy {
+enum stv0367_ter_hierarchy
+{
 	FE_TER_HIER_NONE,	/*Hierarchy None*/
 	FE_TER_HIER_LOW_PRIO,	/*Hierarchy : Low Priority*/
 	FE_TER_HIER_HIGH_PRIO,	/*Hierarchy : High Priority*/
@@ -122,7 +130,8 @@ enum stv0367_ter_hierarchy {
 };
 
 #if 0
-enum fe_stv0367_ter_spec {
+enum fe_stv0367_ter_spec
+{
 	FE_TER_INVERSION_NONE = 0,
 	FE_TER_INVERSION = 1,
 	FE_TER_INVERSION_AUTO = 2,
@@ -130,7 +139,8 @@ enum fe_stv0367_ter_spec {
 };
 #endif
 
-enum stv0367_ter_if_iq_mode {
+enum stv0367_ter_if_iq_mode
+{
 	FE_TER_NORMAL_IF_TUNER = 0,
 	FE_TER_LONGPATH_IF_TUNER = 1,
 	FE_TER_IQ_TUNER = 2
@@ -138,7 +148,8 @@ enum stv0367_ter_if_iq_mode {
 };
 
 #if 0
-enum FE_TER_FECRate {
+enum FE_TER_FECRate
+{
 	FE_TER_FEC_NONE = 0x00,	/* no FEC rate specified */
 	FE_TER_FEC_ALL = 0xFF,	 /* Logical OR of all FECs */
 	FE_TER_FEC_1_2 = 1,
@@ -151,7 +162,8 @@ enum FE_TER_FECRate {
 	FE_TER_FEC_8_9 = (1 << 7)
 };
 
-enum FE_TER_Rate {
+enum FE_TER_Rate
+{
 	FE_TER_FE_1_2 = 0,
 	FE_TER_FE_2_3 = 1,
 	FE_TER_FE_3_4 = 2,
@@ -161,12 +173,14 @@ enum FE_TER_Rate {
 };
 #endif
 
-enum stv0367_ter_force {
+enum stv0367_ter_force
+{
 	FE_TER_FORCENONE = 0,
 	FE_TER_FORCE_M_G = 1
 };
 
-enum  stv0367cab_mod {
+enum  stv0367cab_mod
+{
 	FE_CAB_MOD_QAM4,
 	FE_CAB_MOD_QAM16,
 	FE_CAB_MOD_QAM32,
@@ -177,13 +191,15 @@ enum  stv0367cab_mod {
 	FE_CAB_MOD_QAM1024
 };
 #if 0
-enum {
+enum
+{
 	FE_CAB_FEC_A = 1,	/* J83 Annex A */
 	FE_CAB_FEC_B = (1 << 1),/* J83 Annex B */
 	FE_CAB_FEC_C = (1 << 2)	/* J83 Annex C */
 } FE_CAB_FECType_t;
 #endif
-struct stv0367_cab_signal_info {
+struct stv0367_cab_signal_info
+{
 	int locked;
 	u32 frequency; /* kHz */
 	u32 symbol_rate; /* Mbds */
@@ -194,7 +210,8 @@ struct stv0367_cab_signal_info {
 	u32	BER;		/* Bit error rate (x 10000000)	*/
 };
 
-enum stv0367_cab_signal_type {
+enum stv0367_cab_signal_type
+{
 	FE_CAB_NOTUNER,
 	FE_CAB_NOAGC,
 	FE_CAB_NOSIGNAL,

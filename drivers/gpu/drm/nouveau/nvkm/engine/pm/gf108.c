@@ -24,13 +24,17 @@
 #include "gf100.h"
 
 static const struct nvkm_specdom
-gf108_pm_hub[] = {
+	gf108_pm_hub[] =
+{
 	{}
 };
 
 static const struct nvkm_specdom
-gf108_pm_part[] = {
-	{ 0xe0, (const struct nvkm_specsig[]) {
+	gf108_pm_part[] =
+{
+	{
+		0xe0, (const struct nvkm_specsig[])
+		{
 			{ 0x14, "part00_pbfb_00", gf100_pbfb_sources },
 			{ 0x15, "part00_pbfb_01", gf100_pbfb_sources },
 			{ 0x20, "part00_pbfb_02", gf100_pbfb_sources },
@@ -48,12 +52,14 @@ gf108_pm_part[] = {
 			{ 0x2f, "part00_pmfb_0a", gf100_pmfb_sources },
 			{ 0x30, "part00_pmfb_0b", gf100_pmfb_sources },
 			{}
-		}, &gf100_perfctr_func },
+		}, &gf100_perfctr_func
+	},
 	{}
 };
 
 static const struct gf100_pm_func
-gf108_pm = {
+	gf108_pm =
+{
 	.doms_gpc = gf100_pm_gpc,
 	.doms_hub = gf108_pm_hub,
 	.doms_part = gf108_pm_part,

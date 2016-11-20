@@ -27,23 +27,23 @@ static u8 qede_dcbnl_setstate(struct net_device *netdev, u8 state)
 }
 
 static void qede_dcbnl_getpermhwaddr(struct net_device *netdev,
-				     u8 *perm_addr)
+									 u8 *perm_addr)
 {
 	memcpy(perm_addr, netdev->dev_addr, netdev->addr_len);
 }
 
 static void qede_dcbnl_getpgtccfgtx(struct net_device *netdev, int prio,
-				    u8 *prio_type, u8 *pgid, u8 *bw_pct,
-				    u8 *up_map)
+									u8 *prio_type, u8 *pgid, u8 *bw_pct,
+									u8 *up_map)
 {
 	struct qede_dev *edev = netdev_priv(netdev);
 
 	edev->ops->dcb->getpgtccfgtx(edev->cdev, prio, prio_type,
-				     pgid, bw_pct, up_map);
+								 pgid, bw_pct, up_map);
 }
 
 static void qede_dcbnl_getpgbwgcfgtx(struct net_device *netdev,
-				     int pgid, u8 *bw_pct)
+									 int pgid, u8 *bw_pct)
 {
 	struct qede_dev *edev = netdev_priv(netdev);
 
@@ -51,17 +51,17 @@ static void qede_dcbnl_getpgbwgcfgtx(struct net_device *netdev,
 }
 
 static void qede_dcbnl_getpgtccfgrx(struct net_device *netdev, int prio,
-				    u8 *prio_type, u8 *pgid, u8 *bw_pct,
-				    u8 *up_map)
+									u8 *prio_type, u8 *pgid, u8 *bw_pct,
+									u8 *up_map)
 {
 	struct qede_dev *edev = netdev_priv(netdev);
 
 	edev->ops->dcb->getpgtccfgrx(edev->cdev, prio, prio_type, pgid, bw_pct,
-				     up_map);
+								 up_map);
 }
 
 static void qede_dcbnl_getpgbwgcfgrx(struct net_device *netdev,
-				     int pgid, u8 *bw_pct)
+									 int pgid, u8 *bw_pct)
 {
 	struct qede_dev *edev = netdev_priv(netdev);
 
@@ -69,7 +69,7 @@ static void qede_dcbnl_getpgbwgcfgrx(struct net_device *netdev,
 }
 
 static void qede_dcbnl_getpfccfg(struct net_device *netdev, int prio,
-				 u8 *setting)
+								 u8 *setting)
 {
 	struct qede_dev *edev = netdev_priv(netdev);
 
@@ -77,7 +77,7 @@ static void qede_dcbnl_getpfccfg(struct net_device *netdev, int prio,
 }
 
 static void qede_dcbnl_setpfccfg(struct net_device *netdev, int prio,
-				 u8 setting)
+								 u8 setting)
 {
 	struct qede_dev *edev = netdev_priv(netdev);
 
@@ -120,25 +120,25 @@ static u8 qede_dcbnl_getdcbx(struct net_device *netdev)
 }
 
 static void qede_dcbnl_setpgtccfgtx(struct net_device *netdev, int prio,
-				    u8 pri_type, u8 pgid, u8 bw_pct, u8 up_map)
+									u8 pri_type, u8 pgid, u8 bw_pct, u8 up_map)
 {
 	struct qede_dev *edev = netdev_priv(netdev);
 
 	return edev->ops->dcb->setpgtccfgtx(edev->cdev, prio, pri_type, pgid,
-					    bw_pct, up_map);
+										bw_pct, up_map);
 }
 
 static void qede_dcbnl_setpgtccfgrx(struct net_device *netdev, int prio,
-				    u8 pri_type, u8 pgid, u8 bw_pct, u8 up_map)
+									u8 pri_type, u8 pgid, u8 bw_pct, u8 up_map)
 {
 	struct qede_dev *edev = netdev_priv(netdev);
 
 	return edev->ops->dcb->setpgtccfgrx(edev->cdev, prio, pri_type, pgid,
-					    bw_pct, up_map);
+										bw_pct, up_map);
 }
 
 static void qede_dcbnl_setpgbwgcfgtx(struct net_device *netdev, int pgid,
-				     u8 bw_pct)
+									 u8 bw_pct)
 {
 	struct qede_dev *edev = netdev_priv(netdev);
 
@@ -146,7 +146,7 @@ static void qede_dcbnl_setpgbwgcfgtx(struct net_device *netdev, int pgid,
 }
 
 static void qede_dcbnl_setpgbwgcfgrx(struct net_device *netdev, int pgid,
-				     u8 bw_pct)
+									 u8 bw_pct)
 {
 	struct qede_dev *edev = netdev_priv(netdev);
 
@@ -175,7 +175,7 @@ static void qede_dcbnl_setpfcstate(struct net_device *netdev, u8 state)
 }
 
 static int qede_dcbnl_setapp(struct net_device *netdev, u8 idtype, u16 idval,
-			     u8 up)
+							 u8 up)
 {
 	struct qede_dev *edev = netdev_priv(netdev);
 
@@ -190,7 +190,7 @@ static u8 qede_dcbnl_setdcbx(struct net_device *netdev, u8 state)
 }
 
 static u8 qede_dcbnl_getfeatcfg(struct net_device *netdev, int featid,
-				u8 *flags)
+								u8 *flags)
 {
 	struct qede_dev *edev = netdev_priv(netdev);
 
@@ -205,8 +205,8 @@ static u8 qede_dcbnl_setfeatcfg(struct net_device *netdev, int featid, u8 flags)
 }
 
 static int qede_dcbnl_peer_getappinfo(struct net_device *netdev,
-				      struct dcb_peer_app_info *info,
-				      u16 *count)
+									  struct dcb_peer_app_info *info,
+									  u16 *count)
 {
 	struct qede_dev *edev = netdev_priv(netdev);
 
@@ -214,7 +214,7 @@ static int qede_dcbnl_peer_getappinfo(struct net_device *netdev,
 }
 
 static int qede_dcbnl_peer_getapptable(struct net_device *netdev,
-				       struct dcb_app *app)
+									   struct dcb_app *app)
 {
 	struct qede_dev *edev = netdev_priv(netdev);
 
@@ -222,7 +222,7 @@ static int qede_dcbnl_peer_getapptable(struct net_device *netdev,
 }
 
 static int qede_dcbnl_cee_peer_getpfc(struct net_device *netdev,
-				      struct cee_pfc *pfc)
+									  struct cee_pfc *pfc)
 {
 	struct qede_dev *edev = netdev_priv(netdev);
 
@@ -230,7 +230,7 @@ static int qede_dcbnl_cee_peer_getpfc(struct net_device *netdev,
 }
 
 static int qede_dcbnl_cee_peer_getpg(struct net_device *netdev,
-				     struct cee_pg *pg)
+									 struct cee_pg *pg)
 {
 	struct qede_dev *edev = netdev_priv(netdev);
 
@@ -238,7 +238,7 @@ static int qede_dcbnl_cee_peer_getpg(struct net_device *netdev,
 }
 
 static int qede_dcbnl_ieee_getpfc(struct net_device *netdev,
-				  struct ieee_pfc *pfc)
+								  struct ieee_pfc *pfc)
 {
 	struct qede_dev *edev = netdev_priv(netdev);
 
@@ -246,7 +246,7 @@ static int qede_dcbnl_ieee_getpfc(struct net_device *netdev,
 }
 
 static int qede_dcbnl_ieee_setpfc(struct net_device *netdev,
-				  struct ieee_pfc *pfc)
+								  struct ieee_pfc *pfc)
 {
 	struct qede_dev *edev = netdev_priv(netdev);
 
@@ -254,7 +254,7 @@ static int qede_dcbnl_ieee_setpfc(struct net_device *netdev,
 }
 
 static int qede_dcbnl_ieee_getets(struct net_device *netdev,
-				  struct ieee_ets *ets)
+								  struct ieee_ets *ets)
 {
 	struct qede_dev *edev = netdev_priv(netdev);
 
@@ -262,7 +262,7 @@ static int qede_dcbnl_ieee_getets(struct net_device *netdev,
 }
 
 static int qede_dcbnl_ieee_setets(struct net_device *netdev,
-				  struct ieee_ets *ets)
+								  struct ieee_ets *ets)
 {
 	struct qede_dev *edev = netdev_priv(netdev);
 
@@ -270,7 +270,7 @@ static int qede_dcbnl_ieee_setets(struct net_device *netdev,
 }
 
 static int qede_dcbnl_ieee_getapp(struct net_device *netdev,
-				  struct dcb_app *app)
+								  struct dcb_app *app)
 {
 	struct qede_dev *edev = netdev_priv(netdev);
 
@@ -278,7 +278,7 @@ static int qede_dcbnl_ieee_getapp(struct net_device *netdev,
 }
 
 static int qede_dcbnl_ieee_setapp(struct net_device *netdev,
-				  struct dcb_app *app)
+								  struct dcb_app *app)
 {
 	struct qede_dev *edev = netdev_priv(netdev);
 
@@ -286,7 +286,7 @@ static int qede_dcbnl_ieee_setapp(struct net_device *netdev,
 }
 
 static int qede_dcbnl_ieee_peer_getpfc(struct net_device *netdev,
-				       struct ieee_pfc *pfc)
+									   struct ieee_pfc *pfc)
 {
 	struct qede_dev *edev = netdev_priv(netdev);
 
@@ -294,14 +294,15 @@ static int qede_dcbnl_ieee_peer_getpfc(struct net_device *netdev,
 }
 
 static int qede_dcbnl_ieee_peer_getets(struct net_device *netdev,
-				       struct ieee_ets *ets)
+									   struct ieee_ets *ets)
 {
 	struct qede_dev *edev = netdev_priv(netdev);
 
 	return edev->ops->dcb->ieee_peer_getets(edev->cdev, ets);
 }
 
-static const struct dcbnl_rtnl_ops qede_dcbnl_ops = {
+static const struct dcbnl_rtnl_ops qede_dcbnl_ops =
+{
 	.ieee_getpfc = qede_dcbnl_ieee_getpfc,
 	.ieee_setpfc = qede_dcbnl_ieee_setpfc,
 	.ieee_getets = qede_dcbnl_ieee_getets,

@@ -176,7 +176,8 @@
 #define SCSI_MAX_VARLEN_CDB_SIZE 260
 
 /* defined in T10 SCSI Primary Commands-2 (SPC2) */
-struct scsi_varlen_cdb_hdr {
+struct scsi_varlen_cdb_hdr
+{
 	__u8 opcode;        /* opcode always == VARIABLE_LENGTH_CMD */
 	__u8 control;
 	__u8 misc[5];
@@ -266,7 +267,8 @@ struct scsi_varlen_cdb_hdr {
 #define TYPE_NO_LUN         0x7f
 
 /* SCSI protocols; these are taken from SPC-3 section 7.5 */
-enum scsi_protocol {
+enum scsi_protocol
+{
 	SCSI_PROTOCOL_FCP = 0,	/* Fibre Channel */
 	SCSI_PROTOCOL_SPI = 1,	/* parallel SCSI */
 	SCSI_PROTOCOL_SSA = 2,	/* Serial Storage Architecture - Obsolete */
@@ -282,7 +284,8 @@ enum scsi_protocol {
 /*
  * ScsiLun: 8 byte LUN.
  */
-struct scsi_lun {
+struct scsi_lun
+{
 	__u8 scsi_lun[8];
 };
 

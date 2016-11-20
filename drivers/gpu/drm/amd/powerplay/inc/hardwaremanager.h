@@ -32,7 +32,8 @@ enum amd_dpm_forced_level;
 struct PP_TemperatureRange;
 
 
-struct phm_fan_speed_info {
+struct phm_fan_speed_info
+{
 	uint32_t min_percent;
 	uint32_t max_percent;
 	uint32_t min_rpm;
@@ -46,13 +47,14 @@ struct phm_fan_speed_info {
 /* Automatic Power State Throttling */
 enum PHM_AutoThrottleSource
 {
-    PHM_AutoThrottleSource_Thermal,
-    PHM_AutoThrottleSource_External
+	PHM_AutoThrottleSource_Thermal,
+	PHM_AutoThrottleSource_External
 };
 
 typedef enum PHM_AutoThrottleSource PHM_AutoThrottleSource;
 
-enum phm_platform_caps {
+enum phm_platform_caps
+{
 	PHM_PlatformCaps_AtomBiosPpV1 = 0,
 	PHM_PlatformCaps_PowerPlaySupport,
 	PHM_PlatformCaps_ACOverdriveSupport,
@@ -221,38 +223,41 @@ enum phm_platform_caps {
 #define PHM_MAX_NUM_CAPS_ULONG_ENTRIES \
 	((PHM_PlatformCaps_Max + ((PHM_MAX_NUM_CAPS_BITS_PER_FIELD) - 1)) / (PHM_MAX_NUM_CAPS_BITS_PER_FIELD))
 
-struct pp_hw_descriptor {
+struct pp_hw_descriptor
+{
 	uint32_t hw_caps[PHM_MAX_NUM_CAPS_ULONG_ENTRIES];
 };
 
-enum PHM_PerformanceLevelDesignation {
+enum PHM_PerformanceLevelDesignation
+{
 	PHM_PerformanceLevelDesignation_Activity,
 	PHM_PerformanceLevelDesignation_PowerContainment
 };
 
 typedef enum PHM_PerformanceLevelDesignation PHM_PerformanceLevelDesignation;
 
-struct PHM_PerformanceLevel {
-    uint32_t    coreClock;
-    uint32_t    memory_clock;
-    uint32_t  vddc;
-    uint32_t  vddci;
-    uint32_t    nonLocalMemoryFreq;
-    uint32_t nonLocalMemoryWidth;
+struct PHM_PerformanceLevel
+{
+	uint32_t    coreClock;
+	uint32_t    memory_clock;
+	uint32_t  vddc;
+	uint32_t  vddci;
+	uint32_t    nonLocalMemoryFreq;
+	uint32_t nonLocalMemoryWidth;
 };
 
 typedef struct PHM_PerformanceLevel PHM_PerformanceLevel;
 
 /* Function for setting a platform cap */
 static inline void phm_cap_set(uint32_t *caps,
-			enum phm_platform_caps c)
+							   enum phm_platform_caps c)
 {
 	caps[c / PHM_MAX_NUM_CAPS_BITS_PER_FIELD] |= (1UL <<
-			     (c & (PHM_MAX_NUM_CAPS_BITS_PER_FIELD - 1)));
+			(c & (PHM_MAX_NUM_CAPS_BITS_PER_FIELD - 1)));
 }
 
 static inline void phm_cap_unset(uint32_t *caps,
-			enum phm_platform_caps c)
+								 enum phm_platform_caps c)
 {
 	caps[c / PHM_MAX_NUM_CAPS_BITS_PER_FIELD] &= ~(1UL << (c & (PHM_MAX_NUM_CAPS_BITS_PER_FIELD - 1)));
 }
@@ -260,14 +265,15 @@ static inline void phm_cap_unset(uint32_t *caps,
 static inline bool phm_cap_enabled(const uint32_t *caps, enum phm_platform_caps c)
 {
 	return (0 != (caps[c / PHM_MAX_NUM_CAPS_BITS_PER_FIELD] &
-		  (1UL << (c & (PHM_MAX_NUM_CAPS_BITS_PER_FIELD - 1)))));
+				  (1UL << (c & (PHM_MAX_NUM_CAPS_BITS_PER_FIELD - 1)))));
 }
 
 #define PP_PCIEGenInvalid  0xffff
-enum PP_PCIEGen {
-    PP_PCIEGen1 = 0,                /* PCIE 1.0 - Transfer rate of 2.5 GT/s */
-    PP_PCIEGen2,                    /*PCIE 2.0 - Transfer rate of 5.0 GT/s */
-    PP_PCIEGen3                     /*PCIE 3.0 - Transfer rate of 8.0 GT/s */
+enum PP_PCIEGen
+{
+	PP_PCIEGen1 = 0,                /* PCIE 1.0 - Transfer rate of 2.5 GT/s */
+	PP_PCIEGen2,                    /*PCIE 2.0 - Transfer rate of 5.0 GT/s */
+	PP_PCIEGen3                     /*PCIE 3.0 - Transfer rate of 8.0 GT/s */
 };
 
 typedef enum PP_PCIEGen PP_PCIEGen;
@@ -277,7 +283,8 @@ typedef enum PP_PCIEGen PP_PCIEGen;
 #define PP_Min_PCIELane    1
 #define PP_Max_PCIELane    32
 
-enum phm_clock_Type {
+enum phm_clock_Type
+{
 	PHM_DispClock = 1,
 	PHM_SClock,
 	PHM_MemClock
@@ -285,14 +292,16 @@ enum phm_clock_Type {
 
 #define MAX_NUM_CLOCKS 16
 
-struct PP_Clocks {
+struct PP_Clocks
+{
 	uint32_t engineClock;
 	uint32_t memoryClock;
 	uint32_t BusBandwidth;
 	uint32_t engineClockInSR;
 };
 
-struct pp_clock_info {
+struct pp_clock_info
+{
 	uint32_t min_mem_clk;
 	uint32_t max_mem_clk;
 	uint32_t min_eng_clk;
@@ -301,7 +310,8 @@ struct pp_clock_info {
 	uint32_t max_bus_bandwidth;
 };
 
-struct phm_platform_descriptor {
+struct phm_platform_descriptor
+{
 	uint32_t platformCaps[PHM_MAX_NUM_CAPS_ULONG_ENTRIES];
 	uint32_t vbiosInterruptId;
 	struct PP_Clocks overdriveLimit;
@@ -329,7 +339,8 @@ struct phm_platform_descriptor {
 	bool VidAdjustmentPolarity;
 };
 
-struct phm_clocks {
+struct phm_clocks
+{
 	uint32_t num_of_entries;
 	uint32_t clock[MAX_NUM_CLOCKS];
 };
@@ -344,12 +355,12 @@ extern int phm_disable_dynamic_state_management(struct pp_hwmgr *hwmgr);
 extern bool phm_is_hw_access_blocked(struct pp_hwmgr *hwmgr);
 extern int phm_block_hw_access(struct pp_hwmgr *hwmgr, bool block);
 extern int phm_set_power_state(struct pp_hwmgr *hwmgr,
-		    const struct pp_hw_power_state *pcurrent_state,
-		 const struct pp_hw_power_state *pnew_power_state);
+							   const struct pp_hw_power_state *pcurrent_state,
+							   const struct pp_hw_power_state *pnew_power_state);
 
 extern int phm_apply_state_adjust_rules(struct pp_hwmgr *hwmgr,
-				   struct pp_power_state *adjusted_ps,
-			     const struct pp_power_state *current_ps);
+										struct pp_power_state *adjusted_ps,
+										const struct pp_power_state *current_ps);
 
 extern int phm_force_dpm_levels(struct pp_hwmgr *hwmgr, enum amd_dpm_forced_level level);
 extern int phm_display_configuration_changed(struct pp_hwmgr *hwmgr);
@@ -360,29 +371,30 @@ extern int phm_stop_thermal_controller(struct pp_hwmgr *hwmgr);
 extern bool phm_check_smc_update_required_for_display_configuration(struct pp_hwmgr *hwmgr);
 
 extern int phm_check_states_equal(struct pp_hwmgr *hwmgr,
-				 const struct pp_hw_power_state *pstate1,
-				 const struct pp_hw_power_state *pstate2,
-				 bool *equal);
+								  const struct pp_hw_power_state *pstate1,
+								  const struct pp_hw_power_state *pstate2,
+								  bool *equal);
 
 extern int phm_store_dal_configuration_data(struct pp_hwmgr *hwmgr,
 		const struct amd_pp_display_configuration *display_config);
 
 extern int phm_get_dal_power_level(struct pp_hwmgr *hwmgr,
-		struct amd_pp_simple_clock_info *info);
+								   struct amd_pp_simple_clock_info *info);
 
 extern int phm_set_cpu_power_state(struct pp_hwmgr *hwmgr);
 
 extern int phm_power_down_asic(struct pp_hwmgr *hwmgr);
 
 extern int phm_get_performance_level(struct pp_hwmgr *hwmgr, const struct pp_hw_power_state *state,
-				PHM_PerformanceLevelDesignation designation, uint32_t index,
-				PHM_PerformanceLevel *level);
+									 PHM_PerformanceLevelDesignation designation, uint32_t index,
+									 PHM_PerformanceLevel *level);
 
 extern int phm_get_clock_info(struct pp_hwmgr *hwmgr, const struct pp_hw_power_state *state,
-			struct pp_clock_info *pclock_info,
-			PHM_PerformanceLevelDesignation designation);
+							  struct pp_clock_info *pclock_info,
+							  PHM_PerformanceLevelDesignation designation);
 
-extern int phm_get_current_shallow_sleep_clocks(struct pp_hwmgr *hwmgr, const struct pp_hw_power_state *state, struct pp_clock_info *clock_info);
+extern int phm_get_current_shallow_sleep_clocks(struct pp_hwmgr *hwmgr, const struct pp_hw_power_state *state,
+		struct pp_clock_info *clock_info);
 
 extern int phm_get_clock_by_type(struct pp_hwmgr *hwmgr, enum amd_pp_clock_type type, struct amd_pp_clocks *clocks);
 

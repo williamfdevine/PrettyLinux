@@ -48,7 +48,8 @@
  * FCoE frame header - 14 bytes
  * This follows the VLAN header, which includes the ethertype.
  */
-struct fcoe_hdr {
+struct fcoe_hdr
+{
 	__u8		fcoe_ver;	/* version field - upper 4 bits */
 	__u8		fcoe_resvd[12];	/* reserved - send zero and ignore */
 	__u8		fcoe_sof;	/* start of frame per RFC 3643 */
@@ -60,7 +61,8 @@ struct fcoe_hdr {
 /*
  * FCoE CRC & EOF - 8 bytes.
  */
-struct fcoe_crc_eof {
+struct fcoe_crc_eof
+{
 	__le32		fcoe_crc32;	/* CRC for FC packet */
 	__u8		fcoe_eof;	/* EOF from RFC 3643 */
 	__u8		fcoe_resvd[3];	/* reserved - send zero and ignore */
@@ -81,7 +83,8 @@ struct fcoe_crc_eof {
 /*
  * FCoE Link Error Status Block: T11 FC-BB-5 Rev2.0, Clause 7.10.
  */
-struct fcoe_fc_els_lesb {
+struct fcoe_fc_els_lesb
+{
 	__be32		lesb_link_fail;	/* link failure count */
 	__be32		lesb_vlink_fail; /* virtual link failure count */
 	__be32		lesb_miss_fka;	/* missing FIP keep-alive count */

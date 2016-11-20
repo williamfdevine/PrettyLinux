@@ -23,7 +23,8 @@
  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
-struct pr_ram {
+struct pr_ram
+{
 	word NextReq;         /* pointer to next Req Buffer               */
 	word NextRc;          /* pointer to next Rc Buffer                */
 	word NextInd;         /* pointer to next Ind Buffer               */
@@ -42,7 +43,8 @@ struct pr_ram {
 	word Signature;       /* ISDN-P initialized indication            */
 	byte B[1];            /* buffer space for Req,Ind and Rc          */
 };
-typedef struct {
+typedef struct
+{
 	word next;
 	byte Req;
 	byte ReqId;
@@ -52,7 +54,8 @@ typedef struct {
 	byte Reserved[8];
 	PBUFFER XBuffer;
 } REQ;
-typedef struct {
+typedef struct
+{
 	word next;
 	byte Rc;
 	byte RcId;
@@ -61,7 +64,8 @@ typedef struct {
 	word Reference;
 	byte Reserved2[8];
 } RC;
-typedef struct {
+typedef struct
+{
 	word next;
 	byte Ind;
 	byte IndId;

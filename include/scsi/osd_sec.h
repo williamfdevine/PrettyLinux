@@ -27,7 +27,7 @@
  */
 void osd_sec_encode_caps(void *caps, ...);/* NI */
 void osd_sec_init_nosec_doall_caps(void *caps,
-	const struct osd_obj_id *obj, bool is_collection, const bool is_v1);
+								   const struct osd_obj_id *obj, bool is_collection, const bool is_v1);
 
 bool osd_is_sec_alldata(struct osd_security_parameters *sec_params);
 

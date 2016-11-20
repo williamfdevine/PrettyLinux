@@ -18,7 +18,8 @@ struct device;
 struct resource;
 struct property_entry;
 
-struct intel_lpss_platform_info {
+struct intel_lpss_platform_info
+{
 	struct resource *mem;
 	int irq;
 	unsigned long clk_rate;
@@ -27,7 +28,7 @@ struct intel_lpss_platform_info {
 };
 
 int intel_lpss_probe(struct device *dev,
-		     const struct intel_lpss_platform_info *info);
+					 const struct intel_lpss_platform_info *info);
 void intel_lpss_remove(struct device *dev);
 
 #ifdef CONFIG_PM
@@ -38,19 +39,19 @@ int intel_lpss_resume(struct device *dev);
 #ifdef CONFIG_PM_SLEEP
 #define INTEL_LPSS_SLEEP_PM_OPS			\
 	.prepare = intel_lpss_prepare,		\
-	.suspend = intel_lpss_suspend,		\
-	.resume = intel_lpss_resume,		\
-	.freeze = intel_lpss_suspend,		\
-	.thaw = intel_lpss_resume,		\
-	.poweroff = intel_lpss_suspend,		\
-	.restore = intel_lpss_resume,
+			   .suspend = intel_lpss_suspend,		\
+						  .resume = intel_lpss_resume,		\
+									.freeze = intel_lpss_suspend,		\
+											.thaw = intel_lpss_resume,		\
+													.poweroff = intel_lpss_suspend,		\
+															.restore = intel_lpss_resume,
 #else
 #define INTEL_LPSS_SLEEP_PM_OPS
 #endif
 
 #define INTEL_LPSS_RUNTIME_PM_OPS		\
 	.runtime_suspend = intel_lpss_suspend,	\
-	.runtime_resume = intel_lpss_resume,
+					   .runtime_resume = intel_lpss_resume,
 
 #else /* !CONFIG_PM */
 #define INTEL_LPSS_SLEEP_PM_OPS
@@ -58,9 +59,9 @@ int intel_lpss_resume(struct device *dev);
 #endif /* CONFIG_PM */
 
 #define INTEL_LPSS_PM_OPS(name)			\
-const struct dev_pm_ops name = {		\
-	INTEL_LPSS_SLEEP_PM_OPS			\
-	INTEL_LPSS_RUNTIME_PM_OPS		\
-}
+	const struct dev_pm_ops name = {		\
+		INTEL_LPSS_SLEEP_PM_OPS			\
+		INTEL_LPSS_RUNTIME_PM_OPS		\
+	}
 
 #endif /* __MFD_INTEL_LPSS_H */

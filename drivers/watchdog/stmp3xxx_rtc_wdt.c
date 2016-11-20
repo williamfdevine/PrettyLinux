@@ -24,8 +24,8 @@
 static int heartbeat = STMP3XXX_DEFAULT_TIMEOUT;
 module_param(heartbeat, uint, 0);
 MODULE_PARM_DESC(heartbeat, "Watchdog heartbeat period in seconds from 1 to "
-		 __MODULE_STRING(STMP3XXX_MAX_TIMEOUT) ", default "
-		 __MODULE_STRING(STMP3XXX_DEFAULT_TIMEOUT));
+				 __MODULE_STRING(STMP3XXX_MAX_TIMEOUT) ", default "
+				 __MODULE_STRING(STMP3XXX_DEFAULT_TIMEOUT));
 
 static int wdt_start(struct watchdog_device *wdd)
 {
@@ -51,19 +51,22 @@ static int wdt_set_timeout(struct watchdog_device *wdd, unsigned new_timeout)
 	return wdt_start(wdd);
 }
 
-static const struct watchdog_info stmp3xxx_wdt_ident = {
+static const struct watchdog_info stmp3xxx_wdt_ident =
+{
 	.options = WDIOF_MAGICCLOSE | WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
 	.identity = "STMP3XXX RTC Watchdog",
 };
 
-static const struct watchdog_ops stmp3xxx_wdt_ops = {
+static const struct watchdog_ops stmp3xxx_wdt_ops =
+{
 	.owner = THIS_MODULE,
 	.start = wdt_start,
 	.stop = wdt_stop,
 	.set_timeout = wdt_set_timeout,
 };
 
-static struct watchdog_device stmp3xxx_wdd = {
+static struct watchdog_device stmp3xxx_wdd =
+{
 	.info = &stmp3xxx_wdt_ident,
 	.ops = &stmp3xxx_wdt_ops,
 	.min_timeout = 1,
@@ -72,21 +75,24 @@ static struct watchdog_device stmp3xxx_wdd = {
 };
 
 static int wdt_notify_sys(struct notifier_block *nb, unsigned long code,
-			  void *unused)
+						  void *unused)
 {
-	switch (code) {
-	case SYS_DOWN:	/* keep enabled, system might crash while going down */
-		break;
-	case SYS_HALT:	/* allow the system to actually halt */
-	case SYS_POWER_OFF:
-		wdt_stop(&stmp3xxx_wdd);
-		break;
+	switch (code)
+	{
+		case SYS_DOWN:	/* keep enabled, system might crash while going down */
+			break;
+
+		case SYS_HALT:	/* allow the system to actually halt */
+		case SYS_POWER_OFF:
+			wdt_stop(&stmp3xxx_wdd);
+			break;
 	}
 
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block wdt_notifier = {
+static struct notifier_block wdt_notifier =
+{
 	.notifier_call = wdt_notify_sys,
 };
 
@@ -100,16 +106,20 @@ static int stmp3xxx_wdt_probe(struct platform_device *pdev)
 	stmp3xxx_wdd.parent = &pdev->dev;
 
 	ret = watchdog_register_device(&stmp3xxx_wdd);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "cannot register watchdog device\n");
 		return ret;
 	}
 
 	if (register_reboot_notifier(&wdt_notifier))
+	{
 		dev_warn(&pdev->dev, "cannot register reboot notifier\n");
+	}
 
 	dev_info(&pdev->dev, "initialized watchdog with heartbeat %ds\n",
-			stmp3xxx_wdd.timeout);
+			 stmp3xxx_wdd.timeout);
 	return 0;
 }
 
@@ -125,7 +135,9 @@ static int __maybe_unused stmp3xxx_wdt_suspend(struct device *dev)
 	struct watchdog_device *wdd = &stmp3xxx_wdd;
 
 	if (watchdog_active(wdd))
+	{
 		return wdt_stop(wdd);
+	}
 
 	return 0;
 }
@@ -135,15 +147,18 @@ static int __maybe_unused stmp3xxx_wdt_resume(struct device *dev)
 	struct watchdog_device *wdd = &stmp3xxx_wdd;
 
 	if (watchdog_active(wdd))
+	{
 		return wdt_start(wdd);
+	}
 
 	return 0;
 }
 
 static SIMPLE_DEV_PM_OPS(stmp3xxx_wdt_pm_ops,
-			 stmp3xxx_wdt_suspend, stmp3xxx_wdt_resume);
+						 stmp3xxx_wdt_suspend, stmp3xxx_wdt_resume);
 
-static struct platform_driver stmp3xxx_wdt_driver = {
+static struct platform_driver stmp3xxx_wdt_driver =
+{
 	.driver = {
 		.name = "stmp3xxx_rtc_wdt",
 		.pm = &stmp3xxx_wdt_pm_ops,

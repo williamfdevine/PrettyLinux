@@ -24,7 +24,8 @@
 
 #include <linux/platform_data/ad7266.h>
 
-struct ad7266_state {
+struct ad7266_state
+{
 	struct spi_device	*spi;
 	struct regulator	*reg;
 	unsigned long		vref_mv;
@@ -43,7 +44,8 @@ struct ad7266_state {
 	 * The buffer needs to be large enough to hold two samples (4 bytes) and
 	 * the naturally aligned timestamp (8 bytes).
 	 */
-	struct {
+	struct
+	{
 		__be16 sample[2];
 		s64 timestamp;
 	} data ____cacheline_aligned;
@@ -73,7 +75,8 @@ static int ad7266_postdisable(struct iio_dev *indio_dev)
 	return ad7266_powerdown(st);
 }
 
-static const struct iio_buffer_setup_ops iio_triggered_buffer_setup_ops = {
+static const struct iio_buffer_setup_ops iio_triggered_buffer_setup_ops =
+{
 	.preenable = &ad7266_preenable,
 	.postenable = &iio_triggered_buffer_postenable,
 	.predisable = &iio_triggered_buffer_predisable,
@@ -88,9 +91,11 @@ static irqreturn_t ad7266_trigger_handler(int irq, void *p)
 	int ret;
 
 	ret = spi_read(st->spi, st->data.sample, 4);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		iio_push_to_buffers_with_timestamp(indio_dev, &st->data,
-			    pf->timestamp);
+										   pf->timestamp);
 	}
 
 	iio_trigger_notify_done(indio_dev->trig);
@@ -103,26 +108,33 @@ static void ad7266_select_input(struct ad7266_state *st, unsigned int nr)
 	unsigned int i;
 
 	if (st->fixed_addr)
+	{
 		return;
+	}
 
-	switch (st->mode) {
-	case AD7266_MODE_SINGLE_ENDED:
-		nr >>= 1;
-		break;
-	case AD7266_MODE_PSEUDO_DIFF:
-		nr |= 1;
-		break;
-	case AD7266_MODE_DIFF:
-		nr &= ~1;
-		break;
+	switch (st->mode)
+	{
+		case AD7266_MODE_SINGLE_ENDED:
+			nr >>= 1;
+			break;
+
+		case AD7266_MODE_PSEUDO_DIFF:
+			nr |= 1;
+			break;
+
+		case AD7266_MODE_DIFF:
+			nr &= ~1;
+			break;
 	}
 
 	for (i = 0; i < 3; ++i)
+	{
 		gpio_set_value(st->gpios[i].gpio, (bool)(nr & BIT(i)));
+	}
 }
 
 static int ad7266_update_scan_mode(struct iio_dev *indio_dev,
-	const unsigned long *scan_mask)
+								   const unsigned long *scan_mask)
 {
 	struct ad7266_state *st = iio_priv(indio_dev);
 	unsigned int nr = find_first_bit(scan_mask, indio_dev->masklength);
@@ -133,7 +145,7 @@ static int ad7266_update_scan_mode(struct iio_dev *indio_dev,
 }
 
 static int ad7266_read_single(struct ad7266_state *st, int *val,
-	unsigned int address)
+							  unsigned int address)
 {
 	int ret;
 
@@ -146,87 +158,109 @@ static int ad7266_read_single(struct ad7266_state *st, int *val,
 }
 
 static int ad7266_read_raw(struct iio_dev *indio_dev,
-	struct iio_chan_spec const *chan, int *val, int *val2, long m)
+						   struct iio_chan_spec const *chan, int *val, int *val2, long m)
 {
 	struct ad7266_state *st = iio_priv(indio_dev);
 	unsigned long scale_mv;
 	int ret;
 
-	switch (m) {
-	case IIO_CHAN_INFO_RAW:
-		ret = iio_device_claim_direct_mode(indio_dev);
-		if (ret)
-			return ret;
-		ret = ad7266_read_single(st, val, chan->address);
-		iio_device_release_direct_mode(indio_dev);
+	switch (m)
+	{
+		case IIO_CHAN_INFO_RAW:
+			ret = iio_device_claim_direct_mode(indio_dev);
 
-		*val = (*val >> 2) & 0xfff;
-		if (chan->scan_type.sign == 's')
-			*val = sign_extend32(*val, 11);
+			if (ret)
+			{
+				return ret;
+			}
 
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_SCALE:
-		scale_mv = st->vref_mv;
-		if (st->mode == AD7266_MODE_DIFF)
-			scale_mv *= 2;
-		if (st->range == AD7266_RANGE_2VREF)
-			scale_mv *= 2;
+			ret = ad7266_read_single(st, val, chan->address);
+			iio_device_release_direct_mode(indio_dev);
 
-		*val = scale_mv;
-		*val2 = chan->scan_type.realbits;
-		return IIO_VAL_FRACTIONAL_LOG2;
-	case IIO_CHAN_INFO_OFFSET:
-		if (st->range == AD7266_RANGE_2VREF &&
-			st->mode != AD7266_MODE_DIFF)
-			*val = 2048;
-		else
-			*val = 0;
-		return IIO_VAL_INT;
+			*val = (*val >> 2) & 0xfff;
+
+			if (chan->scan_type.sign == 's')
+			{
+				*val = sign_extend32(*val, 11);
+			}
+
+			return IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_SCALE:
+			scale_mv = st->vref_mv;
+
+			if (st->mode == AD7266_MODE_DIFF)
+			{
+				scale_mv *= 2;
+			}
+
+			if (st->range == AD7266_RANGE_2VREF)
+			{
+				scale_mv *= 2;
+			}
+
+			*val = scale_mv;
+			*val2 = chan->scan_type.realbits;
+			return IIO_VAL_FRACTIONAL_LOG2;
+
+		case IIO_CHAN_INFO_OFFSET:
+			if (st->range == AD7266_RANGE_2VREF &&
+				st->mode != AD7266_MODE_DIFF)
+			{
+				*val = 2048;
+			}
+			else
+			{
+				*val = 0;
+			}
+
+			return IIO_VAL_INT;
 	}
+
 	return -EINVAL;
 }
 
 #define AD7266_CHAN(_chan, _sign) {			\
-	.type = IIO_VOLTAGE,				\
-	.indexed = 1,					\
-	.channel = (_chan),				\
-	.address = (_chan),				\
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),	\
-	.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE) \
-		| BIT(IIO_CHAN_INFO_OFFSET),			\
-	.scan_index = (_chan),				\
-	.scan_type = {					\
-		.sign = (_sign),			\
-		.realbits = 12,				\
-		.storagebits = 16,			\
-		.shift = 2,				\
-		.endianness = IIO_BE,			\
-	},						\
-}
+		.type = IIO_VOLTAGE,				\
+				.indexed = 1,					\
+						   .channel = (_chan),				\
+									  .address = (_chan),				\
+											  .info_mask_separate = BIT(IIO_CHAN_INFO_RAW),	\
+													  .info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE) \
+															  | BIT(IIO_CHAN_INFO_OFFSET),			\
+															  .scan_index = (_chan),				\
+																	  .scan_type = {					\
+																									  .sign = (_sign),			\
+																									  .realbits = 12,				\
+																									  .storagebits = 16,			\
+																									  .shift = 2,				\
+																									  .endianness = IIO_BE,			\
+																				   },						\
+	}
 
 #define AD7266_DECLARE_SINGLE_ENDED_CHANNELS(_name, _sign) \
-const struct iio_chan_spec ad7266_channels_##_name[] = { \
-	AD7266_CHAN(0, (_sign)), \
-	AD7266_CHAN(1, (_sign)), \
-	AD7266_CHAN(2, (_sign)), \
-	AD7266_CHAN(3, (_sign)), \
-	AD7266_CHAN(4, (_sign)), \
-	AD7266_CHAN(5, (_sign)), \
-	AD7266_CHAN(6, (_sign)), \
-	AD7266_CHAN(7, (_sign)), \
-	AD7266_CHAN(8, (_sign)), \
-	AD7266_CHAN(9, (_sign)), \
-	AD7266_CHAN(10, (_sign)), \
-	AD7266_CHAN(11, (_sign)), \
-	IIO_CHAN_SOFT_TIMESTAMP(13), \
-}
+	const struct iio_chan_spec ad7266_channels_##_name[] = { \
+		AD7266_CHAN(0, (_sign)), \
+		AD7266_CHAN(1, (_sign)), \
+		AD7266_CHAN(2, (_sign)), \
+		AD7266_CHAN(3, (_sign)), \
+		AD7266_CHAN(4, (_sign)), \
+		AD7266_CHAN(5, (_sign)), \
+		AD7266_CHAN(6, (_sign)), \
+		AD7266_CHAN(7, (_sign)), \
+		AD7266_CHAN(8, (_sign)), \
+		AD7266_CHAN(9, (_sign)), \
+		AD7266_CHAN(10, (_sign)), \
+		AD7266_CHAN(11, (_sign)), \
+		IIO_CHAN_SOFT_TIMESTAMP(13), \
+	}
 
 #define AD7266_DECLARE_SINGLE_ENDED_CHANNELS_FIXED(_name, _sign) \
-const struct iio_chan_spec ad7266_channels_##_name##_fixed[] = { \
-	AD7266_CHAN(0, (_sign)), \
-	AD7266_CHAN(1, (_sign)), \
-	IIO_CHAN_SOFT_TIMESTAMP(2), \
-}
+	const struct iio_chan_spec ad7266_channels_##_name##_fixed[] = { \
+		AD7266_CHAN(0, (_sign)), \
+		AD7266_CHAN(1, (_sign)), \
+		IIO_CHAN_SOFT_TIMESTAMP(2), \
+	}
 
 static AD7266_DECLARE_SINGLE_ENDED_CHANNELS(u, 'u');
 static AD7266_DECLARE_SINGLE_ENDED_CHANNELS(s, 's');
@@ -234,56 +268,58 @@ static AD7266_DECLARE_SINGLE_ENDED_CHANNELS_FIXED(u, 'u');
 static AD7266_DECLARE_SINGLE_ENDED_CHANNELS_FIXED(s, 's');
 
 #define AD7266_CHAN_DIFF(_chan, _sign) {			\
-	.type = IIO_VOLTAGE,				\
-	.indexed = 1,					\
-	.channel = (_chan) * 2,				\
-	.channel2 = (_chan) * 2 + 1,			\
-	.address = (_chan),				\
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),	\
-	.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE)	\
-		| BIT(IIO_CHAN_INFO_OFFSET),			\
-	.scan_index = (_chan),				\
-	.scan_type = {					\
-		.sign = _sign,			\
-		.realbits = 12,				\
-		.storagebits = 16,			\
-		.shift = 2,				\
-		.endianness = IIO_BE,			\
-	},						\
-	.differential = 1,				\
-}
+		.type = IIO_VOLTAGE,				\
+				.indexed = 1,					\
+						   .channel = (_chan) * 2,				\
+									  .channel2 = (_chan) * 2 + 1,			\
+											  .address = (_chan),				\
+													  .info_mask_separate = BIT(IIO_CHAN_INFO_RAW),	\
+															  .info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE)	\
+																	  | BIT(IIO_CHAN_INFO_OFFSET),			\
+																	  .scan_index = (_chan),				\
+																			  .scan_type = {					\
+																											  .sign = _sign,			\
+																											  .realbits = 12,				\
+																											  .storagebits = 16,			\
+																											  .shift = 2,				\
+																											  .endianness = IIO_BE,			\
+																						   },						\
+																					  .differential = 1,				\
+	}
 
 #define AD7266_DECLARE_DIFF_CHANNELS(_name, _sign) \
-const struct iio_chan_spec ad7266_channels_diff_##_name[] = { \
-	AD7266_CHAN_DIFF(0, (_sign)), \
-	AD7266_CHAN_DIFF(1, (_sign)), \
-	AD7266_CHAN_DIFF(2, (_sign)), \
-	AD7266_CHAN_DIFF(3, (_sign)), \
-	AD7266_CHAN_DIFF(4, (_sign)), \
-	AD7266_CHAN_DIFF(5, (_sign)), \
-	IIO_CHAN_SOFT_TIMESTAMP(6), \
-}
+	const struct iio_chan_spec ad7266_channels_diff_##_name[] = { \
+		AD7266_CHAN_DIFF(0, (_sign)), \
+		AD7266_CHAN_DIFF(1, (_sign)), \
+		AD7266_CHAN_DIFF(2, (_sign)), \
+		AD7266_CHAN_DIFF(3, (_sign)), \
+		AD7266_CHAN_DIFF(4, (_sign)), \
+		AD7266_CHAN_DIFF(5, (_sign)), \
+		IIO_CHAN_SOFT_TIMESTAMP(6), \
+	}
 
 static AD7266_DECLARE_DIFF_CHANNELS(s, 's');
 static AD7266_DECLARE_DIFF_CHANNELS(u, 'u');
 
 #define AD7266_DECLARE_DIFF_CHANNELS_FIXED(_name, _sign) \
-const struct iio_chan_spec ad7266_channels_diff_fixed_##_name[] = { \
-	AD7266_CHAN_DIFF(0, (_sign)), \
-	AD7266_CHAN_DIFF(1, (_sign)), \
-	IIO_CHAN_SOFT_TIMESTAMP(2), \
-}
+	const struct iio_chan_spec ad7266_channels_diff_fixed_##_name[] = { \
+		AD7266_CHAN_DIFF(0, (_sign)), \
+		AD7266_CHAN_DIFF(1, (_sign)), \
+		IIO_CHAN_SOFT_TIMESTAMP(2), \
+	}
 
 static AD7266_DECLARE_DIFF_CHANNELS_FIXED(s, 's');
 static AD7266_DECLARE_DIFF_CHANNELS_FIXED(u, 'u');
 
-static const struct iio_info ad7266_info = {
+static const struct iio_info ad7266_info =
+{
 	.read_raw = &ad7266_read_raw,
 	.update_scan_mode = &ad7266_update_scan_mode,
 	.driver_module = THIS_MODULE,
 };
 
-static const unsigned long ad7266_available_scan_masks[] = {
+static const unsigned long ad7266_available_scan_masks[] =
+{
 	0x003,
 	0x00c,
 	0x030,
@@ -293,19 +329,22 @@ static const unsigned long ad7266_available_scan_masks[] = {
 	0x000,
 };
 
-static const unsigned long ad7266_available_scan_masks_diff[] = {
+static const unsigned long ad7266_available_scan_masks_diff[] =
+{
 	0x003,
 	0x00c,
 	0x030,
 	0x000,
 };
 
-static const unsigned long ad7266_available_scan_masks_fixed[] = {
+static const unsigned long ad7266_available_scan_masks_fixed[] =
+{
 	0x003,
 	0x000,
 };
 
-struct ad7266_chan_info {
+struct ad7266_chan_info
+{
 	const struct iio_chan_spec *channels;
 	unsigned int num_channels;
 	const unsigned long *scan_masks;
@@ -314,7 +353,8 @@ struct ad7266_chan_info {
 #define AD7266_CHAN_INFO_INDEX(_differential, _signed, _fixed) \
 	(((_differential) << 2) | ((_signed) << 1) | ((_fixed) << 0))
 
-static const struct ad7266_chan_info ad7266_chan_infos[] = {
+static const struct ad7266_chan_info ad7266_chan_infos[] =
+{
 	[AD7266_CHAN_INFO_INDEX(0, 0, 0)] = {
 		.channels = ad7266_channels_u,
 		.num_channels = ARRAY_SIZE(ad7266_channels_u),
@@ -366,7 +406,7 @@ static void ad7266_init_channels(struct iio_dev *indio_dev)
 
 	is_differential = st->mode != AD7266_MODE_SINGLE_ENDED;
 	is_signed = (st->range == AD7266_RANGE_2VREF) |
-		    (st->mode == AD7266_MODE_DIFF);
+				(st->mode == AD7266_MODE_DIFF);
 
 	i = AD7266_CHAN_INFO_INDEX(is_differential, is_signed, st->fixed_addr);
 	chan_info = &ad7266_chan_infos[i];
@@ -377,7 +417,8 @@ static void ad7266_init_channels(struct iio_dev *indio_dev)
 	indio_dev->masklength = chan_info->num_channels - 1;
 }
 
-static const char * const ad7266_gpio_labels[] = {
+static const char *const ad7266_gpio_labels[] =
+{
 	"AD0", "AD1", "AD2",
 };
 
@@ -390,47 +431,72 @@ static int ad7266_probe(struct spi_device *spi)
 	int ret;
 
 	indio_dev = devm_iio_device_alloc(&spi->dev, sizeof(*st));
+
 	if (indio_dev == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	st = iio_priv(indio_dev);
 
 	st->reg = devm_regulator_get_optional(&spi->dev, "vref");
-	if (!IS_ERR(st->reg)) {
+
+	if (!IS_ERR(st->reg))
+	{
 		ret = regulator_enable(st->reg);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		ret = regulator_get_voltage(st->reg);
+
 		if (ret < 0)
+		{
 			goto error_disable_reg;
+		}
 
 		st->vref_mv = ret / 1000;
-	} else {
+	}
+	else
+	{
 		/* Any other error indicates that the regulator does exist */
 		if (PTR_ERR(st->reg) != -ENODEV)
+		{
 			return PTR_ERR(st->reg);
+		}
+
 		/* Use internal reference */
 		st->vref_mv = 2500;
 	}
 
-	if (pdata) {
+	if (pdata)
+	{
 		st->fixed_addr = pdata->fixed_addr;
 		st->mode = pdata->mode;
 		st->range = pdata->range;
 
-		if (!st->fixed_addr) {
-			for (i = 0; i < ARRAY_SIZE(st->gpios); ++i) {
+		if (!st->fixed_addr)
+		{
+			for (i = 0; i < ARRAY_SIZE(st->gpios); ++i)
+			{
 				st->gpios[i].gpio = pdata->addr_gpios[i];
 				st->gpios[i].flags = GPIOF_OUT_INIT_LOW;
 				st->gpios[i].label = ad7266_gpio_labels[i];
 			}
+
 			ret = gpio_request_array(st->gpios,
-				ARRAY_SIZE(st->gpios));
+									 ARRAY_SIZE(st->gpios));
+
 			if (ret)
+			{
 				goto error_disable_reg;
+			}
 		}
-	} else {
+	}
+	else
+	{
 		st->fixed_addr = true;
 		st->range = AD7266_RANGE_VREF;
 		st->mode = AD7266_MODE_DIFF;
@@ -465,24 +531,37 @@ static int ad7266_probe(struct spi_device *spi)
 	spi_message_add_tail(&st->single_xfer[2], &st->single_msg);
 
 	ret = iio_triggered_buffer_setup(indio_dev, &iio_pollfunc_store_time,
-		&ad7266_trigger_handler, &iio_triggered_buffer_setup_ops);
+									 &ad7266_trigger_handler, &iio_triggered_buffer_setup_ops);
+
 	if (ret)
+	{
 		goto error_free_gpios;
+	}
 
 	ret = iio_device_register(indio_dev);
+
 	if (ret)
+	{
 		goto error_buffer_cleanup;
+	}
 
 	return 0;
 
 error_buffer_cleanup:
 	iio_triggered_buffer_cleanup(indio_dev);
 error_free_gpios:
+
 	if (!st->fixed_addr)
+	{
 		gpio_free_array(st->gpios, ARRAY_SIZE(st->gpios));
+	}
+
 error_disable_reg:
+
 	if (!IS_ERR(st->reg))
+	{
 		regulator_disable(st->reg);
+	}
 
 	return ret;
 }
@@ -494,22 +573,30 @@ static int ad7266_remove(struct spi_device *spi)
 
 	iio_device_unregister(indio_dev);
 	iio_triggered_buffer_cleanup(indio_dev);
+
 	if (!st->fixed_addr)
+	{
 		gpio_free_array(st->gpios, ARRAY_SIZE(st->gpios));
+	}
+
 	if (!IS_ERR(st->reg))
+	{
 		regulator_disable(st->reg);
+	}
 
 	return 0;
 }
 
-static const struct spi_device_id ad7266_id[] = {
+static const struct spi_device_id ad7266_id[] =
+{
 	{"ad7265", 0},
 	{"ad7266", 0},
 	{ }
 };
 MODULE_DEVICE_TABLE(spi, ad7266_id);
 
-static struct spi_driver ad7266_driver = {
+static struct spi_driver ad7266_driver =
+{
 	.driver = {
 		.name	= "ad7266",
 	},

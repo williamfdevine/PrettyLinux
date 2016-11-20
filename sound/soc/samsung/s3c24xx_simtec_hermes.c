@@ -12,7 +12,8 @@
 
 #include "s3c24xx_simtec.h"
 
-static const struct snd_soc_dapm_widget dapm_widgets[] = {
+static const struct snd_soc_dapm_widget dapm_widgets[] =
+{
 	SND_SOC_DAPM_LINE("GSM Out", NULL),
 	SND_SOC_DAPM_LINE("GSM In", NULL),
 	SND_SOC_DAPM_LINE("Line In", NULL),
@@ -22,7 +23,8 @@ static const struct snd_soc_dapm_widget dapm_widgets[] = {
 	SND_SOC_DAPM_HP("Headphone Jack", NULL),
 };
 
-static const struct snd_soc_dapm_route base_map[] = {
+static const struct snd_soc_dapm_route base_map[] =
+{
 	/* Headphone connected to HP{L,R}OUT and HP{L,R}COM */
 
 	{ "Headphone Jack", NULL, "HPLOUT" },
@@ -68,7 +70,8 @@ static int simtec_hermes_init(struct snd_soc_pcm_runtime *rtd)
 	return 0;
 }
 
-static struct snd_soc_dai_link simtec_dai_aic33 = {
+static struct snd_soc_dai_link simtec_dai_aic33 =
+{
 	.name		= "tlv320aic33",
 	.stream_name	= "TLV320AIC33",
 	.codec_name	= "tlv320aic3x-codec.0-001a",
@@ -79,7 +82,8 @@ static struct snd_soc_dai_link simtec_dai_aic33 = {
 };
 
 /* simtec audio machine driver */
-static struct snd_soc_card snd_soc_machine_simtec_aic33 = {
+static struct snd_soc_card snd_soc_machine_simtec_aic33 =
+{
 	.name		= "Simtec-Hermes",
 	.owner		= THIS_MODULE,
 	.dai_link	= &simtec_dai_aic33,
@@ -97,7 +101,8 @@ static int simtec_audio_hermes_probe(struct platform_device *pd)
 	return simtec_audio_core_probe(pd, &snd_soc_machine_simtec_aic33);
 }
 
-static struct platform_driver simtec_audio_hermes_platdrv = {
+static struct platform_driver simtec_audio_hermes_platdrv =
+{
 	.driver	= {
 		.name	= "s3c24xx-simtec-hermes-snd",
 		.pm	= simtec_audio_pm,

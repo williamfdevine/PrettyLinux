@@ -32,7 +32,8 @@
 #include "vx222.h"
 
 
-static int vx2_reg_offset[VX_REG_MAX] = {
+static int vx2_reg_offset[VX_REG_MAX] =
+{
 	[VX_ICR]    = 0x00,
 	[VX_CVR]    = 0x04,
 	[VX_ISR]    = 0x08,
@@ -58,7 +59,8 @@ static int vx2_reg_offset[VX_REG_MAX] = {
 	[VX_GPIOC]  = 0x54,		// VX_GPIOC (new with PLX9030)
 };
 
-static int vx2_reg_index[VX_REG_MAX] = {
+static int vx2_reg_index[VX_REG_MAX] =
+{
 	[VX_ICR]	= 1,
 	[VX_CVR]	= 1,
 	[VX_ISR]	= 1,
@@ -186,7 +188,9 @@ static int vx2_test_xilinx(struct vx_core *_chip)
 	vx_outl(chip, CDSP, chip->regCDSP | VX_CDSP_TEST0_MASK);
 	vx_inl(chip, ISR);
 	data = vx_inl(chip, STATUS);
-	if ((data & VX_STATUS_VAL_TEST0_MASK) == VX_STATUS_VAL_TEST0_MASK) {
+
+	if ((data & VX_STATUS_VAL_TEST0_MASK) == VX_STATUS_VAL_TEST0_MASK)
+	{
 		dev_dbg(_chip->card->dev, "bad!\n");
 		return -ENODEV;
 	}
@@ -195,18 +199,23 @@ static int vx2_test_xilinx(struct vx_core *_chip)
 	vx_outl(chip, CDSP, chip->regCDSP & ~VX_CDSP_TEST0_MASK);
 	vx_inl(chip, ISR);
 	data = vx_inl(chip, STATUS);
-	if (! (data & VX_STATUS_VAL_TEST0_MASK)) {
+
+	if (! (data & VX_STATUS_VAL_TEST0_MASK))
+	{
 		dev_dbg(_chip->card->dev, "bad! #2\n");
 		return -ENODEV;
 	}
 
-	if (_chip->type == VX_TYPE_BOARD) {
+	if (_chip->type == VX_TYPE_BOARD)
+	{
 		/* not implemented on VX_2_BOARDS */
 		/* We write 1 on CDSP.TEST1. We should get 0 on STATUS.TEST1. */
 		vx_outl(chip, CDSP, chip->regCDSP | VX_CDSP_TEST1_MASK);
 		vx_inl(chip, ISR);
 		data = vx_inl(chip, STATUS);
-		if ((data & VX_STATUS_VAL_TEST1_MASK) == VX_STATUS_VAL_TEST1_MASK) {
+
+		if ((data & VX_STATUS_VAL_TEST1_MASK) == VX_STATUS_VAL_TEST1_MASK)
+		{
 			dev_dbg(_chip->card->dev, "bad! #3\n");
 			return -ENODEV;
 		}
@@ -215,11 +224,14 @@ static int vx2_test_xilinx(struct vx_core *_chip)
 		vx_outl(chip, CDSP, chip->regCDSP & ~VX_CDSP_TEST1_MASK);
 		vx_inl(chip, ISR);
 		data = vx_inl(chip, STATUS);
-		if (! (data & VX_STATUS_VAL_TEST1_MASK)) {
+
+		if (! (data & VX_STATUS_VAL_TEST1_MASK))
+		{
 			dev_dbg(_chip->card->dev, "bad! #4\n");
 			return -ENODEV;
 		}
 	}
+
 	dev_dbg(_chip->card->dev, "ok, xilinx fine.\n");
 	return 0;
 }
@@ -256,35 +268,44 @@ static inline void vx2_release_pseudo_dma(struct vx_core *chip)
 
 /* pseudo-dma write */
 static void vx2_dma_write(struct vx_core *chip, struct snd_pcm_runtime *runtime,
-			  struct vx_pipe *pipe, int count)
+						  struct vx_pipe *pipe, int count)
 {
 	unsigned long port = vx2_reg_addr(chip, VX_DMA);
 	int offset = pipe->hw_ptr;
 	u32 *addr = (u32 *)(runtime->dma_area + offset);
 
 	if (snd_BUG_ON(count % 4))
+	{
 		return;
+	}
 
 	vx2_setup_pseudo_dma(chip, 1);
 
 	/* Transfer using pseudo-dma.
 	 */
-	if (offset + count > pipe->buffer_bytes) {
+	if (offset + count > pipe->buffer_bytes)
+	{
 		int length = pipe->buffer_bytes - offset;
 		count -= length;
 		length >>= 2; /* in 32bit words */
+
 		/* Transfer using pseudo-dma. */
-		while (length-- > 0) {
+		while (length-- > 0)
+		{
 			outl(cpu_to_le32(*addr), port);
 			addr++;
 		}
+
 		addr = (u32 *)runtime->dma_area;
 		pipe->hw_ptr = 0;
 	}
+
 	pipe->hw_ptr += count;
 	count >>= 2; /* in 32bit words */
+
 	/* Transfer using pseudo-dma. */
-	while (count-- > 0) {
+	while (count-- > 0)
+	{
 		outl(cpu_to_le32(*addr), port);
 		addr++;
 	}
@@ -295,33 +316,45 @@ static void vx2_dma_write(struct vx_core *chip, struct snd_pcm_runtime *runtime,
 
 /* pseudo dma read */
 static void vx2_dma_read(struct vx_core *chip, struct snd_pcm_runtime *runtime,
-			 struct vx_pipe *pipe, int count)
+						 struct vx_pipe *pipe, int count)
 {
 	int offset = pipe->hw_ptr;
 	u32 *addr = (u32 *)(runtime->dma_area + offset);
 	unsigned long port = vx2_reg_addr(chip, VX_DMA);
 
 	if (snd_BUG_ON(count % 4))
+	{
 		return;
+	}
 
 	vx2_setup_pseudo_dma(chip, 0);
+
 	/* Transfer using pseudo-dma.
 	 */
-	if (offset + count > pipe->buffer_bytes) {
+	if (offset + count > pipe->buffer_bytes)
+	{
 		int length = pipe->buffer_bytes - offset;
 		count -= length;
 		length >>= 2; /* in 32bit words */
+
 		/* Transfer using pseudo-dma. */
 		while (length-- > 0)
+		{
 			*addr++ = le32_to_cpu(inl(port));
+		}
+
 		addr = (u32 *)runtime->dma_area;
 		pipe->hw_ptr = 0;
 	}
+
 	pipe->hw_ptr += count;
 	count >>= 2; /* in 32bit words */
+
 	/* Transfer using pseudo-dma. */
 	while (count-- > 0)
+	{
 		*addr++ = le32_to_cpu(inl(port));
+	}
 
 	vx2_release_pseudo_dma(chip);
 }
@@ -338,7 +371,8 @@ static int put_xilinx_data(struct vx_core *chip, unsigned int port, unsigned int
 {
 	unsigned int i;
 
-	for (i = 0; i < counts; i++) {
+	for (i = 0; i < counts; i++)
+	{
 		unsigned int val;
 
 		/* set the clock bit to 0. */
@@ -348,9 +382,14 @@ static int put_xilinx_data(struct vx_core *chip, unsigned int port, unsigned int
 		udelay(1);
 
 		if (data & (1 << i))
+		{
 			val |= VX_USERBIT1_MASK;
+		}
 		else
+		{
 			val &= ~VX_USERBIT1_MASK;
+		}
+
 		vx2_outl(chip, port, val);
 		vx2_inl(chip, port);
 
@@ -360,6 +399,7 @@ static int put_xilinx_data(struct vx_core *chip, unsigned int port, unsigned int
 		vx2_inl(chip, port);
 		udelay(1);
 	}
+
 	return 0;
 }
 
@@ -381,36 +421,51 @@ static int vx2_load_xilinx_binary(struct vx_core *chip, const struct firmware *x
 	msleep(10);
 
 	if (chip->type == VX_TYPE_BOARD)
+	{
 		port = VX_CNTRL;
+	}
 	else
-		port = VX_GPIOC; /* VX222 V2 and VX222_MIC_BOARD with new PLX9030 use this register */
+	{
+		port = VX_GPIOC;    /* VX222 V2 and VX222_MIC_BOARD with new PLX9030 use this register */
+	}
 
 	image = xilinx->data;
-	for (i = 0; i < xilinx->size; i++, image++) {
+
+	for (i = 0; i < xilinx->size; i++, image++)
+	{
 		if (put_xilinx_data(chip, port, 8, *image) < 0)
+		{
 			return -EINVAL;
+		}
+
 		/* don't take too much time in this loop... */
 		cond_resched();
 	}
+
 	put_xilinx_data(chip, port, 4, 0xff); /* end signature */
 
 	msleep(200);
 
 	/* test after loading (is buggy with VX222) */
-	if (chip->type != VX_TYPE_BOARD) {
+	if (chip->type != VX_TYPE_BOARD)
+	{
 		/* Test if load successful: test bit 8 of register GPIOC (VX222: use CNTRL) ! */
 		i = vx_inl(chip, GPIOC);
+
 		if (i & 0x0100)
+		{
 			return 0;
+		}
+
 		dev_err(chip->card->dev,
-			"xilinx test failed after load, GPIOC=0x%x\n", i);
+				"xilinx test failed after load, GPIOC=0x%x\n", i);
 		return -EINVAL;
 	}
 
 	return 0;
 }
 
-	
+
 /*
  * load the boot/dsp images
  */
@@ -418,23 +473,34 @@ static int vx2_load_dsp(struct vx_core *vx, int index, const struct firmware *ds
 {
 	int err;
 
-	switch (index) {
-	case 1:
-		/* xilinx image */
-		if ((err = vx2_load_xilinx_binary(vx, dsp)) < 0)
-			return err;
-		if ((err = vx2_test_xilinx(vx)) < 0)
-			return err;
-		return 0;
-	case 2:
-		/* DSP boot */
-		return snd_vx_dsp_boot(vx, dsp);
-	case 3:
-		/* DSP image */
-		return snd_vx_dsp_load(vx, dsp);
-	default:
-		snd_BUG();
-		return -EINVAL;
+	switch (index)
+	{
+		case 1:
+
+			/* xilinx image */
+			if ((err = vx2_load_xilinx_binary(vx, dsp)) < 0)
+			{
+				return err;
+			}
+
+			if ((err = vx2_test_xilinx(vx)) < 0)
+			{
+				return err;
+			}
+
+			return 0;
+
+		case 2:
+			/* DSP boot */
+			return snd_vx_dsp_boot(vx, dsp);
+
+		case 3:
+			/* DSP image */
+			return snd_vx_dsp_load(vx, dsp);
+
+		default:
+			snd_BUG();
+			return -EINVAL;
 	}
 }
 
@@ -450,11 +516,15 @@ static int vx2_test_and_ack(struct vx_core *chip)
 {
 	/* not booted yet? */
 	if (! (chip->chip_status & VX_STAT_XILINX_LOADED))
+	{
 		return -ENXIO;
+	}
 
 	if (! (vx_inl(chip, STATUS) & VX_STATUS_MEMIRQ_MASK))
+	{
 		return -EIO;
-	
+	}
+
 	/* ok, interrupts generated, now ack it */
 	/* set ACQUIT bit up and down */
 	vx_outl(chip, STATUS, 0);
@@ -482,15 +552,19 @@ static void vx2_validate_irq(struct vx_core *_chip, int enable)
 	struct snd_vx222 *chip = (struct snd_vx222 *)_chip;
 
 	/* Set the interrupt enable bit to 1 in CDSP register */
-	if (enable) {
+	if (enable)
+	{
 		/* Set the PCI interrupt enable bit to 1.*/
-		vx_outl(chip, INTCSR, VX_INTCSR_VALUE|VX_PCI_INTERRUPT_MASK);
+		vx_outl(chip, INTCSR, VX_INTCSR_VALUE | VX_PCI_INTERRUPT_MASK);
 		chip->regCDSP |= VX_CDSP_VALID_IRQ_MASK;
-	} else {
+	}
+	else
+	{
 		/* Set the PCI interrupt enable bit to 0. */
-		vx_outl(chip, INTCSR, VX_INTCSR_VALUE&~VX_PCI_INTERRUPT_MASK);
+		vx_outl(chip, INTCSR, VX_INTCSR_VALUE & ~VX_PCI_INTERRUPT_MASK);
 		chip->regCDSP &= ~VX_CDSP_VALID_IRQ_MASK;
 	}
+
 	vx_outl(chip, CDSP, chip->regCDSP);
 }
 
@@ -506,7 +580,10 @@ static void vx2_write_codec_reg(struct vx_core *chip, unsigned int data)
 
 	/* We have to send 24 bits (3 x 8 bits). Start with most signif. Bit */
 	for (i = 0; i < 24; i++, data <<= 1)
+	{
 		vx_outl(chip, DATA, ((data & 0x800000) ? VX_DATA_CODEC_MASK : 0));
+	}
+
 	/* Terminate access to codec registers */
 	vx_inl(chip, RUER);
 }
@@ -521,155 +598,157 @@ static void vx2_write_codec_reg(struct vx_core *chip, unsigned int data)
 #define AKM_CODEC_LEFT_LEVEL_CMD    0xA400
 #define AKM_CODEC_RIGHT_LEVEL_CMD   0xA500
 
-static const u8 vx2_akm_gains_lut[VX2_AKM_LEVEL_MAX+1] = {
-    0x7f,       // [000] =  +0.000 dB  ->  AKM(0x7f) =  +0.000 dB  error(+0.000 dB)
-    0x7d,       // [001] =  -0.500 dB  ->  AKM(0x7d) =  -0.572 dB  error(-0.072 dB)
-    0x7c,       // [002] =  -1.000 dB  ->  AKM(0x7c) =  -0.873 dB  error(+0.127 dB)
-    0x7a,       // [003] =  -1.500 dB  ->  AKM(0x7a) =  -1.508 dB  error(-0.008 dB)
-    0x79,       // [004] =  -2.000 dB  ->  AKM(0x79) =  -1.844 dB  error(+0.156 dB)
-    0x77,       // [005] =  -2.500 dB  ->  AKM(0x77) =  -2.557 dB  error(-0.057 dB)
-    0x76,       // [006] =  -3.000 dB  ->  AKM(0x76) =  -2.937 dB  error(+0.063 dB)
-    0x75,       // [007] =  -3.500 dB  ->  AKM(0x75) =  -3.334 dB  error(+0.166 dB)
-    0x73,       // [008] =  -4.000 dB  ->  AKM(0x73) =  -4.188 dB  error(-0.188 dB)
-    0x72,       // [009] =  -4.500 dB  ->  AKM(0x72) =  -4.648 dB  error(-0.148 dB)
-    0x71,       // [010] =  -5.000 dB  ->  AKM(0x71) =  -5.134 dB  error(-0.134 dB)
-    0x70,       // [011] =  -5.500 dB  ->  AKM(0x70) =  -5.649 dB  error(-0.149 dB)
-    0x6f,       // [012] =  -6.000 dB  ->  AKM(0x6f) =  -6.056 dB  error(-0.056 dB)
-    0x6d,       // [013] =  -6.500 dB  ->  AKM(0x6d) =  -6.631 dB  error(-0.131 dB)
-    0x6c,       // [014] =  -7.000 dB  ->  AKM(0x6c) =  -6.933 dB  error(+0.067 dB)
-    0x6a,       // [015] =  -7.500 dB  ->  AKM(0x6a) =  -7.571 dB  error(-0.071 dB)
-    0x69,       // [016] =  -8.000 dB  ->  AKM(0x69) =  -7.909 dB  error(+0.091 dB)
-    0x67,       // [017] =  -8.500 dB  ->  AKM(0x67) =  -8.626 dB  error(-0.126 dB)
-    0x66,       // [018] =  -9.000 dB  ->  AKM(0x66) =  -9.008 dB  error(-0.008 dB)
-    0x65,       // [019] =  -9.500 dB  ->  AKM(0x65) =  -9.407 dB  error(+0.093 dB)
-    0x64,       // [020] = -10.000 dB  ->  AKM(0x64) =  -9.826 dB  error(+0.174 dB)
-    0x62,       // [021] = -10.500 dB  ->  AKM(0x62) = -10.730 dB  error(-0.230 dB)
-    0x61,       // [022] = -11.000 dB  ->  AKM(0x61) = -11.219 dB  error(-0.219 dB)
-    0x60,       // [023] = -11.500 dB  ->  AKM(0x60) = -11.738 dB  error(-0.238 dB)
-    0x5f,       // [024] = -12.000 dB  ->  AKM(0x5f) = -12.149 dB  error(-0.149 dB)
-    0x5e,       // [025] = -12.500 dB  ->  AKM(0x5e) = -12.434 dB  error(+0.066 dB)
-    0x5c,       // [026] = -13.000 dB  ->  AKM(0x5c) = -13.033 dB  error(-0.033 dB)
-    0x5b,       // [027] = -13.500 dB  ->  AKM(0x5b) = -13.350 dB  error(+0.150 dB)
-    0x59,       // [028] = -14.000 dB  ->  AKM(0x59) = -14.018 dB  error(-0.018 dB)
-    0x58,       // [029] = -14.500 dB  ->  AKM(0x58) = -14.373 dB  error(+0.127 dB)
-    0x56,       // [030] = -15.000 dB  ->  AKM(0x56) = -15.130 dB  error(-0.130 dB)
-    0x55,       // [031] = -15.500 dB  ->  AKM(0x55) = -15.534 dB  error(-0.034 dB)
-    0x54,       // [032] = -16.000 dB  ->  AKM(0x54) = -15.958 dB  error(+0.042 dB)
-    0x53,       // [033] = -16.500 dB  ->  AKM(0x53) = -16.404 dB  error(+0.096 dB)
-    0x52,       // [034] = -17.000 dB  ->  AKM(0x52) = -16.874 dB  error(+0.126 dB)
-    0x51,       // [035] = -17.500 dB  ->  AKM(0x51) = -17.371 dB  error(+0.129 dB)
-    0x50,       // [036] = -18.000 dB  ->  AKM(0x50) = -17.898 dB  error(+0.102 dB)
-    0x4e,       // [037] = -18.500 dB  ->  AKM(0x4e) = -18.605 dB  error(-0.105 dB)
-    0x4d,       // [038] = -19.000 dB  ->  AKM(0x4d) = -18.905 dB  error(+0.095 dB)
-    0x4b,       // [039] = -19.500 dB  ->  AKM(0x4b) = -19.538 dB  error(-0.038 dB)
-    0x4a,       // [040] = -20.000 dB  ->  AKM(0x4a) = -19.872 dB  error(+0.128 dB)
-    0x48,       // [041] = -20.500 dB  ->  AKM(0x48) = -20.583 dB  error(-0.083 dB)
-    0x47,       // [042] = -21.000 dB  ->  AKM(0x47) = -20.961 dB  error(+0.039 dB)
-    0x46,       // [043] = -21.500 dB  ->  AKM(0x46) = -21.356 dB  error(+0.144 dB)
-    0x44,       // [044] = -22.000 dB  ->  AKM(0x44) = -22.206 dB  error(-0.206 dB)
-    0x43,       // [045] = -22.500 dB  ->  AKM(0x43) = -22.664 dB  error(-0.164 dB)
-    0x42,       // [046] = -23.000 dB  ->  AKM(0x42) = -23.147 dB  error(-0.147 dB)
-    0x41,       // [047] = -23.500 dB  ->  AKM(0x41) = -23.659 dB  error(-0.159 dB)
-    0x40,       // [048] = -24.000 dB  ->  AKM(0x40) = -24.203 dB  error(-0.203 dB)
-    0x3f,       // [049] = -24.500 dB  ->  AKM(0x3f) = -24.635 dB  error(-0.135 dB)
-    0x3e,       // [050] = -25.000 dB  ->  AKM(0x3e) = -24.935 dB  error(+0.065 dB)
-    0x3c,       // [051] = -25.500 dB  ->  AKM(0x3c) = -25.569 dB  error(-0.069 dB)
-    0x3b,       // [052] = -26.000 dB  ->  AKM(0x3b) = -25.904 dB  error(+0.096 dB)
-    0x39,       // [053] = -26.500 dB  ->  AKM(0x39) = -26.615 dB  error(-0.115 dB)
-    0x38,       // [054] = -27.000 dB  ->  AKM(0x38) = -26.994 dB  error(+0.006 dB)
-    0x37,       // [055] = -27.500 dB  ->  AKM(0x37) = -27.390 dB  error(+0.110 dB)
-    0x36,       // [056] = -28.000 dB  ->  AKM(0x36) = -27.804 dB  error(+0.196 dB)
-    0x34,       // [057] = -28.500 dB  ->  AKM(0x34) = -28.699 dB  error(-0.199 dB)
-    0x33,       // [058] = -29.000 dB  ->  AKM(0x33) = -29.183 dB  error(-0.183 dB)
-    0x32,       // [059] = -29.500 dB  ->  AKM(0x32) = -29.696 dB  error(-0.196 dB)
-    0x31,       // [060] = -30.000 dB  ->  AKM(0x31) = -30.241 dB  error(-0.241 dB)
-    0x31,       // [061] = -30.500 dB  ->  AKM(0x31) = -30.241 dB  error(+0.259 dB)
-    0x30,       // [062] = -31.000 dB  ->  AKM(0x30) = -30.823 dB  error(+0.177 dB)
-    0x2e,       // [063] = -31.500 dB  ->  AKM(0x2e) = -31.610 dB  error(-0.110 dB)
-    0x2d,       // [064] = -32.000 dB  ->  AKM(0x2d) = -31.945 dB  error(+0.055 dB)
-    0x2b,       // [065] = -32.500 dB  ->  AKM(0x2b) = -32.659 dB  error(-0.159 dB)
-    0x2a,       // [066] = -33.000 dB  ->  AKM(0x2a) = -33.038 dB  error(-0.038 dB)
-    0x29,       // [067] = -33.500 dB  ->  AKM(0x29) = -33.435 dB  error(+0.065 dB)
-    0x28,       // [068] = -34.000 dB  ->  AKM(0x28) = -33.852 dB  error(+0.148 dB)
-    0x27,       // [069] = -34.500 dB  ->  AKM(0x27) = -34.289 dB  error(+0.211 dB)
-    0x25,       // [070] = -35.000 dB  ->  AKM(0x25) = -35.235 dB  error(-0.235 dB)
-    0x24,       // [071] = -35.500 dB  ->  AKM(0x24) = -35.750 dB  error(-0.250 dB)
-    0x24,       // [072] = -36.000 dB  ->  AKM(0x24) = -35.750 dB  error(+0.250 dB)
-    0x23,       // [073] = -36.500 dB  ->  AKM(0x23) = -36.297 dB  error(+0.203 dB)
-    0x22,       // [074] = -37.000 dB  ->  AKM(0x22) = -36.881 dB  error(+0.119 dB)
-    0x21,       // [075] = -37.500 dB  ->  AKM(0x21) = -37.508 dB  error(-0.008 dB)
-    0x20,       // [076] = -38.000 dB  ->  AKM(0x20) = -38.183 dB  error(-0.183 dB)
-    0x1f,       // [077] = -38.500 dB  ->  AKM(0x1f) = -38.726 dB  error(-0.226 dB)
-    0x1e,       // [078] = -39.000 dB  ->  AKM(0x1e) = -39.108 dB  error(-0.108 dB)
-    0x1d,       // [079] = -39.500 dB  ->  AKM(0x1d) = -39.507 dB  error(-0.007 dB)
-    0x1c,       // [080] = -40.000 dB  ->  AKM(0x1c) = -39.926 dB  error(+0.074 dB)
-    0x1b,       // [081] = -40.500 dB  ->  AKM(0x1b) = -40.366 dB  error(+0.134 dB)
-    0x1a,       // [082] = -41.000 dB  ->  AKM(0x1a) = -40.829 dB  error(+0.171 dB)
-    0x19,       // [083] = -41.500 dB  ->  AKM(0x19) = -41.318 dB  error(+0.182 dB)
-    0x18,       // [084] = -42.000 dB  ->  AKM(0x18) = -41.837 dB  error(+0.163 dB)
-    0x17,       // [085] = -42.500 dB  ->  AKM(0x17) = -42.389 dB  error(+0.111 dB)
-    0x16,       // [086] = -43.000 dB  ->  AKM(0x16) = -42.978 dB  error(+0.022 dB)
-    0x15,       // [087] = -43.500 dB  ->  AKM(0x15) = -43.610 dB  error(-0.110 dB)
-    0x14,       // [088] = -44.000 dB  ->  AKM(0x14) = -44.291 dB  error(-0.291 dB)
-    0x14,       // [089] = -44.500 dB  ->  AKM(0x14) = -44.291 dB  error(+0.209 dB)
-    0x13,       // [090] = -45.000 dB  ->  AKM(0x13) = -45.031 dB  error(-0.031 dB)
-    0x12,       // [091] = -45.500 dB  ->  AKM(0x12) = -45.840 dB  error(-0.340 dB)
-    0x12,       // [092] = -46.000 dB  ->  AKM(0x12) = -45.840 dB  error(+0.160 dB)
-    0x11,       // [093] = -46.500 dB  ->  AKM(0x11) = -46.731 dB  error(-0.231 dB)
-    0x11,       // [094] = -47.000 dB  ->  AKM(0x11) = -46.731 dB  error(+0.269 dB)
-    0x10,       // [095] = -47.500 dB  ->  AKM(0x10) = -47.725 dB  error(-0.225 dB)
-    0x10,       // [096] = -48.000 dB  ->  AKM(0x10) = -47.725 dB  error(+0.275 dB)
-    0x0f,       // [097] = -48.500 dB  ->  AKM(0x0f) = -48.553 dB  error(-0.053 dB)
-    0x0e,       // [098] = -49.000 dB  ->  AKM(0x0e) = -49.152 dB  error(-0.152 dB)
-    0x0d,       // [099] = -49.500 dB  ->  AKM(0x0d) = -49.796 dB  error(-0.296 dB)
-    0x0d,       // [100] = -50.000 dB  ->  AKM(0x0d) = -49.796 dB  error(+0.204 dB)
-    0x0c,       // [101] = -50.500 dB  ->  AKM(0x0c) = -50.491 dB  error(+0.009 dB)
-    0x0b,       // [102] = -51.000 dB  ->  AKM(0x0b) = -51.247 dB  error(-0.247 dB)
-    0x0b,       // [103] = -51.500 dB  ->  AKM(0x0b) = -51.247 dB  error(+0.253 dB)
-    0x0a,       // [104] = -52.000 dB  ->  AKM(0x0a) = -52.075 dB  error(-0.075 dB)
-    0x0a,       // [105] = -52.500 dB  ->  AKM(0x0a) = -52.075 dB  error(+0.425 dB)
-    0x09,       // [106] = -53.000 dB  ->  AKM(0x09) = -52.990 dB  error(+0.010 dB)
-    0x09,       // [107] = -53.500 dB  ->  AKM(0x09) = -52.990 dB  error(+0.510 dB)
-    0x08,       // [108] = -54.000 dB  ->  AKM(0x08) = -54.013 dB  error(-0.013 dB)
-    0x08,       // [109] = -54.500 dB  ->  AKM(0x08) = -54.013 dB  error(+0.487 dB)
-    0x07,       // [110] = -55.000 dB  ->  AKM(0x07) = -55.173 dB  error(-0.173 dB)
-    0x07,       // [111] = -55.500 dB  ->  AKM(0x07) = -55.173 dB  error(+0.327 dB)
-    0x06,       // [112] = -56.000 dB  ->  AKM(0x06) = -56.512 dB  error(-0.512 dB)
-    0x06,       // [113] = -56.500 dB  ->  AKM(0x06) = -56.512 dB  error(-0.012 dB)
-    0x06,       // [114] = -57.000 dB  ->  AKM(0x06) = -56.512 dB  error(+0.488 dB)
-    0x05,       // [115] = -57.500 dB  ->  AKM(0x05) = -58.095 dB  error(-0.595 dB)
-    0x05,       // [116] = -58.000 dB  ->  AKM(0x05) = -58.095 dB  error(-0.095 dB)
-    0x05,       // [117] = -58.500 dB  ->  AKM(0x05) = -58.095 dB  error(+0.405 dB)
-    0x05,       // [118] = -59.000 dB  ->  AKM(0x05) = -58.095 dB  error(+0.905 dB)
-    0x04,       // [119] = -59.500 dB  ->  AKM(0x04) = -60.034 dB  error(-0.534 dB)
-    0x04,       // [120] = -60.000 dB  ->  AKM(0x04) = -60.034 dB  error(-0.034 dB)
-    0x04,       // [121] = -60.500 dB  ->  AKM(0x04) = -60.034 dB  error(+0.466 dB)
-    0x04,       // [122] = -61.000 dB  ->  AKM(0x04) = -60.034 dB  error(+0.966 dB)
-    0x03,       // [123] = -61.500 dB  ->  AKM(0x03) = -62.532 dB  error(-1.032 dB)
-    0x03,       // [124] = -62.000 dB  ->  AKM(0x03) = -62.532 dB  error(-0.532 dB)
-    0x03,       // [125] = -62.500 dB  ->  AKM(0x03) = -62.532 dB  error(-0.032 dB)
-    0x03,       // [126] = -63.000 dB  ->  AKM(0x03) = -62.532 dB  error(+0.468 dB)
-    0x03,       // [127] = -63.500 dB  ->  AKM(0x03) = -62.532 dB  error(+0.968 dB)
-    0x03,       // [128] = -64.000 dB  ->  AKM(0x03) = -62.532 dB  error(+1.468 dB)
-    0x02,       // [129] = -64.500 dB  ->  AKM(0x02) = -66.054 dB  error(-1.554 dB)
-    0x02,       // [130] = -65.000 dB  ->  AKM(0x02) = -66.054 dB  error(-1.054 dB)
-    0x02,       // [131] = -65.500 dB  ->  AKM(0x02) = -66.054 dB  error(-0.554 dB)
-    0x02,       // [132] = -66.000 dB  ->  AKM(0x02) = -66.054 dB  error(-0.054 dB)
-    0x02,       // [133] = -66.500 dB  ->  AKM(0x02) = -66.054 dB  error(+0.446 dB)
-    0x02,       // [134] = -67.000 dB  ->  AKM(0x02) = -66.054 dB  error(+0.946 dB)
-    0x02,       // [135] = -67.500 dB  ->  AKM(0x02) = -66.054 dB  error(+1.446 dB)
-    0x02,       // [136] = -68.000 dB  ->  AKM(0x02) = -66.054 dB  error(+1.946 dB)
-    0x02,       // [137] = -68.500 dB  ->  AKM(0x02) = -66.054 dB  error(+2.446 dB)
-    0x02,       // [138] = -69.000 dB  ->  AKM(0x02) = -66.054 dB  error(+2.946 dB)
-    0x01,       // [139] = -69.500 dB  ->  AKM(0x01) = -72.075 dB  error(-2.575 dB)
-    0x01,       // [140] = -70.000 dB  ->  AKM(0x01) = -72.075 dB  error(-2.075 dB)
-    0x01,       // [141] = -70.500 dB  ->  AKM(0x01) = -72.075 dB  error(-1.575 dB)
-    0x01,       // [142] = -71.000 dB  ->  AKM(0x01) = -72.075 dB  error(-1.075 dB)
-    0x01,       // [143] = -71.500 dB  ->  AKM(0x01) = -72.075 dB  error(-0.575 dB)
-    0x01,       // [144] = -72.000 dB  ->  AKM(0x01) = -72.075 dB  error(-0.075 dB)
-    0x01,       // [145] = -72.500 dB  ->  AKM(0x01) = -72.075 dB  error(+0.425 dB)
-    0x01,       // [146] = -73.000 dB  ->  AKM(0x01) = -72.075 dB  error(+0.925 dB)
-    0x00};      // [147] = -73.500 dB  ->  AKM(0x00) =  mute       error(+infini)
+static const u8 vx2_akm_gains_lut[VX2_AKM_LEVEL_MAX + 1] =
+{
+	0x7f,       // [000] =  +0.000 dB  ->  AKM(0x7f) =  +0.000 dB  error(+0.000 dB)
+	0x7d,       // [001] =  -0.500 dB  ->  AKM(0x7d) =  -0.572 dB  error(-0.072 dB)
+	0x7c,       // [002] =  -1.000 dB  ->  AKM(0x7c) =  -0.873 dB  error(+0.127 dB)
+	0x7a,       // [003] =  -1.500 dB  ->  AKM(0x7a) =  -1.508 dB  error(-0.008 dB)
+	0x79,       // [004] =  -2.000 dB  ->  AKM(0x79) =  -1.844 dB  error(+0.156 dB)
+	0x77,       // [005] =  -2.500 dB  ->  AKM(0x77) =  -2.557 dB  error(-0.057 dB)
+	0x76,       // [006] =  -3.000 dB  ->  AKM(0x76) =  -2.937 dB  error(+0.063 dB)
+	0x75,       // [007] =  -3.500 dB  ->  AKM(0x75) =  -3.334 dB  error(+0.166 dB)
+	0x73,       // [008] =  -4.000 dB  ->  AKM(0x73) =  -4.188 dB  error(-0.188 dB)
+	0x72,       // [009] =  -4.500 dB  ->  AKM(0x72) =  -4.648 dB  error(-0.148 dB)
+	0x71,       // [010] =  -5.000 dB  ->  AKM(0x71) =  -5.134 dB  error(-0.134 dB)
+	0x70,       // [011] =  -5.500 dB  ->  AKM(0x70) =  -5.649 dB  error(-0.149 dB)
+	0x6f,       // [012] =  -6.000 dB  ->  AKM(0x6f) =  -6.056 dB  error(-0.056 dB)
+	0x6d,       // [013] =  -6.500 dB  ->  AKM(0x6d) =  -6.631 dB  error(-0.131 dB)
+	0x6c,       // [014] =  -7.000 dB  ->  AKM(0x6c) =  -6.933 dB  error(+0.067 dB)
+	0x6a,       // [015] =  -7.500 dB  ->  AKM(0x6a) =  -7.571 dB  error(-0.071 dB)
+	0x69,       // [016] =  -8.000 dB  ->  AKM(0x69) =  -7.909 dB  error(+0.091 dB)
+	0x67,       // [017] =  -8.500 dB  ->  AKM(0x67) =  -8.626 dB  error(-0.126 dB)
+	0x66,       // [018] =  -9.000 dB  ->  AKM(0x66) =  -9.008 dB  error(-0.008 dB)
+	0x65,       // [019] =  -9.500 dB  ->  AKM(0x65) =  -9.407 dB  error(+0.093 dB)
+	0x64,       // [020] = -10.000 dB  ->  AKM(0x64) =  -9.826 dB  error(+0.174 dB)
+	0x62,       // [021] = -10.500 dB  ->  AKM(0x62) = -10.730 dB  error(-0.230 dB)
+	0x61,       // [022] = -11.000 dB  ->  AKM(0x61) = -11.219 dB  error(-0.219 dB)
+	0x60,       // [023] = -11.500 dB  ->  AKM(0x60) = -11.738 dB  error(-0.238 dB)
+	0x5f,       // [024] = -12.000 dB  ->  AKM(0x5f) = -12.149 dB  error(-0.149 dB)
+	0x5e,       // [025] = -12.500 dB  ->  AKM(0x5e) = -12.434 dB  error(+0.066 dB)
+	0x5c,       // [026] = -13.000 dB  ->  AKM(0x5c) = -13.033 dB  error(-0.033 dB)
+	0x5b,       // [027] = -13.500 dB  ->  AKM(0x5b) = -13.350 dB  error(+0.150 dB)
+	0x59,       // [028] = -14.000 dB  ->  AKM(0x59) = -14.018 dB  error(-0.018 dB)
+	0x58,       // [029] = -14.500 dB  ->  AKM(0x58) = -14.373 dB  error(+0.127 dB)
+	0x56,       // [030] = -15.000 dB  ->  AKM(0x56) = -15.130 dB  error(-0.130 dB)
+	0x55,       // [031] = -15.500 dB  ->  AKM(0x55) = -15.534 dB  error(-0.034 dB)
+	0x54,       // [032] = -16.000 dB  ->  AKM(0x54) = -15.958 dB  error(+0.042 dB)
+	0x53,       // [033] = -16.500 dB  ->  AKM(0x53) = -16.404 dB  error(+0.096 dB)
+	0x52,       // [034] = -17.000 dB  ->  AKM(0x52) = -16.874 dB  error(+0.126 dB)
+	0x51,       // [035] = -17.500 dB  ->  AKM(0x51) = -17.371 dB  error(+0.129 dB)
+	0x50,       // [036] = -18.000 dB  ->  AKM(0x50) = -17.898 dB  error(+0.102 dB)
+	0x4e,       // [037] = -18.500 dB  ->  AKM(0x4e) = -18.605 dB  error(-0.105 dB)
+	0x4d,       // [038] = -19.000 dB  ->  AKM(0x4d) = -18.905 dB  error(+0.095 dB)
+	0x4b,       // [039] = -19.500 dB  ->  AKM(0x4b) = -19.538 dB  error(-0.038 dB)
+	0x4a,       // [040] = -20.000 dB  ->  AKM(0x4a) = -19.872 dB  error(+0.128 dB)
+	0x48,       // [041] = -20.500 dB  ->  AKM(0x48) = -20.583 dB  error(-0.083 dB)
+	0x47,       // [042] = -21.000 dB  ->  AKM(0x47) = -20.961 dB  error(+0.039 dB)
+	0x46,       // [043] = -21.500 dB  ->  AKM(0x46) = -21.356 dB  error(+0.144 dB)
+	0x44,       // [044] = -22.000 dB  ->  AKM(0x44) = -22.206 dB  error(-0.206 dB)
+	0x43,       // [045] = -22.500 dB  ->  AKM(0x43) = -22.664 dB  error(-0.164 dB)
+	0x42,       // [046] = -23.000 dB  ->  AKM(0x42) = -23.147 dB  error(-0.147 dB)
+	0x41,       // [047] = -23.500 dB  ->  AKM(0x41) = -23.659 dB  error(-0.159 dB)
+	0x40,       // [048] = -24.000 dB  ->  AKM(0x40) = -24.203 dB  error(-0.203 dB)
+	0x3f,       // [049] = -24.500 dB  ->  AKM(0x3f) = -24.635 dB  error(-0.135 dB)
+	0x3e,       // [050] = -25.000 dB  ->  AKM(0x3e) = -24.935 dB  error(+0.065 dB)
+	0x3c,       // [051] = -25.500 dB  ->  AKM(0x3c) = -25.569 dB  error(-0.069 dB)
+	0x3b,       // [052] = -26.000 dB  ->  AKM(0x3b) = -25.904 dB  error(+0.096 dB)
+	0x39,       // [053] = -26.500 dB  ->  AKM(0x39) = -26.615 dB  error(-0.115 dB)
+	0x38,       // [054] = -27.000 dB  ->  AKM(0x38) = -26.994 dB  error(+0.006 dB)
+	0x37,       // [055] = -27.500 dB  ->  AKM(0x37) = -27.390 dB  error(+0.110 dB)
+	0x36,       // [056] = -28.000 dB  ->  AKM(0x36) = -27.804 dB  error(+0.196 dB)
+	0x34,       // [057] = -28.500 dB  ->  AKM(0x34) = -28.699 dB  error(-0.199 dB)
+	0x33,       // [058] = -29.000 dB  ->  AKM(0x33) = -29.183 dB  error(-0.183 dB)
+	0x32,       // [059] = -29.500 dB  ->  AKM(0x32) = -29.696 dB  error(-0.196 dB)
+	0x31,       // [060] = -30.000 dB  ->  AKM(0x31) = -30.241 dB  error(-0.241 dB)
+	0x31,       // [061] = -30.500 dB  ->  AKM(0x31) = -30.241 dB  error(+0.259 dB)
+	0x30,       // [062] = -31.000 dB  ->  AKM(0x30) = -30.823 dB  error(+0.177 dB)
+	0x2e,       // [063] = -31.500 dB  ->  AKM(0x2e) = -31.610 dB  error(-0.110 dB)
+	0x2d,       // [064] = -32.000 dB  ->  AKM(0x2d) = -31.945 dB  error(+0.055 dB)
+	0x2b,       // [065] = -32.500 dB  ->  AKM(0x2b) = -32.659 dB  error(-0.159 dB)
+	0x2a,       // [066] = -33.000 dB  ->  AKM(0x2a) = -33.038 dB  error(-0.038 dB)
+	0x29,       // [067] = -33.500 dB  ->  AKM(0x29) = -33.435 dB  error(+0.065 dB)
+	0x28,       // [068] = -34.000 dB  ->  AKM(0x28) = -33.852 dB  error(+0.148 dB)
+	0x27,       // [069] = -34.500 dB  ->  AKM(0x27) = -34.289 dB  error(+0.211 dB)
+	0x25,       // [070] = -35.000 dB  ->  AKM(0x25) = -35.235 dB  error(-0.235 dB)
+	0x24,       // [071] = -35.500 dB  ->  AKM(0x24) = -35.750 dB  error(-0.250 dB)
+	0x24,       // [072] = -36.000 dB  ->  AKM(0x24) = -35.750 dB  error(+0.250 dB)
+	0x23,       // [073] = -36.500 dB  ->  AKM(0x23) = -36.297 dB  error(+0.203 dB)
+	0x22,       // [074] = -37.000 dB  ->  AKM(0x22) = -36.881 dB  error(+0.119 dB)
+	0x21,       // [075] = -37.500 dB  ->  AKM(0x21) = -37.508 dB  error(-0.008 dB)
+	0x20,       // [076] = -38.000 dB  ->  AKM(0x20) = -38.183 dB  error(-0.183 dB)
+	0x1f,       // [077] = -38.500 dB  ->  AKM(0x1f) = -38.726 dB  error(-0.226 dB)
+	0x1e,       // [078] = -39.000 dB  ->  AKM(0x1e) = -39.108 dB  error(-0.108 dB)
+	0x1d,       // [079] = -39.500 dB  ->  AKM(0x1d) = -39.507 dB  error(-0.007 dB)
+	0x1c,       // [080] = -40.000 dB  ->  AKM(0x1c) = -39.926 dB  error(+0.074 dB)
+	0x1b,       // [081] = -40.500 dB  ->  AKM(0x1b) = -40.366 dB  error(+0.134 dB)
+	0x1a,       // [082] = -41.000 dB  ->  AKM(0x1a) = -40.829 dB  error(+0.171 dB)
+	0x19,       // [083] = -41.500 dB  ->  AKM(0x19) = -41.318 dB  error(+0.182 dB)
+	0x18,       // [084] = -42.000 dB  ->  AKM(0x18) = -41.837 dB  error(+0.163 dB)
+	0x17,       // [085] = -42.500 dB  ->  AKM(0x17) = -42.389 dB  error(+0.111 dB)
+	0x16,       // [086] = -43.000 dB  ->  AKM(0x16) = -42.978 dB  error(+0.022 dB)
+	0x15,       // [087] = -43.500 dB  ->  AKM(0x15) = -43.610 dB  error(-0.110 dB)
+	0x14,       // [088] = -44.000 dB  ->  AKM(0x14) = -44.291 dB  error(-0.291 dB)
+	0x14,       // [089] = -44.500 dB  ->  AKM(0x14) = -44.291 dB  error(+0.209 dB)
+	0x13,       // [090] = -45.000 dB  ->  AKM(0x13) = -45.031 dB  error(-0.031 dB)
+	0x12,       // [091] = -45.500 dB  ->  AKM(0x12) = -45.840 dB  error(-0.340 dB)
+	0x12,       // [092] = -46.000 dB  ->  AKM(0x12) = -45.840 dB  error(+0.160 dB)
+	0x11,       // [093] = -46.500 dB  ->  AKM(0x11) = -46.731 dB  error(-0.231 dB)
+	0x11,       // [094] = -47.000 dB  ->  AKM(0x11) = -46.731 dB  error(+0.269 dB)
+	0x10,       // [095] = -47.500 dB  ->  AKM(0x10) = -47.725 dB  error(-0.225 dB)
+	0x10,       // [096] = -48.000 dB  ->  AKM(0x10) = -47.725 dB  error(+0.275 dB)
+	0x0f,       // [097] = -48.500 dB  ->  AKM(0x0f) = -48.553 dB  error(-0.053 dB)
+	0x0e,       // [098] = -49.000 dB  ->  AKM(0x0e) = -49.152 dB  error(-0.152 dB)
+	0x0d,       // [099] = -49.500 dB  ->  AKM(0x0d) = -49.796 dB  error(-0.296 dB)
+	0x0d,       // [100] = -50.000 dB  ->  AKM(0x0d) = -49.796 dB  error(+0.204 dB)
+	0x0c,       // [101] = -50.500 dB  ->  AKM(0x0c) = -50.491 dB  error(+0.009 dB)
+	0x0b,       // [102] = -51.000 dB  ->  AKM(0x0b) = -51.247 dB  error(-0.247 dB)
+	0x0b,       // [103] = -51.500 dB  ->  AKM(0x0b) = -51.247 dB  error(+0.253 dB)
+	0x0a,       // [104] = -52.000 dB  ->  AKM(0x0a) = -52.075 dB  error(-0.075 dB)
+	0x0a,       // [105] = -52.500 dB  ->  AKM(0x0a) = -52.075 dB  error(+0.425 dB)
+	0x09,       // [106] = -53.000 dB  ->  AKM(0x09) = -52.990 dB  error(+0.010 dB)
+	0x09,       // [107] = -53.500 dB  ->  AKM(0x09) = -52.990 dB  error(+0.510 dB)
+	0x08,       // [108] = -54.000 dB  ->  AKM(0x08) = -54.013 dB  error(-0.013 dB)
+	0x08,       // [109] = -54.500 dB  ->  AKM(0x08) = -54.013 dB  error(+0.487 dB)
+	0x07,       // [110] = -55.000 dB  ->  AKM(0x07) = -55.173 dB  error(-0.173 dB)
+	0x07,       // [111] = -55.500 dB  ->  AKM(0x07) = -55.173 dB  error(+0.327 dB)
+	0x06,       // [112] = -56.000 dB  ->  AKM(0x06) = -56.512 dB  error(-0.512 dB)
+	0x06,       // [113] = -56.500 dB  ->  AKM(0x06) = -56.512 dB  error(-0.012 dB)
+	0x06,       // [114] = -57.000 dB  ->  AKM(0x06) = -56.512 dB  error(+0.488 dB)
+	0x05,       // [115] = -57.500 dB  ->  AKM(0x05) = -58.095 dB  error(-0.595 dB)
+	0x05,       // [116] = -58.000 dB  ->  AKM(0x05) = -58.095 dB  error(-0.095 dB)
+	0x05,       // [117] = -58.500 dB  ->  AKM(0x05) = -58.095 dB  error(+0.405 dB)
+	0x05,       // [118] = -59.000 dB  ->  AKM(0x05) = -58.095 dB  error(+0.905 dB)
+	0x04,       // [119] = -59.500 dB  ->  AKM(0x04) = -60.034 dB  error(-0.534 dB)
+	0x04,       // [120] = -60.000 dB  ->  AKM(0x04) = -60.034 dB  error(-0.034 dB)
+	0x04,       // [121] = -60.500 dB  ->  AKM(0x04) = -60.034 dB  error(+0.466 dB)
+	0x04,       // [122] = -61.000 dB  ->  AKM(0x04) = -60.034 dB  error(+0.966 dB)
+	0x03,       // [123] = -61.500 dB  ->  AKM(0x03) = -62.532 dB  error(-1.032 dB)
+	0x03,       // [124] = -62.000 dB  ->  AKM(0x03) = -62.532 dB  error(-0.532 dB)
+	0x03,       // [125] = -62.500 dB  ->  AKM(0x03) = -62.532 dB  error(-0.032 dB)
+	0x03,       // [126] = -63.000 dB  ->  AKM(0x03) = -62.532 dB  error(+0.468 dB)
+	0x03,       // [127] = -63.500 dB  ->  AKM(0x03) = -62.532 dB  error(+0.968 dB)
+	0x03,       // [128] = -64.000 dB  ->  AKM(0x03) = -62.532 dB  error(+1.468 dB)
+	0x02,       // [129] = -64.500 dB  ->  AKM(0x02) = -66.054 dB  error(-1.554 dB)
+	0x02,       // [130] = -65.000 dB  ->  AKM(0x02) = -66.054 dB  error(-1.054 dB)
+	0x02,       // [131] = -65.500 dB  ->  AKM(0x02) = -66.054 dB  error(-0.554 dB)
+	0x02,       // [132] = -66.000 dB  ->  AKM(0x02) = -66.054 dB  error(-0.054 dB)
+	0x02,       // [133] = -66.500 dB  ->  AKM(0x02) = -66.054 dB  error(+0.446 dB)
+	0x02,       // [134] = -67.000 dB  ->  AKM(0x02) = -66.054 dB  error(+0.946 dB)
+	0x02,       // [135] = -67.500 dB  ->  AKM(0x02) = -66.054 dB  error(+1.446 dB)
+	0x02,       // [136] = -68.000 dB  ->  AKM(0x02) = -66.054 dB  error(+1.946 dB)
+	0x02,       // [137] = -68.500 dB  ->  AKM(0x02) = -66.054 dB  error(+2.446 dB)
+	0x02,       // [138] = -69.000 dB  ->  AKM(0x02) = -66.054 dB  error(+2.946 dB)
+	0x01,       // [139] = -69.500 dB  ->  AKM(0x01) = -72.075 dB  error(-2.575 dB)
+	0x01,       // [140] = -70.000 dB  ->  AKM(0x01) = -72.075 dB  error(-2.075 dB)
+	0x01,       // [141] = -70.500 dB  ->  AKM(0x01) = -72.075 dB  error(-1.575 dB)
+	0x01,       // [142] = -71.000 dB  ->  AKM(0x01) = -72.075 dB  error(-1.075 dB)
+	0x01,       // [143] = -71.500 dB  ->  AKM(0x01) = -72.075 dB  error(-0.575 dB)
+	0x01,       // [144] = -72.000 dB  ->  AKM(0x01) = -72.075 dB  error(-0.075 dB)
+	0x01,       // [145] = -72.500 dB  ->  AKM(0x01) = -72.075 dB  error(+0.425 dB)
+	0x01,       // [146] = -73.000 dB  ->  AKM(0x01) = -72.075 dB  error(+0.925 dB)
+	0x00
+};      // [147] = -73.500 dB  ->  AKM(0x00) =  mute       error(+infini)
 
 /*
  * pseudo-codec write entry
@@ -678,7 +757,8 @@ static void vx2_write_akm(struct vx_core *chip, int reg, unsigned int data)
 {
 	unsigned int val;
 
-	if (reg == XX_CODEC_DAC_CONTROL_REGISTER) {
+	if (reg == XX_CODEC_DAC_CONTROL_REGISTER)
+	{
 		vx2_write_codec_reg(chip, data ? AKM_CODEC_MUTE_CMD : AKM_CODEC_UNMUTE_CMD);
 		return;
 	}
@@ -688,19 +768,25 @@ static void vx2_write_akm(struct vx_core *chip, int reg, unsigned int data)
 	   and the real dBu value
 	*/
 	if (snd_BUG_ON(data >= sizeof(vx2_akm_gains_lut)))
-		return;
-
-	switch (reg) {
-	case XX_CODEC_LEVEL_LEFT_REGISTER:
-		val = AKM_CODEC_LEFT_LEVEL_CMD;
-		break;
-	case XX_CODEC_LEVEL_RIGHT_REGISTER:
-		val = AKM_CODEC_RIGHT_LEVEL_CMD;
-		break;
-	default:
-		snd_BUG();
+	{
 		return;
 	}
+
+	switch (reg)
+	{
+		case XX_CODEC_LEVEL_LEFT_REGISTER:
+			val = AKM_CODEC_LEFT_LEVEL_CMD;
+			break;
+
+		case XX_CODEC_LEVEL_RIGHT_REGISTER:
+			val = AKM_CODEC_RIGHT_LEVEL_CMD;
+			break;
+
+		default:
+			snd_BUG();
+			return;
+	}
+
 	val |= vx2_akm_gains_lut[data];
 
 	vx2_write_codec_reg(chip, val);
@@ -718,7 +804,9 @@ static void vx2_old_write_codec_bit(struct vx_core *chip, int codec, unsigned in
 	vx_inl(chip, HIFREQ);
 
 	for (i = 0; i < 24; i++, data <<= 1)
+	{
 		vx_outl(chip, DATA, ((data & 0x800000) ? VX_DATA_CODEC_MASK : 0));
+	}
 
 	/* Terminate access to codec registers */
 	vx_inl(chip, RUER);
@@ -733,14 +821,16 @@ static void vx2_reset_codec(struct vx_core *_chip)
 	struct snd_vx222 *chip = (struct snd_vx222 *)_chip;
 
 	/* Set the reset CODEC bit to 0. */
-	vx_outl(chip, CDSP, chip->regCDSP &~ VX_CDSP_CODEC_RESET_MASK);
+	vx_outl(chip, CDSP, chip->regCDSP & ~ VX_CDSP_CODEC_RESET_MASK);
 	vx_inl(chip, CDSP);
 	msleep(10);
 	/* Set the reset CODEC bit to 1. */
 	chip->regCDSP |= VX_CDSP_CODEC_RESET_MASK;
 	vx_outl(chip, CDSP, chip->regCDSP);
 	vx_inl(chip, CDSP);
-	if (_chip->type == VX_TYPE_BOARD) {
+
+	if (_chip->type == VX_TYPE_BOARD)
+	{
 		msleep(1);
 		return;
 	}
@@ -748,16 +838,17 @@ static void vx2_reset_codec(struct vx_core *_chip)
 	msleep(5);  /* additionnel wait time for AKM's */
 
 	vx2_write_codec_reg(_chip, AKM_CODEC_POWER_CONTROL_CMD); /* DAC power up, ADC power up, Vref power down */
-	
+
 	vx2_write_codec_reg(_chip, AKM_CODEC_CLOCK_FORMAT_CMD); /* default */
 	vx2_write_codec_reg(_chip, AKM_CODEC_MUTE_CMD); /* Mute = ON ,Deemphasis = OFF */
 	vx2_write_codec_reg(_chip, AKM_CODEC_RESET_OFF_CMD); /* DAC and ADC normal operation */
 
-	if (_chip->type == VX_TYPE_MIC) {
+	if (_chip->type == VX_TYPE_MIC)
+	{
 		/* set up the micro input selector */
 		chip->regSELMIC =  MICRO_SELECT_INPUT_NORM |
-			MICRO_SELECT_PREAMPLI_G_0 |
-			MICRO_SELECT_NOISE_T_52DB;
+						   MICRO_SELECT_PREAMPLI_G_0 |
+						   MICRO_SELECT_NOISE_T_52DB;
 
 		/* reset phantom power supply */
 		chip->regSELMIC &= ~MICRO_SELECT_PHANTOM_ALIM;
@@ -774,14 +865,17 @@ static void vx2_change_audio_source(struct vx_core *_chip, int src)
 {
 	struct snd_vx222 *chip = (struct snd_vx222 *)_chip;
 
-	switch (src) {
-	case VX_AUDIO_SRC_DIGITAL:
-		chip->regCFG |= VX_CFG_DATAIN_SEL_MASK;
-		break;
-	default:
-		chip->regCFG &= ~VX_CFG_DATAIN_SEL_MASK;
-		break;
+	switch (src)
+	{
+		case VX_AUDIO_SRC_DIGITAL:
+			chip->regCFG |= VX_CFG_DATAIN_SEL_MASK;
+			break;
+
+		default:
+			chip->regCFG &= ~VX_CFG_DATAIN_SEL_MASK;
+			break;
 	}
+
 	vx_outl(chip, CFG, chip->regCFG);
 }
 
@@ -794,9 +888,14 @@ static void vx2_set_clock_source(struct vx_core *_chip, int source)
 	struct snd_vx222 *chip = (struct snd_vx222 *)_chip;
 
 	if (source == INTERNAL_QUARTZ)
+	{
 		chip->regCFG &= ~VX_CFG_CLOCKIN_SEL_MASK;
+	}
 	else
+	{
 		chip->regCFG |= VX_CFG_CLOCKIN_SEL_MASK;
+	}
+
 	vx_outl(chip, CFG, chip->regCFG);
 }
 
@@ -832,12 +931,17 @@ static void vx2_set_input_level(struct snd_vx222 *chip)
 	miclevel = chip->mic_level;
 	miclevel += V2_MICRO_LEVEL_RANGE; /* add 318 - 0xff */
 	preamp = 0;
-        while (miclevel > 210) { /* limitation to +9dB of 3310 real gain */
+
+	while (miclevel > 210)   /* limitation to +9dB of 3310 real gain */
+	{
 		preamp++;	/* raise pre ampli + 18dB */
 		miclevel -= (18 * 2);   /* lower level 18 dB (*2 because of 0.5 dB steps !) */
-        }
+	}
+
 	if (snd_BUG_ON(preamp >= 4))
+	{
 		return;
+	}
 
 	/* set pre-amp level */
 	chip->regSELMIC &= ~MICRO_SELECT_PREAMPLI_MASK;
@@ -845,13 +949,15 @@ static void vx2_set_input_level(struct snd_vx222 *chip)
 	vx_outl(chip, SELMIC, chip->regSELMIC);
 
 	data = (unsigned int)miclevel << 16 |
-		(unsigned int)chip->input_level[1] << 8 |
-		(unsigned int)chip->input_level[0];
+		   (unsigned int)chip->input_level[1] << 8 |
+		   (unsigned int)chip->input_level[0];
 	vx_inl(chip, DATA); /* Activate input level programming */
 
 	/* We have to send 32 bits (4 x 8 bits) */
 	for (i = 0; i < 32; i++, data <<= 1)
+	{
 		vx_outl(chip, DATA, ((data & 0x80000000) ? VX_DATA_CODEC_MASK : 0));
+	}
 
 	vx_inl(chip, RUER); /* Terminate input level programming */
 }
@@ -890,21 +996,31 @@ static int vx_input_level_put(struct snd_kcontrol *kcontrol, struct snd_ctl_elem
 {
 	struct vx_core *_chip = snd_kcontrol_chip(kcontrol);
 	struct snd_vx222 *chip = (struct snd_vx222 *)_chip;
+
 	if (ucontrol->value.integer.value[0] < 0 ||
-	    ucontrol->value.integer.value[0] > MIC_LEVEL_MAX)
+		ucontrol->value.integer.value[0] > MIC_LEVEL_MAX)
+	{
 		return -EINVAL;
+	}
+
 	if (ucontrol->value.integer.value[1] < 0 ||
-	    ucontrol->value.integer.value[1] > MIC_LEVEL_MAX)
+		ucontrol->value.integer.value[1] > MIC_LEVEL_MAX)
+	{
 		return -EINVAL;
+	}
+
 	mutex_lock(&_chip->mixer_mutex);
+
 	if (chip->input_level[0] != ucontrol->value.integer.value[0] ||
-	    chip->input_level[1] != ucontrol->value.integer.value[1]) {
+		chip->input_level[1] != ucontrol->value.integer.value[1])
+	{
 		chip->input_level[0] = ucontrol->value.integer.value[0];
 		chip->input_level[1] = ucontrol->value.integer.value[1];
 		vx2_set_input_level(chip);
 		mutex_unlock(&_chip->mixer_mutex);
 		return 1;
 	}
+
 	mutex_unlock(&_chip->mixer_mutex);
 	return 0;
 }
@@ -931,24 +1047,32 @@ static int vx_mic_level_put(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_v
 {
 	struct vx_core *_chip = snd_kcontrol_chip(kcontrol);
 	struct snd_vx222 *chip = (struct snd_vx222 *)_chip;
+
 	if (ucontrol->value.integer.value[0] < 0 ||
-	    ucontrol->value.integer.value[0] > MIC_LEVEL_MAX)
+		ucontrol->value.integer.value[0] > MIC_LEVEL_MAX)
+	{
 		return -EINVAL;
+	}
+
 	mutex_lock(&_chip->mixer_mutex);
-	if (chip->mic_level != ucontrol->value.integer.value[0]) {
+
+	if (chip->mic_level != ucontrol->value.integer.value[0])
+	{
 		chip->mic_level = ucontrol->value.integer.value[0];
 		vx2_set_input_level(chip);
 		mutex_unlock(&_chip->mixer_mutex);
 		return 1;
 	}
+
 	mutex_unlock(&_chip->mixer_mutex);
 	return 0;
 }
 
-static struct snd_kcontrol_new vx_control_input_level = {
+static struct snd_kcontrol_new vx_control_input_level =
+{
 	.iface =	SNDRV_CTL_ELEM_IFACE_MIXER,
 	.access =	(SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			 SNDRV_CTL_ELEM_ACCESS_TLV_READ),
+	SNDRV_CTL_ELEM_ACCESS_TLV_READ),
 	.name =		"Capture Volume",
 	.info =		vx_input_level_info,
 	.get =		vx_input_level_get,
@@ -956,10 +1080,11 @@ static struct snd_kcontrol_new vx_control_input_level = {
 	.tlv = { .p = db_scale_mic },
 };
 
-static struct snd_kcontrol_new vx_control_mic_level = {
+static struct snd_kcontrol_new vx_control_mic_level =
+{
 	.iface =	SNDRV_CTL_ELEM_IFACE_MIXER,
 	.access =	(SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			 SNDRV_CTL_ELEM_ACCESS_TLV_READ),
+	SNDRV_CTL_ELEM_ACCESS_TLV_READ),
 	.name =		"Mic Capture Volume",
 	.info =		vx_mic_level_info,
 	.get =		vx_mic_level_get,
@@ -977,7 +1102,9 @@ static int vx2_add_mic_controls(struct vx_core *_chip)
 	int err;
 
 	if (_chip->type != VX_TYPE_MIC)
+	{
 		return 0;
+	}
 
 	/* mute input levels */
 	chip->input_level[0] = chip->input_level[1] = 0;
@@ -986,9 +1113,14 @@ static int vx2_add_mic_controls(struct vx_core *_chip)
 
 	/* controls */
 	if ((err = snd_ctl_add(_chip->card, snd_ctl_new1(&vx_control_input_level, chip))) < 0)
+	{
 		return err;
+	}
+
 	if ((err = snd_ctl_add(_chip->card, snd_ctl_new1(&vx_control_mic_level, chip))) < 0)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -997,7 +1129,8 @@ static int vx2_add_mic_controls(struct vx_core *_chip)
 /*
  * callbacks
  */
-struct snd_vx_ops vx222_ops = {
+struct snd_vx_ops vx222_ops =
+{
 	.in8 = vx2_inb,
 	.in32 = vx2_inl,
 	.out8 = vx2_outb,
@@ -1017,7 +1150,8 @@ struct snd_vx_ops vx222_ops = {
 };
 
 /* for old VX222 board */
-struct snd_vx_ops vx222_old_ops = {
+struct snd_vx_ops vx222_old_ops =
+{
 	.in8 = vx2_inb,
 	.in32 = vx2_inl,
 	.out8 = vx2_outb,

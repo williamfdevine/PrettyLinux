@@ -8,11 +8,12 @@
 
 #include <linux/fs.h>
 
-struct dnotify_struct {
-	struct dnotify_struct *	dn_next;
+struct dnotify_struct
+{
+	struct dnotify_struct 	*dn_next;
 	__u32			dn_mask;
 	int			dn_fd;
-	struct file *		dn_filp;
+	struct file 		*dn_filp;
 	fl_owner_t		dn_owner;
 };
 
@@ -22,11 +23,11 @@ struct dnotify_struct {
 #ifdef CONFIG_DNOTIFY
 
 #define DNOTIFY_ALL_EVENTS (FS_DELETE | FS_DELETE_CHILD |\
-			    FS_MODIFY | FS_MODIFY_CHILD |\
-			    FS_ACCESS | FS_ACCESS_CHILD |\
-			    FS_ATTRIB | FS_ATTRIB_CHILD |\
-			    FS_CREATE | FS_DN_RENAME |\
-			    FS_MOVED_FROM | FS_MOVED_TO)
+							FS_MODIFY | FS_MODIFY_CHILD |\
+							FS_ACCESS | FS_ACCESS_CHILD |\
+							FS_ATTRIB | FS_ATTRIB_CHILD |\
+							FS_CREATE | FS_DN_RENAME |\
+							FS_MOVED_FROM | FS_MOVED_TO)
 
 extern int dir_notify_enable;
 extern void dnotify_flush(struct file *, fl_owner_t);

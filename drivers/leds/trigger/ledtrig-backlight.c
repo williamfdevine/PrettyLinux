@@ -21,7 +21,8 @@
 #define BLANK		1
 #define UNBLANK		0
 
-struct bl_trig_notifier {
+struct bl_trig_notifier
+{
 	struct led_classdev *led;
 	int brightness;
 	int old_status;
@@ -30,10 +31,10 @@ struct bl_trig_notifier {
 };
 
 static int fb_notifier_callback(struct notifier_block *p,
-				unsigned long event, void *data)
+								unsigned long event, void *data)
 {
 	struct bl_trig_notifier *n = container_of(p,
-					struct bl_trig_notifier, notifier);
+								 struct bl_trig_notifier, notifier);
 	struct led_classdev *led = n->led;
 	struct fb_event *fb_event = data;
 	int *blank;
@@ -41,18 +42,25 @@ static int fb_notifier_callback(struct notifier_block *p,
 
 	/* If we aren't interested in this event, skip it immediately ... */
 	if (event != FB_EVENT_BLANK)
+	{
 		return 0;
+	}
 
 	blank = fb_event->data;
 	new_status = *blank ? BLANK : UNBLANK;
 
 	if (new_status == n->old_status)
+	{
 		return 0;
+	}
 
-	if ((n->old_status == UNBLANK) ^ n->invert) {
+	if ((n->old_status == UNBLANK) ^ n->invert)
+	{
 		n->brightness = led->brightness;
 		led_set_brightness_nosleep(led, LED_OFF);
-	} else {
+	}
+	else
+	{
 		led_set_brightness_nosleep(led, n->brightness);
 	}
 
@@ -62,7 +70,7 @@ static int fb_notifier_callback(struct notifier_block *p,
 }
 
 static ssize_t bl_trig_invert_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+								   struct device_attribute *attr, char *buf)
 {
 	struct led_classdev *led = dev_get_drvdata(dev);
 	struct bl_trig_notifier *n = led->trigger_data;
@@ -71,7 +79,7 @@ static ssize_t bl_trig_invert_show(struct device *dev,
 }
 
 static ssize_t bl_trig_invert_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t num)
+									struct device_attribute *attr, const char *buf, size_t num)
 {
 	struct led_classdev *led = dev_get_drvdata(dev);
 	struct bl_trig_notifier *n = led->trigger_data;
@@ -79,19 +87,28 @@ static ssize_t bl_trig_invert_store(struct device *dev,
 	int ret;
 
 	ret = kstrtoul(buf, 10, &invert);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	if (invert > 1)
+	{
 		return -EINVAL;
+	}
 
 	n->invert = invert;
 
 	/* After inverting, we need to update the LED. */
 	if ((n->old_status == BLANK) ^ n->invert)
+	{
 		led_set_brightness_nosleep(led, LED_OFF);
+	}
 	else
+	{
 		led_set_brightness_nosleep(led, n->brightness);
+	}
 
 	return num;
 }
@@ -105,14 +122,19 @@ static void bl_trig_activate(struct led_classdev *led)
 
 	n = kzalloc(sizeof(struct bl_trig_notifier), GFP_KERNEL);
 	led->trigger_data = n;
-	if (!n) {
+
+	if (!n)
+	{
 		dev_err(led->dev, "unable to allocate backlight trigger\n");
 		return;
 	}
 
 	ret = device_create_file(led->dev, &dev_attr_inverted);
+
 	if (ret)
+	{
 		goto err_invert;
+	}
 
 	n->led = led;
 	n->brightness = led->brightness;
@@ -120,8 +142,12 @@ static void bl_trig_activate(struct led_classdev *led)
 	n->notifier.notifier_call = fb_notifier_callback;
 
 	ret = fb_register_client(&n->notifier);
+
 	if (ret)
+	{
 		dev_err(led->dev, "unable to register backlight trigger\n");
+	}
+
 	led->activated = true;
 
 	return;
@@ -136,7 +162,8 @@ static void bl_trig_deactivate(struct led_classdev *led)
 	struct bl_trig_notifier *n =
 		(struct bl_trig_notifier *) led->trigger_data;
 
-	if (led->activated) {
+	if (led->activated)
+	{
 		device_remove_file(led->dev, &dev_attr_inverted);
 		fb_unregister_client(&n->notifier);
 		kfree(n);
@@ -144,7 +171,8 @@ static void bl_trig_deactivate(struct led_classdev *led)
 	}
 }
 
-static struct led_trigger bl_led_trigger = {
+static struct led_trigger bl_led_trigger =
+{
 	.name		= "backlight",
 	.activate	= bl_trig_activate,
 	.deactivate	= bl_trig_deactivate

@@ -28,7 +28,7 @@
 	int c400_host_buf; \
 	int io_width;
 
-#else 
+#else
 /* therefore SCSI_G_NCR5380_MEM */
 #define DRV_MODULE_NAME "g_NCR5380_mmio"
 
@@ -38,10 +38,10 @@
 
 #define NCR5380_read(reg) \
 	readb(((struct NCR5380_hostdata *)shost_priv(instance))->iomem + \
-	      NCR53C400_mem_base + (reg))
+		  NCR53C400_mem_base + (reg))
 #define NCR5380_write(reg, value) \
 	writeb(value, ((struct NCR5380_hostdata *)shost_priv(instance))->iomem + \
-	       NCR53C400_mem_base + (reg))
+		   NCR53C400_mem_base + (reg))
 
 #define NCR5380_implementation_fields \
 	void __iomem *iomem; \
@@ -53,7 +53,7 @@
 #endif
 
 #define NCR5380_dma_xfer_len(instance, cmd, phase) \
-        generic_NCR5380_dma_xfer_len(instance, cmd)
+	generic_NCR5380_dma_xfer_len(instance, cmd)
 #define NCR5380_dma_recv_setup		generic_NCR5380_pread
 #define NCR5380_dma_send_setup		generic_NCR5380_pwrite
 #define NCR5380_dma_residual(instance)	(0)

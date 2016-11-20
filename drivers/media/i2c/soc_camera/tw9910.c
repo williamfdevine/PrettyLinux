@@ -132,11 +132,11 @@
 /* INFORM */
 #define FC27_ON     0x40 /* 1 : Input crystal clock frequency is 27MHz */
 #define FC27_FF     0x00 /* 0 : Square pixel mode. */
-			 /*     Must use 24.54MHz for 60Hz field rate */
-			 /*     source or 29.5MHz for 50Hz field rate */
+/*     Must use 24.54MHz for 60Hz field rate */
+/*     source or 29.5MHz for 50Hz field rate */
 #define IFSEL_S     0x10 /* 01 : S-video decoding */
 #define IFSEL_C     0x00 /* 00 : Composite video decoding */
-			 /* Y input video selection */
+/* Y input video selection */
 #define YSEL_M0     0x00 /*  00 : Mux0 selected */
 #define YSEL_M1     0x04 /*  01 : Mux1 selected */
 #define YSEL_M2     0x08 /*  10 : Mux2 selected */
@@ -144,16 +144,16 @@
 
 /* OPFORM */
 #define MODE        0x80 /* 0 : CCIR601 compatible YCrCb 4:2:2 format */
-			 /* 1 : ITU-R-656 compatible data sequence format */
+/* 1 : ITU-R-656 compatible data sequence format */
 #define LEN         0x40 /* 0 : 8-bit YCrCb 4:2:2 output format */
-			 /* 1 : 16-bit YCrCb 4:2:2 output format.*/
+/* 1 : 16-bit YCrCb 4:2:2 output format.*/
 #define LLCMODE     0x20 /* 1 : LLC output mode. */
-			 /* 0 : free-run output mode */
+/* 0 : free-run output mode */
 #define AINC        0x10 /* Serial interface auto-indexing control */
-			 /* 0 : auto-increment */
-			 /* 1 : non-auto */
+/* 0 : auto-increment */
+/* 1 : non-auto */
 #define VSCTL       0x08 /* 1 : Vertical out ctrl by DVALID */
-			 /* 0 : Vertical out ctrl by HACTIVE and DVALID */
+/* 0 : Vertical out ctrl by HACTIVE and DVALID */
 #define OEN_TRI_SEL_MASK	0x07
 #define OEN_TRI_SEL_ALL_ON	0x00 /* Enable output for Rev0/Rev1 */
 #define OEN_TRI_SEL_ALL_OFF_r0	0x06 /* All tri-stated for Rev0 */
@@ -162,7 +162,7 @@
 /* OUTCTR1 */
 #define VSP_LO      0x00 /* 0 : VS pin output polarity is active low */
 #define VSP_HI      0x80 /* 1 : VS pin output polarity is active high. */
-			 /* VS pin output control */
+/* VS pin output control */
 #define VSSL_VSYNC  0x00 /*   0 : VSYNC  */
 #define VSSL_VACT   0x10 /*   1 : VACT   */
 #define VSSL_FIELD  0x20 /*   2 : FIELD  */
@@ -170,7 +170,7 @@
 #define VSSL_ZERO   0x70 /*   7 : 0      */
 #define HSP_LOW     0x00 /* 0 : HS pin output polarity is active low */
 #define HSP_HI      0x08 /* 1 : HS pin output polarity is active high.*/
-			 /* HS pin output control */
+/* HS pin output control */
 #define HSSL_HACT   0x00 /*   0 : HACT   */
 #define HSSL_HSYNC  0x01 /*   1 : HSYNC  */
 #define HSSL_DVALID 0x02 /*   2 : DVALID */
@@ -213,12 +213,14 @@
  * structure
  */
 
-struct regval_list {
+struct regval_list
+{
 	unsigned char reg_num;
 	unsigned char value;
 };
 
-struct tw9910_scale_ctrl {
+struct tw9910_scale_ctrl
+{
 	char           *name;
 	unsigned short  width;
 	unsigned short  height;
@@ -226,7 +228,8 @@ struct tw9910_scale_ctrl {
 	u16             vscale;
 };
 
-struct tw9910_priv {
+struct tw9910_priv
+{
 	struct v4l2_subdev		subdev;
 	struct v4l2_clk			*clk;
 	struct tw9910_video_info	*info;
@@ -235,7 +238,8 @@ struct tw9910_priv {
 	u32				revision;
 };
 
-static const struct tw9910_scale_ctrl tw9910_ntsc_scales[] = {
+static const struct tw9910_scale_ctrl tw9910_ntsc_scales[] =
+{
 	{
 		.name   = "NTSC SQ",
 		.width  = 640,
@@ -280,7 +284,8 @@ static const struct tw9910_scale_ctrl tw9910_ntsc_scales[] = {
 	},
 };
 
-static const struct tw9910_scale_ctrl tw9910_pal_scales[] = {
+static const struct tw9910_scale_ctrl tw9910_pal_scales[] =
+{
 	{
 		.name   = "PAL SQ",
 		.width  = 768,
@@ -331,15 +336,18 @@ static const struct tw9910_scale_ctrl tw9910_pal_scales[] = {
 static struct tw9910_priv *to_tw9910(const struct i2c_client *client)
 {
 	return container_of(i2c_get_clientdata(client), struct tw9910_priv,
-			    subdev);
+						subdev);
 }
 
 static int tw9910_mask_set(struct i2c_client *client, u8 command,
-			   u8 mask, u8 set)
+						   u8 mask, u8 set)
 {
 	s32 val = i2c_smbus_read_byte_data(client, command);
+
 	if (val < 0)
+	{
 		return val;
+	}
 
 	val &= ~mask;
 	val |= set & mask;
@@ -348,23 +356,29 @@ static int tw9910_mask_set(struct i2c_client *client, u8 command,
 }
 
 static int tw9910_set_scale(struct i2c_client *client,
-			    const struct tw9910_scale_ctrl *scale)
+							const struct tw9910_scale_ctrl *scale)
 {
 	int ret;
 
 	ret = i2c_smbus_write_byte_data(client, SCALE_HI,
-					(scale->vscale & 0x0F00) >> 4 |
-					(scale->hscale & 0x0F00) >> 8);
+									(scale->vscale & 0x0F00) >> 4 |
+									(scale->hscale & 0x0F00) >> 8);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = i2c_smbus_write_byte_data(client, HSCALE_LO,
-					scale->hscale & 0x00FF);
+									scale->hscale & 0x00FF);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = i2c_smbus_write_byte_data(client, VSCALE_LO,
-					scale->vscale & 0x00FF);
+									scale->vscale & 0x00FF);
 
 	return ret;
 }
@@ -376,22 +390,28 @@ static int tw9910_set_hsync(struct i2c_client *client)
 
 	/* bit 10 - 3 */
 	ret = i2c_smbus_write_byte_data(client, HSBEGIN,
-					(HSYNC_START & 0x07F8) >> 3);
+									(HSYNC_START & 0x07F8) >> 3);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* bit 10 - 3 */
 	ret = i2c_smbus_write_byte_data(client, HSEND,
-					(HSYNC_END & 0x07F8) >> 3);
+									(HSYNC_END & 0x07F8) >> 3);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* So far only revisions 0 and 1 have been seen */
 	/* bit 2 - 0 */
 	if (1 == priv->revision)
 		ret = tw9910_mask_set(client, HSLOWCTL, 0x77,
-				      (HSYNC_START & 0x0007) << 4 |
-				      (HSYNC_END   & 0x0007));
+							  (HSYNC_START & 0x0007) << 4 |
+							  (HSYNC_END   & 0x0007));
 
 	return ret;
 }
@@ -408,43 +428,57 @@ static int tw9910_power(struct i2c_client *client, int enable)
 	u8 acntl1;
 	u8 acntl2;
 
-	if (enable) {
+	if (enable)
+	{
 		acntl1 = 0;
 		acntl2 = 0;
-	} else {
+	}
+	else
+	{
 		acntl1 = CLK_PDN | Y_PDN | C_PDN;
 		acntl2 = PLL_PDN;
 	}
 
 	ret = tw9910_mask_set(client, ACNTL1, ACNTL1_PDN_MASK, acntl1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return tw9910_mask_set(client, ACNTL2, ACNTL2_PDN_MASK, acntl2);
 }
 
 static const struct tw9910_scale_ctrl *tw9910_select_norm(v4l2_std_id norm,
-							  u32 width, u32 height)
+		u32 width, u32 height)
 {
 	const struct tw9910_scale_ctrl *scale;
 	const struct tw9910_scale_ctrl *ret = NULL;
 	__u32 diff = 0xffffffff, tmp;
 	int size, i;
 
-	if (norm & V4L2_STD_NTSC) {
+	if (norm & V4L2_STD_NTSC)
+	{
 		scale = tw9910_ntsc_scales;
 		size = ARRAY_SIZE(tw9910_ntsc_scales);
-	} else if (norm & V4L2_STD_PAL) {
+	}
+	else if (norm & V4L2_STD_PAL)
+	{
 		scale = tw9910_pal_scales;
 		size = ARRAY_SIZE(tw9910_pal_scales);
-	} else {
+	}
+	else
+	{
 		return NULL;
 	}
 
-	for (i = 0; i < size; i++) {
+	for (i = 0; i < size; i++)
+	{
 		tmp = abs(width - scale[i].width) +
-			abs(height - scale[i].height);
-		if (tmp < diff) {
+			  abs(height - scale[i].height);
+
+		if (tmp < diff)
+		{
 			diff = tmp;
 			ret = scale + i;
 		}
@@ -463,35 +497,45 @@ static int tw9910_s_stream(struct v4l2_subdev *sd, int enable)
 	u8 val;
 	int ret;
 
-	if (!enable) {
-		switch (priv->revision) {
-		case 0:
-			val = OEN_TRI_SEL_ALL_OFF_r0;
-			break;
-		case 1:
-			val = OEN_TRI_SEL_ALL_OFF_r1;
-			break;
-		default:
-			dev_err(&client->dev, "un-supported revision\n");
-			return -EINVAL;
+	if (!enable)
+	{
+		switch (priv->revision)
+		{
+			case 0:
+				val = OEN_TRI_SEL_ALL_OFF_r0;
+				break;
+
+			case 1:
+				val = OEN_TRI_SEL_ALL_OFF_r1;
+				break;
+
+			default:
+				dev_err(&client->dev, "un-supported revision\n");
+				return -EINVAL;
 		}
-	} else {
+	}
+	else
+	{
 		val = OEN_TRI_SEL_ALL_ON;
 
-		if (!priv->scale) {
+		if (!priv->scale)
+		{
 			dev_err(&client->dev, "norm select error\n");
 			return -EPERM;
 		}
 
 		dev_dbg(&client->dev, "%s %dx%d\n",
-			priv->scale->name,
-			priv->scale->width,
-			priv->scale->height);
+				priv->scale->name,
+				priv->scale->width,
+				priv->scale->height);
 	}
 
 	ret = tw9910_mask_set(client, OPFORM, OEN_TRI_SEL_MASK, val);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return tw9910_power(client, enable);
 }
@@ -517,48 +561,62 @@ static int tw9910_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
 	int ret;
 
 	if (!(norm & (V4L2_STD_NTSC | V4L2_STD_PAL)))
+	{
 		return -EINVAL;
+	}
 
 	priv->norm = norm;
-	if (norm & V4L2_STD_525_60) {
+
+	if (norm & V4L2_STD_525_60)
+	{
 		vact = 240;
 		vdelay = 18;
 		ret = tw9910_mask_set(client, VVBI, 0x10, 0x10);
-	} else {
+	}
+	else
+	{
 		vact = 288;
 		vdelay = 24;
 		ret = tw9910_mask_set(client, VVBI, 0x10, 0x00);
 	}
+
 	if (!ret)
 		ret = i2c_smbus_write_byte_data(client, CROP_HI,
-			((vdelay >> 2) & 0xc0) |
-			((vact >> 4) & 0x30) |
-			((hdelay >> 6) & 0x0c) |
-			((hact >> 8) & 0x03));
+										((vdelay >> 2) & 0xc0) |
+										((vact >> 4) & 0x30) |
+										((hdelay >> 6) & 0x0c) |
+										((hact >> 8) & 0x03));
+
 	if (!ret)
 		ret = i2c_smbus_write_byte_data(client, VDELAY_LO,
-			vdelay & 0xff);
+										vdelay & 0xff);
+
 	if (!ret)
 		ret = i2c_smbus_write_byte_data(client, VACTIVE_LO,
-			vact & 0xff);
+										vact & 0xff);
 
 	return ret;
 }
 
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 static int tw9910_g_register(struct v4l2_subdev *sd,
-			     struct v4l2_dbg_register *reg)
+							 struct v4l2_dbg_register *reg)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	int ret;
 
 	if (reg->reg > 0xff)
+	{
 		return -EINVAL;
+	}
 
 	reg->size = 1;
 	ret = i2c_smbus_read_byte_data(client, reg->reg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/*
 	 * ret      = int
@@ -570,13 +628,15 @@ static int tw9910_g_register(struct v4l2_subdev *sd,
 }
 
 static int tw9910_s_register(struct v4l2_subdev *sd,
-			     const struct v4l2_dbg_register *reg)
+							 const struct v4l2_dbg_register *reg)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 
 	if (reg->reg > 0xff ||
-	    reg->val > 0xff)
+		reg->val > 0xff)
+	{
 		return -EINVAL;
+	}
 
 	return i2c_smbus_write_byte_data(client, reg->reg, reg->val);
 }
@@ -602,8 +662,11 @@ static int tw9910_set_frame(struct v4l2_subdev *sd, u32 *width, u32 *height)
 	 * select suitable norm
 	 */
 	priv->scale = tw9910_select_norm(priv->norm, *width, *height);
+
 	if (!priv->scale)
+	{
 		goto tw9910_set_fmt_error;
+	}
 
 	/*
 	 * reset hardware
@@ -614,54 +677,78 @@ static int tw9910_set_frame(struct v4l2_subdev *sd, u32 *width, u32 *height)
 	 * set bus width
 	 */
 	val = 0x00;
+
 	if (SOCAM_DATAWIDTH_16 == priv->info->buswidth)
+	{
 		val = LEN;
+	}
 
 	ret = tw9910_mask_set(client, OPFORM, LEN, val);
+
 	if (ret < 0)
+	{
 		goto tw9910_set_fmt_error;
+	}
 
 	/*
 	 * select MPOUT behavior
 	 */
-	switch (priv->info->mpout) {
-	case TW9910_MPO_VLOSS:
-		val = RTSEL_VLOSS; break;
-	case TW9910_MPO_HLOCK:
-		val = RTSEL_HLOCK; break;
-	case TW9910_MPO_SLOCK:
-		val = RTSEL_SLOCK; break;
-	case TW9910_MPO_VLOCK:
-		val = RTSEL_VLOCK; break;
-	case TW9910_MPO_MONO:
-		val = RTSEL_MONO;  break;
-	case TW9910_MPO_DET50:
-		val = RTSEL_DET50; break;
-	case TW9910_MPO_FIELD:
-		val = RTSEL_FIELD; break;
-	case TW9910_MPO_RTCO:
-		val = RTSEL_RTCO;  break;
-	default:
-		val = 0;
+	switch (priv->info->mpout)
+	{
+		case TW9910_MPO_VLOSS:
+			val = RTSEL_VLOSS; break;
+
+		case TW9910_MPO_HLOCK:
+			val = RTSEL_HLOCK; break;
+
+		case TW9910_MPO_SLOCK:
+			val = RTSEL_SLOCK; break;
+
+		case TW9910_MPO_VLOCK:
+			val = RTSEL_VLOCK; break;
+
+		case TW9910_MPO_MONO:
+			val = RTSEL_MONO;  break;
+
+		case TW9910_MPO_DET50:
+			val = RTSEL_DET50; break;
+
+		case TW9910_MPO_FIELD:
+			val = RTSEL_FIELD; break;
+
+		case TW9910_MPO_RTCO:
+			val = RTSEL_RTCO;  break;
+
+		default:
+			val = 0;
 	}
 
 	ret = tw9910_mask_set(client, VBICNTL, RTSEL_MASK, val);
+
 	if (ret < 0)
+	{
 		goto tw9910_set_fmt_error;
+	}
 
 	/*
 	 * set scale
 	 */
 	ret = tw9910_set_scale(client, priv->scale);
+
 	if (ret < 0)
+	{
 		goto tw9910_set_fmt_error;
+	}
 
 	/*
 	 * set hsync
 	 */
 	ret = tw9910_set_hsync(client);
+
 	if (ret < 0)
+	{
 		goto tw9910_set_fmt_error;
+	}
 
 	*width = priv->scale->width;
 	*height = priv->scale->height;
@@ -677,45 +764,61 @@ tw9910_set_fmt_error:
 }
 
 static int tw9910_get_selection(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_selection *sel)
+								struct v4l2_subdev_pad_config *cfg,
+								struct v4l2_subdev_selection *sel)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct tw9910_priv *priv = to_tw9910(client);
 
 	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+	{
 		return -EINVAL;
+	}
+
 	/* Only CROP, CROP_DEFAULT and CROP_BOUNDS are supported */
 	if (sel->target > V4L2_SEL_TGT_CROP_BOUNDS)
+	{
 		return -EINVAL;
+	}
 
 	sel->r.left	= 0;
 	sel->r.top	= 0;
-	if (priv->norm & V4L2_STD_NTSC) {
+
+	if (priv->norm & V4L2_STD_NTSC)
+	{
 		sel->r.width	= 640;
 		sel->r.height	= 480;
-	} else {
+	}
+	else
+	{
 		sel->r.width	= 768;
 		sel->r.height	= 576;
 	}
+
 	return 0;
 }
 
 static int tw9910_get_fmt(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_format *format)
+						  struct v4l2_subdev_pad_config *cfg,
+						  struct v4l2_subdev_format *format)
 {
 	struct v4l2_mbus_framefmt *mf = &format->format;
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct tw9910_priv *priv = to_tw9910(client);
 
 	if (format->pad)
+	{
 		return -EINVAL;
+	}
 
-	if (!priv->scale) {
+	if (!priv->scale)
+	{
 		priv->scale = tw9910_select_norm(priv->norm, 640, 480);
+
 		if (!priv->scale)
+		{
 			return -EINVAL;
+		}
 	}
 
 	mf->width	= priv->scale->width;
@@ -728,33 +831,38 @@ static int tw9910_get_fmt(struct v4l2_subdev *sd,
 }
 
 static int tw9910_s_fmt(struct v4l2_subdev *sd,
-			struct v4l2_mbus_framefmt *mf)
+						struct v4l2_mbus_framefmt *mf)
 {
 	u32 width = mf->width, height = mf->height;
 	int ret;
 
 	WARN_ON(mf->field != V4L2_FIELD_ANY &&
-		mf->field != V4L2_FIELD_INTERLACED_BT);
+			mf->field != V4L2_FIELD_INTERLACED_BT);
 
 	/*
 	 * check color format
 	 */
 	if (mf->code != MEDIA_BUS_FMT_UYVY8_2X8)
+	{
 		return -EINVAL;
+	}
 
 	mf->colorspace = V4L2_COLORSPACE_SMPTE170M;
 
 	ret = tw9910_set_frame(sd, &width, &height);
-	if (!ret) {
+
+	if (!ret)
+	{
 		mf->width	= width;
 		mf->height	= height;
 	}
+
 	return ret;
 }
 
 static int tw9910_set_fmt(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_format *format)
+						  struct v4l2_subdev_pad_config *cfg,
+						  struct v4l2_subdev_format *format)
 {
 	struct v4l2_mbus_framefmt *mf = &format->format;
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
@@ -762,11 +870,16 @@ static int tw9910_set_fmt(struct v4l2_subdev *sd,
 	const struct tw9910_scale_ctrl *scale;
 
 	if (format->pad)
+	{
 		return -EINVAL;
+	}
 
-	if (V4L2_FIELD_ANY == mf->field) {
+	if (V4L2_FIELD_ANY == mf->field)
+	{
 		mf->field = V4L2_FIELD_INTERLACED_BT;
-	} else if (V4L2_FIELD_INTERLACED_BT != mf->field) {
+	}
+	else if (V4L2_FIELD_INTERLACED_BT != mf->field)
+	{
 		dev_err(&client->dev, "Field type %d invalid.\n", mf->field);
 		return -EINVAL;
 	}
@@ -778,14 +891,20 @@ static int tw9910_set_fmt(struct v4l2_subdev *sd,
 	 * select suitable norm
 	 */
 	scale = tw9910_select_norm(priv->norm, mf->width, mf->height);
+
 	if (!scale)
+	{
 		return -EINVAL;
+	}
 
 	mf->width	= scale->width;
 	mf->height	= scale->height;
 
 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+	{
 		return tw9910_s_fmt(sd, mf);
+	}
+
 	cfg->try_fmt = *mf;
 	return 0;
 }
@@ -800,14 +919,18 @@ static int tw9910_video_probe(struct i2c_client *client)
 	 * tw9910 only use 8 or 16 bit bus width
 	 */
 	if (SOCAM_DATAWIDTH_16 != priv->info->buswidth &&
-	    SOCAM_DATAWIDTH_8  != priv->info->buswidth) {
+		SOCAM_DATAWIDTH_8  != priv->info->buswidth)
+	{
 		dev_err(&client->dev, "bus width error\n");
 		return -ENODEV;
 	}
 
 	ret = tw9910_s_power(&priv->subdev, 1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/*
 	 * check and show Product ID
@@ -818,16 +941,17 @@ static int tw9910_video_probe(struct i2c_client *client)
 	id = GET_ID(id);
 
 	if (0x0B != id ||
-	    0x01 < priv->revision) {
+		0x01 < priv->revision)
+	{
 		dev_err(&client->dev,
-			"Product ID error %x:%x\n",
-			id, priv->revision);
+				"Product ID error %x:%x\n",
+				id, priv->revision);
 		ret = -ENODEV;
 		goto done;
 	}
 
 	dev_info(&client->dev,
-		 "tw9910 Product ID %0x:%0x\n", id, priv->revision);
+			 "tw9910 Product ID %0x:%0x\n", id, priv->revision);
 
 	priv->norm = V4L2_STD_NTSC;
 	priv->scale = &tw9910_ntsc_scales[0];
@@ -837,7 +961,8 @@ done:
 	return ret;
 }
 
-static struct v4l2_subdev_core_ops tw9910_subdev_core_ops = {
+static struct v4l2_subdev_core_ops tw9910_subdev_core_ops =
+{
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 	.g_register	= tw9910_g_register,
 	.s_register	= tw9910_s_register,
@@ -846,26 +971,28 @@ static struct v4l2_subdev_core_ops tw9910_subdev_core_ops = {
 };
 
 static int tw9910_enum_mbus_code(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_mbus_code_enum *code)
+								 struct v4l2_subdev_pad_config *cfg,
+								 struct v4l2_subdev_mbus_code_enum *code)
 {
 	if (code->pad || code->index)
+	{
 		return -EINVAL;
+	}
 
 	code->code = MEDIA_BUS_FMT_UYVY8_2X8;
 	return 0;
 }
 
 static int tw9910_g_mbus_config(struct v4l2_subdev *sd,
-				struct v4l2_mbus_config *cfg)
+								struct v4l2_mbus_config *cfg)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
 
 	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_MASTER |
-		V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_VSYNC_ACTIVE_LOW |
-		V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_HSYNC_ACTIVE_LOW |
-		V4L2_MBUS_DATA_ACTIVE_HIGH;
+				 V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_VSYNC_ACTIVE_LOW |
+				 V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_HSYNC_ACTIVE_LOW |
+				 V4L2_MBUS_DATA_ACTIVE_HIGH;
 	cfg->type = V4L2_MBUS_PARALLEL;
 	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
 
@@ -873,7 +1000,7 @@ static int tw9910_g_mbus_config(struct v4l2_subdev *sd,
 }
 
 static int tw9910_s_mbus_config(struct v4l2_subdev *sd,
-				const struct v4l2_mbus_config *cfg)
+								const struct v4l2_mbus_config *cfg)
 {
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
@@ -887,10 +1014,14 @@ static int tw9910_s_mbus_config(struct v4l2_subdev *sd,
 	 * outputs, in this mode their polarity is inverted.
 	 */
 	if (flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
+	{
 		val |= HSP_HI;
+	}
 
 	if (flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
+	{
 		val |= VSP_HI;
+	}
 
 	return i2c_smbus_write_byte_data(client, OUTCTR1, val);
 }
@@ -901,7 +1032,8 @@ static int tw9910_g_tvnorms(struct v4l2_subdev *sd, v4l2_std_id *norm)
 	return 0;
 }
 
-static struct v4l2_subdev_video_ops tw9910_subdev_video_ops = {
+static struct v4l2_subdev_video_ops tw9910_subdev_video_ops =
+{
 	.s_std		= tw9910_s_std,
 	.g_std		= tw9910_g_std,
 	.s_stream	= tw9910_s_stream,
@@ -910,14 +1042,16 @@ static struct v4l2_subdev_video_ops tw9910_subdev_video_ops = {
 	.g_tvnorms	= tw9910_g_tvnorms,
 };
 
-static const struct v4l2_subdev_pad_ops tw9910_subdev_pad_ops = {
+static const struct v4l2_subdev_pad_ops tw9910_subdev_pad_ops =
+{
 	.enum_mbus_code = tw9910_enum_mbus_code,
 	.get_selection	= tw9910_get_selection,
 	.get_fmt	= tw9910_get_fmt,
 	.set_fmt	= tw9910_set_fmt,
 };
 
-static struct v4l2_subdev_ops tw9910_subdev_ops = {
+static struct v4l2_subdev_ops tw9910_subdev_ops =
+{
 	.core	= &tw9910_subdev_core_ops,
 	.video	= &tw9910_subdev_video_ops,
 	.pad	= &tw9910_subdev_pad_ops,
@@ -928,7 +1062,7 @@ static struct v4l2_subdev_ops tw9910_subdev_ops = {
  */
 
 static int tw9910_probe(struct i2c_client *client,
-			const struct i2c_device_id *did)
+						const struct i2c_device_id *did)
 
 {
 	struct tw9910_priv		*priv;
@@ -938,35 +1072,46 @@ static int tw9910_probe(struct i2c_client *client,
 	struct soc_camera_subdev_desc	*ssdd = soc_camera_i2c_to_desc(client);
 	int ret;
 
-	if (!ssdd || !ssdd->drv_priv) {
+	if (!ssdd || !ssdd->drv_priv)
+	{
 		dev_err(&client->dev, "TW9910: missing platform data!\n");
 		return -EINVAL;
 	}
 
 	info = ssdd->drv_priv;
 
-	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		dev_err(&client->dev,
-			"I2C-Adapter doesn't support "
-			"I2C_FUNC_SMBUS_BYTE_DATA\n");
+				"I2C-Adapter doesn't support "
+				"I2C_FUNC_SMBUS_BYTE_DATA\n");
 		return -EIO;
 	}
 
 	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	priv->info   = info;
 
 	v4l2_i2c_subdev_init(&priv->subdev, client, &tw9910_subdev_ops);
 
 	priv->clk = v4l2_clk_get(&client->dev, "mclk");
+
 	if (IS_ERR(priv->clk))
+	{
 		return PTR_ERR(priv->clk);
+	}
 
 	ret = tw9910_video_probe(client);
+
 	if (ret < 0)
+	{
 		v4l2_clk_put(priv->clk);
+	}
 
 	return ret;
 }
@@ -978,13 +1123,15 @@ static int tw9910_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id tw9910_id[] = {
+static const struct i2c_device_id tw9910_id[] =
+{
 	{ "tw9910", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, tw9910_id);
 
-static struct i2c_driver tw9910_i2c_driver = {
+static struct i2c_driver tw9910_i2c_driver =
+{
 	.driver = {
 		.name = "tw9910",
 	},

@@ -79,7 +79,8 @@ MODULE_LICENSE("GPL");
  */
 
 
-static unsigned char atakbd_keycode[0x72] = {	/* American layout */
+static unsigned char atakbd_keycode[0x72] =  	/* American layout */
+{
 	[0]	 = KEY_GRAVE,
 	[1]	 = KEY_ESC,
 	[2]	 = KEY_1,
@@ -195,22 +196,29 @@ static struct input_dev *atakbd_dev;
 static void atakbd_interrupt(unsigned char scancode, char down)
 {
 
-	if (scancode < 0x72) {		/* scancodes < 0xf2 are keys */
+	if (scancode < 0x72)  		/* scancodes < 0xf2 are keys */
+	{
 
 		// report raw events here?
 
 		scancode = atakbd_keycode[scancode];
 
-		if (scancode == KEY_CAPSLOCK) {	/* CapsLock is a toggle switch key on Amiga */
+		if (scancode == KEY_CAPSLOCK)  	/* CapsLock is a toggle switch key on Amiga */
+		{
 			input_report_key(atakbd_dev, scancode, 1);
 			input_report_key(atakbd_dev, scancode, 0);
 			input_sync(atakbd_dev);
-		} else {
+		}
+		else
+		{
 			input_report_key(atakbd_dev, scancode, down);
 			input_sync(atakbd_dev);
 		}
-	} else				/* scancodes >= 0xf2 are mouse data, most likely */
+	}
+	else				/* scancodes >= 0xf2 are mouse data, most likely */
+	{
 		printk(KERN_INFO "atakbd: unhandled scancode %x\n", scancode);
+	}
 
 	return;
 }
@@ -220,16 +228,24 @@ static int __init atakbd_init(void)
 	int i, error;
 
 	if (!MACH_IS_ATARI || !ATARIHW_PRESENT(ST_MFP))
+	{
 		return -ENODEV;
+	}
 
 	// need to init core driver if not already done so
 	error = atari_keyb_init();
+
 	if (error)
+	{
 		return error;
+	}
 
 	atakbd_dev = input_allocate_device();
+
 	if (!atakbd_dev)
+	{
 		return -ENOMEM;
+	}
 
 	atakbd_dev->name = "Atari Keyboard";
 	atakbd_dev->phys = "atakbd/input0";
@@ -243,13 +259,16 @@ static int __init atakbd_init(void)
 	atakbd_dev->keycodesize = sizeof(unsigned char);
 	atakbd_dev->keycodemax = ARRAY_SIZE(atakbd_keycode);
 
-	for (i = 1; i < 0x72; i++) {
+	for (i = 1; i < 0x72; i++)
+	{
 		set_bit(atakbd_keycode[i], atakbd_dev->keybit);
 	}
 
 	/* error check */
 	error = input_register_device(atakbd_dev);
-	if (error) {
+
+	if (error)
+	{
 		input_free_device(atakbd_dev);
 		return error;
 	}

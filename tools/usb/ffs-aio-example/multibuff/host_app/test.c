@@ -45,7 +45,8 @@
  *            reattached at the end of test program
  */
 
-struct test_state {
+struct test_state
+{
 	libusb_device *found;
 	libusb_context *ctx;
 	libusb_device_handle *handle;
@@ -68,55 +69,73 @@ int test_init(struct test_state *state)
 	state->attached = 0;
 
 	ret = libusb_init(&state->ctx);
-	if (ret) {
+
+	if (ret)
+	{
 		printf("cannot init libusb: %s\n", libusb_error_name(ret));
 		return 1;
 	}
 
 	cnt = libusb_get_device_list(state->ctx, &list);
-	if (cnt <= 0) {
+
+	if (cnt <= 0)
+	{
 		printf("no devices found\n");
 		goto error1;
 	}
 
-	for (i = 0; i < cnt; ++i) {
+	for (i = 0; i < cnt; ++i)
+	{
 		libusb_device *dev = list[i];
 		struct libusb_device_descriptor desc;
 		ret = libusb_get_device_descriptor(dev, &desc);
-		if (ret) {
+
+		if (ret)
+		{
 			printf("unable to get device descriptor: %s\n",
-			       libusb_error_name(ret));
+				   libusb_error_name(ret));
 			goto error2;
 		}
-		if (desc.idVendor == VENDOR && desc.idProduct == PRODUCT) {
+
+		if (desc.idVendor == VENDOR && desc.idProduct == PRODUCT)
+		{
 			state->found = dev;
 			break;
 		}
 	}
 
-	if (!state->found) {
+	if (!state->found)
+	{
 		printf("no devices found\n");
 		goto error2;
 	}
 
 	ret = libusb_open(state->found, &state->handle);
-	if (ret) {
+
+	if (ret)
+	{
 		printf("cannot open device: %s\n", libusb_error_name(ret));
 		goto error2;
 	}
 
-	if (libusb_claim_interface(state->handle, 0)) {
+	if (libusb_claim_interface(state->handle, 0))
+	{
 		ret = libusb_detach_kernel_driver(state->handle, 0);
-		if (ret) {
+
+		if (ret)
+		{
 			printf("unable to detach kernel driver: %s\n",
-			       libusb_error_name(ret));
+				   libusb_error_name(ret));
 			goto error3;
 		}
+
 		state->attached = 1;
 		ret = libusb_claim_interface(state->handle, 0);
-		if (ret) {
+
+		if (ret)
+		{
 			printf("cannot claim interface: %s\n",
-			       libusb_error_name(ret));
+				   libusb_error_name(ret));
 			goto error4;
 		}
 	}
@@ -124,8 +143,11 @@ int test_init(struct test_state *state)
 	return 0;
 
 error4:
+
 	if (state->attached == 1)
+	{
 		libusb_attach_kernel_driver(state->handle, 0);
+	}
 
 error3:
 	libusb_close(state->handle);
@@ -145,8 +167,12 @@ error1:
 void test_exit(struct test_state *state)
 {
 	libusb_release_interface(state->handle, 0);
+
 	if (state->attached == 1)
+	{
 		libusb_attach_kernel_driver(state->handle, 0);
+	}
+
 	libusb_close(state->handle);
 	libusb_exit(state->ctx);
 }
@@ -159,17 +185,21 @@ int main(void)
 	unsigned char addr;
 
 	if (test_init(&state))
+	{
 		return 1;
+	}
 
 	libusb_get_config_descriptor(state.found, 0, &conf);
 	iface = &conf->interface[0].altsetting[0];
 	addr = iface->endpoint[0].bEndpointAddress;
 
-	while (1) {
+	while (1)
+	{
 		static unsigned char buffer[BUF_LEN];
 		int bytes;
 		libusb_bulk_transfer(state.handle, addr, buffer, BUF_LEN,
-				     &bytes, 500);
+							 &bytes, 500);
 	}
+
 	test_exit(&state);
 }

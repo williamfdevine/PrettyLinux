@@ -82,7 +82,8 @@ struct e1000_hw;
 #define E1000_ALT_MAC_ADDRESS_OFFSET_LAN2   6
 #define E1000_ALT_MAC_ADDRESS_OFFSET_LAN3   9
 
-enum e1000_mac_type {
+enum e1000_mac_type
+{
 	e1000_undefined = 0,
 	e1000_82575,
 	e1000_82576,
@@ -94,7 +95,8 @@ enum e1000_mac_type {
 	e1000_num_macs  /* List is 1-based, so subtract 1 for true count. */
 };
 
-enum e1000_media_type {
+enum e1000_media_type
+{
 	e1000_media_type_unknown = 0,
 	e1000_media_type_copper = 1,
 	e1000_media_type_fiber = 2,
@@ -102,7 +104,8 @@ enum e1000_media_type {
 	e1000_num_media_types
 };
 
-enum e1000_nvm_type {
+enum e1000_nvm_type
+{
 	e1000_nvm_unknown = 0,
 	e1000_nvm_none,
 	e1000_nvm_eeprom_spi,
@@ -111,13 +114,15 @@ enum e1000_nvm_type {
 	e1000_nvm_flash_sw
 };
 
-enum e1000_nvm_override {
+enum e1000_nvm_override
+{
 	e1000_nvm_override_none = 0,
 	e1000_nvm_override_spi_small,
 	e1000_nvm_override_spi_large,
 };
 
-enum e1000_phy_type {
+enum e1000_phy_type
+{
 	e1000_phy_unknown = 0,
 	e1000_phy_none,
 	e1000_phy_m88,
@@ -130,7 +135,8 @@ enum e1000_phy_type {
 	e1000_phy_i210,
 };
 
-enum e1000_bus_type {
+enum e1000_bus_type
+{
 	e1000_bus_type_unknown = 0,
 	e1000_bus_type_pci,
 	e1000_bus_type_pcix,
@@ -138,7 +144,8 @@ enum e1000_bus_type {
 	e1000_bus_type_reserved
 };
 
-enum e1000_bus_speed {
+enum e1000_bus_speed
+{
 	e1000_bus_speed_unknown = 0,
 	e1000_bus_speed_33,
 	e1000_bus_speed_66,
@@ -150,7 +157,8 @@ enum e1000_bus_speed {
 	e1000_bus_speed_reserved
 };
 
-enum e1000_bus_width {
+enum e1000_bus_width
+{
 	e1000_bus_width_unknown = 0,
 	e1000_bus_width_pcie_x1,
 	e1000_bus_width_pcie_x2,
@@ -161,19 +169,22 @@ enum e1000_bus_width {
 	e1000_bus_width_reserved
 };
 
-enum e1000_1000t_rx_status {
+enum e1000_1000t_rx_status
+{
 	e1000_1000t_rx_status_not_ok = 0,
 	e1000_1000t_rx_status_ok,
 	e1000_1000t_rx_status_undefined = 0xFF
 };
 
-enum e1000_rev_polarity {
+enum e1000_rev_polarity
+{
 	e1000_rev_polarity_normal = 0,
 	e1000_rev_polarity_reversed,
 	e1000_rev_polarity_undefined = 0xFF
 };
 
-enum e1000_fc_mode {
+enum e1000_fc_mode
+{
 	e1000_fc_none = 0,
 	e1000_fc_rx_pause,
 	e1000_fc_tx_pause,
@@ -182,7 +193,8 @@ enum e1000_fc_mode {
 };
 
 /* Statistics counters collected by the MAC */
-struct e1000_hw_stats {
+struct e1000_hw_stats
+{
 	u64 crcerrs;
 	u64 algnerrc;
 	u64 symerrs;
@@ -265,7 +277,8 @@ struct e1000_hw_stats {
 	u64 b2ogprc;
 };
 
-struct e1000_host_mng_dhcp_cookie {
+struct e1000_host_mng_dhcp_cookie
+{
 	u32 signature;
 	u8  status;
 	u8  reserved0;
@@ -277,7 +290,8 @@ struct e1000_host_mng_dhcp_cookie {
 };
 
 /* Host Interface "Rev 1" */
-struct e1000_host_command_header {
+struct e1000_host_command_header
+{
 	u8 command_id;
 	u8 command_length;
 	u8 command_options;
@@ -285,13 +299,15 @@ struct e1000_host_command_header {
 };
 
 #define E1000_HI_MAX_DATA_LENGTH     252
-struct e1000_host_command_info {
+struct e1000_host_command_info
+{
 	struct e1000_host_command_header command_header;
 	u8 command_data[E1000_HI_MAX_DATA_LENGTH];
 };
 
 /* Host Interface "Rev 2" */
-struct e1000_host_mng_command_header {
+struct e1000_host_mng_command_header
+{
 	u8  command_id;
 	u8  checksum;
 	u16 reserved1;
@@ -300,7 +316,8 @@ struct e1000_host_mng_command_header {
 };
 
 #define E1000_HI_MAX_MNG_DATA_LENGTH 0x6F8
-struct e1000_host_mng_command_info {
+struct e1000_host_mng_command_info
+{
 	struct e1000_host_mng_command_header command_header;
 	u8 command_data[E1000_HI_MAX_MNG_DATA_LENGTH];
 };
@@ -310,7 +327,8 @@ struct e1000_host_mng_command_info {
 #include "e1000_nvm.h"
 #include "e1000_mbx.h"
 
-struct e1000_mac_operations {
+struct e1000_mac_operations
+{
 	s32 (*check_for_link)(struct e1000_hw *);
 	s32 (*reset_hw)(struct e1000_hw *);
 	s32 (*init_hw)(struct e1000_hw *);
@@ -328,7 +346,8 @@ struct e1000_mac_operations {
 	void (*write_vfta)(struct e1000_hw *, u32, u32);
 };
 
-struct e1000_phy_operations {
+struct e1000_phy_operations
+{
 	s32 (*acquire)(struct e1000_hw *);
 	s32 (*check_polarity)(struct e1000_hw *);
 	s32 (*check_reset_block)(struct e1000_hw *);
@@ -346,7 +365,8 @@ struct e1000_phy_operations {
 	s32 (*write_i2c_byte)(struct e1000_hw *, u8, u8, u8);
 };
 
-struct e1000_nvm_operations {
+struct e1000_nvm_operations
+{
 	s32 (*acquire)(struct e1000_hw *);
 	s32 (*read)(struct e1000_hw *, u16, u16, u16 *);
 	void (*release)(struct e1000_hw *);
@@ -358,18 +378,21 @@ struct e1000_nvm_operations {
 
 #define E1000_MAX_SENSORS		3
 
-struct e1000_thermal_diode_data {
+struct e1000_thermal_diode_data
+{
 	u8 location;
 	u8 temp;
 	u8 caution_thresh;
 	u8 max_op_thresh;
 };
 
-struct e1000_thermal_sensor_data {
+struct e1000_thermal_sensor_data
+{
 	struct e1000_thermal_diode_data sensor[E1000_MAX_SENSORS];
 };
 
-struct e1000_info {
+struct e1000_info
+{
 	s32 (*get_invariants)(struct e1000_hw *);
 	struct e1000_mac_operations *mac_ops;
 	const struct e1000_phy_operations *phy_ops;
@@ -378,7 +401,8 @@ struct e1000_info {
 
 extern const struct e1000_info e1000_82575_info;
 
-struct e1000_mac_info {
+struct e1000_mac_info
+{
 	struct e1000_mac_operations ops;
 
 	u8 addr[6];
@@ -396,7 +420,7 @@ struct e1000_mac_info {
 	u16 uta_reg_count;
 
 	/* Maximum size of the MTA register table in all supported adapters */
-	#define MAX_MTA_REG 128
+#define MAX_MTA_REG 128
 	u32 mta_shadow[MAX_MTA_REG];
 	u16 rar_entry_count;
 
@@ -417,7 +441,8 @@ struct e1000_mac_info {
 	struct e1000_thermal_sensor_data thermal_sensor_data;
 };
 
-struct e1000_phy_info {
+struct e1000_phy_info
+{
 	struct e1000_phy_operations ops;
 
 	enum e1000_phy_type type;
@@ -453,7 +478,8 @@ struct e1000_phy_info {
 	bool autoneg_wait_to_complete;
 };
 
-struct e1000_nvm_info {
+struct e1000_nvm_info
+{
 	struct e1000_nvm_operations ops;
 	enum e1000_nvm_type type;
 	enum e1000_nvm_override override;
@@ -468,7 +494,8 @@ struct e1000_nvm_info {
 	u16 page_size;
 };
 
-struct e1000_bus_info {
+struct e1000_bus_info
+{
 	enum e1000_bus_type type;
 	enum e1000_bus_speed speed;
 	enum e1000_bus_width width;
@@ -479,7 +506,8 @@ struct e1000_bus_info {
 	u16 pci_cmd_word;
 };
 
-struct e1000_fc_info {
+struct e1000_fc_info
+{
 	u32 high_water;     /* Flow control high-water mark */
 	u32 low_water;      /* Flow control low-water mark */
 	u16 pause_time;     /* Flow control pause timer */
@@ -489,7 +517,8 @@ struct e1000_fc_info {
 	enum e1000_fc_mode requested_mode;
 };
 
-struct e1000_mbx_operations {
+struct e1000_mbx_operations
+{
 	s32 (*init_params)(struct e1000_hw *hw);
 	s32 (*read)(struct e1000_hw *, u32 *, u16,  u16);
 	s32 (*write)(struct e1000_hw *, u32 *, u16, u16);
@@ -500,7 +529,8 @@ struct e1000_mbx_operations {
 	s32 (*check_for_rst)(struct e1000_hw *, u16);
 };
 
-struct e1000_mbx_stats {
+struct e1000_mbx_stats
+{
 	u32 msgs_tx;
 	u32 msgs_rx;
 
@@ -509,7 +539,8 @@ struct e1000_mbx_stats {
 	u32 rsts;
 };
 
-struct e1000_mbx_info {
+struct e1000_mbx_info
+{
 	struct e1000_mbx_operations ops;
 	struct e1000_mbx_stats stats;
 	u32 timeout;
@@ -517,7 +548,8 @@ struct e1000_mbx_info {
 	u16 size;
 };
 
-struct e1000_dev_spec_82575 {
+struct e1000_dev_spec_82575
+{
 	bool sgmii_active;
 	bool global_device_reset;
 	bool eee_disable;
@@ -529,7 +561,8 @@ struct e1000_dev_spec_82575 {
 	bool mas_capable;
 };
 
-struct e1000_hw {
+struct e1000_hw
+{
 	void *back;
 
 	u8 __iomem *hw_addr;
@@ -544,7 +577,8 @@ struct e1000_hw {
 	struct e1000_mbx_info mbx;
 	struct e1000_host_mng_dhcp_cookie mng_cookie;
 
-	union {
+	union
+	{
 		struct e1000_dev_spec_82575	_82575;
 	} dev_spec;
 

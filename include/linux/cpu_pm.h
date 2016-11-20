@@ -46,7 +46,8 @@
 /*
  * Event codes passed as unsigned long val to notifier calls
  */
-enum cpu_pm_event {
+enum cpu_pm_event
+{
 	/* A single cpu is entering a low power state */
 	CPU_PM_ENTER,
 

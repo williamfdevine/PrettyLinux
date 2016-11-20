@@ -42,23 +42,33 @@ static u8 ti_clk_mux_get_parent(struct clk_hw *hw)
 	val = ti_clk_ll_ops->clk_readl(mux->reg) >> mux->shift;
 	val &= mux->mask;
 
-	if (mux->table) {
+	if (mux->table)
+	{
 		int i;
 
 		for (i = 0; i < num_parents; i++)
 			if (mux->table[i] == val)
+			{
 				return i;
+			}
+
 		return -EINVAL;
 	}
 
 	if (val && (mux->flags & CLK_MUX_INDEX_BIT))
+	{
 		val = ffs(val) - 1;
+	}
 
 	if (val && (mux->flags & CLK_MUX_INDEX_ONE))
+	{
 		val--;
+	}
 
 	if (val >= num_parents)
+	{
 		return -EINVAL;
+	}
 
 	return val;
 }
@@ -68,39 +78,51 @@ static int ti_clk_mux_set_parent(struct clk_hw *hw, u8 index)
 	struct clk_mux *mux = to_clk_mux(hw);
 	u32 val;
 
-	if (mux->table) {
+	if (mux->table)
+	{
 		index = mux->table[index];
-	} else {
+	}
+	else
+	{
 		if (mux->flags & CLK_MUX_INDEX_BIT)
+		{
 			index = (1 << ffs(index));
+		}
 
 		if (mux->flags & CLK_MUX_INDEX_ONE)
+		{
 			index++;
+		}
 	}
 
-	if (mux->flags & CLK_MUX_HIWORD_MASK) {
+	if (mux->flags & CLK_MUX_HIWORD_MASK)
+	{
 		val = mux->mask << (mux->shift + 16);
-	} else {
+	}
+	else
+	{
 		val = ti_clk_ll_ops->clk_readl(mux->reg);
 		val &= ~(mux->mask << mux->shift);
 	}
+
 	val |= index << mux->shift;
 	ti_clk_ll_ops->clk_writel(val, mux->reg);
 
 	return 0;
 }
 
-const struct clk_ops ti_clk_mux_ops = {
+const struct clk_ops ti_clk_mux_ops =
+{
 	.get_parent = ti_clk_mux_get_parent,
 	.set_parent = ti_clk_mux_set_parent,
 	.determine_rate = __clk_mux_determine_rate,
 };
 
 static struct clk *_register_mux(struct device *dev, const char *name,
-				 const char **parent_names, u8 num_parents,
-				 unsigned long flags, void __iomem *reg,
-				 u8 shift, u32 mask, u8 clk_mux_flags,
-				 u32 *table)
+								 const char **parent_names, u8 num_parents,
+								 unsigned long flags, void __iomem *reg,
+								 u8 shift, u32 mask, u8 clk_mux_flags,
+								 u32 *table)
 {
 	struct clk_mux *mux;
 	struct clk *clk;
@@ -108,7 +130,9 @@ static struct clk *_register_mux(struct device *dev, const char *name,
 
 	/* allocate the mux */
 	mux = kzalloc(sizeof(*mux), GFP_KERNEL);
-	if (!mux) {
+
+	if (!mux)
+	{
 		pr_err("%s: could not allocate mux clk\n", __func__);
 		return ERR_PTR(-ENOMEM);
 	}
@@ -130,7 +154,9 @@ static struct clk *_register_mux(struct device *dev, const char *name,
 	clk = clk_register(dev, &mux->hw);
 
 	if (IS_ERR(clk))
+	{
 		kfree(mux);
+	}
 
 	return clk;
 }
@@ -150,22 +176,29 @@ struct clk *ti_clk_register_mux(struct ti_clk *setup)
 	flags = CLK_SET_RATE_NO_REPARENT;
 
 	mask = mux->num_parents;
+
 	if (!(mux->flags & CLKF_INDEX_STARTS_AT_ONE))
+	{
 		mask--;
+	}
 
 	mask = (1 << fls(mask)) - 1;
 	reg_setup->index = mux->module;
 	reg_setup->offset = mux->reg;
 
 	if (mux->flags & CLKF_INDEX_STARTS_AT_ONE)
+	{
 		mux_flags |= CLK_MUX_INDEX_ONE;
+	}
 
 	if (mux->flags & CLKF_SET_RATE_PARENT)
+	{
 		flags |= CLK_SET_RATE_PARENT;
+	}
 
 	return _register_mux(NULL, setup->name, mux->parents, mux->num_parents,
-			     flags, (void __iomem *)reg, mux->bit_shift, mask,
-			     mux_flags, NULL);
+						 flags, (void __iomem *)reg, mux->bit_shift, mask,
+						 mux_flags, NULL);
 }
 
 /**
@@ -186,41 +219,58 @@ static void of_mux_clk_setup(struct device_node *node)
 	u32 flags = CLK_SET_RATE_NO_REPARENT;
 
 	num_parents = of_clk_get_parent_count(node);
-	if (num_parents < 2) {
+
+	if (num_parents < 2)
+	{
 		pr_err("mux-clock %s must have parents\n", node->name);
 		return;
 	}
+
 	parent_names = kzalloc((sizeof(char *) * num_parents), GFP_KERNEL);
+
 	if (!parent_names)
+	{
 		goto cleanup;
+	}
 
 	of_clk_parent_fill(node, parent_names, num_parents);
 
 	reg = ti_clk_get_reg_addr(node, 0);
 
 	if (IS_ERR(reg))
+	{
 		goto cleanup;
+	}
 
 	of_property_read_u32(node, "ti,bit-shift", &shift);
 
 	if (of_property_read_bool(node, "ti,index-starts-at-one"))
+	{
 		clk_mux_flags |= CLK_MUX_INDEX_ONE;
+	}
 
 	if (of_property_read_bool(node, "ti,set-rate-parent"))
+	{
 		flags |= CLK_SET_RATE_PARENT;
+	}
 
 	/* Generate bit-mask based on parent info */
 	mask = num_parents;
+
 	if (!(clk_mux_flags & CLK_MUX_INDEX_ONE))
+	{
 		mask--;
+	}
 
 	mask = (1 << fls(mask)) - 1;
 
 	clk = _register_mux(NULL, node->name, parent_names, num_parents,
-			    flags, reg, shift, mask, clk_mux_flags, NULL);
+						flags, reg, shift, mask, clk_mux_flags, NULL);
 
 	if (!IS_ERR(clk))
+	{
 		of_clk_add_provider(node, of_clk_src_simple_get, clk);
+	}
 
 cleanup:
 	kfree(parent_names);
@@ -234,11 +284,16 @@ struct clk_hw *ti_clk_build_component_mux(struct ti_clk_mux *setup)
 	int num_parents;
 
 	if (!setup)
+	{
 		return NULL;
+	}
 
 	mux = kzalloc(sizeof(*mux), GFP_KERNEL);
+
 	if (!mux)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	reg = (struct clk_omap_reg *)&mux->reg;
 
@@ -248,7 +303,9 @@ struct clk_hw *ti_clk_build_component_mux(struct ti_clk_mux *setup)
 	reg->offset = setup->reg;
 
 	if (setup->flags & CLKF_INDEX_STARTS_AT_ONE)
+	{
 		mux->flags |= CLK_MUX_INDEX_ONE;
+	}
 
 	num_parents = setup->num_parents;
 
@@ -265,23 +322,33 @@ static void __init of_ti_composite_mux_clk_setup(struct device_node *node)
 	u32 val;
 
 	mux = kzalloc(sizeof(*mux), GFP_KERNEL);
+
 	if (!mux)
+	{
 		return;
+	}
 
 	mux->reg = ti_clk_get_reg_addr(node, 0);
 
 	if (IS_ERR(mux->reg))
+	{
 		goto cleanup;
+	}
 
 	if (!of_property_read_u32(node, "ti,bit-shift", &val))
+	{
 		mux->shift = val;
+	}
 
 	if (of_property_read_bool(node, "ti,index-starts-at-one"))
+	{
 		mux->flags |= CLK_MUX_INDEX_ONE;
+	}
 
 	num_parents = of_clk_get_parent_count(node);
 
-	if (num_parents < 2) {
+	if (num_parents < 2)
+	{
 		pr_err("%s must have parents\n", node->name);
 		goto cleanup;
 	}
@@ -290,10 +357,12 @@ static void __init of_ti_composite_mux_clk_setup(struct device_node *node)
 	mux->mask = (1 << fls(mux->mask)) - 1;
 
 	if (!ti_clk_add_component(node, &mux->hw, CLK_COMPONENT_TYPE_MUX))
+	{
 		return;
+	}
 
 cleanup:
 	kfree(mux);
 }
 CLK_OF_DECLARE(ti_composite_mux_clk_setup, "ti,composite-mux-clock",
-	       of_ti_composite_mux_clk_setup);
+			   of_ti_composite_mux_clk_setup);

@@ -22,19 +22,23 @@ static LIST_HEAD(phy_list);
 static LIST_HEAD(phy_bind_list);
 static DEFINE_SPINLOCK(phy_lock);
 
-struct phy_devm {
+struct phy_devm
+{
 	struct usb_phy *phy;
 	struct notifier_block *nb;
 };
 
 static struct usb_phy *__usb_find_phy(struct list_head *list,
-	enum usb_phy_type type)
+									  enum usb_phy_type type)
 {
 	struct usb_phy  *phy = NULL;
 
-	list_for_each_entry(phy, list, head) {
+	list_for_each_entry(phy, list, head)
+	{
 		if (phy->type != type)
+		{
 			continue;
+		}
 
 		return phy;
 	}
@@ -43,17 +47,23 @@ static struct usb_phy *__usb_find_phy(struct list_head *list,
 }
 
 static struct usb_phy *__usb_find_phy_dev(struct device *dev,
-	struct list_head *list, u8 index)
+		struct list_head *list, u8 index)
 {
 	struct usb_phy_bind *phy_bind = NULL;
 
-	list_for_each_entry(phy_bind, list, list) {
+	list_for_each_entry(phy_bind, list, list)
+	{
 		if (!(strcmp(phy_bind->dev_name, dev_name(dev))) &&
-				phy_bind->index == index) {
+			phy_bind->index == index)
+		{
 			if (phy_bind->phy)
+			{
 				return phy_bind->phy;
+			}
 			else
+			{
 				return ERR_PTR(-EPROBE_DEFER);
+			}
 		}
 	}
 
@@ -65,11 +75,16 @@ static struct usb_phy *__of_usb_find_phy(struct device_node *node)
 	struct usb_phy  *phy;
 
 	if (!of_device_is_available(node))
+	{
 		return ERR_PTR(-ENODEV);
+	}
 
-	list_for_each_entry(phy, &phy_list, head) {
+	list_for_each_entry(phy, &phy_list, head)
+	{
 		if (node != phy->dev->of_node)
+		{
 			continue;
+		}
 
 		return phy;
 	}
@@ -89,7 +104,10 @@ static void devm_usb_phy_release2(struct device *dev, void *_res)
 	struct phy_devm *res = _res;
 
 	if (res->nb)
+	{
 		usb_unregister_notifier(res->phy, res->nb);
+	}
+
 	usb_put_phy(res->phy);
 }
 
@@ -116,15 +134,23 @@ struct usb_phy *devm_usb_get_phy(struct device *dev, enum usb_phy_type type)
 	struct usb_phy **ptr, *phy;
 
 	ptr = devres_alloc(devm_usb_phy_release, sizeof(*ptr), GFP_KERNEL);
+
 	if (!ptr)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	phy = usb_get_phy(type);
-	if (!IS_ERR(phy)) {
+
+	if (!IS_ERR(phy))
+	{
 		*ptr = phy;
 		devres_add(dev, ptr);
-	} else
+	}
+	else
+	{
 		devres_free(ptr);
+	}
 
 	return phy;
 }
@@ -148,11 +174,16 @@ struct usb_phy *usb_get_phy(enum usb_phy_type type)
 	spin_lock_irqsave(&phy_lock, flags);
 
 	phy = __usb_find_phy(&phy_list, type);
-	if (IS_ERR(phy) || !try_module_get(phy->dev->driver->owner)) {
+
+	if (IS_ERR(phy) || !try_module_get(phy->dev->driver->owner))
+	{
 		pr_debug("PHY: unable to find transceiver of type %s\n",
-			usb_phy_type_string(type));
+				 usb_phy_type_string(type));
+
 		if (!IS_ERR(phy))
+		{
 			phy = ERR_PTR(-ENODEV);
+		}
 
 		goto err0;
 	}
@@ -183,15 +214,17 @@ EXPORT_SYMBOL_GPL(usb_get_phy);
  * such as a charger.
  */
 struct  usb_phy *devm_usb_get_phy_by_node(struct device *dev,
-					  struct device_node *node,
-					  struct notifier_block *nb)
+		struct device_node *node,
+		struct notifier_block *nb)
 {
 	struct usb_phy	*phy = ERR_PTR(-ENOMEM);
 	struct phy_devm	*ptr;
 	unsigned long	flags;
 
 	ptr = devres_alloc(devm_usb_phy_release2, sizeof(*ptr), GFP_KERNEL);
-	if (!ptr) {
+
+	if (!ptr)
+	{
 		dev_dbg(dev, "failed to allocate memory for devres\n");
 		goto err0;
 	}
@@ -199,18 +232,25 @@ struct  usb_phy *devm_usb_get_phy_by_node(struct device *dev,
 	spin_lock_irqsave(&phy_lock, flags);
 
 	phy = __of_usb_find_phy(node);
-	if (IS_ERR(phy)) {
+
+	if (IS_ERR(phy))
+	{
 		devres_free(ptr);
 		goto err1;
 	}
 
-	if (!try_module_get(phy->dev->driver->owner)) {
+	if (!try_module_get(phy->dev->driver->owner))
+	{
 		phy = ERR_PTR(-ENODEV);
 		devres_free(ptr);
 		goto err1;
 	}
+
 	if (nb)
+	{
 		usb_register_notifier(phy, nb);
+	}
+
 	ptr->phy = phy;
 	ptr->nb = nb;
 	devres_add(dev, ptr);
@@ -242,22 +282,26 @@ EXPORT_SYMBOL_GPL(devm_usb_get_phy_by_node);
  * For use by USB host and peripheral drivers.
  */
 struct usb_phy *devm_usb_get_phy_by_phandle(struct device *dev,
-	const char *phandle, u8 index)
+		const char *phandle, u8 index)
 {
 	struct device_node *node;
 	struct usb_phy	*phy;
 
-	if (!dev->of_node) {
+	if (!dev->of_node)
+	{
 		dev_dbg(dev, "device does not have a device node entry\n");
 		return ERR_PTR(-EINVAL);
 	}
 
 	node = of_parse_phandle(dev->of_node, phandle, index);
-	if (!node) {
+
+	if (!node)
+	{
 		dev_dbg(dev, "failed to get %s phandle in %s node\n", phandle,
-			dev->of_node->full_name);
+				dev->of_node->full_name);
 		return ERR_PTR(-ENODEV);
 	}
+
 	phy = devm_usb_get_phy_by_node(dev, node, NULL);
 	of_node_put(node);
 	return phy;
@@ -283,10 +327,15 @@ struct usb_phy *usb_get_phy_dev(struct device *dev, u8 index)
 	spin_lock_irqsave(&phy_lock, flags);
 
 	phy = __usb_find_phy_dev(dev, &phy_bind_list, index);
-	if (IS_ERR(phy) || !try_module_get(phy->dev->driver->owner)) {
+
+	if (IS_ERR(phy) || !try_module_get(phy->dev->driver->owner))
+	{
 		dev_dbg(dev, "unable to find transceiver\n");
+
 		if (!IS_ERR(phy))
+		{
 			phy = ERR_PTR(-ENODEV);
+		}
 
 		goto err0;
 	}
@@ -316,15 +365,23 @@ struct usb_phy *devm_usb_get_phy_dev(struct device *dev, u8 index)
 	struct usb_phy **ptr, *phy;
 
 	ptr = devres_alloc(devm_usb_phy_release, sizeof(*ptr), GFP_KERNEL);
+
 	if (!ptr)
+	{
 		return NULL;
+	}
 
 	phy = usb_get_phy_dev(dev, index);
-	if (!IS_ERR(phy)) {
+
+	if (!IS_ERR(phy))
+	{
 		*ptr = phy;
 		devres_add(dev, ptr);
-	} else
+	}
+	else
+	{
 		devres_free(ptr);
+	}
 
 	return phy;
 }
@@ -359,7 +416,8 @@ EXPORT_SYMBOL_GPL(devm_usb_put_phy);
  */
 void usb_put_phy(struct usb_phy *x)
 {
-	if (x) {
+	if (x)
+	{
 		struct module *owner = x->dev->driver->owner;
 
 		put_device(x->dev);
@@ -383,7 +441,8 @@ int usb_add_phy(struct usb_phy *x, enum usb_phy_type type)
 	unsigned long	flags;
 	struct usb_phy	*phy;
 
-	if (x->type != USB_PHY_TYPE_UNDEFINED) {
+	if (x->type != USB_PHY_TYPE_UNDEFINED)
+	{
 		dev_err(x->dev, "not accepting initialized PHY %s\n", x->label);
 		return -EINVAL;
 	}
@@ -392,11 +451,13 @@ int usb_add_phy(struct usb_phy *x, enum usb_phy_type type)
 
 	spin_lock_irqsave(&phy_lock, flags);
 
-	list_for_each_entry(phy, &phy_list, head) {
-		if (phy->type == type) {
+	list_for_each_entry(phy, &phy_list, head)
+	{
+		if (phy->type == type)
+		{
 			ret = -EBUSY;
 			dev_err(x->dev, "transceiver type %s already exists\n",
-						usb_phy_type_string(type));
+					usb_phy_type_string(type));
 			goto out;
 		}
 	}
@@ -423,7 +484,8 @@ int usb_add_phy_dev(struct usb_phy *x)
 	struct usb_phy_bind *phy_bind;
 	unsigned long flags;
 
-	if (!x->dev) {
+	if (!x->dev)
+	{
 		dev_err(x->dev, "no device provided for PHY\n");
 		return -EINVAL;
 	}
@@ -432,8 +494,11 @@ int usb_add_phy_dev(struct usb_phy *x)
 
 	spin_lock_irqsave(&phy_lock, flags);
 	list_for_each_entry(phy_bind, &phy_bind_list, list)
-		if (!(strcmp(phy_bind->phy_dev_name, dev_name(x->dev))))
-			phy_bind->phy = x;
+
+	if (!(strcmp(phy_bind->phy_dev_name, dev_name(x->dev))))
+	{
+		phy_bind->phy = x;
+	}
 
 	list_add_tail(&x->head, &phy_list);
 
@@ -454,12 +519,19 @@ void usb_remove_phy(struct usb_phy *x)
 	struct usb_phy_bind *phy_bind;
 
 	spin_lock_irqsave(&phy_lock, flags);
-	if (x) {
+
+	if (x)
+	{
 		list_for_each_entry(phy_bind, &phy_bind_list, list)
-			if (phy_bind->phy == x)
-				phy_bind->phy = NULL;
+
+		if (phy_bind->phy == x)
+		{
+			phy_bind->phy = NULL;
+		}
+
 		list_del(&x->head);
 	}
+
 	spin_unlock_irqrestore(&phy_lock, flags);
 }
 EXPORT_SYMBOL_GPL(usb_remove_phy);
@@ -477,14 +549,17 @@ EXPORT_SYMBOL_GPL(usb_remove_phy);
  * To be used by platform specific initialization code.
  */
 int usb_bind_phy(const char *dev_name, u8 index,
-				const char *phy_dev_name)
+				 const char *phy_dev_name)
 {
 	struct usb_phy_bind *phy_bind;
 	unsigned long flags;
 
 	phy_bind = kzalloc(sizeof(*phy_bind), GFP_KERNEL);
+
 	if (!phy_bind)
+	{
 		return -ENOMEM;
+	}
 
 	phy_bind->dev_name = dev_name;
 	phy_bind->phy_dev_name = phy_dev_name;

@@ -21,13 +21,15 @@
 
 #include <asm-generic/gpio.h>
 
-struct davinci_gpio_platform_data {
+struct davinci_gpio_platform_data
+{
 	u32	ngpio;
 	u32	gpio_unbanked;
 };
 
 
-struct davinci_gpio_controller {
+struct davinci_gpio_controller
+{
 	struct gpio_chip	chip;
 	struct irq_domain	*irq_domain;
 	/* Serialize access to GPIO registers */

@@ -12,7 +12,8 @@
 #ifndef _LP8727_H
 #define _LP8727_H
 
-enum lp8727_eoc_level {
+enum lp8727_eoc_level
+{
 	LP8727_EOC_5P,
 	LP8727_EOC_10P,
 	LP8727_EOC_16P,
@@ -22,7 +23,8 @@ enum lp8727_eoc_level {
 	LP8727_EOC_50P,
 };
 
-enum lp8727_ichg {
+enum lp8727_ichg
+{
 	LP8727_ICHG_90mA,
 	LP8727_ICHG_100mA,
 	LP8727_ICHG_400mA,
@@ -40,7 +42,8 @@ enum lp8727_ichg {
  * @eoc_level : end of charge level setting
  * @ichg      : charging current
  */
-struct lp8727_chg_param {
+struct lp8727_chg_param
+{
 	enum lp8727_eoc_level eoc_level;
 	enum lp8727_ichg ichg;
 };
@@ -55,7 +58,8 @@ struct lp8727_chg_param {
  * @usb               : charging parameters for USB type charger
  * @debounce_msec     : interrupt debounce time
  */
-struct lp8727_platform_data {
+struct lp8727_platform_data
+{
 	u8 (*get_batt_present)(void);
 	u16 (*get_batt_level)(void);
 	u8 (*get_batt_capacity)(void);

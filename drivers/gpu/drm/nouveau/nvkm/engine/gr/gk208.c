@@ -33,7 +33,8 @@
  ******************************************************************************/
 
 static const struct gf100_gr_init
-gk208_gr_init_main_0[] = {
+	gk208_gr_init_main_0[] =
+{
 	{ 0x400080,   1, 0x04, 0x003083c2 },
 	{ 0x400088,   1, 0x04, 0x0001bfe7 },
 	{ 0x40008c,   1, 0x04, 0x00000000 },
@@ -49,7 +50,8 @@ gk208_gr_init_main_0[] = {
 };
 
 static const struct gf100_gr_init
-gk208_gr_init_ds_0[] = {
+	gk208_gr_init_ds_0[] =
+{
 	{ 0x405844,   1, 0x04, 0x00ffffff },
 	{ 0x405850,   1, 0x04, 0x00000000 },
 	{ 0x405900,   1, 0x04, 0x00000000 },
@@ -59,7 +61,8 @@ gk208_gr_init_ds_0[] = {
 };
 
 const struct gf100_gr_init
-gk208_gr_init_gpc_unk_0[] = {
+	gk208_gr_init_gpc_unk_0[] =
+{
 	{ 0x418604,   1, 0x04, 0x00000000 },
 	{ 0x418680,   1, 0x04, 0x00000000 },
 	{ 0x418714,   1, 0x04, 0x00000000 },
@@ -68,7 +71,8 @@ gk208_gr_init_gpc_unk_0[] = {
 };
 
 static const struct gf100_gr_init
-gk208_gr_init_setup_1[] = {
+	gk208_gr_init_setup_1[] =
+{
 	{ 0x4188c8,   2, 0x04, 0x00000000 },
 	{ 0x4188d0,   1, 0x04, 0x00010000 },
 	{ 0x4188d4,   1, 0x04, 0x00000201 },
@@ -76,7 +80,8 @@ gk208_gr_init_setup_1[] = {
 };
 
 static const struct gf100_gr_init
-gk208_gr_init_tex_0[] = {
+	gk208_gr_init_tex_0[] =
+{
 	{ 0x419ab0,   1, 0x04, 0x00000000 },
 	{ 0x419ac8,   1, 0x04, 0x00000000 },
 	{ 0x419ab8,   1, 0x04, 0x000000e7 },
@@ -87,7 +92,8 @@ gk208_gr_init_tex_0[] = {
 };
 
 static const struct gf100_gr_init
-gk208_gr_init_l1c_0[] = {
+	gk208_gr_init_l1c_0[] =
+{
 	{ 0x419c98,   1, 0x04, 0x00000000 },
 	{ 0x419ca8,   1, 0x04, 0x00000000 },
 	{ 0x419cb0,   1, 0x04, 0x01000000 },
@@ -102,7 +108,8 @@ gk208_gr_init_l1c_0[] = {
 };
 
 static const struct gf100_gr_pack
-gk208_gr_pack_mmio[] = {
+	gk208_gr_pack_mmio[] =
+{
 	{ gk208_gr_init_main_0 },
 	{ gk110_gr_init_fe_0 },
 	{ gf100_gr_init_pri_0 },
@@ -142,7 +149,8 @@ gk208_gr_pack_mmio[] = {
 #include "fuc/hubgk208.fuc5.h"
 
 static struct gf100_gr_ucode
-gk208_gr_fecs_ucode = {
+	gk208_gr_fecs_ucode =
+{
 	.code.data = gk208_grhub_code,
 	.code.size = sizeof(gk208_grhub_code),
 	.data.data = gk208_grhub_data,
@@ -152,7 +160,8 @@ gk208_gr_fecs_ucode = {
 #include "fuc/gpcgk208.fuc5.h"
 
 static struct gf100_gr_ucode
-gk208_gr_gpccs_ucode = {
+	gk208_gr_gpccs_ucode =
+{
 	.code.data = gk208_grgpc_code,
 	.code.size = sizeof(gk208_grgpc_code),
 	.data.data = gk208_grgpc_data,
@@ -160,7 +169,8 @@ gk208_gr_gpccs_ucode = {
 };
 
 static const struct gf100_gr_func
-gk208_gr = {
+	gk208_gr =
+{
 	.init = gk104_gr_init,
 	.init_rop_active_fbps = gk104_gr_init_rop_active_fbps,
 	.init_ppc_exceptions = gk104_gr_init_ppc_exceptions,

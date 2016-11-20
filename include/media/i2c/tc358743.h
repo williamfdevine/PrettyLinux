@@ -28,21 +28,24 @@
 #ifndef _TC358743_
 #define _TC358743_
 
-enum tc358743_ddc5v_delays {
+enum tc358743_ddc5v_delays
+{
 	DDC5V_DELAY_0_MS,
 	DDC5V_DELAY_50_MS,
 	DDC5V_DELAY_100_MS,
 	DDC5V_DELAY_200_MS,
 };
 
-enum tc358743_hdmi_detection_delay {
+enum tc358743_hdmi_detection_delay
+{
 	HDMI_MODE_DELAY_0_MS,
 	HDMI_MODE_DELAY_25_MS,
 	HDMI_MODE_DELAY_50_MS,
 	HDMI_MODE_DELAY_100_MS,
 };
 
-struct tc358743_platform_data {
+struct tc358743_platform_data
+{
 	/* System clock connected to REFCLK (pin H5) */
 	u32 refclk_hz; /* 26 MHz, 27 MHz or 42 MHz */
 

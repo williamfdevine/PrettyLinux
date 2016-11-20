@@ -49,12 +49,14 @@ typedef unsigned short vifi_t;
 /* Passed by mrouted for an MRT_ADD_VIF - again we use the
  * mrouted 3.6 structures for compatibility
  */
-struct vifctl {
+struct vifctl
+{
 	vifi_t	vifc_vifi;		/* Index of VIF */
 	unsigned char vifc_flags;	/* VIFF_ flags */
 	unsigned char vifc_threshold;	/* ttl limit */
 	unsigned int vifc_rate_limit;	/* Rate limiter values (NI) */
-	union {
+	union
+	{
 		struct in_addr vifc_lcl_addr;     /* Local interface address */
 		int            vifc_lcl_ifindex;  /* Local interface index   */
 	};
@@ -68,7 +70,8 @@ struct vifctl {
 					   vifc_lcl_addr to find an interface */
 
 /* Cache manipulation structures for mrouted and PIMd */
-struct mfcctl {
+struct mfcctl
+{
 	struct in_addr mfcc_origin;		/* Origin of mcast	*/
 	struct in_addr mfcc_mcastgrp;		/* Group in question	*/
 	vifi_t	mfcc_parent;			/* Where it arrived	*/
@@ -80,7 +83,8 @@ struct mfcctl {
 };
 
 /*  Group count retrieval for mrouted */
-struct sioc_sg_req {
+struct sioc_sg_req
+{
 	struct in_addr src;
 	struct in_addr grp;
 	unsigned long pktcnt;
@@ -89,7 +93,8 @@ struct sioc_sg_req {
 };
 
 /* To get vif packet counts */
-struct sioc_vif_req {
+struct sioc_vif_req
+{
 	vifi_t	vifi;		/* Which iface */
 	unsigned long icount;	/* In packets */
 	unsigned long ocount;	/* Out packets */
@@ -100,13 +105,14 @@ struct sioc_vif_req {
 /* This is the format the mroute daemon expects to see IGMP control
  * data. Magically happens to be like an IP packet as per the original
  */
-struct igmpmsg {
-	__u32 unused1,unused2;
+struct igmpmsg
+{
+	__u32 unused1, unused2;
 	unsigned char im_msgtype;		/* What is this */
 	unsigned char im_mbz;			/* Must be zero */
 	unsigned char im_vif;			/* Interface (this ought to be a vifi_t!) */
 	unsigned char unused3;
-	struct in_addr im_src,im_dst;
+	struct in_addr im_src, im_dst;
 };
 
 /* That's all usermode folks */

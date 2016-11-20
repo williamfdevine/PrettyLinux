@@ -29,7 +29,8 @@
 
 static struct workqueue_struct *strp_wq;
 
-struct _strp_rx_msg {
+struct _strp_rx_msg
+{
 	/* Internal cb structure. struct strp_rx_msg must be first for passing
 	 * to upper layer.
 	 */
@@ -41,7 +42,7 @@ struct _strp_rx_msg {
 static inline struct _strp_rx_msg *_strp_rx_msg(struct sk_buff *skb)
 {
 	return (struct _strp_rx_msg *)((void *)skb->cb +
-		offsetof(struct qdisc_skb_cb, data));
+								   offsetof(struct qdisc_skb_cb, data));
 }
 
 /* Lower lock held */
@@ -54,7 +55,9 @@ static void strp_abort_rx_strp(struct strparser *strp, int err)
 	del_timer(&strp->rx_msg_timer);
 
 	if (strp->rx_stopped)
+	{
 		return;
+	}
 
 	strp->rx_stopped = 1;
 
@@ -66,12 +69,14 @@ static void strp_abort_rx_strp(struct strparser *strp, int err)
 static void strp_start_rx_timer(struct strparser *strp)
 {
 	if (strp->sk->sk_rcvtimeo)
+	{
 		mod_timer(&strp->rx_msg_timer, strp->sk->sk_rcvtimeo);
+	}
 }
 
 /* Lower lock held */
 static void strp_parser_err(struct strparser *strp, int err,
-			    read_descriptor_t *desc)
+							read_descriptor_t *desc)
 {
 	desc->error = err;
 	kfree_skb(strp->rx_skb_head);
@@ -88,7 +93,7 @@ static inline int strp_peek_len(struct strparser *strp)
 
 /* Lower socket lock held */
 static int strp_recv(read_descriptor_t *desc, struct sk_buff *orig_skb,
-		     unsigned int orig_offset, size_t orig_len)
+					 unsigned int orig_offset, size_t orig_len)
 {
 	struct strparser *strp = (struct strparser *)desc->arg.data;
 	struct _strp_rx_msg *rxm;
@@ -99,76 +104,96 @@ static int strp_recv(read_descriptor_t *desc, struct sk_buff *orig_skb,
 	bool cloned_orig = false;
 
 	if (strp->rx_paused)
+	{
 		return 0;
+	}
 
 	head = strp->rx_skb_head;
-	if (head) {
+
+	if (head)
+	{
 		/* Message already in progress */
 
 		rxm = _strp_rx_msg(head);
-		if (unlikely(rxm->early_eaten)) {
+
+		if (unlikely(rxm->early_eaten))
+		{
 			/* Already some number of bytes on the receive sock
 			 * data saved in rx_skb_head, just indicate they
 			 * are consumed.
 			 */
 			eaten = orig_len <= rxm->early_eaten ?
-				orig_len : rxm->early_eaten;
+					orig_len : rxm->early_eaten;
 			rxm->early_eaten -= eaten;
 
 			return eaten;
 		}
 
-		if (unlikely(orig_offset)) {
+		if (unlikely(orig_offset))
+		{
 			/* Getting data with a non-zero offset when a message is
 			 * in progress is not expected. If it does happen, we
 			 * need to clone and pull since we can't deal with
 			 * offsets in the skbs for a message expect in the head.
 			 */
 			orig_skb = skb_clone(orig_skb, GFP_ATOMIC);
-			if (!orig_skb) {
+
+			if (!orig_skb)
+			{
 				STRP_STATS_INCR(strp->stats.rx_mem_fail);
 				desc->error = -ENOMEM;
 				return 0;
 			}
-			if (!pskb_pull(orig_skb, orig_offset)) {
+
+			if (!pskb_pull(orig_skb, orig_offset))
+			{
 				STRP_STATS_INCR(strp->stats.rx_mem_fail);
 				kfree_skb(orig_skb);
 				desc->error = -ENOMEM;
 				return 0;
 			}
+
 			cloned_orig = true;
 			orig_offset = 0;
 		}
 
-		if (!strp->rx_skb_nextp) {
+		if (!strp->rx_skb_nextp)
+		{
 			/* We are going to append to the frags_list of head.
 			 * Need to unshare the frag_list.
 			 */
 			err = skb_unclone(head, GFP_ATOMIC);
-			if (err) {
+
+			if (err)
+			{
 				STRP_STATS_INCR(strp->stats.rx_mem_fail);
 				desc->error = err;
 				return 0;
 			}
 
-			if (unlikely(skb_shinfo(head)->frag_list)) {
+			if (unlikely(skb_shinfo(head)->frag_list))
+			{
 				/* We can't append to an sk_buff that already
 				 * has a frag_list. We create a new head, point
 				 * the frag_list of that to the old head, and
 				 * then are able to use the old head->next for
 				 * appending to the message.
 				 */
-				if (WARN_ON(head->next)) {
+				if (WARN_ON(head->next))
+				{
 					desc->error = -EINVAL;
 					return 0;
 				}
 
 				skb = alloc_skb(0, GFP_ATOMIC);
-				if (!skb) {
+
+				if (!skb)
+				{
 					STRP_STATS_INCR(strp->stats.rx_mem_fail);
 					desc->error = -ENOMEM;
 					return 0;
 				}
+
 				skb->len = head->len;
 				skb->data_len = head->len;
 				skb->truesize = head->truesize;
@@ -177,17 +202,22 @@ static int strp_recv(read_descriptor_t *desc, struct sk_buff *orig_skb,
 				skb_shinfo(skb)->frag_list = head;
 				strp->rx_skb_head = skb;
 				head = skb;
-			} else {
+			}
+			else
+			{
 				strp->rx_skb_nextp =
-				    &skb_shinfo(head)->frag_list;
+					&skb_shinfo(head)->frag_list;
 			}
 		}
 	}
 
-	while (eaten < orig_len) {
+	while (eaten < orig_len)
+	{
 		/* Always clone since we will consume something */
 		skb = skb_clone(orig_skb, GFP_ATOMIC);
-		if (!skb) {
+
+		if (!skb)
+		{
 			STRP_STATS_INCR(strp->stats.rx_mem_fail);
 			desc->error = -ENOMEM;
 			break;
@@ -196,7 +226,9 @@ static int strp_recv(read_descriptor_t *desc, struct sk_buff *orig_skb,
 		cand_len = orig_len - eaten;
 
 		head = strp->rx_skb_head;
-		if (!head) {
+
+		if (!head)
+		{
 			head = skb;
 			strp->rx_skb_head = head;
 			/* Will set rx_skb_nextp on next packet if needed */
@@ -204,12 +236,16 @@ static int strp_recv(read_descriptor_t *desc, struct sk_buff *orig_skb,
 			rxm = _strp_rx_msg(head);
 			memset(rxm, 0, sizeof(*rxm));
 			rxm->strp.offset = orig_offset + eaten;
-		} else {
+		}
+		else
+		{
 			/* Unclone since we may be appending to an skb that we
 			 * already share a frag_list with.
 			 */
 			err = skb_unclone(skb, GFP_ATOMIC);
-			if (err) {
+
+			if (err)
+			{
 				STRP_STATS_INCR(strp->stats.rx_mem_fail);
 				desc->error = err;
 				break;
@@ -223,38 +259,52 @@ static int strp_recv(read_descriptor_t *desc, struct sk_buff *orig_skb,
 			head->truesize += skb->truesize;
 		}
 
-		if (!rxm->strp.full_len) {
+		if (!rxm->strp.full_len)
+		{
 			ssize_t len;
 
 			len = (*strp->cb.parse_msg)(strp, head);
 
-			if (!len) {
+			if (!len)
+			{
 				/* Need more header to determine length */
-				if (!rxm->accum_len) {
+				if (!rxm->accum_len)
+				{
 					/* Start RX timer for new message */
 					strp_start_rx_timer(strp);
 				}
+
 				rxm->accum_len += cand_len;
 				eaten += cand_len;
 				STRP_STATS_INCR(strp->stats.rx_need_more_hdr);
 				WARN_ON(eaten != orig_len);
 				break;
-			} else if (len < 0) {
-				if (len == -ESTRPIPE && rxm->accum_len) {
+			}
+			else if (len < 0)
+			{
+				if (len == -ESTRPIPE && rxm->accum_len)
+				{
 					len = -ENODATA;
 					strp->rx_unrecov_intr = 1;
-				} else {
+				}
+				else
+				{
 					strp->rx_interrupted = 1;
 				}
+
 				strp_parser_err(strp, len, desc);
 				break;
-			} else if (len > strp->sk->sk_rcvbuf) {
+			}
+			else if (len > strp->sk->sk_rcvbuf)
+			{
 				/* Message length exceeds maximum allowed */
 				STRP_STATS_INCR(strp->stats.rx_msg_too_big);
 				strp_parser_err(strp, -EMSGSIZE, desc);
 				break;
-			} else if (len <= (ssize_t)head->len -
-					  skb->len - rxm->strp.offset) {
+			}
+			else if (len <= (ssize_t)head->len -
+					 skb->len - rxm->strp.offset)
+			{
 				/* Length must be into new skb (and also
 				 * greater than zero)
 				 */
@@ -267,12 +317,14 @@ static int strp_recv(read_descriptor_t *desc, struct sk_buff *orig_skb,
 		}
 
 		extra = (ssize_t)(rxm->accum_len + cand_len) -
-			rxm->strp.full_len;
+				rxm->strp.full_len;
 
-		if (extra < 0) {
+		if (extra < 0)
+		{
 			/* Message not complete yet. */
 			if (rxm->strp.full_len - rxm->accum_len >
-			    strp_peek_len(strp)) {
+				strp_peek_len(strp))
+			{
 				/* Don't have the whole messages in the socket
 				 * buffer. Set strp->rx_need_bytes to wait for
 				 * the rest of the message. Also, set "early
@@ -280,19 +332,21 @@ static int strp_recv(read_descriptor_t *desc, struct sk_buff *orig_skb,
 				 * but don't consume yet per strp_read_sock.
 				 */
 
-				if (!rxm->accum_len) {
+				if (!rxm->accum_len)
+				{
 					/* Start RX timer for new message */
 					strp_start_rx_timer(strp);
 				}
 
 				strp->rx_need_bytes = rxm->strp.full_len -
-						       rxm->accum_len;
+									  rxm->accum_len;
 				rxm->accum_len += cand_len;
 				rxm->early_eaten = cand_len;
 				STRP_STATS_ADD(strp->stats.rx_bytes, cand_len);
 				desc->count = 0; /* Stop reading socket */
 				break;
 			}
+
 			rxm->accum_len += cand_len;
 			eaten += cand_len;
 			WARN_ON(eaten != orig_len);
@@ -315,14 +369,17 @@ static int strp_recv(read_descriptor_t *desc, struct sk_buff *orig_skb,
 		/* Give skb to upper layer */
 		strp->cb.rcv_msg(strp, head);
 
-		if (unlikely(strp->rx_paused)) {
+		if (unlikely(strp->rx_paused))
+		{
 			/* Upper layer paused strp */
 			break;
 		}
 	}
 
 	if (cloned_orig)
+	{
 		kfree_skb(orig_skb);
+	}
 
 	STRP_STATS_ADD(strp->stats.rx_bytes, eaten);
 
@@ -356,7 +413,9 @@ static int strp_read_sock(struct strparser *strp)
 void strp_data_ready(struct strparser *strp)
 {
 	if (unlikely(strp->rx_stopped))
+	{
 		return;
+	}
 
 	/* This check is needed to synchronize with do_strp_rx_work.
 	 * do_strp_rx_work acquires a process lock (lock_sock) whereas
@@ -365,23 +424,33 @@ void strp_data_ready(struct strparser *strp)
 	 * allows a thread in BH context to safely check if the process
 	 * lock is held. In this case, if the lock is held, queue work.
 	 */
-	if (sock_owned_by_user(strp->sk)) {
+	if (sock_owned_by_user(strp->sk))
+	{
 		queue_work(strp_wq, &strp->rx_work);
 		return;
 	}
 
 	if (strp->rx_paused)
+	{
 		return;
+	}
 
-	if (strp->rx_need_bytes) {
+	if (strp->rx_need_bytes)
+	{
 		if (strp_peek_len(strp) >= strp->rx_need_bytes)
+		{
 			strp->rx_need_bytes = 0;
+		}
 		else
+		{
 			return;
+		}
 	}
 
 	if (strp_read_sock(strp) == -ENOMEM)
+	{
 		queue_work(strp_wq, &strp->rx_work);
+	}
 }
 EXPORT_SYMBOL_GPL(strp_data_ready);
 
@@ -396,15 +465,21 @@ static void do_strp_rx_work(struct strparser *strp)
 	lock_sock(csk);
 
 	if (unlikely(strp->rx_stopped))
+	{
 		goto out;
+	}
 
 	if (strp->rx_paused)
+	{
 		goto out;
+	}
 
 	rd_desc.arg.data = strp;
 
 	if (strp_read_sock(strp) == -ENOMEM)
+	{
 		queue_work(strp_wq, &strp->rx_work);
+	}
 
 out:
 	release_sock(csk);
@@ -427,22 +502,26 @@ static void strp_rx_msg_timeout(unsigned long arg)
 }
 
 int strp_init(struct strparser *strp, struct sock *csk,
-	      struct strp_callbacks *cb)
+			  struct strp_callbacks *cb)
 {
 	struct socket *sock = csk->sk_socket;
 
 	if (!cb || !cb->rcv_msg || !cb->parse_msg)
+	{
 		return -EINVAL;
+	}
 
 	if (!sock->ops->read_sock || !sock->ops->peek_len)
+	{
 		return -EAFNOSUPPORT;
+	}
 
 	memset(strp, 0, sizeof(*strp));
 
 	strp->sk = csk;
 
 	setup_timer(&strp->rx_msg_timer, strp_rx_msg_timeout,
-		    (unsigned long)strp);
+				(unsigned long)strp);
 
 	INIT_WORK(&strp->rx_work, strp_rx_work);
 
@@ -476,7 +555,8 @@ void strp_done(struct strparser *strp)
 	del_timer_sync(&strp->rx_msg_timer);
 	cancel_work_sync(&strp->rx_work);
 
-	if (strp->rx_skb_head) {
+	if (strp->rx_skb_head)
+	{
 		kfree_skb(strp->rx_skb_head);
 		strp->rx_skb_head = NULL;
 	}

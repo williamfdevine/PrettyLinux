@@ -12,7 +12,8 @@ static inline int gfpflags_allow_blocking(gfp_t mask)
 	return 1;
 }
 
-struct kmem_cache {
+struct kmem_cache
+{
 	int size;
 	void (*ctor)(void *);
 };
@@ -22,6 +23,6 @@ void kmem_cache_free(struct kmem_cache *cachep, void *objp);
 
 struct kmem_cache *
 kmem_cache_create(const char *name, size_t size, size_t offset,
-	unsigned long flags, void (*ctor)(void *));
+				  unsigned long flags, void (*ctor)(void *));
 
 #endif		/* SLAB_H */

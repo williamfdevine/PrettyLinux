@@ -55,7 +55,8 @@
 #include <linux/stddef.h>
 #include <linux/scatterlist.h>
 
-struct __kfifo {
+struct __kfifo
+{
 	unsigned int	in;
 	unsigned int	out;
 	unsigned int	mask;
@@ -74,19 +75,19 @@ struct __kfifo {
 	}
 
 #define __STRUCT_KFIFO(type, size, recsize, ptrtype) \
-{ \
-	__STRUCT_KFIFO_COMMON(type, recsize, ptrtype); \
-	type		buf[((size < 2) || (size & (size - 1))) ? -1 : size]; \
-}
+	{ \
+		__STRUCT_KFIFO_COMMON(type, recsize, ptrtype); \
+		type		buf[((size < 2) || (size & (size - 1))) ? -1 : size]; \
+	}
 
 #define STRUCT_KFIFO(type, size) \
 	struct __STRUCT_KFIFO(type, size, 0, type)
 
 #define __STRUCT_KFIFO_PTR(type, recsize, ptrtype) \
-{ \
-	__STRUCT_KFIFO_COMMON(type, recsize, ptrtype); \
-	type		buf[0]; \
-}
+	{ \
+		__STRUCT_KFIFO_COMMON(type, recsize, ptrtype); \
+		type		buf[0]; \
+	}
 
 #define STRUCT_KFIFO_PTR(type) \
 	struct __STRUCT_KFIFO_PTR(type, 0, type)
@@ -135,15 +136,15 @@ struct kfifo_rec_ptr_2 __STRUCT_KFIFO_PTR(unsigned char, 2, void);
  * @fifo: name of the declared fifo datatype
  */
 #define INIT_KFIFO(fifo) \
-(void)({ \
-	typeof(&(fifo)) __tmp = &(fifo); \
-	struct __kfifo *__kfifo = &__tmp->kfifo; \
-	__kfifo->in = 0; \
-	__kfifo->out = 0; \
-	__kfifo->mask = __is_kfifo_ptr(__tmp) ? 0 : ARRAY_SIZE(__tmp->buf) - 1;\
-	__kfifo->esize = sizeof(*__tmp->buf); \
-	__kfifo->data = __is_kfifo_ptr(__tmp) ?  NULL : __tmp->buf; \
-})
+	(void)({ \
+		typeof(&(fifo)) __tmp = &(fifo); \
+		struct __kfifo *__kfifo = &__tmp->kfifo; \
+		__kfifo->in = 0; \
+		__kfifo->out = 0; \
+		__kfifo->mask = __is_kfifo_ptr(__tmp) ? 0 : ARRAY_SIZE(__tmp->buf) - 1;\
+		__kfifo->esize = sizeof(*__tmp->buf); \
+		__kfifo->data = __is_kfifo_ptr(__tmp) ?  NULL : __tmp->buf; \
+	})
 
 /**
  * DEFINE_KFIFO - macro to define and initialize a fifo
@@ -158,15 +159,15 @@ struct kfifo_rec_ptr_2 __STRUCT_KFIFO_PTR(unsigned char, 2, void);
 	(typeof(fifo)) { \
 		{ \
 			{ \
-			.in	= 0, \
-			.out	= 0, \
-			.mask	= __is_kfifo_ptr(&(fifo)) ? \
-				  0 : \
-				  ARRAY_SIZE((fifo).buf) - 1, \
-			.esize	= sizeof(*(fifo).buf), \
-			.data	= __is_kfifo_ptr(&(fifo)) ? \
-				NULL : \
-				(fifo).buf, \
+				.in	= 0, \
+					  .out	= 0, \
+								.mask	= __is_kfifo_ptr(&(fifo)) ? \
+										  0 : \
+										  ARRAY_SIZE((fifo).buf) - 1, \
+										  .esize	= sizeof(*(fifo).buf), \
+													.data	= __is_kfifo_ptr(&(fifo)) ? \
+															NULL : \
+															(fifo).buf, \
 			} \
 		} \
 	}
@@ -220,10 +221,10 @@ __kfifo_int_must_check_helper(int val)
  * accessing the fifo.
  */
 #define kfifo_reset(fifo) \
-(void)({ \
-	typeof((fifo) + 1) __tmp = (fifo); \
-	__tmp->kfifo.in = __tmp->kfifo.out = 0; \
-})
+	(void)({ \
+		typeof((fifo) + 1) __tmp = (fifo); \
+		__tmp->kfifo.in = __tmp->kfifo.out = 0; \
+	})
 
 /**
  * kfifo_reset_out - skip fifo content
@@ -234,71 +235,71 @@ __kfifo_int_must_check_helper(int val)
  * it is dangerous and must be handled in the same way as kfifo_reset().
  */
 #define kfifo_reset_out(fifo)	\
-(void)({ \
-	typeof((fifo) + 1) __tmp = (fifo); \
-	__tmp->kfifo.out = __tmp->kfifo.in; \
-})
+	(void)({ \
+		typeof((fifo) + 1) __tmp = (fifo); \
+		__tmp->kfifo.out = __tmp->kfifo.in; \
+	})
 
 /**
  * kfifo_len - returns the number of used elements in the fifo
  * @fifo: address of the fifo to be used
  */
 #define kfifo_len(fifo) \
-({ \
-	typeof((fifo) + 1) __tmpl = (fifo); \
-	__tmpl->kfifo.in - __tmpl->kfifo.out; \
-})
+	({ \
+		typeof((fifo) + 1) __tmpl = (fifo); \
+		__tmpl->kfifo.in - __tmpl->kfifo.out; \
+	})
 
 /**
  * kfifo_is_empty - returns true if the fifo is empty
  * @fifo: address of the fifo to be used
  */
 #define	kfifo_is_empty(fifo) \
-({ \
-	typeof((fifo) + 1) __tmpq = (fifo); \
-	__tmpq->kfifo.in == __tmpq->kfifo.out; \
-})
+	({ \
+		typeof((fifo) + 1) __tmpq = (fifo); \
+		__tmpq->kfifo.in == __tmpq->kfifo.out; \
+	})
 
 /**
  * kfifo_is_full - returns true if the fifo is full
  * @fifo: address of the fifo to be used
  */
 #define	kfifo_is_full(fifo) \
-({ \
-	typeof((fifo) + 1) __tmpq = (fifo); \
-	kfifo_len(__tmpq) > __tmpq->kfifo.mask; \
-})
+	({ \
+		typeof((fifo) + 1) __tmpq = (fifo); \
+		kfifo_len(__tmpq) > __tmpq->kfifo.mask; \
+	})
 
 /**
  * kfifo_avail - returns the number of unused elements in the fifo
  * @fifo: address of the fifo to be used
  */
 #define	kfifo_avail(fifo) \
-__kfifo_uint_must_check_helper( \
-({ \
-	typeof((fifo) + 1) __tmpq = (fifo); \
-	const size_t __recsize = sizeof(*__tmpq->rectype); \
-	unsigned int __avail = kfifo_size(__tmpq) - kfifo_len(__tmpq); \
-	(__recsize) ? ((__avail <= __recsize) ? 0 : \
-	__kfifo_max_r(__avail - __recsize, __recsize)) : \
-	__avail; \
-}) \
-)
+	__kfifo_uint_must_check_helper( \
+	({ \
+		typeof((fifo) + 1) __tmpq = (fifo); \
+		const size_t __recsize = sizeof(*__tmpq->rectype); \
+		unsigned int __avail = kfifo_size(__tmpq) - kfifo_len(__tmpq); \
+		(__recsize) ? ((__avail <= __recsize) ? 0 : \
+					   __kfifo_max_r(__avail - __recsize, __recsize)) : \
+		__avail; \
+	}) \
+								  )
 
 /**
  * kfifo_skip - skip output data
  * @fifo: address of the fifo to be used
  */
 #define	kfifo_skip(fifo) \
-(void)({ \
-	typeof((fifo) + 1) __tmp = (fifo); \
-	const size_t __recsize = sizeof(*__tmp->rectype); \
-	struct __kfifo *__kfifo = &__tmp->kfifo; \
-	if (__recsize) \
-		__kfifo_skip_r(__kfifo, __recsize); \
-	else \
-		__kfifo->out++; \
-})
+	(void)({ \
+		typeof((fifo) + 1) __tmp = (fifo); \
+		const size_t __recsize = sizeof(*__tmp->rectype); \
+		struct __kfifo *__kfifo = &__tmp->kfifo; \
+		if (__recsize) \
+			__kfifo_skip_r(__kfifo, __recsize); \
+		else \
+			__kfifo->out++; \
+	})
 
 /**
  * kfifo_peek_len - gets the size of the next fifo record
@@ -307,15 +308,15 @@ __kfifo_uint_must_check_helper( \
  * This function returns the size of the next fifo record in number of bytes.
  */
 #define kfifo_peek_len(fifo) \
-__kfifo_uint_must_check_helper( \
-({ \
-	typeof((fifo) + 1) __tmp = (fifo); \
-	const size_t __recsize = sizeof(*__tmp->rectype); \
-	struct __kfifo *__kfifo = &__tmp->kfifo; \
-	(!__recsize) ? kfifo_len(__tmp) * sizeof(*__tmp->type) : \
-	__kfifo_len_r(__kfifo, __recsize); \
-}) \
-)
+	__kfifo_uint_must_check_helper( \
+	({ \
+		typeof((fifo) + 1) __tmp = (fifo); \
+		const size_t __recsize = sizeof(*__tmp->rectype); \
+		struct __kfifo *__kfifo = &__tmp->kfifo; \
+		(!__recsize) ? kfifo_len(__tmp) * sizeof(*__tmp->type) : \
+		__kfifo_len_r(__kfifo, __recsize); \
+	}) \
+								  )
 
 /**
  * kfifo_alloc - dynamically allocates a new fifo buffer
@@ -330,27 +331,27 @@ __kfifo_uint_must_check_helper( \
  * Return 0 if no error, otherwise an error code.
  */
 #define kfifo_alloc(fifo, size, gfp_mask) \
-__kfifo_int_must_check_helper( \
-({ \
-	typeof((fifo) + 1) __tmp = (fifo); \
-	struct __kfifo *__kfifo = &__tmp->kfifo; \
-	__is_kfifo_ptr(__tmp) ? \
-	__kfifo_alloc(__kfifo, size, sizeof(*__tmp->type), gfp_mask) : \
-	-EINVAL; \
-}) \
-)
+	__kfifo_int_must_check_helper( \
+	({ \
+		typeof((fifo) + 1) __tmp = (fifo); \
+		struct __kfifo *__kfifo = &__tmp->kfifo; \
+		__is_kfifo_ptr(__tmp) ? \
+		__kfifo_alloc(__kfifo, size, sizeof(*__tmp->type), gfp_mask) : \
+		-EINVAL; \
+	}) \
+								 )
 
 /**
  * kfifo_free - frees the fifo
  * @fifo: the fifo to be freed
  */
 #define kfifo_free(fifo) \
-({ \
-	typeof((fifo) + 1) __tmp = (fifo); \
-	struct __kfifo *__kfifo = &__tmp->kfifo; \
-	if (__is_kfifo_ptr(__tmp)) \
-		__kfifo_free(__kfifo); \
-})
+	({ \
+		typeof((fifo) + 1) __tmp = (fifo); \
+		struct __kfifo *__kfifo = &__tmp->kfifo; \
+		if (__is_kfifo_ptr(__tmp)) \
+			__kfifo_free(__kfifo); \
+	})
 
 /**
  * kfifo_init - initialize a fifo using a preallocated buffer
@@ -364,13 +365,13 @@ __kfifo_int_must_check_helper( \
  * Return 0 if no error, otherwise an error code.
  */
 #define kfifo_init(fifo, buffer, size) \
-({ \
-	typeof((fifo) + 1) __tmp = (fifo); \
-	struct __kfifo *__kfifo = &__tmp->kfifo; \
-	__is_kfifo_ptr(__tmp) ? \
-	__kfifo_init(__kfifo, buffer, size, sizeof(*__tmp->type)) : \
-	-EINVAL; \
-})
+	({ \
+		typeof((fifo) + 1) __tmp = (fifo); \
+		struct __kfifo *__kfifo = &__tmp->kfifo; \
+		__is_kfifo_ptr(__tmp) ? \
+		__kfifo_init(__kfifo, buffer, size, sizeof(*__tmp->type)) : \
+		-EINVAL; \
+	})
 
 /**
  * kfifo_put - put data into the fifo
@@ -385,29 +386,29 @@ __kfifo_int_must_check_helper( \
  * writer, you don't need extra locking to use these macro.
  */
 #define	kfifo_put(fifo, val) \
-({ \
-	typeof((fifo) + 1) __tmp = (fifo); \
-	typeof(*__tmp->const_type) __val = (val); \
-	unsigned int __ret; \
-	size_t __recsize = sizeof(*__tmp->rectype); \
-	struct __kfifo *__kfifo = &__tmp->kfifo; \
-	if (__recsize) \
-		__ret = __kfifo_in_r(__kfifo, &__val, sizeof(__val), \
-			__recsize); \
-	else { \
-		__ret = !kfifo_is_full(__tmp); \
-		if (__ret) { \
-			(__is_kfifo_ptr(__tmp) ? \
-			((typeof(__tmp->type))__kfifo->data) : \
-			(__tmp->buf) \
-			)[__kfifo->in & __tmp->kfifo.mask] = \
-				*(typeof(__tmp->type))&__val; \
-			smp_wmb(); \
-			__kfifo->in++; \
+	({ \
+		typeof((fifo) + 1) __tmp = (fifo); \
+		typeof(*__tmp->const_type) __val = (val); \
+		unsigned int __ret; \
+		size_t __recsize = sizeof(*__tmp->rectype); \
+		struct __kfifo *__kfifo = &__tmp->kfifo; \
+		if (__recsize) \
+			__ret = __kfifo_in_r(__kfifo, &__val, sizeof(__val), \
+								 __recsize); \
+		else { \
+			__ret = !kfifo_is_full(__tmp); \
+			if (__ret) { \
+				(__is_kfifo_ptr(__tmp) ? \
+				 ((typeof(__tmp->type))__kfifo->data) : \
+				 (__tmp->buf) \
+				)[__kfifo->in & __tmp->kfifo.mask] = \
+													 *(typeof(__tmp->type))&__val; \
+				smp_wmb(); \
+				__kfifo->in++; \
+			} \
 		} \
-	} \
-	__ret; \
-})
+		__ret; \
+	})
 
 /**
  * kfifo_get - get data from the fifo
@@ -422,31 +423,31 @@ __kfifo_int_must_check_helper( \
  * writer, you don't need extra locking to use these macro.
  */
 #define	kfifo_get(fifo, val) \
-__kfifo_uint_must_check_helper( \
-({ \
-	typeof((fifo) + 1) __tmp = (fifo); \
-	typeof(__tmp->ptr) __val = (val); \
-	unsigned int __ret; \
-	const size_t __recsize = sizeof(*__tmp->rectype); \
-	struct __kfifo *__kfifo = &__tmp->kfifo; \
-	if (__recsize) \
-		__ret = __kfifo_out_r(__kfifo, __val, sizeof(*__val), \
-			__recsize); \
-	else { \
-		__ret = !kfifo_is_empty(__tmp); \
-		if (__ret) { \
-			*(typeof(__tmp->type))__val = \
-				(__is_kfifo_ptr(__tmp) ? \
-				((typeof(__tmp->type))__kfifo->data) : \
-				(__tmp->buf) \
-				)[__kfifo->out & __tmp->kfifo.mask]; \
-			smp_wmb(); \
-			__kfifo->out++; \
+	__kfifo_uint_must_check_helper( \
+	({ \
+		typeof((fifo) + 1) __tmp = (fifo); \
+		typeof(__tmp->ptr) __val = (val); \
+		unsigned int __ret; \
+		const size_t __recsize = sizeof(*__tmp->rectype); \
+		struct __kfifo *__kfifo = &__tmp->kfifo; \
+		if (__recsize) \
+			__ret = __kfifo_out_r(__kfifo, __val, sizeof(*__val), \
+								  __recsize); \
+		else { \
+			__ret = !kfifo_is_empty(__tmp); \
+			if (__ret) { \
+				*(typeof(__tmp->type))__val = \
+											  (__is_kfifo_ptr(__tmp) ? \
+											   ((typeof(__tmp->type))__kfifo->data) : \
+											   (__tmp->buf) \
+											  )[__kfifo->out & __tmp->kfifo.mask]; \
+				smp_wmb(); \
+				__kfifo->out++; \
+			} \
 		} \
-	} \
-	__ret; \
-}) \
-)
+		__ret; \
+	}) \
+								  )
 
 /**
  * kfifo_peek - get data from the fifo without removing
@@ -461,30 +462,30 @@ __kfifo_uint_must_check_helper( \
  * writer, you don't need extra locking to use these macro.
  */
 #define	kfifo_peek(fifo, val) \
-__kfifo_uint_must_check_helper( \
-({ \
-	typeof((fifo) + 1) __tmp = (fifo); \
-	typeof(__tmp->ptr) __val = (val); \
-	unsigned int __ret; \
-	const size_t __recsize = sizeof(*__tmp->rectype); \
-	struct __kfifo *__kfifo = &__tmp->kfifo; \
-	if (__recsize) \
-		__ret = __kfifo_out_peek_r(__kfifo, __val, sizeof(*__val), \
-			__recsize); \
-	else { \
-		__ret = !kfifo_is_empty(__tmp); \
-		if (__ret) { \
-			*(typeof(__tmp->type))__val = \
-				(__is_kfifo_ptr(__tmp) ? \
-				((typeof(__tmp->type))__kfifo->data) : \
-				(__tmp->buf) \
-				)[__kfifo->out & __tmp->kfifo.mask]; \
-			smp_wmb(); \
+	__kfifo_uint_must_check_helper( \
+	({ \
+		typeof((fifo) + 1) __tmp = (fifo); \
+		typeof(__tmp->ptr) __val = (val); \
+		unsigned int __ret; \
+		const size_t __recsize = sizeof(*__tmp->rectype); \
+		struct __kfifo *__kfifo = &__tmp->kfifo; \
+		if (__recsize) \
+			__ret = __kfifo_out_peek_r(__kfifo, __val, sizeof(*__val), \
+									   __recsize); \
+		else { \
+			__ret = !kfifo_is_empty(__tmp); \
+			if (__ret) { \
+				*(typeof(__tmp->type))__val = \
+											  (__is_kfifo_ptr(__tmp) ? \
+											   ((typeof(__tmp->type))__kfifo->data) : \
+											   (__tmp->buf) \
+											  )[__kfifo->out & __tmp->kfifo.mask]; \
+				smp_wmb(); \
+			} \
 		} \
-	} \
-	__ret; \
-}) \
-)
+		__ret; \
+	}) \
+								  )
 
 /**
  * kfifo_in - put data into the fifo
@@ -499,16 +500,16 @@ __kfifo_uint_must_check_helper( \
  * writer, you don't need extra locking to use these macro.
  */
 #define	kfifo_in(fifo, buf, n) \
-({ \
-	typeof((fifo) + 1) __tmp = (fifo); \
-	typeof(__tmp->ptr_const) __buf = (buf); \
-	unsigned long __n = (n); \
-	const size_t __recsize = sizeof(*__tmp->rectype); \
-	struct __kfifo *__kfifo = &__tmp->kfifo; \
-	(__recsize) ?\
-	__kfifo_in_r(__kfifo, __buf, __n, __recsize) : \
-	__kfifo_in(__kfifo, __buf, __n); \
-})
+	({ \
+		typeof((fifo) + 1) __tmp = (fifo); \
+		typeof(__tmp->ptr_const) __buf = (buf); \
+		unsigned long __n = (n); \
+		const size_t __recsize = sizeof(*__tmp->rectype); \
+		struct __kfifo *__kfifo = &__tmp->kfifo; \
+		(__recsize) ?\
+		__kfifo_in_r(__kfifo, __buf, __n, __recsize) : \
+		__kfifo_in(__kfifo, __buf, __n); \
+	})
 
 /**
  * kfifo_in_spinlocked - put data into the fifo using a spinlock for locking
@@ -521,18 +522,18 @@ __kfifo_uint_must_check_helper( \
  * number of copied elements.
  */
 #define	kfifo_in_spinlocked(fifo, buf, n, lock) \
-({ \
-	unsigned long __flags; \
-	unsigned int __ret; \
-	spin_lock_irqsave(lock, __flags); \
-	__ret = kfifo_in(fifo, buf, n); \
-	spin_unlock_irqrestore(lock, __flags); \
-	__ret; \
-})
+	({ \
+		unsigned long __flags; \
+		unsigned int __ret; \
+		spin_lock_irqsave(lock, __flags); \
+		__ret = kfifo_in(fifo, buf, n); \
+		spin_unlock_irqrestore(lock, __flags); \
+		__ret; \
+	})
 
 /* alias for kfifo_in_spinlocked, will be removed in a future release */
 #define kfifo_in_locked(fifo, buf, n, lock) \
-		kfifo_in_spinlocked(fifo, buf, n, lock)
+	kfifo_in_spinlocked(fifo, buf, n, lock)
 
 /**
  * kfifo_out - get data from the fifo
@@ -547,18 +548,18 @@ __kfifo_uint_must_check_helper( \
  * writer, you don't need extra locking to use these macro.
  */
 #define	kfifo_out(fifo, buf, n) \
-__kfifo_uint_must_check_helper( \
-({ \
-	typeof((fifo) + 1) __tmp = (fifo); \
-	typeof(__tmp->ptr) __buf = (buf); \
-	unsigned long __n = (n); \
-	const size_t __recsize = sizeof(*__tmp->rectype); \
-	struct __kfifo *__kfifo = &__tmp->kfifo; \
-	(__recsize) ?\
-	__kfifo_out_r(__kfifo, __buf, __n, __recsize) : \
-	__kfifo_out(__kfifo, __buf, __n); \
-}) \
-)
+	__kfifo_uint_must_check_helper( \
+	({ \
+		typeof((fifo) + 1) __tmp = (fifo); \
+		typeof(__tmp->ptr) __buf = (buf); \
+		unsigned long __n = (n); \
+		const size_t __recsize = sizeof(*__tmp->rectype); \
+		struct __kfifo *__kfifo = &__tmp->kfifo; \
+		(__recsize) ?\
+		__kfifo_out_r(__kfifo, __buf, __n, __recsize) : \
+		__kfifo_out(__kfifo, __buf, __n); \
+	}) \
+								  )
 
 /**
  * kfifo_out_spinlocked - get data from the fifo using a spinlock for locking
@@ -571,20 +572,20 @@ __kfifo_uint_must_check_helper( \
  * copied.
  */
 #define	kfifo_out_spinlocked(fifo, buf, n, lock) \
-__kfifo_uint_must_check_helper( \
-({ \
-	unsigned long __flags; \
-	unsigned int __ret; \
-	spin_lock_irqsave(lock, __flags); \
-	__ret = kfifo_out(fifo, buf, n); \
-	spin_unlock_irqrestore(lock, __flags); \
-	__ret; \
-}) \
-)
+	__kfifo_uint_must_check_helper( \
+	({ \
+		unsigned long __flags; \
+		unsigned int __ret; \
+		spin_lock_irqsave(lock, __flags); \
+		__ret = kfifo_out(fifo, buf, n); \
+		spin_unlock_irqrestore(lock, __flags); \
+		__ret; \
+	}) \
+								  )
 
 /* alias for kfifo_out_spinlocked, will be removed in a future release */
 #define kfifo_out_locked(fifo, buf, n, lock) \
-		kfifo_out_spinlocked(fifo, buf, n, lock)
+	kfifo_out_spinlocked(fifo, buf, n, lock)
 
 /**
  * kfifo_from_user - puts some data from user space into the fifo
@@ -600,19 +601,19 @@ __kfifo_uint_must_check_helper( \
  * writer, you don't need extra locking to use these macro.
  */
 #define	kfifo_from_user(fifo, from, len, copied) \
-__kfifo_uint_must_check_helper( \
-({ \
-	typeof((fifo) + 1) __tmp = (fifo); \
-	const void __user *__from = (from); \
-	unsigned int __len = (len); \
-	unsigned int *__copied = (copied); \
-	const size_t __recsize = sizeof(*__tmp->rectype); \
-	struct __kfifo *__kfifo = &__tmp->kfifo; \
-	(__recsize) ? \
-	__kfifo_from_user_r(__kfifo, __from, __len,  __copied, __recsize) : \
-	__kfifo_from_user(__kfifo, __from, __len, __copied); \
-}) \
-)
+	__kfifo_uint_must_check_helper( \
+	({ \
+		typeof((fifo) + 1) __tmp = (fifo); \
+		const void __user *__from = (from); \
+		unsigned int __len = (len); \
+		unsigned int *__copied = (copied); \
+		const size_t __recsize = sizeof(*__tmp->rectype); \
+		struct __kfifo *__kfifo = &__tmp->kfifo; \
+		(__recsize) ? \
+		__kfifo_from_user_r(__kfifo, __from, __len,  __copied, __recsize) : \
+		__kfifo_from_user(__kfifo, __from, __len, __copied); \
+	}) \
+								  )
 
 /**
  * kfifo_to_user - copies data from the fifo into user space
@@ -628,19 +629,19 @@ __kfifo_uint_must_check_helper( \
  * writer, you don't need extra locking to use these macro.
  */
 #define	kfifo_to_user(fifo, to, len, copied) \
-__kfifo_uint_must_check_helper( \
-({ \
-	typeof((fifo) + 1) __tmp = (fifo); \
-	void __user *__to = (to); \
-	unsigned int __len = (len); \
-	unsigned int *__copied = (copied); \
-	const size_t __recsize = sizeof(*__tmp->rectype); \
-	struct __kfifo *__kfifo = &__tmp->kfifo; \
-	(__recsize) ? \
-	__kfifo_to_user_r(__kfifo, __to, __len, __copied, __recsize) : \
-	__kfifo_to_user(__kfifo, __to, __len, __copied); \
-}) \
-)
+	__kfifo_uint_must_check_helper( \
+	({ \
+		typeof((fifo) + 1) __tmp = (fifo); \
+		void __user *__to = (to); \
+		unsigned int __len = (len); \
+		unsigned int *__copied = (copied); \
+		const size_t __recsize = sizeof(*__tmp->rectype); \
+		struct __kfifo *__kfifo = &__tmp->kfifo; \
+		(__recsize) ? \
+		__kfifo_to_user_r(__kfifo, __to, __len, __copied, __recsize) : \
+		__kfifo_to_user(__kfifo, __to, __len, __copied); \
+	}) \
+								  )
 
 /**
  * kfifo_dma_in_prepare - setup a scatterlist for DMA input
@@ -656,17 +657,17 @@ __kfifo_uint_must_check_helper( \
  * writer, you don't need extra locking to use these macros.
  */
 #define	kfifo_dma_in_prepare(fifo, sgl, nents, len) \
-({ \
-	typeof((fifo) + 1) __tmp = (fifo); \
-	struct scatterlist *__sgl = (sgl); \
-	int __nents = (nents); \
-	unsigned int __len = (len); \
-	const size_t __recsize = sizeof(*__tmp->rectype); \
-	struct __kfifo *__kfifo = &__tmp->kfifo; \
-	(__recsize) ? \
-	__kfifo_dma_in_prepare_r(__kfifo, __sgl, __nents, __len, __recsize) : \
-	__kfifo_dma_in_prepare(__kfifo, __sgl, __nents, __len); \
-})
+	({ \
+		typeof((fifo) + 1) __tmp = (fifo); \
+		struct scatterlist *__sgl = (sgl); \
+		int __nents = (nents); \
+		unsigned int __len = (len); \
+		const size_t __recsize = sizeof(*__tmp->rectype); \
+		struct __kfifo *__kfifo = &__tmp->kfifo; \
+		(__recsize) ? \
+		__kfifo_dma_in_prepare_r(__kfifo, __sgl, __nents, __len, __recsize) : \
+		__kfifo_dma_in_prepare(__kfifo, __sgl, __nents, __len); \
+	})
 
 /**
  * kfifo_dma_in_finish - finish a DMA IN operation
@@ -680,16 +681,16 @@ __kfifo_uint_must_check_helper( \
  * writer, you don't need extra locking to use these macros.
  */
 #define kfifo_dma_in_finish(fifo, len) \
-(void)({ \
-	typeof((fifo) + 1) __tmp = (fifo); \
-	unsigned int __len = (len); \
-	const size_t __recsize = sizeof(*__tmp->rectype); \
-	struct __kfifo *__kfifo = &__tmp->kfifo; \
-	if (__recsize) \
-		__kfifo_dma_in_finish_r(__kfifo, __len, __recsize); \
-	else \
-		__kfifo->in += __len / sizeof(*__tmp->type); \
-})
+	(void)({ \
+		typeof((fifo) + 1) __tmp = (fifo); \
+		unsigned int __len = (len); \
+		const size_t __recsize = sizeof(*__tmp->rectype); \
+		struct __kfifo *__kfifo = &__tmp->kfifo; \
+		if (__recsize) \
+			__kfifo_dma_in_finish_r(__kfifo, __len, __recsize); \
+		else \
+			__kfifo->in += __len / sizeof(*__tmp->type); \
+	})
 
 /**
  * kfifo_dma_out_prepare - setup a scatterlist for DMA output
@@ -707,17 +708,17 @@ __kfifo_uint_must_check_helper( \
  * writer, you don't need extra locking to use these macros.
  */
 #define	kfifo_dma_out_prepare(fifo, sgl, nents, len) \
-({ \
-	typeof((fifo) + 1) __tmp = (fifo);  \
-	struct scatterlist *__sgl = (sgl); \
-	int __nents = (nents); \
-	unsigned int __len = (len); \
-	const size_t __recsize = sizeof(*__tmp->rectype); \
-	struct __kfifo *__kfifo = &__tmp->kfifo; \
-	(__recsize) ? \
-	__kfifo_dma_out_prepare_r(__kfifo, __sgl, __nents, __len, __recsize) : \
-	__kfifo_dma_out_prepare(__kfifo, __sgl, __nents, __len); \
-})
+	({ \
+		typeof((fifo) + 1) __tmp = (fifo);  \
+		struct scatterlist *__sgl = (sgl); \
+		int __nents = (nents); \
+		unsigned int __len = (len); \
+		const size_t __recsize = sizeof(*__tmp->rectype); \
+		struct __kfifo *__kfifo = &__tmp->kfifo; \
+		(__recsize) ? \
+		__kfifo_dma_out_prepare_r(__kfifo, __sgl, __nents, __len, __recsize) : \
+		__kfifo_dma_out_prepare(__kfifo, __sgl, __nents, __len); \
+	})
 
 /**
  * kfifo_dma_out_finish - finish a DMA OUT operation
@@ -731,16 +732,16 @@ __kfifo_uint_must_check_helper( \
  * writer, you don't need extra locking to use these macros.
  */
 #define kfifo_dma_out_finish(fifo, len) \
-(void)({ \
-	typeof((fifo) + 1) __tmp = (fifo); \
-	unsigned int __len = (len); \
-	const size_t __recsize = sizeof(*__tmp->rectype); \
-	struct __kfifo *__kfifo = &__tmp->kfifo; \
-	if (__recsize) \
-		__kfifo_dma_out_finish_r(__kfifo, __recsize); \
-	else \
-		__kfifo->out += __len / sizeof(*__tmp->type); \
-})
+	(void)({ \
+		typeof((fifo) + 1) __tmp = (fifo); \
+		unsigned int __len = (len); \
+		const size_t __recsize = sizeof(*__tmp->rectype); \
+		struct __kfifo *__kfifo = &__tmp->kfifo; \
+		if (__recsize) \
+			__kfifo_dma_out_finish_r(__kfifo, __recsize); \
+		else \
+			__kfifo->out += __len / sizeof(*__tmp->type); \
+	})
 
 /**
  * kfifo_out_peek - gets some data from the fifo
@@ -755,69 +756,69 @@ __kfifo_uint_must_check_helper( \
  * writer, you don't need extra locking to use these macro.
  */
 #define	kfifo_out_peek(fifo, buf, n) \
-__kfifo_uint_must_check_helper( \
-({ \
-	typeof((fifo) + 1) __tmp = (fifo); \
-	typeof(__tmp->ptr) __buf = (buf); \
-	unsigned long __n = (n); \
-	const size_t __recsize = sizeof(*__tmp->rectype); \
-	struct __kfifo *__kfifo = &__tmp->kfifo; \
-	(__recsize) ? \
-	__kfifo_out_peek_r(__kfifo, __buf, __n, __recsize) : \
-	__kfifo_out_peek(__kfifo, __buf, __n); \
-}) \
-)
+	__kfifo_uint_must_check_helper( \
+	({ \
+		typeof((fifo) + 1) __tmp = (fifo); \
+		typeof(__tmp->ptr) __buf = (buf); \
+		unsigned long __n = (n); \
+		const size_t __recsize = sizeof(*__tmp->rectype); \
+		struct __kfifo *__kfifo = &__tmp->kfifo; \
+		(__recsize) ? \
+		__kfifo_out_peek_r(__kfifo, __buf, __n, __recsize) : \
+		__kfifo_out_peek(__kfifo, __buf, __n); \
+	}) \
+								  )
 
 extern int __kfifo_alloc(struct __kfifo *fifo, unsigned int size,
-	size_t esize, gfp_t gfp_mask);
+						 size_t esize, gfp_t gfp_mask);
 
 extern void __kfifo_free(struct __kfifo *fifo);
 
 extern int __kfifo_init(struct __kfifo *fifo, void *buffer,
-	unsigned int size, size_t esize);
+						unsigned int size, size_t esize);
 
 extern unsigned int __kfifo_in(struct __kfifo *fifo,
-	const void *buf, unsigned int len);
+							   const void *buf, unsigned int len);
 
 extern unsigned int __kfifo_out(struct __kfifo *fifo,
-	void *buf, unsigned int len);
+								void *buf, unsigned int len);
 
 extern int __kfifo_from_user(struct __kfifo *fifo,
-	const void __user *from, unsigned long len, unsigned int *copied);
+							 const void __user *from, unsigned long len, unsigned int *copied);
 
 extern int __kfifo_to_user(struct __kfifo *fifo,
-	void __user *to, unsigned long len, unsigned int *copied);
+						   void __user *to, unsigned long len, unsigned int *copied);
 
 extern unsigned int __kfifo_dma_in_prepare(struct __kfifo *fifo,
-	struct scatterlist *sgl, int nents, unsigned int len);
+		struct scatterlist *sgl, int nents, unsigned int len);
 
 extern unsigned int __kfifo_dma_out_prepare(struct __kfifo *fifo,
-	struct scatterlist *sgl, int nents, unsigned int len);
+		struct scatterlist *sgl, int nents, unsigned int len);
 
 extern unsigned int __kfifo_out_peek(struct __kfifo *fifo,
-	void *buf, unsigned int len);
+									 void *buf, unsigned int len);
 
 extern unsigned int __kfifo_in_r(struct __kfifo *fifo,
-	const void *buf, unsigned int len, size_t recsize);
+								 const void *buf, unsigned int len, size_t recsize);
 
 extern unsigned int __kfifo_out_r(struct __kfifo *fifo,
-	void *buf, unsigned int len, size_t recsize);
+								  void *buf, unsigned int len, size_t recsize);
 
 extern int __kfifo_from_user_r(struct __kfifo *fifo,
-	const void __user *from, unsigned long len, unsigned int *copied,
-	size_t recsize);
+							   const void __user *from, unsigned long len, unsigned int *copied,
+							   size_t recsize);
 
 extern int __kfifo_to_user_r(struct __kfifo *fifo, void __user *to,
-	unsigned long len, unsigned int *copied, size_t recsize);
+							 unsigned long len, unsigned int *copied, size_t recsize);
 
 extern unsigned int __kfifo_dma_in_prepare_r(struct __kfifo *fifo,
-	struct scatterlist *sgl, int nents, unsigned int len, size_t recsize);
+		struct scatterlist *sgl, int nents, unsigned int len, size_t recsize);
 
 extern void __kfifo_dma_in_finish_r(struct __kfifo *fifo,
-	unsigned int len, size_t recsize);
+									unsigned int len, size_t recsize);
 
 extern unsigned int __kfifo_dma_out_prepare_r(struct __kfifo *fifo,
-	struct scatterlist *sgl, int nents, unsigned int len, size_t recsize);
+		struct scatterlist *sgl, int nents, unsigned int len, size_t recsize);
 
 extern void __kfifo_dma_out_finish_r(struct __kfifo *fifo, size_t recsize);
 
@@ -826,7 +827,7 @@ extern unsigned int __kfifo_len_r(struct __kfifo *fifo, size_t recsize);
 extern void __kfifo_skip_r(struct __kfifo *fifo, size_t recsize);
 
 extern unsigned int __kfifo_out_peek_r(struct __kfifo *fifo,
-	void *buf, unsigned int len, size_t recsize);
+									   void *buf, unsigned int len, size_t recsize);
 
 extern unsigned int __kfifo_max_r(unsigned int len, size_t recsize);
 

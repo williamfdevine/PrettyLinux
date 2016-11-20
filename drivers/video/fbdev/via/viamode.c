@@ -23,88 +23,89 @@
 #include "global.h"
 
 struct io_reg CN400_ModeXregs[] = { {VIASR, SR10, 0xFF, 0x01},
-{VIASR, SR15, 0x02, 0x02},
-{VIASR, SR16, 0xBF, 0x08},
-{VIASR, SR17, 0xFF, 0x1F},
-{VIASR, SR18, 0xFF, 0x4E},
-{VIASR, SR1A, 0xFB, 0x08},
-{VIASR, SR1E, 0x0F, 0x01},
-{VIASR, SR2A, 0xFF, 0x00},
-{VIACR, CR32, 0xFF, 0x00},
-{VIACR, CR33, 0xFF, 0x00},
-{VIACR, CR35, 0xFF, 0x00},
-{VIACR, CR36, 0x08, 0x00},
-{VIACR, CR69, 0xFF, 0x00},
-{VIACR, CR6A, 0xFF, 0x40},
-{VIACR, CR6B, 0xFF, 0x00},
-{VIACR, CR88, 0xFF, 0x40},	/* LCD Panel Type                      */
-{VIACR, CR89, 0xFF, 0x00},	/* LCD Timing Control 0                */
-{VIACR, CR8A, 0xFF, 0x88},	/* LCD Timing Control 1                */
-{VIACR, CR8B, 0xFF, 0x69},	/* LCD Power Sequence Control 0        */
-{VIACR, CR8C, 0xFF, 0x57},	/* LCD Power Sequence Control 1        */
-{VIACR, CR8D, 0xFF, 0x00},	/* LCD Power Sequence Control 2        */
-{VIACR, CR8E, 0xFF, 0x7B},	/* LCD Power Sequence Control 3        */
-{VIACR, CR8F, 0xFF, 0x03},	/* LCD Power Sequence Control 4        */
-{VIACR, CR90, 0xFF, 0x30},	/* LCD Power Sequence Control 5        */
-{VIACR, CR91, 0xFF, 0xA0},	/* 24/12 bit LVDS Data off             */
-{VIACR, CR96, 0xFF, 0x00},
-{VIACR, CR97, 0xFF, 0x00},
-{VIACR, CR99, 0xFF, 0x00},
-{VIACR, CR9B, 0xFF, 0x00}
+	{VIASR, SR15, 0x02, 0x02},
+	{VIASR, SR16, 0xBF, 0x08},
+	{VIASR, SR17, 0xFF, 0x1F},
+	{VIASR, SR18, 0xFF, 0x4E},
+	{VIASR, SR1A, 0xFB, 0x08},
+	{VIASR, SR1E, 0x0F, 0x01},
+	{VIASR, SR2A, 0xFF, 0x00},
+	{VIACR, CR32, 0xFF, 0x00},
+	{VIACR, CR33, 0xFF, 0x00},
+	{VIACR, CR35, 0xFF, 0x00},
+	{VIACR, CR36, 0x08, 0x00},
+	{VIACR, CR69, 0xFF, 0x00},
+	{VIACR, CR6A, 0xFF, 0x40},
+	{VIACR, CR6B, 0xFF, 0x00},
+	{VIACR, CR88, 0xFF, 0x40},	/* LCD Panel Type                      */
+	{VIACR, CR89, 0xFF, 0x00},	/* LCD Timing Control 0                */
+	{VIACR, CR8A, 0xFF, 0x88},	/* LCD Timing Control 1                */
+	{VIACR, CR8B, 0xFF, 0x69},	/* LCD Power Sequence Control 0        */
+	{VIACR, CR8C, 0xFF, 0x57},	/* LCD Power Sequence Control 1        */
+	{VIACR, CR8D, 0xFF, 0x00},	/* LCD Power Sequence Control 2        */
+	{VIACR, CR8E, 0xFF, 0x7B},	/* LCD Power Sequence Control 3        */
+	{VIACR, CR8F, 0xFF, 0x03},	/* LCD Power Sequence Control 4        */
+	{VIACR, CR90, 0xFF, 0x30},	/* LCD Power Sequence Control 5        */
+	{VIACR, CR91, 0xFF, 0xA0},	/* 24/12 bit LVDS Data off             */
+	{VIACR, CR96, 0xFF, 0x00},
+	{VIACR, CR97, 0xFF, 0x00},
+	{VIACR, CR99, 0xFF, 0x00},
+	{VIACR, CR9B, 0xFF, 0x00}
 };
 
 /* Video Mode Table for VT3314 chipset*/
 /* Common Setting for Video Mode */
 struct io_reg CN700_ModeXregs[] = { {VIASR, SR10, 0xFF, 0x01},
-{VIASR, SR15, 0x02, 0x02},
-{VIASR, SR16, 0xBF, 0x08},
-{VIASR, SR17, 0xFF, 0x1F},
-{VIASR, SR18, 0xFF, 0x4E},
-{VIASR, SR1A, 0xFB, 0x82},
-{VIASR, SR1B, 0xFF, 0xF0},
-{VIASR, SR1F, 0xFF, 0x00},
-{VIASR, SR1E, 0xFF, 0x01},
-{VIASR, SR22, 0xFF, 0x1F},
-{VIASR, SR2A, 0x0F, 0x00},
-{VIASR, SR2E, 0xFF, 0xFF},
-{VIASR, SR3F, 0xFF, 0xFF},
-{VIASR, SR40, 0xF7, 0x00},
-{VIASR, CR30, 0xFF, 0x04},
-{VIACR, CR32, 0xFF, 0x00},
-{VIACR, CR33, 0x7F, 0x00},
-{VIACR, CR35, 0xFF, 0x00},
-{VIACR, CR36, 0xFF, 0x31},
-{VIACR, CR41, 0xFF, 0x80},
-{VIACR, CR42, 0xFF, 0x00},
-{VIACR, CR55, 0x80, 0x00},
-{VIACR, CR5D, 0x80, 0x00},	/*Horizontal Retrace Start bit[11] should be 0*/
-{VIACR, CR68, 0xFF, 0x67},	/* Default FIFO For IGA2 */
-{VIACR, CR69, 0xFF, 0x00},
-{VIACR, CR6A, 0xFD, 0x40},
-{VIACR, CR6B, 0xFF, 0x00},
-{VIACR, CR77, 0xFF, 0x00},	/* LCD scaling Factor */
-{VIACR, CR78, 0xFF, 0x00},	/* LCD scaling Factor */
-{VIACR, CR79, 0xFF, 0x00},	/* LCD scaling Factor */
-{VIACR, CR9F, 0x03, 0x00},	/* LCD scaling Factor */
-{VIACR, CR88, 0xFF, 0x40},	/* LCD Panel Type */
-{VIACR, CR89, 0xFF, 0x00},	/* LCD Timing Control 0 */
-{VIACR, CR8A, 0xFF, 0x88},	/* LCD Timing Control 1 */
-{VIACR, CR8B, 0xFF, 0x5D},	/* LCD Power Sequence Control 0 */
-{VIACR, CR8C, 0xFF, 0x2B},	/* LCD Power Sequence Control 1 */
-{VIACR, CR8D, 0xFF, 0x6F},	/* LCD Power Sequence Control 2 */
-{VIACR, CR8E, 0xFF, 0x2B},	/* LCD Power Sequence Control 3 */
-{VIACR, CR8F, 0xFF, 0x01},	/* LCD Power Sequence Control 4 */
-{VIACR, CR90, 0xFF, 0x01},	/* LCD Power Sequence Control 5 */
-{VIACR, CR91, 0xFF, 0xA0},	/* 24/12 bit LVDS Data off */
-{VIACR, CR96, 0xFF, 0x00},
-{VIACR, CR97, 0xFF, 0x00},
-{VIACR, CR99, 0xFF, 0x00},
-{VIACR, CR9B, 0xFF, 0x00},
-{VIACR, CR9D, 0xFF, 0x80},
-{VIACR, CR9E, 0xFF, 0x80}
+	{VIASR, SR15, 0x02, 0x02},
+	{VIASR, SR16, 0xBF, 0x08},
+	{VIASR, SR17, 0xFF, 0x1F},
+	{VIASR, SR18, 0xFF, 0x4E},
+	{VIASR, SR1A, 0xFB, 0x82},
+	{VIASR, SR1B, 0xFF, 0xF0},
+	{VIASR, SR1F, 0xFF, 0x00},
+	{VIASR, SR1E, 0xFF, 0x01},
+	{VIASR, SR22, 0xFF, 0x1F},
+	{VIASR, SR2A, 0x0F, 0x00},
+	{VIASR, SR2E, 0xFF, 0xFF},
+	{VIASR, SR3F, 0xFF, 0xFF},
+	{VIASR, SR40, 0xF7, 0x00},
+	{VIASR, CR30, 0xFF, 0x04},
+	{VIACR, CR32, 0xFF, 0x00},
+	{VIACR, CR33, 0x7F, 0x00},
+	{VIACR, CR35, 0xFF, 0x00},
+	{VIACR, CR36, 0xFF, 0x31},
+	{VIACR, CR41, 0xFF, 0x80},
+	{VIACR, CR42, 0xFF, 0x00},
+	{VIACR, CR55, 0x80, 0x00},
+	{VIACR, CR5D, 0x80, 0x00},	/*Horizontal Retrace Start bit[11] should be 0*/
+	{VIACR, CR68, 0xFF, 0x67},	/* Default FIFO For IGA2 */
+	{VIACR, CR69, 0xFF, 0x00},
+	{VIACR, CR6A, 0xFD, 0x40},
+	{VIACR, CR6B, 0xFF, 0x00},
+	{VIACR, CR77, 0xFF, 0x00},	/* LCD scaling Factor */
+	{VIACR, CR78, 0xFF, 0x00},	/* LCD scaling Factor */
+	{VIACR, CR79, 0xFF, 0x00},	/* LCD scaling Factor */
+	{VIACR, CR9F, 0x03, 0x00},	/* LCD scaling Factor */
+	{VIACR, CR88, 0xFF, 0x40},	/* LCD Panel Type */
+	{VIACR, CR89, 0xFF, 0x00},	/* LCD Timing Control 0 */
+	{VIACR, CR8A, 0xFF, 0x88},	/* LCD Timing Control 1 */
+	{VIACR, CR8B, 0xFF, 0x5D},	/* LCD Power Sequence Control 0 */
+	{VIACR, CR8C, 0xFF, 0x2B},	/* LCD Power Sequence Control 1 */
+	{VIACR, CR8D, 0xFF, 0x6F},	/* LCD Power Sequence Control 2 */
+	{VIACR, CR8E, 0xFF, 0x2B},	/* LCD Power Sequence Control 3 */
+	{VIACR, CR8F, 0xFF, 0x01},	/* LCD Power Sequence Control 4 */
+	{VIACR, CR90, 0xFF, 0x01},	/* LCD Power Sequence Control 5 */
+	{VIACR, CR91, 0xFF, 0xA0},	/* 24/12 bit LVDS Data off */
+	{VIACR, CR96, 0xFF, 0x00},
+	{VIACR, CR97, 0xFF, 0x00},
+	{VIACR, CR99, 0xFF, 0x00},
+	{VIACR, CR9B, 0xFF, 0x00},
+	{VIACR, CR9D, 0xFF, 0x80},
+	{VIACR, CR9E, 0xFF, 0x80}
 };
 
-struct io_reg KM400_ModeXregs[] = {
+struct io_reg KM400_ModeXregs[] =
+{
 	{VIASR, SR10, 0xFF, 0x01},	/* Unlock Register                 */
 	{VIASR, SR16, 0xFF, 0x08},	/* Display FIFO threshold Control  */
 	{VIASR, SR17, 0xFF, 0x1F},	/* Display FIFO Control            */
@@ -143,103 +144,105 @@ struct io_reg KM400_ModeXregs[] = {
 
 /* For VT3324: Common Setting for Video Mode */
 struct io_reg CX700_ModeXregs[] = { {VIASR, SR10, 0xFF, 0x01},
-{VIASR, SR15, 0x02, 0x02},
-{VIASR, SR16, 0xBF, 0x08},
-{VIASR, SR17, 0xFF, 0x1F},
-{VIASR, SR18, 0xFF, 0x4E},
-{VIASR, SR1A, 0xFB, 0x08},
-{VIASR, SR1B, 0xFF, 0xF0},
-{VIASR, SR1E, 0xFF, 0x01},
-{VIASR, SR2A, 0xFF, 0x00},
-{VIASR, SR2D, 0xC0, 0xC0},	/* delayed E3_ECK */
-{VIACR, CR32, 0xFF, 0x00},
-{VIACR, CR33, 0xFF, 0x00},
-{VIACR, CR35, 0xFF, 0x00},
-{VIACR, CR36, 0x08, 0x00},
-{VIACR, CR47, 0xC8, 0x00},	/* Clear VCK Plus. */
-{VIACR, CR69, 0xFF, 0x00},
-{VIACR, CR6A, 0xFF, 0x40},
-{VIACR, CR6B, 0xFF, 0x00},
-{VIACR, CR88, 0xFF, 0x40},	/* LCD Panel Type                      */
-{VIACR, CR89, 0xFF, 0x00},	/* LCD Timing Control 0                */
-{VIACR, CR8A, 0xFF, 0x88},	/* LCD Timing Control 1                */
-{VIACR, CRD4, 0xFF, 0x81},	/* Second power sequence control       */
-{VIACR, CR8B, 0xFF, 0x5D},	/* LCD Power Sequence Control 0        */
-{VIACR, CR8C, 0xFF, 0x2B},	/* LCD Power Sequence Control 1        */
-{VIACR, CR8D, 0xFF, 0x6F},	/* LCD Power Sequence Control 2        */
-{VIACR, CR8E, 0xFF, 0x2B},	/* LCD Power Sequence Control 3        */
-{VIACR, CR8F, 0xFF, 0x01},	/* LCD Power Sequence Control 4        */
-{VIACR, CR90, 0xFF, 0x01},	/* LCD Power Sequence Control 5        */
-{VIACR, CR91, 0xFF, 0x80},	/* 24/12 bit LVDS Data off             */
-{VIACR, CR96, 0xFF, 0x00},
-{VIACR, CR97, 0xFF, 0x00},
-{VIACR, CR99, 0xFF, 0x00},
-{VIACR, CR9B, 0xFF, 0x00}
+	{VIASR, SR15, 0x02, 0x02},
+	{VIASR, SR16, 0xBF, 0x08},
+	{VIASR, SR17, 0xFF, 0x1F},
+	{VIASR, SR18, 0xFF, 0x4E},
+	{VIASR, SR1A, 0xFB, 0x08},
+	{VIASR, SR1B, 0xFF, 0xF0},
+	{VIASR, SR1E, 0xFF, 0x01},
+	{VIASR, SR2A, 0xFF, 0x00},
+	{VIASR, SR2D, 0xC0, 0xC0},	/* delayed E3_ECK */
+	{VIACR, CR32, 0xFF, 0x00},
+	{VIACR, CR33, 0xFF, 0x00},
+	{VIACR, CR35, 0xFF, 0x00},
+	{VIACR, CR36, 0x08, 0x00},
+	{VIACR, CR47, 0xC8, 0x00},	/* Clear VCK Plus. */
+	{VIACR, CR69, 0xFF, 0x00},
+	{VIACR, CR6A, 0xFF, 0x40},
+	{VIACR, CR6B, 0xFF, 0x00},
+	{VIACR, CR88, 0xFF, 0x40},	/* LCD Panel Type                      */
+	{VIACR, CR89, 0xFF, 0x00},	/* LCD Timing Control 0                */
+	{VIACR, CR8A, 0xFF, 0x88},	/* LCD Timing Control 1                */
+	{VIACR, CRD4, 0xFF, 0x81},	/* Second power sequence control       */
+	{VIACR, CR8B, 0xFF, 0x5D},	/* LCD Power Sequence Control 0        */
+	{VIACR, CR8C, 0xFF, 0x2B},	/* LCD Power Sequence Control 1        */
+	{VIACR, CR8D, 0xFF, 0x6F},	/* LCD Power Sequence Control 2        */
+	{VIACR, CR8E, 0xFF, 0x2B},	/* LCD Power Sequence Control 3        */
+	{VIACR, CR8F, 0xFF, 0x01},	/* LCD Power Sequence Control 4        */
+	{VIACR, CR90, 0xFF, 0x01},	/* LCD Power Sequence Control 5        */
+	{VIACR, CR91, 0xFF, 0x80},	/* 24/12 bit LVDS Data off             */
+	{VIACR, CR96, 0xFF, 0x00},
+	{VIACR, CR97, 0xFF, 0x00},
+	{VIACR, CR99, 0xFF, 0x00},
+	{VIACR, CR9B, 0xFF, 0x00}
 };
 
-struct io_reg VX855_ModeXregs[] = {
-{VIASR, SR10, 0xFF, 0x01},
-{VIASR, SR15, 0x02, 0x02},
-{VIASR, SR16, 0xBF, 0x08},
-{VIASR, SR17, 0xFF, 0x1F},
-{VIASR, SR18, 0xFF, 0x4E},
-{VIASR, SR1A, 0xFB, 0x08},
-{VIASR, SR1B, 0xFF, 0xF0},
-{VIASR, SR1E, 0x07, 0x01},
-{VIASR, SR2A, 0xF0, 0x00},
-{VIASR, SR58, 0xFF, 0x00},
-{VIASR, SR59, 0xFF, 0x00},
-{VIASR, SR2D, 0xC0, 0xC0},	/* delayed E3_ECK */
-{VIACR, CR32, 0xFF, 0x00},
-{VIACR, CR33, 0x7F, 0x00},
-{VIACR, CR35, 0xFF, 0x00},
-{VIACR, CR36, 0x08, 0x00},
-{VIACR, CR69, 0xFF, 0x00},
-{VIACR, CR6A, 0xFD, 0x60},
-{VIACR, CR6B, 0xFF, 0x00},
-{VIACR, CR88, 0xFF, 0x40},          /* LCD Panel Type                      */
-{VIACR, CR89, 0xFF, 0x00},          /* LCD Timing Control 0                */
-{VIACR, CR8A, 0xFF, 0x88},          /* LCD Timing Control 1                */
-{VIACR, CRD4, 0xFF, 0x81},          /* Second power sequence control       */
-{VIACR, CR91, 0xFF, 0x80},          /* 24/12 bit LVDS Data off             */
-{VIACR, CR96, 0xFF, 0x00},
-{VIACR, CR97, 0xFF, 0x00},
-{VIACR, CR99, 0xFF, 0x00},
-{VIACR, CR9B, 0xFF, 0x00},
-{VIACR, CRD2, 0xFF, 0xFF}           /* TMDS/LVDS control register.         */
+struct io_reg VX855_ModeXregs[] =
+{
+	{VIASR, SR10, 0xFF, 0x01},
+	{VIASR, SR15, 0x02, 0x02},
+	{VIASR, SR16, 0xBF, 0x08},
+	{VIASR, SR17, 0xFF, 0x1F},
+	{VIASR, SR18, 0xFF, 0x4E},
+	{VIASR, SR1A, 0xFB, 0x08},
+	{VIASR, SR1B, 0xFF, 0xF0},
+	{VIASR, SR1E, 0x07, 0x01},
+	{VIASR, SR2A, 0xF0, 0x00},
+	{VIASR, SR58, 0xFF, 0x00},
+	{VIASR, SR59, 0xFF, 0x00},
+	{VIASR, SR2D, 0xC0, 0xC0},	/* delayed E3_ECK */
+	{VIACR, CR32, 0xFF, 0x00},
+	{VIACR, CR33, 0x7F, 0x00},
+	{VIACR, CR35, 0xFF, 0x00},
+	{VIACR, CR36, 0x08, 0x00},
+	{VIACR, CR69, 0xFF, 0x00},
+	{VIACR, CR6A, 0xFD, 0x60},
+	{VIACR, CR6B, 0xFF, 0x00},
+	{VIACR, CR88, 0xFF, 0x40},          /* LCD Panel Type                      */
+	{VIACR, CR89, 0xFF, 0x00},          /* LCD Timing Control 0                */
+	{VIACR, CR8A, 0xFF, 0x88},          /* LCD Timing Control 1                */
+	{VIACR, CRD4, 0xFF, 0x81},          /* Second power sequence control       */
+	{VIACR, CR91, 0xFF, 0x80},          /* 24/12 bit LVDS Data off             */
+	{VIACR, CR96, 0xFF, 0x00},
+	{VIACR, CR97, 0xFF, 0x00},
+	{VIACR, CR99, 0xFF, 0x00},
+	{VIACR, CR9B, 0xFF, 0x00},
+	{VIACR, CRD2, 0xFF, 0xFF}           /* TMDS/LVDS control register.         */
 };
 
 /* Video Mode Table */
 /* Common Setting for Video Mode */
 struct io_reg CLE266_ModeXregs[] = { {VIASR, SR1E, 0xF0, 0x00},
-{VIASR, SR2A, 0x0F, 0x00},
-{VIASR, SR15, 0x02, 0x02},
-{VIASR, SR16, 0xBF, 0x08},
-{VIASR, SR17, 0xFF, 0x1F},
-{VIASR, SR18, 0xFF, 0x4E},
-{VIASR, SR1A, 0xFB, 0x08},
+	{VIASR, SR2A, 0x0F, 0x00},
+	{VIASR, SR15, 0x02, 0x02},
+	{VIASR, SR16, 0xBF, 0x08},
+	{VIASR, SR17, 0xFF, 0x1F},
+	{VIASR, SR18, 0xFF, 0x4E},
+	{VIASR, SR1A, 0xFB, 0x08},
 
-{VIACR, CR32, 0xFF, 0x00},
-{VIACR, CR35, 0xFF, 0x00},
-{VIACR, CR36, 0x08, 0x00},
-{VIACR, CR6A, 0xFF, 0x80},
-{VIACR, CR6A, 0xFF, 0xC0},
+	{VIACR, CR32, 0xFF, 0x00},
+	{VIACR, CR35, 0xFF, 0x00},
+	{VIACR, CR36, 0x08, 0x00},
+	{VIACR, CR6A, 0xFF, 0x80},
+	{VIACR, CR6A, 0xFF, 0xC0},
 
-{VIACR, CR55, 0x80, 0x00},
-{VIACR, CR5D, 0x80, 0x00},
+	{VIACR, CR55, 0x80, 0x00},
+	{VIACR, CR5D, 0x80, 0x00},
 
-{VIAGR, GR20, 0xFF, 0x00},
-{VIAGR, GR21, 0xFF, 0x00},
-{VIAGR, GR22, 0xFF, 0x00},
+	{VIAGR, GR20, 0xFF, 0x00},
+	{VIAGR, GR21, 0xFF, 0x00},
+	{VIAGR, GR22, 0xFF, 0x00},
 
 };
 
 /* Mode:1024X768 */
 struct io_reg PM1024x768[] = { {VIASR, 0x16, 0xBF, 0x0C},
-{VIASR, 0x18, 0xFF, 0x4C}
+	{VIASR, 0x18, 0xFF, 0x4C}
 };
 
-struct patch_table res_patch_table[] = {
+struct patch_table res_patch_table[] =
+{
 	{ARRAY_SIZE(PM1024x768), PM1024x768}
 };
 
@@ -251,7 +254,8 @@ struct patch_table res_patch_table[] = {
 	unsigned char  AR[StdAR];
  };*/
 
-struct VPITTable VPIT = {
+struct VPITTable VPIT =
+{
 	/* Msic */
 	0xC7,
 	/* Sequencer */
@@ -259,16 +263,19 @@ struct VPITTable VPIT = {
 	/* Graphic Controller */
 	{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x0F, 0xFF},
 	/* Attribute Controller */
-	{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-	 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
-	 0x01, 0x00, 0x0F, 0x00}
+	{
+		0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+		0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+		0x01, 0x00, 0x0F, 0x00
+	}
 };
 
 /********************/
 /* Mode Table       */
 /********************/
 
-static const struct fb_videomode viafb_modes[] = {
+static const struct fb_videomode viafb_modes[] =
+{
 	{NULL, 60, 480, 640, 40285, 72, 24, 19, 1, 48, 3, FB_SYNC_VERT_HIGH_ACT, 0, 0},
 	{NULL, 60, 640, 480, 39682, 48, 16, 33, 10, 96, 2, 0, 0, 0},
 	{NULL, 75, 640, 480, 31746, 120, 16, 16, 1, 64, 3, 0, 0, 0},
@@ -330,16 +337,19 @@ static const struct fb_videomode viafb_modes[] = {
 	{NULL, 60, 1920, 1080, 5776, 328, 128, 32, 3, 200, 5, FB_SYNC_VERT_HIGH_ACT, 0, 0},
 	{NULL, 60, 1920, 1200, 5164, 336, 136, 36, 3, 200, 6, FB_SYNC_VERT_HIGH_ACT, 0, 0},
 	{NULL, 60, 1400, 1050, 8210, 232, 88, 32, 3, 144, 4, FB_SYNC_VERT_HIGH_ACT, 0, 0},
-	{NULL, 75, 1400, 1050, 6398, 248, 104, 42, 3, 144, 4, FB_SYNC_VERT_HIGH_ACT, 0, 0} };
+	{NULL, 75, 1400, 1050, 6398, 248, 104, 42, 3, 144, 4, FB_SYNC_VERT_HIGH_ACT, 0, 0}
+};
 
-static const struct fb_videomode viafb_rb_modes[] = {
+static const struct fb_videomode viafb_rb_modes[] =
+{
 	{NULL, 60, 1360, 768, 13879, 80, 48, 14, 3, 32, 5, FB_SYNC_HOR_HIGH_ACT, 0, 0},
 	{NULL, 60, 1440, 900, 11249, 80, 48, 17, 3, 32, 6, FB_SYNC_HOR_HIGH_ACT, 0, 0},
 	{NULL, 60, 1400, 1050, 9892, 80, 48, 23, 3, 32, 4, FB_SYNC_HOR_HIGH_ACT, 0, 0},
 	{NULL, 60, 1600, 900, 10226, 80, 48, 18, 3, 32, 5, FB_SYNC_HOR_HIGH_ACT, 0, 0},
 	{NULL, 60, 1680, 1050, 8387, 80, 48, 21, 3, 32, 6, FB_SYNC_HOR_HIGH_ACT, 0, 0},
 	{NULL, 60, 1920, 1080, 7212, 80, 48, 23, 3, 32, 5, FB_SYNC_HOR_HIGH_ACT, 0, 0},
-	{NULL, 60, 1920, 1200, 6488, 80, 48, 26, 3, 32, 6, FB_SYNC_HOR_HIGH_ACT, 0, 0} };
+	{NULL, 60, 1920, 1200, 6488, 80, 48, 26, 3, 32, 6, FB_SYNC_HOR_HIGH_ACT, 0, 0}
+};
 
 int NUM_TOTAL_CN400_ModeXregs = ARRAY_SIZE(CN400_ModeXregs);
 int NUM_TOTAL_CN700_ModeXregs = ARRAY_SIZE(CN700_ModeXregs);
@@ -357,13 +367,18 @@ static const struct fb_videomode *get_best_mode(
 	const struct fb_videomode *best = NULL;
 	int i;
 
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < n; i++)
+	{
 		if (modes[i].xres != hres || modes[i].yres != vres)
+		{
 			continue;
+		}
 
 		if (!best || abs(modes[i].refresh - refresh) <
 			abs(best->refresh - refresh))
+		{
 			best = &modes[i];
+		}
 	}
 
 	return best;
@@ -372,12 +387,12 @@ static const struct fb_videomode *get_best_mode(
 const struct fb_videomode *viafb_get_best_mode(int hres, int vres, int refresh)
 {
 	return get_best_mode(viafb_modes, ARRAY_SIZE(viafb_modes),
-		hres, vres, refresh);
+						 hres, vres, refresh);
 }
 
 const struct fb_videomode *viafb_get_best_rb_mode(int hres, int vres,
-	int refresh)
+		int refresh)
 {
 	return get_best_mode(viafb_rb_modes, ARRAY_SIZE(viafb_rb_modes),
-		hres, vres, refresh);
+						 hres, vres, refresh);
 }

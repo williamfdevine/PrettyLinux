@@ -32,7 +32,7 @@ static void __multiorder_tag_test(int index, int order)
 	base = index & ~((1 << order) - 1);
 
 	printf("Multiorder tag test with index %d, canonical entry %d\n",
-			index, base);
+		   index, base);
 
 	err = item_insert_order(&tree, index, order);
 	assert(!err);
@@ -42,20 +42,23 @@ static void __multiorder_tag_test(int index, int order)
 	 * insert an exceptional entry so we don't leak memory via
 	 * item_insert_order().
 	 */
-	for_each_index(i, base, order) {
+	for_each_index(i, base, order)
+	{
 		err = __radix_tree_insert(&tree, i, order,
-				(void *)(0xA0 | RADIX_TREE_EXCEPTIONAL_ENTRY));
+								  (void *)(0xA0 | RADIX_TREE_EXCEPTIONAL_ENTRY));
 		assert(err == -EEXIST);
 	}
 
-	for_each_index(i, base, order) {
+	for_each_index(i, base, order)
+	{
 		assert(!radix_tree_tag_get(&tree, i, 0));
 		assert(!radix_tree_tag_get(&tree, i, 1));
 	}
 
 	assert(radix_tree_tag_set(&tree, index, 0));
 
-	for_each_index(i, base, order) {
+	for_each_index(i, base, order)
+	{
 		assert(radix_tree_tag_get(&tree, i, 0));
 		assert(!radix_tree_tag_get(&tree, i, 1));
 	}
@@ -63,7 +66,8 @@ static void __multiorder_tag_test(int index, int order)
 	assert(radix_tree_range_tag_if_tagged(&tree, &first, ~0UL, 10, 0, 1) == 1);
 	assert(radix_tree_tag_clear(&tree, index, 0));
 
-	for_each_index(i, base, order) {
+	for_each_index(i, base, order)
+	{
 		assert(!radix_tree_tag_get(&tree, i, 0));
 		assert(radix_tree_tag_get(&tree, i, 1));
 	}
@@ -132,22 +136,34 @@ static void multiorder_check(unsigned long index, int order)
 
 	assert(item_insert_order(&tree, index, order) == 0);
 
-	for (i = min; i < max; i++) {
+	for (i = min; i < max; i++)
+	{
 		struct item *item = item_lookup(&tree, i);
 		assert(item != 0);
 		assert(item->index == index);
 	}
+
 	for (i = 0; i < min; i++)
+	{
 		item_check_absent(&tree, i);
-	for (i = max; i < 2*max; i++)
+	}
+
+	for (i = max; i < 2 * max; i++)
+	{
 		item_check_absent(&tree, i);
+	}
+
 	for (i = min; i < max; i++)
+	{
 		assert(radix_tree_insert(&tree, i, item2) == -EEXIST);
+	}
 
 	slot = radix_tree_lookup_slot(&tree, index);
 	free(*slot);
 	radix_tree_replace_slot(slot, item2);
-	for (i = min; i < max; i++) {
+
+	for (i = min; i < max; i++)
+	{
 		struct item *item = item_lookup(&tree, i);
 		assert(item != 0);
 		assert(item->index == min);
@@ -155,8 +171,10 @@ static void multiorder_check(unsigned long index, int order)
 
 	assert(item_delete(&tree, min) != 0);
 
-	for (i = 0; i < 2*max; i++)
+	for (i = 0; i < 2 * max; i++)
+	{
 		item_check_absent(&tree, i);
+	}
 }
 
 static void multiorder_shrink(unsigned long index, int order)
@@ -178,20 +196,27 @@ static void multiorder_shrink(unsigned long index, int order)
 	assert(item_delete(&tree, index) != 0);
 	assert(node == tree.rnode);
 
-	for (i = 0; i < max; i++) {
+	for (i = 0; i < max; i++)
+	{
 		struct item *item = item_lookup(&tree, i);
 		assert(item != 0);
 		assert(item->index == 0);
 	}
-	for (i = max; i < 2*max; i++)
-		item_check_absent(&tree, i);
 
-	if (!item_delete(&tree, 0)) {
+	for (i = max; i < 2 * max; i++)
+	{
+		item_check_absent(&tree, i);
+	}
+
+	if (!item_delete(&tree, 0))
+	{
 		printf("failed to delete index %ld (order %d)\n", index, order);		abort();
 	}
 
-	for (i = 0; i < 2*max; i++)
+	for (i = 0; i < 2 * max; i++)
+	{
 		item_check_absent(&tree, i);
+	}
 }
 
 static void multiorder_insert_bug(void)
@@ -218,22 +243,27 @@ void multiorder_iteration(void)
 	int index[NUM_ENTRIES] = {0, 2, 4, 8, 16, 32, 34, 36, 64, 72, 128};
 	int order[NUM_ENTRIES] = {1, 1, 2, 3,  4,  1,  0,  1,  3,  0, 7};
 
-	for (i = 0; i < NUM_ENTRIES; i++) {
+	for (i = 0; i < NUM_ENTRIES; i++)
+	{
 		err = item_insert_order(&tree, index[i], order[i]);
 		assert(!err);
 	}
 
-	for (j = 0; j < 256; j++) {
+	for (j = 0; j < 256; j++)
+	{
 		for (i = 0; i < NUM_ENTRIES; i++)
 			if (j <= (index[i] | ((1 << order[i]) - 1)))
+			{
 				break;
+			}
 
-		radix_tree_for_each_slot(slot, &tree, &iter, j) {
+		radix_tree_for_each_slot(slot, &tree, &iter, j)
+		{
 			int height = order[i] / RADIX_TREE_MAP_SHIFT;
 			int shift = height * RADIX_TREE_MAP_SHIFT;
 			int mask = (1 << order[i]) - 1;
 
-			assert(iter.index >= (index[i] &~ mask));
+			assert(iter.index >= (index[i] & ~ mask));
 			assert(iter.index <= (index[i] | mask));
 			assert(iter.shift == shift);
 			i++;
@@ -261,53 +291,71 @@ void multiorder_tagged_iteration(void)
 	int tag_index[TAG_ENTRIES] = {0, 4, 16, 40, 64, 72, 128};
 
 	for (i = 0; i < MT_NUM_ENTRIES; i++)
+	{
 		assert(!item_insert_order(&tree, index[i], order[i]));
+	}
 
 	assert(!radix_tree_tagged(&tree, 1));
 
 	for (i = 0; i < TAG_ENTRIES; i++)
+	{
 		assert(radix_tree_tag_set(&tree, tag_index[i], 1));
+	}
 
-	for (j = 0; j < 256; j++) {
+	for (j = 0; j < 256; j++)
+	{
 		int mask, k;
 
-		for (i = 0; i < TAG_ENTRIES; i++) {
+		for (i = 0; i < TAG_ENTRIES; i++)
+		{
 			for (k = i; index[k] < tag_index[i]; k++)
 				;
+
 			if (j <= (index[k] | ((1 << order[k]) - 1)))
+			{
 				break;
+			}
 		}
 
-		radix_tree_for_each_tagged(slot, &tree, &iter, j, 1) {
+		radix_tree_for_each_tagged(slot, &tree, &iter, j, 1)
+		{
 			for (k = i; index[k] < tag_index[i]; k++)
 				;
+
 			mask = (1 << order[k]) - 1;
 
-			assert(iter.index >= (tag_index[i] &~ mask));
+			assert(iter.index >= (tag_index[i] & ~ mask));
 			assert(iter.index <= (tag_index[i] | mask));
 			i++;
 		}
 	}
 
 	radix_tree_range_tag_if_tagged(&tree, &first, ~0UL,
-					MT_NUM_ENTRIES, 1, 2);
+								   MT_NUM_ENTRIES, 1, 2);
 
-	for (j = 0; j < 256; j++) {
+	for (j = 0; j < 256; j++)
+	{
 		int mask, k;
 
-		for (i = 0; i < TAG_ENTRIES; i++) {
+		for (i = 0; i < TAG_ENTRIES; i++)
+		{
 			for (k = i; index[k] < tag_index[i]; k++)
 				;
+
 			if (j <= (index[k] | ((1 << order[k]) - 1)))
+			{
 				break;
+			}
 		}
 
-		radix_tree_for_each_tagged(slot, &tree, &iter, j, 2) {
+		radix_tree_for_each_tagged(slot, &tree, &iter, j, 2)
+		{
 			for (k = i; index[k] < tag_index[i]; k++)
 				;
+
 			mask = (1 << order[k]) - 1;
 
-			assert(iter.index >= (tag_index[i] &~ mask));
+			assert(iter.index >= (tag_index[i] & ~ mask));
 			assert(iter.index <= (tag_index[i] | mask));
 			i++;
 		}
@@ -315,9 +363,10 @@ void multiorder_tagged_iteration(void)
 
 	first = 1;
 	radix_tree_range_tag_if_tagged(&tree, &first, ~0UL,
-					MT_NUM_ENTRIES, 1, 0);
+								   MT_NUM_ENTRIES, 1, 0);
 	i = 0;
-	radix_tree_for_each_tagged(slot, &tree, &iter, 0, 0) {
+	radix_tree_for_each_tagged(slot, &tree, &iter, 0, 0)
+	{
 		assert(iter.index == tag_index[i]);
 		i++;
 	}
@@ -329,14 +378,17 @@ void multiorder_checks(void)
 {
 	int i;
 
-	for (i = 0; i < 20; i++) {
+	for (i = 0; i < 20; i++)
+	{
 		multiorder_check(200, i);
 		multiorder_check(0, i);
 		multiorder_check((1UL << i) + 1, i);
 	}
 
 	for (i = 0; i < 15; i++)
+	{
 		multiorder_shrink((1UL << (i + RADIX_TREE_MAP_SHIFT)), i);
+	}
 
 	multiorder_insert_bug();
 	multiorder_tag_tests();

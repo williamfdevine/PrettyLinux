@@ -49,23 +49,29 @@ void lprocfs_counter_add(struct lprocfs_stats *stats, int idx, long amount)
 	unsigned long			flags = 0;
 
 	if (!stats)
+	{
 		return;
+	}
 
 	LASSERTF(0 <= idx && idx < stats->ls_num,
-		 "idx %d, ls_num %hu\n", idx, stats->ls_num);
+			 "idx %d, ls_num %hu\n", idx, stats->ls_num);
 
 	/* With per-client stats, statistics are allocated only for
 	 * single CPU area, so the smp_id should be 0 always.
 	 */
 	smp_id = lprocfs_stats_lock(stats, LPROCFS_GET_SMP_ID, &flags);
+
 	if (smp_id < 0)
+	{
 		return;
+	}
 
 	header = &stats->ls_cnt_header[idx];
 	percpu_cntr = lprocfs_stats_counter_get(stats, smp_id, idx);
 	percpu_cntr->lc_count++;
 
-	if (header->lc_config & LPROCFS_CNTR_AVGMINMAX) {
+	if (header->lc_config & LPROCFS_CNTR_AVGMINMAX)
+	{
 		/*
 		 * lprocfs_counter_add() can be called in interrupt context,
 		 * as memory allocation could trigger memory shrinker call
@@ -74,18 +80,31 @@ void lprocfs_counter_add(struct lprocfs_stats *stats, int idx, long amount)
 		 *
 		 */
 		if (in_interrupt() &&
-		    (stats->ls_flags & LPROCFS_STATS_FLAG_IRQ_SAFE) != 0)
+			(stats->ls_flags & LPROCFS_STATS_FLAG_IRQ_SAFE) != 0)
+		{
 			percpu_cntr->lc_sum_irq += amount;
+		}
 		else
+		{
 			percpu_cntr->lc_sum += amount;
+		}
 
 		if (header->lc_config & LPROCFS_CNTR_STDDEV)
+		{
 			percpu_cntr->lc_sumsquare += (__s64)amount * amount;
+		}
+
 		if (amount < percpu_cntr->lc_min)
+		{
 			percpu_cntr->lc_min = amount;
+		}
+
 		if (amount > percpu_cntr->lc_max)
+		{
 			percpu_cntr->lc_max = amount;
+		}
 	}
+
 	lprocfs_stats_unlock(stats, LPROCFS_GET_SMP_ID, &flags);
 }
 EXPORT_SYMBOL(lprocfs_counter_add);
@@ -98,21 +117,28 @@ void lprocfs_counter_sub(struct lprocfs_stats *stats, int idx, long amount)
 	unsigned long			flags = 0;
 
 	if (!stats)
+	{
 		return;
+	}
 
 	LASSERTF(0 <= idx && idx < stats->ls_num,
-		 "idx %d, ls_num %hu\n", idx, stats->ls_num);
+			 "idx %d, ls_num %hu\n", idx, stats->ls_num);
 
 	/* With per-client stats, statistics are allocated only for
 	 * single CPU area, so the smp_id should be 0 always.
 	 */
 	smp_id = lprocfs_stats_lock(stats, LPROCFS_GET_SMP_ID, &flags);
+
 	if (smp_id < 0)
+	{
 		return;
+	}
 
 	header = &stats->ls_cnt_header[idx];
 	percpu_cntr = lprocfs_stats_counter_get(stats, smp_id, idx);
-	if (header->lc_config & LPROCFS_CNTR_AVGMINMAX) {
+
+	if (header->lc_config & LPROCFS_CNTR_AVGMINMAX)
+	{
 		/*
 		 * Sometimes we use RCU callbacks to free memory which calls
 		 * lprocfs_counter_sub(), and RCU callbacks may execute in
@@ -122,11 +148,16 @@ void lprocfs_counter_sub(struct lprocfs_stats *stats, int idx, long amount)
 		 *
 		 */
 		if (in_interrupt() &&
-		    (stats->ls_flags & LPROCFS_STATS_FLAG_IRQ_SAFE) != 0)
+			(stats->ls_flags & LPROCFS_STATS_FLAG_IRQ_SAFE) != 0)
+		{
 			percpu_cntr->lc_sum_irq -= amount;
+		}
 		else
+		{
 			percpu_cntr->lc_sum -= amount;
+		}
 	}
+
 	lprocfs_stats_unlock(stats, LPROCFS_GET_SMP_ID, &flags);
 }
 EXPORT_SYMBOL(lprocfs_counter_sub);

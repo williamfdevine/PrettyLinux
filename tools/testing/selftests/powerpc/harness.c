@@ -33,10 +33,14 @@ int run_test(int (test_function)(void), char *name)
 	fflush(stdout);
 
 	pid = fork();
-	if (pid == 0) {
+
+	if (pid == 0)
+	{
 		setpgid(0, 0);
 		exit(test_function());
-	} else if (pid == -1) {
+	}
+	else if (pid == -1)
+	{
 		perror("fork");
 		return 1;
 	}
@@ -49,17 +53,23 @@ int run_test(int (test_function)(void), char *name)
 
 wait:
 	rc = waitpid(pid, &status, 0);
-	if (rc == -1) {
-		if (errno != EINTR) {
+
+	if (rc == -1)
+	{
+		if (errno != EINTR)
+		{
 			printf("unknown error from waitpid\n");
 			return 1;
 		}
 
-		if (terminated) {
+		if (terminated)
+		{
 			printf("!! force killing %s\n", name);
 			kill(-pid, SIGKILL);
 			return 1;
-		} else {
+		}
+		else
+		{
 			printf("!! killing %s\n", name);
 			kill(-pid, SIGTERM);
 			terminated = true;
@@ -72,12 +82,19 @@ wait:
 	kill(-pid, SIGTERM);
 
 	if (WIFEXITED(status))
+	{
 		status = WEXITSTATUS(status);
-	else {
+	}
+	else
+	{
 		if (WIFSIGNALED(status))
+		{
 			printf("!! child died by signal %d\n", WTERMSIG(status));
+		}
 		else
+		{
 			printf("!! child died by unknown cause\n");
+		}
 
 		status = 1; /* Signal or other */
 	}
@@ -90,7 +107,8 @@ static void alarm_handler(int signum)
 	/* Jut wake us up from waitpid */
 }
 
-static struct sigaction alarm_action = {
+static struct sigaction alarm_action =
+{
 	.sa_handler = alarm_handler,
 };
 
@@ -106,7 +124,8 @@ int test_harness(int (test_function)(void), char *name)
 	test_start(name);
 	test_set_git_version(GIT_VERSION);
 
-	if (sigaction(SIGALRM, &alarm_action, NULL)) {
+	if (sigaction(SIGALRM, &alarm_action, NULL))
+	{
 		perror("sigaction");
 		test_error(name);
 		return 1;
@@ -115,9 +134,13 @@ int test_harness(int (test_function)(void), char *name)
 	rc = run_test(test_function, name);
 
 	if (rc == MAGIC_SKIP_RETURN_VALUE)
+	{
 		test_skip(name);
+	}
 	else
+	{
 		test_finish(name, rc);
+	}
 
 	return rc;
 }

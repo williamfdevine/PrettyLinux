@@ -18,8 +18,11 @@ static int ravb_ptp_tcr_request(struct ravb_private *priv, u32 request)
 	int error;
 
 	error = ravb_wait(ndev, GCCR, GCCR_TCR, GCCR_TCR_NOREQ);
+
 	if (error)
+	{
 		return error;
+	}
 
 	ravb_modify(ndev, GCCR, request, request);
 	return ravb_wait(ndev, GCCR, GCCR_TCR, GCCR_TCR_NOREQ);
@@ -32,31 +35,41 @@ static int ravb_ptp_time_read(struct ravb_private *priv, struct timespec64 *ts)
 	int error;
 
 	error = ravb_ptp_tcr_request(priv, GCCR_TCR_CAPTURE);
+
 	if (error)
+	{
 		return error;
+	}
 
 	ts->tv_nsec = ravb_read(ndev, GCT0);
 	ts->tv_sec  = ravb_read(ndev, GCT1) |
-		((s64)ravb_read(ndev, GCT2) << 32);
+				  ((s64)ravb_read(ndev, GCT2) << 32);
 
 	return 0;
 }
 
 /* Caller must hold the lock */
 static int ravb_ptp_time_write(struct ravb_private *priv,
-				const struct timespec64 *ts)
+							   const struct timespec64 *ts)
 {
 	struct net_device *ndev = priv->ndev;
 	int error;
 	u32 gccr;
 
 	error = ravb_ptp_tcr_request(priv, GCCR_TCR_RESET);
+
 	if (error)
+	{
 		return error;
+	}
 
 	gccr = ravb_read(ndev, GCCR);
+
 	if (gccr & GCCR_LTO)
+	{
 		return -EBUSY;
+	}
+
 	ravb_write(ndev, ts->tv_nsec, GTO0);
 	ravb_write(ndev, ts->tv_sec,  GTO1);
 	ravb_write(ndev, (ts->tv_sec >> 32) & 0xffff, GTO2);
@@ -78,13 +91,21 @@ static int ravb_ptp_update_compare(struct ravb_private *priv, u32 ns)
 	u32 gccr;
 
 	if (ns < gti_ns_plus_1)
+	{
 		ns = gti_ns_plus_1;
+	}
 	else if (ns > 0 - gti_ns_plus_1)
+	{
 		ns = 0 - gti_ns_plus_1;
+	}
 
 	gccr = ravb_read(ndev, GCCR);
+
 	if (gccr & GCCR_LPTC)
+	{
 		return -EBUSY;
+	}
+
 	ravb_write(ndev, ns, GPTC);
 	ravb_write(ndev, gccr | GCCR_LPTC, GCCR);
 
@@ -95,17 +116,19 @@ static int ravb_ptp_update_compare(struct ravb_private *priv, u32 ns)
 static int ravb_ptp_adjfreq(struct ptp_clock_info *ptp, s32 ppb)
 {
 	struct ravb_private *priv = container_of(ptp, struct ravb_private,
-						 ptp.info);
+								ptp.info);
 	struct net_device *ndev = priv->ndev;
 	unsigned long flags;
 	u32 diff, addend;
 	bool neg_adj = false;
 	u32 gccr;
 
-	if (ppb < 0) {
+	if (ppb < 0)
+	{
 		neg_adj = true;
 		ppb = -ppb;
 	}
+
 	addend = priv->ptp.default_addend;
 	diff = div_u64((u64)addend * ppb, NSEC_PER_SEC);
 
@@ -116,10 +139,13 @@ static int ravb_ptp_adjfreq(struct ptp_clock_info *ptp, s32 ppb)
 	priv->ptp.current_addend = addend;
 
 	gccr = ravb_read(ndev, GCCR);
-	if (gccr & GCCR_LTI) {
+
+	if (gccr & GCCR_LTI)
+	{
 		spin_unlock_irqrestore(&priv->lock, flags);
 		return -EBUSY;
 	}
+
 	ravb_write(ndev, addend & GTI_TIV, GTI);
 	ravb_write(ndev, gccr | GCCR_LTI, GCCR);
 
@@ -131,19 +157,22 @@ static int ravb_ptp_adjfreq(struct ptp_clock_info *ptp, s32 ppb)
 static int ravb_ptp_adjtime(struct ptp_clock_info *ptp, s64 delta)
 {
 	struct ravb_private *priv = container_of(ptp, struct ravb_private,
-						 ptp.info);
+								ptp.info);
 	struct timespec64 ts;
 	unsigned long flags;
 	int error;
 
 	spin_lock_irqsave(&priv->lock, flags);
 	error = ravb_ptp_time_read(priv, &ts);
-	if (!error) {
+
+	if (!error)
+	{
 		u64 now = ktime_to_ns(timespec64_to_ktime(ts));
 
 		ts = ns_to_timespec64(now + delta);
 		error = ravb_ptp_time_write(priv, &ts);
 	}
+
 	spin_unlock_irqrestore(&priv->lock, flags);
 
 	return error;
@@ -152,7 +181,7 @@ static int ravb_ptp_adjtime(struct ptp_clock_info *ptp, s64 delta)
 static int ravb_ptp_gettime64(struct ptp_clock_info *ptp, struct timespec64 *ts)
 {
 	struct ravb_private *priv = container_of(ptp, struct ravb_private,
-						 ptp.info);
+								ptp.info);
 	unsigned long flags;
 	int error;
 
@@ -164,10 +193,10 @@ static int ravb_ptp_gettime64(struct ptp_clock_info *ptp, struct timespec64 *ts)
 }
 
 static int ravb_ptp_settime64(struct ptp_clock_info *ptp,
-			      const struct timespec64 *ts)
+							  const struct timespec64 *ts)
 {
 	struct ravb_private *priv = container_of(ptp, struct ravb_private,
-						 ptp.info);
+								ptp.info);
 	unsigned long flags;
 	int error;
 
@@ -179,27 +208,40 @@ static int ravb_ptp_settime64(struct ptp_clock_info *ptp,
 }
 
 static int ravb_ptp_extts(struct ptp_clock_info *ptp,
-			  struct ptp_extts_request *req, int on)
+						  struct ptp_extts_request *req, int on)
 {
 	struct ravb_private *priv = container_of(ptp, struct ravb_private,
-						 ptp.info);
+								ptp.info);
 	struct net_device *ndev = priv->ndev;
 	unsigned long flags;
 
 	if (req->index)
+	{
 		return -EINVAL;
+	}
 
 	if (priv->ptp.extts[req->index] == on)
+	{
 		return 0;
+	}
+
 	priv->ptp.extts[req->index] = on;
 
 	spin_lock_irqsave(&priv->lock, flags);
+
 	if (priv->chip_id == RCAR_GEN2)
+	{
 		ravb_modify(ndev, GIC, GIC_PTCE, on ? GIC_PTCE : 0);
+	}
 	else if (on)
+	{
 		ravb_write(ndev, GIE_PTCS, GIE);
+	}
 	else
+	{
 		ravb_write(ndev, GID_PTCD, GID);
+	}
+
 	mmiowb();
 	spin_unlock_irqrestore(&priv->lock, flags);
 
@@ -207,34 +249,39 @@ static int ravb_ptp_extts(struct ptp_clock_info *ptp,
 }
 
 static int ravb_ptp_perout(struct ptp_clock_info *ptp,
-			   struct ptp_perout_request *req, int on)
+						   struct ptp_perout_request *req, int on)
 {
 	struct ravb_private *priv = container_of(ptp, struct ravb_private,
-						 ptp.info);
+								ptp.info);
 	struct net_device *ndev = priv->ndev;
 	struct ravb_ptp_perout *perout;
 	unsigned long flags;
 	int error = 0;
 
 	if (req->index)
+	{
 		return -EINVAL;
+	}
 
-	if (on) {
+	if (on)
+	{
 		u64 start_ns;
 		u64 period_ns;
 
 		start_ns = req->start.sec * NSEC_PER_SEC + req->start.nsec;
 		period_ns = req->period.sec * NSEC_PER_SEC + req->period.nsec;
 
-		if (start_ns > U32_MAX) {
+		if (start_ns > U32_MAX)
+		{
 			netdev_warn(ndev,
-				    "ptp: start value (nsec) is over limit. Maximum size of start is only 32 bits\n");
+						"ptp: start value (nsec) is over limit. Maximum size of start is only 32 bits\n");
 			return -ERANGE;
 		}
 
-		if (period_ns > U32_MAX) {
+		if (period_ns > U32_MAX)
+		{
 			netdev_warn(ndev,
-				    "ptp: period value (nsec) is over limit. Maximum size of period is only 32 bits\n");
+						"ptp: period value (nsec) is over limit. Maximum size of period is only 32 bits\n");
 			return -ERANGE;
 		}
 
@@ -244,14 +291,22 @@ static int ravb_ptp_perout(struct ptp_clock_info *ptp,
 		perout->target = (u32)start_ns;
 		perout->period = (u32)period_ns;
 		error = ravb_ptp_update_compare(priv, (u32)start_ns);
-		if (!error) {
+
+		if (!error)
+		{
 			/* Unmask interrupt */
 			if (priv->chip_id == RCAR_GEN2)
+			{
 				ravb_modify(ndev, GIC, GIC_PTME, GIC_PTME);
+			}
 			else
+			{
 				ravb_write(ndev, GIE_PTMS0, GIE);
+			}
 		}
-	} else	{
+	}
+	else
+	{
 		spin_lock_irqsave(&priv->lock, flags);
 
 		perout = &priv->ptp.perout[req->index];
@@ -259,10 +314,15 @@ static int ravb_ptp_perout(struct ptp_clock_info *ptp,
 
 		/* Mask interrupt */
 		if (priv->chip_id == RCAR_GEN2)
+		{
 			ravb_modify(ndev, GIC, GIC_PTME, 0);
+		}
 		else
+		{
 			ravb_write(ndev, GID_PTMD0, GID);
+		}
 	}
+
 	mmiowb();
 	spin_unlock_irqrestore(&priv->lock, flags);
 
@@ -270,19 +330,23 @@ static int ravb_ptp_perout(struct ptp_clock_info *ptp,
 }
 
 static int ravb_ptp_enable(struct ptp_clock_info *ptp,
-			   struct ptp_clock_request *req, int on)
+						   struct ptp_clock_request *req, int on)
 {
-	switch (req->type) {
-	case PTP_CLK_REQ_EXTTS:
-		return ravb_ptp_extts(ptp, &req->extts, on);
-	case PTP_CLK_REQ_PEROUT:
-		return ravb_ptp_perout(ptp, &req->perout, on);
-	default:
-		return -EOPNOTSUPP;
+	switch (req->type)
+	{
+		case PTP_CLK_REQ_EXTTS:
+			return ravb_ptp_extts(ptp, &req->extts, on);
+
+		case PTP_CLK_REQ_PEROUT:
+			return ravb_ptp_perout(ptp, &req->perout, on);
+
+		default:
+			return -EOPNOTSUPP;
 	}
 }
 
-static const struct ptp_clock_info ravb_ptp_info = {
+static const struct ptp_clock_info ravb_ptp_info =
+{
 	.owner		= THIS_MODULE,
 	.name		= "ravb clock",
 	.max_adj	= 50000000,
@@ -302,7 +366,9 @@ void ravb_ptp_interrupt(struct net_device *ndev)
 	u32 gis = ravb_read(ndev, GIS);
 
 	gis &= ravb_read(ndev, GIC);
-	if (gis & GIS_PTCF) {
+
+	if (gis & GIS_PTCF)
+	{
 		struct ptp_clock_event event;
 
 		event.type = PTP_CLOCK_EXTTS;
@@ -310,10 +376,13 @@ void ravb_ptp_interrupt(struct net_device *ndev)
 		event.timestamp = ravb_read(ndev, GCPT);
 		ptp_clock_event(priv->ptp.clock, &event);
 	}
-	if (gis & GIS_PTMF) {
+
+	if (gis & GIS_PTMF)
+	{
 		struct ravb_ptp_perout *perout = priv->ptp.perout;
 
-		if (perout->period) {
+		if (perout->period)
+		{
 			perout->target += perout->period;
 			ravb_ptp_update_compare(priv, perout->target);
 		}

@@ -55,12 +55,13 @@ static void pps_ktimer_event(unsigned long ptr)
  * The PPS info struct
  */
 
-static struct pps_source_info pps_ktimer_info = {
+static struct pps_source_info pps_ktimer_info =
+{
 	.name		= "ktimer",
 	.path		= "",
 	.mode		= PPS_CAPTUREASSERT | PPS_OFFSETASSERT |
-			  PPS_ECHOASSERT |
-			  PPS_CANWAIT | PPS_TSFMT_TSPEC,
+	PPS_ECHOASSERT |
+	PPS_CANWAIT | PPS_TSFMT_TSPEC,
 	.owner		= THIS_MODULE,
 };
 
@@ -79,8 +80,10 @@ static void __exit pps_ktimer_exit(void)
 static int __init pps_ktimer_init(void)
 {
 	pps = pps_register_source(&pps_ktimer_info,
-				PPS_CAPTUREASSERT | PPS_OFFSETASSERT);
-	if (pps == NULL) {
+							  PPS_CAPTUREASSERT | PPS_OFFSETASSERT);
+
+	if (pps == NULL)
+	{
 		pr_err("cannot register PPS source\n");
 		return -ENOMEM;
 	}

@@ -7,8 +7,8 @@
 #include <linux/spinlock.h>
 
 #ifdef CONFIG_PPC_DCR
-#include <asm/dcr.h>
-#include <asm/dcr-regs.h>
+	#include <asm/dcr.h>
+	#include <asm/dcr-regs.h>
 #endif
 
 /* packet size info */
@@ -316,7 +316,8 @@ This option defaults to enabled (set) */
  *	7    reserved
  *	8:31 application specific
  */
-struct cdmac_bd {
+struct cdmac_bd
+{
 	u32 next;	/* Physical address of next buffer descriptor */
 	u32 phys;
 	u32 len;
@@ -327,7 +328,8 @@ struct cdmac_bd {
 	u32 app4;	/* skb for TX length for RX */
 };
 
-struct temac_local {
+struct temac_local
+{
 	struct net_device *ndev;
 	struct device *dev;
 

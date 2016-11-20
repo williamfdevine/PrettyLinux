@@ -5,7 +5,8 @@
 #include <linux/types.h>
 
 /* This is exposed to userspace (ctnetlink) */
-enum tcp_conntrack {
+enum tcp_conntrack
+{
 	TCP_CONNTRACK_NONE,
 	TCP_CONNTRACK_SYN_SENT,
 	TCP_CONNTRACK_SYN_RECV,
@@ -45,7 +46,8 @@ enum tcp_conntrack {
 /* Marks possibility for expected RFC5961 challenge ACK */
 #define IP_CT_EXP_CHALLENGE_ACK 		0x40
 
-struct nf_ct_tcp_flags {
+struct nf_ct_tcp_flags
+{
 	__u8 flags;
 	__u8 mask;
 };

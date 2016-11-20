@@ -9,7 +9,7 @@ struct task_struct;
 union ktime;
 
 long do_futex(u32 __user *uaddr, int op, u32 val, union ktime *timeout,
-	      u32 __user *uaddr2, u32 val2, u32 val3);
+			  u32 __user *uaddr2, u32 val2, u32 val3);
 
 extern int
 handle_futex_death(u32 __user *uaddr, struct task_struct *curr, int pi);
@@ -32,18 +32,22 @@ handle_futex_death(u32 __user *uaddr, struct task_struct *curr, int pi);
 #define FUT_OFF_INODE    1 /* We set bit 0 if key has a reference on inode */
 #define FUT_OFF_MMSHARED 2 /* We set bit 1 if key has a reference on mm */
 
-union futex_key {
-	struct {
+union futex_key
+{
+	struct
+	{
 		unsigned long pgoff;
 		struct inode *inode;
 		int offset;
 	} shared;
-	struct {
+	struct
+	{
 		unsigned long address;
 		struct mm_struct *mm;
 		int offset;
 	} private;
-	struct {
+	struct
+	{
 		unsigned long word;
 		void *ptr;
 		int offset;
@@ -56,9 +60,9 @@ union futex_key {
 extern void exit_robust_list(struct task_struct *curr);
 extern void exit_pi_state_list(struct task_struct *curr);
 #ifdef CONFIG_HAVE_FUTEX_CMPXCHG
-#define futex_cmpxchg_enabled 1
+	#define futex_cmpxchg_enabled 1
 #else
-extern int futex_cmpxchg_enabled;
+	extern int futex_cmpxchg_enabled;
 #endif
 #else
 static inline void exit_robust_list(struct task_struct *curr)

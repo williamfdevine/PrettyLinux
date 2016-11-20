@@ -31,14 +31,18 @@ int main(int argc, char **argv)
 	bool cstyle = false;
 	int i;
 
-	for (i = 1; i < argc; i++) {
-		if (!strncmp("-c", argv[i], 2)) {
+	for (i = 1; i < argc; i++)
+	{
+		if (!strncmp("-c", argv[i], 2))
+		{
 			cstyle = true;
 			continue;
 		}
 
 		fp = fopen(argv[i], "r");
-		if (!fp) {
+
+		if (!fp)
+		{
 			fp = stdin;
 			continue;
 		}

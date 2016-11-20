@@ -242,21 +242,21 @@ static char version[] =
 #define NEW_SKB_SIZE (PI_RCV_DATA_K_SIZE_MAX+128)
 
 #ifdef CONFIG_EISA
-#define DFX_BUS_EISA(dev) (dev->bus == &eisa_bus_type)
+	#define DFX_BUS_EISA(dev) (dev->bus == &eisa_bus_type)
 #else
-#define DFX_BUS_EISA(dev) 0
+	#define DFX_BUS_EISA(dev) 0
 #endif
 
 #ifdef CONFIG_TC
-#define DFX_BUS_TC(dev) (dev->bus == &tc_bus_type)
+	#define DFX_BUS_TC(dev) (dev->bus == &tc_bus_type)
 #else
-#define DFX_BUS_TC(dev) 0
+	#define DFX_BUS_TC(dev) 0
 #endif
 
 #ifdef CONFIG_DEFXX_MMIO
-#define DFX_MMIO 1
+	#define DFX_MMIO 1
 #else
-#define DFX_MMIO 0
+	#define DFX_MMIO 0
 #endif
 
 /* Define module-wide (static) routines */
@@ -266,8 +266,8 @@ static void		dfx_bus_uninit(struct net_device *dev);
 static void		dfx_bus_config_check(DFX_board_t *bp);
 
 static int		dfx_driver_init(struct net_device *dev,
-					const char *print_name,
-					resource_size_t bar_start);
+								const char *print_name,
+								resource_size_t bar_start);
 static int		dfx_adap_init(DFX_board_t *bp, int get_buffers);
 
 static int		dfx_open(struct net_device *dev);
@@ -285,7 +285,8 @@ static int		dfx_ctl_update_cam(DFX_board_t *bp);
 static int		dfx_ctl_update_filters(DFX_board_t *bp);
 
 static int		dfx_hw_dma_cmd_req(DFX_board_t *bp);
-static int		dfx_hw_port_ctrl_req(DFX_board_t *bp, PI_UINT32	command, PI_UINT32 data_a, PI_UINT32 data_b, PI_UINT32 *host_data);
+static int		dfx_hw_port_ctrl_req(DFX_board_t *bp, PI_UINT32	command, PI_UINT32 data_a, PI_UINT32 data_b,
+									 PI_UINT32 *host_data);
 static void		dfx_hw_adap_reset(DFX_board_t *bp, PI_UINT32 type);
 static int		dfx_hw_adap_state_rd(DFX_board_t *bp);
 static int		dfx_hw_dma_uninit(DFX_board_t *bp, PI_UINT32 type);
@@ -299,7 +300,7 @@ static inline void	dfx_rcv_flush(DFX_board_t *bp) {}
 #endif
 
 static netdev_tx_t dfx_xmt_queue_pkt(struct sk_buff *skb,
-				     struct net_device *dev);
+									 struct net_device *dev);
 static int		dfx_xmt_done(DFX_board_t *bp);
 static void		dfx_xmt_flush(DFX_board_t *bp);
 
@@ -378,9 +379,13 @@ static void dfx_port_write_long(DFX_board_t *bp, int offset, u32 data)
 	int dfx_use_mmio = DFX_MMIO || dfx_bus_tc;
 
 	if (dfx_use_mmio)
+	{
 		dfx_writel(bp, offset, data);
+	}
 	else
+	{
 		dfx_outl(bp, offset, data);
+	}
 }
 
 
@@ -402,9 +407,13 @@ static void dfx_port_read_long(DFX_board_t *bp, int offset, u32 *data)
 	int dfx_use_mmio = DFX_MMIO || dfx_bus_tc;
 
 	if (dfx_use_mmio)
+	{
 		dfx_readl(bp, offset, data);
+	}
 	else
+	{
 		dfx_inl(bp, offset, data);
+	}
 }
 
 
@@ -432,14 +441,15 @@ static void dfx_port_read_long(DFX_board_t *bp, int offset, u32 *data)
  *   None
  */
 static void dfx_get_bars(struct device *bdev,
-			 resource_size_t *bar_start, resource_size_t *bar_len)
+						 resource_size_t *bar_start, resource_size_t *bar_len)
 {
 	int dfx_bus_pci = dev_is_pci(bdev);
 	int dfx_bus_eisa = DFX_BUS_EISA(bdev);
 	int dfx_bus_tc = DFX_BUS_TC(bdev);
 	int dfx_use_mmio = DFX_MMIO || dfx_bus_tc;
 
-	if (dfx_bus_pci) {
+	if (dfx_bus_pci)
+	{
 		int num = dfx_use_mmio ? 0 : 1;
 
 		bar_start[0] = pci_resource_start(to_pci_dev(bdev), num);
@@ -447,12 +457,15 @@ static void dfx_get_bars(struct device *bdev,
 		bar_start[2] = bar_start[1] = 0;
 		bar_len[2] = bar_len[1] = 0;
 	}
-	if (dfx_bus_eisa) {
+
+	if (dfx_bus_eisa)
+	{
 		unsigned long base_addr = to_eisa_device(bdev)->base_addr;
 		resource_size_t bar_lo;
 		resource_size_t bar_hi;
 
-		if (dfx_use_mmio) {
+		if (dfx_use_mmio)
+		{
 			bar_lo = inb(base_addr + PI_ESIC_K_MEM_ADD_LO_CMP_2);
 			bar_lo <<= 8;
 			bar_lo |= inb(base_addr + PI_ESIC_K_MEM_ADD_LO_CMP_1);
@@ -467,26 +480,32 @@ static void dfx_get_bars(struct device *bdev,
 			bar_hi |= inb(base_addr + PI_ESIC_K_MEM_ADD_HI_CMP_0);
 			bar_hi <<= 8;
 			bar_len[0] = ((bar_hi - bar_lo) | PI_MEM_ADD_MASK_M) +
-				     1;
-		} else {
+						 1;
+		}
+		else
+		{
 			bar_start[0] = base_addr;
 			bar_len[0] = PI_ESIC_K_CSR_IO_LEN;
 		}
+
 		bar_start[1] = base_addr + PI_DEFEA_K_BURST_HOLDOFF;
 		bar_len[1] = PI_ESIC_K_BURST_HOLDOFF_LEN;
 		bar_start[2] = base_addr + PI_ESIC_K_ESIC_CSR;
 		bar_len[2] = PI_ESIC_K_ESIC_CSR_LEN;
 	}
-	if (dfx_bus_tc) {
+
+	if (dfx_bus_tc)
+	{
 		bar_start[0] = to_tc_dev(bdev)->resource.start +
-			       PI_TC_K_CSR_OFFSET;
+					   PI_TC_K_CSR_OFFSET;
 		bar_len[0] = PI_TC_K_CSR_LEN;
 		bar_start[2] = bar_start[1] = 0;
 		bar_len[2] = bar_len[1] = 0;
 	}
 }
 
-static const struct net_device_ops dfx_netdev_ops = {
+static const struct net_device_ops dfx_netdev_ops =
+{
 	.ndo_open		= dfx_open,
 	.ndo_stop		= dfx_close,
 	.ndo_start_xmit		= dfx_xmt_queue_pkt,
@@ -539,24 +558,30 @@ static int dfx_register(struct device *bdev)
 	struct resource *region;
 	int err = 0;
 
-	if (!version_disp) {	/* display version info if adapter is found */
+	if (!version_disp)  	/* display version info if adapter is found */
+	{
 		version_disp = 1;	/* set display flag to TRUE so that */
 		printk(version);	/* we only display this string ONCE */
 	}
 
 	dev = alloc_fddidev(sizeof(*bp));
-	if (!dev) {
+
+	if (!dev)
+	{
 		printk(KERN_ERR "%s: Unable to allocate fddidev, aborting\n",
-		       print_name);
+			   print_name);
 		return -ENOMEM;
 	}
 
 	/* Enable PCI device. */
-	if (dfx_bus_pci) {
+	if (dfx_bus_pci)
+	{
 		err = pci_enable_device(to_pci_dev(bdev));
-		if (err) {
+
+		if (err)
+		{
 			pr_err("%s: Cannot enable PCI device, aborting\n",
-			       print_name);
+				   print_name);
 			goto err_out;
 		}
 	}
@@ -568,59 +593,78 @@ static int dfx_register(struct device *bdev)
 	dev_set_drvdata(bdev, dev);
 
 	dfx_get_bars(bdev, bar_start, bar_len);
-	if (dfx_bus_eisa && dfx_use_mmio && bar_start[0] == 0) {
+
+	if (dfx_bus_eisa && dfx_use_mmio && bar_start[0] == 0)
+	{
 		pr_err("%s: Cannot use MMIO, no address set, aborting\n",
-		       print_name);
+			   print_name);
 		pr_err("%s: Run ECU and set adapter's MMIO location\n",
-		       print_name);
+			   print_name);
 		pr_err("%s: Or recompile driver with \"CONFIG_DEFXX_MMIO=n\""
-		       "\n", print_name);
+			   "\n", print_name);
 		err = -ENXIO;
 		goto err_out;
 	}
 
 	if (dfx_use_mmio)
 		region = request_mem_region(bar_start[0], bar_len[0],
-					    print_name);
+									print_name);
 	else
+	{
 		region = request_region(bar_start[0], bar_len[0], print_name);
-	if (!region) {
+	}
+
+	if (!region)
+	{
 		pr_err("%s: Cannot reserve %s resource 0x%lx @ 0x%lx, "
-		       "aborting\n", dfx_use_mmio ? "MMIO" : "I/O", print_name,
-		       (long)bar_len[0], (long)bar_start[0]);
+			   "aborting\n", dfx_use_mmio ? "MMIO" : "I/O", print_name,
+			   (long)bar_len[0], (long)bar_start[0]);
 		err = -EBUSY;
 		goto err_out_disable;
 	}
-	if (bar_start[1] != 0) {
+
+	if (bar_start[1] != 0)
+	{
 		region = request_region(bar_start[1], bar_len[1], print_name);
-		if (!region) {
+
+		if (!region)
+		{
 			pr_err("%s: Cannot reserve I/O resource "
-			       "0x%lx @ 0x%lx, aborting\n", print_name,
-			       (long)bar_len[1], (long)bar_start[1]);
+				   "0x%lx @ 0x%lx, aborting\n", print_name,
+				   (long)bar_len[1], (long)bar_start[1]);
 			err = -EBUSY;
 			goto err_out_csr_region;
 		}
 	}
-	if (bar_start[2] != 0) {
+
+	if (bar_start[2] != 0)
+	{
 		region = request_region(bar_start[2], bar_len[2], print_name);
-		if (!region) {
+
+		if (!region)
+		{
 			pr_err("%s: Cannot reserve I/O resource "
-			       "0x%lx @ 0x%lx, aborting\n", print_name,
-			       (long)bar_len[2], (long)bar_start[2]);
+				   "0x%lx @ 0x%lx, aborting\n", print_name,
+				   (long)bar_len[2], (long)bar_start[2]);
 			err = -EBUSY;
 			goto err_out_bh_region;
 		}
 	}
 
 	/* Set up I/O base address. */
-	if (dfx_use_mmio) {
+	if (dfx_use_mmio)
+	{
 		bp->base.mem = ioremap_nocache(bar_start[0], bar_len[0]);
-		if (!bp->base.mem) {
+
+		if (!bp->base.mem)
+		{
 			printk(KERN_ERR "%s: Cannot map MMIO\n", print_name);
 			err = -ENOMEM;
 			goto err_out_esic_region;
 		}
-	} else {
+	}
+	else
+	{
 		bp->base.port = bar_start[0];
 		dev->base_addr = bar_start[0];
 	}
@@ -629,53 +673,77 @@ static int dfx_register(struct device *bdev)
 	dev->netdev_ops			= &dfx_netdev_ops;
 
 	if (dfx_bus_pci)
+	{
 		pci_set_master(to_pci_dev(bdev));
+	}
 
-	if (dfx_driver_init(dev, print_name, bar_start[0]) != DFX_K_SUCCESS) {
+	if (dfx_driver_init(dev, print_name, bar_start[0]) != DFX_K_SUCCESS)
+	{
 		err = -ENODEV;
 		goto err_out_unmap;
 	}
 
 	err = register_netdev(dev);
+
 	if (err)
+	{
 		goto err_out_kfree;
+	}
 
 	printk("%s: registered as %s\n", print_name, dev->name);
 	return 0;
 
 err_out_kfree:
 	alloc_size = sizeof(PI_DESCR_BLOCK) +
-		     PI_CMD_REQ_K_SIZE_MAX + PI_CMD_RSP_K_SIZE_MAX +
+				 PI_CMD_REQ_K_SIZE_MAX + PI_CMD_RSP_K_SIZE_MAX +
 #ifndef DYNAMIC_BUFFERS
-		     (bp->rcv_bufs_to_post * PI_RCV_DATA_K_SIZE_MAX) +
+				 (bp->rcv_bufs_to_post * PI_RCV_DATA_K_SIZE_MAX) +
 #endif
-		     sizeof(PI_CONSUMER_BLOCK) +
-		     (PI_ALIGN_K_DESC_BLK - 1);
+				 sizeof(PI_CONSUMER_BLOCK) +
+				 (PI_ALIGN_K_DESC_BLK - 1);
+
 	if (bp->kmalloced)
 		dma_free_coherent(bdev, alloc_size,
-				  bp->kmalloced, bp->kmalloced_dma);
+						  bp->kmalloced, bp->kmalloced_dma);
 
 err_out_unmap:
+
 	if (dfx_use_mmio)
+	{
 		iounmap(bp->base.mem);
+	}
 
 err_out_esic_region:
+
 	if (bar_start[2] != 0)
+	{
 		release_region(bar_start[2], bar_len[2]);
+	}
 
 err_out_bh_region:
+
 	if (bar_start[1] != 0)
+	{
 		release_region(bar_start[1], bar_len[1]);
+	}
 
 err_out_csr_region:
+
 	if (dfx_use_mmio)
+	{
 		release_mem_region(bar_start[0], bar_len[0]);
+	}
 	else
+	{
 		release_region(bar_start[0], bar_len[0]);
+	}
 
 err_out_disable:
+
 	if (dfx_bus_pci)
+	{
 		pci_disable_device(to_pci_dev(bdev));
+	}
 
 err_out:
 	free_netdev(dev);
@@ -732,8 +800,12 @@ static void dfx_bus_init(struct net_device *dev)
 	/* Initialize adapter based on bus type */
 
 	if (dfx_bus_tc)
+	{
 		dev->irq = to_tc_dev(bdev)->interrupt;
-	if (dfx_bus_eisa) {
+	}
+
+	if (dfx_bus_eisa)
+	{
 		unsigned long base_addr = to_eisa_device(bdev)->base_addr;
 
 		/* Disable the board before fiddling with the decoders.  */
@@ -744,22 +816,23 @@ static void dfx_bus_init(struct net_device *dev)
 		val &= PI_CONFIG_STAT_0_M_IRQ;
 		val >>= PI_CONFIG_STAT_0_V_IRQ;
 
-		switch (val) {
-		case PI_CONFIG_STAT_0_IRQ_K_9:
-			dev->irq = 9;
-			break;
+		switch (val)
+		{
+			case PI_CONFIG_STAT_0_IRQ_K_9:
+				dev->irq = 9;
+				break;
 
-		case PI_CONFIG_STAT_0_IRQ_K_10:
-			dev->irq = 10;
-			break;
+			case PI_CONFIG_STAT_0_IRQ_K_10:
+				dev->irq = 10;
+				break;
 
-		case PI_CONFIG_STAT_0_IRQ_K_11:
-			dev->irq = 11;
-			break;
+			case PI_CONFIG_STAT_0_IRQ_K_11:
+				dev->irq = 11;
+				break;
 
-		case PI_CONFIG_STAT_0_IRQ_K_15:
-			dev->irq = 15;
-			break;
+			case PI_CONFIG_STAT_0_IRQ_K_15:
+				dev->irq = 15;
+				break;
 		}
 
 		/*
@@ -796,10 +869,16 @@ static void dfx_bus_init(struct net_device *dev)
 
 		/* Enable the decoders.  */
 		val = PI_FUNCTION_CNTRL_M_IOCS1;
+
 		if (dfx_use_mmio)
+		{
 			val |= PI_FUNCTION_CNTRL_M_MEMCS1;
+		}
 		else
+		{
 			val |= PI_FUNCTION_CNTRL_M_IOCS0;
+		}
+
 		outb(val, base_addr + PI_ESIC_K_FUNCTION_CNTRL);
 
 		/*
@@ -814,10 +893,16 @@ static void dfx_bus_init(struct net_device *dev)
 		 * done with a bit in the Burst Holdoff register.
 		 */
 		val = inb(base_addr + PI_DEFEA_K_BURST_HOLDOFF);
+
 		if (dfx_use_mmio)
+		{
 			val |= PI_BURST_HOLDOFF_M_MEM_MAP;
+		}
 		else
+		{
 			val &= ~PI_BURST_HOLDOFF_M_MEM_MAP;
+		}
+
 		outb(val, base_addr + PI_DEFEA_K_BURST_HOLDOFF);
 
 		/* Enable interrupts at EISA bus interface chip (ESIC) */
@@ -825,7 +910,9 @@ static void dfx_bus_init(struct net_device *dev)
 		val |= PI_CONFIG_STAT_0_M_INT_ENB;
 		outb(val, base_addr + PI_ESIC_K_IO_CONFIG_STAT_0);
 	}
-	if (dfx_bus_pci) {
+
+	if (dfx_bus_pci)
+	{
 		struct pci_dev *pdev = to_pci_dev(bdev);
 
 		/* Get the interrupt level from the PCI Configuration Table */
@@ -835,7 +922,9 @@ static void dfx_bus_init(struct net_device *dev)
 		/* Check Latency Timer and set if less than minimal */
 
 		pci_read_config_byte(pdev, PCI_LATENCY_TIMER, &val);
-		if (val < PFI_K_LAT_TIMER_MIN) {
+
+		if (val < PFI_K_LAT_TIMER_MIN)
+		{
 			val = PFI_K_LAT_TIMER_DEF;
 			pci_write_config_byte(pdev, PCI_LATENCY_TIMER, val);
 		}
@@ -886,7 +975,8 @@ static void dfx_bus_uninit(struct net_device *dev)
 
 	/* Uninitialize adapter based on bus type */
 
-	if (dfx_bus_eisa) {
+	if (dfx_bus_eisa)
+	{
 		unsigned long base_addr = to_eisa_device(bdev)->base_addr;
 
 		/* Disable interrupts at EISA bus interface chip (ESIC) */
@@ -900,7 +990,9 @@ static void dfx_bus_uninit(struct net_device *dev)
 		/* Disable memory and port decoders.  */
 		outb(0, base_addr + PI_ESIC_K_FUNCTION_CNTRL);
 	}
-	if (dfx_bus_pci) {
+
+	if (dfx_bus_pci)
+	{
 		/* Disable interrupts at PCI bus interface chip (PFI) */
 		dfx_port_write_long(bp, PFI_K_REG_MODE_CTRL, 0);
 	}
@@ -948,7 +1040,8 @@ static void dfx_bus_config_check(DFX_board_t *bp)
 
 	/* Configuration check only valid for EISA adapter */
 
-	if (dfx_bus_eisa) {
+	if (dfx_bus_eisa)
+	{
 		/*
 		 * First check if revision 2 EISA controller.  Rev. 1 cards used
 		 * PDQ revision B, so no workaround needed in this case.  Rev. 3
@@ -956,18 +1049,20 @@ static void dfx_bus_config_check(DFX_board_t *bp)
 		 * case, either.  Only Rev. 2 cards used either Rev. D or E
 		 * chips, so we must verify the chip revision on Rev. 2 cards.
 		 */
-		if (to_eisa_device(bdev)->id.driver_data == DEFEA_PROD_ID_2) {
+		if (to_eisa_device(bdev)->id.driver_data == DEFEA_PROD_ID_2)
+		{
 			/*
 			 * Revision 2 FDDI EISA controller found,
 			 * so let's check PDQ revision of adapter.
 			 */
 			status = dfx_hw_port_ctrl_req(bp,
-											PI_PCTRL_M_SUB_CMD,
-											PI_SUB_CMD_K_PDQ_REV_GET,
-											0,
-											&host_data);
+										  PI_PCTRL_M_SUB_CMD,
+										  PI_SUB_CMD_K_PDQ_REV_GET,
+										  0,
+										  &host_data);
+
 			if ((status != DFX_K_SUCCESS) || (host_data == 2))
-				{
+			{
 				/*
 				 * Either we couldn't determine the PDQ revision, or
 				 * we determined that it is at revision D.  In either case,
@@ -977,7 +1072,7 @@ static void dfx_bus_config_check(DFX_board_t *bp)
 				/* Ensure that the burst size is set to 8 longwords or less */
 
 				switch (bp->burst_size)
-					{
+				{
 					case PI_PDATA_B_DMA_BURST_SIZE_32:
 					case PI_PDATA_B_DMA_BURST_SIZE_16:
 						bp->burst_size = PI_PDATA_B_DMA_BURST_SIZE_8;
@@ -985,15 +1080,15 @@ static void dfx_bus_config_check(DFX_board_t *bp)
 
 					default:
 						break;
-					}
+				}
 
 				/* Ensure that full-duplex mode is not enabled */
 
 				bp->full_duplex_enb = PI_SNMP_K_FALSE;
-				}
 			}
 		}
 	}
+}
 
 
 /*
@@ -1034,7 +1129,7 @@ static void dfx_bus_config_check(DFX_board_t *bp)
  */
 
 static int dfx_driver_init(struct net_device *dev, const char *print_name,
-			   resource_size_t bar_start)
+						   resource_size_t bar_start)
 {
 	DFX_board_t *bp = netdev_priv(dev);
 	struct device *bdev = bp->bus_dev;
@@ -1091,20 +1186,24 @@ static int dfx_driver_init(struct net_device *dev, const char *print_name,
 	/*  Read the factory MAC address from the adapter then save it */
 
 	if (dfx_hw_port_ctrl_req(bp, PI_PCTRL_M_MLA, PI_PDATA_A_MLA_K_LO, 0,
-				 &data) != DFX_K_SUCCESS) {
+							 &data) != DFX_K_SUCCESS)
+	{
 		printk("%s: Could not read adapter factory MAC address!\n",
-		       print_name);
+			   print_name);
 		return DFX_K_FAILURE;
 	}
+
 	le32 = cpu_to_le32(data);
 	memcpy(&bp->factory_mac_addr[0], &le32, sizeof(u32));
 
 	if (dfx_hw_port_ctrl_req(bp, PI_PCTRL_M_MLA, PI_PDATA_A_MLA_K_HI, 0,
-				 &data) != DFX_K_SUCCESS) {
+							 &data) != DFX_K_SUCCESS)
+	{
 		printk("%s: Could not read adapter factory MAC address!\n",
-		       print_name);
+			   print_name);
 		return DFX_K_FAILURE;
 	}
+
 	le32 = cpu_to_le32(data);
 	memcpy(&bp->factory_mac_addr[4], &le32, sizeof(u16));
 
@@ -1116,15 +1215,25 @@ static int dfx_driver_init(struct net_device *dev, const char *print_name,
 	 */
 
 	memcpy(dev->dev_addr, bp->factory_mac_addr, FDDI_K_ALEN);
+
 	if (dfx_bus_tc)
+	{
 		board_name = "DEFTA";
+	}
+
 	if (dfx_bus_eisa)
+	{
 		board_name = "DEFEA";
+	}
+
 	if (dfx_bus_pci)
+	{
 		board_name = "DEFPA";
+	}
+
 	pr_info("%s: %s at %s addr = 0x%llx, IRQ = %d, Hardware addr = %pMF\n",
-		print_name, board_name, dfx_use_mmio ? "MMIO" : "I/O",
-		(long long)bar_start, dev->irq, dev->dev_addr);
+			print_name, board_name, dfx_use_mmio ? "MMIO" : "I/O",
+			(long long)bar_start, dev->irq, dev->dev_addr);
 
 	/*
 	 * Get memory for descriptor block, consumer block, and other buffers
@@ -1132,18 +1241,21 @@ static int dfx_driver_init(struct net_device *dev, const char *print_name,
 	 */
 
 	alloc_size = sizeof(PI_DESCR_BLOCK) +
-					PI_CMD_REQ_K_SIZE_MAX +
-					PI_CMD_RSP_K_SIZE_MAX +
+				 PI_CMD_REQ_K_SIZE_MAX +
+				 PI_CMD_RSP_K_SIZE_MAX +
 #ifndef DYNAMIC_BUFFERS
-					(bp->rcv_bufs_to_post * PI_RCV_DATA_K_SIZE_MAX) +
+				 (bp->rcv_bufs_to_post * PI_RCV_DATA_K_SIZE_MAX) +
 #endif
-					sizeof(PI_CONSUMER_BLOCK) +
-					(PI_ALIGN_K_DESC_BLK - 1);
+				 sizeof(PI_CONSUMER_BLOCK) +
+				 (PI_ALIGN_K_DESC_BLK - 1);
 	bp->kmalloced = top_v = dma_zalloc_coherent(bp->bus_dev, alloc_size,
-						    &bp->kmalloced_dma,
-						    GFP_ATOMIC);
+							&bp->kmalloced_dma,
+							GFP_ATOMIC);
+
 	if (top_v == NULL)
+	{
 		return DFX_K_FAILURE;
+	}
 
 	top_p = bp->kmalloced_dma;	/* get physical address of buffer */
 
@@ -1201,15 +1313,15 @@ static int dfx_driver_init(struct net_device *dev, const char *print_name,
 	/* Display virtual and physical addresses if debug driver */
 
 	DBG_printk("%s: Descriptor block virt = %p, phys = %pad\n",
-		   print_name, bp->descr_block_virt, &bp->descr_block_phys);
+			   print_name, bp->descr_block_virt, &bp->descr_block_phys);
 	DBG_printk("%s: Command Request buffer virt = %p, phys = %pad\n",
-		   print_name, bp->cmd_req_virt, &bp->cmd_req_phys);
+			   print_name, bp->cmd_req_virt, &bp->cmd_req_phys);
 	DBG_printk("%s: Command Response buffer virt = %p, phys = %pad\n",
-		   print_name, bp->cmd_rsp_virt, &bp->cmd_rsp_phys);
+			   print_name, bp->cmd_rsp_virt, &bp->cmd_rsp_phys);
 	DBG_printk("%s: Receive buffer block virt = %p, phys = %pad\n",
-		   print_name, bp->rcv_block_virt, &bp->rcv_block_phys);
+			   print_name, bp->rcv_block_virt, &bp->rcv_block_phys);
 	DBG_printk("%s: Consumer block virt = %p, phys = %pad\n",
-		   print_name, bp->cons_block_virt, &bp->cons_block_phys);
+			   print_name, bp->cons_block_virt, &bp->cons_block_phys);
 
 	return DFX_K_SUCCESS;
 }
@@ -1249,7 +1361,7 @@ static int dfx_driver_init(struct net_device *dev, const char *print_name,
  */
 
 static int dfx_adap_init(DFX_board_t *bp, int get_buffers)
-	{
+{
 	DBG_printk("In dfx_adap_init...\n");
 
 	/* Disable PDQ interrupts first */
@@ -1259,10 +1371,10 @@ static int dfx_adap_init(DFX_board_t *bp, int get_buffers)
 	/* Place adapter in DMA_UNAVAILABLE state by resetting adapter */
 
 	if (dfx_hw_dma_uninit(bp, bp->reset_type) != DFX_K_SUCCESS)
-		{
+	{
 		printk("%s: Could not uninitialize/reset adapter!\n", bp->dev->name);
 		return DFX_K_FAILURE;
-		}
+	}
 
 	/*
 	 * When the PDQ is reset, some false Type 0 interrupts may be pending,
@@ -1289,14 +1401,14 @@ static int dfx_adap_init(DFX_board_t *bp, int get_buffers)
 	/* Initialize the DMA Burst Size */
 
 	if (dfx_hw_port_ctrl_req(bp,
-							PI_PCTRL_M_SUB_CMD,
-							PI_SUB_CMD_K_BURST_SIZE_SET,
-							bp->burst_size,
-							NULL) != DFX_K_SUCCESS)
-		{
+							 PI_PCTRL_M_SUB_CMD,
+							 PI_SUB_CMD_K_BURST_SIZE_SET,
+							 bp->burst_size,
+							 NULL) != DFX_K_SUCCESS)
+	{
 		printk("%s: Could not set adapter burst size!\n", bp->dev->name);
 		return DFX_K_FAILURE;
-		}
+	}
 
 	/*
 	 * Set base address of Consumer Block
@@ -1306,14 +1418,14 @@ static int dfx_adap_init(DFX_board_t *bp, int get_buffers)
 	 */
 
 	if (dfx_hw_port_ctrl_req(bp,
-							PI_PCTRL_M_CONS_BLOCK,
-							bp->cons_block_phys,
-							0,
-							NULL) != DFX_K_SUCCESS)
-		{
+							 PI_PCTRL_M_CONS_BLOCK,
+							 bp->cons_block_phys,
+							 0,
+							 NULL) != DFX_K_SUCCESS)
+	{
 		printk("%s: Could not set consumer block address!\n", bp->dev->name);
 		return DFX_K_FAILURE;
-		}
+	}
 
 	/*
 	 * Set the base address of Descriptor Block and bring adapter
@@ -1326,11 +1438,12 @@ static int dfx_adap_init(DFX_board_t *bp, int get_buffers)
 	 *       is 8Kbyte aligned.
 	 */
 	if (dfx_hw_port_ctrl_req(bp, PI_PCTRL_M_INIT,
-				 (u32)(bp->descr_block_phys |
-				       PI_PDATA_A_INIT_M_BSWAP_INIT),
-				 0, NULL) != DFX_K_SUCCESS) {
+							 (u32)(bp->descr_block_phys |
+								   PI_PDATA_A_INIT_M_BSWAP_INIT),
+							 0, NULL) != DFX_K_SUCCESS)
+	{
 		printk("%s: Could not set descriptor block address!\n",
-		       bp->dev->name);
+			   bp->dev->name);
 		return DFX_K_FAILURE;
 	}
 
@@ -1341,11 +1454,12 @@ static int dfx_adap_init(DFX_board_t *bp, int get_buffers)
 	bp->cmd_req_virt->char_set.item[0].value		= 3;	/* 3 seconds */
 	bp->cmd_req_virt->char_set.item[0].item_index	= 0;
 	bp->cmd_req_virt->char_set.item[1].item_code	= PI_ITEM_K_EOL;
+
 	if (dfx_hw_dma_cmd_req(bp) != DFX_K_SUCCESS)
-		{
+	{
 		printk("%s: DMA command request failed!\n", bp->dev->name);
 		return DFX_K_FAILURE;
-		}
+	}
 
 	/* Set the initial values for eFDXEnable and MACTReq MIB objects */
 
@@ -1357,27 +1471,28 @@ static int dfx_adap_init(DFX_board_t *bp, int get_buffers)
 	bp->cmd_req_virt->snmp_set.item[1].value		= bp->req_ttrt;
 	bp->cmd_req_virt->snmp_set.item[1].item_index	= 0;
 	bp->cmd_req_virt->snmp_set.item[2].item_code	= PI_ITEM_K_EOL;
+
 	if (dfx_hw_dma_cmd_req(bp) != DFX_K_SUCCESS)
-		{
+	{
 		printk("%s: DMA command request failed!\n", bp->dev->name);
 		return DFX_K_FAILURE;
-		}
+	}
 
 	/* Initialize adapter CAM */
 
 	if (dfx_ctl_update_cam(bp) != DFX_K_SUCCESS)
-		{
+	{
 		printk("%s: Adapter CAM update failed!\n", bp->dev->name);
 		return DFX_K_FAILURE;
-		}
+	}
 
 	/* Initialize adapter filters */
 
 	if (dfx_ctl_update_filters(bp) != DFX_K_SUCCESS)
-		{
+	{
 		printk("%s: Adapter filters update failed!\n", bp->dev->name);
 		return DFX_K_FAILURE;
-		}
+	}
 
 	/*
 	 * Remove any existing dynamic buffers (i.e. if the adapter is being
@@ -1385,34 +1500,45 @@ static int dfx_adap_init(DFX_board_t *bp, int get_buffers)
 	 */
 
 	if (get_buffers)
+	{
 		dfx_rcv_flush(bp);
+	}
 
 	/* Initialize receive descriptor block and produce buffers */
 
 	if (dfx_rcv_init(bp, get_buffers))
-	        {
+	{
 		printk("%s: Receive buffer allocation failed\n", bp->dev->name);
+
 		if (get_buffers)
+		{
 			dfx_rcv_flush(bp);
-		return DFX_K_FAILURE;
 		}
+
+		return DFX_K_FAILURE;
+	}
 
 	/* Issue START command and bring adapter to LINK_(UN)AVAILABLE state */
 
 	bp->cmd_req_virt->cmd_type = PI_CMD_K_START;
+
 	if (dfx_hw_dma_cmd_req(bp) != DFX_K_SUCCESS)
-		{
+	{
 		printk("%s: Start command failed\n", bp->dev->name);
+
 		if (get_buffers)
+		{
 			dfx_rcv_flush(bp);
-		return DFX_K_FAILURE;
 		}
+
+		return DFX_K_FAILURE;
+	}
 
 	/* Initialization succeeded, reenable PDQ interrupts */
 
 	dfx_port_write_long(bp, PI_PDQ_K_REG_HOST_INT_ENB, PI_HOST_INT_K_ENABLE_DEF_INTS);
 	return DFX_K_SUCCESS;
-	}
+}
 
 
 /*
@@ -1455,8 +1581,10 @@ static int dfx_open(struct net_device *dev)
 	/* Register IRQ - support shared interrupts by passing device ptr */
 
 	ret = request_irq(dev->irq, dfx_interrupt, IRQF_SHARED, dev->name,
-			  dev);
-	if (ret) {
+					  dev);
+
+	if (ret)
+	{
 		printk(KERN_ERR "%s: Requested IRQ %d is busy\n", dev->name, dev->irq);
 		return ret;
 	}
@@ -1491,6 +1619,7 @@ static int dfx_open(struct net_device *dev)
 	/* Reset and initialize adapter */
 
 	bp->reset_type = PI_PDATA_A_RESET_M_SKIP_ST;	/* skip self-test */
+
 	if (dfx_adap_init(bp, 1) != DFX_K_SUCCESS)
 	{
 		printk(KERN_ERR "%s: Adapter open failed!\n", dev->name);
@@ -1624,7 +1753,7 @@ static int dfx_close(struct net_device *dev)
  */
 
 static void dfx_int_pr_halt_id(DFX_board_t	*bp)
-	{
+{
 	PI_UINT32	port_status;			/* PDQ port status register value */
 	PI_UINT32	halt_id;				/* PDQ port status halt ID */
 
@@ -1635,8 +1764,9 @@ static void dfx_int_pr_halt_id(DFX_board_t	*bp)
 	/* Display halt state transition information */
 
 	halt_id = (port_status & PI_PSTATUS_M_HALT_ID) >> PI_PSTATUS_V_HALT_ID;
+
 	switch (halt_id)
-		{
+	{
 		case PI_HALT_ID_K_SELFTEST_TIMEOUT:
 			printk("%s: Halt ID: Selftest Timeout\n", bp->dev->name);
 			break;
@@ -1676,8 +1806,8 @@ static void dfx_int_pr_halt_id(DFX_board_t	*bp)
 		default:
 			printk("%s: Halt ID: Unknown (code = %X)\n", bp->dev->name, halt_id);
 			break;
-		}
 	}
+}
 
 
 /*
@@ -1729,7 +1859,7 @@ static void dfx_int_pr_halt_id(DFX_board_t	*bp)
 
 static void dfx_int_type_0_process(DFX_board_t	*bp)
 
-	{
+{
 	PI_UINT32	type_0_status;		/* Host Interrupt Type 0 register */
 	PI_UINT32	state;				/* current adap state (from port status) */
 
@@ -1745,43 +1875,51 @@ static void dfx_int_type_0_process(DFX_board_t	*bp)
 	/* Check for Type 0 error interrupts */
 
 	if (type_0_status & (PI_TYPE_0_STAT_M_NXM |
-							PI_TYPE_0_STAT_M_PM_PAR_ERR |
-							PI_TYPE_0_STAT_M_BUS_PAR_ERR))
-		{
+						 PI_TYPE_0_STAT_M_PM_PAR_ERR |
+						 PI_TYPE_0_STAT_M_BUS_PAR_ERR))
+	{
 		/* Check for Non-Existent Memory error */
 
 		if (type_0_status & PI_TYPE_0_STAT_M_NXM)
+		{
 			printk("%s: Non-Existent Memory Access Error\n", bp->dev->name);
+		}
 
 		/* Check for Packet Memory Parity error */
 
 		if (type_0_status & PI_TYPE_0_STAT_M_PM_PAR_ERR)
+		{
 			printk("%s: Packet Memory Parity Error\n", bp->dev->name);
+		}
 
 		/* Check for Host Bus Parity error */
 
 		if (type_0_status & PI_TYPE_0_STAT_M_BUS_PAR_ERR)
+		{
 			printk("%s: Host Bus Parity Error\n", bp->dev->name);
+		}
 
 		/* Reset adapter and bring it back on-line */
 
 		bp->link_available = PI_K_FALSE;	/* link is no longer available */
 		bp->reset_type = 0;					/* rerun on-board diagnostics */
 		printk("%s: Resetting adapter...\n", bp->dev->name);
+
 		if (dfx_adap_init(bp, 0) != DFX_K_SUCCESS)
-			{
+		{
 			printk("%s: Adapter reset failed!  Disabling adapter interrupts.\n", bp->dev->name);
 			dfx_port_write_long(bp, PI_PDQ_K_REG_HOST_INT_ENB, PI_HOST_INT_K_DISABLE_ALL_INTS);
 			return;
-			}
+		}
+
 		printk("%s: Adapter reset successful!\n", bp->dev->name);
 		return;
-		}
+	}
 
 	/* Check for transmit flush interrupt */
 
 	if (type_0_status & PI_TYPE_0_STAT_M_XMT_FLUSH)
-		{
+	{
 		/* Flush any pending xmt's and acknowledge the flush interrupt */
 
 		bp->link_available = PI_K_FALSE;		/* link is no longer available */
@@ -1791,17 +1929,18 @@ static void dfx_int_type_0_process(DFX_board_t	*bp)
 									0,
 									0,
 									NULL);
-		}
+	}
 
 	/* Check for adapter state change */
 
 	if (type_0_status & PI_TYPE_0_STAT_M_STATE_CHANGE)
-		{
+	{
 		/* Get latest adapter state */
 
 		state = dfx_hw_adap_state_rd(bp);	/* get adapter state */
+
 		if (state == PI_STATE_K_HALTED)
-			{
+		{
 			/*
 			 * Adapter has transitioned to HALTED state, try to reset
 			 * adapter to bring it back on-line.  If reset fails,
@@ -1816,20 +1955,22 @@ static void dfx_int_type_0_process(DFX_board_t	*bp)
 			bp->link_available = PI_K_FALSE;	/* link is no longer available */
 			bp->reset_type = 0;					/* rerun on-board diagnostics */
 			printk("%s: Resetting adapter...\n", bp->dev->name);
+
 			if (dfx_adap_init(bp, 0) != DFX_K_SUCCESS)
-				{
+			{
 				printk("%s: Adapter reset failed!  Disabling adapter interrupts.\n", bp->dev->name);
 				dfx_port_write_long(bp, PI_PDQ_K_REG_HOST_INT_ENB, PI_HOST_INT_K_DISABLE_ALL_INTS);
 				return;
-				}
+			}
+
 			printk("%s: Adapter reset successful!\n", bp->dev->name);
-			}
+		}
 		else if (state == PI_STATE_K_LINK_AVAIL)
-			{
+		{
 			bp->link_available = PI_K_TRUE;		/* set link available flag */
-			}
 		}
 	}
+}
 
 
 /*
@@ -1879,8 +2020,10 @@ static void dfx_int_common(struct net_device *dev)
 
 	/* Process xmt interrupts - frequent case, so always call this routine */
 
-	if(dfx_xmt_done(bp))				/* free consumed xmt packets */
+	if (dfx_xmt_done(bp))				/* free consumed xmt packets */
+	{
 		netif_wake_queue(dev);
+	}
 
 	/* Process rcv interrupts - frequent case, so always call this routine */
 
@@ -1902,8 +2045,10 @@ static void dfx_int_common(struct net_device *dev)
 	/* Process Type 0 interrupts (if any) - infrequent, so only call when needed */
 
 	if (port_status & PI_PSTATUS_M_TYPE_0_PENDING)
-		dfx_int_type_0_process(bp);	/* process Type 0 interrupts */
+	{
+		dfx_int_type_0_process(bp);    /* process Type 0 interrupts */
 	}
+}
 
 
 /*
@@ -1953,38 +2098,47 @@ static irqreturn_t dfx_interrupt(int irq, void *dev_id)
 
 	/* Service adapter interrupts */
 
-	if (dfx_bus_pci) {
+	if (dfx_bus_pci)
+	{
 		u32 status;
 
 		dfx_port_read_long(bp, PFI_K_REG_STATUS, &status);
+
 		if (!(status & PFI_STATUS_M_PDQ_INT))
+		{
 			return IRQ_NONE;
+		}
 
 		spin_lock(&bp->lock);
 
 		/* Disable PDQ-PFI interrupts at PFI */
 		dfx_port_write_long(bp, PFI_K_REG_MODE_CTRL,
-				    PFI_MODE_M_DMA_ENB);
+							PFI_MODE_M_DMA_ENB);
 
 		/* Call interrupt service routine for this adapter */
 		dfx_int_common(dev);
 
 		/* Clear PDQ interrupt status bit and reenable interrupts */
 		dfx_port_write_long(bp, PFI_K_REG_STATUS,
-				    PFI_STATUS_M_PDQ_INT);
+							PFI_STATUS_M_PDQ_INT);
 		dfx_port_write_long(bp, PFI_K_REG_MODE_CTRL,
-				    (PFI_MODE_M_PDQ_INT_ENB |
-				     PFI_MODE_M_DMA_ENB));
+							(PFI_MODE_M_PDQ_INT_ENB |
+							 PFI_MODE_M_DMA_ENB));
 
 		spin_unlock(&bp->lock);
 	}
-	if (dfx_bus_eisa) {
+
+	if (dfx_bus_eisa)
+	{
 		unsigned long base_addr = to_eisa_device(bdev)->base_addr;
 		u8 status;
 
 		status = inb(base_addr + PI_ESIC_K_IO_CONFIG_STAT_0);
+
 		if (!(status & PI_CONFIG_STAT_0_M_PEND))
+		{
 			return IRQ_NONE;
+		}
 
 		spin_lock(&bp->lock);
 
@@ -2002,18 +2156,23 @@ static irqreturn_t dfx_interrupt(int irq, void *dev_id)
 
 		spin_unlock(&bp->lock);
 	}
-	if (dfx_bus_tc) {
+
+	if (dfx_bus_tc)
+	{
 		u32 status;
 
 		dfx_port_read_long(bp, PI_PDQ_K_REG_PORT_STATUS, &status);
+
 		if (!(status & (PI_PSTATUS_M_RCV_DATA_PENDING |
-				PI_PSTATUS_M_XMT_DATA_PENDING |
-				PI_PSTATUS_M_SMT_HOST_PENDING |
-				PI_PSTATUS_M_UNSOL_PENDING |
-				PI_PSTATUS_M_CMD_RSP_PENDING |
-				PI_PSTATUS_M_CMD_REQ_PENDING |
-				PI_PSTATUS_M_TYPE_0_PENDING)))
+						PI_PSTATUS_M_XMT_DATA_PENDING |
+						PI_PSTATUS_M_SMT_HOST_PENDING |
+						PI_PSTATUS_M_UNSOL_PENDING |
+						PI_PSTATUS_M_CMD_RSP_PENDING |
+						PI_PSTATUS_M_CMD_REQ_PENDING |
+						PI_PSTATUS_M_TYPE_0_PENDING)))
+		{
 			return IRQ_NONE;
+		}
 
 		spin_lock(&bp->lock);
 
@@ -2071,7 +2230,7 @@ static irqreturn_t dfx_interrupt(int irq, void *dev_id)
  */
 
 static struct net_device_stats *dfx_ctl_get_stats(struct net_device *dev)
-	{
+{
 	DFX_board_t *bp = netdev_priv(dev);
 
 	/* Fill the bp->stats structure with driver-maintained counters */
@@ -2081,8 +2240,8 @@ static struct net_device_stats *dfx_ctl_get_stats(struct net_device *dev)
 	bp->stats.gen.rx_bytes   = bp->rcv_total_bytes;
 	bp->stats.gen.tx_bytes   = bp->xmt_total_bytes;
 	bp->stats.gen.rx_errors  = bp->rcv_crc_errors +
-				   bp->rcv_frame_status_errors +
-				   bp->rcv_length_errors;
+							   bp->rcv_frame_status_errors +
+							   bp->rcv_length_errors;
 	bp->stats.gen.tx_errors  = bp->xmt_length_errors;
 	bp->stats.gen.rx_dropped = bp->rcv_discards;
 	bp->stats.gen.tx_dropped = bp->xmt_discards;
@@ -2092,16 +2251,21 @@ static struct net_device_stats *dfx_ctl_get_stats(struct net_device *dev)
 	/* Get FDDI SMT MIB objects */
 
 	bp->cmd_req_virt->cmd_type = PI_CMD_K_SMT_MIB_GET;
+
 	if (dfx_hw_dma_cmd_req(bp) != DFX_K_SUCCESS)
+	{
 		return (struct net_device_stats *)&bp->stats;
+	}
 
 	/* Fill the bp->stats structure with the SMT MIB object values */
 
-	memcpy(bp->stats.smt_station_id, &bp->cmd_rsp_virt->smt_mib_get.smt_station_id, sizeof(bp->cmd_rsp_virt->smt_mib_get.smt_station_id));
+	memcpy(bp->stats.smt_station_id, &bp->cmd_rsp_virt->smt_mib_get.smt_station_id,
+		   sizeof(bp->cmd_rsp_virt->smt_mib_get.smt_station_id));
 	bp->stats.smt_op_version_id					= bp->cmd_rsp_virt->smt_mib_get.smt_op_version_id;
 	bp->stats.smt_hi_version_id					= bp->cmd_rsp_virt->smt_mib_get.smt_hi_version_id;
 	bp->stats.smt_lo_version_id					= bp->cmd_rsp_virt->smt_mib_get.smt_lo_version_id;
-	memcpy(bp->stats.smt_user_data, &bp->cmd_rsp_virt->smt_mib_get.smt_user_data, sizeof(bp->cmd_rsp_virt->smt_mib_get.smt_user_data));
+	memcpy(bp->stats.smt_user_data, &bp->cmd_rsp_virt->smt_mib_get.smt_user_data,
+		   sizeof(bp->cmd_rsp_virt->smt_mib_get.smt_user_data));
 	bp->stats.smt_mib_version_id				= bp->cmd_rsp_virt->smt_mib_get.smt_mib_version_id;
 	bp->stats.smt_mac_cts						= bp->cmd_rsp_virt->smt_mib_get.smt_mac_ct;
 	bp->stats.smt_non_master_cts				= bp->cmd_rsp_virt->smt_mib_get.smt_non_master_ct;
@@ -2150,7 +2314,8 @@ static struct net_device_stats *dfx_ctl_get_stats(struct net_device *dev)
 	bp->stats.path_tvx_lower_bound				= bp->cmd_rsp_virt->smt_mib_get.path_tvx_lower_bound;
 	bp->stats.path_t_max_lower_bound			= bp->cmd_rsp_virt->smt_mib_get.path_t_max_lower_bound;
 	bp->stats.path_max_t_req					= bp->cmd_rsp_virt->smt_mib_get.path_max_t_req;
-	memcpy(bp->stats.path_configuration, &bp->cmd_rsp_virt->smt_mib_get.path_configuration, sizeof(bp->cmd_rsp_virt->smt_mib_get.path_configuration));
+	memcpy(bp->stats.path_configuration, &bp->cmd_rsp_virt->smt_mib_get.path_configuration,
+		   sizeof(bp->cmd_rsp_virt->smt_mib_get.path_configuration));
 	bp->stats.port_my_type[0]					= bp->cmd_rsp_virt->smt_mib_get.port_my_type[0];
 	bp->stats.port_my_type[1]					= bp->cmd_rsp_virt->smt_mib_get.port_my_type[1];
 	bp->stats.port_neighbor_type[0]				= bp->cmd_rsp_virt->smt_mib_get.port_neighbor_type[0];
@@ -2161,8 +2326,8 @@ static struct net_device_stats *dfx_ctl_get_stats(struct net_device *dev)
 	bp->stats.port_mac_indicated[1]				= bp->cmd_rsp_virt->smt_mib_get.port_mac_indicated[1];
 	bp->stats.port_current_path[0]				= bp->cmd_rsp_virt->smt_mib_get.port_current_path[0];
 	bp->stats.port_current_path[1]				= bp->cmd_rsp_virt->smt_mib_get.port_current_path[1];
-	memcpy(&bp->stats.port_requested_paths[0*3], &bp->cmd_rsp_virt->smt_mib_get.port_requested_paths[0], 3);
-	memcpy(&bp->stats.port_requested_paths[1*3], &bp->cmd_rsp_virt->smt_mib_get.port_requested_paths[1], 3);
+	memcpy(&bp->stats.port_requested_paths[0 * 3], &bp->cmd_rsp_virt->smt_mib_get.port_requested_paths[0], 3);
+	memcpy(&bp->stats.port_requested_paths[1 * 3], &bp->cmd_rsp_virt->smt_mib_get.port_requested_paths[1], 3);
 	bp->stats.port_mac_placement[0]				= bp->cmd_rsp_virt->smt_mib_get.port_mac_placement[0];
 	bp->stats.port_mac_placement[1]				= bp->cmd_rsp_virt->smt_mib_get.port_mac_placement[1];
 	bp->stats.port_available_paths[0]			= bp->cmd_rsp_virt->smt_mib_get.port_available_paths[0];
@@ -2193,8 +2358,11 @@ static struct net_device_stats *dfx_ctl_get_stats(struct net_device *dev)
 	/* Get FDDI counters */
 
 	bp->cmd_req_virt->cmd_type = PI_CMD_K_CNTRS_GET;
+
 	if (dfx_hw_dma_cmd_req(bp) != DFX_K_SUCCESS)
+	{
 		return (struct net_device_stats *)&bp->stats;
+	}
 
 	/* Fill the bp->stats structure with the FDDI counter values */
 
@@ -2211,7 +2379,7 @@ static struct net_device_stats *dfx_ctl_get_stats(struct net_device *dev)
 	bp->stats.port_lem_cts[1]			= bp->cmd_rsp_virt->cntrs_get.cntrs.link_errors[1].ls;
 
 	return (struct net_device_stats *)&bp->stats;
-	}
+}
 
 
 /*
@@ -2266,12 +2434,14 @@ static void dfx_ctl_set_multicast_list(struct net_device *dev)
 	/* Enable LLC frame promiscuous mode, if necessary */
 
 	if (dev->flags & IFF_PROMISC)
-		bp->ind_group_prom = PI_FSTATE_K_PASS;		/* Enable LLC ind/group prom mode */
+	{
+		bp->ind_group_prom = PI_FSTATE_K_PASS;    /* Enable LLC ind/group prom mode */
+	}
 
 	/* Else, update multicast address table */
 
 	else
-		{
+	{
 		bp->ind_group_prom = PI_FSTATE_K_BLOCK;		/* Disable LLC ind/group prom mode */
 		/*
 		 * Check whether incoming multicast address count exceeds table size
@@ -2294,44 +2464,44 @@ static void dfx_ctl_set_multicast_list(struct net_device *dev)
 		 */
 
 		if (netdev_mc_count(dev) > (PI_CMD_ADDR_FILTER_K_SIZE - bp->uc_count))
-			{
+		{
 			bp->group_prom	= PI_FSTATE_K_PASS;		/* Enable LLC group prom mode */
 			bp->mc_count	= 0;					/* Don't add mc addrs to CAM */
-			}
+		}
 		else
-			{
+		{
 			bp->group_prom	= PI_FSTATE_K_BLOCK;	/* Disable LLC group prom mode */
 			bp->mc_count	= netdev_mc_count(dev);		/* Add mc addrs to CAM */
-			}
+		}
 
 		/* Copy addresses to multicast address table, then update adapter CAM */
 
 		i = 0;
 		netdev_for_each_mc_addr(ha, dev)
-			memcpy(&bp->mc_table[i++ * FDDI_K_ALEN],
-			       ha->addr, FDDI_K_ALEN);
+		memcpy(&bp->mc_table[i++ * FDDI_K_ALEN],
+			   ha->addr, FDDI_K_ALEN);
 
 		if (dfx_ctl_update_cam(bp) != DFX_K_SUCCESS)
-			{
+		{
 			DBG_printk("%s: Could not update multicast address table!\n", dev->name);
-			}
-		else
-			{
-			DBG_printk("%s: Multicast address table updated!  Added %d addresses.\n", dev->name, bp->mc_count);
-			}
 		}
+		else
+		{
+			DBG_printk("%s: Multicast address table updated!  Added %d addresses.\n", dev->name, bp->mc_count);
+		}
+	}
 
 	/* Update adapter filters */
 
 	if (dfx_ctl_update_filters(bp) != DFX_K_SUCCESS)
-		{
+	{
 		DBG_printk("%s: Could not update adapter filters!\n", dev->name);
-		}
-	else
-		{
-		DBG_printk("%s: Adapter filters updated!\n", dev->name);
-		}
 	}
+	else
+	{
+		DBG_printk("%s: Adapter filters updated!\n", dev->name);
+	}
+}
 
 
 /*
@@ -2371,7 +2541,7 @@ static void dfx_ctl_set_multicast_list(struct net_device *dev)
  */
 
 static int dfx_ctl_set_mac_address(struct net_device *dev, void *addr)
-	{
+{
 	struct sockaddr	*p_sockaddr = (struct sockaddr *)addr;
 	DFX_board_t *bp = netdev_priv(dev);
 
@@ -2394,34 +2564,35 @@ static int dfx_ctl_set_mac_address(struct net_device *dev, void *addr)
 	 */
 
 	if ((bp->uc_count + bp->mc_count) > PI_CMD_ADDR_FILTER_K_SIZE)
-		{
+	{
 		bp->group_prom	= PI_FSTATE_K_PASS;		/* Enable LLC group prom mode */
 		bp->mc_count	= 0;					/* Don't add mc addrs to CAM */
 
 		/* Update adapter filters */
 
 		if (dfx_ctl_update_filters(bp) != DFX_K_SUCCESS)
-			{
+		{
 			DBG_printk("%s: Could not update adapter filters!\n", dev->name);
-			}
-		else
-			{
-			DBG_printk("%s: Adapter filters updated!\n", dev->name);
-			}
 		}
+		else
+		{
+			DBG_printk("%s: Adapter filters updated!\n", dev->name);
+		}
+	}
 
 	/* Update adapter CAM with new unicast address */
 
 	if (dfx_ctl_update_cam(bp) != DFX_K_SUCCESS)
-		{
+	{
 		DBG_printk("%s: Could not set new MAC address!\n", dev->name);
-		}
-	else
-		{
-		DBG_printk("%s: Adapter CAM updated with new MAC address\n", dev->name);
-		}
-	return 0;			/* always return zero */
 	}
+	else
+	{
+		DBG_printk("%s: Adapter CAM updated with new MAC address\n", dev->name);
+	}
+
+	return 0;			/* always return zero */
+}
 
 
 /*
@@ -2458,7 +2629,7 @@ static int dfx_ctl_set_mac_address(struct net_device *dev, void *addr)
  */
 
 static int dfx_ctl_update_cam(DFX_board_t *bp)
-	{
+{
 	int			i;				/* used as index */
 	PI_LAN_ADDR	*p_addr;		/* pointer to CAM entry */
 
@@ -2481,32 +2652,35 @@ static int dfx_ctl_update_cam(DFX_board_t *bp)
 
 	/* Now add unicast addresses to command request buffer, if any */
 
-	for (i=0; i < (int)bp->uc_count; i++)
-		{
+	for (i = 0; i < (int)bp->uc_count; i++)
+	{
 		if (i < PI_CMD_ADDR_FILTER_K_SIZE)
-			{
-			memcpy(p_addr, &bp->uc_table[i*FDDI_K_ALEN], FDDI_K_ALEN);
+		{
+			memcpy(p_addr, &bp->uc_table[i * FDDI_K_ALEN], FDDI_K_ALEN);
 			p_addr++;			/* point to next command entry */
-			}
 		}
+	}
 
 	/* Now add multicast addresses to command request buffer, if any */
 
-	for (i=0; i < (int)bp->mc_count; i++)
-		{
+	for (i = 0; i < (int)bp->mc_count; i++)
+	{
 		if ((i + bp->uc_count) < PI_CMD_ADDR_FILTER_K_SIZE)
-			{
-			memcpy(p_addr, &bp->mc_table[i*FDDI_K_ALEN], FDDI_K_ALEN);
+		{
+			memcpy(p_addr, &bp->mc_table[i * FDDI_K_ALEN], FDDI_K_ALEN);
 			p_addr++;			/* point to next command entry */
-			}
 		}
+	}
 
 	/* Issue command to update adapter CAM, then return */
 
 	if (dfx_hw_dma_cmd_req(bp) != DFX_K_SUCCESS)
+	{
 		return DFX_K_FAILURE;
-	return DFX_K_SUCCESS;
 	}
+
+	return DFX_K_SUCCESS;
+}
 
 
 /*
@@ -2541,7 +2715,7 @@ static int dfx_ctl_update_cam(DFX_board_t *bp)
  */
 
 static int dfx_ctl_update_filters(DFX_board_t *bp)
-	{
+{
 	int	i = 0;					/* used as index */
 
 	/* Fill in command request information */
@@ -2570,9 +2744,12 @@ static int dfx_ctl_update_filters(DFX_board_t *bp)
 	/* Issue command to update adapter filters, then return */
 
 	if (dfx_hw_dma_cmd_req(bp) != DFX_K_SUCCESS)
+	{
 		return DFX_K_FAILURE;
-	return DFX_K_SUCCESS;
 	}
+
+	return DFX_K_SUCCESS;
+}
 
 
 /*
@@ -2616,18 +2793,21 @@ static int dfx_ctl_update_filters(DFX_board_t *bp)
  */
 
 static int dfx_hw_dma_cmd_req(DFX_board_t *bp)
-	{
+{
 	int status;			/* adapter status */
 	int timeout_cnt;	/* used in for loops */
 
 	/* Make sure the adapter is in a state that we can issue the DMA command in */
 
 	status = dfx_hw_adap_state_rd(bp);
+
 	if ((status == PI_STATE_K_RESET)		||
 		(status == PI_STATE_K_HALTED)		||
 		(status == PI_STATE_K_DMA_UNAVAIL)	||
 		(status == PI_STATE_K_UPGRADE))
+	{
 		return DFX_K_OUTSTATE;
+	}
 
 	/* Put response buffer on the command response queue */
 
@@ -2638,7 +2818,7 @@ static int dfx_hw_dma_cmd_req(DFX_board_t *bp)
 	/* Bump (and wrap) the producer index and write out to register */
 
 	bp->cmd_rsp_reg.index.prod += 1;
-	bp->cmd_rsp_reg.index.prod &= PI_CMD_RSP_K_NUM_ENTRIES-1;
+	bp->cmd_rsp_reg.index.prod &= PI_CMD_RSP_K_NUM_ENTRIES - 1;
 	dfx_port_write_long(bp, PI_PDQ_K_REG_CMD_RSP_PROD, bp->cmd_rsp_reg.lword);
 
 	/* Put request buffer on the command request queue */
@@ -2650,7 +2830,7 @@ static int dfx_hw_dma_cmd_req(DFX_board_t *bp)
 	/* Bump (and wrap) the producer index and write out to register */
 
 	bp->cmd_req_reg.index.prod += 1;
-	bp->cmd_req_reg.index.prod &= PI_CMD_REQ_K_NUM_ENTRIES-1;
+	bp->cmd_req_reg.index.prod &= PI_CMD_REQ_K_NUM_ENTRIES - 1;
 	dfx_port_write_long(bp, PI_PDQ_K_REG_CMD_REQ_PROD, bp->cmd_req_reg.lword);
 
 	/*
@@ -2659,18 +2839,24 @@ static int dfx_hw_dma_cmd_req(DFX_board_t *bp)
 	 */
 
 	for (timeout_cnt = 20000; timeout_cnt > 0; timeout_cnt--)
-		{
+	{
 		if (bp->cmd_req_reg.index.prod == (u8)(bp->cons_block_virt->cmd_req))
+		{
 			break;
-		udelay(100);			/* wait for 100 microseconds */
 		}
+
+		udelay(100);			/* wait for 100 microseconds */
+	}
+
 	if (timeout_cnt == 0)
+	{
 		return DFX_K_HW_TIMEOUT;
+	}
 
 	/* Bump (and wrap) the completion index and write out to register */
 
 	bp->cmd_req_reg.index.comp += 1;
-	bp->cmd_req_reg.index.comp &= PI_CMD_REQ_K_NUM_ENTRIES-1;
+	bp->cmd_req_reg.index.comp &= PI_CMD_REQ_K_NUM_ENTRIES - 1;
 	dfx_port_write_long(bp, PI_PDQ_K_REG_CMD_REQ_PROD, bp->cmd_req_reg.lword);
 
 	/*
@@ -2679,21 +2865,27 @@ static int dfx_hw_dma_cmd_req(DFX_board_t *bp)
 	 */
 
 	for (timeout_cnt = 20000; timeout_cnt > 0; timeout_cnt--)
-		{
+	{
 		if (bp->cmd_rsp_reg.index.prod == (u8)(bp->cons_block_virt->cmd_rsp))
+		{
 			break;
-		udelay(100);			/* wait for 100 microseconds */
 		}
+
+		udelay(100);			/* wait for 100 microseconds */
+	}
+
 	if (timeout_cnt == 0)
+	{
 		return DFX_K_HW_TIMEOUT;
+	}
 
 	/* Bump (and wrap) the completion index and write out to register */
 
 	bp->cmd_rsp_reg.index.comp += 1;
-	bp->cmd_rsp_reg.index.comp &= PI_CMD_RSP_K_NUM_ENTRIES-1;
+	bp->cmd_rsp_reg.index.comp &= PI_CMD_RSP_K_NUM_ENTRIES - 1;
 	dfx_port_write_long(bp, PI_PDQ_K_REG_CMD_RSP_PROD, bp->cmd_rsp_reg.lword);
 	return DFX_K_SUCCESS;
-	}
+}
 
 
 /*
@@ -2735,9 +2927,9 @@ static int dfx_hw_port_ctrl_req(
 	PI_UINT32	data_a,
 	PI_UINT32	data_b,
 	PI_UINT32	*host_data
-	)
+)
 
-	{
+{
 	PI_UINT32	port_cmd;		/* Port Control command register value */
 	int			timeout_cnt;	/* used in for loops */
 
@@ -2754,19 +2946,30 @@ static int dfx_hw_port_ctrl_req(
 	/* Now wait for command to complete */
 
 	if (command == PI_PCTRL_M_BLAST_FLASH)
-		timeout_cnt = 600000;	/* set command timeout count to 60 seconds */
+	{
+		timeout_cnt = 600000;    /* set command timeout count to 60 seconds */
+	}
 	else
-		timeout_cnt = 20000;	/* set command timeout count to 2 seconds */
+	{
+		timeout_cnt = 20000;    /* set command timeout count to 2 seconds */
+	}
 
 	for (; timeout_cnt > 0; timeout_cnt--)
-		{
+	{
 		dfx_port_read_long(bp, PI_PDQ_K_REG_PORT_CTRL, &port_cmd);
+
 		if (!(port_cmd & PI_PCTRL_M_CMD_ERROR))
+		{
 			break;
-		udelay(100);			/* wait for 100 microseconds */
 		}
+
+		udelay(100);			/* wait for 100 microseconds */
+	}
+
 	if (timeout_cnt == 0)
+	{
 		return DFX_K_HW_TIMEOUT;
+	}
 
 	/*
 	 * If the address of host_data is non-zero, assume caller has supplied a
@@ -2775,9 +2978,12 @@ static int dfx_hw_port_ctrl_req(
 	 */
 
 	if (host_data != NULL)
+	{
 		dfx_port_read_long(bp, PI_PDQ_K_REG_HOST_DATA, host_data);
-	return DFX_K_SUCCESS;
 	}
+
+	return DFX_K_SUCCESS;
+}
 
 
 /*
@@ -2816,9 +3022,9 @@ static int dfx_hw_port_ctrl_req(
 static void dfx_hw_adap_reset(
 	DFX_board_t	*bp,
 	PI_UINT32	type
-	)
+)
 
-	{
+{
 	/* Set Reset type and assert reset */
 
 	dfx_port_write_long(bp, PI_PDQ_K_REG_PORT_DATA_A, type);	/* tell adapter type of reset */
@@ -2831,7 +3037,7 @@ static void dfx_hw_adap_reset(
 	/* Deassert reset */
 
 	dfx_port_write_long(bp, PI_PDQ_K_REG_PORT_RESET, 0);
-	}
+}
 
 
 /*
@@ -2862,12 +3068,12 @@ static void dfx_hw_adap_reset(
  */
 
 static int dfx_hw_adap_state_rd(DFX_board_t *bp)
-	{
+{
 	PI_UINT32 port_status;		/* Port Status register value */
 
 	dfx_port_read_long(bp, PI_PDQ_K_REG_PORT_STATUS, &port_status);
 	return (port_status & PI_PSTATUS_M_STATE) >> PI_PSTATUS_V_STATE;
-	}
+}
 
 
 /*
@@ -2902,7 +3108,7 @@ static int dfx_hw_adap_state_rd(DFX_board_t *bp)
  */
 
 static int dfx_hw_dma_uninit(DFX_board_t *bp, PI_UINT32 type)
-	{
+{
 	int timeout_cnt;	/* used in for loops */
 
 	/* Set reset type bit and reset adapter */
@@ -2912,15 +3118,22 @@ static int dfx_hw_dma_uninit(DFX_board_t *bp, PI_UINT32 type)
 	/* Now wait for adapter to enter DMA_UNAVAILABLE state */
 
 	for (timeout_cnt = 100000; timeout_cnt > 0; timeout_cnt--)
-		{
+	{
 		if (dfx_hw_adap_state_rd(bp) == PI_STATE_K_DMA_UNAVAIL)
+		{
 			break;
-		udelay(100);					/* wait for 100 microseconds */
 		}
-	if (timeout_cnt == 0)
-		return DFX_K_HW_TIMEOUT;
-	return DFX_K_SUCCESS;
+
+		udelay(100);					/* wait for 100 microseconds */
 	}
+
+	if (timeout_cnt == 0)
+	{
+		return DFX_K_HW_TIMEOUT;
+	}
+
+	return DFX_K_SUCCESS;
+}
 
 /*
  *	Align an sk_buff to a boundary power of 2
@@ -2974,7 +3187,7 @@ static void my_skb_align(struct sk_buff *skb, int n)
  */
 
 static int dfx_rcv_init(DFX_board_t *bp, int get_buffers)
-	{
+{
 	int	i, j;					/* used in for loop */
 
 	/*
@@ -2995,55 +3208,67 @@ static int dfx_rcv_init(DFX_board_t *bp, int get_buffers)
 	 *		driver initialization when we allocated memory for the receive buffers.
 	 */
 
-	if (get_buffers) {
+	if (get_buffers)
+	{
 #ifdef DYNAMIC_BUFFERS
-	for (i = 0; i < (int)(bp->rcv_bufs_to_post); i++)
-		for (j = 0; (i + j) < (int)PI_RCV_DATA_K_NUM_ENTRIES; j += bp->rcv_bufs_to_post)
-		{
-			struct sk_buff *newskb;
-			dma_addr_t dma_addr;
 
-			newskb = __netdev_alloc_skb(bp->dev, NEW_SKB_SIZE,
-						    GFP_NOIO);
-			if (!newskb)
-				return -ENOMEM;
-			/*
-			 * align to 128 bytes for compatibility with
-			 * the old EISA boards.
-			 */
-
-			my_skb_align(newskb, 128);
-			dma_addr = dma_map_single(bp->bus_dev,
-						  newskb->data,
-						  PI_RCV_DATA_K_SIZE_MAX,
-						  DMA_FROM_DEVICE);
-			if (dma_mapping_error(bp->bus_dev, dma_addr)) {
-				dev_kfree_skb(newskb);
-				return -ENOMEM;
-			}
-			bp->descr_block_virt->rcv_data[i + j].long_0 =
-				(u32)(PI_RCV_DESCR_M_SOP |
-				      ((PI_RCV_DATA_K_SIZE_MAX /
-					PI_ALIGN_K_RCV_DATA_BUFF) <<
-				       PI_RCV_DESCR_V_SEG_LEN));
-			bp->descr_block_virt->rcv_data[i + j].long_1 =
-				(u32)dma_addr;
-
-			/*
-			 * p_rcv_buff_va is only used inside the
-			 * kernel so we put the skb pointer here.
-			 */
-			bp->p_rcv_buff_va[i+j] = (char *) newskb;
-		}
-#else
-	for (i=0; i < (int)(bp->rcv_bufs_to_post); i++)
-		for (j=0; (i + j) < (int)PI_RCV_DATA_K_NUM_ENTRIES; j += bp->rcv_bufs_to_post)
+		for (i = 0; i < (int)(bp->rcv_bufs_to_post); i++)
+			for (j = 0; (i + j) < (int)PI_RCV_DATA_K_NUM_ENTRIES; j += bp->rcv_bufs_to_post)
 			{
-			bp->descr_block_virt->rcv_data[i+j].long_0 = (u32) (PI_RCV_DESCR_M_SOP |
-				((PI_RCV_DATA_K_SIZE_MAX / PI_ALIGN_K_RCV_DATA_BUFF) << PI_RCV_DESCR_V_SEG_LEN));
-			bp->descr_block_virt->rcv_data[i+j].long_1 = (u32) (bp->rcv_block_phys + (i * PI_RCV_DATA_K_SIZE_MAX));
-			bp->p_rcv_buff_va[i+j] = (bp->rcv_block_virt + (i * PI_RCV_DATA_K_SIZE_MAX));
+				struct sk_buff *newskb;
+				dma_addr_t dma_addr;
+
+				newskb = __netdev_alloc_skb(bp->dev, NEW_SKB_SIZE,
+											GFP_NOIO);
+
+				if (!newskb)
+				{
+					return -ENOMEM;
+				}
+
+				/*
+				 * align to 128 bytes for compatibility with
+				 * the old EISA boards.
+				 */
+
+				my_skb_align(newskb, 128);
+				dma_addr = dma_map_single(bp->bus_dev,
+										  newskb->data,
+										  PI_RCV_DATA_K_SIZE_MAX,
+										  DMA_FROM_DEVICE);
+
+				if (dma_mapping_error(bp->bus_dev, dma_addr))
+				{
+					dev_kfree_skb(newskb);
+					return -ENOMEM;
+				}
+
+				bp->descr_block_virt->rcv_data[i + j].long_0 =
+					(u32)(PI_RCV_DESCR_M_SOP |
+						  ((PI_RCV_DATA_K_SIZE_MAX /
+							PI_ALIGN_K_RCV_DATA_BUFF) <<
+						   PI_RCV_DESCR_V_SEG_LEN));
+				bp->descr_block_virt->rcv_data[i + j].long_1 =
+					(u32)dma_addr;
+
+				/*
+				 * p_rcv_buff_va is only used inside the
+				 * kernel so we put the skb pointer here.
+				 */
+				bp->p_rcv_buff_va[i + j] = (char *) newskb;
 			}
+
+#else
+
+		for (i = 0; i < (int)(bp->rcv_bufs_to_post); i++)
+			for (j = 0; (i + j) < (int)PI_RCV_DATA_K_NUM_ENTRIES; j += bp->rcv_bufs_to_post)
+			{
+				bp->descr_block_virt->rcv_data[i + j].long_0 = (u32) (PI_RCV_DESCR_M_SOP |
+						((PI_RCV_DATA_K_SIZE_MAX / PI_ALIGN_K_RCV_DATA_BUFF) << PI_RCV_DESCR_V_SEG_LEN));
+				bp->descr_block_virt->rcv_data[i + j].long_1 = (u32) (bp->rcv_block_phys + (i * PI_RCV_DATA_K_SIZE_MAX));
+				bp->p_rcv_buff_va[i + j] = (bp->rcv_block_virt + (i * PI_RCV_DATA_K_SIZE_MAX));
+			}
+
 #endif
 	}
 
@@ -3052,7 +3277,7 @@ static int dfx_rcv_init(DFX_board_t *bp, int get_buffers)
 	bp->rcv_xmt_reg.index.rcv_prod = bp->rcv_bufs_to_post;
 	dfx_port_write_long(bp, PI_PDQ_K_REG_TYPE_2_PROD, bp->rcv_xmt_reg.lword);
 	return 0;
-	}
+}
 
 
 /*
@@ -3089,9 +3314,9 @@ static int dfx_rcv_init(DFX_board_t *bp, int get_buffers)
 
 static void dfx_rcv_queue_process(
 	DFX_board_t *bp
-	)
+)
 
-	{
+{
 	PI_TYPE_2_CONSUMER	*p_type_2_cons;		/* ptr to rcv/xmt consumer block register */
 	char				*p_buff;			/* ptr to start of packet receive buffer (FMC descriptor) */
 	u32					descr, pkt_len;		/* FMC descriptor field and packet length */
@@ -3100,8 +3325,9 @@ static void dfx_rcv_queue_process(
 	/* Service all consumed LLC receive frames */
 
 	p_type_2_cons = (PI_TYPE_2_CONSUMER *)(&bp->cons_block_virt->xmt_rcv_data);
+
 	while (bp->rcv_xmt_reg.index.rcv_comp != p_type_2_cons->index.rcv_cons)
-		{
+	{
 		/* Process any errors */
 		dma_addr_t dma_addr;
 		int entry;
@@ -3114,18 +3340,22 @@ static void dfx_rcv_queue_process(
 #endif
 		dma_addr = bp->descr_block_virt->rcv_data[entry].long_1;
 		dma_sync_single_for_cpu(bp->bus_dev,
-					dma_addr + RCV_BUFF_K_DESCR,
-					sizeof(u32),
-					DMA_FROM_DEVICE);
+								dma_addr + RCV_BUFF_K_DESCR,
+								sizeof(u32),
+								DMA_FROM_DEVICE);
 		memcpy(&descr, p_buff + RCV_BUFF_K_DESCR, sizeof(u32));
 
 		if (descr & PI_FMC_DESCR_M_RCC_FLUSH)
-			{
+		{
 			if (descr & PI_FMC_DESCR_M_RCC_CRC)
+			{
 				bp->rcv_crc_errors++;
+			}
 			else
+			{
 				bp->rcv_frame_status_errors++;
 			}
+		}
 		else
 		{
 			int rx_in_place = 0;
@@ -3134,58 +3364,73 @@ static void dfx_rcv_queue_process(
 
 			pkt_len = (u32)((descr & PI_FMC_DESCR_M_LEN) >> PI_FMC_DESCR_V_LEN);
 			pkt_len -= 4;				/* subtract 4 byte CRC */
+
 			if (!IN_RANGE(pkt_len, FDDI_K_LLC_ZLEN, FDDI_K_LLC_LEN))
+			{
 				bp->rcv_length_errors++;
-			else{
+			}
+			else
+			{
 #ifdef DYNAMIC_BUFFERS
 				struct sk_buff *newskb = NULL;
 
-				if (pkt_len > SKBUFF_RX_COPYBREAK) {
+				if (pkt_len > SKBUFF_RX_COPYBREAK)
+				{
 					dma_addr_t new_dma_addr;
 
 					newskb = netdev_alloc_skb(bp->dev,
-								  NEW_SKB_SIZE);
-					if (newskb){
+											  NEW_SKB_SIZE);
+
+					if (newskb)
+					{
 						my_skb_align(newskb, 128);
 						new_dma_addr = dma_map_single(
-								bp->bus_dev,
-								newskb->data,
-								PI_RCV_DATA_K_SIZE_MAX,
-								DMA_FROM_DEVICE);
+										   bp->bus_dev,
+										   newskb->data,
+										   PI_RCV_DATA_K_SIZE_MAX,
+										   DMA_FROM_DEVICE);
+
 						if (dma_mapping_error(
 								bp->bus_dev,
-								new_dma_addr)) {
+								new_dma_addr))
+						{
 							dev_kfree_skb(newskb);
 							newskb = NULL;
 						}
 					}
-					if (newskb) {
+
+					if (newskb)
+					{
 						rx_in_place = 1;
 
 						skb = (struct sk_buff *)bp->p_rcv_buff_va[entry];
 						dma_unmap_single(bp->bus_dev,
-							dma_addr,
-							PI_RCV_DATA_K_SIZE_MAX,
-							DMA_FROM_DEVICE);
+										 dma_addr,
+										 PI_RCV_DATA_K_SIZE_MAX,
+										 DMA_FROM_DEVICE);
 						skb_reserve(skb, RCV_BUFF_K_PADDING);
 						bp->p_rcv_buff_va[entry] = (char *)newskb;
 						bp->descr_block_virt->rcv_data[entry].long_1 = (u32)new_dma_addr;
 					}
 				}
+
 				if (!newskb)
 #endif
 					/* Alloc new buffer to pass up,
 					 * add room for PRH. */
 					skb = netdev_alloc_skb(bp->dev,
-							       pkt_len + 3);
+										   pkt_len + 3);
+
 				if (skb == NULL)
-					{
+				{
 					printk("%s: Could not allocate receive buffer.  Dropping packet.\n", bp->dev->name);
 					bp->rcv_discards++;
 					break;
-					}
-				else {
-					if (!rx_in_place) {
+				}
+				else
+				{
+					if (!rx_in_place)
+					{
 						/* Receive buffer allocated, pass receive packet up */
 						dma_sync_single_for_cpu(
 							bp->bus_dev,
@@ -3195,11 +3440,11 @@ static void dfx_rcv_queue_process(
 							DMA_FROM_DEVICE);
 
 						skb_copy_to_linear_data(skb,
-							       p_buff + RCV_BUFF_K_PADDING,
-							       pkt_len + 3);
+												p_buff + RCV_BUFF_K_PADDING,
+												pkt_len + 3);
 					}
 
-					skb_reserve(skb,3);		/* adjust data field so that it points to FC byte */
+					skb_reserve(skb, 3);		/* adjust data field so that it points to FC byte */
 					skb_put(skb, pkt_len);		/* pass up packet length, NOT including CRC */
 					skb->protocol = fddi_type_trans(skb, bp->dev);
 					bp->rcv_total_bytes += skb->len;
@@ -3207,11 +3452,14 @@ static void dfx_rcv_queue_process(
 
 					/* Update the rcv counters */
 					bp->rcv_total_frames++;
+
 					if (*(p_buff + RCV_BUFF_K_DA) & 0x01)
+					{
 						bp->rcv_multicast_frames++;
+					}
 				}
 			}
-			}
+		}
 
 		/*
 		 * Advance the producer (for recycling) and advance the completion
@@ -3223,8 +3471,8 @@ static void dfx_rcv_queue_process(
 
 		bp->rcv_xmt_reg.index.rcv_prod += 1;
 		bp->rcv_xmt_reg.index.rcv_comp += 1;
-		}
 	}
+}
 
 
 /*
@@ -3289,8 +3537,8 @@ static void dfx_rcv_queue_process(
  */
 
 static netdev_tx_t dfx_xmt_queue_pkt(struct sk_buff *skb,
-				     struct net_device *dev)
-	{
+									 struct net_device *dev)
+{
 	DFX_board_t		*bp = netdev_priv(dev);
 	u8			prod;				/* local transmit producer index */
 	PI_XMT_DESCR		*p_xmt_descr;		/* ptr to transmit descriptor block entry */
@@ -3312,12 +3560,13 @@ static netdev_tx_t dfx_xmt_queue_pkt(struct sk_buff *skb,
 	if (!IN_RANGE(skb->len, FDDI_K_LLC_ZLEN, FDDI_K_LLC_LEN))
 	{
 		printk("%s: Invalid packet length - %u bytes\n",
-			dev->name, skb->len);
+			   dev->name, skb->len);
 		bp->xmt_length_errors++;		/* bump error counter */
 		netif_wake_queue(dev);
 		dev_kfree_skb(skb);
 		return NETDEV_TX_OK;			/* return "success" */
 	}
+
 	/*
 	 * See if adapter link is available, if not, free buffer
 	 *
@@ -3331,17 +3580,19 @@ static netdev_tx_t dfx_xmt_queue_pkt(struct sk_buff *skb,
 	 */
 
 	if (bp->link_available == PI_K_FALSE)
-		{
+	{
 		if (dfx_hw_adap_state_rd(bp) == PI_STATE_K_LINK_AVAIL)	/* is link really available? */
-			bp->link_available = PI_K_TRUE;		/* if so, set flag and continue */
+		{
+			bp->link_available = PI_K_TRUE;    /* if so, set flag and continue */
+		}
 		else
-			{
+		{
 			bp->xmt_discards++;					/* bump error counter */
 			dev_kfree_skb(skb);		/* free sk_buff now */
 			netif_wake_queue(dev);
 			return NETDEV_TX_OK;		/* return "success" */
-			}
 		}
+	}
 
 	/* Write the three PRH bytes immediately before the FC byte */
 
@@ -3351,8 +3602,10 @@ static netdev_tx_t dfx_xmt_queue_pkt(struct sk_buff *skb,
 	skb->data[2] = DFX_PRH2_BYTE;	/* specification */
 
 	dma_addr = dma_map_single(bp->bus_dev, skb->data, skb->len,
-				  DMA_TO_DEVICE);
-	if (dma_mapping_error(bp->bus_dev, dma_addr)) {
+							  DMA_TO_DEVICE);
+
+	if (dma_mapping_error(bp->bus_dev, dma_addr))
+	{
 		skb_pull(skb, 3);
 		return NETDEV_TX_BUSY;
 	}
@@ -3420,7 +3673,7 @@ static netdev_tx_t dfx_xmt_queue_pkt(struct sk_buff *skb,
 
 	if (prod == bp->rcv_xmt_reg.index.xmt_comp)
 	{
-		skb_pull(skb,3);
+		skb_pull(skb, 3);
 		spin_unlock_irqrestore(&bp->lock, flags);
 		return NETDEV_TX_BUSY;	/* requeue packet for later */
 	}
@@ -3450,7 +3703,7 @@ static netdev_tx_t dfx_xmt_queue_pkt(struct sk_buff *skb,
 	spin_unlock_irqrestore(&bp->lock, flags);
 	netif_wake_queue(dev);
 	return NETDEV_TX_OK;	/* packet queued to adapter */
-	}
+}
 
 
 /*
@@ -3486,7 +3739,7 @@ static netdev_tx_t dfx_xmt_queue_pkt(struct sk_buff *skb,
  */
 
 static int dfx_xmt_done(DFX_board_t *bp)
-	{
+{
 	XMT_DRIVER_DESCR	*p_xmt_drv_descr;	/* ptr to transmit driver descriptor */
 	PI_TYPE_2_CONSUMER	*p_type_2_cons;		/* ptr to rcv/xmt consumer block register */
 	u8			comp;			/* local transmit completion index */
@@ -3495,8 +3748,9 @@ static int dfx_xmt_done(DFX_board_t *bp)
 	/* Service all consumed transmit frames */
 
 	p_type_2_cons = (PI_TYPE_2_CONSUMER *)(&bp->cons_block_virt->xmt_rcv_data);
+
 	while (bp->rcv_xmt_reg.index.xmt_comp != p_type_2_cons->index.xmt_cons)
-		{
+	{
 		/* Get pointer to the transmit driver descriptor block information */
 
 		p_xmt_drv_descr = &(bp->xmt_drv_descr_blk[bp->rcv_xmt_reg.index.xmt_comp]);
@@ -3509,9 +3763,9 @@ static int dfx_xmt_done(DFX_board_t *bp)
 		/* Return skb to operating system */
 		comp = bp->rcv_xmt_reg.index.xmt_comp;
 		dma_unmap_single(bp->bus_dev,
-				 bp->descr_block_virt->xmt_data[comp].long_1,
-				 p_xmt_drv_descr->p_skb->len,
-				 DMA_TO_DEVICE);
+						 bp->descr_block_virt->xmt_data[comp].long_1,
+						 p_xmt_drv_descr->p_skb->len,
+						 DMA_TO_DEVICE);
 		dev_kfree_skb_irq(p_xmt_drv_descr->p_skb);
 
 		/*
@@ -3527,9 +3781,10 @@ static int dfx_xmt_done(DFX_board_t *bp)
 
 		bp->rcv_xmt_reg.index.xmt_comp += 1;
 		freed++;
-		}
-	return freed;
 	}
+
+	return freed;
+}
 
 
 /*
@@ -3560,25 +3815,28 @@ static int dfx_xmt_done(DFX_board_t *bp)
  */
 #ifdef DYNAMIC_BUFFERS
 static void dfx_rcv_flush( DFX_board_t *bp )
-	{
+{
 	int i, j;
 
 	for (i = 0; i < (int)(bp->rcv_bufs_to_post); i++)
 		for (j = 0; (i + j) < (int)PI_RCV_DATA_K_NUM_ENTRIES; j += bp->rcv_bufs_to_post)
 		{
 			struct sk_buff *skb;
-			skb = (struct sk_buff *)bp->p_rcv_buff_va[i+j];
-			if (skb) {
+			skb = (struct sk_buff *)bp->p_rcv_buff_va[i + j];
+
+			if (skb)
+			{
 				dma_unmap_single(bp->bus_dev,
-						 bp->descr_block_virt->rcv_data[i+j].long_1,
-						 PI_RCV_DATA_K_SIZE_MAX,
-						 DMA_FROM_DEVICE);
+								 bp->descr_block_virt->rcv_data[i + j].long_1,
+								 PI_RCV_DATA_K_SIZE_MAX,
+								 DMA_FROM_DEVICE);
 				dev_kfree_skb(skb);
 			}
-			bp->p_rcv_buff_va[i+j] = NULL;
+
+			bp->p_rcv_buff_va[i + j] = NULL;
 		}
 
-	}
+}
 #endif /* DYNAMIC_BUFFERS */
 
 /*
@@ -3618,7 +3876,7 @@ static void dfx_rcv_flush( DFX_board_t *bp )
  */
 
 static void dfx_xmt_flush( DFX_board_t *bp )
-	{
+{
 	u32			prod_cons;		/* rcv/xmt consumer block longword */
 	XMT_DRIVER_DESCR	*p_xmt_drv_descr;	/* ptr to transmit driver descriptor */
 	u8			comp;			/* local transmit completion index */
@@ -3626,7 +3884,7 @@ static void dfx_xmt_flush( DFX_board_t *bp )
 	/* Flush all outstanding transmit frames */
 
 	while (bp->rcv_xmt_reg.index.xmt_comp != bp->rcv_xmt_reg.index.xmt_prod)
-		{
+	{
 		/* Get pointer to the transmit driver descriptor block information */
 
 		p_xmt_drv_descr = &(bp->xmt_drv_descr_blk[bp->rcv_xmt_reg.index.xmt_comp]);
@@ -3634,9 +3892,9 @@ static void dfx_xmt_flush( DFX_board_t *bp )
 		/* Return skb to operating system */
 		comp = bp->rcv_xmt_reg.index.xmt_comp;
 		dma_unmap_single(bp->bus_dev,
-				 bp->descr_block_virt->xmt_data[comp].long_1,
-				 p_xmt_drv_descr->p_skb->len,
-				 DMA_TO_DEVICE);
+						 bp->descr_block_virt->xmt_data[comp].long_1,
+						 p_xmt_drv_descr->p_skb->len,
+						 DMA_TO_DEVICE);
 		dev_kfree_skb(p_xmt_drv_descr->p_skb);
 
 		/* Increment transmit error counter */
@@ -3655,14 +3913,14 @@ static void dfx_xmt_flush( DFX_board_t *bp )
 		 */
 
 		bp->rcv_xmt_reg.index.xmt_comp += 1;
-		}
+	}
 
 	/* Update the transmit consumer index in the consumer block */
 
 	prod_cons = (u32)(bp->cons_block_virt->xmt_rcv_data & ~PI_CONS_M_XMT_INDEX);
 	prod_cons |= (u32)(bp->rcv_xmt_reg.index.xmt_prod << PI_CONS_V_XMT_INDEX);
 	bp->cons_block_virt->xmt_rcv_data = prod_cons;
-	}
+}
 
 /*
  * ==================
@@ -3704,31 +3962,45 @@ static void dfx_unregister(struct device *bdev)
 	unregister_netdev(dev);
 
 	alloc_size = sizeof(PI_DESCR_BLOCK) +
-		     PI_CMD_REQ_K_SIZE_MAX + PI_CMD_RSP_K_SIZE_MAX +
+				 PI_CMD_REQ_K_SIZE_MAX + PI_CMD_RSP_K_SIZE_MAX +
 #ifndef DYNAMIC_BUFFERS
-		     (bp->rcv_bufs_to_post * PI_RCV_DATA_K_SIZE_MAX) +
+				 (bp->rcv_bufs_to_post * PI_RCV_DATA_K_SIZE_MAX) +
 #endif
-		     sizeof(PI_CONSUMER_BLOCK) +
-		     (PI_ALIGN_K_DESC_BLK - 1);
+				 sizeof(PI_CONSUMER_BLOCK) +
+				 (PI_ALIGN_K_DESC_BLK - 1);
+
 	if (bp->kmalloced)
 		dma_free_coherent(bdev, alloc_size,
-				  bp->kmalloced, bp->kmalloced_dma);
+						  bp->kmalloced, bp->kmalloced_dma);
 
 	dfx_bus_uninit(dev);
 
 	dfx_get_bars(bdev, bar_start, bar_len);
+
 	if (bar_start[2] != 0)
+	{
 		release_region(bar_start[2], bar_len[2]);
+	}
+
 	if (bar_start[1] != 0)
+	{
 		release_region(bar_start[1], bar_len[1]);
-	if (dfx_use_mmio) {
+	}
+
+	if (dfx_use_mmio)
+	{
 		iounmap(bp->base.mem);
 		release_mem_region(bar_start[0], bar_len[0]);
-	} else
+	}
+	else
+	{
 		release_region(bar_start[0], bar_len[0]);
+	}
 
 	if (dfx_bus_pci)
+	{
 		pci_disable_device(to_pci_dev(bdev));
+	}
 
 	free_netdev(dev);
 }
@@ -3741,13 +4013,15 @@ static int __maybe_unused dfx_dev_unregister(struct device *);
 static int dfx_pci_register(struct pci_dev *, const struct pci_device_id *);
 static void dfx_pci_unregister(struct pci_dev *);
 
-static const struct pci_device_id dfx_pci_table[] = {
+static const struct pci_device_id dfx_pci_table[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_DEC, PCI_DEVICE_ID_DEC_FDDI) },
 	{ }
 };
 MODULE_DEVICE_TABLE(pci, dfx_pci_table);
 
-static struct pci_driver dfx_pci_driver = {
+static struct pci_driver dfx_pci_driver =
+{
 	.name		= "defxx",
 	.id_table	= dfx_pci_table,
 	.probe		= dfx_pci_register,
@@ -3755,7 +4029,7 @@ static struct pci_driver dfx_pci_driver = {
 };
 
 static int dfx_pci_register(struct pci_dev *pdev,
-			    const struct pci_device_id *ent)
+							const struct pci_device_id *ent)
 {
 	return dfx_register(&pdev->dev);
 }
@@ -3767,16 +4041,18 @@ static void dfx_pci_unregister(struct pci_dev *pdev)
 #endif /* CONFIG_PCI */
 
 #ifdef CONFIG_EISA
-static struct eisa_device_id dfx_eisa_table[] = {
-        { "DEC3001", DEFEA_PROD_ID_1 },
-        { "DEC3002", DEFEA_PROD_ID_2 },
-        { "DEC3003", DEFEA_PROD_ID_3 },
-        { "DEC3004", DEFEA_PROD_ID_4 },
-        { }
+static struct eisa_device_id dfx_eisa_table[] =
+{
+	{ "DEC3001", DEFEA_PROD_ID_1 },
+	{ "DEC3002", DEFEA_PROD_ID_2 },
+	{ "DEC3003", DEFEA_PROD_ID_3 },
+	{ "DEC3004", DEFEA_PROD_ID_4 },
+	{ }
 };
 MODULE_DEVICE_TABLE(eisa, dfx_eisa_table);
 
-static struct eisa_driver dfx_eisa_driver = {
+static struct eisa_driver dfx_eisa_driver =
+{
 	.id_table	= dfx_eisa_table,
 	.driver		= {
 		.name	= "defxx",
@@ -3788,7 +4064,8 @@ static struct eisa_driver dfx_eisa_driver = {
 #endif /* CONFIG_EISA */
 
 #ifdef CONFIG_TC
-static struct tc_device_id const dfx_tc_table[] = {
+static struct tc_device_id const dfx_tc_table[] =
+{
 	{ "DEC     ", "PMAF-FA " },
 	{ "DEC     ", "PMAF-FD " },
 	{ "DEC     ", "PMAF-FS " },
@@ -3797,7 +4074,8 @@ static struct tc_device_id const dfx_tc_table[] = {
 };
 MODULE_DEVICE_TABLE(tc, dfx_tc_table);
 
-static struct tc_driver dfx_tc_driver = {
+static struct tc_driver dfx_tc_driver =
+{
 	.id_table	= dfx_tc_table,
 	.driver		= {
 		.name	= "defxx",
@@ -3813,8 +4091,12 @@ static int __maybe_unused dfx_dev_register(struct device *dev)
 	int status;
 
 	status = dfx_register(dev);
+
 	if (!status)
+	{
 		get_device(dev);
+	}
+
 	return status;
 }
 
@@ -3831,10 +4113,17 @@ static int dfx_init(void)
 	int status;
 
 	status = pci_register_driver(&dfx_pci_driver);
+
 	if (!status)
+	{
 		status = eisa_driver_register(&dfx_eisa_driver);
+	}
+
 	if (!status)
+	{
 		status = tc_register_driver(&dfx_tc_driver);
+	}
+
 	return status;
 }
 
@@ -3849,5 +4138,5 @@ module_init(dfx_init);
 module_exit(dfx_cleanup);
 MODULE_AUTHOR("Lawrence V. Stefani");
 MODULE_DESCRIPTION("DEC FDDIcontroller TC/EISA/PCI (DEFTA/DEFEA/DEFPA) driver "
-		   DRV_VERSION " " DRV_RELDATE);
+				   DRV_VERSION " " DRV_RELDATE);
 MODULE_LICENSE("GPL");

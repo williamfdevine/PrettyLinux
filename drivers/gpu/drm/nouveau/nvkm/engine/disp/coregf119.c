@@ -31,7 +31,8 @@
 #include <nvif/unpack.h>
 
 const struct nv50_disp_mthd_list
-gf119_disp_core_mthd_base = {
+	gf119_disp_core_mthd_base =
+{
 	.mthd = 0x0000,
 	.addr = 0x000000,
 	.data = {
@@ -44,7 +45,8 @@ gf119_disp_core_mthd_base = {
 };
 
 const struct nv50_disp_mthd_list
-gf119_disp_core_mthd_dac = {
+	gf119_disp_core_mthd_dac =
+{
 	.mthd = 0x0020,
 	.addr = 0x000020,
 	.data = {
@@ -57,7 +59,8 @@ gf119_disp_core_mthd_dac = {
 };
 
 const struct nv50_disp_mthd_list
-gf119_disp_core_mthd_sor = {
+	gf119_disp_core_mthd_sor =
+{
 	.mthd = 0x0020,
 	.addr = 0x000020,
 	.data = {
@@ -70,7 +73,8 @@ gf119_disp_core_mthd_sor = {
 };
 
 const struct nv50_disp_mthd_list
-gf119_disp_core_mthd_pior = {
+	gf119_disp_core_mthd_pior =
+{
 	.mthd = 0x0020,
 	.addr = 0x000020,
 	.data = {
@@ -83,7 +87,8 @@ gf119_disp_core_mthd_pior = {
 };
 
 static const struct nv50_disp_mthd_list
-gf119_disp_core_mthd_head = {
+	gf119_disp_core_mthd_head =
+{
 	.mthd = 0x0300,
 	.addr = 0x000300,
 	.data = {
@@ -157,7 +162,8 @@ gf119_disp_core_mthd_head = {
 };
 
 static const struct nv50_disp_chan_mthd
-gf119_disp_core_chan_mthd = {
+	gf119_disp_core_chan_mthd =
+{
 	.name = "Core",
 	.addr = 0x000000,
 	.prev = -0x020000,
@@ -181,13 +187,15 @@ gf119_disp_core_fini(struct nv50_disp_dmac *chan)
 	/* deactivate channel */
 	nvkm_mask(device, 0x610490, 0x00000010, 0x00000000);
 	nvkm_mask(device, 0x610490, 0x00000003, 0x00000000);
+
 	if (nvkm_msec(device, 2000,
-		if (!(nvkm_rd32(device, 0x610490) & 0x001e0000))
-			break;
-	) < 0) {
-		nvkm_error(subdev, "core fini: %08x\n",
-			   nvkm_rd32(device, 0x610490));
-	}
+				  if (!(nvkm_rd32(device, 0x610490) & 0x001e0000))
+					  break;
+					 ) < 0)
+		{
+			nvkm_error(subdev, "core fini: %08x\n",
+					   nvkm_rd32(device, 0x610490));
+		}
 
 	/* disable error reporting and completion notification */
 	nvkm_mask(device, 0x610090, 0x00000001, 0x00000000);
@@ -214,26 +222,29 @@ gf119_disp_core_init(struct nv50_disp_dmac *chan)
 
 	/* wait for it to go inactive */
 	if (nvkm_msec(device, 2000,
-		if (!(nvkm_rd32(device, 0x610490) & 0x80000000))
-			break;
-	) < 0) {
-		nvkm_error(subdev, "core init: %08x\n",
-			   nvkm_rd32(device, 0x610490));
-		return -EBUSY;
-	}
+				  if (!(nvkm_rd32(device, 0x610490) & 0x80000000))
+					  break;
+					 ) < 0)
+		{
+			nvkm_error(subdev, "core init: %08x\n",
+					   nvkm_rd32(device, 0x610490));
+			return -EBUSY;
+		}
 
 	return 0;
 }
 
 const struct nv50_disp_dmac_func
-gf119_disp_core_func = {
+	gf119_disp_core_func =
+{
 	.init = gf119_disp_core_init,
 	.fini = gf119_disp_core_fini,
 	.bind = gf119_disp_dmac_bind,
 };
 
 const struct nv50_disp_dmac_oclass
-gf119_disp_core_oclass = {
+	gf119_disp_core_oclass =
+{
 	.base.oclass = GF110_DISP_CORE_CHANNEL_DMA,
 	.base.minver = 0,
 	.base.maxver = 0,

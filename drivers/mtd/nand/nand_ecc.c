@@ -39,23 +39,23 @@
  * (the code does not use mtd_info, so the code does not care)
  */
 #ifndef STANDALONE
-#include <linux/types.h>
-#include <linux/kernel.h>
-#include <linux/module.h>
-#include <linux/mtd/mtd.h>
-#include <linux/mtd/nand.h>
-#include <linux/mtd/nand_ecc.h>
-#include <asm/byteorder.h>
+	#include <linux/types.h>
+	#include <linux/kernel.h>
+	#include <linux/module.h>
+	#include <linux/mtd/mtd.h>
+	#include <linux/mtd/nand.h>
+	#include <linux/mtd/nand_ecc.h>
+	#include <asm/byteorder.h>
 #else
-#include <stdint.h>
-struct mtd_info;
-#define EXPORT_SYMBOL(x)  /* x */
+	#include <stdint.h>
+	struct mtd_info;
+	#define EXPORT_SYMBOL(x)  /* x */
 
-#define MODULE_LICENSE(x)	/* x */
-#define MODULE_AUTHOR(x)	/* x */
-#define MODULE_DESCRIPTION(x)	/* x */
+	#define MODULE_LICENSE(x)	/* x */
+	#define MODULE_AUTHOR(x)	/* x */
+	#define MODULE_DESCRIPTION(x)	/* x */
 
-#define pr_err printf
+	#define pr_err printf
 #endif
 
 /*
@@ -64,7 +64,8 @@ struct mtd_info;
  * the array element is 1, and when the number of bits is odd
  * the array eleemnt is 0.
  */
-static const char invparity[256] = {
+static const char invparity[256] =
+{
 	1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
 	0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
 	0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
@@ -88,7 +89,8 @@ static const char invparity[256] = {
  * this is only used for testing and repairing parity
  * (a precalculated value slightly improves performance)
  */
-static const char bitsperbyte[256] = {
+static const char bitsperbyte[256] =
+{
 	0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
 	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
 	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
@@ -113,7 +115,8 @@ static const char bitsperbyte[256] = {
  * this is only used for repairing parity
  * see the comments in nand_correct_data for more details
  */
-static const char addressbits[256] = {
+static const char addressbits[256] =
+{
 	0x00, 0x00, 0x01, 0x01, 0x00, 0x00, 0x01, 0x01,
 	0x02, 0x02, 0x03, 0x03, 0x02, 0x02, 0x03, 0x03,
 	0x00, 0x00, 0x01, 0x01, 0x00, 0x00, 0x01, 0x01,
@@ -156,7 +159,7 @@ static const char addressbits[256] = {
  * @code:	output buffer with ECC
  */
 void __nand_calculate_ecc(const unsigned char *buf, unsigned int eccsize,
-		       unsigned char *code)
+						  unsigned char *code)
 {
 	int i;
 	const uint32_t *bp = (uint32_t *)buf;
@@ -191,7 +194,8 @@ void __nand_calculate_ecc(const unsigned char *buf, unsigned int eccsize,
 	 * needed for calculating rp12, rp14, rp16 and par
 	 * also used as a performance improvement for rp6, rp8 and rp10
 	 */
-	for (i = 0; i < eccsize_mult << 2; i++) {
+	for (i = 0; i < eccsize_mult << 2; i++)
+	{
 		cur = *bp++;
 		tmppar = cur;
 		rp4 ^= cur;
@@ -250,12 +254,21 @@ void __nand_calculate_ecc(const unsigned char *buf, unsigned int eccsize,
 		tmppar ^= cur;
 
 		par ^= tmppar;
+
 		if ((i & 0x1) == 0)
+		{
 			rp12 ^= tmppar;
+		}
+
 		if ((i & 0x2) == 0)
+		{
 			rp14 ^= tmppar;
+		}
+
 		if (eccsize_mult == 2 && (i & 0x4) == 0)
+		{
 			rp16 ^= tmppar;
+		}
 	}
 
 	/*
@@ -282,7 +295,9 @@ void __nand_calculate_ecc(const unsigned char *buf, unsigned int eccsize,
 	rp14 ^= (rp14 >> 16);
 	rp14 ^= (rp14 >> 8);
 	rp14 &= 0xff;
-	if (eccsize_mult == 2) {
+
+	if (eccsize_mult == 2)
+	{
 		rp16 ^= (rp16 >> 16);
 		rp16 ^= (rp16 >> 8);
 		rp16 &= 0xff;
@@ -343,8 +358,11 @@ void __nand_calculate_ecc(const unsigned char *buf, unsigned int eccsize,
 	rp11 = (par ^ rp10) & 0xff;
 	rp13 = (par ^ rp12) & 0xff;
 	rp15 = (par ^ rp14) & 0xff;
+
 	if (eccsize_mult == 2)
+	{
 		rp17 = (par ^ rp16) & 0xff;
+	}
 
 	/*
 	 * Finally calculate the ECC bits.
@@ -354,62 +372,63 @@ void __nand_calculate_ecc(const unsigned char *buf, unsigned int eccsize,
 	 */
 #ifdef CONFIG_MTD_NAND_ECC_SMC
 	code[0] =
-	    (invparity[rp7] << 7) |
-	    (invparity[rp6] << 6) |
-	    (invparity[rp5] << 5) |
-	    (invparity[rp4] << 4) |
-	    (invparity[rp3] << 3) |
-	    (invparity[rp2] << 2) |
-	    (invparity[rp1] << 1) |
-	    (invparity[rp0]);
+		(invparity[rp7] << 7) |
+		(invparity[rp6] << 6) |
+		(invparity[rp5] << 5) |
+		(invparity[rp4] << 4) |
+		(invparity[rp3] << 3) |
+		(invparity[rp2] << 2) |
+		(invparity[rp1] << 1) |
+		(invparity[rp0]);
 	code[1] =
-	    (invparity[rp15] << 7) |
-	    (invparity[rp14] << 6) |
-	    (invparity[rp13] << 5) |
-	    (invparity[rp12] << 4) |
-	    (invparity[rp11] << 3) |
-	    (invparity[rp10] << 2) |
-	    (invparity[rp9] << 1)  |
-	    (invparity[rp8]);
+		(invparity[rp15] << 7) |
+		(invparity[rp14] << 6) |
+		(invparity[rp13] << 5) |
+		(invparity[rp12] << 4) |
+		(invparity[rp11] << 3) |
+		(invparity[rp10] << 2) |
+		(invparity[rp9] << 1)  |
+		(invparity[rp8]);
 #else
 	code[1] =
-	    (invparity[rp7] << 7) |
-	    (invparity[rp6] << 6) |
-	    (invparity[rp5] << 5) |
-	    (invparity[rp4] << 4) |
-	    (invparity[rp3] << 3) |
-	    (invparity[rp2] << 2) |
-	    (invparity[rp1] << 1) |
-	    (invparity[rp0]);
+		(invparity[rp7] << 7) |
+		(invparity[rp6] << 6) |
+		(invparity[rp5] << 5) |
+		(invparity[rp4] << 4) |
+		(invparity[rp3] << 3) |
+		(invparity[rp2] << 2) |
+		(invparity[rp1] << 1) |
+		(invparity[rp0]);
 	code[0] =
-	    (invparity[rp15] << 7) |
-	    (invparity[rp14] << 6) |
-	    (invparity[rp13] << 5) |
-	    (invparity[rp12] << 4) |
-	    (invparity[rp11] << 3) |
-	    (invparity[rp10] << 2) |
-	    (invparity[rp9] << 1)  |
-	    (invparity[rp8]);
+		(invparity[rp15] << 7) |
+		(invparity[rp14] << 6) |
+		(invparity[rp13] << 5) |
+		(invparity[rp12] << 4) |
+		(invparity[rp11] << 3) |
+		(invparity[rp10] << 2) |
+		(invparity[rp9] << 1)  |
+		(invparity[rp8]);
 #endif
+
 	if (eccsize_mult == 1)
 		code[2] =
-		    (invparity[par & 0xf0] << 7) |
-		    (invparity[par & 0x0f] << 6) |
-		    (invparity[par & 0xcc] << 5) |
-		    (invparity[par & 0x33] << 4) |
-		    (invparity[par & 0xaa] << 3) |
-		    (invparity[par & 0x55] << 2) |
-		    3;
+			(invparity[par & 0xf0] << 7) |
+			(invparity[par & 0x0f] << 6) |
+			(invparity[par & 0xcc] << 5) |
+			(invparity[par & 0x33] << 4) |
+			(invparity[par & 0xaa] << 3) |
+			(invparity[par & 0x55] << 2) |
+			3;
 	else
 		code[2] =
-		    (invparity[par & 0xf0] << 7) |
-		    (invparity[par & 0x0f] << 6) |
-		    (invparity[par & 0xcc] << 5) |
-		    (invparity[par & 0x33] << 4) |
-		    (invparity[par & 0xaa] << 3) |
-		    (invparity[par & 0x55] << 2) |
-		    (invparity[rp17] << 1) |
-		    (invparity[rp16] << 0);
+			(invparity[par & 0xf0] << 7) |
+			(invparity[par & 0x0f] << 6) |
+			(invparity[par & 0xcc] << 5) |
+			(invparity[par & 0x33] << 4) |
+			(invparity[par & 0xaa] << 3) |
+			(invparity[par & 0x55] << 2) |
+			(invparity[rp17] << 1) |
+			(invparity[rp16] << 0);
 }
 EXPORT_SYMBOL(__nand_calculate_ecc);
 
@@ -421,10 +440,10 @@ EXPORT_SYMBOL(__nand_calculate_ecc);
  * @code:	output buffer with ECC
  */
 int nand_calculate_ecc(struct mtd_info *mtd, const unsigned char *buf,
-		       unsigned char *code)
+					   unsigned char *code)
 {
 	__nand_calculate_ecc(buf,
-			mtd_to_nand(mtd)->ecc.size, code);
+						 mtd_to_nand(mtd)->ecc.size, code);
 
 	return 0;
 }
@@ -440,8 +459,8 @@ EXPORT_SYMBOL(nand_calculate_ecc);
  * Detect and correct a 1 bit error for eccsize byte block
  */
 int __nand_correct_data(unsigned char *buf,
-			unsigned char *read_ecc, unsigned char *calc_ecc,
-			unsigned int eccsize)
+						unsigned char *read_ecc, unsigned char *calc_ecc,
+						unsigned int eccsize)
 {
 	unsigned char b0, b1, b2, bit_addr;
 	unsigned int byte_addr;
@@ -468,13 +487,16 @@ int __nand_correct_data(unsigned char *buf,
 	/* ordered in order of likelihood */
 
 	if ((b0 | b1 | b2) == 0)
-		return 0;	/* no error */
+	{
+		return 0;    /* no error */
+	}
 
 	if ((((b0 ^ (b0 >> 1)) & 0x55) == 0x55) &&
-	    (((b1 ^ (b1 >> 1)) & 0x55) == 0x55) &&
-	    ((eccsize_mult == 1 && ((b2 ^ (b2 >> 1)) & 0x54) == 0x54) ||
-	     (eccsize_mult == 2 && ((b2 ^ (b2 >> 1)) & 0x55) == 0x55))) {
-	/* single bit error */
+		(((b1 ^ (b1 >> 1)) & 0x55) == 0x55) &&
+		((eccsize_mult == 1 && ((b2 ^ (b2 >> 1)) & 0x54) == 0x54) ||
+		 (eccsize_mult == 2 && ((b2 ^ (b2 >> 1)) & 0x55) == 0x55)))
+	{
+		/* single bit error */
 		/*
 		 * rp17/rp15/13/11/9/7/5/3/1 indicate which byte is the faulty
 		 * byte, cp 5/3/1 indicate the faulty bit.
@@ -492,19 +514,25 @@ int __nand_correct_data(unsigned char *buf,
 		 * performance it does not make any difference
 		 */
 		if (eccsize_mult == 1)
+		{
 			byte_addr = (addressbits[b1] << 4) + addressbits[b0];
+		}
 		else
 			byte_addr = (addressbits[b2 & 0x3] << 8) +
-				    (addressbits[b1] << 4) + addressbits[b0];
+						(addressbits[b1] << 4) + addressbits[b0];
+
 		bit_addr = addressbits[b2 >> 2];
 		/* flip the bit */
 		buf[byte_addr] ^= (1 << bit_addr);
 		return 1;
 
 	}
+
 	/* count nr of bits; use table lookup, faster than calculating it */
 	if ((bitsperbyte[b0] + bitsperbyte[b1] + bitsperbyte[b2]) == 1)
-		return 1;	/* error in ECC data; no action needed */
+	{
+		return 1;    /* error in ECC data; no action needed */
+	}
 
 	pr_err("%s: uncorrectable ECC error\n", __func__);
 	return -EBADMSG;
@@ -521,10 +549,10 @@ EXPORT_SYMBOL(__nand_correct_data);
  * Detect and correct a 1 bit error for 256/512 byte block
  */
 int nand_correct_data(struct mtd_info *mtd, unsigned char *buf,
-		      unsigned char *read_ecc, unsigned char *calc_ecc)
+					  unsigned char *read_ecc, unsigned char *calc_ecc)
 {
 	return __nand_correct_data(buf, read_ecc, calc_ecc,
-				   mtd_to_nand(mtd)->ecc.size);
+							   mtd_to_nand(mtd)->ecc.size);
 }
 EXPORT_SYMBOL(nand_correct_data);
 

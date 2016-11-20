@@ -21,7 +21,7 @@ extern void of_device_make_bus_id(struct device *dev);
  * @dev: the device structure to match against
  */
 static inline int of_driver_match_device(struct device *dev,
-					 const struct device_driver *drv)
+		const struct device_driver *drv)
 {
 	return of_match_device(drv->of_match_table, dev) != NULL;
 }
@@ -36,7 +36,7 @@ extern void of_device_unregister(struct platform_device *ofdev);
 extern const void *of_device_get_match_data(const struct device *dev);
 
 extern ssize_t of_device_get_modalias(struct device *dev,
-					char *str, ssize_t len);
+									  char *str, ssize_t len);
 
 extern void of_device_uevent(struct device *dev, struct kobj_uevent_env *env);
 extern int of_device_uevent_modalias(struct device *dev, struct kobj_uevent_env *env);
@@ -50,8 +50,12 @@ static inline struct device_node *of_cpu_device_node_get(int cpu)
 {
 	struct device *cpu_dev;
 	cpu_dev = get_cpu_device(cpu);
+
 	if (!cpu_dev)
+	{
 		return NULL;
+	}
+
 	return of_node_get(cpu_dev->of_node);
 }
 
@@ -59,13 +63,13 @@ void of_dma_configure(struct device *dev, struct device_node *np);
 #else /* CONFIG_OF */
 
 static inline int of_driver_match_device(struct device *dev,
-					 const struct device_driver *drv)
+		const struct device_driver *drv)
 {
 	return 0;
 }
 
 static inline void of_device_uevent(struct device *dev,
-			struct kobj_uevent_env *env) { }
+									struct kobj_uevent_env *env) { }
 
 static inline const void *of_device_get_match_data(const struct device *dev)
 {
@@ -73,13 +77,13 @@ static inline const void *of_device_get_match_data(const struct device *dev)
 }
 
 static inline int of_device_get_modalias(struct device *dev,
-				   char *str, ssize_t len)
+		char *str, ssize_t len)
 {
 	return -ENODEV;
 }
 
 static inline int of_device_uevent_modalias(struct device *dev,
-				   struct kobj_uevent_env *env)
+		struct kobj_uevent_env *env)
 {
 	return -ENODEV;
 }
@@ -87,7 +91,7 @@ static inline int of_device_uevent_modalias(struct device *dev,
 static inline void of_device_node_put(struct device *dev) { }
 
 static inline const struct of_device_id *__of_match_device(
-		const struct of_device_id *matches, const struct device *dev)
+	const struct of_device_id *matches, const struct device *dev)
 {
 	return NULL;
 }

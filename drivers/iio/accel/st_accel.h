@@ -35,7 +35,8 @@
 * struct st_sensors_platform_data - default accel platform data
 * @drdy_int_pin: default accel DRDY is available on INT1 pin.
 */
-static const struct st_sensors_platform_data default_accel_pdata = {
+static const struct st_sensors_platform_data default_accel_pdata =
+{
 	.drdy_int_pin = 1,
 };
 

@@ -11,7 +11,8 @@
 #define EBT_NFLOG_DEFAULT_GROUP		0x1
 #define EBT_NFLOG_DEFAULT_THRESHOLD	1
 
-struct ebt_nflog_info {
+struct ebt_nflog_info
+{
 	__u32 len;
 	__u16 group;
 	__u16 threshold;

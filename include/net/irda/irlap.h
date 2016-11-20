@@ -1,5 +1,5 @@
 /*********************************************************************
- *                
+ *
  * Filename:      irlap.h
  * Version:       0.8
  * Description:   An IrDA LAP driver for Linux
@@ -8,18 +8,18 @@
  * Created at:    Mon Aug  4 20:40:53 1997
  * Modified at:   Fri Dec 10 13:21:17 1999
  * Modified by:   Dag Brattli <dagb@cs.uit.no>
- * 
- *     Copyright (c) 1998-1999 Dag Brattli <dagb@cs.uit.no>, 
+ *
+ *     Copyright (c) 1998-1999 Dag Brattli <dagb@cs.uit.no>,
  *     All Rights Reserved.
  *     Copyright (c) 2000-2002 Jean Tourrilhes <jt@hpl.hp.com>
- *     
- *     This program is free software; you can redistribute it and/or 
- *     modify it under the terms of the GNU General Public License as 
- *     published by the Free Software Foundation; either version 2 of 
+ *
+ *     This program is free software; you can redistribute it and/or
+ *     modify it under the terms of the GNU General Public License as
+ *     published by the Free Software Foundation; either version 2 of
  *     the License, or (at your option) any later version.
  *
  *     Neither Dag Brattli nor University of Tromsø admit liability nor
- *     provide warranty for any of this software. This material is 
+ *     provide warranty for any of this software. This material is
  *     provided "AS-IS" and at no charge.
  *
  ********************************************************************/
@@ -94,14 +94,15 @@
 /*
  *  Meta information passed within the IrLAP state machine
  */
-struct irlap_info {
+struct irlap_info
+{
 	__u8 caddr;   /* Connection address */
 	__u8 control; /* Frame type */
-        __u8 cmd;
+	__u8 cmd;
 
 	__u32 saddr;
 	__u32 daddr;
-	
+
 	int pf;        /* Poll/final bit set */
 
 	__u8  nr;      /* Sequence number of next frame expected */
@@ -115,13 +116,14 @@ struct irlap_info {
 };
 
 /* Main structure of IrLAP */
-struct irlap_cb {
+struct irlap_cb
+{
 	irda_queue_t q;     /* Must be first */
 	magic_t magic;
 
 	/* Device we are attached to */
 	struct net_device  *netdev;
-	char		hw_name[2*IFNAMSIZ + 1];
+	char		hw_name[2 * IFNAMSIZ + 1];
 
 	/* Connection state */
 	volatile IRLAP_STATE state;       /* Current state */
@@ -148,7 +150,7 @@ struct irlap_cb {
 	struct sk_buff_head txq;  /* Frames to be transmitted */
 	struct sk_buff_head txq_ultra;
 
- 	__u8    caddr;        /* Connection address */
+	__u8    caddr;        /* Connection address */
 	__u32   saddr;        /* Source device address */
 	__u32   daddr;        /* Destination device address */
 
@@ -161,9 +163,9 @@ struct irlap_cb {
 	/*  To send a faster RR if tx queue empty */
 #ifdef CONFIG_IRDA_FAST_RR
 	int     fast_RR_timeout;
-	int     fast_RR;      
+	int     fast_RR;
 #endif /* CONFIG_IRDA_FAST_RR */
-	
+
 	int N1; /* N1 * F-timer = Negitiated link disconnect warning threshold */
 	int N2; /* N2 * F-timer = Negitiated link disconnect time */
 	int N3; /* Connection retry count */
@@ -175,7 +177,7 @@ struct irlap_cb {
 	__u8    vs;            /* Next frame to be sent */
 	__u8    vr;            /* Next frame to be received */
 	__u8    va;            /* Last frame acked */
- 	int     window;        /* Nr of I-frames allowed to send */
+	int     window;        /* Nr of I-frames allowed to send */
 	int     window_size;   /* Current negotiated window size */
 
 #ifdef CONFIG_IRDA_DYNAMIC_WINDOW
@@ -186,15 +188,15 @@ struct irlap_cb {
 	struct sk_buff_head wx_list;
 
 	__u8    ack_required;
-	
+
 	/* XID parameters */
- 	__u8    S;           /* Number of slots */
+	__u8    S;           /* Number of slots */
 	__u8    slot;        /* Random chosen slot */
- 	__u8    s;           /* Current slot */
+	__u8    s;           /* Current slot */
 	int     frame_sent;  /* Have we sent reply? */
 
 	hashbin_t   *discovery_log;
- 	discovery_t *discovery_cmd;
+	discovery_t *discovery_cmd;
 
 	__u32 speed;		/* Link speed */
 
@@ -212,18 +214,18 @@ struct irlap_cb {
 	int    mode;     /* IrLAP mode (primary, secondary or monitor) */
 };
 
-/* 
- *  Function prototypes 
+/*
+ *  Function prototypes
  */
 int irlap_init(void);
 void irlap_cleanup(void);
 
 struct irlap_cb *irlap_open(struct net_device *dev, struct qos_info *qos,
-			    const char *hw_name);
+							const char *hw_name);
 void irlap_close(struct irlap_cb *self);
 
-void irlap_connect_request(struct irlap_cb *self, __u32 daddr, 
-			   struct qos_info *qos, int sniff);
+void irlap_connect_request(struct irlap_cb *self, __u32 daddr,
+						   struct qos_info *qos, int sniff);
 void irlap_connect_response(struct irlap_cb *self, struct sk_buff *skb);
 void irlap_connect_indication(struct irlap_cb *self, struct sk_buff *skb);
 void irlap_connect_confirm(struct irlap_cb *, struct sk_buff *skb);
@@ -232,8 +234,8 @@ void irlap_data_indication(struct irlap_cb *, struct sk_buff *, int unreliable);
 void irlap_data_request(struct irlap_cb *, struct sk_buff *, int unreliable);
 
 #ifdef CONFIG_IRDA_ULTRA
-void irlap_unitdata_request(struct irlap_cb *, struct sk_buff *);
-void irlap_unitdata_indication(struct irlap_cb *, struct sk_buff *);
+	void irlap_unitdata_request(struct irlap_cb *, struct sk_buff *);
+	void irlap_unitdata_indication(struct irlap_cb *, struct sk_buff *);
 #endif /* CONFIG_IRDA_ULTRA */
 
 void irlap_disconnect_request(struct irlap_cb *);
@@ -270,18 +272,23 @@ void irlap_apply_connection_parameters(struct irlap_cb *self, int now);
 static inline int irlap_is_primary(struct irlap_cb *self)
 {
 	int ret;
-	switch(self->state) {
-	case LAP_XMIT_P:
-	case LAP_NRM_P:
-		ret = 1;
-		break;
-	case LAP_XMIT_S:
-	case LAP_NRM_S:
-		ret = 0;
-		break;
-	default:
-		ret = -1;
+
+	switch (self->state)
+	{
+		case LAP_XMIT_P:
+		case LAP_NRM_P:
+			ret = 1;
+			break;
+
+		case LAP_XMIT_S:
+		case LAP_NRM_S:
+			ret = 0;
+			break;
+
+		default:
+			ret = -1;
 	}
+
 	return ret;
 }
 

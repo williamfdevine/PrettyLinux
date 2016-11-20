@@ -2,7 +2,8 @@
 #define __NVKM_BUS_H__
 #include <core/subdev.h>
 
-struct nvkm_bus {
+struct nvkm_bus
+{
 	const struct nvkm_bus_func *func;
 	struct nvkm_subdev subdev;
 };

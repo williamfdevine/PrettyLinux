@@ -21,7 +21,7 @@ static u32 starfire_get_time(void)
 	static u32 unix_tod;
 
 	sprintf(obp_gettod, "h# %08x unix-gettod",
-		(unsigned int) (long) &unix_tod);
+			(unsigned int) (long) &unix_tod);
 	prom_feval(obp_gettod);
 
 	return unix_tod;
@@ -33,7 +33,8 @@ static int starfire_read_time(struct device *dev, struct rtc_time *tm)
 	return rtc_valid_tm(tm);
 }
 
-static const struct rtc_class_ops starfire_rtc_ops = {
+static const struct rtc_class_ops starfire_rtc_ops =
+{
 	.read_time	= starfire_read_time,
 };
 
@@ -42,16 +43,20 @@ static int __init starfire_rtc_probe(struct platform_device *pdev)
 	struct rtc_device *rtc;
 
 	rtc = devm_rtc_device_register(&pdev->dev, "starfire",
-				&starfire_rtc_ops, THIS_MODULE);
+								   &starfire_rtc_ops, THIS_MODULE);
+
 	if (IS_ERR(rtc))
+	{
 		return PTR_ERR(rtc);
+	}
 
 	platform_set_drvdata(pdev, rtc);
 
 	return 0;
 }
 
-static struct platform_driver starfire_rtc_driver = {
+static struct platform_driver starfire_rtc_driver =
+{
 	.driver		= {
 		.name	= "rtc-starfire",
 	},

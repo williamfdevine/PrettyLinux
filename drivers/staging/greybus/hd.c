@@ -23,16 +23,19 @@ EXPORT_TRACEPOINT_SYMBOL_GPL(gb_message_submit);
 static struct ida gb_hd_bus_id_map;
 
 int gb_hd_output(struct gb_host_device *hd, void *req, u16 size, u8 cmd,
-		 bool async)
+				 bool async)
 {
 	if (!hd || !hd->driver || !hd->driver->output)
+	{
 		return -EINVAL;
+	}
+
 	return hd->driver->output(hd, req, size, cmd, async);
 }
 EXPORT_SYMBOL_GPL(gb_hd_output);
 
 static ssize_t bus_id_show(struct device *dev,
-				struct device_attribute *attr, char *buf)
+						   struct device_attribute *attr, char *buf)
 {
 	struct gb_host_device *hd = to_gb_host_device(dev);
 
@@ -40,7 +43,8 @@ static ssize_t bus_id_show(struct device *dev,
 }
 static DEVICE_ATTR_RO(bus_id);
 
-static struct attribute *bus_attrs[] = {
+static struct attribute *bus_attrs[] =
+{
 	&dev_attr_bus_id.attr,
 	NULL
 };
@@ -52,7 +56,9 @@ int gb_hd_cport_reserve(struct gb_host_device *hd, u16 cport_id)
 	int ret;
 
 	ret = ida_simple_get(id_map, cport_id, cport_id + 1, GFP_KERNEL);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&hd->dev, "failed to reserve cport %u\n", cport_id);
 		return ret;
 	}
@@ -71,21 +77,28 @@ EXPORT_SYMBOL_GPL(gb_hd_cport_release_reserved);
 
 /* Locking: Caller guarantees serialisation */
 int gb_hd_cport_allocate(struct gb_host_device *hd, int cport_id,
-				unsigned long flags)
+						 unsigned long flags)
 {
 	struct ida *id_map = &hd->cport_id_map;
 	int ida_start, ida_end;
 
 	if (hd->driver->cport_allocate)
+	{
 		return hd->driver->cport_allocate(hd, cport_id, flags);
+	}
 
-	if (cport_id < 0) {
+	if (cport_id < 0)
+	{
 		ida_start = 0;
 		ida_end = hd->num_cports;
-	} else if (cport_id < hd->num_cports) {
+	}
+	else if (cport_id < hd->num_cports)
+	{
 		ida_start = cport_id;
 		ida_end = cport_id + 1;
-	} else {
+	}
+	else
+	{
 		dev_err(&hd->dev, "cport %d not available\n", cport_id);
 		return -EINVAL;
 	}
@@ -96,7 +109,8 @@ int gb_hd_cport_allocate(struct gb_host_device *hd, int cport_id,
 /* Locking: Caller guarantees serialisation */
 void gb_hd_cport_release(struct gb_host_device *hd, u16 cport_id)
 {
-	if (hd->driver->cport_release) {
+	if (hd->driver->cport_release)
+	{
 		hd->driver->cport_release(hd, cport_id);
 		return;
 	}
@@ -111,21 +125,25 @@ static void gb_hd_release(struct device *dev)
 	trace_gb_hd_release(hd);
 
 	if (hd->svc)
+	{
 		gb_svc_put(hd->svc);
+	}
+
 	ida_simple_remove(&gb_hd_bus_id_map, hd->bus_id);
 	ida_destroy(&hd->cport_id_map);
 	kfree(hd);
 }
 
-struct device_type greybus_hd_type = {
+struct device_type greybus_hd_type =
+{
 	.name		= "greybus_host_device",
 	.release	= gb_hd_release,
 };
 
 struct gb_host_device *gb_hd_create(struct gb_hd_driver *driver,
-					struct device *parent,
-					size_t buffer_size_max,
-					size_t num_cports)
+									struct device *parent,
+									size_t buffer_size_max,
+									size_t num_cports)
 {
 	struct gb_host_device *hd;
 	int ret;
@@ -134,17 +152,20 @@ struct gb_host_device *gb_hd_create(struct gb_hd_driver *driver,
 	 * Validate that the driver implements all of the callbacks
 	 * so that we don't have to every time we make them.
 	 */
-	if ((!driver->message_send) || (!driver->message_cancel)) {
+	if ((!driver->message_send) || (!driver->message_cancel))
+	{
 		dev_err(parent, "mandatory hd-callbacks missing\n");
 		return ERR_PTR(-EINVAL);
 	}
 
-	if (buffer_size_max < GB_OPERATION_MESSAGE_SIZE_MIN) {
+	if (buffer_size_max < GB_OPERATION_MESSAGE_SIZE_MIN)
+	{
 		dev_err(parent, "greybus host-device buffers too small\n");
 		return ERR_PTR(-EINVAL);
 	}
 
-	if (num_cports == 0 || num_cports > CPORT_ID_MAX + 1) {
+	if (num_cports == 0 || num_cports > CPORT_ID_MAX + 1)
+	{
 		dev_err(parent, "Invalid number of CPorts: %zu\n", num_cports);
 		return ERR_PTR(-EINVAL);
 	}
@@ -153,21 +174,28 @@ struct gb_host_device *gb_hd_create(struct gb_hd_driver *driver,
 	 * Make sure to never allocate messages larger than what the Greybus
 	 * protocol supports.
 	 */
-	if (buffer_size_max > GB_OPERATION_MESSAGE_SIZE_MAX) {
+	if (buffer_size_max > GB_OPERATION_MESSAGE_SIZE_MAX)
+	{
 		dev_warn(parent, "limiting buffer size to %u\n",
-			 GB_OPERATION_MESSAGE_SIZE_MAX);
+				 GB_OPERATION_MESSAGE_SIZE_MAX);
 		buffer_size_max = GB_OPERATION_MESSAGE_SIZE_MAX;
 	}
 
 	hd = kzalloc(sizeof(*hd) + driver->hd_priv_size, GFP_KERNEL);
+
 	if (!hd)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	ret = ida_simple_get(&gb_hd_bus_id_map, 1, 0, GFP_KERNEL);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		kfree(hd);
 		return ERR_PTR(ret);
 	}
+
 	hd->bus_id = ret;
 
 	hd->driver = driver;
@@ -188,7 +216,9 @@ struct gb_host_device *gb_hd_create(struct gb_hd_driver *driver,
 	trace_gb_hd_create(hd);
 
 	hd->svc = gb_svc_create(hd);
-	if (!hd->svc) {
+
+	if (!hd->svc)
+	{
 		dev_err(&hd->dev, "failed to create svc\n");
 		put_device(&hd->dev);
 		return ERR_PTR(-ENOMEM);
@@ -203,11 +233,16 @@ int gb_hd_add(struct gb_host_device *hd)
 	int ret;
 
 	ret = device_add(&hd->dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = gb_svc_add(hd->svc);
-	if (ret) {
+
+	if (ret)
+	{
 		device_del(&hd->dev);
 		return ret;
 	}

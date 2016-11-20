@@ -49,8 +49,8 @@ static void blk_end_sync_rq(struct request *rq, int error)
  *    This function will invoke @done directly if the queue is dead.
  */
 void blk_execute_rq_nowait(struct request_queue *q, struct gendisk *bd_disk,
-			   struct request *rq, int at_head,
-			   rq_end_io_fn *done)
+						   struct request *rq, int at_head,
+						   rq_end_io_fn *done)
 {
 	int where = at_head ? ELEVATOR_INSERT_FRONT : ELEVATOR_INSERT_BACK;
 
@@ -64,15 +64,17 @@ void blk_execute_rq_nowait(struct request_queue *q, struct gendisk *bd_disk,
 	 * don't check dying flag for MQ because the request won't
 	 * be reused after dying flag is set
 	 */
-	if (q->mq_ops) {
+	if (q->mq_ops)
+	{
 		blk_mq_insert_request(rq, at_head, true, false);
 		return;
 	}
 
 	spin_lock_irq(q->queue_lock);
 
-	if (unlikely(blk_queue_dying(q))) {
-		rq->cmd_flags |= REQ_QUIET; 
+	if (unlikely(blk_queue_dying(q)))
+	{
+		rq->cmd_flags |= REQ_QUIET;
 		rq->errors = -ENXIO;
 		__blk_end_request_all(rq, rq->errors);
 		spin_unlock_irq(q->queue_lock);
@@ -97,14 +99,15 @@ EXPORT_SYMBOL_GPL(blk_execute_rq_nowait);
  *    for execution and wait for completion.
  */
 int blk_execute_rq(struct request_queue *q, struct gendisk *bd_disk,
-		   struct request *rq, int at_head)
+				   struct request *rq, int at_head)
 {
 	DECLARE_COMPLETION_ONSTACK(wait);
 	char sense[SCSI_SENSE_BUFFERSIZE];
 	int err = 0;
 	unsigned long hang_check;
 
-	if (!rq->sense) {
+	if (!rq->sense)
+	{
 		memset(sense, 0, sizeof(sense));
 		rq->sense = sense;
 		rq->sense_len = 0;
@@ -115,15 +118,21 @@ int blk_execute_rq(struct request_queue *q, struct gendisk *bd_disk,
 
 	/* Prevent hang_check timer from firing at us during very long I/O */
 	hang_check = sysctl_hung_task_timeout_secs;
+
 	if (hang_check)
-		while (!wait_for_completion_io_timeout(&wait, hang_check * (HZ/2)));
+		while (!wait_for_completion_io_timeout(&wait, hang_check * (HZ / 2)));
 	else
+	{
 		wait_for_completion_io(&wait);
+	}
 
 	if (rq->errors)
+	{
 		err = -EIO;
+	}
 
-	if (rq->sense == sense)	{
+	if (rq->sense == sense)
+	{
 		rq->sense = NULL;
 		rq->sense_len = 0;
 	}

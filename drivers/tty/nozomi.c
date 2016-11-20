@@ -70,12 +70,12 @@
 
 #define P_BUF_SIZE 128
 #define NFO(_err_flag_, args...)				\
-do {								\
-	char tmp[P_BUF_SIZE];					\
-	snprintf(tmp, sizeof(tmp), ##args);			\
-	printk(_err_flag_ "[%d] %s(): %s\n", __LINE__,		\
-		__func__, tmp);				\
-} while (0)
+	do {								\
+		char tmp[P_BUF_SIZE];					\
+		snprintf(tmp, sizeof(tmp), ##args);			\
+		printk(_err_flag_ "[%d] %s(): %s\n", __LINE__,		\
+			   __func__, tmp);				\
+	} while (0)
 
 #define DBG1(args...) D_(0x01, ##args)
 #define DBG2(args...) D_(0x02, ##args)
@@ -91,8 +91,8 @@ do {								\
 static int debug = NOZOMI_DEBUG_LEVEL;
 
 #define D(lvl, args...)  do \
-			{if (lvl & debug) NFO(KERN_DEBUG, ##args); } \
-			while (0)
+	{if (lvl & debug) NFO(KERN_DEBUG, ##args); } \
+	while (0)
 #define D_(lvl, args...) D(lvl, ##args)
 
 /* These printouts are always printed */
@@ -107,18 +107,18 @@ static int debug;
 #define TMP_BUF_MAX 256
 
 #define DUMP(buf__,len__) \
-  do {  \
-    char tbuf[TMP_BUF_MAX] = {0};\
-    if (len__ > 1) {\
-	snprintf(tbuf, len__ > TMP_BUF_MAX ? TMP_BUF_MAX : len__, "%s", buf__);\
-	if (tbuf[len__-2] == '\r') {\
-		tbuf[len__-2] = 'r';\
-	} \
-	DBG1("SENDING: '%s' (%d+n)", tbuf, len__);\
-    } else {\
-	DBG1("SENDING: '%s' (%d)", tbuf, len__);\
-    } \
-} while (0)
+	do {  \
+		char tbuf[TMP_BUF_MAX] = {0};\
+		if (len__ > 1) {\
+			snprintf(tbuf, len__ > TMP_BUF_MAX ? TMP_BUF_MAX : len__, "%s", buf__);\
+			if (tbuf[len__-2] == '\r') {\
+				tbuf[len__-2] = 'r';\
+			} \
+			DBG1("SENDING: '%s' (%d+n)", tbuf, len__);\
+		} else {\
+			DBG1("SENDING: '%s' (%d)", tbuf, len__);\
+		} \
+	} while (0)
 
 /*    Defines */
 #define NOZOMI_NAME		"nozomi"
@@ -182,13 +182,15 @@ static int debug;
  * There are two types of nozomi cards,
  * one with 2048 memory and with 8192 memory
  */
-enum card_type {
+enum card_type
+{
 	F32_2 = 2048,	/* 512 bytes downlink + uplink * 2 -> 2048 */
 	F32_8 = 8192,	/* 3072 bytes downl. + 1024 bytes uplink * 2 -> 8192 */
 };
 
 /* Initialization states a card can be in */
-enum card_state {
+enum card_state
+{
 	NOZOMI_STATE_UKNOWN	= 0,
 	NOZOMI_STATE_ENABLED	= 1,	/* pci device enabled */
 	NOZOMI_STATE_ALLOCATED	= 2,	/* config setup done */
@@ -196,13 +198,15 @@ enum card_state {
 };
 
 /* Two different toggle channels exist */
-enum channel_type {
+enum channel_type
+{
 	CH_A = 0,
 	CH_B = 1,
 };
 
 /* Port definition for the card regarding flow control */
-enum ctrl_port_type {
+enum ctrl_port_type
+{
 	CTRL_CMD	= 0,
 	CTRL_MDM	= 1,
 	CTRL_DIAG	= 2,
@@ -212,7 +216,8 @@ enum ctrl_port_type {
 };
 
 /* Ports that the nozomi has */
-enum port_type {
+enum port_type
+{
 	PORT_MDM	= 0,
 	PORT_DIAG	= 1,
 	PORT_APP1	= 2,
@@ -224,19 +229,21 @@ enum port_type {
 #ifdef __BIG_ENDIAN
 /* Big endian */
 
-struct toggles {
-	unsigned int enabled:5;	/*
+struct toggles
+{
+	unsigned int enabled: 5;	/*
 				 * Toggle fields are valid if enabled is 0,
 				 * else A-channels must always be used.
 				 */
-	unsigned int diag_dl:1;
-	unsigned int mdm_dl:1;
-	unsigned int mdm_ul:1;
+	unsigned int diag_dl: 1;
+	unsigned int mdm_dl: 1;
+	unsigned int mdm_ul: 1;
 } __attribute__ ((packed));
 
 /* Configuration table to read at startup of card */
 /* Is for now only needed during initialization phase */
-struct config_table {
+struct config_table
+{
 	u32 signature;
 	u16 product_information;
 	u16 version;
@@ -270,39 +277,43 @@ struct config_table {
 } __attribute__ ((packed));
 
 /* This stores all control downlink flags */
-struct ctrl_dl {
+struct ctrl_dl
+{
 	u8 port;
-	unsigned int reserved:4;
-	unsigned int CTS:1;
-	unsigned int RI:1;
-	unsigned int DCD:1;
-	unsigned int DSR:1;
+	unsigned int reserved: 4;
+	unsigned int CTS: 1;
+	unsigned int RI: 1;
+	unsigned int DCD: 1;
+	unsigned int DSR: 1;
 } __attribute__ ((packed));
 
 /* This stores all control uplink flags */
-struct ctrl_ul {
+struct ctrl_ul
+{
 	u8 port;
-	unsigned int reserved:6;
-	unsigned int RTS:1;
-	unsigned int DTR:1;
+	unsigned int reserved: 6;
+	unsigned int RTS: 1;
+	unsigned int DTR: 1;
 } __attribute__ ((packed));
 
 #else
 /* Little endian */
 
 /* This represents the toggle information */
-struct toggles {
-	unsigned int mdm_ul:1;
-	unsigned int mdm_dl:1;
-	unsigned int diag_dl:1;
-	unsigned int enabled:5;	/*
+struct toggles
+{
+	unsigned int mdm_ul: 1;
+	unsigned int mdm_dl: 1;
+	unsigned int diag_dl: 1;
+	unsigned int enabled: 5;	/*
 				 * Toggle fields are valid if enabled is 0,
 				 * else A-channels must always be used.
 				 */
 } __attribute__ ((packed));
 
 /* Configuration table to read at startup of card */
-struct config_table {
+struct config_table
+{
 	u32 signature;
 	u16 version;
 	u16 product_information;
@@ -330,26 +341,29 @@ struct config_table {
 } __attribute__ ((packed));
 
 /* This stores all control downlink flags */
-struct ctrl_dl {
-	unsigned int DSR:1;
-	unsigned int DCD:1;
-	unsigned int RI:1;
-	unsigned int CTS:1;
-	unsigned int reserverd:4;
+struct ctrl_dl
+{
+	unsigned int DSR: 1;
+	unsigned int DCD: 1;
+	unsigned int RI: 1;
+	unsigned int CTS: 1;
+	unsigned int reserverd: 4;
 	u8 port;
 } __attribute__ ((packed));
 
 /* This stores all control uplink flags */
-struct ctrl_ul {
-	unsigned int DTR:1;
-	unsigned int RTS:1;
-	unsigned int reserved:6;
+struct ctrl_ul
+{
+	unsigned int DTR: 1;
+	unsigned int RTS: 1;
+	unsigned int reserved: 6;
 	u8 port;
 } __attribute__ ((packed));
 #endif
 
 /* This holds all information that is needed regarding a port */
-struct port {
+struct port
+{
 	struct tty_port port;
 	u8 update_flow_control;
 	struct ctrl_ul ctrl_ul;
@@ -370,7 +384,8 @@ struct port {
 };
 
 /* Private data one for each card in the system */
-struct nozomi {
+struct nozomi
+{
 	void __iomem *base_addr;
 	unsigned long flip;
 
@@ -394,13 +409,15 @@ struct nozomi {
 };
 
 /* This is a data packet that is read or written to/from card */
-struct buffer {
+struct buffer
+{
 	u32 size;		/* size is the length of the data buffer */
 	u8 *data;
 } __attribute__ ((packed));
 
 /*    Global variables */
-static const struct pci_device_id nozomi_pci_tbl[] = {
+static const struct pci_device_id nozomi_pci_tbl[] =
+{
 	{PCI_DEVICE(0x1931, 0x000c)},	/* Nozomi HSDPA */
 	{},
 };
@@ -433,42 +450,52 @@ static inline struct port *get_port_by_tty(const struct tty_struct *tty)
  */
 
 static void read_mem32(u32 *buf, const void __iomem *mem_addr_start,
-			u32 size_bytes)
+					   u32 size_bytes)
 {
 	u32 i = 0;
 	const u32 __iomem *ptr = mem_addr_start;
 	u16 *buf16;
 
 	if (unlikely(!ptr || !buf))
+	{
 		goto out;
-
-	/* shortcut for extremely often used cases */
-	switch (size_bytes) {
-	case 2:	/* 2 bytes */
-		buf16 = (u16 *) buf;
-		*buf16 = __le16_to_cpu(readw(ptr));
-		goto out;
-		break;
-	case 4:	/* 4 bytes */
-		*(buf) = __le32_to_cpu(readl(ptr));
-		goto out;
-		break;
 	}
 
-	while (i < size_bytes) {
-		if (size_bytes - i == 2) {
+	/* shortcut for extremely often used cases */
+	switch (size_bytes)
+	{
+		case 2:	/* 2 bytes */
+			buf16 = (u16 *) buf;
+			*buf16 = __le16_to_cpu(readw(ptr));
+			goto out;
+			break;
+
+		case 4:	/* 4 bytes */
+			*(buf) = __le32_to_cpu(readl(ptr));
+			goto out;
+			break;
+	}
+
+	while (i < size_bytes)
+	{
+		if (size_bytes - i == 2)
+		{
 			/* Handle 2 bytes in the end */
 			buf16 = (u16 *) buf;
 			*(buf16) = __le16_to_cpu(readw(ptr));
 			i += 2;
-		} else {
+		}
+		else
+		{
 			/* Read 4 bytes */
 			*(buf) = __le32_to_cpu(readl(ptr));
 			i += 4;
 		}
+
 		buf++;
 		ptr++;
 	}
+
 out:
 	return;
 }
@@ -479,46 +506,56 @@ out:
  * -Rewrite cleaner
  */
 static u32 write_mem32(void __iomem *mem_addr_start, const u32 *buf,
-			u32 size_bytes)
+					   u32 size_bytes)
 {
 	u32 i = 0;
 	u32 __iomem *ptr = mem_addr_start;
 	const u16 *buf16;
 
 	if (unlikely(!ptr || !buf))
+	{
 		return 0;
+	}
 
 	/* shortcut for extremely often used cases */
-	switch (size_bytes) {
-	case 2:	/* 2 bytes */
-		buf16 = (const u16 *)buf;
-		writew(__cpu_to_le16(*buf16), ptr);
-		return 2;
-		break;
-	case 1: /*
+	switch (size_bytes)
+	{
+		case 2:	/* 2 bytes */
+			buf16 = (const u16 *)buf;
+			writew(__cpu_to_le16(*buf16), ptr);
+			return 2;
+			break;
+
+		case 1: /*
 		 * also needs to write 4 bytes in this case
 		 * so falling through..
 		 */
-	case 4: /* 4 bytes */
-		writel(__cpu_to_le32(*buf), ptr);
-		return 4;
-		break;
+		case 4: /* 4 bytes */
+			writel(__cpu_to_le32(*buf), ptr);
+			return 4;
+			break;
 	}
 
-	while (i < size_bytes) {
-		if (size_bytes - i == 2) {
+	while (i < size_bytes)
+	{
+		if (size_bytes - i == 2)
+		{
 			/* 2 bytes */
 			buf16 = (const u16 *)buf;
 			writew(__cpu_to_le16(*buf16), ptr);
 			i += 2;
-		} else {
+		}
+		else
+		{
 			/* 4 bytes */
 			writel(__cpu_to_le32(*buf), ptr);
 			i += 4;
 		}
+
 		buf++;
 		ptr++;
 	}
+
 	return i;
 }
 
@@ -534,74 +571,74 @@ static void nozomi_setup_memory(struct nozomi *dc)
 	/* Modem port dl configuration */
 	dc->port[PORT_MDM].dl_addr[CH_A] = offset;
 	dc->port[PORT_MDM].dl_addr[CH_B] =
-				(offset += dc->config_table.dl_mdm_len1);
+		(offset += dc->config_table.dl_mdm_len1);
 	dc->port[PORT_MDM].dl_size[CH_A] =
-				dc->config_table.dl_mdm_len1 - buff_offset;
+		dc->config_table.dl_mdm_len1 - buff_offset;
 	dc->port[PORT_MDM].dl_size[CH_B] =
-				dc->config_table.dl_mdm_len2 - buff_offset;
+		dc->config_table.dl_mdm_len2 - buff_offset;
 
 	/* Diag port dl configuration */
 	dc->port[PORT_DIAG].dl_addr[CH_A] =
-				(offset += dc->config_table.dl_mdm_len2);
+		(offset += dc->config_table.dl_mdm_len2);
 	dc->port[PORT_DIAG].dl_size[CH_A] =
-				dc->config_table.dl_diag_len1 - buff_offset;
+		dc->config_table.dl_diag_len1 - buff_offset;
 	dc->port[PORT_DIAG].dl_addr[CH_B] =
-				(offset += dc->config_table.dl_diag_len1);
+		(offset += dc->config_table.dl_diag_len1);
 	dc->port[PORT_DIAG].dl_size[CH_B] =
-				dc->config_table.dl_diag_len2 - buff_offset;
+		dc->config_table.dl_diag_len2 - buff_offset;
 
 	/* App1 port dl configuration */
 	dc->port[PORT_APP1].dl_addr[CH_A] =
-				(offset += dc->config_table.dl_diag_len2);
+		(offset += dc->config_table.dl_diag_len2);
 	dc->port[PORT_APP1].dl_size[CH_A] =
-				dc->config_table.dl_app1_len - buff_offset;
+		dc->config_table.dl_app1_len - buff_offset;
 
 	/* App2 port dl configuration */
 	dc->port[PORT_APP2].dl_addr[CH_A] =
-				(offset += dc->config_table.dl_app1_len);
+		(offset += dc->config_table.dl_app1_len);
 	dc->port[PORT_APP2].dl_size[CH_A] =
-				dc->config_table.dl_app2_len - buff_offset;
+		dc->config_table.dl_app2_len - buff_offset;
 
 	/* Ctrl dl configuration */
 	dc->port[PORT_CTRL].dl_addr[CH_A] =
-				(offset += dc->config_table.dl_app2_len);
+		(offset += dc->config_table.dl_app2_len);
 	dc->port[PORT_CTRL].dl_size[CH_A] =
-				dc->config_table.dl_ctrl_len - buff_offset;
+		dc->config_table.dl_ctrl_len - buff_offset;
 
 	offset = dc->base_addr + dc->config_table.ul_start;
 
 	/* Modem Port ul configuration */
 	dc->port[PORT_MDM].ul_addr[CH_A] = offset;
 	dc->port[PORT_MDM].ul_size[CH_A] =
-				dc->config_table.ul_mdm_len1 - buff_offset;
+		dc->config_table.ul_mdm_len1 - buff_offset;
 	dc->port[PORT_MDM].ul_addr[CH_B] =
-				(offset += dc->config_table.ul_mdm_len1);
+		(offset += dc->config_table.ul_mdm_len1);
 	dc->port[PORT_MDM].ul_size[CH_B] =
-				dc->config_table.ul_mdm_len2 - buff_offset;
+		dc->config_table.ul_mdm_len2 - buff_offset;
 
 	/* Diag port ul configuration */
 	dc->port[PORT_DIAG].ul_addr[CH_A] =
-				(offset += dc->config_table.ul_mdm_len2);
+		(offset += dc->config_table.ul_mdm_len2);
 	dc->port[PORT_DIAG].ul_size[CH_A] =
-				dc->config_table.ul_diag_len - buff_offset;
+		dc->config_table.ul_diag_len - buff_offset;
 
 	/* App1 port ul configuration */
 	dc->port[PORT_APP1].ul_addr[CH_A] =
-				(offset += dc->config_table.ul_diag_len);
+		(offset += dc->config_table.ul_diag_len);
 	dc->port[PORT_APP1].ul_size[CH_A] =
-				dc->config_table.ul_app1_len - buff_offset;
+		dc->config_table.ul_app1_len - buff_offset;
 
 	/* App2 port ul configuration */
 	dc->port[PORT_APP2].ul_addr[CH_A] =
-				(offset += dc->config_table.ul_app1_len);
+		(offset += dc->config_table.ul_app1_len);
 	dc->port[PORT_APP2].ul_size[CH_A] =
-				dc->config_table.ul_app2_len - buff_offset;
+		dc->config_table.ul_app2_len - buff_offset;
 
 	/* Ctrl ul configuration */
 	dc->port[PORT_CTRL].ul_addr[CH_A] =
-				(offset += dc->config_table.ul_app2_len);
+		(offset += dc->config_table.ul_app2_len);
 	dc->port[PORT_CTRL].ul_size[CH_A] =
-				dc->config_table.ul_ctrl_len - buff_offset;
+		dc->config_table.ul_ctrl_len - buff_offset;
 }
 
 /* Dump config table under initalization phase */
@@ -611,7 +648,7 @@ static void dump_table(const struct nozomi *dc)
 	DBG3("signature: 0x%08X", dc->config_table.signature);
 	DBG3("version: 0x%04X", dc->config_table.version);
 	DBG3("product_information: 0x%04X", \
-				dc->config_table.product_information);
+		 dc->config_table.product_information);
 	DBG3("toggle enabled: %d", dc->config_table.toggle.enabled);
 	DBG3("toggle up_mdm: %d", dc->config_table.toggle.mdm_ul);
 	DBG3("toggle dl_mdm: %d", dc->config_table.toggle.mdm_dl);
@@ -619,33 +656,33 @@ static void dump_table(const struct nozomi *dc)
 
 	DBG3("dl_start: 0x%04X", dc->config_table.dl_start);
 	DBG3("dl_mdm_len0: 0x%04X, %d", dc->config_table.dl_mdm_len1,
-	   dc->config_table.dl_mdm_len1);
+		 dc->config_table.dl_mdm_len1);
 	DBG3("dl_mdm_len1: 0x%04X, %d", dc->config_table.dl_mdm_len2,
-	   dc->config_table.dl_mdm_len2);
+		 dc->config_table.dl_mdm_len2);
 	DBG3("dl_diag_len0: 0x%04X, %d", dc->config_table.dl_diag_len1,
-	   dc->config_table.dl_diag_len1);
+		 dc->config_table.dl_diag_len1);
 	DBG3("dl_diag_len1: 0x%04X, %d", dc->config_table.dl_diag_len2,
-	   dc->config_table.dl_diag_len2);
+		 dc->config_table.dl_diag_len2);
 	DBG3("dl_app1_len: 0x%04X, %d", dc->config_table.dl_app1_len,
-	   dc->config_table.dl_app1_len);
+		 dc->config_table.dl_app1_len);
 	DBG3("dl_app2_len: 0x%04X, %d", dc->config_table.dl_app2_len,
-	   dc->config_table.dl_app2_len);
+		 dc->config_table.dl_app2_len);
 	DBG3("dl_ctrl_len: 0x%04X, %d", dc->config_table.dl_ctrl_len,
-	   dc->config_table.dl_ctrl_len);
+		 dc->config_table.dl_ctrl_len);
 	DBG3("ul_start: 0x%04X, %d", dc->config_table.ul_start,
-	   dc->config_table.ul_start);
+		 dc->config_table.ul_start);
 	DBG3("ul_mdm_len[0]: 0x%04X, %d", dc->config_table.ul_mdm_len1,
-	   dc->config_table.ul_mdm_len1);
+		 dc->config_table.ul_mdm_len1);
 	DBG3("ul_mdm_len[1]: 0x%04X, %d", dc->config_table.ul_mdm_len2,
-	   dc->config_table.ul_mdm_len2);
+		 dc->config_table.ul_mdm_len2);
 	DBG3("ul_diag_len: 0x%04X, %d", dc->config_table.ul_diag_len,
-	   dc->config_table.ul_diag_len);
+		 dc->config_table.ul_diag_len);
 	DBG3("ul_app1_len: 0x%04X, %d", dc->config_table.ul_app1_len,
-	   dc->config_table.ul_app1_len);
+		 dc->config_table.ul_app1_len);
 	DBG3("ul_app2_len: 0x%04X, %d", dc->config_table.ul_app2_len,
-	   dc->config_table.ul_app2_len);
+		 dc->config_table.ul_app2_len);
 	DBG3("ul_ctrl_len: 0x%04X, %d", dc->config_table.ul_ctrl_len,
-	   dc->config_table.ul_ctrl_len);
+		 dc->config_table.ul_ctrl_len);
 }
 #else
 static inline void dump_table(const struct nozomi *dc) { }
@@ -658,16 +695,18 @@ static inline void dump_table(const struct nozomi *dc) { }
 static int nozomi_read_config_table(struct nozomi *dc)
 {
 	read_mem32((u32 *) &dc->config_table, dc->base_addr + 0,
-						sizeof(struct config_table));
+			   sizeof(struct config_table));
 
-	if (dc->config_table.signature != NOZOMI_CONFIG_MAGIC) {
+	if (dc->config_table.signature != NOZOMI_CONFIG_MAGIC)
+	{
 		dev_err(&dc->pdev->dev, "ConfigTable Bad! 0x%08X != 0x%08X\n",
-			dc->config_table.signature, NOZOMI_CONFIG_MAGIC);
+				dc->config_table.signature, NOZOMI_CONFIG_MAGIC);
 		return 0;
 	}
 
 	if ((dc->config_table.version == 0)
-	    || (dc->config_table.toggle.enabled == TOGGLE_VALID)) {
+		|| (dc->config_table.toggle.enabled == TOGGLE_VALID))
+	{
 		int i;
 		DBG1("Second phase, configuring card");
 
@@ -677,12 +716,13 @@ static int nozomi_read_config_table(struct nozomi *dc)
 		dc->port[PORT_MDM].toggle_dl = dc->config_table.toggle.mdm_dl;
 		dc->port[PORT_DIAG].toggle_dl = dc->config_table.toggle.diag_dl;
 		DBG1("toggle ports: MDM UL:%d MDM DL:%d, DIAG DL:%d",
-		   dc->port[PORT_MDM].toggle_ul,
-		   dc->port[PORT_MDM].toggle_dl, dc->port[PORT_DIAG].toggle_dl);
+			 dc->port[PORT_MDM].toggle_ul,
+			 dc->port[PORT_MDM].toggle_dl, dc->port[PORT_DIAG].toggle_dl);
 
 		dump_table(dc);
 
-		for (i = PORT_MDM; i < MAX_PORT; i++) {
+		for (i = PORT_MDM; i < MAX_PORT; i++)
+		{
 			memset(&dc->port[i].ctrl_dl, 0, sizeof(struct ctrl_dl));
 			memset(&dc->port[i].ctrl_ul, 0, sizeof(struct ctrl_ul));
 		}
@@ -697,12 +737,13 @@ static int nozomi_read_config_table(struct nozomi *dc)
 	}
 
 	if ((dc->config_table.version > 0)
-	    && (dc->config_table.toggle.enabled != TOGGLE_VALID)) {
+		&& (dc->config_table.toggle.enabled != TOGGLE_VALID))
+	{
 		u32 offset = 0;
 		DBG1("First phase: pushing upload buffers, clearing download");
 
 		dev_info(&dc->pdev->dev, "Version of card: %d\n",
-			 dc->config_table.version);
+				 dc->config_table.version);
 
 		/* Here we should disable all I/O over F32. */
 		nozomi_setup_memory(dc);
@@ -714,9 +755,9 @@ static int nozomi_read_config_table(struct nozomi *dc)
 
 		/* push upload modem buffers */
 		write_mem32(dc->port[PORT_MDM].ul_addr[CH_A],
-			(u32 *) &offset, 4);
+					(u32 *) &offset, 4);
 		write_mem32(dc->port[PORT_MDM].ul_addr[CH_B],
-			(u32 *) &offset, 4);
+					(u32 *) &offset, 4);
 
 		writew(MDM_UL | DIAG_DL | MDM_DL, dc->reg_fcr);
 
@@ -731,10 +772,13 @@ static void enable_transmit_ul(enum port_type port, struct nozomi *dc)
 {
 	static const u16 mask[] = {MDM_UL, DIAG_UL, APP1_UL, APP2_UL, CTRL_UL};
 
-	if (port < NOZOMI_MAX_PORTS) {
+	if (port < NOZOMI_MAX_PORTS)
+	{
 		dc->last_ier |= mask[port];
 		writew(dc->last_ier, dc->reg_ier);
-	} else {
+	}
+	else
+	{
 		dev_err(&dc->pdev->dev, "Called with wrong port?\n");
 	}
 }
@@ -743,12 +787,15 @@ static void enable_transmit_ul(enum port_type port, struct nozomi *dc)
 static void disable_transmit_ul(enum port_type port, struct nozomi *dc)
 {
 	static const u16 mask[] =
-		{~MDM_UL, ~DIAG_UL, ~APP1_UL, ~APP2_UL, ~CTRL_UL};
+	{~MDM_UL, ~DIAG_UL, ~APP1_UL, ~APP2_UL, ~CTRL_UL};
 
-	if (port < NOZOMI_MAX_PORTS) {
+	if (port < NOZOMI_MAX_PORTS)
+	{
 		dc->last_ier &= mask[port];
 		writew(dc->last_ier, dc->reg_ier);
-	} else {
+	}
+	else
+	{
 		dev_err(&dc->pdev->dev, "Called with wrong port?\n");
 	}
 }
@@ -758,10 +805,13 @@ static void enable_transmit_dl(enum port_type port, struct nozomi *dc)
 {
 	static const u16 mask[] = {MDM_DL, DIAG_DL, APP1_DL, APP2_DL, CTRL_DL};
 
-	if (port < NOZOMI_MAX_PORTS) {
+	if (port < NOZOMI_MAX_PORTS)
+	{
 		dc->last_ier |= mask[port];
 		writew(dc->last_ier, dc->reg_ier);
-	} else {
+	}
+	else
+	{
 		dev_err(&dc->pdev->dev, "Called with wrong port?\n");
 	}
 }
@@ -770,12 +820,15 @@ static void enable_transmit_dl(enum port_type port, struct nozomi *dc)
 static void disable_transmit_dl(enum port_type port, struct nozomi *dc)
 {
 	static const u16 mask[] =
-		{~MDM_DL, ~DIAG_DL, ~APP1_DL, ~APP2_DL, ~CTRL_DL};
+	{~MDM_DL, ~DIAG_DL, ~APP1_DL, ~APP2_DL, ~CTRL_DL};
 
-	if (port < NOZOMI_MAX_PORTS) {
+	if (port < NOZOMI_MAX_PORTS)
+	{
 		dc->last_ier &= mask[port];
 		writew(dc->last_ier, dc->reg_ier);
-	} else {
+	}
+	else
+	{
 		dev_err(&dc->pdev->dev, "Called with wrong port?\n");
 	}
 }
@@ -794,9 +847,10 @@ static int send_data(enum port_type index, struct nozomi *dc)
 
 	/* Get data from tty and place in buf for now */
 	size = kfifo_out(&port->fifo_ul, dc->send_buf,
-			   ul_size < SEND_BUF_MAX ? ul_size : SEND_BUF_MAX);
+					 ul_size < SEND_BUF_MAX ? ul_size : SEND_BUF_MAX);
 
-	if (size == 0) {
+	if (size == 0)
+	{
 		DBG4("No more data to send, disable link:");
 		return 0;
 	}
@@ -826,9 +880,10 @@ static int receive_data(enum port_type index, struct nozomi *dc)
 	size = __le32_to_cpu(readl(addr));
 	/*  DBG1( "%d bytes port: %d", size, index); */
 
-	if (tty && tty_throttled(tty)) {
+	if (tty && tty_throttled(tty))
+	{
 		DBG1("No room in tty, don't read data, don't ack interrupt, "
-			"disable interrupt");
+			 "disable interrupt");
 
 		/* disable interrupt in downlink... */
 		disable_transmit_dl(index, dc);
@@ -836,24 +891,31 @@ static int receive_data(enum port_type index, struct nozomi *dc)
 		goto put;
 	}
 
-	if (unlikely(size == 0)) {
+	if (unlikely(size == 0))
+	{
 		dev_err(&dc->pdev->dev, "size == 0?\n");
 		ret = 1;
 		goto put;
 	}
 
-	while (size > 0) {
+	while (size > 0)
+	{
 		read_mem32((u32 *) buf, addr + offset, RECEIVE_BUF_MAX);
 
-		if (size == 1) {
+		if (size == 1)
+		{
 			tty_insert_flip_char(&port->port, buf[0], TTY_NORMAL);
 			size = 0;
-		} else if (size < RECEIVE_BUF_MAX) {
+		}
+		else if (size < RECEIVE_BUF_MAX)
+		{
 			size -= tty_insert_flip_string(&port->port,
-					(char *)buf, size);
-		} else {
+										   (char *)buf, size);
+		}
+		else
+		{
 			i = tty_insert_flip_string(&port->port,
-					(char *)buf, RECEIVE_BUF_MAX);
+									   (char *)buf, RECEIVE_BUF_MAX);
 			size -= i;
 			offset += i;
 		}
@@ -873,40 +935,40 @@ static char *interrupt2str(u16 interrupt)
 	static char buf[TMP_BUF_MAX];
 	char *p = buf;
 
-	interrupt & MDM_DL1 ? p += snprintf(p, TMP_BUF_MAX, "MDM_DL1 ") : NULL;
-	interrupt & MDM_DL2 ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
-					"MDM_DL2 ") : NULL;
+	interrupt &MDM_DL1 ? p += snprintf(p, TMP_BUF_MAX, "MDM_DL1 ") : NULL;
+	interrupt &MDM_DL2 ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
+									   "MDM_DL2 ") : NULL;
 
-	interrupt & MDM_UL1 ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
-					"MDM_UL1 ") : NULL;
-	interrupt & MDM_UL2 ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
-					"MDM_UL2 ") : NULL;
+	interrupt &MDM_UL1 ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
+									   "MDM_UL1 ") : NULL;
+	interrupt &MDM_UL2 ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
+									   "MDM_UL2 ") : NULL;
 
-	interrupt & DIAG_DL1 ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
-					"DIAG_DL1 ") : NULL;
-	interrupt & DIAG_DL2 ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
-					"DIAG_DL2 ") : NULL;
+	interrupt &DIAG_DL1 ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
+										"DIAG_DL1 ") : NULL;
+	interrupt &DIAG_DL2 ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
+										"DIAG_DL2 ") : NULL;
 
-	interrupt & DIAG_UL ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
-					"DIAG_UL ") : NULL;
+	interrupt &DIAG_UL ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
+									   "DIAG_UL ") : NULL;
 
-	interrupt & APP1_DL ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
-					"APP1_DL ") : NULL;
-	interrupt & APP2_DL ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
-					"APP2_DL ") : NULL;
+	interrupt &APP1_DL ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
+									   "APP1_DL ") : NULL;
+	interrupt &APP2_DL ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
+									   "APP2_DL ") : NULL;
 
-	interrupt & APP1_UL ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
-					"APP1_UL ") : NULL;
-	interrupt & APP2_UL ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
-					"APP2_UL ") : NULL;
+	interrupt &APP1_UL ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
+									   "APP1_UL ") : NULL;
+	interrupt &APP2_UL ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
+									   "APP2_UL ") : NULL;
 
-	interrupt & CTRL_DL ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
-					"CTRL_DL ") : NULL;
-	interrupt & CTRL_UL ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
-					"CTRL_UL ") : NULL;
+	interrupt &CTRL_DL ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
+									   "CTRL_DL ") : NULL;
+	interrupt &CTRL_UL ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
+									   "CTRL_UL ") : NULL;
 
-	interrupt & RESET ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
-					"RESET ") : NULL;
+	interrupt &RESET ? p += snprintf(p, TMP_BUF_MAX - (p - buf),
+									 "RESET ") : NULL;
 
 	return buf;
 }
@@ -925,134 +987,173 @@ static int receive_flow_control(struct nozomi *dc)
 
 	read_mem32((u32 *) &ctrl_dl, dc->port[PORT_CTRL].dl_addr[CH_A], 2);
 
-	switch (ctrl_dl.port) {
-	case CTRL_CMD:
-		DBG1("The Base Band sends this value as a response to a "
-			"request for IMSI detach sent over the control "
-			"channel uplink (see section 7.6.1).");
-		break;
-	case CTRL_MDM:
-		port = PORT_MDM;
-		enable_ier = MDM_DL;
-		break;
-	case CTRL_DIAG:
-		port = PORT_DIAG;
-		enable_ier = DIAG_DL;
-		break;
-	case CTRL_APP1:
-		port = PORT_APP1;
-		enable_ier = APP1_DL;
-		break;
-	case CTRL_APP2:
-		port = PORT_APP2;
-		enable_ier = APP2_DL;
-		if (dc->state == NOZOMI_STATE_ALLOCATED) {
-			/*
-			 * After card initialization the flow control
-			 * received for APP2 is always the last
-			 */
-			dc->state = NOZOMI_STATE_READY;
-			dev_info(&dc->pdev->dev, "Device READY!\n");
-		}
-		break;
-	default:
-		dev_err(&dc->pdev->dev,
-			"ERROR: flow control received for non-existing port\n");
-		return 0;
+	switch (ctrl_dl.port)
+	{
+		case CTRL_CMD:
+			DBG1("The Base Band sends this value as a response to a "
+				 "request for IMSI detach sent over the control "
+				 "channel uplink (see section 7.6.1).");
+			break;
+
+		case CTRL_MDM:
+			port = PORT_MDM;
+			enable_ier = MDM_DL;
+			break;
+
+		case CTRL_DIAG:
+			port = PORT_DIAG;
+			enable_ier = DIAG_DL;
+			break;
+
+		case CTRL_APP1:
+			port = PORT_APP1;
+			enable_ier = APP1_DL;
+			break;
+
+		case CTRL_APP2:
+			port = PORT_APP2;
+			enable_ier = APP2_DL;
+
+			if (dc->state == NOZOMI_STATE_ALLOCATED)
+			{
+				/*
+				 * After card initialization the flow control
+				 * received for APP2 is always the last
+				 */
+				dc->state = NOZOMI_STATE_READY;
+				dev_info(&dc->pdev->dev, "Device READY!\n");
+			}
+
+			break;
+
+		default:
+			dev_err(&dc->pdev->dev,
+					"ERROR: flow control received for non-existing port\n");
+			return 0;
 	}
 
 	DBG1("0x%04X->0x%04X", *((u16 *)&dc->port[port].ctrl_dl),
-	   *((u16 *)&ctrl_dl));
+		 *((u16 *)&ctrl_dl));
 
 	old_ctrl = dc->port[port].ctrl_dl;
 	dc->port[port].ctrl_dl = ctrl_dl;
 
-	if (old_ctrl.CTS == 1 && ctrl_dl.CTS == 0) {
+	if (old_ctrl.CTS == 1 && ctrl_dl.CTS == 0)
+	{
 		DBG1("Disable interrupt (0x%04X) on port: %d",
-			enable_ier, port);
+			 enable_ier, port);
 		disable_transmit_ul(port, dc);
 
-	} else if (old_ctrl.CTS == 0 && ctrl_dl.CTS == 1) {
+	}
+	else if (old_ctrl.CTS == 0 && ctrl_dl.CTS == 1)
+	{
 
-		if (kfifo_len(&dc->port[port].fifo_ul)) {
+		if (kfifo_len(&dc->port[port].fifo_ul))
+		{
 			DBG1("Enable interrupt (0x%04X) on port: %d",
-				enable_ier, port);
+				 enable_ier, port);
 			DBG1("Data in buffer [%d], enable transmit! ",
-				kfifo_len(&dc->port[port].fifo_ul));
+				 kfifo_len(&dc->port[port].fifo_ul));
 			enable_transmit_ul(port, dc);
-		} else {
+		}
+		else
+		{
 			DBG1("No data in buffer...");
 		}
 	}
 
-	if (*(u16 *)&old_ctrl == *(u16 *)&ctrl_dl) {
+	if (*(u16 *)&old_ctrl == *(u16 *)&ctrl_dl)
+	{
 		DBG1(" No change in mctrl");
 		return 1;
 	}
+
 	/* Update statistics */
 	if (old_ctrl.CTS != ctrl_dl.CTS)
+	{
 		dc->port[port].tty_icount.cts++;
+	}
+
 	if (old_ctrl.DSR != ctrl_dl.DSR)
+	{
 		dc->port[port].tty_icount.dsr++;
+	}
+
 	if (old_ctrl.RI != ctrl_dl.RI)
+	{
 		dc->port[port].tty_icount.rng++;
+	}
+
 	if (old_ctrl.DCD != ctrl_dl.DCD)
+	{
 		dc->port[port].tty_icount.dcd++;
+	}
 
 	wake_up_interruptible(&dc->port[port].tty_wait);
 
 	DBG1("port: %d DCD(%d), CTS(%d), RI(%d), DSR(%d)",
-	   port,
-	   dc->port[port].tty_icount.dcd, dc->port[port].tty_icount.cts,
-	   dc->port[port].tty_icount.rng, dc->port[port].tty_icount.dsr);
+		 port,
+		 dc->port[port].tty_icount.dcd, dc->port[port].tty_icount.cts,
+		 dc->port[port].tty_icount.rng, dc->port[port].tty_icount.dsr);
 
 	return 1;
 }
 
 static enum ctrl_port_type port2ctrl(enum port_type port,
-					const struct nozomi *dc)
+									 const struct nozomi *dc)
 {
-	switch (port) {
-	case PORT_MDM:
-		return CTRL_MDM;
-	case PORT_DIAG:
-		return CTRL_DIAG;
-	case PORT_APP1:
-		return CTRL_APP1;
-	case PORT_APP2:
-		return CTRL_APP2;
-	default:
-		dev_err(&dc->pdev->dev,
-			"ERROR: send flow control " \
-			"received for non-existing port\n");
-	}
-	return CTRL_ERROR;
-}
+	switch (port)
+	{
+		case PORT_MDM:
+					return CTRL_MDM;
 
-/*
- * Send flow control, can only update one channel at a time
- * Return 0 - If we have updated all flow control
- * Return 1 - If we need to update more flow control, ack current enable more
- */
-static int send_flow_control(struct nozomi *dc)
+			case PORT_DIAG:
+				return CTRL_DIAG;
+
+			case PORT_APP1:
+				return CTRL_APP1;
+
+			case PORT_APP2:
+				return CTRL_APP2;
+
+			default:
+				dev_err(&dc->pdev->dev,
+						"ERROR: send flow control " \
+						"received for non-existing port\n");
+		}
+
+		return CTRL_ERROR;
+	}
+
+	/*
+	 * Send flow control, can only update one channel at a time
+	 * Return 0 - If we have updated all flow control
+	 * Return 1 - If we need to update more flow control, ack current enable more
+	 */
+	static int send_flow_control(struct nozomi *dc)
 {
 	u32 i, more_flow_control_to_be_updated = 0;
 	u16 *ctrl;
 
-	for (i = PORT_MDM; i < MAX_PORT; i++) {
-		if (dc->port[i].update_flow_control) {
-			if (more_flow_control_to_be_updated) {
+	for (i = PORT_MDM; i < MAX_PORT; i++)
+	{
+		if (dc->port[i].update_flow_control)
+		{
+			if (more_flow_control_to_be_updated)
+			{
 				/* We have more flow control to be updated */
 				return 1;
 			}
+
 			dc->port[i].ctrl_ul.port = port2ctrl(i, dc);
 			ctrl = (u16 *)&dc->port[i].ctrl_ul;
 			write_mem32(dc->port[PORT_CTRL].ul_addr[0], \
-				(u32 *) ctrl, 2);
+						(u32 *) ctrl, 2);
 			dc->port[i].update_flow_control = 0;
 			more_flow_control_to_be_updated = 1;
 		}
 	}
+
 	return 0;
 }
 
@@ -1062,37 +1163,49 @@ static int send_flow_control(struct nozomi *dc)
  * Return 0 - toggle fields are out of sync
  */
 static int handle_data_dl(struct nozomi *dc, enum port_type port, u8 *toggle,
-			u16 read_iir, u16 mask1, u16 mask2)
+						  u16 read_iir, u16 mask1, u16 mask2)
 {
-	if (*toggle == 0 && read_iir & mask1) {
-		if (receive_data(port, dc)) {
+	if (*toggle == 0 && read_iir & mask1)
+	{
+		if (receive_data(port, dc))
+		{
 			writew(mask1, dc->reg_fcr);
 			*toggle = !(*toggle);
 		}
 
-		if (read_iir & mask2) {
-			if (receive_data(port, dc)) {
+		if (read_iir & mask2)
+		{
+			if (receive_data(port, dc))
+			{
 				writew(mask2, dc->reg_fcr);
 				*toggle = !(*toggle);
 			}
 		}
-	} else if (*toggle == 1 && read_iir & mask2) {
-		if (receive_data(port, dc)) {
+	}
+	else if (*toggle == 1 && read_iir & mask2)
+	{
+		if (receive_data(port, dc))
+		{
 			writew(mask2, dc->reg_fcr);
 			*toggle = !(*toggle);
 		}
 
-		if (read_iir & mask1) {
-			if (receive_data(port, dc)) {
+		if (read_iir & mask1)
+		{
+			if (receive_data(port, dc))
+			{
 				writew(mask1, dc->reg_fcr);
 				*toggle = !(*toggle);
 			}
 		}
-	} else {
+	}
+	else
+	{
 		dev_err(&dc->pdev->dev, "port out of sync!, toggle:%d\n",
-			*toggle);
+				*toggle);
 		return 0;
 	}
+
 	return 1;
 }
 
@@ -1105,20 +1218,26 @@ static int handle_data_ul(struct nozomi *dc, enum port_type port, u16 read_iir)
 {
 	u8 *toggle = &(dc->port[port].toggle_ul);
 
-	if (*toggle == 0 && read_iir & MDM_UL1) {
+	if (*toggle == 0 && read_iir & MDM_UL1)
+	{
 		dc->last_ier &= ~MDM_UL;
 		writew(dc->last_ier, dc->reg_ier);
-		if (send_data(port, dc)) {
+
+		if (send_data(port, dc))
+		{
 			writew(MDM_UL1, dc->reg_fcr);
 			dc->last_ier = dc->last_ier | MDM_UL;
 			writew(dc->last_ier, dc->reg_ier);
 			*toggle = !*toggle;
 		}
 
-		if (read_iir & MDM_UL2) {
+		if (read_iir & MDM_UL2)
+		{
 			dc->last_ier &= ~MDM_UL;
 			writew(dc->last_ier, dc->reg_ier);
-			if (send_data(port, dc)) {
+
+			if (send_data(port, dc))
+			{
 				writew(MDM_UL2, dc->reg_fcr);
 				dc->last_ier = dc->last_ier | MDM_UL;
 				writew(dc->last_ier, dc->reg_ier);
@@ -1126,31 +1245,41 @@ static int handle_data_ul(struct nozomi *dc, enum port_type port, u16 read_iir)
 			}
 		}
 
-	} else if (*toggle == 1 && read_iir & MDM_UL2) {
+	}
+	else if (*toggle == 1 && read_iir & MDM_UL2)
+	{
 		dc->last_ier &= ~MDM_UL;
 		writew(dc->last_ier, dc->reg_ier);
-		if (send_data(port, dc)) {
+
+		if (send_data(port, dc))
+		{
 			writew(MDM_UL2, dc->reg_fcr);
 			dc->last_ier = dc->last_ier | MDM_UL;
 			writew(dc->last_ier, dc->reg_ier);
 			*toggle = !*toggle;
 		}
 
-		if (read_iir & MDM_UL1) {
+		if (read_iir & MDM_UL1)
+		{
 			dc->last_ier &= ~MDM_UL;
 			writew(dc->last_ier, dc->reg_ier);
-			if (send_data(port, dc)) {
+
+			if (send_data(port, dc))
+			{
 				writew(MDM_UL1, dc->reg_fcr);
 				dc->last_ier = dc->last_ier | MDM_UL;
 				writew(dc->last_ier, dc->reg_ier);
 				*toggle = !*toggle;
 			}
 		}
-	} else {
+	}
+	else
+	{
 		writew(read_iir & MDM_UL, dc->reg_fcr);
 		dev_err(&dc->pdev->dev, "port out of sync!\n");
 		return 0;
 	}
+
 	return 1;
 }
 
@@ -1161,14 +1290,19 @@ static irqreturn_t interrupt_handler(int irq, void *dev_id)
 	u16 read_iir;
 
 	if (!dc)
+	{
 		return IRQ_NONE;
+	}
 
 	spin_lock(&dc->spin_mutex);
 	read_iir = readw(dc->reg_iir);
 
 	/* Card removed */
-	if (read_iir == (u16)-1)
+	if (read_iir == (u16) - 1)
+	{
 		goto none;
+	}
+
 	/*
 	 * Just handle interrupt enabled in IER
 	 * (by masking with dc->last_ier)
@@ -1176,90 +1310,132 @@ static irqreturn_t interrupt_handler(int irq, void *dev_id)
 	read_iir &= dc->last_ier;
 
 	if (read_iir == 0)
+	{
 		goto none;
+	}
 
 
 	DBG4("%s irq:0x%04X, prev:0x%04X", interrupt2str(read_iir), read_iir,
-		dc->last_ier);
+		 dc->last_ier);
 
-	if (read_iir & RESET) {
-		if (unlikely(!nozomi_read_config_table(dc))) {
+	if (read_iir & RESET)
+	{
+		if (unlikely(!nozomi_read_config_table(dc)))
+		{
 			dc->last_ier = 0x0;
 			writew(dc->last_ier, dc->reg_ier);
 			dev_err(&dc->pdev->dev, "Could not read status from "
-				"card, we should disable interface\n");
-		} else {
+					"card, we should disable interface\n");
+		}
+		else
+		{
 			writew(RESET, dc->reg_fcr);
 		}
+
 		/* No more useful info if this was the reset interrupt. */
 		goto exit_handler;
 	}
-	if (read_iir & CTRL_UL) {
+
+	if (read_iir & CTRL_UL)
+	{
 		DBG1("CTRL_UL");
 		dc->last_ier &= ~CTRL_UL;
 		writew(dc->last_ier, dc->reg_ier);
-		if (send_flow_control(dc)) {
+
+		if (send_flow_control(dc))
+		{
 			writew(CTRL_UL, dc->reg_fcr);
 			dc->last_ier = dc->last_ier | CTRL_UL;
 			writew(dc->last_ier, dc->reg_ier);
 		}
 	}
-	if (read_iir & CTRL_DL) {
+
+	if (read_iir & CTRL_DL)
+	{
 		receive_flow_control(dc);
 		writew(CTRL_DL, dc->reg_fcr);
 	}
-	if (read_iir & MDM_DL) {
+
+	if (read_iir & MDM_DL)
+	{
 		if (!handle_data_dl(dc, PORT_MDM,
-				&(dc->port[PORT_MDM].toggle_dl), read_iir,
-				MDM_DL1, MDM_DL2)) {
+							&(dc->port[PORT_MDM].toggle_dl), read_iir,
+							MDM_DL1, MDM_DL2))
+		{
 			dev_err(&dc->pdev->dev, "MDM_DL out of sync!\n");
 			goto exit_handler;
 		}
 	}
-	if (read_iir & MDM_UL) {
-		if (!handle_data_ul(dc, PORT_MDM, read_iir)) {
+
+	if (read_iir & MDM_UL)
+	{
+		if (!handle_data_ul(dc, PORT_MDM, read_iir))
+		{
 			dev_err(&dc->pdev->dev, "MDM_UL out of sync!\n");
 			goto exit_handler;
 		}
 	}
-	if (read_iir & DIAG_DL) {
+
+	if (read_iir & DIAG_DL)
+	{
 		if (!handle_data_dl(dc, PORT_DIAG,
-				&(dc->port[PORT_DIAG].toggle_dl), read_iir,
-				DIAG_DL1, DIAG_DL2)) {
+							&(dc->port[PORT_DIAG].toggle_dl), read_iir,
+							DIAG_DL1, DIAG_DL2))
+		{
 			dev_err(&dc->pdev->dev, "DIAG_DL out of sync!\n");
 			goto exit_handler;
 		}
 	}
-	if (read_iir & DIAG_UL) {
+
+	if (read_iir & DIAG_UL)
+	{
 		dc->last_ier &= ~DIAG_UL;
 		writew(dc->last_ier, dc->reg_ier);
-		if (send_data(PORT_DIAG, dc)) {
+
+		if (send_data(PORT_DIAG, dc))
+		{
 			writew(DIAG_UL, dc->reg_fcr);
 			dc->last_ier = dc->last_ier | DIAG_UL;
 			writew(dc->last_ier, dc->reg_ier);
 		}
 	}
-	if (read_iir & APP1_DL) {
+
+	if (read_iir & APP1_DL)
+	{
 		if (receive_data(PORT_APP1, dc))
+		{
 			writew(APP1_DL, dc->reg_fcr);
+		}
 	}
-	if (read_iir & APP1_UL) {
+
+	if (read_iir & APP1_UL)
+	{
 		dc->last_ier &= ~APP1_UL;
 		writew(dc->last_ier, dc->reg_ier);
-		if (send_data(PORT_APP1, dc)) {
+
+		if (send_data(PORT_APP1, dc))
+		{
 			writew(APP1_UL, dc->reg_fcr);
 			dc->last_ier = dc->last_ier | APP1_UL;
 			writew(dc->last_ier, dc->reg_ier);
 		}
 	}
-	if (read_iir & APP2_DL) {
+
+	if (read_iir & APP2_DL)
+	{
 		if (receive_data(PORT_APP2, dc))
+		{
 			writew(APP2_DL, dc->reg_fcr);
+		}
 	}
-	if (read_iir & APP2_UL) {
+
+	if (read_iir & APP2_UL)
+	{
 		dc->last_ier &= ~APP2_UL;
 		writew(dc->last_ier, dc->reg_ier);
-		if (send_data(PORT_APP2, dc)) {
+
+		if (send_data(PORT_APP2, dc))
+		{
 			writew(APP2_UL, dc->reg_fcr);
 			dc->last_ier = dc->last_ier | APP2_UL;
 			writew(dc->last_ier, dc->reg_ier);
@@ -1271,7 +1447,9 @@ exit_handler:
 
 	for (a = 0; a < NOZOMI_MAX_PORTS; a++)
 		if (test_and_clear_bit(a, &dc->flip))
+		{
 			tty_flip_buffer_push(&dc->port[a].port);
+		}
 
 	return IRQ_HANDLED;
 none:
@@ -1285,7 +1463,9 @@ static void nozomi_get_card_type(struct nozomi *dc)
 	u32 size = 0;
 
 	for (i = 0; i < 6; i++)
+	{
 		size += pci_resource_len(dc->pdev, i);
+	}
 
 	/* Assume card type F32_8 if no match */
 	dc->card_type = size == 2048 ? F32_2 : F32_8;
@@ -1310,11 +1490,13 @@ static void nozomi_setup_private_data(struct nozomi *dc)
 	dc->port[PORT_APP2].token_dl = APP2_DL;
 
 	for (i = 0; i < MAX_PORT; i++)
+	{
 		init_waitqueue_head(&dc->port[i].tty_wait);
+	}
 }
 
 static ssize_t card_type_show(struct device *dev, struct device_attribute *attr,
-			  char *buf)
+							  char *buf)
 {
 	const struct nozomi *dc = pci_get_drvdata(to_pci_dev(dev));
 
@@ -1323,7 +1505,7 @@ static ssize_t card_type_show(struct device *dev, struct device_attribute *attr,
 static DEVICE_ATTR(card_type, S_IRUGO, card_type_show, NULL);
 
 static ssize_t open_ttys_show(struct device *dev, struct device_attribute *attr,
-			  char *buf)
+							  char *buf)
 {
 	const struct nozomi *dc = pci_get_drvdata(to_pci_dev(dev));
 
@@ -1335,10 +1517,11 @@ static void make_sysfs_files(struct nozomi *dc)
 {
 	if (device_create_file(&dc->pdev->dev, &dev_attr_card_type))
 		dev_err(&dc->pdev->dev,
-			"Could not create sysfs file for card_type\n");
+				"Could not create sysfs file for card_type\n");
+
 	if (device_create_file(&dc->pdev->dev, &dev_attr_open_ttys))
 		dev_err(&dc->pdev->dev,
-			"Could not create sysfs file for open_ttys\n");
+				"Could not create sysfs file for open_ttys\n");
 }
 
 static void remove_sysfs_files(struct nozomi *dc)
@@ -1349,7 +1532,7 @@ static void remove_sysfs_files(struct nozomi *dc)
 
 /* Allocate memory for one device */
 static int nozomi_card_init(struct pci_dev *pdev,
-				      const struct pci_device_id *ent)
+							const struct pci_device_id *ent)
 {
 	resource_size_t start;
 	int ret;
@@ -1361,16 +1544,21 @@ static int nozomi_card_init(struct pci_dev *pdev,
 
 	for (ndev_idx = 0; ndev_idx < ARRAY_SIZE(ndevs); ndev_idx++)
 		if (!ndevs[ndev_idx])
+		{
 			break;
+		}
 
-	if (ndev_idx >= ARRAY_SIZE(ndevs)) {
+	if (ndev_idx >= ARRAY_SIZE(ndevs))
+	{
 		dev_err(&pdev->dev, "no free tty range for this card left\n");
 		ret = -EIO;
 		goto err;
 	}
 
 	dc = kzalloc(sizeof(struct nozomi), GFP_KERNEL);
-	if (unlikely(!dc)) {
+
+	if (unlikely(!dc))
+	{
 		dev_err(&pdev->dev, "Could not allocate memory\n");
 		ret = -ENOMEM;
 		goto err_free;
@@ -1379,20 +1567,26 @@ static int nozomi_card_init(struct pci_dev *pdev,
 	dc->pdev = pdev;
 
 	ret = pci_enable_device(dc->pdev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to enable PCI Device\n");
 		goto err_free;
 	}
 
 	ret = pci_request_regions(dc->pdev, NOZOMI_NAME);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "I/O address 0x%04x already in use\n",
-			(int) /* nozomi_private.io_addr */ 0);
+				(int) /* nozomi_private.io_addr */ 0);
 		goto err_disable_device;
 	}
 
 	start = pci_resource_start(dc->pdev, 0);
-	if (start == 0) {
+
+	if (start == 0)
+	{
 		dev_err(&pdev->dev, "No I/O address for card detected\n");
 		ret = -ENODEV;
 		goto err_rel_regs;
@@ -1402,22 +1596,28 @@ static int nozomi_card_init(struct pci_dev *pdev,
 	nozomi_get_card_type(dc);
 
 	dc->base_addr = ioremap_nocache(start, dc->card_type);
-	if (!dc->base_addr) {
+
+	if (!dc->base_addr)
+	{
 		dev_err(&pdev->dev, "Unable to map card MMIO\n");
 		ret = -ENODEV;
 		goto err_rel_regs;
 	}
 
 	dc->send_buf = kmalloc(SEND_BUF_MAX, GFP_KERNEL);
-	if (!dc->send_buf) {
+
+	if (!dc->send_buf)
+	{
 		dev_err(&pdev->dev, "Could not allocate send buffer?\n");
 		ret = -ENOMEM;
 		goto err_free_sbuf;
 	}
 
-	for (i = PORT_MDM; i < MAX_PORT; i++) {
+	for (i = PORT_MDM; i < MAX_PORT; i++)
+	{
 		if (kfifo_alloc(&dc->port[i].fifo_ul, FIFO_BUFFER_SIZE_UL,
-					GFP_KERNEL)) {
+						GFP_KERNEL))
+		{
 			dev_err(&pdev->dev,
 					"Could not allocate kfifo buffer\n");
 			ret = -ENOMEM;
@@ -1434,8 +1634,10 @@ static int nozomi_card_init(struct pci_dev *pdev,
 	writew(dc->last_ier, dc->reg_ier);
 
 	ret = request_irq(pdev->irq, &interrupt_handler, IRQF_SHARED,
-			NOZOMI_NAME, dc);
-	if (unlikely(ret)) {
+					  NOZOMI_NAME, dc);
+
+	if (unlikely(ret))
+	{
 		dev_err(&pdev->dev, "can't request irq %d\n", pdev->irq);
 		goto err_free_kfifo;
 	}
@@ -1455,16 +1657,18 @@ static int nozomi_card_init(struct pci_dev *pdev,
 
 	dc->state = NOZOMI_STATE_ENABLED;
 
-	for (i = 0; i < MAX_PORT; i++) {
+	for (i = 0; i < MAX_PORT; i++)
+	{
 		struct device *tty_dev;
 		struct port *port = &dc->port[i];
 		port->dc = dc;
 		tty_port_init(&port->port);
 		port->port.ops = &noz_tty_port_ops;
 		tty_dev = tty_port_register_device(&port->port, ntty_driver,
-				dc->index_start + i, &pdev->dev);
+										   dc->index_start + i, &pdev->dev);
 
-		if (IS_ERR(tty_dev)) {
+		if (IS_ERR(tty_dev))
+		{
 			ret = PTR_ERR(tty_dev);
 			dev_err(&pdev->dev, "Could not allocate tty?\n");
 			tty_port_destroy(&port->port);
@@ -1475,13 +1679,20 @@ static int nozomi_card_init(struct pci_dev *pdev,
 	return 0;
 
 err_free_tty:
-	for (i = 0; i < MAX_PORT; ++i) {
+
+	for (i = 0; i < MAX_PORT; ++i)
+	{
 		tty_unregister_device(ntty_driver, dc->index_start + i);
 		tty_port_destroy(&dc->port[i].port);
 	}
+
 err_free_kfifo:
+
 	for (i = 0; i < MAX_PORT; i++)
+	{
 		kfifo_free(&dc->port[i].fifo_ul);
+	}
+
 err_free_sbuf:
 	kfree(dc->send_buf);
 	iounmap(dc->base_addr);
@@ -1502,13 +1713,19 @@ static void tty_exit(struct nozomi *dc)
 	DBG1(" ");
 
 	for (i = 0; i < MAX_PORT; ++i)
+	{
 		tty_port_tty_hangup(&dc->port[i].port, false);
+	}
 
 	/* Racy below - surely should wait for scheduled work to be done or
 	   complete off a hangup method ? */
 	while (dc->open_ttys)
+	{
 		msleep(1);
-	for (i = 0; i < MAX_PORT; ++i) {
+	}
+
+	for (i = 0; i < MAX_PORT; ++i)
+	{
 		tty_unregister_device(ntty_driver, dc->index_start + i);
 		tty_port_destroy(&dc->port[i].port);
 	}
@@ -1544,7 +1761,9 @@ static void nozomi_card_exit(struct pci_dev *pdev)
 	free_irq(pdev->irq, dc);
 
 	for (i = 0; i < MAX_PORT; i++)
+	{
 		kfifo_free(&dc->port[i].fifo_ul);
+	}
 
 	kfree(dc->send_buf);
 
@@ -1590,11 +1809,19 @@ static int ntty_install(struct tty_driver *driver, struct tty_struct *tty)
 	struct port *port = get_port_by_tty(tty);
 	struct nozomi *dc = get_dc_by_tty(tty);
 	int ret;
+
 	if (!port || !dc || dc->state != NOZOMI_STATE_READY)
+	{
 		return -ENODEV;
+	}
+
 	ret = tty_standard_install(driver, tty);
+
 	if (ret == 0)
+	{
 		tty->driver_data = port;
+	}
+
 	return ret;
 }
 
@@ -1643,8 +1870,11 @@ static void ntty_shutdown(struct tty_port *tport)
 static void ntty_close(struct tty_struct *tty, struct file *filp)
 {
 	struct port *port = tty->driver_data;
+
 	if (port)
+	{
 		tty_port_close(&port->port, tty, filp);
+	}
 }
 
 static void ntty_hangup(struct tty_struct *tty)
@@ -1658,7 +1888,7 @@ static void ntty_hangup(struct tty_struct *tty)
  * Data is inserted into a fifo, which is then read and transferred to the modem.
  */
 static int ntty_write(struct tty_struct *tty, const unsigned char *buffer,
-		      int count)
+					  int count)
 {
 	int rval = -EINVAL;
 	struct nozomi *dc = get_dc_by_tty(tty);
@@ -1668,23 +1898,33 @@ static int ntty_write(struct tty_struct *tty, const unsigned char *buffer,
 	/* DBG1( "WRITEx: %d, index = %d", count, index); */
 
 	if (!dc || !port)
+	{
 		return -ENODEV;
+	}
 
 	rval = kfifo_in(&port->fifo_ul, (unsigned char *)buffer, count);
 
 	spin_lock_irqsave(&dc->spin_mutex, flags);
+
 	/* CTS is only valid on the modem channel */
-	if (port == &(dc->port[PORT_MDM])) {
-		if (port->ctrl_dl.CTS) {
+	if (port == &(dc->port[PORT_MDM]))
+	{
+		if (port->ctrl_dl.CTS)
+		{
 			DBG4("Enable interrupt");
 			enable_transmit_ul(tty->index % MAX_PORT, dc);
-		} else {
-			dev_err(&dc->pdev->dev,
-				"CTS not active on modem port?\n");
 		}
-	} else {
+		else
+		{
+			dev_err(&dc->pdev->dev,
+					"CTS not active on modem port?\n");
+		}
+	}
+	else
+	{
 		enable_transmit_ul(tty->index % MAX_PORT, dc);
 	}
+
 	spin_unlock_irqrestore(&dc->spin_mutex, flags);
 
 	return rval;
@@ -1706,7 +1946,9 @@ static int ntty_write_room(struct tty_struct *tty)
 	const struct nozomi *dc = get_dc_by_tty(tty);
 
 	if (dc)
+	{
 		room = kfifo_avail(&port->fifo_ul);
+	}
 
 	return room;
 }
@@ -1721,45 +1963,55 @@ static int ntty_tiocmget(struct tty_struct *tty)
 	/* Note: these could change under us but it is not clear this
 	   matters if so */
 	return	(ctrl_ul->RTS ? TIOCM_RTS : 0) |
-		(ctrl_ul->DTR ? TIOCM_DTR : 0) |
-		(ctrl_dl->DCD ? TIOCM_CAR : 0) |
-		(ctrl_dl->RI  ? TIOCM_RNG : 0) |
-		(ctrl_dl->DSR ? TIOCM_DSR : 0) |
-		(ctrl_dl->CTS ? TIOCM_CTS : 0);
+			(ctrl_ul->DTR ? TIOCM_DTR : 0) |
+			(ctrl_dl->DCD ? TIOCM_CAR : 0) |
+			(ctrl_dl->RI  ? TIOCM_RNG : 0) |
+			(ctrl_dl->DSR ? TIOCM_DSR : 0) |
+			(ctrl_dl->CTS ? TIOCM_CTS : 0);
 }
 
 /* Sets io controls parameters */
 static int ntty_tiocmset(struct tty_struct *tty,
-					unsigned int set, unsigned int clear)
+						 unsigned int set, unsigned int clear)
 {
 	struct nozomi *dc = get_dc_by_tty(tty);
 	unsigned long flags;
 
 	spin_lock_irqsave(&dc->spin_mutex, flags);
+
 	if (set & TIOCM_RTS)
+	{
 		set_rts(tty, 1);
+	}
 	else if (clear & TIOCM_RTS)
+	{
 		set_rts(tty, 0);
+	}
 
 	if (set & TIOCM_DTR)
+	{
 		set_dtr(tty, 1);
+	}
 	else if (clear & TIOCM_DTR)
+	{
 		set_dtr(tty, 0);
+	}
+
 	spin_unlock_irqrestore(&dc->spin_mutex, flags);
 
 	return 0;
 }
 
 static int ntty_cflags_changed(struct port *port, unsigned long flags,
-		struct async_icount *cprev)
+							   struct async_icount *cprev)
 {
 	const struct async_icount cnow = port->tty_icount;
 	int ret;
 
 	ret =	((flags & TIOCM_RNG) && (cnow.rng != cprev->rng)) ||
-		((flags & TIOCM_DSR) && (cnow.dsr != cprev->dsr)) ||
-		((flags & TIOCM_CD)  && (cnow.dcd != cprev->dcd)) ||
-		((flags & TIOCM_CTS) && (cnow.cts != cprev->cts));
+			((flags & TIOCM_DSR) && (cnow.dsr != cprev->dsr)) ||
+			((flags & TIOCM_CD)  && (cnow.dcd != cprev->dcd)) ||
+			((flags & TIOCM_CTS) && (cnow.cts != cprev->cts));
 
 	*cprev = cnow;
 
@@ -1767,7 +2019,7 @@ static int ntty_cflags_changed(struct port *port, unsigned long flags,
 }
 
 static int ntty_tiocgicount(struct tty_struct *tty,
-				struct serial_icounter_struct *icount)
+							struct serial_icounter_struct *icount)
 {
 	struct port *port = tty->driver_data;
 	const struct async_icount cnow = port->tty_icount;
@@ -1787,24 +2039,27 @@ static int ntty_tiocgicount(struct tty_struct *tty,
 }
 
 static int ntty_ioctl(struct tty_struct *tty,
-		      unsigned int cmd, unsigned long arg)
+					  unsigned int cmd, unsigned long arg)
 {
 	struct port *port = tty->driver_data;
 	int rval = -ENOIOCTLCMD;
 
 	DBG1("******** IOCTL, cmd: %d", cmd);
 
-	switch (cmd) {
-	case TIOCMIWAIT: {
-		struct async_icount cprev = port->tty_icount;
+	switch (cmd)
+	{
+		case TIOCMIWAIT:
+			{
+				struct async_icount cprev = port->tty_icount;
 
-		rval = wait_event_interruptible(port->tty_wait,
-				ntty_cflags_changed(port, arg, &cprev));
-		break;
-	}
-	default:
-		DBG1("ERR: 0x%08X, %d", cmd, cmd);
-		break;
+				rval = wait_event_interruptible(port->tty_wait,
+												ntty_cflags_changed(port, arg, &cprev));
+				break;
+			}
+
+		default:
+			DBG1("ERR: 0x%08X, %d", cmd, cmd);
+			break;
 	}
 
 	return rval;
@@ -1849,7 +2104,8 @@ static s32 ntty_chars_in_buffer(struct tty_struct *tty)
 	struct nozomi *dc = get_dc_by_tty(tty);
 	s32 rval = 0;
 
-	if (unlikely(!dc || !port)) {
+	if (unlikely(!dc || !port))
+	{
 		goto exit_in_buffer;
 	}
 
@@ -1859,12 +2115,14 @@ exit_in_buffer:
 	return rval;
 }
 
-static const struct tty_port_operations noz_tty_port_ops = {
+static const struct tty_port_operations noz_tty_port_ops =
+{
 	.activate = ntty_activate,
 	.shutdown = ntty_shutdown,
 };
 
-static const struct tty_operations tty_ops = {
+static const struct tty_operations tty_ops =
+{
 	.ioctl = ntty_ioctl,
 	.open = ntty_open,
 	.close = ntty_close,
@@ -1882,7 +2140,8 @@ static const struct tty_operations tty_ops = {
 };
 
 /* Module initialization */
-static struct pci_driver nozomi_driver = {
+static struct pci_driver nozomi_driver =
+{
 	.name = NOZOMI_NAME,
 	.id_table = nozomi_pci_tbl,
 	.probe = nozomi_card_init,
@@ -1896,8 +2155,11 @@ static __init int nozomi_init(void)
 	printk(KERN_INFO "Initializing %s\n", VERSION_STRING);
 
 	ntty_driver = alloc_tty_driver(NTTY_TTY_MAXMINORS);
+
 	if (!ntty_driver)
+	{
 		return -ENOMEM;
+	}
 
 	ntty_driver->driver_name = NOZOMI_NAME_TTY;
 	ntty_driver->name = "noz";
@@ -1907,19 +2169,23 @@ static __init int nozomi_init(void)
 	ntty_driver->flags = TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV;
 	ntty_driver->init_termios = tty_std_termios;
 	ntty_driver->init_termios.c_cflag = B115200 | CS8 | CREAD | \
-						HUPCL | CLOCAL;
+										HUPCL | CLOCAL;
 	ntty_driver->init_termios.c_ispeed = 115200;
 	ntty_driver->init_termios.c_ospeed = 115200;
 	tty_set_operations(ntty_driver, &tty_ops);
 
 	ret = tty_register_driver(ntty_driver);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "Nozomi: failed to register ntty driver\n");
 		goto free_tty;
 	}
 
 	ret = pci_register_driver(&nozomi_driver);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "Nozomi: can't register pci driver\n");
 		goto unr_tty;
 	}

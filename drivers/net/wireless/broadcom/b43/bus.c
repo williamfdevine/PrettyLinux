@@ -23,7 +23,7 @@
 */
 
 #ifdef CONFIG_BCM47XX_BCMA
-#include <asm/mach-bcm47xx/bcm47xx.h>
+	#include <asm/mach-bcm47xx/bcm47xx.h>
 #endif
 
 #include "b43.h"
@@ -36,7 +36,7 @@ static int b43_bus_bcma_bus_may_powerdown(struct b43_bus_dev *dev)
 	return 0; /* bcma_bus_may_powerdown(dev->bdev->bus); */
 }
 static int b43_bus_bcma_bus_powerup(struct b43_bus_dev *dev,
-					  bool dynamic_pctl)
+									bool dynamic_pctl)
 {
 	return 0; /* bcma_bus_powerup(dev->sdev->bus, dynamic_pctl); */
 }
@@ -45,12 +45,12 @@ static int b43_bus_bcma_device_is_enabled(struct b43_bus_dev *dev)
 	return bcma_core_is_enabled(dev->bdev);
 }
 static void b43_bus_bcma_device_enable(struct b43_bus_dev *dev,
-					     u32 core_specific_flags)
+									   u32 core_specific_flags)
 {
 	bcma_core_enable(dev->bdev, core_specific_flags);
 }
 static void b43_bus_bcma_device_disable(struct b43_bus_dev *dev,
-					      u32 core_specific_flags)
+										u32 core_specific_flags)
 {
 	bcma_core_disable(dev->bdev, core_specific_flags);
 }
@@ -74,13 +74,13 @@ void b43_bus_bcma_write32(struct b43_bus_dev *dev, u16 offset, u32 value)
 }
 static
 void b43_bus_bcma_block_read(struct b43_bus_dev *dev, void *buffer,
-			     size_t count, u16 offset, u8 reg_width)
+							 size_t count, u16 offset, u8 reg_width)
 {
 	bcma_block_read(dev->bdev, buffer, count, offset, reg_width);
 }
 static
 void b43_bus_bcma_block_write(struct b43_bus_dev *dev, const void *buffer,
-			      size_t count, u16 offset, u8 reg_width)
+							  size_t count, u16 offset, u8 reg_width)
 {
 	bcma_block_write(dev->bdev, buffer, count, offset, reg_width);
 }
@@ -88,8 +88,11 @@ void b43_bus_bcma_block_write(struct b43_bus_dev *dev, const void *buffer,
 struct b43_bus_dev *b43_bus_dev_bcma_init(struct bcma_device *core)
 {
 	struct b43_bus_dev *dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+
 	if (!dev)
+	{
 		return NULL;
+	}
 
 	dev->bus_type = B43_BUS_BCMA;
 	dev->bdev = core;
@@ -107,10 +110,14 @@ struct b43_bus_dev *b43_bus_dev_bcma_init(struct bcma_device *core)
 	dev->block_read = b43_bus_bcma_block_read;
 	dev->block_write = b43_bus_bcma_block_write;
 #ifdef CONFIG_BCM47XX_BCMA
+
 	if (b43_bus_host_is_pci(dev) &&
-	    bcm47xx_bus_type == BCM47XX_BUS_TYPE_BCMA &&
-	    bcm47xx_bus.bcma.bus.chipinfo.id == BCMA_CHIP_ID_BCM4716)
+		bcm47xx_bus_type == BCM47XX_BUS_TYPE_BCMA &&
+		bcm47xx_bus.bcma.bus.chipinfo.id == BCMA_CHIP_ID_BCM4716)
+	{
 		dev->flush_writes = true;
+	}
+
 #endif
 
 	dev->dev = &core->dev;
@@ -141,7 +148,7 @@ static int b43_bus_ssb_bus_may_powerdown(struct b43_bus_dev *dev)
 	return ssb_bus_may_powerdown(dev->sdev->bus);
 }
 static int b43_bus_ssb_bus_powerup(struct b43_bus_dev *dev,
-					  bool dynamic_pctl)
+								   bool dynamic_pctl)
 {
 	return ssb_bus_powerup(dev->sdev->bus, dynamic_pctl);
 }
@@ -150,12 +157,12 @@ static int b43_bus_ssb_device_is_enabled(struct b43_bus_dev *dev)
 	return ssb_device_is_enabled(dev->sdev);
 }
 static void b43_bus_ssb_device_enable(struct b43_bus_dev *dev,
-					     u32 core_specific_flags)
+									  u32 core_specific_flags)
 {
 	ssb_device_enable(dev->sdev, core_specific_flags);
 }
 static void b43_bus_ssb_device_disable(struct b43_bus_dev *dev,
-					      u32 core_specific_flags)
+									   u32 core_specific_flags)
 {
 	ssb_device_disable(dev->sdev, core_specific_flags);
 }
@@ -177,13 +184,13 @@ static void b43_bus_ssb_write32(struct b43_bus_dev *dev, u16 offset, u32 value)
 	ssb_write32(dev->sdev, offset, value);
 }
 static void b43_bus_ssb_block_read(struct b43_bus_dev *dev, void *buffer,
-				   size_t count, u16 offset, u8 reg_width)
+								   size_t count, u16 offset, u8 reg_width)
 {
 	ssb_block_read(dev->sdev, buffer, count, offset, reg_width);
 }
 static
 void b43_bus_ssb_block_write(struct b43_bus_dev *dev, const void *buffer,
-			     size_t count, u16 offset, u8 reg_width)
+							 size_t count, u16 offset, u8 reg_width)
 {
 	ssb_block_write(dev->sdev, buffer, count, offset, reg_width);
 }
@@ -193,8 +200,11 @@ struct b43_bus_dev *b43_bus_dev_ssb_init(struct ssb_device *sdev)
 	struct b43_bus_dev *dev;
 
 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+
 	if (!dev)
+	{
 		return NULL;
+	}
 
 	dev->bus_type = B43_BUS_SSB;
 	dev->sdev = sdev;
@@ -235,31 +245,38 @@ struct b43_bus_dev *b43_bus_dev_ssb_init(struct ssb_device *sdev)
 
 void *b43_bus_get_wldev(struct b43_bus_dev *dev)
 {
-	switch (dev->bus_type) {
+	switch (dev->bus_type)
+	{
 #ifdef CONFIG_B43_BCMA
-	case B43_BUS_BCMA:
-		return bcma_get_drvdata(dev->bdev);
+
+		case B43_BUS_BCMA:
+			return bcma_get_drvdata(dev->bdev);
 #endif
 #ifdef CONFIG_B43_SSB
-	case B43_BUS_SSB:
-		return ssb_get_drvdata(dev->sdev);
+
+		case B43_BUS_SSB:
+			return ssb_get_drvdata(dev->sdev);
 #endif
 	}
+
 	return NULL;
 }
 
 void b43_bus_set_wldev(struct b43_bus_dev *dev, void *wldev)
 {
-	switch (dev->bus_type) {
+	switch (dev->bus_type)
+	{
 #ifdef CONFIG_B43_BCMA
-	case B43_BUS_BCMA:
-		bcma_set_drvdata(dev->bdev, wldev);
-		break;
+
+		case B43_BUS_BCMA:
+			bcma_set_drvdata(dev->bdev, wldev);
+			break;
 #endif
 #ifdef CONFIG_B43_SSB
-	case B43_BUS_SSB:
-		ssb_set_drvdata(dev->sdev, wldev);
-		break;
+
+		case B43_BUS_SSB:
+			ssb_set_drvdata(dev->sdev, wldev);
+			break;
 #endif
 	}
 }

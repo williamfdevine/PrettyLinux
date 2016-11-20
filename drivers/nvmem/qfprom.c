@@ -18,27 +18,31 @@
 #include <linux/platform_device.h>
 
 static int qfprom_reg_read(void *context,
-			unsigned int reg, void *_val, size_t bytes)
+						   unsigned int reg, void *_val, size_t bytes)
 {
 	void __iomem *base = context;
 	u32 *val = _val;
 	int i = 0, words = bytes / 4;
 
 	while (words--)
+	{
 		*val++ = readl(base + reg + (i++ * 4));
+	}
 
 	return 0;
 }
 
 static int qfprom_reg_write(void *context,
-			 unsigned int reg, void *_val, size_t bytes)
+							unsigned int reg, void *_val, size_t bytes)
 {
 	void __iomem *base = context;
 	u32 *val = _val;
 	int i = 0, words = bytes / 4;
 
 	while (words--)
+	{
 		writel(*val++, base + reg + (i++ * 4));
+	}
 
 	return 0;
 }
@@ -50,7 +54,8 @@ static int qfprom_remove(struct platform_device *pdev)
 	return nvmem_unregister(nvmem);
 }
 
-static struct nvmem_config econfig = {
+static struct nvmem_config econfig =
+{
 	.name = "qfprom",
 	.owner = THIS_MODULE,
 	.stride = 4,
@@ -68,29 +73,37 @@ static int qfprom_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(base))
+	{
 		return PTR_ERR(base);
+	}
 
 	econfig.size = resource_size(res);
 	econfig.dev = dev;
 	econfig.priv = base;
 
 	nvmem = nvmem_register(&econfig);
+
 	if (IS_ERR(nvmem))
+	{
 		return PTR_ERR(nvmem);
+	}
 
 	platform_set_drvdata(pdev, nvmem);
 
 	return 0;
 }
 
-static const struct of_device_id qfprom_of_match[] = {
+static const struct of_device_id qfprom_of_match[] =
+{
 	{ .compatible = "qcom,qfprom",},
 	{/* sentinel */},
 };
 MODULE_DEVICE_TABLE(of, qfprom_of_match);
 
-static struct platform_driver qfprom_driver = {
+static struct platform_driver qfprom_driver =
+{
 	.probe = qfprom_probe,
 	.remove = qfprom_remove,
 	.driver = {

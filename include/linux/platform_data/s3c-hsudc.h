@@ -25,7 +25,8 @@
  * Representation of platform data for the S3C24XX USB 2.0 High Speed gadget
  * controllers.
  */
-struct s3c24xx_hsudc_platdata {
+struct s3c24xx_hsudc_platdata
+{
 	unsigned int	epnum;
 	void		(*gpio_init)(void);
 	void		(*gpio_uninit)(void);

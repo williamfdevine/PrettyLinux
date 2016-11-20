@@ -53,23 +53,23 @@ u32 octeon_read_device_mem32(struct octeon_device *oct, u64 core_addr);
  */
 void
 octeon_write_device_mem32(struct octeon_device *oct,
-			  u64 core_addr,
-			  u32 val);
+						  u64 core_addr,
+						  u32 val);
 
 /** Read multiple bytes from Octeon memory.
  */
 void
 octeon_pci_read_core_mem(struct octeon_device *oct,
-			 u64 coreaddr,
-			 u8 *buf,
-			 u32 len);
+						 u64 coreaddr,
+						 u8 *buf,
+						 u32 len);
 
 /** Write multiple bytes into Octeon memory.
  */
 void
 octeon_pci_write_core_mem(struct octeon_device *oct,
-			  u64 coreaddr,
-			  u8 *buf,
-			  u32 len);
+						  u64 coreaddr,
+						  u8 *buf,
+						  u32 len);
 
 #endif

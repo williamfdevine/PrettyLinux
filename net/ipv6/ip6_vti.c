@@ -65,7 +65,8 @@ static void vti6_dev_setup(struct net_device *dev);
 static struct rtnl_link_ops vti6_link_ops __read_mostly;
 
 static int vti6_net_id __read_mostly;
-struct vti6_net {
+struct vti6_net
+{
 	/* the vti6 tunnel fallback device */
 	struct net_device *fb_tnl_dev;
 	/* lists for storing tunnels in use */
@@ -90,38 +91,50 @@ struct vti6_net {
  **/
 static struct ip6_tnl *
 vti6_tnl_lookup(struct net *net, const struct in6_addr *remote,
-		const struct in6_addr *local)
+				const struct in6_addr *local)
 {
 	unsigned int hash = HASH(remote, local);
 	struct ip6_tnl *t;
 	struct vti6_net *ip6n = net_generic(net, vti6_net_id);
 	struct in6_addr any;
 
-	for_each_vti6_tunnel_rcu(ip6n->tnls_r_l[hash]) {
+	for_each_vti6_tunnel_rcu(ip6n->tnls_r_l[hash])
+	{
 		if (ipv6_addr_equal(local, &t->parms.laddr) &&
-		    ipv6_addr_equal(remote, &t->parms.raddr) &&
-		    (t->dev->flags & IFF_UP))
+			ipv6_addr_equal(remote, &t->parms.raddr) &&
+			(t->dev->flags & IFF_UP))
+		{
 			return t;
+		}
 	}
 
 	memset(&any, 0, sizeof(any));
 	hash = HASH(&any, local);
-	for_each_vti6_tunnel_rcu(ip6n->tnls_r_l[hash]) {
+	for_each_vti6_tunnel_rcu(ip6n->tnls_r_l[hash])
+	{
 		if (ipv6_addr_equal(local, &t->parms.laddr) &&
-		    (t->dev->flags & IFF_UP))
+			(t->dev->flags & IFF_UP))
+		{
 			return t;
+		}
 	}
 
 	hash = HASH(remote, &any);
-	for_each_vti6_tunnel_rcu(ip6n->tnls_r_l[hash]) {
+	for_each_vti6_tunnel_rcu(ip6n->tnls_r_l[hash])
+	{
 		if (ipv6_addr_equal(remote, &t->parms.raddr) &&
-		    (t->dev->flags & IFF_UP))
+			(t->dev->flags & IFF_UP))
+		{
 			return t;
+		}
 	}
 
 	t = rcu_dereference(ip6n->tnls_wc[0]);
+
 	if (t && (t->dev->flags & IFF_UP))
+	{
 		return t;
+	}
 
 	return NULL;
 }
@@ -144,10 +157,12 @@ vti6_tnl_bucket(struct vti6_net *ip6n, const struct __ip6_tnl_parm *p)
 	unsigned int h = 0;
 	int prio = 0;
 
-	if (!ipv6_addr_any(remote) || !ipv6_addr_any(local)) {
+	if (!ipv6_addr_any(remote) || !ipv6_addr_any(local))
+	{
 		prio = 1;
 		h = HASH(remote, local);
 	}
+
 	return &ip6n->tnls[prio][h];
 }
 
@@ -167,9 +182,11 @@ vti6_tnl_unlink(struct vti6_net *ip6n, struct ip6_tnl *t)
 	struct ip6_tnl *iter;
 
 	for (tp = vti6_tnl_bucket(ip6n, &t->parms);
-	     (iter = rtnl_dereference(*tp)) != NULL;
-	     tp = &iter->next) {
-		if (t == iter) {
+		 (iter = rtnl_dereference(*tp)) != NULL;
+		 tp = &iter->next)
+	{
+		if (t == iter)
+		{
 			rcu_assign_pointer(*tp, t->next);
 			break;
 		}
@@ -190,8 +207,11 @@ static int vti6_tnl_create2(struct net_device *dev)
 	int err;
 
 	err = register_netdevice(dev);
+
 	if (err < 0)
+	{
 		goto out;
+	}
 
 	strcpy(t->parms.name, dev->name);
 	dev->rtnl_link_ops = &vti6_link_ops;
@@ -213,13 +233,20 @@ static struct ip6_tnl *vti6_tnl_create(struct net *net, struct __ip6_tnl_parm *p
 	int err;
 
 	if (p->name[0])
+	{
 		strlcpy(name, p->name, IFNAMSIZ);
+	}
 	else
+	{
 		sprintf(name, "ip6_vti%%d");
+	}
 
 	dev = alloc_netdev(sizeof(*t), name, NET_NAME_UNKNOWN, vti6_dev_setup);
+
 	if (!dev)
+	{
 		goto failed;
+	}
 
 	dev_net_set(dev, net);
 
@@ -228,8 +255,11 @@ static struct ip6_tnl *vti6_tnl_create(struct net *net, struct __ip6_tnl_parm *p
 	t->net = dev_net(dev);
 
 	err = vti6_tnl_create2(dev);
+
 	if (err < 0)
+	{
 		goto failed_free;
+	}
 
 	return t;
 
@@ -254,7 +284,7 @@ failed:
  *   matching tunnel or NULL
  **/
 static struct ip6_tnl *vti6_locate(struct net *net, struct __ip6_tnl_parm *p,
-				   int create)
+								   int create)
 {
 	const struct in6_addr *remote = &p->raddr;
 	const struct in6_addr *local = &p->laddr;
@@ -263,18 +293,26 @@ static struct ip6_tnl *vti6_locate(struct net *net, struct __ip6_tnl_parm *p,
 	struct vti6_net *ip6n = net_generic(net, vti6_net_id);
 
 	for (tp = vti6_tnl_bucket(ip6n, p);
-	     (t = rtnl_dereference(*tp)) != NULL;
-	     tp = &t->next) {
+		 (t = rtnl_dereference(*tp)) != NULL;
+		 tp = &t->next)
+	{
 		if (ipv6_addr_equal(local, &t->parms.laddr) &&
-		    ipv6_addr_equal(remote, &t->parms.raddr)) {
+			ipv6_addr_equal(remote, &t->parms.raddr))
+		{
 			if (create)
+			{
 				return NULL;
+			}
 
 			return t;
 		}
 	}
+
 	if (!create)
+	{
 		return NULL;
+	}
+
 	return vti6_tnl_create(net, p);
 }
 
@@ -291,9 +329,14 @@ static void vti6_dev_uninit(struct net_device *dev)
 	struct vti6_net *ip6n = net_generic(t->net, vti6_net_id);
 
 	if (dev == ip6n->fb_tnl_dev)
+	{
 		RCU_INIT_POINTER(ip6n->tnls_wc[0], NULL);
+	}
 	else
+	{
 		vti6_tnl_unlink(ip6n, t);
+	}
+
 	dev_put(dev);
 }
 
@@ -304,18 +347,23 @@ static int vti6_rcv(struct sk_buff *skb)
 
 	rcu_read_lock();
 	t = vti6_tnl_lookup(dev_net(skb->dev), &ipv6h->saddr, &ipv6h->daddr);
-	if (t) {
-		if (t->parms.proto != IPPROTO_IPV6 && t->parms.proto != 0) {
+
+	if (t)
+	{
+		if (t->parms.proto != IPPROTO_IPV6 && t->parms.proto != 0)
+		{
 			rcu_read_unlock();
 			goto discard;
 		}
 
-		if (!xfrm6_policy_check(NULL, XFRM_POLICY_IN, skb)) {
+		if (!xfrm6_policy_check(NULL, XFRM_POLICY_IN, skb))
+		{
 			rcu_read_unlock();
 			return 0;
 		}
 
-		if (!ip6_tnl_rcv_ctl(t, &ipv6h->daddr, &ipv6h->saddr)) {
+		if (!ip6_tnl_rcv_ctl(t, &ipv6h->daddr, &ipv6h->saddr))
+		{
 			t->dev->stats.rx_dropped++;
 			rcu_read_unlock();
 			goto discard;
@@ -325,6 +373,7 @@ static int vti6_rcv(struct sk_buff *skb)
 
 		return xfrm6_rcv_tnl(skb, t);
 	}
+
 	rcu_read_unlock();
 	return -EINVAL;
 discard:
@@ -344,11 +393,14 @@ static int vti6_rcv_cb(struct sk_buff *skb, int err)
 	int ret;
 
 	if (!t)
+	{
 		return 1;
+	}
 
 	dev = t->dev;
 
-	if (err) {
+	if (err)
+	{
 		dev->stats.rx_errors++;
 		dev->stats.rx_dropped++;
 
@@ -359,11 +411,14 @@ static int vti6_rcv_cb(struct sk_buff *skb, int err)
 
 	inner_mode = x->inner_mode;
 
-	if (x->sel.family == AF_UNSPEC) {
+	if (x->sel.family == AF_UNSPEC)
+	{
 		inner_mode = xfrm_ip2inner_mode(x, XFRM_MODE_SKB_CB(skb)->protocol);
-		if (inner_mode == NULL) {
+
+		if (inner_mode == NULL)
+		{
 			XFRM_INC_STATS(dev_net(skb->dev),
-				       LINUX_MIB_XFRMINSTATEMODEERROR);
+						   LINUX_MIB_XFRMINSTATEMODEERROR);
 			return -EINVAL;
 		}
 	}
@@ -375,7 +430,9 @@ static int vti6_rcv_cb(struct sk_buff *skb, int err)
 	skb->mark = orig_mark;
 
 	if (!ret)
+	{
 		return -EPERM;
+	}
 
 	skb_scrub_packet(skb, !net_eq(t->net, dev_net(skb->dev)));
 	skb->dev = dev;
@@ -409,8 +466,8 @@ vti6_addr_conflict(const struct ip6_tnl *t, const struct ipv6hdr *hdr)
 }
 
 static bool vti6_state_check(const struct xfrm_state *x,
-			     const struct in6_addr *dst,
-			     const struct in6_addr *src)
+							 const struct in6_addr *dst,
+							 const struct in6_addr *src)
 {
 	xfrm_address_t *daddr = (xfrm_address_t *)dst;
 	xfrm_address_t *saddr = (xfrm_address_t *)src;
@@ -419,14 +476,20 @@ static bool vti6_state_check(const struct xfrm_state *x,
 	 * Or if the xfrm is not mode tunnel.
 	 */
 	if (!x || x->props.mode != XFRM_MODE_TUNNEL ||
-	    x->props.family != AF_INET6)
+		x->props.family != AF_INET6)
+	{
 		return false;
+	}
 
 	if (ipv6_addr_any(dst))
+	{
 		return xfrm_addr_equal(saddr, &x->props.saddr, AF_INET6);
+	}
 
 	if (!xfrm_state_addr_check(x, daddr, saddr, AF_INET6))
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -449,30 +512,40 @@ vti6_xmit(struct sk_buff *skb, struct net_device *dev, struct flowi *fl)
 	int mtu;
 
 	if (!dst)
+	{
 		goto tx_err_link_failure;
+	}
 
 	dst_hold(dst);
 	dst = xfrm_lookup(t->net, dst, fl, NULL, 0);
-	if (IS_ERR(dst)) {
+
+	if (IS_ERR(dst))
+	{
 		err = PTR_ERR(dst);
 		dst = NULL;
 		goto tx_err_link_failure;
 	}
 
 	x = dst->xfrm;
+
 	if (!vti6_state_check(x, &t->parms.raddr, &t->parms.laddr))
+	{
 		goto tx_err_link_failure;
+	}
 
 	if (!ip6_tnl_xmit_ctl(t, (const struct in6_addr *)&x->props.saddr,
-			      (const struct in6_addr *)&x->id.daddr))
+						  (const struct in6_addr *)&x->id.daddr))
+	{
 		goto tx_err_link_failure;
+	}
 
 	tdev = dst->dev;
 
-	if (tdev == dev) {
+	if (tdev == dev)
+	{
 		stats->collisions++;
 		net_warn_ratelimited("%s: Local routing loop detected!\n",
-				     t->parms.name);
+							 t->parms.name);
 		goto tx_err_dst_release;
 	}
 
@@ -481,27 +554,35 @@ vti6_xmit(struct sk_buff *skb, struct net_device *dev, struct flowi *fl)
 	skb->dev = skb_dst(skb)->dev;
 
 	mtu = dst_mtu(dst);
-	if (!skb->ignore_df && skb->len > mtu) {
+
+	if (!skb->ignore_df && skb->len > mtu)
+	{
 		skb_dst(skb)->ops->update_pmtu(dst, NULL, skb, mtu);
 
 		if (skb->protocol == htons(ETH_P_IPV6))
+		{
 			icmpv6_send(skb, ICMPV6_PKT_TOOBIG, 0, mtu);
+		}
 		else
 			icmp_send(skb, ICMP_DEST_UNREACH, ICMP_FRAG_NEEDED,
-				  htonl(mtu));
+					  htonl(mtu));
 
 		return -EMSGSIZE;
 	}
 
 	err = dst_output(t->net, skb->sk, skb);
-	if (net_xmit_eval(err) == 0) {
+
+	if (net_xmit_eval(err) == 0)
+	{
 		struct pcpu_sw_netstats *tstats = this_cpu_ptr(dev->tstats);
 
 		u64_stats_update_begin(&tstats->syncp);
 		tstats->tx_bytes += skb->len;
 		tstats->tx_packets++;
 		u64_stats_update_end(&tstats->syncp);
-	} else {
+	}
+	else
+	{
 		stats->tx_errors++;
 		stats->tx_aborted_errors++;
 	}
@@ -526,31 +607,39 @@ vti6_tnl_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	memset(&fl, 0, sizeof(fl));
 
-	switch (skb->protocol) {
-	case htons(ETH_P_IPV6):
-		ipv6h = ipv6_hdr(skb);
+	switch (skb->protocol)
+	{
+		case htons(ETH_P_IPV6):
+			ipv6h = ipv6_hdr(skb);
 
-		if ((t->parms.proto != IPPROTO_IPV6 && t->parms.proto != 0) ||
-		    vti6_addr_conflict(t, ipv6h))
+			if ((t->parms.proto != IPPROTO_IPV6 && t->parms.proto != 0) ||
+				vti6_addr_conflict(t, ipv6h))
+			{
+				goto tx_err;
+			}
+
+			xfrm_decode_session(skb, &fl, AF_INET6);
+			memset(IP6CB(skb), 0, sizeof(*IP6CB(skb)));
+			break;
+
+		case htons(ETH_P_IP):
+			xfrm_decode_session(skb, &fl, AF_INET);
+			memset(IPCB(skb), 0, sizeof(*IPCB(skb)));
+			break;
+
+		default:
 			goto tx_err;
-
-		xfrm_decode_session(skb, &fl, AF_INET6);
-		memset(IP6CB(skb), 0, sizeof(*IP6CB(skb)));
-		break;
-	case htons(ETH_P_IP):
-		xfrm_decode_session(skb, &fl, AF_INET);
-		memset(IPCB(skb), 0, sizeof(*IPCB(skb)));
-		break;
-	default:
-		goto tx_err;
 	}
 
 	/* override mark with tunnel output key */
 	fl.flowi_mark = be32_to_cpu(t->parms.o_key);
 
 	ret = vti6_xmit(skb, dev, &fl);
+
 	if (ret < 0)
+	{
 		goto tx_err;
+	}
 
 	return NETDEV_TX_OK;
 
@@ -562,7 +651,7 @@ tx_err:
 }
 
 static int vti6_err(struct sk_buff *skb, struct inet6_skb_parm *opt,
-		    u8 type, u8 code, int offset, __be32 info)
+					u8 type, u8 code, int offset, __be32 info)
 {
 	__be32 spi;
 	__u32 mark;
@@ -576,41 +665,58 @@ static int vti6_err(struct sk_buff *skb, struct inet6_skb_parm *opt,
 	int protocol = iph->nexthdr;
 
 	t = vti6_tnl_lookup(dev_net(skb->dev), &iph->daddr, &iph->saddr);
+
 	if (!t)
+	{
 		return -1;
+	}
 
 	mark = be32_to_cpu(t->parms.o_key);
 
-	switch (protocol) {
-	case IPPROTO_ESP:
-		esph = (struct ip_esp_hdr *)(skb->data + offset);
-		spi = esph->spi;
-		break;
-	case IPPROTO_AH:
-		ah = (struct ip_auth_hdr *)(skb->data + offset);
-		spi = ah->spi;
-		break;
-	case IPPROTO_COMP:
-		ipch = (struct ip_comp_hdr *)(skb->data + offset);
-		spi = htonl(ntohs(ipch->cpi));
-		break;
-	default:
-		return 0;
+	switch (protocol)
+	{
+		case IPPROTO_ESP:
+			esph = (struct ip_esp_hdr *)(skb->data + offset);
+			spi = esph->spi;
+			break;
+
+		case IPPROTO_AH:
+			ah = (struct ip_auth_hdr *)(skb->data + offset);
+			spi = ah->spi;
+			break;
+
+		case IPPROTO_COMP:
+			ipch = (struct ip_comp_hdr *)(skb->data + offset);
+			spi = htonl(ntohs(ipch->cpi));
+			break;
+
+		default:
+			return 0;
 	}
 
 	if (type != ICMPV6_PKT_TOOBIG &&
-	    type != NDISC_REDIRECT)
+		type != NDISC_REDIRECT)
+	{
 		return 0;
+	}
 
 	x = xfrm_state_lookup(net, mark, (const xfrm_address_t *)&iph->daddr,
-			      spi, protocol, AF_INET6);
+						  spi, protocol, AF_INET6);
+
 	if (!x)
+	{
 		return 0;
+	}
 
 	if (type == NDISC_REDIRECT)
+	{
 		ip6_redirect(skb, net, skb->dev->ifindex, 0);
+	}
 	else
+	{
 		ip6_update_pmtu(skb, net, info, 0, 0);
+	}
+
 	xfrm_state_put(x);
 
 	return 0;
@@ -625,13 +731,17 @@ static void vti6_link_config(struct ip6_tnl *t)
 	memcpy(dev->broadcast, &p->raddr, sizeof(struct in6_addr));
 
 	p->flags &= ~(IP6_TNL_F_CAP_XMIT | IP6_TNL_F_CAP_RCV |
-		      IP6_TNL_F_CAP_PER_PACKET);
+				  IP6_TNL_F_CAP_PER_PACKET);
 	p->flags |= ip6_tnl_get_cap(t, &p->laddr, &p->raddr);
 
 	if (p->flags & IP6_TNL_F_CAP_XMIT && p->flags & IP6_TNL_F_CAP_RCV)
+	{
 		dev->flags |= IFF_POINTOPOINT;
+	}
 	else
+	{
 		dev->flags &= ~IFF_POINTOPOINT;
+	}
 }
 
 /**
@@ -733,82 +843,145 @@ vti6_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 	struct net *net = dev_net(dev);
 	struct vti6_net *ip6n = net_generic(net, vti6_net_id);
 
-	switch (cmd) {
-	case SIOCGETTUNNEL:
-		if (dev == ip6n->fb_tnl_dev) {
-			if (copy_from_user(&p, ifr->ifr_ifru.ifru_data, sizeof(p))) {
-				err = -EFAULT;
-				break;
-			}
-			vti6_parm_from_user(&p1, &p);
-			t = vti6_locate(net, &p1, 0);
-		} else {
-			memset(&p, 0, sizeof(p));
-		}
-		if (!t)
-			t = netdev_priv(dev);
-		vti6_parm_to_user(&p, &t->parms);
-		if (copy_to_user(ifr->ifr_ifru.ifru_data, &p, sizeof(p)))
-			err = -EFAULT;
-		break;
-	case SIOCADDTUNNEL:
-	case SIOCCHGTUNNEL:
-		err = -EPERM;
-		if (!ns_capable(net->user_ns, CAP_NET_ADMIN))
-			break;
-		err = -EFAULT;
-		if (copy_from_user(&p, ifr->ifr_ifru.ifru_data, sizeof(p)))
-			break;
-		err = -EINVAL;
-		if (p.proto != IPPROTO_IPV6  && p.proto != 0)
-			break;
-		vti6_parm_from_user(&p1, &p);
-		t = vti6_locate(net, &p1, cmd == SIOCADDTUNNEL);
-		if (dev != ip6n->fb_tnl_dev && cmd == SIOCCHGTUNNEL) {
-			if (t) {
-				if (t->dev != dev) {
-					err = -EEXIST;
+	switch (cmd)
+	{
+		case SIOCGETTUNNEL:
+			if (dev == ip6n->fb_tnl_dev)
+			{
+				if (copy_from_user(&p, ifr->ifr_ifru.ifru_data, sizeof(p)))
+				{
+					err = -EFAULT;
 					break;
 				}
-			} else
+
+				vti6_parm_from_user(&p1, &p);
+				t = vti6_locate(net, &p1, 0);
+			}
+			else
+			{
+				memset(&p, 0, sizeof(p));
+			}
+
+			if (!t)
+			{
 				t = netdev_priv(dev);
+			}
 
-			err = vti6_update(t, &p1);
-		}
-		if (t) {
-			err = 0;
 			vti6_parm_to_user(&p, &t->parms);
-			if (copy_to_user(ifr->ifr_ifru.ifru_data, &p, sizeof(p)))
-				err = -EFAULT;
 
-		} else
-			err = (cmd == SIOCADDTUNNEL ? -ENOBUFS : -ENOENT);
-		break;
-	case SIOCDELTUNNEL:
-		err = -EPERM;
-		if (!ns_capable(net->user_ns, CAP_NET_ADMIN))
+			if (copy_to_user(ifr->ifr_ifru.ifru_data, &p, sizeof(p)))
+			{
+				err = -EFAULT;
+			}
+
 			break;
 
-		if (dev == ip6n->fb_tnl_dev) {
-			err = -EFAULT;
-			if (copy_from_user(&p, ifr->ifr_ifru.ifru_data, sizeof(p)))
-				break;
-			err = -ENOENT;
-			vti6_parm_from_user(&p1, &p);
-			t = vti6_locate(net, &p1, 0);
-			if (!t)
-				break;
+		case SIOCADDTUNNEL:
+		case SIOCCHGTUNNEL:
 			err = -EPERM;
-			if (t->dev == ip6n->fb_tnl_dev)
+
+			if (!ns_capable(net->user_ns, CAP_NET_ADMIN))
+			{
 				break;
-			dev = t->dev;
-		}
-		err = 0;
-		unregister_netdevice(dev);
-		break;
-	default:
-		err = -EINVAL;
+			}
+
+			err = -EFAULT;
+
+			if (copy_from_user(&p, ifr->ifr_ifru.ifru_data, sizeof(p)))
+			{
+				break;
+			}
+
+			err = -EINVAL;
+
+			if (p.proto != IPPROTO_IPV6  && p.proto != 0)
+			{
+				break;
+			}
+
+			vti6_parm_from_user(&p1, &p);
+			t = vti6_locate(net, &p1, cmd == SIOCADDTUNNEL);
+
+			if (dev != ip6n->fb_tnl_dev && cmd == SIOCCHGTUNNEL)
+			{
+				if (t)
+				{
+					if (t->dev != dev)
+					{
+						err = -EEXIST;
+						break;
+					}
+				}
+				else
+				{
+					t = netdev_priv(dev);
+				}
+
+				err = vti6_update(t, &p1);
+			}
+
+			if (t)
+			{
+				err = 0;
+				vti6_parm_to_user(&p, &t->parms);
+
+				if (copy_to_user(ifr->ifr_ifru.ifru_data, &p, sizeof(p)))
+				{
+					err = -EFAULT;
+				}
+
+			}
+			else
+			{
+				err = (cmd == SIOCADDTUNNEL ? -ENOBUFS : -ENOENT);
+			}
+
+			break;
+
+		case SIOCDELTUNNEL:
+			err = -EPERM;
+
+			if (!ns_capable(net->user_ns, CAP_NET_ADMIN))
+			{
+				break;
+			}
+
+			if (dev == ip6n->fb_tnl_dev)
+			{
+				err = -EFAULT;
+
+				if (copy_from_user(&p, ifr->ifr_ifru.ifru_data, sizeof(p)))
+				{
+					break;
+				}
+
+				err = -ENOENT;
+				vti6_parm_from_user(&p1, &p);
+				t = vti6_locate(net, &p1, 0);
+
+				if (!t)
+				{
+					break;
+				}
+
+				err = -EPERM;
+
+				if (t->dev == ip6n->fb_tnl_dev)
+				{
+					break;
+				}
+
+				dev = t->dev;
+			}
+
+			err = 0;
+			unregister_netdevice(dev);
+			break;
+
+		default:
+			err = -EINVAL;
 	}
+
 	return err;
 }
 
@@ -824,13 +997,16 @@ vti6_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 static int vti6_change_mtu(struct net_device *dev, int new_mtu)
 {
 	if (new_mtu < IPV6_MIN_MTU)
+	{
 		return -EINVAL;
+	}
 
 	dev->mtu = new_mtu;
 	return 0;
 }
 
-static const struct net_device_ops vti6_netdev_ops = {
+static const struct net_device_ops vti6_netdev_ops =
+{
 	.ndo_init	= vti6_dev_init,
 	.ndo_uninit	= vti6_dev_uninit,
 	.ndo_start_xmit = vti6_tnl_xmit,
@@ -871,8 +1047,12 @@ static inline int vti6_dev_init_gen(struct net_device *dev)
 	t->dev = dev;
 	t->net = dev_net(dev);
 	dev->tstats = netdev_alloc_pcpu_stats(struct pcpu_sw_netstats);
+
 	if (!dev->tstats)
+	{
 		return -ENOMEM;
+	}
+
 	return 0;
 }
 
@@ -886,7 +1066,10 @@ static int vti6_dev_init(struct net_device *dev)
 	int err = vti6_dev_init_gen(dev);
 
 	if (err)
+	{
 		return err;
+	}
+
 	vti6_link_config(t);
 	return 0;
 }
@@ -916,31 +1099,43 @@ static int vti6_validate(struct nlattr *tb[], struct nlattr *data[])
 }
 
 static void vti6_netlink_parms(struct nlattr *data[],
-			       struct __ip6_tnl_parm *parms)
+							   struct __ip6_tnl_parm *parms)
 {
 	memset(parms, 0, sizeof(*parms));
 
 	if (!data)
+	{
 		return;
+	}
 
 	if (data[IFLA_VTI_LINK])
+	{
 		parms->link = nla_get_u32(data[IFLA_VTI_LINK]);
+	}
 
 	if (data[IFLA_VTI_LOCAL])
+	{
 		parms->laddr = nla_get_in6_addr(data[IFLA_VTI_LOCAL]);
+	}
 
 	if (data[IFLA_VTI_REMOTE])
+	{
 		parms->raddr = nla_get_in6_addr(data[IFLA_VTI_REMOTE]);
+	}
 
 	if (data[IFLA_VTI_IKEY])
+	{
 		parms->i_key = nla_get_be32(data[IFLA_VTI_IKEY]);
+	}
 
 	if (data[IFLA_VTI_OKEY])
+	{
 		parms->o_key = nla_get_be32(data[IFLA_VTI_OKEY]);
+	}
 }
 
 static int vti6_newlink(struct net *src_net, struct net_device *dev,
-			struct nlattr *tb[], struct nlattr *data[])
+						struct nlattr *tb[], struct nlattr *data[])
 {
 	struct net *net = dev_net(dev);
 	struct ip6_tnl *nt;
@@ -951,7 +1146,9 @@ static int vti6_newlink(struct net *src_net, struct net_device *dev,
 	nt->parms.proto = IPPROTO_IPV6;
 
 	if (vti6_locate(net, &nt->parms, 0))
+	{
 		return -EEXIST;
+	}
 
 	return vti6_tnl_create2(dev);
 }
@@ -962,11 +1159,13 @@ static void vti6_dellink(struct net_device *dev, struct list_head *head)
 	struct vti6_net *ip6n = net_generic(net, vti6_net_id);
 
 	if (dev != ip6n->fb_tnl_dev)
+	{
 		unregister_netdevice_queue(dev, head);
+	}
 }
 
 static int vti6_changelink(struct net_device *dev, struct nlattr *tb[],
-			   struct nlattr *data[])
+						   struct nlattr *data[])
 {
 	struct ip6_tnl *t;
 	struct __ip6_tnl_parm p;
@@ -974,17 +1173,25 @@ static int vti6_changelink(struct net_device *dev, struct nlattr *tb[],
 	struct vti6_net *ip6n = net_generic(net, vti6_net_id);
 
 	if (dev == ip6n->fb_tnl_dev)
+	{
 		return -EINVAL;
+	}
 
 	vti6_netlink_parms(data, &p);
 
 	t = vti6_locate(net, &p, 0);
 
-	if (t) {
+	if (t)
+	{
 		if (t->dev != dev)
+		{
 			return -EEXIST;
-	} else
+		}
+	}
+	else
+	{
 		t = netdev_priv(dev);
+	}
 
 	return vti6_update(t, &p);
 }
@@ -1011,18 +1218,22 @@ static int vti6_fill_info(struct sk_buff *skb, const struct net_device *dev)
 	struct __ip6_tnl_parm *parm = &tunnel->parms;
 
 	if (nla_put_u32(skb, IFLA_VTI_LINK, parm->link) ||
-	    nla_put_in6_addr(skb, IFLA_VTI_LOCAL, &parm->laddr) ||
-	    nla_put_in6_addr(skb, IFLA_VTI_REMOTE, &parm->raddr) ||
-	    nla_put_be32(skb, IFLA_VTI_IKEY, parm->i_key) ||
-	    nla_put_be32(skb, IFLA_VTI_OKEY, parm->o_key))
+		nla_put_in6_addr(skb, IFLA_VTI_LOCAL, &parm->laddr) ||
+		nla_put_in6_addr(skb, IFLA_VTI_REMOTE, &parm->raddr) ||
+		nla_put_be32(skb, IFLA_VTI_IKEY, parm->i_key) ||
+		nla_put_be32(skb, IFLA_VTI_OKEY, parm->o_key))
+	{
 		goto nla_put_failure;
+	}
+
 	return 0;
 
 nla_put_failure:
 	return -EMSGSIZE;
 }
 
-static const struct nla_policy vti6_policy[IFLA_VTI_MAX + 1] = {
+static const struct nla_policy vti6_policy[IFLA_VTI_MAX + 1] =
+{
 	[IFLA_VTI_LINK]		= { .type = NLA_U32 },
 	[IFLA_VTI_LOCAL]	= { .len = sizeof(struct in6_addr) },
 	[IFLA_VTI_REMOTE]	= { .len = sizeof(struct in6_addr) },
@@ -1030,7 +1241,8 @@ static const struct nla_policy vti6_policy[IFLA_VTI_MAX + 1] = {
 	[IFLA_VTI_OKEY]		= { .type = NLA_U32 },
 };
 
-static struct rtnl_link_ops vti6_link_ops __read_mostly = {
+static struct rtnl_link_ops vti6_link_ops __read_mostly =
+{
 	.kind		= "vti6",
 	.maxtype	= IFLA_VTI_MAX,
 	.policy		= vti6_policy,
@@ -1051,9 +1263,12 @@ static void __net_exit vti6_destroy_tunnels(struct vti6_net *ip6n)
 	struct ip6_tnl *t;
 	LIST_HEAD(list);
 
-	for (h = 0; h < IP6_VTI_HASH_SIZE; h++) {
+	for (h = 0; h < IP6_VTI_HASH_SIZE; h++)
+	{
 		t = rtnl_dereference(ip6n->tnls_r_l[h]);
-		while (t) {
+
+		while (t)
+		{
 			unregister_netdevice_queue(t->dev, &list);
 			t = rtnl_dereference(t->next);
 		}
@@ -1075,20 +1290,29 @@ static int __net_init vti6_init_net(struct net *net)
 
 	err = -ENOMEM;
 	ip6n->fb_tnl_dev = alloc_netdev(sizeof(struct ip6_tnl), "ip6_vti0",
-					NET_NAME_UNKNOWN, vti6_dev_setup);
+									NET_NAME_UNKNOWN, vti6_dev_setup);
 
 	if (!ip6n->fb_tnl_dev)
+	{
 		goto err_alloc_dev;
+	}
+
 	dev_net_set(ip6n->fb_tnl_dev, net);
 	ip6n->fb_tnl_dev->rtnl_link_ops = &vti6_link_ops;
 
 	err = vti6_fb_tnl_dev_init(ip6n->fb_tnl_dev);
+
 	if (err < 0)
+	{
 		goto err_register;
+	}
 
 	err = register_netdev(ip6n->fb_tnl_dev);
+
 	if (err < 0)
+	{
 		goto err_register;
+	}
 
 	t = netdev_priv(ip6n->fb_tnl_dev);
 
@@ -1110,28 +1334,32 @@ static void __net_exit vti6_exit_net(struct net *net)
 	rtnl_unlock();
 }
 
-static struct pernet_operations vti6_net_ops = {
+static struct pernet_operations vti6_net_ops =
+{
 	.init = vti6_init_net,
 	.exit = vti6_exit_net,
 	.id   = &vti6_net_id,
 	.size = sizeof(struct vti6_net),
 };
 
-static struct xfrm6_protocol vti_esp6_protocol __read_mostly = {
+static struct xfrm6_protocol vti_esp6_protocol __read_mostly =
+{
 	.handler	=	vti6_rcv,
 	.cb_handler	=	vti6_rcv_cb,
 	.err_handler	=	vti6_err,
 	.priority	=	100,
 };
 
-static struct xfrm6_protocol vti_ah6_protocol __read_mostly = {
+static struct xfrm6_protocol vti_ah6_protocol __read_mostly =
+{
 	.handler	=	vti6_rcv,
 	.cb_handler	=	vti6_rcv_cb,
 	.err_handler	=	vti6_err,
 	.priority	=	100,
 };
 
-static struct xfrm6_protocol vti_ipcomp6_protocol __read_mostly = {
+static struct xfrm6_protocol vti_ipcomp6_protocol __read_mostly =
+{
 	.handler	=	vti6_rcv,
 	.cb_handler	=	vti6_rcv_cb,
 	.err_handler	=	vti6_err,
@@ -1150,24 +1378,41 @@ static int __init vti6_tunnel_init(void)
 
 	msg = "tunnel device";
 	err = register_pernet_device(&vti6_net_ops);
+
 	if (err < 0)
+	{
 		goto pernet_dev_failed;
+	}
 
 	msg = "tunnel protocols";
 	err = xfrm6_protocol_register(&vti_esp6_protocol, IPPROTO_ESP);
+
 	if (err < 0)
+	{
 		goto xfrm_proto_esp_failed;
+	}
+
 	err = xfrm6_protocol_register(&vti_ah6_protocol, IPPROTO_AH);
+
 	if (err < 0)
+	{
 		goto xfrm_proto_ah_failed;
+	}
+
 	err = xfrm6_protocol_register(&vti_ipcomp6_protocol, IPPROTO_COMP);
+
 	if (err < 0)
+	{
 		goto xfrm_proto_comp_failed;
+	}
 
 	msg = "netlink interface";
 	err = rtnl_link_register(&vti6_link_ops);
+
 	if (err < 0)
+	{
 		goto rtnl_link_failed;
+	}
 
 	return 0;
 

@@ -51,15 +51,15 @@
 #define __BF_FIELD_CHECK(_mask, _reg, _val, _pfx)			\
 	({								\
 		BUILD_BUG_ON_MSG(!__builtin_constant_p(_mask),		\
-				 _pfx "mask is not constant");		\
+						 _pfx "mask is not constant");		\
 		BUILD_BUG_ON_MSG(!(_mask), _pfx "mask is zero");	\
 		BUILD_BUG_ON_MSG(__builtin_constant_p(_val) ?		\
-				 ~((_mask) >> __bf_shf(_mask)) & (_val) : 0, \
-				 _pfx "value too large for the field"); \
+						 ~((_mask) >> __bf_shf(_mask)) & (_val) : 0, \
+						 _pfx "value too large for the field"); \
 		BUILD_BUG_ON_MSG((_mask) > (typeof(_reg))~0ull,		\
-				 _pfx "type of reg too small for mask"); \
+						 _pfx "type of reg too small for mask"); \
 		__BUILD_BUG_ON_NOT_POWER_OF_2((_mask) +			\
-					      (1ULL << __bf_shf(_mask))); \
+									  (1ULL << __bf_shf(_mask))); \
 	})
 
 /**

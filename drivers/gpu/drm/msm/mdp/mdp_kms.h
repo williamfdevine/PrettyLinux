@@ -28,13 +28,15 @@
 
 struct mdp_kms;
 
-struct mdp_kms_funcs {
+struct mdp_kms_funcs
+{
 	struct msm_kms_funcs base;
 	void (*set_irqmask)(struct mdp_kms *mdp_kms, uint32_t irqmask,
-		uint32_t old_irqmask);
+						uint32_t old_irqmask);
 };
 
-struct mdp_kms {
+struct mdp_kms
+{
 	struct msm_kms base;
 
 	const struct mdp_kms_funcs *funcs;
@@ -48,7 +50,7 @@ struct mdp_kms {
 #define to_mdp_kms(x) container_of(x, struct mdp_kms, base)
 
 static inline void mdp_kms_init(struct mdp_kms *mdp_kms,
-		const struct mdp_kms_funcs *funcs)
+								const struct mdp_kms_funcs *funcs)
 {
 	mdp_kms->funcs = funcs;
 	INIT_LIST_HEAD(&mdp_kms->irq_list);
@@ -65,7 +67,8 @@ static inline void mdp_kms_init(struct mdp_kms *mdp_kms,
  * the hysteresis in drm_vblank_put() is not necessarily desirable for
  * internal housekeeping related irq usage.
  */
-struct mdp_irq {
+struct mdp_irq
+{
 	struct list_head node;
 	uint32_t irqmask;
 	bool registered;
@@ -83,7 +86,8 @@ void mdp_irq_update(struct mdp_kms *mdp_kms);
  * pixel format helpers:
  */
 
-struct mdp_format {
+struct mdp_format
+{
 	struct msm_format base;
 	enum mdp_bpc bpc_r, bpc_g, bpc_b;
 	enum mdp_bpc_alpha bpc_a;
@@ -116,10 +120,11 @@ const struct msm_format *mdp_get_format(struct msm_kms *kms, uint32_t format);
 static inline bool pipe_supports_yuv(uint32_t pipe_caps)
 {
 	return (pipe_caps & MDP_PIPE_CAP_SCALE) &&
-		(pipe_caps & MDP_PIPE_CAP_CSC);
+		   (pipe_caps & MDP_PIPE_CAP_CSC);
 }
 
-enum csc_type {
+enum csc_type
+{
 	CSC_RGB2RGB = 0,
 	CSC_YUV2RGB,
 	CSC_RGB2YUV,
@@ -127,7 +132,8 @@ enum csc_type {
 	CSC_MAX
 };
 
-struct csc_cfg {
+struct csc_cfg
+{
 	enum csc_type type;
 	uint32_t matrix[9];
 	uint32_t pre_bias[3];

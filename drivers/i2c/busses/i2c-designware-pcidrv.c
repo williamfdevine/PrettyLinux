@@ -41,14 +41,16 @@
 
 #define DRIVER_NAME "i2c-designware-pci"
 
-enum dw_pci_ctl_id_t {
+enum dw_pci_ctl_id_t
+{
 	medfield,
 	merrifield,
 	baytrail,
 	haswell,
 };
 
-struct dw_scl_sda_cfg {
+struct dw_scl_sda_cfg
+{
 	u32 ss_hcnt;
 	u32 fs_hcnt;
 	u32 ss_lcnt;
@@ -56,7 +58,8 @@ struct dw_scl_sda_cfg {
 	u32 sda_hold;
 };
 
-struct dw_pci_controller {
+struct dw_pci_controller
+{
 	u32 bus_num;
 	u32 bus_cfg;
 	u32 tx_fifo_depth;
@@ -68,17 +71,18 @@ struct dw_pci_controller {
 };
 
 #define INTEL_MID_STD_CFG  (DW_IC_CON_MASTER |			\
-				DW_IC_CON_SLAVE_DISABLE |	\
-				DW_IC_CON_RESTART_EN)
+							DW_IC_CON_SLAVE_DISABLE |	\
+							DW_IC_CON_RESTART_EN)
 
 #define DW_DEFAULT_FUNCTIONALITY (I2C_FUNC_I2C |			\
-					I2C_FUNC_SMBUS_BYTE |		\
-					I2C_FUNC_SMBUS_BYTE_DATA |	\
-					I2C_FUNC_SMBUS_WORD_DATA |	\
-					I2C_FUNC_SMBUS_I2C_BLOCK)
+								  I2C_FUNC_SMBUS_BYTE |		\
+								  I2C_FUNC_SMBUS_BYTE_DATA |	\
+								  I2C_FUNC_SMBUS_WORD_DATA |	\
+								  I2C_FUNC_SMBUS_I2C_BLOCK)
 
 /* Merrifield HCNT/LCNT/SDA hold time */
-static struct dw_scl_sda_cfg mrfld_config = {
+static struct dw_scl_sda_cfg mrfld_config =
+{
 	.ss_hcnt = 0x2f8,
 	.fs_hcnt = 0x87,
 	.ss_lcnt = 0x37b,
@@ -86,7 +90,8 @@ static struct dw_scl_sda_cfg mrfld_config = {
 };
 
 /* BayTrail HCNT/LCNT/SDA hold time */
-static struct dw_scl_sda_cfg byt_config = {
+static struct dw_scl_sda_cfg byt_config =
+{
 	.ss_hcnt = 0x200,
 	.fs_hcnt = 0x55,
 	.ss_lcnt = 0x200,
@@ -95,7 +100,8 @@ static struct dw_scl_sda_cfg byt_config = {
 };
 
 /* Haswell HCNT/LCNT/SDA hold time */
-static struct dw_scl_sda_cfg hsw_config = {
+static struct dw_scl_sda_cfg hsw_config =
+{
 	.ss_hcnt = 0x01b0,
 	.fs_hcnt = 0x48,
 	.ss_lcnt = 0x01fb,
@@ -105,20 +111,24 @@ static struct dw_scl_sda_cfg hsw_config = {
 
 static int mfld_setup(struct pci_dev *pdev, struct dw_pci_controller *c)
 {
-	switch (pdev->device) {
-	case 0x0817:
-		c->bus_cfg &= ~DW_IC_CON_SPEED_MASK;
-		c->bus_cfg |= DW_IC_CON_SPEED_STD;
-	case 0x0818:
-	case 0x0819:
-		c->bus_num = pdev->device - 0x817 + 3;
-		return 0;
-	case 0x082C:
-	case 0x082D:
-	case 0x082E:
-		c->bus_num = pdev->device - 0x82C + 0;
-		return 0;
+	switch (pdev->device)
+	{
+		case 0x0817:
+			c->bus_cfg &= ~DW_IC_CON_SPEED_MASK;
+			c->bus_cfg |= DW_IC_CON_SPEED_STD;
+
+		case 0x0818:
+		case 0x0819:
+			c->bus_num = pdev->device - 0x817 + 3;
+			return 0;
+
+		case 0x082C:
+		case 0x082D:
+		case 0x082E:
+			c->bus_num = pdev->device - 0x82C + 0;
+			return 0;
 	}
+
 	return -ENODEV;
 }
 
@@ -130,18 +140,22 @@ static int mrfld_setup(struct pci_dev *pdev, struct dw_pci_controller *c)
 	 * first PCI slot provides 4 functions, that's why we have to add 0 to
 	 * the first slot and 4 to the next one.
 	 */
-	switch (PCI_SLOT(pdev->devfn)) {
-	case 8:
-		c->bus_num = PCI_FUNC(pdev->devfn) + 0 + 1;
-		return 0;
-	case 9:
-		c->bus_num = PCI_FUNC(pdev->devfn) + 4 + 1;
-		return 0;
+	switch (PCI_SLOT(pdev->devfn))
+	{
+		case 8:
+			c->bus_num = PCI_FUNC(pdev->devfn) + 0 + 1;
+			return 0;
+
+		case 9:
+			c->bus_num = PCI_FUNC(pdev->devfn) + 4 + 1;
+			return 0;
 	}
+
 	return -ENODEV;
 }
 
-static struct dw_pci_controller dw_pci_controllers[] = {
+static struct dw_pci_controller dw_pci_controllers[] =
+{
 	[medfield] = {
 		.bus_num = -1,
 		.bus_cfg   = INTEL_MID_STD_CFG | DW_IC_CON_SPEED_FAST,
@@ -194,7 +208,7 @@ static int i2c_dw_pci_resume(struct device *dev)
 #endif
 
 static UNIVERSAL_DEV_PM_OPS(i2c_dw_pm_ops, i2c_dw_pci_suspend,
-			    i2c_dw_pci_resume, NULL);
+							i2c_dw_pci_resume, NULL);
 
 static u32 i2c_dw_get_clk_rate_khz(struct dw_i2c_dev *dev)
 {
@@ -202,7 +216,7 @@ static u32 i2c_dw_get_clk_rate_khz(struct dw_i2c_dev *dev)
 }
 
 static int i2c_dw_pci_probe(struct pci_dev *pdev,
-			    const struct pci_device_id *id)
+							const struct pci_device_id *id)
 {
 	struct dw_i2c_dev *dev;
 	struct i2c_adapter *adap;
@@ -210,30 +224,38 @@ static int i2c_dw_pci_probe(struct pci_dev *pdev,
 	struct dw_pci_controller *controller;
 	struct dw_scl_sda_cfg *cfg;
 
-	if (id->driver_data >= ARRAY_SIZE(dw_pci_controllers)) {
+	if (id->driver_data >= ARRAY_SIZE(dw_pci_controllers))
+	{
 		dev_err(&pdev->dev, "%s: invalid driver data %ld\n", __func__,
-			id->driver_data);
+				id->driver_data);
 		return -EINVAL;
 	}
 
 	controller = &dw_pci_controllers[id->driver_data];
 
 	r = pcim_enable_device(pdev);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(&pdev->dev, "Failed to enable I2C PCI device (%d)\n",
-			r);
+				r);
 		return r;
 	}
 
 	r = pcim_iomap_regions(pdev, 1 << 0, pci_name(pdev));
-	if (r) {
+
+	if (r)
+	{
 		dev_err(&pdev->dev, "I/O memory remapping failed\n");
 		return r;
 	}
 
 	dev = devm_kzalloc(&pdev->dev, sizeof(struct dw_i2c_dev), GFP_KERNEL);
+
 	if (!dev)
+	{
 		return -ENOMEM;
+	}
 
 	dev->clk = NULL;
 	dev->controller = controller;
@@ -242,17 +264,23 @@ static int i2c_dw_pci_probe(struct pci_dev *pdev,
 	dev->dev = &pdev->dev;
 	dev->irq = pdev->irq;
 
-	if (controller->setup) {
+	if (controller->setup)
+	{
 		r = controller->setup(pdev, controller);
+
 		if (r)
+		{
 			return r;
+		}
 	}
 
 	dev->functionality = controller->functionality |
-				DW_DEFAULT_FUNCTIONALITY;
+						 DW_DEFAULT_FUNCTIONALITY;
 
 	dev->master_cfg = controller->bus_cfg;
-	if (controller->scl_sda_cfg) {
+
+	if (controller->scl_sda_cfg)
+	{
 		cfg = controller->scl_sda_cfg;
 		dev->ss_hcnt = cfg->ss_hcnt;
 		dev->fs_hcnt = cfg->fs_hcnt;
@@ -273,8 +301,11 @@ static int i2c_dw_pci_probe(struct pci_dev *pdev,
 	adap->nr = controller->bus_num;
 
 	r = i2c_dw_probe(dev);
+
 	if (r)
+	{
 		return r;
+	}
 
 	pm_runtime_set_autosuspend_delay(&pdev->dev, 1000);
 	pm_runtime_use_autosuspend(&pdev->dev);
@@ -298,7 +329,8 @@ static void i2c_dw_pci_remove(struct pci_dev *pdev)
 /* work with hotplug and coldplug */
 MODULE_ALIAS("i2c_designware-pci");
 
-static const struct pci_device_id i2_designware_pci_ids[] = {
+static const struct pci_device_id i2_designware_pci_ids[] =
+{
 	/* Medfield */
 	{ PCI_VDEVICE(INTEL, 0x0817), medfield },
 	{ PCI_VDEVICE(INTEL, 0x0818), medfield },
@@ -332,7 +364,8 @@ static const struct pci_device_id i2_designware_pci_ids[] = {
 };
 MODULE_DEVICE_TABLE(pci, i2_designware_pci_ids);
 
-static struct pci_driver dw_i2c_driver = {
+static struct pci_driver dw_i2c_driver =
+{
 	.name		= DRIVER_NAME,
 	.id_table	= i2_designware_pci_ids,
 	.probe		= i2c_dw_pci_probe,

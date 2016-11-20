@@ -60,11 +60,11 @@
 
 /* Stuff for the PCI ID's  */
 #ifndef PCI_VENDOR_ID_QUICKLOGIC
-#define PCI_VENDOR_ID_QUICKLOGIC    0x11e3
+	#define PCI_VENDOR_ID_QUICKLOGIC    0x11e3
 #endif
 
 #ifndef PCI_DEVICE_ID_WATCHDOG_PCIPCWD
-#define PCI_DEVICE_ID_WATCHDOG_PCIPCWD 0x5030
+	#define PCI_DEVICE_ID_WATCHDOG_PCIPCWD 0x5030
 #endif
 
 /*
@@ -98,7 +98,8 @@
 #define CMD_GET_CLEAR_RESET_COUNT		0x84
 
 /* Watchdog's Dip Switch heartbeat values */
-static const int heartbeat_tbl[] = {
+static const int heartbeat_tbl[] =
+{
 	5,	/* OFF-OFF-OFF	=  5 Sec  */
 	10,	/* OFF-OFF-ON	= 10 Sec  */
 	30,	/* OFF-ON-OFF	= 30 Sec  */
@@ -117,7 +118,8 @@ static int temp_panic;
 static unsigned long is_active;
 static char expect_release;
 /* this is private data for each PCI-PC watchdog card */
-static struct {
+static struct
+{
 	/* Wether or not the card has a temperature device */
 	int supports_temp;
 	/* The card's boot status */
@@ -143,13 +145,13 @@ MODULE_PARM_DESC(debug, "Debug level: 0=Quiet, 1=Verbose, 2=Debug (default=0)");
 static int heartbeat = WATCHDOG_HEARTBEAT;
 module_param(heartbeat, int, 0);
 MODULE_PARM_DESC(heartbeat, "Watchdog heartbeat in seconds. "
-	"(0<heartbeat<65536 or 0=delay-time from dip-switches, default="
-				__MODULE_STRING(WATCHDOG_HEARTBEAT) ")");
+				 "(0<heartbeat<65536 or 0=delay-time from dip-switches, default="
+				 __MODULE_STRING(WATCHDOG_HEARTBEAT) ")");
 
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default="
-					__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 /*
  *	Internal functions
@@ -161,7 +163,7 @@ static int send_command(int cmd, int *msb, int *lsb)
 
 	if (debug >= DEBUG)
 		pr_debug("sending following data cmd=0x%02x msb=0x%02x lsb=0x%02x\n",
-			 cmd, *msb, *lsb);
+				 cmd, *msb, *lsb);
 
 	spin_lock(&pcipcwd_private.io_lock);
 	/* If a command requires data it should be written first.
@@ -178,22 +180,29 @@ static int send_command(int cmd, int *msb, int *lsb)
 	 * the WRSP bit in port 2 and give it a max. timeout of
 	 * PCI_COMMAND_TIMEOUT to process */
 	got_response = inb_p(pcipcwd_private.io_addr + 2) & WD_PCI_WRSP;
+
 	for (count = 0; (count < PCI_COMMAND_TIMEOUT) && (!got_response);
-								count++) {
+		 count++)
+	{
 		mdelay(1);
 		got_response = inb_p(pcipcwd_private.io_addr + 2) & WD_PCI_WRSP;
 	}
 
-	if (debug >= DEBUG) {
-		if (got_response) {
+	if (debug >= DEBUG)
+	{
+		if (got_response)
+		{
 			pr_debug("time to process command was: %d ms\n",
-				 count);
-		} else {
+					 count);
+		}
+		else
+		{
 			pr_debug("card did not respond on command!\n");
 		}
 	}
 
-	if (got_response) {
+	if (got_response)
+	{
 		/* read back response */
 		*lsb = inb_p(pcipcwd_private.io_addr + 4);
 		*msb = inb_p(pcipcwd_private.io_addr + 5);
@@ -203,7 +212,7 @@ static int send_command(int cmd, int *msb, int *lsb)
 
 		if (debug >= DEBUG)
 			pr_debug("received following data for cmd=0x%02x: msb=0x%02x lsb=0x%02x\n",
-				 cmd, *msb, *lsb);
+					 cmd, *msb, *lsb);
 	}
 
 	spin_unlock(&pcipcwd_private.io_lock);
@@ -214,7 +223,9 @@ static int send_command(int cmd, int *msb, int *lsb)
 static inline void pcipcwd_check_temperature_support(void)
 {
 	if (inb_p(pcipcwd_private.io_addr) != 0xF0)
+	{
 		pcipcwd_private.supports_temp = 1;
+	}
 }
 
 static int pcipcwd_get_option_switches(void)
@@ -232,32 +243,43 @@ static void pcipcwd_show_card_info(void)
 	int option_switches;
 
 	got_fw_rev = send_command(CMD_GET_FIRMWARE_VERSION, &fw_rev_major,
-								&fw_rev_minor);
+							  &fw_rev_minor);
+
 	if (got_fw_rev)
+	{
 		sprintf(fw_ver_str, "%u.%02u", fw_rev_major, fw_rev_minor);
+	}
 	else
+	{
 		sprintf(fw_ver_str, "<card no answer>");
+	}
 
 	/* Get switch settings */
 	option_switches = pcipcwd_get_option_switches();
 
 	pr_info("Found card at port 0x%04x (Firmware: %s) %s temp option\n",
-		(int) pcipcwd_private.io_addr, fw_ver_str,
-		(pcipcwd_private.supports_temp ? "with" : "without"));
+			(int) pcipcwd_private.io_addr, fw_ver_str,
+			(pcipcwd_private.supports_temp ? "with" : "without"));
 
 	pr_info("Option switches (0x%02x): Temperature Reset Enable=%s, Power On Delay=%s\n",
-		option_switches,
-		((option_switches & 0x10) ? "ON" : "OFF"),
-		((option_switches & 0x08) ? "ON" : "OFF"));
+			option_switches,
+			((option_switches & 0x10) ? "ON" : "OFF"),
+			((option_switches & 0x08) ? "ON" : "OFF"));
 
 	if (pcipcwd_private.boot_status & WDIOF_CARDRESET)
+	{
 		pr_info("Previous reset was caused by the Watchdog card\n");
+	}
 
 	if (pcipcwd_private.boot_status & WDIOF_OVERHEAT)
+	{
 		pr_info("Card sensed a CPU Overheat\n");
+	}
 
 	if (pcipcwd_private.boot_status == 0)
+	{
 		pr_info("No previous trip detected - Cold boot or reset\n");
+	}
 }
 
 static int pcipcwd_start(void)
@@ -271,13 +293,16 @@ static int pcipcwd_start(void)
 	stat_reg = inb_p(pcipcwd_private.io_addr + 2);
 	spin_unlock(&pcipcwd_private.io_lock);
 
-	if (stat_reg & WD_PCI_WDIS) {
+	if (stat_reg & WD_PCI_WDIS)
+	{
 		pr_err("Card timer not enabled\n");
 		return -1;
 	}
 
 	if (debug >= VERBOSE)
+	{
 		pr_debug("Watchdog started\n");
+	}
 
 	return 0;
 }
@@ -296,13 +321,16 @@ static int pcipcwd_stop(void)
 	stat_reg = inb_p(pcipcwd_private.io_addr + 2);
 	spin_unlock(&pcipcwd_private.io_lock);
 
-	if (!(stat_reg & WD_PCI_WDIS)) {
+	if (!(stat_reg & WD_PCI_WDIS))
+	{
 		pr_err("Card did not acknowledge disable attempt\n");
 		return -1;
 	}
 
 	if (debug >= VERBOSE)
+	{
 		pr_debug("Watchdog stopped\n");
+	}
 
 	return 0;
 }
@@ -315,7 +343,9 @@ static int pcipcwd_keepalive(void)
 	spin_unlock(&pcipcwd_private.io_lock);
 
 	if (debug >= DEBUG)
+	{
 		pr_debug("Watchdog keepalive signal send\n");
+	}
 
 	return 0;
 }
@@ -326,14 +356,19 @@ static int pcipcwd_set_heartbeat(int t)
 	int t_lsb = t % 256;
 
 	if ((t < 0x0001) || (t > 0xFFFF))
+	{
 		return -EINVAL;
+	}
 
 	/* Write new heartbeat to watchdog */
 	send_command(CMD_WRITE_WATCHDOG_TIMEOUT, &t_msb, &t_lsb);
 
 	heartbeat = t;
+
 	if (debug >= VERBOSE)
+	{
 		pr_debug("New heartbeat: %d\n", heartbeat);
+	}
 
 	return 0;
 }
@@ -344,16 +379,26 @@ static int pcipcwd_get_status(int *status)
 
 	*status = 0;
 	control_status = inb_p(pcipcwd_private.io_addr + 1);
+
 	if (control_status & WD_PCI_WTRP)
+	{
 		*status |= WDIOF_CARDRESET;
-	if (control_status & WD_PCI_TTRP) {
+	}
+
+	if (control_status & WD_PCI_TTRP)
+	{
 		*status |= WDIOF_OVERHEAT;
+
 		if (temp_panic)
+		{
 			panic(KBUILD_MODNAME ": Temperature overheat trip!\n");
+		}
 	}
 
 	if (debug >= DEBUG)
+	{
 		pr_debug("Control Status #1: 0x%02x\n", control_status);
+	}
 
 	return 0;
 }
@@ -365,26 +410,30 @@ static int pcipcwd_clear_status(void)
 	int reset_counter;
 
 	if (debug >= VERBOSE)
+	{
 		pr_info("clearing watchdog trip status & LED\n");
+	}
 
 	control_status = inb_p(pcipcwd_private.io_addr + 1);
 
-	if (debug >= DEBUG) {
+	if (debug >= DEBUG)
+	{
 		pr_debug("status was: 0x%02x\n", control_status);
 		pr_debug("sending: 0x%02x\n",
-			 (control_status & WD_PCI_R2DS) | WD_PCI_WTRP);
+				 (control_status & WD_PCI_R2DS) | WD_PCI_WTRP);
 	}
 
 	/* clear trip status & LED and keep mode of relay 2 */
 	outb_p((control_status & WD_PCI_R2DS) | WD_PCI_WTRP,
-						pcipcwd_private.io_addr + 1);
+		   pcipcwd_private.io_addr + 1);
 
 	/* clear reset counter */
 	msb = 0;
 	reset_counter = 0xff;
 	send_command(CMD_GET_CLEAR_RESET_COUNT, &msb, &reset_counter);
 
-	if (debug >= DEBUG) {
+	if (debug >= DEBUG)
+	{
 		pr_debug("reset count was: 0x%02x\n", reset_counter);
 	}
 
@@ -394,8 +443,11 @@ static int pcipcwd_clear_status(void)
 static int pcipcwd_get_temperature(int *temperature)
 {
 	*temperature = 0;
+
 	if (!pcipcwd_private.supports_temp)
+	{
 		return -ENODEV;
+	}
 
 	spin_lock(&pcipcwd_private.io_lock);
 	*temperature = inb_p(pcipcwd_private.io_addr);
@@ -407,7 +459,8 @@ static int pcipcwd_get_temperature(int *temperature)
 	 */
 	*temperature = (*temperature * 9 / 5) + 32;
 
-	if (debug >= DEBUG) {
+	if (debug >= DEBUG)
+	{
 		pr_debug("temperature is: %d F\n", *temperature);
 	}
 
@@ -426,7 +479,9 @@ static int pcipcwd_get_timeleft(int *time_left)
 	*time_left = (msb << 8) + lsb;
 
 	if (debug >= VERBOSE)
+	{
 		pr_debug("Time left before next reboot: %d\n", *time_left);
+	}
 
 	return 0;
 }
@@ -436,11 +491,13 @@ static int pcipcwd_get_timeleft(int *time_left)
  */
 
 static ssize_t pcipcwd_write(struct file *file, const char __user *data,
-			     size_t len, loff_t *ppos)
+							 size_t len, loff_t *ppos)
 {
 	/* See if we got the magic character 'V' and reload the timer */
-	if (len) {
-		if (!nowayout) {
+	if (len)
+	{
+		if (!nowayout)
+		{
 			size_t i;
 
 			/* note: just in case someone wrote the magic character
@@ -449,129 +506,162 @@ static ssize_t pcipcwd_write(struct file *file, const char __user *data,
 
 			/* scan to see whether or not we got the
 			 * magic character */
-			for (i = 0; i != len; i++) {
+			for (i = 0; i != len; i++)
+			{
 				char c;
+
 				if (get_user(c, data + i))
+				{
 					return -EFAULT;
+				}
+
 				if (c == 'V')
+				{
 					expect_release = 42;
+				}
 			}
 		}
 
 		/* someone wrote to us, we should reload the timer */
 		pcipcwd_keepalive();
 	}
+
 	return len;
 }
 
 static long pcipcwd_ioctl(struct file *file, unsigned int cmd,
-						unsigned long arg)
+						  unsigned long arg)
 {
 	void __user *argp = (void __user *)arg;
 	int __user *p = argp;
-	static const struct watchdog_info ident = {
+	static const struct watchdog_info ident =
+	{
 		.options =		WDIOF_OVERHEAT |
-					WDIOF_CARDRESET |
-					WDIOF_KEEPALIVEPING |
-					WDIOF_SETTIMEOUT |
-					WDIOF_MAGICCLOSE,
+		WDIOF_CARDRESET |
+		WDIOF_KEEPALIVEPING |
+		WDIOF_SETTIMEOUT |
+		WDIOF_MAGICCLOSE,
 		.firmware_version =	1,
 		.identity =		WATCHDOG_DRIVER_NAME,
 	};
 
-	switch (cmd) {
-	case WDIOC_GETSUPPORT:
-		return copy_to_user(argp, &ident, sizeof(ident)) ? -EFAULT : 0;
-
-	case WDIOC_GETSTATUS:
+	switch (cmd)
 	{
-		int status;
-		pcipcwd_get_status(&status);
-		return put_user(status, p);
-	}
+		case WDIOC_GETSUPPORT:
+			return copy_to_user(argp, &ident, sizeof(ident)) ? -EFAULT : 0;
 
-	case WDIOC_GETBOOTSTATUS:
-		return put_user(pcipcwd_private.boot_status, p);
+		case WDIOC_GETSTATUS:
+			{
+				int status;
+				pcipcwd_get_status(&status);
+				return put_user(status, p);
+			}
 
-	case WDIOC_GETTEMP:
-	{
-		int temperature;
+		case WDIOC_GETBOOTSTATUS:
+			return put_user(pcipcwd_private.boot_status, p);
 
-		if (pcipcwd_get_temperature(&temperature))
-			return -EFAULT;
+		case WDIOC_GETTEMP:
+			{
+				int temperature;
 
-		return put_user(temperature, p);
-	}
+				if (pcipcwd_get_temperature(&temperature))
+				{
+					return -EFAULT;
+				}
 
-	case WDIOC_SETOPTIONS:
-	{
-		int new_options, retval = -EINVAL;
+				return put_user(temperature, p);
+			}
 
-		if (get_user(new_options, p))
-			return -EFAULT;
+		case WDIOC_SETOPTIONS:
+			{
+				int new_options, retval = -EINVAL;
 
-		if (new_options & WDIOS_DISABLECARD) {
-			if (pcipcwd_stop())
-				return -EIO;
-			retval = 0;
-		}
+				if (get_user(new_options, p))
+				{
+					return -EFAULT;
+				}
 
-		if (new_options & WDIOS_ENABLECARD) {
-			if (pcipcwd_start())
-				return -EIO;
-			retval = 0;
-		}
+				if (new_options & WDIOS_DISABLECARD)
+				{
+					if (pcipcwd_stop())
+					{
+						return -EIO;
+					}
 
-		if (new_options & WDIOS_TEMPPANIC) {
-			temp_panic = 1;
-			retval = 0;
-		}
+					retval = 0;
+				}
 
-		return retval;
-	}
+				if (new_options & WDIOS_ENABLECARD)
+				{
+					if (pcipcwd_start())
+					{
+						return -EIO;
+					}
 
-	case WDIOC_KEEPALIVE:
-		pcipcwd_keepalive();
-		return 0;
+					retval = 0;
+				}
 
-	case WDIOC_SETTIMEOUT:
-	{
-		int new_heartbeat;
+				if (new_options & WDIOS_TEMPPANIC)
+				{
+					temp_panic = 1;
+					retval = 0;
+				}
 
-		if (get_user(new_heartbeat, p))
-			return -EFAULT;
+				return retval;
+			}
 
-		if (pcipcwd_set_heartbeat(new_heartbeat))
-			return -EINVAL;
+		case WDIOC_KEEPALIVE:
+			pcipcwd_keepalive();
+			return 0;
 
-		pcipcwd_keepalive();
-		/* Fall */
-	}
+		case WDIOC_SETTIMEOUT:
+			{
+				int new_heartbeat;
 
-	case WDIOC_GETTIMEOUT:
-		return put_user(heartbeat, p);
+				if (get_user(new_heartbeat, p))
+				{
+					return -EFAULT;
+				}
 
-	case WDIOC_GETTIMELEFT:
-	{
-		int time_left;
+				if (pcipcwd_set_heartbeat(new_heartbeat))
+				{
+					return -EINVAL;
+				}
 
-		if (pcipcwd_get_timeleft(&time_left))
-			return -EFAULT;
+				pcipcwd_keepalive();
+				/* Fall */
+			}
 
-		return put_user(time_left, p);
-	}
+		case WDIOC_GETTIMEOUT:
+			return put_user(heartbeat, p);
 
-	default:
-		return -ENOTTY;
+		case WDIOC_GETTIMELEFT:
+			{
+				int time_left;
+
+				if (pcipcwd_get_timeleft(&time_left))
+				{
+					return -EFAULT;
+				}
+
+				return put_user(time_left, p);
+			}
+
+		default:
+			return -ENOTTY;
 	}
 }
 
 static int pcipcwd_open(struct inode *inode, struct file *file)
 {
 	/* /dev/watchdog can only be opened once */
-	if (test_and_set_bit(0, &is_active)) {
+	if (test_and_set_bit(0, &is_active))
+	{
 		if (debug >= VERBOSE)
+		{
 			pr_err("Attempt to open already opened device\n");
+		}
+
 		return -EBUSY;
 	}
 
@@ -586,12 +676,16 @@ static int pcipcwd_release(struct inode *inode, struct file *file)
 	/*
 	 *      Shut off the timer.
 	 */
-	if (expect_release == 42) {
+	if (expect_release == 42)
+	{
 		pcipcwd_stop();
-	} else {
+	}
+	else
+	{
 		pr_crit("Unexpected close, not stopping watchdog!\n");
 		pcipcwd_keepalive();
 	}
+
 	expect_release = 0;
 	clear_bit(0, &is_active);
 	return 0;
@@ -602,15 +696,19 @@ static int pcipcwd_release(struct inode *inode, struct file *file)
  */
 
 static ssize_t pcipcwd_temp_read(struct file *file, char __user *data,
-				size_t len, loff_t *ppos)
+								 size_t len, loff_t *ppos)
 {
 	int temperature;
 
 	if (pcipcwd_get_temperature(&temperature))
+	{
 		return -EFAULT;
+	}
 
 	if (copy_to_user(data, &temperature, 1))
+	{
 		return -EFAULT;
+	}
 
 	return 1;
 }
@@ -618,7 +716,9 @@ static ssize_t pcipcwd_temp_read(struct file *file, char __user *data,
 static int pcipcwd_temp_open(struct inode *inode, struct file *file)
 {
 	if (!pcipcwd_private.supports_temp)
+	{
 		return -ENODEV;
+	}
 
 	return nonseekable_open(inode, file);
 }
@@ -633,10 +733,12 @@ static int pcipcwd_temp_release(struct inode *inode, struct file *file)
  */
 
 static int pcipcwd_notify_sys(struct notifier_block *this, unsigned long code,
-								void *unused)
+							  void *unused)
 {
 	if (code == SYS_DOWN || code == SYS_HALT)
-		pcipcwd_stop();	/* Turn the WDT off */
+	{
+		pcipcwd_stop();    /* Turn the WDT off */
+	}
 
 	return NOTIFY_DONE;
 }
@@ -645,7 +747,8 @@ static int pcipcwd_notify_sys(struct notifier_block *this, unsigned long code,
  *	Kernel Interfaces
  */
 
-static const struct file_operations pcipcwd_fops = {
+static const struct file_operations pcipcwd_fops =
+{
 	.owner =	THIS_MODULE,
 	.llseek =	no_llseek,
 	.write =	pcipcwd_write,
@@ -654,13 +757,15 @@ static const struct file_operations pcipcwd_fops = {
 	.release =	pcipcwd_release,
 };
 
-static struct miscdevice pcipcwd_miscdev = {
+static struct miscdevice pcipcwd_miscdev =
+{
 	.minor =	WATCHDOG_MINOR,
 	.name =		"watchdog",
 	.fops =		&pcipcwd_fops,
 };
 
-static const struct file_operations pcipcwd_temp_fops = {
+static const struct file_operations pcipcwd_temp_fops =
+{
 	.owner =	THIS_MODULE,
 	.llseek =	no_llseek,
 	.read =		pcipcwd_temp_read,
@@ -668,13 +773,15 @@ static const struct file_operations pcipcwd_temp_fops = {
 	.release =	pcipcwd_temp_release,
 };
 
-static struct miscdevice pcipcwd_temp_miscdev = {
+static struct miscdevice pcipcwd_temp_miscdev =
+{
 	.minor =	TEMP_MINOR,
 	.name =		"temperature",
 	.fops =		&pcipcwd_temp_fops,
 };
 
-static struct notifier_block pcipcwd_notifier = {
+static struct notifier_block pcipcwd_notifier =
+{
 	.notifier_call =	pcipcwd_notify_sys,
 };
 
@@ -683,25 +790,31 @@ static struct notifier_block pcipcwd_notifier = {
  */
 
 static int pcipcwd_card_init(struct pci_dev *pdev,
-		const struct pci_device_id *ent)
+							 const struct pci_device_id *ent)
 {
 	int ret = -EIO;
 
 	cards_found++;
-	if (cards_found == 1)
-		pr_info("%s\n", DRIVER_VERSION);
 
-	if (cards_found > 1) {
+	if (cards_found == 1)
+	{
+		pr_info("%s\n", DRIVER_VERSION);
+	}
+
+	if (cards_found > 1)
+	{
 		pr_err("This driver only supports 1 device\n");
 		return -ENODEV;
 	}
 
-	if (pci_enable_device(pdev)) {
+	if (pci_enable_device(pdev))
+	{
 		pr_err("Not possible to enable PCI Device\n");
 		return -ENODEV;
 	}
 
-	if (pci_resource_start(pdev, 0) == 0x0000) {
+	if (pci_resource_start(pdev, 0) == 0x0000)
+	{
 		pr_err("No I/O-Address for card detected\n");
 		ret = -ENODEV;
 		goto err_out_disable_device;
@@ -711,9 +824,10 @@ static int pcipcwd_card_init(struct pci_dev *pdev,
 	pcipcwd_private.pdev = pdev;
 	pcipcwd_private.io_addr = pci_resource_start(pdev, 0);
 
-	if (pci_request_regions(pdev, WATCHDOG_NAME)) {
+	if (pci_request_regions(pdev, WATCHDOG_NAME))
+	{
 		pr_err("I/O address 0x%04x already in use\n",
-		       (int) pcipcwd_private.io_addr);
+			   (int) pcipcwd_private.io_addr);
 		ret = -EIO;
 		goto err_out_disable_device;
 	}
@@ -740,42 +854,54 @@ static int pcipcwd_card_init(struct pci_dev *pdev,
 
 	/* Check that the heartbeat value is within it's range ;
 	 * if not reset to the default */
-	if (pcipcwd_set_heartbeat(heartbeat)) {
+	if (pcipcwd_set_heartbeat(heartbeat))
+	{
 		pcipcwd_set_heartbeat(WATCHDOG_HEARTBEAT);
 		pr_info("heartbeat value must be 0<heartbeat<65536, using %d\n",
-			WATCHDOG_HEARTBEAT);
+				WATCHDOG_HEARTBEAT);
 	}
 
 	ret = register_reboot_notifier(&pcipcwd_notifier);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		pr_err("cannot register reboot notifier (err=%d)\n", ret);
 		goto err_out_release_region;
 	}
 
-	if (pcipcwd_private.supports_temp) {
+	if (pcipcwd_private.supports_temp)
+	{
 		ret = misc_register(&pcipcwd_temp_miscdev);
-		if (ret != 0) {
+
+		if (ret != 0)
+		{
 			pr_err("cannot register miscdev on minor=%d (err=%d)\n",
-			       TEMP_MINOR, ret);
+				   TEMP_MINOR, ret);
 			goto err_out_unregister_reboot;
 		}
 	}
 
 	ret = misc_register(&pcipcwd_miscdev);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		pr_err("cannot register miscdev on minor=%d (err=%d)\n",
-		       WATCHDOG_MINOR, ret);
+			   WATCHDOG_MINOR, ret);
 		goto err_out_misc_deregister;
 	}
 
 	pr_info("initialized. heartbeat=%d sec (nowayout=%d)\n",
-		heartbeat, nowayout);
+			heartbeat, nowayout);
 
 	return 0;
 
 err_out_misc_deregister:
+
 	if (pcipcwd_private.supports_temp)
+	{
 		misc_deregister(&pcipcwd_temp_miscdev);
+	}
+
 err_out_unregister_reboot:
 	unregister_reboot_notifier(&pcipcwd_notifier);
 err_out_release_region:
@@ -789,26 +915,36 @@ static void pcipcwd_card_exit(struct pci_dev *pdev)
 {
 	/* Stop the timer before we leave */
 	if (!nowayout)
+	{
 		pcipcwd_stop();
+	}
 
 	/* Deregister */
 	misc_deregister(&pcipcwd_miscdev);
+
 	if (pcipcwd_private.supports_temp)
+	{
 		misc_deregister(&pcipcwd_temp_miscdev);
+	}
+
 	unregister_reboot_notifier(&pcipcwd_notifier);
 	pci_release_regions(pdev);
 	pci_disable_device(pdev);
 	cards_found--;
 }
 
-static const struct pci_device_id pcipcwd_pci_tbl[] = {
-	{ PCI_VENDOR_ID_QUICKLOGIC, PCI_DEVICE_ID_WATCHDOG_PCIPCWD,
-		PCI_ANY_ID, PCI_ANY_ID, },
+static const struct pci_device_id pcipcwd_pci_tbl[] =
+{
+	{
+		PCI_VENDOR_ID_QUICKLOGIC, PCI_DEVICE_ID_WATCHDOG_PCIPCWD,
+		PCI_ANY_ID, PCI_ANY_ID,
+	},
 	{ 0 },			/* End of list */
 };
 MODULE_DEVICE_TABLE(pci, pcipcwd_pci_tbl);
 
-static struct pci_driver pcipcwd_driver = {
+static struct pci_driver pcipcwd_driver =
+{
 	.name		= WATCHDOG_NAME,
 	.id_table	= pcipcwd_pci_tbl,
 	.probe		= pcipcwd_card_init,

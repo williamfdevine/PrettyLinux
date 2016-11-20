@@ -17,17 +17,19 @@
 
 #define for_each_iotlb_cr(obj, n, __i, cr)				\
 	for (__i = 0;							\
-	     (__i < (n)) && (cr = __iotlb_read_cr((obj), __i), true);	\
-	     __i++)
+		 (__i < (n)) && (cr = __iotlb_read_cr((obj), __i), true);	\
+		 __i++)
 
-struct iotlb_entry {
+struct iotlb_entry
+{
 	u32 da;
 	u32 pa;
 	u32 pgsz, prsvd, valid;
 	u32 endian, elsz, mixed;
 };
 
-struct omap_iommu {
+struct omap_iommu
+{
 	const char	*name;
 	void __iomem	*regbase;
 	struct regmap	*syscfg;
@@ -52,12 +54,14 @@ struct omap_iommu {
 	u32 id;
 };
 
-struct cr_regs {
+struct cr_regs
+{
 	u32 cam;
 	u32 ram;
 };
 
-struct iotlb_lock {
+struct iotlb_lock
+{
 	short base;
 	short vict;
 };
@@ -229,7 +233,9 @@ static inline void iommu_write_reg(struct omap_iommu *obj, u32 val, size_t offs)
 static inline int iotlb_cr_valid(struct cr_regs *cr)
 {
 	if (!cr)
+	{
 		return -EINVAL;
+	}
 
 	return cr->cam & MMU_CAM_V;
 }

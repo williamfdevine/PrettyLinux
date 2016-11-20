@@ -31,11 +31,11 @@
 	static unsigned qmult = QMULT_DEFAULT;				\
 	module_param(qmult, uint, S_IRUGO|S_IWUSR);			\
 	MODULE_PARM_DESC(qmult, "queue length multiplier at high/super speed");\
-									\
+	\
 	static char *dev_addr;						\
 	module_param(dev_addr, charp, S_IRUGO);				\
 	MODULE_PARM_DESC(dev_addr, "Device Ethernet Address");		\
-									\
+	\
 	static char *host_addr;						\
 	module_param(host_addr, charp, S_IRUGO);			\
 	MODULE_PARM_DESC(host_addr, "Host Ethernet Address")
@@ -53,7 +53,8 @@ struct eth_dev;
  * layer facilities can be used to package multiple logical links on this
  * single "physical" one.
  */
-struct gether {
+struct gether
+{
 	struct usb_function		func;
 
 	/* updated by gether_{connect,disconnect} */
@@ -76,10 +77,10 @@ struct gether {
 	u32				fixed_in_len;
 	bool				supports_multi_frame;
 	struct sk_buff			*(*wrap)(struct gether *port,
-						struct sk_buff *skb);
+									 struct sk_buff *skb);
 	int				(*unwrap)(struct gether *port,
-						struct sk_buff *skb,
-						struct sk_buff_head *list);
+							  struct sk_buff *skb,
+							  struct sk_buff_head *list);
 
 	/* called on network open/close */
 	void				(*open)(struct gether *);
@@ -87,14 +88,14 @@ struct gether {
 };
 
 #define	DEFAULT_FILTER	(USB_CDC_PACKET_TYPE_BROADCAST \
-			|USB_CDC_PACKET_TYPE_ALL_MULTICAST \
-			|USB_CDC_PACKET_TYPE_PROMISCUOUS \
-			|USB_CDC_PACKET_TYPE_DIRECTED)
+						 |USB_CDC_PACKET_TYPE_ALL_MULTICAST \
+						 |USB_CDC_PACKET_TYPE_PROMISCUOUS \
+						 |USB_CDC_PACKET_TYPE_DIRECTED)
 
 /* variant of gether_setup that allows customizing network device name */
 struct eth_dev *gether_setup_name(struct usb_gadget *g,
-		const char *dev_addr, const char *host_addr,
-		u8 ethaddr[ETH_ALEN], unsigned qmult, const char *netname);
+								  const char *dev_addr, const char *host_addr,
+								  u8 ethaddr[ETH_ALEN], unsigned qmult, const char *netname);
 
 /* netdev setup/teardown as directed by the gadget driver */
 /* gether_setup - initialize one ethernet-over-usb link
@@ -259,7 +260,9 @@ void gether_disconnect(struct gether *);
 static inline bool can_support_ecm(struct usb_gadget *gadget)
 {
 	if (!gadget_is_altset_supported(gadget))
+	{
 		return false;
+	}
 
 	/* Everything else is *presumably* fine ... but this is a bit
 	 * chancy, so be **CERTAIN** there are no hardware issues with

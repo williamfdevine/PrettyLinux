@@ -27,7 +27,8 @@
 #include "berlin2-div.h"
 #include "berlin2-pll.h"
 
-struct berlin2_pll {
+struct berlin2_pll
+{
 	struct clk_hw hw;
 	void __iomem *base;
 	struct berlin2_pll_map map;
@@ -60,7 +61,9 @@ berlin2_pll_recalc_rate(struct clk_hw *hw, unsigned long parent_rate)
 	val = readl_relaxed(pll->base + SPLL_CTRL0);
 	fbdiv = (val >> map->fbdiv_shift) & FBDIV_MASK;
 	rfdiv = (val >> map->rfdiv_shift) & RFDIV_MASK;
-	if (rfdiv == 0) {
+
+	if (rfdiv == 0)
+	{
 		pr_warn("%s has zero rfdiv\n", clk_hw_get_name(hw));
 		rfdiv = 1;
 	}
@@ -68,9 +71,11 @@ berlin2_pll_recalc_rate(struct clk_hw *hw, unsigned long parent_rate)
 	val = readl_relaxed(pll->base + SPLL_CTRL1);
 	vcodivsel = (val >> map->divsel_shift) & DIVSEL_MASK;
 	vcodiv = map->vcodiv[vcodivsel];
-	if (vcodiv == 0) {
+
+	if (vcodiv == 0)
+	{
 		pr_warn("%s has zero vcodiv (index %d)\n",
-			clk_hw_get_name(hw), vcodivsel);
+				clk_hw_get_name(hw), vcodivsel);
 		vcodiv = 1;
 	}
 
@@ -80,21 +85,25 @@ berlin2_pll_recalc_rate(struct clk_hw *hw, unsigned long parent_rate)
 	return (unsigned long)rate;
 }
 
-static const struct clk_ops berlin2_pll_ops = {
+static const struct clk_ops berlin2_pll_ops =
+{
 	.recalc_rate	= berlin2_pll_recalc_rate,
 };
 
 int __init
 berlin2_pll_register(const struct berlin2_pll_map *map,
-		     void __iomem *base, const char *name,
-		     const char *parent_name, unsigned long flags)
+					 void __iomem *base, const char *name,
+					 const char *parent_name, unsigned long flags)
 {
 	struct clk_init_data init;
 	struct berlin2_pll *pll;
 
 	pll = kzalloc(sizeof(*pll), GFP_KERNEL);
+
 	if (!pll)
+	{
 		return -ENOMEM;
+	}
 
 	/* copy pll_map to allow __initconst */
 	memcpy(&pll->map, map, sizeof(*map));

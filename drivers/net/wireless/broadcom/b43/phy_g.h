@@ -65,11 +65,13 @@ void b43_gtab_write(struct b43_wldev *dev, u16 table, u16 offset, u16 value);
 	(((phy)->rev > 1) || ((phy)->gmode))
 
 /* Radio Attenuation (RF Attenuation) */
-struct b43_rfatt {
+struct b43_rfatt
+{
 	u8 att;			/* Attenuation value */
 	bool with_padmix;	/* Flag, PAD Mixer enabled. */
 };
-struct b43_rfatt_list {
+struct b43_rfatt_list
+{
 	/* Attenuation values list */
 	const struct b43_rfatt *list;
 	u8 len;
@@ -80,17 +82,19 @@ struct b43_rfatt_list {
 
 /* Returns true, if the values are the same. */
 static inline bool b43_compare_rfatt(const struct b43_rfatt *a,
-				     const struct b43_rfatt *b)
+									 const struct b43_rfatt *b)
 {
 	return ((a->att == b->att) &&
-		(a->with_padmix == b->with_padmix));
+			(a->with_padmix == b->with_padmix));
 }
 
 /* Baseband Attenuation */
-struct b43_bbatt {
+struct b43_bbatt
+{
 	u8 att;			/* Attenuation value */
 };
-struct b43_bbatt_list {
+struct b43_bbatt_list
+{
 	/* Attenuation values list */
 	const struct b43_bbatt *list;
 	u8 len;
@@ -101,7 +105,7 @@ struct b43_bbatt_list {
 
 /* Returns true, if the values are the same. */
 static inline bool b43_compare_bbatt(const struct b43_bbatt *a,
-				     const struct b43_bbatt *b)
+									 const struct b43_bbatt *b)
 {
 	return (a->att == b->att);
 }
@@ -113,7 +117,8 @@ static inline bool b43_compare_bbatt(const struct b43_bbatt *a,
 
 struct b43_txpower_lo_control;
 
-struct b43_phy_g {
+struct b43_phy_g
+{
 	/* ACI (adjacent channel interference) flags. */
 	bool aci_enable;
 	bool aci_wlan_automatic;
@@ -121,7 +126,8 @@ struct b43_phy_g {
 
 	/* Radio switched on/off */
 	bool radio_on;
-	struct {
+	struct
+	{
 		/* Values saved when turning the radio off.
 		 * They are needed when turning it on again. */
 		bool valid;
@@ -187,7 +193,8 @@ struct b43_phy_g {
 	 * We cache the previously used address here and omit the address
 	 * write on the next table access, if possible. */
 	u16 ofdmtab_addr; /* The address currently set in hardware. */
-	enum { /* The last data flow direction. */
+	enum   /* The last data flow direction. */
+	{
 		B43_OFDMTAB_DIRECTION_UNKNOWN = 0,
 		B43_OFDMTAB_DIRECTION_READ,
 		B43_OFDMTAB_DIRECTION_WRITE,
@@ -195,12 +202,12 @@ struct b43_phy_g {
 };
 
 void b43_gphy_set_baseband_attenuation(struct b43_wldev *dev,
-				       u16 baseband_attenuation);
+									   u16 baseband_attenuation);
 void b43_gphy_channel_switch(struct b43_wldev *dev,
-			     unsigned int channel,
-			     bool synthetic_pu_workaround);
-u8 * b43_generate_dyn_tssi2dbm_tab(struct b43_wldev *dev,
-				   s16 pab0, s16 pab1, s16 pab2);
+							 unsigned int channel,
+							 bool synthetic_pu_workaround);
+u8 *b43_generate_dyn_tssi2dbm_tab(struct b43_wldev *dev,
+								  s16 pab0, s16 pab1, s16 pab2);
 
 struct b43_phy_operations;
 extern const struct b43_phy_operations b43_phyops_g;

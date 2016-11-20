@@ -19,7 +19,8 @@
 /*-----------------------------------------------------------------
  * Implementation of the store for non-persistent snapshots.
  *---------------------------------------------------------------*/
-struct transient_c {
+struct transient_c
+{
 	sector_t next_free;
 };
 
@@ -29,21 +30,23 @@ static void transient_dtr(struct dm_exception_store *store)
 }
 
 static int transient_read_metadata(struct dm_exception_store *store,
-				   int (*callback)(void *callback_context,
-						   chunk_t old, chunk_t new),
-				   void *callback_context)
+								   int (*callback)(void *callback_context,
+										   chunk_t old, chunk_t new),
+								   void *callback_context)
 {
 	return 0;
 }
 
 static int transient_prepare_exception(struct dm_exception_store *store,
-				       struct dm_exception *e)
+									   struct dm_exception *e)
 {
 	struct transient_c *tc = store->context;
 	sector_t size = get_dev_size(dm_snap_cow(store->snap)->bdev);
 
 	if (size < (tc->next_free + store->chunk_size))
+	{
 		return -1;
+	}
 
 	e->new_chunk = sector_to_chunk(store, tc->next_free);
 	tc->next_free += store->chunk_size;
@@ -52,18 +55,18 @@ static int transient_prepare_exception(struct dm_exception_store *store,
 }
 
 static void transient_commit_exception(struct dm_exception_store *store,
-				       struct dm_exception *e, int valid,
-				       void (*callback) (void *, int success),
-				       void *callback_context)
+									   struct dm_exception *e, int valid,
+									   void (*callback) (void *, int success),
+									   void *callback_context)
 {
 	/* Just succeed */
 	callback(callback_context, valid);
 }
 
 static void transient_usage(struct dm_exception_store *store,
-			    sector_t *total_sectors,
-			    sector_t *sectors_allocated,
-			    sector_t *metadata_sectors)
+							sector_t *total_sectors,
+							sector_t *sectors_allocated,
+							sector_t *metadata_sectors)
 {
 	*sectors_allocated = ((struct transient_c *) store->context)->next_free;
 	*total_sectors = get_dev_size(dm_snap_cow(store->snap)->bdev);
@@ -75,8 +78,11 @@ static int transient_ctr(struct dm_exception_store *store, char *options)
 	struct transient_c *tc;
 
 	tc = kmalloc(sizeof(struct transient_c), GFP_KERNEL);
+
 	if (!tc)
+	{
 		return -ENOMEM;
+	}
 
 	tc->next_free = 0;
 	store->context = tc;
@@ -85,22 +91,25 @@ static int transient_ctr(struct dm_exception_store *store, char *options)
 }
 
 static unsigned transient_status(struct dm_exception_store *store,
-				 status_type_t status, char *result,
-				 unsigned maxlen)
+								 status_type_t status, char *result,
+								 unsigned maxlen)
 {
 	unsigned sz = 0;
 
-	switch (status) {
-	case STATUSTYPE_INFO:
-		break;
-	case STATUSTYPE_TABLE:
-		DMEMIT(" N %llu", (unsigned long long)store->chunk_size);
+	switch (status)
+	{
+		case STATUSTYPE_INFO:
+			break;
+
+		case STATUSTYPE_TABLE:
+			DMEMIT(" N %llu", (unsigned long long)store->chunk_size);
 	}
 
 	return sz;
 }
 
-static struct dm_exception_store_type _transient_type = {
+static struct dm_exception_store_type _transient_type =
+{
 	.name = "transient",
 	.module = THIS_MODULE,
 	.ctr = transient_ctr,
@@ -112,7 +121,8 @@ static struct dm_exception_store_type _transient_type = {
 	.status = transient_status,
 };
 
-static struct dm_exception_store_type _transient_compat_type = {
+static struct dm_exception_store_type _transient_compat_type =
+{
 	.name = "N",
 	.module = THIS_MODULE,
 	.ctr = transient_ctr,
@@ -129,15 +139,19 @@ int dm_transient_snapshot_init(void)
 	int r;
 
 	r = dm_exception_store_type_register(&_transient_type);
-	if (r) {
+
+	if (r)
+	{
 		DMWARN("Unable to register transient exception store type");
 		return r;
 	}
 
 	r = dm_exception_store_type_register(&_transient_compat_type);
-	if (r) {
+
+	if (r)
+	{
 		DMWARN("Unable to register old-style transient "
-		       "exception store type");
+			   "exception store type");
 		dm_exception_store_type_unregister(&_transient_type);
 		return r;
 	}

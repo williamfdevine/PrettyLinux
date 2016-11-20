@@ -4,7 +4,7 @@
 #include <linux/ipc.h>
 #include <linux/errno.h>
 #ifndef __KERNEL__
-#include <unistd.h>
+	#include <unistd.h>
 #endif
 
 /*
@@ -23,7 +23,8 @@
 #define SHMSEG SHMMNI			 /* max shared segs per process */
 
 /* Obsolete, used only for backwards compatibility and libc5 compiles */
-struct shmid_ds {
+struct shmid_ds
+{
 	struct ipc_perm		shm_perm;	/* operation perms */
 	int			shm_segsz;	/* size of segment (bytes) */
 	__kernel_time_t		shm_atime;	/* last attach time */
@@ -59,7 +60,8 @@ struct shmid_ds {
 #define SHM_INFO 	14
 
 /* Obsolete, used only for backwards compatibility */
-struct	shminfo {
+struct	shminfo
+{
 	int shmmax;
 	int shmmin;
 	int shmmni;
@@ -67,7 +69,8 @@ struct	shminfo {
 	int shmall;
 };
 
-struct shm_info {
+struct shm_info
+{
 	int used_ids;
 	__kernel_ulong_t shm_tot;	/* total allocated shm */
 	__kernel_ulong_t shm_rss;	/* total resident shm */

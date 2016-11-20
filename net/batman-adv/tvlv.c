@@ -80,15 +80,22 @@ batadv_tvlv_handler_get(struct batadv_priv *bat_priv, u8 type, u8 version)
 
 	rcu_read_lock();
 	hlist_for_each_entry_rcu(tvlv_handler_tmp,
-				 &bat_priv->tvlv.handler_list, list) {
+							 &bat_priv->tvlv.handler_list, list)
+	{
 		if (tvlv_handler_tmp->type != type)
+		{
 			continue;
+		}
 
 		if (tvlv_handler_tmp->version != version)
+		{
 			continue;
+		}
 
 		if (!kref_get_unless_zero(&tvlv_handler_tmp->refcount))
+		{
 			continue;
+		}
 
 		tvlv_handler = tvlv_handler_tmp;
 		break;
@@ -139,12 +146,17 @@ batadv_tvlv_container_get(struct batadv_priv *bat_priv, u8 type, u8 version)
 
 	lockdep_assert_held(&bat_priv->tvlv.container_list_lock);
 
-	hlist_for_each_entry(tvlv_tmp, &bat_priv->tvlv.container_list, list) {
+	hlist_for_each_entry(tvlv_tmp, &bat_priv->tvlv.container_list, list)
+	{
 		if (tvlv_tmp->tvlv_hdr.type != type)
+		{
 			continue;
+		}
 
 		if (tvlv_tmp->tvlv_hdr.version != version)
+		{
 			continue;
+		}
 
 		kref_get(&tvlv_tmp->refcount);
 		tvlv = tvlv_tmp;
@@ -171,7 +183,8 @@ static u16 batadv_tvlv_container_list_size(struct batadv_priv *bat_priv)
 
 	lockdep_assert_held(&bat_priv->tvlv.container_list_lock);
 
-	hlist_for_each_entry(tvlv, &bat_priv->tvlv.container_list, list) {
+	hlist_for_each_entry(tvlv, &bat_priv->tvlv.container_list, list)
+	{
 		tvlv_len += sizeof(struct batadv_tvlv_hdr);
 		tvlv_len += ntohs(tvlv->tvlv_hdr.len);
 	}
@@ -189,12 +202,14 @@ static u16 batadv_tvlv_container_list_size(struct batadv_priv *bat_priv)
  * (tvlv.container_list_lock).
  */
 static void batadv_tvlv_container_remove(struct batadv_priv *bat_priv,
-					 struct batadv_tvlv_container *tvlv)
+		struct batadv_tvlv_container *tvlv)
 {
 	lockdep_assert_held(&bat_priv->tvlv.container_list_lock);
 
 	if (!tvlv)
+	{
 		return;
+	}
 
 	hlist_del(&tvlv->list);
 
@@ -211,7 +226,7 @@ static void batadv_tvlv_container_remove(struct batadv_priv *bat_priv,
  * @version: tvlv container type to unregister
  */
 void batadv_tvlv_container_unregister(struct batadv_priv *bat_priv,
-				      u8 type, u8 version)
+									  u8 type, u8 version)
 {
 	struct batadv_tvlv_container *tvlv;
 
@@ -234,17 +249,22 @@ void batadv_tvlv_container_unregister(struct batadv_priv *bat_priv,
  * content is going to replace the old one.
  */
 void batadv_tvlv_container_register(struct batadv_priv *bat_priv,
-				    u8 type, u8 version,
-				    void *tvlv_value, u16 tvlv_value_len)
+									u8 type, u8 version,
+									void *tvlv_value, u16 tvlv_value_len)
 {
 	struct batadv_tvlv_container *tvlv_old, *tvlv_new;
 
 	if (!tvlv_value)
+	{
 		tvlv_value_len = 0;
+	}
 
 	tvlv_new = kzalloc(sizeof(*tvlv_new) + tvlv_value_len, GFP_ATOMIC);
+
 	if (!tvlv_new)
+	{
 		return;
+	}
 
 	tvlv_new->tvlv_hdr.version = version;
 	tvlv_new->tvlv_hdr.type = type;
@@ -279,9 +299,9 @@ void batadv_tvlv_container_register(struct batadv_priv *bat_priv,
  * false otherwise.
  */
 static bool batadv_tvlv_realloc_packet_buff(unsigned char **packet_buff,
-					    int *packet_buff_len,
-					    int min_packet_len,
-					    int additional_packet_len)
+		int *packet_buff_len,
+		int min_packet_len,
+		int additional_packet_len)
 {
 	unsigned char *new_buff;
 
@@ -289,7 +309,9 @@ static bool batadv_tvlv_realloc_packet_buff(unsigned char **packet_buff,
 
 	/* keep old buffer if kmalloc should fail */
 	if (!new_buff)
+	{
 		return false;
+	}
 
 	memcpy(new_buff, *packet_buff, min_packet_len);
 	kfree(*packet_buff);
@@ -314,8 +336,8 @@ static bool batadv_tvlv_realloc_packet_buff(unsigned char **packet_buff,
  * Return: size of all appended tvlv containers in bytes.
  */
 u16 batadv_tvlv_container_ogm_append(struct batadv_priv *bat_priv,
-				     unsigned char **packet_buff,
-				     int *packet_buff_len, int packet_min_len)
+									 unsigned char **packet_buff,
+									 int *packet_buff_len, int packet_min_len)
 {
 	struct batadv_tvlv_container *tvlv;
 	struct batadv_tvlv_hdr *tvlv_hdr;
@@ -327,17 +349,22 @@ u16 batadv_tvlv_container_ogm_append(struct batadv_priv *bat_priv,
 	tvlv_value_len = batadv_tvlv_container_list_size(bat_priv);
 
 	ret = batadv_tvlv_realloc_packet_buff(packet_buff, packet_buff_len,
-					      packet_min_len, tvlv_value_len);
+										  packet_min_len, tvlv_value_len);
 
 	if (!ret)
+	{
 		goto end;
+	}
 
 	if (!tvlv_value_len)
+	{
 		goto end;
+	}
 
 	tvlv_value = (*packet_buff) + packet_min_len;
 
-	hlist_for_each_entry(tvlv, &bat_priv->tvlv.container_list, list) {
+	hlist_for_each_entry(tvlv, &bat_priv->tvlv.container_list, list)
+	{
 		tvlv_hdr = tvlv_value;
 		tvlv_hdr->type = tvlv->tvlv_hdr.type;
 		tvlv_hdr->version = tvlv->tvlv_hdr.version;
@@ -368,39 +395,54 @@ end:
  * callback.
  */
 static int batadv_tvlv_call_handler(struct batadv_priv *bat_priv,
-				    struct batadv_tvlv_handler *tvlv_handler,
-				    bool ogm_source,
-				    struct batadv_orig_node *orig_node,
-				    u8 *src, u8 *dst,
-				    void *tvlv_value, u16 tvlv_value_len)
+									struct batadv_tvlv_handler *tvlv_handler,
+									bool ogm_source,
+									struct batadv_orig_node *orig_node,
+									u8 *src, u8 *dst,
+									void *tvlv_value, u16 tvlv_value_len)
 {
 	if (!tvlv_handler)
+	{
 		return NET_RX_SUCCESS;
+	}
 
-	if (ogm_source) {
+	if (ogm_source)
+	{
 		if (!tvlv_handler->ogm_handler)
+		{
 			return NET_RX_SUCCESS;
+		}
 
 		if (!orig_node)
+		{
 			return NET_RX_SUCCESS;
+		}
 
 		tvlv_handler->ogm_handler(bat_priv, orig_node,
-					  BATADV_NO_FLAGS,
-					  tvlv_value, tvlv_value_len);
+								  BATADV_NO_FLAGS,
+								  tvlv_value, tvlv_value_len);
 		tvlv_handler->flags |= BATADV_TVLV_HANDLER_OGM_CALLED;
-	} else {
+	}
+	else
+	{
 		if (!src)
+		{
 			return NET_RX_SUCCESS;
+		}
 
 		if (!dst)
+		{
 			return NET_RX_SUCCESS;
+		}
 
 		if (!tvlv_handler->unicast_handler)
+		{
 			return NET_RX_SUCCESS;
+		}
 
 		return tvlv_handler->unicast_handler(bat_priv, src,
-						     dst, tvlv_value,
-						     tvlv_value_len);
+											 dst, tvlv_value,
+											 tvlv_value_len);
 	}
 
 	return NET_RX_SUCCESS;
@@ -421,10 +463,10 @@ static int batadv_tvlv_call_handler(struct batadv_priv *bat_priv,
  * handler callbacks.
  */
 int batadv_tvlv_containers_process(struct batadv_priv *bat_priv,
-				   bool ogm_source,
-				   struct batadv_orig_node *orig_node,
-				   u8 *src, u8 *dst,
-				   void *tvlv_value, u16 tvlv_value_len)
+								   bool ogm_source,
+								   struct batadv_orig_node *orig_node,
+								   u8 *src, u8 *dst,
+								   void *tvlv_value, u16 tvlv_value_len)
 {
 	struct batadv_tvlv_handler *tvlv_handler;
 	struct batadv_tvlv_hdr *tvlv_hdr;
@@ -432,39 +474,49 @@ int batadv_tvlv_containers_process(struct batadv_priv *bat_priv,
 	u8 cifnotfound = BATADV_TVLV_HANDLER_OGM_CIFNOTFND;
 	int ret = NET_RX_SUCCESS;
 
-	while (tvlv_value_len >= sizeof(*tvlv_hdr)) {
+	while (tvlv_value_len >= sizeof(*tvlv_hdr))
+	{
 		tvlv_hdr = tvlv_value;
 		tvlv_value_cont_len = ntohs(tvlv_hdr->len);
 		tvlv_value = tvlv_hdr + 1;
 		tvlv_value_len -= sizeof(*tvlv_hdr);
 
 		if (tvlv_value_cont_len > tvlv_value_len)
+		{
 			break;
+		}
 
 		tvlv_handler = batadv_tvlv_handler_get(bat_priv,
-						       tvlv_hdr->type,
-						       tvlv_hdr->version);
+											   tvlv_hdr->type,
+											   tvlv_hdr->version);
 
 		ret |= batadv_tvlv_call_handler(bat_priv, tvlv_handler,
-						ogm_source, orig_node,
-						src, dst, tvlv_value,
-						tvlv_value_cont_len);
+										ogm_source, orig_node,
+										src, dst, tvlv_value,
+										tvlv_value_cont_len);
+
 		if (tvlv_handler)
+		{
 			batadv_tvlv_handler_put(tvlv_handler);
+		}
+
 		tvlv_value = (u8 *)tvlv_value + tvlv_value_cont_len;
 		tvlv_value_len -= tvlv_value_cont_len;
 	}
 
 	if (!ogm_source)
+	{
 		return ret;
+	}
 
 	rcu_read_lock();
 	hlist_for_each_entry_rcu(tvlv_handler,
-				 &bat_priv->tvlv.handler_list, list) {
+							 &bat_priv->tvlv.handler_list, list)
+	{
 		if ((tvlv_handler->flags & BATADV_TVLV_HANDLER_OGM_CIFNOTFND) &&
-		    !(tvlv_handler->flags & BATADV_TVLV_HANDLER_OGM_CALLED))
+			!(tvlv_handler->flags & BATADV_TVLV_HANDLER_OGM_CALLED))
 			tvlv_handler->ogm_handler(bat_priv, orig_node,
-						  cifnotfound, NULL, 0);
+									  cifnotfound, NULL, 0);
 
 		tvlv_handler->flags &= ~BATADV_TVLV_HANDLER_OGM_CALLED;
 	}
@@ -481,23 +533,28 @@ int batadv_tvlv_containers_process(struct batadv_priv *bat_priv,
  * @orig_node: orig node emitting the ogm packet
  */
 void batadv_tvlv_ogm_receive(struct batadv_priv *bat_priv,
-			     struct batadv_ogm_packet *batadv_ogm_packet,
-			     struct batadv_orig_node *orig_node)
+							 struct batadv_ogm_packet *batadv_ogm_packet,
+							 struct batadv_orig_node *orig_node)
 {
 	void *tvlv_value;
 	u16 tvlv_value_len;
 
 	if (!batadv_ogm_packet)
+	{
 		return;
+	}
 
 	tvlv_value_len = ntohs(batadv_ogm_packet->tvlv_len);
+
 	if (!tvlv_value_len)
+	{
 		return;
+	}
 
 	tvlv_value = batadv_ogm_packet + 1;
 
 	batadv_tvlv_containers_process(bat_priv, true, orig_node, NULL, NULL,
-				       tvlv_value, tvlv_value_len);
+								   tvlv_value, tvlv_value_len);
 }
 
 /**
@@ -515,28 +572,33 @@ void batadv_tvlv_ogm_receive(struct batadv_priv *bat_priv,
  * @flags: flags to enable or disable TVLV API behavior
  */
 void batadv_tvlv_handler_register(struct batadv_priv *bat_priv,
-				  void (*optr)(struct batadv_priv *bat_priv,
-					       struct batadv_orig_node *orig,
-					       u8 flags,
-					       void *tvlv_value,
-					       u16 tvlv_value_len),
-				  int (*uptr)(struct batadv_priv *bat_priv,
-					      u8 *src, u8 *dst,
-					      void *tvlv_value,
-					      u16 tvlv_value_len),
-				  u8 type, u8 version, u8 flags)
+								  void (*optr)(struct batadv_priv *bat_priv,
+										  struct batadv_orig_node *orig,
+										  u8 flags,
+										  void *tvlv_value,
+										  u16 tvlv_value_len),
+								  int (*uptr)(struct batadv_priv *bat_priv,
+										  u8 *src, u8 *dst,
+										  void *tvlv_value,
+										  u16 tvlv_value_len),
+								  u8 type, u8 version, u8 flags)
 {
 	struct batadv_tvlv_handler *tvlv_handler;
 
 	tvlv_handler = batadv_tvlv_handler_get(bat_priv, type, version);
-	if (tvlv_handler) {
+
+	if (tvlv_handler)
+	{
 		batadv_tvlv_handler_put(tvlv_handler);
 		return;
 	}
 
 	tvlv_handler = kzalloc(sizeof(*tvlv_handler), GFP_ATOMIC);
+
 	if (!tvlv_handler)
+	{
 		return;
+	}
 
 	tvlv_handler->ogm_handler = optr;
 	tvlv_handler->unicast_handler = uptr;
@@ -563,13 +625,16 @@ void batadv_tvlv_handler_register(struct batadv_priv *bat_priv,
  * @version: tvlv handler version to be unregistered
  */
 void batadv_tvlv_handler_unregister(struct batadv_priv *bat_priv,
-				    u8 type, u8 version)
+									u8 type, u8 version)
 {
 	struct batadv_tvlv_handler *tvlv_handler;
 
 	tvlv_handler = batadv_tvlv_handler_get(bat_priv, type, version);
+
 	if (!tvlv_handler)
+	{
 		return;
+	}
 
 	batadv_tvlv_handler_put(tvlv_handler);
 	spin_lock_bh(&bat_priv->tvlv.handler_list_lock);
@@ -590,8 +655,8 @@ void batadv_tvlv_handler_unregister(struct batadv_priv *bat_priv,
  * @tvlv_value_len: tvlv content length
  */
 void batadv_tvlv_unicast_send(struct batadv_priv *bat_priv, u8 *src,
-			      u8 *dst, u8 type, u8 version,
-			      void *tvlv_value, u16 tvlv_value_len)
+							  u8 *dst, u8 type, u8 version,
+							  void *tvlv_value, u16 tvlv_value_len)
 {
 	struct batadv_unicast_tvlv_packet *unicast_tvlv_packet;
 	struct batadv_tvlv_hdr *tvlv_hdr;
@@ -603,14 +668,20 @@ void batadv_tvlv_unicast_send(struct batadv_priv *bat_priv, u8 *src,
 	int res;
 
 	orig_node = batadv_orig_hash_find(bat_priv, dst);
+
 	if (!orig_node)
+	{
 		return;
+	}
 
 	tvlv_len = sizeof(*tvlv_hdr) + tvlv_value_len;
 
 	skb = netdev_alloc_skb_ip_align(NULL, ETH_HLEN + hdr_len + tvlv_len);
+
 	if (!skb)
+	{
 		goto out;
+	}
 
 	skb->priority = TC_PRIO_CONTROL;
 	skb_reserve(skb, ETH_HLEN);
@@ -634,8 +705,12 @@ void batadv_tvlv_unicast_send(struct batadv_priv *bat_priv, u8 *src,
 	memcpy(tvlv_buff, tvlv_value, tvlv_value_len);
 
 	res = batadv_send_skb_to_orig(skb, orig_node, NULL);
+
 	if (res == -1)
+	{
 		kfree_skb(skb);
+	}
+
 out:
 	batadv_orig_node_put(orig_node);
 }

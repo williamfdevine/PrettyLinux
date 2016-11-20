@@ -42,7 +42,8 @@
  * @wake_alarm: pointer to platform wake alarm function.
  * @post_ram_clear: pointer to platform post ram-clear function.
  */
-struct ds1685_priv {
+struct ds1685_priv
+{
 	struct rtc_device *dev;
 	void __iomem *regs;
 	u32 regstep;
@@ -74,7 +75,8 @@ struct ds1685_priv {
  * handling, then include this header file in your platform definition and
  * set regstep and the plat_* pointers as appropriate.
  */
-struct ds1685_rtc_platform_data {
+struct ds1685_rtc_platform_data
+{
 	const u32 regstep;
 	const bool bcd_mode;
 	const bool no_irq;
@@ -215,7 +217,7 @@ struct ds1685_rtc_platform_data {
 #define RTC_CTRL_4A_WF		BIT(1)	/* Wake-Up Alarm Flag */
 #define RTC_CTRL_4A_KF		BIT(0)	/* Kickstart Flag */
 #if !defined(CONFIG_RTC_DRV_DS1685) && !defined(CONFIG_RTC_DRV_DS1689)
-#define RTC_CTRL_4A_BME		BIT(5)	/* Burst-Mode Enable */
+	#define RTC_CTRL_4A_BME		BIT(5)	/* Burst-Mode Enable */
 #endif
 #define RTC_CTRL_4A_RWK_MASK	0x07	/* RF + WF + KF */
 
@@ -263,19 +265,19 @@ struct ds1685_rtc_platform_data {
  * DS17x85/DS17x87 - Extended NV-SRAM addresses (MSB & LSB) & Write counter.
  */
 #if defined(CONFIG_RTC_DRV_DS1685)
-#define RTC_BANK1_RAM_ADDR	0x50	/* NV-SRAM Addr */
+	#define RTC_BANK1_RAM_ADDR	0x50	/* NV-SRAM Addr */
 #elif defined(CONFIG_RTC_DRV_DS1689)
-#define RTC_BANK1_VCC_CTR_LSB	0x54	/* Vcc Counter Addr (LSB) */
-#define RTC_BANK1_VCC_CTR_MSB	0x57	/* Vcc Counter Addr (MSB) */
-#define RTC_BANK1_VBAT_CTR_LSB	0x58	/* Vbat Counter Addr (LSB) */
-#define RTC_BANK1_VBAT_CTR_MSB	0x5b	/* Vbat Counter Addr (MSB) */
-#define RTC_BANK1_PWR_CTR_LSB	0x5c	/* Pwr Cycle Counter Addr (LSB) */
-#define RTC_BANK1_PWR_CTR_MSB	0x5d	/* Pwr Cycle Counter Addr (MSB) */
-#define RTC_BANK1_UNIQ_SN	0x60	/* Customer-specific S/N */
+	#define RTC_BANK1_VCC_CTR_LSB	0x54	/* Vcc Counter Addr (LSB) */
+	#define RTC_BANK1_VCC_CTR_MSB	0x57	/* Vcc Counter Addr (MSB) */
+	#define RTC_BANK1_VBAT_CTR_LSB	0x58	/* Vbat Counter Addr (LSB) */
+	#define RTC_BANK1_VBAT_CTR_MSB	0x5b	/* Vbat Counter Addr (MSB) */
+	#define RTC_BANK1_PWR_CTR_LSB	0x5c	/* Pwr Cycle Counter Addr (LSB) */
+	#define RTC_BANK1_PWR_CTR_MSB	0x5d	/* Pwr Cycle Counter Addr (MSB) */
+	#define RTC_BANK1_UNIQ_SN	0x60	/* Customer-specific S/N */
 #else /* DS17x85/DS17x87 */
-#define RTC_BANK1_RAM_ADDR_LSB	0x50	/* NV-SRAM Addr (LSB) */
-#define RTC_BANK1_RAM_ADDR_MSB	0x51	/* NV-SRAM Addr (MSB) */
-#define RTC_BANK1_WRITE_CTR	0x5e	/* RTC Write Counter */
+	#define RTC_BANK1_RAM_ADDR_LSB	0x50	/* NV-SRAM Addr (LSB) */
+	#define RTC_BANK1_RAM_ADDR_MSB	0x51	/* NV-SRAM Addr (MSB) */
+	#define RTC_BANK1_WRITE_CTR	0x5e	/* RTC Write Counter */
 #endif
 
 
@@ -316,7 +318,7 @@ struct ds1685_rtc_platform_data {
  * in userland, as documentation to the hardware, and possible future use if
  * hardware-generated periodic interrupts are ever added back.
  */
-					/* E32K RS3 RS2 RS1 RS0 */
+/* E32K RS3 RS2 RS1 RS0 */
 #define RTC_SQW_8192HZ		0x03	/*  0    0   0   1   1  */
 #define RTC_SQW_4096HZ		0x04	/*  0    0   1   0   0  */
 #define RTC_SQW_2048HZ		0x05	/*  0    0   1   0   1  */
@@ -352,15 +354,15 @@ struct ds1685_rtc_platform_data {
 #define NVRAM_SZ_TIME		50
 #define NVRAM_SZ_BANK0		64
 #if defined(CONFIG_RTC_DRV_DS1685)
-#  define NVRAM_SZ_EXTND	128
+	#define NVRAM_SZ_EXTND	128
 #elif defined(CONFIG_RTC_DRV_DS1689)
-#  define NVRAM_SZ_EXTND	0
+	#define NVRAM_SZ_EXTND	0
 #elif defined(CONFIG_RTC_DRV_DS17285)
-#  define NVRAM_SZ_EXTND	2048
+	#define NVRAM_SZ_EXTND	2048
 #elif defined(CONFIG_RTC_DRV_DS17485)
-#  define NVRAM_SZ_EXTND	4096
+	#define NVRAM_SZ_EXTND	4096
 #elif defined(CONFIG_RTC_DRV_DS17885)
-#  define NVRAM_SZ_EXTND	8192
+	#define NVRAM_SZ_EXTND	8192
 #endif
 #define NVRAM_TOTAL_SZ_BANK0	(NVRAM_SZ_TIME + NVRAM_SZ_BANK0)
 #define NVRAM_TOTAL_SZ		(NVRAM_TOTAL_SZ_BANK0 + NVRAM_SZ_EXTND)

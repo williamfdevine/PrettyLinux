@@ -22,12 +22,14 @@
 #include <linux/of.h>
 #include <linux/of_platform.h>
 
-static struct resource bk_resources[] = {
+static struct resource bk_resources[] =
+{
 	{ 0x84, 0x84, "mode control", IORESOURCE_REG, },
 	{ 0x85, 0x85, "control",      IORESOURCE_REG, },
 };
 
-static struct mfd_cell bk_devs[] = {
+static struct mfd_cell bk_devs[] =
+{
 	{
 		.name		= "max8925-backlight",
 		.num_resources	= ARRAY_SIZE(bk_resources),
@@ -36,7 +38,8 @@ static struct mfd_cell bk_devs[] = {
 	},
 };
 
-static struct resource touch_resources[] = {
+static struct resource touch_resources[] =
+{
 	{
 		.name	= "max8925-tsc",
 		.start	= MAX8925_TSC_IRQ,
@@ -45,7 +48,8 @@ static struct resource touch_resources[] = {
 	},
 };
 
-static const struct mfd_cell touch_devs[] = {
+static const struct mfd_cell touch_devs[] =
+{
 	{
 		.name		= "max8925-touch",
 		.num_resources	= 1,
@@ -54,7 +58,8 @@ static const struct mfd_cell touch_devs[] = {
 	},
 };
 
-static struct resource power_supply_resources[] = {
+static struct resource power_supply_resources[] =
+{
 	{
 		.name	= "max8925-power",
 		.start	= MAX8925_CHG_IRQ1,
@@ -63,7 +68,8 @@ static struct resource power_supply_resources[] = {
 	},
 };
 
-static const struct mfd_cell power_devs[] = {
+static const struct mfd_cell power_devs[] =
+{
 	{
 		.name		= "max8925-power",
 		.num_resources	= 1,
@@ -72,7 +78,8 @@ static const struct mfd_cell power_devs[] = {
 	},
 };
 
-static struct resource rtc_resources[] = {
+static struct resource rtc_resources[] =
+{
 	{
 		.name	= "max8925-rtc",
 		.start	= MAX8925_IRQ_RTC_ALARM0,
@@ -81,7 +88,8 @@ static struct resource rtc_resources[] = {
 	},
 };
 
-static const struct mfd_cell rtc_devs[] = {
+static const struct mfd_cell rtc_devs[] =
+{
 	{
 		.name		= "max8925-rtc",
 		.num_resources	= 1,
@@ -90,7 +98,8 @@ static const struct mfd_cell rtc_devs[] = {
 	},
 };
 
-static struct resource onkey_resources[] = {
+static struct resource onkey_resources[] =
+{
 	{
 		.name	= "max8925-onkey",
 		.start	= MAX8925_IRQ_GPM_SW_R,
@@ -104,7 +113,8 @@ static struct resource onkey_resources[] = {
 	},
 };
 
-static const struct mfd_cell onkey_devs[] = {
+static const struct mfd_cell onkey_devs[] =
+{
 	{
 		.name		= "max8925-onkey",
 		.num_resources	= 2,
@@ -113,99 +123,123 @@ static const struct mfd_cell onkey_devs[] = {
 	},
 };
 
-static struct resource sd1_resources[] = {
+static struct resource sd1_resources[] =
+{
 	{0x06, 0x06, "sdv", IORESOURCE_REG, },
 };
 
-static struct resource sd2_resources[] = {
+static struct resource sd2_resources[] =
+{
 	{0x09, 0x09, "sdv", IORESOURCE_REG, },
 };
 
-static struct resource sd3_resources[] = {
+static struct resource sd3_resources[] =
+{
 	{0x0c, 0x0c, "sdv", IORESOURCE_REG, },
 };
 
-static struct resource ldo1_resources[] = {
+static struct resource ldo1_resources[] =
+{
 	{0x1a, 0x1a, "ldov", IORESOURCE_REG, },
 };
 
-static struct resource ldo2_resources[] = {
+static struct resource ldo2_resources[] =
+{
 	{0x1e, 0x1e, "ldov", IORESOURCE_REG, },
 };
 
-static struct resource ldo3_resources[] = {
+static struct resource ldo3_resources[] =
+{
 	{0x22, 0x22, "ldov", IORESOURCE_REG, },
 };
 
-static struct resource ldo4_resources[] = {
+static struct resource ldo4_resources[] =
+{
 	{0x26, 0x26, "ldov", IORESOURCE_REG, },
 };
 
-static struct resource ldo5_resources[] = {
+static struct resource ldo5_resources[] =
+{
 	{0x2a, 0x2a, "ldov", IORESOURCE_REG, },
 };
 
-static struct resource ldo6_resources[] = {
+static struct resource ldo6_resources[] =
+{
 	{0x2e, 0x2e, "ldov", IORESOURCE_REG, },
 };
 
-static struct resource ldo7_resources[] = {
+static struct resource ldo7_resources[] =
+{
 	{0x32, 0x32, "ldov", IORESOURCE_REG, },
 };
 
-static struct resource ldo8_resources[] = {
+static struct resource ldo8_resources[] =
+{
 	{0x36, 0x36, "ldov", IORESOURCE_REG, },
 };
 
-static struct resource ldo9_resources[] = {
+static struct resource ldo9_resources[] =
+{
 	{0x3a, 0x3a, "ldov", IORESOURCE_REG, },
 };
 
-static struct resource ldo10_resources[] = {
+static struct resource ldo10_resources[] =
+{
 	{0x3e, 0x3e, "ldov", IORESOURCE_REG, },
 };
 
-static struct resource ldo11_resources[] = {
+static struct resource ldo11_resources[] =
+{
 	{0x42, 0x42, "ldov", IORESOURCE_REG, },
 };
 
-static struct resource ldo12_resources[] = {
+static struct resource ldo12_resources[] =
+{
 	{0x46, 0x46, "ldov", IORESOURCE_REG, },
 };
 
-static struct resource ldo13_resources[] = {
+static struct resource ldo13_resources[] =
+{
 	{0x4a, 0x4a, "ldov", IORESOURCE_REG, },
 };
 
-static struct resource ldo14_resources[] = {
+static struct resource ldo14_resources[] =
+{
 	{0x4e, 0x4e, "ldov", IORESOURCE_REG, },
 };
 
-static struct resource ldo15_resources[] = {
+static struct resource ldo15_resources[] =
+{
 	{0x52, 0x52, "ldov", IORESOURCE_REG, },
 };
 
-static struct resource ldo16_resources[] = {
+static struct resource ldo16_resources[] =
+{
 	{0x12, 0x12, "ldov", IORESOURCE_REG, },
 };
 
-static struct resource ldo17_resources[] = {
+static struct resource ldo17_resources[] =
+{
 	{0x16, 0x16, "ldov", IORESOURCE_REG, },
 };
 
-static struct resource ldo18_resources[] = {
+static struct resource ldo18_resources[] =
+{
 	{0x74, 0x74, "ldov", IORESOURCE_REG, },
 };
 
-static struct resource ldo19_resources[] = {
+static struct resource ldo19_resources[] =
+{
 	{0x5e, 0x5e, "ldov", IORESOURCE_REG, },
 };
 
-static struct resource ldo20_resources[] = {
+static struct resource ldo20_resources[] =
+{
 	{0x9e, 0x9e, "ldov", IORESOURCE_REG, },
 };
 
-static struct mfd_cell reg_devs[] = {
+static struct mfd_cell reg_devs[] =
+{
 	{
 		.name = "max8925-regulator",
 		.id = 0,
@@ -324,12 +358,14 @@ static struct mfd_cell reg_devs[] = {
 	},
 };
 
-enum {
+enum
+{
 	FLAGS_ADC = 1,	/* register in ADC component */
 	FLAGS_RTC,	/* register in RTC component */
 };
 
-struct max8925_irq_data {
+struct max8925_irq_data
+{
 	int	reg;
 	int	mask_reg;
 	int	enable;		/* enable or not */
@@ -338,7 +374,8 @@ struct max8925_irq_data {
 	int	tsc_irq;
 };
 
-static struct max8925_irq_data max8925_irqs[] = {
+static struct max8925_irq_data max8925_irqs[] =
+{
 	[MAX8925_IRQ_VCHG_DC_OVP] = {
 		.reg		= MAX8925_CHG_IRQ1,
 		.mask_reg	= MAX8925_CHG_IRQ1_MASK,
@@ -473,7 +510,7 @@ static struct max8925_irq_data max8925_irqs[] = {
 };
 
 static inline struct max8925_irq_data *irq_to_max8925(struct max8925_chip *chip,
-						      int irq)
+		int irq)
 {
 	return &max8925_irqs[irq - chip->irq_base];
 }
@@ -486,24 +523,41 @@ static irqreturn_t max8925_irq(int irq, void *data)
 	int read_reg = -1, value = 0;
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(max8925_irqs); i++) {
+	for (i = 0; i < ARRAY_SIZE(max8925_irqs); i++)
+	{
 		irq_data = &max8925_irqs[i];
+
 		/* TSC IRQ should be serviced in max8925_tsc_irq() */
 		if (irq_data->tsc_irq)
+		{
 			continue;
+		}
+
 		if (irq_data->flags == FLAGS_RTC)
+		{
 			i2c = chip->rtc;
+		}
 		else if (irq_data->flags == FLAGS_ADC)
+		{
 			i2c = chip->adc;
+		}
 		else
+		{
 			i2c = chip->i2c;
-		if (read_reg != irq_data->reg) {
+		}
+
+		if (read_reg != irq_data->reg)
+		{
 			read_reg = irq_data->reg;
 			value = max8925_reg_read(i2c, irq_data->reg);
 		}
+
 		if (value & irq_data->enable)
+		{
 			handle_nested_irq(chip->irq_base + i);
+		}
 	}
+
 	return IRQ_HANDLED;
 }
 
@@ -515,24 +569,41 @@ static irqreturn_t max8925_tsc_irq(int irq, void *data)
 	int read_reg = -1, value = 0;
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(max8925_irqs); i++) {
+	for (i = 0; i < ARRAY_SIZE(max8925_irqs); i++)
+	{
 		irq_data = &max8925_irqs[i];
+
 		/* non TSC IRQ should be serviced in max8925_irq() */
 		if (!irq_data->tsc_irq)
+		{
 			continue;
+		}
+
 		if (irq_data->flags == FLAGS_RTC)
+		{
 			i2c = chip->rtc;
+		}
 		else if (irq_data->flags == FLAGS_ADC)
+		{
 			i2c = chip->adc;
+		}
 		else
+		{
 			i2c = chip->i2c;
-		if (read_reg != irq_data->reg) {
+		}
+
+		if (read_reg != irq_data->reg)
+		{
 			read_reg = irq_data->reg;
 			value = max8925_reg_read(i2c, irq_data->reg);
 		}
+
 		if (value & irq_data->enable)
+		{
 			handle_nested_irq(chip->irq_base + i);
+		}
 	}
+
 	return IRQ_HANDLED;
 }
 
@@ -561,59 +632,81 @@ static void max8925_irq_sync_unlock(struct irq_data *data)
 	irq_on[1] = cache_on[1];
 	irq_rtc = cache_rtc;
 	irq_tsc = cache_tsc;
-	for (i = 0; i < ARRAY_SIZE(max8925_irqs); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(max8925_irqs); i++)
+	{
 		irq_data = &max8925_irqs[i];
+
 		/* 1 -- disable, 0 -- enable */
-		switch (irq_data->mask_reg) {
-		case MAX8925_CHG_IRQ1_MASK:
-			irq_chg[0] &= ~irq_data->enable;
-			break;
-		case MAX8925_CHG_IRQ2_MASK:
-			irq_chg[1] &= ~irq_data->enable;
-			break;
-		case MAX8925_ON_OFF_IRQ1_MASK:
-			irq_on[0] &= ~irq_data->enable;
-			break;
-		case MAX8925_ON_OFF_IRQ2_MASK:
-			irq_on[1] &= ~irq_data->enable;
-			break;
-		case MAX8925_RTC_IRQ_MASK:
-			irq_rtc &= ~irq_data->enable;
-			break;
-		case MAX8925_TSC_IRQ_MASK:
-			irq_tsc &= ~irq_data->enable;
-			break;
-		default:
-			dev_err(chip->dev, "wrong IRQ\n");
-			break;
+		switch (irq_data->mask_reg)
+		{
+			case MAX8925_CHG_IRQ1_MASK:
+				irq_chg[0] &= ~irq_data->enable;
+				break;
+
+			case MAX8925_CHG_IRQ2_MASK:
+				irq_chg[1] &= ~irq_data->enable;
+				break;
+
+			case MAX8925_ON_OFF_IRQ1_MASK:
+				irq_on[0] &= ~irq_data->enable;
+				break;
+
+			case MAX8925_ON_OFF_IRQ2_MASK:
+				irq_on[1] &= ~irq_data->enable;
+				break;
+
+			case MAX8925_RTC_IRQ_MASK:
+				irq_rtc &= ~irq_data->enable;
+				break;
+
+			case MAX8925_TSC_IRQ_MASK:
+				irq_tsc &= ~irq_data->enable;
+				break;
+
+			default:
+				dev_err(chip->dev, "wrong IRQ\n");
+				break;
 		}
 	}
+
 	/* update mask into registers */
-	if (cache_chg[0] != irq_chg[0]) {
+	if (cache_chg[0] != irq_chg[0])
+	{
 		cache_chg[0] = irq_chg[0];
 		max8925_reg_write(chip->i2c, MAX8925_CHG_IRQ1_MASK,
-			irq_chg[0]);
+						  irq_chg[0]);
 	}
-	if (cache_chg[1] != irq_chg[1]) {
+
+	if (cache_chg[1] != irq_chg[1])
+	{
 		cache_chg[1] = irq_chg[1];
 		max8925_reg_write(chip->i2c, MAX8925_CHG_IRQ2_MASK,
-			irq_chg[1]);
+						  irq_chg[1]);
 	}
-	if (cache_on[0] != irq_on[0]) {
+
+	if (cache_on[0] != irq_on[0])
+	{
 		cache_on[0] = irq_on[0];
 		max8925_reg_write(chip->i2c, MAX8925_ON_OFF_IRQ1_MASK,
-				irq_on[0]);
+						  irq_on[0]);
 	}
-	if (cache_on[1] != irq_on[1]) {
+
+	if (cache_on[1] != irq_on[1])
+	{
 		cache_on[1] = irq_on[1];
 		max8925_reg_write(chip->i2c, MAX8925_ON_OFF_IRQ2_MASK,
-				irq_on[1]);
+						  irq_on[1]);
 	}
-	if (cache_rtc != irq_rtc) {
+
+	if (cache_rtc != irq_rtc)
+	{
 		cache_rtc = irq_rtc;
 		max8925_reg_write(chip->rtc, MAX8925_RTC_IRQ_MASK, irq_rtc);
 	}
-	if (cache_tsc != irq_tsc) {
+
+	if (cache_tsc != irq_tsc)
+	{
 		cache_tsc = irq_tsc;
 		max8925_reg_write(chip->adc, MAX8925_TSC_IRQ_MASK, irq_tsc);
 	}
@@ -636,7 +729,8 @@ static void max8925_irq_disable(struct irq_data *data)
 	max8925_irqs[data->irq - chip->irq_base].enable = 0;
 }
 
-static struct irq_chip max8925_irq_chip = {
+static struct irq_chip max8925_irq_chip =
+{
 	.name		= "max8925",
 	.irq_bus_lock	= max8925_irq_lock,
 	.irq_bus_sync_unlock = max8925_irq_sync_unlock,
@@ -645,7 +739,7 @@ static struct irq_chip max8925_irq_chip = {
 };
 
 static int max8925_irq_domain_map(struct irq_domain *d, unsigned int virq,
-				 irq_hw_number_t hw)
+								  irq_hw_number_t hw)
 {
 	irq_set_chip_data(virq, d->host_data);
 	irq_set_chip_and_handler(virq, &max8925_irq_chip, handle_edge_irq);
@@ -655,14 +749,15 @@ static int max8925_irq_domain_map(struct irq_domain *d, unsigned int virq,
 	return 0;
 }
 
-static const struct irq_domain_ops max8925_irq_domain_ops = {
+static const struct irq_domain_ops max8925_irq_domain_ops =
+{
 	.map	= max8925_irq_domain_map,
 	.xlate	= irq_domain_xlate_onetwocell,
 };
 
 
 static int max8925_irq_init(struct max8925_chip *chip, int irq,
-			    struct max8925_platform_data *pdata)
+							struct max8925_platform_data *pdata)
 {
 	unsigned long flags = IRQF_TRIGGER_FALLING | IRQF_ONESHOT;
 	int ret;
@@ -686,22 +781,30 @@ static int max8925_irq_init(struct max8925_chip *chip, int irq,
 
 	mutex_init(&chip->irq_lock);
 	chip->irq_base = irq_alloc_descs(-1, 0, MAX8925_NR_IRQS, 0);
-	if (chip->irq_base < 0) {
+
+	if (chip->irq_base < 0)
+	{
 		dev_err(chip->dev, "Failed to allocate interrupts, ret:%d\n",
-			chip->irq_base);
+				chip->irq_base);
 		return -EBUSY;
 	}
 
 	irq_domain_add_legacy(node, MAX8925_NR_IRQS, chip->irq_base, 0,
-			      &max8925_irq_domain_ops, chip);
+						  &max8925_irq_domain_ops, chip);
 
 	/* request irq handler for pmic main irq*/
 	chip->core_irq = irq;
+
 	if (!chip->core_irq)
+	{
 		return -EBUSY;
+	}
+
 	ret = request_threaded_irq(irq, NULL, max8925_irq, flags | IRQF_ONESHOT,
-				   "max8925", chip);
-	if (ret) {
+							   "max8925", chip);
+
+	if (ret)
+	{
 		dev_err(chip->dev, "Failed to request core IRQ: %d\n", ret);
 		chip->core_irq = 0;
 		return -EBUSY;
@@ -712,143 +815,204 @@ static int max8925_irq_init(struct max8925_chip *chip, int irq,
 	/* mask TSC interrupt */
 	max8925_reg_write(chip->adc, MAX8925_TSC_IRQ_MASK, 0x0f);
 
-	if (!pdata->tsc_irq) {
+	if (!pdata->tsc_irq)
+	{
 		dev_warn(chip->dev, "No interrupt support on TSC IRQ\n");
 		return 0;
 	}
+
 	chip->tsc_irq = pdata->tsc_irq;
 	ret = request_threaded_irq(chip->tsc_irq, NULL, max8925_tsc_irq,
-				   flags | IRQF_ONESHOT, "max8925-tsc", chip);
-	if (ret) {
+							   flags | IRQF_ONESHOT, "max8925-tsc", chip);
+
+	if (ret)
+	{
 		dev_err(chip->dev, "Failed to request TSC IRQ: %d\n", ret);
 		chip->tsc_irq = 0;
 	}
+
 	return 0;
 }
 
 static void init_regulator(struct max8925_chip *chip,
-				     struct max8925_platform_data *pdata)
+						   struct max8925_platform_data *pdata)
 {
 	int ret;
 
 	if (!pdata)
+	{
 		return;
-	if (pdata->sd1) {
+	}
+
+	if (pdata->sd1)
+	{
 		reg_devs[0].platform_data = pdata->sd1;
 		reg_devs[0].pdata_size = sizeof(struct regulator_init_data);
 	}
-	if (pdata->sd2) {
+
+	if (pdata->sd2)
+	{
 		reg_devs[1].platform_data = pdata->sd2;
 		reg_devs[1].pdata_size = sizeof(struct regulator_init_data);
 	}
-	if (pdata->sd3) {
+
+	if (pdata->sd3)
+	{
 		reg_devs[2].platform_data = pdata->sd3;
 		reg_devs[2].pdata_size = sizeof(struct regulator_init_data);
 	}
-	if (pdata->ldo1) {
+
+	if (pdata->ldo1)
+	{
 		reg_devs[3].platform_data = pdata->ldo1;
 		reg_devs[3].pdata_size = sizeof(struct regulator_init_data);
 	}
-	if (pdata->ldo2) {
+
+	if (pdata->ldo2)
+	{
 		reg_devs[4].platform_data = pdata->ldo2;
 		reg_devs[4].pdata_size = sizeof(struct regulator_init_data);
 	}
-	if (pdata->ldo3) {
+
+	if (pdata->ldo3)
+	{
 		reg_devs[5].platform_data = pdata->ldo3;
 		reg_devs[5].pdata_size = sizeof(struct regulator_init_data);
 	}
-	if (pdata->ldo4) {
+
+	if (pdata->ldo4)
+	{
 		reg_devs[6].platform_data = pdata->ldo4;
 		reg_devs[6].pdata_size = sizeof(struct regulator_init_data);
 	}
-	if (pdata->ldo5) {
+
+	if (pdata->ldo5)
+	{
 		reg_devs[7].platform_data = pdata->ldo5;
 		reg_devs[7].pdata_size = sizeof(struct regulator_init_data);
 	}
-	if (pdata->ldo6) {
+
+	if (pdata->ldo6)
+	{
 		reg_devs[8].platform_data = pdata->ldo6;
 		reg_devs[8].pdata_size = sizeof(struct regulator_init_data);
 	}
-	if (pdata->ldo7) {
+
+	if (pdata->ldo7)
+	{
 		reg_devs[9].platform_data = pdata->ldo7;
 		reg_devs[9].pdata_size = sizeof(struct regulator_init_data);
 	}
-	if (pdata->ldo8) {
+
+	if (pdata->ldo8)
+	{
 		reg_devs[10].platform_data = pdata->ldo8;
 		reg_devs[10].pdata_size = sizeof(struct regulator_init_data);
 	}
-	if (pdata->ldo9) {
+
+	if (pdata->ldo9)
+	{
 		reg_devs[11].platform_data = pdata->ldo9;
 		reg_devs[11].pdata_size = sizeof(struct regulator_init_data);
 	}
-	if (pdata->ldo10) {
+
+	if (pdata->ldo10)
+	{
 		reg_devs[12].platform_data = pdata->ldo10;
 		reg_devs[12].pdata_size = sizeof(struct regulator_init_data);
 	}
-	if (pdata->ldo11) {
+
+	if (pdata->ldo11)
+	{
 		reg_devs[13].platform_data = pdata->ldo11;
 		reg_devs[13].pdata_size = sizeof(struct regulator_init_data);
 	}
-	if (pdata->ldo12) {
+
+	if (pdata->ldo12)
+	{
 		reg_devs[14].platform_data = pdata->ldo12;
 		reg_devs[14].pdata_size = sizeof(struct regulator_init_data);
 	}
-	if (pdata->ldo13) {
+
+	if (pdata->ldo13)
+	{
 		reg_devs[15].platform_data = pdata->ldo13;
 		reg_devs[15].pdata_size = sizeof(struct regulator_init_data);
 	}
-	if (pdata->ldo14) {
+
+	if (pdata->ldo14)
+	{
 		reg_devs[16].platform_data = pdata->ldo14;
 		reg_devs[16].pdata_size = sizeof(struct regulator_init_data);
 	}
-	if (pdata->ldo15) {
+
+	if (pdata->ldo15)
+	{
 		reg_devs[17].platform_data = pdata->ldo15;
 		reg_devs[17].pdata_size = sizeof(struct regulator_init_data);
 	}
-	if (pdata->ldo16) {
+
+	if (pdata->ldo16)
+	{
 		reg_devs[18].platform_data = pdata->ldo16;
 		reg_devs[18].pdata_size = sizeof(struct regulator_init_data);
 	}
-	if (pdata->ldo17) {
+
+	if (pdata->ldo17)
+	{
 		reg_devs[19].platform_data = pdata->ldo17;
 		reg_devs[19].pdata_size = sizeof(struct regulator_init_data);
 	}
-	if (pdata->ldo18) {
+
+	if (pdata->ldo18)
+	{
 		reg_devs[20].platform_data = pdata->ldo18;
 		reg_devs[20].pdata_size = sizeof(struct regulator_init_data);
 	}
-	if (pdata->ldo19) {
+
+	if (pdata->ldo19)
+	{
 		reg_devs[21].platform_data = pdata->ldo19;
 		reg_devs[21].pdata_size = sizeof(struct regulator_init_data);
 	}
-	if (pdata->ldo20) {
+
+	if (pdata->ldo20)
+	{
 		reg_devs[22].platform_data = pdata->ldo20;
 		reg_devs[22].pdata_size = sizeof(struct regulator_init_data);
 	}
+
 	ret = mfd_add_devices(chip->dev, 0, reg_devs, ARRAY_SIZE(reg_devs),
-			      NULL, 0, NULL);
-	if (ret < 0) {
+						  NULL, 0, NULL);
+
+	if (ret < 0)
+	{
 		dev_err(chip->dev, "Failed to add regulator subdev\n");
 		return;
 	}
 }
 
 int max8925_device_init(struct max8925_chip *chip,
-				  struct max8925_platform_data *pdata)
+						struct max8925_platform_data *pdata)
 {
 	int ret;
 
 	max8925_irq_init(chip, chip->i2c->irq, pdata);
 
-	if (pdata && (pdata->power || pdata->touch)) {
+	if (pdata && (pdata->power || pdata->touch))
+	{
 		/* enable ADC to control internal reference */
 		max8925_set_bits(chip->i2c, MAX8925_RESET_CNFG, 1, 1);
 		/* enable internal reference for ADC */
 		max8925_set_bits(chip->adc, MAX8925_TSC_CNFG1, 3, 2);
+
 		/* check for internal reference IRQ */
-		do {
+		do
+		{
 			ret = max8925_reg_read(chip->adc, MAX8925_TSC_IRQ);
-		} while (ret & MAX8925_NREF_OK);
+		}
+		while (ret & MAX8925_NREF_OK);
+
 		/* enaable ADC scheduler, interval is 1 second */
 		max8925_set_bits(chip->adc, MAX8925_ADC_SCHED, 3, 2);
 	}
@@ -857,48 +1021,61 @@ int max8925_device_init(struct max8925_chip *chip,
 	max8925_set_bits(chip->rtc, MAX8925_MPL_CNTL, 1 << 4, 1 << 4);
 
 	ret = mfd_add_devices(chip->dev, 0, &rtc_devs[0],
-			      ARRAY_SIZE(rtc_devs),
-			      NULL, chip->irq_base, NULL);
-	if (ret < 0) {
+						  ARRAY_SIZE(rtc_devs),
+						  NULL, chip->irq_base, NULL);
+
+	if (ret < 0)
+	{
 		dev_err(chip->dev, "Failed to add rtc subdev\n");
 		goto out;
 	}
 
 	ret = mfd_add_devices(chip->dev, 0, &onkey_devs[0],
-			      ARRAY_SIZE(onkey_devs),
-			      NULL, chip->irq_base, NULL);
-	if (ret < 0) {
+						  ARRAY_SIZE(onkey_devs),
+						  NULL, chip->irq_base, NULL);
+
+	if (ret < 0)
+	{
 		dev_err(chip->dev, "Failed to add onkey subdev\n");
 		goto out_dev;
 	}
 
 	init_regulator(chip, pdata);
 
-	if (pdata && pdata->backlight) {
+	if (pdata && pdata->backlight)
+	{
 		bk_devs[0].platform_data = &pdata->backlight;
 		bk_devs[0].pdata_size = sizeof(struct max8925_backlight_pdata);
 	}
+
 	ret = mfd_add_devices(chip->dev, 0, bk_devs, ARRAY_SIZE(bk_devs),
-			      NULL, 0, NULL);
-	if (ret < 0) {
+						  NULL, 0, NULL);
+
+	if (ret < 0)
+	{
 		dev_err(chip->dev, "Failed to add backlight subdev\n");
 		goto out_dev;
 	}
 
 	ret = mfd_add_devices(chip->dev, 0, &power_devs[0],
-			      ARRAY_SIZE(power_devs),
-			      NULL, 0, NULL);
-	if (ret < 0) {
+						  ARRAY_SIZE(power_devs),
+						  NULL, 0, NULL);
+
+	if (ret < 0)
+	{
 		dev_err(chip->dev,
-			"Failed to add power supply subdev, err = %d\n", ret);
+				"Failed to add power supply subdev, err = %d\n", ret);
 		goto out_dev;
 	}
 
-	if (pdata && pdata->touch) {
+	if (pdata && pdata->touch)
+	{
 		ret = mfd_add_devices(chip->dev, 0, &touch_devs[0],
-				      ARRAY_SIZE(touch_devs),
-				      NULL, chip->tsc_irq, NULL);
-		if (ret < 0) {
+							  ARRAY_SIZE(touch_devs),
+							  NULL, chip->tsc_irq, NULL);
+
+		if (ret < 0)
+		{
 			dev_err(chip->dev, "Failed to add touch subdev\n");
 			goto out_dev;
 		}
@@ -914,9 +1091,15 @@ out:
 void max8925_device_exit(struct max8925_chip *chip)
 {
 	if (chip->core_irq)
+	{
 		free_irq(chip->core_irq, chip);
+	}
+
 	if (chip->tsc_irq)
+	{
 		free_irq(chip->tsc_irq, chip);
+	}
+
 	mfd_remove_devices(chip->dev);
 }
 

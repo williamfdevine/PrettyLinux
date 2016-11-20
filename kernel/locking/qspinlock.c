@@ -70,9 +70,9 @@
 #include "mcs_spinlock.h"
 
 #ifdef CONFIG_PARAVIRT_SPINLOCKS
-#define MAX_NODES	8
+	#define MAX_NODES	8
 #else
-#define MAX_NODES	4
+	#define MAX_NODES	4
 #endif
 
 /*
@@ -121,24 +121,30 @@ static inline __pure struct mcs_spinlock *decode_tail(u32 tail)
  * This internal structure is also used by the set_locked function which
  * is not restricted to _Q_PENDING_BITS == 8.
  */
-struct __qspinlock {
-	union {
+struct __qspinlock
+{
+	union
+	{
 		atomic_t val;
 #ifdef __LITTLE_ENDIAN
-		struct {
+		struct
+		{
 			u8	locked;
 			u8	pending;
 		};
-		struct {
+		struct
+		{
 			u16	locked_pending;
 			u16	tail;
 		};
 #else
-		struct {
+		struct
+		{
 			u16	tail;
 			u16	locked_pending;
 		};
-		struct {
+		struct
+		{
 			u8	reserved[2];
 			u8	pending;
 			u8	locked;
@@ -182,7 +188,7 @@ static __always_inline u32 xchg_tail(struct qspinlock *lock, u32 tail)
 	 * initialized before changing the tail code.
 	 */
 	return (u32)xchg_release(&l->tail,
-				 tail >> _Q_TAIL_OFFSET) << _Q_TAIL_OFFSET;
+							 tail >> _Q_TAIL_OFFSET) << _Q_TAIL_OFFSET;
 }
 
 #else /* _Q_PENDING_BITS == 8 */
@@ -212,18 +218,23 @@ static __always_inline u32 xchg_tail(struct qspinlock *lock, u32 tail)
 {
 	u32 old, new, val = atomic_read(&lock->val);
 
-	for (;;) {
+	for (;;)
+	{
 		new = (val & _Q_LOCKED_PENDING_MASK) | tail;
 		/*
 		 * Use release semantics to make sure that the MCS node is
 		 * properly initialized before changing the tail code.
 		 */
 		old = atomic_cmpxchg_release(&lock->val, val, new);
+
 		if (old == val)
+		{
 			break;
+		}
 
 		val = old;
 	}
+
 	return old;
 }
 #endif /* _Q_PENDING_BITS == 8 */
@@ -249,12 +260,12 @@ static __always_inline void set_locked(struct qspinlock *lock)
 
 static __always_inline void __pv_init_node(struct mcs_spinlock *node) { }
 static __always_inline void __pv_wait_node(struct mcs_spinlock *node,
-					   struct mcs_spinlock *prev) { }
+		struct mcs_spinlock *prev) { }
 static __always_inline void __pv_kick_node(struct qspinlock *lock,
-					   struct mcs_spinlock *node) { }
+		struct mcs_spinlock *node) { }
 static __always_inline u32  __pv_wait_head_or_lock(struct qspinlock *lock,
-						   struct mcs_spinlock *node)
-						   { return 0; }
+		struct mcs_spinlock *node)
+{ return 0; }
 
 #define pv_enabled()		false
 
@@ -264,7 +275,7 @@ static __always_inline u32  __pv_wait_head_or_lock(struct qspinlock *lock,
 #define pv_wait_head_or_lock	__pv_wait_head_or_lock
 
 #ifdef CONFIG_PARAVIRT_SPINLOCKS
-#define queued_spin_lock_slowpath	native_queued_spin_lock_slowpath
+	#define queued_spin_lock_slowpath	native_queued_spin_lock_slowpath
 #endif
 
 /*
@@ -361,14 +372,19 @@ void queued_spin_unlock_wait(struct qspinlock *lock)
 {
 	u32 val;
 
-	for (;;) {
+	for (;;)
+	{
 		val = atomic_read(&lock->val);
 
 		if (!val) /* not locked, we're done */
+		{
 			goto done;
+		}
 
 		if (val & _Q_LOCKED_MASK) /* locked, go wait for unlock */
+		{
 			break;
+		}
 
 		/* not locked, but pending, wait until we observe the lock */
 		cpu_relax();
@@ -376,7 +392,9 @@ void queued_spin_unlock_wait(struct qspinlock *lock)
 
 	/* any unlock is good */
 	while (atomic_read(&lock->val) & _Q_LOCKED_MASK)
+	{
 		cpu_relax();
+	}
 
 done:
 	smp_acquire__after_ctrl_dep();
@@ -416,19 +434,26 @@ void queued_spin_lock_slowpath(struct qspinlock *lock, u32 val)
 	BUILD_BUG_ON(CONFIG_NR_CPUS >= (1U << _Q_TAIL_CPU_BITS));
 
 	if (pv_enabled())
+	{
 		goto queue;
+	}
 
 	if (virt_spin_lock(lock))
+	{
 		return;
+	}
 
 	/*
 	 * wait for in-progress pending->locked hand-overs
 	 *
 	 * 0,1,0 -> 0,0,1
 	 */
-	if (val == _Q_PENDING_VAL) {
+	if (val == _Q_PENDING_VAL)
+	{
 		while ((val = atomic_read(&lock->val)) == _Q_PENDING_VAL)
+		{
 			cpu_relax();
+		}
 	}
 
 	/*
@@ -437,24 +462,33 @@ void queued_spin_lock_slowpath(struct qspinlock *lock, u32 val)
 	 * 0,0,0 -> 0,0,1 ; trylock
 	 * 0,0,1 -> 0,1,1 ; pending
 	 */
-	for (;;) {
+	for (;;)
+	{
 		/*
 		 * If we observe any contention; queue.
 		 */
 		if (val & ~_Q_LOCKED_MASK)
+		{
 			goto queue;
+		}
 
 		new = _Q_LOCKED_VAL;
+
 		if (val == new)
+		{
 			new |= _Q_PENDING_VAL;
+		}
 
 		/*
 		 * Acquire semantic is required here as the function may
 		 * return immediately if the lock was free.
 		 */
 		old = atomic_cmpxchg_acquire(&lock->val, val, new);
+
 		if (old == val)
+		{
 			break;
+		}
 
 		val = old;
 	}
@@ -463,7 +497,9 @@ void queued_spin_lock_slowpath(struct qspinlock *lock, u32 val)
 	 * we won the trylock
 	 */
 	if (new == _Q_LOCKED_VAL)
+	{
 		return;
+	}
 
 	/*
 	 * we're pending, wait for the owner to go away.
@@ -505,7 +541,9 @@ queue:
 	 * weren't watching.
 	 */
 	if (queued_spin_trylock(lock))
+	{
 		goto release;
+	}
 
 	/*
 	 * We have already touched the queueing cacheline; don't bother with
@@ -522,7 +560,8 @@ queue:
 	 * if there was a previous node; link it and wait until reaching the
 	 * head of the waitqueue.
 	 */
-	if (old & _Q_TAIL_MASK) {
+	if (old & _Q_TAIL_MASK)
+	{
 		prev = decode_tail(old);
 		/*
 		 * The above xchg_tail() is also a load of @lock which generates,
@@ -545,8 +584,11 @@ queue:
 		 * to reduce latency in the upcoming MCS unlock operation.
 		 */
 		next = READ_ONCE(node->next);
+
 		if (next)
+		{
 			prefetchw(next);
+		}
 	}
 
 	/*
@@ -571,11 +613,14 @@ queue:
 	 *
 	 */
 	if ((val = pv_wait_head_or_lock(lock, node)))
+	{
 		goto locked;
+	}
 
 	val = smp_cond_load_acquire(&lock->val.counter, !(VAL & _Q_LOCKED_PENDING_MASK));
 
 locked:
+
 	/*
 	 * claim the lock:
 	 *
@@ -586,20 +631,26 @@ locked:
 	 * clear the tail code and grab the lock. Otherwise, we only need
 	 * to grab the lock.
 	 */
-	for (;;) {
+	for (;;)
+	{
 		/* In the PV case we might already have _Q_LOCKED_VAL set */
-		if ((val & _Q_TAIL_MASK) != tail) {
+		if ((val & _Q_TAIL_MASK) != tail)
+		{
 			set_locked(lock);
 			break;
 		}
+
 		/*
 		 * The smp_cond_load_acquire() call above has provided the
 		 * necessary acquire semantics required for locking. At most
 		 * two iterations of this loop may be ran.
 		 */
 		old = atomic_cmpxchg_relaxed(&lock->val, val, _Q_LOCKED_VAL);
+
 		if (old == val)
-			goto release;	/* No contention */
+		{
+			goto release;    /* No contention */
+		}
 
 		val = old;
 	}
@@ -607,9 +658,12 @@ locked:
 	/*
 	 * contended path; wait for next if not observed yet, release.
 	 */
-	if (!next) {
+	if (!next)
+	{
 		while (!(next = READ_ONCE(node->next)))
+		{
 			cpu_relax();
+		}
 	}
 
 	arch_mcs_spin_unlock_contended(&next->locked);
@@ -627,20 +681,20 @@ EXPORT_SYMBOL(queued_spin_lock_slowpath);
  * Generate the paravirt code for queued_spin_unlock_slowpath().
  */
 #if !defined(_GEN_PV_LOCK_SLOWPATH) && defined(CONFIG_PARAVIRT_SPINLOCKS)
-#define _GEN_PV_LOCK_SLOWPATH
+	#define _GEN_PV_LOCK_SLOWPATH
 
-#undef  pv_enabled
-#define pv_enabled()	true
+	#undef  pv_enabled
+	#define pv_enabled()	true
 
-#undef pv_init_node
-#undef pv_wait_node
-#undef pv_kick_node
-#undef pv_wait_head_or_lock
+	#undef pv_init_node
+	#undef pv_wait_node
+	#undef pv_kick_node
+	#undef pv_wait_head_or_lock
 
-#undef  queued_spin_lock_slowpath
-#define queued_spin_lock_slowpath	__pv_queued_spin_lock_slowpath
+	#undef  queued_spin_lock_slowpath
+	#define queued_spin_lock_slowpath	__pv_queued_spin_lock_slowpath
 
-#include "qspinlock_paravirt.h"
-#include "qspinlock.c"
+	#include "qspinlock_paravirt.h"
+	#include "qspinlock.c"
 
 #endif

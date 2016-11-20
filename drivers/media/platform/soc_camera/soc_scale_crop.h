@@ -23,7 +23,7 @@ struct v4l2_rect;
 struct v4l2_subdev;
 
 static inline unsigned int soc_camera_shift_scale(unsigned int size,
-				unsigned int shift, unsigned int scale)
+		unsigned int shift, unsigned int scale)
 {
 	return DIV_ROUND_CLOSEST(size << shift, scale);
 }
@@ -32,16 +32,16 @@ static inline unsigned int soc_camera_shift_scale(unsigned int size,
 
 int soc_camera_client_g_rect(struct v4l2_subdev *sd, struct v4l2_rect *rect);
 int soc_camera_client_s_selection(struct v4l2_subdev *sd,
-			struct v4l2_selection *sel, struct v4l2_selection *cam_sel,
-			struct v4l2_rect *target_rect, struct v4l2_rect *subrect);
+								  struct v4l2_selection *sel, struct v4l2_selection *cam_sel,
+								  struct v4l2_rect *target_rect, struct v4l2_rect *subrect);
 int soc_camera_client_scale(struct soc_camera_device *icd,
-			struct v4l2_rect *rect, struct v4l2_rect *subrect,
-			struct v4l2_mbus_framefmt *mf,
-			unsigned int *width, unsigned int *height,
-			bool host_can_scale, unsigned int shift);
+							struct v4l2_rect *rect, struct v4l2_rect *subrect,
+							struct v4l2_mbus_framefmt *mf,
+							unsigned int *width, unsigned int *height,
+							bool host_can_scale, unsigned int shift);
 void soc_camera_calc_client_output(struct soc_camera_device *icd,
-		struct v4l2_rect *rect, struct v4l2_rect *subrect,
-		const struct v4l2_pix_format *pix, struct v4l2_mbus_framefmt *mf,
-		unsigned int shift);
+								   struct v4l2_rect *rect, struct v4l2_rect *subrect,
+								   const struct v4l2_pix_format *pix, struct v4l2_mbus_framefmt *mf,
+								   unsigned int shift);
 
 #endif

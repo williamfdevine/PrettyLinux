@@ -77,7 +77,7 @@ typedef void (*diva_task_set_pid_proc_t)(dword id);
 /*
   This function is called for run-time task init
 */
-typedef int (*diva_task_run_time_init_proc_t)(void*, dword);
+typedef int (*diva_task_run_time_init_proc_t)(void *, dword);
 /*
   This function is called from system scheduler or from timer
 */
@@ -87,8 +87,9 @@ typedef void (*diva_task_callback_proc_t)(void);
 */
 typedef dword (*diva_task_get_tick_count_proc_t)(void);
 typedef void (*diva_task_set_get_time_proc_t)(\
-	diva_task_get_tick_count_proc_t fn);
-typedef struct _diva_mips_sdp_task_entry {
+		diva_task_get_tick_count_proc_t fn);
+typedef struct _diva_mips_sdp_task_entry
+{
 	diva_task_set_prog_gp_proc_t  set_gp_proc;
 	diva_task_sys_reset_proc_t   sys_reset_proc;
 	diva_task_set_main_gp_proc_t  set_main_gp_proc;
@@ -103,15 +104,16 @@ typedef struct _diva_mips_sdp_task_entry {
 /*
   'last_entry_proc' should be set to zero and is used for future extensuios
 */
-typedef struct _diva_mips_sw_task {
+typedef struct _diva_mips_sw_task
+{
 	diva_mips_sdp_task_entry_t  sdp_entry;
 	void *sdp_gp_reg;
 	void *own_gp_reg;
 } diva_mips_sw_task_t;
 #if !defined(DIVA_BRI2F_SDP_1_NAME)
-#define DIVA_BRI2F_SDP_1_NAME "sdp0.2q0"
+	#define DIVA_BRI2F_SDP_1_NAME "sdp0.2q0"
 #endif
 #if !defined(DIVA_BRI2F_SDP_2_NAME)
-#define DIVA_BRI2F_SDP_2_NAME "sdp1.2q0"
+	#define DIVA_BRI2F_SDP_2_NAME "sdp1.2q0"
 #endif
 #endif

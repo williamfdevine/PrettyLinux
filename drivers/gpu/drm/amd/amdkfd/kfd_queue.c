@@ -27,7 +27,9 @@
 void print_queue_properties(struct queue_properties *q)
 {
 	if (!q)
+	{
 		return;
+	}
 
 	pr_debug("Printing queue properties:\n");
 	pr_debug("Queue Type: %u\n", q->type);
@@ -45,7 +47,10 @@ void print_queue_properties(struct queue_properties *q)
 void print_queue(struct queue *q)
 {
 	if (!q)
+	{
 		return;
+	}
+
 	pr_debug("Printing queue:\n");
 	pr_debug("Queue Type: %u\n", q->properties.type);
 	pr_debug("Queue Size: %llu\n", q->properties.queue_size);
@@ -70,8 +75,11 @@ int init_queue(struct queue **q, const struct queue_properties *properties)
 	BUG_ON(!q);
 
 	tmp = kzalloc(sizeof(struct queue), GFP_KERNEL);
+
 	if (!tmp)
+	{
 		return -ENOMEM;
+	}
 
 	memcpy(&tmp->properties, properties, sizeof(struct queue_properties));
 

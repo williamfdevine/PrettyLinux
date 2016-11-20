@@ -29,7 +29,8 @@ static inline const char *sst_acpi_find_name_from_hid(const u8 hid[ACPI_ID_LEN])
 struct sst_acpi_mach *sst_acpi_find_machine(struct sst_acpi_mach *machines);
 
 /* Descriptor for SST ASoC machine driver */
-struct sst_acpi_mach {
+struct sst_acpi_mach
+{
 	/* ACPI ID for the matching machine driver. Audio codec for instance */
 	const u8 id[ACPI_ID_LEN];
 	/* machine driver name */
@@ -39,6 +40,6 @@ struct sst_acpi_mach {
 
 	/* board name */
 	const char *board;
-	struct sst_acpi_mach * (*machine_quirk)(void *arg);
+	struct sst_acpi_mach *(*machine_quirk)(void *arg);
 	void *pdata;
 };

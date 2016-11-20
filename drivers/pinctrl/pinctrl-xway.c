@@ -66,13 +66,13 @@
 #define MFP_XWAY(a, f0, f1, f2, f3)	\
 	{				\
 		.name = #a,		\
-		.pin = a,		\
-		.func = {		\
-			XWAY_MUX_##f0,	\
-			XWAY_MUX_##f1,	\
-			XWAY_MUX_##f2,	\
-			XWAY_MUX_##f3,	\
-		},			\
+				.pin = a,		\
+					   .func = {		\
+									   XWAY_MUX_##f0,	\
+									   XWAY_MUX_##f1,	\
+									   XWAY_MUX_##f2,	\
+									   XWAY_MUX_##f3,	\
+							   },			\
 	}
 
 #define GRP_MUX(a, m, p)		\
@@ -81,7 +81,8 @@
 #define FUNC_MUX(f, m)		\
 	{ .func = f, .mux = XWAY_MUX_##m, }
 
-enum xway_mux {
+enum xway_mux
+{
 	XWAY_MUX_GPIO = 0,
 	XWAY_MUX_SPI,
 	XWAY_MUX_ASC,
@@ -114,7 +115,8 @@ enum xway_mux {
 /* ----------  use xrx100/xrx200 instead  ---------- */
 #define XR9_MAX_PIN		56
 
-static const struct ltq_mfp_pin xway_mfp[] = {
+static const struct ltq_mfp_pin xway_mfp[] =
+{
 	/*       pin    f0	f1	f2	f3   */
 	MFP_XWAY(GPIO0, GPIO,	EXIN,	NONE,	TDM),
 	MFP_XWAY(GPIO1, GPIO,	EXIN,	NONE,	NONE),
@@ -238,7 +240,8 @@ static const unsigned pins_pci_req2[] = {GPIO31};
 static const unsigned pins_pci_req3[] = {GPIO3};
 static const unsigned pins_pci_req4[] = {GPIO37};
 
-static const struct ltq_pin_group xway_grps[] = {
+static const struct ltq_pin_group xway_grps[] =
+{
 	GRP_MUX("exin0", EXIN, pins_exin0),
 	GRP_MUX("exin1", EXIN, pins_exin1),
 	GRP_MUX("exin2", EXIN, pins_exin2),
@@ -276,7 +279,7 @@ static const struct ltq_pin_group xway_grps[] = {
 	GRP_MUX("req1", PCI, pins_pci_req1),
 	GRP_MUX("req2", PCI, pins_pci_req2),
 	GRP_MUX("req3", PCI, pins_pci_req3),
-/* xrx only */
+	/* xrx only */
 	GRP_MUX("nand rdy", EBU, pins_nand_rdy),
 	GRP_MUX("nand rd", EBU, pins_nand_rd),
 	GRP_MUX("exin3", EXIN, pins_exin3),
@@ -293,46 +296,55 @@ static const struct ltq_pin_group xway_grps[] = {
 	GRP_MUX("gphy1 led2", GPHY, pins_gphy1_led2),
 };
 
-static const char * const xway_pci_grps[] = {"gnt1", "gnt2",
-						"gnt3", "req1",
-						"req2", "req3"};
-static const char * const xway_spi_grps[] = {"spi", "spi_cs1",
-						"spi_cs2", "spi_cs3",
-						"spi_cs4", "spi_cs5",
-						"spi_cs6"};
-static const char * const xway_cgu_grps[] = {"clkout0", "clkout1",
-						"clkout2", "clkout3"};
-static const char * const xway_ebu_grps[] = {"ebu a23", "ebu a24",
-						"ebu a25", "ebu cs1",
-						"ebu wait", "ebu clk",
-						"nand ale", "nand cs1",
-						"nand cle"};
-static const char * const xway_exin_grps[] = {"exin0", "exin1", "exin2"};
-static const char * const xway_gpt_grps[] = {"gpt1", "gpt2", "gpt3"};
-static const char * const xway_asc_grps[] = {"asc0", "asc0 cts rts"};
-static const char * const xway_jtag_grps[] = {"jtag"};
-static const char * const xway_stp_grps[] = {"stp"};
-static const char * const xway_nmi_grps[] = {"nmi"};
+static const char *const xway_pci_grps[] = {"gnt1", "gnt2",
+											"gnt3", "req1",
+											"req2", "req3"
+										   };
+static const char *const xway_spi_grps[] = {"spi", "spi_cs1",
+											"spi_cs2", "spi_cs3",
+											"spi_cs4", "spi_cs5",
+											"spi_cs6"
+										   };
+static const char *const xway_cgu_grps[] = {"clkout0", "clkout1",
+											"clkout2", "clkout3"
+										   };
+static const char *const xway_ebu_grps[] = {"ebu a23", "ebu a24",
+											"ebu a25", "ebu cs1",
+											"ebu wait", "ebu clk",
+											"nand ale", "nand cs1",
+											"nand cle"
+										   };
+static const char *const xway_exin_grps[] = {"exin0", "exin1", "exin2"};
+static const char *const xway_gpt_grps[] = {"gpt1", "gpt2", "gpt3"};
+static const char *const xway_asc_grps[] = {"asc0", "asc0 cts rts"};
+static const char *const xway_jtag_grps[] = {"jtag"};
+static const char *const xway_stp_grps[] = {"stp"};
+static const char *const xway_nmi_grps[] = {"nmi"};
 
 /* ar9/vr9/gr9 */
-static const char * const xrx_mdio_grps[] = {"mdio"};
-static const char * const xrx_gphy_grps[] = {"gphy0 led0", "gphy0 led1",
-						"gphy0 led2", "gphy1 led0",
-						"gphy1 led1", "gphy1 led2"};
-static const char * const xrx_ebu_grps[] = {"ebu a23", "ebu a24",
-						"ebu a25", "ebu cs1",
-						"ebu wait", "ebu clk",
-						"nand ale", "nand cs1",
-						"nand cle", "nand rdy",
-						"nand rd"};
-static const char * const xrx_exin_grps[] = {"exin0", "exin1", "exin2",
-						"exin3", "exin4", "exin5"};
-static const char * const xrx_pci_grps[] = {"gnt1", "gnt2",
-						"gnt3", "gnt4",
-						"req1", "req2",
-						"req3", "req4"};
+static const char *const xrx_mdio_grps[] = {"mdio"};
+static const char *const xrx_gphy_grps[] = {"gphy0 led0", "gphy0 led1",
+											"gphy0 led2", "gphy1 led0",
+											"gphy1 led1", "gphy1 led2"
+										   };
+static const char *const xrx_ebu_grps[] = {"ebu a23", "ebu a24",
+										   "ebu a25", "ebu cs1",
+										   "ebu wait", "ebu clk",
+										   "nand ale", "nand cs1",
+										   "nand cle", "nand rdy",
+										   "nand rd"
+										  };
+static const char *const xrx_exin_grps[] = {"exin0", "exin1", "exin2",
+											"exin3", "exin4", "exin5"
+										   };
+static const char *const xrx_pci_grps[] = {"gnt1", "gnt2",
+										   "gnt3", "gnt4",
+										   "req1", "req2",
+										   "req3", "req4"
+										  };
 
-static const struct ltq_pmx_func xrx_funcs[] = {
+static const struct ltq_pmx_func xrx_funcs[] =
+{
 	{"spi",		ARRAY_AND_SIZE(xway_spi_grps)},
 	{"asc",		ARRAY_AND_SIZE(xway_asc_grps)},
 	{"cgu",		ARRAY_AND_SIZE(xway_cgu_grps)},
@@ -350,7 +362,8 @@ static const struct ltq_pmx_func xrx_funcs[] = {
 /* ---------  ase related code --------- */
 #define ASE_MAX_PIN		32
 
-static const struct ltq_mfp_pin ase_mfp[] = {
+static const struct ltq_mfp_pin ase_mfp[] =
+{
 	/*       pin    f0	f1	f2	f3   */
 	MFP_XWAY(GPIO0, GPIO,	EXIN,	MII,	TDM),
 	MFP_XWAY(GPIO1, GPIO,	STP,	DFE,	EBU),
@@ -418,7 +431,8 @@ static const unsigned ase_pins_clkout0[] = {GPIO23};
 static const unsigned ase_pins_clkout1[] = {GPIO22};
 static const unsigned ase_pins_clkout2[] = {GPIO14};
 
-static const struct ltq_pin_group ase_grps[] = {
+static const struct ltq_pin_group ase_grps[] =
+{
 	GRP_MUX("exin0", EXIN, ase_pins_exin0),
 	GRP_MUX("exin1", EXIN, ase_pins_exin1),
 	GRP_MUX("exin2", EXIN, ase_pins_exin2),
@@ -446,23 +460,27 @@ static const struct ltq_pin_group ase_grps[] = {
 	GRP_MUX("ephy led2", EPHY, ase_pins_ephy_led2),
 };
 
-static const char * const ase_exin_grps[] = {"exin0", "exin1", "exin2"};
-static const char * const ase_gpt_grps[] = {"gpt1", "gpt2", "gpt3"};
-static const char * const ase_cgu_grps[] = {"clkout0", "clkout1",
-						"clkout2"};
-static const char * const ase_mdio_grps[] = {"mdio"};
-static const char * const ase_dfe_grps[] = {"dfe led0", "dfe led1"};
-static const char * const ase_ephy_grps[] = {"ephy led0", "ephy led1",
-						"ephy led2"};
-static const char * const ase_asc_grps[] = {"asc"};
-static const char * const ase_jtag_grps[] = {"jtag"};
-static const char * const ase_stp_grps[] = {"stp"};
-static const char * const ase_spi_grps[] = {"spi",  /* DEPRECATED */
-						"spi_di", "spi_do",
-						"spi_clk", "spi_cs1",
-						"spi_cs2", "spi_cs3"};
+static const char *const ase_exin_grps[] = {"exin0", "exin1", "exin2"};
+static const char *const ase_gpt_grps[] = {"gpt1", "gpt2", "gpt3"};
+static const char *const ase_cgu_grps[] = {"clkout0", "clkout1",
+										   "clkout2"
+										  };
+static const char *const ase_mdio_grps[] = {"mdio"};
+static const char *const ase_dfe_grps[] = {"dfe led0", "dfe led1"};
+static const char *const ase_ephy_grps[] = {"ephy led0", "ephy led1",
+											"ephy led2"
+										   };
+static const char *const ase_asc_grps[] = {"asc"};
+static const char *const ase_jtag_grps[] = {"jtag"};
+static const char *const ase_stp_grps[] = {"stp"};
+static const char *const ase_spi_grps[] = {"spi",   /* DEPRECATED */
+										   "spi_di", "spi_do",
+										   "spi_clk", "spi_cs1",
+										   "spi_cs2", "spi_cs3"
+										  };
 
-static const struct ltq_pmx_func ase_funcs[] = {
+static const struct ltq_pmx_func ase_funcs[] =
+{
 	{"spi",		ARRAY_AND_SIZE(ase_spi_grps)},
 	{"asc",		ARRAY_AND_SIZE(ase_asc_grps)},
 	{"cgu",		ARRAY_AND_SIZE(ase_cgu_grps)},
@@ -478,7 +496,8 @@ static const struct ltq_pmx_func ase_funcs[] = {
 /* ---------  danube related code --------- */
 #define DANUBE_MAX_PIN		32
 
-static const struct ltq_mfp_pin danube_mfp[] = {
+static const struct ltq_mfp_pin danube_mfp[] =
+{
 	/*       pin    f0	f1	f2	f3   */
 	MFP_XWAY(GPIO0, GPIO,	EXIN,	SDIO,	TDM),
 	MFP_XWAY(GPIO1, GPIO,	EXIN,	CBUS,	MII),
@@ -567,7 +586,8 @@ static const unsigned danube_pins_pci_req1[] = {GPIO29};
 static const unsigned danube_pins_pci_req2[] = {GPIO31};
 static const unsigned danube_pins_pci_req3[] = {GPIO3};
 
-static const struct ltq_pin_group danube_grps[] = {
+static const struct ltq_pin_group danube_grps[] =
+{
 	GRP_MUX("exin0", EXIN, danube_pins_exin0),
 	GRP_MUX("exin1", EXIN, danube_pins_exin1),
 	GRP_MUX("exin2", EXIN, danube_pins_exin2),
@@ -612,31 +632,36 @@ static const struct ltq_pin_group danube_grps[] = {
 	GRP_MUX("dfe led1", DFE, danube_pins_dfe_led1),
 };
 
-static const char * const danube_pci_grps[] = {"gnt1", "gnt2",
-						"gnt3", "req1",
-						"req2", "req3"};
-static const char * const danube_spi_grps[] = {"spi", /* DEPRECATED */
-						"spi_di", "spi_do",
-						"spi_clk", "spi_cs1",
-						"spi_cs2", "spi_cs3",
-						"spi_cs4", "spi_cs5",
-						"spi_cs6"};
-static const char * const danube_cgu_grps[] = {"clkout0", "clkout1",
-						"clkout2", "clkout3"};
-static const char * const danube_ebu_grps[] = {"ebu a23", "ebu a24",
-						"ebu a25", "ebu cs1",
-						"ebu wait", "ebu clk",
-						"nand ale", "nand cs1",
-						"nand cle"};
-static const char * const danube_dfe_grps[] = {"dfe led0", "dfe led1"};
-static const char * const danube_exin_grps[] = {"exin0", "exin1", "exin2"};
-static const char * const danube_gpt_grps[] = {"gpt1", "gpt2", "gpt3"};
-static const char * const danube_asc_grps[] = {"asc0", "asc0 cts rts"};
-static const char * const danube_jtag_grps[] = {"jtag"};
-static const char * const danube_stp_grps[] = {"stp"};
-static const char * const danube_nmi_grps[] = {"nmi"};
+static const char *const danube_pci_grps[] = {"gnt1", "gnt2",
+											  "gnt3", "req1",
+											  "req2", "req3"
+											 };
+static const char *const danube_spi_grps[] = {"spi",  /* DEPRECATED */
+											  "spi_di", "spi_do",
+											  "spi_clk", "spi_cs1",
+											  "spi_cs2", "spi_cs3",
+											  "spi_cs4", "spi_cs5",
+											  "spi_cs6"
+											 };
+static const char *const danube_cgu_grps[] = {"clkout0", "clkout1",
+											  "clkout2", "clkout3"
+											 };
+static const char *const danube_ebu_grps[] = {"ebu a23", "ebu a24",
+											  "ebu a25", "ebu cs1",
+											  "ebu wait", "ebu clk",
+											  "nand ale", "nand cs1",
+											  "nand cle"
+											 };
+static const char *const danube_dfe_grps[] = {"dfe led0", "dfe led1"};
+static const char *const danube_exin_grps[] = {"exin0", "exin1", "exin2"};
+static const char *const danube_gpt_grps[] = {"gpt1", "gpt2", "gpt3"};
+static const char *const danube_asc_grps[] = {"asc0", "asc0 cts rts"};
+static const char *const danube_jtag_grps[] = {"jtag"};
+static const char *const danube_stp_grps[] = {"stp"};
+static const char *const danube_nmi_grps[] = {"nmi"};
 
-static const struct ltq_pmx_func danube_funcs[] = {
+static const struct ltq_pmx_func danube_funcs[] =
+{
 	{"spi",		ARRAY_AND_SIZE(danube_spi_grps)},
 	{"asc",		ARRAY_AND_SIZE(danube_asc_grps)},
 	{"cgu",		ARRAY_AND_SIZE(danube_cgu_grps)},
@@ -653,7 +678,8 @@ static const struct ltq_pmx_func danube_funcs[] = {
 /* ---------  xrx100 related code --------- */
 #define XRX100_MAX_PIN		56
 
-static const struct ltq_mfp_pin xrx100_mfp[] = {
+static const struct ltq_mfp_pin xrx100_mfp[] =
+{
 	/*       pin    f0	f1	f2	f3   */
 	MFP_XWAY(GPIO0, GPIO,	EXIN,	SDIO,	TDM),
 	MFP_XWAY(GPIO1, GPIO,	EXIN,	CBUS,	SIN),
@@ -772,7 +798,8 @@ static const unsigned xrx100_pins_pci_req2[] = {GPIO31};
 static const unsigned xrx100_pins_pci_req3[] = {GPIO3};
 static const unsigned xrx100_pins_pci_req4[] = {GPIO37};
 
-static const struct ltq_pin_group xrx100_grps[] = {
+static const struct ltq_pin_group xrx100_grps[] =
+{
 	GRP_MUX("exin0", EXIN, xrx100_pins_exin0),
 	GRP_MUX("exin1", EXIN, xrx100_pins_exin1),
 	GRP_MUX("exin2", EXIN, xrx100_pins_exin2),
@@ -823,33 +850,39 @@ static const struct ltq_pin_group xrx100_grps[] = {
 	GRP_MUX("dfe led1", DFE, xrx100_pins_dfe_led1),
 };
 
-static const char * const xrx100_pci_grps[] = {"gnt1", "gnt2",
-						"gnt3", "gnt4",
-						"req1", "req2",
-						"req3", "req4"};
-static const char * const xrx100_spi_grps[] = {"spi_di", "spi_do",
-						"spi_clk", "spi_cs1",
-						"spi_cs2", "spi_cs3",
-						"spi_cs4", "spi_cs5",
-						"spi_cs6"};
-static const char * const xrx100_cgu_grps[] = {"clkout0", "clkout1",
-						"clkout2", "clkout3"};
-static const char * const xrx100_ebu_grps[] = {"ebu a23", "ebu a24",
-						"ebu a25", "ebu cs1",
-						"ebu wait", "ebu clk",
-						"nand ale", "nand cs1",
-						"nand cle", "nand rdy",
-						"nand rd"};
-static const char * const xrx100_exin_grps[] = {"exin0", "exin1", "exin2",
-						"exin3", "exin4", "exin5"};
-static const char * const xrx100_gpt_grps[] = {"gpt1", "gpt2", "gpt3"};
-static const char * const xrx100_asc_grps[] = {"asc0", "asc0 cts rts"};
-static const char * const xrx100_stp_grps[] = {"stp"};
-static const char * const xrx100_nmi_grps[] = {"nmi"};
-static const char * const xrx100_mdio_grps[] = {"mdio"};
-static const char * const xrx100_dfe_grps[] = {"dfe led0", "dfe led1"};
+static const char *const xrx100_pci_grps[] = {"gnt1", "gnt2",
+											  "gnt3", "gnt4",
+											  "req1", "req2",
+											  "req3", "req4"
+											 };
+static const char *const xrx100_spi_grps[] = {"spi_di", "spi_do",
+											  "spi_clk", "spi_cs1",
+											  "spi_cs2", "spi_cs3",
+											  "spi_cs4", "spi_cs5",
+											  "spi_cs6"
+											 };
+static const char *const xrx100_cgu_grps[] = {"clkout0", "clkout1",
+											  "clkout2", "clkout3"
+											 };
+static const char *const xrx100_ebu_grps[] = {"ebu a23", "ebu a24",
+											  "ebu a25", "ebu cs1",
+											  "ebu wait", "ebu clk",
+											  "nand ale", "nand cs1",
+											  "nand cle", "nand rdy",
+											  "nand rd"
+											 };
+static const char *const xrx100_exin_grps[] = {"exin0", "exin1", "exin2",
+											   "exin3", "exin4", "exin5"
+											  };
+static const char *const xrx100_gpt_grps[] = {"gpt1", "gpt2", "gpt3"};
+static const char *const xrx100_asc_grps[] = {"asc0", "asc0 cts rts"};
+static const char *const xrx100_stp_grps[] = {"stp"};
+static const char *const xrx100_nmi_grps[] = {"nmi"};
+static const char *const xrx100_mdio_grps[] = {"mdio"};
+static const char *const xrx100_dfe_grps[] = {"dfe led0", "dfe led1"};
 
-static const struct ltq_pmx_func xrx100_funcs[] = {
+static const struct ltq_pmx_func xrx100_funcs[] =
+{
 	{"spi",		ARRAY_AND_SIZE(xrx100_spi_grps)},
 	{"asc",		ARRAY_AND_SIZE(xrx100_asc_grps)},
 	{"cgu",		ARRAY_AND_SIZE(xrx100_cgu_grps)},
@@ -866,7 +899,8 @@ static const struct ltq_pmx_func xrx100_funcs[] = {
 /* ---------  xrx200 related code --------- */
 #define XRX200_MAX_PIN		50
 
-static const struct ltq_mfp_pin xrx200_mfp[] = {
+static const struct ltq_mfp_pin xrx200_mfp[] =
+{
 	/*       pin    f0	f1	f2	f3   */
 	MFP_XWAY(GPIO0, GPIO,	EXIN,	SDIO,	TDM),
 	MFP_XWAY(GPIO1, GPIO,	EXIN,	CBUS,	SIN),
@@ -1000,7 +1034,8 @@ static const unsigned xrx200_pins_pci_req2[] = {GPIO31};
 static const unsigned xrx200_pins_pci_req3[] = {GPIO3};
 static const unsigned xrx200_pins_pci_req4[] = {GPIO37};
 
-static const struct ltq_pin_group xrx200_grps[] = {
+static const struct ltq_pin_group xrx200_grps[] =
+{
 	GRP_MUX("exin0", EXIN, xrx200_pins_exin0),
 	GRP_MUX("exin1", EXIN, xrx200_pins_exin1),
 	GRP_MUX("exin2", EXIN, xrx200_pins_exin2),
@@ -1069,42 +1104,50 @@ static const struct ltq_pin_group xrx200_grps[] = {
 	GRP_MUX("gphy1 led2", GPHY, xrx200_pins_gphy1_led2),
 };
 
-static const char * const xrx200_pci_grps[] = {"gnt1", "gnt2",
-						"gnt3", "gnt4",
-						"req1", "req2",
-						"req3", "req4"};
-static const char * const xrx200_spi_grps[] = {"spi_di", "spi_do",
-						"spi_clk", "spi_cs1",
-						"spi_cs2", "spi_cs3",
-						"spi_cs4", "spi_cs5",
-						"spi_cs6"};
-static const char * const xrx200_cgu_grps[] = {"clkout0", "clkout1",
-						"clkout2", "clkout3"};
-static const char * const xrx200_ebu_grps[] = {"ebu a23", "ebu a24",
-						"ebu a25", "ebu cs1",
-						"ebu wait", "ebu clk",
-						"nand ale", "nand cs1",
-						"nand cle", "nand rdy",
-						"nand rd"};
-static const char * const xrx200_exin_grps[] = {"exin0", "exin1", "exin2",
-						"exin3", "exin4", "exin5"};
-static const char * const xrx200_gpt_grps[] = {"gpt1", "gpt2", "gpt3"};
-static const char * const xrx200_usif_grps[] = {"usif uart_rx", "usif uart_tx",
-						"usif uart_rts", "usif uart_cts",
-						"usif uart_dtr", "usif uart_dsr",
-						"usif uart_dcd", "usif uart_ri",
-						"usif spi_di", "usif spi_do",
-						"usif spi_clk", "usif spi_cs0",
-						"usif spi_cs1", "usif spi_cs2"};
-static const char * const xrx200_stp_grps[] = {"stp"};
-static const char * const xrx200_nmi_grps[] = {"nmi"};
-static const char * const xrx200_mdio_grps[] = {"mdio"};
-static const char * const xrx200_dfe_grps[] = {"dfe led0", "dfe led1"};
-static const char * const xrx200_gphy_grps[] = {"gphy0 led0", "gphy0 led1",
-						"gphy0 led2", "gphy1 led0",
-						"gphy1 led1", "gphy1 led2"};
+static const char *const xrx200_pci_grps[] = {"gnt1", "gnt2",
+											  "gnt3", "gnt4",
+											  "req1", "req2",
+											  "req3", "req4"
+											 };
+static const char *const xrx200_spi_grps[] = {"spi_di", "spi_do",
+											  "spi_clk", "spi_cs1",
+											  "spi_cs2", "spi_cs3",
+											  "spi_cs4", "spi_cs5",
+											  "spi_cs6"
+											 };
+static const char *const xrx200_cgu_grps[] = {"clkout0", "clkout1",
+											  "clkout2", "clkout3"
+											 };
+static const char *const xrx200_ebu_grps[] = {"ebu a23", "ebu a24",
+											  "ebu a25", "ebu cs1",
+											  "ebu wait", "ebu clk",
+											  "nand ale", "nand cs1",
+											  "nand cle", "nand rdy",
+											  "nand rd"
+											 };
+static const char *const xrx200_exin_grps[] = {"exin0", "exin1", "exin2",
+											   "exin3", "exin4", "exin5"
+											  };
+static const char *const xrx200_gpt_grps[] = {"gpt1", "gpt2", "gpt3"};
+static const char *const xrx200_usif_grps[] = {"usif uart_rx", "usif uart_tx",
+											   "usif uart_rts", "usif uart_cts",
+											   "usif uart_dtr", "usif uart_dsr",
+											   "usif uart_dcd", "usif uart_ri",
+											   "usif spi_di", "usif spi_do",
+											   "usif spi_clk", "usif spi_cs0",
+											   "usif spi_cs1", "usif spi_cs2"
+											  };
+static const char *const xrx200_stp_grps[] = {"stp"};
+static const char *const xrx200_nmi_grps[] = {"nmi"};
+static const char *const xrx200_mdio_grps[] = {"mdio"};
+static const char *const xrx200_dfe_grps[] = {"dfe led0", "dfe led1"};
+static const char *const xrx200_gphy_grps[] = {"gphy0 led0", "gphy0 led1",
+											   "gphy0 led2", "gphy1 led0",
+											   "gphy1 led1", "gphy1 led2"
+											  };
 
-static const struct ltq_pmx_func xrx200_funcs[] = {
+static const struct ltq_pmx_func xrx200_funcs[] =
+{
 	{"spi",		ARRAY_AND_SIZE(xrx200_spi_grps)},
 	{"usif",	ARRAY_AND_SIZE(xrx200_usif_grps)},
 	{"cgu",		ARRAY_AND_SIZE(xrx200_cgu_grps)},
@@ -1122,7 +1165,8 @@ static const struct ltq_pmx_func xrx200_funcs[] = {
 /* ---------  xrx300 related code --------- */
 #define XRX300_MAX_PIN		64
 
-static const struct ltq_mfp_pin xrx300_mfp[] = {
+static const struct ltq_mfp_pin xrx300_mfp[] =
+{
 	/*       pin    f0	f1	f2	f3   */
 	MFP_XWAY(GPIO0, GPIO,	EXIN,	EPHY,	NONE),
 	MFP_XWAY(GPIO1, GPIO,	NONE,	EXIN,	NONE),
@@ -1250,7 +1294,8 @@ static const unsigned xrx300_pins_spi_cs6[] = {GPIO11};
 /* CLKOUT1 is not available on xrX300 */
 static const unsigned xrx300_pins_clkout2[] = {GPIO3};
 
-static const struct ltq_pin_group xrx300_grps[] = {
+static const struct ltq_pin_group xrx300_grps[] =
+{
 	GRP_MUX("exin0", EXIN, xrx300_pins_exin0),
 	GRP_MUX("exin1", EXIN, xrx300_pins_exin1),
 	GRP_MUX("exin2", EXIN, xrx300_pins_exin2),
@@ -1296,31 +1341,37 @@ static const struct ltq_pin_group xrx300_grps[] = {
 	GRP_MUX("ephy1 led1", GPHY, xrx300_pins_ephy1_led1),
 };
 
-static const char * const xrx300_spi_grps[] = {"spi_di", "spi_do",
-						"spi_clk", "spi_cs1",
-						"spi_cs4", "spi_cs6"};
-static const char * const xrx300_cgu_grps[] = {"clkout2"};
-static const char * const xrx300_ebu_grps[] = {"nand ale", "nand cs1",
-						"nand cle", "nand rdy",
-						"nand rd", "nand d1",
-						"nand d0", "nand d2",
-						"nand d7", "nand d6",
-						"nand d5", "nand d4",
-						"nand d3", "nand cs0",
-						"nand wr", "nand wp",
-						"nand se"};
-static const char * const xrx300_exin_grps[] = {"exin0", "exin1", "exin2",
-						"exin4", "exin5"};
-static const char * const xrx300_usif_grps[] = {"usif uart_rx", "usif uart_tx",
-						"usif spi_di", "usif spi_do",
-						"usif spi_clk", "usif spi_cs0"};
-static const char * const xrx300_stp_grps[] = {"stp"};
-static const char * const xrx300_mdio_grps[] = {"mdio"};
-static const char * const xrx300_dfe_grps[] = {"dfe led0", "dfe led1"};
-static const char * const xrx300_gphy_grps[] = {"ephy0 led0", "ephy0 led1",
-						"ephy1 led0", "ephy1 led1"};
+static const char *const xrx300_spi_grps[] = {"spi_di", "spi_do",
+											  "spi_clk", "spi_cs1",
+											  "spi_cs4", "spi_cs6"
+											 };
+static const char *const xrx300_cgu_grps[] = {"clkout2"};
+static const char *const xrx300_ebu_grps[] = {"nand ale", "nand cs1",
+											  "nand cle", "nand rdy",
+											  "nand rd", "nand d1",
+											  "nand d0", "nand d2",
+											  "nand d7", "nand d6",
+											  "nand d5", "nand d4",
+											  "nand d3", "nand cs0",
+											  "nand wr", "nand wp",
+											  "nand se"
+											 };
+static const char *const xrx300_exin_grps[] = {"exin0", "exin1", "exin2",
+											   "exin4", "exin5"
+											  };
+static const char *const xrx300_usif_grps[] = {"usif uart_rx", "usif uart_tx",
+											   "usif spi_di", "usif spi_do",
+											   "usif spi_clk", "usif spi_cs0"
+											  };
+static const char *const xrx300_stp_grps[] = {"stp"};
+static const char *const xrx300_mdio_grps[] = {"mdio"};
+static const char *const xrx300_dfe_grps[] = {"dfe led0", "dfe led1"};
+static const char *const xrx300_gphy_grps[] = {"ephy0 led0", "ephy0 led1",
+											   "ephy1 led0", "ephy1 led1"
+											  };
 
-static const struct ltq_pmx_func xrx300_funcs[] = {
+static const struct ltq_pmx_func xrx300_funcs[] =
+{
 	{"spi",		ARRAY_AND_SIZE(xrx300_spi_grps)},
 	{"usif",	ARRAY_AND_SIZE(xrx300_usif_grps)},
 	{"cgu",		ARRAY_AND_SIZE(xrx300_cgu_grps)},
@@ -1334,60 +1385,84 @@ static const struct ltq_pmx_func xrx300_funcs[] = {
 
 /* ---------  pinconf related code --------- */
 static int xway_pinconf_get(struct pinctrl_dev *pctldev,
-				unsigned pin,
-				unsigned long *config)
+							unsigned pin,
+							unsigned long *config)
 {
 	struct ltq_pinmux_info *info = pinctrl_dev_get_drvdata(pctldev);
 	enum ltq_pinconf_param param = LTQ_PINCONF_UNPACK_PARAM(*config);
 	int port = PORT(pin);
 	u32 reg;
 
-	switch (param) {
-	case LTQ_PINCONF_PARAM_OPEN_DRAIN:
-		if (port == PORT3)
-			reg = GPIO3_OD;
-		else
-			reg = GPIO_OD(pin);
-		*config = LTQ_PINCONF_PACK(param,
-			!gpio_getbit(info->membase[0], reg, PORT_PIN(pin)));
-		break;
+	switch (param)
+	{
+		case LTQ_PINCONF_PARAM_OPEN_DRAIN:
+			if (port == PORT3)
+			{
+				reg = GPIO3_OD;
+			}
+			else
+			{
+				reg = GPIO_OD(pin);
+			}
 
-	case LTQ_PINCONF_PARAM_PULL:
-		if (port == PORT3)
-			reg = GPIO3_PUDEN;
-		else
-			reg = GPIO_PUDEN(pin);
-		if (!gpio_getbit(info->membase[0], reg, PORT_PIN(pin))) {
-			*config = LTQ_PINCONF_PACK(param, 0);
+			*config = LTQ_PINCONF_PACK(param,
+									   !gpio_getbit(info->membase[0], reg, PORT_PIN(pin)));
 			break;
-		}
 
-		if (port == PORT3)
-			reg = GPIO3_PUDSEL;
-		else
-			reg = GPIO_PUDSEL(pin);
-		if (!gpio_getbit(info->membase[0], reg, PORT_PIN(pin)))
-			*config = LTQ_PINCONF_PACK(param, 2);
-		else
-			*config = LTQ_PINCONF_PACK(param, 1);
-		break;
+		case LTQ_PINCONF_PARAM_PULL:
+			if (port == PORT3)
+			{
+				reg = GPIO3_PUDEN;
+			}
+			else
+			{
+				reg = GPIO_PUDEN(pin);
+			}
 
-	case LTQ_PINCONF_PARAM_OUTPUT:
-		reg = GPIO_DIR(pin);
-		*config = LTQ_PINCONF_PACK(param,
-			gpio_getbit(info->membase[0], reg, PORT_PIN(pin)));
-		break;
-	default:
-		dev_err(pctldev->dev, "Invalid config param %04x\n", param);
-		return -ENOTSUPP;
+			if (!gpio_getbit(info->membase[0], reg, PORT_PIN(pin)))
+			{
+				*config = LTQ_PINCONF_PACK(param, 0);
+				break;
+			}
+
+			if (port == PORT3)
+			{
+				reg = GPIO3_PUDSEL;
+			}
+			else
+			{
+				reg = GPIO_PUDSEL(pin);
+			}
+
+			if (!gpio_getbit(info->membase[0], reg, PORT_PIN(pin)))
+			{
+				*config = LTQ_PINCONF_PACK(param, 2);
+			}
+			else
+			{
+				*config = LTQ_PINCONF_PACK(param, 1);
+			}
+
+			break;
+
+		case LTQ_PINCONF_PARAM_OUTPUT:
+			reg = GPIO_DIR(pin);
+			*config = LTQ_PINCONF_PACK(param,
+									   gpio_getbit(info->membase[0], reg, PORT_PIN(pin)));
+			break;
+
+		default:
+			dev_err(pctldev->dev, "Invalid config param %04x\n", param);
+			return -ENOTSUPP;
 	}
+
 	return 0;
 }
 
 static int xway_pinconf_set(struct pinctrl_dev *pctldev,
-				unsigned pin,
-				unsigned long *configs,
-				unsigned num_configs)
+							unsigned pin,
+							unsigned long *configs,
+							unsigned num_configs)
 {
 	struct ltq_pinmux_info *info = pinctrl_dev_get_drvdata(pctldev);
 	enum ltq_pinconf_param param;
@@ -1396,72 +1471,95 @@ static int xway_pinconf_set(struct pinctrl_dev *pctldev,
 	u32 reg;
 	int i;
 
-	for (i = 0; i < num_configs; i++) {
+	for (i = 0; i < num_configs; i++)
+	{
 		param = LTQ_PINCONF_UNPACK_PARAM(configs[i]);
 		arg = LTQ_PINCONF_UNPACK_ARG(configs[i]);
 
-		switch (param) {
-		case LTQ_PINCONF_PARAM_OPEN_DRAIN:
-			if (port == PORT3)
-				reg = GPIO3_OD;
-			else
-				reg = GPIO_OD(pin);
-			if (arg == 0)
-				gpio_setbit(info->membase[0],
-					reg,
-					PORT_PIN(pin));
-			else
-				gpio_clearbit(info->membase[0],
-					reg,
-					PORT_PIN(pin));
-			break;
+		switch (param)
+		{
+			case LTQ_PINCONF_PARAM_OPEN_DRAIN:
+				if (port == PORT3)
+				{
+					reg = GPIO3_OD;
+				}
+				else
+				{
+					reg = GPIO_OD(pin);
+				}
 
-		case LTQ_PINCONF_PARAM_PULL:
-			if (port == PORT3)
-				reg = GPIO3_PUDEN;
-			else
-				reg = GPIO_PUDEN(pin);
-			if (arg == 0) {
-				gpio_clearbit(info->membase[0],
-					reg,
-					PORT_PIN(pin));
+				if (arg == 0)
+					gpio_setbit(info->membase[0],
+								reg,
+								PORT_PIN(pin));
+				else
+					gpio_clearbit(info->membase[0],
+								  reg,
+								  PORT_PIN(pin));
+
 				break;
-			}
-			gpio_setbit(info->membase[0], reg, PORT_PIN(pin));
 
-			if (port == PORT3)
-				reg = GPIO3_PUDSEL;
-			else
-				reg = GPIO_PUDSEL(pin);
-			if (arg == 1)
-				gpio_clearbit(info->membase[0],
-					reg,
-					PORT_PIN(pin));
-			else if (arg == 2)
-				gpio_setbit(info->membase[0],
-					reg,
-					PORT_PIN(pin));
-			else
+			case LTQ_PINCONF_PARAM_PULL:
+				if (port == PORT3)
+				{
+					reg = GPIO3_PUDEN;
+				}
+				else
+				{
+					reg = GPIO_PUDEN(pin);
+				}
+
+				if (arg == 0)
+				{
+					gpio_clearbit(info->membase[0],
+								  reg,
+								  PORT_PIN(pin));
+					break;
+				}
+
+				gpio_setbit(info->membase[0], reg, PORT_PIN(pin));
+
+				if (port == PORT3)
+				{
+					reg = GPIO3_PUDSEL;
+				}
+				else
+				{
+					reg = GPIO_PUDSEL(pin);
+				}
+
+				if (arg == 1)
+					gpio_clearbit(info->membase[0],
+								  reg,
+								  PORT_PIN(pin));
+				else if (arg == 2)
+					gpio_setbit(info->membase[0],
+								reg,
+								PORT_PIN(pin));
+				else
+					dev_err(pctldev->dev,
+							"Invalid pull value %d\n", arg);
+
+				break;
+
+			case LTQ_PINCONF_PARAM_OUTPUT:
+				reg = GPIO_DIR(pin);
+
+				if (arg == 0)
+					gpio_clearbit(info->membase[0],
+								  reg,
+								  PORT_PIN(pin));
+				else
+					gpio_setbit(info->membase[0],
+								reg,
+								PORT_PIN(pin));
+
+				break;
+
+			default:
 				dev_err(pctldev->dev,
-					"Invalid pull value %d\n", arg);
-			break;
-
-		case LTQ_PINCONF_PARAM_OUTPUT:
-			reg = GPIO_DIR(pin);
-			if (arg == 0)
-				gpio_clearbit(info->membase[0],
-					reg,
-					PORT_PIN(pin));
-			else
-				gpio_setbit(info->membase[0],
-					reg,
-					PORT_PIN(pin));
-			break;
-
-		default:
-			dev_err(pctldev->dev,
-				"Invalid config param %04x\n", param);
-			return -ENOTSUPP;
+						"Invalid config param %04x\n", param);
+				return -ENOTSUPP;
 		}
 	} /* for each config */
 
@@ -1469,63 +1567,77 @@ static int xway_pinconf_set(struct pinctrl_dev *pctldev,
 }
 
 int xway_pinconf_group_set(struct pinctrl_dev *pctldev,
-			unsigned selector,
-			unsigned long *configs,
-			unsigned num_configs)
+						   unsigned selector,
+						   unsigned long *configs,
+						   unsigned num_configs)
 {
 	struct ltq_pinmux_info *info = pinctrl_dev_get_drvdata(pctldev);
 	int i, ret = 0;
 
 	for (i = 0; i < info->grps[selector].npins && !ret; i++)
 		ret = xway_pinconf_set(pctldev,
-				info->grps[selector].pins[i],
-				configs,
-				num_configs);
+							   info->grps[selector].pins[i],
+							   configs,
+							   num_configs);
 
 	return ret;
 }
 
-static const struct pinconf_ops xway_pinconf_ops = {
+static const struct pinconf_ops xway_pinconf_ops =
+{
 	.pin_config_get	= xway_pinconf_get,
 	.pin_config_set	= xway_pinconf_set,
 	.pin_config_group_set = xway_pinconf_group_set,
 };
 
-static struct pinctrl_desc xway_pctrl_desc = {
+static struct pinctrl_desc xway_pctrl_desc =
+{
 	.owner		= THIS_MODULE,
 	.confops	= &xway_pinconf_ops,
 };
 
 static inline int xway_mux_apply(struct pinctrl_dev *pctrldev,
-				int pin, int mux)
+								 int pin, int mux)
 {
 	struct ltq_pinmux_info *info = pinctrl_dev_get_drvdata(pctrldev);
 	int port = PORT(pin);
 	u32 alt1_reg = GPIO_ALT1(pin);
 
 	if (port == PORT3)
+	{
 		alt1_reg = GPIO3_ALT1;
+	}
 
 	if (mux & MUX_ALT0)
+	{
 		gpio_setbit(info->membase[0], GPIO_ALT0(pin), PORT_PIN(pin));
+	}
 	else
+	{
 		gpio_clearbit(info->membase[0], GPIO_ALT0(pin), PORT_PIN(pin));
+	}
 
 	if (mux & MUX_ALT1)
+	{
 		gpio_setbit(info->membase[0], alt1_reg, PORT_PIN(pin));
+	}
 	else
+	{
 		gpio_clearbit(info->membase[0], alt1_reg, PORT_PIN(pin));
+	}
 
 	return 0;
 }
 
-static const struct ltq_cfg_param xway_cfg_params[] = {
+static const struct ltq_cfg_param xway_cfg_params[] =
+{
 	{"lantiq,pull",		LTQ_PINCONF_PARAM_PULL},
 	{"lantiq,open-drain",	LTQ_PINCONF_PARAM_OPEN_DRAIN},
 	{"lantiq,output",	LTQ_PINCONF_PARAM_OUTPUT},
 };
 
-static struct ltq_pinmux_info xway_info = {
+static struct ltq_pinmux_info xway_info =
+{
 	.desc		= &xway_pctrl_desc,
 	.apply_mux	= xway_mux_apply,
 	.params		= xway_cfg_params,
@@ -1538,9 +1650,13 @@ static void xway_gpio_set(struct gpio_chip *chip, unsigned int pin, int val)
 	struct ltq_pinmux_info *info = dev_get_drvdata(chip->parent);
 
 	if (val)
+	{
 		gpio_setbit(info->membase[0], GPIO_OUT(pin), PORT_PIN(pin));
+	}
 	else
+	{
 		gpio_clearbit(info->membase[0], GPIO_OUT(pin), PORT_PIN(pin));
+	}
 }
 
 static int xway_gpio_get(struct gpio_chip *chip, unsigned int pin)
@@ -1564,9 +1680,14 @@ static int xway_gpio_dir_out(struct gpio_chip *chip, unsigned int pin, int val)
 	struct ltq_pinmux_info *info = dev_get_drvdata(chip->parent);
 
 	if (PORT(pin) == PORT3)
+	{
 		gpio_setbit(info->membase[0], GPIO3_OD, PORT_PIN(pin));
+	}
 	else
+	{
 		gpio_setbit(info->membase[0], GPIO_OD(pin), PORT_PIN(pin));
+	}
+
 	gpio_setbit(info->membase[0], GPIO_DIR(pin), PORT_PIN(pin));
 	xway_gpio_set(chip, pin, val);
 
@@ -1584,12 +1705,15 @@ static int xway_gpio_to_irq(struct gpio_chip *chip, unsigned offset)
 
 	for (i = 0; i < info->num_exin; i++)
 		if (info->exin[i] == offset)
+		{
 			return ltq_eiu_get_irq(i);
+		}
 
 	return -1;
 }
 
-static struct gpio_chip xway_chip = {
+static struct gpio_chip xway_chip =
+{
 	.label = "gpio-xway",
 	.direction_input = xway_gpio_dir_in,
 	.direction_output = xway_gpio_dir_out,
@@ -1603,7 +1727,8 @@ static struct gpio_chip xway_chip = {
 
 
 /* --------- register the pinctrl layer --------- */
-struct pinctrl_xway_soc {
+struct pinctrl_xway_soc
+{
 	int pin_count;
 	const struct ltq_mfp_pin *mfp;
 	const struct ltq_pin_group *grps;
@@ -1615,7 +1740,8 @@ struct pinctrl_xway_soc {
 };
 
 /* xway xr9 series (DEPRECATED: Use XWAY xRX100/xRX200 Family) */
-static struct pinctrl_xway_soc xr9_pinctrl = {
+static struct pinctrl_xway_soc xr9_pinctrl =
+{
 	.pin_count = XR9_MAX_PIN,
 	.mfp = xway_mfp,
 	.grps = xway_grps,
@@ -1627,7 +1753,8 @@ static struct pinctrl_xway_soc xr9_pinctrl = {
 };
 
 /* XWAY AMAZON Family */
-static struct pinctrl_xway_soc ase_pinctrl = {
+static struct pinctrl_xway_soc ase_pinctrl =
+{
 	.pin_count = ASE_MAX_PIN,
 	.mfp = ase_mfp,
 	.grps = ase_grps,
@@ -1639,7 +1766,8 @@ static struct pinctrl_xway_soc ase_pinctrl = {
 };
 
 /* XWAY DANUBE Family */
-static struct pinctrl_xway_soc danube_pinctrl = {
+static struct pinctrl_xway_soc danube_pinctrl =
+{
 	.pin_count = DANUBE_MAX_PIN,
 	.mfp = danube_mfp,
 	.grps = danube_grps,
@@ -1651,7 +1779,8 @@ static struct pinctrl_xway_soc danube_pinctrl = {
 };
 
 /* XWAY xRX100 Family */
-static struct pinctrl_xway_soc xrx100_pinctrl = {
+static struct pinctrl_xway_soc xrx100_pinctrl =
+{
 	.pin_count = XRX100_MAX_PIN,
 	.mfp = xrx100_mfp,
 	.grps = xrx100_grps,
@@ -1663,7 +1792,8 @@ static struct pinctrl_xway_soc xrx100_pinctrl = {
 };
 
 /* XWAY xRX200 Family */
-static struct pinctrl_xway_soc xrx200_pinctrl = {
+static struct pinctrl_xway_soc xrx200_pinctrl =
+{
 	.pin_count = XRX200_MAX_PIN,
 	.mfp = xrx200_mfp,
 	.grps = xrx200_grps,
@@ -1675,7 +1805,8 @@ static struct pinctrl_xway_soc xrx200_pinctrl = {
 };
 
 /* XWAY xRX300 Family */
-static struct pinctrl_xway_soc xrx300_pinctrl = {
+static struct pinctrl_xway_soc xrx300_pinctrl =
+{
 	.pin_count = XRX300_MAX_PIN,
 	.mfp = xrx300_mfp,
 	.grps = xrx300_grps,
@@ -1686,12 +1817,14 @@ static struct pinctrl_xway_soc xrx300_pinctrl = {
 	.num_exin = 5
 };
 
-static struct pinctrl_gpio_range xway_gpio_range = {
+static struct pinctrl_gpio_range xway_gpio_range =
+{
 	.name	= "XWAY GPIO",
 	.gc	= &xway_chip,
 };
 
-static const struct of_device_id xway_match[] = {
+static const struct of_device_id xway_match[] =
+{
 	{ .compatible = "lantiq,pinctrl-xway", .data = &danube_pinctrl}, /*DEPRECATED*/
 	{ .compatible = "lantiq,pinctrl-xr9", .data = &xr9_pinctrl}, /*DEPRECATED*/
 	{ .compatible = "lantiq,pinctrl-ase", .data = &ase_pinctrl}, /*DEPRECATED*/
@@ -1714,44 +1847,61 @@ static int pinmux_xway_probe(struct platform_device *pdev)
 	/* get and remap our register range */
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	xway_info.membase[0] = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(xway_info.membase[0]))
+	{
 		return PTR_ERR(xway_info.membase[0]);
+	}
 
 	match = of_match_device(xway_match, &pdev->dev);
+
 	if (match)
+	{
 		xway_soc = (const struct pinctrl_xway_soc *) match->data;
+	}
 	else
+	{
 		xway_soc = &danube_pinctrl;
+	}
 
 	/* find out how many pads we have */
 	xway_chip.ngpio = xway_soc->pin_count;
 
 	/* load our pad descriptors */
 	xway_info.pads = devm_kzalloc(&pdev->dev,
-			sizeof(struct pinctrl_pin_desc) * xway_chip.ngpio,
-			GFP_KERNEL);
-	if (!xway_info.pads) {
+								  sizeof(struct pinctrl_pin_desc) * xway_chip.ngpio,
+								  GFP_KERNEL);
+
+	if (!xway_info.pads)
+	{
 		dev_err(&pdev->dev, "Failed to allocate pads\n");
 		return -ENOMEM;
 	}
-	for (i = 0; i < xway_chip.ngpio; i++) {
+
+	for (i = 0; i < xway_chip.ngpio; i++)
+	{
 		/* strlen("ioXY") + 1 = 5 */
 		char *name = devm_kzalloc(&pdev->dev, 5, GFP_KERNEL);
 
-		if (!name) {
+		if (!name)
+		{
 			dev_err(&pdev->dev, "Failed to allocate pad name\n");
 			return -ENOMEM;
 		}
+
 		snprintf(name, 5, "io%d", i);
 		xway_info.pads[i].number = GPIO0 + i;
 		xway_info.pads[i].name = name;
 	}
+
 	xway_pctrl_desc.pins = xway_info.pads;
 
 	/* register the gpio chip */
 	xway_chip.parent = &pdev->dev;
 	ret = devm_gpiochip_add_data(&pdev->dev, &xway_chip, NULL);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to register gpio chip\n");
 		return ret;
 	}
@@ -1772,7 +1922,9 @@ static int pinmux_xway_probe(struct platform_device *pdev)
 
 	/* register with the generic lantiq layer */
 	ret = ltq_pinctrl_register(pdev, &xway_info);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to register pinctrl driver\n");
 		return ret;
 	}
@@ -1785,7 +1937,8 @@ static int pinmux_xway_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver pinmux_xway_driver = {
+static struct platform_driver pinmux_xway_driver =
+{
 	.probe	= pinmux_xway_probe,
 	.driver = {
 		.name	= "pinctrl-xway",

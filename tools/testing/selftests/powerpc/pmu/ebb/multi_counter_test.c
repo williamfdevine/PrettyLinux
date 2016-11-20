@@ -28,18 +28,26 @@ int multi_counter(void)
 	event_init_named(&events[5], 0x500fa, "PM_RUN_INST_CMPL");
 
 	event_leader_ebb_init(&events[0]);
+
 	for (i = 1; i < 6; i++)
+	{
 		event_ebb_init(&events[i]);
+	}
 
 	group_fd = -1;
-	for (i = 0; i < 6; i++) {
+
+	for (i = 0; i < 6; i++)
+	{
 		events[i].attr.exclude_kernel = 1;
 		events[i].attr.exclude_hv = 1;
 		events[i].attr.exclude_idle = 1;
 
 		FAIL_IF(event_open_with_group(&events[i], group_fd));
+
 		if (group_fd == -1)
+		{
 			group_fd = events[0].fd;
+		}
 	}
 
 	ebb_enable_pmc_counting(1);
@@ -62,7 +70,8 @@ int multi_counter(void)
 	mtspr(SPRN_PMC5, pmc_sample_period(sample_period));
 	mtspr(SPRN_PMC6, pmc_sample_period(sample_period));
 
-	while (ebb_state.stats.ebb_count < 50) {
+	while (ebb_state.stats.ebb_count < 50)
+	{
 		FAIL_IF(core_busy_loop());
 		FAIL_IF(ebb_check_mmcr0());
 	}
@@ -80,7 +89,9 @@ int multi_counter(void)
 	dump_ebb_state();
 
 	for (i = 0; i < 6; i++)
+	{
 		event_close(&events[i]);
+	}
 
 	FAIL_IF(ebb_state.stats.ebb_count == 0);
 

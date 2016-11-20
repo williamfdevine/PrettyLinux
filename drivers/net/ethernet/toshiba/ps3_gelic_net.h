@@ -42,7 +42,7 @@
 #define GELIC_NET_MC_COUNT_MAX          32 /* multicast address list */
 
 /* virtual interrupt status register bits */
-	/* INT1 */
+/* INT1 */
 #define GELIC_CARD_TX_RAM_FULL_ERR           0x0000000000000001L
 #define GELIC_CARD_RX_RAM_FULL_ERR           0x0000000000000002L
 #define GELIC_CARD_TX_SHORT_FRAME_ERR        0x0000000000000004L
@@ -58,7 +58,7 @@
 #define GELIC_CARD_PORT_STATUS_CHANGED       0x0000000020000000L
 #define GELIC_CARD_WLAN_EVENT_RECEIVED       0x0000000040000000L
 #define GELIC_CARD_WLAN_COMMAND_COMPLETED    0x0000000080000000L
-	/* INT 0 */
+/* INT 0 */
 #define GELIC_CARD_TX_FLAGGED_DESCR          0x0004000000000000L
 #define GELIC_CARD_RX_FLAGGED_DESCR          0x0040000000000000L
 #define GELIC_CARD_TX_TRANSFER_END           0x0080000000000000L
@@ -71,10 +71,11 @@
 #define GELIC_CARD_TXINT	GELIC_CARD_TX_DESCR_CHAIN_END
 
 #define GELIC_CARD_RXINT	(GELIC_CARD_RX_DESCR_CHAIN_END | \
-				 GELIC_CARD_NUMBER_OF_RX_FRAME)
+							 GELIC_CARD_NUMBER_OF_RX_FRAME)
 
- /* RX descriptor data_status bits */
-enum gelic_descr_rx_status {
+/* RX descriptor data_status bits */
+enum gelic_descr_rx_status
+{
 	GELIC_DESCR_RXDMADU	= 0x80000000, /* destination MAC addr unknown */
 	GELIC_DESCR_RXLSTFBF	= 0x40000000, /* last frame buffer            */
 	GELIC_DESCR_RXIPCHK	= 0x20000000, /* IP checksum performed        */
@@ -94,8 +95,9 @@ enum gelic_descr_rx_status {
 #define GELIC_DESCR_DATA_STATUS_CHK_MASK	\
 	(GELIC_DESCR_RXIPCHK | GELIC_DESCR_RXTCPCHK)
 
- /* TX descriptor data_status bits */
-enum gelic_descr_tx_status {
+/* TX descriptor data_status bits */
+enum gelic_descr_tx_status
+{
 	GELIC_DESCR_TX_TAIL	= 0x00000001, /* gelic treated this
 					       * descriptor was end of
 					       * a tx frame
@@ -103,7 +105,8 @@ enum gelic_descr_tx_status {
 };
 
 /* RX descriptor data error bits */
-enum gelic_descr_rx_error {
+enum gelic_descr_rx_error
+{
 	/* bit 31 reserved */
 	GELIC_DESCR_RXALNERR	= 0x40000000, /* alignement error 10/100M */
 	GELIC_DESCR_RXOVERERR	= 0x20000000, /* oversize error */
@@ -124,7 +127,8 @@ enum gelic_descr_rx_error {
 	(GELIC_DESCR_RXIPCHKERR | GELIC_DESCR_RXTCPCHKERR)
 
 /* DMA command and status (RX and TX)*/
-enum gelic_descr_dma_status {
+enum gelic_descr_dma_status
+{
 	GELIC_DESCR_DMA_COMPLETE            = 0x00000000, /* used in tx */
 	GELIC_DESCR_DMA_BUFFER_FULL         = 0x00000000, /* used in rx */
 	GELIC_DESCR_DMA_RESPONSE_ERROR      = 0x10000000, /* used in rx, tx */
@@ -138,7 +142,8 @@ enum gelic_descr_dma_status {
 #define GELIC_DESCR_DMA_STAT_MASK	(0xf0000000)
 
 /* tx descriptor command and status */
-enum gelic_descr_tx_dma_status {
+enum gelic_descr_tx_dma_status
+{
 	/* [19] */
 	GELIC_DESCR_TX_DMA_IKE		= 0x00080000, /* IPSEC off */
 	/* [18] */
@@ -158,17 +163,18 @@ enum gelic_descr_tx_dma_status {
 
 #define GELIC_DESCR_DMA_CMD_NO_CHKSUM	\
 	(GELIC_DESCR_DMA_CARDOWNED | GELIC_DESCR_TX_DMA_IKE | \
-	GELIC_DESCR_TX_DMA_NO_CHKSUM)
+	 GELIC_DESCR_TX_DMA_NO_CHKSUM)
 
 #define GELIC_DESCR_DMA_CMD_TCP_CHKSUM	\
 	(GELIC_DESCR_DMA_CARDOWNED | GELIC_DESCR_TX_DMA_IKE | \
-	GELIC_DESCR_TX_DMA_TCP_CHKSUM)
+	 GELIC_DESCR_TX_DMA_TCP_CHKSUM)
 
 #define GELIC_DESCR_DMA_CMD_UDP_CHKSUM	\
 	(GELIC_DESCR_DMA_CARDOWNED | GELIC_DESCR_TX_DMA_IKE | \
-	GELIC_DESCR_TX_DMA_UDP_CHKSUM)
+	 GELIC_DESCR_TX_DMA_UDP_CHKSUM)
 
-enum gelic_descr_rx_dma_status {
+enum gelic_descr_rx_dma_status
+{
 	/* [ 1 ] */
 	GELIC_DESCR_RX_DMA_CHAIN_END	= 0x00000002, /* DMA terminated
 						       * due to chain end
@@ -176,7 +182,8 @@ enum gelic_descr_rx_dma_status {
 };
 
 /* for lv1_net_control */
-enum gelic_lv1_net_control_code {
+enum gelic_lv1_net_control_code
+{
 	GELIC_LV1_GET_MAC_ADDRESS	= 1,
 	GELIC_LV1_GET_ETH_PORT_STATUS	= 2,
 	GELIC_LV1_SET_NEGOTIATION_MODE	= 3,
@@ -189,26 +196,30 @@ enum gelic_lv1_net_control_code {
 };
 
 /* for GELIC_LV1_SET_WOL */
-enum gelic_lv1_wol_command {
+enum gelic_lv1_wol_command
+{
 	GELIC_LV1_WOL_MAGIC_PACKET	= 1,
 	GELIC_LV1_WOL_ADD_MATCH_ADDR	= 6,
 	GELIC_LV1_WOL_DELETE_MATCH_ADDR	= 7,
 };
 
 /* for GELIC_LV1_WOL_MAGIC_PACKET */
-enum gelic_lv1_wol_mp_arg {
+enum gelic_lv1_wol_mp_arg
+{
 	GELIC_LV1_WOL_MP_DISABLE	= 0,
 	GELIC_LV1_WOL_MP_ENABLE		= 1,
 };
 
 /* for GELIC_LV1_WOL_{ADD,DELETE}_MATCH_ADDR */
-enum gelic_lv1_wol_match_arg {
+enum gelic_lv1_wol_match_arg
+{
 	GELIC_LV1_WOL_MATCH_INDIVIDUAL	= 0,
 	GELIC_LV1_WOL_MATCH_ALL		= 1,
 };
 
 /* status returened from GET_ETH_PORT_STATUS */
-enum gelic_lv1_ether_port_status {
+enum gelic_lv1_ether_port_status
+{
 	GELIC_LV1_ETHER_LINK_UP		= 0x0000000000000001L,
 	GELIC_LV1_ETHER_FULL_DUPLEX	= 0x0000000000000002L,
 	GELIC_LV1_ETHER_AUTO_NEG	= 0x0000000000000004L,
@@ -219,7 +230,8 @@ enum gelic_lv1_ether_port_status {
 	GELIC_LV1_ETHER_SPEED_MASK	= 0x0000000000000070L,
 };
 
-enum gelic_lv1_vlan_index {
+enum gelic_lv1_vlan_index
+{
 	/* for outgoing packets */
 	GELIC_LV1_VLAN_TX_ETHERNET_0	= 0x0000000000000002L,
 	GELIC_LV1_VLAN_TX_WIRELESS	= 0x0000000000000003L,
@@ -229,20 +241,23 @@ enum gelic_lv1_vlan_index {
 	GELIC_LV1_VLAN_RX_WIRELESS	= 0x0000000000000013L,
 };
 
-enum gelic_lv1_phy {
+enum gelic_lv1_phy
+{
 	GELIC_LV1_PHY_ETHERNET_0	= 0x0000000000000002L,
 };
 
 /* size of hardware part of gelic descriptor */
 #define GELIC_DESCR_SIZE	(32)
 
-enum gelic_port_type {
+enum gelic_port_type
+{
 	GELIC_PORT_ETHERNET_0	= 0,
 	GELIC_PORT_WIRELESS	= 1,
 	GELIC_PORT_MAX
 };
 
-struct gelic_descr {
+struct gelic_descr
+{
 	/* as defined by the hardware */
 	__be32 buf_addr;
 	__be32 buf_size;
@@ -260,18 +275,21 @@ struct gelic_descr {
 	struct gelic_descr *prev;
 } __attribute__((aligned(32)));
 
-struct gelic_descr_chain {
+struct gelic_descr_chain
+{
 	/* we walk from tail to head */
 	struct gelic_descr *head;
 	struct gelic_descr *tail;
 };
 
-struct gelic_vlan_id {
+struct gelic_vlan_id
+{
 	u16 tx;
 	u16 rx;
 };
 
-struct gelic_card {
+struct gelic_card
+{
 	struct napi_struct napi;
 	struct net_device *netdev[GELIC_PORT_MAX];
 	/*
@@ -317,7 +335,8 @@ struct gelic_card {
 	struct gelic_descr descr[0]; /* must be the last */
 };
 
-struct gelic_port {
+struct gelic_port
+{
 	struct gelic_card *card;
 	struct net_device *netdev;
 	enum gelic_port_type type;
@@ -378,7 +397,7 @@ int gelic_net_setup_netdev(struct net_device *netdev, struct gelic_card *card);
 
 /* shared ethtool ops */
 void gelic_net_get_drvinfo(struct net_device *netdev,
-			   struct ethtool_drvinfo *info);
+						   struct ethtool_drvinfo *info);
 void gelic_net_poll_controller(struct net_device *netdev);
 
 #endif /* _GELIC_NET_H */

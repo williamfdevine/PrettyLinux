@@ -168,14 +168,16 @@
 #define WMT_SD_POWER_OFF		0
 #define WMT_SD_POWER_ON			1
 
-struct wmt_dma_descriptor {
+struct wmt_dma_descriptor
+{
 	u32 flags;
 	u32 data_buffer_addr;
 	u32 branch_addr;
 	u32 reserved1;
 };
 
-struct wmt_mci_caps {
+struct wmt_mci_caps
+{
 	unsigned int	f_min;
 	unsigned int	f_max;
 	u32		ocr_avail;
@@ -185,7 +187,8 @@ struct wmt_mci_caps {
 	u32		max_blk_size;
 };
 
-struct wmt_mci_priv {
+struct wmt_mci_priv
+{
 	struct mmc_host *mmc;
 	void __iomem *sdmmc_base;
 
@@ -216,9 +219,13 @@ static void wmt_set_sd_power(struct wmt_mci_priv *priv, int enable)
 	u32 reg_tmp = readb(priv->sdmmc_base + SDMMC_BUSMODE);
 
 	if (enable ^ priv->power_inverted)
+	{
 		reg_tmp &= ~BM_SD_OFF;
+	}
 	else
+	{
 		reg_tmp |= BM_SD_OFF;
+	}
 
 	writeb(reg_tmp, priv->sdmmc_base + SDMMC_BUSMODE);
 }
@@ -232,16 +239,23 @@ static void wmt_mci_read_response(struct mmc_host *mmc)
 
 	priv = mmc_priv(mmc);
 
-	for (idx1 = 0; idx1 < 4; idx1++) {
+	for (idx1 = 0; idx1 < 4; idx1++)
+	{
 		response = 0;
-		for (idx2 = 0; idx2 < 4; idx2++) {
+
+		for (idx2 = 0; idx2 < 4; idx2++)
+		{
 			if ((idx1 == 3) && (idx2 == 3))
+			{
 				tmp_resp = readb(priv->sdmmc_base + SDMMC_RSP);
+			}
 			else
 				tmp_resp = readb(priv->sdmmc_base + SDMMC_RSP +
-						 (idx1*4) + idx2 + 1);
+								 (idx1 * 4) + idx2 + 1);
+
 			response |= (tmp_resp << (idx2 * 8));
 		}
+
 		priv->cmd->resp[idx1] = cpu_to_be32(response);
 	}
 }
@@ -255,7 +269,7 @@ static void wmt_mci_start_command(struct wmt_mci_priv *priv)
 }
 
 static int wmt_mci_send_command(struct mmc_host *mmc, u8 command, u8 cmdtype,
-				u32 arg, u8 rsptype)
+								u32 arg, u8 rsptype)
 {
 	struct wmt_mci_priv *priv;
 	u32 reg_tmp;
@@ -283,7 +297,7 @@ static int wmt_mci_send_command(struct mmc_host *mmc, u8 command, u8 cmdtype,
 	/* set command type */
 	reg_tmp = readb(priv->sdmmc_base + SDMMC_CTLR);
 	writeb((reg_tmp & 0x0F) | (cmdtype << 4),
-	       priv->sdmmc_base + SDMMC_CTLR);
+		   priv->sdmmc_base + SDMMC_CTLR);
 
 	return 0;
 }
@@ -304,20 +318,27 @@ static void wmt_complete_data_request(struct wmt_mci_priv *priv)
 	/* unmap the DMA pages used for write data */
 	if (req->data->flags & MMC_DATA_WRITE)
 		dma_unmap_sg(mmc_dev(priv->mmc), req->data->sg,
-			     req->data->sg_len, DMA_TO_DEVICE);
+					 req->data->sg_len, DMA_TO_DEVICE);
 	else
 		dma_unmap_sg(mmc_dev(priv->mmc), req->data->sg,
-			     req->data->sg_len, DMA_FROM_DEVICE);
+					 req->data->sg_len, DMA_FROM_DEVICE);
 
 	/* Check if the DMA ISR returned a data error */
 	if ((req->cmd->error) || (req->data->error))
+	{
 		mmc_request_done(priv->mmc, req);
-	else {
+	}
+	else
+	{
 		wmt_mci_read_response(priv->mmc);
-		if (!req->data->stop) {
+
+		if (!req->data->stop)
+		{
 			/* single-block read/write requests end here */
 			mmc_request_done(priv->mmc, req);
-		} else {
+		}
+		else
+		{
 			/*
 			 * we change the priv->cmd variable so the response is
 			 * stored in the stop struct rather than the original
@@ -327,7 +348,7 @@ static void wmt_complete_data_request(struct wmt_mci_priv *priv)
 			init_completion(priv->comp_cmd);
 			priv->cmd = req->data->stop;
 			wmt_mci_send_command(priv->mmc, req->data->stop->opcode,
-					     7, req->data->stop->arg, 9);
+								 7, req->data->stop->arg, 9);
 			wmt_mci_start_command(priv);
 		}
 	}
@@ -343,7 +364,8 @@ static irqreturn_t wmt_mci_dma_isr(int irq_num, void *data)
 
 	status = readl(priv->sdmmc_base + SDDMA_CCR) & 0x0F;
 
-	if (status != DMA_CCR_EVT_SUCCESS) {
+	if (status != DMA_CCR_EVT_SUCCESS)
+	{
 		dev_err(priv->dev, "DMA Error: Status = %d\n", status);
 		priv->req->data->error = -ETIMEDOUT;
 		complete(priv->comp_dma);
@@ -356,8 +378,10 @@ static irqreturn_t wmt_mci_dma_isr(int irq_num, void *data)
 
 	complete(priv->comp_dma);
 
-	if (priv->comp_cmd) {
-		if (completion_done(priv->comp_cmd)) {
+	if (priv->comp_cmd)
+	{
+		if (completion_done(priv->comp_cmd))
+		{
 			/*
 			 * if the command (regular) interrupt has already
 			 * completed, finish off the request otherwise we wait
@@ -387,71 +411,108 @@ static irqreturn_t wmt_mci_regular_isr(int irq_num, void *data)
 
 	/* Check for card insertion */
 	reg_tmp = readb(priv->sdmmc_base + SDMMC_INTMASK0);
-	if ((reg_tmp & INT0_DI_INT_EN) && (status0 & STS0_DEVICE_INS)) {
+
+	if ((reg_tmp & INT0_DI_INT_EN) && (status0 & STS0_DEVICE_INS))
+	{
 		mmc_detect_change(priv->mmc, 0);
+
 		if (priv->cmd)
+		{
 			priv->cmd->error = -ETIMEDOUT;
+		}
+
 		if (priv->comp_cmd)
+		{
 			complete(priv->comp_cmd);
-		if (priv->comp_dma) {
+		}
+
+		if (priv->comp_dma)
+		{
 			wmt_mci_disable_dma(priv);
 			complete(priv->comp_dma);
 		}
+
 		writeb(STS0_DEVICE_INS, priv->sdmmc_base + SDMMC_STS0);
 		return IRQ_HANDLED;
 	}
 
 	if ((!priv->req->data) ||
-	    ((priv->req->data->stop) && (priv->cmd == priv->req->data->stop))) {
+		((priv->req->data->stop) && (priv->cmd == priv->req->data->stop)))
+	{
 		/* handle non-data & stop_transmission requests */
-		if (status1 & STS1_CMDRSP_DONE) {
+		if (status1 & STS1_CMDRSP_DONE)
+		{
 			priv->cmd->error = 0;
 			cmd_done = 1;
-		} else if ((status1 & STS1_RSP_TIMEOUT) ||
-			   (status1 & STS1_DATA_TIMEOUT)) {
+		}
+		else if ((status1 & STS1_RSP_TIMEOUT) ||
+				 (status1 & STS1_DATA_TIMEOUT))
+		{
 			priv->cmd->error = -ETIMEDOUT;
 			cmd_done = 1;
 		}
 
-		if (cmd_done) {
+		if (cmd_done)
+		{
 			priv->comp_cmd = NULL;
 
 			if (!priv->cmd->error)
+			{
 				wmt_mci_read_response(priv->mmc);
+			}
 
 			priv->cmd = NULL;
 
 			mmc_request_done(priv->mmc, priv->req);
 		}
-	} else {
+	}
+	else
+	{
 		/* handle data requests */
-		if (status1 & STS1_CMDRSP_DONE) {
+		if (status1 & STS1_CMDRSP_DONE)
+		{
 			if (priv->cmd)
+			{
 				priv->cmd->error = 0;
+			}
+
 			if (priv->comp_cmd)
+			{
 				complete(priv->comp_cmd);
+			}
 		}
 
 		if ((status1 & STS1_RSP_TIMEOUT) ||
-		    (status1 & STS1_DATA_TIMEOUT)) {
+			(status1 & STS1_DATA_TIMEOUT))
+		{
 			if (priv->cmd)
+			{
 				priv->cmd->error = -ETIMEDOUT;
+			}
+
 			if (priv->comp_cmd)
+			{
 				complete(priv->comp_cmd);
-			if (priv->comp_dma) {
+			}
+
+			if (priv->comp_dma)
+			{
 				wmt_mci_disable_dma(priv);
 				complete(priv->comp_dma);
 			}
 		}
 
-		if (priv->comp_dma) {
+		if (priv->comp_dma)
+		{
 			/*
 			 * If the dma interrupt has already completed, finish
 			 * off the request; otherwise we wait for the DMA
 			 * interrupt and finish from there.
 			 */
 			if (completion_done(priv->comp_dma))
+			{
 				wmt_complete_data_request(priv);
+			}
 		}
 	}
 
@@ -486,9 +547,9 @@ static void wmt_reset_hardware(struct mmc_host *mmc)
 
 	/* setup interrupts */
 	writeb(INT0_CD_INT_EN | INT0_DI_INT_EN, priv->sdmmc_base +
-	       SDMMC_INTMASK0);
+		   SDMMC_INTMASK0);
 	writeb(INT1_DATA_TOUT_INT_EN | INT1_CMD_RES_TRAN_DONE_INT_EN |
-	       INT1_CMD_RES_TOUT_INT_EN, priv->sdmmc_base + SDMMC_INTMASK1);
+		   INT1_CMD_RES_TOUT_INT_EN, priv->sdmmc_base + SDMMC_INTMASK1);
 
 	/* set the DMA timeout */
 	writew(8191, priv->sdmmc_base + SDMMC_DMATIMEOUT);
@@ -509,18 +570,27 @@ static int wmt_dma_init(struct mmc_host *mmc)
 
 	writel(DMA_GCR_SOFT_RESET, priv->sdmmc_base + SDDMA_GCR);
 	writel(DMA_GCR_DMA_EN, priv->sdmmc_base + SDDMA_GCR);
+
 	if ((readl(priv->sdmmc_base + SDDMA_GCR) & DMA_GCR_DMA_EN) != 0)
+	{
 		return 0;
+	}
 	else
+	{
 		return 1;
+	}
 }
 
 static void wmt_dma_init_descriptor(struct wmt_dma_descriptor *desc,
-		u16 req_count, u32 buffer_addr, u32 branch_addr, int end)
+									u16 req_count, u32 buffer_addr, u32 branch_addr, int end)
 {
 	desc->flags = 0x40000000 | req_count;
+
 	if (end)
+	{
 		desc->flags |= 0x80000000;
+	}
+
 	desc->data_buffer_addr = buffer_addr;
 	desc->branch_addr = branch_addr;
 }
@@ -540,14 +610,17 @@ static void wmt_dma_config(struct mmc_host *mmc, u32 descaddr, u8 dir)
 
 	writel(0x00, priv->sdmmc_base + SDDMA_CCR);
 
-	if (dir == PDMA_WRITE) {
+	if (dir == PDMA_WRITE)
+	{
 		reg_tmp = readl(priv->sdmmc_base + SDDMA_CCR);
 		writel(reg_tmp & DMA_CCR_IF_TO_PERIPHERAL, priv->sdmmc_base +
-		       SDDMA_CCR);
-	} else {
+			   SDDMA_CCR);
+	}
+	else
+	{
 		reg_tmp = readl(priv->sdmmc_base + SDDMA_CCR);
 		writel(reg_tmp | DMA_CCR_PERIPHERAL_TO_IF, priv->sdmmc_base +
-		       SDDMA_CCR);
+			   SDDMA_CCR);
 	}
 }
 
@@ -593,17 +666,25 @@ static void wmt_mci_request(struct mmc_host *mmc, struct mmc_request *req)
 
 	/* rsptype=7 only valid for SPI commands - should be =2 for SD */
 	if (rsptype == 7)
+	{
 		rsptype = 2;
+	}
+
 	/* rsptype=21 is R1B, convert for controller */
 	if (rsptype == 21)
+	{
 		rsptype = 9;
+	}
 
-	if (!req->data) {
+	if (!req->data)
+	{
 		wmt_mci_send_command(mmc, command, cmdtype, arg, rsptype);
 		wmt_mci_start_command(priv);
 		/* completion is now handled in the regular_isr() */
 	}
-	if (req->data) {
+
+	if (req->data)
+	{
 		priv->comp_cmd = &priv->cmdcomp;
 		init_completion(priv->comp_cmd);
 
@@ -612,42 +693,57 @@ static void wmt_mci_request(struct mmc_host *mmc, struct mmc_request *req)
 		/* set controller data length */
 		reg_tmp = readw(priv->sdmmc_base + SDMMC_BLKLEN);
 		writew((reg_tmp & 0xF800) | (req->data->blksz - 1),
-		       priv->sdmmc_base + SDMMC_BLKLEN);
+			   priv->sdmmc_base + SDMMC_BLKLEN);
 
 		/* set controller block count */
 		writew(req->data->blocks, priv->sdmmc_base + SDMMC_BLKCNT);
 
 		desc = (struct wmt_dma_descriptor *)priv->dma_desc_buffer;
 
-		if (req->data->flags & MMC_DATA_WRITE) {
+		if (req->data->flags & MMC_DATA_WRITE)
+		{
 			sg_cnt = dma_map_sg(mmc_dev(mmc), req->data->sg,
-					    req->data->sg_len, DMA_TO_DEVICE);
+								req->data->sg_len, DMA_TO_DEVICE);
 			cmdtype = 1;
+
 			if (req->data->blocks > 1)
+			{
 				cmdtype = 3;
-		} else {
+			}
+		}
+		else
+		{
 			sg_cnt = dma_map_sg(mmc_dev(mmc), req->data->sg,
-					    req->data->sg_len, DMA_FROM_DEVICE);
+								req->data->sg_len, DMA_FROM_DEVICE);
 			cmdtype = 2;
+
 			if (req->data->blocks > 1)
+			{
 				cmdtype = 4;
+			}
 		}
 
 		dma_address = priv->dma_desc_device_addr + 16;
 		desc_cnt = 0;
 
-		for_each_sg(req->data->sg, sg, sg_cnt, i) {
+		for_each_sg(req->data->sg, sg, sg_cnt, i)
+		{
 			offset = 0;
-			while (offset < sg_dma_len(sg)) {
+
+			while (offset < sg_dma_len(sg))
+			{
 				wmt_dma_init_descriptor(desc, req->data->blksz,
-						sg_dma_address(sg)+offset,
-						dma_address, 0);
+										sg_dma_address(sg) + offset,
+										dma_address, 0);
 				desc++;
 				desc_cnt++;
 				offset += req->data->blksz;
 				dma_address += 16;
+
 				if (desc_cnt == req->data->blocks)
+				{
 					break;
+				}
 			}
 		}
 		desc--;
@@ -655,10 +751,10 @@ static void wmt_mci_request(struct mmc_host *mmc, struct mmc_request *req)
 
 		if (req->data->flags & MMC_DATA_WRITE)
 			wmt_dma_config(mmc, priv->dma_desc_device_addr,
-				       PDMA_WRITE);
+						   PDMA_WRITE);
 		else
 			wmt_dma_config(mmc, priv->dma_desc_device_addr,
-				       PDMA_READ);
+						   PDMA_READ);
 
 		wmt_mci_send_command(mmc, command, cmdtype, arg, rsptype);
 
@@ -677,16 +773,22 @@ static void wmt_mci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 
 	priv = mmc_priv(mmc);
 
-	if (ios->power_mode == MMC_POWER_UP) {
+	if (ios->power_mode == MMC_POWER_UP)
+	{
 		wmt_reset_hardware(mmc);
 
 		wmt_set_sd_power(priv, WMT_SD_POWER_ON);
 	}
+
 	if (ios->power_mode == MMC_POWER_OFF)
+	{
 		wmt_set_sd_power(priv, WMT_SD_POWER_OFF);
+	}
 
 	if (ios->clock != 0)
+	{
 		clk_set_rate(priv->clk_sdmmc, ios->clock);
+	}
 
 	busmode = readb(priv->sdmmc_base + SDMMC_BUSMODE);
 	extctrl = readb(priv->sdmmc_base + SDMMC_EXTCTRL);
@@ -694,16 +796,19 @@ static void wmt_mci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 	busmode &= ~(BM_EIGHTBIT_MODE | BM_FOURBIT_MODE);
 	extctrl &= ~EXT_EIGHTBIT;
 
-	switch (ios->bus_width) {
-	case MMC_BUS_WIDTH_8:
-		busmode |= BM_EIGHTBIT_MODE;
-		extctrl |= EXT_EIGHTBIT;
-		break;
-	case MMC_BUS_WIDTH_4:
-		busmode |= BM_FOURBIT_MODE;
-		break;
-	case MMC_BUS_WIDTH_1:
-		break;
+	switch (ios->bus_width)
+	{
+		case MMC_BUS_WIDTH_8:
+			busmode |= BM_EIGHTBIT_MODE;
+			extctrl |= EXT_EIGHTBIT;
+			break;
+
+		case MMC_BUS_WIDTH_4:
+			busmode |= BM_FOURBIT_MODE;
+			break;
+
+		case MMC_BUS_WIDTH_1:
+			break;
 	}
 
 	writeb(busmode, priv->sdmmc_base + SDMMC_BUSMODE);
@@ -725,7 +830,8 @@ static int wmt_mci_get_cd(struct mmc_host *mmc)
 	return !(cd ^ priv->cd_inverted);
 }
 
-static struct mmc_host_ops wmt_mci_ops = {
+static struct mmc_host_ops wmt_mci_ops =
+{
 	.request = wmt_mci_request,
 	.set_ios = wmt_mci_set_ios,
 	.get_ro = wmt_mci_get_ro,
@@ -733,18 +839,20 @@ static struct mmc_host_ops wmt_mci_ops = {
 };
 
 /* Controller capabilities */
-static struct wmt_mci_caps wm8505_caps = {
+static struct wmt_mci_caps wm8505_caps =
+{
 	.f_min = 390425,
 	.f_max = 50000000,
 	.ocr_avail = MMC_VDD_32_33 | MMC_VDD_33_34,
 	.caps = MMC_CAP_4_BIT_DATA | MMC_CAP_MMC_HIGHSPEED |
-		MMC_CAP_SD_HIGHSPEED,
+	MMC_CAP_SD_HIGHSPEED,
 	.max_seg_size = 65024,
 	.max_segs = 128,
 	.max_blk_size = 2048,
 };
 
-static const struct of_device_id wmt_mci_dt_ids[] = {
+static const struct of_device_id wmt_mci_dt_ids[] =
+{
 	{ .compatible = "wm,wm8505-sdhc", .data = &wm8505_caps },
 	{ /* Sentinel */ },
 };
@@ -760,14 +868,16 @@ static int wmt_mci_probe(struct platform_device *pdev)
 	int ret;
 	int regular_irq, dma_irq;
 
-	if (!of_id || !of_id->data) {
+	if (!of_id || !of_id->data)
+	{
 		dev_err(&pdev->dev, "Controller capabilities data missing\n");
 		return -EFAULT;
 	}
 
 	wmt_caps = of_id->data;
 
-	if (!np) {
+	if (!np)
+	{
 		dev_err(&pdev->dev, "Missing SDMMC description in devicetree\n");
 		return -EFAULT;
 	}
@@ -775,14 +885,17 @@ static int wmt_mci_probe(struct platform_device *pdev)
 	regular_irq = irq_of_parse_and_map(np, 0);
 	dma_irq = irq_of_parse_and_map(np, 1);
 
-	if (!regular_irq || !dma_irq) {
+	if (!regular_irq || !dma_irq)
+	{
 		dev_err(&pdev->dev, "Getting IRQs failed!\n");
 		ret = -ENXIO;
 		goto fail1;
 	}
 
 	mmc = mmc_alloc_host(sizeof(struct wmt_mci_priv), &pdev->dev);
-	if (!mmc) {
+
+	if (!mmc)
+	{
 		dev_err(&pdev->dev, "Failed to allocate mmc_host\n");
 		ret = -ENOMEM;
 		goto fail1;
@@ -798,7 +911,7 @@ static int wmt_mci_probe(struct platform_device *pdev)
 	mmc->max_segs = wmt_caps->max_segs;
 	mmc->max_blk_size = wmt_caps->max_blk_size;
 
-	mmc->max_req_size = (16*512*mmc->max_segs);
+	mmc->max_req_size = (16 * 512 * mmc->max_segs);
 	mmc->max_blk_count = mmc->max_req_size / 512;
 
 	priv = mmc_priv(mmc);
@@ -809,12 +922,19 @@ static int wmt_mci_probe(struct platform_device *pdev)
 	priv->cd_inverted = 0;
 
 	if (of_get_property(np, "sdon-inverted", NULL))
+	{
 		priv->power_inverted = 1;
+	}
+
 	if (of_get_property(np, "cd-inverted", NULL))
+	{
 		priv->cd_inverted = 1;
+	}
 
 	priv->sdmmc_base = of_iomap(np, 0);
-	if (!priv->sdmmc_base) {
+
+	if (!priv->sdmmc_base)
+	{
 		dev_err(&pdev->dev, "Failed to map IO space\n");
 		ret = -ENOMEM;
 		goto fail2;
@@ -824,23 +944,29 @@ static int wmt_mci_probe(struct platform_device *pdev)
 	priv->irq_dma = dma_irq;
 
 	ret = request_irq(regular_irq, wmt_mci_regular_isr, 0, "sdmmc", priv);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Register regular IRQ fail\n");
 		goto fail3;
 	}
 
 	ret = request_irq(dma_irq, wmt_mci_dma_isr, 0, "sdmmc", priv);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Register DMA IRQ fail\n");
 		goto fail4;
 	}
 
 	/* alloc some DMA buffers for descriptors/transfers */
 	priv->dma_desc_buffer = dma_alloc_coherent(&pdev->dev,
-						   mmc->max_blk_count * 16,
-						   &priv->dma_desc_device_addr,
-						   GFP_KERNEL);
-	if (!priv->dma_desc_buffer) {
+							mmc->max_blk_count * 16,
+							&priv->dma_desc_device_addr,
+							GFP_KERNEL);
+
+	if (!priv->dma_desc_buffer)
+	{
 		dev_err(&pdev->dev, "DMA alloc fail\n");
 		ret = -EPERM;
 		goto fail5;
@@ -849,7 +975,9 @@ static int wmt_mci_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, mmc);
 
 	priv->clk_sdmmc = of_clk_get(np, 0);
-	if (IS_ERR(priv->clk_sdmmc)) {
+
+	if (IS_ERR(priv->clk_sdmmc))
+	{
 		dev_err(&pdev->dev, "Error getting clock\n");
 		ret = PTR_ERR(priv->clk_sdmmc);
 		goto fail5;
@@ -897,7 +1025,7 @@ static int wmt_mci_remove(struct platform_device *pdev)
 
 	/* release the dma buffers */
 	dma_free_coherent(&pdev->dev, priv->mmc->max_blk_count * 16,
-			  priv->dma_desc_buffer, priv->dma_desc_device_addr);
+					  priv->dma_desc_buffer, priv->dma_desc_device_addr);
 
 	mmc_remove_host(mmc);
 
@@ -928,12 +1056,14 @@ static int wmt_mci_suspend(struct device *dev)
 	struct wmt_mci_priv *priv;
 
 	if (!mmc)
+	{
 		return 0;
+	}
 
 	priv = mmc_priv(mmc);
 	reg_tmp = readb(priv->sdmmc_base + SDMMC_BUSMODE);
 	writeb(reg_tmp | BM_SOFT_RESET, priv->sdmmc_base +
-	       SDMMC_BUSMODE);
+		   SDMMC_BUSMODE);
 
 	reg_tmp = readw(priv->sdmmc_base + SDMMC_BLKLEN);
 	writew(reg_tmp & 0x5FFF, priv->sdmmc_base + SDMMC_BLKLEN);
@@ -952,28 +1082,30 @@ static int wmt_mci_resume(struct device *dev)
 	struct mmc_host *mmc = platform_get_drvdata(pdev);
 	struct wmt_mci_priv *priv;
 
-	if (mmc) {
+	if (mmc)
+	{
 		priv = mmc_priv(mmc);
 		clk_enable(priv->clk_sdmmc);
 
 		reg_tmp = readb(priv->sdmmc_base + SDMMC_BUSMODE);
 		writeb(reg_tmp | BM_SOFT_RESET, priv->sdmmc_base +
-		       SDMMC_BUSMODE);
+			   SDMMC_BUSMODE);
 
 		reg_tmp = readw(priv->sdmmc_base + SDMMC_BLKLEN);
 		writew(reg_tmp | (BLKL_GPI_CD | BLKL_INT_ENABLE),
-		       priv->sdmmc_base + SDMMC_BLKLEN);
+			   priv->sdmmc_base + SDMMC_BLKLEN);
 
 		reg_tmp = readb(priv->sdmmc_base + SDMMC_INTMASK0);
 		writeb(reg_tmp | INT0_DI_INT_EN, priv->sdmmc_base +
-		       SDMMC_INTMASK0);
+			   SDMMC_INTMASK0);
 
 	}
 
 	return 0;
 }
 
-static const struct dev_pm_ops wmt_mci_pm = {
+static const struct dev_pm_ops wmt_mci_pm =
+{
 	.suspend        = wmt_mci_suspend,
 	.resume         = wmt_mci_resume,
 };
@@ -986,7 +1118,8 @@ static const struct dev_pm_ops wmt_mci_pm = {
 
 #endif
 
-static struct platform_driver wmt_mci_driver = {
+static struct platform_driver wmt_mci_driver =
+{
 	.probe = wmt_mci_probe,
 	.remove = wmt_mci_remove,
 	.driver = {

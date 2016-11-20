@@ -9,7 +9,8 @@
 #include <linux/errno.h>
 #include <linux/kernel.h>
 
-struct isa_driver {
+struct isa_driver
+{
 	int (*match)(struct device *, unsigned int);
 	int (*probe)(struct device *, unsigned int);
 	int (*remove)(struct device *, unsigned int);
@@ -47,16 +48,16 @@ static inline void isa_unregister_driver(struct isa_driver *d)
  * use this macro once, and calling it replaces module_init and module_exit.
  */
 #define module_isa_driver(__isa_driver, __num_isa_dev) \
-static int __init __isa_driver##_init(void) \
-{ \
-	return isa_register_driver(&(__isa_driver), __num_isa_dev); \
-} \
-module_init(__isa_driver##_init); \
-static void __exit __isa_driver##_exit(void) \
-{ \
-	isa_unregister_driver(&(__isa_driver)); \
-} \
-module_exit(__isa_driver##_exit);
+	static int __init __isa_driver##_init(void) \
+	{ \
+		return isa_register_driver(&(__isa_driver), __num_isa_dev); \
+	} \
+	module_init(__isa_driver##_init); \
+	static void __exit __isa_driver##_exit(void) \
+	{ \
+		isa_unregister_driver(&(__isa_driver)); \
+	} \
+	module_exit(__isa_driver##_exit);
 
 /**
  * max_num_isa_dev() - Maximum possible number registered of an ISA device

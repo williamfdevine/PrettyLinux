@@ -56,7 +56,8 @@
 #include "libipw.h"
 
 /* Authentication  and Association States */
-enum connection_manager_assoc_states {
+enum connection_manager_assoc_states
+{
 	CMAS_INIT = 0,
 	CMAS_TX_AUTH_SEQ_1,
 	CMAS_RX_AUTH_SEQ_2,
@@ -361,7 +362,8 @@ enum connection_manager_assoc_states {
 #define IPW_TX_QUEUE_4        4
 
 /* QoS sturctures */
-struct ipw_qos_info {
+struct ipw_qos_info
+{
 	int qos_enable;
 	struct libipw_qos_parameters *def_qos_parm_OFDM;
 	struct libipw_qos_parameters *def_qos_parm_CCK;
@@ -377,7 +379,8 @@ struct ipw_qos_info {
  *
  * Contains common data for Rx and Tx queues
  */
-struct clx2_queue {
+struct clx2_queue
+{
 	int n_bd;		       /**< number of BDs in this queue */
 	int first_empty;	       /**< 1-st empty entry (index) */
 	int last_used;		       /**< last used entry (index) */
@@ -388,7 +391,8 @@ struct clx2_queue {
 	int high_mark;		       /**< high watermark, stop queue if free space less than this */
 } __packed; /* XXX */
 
-struct machdr32 {
+struct machdr32
+{
 	__le16 frame_ctl;
 	__le16 duration;		// watch out for endians!
 	u8 addr1[MACADRR_BYTE_LEN];
@@ -399,7 +403,8 @@ struct machdr32 {
 	__le16 qos_ctrl;
 } __packed;
 
-struct machdr30 {
+struct machdr30
+{
 	__le16 frame_ctl;
 	__le16 duration;		// watch out for endians!
 	u8 addr1[MACADRR_BYTE_LEN];
@@ -409,7 +414,8 @@ struct machdr30 {
 	u8 addr4[MACADRR_BYTE_LEN];
 } __packed;
 
-struct machdr26 {
+struct machdr26
+{
 	__le16 frame_ctl;
 	__le16 duration;		// watch out for endians!
 	u8 addr1[MACADRR_BYTE_LEN];
@@ -419,7 +425,8 @@ struct machdr26 {
 	__le16 qos_ctrl;
 } __packed;
 
-struct machdr24 {
+struct machdr24
+{
 	__le16 frame_ctl;
 	__le16 duration;		// watch out for endians!
 	u8 addr1[MACADRR_BYTE_LEN];
@@ -429,20 +436,23 @@ struct machdr24 {
 } __packed;
 
 // TX TFD with 32 byte MAC Header
-struct tx_tfd_32 {
+struct tx_tfd_32
+{
 	struct machdr32 mchdr;	// 32
 	__le32 uivplaceholder[2];	// 8
 } __packed;
 
 // TX TFD with 30 byte MAC Header
-struct tx_tfd_30 {
+struct tx_tfd_30
+{
 	struct machdr30 mchdr;	// 30
 	u8 reserved[2];		// 2
 	__le32 uivplaceholder[2];	// 8
 } __packed;
 
 // tx tfd with 26 byte mac header
-struct tx_tfd_26 {
+struct tx_tfd_26
+{
 	struct machdr26 mchdr;	// 26
 	u8 reserved1[2];	// 2
 	__le32 uivplaceholder[2];	// 8
@@ -450,7 +460,8 @@ struct tx_tfd_26 {
 } __packed;
 
 // tx tfd with 24 byte mac header
-struct tx_tfd_24 {
+struct tx_tfd_24
+{
 	struct machdr24 mchdr;	// 24
 	__le32 uivplaceholder[2];	// 8
 	u8 reserved[8];		// 8
@@ -458,14 +469,16 @@ struct tx_tfd_24 {
 
 #define DCT_WEP_KEY_FIELD_LENGTH 16
 
-struct tfd_command {
+struct tfd_command
+{
 	u8 index;
 	u8 length;
 	__le16 reserved;
 	u8 payload[0];
 } __packed;
 
-struct tfd_data {
+struct tfd_data
+{
 	/* Header */
 	__le32 work_area_ptr;
 	u8 station_number;	/* 0 for BSS */
@@ -491,7 +504,8 @@ struct tfd_data {
 	u8 reserved3;
 
 	/* 802.11 MAC Header */
-	union {
+	union
+	{
 		struct tx_tfd_24 tfd_24;
 		struct tx_tfd_26 tfd_26;
 		struct tx_tfd_30 tfd_30;
@@ -504,7 +518,8 @@ struct tfd_data {
 	__le16 chunk_len[NUM_TFD_CHUNKS];
 } __packed;
 
-struct txrx_control_flags {
+struct txrx_control_flags
+{
 	u8 message_type;
 	u8 rx_seq_num;
 	u8 control_bits;
@@ -514,9 +529,11 @@ struct txrx_control_flags {
 #define  TFD_SIZE                           128
 #define  TFD_CMD_IMMEDIATE_PAYLOAD_LENGTH   (TFD_SIZE - sizeof(struct txrx_control_flags))
 
-struct tfd_frame {
+struct tfd_frame
+{
 	struct txrx_control_flags control_flags;
-	union {
+	union
+	{
 		struct tfd_data data;
 		struct tfd_command cmd;
 		u8 raw[TFD_CMD_IMMEDIATE_PAYLOAD_LENGTH];
@@ -529,7 +546,8 @@ typedef void destructor_func(const void *);
  * Tx Queue for DMA. Queue consists of circular buffer of
  * BD's and required locking structures.
  */
-struct clx2_tx_queue {
+struct clx2_tx_queue
+{
 	struct clx2_queue q;
 	struct tfd_frame *bd;
 	struct libipw_txb **txb;
@@ -546,13 +564,16 @@ struct clx2_tx_queue {
 #define SUP_RATE_11G_MAX_NUM_CHANNELS  12
 
 // Used for passing to driver number of successes and failures per rate
-struct rate_histogram {
-	union {
+struct rate_histogram
+{
+	union
+	{
 		__le32 a[SUP_RATE_11A_MAX_NUM_CHANNELS];
 		__le32 b[SUP_RATE_11B_MAX_NUM_CHANNELS];
 		__le32 g[SUP_RATE_11G_MAX_NUM_CHANNELS];
 	} success;
-	union {
+	union
+	{
 		__le32 a[SUP_RATE_11A_MAX_NUM_CHANNELS];
 		__le32 b[SUP_RATE_11B_MAX_NUM_CHANNELS];
 		__le32 g[SUP_RATE_11G_MAX_NUM_CHANNELS];
@@ -560,7 +581,8 @@ struct rate_histogram {
 } __packed;
 
 /* statistics command response */
-struct ipw_cmd_stats {
+struct ipw_cmd_stats
+{
 	u8 cmd_id;
 	u8 seq_num;
 	__le16 good_sfd;
@@ -586,7 +608,8 @@ struct ipw_cmd_stats {
 	__le16 reserved;
 } __packed;
 
-struct notif_channel_result {
+struct notif_channel_result
+{
 	u8 channel_num;
 	struct ipw_cmd_stats stats;
 	u8 uReserved;
@@ -595,24 +618,28 @@ struct notif_channel_result {
 #define SCAN_COMPLETED_STATUS_COMPLETE  1
 #define SCAN_COMPLETED_STATUS_ABORTED   2
 
-struct notif_scan_complete {
+struct notif_scan_complete
+{
 	u8 scan_type;
 	u8 num_channels;
 	u8 status;
 	u8 reserved;
 } __packed;
 
-struct notif_frag_length {
+struct notif_frag_length
+{
 	__le16 frag_length;
 	__le16 reserved;
 } __packed;
 
-struct notif_beacon_state {
+struct notif_beacon_state
+{
 	__le32 state;
 	__le32 number;
 } __packed;
 
-struct notif_tgi_tx_key {
+struct notif_tgi_tx_key
+{
 	u8 key_state;
 	u8 security_type;
 	u8 station_index;
@@ -622,7 +649,8 @@ struct notif_tgi_tx_key {
 #define SILENCE_OVER_THRESH (1)
 #define SILENCE_UNDER_THRESH (2)
 
-struct notif_link_deterioration {
+struct notif_link_deterioration
+{
 	struct ipw_cmd_stats stats;
 	u8 rate;
 	u8 modulation;
@@ -631,30 +659,36 @@ struct notif_link_deterioration {
 	__le16 silence_count;
 } __packed;
 
-struct notif_association {
+struct notif_association
+{
 	u8 state;
 } __packed;
 
-struct notif_authenticate {
+struct notif_authenticate
+{
 	u8 state;
 	struct machdr24 addr;
 	__le16 status;
 } __packed;
 
-struct notif_calibration {
+struct notif_calibration
+{
 	u8 data[104];
 } __packed;
 
-struct notif_noise {
+struct notif_noise
+{
 	__le32 value;
 } __packed;
 
-struct ipw_rx_notification {
+struct ipw_rx_notification
+{
 	u8 reserved[8];
 	u8 subtype;
 	u8 flags;
 	__le16 size;
-	union {
+	union
+	{
 		struct notif_association assoc;
 		struct notif_authenticate auth;
 		struct notif_channel_result channel_result;
@@ -669,7 +703,8 @@ struct ipw_rx_notification {
 	} u;
 } __packed;
 
-struct ipw_rx_frame {
+struct ipw_rx_frame
+{
 	__le32 reserved1;
 	u8 parent_tsf[4];	// fw_use[0] is boolean for OUR_TSF_IS_GREATER
 	u8 received_channel;	// The channel that this frame was received on.
@@ -692,16 +727,19 @@ struct ipw_rx_frame {
 	u8 data[0];
 } __packed;
 
-struct ipw_rx_header {
+struct ipw_rx_header
+{
 	u8 message_type;
 	u8 rx_seq_num;
 	u8 control_bits;
 	u8 reserved;
 } __packed;
 
-struct ipw_rx_packet {
+struct ipw_rx_packet
+{
 	struct ipw_rx_header header;
-	union {
+	union
+	{
 		struct ipw_rx_frame frame;
 		struct ipw_rx_notification notification;
 	} u;
@@ -709,15 +747,17 @@ struct ipw_rx_packet {
 
 #define IPW_RX_NOTIFICATION_SIZE sizeof(struct ipw_rx_header) + 12
 #define IPW_RX_FRAME_SIZE        (unsigned int)(sizeof(struct ipw_rx_header) + \
-                                 sizeof(struct ipw_rx_frame))
+		sizeof(struct ipw_rx_frame))
 
-struct ipw_rx_mem_buffer {
+struct ipw_rx_mem_buffer
+{
 	dma_addr_t dma_addr;
 	struct sk_buff *skb;
 	struct list_head list;
 };				/* Not transferred over network, so not  __packed */
 
-struct ipw_rx_queue {
+struct ipw_rx_queue
+{
 	struct ipw_rx_mem_buffer pool[RX_QUEUE_SIZE + RX_FREE_BUFFERS];
 	struct ipw_rx_mem_buffer *queue[RX_QUEUE_SIZE];
 	u32 processed;		/* Internal index to last handled Rx packet */
@@ -730,7 +770,8 @@ struct ipw_rx_queue {
 	spinlock_t lock;
 };				/* Not transferred over network, so not  __packed */
 
-struct alive_command_responce {
+struct alive_command_responce
+{
 	u8 alive_command;
 	u8 sequence_number;
 	__le16 software_revision;
@@ -747,12 +788,14 @@ struct alive_command_responce {
 
 #define IPW_MAX_RATES 12
 
-struct ipw_rates {
+struct ipw_rates
+{
 	u8 num_rates;
 	u8 rates[IPW_MAX_RATES];
 } __packed;
 
-struct command_block {
+struct command_block
+{
 	unsigned int control;
 	u32 source_addr;
 	u32 dest_addr;
@@ -760,7 +803,8 @@ struct command_block {
 } __packed;
 
 #define CB_NUMBER_OF_ELEMENTS_SMALL 64
-struct fw_image_desc {
+struct fw_image_desc
+{
 	unsigned long last_cb_index;
 	unsigned long current_cb_index;
 	struct command_block cb_list[CB_NUMBER_OF_ELEMENTS_SMALL];
@@ -769,7 +813,8 @@ struct fw_image_desc {
 	unsigned long len;
 };
 
-struct ipw_sys_config {
+struct ipw_sys_config
+{
 	u8 bt_coexistence;
 	u8 reserved1;
 	u8 answer_broadcast_ssid_probe;
@@ -792,7 +837,8 @@ struct ipw_sys_config {
 	u8 reserved3;
 } __packed;
 
-struct ipw_multicast_addr {
+struct ipw_multicast_addr
+{
 	u8 num_of_multicast_addresses;
 	u8 reserved[3];
 	u8 mac1[6];
@@ -814,7 +860,8 @@ struct ipw_multicast_addr {
 #define DCW_CCM_KEY128Bit_SIZE		0x10	/* 128-bit key */
 //#define DCW_WEP_KEY128BitIV_SIZE      0x10    /* 128-bit key and 128-bit IV */
 
-struct ipw_wep_key {
+struct ipw_wep_key
+{
 	u8 cmd_id;
 	u8 seq_num;
 	u8 key_index;
@@ -822,7 +869,8 @@ struct ipw_wep_key {
 	u8 key[16];
 } __packed;
 
-struct ipw_tgi_tx_key {
+struct ipw_tgi_tx_key
+{
 	u8 key_id;
 	u8 security_type;
 	u8 station_index;
@@ -833,14 +881,16 @@ struct ipw_tgi_tx_key {
 
 #define IPW_SCAN_CHANNELS 54
 
-struct ipw_scan_request {
+struct ipw_scan_request
+{
 	u8 scan_type;
 	__le16 dwell_time;
 	u8 channels_list[IPW_SCAN_CHANNELS];
 	u8 channels_reserved[3];
 } __packed;
 
-enum {
+enum
+{
 	IPW_SCAN_PASSIVE_TILL_FIRST_BEACON_SCAN = 0,
 	IPW_SCAN_PASSIVE_FULL_DWELL_SCAN,
 	IPW_SCAN_ACTIVE_DIRECT_SCAN,
@@ -849,7 +899,8 @@ enum {
 	IPW_SCAN_TYPES
 };
 
-struct ipw_scan_request_ext {
+struct ipw_scan_request_ext
+{
 	__le32 full_scan_index;
 	u8 channels_list[IPW_SCAN_CHANNELS];
 	u8 scan_type[IPW_SCAN_CHANNELS / 2];
@@ -860,29 +911,34 @@ struct ipw_scan_request_ext {
 static inline u8 ipw_get_scan_type(struct ipw_scan_request_ext *scan, u8 index)
 {
 	if (index % 2)
+	{
 		return scan->scan_type[index / 2] & 0x0F;
+	}
 	else
+	{
 		return (scan->scan_type[index / 2] & 0xF0) >> 4;
+	}
 }
 
 static inline void ipw_set_scan_type(struct ipw_scan_request_ext *scan,
-				     u8 index, u8 scan_type)
+									 u8 index, u8 scan_type)
 {
 	if (index % 2)
 		scan->scan_type[index / 2] =
-		    (scan->scan_type[index / 2] & 0xF0) | (scan_type & 0x0F);
+			(scan->scan_type[index / 2] & 0xF0) | (scan_type & 0x0F);
 	else
 		scan->scan_type[index / 2] =
-		    (scan->scan_type[index / 2] & 0x0F) |
-		    ((scan_type & 0x0F) << 4);
+			(scan->scan_type[index / 2] & 0x0F) |
+			((scan_type & 0x0F) << 4);
 }
 
-struct ipw_associate {
+struct ipw_associate
+{
 	u8 channel;
 #ifdef __LITTLE_ENDIAN_BITFIELD
-	u8 auth_type:4, auth_key:4;
+	u8 auth_type: 4, auth_key: 4;
 #else
-	u8 auth_key:4, auth_type:4;
+	u8 auth_key: 4, auth_type: 4;
 #endif
 	u8 assoc_type;
 	u8 reserved;
@@ -902,7 +958,8 @@ struct ipw_associate {
 	__le16 reserved2;
 } __packed;
 
-struct ipw_supported_rates {
+struct ipw_supported_rates
+{
 	u8 ieee_mode;
 	u8 num_rates;
 	u8 purpose;
@@ -910,36 +967,42 @@ struct ipw_supported_rates {
 	u8 supported_rates[IPW_MAX_RATES];
 } __packed;
 
-struct ipw_rts_threshold {
+struct ipw_rts_threshold
+{
 	__le16 rts_threshold;
 	__le16 reserved;
 } __packed;
 
-struct ipw_frag_threshold {
+struct ipw_frag_threshold
+{
 	__le16 frag_threshold;
 	__le16 reserved;
 } __packed;
 
-struct ipw_retry_limit {
+struct ipw_retry_limit
+{
 	u8 short_retry_limit;
 	u8 long_retry_limit;
 	__le16 reserved;
 } __packed;
 
-struct ipw_dino_config {
+struct ipw_dino_config
+{
 	__le32 dino_config_addr;
 	__le16 dino_config_size;
 	u8 dino_response;
 	u8 reserved;
 } __packed;
 
-struct ipw_aironet_info {
+struct ipw_aironet_info
+{
 	u8 id;
 	u8 length;
 	__le16 reserved;
 } __packed;
 
-struct ipw_rx_key {
+struct ipw_rx_key
+{
 	u8 station_index;
 	u8 key_type;
 	u8 key_id;
@@ -950,20 +1013,23 @@ struct ipw_rx_key {
 	u8 reserved;
 } __packed;
 
-struct ipw_country_channel_info {
+struct ipw_country_channel_info
+{
 	u8 first_channel;
 	u8 no_channels;
 	s8 max_tx_power;
 } __packed;
 
-struct ipw_country_info {
+struct ipw_country_info
+{
 	u8 id;
 	u8 length;
 	u8 country_str[IEEE80211_COUNTRY_STRING_LEN];
 	struct ipw_country_channel_info groups[7];
 } __packed;
 
-struct ipw_channel_tx_power {
+struct ipw_channel_tx_power
+{
 	u8 channel_number;
 	s8 tx_power;
 } __packed;
@@ -973,19 +1039,22 @@ struct ipw_channel_tx_power {
 #define MAX_A_CHANNELS  37
 #define MAX_B_CHANNELS  14
 
-struct ipw_tx_power {
+struct ipw_tx_power
+{
 	u8 num_channels;
 	u8 ieee_mode;
 	struct ipw_channel_tx_power channels_tx_power[MAX_A_CHANNELS];
 } __packed;
 
-struct ipw_rsn_capabilities {
+struct ipw_rsn_capabilities
+{
 	u8 id;
 	u8 length;
 	__le16 version;
 } __packed;
 
-struct ipw_sensitivity_calib {
+struct ipw_sensitivity_calib
+{
 	__le16 beacon_rssi_raw;
 	__le16 reserved;
 } __packed;
@@ -1003,19 +1072,20 @@ struct ipw_sensitivity_calib {
  * - \a status contains status;
  * - \a param filled with status parameters.
  */
-struct ipw_cmd {	 /* XXX */
+struct ipw_cmd  	 /* XXX */
+{
 	u32 cmd;   /**< Host command */
 	u32 status;/**< Status */
 	u32 status_len;
-		   /**< How many 32 bit parameters in the status */
+	/**< How many 32 bit parameters in the status */
 	u32 len;   /**< incoming parameters length, bytes */
-  /**
-   * command parameters.
-   * There should be enough space for incoming and
-   * outcoming parameters.
-   * Incoming parameters listed 1-st, followed by outcoming params.
-   * nParams=(len+3)/4+status_len
-   */
+	/**
+	 * command parameters.
+	 * There should be enough space for incoming and
+	 * outcoming parameters.
+	 * Incoming parameters listed 1-st, followed by outcoming params.
+	 * nParams=(len+3)/4+status_len
+	 */
 	u32 param[0];
 } __packed;
 
@@ -1073,14 +1143,16 @@ struct ipw_cmd {	 /* XXX */
 #define MAX_STATIONS            32
 #define IPW_INVALID_STATION     (0xff)
 
-struct ipw_station_entry {
+struct ipw_station_entry
+{
 	u8 mac_addr[ETH_ALEN];
 	u8 reserved;
 	u8 support_mode;
 };
 
 #define AVG_ENTRIES 8
-struct average {
+struct average
+{
 	s16 entries[AVG_ENTRIES];
 	u8 pos;
 	u8 init;
@@ -1090,7 +1162,8 @@ struct average {
 #define MAX_SPEED_SCAN 100
 #define IPW_IBSS_MAC_HASH_SIZE 31
 
-struct ipw_ibss_seq {
+struct ipw_ibss_seq
+{
 	u8 mac[ETH_ALEN];
 	u16 seq_num;
 	u16 frag_num;
@@ -1098,7 +1171,8 @@ struct ipw_ibss_seq {
 	struct list_head list;
 };
 
-struct ipw_error_elem {	 /* XXX */
+struct ipw_error_elem  	 /* XXX */
+{
 	u32 desc;
 	u32 time;
 	u32 blink1;
@@ -1108,13 +1182,15 @@ struct ipw_error_elem {	 /* XXX */
 	u32 data;
 };
 
-struct ipw_event {	 /* XXX */
+struct ipw_event  	 /* XXX */
+{
 	u32 event;
 	u32 time;
 	u32 data;
 } __packed;
 
-struct ipw_fw_error {	 /* XXX */
+struct ipw_fw_error  	 /* XXX */
+{
 	unsigned long jiffies;
 	u32 status;
 	u32 config;
@@ -1127,7 +1203,8 @@ struct ipw_fw_error {	 /* XXX */
 
 #ifdef CONFIG_IPW2200_PROMISCUOUS
 
-enum ipw_prom_filter {
+enum ipw_prom_filter
+{
 	IPW_PROM_CTL_HEADER_ONLY = (1 << 0),
 	IPW_PROM_MGMT_HEADER_ONLY = (1 << 1),
 	IPW_PROM_DATA_HEADER_ONLY = (1 << 2),
@@ -1140,7 +1217,8 @@ enum ipw_prom_filter {
 };
 
 struct ipw_priv;
-struct ipw_prom_priv {
+struct ipw_prom_priv
+{
 	struct ipw_priv *priv;
 	struct libipw_device *ieee;
 	enum ipw_prom_filter filter;
@@ -1157,7 +1235,8 @@ struct ipw_prom_priv {
  * When sent to us via the simulated Rx interface in sysfs, the entire
  * structure is provided regardless of any bits unset.
  */
-struct ipw_rt_hdr {
+struct ipw_rt_hdr
+{
 	struct ieee80211_radiotap_header rt_hdr;
 	u64 rt_tsf;      /* TSF */	/* XXX */
 	u8 rt_flags;	/* radiotap packet flags */
@@ -1171,7 +1250,8 @@ struct ipw_rt_hdr {
 } __packed;
 #endif
 
-struct ipw_priv {
+struct ipw_priv
+{
 	/* ieee device used by generic ieee processing code */
 	struct libipw_device *ieee;
 
@@ -1378,32 +1458,32 @@ struct ipw_priv {
 
 #define BITC(x,y) (((x>>y)&1)?'1':'0')
 #define BIT_ARG8(x) \
-BITC(x,7),BITC(x,6),BITC(x,5),BITC(x,4),\
-BITC(x,3),BITC(x,2),BITC(x,1),BITC(x,0)
+	BITC(x,7),BITC(x,6),BITC(x,5),BITC(x,4),\
+	BITC(x,3),BITC(x,2),BITC(x,1),BITC(x,0)
 
 #define BIT_ARG16(x) \
-BITC(x,15),BITC(x,14),BITC(x,13),BITC(x,12),\
-BITC(x,11),BITC(x,10),BITC(x,9),BITC(x,8),\
-BIT_ARG8(x)
+	BITC(x,15),BITC(x,14),BITC(x,13),BITC(x,12),\
+	BITC(x,11),BITC(x,10),BITC(x,9),BITC(x,8),\
+	BIT_ARG8(x)
 
 #define BIT_ARG32(x) \
-BITC(x,31),BITC(x,30),BITC(x,29),BITC(x,28),\
-BITC(x,27),BITC(x,26),BITC(x,25),BITC(x,24),\
-BITC(x,23),BITC(x,22),BITC(x,21),BITC(x,20),\
-BITC(x,19),BITC(x,18),BITC(x,17),BITC(x,16),\
-BIT_ARG16(x)
+	BITC(x,31),BITC(x,30),BITC(x,29),BITC(x,28),\
+	BITC(x,27),BITC(x,26),BITC(x,25),BITC(x,24),\
+	BITC(x,23),BITC(x,22),BITC(x,21),BITC(x,20),\
+	BITC(x,19),BITC(x,18),BITC(x,17),BITC(x,16),\
+	BIT_ARG16(x)
 
 
 #define IPW_DEBUG(level, fmt, args...) \
-do { if (ipw_debug_level & (level)) \
-  printk(KERN_DEBUG DRV_NAME": %c %s " fmt, \
-         in_interrupt() ? 'I' : 'U', __func__ , ## args); } while (0)
+	do { if (ipw_debug_level & (level)) \
+			printk(KERN_DEBUG DRV_NAME": %c %s " fmt, \
+				   in_interrupt() ? 'I' : 'U', __func__ , ## args); } while (0)
 
 #ifdef CONFIG_IPW2200_DEBUG
 #define IPW_LL_DEBUG(level, fmt, args...) \
-do { if (ipw_debug_level & (level)) \
-  printk(KERN_DEBUG DRV_NAME": %c %s " fmt, \
-         in_interrupt() ? 'I' : 'U', __func__ , ## args); } while (0)
+	do { if (ipw_debug_level & (level)) \
+			printk(KERN_DEBUG DRV_NAME": %c %s " fmt, \
+				   in_interrupt() ? 'I' : 'U', __func__ , ## args); } while (0)
 #else
 #define IPW_LL_DEBUG(level, fmt, args...) do {} while (0)
 #endif				/* CONFIG_IPW2200_DEBUG */
@@ -1648,7 +1728,7 @@ do { if (ipw_debug_level & (level)) \
 #define WORD_TO_BYTE(_word)             ((_word) * sizeof(u16))
 
 #define GET_EEPROM_ADDR(_wordoffset,_byteoffset) \
-    ( WORD_TO_BYTE(_wordoffset) + (_byteoffset) )
+	( WORD_TO_BYTE(_wordoffset) + (_byteoffset) )
 
 /* EEPROM access by BYTE */
 #define EEPROM_PME_CAPABILITY   (GET_EEPROM_ADDR(0x09,MSB))	/* 1 byte   */
@@ -1711,7 +1791,7 @@ do { if (ipw_debug_level & (level)) \
 
 /* Interrupts enabled at init time. */
 #define IPW_INTA_MASK_ALL                        \
-        (IPW_INTA_BIT_TX_QUEUE_1               | \
+	(IPW_INTA_BIT_TX_QUEUE_1               | \
 	 IPW_INTA_BIT_TX_QUEUE_2               | \
 	 IPW_INTA_BIT_TX_QUEUE_3               | \
 	 IPW_INTA_BIT_TX_QUEUE_4               | \
@@ -1725,7 +1805,7 @@ do { if (ipw_debug_level & (level)) \
 	 IPW_INTA_BIT_SLAVE_MODE_HOST_CMD_DONE | \
 	 IPW_INTA_BIT_PREPARE_FOR_POWER_DOWN   | \
 	 IPW_INTA_BIT_POWER_DOWN               | \
-         IPW_INTA_BIT_RF_KILL_DONE )
+	 IPW_INTA_BIT_RF_KILL_DONE )
 
 /* FW event log definitions */
 #define EVENT_ELEM_SIZE     (3 * sizeof(u32))
@@ -1740,7 +1820,8 @@ do { if (ipw_debug_level & (level)) \
 #define IPW_TX_POWER_MAX	20
 #define IPW_TX_POWER_DEFAULT	IPW_TX_POWER_MAX
 
-enum {
+enum
+{
 	IPW_FW_ERROR_OK = 0,
 	IPW_FW_ERROR_FAIL,
 	IPW_FW_ERROR_MEMORY_UNDERFLOW,
@@ -1806,7 +1887,8 @@ enum {
 /*
  * Table 0 Entries (all entries are 32 bits)
  */
-enum {
+enum
+{
 	IPW_ORD_STAT_TX_CURR_RATE = IPW_ORD_TABLE_0_MASK + 1,
 	IPW_ORD_STAT_FRAG_TRESHOLD,
 	IPW_ORD_STAT_RTS_THRESHOLD,
@@ -1869,7 +1951,8 @@ enum {
 
 /* Table 1 Entries
  */
-enum {
+enum
+{
 	IPW_ORD_TABLE_1_LAST = IPW_ORD_TABLE_1_MASK | 1,
 };
 
@@ -1883,7 +1966,8 @@ enum {
  * ADDAPTER_MAC:  6 byte MAC address
  * RTC:           4 byte clock
  */
-enum {
+enum
+{
 	IPW_ORD_STAT_FW_VERSION = IPW_ORD_TABLE_2_MASK | 1,
 	IPW_ORD_STAT_FW_DATE,
 	IPW_ORD_STAT_UCODE_VERSION,
@@ -1894,7 +1978,8 @@ enum {
 };
 
 /* Table 3 */
-enum {
+enum
+{
 	IPW_ORD_STAT_TX_PACKET = IPW_ORD_TABLE_3_MASK | 0,
 	IPW_ORD_STAT_TX_PACKET_FAILURE,
 	IPW_ORD_STAT_TX_PACKET_SUCCESS,
@@ -1903,12 +1988,14 @@ enum {
 };
 
 /* Table 4 */
-enum {
+enum
+{
 	IPW_ORD_TABLE_4_LAST = IPW_ORD_TABLE_4_MASK
 };
 
 /* Table 5 */
-enum {
+enum
+{
 	IPW_ORD_STAT_AVAILABLE_AP_COUNT = IPW_ORD_TABLE_5_MASK,
 	IPW_ORD_STAT_AP_ASSNS,
 	IPW_ORD_STAT_ROAM,
@@ -1926,7 +2013,8 @@ enum {
 };
 
 /* Table 6 */
-enum {
+enum
+{
 	IPW_ORD_COUNTRY_CODE = IPW_ORD_TABLE_6_MASK,
 	IPW_ORD_CURR_BSSID,
 	IPW_ORD_CURR_SSID,
@@ -1934,7 +2022,8 @@ enum {
 };
 
 /* Table 7 */
-enum {
+enum
+{
 	IPW_ORD_STAT_PERCENT_MISSED_BEACONS = IPW_ORD_TABLE_7_MASK,
 	IPW_ORD_STAT_PERCENT_TX_RETRIES,
 	IPW_ORD_STAT_PERCENT_LINK_QUALITY,
@@ -1950,28 +2039,32 @@ enum {
 #define IPW_ORDINALS_TABLE_2            (IPW_SHARED_LOWER_BOUND + 0x188)
 #define IPW_MEM_FIXED_OVERRIDE          (IPW_SHARED_LOWER_BOUND + 0x41C)
 
-struct ipw_fixed_rate {
+struct ipw_fixed_rate
+{
 	__le16 tx_rates;
 	__le16 reserved;
 } __packed;
 
 #define IPW_INDIRECT_ADDR_MASK (~0x3ul)
 
-struct host_cmd {
+struct host_cmd
+{
 	u8 cmd;
 	u8 len;
 	u16 reserved;
 	u32 *param;
 } __packed;	/* XXX */
 
-struct cmdlog_host_cmd {
+struct cmdlog_host_cmd
+{
 	u8 cmd;
 	u8 len;
 	__le16 reserved;
 	char param[124];
 } __packed;
 
-struct ipw_cmd_log {
+struct ipw_cmd_log
+{
 	unsigned long jiffies;
 	int retcode;
 	struct cmdlog_host_cmd cmd;

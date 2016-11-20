@@ -34,13 +34,15 @@
 
 #define ARPT_DEV_ADDR_LEN_MAX 16
 
-struct arpt_devaddr_info {
+struct arpt_devaddr_info
+{
 	char addr[ARPT_DEV_ADDR_LEN_MAX];
 	char mask[ARPT_DEV_ADDR_LEN_MAX];
 };
 
 /* Yes, Virginia, you have to zero the padding. */
-struct arpt_arp {
+struct arpt_arp
+{
 	/* Source and target IP addr */
 	struct in_addr src, tgt;
 	/* Mask for src and target IP addr */
@@ -131,7 +133,8 @@ struct arpt_entry
 #define ARPT_SO_GET_MAX			(ARPT_SO_GET_REVISION_TARGET)
 
 /* The argument to ARPT_SO_GET_INFO */
-struct arpt_getinfo {
+struct arpt_getinfo
+{
 	/* Which table: caller fills this in. */
 	char name[XT_TABLE_MAXNAMELEN];
 
@@ -153,12 +156,13 @@ struct arpt_getinfo {
 };
 
 /* The argument to ARPT_SO_SET_REPLACE. */
-struct arpt_replace {
+struct arpt_replace
+{
 	/* Which table. */
 	char name[XT_TABLE_MAXNAMELEN];
 
 	/* Which hook entry points are valid: bitmask.  You can't
-           change this. */
+	       change this. */
 	unsigned int valid_hooks;
 
 	/* Number of entries */
@@ -184,7 +188,8 @@ struct arpt_replace {
 };
 
 /* The argument to ARPT_SO_GET_ENTRIES. */
-struct arpt_get_entries {
+struct arpt_get_entries
+{
 	/* Which table: user fills this in. */
 	char name[XT_TABLE_MAXNAMELEN];
 

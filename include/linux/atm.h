@@ -6,7 +6,8 @@
 
 #ifdef CONFIG_COMPAT
 #include <linux/compat.h>
-struct compat_atmif_sioc {
+struct compat_atmif_sioc
+{
 	int number;
 	int length;
 	compat_uptr_t arg;

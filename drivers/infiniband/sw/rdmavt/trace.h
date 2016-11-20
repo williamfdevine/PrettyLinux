@@ -64,73 +64,73 @@
 #define TRACE_SYSTEM rdmavt
 
 TRACE_EVENT(rvt_dbg,
-	TP_PROTO(struct rvt_dev_info *rdi,
-		 const char *msg),
-	TP_ARGS(rdi, msg),
-	TP_STRUCT__entry(
-		RDI_DEV_ENTRY(rdi)
-		__string(msg, msg)
-	),
-	TP_fast_assign(
-		RDI_DEV_ASSIGN(rdi);
-		__assign_str(msg, msg);
-	),
-	TP_printk("[%s]: %s", __get_str(dev), __get_str(msg))
-);
+			TP_PROTO(struct rvt_dev_info *rdi,
+					 const char *msg),
+			TP_ARGS(rdi, msg),
+			TP_STRUCT__entry(
+				RDI_DEV_ENTRY(rdi)
+				__string(msg, msg)
+			),
+			TP_fast_assign(
+				RDI_DEV_ASSIGN(rdi);
+				__assign_str(msg, msg);
+			),
+			TP_printk("[%s]: %s", __get_str(dev), __get_str(msg))
+		   );
 
 #undef TRACE_SYSTEM
 #define TRACE_SYSTEM rvt_qphash
 DECLARE_EVENT_CLASS(rvt_qphash_template,
-	TP_PROTO(struct rvt_qp *qp, u32 bucket),
-	TP_ARGS(qp, bucket),
-	TP_STRUCT__entry(
-		RDI_DEV_ENTRY(ib_to_rvt(qp->ibqp.device))
-		__field(u32, qpn)
-		__field(u32, bucket)
-	),
-	TP_fast_assign(
-		RDI_DEV_ASSIGN(ib_to_rvt(qp->ibqp.device))
-		__entry->qpn = qp->ibqp.qp_num;
-		__entry->bucket = bucket;
-	),
-	TP_printk(
-		"[%s] qpn 0x%x bucket %u",
-		__get_str(dev),
-		__entry->qpn,
-		__entry->bucket
-	)
-);
+					TP_PROTO(struct rvt_qp *qp, u32 bucket),
+					TP_ARGS(qp, bucket),
+					TP_STRUCT__entry(
+						RDI_DEV_ENTRY(ib_to_rvt(qp->ibqp.device))
+						__field(u32, qpn)
+						__field(u32, bucket)
+					),
+					TP_fast_assign(
+						RDI_DEV_ASSIGN(ib_to_rvt(qp->ibqp.device))
+						__entry->qpn = qp->ibqp.qp_num;
+						__entry->bucket = bucket;
+					),
+					TP_printk(
+						"[%s] qpn 0x%x bucket %u",
+						__get_str(dev),
+						__entry->qpn,
+						__entry->bucket
+					)
+				   );
 
 DEFINE_EVENT(rvt_qphash_template, rvt_qpinsert,
-	TP_PROTO(struct rvt_qp *qp, u32 bucket),
-	TP_ARGS(qp, bucket));
+			 TP_PROTO(struct rvt_qp *qp, u32 bucket),
+			 TP_ARGS(qp, bucket));
 
 DEFINE_EVENT(rvt_qphash_template, rvt_qpremove,
-	TP_PROTO(struct rvt_qp *qp, u32 bucket),
-	TP_ARGS(qp, bucket));
+			 TP_PROTO(struct rvt_qp *qp, u32 bucket),
+			 TP_ARGS(qp, bucket));
 
 #undef TRACE_SYSTEM
 #define TRACE_SYSTEM rvt_tx
 
 #define wr_opcode_name(opcode) { IB_WR_##opcode, #opcode  }
 #define show_wr_opcode(opcode)                             \
-__print_symbolic(opcode,                                   \
-	wr_opcode_name(RDMA_WRITE),                        \
-	wr_opcode_name(RDMA_WRITE_WITH_IMM),               \
-	wr_opcode_name(SEND),                              \
-	wr_opcode_name(SEND_WITH_IMM),                     \
-	wr_opcode_name(RDMA_READ),                         \
-	wr_opcode_name(ATOMIC_CMP_AND_SWP),                \
-	wr_opcode_name(ATOMIC_FETCH_AND_ADD),              \
-	wr_opcode_name(LSO),                               \
-	wr_opcode_name(SEND_WITH_INV),                     \
-	wr_opcode_name(RDMA_READ_WITH_INV),                \
-	wr_opcode_name(LOCAL_INV),                         \
-	wr_opcode_name(MASKED_ATOMIC_CMP_AND_SWP),         \
-	wr_opcode_name(MASKED_ATOMIC_FETCH_AND_ADD))
+	__print_symbolic(opcode,                                   \
+					 wr_opcode_name(RDMA_WRITE),                        \
+					 wr_opcode_name(RDMA_WRITE_WITH_IMM),               \
+					 wr_opcode_name(SEND),                              \
+					 wr_opcode_name(SEND_WITH_IMM),                     \
+					 wr_opcode_name(RDMA_READ),                         \
+					 wr_opcode_name(ATOMIC_CMP_AND_SWP),                \
+					 wr_opcode_name(ATOMIC_FETCH_AND_ADD),              \
+					 wr_opcode_name(LSO),                               \
+					 wr_opcode_name(SEND_WITH_INV),                     \
+					 wr_opcode_name(RDMA_READ_WITH_INV),                \
+					 wr_opcode_name(LOCAL_INV),                         \
+					 wr_opcode_name(MASKED_ATOMIC_CMP_AND_SWP),         \
+					 wr_opcode_name(MASKED_ATOMIC_FETCH_AND_ADD))
 
 #define POS_PRN \
-"[%s] wr_id %llx qpn %x psn 0x%x lpsn 0x%x length %u opcode 0x%.2x,%s size %u avail %u head %u last %u"
+	"[%s] wr_id %llx qpn %x psn 0x%x lpsn 0x%x length %u opcode 0x%.2x,%s size %u avail %u head %u last %u"
 
 TRACE_EVENT(
 	rvt_post_one_wr,

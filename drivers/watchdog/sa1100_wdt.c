@@ -34,7 +34,7 @@
 #include <linux/timex.h>
 
 #ifdef CONFIG_ARCH_PXA
-#include <mach/regs-ost.h>
+	#include <mach/regs-ost.h>
 #endif
 
 #include <mach/reset.h>
@@ -51,7 +51,9 @@ static int boot_status;
 static int sa1100dog_open(struct inode *inode, struct file *file)
 {
 	if (test_and_set_bit(1, &sa1100wdt_users))
+	{
 		return -EBUSY;
+	}
 
 	/* Activate SA1100 Watchdog timer */
 	writel_relaxed(readl_relaxed(OSCR) + pre_margin, OSMR3);
@@ -76,17 +78,21 @@ static int sa1100dog_release(struct inode *inode, struct file *file)
 }
 
 static ssize_t sa1100dog_write(struct file *file, const char __user *data,
-						size_t len, loff_t *ppos)
+							   size_t len, loff_t *ppos)
 {
 	if (len)
 		/* Refresh OSMR3 timer. */
+	{
 		writel_relaxed(readl_relaxed(OSCR) + pre_margin, OSMR3);
+	}
+
 	return len;
 }
 
-static const struct watchdog_info ident = {
+static const struct watchdog_info ident =
+{
 	.options	= WDIOF_CARDRESET | WDIOF_SETTIMEOUT
-				| WDIOF_KEEPALIVEPING,
+	| WDIOF_KEEPALIVEPING,
 	.identity	= "SA1100/PXA255 Watchdog",
 	.firmware_version	= 1,
 };
@@ -99,47 +105,55 @@ static long sa1100dog_ioctl(struct file *file, unsigned int cmd,
 	void __user *argp = (void __user *)arg;
 	int __user *p = argp;
 
-	switch (cmd) {
-	case WDIOC_GETSUPPORT:
-		ret = copy_to_user(argp, &ident,
-				   sizeof(ident)) ? -EFAULT : 0;
-		break;
-
-	case WDIOC_GETSTATUS:
-		ret = put_user(0, p);
-		break;
-
-	case WDIOC_GETBOOTSTATUS:
-		ret = put_user(boot_status, p);
-		break;
-
-	case WDIOC_KEEPALIVE:
-		writel_relaxed(readl_relaxed(OSCR) + pre_margin, OSMR3);
-		ret = 0;
-		break;
-
-	case WDIOC_SETTIMEOUT:
-		ret = get_user(time, p);
-		if (ret)
+	switch (cmd)
+	{
+		case WDIOC_GETSUPPORT:
+			ret = copy_to_user(argp, &ident,
+							   sizeof(ident)) ? -EFAULT : 0;
 			break;
 
-		if (time <= 0 || (oscr_freq * (long long)time >= 0xffffffff)) {
-			ret = -EINVAL;
+		case WDIOC_GETSTATUS:
+			ret = put_user(0, p);
 			break;
-		}
 
-		pre_margin = oscr_freq * time;
-		writel_relaxed(readl_relaxed(OSCR) + pre_margin, OSMR3);
+		case WDIOC_GETBOOTSTATUS:
+			ret = put_user(boot_status, p);
+			break;
+
+		case WDIOC_KEEPALIVE:
+			writel_relaxed(readl_relaxed(OSCR) + pre_margin, OSMR3);
+			ret = 0;
+			break;
+
+		case WDIOC_SETTIMEOUT:
+			ret = get_user(time, p);
+
+			if (ret)
+			{
+				break;
+			}
+
+			if (time <= 0 || (oscr_freq * (long long)time >= 0xffffffff))
+			{
+				ret = -EINVAL;
+				break;
+			}
+
+			pre_margin = oscr_freq * time;
+			writel_relaxed(readl_relaxed(OSCR) + pre_margin, OSMR3);
+
 		/*fall through*/
 
-	case WDIOC_GETTIMEOUT:
-		ret = put_user(pre_margin / oscr_freq, p);
-		break;
+		case WDIOC_GETTIMEOUT:
+			ret = put_user(pre_margin / oscr_freq, p);
+			break;
 	}
+
 	return ret;
 }
 
-static const struct file_operations sa1100dog_fops = {
+static const struct file_operations sa1100dog_fops =
+{
 	.owner		= THIS_MODULE,
 	.llseek		= no_llseek,
 	.write		= sa1100dog_write,
@@ -148,7 +162,8 @@ static const struct file_operations sa1100dog_fops = {
 	.release	= sa1100dog_release,
 };
 
-static struct miscdevice sa1100dog_miscdev = {
+static struct miscdevice sa1100dog_miscdev =
+{
 	.minor		= WATCHDOG_MINOR,
 	.name		= "watchdog",
 	.fops		= &sa1100dog_fops,
@@ -168,13 +183,15 @@ static int __init sa1100dog_init(void)
 	 * reset reason will be lost.
 	 */
 	boot_status = (reset_status & RESET_STATUS_WATCHDOG) ?
-				WDIOF_CARDRESET : 0;
+				  WDIOF_CARDRESET : 0;
 	pre_margin = oscr_freq * margin;
 
 	ret = misc_register(&sa1100dog_miscdev);
+
 	if (ret == 0)
 		pr_info("SA1100/PXA2xx Watchdog Timer: timer margin %d sec\n",
-			margin);
+				margin);
+
 	return ret;
 }
 

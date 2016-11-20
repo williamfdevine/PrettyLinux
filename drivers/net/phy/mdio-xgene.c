@@ -48,15 +48,22 @@ static u32 xgene_enet_rd_mac(void __iomem *base_addr, u32 rd_addr)
 	iowrite32(rd_addr, addr);
 	iowrite32(XGENE_ENET_RD_CMD, cmd);
 
-	while (wait--) {
+	while (wait--)
+	{
 		done = ioread32(cmd_done);
+
 		if (done)
+		{
 			break;
+		}
+
 		udelay(1);
 	}
 
 	if (!done)
+	{
 		return rd_data;
+	}
 
 	rd_data = ioread32(rd);
 	iowrite32(0, cmd);
@@ -79,15 +86,22 @@ static void xgene_enet_wr_mac(void __iomem *base_addr, u32 wr_addr, u32 wr_data)
 	iowrite32(wr_data, wr);
 	iowrite32(XGENE_ENET_WR_CMD, cmd);
 
-	while (wait--) {
+	while (wait--)
+	{
 		done = ioread32(cmd_done);
+
 		if (done)
+		{
 			break;
+		}
+
 		udelay(1);
 	}
 
 	if (!done)
+	{
 		pr_err("MCX mac write failed, addr: 0x%04x\n", wr_addr);
+	}
 
 	iowrite32(0, cmd);
 }
@@ -101,12 +115,16 @@ int xgene_mdio_rgmii_read(struct mii_bus *bus, int phy_id, int reg)
 	data = SET_VAL(PHY_ADDR, phy_id) | SET_VAL(REG_ADDR, reg);
 	xgene_enet_wr_mac(addr, MII_MGMT_ADDRESS_ADDR, data);
 	xgene_enet_wr_mac(addr, MII_MGMT_COMMAND_ADDR, READ_CYCLE_MASK);
-	do {
+
+	do
+	{
 		usleep_range(5, 10);
 		done = xgene_enet_rd_mac(addr, MII_MGMT_INDICATORS_ADDR);
-	} while ((done & BUSY_MASK) && wait--);
+	}
+	while ((done & BUSY_MASK) && wait--);
 
-	if (done & BUSY_MASK) {
+	if (done & BUSY_MASK)
+	{
 		dev_err(&bus->dev, "MII_MGMT read failed\n");
 		return -EBUSY;
 	}
@@ -128,12 +146,16 @@ int xgene_mdio_rgmii_write(struct mii_bus *bus, int phy_id, int reg, u16 data)
 	xgene_enet_wr_mac(addr, MII_MGMT_ADDRESS_ADDR, val);
 
 	xgene_enet_wr_mac(addr, MII_MGMT_CONTROL_ADDR, data);
-	do {
+
+	do
+	{
 		usleep_range(5, 10);
 		done = xgene_enet_rd_mac(addr, MII_MGMT_INDICATORS_ADDR);
-	} while ((done & BUSY_MASK) && wait--);
+	}
+	while ((done & BUSY_MASK) && wait--);
 
-	if (done & BUSY_MASK) {
+	if (done & BUSY_MASK)
+	{
 		dev_err(&bus->dev, "MII_MGMT write failed\n");
 		return -EBUSY;
 	}
@@ -148,7 +170,7 @@ static u32 xgene_menet_rd_diag_csr(struct xgene_mdio_pdata *pdata, u32 offset)
 }
 
 static void xgene_menet_wr_diag_csr(struct xgene_mdio_pdata *pdata,
-				    u32 offset, u32 val)
+									u32 offset, u32 val)
 {
 	iowrite32(val, pdata->diag_csr_addr + offset);
 }
@@ -159,12 +181,16 @@ static int xgene_enet_ecc_init(struct xgene_mdio_pdata *pdata)
 	u8 wait = 10;
 
 	xgene_menet_wr_diag_csr(pdata, MENET_CFG_MEM_RAM_SHUTDOWN_ADDR, 0x0);
-	do {
+
+	do
+	{
 		usleep_range(100, 110);
 		data = xgene_menet_rd_diag_csr(pdata, MENET_BLOCK_MEM_RDY_ADDR);
-	} while ((data != 0xffffffff) && wait--);
+	}
+	while ((data != 0xffffffff) && wait--);
 
-	if (data != 0xffffffff) {
+	if (data != 0xffffffff)
+	{
 		dev_err(pdata->dev, "Failed to release memory from shutdown\n");
 		return -ENODEV;
 	}
@@ -182,30 +208,37 @@ static int xgene_mdio_reset(struct xgene_mdio_pdata *pdata)
 {
 	int ret;
 
-	if (pdata->dev->of_node) {
+	if (pdata->dev->of_node)
+	{
 		clk_prepare_enable(pdata->clk);
 		udelay(5);
 		clk_disable_unprepare(pdata->clk);
 		udelay(5);
 		clk_prepare_enable(pdata->clk);
 		udelay(5);
-	} else {
+	}
+	else
+	{
 #ifdef CONFIG_ACPI
 		acpi_evaluate_object(ACPI_HANDLE(pdata->dev),
-				     "_RST", NULL, NULL);
+							 "_RST", NULL, NULL);
 #endif
 	}
 
 	ret = xgene_enet_ecc_init(pdata);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	xgene_gmac_reset(pdata);
 
 	return 0;
 }
 
 static void xgene_enet_rd_mdio_csr(void __iomem *base_addr,
-				   u32 offset, u32 *val)
+								   u32 offset, u32 *val)
 {
 	void __iomem *addr = base_addr  + offset;
 
@@ -213,7 +246,7 @@ static void xgene_enet_rd_mdio_csr(void __iomem *base_addr,
 }
 
 static void xgene_enet_wr_mdio_csr(void __iomem *base_addr,
-				   u32 offset, u32 val)
+								   u32 offset, u32 val)
 {
 	void __iomem *addr = base_addr  + offset;
 
@@ -221,23 +254,25 @@ static void xgene_enet_wr_mdio_csr(void __iomem *base_addr,
 }
 
 static int xgene_xfi_mdio_write(struct mii_bus *bus, int phy_id,
-				int reg, u16 data)
+								int reg, u16 data)
 {
 	void __iomem *addr = (void __iomem *)bus->priv;
 	int timeout = 100;
 	u32 status, val;
 
 	val = SET_VAL(HSTPHYADX, phy_id) | SET_VAL(HSTREGADX, reg) |
-	      SET_VAL(HSTMIIMWRDAT, data);
+		  SET_VAL(HSTMIIMWRDAT, data);
 	xgene_enet_wr_mdio_csr(addr, MIIM_FIELD_ADDR, data);
 
 	val = HSTLDCMD | SET_VAL(HSTMIIMCMD, MIIM_CMD_LEGACY_WRITE);
 	xgene_enet_wr_mdio_csr(addr, MIIM_COMMAND_ADDR, val);
 
-	do {
+	do
+	{
 		usleep_range(5, 10);
 		xgene_enet_rd_mdio_csr(addr, MIIM_INDICATOR_ADDR, &status);
-	} while ((status & BUSY_MASK) && timeout--);
+	}
+	while ((status & BUSY_MASK) && timeout--);
 
 	xgene_enet_wr_mdio_csr(addr, MIIM_COMMAND_ADDR, 0);
 
@@ -256,12 +291,15 @@ static int xgene_xfi_mdio_read(struct mii_bus *bus, int phy_id, int reg)
 	val = HSTLDCMD | SET_VAL(HSTMIIMCMD, MIIM_CMD_LEGACY_READ);
 	xgene_enet_wr_mdio_csr(addr, MIIM_COMMAND_ADDR, val);
 
-	do {
+	do
+	{
 		usleep_range(5, 10);
 		xgene_enet_rd_mdio_csr(addr, MIIM_INDICATOR_ADDR, &status);
-	} while ((status & BUSY_MASK) && timeout--);
+	}
+	while ((status & BUSY_MASK) && timeout--);
 
-	if (status & BUSY_MASK) {
+	if (status & BUSY_MASK)
+	{
 		pr_err("XGENET_MII_MGMT write failed\n");
 		return -EBUSY;
 	}
@@ -277,11 +315,16 @@ struct phy_device *xgene_enet_phy_register(struct mii_bus *bus, int phy_addr)
 	struct phy_device *phy_dev;
 
 	phy_dev = get_phy_device(bus, phy_addr, false);
+
 	if (!phy_dev || IS_ERR(phy_dev))
+	{
 		return NULL;
+	}
 
 	if (phy_device_register(phy_dev))
+	{
 		phy_device_free(phy_dev);
+	}
 
 	return phy_dev;
 }
@@ -289,7 +332,7 @@ EXPORT_SYMBOL(xgene_enet_phy_register);
 
 #ifdef CONFIG_ACPI
 static acpi_status acpi_register_phy(acpi_handle handle, u32 lvl,
-				     void *context, void **ret)
+									 void *context, void **ret)
 {
 	struct mii_bus *mdio = context;
 	struct acpi_device *adev;
@@ -298,10 +341,15 @@ static acpi_status acpi_register_phy(acpi_handle handle, u32 lvl,
 	u32 phy_addr;
 
 	if (acpi_bus_get_device(handle, &adev))
+	{
 		return AE_OK;
+	}
 
 	if (acpi_dev_get_property(adev, "phy-channel", ACPI_TYPE_INTEGER, &obj))
+	{
 		return AE_OK;
+	}
+
 	phy_addr = obj->integer.value;
 
 	phy_dev = xgene_enet_phy_register(mdio, phy_addr);
@@ -322,87 +370,125 @@ static int xgene_mdio_probe(struct platform_device *pdev)
 	int mdio_id = 0, ret = 0;
 
 	of_id = of_match_device(xgene_mdio_of_match, &pdev->dev);
-	if (of_id) {
+
+	if (of_id)
+	{
 		mdio_id = (enum xgene_mdio_id)of_id->data;
-	} else {
+	}
+	else
+	{
 #ifdef CONFIG_ACPI
 		const struct acpi_device_id *acpi_id;
 
 		acpi_id = acpi_match_device(xgene_mdio_acpi_match, &pdev->dev);
+
 		if (acpi_id)
+		{
 			mdio_id = (enum xgene_mdio_id)acpi_id->driver_data;
+		}
+
 #endif
 	}
 
 	if (!mdio_id)
+	{
 		return -ENODEV;
+	}
 
 	pdata = devm_kzalloc(dev, sizeof(struct xgene_mdio_pdata), GFP_KERNEL);
+
 	if (!pdata)
+	{
 		return -ENOMEM;
+	}
+
 	pdata->mdio_id = mdio_id;
 	pdata->dev = dev;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	csr_base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(csr_base))
+	{
 		return PTR_ERR(csr_base);
+	}
+
 	pdata->mac_csr_addr = csr_base;
 	pdata->mdio_csr_addr = csr_base + BLOCK_XG_MDIO_CSR_OFFSET;
 	pdata->diag_csr_addr = csr_base + BLOCK_DIAG_CSR_OFFSET;
 
-	if (dev->of_node) {
+	if (dev->of_node)
+	{
 		pdata->clk = devm_clk_get(dev, NULL);
-		if (IS_ERR(pdata->clk)) {
+
+		if (IS_ERR(pdata->clk))
+		{
 			dev_err(dev, "Unable to retrieve clk\n");
 			return PTR_ERR(pdata->clk);
 		}
 	}
 
 	ret = xgene_mdio_reset(pdata);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	mdio_bus = mdiobus_alloc();
+
 	if (!mdio_bus)
+	{
 		return -ENOMEM;
+	}
 
 	mdio_bus->name = "APM X-Gene MDIO bus";
 
-	if (mdio_id == XGENE_MDIO_RGMII) {
+	if (mdio_id == XGENE_MDIO_RGMII)
+	{
 		mdio_bus->read = xgene_mdio_rgmii_read;
 		mdio_bus->write = xgene_mdio_rgmii_write;
 		mdio_bus->priv = (void __force *)pdata->mac_csr_addr;
 		snprintf(mdio_bus->id, MII_BUS_ID_SIZE, "%s",
-			 "xgene-mii-rgmii");
-	} else {
+				 "xgene-mii-rgmii");
+	}
+	else
+	{
 		mdio_bus->read = xgene_xfi_mdio_read;
 		mdio_bus->write = xgene_xfi_mdio_write;
 		mdio_bus->priv = (void __force *)pdata->mdio_csr_addr;
 		snprintf(mdio_bus->id, MII_BUS_ID_SIZE, "%s",
-			 "xgene-mii-xfi");
+				 "xgene-mii-xfi");
 	}
 
 	mdio_bus->parent = dev;
 	platform_set_drvdata(pdev, pdata);
 
-	if (dev->of_node) {
+	if (dev->of_node)
+	{
 		ret = of_mdiobus_register(mdio_bus, dev->of_node);
-	} else {
+	}
+	else
+	{
 #ifdef CONFIG_ACPI
 		/* Mask out all PHYs from auto probing. */
 		mdio_bus->phy_mask = ~0;
 		ret = mdiobus_register(mdio_bus);
+
 		if (ret)
+		{
 			goto out;
+		}
 
 		acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_HANDLE(dev), 1,
-				    acpi_register_phy, NULL, mdio_bus, NULL);
+							acpi_register_phy, NULL, mdio_bus, NULL);
 #endif
 	}
 
 	if (ret)
+	{
 		goto out;
+	}
 
 	pdata->mdio_bus = mdio_bus;
 	xgene_mdio_status = true;
@@ -425,13 +511,16 @@ static int xgene_mdio_remove(struct platform_device *pdev)
 	mdiobus_free(mdio_bus);
 
 	if (dev->of_node)
+	{
 		clk_disable_unprepare(pdata->clk);
+	}
 
 	return 0;
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id xgene_mdio_of_match[] = {
+static const struct of_device_id xgene_mdio_of_match[] =
+{
 	{
 		.compatible = "apm,xgene-mdio-rgmii",
 		.data = (void *)XGENE_MDIO_RGMII
@@ -447,7 +536,8 @@ MODULE_DEVICE_TABLE(of, xgene_mdio_of_match);
 #endif
 
 #ifdef CONFIG_ACPI
-static const struct acpi_device_id xgene_mdio_acpi_match[] = {
+static const struct acpi_device_id xgene_mdio_acpi_match[] =
+{
 	{ "APMC0D65", XGENE_MDIO_RGMII },
 	{ "APMC0D66", XGENE_MDIO_XFI },
 	{ }
@@ -456,7 +546,8 @@ static const struct acpi_device_id xgene_mdio_acpi_match[] = {
 MODULE_DEVICE_TABLE(acpi, xgene_mdio_acpi_match);
 #endif
 
-static struct platform_driver xgene_mdio_driver = {
+static struct platform_driver xgene_mdio_driver =
+{
 	.driver = {
 		.name = "xgene-mdio",
 		.of_match_table = of_match_ptr(xgene_mdio_of_match),

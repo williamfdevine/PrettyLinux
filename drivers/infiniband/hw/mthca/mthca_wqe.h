@@ -35,7 +35,8 @@
 
 #include <linux/types.h>
 
-enum {
+enum
+{
 	MTHCA_NEXT_DBD		= 1 << 7,
 	MTHCA_NEXT_FENCE	= 1 << 6,
 	MTHCA_NEXT_CQ_UPDATE	= 1 << 3,
@@ -48,20 +49,23 @@ enum {
 	MTHCA_MLX_SLR		= 1 << 16
 };
 
-enum {
+enum
+{
 	MTHCA_INVAL_LKEY			= 0x100,
 	MTHCA_TAVOR_MAX_WQES_PER_RECV_DB	= 256,
 	MTHCA_ARBEL_MAX_WQES_PER_SEND_DB	= 255
 };
 
-struct mthca_next_seg {
+struct mthca_next_seg
+{
 	__be32 nda_op;		/* [31:6] next WQE [4:0] next opcode */
 	__be32 ee_nds;		/* [31:8] next EE  [7] DBD [6] F [5:0] next WQE size */
 	__be32 flags;		/* [3] CQ [2] Event [1] Solicit */
 	__be32 imm;		/* immediate data */
 };
 
-struct mthca_tavor_ud_seg {
+struct mthca_tavor_ud_seg
+{
 	u32    reserved1;
 	__be32 lkey;
 	__be64 av_addr;
@@ -71,14 +75,16 @@ struct mthca_tavor_ud_seg {
 	u32    reserved3[2];
 };
 
-struct mthca_arbel_ud_seg {
+struct mthca_arbel_ud_seg
+{
 	__be32 av[8];
 	__be32 dqpn;
 	__be32 qkey;
 	u32    reserved[2];
 };
 
-struct mthca_bind_seg {
+struct mthca_bind_seg
+{
 	__be32 flags;		/* [31] Atomic [30] rem write [29] rem read */
 	u32    reserved;
 	__be32 new_rkey;
@@ -87,24 +93,28 @@ struct mthca_bind_seg {
 	__be64 length;
 };
 
-struct mthca_raddr_seg {
+struct mthca_raddr_seg
+{
 	__be64 raddr;
 	__be32 rkey;
 	u32    reserved;
 };
 
-struct mthca_atomic_seg {
+struct mthca_atomic_seg
+{
 	__be64 swap_add;
 	__be64 compare;
 };
 
-struct mthca_data_seg {
+struct mthca_data_seg
+{
 	__be32 byte_count;
 	__be32 lkey;
 	__be64 addr;
 };
 
-struct mthca_mlx_seg {
+struct mthca_mlx_seg
+{
 	__be32 nda_op;
 	__be32 nds;
 	__be32 flags;		/* [17] VL15 [16] SLR [14:12] static rate
@@ -114,7 +124,7 @@ struct mthca_mlx_seg {
 };
 
 static __always_inline void mthca_set_data_seg(struct mthca_data_seg *dseg,
-					       struct ib_sge *sg)
+		struct ib_sge *sg)
 {
 	dseg->byte_count = cpu_to_be32(sg->length);
 	dseg->lkey       = cpu_to_be32(sg->lkey);

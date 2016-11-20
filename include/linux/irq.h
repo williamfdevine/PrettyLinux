@@ -74,7 +74,8 @@ enum irqchip_irq_state;
  *				  mechanism and from core side polling.
  * IRQ_DISABLE_UNLAZY		- Disable lazy irq disable
  */
-enum {
+enum
+{
 	IRQ_TYPE_NONE		= 0x00000000,
 	IRQ_TYPE_EDGE_RISING	= 0x00000001,
 	IRQ_TYPE_EDGE_FALLING	= 0x00000002,
@@ -118,7 +119,8 @@ enum {
  *			  support stacked irqchips, which indicates skipping
  *			  all descendent irqchips.
  */
-enum {
+enum
+{
 	IRQ_SET_MASK_OK = 0,
 	IRQ_SET_MASK_OK_NOCOPY,
 	IRQ_SET_MASK_OK_DONE,
@@ -139,7 +141,8 @@ struct irq_domain;
  * @msi_desc:		MSI descriptor
  * @ipi_offset:		Offset of first IPI target cpu in @affinity. Optional.
  */
-struct irq_common_data {
+struct irq_common_data
+{
 	unsigned int		__private state_use_accessors;
 #ifdef CONFIG_NUMA
 	unsigned int		node;
@@ -166,7 +169,8 @@ struct irq_common_data {
  * @chip_data:		platform-specific per-chip private data for the chip
  *			methods, to allow shared chip implementations
  */
-struct irq_data {
+struct irq_data
+{
 	u32			mask;
 	unsigned int		irq;
 	unsigned long		hwirq;
@@ -199,7 +203,8 @@ struct irq_data {
  * IRQD_FORWARDED_TO_VCPU	- The interrupt is forwarded to a VCPU
  * IRQD_AFFINITY_MANAGED	- Affinity is auto-managed by the kernel
  */
-enum {
+enum
+{
 	IRQD_TRIGGER_MASK		= 0xf,
 	IRQD_SETAFFINITY_PENDING	= (1 <<  8),
 	IRQD_NO_BALANCING		= (1 << 10),
@@ -361,7 +366,8 @@ static inline irq_hw_number_t irqd_to_hwirq(struct irq_data *d)
  * @ipi_send_mask:	send an IPI to destination cpus in cpumask
  * @flags:		chip specific flags
  */
-struct irq_chip {
+struct irq_chip
+{
 	struct device	*parent_device;
 	const char	*name;
 	unsigned int	(*irq_startup)(struct irq_data *data);
@@ -422,7 +428,8 @@ struct irq_chip {
  * IRQCHIP_ONESHOT_SAFE:	One shot does not require mask/unmask
  * IRQCHIP_EOI_THREADED:	Chip requires eoi() on unmask in threaded mode
  */
-enum {
+enum
+{
 	IRQCHIP_SET_TYPE_MASKED		= (1 <<  0),
 	IRQCHIP_EOI_IF_HANDLED		= (1 <<  1),
 	IRQCHIP_MASK_ON_SUSPEND		= (1 <<  2),
@@ -440,11 +447,11 @@ enum {
 #include <asm/hw_irq.h>
 
 #ifndef NR_IRQS_LEGACY
-# define NR_IRQS_LEGACY 0
+	#define NR_IRQS_LEGACY 0
 #endif
 
 #ifndef ARCH_IRQ_INIT_FLAGS
-# define ARCH_IRQ_INIT_FLAGS	0
+	#define ARCH_IRQ_INIT_FLAGS	0
 #endif
 
 #define IRQ_DEFAULT_INIT_FLAGS	ARCH_IRQ_INIT_FLAGS
@@ -458,7 +465,7 @@ extern void remove_percpu_irq(unsigned int irq, struct irqaction *act);
 extern void irq_cpu_online(void);
 extern void irq_cpu_offline(void);
 extern int irq_set_affinity_locked(struct irq_data *data,
-				   const struct cpumask *cpumask, bool force);
+								   const struct cpumask *cpumask, bool force);
 extern int irq_set_vcpu_affinity(unsigned int irq, void *vcpu_info);
 
 extern void irq_migrate_all_off_this_cpu(void);
@@ -509,11 +516,11 @@ extern void irq_chip_mask_parent(struct irq_data *data);
 extern void irq_chip_unmask_parent(struct irq_data *data);
 extern void irq_chip_eoi_parent(struct irq_data *data);
 extern int irq_chip_set_affinity_parent(struct irq_data *data,
-					const struct cpumask *dest,
-					bool force);
+										const struct cpumask *dest,
+										bool force);
 extern int irq_chip_set_wake_parent(struct irq_data *data, unsigned int on);
 extern int irq_chip_set_vcpu_affinity_parent(struct irq_data *data,
-					     void *vcpu_info);
+		void *vcpu_info);
 extern int irq_chip_set_type_parent(struct irq_data *data, unsigned int type);
 #endif
 
@@ -533,23 +540,23 @@ extern struct irq_chip dummy_irq_chip;
 
 extern void
 irq_set_chip_and_handler_name(unsigned int irq, struct irq_chip *chip,
-			      irq_flow_handler_t handle, const char *name);
+							  irq_flow_handler_t handle, const char *name);
 
 static inline void irq_set_chip_and_handler(unsigned int irq, struct irq_chip *chip,
-					    irq_flow_handler_t handle)
+		irq_flow_handler_t handle)
 {
 	irq_set_chip_and_handler_name(irq, chip, handle, NULL);
 }
 
 extern int irq_set_percpu_devid(unsigned int irq);
 extern int irq_set_percpu_devid_partition(unsigned int irq,
-					  const struct cpumask *affinity);
+		const struct cpumask *affinity);
 extern int irq_get_percpu_devid_partition(unsigned int irq,
-					  struct cpumask *affinity);
+		struct cpumask *affinity);
 
 extern void
 __irq_set_handler(unsigned int irq, irq_flow_handler_t handle, int is_chained,
-		  const char *name);
+				  const char *name);
 
 static inline void
 irq_set_handler(unsigned int irq, irq_flow_handler_t handle)
@@ -575,7 +582,7 @@ irq_set_chained_handler(unsigned int irq, irq_flow_handler_t handle)
  */
 void
 irq_set_chained_handler_and_data(unsigned int irq, irq_flow_handler_t handle,
-				 void *data);
+								 void *data);
 
 void irq_modify_status(unsigned int irq, unsigned long clr, unsigned long set);
 
@@ -612,16 +619,20 @@ static inline void irq_set_thread(unsigned int irq)
 static inline void irq_set_nested_thread(unsigned int irq, bool nest)
 {
 	if (nest)
+	{
 		irq_set_status_flags(irq, IRQ_NESTED_THREAD);
+	}
 	else
+	{
 		irq_clear_status_flags(irq, IRQ_NESTED_THREAD);
+	}
 }
 
 static inline void irq_set_percpu_devid_flags(unsigned int irq)
 {
 	irq_set_status_flags(irq,
-			     IRQ_NOAUTOEN | IRQ_PER_CPU | IRQ_NOTHREAD |
-			     IRQ_NOPROBE | IRQ_PER_CPU_DEVID);
+						 IRQ_NOAUTOEN | IRQ_PER_CPU | IRQ_NOTHREAD |
+						 IRQ_NOPROBE | IRQ_PER_CPU_DEVID);
 }
 
 /* Set/get chip/data for an IRQ: */
@@ -631,7 +642,7 @@ extern int irq_set_chip_data(unsigned int irq, void *data);
 extern int irq_set_irq_type(unsigned int irq, unsigned int type);
 extern int irq_set_msi_desc(unsigned int irq, struct msi_desc *entry);
 extern int irq_set_msi_desc_off(unsigned int irq_base, unsigned int irq_offset,
-				struct msi_desc *entry);
+								struct msi_desc *entry);
 extern struct irq_data *irq_get_irq_data(unsigned int irq);
 
 static inline struct irq_chip *irq_get_chip(unsigned int irq)
@@ -713,7 +724,7 @@ static inline struct cpumask *irq_data_get_affinity_mask(struct irq_data *d)
 unsigned int arch_dynirq_lower_bound(unsigned int from);
 
 int __irq_alloc_descs(int irq, unsigned int from, unsigned int cnt, int node,
-		      struct module *owner, const struct cpumask *affinity);
+					  struct module *owner, const struct cpumask *affinity);
 
 /* use macros to avoid needing export.h for THIS_MODULE */
 #define irq_alloc_descs(irq, from, cnt, node)	\
@@ -753,7 +764,7 @@ void arch_teardown_hwirq(unsigned int irq);
 #endif
 
 #ifdef CONFIG_GENERIC_IRQ_LEGACY
-void irq_init_desc(unsigned int irq);
+	void irq_init_desc(unsigned int irq);
 #endif
 
 /**
@@ -766,7 +777,8 @@ void irq_init_desc(unsigned int irq);
  * @type:	Type configuration register offset to reg_base
  * @polarity:	Polarity configuration register offset to reg_base
  */
-struct irq_chip_regs {
+struct irq_chip_regs
+{
 	unsigned long		enable;
 	unsigned long		disable;
 	unsigned long		mask;
@@ -789,7 +801,8 @@ struct irq_chip_regs {
  * it requires different functions and register offsets for different
  * flow types.
  */
-struct irq_chip_type {
+struct irq_chip_type
+{
 	struct irq_chip		chip;
 	struct irq_chip_regs	regs;
 	irq_flow_handler_t	handler;
@@ -831,27 +844,28 @@ struct irq_chip_type {
  * state in an irq_chip_generic instance when we need to implement
  * different flow mechanisms (level/edge) for it.
  */
-struct irq_chip_generic {
-	raw_spinlock_t		lock;
-	void __iomem		*reg_base;
-	u32			(*reg_readl)(void __iomem *addr);
-	void			(*reg_writel)(u32 val, void __iomem *addr);
-	void			(*suspend)(struct irq_chip_generic *gc);
-	void			(*resume)(struct irq_chip_generic *gc);
-	unsigned int		irq_base;
-	unsigned int		irq_cnt;
-	u32			mask_cache;
-	u32			type_cache;
-	u32			polarity_cache;
-	u32			wake_enabled;
-	u32			wake_active;
-	unsigned int		num_ct;
-	void			*private;
-	unsigned long		installed;
-	unsigned long		unused;
-	struct irq_domain	*domain;
-	struct list_head	list;
-	struct irq_chip_type	chip_types[0];
+struct irq_chip_generic
+{
+		raw_spinlock_t		lock;
+		void __iomem		*reg_base;
+		u32			(*reg_readl)(void __iomem *addr);
+		void			(*reg_writel)(u32 val, void __iomem *addr);
+		void			(*suspend)(struct irq_chip_generic *gc);
+		void			(*resume)(struct irq_chip_generic *gc);
+		unsigned int		irq_base;
+		unsigned int		irq_cnt;
+		u32			mask_cache;
+		u32			type_cache;
+		u32			polarity_cache;
+		u32			wake_enabled;
+		u32			wake_active;
+		unsigned int		num_ct;
+		void			*private;
+		unsigned long		installed;
+		unsigned long		unused;
+		struct irq_domain	*domain;
+		struct list_head	list;
+		struct irq_chip_type	chip_types[0];
 };
 
 /**
@@ -864,7 +878,8 @@ struct irq_chip_generic {
  * @IRQ_GC_NO_MASK:		Do not calculate irq_data->mask
  * @IRQ_GC_BE_IO:		Use big-endian register accesses (default: LE)
  */
-enum irq_gc_flags {
+enum irq_gc_flags
+{
 	IRQ_GC_INIT_MASK_CACHE		= 1 << 0,
 	IRQ_GC_INIT_NESTED_LOCK		= 1 << 1,
 	IRQ_GC_MASK_CACHE_PER_TYPE	= 1 << 2,
@@ -881,7 +896,8 @@ enum irq_gc_flags {
  * @gc_flags:		Generic chip specific setup flags
  * @gc:			Array of pointers to generic interrupt chips
  */
-struct irq_domain_chip_generic {
+struct irq_domain_chip_generic
+{
 	unsigned int		irqs_per_chip;
 	unsigned int		num_chips;
 	unsigned int		irq_flags_to_clear;
@@ -904,31 +920,31 @@ int irq_gc_set_wake(struct irq_data *d, unsigned int on);
 
 /* Setup functions for irq_chip_generic */
 int irq_map_generic_chip(struct irq_domain *d, unsigned int virq,
-			 irq_hw_number_t hw_irq);
+						 irq_hw_number_t hw_irq);
 struct irq_chip_generic *
 irq_alloc_generic_chip(const char *name, int nr_ct, unsigned int irq_base,
-		       void __iomem *reg_base, irq_flow_handler_t handler);
+					   void __iomem *reg_base, irq_flow_handler_t handler);
 void irq_setup_generic_chip(struct irq_chip_generic *gc, u32 msk,
-			    enum irq_gc_flags flags, unsigned int clr,
-			    unsigned int set);
+							enum irq_gc_flags flags, unsigned int clr,
+							unsigned int set);
 int irq_setup_alt_chip(struct irq_data *d, unsigned int type);
 void irq_remove_generic_chip(struct irq_chip_generic *gc, u32 msk,
-			     unsigned int clr, unsigned int set);
+							 unsigned int clr, unsigned int set);
 
 struct irq_chip_generic *irq_get_domain_generic_chip(struct irq_domain *d, unsigned int hw_irq);
 
 int __irq_alloc_domain_generic_chips(struct irq_domain *d, int irqs_per_chip,
-				     int num_ct, const char *name,
-				     irq_flow_handler_t handler,
-				     unsigned int clr, unsigned int set,
-				     enum irq_gc_flags flags);
+									 int num_ct, const char *name,
+									 irq_flow_handler_t handler,
+									 unsigned int clr, unsigned int set,
+									 enum irq_gc_flags flags);
 
 #define irq_alloc_domain_generic_chips(d, irqs_per_chip, num_ct, name,	\
-				       handler,	clr, set, flags)	\
+									   handler,	clr, set, flags)	\
 ({									\
 	MAYBE_BUILD_BUG_ON(irqs_per_chip > 32);				\
 	__irq_alloc_domain_generic_chips(d, irqs_per_chip, num_ct, name,\
-					 handler, clr, set, flags);	\
+									 handler, clr, set, flags);	\
 })
 
 static inline struct irq_chip_type *irq_data_get_chip_type(struct irq_data *d)
@@ -964,21 +980,29 @@ static inline void irq_gc_unlock(struct irq_chip_generic *gc) { }
 	raw_spin_unlock_irqrestore(&(gc)->lock, flags)
 
 static inline void irq_reg_writel(struct irq_chip_generic *gc,
-				  u32 val, int reg_offset)
+								  u32 val, int reg_offset)
 {
 	if (gc->reg_writel)
+	{
 		gc->reg_writel(val, gc->reg_base + reg_offset);
+	}
 	else
+	{
 		writel(val, gc->reg_base + reg_offset);
+	}
 }
 
 static inline u32 irq_reg_readl(struct irq_chip_generic *gc,
-				int reg_offset)
+								int reg_offset)
 {
 	if (gc->reg_readl)
+	{
 		return gc->reg_readl(gc->reg_base + reg_offset);
+	}
 	else
+	{
 		return readl(gc->reg_base + reg_offset);
+	}
 }
 
 /* Contrary to Linux irqs, for hardware irqs the irq number 0 is valid */

@@ -53,9 +53,9 @@ ACPI_MODULE_NAME("nsload")
 
 /* Local prototypes */
 #ifdef ACPI_FUTURE_IMPLEMENTATION
-acpi_status acpi_ns_unload_namespace(acpi_handle handle);
+	acpi_status acpi_ns_unload_namespace(acpi_handle handle);
 
-static acpi_status acpi_ns_delete_subtree(acpi_handle start_handle);
+	static acpi_status acpi_ns_delete_subtree(acpi_handle start_handle);
 #endif
 
 #ifndef ACPI_NO_METHOD_EXECUTION
@@ -81,16 +81,19 @@ acpi_ns_load_table(u32 table_index, struct acpi_namespace_node *node)
 
 	/* If table already loaded into namespace, just return */
 
-	if (acpi_tb_is_table_loaded(table_index)) {
+	if (acpi_tb_is_table_loaded(table_index))
+	{
 		status = AE_ALREADY_EXISTS;
 		goto unlock;
 	}
 
 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-			  "**** Loading table into namespace ****\n"));
+					  "**** Loading table into namespace ****\n"));
 
 	status = acpi_tb_allocate_owner_id(table_index);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		goto unlock;
 	}
 
@@ -104,9 +107,13 @@ acpi_ns_load_table(u32 table_index, struct acpi_namespace_node *node)
 	 * because we don't know how many arguments to parse next!
 	 */
 	status = acpi_ns_parse_table(table_index, node);
-	if (ACPI_SUCCESS(status)) {
+
+	if (ACPI_SUCCESS(status))
+	{
 		acpi_tb_set_table_loaded_flag(table_index, TRUE);
-	} else {
+	}
+	else
+	{
 		/*
 		 * On error, delete any namespace objects created by this table.
 		 * We cannot initialize these objects, so delete them. There are
@@ -117,14 +124,16 @@ acpi_ns_load_table(u32 table_index, struct acpi_namespace_node *node)
 		 * namespace, as per the ACPI specification.
 		 */
 		acpi_ns_delete_namespace_by_owner(acpi_gbl_root_table_list.
-						  tables[table_index].owner_id);
+										  tables[table_index].owner_id);
 
 		acpi_tb_release_owner_id(table_index);
 		return_ACPI_STATUS(status);
 	}
 
 unlock:
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
 	}
 
@@ -135,14 +144,14 @@ unlock:
 	 * parse trees.
 	 */
 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-			  "**** Begin Table Object Initialization\n"));
+					  "**** Begin Table Object Initialization\n"));
 
 	acpi_ex_enter_interpreter();
 	status = acpi_ds_initialize_objects(table_index, node);
 	acpi_ex_exit_interpreter();
 
 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-			  "**** Completed Table Object Initialization\n"));
+					  "**** Completed Table Object Initialization\n"));
 
 	/*
 	 * Execute any module-level code that was detected during the table load
@@ -158,7 +167,8 @@ unlock:
 	 * until later, see acpi_initialize_objects.
 	 */
 	if (!acpi_gbl_parse_table_as_term_list
-	    && !acpi_gbl_group_module_level_code) {
+		&& !acpi_gbl_group_module_level_code)
+	{
 		acpi_ns_exec_module_code_list();
 	}
 
@@ -187,7 +197,8 @@ acpi_status acpi_ns_load_namespace(void)
 
 	/* There must be at least a DSDT installed */
 
-	if (acpi_gbl_DSDT == NULL) {
+	if (acpi_gbl_DSDT == NULL)
+	{
 		ACPI_ERROR((AE_INFO, "DSDT is not in memory"));
 		return_ACPI_STATUS(AE_NO_ACPI_TABLES);
 	}
@@ -197,7 +208,9 @@ acpi_status acpi_ns_load_namespace(void)
 	 * but the SSDT and PSDT tables are optional.
 	 */
 	status = acpi_ns_load_table_by_type(ACPI_TABLE_ID_DSDT);
-	if (ACPI_FAILURE(status)) {
+
+	if (ACPI_FAILURE(status))
+	{
 		return_ACPI_STATUS(status);
 	}
 
@@ -207,8 +220,8 @@ acpi_status acpi_ns_load_namespace(void)
 	(void)acpi_ns_load_table_by_type(ACPI_TABLE_ID_PSDT);
 
 	ACPI_DEBUG_PRINT_RAW((ACPI_DB_INIT,
-			      "ACPI Namespace successfully loaded at root %p\n",
-			      acpi_gbl_root_node));
+						  "ACPI Namespace successfully loaded at root %p\n",
+						  acpi_gbl_root_node));
 
 	return_ACPI_STATUS(status);
 }
@@ -250,24 +263,27 @@ static acpi_status acpi_ns_delete_subtree(acpi_handle start_handle)
 	 * Traverse the tree of objects until we bubble back up
 	 * to where we started.
 	 */
-	while (level > 0) {
+	while (level > 0)
+	{
 
 		/* Attempt to get the next object in this scope */
 
 		status = acpi_get_next_object(ACPI_TYPE_ANY, parent_handle,
-					      child_handle, &next_child_handle);
+									  child_handle, &next_child_handle);
 
 		child_handle = next_child_handle;
 
 		/* Did we get a new object? */
 
-		if (ACPI_SUCCESS(status)) {
+		if (ACPI_SUCCESS(status))
+		{
 
 			/* Check if this object has any children */
 
 			if (ACPI_SUCCESS
-			    (acpi_get_next_object
-			     (ACPI_TYPE_ANY, child_handle, NULL, &dummy))) {
+				(acpi_get_next_object
+				 (ACPI_TYPE_ANY, child_handle, NULL, &dummy)))
+			{
 				/*
 				 * There is at least one child of this object,
 				 * visit the object
@@ -276,7 +292,9 @@ static acpi_status acpi_ns_delete_subtree(acpi_handle start_handle)
 				parent_handle = child_handle;
 				child_handle = NULL;
 			}
-		} else {
+		}
+		else
+		{
 			/*
 			 * No more children in this object, go back up to
 			 * the object's parent
@@ -289,7 +307,9 @@ static acpi_status acpi_ns_delete_subtree(acpi_handle start_handle)
 
 			child_handle = parent_handle;
 			status = acpi_get_parent(parent_handle, &parent_handle);
-			if (ACPI_FAILURE(status)) {
+
+			if (ACPI_FAILURE(status))
+			{
 				return_ACPI_STATUS(status);
 			}
 		}
@@ -323,11 +343,13 @@ acpi_status acpi_ns_unload_namespace(acpi_handle handle)
 
 	/* Parameter validation */
 
-	if (!acpi_gbl_root_node) {
+	if (!acpi_gbl_root_node)
+	{
 		return_ACPI_STATUS(AE_NO_NAMESPACE);
 	}
 
-	if (!handle) {
+	if (!handle)
+	{
 		return_ACPI_STATUS(AE_BAD_PARAMETER);
 	}
 

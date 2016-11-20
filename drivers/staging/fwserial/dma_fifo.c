@@ -22,15 +22,15 @@
 #include "dma_fifo.h"
 
 #ifdef DEBUG_TRACING
-#define df_trace(s, args...) pr_debug(s, ##args)
+	#define df_trace(s, args...) pr_debug(s, ##args)
 #else
-#define df_trace(s, args...)
+	#define df_trace(s, args...)
 #endif
 
 #define FAIL(fifo, condition, format...) ({				\
-	fifo->corrupt = !!(condition);					\
-	WARN(fifo->corrupt, format);					\
-})
+		fifo->corrupt = !!(condition);					\
+		WARN(fifo->corrupt, format);					\
+	})
 
 /*
  * private helper fn to determine if check is in open interval (lo,hi)
@@ -65,18 +65,23 @@ void dma_fifo_init(struct dma_fifo *fifo)
  * Returns 0 if no error, otherwise an error code
  */
 int dma_fifo_alloc(struct dma_fifo *fifo, int size, unsigned int align,
-		   int tx_limit, int open_limit, gfp_t gfp_mask)
+				   int tx_limit, int open_limit, gfp_t gfp_mask)
 {
 	int capacity;
 
 	if (!is_power_of_2(align) || size < 0)
+	{
 		return -EINVAL;
+	}
 
 	size = round_up(size, align);
 	capacity = size + align * open_limit + align * DMA_FIFO_GUARD;
 	fifo->data = kmalloc(capacity, gfp_mask);
+
 	if (!fifo->data)
+	{
 		return -ENOMEM;
+	}
 
 	fifo->in = 0;
 	fifo->out = 0;
@@ -107,10 +112,12 @@ void dma_fifo_free(struct dma_fifo *fifo)
 	struct dma_pending *pending, *next;
 
 	if (!fifo->data)
+	{
 		return;
+	}
 
 	list_for_each_entry_safe(pending, next, &fifo->pending, link)
-		list_del_init(&pending->link);
+	list_del_init(&pending->link);
 	kfree(fifo->data);
 	fifo->data = NULL;
 }
@@ -124,10 +131,12 @@ void dma_fifo_reset(struct dma_fifo *fifo)
 	struct dma_pending *pending, *next;
 
 	if (!fifo->data)
+	{
 		return;
+	}
 
 	list_for_each_entry_safe(pending, next, &fifo->pending, link)
-		list_del_init(&pending->link);
+	list_del_init(&pending->link);
 	fifo->in = 0;
 	fifo->out = 0;
 	fifo->done = 0;
@@ -150,14 +159,24 @@ int dma_fifo_in(struct dma_fifo *fifo, const void *src, int n)
 	int ofs, l;
 
 	if (!fifo->data)
+	{
 		return -ENOENT;
+	}
+
 	if (fifo->corrupt)
+	{
 		return -ENXIO;
+	}
 
 	if (n > fifo->avail)
+	{
 		n = fifo->avail;
+	}
+
 	if (n <= 0)
+	{
 		return 0;
+	}
 
 	ofs = fifo->in % fifo->capacity;
 	l = min(n, fifo->capacity - ofs);
@@ -165,16 +184,18 @@ int dma_fifo_in(struct dma_fifo *fifo, const void *src, int n)
 	memcpy(fifo->data, src + l, n - l);
 
 	if (FAIL(fifo, addr_check(fifo->done, fifo->in, fifo->in + n) ||
-		 fifo->avail < n,
-		 "fifo corrupt: in:%u out:%u done:%u n:%d avail:%d",
-		 fifo->in, fifo->out, fifo->done, n, fifo->avail))
+			 fifo->avail < n,
+			 "fifo corrupt: in:%u out:%u done:%u n:%d avail:%d",
+			 fifo->in, fifo->out, fifo->done, n, fifo->avail))
+	{
 		return -ENXIO;
+	}
 
 	fifo->in += n;
 	fifo->avail -= n;
 
 	df_trace("in:%u out:%u done:%u n:%d avail:%d", fifo->in, fifo->out,
-		 fifo->done, n, fifo->avail);
+			 fifo->done, n, fifo->avail);
 
 	return n;
 }
@@ -193,37 +214,54 @@ int dma_fifo_out_pend(struct dma_fifo *fifo, struct dma_pending *pended)
 	unsigned int len, n, ofs, l, limit;
 
 	if (!fifo->data)
+	{
 		return -ENOENT;
+	}
+
 	if (fifo->corrupt)
+	{
 		return -ENXIO;
+	}
 
 	pended->len = 0;
 	pended->data = NULL;
 	pended->out = fifo->out;
 
 	len = fifo->in - fifo->out;
+
 	if (!len)
+	{
 		return -ENODATA;
+	}
+
 	if (fifo->open == fifo->open_limit)
+	{
 		return -EAGAIN;
+	}
 
 	n = len;
 	ofs = fifo->out % fifo->capacity;
 	l = fifo->capacity - ofs;
 	limit = min_t(unsigned int, l, fifo->tx_limit);
-	if (n > limit) {
+
+	if (n > limit)
+	{
 		n = limit;
 		fifo->out += limit;
-	} else if (ofs + n > fifo->guard) {
+	}
+	else if (ofs + n > fifo->guard)
+	{
 		fifo->out += l;
 		fifo->in = fifo->out;
-	} else {
+	}
+	else
+	{
 		fifo->out += round_up(n, fifo->align);
 		fifo->in = fifo->out;
 	}
 
 	df_trace("in: %u out: %u done: %u n: %d len: %u avail: %d", fifo->in,
-		 fifo->out, fifo->done, n, len, fifo->avail);
+			 fifo->out, fifo->done, n, len, fifo->avail);
 
 	pended->len = n;
 	pended->data = fifo->data + ofs;
@@ -232,13 +270,18 @@ int dma_fifo_out_pend(struct dma_fifo *fifo, struct dma_pending *pended)
 	++fifo->open;
 
 	if (FAIL(fifo, fifo->open > fifo->open_limit,
-		 "past open limit:%d (limit:%d)",
-		 fifo->open, fifo->open_limit))
+			 "past open limit:%d (limit:%d)",
+			 fifo->open, fifo->open_limit))
+	{
 		return -ENXIO;
+	}
+
 	if (FAIL(fifo, fifo->out & (fifo->align - 1),
-		 "fifo out unaligned:%u (align:%u)",
-		 fifo->out, fifo->align))
+			 "fifo out unaligned:%u (align:%u)",
+			 fifo->out, fifo->align))
+	{
 		return -ENXIO;
+	}
 
 	return len - n;
 }
@@ -253,16 +296,26 @@ int dma_fifo_out_complete(struct dma_fifo *fifo, struct dma_pending *complete)
 	struct dma_pending *pending, *next, *tmp;
 
 	if (!fifo->data)
+	{
 		return -ENOENT;
+	}
+
 	if (fifo->corrupt)
+	{
 		return -ENXIO;
+	}
+
 	if (list_empty(&fifo->pending) && fifo->open == 0)
+	{
 		return -EINVAL;
+	}
 
 	if (FAIL(fifo, list_empty(&fifo->pending) != (fifo->open == 0),
-		 "pending list disagrees with open count:%d",
-		 fifo->open))
+			 "pending list disagrees with open count:%d",
+			 fifo->open))
+	{
 		return -ENXIO;
+	}
 
 	tmp = complete->data;
 	*tmp = *complete;
@@ -270,19 +323,23 @@ int dma_fifo_out_complete(struct dma_fifo *fifo, struct dma_pending *complete)
 	dp_mark_completed(tmp);
 
 	/* Only update the fifo in the original pended order */
-	list_for_each_entry_safe(pending, next, &fifo->pending, link) {
-		if (!dp_is_completed(pending)) {
+	list_for_each_entry_safe(pending, next, &fifo->pending, link)
+	{
+		if (!dp_is_completed(pending))
+		{
 			df_trace("still pending: saved out: %u len: %d",
-				 pending->out, pending->len);
+					 pending->out, pending->len);
 			break;
 		}
 
 		if (FAIL(fifo, pending->out != fifo->done ||
-			 addr_check(fifo->in, fifo->done, pending->next),
-			 "in:%u out:%u done:%u saved:%u next:%u",
-			 fifo->in, fifo->out, fifo->done, pending->out,
-			 pending->next))
+				 addr_check(fifo->in, fifo->done, pending->next),
+				 "in:%u out:%u done:%u saved:%u next:%u",
+				 fifo->in, fifo->out, fifo->done, pending->out,
+				 pending->next))
+		{
 			return -ENXIO;
+		}
 
 		list_del_init(&pending->link);
 		fifo->done = pending->next;
@@ -290,14 +347,19 @@ int dma_fifo_out_complete(struct dma_fifo *fifo, struct dma_pending *complete)
 		--fifo->open;
 
 		df_trace("in: %u out: %u done: %u len: %u avail: %d", fifo->in,
-			 fifo->out, fifo->done, pending->len, fifo->avail);
+				 fifo->out, fifo->done, pending->len, fifo->avail);
 	}
 
 	if (FAIL(fifo, fifo->open < 0, "open dma:%d < 0", fifo->open))
+	{
 		return -ENXIO;
+	}
+
 	if (FAIL(fifo, fifo->avail > fifo->size, "fifo avail:%d > size:%d",
-		 fifo->avail, fifo->size))
+			 fifo->avail, fifo->size))
+	{
 		return -ENXIO;
+	}
 
 	return 0;
 }

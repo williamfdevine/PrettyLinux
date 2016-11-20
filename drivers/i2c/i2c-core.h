@@ -14,7 +14,8 @@
 
 #include <linux/rwsem.h>
 
-struct i2c_devinfo {
+struct i2c_devinfo
+{
 	struct list_head	list;
 	int			busnum;
 	struct i2c_board_info	board_info;

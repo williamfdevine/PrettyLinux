@@ -24,7 +24,8 @@
  *
  * it will be return value from get_id
  */
-enum {
+enum
+{
 	USBHS_HOST = 0,
 	USBHS_GADGET,
 	USBHS_MAX,
@@ -37,7 +38,8 @@ enum {
  * Callback function's pointer will be set before
  * renesas_usbhs_platform_callback :: hardware_init was called
  */
-struct renesas_usbhs_driver_callback {
+struct renesas_usbhs_driver_callback
+{
 	int (*notify_hotplug)(struct platform_device *pdev);
 };
 
@@ -46,7 +48,8 @@ struct renesas_usbhs_driver_callback {
  *
  * These functions are called from driver for platform
  */
-struct renesas_usbhs_platform_callback {
+struct renesas_usbhs_platform_callback
+{
 
 	/*
 	 * option:
@@ -70,7 +73,7 @@ struct renesas_usbhs_platform_callback {
 	 * for board specific clock control
 	 */
 	int (*power_ctrl)(struct platform_device *pdev,
-			   void __iomem *base, int enable);
+					  void __iomem *base, int enable);
 
 	/*
 	 * option:
@@ -106,20 +109,22 @@ struct renesas_usbhs_platform_callback {
  * This struct show it to driver
  */
 
-struct renesas_usbhs_driver_pipe_config {
+struct renesas_usbhs_driver_pipe_config
+{
 	u8 type;	/* USB_ENDPOINT_XFER_xxx */
 	u16 bufsize;
 	u8 bufnum;
 	bool double_buf;
 };
 #define RENESAS_USBHS_PIPE(_type, _size, _num, _double_buf)	{	\
-			.type = (_type),		\
-			.bufsize = (_size),		\
-			.bufnum = (_num),		\
-			.double_buf = (_double_buf),	\
+		.type = (_type),		\
+				.bufsize = (_size),		\
+						   .bufnum = (_num),		\
+									 .double_buf = (_double_buf),	\
 	}
 
-struct renesas_usbhs_driver_param {
+struct renesas_usbhs_driver_param
+{
 	/*
 	 * pipe settings
 	 */
@@ -177,9 +182,9 @@ struct renesas_usbhs_driver_param {
 	/*
 	 * option:
 	 */
-	u32 has_otg:1; /* for controlling PWEN/EXTLP */
-	u32 has_sudmac:1; /* for SUDMAC */
-	u32 has_usb_dmac:1; /* for USB-DMAC */
+	u32 has_otg: 1; /* for controlling PWEN/EXTLP */
+	u32 has_sudmac: 1; /* for SUDMAC */
+	u32 has_usb_dmac: 1; /* for USB-DMAC */
 #define USBHS_USB_DMAC_XFER_SIZE	32	/* hardcode the xfer size */
 };
 
@@ -191,7 +196,8 @@ struct renesas_usbhs_driver_param {
  *
  * platform information for renesas_usbhs driver.
  */
-struct renesas_usbhs_platform_info {
+struct renesas_usbhs_platform_info
+{
 	/*
 	 * option:
 	 *

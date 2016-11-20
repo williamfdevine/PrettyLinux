@@ -21,48 +21,60 @@
 
 static u32 integrator_coreid;
 
-static const struct of_device_id integrator_cm_match[] = {
+static const struct of_device_id integrator_cm_match[] =
+{
 	{ .compatible = "arm,core-module-integrator", },
 	{ }
 };
 
 static const char *integrator_arch_str(u32 id)
 {
-	switch ((id >> 16) & 0xff) {
-	case 0x00:
-		return "ASB little-endian";
-	case 0x01:
-		return "AHB little-endian";
-	case 0x03:
-		return "AHB-Lite system bus, bi-endian";
-	case 0x04:
-		return "AHB";
-	case 0x08:
-		return "AHB system bus, ASB processor bus";
-	default:
-		return "Unknown";
+	switch ((id >> 16) & 0xff)
+	{
+		case 0x00:
+			return "ASB little-endian";
+
+		case 0x01:
+			return "AHB little-endian";
+
+		case 0x03:
+			return "AHB-Lite system bus, bi-endian";
+
+		case 0x04:
+			return "AHB";
+
+		case 0x08:
+			return "AHB system bus, ASB processor bus";
+
+		default:
+			return "Unknown";
 	}
 }
 
 static const char *integrator_fpga_str(u32 id)
 {
-	switch ((id >> 12) & 0xf) {
-	case 0x01:
-		return "XC4062";
-	case 0x02:
-		return "XC4085";
-	case 0x03:
-		return "XVC600";
-	case 0x04:
-		return "EPM7256AE (Altera PLD)";
-	default:
-		return "Unknown";
+	switch ((id >> 12) & 0xf)
+	{
+		case 0x01:
+			return "XC4062";
+
+		case 0x02:
+			return "XC4085";
+
+		case 0x03:
+			return "XVC600";
+
+		case 0x04:
+			return "EPM7256AE (Altera PLD)";
+
+		default:
+			return "Unknown";
 	}
 }
 
 static ssize_t integrator_get_manf(struct device *dev,
-			      struct device_attribute *attr,
-			      char *buf)
+								   struct device_attribute *attr,
+								   char *buf)
 {
 	return sprintf(buf, "%02x\n", integrator_coreid >> 24);
 }
@@ -71,8 +83,8 @@ static struct device_attribute integrator_manf_attr =
 	__ATTR(manufacturer,  S_IRUGO, integrator_get_manf,  NULL);
 
 static ssize_t integrator_get_arch(struct device *dev,
-			      struct device_attribute *attr,
-			      char *buf)
+								   struct device_attribute *attr,
+								   char *buf)
 {
 	return sprintf(buf, "%s\n", integrator_arch_str(integrator_coreid));
 }
@@ -81,8 +93,8 @@ static struct device_attribute integrator_arch_attr =
 	__ATTR(arch,  S_IRUGO, integrator_get_arch,  NULL);
 
 static ssize_t integrator_get_fpga(struct device *dev,
-			      struct device_attribute *attr,
-			      char *buf)
+								   struct device_attribute *attr,
+								   char *buf)
 {
 	return sprintf(buf, "%s\n", integrator_fpga_str(integrator_coreid));
 }
@@ -91,8 +103,8 @@ static struct device_attribute integrator_fpga_attr =
 	__ATTR(fpga,  S_IRUGO, integrator_get_fpga,  NULL);
 
 static ssize_t integrator_get_build(struct device *dev,
-			       struct device_attribute *attr,
-			       char *buf)
+									struct device_attribute *attr,
+									char *buf)
 {
 	return sprintf(buf, "%02x\n", (integrator_coreid >> 4) & 0xFF);
 }
@@ -111,31 +123,47 @@ static int __init integrator_soc_init(void)
 	int ret;
 
 	np = of_find_matching_node(NULL, integrator_cm_match);
+
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	syscon_regmap = syscon_node_to_regmap(np);
+
 	if (IS_ERR(syscon_regmap))
+	{
 		return PTR_ERR(syscon_regmap);
+	}
 
 	ret = regmap_read(syscon_regmap, INTEGRATOR_HDR_ID_OFFSET,
-			  &val);
+					  &val);
+
 	if (ret)
+	{
 		return -ENODEV;
+	}
+
 	integrator_coreid = val;
 
 	soc_dev_attr = kzalloc(sizeof(*soc_dev_attr), GFP_KERNEL);
+
 	if (!soc_dev_attr)
+	{
 		return -ENOMEM;
+	}
 
 	soc_dev_attr->soc_id = "Integrator";
 	soc_dev_attr->machine = "Integrator";
 	soc_dev_attr->family = "Versatile";
 	soc_dev = soc_device_register(soc_dev_attr);
-	if (IS_ERR(soc_dev)) {
+
+	if (IS_ERR(soc_dev))
+	{
 		kfree(soc_dev_attr);
 		return -ENODEV;
 	}
+
 	dev = soc_device_to_device(soc_dev);
 
 	device_create_file(dev, &integrator_manf_attr);

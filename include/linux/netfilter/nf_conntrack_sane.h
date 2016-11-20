@@ -6,13 +6,15 @@
 
 #define SANE_PORT	6566
 
-enum sane_state {
+enum sane_state
+{
 	SANE_STATE_NORMAL,
 	SANE_STATE_START_REQUESTED,
 };
 
 /* This structure exists only once per master */
-struct nf_ct_sane_master {
+struct nf_ct_sane_master
+{
 	enum sane_state state;
 };
 

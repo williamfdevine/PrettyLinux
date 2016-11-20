@@ -21,7 +21,8 @@
 
 #define DA9211_MAX_REGULATORS	2
 
-enum da9211_chip_id {
+enum da9211_chip_id
+{
 	DA9211,
 	DA9212,
 	DA9213,
@@ -29,7 +30,8 @@ enum da9211_chip_id {
 	DA9215,
 };
 
-struct da9211_pdata {
+struct da9211_pdata
+{
 	/*
 	 * Number of buck
 	 * 1 : 4 phase 1 buck

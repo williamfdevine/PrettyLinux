@@ -28,7 +28,8 @@
 #include "dvb_frontend.h"
 #include "va1j5jf8007s.h"
 
-enum va1j5jf8007s_tune_state {
+enum va1j5jf8007s_tune_state
+{
 	VA1J5JF8007S_IDLE,
 	VA1J5JF8007S_SET_FREQUENCY_1,
 	VA1J5JF8007S_SET_FREQUENCY_2,
@@ -41,7 +42,8 @@ enum va1j5jf8007s_tune_state {
 	VA1J5JF8007S_TRACK,
 };
 
-struct va1j5jf8007s_state {
+struct va1j5jf8007s_state
+{
 	const struct va1j5jf8007s_config *config;
 	struct i2c_adapter *adap;
 	struct dvb_frontend fe;
@@ -61,7 +63,9 @@ static int va1j5jf8007s_read_snr(struct dvb_frontend *fe, u16 *snr)
 	addr = state->config->demod_address;
 
 	word = 0;
-	for (i = 0; i < 2; i++) {
+
+	for (i = 0; i < 2; i++)
+	{
 		write_buf[0] = 0xbc + i;
 
 		msgs[0].addr = addr;
@@ -75,15 +79,20 @@ static int va1j5jf8007s_read_snr(struct dvb_frontend *fe, u16 *snr)
 		msgs[1].buf = read_buf;
 
 		if (i2c_transfer(state->adap, msgs, 2) != 2)
+		{
 			return -EREMOTEIO;
+		}
 
 		word <<= 8;
 		word |= read_buf[0];
 	}
 
 	word -= 3000;
+
 	if (word < 0)
+	{
 		word = 0;
+	}
 
 	x1 = int_sqrt(word << 16) * ((15625ll << 21) / 1000000);
 	x2 = (s64)x1 * x1 >> 31;
@@ -114,40 +123,43 @@ va1j5jf8007s_read_status(struct dvb_frontend *fe, enum fe_status *status)
 
 	state = fe->demodulator_priv;
 
-	switch (state->tune_state) {
-	case VA1J5JF8007S_IDLE:
-	case VA1J5JF8007S_SET_FREQUENCY_1:
-	case VA1J5JF8007S_SET_FREQUENCY_2:
-	case VA1J5JF8007S_SET_FREQUENCY_3:
-	case VA1J5JF8007S_CHECK_FREQUENCY:
-		*status = 0;
-		return 0;
+	switch (state->tune_state)
+	{
+		case VA1J5JF8007S_IDLE:
+		case VA1J5JF8007S_SET_FREQUENCY_1:
+		case VA1J5JF8007S_SET_FREQUENCY_2:
+		case VA1J5JF8007S_SET_FREQUENCY_3:
+		case VA1J5JF8007S_CHECK_FREQUENCY:
+			*status = 0;
+			return 0;
 
 
-	case VA1J5JF8007S_SET_MODULATION:
-	case VA1J5JF8007S_CHECK_MODULATION:
-		*status |= FE_HAS_SIGNAL;
-		return 0;
+		case VA1J5JF8007S_SET_MODULATION:
+		case VA1J5JF8007S_CHECK_MODULATION:
+			*status |= FE_HAS_SIGNAL;
+			return 0;
 
-	case VA1J5JF8007S_SET_TS_ID:
-	case VA1J5JF8007S_CHECK_TS_ID:
-		*status |= FE_HAS_SIGNAL | FE_HAS_CARRIER;
-		return 0;
+		case VA1J5JF8007S_SET_TS_ID:
+		case VA1J5JF8007S_CHECK_TS_ID:
+			*status |= FE_HAS_SIGNAL | FE_HAS_CARRIER;
+			return 0;
 
-	case VA1J5JF8007S_TRACK:
-		*status |= FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_LOCK;
-		return 0;
+		case VA1J5JF8007S_TRACK:
+			*status |= FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_LOCK;
+			return 0;
 	}
 
 	BUG();
 }
 
-struct va1j5jf8007s_cb_map {
+struct va1j5jf8007s_cb_map
+{
 	u32 frequency;
 	u8 cb;
 };
 
-static const struct va1j5jf8007s_cb_map va1j5jf8007s_cb_maps[] = {
+static const struct va1j5jf8007s_cb_map va1j5jf8007s_cb_maps[] =
+{
 	{  986000, 0xb2 },
 	{ 1072000, 0xd2 },
 	{ 1154000, 0xe2 },
@@ -163,11 +175,16 @@ static u8 va1j5jf8007s_lookup_cb(u32 frequency)
 	int i;
 	const struct va1j5jf8007s_cb_map *map;
 
-	for (i = 0; i < ARRAY_SIZE(va1j5jf8007s_cb_maps); i++) {
+	for (i = 0; i < ARRAY_SIZE(va1j5jf8007s_cb_maps); i++)
+	{
 		map = &va1j5jf8007s_cb_maps[i];
+
 		if (frequency < map->frequency)
+		{
 			return map->cb;
+		}
 	}
+
 	return 0xc0;
 }
 
@@ -181,8 +198,11 @@ static int va1j5jf8007s_set_frequency_1(struct va1j5jf8007s_state *state)
 	frequency = state->fe.dtv_property_cache.frequency;
 
 	word = (frequency + 500) / 1000;
+
 	if (frequency < 1072000)
+	{
 		word = (word << 1 & ~0x1f) | (word & 0x0f);
+	}
 
 	buf[0] = 0xfe;
 	buf[1] = 0xc0;
@@ -197,7 +217,9 @@ static int va1j5jf8007s_set_frequency_1(struct va1j5jf8007s_state *state)
 	msg.buf = buf;
 
 	if (i2c_transfer(state->adap, &msg, 1) != 1)
+	{
 		return -EREMOTEIO;
+	}
 
 	return 0;
 }
@@ -217,7 +239,9 @@ static int va1j5jf8007s_set_frequency_2(struct va1j5jf8007s_state *state)
 	msg.buf = buf;
 
 	if (i2c_transfer(state->adap, &msg, 1) != 1)
+	{
 		return -EREMOTEIO;
+	}
 
 	return 0;
 }
@@ -241,7 +265,9 @@ static int va1j5jf8007s_set_frequency_3(struct va1j5jf8007s_state *state)
 	msg.buf = buf;
 
 	if (i2c_transfer(state->adap, &msg, 1) != 1)
+	{
 		return -EREMOTEIO;
+	}
 
 	return 0;
 }
@@ -269,7 +295,9 @@ va1j5jf8007s_check_frequency(struct va1j5jf8007s_state *state, int *lock)
 	msgs[1].buf = read_buf;
 
 	if (i2c_transfer(state->adap, msgs, 2) != 2)
+	{
 		return -EREMOTEIO;
+	}
 
 	*lock = read_buf[0] & 0x40;
 	return 0;
@@ -289,7 +317,9 @@ static int va1j5jf8007s_set_modulation(struct va1j5jf8007s_state *state)
 	msg.buf = buf;
 
 	if (i2c_transfer(state->adap, &msg, 1) != 1)
+	{
 		return -EREMOTEIO;
+	}
 
 	return 0;
 }
@@ -316,7 +346,9 @@ va1j5jf8007s_check_modulation(struct va1j5jf8007s_state *state, int *lock)
 	msgs[1].buf = read_buf;
 
 	if (i2c_transfer(state->adap, msgs, 2) != 2)
+	{
 		return -EREMOTEIO;
+	}
 
 	*lock = !(read_buf[0] & 0x10);
 	return 0;
@@ -330,8 +362,11 @@ va1j5jf8007s_set_ts_id(struct va1j5jf8007s_state *state)
 	struct i2c_msg msg;
 
 	ts_id = state->fe.dtv_property_cache.stream_id;
+
 	if (!ts_id || ts_id == NO_STREAM_ID_FILTER)
+	{
 		return 0;
+	}
 
 	buf[0] = 0x8f;
 	buf[1] = ts_id >> 8;
@@ -343,7 +378,9 @@ va1j5jf8007s_set_ts_id(struct va1j5jf8007s_state *state)
 	msg.buf = buf;
 
 	if (i2c_transfer(state->adap, &msg, 1) != 1)
+	{
 		return -EREMOTEIO;
+	}
 
 	return 0;
 }
@@ -357,7 +394,9 @@ va1j5jf8007s_check_ts_id(struct va1j5jf8007s_state *state, int *lock)
 	u32 ts_id;
 
 	ts_id = state->fe.dtv_property_cache.stream_id;
-	if (!ts_id || ts_id == NO_STREAM_ID_FILTER) {
+
+	if (!ts_id || ts_id == NO_STREAM_ID_FILTER)
+	{
 		*lock = 1;
 		return 0;
 	}
@@ -377,7 +416,9 @@ va1j5jf8007s_check_ts_id(struct va1j5jf8007s_state *state, int *lock)
 	msgs[1].buf = read_buf;
 
 	if (i2c_transfer(state->adap, msgs, 2) != 2)
+	{
 		return -EREMOTEIO;
+	}
 
 	*lock = (read_buf[0] << 8 | read_buf[1]) == ts_id;
 	return 0;
@@ -385,9 +426,9 @@ va1j5jf8007s_check_ts_id(struct va1j5jf8007s_state *state, int *lock)
 
 static int
 va1j5jf8007s_tune(struct dvb_frontend *fe,
-		  bool re_tune,
-		  unsigned int mode_flags,  unsigned int *delay,
-		  enum fe_status *status)
+				  bool re_tune,
+				  unsigned int mode_flags,  unsigned int *delay,
+				  enum fe_status *status)
 {
 	struct va1j5jf8007s_state *state;
 	int ret;
@@ -396,112 +437,143 @@ va1j5jf8007s_tune(struct dvb_frontend *fe,
 	state = fe->demodulator_priv;
 
 	if (re_tune)
+	{
 		state->tune_state = VA1J5JF8007S_SET_FREQUENCY_1;
+	}
 
-	switch (state->tune_state) {
-	case VA1J5JF8007S_IDLE:
-		*delay = 3 * HZ;
-		*status = 0;
-		return 0;
-
-	case VA1J5JF8007S_SET_FREQUENCY_1:
-		ret = va1j5jf8007s_set_frequency_1(state);
-		if (ret < 0)
-			return ret;
-
-		state->tune_state = VA1J5JF8007S_SET_FREQUENCY_2;
-		*delay = 0;
-		*status = 0;
-		return 0;
-
-	case VA1J5JF8007S_SET_FREQUENCY_2:
-		ret = va1j5jf8007s_set_frequency_2(state);
-		if (ret < 0)
-			return ret;
-
-		state->tune_state = VA1J5JF8007S_SET_FREQUENCY_3;
-		*delay = (HZ + 99) / 100;
-		*status = 0;
-		return 0;
-
-	case VA1J5JF8007S_SET_FREQUENCY_3:
-		ret = va1j5jf8007s_set_frequency_3(state);
-		if (ret < 0)
-			return ret;
-
-		state->tune_state = VA1J5JF8007S_CHECK_FREQUENCY;
-		*delay = 0;
-		*status = 0;
-		return 0;
-
-	case VA1J5JF8007S_CHECK_FREQUENCY:
-		ret = va1j5jf8007s_check_frequency(state, &lock);
-		if (ret < 0)
-			return ret;
-
-		if (!lock)  {
-			*delay = (HZ + 999) / 1000;
+	switch (state->tune_state)
+	{
+		case VA1J5JF8007S_IDLE:
+			*delay = 3 * HZ;
 			*status = 0;
 			return 0;
-		}
 
-		state->tune_state = VA1J5JF8007S_SET_MODULATION;
-		*delay = 0;
-		*status = FE_HAS_SIGNAL;
-		return 0;
+		case VA1J5JF8007S_SET_FREQUENCY_1:
+			ret = va1j5jf8007s_set_frequency_1(state);
 
-	case VA1J5JF8007S_SET_MODULATION:
-		ret = va1j5jf8007s_set_modulation(state);
-		if (ret < 0)
-			return ret;
+			if (ret < 0)
+			{
+				return ret;
+			}
 
-		state->tune_state = VA1J5JF8007S_CHECK_MODULATION;
-		*delay = 0;
-		*status = FE_HAS_SIGNAL;
-		return 0;
+			state->tune_state = VA1J5JF8007S_SET_FREQUENCY_2;
+			*delay = 0;
+			*status = 0;
+			return 0;
 
-	case VA1J5JF8007S_CHECK_MODULATION:
-		ret = va1j5jf8007s_check_modulation(state, &lock);
-		if (ret < 0)
-			return ret;
+		case VA1J5JF8007S_SET_FREQUENCY_2:
+			ret = va1j5jf8007s_set_frequency_2(state);
 
-		if (!lock)  {
-			*delay = (HZ + 49) / 50;
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			state->tune_state = VA1J5JF8007S_SET_FREQUENCY_3;
+			*delay = (HZ + 99) / 100;
+			*status = 0;
+			return 0;
+
+		case VA1J5JF8007S_SET_FREQUENCY_3:
+			ret = va1j5jf8007s_set_frequency_3(state);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			state->tune_state = VA1J5JF8007S_CHECK_FREQUENCY;
+			*delay = 0;
+			*status = 0;
+			return 0;
+
+		case VA1J5JF8007S_CHECK_FREQUENCY:
+			ret = va1j5jf8007s_check_frequency(state, &lock);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			if (!lock)
+			{
+				*delay = (HZ + 999) / 1000;
+				*status = 0;
+				return 0;
+			}
+
+			state->tune_state = VA1J5JF8007S_SET_MODULATION;
+			*delay = 0;
 			*status = FE_HAS_SIGNAL;
 			return 0;
-		}
 
-		state->tune_state = VA1J5JF8007S_SET_TS_ID;
-		*delay = 0;
-		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER;
-		return 0;
+		case VA1J5JF8007S_SET_MODULATION:
+			ret = va1j5jf8007s_set_modulation(state);
 
-	case VA1J5JF8007S_SET_TS_ID:
-		ret = va1j5jf8007s_set_ts_id(state);
-		if (ret < 0)
-			return ret;
+			if (ret < 0)
+			{
+				return ret;
+			}
 
-		state->tune_state = VA1J5JF8007S_CHECK_TS_ID;
-		return 0;
+			state->tune_state = VA1J5JF8007S_CHECK_MODULATION;
+			*delay = 0;
+			*status = FE_HAS_SIGNAL;
+			return 0;
 
-	case VA1J5JF8007S_CHECK_TS_ID:
-		ret = va1j5jf8007s_check_ts_id(state, &lock);
-		if (ret < 0)
-			return ret;
+		case VA1J5JF8007S_CHECK_MODULATION:
+			ret = va1j5jf8007s_check_modulation(state, &lock);
 
-		if (!lock)  {
-			*delay = (HZ + 99) / 100;
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			if (!lock)
+			{
+				*delay = (HZ + 49) / 50;
+				*status = FE_HAS_SIGNAL;
+				return 0;
+			}
+
+			state->tune_state = VA1J5JF8007S_SET_TS_ID;
+			*delay = 0;
 			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER;
 			return 0;
-		}
 
-		state->tune_state = VA1J5JF8007S_TRACK;
+		case VA1J5JF8007S_SET_TS_ID:
+			ret = va1j5jf8007s_set_ts_id(state);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			state->tune_state = VA1J5JF8007S_CHECK_TS_ID;
+			return 0;
+
+		case VA1J5JF8007S_CHECK_TS_ID:
+			ret = va1j5jf8007s_check_ts_id(state, &lock);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			if (!lock)
+			{
+				*delay = (HZ + 99) / 100;
+				*status = FE_HAS_SIGNAL | FE_HAS_CARRIER;
+				return 0;
+			}
+
+			state->tune_state = VA1J5JF8007S_TRACK;
+
 		/* fall through */
 
-	case VA1J5JF8007S_TRACK:
-		*delay = 3 * HZ;
-		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_LOCK;
-		return 0;
+		case VA1J5JF8007S_TRACK:
+			*delay = 3 * HZ;
+			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_LOCK;
+			return 0;
 	}
 
 	BUG();
@@ -523,7 +595,9 @@ static int va1j5jf8007s_init_frequency(struct va1j5jf8007s_state *state)
 	msg.buf = buf;
 
 	if (i2c_transfer(state->adap, &msg, 1) != 1)
+	{
 		return -EREMOTEIO;
+	}
 
 	return 0;
 }
@@ -542,7 +616,9 @@ static int va1j5jf8007s_set_sleep(struct va1j5jf8007s_state *state, int sleep)
 	msg.buf = buf;
 
 	if (i2c_transfer(state->adap, &msg, 1) != 1)
+	{
 		return -EREMOTEIO;
+	}
 
 	return 0;
 }
@@ -555,8 +631,11 @@ static int va1j5jf8007s_sleep(struct dvb_frontend *fe)
 	state = fe->demodulator_priv;
 
 	ret = va1j5jf8007s_init_frequency(state);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return va1j5jf8007s_set_sleep(state, 1);
 }
@@ -578,7 +657,8 @@ static void va1j5jf8007s_release(struct dvb_frontend *fe)
 	kfree(state);
 }
 
-static struct dvb_frontend_ops va1j5jf8007s_ops = {
+static struct dvb_frontend_ops va1j5jf8007s_ops =
+{
 	.delsys = { SYS_ISDBS },
 	.info = {
 		.name = "VA1J5JF8007/VA1J5JF8011 ISDB-S",
@@ -586,9 +666,9 @@ static struct dvb_frontend_ops va1j5jf8007s_ops = {
 		.frequency_max = 2150000,
 		.frequency_stepsize = 1000,
 		.caps = FE_CAN_INVERSION_AUTO | FE_CAN_FEC_AUTO |
-			FE_CAN_QAM_AUTO | FE_CAN_TRANSMISSION_MODE_AUTO |
-			FE_CAN_GUARD_INTERVAL_AUTO | FE_CAN_HIERARCHY_AUTO |
-			FE_CAN_MULTISTREAM,
+		FE_CAN_QAM_AUTO | FE_CAN_TRANSMISSION_MODE_AUTO |
+		FE_CAN_GUARD_INTERVAL_AUTO | FE_CAN_HIERARCHY_AUTO |
+		FE_CAN_MULTISTREAM,
 	},
 
 	.read_snr = va1j5jf8007s_read_snr,
@@ -621,22 +701,28 @@ static int va1j5jf8007s_prepare_1(struct va1j5jf8007s_state *state)
 	msgs[1].buf = read_buf;
 
 	if (i2c_transfer(state->adap, msgs, 2) != 2)
+	{
 		return -EREMOTEIO;
+	}
 
 	if (read_buf[0] != 0x41)
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
 
-static const u8 va1j5jf8007s_20mhz_prepare_bufs[][2] = {
+static const u8 va1j5jf8007s_20mhz_prepare_bufs[][2] =
+{
 	{0x04, 0x02}, {0x0d, 0x55}, {0x11, 0x40}, {0x13, 0x80}, {0x17, 0x01},
 	{0x1c, 0x0a}, {0x1d, 0xaa}, {0x1e, 0x20}, {0x1f, 0x88}, {0x51, 0xb0},
 	{0x52, 0x89}, {0x53, 0xb3}, {0x5a, 0x2d}, {0x5b, 0xd3}, {0x85, 0x69},
 	{0x87, 0x04}, {0x8e, 0x02}, {0xa3, 0xf7}, {0xa5, 0xc0},
 };
 
-static const u8 va1j5jf8007s_25mhz_prepare_bufs[][2] = {
+static const u8 va1j5jf8007s_25mhz_prepare_bufs[][2] =
+{
 	{0x04, 0x02}, {0x11, 0x40}, {0x13, 0x80}, {0x17, 0x01}, {0x1c, 0x0a},
 	{0x1d, 0xaa}, {0x1e, 0x20}, {0x1f, 0x88}, {0x51, 0xb0}, {0x52, 0x89},
 	{0x53, 0xb3}, {0x5a, 0x2d}, {0x5b, 0xd3}, {0x85, 0x69}, {0x87, 0x04},
@@ -652,17 +738,20 @@ static int va1j5jf8007s_prepare_2(struct va1j5jf8007s_state *state)
 	struct i2c_msg msg;
 	int i;
 
-	switch (state->config->frequency) {
-	case VA1J5JF8007S_20MHZ:
-		bufs = va1j5jf8007s_20mhz_prepare_bufs;
-		size = ARRAY_SIZE(va1j5jf8007s_20mhz_prepare_bufs);
-		break;
-	case VA1J5JF8007S_25MHZ:
-		bufs = va1j5jf8007s_25mhz_prepare_bufs;
-		size = ARRAY_SIZE(va1j5jf8007s_25mhz_prepare_bufs);
-		break;
-	default:
-		return -EINVAL;
+	switch (state->config->frequency)
+	{
+		case VA1J5JF8007S_20MHZ:
+			bufs = va1j5jf8007s_20mhz_prepare_bufs;
+			size = ARRAY_SIZE(va1j5jf8007s_20mhz_prepare_bufs);
+			break;
+
+		case VA1J5JF8007S_25MHZ:
+			bufs = va1j5jf8007s_25mhz_prepare_bufs;
+			size = ARRAY_SIZE(va1j5jf8007s_25mhz_prepare_bufs);
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	addr = state->config->demod_address;
@@ -671,10 +760,15 @@ static int va1j5jf8007s_prepare_2(struct va1j5jf8007s_state *state)
 	msg.flags = 0;
 	msg.len = 2;
 	msg.buf = buf;
-	for (i = 0; i < size; i++) {
+
+	for (i = 0; i < size; i++)
+	{
 		memcpy(buf, bufs[i], sizeof(buf));
+
 		if (i2c_transfer(state->adap, &msg, 1) != 1)
+		{
 			return -EREMOTEIO;
+		}
 	}
 
 	return 0;
@@ -689,19 +783,25 @@ int va1j5jf8007s_prepare(struct dvb_frontend *fe)
 	state = fe->demodulator_priv;
 
 	ret = va1j5jf8007s_prepare_1(state);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = va1j5jf8007s_prepare_2(state);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return va1j5jf8007s_init_frequency(state);
 }
 
 struct dvb_frontend *
 va1j5jf8007s_attach(const struct va1j5jf8007s_config *config,
-		    struct i2c_adapter *adap)
+					struct i2c_adapter *adap)
 {
 	struct va1j5jf8007s_state *state;
 	struct dvb_frontend *fe;
@@ -709,8 +809,11 @@ va1j5jf8007s_attach(const struct va1j5jf8007s_config *config,
 	struct i2c_msg msg;
 
 	state = kzalloc(sizeof(struct va1j5jf8007s_state), GFP_KERNEL);
+
 	if (!state)
+	{
 		return NULL;
+	}
 
 	state->config = config;
 	state->adap = adap;
@@ -727,7 +830,8 @@ va1j5jf8007s_attach(const struct va1j5jf8007s_config *config,
 	msg.len = sizeof(buf);
 	msg.buf = buf;
 
-	if (i2c_transfer(state->adap, &msg, 1) != 1) {
+	if (i2c_transfer(state->adap, &msg, 1) != 1)
+	{
 		kfree(state);
 		return NULL;
 	}

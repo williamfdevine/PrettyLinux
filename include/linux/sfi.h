@@ -87,12 +87,13 @@
 
 #define SFI_GET_NUM_ENTRIES(ptable, entry_type) \
 	((ptable->header.len - sizeof(struct sfi_table_header)) / \
-	(sizeof(entry_type)))
+	 (sizeof(entry_type)))
 /*
  * Table structures must be byte-packed to match the SFI specification,
  * as they are provided by the BIOS.
  */
-struct sfi_table_header {
+struct sfi_table_header
+{
 	char	sig[SFI_SIGNATURE_SIZE];
 	u32	len;
 	u8	rev;
@@ -101,13 +102,15 @@ struct sfi_table_header {
 	char	oem_table_id[SFI_OEM_TABLE_ID_SIZE];
 } __packed;
 
-struct sfi_table_simple {
+struct sfi_table_simple
+{
 	struct sfi_table_header		header;
 	u64				pentry[1];
 } __packed;
 
 /* Comply with UEFI spec 2.1 */
-struct sfi_mem_entry {
+struct sfi_mem_entry
+{
 	u32	type;
 	u64	phys_start;
 	u64	virt_start;
@@ -115,41 +118,49 @@ struct sfi_mem_entry {
 	u64	attrib;
 } __packed;
 
-struct sfi_cpu_table_entry {
+struct sfi_cpu_table_entry
+{
 	u32	apic_id;
 } __packed;
 
-struct sfi_cstate_table_entry {
+struct sfi_cstate_table_entry
+{
 	u32	hint;		/* MWAIT hint */
 	u32	latency;	/* latency in ms */
 } __packed;
 
-struct sfi_apic_table_entry {
+struct sfi_apic_table_entry
+{
 	u64	phys_addr;	/* phy base addr for APIC reg */
 } __packed;
 
-struct sfi_freq_table_entry {
+struct sfi_freq_table_entry
+{
 	u32	freq_mhz;	/* in MHZ */
 	u32	latency;	/* transition latency in ms */
 	u32	ctrl_val;	/* value to write to PERF_CTL */
 } __packed;
 
-struct sfi_wake_table_entry {
+struct sfi_wake_table_entry
+{
 	u64	phys_addr;	/* pointer to where the wake vector locates */
 } __packed;
 
-struct sfi_timer_table_entry {
+struct sfi_timer_table_entry
+{
 	u64	phys_addr;	/* phy base addr for the timer */
 	u32	freq_hz;	/* in HZ */
 	u32	irq;
 } __packed;
 
-struct sfi_rtc_table_entry {
+struct sfi_rtc_table_entry
+{
 	u64	phys_addr;	/* phy base addr for the RTC */
 	u32	irq;
 } __packed;
 
-struct sfi_device_table_entry {
+struct sfi_device_table_entry
+{
 	u8	type;		/* bus type, I2C, SPI or ...*/
 #define SFI_DEV_TYPE_SPI	0
 #define SFI_DEV_TYPE_I2C	1
@@ -165,7 +176,8 @@ struct sfi_device_table_entry {
 	char	name[SFI_NAME_LEN];
 } __packed;
 
-struct sfi_gpio_table_entry {
+struct sfi_gpio_table_entry
+{
 	char	controller_name[SFI_NAME_LEN];
 	u16	pin_no;
 	char	pin_name[SFI_NAME_LEN];
@@ -178,7 +190,7 @@ extern void __init sfi_init(void);
 extern int __init sfi_platform_init(void);
 extern void __init sfi_init_late(void);
 extern int sfi_table_parse(char *signature, char *oem_id, char *oem_table_id,
-				sfi_table_handler handler);
+						   sfi_table_handler handler);
 
 extern int sfi_disabled;
 static inline void disable_sfi(void)
@@ -199,8 +211,8 @@ static inline void sfi_init_late(void)
 #define sfi_disabled	0
 
 static inline int sfi_table_parse(char *signature, char *oem_id,
-					char *oem_table_id,
-					sfi_table_handler handler)
+								  char *oem_table_id,
+								  sfi_table_handler handler)
 {
 	return -1;
 }

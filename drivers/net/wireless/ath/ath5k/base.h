@@ -50,18 +50,21 @@ struct ath_bus_ops;
 struct ieee80211_tx_control;
 enum nl80211_iftype;
 
-enum ath5k_srev_type {
+enum ath5k_srev_type
+{
 	AR5K_VERSION_MAC,
 	AR5K_VERSION_RAD,
 };
 
-struct ath5k_srev_name {
+struct ath5k_srev_name
+{
 	const char		*sr_name;
 	enum ath5k_srev_type	sr_type;
 	u_int			sr_val;
 };
 
-struct ath5k_buf {
+struct ath5k_buf
+{
 	struct list_head		list;
 	struct ath5k_desc		*desc;		/* virtual addr of desc */
 	dma_addr_t			daddr;		/* physical addr of desc */
@@ -70,14 +73,16 @@ struct ath5k_buf {
 	struct ieee80211_tx_rate	rates[4];	/* number of multi-rate stages */
 };
 
-struct ath5k_vif {
+struct ath5k_vif
+{
 	bool			assoc; /* are we associated or not */
 	enum nl80211_iftype	opmode;
 	int			bslot;
 	struct ath5k_buf	*bbuf; /* beacon buffer */
 };
 
-struct ath5k_vif_iter_data {
+struct ath5k_vif_iter_data
+{
 	const u8	*hw_macaddr;
 	u8		mask[ETH_ALEN];
 	u8		active_mac[ETH_ALEN]; /* first active MAC */
@@ -100,12 +105,12 @@ void ath5k_beacon_config(struct ath5k_hw *ah);
 void ath5k_set_beacon_filter(struct ieee80211_hw *hw, bool enable);
 
 void ath5k_update_bssid_mask_and_opmode(struct ath5k_hw *ah,
-					struct ieee80211_vif *vif);
+										struct ieee80211_vif *vif);
 int ath5k_chan_set(struct ath5k_hw *ah, struct cfg80211_chan_def *chandef);
 void ath5k_txbuf_free_skb(struct ath5k_hw *ah, struct ath5k_buf *bf);
 void ath5k_rxbuf_free_skb(struct ath5k_hw *ah, struct ath5k_buf *bf);
 void ath5k_tx_queue(struct ieee80211_hw *hw, struct sk_buff *skb,
-		    struct ath5k_txq *txq, struct ieee80211_tx_control *control);
+					struct ath5k_txq *txq, struct ieee80211_tx_control *control);
 
 const char *ath5k_chip_name(enum ath5k_srev_type type, u_int16_t val);
 

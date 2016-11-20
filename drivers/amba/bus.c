@@ -30,10 +30,15 @@ amba_lookup(const struct amba_id *table, struct amba_device *dev)
 {
 	int ret = 0;
 
-	while (table->mask) {
+	while (table->mask)
+	{
 		ret = (dev->periphid & table->mask) == table->id;
+
 		if (ret)
+		{
 			break;
+		}
+
 		table++;
 	}
 
@@ -47,7 +52,9 @@ static int amba_match(struct device *dev, struct device_driver *drv)
 
 	/* When driver_override is set, only bind to the matching driver */
 	if (pcdev->driver_override)
+	{
 		return !strcmp(pcdev->driver_override, drv->name);
+	}
 
 	return amba_lookup(pcdrv->id_table, pcdev) != NULL;
 }
@@ -58,47 +65,63 @@ static int amba_uevent(struct device *dev, struct kobj_uevent_env *env)
 	int retval = 0;
 
 	retval = add_uevent_var(env, "AMBA_ID=%08x", pcdev->periphid);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	retval = add_uevent_var(env, "MODALIAS=amba:d%08X", pcdev->periphid);
 	return retval;
 }
 
 static ssize_t driver_override_show(struct device *_dev,
-				    struct device_attribute *attr, char *buf)
+									struct device_attribute *attr, char *buf)
 {
 	struct amba_device *dev = to_amba_device(_dev);
 
 	if (!dev->driver_override)
+	{
 		return 0;
+	}
 
 	return sprintf(buf, "%s\n", dev->driver_override);
 }
 
 static ssize_t driver_override_store(struct device *_dev,
-				     struct device_attribute *attr,
-				     const char *buf, size_t count)
+									 struct device_attribute *attr,
+									 const char *buf, size_t count)
 {
 	struct amba_device *dev = to_amba_device(_dev);
 	char *driver_override, *old = dev->driver_override, *cp;
 
 	if (count > PATH_MAX)
+	{
 		return -EINVAL;
+	}
 
 	driver_override = kstrndup(buf, count, GFP_KERNEL);
+
 	if (!driver_override)
+	{
 		return -ENOMEM;
+	}
 
 	cp = strchr(driver_override, '\n');
-	if (cp)
-		*cp = '\0';
 
-	if (strlen(driver_override)) {
+	if (cp)
+	{
+		*cp = '\0';
+	}
+
+	if (strlen(driver_override))
+	{
 		dev->driver_override = driver_override;
-	} else {
-	       kfree(driver_override);
-	       dev->driver_override = NULL;
+	}
+	else
+	{
+		kfree(driver_override);
+		dev->driver_override = NULL;
 	}
 
 	kfree(old);
@@ -107,25 +130,26 @@ static ssize_t driver_override_store(struct device *_dev,
 }
 
 #define amba_attr_func(name,fmt,arg...)					\
-static ssize_t name##_show(struct device *_dev,				\
-			   struct device_attribute *attr, char *buf)	\
-{									\
-	struct amba_device *dev = to_amba_device(_dev);			\
-	return sprintf(buf, fmt, arg);					\
-}
+	static ssize_t name##_show(struct device *_dev,				\
+							   struct device_attribute *attr, char *buf)	\
+	{									\
+		struct amba_device *dev = to_amba_device(_dev);			\
+		return sprintf(buf, fmt, arg);					\
+	}
 
 #define amba_attr(name,fmt,arg...)	\
-amba_attr_func(name,fmt,arg)		\
-static DEVICE_ATTR(name, S_IRUGO, name##_show, NULL)
+	amba_attr_func(name,fmt,arg)		\
+	static DEVICE_ATTR(name, S_IRUGO, name##_show, NULL)
 
 amba_attr_func(id, "%08x\n", dev->periphid);
 amba_attr(irq0, "%u\n", dev->irq[0]);
 amba_attr(irq1, "%u\n", dev->irq[1]);
 amba_attr_func(resource, "\t%016llx\t%016llx\t%016lx\n",
-	 (unsigned long long)dev->res.start, (unsigned long long)dev->res.end,
-	 dev->res.flags);
+			   (unsigned long long)dev->res.start, (unsigned long long)dev->res.end,
+			   dev->res.flags);
 
-static struct device_attribute amba_dev_attrs[] = {
+static struct device_attribute amba_dev_attrs[] =
+{
 	__ATTR_RO(id),
 	__ATTR_RO(resource),
 	__ATTR_RW(driver_override),
@@ -143,11 +167,16 @@ static int amba_pm_runtime_suspend(struct device *dev)
 	struct amba_device *pcdev = to_amba_device(dev);
 	int ret = pm_generic_runtime_suspend(dev);
 
-	if (ret == 0 && dev->driver) {
+	if (ret == 0 && dev->driver)
+	{
 		if (pm_runtime_is_irq_safe(dev))
+		{
 			clk_disable(pcdev->pclk);
+		}
 		else
+		{
 			clk_disable_unprepare(pcdev->pclk);
+		}
 	}
 
 	return ret;
@@ -158,21 +187,30 @@ static int amba_pm_runtime_resume(struct device *dev)
 	struct amba_device *pcdev = to_amba_device(dev);
 	int ret;
 
-	if (dev->driver) {
+	if (dev->driver)
+	{
 		if (pm_runtime_is_irq_safe(dev))
+		{
 			ret = clk_enable(pcdev->pclk);
+		}
 		else
+		{
 			ret = clk_prepare_enable(pcdev->pclk);
+		}
+
 		/* Failure is probably fatal to the system, but... */
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return pm_generic_runtime_resume(dev);
 }
 #endif /* CONFIG_PM */
 
-static const struct dev_pm_ops amba_pm = {
+static const struct dev_pm_ops amba_pm =
+{
 	.suspend	= pm_generic_suspend,
 	.resume		= pm_generic_resume,
 	.freeze		= pm_generic_freeze,
@@ -190,7 +228,8 @@ static const struct dev_pm_ops amba_pm = {
  * Primecells are part of the Advanced Microcontroller Bus Architecture,
  * so we call the bus "amba".
  */
-struct bus_type amba_bustype = {
+struct bus_type amba_bustype =
+{
 	.name		= "amba",
 	.dev_attrs	= amba_dev_attrs,
 	.match		= amba_match,
@@ -210,12 +249,18 @@ static int amba_get_enable_pclk(struct amba_device *pcdev)
 	int ret;
 
 	pcdev->pclk = clk_get(&pcdev->dev, "apb_pclk");
+
 	if (IS_ERR(pcdev->pclk))
+	{
 		return PTR_ERR(pcdev->pclk);
+	}
 
 	ret = clk_prepare_enable(pcdev->pclk);
+
 	if (ret)
+	{
 		clk_put(pcdev->pclk);
+	}
 
 	return ret;
 }
@@ -237,17 +282,26 @@ static int amba_probe(struct device *dev)
 	const struct amba_id *id = amba_lookup(pcdrv->id_table, pcdev);
 	int ret;
 
-	do {
+	do
+	{
 		ret = of_clk_set_defaults(dev->of_node, false);
+
 		if (ret < 0)
+		{
 			break;
+		}
 
 		ret = dev_pm_domain_attach(dev, true);
+
 		if (ret == -EPROBE_DEFER)
+		{
 			break;
+		}
 
 		ret = amba_get_enable_pclk(pcdev);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_pm_domain_detach(dev, true);
 			break;
 		}
@@ -257,8 +311,11 @@ static int amba_probe(struct device *dev)
 		pm_runtime_enable(dev);
 
 		ret = pcdrv->probe(pcdev, id);
+
 		if (ret == 0)
+		{
 			break;
+		}
 
 		pm_runtime_disable(dev);
 		pm_runtime_set_suspended(dev);
@@ -266,7 +323,8 @@ static int amba_probe(struct device *dev)
 
 		amba_put_disable_pclk(pcdev);
 		dev_pm_domain_detach(dev, true);
-	} while (0);
+	}
+	while (0);
 
 	return ret;
 }
@@ -337,7 +395,10 @@ static void amba_device_release(struct device *dev)
 	struct amba_device *d = to_amba_device(dev);
 
 	if (d->res.parent)
+	{
 		release_resource(&d->res);
+	}
+
 	kfree(d);
 }
 
@@ -347,16 +408,21 @@ static int amba_device_try_add(struct amba_device *dev, struct resource *parent)
 	void __iomem *tmp;
 	int i, ret;
 
-	WARN_ON(dev->irq[0] == (unsigned int)-1);
-	WARN_ON(dev->irq[1] == (unsigned int)-1);
+	WARN_ON(dev->irq[0] == (unsigned int) - 1);
+	WARN_ON(dev->irq[1] == (unsigned int) - 1);
 
 	ret = request_resource(parent, &dev->res);
+
 	if (ret)
+	{
 		goto err_out;
+	}
 
 	/* Hard-coded primecell ID instead of plug-n-play */
 	if (dev->periphid != 0)
+	{
 		goto skip_probe;
+	}
 
 	/*
 	 * Dynamically calculate the size of the resource
@@ -364,19 +430,25 @@ static int amba_device_try_add(struct amba_device *dev, struct resource *parent)
 	 */
 	size = resource_size(&dev->res);
 	tmp = ioremap(dev->res.start, size);
-	if (!tmp) {
+
+	if (!tmp)
+	{
 		ret = -ENOMEM;
 		goto err_release;
 	}
 
 	ret = dev_pm_domain_attach(&dev->dev, true);
-	if (ret == -EPROBE_DEFER) {
+
+	if (ret == -EPROBE_DEFER)
+	{
 		iounmap(tmp);
 		goto err_release;
 	}
 
 	ret = amba_get_enable_pclk(dev);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		u32 pid, cid;
 
 		/*
@@ -385,43 +457,61 @@ static int amba_device_try_add(struct amba_device *dev, struct resource *parent)
 		 */
 		for (pid = 0, i = 0; i < 4; i++)
 			pid |= (readl(tmp + size - 0x20 + 4 * i) & 255) <<
-				(i * 8);
+				   (i * 8);
+
 		for (cid = 0, i = 0; i < 4; i++)
 			cid |= (readl(tmp + size - 0x10 + 4 * i) & 255) <<
-				(i * 8);
+				   (i * 8);
 
 		amba_put_disable_pclk(dev);
 
 		if (cid == AMBA_CID || cid == CORESIGHT_CID)
+		{
 			dev->periphid = pid;
+		}
 
 		if (!dev->periphid)
+		{
 			ret = -ENODEV;
+		}
 	}
 
 	iounmap(tmp);
 	dev_pm_domain_detach(&dev->dev, true);
 
 	if (ret)
+	{
 		goto err_release;
+	}
 
- skip_probe:
+skip_probe:
 	ret = device_add(&dev->dev);
+
 	if (ret)
+	{
 		goto err_release;
+	}
 
 	if (dev->irq[0])
+	{
 		ret = device_create_file(&dev->dev, &dev_attr_irq0);
+	}
+
 	if (ret == 0 && dev->irq[1])
+	{
 		ret = device_create_file(&dev->dev, &dev_attr_irq1);
+	}
+
 	if (ret == 0)
+	{
 		return ret;
+	}
 
 	device_unregister(&dev->dev);
 
- err_release:
+err_release:
 	release_resource(&dev->res);
- err_out:
+err_out:
 	return ret;
 }
 
@@ -434,7 +524,8 @@ static int amba_device_try_add(struct amba_device *dev, struct resource *parent)
  * are added to the special list and their registration is retried from
  * periodic worker, until all resources are available and registration succeeds.
  */
-struct deferred_device {
+struct deferred_device
+{
 	struct amba_device *dev;
 	struct resource *parent;
 	struct list_head node;
@@ -454,11 +545,14 @@ static void amba_deferred_retry_func(struct work_struct *dummy)
 
 	mutex_lock(&deferred_devices_lock);
 
-	list_for_each_entry_safe(ddev, tmp, &deferred_devices, node) {
+	list_for_each_entry_safe(ddev, tmp, &deferred_devices, node)
+	{
 		int ret = amba_device_try_add(ddev->dev, ddev->parent);
 
 		if (ret == -EPROBE_DEFER)
+		{
 			continue;
+		}
 
 		list_del_init(&ddev->node);
 		kfree(ddev);
@@ -466,7 +560,7 @@ static void amba_deferred_retry_func(struct work_struct *dummy)
 
 	if (!list_empty(&deferred_devices))
 		schedule_delayed_work(&deferred_retry_work,
-				      DEFERRED_DEVICE_TIMEOUT);
+							  DEFERRED_DEVICE_TIMEOUT);
 
 	mutex_unlock(&deferred_devices_lock);
 }
@@ -484,12 +578,16 @@ int amba_device_add(struct amba_device *dev, struct resource *parent)
 {
 	int ret = amba_device_try_add(dev, parent);
 
-	if (ret == -EPROBE_DEFER) {
+	if (ret == -EPROBE_DEFER)
+	{
 		struct deferred_device *ddev;
 
 		ddev = kmalloc(sizeof(*ddev), GFP_KERNEL);
+
 		if (!ddev)
+		{
 			return -ENOMEM;
+		}
 
 		ddev->dev = dev;
 		ddev->parent = parent;
@@ -499,27 +597,32 @@ int amba_device_add(struct amba_device *dev, struct resource *parent)
 
 		if (list_empty(&deferred_devices))
 			schedule_delayed_work(&deferred_retry_work,
-					      DEFERRED_DEVICE_TIMEOUT);
+								  DEFERRED_DEVICE_TIMEOUT);
+
 		list_add_tail(&ddev->node, &deferred_devices);
 
 		mutex_unlock(&deferred_devices_lock);
 	}
+
 	return ret;
 }
 EXPORT_SYMBOL_GPL(amba_device_add);
 
 static struct amba_device *
 amba_aphb_device_add(struct device *parent, const char *name,
-		     resource_size_t base, size_t size, int irq1, int irq2,
-		     void *pdata, unsigned int periphid, u64 dma_mask,
-		     struct resource *resbase)
+					 resource_size_t base, size_t size, int irq1, int irq2,
+					 void *pdata, unsigned int periphid, u64 dma_mask,
+					 struct resource *resbase)
 {
 	struct amba_device *dev;
 	int ret;
 
 	dev = amba_device_alloc(name, base, size);
+
 	if (!dev)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	dev->dev.coherent_dma_mask = dma_mask;
 	dev->irq[0] = irq1;
@@ -529,7 +632,9 @@ amba_aphb_device_add(struct device *parent, const char *name,
 	dev->dev.parent = parent;
 
 	ret = amba_device_add(dev, resbase);
-	if (ret) {
+
+	if (ret)
+	{
 		amba_device_put(dev);
 		return ERR_PTR(ret);
 	}
@@ -539,43 +644,43 @@ amba_aphb_device_add(struct device *parent, const char *name,
 
 struct amba_device *
 amba_apb_device_add(struct device *parent, const char *name,
-		    resource_size_t base, size_t size, int irq1, int irq2,
-		    void *pdata, unsigned int periphid)
+					resource_size_t base, size_t size, int irq1, int irq2,
+					void *pdata, unsigned int periphid)
 {
 	return amba_aphb_device_add(parent, name, base, size, irq1, irq2, pdata,
-				    periphid, 0, &iomem_resource);
+								periphid, 0, &iomem_resource);
 }
 EXPORT_SYMBOL_GPL(amba_apb_device_add);
 
 struct amba_device *
 amba_ahb_device_add(struct device *parent, const char *name,
-		    resource_size_t base, size_t size, int irq1, int irq2,
-		    void *pdata, unsigned int periphid)
+					resource_size_t base, size_t size, int irq1, int irq2,
+					void *pdata, unsigned int periphid)
 {
 	return amba_aphb_device_add(parent, name, base, size, irq1, irq2, pdata,
-				    periphid, ~0ULL, &iomem_resource);
+								periphid, ~0ULL, &iomem_resource);
 }
 EXPORT_SYMBOL_GPL(amba_ahb_device_add);
 
 struct amba_device *
 amba_apb_device_add_res(struct device *parent, const char *name,
-			resource_size_t base, size_t size, int irq1,
-			int irq2, void *pdata, unsigned int periphid,
-			struct resource *resbase)
+						resource_size_t base, size_t size, int irq1,
+						int irq2, void *pdata, unsigned int periphid,
+						struct resource *resbase)
 {
 	return amba_aphb_device_add(parent, name, base, size, irq1, irq2, pdata,
-				    periphid, 0, resbase);
+								periphid, 0, resbase);
 }
 EXPORT_SYMBOL_GPL(amba_apb_device_add_res);
 
 struct amba_device *
 amba_ahb_device_add_res(struct device *parent, const char *name,
-			resource_size_t base, size_t size, int irq1,
-			int irq2, void *pdata, unsigned int periphid,
-			struct resource *resbase)
+						resource_size_t base, size_t size, int irq1,
+						int irq2, void *pdata, unsigned int periphid,
+						struct resource *resbase)
 {
 	return amba_aphb_device_add(parent, name, base, size, irq1, irq2, pdata,
-				    periphid, ~0ULL, resbase);
+								periphid, ~0ULL, resbase);
 }
 EXPORT_SYMBOL_GPL(amba_ahb_device_add_res);
 
@@ -583,8 +688,12 @@ EXPORT_SYMBOL_GPL(amba_ahb_device_add_res);
 static void amba_device_initialize(struct amba_device *dev, const char *name)
 {
 	device_initialize(&dev->dev);
+
 	if (name)
+	{
 		dev_set_name(&dev->dev, "%s", name);
+	}
+
 	dev->dev.release = amba_device_release;
 	dev->dev.bus = &amba_bustype;
 	dev->dev.dma_mask = &dev->dev.coherent_dma_mask;
@@ -601,12 +710,14 @@ static void amba_device_initialize(struct amba_device *dev, const char *name)
  *	on failure.
  */
 struct amba_device *amba_device_alloc(const char *name, resource_size_t base,
-	size_t size)
+									  size_t size)
 {
 	struct amba_device *dev;
 
 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
-	if (dev) {
+
+	if (dev)
+	{
 		amba_device_initialize(dev, name);
 		dev->res.start = base;
 		dev->res.end = base + size - 1;
@@ -661,7 +772,8 @@ void amba_device_unregister(struct amba_device *dev)
 }
 
 
-struct find_data {
+struct find_data
+{
 	struct amba_device *dev;
 	struct device *parent;
 	const char *busid;
@@ -676,12 +788,19 @@ static int amba_find_match(struct device *dev, void *data)
 	int r;
 
 	r = (pcdev->periphid & d->mask) == d->id;
-	if (d->parent)
-		r &= d->parent == dev->parent;
-	if (d->busid)
-		r &= strcmp(dev_name(dev), d->busid) == 0;
 
-	if (r) {
+	if (d->parent)
+	{
+		r &= d->parent == dev->parent;
+	}
+
+	if (d->busid)
+	{
+		r &= strcmp(dev_name(dev), d->busid) == 0;
+	}
+
+	if (r)
+	{
 		get_device(dev);
 		d->dev = pcdev;
 	}
@@ -705,7 +824,7 @@ static int amba_find_match(struct device *dev, void *data)
  */
 struct amba_device *
 amba_find_device(const char *busid, struct device *parent, unsigned int id,
-		 unsigned int mask)
+				 unsigned int mask)
 {
 	struct find_data data;
 
@@ -731,12 +850,16 @@ int amba_request_regions(struct amba_device *dev, const char *name)
 	u32 size;
 
 	if (!name)
+	{
 		name = dev->dev.driver->name;
+	}
 
 	size = resource_size(&dev->res);
 
 	if (!request_mem_region(dev->res.start, size, name))
+	{
 		ret = -EBUSY;
+	}
 
 	return ret;
 }

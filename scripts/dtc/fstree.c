@@ -31,40 +31,55 @@ static struct node *read_fstree(const char *dirname)
 	struct node *tree;
 
 	d = opendir(dirname);
+
 	if (!d)
+	{
 		die("Couldn't opendir() \"%s\": %s\n", dirname, strerror(errno));
+	}
 
 	tree = build_node(NULL, NULL);
 
-	while ((de = readdir(d)) != NULL) {
+	while ((de = readdir(d)) != NULL)
+	{
 		char *tmpname;
 
 		if (streq(de->d_name, ".")
-		    || streq(de->d_name, ".."))
+			|| streq(de->d_name, ".."))
+		{
 			continue;
+		}
 
 		tmpname = join_path(dirname, de->d_name);
 
 		if (lstat(tmpname, &st) < 0)
+		{
 			die("stat(%s): %s\n", tmpname, strerror(errno));
+		}
 
-		if (S_ISREG(st.st_mode)) {
+		if (S_ISREG(st.st_mode))
+		{
 			struct property *prop;
 			FILE *pfile;
 
 			pfile = fopen(tmpname, "rb");
-			if (! pfile) {
+
+			if (! pfile)
+			{
 				fprintf(stderr,
-					"WARNING: Cannot open %s: %s\n",
-					tmpname, strerror(errno));
-			} else {
+						"WARNING: Cannot open %s: %s\n",
+						tmpname, strerror(errno));
+			}
+			else
+			{
 				prop = build_property(xstrdup(de->d_name),
-						      data_copy_file(pfile,
-								     st.st_size));
+									  data_copy_file(pfile,
+													 st.st_size));
 				add_property(tree, prop);
 				fclose(pfile);
 			}
-		} else if (S_ISDIR(st.st_mode)) {
+		}
+		else if (S_ISDIR(st.st_mode))
+		{
 			struct node *newchild;
 
 			newchild = read_fstree(tmpname);

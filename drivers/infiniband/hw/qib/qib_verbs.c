@@ -52,14 +52,14 @@ MODULE_PARM_DESC(qp_table_size, "QP table size");
 
 static unsigned int qib_lkey_table_size = 16;
 module_param_named(lkey_table_size, qib_lkey_table_size, uint,
-		   S_IRUGO);
+				   S_IRUGO);
 MODULE_PARM_DESC(lkey_table_size,
-		 "LKEY table size in bits (2^n, 1 <= n <= 23)");
+				 "LKEY table size in bits (2^n, 1 <= n <= 23)");
 
 static unsigned int ib_qib_max_pds = 0xFFFF;
 module_param_named(max_pds, ib_qib_max_pds, uint, S_IRUGO);
 MODULE_PARM_DESC(max_pds,
-		 "Maximum number of protection domains to support");
+				 "Maximum number of protection domains to support");
 
 static unsigned int ib_qib_max_ahs = 0xFFFF;
 module_param_named(max_ahs, ib_qib_max_ahs, uint, S_IRUGO);
@@ -68,7 +68,7 @@ MODULE_PARM_DESC(max_ahs, "Maximum number of address handles to support");
 unsigned int ib_qib_max_cqes = 0x2FFFF;
 module_param_named(max_cqes, ib_qib_max_cqes, uint, S_IRUGO);
 MODULE_PARM_DESC(max_cqes,
-		 "Maximum number of completion queue entries to support");
+				 "Maximum number of completion queue entries to support");
 
 unsigned int ib_qib_max_cqs = 0x1FFFF;
 module_param_named(max_cqs, ib_qib_max_cqs, uint, S_IRUGO);
@@ -89,13 +89,13 @@ MODULE_PARM_DESC(max_sges, "Maximum number of SGEs to support");
 unsigned int ib_qib_max_mcast_grps = 16384;
 module_param_named(max_mcast_grps, ib_qib_max_mcast_grps, uint, S_IRUGO);
 MODULE_PARM_DESC(max_mcast_grps,
-		 "Maximum number of multicast groups to support");
+				 "Maximum number of multicast groups to support");
 
 unsigned int ib_qib_max_mcast_qp_attached = 16;
 module_param_named(max_mcast_qp_attached, ib_qib_max_mcast_qp_attached,
-		   uint, S_IRUGO);
+				   uint, S_IRUGO);
 MODULE_PARM_DESC(max_mcast_qp_attached,
-		 "Maximum number of attached QPs to support");
+				 "Maximum number of attached QPs to support");
 
 unsigned int ib_qib_max_srqs = 1024;
 module_param_named(max_srqs, ib_qib_max_srqs, uint, S_IRUGO);
@@ -116,7 +116,8 @@ MODULE_PARM_DESC(disable_sma, "Disable the SMA");
 /*
  * Translate ib_wr_opcode into ib_wc_opcode.
  */
-const enum ib_wc_opcode ib_qib_wc_opcode[] = {
+const enum ib_wc_opcode ib_qib_wc_opcode[] =
+{
 	[IB_WR_RDMA_WRITE] = IB_WC_RDMA_WRITE,
 	[IB_WR_RDMA_WRITE_WITH_IMM] = IB_WC_RDMA_WRITE,
 	[IB_WR_SEND] = IB_WC_SEND,
@@ -141,34 +142,56 @@ void qib_copy_sge(struct rvt_sge_state *ss, void *data, u32 length, int release)
 {
 	struct rvt_sge *sge = &ss->sge;
 
-	while (length) {
+	while (length)
+	{
 		u32 len = sge->length;
 
 		if (len > length)
+		{
 			len = length;
+		}
+
 		if (len > sge->sge_length)
+		{
 			len = sge->sge_length;
+		}
+
 		BUG_ON(len == 0);
 		memcpy(sge->vaddr, data, len);
 		sge->vaddr += len;
 		sge->length -= len;
 		sge->sge_length -= len;
-		if (sge->sge_length == 0) {
+
+		if (sge->sge_length == 0)
+		{
 			if (release)
+			{
 				rvt_put_mr(sge->mr);
+			}
+
 			if (--ss->num_sge)
+			{
 				*sge = *ss->sg_list++;
-		} else if (sge->length == 0 && sge->mr->lkey) {
-			if (++sge->n >= RVT_SEGSZ) {
+			}
+		}
+		else if (sge->length == 0 && sge->mr->lkey)
+		{
+			if (++sge->n >= RVT_SEGSZ)
+			{
 				if (++sge->m >= sge->mr->mapsz)
+				{
 					break;
+				}
+
 				sge->n = 0;
 			}
+
 			sge->vaddr =
 				sge->mr->map[sge->m]->segs[sge->n].vaddr;
 			sge->length =
 				sge->mr->map[sge->m]->segs[sge->n].length;
 		}
+
 		data += len;
 		length -= len;
 	}
@@ -183,33 +206,55 @@ void qib_skip_sge(struct rvt_sge_state *ss, u32 length, int release)
 {
 	struct rvt_sge *sge = &ss->sge;
 
-	while (length) {
+	while (length)
+	{
 		u32 len = sge->length;
 
 		if (len > length)
+		{
 			len = length;
+		}
+
 		if (len > sge->sge_length)
+		{
 			len = sge->sge_length;
+		}
+
 		BUG_ON(len == 0);
 		sge->vaddr += len;
 		sge->length -= len;
 		sge->sge_length -= len;
-		if (sge->sge_length == 0) {
+
+		if (sge->sge_length == 0)
+		{
 			if (release)
+			{
 				rvt_put_mr(sge->mr);
+			}
+
 			if (--ss->num_sge)
+			{
 				*sge = *ss->sg_list++;
-		} else if (sge->length == 0 && sge->mr->lkey) {
-			if (++sge->n >= RVT_SEGSZ) {
+			}
+		}
+		else if (sge->length == 0 && sge->mr->lkey)
+		{
+			if (++sge->n >= RVT_SEGSZ)
+			{
 				if (++sge->m >= sge->mr->mapsz)
+				{
 					break;
+				}
+
 				sge->n = 0;
 			}
+
 			sge->vaddr =
 				sge->mr->map[sge->m]->segs[sge->n].vaddr;
 			sge->length =
 				sge->mr->map[sge->m]->segs[sge->n].length;
 		}
+
 		length -= len;
 	}
 }
@@ -226,39 +271,62 @@ static u32 qib_count_sge(struct rvt_sge_state *ss, u32 length)
 	u8 num_sge = ss->num_sge;
 	u32 ndesc = 1;  /* count the header */
 
-	while (length) {
+	while (length)
+	{
 		u32 len = sge.length;
 
 		if (len > length)
+		{
 			len = length;
+		}
+
 		if (len > sge.sge_length)
+		{
 			len = sge.sge_length;
+		}
+
 		BUG_ON(len == 0);
+
 		if (((long) sge.vaddr & (sizeof(u32) - 1)) ||
-		    (len != length && (len & (sizeof(u32) - 1)))) {
+			(len != length && (len & (sizeof(u32) - 1))))
+		{
 			ndesc = 0;
 			break;
 		}
+
 		ndesc++;
 		sge.vaddr += len;
 		sge.length -= len;
 		sge.sge_length -= len;
-		if (sge.sge_length == 0) {
+
+		if (sge.sge_length == 0)
+		{
 			if (--num_sge)
+			{
 				sge = *sg_list++;
-		} else if (sge.length == 0 && sge.mr->lkey) {
-			if (++sge.n >= RVT_SEGSZ) {
+			}
+		}
+		else if (sge.length == 0 && sge.mr->lkey)
+		{
+			if (++sge.n >= RVT_SEGSZ)
+			{
 				if (++sge.m >= sge.mr->mapsz)
+				{
 					break;
+				}
+
 				sge.n = 0;
 			}
+
 			sge.vaddr =
 				sge.mr->map[sge.m]->segs[sge.n].vaddr;
 			sge.length =
 				sge.mr->map[sge.m]->segs[sge.n].length;
 		}
+
 		length -= len;
 	}
+
 	return ndesc;
 }
 
@@ -269,32 +337,51 @@ static void qib_copy_from_sge(void *data, struct rvt_sge_state *ss, u32 length)
 {
 	struct rvt_sge *sge = &ss->sge;
 
-	while (length) {
+	while (length)
+	{
 		u32 len = sge->length;
 
 		if (len > length)
+		{
 			len = length;
+		}
+
 		if (len > sge->sge_length)
+		{
 			len = sge->sge_length;
+		}
+
 		BUG_ON(len == 0);
 		memcpy(data, sge->vaddr, len);
 		sge->vaddr += len;
 		sge->length -= len;
 		sge->sge_length -= len;
-		if (sge->sge_length == 0) {
+
+		if (sge->sge_length == 0)
+		{
 			if (--ss->num_sge)
+			{
 				*sge = *ss->sg_list++;
-		} else if (sge->length == 0 && sge->mr->lkey) {
-			if (++sge->n >= RVT_SEGSZ) {
+			}
+		}
+		else if (sge->length == 0 && sge->mr->lkey)
+		{
+			if (++sge->n >= RVT_SEGSZ)
+			{
 				if (++sge->m >= sge->mr->mapsz)
+				{
 					break;
+				}
+
 				sge->n = 0;
 			}
+
 			sge->vaddr =
 				sge->mr->map[sge->m]->segs[sge->n].vaddr;
 			sge->length =
 				sge->mr->map[sge->m]->segs[sge->n].length;
 		}
+
 		data += len;
 		length -= len;
 	}
@@ -314,38 +401,43 @@ static void qib_copy_from_sge(void *data, struct rvt_sge_state *ss, u32 length)
  * Called at interrupt level.
  */
 static void qib_qp_rcv(struct qib_ctxtdata *rcd, struct ib_header *hdr,
-		       int has_grh, void *data, u32 tlen, struct rvt_qp *qp)
+					   int has_grh, void *data, u32 tlen, struct rvt_qp *qp)
 {
 	struct qib_ibport *ibp = &rcd->ppd->ibport_data;
 
 	spin_lock(&qp->r_lock);
 
 	/* Check for valid receive state. */
-	if (!(ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK)) {
+	if (!(ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK))
+	{
 		ibp->rvp.n_pkt_drops++;
 		goto unlock;
 	}
 
-	switch (qp->ibqp.qp_type) {
-	case IB_QPT_SMI:
-	case IB_QPT_GSI:
-		if (ib_qib_disable_sma)
-			break;
+	switch (qp->ibqp.qp_type)
+	{
+		case IB_QPT_SMI:
+		case IB_QPT_GSI:
+			if (ib_qib_disable_sma)
+			{
+				break;
+			}
+
 		/* FALLTHROUGH */
-	case IB_QPT_UD:
-		qib_ud_rcv(ibp, hdr, has_grh, data, tlen, qp);
-		break;
+		case IB_QPT_UD:
+			qib_ud_rcv(ibp, hdr, has_grh, data, tlen, qp);
+			break;
 
-	case IB_QPT_RC:
-		qib_rc_rcv(rcd, hdr, has_grh, data, tlen, qp);
-		break;
+		case IB_QPT_RC:
+			qib_rc_rcv(rcd, hdr, has_grh, data, tlen, qp);
+			break;
 
-	case IB_QPT_UC:
-		qib_uc_rcv(ibp, hdr, has_grh, data, tlen, qp);
-		break;
+		case IB_QPT_UC:
+			qib_uc_rcv(ibp, hdr, has_grh, data, tlen, qp);
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 
 unlock:
@@ -378,31 +470,52 @@ void qib_ib_rcv(struct qib_ctxtdata *rcd, void *rhdr, void *data, u32 tlen)
 
 	/* 24 == LRH+BTH+CRC */
 	if (unlikely(tlen < 24))
+	{
 		goto drop;
+	}
 
 	/* Check for a valid destination LID (see ch. 7.11.1). */
 	lid = be16_to_cpu(hdr->lrh[1]);
-	if (lid < be16_to_cpu(IB_MULTICAST_LID_BASE)) {
+
+	if (lid < be16_to_cpu(IB_MULTICAST_LID_BASE))
+	{
 		lid &= ~((1 << ppd->lmc) - 1);
+
 		if (unlikely(lid != ppd->lid))
+		{
 			goto drop;
+		}
 	}
 
 	/* Check for GRH */
 	lnh = be16_to_cpu(hdr->lrh[0]) & 3;
+
 	if (lnh == QIB_LRH_BTH)
+	{
 		ohdr = &hdr->u.oth;
-	else if (lnh == QIB_LRH_GRH) {
+	}
+	else if (lnh == QIB_LRH_GRH)
+	{
 		u32 vtf;
 
 		ohdr = &hdr->u.l.oth;
+
 		if (hdr->u.l.grh.next_hdr != IB_GRH_NEXT_HDR)
+		{
 			goto drop;
+		}
+
 		vtf = be32_to_cpu(hdr->u.l.grh.version_tclass_flow);
+
 		if ((vtf >> IB_GRH_VERSION_SHIFT) != IB_GRH_VERSION)
+		{
 			goto drop;
-	} else
+		}
+	}
+	else
+	{
 		goto drop;
+	}
 
 	opcode = (be32_to_cpu(ohdr->bth[0]) >> 24) & 0x7f;
 #ifdef CONFIG_DEBUG_FS
@@ -412,35 +525,53 @@ void qib_ib_rcv(struct qib_ctxtdata *rcd, void *rhdr, void *data, u32 tlen)
 
 	/* Get the destination QP number. */
 	qp_num = be32_to_cpu(ohdr->bth[1]) & RVT_QPN_MASK;
-	if (qp_num == QIB_MULTICAST_QPN) {
+
+	if (qp_num == QIB_MULTICAST_QPN)
+	{
 		struct rvt_mcast *mcast;
 		struct rvt_mcast_qp *p;
 
 		if (lnh != QIB_LRH_GRH)
+		{
 			goto drop;
+		}
+
 		mcast = rvt_mcast_find(&ibp->rvp, &hdr->u.l.grh.dgid);
+
 		if (mcast == NULL)
+		{
 			goto drop;
+		}
+
 		this_cpu_inc(ibp->pmastats->n_multicast_rcv);
 		list_for_each_entry_rcu(p, &mcast->qp_list, list)
-			qib_qp_rcv(rcd, hdr, 1, data, tlen, p->qp);
+		qib_qp_rcv(rcd, hdr, 1, data, tlen, p->qp);
+
 		/*
 		 * Notify rvt_multicast_detach() if it is waiting for us
 		 * to finish.
 		 */
 		if (atomic_dec_return(&mcast->refcount) <= 1)
+		{
 			wake_up(&mcast->wait);
-	} else {
+		}
+	}
+	else
+	{
 		rcu_read_lock();
 		qp = rvt_lookup_qpn(rdi, &ibp->rvp, qp_num);
-		if (!qp) {
+
+		if (!qp)
+		{
 			rcu_read_unlock();
 			goto drop;
 		}
+
 		this_cpu_inc(ibp->pmastats->n_unicast_rcv);
 		qib_qp_rcv(rcd, hdr, lnh == QIB_LRH_GRH, data, tlen, qp);
 		rcu_read_unlock();
 	}
+
 	return;
 
 drop:
@@ -460,25 +591,38 @@ static void mem_timer(unsigned long data)
 	unsigned long flags;
 
 	spin_lock_irqsave(&dev->rdi.pending_lock, flags);
-	if (!list_empty(list)) {
+
+	if (!list_empty(list))
+	{
 		priv = list_entry(list->next, struct qib_qp_priv, iowait);
 		qp = priv->owner;
 		list_del_init(&priv->iowait);
 		atomic_inc(&qp->refcount);
+
 		if (!list_empty(list))
+		{
 			mod_timer(&dev->mem_timer, jiffies + 1);
+		}
 	}
+
 	spin_unlock_irqrestore(&dev->rdi.pending_lock, flags);
 
-	if (qp) {
+	if (qp)
+	{
 		spin_lock_irqsave(&qp->s_lock, flags);
-		if (qp->s_flags & RVT_S_WAIT_KMEM) {
+
+		if (qp->s_flags & RVT_S_WAIT_KMEM)
+		{
 			qp->s_flags &= ~RVT_S_WAIT_KMEM;
 			qib_schedule_send(qp);
 		}
+
 		spin_unlock_irqrestore(&qp->s_lock, flags);
+
 		if (atomic_dec_and_test(&qp->refcount))
+		{
 			wake_up(&qp->wait);
+		}
 	}
 }
 
@@ -489,15 +633,26 @@ static void update_sge(struct rvt_sge_state *ss, u32 length)
 	sge->vaddr += length;
 	sge->length -= length;
 	sge->sge_length -= length;
-	if (sge->sge_length == 0) {
+
+	if (sge->sge_length == 0)
+	{
 		if (--ss->num_sge)
+		{
 			*sge = *ss->sg_list++;
-	} else if (sge->length == 0 && sge->mr->lkey) {
-		if (++sge->n >= RVT_SEGSZ) {
+		}
+	}
+	else if (sge->length == 0 && sge->mr->lkey)
+	{
+		if (++sge->n >= RVT_SEGSZ)
+		{
 			if (++sge->m >= sge->mr->mapsz)
+			{
 				return;
+			}
+
 			sge->n = 0;
 		}
+
 		sge->vaddr = sge->mr->map[sge->m]->segs[sge->n].vaddr;
 		sge->length = sge->mr->map[sge->m]->segs[sge->n].length;
 	}
@@ -540,61 +695,86 @@ static inline u32 clear_upper_bytes(u32 data, u32 n, u32 off)
 #endif
 
 static void copy_io(u32 __iomem *piobuf, struct rvt_sge_state *ss,
-		    u32 length, unsigned flush_wc)
+					u32 length, unsigned flush_wc)
 {
 	u32 extra = 0;
 	u32 data = 0;
 	u32 last;
 
-	while (1) {
+	while (1)
+	{
 		u32 len = ss->sge.length;
 		u32 off;
 
 		if (len > length)
+		{
 			len = length;
+		}
+
 		if (len > ss->sge.sge_length)
+		{
 			len = ss->sge.sge_length;
+		}
+
 		BUG_ON(len == 0);
 		/* If the source address is not aligned, try to align it. */
 		off = (unsigned long)ss->sge.vaddr & (sizeof(u32) - 1);
-		if (off) {
+
+		if (off)
+		{
 			u32 *addr = (u32 *)((unsigned long)ss->sge.vaddr &
-					    ~(sizeof(u32) - 1));
+								~(sizeof(u32) - 1));
 			u32 v = get_upper_bits(*addr, off * BITS_PER_BYTE);
 			u32 y;
 
 			y = sizeof(u32) - off;
+
 			if (len > y)
+			{
 				len = y;
-			if (len + extra >= sizeof(u32)) {
+			}
+
+			if (len + extra >= sizeof(u32))
+			{
 				data |= set_upper_bits(v, extra *
-						       BITS_PER_BYTE);
+									   BITS_PER_BYTE);
 				len = sizeof(u32) - extra;
-				if (len == length) {
+
+				if (len == length)
+				{
 					last = data;
 					break;
 				}
+
 				__raw_writel(data, piobuf);
 				piobuf++;
 				extra = 0;
 				data = 0;
-			} else {
+			}
+			else
+			{
 				/* Clear unused upper bytes */
 				data |= clear_upper_bytes(v, len, extra);
-				if (len == length) {
+
+				if (len == length)
+				{
 					last = data;
 					break;
 				}
+
 				extra += len;
 			}
-		} else if (extra) {
+		}
+		else if (extra)
+		{
 			/* Source address is aligned. */
 			u32 *addr = (u32 *) ss->sge.vaddr;
 			int shift = extra * BITS_PER_BYTE;
 			int ushift = 32 - shift;
 			u32 l = len;
 
-			while (l >= sizeof(u32)) {
+			while (l >= sizeof(u32))
+			{
 				u32 v = *addr;
 
 				data |= set_upper_bits(v, shift);
@@ -604,37 +784,52 @@ static void copy_io(u32 __iomem *piobuf, struct rvt_sge_state *ss,
 				addr++;
 				l -= sizeof(u32);
 			}
+
 			/*
 			 * We still have 'extra' number of bytes leftover.
 			 */
-			if (l) {
+			if (l)
+			{
 				u32 v = *addr;
 
-				if (l + extra >= sizeof(u32)) {
+				if (l + extra >= sizeof(u32))
+				{
 					data |= set_upper_bits(v, shift);
 					len -= l + extra - sizeof(u32);
-					if (len == length) {
+
+					if (len == length)
+					{
 						last = data;
 						break;
 					}
+
 					__raw_writel(data, piobuf);
 					piobuf++;
 					extra = 0;
 					data = 0;
-				} else {
+				}
+				else
+				{
 					/* Clear unused upper bytes */
 					data |= clear_upper_bytes(v, l, extra);
-					if (len == length) {
+
+					if (len == length)
+					{
 						last = data;
 						break;
 					}
+
 					extra += l;
 				}
-			} else if (len == length) {
+			}
+			else if (len == length)
+			{
 				last = data;
 				break;
 			}
-		} else if (len == length) {
+		}
+		else if (len == length)
+		{
 			u32 w;
 
 			/*
@@ -646,37 +841,48 @@ static void copy_io(u32 __iomem *piobuf, struct rvt_sge_state *ss,
 			piobuf += w - 1;
 			last = ((u32 *) ss->sge.vaddr)[w - 1];
 			break;
-		} else {
+		}
+		else
+		{
 			u32 w = len >> 2;
 
 			qib_pio_copy(piobuf, ss->sge.vaddr, w);
 			piobuf += w;
 
 			extra = len & (sizeof(u32) - 1);
-			if (extra) {
+
+			if (extra)
+			{
 				u32 v = ((u32 *) ss->sge.vaddr)[w];
 
 				/* Clear unused upper bytes */
 				data = clear_upper_bytes(v, extra, 0);
 			}
 		}
+
 		update_sge(ss, len);
 		length -= len;
 	}
+
 	/* Update address before sending packet. */
 	update_sge(ss, length);
-	if (flush_wc) {
+
+	if (flush_wc)
+	{
 		/* must flush early everything before trigger word */
 		qib_flush_wc();
 		__raw_writel(last, piobuf);
 		/* be sure trigger word is written */
 		qib_flush_wc();
-	} else
+	}
+	else
+	{
 		__raw_writel(last, piobuf);
+	}
 }
 
 static noinline struct qib_verbs_txreq *__get_txreq(struct qib_ibdev *dev,
-					   struct rvt_qp *qp)
+		struct rvt_qp *qp)
 {
 	struct qib_qp_priv *priv = qp->priv;
 	struct qib_verbs_txreq *tx;
@@ -685,47 +891,58 @@ static noinline struct qib_verbs_txreq *__get_txreq(struct qib_ibdev *dev,
 	spin_lock_irqsave(&qp->s_lock, flags);
 	spin_lock(&dev->rdi.pending_lock);
 
-	if (!list_empty(&dev->txreq_free)) {
+	if (!list_empty(&dev->txreq_free))
+	{
 		struct list_head *l = dev->txreq_free.next;
 
 		list_del(l);
 		spin_unlock(&dev->rdi.pending_lock);
 		spin_unlock_irqrestore(&qp->s_lock, flags);
 		tx = list_entry(l, struct qib_verbs_txreq, txreq.list);
-	} else {
+	}
+	else
+	{
 		if (ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK &&
-		    list_empty(&priv->iowait)) {
+			list_empty(&priv->iowait))
+		{
 			dev->n_txwait++;
 			qp->s_flags |= RVT_S_WAIT_TX;
 			list_add_tail(&priv->iowait, &dev->txwait);
 		}
+
 		qp->s_flags &= ~RVT_S_BUSY;
 		spin_unlock(&dev->rdi.pending_lock);
 		spin_unlock_irqrestore(&qp->s_lock, flags);
 		tx = ERR_PTR(-EBUSY);
 	}
+
 	return tx;
 }
 
 static inline struct qib_verbs_txreq *get_txreq(struct qib_ibdev *dev,
-					 struct rvt_qp *qp)
+		struct rvt_qp *qp)
 {
 	struct qib_verbs_txreq *tx;
 	unsigned long flags;
 
 	spin_lock_irqsave(&dev->rdi.pending_lock, flags);
+
 	/* assume the list non empty */
-	if (likely(!list_empty(&dev->txreq_free))) {
+	if (likely(!list_empty(&dev->txreq_free)))
+	{
 		struct list_head *l = dev->txreq_free.next;
 
 		list_del(l);
 		spin_unlock_irqrestore(&dev->rdi.pending_lock, flags);
 		tx = list_entry(l, struct qib_verbs_txreq, txreq.list);
-	} else {
+	}
+	else
+	{
 		/* call slow path to get the extra lock */
 		spin_unlock_irqrestore(&dev->rdi.pending_lock, flags);
 		tx =  __get_txreq(dev, qp);
 	}
+
 	return tx;
 }
 
@@ -739,15 +956,18 @@ void qib_put_txreq(struct qib_verbs_txreq *tx)
 	qp = tx->qp;
 	dev = to_idev(qp->ibqp.device);
 
-	if (tx->mr) {
+	if (tx->mr)
+	{
 		rvt_put_mr(tx->mr);
 		tx->mr = NULL;
 	}
-	if (tx->txreq.flags & QIB_SDMA_TXREQ_F_FREEBUF) {
+
+	if (tx->txreq.flags & QIB_SDMA_TXREQ_F_FREEBUF)
+	{
 		tx->txreq.flags &= ~QIB_SDMA_TXREQ_F_FREEBUF;
 		dma_unmap_single(&dd_from_dev(dev)->pcidev->dev,
-				 tx->txreq.addr, tx->hdr_dwords << 2,
-				 DMA_TO_DEVICE);
+						 tx->txreq.addr, tx->hdr_dwords << 2,
+						 DMA_TO_DEVICE);
 		kfree(tx->align_buf);
 	}
 
@@ -756,26 +976,35 @@ void qib_put_txreq(struct qib_verbs_txreq *tx)
 	/* Put struct back on free list */
 	list_add(&tx->txreq.list, &dev->txreq_free);
 
-	if (!list_empty(&dev->txwait)) {
+	if (!list_empty(&dev->txwait))
+	{
 		/* Wake up first QP wanting a free struct */
 		priv = list_entry(dev->txwait.next, struct qib_qp_priv,
-				  iowait);
+						  iowait);
 		qp = priv->owner;
 		list_del_init(&priv->iowait);
 		atomic_inc(&qp->refcount);
 		spin_unlock_irqrestore(&dev->rdi.pending_lock, flags);
 
 		spin_lock_irqsave(&qp->s_lock, flags);
-		if (qp->s_flags & RVT_S_WAIT_TX) {
+
+		if (qp->s_flags & RVT_S_WAIT_TX)
+		{
 			qp->s_flags &= ~RVT_S_WAIT_TX;
 			qib_schedule_send(qp);
 		}
+
 		spin_unlock_irqrestore(&qp->s_lock, flags);
 
 		if (atomic_dec_and_test(&qp->refcount))
+		{
 			wake_up(&qp->wait);
-	} else
+		}
+	}
+	else
+	{
 		spin_unlock_irqrestore(&dev->rdi.pending_lock, flags);
+	}
 }
 
 /*
@@ -797,15 +1026,26 @@ void qib_verbs_sdma_desc_avail(struct qib_pportdata *ppd, unsigned avail)
 	spin_lock(&dev->rdi.pending_lock);
 
 	/* Search wait list for first QP wanting DMA descriptors. */
-	list_for_each_entry_safe(qpp, nqpp, &dev->dmawait, iowait) {
+	list_for_each_entry_safe(qpp, nqpp, &dev->dmawait, iowait)
+	{
 		qp = qpp->owner;
 		nqp = nqpp->owner;
+
 		if (qp->port_num != ppd->port)
+		{
 			continue;
+		}
+
 		if (n == ARRAY_SIZE(qps))
+		{
 			break;
+		}
+
 		if (qpp->s_tx->txreq.sg_count > avail)
+		{
 			break;
+		}
+
 		avail -= qpp->s_tx->txreq.sg_count;
 		list_del_init(&qpp->iowait);
 		atomic_inc(&qp->refcount);
@@ -814,16 +1054,23 @@ void qib_verbs_sdma_desc_avail(struct qib_pportdata *ppd, unsigned avail)
 
 	spin_unlock(&dev->rdi.pending_lock);
 
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < n; i++)
+	{
 		qp = qps[i];
 		spin_lock(&qp->s_lock);
-		if (qp->s_flags & RVT_S_WAIT_DMA_DESC) {
+
+		if (qp->s_flags & RVT_S_WAIT_DMA_DESC)
+		{
 			qp->s_flags &= ~RVT_S_WAIT_DMA_DESC;
 			qib_schedule_send(qp);
 		}
+
 		spin_unlock(&qp->s_lock);
+
 		if (atomic_dec_and_test(&qp->refcount))
+		{
 			wake_up(&qp->wait);
+		}
 	}
 }
 
@@ -838,28 +1085,42 @@ static void sdma_complete(struct qib_sdma_txreq *cookie, int status)
 	struct qib_qp_priv *priv = qp->priv;
 
 	spin_lock(&qp->s_lock);
+
 	if (tx->wqe)
+	{
 		qib_send_complete(qp, tx->wqe, IB_WC_SUCCESS);
-	else if (qp->ibqp.qp_type == IB_QPT_RC) {
+	}
+	else if (qp->ibqp.qp_type == IB_QPT_RC)
+	{
 		struct ib_header *hdr;
 
 		if (tx->txreq.flags & QIB_SDMA_TXREQ_F_FREEBUF)
+		{
 			hdr = &tx->align_buf->hdr;
-		else {
+		}
+		else
+		{
 			struct qib_ibdev *dev = to_idev(qp->ibqp.device);
 
 			hdr = &dev->pio_hdrs[tx->hdr_inx].hdr;
 		}
+
 		qib_rc_send_complete(qp, hdr);
 	}
-	if (atomic_dec_and_test(&priv->s_dma_busy)) {
+
+	if (atomic_dec_and_test(&priv->s_dma_busy))
+	{
 		if (qp->state == IB_QPS_RESET)
+		{
 			wake_up(&priv->wait_dma);
-		else if (qp->s_flags & RVT_S_WAIT_DMA) {
+		}
+		else if (qp->s_flags & RVT_S_WAIT_DMA)
+		{
 			qp->s_flags &= ~RVT_S_WAIT_DMA;
 			qib_schedule_send(qp);
 		}
 	}
+
 	spin_unlock(&qp->s_lock);
 
 	qib_put_txreq(tx);
@@ -872,26 +1133,35 @@ static int wait_kmem(struct qib_ibdev *dev, struct rvt_qp *qp)
 	int ret = 0;
 
 	spin_lock_irqsave(&qp->s_lock, flags);
-	if (ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK) {
+
+	if (ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK)
+	{
 		spin_lock(&dev->rdi.pending_lock);
-		if (list_empty(&priv->iowait)) {
+
+		if (list_empty(&priv->iowait))
+		{
 			if (list_empty(&dev->memwait))
+			{
 				mod_timer(&dev->mem_timer, jiffies + 1);
+			}
+
 			qp->s_flags |= RVT_S_WAIT_KMEM;
 			list_add_tail(&priv->iowait, &dev->memwait);
 		}
+
 		spin_unlock(&dev->rdi.pending_lock);
 		qp->s_flags &= ~RVT_S_BUSY;
 		ret = -EBUSY;
 	}
+
 	spin_unlock_irqrestore(&qp->s_lock, flags);
 
 	return ret;
 }
 
 static int qib_verbs_send_dma(struct rvt_qp *qp, struct ib_header *hdr,
-			      u32 hdrwords, struct rvt_sge_state *ss, u32 len,
-			      u32 plen, u32 dwords)
+							  u32 hdrwords, struct rvt_sge_state *ss, u32 len,
+							  u32 plen, u32 dwords)
 {
 	struct qib_qp_priv *priv = qp->priv;
 	struct qib_ibdev *dev = to_idev(qp->ibqp.device);
@@ -905,7 +1175,9 @@ static int qib_verbs_send_dma(struct rvt_qp *qp, struct ib_header *hdr,
 	int ret;
 
 	tx = priv->s_tx;
-	if (tx) {
+
+	if (tx)
+	{
 		priv->s_tx = NULL;
 		/* resend previously constructed packet */
 		ret = qib_sdma_verbs_send(ppd, tx->ss, tx->dwords, tx);
@@ -913,35 +1185,59 @@ static int qib_verbs_send_dma(struct rvt_qp *qp, struct ib_header *hdr,
 	}
 
 	tx = get_txreq(dev, qp);
+
 	if (IS_ERR(tx))
+	{
 		goto bail_tx;
+	}
 
 	control = dd->f_setpbc_control(ppd, plen, qp->s_srate,
-				       be16_to_cpu(hdr->lrh[0]) >> 12);
+								   be16_to_cpu(hdr->lrh[0]) >> 12);
 	tx->qp = qp;
 	tx->wqe = qp->s_wqe;
 	tx->mr = qp->s_rdma_mr;
-	if (qp->s_rdma_mr)
-		qp->s_rdma_mr = NULL;
-	tx->txreq.callback = sdma_complete;
-	if (dd->flags & QIB_HAS_SDMA_TIMEOUT)
-		tx->txreq.flags = QIB_SDMA_TXREQ_F_HEADTOHOST;
-	else
-		tx->txreq.flags = QIB_SDMA_TXREQ_F_INTREQ;
-	if (plen + 1 > dd->piosize2kmax_dwords)
-		tx->txreq.flags |= QIB_SDMA_TXREQ_F_USELARGEBUF;
 
-	if (len) {
+	if (qp->s_rdma_mr)
+	{
+		qp->s_rdma_mr = NULL;
+	}
+
+	tx->txreq.callback = sdma_complete;
+
+	if (dd->flags & QIB_HAS_SDMA_TIMEOUT)
+	{
+		tx->txreq.flags = QIB_SDMA_TXREQ_F_HEADTOHOST;
+	}
+	else
+	{
+		tx->txreq.flags = QIB_SDMA_TXREQ_F_INTREQ;
+	}
+
+	if (plen + 1 > dd->piosize2kmax_dwords)
+	{
+		tx->txreq.flags |= QIB_SDMA_TXREQ_F_USELARGEBUF;
+	}
+
+	if (len)
+	{
 		/*
 		 * Don't try to DMA if it takes more descriptors than
 		 * the queue holds.
 		 */
 		ndesc = qib_count_sge(ss, len);
+
 		if (ndesc >= ppd->sdma_descq_cnt)
+		{
 			ndesc = 0;
-	} else
+		}
+	}
+	else
+	{
 		ndesc = 1;
-	if (ndesc) {
+	}
+
+	if (ndesc)
+	{
 		phdr = &dev->pio_hdrs[tx->hdr_inx];
 		phdr->pbc[0] = cpu_to_le32(plen);
 		phdr->pbc[1] = cpu_to_le32(control);
@@ -949,7 +1245,7 @@ static int qib_verbs_send_dma(struct rvt_qp *qp, struct ib_header *hdr,
 		tx->txreq.flags |= QIB_SDMA_TXREQ_F_FREEDESC;
 		tx->txreq.sg_count = ndesc;
 		tx->txreq.addr = dev->pio_hdrs_phys +
-			tx->hdr_inx * sizeof(struct qib_pio_header);
+						 tx->hdr_inx * sizeof(struct qib_pio_header);
 		tx->hdr_dwords = hdrwords + 2; /* add PBC length */
 		ret = qib_sdma_verbs_send(ppd, ss, dwords, tx);
 		goto bail;
@@ -958,17 +1254,25 @@ static int qib_verbs_send_dma(struct rvt_qp *qp, struct ib_header *hdr,
 	/* Allocate a buffer and copy the header and payload to it. */
 	tx->hdr_dwords = plen + 1;
 	phdr = kmalloc(tx->hdr_dwords << 2, GFP_ATOMIC);
+
 	if (!phdr)
+	{
 		goto err_tx;
+	}
+
 	phdr->pbc[0] = cpu_to_le32(plen);
 	phdr->pbc[1] = cpu_to_le32(control);
 	memcpy(&phdr->hdr, hdr, hdrwords << 2);
 	qib_copy_from_sge((u32 *) &phdr->hdr + hdrwords, ss, len);
 
 	tx->txreq.addr = dma_map_single(&dd->pcidev->dev, phdr,
-					tx->hdr_dwords << 2, DMA_TO_DEVICE);
+									tx->hdr_dwords << 2, DMA_TO_DEVICE);
+
 	if (dma_mapping_error(&dd->pcidev->dev, tx->txreq.addr))
+	{
 		goto map_err;
+	}
+
 	tx->align_buf = phdr;
 	tx->txreq.flags |= QIB_SDMA_TXREQ_F_FREEBUF;
 	tx->txreq.sg_count = 1;
@@ -1008,26 +1312,32 @@ static int no_bufs_available(struct rvt_qp *qp)
 	 * enabling the PIO avail interrupt.
 	 */
 	spin_lock_irqsave(&qp->s_lock, flags);
-	if (ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK) {
+
+	if (ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK)
+	{
 		spin_lock(&dev->rdi.pending_lock);
-		if (list_empty(&priv->iowait)) {
+
+		if (list_empty(&priv->iowait))
+		{
 			dev->n_piowait++;
 			qp->s_flags |= RVT_S_WAIT_PIO;
 			list_add_tail(&priv->iowait, &dev->piowait);
 			dd = dd_from_dev(dev);
 			dd->f_wantpiobuf_intr(dd, 1);
 		}
+
 		spin_unlock(&dev->rdi.pending_lock);
 		qp->s_flags &= ~RVT_S_BUSY;
 		ret = -EBUSY;
 	}
+
 	spin_unlock_irqrestore(&qp->s_lock, flags);
 	return ret;
 }
 
 static int qib_verbs_send_pio(struct rvt_qp *qp, struct ib_header *ibhdr,
-			      u32 hdrwords, struct rvt_sge_state *ss, u32 len,
-			      u32 plen, u32 dwords)
+							  u32 hdrwords, struct rvt_sge_state *ss, u32 len,
+							  u32 plen, u32 dwords)
 {
 	struct qib_devdata *dd = dd_from_ibdev(qp->ibqp.device);
 	struct qib_pportdata *ppd = dd->pport + qp->port_num - 1;
@@ -1041,11 +1351,14 @@ static int qib_verbs_send_pio(struct rvt_qp *qp, struct ib_header *ibhdr,
 	u32 pbufn;
 
 	control = dd->f_setpbc_control(ppd, plen, qp->s_srate,
-		be16_to_cpu(ibhdr->lrh[0]) >> 12);
+								   be16_to_cpu(ibhdr->lrh[0]) >> 12);
 	pbc = ((u64) control << 32) | plen;
 	piobuf = dd->f_getsendbuf(ppd, pbc, &pbufn);
+
 	if (unlikely(piobuf == NULL))
+	{
 		return no_bufs_available(qp);
+	}
 
 	/*
 	 * Write the pbc.
@@ -1057,68 +1370,96 @@ static int qib_verbs_send_pio(struct rvt_qp *qp, struct ib_header *ibhdr,
 	piobuf += 2;
 
 	flush_wc = dd->flags & QIB_PIO_FLUSH_WC;
-	if (len == 0) {
+
+	if (len == 0)
+	{
 		/*
 		 * If there is just the header portion, must flush before
 		 * writing last word of header for correctness, and after
 		 * the last header word (trigger word).
 		 */
-		if (flush_wc) {
+		if (flush_wc)
+		{
 			qib_flush_wc();
 			qib_pio_copy(piobuf, hdr, hdrwords - 1);
 			qib_flush_wc();
 			__raw_writel(hdr[hdrwords - 1], piobuf + hdrwords - 1);
 			qib_flush_wc();
-		} else
+		}
+		else
+		{
 			qib_pio_copy(piobuf, hdr, hdrwords);
+		}
+
 		goto done;
 	}
 
 	if (flush_wc)
+	{
 		qib_flush_wc();
+	}
+
 	qib_pio_copy(piobuf, hdr, hdrwords);
 	piobuf += hdrwords;
 
 	/* The common case is aligned and contained in one segment. */
 	if (likely(ss->num_sge == 1 && len <= ss->sge.length &&
-		   !((unsigned long)ss->sge.vaddr & (sizeof(u32) - 1)))) {
+			   !((unsigned long)ss->sge.vaddr & (sizeof(u32) - 1))))
+	{
 		u32 *addr = (u32 *) ss->sge.vaddr;
 
 		/* Update address before sending packet. */
 		update_sge(ss, len);
-		if (flush_wc) {
+
+		if (flush_wc)
+		{
 			qib_pio_copy(piobuf, addr, dwords - 1);
 			/* must flush early everything before trigger word */
 			qib_flush_wc();
 			__raw_writel(addr[dwords - 1], piobuf + dwords - 1);
 			/* be sure trigger word is written */
 			qib_flush_wc();
-		} else
+		}
+		else
+		{
 			qib_pio_copy(piobuf, addr, dwords);
+		}
+
 		goto done;
 	}
+
 	copy_io(piobuf, ss, len, flush_wc);
 done:
-	if (dd->flags & QIB_USE_SPCL_TRIG) {
+
+	if (dd->flags & QIB_USE_SPCL_TRIG)
+	{
 		u32 spcl_off = (pbufn >= dd->piobcnt2k) ? 2047 : 1023;
 
 		qib_flush_wc();
 		__raw_writel(0xaebecede, piobuf_orig + spcl_off);
 	}
+
 	qib_sendbuf_done(dd, pbufn);
-	if (qp->s_rdma_mr) {
+
+	if (qp->s_rdma_mr)
+	{
 		rvt_put_mr(qp->s_rdma_mr);
 		qp->s_rdma_mr = NULL;
 	}
-	if (qp->s_wqe) {
+
+	if (qp->s_wqe)
+	{
 		spin_lock_irqsave(&qp->s_lock, flags);
 		qib_send_complete(qp, qp->s_wqe, IB_WC_SUCCESS);
 		spin_unlock_irqrestore(&qp->s_lock, flags);
-	} else if (qp->ibqp.qp_type == IB_QPT_RC) {
+	}
+	else if (qp->ibqp.qp_type == IB_QPT_RC)
+	{
 		spin_lock_irqsave(&qp->s_lock, flags);
 		qib_rc_send_complete(qp, ibhdr);
 		spin_unlock_irqrestore(&qp->s_lock, flags);
 	}
+
 	return 0;
 }
 
@@ -1134,7 +1475,7 @@ done:
  * Return non-zero and clear qp->s_flags RVT_S_BUSY otherwise.
  */
 int qib_verbs_send(struct rvt_qp *qp, struct ib_header *hdr,
-		   u32 hdrwords, struct rvt_sge_state *ss, u32 len)
+				   u32 hdrwords, struct rvt_sge_state *ss, u32 len)
 {
 	struct qib_devdata *dd = dd_from_ibdev(qp->ibqp.device);
 	u32 plen;
@@ -1153,28 +1494,30 @@ int qib_verbs_send(struct rvt_qp *qp, struct ib_header *hdr,
 	 * worrying about just how we got there.
 	 */
 	if (qp->ibqp.qp_type == IB_QPT_SMI ||
-	    !(dd->flags & QIB_HAS_SEND_DMA))
+		!(dd->flags & QIB_HAS_SEND_DMA))
 		ret = qib_verbs_send_pio(qp, hdr, hdrwords, ss, len,
-					 plen, dwords);
+								 plen, dwords);
 	else
 		ret = qib_verbs_send_dma(qp, hdr, hdrwords, ss, len,
-					 plen, dwords);
+								 plen, dwords);
 
 	return ret;
 }
 
 int qib_snapshot_counters(struct qib_pportdata *ppd, u64 *swords,
-			  u64 *rwords, u64 *spkts, u64 *rpkts,
-			  u64 *xmit_wait)
+						  u64 *rwords, u64 *spkts, u64 *rpkts,
+						  u64 *xmit_wait)
 {
 	int ret;
 	struct qib_devdata *dd = ppd->dd;
 
-	if (!(dd->flags & QIB_PRESENT)) {
+	if (!(dd->flags & QIB_PRESENT))
+	{
 		/* no hardware, freeze, etc. */
 		ret = -EINVAL;
 		goto bail;
 	}
+
 	*swords = dd->f_portcntr(ppd, QIBPORTCNTR_WORDSEND);
 	*rwords = dd->f_portcntr(ppd, QIBPORTCNTR_WORDRCV);
 	*spkts = dd->f_portcntr(ppd, QIBPORTCNTR_PKTSEND);
@@ -1195,15 +1538,17 @@ bail:
  * Return the counters needed by recv_pma_get_portcounters().
  */
 int qib_get_counters(struct qib_pportdata *ppd,
-		     struct qib_verbs_counters *cntrs)
+					 struct qib_verbs_counters *cntrs)
 {
 	int ret;
 
-	if (!(ppd->dd->flags & QIB_PRESENT)) {
+	if (!(ppd->dd->flags & QIB_PRESENT))
+	{
 		/* no hardware, freeze, etc. */
 		ret = -EINVAL;
 		goto bail;
 	}
+
 	cntrs->symbol_error_counter =
 		ppd->dd->f_portcntr(ppd, QIBPORTCNTR_IBSYMBOLERR);
 	cntrs->link_error_recovery_counter =
@@ -1234,13 +1579,13 @@ int qib_get_counters(struct qib_pportdata *ppd,
 	cntrs->port_xmit_discards =
 		ppd->dd->f_portcntr(ppd, QIBPORTCNTR_UNSUPVL);
 	cntrs->port_xmit_data = ppd->dd->f_portcntr(ppd,
-			QIBPORTCNTR_WORDSEND);
+							QIBPORTCNTR_WORDSEND);
 	cntrs->port_rcv_data = ppd->dd->f_portcntr(ppd,
-			QIBPORTCNTR_WORDRCV);
+						   QIBPORTCNTR_WORDRCV);
 	cntrs->port_xmit_packets = ppd->dd->f_portcntr(ppd,
-			QIBPORTCNTR_PKTSEND);
+							   QIBPORTCNTR_PKTSEND);
 	cntrs->port_rcv_packets = ppd->dd->f_portcntr(ppd,
-			QIBPORTCNTR_PKTRCV);
+							  QIBPORTCNTR_PKTRCV);
 	cntrs->local_link_integrity_errors =
 		ppd->dd->f_portcntr(ppd, QIBPORTCNTR_LLI);
 	cntrs->excessive_buffer_overrun_errors =
@@ -1282,37 +1627,49 @@ void qib_ib_piobufavail(struct qib_devdata *dd)
 	 * disabled.
 	 */
 	spin_lock_irqsave(&dev->rdi.pending_lock, flags);
-	while (!list_empty(list)) {
+
+	while (!list_empty(list))
+	{
 		if (n == ARRAY_SIZE(qps))
+		{
 			goto full;
+		}
+
 		priv = list_entry(list->next, struct qib_qp_priv, iowait);
 		qp = priv->owner;
 		list_del_init(&priv->iowait);
 		atomic_inc(&qp->refcount);
 		qps[n++] = qp;
 	}
+
 	dd->f_wantpiobuf_intr(dd, 0);
 full:
 	spin_unlock_irqrestore(&dev->rdi.pending_lock, flags);
 
-	for (i = 0; i < n; i++) {
+	for (i = 0; i < n; i++)
+	{
 		qp = qps[i];
 
 		spin_lock_irqsave(&qp->s_lock, flags);
-		if (qp->s_flags & RVT_S_WAIT_PIO) {
+
+		if (qp->s_flags & RVT_S_WAIT_PIO)
+		{
 			qp->s_flags &= ~RVT_S_WAIT_PIO;
 			qib_schedule_send(qp);
 		}
+
 		spin_unlock_irqrestore(&qp->s_lock, flags);
 
 		/* Notify qib_destroy_qp() if it is waiting. */
 		if (atomic_dec_and_test(&qp->refcount))
+		{
 			wake_up(&qp->wait);
+		}
 	}
 }
 
 static int qib_query_port(struct rvt_dev_info *rdi, u8 port_num,
-			  struct ib_port_attr *props)
+						  struct ib_port_attr *props)
 {
 	struct qib_ibdev *ibdev = container_of(rdi, struct qib_ibdev, rdi);
 	struct qib_devdata *dd = dd_from_dev(ibdev);
@@ -1331,58 +1688,73 @@ static int qib_query_port(struct rvt_dev_info *rdi, u8 port_num,
 	props->max_vl_num = qib_num_vls(ppd->vls_supported);
 
 	props->max_mtu = qib_ibmtu ? qib_ibmtu : IB_MTU_4096;
-	switch (ppd->ibmtu) {
-	case 4096:
-		mtu = IB_MTU_4096;
-		break;
-	case 2048:
-		mtu = IB_MTU_2048;
-		break;
-	case 1024:
-		mtu = IB_MTU_1024;
-		break;
-	case 512:
-		mtu = IB_MTU_512;
-		break;
-	case 256:
-		mtu = IB_MTU_256;
-		break;
-	default:
-		mtu = IB_MTU_2048;
+
+	switch (ppd->ibmtu)
+	{
+		case 4096:
+			mtu = IB_MTU_4096;
+			break;
+
+		case 2048:
+			mtu = IB_MTU_2048;
+			break;
+
+		case 1024:
+			mtu = IB_MTU_1024;
+			break;
+
+		case 512:
+			mtu = IB_MTU_512;
+			break;
+
+		case 256:
+			mtu = IB_MTU_256;
+			break;
+
+		default:
+			mtu = IB_MTU_2048;
 	}
+
 	props->active_mtu = mtu;
 
 	return 0;
 }
 
 static int qib_modify_device(struct ib_device *device,
-			     int device_modify_mask,
-			     struct ib_device_modify *device_modify)
+							 int device_modify_mask,
+							 struct ib_device_modify *device_modify)
 {
 	struct qib_devdata *dd = dd_from_ibdev(device);
 	unsigned i;
 	int ret;
 
 	if (device_modify_mask & ~(IB_DEVICE_MODIFY_SYS_IMAGE_GUID |
-				   IB_DEVICE_MODIFY_NODE_DESC)) {
+							   IB_DEVICE_MODIFY_NODE_DESC))
+	{
 		ret = -EOPNOTSUPP;
 		goto bail;
 	}
 
-	if (device_modify_mask & IB_DEVICE_MODIFY_NODE_DESC) {
+	if (device_modify_mask & IB_DEVICE_MODIFY_NODE_DESC)
+	{
 		memcpy(device->node_desc, device_modify->node_desc,
-		       IB_DEVICE_NODE_DESC_MAX);
-		for (i = 0; i < dd->num_pports; i++) {
+			   IB_DEVICE_NODE_DESC_MAX);
+
+		for (i = 0; i < dd->num_pports; i++)
+		{
 			struct qib_ibport *ibp = &dd->pport[i].ibport_data;
 
 			qib_node_desc_chg(ibp);
 		}
 	}
 
-	if (device_modify_mask & IB_DEVICE_MODIFY_SYS_IMAGE_GUID) {
+	if (device_modify_mask & IB_DEVICE_MODIFY_SYS_IMAGE_GUID)
+	{
 		ib_qib_sys_image_guid =
 			cpu_to_be64(device_modify->sys_image_guid);
-		for (i = 0; i < dd->num_pports; i++) {
+
+		for (i = 0; i < dd->num_pports; i++)
+		{
 			struct qib_ibport *ibp = &dd->pport[i].ibport_data;
 
 			qib_sys_guid_chg(ibp);
@@ -1407,17 +1779,23 @@ static int qib_shut_down_port(struct rvt_dev_info *rdi, u8 port_num)
 }
 
 static int qib_get_guid_be(struct rvt_dev_info *rdi, struct rvt_ibport *rvp,
-			   int guid_index, __be64 *guid)
+						   int guid_index, __be64 *guid)
 {
 	struct qib_ibport *ibp = container_of(rvp, struct qib_ibport, rvp);
 	struct qib_pportdata *ppd = ppd_from_ibp(ibp);
 
 	if (guid_index == 0)
+	{
 		*guid = ppd->guid;
+	}
 	else if (guid_index < QIB_GUIDS_PER_PORT)
+	{
 		*guid = ibp->guids[guid_index - 1];
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -1425,14 +1803,16 @@ static int qib_get_guid_be(struct rvt_dev_info *rdi, struct rvt_ibport *rvp,
 int qib_check_ah(struct ib_device *ibdev, struct ib_ah_attr *ah_attr)
 {
 	if (ah_attr->sl > 15)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
 static void qib_notify_new_ah(struct ib_device *ibdev,
-			      struct ib_ah_attr *ah_attr,
-			      struct rvt_ah *ah)
+							  struct ib_ah_attr *ah_attr,
+							  struct rvt_ah *ah)
 {
 	struct qib_ibport *ibp;
 	struct qib_pportdata *ppd;
@@ -1459,8 +1839,12 @@ struct ib_ah *qib_create_qp0_ah(struct qib_ibport *ibp, u16 dlid)
 	attr.port_num = ppd_from_ibp(ibp)->port;
 	rcu_read_lock();
 	qp0 = rcu_dereference(ibp->rvp.qp[0]);
+
 	if (qp0)
+	{
 		ah = ib_create_ah(qp0->ibqp.pd, &attr);
+	}
+
 	rcu_read_unlock();
 	return ah;
 }
@@ -1487,9 +1871,13 @@ unsigned qib_get_pkey(struct qib_ibport *ibp, unsigned index)
 
 	/* dd->rcd null if mini_init or some init failures */
 	if (!dd->rcd || index >= ARRAY_SIZE(dd->rcd[ctxt]->pkeys))
+	{
 		ret = 0;
+	}
 	else
+	{
 		ret = dd->rcd[ctxt]->pkeys[index];
+	}
 
 	return ret;
 }
@@ -1504,12 +1892,16 @@ static void init_ibport(struct qib_pportdata *ppd)
 	ibp->rvp.gid_prefix = IB_DEFAULT_GID_PREFIX;
 	ibp->rvp.sm_lid = be16_to_cpu(IB_LID_PERMISSIVE);
 	ibp->rvp.port_cap_flags = IB_PORT_SYS_IMAGE_GUID_SUP |
-		IB_PORT_CLIENT_REG_SUP | IB_PORT_SL_MAP_SUP |
-		IB_PORT_TRAP_SUP | IB_PORT_AUTO_MIGR_SUP |
-		IB_PORT_DR_NOTICE_SUP | IB_PORT_CAP_MASK_NOTICE_SUP |
-		IB_PORT_OTHER_LOCAL_CHANGES_SUP;
+							  IB_PORT_CLIENT_REG_SUP | IB_PORT_SL_MAP_SUP |
+							  IB_PORT_TRAP_SUP | IB_PORT_AUTO_MIGR_SUP |
+							  IB_PORT_DR_NOTICE_SUP | IB_PORT_CAP_MASK_NOTICE_SUP |
+							  IB_PORT_OTHER_LOCAL_CHANGES_SUP;
+
 	if (ppd->dd->flags & QIB_HAS_LINK_LATENCY)
+	{
 		ibp->rvp.port_cap_flags |= IB_PORT_LINK_LATENCY_SUP;
+	}
+
 	ibp->rvp.pma_counter_select[0] = IB_PMA_PORT_XMIT_DATA;
 	ibp->rvp.pma_counter_select[1] = IB_PMA_PORT_RCV_DATA;
 	ibp->rvp.pma_counter_select[2] = IB_PMA_PORT_XMIT_PKTS;
@@ -1551,9 +1943,9 @@ static void qib_fill_device_attr(struct qib_devdata *dd)
 	rdi->dparms.props.max_pd = ib_qib_max_pds;
 	rdi->dparms.props.max_ah = ib_qib_max_ahs;
 	rdi->dparms.props.device_cap_flags = IB_DEVICE_BAD_PKEY_CNTR |
-		IB_DEVICE_BAD_QKEY_CNTR | IB_DEVICE_SHUTDOWN_PORT |
-		IB_DEVICE_SYS_IMAGE_GUID | IB_DEVICE_RC_RNR_NAK_GEN |
-		IB_DEVICE_PORT_ACTIVE_EVENT | IB_DEVICE_SRQ_RESIZE;
+										 IB_DEVICE_BAD_QKEY_CNTR | IB_DEVICE_SHUTDOWN_PORT |
+										 IB_DEVICE_SYS_IMAGE_GUID | IB_DEVICE_RC_RNR_NAK_GEN |
+										 IB_DEVICE_PORT_ACTIVE_EVENT | IB_DEVICE_SRQ_RESIZE;
 	rdi->dparms.props.page_size_cap = PAGE_SIZE;
 	rdi->dparms.props.vendor_id =
 		QIB_SRC_OUI_1 << 16 | QIB_SRC_OUI_2 << 8 | QIB_SRC_OUI_3;
@@ -1581,8 +1973,8 @@ static void qib_fill_device_attr(struct qib_devdata *dd)
 	rdi->dparms.props.max_mcast_grp = ib_qib_max_mcast_grps;
 	rdi->dparms.props.max_mcast_qp_attach = ib_qib_max_mcast_qp_attached;
 	rdi->dparms.props.max_total_mcast_qp_attach =
-					rdi->dparms.props.max_mcast_qp_attach *
-					rdi->dparms.props.max_mcast_grp;
+		rdi->dparms.props.max_mcast_qp_attach *
+		rdi->dparms.props.max_mcast_grp;
 	/* post send table */
 	dd->verbs_dev.rdi.post_parms = qib_post_parms;
 }
@@ -1601,8 +1993,11 @@ int qib_register_ib_device(struct qib_devdata *dd)
 	int ret;
 
 	get_random_bytes(&dev->qp_rnd, sizeof(dev->qp_rnd));
+
 	for (i = 0; i < dd->num_pports; i++)
+	{
 		init_ibport(ppd + i);
+	}
 
 	/* Only need to initialize non-zero fields. */
 	setup_timer(&dev->mem_timer, mem_timer, (unsigned long)dev);
@@ -1613,26 +2008,33 @@ int qib_register_ib_device(struct qib_devdata *dd)
 	INIT_LIST_HEAD(&dev->memwait);
 	INIT_LIST_HEAD(&dev->txreq_free);
 
-	if (ppd->sdma_descq_cnt) {
+	if (ppd->sdma_descq_cnt)
+	{
 		dev->pio_hdrs = dma_alloc_coherent(&dd->pcidev->dev,
-						ppd->sdma_descq_cnt *
-						sizeof(struct qib_pio_header),
-						&dev->pio_hdrs_phys,
-						GFP_KERNEL);
-		if (!dev->pio_hdrs) {
+										   ppd->sdma_descq_cnt *
+										   sizeof(struct qib_pio_header),
+										   &dev->pio_hdrs_phys,
+										   GFP_KERNEL);
+
+		if (!dev->pio_hdrs)
+		{
 			ret = -ENOMEM;
 			goto err_hdrs;
 		}
 	}
 
-	for (i = 0; i < ppd->sdma_descq_cnt; i++) {
+	for (i = 0; i < ppd->sdma_descq_cnt; i++)
+	{
 		struct qib_verbs_txreq *tx;
 
 		tx = kzalloc(sizeof(*tx), GFP_KERNEL);
-		if (!tx) {
+
+		if (!tx)
+		{
 			ret = -ENOMEM;
 			goto err_tx;
 		}
+
 		tx->hdr_inx = i;
 		list_add(&tx->txreq.list, &dev->txreq_free);
 	}
@@ -1643,7 +2045,9 @@ int qib_register_ib_device(struct qib_devdata *dd)
 	 * device types in the system, we can't be sure this is unique.
 	 */
 	if (!ib_qib_sys_image_guid)
+	{
 		ib_qib_sys_image_guid = ppd->guid;
+	}
 
 	strlcpy(ibdev->name, "qib%d", IB_DEVICE_NAME_MAX);
 	ibdev->owner = THIS_MODULE;
@@ -1654,7 +2058,7 @@ int qib_register_ib_device(struct qib_devdata *dd)
 	ibdev->process_mad = qib_process_mad;
 
 	snprintf(ibdev->node_desc, sizeof(ibdev->node_desc),
-		 "Intel Infiniband HCA %s", init_utsname()->nodename);
+			 "Intel Infiniband HCA %s", init_utsname()->nodename);
 
 	/*
 	 * Fill in rvt info object.
@@ -1684,9 +2088,9 @@ int qib_register_ib_device(struct qib_devdata *dd)
 	dd->verbs_dev.rdi.driver_f.shut_down_port = qib_shut_down_port;
 	dd->verbs_dev.rdi.driver_f.cap_mask_chg = qib_cap_mask_chg;
 	dd->verbs_dev.rdi.driver_f.notify_create_mad_agent =
-						qib_notify_create_mad_agent;
+		qib_notify_create_mad_agent;
 	dd->verbs_dev.rdi.driver_f.notify_free_mad_agent =
-						qib_notify_free_mad_agent;
+		qib_notify_free_mad_agent;
 
 	dd->verbs_dev.rdi.dparms.max_rdma_atomic = QIB_MAX_RDMA_ATOMIC;
 	dd->verbs_dev.rdi.driver_f.get_guid_be = qib_get_guid_be;
@@ -1707,34 +2111,44 @@ int qib_register_ib_device(struct qib_devdata *dd)
 	dd->verbs_dev.rdi.dparms.max_mad_size = IB_MGMT_MAD_SIZE;
 
 	snprintf(dd->verbs_dev.rdi.dparms.cq_name,
-		 sizeof(dd->verbs_dev.rdi.dparms.cq_name),
-		 "qib_cq%d", dd->unit);
+			 sizeof(dd->verbs_dev.rdi.dparms.cq_name),
+			 "qib_cq%d", dd->unit);
 
 	qib_fill_device_attr(dd);
 
 	ppd = dd->pport;
-	for (i = 0; i < dd->num_pports; i++, ppd++) {
+
+	for (i = 0; i < dd->num_pports; i++, ppd++)
+	{
 		ctxt = ppd->hw_pidx;
 		rvt_init_port(&dd->verbs_dev.rdi,
-			      &ppd->ibport_data.rvp,
-			      i,
-			      dd->rcd[ctxt]->pkeys);
+					  &ppd->ibport_data.rvp,
+					  i,
+					  dd->rcd[ctxt]->pkeys);
 	}
 
 	ret = rvt_register_device(&dd->verbs_dev.rdi);
+
 	if (ret)
+	{
 		goto err_tx;
+	}
 
 	ret = qib_verbs_register_sysfs(dd);
+
 	if (ret)
+	{
 		goto err_class;
+	}
 
 	return ret;
 
 err_class:
 	rvt_unregister_device(&dd->verbs_dev.rdi);
 err_tx:
-	while (!list_empty(&dev->txreq_free)) {
+
+	while (!list_empty(&dev->txreq_free))
+	{
 		struct list_head *l = dev->txreq_free.next;
 		struct qib_verbs_txreq *tx;
 
@@ -1742,11 +2156,13 @@ err_tx:
 		tx = list_entry(l, struct qib_verbs_txreq, txreq.list);
 		kfree(tx);
 	}
+
 	if (ppd->sdma_descq_cnt)
 		dma_free_coherent(&dd->pcidev->dev,
-				  ppd->sdma_descq_cnt *
-					sizeof(struct qib_pio_header),
-				  dev->pio_hdrs, dev->pio_hdrs_phys);
+						  ppd->sdma_descq_cnt *
+						  sizeof(struct qib_pio_header),
+						  dev->pio_hdrs, dev->pio_hdrs_phys);
+
 err_hdrs:
 	qib_dev_err(dd, "cannot register verbs: %d!\n", -ret);
 	return ret;
@@ -1761,16 +2177,29 @@ void qib_unregister_ib_device(struct qib_devdata *dd)
 	rvt_unregister_device(&dd->verbs_dev.rdi);
 
 	if (!list_empty(&dev->piowait))
+	{
 		qib_dev_err(dd, "piowait list not empty!\n");
+	}
+
 	if (!list_empty(&dev->dmawait))
+	{
 		qib_dev_err(dd, "dmawait list not empty!\n");
+	}
+
 	if (!list_empty(&dev->txwait))
+	{
 		qib_dev_err(dd, "txwait list not empty!\n");
+	}
+
 	if (!list_empty(&dev->memwait))
+	{
 		qib_dev_err(dd, "memwait list not empty!\n");
+	}
 
 	del_timer_sync(&dev->mem_timer);
-	while (!list_empty(&dev->txreq_free)) {
+
+	while (!list_empty(&dev->txreq_free))
+	{
 		struct list_head *l = dev->txreq_free.next;
 		struct qib_verbs_txreq *tx;
 
@@ -1778,11 +2207,12 @@ void qib_unregister_ib_device(struct qib_devdata *dd)
 		tx = list_entry(l, struct qib_verbs_txreq, txreq.list);
 		kfree(tx);
 	}
+
 	if (dd->pport->sdma_descq_cnt)
 		dma_free_coherent(&dd->pcidev->dev,
-				  dd->pport->sdma_descq_cnt *
-					sizeof(struct qib_pio_header),
-				  dev->pio_hdrs, dev->pio_hdrs_phys);
+						  dd->pport->sdma_descq_cnt *
+						  sizeof(struct qib_pio_header),
+						  dev->pio_hdrs, dev->pio_hdrs_phys);
 }
 
 /**
@@ -1814,5 +2244,7 @@ void _qib_schedule_send(struct rvt_qp *qp)
 void qib_schedule_send(struct rvt_qp *qp)
 {
 	if (qib_send_ok(qp))
+	{
 		_qib_schedule_send(qp);
+	}
 }

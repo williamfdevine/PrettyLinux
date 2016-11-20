@@ -19,7 +19,8 @@
 #include "st_magn.h"
 
 #ifdef CONFIG_OF
-static const struct of_device_id st_magn_of_match[] = {
+static const struct of_device_id st_magn_of_match[] =
+{
 	{
 		.compatible = "st,lsm303dlh-magn",
 		.data = LSM303DLH_MAGN_DEV_NAME,
@@ -48,15 +49,18 @@ MODULE_DEVICE_TABLE(of, st_magn_of_match);
 #endif
 
 static int st_magn_i2c_probe(struct i2c_client *client,
-						const struct i2c_device_id *id)
+							 const struct i2c_device_id *id)
 {
 	struct iio_dev *indio_dev;
 	struct st_sensor_data *mdata;
 	int err;
 
 	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*mdata));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	mdata = iio_priv(indio_dev);
 	st_sensors_of_i2c_probe(client, st_magn_of_match);
@@ -64,8 +68,11 @@ static int st_magn_i2c_probe(struct i2c_client *client,
 	st_sensors_i2c_configure(indio_dev, client, mdata);
 
 	err = st_magn_common_probe(indio_dev);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -78,7 +85,8 @@ static int st_magn_i2c_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id st_magn_id_table[] = {
+static const struct i2c_device_id st_magn_id_table[] =
+{
 	{ LSM303DLH_MAGN_DEV_NAME },
 	{ LSM303DLHC_MAGN_DEV_NAME },
 	{ LSM303DLM_MAGN_DEV_NAME },
@@ -88,7 +96,8 @@ static const struct i2c_device_id st_magn_id_table[] = {
 };
 MODULE_DEVICE_TABLE(i2c, st_magn_id_table);
 
-static struct i2c_driver st_magn_driver = {
+static struct i2c_driver st_magn_driver =
+{
 	.driver = {
 		.name = "st-magn-i2c",
 		.of_match_table = of_match_ptr(st_magn_of_match),

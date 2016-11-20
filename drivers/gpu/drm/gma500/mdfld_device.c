@@ -58,9 +58,12 @@ int mdfld_set_brightness(struct backlight_device *bd)
 
 	/* Perform value bounds checking */
 	if (level < BRIGHTNESS_MIN_LEVEL)
+	{
 		level = BRIGHTNESS_MIN_LEVEL;
+	}
 
-	if (gma_power_begin(dev, false)) {
+	if (gma_power_begin(dev, false))
+	{
 		u32 adjusted_level = 0;
 
 		/*
@@ -71,20 +74,24 @@ int mdfld_set_brightness(struct backlight_device *bd)
 		adjusted_level = adjusted_level / BLC_ADJUSTMENT_MAX;
 		dev_priv->brightness_adjusted = adjusted_level;
 
-		if (mdfld_get_panel_type(dev, 0) == TC35876X) {
+		if (mdfld_get_panel_type(dev, 0) == TC35876X)
+		{
 			if (dev_priv->dpi_panel_on[0] ||
-					dev_priv->dpi_panel_on[2])
+				dev_priv->dpi_panel_on[2])
 				tc35876x_brightness_control(dev,
-						dev_priv->brightness_adjusted);
-		} else {
+											dev_priv->brightness_adjusted);
+		}
+		else
+		{
 			if (dev_priv->dpi_panel_on[0])
 				mdfld_dsi_brightness_control(dev, 0,
-						dev_priv->brightness_adjusted);
+											 dev_priv->brightness_adjusted);
 		}
 
 		if (dev_priv->dpi_panel_on[2])
 			mdfld_dsi_brightness_control(dev, 2,
-					dev_priv->brightness_adjusted);
+										 dev_priv->brightness_adjusted);
+
 		gma_power_end(dev);
 	}
 
@@ -105,7 +112,8 @@ static int mdfld_get_brightness(struct backlight_device *bd)
 	return dev_priv->brightness;
 }
 
-static const struct backlight_ops mdfld_ops = {
+static const struct backlight_ops mdfld_ops =
+{
 	.get_brightness = mdfld_get_brightness,
 	.update_status  = mdfld_set_brightness,
 };
@@ -113,7 +121,7 @@ static const struct backlight_ops mdfld_ops = {
 static int device_backlight_init(struct drm_device *dev)
 {
 	struct drm_psb_private *dev_priv = (struct drm_psb_private *)
-		dev->dev_private;
+									   dev->dev_private;
 
 	dev_priv->blc_adj1 = BLC_ADJUSTMENT_MAX;
 	dev_priv->blc_adj2 = BLC_ADJUSTMENT_MAX;
@@ -130,14 +138,19 @@ static int mdfld_backlight_init(struct drm_device *dev)
 	props.max_brightness = BRIGHTNESS_MAX_LEVEL;
 	props.type = BACKLIGHT_PLATFORM;
 	mdfld_backlight_device = backlight_device_register("mdfld-bl",
-				NULL, (void *)dev, &mdfld_ops, &props);
+							 NULL, (void *)dev, &mdfld_ops, &props);
 
 	if (IS_ERR(mdfld_backlight_device))
+	{
 		return PTR_ERR(mdfld_backlight_device);
+	}
 
 	ret = device_backlight_init(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	mdfld_backlight_device->props.brightness = BRIGHTNESS_MAX_LEVEL;
 	mdfld_backlight_device->props.max_brightness = BRIGHTNESS_MAX_LEVEL;
@@ -175,22 +188,26 @@ static int mdfld_save_display_registers(struct drm_device *dev, int pipenum)
 	/* register */
 	u32 mipi_reg = MIPI;
 
-	switch (pipenum) {
-	case 0:
-		mipi_val = &regs->saveMIPI;
-		break;
-	case 1:
-		mipi_val = &regs->saveMIPI;
-		break;
-	case 2:
-		/* register */
-		mipi_reg = MIPI_C;
-		/* pointer to values */
-		mipi_val = &regs->saveMIPI_C;
-		break;
-	default:
-		DRM_ERROR("%s, invalid pipe number.\n", __func__);
-		return -EINVAL;
+	switch (pipenum)
+	{
+		case 0:
+			mipi_val = &regs->saveMIPI;
+			break;
+
+		case 1:
+			mipi_val = &regs->saveMIPI;
+			break;
+
+		case 2:
+			/* register */
+			mipi_reg = MIPI_C;
+			/* pointer to values */
+			mipi_val = &regs->saveMIPI_C;
+			break;
+
+		default:
+			DRM_ERROR("%s, invalid pipe number.\n", __func__);
+			return -EINVAL;
 	}
 
 	/* Pipe & plane A info */
@@ -215,9 +232,12 @@ static int mdfld_save_display_registers(struct drm_device *dev, int pipenum)
 
 	/*save palette (gamma) */
 	for (i = 0; i < 256; i++)
+	{
 		pipe->palette[i] = PSB_RVDC32(map->palette + (i << 2));
+	}
 
-	if (pipenum == 1) {
+	if (pipenum == 1)
+	{
 		regs->savePFIT_CONTROL = PSB_RVDC32(PFIT_CONTROL);
 		regs->savePFIT_PGM_RATIOS = PSB_RVDC32(PFIT_PGM_RATIOS);
 
@@ -258,41 +278,50 @@ static int mdfld_restore_display_registers(struct drm_device *dev, int pipenum)
 	u32 dpll_val = pipe->dpll;
 	u32 mipi_val = regs->saveMIPI;
 
-	switch (pipenum) {
-	case 0:
-		dpll_val &= ~DPLL_VCO_ENABLE;
-		dsi_config = dev_priv->dsi_configs[0];
-		break;
-	case 1:
-		dpll_val &= ~DPLL_VCO_ENABLE;
-		break;
-	case 2:
-		mipi_reg = MIPI_C;
-		mipi_val = regs->saveMIPI_C;
-		dsi_config = dev_priv->dsi_configs[1];
-		break;
-	default:
-		DRM_ERROR("%s, invalid pipe number.\n", __func__);
-		return -EINVAL;
+	switch (pipenum)
+	{
+		case 0:
+			dpll_val &= ~DPLL_VCO_ENABLE;
+			dsi_config = dev_priv->dsi_configs[0];
+			break;
+
+		case 1:
+			dpll_val &= ~DPLL_VCO_ENABLE;
+			break;
+
+		case 2:
+			mipi_reg = MIPI_C;
+			mipi_val = regs->saveMIPI_C;
+			dsi_config = dev_priv->dsi_configs[1];
+			break;
+
+		default:
+			DRM_ERROR("%s, invalid pipe number.\n", __func__);
+			return -EINVAL;
 	}
 
 	/*make sure VGA plane is off. it initializes to on after reset!*/
 	PSB_WVDC32(0x80000000, VGACNTRL);
 
-	if (pipenum == 1) {
+	if (pipenum == 1)
+	{
 		PSB_WVDC32(dpll_val & ~DPLL_VCO_ENABLE, map->dpll);
 		PSB_RVDC32(map->dpll);
 
 		PSB_WVDC32(pipe->fp0, map->fp0);
-	} else {
+	}
+	else
+	{
 
 		dpll = PSB_RVDC32(map->dpll);
 
-		if (!(dpll & DPLL_VCO_ENABLE)) {
+		if (!(dpll & DPLL_VCO_ENABLE))
+		{
 
 			/* When ungating power of DPLL, needs to wait 0.5us
 			   before enable the VCO */
-			if (dpll & MDFLD_PWR_GATE_EN) {
+			if (dpll & MDFLD_PWR_GATE_EN)
+			{
 				dpll &= ~MDFLD_PWR_GATE_EN;
 				PSB_WVDC32(dpll, map->dpll);
 				/* FIXME_MDFLD PO - change 500 to 1 after PO */
@@ -310,18 +339,21 @@ static int mdfld_restore_display_registers(struct drm_device *dev, int pipenum)
 
 			/* wait for DSI PLL to lock */
 			while (timeout < 20000 &&
-			  !(PSB_RVDC32(map->conf) & PIPECONF_DSIPLL_LOCK)) {
+				   !(PSB_RVDC32(map->conf) & PIPECONF_DSIPLL_LOCK))
+			{
 				udelay(150);
 				timeout++;
 			}
 
-			if (timeout == 20000) {
+			if (timeout == 20000)
+			{
 				DRM_ERROR("%s, can't lock DSIPLL.\n",
-								__func__);
+						  __func__);
 				return -EINVAL;
 			}
 		}
 	}
+
 	/* Restore mode */
 	PSB_WVDC32(pipe->htotal, map->htotal);
 	PSB_WVDC32(pipe->hblank, map->hblank);
@@ -340,11 +372,14 @@ static int mdfld_restore_display_registers(struct drm_device *dev, int pipenum)
 	PSB_WVDC32(pipe->pos, map->pos);
 	PSB_WVDC32(pipe->surf, map->surf);
 
-	if (pipenum == 1) {
+	if (pipenum == 1)
+	{
 		/* restore palette (gamma) */
 		/*DRM_UDELAY(50000); */
 		for (i = 0; i < 256; i++)
+		{
 			PSB_WVDC32(pipe->palette[i], map->palette + (i << 2));
+		}
 
 		PSB_WVDC32(regs->savePFIT_CONTROL, PFIT_CONTROL);
 		PSB_WVDC32(regs->savePFIT_PGM_RATIOS, PFIT_PGM_RATIOS);
@@ -364,20 +399,30 @@ static int mdfld_restore_display_registers(struct drm_device *dev, int pipenum)
 
 	/*setup MIPI adapter + MIPI IP registers*/
 	if (dsi_config)
+	{
 		mdfld_dsi_controller_init(dsi_config, pipenum);
+	}
 
 	if (in_atomic() || in_interrupt())
+	{
 		mdelay(20);
+	}
 	else
+	{
 		msleep(20);
+	}
 
 	/*enable the plane*/
 	PSB_WVDC32(pipe->cntr, map->cntr);
 
 	if (in_atomic() || in_interrupt())
+	{
 		mdelay(20);
+	}
 	else
+	{
 		msleep(20);
+	}
 
 	/* LP Hold Release */
 	temp = REG_READ(mipi_reg);
@@ -406,7 +451,9 @@ static int mdfld_restore_display_registers(struct drm_device *dev, int pipenum)
 	/* restore palette (gamma) */
 	/*DRM_UDELAY(50000); */
 	for (i = 0; i < 256; i++)
+	{
 		PSB_WVDC32(pipe->palette[i], map->palette + (i << 2));
+	}
 
 	return 0;
 }
@@ -444,7 +491,8 @@ static int mdfld_power_up(struct drm_device *dev)
 }
 
 /* Medfield  */
-static const struct psb_offset mdfld_regmap[3] = {
+static const struct psb_offset mdfld_regmap[3] =
+{
 	{
 		.fp0 = MRST_FPA0,
 		.fp1 = MRST_FPA1,
@@ -518,13 +566,18 @@ static const struct psb_offset mdfld_regmap[3] = {
 static int mdfld_chip_setup(struct drm_device *dev)
 {
 	struct drm_psb_private *dev_priv = dev->dev_private;
+
 	if (pci_enable_msi(dev->pdev))
+	{
 		dev_warn(dev->dev, "Enabling MSI failed!\n");
+	}
+
 	dev_priv->regmap = mdfld_regmap;
 	return mid_chip_setup(dev);
 }
 
-const struct psb_ops mdfld_chip_ops = {
+const struct psb_ops mdfld_chip_ops =
+{
 	.name = "mdfld",
 	.accel_2d = 0,
 	.pipes = 3,

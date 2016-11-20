@@ -17,7 +17,9 @@ static int get_temp(char *path)
 	strcpy(path, TEMPL);
 
 	fd = mkstemp(path);
-	if (fd < 0) {
+
+	if (fd < 0)
+	{
 		perror("mkstemp failed");
 		return -1;
 	}
@@ -29,7 +31,8 @@ static int get_temp(char *path)
 static int session_write_header(char *path)
 {
 	struct perf_session *session;
-	struct perf_data_file file = {
+	struct perf_data_file file =
+	{
 		.path = path,
 		.mode = PERF_DATA_MODE_WRITE,
 	};
@@ -46,7 +49,7 @@ static int session_write_header(char *path)
 	session->header.data_size += DATA_SIZE;
 
 	TEST_ASSERT_VAL("failed to write header",
-			!perf_session__write_header(session, session->evlist, file.fd, true));
+					!perf_session__write_header(session, session->evlist, file.fd, true));
 
 	perf_session__delete(session);
 
@@ -56,7 +59,8 @@ static int session_write_header(char *path)
 static int check_cpu_topology(char *path, struct cpu_map *map)
 {
 	struct perf_session *session;
-	struct perf_data_file file = {
+	struct perf_data_file file =
+	{
 		.path = path,
 		.mode = PERF_DATA_MODE_READ,
 	};
@@ -65,18 +69,20 @@ static int check_cpu_topology(char *path, struct cpu_map *map)
 	session = perf_session__new(&file, false, NULL);
 	TEST_ASSERT_VAL("can't get session", session);
 
-	for (i = 0; i < session->header.env.nr_cpus_online; i++) {
+	for (i = 0; i < session->header.env.nr_cpus_online; i++)
+	{
 		pr_debug("CPU %d, core %d, socket %d\n", i,
-			 session->header.env.cpu[i].core_id,
-			 session->header.env.cpu[i].socket_id);
+				 session->header.env.cpu[i].core_id,
+				 session->header.env.cpu[i].socket_id);
 	}
 
-	for (i = 0; i < map->nr; i++) {
+	for (i = 0; i < map->nr; i++)
+	{
 		TEST_ASSERT_VAL("Core ID doesn't match",
-			(session->header.env.cpu[map->map[i]].core_id == (cpu_map__get_core(map, i, NULL) & 0xffff)));
+						(session->header.env.cpu[map->map[i]].core_id == (cpu_map__get_core(map, i, NULL) & 0xffff)));
 
 		TEST_ASSERT_VAL("Socket ID doesn't match",
-			(session->header.env.cpu[map->map[i]].socket_id == cpu_map__get_socket(map, i, NULL)));
+						(session->header.env.cpu[map->map[i]].socket_id == cpu_map__get_socket(map, i, NULL)));
 	}
 
 	perf_session__delete(session);
@@ -95,16 +101,23 @@ int test_session_topology(int subtest __maybe_unused)
 	pr_debug("templ file: %s\n", path);
 
 	if (session_write_header(path))
+	{
 		goto free_path;
+	}
 
 	map = cpu_map__new(NULL);
-	if (map == NULL) {
+
+	if (map == NULL)
+	{
 		pr_debug("failed to get system cpumap\n");
 		goto free_path;
 	}
 
 	if (check_cpu_topology(path, map))
+	{
 		goto free_map;
+	}
+
 	ret = 0;
 
 free_map:

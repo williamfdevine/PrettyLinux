@@ -15,7 +15,8 @@
 #ifndef _LINUX_NDIS_H
 #define _LINUX_NDIS_H
 
-enum NDIS_DEVICE_POWER_STATE {
+enum NDIS_DEVICE_POWER_STATE
+{
 	NdisDeviceStateUnspecified = 0,
 	NdisDeviceStateD0,
 	NdisDeviceStateD1,
@@ -24,18 +25,21 @@ enum NDIS_DEVICE_POWER_STATE {
 	NdisDeviceStateMaximum
 };
 
-struct NDIS_PM_WAKE_UP_CAPABILITIES {
+struct NDIS_PM_WAKE_UP_CAPABILITIES
+{
 	enum NDIS_DEVICE_POWER_STATE  MinMagicPacketWakeUp;
 	enum NDIS_DEVICE_POWER_STATE  MinPatternWakeUp;
 	enum NDIS_DEVICE_POWER_STATE  MinLinkChangeWakeUp;
 };
 
-struct NDIS_PNP_CAPABILITIES {
+struct NDIS_PNP_CAPABILITIES
+{
 	__le32					Flags;
 	struct NDIS_PM_WAKE_UP_CAPABILITIES	WakeUpCapabilities;
 };
 
-struct NDIS_PM_PACKET_PATTERN {
+struct NDIS_PM_PACKET_PATTERN
+{
 	__le32	Priority;
 	__le32	Reserved;
 	__le32	MaskSize;

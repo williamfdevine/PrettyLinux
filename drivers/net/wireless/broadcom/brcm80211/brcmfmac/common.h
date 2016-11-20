@@ -36,7 +36,8 @@ extern const u8 ALLFFMAC[ETH_ALEN];
  *
  * @firmware_path: Alternative firmware path.
  */
-struct brcmf_mp_global_t {
+struct brcmf_mp_global_t
+{
 	char	firmware_path[BRCMF_FW_ALTPATH_LEN];
 };
 
@@ -53,21 +54,23 @@ extern struct brcmf_mp_global_t brcmf_mp_global;
  * @country_codes: If available, pointer to struct for translating country codes
  * @bus: Bus specific platform data. Only SDIO at the mmoment.
  */
-struct brcmf_mp_device {
+struct brcmf_mp_device
+{
 	bool		p2p_enable;
 	unsigned int	feature_disable;
 	int		fcmode;
 	bool		roamoff;
 	bool		ignore_probe_fail;
 	struct brcmfmac_pd_cc *country_codes;
-	union {
+	union
+	{
 		struct brcmfmac_sdio_pd sdio;
 	} bus;
 };
 
 struct brcmf_mp_device *brcmf_get_module_param(struct device *dev,
-					       enum brcmf_bus_type bus_type,
-					       u32 chip, u32 chiprev);
+		enum brcmf_bus_type bus_type,
+		u32 chip, u32 chiprev);
 void brcmf_release_module_param(struct brcmf_mp_device *module_param);
 
 /* Sets dongle media info (drv_version, mac address). */

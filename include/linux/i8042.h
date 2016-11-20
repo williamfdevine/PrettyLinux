@@ -63,9 +63,9 @@ void i8042_lock_chip(void);
 void i8042_unlock_chip(void);
 int i8042_command(unsigned char *param, int command);
 int i8042_install_filter(bool (*filter)(unsigned char data, unsigned char str,
-					struct serio *serio));
+										struct serio *serio));
 int i8042_remove_filter(bool (*filter)(unsigned char data, unsigned char str,
-				       struct serio *serio));
+									   struct serio *serio));
 
 #else
 
@@ -83,13 +83,13 @@ static inline int i8042_command(unsigned char *param, int command)
 }
 
 static inline int i8042_install_filter(bool (*filter)(unsigned char data, unsigned char str,
-					struct serio *serio))
+									   struct serio *serio))
 {
 	return -ENODEV;
 }
 
 static inline int i8042_remove_filter(bool (*filter)(unsigned char data, unsigned char str,
-				       struct serio *serio))
+									  struct serio *serio))
 {
 	return -ENODEV;
 }

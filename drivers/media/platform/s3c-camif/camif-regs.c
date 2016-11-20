@@ -27,8 +27,12 @@ void camif_hw_reset(struct camif_dev *camif)
 	/* S/W reset */
 	cfg = camif_read(camif, S3C_CAMIF_REG_CIGCTRL);
 	cfg |= CIGCTRL_SWRST;
+
 	if (camif->variant->ip_revision == S3C6410_CAMIF_IP_REV)
+	{
 		cfg |= CIGCTRL_IRQ_LEVEL;
+	}
+
 	camif_write(camif, S3C_CAMIF_REG_CIGCTRL, cfg);
 	udelay(10);
 
@@ -58,9 +62,10 @@ void camif_hw_set_test_pattern(struct camif_dev *camif, unsigned int pattern)
 }
 
 void camif_hw_set_effect(struct camif_dev *camif, unsigned int effect,
-			unsigned int cr, unsigned int cb)
+						 unsigned int cr, unsigned int cb)
 {
-	static const struct v4l2_control colorfx[] = {
+	static const struct v4l2_control colorfx[] =
+	{
 		{ V4L2_COLORFX_NONE,		CIIMGEFF_FIN_BYPASS },
 		{ V4L2_COLORFX_BW,		CIIMGEFF_FIN_ARBITRARY },
 		{ V4L2_COLORFX_SEPIA,		CIIMGEFF_FIN_ARBITRARY },
@@ -74,28 +79,40 @@ void camif_hw_set_effect(struct camif_dev *camif, unsigned int effect,
 
 	for (i = 0; i < ARRAY_SIZE(colorfx); i++)
 		if (colorfx[i].id == effect)
+		{
 			break;
+		}
 
 	if (i == ARRAY_SIZE(colorfx))
+	{
 		return;
+	}
 
 	cfg = camif_read(camif, S3C_CAMIF_REG_CIIMGEFF(camif->vp->offset));
 	/* Set effect */
 	cfg &= ~CIIMGEFF_FIN_MASK;
 	cfg |= colorfx[i].value;
+
 	/* Set both paths */
-	if (camif->variant->ip_revision >= S3C6400_CAMIF_IP_REV) {
+	if (camif->variant->ip_revision >= S3C6400_CAMIF_IP_REV)
+	{
 		if (effect == V4L2_COLORFX_NONE)
+		{
 			cfg &= ~CIIMGEFF_IE_ENABLE_MASK;
+		}
 		else
+		{
 			cfg |= CIIMGEFF_IE_ENABLE_MASK;
+		}
 	}
+
 	cfg &= ~CIIMGEFF_PAT_CBCR_MASK;
 	cfg |= cr | (cb << 13);
 	camif_write(camif, S3C_CAMIF_REG_CIIMGEFF(camif->vp->offset), cfg);
 }
 
-static const u32 src_pixfmt_map[8][2] = {
+static const u32 src_pixfmt_map[8][2] =
+{
 	{ MEDIA_BUS_FMT_YUYV8_2X8, CISRCFMT_ORDER422_YCBYCR },
 	{ MEDIA_BUS_FMT_YVYU8_2X8, CISRCFMT_ORDER422_YCRYCB },
 	{ MEDIA_BUS_FMT_UYVY8_2X8, CISRCFMT_ORDER422_CBYCRY },
@@ -109,15 +126,20 @@ void camif_hw_set_source_format(struct camif_dev *camif)
 	int i;
 	u32 cfg;
 
-	for (i = ARRAY_SIZE(src_pixfmt_map) - 1; i >= 0; i--) {
+	for (i = ARRAY_SIZE(src_pixfmt_map) - 1; i >= 0; i--)
+	{
 		if (src_pixfmt_map[i][0] == mf->code)
+		{
 			break;
+		}
 	}
-	if (i < 0) {
+
+	if (i < 0)
+	{
 		i = 0;
 		dev_err(camif->dev,
-			"Unsupported pixel code, falling back to %#08x\n",
-			src_pixfmt_map[i][0]);
+				"Unsupported pixel code, falling back to %#08x\n",
+				src_pixfmt_map[i][0]);
 	}
 
 	cfg = camif_read(camif, S3C_CAMIF_REG_CISRCFMT);
@@ -139,11 +161,16 @@ void camif_hw_set_camera_crop(struct camif_dev *camif)
 	cfg = camif_read(camif, S3C_CAMIF_REG_CIWDOFST);
 	cfg &= ~(CIWDOFST_OFST_MASK | CIWDOFST_WINOFSEN);
 	cfg |= (crop->left << 16) | crop->top;
+
 	if (crop->left != 0 || crop->top != 0)
+	{
 		cfg |= CIWDOFST_WINOFSEN;
+	}
+
 	camif_write(camif, S3C_CAMIF_REG_CIWDOFST, cfg);
 
-	if (camif->variant->ip_revision == S3C6410_CAMIF_IP_REV) {
+	if (camif->variant->ip_revision == S3C6410_CAMIF_IP_REV)
+	{
 		hoff2 = mf->width - crop->width - crop->left;
 		voff2 = mf->height - crop->height - crop->top;
 		cfg = (hoff2 << 16) | voff2;
@@ -157,12 +184,14 @@ void camif_hw_clear_fifo_overflow(struct camif_vp *vp)
 	u32 cfg;
 
 	cfg = camif_read(camif, S3C_CAMIF_REG_CIWDOFST);
+
 	if (vp->id == 0)
 		cfg |= (CIWDOFST_CLROVCOFIY | CIWDOFST_CLROVCOFICB |
-			CIWDOFST_CLROVCOFICR);
+				CIWDOFST_CLROVCOFICR);
 	else
 		cfg |= (/* CIWDOFST_CLROVPRFIY | */ CIWDOFST_CLROVPRFICB |
-			CIWDOFST_CLROVPRFICR);
+											CIWDOFST_CLROVPRFICR);
+
 	camif_write(camif, S3C_CAMIF_REG_CIWDOFST, cfg);
 }
 
@@ -174,24 +203,35 @@ void camif_hw_set_camera_bus(struct camif_dev *camif)
 	u32 cfg = camif_read(camif, S3C_CAMIF_REG_CIGCTRL);
 
 	cfg &= ~(CIGCTRL_INVPOLPCLK | CIGCTRL_INVPOLVSYNC |
-		 CIGCTRL_INVPOLHREF | CIGCTRL_INVPOLFIELD);
+			 CIGCTRL_INVPOLHREF | CIGCTRL_INVPOLFIELD);
 
 	if (flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
+	{
 		cfg |= CIGCTRL_INVPOLPCLK;
+	}
 
 	if (flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
+	{
 		cfg |= CIGCTRL_INVPOLVSYNC;
+	}
+
 	/*
 	 * HREF is normally high during frame active data
 	 * transmission and low during horizontal synchronization
 	 * period. Thus HREF active high means HSYNC active low.
 	 */
 	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-		cfg |= CIGCTRL_INVPOLHREF; /* HREF active low */
+	{
+		cfg |= CIGCTRL_INVPOLHREF;    /* HREF active low */
+	}
 
-	if (camif->variant->ip_revision == S3C6410_CAMIF_IP_REV) {
+	if (camif->variant->ip_revision == S3C6410_CAMIF_IP_REV)
+	{
 		if (flags & V4L2_MBUS_FIELD_EVEN_LOW)
+		{
 			cfg |= CIGCTRL_INVPOLFIELD;
+		}
+
 		cfg |= CIGCTRL_FIELDMODE;
 	}
 
@@ -201,21 +241,23 @@ void camif_hw_set_camera_bus(struct camif_dev *camif)
 }
 
 void camif_hw_set_output_addr(struct camif_vp *vp,
-			      struct camif_addr *paddr, int i)
+							  struct camif_addr *paddr, int i)
 {
 	struct camif_dev *camif = vp->camif;
 
 	camif_write(camif, S3C_CAMIF_REG_CIYSA(vp->id, i), paddr->y);
+
 	if (camif->variant->ip_revision == S3C6410_CAMIF_IP_REV
-		|| vp->id == VP_CODEC) {
+		|| vp->id == VP_CODEC)
+	{
 		camif_write(camif, S3C_CAMIF_REG_CICBSA(vp->id, i),
-								paddr->cb);
+					paddr->cb);
 		camif_write(camif, S3C_CAMIF_REG_CICRSA(vp->id, i),
-								paddr->cr);
+					paddr->cr);
 	}
 
 	pr_debug("dst_buf[%d]: %pad, cb: %pad, cr: %pad\n",
-		 i, &paddr->y, &paddr->cb, &paddr->cr);
+			 i, &paddr->y, &paddr->cb, &paddr->cr);
 }
 
 static void camif_hw_set_out_dma_size(struct camif_vp *vp)
@@ -235,19 +277,28 @@ static void camif_get_dma_burst(u32 width, u32 ybpp, u32 *mburst, u32 *rburst)
 	unsigned int div, rem;
 
 	if (WARN_ON(width < 8 || (width * ybpp) & 7))
+	{
 		return;
+	}
 
-	for (div = 16; div >= 2; div /= 2) {
+	for (div = 16; div >= 2; div /= 2)
+	{
 		if (nwords < div)
+		{
 			continue;
+		}
 
 		rem = nwords & (div - 1);
-		if (rem == 0) {
+
+		if (rem == 0)
+		{
 			*mburst = div;
 			*rburst = div;
 			break;
 		}
-		if (rem == div / 2 || rem == div / 4) {
+
+		if (rem == div / 2 || rem == div / 4)
+		{
 			*mburst = div;
 			*rburst = rem;
 			break;
@@ -265,7 +316,8 @@ void camif_hw_set_output_dma(struct camif_vp *vp)
 
 	camif_hw_set_out_dma_size(vp);
 
-	if (camif->variant->ip_revision == S3C6410_CAMIF_IP_REV) {
+	if (camif->variant->ip_revision == S3C6410_CAMIF_IP_REV)
+	{
 		struct camif_dma_offset *offset = &frame->dma_offset;
 		/* Set the input dma offsets. */
 		cfg = S3C_CISS_OFFS_INITIAL(offset->initial);
@@ -303,40 +355,56 @@ void camif_hw_set_target_format(struct camif_vp *vp)
 	u32 cfg;
 
 	pr_debug("fw: %d, fh: %d color: %d\n", frame->f_width,
-		 frame->f_height, vp->out_fmt->color);
+			 frame->f_height, vp->out_fmt->color);
 
 	cfg = camif_read(camif, S3C_CAMIF_REG_CITRGFMT(vp->id, vp->offset));
 	cfg &= ~CITRGFMT_TARGETSIZE_MASK;
 
-	if (camif->variant->ip_revision == S3C244X_CAMIF_IP_REV) {
+	if (camif->variant->ip_revision == S3C244X_CAMIF_IP_REV)
+	{
 		/* We currently support only YCbCr 4:2:2 at the camera input */
 		cfg |= CITRGFMT_IN422;
 		cfg &= ~CITRGFMT_OUT422;
+
 		if (vp->out_fmt->color == IMG_FMT_YCBCR422P)
+		{
 			cfg |= CITRGFMT_OUT422;
-	} else {
+		}
+	}
+	else
+	{
 		cfg &= ~CITRGFMT_OUTFORMAT_MASK;
-		switch (vp->out_fmt->color) {
-		case IMG_FMT_RGB565...IMG_FMT_XRGB8888:
-			cfg |= CITRGFMT_OUTFORMAT_RGB;
-			break;
-		case IMG_FMT_YCBCR420...IMG_FMT_YCRCB420:
-			cfg |= CITRGFMT_OUTFORMAT_YCBCR420;
-			break;
-		case IMG_FMT_YCBCR422P:
-			cfg |= CITRGFMT_OUTFORMAT_YCBCR422;
-			break;
-		case IMG_FMT_YCBYCR422...IMG_FMT_CRYCBY422:
-			cfg |= CITRGFMT_OUTFORMAT_YCBCR422I;
-			break;
+
+		switch (vp->out_fmt->color)
+		{
+			case IMG_FMT_RGB565...IMG_FMT_XRGB8888:
+				cfg |= CITRGFMT_OUTFORMAT_RGB;
+				break;
+
+			case IMG_FMT_YCBCR420...IMG_FMT_YCRCB420:
+				cfg |= CITRGFMT_OUTFORMAT_YCBCR420;
+				break;
+
+			case IMG_FMT_YCBCR422P:
+				cfg |= CITRGFMT_OUTFORMAT_YCBCR422;
+				break;
+
+			case IMG_FMT_YCBYCR422...IMG_FMT_CRYCBY422:
+				cfg |= CITRGFMT_OUTFORMAT_YCBCR422I;
+				break;
 		}
 	}
 
 	/* Rotation is only supported by s3c64xx */
 	if (vp->rotation == 90 || vp->rotation == 270)
+	{
 		cfg |= (frame->f_height << 16) | frame->f_width;
+	}
 	else
+	{
 		cfg |= (frame->f_width << 16) | frame->f_height;
+	}
+
 	camif_write(camif, S3C_CAMIF_REG_CITRGFMT(vp->id, vp->offset), cfg);
 
 	/* Target area, output pixel width * height */
@@ -349,14 +417,19 @@ void camif_hw_set_target_format(struct camif_vp *vp)
 void camif_hw_set_flip(struct camif_vp *vp)
 {
 	u32 cfg = camif_read(vp->camif,
-				S3C_CAMIF_REG_CITRGFMT(vp->id, vp->offset));
+						 S3C_CAMIF_REG_CITRGFMT(vp->id, vp->offset));
 
 	cfg &= ~CITRGFMT_FLIP_MASK;
 
 	if (vp->hflip)
+	{
 		cfg |= CITRGFMT_FLIP_Y_MIRROR;
+	}
+
 	if (vp->vflip)
+	{
 		cfg |= CITRGFMT_FLIP_X_MIRROR;
+	}
 
 	camif_write(vp->camif, S3C_CAMIF_REG_CITRGFMT(vp->id, vp->offset), cfg);
 }
@@ -391,39 +464,59 @@ static void camif_s3c244x_hw_set_scaler(struct camif_vp *vp)
 	cfg = camif_read(camif, S3C_CAMIF_REG_CISCCTRL(vp->id, vp->offset));
 
 	cfg &= ~(CISCCTRL_SCALEUP_MASK | CISCCTRL_SCALERBYPASS |
-		 CISCCTRL_MAIN_RATIO_MASK | CIPRSCCTRL_RGB_FORMAT_24BIT);
+			 CISCCTRL_MAIN_RATIO_MASK | CIPRSCCTRL_RGB_FORMAT_24BIT);
 
-	if (scaler->enable) {
-		if (scaler->scaleup_h) {
+	if (scaler->enable)
+	{
+		if (scaler->scaleup_h)
+		{
 			if (vp->id == VP_CODEC)
+			{
 				cfg |= CISCCTRL_SCALEUP_H;
+			}
 			else
+			{
 				cfg |= CIPRSCCTRL_SCALEUP_H;
+			}
 		}
-		if (scaler->scaleup_v) {
+
+		if (scaler->scaleup_v)
+		{
 			if (vp->id == VP_CODEC)
+			{
 				cfg |= CISCCTRL_SCALEUP_V;
+			}
 			else
+			{
 				cfg |= CIPRSCCTRL_SCALEUP_V;
+			}
 		}
-	} else {
+	}
+	else
+	{
 		if (vp->id == VP_CODEC)
+		{
 			cfg |= CISCCTRL_SCALERBYPASS;
+		}
 	}
 
 	cfg |= ((scaler->main_h_ratio & 0x1ff) << 16);
 	cfg |= scaler->main_v_ratio & 0x1ff;
 
-	if (vp->id == VP_PREVIEW) {
+	if (vp->id == VP_PREVIEW)
+	{
 		if (color == IMG_FMT_XRGB8888)
+		{
 			cfg |= CIPRSCCTRL_RGB_FORMAT_24BIT;
+		}
+
 		cfg |= CIPRSCCTRL_SAMPLE;
 	}
 
 	camif_write(camif, S3C_CAMIF_REG_CISCCTRL(vp->id, vp->offset), cfg);
 
 	pr_debug("main: h_ratio: %#x, v_ratio: %#x",
-		 scaler->main_h_ratio, scaler->main_v_ratio);
+			 scaler->main_h_ratio, scaler->main_v_ratio);
 }
 
 static void camif_s3c64xx_hw_set_scaler(struct camif_vp *vp)
@@ -438,32 +531,45 @@ static void camif_s3c64xx_hw_set_scaler(struct camif_vp *vp)
 	cfg = camif_read(camif, S3C_CAMIF_REG_CISCCTRL(vp->id, vp->offset));
 
 	cfg &= ~(CISCCTRL_CSCR2Y_WIDE | CISCCTRL_CSCY2R_WIDE
-		| CISCCTRL_SCALEUP_H | CISCCTRL_SCALEUP_V
-		| CISCCTRL_SCALERBYPASS | CISCCTRL_ONE2ONE
-		| CISCCTRL_INRGB_FMT_MASK | CISCCTRL_OUTRGB_FMT_MASK
-		| CISCCTRL_INTERLACE | CISCCTRL_EXTRGB_EXTENSION
-		| CISCCTRL_MAIN_RATIO_MASK);
+			 | CISCCTRL_SCALEUP_H | CISCCTRL_SCALEUP_V
+			 | CISCCTRL_SCALERBYPASS | CISCCTRL_ONE2ONE
+			 | CISCCTRL_INRGB_FMT_MASK | CISCCTRL_OUTRGB_FMT_MASK
+			 | CISCCTRL_INTERLACE | CISCCTRL_EXTRGB_EXTENSION
+			 | CISCCTRL_MAIN_RATIO_MASK);
 
 	cfg |= (CISCCTRL_CSCR2Y_WIDE | CISCCTRL_CSCY2R_WIDE);
 
-	if (!scaler->enable) {
+	if (!scaler->enable)
+	{
 		cfg |= CISCCTRL_SCALERBYPASS;
-	} else {
+	}
+	else
+	{
 		if (scaler->scaleup_h)
+		{
 			cfg |= CISCCTRL_SCALEUP_H;
+		}
+
 		if (scaler->scaleup_v)
+		{
 			cfg |= CISCCTRL_SCALEUP_V;
+		}
+
 		if (scaler->copy)
+		{
 			cfg |= CISCCTRL_ONE2ONE;
+		}
 	}
 
-	switch (color) {
-	case IMG_FMT_RGB666:
-		cfg |= CISCCTRL_OUTRGB_FMT_RGB666;
-		break;
-	case IMG_FMT_XRGB8888:
-		cfg |= CISCCTRL_OUTRGB_FMT_RGB888;
-		break;
+	switch (color)
+	{
+		case IMG_FMT_RGB666:
+			cfg |= CISCCTRL_OUTRGB_FMT_RGB666;
+			break;
+
+		case IMG_FMT_XRGB8888:
+			cfg |= CISCCTRL_OUTRGB_FMT_RGB888;
+			break;
 	}
 
 	cfg |= (scaler->main_h_ratio & 0x1ff) << 16;
@@ -472,7 +578,7 @@ static void camif_s3c64xx_hw_set_scaler(struct camif_vp *vp)
 	camif_write(camif, S3C_CAMIF_REG_CISCCTRL(vp->id, vp->offset), cfg);
 
 	pr_debug("main: h_ratio: %#x, v_ratio: %#x",
-		 scaler->main_h_ratio, scaler->main_v_ratio);
+			 scaler->main_h_ratio, scaler->main_v_ratio);
 }
 
 void camif_hw_set_scaler(struct camif_vp *vp)
@@ -480,9 +586,13 @@ void camif_hw_set_scaler(struct camif_vp *vp)
 	unsigned int ip_rev = vp->camif->variant->ip_revision;
 
 	if (ip_rev == S3C244X_CAMIF_IP_REV)
+	{
 		camif_s3c244x_hw_set_scaler(vp);
+	}
 	else
+	{
 		camif_s3c64xx_hw_set_scaler(vp);
+	}
 }
 
 void camif_hw_enable_scaler(struct camif_vp *vp, bool on)
@@ -491,10 +601,16 @@ void camif_hw_enable_scaler(struct camif_vp *vp, bool on)
 	u32 cfg;
 
 	cfg = camif_read(vp->camif, addr);
+
 	if (on)
+	{
 		cfg |= CISCCTRL_SCALERSTART;
+	}
 	else
+	{
 		cfg &= ~CISCCTRL_SCALERSTART;
+	}
+
 	camif_write(vp->camif, addr, cfg);
 }
 
@@ -504,10 +620,16 @@ void camif_hw_set_lastirq(struct camif_vp *vp, int enable)
 	u32 cfg;
 
 	cfg = camif_read(vp->camif, addr);
+
 	if (enable)
+	{
 		cfg |= CICTRL_LASTIRQ_ENABLE;
+	}
 	else
+	{
 		cfg &= ~CICTRL_LASTIRQ_ENABLE;
+	}
+
 	camif_write(vp->camif, addr, cfg);
 }
 
@@ -520,18 +642,24 @@ void camif_hw_enable_capture(struct camif_vp *vp)
 	camif->stream_count++;
 
 	if (camif->variant->ip_revision == S3C6410_CAMIF_IP_REV)
+	{
 		cfg |= CIIMGCPT_CPT_FREN_ENABLE(vp->id);
+	}
 
 	if (vp->scaler.enable)
+	{
 		cfg |= CIIMGCPT_IMGCPTEN_SC(vp->id);
+	}
 
 	if (camif->stream_count == 1)
+	{
 		cfg |= CIIMGCPT_IMGCPTEN;
+	}
 
 	camif_write(camif, S3C_CAMIF_REG_CIIMGCPT(vp->offset), cfg);
 
 	pr_debug("CIIMGCPT: %#x, camif->stream_count: %d\n",
-		 cfg, camif->stream_count);
+			 cfg, camif->stream_count);
 }
 
 void camif_hw_disable_capture(struct camif_vp *vp)
@@ -543,23 +671,29 @@ void camif_hw_disable_capture(struct camif_vp *vp)
 	cfg &= ~CIIMGCPT_IMGCPTEN_SC(vp->id);
 
 	if (WARN_ON(--(camif->stream_count) < 0))
+	{
 		camif->stream_count = 0;
+	}
 
 	if (camif->stream_count == 0)
+	{
 		cfg &= ~CIIMGCPT_IMGCPTEN;
+	}
 
 	pr_debug("CIIMGCPT: %#x, camif->stream_count: %d\n",
-		 cfg, camif->stream_count);
+			 cfg, camif->stream_count);
 
 	camif_write(camif, S3C_CAMIF_REG_CIIMGCPT(vp->offset), cfg);
 }
 
 void camif_hw_dump_regs(struct camif_dev *camif, const char *label)
 {
-	struct {
+	struct
+	{
 		u32 offset;
-		const char * const name;
-	} registers[] = {
+		const char *const name;
+	} registers[] =
+	{
 		{ S3C_CAMIF_REG_CISRCFMT,		"CISRCFMT" },
 		{ S3C_CAMIF_REG_CIWDOFST,		"CIWDOFST" },
 		{ S3C_CAMIF_REG_CIGCTRL,		"CIGCTRL" },
@@ -599,7 +733,9 @@ void camif_hw_dump_regs(struct camif_dev *camif, const char *label)
 	u32 i;
 
 	pr_info("--- %s ---\n", label);
-	for (i = 0; i < ARRAY_SIZE(registers); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(registers); i++)
+	{
 		u32 cfg = readl(camif->io_base + registers[i].offset);
 		dev_info(camif->dev, "%s:\t0x%08x\n", registers[i].name, cfg);
 	}

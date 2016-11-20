@@ -25,7 +25,8 @@
 
 /* if mode ==0, then the sta is allowed once the addr is hit. */
 /* if mode ==1, then the sta is rejected once the addr is non-hit. */
-struct rtw_wlan_acl_node {
+struct rtw_wlan_acl_node
+{
 	struct list_head list;
 	u8       addr[ETH_ALEN];
 	u8       valid;
@@ -34,14 +35,16 @@ struct rtw_wlan_acl_node {
 /* mode=0, disable */
 /* mode=1, accept unless in deny list */
 /* mode=2, deny unless in accept list */
-struct wlan_acl_pool {
+struct wlan_acl_pool
+{
 	int mode;
 	int num;
 	struct rtw_wlan_acl_node aclnode[NUM_ACL];
 	struct __queue acl_node_q;
 };
 
-struct rssi_sta {
+struct rssi_sta
+{
 	s32	UndecoratedSmoothedPWDB;
 	s32	UndecoratedSmoothedCCK;
 	s32	UndecoratedSmoothedOFDM;
@@ -49,7 +52,8 @@ struct rssi_sta {
 	u8	ValidBit;
 };
 
-struct	stainfo_stats	{
+struct	stainfo_stats
+{
 	u64 rx_mgnt_pkts;
 	u64 rx_beacon_pkts;
 	u64 rx_probereq_pkts;
@@ -74,7 +78,8 @@ struct	stainfo_stats	{
 	u64  tx_drops;
 };
 
-struct sta_info {
+struct sta_info
+{
 	spinlock_t lock;
 	struct list_head list; /* free_sta_queue */
 	struct list_head hash_list; /* sta_hash */
@@ -206,13 +211,13 @@ struct sta_info {
 
 #define sta_rx_pkts(sta) \
 	(sta->sta_stats.rx_mgnt_pkts \
-	+ sta->sta_stats.rx_ctrl_pkts \
-	+ sta->sta_stats.rx_data_pkts)
+	 + sta->sta_stats.rx_ctrl_pkts \
+	 + sta->sta_stats.rx_data_pkts)
 
 #define sta_last_rx_pkts(sta) \
 	(sta->sta_stats.last_rx_mgnt_pkts \
-	+ sta->sta_stats.last_rx_ctrl_pkts \
-	+ sta->sta_stats.last_rx_data_pkts)
+	 + sta->sta_stats.last_rx_ctrl_pkts \
+	 + sta->sta_stats.last_rx_data_pkts)
 
 #define sta_rx_data_pkts(sta) \
 	(sta->sta_stats.rx_data_pkts)
@@ -257,16 +262,16 @@ struct sta_info {
 	(sta->sta_stats.last_rx_probersp_uo_pkts)
 
 #define sta_update_last_rx_pkts(sta) \
-do { \
-	sta->sta_stats.last_rx_mgnt_pkts = sta->sta_stats.rx_mgnt_pkts; \
-	sta->sta_stats.last_rx_beacon_pkts = sta->sta_stats.rx_beacon_pkts; \
-	sta->sta_stats.last_rx_probereq_pkts = sta->sta_stats.rx_probereq_pkts; \
-	sta->sta_stats.last_rx_probersp_pkts = sta->sta_stats.rx_probersp_pkts; \
-	sta->sta_stats.last_rx_probersp_bm_pkts = sta->sta_stats.rx_probersp_bm_pkts; \
-	sta->sta_stats.last_rx_probersp_uo_pkts = sta->sta_stats.rx_probersp_uo_pkts; \
-	sta->sta_stats.last_rx_ctrl_pkts = sta->sta_stats.rx_ctrl_pkts; \
-	sta->sta_stats.last_rx_data_pkts = sta->sta_stats.rx_data_pkts; \
-} while (0)
+	do { \
+		sta->sta_stats.last_rx_mgnt_pkts = sta->sta_stats.rx_mgnt_pkts; \
+		sta->sta_stats.last_rx_beacon_pkts = sta->sta_stats.rx_beacon_pkts; \
+		sta->sta_stats.last_rx_probereq_pkts = sta->sta_stats.rx_probereq_pkts; \
+		sta->sta_stats.last_rx_probersp_pkts = sta->sta_stats.rx_probersp_pkts; \
+		sta->sta_stats.last_rx_probersp_bm_pkts = sta->sta_stats.rx_probersp_bm_pkts; \
+		sta->sta_stats.last_rx_probersp_uo_pkts = sta->sta_stats.rx_probersp_uo_pkts; \
+		sta->sta_stats.last_rx_ctrl_pkts = sta->sta_stats.rx_ctrl_pkts; \
+		sta->sta_stats.last_rx_data_pkts = sta->sta_stats.rx_data_pkts; \
+	} while (0)
 
 #define STA_RX_PKTS_ARG(sta) \
 	sta->sta_stats.rx_mgnt_pkts \
@@ -285,7 +290,8 @@ do { \
 
 #define STA_PKTS_FMT "(m:%llu, c:%llu, d:%llu)"
 
-struct	sta_priv {
+struct	sta_priv
+{
 	u8 *pallocated_stainfo_buf;
 	u8 *pstainfo_buf;
 	struct __queue free_sta_queue;

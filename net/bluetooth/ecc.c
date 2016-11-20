@@ -36,28 +36,30 @@
 /* Number of u64's needed */
 #define NUM_ECC_DIGITS (ECC_BYTES / 8)
 
-struct ecc_point {
+struct ecc_point
+{
 	u64 x[NUM_ECC_DIGITS];
 	u64 y[NUM_ECC_DIGITS];
 };
 
-typedef struct {
+typedef struct
+{
 	u64 m_low;
 	u64 m_high;
 } uint128_t;
 
 #define CURVE_P_32 {	0xFFFFFFFFFFFFFFFFull, 0x00000000FFFFFFFFull, \
-			0x0000000000000000ull, 0xFFFFFFFF00000001ull }
+		0x0000000000000000ull, 0xFFFFFFFF00000001ull }
 
 #define CURVE_G_32 { \
 		{	0xF4A13945D898C296ull, 0x77037D812DEB33A0ull,	\
 			0xF8BCE6E563A440F2ull, 0x6B17D1F2E12C4247ull }, \
 		{	0xCBB6406837BF51F5ull, 0x2BCE33576B315ECEull,	\
 			0x8EE7EB4A7C0F9E16ull, 0x4FE342E2FE1A7F9Bull }	\
-}
+	}
 
 #define CURVE_N_32 {	0xF3B9CAC2FC632551ull, 0xBCE6FAADA7179E84ull,	\
-			0xFFFFFFFFFFFFFFFFull, 0xFFFFFFFF00000000ull }
+		0xFFFFFFFFFFFFFFFFull, 0xFFFFFFFF00000000ull }
 
 static u64 curve_p[NUM_ECC_DIGITS] = CURVE_P_32;
 static struct ecc_point curve_g = CURVE_G_32;
@@ -68,7 +70,9 @@ static void vli_clear(u64 *vli)
 	int i;
 
 	for (i = 0; i < NUM_ECC_DIGITS; i++)
+	{
 		vli[i] = 0;
+	}
 }
 
 /* Returns true if vli == 0, false otherwise. */
@@ -76,9 +80,12 @@ static bool vli_is_zero(const u64 *vli)
 {
 	int i;
 
-	for (i = 0; i < NUM_ECC_DIGITS; i++) {
+	for (i = 0; i < NUM_ECC_DIGITS; i++)
+	{
 		if (vli[i])
+		{
 			return false;
+		}
 	}
 
 	return true;
@@ -111,12 +118,18 @@ static unsigned int vli_num_bits(const u64 *vli)
 	u64 digit;
 
 	num_digits = vli_num_digits(vli);
+
 	if (num_digits == 0)
+	{
 		return 0;
+	}
 
 	digit = vli[num_digits - 1];
+
 	for (i = 0; digit; i++)
+	{
 		digit >>= 1;
+	}
 
 	return ((num_digits - 1) * 64 + i);
 }
@@ -127,34 +140,42 @@ static void vli_set(u64 *dest, const u64 *src)
 	int i;
 
 	for (i = 0; i < NUM_ECC_DIGITS; i++)
+	{
 		dest[i] = src[i];
+	}
 }
 
 /* Returns sign of left - right. */
 static int vli_cmp(const u64 *left, const u64 *right)
 {
-    int i;
+	int i;
 
-    for (i = NUM_ECC_DIGITS - 1; i >= 0; i--) {
-	    if (left[i] > right[i])
-		    return 1;
-	    else if (left[i] < right[i])
-		    return -1;
-    }
+	for (i = NUM_ECC_DIGITS - 1; i >= 0; i--)
+	{
+		if (left[i] > right[i])
+		{
+			return 1;
+		}
+		else if (left[i] < right[i])
+		{
+			return -1;
+		}
+	}
 
-    return 0;
+	return 0;
 }
 
 /* Computes result = in << c, returning carry. Can modify in place
  * (if result == in). 0 < shift < 64.
  */
 static u64 vli_lshift(u64 *result, const u64 *in,
-			   unsigned int shift)
+					  unsigned int shift)
 {
 	u64 carry = 0;
 	int i;
 
-	for (i = 0; i < NUM_ECC_DIGITS; i++) {
+	for (i = 0; i < NUM_ECC_DIGITS; i++)
+	{
 		u64 temp = in[i];
 
 		result[i] = (temp << shift) | carry;
@@ -172,7 +193,8 @@ static void vli_rshift1(u64 *vli)
 
 	vli += NUM_ECC_DIGITS;
 
-	while (vli-- > end) {
+	while (vli-- > end)
+	{
 		u64 temp = *vli;
 		*vli = (temp >> 1) | carry;
 		carry = temp << 63;
@@ -181,17 +203,21 @@ static void vli_rshift1(u64 *vli)
 
 /* Computes result = left + right, returning carry. Can modify in place. */
 static u64 vli_add(u64 *result, const u64 *left,
-			const u64 *right)
+				   const u64 *right)
 {
 	u64 carry = 0;
 	int i;
 
-	for (i = 0; i < NUM_ECC_DIGITS; i++) {
+	for (i = 0; i < NUM_ECC_DIGITS; i++)
+	{
 		u64 sum;
 
 		sum = left[i] + right[i] + carry;
+
 		if (sum != left[i])
+		{
 			carry = (sum < left[i]);
+		}
 
 		result[i] = sum;
 	}
@@ -205,12 +231,16 @@ static u64 vli_sub(u64 *result, const u64 *left, const u64 *right)
 	u64 borrow = 0;
 	int i;
 
-	for (i = 0; i < NUM_ECC_DIGITS; i++) {
+	for (i = 0; i < NUM_ECC_DIGITS; i++)
+	{
 		u64 diff;
 
 		diff = left[i] - right[i] - borrow;
+
 		if (diff != left[i])
+		{
 			borrow = (diff > left[i]);
+		}
 
 		result[i] = diff;
 	}
@@ -235,7 +265,9 @@ static uint128_t mul_64_64(u64 left, u64 right)
 
 	/* Overflow */
 	if (m2 < m1)
+	{
 		m3 += 0x100000000ull;
+	}
 
 	result.m_low = (m0 & 0xffffffffull) | (m2 << 32);
 	result.m_high = m3 + (m2 >> 32);
@@ -262,15 +294,21 @@ static void vli_mult(u64 *result, const u64 *left, const u64 *right)
 	/* Compute each digit of result in sequence, maintaining the
 	 * carries.
 	 */
-	for (k = 0; k < NUM_ECC_DIGITS * 2 - 1; k++) {
+	for (k = 0; k < NUM_ECC_DIGITS * 2 - 1; k++)
+	{
 		unsigned int min;
 
 		if (k < NUM_ECC_DIGITS)
+		{
 			min = 0;
+		}
 		else
+		{
 			min = (k + 1) - NUM_ECC_DIGITS;
+		}
 
-		for (i = min; i <= k && i < NUM_ECC_DIGITS; i++) {
+		for (i = min; i <= k && i < NUM_ECC_DIGITS; i++)
+		{
 			uint128_t product;
 
 			product = mul_64_64(left[i], right[k - i]);
@@ -294,23 +332,30 @@ static void vli_square(u64 *result, const u64 *left)
 	u64 r2 = 0;
 	int i, k;
 
-	for (k = 0; k < NUM_ECC_DIGITS * 2 - 1; k++) {
+	for (k = 0; k < NUM_ECC_DIGITS * 2 - 1; k++)
+	{
 		unsigned int min;
 
 		if (k < NUM_ECC_DIGITS)
+		{
 			min = 0;
+		}
 		else
+		{
 			min = (k + 1) - NUM_ECC_DIGITS;
+		}
 
-		for (i = min; i <= k && i <= k - i; i++) {
+		for (i = min; i <= k && i <= k - i; i++)
+		{
 			uint128_t product;
 
 			product = mul_64_64(left[i], left[k - i]);
 
-			if (i < k - i) {
+			if (i < k - i)
+			{
 				r2 += product.m_high >> 63;
 				product.m_high = (product.m_high << 1) |
-						 (product.m_low >> 63);
+								 (product.m_low >> 63);
 				product.m_low <<= 1;
 			}
 
@@ -331,7 +376,7 @@ static void vli_square(u64 *result, const u64 *left)
  * Assumes that left < mod and right < mod, result != mod.
  */
 static void vli_mod_add(u64 *result, const u64 *left, const u64 *right,
-			const u64 *mod)
+						const u64 *mod)
 {
 	u64 carry;
 
@@ -341,14 +386,16 @@ static void vli_mod_add(u64 *result, const u64 *left, const u64 *right,
 	 * get remainder.
 	 */
 	if (carry || vli_cmp(result, mod) >= 0)
+	{
 		vli_sub(result, result, mod);
+	}
 }
 
 /* Computes result = (left - right) % mod.
  * Assumes that left < mod and right < mod, result != mod.
  */
 static void vli_mod_sub(u64 *result, const u64 *left, const u64 *right,
-			const u64 *mod)
+						const u64 *mod)
 {
 	u64 borrow = vli_sub(result, left, right);
 
@@ -357,7 +404,9 @@ static void vli_mod_sub(u64 *result, const u64 *left, const u64 *right,
 	 * result + mod (with overflow).
 	 */
 	if (borrow)
+	{
 		vli_add(result, result, mod);
+	}
 }
 
 /* Computes result = product % curve_p
@@ -427,13 +476,20 @@ static void vli_mmod_fast(u64 *result, const u64 *product)
 	tmp[3] = product[6] & 0xffffffff00000000ull;
 	carry -= vli_sub(result, result, tmp);
 
-	if (carry < 0) {
-		do {
+	if (carry < 0)
+	{
+		do
+		{
 			carry += vli_add(result, result, curve_p);
-		} while (carry < 0);
-	} else {
+		}
+		while (carry < 0);
+	}
+	else
+	{
 		while (carry || vli_cmp(curve_p, result) != 1)
+		{
 			carry -= vli_sub(result, result, curve_p);
+		}
 	}
 }
 
@@ -467,7 +523,8 @@ static void vli_mod_inv(u64 *result, const u64 *input, const u64 *mod)
 	u64 carry;
 	int cmp_result;
 
-	if (vli_is_zero(input)) {
+	if (vli_is_zero(input))
+	{
 		vli_clear(result);
 		return;
 	}
@@ -478,55 +535,89 @@ static void vli_mod_inv(u64 *result, const u64 *input, const u64 *mod)
 	u[0] = 1;
 	vli_clear(v);
 
-	while ((cmp_result = vli_cmp(a, b)) != 0) {
+	while ((cmp_result = vli_cmp(a, b)) != 0)
+	{
 		carry = 0;
 
-		if (EVEN(a)) {
+		if (EVEN(a))
+		{
 			vli_rshift1(a);
 
 			if (!EVEN(u))
+			{
 				carry = vli_add(u, u, mod);
+			}
 
 			vli_rshift1(u);
+
 			if (carry)
+			{
 				u[NUM_ECC_DIGITS - 1] |= 0x8000000000000000ull;
-		} else if (EVEN(b)) {
+			}
+		}
+		else if (EVEN(b))
+		{
 			vli_rshift1(b);
 
 			if (!EVEN(v))
+			{
 				carry = vli_add(v, v, mod);
+			}
 
 			vli_rshift1(v);
+
 			if (carry)
+			{
 				v[NUM_ECC_DIGITS - 1] |= 0x8000000000000000ull;
-		} else if (cmp_result > 0) {
+			}
+		}
+		else if (cmp_result > 0)
+		{
 			vli_sub(a, a, b);
 			vli_rshift1(a);
 
 			if (vli_cmp(u, v) < 0)
+			{
 				vli_add(u, u, mod);
+			}
 
 			vli_sub(u, u, v);
+
 			if (!EVEN(u))
+			{
 				carry = vli_add(u, u, mod);
+			}
 
 			vli_rshift1(u);
+
 			if (carry)
+			{
 				u[NUM_ECC_DIGITS - 1] |= 0x8000000000000000ull;
-		} else {
+			}
+		}
+		else
+		{
 			vli_sub(b, b, a);
 			vli_rshift1(b);
 
 			if (vli_cmp(v, u) < 0)
+			{
 				vli_add(v, v, mod);
+			}
 
 			vli_sub(v, v, u);
+
 			if (!EVEN(v))
+			{
 				carry = vli_add(v, v, mod);
+			}
 
 			vli_rshift1(v);
+
 			if (carry)
+			{
 				v[NUM_ECC_DIGITS - 1] |= 0x8000000000000000ull;
+			}
 		}
 	}
 
@@ -553,7 +644,9 @@ static void ecc_point_double_jacobian(u64 *x1, u64 *y1, u64 *z1)
 	u64 t5[NUM_ECC_DIGITS];
 
 	if (vli_is_zero(z1))
+	{
 		return;
+	}
 
 	vli_mod_square_fast(t4, y1);   /* t4 = y1^2 */
 	vli_mod_mult_fast(t5, x1, t4); /* t5 = x1*y1^2 = A */
@@ -568,13 +661,18 @@ static void ecc_point_double_jacobian(u64 *x1, u64 *y1, u64 *z1)
 
 	vli_mod_add(z1, x1, x1, curve_p); /* t3 = 2*(x1^2 - z1^4) */
 	vli_mod_add(x1, x1, z1, curve_p); /* t1 = 3*(x1^2 - z1^4) */
-	if (vli_test_bit(x1, 0)) {
+
+	if (vli_test_bit(x1, 0))
+	{
 		u64 carry = vli_add(x1, x1, curve_p);
 		vli_rshift1(x1);
 		x1[NUM_ECC_DIGITS - 1] |= carry << 63;
-	} else {
+	}
+	else
+	{
 		vli_rshift1(x1);
 	}
+
 	/* t1 = 3/2*(x1^2 - z1^4) = B */
 
 	vli_mod_square_fast(z1, x1);      /* t3 = B^2 */
@@ -602,7 +700,7 @@ static void apply_z(u64 *x1, u64 *y1, u64 *z)
 
 /* P = (x1, y1) => 2P, (x2, y2) => P' */
 static void xycz_initial_double(u64 *x1, u64 *y1, u64 *x2, u64 *y2,
-				u64 *p_initial_z)
+								u64 *p_initial_z)
 {
 	u64 z[NUM_ECC_DIGITS];
 
@@ -613,7 +711,9 @@ static void xycz_initial_double(u64 *x1, u64 *y1, u64 *x2, u64 *y2,
 	z[0] = 1;
 
 	if (p_initial_z)
+	{
 		vli_set(z, p_initial_z);
+	}
 
 	apply_z(x1, y1, z);
 
@@ -687,8 +787,8 @@ static void xycz_add_c(u64 *x1, u64 *y1, u64 *x2, u64 *y2)
 }
 
 static void ecc_point_mult(struct ecc_point *result,
-			   const struct ecc_point *point, u64 *scalar,
-			   u64 *initial_z, int num_bits)
+						   const struct ecc_point *point, u64 *scalar,
+						   u64 *initial_z, int num_bits)
 {
 	/* R0 and R1 */
 	u64 rx[2][NUM_ECC_DIGITS];
@@ -701,7 +801,8 @@ static void ecc_point_mult(struct ecc_point *result,
 
 	xycz_initial_double(rx[1], ry[1], rx[0], ry[0], initial_z);
 
-	for (i = num_bits - 2; i > 0; i--) {
+	for (i = num_bits - 2; i > 0; i--)
+	{
 		nb = !vli_test_bit(scalar, i);
 		xycz_add_c(rx[1 - nb], ry[1 - nb], rx[nb], ry[nb]);
 		xycz_add(rx[nb], ry[nb], rx[1 - nb], ry[1 - nb]);
@@ -728,31 +829,33 @@ static void ecc_point_mult(struct ecc_point *result,
 }
 
 static void ecc_bytes2native(const u8 bytes[ECC_BYTES],
-			     u64 native[NUM_ECC_DIGITS])
+							 u64 native[NUM_ECC_DIGITS])
 {
 	int i;
 
-	for (i = 0; i < NUM_ECC_DIGITS; i++) {
+	for (i = 0; i < NUM_ECC_DIGITS; i++)
+	{
 		const u8 *digit = bytes + 8 * (NUM_ECC_DIGITS - 1 - i);
 
 		native[NUM_ECC_DIGITS - 1 - i] =
-				((u64) digit[0] << 0) |
-				((u64) digit[1] << 8) |
-				((u64) digit[2] << 16) |
-				((u64) digit[3] << 24) |
-				((u64) digit[4] << 32) |
-				((u64) digit[5] << 40) |
-				((u64) digit[6] << 48) |
-				((u64) digit[7] << 56);
+			((u64) digit[0] << 0) |
+			((u64) digit[1] << 8) |
+			((u64) digit[2] << 16) |
+			((u64) digit[3] << 24) |
+			((u64) digit[4] << 32) |
+			((u64) digit[5] << 40) |
+			((u64) digit[6] << 48) |
+			((u64) digit[7] << 56);
 	}
 }
 
 static void ecc_native2bytes(const u64 native[NUM_ECC_DIGITS],
-			     u8 bytes[ECC_BYTES])
+							 u8 bytes[ECC_BYTES])
 {
 	int i;
 
-	for (i = 0; i < NUM_ECC_DIGITS; i++) {
+	for (i = 0; i < NUM_ECC_DIGITS; i++)
+	{
 		u8 *digit = bytes + 8 * (NUM_ECC_DIGITS - 1 - i);
 
 		digit[0] = native[NUM_ECC_DIGITS - 1 - i] >> 0;
@@ -772,21 +875,29 @@ bool ecc_make_key(u8 public_key[64], u8 private_key[32])
 	u64 priv[NUM_ECC_DIGITS];
 	unsigned int tries = 0;
 
-	do {
+	do
+	{
 		if (tries++ >= MAX_TRIES)
+		{
 			return false;
+		}
 
 		get_random_bytes(priv, ECC_BYTES);
 
 		if (vli_is_zero(priv))
+		{
 			continue;
+		}
 
 		/* Make sure the private key is in the range [1, n-1]. */
 		if (vli_cmp(curve_n, priv) != 1)
+		{
 			continue;
+		}
 
 		ecc_point_mult(&pk, &curve_g, priv, NULL, vli_num_bits(priv));
-	} while (ecc_point_is_zero(&pk));
+	}
+	while (ecc_point_is_zero(&pk));
 
 	ecc_native2bytes(priv, private_key);
 	ecc_native2bytes(pk.x, public_key);
@@ -796,7 +907,7 @@ bool ecc_make_key(u8 public_key[64], u8 private_key[32])
 }
 
 bool ecdh_shared_secret(const u8 public_key[64], const u8 private_key[32],
-		        u8 secret[32])
+						u8 secret[32])
 {
 	u64 priv[NUM_ECC_DIGITS];
 	u64 rand[NUM_ECC_DIGITS];

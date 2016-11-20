@@ -33,17 +33,17 @@ MODULE_AUTHOR("Jaroslav Kysela <perex@perex.cz>, <audio@tridentmicro.com>");
 MODULE_DESCRIPTION("Trident 4D-WaveDX/NX & SiS SI7018");
 MODULE_LICENSE("GPL");
 MODULE_SUPPORTED_DEVICE("{{Trident,4DWave DX},"
-		"{Trident,4DWave NX},"
-		"{SiS,SI7018 PCI Audio},"
-		"{Best Union,Miss Melody 4DWave PCI},"
-		"{HIS,4DWave PCI},"
-		"{Warpspeed,ONSpeed 4DWave PCI},"
-		"{Aztech Systems,PCI 64-Q3D},"
-		"{Addonics,SV 750},"
-		"{CHIC,True Sound 4Dwave},"
-		"{Shark,Predator4D-PCI},"
-		"{Jaton,SonicWave 4D},"
-		"{Hoontech,SoundTrack Digital 4DWave NX}}");
+						"{Trident,4DWave NX},"
+						"{SiS,SI7018 PCI Audio},"
+						"{Best Union,Miss Melody 4DWave PCI},"
+						"{HIS,4DWave PCI},"
+						"{Warpspeed,ONSpeed 4DWave PCI},"
+						"{Aztech Systems,PCI 64-Q3D},"
+						"{Addonics,SV 750},"
+						"{CHIC,True Sound 4Dwave},"
+						"{Shark,Predator4D-PCI},"
+						"{Jaton,SonicWave 4D},"
+						"{Hoontech,SoundTrack Digital 4DWave NX}}");
 
 static int index[SNDRV_CARDS] = SNDRV_DEFAULT_IDX;	/* Index 0-MAX */
 static char *id[SNDRV_CARDS] = SNDRV_DEFAULT_STR;	/* ID for this card */
@@ -62,11 +62,16 @@ MODULE_PARM_DESC(pcm_channels, "Number of hardware channels assigned for PCM.");
 module_param_array(wavetable_size, int, NULL, 0444);
 MODULE_PARM_DESC(wavetable_size, "Maximum memory size in kB for wavetable synth.");
 
-static const struct pci_device_id snd_trident_ids[] = {
-	{PCI_DEVICE(PCI_VENDOR_ID_TRIDENT, PCI_DEVICE_ID_TRIDENT_4DWAVE_DX), 
-		PCI_CLASS_MULTIMEDIA_AUDIO << 8, 0xffff00, 0},
-	{PCI_DEVICE(PCI_VENDOR_ID_TRIDENT, PCI_DEVICE_ID_TRIDENT_4DWAVE_NX), 
-		0, 0, 0},
+static const struct pci_device_id snd_trident_ids[] =
+{
+	{
+		PCI_DEVICE(PCI_VENDOR_ID_TRIDENT, PCI_DEVICE_ID_TRIDENT_4DWAVE_DX),
+		PCI_CLASS_MULTIMEDIA_AUDIO << 8, 0xffff00, 0
+	},
+	{
+		PCI_DEVICE(PCI_VENDOR_ID_TRIDENT, PCI_DEVICE_ID_TRIDENT_4DWAVE_NX),
+		0, 0, 0
+	},
 	{PCI_DEVICE(PCI_VENDOR_ID_SI, PCI_DEVICE_ID_SI_7018), 0, 0, 0},
 	{ 0, }
 };
@@ -74,7 +79,7 @@ static const struct pci_device_id snd_trident_ids[] = {
 MODULE_DEVICE_TABLE(pci, snd_trident_ids);
 
 static int snd_trident_probe(struct pci_dev *pci,
-			     const struct pci_device_id *pci_id)
+							 const struct pci_device_id *pci_id)
 {
 	static int dev;
 	struct snd_card *card;
@@ -83,85 +88,116 @@ static int snd_trident_probe(struct pci_dev *pci,
 	int err, pcm_dev = 0;
 
 	if (dev >= SNDRV_CARDS)
+	{
 		return -ENODEV;
-	if (!enable[dev]) {
+	}
+
+	if (!enable[dev])
+	{
 		dev++;
 		return -ENOENT;
 	}
 
 	err = snd_card_new(&pci->dev, index[dev], id[dev], THIS_MODULE,
-			   0, &card);
+					   0, &card);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	if ((err = snd_trident_create(card, pci,
-				      pcm_channels[dev],
-				      ((pci->vendor << 16) | pci->device) == TRIDENT_DEVICE_ID_SI7018 ? 1 : 2,
-				      wavetable_size[dev],
-				      &trident)) < 0) {
+								  pcm_channels[dev],
+								  ((pci->vendor << 16) | pci->device) == TRIDENT_DEVICE_ID_SI7018 ? 1 : 2,
+								  wavetable_size[dev],
+								  &trident)) < 0)
+	{
 		snd_card_free(card);
 		return err;
 	}
+
 	card->private_data = trident;
 
-	switch (trident->device) {
-	case TRIDENT_DEVICE_ID_DX:
-		str = "TRID4DWAVEDX";
-		break;
-	case TRIDENT_DEVICE_ID_NX:
-		str = "TRID4DWAVENX";
-		break;
-	case TRIDENT_DEVICE_ID_SI7018:
-		str = "SI7018";
-		break;
-	default:
-		str = "Unknown";
+	switch (trident->device)
+	{
+		case TRIDENT_DEVICE_ID_DX:
+			str = "TRID4DWAVEDX";
+			break;
+
+		case TRIDENT_DEVICE_ID_NX:
+			str = "TRID4DWAVENX";
+			break;
+
+		case TRIDENT_DEVICE_ID_SI7018:
+			str = "SI7018";
+			break;
+
+		default:
+			str = "Unknown";
 	}
+
 	strcpy(card->driver, str);
-	if (trident->device == TRIDENT_DEVICE_ID_SI7018) {
+
+	if (trident->device == TRIDENT_DEVICE_ID_SI7018)
+	{
 		strcpy(card->shortname, "SiS ");
-	} else {
+	}
+	else
+	{
 		strcpy(card->shortname, "Trident ");
 	}
+
 	strcat(card->shortname, card->driver);
 	sprintf(card->longname, "%s PCI Audio at 0x%lx, irq %d",
-		card->shortname, trident->port, trident->irq);
+			card->shortname, trident->port, trident->irq);
 
-	if ((err = snd_trident_pcm(trident, pcm_dev++)) < 0) {
+	if ((err = snd_trident_pcm(trident, pcm_dev++)) < 0)
+	{
 		snd_card_free(card);
 		return err;
 	}
-	switch (trident->device) {
-	case TRIDENT_DEVICE_ID_DX:
-	case TRIDENT_DEVICE_ID_NX:
-		if ((err = snd_trident_foldback_pcm(trident, pcm_dev++)) < 0) {
+
+	switch (trident->device)
+	{
+		case TRIDENT_DEVICE_ID_DX:
+		case TRIDENT_DEVICE_ID_NX:
+			if ((err = snd_trident_foldback_pcm(trident, pcm_dev++)) < 0)
+			{
+				snd_card_free(card);
+				return err;
+			}
+
+			break;
+	}
+
+	if (trident->device == TRIDENT_DEVICE_ID_NX || trident->device == TRIDENT_DEVICE_ID_SI7018)
+	{
+		if ((err = snd_trident_spdif_pcm(trident, pcm_dev++)) < 0)
+		{
 			snd_card_free(card);
 			return err;
 		}
-		break;
 	}
-	if (trident->device == TRIDENT_DEVICE_ID_NX || trident->device == TRIDENT_DEVICE_ID_SI7018) {
-		if ((err = snd_trident_spdif_pcm(trident, pcm_dev++)) < 0) {
-			snd_card_free(card);
-			return err;
-		}
-	}
+
 	if (trident->device != TRIDENT_DEVICE_ID_SI7018 &&
-	    (err = snd_mpu401_uart_new(card, 0, MPU401_HW_TRID4DWAVE,
-				       trident->midi_port,
-				       MPU401_INFO_INTEGRATED |
-				       MPU401_INFO_IRQ_HOOK,
-				       -1, &trident->rmidi)) < 0) {
+		(err = snd_mpu401_uart_new(card, 0, MPU401_HW_TRID4DWAVE,
+								   trident->midi_port,
+								   MPU401_INFO_INTEGRATED |
+								   MPU401_INFO_IRQ_HOOK,
+								   -1, &trident->rmidi)) < 0)
+	{
 		snd_card_free(card);
 		return err;
 	}
 
 	snd_trident_create_gameport(trident);
 
-	if ((err = snd_card_register(card)) < 0) {
+	if ((err = snd_card_register(card)) < 0)
+	{
 		snd_card_free(card);
 		return err;
 	}
+
 	pci_set_drvdata(pci, card);
 	dev++;
 	return 0;
@@ -172,7 +208,8 @@ static void snd_trident_remove(struct pci_dev *pci)
 	snd_card_free(pci_get_drvdata(pci));
 }
 
-static struct pci_driver trident_driver = {
+static struct pci_driver trident_driver =
+{
 	.name = KBUILD_MODNAME,
 	.id_table = snd_trident_ids,
 	.probe = snd_trident_probe,

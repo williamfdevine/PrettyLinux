@@ -33,7 +33,8 @@
 
 #define KV_NUM_NBPSTATES   4
 
-enum kv_pt_config_reg_type {
+enum kv_pt_config_reg_type
+{
 	KV_CONFIGREG_MMR = 0,
 	KV_CONFIGREG_SMC_IND,
 	KV_CONFIGREG_DIDT_IND,
@@ -41,7 +42,8 @@ enum kv_pt_config_reg_type {
 	KV_CONFIGREG_MAX
 };
 
-struct kv_pt_config_reg {
+struct kv_pt_config_reg
+{
 	u32 offset;
 	u32 mask;
 	u32 shift;
@@ -49,13 +51,15 @@ struct kv_pt_config_reg {
 	enum kv_pt_config_reg_type type;
 };
 
-struct kv_lcac_config_values {
+struct kv_lcac_config_values
+{
 	u32 block_id;
 	u32 signal_id;
 	u32 t;
 };
 
-struct kv_lcac_config_reg {
+struct kv_lcac_config_reg
+{
 	u32 cntl;
 	u32 block_mask;
 	u32 block_shift;
@@ -67,7 +71,8 @@ struct kv_lcac_config_reg {
 	u32 enable_shift;
 };
 
-struct kv_pl {
+struct kv_pl
+{
 	u32 sclk;
 	u8 vddc_index;
 	u8 ds_divider_index;
@@ -78,7 +83,8 @@ struct kv_pl {
 	u8 vce_wm;
 };
 
-struct kv_ps {
+struct kv_ps
+{
 	struct kv_pl levels[SUMO_MAX_HARDWARE_POWERLEVELS];
 	u32 num_levels;
 	bool need_dfs_bypass;
@@ -88,7 +94,8 @@ struct kv_ps {
 	u8 dpmx_nb_ps_hi;
 };
 
-struct kv_sys_info {
+struct kv_sys_info
+{
 	u32 bootup_uma_clk;
 	u32 bootup_sclk;
 	u32 dentist_vco_freq;
@@ -103,7 +110,8 @@ struct kv_sys_info {
 	u32 uma_channel_number;
 };
 
-struct kv_power_info {
+struct kv_power_info
+{
 	u32 at[SUMO_MAX_HARDWARE_POWERLEVELS];
 	u32 voltage_drop_t;
 	struct kv_sys_info sys_info;
@@ -188,13 +196,13 @@ struct kv_power_info {
 int kv_notify_message_to_smu(struct radeon_device *rdev, u32 id);
 int kv_dpm_get_enable_mask(struct radeon_device *rdev, u32 *enable_mask);
 int kv_send_msg_to_smc_with_parameter(struct radeon_device *rdev,
-				      PPSMC_Msg msg, u32 parameter);
+									  PPSMC_Msg msg, u32 parameter);
 int kv_read_smc_sram_dword(struct radeon_device *rdev, u32 smc_address,
-			   u32 *value, u32 limit);
+						   u32 *value, u32 limit);
 int kv_smc_dpm_enable(struct radeon_device *rdev, bool enable);
 int kv_smc_bapm_enable(struct radeon_device *rdev, bool enable);
 int kv_copy_bytes_to_smc(struct radeon_device *rdev,
-			 u32 smc_start_address,
-			 const u8 *src, u32 byte_count, u32 limit);
+						 u32 smc_start_address,
+						 const u8 *src, u32 byte_count, u32 limit);
 
 #endif

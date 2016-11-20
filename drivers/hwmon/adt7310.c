@@ -23,7 +23,8 @@
 #define ADT7310_T_ALARM_HIGH		6
 #define ADT7310_T_ALARM_LOW		7
 
-static const u8 adt7310_reg_table[] = {
+static const u8 adt7310_reg_table[] =
+{
 	[ADT7X10_TEMPERATURE]   = ADT7310_TEMPERATURE,
 	[ADT7X10_STATUS]	= ADT7310_STATUS,
 	[ADT7X10_CONFIG]	= ADT7310_CONFIG,
@@ -65,7 +66,7 @@ static int adt7310_spi_read_byte(struct device *dev, u8 reg)
 }
 
 static int adt7310_spi_write_byte(struct device *dev, u8 reg,
-	u8 data)
+								  u8 data)
 {
 	struct spi_device *spi = to_spi_device(dev);
 	u8 buf[2];
@@ -76,7 +77,8 @@ static int adt7310_spi_write_byte(struct device *dev, u8 reg,
 	return spi_write(spi, buf, sizeof(buf));
 }
 
-static const struct adt7x10_ops adt7310_spi_ops = {
+static const struct adt7x10_ops adt7310_spi_ops =
+{
 	.read_word = adt7310_spi_read_word,
 	.write_word = adt7310_spi_write_word,
 	.read_byte = adt7310_spi_read_byte,
@@ -86,7 +88,7 @@ static const struct adt7x10_ops adt7310_spi_ops = {
 static int adt7310_spi_probe(struct spi_device *spi)
 {
 	return adt7x10_probe(&spi->dev, spi_get_device_id(spi)->name, spi->irq,
-			&adt7310_spi_ops);
+						 &adt7310_spi_ops);
 }
 
 static int adt7310_spi_remove(struct spi_device *spi)
@@ -94,14 +96,16 @@ static int adt7310_spi_remove(struct spi_device *spi)
 	return adt7x10_remove(&spi->dev, spi->irq);
 }
 
-static const struct spi_device_id adt7310_id[] = {
+static const struct spi_device_id adt7310_id[] =
+{
 	{ "adt7310", 0 },
 	{ "adt7320", 0 },
 	{}
 };
 MODULE_DEVICE_TABLE(spi, adt7310_id);
 
-static struct spi_driver adt7310_driver = {
+static struct spi_driver adt7310_driver =
+{
 	.driver = {
 		.name	= "adt7310",
 		.pm	= ADT7X10_DEV_PM_OPS,

@@ -17,7 +17,8 @@
 /*
  * scsi_dev_info_list: structure to hold black/white listed devices.
  */
-struct scsi_dev_info_list {
+struct scsi_dev_info_list
+{
 	struct list_head dev_info_list;
 	char vendor[8];
 	char model[16];
@@ -25,7 +26,8 @@ struct scsi_dev_info_list {
 	unsigned compatible; /* for use with scsi_static_device_list entries */
 };
 
-struct scsi_dev_info_list_table {
+struct scsi_dev_info_list_table
+{
 	struct list_head node;	/* our node for being on the master list */
 	struct list_head scsi_dev_info_list; /* head of dev info list */
 	const char *name;	/* name of list for /proc (NULL for global) */
@@ -47,12 +49,14 @@ static char scsi_dev_flags[256];
  * Do not add to this list, use the command line or proc interface to add
  * to the scsi_dev_info_list. This table will eventually go away.
  */
-static struct {
+static struct
+{
 	char *vendor;
 	char *model;
 	char *revision;	/* revision known to be bad, unused */
 	unsigned flags;
-} scsi_static_device_list[] __initdata = {
+} scsi_static_device_list[] __initdata =
+{
 	/*
 	 * The following devices are known not to tolerate a lun != 0 scan
 	 * for one reason or another. Some will respond to all luns,
@@ -143,8 +147,10 @@ static struct {
 	{"CMD", "CRA-7280", NULL, BLIST_SPARSELUN},	/* CMD RAID Controller */
 	{"CNSI", "G7324", NULL, BLIST_SPARSELUN},	/* Chaparral G7324 RAID */
 	{"CNSi", "G8324", NULL, BLIST_SPARSELUN},	/* Chaparral G8324 RAID */
-	{"COMPAQ", "ARRAY CONTROLLER", NULL, BLIST_SPARSELUN | BLIST_LARGELUN |
-		BLIST_MAX_512 | BLIST_REPORTLUN2},	/* Compaq RA4x00 */
+	{
+		"COMPAQ", "ARRAY CONTROLLER", NULL, BLIST_SPARSELUN | BLIST_LARGELUN |
+		BLIST_MAX_512 | BLIST_REPORTLUN2
+	},	/* Compaq RA4x00 */
 	{"COMPAQ", "LOGICAL VOLUME", NULL, BLIST_FORCELUN | BLIST_MAX_512}, /* Compaq RA4x00 */
 	{"COMPAQ", "CR3500", NULL, BLIST_FORCELUN},
 	{"COMPAQ", "MSA1000", NULL, BLIST_SPARSELUN | BLIST_NOSTARTONADD},
@@ -278,12 +284,17 @@ static struct scsi_dev_info_list_table *scsi_devinfo_lookup_by_key(int key)
 	int found = 0;
 
 	list_for_each_entry(devinfo_table, &scsi_dev_info_list, node)
-		if (devinfo_table->key == key) {
-			found = 1;
-			break;
-		}
+
+	if (devinfo_table->key == key)
+	{
+		found = 1;
+		break;
+	}
+
 	if (!found)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	return devinfo_table;
 }
@@ -293,29 +304,35 @@ static struct scsi_dev_info_list_table *scsi_devinfo_lookup_by_key(int key)
  * devinfo vendor and model strings.
  */
 static void scsi_strcpy_devinfo(char *name, char *to, size_t to_length,
-				char *from, int compatible)
+								char *from, int compatible)
 {
 	size_t from_length;
 
 	from_length = strlen(from);
 	strncpy(to, from, min(to_length, from_length));
-	if (from_length < to_length) {
-		if (compatible) {
+
+	if (from_length < to_length)
+	{
+		if (compatible)
+		{
 			/*
 			 * NUL terminate the string if it is short.
 			 */
 			to[from_length] = '\0';
-		} else {
-			/* 
-			 * space pad the string if it is short. 
+		}
+		else
+		{
+			/*
+			 * space pad the string if it is short.
 			 */
 			strncpy(&to[from_length], spaces,
-				to_length - from_length);
+					to_length - from_length);
 		}
 	}
+
 	if (from_length > to_length)
-		 printk(KERN_WARNING "%s: %s string '%s' is too long\n",
-			__func__, name, from);
+		printk(KERN_WARNING "%s: %s string '%s' is too long\n",
+			   __func__, name, from);
 }
 
 /**
@@ -335,11 +352,11 @@ static void scsi_strcpy_devinfo(char *name, char *to, size_t to_length,
  * Returns: 0 OK, -error on failure.
  **/
 static int scsi_dev_info_list_add(int compatible, char *vendor, char *model,
-			    char *strflags, int flags)
+								  char *strflags, int flags)
 {
 	return scsi_dev_info_list_add_keyed(compatible, vendor, model,
-					    strflags, flags,
-					    SCSI_DEVINFO_GLOBAL);
+										strflags, flags,
+										SCSI_DEVINFO_GLOBAL);
 }
 
 /**
@@ -361,39 +378,47 @@ static int scsi_dev_info_list_add(int compatible, char *vendor, char *model,
  * Returns: 0 OK, -error on failure.
  **/
 int scsi_dev_info_list_add_keyed(int compatible, char *vendor, char *model,
-				 char *strflags, int flags, int key)
+								 char *strflags, int flags, int key)
 {
 	struct scsi_dev_info_list *devinfo;
 	struct scsi_dev_info_list_table *devinfo_table =
 		scsi_devinfo_lookup_by_key(key);
 
 	if (IS_ERR(devinfo_table))
+	{
 		return PTR_ERR(devinfo_table);
+	}
 
 	devinfo = kmalloc(sizeof(*devinfo), GFP_KERNEL);
-	if (!devinfo) {
+
+	if (!devinfo)
+	{
 		printk(KERN_ERR "%s: no memory\n", __func__);
 		return -ENOMEM;
 	}
 
 	scsi_strcpy_devinfo("vendor", devinfo->vendor, sizeof(devinfo->vendor),
-			    vendor, compatible);
+						vendor, compatible);
 	scsi_strcpy_devinfo("model", devinfo->model, sizeof(devinfo->model),
-			    model, compatible);
+						model, compatible);
 
 	if (strflags)
+	{
 		devinfo->flags = simple_strtoul(strflags, NULL, 0);
+	}
 	else
+	{
 		devinfo->flags = flags;
+	}
 
 	devinfo->compatible = compatible;
 
 	if (compatible)
 		list_add_tail(&devinfo->dev_info_list,
-			      &devinfo_table->scsi_dev_info_list);
+					  &devinfo_table->scsi_dev_info_list);
 	else
 		list_add(&devinfo->dev_info_list,
-			 &devinfo_table->scsi_dev_info_list);
+				 &devinfo_table->scsi_dev_info_list);
 
 	return 0;
 }
@@ -421,7 +446,9 @@ static struct scsi_dev_info_list *scsi_dev_info_list_find(const char *vendor,
 	const char *vskip, *mskip;
 
 	if (IS_ERR(devinfo_table))
+	{
 		return (struct scsi_dev_info_list *) devinfo_table;
+	}
 
 	/* Prepare for "compatible" matches */
 
@@ -435,44 +462,66 @@ static struct scsi_dev_info_list *scsi_dev_info_list_find(const char *vendor,
 	 */
 	vmax = sizeof(devinfo->vendor);
 	vskip = vendor;
-	while (vmax > 0 && *vskip == ' ') {
+
+	while (vmax > 0 && *vskip == ' ')
+	{
 		vmax--;
 		vskip++;
 	}
+
 	/* Also skip trailing spaces */
 	while (vmax > 0 && vskip[vmax - 1] == ' ')
+	{
 		--vmax;
+	}
 
 	mmax = sizeof(devinfo->model);
 	mskip = model;
-	while (mmax > 0 && *mskip == ' ') {
+
+	while (mmax > 0 && *mskip == ' ')
+	{
 		mmax--;
 		mskip++;
 	}
+
 	while (mmax > 0 && mskip[mmax - 1] == ' ')
+	{
 		--mmax;
+	}
 
 	list_for_each_entry(devinfo, &devinfo_table->scsi_dev_info_list,
-			    dev_info_list) {
-		if (devinfo->compatible) {
+						dev_info_list)
+	{
+		if (devinfo->compatible)
+		{
 			/*
 			 * Behave like the older version of get_device_flags.
 			 */
 			if (memcmp(devinfo->vendor, vskip, vmax) ||
-					(vmax < sizeof(devinfo->vendor) &&
-						devinfo->vendor[vmax]))
+				(vmax < sizeof(devinfo->vendor) &&
+				 devinfo->vendor[vmax]))
+			{
 				continue;
+			}
+
 			if (memcmp(devinfo->model, mskip, mmax) ||
-					(mmax < sizeof(devinfo->model) &&
-						devinfo->model[mmax]))
+				(mmax < sizeof(devinfo->model) &&
+				 devinfo->model[mmax]))
+			{
 				continue;
+			}
+
 			return devinfo;
-		} else {
+		}
+		else
+		{
 			if (!memcmp(devinfo->vendor, vendor,
-				     sizeof(devinfo->vendor)) &&
-			     !memcmp(devinfo->model, model,
-				      sizeof(devinfo->model)))
+						sizeof(devinfo->vendor)) &&
+				!memcmp(devinfo->model, model,
+						sizeof(devinfo->model)))
+			{
 				return devinfo;
+			}
 		}
 	}
 
@@ -496,8 +545,11 @@ int scsi_dev_info_list_del_keyed(char *vendor, char *model, int key)
 	struct scsi_dev_info_list *found;
 
 	found = scsi_dev_info_list_find(vendor, model, key);
+
 	if (IS_ERR(found))
+	{
 		return PTR_ERR(found);
+	}
 
 	list_del(&found->dev_info_list);
 	kfree(found);
@@ -524,13 +576,17 @@ static int scsi_dev_info_list_add_str(char *dev_list)
 	int res = 0;
 
 	next = dev_list;
-	if (next && next[0] == '"') {
+
+	if (next && next[0] == '"')
+	{
 		/*
 		 * Ignore both the leading and trailing quote.
 		 */
 		next++;
 		next_check = ",\"";
-	} else {
+	}
+	else
+	{
 		next_check = ",";
 	}
 
@@ -539,20 +595,28 @@ static int scsi_dev_info_list_add_str(char *dev_list)
 	 * through the last time with vendor[0] == '\0'.
 	 */
 	for (vendor = strsep(&next, ":"); vendor && (vendor[0] != '\0')
-	     && (res == 0); vendor = strsep(&next, ":")) {
+		 && (res == 0); vendor = strsep(&next, ":"))
+	{
 		strflags = NULL;
 		model = strsep(&next, ":");
+
 		if (model)
+		{
 			strflags = strsep(&next, next_check);
-		if (!model || !strflags) {
+		}
+
+		if (!model || !strflags)
+		{
 			printk(KERN_ERR "%s: bad dev info string '%s' '%s'"
-			       " '%s'\n", __func__, vendor, model,
-			       strflags);
+				   " '%s'\n", __func__, vendor, model,
+				   strflags);
 			res = -EINVAL;
-		} else
+		}
+		else
 			res = scsi_dev_info_list_add(0 /* compatible */, vendor,
-						     model, strflags, 0);
+										 model, strflags, 0);
 	}
+
 	return res;
 }
 
@@ -569,11 +633,11 @@ static int scsi_dev_info_list_add_str(char *dev_list)
  *     settings.  Called during scan time.
  **/
 int scsi_get_device_flags(struct scsi_device *sdev,
-			  const unsigned char *vendor,
-			  const unsigned char *model)
+						  const unsigned char *vendor,
+						  const unsigned char *model)
 {
 	return scsi_get_device_flags_keyed(sdev, vendor, model,
-					   SCSI_DEVINFO_GLOBAL);
+									   SCSI_DEVINFO_GLOBAL);
 }
 
 
@@ -591,35 +655,46 @@ int scsi_get_device_flags(struct scsi_device *sdev,
  *     Called during scan time.
  **/
 int scsi_get_device_flags_keyed(struct scsi_device *sdev,
-				const unsigned char *vendor,
-				const unsigned char *model,
-				int key)
+								const unsigned char *vendor,
+								const unsigned char *model,
+								int key)
 {
 	struct scsi_dev_info_list *devinfo;
 	int err;
 
 	devinfo = scsi_dev_info_list_find(vendor, model, key);
+
 	if (!IS_ERR(devinfo))
+	{
 		return devinfo->flags;
+	}
 
 	err = PTR_ERR(devinfo);
+
 	if (err != -ENOENT)
+	{
 		return err;
+	}
 
 	/* nothing found, return nothing */
 	if (key != SCSI_DEVINFO_GLOBAL)
+	{
 		return 0;
+	}
 
 	/* except for the global list, where we have an exception */
 	if (sdev->sdev_bflags)
+	{
 		return sdev->sdev_bflags;
+	}
 
 	return scsi_default_dev_flags;
 }
 EXPORT_SYMBOL(scsi_get_device_flags_keyed);
 
 #ifdef CONFIG_SCSI_PROC_FS
-struct double_list {
+struct double_list
+{
 	struct list_head *top;
 	struct list_head *bottom;
 };
@@ -631,14 +706,16 @@ static int devinfo_seq_show(struct seq_file *m, void *v)
 		list_entry(dl->top, struct scsi_dev_info_list_table, node);
 	struct scsi_dev_info_list *devinfo =
 		list_entry(dl->bottom, struct scsi_dev_info_list,
-			   dev_info_list);
+				   dev_info_list);
 
 	if (devinfo_table->scsi_dev_info_list.next == dl->bottom &&
-	    devinfo_table->name)
+		devinfo_table->name)
+	{
 		seq_printf(m, "[%s]:\n", devinfo_table->name);
+	}
 
 	seq_printf(m, "'%.8s' '%.16s' 0x%x\n",
-		   devinfo->vendor, devinfo->model, devinfo->flags);
+			   devinfo->vendor, devinfo->model, devinfo->flags);
 	return 0;
 }
 
@@ -648,15 +725,21 @@ static void *devinfo_seq_start(struct seq_file *m, loff_t *ppos)
 	loff_t pos = *ppos;
 
 	if (!dl)
+	{
 		return NULL;
+	}
 
-	list_for_each(dl->top, &scsi_dev_info_list) {
+	list_for_each(dl->top, &scsi_dev_info_list)
+	{
 		struct scsi_dev_info_list_table *devinfo_table =
 			list_entry(dl->top, struct scsi_dev_info_list_table,
-				   node);
+					   node);
 		list_for_each(dl->bottom, &devinfo_table->scsi_dev_info_list)
-			if (pos-- == 0)
-				return dl;
+
+		if (pos-- == 0)
+		{
+			return dl;
+		}
 	}
 
 	kfree(dl);
@@ -671,15 +754,20 @@ static void *devinfo_seq_next(struct seq_file *m, void *v, loff_t *ppos)
 
 	++*ppos;
 	dl->bottom = dl->bottom->next;
-	while (&devinfo_table->scsi_dev_info_list == dl->bottom) {
+
+	while (&devinfo_table->scsi_dev_info_list == dl->bottom)
+	{
 		dl->top = dl->top->next;
-		if (dl->top == &scsi_dev_info_list) {
+
+		if (dl->top == &scsi_dev_info_list)
+		{
 			kfree(dl);
 			return NULL;
 		}
+
 		devinfo_table = list_entry(dl->top,
-					   struct scsi_dev_info_list_table,
-					   node);
+								   struct scsi_dev_info_list_table,
+								   node);
 		dl->bottom = devinfo_table->scsi_dev_info_list.next;
 	}
 
@@ -691,7 +779,8 @@ static void devinfo_seq_stop(struct seq_file *m, void *v)
 	kfree(v);
 }
 
-static const struct seq_operations scsi_devinfo_seq_ops = {
+static const struct seq_operations scsi_devinfo_seq_ops =
+{
 	.start	= devinfo_seq_start,
 	.next	= devinfo_seq_next,
 	.stop	= devinfo_seq_stop,
@@ -703,7 +792,7 @@ static int proc_scsi_devinfo_open(struct inode *inode, struct file *file)
 	return seq_open(file, &scsi_devinfo_seq_ops);
 }
 
-/* 
+/*
  * proc_scsi_dev_info_write - allow additions to scsi_dev_info_list via /proc.
  *
  * Description: Adds a black/white list entry for vendor and model with an
@@ -711,24 +800,34 @@ static int proc_scsi_devinfo_open(struct inode *inode, struct file *file)
  * To use, echo "vendor:model:flag" > /proc/scsi/device_info
  */
 static ssize_t proc_scsi_devinfo_write(struct file *file,
-				       const char __user *buf,
-				       size_t length, loff_t *ppos)
+									   const char __user *buf,
+									   size_t length, loff_t *ppos)
 {
 	char *buffer;
 	ssize_t err = length;
 
-	if (!buf || length>PAGE_SIZE)
+	if (!buf || length > PAGE_SIZE)
+	{
 		return -EINVAL;
+	}
+
 	if (!(buffer = (char *) __get_free_page(GFP_KERNEL)))
+	{
 		return -ENOMEM;
-	if (copy_from_user(buffer, buf, length)) {
-		err =-EFAULT;
+	}
+
+	if (copy_from_user(buffer, buf, length))
+	{
+		err = -EFAULT;
 		goto out;
 	}
 
 	if (length < PAGE_SIZE)
+	{
 		buffer[length] = '\0';
-	else if (buffer[PAGE_SIZE-1]) {
+	}
+	else if (buffer[PAGE_SIZE - 1])
+	{
 		err = -EINVAL;
 		goto out;
 	}
@@ -740,7 +839,8 @@ out:
 	return err;
 }
 
-static const struct file_operations scsi_devinfo_proc_fops = {
+static const struct file_operations scsi_devinfo_proc_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= proc_scsi_devinfo_open,
 	.read		= seq_read,
@@ -752,13 +852,13 @@ static const struct file_operations scsi_devinfo_proc_fops = {
 
 module_param_string(dev_flags, scsi_dev_flags, sizeof(scsi_dev_flags), 0);
 MODULE_PARM_DESC(dev_flags,
-	 "Given scsi_dev_flags=vendor:model:flags[,v:m:f] add black/white"
-	 " list entries for vendor and model with an integer value of flags"
-	 " to the scsi device info list");
+				 "Given scsi_dev_flags=vendor:model:flags[,v:m:f] add black/white"
+				 " list entries for vendor and model with an integer value of flags"
+				 " to the scsi device info list");
 
-module_param_named(default_dev_flags, scsi_default_dev_flags, int, S_IRUGO|S_IWUSR);
+module_param_named(default_dev_flags, scsi_default_dev_flags, int, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(default_dev_flags,
-		 "scsi default device flag integer value");
+				 "scsi default device flag integer value");
 
 /**
  * scsi_exit_devinfo - remove /proc/scsi/device_info & the scsi_dev_info_list
@@ -787,12 +887,16 @@ int scsi_dev_info_add_list(int key, const char *name)
 
 	if (!IS_ERR(devinfo_table))
 		/* list already exists */
+	{
 		return -EEXIST;
+	}
 
 	devinfo_table = kmalloc(sizeof(*devinfo_table), GFP_KERNEL);
 
 	if (!devinfo_table)
+	{
 		return -ENOMEM;
+	}
 
 	INIT_LIST_HEAD(&devinfo_table->node);
 	INIT_LIST_HEAD(&devinfo_table->scsi_dev_info_list);
@@ -820,16 +924,19 @@ int scsi_dev_info_remove_list(int key)
 
 	if (IS_ERR(devinfo_table))
 		/* no such list */
+	{
 		return -EINVAL;
+	}
 
 	/* remove from the master list */
 	list_del(&devinfo_table->node);
 
-	list_for_each_safe(lh, lh_next, &devinfo_table->scsi_dev_info_list) {
+	list_for_each_safe(lh, lh_next, &devinfo_table->scsi_dev_info_list)
+	{
 		struct scsi_dev_info_list *devinfo;
 
 		devinfo = list_entry(lh, struct scsi_dev_info_list,
-				     dev_info_list);
+							 dev_info_list);
 		kfree(devinfo);
 	}
 	kfree(devinfo_table);
@@ -853,33 +960,50 @@ int __init scsi_init_devinfo(void)
 	int error, i;
 
 	error = scsi_dev_info_add_list(SCSI_DEVINFO_GLOBAL, NULL);
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = scsi_dev_info_list_add_str(scsi_dev_flags);
-	if (error)
-		goto out;
 
-	for (i = 0; scsi_static_device_list[i].vendor; i++) {
+	if (error)
+	{
+		goto out;
+	}
+
+	for (i = 0; scsi_static_device_list[i].vendor; i++)
+	{
 		error = scsi_dev_info_list_add(1 /* compatibile */,
-				scsi_static_device_list[i].vendor,
-				scsi_static_device_list[i].model,
-				NULL,
-				scsi_static_device_list[i].flags);
+									   scsi_static_device_list[i].vendor,
+									   scsi_static_device_list[i].model,
+									   NULL,
+									   scsi_static_device_list[i].flags);
+
 		if (error)
+		{
 			goto out;
+		}
 	}
 
 #ifdef CONFIG_SCSI_PROC_FS
 	p = proc_create("scsi/device_info", 0, NULL, &scsi_devinfo_proc_fops);
-	if (!p) {
+
+	if (!p)
+	{
 		error = -ENOMEM;
 		goto out;
 	}
+
 #endif /* CONFIG_SCSI_PROC_FS */
 
- out:
+out:
+
 	if (error)
+	{
 		scsi_exit_devinfo();
+	}
+
 	return error;
 }

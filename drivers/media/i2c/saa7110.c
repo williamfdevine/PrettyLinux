@@ -51,7 +51,8 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
 
 #define SAA7110_NR_REG		0x35
 
-struct saa7110 {
+struct saa7110
+{
 	struct v4l2_subdev sd;
 	struct v4l2_ctrl_handler hdl;
 	u8 reg[SAA7110_NR_REG];
@@ -95,20 +96,29 @@ static int saa7110_write_block(struct v4l2_subdev *sd, const u8 *data, unsigned 
 
 	/* Sanity check */
 	if (reg + (len - 1) > SAA7110_NR_REG)
+	{
 		return ret;
+	}
 
 	/* the saa7110 has an autoincrement function, use it if
 	 * the adapter understands raw I2C */
-	if (i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
+	if (i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+	{
 		ret = i2c_master_send(client, data, len);
 
 		/* Cache the written data */
 		memcpy(decoder->reg + reg, data + 1, len - 1);
-	} else {
-		for (++data, --len; len; len--) {
+	}
+	else
+	{
+		for (++data, --len; len; len--)
+		{
 			ret = saa7110_write(sd, reg++, *data++);
+
 			if (ret < 0)
+			{
 				break;
+			}
 		}
 	}
 
@@ -132,34 +142,53 @@ static inline int saa7110_read(struct v4l2_subdev *sd)
 
 static int saa7110_selmux(struct v4l2_subdev *sd, int chan)
 {
-	static const unsigned char modes[9][8] = {
+	static const unsigned char modes[9][8] =
+	{
 		/* mode 0 */
-		{FRESP_06H_COMPST, 0xD9, 0x17, 0x40, 0x03,
-			      0x44, 0x75, 0x16},
+		{
+			FRESP_06H_COMPST, 0xD9, 0x17, 0x40, 0x03,
+			0x44, 0x75, 0x16
+		},
 		/* mode 1 */
-		{FRESP_06H_COMPST, 0xD8, 0x17, 0x40, 0x03,
-			      0x44, 0x75, 0x16},
+		{
+			FRESP_06H_COMPST, 0xD8, 0x17, 0x40, 0x03,
+			0x44, 0x75, 0x16
+		},
 		/* mode 2 */
-		{FRESP_06H_COMPST, 0xBA, 0x07, 0x91, 0x03,
-			      0x60, 0xB5, 0x05},
+		{
+			FRESP_06H_COMPST, 0xBA, 0x07, 0x91, 0x03,
+			0x60, 0xB5, 0x05
+		},
 		/* mode 3 */
-		{FRESP_06H_COMPST, 0xB8, 0x07, 0x91, 0x03,
-			      0x60, 0xB5, 0x05},
+		{
+			FRESP_06H_COMPST, 0xB8, 0x07, 0x91, 0x03,
+			0x60, 0xB5, 0x05
+		},
 		/* mode 4 */
-		{FRESP_06H_COMPST, 0x7C, 0x07, 0xD2, 0x83,
-			      0x60, 0xB5, 0x03},
+		{
+			FRESP_06H_COMPST, 0x7C, 0x07, 0xD2, 0x83,
+			0x60, 0xB5, 0x03
+		},
 		/* mode 5 */
-		{FRESP_06H_COMPST, 0x78, 0x07, 0xD2, 0x83,
-			      0x60, 0xB5, 0x03},
+		{
+			FRESP_06H_COMPST, 0x78, 0x07, 0xD2, 0x83,
+			0x60, 0xB5, 0x03
+		},
 		/* mode 6 */
-		{FRESP_06H_SVIDEO, 0x59, 0x17, 0x42, 0xA3,
-			      0x44, 0x75, 0x12},
+		{
+			FRESP_06H_SVIDEO, 0x59, 0x17, 0x42, 0xA3,
+			0x44, 0x75, 0x12
+		},
 		/* mode 7 */
-		{FRESP_06H_SVIDEO, 0x9A, 0x17, 0xB1, 0x13,
-			      0x60, 0xB5, 0x14},
+		{
+			FRESP_06H_SVIDEO, 0x9A, 0x17, 0xB1, 0x13,
+			0x60, 0xB5, 0x14
+		},
 		/* mode 8 */
-		{FRESP_06H_SVIDEO, 0x3C, 0x27, 0xC1, 0x23,
-			      0x44, 0x75, 0x21}
+		{
+			FRESP_06H_SVIDEO, 0x3C, 0x27, 0xC1, 0x23,
+			0x44, 0x75, 0x21
+		}
 	};
 	struct saa7110 *decoder = to_saa7110(sd);
 	const unsigned char *ptr = modes[chan];
@@ -177,7 +206,8 @@ static int saa7110_selmux(struct v4l2_subdev *sd, int chan)
 	return 0;
 }
 
-static const unsigned char initseq[1 + SAA7110_NR_REG] = {
+static const unsigned char initseq[1 + SAA7110_NR_REG] =
+{
 	0, 0x4C, 0x3C, 0x0D, 0xEF, 0xBD, 0xF2, 0x03, 0x00,
 	/* 0x08 */ 0xF8, 0xF8, 0x60, 0x60, 0x00, 0x86, 0x18, 0x90,
 	/* 0x10 */ 0x00, 0x59, 0x40, 0x46, 0x42, 0x1A, 0xFF, 0xDA,
@@ -200,23 +230,32 @@ static v4l2_std_id determine_norm(struct v4l2_subdev *sd)
 	schedule_timeout(msecs_to_jiffies(250));
 	finish_wait(&decoder->wq, &wait);
 	status = saa7110_read(sd);
-	if (status & 0x40) {
+
+	if (status & 0x40)
+	{
 		v4l2_dbg(1, debug, sd, "status=0x%02x (no signal)\n", status);
 		return V4L2_STD_UNKNOWN;
 	}
-	if ((status & 3) == 0) {
+
+	if ((status & 3) == 0)
+	{
 		saa7110_write(sd, 0x06, 0x83);
-		if (status & 0x20) {
+
+		if (status & 0x20)
+		{
 			v4l2_dbg(1, debug, sd, "status=0x%02x (NTSC/no color)\n", status);
 			/*saa7110_write(sd,0x2E,0x81);*/
 			return V4L2_STD_NTSC;
 		}
+
 		v4l2_dbg(1, debug, sd, "status=0x%02x (PAL/no color)\n", status);
 		/*saa7110_write(sd,0x2E,0x9A);*/
 		return V4L2_STD_PAL;
 	}
+
 	/*saa7110_write(sd,0x06,0x03);*/
-	if (status & 0x20) {	/* 60Hz */
+	if (status & 0x20)  	/* 60Hz */
+	{
 		v4l2_dbg(1, debug, sd, "status=0x%02x (NTSC)\n", status);
 		saa7110_write(sd, 0x0D, 0x86);
 		saa7110_write(sd, 0x0F, 0x50);
@@ -236,11 +275,14 @@ static v4l2_std_id determine_norm(struct v4l2_subdev *sd)
 	finish_wait(&decoder->wq, &wait);
 
 	status = saa7110_read(sd);
-	if ((status & 0x03) == 0x01) {
+
+	if ((status & 0x03) == 0x01)
+	{
 		v4l2_dbg(1, debug, sd, "status=0x%02x (SECAM)\n", status);
 		saa7110_write(sd, 0x0D, 0x87);
 		return V4L2_STD_SECAM;
 	}
+
 	v4l2_dbg(1, debug, sd, "status=0x%02x (PAL)\n", status);
 	return V4L2_STD_PAL;
 }
@@ -252,11 +294,17 @@ static int saa7110_g_input_status(struct v4l2_subdev *sd, u32 *pstatus)
 	int status = saa7110_read(sd);
 
 	v4l2_dbg(1, debug, sd, "status=0x%02x norm=%llx\n",
-		       status, (unsigned long long)decoder->norm);
+			 status, (unsigned long long)decoder->norm);
+
 	if (!(status & 0x40))
+	{
 		res = 0;
+	}
+
 	if (!(status & 0x03))
+	{
 		res |= V4L2_IN_ST_NO_COLOR;
+	}
 
 	*pstatus = res;
 	return 0;
@@ -272,47 +320,61 @@ static int saa7110_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
 {
 	struct saa7110 *decoder = to_saa7110(sd);
 
-	if (decoder->norm != std) {
+	if (decoder->norm != std)
+	{
 		decoder->norm = std;
+
 		/*saa7110_write(sd, 0x06, 0x03);*/
-		if (std & V4L2_STD_NTSC) {
+		if (std & V4L2_STD_NTSC)
+		{
 			saa7110_write(sd, 0x0D, 0x86);
 			saa7110_write(sd, 0x0F, 0x50);
 			saa7110_write(sd, 0x11, 0x2C);
 			/*saa7110_write(sd, 0x2E, 0x81);*/
 			v4l2_dbg(1, debug, sd, "switched to NTSC\n");
-		} else if (std & V4L2_STD_PAL) {
+		}
+		else if (std & V4L2_STD_PAL)
+		{
 			saa7110_write(sd, 0x0D, 0x86);
 			saa7110_write(sd, 0x0F, 0x10);
 			saa7110_write(sd, 0x11, 0x59);
 			/*saa7110_write(sd, 0x2E, 0x9A);*/
 			v4l2_dbg(1, debug, sd, "switched to PAL\n");
-		} else if (std & V4L2_STD_SECAM) {
+		}
+		else if (std & V4L2_STD_SECAM)
+		{
 			saa7110_write(sd, 0x0D, 0x87);
 			saa7110_write(sd, 0x0F, 0x10);
 			saa7110_write(sd, 0x11, 0x59);
 			/*saa7110_write(sd, 0x2E, 0x9A);*/
 			v4l2_dbg(1, debug, sd, "switched to SECAM\n");
-		} else {
+		}
+		else
+		{
 			return -EINVAL;
 		}
 	}
+
 	return 0;
 }
 
 static int saa7110_s_routing(struct v4l2_subdev *sd,
-			     u32 input, u32 output, u32 config)
+							 u32 input, u32 output, u32 config)
 {
 	struct saa7110 *decoder = to_saa7110(sd);
 
-	if (input >= SAA7110_MAX_INPUT) {
+	if (input >= SAA7110_MAX_INPUT)
+	{
 		v4l2_dbg(1, debug, sd, "input=%d not available\n", input);
 		return -EINVAL;
 	}
-	if (decoder->input != input) {
+
+	if (decoder->input != input)
+	{
 		saa7110_selmux(sd, input);
 		v4l2_dbg(1, debug, sd, "switched to input=%d\n", input);
 	}
+
 	return 0;
 }
 
@@ -320,11 +382,13 @@ static int saa7110_s_stream(struct v4l2_subdev *sd, int enable)
 {
 	struct saa7110 *decoder = to_saa7110(sd);
 
-	if (decoder->enable != enable) {
+	if (decoder->enable != enable)
+	{
 		decoder->enable = enable;
 		saa7110_write(sd, 0x0E, enable ? 0x18 : 0x80);
 		v4l2_dbg(1, debug, sd, "YUV %s\n", enable ? "on" : "off");
 	}
+
 	return 0;
 }
 
@@ -332,32 +396,40 @@ static int saa7110_s_ctrl(struct v4l2_ctrl *ctrl)
 {
 	struct v4l2_subdev *sd = to_sd(ctrl);
 
-	switch (ctrl->id) {
-	case V4L2_CID_BRIGHTNESS:
-		saa7110_write(sd, 0x19, ctrl->val);
-		break;
-	case V4L2_CID_CONTRAST:
-		saa7110_write(sd, 0x13, ctrl->val);
-		break;
-	case V4L2_CID_SATURATION:
-		saa7110_write(sd, 0x12, ctrl->val);
-		break;
-	case V4L2_CID_HUE:
-		saa7110_write(sd, 0x07, ctrl->val);
-		break;
-	default:
-		return -EINVAL;
+	switch (ctrl->id)
+	{
+		case V4L2_CID_BRIGHTNESS:
+			saa7110_write(sd, 0x19, ctrl->val);
+			break;
+
+		case V4L2_CID_CONTRAST:
+			saa7110_write(sd, 0x13, ctrl->val);
+			break;
+
+		case V4L2_CID_SATURATION:
+			saa7110_write(sd, 0x12, ctrl->val);
+			break;
+
+		case V4L2_CID_HUE:
+			saa7110_write(sd, 0x07, ctrl->val);
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	return 0;
 }
 
 /* ----------------------------------------------------------------------- */
 
-static const struct v4l2_ctrl_ops saa7110_ctrl_ops = {
+static const struct v4l2_ctrl_ops saa7110_ctrl_ops =
+{
 	.s_ctrl = saa7110_s_ctrl,
 };
 
-static const struct v4l2_subdev_video_ops saa7110_video_ops = {
+static const struct v4l2_subdev_video_ops saa7110_video_ops =
+{
 	.s_std = saa7110_s_std,
 	.s_routing = saa7110_s_routing,
 	.s_stream = saa7110_s_stream,
@@ -365,14 +437,15 @@ static const struct v4l2_subdev_video_ops saa7110_video_ops = {
 	.g_input_status = saa7110_g_input_status,
 };
 
-static const struct v4l2_subdev_ops saa7110_ops = {
+static const struct v4l2_subdev_ops saa7110_ops =
+{
 	.video = &saa7110_video_ops,
 };
 
 /* ----------------------------------------------------------------------- */
 
 static int saa7110_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct saa7110 *decoder;
 	struct v4l2_subdev *sd;
@@ -380,15 +453,21 @@ static int saa7110_probe(struct i2c_client *client,
 
 	/* Check if the adapter supports the needed features */
 	if (!i2c_check_functionality(client->adapter,
-		I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA))
+								 I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA))
+	{
 		return -ENODEV;
+	}
 
 	v4l_info(client, "chip found @ 0x%x (%s)\n",
-			client->addr << 1, client->adapter->name);
+			 client->addr << 1, client->adapter->name);
 
 	decoder = devm_kzalloc(&client->dev, sizeof(*decoder), GFP_KERNEL);
+
 	if (!decoder)
+	{
 		return -ENOMEM;
+	}
+
 	sd = &decoder->sd;
 	v4l2_i2c_subdev_init(sd, client, &saa7110_ops);
 	decoder->norm = V4L2_STD_PAL;
@@ -396,28 +475,35 @@ static int saa7110_probe(struct i2c_client *client,
 	decoder->enable = 1;
 	v4l2_ctrl_handler_init(&decoder->hdl, 2);
 	v4l2_ctrl_new_std(&decoder->hdl, &saa7110_ctrl_ops,
-		V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
+					  V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
 	v4l2_ctrl_new_std(&decoder->hdl, &saa7110_ctrl_ops,
-		V4L2_CID_CONTRAST, 0, 127, 1, 64);
+					  V4L2_CID_CONTRAST, 0, 127, 1, 64);
 	v4l2_ctrl_new_std(&decoder->hdl, &saa7110_ctrl_ops,
-		V4L2_CID_SATURATION, 0, 127, 1, 64);
+					  V4L2_CID_SATURATION, 0, 127, 1, 64);
 	v4l2_ctrl_new_std(&decoder->hdl, &saa7110_ctrl_ops,
-		V4L2_CID_HUE, -128, 127, 1, 0);
+					  V4L2_CID_HUE, -128, 127, 1, 0);
 	sd->ctrl_handler = &decoder->hdl;
-	if (decoder->hdl.error) {
+
+	if (decoder->hdl.error)
+	{
 		int err = decoder->hdl.error;
 
 		v4l2_ctrl_handler_free(&decoder->hdl);
 		return err;
 	}
+
 	v4l2_ctrl_handler_setup(&decoder->hdl);
 
 	init_waitqueue_head(&decoder->wq);
 
 	rv = saa7110_write_block(sd, initseq, sizeof(initseq));
-	if (rv < 0) {
+
+	if (rv < 0)
+	{
 		v4l2_dbg(1, debug, sd, "init status %d\n", rv);
-	} else {
+	}
+	else
+	{
 		int ver, status;
 		saa7110_write(sd, 0x21, 0x10);
 		saa7110_write(sd, 0x0e, 0x18);
@@ -427,7 +513,7 @@ static int saa7110_probe(struct i2c_client *client,
 		/*mdelay(150);*/
 		status = saa7110_read(sd);
 		v4l2_dbg(1, debug, sd, "version %x, status=0x%02x\n",
-			       ver, status);
+				 ver, status);
 		saa7110_write(sd, 0x0D, 0x86);
 		saa7110_write(sd, 0x0F, 0x10);
 		saa7110_write(sd, 0x11, 0x59);
@@ -453,13 +539,15 @@ static int saa7110_remove(struct i2c_client *client)
 
 /* ----------------------------------------------------------------------- */
 
-static const struct i2c_device_id saa7110_id[] = {
+static const struct i2c_device_id saa7110_id[] =
+{
 	{ "saa7110", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, saa7110_id);
 
-static struct i2c_driver saa7110_driver = {
+static struct i2c_driver saa7110_driver =
+{
 	.driver = {
 		.name	= "saa7110",
 	},

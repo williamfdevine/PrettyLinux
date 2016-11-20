@@ -125,12 +125,14 @@
 
 #define ICADE_MAX_USAGE 29
 
-struct icade_key {
+struct icade_key
+{
 	u16 to;
-	u8 press:1;
+	u8 press: 1;
 };
 
-static const struct icade_key icade_usage_table[30] = {
+static const struct icade_key icade_usage_table[30] =
+{
 	[26] = { KEY_UP, 1 },
 	[8] = { KEY_UP, 0 },
 	[7] = { KEY_RIGHT, 1 },
@@ -160,45 +162,57 @@ static const struct icade_key icade_usage_table[30] = {
 static const struct icade_key *icade_find_translation(u16 from)
 {
 	if (from > ICADE_MAX_USAGE)
+	{
 		return NULL;
+	}
+
 	return &icade_usage_table[from];
 }
 
 static int icade_event(struct hid_device *hdev, struct hid_field *field,
-		struct hid_usage *usage, __s32 value)
+					   struct hid_usage *usage, __s32 value)
 {
 	const struct icade_key *trans;
 
 	if (!(hdev->claimed & HID_CLAIMED_INPUT) || !field->hidinput ||
-			!usage->type)
+		!usage->type)
+	{
 		return 0;
+	}
 
 	/* We ignore the fake key up, and act only on key down */
 	if (!value)
+	{
 		return 1;
+	}
 
 	trans = icade_find_translation(usage->hid & HID_USAGE);
 
 	if (!trans)
+	{
 		return 1;
+	}
 
 	input_event(field->hidinput->input, usage->type,
-			trans->to, trans->press);
+				trans->to, trans->press);
 
 	return 1;
 }
 
 static int icade_input_mapping(struct hid_device *hdev, struct hid_input *hi,
-		struct hid_field *field, struct hid_usage *usage,
-		unsigned long **bit, int *max)
+							   struct hid_field *field, struct hid_usage *usage,
+							   unsigned long **bit, int *max)
 {
 	const struct icade_key *trans;
 
-	if ((usage->hid & HID_USAGE_PAGE) == HID_UP_KEYBOARD) {
+	if ((usage->hid & HID_USAGE_PAGE) == HID_UP_KEYBOARD)
+	{
 		trans = icade_find_translation(usage->hid & HID_USAGE);
 
 		if (!trans)
+		{
 			return -1;
+		}
 
 		hid_map_usage(hi, usage, bit, max, EV_KEY, trans->to);
 		set_bit(trans->to, hi->input->keybit);
@@ -212,23 +226,27 @@ static int icade_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 }
 
 static int icade_input_mapped(struct hid_device *hdev, struct hid_input *hi,
-		struct hid_field *field, struct hid_usage *usage,
-		unsigned long **bit, int *max)
+							  struct hid_field *field, struct hid_usage *usage,
+							  unsigned long **bit, int *max)
 {
 	if (usage->type == EV_KEY)
+	{
 		set_bit(usage->type, hi->input->evbit);
+	}
 
 	return -1;
 }
 
-static const struct hid_device_id icade_devices[] = {
+static const struct hid_device_id icade_devices[] =
+{
 	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_ION, USB_DEVICE_ID_ICADE) },
 
 	{ }
 };
 MODULE_DEVICE_TABLE(hid, icade_devices);
 
-static struct hid_driver icade_driver = {
+static struct hid_driver icade_driver =
+{
 	.name = "icade",
 	.id_table = icade_devices,
 	.event = icade_event,

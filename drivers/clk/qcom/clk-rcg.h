@@ -17,7 +17,8 @@
 #include <linux/clk-provider.h>
 #include "clk-regmap.h"
 
-struct freq_tbl {
+struct freq_tbl
+{
 	unsigned long freq;
 	u8 src;
 	u8 pre_div;
@@ -30,7 +31,8 @@ struct freq_tbl {
  * @src: source PLL
  * @cfg: configuration value
  */
-struct parent_map {
+struct parent_map
+{
 	u8 src;
 	u8 cfg;
 };
@@ -45,7 +47,8 @@ struct parent_map {
  * @width: number of bits in m/n/d values
  * @reset_in_cc: true if the mnctr_reset_bit is in the CC register
  */
-struct mn {
+struct mn
+{
 	u8		mnctr_en_bit;
 	u8		mnctr_reset_bit;
 	u8		mnctr_mode_shift;
@@ -62,7 +65,8 @@ struct mn {
  * @pre_div_shift: lowest bit of pre divider field
  * @pre_div_width: number of bits in predivider
  */
-struct pre_div {
+struct pre_div
+{
 	u8		pre_div_shift;
 	u8		pre_div_width;
 };
@@ -72,7 +76,8 @@ struct pre_div {
  * @src_sel_shift: lowest bit of source selection field
  * @parent_map: map from software's parent index to hardware's src_sel field
  */
-struct src_sel {
+struct src_sel
+{
 	u8		src_sel_shift;
 #define SRC_SEL_MASK	0x7
 	const struct parent_map	*parent_map;
@@ -91,7 +96,8 @@ struct src_sel {
  * @lock: register lock
  *
  */
-struct clk_rcg {
+struct clk_rcg
+{
 	u32		ns_reg;
 	u32		md_reg;
 
@@ -127,7 +133,8 @@ extern const struct clk_ops clk_rcg_lcc_ops;
  * @lock: register lock
  *
  */
-struct clk_dyn_rcg {
+struct clk_dyn_rcg
+{
 	u32	ns_reg[2];
 	u32	md_reg[2];
 	u32	bank_reg;
@@ -160,7 +167,8 @@ extern const struct clk_ops clk_dyn_rcg_ops;
  * @clkr: regmap clock handle
  *
  */
-struct clk_rcg2 {
+struct clk_rcg2
+{
 	u32			cmd_rcgr;
 	u8			mnd_width;
 	u8			hid_width;

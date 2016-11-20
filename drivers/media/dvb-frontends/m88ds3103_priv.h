@@ -30,7 +30,8 @@
 #define M88RS6000_CHIP_ID 0x74
 #define M88DS3103_CHIP_ID 0x70
 
-struct m88ds3103_dev {
+struct m88ds3103_dev
+{
 	struct i2c_client *client;
 	struct regmap_config regmap_config;
 	struct regmap *regmap;
@@ -50,12 +51,14 @@ struct m88ds3103_dev {
 	u64 post_bit_count;
 };
 
-struct m88ds3103_reg_val {
+struct m88ds3103_reg_val
+{
 	u8 reg;
 	u8 val;
 };
 
-static const struct m88ds3103_reg_val m88ds3103_dvbs_init_reg_vals[] = {
+static const struct m88ds3103_reg_val m88ds3103_dvbs_init_reg_vals[] =
+{
 	{0x23, 0x07},
 	{0x08, 0x03},
 	{0x0c, 0x02},
@@ -138,7 +141,8 @@ static const struct m88ds3103_reg_val m88ds3103_dvbs_init_reg_vals[] = {
 	{0xb8, 0x00},
 };
 
-static const struct m88ds3103_reg_val m88ds3103_dvbs2_init_reg_vals[] = {
+static const struct m88ds3103_reg_val m88ds3103_dvbs2_init_reg_vals[] =
+{
 	{0x23, 0x07},
 	{0x08, 0x07},
 	{0x0c, 0x02},
@@ -224,7 +228,8 @@ static const struct m88ds3103_reg_val m88ds3103_dvbs2_init_reg_vals[] = {
 	{0xb8, 0x00},
 };
 
-static const struct m88ds3103_reg_val m88rs6000_dvbs_init_reg_vals[] = {
+static const struct m88ds3103_reg_val m88rs6000_dvbs_init_reg_vals[] =
+{
 	{0x23, 0x07},
 	{0x08, 0x03},
 	{0x0c, 0x02},
@@ -310,7 +315,8 @@ static const struct m88ds3103_reg_val m88rs6000_dvbs_init_reg_vals[] = {
 	{0x29, 0x11},
 };
 
-static const struct m88ds3103_reg_val m88rs6000_dvbs2_init_reg_vals[] = {
+static const struct m88ds3103_reg_val m88rs6000_dvbs2_init_reg_vals[] =
+{
 	{0x23, 0x07},
 	{0x08, 0x07},
 	{0x0c, 0x02},

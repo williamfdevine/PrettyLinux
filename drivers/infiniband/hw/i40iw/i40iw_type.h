@@ -39,23 +39,28 @@
 #include "i40iw_vf.h"
 #include "i40iw_virtchnl.h"
 
-struct i40iw_cqp_sq_wqe {
+struct i40iw_cqp_sq_wqe
+{
 	u64 buf[I40IW_CQP_WQE_SIZE];
 };
 
-struct i40iw_sc_aeqe {
+struct i40iw_sc_aeqe
+{
 	u64 buf[I40IW_AEQE_SIZE];
 };
 
-struct i40iw_ceqe {
+struct i40iw_ceqe
+{
 	u64 buf[I40IW_CEQE_SIZE];
 };
 
-struct i40iw_cqp_ctx {
+struct i40iw_cqp_ctx
+{
 	u64 buf[I40IW_CQP_CTX_SIZE];
 };
 
-struct i40iw_cq_shadow_area {
+struct i40iw_cq_shadow_area
+{
 	u64 buf[I40IW_SHADOW_AREA_SIZE];
 };
 
@@ -74,26 +79,30 @@ struct i40iw_priv_qp_ops;
 struct i40iw_priv_cq_ops;
 struct i40iw_hmc_ops;
 
-enum i40iw_resource_indicator_type {
+enum i40iw_resource_indicator_type
+{
 	I40IW_RSRC_INDICATOR_TYPE_ADAPTER = 0,
 	I40IW_RSRC_INDICATOR_TYPE_CQ,
 	I40IW_RSRC_INDICATOR_TYPE_QP,
 	I40IW_RSRC_INDICATOR_TYPE_SRQ
 };
 
-enum i40iw_hdrct_flags {
+enum i40iw_hdrct_flags
+{
 	DDP_LEN_FLAG = 0x80,
 	DDP_HDR_FLAG = 0x40,
 	RDMA_HDR_FLAG = 0x20
 };
 
-enum i40iw_term_layers {
+enum i40iw_term_layers
+{
 	LAYER_RDMA = 0,
 	LAYER_DDP = 1,
 	LAYER_MPA = 2
 };
 
-enum i40iw_term_error_types {
+enum i40iw_term_error_types
+{
 	RDMAP_REMOTE_PROT = 1,
 	RDMAP_REMOTE_OP = 2,
 	DDP_CATASTROPHIC = 0,
@@ -102,7 +111,8 @@ enum i40iw_term_error_types {
 	DDP_LLP = 3
 };
 
-enum i40iw_term_rdma_errors {
+enum i40iw_term_rdma_errors
+{
 	RDMAP_INV_STAG = 0x00,
 	RDMAP_INV_BOUNDS = 0x01,
 	RDMAP_ACCESS = 0x02,
@@ -116,7 +126,8 @@ enum i40iw_term_rdma_errors {
 	RDMAP_UNSPECIFIED = 0xff
 };
 
-enum i40iw_term_ddp_errors {
+enum i40iw_term_ddp_errors
+{
 	DDP_CATASTROPHIC_LOCAL = 0x00,
 	DDP_TAGGED_INV_STAG = 0x00,
 	DDP_TAGGED_BOUNDS = 0x01,
@@ -131,14 +142,16 @@ enum i40iw_term_ddp_errors {
 	DDP_UNTAGGED_INV_DDP_VER = 0x06
 };
 
-enum i40iw_term_mpa_errors {
+enum i40iw_term_mpa_errors
+{
 	MPA_CLOSED = 0x01,
 	MPA_CRC = 0x02,
 	MPA_MARKER = 0x03,
 	MPA_REQ_RSP = 0x04,
 };
 
-enum i40iw_flush_opcode {
+enum i40iw_flush_opcode
+{
 	FLUSH_INVALID = 0,
 	FLUSH_PROT_ERR,
 	FLUSH_REM_ACCESS_ERR,
@@ -149,19 +162,22 @@ enum i40iw_flush_opcode {
 	FLUSH_FATAL_ERR
 };
 
-enum i40iw_term_eventtypes {
+enum i40iw_term_eventtypes
+{
 	TERM_EVENT_QP_FATAL,
 	TERM_EVENT_QP_ACCESS_ERR
 };
 
-struct i40iw_terminate_hdr {
+struct i40iw_terminate_hdr
+{
 	u8 layer_etype;
 	u8 error_code;
 	u8 hdrct;
 	u8 rsvd;
 };
 
-enum i40iw_debug_flag {
+enum i40iw_debug_flag
+{
 	I40IW_DEBUG_NONE	= 0x00000000,
 	I40IW_DEBUG_ERR		= 0x00000001,
 	I40IW_DEBUG_INIT	= 0x00000002,
@@ -186,7 +202,8 @@ enum i40iw_debug_flag {
 	I40IW_DEBUG_ALL		= 0xFFFFFFFF
 };
 
-enum i40iw_hw_stat_index_32b {
+enum i40iw_hw_stat_index_32b
+{
 	I40IW_HW_STAT_INDEX_IP4RXDISCARD = 0,
 	I40IW_HW_STAT_INDEX_IP4RXTRUNC,
 	I40IW_HW_STAT_INDEX_IP4TXNOROUTE,
@@ -199,7 +216,8 @@ enum i40iw_hw_stat_index_32b {
 	I40IW_HW_STAT_INDEX_MAX_32
 };
 
-enum i40iw_hw_stat_index_64b {
+enum i40iw_hw_stat_index_64b
+{
 	I40IW_HW_STAT_INDEX_IP4RXOCTS = 0,
 	I40IW_HW_STAT_INDEX_IP4RXPKTS,
 	I40IW_HW_STAT_INDEX_IP4RXFRAGS,
@@ -229,17 +247,20 @@ enum i40iw_hw_stat_index_64b {
 	I40IW_HW_STAT_INDEX_MAX_64
 };
 
-struct i40iw_dev_hw_stat_offsets {
+struct i40iw_dev_hw_stat_offsets
+{
 	u32 stat_offset_32[I40IW_HW_STAT_INDEX_MAX_32];
 	u32 stat_offset_64[I40IW_HW_STAT_INDEX_MAX_64];
 };
 
-struct i40iw_dev_hw_stats {
+struct i40iw_dev_hw_stats
+{
 	u64 stat_value_32[I40IW_HW_STAT_INDEX_MAX_32];
 	u64 stat_value_64[I40IW_HW_STAT_INDEX_MAX_64];
 };
 
-struct i40iw_device_pestat_ops {
+struct i40iw_device_pestat_ops
+{
 	void (*iw_hw_stat_init)(struct i40iw_dev_pestat *, u8, struct i40iw_hw *, bool);
 	void (*iw_hw_stat_read_32)(struct i40iw_dev_pestat *, enum i40iw_hw_stat_index_32b, u64 *);
 	void (*iw_hw_stat_read_64)(struct i40iw_dev_pestat *, enum i40iw_hw_stat_index_64b, u64 *);
@@ -247,7 +268,8 @@ struct i40iw_device_pestat_ops {
 	void (*iw_hw_stat_refresh_all)(struct i40iw_dev_pestat *);
 };
 
-struct i40iw_dev_pestat {
+struct i40iw_dev_pestat
+{
 	struct i40iw_hw *hw;
 	struct i40iw_device_pestat_ops ops;
 	struct i40iw_dev_hw_stats hw_stats;
@@ -257,13 +279,15 @@ struct i40iw_dev_pestat {
 	spinlock_t stats_lock; /* rdma stats lock */
 };
 
-struct i40iw_hw {
+struct i40iw_hw
+{
 	u8 __iomem *hw_addr;
 	void *dev_context;
 	struct i40iw_hmc_info hmc;
 };
 
-struct i40iw_pfpdu {
+struct i40iw_pfpdu
+{
 	struct list_head rxlist;
 	u32 rcv_nxt;
 	u32 fps;
@@ -280,24 +304,27 @@ struct i40iw_pfpdu {
 	u64 pmode_count;
 };
 
-struct i40iw_sc_pd {
+struct i40iw_sc_pd
+{
 	u32 size;
 	struct i40iw_sc_dev *dev;
 	u16 pd_id;
 };
 
-struct i40iw_cqp_quanta {
+struct i40iw_cqp_quanta
+{
 	u64 elem[I40IW_CQP_WQE_SIZE];
 };
 
-struct i40iw_sc_cqp {
+struct i40iw_sc_cqp
+{
 	u32 size;
 	u64 sq_pa;
 	u64 host_ctx_pa;
 	void *back_cqp;
 	struct i40iw_sc_dev *dev;
 	enum i40iw_status_code (*process_cqp_sds)(struct i40iw_sc_dev *,
-						  struct i40iw_update_sds_info *);
+			struct i40iw_update_sds_info *);
 	struct i40iw_dma_mem sdbuf;
 	struct i40iw_ring sq_ring;
 	struct i40iw_cqp_quanta *sq_base;
@@ -314,7 +341,8 @@ struct i40iw_sc_cqp {
 	u8 timeout_count;
 };
 
-struct i40iw_sc_aeq {
+struct i40iw_sc_aeq
+{
 	u32 size;
 	u64 aeq_elem_pa;
 	struct i40iw_sc_dev *dev;
@@ -328,7 +356,8 @@ struct i40iw_sc_aeq {
 	u8 polarity;
 };
 
-struct i40iw_sc_ceq {
+struct i40iw_sc_ceq
+{
 	u32 size;
 	u64 ceq_elem_pa;
 	struct i40iw_sc_dev *dev;
@@ -345,7 +374,8 @@ struct i40iw_sc_ceq {
 	u8 polarity;
 };
 
-struct i40iw_sc_cq {
+struct i40iw_sc_cq
+{
 	struct i40iw_cq_uk cq_uk;
 	u64 cq_pa;
 	u64 shadow_area_pa;
@@ -365,7 +395,8 @@ struct i40iw_sc_cq {
 	bool check_overflow;
 };
 
-struct i40iw_sc_qp {
+struct i40iw_sc_qp
+{
 	struct i40iw_qp_uk qp_uk;
 	u64 sq_pa;
 	u64 rq_pa;
@@ -403,7 +434,8 @@ struct i40iw_sc_qp {
 	u8 term_flags;
 };
 
-struct i40iw_hmc_fpm_misc {
+struct i40iw_hmc_fpm_misc
+{
 	u32 max_ceqs;
 	u32 max_sds;
 	u32 xf_block_size;
@@ -412,19 +444,22 @@ struct i40iw_hmc_fpm_misc {
 	u32 timer_bucket;
 };
 
-struct i40iw_vchnl_if {
+struct i40iw_vchnl_if
+{
 	enum i40iw_status_code (*vchnl_recv)(struct i40iw_sc_dev *, u32, u8 *, u16);
 	enum i40iw_status_code (*vchnl_send)(struct i40iw_sc_dev *dev, u32, u8 *, u16);
 };
 
 #define I40IW_VCHNL_MAX_VF_MSG_SIZE 512
 
-struct i40iw_vchnl_vf_msg_buffer {
+struct i40iw_vchnl_vf_msg_buffer
+{
 	struct i40iw_virtchnl_op_buf vchnl_msg;
 	char parm_buffer[I40IW_VCHNL_MAX_VF_MSG_SIZE - 1];
 };
 
-struct i40iw_vfdev {
+struct i40iw_vfdev
+{
 	struct i40iw_sc_dev *pf_dev;
 	u8 *hmc_info_mem;
 	struct i40iw_dev_pestat dev_pestat;
@@ -441,7 +476,8 @@ struct i40iw_vfdev {
 	bool stats_initialized;
 };
 
-struct i40iw_sc_dev {
+struct i40iw_sc_dev
+{
 	struct list_head cqp_cmd_head;	/* head of the CQP command list */
 	spinlock_t cqp_lock; /* cqp list sync */
 	struct i40iw_dev_uk dev_uk;
@@ -495,7 +531,8 @@ struct i40iw_sc_dev {
 	u8 hw_rev;
 };
 
-struct i40iw_modify_cq_info {
+struct i40iw_modify_cq_info
+{
 	u64 cq_pa;
 	struct i40iw_cqe *cq_base;
 	void *pbl_list;
@@ -512,7 +549,8 @@ struct i40iw_modify_cq_info {
 	bool ceq_valid;
 };
 
-struct i40iw_create_qp_info {
+struct i40iw_create_qp_info
+{
 	u8 next_iwarp_state;
 	bool ord_valid;
 	bool tcp_ctx_valid;
@@ -521,7 +559,8 @@ struct i40iw_create_qp_info {
 	bool arp_cache_idx_valid;
 };
 
-struct i40iw_modify_qp_info {
+struct i40iw_modify_qp_info
+{
 	u64 rx_win0;
 	u64 rx_win1;
 	u16 new_mss;
@@ -541,7 +580,8 @@ struct i40iw_modify_qp_info {
 	bool force_loopback;
 };
 
-struct i40iw_ccq_cqe_info {
+struct i40iw_ccq_cqe_info
+{
 	struct i40iw_sc_cqp *cqp;
 	u64 scratch;
 	u32 op_ret_val;
@@ -551,12 +591,14 @@ struct i40iw_ccq_cqe_info {
 	bool error;
 };
 
-struct i40iw_l2params {
+struct i40iw_l2params
+{
 	u16 qs_handle_list[I40IW_MAX_USER_PRIORITY];
 	u16 mss;
 };
 
-struct i40iw_device_init_info {
+struct i40iw_device_init_info
+{
 	u64 fpm_query_buf_pa;
 	u64 fpm_commit_buf_pa;
 	u64 *fpm_query_buf;
@@ -571,13 +613,15 @@ struct i40iw_device_init_info {
 	u32 debug_mask;
 };
 
-enum i40iw_cqp_hmc_profile {
+enum i40iw_cqp_hmc_profile
+{
 	I40IW_HMC_PROFILE_DEFAULT = 1,
 	I40IW_HMC_PROFILE_FAVOR_VF = 2,
 	I40IW_HMC_PROFILE_EQUAL = 3,
 };
 
-struct i40iw_cqp_init_info {
+struct i40iw_cqp_init_info
+{
 	u64 cqp_compl_ctx;
 	u64 host_ctx_pa;
 	u64 sq_pa;
@@ -592,7 +636,8 @@ struct i40iw_cqp_init_info {
 	u8 enabled_vf_count;
 };
 
-struct i40iw_ceq_init_info {
+struct i40iw_ceq_init_info
+{
 	u64 ceqe_pa;
 	struct i40iw_sc_dev *dev;
 	u64 *ceqe_base;
@@ -606,7 +651,8 @@ struct i40iw_ceq_init_info {
 	u32 first_pm_pbl_idx;
 };
 
-struct i40iw_aeq_init_info {
+struct i40iw_aeq_init_info
+{
 	u64 aeq_elem_pa;
 	struct i40iw_sc_dev *dev;
 	u32 *aeqe_base;
@@ -617,7 +663,8 @@ struct i40iw_aeq_init_info {
 	u32 first_pm_pbl_idx;
 };
 
-struct i40iw_ccq_init_info {
+struct i40iw_ccq_init_info
+{
 	u64 cq_pa;
 	u64 shadow_area_pa;
 	struct i40iw_sc_dev *dev;
@@ -637,7 +684,8 @@ struct i40iw_ccq_init_info {
 	u32 first_pm_pbl_idx;
 };
 
-struct i40iwarp_offload_info {
+struct i40iwarp_offload_info
+{
 	u16 rcv_mark_offset;
 	u16 snd_mark_offset;
 	u16 pd_id;
@@ -660,7 +708,8 @@ struct i40iwarp_offload_info {
 	u8 last_byte_sent;
 };
 
-struct i40iw_tcp_offload_info {
+struct i40iw_tcp_offload_info
+{
 	bool ipv4;
 	bool no_nagle;
 	bool insert_vlan_tag;
@@ -710,7 +759,8 @@ struct i40iw_tcp_offload_info {
 	bool ignore_tcp_uns_opt;
 };
 
-struct i40iw_qp_host_ctx_info {
+struct i40iw_qp_host_ctx_info
+{
 	u64 qp_compl_ctx;
 	struct i40iw_tcp_offload_info *tcp_info;
 	struct i40iwarp_offload_info *iwarp_info;
@@ -724,7 +774,8 @@ struct i40iw_qp_host_ctx_info {
 	u16 err_rq_idx;
 };
 
-struct i40iw_aeqe_info {
+struct i40iw_aeqe_info
+{
 	u64 compl_ctx;
 	u32 qp_cq_id;
 	u16 ae_id;
@@ -740,7 +791,8 @@ struct i40iw_aeqe_info {
 	bool aeqe_overflow;
 };
 
-struct i40iw_allocate_stag_info {
+struct i40iw_allocate_stag_info
+{
 	u64 total_len;
 	u32 chunk_size;
 	u32 stag_idx;
@@ -753,7 +805,8 @@ struct i40iw_allocate_stag_info {
 	bool use_pf_rid;
 };
 
-struct i40iw_reg_ns_stag_info {
+struct i40iw_reg_ns_stag_info
+{
 	u64 reg_addr_pa;
 	u64 fbo;
 	void *va;
@@ -771,7 +824,8 @@ struct i40iw_reg_ns_stag_info {
 	bool use_pf_rid;
 };
 
-struct i40iw_fast_reg_stag_info {
+struct i40iw_fast_reg_stag_info
+{
 	u64 wr_id;
 	u64 reg_addr_pa;
 	u64 fbo;
@@ -794,14 +848,16 @@ struct i40iw_fast_reg_stag_info {
 	bool defer_flag;
 };
 
-struct i40iw_dealloc_stag_info {
+struct i40iw_dealloc_stag_info
+{
 	u32 stag_idx;
 	u16 pd_id;
 	bool mr;
 	bool dealloc_pbl;
 };
 
-struct i40iw_register_shared_stag {
+struct i40iw_register_shared_stag
+{
 	void *va;
 	enum i40iw_addressing_type addr_type;
 	i40iw_stag_index new_stag_idx;
@@ -811,7 +867,8 @@ struct i40iw_register_shared_stag {
 	i40iw_stag_key new_stag_key;
 };
 
-struct i40iw_qp_init_info {
+struct i40iw_qp_init_info
+{
 	struct i40iw_qp_uk_init_info qp_uk_init_info;
 	struct i40iw_sc_pd *pd;
 	u64 *host_ctx;
@@ -831,7 +888,8 @@ struct i40iw_qp_init_info {
 	bool virtual_map;
 };
 
-struct i40iw_cq_init_info {
+struct i40iw_cq_init_info
+{
 	struct i40iw_sc_dev *dev;
 	u64 cq_base_pa;
 	u64 shadow_area_pa;
@@ -848,7 +906,8 @@ struct i40iw_cq_init_info {
 	struct i40iw_cq_uk_init_info cq_uk_init_info;
 };
 
-struct i40iw_upload_context_info {
+struct i40iw_upload_context_info
+{
 	u64 buf_pa;
 	bool freeze_qp;
 	bool raw_format;
@@ -856,30 +915,35 @@ struct i40iw_upload_context_info {
 	u8 qp_type;
 };
 
-struct i40iw_add_arp_cache_entry_info {
+struct i40iw_add_arp_cache_entry_info
+{
 	u8 mac_addr[6];
 	u32 reach_max;
 	u16 arp_index;
 	bool permanent;
 };
 
-struct i40iw_apbvt_info {
+struct i40iw_apbvt_info
+{
 	u16 port;
 	bool add;
 };
 
-enum i40iw_quad_entry_type {
+enum i40iw_quad_entry_type
+{
 	I40IW_QHASH_TYPE_TCP_ESTABLISHED = 1,
 	I40IW_QHASH_TYPE_TCP_SYN,
 };
 
-enum i40iw_quad_hash_manage_type {
+enum i40iw_quad_hash_manage_type
+{
 	I40IW_QHASH_MANAGE_TYPE_DELETE = 0,
 	I40IW_QHASH_MANAGE_TYPE_ADD,
 	I40IW_QHASH_MANAGE_TYPE_MODIFY
 };
 
-struct i40iw_qhash_table_info {
+struct i40iw_qhash_table_info
+{
 	enum i40iw_quad_hash_manage_type manage;
 	enum i40iw_quad_entry_type entry_type;
 	bool vlan_valid;
@@ -894,18 +958,21 @@ struct i40iw_qhash_table_info {
 	u16 src_port;
 };
 
-struct i40iw_local_mac_ipaddr_entry_info {
+struct i40iw_local_mac_ipaddr_entry_info
+{
 	u8 mac_addr[6];
 	u8 entry_idx;
 };
 
-struct i40iw_cqp_manage_push_page_info {
+struct i40iw_cqp_manage_push_page_info
+{
 	u32 push_idx;
 	u16 qs_handle;
 	u8 free_page;
 };
 
-struct i40iw_qp_flush_info {
+struct i40iw_qp_flush_info
+{
 	u16 sq_minor_code;
 	u16 sq_major_code;
 	u16 rq_minor_code;
@@ -918,7 +985,8 @@ struct i40iw_qp_flush_info {
 	bool generate_ae;
 };
 
-struct i40iw_cqp_commit_fpm_values {
+struct i40iw_cqp_commit_fpm_values
+{
 	u64 qp_base;
 	u64 cq_base;
 	u32 hte_base;
@@ -947,7 +1015,8 @@ struct i40iw_cqp_commit_fpm_values {
 	u32 pbl_cnt;
 };
 
-struct i40iw_cqp_query_fpm_values {
+struct i40iw_cqp_query_fpm_values
+{
 	u16 first_pe_sd_index;
 	u32 qp_objsize;
 	u32 cq_objsize;
@@ -973,31 +1042,34 @@ struct i40iw_cqp_query_fpm_values {
 	u32 pbl_max;
 };
 
-struct i40iw_cqp_ops {
+struct i40iw_cqp_ops
+{
 	enum i40iw_status_code (*cqp_init)(struct i40iw_sc_cqp *,
-					   struct i40iw_cqp_init_info *);
+									   struct i40iw_cqp_init_info *);
 	enum i40iw_status_code (*cqp_create)(struct i40iw_sc_cqp *, bool, u16 *, u16 *);
 	void (*cqp_post_sq)(struct i40iw_sc_cqp *);
 	u64 *(*cqp_get_next_send_wqe)(struct i40iw_sc_cqp *, u64 scratch);
 	enum i40iw_status_code (*cqp_destroy)(struct i40iw_sc_cqp *);
 	enum i40iw_status_code (*poll_for_cqp_op_done)(struct i40iw_sc_cqp *, u8,
-						       struct i40iw_ccq_cqe_info *);
+			struct i40iw_ccq_cqe_info *);
 };
 
-struct i40iw_ccq_ops {
+struct i40iw_ccq_ops
+{
 	enum i40iw_status_code (*ccq_init)(struct i40iw_sc_cq *,
-					   struct i40iw_ccq_init_info *);
+									   struct i40iw_ccq_init_info *);
 	enum i40iw_status_code (*ccq_create)(struct i40iw_sc_cq *, u64, bool, bool);
 	enum i40iw_status_code (*ccq_destroy)(struct i40iw_sc_cq *, u64, bool);
 	enum i40iw_status_code (*ccq_create_done)(struct i40iw_sc_cq *);
 	enum i40iw_status_code (*ccq_get_cqe_info)(struct i40iw_sc_cq *,
-						   struct i40iw_ccq_cqe_info *);
+			struct i40iw_ccq_cqe_info *);
 	void (*ccq_arm)(struct i40iw_sc_cq *);
 };
 
-struct i40iw_ceq_ops {
+struct i40iw_ceq_ops
+{
 	enum i40iw_status_code (*ceq_init)(struct i40iw_sc_ceq *,
-					   struct i40iw_ceq_init_info *);
+									   struct i40iw_ceq_init_info *);
 	enum i40iw_status_code (*ceq_create)(struct i40iw_sc_ceq *, u64, bool);
 	enum i40iw_status_code (*cceq_create_done)(struct i40iw_sc_ceq *);
 	enum i40iw_status_code (*cceq_destroy_done)(struct i40iw_sc_ceq *);
@@ -1006,260 +1078,293 @@ struct i40iw_ceq_ops {
 	void *(*process_ceq)(struct i40iw_sc_dev *, struct i40iw_sc_ceq *);
 };
 
-struct i40iw_aeq_ops {
+struct i40iw_aeq_ops
+{
 	enum i40iw_status_code (*aeq_init)(struct i40iw_sc_aeq *,
-					   struct i40iw_aeq_init_info *);
+									   struct i40iw_aeq_init_info *);
 	enum i40iw_status_code (*aeq_create)(struct i40iw_sc_aeq *, u64, bool);
 	enum i40iw_status_code (*aeq_destroy)(struct i40iw_sc_aeq *, u64, bool);
 	enum i40iw_status_code (*get_next_aeqe)(struct i40iw_sc_aeq *,
-						struct i40iw_aeqe_info *);
+											struct i40iw_aeqe_info *);
 	enum i40iw_status_code (*repost_aeq_entries)(struct i40iw_sc_dev *, u32);
 	enum i40iw_status_code (*aeq_create_done)(struct i40iw_sc_aeq *);
 	enum i40iw_status_code (*aeq_destroy_done)(struct i40iw_sc_aeq *);
 };
 
-struct i40iw_pd_ops {
+struct i40iw_pd_ops
+{
 	void (*pd_init)(struct i40iw_sc_dev *, struct i40iw_sc_pd *, u16);
 };
 
-struct i40iw_priv_qp_ops {
+struct i40iw_priv_qp_ops
+{
 	enum i40iw_status_code (*qp_init)(struct i40iw_sc_qp *, struct i40iw_qp_init_info *);
 	enum i40iw_status_code (*qp_create)(struct i40iw_sc_qp *,
-					    struct i40iw_create_qp_info *, u64, bool);
+										struct i40iw_create_qp_info *, u64, bool);
 	enum i40iw_status_code (*qp_modify)(struct i40iw_sc_qp *,
-					    struct i40iw_modify_qp_info *, u64, bool);
+										struct i40iw_modify_qp_info *, u64, bool);
 	enum i40iw_status_code (*qp_destroy)(struct i40iw_sc_qp *, u64, bool, bool, bool);
 	enum i40iw_status_code (*qp_flush_wqes)(struct i40iw_sc_qp *,
-						struct i40iw_qp_flush_info *, u64, bool);
+											struct i40iw_qp_flush_info *, u64, bool);
 	enum i40iw_status_code (*qp_upload_context)(struct i40iw_sc_dev *,
-						    struct i40iw_upload_context_info *,
-						    u64, bool);
+			struct i40iw_upload_context_info *,
+			u64, bool);
 	enum i40iw_status_code (*qp_setctx)(struct i40iw_sc_qp *, u64 *,
-					    struct i40iw_qp_host_ctx_info *);
+										struct i40iw_qp_host_ctx_info *);
 
 	void (*qp_send_lsmm)(struct i40iw_sc_qp *, void *, u32, i40iw_stag);
 	void (*qp_send_lsmm_nostag)(struct i40iw_sc_qp *, void *, u32);
 	void (*qp_send_rtt)(struct i40iw_sc_qp *, bool);
 	enum i40iw_status_code (*qp_post_wqe0)(struct i40iw_sc_qp *, u8);
 	enum i40iw_status_code (*iw_mr_fast_register)(struct i40iw_sc_qp *,
-						      struct i40iw_fast_reg_stag_info *,
-						      bool);
+			struct i40iw_fast_reg_stag_info *,
+			bool);
 };
 
-struct i40iw_priv_cq_ops {
+struct i40iw_priv_cq_ops
+{
 	enum i40iw_status_code (*cq_init)(struct i40iw_sc_cq *, struct i40iw_cq_init_info *);
 	enum i40iw_status_code (*cq_create)(struct i40iw_sc_cq *, u64, bool, bool);
 	enum i40iw_status_code (*cq_destroy)(struct i40iw_sc_cq *, u64, bool);
 	enum i40iw_status_code (*cq_modify)(struct i40iw_sc_cq *,
-					    struct i40iw_modify_cq_info *, u64, bool);
+										struct i40iw_modify_cq_info *, u64, bool);
 };
 
-struct i40iw_mr_ops {
+struct i40iw_mr_ops
+{
 	enum i40iw_status_code (*alloc_stag)(struct i40iw_sc_dev *,
-					     struct i40iw_allocate_stag_info *, u64, bool);
+										 struct i40iw_allocate_stag_info *, u64, bool);
 	enum i40iw_status_code (*mr_reg_non_shared)(struct i40iw_sc_dev *,
-						    struct i40iw_reg_ns_stag_info *,
-						    u64, bool);
+			struct i40iw_reg_ns_stag_info *,
+			u64, bool);
 	enum i40iw_status_code (*mr_reg_shared)(struct i40iw_sc_dev *,
-						struct i40iw_register_shared_stag *,
-						u64, bool);
+											struct i40iw_register_shared_stag *,
+											u64, bool);
 	enum i40iw_status_code (*dealloc_stag)(struct i40iw_sc_dev *,
-					       struct i40iw_dealloc_stag_info *,
-					       u64, bool);
+										   struct i40iw_dealloc_stag_info *,
+										   u64, bool);
 	enum i40iw_status_code (*query_stag)(struct i40iw_sc_dev *, u64, u32, bool);
 	enum i40iw_status_code (*mw_alloc)(struct i40iw_sc_dev *, u64, u32, u16, bool);
 };
 
-struct i40iw_cqp_misc_ops {
+struct i40iw_cqp_misc_ops
+{
 	enum i40iw_status_code (*manage_push_page)(struct i40iw_sc_cqp *,
-						   struct i40iw_cqp_manage_push_page_info *,
-						   u64, bool);
+			struct i40iw_cqp_manage_push_page_info *,
+			u64, bool);
 	enum i40iw_status_code (*manage_hmc_pm_func_table)(struct i40iw_sc_cqp *,
-							   u64, u8, bool, bool);
+			u64, u8, bool, bool);
 	enum i40iw_status_code (*set_hmc_resource_profile)(struct i40iw_sc_cqp *,
-							   u64, u8, u8, bool, bool);
+			u64, u8, u8, bool, bool);
 	enum i40iw_status_code (*commit_fpm_values)(struct i40iw_sc_cqp *, u64, u8,
-						    struct i40iw_dma_mem *, bool, u8);
+			struct i40iw_dma_mem *, bool, u8);
 	enum i40iw_status_code (*query_fpm_values)(struct i40iw_sc_cqp *, u64, u8,
-						   struct i40iw_dma_mem *, bool, u8);
+			struct i40iw_dma_mem *, bool, u8);
 	enum i40iw_status_code (*static_hmc_pages_allocated)(struct i40iw_sc_cqp *,
-							     u64, u8, bool, bool);
+			u64, u8, bool, bool);
 	enum i40iw_status_code (*add_arp_cache_entry)(struct i40iw_sc_cqp *,
-						      struct i40iw_add_arp_cache_entry_info *,
-						      u64, bool);
+			struct i40iw_add_arp_cache_entry_info *,
+			u64, bool);
 	enum i40iw_status_code (*del_arp_cache_entry)(struct i40iw_sc_cqp *, u64, u16, bool);
 	enum i40iw_status_code (*query_arp_cache_entry)(struct i40iw_sc_cqp *, u64, u16, bool);
 	enum i40iw_status_code (*manage_apbvt_entry)(struct i40iw_sc_cqp *,
-						     struct i40iw_apbvt_info *, u64, bool);
+			struct i40iw_apbvt_info *, u64, bool);
 	enum i40iw_status_code (*manage_qhash_table_entry)(struct i40iw_sc_cqp *,
-							   struct i40iw_qhash_table_info *, u64, bool);
+			struct i40iw_qhash_table_info *, u64, bool);
 	enum i40iw_status_code (*alloc_local_mac_ipaddr_table_entry)(struct i40iw_sc_cqp *, u64, bool);
 	enum i40iw_status_code (*add_local_mac_ipaddr_entry)(struct i40iw_sc_cqp *,
-							     struct i40iw_local_mac_ipaddr_entry_info *,
-							     u64, bool);
+			struct i40iw_local_mac_ipaddr_entry_info *,
+			u64, bool);
 	enum i40iw_status_code (*del_local_mac_ipaddr_entry)(struct i40iw_sc_cqp *, u64, u8, u8, bool);
 	enum i40iw_status_code (*cqp_nop)(struct i40iw_sc_cqp *, u64, bool);
 	enum i40iw_status_code (*commit_fpm_values_done)(struct i40iw_sc_cqp
-							  *);
+			*);
 	enum i40iw_status_code (*query_fpm_values_done)(struct i40iw_sc_cqp *);
 	enum i40iw_status_code (*manage_hmc_pm_func_table_done)(struct i40iw_sc_cqp *);
 	enum i40iw_status_code (*update_suspend_qp)(struct i40iw_sc_cqp *, struct i40iw_sc_qp *, u64);
 	enum i40iw_status_code (*update_resume_qp)(struct i40iw_sc_cqp *, struct i40iw_sc_qp *, u64);
 };
 
-struct i40iw_hmc_ops {
+struct i40iw_hmc_ops
+{
 	enum i40iw_status_code (*init_iw_hmc)(struct i40iw_sc_dev *, u8);
 	enum i40iw_status_code (*parse_fpm_query_buf)(u64 *, struct i40iw_hmc_info *,
-						      struct i40iw_hmc_fpm_misc *);
+			struct i40iw_hmc_fpm_misc *);
 	enum i40iw_status_code (*configure_iw_fpm)(struct i40iw_sc_dev *, u8);
 	enum i40iw_status_code (*parse_fpm_commit_buf)(u64 *, struct i40iw_hmc_obj_info *, u32 *sd);
 	enum i40iw_status_code (*create_hmc_object)(struct i40iw_sc_dev *dev,
-						    struct i40iw_hmc_create_obj_info *);
+			struct i40iw_hmc_create_obj_info *);
 	enum i40iw_status_code (*del_hmc_object)(struct i40iw_sc_dev *dev,
-						 struct i40iw_hmc_del_obj_info *,
-						 bool reset);
+			struct i40iw_hmc_del_obj_info *,
+			bool reset);
 	enum i40iw_status_code (*pf_init_vfhmc)(struct i40iw_sc_dev *, u8, u32 *);
 	enum i40iw_status_code (*vf_configure_vffpm)(struct i40iw_sc_dev *, u32 *);
 };
 
-struct cqp_info {
-	union {
-		struct {
+struct cqp_info
+{
+	union
+	{
+		struct
+		{
 			struct i40iw_sc_qp *qp;
 			struct i40iw_create_qp_info info;
 			u64 scratch;
 		} qp_create;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_qp *qp;
 			struct i40iw_modify_qp_info info;
 			u64 scratch;
 		} qp_modify;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_qp *qp;
 			u64 scratch;
 			bool remove_hash_idx;
 			bool ignore_mw_bnd;
 		} qp_destroy;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_cq *cq;
 			u64 scratch;
 			bool check_overflow;
 		} cq_create;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_cq *cq;
 			u64 scratch;
 		} cq_destroy;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_dev *dev;
 			struct i40iw_allocate_stag_info info;
 			u64 scratch;
 		} alloc_stag;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_dev *dev;
 			u64 scratch;
 			u32 mw_stag_index;
 			u16 pd_id;
 		} mw_alloc;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_dev *dev;
 			struct i40iw_reg_ns_stag_info info;
 			u64 scratch;
 		} mr_reg_non_shared;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_dev *dev;
 			struct i40iw_dealloc_stag_info info;
 			u64 scratch;
 		} dealloc_stag;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_cqp *cqp;
 			struct i40iw_local_mac_ipaddr_entry_info info;
 			u64 scratch;
 		} add_local_mac_ipaddr_entry;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_cqp *cqp;
 			struct i40iw_add_arp_cache_entry_info info;
 			u64 scratch;
 		} add_arp_cache_entry;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_cqp *cqp;
 			u64 scratch;
 			u8 entry_idx;
 			u8 ignore_ref_count;
 		} del_local_mac_ipaddr_entry;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_cqp *cqp;
 			u64 scratch;
 			u16 arp_index;
 		} del_arp_cache_entry;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_cqp *cqp;
 			struct i40iw_manage_vf_pble_info info;
 			u64 scratch;
 		} manage_vf_pble_bp;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_cqp *cqp;
 			struct i40iw_cqp_manage_push_page_info info;
 			u64 scratch;
 		} manage_push_page;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_dev *dev;
 			struct i40iw_upload_context_info info;
 			u64 scratch;
 		} qp_upload_context;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_cqp *cqp;
 			u64 scratch;
 		} alloc_local_mac_ipaddr_entry;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_dev *dev;
 			struct i40iw_hmc_fcn_info info;
 			u64 scratch;
 		} manage_hmc_pm;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_ceq *ceq;
 			u64 scratch;
 		} ceq_create;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_ceq *ceq;
 			u64 scratch;
 		} ceq_destroy;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_aeq *aeq;
 			u64 scratch;
 		} aeq_create;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_aeq *aeq;
 			u64 scratch;
 		} aeq_destroy;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_qp *qp;
 			struct i40iw_qp_flush_info info;
 			u64 scratch;
 		} qp_flush_wqes;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_cqp *cqp;
 			void *fpm_values_va;
 			u64 fpm_values_pa;
@@ -1267,7 +1372,8 @@ struct cqp_info {
 			u64 scratch;
 		} query_fpm_values;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_cqp *cqp;
 			void *fpm_values_va;
 			u64 fpm_values_pa;
@@ -1275,25 +1381,29 @@ struct cqp_info {
 			u64 scratch;
 		} commit_fpm_values;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_cqp *cqp;
 			struct i40iw_apbvt_info info;
 			u64 scratch;
 		} manage_apbvt_entry;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_cqp *cqp;
 			struct i40iw_qhash_table_info info;
 			u64 scratch;
 		} manage_qhash_table_entry;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_dev *dev;
 			struct i40iw_update_sds_info info;
 			u64 scratch;
 		} update_pe_sds;
 
-		struct {
+		struct
+		{
 			struct i40iw_sc_cqp *cqp;
 			struct i40iw_sc_qp *qp;
 			u64 scratch;
@@ -1301,14 +1411,16 @@ struct cqp_info {
 	} u;
 };
 
-struct cqp_commands_info {
+struct cqp_commands_info
+{
 	struct list_head cqp_cmd_entry;
 	u8 cqp_cmd;
 	u8 post_sq;
 	struct cqp_info in;
 };
 
-struct i40iw_virtchnl_work_info {
+struct i40iw_virtchnl_work_info
+{
 	void (*callback_fcn)(void *vf_dev);
 	void *worker_vf_dev;
 };

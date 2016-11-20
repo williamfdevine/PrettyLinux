@@ -83,7 +83,8 @@
 #define	GET_C2H_CMD_FEEDBACK_CCX_SEQ(__pcmdfbhdr)	\
 	LE_BITS_TO_4BYTE(((__pcmdfbhdr) + 4), 20, 12)
 
-enum version_8192d {
+enum version_8192d
+{
 	VERSION_TEST_CHIP_88C = 0x0000,
 	VERSION_TEST_CHIP_92C = 0x0020,
 	VERSION_TEST_UMC_CHIP_8723 = 0x0081,
@@ -154,33 +155,35 @@ enum version_8192d {
 #define GET_CVID_CUT_VERSION(version)	((version) & CUT_VERSION_MASK)
 
 #define IS_1T1R(version)		((GET_CVID_RF_TYPE(version)) ?	\
-					 false : true)
+								 false : true)
 #define IS_1T2R(version)		((GET_CVID_RF_TYPE(version) ==	\
-					 RF_TYPE_1T2R) ? true : false)
+								  RF_TYPE_1T2R) ? true : false)
 #define IS_2T2R(version)		((GET_CVID_RF_TYPE(version) ==	\
-					 RF_TYPE_2T2R) ? true : false)
+								  RF_TYPE_2T2R) ? true : false)
 
 #define IS_92D_SINGLEPHY(version)	((IS_92D(version)) ?		\
-				 (IS_2T2R(version) ? true : false) : false)
+									 (IS_2T2R(version) ? true : false) : false)
 #define IS_92D(version)			((GET_CVID_IC_TYPE(version) ==	\
-					 CHIP_92D) ? true : false)
+								  CHIP_92D) ? true : false)
 #define IS_92D_C_CUT(version)		((IS_92D(version)) ?		\
-				 ((GET_CVID_CUT_VERSION(version) ==	\
-				 CHIP_92D_C_CUT) ? true : false) : false)
+									 ((GET_CVID_CUT_VERSION(version) ==	\
+									   CHIP_92D_C_CUT) ? true : false) : false)
 #define IS_92D_D_CUT(version)			((IS_92D(version)) ?	\
-				 ((GET_CVID_CUT_VERSION(version) ==	\
-				 CHIP_92D_D_CUT) ? true : false) : false)
+		((GET_CVID_CUT_VERSION(version) ==	\
+		  CHIP_92D_D_CUT) ? true : false) : false)
 #define IS_92D_E_CUT(version)		((IS_92D(version)) ?		\
-				 ((GET_CVID_CUT_VERSION(version) ==	\
-				 CHIP_92D_E_CUT) ? true : false) : false)
+									 ((GET_CVID_CUT_VERSION(version) ==	\
+									   CHIP_92D_E_CUT) ? true : false) : false)
 
-enum rf_optype {
+enum rf_optype
+{
 	RF_OP_BY_SW_3WIRE = 0,
 	RF_OP_BY_FW,
 	RF_OP_MAX
 };
 
-enum rtl_desc_qsel {
+enum rtl_desc_qsel
+{
 	QSLT_BK = 0x2,
 	QSLT_BE = 0x0,
 	QSLT_VI = 0x5,
@@ -191,7 +194,8 @@ enum rtl_desc_qsel {
 	QSLT_CMD = 0x13,
 };
 
-enum channel_plan {
+enum channel_plan
+{
 	CHPL_FCC	= 0,
 	CHPL_IC		= 1,
 	CHPL_ETSI	= 2,
@@ -205,19 +209,22 @@ enum channel_plan {
 	CHPL_WORLD	= 10,
 };
 
-struct phy_sts_cck_8192d {
+struct phy_sts_cck_8192d
+{
 	u8 adc_pwdb_X[4];
 	u8 sq_rpt;
 	u8 cck_agc_rpt;
 };
 
-struct h2c_cmd_8192c {
+struct h2c_cmd_8192c
+{
 	u8 element_id;
 	u32 cmd_len;
 	u8 *p_cmdbuffer;
 };
 
-struct txpower_info {
+struct txpower_info
+{
 	u8 cck_index[RF6052_MAX_PATH][CHANNEL_GROUP_MAX];
 	u8 ht40_1sindex[RF6052_MAX_PATH][CHANNEL_GROUP_MAX];
 	u8 ht40_2sindexdiff[RF6052_MAX_PATH][CHANNEL_GROUP_MAX];

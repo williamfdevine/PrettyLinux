@@ -200,14 +200,16 @@
 #define SUN4I_CAN_MAX_IRQ	20
 #define SUN4I_MODE_MAX_RETRIES	100
 
-struct sun4ican_priv {
+struct sun4ican_priv
+{
 	struct can_priv can;
 	void __iomem *base;
 	struct clk *clk;
 	spinlock_t cmdreg_lock;	/* lock for concurrent cmd register writes */
 };
 
-static const struct can_bittiming_const sun4ican_bittiming_const = {
+static const struct can_bittiming_const sun4ican_bittiming_const =
+{
 	.name = DRV_NAME,
 	.tseg1_min = 1,
 	.tseg1_max = 16,
@@ -234,15 +236,18 @@ static int set_normal_mode(struct net_device *dev)
 	int retry = SUN4I_MODE_MAX_RETRIES;
 	u32 mod_reg_val = 0;
 
-	do {
+	do
+	{
 		mod_reg_val = readl(priv->base + SUN4I_REG_MSEL_ADDR);
 		mod_reg_val &= ~SUN4I_MSEL_RESET_MODE;
 		writel(mod_reg_val, priv->base + SUN4I_REG_MSEL_ADDR);
-	} while (retry-- && (mod_reg_val & SUN4I_MSEL_RESET_MODE));
+	}
+	while (retry-- && (mod_reg_val & SUN4I_MSEL_RESET_MODE));
 
-	if (readl(priv->base + SUN4I_REG_MSEL_ADDR) & SUN4I_MSEL_RESET_MODE) {
+	if (readl(priv->base + SUN4I_REG_MSEL_ADDR) & SUN4I_MSEL_RESET_MODE)
+	{
 		netdev_err(dev,
-			   "setting controller into normal mode failed!\n");
+				   "setting controller into normal mode failed!\n");
 		return -ETIMEDOUT;
 	}
 
@@ -255,14 +260,17 @@ static int set_reset_mode(struct net_device *dev)
 	int retry = SUN4I_MODE_MAX_RETRIES;
 	u32 mod_reg_val = 0;
 
-	do {
+	do
+	{
 		mod_reg_val = readl(priv->base + SUN4I_REG_MSEL_ADDR);
 		mod_reg_val |= SUN4I_MSEL_RESET_MODE;
 		writel(mod_reg_val, priv->base + SUN4I_REG_MSEL_ADDR);
-	} while (retry-- && !(mod_reg_val & SUN4I_MSEL_RESET_MODE));
+	}
+	while (retry-- && !(mod_reg_val & SUN4I_MSEL_RESET_MODE));
 
 	if (!(readl(priv->base + SUN4I_REG_MSEL_ADDR) &
-	      SUN4I_MSEL_RESET_MODE)) {
+		  SUN4I_MSEL_RESET_MODE))
+	{
 		netdev_err(dev, "setting controller into reset mode failed!\n");
 		return -ETIMEDOUT;
 	}
@@ -278,11 +286,14 @@ static int sun4ican_set_bittiming(struct net_device *dev)
 	u32 cfg;
 
 	cfg = ((bt->brp - 1) & 0x3FF) |
-	     (((bt->sjw - 1) & 0x3) << 14) |
-	     (((bt->prop_seg + bt->phase_seg1 - 1) & 0xf) << 16) |
-	     (((bt->phase_seg2 - 1) & 0x7) << 20);
+		  (((bt->sjw - 1) & 0x3) << 14) |
+		  (((bt->prop_seg + bt->phase_seg1 - 1) & 0xf) << 16) |
+		  (((bt->phase_seg2 - 1) & 0x7) << 20);
+
 	if (priv->can.ctrlmode & CAN_CTRLMODE_3_SAMPLES)
+	{
 		cfg |= 0x800000;
+	}
 
 	netdev_dbg(dev, "setting BITTIMING=0x%08x\n", cfg);
 	writel(cfg, priv->base + SUN4I_REG_BTIME_ADDR);
@@ -291,14 +302,16 @@ static int sun4ican_set_bittiming(struct net_device *dev)
 }
 
 static int sun4ican_get_berr_counter(const struct net_device *dev,
-				     struct can_berr_counter *bec)
+									 struct can_berr_counter *bec)
 {
 	struct sun4ican_priv *priv = netdev_priv(dev);
 	u32 errors;
 	int err;
 
 	err = clk_prepare_enable(priv->clk);
-	if (err) {
+
+	if (err)
+	{
 		netdev_err(dev, "could not enable clock\n");
 		return err;
 	}
@@ -321,7 +334,9 @@ static int sun4i_can_start(struct net_device *dev)
 
 	/* we need to enter the reset mode */
 	err = set_reset_mode(dev);
-	if (err) {
+
+	if (err)
+	{
 		netdev_err(dev, "could not enter reset mode\n");
 		return err;
 	}
@@ -335,26 +350,39 @@ static int sun4i_can_start(struct net_device *dev)
 
 	/* enable interrupts */
 	if (priv->can.ctrlmode & CAN_CTRLMODE_BERR_REPORTING)
+	{
 		writel(0xFF, priv->base + SUN4I_REG_INTEN_ADDR);
+	}
 	else
 		writel(0xFF & ~SUN4I_INTEN_BERR,
-		       priv->base + SUN4I_REG_INTEN_ADDR);
+			   priv->base + SUN4I_REG_INTEN_ADDR);
 
 	/* enter the selected mode */
 	mod_reg_val = readl(priv->base + SUN4I_REG_MSEL_ADDR);
+
 	if (priv->can.ctrlmode & CAN_CTRLMODE_PRESUME_ACK)
+	{
 		mod_reg_val |= SUN4I_MSEL_LOOPBACK_MODE;
+	}
 	else if (priv->can.ctrlmode & CAN_CTRLMODE_LISTENONLY)
+	{
 		mod_reg_val |= SUN4I_MSEL_LISTEN_ONLY_MODE;
+	}
+
 	writel(mod_reg_val, priv->base + SUN4I_REG_MSEL_ADDR);
 
 	err = sun4ican_set_bittiming(dev);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* we are ready to enter the normal mode */
 	err = set_normal_mode(dev);
-	if (err) {
+
+	if (err)
+	{
 		netdev_err(dev, "could not enter normal mode\n");
 		return err;
 	}
@@ -372,7 +400,9 @@ static int sun4i_can_stop(struct net_device *dev)
 	priv->can.state = CAN_STATE_STOPPED;
 	/* we need to enter reset mode */
 	err = set_reset_mode(dev);
-	if (err) {
+
+	if (err)
+	{
 		netdev_err(dev, "could not enter reset mode\n");
 		return err;
 	}
@@ -387,20 +417,28 @@ static int sun4ican_set_mode(struct net_device *dev, enum can_mode mode)
 {
 	int err;
 
-	switch (mode) {
-	case CAN_MODE_START:
-		err = sun4i_can_start(dev);
-		if (err) {
-			netdev_err(dev, "starting CAN controller failed!\n");
-			return err;
-		}
-		if (netif_queue_stopped(dev))
-			netif_wake_queue(dev);
-		break;
+	switch (mode)
+	{
+		case CAN_MODE_START:
+			err = sun4i_can_start(dev);
 
-	default:
-		return -EOPNOTSUPP;
+			if (err)
+			{
+				netdev_err(dev, "starting CAN controller failed!\n");
+				return err;
+			}
+
+			if (netif_queue_stopped(dev))
+			{
+				netif_wake_queue(dev);
+			}
+
+			break;
+
+		default:
+			return -EOPNOTSUPP;
 	}
+
 	return 0;
 }
 
@@ -419,7 +457,9 @@ static int sun4ican_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	int i;
 
 	if (can_dropped_invalid_skb(dev, skb))
+	{
 		return NETDEV_TX_OK;
+	}
 
 	netif_stop_queue(dev);
 
@@ -428,32 +468,43 @@ static int sun4ican_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	msg_flag_n = dlc;
 
 	if (id & CAN_RTR_FLAG)
+	{
 		msg_flag_n |= SUN4I_MSG_RTR_FLAG;
+	}
 
-	if (id & CAN_EFF_FLAG) {
+	if (id & CAN_EFF_FLAG)
+	{
 		msg_flag_n |= SUN4I_MSG_EFF_FLAG;
 		dreg = SUN4I_REG_BUF5_ADDR;
 		writel((id >> 21) & 0xFF, priv->base + SUN4I_REG_BUF1_ADDR);
 		writel((id >> 13) & 0xFF, priv->base + SUN4I_REG_BUF2_ADDR);
 		writel((id >> 5)  & 0xFF, priv->base + SUN4I_REG_BUF3_ADDR);
 		writel((id << 3)  & 0xF8, priv->base + SUN4I_REG_BUF4_ADDR);
-	} else {
+	}
+	else
+	{
 		dreg = SUN4I_REG_BUF3_ADDR;
 		writel((id >> 3) & 0xFF, priv->base + SUN4I_REG_BUF1_ADDR);
 		writel((id << 5) & 0xE0, priv->base + SUN4I_REG_BUF2_ADDR);
 	}
 
 	for (i = 0; i < dlc; i++)
+	{
 		writel(cf->data[i], priv->base + (dreg + i * 4));
+	}
 
 	writel(msg_flag_n, priv->base + SUN4I_REG_BUF0_ADDR);
 
 	can_put_echo_skb(skb, dev, 0);
 
 	if (priv->can.ctrlmode & CAN_CTRLMODE_LOOPBACK)
+	{
 		sun4i_can_write_cmdreg(priv, SUN4I_CMD_SELF_RCV_REQ);
+	}
 	else
+	{
 		sun4i_can_write_cmdreg(priv, SUN4I_CMD_TRANS_REQ);
+	}
 
 	return NETDEV_TX_OK;
 }
@@ -471,30 +522,41 @@ static void sun4i_can_rx(struct net_device *dev)
 
 	/* create zero'ed CAN frame buffer */
 	skb = alloc_can_skb(dev, &cf);
+
 	if (!skb)
+	{
 		return;
+	}
 
 	fi = readl(priv->base + SUN4I_REG_BUF0_ADDR);
 	cf->can_dlc = get_can_dlc(fi & 0x0F);
-	if (fi & SUN4I_MSG_EFF_FLAG) {
+
+	if (fi & SUN4I_MSG_EFF_FLAG)
+	{
 		dreg = SUN4I_REG_BUF5_ADDR;
 		id = (readl(priv->base + SUN4I_REG_BUF1_ADDR) << 21) |
-		     (readl(priv->base + SUN4I_REG_BUF2_ADDR) << 13) |
-		     (readl(priv->base + SUN4I_REG_BUF3_ADDR) << 5)  |
-		    ((readl(priv->base + SUN4I_REG_BUF4_ADDR) >> 3)  & 0x1f);
+			 (readl(priv->base + SUN4I_REG_BUF2_ADDR) << 13) |
+			 (readl(priv->base + SUN4I_REG_BUF3_ADDR) << 5)  |
+			 ((readl(priv->base + SUN4I_REG_BUF4_ADDR) >> 3)  & 0x1f);
 		id |= CAN_EFF_FLAG;
-	} else {
+	}
+	else
+	{
 		dreg = SUN4I_REG_BUF3_ADDR;
 		id = (readl(priv->base + SUN4I_REG_BUF1_ADDR) << 3) |
-		    ((readl(priv->base + SUN4I_REG_BUF2_ADDR) >> 5) & 0x7);
+			 ((readl(priv->base + SUN4I_REG_BUF2_ADDR) >> 5) & 0x7);
 	}
 
 	/* remote frame ? */
 	if (fi & SUN4I_MSG_RTR_FLAG)
+	{
 		id |= CAN_RTR_FLAG;
+	}
 	else
 		for (i = 0; i < cf->can_dlc; i++)
+		{
 			cf->data[i] = readl(priv->base + dreg + i * 4);
+		}
 
 	cf->can_id = id;
 
@@ -525,102 +587,147 @@ static int sun4i_can_err(struct net_device *dev, u8 isrc, u8 status)
 	rxerr = (errc >> 16) & 0xFF;
 	txerr = errc & 0xFF;
 
-	if (skb) {
+	if (skb)
+	{
 		cf->data[6] = txerr;
 		cf->data[7] = rxerr;
 	}
 
-	if (isrc & SUN4I_INT_DATA_OR) {
+	if (isrc & SUN4I_INT_DATA_OR)
+	{
 		/* data overrun interrupt */
 		netdev_dbg(dev, "data overrun interrupt\n");
-		if (likely(skb)) {
+
+		if (likely(skb))
+		{
 			cf->can_id |= CAN_ERR_CRTL;
 			cf->data[1] = CAN_ERR_CRTL_RX_OVERFLOW;
 		}
+
 		stats->rx_over_errors++;
 		stats->rx_errors++;
 		/* clear bit */
 		sun4i_can_write_cmdreg(priv, SUN4I_CMD_CLEAR_OR_FLAG);
 	}
-	if (isrc & SUN4I_INT_ERR_WRN) {
+
+	if (isrc & SUN4I_INT_ERR_WRN)
+	{
 		/* error warning interrupt */
 		netdev_dbg(dev, "error warning interrupt\n");
 
 		if (status & SUN4I_STA_BUS_OFF)
+		{
 			state = CAN_STATE_BUS_OFF;
+		}
 		else if (status & SUN4I_STA_ERR_STA)
+		{
 			state = CAN_STATE_ERROR_WARNING;
+		}
 		else
+		{
 			state = CAN_STATE_ERROR_ACTIVE;
+		}
 	}
-	if (isrc & SUN4I_INT_BUS_ERR) {
+
+	if (isrc & SUN4I_INT_BUS_ERR)
+	{
 		/* bus error interrupt */
 		netdev_dbg(dev, "bus error interrupt\n");
 		priv->can.can_stats.bus_error++;
 		stats->rx_errors++;
 
-		if (likely(skb)) {
+		if (likely(skb))
+		{
 			ecc = readl(priv->base + SUN4I_REG_STA_ADDR);
 
 			cf->can_id |= CAN_ERR_PROT | CAN_ERR_BUSERROR;
 
-			switch (ecc & SUN4I_STA_MASK_ERR) {
-			case SUN4I_STA_BIT_ERR:
-				cf->data[2] |= CAN_ERR_PROT_BIT;
-				break;
-			case SUN4I_STA_FORM_ERR:
-				cf->data[2] |= CAN_ERR_PROT_FORM;
-				break;
-			case SUN4I_STA_STUFF_ERR:
-				cf->data[2] |= CAN_ERR_PROT_STUFF;
-				break;
-			default:
-				cf->data[3] = (ecc & SUN4I_STA_ERR_SEG_CODE)
-					       >> 16;
-				break;
+			switch (ecc & SUN4I_STA_MASK_ERR)
+			{
+				case SUN4I_STA_BIT_ERR:
+					cf->data[2] |= CAN_ERR_PROT_BIT;
+					break;
+
+				case SUN4I_STA_FORM_ERR:
+					cf->data[2] |= CAN_ERR_PROT_FORM;
+					break;
+
+				case SUN4I_STA_STUFF_ERR:
+					cf->data[2] |= CAN_ERR_PROT_STUFF;
+					break;
+
+				default:
+					cf->data[3] = (ecc & SUN4I_STA_ERR_SEG_CODE)
+								  >> 16;
+					break;
 			}
+
 			/* error occurred during transmission? */
 			if ((ecc & SUN4I_STA_ERR_DIR) == 0)
+			{
 				cf->data[2] |= CAN_ERR_PROT_TX;
+			}
 		}
 	}
-	if (isrc & SUN4I_INT_ERR_PASSIVE) {
+
+	if (isrc & SUN4I_INT_ERR_PASSIVE)
+	{
 		/* error passive interrupt */
 		netdev_dbg(dev, "error passive interrupt\n");
+
 		if (state == CAN_STATE_ERROR_PASSIVE)
+		{
 			state = CAN_STATE_ERROR_WARNING;
+		}
 		else
+		{
 			state = CAN_STATE_ERROR_PASSIVE;
+		}
 	}
-	if (isrc & SUN4I_INT_ARB_LOST) {
+
+	if (isrc & SUN4I_INT_ARB_LOST)
+	{
 		/* arbitration lost interrupt */
 		netdev_dbg(dev, "arbitration lost interrupt\n");
 		alc = readl(priv->base + SUN4I_REG_STA_ADDR);
 		priv->can.can_stats.arbitration_lost++;
 		stats->tx_errors++;
-		if (likely(skb)) {
+
+		if (likely(skb))
+		{
 			cf->can_id |= CAN_ERR_LOSTARB;
 			cf->data[0] = (alc >> 8) & 0x1f;
 		}
 	}
 
-	if (state != priv->can.state) {
+	if (state != priv->can.state)
+	{
 		tx_state = txerr >= rxerr ? state : 0;
 		rx_state = txerr <= rxerr ? state : 0;
 
 		if (likely(skb))
+		{
 			can_change_state(dev, cf, tx_state, rx_state);
+		}
 		else
+		{
 			priv->can.state = state;
+		}
+
 		if (state == CAN_STATE_BUS_OFF)
+		{
 			can_bus_off(dev);
+		}
 	}
 
-	if (likely(skb)) {
+	if (likely(skb))
+	{
 		stats->rx_packets++;
 		stats->rx_bytes += cf->can_dlc;
 		netif_rx(skb);
-	} else {
+	}
+	else
+	{
 		return -ENOMEM;
 	}
 
@@ -636,44 +743,59 @@ static irqreturn_t sun4i_can_interrupt(int irq, void *dev_id)
 	int n = 0;
 
 	while ((isrc = readl(priv->base + SUN4I_REG_INT_ADDR)) &&
-	       (n < SUN4I_CAN_MAX_IRQ)) {
+		   (n < SUN4I_CAN_MAX_IRQ))
+	{
 		n++;
 		status = readl(priv->base + SUN4I_REG_STA_ADDR);
 
 		if (isrc & SUN4I_INT_WAKEUP)
+		{
 			netdev_warn(dev, "wakeup interrupt\n");
+		}
 
-		if (isrc & SUN4I_INT_TBUF_VLD) {
+		if (isrc & SUN4I_INT_TBUF_VLD)
+		{
 			/* transmission complete interrupt */
 			stats->tx_bytes +=
-			    readl(priv->base +
-				  SUN4I_REG_RBUF_RBACK_START_ADDR) & 0xf;
+				readl(priv->base +
+					  SUN4I_REG_RBUF_RBACK_START_ADDR) & 0xf;
 			stats->tx_packets++;
 			can_get_echo_skb(dev, 0);
 			netif_wake_queue(dev);
 			can_led_event(dev, CAN_LED_EVENT_TX);
 		}
-		if (isrc & SUN4I_INT_RBUF_VLD) {
+
+		if (isrc & SUN4I_INT_RBUF_VLD)
+		{
 			/* receive interrupt */
-			while (status & SUN4I_STA_RBUF_RDY) {
+			while (status & SUN4I_STA_RBUF_RDY)
+			{
 				/* RX buffer is not empty */
 				sun4i_can_rx(dev);
 				status = readl(priv->base + SUN4I_REG_STA_ADDR);
 			}
 		}
+
 		if (isrc &
-		    (SUN4I_INT_DATA_OR | SUN4I_INT_ERR_WRN | SUN4I_INT_BUS_ERR |
-		     SUN4I_INT_ERR_PASSIVE | SUN4I_INT_ARB_LOST)) {
+			(SUN4I_INT_DATA_OR | SUN4I_INT_ERR_WRN | SUN4I_INT_BUS_ERR |
+			 SUN4I_INT_ERR_PASSIVE | SUN4I_INT_ARB_LOST))
+		{
 			/* error interrupt */
 			if (sun4i_can_err(dev, isrc, status))
+			{
 				netdev_err(dev, "can't allocate buffer - clearing pending interrupts\n");
+			}
 		}
+
 		/* clear interrupts */
 		writel(isrc, priv->base + SUN4I_REG_INT_ADDR);
 		readl(priv->base + SUN4I_REG_INT_ADDR);
 	}
+
 	if (n >= SUN4I_CAN_MAX_IRQ)
+	{
 		netdev_dbg(dev, "%d messages handled in ISR", n);
+	}
 
 	return (n) ? IRQ_HANDLED : IRQ_NONE;
 }
@@ -685,25 +807,34 @@ static int sun4ican_open(struct net_device *dev)
 
 	/* common open */
 	err = open_candev(dev);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* register interrupt handler */
 	err = request_irq(dev->irq, sun4i_can_interrupt, 0, dev->name, dev);
-	if (err) {
+
+	if (err)
+	{
 		netdev_err(dev, "request_irq err: %d\n", err);
 		goto exit_irq;
 	}
 
 	/* turn on clocking for CAN peripheral block */
 	err = clk_prepare_enable(priv->clk);
-	if (err) {
+
+	if (err)
+	{
 		netdev_err(dev, "could not enable CAN peripheral clock\n");
 		goto exit_clock;
 	}
 
 	err = sun4i_can_start(dev);
-	if (err) {
+
+	if (err)
+	{
 		netdev_err(dev, "could not start CAN peripheral\n");
 		goto exit_can_start;
 	}
@@ -737,13 +868,15 @@ static int sun4ican_close(struct net_device *dev)
 	return 0;
 }
 
-static const struct net_device_ops sun4ican_netdev_ops = {
+static const struct net_device_ops sun4ican_netdev_ops =
+{
 	.ndo_open = sun4ican_open,
 	.ndo_stop = sun4ican_close,
 	.ndo_start_xmit = sun4ican_start_xmit,
 };
 
-static const struct of_device_id sun4ican_of_match[] = {
+static const struct of_device_id sun4ican_of_match[] =
+{
 	{.compatible = "allwinner,sun4i-a10-can"},
 	{},
 };
@@ -771,14 +904,18 @@ static int sun4ican_probe(struct platform_device *pdev)
 	struct sun4ican_priv *priv;
 
 	clk = of_clk_get(np, 0);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		dev_err(&pdev->dev, "unable to request clock\n");
 		err = -ENODEV;
 		goto exit;
 	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "could not get a valid irq\n");
 		err = -ENODEV;
 		goto exit;
@@ -786,15 +923,19 @@ static int sun4ican_probe(struct platform_device *pdev)
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	addr = devm_ioremap_resource(&pdev->dev, mem);
-	if (IS_ERR(addr)) {
+
+	if (IS_ERR(addr))
+	{
 		err = -EBUSY;
 		goto exit;
 	}
 
 	dev = alloc_candev(sizeof(struct sun4ican_priv), 1);
-	if (!dev) {
+
+	if (!dev)
+	{
 		dev_err(&pdev->dev,
-			"could not allocate memory for CAN device\n");
+				"could not allocate memory for CAN device\n");
 		err = -ENOMEM;
 		goto exit;
 	}
@@ -809,10 +950,10 @@ static int sun4ican_probe(struct platform_device *pdev)
 	priv->can.do_set_mode = sun4ican_set_mode;
 	priv->can.do_get_berr_counter = sun4ican_get_berr_counter;
 	priv->can.ctrlmode_supported = CAN_CTRLMODE_BERR_REPORTING |
-				       CAN_CTRLMODE_LISTENONLY |
-				       CAN_CTRLMODE_LOOPBACK |
-				       CAN_CTRLMODE_PRESUME_ACK |
-				       CAN_CTRLMODE_3_SAMPLES;
+								   CAN_CTRLMODE_LISTENONLY |
+								   CAN_CTRLMODE_LOOPBACK |
+								   CAN_CTRLMODE_PRESUME_ACK |
+								   CAN_CTRLMODE_3_SAMPLES;
 	priv->base = addr;
 	priv->clk = clk;
 	spin_lock_init(&priv->cmdreg_lock);
@@ -821,15 +962,18 @@ static int sun4ican_probe(struct platform_device *pdev)
 	SET_NETDEV_DEV(dev, &pdev->dev);
 
 	err = register_candev(dev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "registering %s failed (err=%d)\n",
-			DRV_NAME, err);
+				DRV_NAME, err);
 		goto exit_free;
 	}
+
 	devm_can_led_init(dev);
 
 	dev_info(&pdev->dev, "device registered (base=%p, irq=%d)\n",
-		 priv->base, dev->irq);
+			 priv->base, dev->irq);
 
 	return 0;
 
@@ -839,7 +983,8 @@ exit:
 	return err;
 }
 
-static struct platform_driver sun4i_can_driver = {
+static struct platform_driver sun4i_can_driver =
+{
 	.driver = {
 		.name = DRV_NAME,
 		.of_match_table = sun4ican_of_match,

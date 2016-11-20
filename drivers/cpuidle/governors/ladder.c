@@ -25,20 +25,24 @@
 #define PROMOTION_COUNT 4
 #define DEMOTION_COUNT 1
 
-struct ladder_device_state {
-	struct {
+struct ladder_device_state
+{
+	struct
+	{
 		u32 promotion_count;
 		u32 demotion_count;
 		u32 promotion_time;
 		u32 demotion_time;
 	} threshold;
-	struct {
+	struct
+	{
 		int promotion_count;
 		int demotion_count;
 	} stats;
 };
 
-struct ladder_device {
+struct ladder_device
+{
 	struct ladder_device_state states[CPUIDLE_STATE_MAX];
 	int last_state_idx;
 };
@@ -52,7 +56,7 @@ static DEFINE_PER_CPU(struct ladder_device, ladder_devices);
  * @new_idx: the new target state index
  */
 static inline void ladder_do_selection(struct ladder_device *ldev,
-				       int old_idx, int new_idx)
+									   int old_idx, int new_idx)
 {
 	ldev->states[old_idx].stats.promotion_count = 0;
 	ldev->states[old_idx].stats.demotion_count = 0;
@@ -65,7 +69,7 @@ static inline void ladder_do_selection(struct ladder_device *ldev,
  * @dev: the CPU
  */
 static int ladder_select_state(struct cpuidle_driver *drv,
-				struct cpuidle_device *dev)
+							   struct cpuidle_device *dev)
 {
 	struct ladder_device *ldev = this_cpu_ptr(&ladder_devices);
 	struct ladder_device_state *last_state;
@@ -73,7 +77,8 @@ static int ladder_select_state(struct cpuidle_driver *drv,
 	int latency_req = pm_qos_request(PM_QOS_CPU_DMA_LATENCY);
 
 	/* Special case when user has set very strict latency requirement */
-	if (unlikely(latency_req == 0)) {
+	if (unlikely(latency_req == 0))
+	{
 		ladder_do_selection(ldev, last_idx, 0);
 		return 0;
 	}
@@ -84,13 +89,16 @@ static int ladder_select_state(struct cpuidle_driver *drv,
 
 	/* consider promotion */
 	if (last_idx < drv->state_count - 1 &&
-	    !drv->states[last_idx + 1].disabled &&
-	    !dev->states_usage[last_idx + 1].disable &&
-	    last_residency > last_state->threshold.promotion_time &&
-	    drv->states[last_idx + 1].exit_latency <= latency_req) {
+		!drv->states[last_idx + 1].disabled &&
+		!dev->states_usage[last_idx + 1].disable &&
+		last_residency > last_state->threshold.promotion_time &&
+		drv->states[last_idx + 1].exit_latency <= latency_req)
+	{
 		last_state->stats.promotion_count++;
 		last_state->stats.demotion_count = 0;
-		if (last_state->stats.promotion_count >= last_state->threshold.promotion_count) {
+
+		if (last_state->stats.promotion_count >= last_state->threshold.promotion_count)
+		{
 			ladder_do_selection(ldev, last_idx, last_idx + 1);
 			return last_idx + 1;
 		}
@@ -98,24 +106,32 @@ static int ladder_select_state(struct cpuidle_driver *drv,
 
 	/* consider demotion */
 	if (last_idx > CPUIDLE_DRIVER_STATE_START &&
-	    (drv->states[last_idx].disabled ||
-	    dev->states_usage[last_idx].disable ||
-	    drv->states[last_idx].exit_latency > latency_req)) {
+		(drv->states[last_idx].disabled ||
+		 dev->states_usage[last_idx].disable ||
+		 drv->states[last_idx].exit_latency > latency_req))
+	{
 		int i;
 
-		for (i = last_idx - 1; i > CPUIDLE_DRIVER_STATE_START; i--) {
+		for (i = last_idx - 1; i > CPUIDLE_DRIVER_STATE_START; i--)
+		{
 			if (drv->states[i].exit_latency <= latency_req)
+			{
 				break;
+			}
 		}
+
 		ladder_do_selection(ldev, last_idx, i);
 		return i;
 	}
 
 	if (last_idx > CPUIDLE_DRIVER_STATE_START &&
-	    last_residency < last_state->threshold.demotion_time) {
+		last_residency < last_state->threshold.demotion_time)
+	{
 		last_state->stats.demotion_count++;
 		last_state->stats.promotion_count = 0;
-		if (last_state->stats.demotion_count >= last_state->threshold.demotion_count) {
+
+		if (last_state->stats.demotion_count >= last_state->threshold.demotion_count)
+		{
 			ladder_do_selection(ldev, last_idx, last_idx - 1);
 			return last_idx - 1;
 		}
@@ -131,7 +147,7 @@ static int ladder_select_state(struct cpuidle_driver *drv,
  * @dev: the CPU
  */
 static int ladder_enable_device(struct cpuidle_driver *drv,
-				struct cpuidle_device *dev)
+								struct cpuidle_device *dev)
 {
 	int i;
 	struct ladder_device *ldev = &per_cpu(ladder_devices, dev->cpu);
@@ -140,7 +156,8 @@ static int ladder_enable_device(struct cpuidle_driver *drv,
 
 	ldev->last_state_idx = CPUIDLE_DRIVER_STATE_START;
 
-	for (i = CPUIDLE_DRIVER_STATE_START; i < drv->state_count; i++) {
+	for (i = CPUIDLE_DRIVER_STATE_START; i < drv->state_count; i++)
+	{
 		state = &drv->states[i];
 		lstate = &ldev->states[i];
 
@@ -151,9 +168,14 @@ static int ladder_enable_device(struct cpuidle_driver *drv,
 		lstate->threshold.demotion_count = DEMOTION_COUNT;
 
 		if (i < drv->state_count - 1)
+		{
 			lstate->threshold.promotion_time = state->exit_latency;
+		}
+
 		if (i > CPUIDLE_DRIVER_STATE_START)
+		{
 			lstate->threshold.demotion_time = state->exit_latency;
+		}
 	}
 
 	return 0;
@@ -167,11 +189,15 @@ static int ladder_enable_device(struct cpuidle_driver *drv,
 static void ladder_reflect(struct cpuidle_device *dev, int index)
 {
 	struct ladder_device *ldev = this_cpu_ptr(&ladder_devices);
+
 	if (index > 0)
+	{
 		ldev->last_state_idx = index;
+	}
 }
 
-static struct cpuidle_governor ladder_governor = {
+static struct cpuidle_governor ladder_governor =
+{
 	.name =		"ladder",
 	.rating =	10,
 	.enable =	ladder_enable_device,
@@ -191,7 +217,9 @@ static int __init init_ladder(void)
 	 * governor.
 	 */
 	if (!tick_nohz_enabled)
+	{
 		ladder_governor.rating = 25;
+	}
 
 	return cpuidle_register_governor(&ladder_governor);
 }

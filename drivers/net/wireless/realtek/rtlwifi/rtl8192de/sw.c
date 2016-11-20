@@ -102,11 +102,16 @@ static int rtl92d_init_sw_vars(struct ieee80211_hw *hw)
 
 	/* dual mac */
 	if (rtlpriv->rtlhal.current_bandtype == BAND_ON_5G)
+	{
 		rtlpriv->phy.current_channel = 36;
+	}
 	else
+	{
 		rtlpriv->phy.current_channel = 1;
+	}
 
-	if (rtlpriv->rtlhal.macphymode != SINGLEMAC_SINGLEPHY) {
+	if (rtlpriv->rtlhal.macphymode != SINGLEMAC_SINGLEPHY)
+	{
 		rtlpriv->rtlhal.disable_amsdu_8k = true;
 		/* No long RX - reduce fragmentation */
 		rtlpci->rxbuffersize = 4096;
@@ -115,32 +120,32 @@ static int rtl92d_init_sw_vars(struct ieee80211_hw *hw)
 	rtlpci->transmit_config = CFENDFORM | BIT(12) | BIT(13);
 
 	rtlpci->receive_config = (
-			RCR_APPFCS
-			| RCR_AMF
-			| RCR_ADF
-			| RCR_APP_MIC
-			| RCR_APP_ICV
-			| RCR_AICV
-			| RCR_ACRC32
-			| RCR_AB
-			| RCR_AM
-			| RCR_APM
-			| RCR_APP_PHYST_RXFF
-			| RCR_HTC_LOC_CTRL
-	);
+								 RCR_APPFCS
+								 | RCR_AMF
+								 | RCR_ADF
+								 | RCR_APP_MIC
+								 | RCR_APP_ICV
+								 | RCR_AICV
+								 | RCR_ACRC32
+								 | RCR_AB
+								 | RCR_AM
+								 | RCR_APM
+								 | RCR_APP_PHYST_RXFF
+								 | RCR_HTC_LOC_CTRL
+							 );
 
 	rtlpci->irq_mask[0] = (u32) (
-			IMR_ROK
-			| IMR_VODOK
-			| IMR_VIDOK
-			| IMR_BEDOK
-			| IMR_BKDOK
-			| IMR_MGNTDOK
-			| IMR_HIGHDOK
-			| IMR_BDOK
-			| IMR_RDU
-			| IMR_RXFOVW
-	);
+							  IMR_ROK
+							  | IMR_VODOK
+							  | IMR_VIDOK
+							  | IMR_BEDOK
+							  | IMR_BKDOK
+							  | IMR_MGNTDOK
+							  | IMR_HIGHDOK
+							  | IMR_BDOK
+							  | IMR_RDU
+							  | IMR_RXFOVW
+						  );
 
 	rtlpci->irq_mask[1] = (u32) (IMR_CPWM | IMR_C2HCMD);
 
@@ -150,10 +155,17 @@ static int rtl92d_init_sw_vars(struct ieee80211_hw *hw)
 	rtlpriv->psc.inactiveps = rtlpriv->cfg->mod_params->inactiveps;
 	rtlpriv->psc.swctrl_lps = rtlpriv->cfg->mod_params->swctrl_lps;
 	rtlpriv->psc.fwctrl_lps = rtlpriv->cfg->mod_params->fwctrl_lps;
+
 	if (!rtlpriv->psc.inactiveps)
+	{
 		pr_info("Power Save off (module option)\n");
+	}
+
 	if (!rtlpriv->psc.fwctrl_lps)
+	{
 		pr_info("FW Power Save off (module option)\n");
+	}
+
 	rtlpriv->psc.reg_fwctrl_lps = 3;
 	rtlpriv->psc.reg_max_lps_awakeintvl = 5;
 	/* for ASPM, you can close aspm through
@@ -161,22 +173,33 @@ static int rtl92d_init_sw_vars(struct ieee80211_hw *hw)
 	rtl92d_init_aspm_vars(hw);
 
 	if (rtlpriv->psc.reg_fwctrl_lps == 1)
+	{
 		rtlpriv->psc.fwctrl_psmode = FW_PS_MIN_MODE;
+	}
 	else if (rtlpriv->psc.reg_fwctrl_lps == 2)
+	{
 		rtlpriv->psc.fwctrl_psmode = FW_PS_MAX_MODE;
+	}
 	else if (rtlpriv->psc.reg_fwctrl_lps == 3)
+	{
 		rtlpriv->psc.fwctrl_psmode = FW_PS_DTIM_MODE;
+	}
 
 	/* for early mode */
 	rtlpriv->rtlhal.earlymode_enable = false;
+
 	for (tid = 0; tid < 8; tid++)
+	{
 		skb_queue_head_init(&rtlpriv->mac80211.skb_waitq[tid]);
+	}
 
 	/* for firmware buf */
 	rtlpriv->rtlhal.pfirmware = vzalloc(0x8000);
-	if (!rtlpriv->rtlhal.pfirmware) {
+
+	if (!rtlpriv->rtlhal.pfirmware)
+	{
 		RT_TRACE(rtlpriv, COMP_ERR, DBG_EMERG,
-			 "Can't alloc buffer for fw\n");
+				 "Can't alloc buffer for fw\n");
 		return 1;
 	}
 
@@ -186,11 +209,13 @@ static int rtl92d_init_sw_vars(struct ieee80211_hw *hw)
 
 	/* request fw */
 	err = request_firmware_nowait(THIS_MODULE, 1, fw_name,
-				      rtlpriv->io.dev, GFP_KERNEL, hw,
-				      rtl_fw_cb);
-	if (err) {
+								  rtlpriv->io.dev, GFP_KERNEL, hw,
+								  rtl_fw_cb);
+
+	if (err)
+	{
 		RT_TRACE(rtlpriv, COMP_ERR, DBG_EMERG,
-			 "Failed to request firmware!\n");
+				 "Failed to request firmware!\n");
 		return 1;
 	}
 
@@ -202,15 +227,20 @@ static void rtl92d_deinit_sw_vars(struct ieee80211_hw *hw)
 	struct rtl_priv *rtlpriv = rtl_priv(hw);
 	u8 tid;
 
-	if (rtlpriv->rtlhal.pfirmware) {
+	if (rtlpriv->rtlhal.pfirmware)
+	{
 		vfree(rtlpriv->rtlhal.pfirmware);
 		rtlpriv->rtlhal.pfirmware = NULL;
 	}
+
 	for (tid = 0; tid < 8; tid++)
+	{
 		skb_queue_purge(&rtlpriv->mac80211.skb_waitq[tid]);
+	}
 }
 
-static struct rtl_hal_ops rtl8192de_hal_ops = {
+static struct rtl_hal_ops rtl8192de_hal_ops =
+{
 	.init_sw_vars = rtl92d_init_sw_vars,
 	.deinit_sw_vars = rtl92d_deinit_sw_vars,
 	.read_eeprom_info = rtl92de_read_eeprom_info,
@@ -255,7 +285,8 @@ static struct rtl_hal_ops rtl8192de_hal_ops = {
 	.get_btc_status = rtl_btc_status_false,
 };
 
-static struct rtl_mod_params rtl92de_mod_params = {
+static struct rtl_mod_params rtl92de_mod_params =
+{
 	.sw_crypto = false,
 	.inactiveps = true,
 	.swctrl_lps = true,
@@ -263,7 +294,8 @@ static struct rtl_mod_params rtl92de_mod_params = {
 	.debug = DBG_EMERG,
 };
 
-static const struct rtl_hal_cfg rtl92de_hal_cfg = {
+static const struct rtl_hal_cfg rtl92de_hal_cfg =
+{
 	.bar_id = 2,
 	.write_readback = true,
 	.name = "rtl8192de",
@@ -354,7 +386,8 @@ static const struct rtl_hal_cfg rtl92de_hal_cfg = {
 	.maps[RTL_RC_HT_RATEMCS15] = DESC_RATEMCS15,
 };
 
-static struct pci_device_id rtl92de_pci_ids[] = {
+static struct pci_device_id rtl92de_pci_ids[] =
+{
 	{RTL_PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x8193, rtl92de_hal_cfg)},
 	{RTL_PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x002B, rtl92de_hal_cfg)},
 	{},
@@ -382,7 +415,8 @@ MODULE_PARM_DESC(debug, "Set debug level (0-5) (default 0)");
 
 static SIMPLE_DEV_PM_OPS(rtlwifi_pm_ops, rtl_pci_suspend, rtl_pci_resume);
 
-static struct pci_driver rtl92de_driver = {
+static struct pci_driver rtl92de_driver =
+{
 	.name = KBUILD_MODNAME,
 	.id_table = rtl92de_pci_ids,
 	.probe = rtl_pci_probe,
@@ -405,8 +439,12 @@ static int __init rtl92de_module_init(void)
 	spin_lock_init(&globalmutex_for_power_and_efuse);
 
 	ret = pci_register_driver(&rtl92de_driver);
+
 	if (ret)
+	{
 		RT_ASSERT(false, "No device found\n");
+	}
+
 	return ret;
 }
 

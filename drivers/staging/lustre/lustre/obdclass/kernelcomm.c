@@ -56,30 +56,44 @@ int libcfs_kkuc_msg_put(struct file *filp, void *payload)
 	int rc = -ENXIO;
 
 	if (IS_ERR_OR_NULL(filp))
+	{
 		return -EBADF;
+	}
 
-	if (kuch->kuc_magic != KUC_MAGIC) {
+	if (kuch->kuc_magic != KUC_MAGIC)
+	{
 		CERROR("KernelComm: bad magic %x\n", kuch->kuc_magic);
 		return rc;
 	}
 
 	fs = get_fs();
 	set_fs(KERNEL_DS);
-	while (count > 0) {
+
+	while (count > 0)
+	{
 		rc = vfs_write(filp, (void __force __user *)payload,
-			       count, &offset);
+					   count, &offset);
+
 		if (rc < 0)
+		{
 			break;
+		}
+
 		count -= rc;
 		payload += rc;
 		rc = 0;
 	}
+
 	set_fs(fs);
 
 	if (rc < 0)
+	{
 		CWARN("message send failed (%d)\n", rc);
+	}
 	else
+	{
 		CDEBUG(D_KUC, "Sent message rc=%d, fp=%p\n", rc, filp);
+	}
 
 	return rc;
 }
@@ -91,7 +105,8 @@ EXPORT_SYMBOL(libcfs_kkuc_msg_put);
  * group from any fs
  */
 /** A single group registration has a uid and a file pointer */
-struct kkuc_reg {
+struct kkuc_reg
+{
 	struct list_head kr_chain;
 	int		 kr_uid;
 	struct file	*kr_fp;
@@ -109,31 +124,41 @@ static DECLARE_RWSEM(kg_sem);
  * @param data user data
  */
 int libcfs_kkuc_group_add(struct file *filp, int uid, unsigned int group,
-			  void *data, size_t data_len)
+						  void *data, size_t data_len)
 {
 	struct kkuc_reg *reg;
 
-	if (group > KUC_GRP_MAX) {
+	if (group > KUC_GRP_MAX)
+	{
 		CDEBUG(D_WARNING, "Kernelcomm: bad group %d\n", group);
 		return -EINVAL;
 	}
 
 	/* fput in group_rem */
 	if (!filp)
+	{
 		return -EBADF;
+	}
 
 	/* freed in group_rem */
 	reg = kmalloc(sizeof(*reg) + data_len, 0);
+
 	if (!reg)
+	{
 		return -ENOMEM;
+	}
 
 	reg->kr_fp = filp;
 	reg->kr_uid = uid;
 	memcpy(reg->kr_data, data, data_len);
 
 	down_write(&kg_sem);
+
 	if (!kkuc_groups[group].next)
+	{
 		INIT_LIST_HEAD(&kkuc_groups[group]);
+	}
+
 	list_add(&reg->kr_chain, &kkuc_groups[group]);
 	up_write(&kg_sem);
 
@@ -148,9 +173,12 @@ int libcfs_kkuc_group_rem(int uid, unsigned int group)
 	struct kkuc_reg *reg, *next;
 
 	if (!kkuc_groups[group].next)
+	{
 		return 0;
+	}
 
-	if (!uid) {
+	if (!uid)
+	{
 		/* Broadcast a shutdown message */
 		struct kuc_hdr lh;
 
@@ -162,13 +190,19 @@ int libcfs_kkuc_group_rem(int uid, unsigned int group)
 	}
 
 	down_write(&kg_sem);
-	list_for_each_entry_safe(reg, next, &kkuc_groups[group], kr_chain) {
-		if (!uid || (uid == reg->kr_uid)) {
+	list_for_each_entry_safe(reg, next, &kkuc_groups[group], kr_chain)
+	{
+		if (!uid || (uid == reg->kr_uid))
+		{
 			list_del(&reg->kr_chain);
 			CDEBUG(D_KUC, "Removed uid=%d fp=%p from group %d\n",
-			       reg->kr_uid, reg->kr_fp, group);
+				   reg->kr_uid, reg->kr_fp, group);
+
 			if (reg->kr_fp)
+			{
 				fput(reg->kr_fp);
+			}
+
 			kfree(reg);
 		}
 	}
@@ -185,12 +219,18 @@ int libcfs_kkuc_group_put(unsigned int group, void *payload)
 	int one_success = 0;
 
 	down_write(&kg_sem);
-	list_for_each_entry(reg, &kkuc_groups[group], kr_chain) {
-		if (reg->kr_fp) {
+	list_for_each_entry(reg, &kkuc_groups[group], kr_chain)
+	{
+		if (reg->kr_fp)
+		{
 			rc = libcfs_kkuc_msg_put(reg->kr_fp, payload);
-			if (!rc) {
+
+			if (!rc)
+			{
 				one_success = 1;
-			} else if (rc == -EPIPE) {
+			}
+			else if (rc == -EPIPE)
+			{
 				fput(reg->kr_fp);
 				reg->kr_fp = NULL;
 			}
@@ -203,7 +243,9 @@ int libcfs_kkuc_group_put(unsigned int group, void *payload)
 	 * at least to one agent
 	 */
 	if (one_success)
+	{
 		rc = 0;
+	}
 
 	return rc;
 }
@@ -216,24 +258,30 @@ EXPORT_SYMBOL(libcfs_kkuc_group_put);
  * @param cb_arg extra argument to be passed to the callback function.
  */
 int libcfs_kkuc_group_foreach(unsigned int group, libcfs_kkuc_cb_t cb_func,
-			      void *cb_arg)
+							  void *cb_arg)
 {
 	struct kkuc_reg *reg;
 	int rc = 0;
 
-	if (group > KUC_GRP_MAX) {
+	if (group > KUC_GRP_MAX)
+	{
 		CDEBUG(D_WARNING, "Kernelcomm: bad group %d\n", group);
 		return -EINVAL;
 	}
 
 	/* no link for this group */
 	if (!kkuc_groups[group].next)
+	{
 		return 0;
+	}
 
 	down_read(&kg_sem);
-	list_for_each_entry(reg, &kkuc_groups[group], kr_chain) {
+	list_for_each_entry(reg, &kkuc_groups[group], kr_chain)
+	{
 		if (reg->kr_fp)
+		{
 			rc = cb_func(reg->kr_data, cb_arg);
+		}
 	}
 	up_read(&kg_sem);
 

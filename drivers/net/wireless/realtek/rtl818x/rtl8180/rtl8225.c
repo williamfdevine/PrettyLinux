@@ -48,20 +48,27 @@ static void rtl8225_write(struct ieee80211_hw *dev, u8 addr, u16 data)
 	rtl818x_ioread8(priv, &priv->map->EEPROM_CMD);
 	udelay(10);
 
-	for (i = 15; i >= 0; i--) {
+	for (i = 15; i >= 0; i--)
+	{
 		u16 reg = reg80;
 
 		if (bangdata & (1 << i))
+		{
 			reg |= 1;
+		}
 
 		if (i & 1)
+		{
 			rtl818x_iowrite16(priv, &priv->map->RFPinsOutput, reg);
+		}
 
 		rtl818x_iowrite16(priv, &priv->map->RFPinsOutput, reg | (1 << 1));
 		rtl818x_iowrite16(priv, &priv->map->RFPinsOutput, reg | (1 << 1));
 
 		if (!(i & 1))
+		{
 			rtl818x_iowrite16(priv, &priv->map->RFPinsOutput, reg);
+		}
 	}
 
 	rtl818x_iowrite16(priv, &priv->map->RFPinsOutput, reg80 | (1 << 2));
@@ -95,25 +102,28 @@ static u16 rtl8225_read(struct ieee80211_hw *dev, u8 addr)
 	rtl818x_ioread8(priv, &priv->map->EEPROM_CMD);
 	udelay(5);
 
-	for (i = 4; i >= 0; i--) {
+	for (i = 4; i >= 0; i--)
+	{
 		u16 reg = reg80 | ((addr >> i) & 1);
 
-		if (!(i & 1)) {
+		if (!(i & 1))
+		{
 			rtl818x_iowrite16(priv, &priv->map->RFPinsOutput, reg);
 			rtl818x_ioread8(priv, &priv->map->EEPROM_CMD);
 			udelay(1);
 		}
 
 		rtl818x_iowrite16(priv, &priv->map->RFPinsOutput,
-				  reg | (1 << 1));
+						  reg | (1 << 1));
 		rtl818x_ioread8(priv, &priv->map->EEPROM_CMD);
 		udelay(2);
 		rtl818x_iowrite16(priv, &priv->map->RFPinsOutput,
-				  reg | (1 << 1));
+						  reg | (1 << 1));
 		rtl818x_ioread8(priv, &priv->map->EEPROM_CMD);
 		udelay(2);
 
-		if (i & 1) {
+		if (i & 1)
+		{
 			rtl818x_iowrite16(priv, &priv->map->RFPinsOutput, reg);
 			rtl818x_ioread8(priv, &priv->map->EEPROM_CMD);
 			udelay(1);
@@ -124,48 +134,52 @@ static u16 rtl8225_read(struct ieee80211_hw *dev, u8 addr)
 	rtl818x_iowrite16(priv, &priv->map->RFPinsSelect, 0x040E);
 	rtl818x_ioread8(priv, &priv->map->EEPROM_CMD);
 	rtl818x_iowrite16(priv, &priv->map->RFPinsOutput,
-			  reg80 | (1 << 3) | (1 << 1));
+					  reg80 | (1 << 3) | (1 << 1));
 	rtl818x_ioread8(priv, &priv->map->EEPROM_CMD);
 	udelay(2);
 	rtl818x_iowrite16(priv, &priv->map->RFPinsOutput,
-			  reg80 | (1 << 3));
+					  reg80 | (1 << 3));
 	rtl818x_ioread8(priv, &priv->map->EEPROM_CMD);
 	udelay(2);
 	rtl818x_iowrite16(priv, &priv->map->RFPinsOutput,
-			  reg80 | (1 << 3));
+					  reg80 | (1 << 3));
 	rtl818x_ioread8(priv, &priv->map->EEPROM_CMD);
 	udelay(2);
 
 	out = 0;
-	for (i = 11; i >= 0; i--) {
+
+	for (i = 11; i >= 0; i--)
+	{
 		rtl818x_iowrite16(priv, &priv->map->RFPinsOutput,
-				  reg80 | (1 << 3));
+						  reg80 | (1 << 3));
 		rtl818x_ioread8(priv, &priv->map->EEPROM_CMD);
 		udelay(1);
 		rtl818x_iowrite16(priv, &priv->map->RFPinsOutput,
-				  reg80 | (1 << 3) | (1 << 1));
+						  reg80 | (1 << 3) | (1 << 1));
 		rtl818x_ioread8(priv, &priv->map->EEPROM_CMD);
 		udelay(2);
 		rtl818x_iowrite16(priv, &priv->map->RFPinsOutput,
-				  reg80 | (1 << 3) | (1 << 1));
+						  reg80 | (1 << 3) | (1 << 1));
 		rtl818x_ioread8(priv, &priv->map->EEPROM_CMD);
 		udelay(2);
 		rtl818x_iowrite16(priv, &priv->map->RFPinsOutput,
-				  reg80 | (1 << 3) | (1 << 1));
+						  reg80 | (1 << 3) | (1 << 1));
 		rtl818x_ioread8(priv, &priv->map->EEPROM_CMD);
 		udelay(2);
 
 		if (rtl818x_ioread16(priv, &priv->map->RFPinsInput) & (1 << 1))
+		{
 			out |= 1 << i;
+		}
 
 		rtl818x_iowrite16(priv, &priv->map->RFPinsOutput,
-				  reg80 | (1 << 3));
+						  reg80 | (1 << 3));
 		rtl818x_ioread8(priv, &priv->map->EEPROM_CMD);
 		udelay(2);
 	}
 
 	rtl818x_iowrite16(priv, &priv->map->RFPinsOutput,
-			  reg80 | (1 << 3) | (1 << 2));
+					  reg80 | (1 << 3) | (1 << 2));
 	rtl818x_ioread8(priv, &priv->map->EEPROM_CMD);
 	udelay(2);
 
@@ -176,7 +190,8 @@ static u16 rtl8225_read(struct ieee80211_hw *dev, u8 addr)
 	return out;
 }
 
-static const u16 rtl8225bcd_rxgain[] = {
+static const u16 rtl8225bcd_rxgain[] =
+{
 	0x0400, 0x0401, 0x0402, 0x0403, 0x0404, 0x0405, 0x0408, 0x0409,
 	0x040a, 0x040b, 0x0502, 0x0503, 0x0504, 0x0505, 0x0540, 0x0541,
 	0x0542, 0x0543, 0x0544, 0x0545, 0x0580, 0x0581, 0x0582, 0x0583,
@@ -191,7 +206,8 @@ static const u16 rtl8225bcd_rxgain[] = {
 	0x07b4, 0x07b5, 0x07b8, 0x07b9, 0x07ba, 0x07bb, 0x07bb
 };
 
-static const u8 rtl8225_agc[] = {
+static const u8 rtl8225_agc[] =
+{
 	0x9e, 0x9e, 0x9e, 0x9e, 0x9e, 0x9e, 0x9e, 0x9e,
 	0x9d, 0x9c, 0x9b, 0x9a, 0x99, 0x98, 0x97, 0x96,
 	0x95, 0x94, 0x93, 0x92, 0x91, 0x90, 0x8f, 0x8e,
@@ -210,7 +226,8 @@ static const u8 rtl8225_agc[] = {
 	0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01
 };
 
-static const u8 rtl8225_gain[] = {
+static const u8 rtl8225_gain[] =
+{
 	0x23, 0x88, 0x7c, 0xa5, /* -82dbm */
 	0x23, 0x88, 0x7c, 0xb5, /* -82dbm */
 	0x23, 0x88, 0x7c, 0xc5, /* -82dbm */
@@ -220,15 +237,18 @@ static const u8 rtl8225_gain[] = {
 	0x63, 0x58, 0x70, 0xc5, /* -66dbm */
 };
 
-static const u8 rtl8225_threshold[] = {
+static const u8 rtl8225_threshold[] =
+{
 	0x8d, 0x8d, 0x8d, 0x8d, 0x9d, 0xad, 0xbd
 };
 
-static const u8 rtl8225_tx_gain_cck_ofdm[] = {
+static const u8 rtl8225_tx_gain_cck_ofdm[] =
+{
 	0x02, 0x06, 0x0e, 0x1e, 0x3e, 0x7e
 };
 
-static const u8 rtl8225_tx_power_cck[] = {
+static const u8 rtl8225_tx_power_cck[] =
+{
 	0x18, 0x17, 0x15, 0x11, 0x0c, 0x08, 0x04, 0x02,
 	0x1b, 0x1a, 0x17, 0x13, 0x0e, 0x09, 0x04, 0x02,
 	0x1f, 0x1e, 0x1a, 0x15, 0x10, 0x0a, 0x05, 0x02,
@@ -237,7 +257,8 @@ static const u8 rtl8225_tx_power_cck[] = {
 	0x2b, 0x2a, 0x25, 0x1e, 0x16, 0x0e, 0x07, 0x03
 };
 
-static const u8 rtl8225_tx_power_cck_ch14[] = {
+static const u8 rtl8225_tx_power_cck_ch14[] =
+{
 	0x18, 0x17, 0x15, 0x0c, 0x00, 0x00, 0x00, 0x00,
 	0x1b, 0x1a, 0x17, 0x0e, 0x00, 0x00, 0x00, 0x00,
 	0x1f, 0x1e, 0x1a, 0x0f, 0x00, 0x00, 0x00, 0x00,
@@ -246,11 +267,13 @@ static const u8 rtl8225_tx_power_cck_ch14[] = {
 	0x2b, 0x2a, 0x25, 0x15, 0x00, 0x00, 0x00, 0x00
 };
 
-static const u8 rtl8225_tx_power_ofdm[] = {
+static const u8 rtl8225_tx_power_ofdm[] =
+{
 	0x80, 0x90, 0xa2, 0xb5, 0xcb, 0xe4
 };
 
-static const u32 rtl8225_chan[] = {
+static const u32 rtl8225_chan[] =
+{
 	0x085c, 0x08dc, 0x095c, 0x09dc, 0x0a5c, 0x0adc, 0x0b5c,
 	0x0bdc, 0x0c5c, 0x0cdc, 0x0d5c, 0x0ddc, 0x0e5c, 0x0f72
 };
@@ -270,15 +293,21 @@ static void rtl8225_rf_set_tx_power(struct ieee80211_hw *dev, int channel)
 	ofdm_power = min(ofdm_power, (u8)35);
 
 	rtl818x_iowrite8(priv, &priv->map->TX_GAIN_CCK,
-			 rtl8225_tx_gain_cck_ofdm[cck_power / 6] >> 1);
+					 rtl8225_tx_gain_cck_ofdm[cck_power / 6] >> 1);
 
 	if (channel == 14)
+	{
 		tmp = &rtl8225_tx_power_cck_ch14[(cck_power % 6) * 8];
+	}
 	else
+	{
 		tmp = &rtl8225_tx_power_cck[(cck_power % 6) * 8];
+	}
 
 	for (i = 0; i < 8; i++)
+	{
 		rtl8225_write_phy_cck(dev, 0x44 + i, *tmp++);
+	}
 
 	msleep(1); /* FIXME: optional? */
 
@@ -292,7 +321,7 @@ static void rtl8225_rf_set_tx_power(struct ieee80211_hw *dev, int channel)
 	rtl818x_iowrite8(priv, &priv->map->EEPROM_CMD, RTL818X_EEPROM_CMD_NORMAL);
 
 	rtl818x_iowrite8(priv, &priv->map->TX_GAIN_OFDM,
-			 rtl8225_tx_gain_cck_ofdm[ofdm_power/6] >> 1);
+					 rtl8225_tx_gain_cck_ofdm[ofdm_power / 6] >> 1);
 
 	tmp = &rtl8225_tx_power_ofdm[ofdm_power % 6];
 
@@ -349,7 +378,8 @@ static void rtl8225_rf_init(struct ieee80211_hw *dev)
 
 	rtl8225_write(dev, 0x0, 0x127);
 
-	for (i = 0; i < ARRAY_SIZE(rtl8225bcd_rxgain); i++) {
+	for (i = 0; i < ARRAY_SIZE(rtl8225bcd_rxgain); i++)
+	{
 		rtl8225_write(dev, 0x1, i + 1);
 		rtl8225_write(dev, 0x2, rtl8225bcd_rxgain[i]);
 	}
@@ -358,7 +388,8 @@ static void rtl8225_rf_init(struct ieee80211_hw *dev)
 	rtl8225_write(dev, 0x0, 0x22F);
 	rtl818x_iowrite16(priv, &priv->map->RFPinsEnable, 0x1FFF);
 
-	for (i = 0; i < ARRAY_SIZE(rtl8225_agc); i++) {
+	for (i = 0; i < ARRAY_SIZE(rtl8225_agc); i++)
+	{
 		rtl8225_write_phy_ofdm(dev, 0xB, rtl8225_agc[i]);
 		msleep(1);
 		rtl8225_write_phy_ofdm(dev, 0xA, 0x80 + i);
@@ -456,19 +487,23 @@ static void rtl8225_rf_init(struct ieee80211_hw *dev)
 	rtl8225_write_phy_cck(dev, 0x41, rtl8225_threshold[0]);
 }
 
-static const u8 rtl8225z2_tx_power_cck_ch14[] = {
+static const u8 rtl8225z2_tx_power_cck_ch14[] =
+{
 	0x36, 0x35, 0x2e, 0x1b, 0x00, 0x00, 0x00, 0x00
 };
 
-static const u8 rtl8225z2_tx_power_cck_B[] = {
+static const u8 rtl8225z2_tx_power_cck_B[] =
+{
 	0x30, 0x2f, 0x29, 0x21, 0x19, 0x10, 0x08, 0x04
 };
 
-static const u8 rtl8225z2_tx_power_cck_A[] = {
+static const u8 rtl8225z2_tx_power_cck_A[] =
+{
 	0x33, 0x32, 0x2b, 0x23, 0x1a, 0x11, 0x08, 0x04
 };
 
-static const u8 rtl8225z2_tx_power_cck[] = {
+static const u8 rtl8225z2_tx_power_cck[] =
+{
 	0x36, 0x35, 0x2e, 0x25, 0x1c, 0x12, 0x09, 0x04
 };
 
@@ -483,22 +518,38 @@ static void rtl8225z2_rf_set_tx_power(struct ieee80211_hw *dev, int channel)
 	ofdm_power = priv->channels[channel - 1].hw_value >> 8;
 
 	if (channel == 14)
+	{
 		tmp = rtl8225z2_tx_power_cck_ch14;
+	}
 	else if (cck_power == 12)
+	{
 		tmp = rtl8225z2_tx_power_cck_B;
+	}
 	else if (cck_power == 13)
+	{
 		tmp = rtl8225z2_tx_power_cck_A;
+	}
 	else
+	{
 		tmp = rtl8225z2_tx_power_cck;
+	}
 
 	for (i = 0; i < 8; i++)
+	{
 		rtl8225_write_phy_cck(dev, 0x44 + i, *tmp++);
+	}
 
 	cck_power = min(cck_power, (u8)35);
+
 	if (cck_power == 13 || cck_power == 14)
+	{
 		cck_power = 12;
+	}
+
 	if (cck_power >= 15)
+	{
 		cck_power -= 2;
+	}
 
 	rtl818x_iowrite8(priv, &priv->map->TX_GAIN_CCK, cck_power);
 	rtl818x_ioread8(priv, &priv->map->TX_GAIN_CCK);
@@ -516,7 +567,8 @@ static void rtl8225z2_rf_set_tx_power(struct ieee80211_hw *dev, int channel)
 	msleep(1);
 }
 
-static const u16 rtl8225z2_rxgain[] = {
+static const u16 rtl8225z2_rxgain[] =
+{
 	0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0008, 0x0009,
 	0x000a, 0x000b, 0x0102, 0x0103, 0x0104, 0x0105, 0x0140, 0x0141,
 	0x0142, 0x0143, 0x0144, 0x0145, 0x0180, 0x0181, 0x0182, 0x0183,
@@ -576,7 +628,8 @@ static void rtl8225z2_rf_init(struct ieee80211_hw *dev)
 	rtl8225_write(dev, 0xe, 0x02B); msleep(1);
 	rtl8225_write(dev, 0xf, 0x114); msleep(100);
 
-	if (!(rtl8225_read(dev, 6) & (1 << 7))) {
+	if (!(rtl8225_read(dev, 6) & (1 << 7)))
+	{
 		rtl8225_write(dev, 0x02, 0x0C4D);
 		msleep(200);
 		rtl8225_write(dev, 0x02, 0x044D);
@@ -589,7 +642,8 @@ static void rtl8225z2_rf_init(struct ieee80211_hw *dev)
 	rtl8225_write(dev, 0x3, 0x002);
 	rtl8225_write(dev, 0x5, 0x004);
 
-	for (i = 0; i < ARRAY_SIZE(rtl8225z2_rxgain); i++) {
+	for (i = 0; i < ARRAY_SIZE(rtl8225z2_rxgain); i++)
+	{
 		rtl8225_write(dev, 0x1, i + 1);
 		rtl8225_write(dev, 0x2, rtl8225z2_rxgain[i]);
 	}
@@ -606,7 +660,8 @@ static void rtl8225z2_rf_init(struct ieee80211_hw *dev)
 
 	rtl818x_iowrite16(priv, &priv->map->RFPinsEnable, 0x1FFF);
 
-	for (i = 0; i < ARRAY_SIZE(rtl8225_agc); i++) {
+	for (i = 0; i < ARRAY_SIZE(rtl8225_agc); i++)
+	{
 		rtl8225_write_phy_ofdm(dev, 0xB, rtl8225_agc[i]);
 		msleep(1);
 		rtl8225_write_phy_ofdm(dev, 0xA, 0x80 + i);
@@ -716,36 +771,42 @@ static void rtl8225_rf_stop(struct ieee80211_hw *dev)
 }
 
 static void rtl8225_rf_set_channel(struct ieee80211_hw *dev,
-				   struct ieee80211_conf *conf)
+								   struct ieee80211_conf *conf)
 {
 	struct rtl8180_priv *priv = dev->priv;
 	int chan =
 		ieee80211_frequency_to_channel(conf->chandef.chan->center_freq);
 
 	if (priv->rf->init == rtl8225_rf_init)
+	{
 		rtl8225_rf_set_tx_power(dev, chan);
+	}
 	else
+	{
 		rtl8225z2_rf_set_tx_power(dev, chan);
+	}
 
 	rtl8225_write(dev, 0x7, rtl8225_chan[chan - 1]);
 	msleep(10);
 }
 
-static const struct rtl818x_rf_ops rtl8225_ops = {
+static const struct rtl818x_rf_ops rtl8225_ops =
+{
 	.name		= "rtl8225",
 	.init		= rtl8225_rf_init,
 	.stop		= rtl8225_rf_stop,
 	.set_chan	= rtl8225_rf_set_channel,
 };
 
-static const struct rtl818x_rf_ops rtl8225z2_ops = {
+static const struct rtl818x_rf_ops rtl8225z2_ops =
+{
 	.name		= "rtl8225z2",
 	.init		= rtl8225z2_rf_init,
 	.stop		= rtl8225_rf_stop,
 	.set_chan	= rtl8225_rf_set_channel,
 };
 
-const struct rtl818x_rf_ops * rtl8180_detect_rf(struct ieee80211_hw *dev)
+const struct rtl818x_rf_ops *rtl8180_detect_rf(struct ieee80211_hw *dev)
 {
 	struct rtl8180_priv *priv = dev->priv;
 	u16 reg8, reg9;
@@ -764,7 +825,9 @@ const struct rtl818x_rf_ops * rtl8180_detect_rf(struct ieee80211_hw *dev)
 	rtl8225_write(dev, 0, 0x0B7);
 
 	if (reg8 != 0x588 || reg9 != 0x700)
+	{
 		return &rtl8225_ops;
+	}
 
 	return &rtl8225z2_ops;
 }

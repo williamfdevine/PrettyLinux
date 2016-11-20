@@ -44,16 +44,16 @@ int memac_adjust_link(struct fman_mac *memac, u16 speed);
 int memac_cfg_max_frame_len(struct fman_mac *memac, u16 new_val);
 int memac_cfg_reset_on_init(struct fman_mac *memac, bool enable);
 int memac_cfg_fixed_link(struct fman_mac *memac,
-			 struct fixed_phy_status *fixed_link);
+						 struct fixed_phy_status *fixed_link);
 int memac_enable(struct fman_mac *memac, enum comm_mode mode);
 int memac_disable(struct fman_mac *memac, enum comm_mode mode);
 int memac_init(struct fman_mac *memac);
 int memac_free(struct fman_mac *memac);
 int memac_accept_rx_pause_frames(struct fman_mac *memac, bool en);
 int memac_set_tx_pause_frames(struct fman_mac *memac, u8 priority,
-			      u16 pause_time, u16 thresh_time);
+							  u16 pause_time, u16 thresh_time);
 int memac_set_exception(struct fman_mac *memac,
-			enum fman_mac_exceptions exception, bool enable);
+						enum fman_mac_exceptions exception, bool enable);
 int memac_add_hash_mac_address(struct fman_mac *memac, enet_addr_t *eth_addr);
 int memac_del_hash_mac_address(struct fman_mac *memac, enet_addr_t *eth_addr);
 

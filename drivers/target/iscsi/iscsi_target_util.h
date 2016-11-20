@@ -14,13 +14,13 @@ extern struct iscsi_seq *iscsit_get_seq_holder_for_datain(struct iscsi_cmd *, u3
 extern struct iscsi_seq *iscsit_get_seq_holder_for_r2t(struct iscsi_cmd *);
 extern struct iscsi_r2t *iscsit_get_holder_for_r2tsn(struct iscsi_cmd *, u32);
 extern int iscsit_sequence_cmd(struct iscsi_conn *conn, struct iscsi_cmd *cmd,
-			       unsigned char * ,__be32 cmdsn);
+							   unsigned char *, __be32 cmdsn);
 extern int iscsit_check_unsolicited_dataout(struct iscsi_cmd *, unsigned char *);
 extern struct iscsi_cmd *iscsit_find_cmd_from_itt_or_dump(struct iscsi_conn *,
-			itt_t, u32);
+		itt_t, u32);
 extern struct iscsi_cmd *iscsit_find_cmd_from_ttt(struct iscsi_conn *, u32);
 extern int iscsit_find_cmd_for_recovery(struct iscsi_session *, struct iscsi_cmd **,
-			struct iscsi_conn_recovery **, itt_t);
+										struct iscsi_conn_recovery **, itt_t);
 extern void iscsit_add_cmd_to_immediate_queue(struct iscsi_cmd *, struct iscsi_conn *, u8);
 extern struct iscsi_queue_req *iscsit_get_cmd_from_immediate_queue(struct iscsi_conn *);
 extern void iscsit_add_cmd_to_response_queue(struct iscsi_cmd *, struct iscsi_conn *, u8);

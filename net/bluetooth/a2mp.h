@@ -17,14 +17,16 @@
 
 #include <net/bluetooth/l2cap.h>
 
-enum amp_mgr_state {
+enum amp_mgr_state
+{
 	READ_LOC_AMP_INFO,
 	READ_LOC_AMP_ASSOC,
 	READ_LOC_AMP_ASSOC_FINAL,
 	WRITE_REMOTE_AMP_ASSOC,
 };
 
-struct amp_mgr {
+struct amp_mgr
+{
 	struct list_head	list;
 	struct l2cap_conn	*l2cap_conn;
 	struct l2cap_chan	*a2mp_chan;
@@ -39,7 +41,8 @@ struct amp_mgr {
 	struct mutex		amp_ctrls_lock;
 };
 
-struct a2mp_cmd {
+struct a2mp_cmd
+{
 	__u8	code;
 	__u8	ident;
 	__le16	len;
@@ -48,25 +51,29 @@ struct a2mp_cmd {
 
 /* A2MP command codes */
 #define A2MP_COMMAND_REJ         0x01
-struct a2mp_cmd_rej {
+struct a2mp_cmd_rej
+{
 	__le16	reason;
 	__u8	data[0];
 } __packed;
 
 #define A2MP_DISCOVER_REQ        0x02
-struct a2mp_discov_req {
+struct a2mp_discov_req
+{
 	__le16	mtu;
 	__le16	ext_feat;
 } __packed;
 
-struct a2mp_cl {
+struct a2mp_cl
+{
 	__u8	id;
 	__u8	type;
 	__u8	status;
 } __packed;
 
 #define A2MP_DISCOVER_RSP        0x03
-struct a2mp_discov_rsp {
+struct a2mp_discov_rsp
+{
 	__le16     mtu;
 	__le16     ext_feat;
 	struct a2mp_cl cl[0];
@@ -76,12 +83,14 @@ struct a2mp_discov_rsp {
 #define A2MP_CHANGE_RSP          0x05
 
 #define A2MP_GETINFO_REQ         0x06
-struct a2mp_info_req {
+struct a2mp_info_req
+{
 	__u8       id;
 } __packed;
 
 #define A2MP_GETINFO_RSP         0x07
-struct a2mp_info_rsp {
+struct a2mp_info_rsp
+{
 	__u8	id;
 	__u8	status;
 	__le32	total_bw;
@@ -92,12 +101,14 @@ struct a2mp_info_rsp {
 } __packed;
 
 #define A2MP_GETAMPASSOC_REQ     0x08
-struct a2mp_amp_assoc_req {
+struct a2mp_amp_assoc_req
+{
 	__u8	id;
 } __packed;
 
 #define A2MP_GETAMPASSOC_RSP     0x09
-struct a2mp_amp_assoc_rsp {
+struct a2mp_amp_assoc_rsp
+{
 	__u8	id;
 	__u8	status;
 	__u8	amp_assoc[0];
@@ -105,7 +116,8 @@ struct a2mp_amp_assoc_rsp {
 
 #define A2MP_CREATEPHYSLINK_REQ  0x0A
 #define A2MP_DISCONNPHYSLINK_REQ 0x0C
-struct a2mp_physlink_req {
+struct a2mp_physlink_req
+{
 	__u8	local_id;
 	__u8	remote_id;
 	__u8	amp_assoc[0];
@@ -113,7 +125,8 @@ struct a2mp_physlink_req {
 
 #define A2MP_CREATEPHYSLINK_RSP  0x0B
 #define A2MP_DISCONNPHYSLINK_RSP 0x0D
-struct a2mp_physlink_rsp {
+struct a2mp_physlink_rsp
+{
 	__u8	local_id;
 	__u8	remote_id;
 	__u8	status;
@@ -134,7 +147,7 @@ struct amp_mgr *amp_mgr_get(struct amp_mgr *mgr);
 #if IS_ENABLED(CONFIG_BT_HS)
 int amp_mgr_put(struct amp_mgr *mgr);
 struct l2cap_chan *a2mp_channel_create(struct l2cap_conn *conn,
-				       struct sk_buff *skb);
+									   struct sk_buff *skb);
 void a2mp_discover_amp(struct l2cap_chan *chan);
 #else
 static inline int amp_mgr_put(struct amp_mgr *mgr)
@@ -143,7 +156,7 @@ static inline int amp_mgr_put(struct amp_mgr *mgr)
 }
 
 static inline struct l2cap_chan *a2mp_channel_create(struct l2cap_conn *conn,
-						     struct sk_buff *skb)
+		struct sk_buff *skb)
 {
 	return NULL;
 }

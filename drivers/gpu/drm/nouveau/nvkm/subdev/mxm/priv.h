@@ -5,7 +5,8 @@
 
 #define MXM_SANITISE_DCB 0x00000001
 
-struct nvkm_mxm {
+struct nvkm_mxm
+{
 	struct nvkm_subdev subdev;
 	u32 action;
 	u8 *mxms;

@@ -37,12 +37,14 @@
 #define PIO1616L_DO_REG		0x02
 
 static int contec_do_insn_bits(struct comedi_device *dev,
-			       struct comedi_subdevice *s,
-			       struct comedi_insn *insn,
-			       unsigned int *data)
+							   struct comedi_subdevice *s,
+							   struct comedi_insn *insn,
+							   unsigned int *data)
 {
 	if (comedi_dio_update_state(s, data))
+	{
 		outw(s->state, dev->iobase + PIO1616L_DO_REG);
+	}
 
 	data[1] = s->state;
 
@@ -50,8 +52,8 @@ static int contec_do_insn_bits(struct comedi_device *dev,
 }
 
 static int contec_di_insn_bits(struct comedi_device *dev,
-			       struct comedi_subdevice *s,
-			       struct comedi_insn *insn, unsigned int *data)
+							   struct comedi_subdevice *s,
+							   struct comedi_insn *insn, unsigned int *data)
 {
 	data[1] = inw(dev->iobase + PIO1616L_DI_REG);
 
@@ -59,20 +61,27 @@ static int contec_di_insn_bits(struct comedi_device *dev,
 }
 
 static int contec_auto_attach(struct comedi_device *dev,
-			      unsigned long context_unused)
+							  unsigned long context_unused)
 {
 	struct pci_dev *pcidev = comedi_to_pci_dev(dev);
 	struct comedi_subdevice *s;
 	int ret;
 
 	ret = comedi_pci_enable(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	dev->iobase = pci_resource_start(pcidev, 0);
 
 	ret = comedi_alloc_subdevices(dev, 2);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	s = &dev->subdevices[0];
 	s->type		= COMEDI_SUBD_DI;
@@ -93,7 +102,8 @@ static int contec_auto_attach(struct comedi_device *dev,
 	return 0;
 }
 
-static struct comedi_driver contec_pci_dio_driver = {
+static struct comedi_driver contec_pci_dio_driver =
+{
 	.driver_name	= "contec_pci_dio",
 	.module		= THIS_MODULE,
 	.auto_attach	= contec_auto_attach,
@@ -101,19 +111,21 @@ static struct comedi_driver contec_pci_dio_driver = {
 };
 
 static int contec_pci_dio_pci_probe(struct pci_dev *dev,
-				    const struct pci_device_id *id)
+									const struct pci_device_id *id)
 {
 	return comedi_pci_auto_config(dev, &contec_pci_dio_driver,
-				      id->driver_data);
+								  id->driver_data);
 }
 
-static const struct pci_device_id contec_pci_dio_pci_table[] = {
+static const struct pci_device_id contec_pci_dio_pci_table[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_CONTEC, 0x8172) },
 	{ 0 }
 };
 MODULE_DEVICE_TABLE(pci, contec_pci_dio_pci_table);
 
-static struct pci_driver contec_pci_dio_pci_driver = {
+static struct pci_driver contec_pci_dio_pci_driver =
+{
 	.name		= "contec_pci_dio",
 	.id_table	= contec_pci_dio_pci_table,
 	.probe		= contec_pci_dio_pci_probe,

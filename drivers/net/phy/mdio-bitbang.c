@@ -74,7 +74,9 @@ static void mdiobb_send_num(struct mdiobb_ctrl *ctrl, u16 val, int bits)
 	int i;
 
 	for (i = bits - 1; i >= 0; i--)
+	{
 		mdiobb_send_bit(ctrl, (val >> i) & 1);
+	}
 }
 
 /* MDIO must already be configured as input. */
@@ -83,7 +85,8 @@ static u16 mdiobb_get_num(struct mdiobb_ctrl *ctrl, int bits)
 	int i;
 	u16 ret = 0;
 
-	for (i = bits - 1; i >= 0; i--) {
+	for (i = bits - 1; i >= 0; i--)
+	{
 		ret <<= 1;
 		ret |= mdiobb_get_bit(ctrl);
 	}
@@ -111,16 +114,24 @@ static void mdiobb_cmd(struct mdiobb_ctrl *ctrl, int op, u8 phy, u8 reg)
 	 */
 
 	for (i = 0; i < 32; i++)
+	{
 		mdiobb_send_bit(ctrl, 1);
+	}
 
 	/* send the start bit (01) and the read opcode (10) or write (10).
 	   Clause 45 operation uses 00 for the start and 11, 10 for
 	   read/write */
 	mdiobb_send_bit(ctrl, 0);
+
 	if (op & MDIO_C45)
+	{
 		mdiobb_send_bit(ctrl, 0);
+	}
 	else
+	{
 		mdiobb_send_bit(ctrl, 1);
+	}
+
 	mdiobb_send_bit(ctrl, (op >> 1) & 1);
 	mdiobb_send_bit(ctrl, (op >> 0) & 1);
 
@@ -157,11 +168,15 @@ static int mdiobb_read(struct mii_bus *bus, int phy, int reg)
 	struct mdiobb_ctrl *ctrl = bus->priv;
 	int ret, i;
 
-	if (reg & MII_ADDR_C45) {
+	if (reg & MII_ADDR_C45)
+	{
 		reg = mdiobb_cmd_addr(ctrl, phy, reg);
 		mdiobb_cmd(ctrl, MDIO_C45_READ, phy, reg);
-	} else
+	}
+	else
+	{
 		mdiobb_cmd(ctrl, MDIO_READ, phy, reg);
+	}
 
 	ctrl->ops->set_mdio_dir(ctrl, 0);
 
@@ -169,12 +184,15 @@ static int mdiobb_read(struct mii_bus *bus, int phy, int reg)
 	 * PHY is listed in phy_ignore_ta_mask as having broken TA, skip that
 	 */
 	if (mdiobb_get_bit(ctrl) != 0 &&
-	    !(bus->phy_ignore_ta_mask & (1 << phy))) {
+		!(bus->phy_ignore_ta_mask & (1 << phy)))
+	{
 		/* PHY didn't drive TA low -- flush any bits it
 		 * may be trying to send.
 		 */
 		for (i = 0; i < 32; i++)
+		{
 			mdiobb_get_bit(ctrl);
+		}
 
 		return 0xffff;
 	}
@@ -188,11 +206,15 @@ static int mdiobb_write(struct mii_bus *bus, int phy, int reg, u16 val)
 {
 	struct mdiobb_ctrl *ctrl = bus->priv;
 
-	if (reg & MII_ADDR_C45) {
+	if (reg & MII_ADDR_C45)
+	{
 		reg = mdiobb_cmd_addr(ctrl, phy, reg);
 		mdiobb_cmd(ctrl, MDIO_C45_WRITE, phy, reg);
-	} else
+	}
+	else
+	{
 		mdiobb_cmd(ctrl, MDIO_WRITE, phy, reg);
+	}
 
 	/* send the turnaround (10) */
 	mdiobb_send_bit(ctrl, 1);
@@ -208,8 +230,12 @@ static int mdiobb_write(struct mii_bus *bus, int phy, int reg, u16 val)
 static int mdiobb_reset(struct mii_bus *bus)
 {
 	struct mdiobb_ctrl *ctrl = bus->priv;
+
 	if (ctrl->reset)
+	{
 		ctrl->reset(bus);
+	}
+
 	return 0;
 }
 
@@ -218,8 +244,11 @@ struct mii_bus *alloc_mdio_bitbang(struct mdiobb_ctrl *ctrl)
 	struct mii_bus *bus;
 
 	bus = mdiobus_alloc();
+
 	if (!bus)
+	{
 		return NULL;
+	}
 
 	__module_get(ctrl->ops->owner);
 

@@ -18,7 +18,8 @@
 
 #include "pinctrl-msm.h"
 
-static const struct pinctrl_pin_desc msm8660_pins[] = {
+static const struct pinctrl_pin_desc msm8660_pins[] =
+{
 	PINCTRL_PIN(0, "GPIO_0"),
 	PINCTRL_PIN(1, "GPIO_1"),
 	PINCTRL_PIN(2, "GPIO_2"),
@@ -385,16 +386,16 @@ static const unsigned int sdc3_data_pins[] = { 178 };
 
 #define FUNCTION(fname)					\
 	[MSM_MUX_##fname] = {				\
-		.name = #fname,				\
-		.groups = fname##_groups,		\
-		.ngroups = ARRAY_SIZE(fname##_groups),	\
-	}
+										.name = #fname,				\
+										.groups = fname##_groups,		\
+										.ngroups = ARRAY_SIZE(fname##_groups),	\
+						}
 
 #define PINGROUP(id, f1, f2, f3, f4, f5, f6, f7) \
 	{						\
 		.name = "gpio" #id,			\
-		.pins = gpio##id##_pins,		\
-		.npins = ARRAY_SIZE(gpio##id##_pins),	\
+				.pins = gpio##id##_pins,		\
+						.npins = ARRAY_SIZE(gpio##id##_pins),	\
 		.funcs = (int[]){			\
 			MSM_MUX_gpio,			\
 			MSM_MUX_##f1,			\
@@ -406,55 +407,56 @@ static const unsigned int sdc3_data_pins[] = { 178 };
 			MSM_MUX_##f7,			\
 		},					\
 		.nfuncs = 8,				\
-		.ctl_reg = 0x1000 + 0x10 * id,		\
-		.io_reg = 0x1004 + 0x10 * id,		\
-		.intr_cfg_reg = 0x1008 + 0x10 * id,	\
-		.intr_status_reg = 0x100c + 0x10 * id,	\
-		.intr_target_reg = 0x400 + 0x4 * id,	\
-		.mux_bit = 2,				\
-		.pull_bit = 0,				\
-		.drv_bit = 6,				\
-		.oe_bit = 9,				\
-		.in_bit = 0,				\
-		.out_bit = 1,				\
-		.intr_enable_bit = 0,			\
-		.intr_status_bit = 0,			\
-		.intr_ack_high = 1,			\
-		.intr_target_bit = 0,			\
-		.intr_target_kpss_val = 4,		\
-		.intr_raw_status_bit = 3,		\
-		.intr_polarity_bit = 1,			\
-		.intr_detection_bit = 2,		\
-		.intr_detection_width = 1,		\
+				  .ctl_reg = 0x1000 + 0x10 * id,		\
+							 .io_reg = 0x1004 + 0x10 * id,		\
+									   .intr_cfg_reg = 0x1008 + 0x10 * id,	\
+											   .intr_status_reg = 0x100c + 0x10 * id,	\
+													   .intr_target_reg = 0x400 + 0x4 * id,	\
+															   .mux_bit = 2,				\
+																	   .pull_bit = 0,				\
+																			   .drv_bit = 6,				\
+																					   .oe_bit = 9,				\
+																							   .in_bit = 0,				\
+																									   .out_bit = 1,				\
+																											   .intr_enable_bit = 0,			\
+																													   .intr_status_bit = 0,			\
+																															   .intr_ack_high = 1,			\
+																																	   .intr_target_bit = 0,			\
+																																			   .intr_target_kpss_val = 4,		\
+																																					   .intr_raw_status_bit = 3,		\
+																																							   .intr_polarity_bit = 1,			\
+																																									   .intr_detection_bit = 2,		\
+																																											   .intr_detection_width = 1,		\
 	}
 
 #define SDC_PINGROUP(pg_name, ctl, pull, drv)		\
 	{						\
 		.name = #pg_name,			\
-		.pins = pg_name##_pins,			\
-		.npins = ARRAY_SIZE(pg_name##_pins),	\
-		.ctl_reg = ctl,				\
-		.io_reg = 0,				\
-		.intr_cfg_reg = 0,			\
-		.intr_status_reg = 0,			\
-		.intr_target_reg = 0,			\
-		.mux_bit = -1,				\
-		.pull_bit = pull,			\
-		.drv_bit = drv,				\
-		.oe_bit = -1,				\
-		.in_bit = -1,				\
-		.out_bit = -1,				\
-		.intr_enable_bit = -1,			\
-		.intr_status_bit = -1,			\
-		.intr_target_bit = -1,			\
-		.intr_target_kpss_val = -1,		\
-		.intr_raw_status_bit = -1,		\
-		.intr_polarity_bit = -1,		\
-		.intr_detection_bit = -1,		\
-		.intr_detection_width = -1,		\
+				.pins = pg_name##_pins,			\
+						.npins = ARRAY_SIZE(pg_name##_pins),	\
+								 .ctl_reg = ctl,				\
+											.io_reg = 0,				\
+													.intr_cfg_reg = 0,			\
+															.intr_status_reg = 0,			\
+																	.intr_target_reg = 0,			\
+																			.mux_bit = -1,				\
+																					.pull_bit = pull,			\
+																							.drv_bit = drv,				\
+																									.oe_bit = -1,				\
+																											.in_bit = -1,				\
+																													.out_bit = -1,				\
+																															.intr_enable_bit = -1,			\
+																																	.intr_status_bit = -1,			\
+																																			.intr_target_bit = -1,			\
+																																					.intr_target_kpss_val = -1,		\
+																																							.intr_raw_status_bit = -1,		\
+																																									.intr_polarity_bit = -1,		\
+																																											.intr_detection_bit = -1,		\
+																																													.intr_detection_width = -1,		\
 	}
 
-enum msm8660_functions {
+enum msm8660_functions
+{
 	MSM_MUX_gpio,
 	MSM_MUX_cam_mclk,
 	MSM_MUX_dsub,
@@ -511,7 +513,8 @@ enum msm8660_functions {
 	MSM_MUX__,
 };
 
-static const char * const gpio_groups[] = {
+static const char *const gpio_groups[] =
+{
 	"gpio0", "gpio1", "gpio2", "gpio3", "gpio4", "gpio5", "gpio6", "gpio7",
 	"gpio8", "gpio9", "gpio10", "gpio11", "gpio12", "gpio13", "gpio14",
 	"gpio15", "gpio16", "gpio17", "gpio18", "gpio19", "gpio20", "gpio21",
@@ -541,164 +544,215 @@ static const char * const gpio_groups[] = {
 	"gpio171", "gpio172"
 };
 
-static const char * const cam_mclk_groups[] = {
+static const char *const cam_mclk_groups[] =
+{
 	"gpio32"
 };
-static const char * const dsub_groups[] = {
+static const char *const dsub_groups[] =
+{
 	"gpio0", "gpio1", "gpio2", "gpio3", "gpio4", "gpio5", "gpio6", "gpio7",
 	"gpio8", "gpio9", "gpio10", "gpio11", "gpio12", "gpio13", "gpio14",
 	"gpio15", "gpio16", "gpio17", "gpio18", "gpio19", "gpio20", "gpio21",
 	"gpio22", "gpio23", "gpio24", "gpio25", "gpio26", "gpio27"
 };
-static const char * const ext_gps_groups[] = {
+static const char *const ext_gps_groups[] =
+{
 	"gpio66", "gpio67", "gpio68", "gpio69"
 };
-static const char * const gp_clk_0a_groups[] = {
+static const char *const gp_clk_0a_groups[] =
+{
 	"gpio30"
 };
-static const char * const gp_clk_0b_groups[] = {
+static const char *const gp_clk_0b_groups[] =
+{
 	"gpio115"
 };
-static const char * const gp_clk_1a_groups[] = {
+static const char *const gp_clk_1a_groups[] =
+{
 	"gpio31"
 };
-static const char * const gp_clk_1b_groups[] = {
+static const char *const gp_clk_1b_groups[] =
+{
 	"gpio122"
 };
-static const char * const gp_clk_2a_groups[] = {
+static const char *const gp_clk_2a_groups[] =
+{
 	"gpio103"
 };
-static const char * const gp_clk_2b_groups[] = {
+static const char *const gp_clk_2b_groups[] =
+{
 	"gpio70"
 };
-static const char * const gp_mn_groups[] = {
+static const char *const gp_mn_groups[] =
+{
 	"gpio29"
 };
-static const char * const gsbi1_groups[] = {
+static const char *const gsbi1_groups[] =
+{
 	"gpio33", "gpio34", "gpio35", "gpio36"
 };
-static const char * const gsbi1_spi_cs1_n_groups[] = {
+static const char *const gsbi1_spi_cs1_n_groups[] =
+{
 };
-static const char * const gsbi1_spi_cs2a_n_groups[] = {
+static const char *const gsbi1_spi_cs2a_n_groups[] =
+{
 };
-static const char * const gsbi1_spi_cs2b_n_groups[] = {
+static const char *const gsbi1_spi_cs2b_n_groups[] =
+{
 };
-static const char * const gsbi1_spi_cs3_n_groups[] = {
+static const char *const gsbi1_spi_cs3_n_groups[] =
+{
 };
-static const char * const gsbi2_groups[] = {
+static const char *const gsbi2_groups[] =
+{
 	"gpio37", "gpio38", "gpio39", "gpio40"
 };
-static const char * const gsbi2_spi_cs1_n_groups[] = {
+static const char *const gsbi2_spi_cs1_n_groups[] =
+{
 	"gpio123"
 };
-static const char * const gsbi2_spi_cs2_n_groups[] = {
+static const char *const gsbi2_spi_cs2_n_groups[] =
+{
 	"gpio124"
 };
-static const char * const gsbi2_spi_cs3_n_groups[] = {
+static const char *const gsbi2_spi_cs3_n_groups[] =
+{
 	"gpio125"
 };
-static const char * const gsbi3_groups[] = {
+static const char *const gsbi3_groups[] =
+{
 	"gpio41", "gpio42", "gpio43", "gpio44"
 };
-static const char * const gsbi3_spi_cs1_n_groups[] = {
+static const char *const gsbi3_spi_cs1_n_groups[] =
+{
 	"gpio62"
 };
-static const char * const gsbi3_spi_cs2_n_groups[] = {
+static const char *const gsbi3_spi_cs2_n_groups[] =
+{
 	"gpio45"
 };
-static const char * const gsbi3_spi_cs3_n_groups[] = {
+static const char *const gsbi3_spi_cs3_n_groups[] =
+{
 	"gpio46"
 };
-static const char * const gsbi4_groups[] = {
+static const char *const gsbi4_groups[] =
+{
 	"gpio45", "gpio56", "gpio47", "gpio48"
 };
-static const char * const gsbi5_groups[] = {
+static const char *const gsbi5_groups[] =
+{
 	"gpio49", "gpio50", "gpio51", "gpio52"
 };
-static const char * const gsbi6_groups[] = {
+static const char *const gsbi6_groups[] =
+{
 	"gpio53", "gpio54", "gpio55", "gpio56"
 };
-static const char * const gsbi7_groups[] = {
+static const char *const gsbi7_groups[] =
+{
 	"gpio57", "gpio58", "gpio59", "gpio60"
 };
-static const char * const gsbi8_groups[] = {
+static const char *const gsbi8_groups[] =
+{
 	"gpio62", "gpio63", "gpio64", "gpio65"
 };
-static const char * const gsbi9_groups[] = {
+static const char *const gsbi9_groups[] =
+{
 	"gpio66", "gpio67", "gpio68", "gpio69"
 };
-static const char * const gsbi10_groups[] = {
+static const char *const gsbi10_groups[] =
+{
 	"gpio70", "gpio71", "gpio72", "gpio73"
 };
-static const char * const gsbi11_groups[] = {
+static const char *const gsbi11_groups[] =
+{
 	"gpio103", "gpio104", "gpio105", "gpio106"
 };
-static const char * const gsbi12_groups[] = {
+static const char *const gsbi12_groups[] =
+{
 	"gpio115", "gpio116", "gpio117", "gpio118"
 };
-static const char * const hdmi_groups[] = {
+static const char *const hdmi_groups[] =
+{
 	"gpio169", "gpio170", "gpio171", "gpio172"
 };
-static const char * const i2s_groups[] = {
+static const char *const i2s_groups[] =
+{
 	"gpio108", "gpio109", "gpio110", "gpio115", "gpio116", "gpio117",
 	"gpio118", "gpio119", "gpio120", "gpio121", "gpio122"
 };
-static const char * const lcdc_groups[] = {
+static const char *const lcdc_groups[] =
+{
 	"gpio0", "gpio1", "gpio2", "gpio3", "gpio4", "gpio5", "gpio6", "gpio7",
 	"gpio8", "gpio9", "gpio10", "gpio11", "gpio12", "gpio13", "gpio14",
 	"gpio15", "gpio16", "gpio17", "gpio18", "gpio19", "gpio20", "gpio21",
 	"gpio22", "gpio23", "gpio24", "gpio25", "gpio26", "gpio27"
 };
-static const char * const mdp_vsync_groups[] = {
+static const char *const mdp_vsync_groups[] =
+{
 	"gpio28", "gpio39", "gpio41"
 };
-static const char * const mi2s_groups[] = {
+static const char *const mi2s_groups[] =
+{
 	"gpio101", "gpio102", "gpio103", "gpio104", "gpio105", "gpio106",
 	"gpio107"
 };
-static const char * const pcm_groups[] = {
+static const char *const pcm_groups[] =
+{
 	"gpio111", "gpio112", "gpio113", "gpio114"
 };
-static const char * const ps_hold_groups[] = {
+static const char *const ps_hold_groups[] =
+{
 	"gpio92"
 };
-static const char * const sdc1_groups[] = {
+static const char *const sdc1_groups[] =
+{
 	"gpio159", "gpio160", "gpio161", "gpio162", "gpio163", "gpio164",
 	"gpio165", "gpio166", "gpio167", "gpio168"
 };
-static const char * const sdc2_groups[] = {
+static const char *const sdc2_groups[] =
+{
 	"gpio143", "gpio144", "gpio145", "gpio146", "gpio147", "gpio148",
 	"gpio149", "gpio150", "gpio151", "gpio152"
 };
-static const char * const sdc5_groups[] = {
+static const char *const sdc5_groups[] =
+{
 	"gpio95", "gpio96", "gpio97", "gpio98", "gpio99", "gpio100"
 };
-static const char * const tsif1_groups[] = {
+static const char *const tsif1_groups[] =
+{
 	"gpio93", "gpio94", "gpio95", "gpio96"
 };
-static const char * const tsif2_groups[] = {
+static const char *const tsif2_groups[] =
+{
 	"gpio97", "gpio98", "gpio99", "gpio100"
 };
-static const char * const usb_fs1_groups[] = {
+static const char *const usb_fs1_groups[] =
+{
 	"gpio49", "gpio50", "gpio51"
 };
-static const char * const usb_fs1_oe_n_groups[] = {
+static const char *const usb_fs1_oe_n_groups[] =
+{
 	"gpio51"
 };
-static const char * const usb_fs2_groups[] = {
+static const char *const usb_fs2_groups[] =
+{
 	"gpio71", "gpio72", "gpio73"
 };
-static const char * const usb_fs2_oe_n_groups[] = {
+static const char *const usb_fs2_oe_n_groups[] =
+{
 	"gpio73"
 };
-static const char * const vfe_groups[] = {
+static const char *const vfe_groups[] =
+{
 	"gpio29", "gpio30", "gpio31", "gpio42", "gpio46", "gpio105", "gpio106",
 	"gpio117"
 };
-static const char * const vsens_alarm_groups[] = {
+static const char *const vsens_alarm_groups[] =
+{
 	"gpio127"
 };
-static const char * const ebi2cs_groups[] = {
+static const char *const ebi2cs_groups[] =
+{
 	"gpio39", /* CS1A */
 	"gpio40", /* CS2A */
 	"gpio123", /* CS1B */
@@ -708,7 +762,8 @@ static const char * const ebi2cs_groups[] = {
 	"gpio133", /* CS3 */
 	"gpio134", /* CS0 */
 };
-static const char * const ebi2_groups[] = {
+static const char *const ebi2_groups[] =
+{
 	/* ADDR9 & ADDR8 */
 	"gpio37", "gpio38",
 	/* ADDR7 - ADDR 0 */
@@ -729,7 +784,8 @@ static const char * const ebi2_groups[] = {
 	"gpio158", /* busy */
 };
 
-static const struct msm_function msm8660_functions[] = {
+static const struct msm_function msm8660_functions[] =
+{
 	FUNCTION(gpio),
 	FUNCTION(cam_mclk),
 	FUNCTION(dsub),
@@ -785,7 +841,8 @@ static const struct msm_function msm8660_functions[] = {
 	FUNCTION(ebi2), /* for general EBI2 pins */
 };
 
-static const struct msm_pingroup msm8660_groups[] = {
+static const struct msm_pingroup msm8660_groups[] =
+{
 	PINGROUP(0, lcdc, dsub, _, _, _, _, _),
 	PINGROUP(1, lcdc, dsub, _, _, _, _, _),
 	PINGROUP(2, lcdc, dsub, _, _, _, _, _),
@@ -971,7 +1028,8 @@ static const struct msm_pingroup msm8660_groups[] = {
 
 #define NUM_GPIO_PINGROUPS 173
 
-static const struct msm_pinctrl_soc_data msm8660_pinctrl = {
+static const struct msm_pinctrl_soc_data msm8660_pinctrl =
+{
 	.pins = msm8660_pins,
 	.npins = ARRAY_SIZE(msm8660_pins),
 	.functions = msm8660_functions,
@@ -986,12 +1044,14 @@ static int msm8660_pinctrl_probe(struct platform_device *pdev)
 	return msm_pinctrl_probe(pdev, &msm8660_pinctrl);
 }
 
-static const struct of_device_id msm8660_pinctrl_of_match[] = {
+static const struct of_device_id msm8660_pinctrl_of_match[] =
+{
 	{ .compatible = "qcom,msm8660-pinctrl", },
 	{ },
 };
 
-static struct platform_driver msm8660_pinctrl_driver = {
+static struct platform_driver msm8660_pinctrl_driver =
+{
 	.driver = {
 		.name = "msm8660-pinctrl",
 		.of_match_table = msm8660_pinctrl_of_match,

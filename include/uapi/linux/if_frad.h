@@ -30,34 +30,35 @@
 
 struct dlci_add
 {
-   char  devname[IFNAMSIZ];
-   short dlci;
+	char  devname[IFNAMSIZ];
+	short dlci;
 };
 
 #define DLCI_GET_CONF	(SIOCDEVPRIVATE + 2)
 #define DLCI_SET_CONF	(SIOCDEVPRIVATE + 3)
 
-/* 
- * These are related to the Sangoma SDLA and should remain in order. 
- * Code within the SDLA module is based on the specifics of this 
+/*
+ * These are related to the Sangoma SDLA and should remain in order.
+ * Code within the SDLA module is based on the specifics of this
  * structure.  Change at your own peril.
  */
-struct dlci_conf {
-   short flags;
-   short CIR_fwd;
-   short Bc_fwd;
-   short Be_fwd;
-   short CIR_bwd;
-   short Bc_bwd;
-   short Be_bwd; 
+struct dlci_conf
+{
+	short flags;
+	short CIR_fwd;
+	short Bc_fwd;
+	short Be_fwd;
+	short CIR_bwd;
+	short Bc_bwd;
+	short Be_bwd;
 
-/* these are part of the status read */
-   short Tc_fwd;
-   short Tc_bwd;
-   short Tf_max;
-   short Tb_max;
+	/* these are part of the status read */
+	short Tc_fwd;
+	short Tc_bwd;
+	short Tf_max;
+	short Tb_max;
 
-/* add any new fields here above is a mirror of sdla_dlci_conf */
+	/* add any new fields here above is a mirror of sdla_dlci_conf */
 };
 
 #define DLCI_GET_SLAVE	(SIOCDEVPRIVATE + 4)
@@ -76,30 +77,30 @@ struct dlci_conf {
 #define FRAD_LAST_IOCTL	FRAD_SET_CONF
 
 /*
- * Based on the setup for the Sangoma SDLA.  If changes are 
- * necessary to this structure, a routine will need to be 
+ * Based on the setup for the Sangoma SDLA.  If changes are
+ * necessary to this structure, a routine will need to be
  * added to that module to copy fields.
  */
-struct frad_conf 
+struct frad_conf
 {
-   short station;
-   short flags;
-   short kbaud;
-   short clocking;
-   short mtu;
-   short T391;
-   short T392;
-   short N391;
-   short N392;
-   short N393;
-   short CIR_fwd;
-   short Bc_fwd;
-   short Be_fwd;
-   short CIR_bwd;
-   short Bc_bwd;
-   short Be_bwd;
+	short station;
+	short flags;
+	short kbaud;
+	short clocking;
+	short mtu;
+	short T391;
+	short T392;
+	short N391;
+	short N392;
+	short N393;
+	short CIR_fwd;
+	short Bc_fwd;
+	short Be_fwd;
+	short CIR_bwd;
+	short Bc_bwd;
+	short Be_bwd;
 
-/* Add new fields here, above is a mirror of the sdla_conf */
+	/* Add new fields here, above is a mirror of the sdla_conf */
 
 };
 

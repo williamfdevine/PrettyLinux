@@ -53,45 +53,57 @@
 static inline int rgmii_valid_mode(int phy_mode)
 {
 	return  phy_mode == PHY_MODE_GMII ||
-		phy_mode == PHY_MODE_MII ||
-		phy_mode == PHY_MODE_RGMII ||
-		phy_mode == PHY_MODE_TBI ||
-		phy_mode == PHY_MODE_RTBI;
+			phy_mode == PHY_MODE_MII ||
+			phy_mode == PHY_MODE_RGMII ||
+			phy_mode == PHY_MODE_TBI ||
+			phy_mode == PHY_MODE_RTBI;
 }
 
 static inline const char *rgmii_mode_name(int mode)
 {
-	switch (mode) {
-	case PHY_MODE_RGMII:
-		return "RGMII";
-	case PHY_MODE_TBI:
-		return "TBI";
-	case PHY_MODE_GMII:
-		return "GMII";
-	case PHY_MODE_MII:
-		return "MII";
-	case PHY_MODE_RTBI:
-		return "RTBI";
-	default:
-		BUG();
+	switch (mode)
+	{
+		case PHY_MODE_RGMII:
+			return "RGMII";
+
+		case PHY_MODE_TBI:
+			return "TBI";
+
+		case PHY_MODE_GMII:
+			return "GMII";
+
+		case PHY_MODE_MII:
+			return "MII";
+
+		case PHY_MODE_RTBI:
+			return "RTBI";
+
+		default:
+			BUG();
 	}
 }
 
 static inline u32 rgmii_mode_mask(int mode, int input)
 {
-	switch (mode) {
-	case PHY_MODE_RGMII:
-		return RGMII_FER_RGMII(input);
-	case PHY_MODE_TBI:
-		return RGMII_FER_TBI(input);
-	case PHY_MODE_GMII:
-		return RGMII_FER_GMII(input);
-	case PHY_MODE_MII:
-		return RGMII_FER_MII(input);
-	case PHY_MODE_RTBI:
-		return RGMII_FER_RTBI(input);
-	default:
-		BUG();
+	switch (mode)
+	{
+		case PHY_MODE_RGMII:
+			return RGMII_FER_RGMII(input);
+
+		case PHY_MODE_TBI:
+			return RGMII_FER_TBI(input);
+
+		case PHY_MODE_GMII:
+			return RGMII_FER_GMII(input);
+
+		case PHY_MODE_MII:
+			return RGMII_FER_MII(input);
+
+		case PHY_MODE_RTBI:
+			return RGMII_FER_RTBI(input);
+
+		default:
+			BUG();
 	}
 }
 
@@ -103,9 +115,10 @@ int rgmii_attach(struct platform_device *ofdev, int input, int mode)
 	RGMII_DBG(dev, "attach(%d)" NL, input);
 
 	/* Check if we need to attach to a RGMII */
-	if (input < 0 || !rgmii_valid_mode(mode)) {
+	if (input < 0 || !rgmii_valid_mode(mode))
+	{
 		printk(KERN_ERR "%s: unsupported settings !\n",
-		       ofdev->dev.of_node->full_name);
+			   ofdev->dev.of_node->full_name);
 		return -ENODEV;
 	}
 
@@ -115,7 +128,7 @@ int rgmii_attach(struct platform_device *ofdev, int input, int mode)
 	out_be32(&p->fer, in_be32(&p->fer) | rgmii_mode_mask(mode, input));
 
 	printk(KERN_NOTICE "%s: input %d in %s mode\n",
-	       ofdev->dev.of_node->full_name, input, rgmii_mode_name(mode));
+		   ofdev->dev.of_node->full_name, input, rgmii_mode_name(mode));
 
 	++dev->users;
 
@@ -137,11 +150,17 @@ void rgmii_set_speed(struct platform_device *ofdev, int input, int speed)
 	RGMII_DBG(dev, "speed(%d, %d)" NL, input, speed);
 
 	if (speed == SPEED_1000)
+	{
 		ssr |= RGMII_SSR_1000(input);
+	}
 	else if (speed == SPEED_100)
+	{
 		ssr |= RGMII_SSR_100(input);
+	}
 	else if (speed == SPEED_10)
+	{
 		ssr |= RGMII_SSR_10(input);
+	}
 
 	out_be32(&p->ssr, ssr);
 
@@ -157,7 +176,9 @@ void rgmii_get_mdio(struct platform_device *ofdev, int input)
 	RGMII_DBG2(dev, "get_mdio(%d)" NL, input);
 
 	if (!(dev->flags & EMAC_RGMII_FLAG_HAS_MDIO))
+	{
 		return;
+	}
 
 	mutex_lock(&dev->lock);
 
@@ -178,7 +199,9 @@ void rgmii_put_mdio(struct platform_device *ofdev, int input)
 	RGMII_DBG2(dev, "put_mdio(%d)" NL, input);
 
 	if (!(dev->flags & EMAC_RGMII_FLAG_HAS_MDIO))
+	{
 		return;
+	}
 
 	fer = in_be32(&p->fer);
 	fer &= ~(0x00080000u >> input);
@@ -213,7 +236,7 @@ void rgmii_detach(struct platform_device *ofdev, int input)
 int rgmii_get_regs_len(struct platform_device *ofdev)
 {
 	return sizeof(struct emac_ethtool_regs_subhdr) +
-		sizeof(struct rgmii_regs);
+		   sizeof(struct rgmii_regs);
 }
 
 void *rgmii_dump_regs(struct platform_device *ofdev, void *buf)
@@ -241,55 +264,66 @@ static int rgmii_probe(struct platform_device *ofdev)
 
 	rc = -ENOMEM;
 	dev = kzalloc(sizeof(struct rgmii_instance), GFP_KERNEL);
+
 	if (dev == NULL)
+	{
 		goto err_gone;
+	}
 
 	mutex_init(&dev->lock);
 	dev->ofdev = ofdev;
 
 	rc = -ENXIO;
-	if (of_address_to_resource(np, 0, &regs)) {
+
+	if (of_address_to_resource(np, 0, &regs))
+	{
 		printk(KERN_ERR "%s: Can't get registers address\n",
-		       np->full_name);
+			   np->full_name);
 		goto err_free;
 	}
 
 	rc = -ENOMEM;
 	dev->base = (struct rgmii_regs __iomem *)ioremap(regs.start,
-						 sizeof(struct rgmii_regs));
-	if (dev->base == NULL) {
+				sizeof(struct rgmii_regs));
+
+	if (dev->base == NULL)
+	{
 		printk(KERN_ERR "%s: Can't map device registers!\n",
-		       np->full_name);
+			   np->full_name);
 		goto err_free;
 	}
 
 	/* Check for RGMII flags */
 	if (of_get_property(ofdev->dev.of_node, "has-mdio", NULL))
+	{
 		dev->flags |= EMAC_RGMII_FLAG_HAS_MDIO;
+	}
 
 	/* CAB lacks the right properties, fix this up */
 	if (of_device_is_compatible(ofdev->dev.of_node, "ibm,rgmii-axon"))
+	{
 		dev->flags |= EMAC_RGMII_FLAG_HAS_MDIO;
+	}
 
 	DBG2(dev, " Boot FER = 0x%08x, SSR = 0x%08x\n",
-	     in_be32(&dev->base->fer), in_be32(&dev->base->ssr));
+		 in_be32(&dev->base->fer), in_be32(&dev->base->ssr));
 
 	/* Disable all inputs by default */
 	out_be32(&dev->base->fer, 0);
 
 	printk(KERN_INFO
-	       "RGMII %s initialized with%s MDIO support\n",
-	       ofdev->dev.of_node->full_name,
-	       (dev->flags & EMAC_RGMII_FLAG_HAS_MDIO) ? "" : "out");
+		   "RGMII %s initialized with%s MDIO support\n",
+		   ofdev->dev.of_node->full_name,
+		   (dev->flags & EMAC_RGMII_FLAG_HAS_MDIO) ? "" : "out");
 
 	wmb();
 	platform_set_drvdata(ofdev, dev);
 
 	return 0;
 
- err_free:
+err_free:
 	kfree(dev);
- err_gone:
+err_gone:
 	return rc;
 }
 
@@ -316,7 +350,8 @@ static const struct of_device_id rgmii_match[] =
 	{},
 };
 
-static struct platform_driver rgmii_driver = {
+static struct platform_driver rgmii_driver =
+{
 	.driver = {
 		.name = "emac-rgmii",
 		.of_match_table = rgmii_match,

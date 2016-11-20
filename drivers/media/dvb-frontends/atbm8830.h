@@ -28,7 +28,8 @@
 #define ATBM8830_PROD_8830 0
 #define ATBM8830_PROD_8831 1
 
-struct atbm8830_config {
+struct atbm8830_config
+{
 
 	/* product type */
 	u8 prod;
@@ -66,7 +67,8 @@ extern struct dvb_frontend *atbm8830_attach(const struct atbm8830_config *config
 #else
 static inline
 struct dvb_frontend *atbm8830_attach(const struct atbm8830_config *config,
-		struct i2c_adapter *i2c) {
+									 struct i2c_adapter *i2c)
+{
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;
 }

@@ -37,7 +37,8 @@
  *	for synchronous calls.
  * @spi_lock: mutex to allow only one spi transfer at a time.
  */
-struct st95hf_spi_context {
+struct st95hf_spi_context
+{
 	bool req_issync;
 	struct spi_device *spidev;
 	struct completion done;
@@ -45,20 +46,21 @@ struct st95hf_spi_context {
 };
 
 /* flag to differentiate synchronous & asynchronous spi request */
-enum req_type {
+enum req_type
+{
 	SYNC,
 	ASYNC,
 };
 
 int st95hf_spi_send(struct st95hf_spi_context *spicontext,
-		    unsigned char *buffertx,
-		    int datalen,
-		    enum req_type reqtype);
+					unsigned char *buffertx,
+					int datalen,
+					enum req_type reqtype);
 
 int st95hf_spi_recv_response(struct st95hf_spi_context *spicontext,
-			     unsigned char *receivebuff);
+							 unsigned char *receivebuff);
 
 int st95hf_spi_recv_echo_res(struct st95hf_spi_context *spicontext,
-			     unsigned char *receivebuff);
+							 unsigned char *receivebuff);
 
 #endif

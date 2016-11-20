@@ -418,8 +418,10 @@
  */
 #define GIC_IRQ_TYPE_LPI		0xa110c8ed
 
-struct rdists {
-	struct {
+struct rdists
+{
+	struct
+	{
 		void __iomem	*rd_base;
 		struct page	*pend_page;
 		phys_addr_t	phys_base;
@@ -433,15 +435,18 @@ struct irq_domain;
 struct fwnode_handle;
 int its_cpu_init(void);
 int its_init(struct fwnode_handle *handle, struct rdists *rdists,
-	     struct irq_domain *domain);
+			 struct irq_domain *domain);
 
 static inline bool gic_enable_sre(void)
 {
 	u32 val;
 
 	val = gic_read_sre();
+
 	if (val & ICC_SRE_EL1_SRE)
+	{
 		return true;
+	}
 
 	val |= ICC_SRE_EL1_SRE;
 	gic_write_sre(val);

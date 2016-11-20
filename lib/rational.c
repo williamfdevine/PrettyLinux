@@ -37,15 +37,23 @@ void rational_best_approximation(
 	d = given_denominator;
 	n0 = d1 = 0;
 	n1 = d0 = 1;
-	for (;;) {
+
+	for (;;)
+	{
 		unsigned long t, a;
-		if ((n1 > max_numerator) || (d1 > max_denominator)) {
+
+		if ((n1 > max_numerator) || (d1 > max_denominator))
+		{
 			n1 = n0;
 			d1 = d0;
 			break;
 		}
+
 		if (d == 0)
+		{
 			break;
+		}
+
 		t = d;
 		a = n / d;
 		d = n % d;
@@ -57,6 +65,7 @@ void rational_best_approximation(
 		d0 = d1;
 		d1 = t;
 	}
+
 	*best_numerator = n1;
 	*best_denominator = d1;
 }

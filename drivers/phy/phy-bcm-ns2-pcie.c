@@ -30,15 +30,21 @@ static int ns2_pci_phy_init(struct phy *p)
 
 	/* select the AFE 100MHz block page */
 	rc = mdiobus_write(mdiodev->bus, mdiodev->addr,
-			   BLK_ADDR_REG_OFFSET, PLL_AFE1_100MHZ_BLK);
+					   BLK_ADDR_REG_OFFSET, PLL_AFE1_100MHZ_BLK);
+
 	if (rc)
+	{
 		goto err;
+	}
 
 	/* set the 100 MHz reference clock amplitude to 2.05 v */
 	rc = mdiobus_write(mdiodev->bus, mdiodev->addr,
-			   PLL_CLK_AMP_OFFSET, PLL_CLK_AMP_2P05V);
+					   PLL_CLK_AMP_OFFSET, PLL_CLK_AMP_2P05V);
+
 	if (rc)
+	{
 		goto err;
+	}
 
 	return 0;
 
@@ -47,7 +53,8 @@ err:
 	return rc;
 }
 
-static const struct phy_ops ns2_pci_phy_ops = {
+static const struct phy_ops ns2_pci_phy_ops =
+{
 	.init = ns2_pci_phy_init,
 	.owner = THIS_MODULE,
 };
@@ -59,7 +66,9 @@ static int ns2_pci_phy_probe(struct mdio_device *mdiodev)
 	struct phy *phy;
 
 	phy = devm_phy_create(dev, dev->of_node, &ns2_pci_phy_ops);
-	if (IS_ERR(phy)) {
+
+	if (IS_ERR(phy))
+	{
 		dev_err(dev, "failed to create Phy\n");
 		return PTR_ERR(phy);
 	}
@@ -67,8 +76,10 @@ static int ns2_pci_phy_probe(struct mdio_device *mdiodev)
 	phy_set_drvdata(phy, mdiodev);
 
 	provider = devm_of_phy_provider_register(&phy->dev,
-						 of_phy_simple_xlate);
-	if (IS_ERR(provider)) {
+			   of_phy_simple_xlate);
+
+	if (IS_ERR(provider))
+	{
 		dev_err(dev, "failed to register Phy provider\n");
 		return PTR_ERR(provider);
 	}
@@ -78,13 +89,15 @@ static int ns2_pci_phy_probe(struct mdio_device *mdiodev)
 	return 0;
 }
 
-static const struct of_device_id ns2_pci_phy_of_match[] = {
+static const struct of_device_id ns2_pci_phy_of_match[] =
+{
 	{ .compatible = "brcm,ns2-pcie-phy", },
 	{ /* sentinel */ },
 };
 MODULE_DEVICE_TABLE(of, ns2_pci_phy_of_match);
 
-static struct mdio_driver ns2_pci_phy_driver = {
+static struct mdio_driver ns2_pci_phy_driver =
+{
 	.mdiodrv = {
 		.driver = {
 			.name = "phy-bcm-ns2-pci",

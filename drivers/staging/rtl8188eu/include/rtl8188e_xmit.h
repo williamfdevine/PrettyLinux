@@ -97,7 +97,8 @@
 /* OFFSET 20 */
 #define	RTY_LMT_EN		BIT(17)
 
-enum TXDESC_SC {
+enum TXDESC_SC
+{
 	SC_DONT_CARE = 0x00,
 	SC_UPPER = 0x01,
 	SC_LOWER = 0x02,
@@ -113,24 +114,25 @@ enum TXDESC_SC {
 		((struct txdesc_88e *)(txdesc))->sw0 = ((value) & 0xff); \
 	} while (0)
 
-struct txrpt_ccx_88e {
+struct txrpt_ccx_88e
+{
 	/* offset 0 */
-	u8 tag1:1;
-	u8 pkt_num:3;
-	u8 txdma_underflow:1;
-	u8 int_bt:1;
-	u8 int_tri:1;
-	u8 int_ccx:1;
+	u8 tag1: 1;
+	u8 pkt_num: 3;
+	u8 txdma_underflow: 1;
+	u8 int_bt: 1;
+	u8 int_tri: 1;
+	u8 int_ccx: 1;
 
 	/* offset 1 */
-	u8 mac_id:6;
-	u8 pkt_ok:1;
-	u8 bmc:1;
+	u8 mac_id: 6;
+	u8 pkt_ok: 1;
+	u8 bmc: 1;
 
 	/* offset 2 */
-	u8 retry_cnt:6;
-	u8 lifetime_over:1;
-	u8 retry_over:1;
+	u8 retry_cnt: 6;
+	u8 lifetime_over: 1;
+	u8 retry_over: 1;
 
 	/* offset 3 */
 	u8 ccx_qtime0;
@@ -140,8 +142,8 @@ struct txrpt_ccx_88e {
 	u8 final_data_rate;
 
 	/* offset 6 */
-	u8 sw1:4;
-	u8 qsel:4;
+	u8 sw1: 4;
+	u8 qsel: 4;
 
 	/* offset 7 */
 	u8 sw0;
@@ -152,18 +154,18 @@ struct txrpt_ccx_88e {
 	((txrpt_ccx)->ccx_qtime0+((txrpt_ccx)->ccx_qtime1<<8))
 
 void rtl8188e_fill_fake_txdesc(struct adapter *padapter, u8 *pDesc,
-			       u32 BufferLen, u8 IsPsPoll, u8 IsBTQosNull);
+							   u32 BufferLen, u8 IsPsPoll, u8 IsBTQosNull);
 s32 rtl8188eu_init_xmit_priv(struct adapter *padapter);
 s32 rtl8188eu_xmit_buf_handler(struct adapter *padapter);
 #define hal_xmit_handler rtl8188eu_xmit_buf_handler
 void rtl8188eu_xmit_tasklet(void *priv);
 s32 rtl8188eu_xmitframe_complete(struct adapter *padapter,
-				 struct xmit_priv *pxmitpriv);
+								 struct xmit_priv *pxmitpriv);
 
 void dump_txrpt_ccx_88e(void *buf);
 void handle_txrpt_ccx_88e(struct adapter *adapter, u8 *buf);
 
 void _dbg_dump_tx_info(struct adapter *padapter, int frame_tag,
-		       struct tx_desc *ptxdesc);
+					   struct tx_desc *ptxdesc);
 
 #endif /* __RTL8188E_XMIT_H__ */

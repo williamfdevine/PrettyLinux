@@ -21,13 +21,15 @@
  * to send some io down.
  */
 struct path_selector_type;
-struct path_selector {
+struct path_selector
+{
 	struct path_selector_type *type;
 	void *context;
 };
 
 /* Information about a path selector type */
-struct path_selector_type {
+struct path_selector_type
+{
 	char *name;
 	struct module *module;
 
@@ -45,14 +47,14 @@ struct path_selector_type {
 	 * path args (eg, path priority).
 	 */
 	int (*add_path) (struct path_selector *ps, struct dm_path *path,
-			 int argc, char **argv, char **error);
+					 int argc, char **argv, char **error);
 
 	/*
 	 * Chooses a path for this io, if no paths are available then
 	 * NULL will be returned.
 	 */
 	struct dm_path *(*select_path) (struct path_selector *ps,
-					size_t nr_bytes);
+									size_t nr_bytes);
 
 	/*
 	 * Notify the selector that a path has failed.
@@ -69,12 +71,12 @@ struct path_selector_type {
 	 * or path selector status
 	 */
 	int (*status) (struct path_selector *ps, struct dm_path *path,
-		       status_type_t type, char *result, unsigned int maxlen);
+				   status_type_t type, char *result, unsigned int maxlen);
 
 	int (*start_io) (struct path_selector *ps, struct dm_path *path,
-			 size_t nr_bytes);
+					 size_t nr_bytes);
 	int (*end_io) (struct path_selector *ps, struct dm_path *path,
-		       size_t nr_bytes);
+				   size_t nr_bytes);
 };
 
 /* Register a path selector */

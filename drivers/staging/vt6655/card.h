@@ -52,14 +52,16 @@
 #define CB_MAX_CHANNEL_5G       42
 #define CB_MAX_CHANNEL          (CB_MAX_CHANNEL_24G+CB_MAX_CHANNEL_5G)
 
-typedef enum _CARD_PKT_TYPE {
+typedef enum _CARD_PKT_TYPE
+{
 	PKT_TYPE_802_11_BCN,
 	PKT_TYPE_802_11_MNG,
 	PKT_TYPE_802_11_DATA,
 	PKT_TYPE_802_11_ALL
 } CARD_PKT_TYPE, *PCARD_PKT_TYPE;
 
-typedef enum _CARD_STATUS_TYPE {
+typedef enum _CARD_STATUS_TYPE
+{
 	CARD_STATUS_MEDIA_CONNECT,
 	CARD_STATUS_MEDIA_DISCONNECT,
 	CARD_STATUS_PMKID
@@ -73,9 +75,9 @@ bool CARDbIsOFDMinBasicRate(struct vnt_private *);
 void CARDvSetLoopbackMode(struct vnt_private *, unsigned short wLoopbackMode);
 bool CARDbSoftwareReset(struct vnt_private *);
 void CARDvSetFirstNextTBTT(struct vnt_private *,
-			   unsigned short wBeaconInterval);
+						   unsigned short wBeaconInterval);
 void CARDvUpdateNextTBTT(struct vnt_private *, u64 qwTSF,
-			 unsigned short wBeaconInterval);
+						 unsigned short wBeaconInterval);
 bool CARDbGetCurrentTSF(struct vnt_private *, u64 *pqwCurrTSF);
 u64 CARDqGetNextTBTT(u64 qwTSF, unsigned short wBeaconInterval);
 u64 CARDqGetTSFOffset(unsigned char byRxRate, u64 qwTSF1, u64 qwTSF2);
@@ -86,7 +88,7 @@ bool CARDbRadioPowerOff(struct vnt_private *);
 bool CARDbRadioPowerOn(struct vnt_private *);
 bool CARDbSetPhyParameter(struct vnt_private *, u8);
 bool CARDbUpdateTSF(struct vnt_private *, unsigned char byRxRate,
-		    u64 qwBSSTimestamp);
+					u64 qwBSSTimestamp);
 bool CARDbSetBeaconPeriod(struct vnt_private *, unsigned short wBeaconInterval);
 
 #endif /* __CARD_H__ */

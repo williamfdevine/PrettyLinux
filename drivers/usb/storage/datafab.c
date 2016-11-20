@@ -11,7 +11,7 @@
  *   Many thanks to Robert Baruch for the SanDisk SmartMedia reader driver
  *   which I used as a template for this driver.
  *
- *   Some bugfixes and scatter-gather code by Gregory P. Smith 
+ *   Some bugfixes and scatter-gather code by Gregory P. Smith
  *   (greg-usb@electricrain.com)
  *
  *   Fix for media change by Joerg Schneider (js@joergschneider.com)
@@ -36,8 +36,8 @@
 
 /*
  * This driver attempts to support USB CompactFlash reader/writer devices
- * based on Datafab USB-to-ATA chips.  It was specifically developed for the 
- * Datafab MDCFE-B USB CompactFlash reader but has since been found to work 
+ * based on Datafab USB-to-ATA chips.  It was specifically developed for the
+ * Datafab MDCFE-B USB CompactFlash reader but has since been found to work
  * with a variety of Datafab-based devices from a number of manufacturers.
  * I've received a report of this driver working with a Datafab-based
  * SmartMedia device though please be aware that I'm personally unable to
@@ -68,7 +68,8 @@ MODULE_DESCRIPTION("Driver for Datafab USB Compact Flash reader");
 MODULE_AUTHOR("Jimmie Mayfield <mayfield+datafab@sackheads.org>");
 MODULE_LICENSE("GPL");
 
-struct datafab_info {
+struct datafab_info
+{
 	unsigned long   sectors;	/* total sector count */
 	unsigned long   ssize;		/* sector size in bytes */
 	signed char	lun;		/* used for dual-slot readers */
@@ -80,19 +81,20 @@ struct datafab_info {
 };
 
 static int datafab_determine_lun(struct us_data *us,
-				 struct datafab_info *info);
+								 struct datafab_info *info);
 
 
 /*
  * The table of devices
  */
 #define UNUSUAL_DEV(id_vendor, id_product, bcdDeviceMin, bcdDeviceMax, \
-		    vendorName, productName, useProtocol, useTransport, \
-		    initFunction, flags) \
+					vendorName, productName, useProtocol, useTransport, \
+					initFunction, flags) \
 { USB_DEVICE_VER(id_vendor, id_product, bcdDeviceMin, bcdDeviceMax), \
-  .driver_info = (flags) }
+	.driver_info = (flags) }
 
-static struct usb_device_id datafab_usb_ids[] = {
+static struct usb_device_id datafab_usb_ids[] =
+{
 #	include "unusual_datafab.h"
 	{ }		/* Terminating entry */
 };
@@ -104,17 +106,18 @@ MODULE_DEVICE_TABLE(usb, datafab_usb_ids);
  * The flags table
  */
 #define UNUSUAL_DEV(idVendor, idProduct, bcdDeviceMin, bcdDeviceMax, \
-		    vendor_name, product_name, use_protocol, use_transport, \
-		    init_function, Flags) \
+					vendor_name, product_name, use_protocol, use_transport, \
+					init_function, Flags) \
 { \
 	.vendorName = vendor_name,	\
-	.productName = product_name,	\
-	.useProtocol = use_protocol,	\
-	.useTransport = use_transport,	\
-	.initFunction = init_function,	\
+				  .productName = product_name,	\
+								 .useProtocol = use_protocol,	\
+										 .useTransport = use_transport,	\
+												 .initFunction = init_function,	\
 }
 
-static struct us_unusual_dev datafab_unusual_dev_list[] = {
+static struct us_unusual_dev datafab_unusual_dev_list[] =
+{
 #	include "unusual_datafab.h"
 	{ }		/* Terminating entry */
 };
@@ -123,31 +126,37 @@ static struct us_unusual_dev datafab_unusual_dev_list[] = {
 
 
 static inline int
-datafab_bulk_read(struct us_data *us, unsigned char *data, unsigned int len) {
+datafab_bulk_read(struct us_data *us, unsigned char *data, unsigned int len)
+{
 	if (len == 0)
+	{
 		return USB_STOR_XFER_GOOD;
+	}
 
 	usb_stor_dbg(us, "len = %d\n", len);
 	return usb_stor_bulk_transfer_buf(us, us->recv_bulk_pipe,
-			data, len, NULL);
+									  data, len, NULL);
 }
 
 
 static inline int
-datafab_bulk_write(struct us_data *us, unsigned char *data, unsigned int len) {
+datafab_bulk_write(struct us_data *us, unsigned char *data, unsigned int len)
+{
 	if (len == 0)
+	{
 		return USB_STOR_XFER_GOOD;
+	}
 
 	usb_stor_dbg(us, "len = %d\n", len);
 	return usb_stor_bulk_transfer_buf(us, us->send_bulk_pipe,
-			data, len, NULL);
+									  data, len, NULL);
 }
 
 
 static int datafab_read_data(struct us_data *us,
-			     struct datafab_info *info,
-			     u32 sector,
-			     u32 sectors)
+							 struct datafab_info *info,
+							 u32 sector,
+							 u32 sectors)
 {
 	unsigned char *command = us->iobuf;
 	unsigned char *buffer;
@@ -157,18 +166,24 @@ static int datafab_read_data(struct us_data *us,
 	unsigned int sg_offset = 0;
 	struct scatterlist *sg = NULL;
 
-	// we're working in LBA mode.  according to the ATA spec, 
+	// we're working in LBA mode.  according to the ATA spec,
 	// we can support up to 28-bit addressing.  I don't know if Datafab
-	// supports beyond 24-bit addressing.  It's kind of hard to test 
+	// supports beyond 24-bit addressing.  It's kind of hard to test
 	// since it requires > 8GB CF card.
 	//
 	if (sectors > 0x0FFFFFFF)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
-	if (info->lun == -1) {
+	if (info->lun == -1)
+	{
 		result = datafab_determine_lun(us, info);
+
 		if (result != USB_STOR_TRANSPORT_GOOD)
+		{
 			return result;
+		}
 	}
 
 	totallen = sectors * info->ssize;
@@ -179,10 +194,14 @@ static int datafab_read_data(struct us_data *us,
 
 	alloclen = min(totallen, 65536u);
 	buffer = kmalloc(alloclen, GFP_NOIO);
-	if (buffer == NULL)
-		return USB_STOR_TRANSPORT_ERROR;
 
-	do {
+	if (buffer == NULL)
+	{
+		return USB_STOR_TRANSPORT_ERROR;
+	}
+
+	do
+	{
 		// loop, never allocate or transfer more than 64k at once
 		// (min(128k, 255*info->ssize) is the real limit)
 
@@ -202,35 +221,42 @@ static int datafab_read_data(struct us_data *us,
 
 		// send the read command
 		result = datafab_bulk_write(us, command, 8);
+
 		if (result != USB_STOR_XFER_GOOD)
+		{
 			goto leave;
+		}
 
 		// read the result
 		result = datafab_bulk_read(us, buffer, len);
+
 		if (result != USB_STOR_XFER_GOOD)
+		{
 			goto leave;
+		}
 
 		// Store the data in the transfer buffer
 		usb_stor_access_xfer_buf(buffer, len, us->srb,
-				 &sg, &sg_offset, TO_XFER_BUF);
+								 &sg, &sg_offset, TO_XFER_BUF);
 
 		sector += thistime;
 		totallen -= len;
-	} while (totallen > 0);
+	}
+	while (totallen > 0);
 
 	kfree(buffer);
 	return USB_STOR_TRANSPORT_GOOD;
 
- leave:
+leave:
 	kfree(buffer);
 	return USB_STOR_TRANSPORT_ERROR;
 }
 
 
 static int datafab_write_data(struct us_data *us,
-			      struct datafab_info *info,
-			      u32 sector,
-			      u32 sectors)
+							  struct datafab_info *info,
+							  u32 sector,
+							  u32 sectors)
 {
 	unsigned char *command = us->iobuf;
 	unsigned char *reply = us->iobuf;
@@ -241,18 +267,24 @@ static int datafab_write_data(struct us_data *us,
 	unsigned int sg_offset = 0;
 	struct scatterlist *sg = NULL;
 
-	// we're working in LBA mode.  according to the ATA spec, 
+	// we're working in LBA mode.  according to the ATA spec,
 	// we can support up to 28-bit addressing.  I don't know if Datafab
-	// supports beyond 24-bit addressing.  It's kind of hard to test 
+	// supports beyond 24-bit addressing.  It's kind of hard to test
 	// since it requires > 8GB CF card.
 	//
 	if (sectors > 0x0FFFFFFF)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
-	if (info->lun == -1) {
+	if (info->lun == -1)
+	{
 		result = datafab_determine_lun(us, info);
+
 		if (result != USB_STOR_TRANSPORT_GOOD)
+		{
 			return result;
+		}
 	}
 
 	totallen = sectors * info->ssize;
@@ -263,10 +295,14 @@ static int datafab_write_data(struct us_data *us,
 
 	alloclen = min(totallen, 65536u);
 	buffer = kmalloc(alloclen, GFP_NOIO);
-	if (buffer == NULL)
-		return USB_STOR_TRANSPORT_ERROR;
 
-	do {
+	if (buffer == NULL)
+	{
+		return USB_STOR_TRANSPORT_ERROR;
+	}
+
+	do
+	{
 		// loop, never allocate or transfer more than 64k at once
 		// (min(128k, 255*info->ssize) is the real limit)
 
@@ -275,7 +311,7 @@ static int datafab_write_data(struct us_data *us,
 
 		// Get the data from the transfer buffer
 		usb_stor_access_xfer_buf(buffer, len, us->srb,
-				&sg, &sg_offset, FROM_XFER_BUF);
+								 &sg, &sg_offset, FROM_XFER_BUF);
 
 		command[0] = 0;
 		command[1] = thistime;
@@ -290,41 +326,52 @@ static int datafab_write_data(struct us_data *us,
 
 		// send the command
 		result = datafab_bulk_write(us, command, 8);
+
 		if (result != USB_STOR_XFER_GOOD)
+		{
 			goto leave;
+		}
 
 		// send the data
 		result = datafab_bulk_write(us, buffer, len);
+
 		if (result != USB_STOR_XFER_GOOD)
+		{
 			goto leave;
+		}
 
 		// read the result
 		result = datafab_bulk_read(us, reply, 2);
-		if (result != USB_STOR_XFER_GOOD)
-			goto leave;
 
-		if (reply[0] != 0x50 && reply[1] != 0) {
+		if (result != USB_STOR_XFER_GOOD)
+		{
+			goto leave;
+		}
+
+		if (reply[0] != 0x50 && reply[1] != 0)
+		{
 			usb_stor_dbg(us, "Gah! write return code: %02x %02x\n",
-				     reply[0], reply[1]);
+						 reply[0], reply[1]);
 			result = USB_STOR_TRANSPORT_ERROR;
 			goto leave;
 		}
 
 		sector += thistime;
 		totallen -= len;
-	} while (totallen > 0);
+	}
+	while (totallen > 0);
 
 	kfree(buffer);
 	return USB_STOR_TRANSPORT_GOOD;
 
- leave:
+leave:
 	kfree(buffer);
 	return USB_STOR_TRANSPORT_ERROR;
 }
 
 
 static int datafab_determine_lun(struct us_data *us,
-				 struct datafab_info *info)
+								 struct datafab_info *info)
 {
 	// Dual-slot readers can be thought of as dual-LUN devices.
 	// We need to determine which card slot is being used.
@@ -338,28 +385,38 @@ static int datafab_determine_lun(struct us_data *us,
 	int count = 0, rc;
 
 	if (!info)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	memcpy(command, scommand, 8);
 	buf = kmalloc(512, GFP_NOIO);
+
 	if (!buf)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	usb_stor_dbg(us, "locating...\n");
 
 	// we'll try 3 times before giving up...
 	//
-	while (count++ < 3) {
+	while (count++ < 3)
+	{
 		command[5] = 0xa0;
 
 		rc = datafab_bulk_write(us, command, 8);
-		if (rc != USB_STOR_XFER_GOOD) {
+
+		if (rc != USB_STOR_XFER_GOOD)
+		{
 			rc = USB_STOR_TRANSPORT_ERROR;
 			goto leave;
 		}
 
 		rc = datafab_bulk_read(us, buf, 512);
-		if (rc == USB_STOR_XFER_GOOD) {
+
+		if (rc == USB_STOR_XFER_GOOD)
+		{
 			info->lun = 0;
 			rc = USB_STOR_TRANSPORT_GOOD;
 			goto leave;
@@ -368,13 +425,17 @@ static int datafab_determine_lun(struct us_data *us,
 		command[5] = 0xb0;
 
 		rc = datafab_bulk_write(us, command, 8);
-		if (rc != USB_STOR_XFER_GOOD) {
+
+		if (rc != USB_STOR_XFER_GOOD)
+		{
 			rc = USB_STOR_TRANSPORT_ERROR;
 			goto leave;
 		}
 
 		rc = datafab_bulk_read(us, buf, 512);
-		if (rc == USB_STOR_XFER_GOOD) {
+
+		if (rc == USB_STOR_XFER_GOOD)
+		{
 			info->lun = 1;
 			rc = USB_STOR_TRANSPORT_GOOD;
 			goto leave;
@@ -385,13 +446,13 @@ static int datafab_determine_lun(struct us_data *us,
 
 	rc = USB_STOR_TRANSPORT_ERROR;
 
- leave:
+leave:
 	kfree(buf);
 	return rc;
 }
 
 static int datafab_id_device(struct us_data *us,
-			     struct datafab_info *info)
+							 struct datafab_info *info)
 {
 	// this is a variation of the ATA "IDENTIFY DEVICE" command...according
 	// to the ATA spec, 'Sector Count' isn't used but the Windows driver
@@ -403,23 +464,34 @@ static int datafab_id_device(struct us_data *us,
 	int rc;
 
 	if (!info)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
-	if (info->lun == -1) {
+	if (info->lun == -1)
+	{
 		rc = datafab_determine_lun(us, info);
+
 		if (rc != USB_STOR_TRANSPORT_GOOD)
+		{
 			return rc;
+		}
 	}
 
 	memcpy(command, scommand, 8);
 	reply = kmalloc(512, GFP_NOIO);
+
 	if (!reply)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	command[5] += (info->lun << 4);
 
 	rc = datafab_bulk_write(us, command, 8);
-	if (rc != USB_STOR_XFER_GOOD) {
+
+	if (rc != USB_STOR_XFER_GOOD)
+	{
 		rc = USB_STOR_TRANSPORT_ERROR;
 		goto leave;
 	}
@@ -427,39 +499,45 @@ static int datafab_id_device(struct us_data *us,
 	// we'll go ahead and extract the media capacity while we're here...
 	//
 	rc = datafab_bulk_read(us, reply, 512);
-	if (rc == USB_STOR_XFER_GOOD) {
+
+	if (rc == USB_STOR_XFER_GOOD)
+	{
 		// capacity is at word offset 57-58
 		//
-		info->sectors = ((u32)(reply[117]) << 24) | 
-				((u32)(reply[116]) << 16) |
-				((u32)(reply[115]) <<  8) | 
-				((u32)(reply[114])      );
+		info->sectors = ((u32)(reply[117]) << 24) |
+						((u32)(reply[116]) << 16) |
+						((u32)(reply[115]) <<  8) |
+						((u32)(reply[114])      );
 		rc = USB_STOR_TRANSPORT_GOOD;
 		goto leave;
 	}
 
 	rc = USB_STOR_TRANSPORT_ERROR;
 
- leave:
+leave:
 	kfree(reply);
 	return rc;
 }
 
 
 static int datafab_handle_mode_sense(struct us_data *us,
-				     struct scsi_cmnd * srb, 
-				     int sense_6)
+									 struct scsi_cmnd *srb,
+									 int sense_6)
 {
-	static unsigned char rw_err_page[12] = {
+	static unsigned char rw_err_page[12] =
+	{
 		0x1, 0xA, 0x21, 1, 0, 0, 0, 0, 1, 0, 0, 0
 	};
-	static unsigned char cache_page[12] = {
+	static unsigned char cache_page[12] =
+	{
 		0x8, 0xA, 0x1, 0, 0, 0, 0, 0, 0, 0, 0, 0
 	};
-	static unsigned char rbac_page[12] = {
+	static unsigned char rbac_page[12] =
+	{
 		0x1B, 0xA, 0, 0x81, 0, 0, 0, 0, 0, 0, 0, 0
 	};
-	static unsigned char timer_page[8] = {
+	static unsigned char timer_page[8] =
+	{
 		0x1C, 0x6, 0, 0, 0, 0
 	};
 	unsigned char pc, page_code;
@@ -475,74 +553,88 @@ static int datafab_handle_mode_sense(struct us_data *us,
 	pc = srb->cmnd[2] >> 6;
 	page_code = srb->cmnd[2] & 0x3F;
 
-	switch (pc) {
-	   case 0x0:
-		   usb_stor_dbg(us, "Current values\n");
-		break;
-	   case 0x1:
-		   usb_stor_dbg(us, "Changeable values\n");
-		break;
-	   case 0x2:
-		   usb_stor_dbg(us, "Default values\n");
-		break;
-	   case 0x3:
-		   usb_stor_dbg(us, "Saves values\n");
-		break;
+	switch (pc)
+	{
+		case 0x0:
+			usb_stor_dbg(us, "Current values\n");
+			break;
+
+		case 0x1:
+			usb_stor_dbg(us, "Changeable values\n");
+			break;
+
+		case 0x2:
+			usb_stor_dbg(us, "Default values\n");
+			break;
+
+		case 0x3:
+			usb_stor_dbg(us, "Saves values\n");
+			break;
 	}
 
 	memset(ptr, 0, 8);
-	if (sense_6) {
+
+	if (sense_6)
+	{
 		ptr[2] = 0x00;		// WP enable: 0x80
 		i = 4;
-	} else {
+	}
+	else
+	{
 		ptr[3] = 0x00;		// WP enable: 0x80
 		i = 8;
 	}
 
-	switch (page_code) {
-	   default:
-		// vendor-specific mode
-		info->sense_key = 0x05;
-		info->sense_asc = 0x24;
-		info->sense_ascq = 0x00;
-		return USB_STOR_TRANSPORT_FAILED;
+	switch (page_code)
+	{
+		default:
+			// vendor-specific mode
+			info->sense_key = 0x05;
+			info->sense_asc = 0x24;
+			info->sense_ascq = 0x00;
+			return USB_STOR_TRANSPORT_FAILED;
 
-	   case 0x1:
-		memcpy(ptr + i, rw_err_page, sizeof(rw_err_page));
-		i += sizeof(rw_err_page);
-		break;
+		case 0x1:
+			memcpy(ptr + i, rw_err_page, sizeof(rw_err_page));
+			i += sizeof(rw_err_page);
+			break;
 
-	   case 0x8:
-		memcpy(ptr + i, cache_page, sizeof(cache_page));
-		i += sizeof(cache_page);
-		break;
+		case 0x8:
+			memcpy(ptr + i, cache_page, sizeof(cache_page));
+			i += sizeof(cache_page);
+			break;
 
-	   case 0x1B:
-		memcpy(ptr + i, rbac_page, sizeof(rbac_page));
-		i += sizeof(rbac_page);
-		break;
+		case 0x1B:
+			memcpy(ptr + i, rbac_page, sizeof(rbac_page));
+			i += sizeof(rbac_page);
+			break;
 
-	   case 0x1C:
-		memcpy(ptr + i, timer_page, sizeof(timer_page));
-		i += sizeof(timer_page);
-		break;
+		case 0x1C:
+			memcpy(ptr + i, timer_page, sizeof(timer_page));
+			i += sizeof(timer_page);
+			break;
 
-	   case 0x3F:		// retrieve all pages
-		memcpy(ptr + i, timer_page, sizeof(timer_page));
-		i += sizeof(timer_page);
-		memcpy(ptr + i, rbac_page, sizeof(rbac_page));
-		i += sizeof(rbac_page);
-		memcpy(ptr + i, cache_page, sizeof(cache_page));
-		i += sizeof(cache_page);
-		memcpy(ptr + i, rw_err_page, sizeof(rw_err_page));
-		i += sizeof(rw_err_page);
-		break;
+		case 0x3F:		// retrieve all pages
+			memcpy(ptr + i, timer_page, sizeof(timer_page));
+			i += sizeof(timer_page);
+			memcpy(ptr + i, rbac_page, sizeof(rbac_page));
+			i += sizeof(rbac_page);
+			memcpy(ptr + i, cache_page, sizeof(cache_page));
+			i += sizeof(cache_page);
+			memcpy(ptr + i, rw_err_page, sizeof(rw_err_page));
+			i += sizeof(rw_err_page);
+			break;
 	}
 
 	if (sense_6)
+	{
 		ptr[0] = i - 1;
+	}
 	else
+	{
 		((__be16 *) ptr)[0] = cpu_to_be16(i - 2);
+	}
+
 	usb_stor_set_xfer_buf(ptr, i, srb);
 
 	return USB_STOR_TRANSPORT_GOOD;
@@ -563,36 +655,46 @@ static int datafab_transport(struct scsi_cmnd *srb, struct us_data *us)
 	int rc;
 	unsigned long block, blocks;
 	unsigned char *ptr = us->iobuf;
-	static unsigned char inquiry_reply[8] = {
+	static unsigned char inquiry_reply[8] =
+	{
 		0x00, 0x80, 0x00, 0x01, 0x1F, 0x00, 0x00, 0x00
 	};
 
-	if (!us->extra) {
+	if (!us->extra)
+	{
 		us->extra = kzalloc(sizeof(struct datafab_info), GFP_NOIO);
+
 		if (!us->extra)
+		{
 			return USB_STOR_TRANSPORT_ERROR;
+		}
 
 		us->extra_destructor = datafab_info_destructor;
-  		((struct datafab_info *)us->extra)->lun = -1;
+		((struct datafab_info *)us->extra)->lun = -1;
 	}
 
 	info = (struct datafab_info *) (us->extra);
 
-	if (srb->cmnd[0] == INQUIRY) {
+	if (srb->cmnd[0] == INQUIRY)
+	{
 		usb_stor_dbg(us, "INQUIRY - Returning bogus response\n");
 		memcpy(ptr, inquiry_reply, sizeof(inquiry_reply));
 		fill_inquiry_response(us, ptr, 36);
 		return USB_STOR_TRANSPORT_GOOD;
 	}
 
-	if (srb->cmnd[0] == READ_CAPACITY) {
+	if (srb->cmnd[0] == READ_CAPACITY)
+	{
 		info->ssize = 0x200;  // hard coded 512 byte sectors as per ATA spec
 		rc = datafab_id_device(us, info);
+
 		if (rc != USB_STOR_TRANSPORT_GOOD)
+		{
 			return rc;
+		}
 
 		usb_stor_dbg(us, "READ_CAPACITY:  %ld sectors, %ld bytes per sector\n",
-			     info->sectors, info->ssize);
+					 info->sectors, info->ssize);
 
 		// build the reply
 		// we need the last sector, not the number of sectors
@@ -603,69 +705,76 @@ static int datafab_transport(struct scsi_cmnd *srb, struct us_data *us)
 		return USB_STOR_TRANSPORT_GOOD;
 	}
 
-	if (srb->cmnd[0] == MODE_SELECT_10) {
+	if (srb->cmnd[0] == MODE_SELECT_10)
+	{
 		usb_stor_dbg(us, "Gah! MODE_SELECT_10\n");
 		return USB_STOR_TRANSPORT_ERROR;
 	}
 
 	// don't bother implementing READ_6 or WRITE_6.
 	//
-	if (srb->cmnd[0] == READ_10) {
+	if (srb->cmnd[0] == READ_10)
+	{
 		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
-			((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
+				((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
 
 		blocks = ((u32)(srb->cmnd[7]) << 8) | ((u32)(srb->cmnd[8]));
 
 		usb_stor_dbg(us, "READ_10: read block 0x%04lx  count %ld\n",
-			     block, blocks);
+					 block, blocks);
 		return datafab_read_data(us, info, block, blocks);
 	}
 
-	if (srb->cmnd[0] == READ_12) {
+	if (srb->cmnd[0] == READ_12)
+	{
 		// we'll probably never see a READ_12 but we'll do it anyway...
 		//
 		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
-			((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
+				((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
 
 		blocks = ((u32)(srb->cmnd[6]) << 24) | ((u32)(srb->cmnd[7]) << 16) |
-			 ((u32)(srb->cmnd[8]) <<  8) | ((u32)(srb->cmnd[9]));
+				 ((u32)(srb->cmnd[8]) <<  8) | ((u32)(srb->cmnd[9]));
 
 		usb_stor_dbg(us, "READ_12: read block 0x%04lx  count %ld\n",
-			     block, blocks);
+					 block, blocks);
 		return datafab_read_data(us, info, block, blocks);
 	}
 
-	if (srb->cmnd[0] == WRITE_10) {
+	if (srb->cmnd[0] == WRITE_10)
+	{
 		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
-			((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
+				((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
 
 		blocks = ((u32)(srb->cmnd[7]) << 8) | ((u32)(srb->cmnd[8]));
 
 		usb_stor_dbg(us, "WRITE_10: write block 0x%04lx count %ld\n",
-			     block, blocks);
+					 block, blocks);
 		return datafab_write_data(us, info, block, blocks);
 	}
 
-	if (srb->cmnd[0] == WRITE_12) {
+	if (srb->cmnd[0] == WRITE_12)
+	{
 		// we'll probably never see a WRITE_12 but we'll do it anyway...
 		//
 		block = ((u32)(srb->cmnd[2]) << 24) | ((u32)(srb->cmnd[3]) << 16) |
-			((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
+				((u32)(srb->cmnd[4]) <<  8) | ((u32)(srb->cmnd[5]));
 
 		blocks = ((u32)(srb->cmnd[6]) << 24) | ((u32)(srb->cmnd[7]) << 16) |
-			 ((u32)(srb->cmnd[8]) <<  8) | ((u32)(srb->cmnd[9]));
+				 ((u32)(srb->cmnd[8]) <<  8) | ((u32)(srb->cmnd[9]));
 
 		usb_stor_dbg(us, "WRITE_12: write block 0x%04lx count %ld\n",
-			     block, blocks);
+					 block, blocks);
 		return datafab_write_data(us, info, block, blocks);
 	}
 
-	if (srb->cmnd[0] == TEST_UNIT_READY) {
+	if (srb->cmnd[0] == TEST_UNIT_READY)
+	{
 		usb_stor_dbg(us, "TEST_UNIT_READY\n");
 		return datafab_id_device(us, info);
 	}
 
-	if (srb->cmnd[0] == REQUEST_SENSE) {
+	if (srb->cmnd[0] == REQUEST_SENSE)
+	{
 		usb_stor_dbg(us, "REQUEST_SENSE - Returning faked response\n");
 
 		// this response is pretty bogus right now.  eventually if necessary
@@ -683,17 +792,20 @@ static int datafab_transport(struct scsi_cmnd *srb, struct us_data *us)
 		return USB_STOR_TRANSPORT_GOOD;
 	}
 
-	if (srb->cmnd[0] == MODE_SENSE) {
+	if (srb->cmnd[0] == MODE_SENSE)
+	{
 		usb_stor_dbg(us, "MODE_SENSE_6 detected\n");
 		return datafab_handle_mode_sense(us, srb, 1);
 	}
 
-	if (srb->cmnd[0] == MODE_SENSE_10) {
+	if (srb->cmnd[0] == MODE_SENSE_10)
+	{
 		usb_stor_dbg(us, "MODE_SENSE_10 detected\n");
 		return datafab_handle_mode_sense(us, srb, 0);
 	}
 
-	if (srb->cmnd[0] == ALLOW_MEDIUM_REMOVAL) {
+	if (srb->cmnd[0] == ALLOW_MEDIUM_REMOVAL)
+	{
 		/*
 		 * sure.  whatever.  not like we can stop the user from
 		 * popping the media out of the device (no locking doors, etc)
@@ -701,7 +813,8 @@ static int datafab_transport(struct scsi_cmnd *srb, struct us_data *us)
 		return USB_STOR_TRANSPORT_GOOD;
 	}
 
-	if (srb->cmnd[0] == START_STOP) {
+	if (srb->cmnd[0] == START_STOP)
+	{
 		/*
 		 * this is used by sd.c'check_scsidisk_media_change to detect
 		 * media change
@@ -712,18 +825,23 @@ static int datafab_transport(struct scsi_cmnd *srb, struct us_data *us)
 		 * an error (determined experimentally)
 		 */
 		rc = datafab_id_device(us, info);
-		if (rc == USB_STOR_TRANSPORT_GOOD) {
+
+		if (rc == USB_STOR_TRANSPORT_GOOD)
+		{
 			info->sense_key = NO_SENSE;
 			srb->result = SUCCESS;
-		} else {
+		}
+		else
+		{
 			info->sense_key = UNIT_ATTENTION;
 			srb->result = SAM_STAT_CHECK_CONDITION;
 		}
+
 		return rc;
 	}
 
 	usb_stor_dbg(us, "Gah! Unknown command: %d (0x%x)\n",
-		     srb->cmnd[0], srb->cmnd[0]);
+				 srb->cmnd[0], srb->cmnd[0]);
 	info->sense_key = 0x05;
 	info->sense_asc = 0x20;
 	info->sense_ascq = 0x00;
@@ -733,16 +851,19 @@ static int datafab_transport(struct scsi_cmnd *srb, struct us_data *us)
 static struct scsi_host_template datafab_host_template;
 
 static int datafab_probe(struct usb_interface *intf,
-			 const struct usb_device_id *id)
+						 const struct usb_device_id *id)
 {
 	struct us_data *us;
 	int result;
 
 	result = usb_stor_probe1(&us, intf, id,
-			(id - datafab_usb_ids) + datafab_unusual_dev_list,
-			&datafab_host_template);
+							 (id - datafab_usb_ids) + datafab_unusual_dev_list,
+							 &datafab_host_template);
+
 	if (result)
+	{
 		return result;
+	}
 
 	us->transport_name  = "Datafab Bulk-Only";
 	us->transport = datafab_transport;
@@ -753,7 +874,8 @@ static int datafab_probe(struct usb_interface *intf,
 	return result;
 }
 
-static struct usb_driver datafab_driver = {
+static struct usb_driver datafab_driver =
+{
 	.name =		DRV_NAME,
 	.probe =	datafab_probe,
 	.disconnect =	usb_stor_disconnect,

@@ -10,7 +10,8 @@
 /*
  * Device bus NAND private data
  */
-struct orion_nand_data {
+struct orion_nand_data
+{
 	struct mtd_partition *parts;
 	int (*dev_ready)(struct mtd_info *mtd);
 	u32 nr_parts;

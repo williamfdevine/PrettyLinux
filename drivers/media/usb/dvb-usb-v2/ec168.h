@@ -27,7 +27,8 @@
 #define EC168_USB_TIMEOUT 1000
 #define EC168_FIRMWARE "dvb-usb-ec168.fw"
 
-struct ec168_req {
+struct ec168_req
+{
 	u8  cmd;       /* [1] */
 	u16 value;     /* [2|3] */
 	u16 index;     /* [4|5] */
@@ -35,7 +36,8 @@ struct ec168_req {
 	u8  *data;
 };
 
-enum ec168_cmd {
+enum ec168_cmd
+{
 	DOWNLOAD_FIRMWARE    = 0x00,
 	CONFIG               = 0x01,
 	DEMOD_RW             = 0x03,

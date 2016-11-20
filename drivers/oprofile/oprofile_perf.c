@@ -12,7 +12,8 @@
 /*
  * Per performance monitor configuration as set via oprofilefs.
  */
-struct op_counter_config {
+struct op_counter_config
+{
 	unsigned long count;
 	unsigned long enabled;
 	unsigned long event;
@@ -33,20 +34,24 @@ static int num_counters;
  * Overflow callback for oprofile.
  */
 static void op_overflow_handler(struct perf_event *event,
-			struct perf_sample_data *data, struct pt_regs *regs)
+								struct perf_sample_data *data, struct pt_regs *regs)
 {
 	int id;
 	u32 cpu = smp_processor_id();
 
 	for (id = 0; id < num_counters; ++id)
 		if (per_cpu(perf_events, cpu)[id] == event)
+		{
 			break;
+		}
 
 	if (id != num_counters)
+	{
 		oprofile_add_sample(regs, id);
+	}
 	else
 		pr_warning("oprofile: ignoring spurious overflow "
-				"on cpu %u\n", cpu);
+				   "on cpu %u\n", cpu);
 }
 
 /*
@@ -60,7 +65,8 @@ static void op_perf_setup(void)
 	u32 size = sizeof(struct perf_event_attr);
 	struct perf_event_attr *attr;
 
-	for (i = 0; i < num_counters; ++i) {
+	for (i = 0; i < num_counters; ++i)
+	{
 		attr = &counter_config[i].attr;
 		memset(attr, 0, size);
 		attr->type		= PERF_TYPE_RAW;
@@ -76,19 +82,24 @@ static int op_create_counter(int cpu, int event)
 	struct perf_event *pevent;
 
 	if (!counter_config[event].enabled || per_cpu(perf_events, cpu)[event])
+	{
 		return 0;
+	}
 
 	pevent = perf_event_create_kernel_counter(&counter_config[event].attr,
-						  cpu, NULL,
-						  op_overflow_handler, NULL);
+			 cpu, NULL,
+			 op_overflow_handler, NULL);
 
 	if (IS_ERR(pevent))
+	{
 		return PTR_ERR(pevent);
+	}
 
-	if (pevent->state != PERF_EVENT_STATE_ACTIVE) {
+	if (pevent->state != PERF_EVENT_STATE_ACTIVE)
+	{
 		perf_event_release_kernel(pevent);
 		pr_warning("oprofile: failed to enable event %d "
-				"on CPU %d\n", event, cpu);
+				   "on CPU %d\n", event, cpu);
 		return -EBUSY;
 	}
 
@@ -101,7 +112,8 @@ static void op_destroy_counter(int cpu, int event)
 {
 	struct perf_event *pevent = per_cpu(perf_events, cpu)[event];
 
-	if (pevent) {
+	if (pevent)
+	{
 		perf_event_release_kernel(pevent);
 		per_cpu(perf_events, cpu)[event] = NULL;
 	}
@@ -115,11 +127,16 @@ static int op_perf_start(void)
 {
 	int cpu, event, ret = 0;
 
-	for_each_online_cpu(cpu) {
-		for (event = 0; event < num_counters; ++event) {
+	for_each_online_cpu(cpu)
+	{
+		for (event = 0; event < num_counters; ++event)
+		{
 			ret = op_create_counter(cpu, event);
+
 			if (ret)
+			{
 				return ret;
+			}
 		}
 	}
 
@@ -134,15 +151,19 @@ static void op_perf_stop(void)
 	int cpu, event;
 
 	for_each_online_cpu(cpu)
-		for (event = 0; event < num_counters; ++event)
-			op_destroy_counter(cpu, event);
+
+	for (event = 0; event < num_counters; ++event)
+	{
+		op_destroy_counter(cpu, event);
+	}
 }
 
 static int oprofile_perf_create_files(struct dentry *root)
 {
 	unsigned int i;
 
-	for (i = 0; i < num_counters; i++) {
+	for (i = 0; i < num_counters; i++)
+	{
 		struct dentry *dir;
 		char buf[4];
 
@@ -172,11 +193,14 @@ static int oprofile_perf_start(void)
 	int ret = -EBUSY;
 
 	mutex_lock(&oprofile_perf_mutex);
-	if (!oprofile_perf_enabled) {
+
+	if (!oprofile_perf_enabled)
+	{
 		ret = 0;
 		op_perf_start();
 		oprofile_perf_enabled = 1;
 	}
+
 	mutex_unlock(&oprofile_perf_mutex);
 	return ret;
 }
@@ -184,8 +208,12 @@ static int oprofile_perf_start(void)
 static void oprofile_perf_stop(void)
 {
 	mutex_lock(&oprofile_perf_mutex);
+
 	if (oprofile_perf_enabled)
+	{
 		op_perf_stop();
+	}
+
 	oprofile_perf_enabled = 0;
 	mutex_unlock(&oprofile_perf_mutex);
 }
@@ -195,8 +223,12 @@ static void oprofile_perf_stop(void)
 static int oprofile_perf_suspend(struct platform_device *dev, pm_message_t state)
 {
 	mutex_lock(&oprofile_perf_mutex);
+
 	if (oprofile_perf_enabled)
+	{
 		op_perf_stop();
+	}
+
 	mutex_unlock(&oprofile_perf_mutex);
 	return 0;
 }
@@ -204,13 +236,18 @@ static int oprofile_perf_suspend(struct platform_device *dev, pm_message_t state
 static int oprofile_perf_resume(struct platform_device *dev)
 {
 	mutex_lock(&oprofile_perf_mutex);
+
 	if (oprofile_perf_enabled && op_perf_start())
+	{
 		oprofile_perf_enabled = 0;
+	}
+
 	mutex_unlock(&oprofile_perf_mutex);
 	return 0;
 }
 
-static struct platform_driver oprofile_driver = {
+static struct platform_driver oprofile_driver =
+{
 	.driver		= {
 		.name		= "oprofile-perf",
 	},
@@ -225,12 +262,17 @@ static int __init init_driverfs(void)
 	int ret;
 
 	ret = platform_driver_register(&oprofile_driver);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	oprofile_pdev =	platform_device_register_simple(
-				oprofile_driver.driver.name, 0, NULL, 0);
-	if (IS_ERR(oprofile_pdev)) {
+						oprofile_driver.driver.name, 0, NULL, 0);
+
+	if (IS_ERR(oprofile_pdev))
+	{
 		ret = PTR_ERR(oprofile_pdev);
 		platform_driver_unregister(&oprofile_driver);
 	}
@@ -256,11 +298,16 @@ void oprofile_perf_exit(void)
 	int cpu, id;
 	struct perf_event *event;
 
-	for_each_possible_cpu(cpu) {
-		for (id = 0; id < num_counters; ++id) {
+	for_each_possible_cpu(cpu)
+	{
+		for (id = 0; id < num_counters; ++id)
+		{
 			event = per_cpu(perf_events, cpu)[id];
+
 			if (event)
+			{
 				perf_event_release_kernel(event);
+			}
 		}
 
 		kfree(per_cpu(perf_events, cpu));
@@ -275,20 +322,26 @@ int __init oprofile_perf_init(struct oprofile_operations *ops)
 	int cpu, ret = 0;
 
 	ret = init_driverfs();
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	num_counters = perf_num_counters();
-	if (num_counters <= 0) {
+
+	if (num_counters <= 0)
+	{
 		pr_info("oprofile: no performance counters\n");
 		ret = -ENODEV;
 		goto out;
 	}
 
 	counter_config = kcalloc(num_counters,
-			sizeof(struct op_counter_config), GFP_KERNEL);
+							 sizeof(struct op_counter_config), GFP_KERNEL);
 
-	if (!counter_config) {
+	if (!counter_config)
+	{
 		pr_info("oprofile: failed to allocate %d "
 				"counters\n", num_counters);
 		ret = -ENOMEM;
@@ -296,10 +349,13 @@ int __init oprofile_perf_init(struct oprofile_operations *ops)
 		goto out;
 	}
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		per_cpu(perf_events, cpu) = kcalloc(num_counters,
-				sizeof(struct perf_event *), GFP_KERNEL);
-		if (!per_cpu(perf_events, cpu)) {
+											sizeof(struct perf_event *), GFP_KERNEL);
+
+		if (!per_cpu(perf_events, cpu))
+		{
 			pr_info("oprofile: failed to allocate %d perf events "
 					"for cpu %d\n", num_counters, cpu);
 			ret = -ENOMEM;
@@ -315,13 +371,20 @@ int __init oprofile_perf_init(struct oprofile_operations *ops)
 	ops->cpu_type		= op_name_from_perf_id();
 
 	if (!ops->cpu_type)
+	{
 		ret = -ENODEV;
+	}
 	else
+	{
 		pr_info("oprofile: using %s\n", ops->cpu_type);
+	}
 
 out:
+
 	if (ret)
+	{
 		oprofile_perf_exit();
+	}
 
 	return ret;
 }

@@ -30,17 +30,20 @@ static uint nowait;
 static void (*saved_cpu_wait) (void);
 
 static int loongson2_cpu_freq_notifier(struct notifier_block *nb,
-					unsigned long val, void *data);
+									   unsigned long val, void *data);
 
-static struct notifier_block loongson2_cpufreq_notifier_block = {
+static struct notifier_block loongson2_cpufreq_notifier_block =
+{
 	.notifier_call = loongson2_cpu_freq_notifier
 };
 
 static int loongson2_cpu_freq_notifier(struct notifier_block *nb,
-					unsigned long val, void *data)
+									   unsigned long val, void *data)
 {
 	if (val == CPUFREQ_POSTCHANGE)
+	{
 		current_cpu_data.udelay_val = loops_per_jiffy;
+	}
 
 	return 0;
 }
@@ -49,7 +52,7 @@ static int loongson2_cpu_freq_notifier(struct notifier_block *nb,
  * Here we notify other drivers of the proposed change and the final change.
  */
 static int loongson2_cpufreq_target(struct cpufreq_policy *policy,
-				     unsigned int index)
+									unsigned int index)
 {
 	unsigned int cpu = policy->cpu;
 	cpumask_t cpus_allowed;
@@ -59,8 +62,8 @@ static int loongson2_cpufreq_target(struct cpufreq_policy *policy,
 	set_cpus_allowed_ptr(current, cpumask_of(cpu));
 
 	freq =
-	    ((cpu_clock_freq / 1000) *
-	     loongson2_clockmod_table[index].driver_data) / 8;
+		((cpu_clock_freq / 1000) *
+		 loongson2_clockmod_table[index].driver_data) / 8;
 
 	set_cpus_allowed_ptr(current, &cpus_allowed);
 
@@ -78,25 +81,33 @@ static int loongson2_cpufreq_cpu_init(struct cpufreq_policy *policy)
 	int ret;
 
 	cpuclk = clk_get(NULL, "cpu_clk");
-	if (IS_ERR(cpuclk)) {
+
+	if (IS_ERR(cpuclk))
+	{
 		pr_err("couldn't get CPU clk\n");
 		return PTR_ERR(cpuclk);
 	}
 
 	rate = cpu_clock_freq / 1000;
-	if (!rate) {
+
+	if (!rate)
+	{
 		clk_put(cpuclk);
 		return -EINVAL;
 	}
 
 	/* clock table init */
 	for (i = 2;
-	     (loongson2_clockmod_table[i].frequency != CPUFREQ_TABLE_END);
-	     i++)
+		 (loongson2_clockmod_table[i].frequency != CPUFREQ_TABLE_END);
+		 i++)
+	{
 		loongson2_clockmod_table[i].frequency = (rate * i) / 8;
+	}
 
 	ret = clk_set_rate(cpuclk, rate * 1000);
-	if (ret) {
+
+	if (ret)
+	{
 		clk_put(cpuclk);
 		return ret;
 	}
@@ -111,7 +122,8 @@ static int loongson2_cpufreq_exit(struct cpufreq_policy *policy)
 	return 0;
 }
 
-static struct cpufreq_driver loongson2_cpufreq_driver = {
+static struct cpufreq_driver loongson2_cpufreq_driver =
+{
 	.name = "loongson2",
 	.init = loongson2_cpufreq_cpu_init,
 	.verify = cpufreq_generic_frequency_table_verify,
@@ -121,7 +133,8 @@ static struct cpufreq_driver loongson2_cpufreq_driver = {
 	.attr = cpufreq_generic_attr,
 };
 
-static struct platform_device_id platform_device_ids[] = {
+static struct platform_device_id platform_device_ids[] =
+{
 	{
 		.name = "loongson2_cpufreq",
 	},
@@ -130,7 +143,8 @@ static struct platform_device_id platform_device_ids[] = {
 
 MODULE_DEVICE_TABLE(platform, platform_device_ids);
 
-static struct platform_driver platform_driver = {
+static struct platform_driver platform_driver =
+{
 	.driver = {
 		.name = "loongson2_cpufreq",
 	},
@@ -163,17 +177,21 @@ static int __init cpufreq_init(void)
 
 	/* Register platform stuff */
 	ret = platform_driver_register(&platform_driver);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	pr_info("Loongson-2F CPU frequency driver\n");
 
 	cpufreq_register_notifier(&loongson2_cpufreq_notifier_block,
-				  CPUFREQ_TRANSITION_NOTIFIER);
+							  CPUFREQ_TRANSITION_NOTIFIER);
 
 	ret = cpufreq_register_driver(&loongson2_cpufreq_driver);
 
-	if (!ret && !nowait) {
+	if (!ret && !nowait)
+	{
 		saved_cpu_wait = cpu_wait;
 		cpu_wait = loongson2_cpu_wait;
 	}
@@ -184,10 +202,13 @@ static int __init cpufreq_init(void)
 static void __exit cpufreq_exit(void)
 {
 	if (!nowait && saved_cpu_wait)
+	{
 		cpu_wait = saved_cpu_wait;
+	}
+
 	cpufreq_unregister_driver(&loongson2_cpufreq_driver);
 	cpufreq_unregister_notifier(&loongson2_cpufreq_notifier_block,
-				    CPUFREQ_TRANSITION_NOTIFIER);
+								CPUFREQ_TRANSITION_NOTIFIER);
 
 	platform_driver_unregister(&platform_driver);
 }

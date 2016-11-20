@@ -21,7 +21,8 @@
 #include "hif.h"
 #include "trace.h"
 
-enum ATH6K_DEBUG_MASK {
+enum ATH6K_DEBUG_MASK
+{
 	ATH6KL_DBG_CREDIT	= BIT(0),
 	/* hole */
 	ATH6KL_DBG_WLAN_TX      = BIT(2),     /* wlan tx */
@@ -55,7 +56,8 @@ __printf(1, 2) void ath6kl_info(const char *fmt, ...);
 __printf(1, 2) void ath6kl_err(const char *fmt, ...);
 __printf(1, 2) void ath6kl_warn(const char *fmt, ...);
 
-enum ath6kl_war {
+enum ath6kl_war
+{
 	ATH6KL_WAR_INVALID_RATE,
 };
 
@@ -65,17 +67,17 @@ int ath6kl_read_tgt_stats(struct ath6kl *ar, struct ath6kl_vif *vif);
 
 void ath6kl_dbg(enum ATH6K_DEBUG_MASK mask, const char *fmt, ...);
 void ath6kl_dbg_dump(enum ATH6K_DEBUG_MASK mask,
-		     const char *msg, const char *prefix,
-		     const void *buf, size_t len);
+					 const char *msg, const char *prefix,
+					 const void *buf, size_t len);
 
 void ath6kl_dump_registers(struct ath6kl_device *dev,
-			   struct ath6kl_irq_proc_registers *irq_proc_reg,
-			   struct ath6kl_irq_enable_reg *irq_en_reg);
+						   struct ath6kl_irq_proc_registers *irq_proc_reg,
+						   struct ath6kl_irq_enable_reg *irq_en_reg);
 void dump_cred_dist_stats(struct htc_target *target);
 void ath6kl_debug_fwlog_event(struct ath6kl *ar, const void *buf, size_t len);
 void ath6kl_debug_war(struct ath6kl *ar, enum ath6kl_war war);
 int ath6kl_debug_roam_tbl_event(struct ath6kl *ar, const void *buf,
-				size_t len);
+								size_t len);
 void ath6kl_debug_set_keepalive(struct ath6kl *ar, u8 keepalive);
 void ath6kl_debug_set_disconnect_timeout(struct ath6kl *ar, u8 timeout);
 void ath6kl_debug_init(struct ath6kl *ar);
@@ -84,13 +86,13 @@ void ath6kl_debug_cleanup(struct ath6kl *ar);
 
 #else
 static inline void ath6kl_dbg(enum ATH6K_DEBUG_MASK dbg_mask,
-			      const char *fmt, ...)
+							  const char *fmt, ...)
 {
 }
 
 static inline void ath6kl_dbg_dump(enum ATH6K_DEBUG_MASK mask,
-				   const char *msg, const char *prefix,
-				   const void *buf, size_t len)
+								   const char *msg, const char *prefix,
+								   const void *buf, size_t len)
 {
 }
 
@@ -105,7 +107,7 @@ static inline void dump_cred_dist_stats(struct htc_target *target)
 }
 
 static inline void ath6kl_debug_fwlog_event(struct ath6kl *ar,
-					    const void *buf, size_t len)
+		const void *buf, size_t len)
 {
 }
 
@@ -114,7 +116,7 @@ static inline void ath6kl_debug_war(struct ath6kl *ar, enum ath6kl_war war)
 }
 
 static inline int ath6kl_debug_roam_tbl_event(struct ath6kl *ar,
-					      const void *buf, size_t len)
+		const void *buf, size_t len)
 {
 	return 0;
 }
@@ -124,7 +126,7 @@ static inline void ath6kl_debug_set_keepalive(struct ath6kl *ar, u8 keepalive)
 }
 
 static inline void ath6kl_debug_set_disconnect_timeout(struct ath6kl *ar,
-						       u8 timeout)
+		u8 timeout)
 {
 }
 

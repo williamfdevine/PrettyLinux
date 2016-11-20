@@ -46,7 +46,7 @@ extern unsigned int usnic_log_lvl;
 #define usnic_printk(lvl, args...) \
 	do { \
 		printk(lvl "%s:%s:%d: ", DRV_NAME, __func__, \
-				__LINE__); \
+			   __LINE__); \
 		printk(args); \
 	} while (0)
 
@@ -54,15 +54,15 @@ extern unsigned int usnic_log_lvl;
 	do { \
 		if (unlikely(usnic_log_lvl >= USNIC_LOG_LVL_DBG)) { \
 			usnic_printk(KERN_INFO, args); \
-	} \
-} while (0)
+		} \
+	} while (0)
 
 #define usnic_info(args...) \
-do { \
-	if (usnic_log_lvl >= USNIC_LOG_LVL_INFO) { \
+	do { \
+		if (usnic_log_lvl >= USNIC_LOG_LVL_INFO) { \
 			usnic_printk(KERN_INFO, args); \
-	} \
-} while (0)
+		} \
+	} while (0)
 
 #define usnic_err(args...) \
 	do { \

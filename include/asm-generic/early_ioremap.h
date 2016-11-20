@@ -8,11 +8,11 @@
  * mappings, before the real ioremap() is functional.
  */
 extern void __iomem *early_ioremap(resource_size_t phys_addr,
-				   unsigned long size);
+								   unsigned long size);
 extern void *early_memremap(resource_size_t phys_addr,
-			    unsigned long size);
+							unsigned long size);
 extern void *early_memremap_ro(resource_size_t phys_addr,
-			       unsigned long size);
+							   unsigned long size);
 extern void early_iounmap(void __iomem *addr, unsigned long size);
 extern void early_memunmap(void *addr, unsigned long size);
 
@@ -39,7 +39,7 @@ extern void early_ioremap_reset(void);
  * Early copy from unmapped memory to kernel mapped memory.
  */
 extern void copy_from_early_mem(void *dest, phys_addr_t src,
-				unsigned long size);
+								unsigned long size);
 
 #else
 static inline void early_ioremap_init(void) { }

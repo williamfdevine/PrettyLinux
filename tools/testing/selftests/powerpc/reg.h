@@ -10,11 +10,11 @@
 #define __stringify(x)          __stringify_1(x)
 
 #define mfspr(rn)	({unsigned long rval; \
-			 asm volatile("mfspr %0," _str(rn) \
-				    : "=r" (rval)); rval; })
+		asm volatile("mfspr %0," _str(rn) \
+					 : "=r" (rval)); rval; })
 #define mtspr(rn, v)	asm volatile("mtspr " _str(rn) ",%0" : \
-				    : "r" ((unsigned long)(v)) \
-				    : "memory")
+									 : "r" ((unsigned long)(v)) \
+									 : "memory")
 
 #define mb()		asm volatile("sync" : : : "memory");
 

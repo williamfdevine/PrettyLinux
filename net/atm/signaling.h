@@ -19,12 +19,12 @@ extern struct atm_vcc *sigd; /* needed in svc_release */
  * avoiding huge lists of null values.
  */
 
-void sigd_enq2(struct atm_vcc *vcc,enum atmsvc_msg_type type,
-    struct atm_vcc *listen_vcc,const struct sockaddr_atmpvc *pvc,
-    const struct sockaddr_atmsvc *svc,const struct atm_qos *qos,int reply);
-void sigd_enq(struct atm_vcc *vcc,enum atmsvc_msg_type type,
-    struct atm_vcc *listen_vcc,const struct sockaddr_atmpvc *pvc,
-    const struct sockaddr_atmsvc *svc);
+void sigd_enq2(struct atm_vcc *vcc, enum atmsvc_msg_type type,
+			   struct atm_vcc *listen_vcc, const struct sockaddr_atmpvc *pvc,
+			   const struct sockaddr_atmsvc *svc, const struct atm_qos *qos, int reply);
+void sigd_enq(struct atm_vcc *vcc, enum atmsvc_msg_type type,
+			  struct atm_vcc *listen_vcc, const struct sockaddr_atmpvc *pvc,
+			  const struct sockaddr_atmsvc *svc);
 int sigd_attach(struct atm_vcc *vcc);
 
 #endif

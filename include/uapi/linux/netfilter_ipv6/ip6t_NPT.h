@@ -4,7 +4,8 @@
 #include <linux/types.h>
 #include <linux/netfilter.h>
 
-struct ip6t_npt_tginfo {
+struct ip6t_npt_tginfo
+{
 	union nf_inet_addr	src_pfx;
 	union nf_inet_addr	dst_pfx;
 	__u8			src_pfx_len;

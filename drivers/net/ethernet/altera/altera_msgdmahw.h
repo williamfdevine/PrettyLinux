@@ -19,7 +19,8 @@
 
 /* mSGDMA extended descriptor format
  */
-struct msgdma_extended_desc {
+struct msgdma_extended_desc
+{
 	u32 read_addr_lo;	/* data buffer source address low bits */
 	u32 write_addr_lo;	/* data buffer destination address low bits */
 	u32 len;		/* the number of bytes to transfer
@@ -58,25 +59,25 @@ struct msgdma_extended_desc {
 /* Tx buffer control flags
  */
 #define MSGDMA_DESC_CTL_TX_FIRST	(MSGDMA_DESC_CTL_GEN_SOP |	\
-					 MSGDMA_DESC_CTL_GO)
+									 MSGDMA_DESC_CTL_GO)
 
 #define MSGDMA_DESC_CTL_TX_MIDDLE	(MSGDMA_DESC_CTL_GO)
 
 #define MSGDMA_DESC_CTL_TX_LAST		(MSGDMA_DESC_CTL_GEN_EOP |	\
-					 MSGDMA_DESC_CTL_TR_COMP_IRQ |	\
-					 MSGDMA_DESC_CTL_GO)
+									 MSGDMA_DESC_CTL_TR_COMP_IRQ |	\
+									 MSGDMA_DESC_CTL_GO)
 
 #define MSGDMA_DESC_CTL_TX_SINGLE	(MSGDMA_DESC_CTL_GEN_SOP |	\
-					 MSGDMA_DESC_CTL_GEN_EOP |	\
-					 MSGDMA_DESC_CTL_TR_COMP_IRQ |	\
-					 MSGDMA_DESC_CTL_GO)
+									 MSGDMA_DESC_CTL_GEN_EOP |	\
+									 MSGDMA_DESC_CTL_TR_COMP_IRQ |	\
+									 MSGDMA_DESC_CTL_GO)
 
 #define MSGDMA_DESC_CTL_RX_SINGLE	(MSGDMA_DESC_CTL_END_ON_EOP |	\
-					 MSGDMA_DESC_CTL_END_ON_LEN |	\
-					 MSGDMA_DESC_CTL_TR_COMP_IRQ |	\
-					 MSGDMA_DESC_CTL_EARLY_IRQ |	\
-					 MSGDMA_DESC_CTL_TR_ERR_IRQ |	\
-					 MSGDMA_DESC_CTL_GO)
+									 MSGDMA_DESC_CTL_END_ON_LEN |	\
+									 MSGDMA_DESC_CTL_TR_COMP_IRQ |	\
+									 MSGDMA_DESC_CTL_EARLY_IRQ |	\
+									 MSGDMA_DESC_CTL_TR_ERR_IRQ |	\
+									 MSGDMA_DESC_CTL_GO)
 
 /* mSGDMA extended descriptor stride definitions
  */
@@ -85,7 +86,8 @@ struct msgdma_extended_desc {
 
 /* mSGDMA dispatcher control and status register map
  */
-struct msgdma_csr {
+struct msgdma_csr
+{
 	u32 status;		/* Read/Clear */
 	u32 control;		/* Read/Write */
 	u32 rw_fill_level;	/* bit 31:16 - write fill level
@@ -141,7 +143,8 @@ struct msgdma_csr {
 
 /* mSGDMA response register map
  */
-struct msgdma_response {
+struct msgdma_response
+{
 	u32 bytes_transferred;
 	u32 status;
 };

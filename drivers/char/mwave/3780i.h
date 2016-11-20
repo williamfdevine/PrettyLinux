@@ -64,20 +64,22 @@
 #define DSP_ReadAndClear           0x000C	/* MSA read and clear data register */
 #define DSP_Interrupt              0x000E	/* Interrupt register (IPC source) */
 
-typedef struct {
-	unsigned char ClockControl:1;	/* RW: Clock control: 0=normal, 1=stop 3780i clocks */
-	unsigned char SoftReset:1;	/* RW: Soft reset 0=normal, 1=soft reset active */
-	unsigned char ConfigMode:1;	/* RW: Configuration mode, 0=normal, 1=config mode */
-	unsigned char Reserved:5;	/* 0: Reserved */
+typedef struct
+{
+	unsigned char ClockControl: 1;	/* RW: Clock control: 0=normal, 1=stop 3780i clocks */
+	unsigned char SoftReset: 1;	/* RW: Soft reset 0=normal, 1=soft reset active */
+	unsigned char ConfigMode: 1;	/* RW: Configuration mode, 0=normal, 1=config mode */
+	unsigned char Reserved: 5;	/* 0: Reserved */
 } DSP_ISA_SLAVE_CONTROL;
 
 
-typedef struct {
-	unsigned short EnableDspInt:1;	/* RW: Enable DSP to X86 ISA interrupt 0=mask it, 1=enable it */
-	unsigned short MemAutoInc:1;	/* RW: Memory address auto increment, 0=disable, 1=enable */
-	unsigned short IoAutoInc:1;	/* RW: I/O address auto increment, 0=disable, 1=enable */
-	unsigned short DiagnosticMode:1;	/* RW: Disgnostic mode 0=nromal, 1=diagnostic mode */
-	unsigned short IsaPacingTimer:12;	/* R: ISA access pacing timer: count of core cycles stolen */
+typedef struct
+{
+	unsigned short EnableDspInt: 1;	/* RW: Enable DSP to X86 ISA interrupt 0=mask it, 1=enable it */
+	unsigned short MemAutoInc: 1;	/* RW: Memory address auto increment, 0=disable, 1=enable */
+	unsigned short IoAutoInc: 1;	/* RW: I/O address auto increment, 0=disable, 1=enable */
+	unsigned short DiagnosticMode: 1;	/* RW: Disgnostic mode 0=nromal, 1=diagnostic mode */
+	unsigned short IsaPacingTimer: 12;	/* R: ISA access pacing timer: count of core cycles stolen */
 } DSP_HBRIDGE_CONTROL;
 
 
@@ -92,58 +94,67 @@ typedef struct {
 #define DSP_PowerMgCfgIndex        0x0010	/* Low poser suspend/resume enable */
 #define DSP_HBusTimerCfgIndex      0x0011	/* HBUS timer load value */
 
-typedef struct {
-	unsigned char IrqActiveLow:1;	/* RW: IRQ active high or low: 0=high, 1=low */
-	unsigned char IrqPulse:1;	/* RW: IRQ pulse or level: 0=level, 1=pulse  */
-	unsigned char Irq:3;	/* RW: IRQ selection */
-	unsigned char BaseIO:2;	/* RW: Base I/O selection */
-	unsigned char Reserved:1;	/* 0: Reserved */
+typedef struct
+{
+	unsigned char IrqActiveLow: 1;	/* RW: IRQ active high or low: 0=high, 1=low */
+	unsigned char IrqPulse: 1;	/* RW: IRQ pulse or level: 0=level, 1=pulse  */
+	unsigned char Irq: 3;	/* RW: IRQ selection */
+	unsigned char BaseIO: 2;	/* RW: Base I/O selection */
+	unsigned char Reserved: 1;	/* 0: Reserved */
 } DSP_UART_CFG_1;
 
-typedef struct {
-	unsigned char Enable:1;	/* RW: Enable I/O and IRQ: 0=false, 1=true */
-	unsigned char Reserved:7;	/* 0: Reserved */
+typedef struct
+{
+	unsigned char Enable: 1;	/* RW: Enable I/O and IRQ: 0=false, 1=true */
+	unsigned char Reserved: 7;	/* 0: Reserved */
 } DSP_UART_CFG_2;
 
-typedef struct {
-	unsigned char IrqActiveLow:1;	/* RW: IRQ active high=0 or low=1 */
-	unsigned char IrqPulse:1;	/* RW: IRQ pulse=1 or level=0 */
-	unsigned char Irq:3;	/* RW: IRQ selection */
-	unsigned char AccessMode:1;	/* RW: 16-bit register access method 0=byte, 1=word */
-	unsigned char Reserved:2;	/* 0: Reserved */
+typedef struct
+{
+	unsigned char IrqActiveLow: 1;	/* RW: IRQ active high=0 or low=1 */
+	unsigned char IrqPulse: 1;	/* RW: IRQ pulse=1 or level=0 */
+	unsigned char Irq: 3;	/* RW: IRQ selection */
+	unsigned char AccessMode: 1;	/* RW: 16-bit register access method 0=byte, 1=word */
+	unsigned char Reserved: 2;	/* 0: Reserved */
 } DSP_HBRIDGE_CFG_1;
 
-typedef struct {
-	unsigned char Enable:1;	/* RW: enable I/O and IRQ: 0=false, 1=true */
-	unsigned char Reserved:7;	/* 0: Reserved */
+typedef struct
+{
+	unsigned char Enable: 1;	/* RW: enable I/O and IRQ: 0=false, 1=true */
+	unsigned char Reserved: 7;	/* 0: Reserved */
 } DSP_HBRIDGE_CFG_2;
 
 
-typedef struct {
-	unsigned char Dma:3;	/* RW: DMA channel selection */
-	unsigned char NumTransfers:2;	/* RW: Maximum # of transfers once being granted the ISA bus */
-	unsigned char ReRequest:2;	/* RW: Minimum delay between releasing the ISA bus and requesting it again */
-	unsigned char MEMCS16:1;	/* RW: ISA signal MEMCS16: 0=disabled, 1=enabled */
+typedef struct
+{
+	unsigned char Dma: 3;	/* RW: DMA channel selection */
+	unsigned char NumTransfers: 2;	/* RW: Maximum # of transfers once being granted the ISA bus */
+	unsigned char ReRequest: 2;	/* RW: Minimum delay between releasing the ISA bus and requesting it again */
+	unsigned char MEMCS16: 1;	/* RW: ISA signal MEMCS16: 0=disabled, 1=enabled */
 } DSP_BUSMASTER_CFG_1;
 
-typedef struct {
-	unsigned char IsaMemCmdWidth:2;	/* RW: ISA memory command width */
-	unsigned char Reserved:6;	/* 0: Reserved */
+typedef struct
+{
+	unsigned char IsaMemCmdWidth: 2;	/* RW: ISA memory command width */
+	unsigned char Reserved: 6;	/* 0: Reserved */
 } DSP_BUSMASTER_CFG_2;
 
 
-typedef struct {
-	unsigned char GateIOCHRDY:1;	/* RW: Enable IOCHRDY gating: 0=false, 1=true */
-	unsigned char Reserved:7;	/* 0: Reserved */
+typedef struct
+{
+	unsigned char GateIOCHRDY: 1;	/* RW: Enable IOCHRDY gating: 0=false, 1=true */
+	unsigned char Reserved: 7;	/* 0: Reserved */
 } DSP_ISA_PROT_CFG;
 
-typedef struct {
-	unsigned char Enable:1;	/* RW: Enable low power suspend/resume 0=false, 1=true */
-	unsigned char Reserved:7;	/* 0: Reserved */
+typedef struct
+{
+	unsigned char Enable: 1;	/* RW: Enable low power suspend/resume 0=false, 1=true */
+	unsigned char Reserved: 7;	/* 0: Reserved */
 } DSP_POWER_MGMT_CFG;
 
-typedef struct {
-	unsigned char LoadValue:8;	/* RW: HBUS timer load value */
+typedef struct
+{
+	unsigned char LoadValue: 8;	/* RW: HBUS timer load value */
 } DSP_HBUS_TIMER_CFG;
 
 
@@ -159,91 +170,99 @@ typedef struct {
 #define DSP_GpioDriverEnable_15_8  0x80000076
 #define DSP_GpioOutputData_15_8    0x80000072
 
-typedef struct {
-	unsigned short NMI:1;	/* RW: non maskable interrupt */
-	unsigned short Halt:1;	/* RW: Halt MSP clock */
-	unsigned short ResetCore:1;	/* RW: Reset MSP core interface */
-	unsigned short Reserved:13;	/* 0: Reserved */
+typedef struct
+{
+	unsigned short NMI: 1;	/* RW: non maskable interrupt */
+	unsigned short Halt: 1;	/* RW: Halt MSP clock */
+	unsigned short ResetCore: 1;	/* RW: Reset MSP core interface */
+	unsigned short Reserved: 13;	/* 0: Reserved */
 } DSP_BOOT_DOMAIN;
 
-typedef struct {
-	unsigned short DisableTimeout:1;	/* RW: Disable LBus timeout */
-	unsigned short Reserved:15;	/* 0: Reserved */
+typedef struct
+{
+	unsigned short DisableTimeout: 1;	/* RW: Disable LBus timeout */
+	unsigned short Reserved: 15;	/* 0: Reserved */
 } DSP_LBUS_TIMEOUT_DISABLE;
 
-typedef struct {
-	unsigned short Memory:1;	/* RW: Reset memory interface */
-	unsigned short SerialPort1:1;	/* RW: Reset serial port 1 interface */
-	unsigned short SerialPort2:1;	/* RW: Reset serial port 2 interface */
-	unsigned short SerialPort3:1;	/* RW: Reset serial port 3 interface */
-	unsigned short Gpio:1;	/* RW: Reset GPIO interface */
-	unsigned short Dma:1;	/* RW: Reset DMA interface */
-	unsigned short SoundBlaster:1;	/* RW: Reset soundblaster interface */
-	unsigned short Uart:1;	/* RW: Reset UART interface */
-	unsigned short Midi:1;	/* RW: Reset MIDI interface */
-	unsigned short IsaMaster:1;	/* RW: Reset ISA master interface */
-	unsigned short Reserved:6;	/* 0: Reserved */
+typedef struct
+{
+	unsigned short Memory: 1;	/* RW: Reset memory interface */
+	unsigned short SerialPort1: 1;	/* RW: Reset serial port 1 interface */
+	unsigned short SerialPort2: 1;	/* RW: Reset serial port 2 interface */
+	unsigned short SerialPort3: 1;	/* RW: Reset serial port 3 interface */
+	unsigned short Gpio: 1;	/* RW: Reset GPIO interface */
+	unsigned short Dma: 1;	/* RW: Reset DMA interface */
+	unsigned short SoundBlaster: 1;	/* RW: Reset soundblaster interface */
+	unsigned short Uart: 1;	/* RW: Reset UART interface */
+	unsigned short Midi: 1;	/* RW: Reset MIDI interface */
+	unsigned short IsaMaster: 1;	/* RW: Reset ISA master interface */
+	unsigned short Reserved: 6;	/* 0: Reserved */
 } DSP_CHIP_RESET;
 
-typedef struct {
-	unsigned short N_Divisor:6;	/* RW: (N) PLL output clock divisor */
-	unsigned short Reserved1:2;	/* 0: reserved */
-	unsigned short M_Multiplier:6;	/* RW: (M) PLL feedback clock multiplier */
-	unsigned short Reserved2:2;	/* 0: reserved */
+typedef struct
+{
+	unsigned short N_Divisor: 6;	/* RW: (N) PLL output clock divisor */
+	unsigned short Reserved1: 2;	/* 0: reserved */
+	unsigned short M_Multiplier: 6;	/* RW: (M) PLL feedback clock multiplier */
+	unsigned short Reserved2: 2;	/* 0: reserved */
 } DSP_CLOCK_CONTROL_1;
 
-typedef struct {
-	unsigned short PllBypass:1;	/* RW: PLL Bypass */
-	unsigned short Reserved:15;	/* 0: Reserved */
+typedef struct
+{
+	unsigned short PllBypass: 1;	/* RW: PLL Bypass */
+	unsigned short Reserved: 15;	/* 0: Reserved */
 } DSP_CLOCK_CONTROL_2;
 
-typedef struct {
-	unsigned short Latch8:1;
-	unsigned short Latch9:1;
-	unsigned short Latch10:1;
-	unsigned short Latch11:1;
-	unsigned short Latch12:1;
-	unsigned short Latch13:1;
-	unsigned short Latch14:1;
-	unsigned short Latch15:1;
-	unsigned short Mask8:1;
-	unsigned short Mask9:1;
-	unsigned short Mask10:1;
-	unsigned short Mask11:1;
-	unsigned short Mask12:1;
-	unsigned short Mask13:1;
-	unsigned short Mask14:1;
-	unsigned short Mask15:1;
+typedef struct
+{
+	unsigned short Latch8: 1;
+	unsigned short Latch9: 1;
+	unsigned short Latch10: 1;
+	unsigned short Latch11: 1;
+	unsigned short Latch12: 1;
+	unsigned short Latch13: 1;
+	unsigned short Latch14: 1;
+	unsigned short Latch15: 1;
+	unsigned short Mask8: 1;
+	unsigned short Mask9: 1;
+	unsigned short Mask10: 1;
+	unsigned short Mask11: 1;
+	unsigned short Mask12: 1;
+	unsigned short Mask13: 1;
+	unsigned short Mask14: 1;
+	unsigned short Mask15: 1;
 } DSP_GPIO_OUTPUT_DATA_15_8;
 
-typedef struct {
-	unsigned short Enable8:1;
-	unsigned short Enable9:1;
-	unsigned short Enable10:1;
-	unsigned short Enable11:1;
-	unsigned short Enable12:1;
-	unsigned short Enable13:1;
-	unsigned short Enable14:1;
-	unsigned short Enable15:1;
-	unsigned short Mask8:1;
-	unsigned short Mask9:1;
-	unsigned short Mask10:1;
-	unsigned short Mask11:1;
-	unsigned short Mask12:1;
-	unsigned short Mask13:1;
-	unsigned short Mask14:1;
-	unsigned short Mask15:1;
+typedef struct
+{
+	unsigned short Enable8: 1;
+	unsigned short Enable9: 1;
+	unsigned short Enable10: 1;
+	unsigned short Enable11: 1;
+	unsigned short Enable12: 1;
+	unsigned short Enable13: 1;
+	unsigned short Enable14: 1;
+	unsigned short Enable15: 1;
+	unsigned short Mask8: 1;
+	unsigned short Mask9: 1;
+	unsigned short Mask10: 1;
+	unsigned short Mask11: 1;
+	unsigned short Mask12: 1;
+	unsigned short Mask13: 1;
+	unsigned short Mask14: 1;
+	unsigned short Mask15: 1;
 } DSP_GPIO_DRIVER_ENABLE_15_8;
 
-typedef struct {
-	unsigned short GpioMode8:2;
-	unsigned short GpioMode9:2;
-	unsigned short GpioMode10:2;
-	unsigned short GpioMode11:2;
-	unsigned short GpioMode12:2;
-	unsigned short GpioMode13:2;
-	unsigned short GpioMode14:2;
-	unsigned short GpioMode15:2;
+typedef struct
+{
+	unsigned short GpioMode8: 2;
+	unsigned short GpioMode9: 2;
+	unsigned short GpioMode10: 2;
+	unsigned short GpioMode11: 2;
+	unsigned short GpioMode12: 2;
+	unsigned short GpioMode13: 2;
+	unsigned short GpioMode14: 2;
+	unsigned short GpioMode15: 2;
 } DSP_GPIO_MODE_15_8;
 
 /* Component masks that are defined in dspmgr.h */
@@ -261,7 +280,8 @@ typedef struct {
 * the only values maintained by the 3780i support layer are the saved UART
 * registers.
 */
-typedef struct _DSP_3780I_CONFIG_SETTINGS {
+typedef struct _DSP_3780I_CONFIG_SETTINGS
+{
 
 	/* Location of base configuration register */
 	unsigned short usBaseConfigIO;
@@ -317,29 +337,29 @@ typedef struct _DSP_3780I_CONFIG_SETTINGS {
 
 
 /* 3780i support functions */
-int dsp3780I_EnableDSP(DSP_3780I_CONFIG_SETTINGS * pSettings,
-                       unsigned short *pIrqMap,
-                       unsigned short *pDmaMap);
-int dsp3780I_DisableDSP(DSP_3780I_CONFIG_SETTINGS * pSettings);
-int dsp3780I_Reset(DSP_3780I_CONFIG_SETTINGS * pSettings);
-int dsp3780I_Run(DSP_3780I_CONFIG_SETTINGS * pSettings);
+int dsp3780I_EnableDSP(DSP_3780I_CONFIG_SETTINGS *pSettings,
+					   unsigned short *pIrqMap,
+					   unsigned short *pDmaMap);
+int dsp3780I_DisableDSP(DSP_3780I_CONFIG_SETTINGS *pSettings);
+int dsp3780I_Reset(DSP_3780I_CONFIG_SETTINGS *pSettings);
+int dsp3780I_Run(DSP_3780I_CONFIG_SETTINGS *pSettings);
 int dsp3780I_ReadDStore(unsigned short usDspBaseIO, void __user *pvBuffer,
-                        unsigned uCount, unsigned long ulDSPAddr);
+						unsigned uCount, unsigned long ulDSPAddr);
 int dsp3780I_ReadAndClearDStore(unsigned short usDspBaseIO,
-                                void __user *pvBuffer, unsigned uCount,
-                                unsigned long ulDSPAddr);
+								void __user *pvBuffer, unsigned uCount,
+								unsigned long ulDSPAddr);
 int dsp3780I_WriteDStore(unsigned short usDspBaseIO, void __user *pvBuffer,
-                         unsigned uCount, unsigned long ulDSPAddr);
+						 unsigned uCount, unsigned long ulDSPAddr);
 int dsp3780I_ReadIStore(unsigned short usDspBaseIO, void __user *pvBuffer,
-                        unsigned uCount, unsigned long ulDSPAddr);
+						unsigned uCount, unsigned long ulDSPAddr);
 int dsp3780I_WriteIStore(unsigned short usDspBaseIO, void __user *pvBuffer,
-                         unsigned uCount, unsigned long ulDSPAddr);
+						 unsigned uCount, unsigned long ulDSPAddr);
 unsigned short dsp3780I_ReadMsaCfg(unsigned short usDspBaseIO,
-                                   unsigned long ulMsaAddr);
+								   unsigned long ulMsaAddr);
 void dsp3780I_WriteMsaCfg(unsigned short usDspBaseIO,
-                          unsigned long ulMsaAddr, unsigned short usValue);
+						  unsigned long ulMsaAddr, unsigned short usValue);
 int dsp3780I_GetIPCSource(unsigned short usDspBaseIO,
-                          unsigned short *pusIPCSource);
+						  unsigned short *pusIPCSource);
 
 /* I/O port access macros */
 #define MKWORD(var) (*((unsigned short *)(&var)))

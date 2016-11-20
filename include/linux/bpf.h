@@ -17,7 +17,8 @@ struct perf_event;
 struct bpf_map;
 
 /* map is generic key/value storage optionally accesible by eBPF programs */
-struct bpf_map_ops {
+struct bpf_map_ops
+{
 	/* funcs callable from userspace (via syscall) */
 	struct bpf_map *(*map_alloc)(union bpf_attr *attr);
 	void (*map_release)(struct bpf_map *map, struct file *map_file);
@@ -31,11 +32,12 @@ struct bpf_map_ops {
 
 	/* funcs called by prog_array and perf_event_array map */
 	void *(*map_fd_get_ptr)(struct bpf_map *map, struct file *map_file,
-				int fd);
+							int fd);
 	void (*map_fd_put_ptr)(void *ptr);
 };
 
-struct bpf_map {
+struct bpf_map
+{
 	atomic_t refcnt;
 	enum bpf_map_type map_type;
 	u32 key_size;
@@ -49,14 +51,16 @@ struct bpf_map {
 	atomic_t usercnt;
 };
 
-struct bpf_map_type_list {
+struct bpf_map_type_list
+{
 	struct list_head list_node;
 	const struct bpf_map_ops *ops;
 	enum bpf_map_type type;
 };
 
 /* function argument constraints */
-enum bpf_arg_type {
+enum bpf_arg_type
+{
 	ARG_DONTCARE = 0,	/* unused argument in helper function */
 
 	/* the following constraints used to prototype
@@ -83,7 +87,8 @@ enum bpf_arg_type {
 };
 
 /* type of values returned from helper functions */
-enum bpf_return_type {
+enum bpf_return_type
+{
 	RET_INTEGER,			/* function returns integer */
 	RET_VOID,			/* function doesn't return anything */
 	RET_PTR_TO_MAP_VALUE_OR_NULL,	/* returns a pointer to map elem value or NULL */
@@ -93,7 +98,8 @@ enum bpf_return_type {
  * to in-kernel helper functions and for adjusting imm32 field in BPF_CALL
  * instructions after verifying
  */
-struct bpf_func_proto {
+struct bpf_func_proto
+{
 	u64 (*func)(u64 r1, u64 r2, u64 r3, u64 r4, u64 r5);
 	bool gpl_only;
 	bool pkt_access;
@@ -111,13 +117,15 @@ struct bpf_func_proto {
  */
 struct bpf_context;
 
-enum bpf_access_type {
+enum bpf_access_type
+{
 	BPF_READ = 1,
 	BPF_WRITE = 2
 };
 
 /* types of values stored in eBPF registers */
-enum bpf_reg_type {
+enum bpf_reg_type
+{
 	NOT_INIT = 0,		 /* nothing was written into register */
 	UNKNOWN_VALUE,		 /* reg doesn't contain a valid pointer */
 	PTR_TO_CTX,		 /* reg points to bpf_context */
@@ -150,7 +158,8 @@ enum bpf_reg_type {
 
 struct bpf_prog;
 
-struct bpf_verifier_ops {
+struct bpf_verifier_ops
+{
 	/* return eBPF function prototype for verification */
 	const struct bpf_func_proto *(*get_func_proto)(enum bpf_func_id func_id);
 
@@ -158,21 +167,23 @@ struct bpf_verifier_ops {
 	 * with 'type' (read or write) is allowed
 	 */
 	bool (*is_valid_access)(int off, int size, enum bpf_access_type type,
-				enum bpf_reg_type *reg_type);
+							enum bpf_reg_type *reg_type);
 	int (*gen_prologue)(struct bpf_insn *insn, bool direct_write,
-			    const struct bpf_prog *prog);
+						const struct bpf_prog *prog);
 	u32 (*convert_ctx_access)(enum bpf_access_type type, int dst_reg,
-				  int src_reg, int ctx_off,
-				  struct bpf_insn *insn, struct bpf_prog *prog);
+							  int src_reg, int ctx_off,
+							  struct bpf_insn *insn, struct bpf_prog *prog);
 };
 
-struct bpf_prog_type_list {
+struct bpf_prog_type_list
+{
 	struct list_head list_node;
 	const struct bpf_verifier_ops *ops;
 	enum bpf_prog_type type;
 };
 
-struct bpf_prog_aux {
+struct bpf_prog_aux
+{
 	atomic_t refcnt;
 	u32 used_map_cnt;
 	u32 max_ctx_offset;
@@ -180,13 +191,15 @@ struct bpf_prog_aux {
 	struct bpf_map **used_maps;
 	struct bpf_prog *prog;
 	struct user_struct *user;
-	union {
+	union
+	{
 		struct work_struct work;
 		struct rcu_head	rcu;
 	};
 };
 
-struct bpf_array {
+struct bpf_array
+{
 	struct bpf_map map;
 	u32 elem_size;
 	/* 'ownership' of prog_array is claimed by the first program that
@@ -196,7 +209,8 @@ struct bpf_array {
 	 */
 	enum bpf_prog_type owner_prog_type;
 	bool owner_jited;
-	union {
+	union
+	{
 		char value[0] __aligned(8);
 		void *ptrs[0] __aligned(8);
 		void __percpu *pptrs[0] __aligned(8);
@@ -205,7 +219,8 @@ struct bpf_array {
 
 #define MAX_TAIL_CALL_CNT 32
 
-struct bpf_event_entry {
+struct bpf_event_entry
+{
 	struct perf_event *event;
 	struct file *perf_file;
 	struct file *map_file;
@@ -220,10 +235,10 @@ bool bpf_prog_array_compatible(struct bpf_array *array, const struct bpf_prog *f
 const struct bpf_func_proto *bpf_get_trace_printk_proto(void);
 
 typedef unsigned long (*bpf_ctx_copy_t)(void *dst, const void *src,
-					unsigned long off, unsigned long len);
+										unsigned long off, unsigned long len);
 
 u64 bpf_event_output(struct bpf_map *map, u64 flags, void *meta, u64 meta_size,
-		     void *ctx, u64 ctx_size, bpf_ctx_copy_t ctx_copy);
+					 void *ctx, u64 ctx_size, bpf_ctx_copy_t ctx_copy);
 
 #ifdef CONFIG_BPF_SYSCALL
 DECLARE_PER_CPU(int, bpf_prog_active);
@@ -255,14 +270,14 @@ int bpf_obj_get_user(const char __user *pathname);
 int bpf_percpu_hash_copy(struct bpf_map *map, void *key, void *value);
 int bpf_percpu_array_copy(struct bpf_map *map, void *key, void *value);
 int bpf_percpu_hash_update(struct bpf_map *map, void *key, void *value,
-			   u64 flags);
+						   u64 flags);
 int bpf_percpu_array_update(struct bpf_map *map, void *key, void *value,
-			    u64 flags);
+							u64 flags);
 
 int bpf_stackmap_copy(struct bpf_map *map, void *key, void *value);
 
 int bpf_fd_array_map_update_elem(struct bpf_map *map, struct file *map_file,
-				 void *key, void *value, u64 map_flags);
+								 void *key, void *value, u64 map_flags);
 void bpf_fd_array_map_clear(struct bpf_map *map);
 
 /* memcpy that is used with 8-byte aligned pointers, power-of-8 size and
@@ -277,8 +292,11 @@ static inline void bpf_long_memcpy(void *dst, const void *src, u32 size)
 	long *ldst = dst;
 
 	size /= sizeof(long);
+
 	while (size--)
+	{
 		*ldst++ = *lsrc++;
+	}
 }
 
 /* verify correctness of eBPF program */
@@ -294,7 +312,7 @@ static inline struct bpf_prog *bpf_prog_get(u32 ufd)
 }
 
 static inline struct bpf_prog *bpf_prog_get_type(u32 ufd,
-						 enum bpf_prog_type type)
+		enum bpf_prog_type type)
 {
 	return ERR_PTR(-EOPNOTSUPP);
 }

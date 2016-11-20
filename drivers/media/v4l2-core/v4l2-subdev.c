@@ -35,11 +35,17 @@
 static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
 {
 #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
-	if (sd->entity.num_pads) {
+
+	if (sd->entity.num_pads)
+	{
 		fh->pad = v4l2_subdev_alloc_pad_config(sd);
+
 		if (fh->pad == NULL)
+		{
 			return -ENOMEM;
+		}
 	}
+
 #endif
 	return 0;
 }
@@ -63,11 +69,16 @@ static int subdev_open(struct file *file)
 	int ret;
 
 	subdev_fh = kzalloc(sizeof(*subdev_fh), GFP_KERNEL);
+
 	if (subdev_fh == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	ret = subdev_fh_init(subdev_fh, sd);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(subdev_fh);
 		return ret;
 	}
@@ -76,19 +87,28 @@ static int subdev_open(struct file *file)
 	v4l2_fh_add(&subdev_fh->vfh);
 	file->private_data = &subdev_fh->vfh;
 #if defined(CONFIG_MEDIA_CONTROLLER)
-	if (sd->v4l2_dev->mdev) {
+
+	if (sd->v4l2_dev->mdev)
+	{
 		entity = media_entity_get(&sd->entity);
-		if (!entity) {
+
+		if (!entity)
+		{
 			ret = -EBUSY;
 			goto err;
 		}
 	}
+
 #endif
 
-	if (sd->internal_ops && sd->internal_ops->open) {
+	if (sd->internal_ops && sd->internal_ops->open)
+	{
 		ret = sd->internal_ops->open(sd, subdev_fh);
+
 		if (ret < 0)
+		{
 			goto err;
+		}
 	}
 
 	return 0;
@@ -113,10 +133,17 @@ static int subdev_close(struct file *file)
 	struct v4l2_subdev_fh *subdev_fh = to_v4l2_subdev_fh(vfh);
 
 	if (sd->internal_ops && sd->internal_ops->close)
+	{
 		sd->internal_ops->close(sd, subdev_fh);
+	}
+
 #if defined(CONFIG_MEDIA_CONTROLLER)
+
 	if (sd->v4l2_dev->mdev)
+	{
 		media_entity_put(&sd->entity);
+	}
+
 #endif
 	v4l2_fh_del(vfh);
 	v4l2_fh_exit(vfh);
@@ -129,14 +156,18 @@ static int subdev_close(struct file *file)
 
 #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
 static int check_format(struct v4l2_subdev *sd,
-			struct v4l2_subdev_format *format)
+						struct v4l2_subdev_format *format)
 {
 	if (format->which != V4L2_SUBDEV_FORMAT_TRY &&
-	    format->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+		format->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+	{
 		return -EINVAL;
+	}
 
 	if (format->pad >= sd->entity.num_pads)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -144,24 +175,32 @@ static int check_format(struct v4l2_subdev *sd,
 static int check_crop(struct v4l2_subdev *sd, struct v4l2_subdev_crop *crop)
 {
 	if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
-	    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+		crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+	{
 		return -EINVAL;
+	}
 
 	if (crop->pad >= sd->entity.num_pads)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
 static int check_selection(struct v4l2_subdev *sd,
-			   struct v4l2_subdev_selection *sel)
+						   struct v4l2_subdev_selection *sel)
 {
 	if (sel->which != V4L2_SUBDEV_FORMAT_TRY &&
-	    sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+		sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+	{
 		return -EINVAL;
+	}
 
 	if (sel->pad >= sd->entity.num_pads)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -169,10 +208,14 @@ static int check_selection(struct v4l2_subdev *sd,
 static int check_edid(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid)
 {
 	if (edid->pad >= sd->entity.num_pads)
+	{
 		return -EINVAL;
+	}
 
 	if (edid->blocks && edid->edid == NULL)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -188,282 +231,356 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
 	int rval;
 #endif
 
-	switch (cmd) {
-	case VIDIOC_QUERYCTRL:
-		return v4l2_queryctrl(vfh->ctrl_handler, arg);
+	switch (cmd)
+	{
+		case VIDIOC_QUERYCTRL:
+			return v4l2_queryctrl(vfh->ctrl_handler, arg);
 
-	case VIDIOC_QUERY_EXT_CTRL:
-		return v4l2_query_ext_ctrl(vfh->ctrl_handler, arg);
+		case VIDIOC_QUERY_EXT_CTRL:
+			return v4l2_query_ext_ctrl(vfh->ctrl_handler, arg);
 
-	case VIDIOC_QUERYMENU:
-		return v4l2_querymenu(vfh->ctrl_handler, arg);
+		case VIDIOC_QUERYMENU:
+			return v4l2_querymenu(vfh->ctrl_handler, arg);
 
-	case VIDIOC_G_CTRL:
-		return v4l2_g_ctrl(vfh->ctrl_handler, arg);
+		case VIDIOC_G_CTRL:
+			return v4l2_g_ctrl(vfh->ctrl_handler, arg);
 
-	case VIDIOC_S_CTRL:
-		return v4l2_s_ctrl(vfh, vfh->ctrl_handler, arg);
+		case VIDIOC_S_CTRL:
+			return v4l2_s_ctrl(vfh, vfh->ctrl_handler, arg);
 
-	case VIDIOC_G_EXT_CTRLS:
-		return v4l2_g_ext_ctrls(vfh->ctrl_handler, arg);
+		case VIDIOC_G_EXT_CTRLS:
+			return v4l2_g_ext_ctrls(vfh->ctrl_handler, arg);
 
-	case VIDIOC_S_EXT_CTRLS:
-		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, arg);
+		case VIDIOC_S_EXT_CTRLS:
+			return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, arg);
 
-	case VIDIOC_TRY_EXT_CTRLS:
-		return v4l2_try_ext_ctrls(vfh->ctrl_handler, arg);
+		case VIDIOC_TRY_EXT_CTRLS:
+			return v4l2_try_ext_ctrls(vfh->ctrl_handler, arg);
 
-	case VIDIOC_DQEVENT:
-		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS))
-			return -ENOIOCTLCMD;
+		case VIDIOC_DQEVENT:
+			if (!(sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS))
+			{
+				return -ENOIOCTLCMD;
+			}
 
-		return v4l2_event_dequeue(vfh, arg, file->f_flags & O_NONBLOCK);
+			return v4l2_event_dequeue(vfh, arg, file->f_flags & O_NONBLOCK);
 
-	case VIDIOC_SUBSCRIBE_EVENT:
-		return v4l2_subdev_call(sd, core, subscribe_event, vfh, arg);
+		case VIDIOC_SUBSCRIBE_EVENT:
+			return v4l2_subdev_call(sd, core, subscribe_event, vfh, arg);
 
-	case VIDIOC_UNSUBSCRIBE_EVENT:
-		return v4l2_subdev_call(sd, core, unsubscribe_event, vfh, arg);
+		case VIDIOC_UNSUBSCRIBE_EVENT:
+			return v4l2_subdev_call(sd, core, unsubscribe_event, vfh, arg);
 
 #ifdef CONFIG_VIDEO_ADV_DEBUG
-	case VIDIOC_DBG_G_REGISTER:
-	{
-		struct v4l2_dbg_register *p = arg;
 
-		if (!capable(CAP_SYS_ADMIN))
-			return -EPERM;
-		return v4l2_subdev_call(sd, core, g_register, p);
-	}
-	case VIDIOC_DBG_S_REGISTER:
-	{
-		struct v4l2_dbg_register *p = arg;
+		case VIDIOC_DBG_G_REGISTER:
+			{
+				struct v4l2_dbg_register *p = arg;
 
-		if (!capable(CAP_SYS_ADMIN))
-			return -EPERM;
-		return v4l2_subdev_call(sd, core, s_register, p);
-	}
+				if (!capable(CAP_SYS_ADMIN))
+				{
+					return -EPERM;
+				}
+
+				return v4l2_subdev_call(sd, core, g_register, p);
+			}
+
+		case VIDIOC_DBG_S_REGISTER:
+			{
+				struct v4l2_dbg_register *p = arg;
+
+				if (!capable(CAP_SYS_ADMIN))
+				{
+					return -EPERM;
+				}
+
+				return v4l2_subdev_call(sd, core, s_register, p);
+			}
+
 #endif
 
-	case VIDIOC_LOG_STATUS: {
-		int ret;
+		case VIDIOC_LOG_STATUS:
+			{
+				int ret;
 
-		pr_info("%s: =================  START STATUS  =================\n",
-			sd->name);
-		ret = v4l2_subdev_call(sd, core, log_status);
-		pr_info("%s: ==================  END STATUS  ==================\n",
-			sd->name);
-		return ret;
-	}
+				pr_info("%s: =================  START STATUS  =================\n",
+						sd->name);
+				ret = v4l2_subdev_call(sd, core, log_status);
+				pr_info("%s: ==================  END STATUS  ==================\n",
+						sd->name);
+				return ret;
+			}
 
 #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
-	case VIDIOC_SUBDEV_G_FMT: {
-		struct v4l2_subdev_format *format = arg;
 
-		rval = check_format(sd, format);
-		if (rval)
-			return rval;
+		case VIDIOC_SUBDEV_G_FMT:
+			{
+				struct v4l2_subdev_format *format = arg;
 
-		return v4l2_subdev_call(sd, pad, get_fmt, subdev_fh->pad, format);
-	}
+				rval = check_format(sd, format);
 
-	case VIDIOC_SUBDEV_S_FMT: {
-		struct v4l2_subdev_format *format = arg;
+				if (rval)
+				{
+					return rval;
+				}
 
-		rval = check_format(sd, format);
-		if (rval)
-			return rval;
+				return v4l2_subdev_call(sd, pad, get_fmt, subdev_fh->pad, format);
+			}
 
-		return v4l2_subdev_call(sd, pad, set_fmt, subdev_fh->pad, format);
-	}
+		case VIDIOC_SUBDEV_S_FMT:
+			{
+				struct v4l2_subdev_format *format = arg;
 
-	case VIDIOC_SUBDEV_G_CROP: {
-		struct v4l2_subdev_crop *crop = arg;
-		struct v4l2_subdev_selection sel;
+				rval = check_format(sd, format);
 
-		rval = check_crop(sd, crop);
-		if (rval)
-			return rval;
+				if (rval)
+				{
+					return rval;
+				}
 
-		memset(&sel, 0, sizeof(sel));
-		sel.which = crop->which;
-		sel.pad = crop->pad;
-		sel.target = V4L2_SEL_TGT_CROP;
+				return v4l2_subdev_call(sd, pad, set_fmt, subdev_fh->pad, format);
+			}
 
-		rval = v4l2_subdev_call(
-			sd, pad, get_selection, subdev_fh->pad, &sel);
+		case VIDIOC_SUBDEV_G_CROP:
+			{
+				struct v4l2_subdev_crop *crop = arg;
+				struct v4l2_subdev_selection sel;
 
-		crop->rect = sel.r;
+				rval = check_crop(sd, crop);
 
-		return rval;
-	}
+				if (rval)
+				{
+					return rval;
+				}
 
-	case VIDIOC_SUBDEV_S_CROP: {
-		struct v4l2_subdev_crop *crop = arg;
-		struct v4l2_subdev_selection sel;
+				memset(&sel, 0, sizeof(sel));
+				sel.which = crop->which;
+				sel.pad = crop->pad;
+				sel.target = V4L2_SEL_TGT_CROP;
 
-		rval = check_crop(sd, crop);
-		if (rval)
-			return rval;
+				rval = v4l2_subdev_call(
+						   sd, pad, get_selection, subdev_fh->pad, &sel);
 
-		memset(&sel, 0, sizeof(sel));
-		sel.which = crop->which;
-		sel.pad = crop->pad;
-		sel.target = V4L2_SEL_TGT_CROP;
-		sel.r = crop->rect;
+				crop->rect = sel.r;
 
-		rval = v4l2_subdev_call(
-			sd, pad, set_selection, subdev_fh->pad, &sel);
+				return rval;
+			}
 
-		crop->rect = sel.r;
+		case VIDIOC_SUBDEV_S_CROP:
+			{
+				struct v4l2_subdev_crop *crop = arg;
+				struct v4l2_subdev_selection sel;
 
-		return rval;
-	}
+				rval = check_crop(sd, crop);
 
-	case VIDIOC_SUBDEV_ENUM_MBUS_CODE: {
-		struct v4l2_subdev_mbus_code_enum *code = arg;
+				if (rval)
+				{
+					return rval;
+				}
 
-		if (code->which != V4L2_SUBDEV_FORMAT_TRY &&
-		    code->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-			return -EINVAL;
+				memset(&sel, 0, sizeof(sel));
+				sel.which = crop->which;
+				sel.pad = crop->pad;
+				sel.target = V4L2_SEL_TGT_CROP;
+				sel.r = crop->rect;
 
-		if (code->pad >= sd->entity.num_pads)
-			return -EINVAL;
+				rval = v4l2_subdev_call(
+						   sd, pad, set_selection, subdev_fh->pad, &sel);
 
-		return v4l2_subdev_call(sd, pad, enum_mbus_code, subdev_fh->pad,
-					code);
-	}
+				crop->rect = sel.r;
 
-	case VIDIOC_SUBDEV_ENUM_FRAME_SIZE: {
-		struct v4l2_subdev_frame_size_enum *fse = arg;
+				return rval;
+			}
 
-		if (fse->which != V4L2_SUBDEV_FORMAT_TRY &&
-		    fse->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-			return -EINVAL;
+		case VIDIOC_SUBDEV_ENUM_MBUS_CODE:
+			{
+				struct v4l2_subdev_mbus_code_enum *code = arg;
 
-		if (fse->pad >= sd->entity.num_pads)
-			return -EINVAL;
+				if (code->which != V4L2_SUBDEV_FORMAT_TRY &&
+					code->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+				{
+					return -EINVAL;
+				}
 
-		return v4l2_subdev_call(sd, pad, enum_frame_size, subdev_fh->pad,
-					fse);
-	}
+				if (code->pad >= sd->entity.num_pads)
+				{
+					return -EINVAL;
+				}
 
-	case VIDIOC_SUBDEV_G_FRAME_INTERVAL: {
-		struct v4l2_subdev_frame_interval *fi = arg;
+				return v4l2_subdev_call(sd, pad, enum_mbus_code, subdev_fh->pad,
+										code);
+			}
 
-		if (fi->pad >= sd->entity.num_pads)
-			return -EINVAL;
+		case VIDIOC_SUBDEV_ENUM_FRAME_SIZE:
+			{
+				struct v4l2_subdev_frame_size_enum *fse = arg;
 
-		return v4l2_subdev_call(sd, video, g_frame_interval, arg);
-	}
+				if (fse->which != V4L2_SUBDEV_FORMAT_TRY &&
+					fse->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+				{
+					return -EINVAL;
+				}
 
-	case VIDIOC_SUBDEV_S_FRAME_INTERVAL: {
-		struct v4l2_subdev_frame_interval *fi = arg;
+				if (fse->pad >= sd->entity.num_pads)
+				{
+					return -EINVAL;
+				}
 
-		if (fi->pad >= sd->entity.num_pads)
-			return -EINVAL;
+				return v4l2_subdev_call(sd, pad, enum_frame_size, subdev_fh->pad,
+										fse);
+			}
 
-		return v4l2_subdev_call(sd, video, s_frame_interval, arg);
-	}
+		case VIDIOC_SUBDEV_G_FRAME_INTERVAL:
+			{
+				struct v4l2_subdev_frame_interval *fi = arg;
 
-	case VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL: {
-		struct v4l2_subdev_frame_interval_enum *fie = arg;
+				if (fi->pad >= sd->entity.num_pads)
+				{
+					return -EINVAL;
+				}
 
-		if (fie->which != V4L2_SUBDEV_FORMAT_TRY &&
-		    fie->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-			return -EINVAL;
+				return v4l2_subdev_call(sd, video, g_frame_interval, arg);
+			}
 
-		if (fie->pad >= sd->entity.num_pads)
-			return -EINVAL;
+		case VIDIOC_SUBDEV_S_FRAME_INTERVAL:
+			{
+				struct v4l2_subdev_frame_interval *fi = arg;
 
-		return v4l2_subdev_call(sd, pad, enum_frame_interval, subdev_fh->pad,
-					fie);
-	}
+				if (fi->pad >= sd->entity.num_pads)
+				{
+					return -EINVAL;
+				}
 
-	case VIDIOC_SUBDEV_G_SELECTION: {
-		struct v4l2_subdev_selection *sel = arg;
+				return v4l2_subdev_call(sd, video, s_frame_interval, arg);
+			}
 
-		rval = check_selection(sd, sel);
-		if (rval)
-			return rval;
+		case VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL:
+			{
+				struct v4l2_subdev_frame_interval_enum *fie = arg;
 
-		return v4l2_subdev_call(
-			sd, pad, get_selection, subdev_fh->pad, sel);
-	}
+				if (fie->which != V4L2_SUBDEV_FORMAT_TRY &&
+					fie->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+				{
+					return -EINVAL;
+				}
 
-	case VIDIOC_SUBDEV_S_SELECTION: {
-		struct v4l2_subdev_selection *sel = arg;
+				if (fie->pad >= sd->entity.num_pads)
+				{
+					return -EINVAL;
+				}
 
-		rval = check_selection(sd, sel);
-		if (rval)
-			return rval;
+				return v4l2_subdev_call(sd, pad, enum_frame_interval, subdev_fh->pad,
+										fie);
+			}
 
-		return v4l2_subdev_call(
-			sd, pad, set_selection, subdev_fh->pad, sel);
-	}
+		case VIDIOC_SUBDEV_G_SELECTION:
+			{
+				struct v4l2_subdev_selection *sel = arg;
 
-	case VIDIOC_G_EDID: {
-		struct v4l2_subdev_edid *edid = arg;
+				rval = check_selection(sd, sel);
 
-		rval = check_edid(sd, edid);
-		if (rval)
-			return rval;
+				if (rval)
+				{
+					return rval;
+				}
 
-		return v4l2_subdev_call(sd, pad, get_edid, edid);
-	}
+				return v4l2_subdev_call(
+						   sd, pad, get_selection, subdev_fh->pad, sel);
+			}
 
-	case VIDIOC_S_EDID: {
-		struct v4l2_subdev_edid *edid = arg;
+		case VIDIOC_SUBDEV_S_SELECTION:
+			{
+				struct v4l2_subdev_selection *sel = arg;
 
-		rval = check_edid(sd, edid);
-		if (rval)
-			return rval;
+				rval = check_selection(sd, sel);
 
-		return v4l2_subdev_call(sd, pad, set_edid, edid);
-	}
+				if (rval)
+				{
+					return rval;
+				}
 
-	case VIDIOC_SUBDEV_DV_TIMINGS_CAP: {
-		struct v4l2_dv_timings_cap *cap = arg;
+				return v4l2_subdev_call(
+						   sd, pad, set_selection, subdev_fh->pad, sel);
+			}
 
-		if (cap->pad >= sd->entity.num_pads)
-			return -EINVAL;
+		case VIDIOC_G_EDID:
+			{
+				struct v4l2_subdev_edid *edid = arg;
 
-		return v4l2_subdev_call(sd, pad, dv_timings_cap, cap);
-	}
+				rval = check_edid(sd, edid);
 
-	case VIDIOC_SUBDEV_ENUM_DV_TIMINGS: {
-		struct v4l2_enum_dv_timings *dvt = arg;
+				if (rval)
+				{
+					return rval;
+				}
 
-		if (dvt->pad >= sd->entity.num_pads)
-			return -EINVAL;
+				return v4l2_subdev_call(sd, pad, get_edid, edid);
+			}
 
-		return v4l2_subdev_call(sd, pad, enum_dv_timings, dvt);
-	}
+		case VIDIOC_S_EDID:
+			{
+				struct v4l2_subdev_edid *edid = arg;
 
-	case VIDIOC_SUBDEV_QUERY_DV_TIMINGS:
-		return v4l2_subdev_call(sd, video, query_dv_timings, arg);
+				rval = check_edid(sd, edid);
 
-	case VIDIOC_SUBDEV_G_DV_TIMINGS:
-		return v4l2_subdev_call(sd, video, g_dv_timings, arg);
+				if (rval)
+				{
+					return rval;
+				}
 
-	case VIDIOC_SUBDEV_S_DV_TIMINGS:
-		return v4l2_subdev_call(sd, video, s_dv_timings, arg);
+				return v4l2_subdev_call(sd, pad, set_edid, edid);
+			}
+
+		case VIDIOC_SUBDEV_DV_TIMINGS_CAP:
+			{
+				struct v4l2_dv_timings_cap *cap = arg;
+
+				if (cap->pad >= sd->entity.num_pads)
+				{
+					return -EINVAL;
+				}
+
+				return v4l2_subdev_call(sd, pad, dv_timings_cap, cap);
+			}
+
+		case VIDIOC_SUBDEV_ENUM_DV_TIMINGS:
+			{
+				struct v4l2_enum_dv_timings *dvt = arg;
+
+				if (dvt->pad >= sd->entity.num_pads)
+				{
+					return -EINVAL;
+				}
+
+				return v4l2_subdev_call(sd, pad, enum_dv_timings, dvt);
+			}
+
+		case VIDIOC_SUBDEV_QUERY_DV_TIMINGS:
+			return v4l2_subdev_call(sd, video, query_dv_timings, arg);
+
+		case VIDIOC_SUBDEV_G_DV_TIMINGS:
+			return v4l2_subdev_call(sd, video, g_dv_timings, arg);
+
+		case VIDIOC_SUBDEV_S_DV_TIMINGS:
+			return v4l2_subdev_call(sd, video, s_dv_timings, arg);
 #endif
-	default:
-		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
+
+		default:
+			return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
 	}
 
 	return 0;
 }
 
 static long subdev_ioctl(struct file *file, unsigned int cmd,
-	unsigned long arg)
+						 unsigned long arg)
 {
 	return video_usercopy(file, cmd, arg, subdev_do_ioctl);
 }
 
 #ifdef CONFIG_COMPAT
 static long subdev_compat_ioctl32(struct file *file, unsigned int cmd,
-	unsigned long arg)
+								  unsigned long arg)
 {
 	struct video_device *vdev = video_devdata(file);
 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
@@ -479,17 +596,22 @@ static unsigned int subdev_poll(struct file *file, poll_table *wait)
 	struct v4l2_fh *fh = file->private_data;
 
 	if (!(sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS))
+	{
 		return POLLERR;
+	}
 
 	poll_wait(file, &fh->wait, wait);
 
 	if (v4l2_event_pending(fh))
+	{
 		return POLLPRI;
+	}
 
 	return 0;
 }
 
-const struct v4l2_file_operations v4l2_subdev_fops = {
+const struct v4l2_file_operations v4l2_subdev_fops =
+{
 	.owner = THIS_MODULE,
 	.open = subdev_open,
 	.unlocked_ioctl = subdev_ioctl,
@@ -502,23 +624,27 @@ const struct v4l2_file_operations v4l2_subdev_fops = {
 
 #ifdef CONFIG_MEDIA_CONTROLLER
 int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
-				      struct media_link *link,
-				      struct v4l2_subdev_format *source_fmt,
-				      struct v4l2_subdev_format *sink_fmt)
+									  struct media_link *link,
+									  struct v4l2_subdev_format *source_fmt,
+									  struct v4l2_subdev_format *sink_fmt)
 {
 	/* The width, height and code must match. */
 	if (source_fmt->format.width != sink_fmt->format.width
-	    || source_fmt->format.height != sink_fmt->format.height
-	    || source_fmt->format.code != sink_fmt->format.code)
+		|| source_fmt->format.height != sink_fmt->format.height
+		|| source_fmt->format.code != sink_fmt->format.code)
+	{
 		return -EPIPE;
+	}
 
 	/* The field order must match, or the sink field order must be NONE
 	 * to support interlaced hardware connected to bridges that support
 	 * progressive formats only.
 	 */
 	if (source_fmt->format.field != sink_fmt->format.field &&
-	    sink_fmt->format.field != V4L2_FIELD_NONE)
+		sink_fmt->format.field != V4L2_FIELD_NONE)
+	{
 		return -EPIPE;
+	}
 
 	return 0;
 }
@@ -526,9 +652,10 @@ EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate_default);
 
 static int
 v4l2_subdev_link_validate_get_format(struct media_pad *pad,
-				     struct v4l2_subdev_format *fmt)
+									 struct v4l2_subdev_format *fmt)
 {
-	if (is_media_entity_v4l2_subdev(pad->entity)) {
+	if (is_media_entity_v4l2_subdev(pad->entity))
+	{
 		struct v4l2_subdev *sd =
 			media_entity_to_v4l2_subdev(pad->entity);
 
@@ -538,8 +665,8 @@ v4l2_subdev_link_validate_get_format(struct media_pad *pad,
 	}
 
 	WARN(pad->entity->function != MEDIA_ENT_F_IO_V4L,
-	     "Driver bug! Wrong media entity type 0x%08x, entity %s\n",
-	     pad->entity->function, pad->entity->name);
+		 "Driver bug! Wrong media entity type 0x%08x, entity %s\n",
+		 pad->entity->function, pad->entity->name);
 
 	return -EINVAL;
 }
@@ -551,24 +678,33 @@ int v4l2_subdev_link_validate(struct media_link *link)
 	int rval;
 
 	rval = v4l2_subdev_link_validate_get_format(
-		link->source, &source_fmt);
+			   link->source, &source_fmt);
+
 	if (rval < 0)
+	{
 		return 0;
+	}
 
 	rval = v4l2_subdev_link_validate_get_format(
-		link->sink, &sink_fmt);
+			   link->sink, &sink_fmt);
+
 	if (rval < 0)
+	{
 		return 0;
+	}
 
 	sink = media_entity_to_v4l2_subdev(link->sink->entity);
 
 	rval = v4l2_subdev_call(sink, pad, link_validate, link,
-				&source_fmt, &sink_fmt);
+							&source_fmt, &sink_fmt);
+
 	if (rval != -ENOIOCTLCMD)
+	{
 		return rval;
+	}
 
 	return v4l2_subdev_link_validate_default(
-		sink, link, &source_fmt, &sink_fmt);
+			   sink, link, &source_fmt, &sink_fmt);
 }
 EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate);
 
@@ -579,14 +715,21 @@ v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd)
 	int ret;
 
 	if (!sd->entity.num_pads)
+	{
 		return NULL;
+	}
 
 	cfg = kcalloc(sd->entity.num_pads, sizeof(*cfg), GFP_KERNEL);
+
 	if (!cfg)
+	{
 		return NULL;
+	}
 
 	ret = v4l2_subdev_call(sd, pad, init_cfg, cfg);
-	if (ret < 0 && ret != -ENOIOCTLCMD) {
+
+	if (ret < 0 && ret != -ENOIOCTLCMD)
+	{
 		kfree(cfg);
 		return NULL;
 	}
@@ -622,7 +765,7 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
 EXPORT_SYMBOL(v4l2_subdev_init);
 
 void v4l2_subdev_notify_event(struct v4l2_subdev *sd,
-			      const struct v4l2_event *ev)
+							  const struct v4l2_event *ev)
 {
 	v4l2_event_queue(sd->devnode, ev);
 	v4l2_subdev_notify(sd, V4L2_DEVICE_NOTIFY_EVENT, (void *)ev);

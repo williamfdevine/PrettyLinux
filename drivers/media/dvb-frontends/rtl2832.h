@@ -36,7 +36,8 @@
  * @pid_filter_ctrl: Control PID filter.
  */
 
-struct rtl2832_platform_data {
+struct rtl2832_platform_data
+{
 	u32 clk;
 	/*
 	 * XXX: This list must be kept sync with dvb_usb_rtl28xxu USB IF driver.
@@ -51,12 +52,12 @@ struct rtl2832_platform_data {
 #define RTL2832_TUNER_SI2157    0x2c
 	u8 tuner;
 
-	struct dvb_frontend* (*get_dvb_frontend)(struct i2c_client *);
-	struct i2c_adapter* (*get_i2c_adapter)(struct i2c_client *);
+	struct dvb_frontend *(*get_dvb_frontend)(struct i2c_client *);
+	struct i2c_adapter *(*get_i2c_adapter)(struct i2c_client *);
 	int (*slave_ts_ctrl)(struct i2c_client *, bool);
 	int (*pid_filter)(struct dvb_frontend *, u8, u16, int);
 	int (*pid_filter_ctrl)(struct dvb_frontend *, int);
-/* private: Register access for SDR module use only */
+	/* private: Register access for SDR module use only */
 	struct regmap *regmap;
 };
 

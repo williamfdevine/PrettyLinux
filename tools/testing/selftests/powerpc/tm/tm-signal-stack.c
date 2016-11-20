@@ -37,10 +37,14 @@ int tm_signal_stack()
 	SKIP_IF(!have_htm());
 
 	pid = fork();
-	if (pid < 0)
-		exit(1);
 
-	if (pid) { /* Parent */
+	if (pid < 0)
+	{
+		exit(1);
+	}
+
+	if (pid)   /* Parent */
+	{
 		/*
 		 * It's likely the whole machine will crash here so if
 		 * the child ever exits, we are good.
@@ -57,14 +61,17 @@ int tm_signal_stack()
 	 * 4) cause segv
 	 */
 	if (signal(SIGSEGV, signal_segv) == SIG_ERR)
+	{
 		exit(1);
+	}
+
 	asm volatile("li 1, 0 ;"		/* stack ptr == NULL */
-		     "1:"
-		     "tbegin.;"
-		     "beq 1b ;"			/* retry forever */
-		     "tsuspend.;"
-		     "ld 2, 0(1) ;"		/* trigger segv" */
-		     : : : "memory");
+				 "1:"
+				 "tbegin.;"
+				 "beq 1b ;"			/* retry forever */
+				 "tsuspend.;"
+				 "ld 2, 0(1) ;"		/* trigger segv" */
+				 : : : "memory");
 
 	/* This should never get here due to above segv */
 	return 1;

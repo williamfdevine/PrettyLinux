@@ -56,7 +56,8 @@ static void __init _mx21_clocks_init(unsigned long lref, unsigned long href)
 	clk[IMX21_CLK_SPLL_GATE] = imx_clk_gate("spll_gate", "spll", CCM_CSCR, 1);
 	clk[IMX21_CLK_FPM_GATE] = imx_clk_gate("fpm_gate", "fpm", CCM_CSCR, 2);
 	clk[IMX21_CLK_CKIH_GATE] = imx_clk_gate_dis("ckih_gate", "ckih", CCM_CSCR, 3);
-	clk[IMX21_CLK_MPLL_OSC_SEL] = imx_clk_mux("mpll_osc_sel", CCM_CSCR, 4, 1, mpll_osc_sel_clks, ARRAY_SIZE(mpll_osc_sel_clks));
+	clk[IMX21_CLK_MPLL_OSC_SEL] = imx_clk_mux("mpll_osc_sel", CCM_CSCR, 4, 1, mpll_osc_sel_clks,
+								  ARRAY_SIZE(mpll_osc_sel_clks));
 	clk[IMX21_CLK_IPG] = imx_clk_divider("ipg", "hclk", CCM_CSCR, 9, 1);
 	clk[IMX21_CLK_HCLK] = imx_clk_divider("hclk", "fclk", CCM_CSCR, 10, 4);
 	clk[IMX21_CLK_MPLL_SEL] = imx_clk_mux("mpll_sel", CCM_CSCR, 16, 1, mpll_sel_clks, ARRAY_SIZE(mpll_sel_clks));

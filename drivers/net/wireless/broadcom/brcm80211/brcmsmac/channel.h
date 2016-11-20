@@ -39,9 +39,9 @@ void brcms_c_channel_mgr_detach(struct brcms_cm_info *wlc_cm);
 bool brcms_c_valid_chanspec_db(struct brcms_cm_info *wlc_cm, u16 chspec);
 
 void brcms_c_channel_reg_limits(struct brcms_cm_info *wlc_cm, u16 chanspec,
-				struct txpwr_limits *txpwr);
+								struct txpwr_limits *txpwr);
 void brcms_c_channel_set_chanspec(struct brcms_cm_info *wlc_cm, u16 chanspec,
-				  u8 local_constraint_qdbm);
+								  u8 local_constraint_qdbm);
 void brcms_c_regd_init(struct brcms_c_info *wlc);
 
 #endif				/* _WLC_CHANNEL_H */

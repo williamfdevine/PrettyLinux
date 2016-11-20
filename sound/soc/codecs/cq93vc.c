@@ -38,7 +38,8 @@
 #include <sound/soc.h>
 #include <sound/initval.h>
 
-static const struct snd_kcontrol_new cq93vc_snd_controls[] = {
+static const struct snd_kcontrol_new cq93vc_snd_controls[] =
+{
 	SOC_SINGLE("PGA Capture Volume", DAVINCI_VC_REG05, 0, 0x03, 0),
 	SOC_SINGLE("Mono DAC Playback Volume", DAVINCI_VC_REG09, 0, 0x3f, 0),
 };
@@ -49,48 +50,57 @@ static int cq93vc_mute(struct snd_soc_dai *dai, int mute)
 	u8 reg;
 
 	if (mute)
+	{
 		reg = DAVINCI_VC_REG09_MUTE;
+	}
 	else
+	{
 		reg = 0;
+	}
 
 	snd_soc_update_bits(codec, DAVINCI_VC_REG09, DAVINCI_VC_REG09_MUTE,
-			    reg);
+						reg);
 
 	return 0;
 }
 
 static int cq93vc_set_dai_sysclk(struct snd_soc_dai *codec_dai,
-				 int clk_id, unsigned int freq, int dir)
+								 int clk_id, unsigned int freq, int dir)
 {
-	switch (freq) {
-	case 22579200:
-	case 27000000:
-	case 33868800:
-		return 0;
+	switch (freq)
+	{
+		case 22579200:
+		case 27000000:
+		case 33868800:
+			return 0;
 	}
 
 	return -EINVAL;
 }
 
 static int cq93vc_set_bias_level(struct snd_soc_codec *codec,
-				enum snd_soc_bias_level level)
+								 enum snd_soc_bias_level level)
 {
-	switch (level) {
-	case SND_SOC_BIAS_ON:
-		snd_soc_write(codec, DAVINCI_VC_REG12,
-			     DAVINCI_VC_REG12_POWER_ALL_ON);
-		break;
-	case SND_SOC_BIAS_PREPARE:
-		break;
-	case SND_SOC_BIAS_STANDBY:
-		snd_soc_write(codec, DAVINCI_VC_REG12,
-			     DAVINCI_VC_REG12_POWER_ALL_OFF);
-		break;
-	case SND_SOC_BIAS_OFF:
-		/* force all power off */
-		snd_soc_write(codec, DAVINCI_VC_REG12,
-			     DAVINCI_VC_REG12_POWER_ALL_OFF);
-		break;
+	switch (level)
+	{
+		case SND_SOC_BIAS_ON:
+			snd_soc_write(codec, DAVINCI_VC_REG12,
+						  DAVINCI_VC_REG12_POWER_ALL_ON);
+			break;
+
+		case SND_SOC_BIAS_PREPARE:
+			break;
+
+		case SND_SOC_BIAS_STANDBY:
+			snd_soc_write(codec, DAVINCI_VC_REG12,
+						  DAVINCI_VC_REG12_POWER_ALL_OFF);
+			break;
+
+		case SND_SOC_BIAS_OFF:
+			/* force all power off */
+			snd_soc_write(codec, DAVINCI_VC_REG12,
+						  DAVINCI_VC_REG12_POWER_ALL_OFF);
+			break;
 	}
 
 	return 0;
@@ -99,25 +109,29 @@ static int cq93vc_set_bias_level(struct snd_soc_codec *codec,
 #define CQ93VC_RATES	(SNDRV_PCM_RATE_8000 | SNDRV_PCM_RATE_16000)
 #define CQ93VC_FORMATS	(SNDRV_PCM_FMTBIT_U8 | SNDRV_PCM_FMTBIT_S16_LE)
 
-static const struct snd_soc_dai_ops cq93vc_dai_ops = {
+static const struct snd_soc_dai_ops cq93vc_dai_ops =
+{
 	.digital_mute	= cq93vc_mute,
 	.set_sysclk	= cq93vc_set_dai_sysclk,
 };
 
-static struct snd_soc_dai_driver cq93vc_dai = {
+static struct snd_soc_dai_driver cq93vc_dai =
+{
 	.name = "cq93vc-hifi",
 	.playback = {
 		.stream_name = "Playback",
 		.channels_min = 1,
 		.channels_max = 2,
 		.rates = CQ93VC_RATES,
-		.formats = CQ93VC_FORMATS,},
+		.formats = CQ93VC_FORMATS,
+	},
 	.capture = {
 		.stream_name = "Capture",
 		.channels_min = 1,
 		.channels_max = 2,
 		.rates = CQ93VC_RATES,
-		.formats = CQ93VC_FORMATS,},
+		.formats = CQ93VC_FORMATS,
+	},
 	.ops = &cq93vc_dai_ops,
 };
 
@@ -128,7 +142,8 @@ static struct regmap *cq93vc_get_regmap(struct device *dev)
 	return davinci_vc->regmap;
 }
 
-static struct snd_soc_codec_driver soc_codec_dev_cq93vc = {
+static struct snd_soc_codec_driver soc_codec_dev_cq93vc =
+{
 	.set_bias_level = cq93vc_set_bias_level,
 	.get_regmap = cq93vc_get_regmap,
 	.component_driver = {
@@ -140,7 +155,7 @@ static struct snd_soc_codec_driver soc_codec_dev_cq93vc = {
 static int cq93vc_platform_probe(struct platform_device *pdev)
 {
 	return snd_soc_register_codec(&pdev->dev,
-			&soc_codec_dev_cq93vc, &cq93vc_dai, 1);
+								  &soc_codec_dev_cq93vc, &cq93vc_dai, 1);
 }
 
 static int cq93vc_platform_remove(struct platform_device *pdev)
@@ -149,9 +164,10 @@ static int cq93vc_platform_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver cq93vc_codec_driver = {
+static struct platform_driver cq93vc_codec_driver =
+{
 	.driver = {
-			.name = "cq93vc-codec",
+		.name = "cq93vc-codec",
 	},
 
 	.probe = cq93vc_platform_probe,

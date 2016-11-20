@@ -22,54 +22,56 @@
 
 static int __net_init ip6table_nat_table_init(struct net *net);
 
-static const struct xt_table nf_nat_ipv6_table = {
+static const struct xt_table nf_nat_ipv6_table =
+{
 	.name		= "nat",
 	.valid_hooks	= (1 << NF_INET_PRE_ROUTING) |
-			  (1 << NF_INET_POST_ROUTING) |
-			  (1 << NF_INET_LOCAL_OUT) |
-			  (1 << NF_INET_LOCAL_IN),
+	(1 << NF_INET_POST_ROUTING) |
+	(1 << NF_INET_LOCAL_OUT) |
+	(1 << NF_INET_LOCAL_IN),
 	.me		= THIS_MODULE,
 	.af		= NFPROTO_IPV6,
 	.table_init	= ip6table_nat_table_init,
 };
 
 static unsigned int ip6table_nat_do_chain(void *priv,
-					  struct sk_buff *skb,
-					  const struct nf_hook_state *state,
-					  struct nf_conn *ct)
+		struct sk_buff *skb,
+		const struct nf_hook_state *state,
+		struct nf_conn *ct)
 {
 	return ip6t_do_table(skb, state, state->net->ipv6.ip6table_nat);
 }
 
 static unsigned int ip6table_nat_fn(void *priv,
-				    struct sk_buff *skb,
-				    const struct nf_hook_state *state)
+									struct sk_buff *skb,
+									const struct nf_hook_state *state)
 {
 	return nf_nat_ipv6_fn(priv, skb, state, ip6table_nat_do_chain);
 }
 
 static unsigned int ip6table_nat_in(void *priv,
-				    struct sk_buff *skb,
-				    const struct nf_hook_state *state)
+									struct sk_buff *skb,
+									const struct nf_hook_state *state)
 {
 	return nf_nat_ipv6_in(priv, skb, state, ip6table_nat_do_chain);
 }
 
 static unsigned int ip6table_nat_out(void *priv,
-				     struct sk_buff *skb,
-				     const struct nf_hook_state *state)
+									 struct sk_buff *skb,
+									 const struct nf_hook_state *state)
 {
 	return nf_nat_ipv6_out(priv, skb, state, ip6table_nat_do_chain);
 }
 
 static unsigned int ip6table_nat_local_fn(void *priv,
-					  struct sk_buff *skb,
-					  const struct nf_hook_state *state)
+		struct sk_buff *skb,
+		const struct nf_hook_state *state)
 {
 	return nf_nat_ipv6_local_fn(priv, skb, state, ip6table_nat_do_chain);
 }
 
-static struct nf_hook_ops nf_nat_ipv6_ops[] __read_mostly = {
+static struct nf_hook_ops nf_nat_ipv6_ops[] __read_mostly =
+{
 	/* Before packet filtering, change destination */
 	{
 		.hook		= ip6table_nat_in,
@@ -106,13 +108,19 @@ static int __net_init ip6table_nat_table_init(struct net *net)
 	int ret;
 
 	if (net->ipv6.ip6table_nat)
+	{
 		return 0;
+	}
 
 	repl = ip6t_alloc_initial_table(&nf_nat_ipv6_table);
+
 	if (repl == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	ret = ip6t_register_table(net, &nf_nat_ipv6_table, repl,
-				  nf_nat_ipv6_ops, &net->ipv6.ip6table_nat);
+							  nf_nat_ipv6_ops, &net->ipv6.ip6table_nat);
 	kfree(repl);
 	return ret;
 }
@@ -120,12 +128,16 @@ static int __net_init ip6table_nat_table_init(struct net *net)
 static void __net_exit ip6table_nat_net_exit(struct net *net)
 {
 	if (!net->ipv6.ip6table_nat)
+	{
 		return;
+	}
+
 	ip6t_unregister_table(net, net->ipv6.ip6table_nat, nf_nat_ipv6_ops);
 	net->ipv6.ip6table_nat = NULL;
 }
 
-static struct pernet_operations ip6table_nat_net_ops = {
+static struct pernet_operations ip6table_nat_net_ops =
+{
 	.exit	= ip6table_nat_net_exit,
 };
 
@@ -134,11 +146,17 @@ static int __init ip6table_nat_init(void)
 	int ret = register_pernet_subsys(&ip6table_nat_net_ops);
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = ip6table_nat_table_init(&init_net);
+
 	if (ret)
+	{
 		unregister_pernet_subsys(&ip6table_nat_net_ops);
+	}
+
 	return ret;
 }
 

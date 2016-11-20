@@ -4,7 +4,8 @@
 #include <linux/types.h>
 #include <linux/netlink.h>
 
-struct ifaddrmsg {
+struct ifaddrmsg
+{
 	__u8		ifa_family;
 	__u8		ifa_prefixlen;	/* The prefix length		*/
 	__u8		ifa_flags;	/* Flags			*/
@@ -22,7 +23,8 @@ struct ifaddrmsg {
  * IFA_FLAGS is a u32 attribute that extends the u8 field ifa_flags.
  * If present, the value from struct ifaddrmsg will be ignored.
  */
-enum {
+enum
+{
 	IFA_UNSPEC,
 	IFA_ADDRESS,
 	IFA_LOCAL,
@@ -53,7 +55,8 @@ enum {
 #define IFA_F_MCAUTOJOIN	0x400
 #define IFA_F_STABLE_PRIVACY	0x800
 
-struct ifa_cacheinfo {
+struct ifa_cacheinfo
+{
 	__u32	ifa_prefered;
 	__u32	ifa_valid;
 	__u32	cstamp; /* created timestamp, hundredths of seconds */
@@ -62,8 +65,8 @@ struct ifa_cacheinfo {
 
 /* backwards compatibility for userspace */
 #ifndef __KERNEL__
-#define IFA_RTA(r)  ((struct rtattr*)(((char*)(r)) + NLMSG_ALIGN(sizeof(struct ifaddrmsg))))
-#define IFA_PAYLOAD(n) NLMSG_PAYLOAD(n,sizeof(struct ifaddrmsg))
+	#define IFA_RTA(r)  ((struct rtattr*)(((char*)(r)) + NLMSG_ALIGN(sizeof(struct ifaddrmsg))))
+	#define IFA_PAYLOAD(n) NLMSG_PAYLOAD(n,sizeof(struct ifaddrmsg))
 #endif
 
 #endif

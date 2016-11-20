@@ -15,7 +15,8 @@
 #include <unistd.h>
 #include <string.h>
 
-struct block_list {
+struct block_list
+{
 	char *txt;
 	int len;
 	int num;
@@ -32,9 +33,13 @@ int read_block(char *buf, int buf_size, FILE *fin)
 {
 	char *curr = buf, *const buf_end = buf + buf_size;
 
-	while (buf_end - curr > 1 && fgets(curr, buf_end - curr, fin)) {
+	while (buf_end - curr > 1 && fgets(curr, buf_end - curr, fin))
+	{
 		if (*curr == '\n') /* empty line */
+		{
 			return curr - buf;
+		}
+
 		curr += strlen(curr);
 	}
 
@@ -58,22 +63,28 @@ static int compare_num(const void *p1, const void *p2)
 static void add_list(char *buf, int len)
 {
 	if (list_size != 0 &&
-	    len == list[list_size-1].len &&
-	    memcmp(buf, list[list_size-1].txt, len) == 0) {
-		list[list_size-1].num++;
+		len == list[list_size - 1].len &&
+		memcmp(buf, list[list_size - 1].txt, len) == 0)
+	{
+		list[list_size - 1].num++;
 		return;
 	}
-	if (list_size == max_size) {
+
+	if (list_size == max_size)
+	{
 		printf("max_size too small??\n");
 		exit(1);
 	}
-	list[list_size].txt = malloc(len+1);
+
+	list[list_size].txt = malloc(len + 1);
 	list[list_size].len = len;
 	list[list_size].num = 1;
 	memcpy(list[list_size].txt, buf, len);
 	list[list_size].txt[len] = 0;
 	list_size++;
-	if (list_size % 1000 == 0) {
+
+	if (list_size % 1000 == 0)
+	{
 		printf("loaded %d\r", list_size);
 		fflush(stdout);
 	}
@@ -89,7 +100,8 @@ int main(int argc, char **argv)
 	struct block_list *list2;
 	struct stat st;
 
-	if (argc < 3) {
+	if (argc < 3)
+	{
 		printf("Usage: ./program <input> <output>\n");
 		perror("open: ");
 		exit(1);
@@ -97,7 +109,9 @@ int main(int argc, char **argv)
 
 	fin = fopen(argv[1], "r");
 	fout = fopen(argv[2], "w");
-	if (!fin || !fout) {
+
+	if (!fin || !fout)
+	{
 		printf("Usage: ./program <input> <output>\n");
 		perror("open: ");
 		exit(1);
@@ -108,15 +122,21 @@ int main(int argc, char **argv)
 
 	list = malloc(max_size * sizeof(*list));
 	buf = malloc(BUF_SIZE);
-	if (!list || !buf) {
+
+	if (!list || !buf)
+	{
 		printf("Out of memory\n");
 		exit(1);
 	}
 
-	for ( ; ; ) {
+	for ( ; ; )
+	{
 		ret = read_block(buf, BUF_SIZE, fin);
+
 		if (ret < 0)
+		{
 			break;
+		}
 
 		add_list(buf, ret);
 	}
@@ -131,19 +151,25 @@ int main(int argc, char **argv)
 
 	printf("culling\n");
 
-	for (i = count = 0; i < list_size; i++) {
+	for (i = count = 0; i < list_size; i++)
+	{
 		if (count == 0 ||
-		    strcmp(list2[count-1].txt, list[i].txt) != 0) {
+			strcmp(list2[count - 1].txt, list[i].txt) != 0)
+		{
 			list2[count++] = list[i];
-		} else {
-			list2[count-1].num += list[i].num;
+		}
+		else
+		{
+			list2[count - 1].num += list[i].num;
 		}
 	}
 
 	qsort(list2, count, sizeof(list[0]), compare_num);
 
 	for (i = 0; i < count; i++)
+	{
 		fprintf(fout, "%d times:\n%s\n", list2[i].num, list2[i].txt);
+	}
 
 	return 0;
 }

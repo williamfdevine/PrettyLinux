@@ -6,7 +6,8 @@
 #define TCA_ACT_IPT 6
 #define TCA_ACT_XT 10
 
-enum {
+enum
+{
 	TCA_IPT_UNSPEC,
 	TCA_IPT_TABLE,
 	TCA_IPT_HOOK,
@@ -18,5 +19,5 @@ enum {
 	__TCA_IPT_MAX
 };
 #define TCA_IPT_MAX (__TCA_IPT_MAX - 1)
-                                                                                
+
 #endif

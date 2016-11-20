@@ -18,12 +18,13 @@ typedef __u32 __bitwise __fs32;
  * one as our "working copy".
  */
 
-struct sysv_sb_info {
+struct sysv_sb_info
+{
 	struct super_block *s_sb;	/* VFS superblock */
 	int	       s_type;		/* file system type: FSTYPE_{XENIX|SYSV|COH} */
 	char	       s_bytesex;	/* bytesex (le/be/pdp) */
 	char	       s_truncate;	/* if 1: names > SYSV_NAMELEN chars are truncated */
-					/* if 0: they are disallowed (ENAMETOOLONG) */
+	/* if 0: they are disallowed (ENAMETOOLONG) */
 	unsigned int   s_inodes_per_block;	/* number of inodes per block */
 	unsigned int   s_inodes_per_block_1;	/* inodes_per_block - 1 */
 	unsigned int   s_inodes_per_block_bits;	/* log2(inodes_per_block) */
@@ -39,10 +40,10 @@ struct sysv_sb_info {
 	struct buffer_head *s_bh2;
 	/* These are pointers into the disk buffer, to compensate for
 	   different superblock layout. */
-	char *         s_sbd1;		/* entire superblock data, for part 1 */
-	char *         s_sbd2;		/* entire superblock data, for part 2 */
+	char          *s_sbd1;		/* entire superblock data, for part 1 */
+	char          *s_sbd2;		/* entire superblock data, for part 2 */
 	__fs16         *s_sb_fic_count;	/* pointer to s_sbd->s_ninode */
-        sysv_ino_t     *s_sb_fic_inodes; /* pointer to s_sbd->s_inode */
+	sysv_ino_t     *s_sb_fic_inodes; /* pointer to s_sbd->s_inode */
 	__fs16         *s_sb_total_free_inodes; /* pointer to s_sbd->s_tinode */
 	__fs16         *s_bcache_count;	/* pointer to s_sbd->s_nfree */
 	sysv_zone_t    *s_bcache;	/* pointer to s_sbd->s_free */
@@ -64,7 +65,8 @@ struct sysv_sb_info {
 /*
  * SystemV/V7/Coherent FS inode data in memory
  */
-struct sysv_inode_info {
+struct sysv_inode_info
+{
 	__fs32		i_data[13];
 	u32		i_dir_start_lookup;
 	struct inode	vfs_inode;
@@ -83,7 +85,8 @@ static inline struct sysv_sb_info *SYSV_SB(struct super_block *sb)
 
 
 /* identify the FS in memory */
-enum {
+enum
+{
 	FSTYPE_NONE = 0,
 	FSTYPE_XENIX,
 	FSTYPE_SYSV4,
@@ -103,7 +106,8 @@ enum {
 
 
 /* Admissible values for i_nlink: 0.._LINK_MAX */
-enum {
+enum
+{
 	XENIX_LINK_MAX	=	126,	/* ?? */
 	SYSV_LINK_MAX	=	126,	/* 127? 251? */
 	V7_LINK_MAX     =	126,	/* ?? */
@@ -116,15 +120,18 @@ static inline void dirty_sb(struct super_block *sb)
 	struct sysv_sb_info *sbi = SYSV_SB(sb);
 
 	mark_buffer_dirty(sbi->s_bh1);
+
 	if (sbi->s_bh1 != sbi->s_bh2)
+	{
 		mark_buffer_dirty(sbi->s_bh2);
+	}
 }
 
 
 /* ialloc.c */
 extern struct sysv_inode *sysv_raw_inode(struct super_block *, unsigned,
-			struct buffer_head **);
-extern struct inode * sysv_new_inode(const struct inode *, umode_t);
+		struct buffer_head **);
+extern struct inode *sysv_new_inode(const struct inode *, umode_t);
 extern void sysv_free_inode(struct inode *);
 extern unsigned long sysv_count_free_inodes(struct super_block *);
 
@@ -154,7 +161,7 @@ extern int sysv_delete_entry(struct sysv_dir_entry *, struct page *);
 extern int sysv_make_empty(struct inode *, struct inode *);
 extern int sysv_empty_dir(struct inode *);
 extern void sysv_set_link(struct sysv_dir_entry *, struct page *,
-			struct inode *);
+						  struct inode *);
 extern struct sysv_dir_entry *sysv_dotdot(struct inode *, struct page **);
 extern ino_t sysv_inode_by_name(struct dentry *);
 
@@ -168,7 +175,8 @@ extern const struct super_operations sysv_sops;
 extern const struct dentry_operations sysv_dentry_operations;
 
 
-enum {
+enum
+{
 	BYTESEX_LE,
 	BYTESEX_PDP,
 	BYTESEX_BE,
@@ -190,56 +198,88 @@ static inline u32 PDP_swab(u32 x)
 static inline __u32 fs32_to_cpu(struct sysv_sb_info *sbi, __fs32 n)
 {
 	if (sbi->s_bytesex == BYTESEX_PDP)
+	{
 		return PDP_swab((__force __u32)n);
+	}
 	else if (sbi->s_bytesex == BYTESEX_LE)
+	{
 		return le32_to_cpu((__force __le32)n);
+	}
 	else
+	{
 		return be32_to_cpu((__force __be32)n);
+	}
 }
 
 static inline __fs32 cpu_to_fs32(struct sysv_sb_info *sbi, __u32 n)
 {
 	if (sbi->s_bytesex == BYTESEX_PDP)
+	{
 		return (__force __fs32)PDP_swab(n);
+	}
 	else if (sbi->s_bytesex == BYTESEX_LE)
+	{
 		return (__force __fs32)cpu_to_le32(n);
+	}
 	else
+	{
 		return (__force __fs32)cpu_to_be32(n);
+	}
 }
 
 static inline __fs32 fs32_add(struct sysv_sb_info *sbi, __fs32 *n, int d)
 {
 	if (sbi->s_bytesex == BYTESEX_PDP)
-		*(__u32*)n = PDP_swab(PDP_swab(*(__u32*)n)+d);
+	{
+		*(__u32 *)n = PDP_swab(PDP_swab(*(__u32 *)n) + d);
+	}
 	else if (sbi->s_bytesex == BYTESEX_LE)
+	{
 		le32_add_cpu((__le32 *)n, d);
+	}
 	else
+	{
 		be32_add_cpu((__be32 *)n, d);
+	}
+
 	return *n;
 }
 
 static inline __u16 fs16_to_cpu(struct sysv_sb_info *sbi, __fs16 n)
 {
 	if (sbi->s_bytesex != BYTESEX_BE)
+	{
 		return le16_to_cpu((__force __le16)n);
+	}
 	else
+	{
 		return be16_to_cpu((__force __be16)n);
+	}
 }
 
 static inline __fs16 cpu_to_fs16(struct sysv_sb_info *sbi, __u16 n)
 {
 	if (sbi->s_bytesex != BYTESEX_BE)
+	{
 		return (__force __fs16)cpu_to_le16(n);
+	}
 	else
+	{
 		return (__force __fs16)cpu_to_be16(n);
+	}
 }
 
 static inline __fs16 fs16_add(struct sysv_sb_info *sbi, __fs16 *n, int d)
 {
 	if (sbi->s_bytesex != BYTESEX_BE)
+	{
 		le16_add_cpu((__le16 *)n, d);
+	}
 	else
+	{
 		be16_add_cpu((__be16 *)n, d);
+	}
+
 	return *n;
 }
 

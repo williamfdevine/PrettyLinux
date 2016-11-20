@@ -12,7 +12,8 @@
 
 #include <linux/types.h>
 
-struct cpufreq_dt_platform_data {
+struct cpufreq_dt_platform_data
+{
 	bool have_governor_per_policy;
 };
 

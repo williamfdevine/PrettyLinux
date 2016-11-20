@@ -63,11 +63,12 @@ MODULE_PARM_DESC(cw1200_power_mode, "WSM power mode.  0 == active, 1 == doze, 2 
 #define RATETAB_ENT(_rate, _rateid, _flags)		\
 	{						\
 		.bitrate	= (_rate),		\
-		.hw_value	= (_rateid),		\
-		.flags		= (_flags),		\
+					  .hw_value	= (_rateid),		\
+									.flags		= (_flags),		\
 	}
 
-static struct ieee80211_rate cw1200_rates[] = {
+static struct ieee80211_rate cw1200_rates[] =
+{
 	RATETAB_ENT(10,  0,   0),
 	RATETAB_ENT(20,  1,   0),
 	RATETAB_ENT(55,  2,   0),
@@ -82,7 +83,8 @@ static struct ieee80211_rate cw1200_rates[] = {
 	RATETAB_ENT(540, 13, 0),
 };
 
-static struct ieee80211_rate cw1200_mcs_rates[] = {
+static struct ieee80211_rate cw1200_mcs_rates[] =
+{
 	RATETAB_ENT(65,  14, IEEE80211_TX_RC_MCS),
 	RATETAB_ENT(130, 15, IEEE80211_TX_RC_MCS),
 	RATETAB_ENT(195, 16, IEEE80211_TX_RC_MCS),
@@ -102,24 +104,25 @@ static struct ieee80211_rate cw1200_mcs_rates[] = {
 
 
 #define CHAN2G(_channel, _freq, _flags) {			\
-	.band			= NL80211_BAND_2GHZ,		\
-	.center_freq		= (_freq),			\
-	.hw_value		= (_channel),			\
-	.flags			= (_flags),			\
-	.max_antenna_gain	= 0,				\
-	.max_power		= 30,				\
-}
+		.band			= NL80211_BAND_2GHZ,		\
+						  .center_freq		= (_freq),			\
+												.hw_value		= (_channel),			\
+														.flags			= (_flags),			\
+																.max_antenna_gain	= 0,				\
+																		.max_power		= 30,				\
+	}
 
 #define CHAN5G(_channel, _flags) {				\
-	.band			= NL80211_BAND_5GHZ,		\
-	.center_freq	= 5000 + (5 * (_channel)),		\
-	.hw_value		= (_channel),			\
-	.flags			= (_flags),			\
-	.max_antenna_gain	= 0,				\
-	.max_power		= 30,				\
-}
+		.band			= NL80211_BAND_5GHZ,		\
+						  .center_freq	= 5000 + (5 * (_channel)),		\
+											.hw_value		= (_channel),			\
+													.flags			= (_flags),			\
+															.max_antenna_gain	= 0,				\
+																	.max_power		= 30,				\
+	}
 
-static struct ieee80211_channel cw1200_2ghz_chantable[] = {
+static struct ieee80211_channel cw1200_2ghz_chantable[] =
+{
 	CHAN2G(1, 2412, 0),
 	CHAN2G(2, 2417, 0),
 	CHAN2G(3, 2422, 0),
@@ -136,7 +139,8 @@ static struct ieee80211_channel cw1200_2ghz_chantable[] = {
 	CHAN2G(14, 2484, 0),
 };
 
-static struct ieee80211_channel cw1200_5ghz_chantable[] = {
+static struct ieee80211_channel cw1200_5ghz_chantable[] =
+{
 	CHAN5G(34, 0),		CHAN5G(36, 0),
 	CHAN5G(38, 0),		CHAN5G(40, 0),
 	CHAN5G(42, 0),		CHAN5G(44, 0),
@@ -158,15 +162,16 @@ static struct ieee80211_channel cw1200_5ghz_chantable[] = {
 	CHAN5G(216, 0),
 };
 
-static struct ieee80211_supported_band cw1200_band_2ghz = {
+static struct ieee80211_supported_band cw1200_band_2ghz =
+{
 	.channels = cw1200_2ghz_chantable,
 	.n_channels = ARRAY_SIZE(cw1200_2ghz_chantable),
 	.bitrates = cw1200_g_rates,
 	.n_bitrates = cw1200_g_rates_size,
 	.ht_cap = {
 		.cap = IEEE80211_HT_CAP_GRN_FLD |
-			(1 << IEEE80211_HT_CAP_RX_STBC_SHIFT) |
-			IEEE80211_HT_CAP_MAX_AMSDU,
+		(1 << IEEE80211_HT_CAP_RX_STBC_SHIFT) |
+		IEEE80211_HT_CAP_MAX_AMSDU,
 		.ht_supported = 1,
 		.ampdu_factor = IEEE80211_HT_MAX_AMPDU_8K,
 		.ampdu_density = IEEE80211_HT_MPDU_DENSITY_NONE,
@@ -178,15 +183,16 @@ static struct ieee80211_supported_band cw1200_band_2ghz = {
 	},
 };
 
-static struct ieee80211_supported_band cw1200_band_5ghz = {
+static struct ieee80211_supported_band cw1200_band_5ghz =
+{
 	.channels = cw1200_5ghz_chantable,
 	.n_channels = ARRAY_SIZE(cw1200_5ghz_chantable),
 	.bitrates = cw1200_a_rates,
 	.n_bitrates = cw1200_a_rates_size,
 	.ht_cap = {
 		.cap = IEEE80211_HT_CAP_GRN_FLD |
-			(1 << IEEE80211_HT_CAP_RX_STBC_SHIFT) |
-			IEEE80211_HT_CAP_MAX_AMSDU,
+		(1 << IEEE80211_HT_CAP_RX_STBC_SHIFT) |
+		IEEE80211_HT_CAP_MAX_AMSDU,
 		.ht_supported = 1,
 		.ampdu_factor = IEEE80211_HT_MAX_AMPDU_8K,
 		.ampdu_density = IEEE80211_HT_MPDU_DENSITY_NONE,
@@ -198,14 +204,16 @@ static struct ieee80211_supported_band cw1200_band_5ghz = {
 	},
 };
 
-static const unsigned long cw1200_ttl[] = {
+static const unsigned long cw1200_ttl[] =
+{
 	1 * HZ,	/* VO */
 	2 * HZ,	/* VI */
 	5 * HZ, /* BE */
 	10 * HZ	/* BK */
 };
 
-static const struct ieee80211_ops cw1200_ops = {
+static const struct ieee80211_ops cw1200_ops =
+{
 	.start			= cw1200_start,
 	.stop			= cw1200_stop,
 	.add_interface		= cw1200_add_interface,
@@ -245,7 +253,8 @@ MODULE_PARM_DESC(cw1200_ba_rx_tids, "Block ACK RX TIDs");
 MODULE_PARM_DESC(cw1200_ba_tx_tids, "Block ACK TX TIDs");
 
 #ifdef CONFIG_PM
-static const struct wiphy_wowlan_support cw1200_wowlan_support = {
+static const struct wiphy_wowlan_support cw1200_wowlan_support =
+{
 	/* Support only for limited wowlan functionalities */
 	.flags = WIPHY_WOWLAN_ANY | WIPHY_WOWLAN_DISCONNECT,
 };
@@ -253,15 +262,18 @@ static const struct wiphy_wowlan_support cw1200_wowlan_support = {
 
 
 static struct ieee80211_hw *cw1200_init_common(const u8 *macaddr,
-						const bool have_5ghz)
+		const bool have_5ghz)
 {
 	int i, band;
 	struct ieee80211_hw *hw;
 	struct cw1200_common *priv;
 
 	hw = ieee80211_alloc_hw(sizeof(struct cw1200_common), &cw1200_ops);
+
 	if (!hw)
+	{
 		return NULL;
+	}
 
 	priv = hw->priv;
 	priv->hw = hw;
@@ -269,14 +281,24 @@ static struct ieee80211_hw *cw1200_init_common(const u8 *macaddr,
 	priv->mode = NL80211_IFTYPE_UNSPECIFIED;
 	priv->rates = cw1200_rates; /* TODO: fetch from FW */
 	priv->mcs_rates = cw1200_n_rates;
+
 	if (cw1200_ba_rx_tids != -1)
+	{
 		priv->ba_rx_tid_mask = cw1200_ba_rx_tids;
+	}
 	else
-		priv->ba_rx_tid_mask = 0xFF; /* Enable RX BLKACK for all TIDs */
+	{
+		priv->ba_rx_tid_mask = 0xFF;    /* Enable RX BLKACK for all TIDs */
+	}
+
 	if (cw1200_ba_tx_tids != -1)
+	{
 		priv->ba_tx_tid_mask = cw1200_ba_tx_tids;
+	}
 	else
-		priv->ba_tx_tid_mask = 0xff; /* Enable TX BLKACK for all TIDs */
+	{
+		priv->ba_tx_tid_mask = 0xff;    /* Enable TX BLKACK for all TIDs */
+	}
 
 	ieee80211_hw_set(hw, NEED_DTIM_BEFORE_ASSOC);
 	ieee80211_hw_set(hw, TX_AMPDU_SETUP_IN_HW);
@@ -288,11 +310,11 @@ static struct ieee80211_hw *cw1200_init_common(const u8 *macaddr,
 	ieee80211_hw_set(hw, SUPPORTS_PS);
 
 	hw->wiphy->interface_modes = BIT(NL80211_IFTYPE_STATION) |
-					  BIT(NL80211_IFTYPE_ADHOC) |
-					  BIT(NL80211_IFTYPE_AP) |
-					  BIT(NL80211_IFTYPE_MESH_POINT) |
-					  BIT(NL80211_IFTYPE_P2P_CLIENT) |
-					  BIT(NL80211_IFTYPE_P2P_GO);
+								 BIT(NL80211_IFTYPE_ADHOC) |
+								 BIT(NL80211_IFTYPE_AP) |
+								 BIT(NL80211_IFTYPE_MESH_POINT) |
+								 BIT(NL80211_IFTYPE_P2P_CLIENT) |
+								 BIT(NL80211_IFTYPE_P2P_GO);
 
 #ifdef CONFIG_PM
 	hw->wiphy->wowlan = &cw1200_wowlan_support;
@@ -307,20 +329,29 @@ static struct ieee80211_hw *cw1200_init_common(const u8 *macaddr,
 	hw->max_rates = 8;
 	hw->max_rate_tries = 15;
 	hw->extra_tx_headroom = WSM_TX_EXTRA_HEADROOM +
-		8;  /* TKIP IV */
+							8;  /* TKIP IV */
 
 	hw->sta_data_size = sizeof(struct cw1200_sta_priv);
 
 	hw->wiphy->bands[NL80211_BAND_2GHZ] = &cw1200_band_2ghz;
+
 	if (have_5ghz)
+	{
 		hw->wiphy->bands[NL80211_BAND_5GHZ] = &cw1200_band_5ghz;
+	}
 
 	/* Channel params have to be cleared before registering wiphy again */
-	for (band = 0; band < NUM_NL80211_BANDS; band++) {
+	for (band = 0; band < NUM_NL80211_BANDS; band++)
+	{
 		struct ieee80211_supported_band *sband = hw->wiphy->bands[band];
+
 		if (!sband)
+		{
 			continue;
-		for (i = 0; i < sband->n_channels; i++) {
+		}
+
+		for (i = 0; i < sband->n_channels; i++)
+		{
 			sband->channels[i].flags = 0;
 			sband->channels[i].max_antenna_gain = 0;
 			sband->channels[i].max_power = 30;
@@ -331,14 +362,19 @@ static struct ieee80211_hw *cw1200_init_common(const u8 *macaddr,
 	hw->wiphy->max_scan_ie_len = IEEE80211_MAX_DATA_LEN;
 
 	if (macaddr)
+	{
 		SET_IEEE80211_PERM_ADDR(hw, (u8 *)macaddr);
+	}
 	else
+	{
 		SET_IEEE80211_PERM_ADDR(hw, cw1200_mac_template);
+	}
 
 	/* Fix up mac address if necessary */
 	if (hw->wiphy->perm_addr[3] == 0 &&
-	    hw->wiphy->perm_addr[4] == 0 &&
-	    hw->wiphy->perm_addr[5] == 0) {
+		hw->wiphy->perm_addr[4] == 0 &&
+		hw->wiphy->perm_addr[5] == 0)
+	{
 		get_random_bytes(&hw->wiphy->perm_addr[3], 3);
 	}
 
@@ -350,7 +386,7 @@ static struct ieee80211_hw *cw1200_init_common(const u8 *macaddr,
 	INIT_DELAYED_WORK(&priv->scan.probe_work, cw1200_probe_work);
 	INIT_DELAYED_WORK(&priv->scan.timeout, cw1200_scan_timeout);
 	INIT_DELAYED_WORK(&priv->clear_recent_scan_work,
-			  cw1200_clear_recent_scan_work);
+					  cw1200_clear_recent_scan_work);
 	INIT_DELAYED_WORK(&priv->join_timeout, cw1200_join_timeout);
 	INIT_WORK(&priv->unjoin_work, cw1200_unjoin_work);
 	INIT_WORK(&priv->join_complete_work, cw1200_join_complete_work);
@@ -372,24 +408,30 @@ static struct ieee80211_hw *cw1200_init_common(const u8 *macaddr,
 	INIT_WORK(&priv->linkid_reset_work, cw1200_link_id_reset);
 	INIT_WORK(&priv->update_filtering_work, cw1200_update_filtering_work);
 	INIT_WORK(&priv->set_beacon_wakeup_period_work,
-		  cw1200_set_beacon_wakeup_period_work);
+			  cw1200_set_beacon_wakeup_period_work);
 	setup_timer(&priv->mcast_timeout, cw1200_mcast_timeout,
-		    (unsigned long)priv);
+				(unsigned long)priv);
 
 	if (cw1200_queue_stats_init(&priv->tx_queue_stats,
-				    CW1200_LINK_ID_MAX,
-				    cw1200_skb_dtor,
-				    priv)) {
+								CW1200_LINK_ID_MAX,
+								cw1200_skb_dtor,
+								priv))
+	{
 		ieee80211_free_hw(hw);
 		return NULL;
 	}
 
-	for (i = 0; i < 4; ++i) {
+	for (i = 0; i < 4; ++i)
+	{
 		if (cw1200_queue_init(&priv->tx_queue[i],
-				      &priv->tx_queue_stats, i, 16,
-				      cw1200_ttl[i])) {
+							  &priv->tx_queue_stats, i, 16,
+							  cw1200_ttl[i]))
+		{
 			for (; i > 0; i--)
+			{
 				cw1200_queue_deinit(&priv->tx_queue[i - 1]);
+			}
+
 			cw1200_queue_stats_deinit(&priv->tx_queue_stats);
 			ieee80211_free_hw(hw);
 			return NULL;
@@ -415,17 +457,22 @@ static int cw1200_register_common(struct ieee80211_hw *dev)
 
 #ifdef CONFIG_PM
 	err = cw1200_pm_init(&priv->pm_state, priv);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Cannot init PM. (%d).\n",
-		       err);
+			   err);
 		return err;
 	}
+
 #endif
 
 	err = ieee80211_register_hw(dev);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Cannot register device (%d).\n",
-		       err);
+			   err);
 #ifdef CONFIG_PM
 		cw1200_pm_deinit(&priv->pm_state);
 #endif
@@ -462,13 +509,16 @@ static void cw1200_unregister_common(struct ieee80211_hw *dev)
 	destroy_workqueue(priv->workqueue);
 	priv->workqueue = NULL;
 
-	if (priv->sdd) {
+	if (priv->sdd)
+	{
 		release_firmware(priv->sdd);
 		priv->sdd = NULL;
 	}
 
 	for (i = 0; i < 4; ++i)
+	{
 		cw1200_queue_deinit(&priv->tx_queue[i]);
+	}
 
 	cw1200_queue_stats_deinit(&priv->tx_queue_stats);
 #ifdef CONFIG_PM
@@ -479,63 +529,85 @@ static void cw1200_unregister_common(struct ieee80211_hw *dev)
 /* Clock is in KHz */
 u32 cw1200_dpll_from_clk(u16 clk_khz)
 {
-	switch (clk_khz) {
-	case 0x32C8: /* 13000 KHz */
-		return 0x1D89D241;
-	case 0x3E80: /* 16000 KHz */
-		return 0x000001E1;
-	case 0x41A0: /* 16800 KHz */
-		return 0x124931C1;
-	case 0x4B00: /* 19200 KHz */
-		return 0x00000191;
-	case 0x5DC0: /* 24000 KHz */
-		return 0x00000141;
-	case 0x6590: /* 26000 KHz */
-		return 0x0EC4F121;
-	case 0x8340: /* 33600 KHz */
-		return 0x092490E1;
-	case 0x9600: /* 38400 KHz */
-		return 0x100010C1;
-	case 0x9C40: /* 40000 KHz */
-		return 0x000000C1;
-	case 0xBB80: /* 48000 KHz */
-		return 0x000000A1;
-	case 0xCB20: /* 52000 KHz */
-		return 0x07627091;
-	default:
-		pr_err("Unknown Refclk freq (0x%04x), using 26000KHz\n",
-		       clk_khz);
-		return 0x0EC4F121;
+	switch (clk_khz)
+	{
+		case 0x32C8: /* 13000 KHz */
+			return 0x1D89D241;
+
+		case 0x3E80: /* 16000 KHz */
+			return 0x000001E1;
+
+		case 0x41A0: /* 16800 KHz */
+			return 0x124931C1;
+
+		case 0x4B00: /* 19200 KHz */
+			return 0x00000191;
+
+		case 0x5DC0: /* 24000 KHz */
+			return 0x00000141;
+
+		case 0x6590: /* 26000 KHz */
+			return 0x0EC4F121;
+
+		case 0x8340: /* 33600 KHz */
+			return 0x092490E1;
+
+		case 0x9600: /* 38400 KHz */
+			return 0x100010C1;
+
+		case 0x9C40: /* 40000 KHz */
+			return 0x000000C1;
+
+		case 0xBB80: /* 48000 KHz */
+			return 0x000000A1;
+
+		case 0xCB20: /* 52000 KHz */
+			return 0x07627091;
+
+		default:
+			pr_err("Unknown Refclk freq (0x%04x), using 26000KHz\n",
+				   clk_khz);
+			return 0x0EC4F121;
 	}
 }
 
 int cw1200_core_probe(const struct hwbus_ops *hwbus_ops,
-		      struct hwbus_priv *hwbus,
-		      struct device *pdev,
-		      struct cw1200_common **core,
-		      int ref_clk, const u8 *macaddr,
-		      const char *sdd_path, bool have_5ghz)
+					  struct hwbus_priv *hwbus,
+					  struct device *pdev,
+					  struct cw1200_common **core,
+					  int ref_clk, const u8 *macaddr,
+					  const char *sdd_path, bool have_5ghz)
 {
 	int err = -EINVAL;
 	struct ieee80211_hw *dev;
 	struct cw1200_common *priv;
-	struct wsm_operational_mode mode = {
+	struct wsm_operational_mode mode =
+	{
 		.power_mode = cw1200_power_mode,
 		.disable_more_flag_usage = true,
 	};
 
 	dev = cw1200_init_common(macaddr, have_5ghz);
+
 	if (!dev)
+	{
 		goto err;
+	}
 
 	priv = dev->priv;
 	priv->hw_refclk = ref_clk;
+
 	if (cw1200_refclk)
+	{
 		priv->hw_refclk = cw1200_refclk;
+	}
 
 	priv->sdd_path = (char *)sdd_path;
+
 	if (cw1200_sdd_path)
+	{
 		priv->sdd_path = cw1200_sdd_path;
+	}
 
 	priv->hwbus_ops = hwbus_ops;
 	priv->hwbus_priv = hwbus;
@@ -546,16 +618,23 @@ int cw1200_core_probe(const struct hwbus_ops *hwbus_ops,
 	*core = priv;
 
 	err = cw1200_register_bh(priv);
+
 	if (err)
+	{
 		goto err1;
+	}
 
 	err = cw1200_load_firmware(priv);
+
 	if (err)
+	{
 		goto err2;
+	}
 
 	if (wait_event_interruptible_timeout(priv->wsm_startup_done,
-					     priv->firmware_ready,
-					     3*HZ) <= 0) {
+										 priv->firmware_ready,
+										 3 * HZ) <= 0)
+	{
 		/* TODO: Need to find how to reset device
 		   in QUEUE mode properly.
 		*/
@@ -571,8 +650,11 @@ int cw1200_core_probe(const struct hwbus_ops *hwbus_ops,
 	wsm_use_multi_tx_conf(priv, true);
 
 	err = cw1200_register_common(dev);
+
 	if (err)
+	{
 		goto err2;
+	}
 
 	return err;
 

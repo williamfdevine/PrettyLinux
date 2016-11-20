@@ -75,9 +75,13 @@ static int get_flash_id(void)
 	 * on 4 Meg flash the second byte is actually at offset 2...
 	 */
 	if (c1 == 0xB0)
+	{
 		c2 = *(volatile unsigned char *) (FLASH_BASE + 2);
+	}
 	else
+	{
 		c2 = *(volatile unsigned char *) (FLASH_BASE + 1);
+	}
 
 	c2 += (c1 << 8);
 
@@ -87,7 +91,9 @@ static int get_flash_id(void)
 	*(volatile unsigned char *) (FLASH_BASE + 0x8000) = 0xFF;
 
 	if (c2 == KFLASH_ID4)
+	{
 		gbFlashSize = KFLASH_SIZE4;
+	}
 
 	return c2;
 }
@@ -95,43 +101,49 @@ static int get_flash_id(void)
 static long flash_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
 {
 	mutex_lock(&flash_mutex);
-	switch (cmd) {
-	case CMD_WRITE_DISABLE:
-		gbWriteBase64Enable = 0;
-		gbWriteEnable = 0;
-		break;
 
-	case CMD_WRITE_ENABLE:
-		gbWriteEnable = 1;
-		break;
+	switch (cmd)
+	{
+		case CMD_WRITE_DISABLE:
+			gbWriteBase64Enable = 0;
+			gbWriteEnable = 0;
+			break;
 
-	case CMD_WRITE_BASE64K_ENABLE:
-		gbWriteBase64Enable = 1;
-		break;
+		case CMD_WRITE_ENABLE:
+			gbWriteEnable = 1;
+			break;
 
-	default:
-		gbWriteBase64Enable = 0;
-		gbWriteEnable = 0;
-		mutex_unlock(&flash_mutex);
-		return -EINVAL;
+		case CMD_WRITE_BASE64K_ENABLE:
+			gbWriteBase64Enable = 1;
+			break;
+
+		default:
+			gbWriteBase64Enable = 0;
+			gbWriteEnable = 0;
+			mutex_unlock(&flash_mutex);
+			return -EINVAL;
 	}
+
 	mutex_unlock(&flash_mutex);
 	return 0;
 }
 
 static ssize_t flash_read(struct file *file, char __user *buf, size_t size,
-			  loff_t *ppos)
+						  loff_t *ppos)
 {
 	ssize_t ret;
 
 	if (flashdebug)
 		printk(KERN_DEBUG "flash_read: flash_read: offset=0x%llx, "
-		       "buffer=%p, count=0x%zx.\n", *ppos, buf, size);
+			   "buffer=%p, count=0x%zx.\n", *ppos, buf, size);
+
 	/*
 	 * We now lock against reads and writes. --rmk
 	 */
 	if (mutex_lock_interruptible(&nwflash_mutex))
+	{
 		return -ERESTARTSYS;
+	}
 
 	ret = simple_read_from_buffer(buf, size, ppos, (void *)FLASH_BASE, gbFlashSize);
 	mutex_unlock(&nwflash_mutex);
@@ -140,7 +152,7 @@ static ssize_t flash_read(struct file *file, char __user *buf, size_t size,
 }
 
 static ssize_t flash_write(struct file *file, const char __user *buf,
-			   size_t size, loff_t * ppos)
+						   size_t size, loff_t *ppos)
 {
 	unsigned long p = *ppos;
 	unsigned int count = size;
@@ -150,31 +162,43 @@ static ssize_t flash_write(struct file *file, const char __user *buf,
 
 	if (flashdebug)
 		printk("flash_write: offset=0x%lX, buffer=0x%p, count=0x%X.\n",
-		       p, buf, count);
+			   p, buf, count);
 
 	if (!gbWriteEnable)
+	{
 		return -EINVAL;
+	}
 
 	if (p < 64 * 1024 && (!gbWriteBase64Enable))
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * check for out of range pos or count
 	 */
 	if (p >= gbFlashSize)
+	{
 		return count ? -ENXIO : 0;
+	}
 
 	if (count > gbFlashSize - p)
+	{
 		count = gbFlashSize - p;
-			
+	}
+
 	if (!access_ok(VERIFY_READ, buf, count))
+	{
 		return -EFAULT;
+	}
 
 	/*
 	 * We now lock against reads and writes. --rmk
 	 */
 	if (mutex_lock_interruptible(&nwflash_mutex))
+	{
 		return -ERESTARTSYS;
+	}
 
 	written = 0;
 
@@ -189,35 +213,45 @@ static ssize_t flash_write(struct file *file, const char __user *buf,
 	 * write ends at exactly 64k boundary?
 	 */
 	if (((int) (p + count) & 0xFFFF) == 0)
+	{
 		temp -= 1;
+	}
 
 	if (flashdebug)
 		printk(KERN_DEBUG "flash_write: writing %d block(s) "
-			"starting at %d.\n", temp, nBlock);
+			   "starting at %d.\n", temp, nBlock);
 
-	for (; temp; temp--, nBlock++) {
+	for (; temp; temp--, nBlock++)
+	{
 		if (flashdebug)
+		{
 			printk(KERN_DEBUG "flash_write: erasing block %d.\n", nBlock);
+		}
 
 		/*
 		 * first we have to erase the block(s), where we will write...
 		 */
 		i = 0;
 		j = 0;
-	  RetryBlock:
-		do {
+RetryBlock:
+
+		do
+		{
 			rc = erase_block(nBlock);
 			i++;
-		} while (rc && i < 10);
+		}
+		while (rc && i < 10);
 
-		if (rc) {
+		if (rc)
+		{
 			printk(KERN_ERR "flash_write: erase error %x\n", rc);
 			break;
 		}
+
 		if (flashdebug)
 			printk(KERN_DEBUG "flash_write: writing offset %lX, "
-			       "from buf %p, bytes left %X.\n", p, buf,
-			       count - written);
+				   "from buf %p, bytes left %X.\n", p, buf,
+				   count - written);
 
 		/*
 		 * write_block will limit write to space left in this block
@@ -228,30 +262,40 @@ static ssize_t flash_write(struct file *file, const char __user *buf,
 		/*
 		 * if somehow write verify failed? Can't happen??
 		 */
-		if (!rc) {
+		if (!rc)
+		{
 			/*
 			 * retry up to 10 times
 			 */
 			if (j < 10)
+			{
 				goto RetryBlock;
+			}
 			else
 				/*
 				 * else quit with error...
 				 */
+			{
 				rc = -1;
+			}
 
 		}
-		if (rc < 0) {
+
+		if (rc < 0)
+		{
 			printk(KERN_ERR "flash_write: write error %X\n", rc);
 			break;
 		}
+
 		p += rc;
 		buf += rc;
 		written += rc;
 		*ppos += rc;
 
 		if (flashdebug)
+		{
 			printk(KERN_DEBUG "flash_write: written 0x%X bytes OK.\n", written);
+		}
 	}
 
 	mutex_unlock(&nwflash_mutex);
@@ -273,9 +317,10 @@ static loff_t flash_llseek(struct file *file, loff_t offset, int orig)
 	loff_t ret;
 
 	mutex_lock(&flash_mutex);
+
 	if (flashdebug)
 		printk(KERN_DEBUG "flash_llseek: offset=0x%X, orig=0x%X.\n",
-		       (unsigned int) offset, orig);
+			   (unsigned int) offset, orig);
 
 	ret = no_seek_end_llseek_size(file, offset, orig, gbFlashSize);
 	mutex_unlock(&flash_mutex);
@@ -342,7 +387,9 @@ static int erase_block(int nBlock)
 	 */
 	timeout = jiffies + 10 * HZ;
 	c1 = 0;
-	while (!(c1 & 0x80) && time_before(jiffies, timeout)) {
+
+	while (!(c1 & 0x80) && time_before(jiffies, timeout))
+	{
 		msleep(10);
 		/*
 		 * read any address
@@ -355,13 +402,14 @@ static int erase_block(int nBlock)
 	 * set flash for normal read access
 	 */
 	kick_open();
-//      *(volatile unsigned char*)(FLASH_BASE+0x8000) = 0xFF;
+	//      *(volatile unsigned char*)(FLASH_BASE+0x8000) = 0xFF;
 	*(volatile unsigned char *) pWritePtr = 0xFF;	//back to normal operation
 
 	/*
 	 * check if erase errors were reported
 	 */
-	if (c1 & 0x20) {
+	if (c1 & 0x20)
+	{
 		printk(KERN_ERR "flash_erase: err at %p\n", pWritePtr);
 
 		/*
@@ -378,10 +426,12 @@ static int erase_block(int nBlock)
 
 	pWritePtr = (unsigned char *) ((unsigned int) (FLASH_BASE + (nBlock << 16)));
 
-	for (temp = 0; temp < 16 * 1024; temp++, pWritePtr += 4) {
-		if ((temp1 = *(volatile unsigned int *) pWritePtr) != 0xFFFFFFFF) {
+	for (temp = 0; temp < 16 * 1024; temp++, pWritePtr += 4)
+	{
+		if ((temp1 = *(volatile unsigned int *) pWritePtr) != 0xFFFFFFFF)
+		{
 			printk(KERN_ERR "flash_erase: verify err at %p = %X\n",
-			       pWritePtr, temp1);
+				   pWritePtr, temp1);
 			return -1;
 		}
 	}
@@ -411,23 +461,29 @@ static int write_block(unsigned long p, const char __user *buf, int count)
 	offset = p & 0xFFFF;
 
 	if (offset + count > 0x10000)
+	{
 		count = 0x10000 - offset;
+	}
 
 	/*
 	 * wait up to 30 sec for this block
 	 */
 	timeout = jiffies + 30 * HZ;
 
-	for (offset = 0; offset < count; offset++, pWritePtr++) {
+	for (offset = 0; offset < count; offset++, pWritePtr++)
+	{
 		uAddress = (unsigned int) pWritePtr;
 		uAddress &= 0xFFFFFFFC;
-		if (__get_user(c2, buf + offset))
-			return -EFAULT;
 
-	  WriteRetry:
-	  	/*
-	  	 * dummy read
-	  	 */
+		if (__get_user(c2, buf + offset))
+		{
+			return -EFAULT;
+		}
+
+WriteRetry:
+		/*
+		 * dummy read
+		 */
 		c1 = *(volatile unsigned char *) (FLASH_BASE + 0x8000);
 
 		/*
@@ -466,12 +522,15 @@ static int write_block(unsigned long p, const char __user *buf, int count)
 		 * while not ready...
 		 */
 		while (!(c1 & 0x80) && time_before(jiffies, timeout1))
+		{
 			c1 = *(volatile unsigned char *) (FLASH_BASE + 0x8000);
+		}
 
 		/*
 		 * if timeout getting status
 		 */
-		if (time_after_eq(jiffies, timeout1)) {
+		if (time_after_eq(jiffies, timeout1))
+		{
 			kick_open();
 			/*
 			 * reset err
@@ -480,6 +539,7 @@ static int write_block(unsigned long p, const char __user *buf, int count)
 
 			goto WriteRetry;
 		}
+
 		/*
 		 * switch on read access, as a default flash operation mode
 		 */
@@ -490,10 +550,11 @@ static int write_block(unsigned long p, const char __user *buf, int count)
 		*(volatile unsigned char *) (FLASH_BASE + 0x8000) = 0xFF;
 
 		/*
-		 * if hardware reports an error writing, and not timeout - 
+		 * if hardware reports an error writing, and not timeout -
 		 * reset the chip and retry
 		 */
-		if (c1 & 0x10) {
+		if (c1 & 0x10)
+		{
 			kick_open();
 			/*
 			 * reset err
@@ -503,10 +564,11 @@ static int write_block(unsigned long p, const char __user *buf, int count)
 			/*
 			 * before timeout?
 			 */
-			if (time_before(jiffies, timeout)) {
+			if (time_before(jiffies, timeout))
+			{
 				if (flashdebug)
 					printk(KERN_DEBUG "write_block: Retrying write at 0x%X)n",
-					       pWritePtr - FLASH_BASE);
+						   pWritePtr - FLASH_BASE);
 
 				/*
 				 * wait couple ms
@@ -514,9 +576,11 @@ static int write_block(unsigned long p, const char __user *buf, int count)
 				msleep(10);
 
 				goto WriteRetry;
-			} else {
+			}
+			else
+			{
 				printk(KERN_ERR "write_block: timeout at 0x%X\n",
-				       pWritePtr - FLASH_BASE);
+					   pWritePtr - FLASH_BASE);
 				/*
 				 * return error -2
 				 */
@@ -530,14 +594,21 @@ static int write_block(unsigned long p, const char __user *buf, int count)
 
 	pWritePtr = (unsigned char *) ((unsigned int) (FLASH_BASE + p));
 
-	for (offset = 0; offset < count; offset++) {
+	for (offset = 0; offset < count; offset++)
+	{
 		char c, c1;
+
 		if (__get_user(c, buf))
+		{
 			return -EFAULT;
+		}
+
 		buf++;
-		if ((c1 = *pWritePtr++) != c) {
+
+		if ((c1 = *pWritePtr++) != c)
+		{
 			printk(KERN_ERR "write_block: verify error at 0x%X (%02X!=%02X)\n",
-			       pWritePtr - FLASH_BASE, c1, c);
+				   pWritePtr - FLASH_BASE, c1, c);
 			return 0;
 		}
 	}
@@ -584,15 +655,21 @@ static int __init nwflash_init(void)
 {
 	int ret = -ENODEV;
 
-	if (machine_is_netwinder()) {
+	if (machine_is_netwinder())
+	{
 		int id;
 
 		FLASH_BASE = ioremap(DC21285_FLASH, KFLASH_SIZE4);
+
 		if (!FLASH_BASE)
+		{
 			goto out;
+		}
 
 		id = get_flash_id();
-		if ((id != KFLASH_ID) && (id != KFLASH_ID4)) {
+
+		if ((id != KFLASH_ID) && (id != KFLASH_ID4))
+		{
 			ret = -ENXIO;
 			iounmap((void *)FLASH_BASE);
 			printk("Flash: incorrect ID 0x%04X.\n", id);
@@ -600,13 +677,16 @@ static int __init nwflash_init(void)
 		}
 
 		printk("Flash ROM driver v.%s, flash device ID 0x%04X, size %d Mb.\n",
-		       NWFLASH_VERSION, id, gbFlashSize / (1024 * 1024));
+			   NWFLASH_VERSION, id, gbFlashSize / (1024 * 1024));
 
 		ret = misc_register(&flash_miscdev);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			iounmap((void *)FLASH_BASE);
 		}
 	}
+
 out:
 	return ret;
 }

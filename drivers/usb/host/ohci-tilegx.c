@@ -40,13 +40,18 @@ static int tilegx_ohci_start(struct usb_hcd *hcd)
 	int ret;
 
 	ret = ohci_init(ohci);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = ohci_run(ohci);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(hcd->self.controller, "can't start %s\n",
-			hcd->self.bus_name);
+				hcd->self.bus_name);
 		ohci_stop(hcd);
 		return ret;
 	}
@@ -54,7 +59,8 @@ static int tilegx_ohci_start(struct usb_hcd *hcd)
 	return 0;
 }
 
-static const struct hc_driver ohci_tilegx_hc_driver = {
+static const struct hc_driver ohci_tilegx_hc_driver =
+{
 	.description		= hcd_name,
 	.product_desc		= "Tile-Gx OHCI",
 	.hcd_priv_size		= sizeof(struct ohci_hcd),
@@ -101,18 +107,24 @@ static int ohci_hcd_tilegx_drv_probe(struct platform_device *pdev)
 	int ret;
 
 	if (usb_disabled())
+	{
 		return -ENODEV;
+	}
 
 	/*
 	 * Try to initialize our GXIO context; if we can't, the device
 	 * doesn't exist.
 	 */
 	if (gxio_usb_host_init(&pdata->usb_ctx, pdata->dev_index, 0) != 0)
+	{
 		return -ENXIO;
+	}
 
 	hcd = usb_create_hcd(&ohci_tilegx_hc_driver, &pdev->dev,
-			     dev_name(&pdev->dev));
-	if (!hcd) {
+						 dev_name(&pdev->dev));
+
+	if (!hcd)
+	{
 		ret = -ENOMEM;
 		goto err_hcd;
 	}
@@ -130,7 +142,9 @@ static int ohci_hcd_tilegx_drv_probe(struct platform_device *pdev)
 
 	/* Create our IRQs and register them. */
 	pdata->irq = irq_alloc_hwirq(-1);
-	if (!pdata->irq) {
+
+	if (!pdata->irq)
+	{
 		ret = -ENXIO;
 		goto err_no_irq;
 	}
@@ -139,9 +153,11 @@ static int ohci_hcd_tilegx_drv_probe(struct platform_device *pdev)
 
 	/* Configure interrupts. */
 	ret = gxio_usb_host_cfg_interrupt(&pdata->usb_ctx,
-					  cpu_x(my_cpu), cpu_y(my_cpu),
-					  KERNEL_PL, pdata->irq);
-	if (ret) {
+									  cpu_x(my_cpu), cpu_y(my_cpu),
+									  KERNEL_PL, pdata->irq);
+
+	if (ret)
+	{
 		ret = -ENXIO;
 		goto err_have_irq;
 	}
@@ -149,7 +165,9 @@ static int ohci_hcd_tilegx_drv_probe(struct platform_device *pdev)
 	/* Register all of our memory. */
 	pte = pte_set_home(pte, PAGE_HOME_HASH);
 	ret = gxio_usb_host_register_client_memory(&pdata->usb_ctx, pte, 0);
-	if (ret) {
+
+	if (ret)
+	{
 		ret = -ENXIO;
 		goto err_have_irq;
 	}
@@ -157,7 +175,9 @@ static int ohci_hcd_tilegx_drv_probe(struct platform_device *pdev)
 	ohci_hcd_init(hcd_to_ohci(hcd));
 
 	ret = usb_add_hcd(hcd, pdata->irq, IRQF_SHARED);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		platform_set_drvdata(pdev, hcd);
 		device_wakeup_enable(hcd->self.controller);
 		return ret;
@@ -193,7 +213,8 @@ static void ohci_hcd_tilegx_drv_shutdown(struct platform_device *pdev)
 	ohci_hcd_tilegx_drv_remove(pdev);
 }
 
-static struct platform_driver ohci_hcd_tilegx_driver = {
+static struct platform_driver ohci_hcd_tilegx_driver =
+{
 	.probe		= ohci_hcd_tilegx_drv_probe,
 	.remove		= ohci_hcd_tilegx_drv_remove,
 	.shutdown	= ohci_hcd_tilegx_drv_shutdown,

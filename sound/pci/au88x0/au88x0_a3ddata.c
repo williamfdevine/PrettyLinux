@@ -24,7 +24,8 @@
 
 /* Constant initializer values. */
 
-static const a3d_Hrtf_t A3dHrirZeros = {
+static const a3d_Hrtf_t A3dHrirZeros =
+{
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0,
 	0, 0, 0,
@@ -33,7 +34,8 @@ static const a3d_Hrtf_t A3dHrirZeros = {
 	0, 0, 0
 };
 
-static const a3d_Hrtf_t A3dHrirImpulse = {
+static const a3d_Hrtf_t A3dHrirImpulse =
+{
 	0x7fff, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0,
 	0, 0, 0, 0,
@@ -42,7 +44,8 @@ static const a3d_Hrtf_t A3dHrirImpulse = {
 	0, 0, 0
 };
 
-static const a3d_Hrtf_t A3dHrirOnes = {
+static const a3d_Hrtf_t A3dHrirOnes =
+{
 	0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff,
 	0x7fff,
 	0x7fff,
@@ -59,7 +62,8 @@ static const a3d_Hrtf_t A3dHrirOnes = {
 	0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff
 };
 
-static const a3d_Hrtf_t A3dHrirSatTest = {
+static const a3d_Hrtf_t A3dHrirSatTest =
+{
 	0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff,
 	0x7fff,
 	0x7fff,
@@ -71,7 +75,8 @@ static const a3d_Hrtf_t A3dHrirSatTest = {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
-static const a3d_Hrtf_t A3dHrirDImpulse = {
+static const a3d_Hrtf_t A3dHrirDImpulse =
+{
 	0, 0x7fff, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0,
 	0, 0, 0, 0,
@@ -80,7 +85,8 @@ static const a3d_Hrtf_t A3dHrirDImpulse = {
 	0, 0, 0
 };
 
-static const a3d_ItdDline_t A3dItdDlineZeros = {
+static const a3d_ItdDline_t A3dItdDlineZeros =
+{
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };

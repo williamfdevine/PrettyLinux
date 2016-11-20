@@ -27,15 +27,16 @@
 
 /* Use CPU native page size up to 16K for cnic ring sizes.  */
 #if (PAGE_SHIFT > 14)
-#define CNIC_PAGE_BITS	14
+	#define CNIC_PAGE_BITS	14
 #else
-#define CNIC_PAGE_BITS	PAGE_SHIFT
+	#define CNIC_PAGE_BITS	PAGE_SHIFT
 #endif
 #define CNIC_PAGE_SIZE	(1 << (CNIC_PAGE_BITS))
 #define CNIC_PAGE_ALIGN(addr) ALIGN(addr, CNIC_PAGE_SIZE)
 #define CNIC_PAGE_MASK	(~((CNIC_PAGE_SIZE) - 1))
 
-struct kwqe {
+struct kwqe
+{
 	u32 kwqe_op_flag;
 
 #define KWQE_QID_SHIFT		8
@@ -60,14 +61,16 @@ struct kwqe {
 	u32 kwqe_info6;
 };
 
-struct kwqe_16 {
+struct kwqe_16
+{
 	u32 kwqe_info0;
 	u32 kwqe_info1;
 	u32 kwqe_info2;
 	u32 kwqe_info3;
 };
 
-struct kcqe {
+struct kcqe
+{
 	u32 kcqe_info0;
 	u32 kcqe_info1;
 	u32 kcqe_info2;
@@ -76,20 +79,20 @@ struct kcqe {
 	u32 kcqe_info5;
 	u32 kcqe_info6;
 	u32 kcqe_op_flag;
-		#define KCQE_RAMROD_COMPLETION		(0x1<<27) /* Everest */
-		#define KCQE_FLAGS_LAYER_MASK		(0x7<<28)
-		#define KCQE_FLAGS_LAYER_MASK_MISC	(0<<28)
-		#define KCQE_FLAGS_LAYER_MASK_L2	(2<<28)
-		#define KCQE_FLAGS_LAYER_MASK_L3	(3<<28)
-		#define KCQE_FLAGS_LAYER_MASK_L4	(4<<28)
-		#define KCQE_FLAGS_LAYER_MASK_L5_RDMA	(5<<28)
-		#define KCQE_FLAGS_LAYER_MASK_L5_ISCSI	(6<<28)
-		#define KCQE_FLAGS_LAYER_MASK_L5_FCOE	(7<<28)
-		#define KCQE_FLAGS_NEXT 		(1<<31)
-		#define KCQE_FLAGS_OPCODE_MASK		(0xff<<16)
-		#define KCQE_FLAGS_OPCODE_SHIFT		(16)
-		#define KCQE_OPCODE(op)			\
-		(((op) & KCQE_FLAGS_OPCODE_MASK) >> KCQE_FLAGS_OPCODE_SHIFT)
+#define KCQE_RAMROD_COMPLETION		(0x1<<27) /* Everest */
+#define KCQE_FLAGS_LAYER_MASK		(0x7<<28)
+#define KCQE_FLAGS_LAYER_MASK_MISC	(0<<28)
+#define KCQE_FLAGS_LAYER_MASK_L2	(2<<28)
+#define KCQE_FLAGS_LAYER_MASK_L3	(3<<28)
+#define KCQE_FLAGS_LAYER_MASK_L4	(4<<28)
+#define KCQE_FLAGS_LAYER_MASK_L5_RDMA	(5<<28)
+#define KCQE_FLAGS_LAYER_MASK_L5_ISCSI	(6<<28)
+#define KCQE_FLAGS_LAYER_MASK_L5_FCOE	(7<<28)
+#define KCQE_FLAGS_NEXT 		(1<<31)
+#define KCQE_FLAGS_OPCODE_MASK		(0xff<<16)
+#define KCQE_FLAGS_OPCODE_SHIFT		(16)
+#define KCQE_OPCODE(op)			\
+	(((op) & KCQE_FLAGS_OPCODE_MASK) >> KCQE_FLAGS_OPCODE_SHIFT)
 };
 
 #define MAX_CNIC_CTL_DATA	64
@@ -114,49 +117,58 @@ struct kcqe {
 #define DRV_CTL_ULP_REGISTER_CMD	0x10e
 #define DRV_CTL_ULP_UNREGISTER_CMD	0x10f
 
-struct cnic_ctl_completion {
+struct cnic_ctl_completion
+{
 	u32	cid;
 	u8	opcode;
 	u8	error;
 };
 
-struct cnic_ctl_info {
+struct cnic_ctl_info
+{
 	int	cmd;
-	union {
+	union
+	{
 		struct cnic_ctl_completion comp;
 		char bytes[MAX_CNIC_CTL_DATA];
 	} data;
 };
 
-struct drv_ctl_spq_credit {
+struct drv_ctl_spq_credit
+{
 	u32	credit_count;
 };
 
-struct drv_ctl_io {
+struct drv_ctl_io
+{
 	u32		cid_addr;
 	u32		offset;
 	u32		data;
 	dma_addr_t	dma_addr;
 };
 
-struct drv_ctl_l2_ring {
+struct drv_ctl_l2_ring
+{
 	u32		client_id;
 	u32		cid;
 };
 
-struct drv_ctl_register_data {
+struct drv_ctl_register_data
+{
 	int ulp_type;
 	struct fcoe_capabilities fcoe_features;
 };
 
-struct drv_ctl_info {
+struct drv_ctl_info
+{
 	int	cmd;
 	int     drv_state;
 #define DRV_NOP		0
 #define DRV_ACTIVE	1
 #define DRV_INACTIVE	2
 #define DRV_UNLOADED	3
-	union {
+	union
+	{
 		struct drv_ctl_spq_credit credit;
 		struct drv_ctl_io io;
 		struct drv_ctl_l2_ring ring;
@@ -169,13 +181,15 @@ struct drv_ctl_info {
 #define MAX_NPIV_ENTRIES 64
 #define FC_NPIV_WWN_SIZE 8
 
-struct cnic_fc_npiv_tbl {
+struct cnic_fc_npiv_tbl
+{
 	u8 wwpn[MAX_NPIV_ENTRIES][FC_NPIV_WWN_SIZE];
 	u8 wwnn[MAX_NPIV_ENTRIES][FC_NPIV_WWN_SIZE];
 	u32 count;
 };
 
-struct cnic_ops {
+struct cnic_ops
+{
 	struct module	*cnic_owner;
 	/* Calls to these functions are protected by RCU.  When
 	 * unregistering, we wait for any calls to complete before
@@ -187,7 +201,8 @@ struct cnic_ops {
 
 #define MAX_CNIC_VEC	8
 
-struct cnic_irq {
+struct cnic_irq
+{
 	unsigned int	vector;
 	void		*status_blk;
 	u32		status_blk_num;
@@ -196,7 +211,8 @@ struct cnic_irq {
 #define CNIC_IRQ_FL_MSIX		0x00000001
 };
 
-struct cnic_eth_dev {
+struct cnic_eth_dev
+{
 	struct module	*drv_owner;
 	u32		drv_state;
 #define CNIC_DRV_STATE_REGD		0x00000001
@@ -233,31 +249,35 @@ struct cnic_eth_dev {
 	int		num_irq;
 	struct cnic_irq	irq_arr[MAX_CNIC_VEC];
 	int		(*drv_register_cnic)(struct net_device *,
-					     struct cnic_ops *, void *);
+								 struct cnic_ops *, void *);
 	int		(*drv_unregister_cnic)(struct net_device *);
 	int		(*drv_submit_kwqes_32)(struct net_device *,
-					       struct kwqe *[], u32);
+								   struct kwqe *[], u32);
 	int		(*drv_submit_kwqes_16)(struct net_device *,
-					       struct kwqe_16 *[], u32);
+								   struct kwqe_16 *[], u32);
 	int		(*drv_ctl)(struct net_device *, struct drv_ctl_info *);
 	int		(*drv_get_fc_npiv_tbl)(struct net_device *,
-					       struct cnic_fc_npiv_tbl *);
+								   struct cnic_fc_npiv_tbl *);
 	unsigned long	reserved1[2];
 	union drv_info_to_mcp	*addr_drv_info_to_mcp;
 };
 
-struct cnic_sockaddr {
-	union {
+struct cnic_sockaddr
+{
+	union
+	{
 		struct sockaddr_in	v4;
 		struct sockaddr_in6	v6;
 	} local;
-	union {
+	union
+	{
 		struct sockaddr_in	v4;
 		struct sockaddr_in6	v6;
 	} remote;
 };
 
-struct cnic_sock {
+struct cnic_sock
+{
 	struct cnic_dev *dev;
 	void	*context;
 	u32	src_ip[4];
@@ -307,29 +327,30 @@ struct cnic_sock {
 	struct kwqe kwqe3;
 };
 
-struct cnic_dev {
+struct cnic_dev
+{
 	struct net_device	*netdev;
 	struct pci_dev		*pcidev;
 	void __iomem		*regview;
 	struct list_head	list;
 
 	int (*register_device)(struct cnic_dev *dev, int ulp_type,
-			       void *ulp_ctx);
+						   void *ulp_ctx);
 	int (*unregister_device)(struct cnic_dev *dev, int ulp_type);
 	int (*submit_kwqes)(struct cnic_dev *dev, struct kwqe *wqes[],
-				u32 num_wqes);
+						u32 num_wqes);
 	int (*submit_kwqes_16)(struct cnic_dev *dev, struct kwqe_16 *wqes[],
-				u32 num_wqes);
+						   u32 num_wqes);
 
 	int (*cm_create)(struct cnic_dev *, int, u32, u32, struct cnic_sock **,
-			 void *);
+					 void *);
 	int (*cm_destroy)(struct cnic_sock *);
 	int (*cm_connect)(struct cnic_sock *, struct cnic_sockaddr *);
 	int (*cm_abort)(struct cnic_sock *);
 	int (*cm_close)(struct cnic_sock *);
 	struct cnic_dev *(*cm_select_dev)(struct sockaddr_in *, int ulp_type);
 	int (*iscsi_nl_msg_recv)(struct cnic_dev *dev, u32 msg_type,
-				 char *data, u16 data_size);
+							 char *data, u16 data_size);
 	int (*get_fc_npiv_tbl)(struct cnic_dev *, struct cnic_fc_npiv_tbl *);
 	unsigned long	flags;
 #define CNIC_F_CNIC_UP		1
@@ -356,7 +377,8 @@ struct cnic_dev {
 #define CNIC_RD(dev, off)		readl(dev->regview + off)
 #define CNIC_RD16(dev, off)		readw(dev->regview + off)
 
-struct cnic_ulp_ops {
+struct cnic_ulp_ops
+{
 	/* Calls to these functions are protected by RCU.  When
 	 * unregistering, we wait for any calls to complete before
 	 * continuing.
@@ -367,7 +389,7 @@ struct cnic_ulp_ops {
 	void (*cnic_start)(void *ulp_ctx);
 	void (*cnic_stop)(void *ulp_ctx);
 	void (*indicate_kcqes)(void *ulp_ctx, struct kcqe *cqes[],
-				u32 num_cqes);
+						   u32 num_cqes);
 	void (*indicate_netevent)(void *ulp_ctx, unsigned long event, u16 vid);
 	void (*cm_connect_complete)(struct cnic_sock *);
 	void (*cm_close_complete)(struct cnic_sock *);
@@ -375,7 +397,7 @@ struct cnic_ulp_ops {
 	void (*cm_remote_close)(struct cnic_sock *);
 	void (*cm_remote_abort)(struct cnic_sock *);
 	int (*iscsi_nl_send_msg)(void *ulp_ctx, u32 msg_type,
-				  char *data, u16 data_size);
+							 char *data, u16 data_size);
 	int (*cnic_get_stats)(void *ulp_ctx);
 	struct module *owner;
 	atomic_t ref_count;

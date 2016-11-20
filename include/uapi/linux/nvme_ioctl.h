@@ -17,7 +17,8 @@
 
 #include <linux/types.h>
 
-struct nvme_user_io {
+struct nvme_user_io
+{
 	__u8	opcode;
 	__u8	flags;
 	__u16	control;
@@ -32,7 +33,8 @@ struct nvme_user_io {
 	__u16	appmask;
 };
 
-struct nvme_passthru_cmd {
+struct nvme_passthru_cmd
+{
 	__u8	opcode;
 	__u8	flags;
 	__u16	rsvd1;

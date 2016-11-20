@@ -4,7 +4,8 @@
 /*
  * Describe each PMU event. Each CPU has a table of PMU events.
  */
-struct pmu_event {
+struct pmu_event
+{
 	const char *name;
 	const char *event;
 	const char *desc;
@@ -21,7 +22,8 @@ struct pmu_event {
  *
  * The  cpuid can contain any character other than the comma.
  */
-struct pmu_events_map {
+struct pmu_events_map
+{
 	const char *cpuid;
 	const char *version;
 	const char *type;		/* core, uncore etc */

@@ -29,42 +29,43 @@
  */
 
 #ifdef __KERNEL__
-extern int sg_big_buff; /* for sysctl */
+	extern int sg_big_buff; /* for sysctl */
 #endif
 
 
 typedef struct sg_iovec /* same structure as used by readv() Linux system */
-{                       /* call. It defines one scatter-gather element. */
-    void __user *iov_base;      /* Starting address  */
-    size_t iov_len;             /* Length in bytes  */
+{
+	/* call. It defines one scatter-gather element. */
+	void __user *iov_base;      /* Starting address  */
+	size_t iov_len;             /* Length in bytes  */
 } sg_iovec_t;
 
 
 typedef struct sg_io_hdr
 {
-    int interface_id;           /* [i] 'S' for SCSI generic (required) */
-    int dxfer_direction;        /* [i] data transfer direction  */
-    unsigned char cmd_len;      /* [i] SCSI command length */
-    unsigned char mx_sb_len;    /* [i] max length to write to sbp */
-    unsigned short iovec_count; /* [i] 0 implies no scatter gather */
-    unsigned int dxfer_len;     /* [i] byte count of data transfer */
-    void __user *dxferp;	/* [i], [*io] points to data transfer memory
+	int interface_id;           /* [i] 'S' for SCSI generic (required) */
+	int dxfer_direction;        /* [i] data transfer direction  */
+	unsigned char cmd_len;      /* [i] SCSI command length */
+	unsigned char mx_sb_len;    /* [i] max length to write to sbp */
+	unsigned short iovec_count; /* [i] 0 implies no scatter gather */
+	unsigned int dxfer_len;     /* [i] byte count of data transfer */
+	void __user *dxferp;	/* [i], [*io] points to data transfer memory
 					      or scatter gather list */
-    unsigned char __user *cmdp; /* [i], [*i] points to command to perform */
-    void __user *sbp;		/* [i], [*o] points to sense_buffer memory */
-    unsigned int timeout;       /* [i] MAX_UINT->no timeout (unit: millisec) */
-    unsigned int flags;         /* [i] 0 -> default, see SG_FLAG... */
-    int pack_id;                /* [i->o] unused internally (normally) */
-    void __user * usr_ptr;      /* [i->o] unused internally */
-    unsigned char status;       /* [o] scsi status */
-    unsigned char masked_status;/* [o] shifted, masked scsi status */
-    unsigned char msg_status;   /* [o] messaging level data (optional) */
-    unsigned char sb_len_wr;    /* [o] byte count actually written to sbp */
-    unsigned short host_status; /* [o] errors from host adapter */
-    unsigned short driver_status;/* [o] errors from software driver */
-    int resid;                  /* [o] dxfer_len - actual_transferred */
-    unsigned int duration;      /* [o] time taken by cmd (unit: millisec) */
-    unsigned int info;          /* [o] auxiliary information */
+	unsigned char __user *cmdp; /* [i], [*i] points to command to perform */
+	void __user *sbp;		/* [i], [*o] points to sense_buffer memory */
+	unsigned int timeout;       /* [i] MAX_UINT->no timeout (unit: millisec) */
+	unsigned int flags;         /* [i] 0 -> default, see SG_FLAG... */
+	int pack_id;                /* [i->o] unused internally (normally) */
+	void __user *usr_ptr;       /* [i->o] unused internally */
+	unsigned char status;       /* [o] scsi status */
+	unsigned char masked_status;/* [o] shifted, masked scsi status */
+	unsigned char msg_status;   /* [o] messaging level data (optional) */
+	unsigned char sb_len_wr;    /* [o] byte count actually written to sbp */
+	unsigned short host_status; /* [o] errors from host adapter */
+	unsigned short driver_status;/* [o] errors from software driver */
+	int resid;                  /* [o] dxfer_len - actual_transferred */
+	unsigned int duration;      /* [o] time taken by cmd (unit: millisec) */
+	unsigned int info;          /* [o] auxiliary information */
 } sg_io_hdr_t;  /* 64 bytes long (on i386) */
 
 #define SG_INTERFACE_ID_ORIG 'S'
@@ -82,10 +83,10 @@ typedef struct sg_io_hdr
 /* following flag values can be "or"-ed together */
 #define SG_FLAG_DIRECT_IO 1     /* default is indirect IO */
 #define SG_FLAG_UNUSED_LUN_INHIBIT 2   /* default is overwrite lun in SCSI */
-				/* command block (when <= SCSI_2) */
+/* command block (when <= SCSI_2) */
 #define SG_FLAG_MMAP_IO 4       /* request memory mapped IO */
 #define SG_FLAG_NO_DXFER 0x10000 /* no transfer of kernel buffers to/from */
-				/* user space (debug indirect IO) */
+/* user space (debug indirect IO) */
 /* defaults:: for sg driver: Q_AT_HEAD; for block layer: Q_AT_TAIL */
 #define SG_FLAG_Q_AT_TAIL 0x10
 #define SG_FLAG_Q_AT_HEAD 0x20
@@ -101,27 +102,29 @@ typedef struct sg_io_hdr
 #define SG_INFO_MIXED_IO 0x4    /* part direct, part indirect IO */
 
 
-typedef struct sg_scsi_id { /* used by SG_GET_SCSI_ID ioctl() */
-    int host_no;        /* as in "scsi<n>" where 'n' is one of 0, 1, 2 etc */
-    int channel;
-    int scsi_id;        /* scsi id of target device */
-    int lun;
-    int scsi_type;      /* TYPE_... defined in scsi/scsi.h */
-    short h_cmd_per_lun;/* host (adapter) maximum commands per lun */
-    short d_queue_depth;/* device (or adapter) maximum queue length */
-    int unused[2];      /* probably find a good use, set 0 for now */
+typedef struct sg_scsi_id   /* used by SG_GET_SCSI_ID ioctl() */
+{
+	int host_no;        /* as in "scsi<n>" where 'n' is one of 0, 1, 2 etc */
+	int channel;
+	int scsi_id;        /* scsi id of target device */
+	int lun;
+	int scsi_type;      /* TYPE_... defined in scsi/scsi.h */
+	short h_cmd_per_lun;/* host (adapter) maximum commands per lun */
+	short d_queue_depth;/* device (or adapter) maximum queue length */
+	int unused[2];      /* probably find a good use, set 0 for now */
 } sg_scsi_id_t; /* 32 bytes long on i386 */
 
-typedef struct sg_req_info { /* used by SG_GET_REQUEST_TABLE ioctl() */
-    char req_state;     /* 0 -> not used, 1 -> written, 2 -> ready to read */
-    char orphan;        /* 0 -> normal request, 1 -> from interruped SG_IO */
-    char sg_io_owned;   /* 0 -> complete with read(), 1 -> owned by SG_IO */
-    char problem;       /* 0 -> no problem detected, 1 -> error to report */
-    int pack_id;        /* pack_id associated with request */
-    void __user *usr_ptr;     /* user provided pointer (in new interface) */
-    unsigned int duration; /* millisecs elapsed since written (req_state==1)
+typedef struct sg_req_info   /* used by SG_GET_REQUEST_TABLE ioctl() */
+{
+	char req_state;     /* 0 -> not used, 1 -> written, 2 -> ready to read */
+	char orphan;        /* 0 -> normal request, 1 -> from interruped SG_IO */
+	char sg_io_owned;   /* 0 -> complete with read(), 1 -> owned by SG_IO */
+	char problem;       /* 0 -> no problem detected, 1 -> error to report */
+	int pack_id;        /* pack_id associated with request */
+	void __user *usr_ptr;     /* user provided pointer (in new interface) */
+	unsigned int duration; /* millisecs elapsed since written (req_state==1)
 			      or request duration (req_state==2) */
-    int unused;
+	int unused;
 } sg_req_info_t; /* 20 bytes long on i386 */
 
 
@@ -134,7 +137,7 @@ typedef struct sg_req_info { /* used by SG_GET_REQUEST_TABLE ioctl() */
 /* Used to configure SCSI command transformation layer for ATAPI devices */
 /* Only supported by the ide-scsi driver */
 #define SG_SET_TRANSFORM 0x2204 /* N.B. 3rd arg is not pointer but value: */
-		      /* 3rd arg = 0 to disable transform, 1 to enable it */
+/* 3rd arg = 0 to disable transform, 1 to enable it */
 #define SG_GET_TRANSFORM 0x2205
 
 #define SG_SET_RESERVED_SIZE 0x2275  /* request a new reserved buffer size */
@@ -184,7 +187,7 @@ typedef struct sg_req_info { /* used by SG_GET_REQUEST_TABLE ioctl() */
 #define SG_GET_KEEP_ORPHAN 0x2288
 
 /* yields scsi midlevel's access_count for this SCSI device */
-#define SG_GET_ACCESS_COUNT 0x2289  
+#define SG_GET_ACCESS_COUNT 0x2289
 
 
 #define SG_SCATTER_SZ (8 * 4096)
@@ -222,17 +225,17 @@ typedef struct sg_req_info Sg_req_info;
 
 struct sg_header
 {
-    int pack_len;    /* [o] reply_len (ie useless), ignored as input */
-    int reply_len;   /* [i] max length of expected reply (inc. sg_header) */
-    int pack_id;     /* [io] id number of packet (use ints >= 0) */
-    int result;      /* [o] 0==ok, else (+ve) Unix errno (best ignored) */
-    unsigned int twelve_byte:1;
+	int pack_len;    /* [o] reply_len (ie useless), ignored as input */
+	int reply_len;   /* [i] max length of expected reply (inc. sg_header) */
+	int pack_id;     /* [io] id number of packet (use ints >= 0) */
+	int result;      /* [o] 0==ok, else (+ve) Unix errno (best ignored) */
+	unsigned int twelve_byte: 1;
 	/* [i] Force 12 byte command length for group 6 & 7 commands  */
-    unsigned int target_status:5;   /* [o] scsi status from target */
-    unsigned int host_status:8;     /* [o] host status (see "DID" codes) */
-    unsigned int driver_status:8;   /* [o] driver status+suggestion */
-    unsigned int other_flags:10;    /* unused */
-    unsigned char sense_buffer[SG_MAX_SENSE]; /* [o] Output in 3 cases:
+	unsigned int target_status: 5;  /* [o] scsi status from target */
+	unsigned int host_status: 8;    /* [o] host status (see "DID" codes) */
+	unsigned int driver_status: 8;  /* [o] driver status+suggestion */
+	unsigned int other_flags: 10;   /* unused */
+	unsigned char sense_buffer[SG_MAX_SENSE]; /* [o] Output in 3 cases:
 	   when target_status is CHECK_CONDITION or
 	   when target_status is COMMAND_TERMINATED or
 	   when (driver_status & DRIVER_SENSE) is true. */
@@ -262,9 +265,9 @@ struct sg_header
 
 /* Defaults, commented if they differ from original sg driver */
 #ifdef __KERNEL__
-#define SG_DEFAULT_TIMEOUT_USER	(60*USER_HZ) /* HZ == 'jiffies in 1 second' */
+	#define SG_DEFAULT_TIMEOUT_USER	(60*USER_HZ) /* HZ == 'jiffies in 1 second' */
 #else
-#define SG_DEFAULT_TIMEOUT	(60*HZ)	     /* HZ == 'jiffies in 1 second' */
+	#define SG_DEFAULT_TIMEOUT	(60*HZ)	     /* HZ == 'jiffies in 1 second' */
 #endif
 
 #define SG_DEF_COMMAND_Q 0     /* command queuing is always on when

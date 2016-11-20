@@ -69,7 +69,8 @@
 struct isci_phy;
 struct isci_host;
 
-enum isci_status {
+enum isci_status
+{
 	isci_freed        = 0x00,
 	isci_starting     = 0x01,
 	isci_ready        = 0x02,
@@ -94,10 +95,11 @@ enum isci_status {
  * @not_ready_reason: set during state transitions and notified
  * @timer: timeout start/stop operations
  */
-struct isci_port {
+struct isci_port
+{
 	struct isci_host *isci_host;
 	struct list_head remote_dev_list;
-	#define IPORT_RESET_PENDING 0
+#define IPORT_RESET_PENDING 0
 	unsigned long state;
 	enum sci_status hard_reset_status;
 	struct sci_base_state_machine sm;
@@ -122,7 +124,8 @@ struct isci_port {
 	struct scu_viit_entry __iomem *viit_registers;
 };
 
-enum sci_port_not_ready_reason_code {
+enum sci_port_not_ready_reason_code
+{
 	SCIC_PORT_NOT_READY_NO_ACTIVE_PHYS,
 	SCIC_PORT_NOT_READY_HARD_RESET_REQUESTED,
 	SCIC_PORT_NOT_READY_INVALID_PORT_CONFIGURATION,
@@ -131,12 +134,14 @@ enum sci_port_not_ready_reason_code {
 	SCIC_PORT_NOT_READY_REASON_CODE_MAX
 };
 
-struct sci_port_end_point_properties {
+struct sci_port_end_point_properties
+{
 	struct sci_sas_address sas_address;
 	struct sci_phy_proto protocols;
 };
 
-struct sci_port_properties {
+struct sci_port_properties
+{
 	u32 index;
 	struct sci_port_end_point_properties local;
 	struct sci_port_end_point_properties remote;
@@ -172,14 +177,14 @@ struct sci_port_properties {
  *		     state is entered from the RESETTING state.
  */
 #define PORT_STATES {\
-	C(PORT_STOPPED),\
-	C(PORT_STOPPING),\
-	C(PORT_READY),\
-	C(PORT_SUB_WAITING),\
-	C(PORT_SUB_OPERATIONAL),\
-	C(PORT_SUB_CONFIGURING),\
-	C(PORT_RESETTING),\
-	C(PORT_FAILED),\
+		C(PORT_STOPPED),\
+		C(PORT_STOPPING),\
+		C(PORT_READY),\
+		C(PORT_SUB_WAITING),\
+		C(PORT_SUB_OPERATIONAL),\
+		C(PORT_SUB_CONFIGURING),\
+		C(PORT_RESETTING),\
+		C(PORT_FAILED),\
 	}
 #undef C
 #define C(a) SCI_##a
@@ -189,11 +194,13 @@ enum sci_port_states PORT_STATES;
 static inline void sci_port_decrement_request_count(struct isci_port *iport)
 {
 	if (WARN_ONCE(iport->started_request_count == 0,
-		       "%s: tried to decrement started_request_count past 0!?",
-			__func__))
+				  "%s: tried to decrement started_request_count past 0!?",
+				  __func__))
 		/* pass */;
 	else
+	{
 		iport->started_request_count--;
+	}
 }
 
 #define sci_port_active_phy(port, phy) \
@@ -235,9 +242,9 @@ enum sci_status sci_port_get_properties(
 	struct sci_port_properties *prop);
 
 enum sci_status sci_port_link_up(struct isci_port *iport,
-				      struct isci_phy *iphy);
+								 struct isci_phy *iphy);
 enum sci_status sci_port_link_down(struct isci_port *iport,
-					struct isci_phy *iphy);
+								   struct isci_phy *iphy);
 
 struct isci_request;
 struct isci_remote_device;
@@ -278,6 +285,6 @@ void isci_port_formed(struct asd_sas_phy *);
 void isci_port_deformed(struct asd_sas_phy *);
 
 int isci_port_perform_hard_reset(struct isci_host *ihost, struct isci_port *iport,
-				 struct isci_phy *iphy);
+								 struct isci_phy *iphy);
 int isci_ata_check_ready(struct domain_device *dev);
 #endif /* !defined(_ISCI_PORT_H_) */

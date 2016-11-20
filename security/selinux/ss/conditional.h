@@ -21,7 +21,8 @@
  * A conditional expression is a list of operators and operands
  * in reverse polish notation.
  */
-struct cond_expr {
+struct cond_expr
+{
 #define COND_BOOL	1 /* plain bool */
 #define COND_NOT	2 /* !bool */
 #define COND_OR		3 /* bool || bool */
@@ -40,7 +41,8 @@ struct cond_expr {
  * depending on the current value of the conditional expression. This
  * struct is for that list.
  */
-struct cond_av_list {
+struct cond_av_list
+{
 	struct avtab_node *node;
 	struct cond_av_list *next;
 };
@@ -52,7 +54,8 @@ struct cond_av_list {
  * expression (the true list corresponds to if and the false list corresponds
  * to else)..
  */
-struct cond_node {
+struct cond_node
+{
 	int cur_state;
 	struct cond_expr *expr;
 	struct cond_av_list *true_list;
@@ -74,9 +77,9 @@ int cond_write_bool(void *key, void *datum, void *ptr);
 int cond_write_list(struct policydb *p, struct cond_node *list, void *fp);
 
 void cond_compute_av(struct avtab *ctab, struct avtab_key *key,
-		struct av_decision *avd, struct extended_perms *xperms);
+					 struct av_decision *avd, struct extended_perms *xperms);
 void cond_compute_xperms(struct avtab *ctab, struct avtab_key *key,
-		struct extended_perms_decision *xpermd);
+						 struct extended_perms_decision *xpermd);
 int evaluate_cond_node(struct policydb *p, struct cond_node *node);
 
 #endif /* _CONDITIONAL_H_ */

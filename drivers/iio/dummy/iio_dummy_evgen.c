@@ -34,7 +34,8 @@
  * @work: irq_work used to run handlers from hardirq context
  * @irq: fake irq line number to trigger an interrupt
  */
-struct iio_dummy_handle_irq {
+struct iio_dummy_handle_irq
+{
 	struct irq_work work;
 	int irq;
 };
@@ -49,7 +50,8 @@ struct iio_dummy_handle_irq {
  * @lock: protect the evgen state
  * @handler: helper for a 'hardware-like' interrupt simulation
  */
-struct iio_dummy_eventgen {
+struct iio_dummy_eventgen
+{
 	struct irq_chip chip;
 	int base;
 	bool enabled[IIO_EVENTGEN_NO];
@@ -94,25 +96,34 @@ static int iio_dummy_evgen_create(void)
 	int ret, i;
 
 	iio_evgen = kzalloc(sizeof(*iio_evgen), GFP_KERNEL);
+
 	if (!iio_evgen)
+	{
 		return -ENOMEM;
+	}
 
 	iio_evgen->base = irq_alloc_descs(-1, 0, IIO_EVENTGEN_NO, 0);
-	if (iio_evgen->base < 0) {
+
+	if (iio_evgen->base < 0)
+	{
 		ret = iio_evgen->base;
 		kfree(iio_evgen);
 		return ret;
 	}
+
 	iio_evgen->chip.name = iio_evgen_name;
 	iio_evgen->chip.irq_mask = &iio_dummy_event_irqmask;
 	iio_evgen->chip.irq_unmask = &iio_dummy_event_irqunmask;
-	for (i = 0; i < IIO_EVENTGEN_NO; i++) {
+
+	for (i = 0; i < IIO_EVENTGEN_NO; i++)
+	{
 		irq_set_chip(iio_evgen->base + i, &iio_evgen->chip);
 		irq_set_handler(iio_evgen->base + i, &handle_simple_irq);
 		irq_modify_status(iio_evgen->base + i,
-				  IRQ_NOREQUEST | IRQ_NOAUTOEN,
-				  IRQ_NOPROBE);
+						  IRQ_NOREQUEST | IRQ_NOAUTOEN,
+						  IRQ_NOPROBE);
 	}
+
 	init_irq_work(&iio_evgen->handler.work, iio_dummy_work_handler);
 	mutex_init(&iio_evgen->lock);
 	return 0;
@@ -129,18 +140,27 @@ int iio_dummy_evgen_get_irq(void)
 	int i, ret = 0;
 
 	if (!iio_evgen)
+	{
 		return -ENODEV;
+	}
 
 	mutex_lock(&iio_evgen->lock);
+
 	for (i = 0; i < IIO_EVENTGEN_NO; i++)
-		if (!iio_evgen->inuse[i]) {
+		if (!iio_evgen->inuse[i])
+		{
 			ret = iio_evgen->base + i;
 			iio_evgen->inuse[i] = true;
 			break;
 		}
+
 	mutex_unlock(&iio_evgen->lock);
+
 	if (i == IIO_EVENTGEN_NO)
+	{
 		return -ENOMEM;
+	}
+
 	return ret;
 }
 EXPORT_SYMBOL_GPL(iio_dummy_evgen_get_irq);
@@ -177,24 +197,30 @@ static void iio_evgen_release(struct device *dev)
 }
 
 static ssize_t iio_evgen_poke(struct device *dev,
-			      struct device_attribute *attr,
-			      const char *buf,
-			      size_t len)
+							  struct device_attribute *attr,
+							  const char *buf,
+							  size_t len)
 {
 	struct iio_dev_attr *this_attr = to_iio_dev_attr(attr);
 	unsigned long event;
 	int ret;
 
 	ret = kstrtoul(buf, 10, &event);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	iio_evgen->regs[this_attr->address].reg_id   = this_attr->address;
 	iio_evgen->regs[this_attr->address].reg_data = event;
 
 	iio_evgen->handler.irq = iio_evgen->base + this_attr->address;
+
 	if (iio_evgen->enabled[this_attr->address])
+	{
 		irq_work_queue(&iio_evgen->handler.work);
+	}
 
 	return len;
 }
@@ -210,7 +236,8 @@ static IIO_DEVICE_ATTR(poke_ev7, S_IWUSR, NULL, &iio_evgen_poke, 7);
 static IIO_DEVICE_ATTR(poke_ev8, S_IWUSR, NULL, &iio_evgen_poke, 8);
 static IIO_DEVICE_ATTR(poke_ev9, S_IWUSR, NULL, &iio_evgen_poke, 9);
 
-static struct attribute *iio_evgen_attrs[] = {
+static struct attribute *iio_evgen_attrs[] =
+{
 	&iio_dev_attr_poke_ev0.dev_attr.attr,
 	&iio_dev_attr_poke_ev1.dev_attr.attr,
 	&iio_dev_attr_poke_ev2.dev_attr.attr,
@@ -224,16 +251,19 @@ static struct attribute *iio_evgen_attrs[] = {
 	NULL,
 };
 
-static const struct attribute_group iio_evgen_group = {
+static const struct attribute_group iio_evgen_group =
+{
 	.attrs = iio_evgen_attrs,
 };
 
-static const struct attribute_group *iio_evgen_groups[] = {
+static const struct attribute_group *iio_evgen_groups[] =
+{
 	&iio_evgen_group,
 	NULL
 };
 
-static struct device iio_evgen_dev = {
+static struct device iio_evgen_dev =
+{
 	.bus = &iio_bus_type,
 	.groups = iio_evgen_groups,
 	.release = &iio_evgen_release,
@@ -244,7 +274,10 @@ static __init int iio_dummy_evgen_init(void)
 	int ret = iio_dummy_evgen_create();
 
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	device_initialize(&iio_evgen_dev);
 	dev_set_name(&iio_evgen_dev, "iio_evgen");
 	return device_add(&iio_evgen_dev);

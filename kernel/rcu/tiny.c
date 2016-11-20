@@ -44,8 +44,8 @@ struct rcu_ctrlblk;
 static void __rcu_process_callbacks(struct rcu_ctrlblk *rcp);
 static void rcu_process_callbacks(struct softirq_action *unused);
 static void __call_rcu(struct rcu_head *head,
-		       rcu_callback_t func,
-		       struct rcu_ctrlblk *rcp);
+					   rcu_callback_t func,
+					   struct rcu_ctrlblk *rcp);
 
 #include "tiny_plugin.h"
 
@@ -70,7 +70,9 @@ EXPORT_SYMBOL(__rcu_is_watching);
 static int rcu_qsctr_help(struct rcu_ctrlblk *rcp)
 {
 	RCU_TRACE(reset_cpu_stall_ticks(rcp));
-	if (rcp->donetail != rcp->curtail) {
+
+	if (rcp->donetail != rcp->curtail)
+	{
 		rcp->donetail = rcp->curtail;
 		return 1;
 	}
@@ -88,9 +90,13 @@ void rcu_sched_qs(void)
 	unsigned long flags;
 
 	local_irq_save(flags);
+
 	if (rcu_qsctr_help(&rcu_sched_ctrlblk) +
-	    rcu_qsctr_help(&rcu_bh_ctrlblk))
+		rcu_qsctr_help(&rcu_bh_ctrlblk))
+	{
 		raise_softirq(RCU_SOFTIRQ);
+	}
+
 	local_irq_restore(flags);
 }
 
@@ -102,8 +108,12 @@ void rcu_bh_qs(void)
 	unsigned long flags;
 
 	local_irq_save(flags);
+
 	if (rcu_qsctr_help(&rcu_bh_ctrlblk))
+	{
 		raise_softirq(RCU_SOFTIRQ);
+	}
+
 	local_irq_restore(flags);
 }
 
@@ -116,12 +126,20 @@ void rcu_bh_qs(void)
 void rcu_check_callbacks(int user)
 {
 	RCU_TRACE(check_cpu_stalls());
+
 	if (user)
+	{
 		rcu_sched_qs();
+	}
 	else if (!in_softirq())
+	{
 		rcu_bh_qs();
+	}
+
 	if (user)
+	{
 		rcu_note_voluntary_context_switch(current);
+	}
 }
 
 /*
@@ -137,23 +155,32 @@ static void __rcu_process_callbacks(struct rcu_ctrlblk *rcp)
 
 	/* Move the ready-to-invoke callbacks to a local list. */
 	local_irq_save(flags);
-	if (rcp->donetail == &rcp->rcucblist) {
+
+	if (rcp->donetail == &rcp->rcucblist)
+	{
 		/* No callbacks ready, so just leave. */
 		local_irq_restore(flags);
 		return;
 	}
+
 	RCU_TRACE(trace_rcu_batch_start(rcp->name, 0, rcp->qlen, -1));
 	list = rcp->rcucblist;
 	rcp->rcucblist = *rcp->donetail;
 	*rcp->donetail = NULL;
+
 	if (rcp->curtail == rcp->donetail)
+	{
 		rcp->curtail = &rcp->rcucblist;
+	}
+
 	rcp->donetail = &rcp->rcucblist;
 	local_irq_restore(flags);
 
 	/* Invoke the callbacks on the local list. */
 	RCU_TRACE(rn = rcp->name);
-	while (list) {
+
+	while (list)
+	{
 		next = list->next;
 		prefetch(next);
 		debug_rcu_head_unqueue(list);
@@ -163,11 +190,12 @@ static void __rcu_process_callbacks(struct rcu_ctrlblk *rcp)
 		list = next;
 		RCU_TRACE(cb_count++);
 	}
+
 	RCU_TRACE(rcu_trace_sub_qlen(rcp, cb_count));
 	RCU_TRACE(trace_rcu_batch_end(rcp->name,
-				      cb_count, 0, need_resched(),
-				      is_idle_task(current),
-				      false));
+								  cb_count, 0, need_resched(),
+								  is_idle_task(current),
+								  false));
 }
 
 static __latent_entropy void rcu_process_callbacks(struct softirq_action *unused)
@@ -192,9 +220,9 @@ static __latent_entropy void rcu_process_callbacks(struct softirq_action *unused
 void synchronize_sched(void)
 {
 	RCU_LOCKDEP_WARN(lock_is_held(&rcu_bh_lock_map) ||
-			 lock_is_held(&rcu_lock_map) ||
-			 lock_is_held(&rcu_sched_lock_map),
-			 "Illegal synchronize_sched() in RCU read-side critical section");
+					 lock_is_held(&rcu_lock_map) ||
+					 lock_is_held(&rcu_sched_lock_map),
+					 "Illegal synchronize_sched() in RCU read-side critical section");
 	cond_resched();
 }
 EXPORT_SYMBOL_GPL(synchronize_sched);
@@ -203,8 +231,8 @@ EXPORT_SYMBOL_GPL(synchronize_sched);
  * Helper function for call_rcu() and call_rcu_bh().
  */
 static void __call_rcu(struct rcu_head *head,
-		       rcu_callback_t func,
-		       struct rcu_ctrlblk *rcp)
+					   rcu_callback_t func,
+					   struct rcu_ctrlblk *rcp)
 {
 	unsigned long flags;
 
@@ -218,7 +246,8 @@ static void __call_rcu(struct rcu_head *head,
 	RCU_TRACE(rcp->qlen++);
 	local_irq_restore(flags);
 
-	if (unlikely(is_idle_task(current))) {
+	if (unlikely(is_idle_task(current)))
+	{
 		/* force scheduling for rcu_sched_qs() */
 		resched_cpu(0);
 	}

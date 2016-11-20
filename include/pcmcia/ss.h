@@ -20,7 +20,7 @@
 #include <linux/mutex.h>
 
 #ifdef CONFIG_CARDBUS
-#include <linux/pci.h>
+	#include <linux/pci.h>
 #endif
 
 /* Definitions for card status flags for GetStatus */
@@ -50,7 +50,8 @@
 #define SS_CAP_CARDBUS		0x8000
 
 /* for GetSocket, SetSocket */
-typedef struct socket_state_t {
+typedef struct socket_state_t
+{
 	u_int	flags;
 	u_int	csc_mask;
 	u_char	Vcc, Vpp;
@@ -84,14 +85,16 @@ extern socket_state_t dead_socket;
 #define HOOK_POWER_PRE	0x01
 #define HOOK_POWER_POST	0x02
 
-typedef struct pccard_io_map {
+typedef struct pccard_io_map
+{
 	u_char	map;
 	u_char	flags;
 	u_short	speed;
 	phys_addr_t start, stop;
 } pccard_io_map;
 
-typedef struct pccard_mem_map {
+typedef struct pccard_mem_map
+{
 	u_char		map;
 	u_char		flags;
 	u_short		speed;
@@ -100,7 +103,8 @@ typedef struct pccard_mem_map {
 	struct resource	*res;
 } pccard_mem_map;
 
-typedef struct io_window_t {
+typedef struct io_window_t
+{
 	u_int			InUse, Config;
 	struct resource		*res;
 } io_window_t;
@@ -121,7 +125,8 @@ struct config_t;
 struct pcmcia_callback;
 struct user_info_t;
 
-struct pccard_operations {
+struct pccard_operations
+{
 	int (*init)(struct pcmcia_socket *s);
 	int (*suspend)(struct pcmcia_socket *s);
 	int (*get_status)(struct pcmcia_socket *s, u_int *value);
@@ -130,7 +135,8 @@ struct pccard_operations {
 	int (*set_mem_map)(struct pcmcia_socket *s, struct pccard_mem_map *mem);
 };
 
-struct pcmcia_socket {
+struct pcmcia_socket
+{
 	struct module			*owner;
 	socket_state_t			socket;
 	u_int				state;
@@ -173,7 +179,7 @@ struct pcmcia_socket {
 	/* Zoom video behaviour is so chip specific its not worth adding
 	   this to _ops */
 	void 				(*zoom_video)(struct pcmcia_socket *,
-						      int);
+									  int);
 
 	/* so is power hook */
 	int (*power_hook)(struct pcmcia_socket *sock, int operation);
@@ -243,20 +249,20 @@ struct pcmcia_socket {
  */
 extern struct pccard_resource_ops pccard_static_ops;
 #if defined(CONFIG_PCMCIA) || defined(CONFIG_PCMCIA_MODULE)
-extern struct pccard_resource_ops pccard_iodyn_ops;
-extern struct pccard_resource_ops pccard_nonstatic_ops;
+	extern struct pccard_resource_ops pccard_iodyn_ops;
+	extern struct pccard_resource_ops pccard_nonstatic_ops;
 #else
-/* If PCMCIA is not used, but only CARDBUS, these functions are not used
- * at all. Therefore, do not use the large (240K!) rsrc_nonstatic module
- */
-#define pccard_iodyn_ops pccard_static_ops
-#define pccard_nonstatic_ops pccard_static_ops
+	/* If PCMCIA is not used, but only CARDBUS, these functions are not used
+	* at all. Therefore, do not use the large (240K!) rsrc_nonstatic module
+	*/
+	#define pccard_iodyn_ops pccard_static_ops
+	#define pccard_nonstatic_ops pccard_static_ops
 #endif
 
 
 /* socket drivers use this callback in their IRQ handler */
 extern void pcmcia_parse_events(struct pcmcia_socket *socket,
-				unsigned int events);
+								unsigned int events);
 
 /* to register and unregister a socket */
 extern int pcmcia_register_socket(struct pcmcia_socket *socket);

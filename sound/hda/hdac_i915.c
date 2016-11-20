@@ -42,16 +42,19 @@ int snd_hdac_set_codec_wakeup(struct hdac_bus *bus, bool enable)
 	struct i915_audio_component *acomp = bus->audio_component;
 
 	if (!acomp || !acomp->ops)
+	{
 		return -ENODEV;
+	}
 
-	if (!acomp->ops->codec_wake_override) {
+	if (!acomp->ops->codec_wake_override)
+	{
 		dev_warn(bus->dev,
-			"Invalid codec wake callback\n");
+				 "Invalid codec wake callback\n");
 		return 0;
 	}
 
 	dev_dbg(bus->dev, "%s codec wakeup\n",
-		enable ? "enable" : "disable");
+			enable ? "enable" : "disable");
 
 	acomp->ops->codec_wake_override(acomp->dev, enable);
 
@@ -77,21 +80,30 @@ int snd_hdac_display_power(struct hdac_bus *bus, bool enable)
 	struct i915_audio_component *acomp = bus->audio_component;
 
 	if (!acomp || !acomp->ops)
+	{
 		return -ENODEV;
+	}
 
 	dev_dbg(bus->dev, "display power %s\n",
-		enable ? "enable" : "disable");
+			enable ? "enable" : "disable");
 
-	if (enable) {
-		if (!bus->i915_power_refcount++) {
+	if (enable)
+	{
+		if (!bus->i915_power_refcount++)
+		{
 			acomp->ops->get_power(acomp->dev);
 			snd_hdac_set_codec_wakeup(bus, true);
 			snd_hdac_set_codec_wakeup(bus, false);
 		}
-	} else {
+	}
+	else
+	{
 		WARN_ON(!bus->i915_power_refcount);
+
 		if (!--bus->i915_power_refcount)
+		{
 			acomp->ops->put_power(acomp->dev);
+		}
 	}
 
 	return 0;
@@ -99,9 +111,9 @@ int snd_hdac_display_power(struct hdac_bus *bus, bool enable)
 EXPORT_SYMBOL_GPL(snd_hdac_display_power);
 
 #define CONTROLLER_IN_GPU(pci) (((pci)->device == 0x0a0c) || \
-				((pci)->device == 0x0c0c) || \
-				((pci)->device == 0x0d0c) || \
-				((pci)->device == 0x160c))
+								((pci)->device == 0x0c0c) || \
+								((pci)->device == 0x0d0c) || \
+								((pci)->device == 0x160c))
 
 /**
  * snd_hdac_i915_set_bclk - Reprogram BCLK for HSW/BDW
@@ -125,32 +137,39 @@ void snd_hdac_i915_set_bclk(struct hdac_bus *bus)
 	unsigned int bclk_m, bclk_n;
 
 	if (!acomp || !acomp->ops || !acomp->ops->get_cdclk_freq)
-		return; /* only for i915 binding */
+	{
+		return;    /* only for i915 binding */
+	}
+
 	if (!CONTROLLER_IN_GPU(pci))
-		return; /* only HSW/BDW */
+	{
+		return;    /* only HSW/BDW */
+	}
 
 	cdclk_freq = acomp->ops->get_cdclk_freq(acomp->dev);
-	switch (cdclk_freq) {
-	case 337500:
-		bclk_m = 16;
-		bclk_n = 225;
-		break;
 
-	case 450000:
-	default: /* default CDCLK 450MHz */
-		bclk_m = 4;
-		bclk_n = 75;
-		break;
+	switch (cdclk_freq)
+	{
+		case 337500:
+			bclk_m = 16;
+			bclk_n = 225;
+			break;
 
-	case 540000:
-		bclk_m = 4;
-		bclk_n = 90;
-		break;
+		case 450000:
+		default: /* default CDCLK 450MHz */
+			bclk_m = 4;
+			bclk_n = 75;
+			break;
 
-	case 675000:
-		bclk_m = 8;
-		bclk_n = 225;
-		break;
+		case 540000:
+			bclk_m = 4;
+			bclk_n = 90;
+			break;
+
+		case 675000:
+			bclk_m = 8;
+			bclk_n = 225;
+			break;
 	}
 
 	snd_hdac_chip_writew(bus, HSW_EM4, bclk_m);
@@ -173,19 +192,24 @@ static int pin2port(struct hdac_device *codec, hda_nid_t pin_nid)
 {
 	int base_nid;
 
-	switch (codec->vendor_id) {
-	case 0x80860054: /* ILK */
-	case 0x80862804: /* ILK */
-	case 0x80862882: /* VLV */
-		base_nid = 3;
-		break;
-	default:
-		base_nid = 4;
-		break;
+	switch (codec->vendor_id)
+	{
+		case 0x80860054: /* ILK */
+		case 0x80862804: /* ILK */
+		case 0x80862882: /* VLV */
+			base_nid = 3;
+			break;
+
+		default:
+			base_nid = 4;
+			break;
 	}
 
 	if (WARN_ON(pin_nid <= base_nid || pin_nid > base_nid + 3))
+	{
 		return -1;
+	}
+
 	return pin_nid - base_nid;
 }
 
@@ -208,10 +232,17 @@ int snd_hdac_sync_audio_rate(struct hdac_device *codec, hda_nid_t nid, int rate)
 	int port;
 
 	if (!acomp || !acomp->ops || !acomp->ops->sync_audio_rate)
+	{
 		return -ENODEV;
+	}
+
 	port = pin2port(codec, nid);
+
 	if (port < 0)
+	{
 		return -EINVAL;
+	}
+
 	return acomp->ops->sync_audio_rate(acomp->dev, port, rate);
 }
 EXPORT_SYMBOL_GPL(snd_hdac_sync_audio_rate);
@@ -237,20 +268,26 @@ EXPORT_SYMBOL_GPL(snd_hdac_sync_audio_rate);
  * that only a part of ELD bytes have been fetched.
  */
 int snd_hdac_acomp_get_eld(struct hdac_device *codec, hda_nid_t nid,
-			   bool *audio_enabled, char *buffer, int max_bytes)
+						   bool *audio_enabled, char *buffer, int max_bytes)
 {
 	struct hdac_bus *bus = codec->bus;
 	struct i915_audio_component *acomp = bus->audio_component;
 	int port;
 
 	if (!acomp || !acomp->ops || !acomp->ops->get_eld)
+	{
 		return -ENODEV;
+	}
 
 	port = pin2port(codec, nid);
+
 	if (port < 0)
+	{
 		return -EINVAL;
+	}
+
 	return acomp->ops->get_eld(acomp->dev, port, audio_enabled,
-				   buffer, max_bytes);
+							   buffer, max_bytes);
 }
 EXPORT_SYMBOL_GPL(snd_hdac_acomp_get_eld);
 
@@ -260,11 +297,15 @@ static int hdac_component_master_bind(struct device *dev)
 	int ret;
 
 	ret = component_bind_all(dev, acomp);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	if (WARN_ON(!(acomp->dev && acomp->ops && acomp->ops->get_power &&
-		      acomp->ops->put_power && acomp->ops->get_cdclk_freq))) {
+				  acomp->ops->put_power && acomp->ops->get_cdclk_freq)))
+	{
 		ret = -EINVAL;
 		goto out_unbind;
 	}
@@ -273,7 +314,8 @@ static int hdac_component_master_bind(struct device *dev)
 	 * Atm, we don't support dynamic unbinding initiated by the child
 	 * component, so pin its containing module until we unbind.
 	 */
-	if (!try_module_get(acomp->ops->owner)) {
+	if (!try_module_get(acomp->ops->owner))
+	{
 		ret = -ENODEV;
 		goto out_unbind;
 	}
@@ -295,7 +337,8 @@ static void hdac_component_master_unbind(struct device *dev)
 	WARN_ON(acomp->ops || acomp->dev);
 }
 
-static const struct component_master_ops hdac_component_master_ops = {
+static const struct component_master_ops hdac_component_master_ops =
+{
 	.bind = hdac_component_master_bind,
 	.unbind = hdac_component_master_unbind,
 };
@@ -320,7 +363,9 @@ static int hdac_component_master_match(struct device *dev, void *data)
 int snd_hdac_i915_register_notifier(const struct i915_audio_component_audio_ops *aops)
 {
 	if (WARN_ON(!hdac_acomp))
+	{
 		return -ENODEV;
+	}
 
 	hdac_acomp->audio_ops = aops;
 	return 0;
@@ -330,10 +375,13 @@ EXPORT_SYMBOL_GPL(snd_hdac_i915_register_notifier);
 /* check whether intel graphics is present */
 static bool i915_gfx_present(void)
 {
-	static struct pci_device_id ids[] = {
-		{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_ANY_ID),
-		  .class = PCI_BASE_CLASS_DISPLAY << 16,
-		  .class_mask = 0xff << 16 },
+	static struct pci_device_id ids[] =
+	{
+		{
+			PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_ANY_ID),
+			.class = PCI_BASE_CLASS_DISPLAY << 16,
+			.class_mask = 0xff << 16
+		},
 		{}
 	};
 	return pci_dev_present(ids);
@@ -359,22 +407,33 @@ int snd_hdac_i915_init(struct hdac_bus *bus)
 	int ret;
 
 	if (WARN_ON(hdac_acomp))
+	{
 		return -EBUSY;
+	}
 
 	if (!i915_gfx_present())
+	{
 		return -ENODEV;
+	}
 
 	acomp = kzalloc(sizeof(*acomp), GFP_KERNEL);
+
 	if (!acomp)
+	{
 		return -ENOMEM;
+	}
+
 	bus->audio_component = acomp;
 	hdac_acomp = acomp;
 
 	component_match_add(dev, &match, hdac_component_master_match, bus);
 	ret = component_master_add_with_match(dev, &hdac_component_master_ops,
-					      match);
+										  match);
+
 	if (ret < 0)
+	{
 		goto out_err;
+	}
 
 	/*
 	 * Atm, we don't support deferring the component binding, so make sure
@@ -382,10 +441,12 @@ int snd_hdac_i915_init(struct hdac_bus *bus)
 	 */
 	request_module("i915");
 
-	if (!acomp->ops) {
+	if (!acomp->ops)
+	{
 		ret = -ENODEV;
 		goto out_master_del;
 	}
+
 	dev_dbg(dev, "bound to i915 component master\n");
 
 	return 0;
@@ -418,11 +479,16 @@ int snd_hdac_i915_exit(struct hdac_bus *bus)
 	struct i915_audio_component *acomp = bus->audio_component;
 
 	if (!acomp)
+	{
 		return 0;
+	}
 
 	WARN_ON(bus->i915_power_refcount);
+
 	if (bus->i915_power_refcount > 0 && acomp->ops)
+	{
 		acomp->ops->put_power(acomp->dev);
+	}
 
 	component_master_del(dev, &hdac_component_master_ops);
 

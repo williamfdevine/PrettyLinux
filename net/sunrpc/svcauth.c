@@ -28,7 +28,8 @@ extern struct auth_ops svcauth_null;
 extern struct auth_ops svcauth_unix;
 
 static DEFINE_SPINLOCK(authtab_lock);
-static struct auth_ops	*authtab[RPC_AUTH_MAXFLAVOR] = {
+static struct auth_ops	*authtab[RPC_AUTH_MAXFLAVOR] =
+{
 	[0] = &svcauth_null,
 	[1] = &svcauth_unix,
 };
@@ -46,12 +47,15 @@ svc_authenticate(struct svc_rqst *rqstp, __be32 *authp)
 	dprintk("svc: svc_authenticate (%d)\n", flavor);
 
 	spin_lock(&authtab_lock);
+
 	if (flavor >= RPC_AUTH_MAXFLAVOR || !(aops = authtab[flavor]) ||
-	    !try_module_get(aops->owner)) {
+		!try_module_get(aops->owner))
+	{
 		spin_unlock(&authtab_lock);
 		*authp = rpc_autherr_badcred;
 		return SVC_DENIED;
 	}
+
 	spin_unlock(&authtab_lock);
 
 	rqstp->rq_auth_slack = 0;
@@ -80,10 +84,12 @@ int svc_authorise(struct svc_rqst *rqstp)
 
 	rqstp->rq_authop = NULL;
 
-	if (aops) {
+	if (aops)
+	{
 		rv = aops->release(rqstp);
 		module_put(aops->owner);
 	}
+
 	return rv;
 }
 
@@ -92,10 +98,13 @@ svc_auth_register(rpc_authflavor_t flavor, struct auth_ops *aops)
 {
 	int rv = -EINVAL;
 	spin_lock(&authtab_lock);
-	if (flavor < RPC_AUTH_MAXFLAVOR && authtab[flavor] == NULL) {
+
+	if (flavor < RPC_AUTH_MAXFLAVOR && authtab[flavor] == NULL)
+	{
 		authtab[flavor] = aops;
 		rv = 0;
 	}
+
 	spin_unlock(&authtab_lock);
 	return rv;
 }
@@ -105,8 +114,12 @@ void
 svc_auth_unregister(rpc_authflavor_t flavor)
 {
 	spin_lock(&authtab_lock);
+
 	if (flavor < RPC_AUTH_MAXFLAVOR)
+	{
 		authtab[flavor] = NULL;
+	}
+
 	spin_unlock(&authtab_lock);
 }
 EXPORT_SYMBOL_GPL(svc_auth_unregister);
@@ -129,7 +142,8 @@ static spinlock_t	auth_domain_lock =
 
 void auth_domain_put(struct auth_domain *dom)
 {
-	if (atomic_dec_and_lock(&dom->ref.refcount, &auth_domain_lock)) {
+	if (atomic_dec_and_lock(&dom->ref.refcount, &auth_domain_lock))
+	{
 		hlist_del(&dom->hash);
 		dom->flavour->domain_release(dom);
 		spin_unlock(&auth_domain_lock);
@@ -147,15 +161,21 @@ auth_domain_lookup(char *name, struct auth_domain *new)
 
 	spin_lock(&auth_domain_lock);
 
-	hlist_for_each_entry(hp, head, hash) {
-		if (strcmp(hp->name, name)==0) {
+	hlist_for_each_entry(hp, head, hash)
+	{
+		if (strcmp(hp->name, name) == 0)
+		{
 			kref_get(&hp->ref);
 			spin_unlock(&auth_domain_lock);
 			return hp;
 		}
 	}
+
 	if (new)
+	{
 		hlist_add_head(&new->hash, head);
+	}
+
 	spin_unlock(&auth_domain_lock);
 	return new;
 }

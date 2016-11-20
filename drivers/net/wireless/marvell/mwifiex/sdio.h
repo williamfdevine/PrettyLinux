@@ -105,62 +105,64 @@
 
 /* SDIO Tx aggregation buffer room for next packet ? */
 #define MP_TX_AGGR_BUF_HAS_ROOM(a, len) ((a->mpa_tx.buf_len+len)	\
-						<= a->mpa_tx.buf_size)
+		<= a->mpa_tx.buf_size)
 
 /* Copy current packet (SDIO Tx aggregation buffer) to SDIO buffer */
 #define MP_TX_AGGR_BUF_PUT(a, payload, pkt_len, port) do {		\
-	memmove(&a->mpa_tx.buf[a->mpa_tx.buf_len],			\
-			payload, pkt_len);				\
-	a->mpa_tx.buf_len += pkt_len;					\
-	if (!a->mpa_tx.pkt_cnt)						\
-		a->mpa_tx.start_port = port;				\
-	if (a->mpa_tx.start_port <= port)				\
-		a->mpa_tx.ports |= (1<<(a->mpa_tx.pkt_cnt));		\
-	else								\
-		a->mpa_tx.ports |= (1<<(a->mpa_tx.pkt_cnt+1+		\
-						(a->max_ports -	\
-						a->mp_end_port)));	\
-	a->mpa_tx.pkt_cnt++;						\
-} while (0)
+		memmove(&a->mpa_tx.buf[a->mpa_tx.buf_len],			\
+				payload, pkt_len);				\
+		a->mpa_tx.buf_len += pkt_len;					\
+		if (!a->mpa_tx.pkt_cnt)						\
+			a->mpa_tx.start_port = port;				\
+		if (a->mpa_tx.start_port <= port)				\
+			a->mpa_tx.ports |= (1<<(a->mpa_tx.pkt_cnt));		\
+		else								\
+			a->mpa_tx.ports |= (1<<(a->mpa_tx.pkt_cnt+1+		\
+									(a->max_ports -	\
+									 a->mp_end_port)));	\
+		a->mpa_tx.pkt_cnt++;						\
+	} while (0)
 
 /* SDIO Tx aggregation limit ? */
 #define MP_TX_AGGR_PKT_LIMIT_REACHED(a)					\
-			(a->mpa_tx.pkt_cnt == a->mpa_tx.pkt_aggr_limit)
+	(a->mpa_tx.pkt_cnt == a->mpa_tx.pkt_aggr_limit)
 
 /* Reset SDIO Tx aggregation buffer parameters */
 #define MP_TX_AGGR_BUF_RESET(a) do {					\
-	a->mpa_tx.pkt_cnt = 0;						\
-	a->mpa_tx.buf_len = 0;						\
-	a->mpa_tx.ports = 0;						\
-	a->mpa_tx.start_port = 0;					\
-} while (0)
+		a->mpa_tx.pkt_cnt = 0;						\
+		a->mpa_tx.buf_len = 0;						\
+		a->mpa_tx.ports = 0;						\
+		a->mpa_tx.start_port = 0;					\
+	} while (0)
 
 /* SDIO Rx aggregation limit ? */
 #define MP_RX_AGGR_PKT_LIMIT_REACHED(a)					\
-			(a->mpa_rx.pkt_cnt == a->mpa_rx.pkt_aggr_limit)
+	(a->mpa_rx.pkt_cnt == a->mpa_rx.pkt_aggr_limit)
 
 /* SDIO Rx aggregation in progress ? */
 #define MP_RX_AGGR_IN_PROGRESS(a) (a->mpa_rx.pkt_cnt > 0)
 
 /* SDIO Rx aggregation buffer room for next packet ? */
 #define MP_RX_AGGR_BUF_HAS_ROOM(a, rx_len)				\
-			((a->mpa_rx.buf_len+rx_len) <= a->mpa_rx.buf_size)
+	((a->mpa_rx.buf_len+rx_len) <= a->mpa_rx.buf_size)
 
 /* Reset SDIO Rx aggregation buffer parameters */
 #define MP_RX_AGGR_BUF_RESET(a) do {					\
-	a->mpa_rx.pkt_cnt = 0;						\
-	a->mpa_rx.buf_len = 0;						\
-	a->mpa_rx.ports = 0;						\
-	a->mpa_rx.start_port = 0;					\
-} while (0)
+		a->mpa_rx.pkt_cnt = 0;						\
+		a->mpa_rx.buf_len = 0;						\
+		a->mpa_rx.ports = 0;						\
+		a->mpa_rx.start_port = 0;					\
+	} while (0)
 
-struct mwifiex_plt_wake_cfg {
+struct mwifiex_plt_wake_cfg
+{
 	int irq_wifi;
 	bool wake_by_wifi;
 };
 
 /* data structure for SDIO MPA TX */
-struct mwifiex_sdio_mpa_tx {
+struct mwifiex_sdio_mpa_tx
+{
 	/* multiport tx aggregation buffer pointer */
 	u8 *buf;
 	u32 buf_len;
@@ -172,7 +174,8 @@ struct mwifiex_sdio_mpa_tx {
 	u32 pkt_aggr_limit;
 };
 
-struct mwifiex_sdio_mpa_rx {
+struct mwifiex_sdio_mpa_rx
+{
 	u8 *buf;
 	u32 buf_len;
 	u32 pkt_cnt;
@@ -190,7 +193,8 @@ struct mwifiex_sdio_mpa_rx {
 int mwifiex_bus_register(void);
 void mwifiex_bus_unregister(void);
 
-struct mwifiex_sdio_card_reg {
+struct mwifiex_sdio_card_reg
+{
 	u8 start_rd_port;
 	u8 start_wr_port;
 	u8 base_0_reg;
@@ -239,7 +243,8 @@ struct mwifiex_sdio_card_reg {
 	u8 func1_spec_reg_table[MWIFIEX_MAX_FUNC2_REG_NUM];
 };
 
-struct sdio_mmc_card {
+struct sdio_mmc_card
+{
 	struct sdio_func *func;
 	struct mwifiex_adapter *adapter;
 	struct device_node *plt_of_node;
@@ -277,7 +282,8 @@ struct sdio_mmc_card {
 	const struct sdio_device_id *device_id;
 };
 
-struct mwifiex_sdio_device {
+struct mwifiex_sdio_device
+{
 	const char *firmware;
 	const struct mwifiex_sdio_card_reg *reg;
 	u8 max_ports;
@@ -293,7 +299,8 @@ struct mwifiex_sdio_device {
 	bool can_ext_scan;
 };
 
-static const struct mwifiex_sdio_card_reg mwifiex_reg_sd87xx = {
+static const struct mwifiex_sdio_card_reg mwifiex_reg_sd87xx =
+{
 	.start_rd_port = 1,
 	.start_wr_port = 1,
 	.base_0_reg = 0x0040,
@@ -325,14 +332,15 @@ static const struct mwifiex_sdio_card_reg mwifiex_reg_sd87xx = {
 	.func1_spec_reg_table = {0x28, 0x30, 0x34, 0x38, 0x3c},
 };
 
-static const struct mwifiex_sdio_card_reg mwifiex_reg_sd8897 = {
+static const struct mwifiex_sdio_card_reg mwifiex_reg_sd8897 =
+{
 	.start_rd_port = 0,
 	.start_wr_port = 0,
 	.base_0_reg = 0x60,
 	.base_1_reg = 0x61,
 	.poll_reg = 0x50,
 	.host_int_enable = UP_LD_HOST_INT_MASK | DN_LD_HOST_INT_MASK |
-			CMD_PORT_UPLD_INT_MASK | CMD_PORT_DNLD_INT_MASK,
+	CMD_PORT_UPLD_INT_MASK | CMD_PORT_DNLD_INT_MASK,
 	.host_int_rsr_reg = 0x1,
 	.host_int_status_reg = 0x03,
 	.host_int_mask_reg = 0x02,
@@ -372,18 +380,21 @@ static const struct mwifiex_sdio_card_reg mwifiex_reg_sd8897 = {
 	.func1_dump_reg_end = 0xb,
 	.func1_scratch_reg = 0xc0,
 	.func1_spec_reg_num = 8,
-	.func1_spec_reg_table = {0x4C, 0x50, 0x54, 0x55, 0x58,
-				 0x59, 0x5c, 0x5d},
+	.func1_spec_reg_table = {
+		0x4C, 0x50, 0x54, 0x55, 0x58,
+		0x59, 0x5c, 0x5d
+	},
 };
 
-static const struct mwifiex_sdio_card_reg mwifiex_reg_sd8997 = {
+static const struct mwifiex_sdio_card_reg mwifiex_reg_sd8997 =
+{
 	.start_rd_port = 0,
 	.start_wr_port = 0,
 	.base_0_reg = 0xF8,
 	.base_1_reg = 0xF9,
 	.poll_reg = 0x5C,
 	.host_int_enable = UP_LD_HOST_INT_MASK | DN_LD_HOST_INT_MASK |
-			CMD_PORT_UPLD_INT_MASK | CMD_PORT_DNLD_INT_MASK,
+	CMD_PORT_UPLD_INT_MASK | CMD_PORT_DNLD_INT_MASK,
 	.host_int_rsr_reg = 0x4,
 	.host_int_status_reg = 0x0C,
 	.host_int_mask_reg = 0x08,
@@ -423,20 +434,23 @@ static const struct mwifiex_sdio_card_reg mwifiex_reg_sd8997 = {
 	.func1_dump_reg_end = 0x17,
 	.func1_scratch_reg = 0xe8,
 	.func1_spec_reg_num = 13,
-	.func1_spec_reg_table = {0x08, 0x58, 0x5C, 0x5D,
-				 0x60, 0x61, 0x62, 0x64,
-				 0x65, 0x66, 0x68, 0x69,
-				 0x6a},
+	.func1_spec_reg_table = {
+		0x08, 0x58, 0x5C, 0x5D,
+		0x60, 0x61, 0x62, 0x64,
+		0x65, 0x66, 0x68, 0x69,
+		0x6a
+	},
 };
 
-static const struct mwifiex_sdio_card_reg mwifiex_reg_sd8887 = {
+static const struct mwifiex_sdio_card_reg mwifiex_reg_sd8887 =
+{
 	.start_rd_port = 0,
 	.start_wr_port = 0,
 	.base_0_reg = 0x6C,
 	.base_1_reg = 0x6D,
 	.poll_reg = 0x5C,
 	.host_int_enable = UP_LD_HOST_INT_MASK | DN_LD_HOST_INT_MASK |
-			CMD_PORT_UPLD_INT_MASK | CMD_PORT_DNLD_INT_MASK,
+	CMD_PORT_UPLD_INT_MASK | CMD_PORT_DNLD_INT_MASK,
 	.host_int_rsr_reg = 0x4,
 	.host_int_status_reg = 0x0C,
 	.host_int_mask_reg = 0x08,
@@ -472,12 +486,15 @@ static const struct mwifiex_sdio_card_reg mwifiex_reg_sd8887 = {
 	.func1_dump_reg_end = 0x17,
 	.func1_scratch_reg = 0x90,
 	.func1_spec_reg_num = 13,
-	.func1_spec_reg_table = {0x08, 0x58, 0x5C, 0x5D, 0x60,
-				 0x61, 0x62, 0x64, 0x65, 0x66,
-				 0x68, 0x69, 0x6a},
+	.func1_spec_reg_table = {
+		0x08, 0x58, 0x5C, 0x5D, 0x60,
+		0x61, 0x62, 0x64, 0x65, 0x66,
+		0x68, 0x69, 0x6a
+	},
 };
 
-static const struct mwifiex_sdio_device mwifiex_sdio_sd8786 = {
+static const struct mwifiex_sdio_device mwifiex_sdio_sd8786 =
+{
 	.firmware = SD8786_DEFAULT_FW_NAME,
 	.reg = &mwifiex_reg_sd87xx,
 	.max_ports = 16,
@@ -492,7 +509,8 @@ static const struct mwifiex_sdio_device mwifiex_sdio_sd8786 = {
 	.can_ext_scan = false,
 };
 
-static const struct mwifiex_sdio_device mwifiex_sdio_sd8787 = {
+static const struct mwifiex_sdio_device mwifiex_sdio_sd8787 =
+{
 	.firmware = SD8787_DEFAULT_FW_NAME,
 	.reg = &mwifiex_reg_sd87xx,
 	.max_ports = 16,
@@ -507,7 +525,8 @@ static const struct mwifiex_sdio_device mwifiex_sdio_sd8787 = {
 	.can_ext_scan = true,
 };
 
-static const struct mwifiex_sdio_device mwifiex_sdio_sd8797 = {
+static const struct mwifiex_sdio_device mwifiex_sdio_sd8797 =
+{
 	.firmware = SD8797_DEFAULT_FW_NAME,
 	.reg = &mwifiex_reg_sd87xx,
 	.max_ports = 16,
@@ -522,7 +541,8 @@ static const struct mwifiex_sdio_device mwifiex_sdio_sd8797 = {
 	.can_ext_scan = true,
 };
 
-static const struct mwifiex_sdio_device mwifiex_sdio_sd8897 = {
+static const struct mwifiex_sdio_device mwifiex_sdio_sd8897 =
+{
 	.firmware = SD8897_DEFAULT_FW_NAME,
 	.reg = &mwifiex_reg_sd8897,
 	.max_ports = 32,
@@ -537,7 +557,8 @@ static const struct mwifiex_sdio_device mwifiex_sdio_sd8897 = {
 	.can_ext_scan = true,
 };
 
-static const struct mwifiex_sdio_device mwifiex_sdio_sd8997 = {
+static const struct mwifiex_sdio_device mwifiex_sdio_sd8997 =
+{
 	.firmware = SD8997_DEFAULT_FW_NAME,
 	.reg = &mwifiex_reg_sd8997,
 	.max_ports = 32,
@@ -553,7 +574,8 @@ static const struct mwifiex_sdio_device mwifiex_sdio_sd8997 = {
 	.can_ext_scan = true,
 };
 
-static const struct mwifiex_sdio_device mwifiex_sdio_sd8887 = {
+static const struct mwifiex_sdio_device mwifiex_sdio_sd8887 =
+{
 	.firmware = SD8887_DEFAULT_FW_NAME,
 	.reg = &mwifiex_reg_sd8887,
 	.max_ports = 32,
@@ -568,7 +590,8 @@ static const struct mwifiex_sdio_device mwifiex_sdio_sd8887 = {
 	.can_ext_scan = true,
 };
 
-static const struct mwifiex_sdio_device mwifiex_sdio_sd8801 = {
+static const struct mwifiex_sdio_device mwifiex_sdio_sd8801 =
+{
 	.firmware = SD8801_DEFAULT_FW_NAME,
 	.reg = &mwifiex_reg_sd87xx,
 	.max_ports = 16,
@@ -587,7 +610,7 @@ static const struct mwifiex_sdio_device mwifiex_sdio_sd8801 = {
  * .cmdrsp_complete handler
  */
 static inline int mwifiex_sdio_cmdrsp_complete(struct mwifiex_adapter *adapter,
-					       struct sk_buff *skb)
+		struct sk_buff *skb)
 {
 	dev_kfree_skb_any(skb);
 	return 0;
@@ -597,7 +620,7 @@ static inline int mwifiex_sdio_cmdrsp_complete(struct mwifiex_adapter *adapter,
  * .event_complete handler
  */
 static inline int mwifiex_sdio_event_complete(struct mwifiex_adapter *adapter,
-					      struct sk_buff *skb)
+		struct sk_buff *skb)
 {
 	dev_kfree_skb_any(skb);
 	return 0;
@@ -608,23 +631,34 @@ mp_rx_aggr_port_limit_reached(struct sdio_mmc_card *card)
 {
 	u8 tmp;
 
-	if (card->curr_rd_port < card->mpa_rx.start_port) {
+	if (card->curr_rd_port < card->mpa_rx.start_port)
+	{
 		if (card->supports_sdio_new_mode)
+		{
 			tmp = card->mp_end_port >> 1;
+		}
 		else
+		{
 			tmp = card->mp_agg_pkt_limit;
+		}
 
 		if (((card->max_ports - card->mpa_rx.start_port) +
-		    card->curr_rd_port) >= tmp)
+			 card->curr_rd_port) >= tmp)
+		{
 			return true;
+		}
 	}
 
 	if (!card->supports_sdio_new_mode)
+	{
 		return false;
+	}
 
 	if ((card->curr_rd_port - card->mpa_rx.start_port) >=
-	    (card->mp_end_port >> 1))
+		(card->mp_end_port >> 1))
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -634,44 +668,65 @@ mp_tx_aggr_port_limit_reached(struct sdio_mmc_card *card)
 {
 	u16 tmp;
 
-	if (card->curr_wr_port < card->mpa_tx.start_port) {
+	if (card->curr_wr_port < card->mpa_tx.start_port)
+	{
 		if (card->supports_sdio_new_mode)
+		{
 			tmp = card->mp_end_port >> 1;
+		}
 		else
+		{
 			tmp = card->mp_agg_pkt_limit;
+		}
 
 		if (((card->max_ports - card->mpa_tx.start_port) +
-		    card->curr_wr_port) >= tmp)
+			 card->curr_wr_port) >= tmp)
+		{
 			return true;
+		}
 	}
 
 	if (!card->supports_sdio_new_mode)
+	{
 		return false;
+	}
 
 	if ((card->curr_wr_port - card->mpa_tx.start_port) >=
-	    (card->mp_end_port >> 1))
+		(card->mp_end_port >> 1))
+	{
 		return true;
+	}
 
 	return false;
 }
 
 /* Prepare to copy current packet from card to SDIO Rx aggregation buffer */
 static inline void mp_rx_aggr_setup(struct sdio_mmc_card *card,
-				    u16 rx_len, u8 port)
+									u16 rx_len, u8 port)
 {
 	card->mpa_rx.buf_len += rx_len;
 
 	if (!card->mpa_rx.pkt_cnt)
+	{
 		card->mpa_rx.start_port = port;
-
-	if (card->supports_sdio_new_mode) {
-		card->mpa_rx.ports |= (1 << port);
-	} else {
-		if (card->mpa_rx.start_port <= port)
-			card->mpa_rx.ports |= 1 << (card->mpa_rx.pkt_cnt);
-		else
-			card->mpa_rx.ports |= 1 << (card->mpa_rx.pkt_cnt + 1);
 	}
+
+	if (card->supports_sdio_new_mode)
+	{
+		card->mpa_rx.ports |= (1 << port);
+	}
+	else
+	{
+		if (card->mpa_rx.start_port <= port)
+		{
+			card->mpa_rx.ports |= 1 << (card->mpa_rx.pkt_cnt);
+		}
+		else
+		{
+			card->mpa_rx.ports |= 1 << (card->mpa_rx.pkt_cnt + 1);
+		}
+	}
+
 	card->mpa_rx.skb_arr[card->mpa_rx.pkt_cnt] = NULL;
 	card->mpa_rx.len_arr[card->mpa_rx.pkt_cnt] = rx_len;
 	card->mpa_rx.pkt_cnt++;

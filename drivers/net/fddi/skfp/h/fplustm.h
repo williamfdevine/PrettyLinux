@@ -21,13 +21,14 @@
 #define _FPLUS_
 
 #ifndef	HW_PTR
-#define	HW_PTR	void __iomem *
+	#define	HW_PTR	void __iomem *
 #endif
 
 /*
  * fplus error statistic structure
  */
-struct err_st {
+struct err_st
+{
 	u_long err_valid ;		/* memory status valid */
 	u_long err_abort ;		/* memory status receive abort */
 	u_long err_e_indicator ;	/* error indicator */
@@ -49,7 +50,8 @@ struct err_st {
 /*
  *	Transmit Descriptor struct
  */
-struct s_smt_fp_txd {
+struct s_smt_fp_txd
+{
 	__le32 txd_tbctrl ;		/* transmit buffer control */
 	__le32 txd_txdscr ;		/* transmit frame status word */
 	__le32 txd_tbadr ;		/* physical tx buffer address */
@@ -58,7 +60,7 @@ struct s_smt_fp_txd {
 	__le32 txd_tbadr_hi ;		/* physical tx buffer addr (high dword)*/
 #endif
 	char far *txd_virt ;		/* virtual pointer to the data frag */
-					/* virt pointer to the next TxD */
+	/* virt pointer to the next TxD */
 	struct s_smt_fp_txd volatile far *txd_next ;
 	struct s_txd_os txd_os ;	/* OS - specific struct */
 } ;
@@ -66,7 +68,8 @@ struct s_smt_fp_txd {
 /*
  *	Receive Descriptor struct
  */
-struct s_smt_fp_rxd {
+struct s_smt_fp_rxd
+{
 	__le32 rxd_rbctrl ;		/* receive buffer control */
 	__le32 rxd_rfsw ;		/* receive frame status word */
 	__le32 rxd_rbadr ;		/* physical rx buffer address */
@@ -75,7 +78,7 @@ struct s_smt_fp_rxd {
 	__le32 rxd_rbadr_hi ;		/* physical tx buffer addr (high dword)*/
 #endif
 	char far *rxd_virt ;		/* virtual pointer to the data frag */
-					/* virt pointer to the next RxD */
+	/* virt pointer to the next RxD */
 	struct s_smt_fp_rxd volatile far *rxd_next ;
 	struct s_rxd_os rxd_os ;	/* OS - specific struct */
 } ;
@@ -83,7 +86,8 @@ struct s_smt_fp_rxd {
 /*
  *	Descriptor Union Definition
  */
-union s_fp_descr {
+union s_fp_descr
+{
 	struct	s_smt_fp_txd t ;		/* pointer to the TxD */
 	struct	s_smt_fp_rxd r ;		/* pointer to the RxD */
 } ;
@@ -91,7 +95,8 @@ union s_fp_descr {
 /*
  *	TxD Ring Control struct
  */
-struct s_smt_tx_queue {
+struct s_smt_tx_queue
+{
 	struct s_smt_fp_txd volatile *tx_curr_put ; /* next free TxD */
 	struct s_smt_fp_txd volatile *tx_prev_put ; /* shadow put pointer */
 	struct s_smt_fp_txd volatile *tx_curr_get ; /* next TxD to release*/
@@ -104,7 +109,8 @@ struct s_smt_tx_queue {
 /*
  *	RxD Ring Control struct
  */
-struct s_smt_rx_queue {
+struct s_smt_rx_queue
+{
 	struct s_smt_fp_rxd volatile *rx_curr_put ; /* next RxD to queue into */
 	struct s_smt_fp_rxd volatile *rx_prev_put ; /* shadow put pointer */
 	struct s_smt_fp_rxd volatile *rx_curr_get ; /* next RxD to fill */
@@ -119,7 +125,7 @@ struct s_smt_rx_queue {
 #define BEACON_FRAME_OFF	0x10
 #define DBEACON_FRAME_OFF	0x18
 #define RX_FIFO_OFF		0x21		/* to get a prime number for */
-						/* the RX_FIFO_SPACE */
+/* the RX_FIFO_SPACE */
 
 #define RBC_MEM_SIZE		0x8000
 #define SEND_ASYNC_AS_SYNC	0x1
@@ -130,13 +136,14 @@ struct s_smt_rx_queue {
 #define	TX_FIFO_SPACE		0x4000
 
 #define	TX_SMALL_FIFO		0x0900
-#define	TX_MEDIUM_FIFO		TX_FIFO_SPACE / 2	
-#define	TX_LARGE_FIFO		TX_FIFO_SPACE - TX_SMALL_FIFO	
+#define	TX_MEDIUM_FIFO		TX_FIFO_SPACE / 2
+#define	TX_LARGE_FIFO		TX_FIFO_SPACE - TX_SMALL_FIFO
 
 #define	RX_SMALL_FIFO		0x0900
-#define	RX_LARGE_FIFO		RX_FIFO_SPACE - RX_SMALL_FIFO	
+#define	RX_LARGE_FIFO		RX_FIFO_SPACE - RX_SMALL_FIFO
 
-struct s_smt_fifo_conf {
+struct s_smt_fifo_conf
+{
 	u_short	rbc_ram_start ;		/* FIFO start address */
 	u_short	rbc_ram_end ;		/* FIFO size */
 	u_short	rx1_fifo_start ;	/* rx queue start address */
@@ -152,7 +159,8 @@ struct s_smt_fifo_conf {
 
 #define FM_ADDRX	(FM_ADDET|FM_EXGPA0|FM_EXGPA1)
 
-struct s_smt_fp {
+struct s_smt_fp
+{
 	u_short	mdr2init ;		/* mode register 2 init value */
 	u_short	mdr3init ;		/* mode register 3 init value */
 	u_short frselreg_init ;		/* frame selection register init val */
@@ -166,7 +174,8 @@ struct s_smt_fp {
 	/*
 	 * MAC buffers
 	 */
-	struct fddi_mac_sf {		/* special frame build buffer */
+	struct fddi_mac_sf  		/* special frame build buffer */
+	{
 		u_char			mac_fc ;
 		struct fddi_addr	mac_dest ;
 		struct fddi_addr	mac_source ;
@@ -216,10 +225,12 @@ struct s_smt_fp {
 	/*
 	 * multicast table
 	 */
-#define FPMAX_MULTICAST 32 
+#define FPMAX_MULTICAST 32
 #define	SMT_MAX_MULTI	4
-	struct {
-		struct s_fpmc {
+	struct
+	{
+		struct s_fpmc
+		{
 			struct fddi_addr	a ;	/* mc address */
 			u_char			n ;	/* usage counter */
 			u_char			perm ;	/* flag: permanent */
@@ -228,8 +239,8 @@ struct s_smt_fp {
 	struct fddi_addr	group_addr ;
 	u_long	func_addr ;		/* functional address */
 	int	smt_slots_used ;	/* count of table entries for the SMT */
-	int	os_slots_used ;		/* count of table entries */ 
-					/* used by the os-specific module */
+	int	os_slots_used ;		/* count of table entries */
+	/* used by the os-specific module */
 } ;
 
 /*
@@ -251,23 +262,23 @@ struct s_smt_fp {
 #ifdef	AIX
 #define MDR_REV
 #define	AIX_REVERSE(x)		((((x)<<24L)&0xff000000L)	+	\
-				 (((x)<< 8L)&0x00ff0000L)	+	\
-				 (((x)>> 8L)&0x0000ff00L)	+	\
-				 (((x)>>24L)&0x000000ffL))
+							 (((x)<< 8L)&0x00ff0000L)	+	\
+							 (((x)>> 8L)&0x0000ff00L)	+	\
+							 (((x)>>24L)&0x000000ffL))
 #else
 #ifndef AIX_REVERSE
-#define	AIX_REVERSE(x)	(x)
+	#define	AIX_REVERSE(x)	(x)
 #endif
 #endif
 
-#ifdef	MDR_REV	
+#ifdef	MDR_REV
 #define	MDR_REVERSE(x)		((((x)<<24L)&0xff000000L)	+	\
-				 (((x)<< 8L)&0x00ff0000L)	+	\
-				 (((x)>> 8L)&0x0000ff00L)	+	\
-				 (((x)>>24L)&0x000000ffL))
+							 (((x)<< 8L)&0x00ff0000L)	+	\
+							 (((x)>> 8L)&0x0000ff00L)	+	\
+							 (((x)>>24L)&0x000000ffL))
 #else
 #ifndef MDR_REVERSE
-#define	MDR_REVERSE(x)	(x)
+	#define	MDR_REVERSE(x)	(x)
 #endif
 #endif
 

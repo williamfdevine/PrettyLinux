@@ -49,7 +49,8 @@
  * @funcs:		Pinmux functions
  * @nfuncs:		Number of @funcs
  */
-struct zynq_pinctrl {
+struct zynq_pinctrl
+{
 	struct pinctrl_dev *pctrl;
 	struct regmap *syscon;
 	u32 pctrl_offset;
@@ -59,7 +60,8 @@ struct zynq_pinctrl {
 	unsigned int nfuncs;
 };
 
-struct zynq_pctrl_group {
+struct zynq_pctrl_group
+{
 	const char *name;
 	const unsigned int *pins;
 	const unsigned npins;
@@ -75,9 +77,10 @@ struct zynq_pctrl_group {
  * @mux_mask:	Mask for function specific selector
  * @mux_shift:	Shift for function specific selector
  */
-struct zynq_pinmux_function {
+struct zynq_pinmux_function
+{
 	const char *name;
-	const char * const *groups;
+	const char *const *groups;
 	unsigned int ngroups;
 	unsigned int mux_val;
 	u32 mux;
@@ -85,7 +88,8 @@ struct zynq_pinmux_function {
 	u8 mux_shift;
 };
 
-enum zynq_pinmux_functions {
+enum zynq_pinmux_functions
+{
 	ZYNQ_PMUX_can0,
 	ZYNQ_PMUX_can1,
 	ZYNQ_PMUX_ethernet0,
@@ -125,7 +129,8 @@ enum zynq_pinmux_functions {
 	ZYNQ_PMUX_MAX_FUNC
 };
 
-static const struct pinctrl_pin_desc zynq_pins[] = {
+static const struct pinctrl_pin_desc zynq_pins[] =
+{
 	PINCTRL_PIN(0,  "MIO0"),
 	PINCTRL_PIN(1,  "MIO1"),
 	PINCTRL_PIN(2,  "MIO2"),
@@ -188,9 +193,11 @@ static const struct pinctrl_pin_desc zynq_pins[] = {
 
 /* pin groups */
 static const unsigned int ethernet0_0_pins[] = {16, 17, 18, 19, 20, 21, 22, 23,
-						24, 25, 26, 27};
+												24, 25, 26, 27
+											   };
 static const unsigned int ethernet1_0_pins[] = {28, 29, 30, 31, 32, 33, 34, 35,
-						36, 37, 38, 39};
+												36, 37, 38, 39
+											   };
 static const unsigned int mdio0_0_pins[] = {52, 53};
 static const unsigned int mdio1_0_pins[] = {52, 53};
 static const unsigned int qspi0_0_pins[] = {1, 2, 3, 4, 5, 6};
@@ -239,14 +246,16 @@ static const unsigned int sdio0_emio_cd_pins[] = {55};
 static const unsigned int sdio1_emio_wp_pins[] = {56};
 static const unsigned int sdio1_emio_cd_pins[] = {57};
 static const unsigned int smc0_nor_pins[] = {0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13,
-					     15, 16, 17, 18, 19, 20, 21, 22, 23,
-					     24, 25, 26, 27, 28, 29, 30, 31, 32,
-					     33, 34, 35, 36, 37, 38, 39};
+											 15, 16, 17, 18, 19, 20, 21, 22, 23,
+											 24, 25, 26, 27, 28, 29, 30, 31, 32,
+											 33, 34, 35, 36, 37, 38, 39
+											};
 static const unsigned int smc0_nor_cs1_pins[] = {1};
 static const unsigned int smc0_nor_addr25_pins[] = {1};
 static const unsigned int smc0_nand_pins[] = {0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-					      12, 13, 14, 16, 17, 18, 19, 20,
-					      21, 22, 23};
+											  12, 13, 14, 16, 17, 18, 19, 20,
+											  21, 22, 23
+											 };
 /* Note: CAN MIO clock inputs are modeled in the clock framework */
 static const unsigned int can0_0_pins[] = {10, 11};
 static const unsigned int can0_1_pins[] = {14, 15};
@@ -382,18 +391,21 @@ static const unsigned int gpio0_51_pins[] = {51};
 static const unsigned int gpio0_52_pins[] = {52};
 static const unsigned int gpio0_53_pins[] = {53};
 static const unsigned int usb0_0_pins[] = {28, 29, 30, 31, 32, 33, 34, 35, 36,
-					   37, 38, 39};
+										   37, 38, 39
+										  };
 static const unsigned int usb1_0_pins[] = {40, 41, 42, 43, 44, 45, 46, 47, 48,
-					   49, 50, 51};
+										   49, 50, 51
+										  };
 
 #define DEFINE_ZYNQ_PINCTRL_GRP(nm) \
 	{ \
 		.name = #nm "_grp", \
-		.pins = nm ## _pins, \
-		.npins = ARRAY_SIZE(nm ## _pins), \
+				.pins = nm ## _pins, \
+						.npins = ARRAY_SIZE(nm ## _pins), \
 	}
 
-static const struct zynq_pctrl_group zynq_pctrl_groups[] = {
+static const struct zynq_pctrl_group zynq_pctrl_groups[] =
+{
 	DEFINE_ZYNQ_PINCTRL_GRP(ethernet0_0),
 	DEFINE_ZYNQ_PINCTRL_GRP(ethernet1_0),
 	DEFINE_ZYNQ_PINCTRL_GRP(mdio0_0),
@@ -583,208 +595,231 @@ static const struct zynq_pctrl_group zynq_pctrl_groups[] = {
 };
 
 /* function groups */
-static const char * const ethernet0_groups[] = {"ethernet0_0_grp"};
-static const char * const ethernet1_groups[] = {"ethernet1_0_grp"};
-static const char * const usb0_groups[] = {"usb0_0_grp"};
-static const char * const usb1_groups[] = {"usb1_0_grp"};
-static const char * const mdio0_groups[] = {"mdio0_0_grp"};
-static const char * const mdio1_groups[] = {"mdio1_0_grp"};
-static const char * const qspi0_groups[] = {"qspi0_0_grp"};
-static const char * const qspi1_groups[] = {"qspi1_0_grp"};
-static const char * const qspi_fbclk_groups[] = {"qspi_fbclk_grp"};
-static const char * const qspi_cs1_groups[] = {"qspi_cs1_grp"};
-static const char * const spi0_groups[] = {"spi0_0_grp", "spi0_1_grp",
-					   "spi0_2_grp"};
-static const char * const spi1_groups[] = {"spi1_0_grp", "spi1_1_grp",
-					   "spi1_2_grp", "spi1_3_grp"};
-static const char * const spi0_ss_groups[] = {"spi0_0_ss0_grp",
-		"spi0_0_ss1_grp", "spi0_0_ss2_grp", "spi0_1_ss0_grp",
-		"spi0_1_ss1_grp", "spi0_1_ss2_grp", "spi0_2_ss0_grp",
-		"spi0_2_ss1_grp", "spi0_2_ss2_grp"};
-static const char * const spi1_ss_groups[] = {"spi1_0_ss0_grp",
-		"spi1_0_ss1_grp", "spi1_0_ss2_grp", "spi1_1_ss0_grp",
-		"spi1_1_ss1_grp", "spi1_1_ss2_grp", "spi1_2_ss0_grp",
-		"spi1_2_ss1_grp", "spi1_2_ss2_grp", "spi1_3_ss0_grp",
-		"spi1_3_ss1_grp", "spi1_3_ss2_grp"};
-static const char * const sdio0_groups[] = {"sdio0_0_grp", "sdio0_1_grp",
-					    "sdio0_2_grp"};
-static const char * const sdio1_groups[] = {"sdio1_0_grp", "sdio1_1_grp",
-					    "sdio1_2_grp", "sdio1_3_grp"};
-static const char * const sdio0_pc_groups[] = {"gpio0_0_grp",
-		"gpio0_2_grp", "gpio0_4_grp", "gpio0_6_grp",
-		"gpio0_8_grp", "gpio0_10_grp", "gpio0_12_grp",
-		"gpio0_14_grp", "gpio0_16_grp", "gpio0_18_grp",
-		"gpio0_20_grp", "gpio0_22_grp", "gpio0_24_grp",
-		"gpio0_26_grp", "gpio0_28_grp", "gpio0_30_grp",
-		"gpio0_32_grp", "gpio0_34_grp", "gpio0_36_grp",
-		"gpio0_38_grp", "gpio0_40_grp", "gpio0_42_grp",
-		"gpio0_44_grp", "gpio0_46_grp", "gpio0_48_grp",
-		"gpio0_50_grp", "gpio0_52_grp"};
-static const char * const sdio1_pc_groups[] = {"gpio0_1_grp",
-		"gpio0_3_grp", "gpio0_5_grp", "gpio0_7_grp",
-		"gpio0_9_grp", "gpio0_11_grp", "gpio0_13_grp",
-		"gpio0_15_grp", "gpio0_17_grp", "gpio0_19_grp",
-		"gpio0_21_grp", "gpio0_23_grp", "gpio0_25_grp",
-		"gpio0_27_grp", "gpio0_29_grp", "gpio0_31_grp",
-		"gpio0_33_grp", "gpio0_35_grp", "gpio0_37_grp",
-		"gpio0_39_grp", "gpio0_41_grp", "gpio0_43_grp",
-		"gpio0_45_grp", "gpio0_47_grp", "gpio0_49_grp",
-		"gpio0_51_grp", "gpio0_53_grp"};
-static const char * const sdio0_cd_groups[] = {"gpio0_0_grp",
-		"gpio0_2_grp", "gpio0_4_grp", "gpio0_6_grp",
-		"gpio0_10_grp", "gpio0_12_grp",
-		"gpio0_14_grp", "gpio0_16_grp", "gpio0_18_grp",
-		"gpio0_20_grp", "gpio0_22_grp", "gpio0_24_grp",
-		"gpio0_26_grp", "gpio0_28_grp", "gpio0_30_grp",
-		"gpio0_32_grp", "gpio0_34_grp", "gpio0_36_grp",
-		"gpio0_38_grp", "gpio0_40_grp", "gpio0_42_grp",
-		"gpio0_44_grp", "gpio0_46_grp", "gpio0_48_grp",
-		"gpio0_50_grp", "gpio0_52_grp", "gpio0_1_grp",
-		"gpio0_3_grp", "gpio0_5_grp",
-		"gpio0_9_grp", "gpio0_11_grp", "gpio0_13_grp",
-		"gpio0_15_grp", "gpio0_17_grp", "gpio0_19_grp",
-		"gpio0_21_grp", "gpio0_23_grp", "gpio0_25_grp",
-		"gpio0_27_grp", "gpio0_29_grp", "gpio0_31_grp",
-		"gpio0_33_grp", "gpio0_35_grp", "gpio0_37_grp",
-		"gpio0_39_grp", "gpio0_41_grp", "gpio0_43_grp",
-		"gpio0_45_grp", "gpio0_47_grp", "gpio0_49_grp",
-		"gpio0_51_grp", "gpio0_53_grp", "sdio0_emio_cd_grp"};
-static const char * const sdio0_wp_groups[] = {"gpio0_0_grp",
-		"gpio0_2_grp", "gpio0_4_grp", "gpio0_6_grp",
-		"gpio0_10_grp", "gpio0_12_grp",
-		"gpio0_14_grp", "gpio0_16_grp", "gpio0_18_grp",
-		"gpio0_20_grp", "gpio0_22_grp", "gpio0_24_grp",
-		"gpio0_26_grp", "gpio0_28_grp", "gpio0_30_grp",
-		"gpio0_32_grp", "gpio0_34_grp", "gpio0_36_grp",
-		"gpio0_38_grp", "gpio0_40_grp", "gpio0_42_grp",
-		"gpio0_44_grp", "gpio0_46_grp", "gpio0_48_grp",
-		"gpio0_50_grp", "gpio0_52_grp", "gpio0_1_grp",
-		"gpio0_3_grp", "gpio0_5_grp",
-		"gpio0_9_grp", "gpio0_11_grp", "gpio0_13_grp",
-		"gpio0_15_grp", "gpio0_17_grp", "gpio0_19_grp",
-		"gpio0_21_grp", "gpio0_23_grp", "gpio0_25_grp",
-		"gpio0_27_grp", "gpio0_29_grp", "gpio0_31_grp",
-		"gpio0_33_grp", "gpio0_35_grp", "gpio0_37_grp",
-		"gpio0_39_grp", "gpio0_41_grp", "gpio0_43_grp",
-		"gpio0_45_grp", "gpio0_47_grp", "gpio0_49_grp",
-		"gpio0_51_grp", "gpio0_53_grp", "sdio0_emio_wp_grp"};
-static const char * const sdio1_cd_groups[] = {"gpio0_0_grp",
-		"gpio0_2_grp", "gpio0_4_grp", "gpio0_6_grp",
-		"gpio0_10_grp", "gpio0_12_grp",
-		"gpio0_14_grp", "gpio0_16_grp", "gpio0_18_grp",
-		"gpio0_20_grp", "gpio0_22_grp", "gpio0_24_grp",
-		"gpio0_26_grp", "gpio0_28_grp", "gpio0_30_grp",
-		"gpio0_32_grp", "gpio0_34_grp", "gpio0_36_grp",
-		"gpio0_38_grp", "gpio0_40_grp", "gpio0_42_grp",
-		"gpio0_44_grp", "gpio0_46_grp", "gpio0_48_grp",
-		"gpio0_50_grp", "gpio0_52_grp", "gpio0_1_grp",
-		"gpio0_3_grp", "gpio0_5_grp",
-		"gpio0_9_grp", "gpio0_11_grp", "gpio0_13_grp",
-		"gpio0_15_grp", "gpio0_17_grp", "gpio0_19_grp",
-		"gpio0_21_grp", "gpio0_23_grp", "gpio0_25_grp",
-		"gpio0_27_grp", "gpio0_29_grp", "gpio0_31_grp",
-		"gpio0_33_grp", "gpio0_35_grp", "gpio0_37_grp",
-		"gpio0_39_grp", "gpio0_41_grp", "gpio0_43_grp",
-		"gpio0_45_grp", "gpio0_47_grp", "gpio0_49_grp",
-		"gpio0_51_grp", "gpio0_53_grp", "sdio1_emio_cd_grp"};
-static const char * const sdio1_wp_groups[] = {"gpio0_0_grp",
-		"gpio0_2_grp", "gpio0_4_grp", "gpio0_6_grp",
-		"gpio0_10_grp", "gpio0_12_grp",
-		"gpio0_14_grp", "gpio0_16_grp", "gpio0_18_grp",
-		"gpio0_20_grp", "gpio0_22_grp", "gpio0_24_grp",
-		"gpio0_26_grp", "gpio0_28_grp", "gpio0_30_grp",
-		"gpio0_32_grp", "gpio0_34_grp", "gpio0_36_grp",
-		"gpio0_38_grp", "gpio0_40_grp", "gpio0_42_grp",
-		"gpio0_44_grp", "gpio0_46_grp", "gpio0_48_grp",
-		"gpio0_50_grp", "gpio0_52_grp", "gpio0_1_grp",
-		"gpio0_3_grp", "gpio0_5_grp",
-		"gpio0_9_grp", "gpio0_11_grp", "gpio0_13_grp",
-		"gpio0_15_grp", "gpio0_17_grp", "gpio0_19_grp",
-		"gpio0_21_grp", "gpio0_23_grp", "gpio0_25_grp",
-		"gpio0_27_grp", "gpio0_29_grp", "gpio0_31_grp",
-		"gpio0_33_grp", "gpio0_35_grp", "gpio0_37_grp",
-		"gpio0_39_grp", "gpio0_41_grp", "gpio0_43_grp",
-		"gpio0_45_grp", "gpio0_47_grp", "gpio0_49_grp",
-		"gpio0_51_grp", "gpio0_53_grp", "sdio1_emio_wp_grp"};
-static const char * const smc0_nor_groups[] = {"smc0_nor_grp"};
-static const char * const smc0_nor_cs1_groups[] = {"smc0_nor_cs1_grp"};
-static const char * const smc0_nor_addr25_groups[] = {"smc0_nor_addr25_grp"};
-static const char * const smc0_nand_groups[] = {"smc0_nand_grp"};
-static const char * const can0_groups[] = {"can0_0_grp", "can0_1_grp",
-		"can0_2_grp", "can0_3_grp", "can0_4_grp", "can0_5_grp",
-		"can0_6_grp", "can0_7_grp", "can0_8_grp", "can0_9_grp",
-		"can0_10_grp"};
-static const char * const can1_groups[] = {"can1_0_grp", "can1_1_grp",
-		"can1_2_grp", "can1_3_grp", "can1_4_grp", "can1_5_grp",
-		"can1_6_grp", "can1_7_grp", "can1_8_grp", "can1_9_grp",
-		"can1_10_grp", "can1_11_grp"};
-static const char * const uart0_groups[] = {"uart0_0_grp", "uart0_1_grp",
-		"uart0_2_grp", "uart0_3_grp", "uart0_4_grp", "uart0_5_grp",
-		"uart0_6_grp", "uart0_7_grp", "uart0_8_grp", "uart0_9_grp",
-		"uart0_10_grp"};
-static const char * const uart1_groups[] = {"uart1_0_grp", "uart1_1_grp",
-		"uart1_2_grp", "uart1_3_grp", "uart1_4_grp", "uart1_5_grp",
-		"uart1_6_grp", "uart1_7_grp", "uart1_8_grp", "uart1_9_grp",
-		"uart1_10_grp", "uart1_11_grp"};
-static const char * const i2c0_groups[] = {"i2c0_0_grp", "i2c0_1_grp",
-		"i2c0_2_grp", "i2c0_3_grp", "i2c0_4_grp", "i2c0_5_grp",
-		"i2c0_6_grp", "i2c0_7_grp", "i2c0_8_grp", "i2c0_9_grp",
-		"i2c0_10_grp"};
-static const char * const i2c1_groups[] = {"i2c1_0_grp", "i2c1_1_grp",
-		"i2c1_2_grp", "i2c1_3_grp", "i2c1_4_grp", "i2c1_5_grp",
-		"i2c1_6_grp", "i2c1_7_grp", "i2c1_8_grp", "i2c1_9_grp",
-		"i2c1_10_grp"};
-static const char * const ttc0_groups[] = {"ttc0_0_grp", "ttc0_1_grp",
-					   "ttc0_2_grp"};
-static const char * const ttc1_groups[] = {"ttc1_0_grp", "ttc1_1_grp",
-					   "ttc1_2_grp"};
-static const char * const swdt0_groups[] = {"swdt0_0_grp", "swdt0_1_grp",
-		"swdt0_2_grp", "swdt0_3_grp", "swdt0_4_grp"};
-static const char * const gpio0_groups[] = {"gpio0_0_grp",
-		"gpio0_2_grp", "gpio0_4_grp", "gpio0_6_grp",
-		"gpio0_8_grp", "gpio0_10_grp", "gpio0_12_grp",
-		"gpio0_14_grp", "gpio0_16_grp", "gpio0_18_grp",
-		"gpio0_20_grp", "gpio0_22_grp", "gpio0_24_grp",
-		"gpio0_26_grp", "gpio0_28_grp", "gpio0_30_grp",
-		"gpio0_32_grp", "gpio0_34_grp", "gpio0_36_grp",
-		"gpio0_38_grp", "gpio0_40_grp", "gpio0_42_grp",
-		"gpio0_44_grp", "gpio0_46_grp", "gpio0_48_grp",
-		"gpio0_50_grp", "gpio0_52_grp", "gpio0_1_grp",
-		"gpio0_3_grp", "gpio0_5_grp", "gpio0_7_grp",
-		"gpio0_9_grp", "gpio0_11_grp", "gpio0_13_grp",
-		"gpio0_15_grp", "gpio0_17_grp", "gpio0_19_grp",
-		"gpio0_21_grp", "gpio0_23_grp", "gpio0_25_grp",
-		"gpio0_27_grp", "gpio0_29_grp", "gpio0_31_grp",
-		"gpio0_33_grp", "gpio0_35_grp", "gpio0_37_grp",
-		"gpio0_39_grp", "gpio0_41_grp", "gpio0_43_grp",
-		"gpio0_45_grp", "gpio0_47_grp", "gpio0_49_grp",
-		"gpio0_51_grp", "gpio0_53_grp"};
+static const char *const ethernet0_groups[] = {"ethernet0_0_grp"};
+static const char *const ethernet1_groups[] = {"ethernet1_0_grp"};
+static const char *const usb0_groups[] = {"usb0_0_grp"};
+static const char *const usb1_groups[] = {"usb1_0_grp"};
+static const char *const mdio0_groups[] = {"mdio0_0_grp"};
+static const char *const mdio1_groups[] = {"mdio1_0_grp"};
+static const char *const qspi0_groups[] = {"qspi0_0_grp"};
+static const char *const qspi1_groups[] = {"qspi1_0_grp"};
+static const char *const qspi_fbclk_groups[] = {"qspi_fbclk_grp"};
+static const char *const qspi_cs1_groups[] = {"qspi_cs1_grp"};
+static const char *const spi0_groups[] = {"spi0_0_grp", "spi0_1_grp",
+										  "spi0_2_grp"
+										 };
+static const char *const spi1_groups[] = {"spi1_0_grp", "spi1_1_grp",
+										  "spi1_2_grp", "spi1_3_grp"
+										 };
+static const char *const spi0_ss_groups[] = {"spi0_0_ss0_grp",
+											 "spi0_0_ss1_grp", "spi0_0_ss2_grp", "spi0_1_ss0_grp",
+											 "spi0_1_ss1_grp", "spi0_1_ss2_grp", "spi0_2_ss0_grp",
+											 "spi0_2_ss1_grp", "spi0_2_ss2_grp"
+											};
+static const char *const spi1_ss_groups[] = {"spi1_0_ss0_grp",
+											 "spi1_0_ss1_grp", "spi1_0_ss2_grp", "spi1_1_ss0_grp",
+											 "spi1_1_ss1_grp", "spi1_1_ss2_grp", "spi1_2_ss0_grp",
+											 "spi1_2_ss1_grp", "spi1_2_ss2_grp", "spi1_3_ss0_grp",
+											 "spi1_3_ss1_grp", "spi1_3_ss2_grp"
+											};
+static const char *const sdio0_groups[] = {"sdio0_0_grp", "sdio0_1_grp",
+										   "sdio0_2_grp"
+										  };
+static const char *const sdio1_groups[] = {"sdio1_0_grp", "sdio1_1_grp",
+										   "sdio1_2_grp", "sdio1_3_grp"
+										  };
+static const char *const sdio0_pc_groups[] = {"gpio0_0_grp",
+											  "gpio0_2_grp", "gpio0_4_grp", "gpio0_6_grp",
+											  "gpio0_8_grp", "gpio0_10_grp", "gpio0_12_grp",
+											  "gpio0_14_grp", "gpio0_16_grp", "gpio0_18_grp",
+											  "gpio0_20_grp", "gpio0_22_grp", "gpio0_24_grp",
+											  "gpio0_26_grp", "gpio0_28_grp", "gpio0_30_grp",
+											  "gpio0_32_grp", "gpio0_34_grp", "gpio0_36_grp",
+											  "gpio0_38_grp", "gpio0_40_grp", "gpio0_42_grp",
+											  "gpio0_44_grp", "gpio0_46_grp", "gpio0_48_grp",
+											  "gpio0_50_grp", "gpio0_52_grp"
+											 };
+static const char *const sdio1_pc_groups[] = {"gpio0_1_grp",
+											  "gpio0_3_grp", "gpio0_5_grp", "gpio0_7_grp",
+											  "gpio0_9_grp", "gpio0_11_grp", "gpio0_13_grp",
+											  "gpio0_15_grp", "gpio0_17_grp", "gpio0_19_grp",
+											  "gpio0_21_grp", "gpio0_23_grp", "gpio0_25_grp",
+											  "gpio0_27_grp", "gpio0_29_grp", "gpio0_31_grp",
+											  "gpio0_33_grp", "gpio0_35_grp", "gpio0_37_grp",
+											  "gpio0_39_grp", "gpio0_41_grp", "gpio0_43_grp",
+											  "gpio0_45_grp", "gpio0_47_grp", "gpio0_49_grp",
+											  "gpio0_51_grp", "gpio0_53_grp"
+											 };
+static const char *const sdio0_cd_groups[] = {"gpio0_0_grp",
+											  "gpio0_2_grp", "gpio0_4_grp", "gpio0_6_grp",
+											  "gpio0_10_grp", "gpio0_12_grp",
+											  "gpio0_14_grp", "gpio0_16_grp", "gpio0_18_grp",
+											  "gpio0_20_grp", "gpio0_22_grp", "gpio0_24_grp",
+											  "gpio0_26_grp", "gpio0_28_grp", "gpio0_30_grp",
+											  "gpio0_32_grp", "gpio0_34_grp", "gpio0_36_grp",
+											  "gpio0_38_grp", "gpio0_40_grp", "gpio0_42_grp",
+											  "gpio0_44_grp", "gpio0_46_grp", "gpio0_48_grp",
+											  "gpio0_50_grp", "gpio0_52_grp", "gpio0_1_grp",
+											  "gpio0_3_grp", "gpio0_5_grp",
+											  "gpio0_9_grp", "gpio0_11_grp", "gpio0_13_grp",
+											  "gpio0_15_grp", "gpio0_17_grp", "gpio0_19_grp",
+											  "gpio0_21_grp", "gpio0_23_grp", "gpio0_25_grp",
+											  "gpio0_27_grp", "gpio0_29_grp", "gpio0_31_grp",
+											  "gpio0_33_grp", "gpio0_35_grp", "gpio0_37_grp",
+											  "gpio0_39_grp", "gpio0_41_grp", "gpio0_43_grp",
+											  "gpio0_45_grp", "gpio0_47_grp", "gpio0_49_grp",
+											  "gpio0_51_grp", "gpio0_53_grp", "sdio0_emio_cd_grp"
+											 };
+static const char *const sdio0_wp_groups[] = {"gpio0_0_grp",
+											  "gpio0_2_grp", "gpio0_4_grp", "gpio0_6_grp",
+											  "gpio0_10_grp", "gpio0_12_grp",
+											  "gpio0_14_grp", "gpio0_16_grp", "gpio0_18_grp",
+											  "gpio0_20_grp", "gpio0_22_grp", "gpio0_24_grp",
+											  "gpio0_26_grp", "gpio0_28_grp", "gpio0_30_grp",
+											  "gpio0_32_grp", "gpio0_34_grp", "gpio0_36_grp",
+											  "gpio0_38_grp", "gpio0_40_grp", "gpio0_42_grp",
+											  "gpio0_44_grp", "gpio0_46_grp", "gpio0_48_grp",
+											  "gpio0_50_grp", "gpio0_52_grp", "gpio0_1_grp",
+											  "gpio0_3_grp", "gpio0_5_grp",
+											  "gpio0_9_grp", "gpio0_11_grp", "gpio0_13_grp",
+											  "gpio0_15_grp", "gpio0_17_grp", "gpio0_19_grp",
+											  "gpio0_21_grp", "gpio0_23_grp", "gpio0_25_grp",
+											  "gpio0_27_grp", "gpio0_29_grp", "gpio0_31_grp",
+											  "gpio0_33_grp", "gpio0_35_grp", "gpio0_37_grp",
+											  "gpio0_39_grp", "gpio0_41_grp", "gpio0_43_grp",
+											  "gpio0_45_grp", "gpio0_47_grp", "gpio0_49_grp",
+											  "gpio0_51_grp", "gpio0_53_grp", "sdio0_emio_wp_grp"
+											 };
+static const char *const sdio1_cd_groups[] = {"gpio0_0_grp",
+											  "gpio0_2_grp", "gpio0_4_grp", "gpio0_6_grp",
+											  "gpio0_10_grp", "gpio0_12_grp",
+											  "gpio0_14_grp", "gpio0_16_grp", "gpio0_18_grp",
+											  "gpio0_20_grp", "gpio0_22_grp", "gpio0_24_grp",
+											  "gpio0_26_grp", "gpio0_28_grp", "gpio0_30_grp",
+											  "gpio0_32_grp", "gpio0_34_grp", "gpio0_36_grp",
+											  "gpio0_38_grp", "gpio0_40_grp", "gpio0_42_grp",
+											  "gpio0_44_grp", "gpio0_46_grp", "gpio0_48_grp",
+											  "gpio0_50_grp", "gpio0_52_grp", "gpio0_1_grp",
+											  "gpio0_3_grp", "gpio0_5_grp",
+											  "gpio0_9_grp", "gpio0_11_grp", "gpio0_13_grp",
+											  "gpio0_15_grp", "gpio0_17_grp", "gpio0_19_grp",
+											  "gpio0_21_grp", "gpio0_23_grp", "gpio0_25_grp",
+											  "gpio0_27_grp", "gpio0_29_grp", "gpio0_31_grp",
+											  "gpio0_33_grp", "gpio0_35_grp", "gpio0_37_grp",
+											  "gpio0_39_grp", "gpio0_41_grp", "gpio0_43_grp",
+											  "gpio0_45_grp", "gpio0_47_grp", "gpio0_49_grp",
+											  "gpio0_51_grp", "gpio0_53_grp", "sdio1_emio_cd_grp"
+											 };
+static const char *const sdio1_wp_groups[] = {"gpio0_0_grp",
+											  "gpio0_2_grp", "gpio0_4_grp", "gpio0_6_grp",
+											  "gpio0_10_grp", "gpio0_12_grp",
+											  "gpio0_14_grp", "gpio0_16_grp", "gpio0_18_grp",
+											  "gpio0_20_grp", "gpio0_22_grp", "gpio0_24_grp",
+											  "gpio0_26_grp", "gpio0_28_grp", "gpio0_30_grp",
+											  "gpio0_32_grp", "gpio0_34_grp", "gpio0_36_grp",
+											  "gpio0_38_grp", "gpio0_40_grp", "gpio0_42_grp",
+											  "gpio0_44_grp", "gpio0_46_grp", "gpio0_48_grp",
+											  "gpio0_50_grp", "gpio0_52_grp", "gpio0_1_grp",
+											  "gpio0_3_grp", "gpio0_5_grp",
+											  "gpio0_9_grp", "gpio0_11_grp", "gpio0_13_grp",
+											  "gpio0_15_grp", "gpio0_17_grp", "gpio0_19_grp",
+											  "gpio0_21_grp", "gpio0_23_grp", "gpio0_25_grp",
+											  "gpio0_27_grp", "gpio0_29_grp", "gpio0_31_grp",
+											  "gpio0_33_grp", "gpio0_35_grp", "gpio0_37_grp",
+											  "gpio0_39_grp", "gpio0_41_grp", "gpio0_43_grp",
+											  "gpio0_45_grp", "gpio0_47_grp", "gpio0_49_grp",
+											  "gpio0_51_grp", "gpio0_53_grp", "sdio1_emio_wp_grp"
+											 };
+static const char *const smc0_nor_groups[] = {"smc0_nor_grp"};
+static const char *const smc0_nor_cs1_groups[] = {"smc0_nor_cs1_grp"};
+static const char *const smc0_nor_addr25_groups[] = {"smc0_nor_addr25_grp"};
+static const char *const smc0_nand_groups[] = {"smc0_nand_grp"};
+static const char *const can0_groups[] = {"can0_0_grp", "can0_1_grp",
+										  "can0_2_grp", "can0_3_grp", "can0_4_grp", "can0_5_grp",
+										  "can0_6_grp", "can0_7_grp", "can0_8_grp", "can0_9_grp",
+										  "can0_10_grp"
+										 };
+static const char *const can1_groups[] = {"can1_0_grp", "can1_1_grp",
+										  "can1_2_grp", "can1_3_grp", "can1_4_grp", "can1_5_grp",
+										  "can1_6_grp", "can1_7_grp", "can1_8_grp", "can1_9_grp",
+										  "can1_10_grp", "can1_11_grp"
+										 };
+static const char *const uart0_groups[] = {"uart0_0_grp", "uart0_1_grp",
+										   "uart0_2_grp", "uart0_3_grp", "uart0_4_grp", "uart0_5_grp",
+										   "uart0_6_grp", "uart0_7_grp", "uart0_8_grp", "uart0_9_grp",
+										   "uart0_10_grp"
+										  };
+static const char *const uart1_groups[] = {"uart1_0_grp", "uart1_1_grp",
+										   "uart1_2_grp", "uart1_3_grp", "uart1_4_grp", "uart1_5_grp",
+										   "uart1_6_grp", "uart1_7_grp", "uart1_8_grp", "uart1_9_grp",
+										   "uart1_10_grp", "uart1_11_grp"
+										  };
+static const char *const i2c0_groups[] = {"i2c0_0_grp", "i2c0_1_grp",
+										  "i2c0_2_grp", "i2c0_3_grp", "i2c0_4_grp", "i2c0_5_grp",
+										  "i2c0_6_grp", "i2c0_7_grp", "i2c0_8_grp", "i2c0_9_grp",
+										  "i2c0_10_grp"
+										 };
+static const char *const i2c1_groups[] = {"i2c1_0_grp", "i2c1_1_grp",
+										  "i2c1_2_grp", "i2c1_3_grp", "i2c1_4_grp", "i2c1_5_grp",
+										  "i2c1_6_grp", "i2c1_7_grp", "i2c1_8_grp", "i2c1_9_grp",
+										  "i2c1_10_grp"
+										 };
+static const char *const ttc0_groups[] = {"ttc0_0_grp", "ttc0_1_grp",
+										  "ttc0_2_grp"
+										 };
+static const char *const ttc1_groups[] = {"ttc1_0_grp", "ttc1_1_grp",
+										  "ttc1_2_grp"
+										 };
+static const char *const swdt0_groups[] = {"swdt0_0_grp", "swdt0_1_grp",
+										   "swdt0_2_grp", "swdt0_3_grp", "swdt0_4_grp"
+										  };
+static const char *const gpio0_groups[] = {"gpio0_0_grp",
+										   "gpio0_2_grp", "gpio0_4_grp", "gpio0_6_grp",
+										   "gpio0_8_grp", "gpio0_10_grp", "gpio0_12_grp",
+										   "gpio0_14_grp", "gpio0_16_grp", "gpio0_18_grp",
+										   "gpio0_20_grp", "gpio0_22_grp", "gpio0_24_grp",
+										   "gpio0_26_grp", "gpio0_28_grp", "gpio0_30_grp",
+										   "gpio0_32_grp", "gpio0_34_grp", "gpio0_36_grp",
+										   "gpio0_38_grp", "gpio0_40_grp", "gpio0_42_grp",
+										   "gpio0_44_grp", "gpio0_46_grp", "gpio0_48_grp",
+										   "gpio0_50_grp", "gpio0_52_grp", "gpio0_1_grp",
+										   "gpio0_3_grp", "gpio0_5_grp", "gpio0_7_grp",
+										   "gpio0_9_grp", "gpio0_11_grp", "gpio0_13_grp",
+										   "gpio0_15_grp", "gpio0_17_grp", "gpio0_19_grp",
+										   "gpio0_21_grp", "gpio0_23_grp", "gpio0_25_grp",
+										   "gpio0_27_grp", "gpio0_29_grp", "gpio0_31_grp",
+										   "gpio0_33_grp", "gpio0_35_grp", "gpio0_37_grp",
+										   "gpio0_39_grp", "gpio0_41_grp", "gpio0_43_grp",
+										   "gpio0_45_grp", "gpio0_47_grp", "gpio0_49_grp",
+										   "gpio0_51_grp", "gpio0_53_grp"
+										  };
 
 #define DEFINE_ZYNQ_PINMUX_FUNCTION(fname, mval)	\
 	[ZYNQ_PMUX_##fname] = {				\
-		.name = #fname,				\
-		.groups = fname##_groups,		\
-		.ngroups = ARRAY_SIZE(fname##_groups),	\
-		.mux_val = mval,			\
-	}
+										.name = #fname,				\
+										.groups = fname##_groups,		\
+										.ngroups = ARRAY_SIZE(fname##_groups),	\
+										.mux_val = mval,			\
+						  }
 
 #define DEFINE_ZYNQ_PINMUX_FUNCTION_MUX(fname, mval, offset, mask, shift)\
 	[ZYNQ_PMUX_##fname] = {				\
-		.name = #fname,				\
-		.groups = fname##_groups,		\
-		.ngroups = ARRAY_SIZE(fname##_groups),	\
-		.mux_val = mval,			\
-		.mux = offset,				\
-		.mux_mask = mask,			\
-		.mux_shift = shift,			\
-	}
+										.name = #fname,				\
+										.groups = fname##_groups,		\
+										.ngroups = ARRAY_SIZE(fname##_groups),	\
+										.mux_val = mval,			\
+										.mux = offset,				\
+										.mux_mask = mask,			\
+										.mux_shift = shift,			\
+						  }
 
 #define ZYNQ_SDIO_WP_SHIFT	0
 #define ZYNQ_SDIO_WP_MASK	(0x3f << ZYNQ_SDIO_WP_SHIFT)
 #define ZYNQ_SDIO_CD_SHIFT	16
 #define ZYNQ_SDIO_CD_MASK	(0x3f << ZYNQ_SDIO_CD_SHIFT)
 
-static const struct zynq_pinmux_function zynq_pmux_functions[] = {
+static const struct zynq_pinmux_function zynq_pmux_functions[] =
+{
 	DEFINE_ZYNQ_PINMUX_FUNCTION(ethernet0, 1),
 	DEFINE_ZYNQ_PINMUX_FUNCTION(ethernet1, 1),
 	DEFINE_ZYNQ_PINMUX_FUNCTION(usb0, 2),
@@ -802,15 +837,15 @@ static const struct zynq_pinmux_function zynq_pmux_functions[] = {
 	DEFINE_ZYNQ_PINMUX_FUNCTION(sdio0, 0x40),
 	DEFINE_ZYNQ_PINMUX_FUNCTION(sdio0_pc, 0xc),
 	DEFINE_ZYNQ_PINMUX_FUNCTION_MUX(sdio0_wp, 0, 0x130, ZYNQ_SDIO_WP_MASK,
-					ZYNQ_SDIO_WP_SHIFT),
+	ZYNQ_SDIO_WP_SHIFT),
 	DEFINE_ZYNQ_PINMUX_FUNCTION_MUX(sdio0_cd, 0, 0x130, ZYNQ_SDIO_CD_MASK,
-					ZYNQ_SDIO_CD_SHIFT),
+	ZYNQ_SDIO_CD_SHIFT),
 	DEFINE_ZYNQ_PINMUX_FUNCTION(sdio1, 0x40),
 	DEFINE_ZYNQ_PINMUX_FUNCTION(sdio1_pc, 0xc),
 	DEFINE_ZYNQ_PINMUX_FUNCTION_MUX(sdio1_wp, 0, 0x134, ZYNQ_SDIO_WP_MASK,
-					ZYNQ_SDIO_WP_SHIFT),
+	ZYNQ_SDIO_WP_SHIFT),
 	DEFINE_ZYNQ_PINMUX_FUNCTION_MUX(sdio1_cd, 0, 0x134, ZYNQ_SDIO_CD_MASK,
-					ZYNQ_SDIO_CD_SHIFT),
+	ZYNQ_SDIO_CD_SHIFT),
 	DEFINE_ZYNQ_PINMUX_FUNCTION(smc0_nor, 4),
 	DEFINE_ZYNQ_PINMUX_FUNCTION(smc0_nor_cs1, 8),
 	DEFINE_ZYNQ_PINMUX_FUNCTION(smc0_nor_addr25, 4),
@@ -837,7 +872,7 @@ static int zynq_pctrl_get_groups_count(struct pinctrl_dev *pctldev)
 }
 
 static const char *zynq_pctrl_get_group_name(struct pinctrl_dev *pctldev,
-					     unsigned selector)
+		unsigned selector)
 {
 	struct zynq_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
 
@@ -845,9 +880,9 @@ static const char *zynq_pctrl_get_group_name(struct pinctrl_dev *pctldev,
 }
 
 static int zynq_pctrl_get_group_pins(struct pinctrl_dev *pctldev,
-				     unsigned selector,
-				     const unsigned **pins,
-				     unsigned *num_pins)
+									 unsigned selector,
+									 const unsigned **pins,
+									 unsigned *num_pins)
 {
 	struct zynq_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
 
@@ -857,7 +892,8 @@ static int zynq_pctrl_get_group_pins(struct pinctrl_dev *pctldev,
 	return 0;
 }
 
-static const struct pinctrl_ops zynq_pctrl_ops = {
+static const struct pinctrl_ops zynq_pctrl_ops =
+{
 	.get_groups_count = zynq_pctrl_get_groups_count,
 	.get_group_name = zynq_pctrl_get_group_name,
 	.get_group_pins = zynq_pctrl_get_group_pins,
@@ -874,7 +910,7 @@ static int zynq_pmux_get_functions_count(struct pinctrl_dev *pctldev)
 }
 
 static const char *zynq_pmux_get_function_name(struct pinctrl_dev *pctldev,
-					       unsigned selector)
+		unsigned selector)
 {
 	struct zynq_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
 
@@ -882,9 +918,9 @@ static const char *zynq_pmux_get_function_name(struct pinctrl_dev *pctldev,
 }
 
 static int zynq_pmux_get_function_groups(struct pinctrl_dev *pctldev,
-					 unsigned selector,
-					 const char * const **groups,
-					 unsigned * const num_groups)
+		unsigned selector,
+		const char *const **groups,
+		unsigned *const num_groups)
 {
 	struct zynq_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
 
@@ -894,8 +930,8 @@ static int zynq_pmux_get_function_groups(struct pinctrl_dev *pctldev,
 }
 
 static int zynq_pinmux_set_mux(struct pinctrl_dev *pctldev,
-			       unsigned function,
-			       unsigned group)
+							   unsigned function,
+							   unsigned group)
 {
 	int i, ret;
 	struct zynq_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
@@ -907,42 +943,59 @@ static int zynq_pinmux_set_mux(struct pinctrl_dev *pctldev,
 	 * to mux them in
 	 */
 	if (function == ZYNQ_PMUX_sdio0_cd || function == ZYNQ_PMUX_sdio0_wp ||
-			function == ZYNQ_PMUX_sdio1_cd ||
-			function == ZYNQ_PMUX_sdio1_wp) {
+		function == ZYNQ_PMUX_sdio1_cd ||
+		function == ZYNQ_PMUX_sdio1_wp)
+	{
 		u32 reg;
 
 		ret = regmap_read(pctrl->syscon,
-				  pctrl->pctrl_offset + func->mux, &reg);
+						  pctrl->pctrl_offset + func->mux, &reg);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		reg &= ~func->mux_mask;
 		reg |= pgrp->pins[0] << func->mux_shift;
 		ret = regmap_write(pctrl->syscon,
-				   pctrl->pctrl_offset + func->mux, reg);
+						   pctrl->pctrl_offset + func->mux, reg);
+
 		if (ret)
+		{
 			return ret;
-	} else {
-		for (i = 0; i < pgrp->npins; i++) {
+		}
+	}
+	else
+	{
+		for (i = 0; i < pgrp->npins; i++)
+		{
 			unsigned int pin = pgrp->pins[i];
 			u32 reg, addr = pctrl->pctrl_offset + (4 * pin);
 
 			ret = regmap_read(pctrl->syscon, addr, &reg);
+
 			if (ret)
+			{
 				return ret;
+			}
 
 			reg &= ~ZYNQ_PINMUX_MUX_MASK;
 			reg |= func->mux_val << ZYNQ_PINMUX_MUX_SHIFT;
 			ret = regmap_write(pctrl->syscon, addr, reg);
+
 			if (ret)
+			{
 				return ret;
+			}
 		}
 	}
 
 	return 0;
 }
 
-static const struct pinmux_ops zynq_pinmux_ops = {
+static const struct pinmux_ops zynq_pinmux_ops =
+{
 	.get_functions_count = zynq_pmux_get_functions_count,
 	.get_function_name = zynq_pmux_get_function_name,
 	.get_function_groups = zynq_pmux_get_function_groups,
@@ -958,7 +1011,8 @@ static const struct pinmux_ops zynq_pinmux_ops = {
 #define ZYNQ_PINCONF_IOTYPE_SHIFT	9
 #define ZYNQ_PINCONF_IOTYPE_MASK	(7 << ZYNQ_PINCONF_IOTYPE_SHIFT)
 
-enum zynq_io_standards {
+enum zynq_io_standards
+{
 	zynq_iostd_min,
 	zynq_iostd_lvcmos18,
 	zynq_iostd_lvcmos25,
@@ -973,16 +1027,19 @@ enum zynq_io_standards {
  *	this parameter (on a custom format) tells the driver which alternative
  *	IO standard to use.
  */
-enum zynq_pin_config_param {
+enum zynq_pin_config_param
+{
 	PIN_CONFIG_IOSTANDARD = PIN_CONFIG_END + 1,
 };
 
-static const struct pinconf_generic_params zynq_dt_params[] = {
+static const struct pinconf_generic_params zynq_dt_params[] =
+{
 	{"io-standard", PIN_CONFIG_IOSTANDARD, zynq_iostd_lvcmos18},
 };
 
 #ifdef CONFIG_DEBUG_FS
-static const struct pin_config_item zynq_conf_items[ARRAY_SIZE(zynq_dt_params)] = {
+static const struct pin_config_item zynq_conf_items[ARRAY_SIZE(zynq_dt_params)] =
+{
 	PCONFDUMP(PIN_CONFIG_IOSTANDARD, "IO-standard", NULL, true),
 };
 #endif
@@ -993,8 +1050,8 @@ static unsigned int zynq_pinconf_iostd_get(u32 reg)
 }
 
 static int zynq_pinconf_cfg_get(struct pinctrl_dev *pctldev,
-				unsigned pin,
-				unsigned long *config)
+								unsigned pin,
+								unsigned long *config)
 {
 	u32 reg;
 	int ret;
@@ -1003,46 +1060,73 @@ static int zynq_pinconf_cfg_get(struct pinctrl_dev *pctldev,
 	struct zynq_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
 
 	if (pin >= ZYNQ_NUM_MIOS)
+	{
 		return -ENOTSUPP;
+	}
 
 	ret = regmap_read(pctrl->syscon, pctrl->pctrl_offset + (4 * pin), &reg);
+
 	if (ret)
-		return -EIO;
-
-	switch (param) {
-	case PIN_CONFIG_BIAS_PULL_UP:
-		if (!(reg & ZYNQ_PINCONF_PULLUP))
-			return -EINVAL;
-		arg = 1;
-		break;
-	case PIN_CONFIG_BIAS_HIGH_IMPEDANCE:
-		if (!(reg & ZYNQ_PINCONF_TRISTATE))
-			return -EINVAL;
-		arg = 1;
-		break;
-	case PIN_CONFIG_BIAS_DISABLE:
-		if (reg & ZYNQ_PINCONF_PULLUP || reg & ZYNQ_PINCONF_TRISTATE)
-			return -EINVAL;
-		break;
-	case PIN_CONFIG_SLEW_RATE:
-		arg = !!(reg & ZYNQ_PINCONF_SPEED);
-		break;
-	case PIN_CONFIG_LOW_POWER_MODE:
 	{
-		enum zynq_io_standards iostd = zynq_pinconf_iostd_get(reg);
-
-		if (iostd != zynq_iostd_hstl)
-			return -EINVAL;
-		if (!(reg & ZYNQ_PINCONF_DISABLE_RECVR))
-			return -EINVAL;
-		arg = !!(reg & ZYNQ_PINCONF_DISABLE_RECVR);
-		break;
+		return -EIO;
 	}
-	case PIN_CONFIG_IOSTANDARD:
-		arg = zynq_pinconf_iostd_get(reg);
-		break;
-	default:
-		return -ENOTSUPP;
+
+	switch (param)
+	{
+		case PIN_CONFIG_BIAS_PULL_UP:
+			if (!(reg & ZYNQ_PINCONF_PULLUP))
+			{
+				return -EINVAL;
+			}
+
+			arg = 1;
+			break;
+
+		case PIN_CONFIG_BIAS_HIGH_IMPEDANCE:
+			if (!(reg & ZYNQ_PINCONF_TRISTATE))
+			{
+				return -EINVAL;
+			}
+
+			arg = 1;
+			break;
+
+		case PIN_CONFIG_BIAS_DISABLE:
+			if (reg & ZYNQ_PINCONF_PULLUP || reg & ZYNQ_PINCONF_TRISTATE)
+			{
+				return -EINVAL;
+			}
+
+			break;
+
+		case PIN_CONFIG_SLEW_RATE:
+			arg = !!(reg & ZYNQ_PINCONF_SPEED);
+			break;
+
+		case PIN_CONFIG_LOW_POWER_MODE:
+			{
+				enum zynq_io_standards iostd = zynq_pinconf_iostd_get(reg);
+
+				if (iostd != zynq_iostd_hstl)
+				{
+					return -EINVAL;
+				}
+
+				if (!(reg & ZYNQ_PINCONF_DISABLE_RECVR))
+				{
+					return -EINVAL;
+				}
+
+				arg = !!(reg & ZYNQ_PINCONF_DISABLE_RECVR);
+				break;
+			}
+
+		case PIN_CONFIG_IOSTANDARD:
+			arg = zynq_pinconf_iostd_get(reg);
+			break;
+
+		default:
+			return -ENOTSUPP;
 	}
 
 	*config = pinconf_to_config_packed(param, arg);
@@ -1050,9 +1134,9 @@ static int zynq_pinconf_cfg_get(struct pinctrl_dev *pctldev,
 }
 
 static int zynq_pinconf_cfg_set(struct pinctrl_dev *pctldev,
-				unsigned pin,
-				unsigned long *configs,
-				unsigned num_configs)
+								unsigned pin,
+								unsigned long *configs,
+								unsigned num_configs)
 {
 	int i, ret;
 	u32 reg;
@@ -1061,97 +1145,130 @@ static int zynq_pinconf_cfg_set(struct pinctrl_dev *pctldev,
 	struct zynq_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
 
 	if (pin >= ZYNQ_NUM_MIOS)
+	{
 		return -ENOTSUPP;
+	}
 
 	ret = regmap_read(pctrl->syscon, pctrl->pctrl_offset + (4 * pin), &reg);
-	if (ret)
-		return -EIO;
 
-	for (i = 0; i < num_configs; i++) {
+	if (ret)
+	{
+		return -EIO;
+	}
+
+	for (i = 0; i < num_configs; i++)
+	{
 		unsigned int param = pinconf_to_config_param(configs[i]);
 		unsigned int arg = pinconf_to_config_argument(configs[i]);
 
-		switch (param) {
-		case PIN_CONFIG_BIAS_PULL_UP:
-			pullup = ZYNQ_PINCONF_PULLUP;
-			break;
-		case PIN_CONFIG_BIAS_HIGH_IMPEDANCE:
-			tristate = ZYNQ_PINCONF_TRISTATE;
-			break;
-		case PIN_CONFIG_BIAS_DISABLE:
-			reg &= ~(ZYNQ_PINCONF_PULLUP | ZYNQ_PINCONF_TRISTATE);
-			break;
-		case PIN_CONFIG_SLEW_RATE:
-			if (arg)
-				reg |= ZYNQ_PINCONF_SPEED;
-			else
-				reg &= ~ZYNQ_PINCONF_SPEED;
-
-			break;
-		case PIN_CONFIG_IOSTANDARD:
-			if (arg <= zynq_iostd_min || arg >= zynq_iostd_max) {
-				dev_warn(pctldev->dev,
-					 "unsupported IO standard '%u'\n",
-					 param);
+		switch (param)
+		{
+			case PIN_CONFIG_BIAS_PULL_UP:
+				pullup = ZYNQ_PINCONF_PULLUP;
 				break;
-			}
-			reg &= ~ZYNQ_PINCONF_IOTYPE_MASK;
-			reg |= arg << ZYNQ_PINCONF_IOTYPE_SHIFT;
-			break;
-		case PIN_CONFIG_LOW_POWER_MODE:
-			if (arg)
-				reg |= ZYNQ_PINCONF_DISABLE_RECVR;
-			else
-				reg &= ~ZYNQ_PINCONF_DISABLE_RECVR;
 
-			break;
-		default:
-			dev_warn(pctldev->dev,
-				 "unsupported configuration parameter '%u'\n",
-				 param);
-			continue;
+			case PIN_CONFIG_BIAS_HIGH_IMPEDANCE:
+				tristate = ZYNQ_PINCONF_TRISTATE;
+				break;
+
+			case PIN_CONFIG_BIAS_DISABLE:
+				reg &= ~(ZYNQ_PINCONF_PULLUP | ZYNQ_PINCONF_TRISTATE);
+				break;
+
+			case PIN_CONFIG_SLEW_RATE:
+				if (arg)
+				{
+					reg |= ZYNQ_PINCONF_SPEED;
+				}
+				else
+				{
+					reg &= ~ZYNQ_PINCONF_SPEED;
+				}
+
+				break;
+
+			case PIN_CONFIG_IOSTANDARD:
+				if (arg <= zynq_iostd_min || arg >= zynq_iostd_max)
+				{
+					dev_warn(pctldev->dev,
+							 "unsupported IO standard '%u'\n",
+							 param);
+					break;
+				}
+
+				reg &= ~ZYNQ_PINCONF_IOTYPE_MASK;
+				reg |= arg << ZYNQ_PINCONF_IOTYPE_SHIFT;
+				break;
+
+			case PIN_CONFIG_LOW_POWER_MODE:
+				if (arg)
+				{
+					reg |= ZYNQ_PINCONF_DISABLE_RECVR;
+				}
+				else
+				{
+					reg &= ~ZYNQ_PINCONF_DISABLE_RECVR;
+				}
+
+				break;
+
+			default:
+				dev_warn(pctldev->dev,
+						 "unsupported configuration parameter '%u'\n",
+						 param);
+				continue;
 		}
 	}
 
-	if (tristate || pullup) {
+	if (tristate || pullup)
+	{
 		reg &= ~(ZYNQ_PINCONF_PULLUP | ZYNQ_PINCONF_TRISTATE);
 		reg |= tristate | pullup;
 	}
 
 	ret = regmap_write(pctrl->syscon, pctrl->pctrl_offset + (4 * pin), reg);
+
 	if (ret)
+	{
 		return -EIO;
-
-	return 0;
-}
-
-static int zynq_pinconf_group_set(struct pinctrl_dev *pctldev,
-				  unsigned selector,
-				  unsigned long *configs,
-				  unsigned num_configs)
-{
-	int i, ret;
-	struct zynq_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
-	const struct zynq_pctrl_group *pgrp = &pctrl->groups[selector];
-
-	for (i = 0; i < pgrp->npins; i++) {
-		ret = zynq_pinconf_cfg_set(pctldev, pgrp->pins[i], configs,
-					   num_configs);
-		if (ret)
-			return ret;
 	}
 
 	return 0;
 }
 
-static const struct pinconf_ops zynq_pinconf_ops = {
+static int zynq_pinconf_group_set(struct pinctrl_dev *pctldev,
+								  unsigned selector,
+								  unsigned long *configs,
+								  unsigned num_configs)
+{
+	int i, ret;
+	struct zynq_pinctrl *pctrl = pinctrl_dev_get_drvdata(pctldev);
+	const struct zynq_pctrl_group *pgrp = &pctrl->groups[selector];
+
+	for (i = 0; i < pgrp->npins; i++)
+	{
+		ret = zynq_pinconf_cfg_set(pctldev, pgrp->pins[i], configs,
+								   num_configs);
+
+		if (ret)
+		{
+			return ret;
+		}
+	}
+
+	return 0;
+}
+
+static const struct pinconf_ops zynq_pinconf_ops =
+{
 	.is_generic = true,
 	.pin_config_get = zynq_pinconf_cfg_get,
 	.pin_config_set = zynq_pinconf_cfg_set,
 	.pin_config_group_set = zynq_pinconf_group_set,
 };
 
-static struct pinctrl_desc zynq_desc = {
+static struct pinctrl_desc zynq_desc =
+{
 	.name = "zynq_pinctrl",
 	.pins = zynq_pins,
 	.npins = ARRAY_SIZE(zynq_pins),
@@ -1173,21 +1290,29 @@ static int zynq_pinctrl_probe(struct platform_device *pdev)
 	struct zynq_pinctrl *pctrl;
 
 	pctrl = devm_kzalloc(&pdev->dev, sizeof(*pctrl), GFP_KERNEL);
+
 	if (!pctrl)
+	{
 		return -ENOMEM;
+	}
 
 	pctrl->syscon = syscon_regmap_lookup_by_phandle(pdev->dev.of_node,
-							"syscon");
-	if (IS_ERR(pctrl->syscon)) {
+					"syscon");
+
+	if (IS_ERR(pctrl->syscon))
+	{
 		dev_err(&pdev->dev, "unable to get syscon\n");
 		return PTR_ERR(pctrl->syscon);
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "missing IO resource\n");
 		return -ENODEV;
 	}
+
 	pctrl->pctrl_offset = res->start;
 
 	pctrl->groups = zynq_pctrl_groups;
@@ -1196,8 +1321,11 @@ static int zynq_pinctrl_probe(struct platform_device *pdev)
 	pctrl->nfuncs = ARRAY_SIZE(zynq_pmux_functions);
 
 	pctrl->pctrl = devm_pinctrl_register(&pdev->dev, &zynq_desc, pctrl);
+
 	if (IS_ERR(pctrl->pctrl))
+	{
 		return PTR_ERR(pctrl->pctrl);
+	}
 
 	platform_set_drvdata(pdev, pctrl);
 
@@ -1206,12 +1334,14 @@ static int zynq_pinctrl_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id zynq_pinctrl_of_match[] = {
+static const struct of_device_id zynq_pinctrl_of_match[] =
+{
 	{ .compatible = "xlnx,pinctrl-zynq" },
 	{ }
 };
 
-static struct platform_driver zynq_pinctrl_driver = {
+static struct platform_driver zynq_pinctrl_driver =
+{
 	.driver = {
 		.name = "zynq-pinctrl",
 		.of_match_table = zynq_pinctrl_of_match,

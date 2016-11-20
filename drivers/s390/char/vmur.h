@@ -24,7 +24,8 @@
 #define PRINTER_DEVTYPE		0x1403
 
 /* z/VM spool file control block SFBLOK */
-struct file_control_block {
+struct file_control_block
+{
 	char reserved_1[8];
 	char user_owner[8];
 	char user_orig[8];
@@ -59,7 +60,8 @@ struct file_control_block {
  * A struct urdev is created for each ur device that is made available
  * via the ccw_device driver model.
  */
-struct urdev {
+struct urdev
+{
 	struct ccw_device *cdev;	/* Backpointer to ccw device */
 	struct mutex io_mutex;		/* Serialises device IO */
 	struct completion *io_done;	/* do_ur_io waits; irq completes */
@@ -79,7 +81,8 @@ struct urdev {
  * A struct urfile is allocated at open() time for each device and
  * freed on release().
  */
-struct urfile {
+struct urfile
+{
 	struct urdev *urd;
 	unsigned int flags;
 	size_t dev_reclen;
@@ -103,7 +106,7 @@ struct urfile {
 
 #define TRACE(x...) debug_sprintf_event(vmur_dbf, 1, x)
 #define CCWDEV_CU_DI(cutype, di) \
-		CCW_DEVICE(cutype, 0x00), .driver_info = (di)
+	CCW_DEVICE(cutype, 0x00), .driver_info = (di)
 
 #define FILE_RECLEN_OFFSET	4064 /* reclen offset in spool data block */
 

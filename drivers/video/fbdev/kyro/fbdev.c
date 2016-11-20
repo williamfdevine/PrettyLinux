@@ -37,14 +37,16 @@
 #define KHZ2PICOS(a) (1000000000UL/(a))
 
 /****************************************************************************/
-static struct fb_fix_screeninfo kyro_fix = {
+static struct fb_fix_screeninfo kyro_fix =
+{
 	.id		= "ST Kyro",
 	.type		= FB_TYPE_PACKED_PIXELS,
 	.visual		= FB_VISUAL_TRUECOLOR,
 	.accel		= FB_ACCEL_NONE,
 };
 
-static const struct fb_var_screeninfo kyro_var = {
+static const struct fb_var_screeninfo kyro_var =
+{
 	/* 640x480, 16bpp @ 60 Hz */
 	.xres		= 640,
 	.yres		= 480,
@@ -67,7 +69,8 @@ static const struct fb_var_screeninfo kyro_var = {
 	.vmode		= FB_VMODE_NONINTERLACED,
 };
 
-typedef struct {
+typedef struct
+{
 	STG4000REG __iomem *pSTGReg;	/* Virtual address of PCI register region */
 	u32 ulNextFreeVidMem;	/* Offset from start of vid mem to next free region */
 	u32 ulOverlayOffset;	/* Offset from start of vid mem to overlay */
@@ -87,7 +90,8 @@ static int nomtrr = 0;
 static int kyrofb_probe(struct pci_dev *pdev, const struct pci_device_id *ent);
 static void kyrofb_remove(struct pci_dev *pdev);
 
-static struct fb_videomode kyro_modedb[] = {
+static struct fb_videomode kyro_modedb[] =
+{
 	{
 		/* 640x350 @ 85Hz */
 		NULL, 85, 640, 350, KHZ2PICOS(31500),
@@ -260,7 +264,8 @@ static struct fb_videomode kyro_modedb[] = {
 /*
  * This needs to be kept ordered corresponding to kyro_modedb.
  */
-enum {
+enum
+{
 	VMODE_640_350_85,
 	VMODE_640_400_85,
 	VMODE_720_400_85,
@@ -309,10 +314,12 @@ static int kyro_dev_video_mode_set(struct fb_info *info)
 	DisableVGA(deviceInfo.pSTGReg);
 
 	if (InitialiseRamdac(deviceInfo.pSTGReg,
-			     info->var.bits_per_pixel,
-			     info->var.xres, info->var.yres,
-			     par->HSP, par->VSP, &par->PIXCLK) < 0)
+						 info->var.bits_per_pixel,
+						 info->var.xres, info->var.yres,
+						 par->HSP, par->VSP, &par->PIXCLK) < 0)
+	{
 		return -EINVAL;
+	}
 
 	SetupVTG(deviceInfo.pSTGReg, par);
 
@@ -323,14 +330,14 @@ static int kyro_dev_video_mode_set(struct fb_info *info)
 	StartVTG(deviceInfo.pSTGReg);
 
 	deviceInfo.ulNextFreeVidMem = info->var.xres * info->var.yres *
-				      info->var.bits_per_pixel;
+								  info->var.bits_per_pixel;
 	deviceInfo.ulOverlayOffset = 0;
 
 	return 0;
 }
 
 static int kyro_dev_overlay_create(u32 ulWidth,
-				   u32 ulHeight, int bLinear)
+								   u32 ulHeight, int bLinear)
 {
 	u32 offset;
 	u32 stride, uvStride;
@@ -340,7 +347,9 @@ static int kyro_dev_overlay_create(u32 ulWidth,
 		 * Can only create one overlay without resetting the card or
 		 * changing display mode
 		 */
+	{
 		return -EINVAL;
+	}
 
 	ResetOverlayRegisters(deviceInfo.pSTGReg);
 
@@ -348,13 +357,17 @@ static int kyro_dev_overlay_create(u32 ulWidth,
 	 * sure the start offset is on an appropriate boundary.
 	 */
 	offset = deviceInfo.ulNextFreeVidMem;
-	if ((offset & 0x1f) != 0) {
+
+	if ((offset & 0x1f) != 0)
+	{
 		offset = (offset + 32L) & 0xffffffE0L;
 	}
 
 	if (CreateOverlaySurface(deviceInfo.pSTGReg, ulWidth, ulHeight,
-				 bLinear, offset, &stride, &uvStride) < 0)
+							 bLinear, offset, &stride, &uvStride) < 0)
+	{
 		return -EINVAL;
+	}
 
 	deviceInfo.ulOverlayOffset = offset;
 	deviceInfo.ulOverlayStride = stride;
@@ -370,13 +383,15 @@ static int kyro_dev_overlay_viewport_set(u32 x, u32 y, u32 ulWidth, u32 ulHeight
 {
 	if (deviceInfo.ulOverlayOffset == 0)
 		/* probably haven't called CreateOverlay yet */
+	{
 		return -EINVAL;
+	}
 
 	/* Stop Ramdac Output */
 	DisableRamdacOutput(deviceInfo.pSTGReg);
 
 	SetOverlayViewPort(deviceInfo.pSTGReg,
-			   x, y, x + ulWidth - 1, y + ulHeight - 1);
+					   x, y, x + ulWidth - 1, y + ulHeight - 1);
 
 	EnableOverlayPlane(deviceInfo.pSTGReg);
 	/* Start Ramdac Output */
@@ -387,37 +402,40 @@ static int kyro_dev_overlay_viewport_set(u32 x, u32 y, u32 ulWidth, u32 ulHeight
 
 static inline unsigned long get_line_length(int x, int bpp)
 {
-	return (unsigned long)((((x*bpp)+31)&~31) >> 3);
+	return (unsigned long)((((x * bpp) + 31) & ~31) >> 3);
 }
 
 static int kyrofb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 {
 	struct kyrofb_info *par = info->par;
 
-	if (var->bits_per_pixel != 16 && var->bits_per_pixel != 32) {
+	if (var->bits_per_pixel != 16 && var->bits_per_pixel != 32)
+	{
 		printk(KERN_WARNING "kyrofb: depth not supported: %u\n", var->bits_per_pixel);
 		return -EINVAL;
 	}
 
-	switch (var->bits_per_pixel) {
-	case 16:
-		var->red.offset = 11;
-		var->red.length = 5;
-		var->green.offset = 5;
-		var->green.length = 6;
-		var->blue.length = 5;
-		break;
-	case 32:
-		var->transp.offset = 24;
-		var->red.offset = 16;
-		var->green.offset = 8;
-		var->blue.offset = 0;
+	switch (var->bits_per_pixel)
+	{
+		case 16:
+			var->red.offset = 11;
+			var->red.length = 5;
+			var->green.offset = 5;
+			var->green.length = 6;
+			var->blue.length = 5;
+			break;
 
-		var->red.length = 8;
-		var->green.length = 8;
-		var->blue.length = 8;
-		var->transp.length = 8;
-		break;
+		case 32:
+			var->transp.offset = 24;
+			var->red.offset = 16;
+			var->green.offset = 8;
+			var->blue.offset = 0;
+
+			var->red.length = 8;
+			var->green.length = 8;
+			var->blue.length = 8;
+			var->transp.length = 8;
+			break;
 	}
 
 	/* Height/Width of picture in mm */
@@ -435,7 +453,7 @@ static int kyrofb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 	 * have infact already done the KHZ2PICOS conversion in both the modedb
 	 * and kyro_var. -- PFM.
 	 */
-//	var->pixclock = 1000000000 / (par->PIXCLK / 10);
+	//	var->pixclock = 1000000000 / (par->PIXCLK / 10);
 
 	/* the header file claims we should use picoseconds
 	 * - nobody else does though, the all use pixels and lines
@@ -448,7 +466,9 @@ static int kyrofb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 	 * from our modedb. -- PFM.
 	 */
 	if ((var->activate & FB_ACTIVATE_MASK) == FB_ACTIVATE_TEST)
+	{
 		return 0;
+	}
 
 	var->left_margin = par->HBP;
 	var->hsync_len = par->HST;
@@ -459,9 +479,14 @@ static int kyrofb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 	var->lower_margin = par->VFP;
 
 	if (par->HSP == 1)
+	{
 		var->sync |= FB_SYNC_HOR_HIGH_ACT;
+	}
+
 	if (par->VSP == 1)
+	{
 		var->sync |= FB_SYNC_VERT_HIGH_ACT;
+	}
 
 	return 0;
 }
@@ -482,22 +507,22 @@ static int kyrofb_set_par(struct fb_info *info)
 	/* Refresh rate */
 	/* time for a line in ns */
 	lineclock = (info->var.pixclock * (info->var.xres +
-				    info->var.right_margin +
-				    info->var.hsync_len +
-				    info->var.left_margin)) / 1000;
+									   info->var.right_margin +
+									   info->var.hsync_len +
+									   info->var.left_margin)) / 1000;
 
 
 	/* time for a frame in ns (precision in 32bpp) */
 	frameclock = lineclock * (info->var.yres +
-				  info->var.lower_margin +
-				  info->var.vsync_len +
-				  info->var.upper_margin);
+							  info->var.lower_margin +
+							  info->var.vsync_len +
+							  info->var.upper_margin);
 
 	/* Calculate refresh rate and horrizontal clocks */
 	par->VFREQ = (1000000000 + (frameclock / 2)) / frameclock;
 	par->HCLK = (1000000000 + (lineclock / 2)) / lineclock;
 	par->PIXCLK = ((1000000000 + (info->var.pixclock / 2))
-					/ info->var.pixclock) * 10;
+				   / info->var.pixclock) * 10;
 
 	/* calculate horizontal timings */
 	par->HFP = info->var.right_margin;
@@ -524,26 +549,31 @@ static int kyrofb_set_par(struct fb_info *info)
 }
 
 static int kyrofb_setcolreg(u_int regno, u_int red, u_int green,
-			    u_int blue, u_int transp, struct fb_info *info)
+							u_int blue, u_int transp, struct fb_info *info)
 {
 	struct kyrofb_info *par = info->par;
 
 	if (regno > 255)
-		return 1;	/* Invalid register */
+	{
+		return 1;    /* Invalid register */
+	}
 
-	if (regno < 16) {
-		switch (info->var.bits_per_pixel) {
-		case 16:
-			par->palette[regno] =
-			     (red   & 0xf800) |
-			    ((green & 0xfc00) >> 5) |
-			    ((blue  & 0xf800) >> 11);
-			break;
-		case 32:
-			red >>= 8; green >>= 8; blue >>= 8; transp >>= 8;
-			par->palette[regno] =
-			    (transp << 24) | (red << 16) | (green << 8) | blue;
-			break;
+	if (regno < 16)
+	{
+		switch (info->var.bits_per_pixel)
+		{
+			case 16:
+				par->palette[regno] =
+					(red   & 0xf800) |
+					((green & 0xfc00) >> 5) |
+					((blue  & 0xf800) >> 11);
+				break;
+
+			case 32:
+				red >>= 8; green >>= 8; blue >>= 8; transp >>= 8;
+				par->palette[regno] =
+					(transp << 24) | (red << 16) | (green << 8) | blue;
+				break;
 		}
 	}
 
@@ -556,18 +586,31 @@ static int __init kyrofb_setup(char *options)
 	char *this_opt;
 
 	if (!options || !*options)
+	{
 		return 0;
+	}
 
-	while ((this_opt = strsep(&options, ","))) {
+	while ((this_opt = strsep(&options, ",")))
+	{
 		if (!*this_opt)
+		{
 			continue;
-		if (strcmp(this_opt, "nopan") == 0) {
+		}
+
+		if (strcmp(this_opt, "nopan") == 0)
+		{
 			nopan = 1;
-		} else if (strcmp(this_opt, "nowrap") == 0) {
+		}
+		else if (strcmp(this_opt, "nowrap") == 0)
+		{
 			nowrap = 1;
-		} else if (strcmp(this_opt, "nomtrr") == 0) {
+		}
+		else if (strcmp(this_opt, "nomtrr") == 0)
+		{
 			nomtrr = 1;
-		} else {
+		}
+		else
+		{
 			mode_option = this_opt;
 		}
 	}
@@ -577,78 +620,105 @@ static int __init kyrofb_setup(char *options)
 #endif
 
 static int kyrofb_ioctl(struct fb_info *info,
-			unsigned int cmd, unsigned long arg)
+						unsigned int cmd, unsigned long arg)
 {
 	overlay_create ol_create;
 	overlay_viewport_set ol_viewport_set;
 	void __user *argp = (void __user *)arg;
 
-	switch (cmd) {
-	case KYRO_IOCTL_OVERLAY_CREATE:
-		if (copy_from_user(&ol_create, argp, sizeof(overlay_create)))
-			return -EFAULT;
+	switch (cmd)
+	{
+		case KYRO_IOCTL_OVERLAY_CREATE:
+			if (copy_from_user(&ol_create, argp, sizeof(overlay_create)))
+			{
+				return -EFAULT;
+			}
 
-		if (kyro_dev_overlay_create(ol_create.ulWidth,
-					    ol_create.ulHeight, 0) < 0) {
-			printk(KERN_ERR "Kyro FB: failed to create overlay surface.\n");
+			if (kyro_dev_overlay_create(ol_create.ulWidth,
+										ol_create.ulHeight, 0) < 0)
+			{
+				printk(KERN_ERR "Kyro FB: failed to create overlay surface.\n");
 
-			return -EINVAL;
-		}
-		break;
-	case KYRO_IOCTL_OVERLAY_VIEWPORT_SET:
-		if (copy_from_user(&ol_viewport_set, argp,
-			       sizeof(overlay_viewport_set)))
-			return -EFAULT;
+				return -EINVAL;
+			}
 
-		if (kyro_dev_overlay_viewport_set(ol_viewport_set.xOrgin,
-						  ol_viewport_set.yOrgin,
-						  ol_viewport_set.xSize,
-						  ol_viewport_set.ySize) != 0)
-		{
-			printk(KERN_ERR "Kyro FB: failed to create overlay viewport.\n");
-			return -EINVAL;
-		}
-		break;
-	case KYRO_IOCTL_SET_VIDEO_MODE:
-		{
-			printk(KERN_ERR "Kyro FB: KYRO_IOCTL_SET_VIDEO_MODE is"
-				"obsolete, use the appropriate fb_ioctl()"
-				"command instead.\n");
-			return -EINVAL;
-		}
-	case KYRO_IOCTL_UVSTRIDE:
-		if (copy_to_user(argp, &deviceInfo.ulOverlayUVStride, sizeof(deviceInfo.ulOverlayUVStride)))
-			return -EFAULT;
-		break;
-	case KYRO_IOCTL_STRIDE:
-		if (copy_to_user(argp, &deviceInfo.ulOverlayStride, sizeof(deviceInfo.ulOverlayStride)))
-			return -EFAULT;
-		break;
-	case KYRO_IOCTL_OVERLAY_OFFSET:
-		if (copy_to_user(argp, &deviceInfo.ulOverlayOffset, sizeof(deviceInfo.ulOverlayOffset)))
-			return -EFAULT;
-		break;
+			break;
+
+		case KYRO_IOCTL_OVERLAY_VIEWPORT_SET:
+			if (copy_from_user(&ol_viewport_set, argp,
+							   sizeof(overlay_viewport_set)))
+			{
+				return -EFAULT;
+			}
+
+			if (kyro_dev_overlay_viewport_set(ol_viewport_set.xOrgin,
+											  ol_viewport_set.yOrgin,
+											  ol_viewport_set.xSize,
+											  ol_viewport_set.ySize) != 0)
+			{
+				printk(KERN_ERR "Kyro FB: failed to create overlay viewport.\n");
+				return -EINVAL;
+			}
+
+			break;
+
+		case KYRO_IOCTL_SET_VIDEO_MODE:
+			{
+				printk(KERN_ERR "Kyro FB: KYRO_IOCTL_SET_VIDEO_MODE is"
+					   "obsolete, use the appropriate fb_ioctl()"
+					   "command instead.\n");
+				return -EINVAL;
+			}
+
+		case KYRO_IOCTL_UVSTRIDE:
+			if (copy_to_user(argp, &deviceInfo.ulOverlayUVStride, sizeof(deviceInfo.ulOverlayUVStride)))
+			{
+				return -EFAULT;
+			}
+
+			break;
+
+		case KYRO_IOCTL_STRIDE:
+			if (copy_to_user(argp, &deviceInfo.ulOverlayStride, sizeof(deviceInfo.ulOverlayStride)))
+			{
+				return -EFAULT;
+			}
+
+			break;
+
+		case KYRO_IOCTL_OVERLAY_OFFSET:
+			if (copy_to_user(argp, &deviceInfo.ulOverlayOffset, sizeof(deviceInfo.ulOverlayOffset)))
+			{
+				return -EFAULT;
+			}
+
+			break;
 	}
 
 	return 0;
 }
 
-static struct pci_device_id kyrofb_pci_tbl[] = {
-	{ PCI_VENDOR_ID_ST, PCI_DEVICE_ID_STG4000,
-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
+static struct pci_device_id kyrofb_pci_tbl[] =
+{
+	{
+		PCI_VENDOR_ID_ST, PCI_DEVICE_ID_STG4000,
+		PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0
+	},
 	{ 0, }
 };
 
 MODULE_DEVICE_TABLE(pci, kyrofb_pci_tbl);
 
-static struct pci_driver kyrofb_pci_driver = {
+static struct pci_driver kyrofb_pci_driver =
+{
 	.name		= "kyrofb",
 	.id_table	= kyrofb_pci_tbl,
 	.probe		= kyrofb_probe,
 	.remove		= kyrofb_remove,
 };
 
-static struct fb_ops kyrofb_ops = {
+static struct fb_ops kyrofb_ops =
+{
 	.owner		= THIS_MODULE,
 	.fb_check_var	= kyrofb_check_var,
 	.fb_set_par	= kyrofb_set_par,
@@ -666,14 +736,18 @@ static int kyrofb_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	unsigned long size;
 	int err;
 
-	if ((err = pci_enable_device(pdev))) {
+	if ((err = pci_enable_device(pdev)))
+	{
 		printk(KERN_WARNING "kyrofb: Can't enable pdev: %d\n", err);
 		return err;
 	}
 
 	info = framebuffer_alloc(sizeof(struct kyrofb_info), &pdev->dev);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
 
 	currentpar = info->par;
 
@@ -683,17 +757,23 @@ static int kyrofb_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	kyro_fix.mmio_len   = pci_resource_len(pdev, 1);
 
 	currentpar->regbase = deviceInfo.pSTGReg =
-		ioremap_nocache(kyro_fix.mmio_start, kyro_fix.mmio_len);
+							  ioremap_nocache(kyro_fix.mmio_start, kyro_fix.mmio_len);
+
 	if (!currentpar->regbase)
+	{
 		goto out_free_fb;
+	}
 
 	info->screen_base = pci_ioremap_wc_bar(pdev, 0);
+
 	if (!info->screen_base)
+	{
 		goto out_unmap_regs;
+	}
 
 	if (!nomtrr)
 		currentpar->wc_cookie = arch_phys_wc_add(kyro_fix.smem_start,
-							 kyro_fix.smem_len);
+								kyro_fix.smem_len);
 
 	kyro_fix.ypanstep	= nopan ? 0 : 1;
 	kyro_fix.ywrapstep	= nowrap ? 0 : 1;
@@ -710,8 +790,10 @@ static int kyrofb_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 	/* This should give a reasonable default video mode */
 	if (!fb_find_mode(&info->var, info, mode_option, kyro_modedb,
-			  NUM_TOTAL_MODES, &kyro_modedb[VMODE_1024_768_75], 32))
+					  NUM_TOTAL_MODES, &kyro_modedb[VMODE_1024_768_75], 32))
+	{
 		info->var = kyro_var;
+	}
 
 	fb_alloc_cmap(&info->cmap, 256, 0);
 
@@ -719,18 +801,20 @@ static int kyrofb_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	kyrofb_check_var(&info->var, info);
 
 	size = get_line_length(info->var.xres_virtual,
-			       info->var.bits_per_pixel);
+						   info->var.bits_per_pixel);
 	size *= info->var.yres_virtual;
 
 	fb_memset(info->screen_base, 0, size);
 
 	if (register_framebuffer(info) < 0)
+	{
 		goto out_unmap;
+	}
 
 	fb_info(info, "%s frame buffer device, at %dx%d@%d using %ldk/%ldk of VRAM\n",
-		info->fix.id,
-		info->var.xres, info->var.yres, info->var.bits_per_pixel,
-		size >> 10, (unsigned long)info->fix.smem_len >> 10);
+			info->fix.id,
+			info->var.xres, info->var.yres, info->var.bits_per_pixel,
+			size >> 10, (unsigned long)info->fix.smem_len >> 10);
 
 	pci_set_drvdata(pdev, info);
 
@@ -776,7 +860,10 @@ static int __init kyrofb_init(void)
 	char *option = NULL;
 
 	if (fb_get_options("kyrofb", &option))
+	{
 		return -ENODEV;
+	}
+
 	kyrofb_setup(option);
 #endif
 	return pci_register_driver(&kyrofb_pci_driver);
@@ -790,7 +877,7 @@ static void __exit kyrofb_exit(void)
 module_init(kyrofb_init);
 
 #ifdef MODULE
-module_exit(kyrofb_exit);
+	module_exit(kyrofb_exit);
 #endif
 
 MODULE_AUTHOR("STMicroelectronics; Paul Mundt <lethal@linux-sh.org>");

@@ -42,7 +42,8 @@
  */
 #define ST_RNG_FILL_FIFO_TIMEOUT	(12 * 2)
 
-struct st_rng_data {
+struct st_rng_data
+{
 	void __iomem	*base;
 	struct clk	*clk;
 	struct hwrng	ops;
@@ -55,18 +56,25 @@ static int st_rng_read(struct hwrng *rng, void *data, size_t max, bool wait)
 	int i;
 
 	/* Wait until FIFO is full - max 4uS*/
-	for (i = 0; i < ST_RNG_FILL_FIFO_TIMEOUT; i++) {
+	for (i = 0; i < ST_RNG_FILL_FIFO_TIMEOUT; i++)
+	{
 		status = readl_relaxed(ddata->base + ST_RNG_STATUS_REG);
+
 		if (status & ST_RNG_STATUS_FIFO_FULL)
+		{
 			break;
+		}
+
 		udelay(1);
 	}
 
 	if (i == ST_RNG_FILL_FIFO_TIMEOUT)
+	{
 		return 0;
+	}
 
 	for (i = 0; i < ST_RNG_FIFO_SIZE && i < max; i += 2)
-		*(u16 *)(data + i) =
+		* (u16 *)(data + i) =
 			readl_relaxed(ddata->base + ST_RNG_DATA_REG);
 
 	return i;	/* No of bytes read */
@@ -81,21 +89,33 @@ static int st_rng_probe(struct platform_device *pdev)
 	int ret;
 
 	ddata = devm_kzalloc(&pdev->dev, sizeof(*ddata), GFP_KERNEL);
+
 	if (!ddata)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(base))
+	{
 		return PTR_ERR(base);
+	}
 
 	clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(clk))
+	{
 		return PTR_ERR(clk);
+	}
 
 	ret = clk_prepare_enable(clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ddata->ops.priv	= (unsigned long)ddata;
 	ddata->ops.read	= st_rng_read;
@@ -106,7 +126,9 @@ static int st_rng_probe(struct platform_device *pdev)
 	dev_set_drvdata(&pdev->dev, ddata);
 
 	ret = hwrng_register(&ddata->ops);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to register HW RNG\n");
 		clk_disable_unprepare(clk);
 		return ret;
@@ -128,13 +150,15 @@ static int st_rng_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id st_rng_match[] = {
+static const struct of_device_id st_rng_match[] =
+{
 	{ .compatible = "st,rng" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, st_rng_match);
 
-static struct platform_driver st_rng_driver = {
+static struct platform_driver st_rng_driver =
+{
 	.driver = {
 		.name = "st-hwrandom",
 		.of_match_table = of_match_ptr(st_rng_match),

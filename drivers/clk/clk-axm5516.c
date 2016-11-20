@@ -26,7 +26,8 @@
  * @hw: clk_hw for the common clk framework
  * @regmap: Regmap for the clock control registers
  */
-struct axxia_clk {
+struct axxia_clk
+{
 	struct clk_hw hw;
 	struct regmap *regmap;
 };
@@ -37,7 +38,8 @@ struct axxia_clk {
  * @aclk: Common struct
  * @reg: Offset into regmap for PLL control register
  */
-struct axxia_pllclk {
+struct axxia_pllclk
+{
 	struct axxia_clk aclk;
 	u32 reg;
 };
@@ -64,7 +66,8 @@ axxia_pllclk_recalc(struct clk_hw *hw, unsigned long parent_rate)
 	return rate;
 }
 
-static const struct clk_ops axxia_pllclk_ops = {
+static const struct clk_ops axxia_pllclk_ops =
+{
 	.recalc_rate = axxia_pllclk_recalc,
 };
 
@@ -75,7 +78,8 @@ static const struct clk_ops axxia_pllclk_ops = {
  * @shift: Bit position for divider value
  * @width: Number of bits in divider value
  */
-struct axxia_divclk {
+struct axxia_divclk
+{
 	struct axxia_clk aclk;
 	u32 reg;
 	u32 shift;
@@ -94,12 +98,13 @@ axxia_divclk_recalc_rate(struct clk_hw *hw, unsigned long parent_rate)
 	u32 ctrl, div;
 
 	regmap_read(aclk->regmap, divclk->reg, &ctrl);
-	div = 1 + ((ctrl >> divclk->shift) & ((1 << divclk->width)-1));
+	div = 1 + ((ctrl >> divclk->shift) & ((1 << divclk->width) - 1));
 
 	return parent_rate / div;
 }
 
-static const struct clk_ops axxia_divclk_ops = {
+static const struct clk_ops axxia_divclk_ops =
+{
 	.recalc_rate = axxia_divclk_recalc_rate,
 };
 
@@ -110,7 +115,8 @@ static const struct clk_ops axxia_divclk_ops = {
  * @shift: Bit position for selection value
  * @width: Number of bits in selection value
  */
-struct axxia_clkmux {
+struct axxia_clkmux
+{
 	struct axxia_clk aclk;
 	u32 reg;
 	u32 shift;
@@ -133,7 +139,8 @@ static u8 axxia_clkmux_get_parent(struct clk_hw *hw)
 	return (u8) parent;
 }
 
-static const struct clk_ops axxia_clkmux_ops = {
+static const struct clk_ops axxia_clkmux_ops =
+{
 	.get_parent = axxia_clkmux_get_parent,
 };
 
@@ -142,62 +149,77 @@ static const struct clk_ops axxia_clkmux_ops = {
  * PLLs
  */
 
-static struct axxia_pllclk clk_fab_pll = {
-	.aclk.hw.init = &(struct clk_init_data){
+static struct axxia_pllclk clk_fab_pll =
+{
+	.aclk.hw.init = &(struct clk_init_data)
+	{
 		.name = "clk_fab_pll",
-		.parent_names = (const char *[]){
+		.parent_names = (const char *[])
+		{
 			"clk_ref0"
 		},
 		.num_parents = 1,
-		.ops = &axxia_pllclk_ops,
+		 .ops = &axxia_pllclk_ops,
 	},
 	.reg   = 0x01800,
 };
 
-static struct axxia_pllclk clk_cpu_pll = {
-	.aclk.hw.init = &(struct clk_init_data){
+static struct axxia_pllclk clk_cpu_pll =
+{
+	.aclk.hw.init = &(struct clk_init_data)
+	{
 		.name = "clk_cpu_pll",
-		.parent_names = (const char *[]){
+		.parent_names = (const char *[])
+		{
 			"clk_ref0"
 		},
 		.num_parents = 1,
-		.ops = &axxia_pllclk_ops,
+		 .ops = &axxia_pllclk_ops,
 	},
 	.reg   = 0x02000,
 };
 
-static struct axxia_pllclk clk_sys_pll = {
-	.aclk.hw.init = &(struct clk_init_data){
+static struct axxia_pllclk clk_sys_pll =
+{
+	.aclk.hw.init = &(struct clk_init_data)
+	{
 		.name = "clk_sys_pll",
-		.parent_names = (const char *[]){
+		.parent_names = (const char *[])
+		{
 			"clk_ref0"
 		},
 		.num_parents = 1,
-		.ops = &axxia_pllclk_ops,
+		 .ops = &axxia_pllclk_ops,
 	},
 	.reg   = 0x02800,
 };
 
-static struct axxia_pllclk clk_sm0_pll = {
-	.aclk.hw.init = &(struct clk_init_data){
+static struct axxia_pllclk clk_sm0_pll =
+{
+	.aclk.hw.init = &(struct clk_init_data)
+	{
 		.name = "clk_sm0_pll",
-		.parent_names = (const char *[]){
+		.parent_names = (const char *[])
+		{
 			"clk_ref2"
 		},
 		.num_parents = 1,
-		.ops = &axxia_pllclk_ops,
+		 .ops = &axxia_pllclk_ops,
 	},
 	.reg   = 0x03000,
 };
 
-static struct axxia_pllclk clk_sm1_pll = {
-	.aclk.hw.init = &(struct clk_init_data){
+static struct axxia_pllclk clk_sm1_pll =
+{
+	.aclk.hw.init = &(struct clk_init_data)
+	{
 		.name = "clk_sm1_pll",
-		.parent_names = (const char *[]){
+		.parent_names = (const char *[])
+		{
 			"clk_ref1"
 		},
 		.num_parents = 1,
-		.ops = &axxia_pllclk_ops,
+		 .ops = &axxia_pllclk_ops,
 	},
 	.reg   = 0x03800,
 };
@@ -206,291 +228,346 @@ static struct axxia_pllclk clk_sm1_pll = {
  * Clock dividers
  */
 
-static struct axxia_divclk clk_cpu0_div = {
-	.aclk.hw.init = &(struct clk_init_data){
+static struct axxia_divclk clk_cpu0_div =
+{
+	.aclk.hw.init = &(struct clk_init_data)
+	{
 		.name = "clk_cpu0_div",
-		.parent_names = (const char *[]){
+		.parent_names = (const char *[])
+		{
 			"clk_cpu_pll"
 		},
 		.num_parents = 1,
-		.ops = &axxia_divclk_ops,
+		 .ops = &axxia_divclk_ops,
 	},
 	.reg   = 0x10008,
-	.shift = 0,
-	.width = 4,
+	 .shift = 0,
+	  .width = 4,
 };
 
-static struct axxia_divclk clk_cpu1_div = {
-	.aclk.hw.init = &(struct clk_init_data){
+static struct axxia_divclk clk_cpu1_div =
+{
+	.aclk.hw.init = &(struct clk_init_data)
+	{
 		.name = "clk_cpu1_div",
-		.parent_names = (const char *[]){
+		.parent_names = (const char *[])
+		{
 			"clk_cpu_pll"
 		},
 		.num_parents = 1,
-		.ops = &axxia_divclk_ops,
+		 .ops = &axxia_divclk_ops,
 	},
 	.reg   = 0x10008,
-	.shift = 4,
-	.width = 4,
+	 .shift = 4,
+	  .width = 4,
 };
 
-static struct axxia_divclk clk_cpu2_div = {
-	.aclk.hw.init = &(struct clk_init_data){
+static struct axxia_divclk clk_cpu2_div =
+{
+	.aclk.hw.init = &(struct clk_init_data)
+	{
 		.name = "clk_cpu2_div",
-		.parent_names = (const char *[]){
+		.parent_names = (const char *[])
+		{
 			"clk_cpu_pll"
 		},
 		.num_parents = 1,
-		.ops = &axxia_divclk_ops,
+		 .ops = &axxia_divclk_ops,
 	},
 	.reg   = 0x10008,
-	.shift = 8,
-	.width = 4,
+	 .shift = 8,
+	  .width = 4,
 };
 
-static struct axxia_divclk clk_cpu3_div = {
-	.aclk.hw.init = &(struct clk_init_data){
+static struct axxia_divclk clk_cpu3_div =
+{
+	.aclk.hw.init = &(struct clk_init_data)
+	{
 		.name = "clk_cpu3_div",
-		.parent_names = (const char *[]){
+		.parent_names = (const char *[])
+		{
 			"clk_cpu_pll"
 		},
 		.num_parents = 1,
-		.ops = &axxia_divclk_ops,
+		 .ops = &axxia_divclk_ops,
 	},
 	.reg   = 0x10008,
-	.shift = 12,
-	.width = 4,
+	 .shift = 12,
+	  .width = 4,
 };
 
-static struct axxia_divclk clk_nrcp_div = {
-	.aclk.hw.init = &(struct clk_init_data){
+static struct axxia_divclk clk_nrcp_div =
+{
+	.aclk.hw.init = &(struct clk_init_data)
+	{
 		.name = "clk_nrcp_div",
-		.parent_names = (const char *[]){
+		.parent_names = (const char *[])
+		{
 			"clk_sys_pll"
 		},
 		.num_parents = 1,
-		.ops = &axxia_divclk_ops,
+		 .ops = &axxia_divclk_ops,
 	},
 	.reg   = 0x1000c,
-	.shift = 0,
-	.width = 4,
+	 .shift = 0,
+	  .width = 4,
 };
 
-static struct axxia_divclk clk_sys_div = {
-	.aclk.hw.init = &(struct clk_init_data){
+static struct axxia_divclk clk_sys_div =
+{
+	.aclk.hw.init = &(struct clk_init_data)
+	{
 		.name = "clk_sys_div",
-		.parent_names = (const char *[]){
+		.parent_names = (const char *[])
+		{
 			"clk_sys_pll"
 		},
 		.num_parents = 1,
-		.ops = &axxia_divclk_ops,
+		 .ops = &axxia_divclk_ops,
 	},
 	.reg   = 0x1000c,
-	.shift = 4,
-	.width = 4,
+	 .shift = 4,
+	  .width = 4,
 };
 
-static struct axxia_divclk clk_fab_div = {
-	.aclk.hw.init = &(struct clk_init_data){
+static struct axxia_divclk clk_fab_div =
+{
+	.aclk.hw.init = &(struct clk_init_data)
+	{
 		.name = "clk_fab_div",
-		.parent_names = (const char *[]){
+		.parent_names = (const char *[])
+		{
 			"clk_fab_pll"
 		},
 		.num_parents = 1,
-		.ops = &axxia_divclk_ops,
+		 .ops = &axxia_divclk_ops,
 	},
 	.reg   = 0x1000c,
-	.shift = 8,
-	.width = 4,
+	 .shift = 8,
+	  .width = 4,
 };
 
-static struct axxia_divclk clk_per_div = {
-	.aclk.hw.init = &(struct clk_init_data){
+static struct axxia_divclk clk_per_div =
+{
+	.aclk.hw.init = &(struct clk_init_data)
+	{
 		.name = "clk_per_div",
-		.parent_names = (const char *[]){
+		.parent_names = (const char *[])
+		{
 			"clk_sm1_pll"
 		},
 		.num_parents = 1,
-		.flags = CLK_IS_BASIC,
-		.ops = &axxia_divclk_ops,
+		 .flags = CLK_IS_BASIC,
+		  .ops = &axxia_divclk_ops,
 	},
 	.reg   = 0x1000c,
-	.shift = 12,
-	.width = 4,
+	 .shift = 12,
+	  .width = 4,
 };
 
-static struct axxia_divclk clk_mmc_div = {
-	.aclk.hw.init = &(struct clk_init_data){
+static struct axxia_divclk clk_mmc_div =
+{
+	.aclk.hw.init = &(struct clk_init_data)
+	{
 		.name = "clk_mmc_div",
-		.parent_names = (const char *[]){
+		.parent_names = (const char *[])
+		{
 			"clk_sm1_pll"
 		},
 		.num_parents = 1,
-		.flags = CLK_IS_BASIC,
-		.ops = &axxia_divclk_ops,
+		 .flags = CLK_IS_BASIC,
+		  .ops = &axxia_divclk_ops,
 	},
 	.reg   = 0x1000c,
-	.shift = 16,
-	.width = 4,
+	 .shift = 16,
+	  .width = 4,
 };
 
 /*
  * Clock MUXes
  */
 
-static struct axxia_clkmux clk_cpu0_mux = {
-	.aclk.hw.init = &(struct clk_init_data){
+static struct axxia_clkmux clk_cpu0_mux =
+{
+	.aclk.hw.init = &(struct clk_init_data)
+	{
 		.name = "clk_cpu0",
-		.parent_names = (const char *[]){
+		.parent_names = (const char *[])
+		{
 			"clk_ref0",
 			"clk_cpu_pll",
 			"clk_cpu0_div",
 			"clk_cpu0_div"
 		},
 		.num_parents = 4,
-		.ops = &axxia_clkmux_ops,
+		 .ops = &axxia_clkmux_ops,
 	},
 	.reg   = 0x10000,
-	.shift = 0,
-	.width = 2,
+	 .shift = 0,
+	  .width = 2,
 };
 
-static struct axxia_clkmux clk_cpu1_mux = {
-	.aclk.hw.init = &(struct clk_init_data){
+static struct axxia_clkmux clk_cpu1_mux =
+{
+	.aclk.hw.init = &(struct clk_init_data)
+	{
 		.name = "clk_cpu1",
-		.parent_names = (const char *[]){
+		.parent_names = (const char *[])
+		{
 			"clk_ref0",
 			"clk_cpu_pll",
 			"clk_cpu1_div",
 			"clk_cpu1_div"
 		},
 		.num_parents = 4,
-		.ops = &axxia_clkmux_ops,
+		 .ops = &axxia_clkmux_ops,
 	},
 	.reg   = 0x10000,
-	.shift = 2,
-	.width = 2,
+	 .shift = 2,
+	  .width = 2,
 };
 
-static struct axxia_clkmux clk_cpu2_mux = {
-	.aclk.hw.init = &(struct clk_init_data){
+static struct axxia_clkmux clk_cpu2_mux =
+{
+	.aclk.hw.init = &(struct clk_init_data)
+	{
 		.name = "clk_cpu2",
-		.parent_names = (const char *[]){
+		.parent_names = (const char *[])
+		{
 			"clk_ref0",
 			"clk_cpu_pll",
 			"clk_cpu2_div",
 			"clk_cpu2_div"
 		},
 		.num_parents = 4,
-		.ops = &axxia_clkmux_ops,
+		 .ops = &axxia_clkmux_ops,
 	},
 	.reg   = 0x10000,
-	.shift = 4,
-	.width = 2,
+	 .shift = 4,
+	  .width = 2,
 };
 
-static struct axxia_clkmux clk_cpu3_mux = {
-	.aclk.hw.init = &(struct clk_init_data){
+static struct axxia_clkmux clk_cpu3_mux =
+{
+	.aclk.hw.init = &(struct clk_init_data)
+	{
 		.name = "clk_cpu3",
-		.parent_names = (const char *[]){
+		.parent_names = (const char *[])
+		{
 			"clk_ref0",
 			"clk_cpu_pll",
 			"clk_cpu3_div",
 			"clk_cpu3_div"
 		},
 		.num_parents = 4,
-		.ops = &axxia_clkmux_ops,
+		 .ops = &axxia_clkmux_ops,
 	},
 	.reg   = 0x10000,
-	.shift = 6,
-	.width = 2,
+	 .shift = 6,
+	  .width = 2,
 };
 
-static struct axxia_clkmux clk_nrcp_mux = {
-	.aclk.hw.init = &(struct clk_init_data){
+static struct axxia_clkmux clk_nrcp_mux =
+{
+	.aclk.hw.init = &(struct clk_init_data)
+	{
 		.name = "clk_nrcp",
-		.parent_names = (const char *[]){
+		.parent_names = (const char *[])
+		{
 			"clk_ref0",
 			"clk_sys_pll",
 			"clk_nrcp_div",
 			"clk_nrcp_div"
 		},
 		.num_parents = 4,
-		.ops = &axxia_clkmux_ops,
+		 .ops = &axxia_clkmux_ops,
 	},
 	.reg   = 0x10004,
-	.shift = 0,
-	.width = 2,
+	 .shift = 0,
+	  .width = 2,
 };
 
-static struct axxia_clkmux clk_sys_mux = {
-	.aclk.hw.init = &(struct clk_init_data){
+static struct axxia_clkmux clk_sys_mux =
+{
+	.aclk.hw.init = &(struct clk_init_data)
+	{
 		.name = "clk_sys",
-		.parent_names = (const char *[]){
+		.parent_names = (const char *[])
+		{
 			"clk_ref0",
 			"clk_sys_pll",
 			"clk_sys_div",
 			"clk_sys_div"
 		},
 		.num_parents = 4,
-		.ops = &axxia_clkmux_ops,
+		 .ops = &axxia_clkmux_ops,
 	},
 	.reg   = 0x10004,
-	.shift = 2,
-	.width = 2,
+	 .shift = 2,
+	  .width = 2,
 };
 
-static struct axxia_clkmux clk_fab_mux = {
-	.aclk.hw.init = &(struct clk_init_data){
+static struct axxia_clkmux clk_fab_mux =
+{
+	.aclk.hw.init = &(struct clk_init_data)
+	{
 		.name = "clk_fab",
-		.parent_names = (const char *[]){
+		.parent_names = (const char *[])
+		{
 			"clk_ref0",
 			"clk_fab_pll",
 			"clk_fab_div",
 			"clk_fab_div"
 		},
 		.num_parents = 4,
-		.ops = &axxia_clkmux_ops,
+		 .ops = &axxia_clkmux_ops,
 	},
 	.reg   = 0x10004,
-	.shift = 4,
-	.width = 2,
+	 .shift = 4,
+	  .width = 2,
 };
 
-static struct axxia_clkmux clk_per_mux = {
-	.aclk.hw.init = &(struct clk_init_data){
+static struct axxia_clkmux clk_per_mux =
+{
+	.aclk.hw.init = &(struct clk_init_data)
+	{
 		.name = "clk_per",
-		.parent_names = (const char *[]){
+		.parent_names = (const char *[])
+		{
 			"clk_ref1",
 			"clk_per_div"
 		},
 		.num_parents = 2,
-		.ops = &axxia_clkmux_ops,
+		 .ops = &axxia_clkmux_ops,
 	},
 	.reg   = 0x10004,
-	.shift = 6,
-	.width = 1,
+	 .shift = 6,
+	  .width = 1,
 };
 
-static struct axxia_clkmux clk_mmc_mux = {
-	.aclk.hw.init = &(struct clk_init_data){
+static struct axxia_clkmux clk_mmc_mux =
+{
+	.aclk.hw.init = &(struct clk_init_data)
+	{
 		.name = "clk_mmc",
-		.parent_names = (const char *[]){
+		.parent_names = (const char *[])
+		{
 			"clk_ref1",
 			"clk_mmc_div"
 		},
 		.num_parents = 2,
-		.ops = &axxia_clkmux_ops,
+		 .ops = &axxia_clkmux_ops,
 	},
 	.reg   = 0x10004,
-	.shift = 9,
-	.width = 1,
+	 .shift = 9,
+	  .width = 1,
 };
 
 /* Table of all supported clocks indexed by the clock identifiers from the
  * device tree binding
  */
-static struct axxia_clk *axmclk_clocks[] = {
+static struct axxia_clk *axmclk_clocks[] =
+{
 	[AXXIA_CLK_FAB_PLL]  = &clk_fab_pll.aclk,
 	[AXXIA_CLK_CPU_PLL]  = &clk_cpu_pll.aclk,
 	[AXXIA_CLK_SYS_PLL]  = &clk_sys_pll.aclk,
@@ -521,7 +598,8 @@ of_clk_axmclk_get(struct of_phandle_args *clkspec, void *unused)
 {
 	unsigned int idx = clkspec->args[0];
 
-	if (idx >= ARRAY_SIZE(axmclk_clocks)) {
+	if (idx >= ARRAY_SIZE(axmclk_clocks))
+	{
 		pr_err("%s: invalid index %u\n", __func__, idx);
 		return ERR_PTR(-EINVAL);
 	}
@@ -529,7 +607,8 @@ of_clk_axmclk_get(struct of_phandle_args *clkspec, void *unused)
 	return &axmclk_clocks[idx]->hw;
 }
 
-static const struct regmap_config axmclk_regmap_config = {
+static const struct regmap_config axmclk_regmap_config =
+{
 	.reg_bits	= 32,
 	.reg_stride	= 4,
 	.val_bits	= 32,
@@ -537,7 +616,8 @@ static const struct regmap_config axmclk_regmap_config = {
 	.fast_io	= true,
 };
 
-static const struct of_device_id axmclk_match_table[] = {
+static const struct of_device_id axmclk_match_table[] =
+{
 	{ .compatible = "lsi,axm5516-clks" },
 	{ }
 };
@@ -554,12 +634,18 @@ static int axmclk_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(base))
+	{
 		return PTR_ERR(base);
+	}
 
 	regmap = devm_regmap_init_mmio(dev, base, &axmclk_regmap_config);
+
 	if (IS_ERR(regmap))
+	{
 		return PTR_ERR(regmap);
+	}
 
 	num_clks = ARRAY_SIZE(axmclk_clocks);
 	pr_info("axmclk: supporting %zu clocks\n", num_clks);
@@ -567,11 +653,15 @@ static int axmclk_probe(struct platform_device *pdev)
 	/* Update each entry with the allocated regmap and register the clock
 	 * with the common clock framework
 	 */
-	for (i = 0; i < num_clks; i++) {
+	for (i = 0; i < num_clks; i++)
+	{
 		axmclk_clocks[i]->regmap = regmap;
 		ret = devm_clk_hw_register(dev, &axmclk_clocks[i]->hw);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return of_clk_add_hw_provider(dev->of_node, of_clk_axmclk_get, NULL);
@@ -583,7 +673,8 @@ static int axmclk_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver axmclk_driver = {
+static struct platform_driver axmclk_driver =
+{
 	.probe		= axmclk_probe,
 	.remove		= axmclk_remove,
 	.driver		= {

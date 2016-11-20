@@ -49,7 +49,8 @@
 #include <adf_common_drv.h>
 #include "adf_c3xxxvf_hw_data.h"
 
-static struct adf_hw_device_class c3xxxiov_class = {
+static struct adf_hw_device_class c3xxxiov_class =
+{
 	.name = ADF_C3XXXVF_DEVICE_NAME,
 	.type = DEV_C3XXXVF,
 	.instances = 0

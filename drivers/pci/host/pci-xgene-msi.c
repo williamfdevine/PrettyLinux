@@ -32,13 +32,15 @@
 #define NR_HW_IRQS		16
 #define NR_MSI_VEC		(IDX_PER_GROUP * IRQS_PER_IDX * NR_HW_IRQS)
 
-struct xgene_msi_group {
+struct xgene_msi_group
+{
 	struct xgene_msi	*msi;
 	int			gic_irq;
 	u32			msi_grp;
 };
 
-struct xgene_msi {
+struct xgene_msi
+{
 	struct device_node	*node;
 	struct irq_domain	*inner_domain;
 	struct irq_domain	*msi_domain;
@@ -53,7 +55,8 @@ struct xgene_msi {
 /* Global data */
 static struct xgene_msi xgene_msi_ctrl;
 
-static struct irq_chip xgene_msi_top_irq_chip = {
+static struct irq_chip xgene_msi_top_irq_chip =
+{
 	.name		= "X-Gene1 MSI",
 	.irq_enable	= pci_msi_unmask_irq,
 	.irq_disable	= pci_msi_mask_irq,
@@ -61,9 +64,10 @@ static struct irq_chip xgene_msi_top_irq_chip = {
 	.irq_unmask	= pci_msi_unmask_irq,
 };
 
-static struct  msi_domain_info xgene_msi_domain_info = {
+static struct  msi_domain_info xgene_msi_domain_info =
+{
 	.flags	= (MSI_FLAG_USE_DEF_DOM_OPS | MSI_FLAG_USE_DEF_CHIP_OPS |
-		  MSI_FLAG_PCI_MSIX),
+	MSI_FLAG_PCI_MSIX),
 	.chip	= &xgene_msi_top_irq_chip,
 };
 
@@ -101,10 +105,10 @@ static struct  msi_domain_info xgene_msi_domain_info = {
 
 /* MSInIRx read helper */
 static u32 xgene_msi_ir_read(struct xgene_msi *msi,
-				    u32 msi_grp, u32 msir_idx)
+							 u32 msi_grp, u32 msir_idx)
 {
 	return readl_relaxed(msi->msi_regs + MSI_IR0 +
-			      (msi_grp << 19) + (msir_idx << 16));
+						 (msi_grp << 19) + (msir_idx << 16));
 }
 
 /* MSIINTn read helper */
@@ -179,14 +183,17 @@ static unsigned long hwirq_to_canonical_hwirq(unsigned long hwirq)
 }
 
 static int xgene_msi_set_affinity(struct irq_data *irqdata,
-				  const struct cpumask *mask, bool force)
+								  const struct cpumask *mask, bool force)
 {
 	int target_cpu = cpumask_first(mask);
 	int curr_cpu;
 
 	curr_cpu = hwirq_to_cpu(irqdata->hwirq);
+
 	if (curr_cpu == target_cpu)
+	{
 		return IRQ_SET_MASK_OK_DONE;
+	}
 
 	/* Update MSI number to target the new CPU */
 	irqdata->hwirq = hwirq_to_canonical_hwirq(irqdata->hwirq) + target_cpu;
@@ -194,14 +201,15 @@ static int xgene_msi_set_affinity(struct irq_data *irqdata,
 	return IRQ_SET_MASK_OK;
 }
 
-static struct irq_chip xgene_msi_bottom_irq_chip = {
+static struct irq_chip xgene_msi_bottom_irq_chip =
+{
 	.name			= "MSI",
 	.irq_set_affinity       = xgene_msi_set_affinity,
 	.irq_compose_msi_msg	= xgene_compose_msi_msg,
 };
 
 static int xgene_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
-				  unsigned int nr_irqs, void *args)
+								  unsigned int nr_irqs, void *args)
 {
 	struct xgene_msi *msi = domain->host_data;
 	int msi_irq;
@@ -209,26 +217,33 @@ static int xgene_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
 	mutex_lock(&msi->bitmap_lock);
 
 	msi_irq = bitmap_find_next_zero_area(msi->bitmap, NR_MSI_VEC, 0,
-					     msi->num_cpus, 0);
+										 msi->num_cpus, 0);
+
 	if (msi_irq < NR_MSI_VEC)
+	{
 		bitmap_set(msi->bitmap, msi_irq, msi->num_cpus);
+	}
 	else
+	{
 		msi_irq = -ENOSPC;
+	}
 
 	mutex_unlock(&msi->bitmap_lock);
 
 	if (msi_irq < 0)
+	{
 		return msi_irq;
+	}
 
 	irq_domain_set_info(domain, virq, msi_irq,
-			    &xgene_msi_bottom_irq_chip, domain->host_data,
-			    handle_simple_irq, NULL, NULL);
+						&xgene_msi_bottom_irq_chip, domain->host_data,
+						handle_simple_irq, NULL, NULL);
 
 	return 0;
 }
 
 static void xgene_irq_domain_free(struct irq_domain *domain,
-				  unsigned int virq, unsigned int nr_irqs)
+								  unsigned int virq, unsigned int nr_irqs)
 {
 	struct irq_data *d = irq_domain_get_irq_data(domain, virq);
 	struct xgene_msi *msi = irq_data_get_irq_chip_data(d);
@@ -244,7 +259,8 @@ static void xgene_irq_domain_free(struct irq_domain *domain,
 	irq_domain_free_irqs_parent(domain, virq, nr_irqs);
 }
 
-static const struct irq_domain_ops msi_domain_ops = {
+static const struct irq_domain_ops msi_domain_ops =
+{
 	.alloc  = xgene_irq_domain_alloc,
 	.free   = xgene_irq_domain_free,
 };
@@ -252,15 +268,19 @@ static const struct irq_domain_ops msi_domain_ops = {
 static int xgene_allocate_domains(struct xgene_msi *msi)
 {
 	msi->inner_domain = irq_domain_add_linear(NULL, NR_MSI_VEC,
-						  &msi_domain_ops, msi);
+						&msi_domain_ops, msi);
+
 	if (!msi->inner_domain)
+	{
 		return -ENOMEM;
+	}
 
 	msi->msi_domain = pci_msi_create_irq_domain(of_node_to_fwnode(msi->node),
-						    &xgene_msi_domain_info,
-						    msi->inner_domain);
+					  &xgene_msi_domain_info,
+					  msi->inner_domain);
 
-	if (!msi->msi_domain) {
+	if (!msi->msi_domain)
+	{
 		irq_domain_remove(msi->inner_domain);
 		return -ENOMEM;
 	}
@@ -271,9 +291,14 @@ static int xgene_allocate_domains(struct xgene_msi *msi)
 static void xgene_free_domains(struct xgene_msi *msi)
 {
 	if (msi->msi_domain)
+	{
 		irq_domain_remove(msi->msi_domain);
+	}
+
 	if (msi->inner_domain)
+	{
 		irq_domain_remove(msi->inner_domain);
+	}
 }
 
 static int xgene_msi_init_allocator(struct xgene_msi *xgene_msi)
@@ -281,16 +306,22 @@ static int xgene_msi_init_allocator(struct xgene_msi *xgene_msi)
 	int size = BITS_TO_LONGS(NR_MSI_VEC) * sizeof(long);
 
 	xgene_msi->bitmap = kzalloc(size, GFP_KERNEL);
+
 	if (!xgene_msi->bitmap)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&xgene_msi->bitmap_lock);
 
 	xgene_msi->msi_groups = kcalloc(NR_HW_IRQS,
-					sizeof(struct xgene_msi_group),
-					GFP_KERNEL);
+									sizeof(struct xgene_msi_group),
+									GFP_KERNEL);
+
 	if (!xgene_msi->msi_groups)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -316,7 +347,9 @@ static void xgene_msi_isr(struct irq_desc *desc)
 	 * corresponding to MSInIRx is set.
 	 */
 	grp_select = xgene_msi_int_read(xgene_msi, msi_grp);
-	while (grp_select) {
+
+	while (grp_select)
+	{
 		msir_index = ffs(grp_select) - 1;
 		/*
 		 * Calculate MSInIRx address to read to check for interrupts
@@ -324,7 +357,9 @@ static void xgene_msi_isr(struct irq_desc *desc)
 		 * described in xgene_compose_msi_msg() )
 		 */
 		msir_val = xgene_msi_ir_read(xgene_msi, msi_grp, msir_index);
-		while (msir_val) {
+
+		while (msir_val)
+		{
 			intr_index = ffs(msir_val) - 1;
 			/*
 			 * Calculate MSI vector number (refer to the termination
@@ -332,7 +367,7 @@ static void xgene_msi_isr(struct irq_desc *desc)
 			 * xgene_compose_msi_msg function)
 			 */
 			hw_irq = (((msir_index * IRQS_PER_IDX) + intr_index) *
-				 NR_HW_IRQS) + msi_grp;
+					  NR_HW_IRQS) + msi_grp;
 			/*
 			 * As we have multiple hw_irq that maps to single MSI,
 			 * always look up the virq using the hw_irq as seen from
@@ -341,13 +376,19 @@ static void xgene_msi_isr(struct irq_desc *desc)
 			hw_irq = hwirq_to_canonical_hwirq(hw_irq);
 			virq = irq_find_mapping(xgene_msi->inner_domain, hw_irq);
 			WARN_ON(!virq);
+
 			if (virq != 0)
+			{
 				generic_handle_irq(virq);
+			}
+
 			msir_val &= ~(1 << intr_index);
 		}
+
 		grp_select &= ~(1 << msir_index);
 
-		if (!grp_select) {
+		if (!grp_select)
+		{
 			/*
 			 * We handled all interrupts happened in this group,
 			 * resample this group MSI_INTx register in case
@@ -365,11 +406,16 @@ static int xgene_msi_remove(struct platform_device *pdev)
 	int virq, i;
 	struct xgene_msi *msi = platform_get_drvdata(pdev);
 
-	for (i = 0; i < NR_HW_IRQS; i++) {
+	for (i = 0; i < NR_HW_IRQS; i++)
+	{
 		virq = msi->msi_groups[i].gic_irq;
+
 		if (virq != 0)
+		{
 			irq_set_chained_handler_and_data(virq, NULL, NULL);
+		}
 	}
+
 	kfree(msi->msi_groups);
 
 	kfree(msi->bitmap);
@@ -388,38 +434,53 @@ static int xgene_msi_hwirq_alloc(unsigned int cpu)
 	int i;
 	int err;
 
-	for (i = cpu; i < NR_HW_IRQS; i += msi->num_cpus) {
+	for (i = cpu; i < NR_HW_IRQS; i += msi->num_cpus)
+	{
 		msi_group = &msi->msi_groups[i];
+
 		if (!msi_group->gic_irq)
+		{
 			continue;
+		}
 
 		irq_set_chained_handler(msi_group->gic_irq,
-					xgene_msi_isr);
+								xgene_msi_isr);
 		err = irq_set_handler_data(msi_group->gic_irq, msi_group);
-		if (err) {
+
+		if (err)
+		{
 			pr_err("failed to register GIC IRQ handler\n");
 			return -EINVAL;
 		}
+
 		/*
 		 * Statically allocate MSI GIC IRQs to each CPU core.
 		 * With 8-core X-Gene v1, 2 MSI GIC IRQs are allocated
 		 * to each core.
 		 */
-		if (alloc_cpumask_var(&mask, GFP_KERNEL)) {
+		if (alloc_cpumask_var(&mask, GFP_KERNEL))
+		{
 			cpumask_clear(mask);
 			cpumask_set_cpu(cpu, mask);
 			err = irq_set_affinity(msi_group->gic_irq, mask);
+
 			if (err)
+			{
 				pr_err("failed to set affinity for GIC IRQ");
+			}
+
 			free_cpumask_var(mask);
-		} else {
+		}
+		else
+		{
 			pr_err("failed to alloc CPU mask for affinity\n");
 			err = -EINVAL;
 		}
 
-		if (err) {
+		if (err)
+		{
 			irq_set_chained_handler_and_data(msi_group->gic_irq,
-							 NULL, NULL);
+											 NULL, NULL);
 			return err;
 		}
 	}
@@ -433,42 +494,51 @@ static void xgene_msi_hwirq_free(unsigned int cpu)
 	struct xgene_msi_group *msi_group;
 	int i;
 
-	for (i = cpu; i < NR_HW_IRQS; i += msi->num_cpus) {
+	for (i = cpu; i < NR_HW_IRQS; i += msi->num_cpus)
+	{
 		msi_group = &msi->msi_groups[i];
+
 		if (!msi_group->gic_irq)
+		{
 			continue;
+		}
 
 		irq_set_chained_handler_and_data(msi_group->gic_irq, NULL,
-						 NULL);
+										 NULL);
 	}
 }
 
 static int xgene_msi_cpu_callback(struct notifier_block *nfb,
-				  unsigned long action, void *hcpu)
+								  unsigned long action, void *hcpu)
 {
 	unsigned cpu = (unsigned long)hcpu;
 
-	switch (action) {
-	case CPU_ONLINE:
-	case CPU_ONLINE_FROZEN:
-		xgene_msi_hwirq_alloc(cpu);
-		break;
-	case CPU_DEAD:
-	case CPU_DEAD_FROZEN:
-		xgene_msi_hwirq_free(cpu);
-		break;
-	default:
-		break;
+	switch (action)
+	{
+		case CPU_ONLINE:
+		case CPU_ONLINE_FROZEN:
+			xgene_msi_hwirq_alloc(cpu);
+			break;
+
+		case CPU_DEAD:
+		case CPU_DEAD_FROZEN:
+			xgene_msi_hwirq_free(cpu);
+			break;
+
+		default:
+			break;
 	}
 
 	return NOTIFY_OK;
 }
 
-static struct notifier_block xgene_msi_cpu_notifier = {
+static struct notifier_block xgene_msi_cpu_notifier =
+{
 	.notifier_call = xgene_msi_cpu_callback,
 };
 
-static const struct of_device_id xgene_msi_match_table[] = {
+static const struct of_device_id xgene_msi_match_table[] =
+{
 	{.compatible = "apm,xgene1-msi"},
 	{},
 };
@@ -488,35 +558,46 @@ static int xgene_msi_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	xgene_msi->msi_regs = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(xgene_msi->msi_regs)) {
+
+	if (IS_ERR(xgene_msi->msi_regs))
+	{
 		dev_err(&pdev->dev, "no reg space\n");
 		rc = -EINVAL;
 		goto error;
 	}
+
 	xgene_msi->msi_addr = res->start;
 	xgene_msi->node = pdev->dev.of_node;
 	xgene_msi->num_cpus = num_possible_cpus();
 
 	rc = xgene_msi_init_allocator(xgene_msi);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&pdev->dev, "Error allocating MSI bitmap\n");
 		goto error;
 	}
 
 	rc = xgene_allocate_domains(xgene_msi);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&pdev->dev, "Failed to allocate MSI domain\n");
 		goto error;
 	}
 
-	for (irq_index = 0; irq_index < NR_HW_IRQS; irq_index++) {
+	for (irq_index = 0; irq_index < NR_HW_IRQS; irq_index++)
+	{
 		virt_msir = platform_get_irq(pdev, irq_index);
-		if (virt_msir < 0) {
+
+		if (virt_msir < 0)
+		{
 			dev_err(&pdev->dev, "Cannot translate IRQ index %d\n",
-				irq_index);
+					irq_index);
 			rc = -EINVAL;
 			goto error;
 		}
+
 		xgene_msi->msi_groups[irq_index].gic_irq = virt_msir;
 		xgene_msi->msi_groups[irq_index].msi_grp = irq_index;
 		xgene_msi->msi_groups[irq_index].msi = xgene_msi;
@@ -527,13 +608,17 @@ static int xgene_msi_probe(struct platform_device *pdev)
 	 * interrupt handlers, read all of them to clear spurious
 	 * interrupts that may occur before the driver is probed.
 	 */
-	for (irq_index = 0; irq_index < NR_HW_IRQS; irq_index++) {
+	for (irq_index = 0; irq_index < NR_HW_IRQS; irq_index++)
+	{
 		for (msi_idx = 0; msi_idx < IDX_PER_GROUP; msi_idx++)
 			msi_val = xgene_msi_ir_read(xgene_msi, irq_index,
-						    msi_idx);
+										msi_idx);
+
 		/* Read MSIINTn to confirm */
 		msi_val = xgene_msi_int_read(xgene_msi, irq_index);
-		if (msi_val) {
+
+		if (msi_val)
+		{
 			dev_err(&pdev->dev, "Failed to clear spurious IRQ\n");
 			rc = -EINVAL;
 			goto error;
@@ -543,14 +628,18 @@ static int xgene_msi_probe(struct platform_device *pdev)
 	cpu_notifier_register_begin();
 
 	for_each_online_cpu(cpu)
-		if (xgene_msi_hwirq_alloc(cpu)) {
-			dev_err(&pdev->dev, "failed to register MSI handlers\n");
-			cpu_notifier_register_done();
-			goto error;
-		}
+
+	if (xgene_msi_hwirq_alloc(cpu))
+	{
+		dev_err(&pdev->dev, "failed to register MSI handlers\n");
+		cpu_notifier_register_done();
+		goto error;
+	}
 
 	rc = __register_hotcpu_notifier(&xgene_msi_cpu_notifier);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_err(&pdev->dev, "failed to add CPU MSI notifier\n");
 		cpu_notifier_register_done();
 		goto error;
@@ -567,7 +656,8 @@ error:
 	return rc;
 }
 
-static struct platform_driver xgene_msi_driver = {
+static struct platform_driver xgene_msi_driver =
+{
 	.driver = {
 		.name = "xgene-msi",
 		.of_match_table = xgene_msi_match_table,

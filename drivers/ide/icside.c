@@ -40,31 +40,36 @@
 #define ICS_ARCIN_V6_IDEALTOFFSET_2	0x3380
 #define ICS_ARCIN_V6_IDESTEPPING	6
 
-struct cardinfo {
+struct cardinfo
+{
 	unsigned int dataoffset;
 	unsigned int ctrloffset;
 	unsigned int stepping;
 };
 
-static struct cardinfo icside_cardinfo_v5 = {
+static struct cardinfo icside_cardinfo_v5 =
+{
 	.dataoffset	= ICS_ARCIN_V5_IDEOFFSET,
 	.ctrloffset	= ICS_ARCIN_V5_IDEALTOFFSET,
 	.stepping	= ICS_ARCIN_V5_IDESTEPPING,
 };
 
-static struct cardinfo icside_cardinfo_v6_1 = {
+static struct cardinfo icside_cardinfo_v6_1 =
+{
 	.dataoffset	= ICS_ARCIN_V6_IDEOFFSET_1,
 	.ctrloffset	= ICS_ARCIN_V6_IDEALTOFFSET_1,
 	.stepping	= ICS_ARCIN_V6_IDESTEPPING,
 };
 
-static struct cardinfo icside_cardinfo_v6_2 = {
+static struct cardinfo icside_cardinfo_v6_2 =
+{
 	.dataoffset	= ICS_ARCIN_V6_IDEOFFSET_2,
 	.ctrloffset	= ICS_ARCIN_V6_IDEALTOFFSET_2,
 	.stepping	= ICS_ARCIN_V6_IDESTEPPING,
 };
 
-struct icside_state {
+struct icside_state
+{
 	unsigned int channel;
 	unsigned int enabled;
 	void __iomem *irq_port;
@@ -101,7 +106,8 @@ static void icside_irqdisable_arcin_v5 (struct expansion_card *ec, int irqnr)
 	readb(state->irq_port + ICS_ARCIN_V5_INTROFFSET);
 }
 
-static const expansioncard_ops_t icside_ops_arcin_v5 = {
+static const expansioncard_ops_t icside_ops_arcin_v5 =
+{
 	.irqenable	= icside_irqenable_arcin_v5,
 	.irqdisable	= icside_irqdisable_arcin_v5,
 };
@@ -118,15 +124,17 @@ static void icside_irqenable_arcin_v6 (struct expansion_card *ec, int irqnr)
 
 	state->enabled = 1;
 
-	switch (state->channel) {
-	case 0:
-		writeb(0, base + ICS_ARCIN_V6_INTROFFSET_1);
-		readb(base + ICS_ARCIN_V6_INTROFFSET_2);
-		break;
-	case 1:
-		writeb(0, base + ICS_ARCIN_V6_INTROFFSET_2);
-		readb(base + ICS_ARCIN_V6_INTROFFSET_1);
-		break;
+	switch (state->channel)
+	{
+		case 0:
+			writeb(0, base + ICS_ARCIN_V6_INTROFFSET_1);
+			readb(base + ICS_ARCIN_V6_INTROFFSET_2);
+			break;
+
+		case 1:
+			writeb(0, base + ICS_ARCIN_V6_INTROFFSET_2);
+			readb(base + ICS_ARCIN_V6_INTROFFSET_1);
+			break;
 	}
 }
 
@@ -151,10 +159,11 @@ static int icside_irqpending_arcin_v6(struct expansion_card *ec)
 	struct icside_state *state = ec->irq_data;
 
 	return readb(state->irq_port + ICS_ARCIN_V6_INTRSTAT_1) & 1 ||
-	       readb(state->irq_port + ICS_ARCIN_V6_INTRSTAT_2) & 1;
+		   readb(state->irq_port + ICS_ARCIN_V6_INTRSTAT_2) & 1;
 }
 
-static const expansioncard_ops_t icside_ops_arcin_v6 = {
+static const expansioncard_ops_t icside_ops_arcin_v6 =
+{
 	.irqenable	= icside_irqenable_arcin_v6,
 	.irqdisable	= icside_irqdisable_arcin_v6,
 	.irqpending	= icside_irqpending_arcin_v6,
@@ -175,18 +184,23 @@ static void icside_maskproc(ide_drive_t *drive, int mask)
 
 	state->channel = hwif->channel;
 
-	if (state->enabled && !mask) {
-		switch (hwif->channel) {
-		case 0:
-			writeb(0, state->irq_port + ICS_ARCIN_V6_INTROFFSET_1);
-			readb(state->irq_port + ICS_ARCIN_V6_INTROFFSET_2);
-			break;
-		case 1:
-			writeb(0, state->irq_port + ICS_ARCIN_V6_INTROFFSET_2);
-			readb(state->irq_port + ICS_ARCIN_V6_INTROFFSET_1);
-			break;
+	if (state->enabled && !mask)
+	{
+		switch (hwif->channel)
+		{
+			case 0:
+				writeb(0, state->irq_port + ICS_ARCIN_V6_INTROFFSET_1);
+				readb(state->irq_port + ICS_ARCIN_V6_INTROFFSET_2);
+				break;
+
+			case 1:
+				writeb(0, state->irq_port + ICS_ARCIN_V6_INTROFFSET_2);
+				readb(state->irq_port + ICS_ARCIN_V6_INTROFFSET_1);
+				break;
 		}
-	} else {
+	}
+	else
+	{
 		readb(state->irq_port + ICS_ARCIN_V6_INTROFFSET_2);
 		readb(state->irq_port + ICS_ARCIN_V6_INTROFFSET_1);
 	}
@@ -194,7 +208,8 @@ static void icside_maskproc(ide_drive_t *drive, int mask)
 	local_irq_restore(flags);
 }
 
-static const struct ide_port_ops icside_v6_no_dma_port_ops = {
+static const struct ide_port_ops icside_v6_no_dma_port_ops =
+{
 	.maskproc		= icside_maskproc,
 };
 
@@ -240,26 +255,27 @@ static void icside_set_dma_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 	int use_dma_info = 0;
 	const u8 xfer_mode = drive->dma_mode;
 
-	switch (xfer_mode) {
-	case XFER_MW_DMA_2:
-		cycle_time = 250;
-		use_dma_info = 1;
-		break;
+	switch (xfer_mode)
+	{
+		case XFER_MW_DMA_2:
+			cycle_time = 250;
+			use_dma_info = 1;
+			break;
 
-	case XFER_MW_DMA_1:
-		cycle_time = 250;
-		use_dma_info = 1;
-		break;
+		case XFER_MW_DMA_1:
+			cycle_time = 250;
+			use_dma_info = 1;
+			break;
 
-	case XFER_MW_DMA_0:
-		cycle_time = 480;
-		break;
+		case XFER_MW_DMA_0:
+			cycle_time = 480;
+			break;
 
-	case XFER_SW_DMA_2:
-	case XFER_SW_DMA_1:
-	case XFER_SW_DMA_0:
-		cycle_time = 480;
-		break;
+		case XFER_SW_DMA_2:
+		case XFER_SW_DMA_1:
+		case XFER_SW_DMA_0:
+			cycle_time = 480;
+			break;
 	}
 
 	/*
@@ -267,16 +283,19 @@ static void icside_set_dma_mode(ide_hwif_t *hwif, ide_drive_t *drive)
 	 * take care to note the values in the ID...
 	 */
 	if (use_dma_info && drive->id[ATA_ID_EIDE_DMA_TIME] > cycle_time)
+	{
 		cycle_time = drive->id[ATA_ID_EIDE_DMA_TIME];
+	}
 
 	ide_set_drivedata(drive, (void *)cycle_time);
 
 	printk(KERN_INFO "%s: %s selected (peak %luMB/s)\n",
-	       drive->name, ide_xfer_verbose(xfer_mode),
-	       2000 / (cycle_time ? cycle_time : (unsigned long) -1));
+		   drive->name, ide_xfer_verbose(xfer_mode),
+		   2000 / (cycle_time ? cycle_time : (unsigned long) - 1));
 }
 
-static const struct ide_port_ops icside_v6_port_ops = {
+static const struct ide_port_ops icside_v6_port_ops =
+{
 	.set_dma_mode		= icside_set_dma_mode,
 	.maskproc		= icside_maskproc,
 };
@@ -313,9 +332,13 @@ static int icside_dma_setup(ide_drive_t *drive, struct ide_cmd *cmd)
 	unsigned int dma_mode;
 
 	if (cmd->tf_flags & IDE_TFLAG_WRITE)
+	{
 		dma_mode = DMA_MODE_WRITE;
+	}
 	else
+	{
 		dma_mode = DMA_MODE_READ;
+	}
 
 	/*
 	 * We can not enable DMA on both channels.
@@ -354,9 +377,9 @@ static int icside_dma_test_irq(ide_drive_t *drive)
 	struct icside_state *state = ecard_get_drvdata(ec);
 
 	return readb(state->irq_port +
-		     (hwif->channel ?
-			ICS_ARCIN_V6_INTRSTAT_2 :
-			ICS_ARCIN_V6_INTRSTAT_1)) & 1;
+				 (hwif->channel ?
+				  ICS_ARCIN_V6_INTRSTAT_2 :
+				  ICS_ARCIN_V6_INTRSTAT_1)) & 1;
 }
 
 static int icside_dma_init(ide_hwif_t *hwif, const struct ide_port_info *d)
@@ -367,7 +390,8 @@ static int icside_dma_init(ide_hwif_t *hwif, const struct ide_port_info *d)
 	return 0;
 }
 
-static const struct ide_dma_ops icside_v6_dma_ops = {
+static const struct ide_dma_ops icside_v6_dma_ops =
+{
 	.dma_host_set		= icside_dma_host_set,
 	.dma_setup		= icside_dma_setup,
 	.dma_start		= icside_dma_start,
@@ -383,7 +407,7 @@ static int icside_dma_off_init(ide_hwif_t *hwif, const struct ide_port_info *d)
 }
 
 static void icside_setup_ports(struct ide_hw *hw, void __iomem *base,
-			       struct cardinfo *info, struct expansion_card *ec)
+							   struct cardinfo *info, struct expansion_card *ec)
 {
 	unsigned long port = (unsigned long)base + info->dataoffset;
 
@@ -401,13 +425,14 @@ static void icside_setup_ports(struct ide_hw *hw, void __iomem *base,
 	hw->dev = &ec->dev;
 }
 
-static const struct ide_port_info icside_v5_port_info = {
+static const struct ide_port_info icside_v5_port_info =
+{
 	.host_flags		= IDE_HFLAG_NO_DMA,
 	.chipset		= ide_acorn,
 };
 
 static int icside_register_v5(struct icside_state *state,
-			      struct expansion_card *ec)
+							  struct expansion_card *ec)
 {
 	void __iomem *base;
 	struct ide_host *host;
@@ -415,8 +440,11 @@ static int icside_register_v5(struct icside_state *state,
 	int ret;
 
 	base = ecardm_iomap(ec, ECARD_RES_MEMC, 0, 0);
+
 	if (!base)
+	{
 		return -ENOMEM;
+	}
 
 	state->irq_port = base;
 
@@ -433,16 +461,22 @@ static int icside_register_v5(struct icside_state *state,
 	icside_setup_ports(&hw, base, &icside_cardinfo_v5, ec);
 
 	host = ide_host_alloc(&icside_v5_port_info, hws, 1);
+
 	if (host == NULL)
+	{
 		return -ENODEV;
+	}
 
 	state->host = host;
 
 	ecard_set_drvdata(ec, state);
 
 	ret = ide_host_register(host, &icside_v5_port_info, hws);
+
 	if (ret)
+	{
 		goto err_free;
+	}
 
 	return 0;
 err_free:
@@ -451,7 +485,8 @@ err_free:
 	return ret;
 }
 
-static const struct ide_port_info icside_v6_port_info = {
+static const struct ide_port_info icside_v6_port_info =
+{
 	.init_dma		= icside_dma_off_init,
 	.port_ops		= &icside_v6_no_dma_port_ops,
 	.host_flags		= IDE_HFLAG_SERIALIZE | IDE_HFLAG_MMIO,
@@ -461,7 +496,7 @@ static const struct ide_port_info icside_v6_port_info = {
 };
 
 static int icside_register_v6(struct icside_state *state,
-			      struct expansion_card *ec)
+							  struct expansion_card *ec)
 {
 	void __iomem *ioc_base, *easi_base;
 	struct ide_host *host;
@@ -471,16 +506,21 @@ static int icside_register_v6(struct icside_state *state,
 	struct ide_port_info d = icside_v6_port_info;
 
 	ioc_base = ecardm_iomap(ec, ECARD_RES_IOCFAST, 0, 0);
-	if (!ioc_base) {
+
+	if (!ioc_base)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
 
 	easi_base = ioc_base;
 
-	if (ecard_resource_flags(ec, ECARD_RES_EASI)) {
+	if (ecard_resource_flags(ec, ECARD_RES_EASI))
+	{
 		easi_base = ecardm_iomap(ec, ECARD_RES_EASI, 0, 0);
-		if (!easi_base) {
+
+		if (!easi_base)
+		{
 			ret = -ENOMEM;
 			goto out;
 		}
@@ -508,30 +548,43 @@ static int icside_register_v6(struct icside_state *state,
 	icside_setup_ports(&hw[1], easi_base, &icside_cardinfo_v6_2, ec);
 
 	host = ide_host_alloc(&d, hws, 2);
+
 	if (host == NULL)
+	{
 		return -ENODEV;
+	}
 
 	state->host = host;
 
 	ecard_set_drvdata(ec, state);
 
 #ifdef CONFIG_BLK_DEV_IDEDMA_ICS
-	if (ec->dma != NO_DMA && !request_dma(ec->dma, DRV_NAME)) {
+
+	if (ec->dma != NO_DMA && !request_dma(ec->dma, DRV_NAME))
+	{
 		d.init_dma = icside_dma_init;
 		d.port_ops = &icside_v6_port_ops;
 		d.dma_ops  = &icside_v6_dma_ops;
 	}
+
 #endif
 
 	ret = ide_host_register(host, &d, hws);
+
 	if (ret)
+	{
 		goto err_free;
+	}
 
 	return 0;
 err_free:
 	ide_host_free(host);
+
 	if (d.dma_ops)
+	{
 		free_dma(ec->dma);
+	}
+
 	ecard_set_drvdata(ec, NULL);
 out:
 	return ret;
@@ -544,11 +597,16 @@ static int icside_probe(struct expansion_card *ec, const struct ecard_id *id)
 	int ret;
 
 	ret = ecard_request_resources(ec);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	state = kzalloc(sizeof(struct icside_state), GFP_KERNEL);
-	if (!state) {
+
+	if (!state)
+	{
 		ret = -ENOMEM;
 		goto release;
 	}
@@ -556,7 +614,9 @@ static int icside_probe(struct expansion_card *ec, const struct ecard_id *id)
 	state->type	= ICS_TYPE_NOTYPE;
 
 	idmem = ecardm_iomap(ec, ECARD_RES_IOCFAST, 0, 0);
-	if (idmem) {
+
+	if (idmem)
+	{
 		unsigned int type;
 
 		type = readb(idmem + ICS_IDENT_OFFSET) & 1;
@@ -568,38 +628,41 @@ static int icside_probe(struct expansion_card *ec, const struct ecard_id *id)
 		state->type = type;
 	}
 
-	switch (state->type) {
-	case ICS_TYPE_A3IN:
-		dev_warn(&ec->dev, "A3IN unsupported\n");
-		ret = -ENODEV;
-		break;
+	switch (state->type)
+	{
+		case ICS_TYPE_A3IN:
+			dev_warn(&ec->dev, "A3IN unsupported\n");
+			ret = -ENODEV;
+			break;
 
-	case ICS_TYPE_A3USER:
-		dev_warn(&ec->dev, "A3USER unsupported\n");
-		ret = -ENODEV;
-		break;
+		case ICS_TYPE_A3USER:
+			dev_warn(&ec->dev, "A3USER unsupported\n");
+			ret = -ENODEV;
+			break;
 
-	case ICS_TYPE_V5:
-		ret = icside_register_v5(state, ec);
-		break;
+		case ICS_TYPE_V5:
+			ret = icside_register_v5(state, ec);
+			break;
 
-	case ICS_TYPE_V6:
-		ret = icside_register_v6(state, ec);
-		break;
+		case ICS_TYPE_V6:
+			ret = icside_register_v6(state, ec);
+			break;
 
-	default:
-		dev_warn(&ec->dev, "unknown interface type\n");
-		ret = -ENODEV;
-		break;
+		default:
+			dev_warn(&ec->dev, "unknown interface type\n");
+			ret = -ENODEV;
+			break;
 	}
 
 	if (ret == 0)
+	{
 		goto out;
+	}
 
 	kfree(state);
- release:
+release:
 	ecard_release_resources(ec);
- out:
+out:
 	return ret;
 }
 
@@ -607,25 +670,29 @@ static void icside_remove(struct expansion_card *ec)
 {
 	struct icside_state *state = ecard_get_drvdata(ec);
 
-	switch (state->type) {
-	case ICS_TYPE_V5:
-		/* FIXME: tell IDE to stop using the interface */
+	switch (state->type)
+	{
+		case ICS_TYPE_V5:
+			/* FIXME: tell IDE to stop using the interface */
 
-		/* Disable interrupts */
-		icside_irqdisable_arcin_v5(ec, 0);
-		break;
+			/* Disable interrupts */
+			icside_irqdisable_arcin_v5(ec, 0);
+			break;
 
-	case ICS_TYPE_V6:
-		/* FIXME: tell IDE to stop using the interface */
-		if (ec->dma != NO_DMA)
-			free_dma(ec->dma);
+		case ICS_TYPE_V6:
 
-		/* Disable interrupts */
-		icside_irqdisable_arcin_v6(ec, 0);
+			/* FIXME: tell IDE to stop using the interface */
+			if (ec->dma != NO_DMA)
+			{
+				free_dma(ec->dma);
+			}
 
-		/* Reset the ROM pointer/EASI selection */
-		writeb(0, state->ioc_base);
-		break;
+			/* Disable interrupts */
+			icside_irqdisable_arcin_v6(ec, 0);
+
+			/* Reset the ROM pointer/EASI selection */
+			writeb(0, state->ioc_base);
+			break;
 	}
 
 	ecard_set_drvdata(ec, NULL);
@@ -654,16 +721,20 @@ static void icside_shutdown(struct expansion_card *ec)
 	 * the IDE taskfile via the EASI region.
 	 */
 	if (state->ioc_base)
+	{
 		writeb(0, state->ioc_base);
+	}
 }
 
-static const struct ecard_id icside_ids[] = {
+static const struct ecard_id icside_ids[] =
+{
 	{ MANU_ICS,  PROD_ICS_IDE  },
 	{ MANU_ICS2, PROD_ICS2_IDE },
 	{ 0xffff, 0xffff }
 };
 
-static struct ecard_driver icside_driver = {
+static struct ecard_driver icside_driver =
+{
 	.probe		= icside_probe,
 	.remove		= icside_remove,
 	.shutdown	= icside_shutdown,

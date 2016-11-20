@@ -213,13 +213,15 @@
 #define LOLA_PEAK_METER_CAN_AGC_MASK		1
 #define LOLA_PEAK_METER_CAN_ANALOG_CLIP_MASK	2
 
-struct lola_bar {
+struct lola_bar
+{
 	unsigned long addr;
 	void __iomem *remap_addr;
 };
 
 /* CORB/RIRB */
-struct lola_rb {
+struct lola_rb
+{
 	u32 *buf;		/* CORB/RIRB buffer, 8 byte per each entry */
 	dma_addr_t addr;	/* physical address of CORB/RIRB buffer */
 	unsigned short rp, wp;	/* read/write pointers */
@@ -227,7 +229,8 @@ struct lola_rb {
 };
 
 /* Pin widget setup */
-struct lola_pin {
+struct lola_pin
+{
 	unsigned int nid;
 	bool is_analog;
 	unsigned int amp_mute;
@@ -240,20 +243,23 @@ struct lola_pin {
 	unsigned int cur_gain_step;
 };
 
-struct lola_pin_array {
+struct lola_pin_array
+{
 	unsigned int num_pins;
 	unsigned int num_analog_pins;
 	struct lola_pin pins[MAX_PINS];
 };
 
 /* Clock widget setup */
-struct lola_sample_clock {
+struct lola_sample_clock
+{
 	unsigned int type;
 	unsigned int format;
 	unsigned int freq;
 };
 
-struct lola_clock_widget {
+struct lola_clock_widget
+{
 	unsigned int nid;
 	unsigned int items;
 	unsigned int cur_index;
@@ -264,7 +270,8 @@ struct lola_clock_widget {
 };
 
 #define LOLA_MIXER_DIM      32
-struct lola_mixer_array {
+struct lola_mixer_array
+{
 	u32 src_gain_enable;
 	u32 dest_mix_gain_enable[LOLA_MIXER_DIM];
 	u16 src_gain[LOLA_MIXER_DIM];
@@ -272,7 +279,8 @@ struct lola_mixer_array {
 };
 
 /* Mixer widget setup */
-struct lola_mixer_widget {
+struct lola_mixer_widget
+{
 	unsigned int nid;
 	unsigned int caps;
 	struct lola_mixer_array __user *array;
@@ -288,7 +296,8 @@ struct lola_mixer_widget {
 };
 
 /* Audio stream */
-struct lola_stream {
+struct lola_stream
+{
 	unsigned int nid;	/* audio widget NID */
 	unsigned int index;	/* array index */
 	unsigned int dsd;	/* DSD index */
@@ -305,23 +314,25 @@ struct lola_stream {
 	unsigned int format_verb;
 
 	/* flags */
-	unsigned int opened:1;
-	unsigned int prepared:1;
-	unsigned int paused:1;
-	unsigned int running:1;
+	unsigned int opened: 1;
+	unsigned int prepared: 1;
+	unsigned int paused: 1;
+	unsigned int running: 1;
 };
 
 #define PLAY	SNDRV_PCM_STREAM_PLAYBACK
 #define CAPT	SNDRV_PCM_STREAM_CAPTURE
 
-struct lola_pcm {
+struct lola_pcm
+{
 	unsigned int num_streams;
 	struct snd_dma_buffer bdl; /* BDL buffer */
 	struct lola_stream streams[MAX_STREAM_COUNT];
 };
 
 /* card instance */
-struct lola {
+struct lola
+{
 	struct snd_card *card;
 	struct pci_dev *pci;
 
@@ -374,9 +385,9 @@ struct lola {
 	unsigned int sample_rate_max;
 
 	/* flags */
-	unsigned int initialized:1;
-	unsigned int cold_reset:1;
-	unsigned int polling_mode:1;
+	unsigned int initialized: 1;
+	unsigned int cold_reset: 1;
+	unsigned int polling_mode: 1;
 
 	/* for debugging */
 	unsigned int debug_res;
@@ -402,10 +413,10 @@ struct lola {
 
 #define lola_dsd_read(chip, dsd, name) \
 	readl((chip)->bar[BAR1].remap_addr + LOLA_BAR1_DSD0_OFFSET + \
-	      (LOLA_BAR1_DSD_SIZE * (dsd)) + LOLA_BAR1_DSDn##name)
+		  (LOLA_BAR1_DSD_SIZE * (dsd)) + LOLA_BAR1_DSDn##name)
 #define lola_dsd_write(chip, dsd, name, val) \
 	writel((val), (chip)->bar[BAR1].remap_addr + LOLA_BAR1_DSD0_OFFSET + \
-	       (LOLA_BAR1_DSD_SIZE * (dsd)) + LOLA_BAR1_DSDn##name)
+		   (LOLA_BAR1_DSD_SIZE * (dsd)) + LOLA_BAR1_DSDn##name)
 
 /* GET verbs HDAudio */
 #define LOLA_VERB_GET_STREAM_FORMAT		0xa00
@@ -483,10 +494,10 @@ struct lola {
 #define LOLA_MIXER_DEST_REC_OUTPUT_SEPARATION(res)  ((res >> 7) & 0x1f)
 
 int lola_codec_write(struct lola *chip, unsigned int nid, unsigned int verb,
-		     unsigned int data, unsigned int extdata);
+					 unsigned int data, unsigned int extdata);
 int lola_codec_read(struct lola *chip, unsigned int nid, unsigned int verb,
-		    unsigned int data, unsigned int extdata,
-		    unsigned int *val, unsigned int *extval);
+					unsigned int data, unsigned int extdata,
+					unsigned int *val, unsigned int *extval);
 int lola_codec_flush(struct lola *chip);
 #define lola_read_param(chip, nid, param, val) \
 	lola_codec_read(chip, nid, LOLA_VERB_PARAMETERS, param, 0, val, NULL)
@@ -519,9 +530,9 @@ int lola_set_src_config(struct lola *chip, unsigned int src_mask, bool update);
 
 /* proc */
 #ifdef CONFIG_SND_DEBUG
-void lola_proc_debug_new(struct lola *chip);
+	void lola_proc_debug_new(struct lola *chip);
 #else
-#define lola_proc_debug_new(chip)
+	#define lola_proc_debug_new(chip)
 #endif
 
 #endif /* _LOLA_H */

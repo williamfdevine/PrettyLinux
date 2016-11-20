@@ -10,25 +10,27 @@
  * Maintained by: <tpmdd-devel@lists.sourceforge.net>
  *
  * Device driver for TCG/TCPA TPM (trusted platform module).
- * Specifications at www.trustedcomputinggroup.org	 
+ * Specifications at www.trustedcomputinggroup.org
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, version 2 of the
  * License.
- * 
+ *
  */
 
 #include "tpm.h"
 #include "tpm_atmel.h"
 
 /* write status bits */
-enum tpm_atmel_write_status {
+enum tpm_atmel_write_status
+{
 	ATML_STATUS_ABORT = 0x01,
 	ATML_STATUS_LASTBYTE = 0x04
 };
 /* read status bits */
-enum tpm_atmel_read_status {
+enum tpm_atmel_read_status
+{
 	ATML_STATUS_BUSY = 0x01,
 	ATML_STATUS_DATA_AVAIL = 0x02,
 	ATML_STATUS_REWRITE = 0x04,
@@ -45,14 +47,20 @@ static int tpm_atml_recv(struct tpm_chip *chip, u8 *buf, size_t count)
 
 	/* start reading header */
 	if (count < 6)
+	{
 		return -EIO;
+	}
 
-	for (i = 0; i < 6; i++) {
+	for (i = 0; i < 6; i++)
+	{
 		status = ioread8(priv->iobase + 1);
-		if ((status & ATML_STATUS_DATA_AVAIL) == 0) {
+
+		if ((status & ATML_STATUS_DATA_AVAIL) == 0)
+		{
 			dev_err(&chip->dev, "error reading header\n");
 			return -EIO;
 		}
+
 		*buf++ = ioread8(priv->iobase);
 	}
 
@@ -60,33 +68,44 @@ static int tpm_atml_recv(struct tpm_chip *chip, u8 *buf, size_t count)
 	native_size = (__force __be32 *) (hdr + 2);
 	size = be32_to_cpu(*native_size);
 
-	if (count < size) {
+	if (count < size)
+	{
 		dev_err(&chip->dev,
-			"Recv size(%d) less than available space\n", size);
-		for (; i < size; i++) {	/* clear the waiting data anyway */
+				"Recv size(%d) less than available space\n", size);
+
+		for (; i < size; i++)  	/* clear the waiting data anyway */
+		{
 			status = ioread8(priv->iobase + 1);
-			if ((status & ATML_STATUS_DATA_AVAIL) == 0) {
+
+			if ((status & ATML_STATUS_DATA_AVAIL) == 0)
+			{
 				dev_err(&chip->dev, "error reading data\n");
 				return -EIO;
 			}
 		}
+
 		return -EIO;
 	}
 
 	/* read all the data available */
-	for (; i < size; i++) {
+	for (; i < size; i++)
+	{
 		status = ioread8(priv->iobase + 1);
-		if ((status & ATML_STATUS_DATA_AVAIL) == 0) {
+
+		if ((status & ATML_STATUS_DATA_AVAIL) == 0)
+		{
 			dev_err(&chip->dev, "error reading data\n");
 			return -EIO;
 		}
+
 		*buf++ = ioread8(priv->iobase);
 	}
 
 	/* make sure data available is gone */
 	status = ioread8(priv->iobase + 1);
 
-	if (status & ATML_STATUS_DATA_AVAIL) {
+	if (status & ATML_STATUS_DATA_AVAIL)
+	{
 		dev_err(&chip->dev, "data available is stuck\n");
 		return -EIO;
 	}
@@ -100,7 +119,9 @@ static int tpm_atml_send(struct tpm_chip *chip, u8 *buf, size_t count)
 	int i;
 
 	dev_dbg(&chip->dev, "tpm_atml_send:\n");
-	for (i = 0; i < count; i++) {
+
+	for (i = 0; i < count; i++)
+	{
 		dev_dbg(&chip->dev, "%d 0x%x(%d)\n",  i, buf[i], buf[i]);
 		iowrite8(buf[i], priv->iobase);
 	}
@@ -127,7 +148,8 @@ static bool tpm_atml_req_canceled(struct tpm_chip *chip, u8 status)
 	return (status == ATML_STATUS_READY);
 }
 
-static const struct tpm_class_ops tpm_atmel = {
+static const struct tpm_class_ops tpm_atmel =
+{
 	.recv = tpm_atml_recv,
 	.send = tpm_atml_send,
 	.cancel = tpm_atml_cancel,
@@ -144,10 +166,15 @@ static void atml_plat_remove(void)
 	struct tpm_chip *chip = dev_get_drvdata(&pdev->dev);
 	struct tpm_atmel_priv *priv = dev_get_drvdata(&chip->dev);
 
-	if (chip) {
+	if (chip)
+	{
 		tpm_chip_unregister(chip);
+
 		if (priv->have_region)
+		{
 			atmel_release_region(priv->base, priv->region_size);
+		}
+
 		atmel_put_base_addr(priv->iobase);
 		platform_device_unregister(pdev);
 	}
@@ -155,7 +182,8 @@ static void atml_plat_remove(void)
 
 static SIMPLE_DEV_PM_OPS(tpm_atml_pm, tpm_pm_suspend, tpm_pm_resume);
 
-static struct platform_driver atml_drv = {
+static struct platform_driver atml_drv =
+{
 	.driver = {
 		.name = "tpm_atmel",
 		.pm		= &tpm_atml_pm,
@@ -172,26 +200,34 @@ static int __init init_atmel(void)
 	struct tpm_atmel_priv *priv;
 
 	rc = platform_driver_register(&atml_drv);
-	if (rc)
-		return rc;
 
-	if ((iobase = atmel_get_base_addr(&base, &region_size)) == NULL) {
+	if (rc)
+	{
+		return rc;
+	}
+
+	if ((iobase = atmel_get_base_addr(&base, &region_size)) == NULL)
+	{
 		rc = -ENODEV;
 		goto err_unreg_drv;
 	}
 
 	have_region =
-	    (atmel_request_region
-	     (base, region_size, "tpm_atmel0") == NULL) ? 0 : 1;
+		(atmel_request_region
+		 (base, region_size, "tpm_atmel0") == NULL) ? 0 : 1;
 
 	pdev = platform_device_register_simple("tpm_atmel", -1, NULL, 0);
-	if (IS_ERR(pdev)) {
+
+	if (IS_ERR(pdev))
+	{
 		rc = PTR_ERR(pdev);
 		goto err_rel_reg;
 	}
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
-	if (!priv) {
+
+	if (!priv)
+	{
 		rc = -ENOMEM;
 		goto err_unreg_dev;
 	}
@@ -202,7 +238,9 @@ static int __init init_atmel(void)
 	priv->region_size = region_size;
 
 	chip = tpmm_chip_alloc(&pdev->dev, &tpm_atmel);
-	if (IS_ERR(chip)) {
+
+	if (IS_ERR(chip))
+	{
 		rc = PTR_ERR(chip);
 		goto err_unreg_dev;
 	}
@@ -210,8 +248,11 @@ static int __init init_atmel(void)
 	dev_set_drvdata(&chip->dev, priv);
 
 	rc = tpm_chip_register(chip);
+
 	if (rc)
+	{
 		goto err_unreg_dev;
+	}
 
 	return 0;
 
@@ -219,9 +260,11 @@ err_unreg_dev:
 	platform_device_unregister(pdev);
 err_rel_reg:
 	atmel_put_base_addr(iobase);
+
 	if (have_region)
 		atmel_release_region(base,
-				     region_size);
+							 region_size);
+
 err_unreg_drv:
 	platform_driver_unregister(&atml_drv);
 	return rc;

@@ -34,7 +34,7 @@
 
 /* Actual code that puts the SoC in different idle states */
 static int zynq_enter_idle(struct cpuidle_device *dev,
-			   struct cpuidle_driver *drv, int index)
+						   struct cpuidle_driver *drv, int index)
 {
 	/* Add code for DDR self refresh start */
 	cpu_do_idle();
@@ -42,7 +42,8 @@ static int zynq_enter_idle(struct cpuidle_device *dev,
 	return index;
 }
 
-static struct cpuidle_driver zynq_idle_driver = {
+static struct cpuidle_driver zynq_idle_driver =
+{
 	.name = "zynq_idle",
 	.owner = THIS_MODULE,
 	.states = {
@@ -67,7 +68,8 @@ static int zynq_cpuidle_probe(struct platform_device *pdev)
 	return cpuidle_register(&zynq_idle_driver, NULL);
 }
 
-static struct platform_driver zynq_cpuidle_driver = {
+static struct platform_driver zynq_cpuidle_driver =
+{
 	.driver = {
 		.name = "cpuidle-zynq",
 	},

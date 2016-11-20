@@ -27,7 +27,8 @@
 #include <nvif/class.h>
 
 static const struct nv50_disp_mthd_list
-gk104_disp_ovly_mthd_base = {
+	gk104_disp_ovly_mthd_base =
+{
 	.mthd = 0x0000,
 	.data = {
 		{ 0x0080, 0x665080 },
@@ -81,7 +82,8 @@ gk104_disp_ovly_mthd_base = {
 };
 
 const struct nv50_disp_chan_mthd
-gk104_disp_ovly_chan_mthd = {
+	gk104_disp_ovly_chan_mthd =
+{
 	.name = "Overlay",
 	.addr = 0x001000,
 	.prev = -0x020000,
@@ -92,7 +94,8 @@ gk104_disp_ovly_chan_mthd = {
 };
 
 const struct nv50_disp_dmac_oclass
-gk104_disp_ovly_oclass = {
+	gk104_disp_ovly_oclass =
+{
 	.base.oclass = GK104_DISP_OVERLAY_CONTROL_DMA,
 	.base.minver = 0,
 	.base.maxver = 0,

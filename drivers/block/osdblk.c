@@ -87,19 +87,22 @@ MODULE_LICENSE("GPL");
 
 struct osdblk_device;
 
-enum {
+enum
+{
 	OSDBLK_MINORS_PER_MAJOR	= 256,		/* max minors per blkdev */
 	OSDBLK_MAX_REQ		= 32,		/* max parallel requests */
 	OSDBLK_OP_TIMEOUT	= 4 * 60,	/* sync OSD req timeout */
 };
 
-struct osdblk_request {
+struct osdblk_request
+{
 	struct request		*rq;		/* blk layer request */
 	struct bio		*bio;		/* cloned bio */
 	struct osdblk_device	*osdev;		/* associated blkdev */
 };
 
-struct osdblk_device {
+struct osdblk_device
+{
 	int			id;		/* blkdev unique id */
 
 	int			major;		/* blkdev assigned major */
@@ -126,15 +129,16 @@ static struct class *class_osdblk;		/* /sys/class/osdblk */
 static DEFINE_MUTEX(ctl_mutex);	/* Serialize open/close/setup/teardown */
 static LIST_HEAD(osdblkdev_list);
 
-static const struct block_device_operations osdblk_bd_ops = {
+static const struct block_device_operations osdblk_bd_ops =
+{
 	.owner		= THIS_MODULE,
 };
 
 static const struct osd_attr g_attr_logical_length = ATTR_DEF(
-	OSD_APAGE_OBJECT_INFORMATION, OSD_ATTR_OI_LOGICAL_LENGTH, 8);
+			OSD_APAGE_OBJECT_INFORMATION, OSD_ATTR_OI_LOGICAL_LENGTH, 8);
 
 static void osdblk_make_credential(u8 cred_a[OSD_CAP_LEN],
-				   const struct osd_obj_id *obj)
+								   const struct osd_obj_id *obj)
 {
 	osd_sec_init_nosec_doall_caps(cred_a, obj, false, true);
 }
@@ -143,16 +147,19 @@ static void osdblk_make_credential(u8 cred_a[OSD_CAP_LEN],
 /*
  * Perform a synchronous OSD operation.  copied from exofs; move to libosd?
  */
-static int osd_sync_op(struct osd_request *or, int timeout, uint8_t *credential)
+static int osd_sync_op(struct osd_request * or , int timeout, uint8_t *credential)
 {
 	int ret;
 
-	or->timeout = timeout;
-	ret = osd_finalize_request(or, 0, credential, NULL);
-	if (ret)
-		return ret;
+	or ->timeout = timeout;
+	ret = osd_finalize_request( or , 0, credential, NULL);
 
-	ret = osd_execute_request(or);
+	if (ret)
+	{
+		return ret;
+	}
+
+	ret = osd_execute_request( or );
 
 	/* osd_req_decode_sense(or, ret); */
 	return ret;
@@ -161,89 +168,106 @@ static int osd_sync_op(struct osd_request *or, int timeout, uint8_t *credential)
 /*
  * Perform an asynchronous OSD operation.  copied from exofs; move to libosd?
  */
-static int osd_async_op(struct osd_request *or, osd_req_done_fn *async_done,
-		   void *caller_context, u8 *cred)
+static int osd_async_op(struct osd_request * or , osd_req_done_fn *async_done,
+						void *caller_context, u8 *cred)
 {
 	int ret;
 
-	ret = osd_finalize_request(or, 0, cred, NULL);
-	if (ret)
-		return ret;
+	ret = osd_finalize_request( or , 0, cred, NULL);
 
-	ret = osd_execute_request_async(or, async_done, caller_context);
+	if (ret)
+	{
+		return ret;
+	}
+
+	ret = osd_execute_request_async( or , async_done, caller_context);
 
 	return ret;
 }
 
 /* copied from exofs; move to libosd? */
-static int extract_attr_from_req(struct osd_request *or, struct osd_attr *attr)
+static int extract_attr_from_req(struct osd_request * or , struct osd_attr *attr)
 {
 	struct osd_attr cur_attr = {.attr_page = 0}; /* start with zeros */
 	void *iter = NULL;
 	int nelem;
 
-	do {
+	do
+	{
 		nelem = 1;
-		osd_req_decode_get_attr_list(or, &cur_attr, &nelem, &iter);
+		osd_req_decode_get_attr_list( or , &cur_attr, &nelem, &iter);
+
 		if ((cur_attr.attr_page == attr->attr_page) &&
-		    (cur_attr.attr_id == attr->attr_id)) {
+			(cur_attr.attr_id == attr->attr_id))
+		{
 			attr->len = cur_attr.len;
 			attr->val_ptr = cur_attr.val_ptr;
 			return 0;
 		}
-	} while (iter);
+	}
+	while (iter);
 
 	return -EIO;
 }
 
 static int osdblk_get_obj_size(struct osdblk_device *osdev, u64 *size_out)
 {
-	struct osd_request *or;
+	struct osd_request * or;
 	struct osd_attr attr;
 	int ret;
 
 	/* start request */
 	or = osd_start_request(osdev->osd, GFP_KERNEL);
-	if (!or)
+
+	if (! or )
+	{
 		return -ENOMEM;
+	}
 
 	/* create a get-attributes(length) request */
-	osd_req_get_attributes(or, &osdev->obj);
+	osd_req_get_attributes( or , &osdev->obj);
 
-	osd_req_add_get_attr_list(or, &g_attr_logical_length, 1);
+	osd_req_add_get_attr_list( or , &g_attr_logical_length, 1);
 
 	/* execute op synchronously */
-	ret = osd_sync_op(or, OSDBLK_OP_TIMEOUT, osdev->obj_cred);
+	ret = osd_sync_op( or , OSDBLK_OP_TIMEOUT, osdev->obj_cred);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/* extract length from returned attribute info */
 	attr = g_attr_logical_length;
-	ret = extract_attr_from_req(or, &attr);
+	ret = extract_attr_from_req( or , &attr);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	*size_out = get_unaligned_be64(attr.val_ptr);
 
 out:
-	osd_end_request(or);
+	osd_end_request( or );
 	return ret;
 
 }
 
-static void osdblk_osd_complete(struct osd_request *or, void *private)
+static void osdblk_osd_complete(struct osd_request * or , void *private)
 {
 	struct osdblk_request *orq = private;
 	struct osd_sense_info osi;
-	int ret = osd_req_decode_sense(or, &osi);
+	int ret = osd_req_decode_sense( or , &osi);
 
-	if (ret) {
+	if (ret)
+	{
 		ret = -EIO;
 		OSDBLK_DEBUG("osdblk_osd_complete with err=%d\n", ret);
 	}
 
 	/* complete OSD request */
-	osd_end_request(or);
+	osd_end_request( or );
 
 	/* complete request passed to osdblk by block layer */
 	__blk_end_request_all(orq->rq, ret);
@@ -253,7 +277,8 @@ static void bio_chain_put(struct bio *chain)
 {
 	struct bio *tmp;
 
-	while (chain) {
+	while (chain)
+	{
 		tmp = chain;
 		chain = chain->bi_next;
 
@@ -265,18 +290,25 @@ static struct bio *bio_chain_clone(struct bio *old_chain, gfp_t gfpmask)
 {
 	struct bio *tmp, *new_chain = NULL, *tail = NULL;
 
-	while (old_chain) {
+	while (old_chain)
+	{
 		tmp = bio_clone_kmalloc(old_chain, gfpmask);
+
 		if (!tmp)
+		{
 			goto err_out;
+		}
 
 		tmp->bi_bdev = NULL;
 		gfpmask &= ~__GFP_DIRECT_RECLAIM;
 		tmp->bi_next = NULL;
 
 		if (!new_chain)
+		{
 			new_chain = tail = tmp;
-		else {
+		}
+		else
+		{
 			tail->bi_next = tmp;
 			tail = tmp;
 		}
@@ -296,20 +328,25 @@ static void osdblk_rq_fn(struct request_queue *q)
 {
 	struct osdblk_device *osdev = q->queuedata;
 
-	while (1) {
+	while (1)
+	{
 		struct request *rq;
 		struct osdblk_request *orq;
-		struct osd_request *or;
+		struct osd_request * or;
 		struct bio *bio;
 		bool do_write, do_flush;
 
 		/* peek at request from block layer */
 		rq = blk_fetch_request(q);
+
 		if (!rq)
+		{
 			break;
+		}
 
 		/* filter out block requests we don't understand */
-		if (rq->cmd_type != REQ_TYPE_FS) {
+		if (rq->cmd_type != REQ_TYPE_FS)
+		{
 			blk_end_request_all(rq, 0);
 			continue;
 		}
@@ -324,17 +361,26 @@ static void osdblk_rq_fn(struct request_queue *q)
 		do_flush = (req_op(rq) == REQ_OP_FLUSH);
 		do_write = (rq_data_dir(rq) == WRITE);
 
-		if (!do_flush) { /* osd_flush does not use a bio */
+		if (!do_flush)   /* osd_flush does not use a bio */
+		{
 			/* a bio clone to be passed down to OSD request */
 			bio = bio_chain_clone(rq->bio, GFP_ATOMIC);
+
 			if (!bio)
+			{
 				break;
-		} else
+			}
+		}
+		else
+		{
 			bio = NULL;
+		}
 
 		/* alloc internal OSD request, for OSD command execution */
 		or = osd_start_request(osdev->osd, GFP_ATOMIC);
-		if (!or) {
+
+		if (! or )
+		{
 			bio_chain_put(bio);
 			OSDBLK_DEBUG("osd_start_request with err\n");
 			break;
@@ -347,24 +393,25 @@ static void osdblk_rq_fn(struct request_queue *q)
 
 		/* init OSD command: flush, write or read */
 		if (do_flush)
-			osd_req_flush_object(or, &osdev->obj,
-					     OSD_CDB_FLUSH_ALL, 0, 0);
+			osd_req_flush_object( or , &osdev->obj,
+								  OSD_CDB_FLUSH_ALL, 0, 0);
 		else if (do_write)
-			osd_req_write(or, &osdev->obj, blk_rq_pos(rq) * 512ULL,
-				      bio, blk_rq_bytes(rq));
+			osd_req_write( or , &osdev->obj, blk_rq_pos(rq) * 512ULL,
+						   bio, blk_rq_bytes(rq));
 		else
-			osd_req_read(or, &osdev->obj, blk_rq_pos(rq) * 512ULL,
-				     bio, blk_rq_bytes(rq));
+			osd_req_read( or , &osdev->obj, blk_rq_pos(rq) * 512ULL,
+						  bio, blk_rq_bytes(rq));
 
 		OSDBLK_DEBUG("%s 0x%x bytes at 0x%llx\n",
-			do_flush ? "flush" : do_write ?
-				"write" : "read", blk_rq_bytes(rq),
-			blk_rq_pos(rq) * 512ULL);
+					 do_flush ? "flush" : do_write ?
+					 "write" : "read", blk_rq_bytes(rq),
+					 blk_rq_pos(rq) * 512ULL);
 
 		/* begin OSD command execution */
-		if (osd_async_op(or, osdblk_osd_complete, orq,
-				 osdev->obj_cred)) {
-			osd_end_request(or);
+		if (osd_async_op( or , osdblk_osd_complete, orq,
+						  osdev->obj_cred))
+		{
+			osd_end_request( or );
 			blk_requeue_request(q, rq);
 			bio_chain_put(bio);
 			OSDBLK_DEBUG("osd_execute_request_async with err\n");
@@ -383,12 +430,20 @@ static void osdblk_free_disk(struct osdblk_device *osdev)
 	struct gendisk *disk = osdev->disk;
 
 	if (!disk)
+	{
 		return;
+	}
 
 	if (disk->flags & GENHD_FL_UP)
+	{
 		del_gendisk(disk);
+	}
+
 	if (disk->queue)
+	{
 		blk_cleanup_queue(disk->queue);
+	}
+
 	put_disk(disk);
 }
 
@@ -401,13 +456,19 @@ static int osdblk_init_disk(struct osdblk_device *osdev)
 
 	/* contact OSD, request size info about the object being mapped */
 	rc = osdblk_get_obj_size(osdev, &obj_size);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* create gendisk info */
 	disk = alloc_disk(OSDBLK_MINORS_PER_MAJOR);
+
 	if (!disk)
+	{
 		return -ENOMEM;
+	}
 
 	sprintf(disk->disk_name, DRV_NAME "%d", osdev->id);
 	disk->major = osdev->major;
@@ -417,14 +478,18 @@ static int osdblk_init_disk(struct osdblk_device *osdev)
 
 	/* init rq */
 	q = blk_init_queue(osdblk_rq_fn, &osdev->lock);
-	if (!q) {
+
+	if (!q)
+	{
 		put_disk(disk);
 		return -ENOMEM;
 	}
 
 	/* switch queue to TCQ mode; allocate tag map */
 	rc = blk_queue_init_tags(q, OSDBLK_MAX_REQ, NULL, BLK_TAG_ALLOC_FIFO);
-	if (rc) {
+
+	if (rc)
+	{
 		blk_cleanup_queue(q);
 		put_disk(disk);
 		return rc;
@@ -451,7 +516,7 @@ static int osdblk_init_disk(struct osdblk_device *osdev)
 	add_disk(disk);
 
 	printk(KERN_INFO "%s: Added of size 0x%llx\n",
-		disk->disk_name, (unsigned long long)obj_size);
+		   disk->disk_name, (unsigned long long)obj_size);
 
 	return 0;
 }
@@ -469,25 +534,26 @@ static void class_osdblk_release(struct class *cls)
 }
 
 static ssize_t class_osdblk_list(struct class *c,
-				struct class_attribute *attr,
-				char *data)
+								 struct class_attribute *attr,
+								 char *data)
 {
 	int n = 0;
 	struct list_head *tmp;
 
 	mutex_lock_nested(&ctl_mutex, SINGLE_DEPTH_NESTING);
 
-	list_for_each(tmp, &osdblkdev_list) {
+	list_for_each(tmp, &osdblkdev_list)
+	{
 		struct osdblk_device *osdev;
 
 		osdev = list_entry(tmp, struct osdblk_device, node);
 
-		n += sprintf(data+n, "%d %d %llu %llu %s\n",
-			osdev->id,
-			osdev->major,
-			osdev->obj.partition,
-			osdev->obj.id,
-			osdev->osd_path);
+		n += sprintf(data + n, "%d %d %llu %llu %s\n",
+					 osdev->id,
+					 osdev->major,
+					 osdev->obj.partition,
+					 osdev->obj.id,
+					 osdev->osd_path);
 	}
 
 	mutex_unlock(&ctl_mutex);
@@ -495,8 +561,8 @@ static ssize_t class_osdblk_list(struct class *c,
 }
 
 static ssize_t class_osdblk_add(struct class *c,
-				struct class_attribute *attr,
-				const char *buf, size_t count)
+								struct class_attribute *attr,
+								const char *buf, size_t count)
 {
 	struct osdblk_device *osdev;
 	ssize_t rc;
@@ -504,11 +570,15 @@ static ssize_t class_osdblk_add(struct class *c,
 	struct list_head *tmp;
 
 	if (!try_module_get(THIS_MODULE))
+	{
 		return -ENODEV;
+	}
 
 	/* new osdblk_device object */
 	osdev = kzalloc(sizeof(*osdev) + strlen(buf) + 1, GFP_KERNEL);
-	if (!osdev) {
+
+	if (!osdev)
+	{
 		rc = -ENOMEM;
 		goto err_out_mod;
 	}
@@ -521,12 +591,16 @@ static ssize_t class_osdblk_add(struct class *c,
 
 	mutex_lock_nested(&ctl_mutex, SINGLE_DEPTH_NESTING);
 
-	list_for_each(tmp, &osdblkdev_list) {
+	list_for_each(tmp, &osdblkdev_list)
+	{
 		struct osdblk_device *osdev;
 
 		osdev = list_entry(tmp, struct osdblk_device, node);
+
 		if (osdev->id > new_id)
+		{
 			new_id = osdev->id + 1;
+		}
 	}
 
 	osdev->id = new_id;
@@ -538,7 +612,8 @@ static ssize_t class_osdblk_add(struct class *c,
 
 	/* parse add command */
 	if (sscanf(buf, "%llu %llu %s", &osdev->obj.partition, &osdev->obj.id,
-		   osdev->osd_path) != 3) {
+			   osdev->osd_path) != 3)
+	{
 		rc = -EINVAL;
 		goto err_out_slot;
 	}
@@ -548,7 +623,9 @@ static ssize_t class_osdblk_add(struct class *c,
 
 	/* contact requested OSD */
 	osdev->osd = osduld_path_lookup(osdev->osd_path);
-	if (IS_ERR(osdev->osd)) {
+
+	if (IS_ERR(osdev->osd))
+	{
 		rc = PTR_ERR(osdev->osd);
 		goto err_out_slot;
 	}
@@ -558,7 +635,9 @@ static ssize_t class_osdblk_add(struct class *c,
 
 	/* register our block device */
 	irc = register_blkdev(0, osdev->name);
-	if (irc < 0) {
+
+	if (irc < 0)
+	{
 		rc = irc;
 		goto err_out_osd;
 	}
@@ -567,8 +646,11 @@ static ssize_t class_osdblk_add(struct class *c,
 
 	/* set up and announce blkdev mapping */
 	rc = osdblk_init_disk(osdev);
+
 	if (rc)
+	{
 		goto err_out_blkdev;
+	}
 
 	return count;
 
@@ -589,9 +671,9 @@ err_out_mod:
 }
 
 static ssize_t class_osdblk_remove(struct class *c,
-					struct class_attribute *attr,
-					const char *buf,
-					size_t count)
+								   struct class_attribute *attr,
+								   const char *buf,
+								   size_t count)
 {
 	struct osdblk_device *osdev = NULL;
 	int target_id, rc;
@@ -599,30 +681,42 @@ static ssize_t class_osdblk_remove(struct class *c,
 	struct list_head *tmp;
 
 	rc = kstrtoul(buf, 10, &ul);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/* convert to int; abort if we lost anything in the conversion */
 	target_id = (int) ul;
+
 	if (target_id != ul)
+	{
 		return -EINVAL;
+	}
 
 	/* remove object from list immediately */
 	mutex_lock_nested(&ctl_mutex, SINGLE_DEPTH_NESTING);
 
-	list_for_each(tmp, &osdblkdev_list) {
+	list_for_each(tmp, &osdblkdev_list)
+	{
 		osdev = list_entry(tmp, struct osdblk_device, node);
-		if (osdev->id == target_id) {
+
+		if (osdev->id == target_id)
+		{
 			list_del_init(&osdev->node);
 			break;
 		}
+
 		osdev = NULL;
 	}
 
 	mutex_unlock(&ctl_mutex);
 
 	if (!osdev)
+	{
 		return -ENOENT;
+	}
 
 	/* clean up and free blkdev and associated OSD connection */
 	osdblk_free_disk(osdev);
@@ -636,7 +730,8 @@ static ssize_t class_osdblk_remove(struct class *c,
 	return count;
 }
 
-static struct class_attribute class_osdblk_attrs[] = {
+static struct class_attribute class_osdblk_attrs[] =
+{
 	__ATTR(add,	0200, NULL, class_osdblk_add),
 	__ATTR(remove,	0200, NULL, class_osdblk_remove),
 	__ATTR(list,	0444, class_osdblk_list, NULL),
@@ -652,8 +747,11 @@ static int osdblk_sysfs_init(void)
 	 * /sys/class/osdblk/...
 	 */
 	class_osdblk = kzalloc(sizeof(*class_osdblk), GFP_KERNEL);
+
 	if (!class_osdblk)
+	{
 		return -ENOMEM;
+	}
 
 	class_osdblk->name = DRV_NAME;
 	class_osdblk->owner = THIS_MODULE;
@@ -661,7 +759,9 @@ static int osdblk_sysfs_init(void)
 	class_osdblk->class_attrs = class_osdblk_attrs;
 
 	ret = class_register(class_osdblk);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(class_osdblk);
 		class_osdblk = NULL;
 		printk(PFX "failed to create class osdblk\n");
@@ -674,7 +774,10 @@ static int osdblk_sysfs_init(void)
 static void osdblk_sysfs_cleanup(void)
 {
 	if (class_osdblk)
+	{
 		class_destroy(class_osdblk);
+	}
+
 	class_osdblk = NULL;
 }
 
@@ -683,8 +786,11 @@ static int __init osdblk_init(void)
 	int rc;
 
 	rc = osdblk_sysfs_init();
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	return 0;
 }

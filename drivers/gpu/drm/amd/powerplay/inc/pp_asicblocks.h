@@ -24,7 +24,8 @@
 #define PP_ASICBLOCKS_H
 
 
-enum PHM_AsicBlock {
+enum PHM_AsicBlock
+{
 	PHM_AsicBlock_GFX,
 	PHM_AsicBlock_UVD_MVC,
 	PHM_AsicBlock_UVD,
@@ -33,13 +34,15 @@ enum PHM_AsicBlock {
 	PHM_AsicBlock_Count
 };
 
-enum PHM_ClockGateSetting {
+enum PHM_ClockGateSetting
+{
 	PHM_ClockGateSetting_StaticOn,
 	PHM_ClockGateSetting_StaticOff,
 	PHM_ClockGateSetting_Dynamic
 };
 
-struct phm_asic_blocks {
+struct phm_asic_blocks
+{
 	bool gfx : 1;
 	bool uvd : 1;
 };

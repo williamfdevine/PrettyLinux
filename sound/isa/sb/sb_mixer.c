@@ -99,8 +99,12 @@ static int snd_sbmixer_put_single(struct snd_kcontrol *kcontrol, struct snd_ctl_
 	oval = snd_sbmixer_read(sb, reg);
 	val = (oval & ~(mask << shift)) | val;
 	change = val != oval;
+
 	if (change)
+	{
 		snd_sbmixer_write(sb, reg, val);
+	}
+
 	spin_unlock_irqrestore(&sb->mixer_lock, flags);
 	return change;
 }
@@ -155,23 +159,33 @@ static int snd_sbmixer_put_double(struct snd_kcontrol *kcontrol, struct snd_ctl_
 	left = (ucontrol->value.integer.value[0] & mask) << left_shift;
 	right = (ucontrol->value.integer.value[1] & mask) << right_shift;
 	spin_lock_irqsave(&sb->mixer_lock, flags);
-	if (left_reg == right_reg) {
+
+	if (left_reg == right_reg)
+	{
 		oleft = snd_sbmixer_read(sb, left_reg);
 		left = (oleft & ~((mask << left_shift) | (mask << right_shift))) | left | right;
 		change = left != oleft;
+
 		if (change)
+		{
 			snd_sbmixer_write(sb, left_reg, left);
-	} else {
+		}
+	}
+	else
+	{
 		oleft = snd_sbmixer_read(sb, left_reg);
 		oright = snd_sbmixer_read(sb, right_reg);
 		left = (oleft & ~(mask << left_shift)) | left;
 		right = (oright & ~(mask << right_shift)) | right;
 		change = left != oleft || right != oright;
-		if (change) {
+
+		if (change)
+		{
 			snd_sbmixer_write(sb, left_reg, left);
 			snd_sbmixer_write(sb, right_reg, right);
 		}
 	}
+
 	spin_unlock_irqrestore(&sb->mixer_lock, flags);
 	return change;
 }
@@ -182,7 +196,8 @@ static int snd_sbmixer_put_double(struct snd_kcontrol *kcontrol, struct snd_ctl_
 
 static int snd_dt019x_input_sw_info(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_info *uinfo)
 {
-	static const char * const texts[5] = {
+	static const char *const texts[5] =
+	{
 		"CD", "Mic", "Line", "Synth", "Master"
 	};
 
@@ -194,34 +209,41 @@ static int snd_dt019x_input_sw_get(struct snd_kcontrol *kcontrol, struct snd_ctl
 	struct snd_sb *sb = snd_kcontrol_chip(kcontrol);
 	unsigned long flags;
 	unsigned char oval;
-	
+
 	spin_lock_irqsave(&sb->mixer_lock, flags);
 	oval = snd_sbmixer_read(sb, SB_DT019X_CAPTURE_SW);
 	spin_unlock_irqrestore(&sb->mixer_lock, flags);
-	switch (oval & 0x07) {
-	case SB_DT019X_CAP_CD:
-		ucontrol->value.enumerated.item[0] = 0;
-		break;
-	case SB_DT019X_CAP_MIC:
-		ucontrol->value.enumerated.item[0] = 1;
-		break;
-	case SB_DT019X_CAP_LINE:
-		ucontrol->value.enumerated.item[0] = 2;
-		break;
-	case SB_DT019X_CAP_MAIN:
-		ucontrol->value.enumerated.item[0] = 4;
-		break;
-	/* To record the synth on these cards you must record the main.   */
-	/* Thus SB_DT019X_CAP_SYNTH == SB_DT019X_CAP_MAIN and would cause */
-	/* duplicate case labels if left uncommented. */
-	/* case SB_DT019X_CAP_SYNTH:
-	 *	ucontrol->value.enumerated.item[0] = 3;
-	 *	break;
-	 */
-	default:
-		ucontrol->value.enumerated.item[0] = 4;
-		break;
+
+	switch (oval & 0x07)
+	{
+		case SB_DT019X_CAP_CD:
+			ucontrol->value.enumerated.item[0] = 0;
+			break;
+
+		case SB_DT019X_CAP_MIC:
+			ucontrol->value.enumerated.item[0] = 1;
+			break;
+
+		case SB_DT019X_CAP_LINE:
+			ucontrol->value.enumerated.item[0] = 2;
+			break;
+
+		case SB_DT019X_CAP_MAIN:
+			ucontrol->value.enumerated.item[0] = 4;
+			break;
+
+		/* To record the synth on these cards you must record the main.   */
+		/* Thus SB_DT019X_CAP_SYNTH == SB_DT019X_CAP_MAIN and would cause */
+		/* duplicate case labels if left uncommented. */
+		/* case SB_DT019X_CAP_SYNTH:
+		 *	ucontrol->value.enumerated.item[0] = 3;
+		 *	break;
+		 */
+		default:
+			ucontrol->value.enumerated.item[0] = 4;
+			break;
 	}
+
 	return 0;
 }
 
@@ -231,33 +253,47 @@ static int snd_dt019x_input_sw_put(struct snd_kcontrol *kcontrol, struct snd_ctl
 	unsigned long flags;
 	int change;
 	unsigned char nval, oval;
-	
+
 	if (ucontrol->value.enumerated.item[0] > 4)
+	{
 		return -EINVAL;
-	switch (ucontrol->value.enumerated.item[0]) {
-	case 0:
-		nval = SB_DT019X_CAP_CD;
-		break;
-	case 1:
-		nval = SB_DT019X_CAP_MIC;
-		break;
-	case 2:
-		nval = SB_DT019X_CAP_LINE;
-		break;
-	case 3:
-		nval = SB_DT019X_CAP_SYNTH;
-		break;
-	case 4:
-		nval = SB_DT019X_CAP_MAIN;
-		break;
-	default:
-		nval = SB_DT019X_CAP_MAIN;
 	}
+
+	switch (ucontrol->value.enumerated.item[0])
+	{
+		case 0:
+			nval = SB_DT019X_CAP_CD;
+			break;
+
+		case 1:
+			nval = SB_DT019X_CAP_MIC;
+			break;
+
+		case 2:
+			nval = SB_DT019X_CAP_LINE;
+			break;
+
+		case 3:
+			nval = SB_DT019X_CAP_SYNTH;
+			break;
+
+		case 4:
+			nval = SB_DT019X_CAP_MAIN;
+			break;
+
+		default:
+			nval = SB_DT019X_CAP_MAIN;
+	}
+
 	spin_lock_irqsave(&sb->mixer_lock, flags);
 	oval = snd_sbmixer_read(sb, SB_DT019X_CAPTURE_SW);
 	change = nval != oval;
+
 	if (change)
+	{
 		snd_sbmixer_write(sb, SB_DT019X_CAPTURE_SW, nval);
+	}
+
 	spin_unlock_irqrestore(&sb->mixer_lock, flags);
 	return change;
 }
@@ -267,9 +303,10 @@ static int snd_dt019x_input_sw_put(struct snd_kcontrol *kcontrol, struct snd_ctl
  */
 
 static int snd_als4k_mono_capture_route_info(struct snd_kcontrol *kcontrol,
-					     struct snd_ctl_elem_info *uinfo)
+		struct snd_ctl_elem_info *uinfo)
 {
-	static const char * const texts[3] = {
+	static const char *const texts[3] =
+	{
 		"L chan only", "R chan only", "L ch/2 + R ch/2"
 	};
 
@@ -277,7 +314,7 @@ static int snd_als4k_mono_capture_route_info(struct snd_kcontrol *kcontrol,
 }
 
 static int snd_als4k_mono_capture_route_get(struct snd_kcontrol *kcontrol,
-				struct snd_ctl_elem_value *ucontrol)
+		struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_sb *sb = snd_kcontrol_chip(kcontrol);
 	unsigned long flags;
@@ -287,15 +324,18 @@ static int snd_als4k_mono_capture_route_get(struct snd_kcontrol *kcontrol,
 	oval = snd_sbmixer_read(sb, SB_ALS4000_MONO_IO_CTRL);
 	spin_unlock_irqrestore(&sb->mixer_lock, flags);
 	oval >>= 6;
+
 	if (oval > 2)
+	{
 		oval = 2;
+	}
 
 	ucontrol->value.enumerated.item[0] = oval;
 	return 0;
 }
 
 static int snd_als4k_mono_capture_route_put(struct snd_kcontrol *kcontrol,
-				struct snd_ctl_elem_value *ucontrol)
+		struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_sb *sb = snd_kcontrol_chip(kcontrol);
 	unsigned long flags;
@@ -303,15 +343,22 @@ static int snd_als4k_mono_capture_route_put(struct snd_kcontrol *kcontrol,
 	unsigned char nval, oval;
 
 	if (ucontrol->value.enumerated.item[0] > 2)
+	{
 		return -EINVAL;
+	}
+
 	spin_lock_irqsave(&sb->mixer_lock, flags);
 	oval = snd_sbmixer_read(sb, SB_ALS4000_MONO_IO_CTRL);
 
 	nval = (oval & ~(3 << 6))
-	     | (ucontrol->value.enumerated.item[0] << 6);
+		   | (ucontrol->value.enumerated.item[0] << 6);
 	change = nval != oval;
+
 	if (change)
+	{
 		snd_sbmixer_write(sb, SB_ALS4000_MONO_IO_CTRL, nval);
+	}
+
 	spin_unlock_irqrestore(&sb->mixer_lock, flags);
 	return change;
 }
@@ -322,7 +369,8 @@ static int snd_als4k_mono_capture_route_put(struct snd_kcontrol *kcontrol,
 
 static int snd_sb8mixer_info_mux(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_info *uinfo)
 {
-	static const char * const texts[3] = {
+	static const char *const texts[3] =
+	{
 		"Mic", "CD", "Line"
 	};
 
@@ -335,21 +383,26 @@ static int snd_sb8mixer_get_mux(struct snd_kcontrol *kcontrol, struct snd_ctl_el
 	struct snd_sb *sb = snd_kcontrol_chip(kcontrol);
 	unsigned long flags;
 	unsigned char oval;
-	
+
 	spin_lock_irqsave(&sb->mixer_lock, flags);
 	oval = snd_sbmixer_read(sb, SB_DSP_CAPTURE_SOURCE);
 	spin_unlock_irqrestore(&sb->mixer_lock, flags);
-	switch ((oval >> 0x01) & 0x03) {
-	case SB_DSP_MIXS_CD:
-		ucontrol->value.enumerated.item[0] = 1;
-		break;
-	case SB_DSP_MIXS_LINE:
-		ucontrol->value.enumerated.item[0] = 2;
-		break;
-	default:
-		ucontrol->value.enumerated.item[0] = 0;
-		break;
+
+	switch ((oval >> 0x01) & 0x03)
+	{
+		case SB_DSP_MIXS_CD:
+			ucontrol->value.enumerated.item[0] = 1;
+			break;
+
+		case SB_DSP_MIXS_LINE:
+			ucontrol->value.enumerated.item[0] = 2;
+			break;
+
+		default:
+			ucontrol->value.enumerated.item[0] = 0;
+			break;
 	}
+
 	return 0;
 }
 
@@ -359,26 +412,37 @@ static int snd_sb8mixer_put_mux(struct snd_kcontrol *kcontrol, struct snd_ctl_el
 	unsigned long flags;
 	int change;
 	unsigned char nval, oval;
-	
+
 	if (ucontrol->value.enumerated.item[0] > 2)
+	{
 		return -EINVAL;
-	switch (ucontrol->value.enumerated.item[0]) {
-	case 1:
-		nval = SB_DSP_MIXS_CD;
-		break;
-	case 2:
-		nval = SB_DSP_MIXS_LINE;
-		break;
-	default:
-		nval = SB_DSP_MIXS_MIC;
 	}
+
+	switch (ucontrol->value.enumerated.item[0])
+	{
+		case 1:
+			nval = SB_DSP_MIXS_CD;
+			break;
+
+		case 2:
+			nval = SB_DSP_MIXS_LINE;
+			break;
+
+		default:
+			nval = SB_DSP_MIXS_MIC;
+	}
+
 	nval <<= 1;
 	spin_lock_irqsave(&sb->mixer_lock, flags);
 	oval = snd_sbmixer_read(sb, SB_DSP_CAPTURE_SOURCE);
 	nval |= oval & ~0x06;
 	change = nval != oval;
+
 	if (change)
+	{
 		snd_sbmixer_write(sb, SB_DSP_CAPTURE_SOURCE, nval);
+	}
+
 	spin_unlock_irqrestore(&sb->mixer_lock, flags);
 	return change;
 }
@@ -415,7 +479,7 @@ static int snd_sb16mixer_get_input_sw(struct snd_kcontrol *kcontrol, struct snd_
 	ucontrol->value.integer.value[2] = (val1 >> right_shift) & 0x01;
 	ucontrol->value.integer.value[3] = (val2 >> right_shift) & 0x01;
 	return 0;
-}                                                                                                                   
+}
 
 static int snd_sb16mixer_put_input_sw(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_value *ucontrol)
 {
@@ -438,10 +502,13 @@ static int snd_sb16mixer_put_input_sw(struct snd_kcontrol *kcontrol, struct snd_
 	val1 |= (ucontrol->value.integer.value[2] & 1) << right_shift;
 	val2 |= (ucontrol->value.integer.value[3] & 1) << right_shift;
 	change = val1 != oval1 || val2 != oval2;
-	if (change) {
+
+	if (change)
+	{
 		snd_sbmixer_write(sb, reg1, val1);
 		snd_sbmixer_write(sb, reg2, val2);
 	}
+
 	spin_unlock_irqrestore(&sb->mixer_lock, flags);
 	return change;
 }
@@ -453,7 +520,8 @@ static int snd_sb16mixer_put_input_sw(struct snd_kcontrol *kcontrol, struct snd_
  */
 int snd_sbmixer_add_ctl(struct snd_sb *chip, const char *name, int index, int type, unsigned long value)
 {
-	static struct snd_kcontrol_new newctls[] = {
+	static struct snd_kcontrol_new newctls[] =
+	{
 		[SB_MIX_SINGLE] = {
 			.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 			.info = snd_sbmixer_info_single,
@@ -495,13 +563,21 @@ int snd_sbmixer_add_ctl(struct snd_sb *chip, const char *name, int index, int ty
 	int err;
 
 	ctl = snd_ctl_new1(&newctls[type], chip);
+
 	if (! ctl)
+	{
 		return -ENOMEM;
+	}
+
 	strlcpy(ctl->id.name, name, sizeof(ctl->id.name));
 	ctl->id.index = index;
 	ctl->private_value = value;
+
 	if ((err = snd_ctl_add(chip->card, ctl)) < 0)
+	{
 		return err;
+	}
+
 	return 0;
 }
 
@@ -509,14 +585,16 @@ int snd_sbmixer_add_ctl(struct snd_sb *chip, const char *name, int index, int ty
  * SB 2.0 specific mixer elements
  */
 
-static struct sbmix_elem snd_sb20_controls[] = {
+static struct sbmix_elem snd_sb20_controls[] =
+{
 	SB_SINGLE("Master Playback Volume", SB_DSP20_MASTER_DEV, 1, 7),
 	SB_SINGLE("PCM Playback Volume", SB_DSP20_PCM_DEV, 1, 3),
 	SB_SINGLE("Synth Playback Volume", SB_DSP20_FM_DEV, 1, 7),
 	SB_SINGLE("CD Playback Volume", SB_DSP20_CD_DEV, 1, 7)
 };
 
-static unsigned char snd_sb20_init_values[][2] = {
+static unsigned char snd_sb20_init_values[][2] =
+{
 	{ SB_DSP20_MASTER_DEV, 0 },
 	{ SB_DSP20_FM_DEV, 0 },
 };
@@ -524,17 +602,18 @@ static unsigned char snd_sb20_init_values[][2] = {
 /*
  * SB Pro specific mixer elements
  */
-static struct sbmix_elem snd_sbpro_controls[] = {
+static struct sbmix_elem snd_sbpro_controls[] =
+{
 	SB_DOUBLE("Master Playback Volume",
-		  SB_DSP_MASTER_DEV, SB_DSP_MASTER_DEV, 5, 1, 7),
+	SB_DSP_MASTER_DEV, SB_DSP_MASTER_DEV, 5, 1, 7),
 	SB_DOUBLE("PCM Playback Volume",
-		  SB_DSP_PCM_DEV, SB_DSP_PCM_DEV, 5, 1, 7),
+	SB_DSP_PCM_DEV, SB_DSP_PCM_DEV, 5, 1, 7),
 	SB_SINGLE("PCM Playback Filter", SB_DSP_PLAYBACK_FILT, 5, 1),
 	SB_DOUBLE("Synth Playback Volume",
-		  SB_DSP_FM_DEV, SB_DSP_FM_DEV, 5, 1, 7),
+	SB_DSP_FM_DEV, SB_DSP_FM_DEV, 5, 1, 7),
 	SB_DOUBLE("CD Playback Volume", SB_DSP_CD_DEV, SB_DSP_CD_DEV, 5, 1, 7),
 	SB_DOUBLE("Line Playback Volume",
-		  SB_DSP_LINE_DEV, SB_DSP_LINE_DEV, 5, 1, 7),
+	SB_DSP_LINE_DEV, SB_DSP_LINE_DEV, 5, 1, 7),
 	SB_SINGLE("Mic Playback Volume", SB_DSP_MIC_DEV, 1, 3),
 	{
 		.name = "Capture Source",
@@ -544,7 +623,8 @@ static struct sbmix_elem snd_sbpro_controls[] = {
 	SB_SINGLE("Capture Low-Pass Filter", SB_DSP_CAPTURE_FILT, 3, 1)
 };
 
-static unsigned char snd_sbpro_init_values[][2] = {
+static unsigned char snd_sbpro_init_values[][2] =
+{
 	{ SB_DSP_MASTER_DEV, 0 },
 	{ SB_DSP_PCM_DEV, 0 },
 	{ SB_DSP_FM_DEV, 0 },
@@ -553,45 +633,47 @@ static unsigned char snd_sbpro_init_values[][2] = {
 /*
  * SB16 specific mixer elements
  */
-static struct sbmix_elem snd_sb16_controls[] = {
+static struct sbmix_elem snd_sb16_controls[] =
+{
 	SB_DOUBLE("Master Playback Volume",
-		  SB_DSP4_MASTER_DEV, (SB_DSP4_MASTER_DEV + 1), 3, 3, 31),
+	SB_DSP4_MASTER_DEV, (SB_DSP4_MASTER_DEV + 1), 3, 3, 31),
 	SB_DOUBLE("PCM Playback Volume",
-		  SB_DSP4_PCM_DEV, (SB_DSP4_PCM_DEV + 1), 3, 3, 31),
+	SB_DSP4_PCM_DEV, (SB_DSP4_PCM_DEV + 1), 3, 3, 31),
 	SB16_INPUT_SW("Synth Capture Route",
-		      SB_DSP4_INPUT_LEFT, SB_DSP4_INPUT_RIGHT, 6, 5),
+	SB_DSP4_INPUT_LEFT, SB_DSP4_INPUT_RIGHT, 6, 5),
 	SB_DOUBLE("Synth Playback Volume",
-		  SB_DSP4_SYNTH_DEV, (SB_DSP4_SYNTH_DEV + 1), 3, 3, 31),
+	SB_DSP4_SYNTH_DEV, (SB_DSP4_SYNTH_DEV + 1), 3, 3, 31),
 	SB16_INPUT_SW("CD Capture Route",
-		      SB_DSP4_INPUT_LEFT, SB_DSP4_INPUT_RIGHT, 2, 1),
+	SB_DSP4_INPUT_LEFT, SB_DSP4_INPUT_RIGHT, 2, 1),
 	SB_DOUBLE("CD Playback Switch",
-		  SB_DSP4_OUTPUT_SW, SB_DSP4_OUTPUT_SW, 2, 1, 1),
+	SB_DSP4_OUTPUT_SW, SB_DSP4_OUTPUT_SW, 2, 1, 1),
 	SB_DOUBLE("CD Playback Volume",
-		  SB_DSP4_CD_DEV, (SB_DSP4_CD_DEV + 1), 3, 3, 31),
+	SB_DSP4_CD_DEV, (SB_DSP4_CD_DEV + 1), 3, 3, 31),
 	SB16_INPUT_SW("Mic Capture Route",
-		      SB_DSP4_INPUT_LEFT, SB_DSP4_INPUT_RIGHT, 0, 0),
+	SB_DSP4_INPUT_LEFT, SB_DSP4_INPUT_RIGHT, 0, 0),
 	SB_SINGLE("Mic Playback Switch", SB_DSP4_OUTPUT_SW, 0, 1),
 	SB_SINGLE("Mic Playback Volume", SB_DSP4_MIC_DEV, 3, 31),
 	SB_SINGLE("Beep Volume", SB_DSP4_SPEAKER_DEV, 6, 3),
 	SB_DOUBLE("Capture Volume",
-		  SB_DSP4_IGAIN_DEV, (SB_DSP4_IGAIN_DEV + 1), 6, 6, 3),
+	SB_DSP4_IGAIN_DEV, (SB_DSP4_IGAIN_DEV + 1), 6, 6, 3),
 	SB_DOUBLE("Playback Volume",
-		  SB_DSP4_OGAIN_DEV, (SB_DSP4_OGAIN_DEV + 1), 6, 6, 3),
+	SB_DSP4_OGAIN_DEV, (SB_DSP4_OGAIN_DEV + 1), 6, 6, 3),
 	SB16_INPUT_SW("Line Capture Route",
-		      SB_DSP4_INPUT_LEFT, SB_DSP4_INPUT_RIGHT, 4, 3),
+	SB_DSP4_INPUT_LEFT, SB_DSP4_INPUT_RIGHT, 4, 3),
 	SB_DOUBLE("Line Playback Switch",
-		  SB_DSP4_OUTPUT_SW, SB_DSP4_OUTPUT_SW, 4, 3, 1),
+	SB_DSP4_OUTPUT_SW, SB_DSP4_OUTPUT_SW, 4, 3, 1),
 	SB_DOUBLE("Line Playback Volume",
-		  SB_DSP4_LINE_DEV, (SB_DSP4_LINE_DEV + 1), 3, 3, 31),
+	SB_DSP4_LINE_DEV, (SB_DSP4_LINE_DEV + 1), 3, 3, 31),
 	SB_SINGLE("Mic Auto Gain", SB_DSP4_MIC_AGC, 0, 1),
 	SB_SINGLE("3D Enhancement Switch", SB_DSP4_3DSE, 0, 1),
 	SB_DOUBLE("Tone Control - Bass",
-		  SB_DSP4_BASS_DEV, (SB_DSP4_BASS_DEV + 1), 4, 4, 15),
+	SB_DSP4_BASS_DEV, (SB_DSP4_BASS_DEV + 1), 4, 4, 15),
 	SB_DOUBLE("Tone Control - Treble",
-		  SB_DSP4_TREBLE_DEV, (SB_DSP4_TREBLE_DEV + 1), 4, 4, 15)
+	SB_DSP4_TREBLE_DEV, (SB_DSP4_TREBLE_DEV + 1), 4, 4, 15)
 };
 
-static unsigned char snd_sb16_init_values[][2] = {
+static unsigned char snd_sb16_init_values[][2] =
+{
 	{ SB_DSP4_MASTER_DEV + 0, 0 },
 	{ SB_DSP4_MASTER_DEV + 1, 0 },
 	{ SB_DSP4_PCM_DEV + 0, 0 },
@@ -607,56 +689,59 @@ static unsigned char snd_sb16_init_values[][2] = {
 /*
  * DT019x specific mixer elements
  */
-static struct sbmix_elem snd_dt019x_controls[] = {
+static struct sbmix_elem snd_dt019x_controls[] =
+{
 	/* ALS4000 below has some parts which we might be lacking,
 	 * e.g. snd_als4000_ctl_mono_playback_switch - check it! */
 	SB_DOUBLE("Master Playback Volume",
-		  SB_DT019X_MASTER_DEV, SB_DT019X_MASTER_DEV, 4, 0, 15),
+	SB_DT019X_MASTER_DEV, SB_DT019X_MASTER_DEV, 4, 0, 15),
 	SB_DOUBLE("PCM Playback Switch",
-		  SB_DT019X_OUTPUT_SW2, SB_DT019X_OUTPUT_SW2, 2, 1, 1),
+	SB_DT019X_OUTPUT_SW2, SB_DT019X_OUTPUT_SW2, 2, 1, 1),
 	SB_DOUBLE("PCM Playback Volume",
-		  SB_DT019X_PCM_DEV, SB_DT019X_PCM_DEV, 4, 0, 15),
+	SB_DT019X_PCM_DEV, SB_DT019X_PCM_DEV, 4, 0, 15),
 	SB_DOUBLE("Synth Playback Switch",
-		  SB_DT019X_OUTPUT_SW2, SB_DT019X_OUTPUT_SW2, 4, 3, 1),
+	SB_DT019X_OUTPUT_SW2, SB_DT019X_OUTPUT_SW2, 4, 3, 1),
 	SB_DOUBLE("Synth Playback Volume",
-		  SB_DT019X_SYNTH_DEV, SB_DT019X_SYNTH_DEV, 4, 0, 15),
+	SB_DT019X_SYNTH_DEV, SB_DT019X_SYNTH_DEV, 4, 0, 15),
 	SB_DOUBLE("CD Playback Switch",
-		  SB_DSP4_OUTPUT_SW, SB_DSP4_OUTPUT_SW, 2, 1, 1),
+	SB_DSP4_OUTPUT_SW, SB_DSP4_OUTPUT_SW, 2, 1, 1),
 	SB_DOUBLE("CD Playback Volume",
-		  SB_DT019X_CD_DEV, SB_DT019X_CD_DEV, 4, 0, 15),
+	SB_DT019X_CD_DEV, SB_DT019X_CD_DEV, 4, 0, 15),
 	SB_SINGLE("Mic Playback Switch", SB_DSP4_OUTPUT_SW, 0, 1),
 	SB_SINGLE("Mic Playback Volume", SB_DT019X_MIC_DEV, 4, 7),
 	SB_SINGLE("Beep Volume", SB_DT019X_SPKR_DEV, 0,  7),
 	SB_DOUBLE("Line Playback Switch",
-		  SB_DSP4_OUTPUT_SW, SB_DSP4_OUTPUT_SW, 4, 3, 1),
+	SB_DSP4_OUTPUT_SW, SB_DSP4_OUTPUT_SW, 4, 3, 1),
 	SB_DOUBLE("Line Playback Volume",
-		  SB_DT019X_LINE_DEV, SB_DT019X_LINE_DEV, 4, 0, 15),
+	SB_DT019X_LINE_DEV, SB_DT019X_LINE_DEV, 4, 0, 15),
 	{
 		.name = "Capture Source",
 		.type = SB_MIX_CAPTURE_DT019X
 	}
 };
 
-static unsigned char snd_dt019x_init_values[][2] = {
-        { SB_DT019X_MASTER_DEV, 0 },
-        { SB_DT019X_PCM_DEV, 0 },
-        { SB_DT019X_SYNTH_DEV, 0 },
-        { SB_DT019X_CD_DEV, 0 },
-        { SB_DT019X_MIC_DEV, 0 },	/* Includes PC-speaker in high nibble */
-        { SB_DT019X_LINE_DEV, 0 },
-        { SB_DSP4_OUTPUT_SW, 0 },
-        { SB_DT019X_OUTPUT_SW2, 0 },
-        { SB_DT019X_CAPTURE_SW, 0x06 },
+static unsigned char snd_dt019x_init_values[][2] =
+{
+	{ SB_DT019X_MASTER_DEV, 0 },
+	{ SB_DT019X_PCM_DEV, 0 },
+	{ SB_DT019X_SYNTH_DEV, 0 },
+	{ SB_DT019X_CD_DEV, 0 },
+	{ SB_DT019X_MIC_DEV, 0 },	/* Includes PC-speaker in high nibble */
+	{ SB_DT019X_LINE_DEV, 0 },
+	{ SB_DSP4_OUTPUT_SW, 0 },
+	{ SB_DT019X_OUTPUT_SW2, 0 },
+	{ SB_DT019X_CAPTURE_SW, 0x06 },
 };
 
 /*
  * ALS4000 specific mixer elements
  */
-static struct sbmix_elem snd_als4000_controls[] = {
+static struct sbmix_elem snd_als4000_controls[] =
+{
 	SB_DOUBLE("PCM Playback Switch",
-		  SB_DT019X_OUTPUT_SW2, SB_DT019X_OUTPUT_SW2, 2, 1, 1),
+	SB_DT019X_OUTPUT_SW2, SB_DT019X_OUTPUT_SW2, 2, 1, 1),
 	SB_DOUBLE("Synth Playback Switch",
-		  SB_DT019X_OUTPUT_SW2, SB_DT019X_OUTPUT_SW2, 4, 3, 1),
+	SB_DT019X_OUTPUT_SW2, SB_DT019X_OUTPUT_SW2, 4, 3, 1),
 	SB_SINGLE("Mic Boost (+20dB)", SB_ALS4000_MIC_IN_GAIN, 0, 0x03),
 	SB_SINGLE("Master Mono Playback Switch", SB_ALS4000_MONO_IO_CTRL, 5, 1),
 	{
@@ -667,7 +752,7 @@ static struct sbmix_elem snd_als4000_controls[] = {
 	SB_SINGLE("Analog Loopback Switch", SB_ALS4000_MIC_IN_GAIN, 7, 0x01),
 	SB_SINGLE("3D Control - Switch", SB_ALS4000_3D_SND_FX, 6, 0x01),
 	SB_SINGLE("Digital Loopback Switch",
-		  SB_ALS4000_CR3_CONFIGURATION, 7, 0x01),
+	SB_ALS4000_CR3_CONFIGURATION, 7, 0x01),
 	/* FIXME: functionality of 3D controls might be swapped, I didn't find
 	 * a description of how to identify what is supposed to be what */
 	SB_SINGLE("3D Control - Level", SB_ALS4000_3D_SND_FX, 0, 0x07),
@@ -679,14 +764,15 @@ static struct sbmix_elem snd_als4000_controls[] = {
 	SB_SINGLE("3D Control - Wide", SB_ALS4000_3D_TIME_DELAY, 0, 0x0f),
 	SB_SINGLE("3D PowerOff Switch", SB_ALS4000_3D_TIME_DELAY, 4, 0x01),
 	SB_SINGLE("Master Playback 8kHz / 20kHz LPF Switch",
-		  SB_ALS4000_FMDAC, 5, 0x01),
+	SB_ALS4000_FMDAC, 5, 0x01),
 #ifdef NOT_AVAILABLE
 	SB_SINGLE("FMDAC Switch (Option ?)", SB_ALS4000_FMDAC, 0, 0x01),
 	SB_SINGLE("QSound Mode", SB_ALS4000_QSOUND, 1, 0x1f),
 #endif
 };
 
-static unsigned char snd_als4000_init_values[][2] = {
+static unsigned char snd_als4000_init_values[][2] =
+{
 	{ SB_DSP4_MASTER_DEV + 0, 0 },
 	{ SB_DSP4_MASTER_DEV + 1, 0 },
 	{ SB_DSP4_PCM_DEV + 0, 0 },
@@ -704,11 +790,11 @@ static unsigned char snd_als4000_init_values[][2] = {
 /*
  */
 static int snd_sbmixer_init(struct snd_sb *chip,
-			    struct sbmix_elem *controls,
-			    int controls_count,
-			    unsigned char map[][2],
-			    int map_count,
-			    char *name)
+							struct sbmix_elem *controls,
+							int controls_count,
+							unsigned char map[][2],
+							int map_count,
+							char *name)
 {
 	unsigned long flags;
 	struct snd_card *card = chip->card;
@@ -720,17 +806,23 @@ static int snd_sbmixer_init(struct snd_sb *chip,
 	spin_unlock_irqrestore(&chip->mixer_lock, flags);
 
 	/* mute and zero volume channels */
-	for (idx = 0; idx < map_count; idx++) {
+	for (idx = 0; idx < map_count; idx++)
+	{
 		spin_lock_irqsave(&chip->mixer_lock, flags);
 		snd_sbmixer_write(chip, map[idx][0], map[idx][1]);
 		spin_unlock_irqrestore(&chip->mixer_lock, flags);
 	}
 
-	for (idx = 0; idx < controls_count; idx++) {
+	for (idx = 0; idx < controls_count; idx++)
+	{
 		err = snd_sbmixer_add_ctl_elem(chip, &controls[idx]);
+
 		if (err < 0)
+		{
 			return err;
+		}
 	}
+
 	snd_component_add(card, name);
 	strcpy(card->mixername, name);
 	return 0;
@@ -742,87 +834,119 @@ int snd_sbmixer_new(struct snd_sb *chip)
 	int err;
 
 	if (snd_BUG_ON(!chip || !chip->card))
+	{
 		return -EINVAL;
+	}
 
 	card = chip->card;
 
-	switch (chip->hardware) {
-	case SB_HW_10:
-		return 0; /* no mixer chip on SB1.x */
-	case SB_HW_20:
-	case SB_HW_201:
-		if ((err = snd_sbmixer_init(chip,
-					    snd_sb20_controls,
-					    ARRAY_SIZE(snd_sb20_controls),
-					    snd_sb20_init_values,
-					    ARRAY_SIZE(snd_sb20_init_values),
-					    "CTL1335")) < 0)
-			return err;
-		break;
-	case SB_HW_PRO:
-	case SB_HW_JAZZ16:
-		if ((err = snd_sbmixer_init(chip,
-					    snd_sbpro_controls,
-					    ARRAY_SIZE(snd_sbpro_controls),
-					    snd_sbpro_init_values,
-					    ARRAY_SIZE(snd_sbpro_init_values),
-					    "CTL1345")) < 0)
-			return err;
-		break;
-	case SB_HW_16:
-	case SB_HW_ALS100:
-	case SB_HW_CS5530:
-		if ((err = snd_sbmixer_init(chip,
-					    snd_sb16_controls,
-					    ARRAY_SIZE(snd_sb16_controls),
-					    snd_sb16_init_values,
-					    ARRAY_SIZE(snd_sb16_init_values),
-					    "CTL1745")) < 0)
-			return err;
-		break;
-	case SB_HW_ALS4000:
-		/* use only the first 16 controls from SB16 */
-		err = snd_sbmixer_init(chip,
-					snd_sb16_controls,
-					16,
-					snd_sb16_init_values,
-					ARRAY_SIZE(snd_sb16_init_values),
-					"ALS4000");
-		if (err < 0)
-			return err;
-		if ((err = snd_sbmixer_init(chip,
-					    snd_als4000_controls,
-					    ARRAY_SIZE(snd_als4000_controls),
-					    snd_als4000_init_values,
-					    ARRAY_SIZE(snd_als4000_init_values),
-					    "ALS4000")) < 0)
-			return err;
-		break;
-	case SB_HW_DT019X:
-		err = snd_sbmixer_init(chip,
-				       snd_dt019x_controls,
-				       ARRAY_SIZE(snd_dt019x_controls),
-				       snd_dt019x_init_values,
-				       ARRAY_SIZE(snd_dt019x_init_values),
-				       "DT019X");
-		if (err < 0)
-			return err;
-		break;
-	default:
-		strcpy(card->mixername, "???");
+	switch (chip->hardware)
+	{
+		case SB_HW_10:
+			return 0; /* no mixer chip on SB1.x */
+
+		case SB_HW_20:
+		case SB_HW_201:
+			if ((err = snd_sbmixer_init(chip,
+										snd_sb20_controls,
+										ARRAY_SIZE(snd_sb20_controls),
+										snd_sb20_init_values,
+										ARRAY_SIZE(snd_sb20_init_values),
+										"CTL1335")) < 0)
+			{
+				return err;
+			}
+
+			break;
+
+		case SB_HW_PRO:
+		case SB_HW_JAZZ16:
+			if ((err = snd_sbmixer_init(chip,
+										snd_sbpro_controls,
+										ARRAY_SIZE(snd_sbpro_controls),
+										snd_sbpro_init_values,
+										ARRAY_SIZE(snd_sbpro_init_values),
+										"CTL1345")) < 0)
+			{
+				return err;
+			}
+
+			break;
+
+		case SB_HW_16:
+		case SB_HW_ALS100:
+		case SB_HW_CS5530:
+			if ((err = snd_sbmixer_init(chip,
+										snd_sb16_controls,
+										ARRAY_SIZE(snd_sb16_controls),
+										snd_sb16_init_values,
+										ARRAY_SIZE(snd_sb16_init_values),
+										"CTL1745")) < 0)
+			{
+				return err;
+			}
+
+			break;
+
+		case SB_HW_ALS4000:
+			/* use only the first 16 controls from SB16 */
+			err = snd_sbmixer_init(chip,
+								   snd_sb16_controls,
+								   16,
+								   snd_sb16_init_values,
+								   ARRAY_SIZE(snd_sb16_init_values),
+								   "ALS4000");
+
+			if (err < 0)
+			{
+				return err;
+			}
+
+			if ((err = snd_sbmixer_init(chip,
+										snd_als4000_controls,
+										ARRAY_SIZE(snd_als4000_controls),
+										snd_als4000_init_values,
+										ARRAY_SIZE(snd_als4000_init_values),
+										"ALS4000")) < 0)
+			{
+				return err;
+			}
+
+			break;
+
+		case SB_HW_DT019X:
+			err = snd_sbmixer_init(chip,
+								   snd_dt019x_controls,
+								   ARRAY_SIZE(snd_dt019x_controls),
+								   snd_dt019x_init_values,
+								   ARRAY_SIZE(snd_dt019x_init_values),
+								   "DT019X");
+
+			if (err < 0)
+			{
+				return err;
+			}
+
+			break;
+
+		default:
+			strcpy(card->mixername, "???");
 	}
+
 	return 0;
 }
 
 #ifdef CONFIG_PM
-static unsigned char sb20_saved_regs[] = {
+static unsigned char sb20_saved_regs[] =
+{
 	SB_DSP20_MASTER_DEV,
 	SB_DSP20_PCM_DEV,
 	SB_DSP20_FM_DEV,
 	SB_DSP20_CD_DEV,
 };
 
-static unsigned char sbpro_saved_regs[] = {
+static unsigned char sbpro_saved_regs[] =
+{
 	SB_DSP_MASTER_DEV,
 	SB_DSP_PCM_DEV,
 	SB_DSP_PLAYBACK_FILT,
@@ -834,7 +958,8 @@ static unsigned char sbpro_saved_regs[] = {
 	SB_DSP_CAPTURE_FILT,
 };
 
-static unsigned char sb16_saved_regs[] = {
+static unsigned char sb16_saved_regs[] =
+{
 	SB_DSP4_MASTER_DEV, SB_DSP4_MASTER_DEV + 1,
 	SB_DSP4_3DSE,
 	SB_DSP4_BASS_DEV, SB_DSP4_BASS_DEV + 1,
@@ -852,7 +977,8 @@ static unsigned char sb16_saved_regs[] = {
 	SB_DSP4_MIC_AGC
 };
 
-static unsigned char dt019x_saved_regs[] = {
+static unsigned char dt019x_saved_regs[] =
+{
 	SB_DT019X_MASTER_DEV,
 	SB_DT019X_PCM_DEV,
 	SB_DT019X_SYNTH_DEV,
@@ -865,7 +991,8 @@ static unsigned char dt019x_saved_regs[] = {
 	SB_DT019X_CAPTURE_SW,
 };
 
-static unsigned char als4000_saved_regs[] = {
+static unsigned char als4000_saved_regs[] =
+{
 	/* please verify in dsheet whether regs to be added
 	   are actually real H/W or just dummy */
 	SB_DSP4_MASTER_DEV, SB_DSP4_MASTER_DEV + 1,
@@ -890,72 +1017,96 @@ static unsigned char als4000_saved_regs[] = {
 static void save_mixer(struct snd_sb *chip, unsigned char *regs, int num_regs)
 {
 	unsigned char *val = chip->saved_regs;
+
 	if (snd_BUG_ON(num_regs > ARRAY_SIZE(chip->saved_regs)))
+	{
 		return;
+	}
+
 	for (; num_regs; num_regs--)
+	{
 		*val++ = snd_sbmixer_read(chip, *regs++);
+	}
 }
 
 static void restore_mixer(struct snd_sb *chip, unsigned char *regs, int num_regs)
 {
 	unsigned char *val = chip->saved_regs;
+
 	if (snd_BUG_ON(num_regs > ARRAY_SIZE(chip->saved_regs)))
+	{
 		return;
+	}
+
 	for (; num_regs; num_regs--)
+	{
 		snd_sbmixer_write(chip, *regs++, *val++);
+	}
 }
 
 void snd_sbmixer_suspend(struct snd_sb *chip)
 {
-	switch (chip->hardware) {
-	case SB_HW_20:
-	case SB_HW_201:
-		save_mixer(chip, sb20_saved_regs, ARRAY_SIZE(sb20_saved_regs));
-		break;
-	case SB_HW_PRO:
-	case SB_HW_JAZZ16:
-		save_mixer(chip, sbpro_saved_regs, ARRAY_SIZE(sbpro_saved_regs));
-		break;
-	case SB_HW_16:
-	case SB_HW_ALS100:
-	case SB_HW_CS5530:
-		save_mixer(chip, sb16_saved_regs, ARRAY_SIZE(sb16_saved_regs));
-		break;
-	case SB_HW_ALS4000:
-		save_mixer(chip, als4000_saved_regs, ARRAY_SIZE(als4000_saved_regs));
-		break;
-	case SB_HW_DT019X:
-		save_mixer(chip, dt019x_saved_regs, ARRAY_SIZE(dt019x_saved_regs));
-		break;
-	default:
-		break;
+	switch (chip->hardware)
+	{
+		case SB_HW_20:
+		case SB_HW_201:
+			save_mixer(chip, sb20_saved_regs, ARRAY_SIZE(sb20_saved_regs));
+			break;
+
+		case SB_HW_PRO:
+		case SB_HW_JAZZ16:
+			save_mixer(chip, sbpro_saved_regs, ARRAY_SIZE(sbpro_saved_regs));
+			break;
+
+		case SB_HW_16:
+		case SB_HW_ALS100:
+		case SB_HW_CS5530:
+			save_mixer(chip, sb16_saved_regs, ARRAY_SIZE(sb16_saved_regs));
+			break;
+
+		case SB_HW_ALS4000:
+			save_mixer(chip, als4000_saved_regs, ARRAY_SIZE(als4000_saved_regs));
+			break;
+
+		case SB_HW_DT019X:
+			save_mixer(chip, dt019x_saved_regs, ARRAY_SIZE(dt019x_saved_regs));
+			break;
+
+		default:
+			break;
 	}
 }
 
 void snd_sbmixer_resume(struct snd_sb *chip)
 {
-	switch (chip->hardware) {
-	case SB_HW_20:
-	case SB_HW_201:
-		restore_mixer(chip, sb20_saved_regs, ARRAY_SIZE(sb20_saved_regs));
-		break;
-	case SB_HW_PRO:
-	case SB_HW_JAZZ16:
-		restore_mixer(chip, sbpro_saved_regs, ARRAY_SIZE(sbpro_saved_regs));
-		break;
-	case SB_HW_16:
-	case SB_HW_ALS100:
-	case SB_HW_CS5530:
-		restore_mixer(chip, sb16_saved_regs, ARRAY_SIZE(sb16_saved_regs));
-		break;
-	case SB_HW_ALS4000:
-		restore_mixer(chip, als4000_saved_regs, ARRAY_SIZE(als4000_saved_regs));
-		break;
-	case SB_HW_DT019X:
-		restore_mixer(chip, dt019x_saved_regs, ARRAY_SIZE(dt019x_saved_regs));
-		break;
-	default:
-		break;
+	switch (chip->hardware)
+	{
+		case SB_HW_20:
+		case SB_HW_201:
+			restore_mixer(chip, sb20_saved_regs, ARRAY_SIZE(sb20_saved_regs));
+			break;
+
+		case SB_HW_PRO:
+		case SB_HW_JAZZ16:
+			restore_mixer(chip, sbpro_saved_regs, ARRAY_SIZE(sbpro_saved_regs));
+			break;
+
+		case SB_HW_16:
+		case SB_HW_ALS100:
+		case SB_HW_CS5530:
+			restore_mixer(chip, sb16_saved_regs, ARRAY_SIZE(sb16_saved_regs));
+			break;
+
+		case SB_HW_ALS4000:
+			restore_mixer(chip, als4000_saved_regs, ARRAY_SIZE(als4000_saved_regs));
+			break;
+
+		case SB_HW_DT019X:
+			restore_mixer(chip, dt019x_saved_regs, ARRAY_SIZE(dt019x_saved_regs));
+			break;
+
+		default:
+			break;
 	}
 }
 #endif

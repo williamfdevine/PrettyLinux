@@ -35,7 +35,8 @@
 struct dma_chan;
 struct ispstat;
 
-struct ispstat_buffer {
+struct ispstat_buffer
+{
 	struct sg_table sgt;
 	void *virt_addr;
 	dma_addr_t dma_addr;
@@ -46,7 +47,8 @@ struct ispstat_buffer {
 	u8 empty;
 };
 
-struct ispstat_ops {
+struct ispstat_ops
+{
 	/*
 	 * Validate new params configuration.
 	 * new_conf->buf_size value must be changed to the exact buffer size
@@ -76,7 +78,8 @@ struct ispstat_ops {
 	int (*buf_process)(struct ispstat *stat);
 };
 
-enum ispstat_state_t {
+enum ispstat_state_t
+{
 	ISPSTAT_DISABLED = 0,
 	ISPSTAT_DISABLING,
 	ISPSTAT_ENABLED,
@@ -84,15 +87,16 @@ enum ispstat_state_t {
 	ISPSTAT_SUSPENDED,
 };
 
-struct ispstat {
+struct ispstat
+{
 	struct v4l2_subdev subdev;
 	struct media_pad pad;	/* sink pad */
 
 	/* Control */
-	unsigned configured:1;
-	unsigned update:1;
-	unsigned buf_processing:1;
-	unsigned sbl_ovl_recover:1;
+	unsigned configured: 1;
+	unsigned update: 1;
+	unsigned buf_processing: 1;
+	unsigned sbl_ovl_recover: 1;
 	u8 inc_config;
 	atomic_t buf_err;
 	enum ispstat_state_t state;	/* enabling/disabling state */
@@ -116,7 +120,8 @@ struct ispstat {
 	struct ispstat_buffer *locked_buf;
 };
 
-struct ispstat_generic_config {
+struct ispstat_generic_config
+{
 	/*
 	 * Fields must be in the same order as in:
 	 *  - omap3isp_h3a_aewb_config
@@ -129,16 +134,16 @@ struct ispstat_generic_config {
 
 int omap3isp_stat_config(struct ispstat *stat, void *new_conf);
 int omap3isp_stat_request_statistics(struct ispstat *stat,
-				     struct omap3isp_stat_data *data);
+									 struct omap3isp_stat_data *data);
 int omap3isp_stat_init(struct ispstat *stat, const char *name,
-		       const struct v4l2_subdev_ops *sd_ops);
+					   const struct v4l2_subdev_ops *sd_ops);
 void omap3isp_stat_cleanup(struct ispstat *stat);
 int omap3isp_stat_subscribe_event(struct v4l2_subdev *subdev,
-				  struct v4l2_fh *fh,
-				  struct v4l2_event_subscription *sub);
+								  struct v4l2_fh *fh,
+								  struct v4l2_event_subscription *sub);
 int omap3isp_stat_unsubscribe_event(struct v4l2_subdev *subdev,
-				    struct v4l2_fh *fh,
-				    struct v4l2_event_subscription *sub);
+									struct v4l2_fh *fh,
+									struct v4l2_event_subscription *sub);
 int omap3isp_stat_s_stream(struct v4l2_subdev *subdev, int enable);
 
 int omap3isp_stat_busy(struct ispstat *stat);
@@ -151,7 +156,7 @@ void omap3isp_stat_isr(struct ispstat *stat);
 void omap3isp_stat_isr_frame_sync(struct ispstat *stat);
 void omap3isp_stat_dma_isr(struct ispstat *stat);
 int omap3isp_stat_register_entities(struct ispstat *stat,
-				    struct v4l2_device *vdev);
+									struct v4l2_device *vdev);
 void omap3isp_stat_unregister_entities(struct ispstat *stat);
 
 #endif /* OMAP3_ISP_STAT_H */

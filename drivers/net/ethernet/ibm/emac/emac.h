@@ -29,7 +29,8 @@
 #include <linux/phy.h>
 
 /* EMAC registers 			Write Access rules */
-struct emac_regs {
+struct emac_regs
+{
 	/* Common registers across all EMAC implementations. */
 	u32 mr0;			/* Special 	*/
 	u32 mr1;			/* Reset 	*/
@@ -43,9 +44,11 @@ struct emac_regs {
 	u32 vtpid;			/* Reset, R, T 	*/
 	u32 vtci;			/* Reset, R, T 	*/
 	u32 ptr;			/* Reset,    T 	*/
-	union {
+	union
+	{
 		/* Registers unique to EMAC4 implementations */
-		struct {
+		struct
+		{
 			u32 iaht1;	/* Reset, R	*/
 			u32 iaht2;	/* Reset, R	*/
 			u32 iaht3;	/* Reset, R	*/
@@ -56,7 +59,8 @@ struct emac_regs {
 			u32 gaht4;	/* Reset, R	*/
 		} emac4;
 		/* Registers unique to EMAC4SYNC implementations */
-		struct {
+		struct
+		{
 			u32 mahr;	/* Reset, R, T  */
 			u32 malr;	/* Reset, R, T  */
 			u32 mmahr;	/* Reset, R, T  */
@@ -73,16 +77,19 @@ struct emac_regs {
 	u32 rwmr;			/* Reset 	*/
 	u32 octx;
 	u32 ocrx;
-	union {
+	union
+	{
 		/* Registers unique to EMAC4 implementations */
-		struct {
+		struct
+		{
 			u32 ipcr;
 		} emac4;
 		/* Registers unique to EMAC4SYNC implementations */
-		struct {
+		struct
+		{
 			u32 rsvd1;
 			u32 revid;
- 			u32 rsvd2[2];
+			u32 rsvd2[2];
 			u32 iaht1;	/* Reset, R     */
 			u32 iaht2;	/* Reset, R     */
 			u32 iaht3;	/* Reset, R     */
@@ -165,10 +172,10 @@ struct emac_regs {
 #define EMAC4_MR1_OBCI_100		0x00000018
 #define EMAC4_MR1_OBCI_100P		0x00000020
 #define EMAC4_MR1_OBCI(freq)		((freq) <= 50  ? EMAC4_MR1_OBCI_50 : \
-					 (freq) <= 66  ? EMAC4_MR1_OBCI_66 : \
-					 (freq) <= 83  ? EMAC4_MR1_OBCI_83 : \
-					 (freq) <= 100 ? EMAC4_MR1_OBCI_100 : \
-						EMAC4_MR1_OBCI_100P)
+									 (freq) <= 66  ? EMAC4_MR1_OBCI_66 : \
+									 (freq) <= 83  ? EMAC4_MR1_OBCI_83 : \
+									 (freq) <= 100 ? EMAC4_MR1_OBCI_100 : \
+									 EMAC4_MR1_OBCI_100P)
 
 /* EMACx_TMR0 */
 #define EMAC_TMR0_GNP			0x80000000
@@ -249,8 +256,8 @@ struct emac_regs {
 #define EMAC_STACR_OPBC_83		0x00000800
 #define EMAC_STACR_OPBC_100		0x00000C00
 #define EMAC_STACR_OPBC(freq)		((freq) <= 50 ? EMAC_STACR_OPBC_50 : \
-					 (freq) <= 66 ? EMAC_STACR_OPBC_66 : \
-					 (freq) <= 83 ? EMAC_STACR_OPBC_83 : EMAC_STACR_OPBC_100)
+									 (freq) <= 66 ? EMAC_STACR_OPBC_66 : \
+									 (freq) <= 83 ? EMAC_STACR_OPBC_83 : EMAC_STACR_OPBC_100)
 #define EMAC_STACR_BASE(opb)		EMAC_STACR_OPBC(opb)
 #define EMAC4_STACR_BASE(opb)		0x00000000
 #define EMAC_STACR_PCDA_MASK		0x1f
@@ -289,10 +296,10 @@ struct emac_regs {
 #define EMAC_TX_ST_UR			0x0002
 #define EMAC_TX_ST_SQE			0x0001
 #define EMAC_IS_BAD_TX			(EMAC_TX_ST_LCS | EMAC_TX_ST_ED | \
-					 EMAC_TX_ST_EC | EMAC_TX_ST_LC | \
-					 EMAC_TX_ST_MC | EMAC_TX_ST_UR)
+								 EMAC_TX_ST_EC | EMAC_TX_ST_LC | \
+								 EMAC_TX_ST_MC | EMAC_TX_ST_UR)
 #define EMAC_IS_BAD_TX_TAH		(EMAC_TX_ST_LCS | EMAC_TX_ST_ED | \
-					 EMAC_TX_ST_EC | EMAC_TX_ST_LC)
+								 EMAC_TX_ST_EC | EMAC_TX_ST_LC)
 
 /* EMAC specific RX descriptor status fields (read access) */
 #define EMAC_RX_ST_OE			0x0200
@@ -307,8 +314,8 @@ struct emac_regs {
 #define EMAC_RX_ST_IRE			0x0001
 #define EMAC_RX_TAH_BAD_CSUM		0x0003
 #define EMAC_BAD_RX_MASK		(EMAC_RX_ST_OE | EMAC_RX_ST_BP | \
-					 EMAC_RX_ST_RP | EMAC_RX_ST_SE | \
-					 EMAC_RX_ST_AE | EMAC_RX_ST_BFCS | \
-					 EMAC_RX_ST_PTL | EMAC_RX_ST_ORE | \
-					 EMAC_RX_ST_IRE )
+								 EMAC_RX_ST_RP | EMAC_RX_ST_SE | \
+								 EMAC_RX_ST_AE | EMAC_RX_ST_BFCS | \
+								 EMAC_RX_ST_PTL | EMAC_RX_ST_ORE | \
+								 EMAC_RX_ST_IRE )
 #endif /* __IBM_NEWEMAC_H */

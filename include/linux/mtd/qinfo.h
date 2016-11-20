@@ -17,7 +17,8 @@
  * @chipshift - Chip/partiton size 2^chipshift
  * @chips - per-chip data structure
  */
-struct lpddr_private {
+struct lpddr_private
+{
 	uint16_t ManufactId;
 	uint16_t DevId;
 	struct qinfo_chip *qinfo;
@@ -33,7 +34,8 @@ struct lpddr_private {
  * @id_str - descriptive string to access the record
  * @desc - detailed description for the qinfo record
  */
-struct qinfo_query_info {
+struct qinfo_query_info
+{
 	uint8_t	major;
 	uint8_t	minor;
 	char *id_str;
@@ -52,7 +54,8 @@ struct qinfo_query_info {
  * @ProgBufferTime - Program buffer write 2^ProgBufferTime u-sec
  * @BlockEraseTime - Block erase 2^BlockEraseTime m-sec
  */
-struct qinfo_chip {
+struct qinfo_chip
+{
 	/* General device info */
 	uint16_t DevSizeShift;
 	uint16_t BufSizeShift;

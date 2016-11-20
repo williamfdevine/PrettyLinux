@@ -101,7 +101,7 @@
 #define CMD5_Q_SHIFT			3
 #define COMMANDS_PER_QUEUE		16
 #define QUEUE_SIZE_VAL			((ffs(COMMANDS_PER_QUEUE) - 2) & \
-					  CMD5_Q_SIZE)
+								 CMD5_Q_SIZE)
 #define Q_PTR_MASK			(2 << (QUEUE_SIZE_VAL + 5) - 1)
 #define Q_DESC_SIZE			sizeof(struct ccp5_desc)
 #define Q_SIZE(n)			(COMMANDS_PER_QUEUE*(n))
@@ -110,8 +110,8 @@
 #define INT_ERROR			0x2
 #define INT_QUEUE_STOPPED		0x4
 #define ALL_INTERRUPTS			(INT_COMPLETION| \
-					 INT_ERROR| \
-					 INT_QUEUE_STOPPED)
+								 INT_ERROR| \
+								 INT_QUEUE_STOPPED)
 
 #define LSB_REGION_WIDTH		5
 #define MAX_LSB_CNT			8
@@ -215,13 +215,15 @@ struct ccp_device;
 struct ccp_cmd;
 struct ccp_fns;
 
-struct ccp_dma_cmd {
+struct ccp_dma_cmd
+{
 	struct list_head entry;
 
 	struct ccp_cmd ccp_cmd;
 };
 
-struct ccp_dma_desc {
+struct ccp_dma_desc
+{
 	struct list_head entry;
 
 	struct ccp_device *ccp;
@@ -234,7 +236,8 @@ struct ccp_dma_desc {
 	size_t len;
 };
 
-struct ccp_dma_chan {
+struct ccp_dma_chan
+{
 	struct ccp_device *ccp;
 
 	spinlock_t lock;
@@ -248,7 +251,8 @@ struct ccp_dma_chan {
 	struct dma_chan dma_chan;
 };
 
-struct ccp_cmd_queue {
+struct ccp_cmd_queue
+{
 	struct ccp_device *ccp;
 
 	/* Queue identifier */
@@ -317,7 +321,8 @@ struct ccp_cmd_queue {
 	unsigned int int_rcvd;
 } ____cacheline_aligned;
 
-struct ccp_device {
+struct ccp_device
+{
 	struct list_head entry;
 
 	struct ccp_vdata *vdata;
@@ -411,7 +416,8 @@ struct ccp_device {
 	unsigned int axcache;
 };
 
-enum ccp_memtype {
+enum ccp_memtype
+{
 	CCP_MEMTYPE_SYSTEM = 0,
 	CCP_MEMTYPE_SB,
 	CCP_MEMTYPE_LOCAL,
@@ -419,14 +425,16 @@ enum ccp_memtype {
 };
 #define	CCP_MEMTYPE_LSB	CCP_MEMTYPE_KSB
 
-struct ccp_dma_info {
+struct ccp_dma_info
+{
 	dma_addr_t address;
 	unsigned int offset;
 	unsigned int length;
 	enum dma_data_direction dir;
 };
 
-struct ccp_dm_workarea {
+struct ccp_dm_workarea
+{
 	struct device *dev;
 	struct dma_pool *dma_pool;
 	unsigned int length;
@@ -435,7 +443,8 @@ struct ccp_dm_workarea {
 	struct ccp_dma_info dma;
 };
 
-struct ccp_sg_workarea {
+struct ccp_sg_workarea
+{
 	struct scatterlist *sg;
 	int nents;
 
@@ -449,50 +458,60 @@ struct ccp_sg_workarea {
 	u64 bytes_left;
 };
 
-struct ccp_data {
+struct ccp_data
+{
 	struct ccp_sg_workarea sg_wa;
 	struct ccp_dm_workarea dm_wa;
 };
 
-struct ccp_mem {
+struct ccp_mem
+{
 	enum ccp_memtype type;
-	union {
+	union
+	{
 		struct ccp_dma_info dma;
 		u32 sb;
 	} u;
 };
 
-struct ccp_aes_op {
+struct ccp_aes_op
+{
 	enum ccp_aes_type type;
 	enum ccp_aes_mode mode;
 	enum ccp_aes_action action;
 };
 
-struct ccp_xts_aes_op {
+struct ccp_xts_aes_op
+{
 	enum ccp_aes_action action;
 	enum ccp_xts_aes_unit_size unit_size;
 };
 
-struct ccp_sha_op {
+struct ccp_sha_op
+{
 	enum ccp_sha_type type;
 	u64 msg_bits;
 };
 
-struct ccp_rsa_op {
+struct ccp_rsa_op
+{
 	u32 mod_size;
 	u32 input_len;
 };
 
-struct ccp_passthru_op {
+struct ccp_passthru_op
+{
 	enum ccp_passthru_bitwise bit_mod;
 	enum ccp_passthru_byteswap byte_swap;
 };
 
-struct ccp_ecc_op {
+struct ccp_ecc_op
+{
 	enum ccp_ecc_function function;
 };
 
-struct ccp_op {
+struct ccp_op
+{
 	struct ccp_cmd_queue *cmd_q;
 
 	u32 jobid;
@@ -507,7 +526,8 @@ struct ccp_op {
 	struct ccp_mem dst;
 	struct ccp_mem exp;
 
-	union {
+	union
+	{
 		struct ccp_aes_op aes;
 		struct ccp_xts_aes_op xts;
 		struct ccp_sha_op sha;
@@ -540,48 +560,55 @@ static inline u32 ccp_addr_hi(struct ccp_dma_info *info)
  * word 6: low 32 bits of key pointer
  * word 7: upper 16 bits of key pointer; key memory type
  */
-struct dword0 {
-	__le32 soc:1;
-	__le32 ioc:1;
-	__le32 rsvd1:1;
-	__le32 init:1;
-	__le32 eom:1;		/* AES/SHA only */
-	__le32 function:15;
-	__le32 engine:4;
-	__le32 prot:1;
-	__le32 rsvd2:7;
+struct dword0
+{
+	__le32 soc: 1;
+	__le32 ioc: 1;
+	__le32 rsvd1: 1;
+	__le32 init: 1;
+	__le32 eom: 1;		/* AES/SHA only */
+	__le32 function: 15;
+	__le32 engine: 4;
+	__le32 prot: 1;
+	__le32 rsvd2: 7;
 };
 
-struct dword3 {
-	__le32 src_hi:16;
-	__le32 src_mem:2;
-	__le32 lsb_cxt_id:8;
-	__le32 rsvd1:5;
-	__le32 fixed:1;
+struct dword3
+{
+	__le32 src_hi: 16;
+	__le32 src_mem: 2;
+	__le32 lsb_cxt_id: 8;
+	__le32 rsvd1: 5;
+	__le32 fixed: 1;
 };
 
-union dword4 {
+union dword4
+{
 	__le32 dst_lo;		/* NON-SHA	*/
 	__le32 sha_len_lo;	/* SHA		*/
 };
 
-union dword5 {
-	struct {
-		__le32 dst_hi:16;
-		__le32 dst_mem:2;
-		__le32 rsvd1:13;
-		__le32 fixed:1;
+union dword5
+{
+	struct
+	{
+		__le32 dst_hi: 16;
+		__le32 dst_mem: 2;
+		__le32 rsvd1: 13;
+		__le32 fixed: 1;
 	} fields;
 	__le32 sha_len_hi;
 };
 
-struct dword7 {
-	__le32 key_hi:16;
-	__le32 key_mem:2;
-	__le32 rsvd1:14;
+struct dword7
+{
+	__le32 key_hi: 16;
+	__le32 key_mem: 2;
+	__le32 rsvd1: 14;
 };
 
-struct ccp5_desc {
+struct ccp5_desc
+{
 	struct dword0 dw0;
 	__le32 length;
 	__le32 src_lo;
@@ -616,7 +643,8 @@ int ccp_dmaengine_register(struct ccp_device *ccp);
 void ccp_dmaengine_unregister(struct ccp_device *ccp);
 
 /* Structure for computation functions that are device-specific */
-struct ccp_actions {
+struct ccp_actions
+{
 	int (*aes)(struct ccp_op *);
 	int (*xts_aes)(struct ccp_op *);
 	int (*sha)(struct ccp_op *);
@@ -625,7 +653,7 @@ struct ccp_actions {
 	int (*ecc)(struct ccp_op *);
 	u32 (*sballoc)(struct ccp_cmd_queue *, unsigned int);
 	void (*sbfree)(struct ccp_cmd_queue *, unsigned int,
-			       unsigned int);
+				   unsigned int);
 	unsigned int (*get_free_slots)(struct ccp_cmd_queue *);
 	int (*init)(struct ccp_device *);
 	void (*destroy)(struct ccp_device *);
@@ -633,7 +661,8 @@ struct ccp_actions {
 };
 
 /* Structure to hold CCP version-specific values */
-struct ccp_vdata {
+struct ccp_vdata
+{
 	const unsigned int version;
 	void (*setup)(struct ccp_device *);
 	const struct ccp_actions *perform;

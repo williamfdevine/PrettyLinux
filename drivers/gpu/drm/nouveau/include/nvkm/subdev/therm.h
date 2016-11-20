@@ -6,17 +6,20 @@
 #include <subdev/bios/therm.h>
 #include <subdev/timer.h>
 
-enum nvkm_therm_thrs_direction {
+enum nvkm_therm_thrs_direction
+{
 	NVKM_THERM_THRS_FALLING = 0,
 	NVKM_THERM_THRS_RISING = 1
 };
 
-enum nvkm_therm_thrs_state {
+enum nvkm_therm_thrs_state
+{
 	NVKM_THERM_THRS_LOWER = 0,
 	NVKM_THERM_THRS_HIGHER = 1
 };
 
-enum nvkm_therm_thrs {
+enum nvkm_therm_thrs
+{
 	NVKM_THERM_THRS_FANBOOST = 0,
 	NVKM_THERM_THRS_DOWNCLOCK = 1,
 	NVKM_THERM_THRS_CRITICAL = 2,
@@ -24,13 +27,15 @@ enum nvkm_therm_thrs {
 	NVKM_THERM_THRS_NR
 };
 
-enum nvkm_therm_fan_mode {
+enum nvkm_therm_fan_mode
+{
 	NVKM_THERM_CTRL_NONE = 0,
 	NVKM_THERM_CTRL_MANUAL = 1,
 	NVKM_THERM_CTRL_AUTO = 2,
 };
 
-enum nvkm_therm_attr_type {
+enum nvkm_therm_attr_type
+{
 	NVKM_THERM_ATTR_FAN_MIN_DUTY = 0,
 	NVKM_THERM_ATTR_FAN_MAX_DUTY = 1,
 	NVKM_THERM_ATTR_FAN_MODE = 2,
@@ -45,7 +50,8 @@ enum nvkm_therm_attr_type {
 	NVKM_THERM_ATTR_THRS_SHUTDOWN_HYST = 17,
 };
 
-struct nvkm_therm {
+struct nvkm_therm
+{
 	const struct nvkm_therm_func *func;
 	struct nvkm_subdev subdev;
 
@@ -64,14 +70,16 @@ struct nvkm_therm {
 	struct nvkm_fan *fan;
 
 	/* alarms priv */
-	struct {
+	struct
+	{
 		spinlock_t alarm_program_lock;
 		struct nvkm_alarm therm_poll_alarm;
 		enum nvkm_therm_thrs_state alarm_state[NVKM_THERM_THRS_NR];
 	} sensor;
 
 	/* what should be done if the card overheats */
-	struct {
+	struct
+	{
 		void (*downclock)(struct nvkm_therm *, bool active);
 		void (*pause)(struct nvkm_therm *, bool active);
 	} emergency;

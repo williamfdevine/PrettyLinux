@@ -3,7 +3,8 @@
 
 #include <asm/byteorder.h>
 
-struct zilog_channel {
+struct zilog_channel
+{
 #ifdef __BIG_ENDIAN
 	volatile unsigned char unused0[3];
 	volatile unsigned char control;
@@ -17,7 +18,8 @@ struct zilog_channel {
 #endif
 };
 
-struct zilog_layout {
+struct zilog_layout
+{
 	struct zilog_channel channelB;
 	struct zilog_channel channelA;
 };
@@ -266,16 +268,16 @@ struct zilog_layout {
 
 /* Misc macros */
 #define ZS_CLEARERR(channel)    do { writeb(ERR_RES, &channel->control); \
-				     udelay(5); } while(0)
+		udelay(5); } while(0)
 
 #define ZS_CLEARSTAT(channel)   do { writeb(RES_EXT_INT, &channel->control); \
-				     udelay(5); } while(0)
+		udelay(5); } while(0)
 
 #define ZS_CLEARFIFO(channel)   do { readb(&channel->data); \
-				     udelay(2); \
-				     readb(&channel->data); \
-				     udelay(2); \
-				     readb(&channel->data); \
-				     udelay(2); } while(0)
+		udelay(2); \
+		readb(&channel->data); \
+		udelay(2); \
+		readb(&channel->data); \
+		udelay(2); } while(0)
 
 #endif /* _IP22_ZILOG_H */

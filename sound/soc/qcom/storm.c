@@ -25,7 +25,7 @@
 #define STORM_SYSCLK_MULT			4
 
 static int storm_ops_hw_params(struct snd_pcm_substream *substream,
-		struct snd_pcm_hw_params *params)
+							   struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *soc_runtime = substream->private_data;
 	struct snd_soc_card *card = soc_runtime->card;
@@ -35,7 +35,9 @@ static int storm_ops_hw_params(struct snd_pcm_substream *substream,
 	int bitwidth, ret;
 
 	bitwidth = snd_pcm_format_width(format);
-	if (bitwidth < 0) {
+
+	if (bitwidth < 0)
+	{
 		dev_err(card->dev, "%s() invalid bit width given: %d\n",
 				__func__, bitwidth);
 		return bitwidth;
@@ -49,7 +51,9 @@ static int storm_ops_hw_params(struct snd_pcm_substream *substream,
 	sysclk_freq = rate * bitwidth * 2 * STORM_SYSCLK_MULT;
 
 	ret = snd_soc_dai_set_sysclk(soc_runtime->cpu_dai, 0, sysclk_freq, 0);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(card->dev, "%s() error setting sysclk to %u: %d\n",
 				__func__, sysclk_freq, ret);
 		return ret;
@@ -58,11 +62,13 @@ static int storm_ops_hw_params(struct snd_pcm_substream *substream,
 	return 0;
 }
 
-static struct snd_soc_ops storm_soc_ops = {
+static struct snd_soc_ops storm_soc_ops =
+{
 	.hw_params	= storm_ops_hw_params,
 };
 
-static struct snd_soc_dai_link storm_dai_link = {
+static struct snd_soc_dai_link storm_dai_link =
+{
 	.name		= "Primary",
 	.stream_name	= "Primary",
 	.codec_dai_name	= "HiFi",
@@ -75,15 +81,20 @@ static int storm_parse_of(struct snd_soc_card *card)
 	struct device_node *np = card->dev->of_node;
 
 	dai_link->cpu_of_node = of_parse_phandle(np, "cpu", 0);
-	if (!dai_link->cpu_of_node) {
+
+	if (!dai_link->cpu_of_node)
+	{
 		dev_err(card->dev, "%s() error getting cpu phandle\n",
 				__func__);
 		return -EINVAL;
 	}
+
 	dai_link->platform_of_node = dai_link->cpu_of_node;
 
 	dai_link->codec_of_node = of_parse_phandle(np, "codec", 0);
-	if (!dai_link->codec_of_node) {
+
+	if (!dai_link->codec_of_node)
+	{
 		dev_err(card->dev, "%s() error getting codec phandle\n",
 				__func__);
 		return -EINVAL;
@@ -98,14 +109,19 @@ static int storm_platform_probe(struct platform_device *pdev)
 	int ret;
 
 	card = devm_kzalloc(&pdev->dev, sizeof(*card), GFP_KERNEL);
+
 	if (!card)
+	{
 		return -ENOMEM;
+	}
 
 	card->dev = &pdev->dev;
 	platform_set_drvdata(pdev, card);
 
 	ret = snd_soc_of_parse_card_name(card, "qcom,model");
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "%s() error parsing card name: %d\n",
 				__func__, ret);
 		return ret;
@@ -115,13 +131,16 @@ static int storm_platform_probe(struct platform_device *pdev)
 	card->num_links	= 1;
 
 	ret = storm_parse_of(card);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "%s() error resolving dai links: %d\n",
 				__func__, ret);
 		return ret;
 	}
 
 	ret = devm_snd_soc_register_card(&pdev->dev, card);
+
 	if (ret)
 		dev_err(&pdev->dev, "%s() error registering soundcard: %d\n",
 				__func__, ret);
@@ -131,18 +150,20 @@ static int storm_platform_probe(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id storm_device_id[]  = {
+static const struct of_device_id storm_device_id[]  =
+{
 	{ .compatible = "google,storm-audio" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, storm_device_id);
 #endif
 
-static struct platform_driver storm_platform_driver = {
+static struct platform_driver storm_platform_driver =
+{
 	.driver = {
 		.name = "storm-audio",
 		.of_match_table =
-			of_match_ptr(storm_device_id),
+		of_match_ptr(storm_device_id),
 	},
 	.probe = storm_platform_probe,
 };

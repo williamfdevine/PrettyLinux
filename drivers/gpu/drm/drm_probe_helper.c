@@ -63,19 +63,25 @@ module_param_named(poll, drm_kms_helper_poll, bool, 0600);
 
 static enum drm_mode_status
 drm_mode_validate_flag(const struct drm_display_mode *mode,
-		       int flags)
+					   int flags)
 {
 	if ((mode->flags & DRM_MODE_FLAG_INTERLACE) &&
-	    !(flags & DRM_MODE_FLAG_INTERLACE))
+		!(flags & DRM_MODE_FLAG_INTERLACE))
+	{
 		return MODE_NO_INTERLACE;
+	}
 
 	if ((mode->flags & DRM_MODE_FLAG_DBLSCAN) &&
-	    !(flags & DRM_MODE_FLAG_DBLSCAN))
+	!(flags & DRM_MODE_FLAG_DBLSCAN))
+	{
 		return MODE_NO_DBLESCAN;
+	}
 
 	if ((mode->flags & DRM_MODE_FLAG_3D_MASK) &&
-	    !(flags & DRM_MODE_FLAG_3D_MASK))
+	!(flags & DRM_MODE_FLAG_3D_MASK))
+	{
 		return MODE_NO_STEREO;
+	}
 
 	return MODE_OK;
 }
@@ -86,28 +92,40 @@ static int drm_helper_probe_add_cmdline_mode(struct drm_connector *connector)
 	struct drm_display_mode *mode;
 
 	cmdline_mode = &connector->cmdline_mode;
+
 	if (!cmdline_mode->specified)
+	{
 		return 0;
+	}
 
 	/* Only add a GTF mode if we find no matching probed modes */
-	list_for_each_entry(mode, &connector->probed_modes, head) {
+	list_for_each_entry(mode, &connector->probed_modes, head)
+	{
 		if (mode->hdisplay != cmdline_mode->xres ||
-		    mode->vdisplay != cmdline_mode->yres)
+			mode->vdisplay != cmdline_mode->yres)
+		{
 			continue;
+		}
 
-		if (cmdline_mode->refresh_specified) {
+		if (cmdline_mode->refresh_specified)
+		{
 			/* The probed mode's vrefresh is set until later */
 			if (drm_mode_vrefresh(mode) != cmdline_mode->refresh)
+			{
 				continue;
+			}
 		}
 
 		return 0;
 	}
 
 	mode = drm_mode_create_from_cmdline_mode(connector->dev,
-						 cmdline_mode);
+			cmdline_mode);
+
 	if (mode == NULL)
+	{
 		return 0;
+	}
 
 	drm_mode_probed_add(connector, mode);
 	return 1;
@@ -134,21 +152,29 @@ void drm_kms_helper_poll_enable_locked(struct drm_device *dev)
 	WARN_ON(!mutex_is_locked(&dev->mode_config.mutex));
 
 	if (!dev->mode_config.poll_enabled || !drm_kms_helper_poll)
+	{
 		return;
-
-	drm_for_each_connector(connector, dev) {
-		if (connector->polled & (DRM_CONNECTOR_POLL_CONNECT |
-					 DRM_CONNECTOR_POLL_DISCONNECT))
-			poll = true;
 	}
 
-	if (dev->mode_config.delayed_event) {
+	drm_for_each_connector(connector, dev)
+	{
+		if (connector->polled & (DRM_CONNECTOR_POLL_CONNECT |
+								 DRM_CONNECTOR_POLL_DISCONNECT))
+		{
+			poll = true;
+		}
+	}
+
+	if (dev->mode_config.delayed_event)
+	{
 		poll = true;
 		delay = 0;
 	}
 
 	if (poll)
+	{
 		schedule_delayed_work(&dev->mode_config.output_poll_work, delay);
+	}
 }
 EXPORT_SYMBOL(drm_kms_helper_poll_enable_locked);
 
@@ -209,12 +235,12 @@ EXPORT_SYMBOL(drm_kms_helper_poll_enable_locked);
  * The number of modes found on @connector.
  */
 int drm_helper_probe_single_connector_modes(struct drm_connector *connector,
-					    uint32_t maxX, uint32_t maxY)
+		uint32_t maxX, uint32_t maxY)
 {
 	struct drm_device *dev = connector->dev;
 	struct drm_display_mode *mode;
 	const struct drm_connector_helper_funcs *connector_funcs =
-		connector->helper_private;
+			connector->helper_private;
 	int count = 0;
 	int mode_flags = 0;
 	bool verbose_prune = true;
@@ -223,22 +249,32 @@ int drm_helper_probe_single_connector_modes(struct drm_connector *connector,
 	WARN_ON(!mutex_is_locked(&dev->mode_config.mutex));
 
 	DRM_DEBUG_KMS("[CONNECTOR:%d:%s]\n", connector->base.id,
-			connector->name);
+				  connector->name);
 	/* set all old modes to the stale state */
 	list_for_each_entry(mode, &connector->modes, head)
-		mode->status = MODE_STALE;
+	mode->status = MODE_STALE;
 
 	old_status = connector->status;
 
-	if (connector->force) {
+	if (connector->force)
+	{
 		if (connector->force == DRM_FORCE_ON ||
-		    connector->force == DRM_FORCE_ON_DIGITAL)
+			connector->force == DRM_FORCE_ON_DIGITAL)
+		{
 			connector->status = connector_status_connected;
+		}
 		else
+		{
 			connector->status = connector_status_disconnected;
+		}
+
 		if (connector->funcs->force)
+		{
 			connector->funcs->force(connector);
-	} else {
+		}
+	}
+	else
+	{
 		connector->status = connector->funcs->detect(connector, true);
 	}
 
@@ -248,12 +284,13 @@ int drm_helper_probe_single_connector_modes(struct drm_connector *connector,
 	 * userspace sneaks in a probe, we might miss a change. Hence
 	 * check here, and if anything changed start the hotplug code.
 	 */
-	if (old_status != connector->status) {
+	if (old_status != connector->status)
+	{
 		DRM_DEBUG_KMS("[CONNECTOR:%d:%s] status updated from %s to %s\n",
-			      connector->base.id,
-			      connector->name,
-			      drm_get_connector_status_name(old_status),
-			      drm_get_connector_status_name(connector->status));
+					  connector->base.id,
+					  connector->name,
+					  drm_get_connector_status_name(old_status),
+					  drm_get_connector_status_name(connector->status));
 
 		/*
 		 * The hotplug event code might call into the fb
@@ -262,80 +299,114 @@ int drm_helper_probe_single_connector_modes(struct drm_connector *connector,
 		 * disable itself again.
 		 */
 		dev->mode_config.delayed_event = true;
+
 		if (dev->mode_config.poll_enabled)
 			schedule_delayed_work(&dev->mode_config.output_poll_work,
-					      0);
+								  0);
 	}
 
 	/* Re-enable polling in case the global poll config changed. */
 	if (drm_kms_helper_poll != dev->mode_config.poll_running)
+	{
 		drm_kms_helper_poll_enable_locked(dev);
+	}
 
 	dev->mode_config.poll_running = drm_kms_helper_poll;
 
-	if (connector->status == connector_status_disconnected) {
+	if (connector->status == connector_status_disconnected)
+	{
 		DRM_DEBUG_KMS("[CONNECTOR:%d:%s] disconnected\n",
-			connector->base.id, connector->name);
+					  connector->base.id, connector->name);
 		drm_mode_connector_update_edid_property(connector, NULL);
 		verbose_prune = false;
 		goto prune;
 	}
 
-	if (connector->override_edid) {
+	if (connector->override_edid)
+	{
 		struct edid *edid = (struct edid *) connector->edid_blob_ptr->data;
 
 		count = drm_add_edid_modes(connector, edid);
 		drm_edid_to_eld(connector, edid);
-	} else {
+	}
+	else
+	{
 		count = drm_load_edid_firmware(connector);
+
 		if (count == 0)
+		{
 			count = (*connector_funcs->get_modes)(connector);
+		}
 	}
 
 	if (count == 0 && connector->status == connector_status_connected)
+	{
 		count = drm_add_modes_noedid(connector, 1024, 768);
+	}
+
 	count += drm_helper_probe_add_cmdline_mode(connector);
+
 	if (count == 0)
+	{
 		goto prune;
+	}
 
 	drm_mode_connector_list_update(connector);
 
 	if (connector->interlace_allowed)
+	{
 		mode_flags |= DRM_MODE_FLAG_INTERLACE;
+	}
+
 	if (connector->doublescan_allowed)
+	{
 		mode_flags |= DRM_MODE_FLAG_DBLSCAN;
+	}
+
 	if (connector->stereo_allowed)
+	{
 		mode_flags |= DRM_MODE_FLAG_3D_MASK;
+	}
 
-	list_for_each_entry(mode, &connector->modes, head) {
+	list_for_each_entry(mode, &connector->modes, head)
+	{
 		if (mode->status == MODE_OK)
+		{
 			mode->status = drm_mode_validate_basic(mode);
+		}
 
 		if (mode->status == MODE_OK)
+		{
 			mode->status = drm_mode_validate_size(mode, maxX, maxY);
+		}
 
 		if (mode->status == MODE_OK)
+		{
 			mode->status = drm_mode_validate_flag(mode, mode_flags);
+		}
 
 		if (mode->status == MODE_OK && connector_funcs->mode_valid)
 			mode->status = connector_funcs->mode_valid(connector,
-								   mode);
+						   mode);
 	}
 
 prune:
 	drm_mode_prune_invalid(dev, &connector->modes, verbose_prune);
 
 	if (list_empty(&connector->modes))
+	{
 		return 0;
+	}
 
 	list_for_each_entry(mode, &connector->modes, head)
-		mode->vrefresh = drm_mode_vrefresh(mode);
+	mode->vrefresh = drm_mode_vrefresh(mode);
 
 	drm_mode_sort(&connector->modes);
 
 	DRM_DEBUG_KMS("[CONNECTOR:%d:%s] probed modes :\n", connector->base.id,
-			connector->name);
-	list_for_each_entry(mode, &connector->modes, head) {
+				  connector->name);
+	list_for_each_entry(mode, &connector->modes, head)
+	{
 		drm_mode_set_crtcinfo(mode, CRTC_INTERLACE_HALVE_V);
 		drm_mode_debug_printmodeline(mode);
 	}
@@ -364,8 +435,11 @@ void drm_kms_helper_hotplug_event(struct drm_device *dev)
 {
 	/* send a uevent + call fbdev */
 	drm_sysfs_hotplug_event(dev);
+
 	if (dev->mode_config.funcs->output_poll_changed)
+	{
 		dev->mode_config.funcs->output_poll_changed(dev);
+	}
 }
 EXPORT_SYMBOL(drm_kms_helper_hotplug_event);
 
@@ -382,31 +456,43 @@ static void output_poll_execute(struct work_struct *work)
 	dev->mode_config.delayed_event = false;
 
 	if (!drm_kms_helper_poll)
+	{
 		goto out;
+	}
 
 	mutex_lock(&dev->mode_config.mutex);
-	drm_for_each_connector(connector, dev) {
+	drm_for_each_connector(connector, dev)
+	{
 
 		/* Ignore forced connectors. */
 		if (connector->force)
+		{
 			continue;
+		}
 
 		/* Ignore HPD capable connectors and connectors where we don't
 		 * want any hotplug detection at all for polling. */
 		if (!connector->polled || connector->polled == DRM_CONNECTOR_POLL_HPD)
+		{
 			continue;
+		}
 
 		old_status = connector->status;
+
 		/* if we are connected and don't want to poll for disconnect
 		   skip it */
 		if (old_status == connector_status_connected &&
-		    !(connector->polled & DRM_CONNECTOR_POLL_DISCONNECT))
+			!(connector->polled & DRM_CONNECTOR_POLL_DISCONNECT))
+		{
 			continue;
+		}
 
 		repoll = true;
 
 		connector->status = connector->funcs->detect(connector, false);
-		if (old_status != connector->status) {
+
+		if (old_status != connector->status)
+		{
 			const char *old, *new;
 
 			/*
@@ -422,7 +508,8 @@ static void output_poll_execute(struct work_struct *work)
 			 * Hence clamp an unknown detect status to the old
 			 * value.
 			 */
-			if (connector->status == connector_status_unknown) {
+			if (connector->status == connector_status_unknown)
+			{
 				connector->status = old_status;
 				continue;
 			}
@@ -431,10 +518,10 @@ static void output_poll_execute(struct work_struct *work)
 			new = drm_get_connector_status_name(connector->status);
 
 			DRM_DEBUG_KMS("[CONNECTOR:%d:%s] "
-				      "status updated from %s to %s\n",
-				      connector->base.id,
-				      connector->name,
-				      old, new);
+						  "status updated from %s to %s\n",
+						  connector->base.id,
+						  connector->name,
+						  old, new);
 
 			changed = true;
 		}
@@ -443,11 +530,16 @@ static void output_poll_execute(struct work_struct *work)
 	mutex_unlock(&dev->mode_config.mutex);
 
 out:
+
 	if (changed)
+	{
 		drm_kms_helper_hotplug_event(dev);
+	}
 
 	if (repoll)
+	{
 		schedule_delayed_work(delayed_work, DRM_OUTPUT_POLL_PERIOD);
+	}
 }
 
 /**
@@ -463,7 +555,10 @@ out:
 void drm_kms_helper_poll_disable(struct drm_device *dev)
 {
 	if (!dev->mode_config.poll_enabled)
+	{
 		return;
+	}
+
 	cancel_delayed_work_sync(&dev->mode_config.output_poll_work);
 }
 EXPORT_SYMBOL(drm_kms_helper_poll_disable);
@@ -554,31 +649,41 @@ bool drm_helper_hpd_irq_event(struct drm_device *dev)
 	bool changed = false;
 
 	if (!dev->mode_config.poll_enabled)
+	{
 		return false;
+	}
 
 	mutex_lock(&dev->mode_config.mutex);
-	drm_for_each_connector(connector, dev) {
+	drm_for_each_connector(connector, dev)
+	{
 
 		/* Only handle HPD capable connectors. */
 		if (!(connector->polled & DRM_CONNECTOR_POLL_HPD))
+		{
 			continue;
+		}
 
 		old_status = connector->status;
 
 		connector->status = connector->funcs->detect(connector, false);
 		DRM_DEBUG_KMS("[CONNECTOR:%d:%s] status updated from %s to %s\n",
-			      connector->base.id,
-			      connector->name,
-			      drm_get_connector_status_name(old_status),
-			      drm_get_connector_status_name(connector->status));
+					  connector->base.id,
+					  connector->name,
+					  drm_get_connector_status_name(old_status),
+					  drm_get_connector_status_name(connector->status));
+
 		if (old_status != connector->status)
+		{
 			changed = true;
+		}
 	}
 
 	mutex_unlock(&dev->mode_config.mutex);
 
 	if (changed)
+	{
 		drm_kms_helper_hotplug_event(dev);
+	}
 
 	return changed;
 }

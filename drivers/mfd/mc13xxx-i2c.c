@@ -20,20 +20,22 @@
 
 #include "mc13xxx.h"
 
-static const struct i2c_device_id mc13xxx_i2c_device_id[] = {
+static const struct i2c_device_id mc13xxx_i2c_device_id[] =
+{
 	{
 		.name = "mc13892",
-		.driver_data = (kernel_ulong_t)&mc13xxx_variant_mc13892,
+		.driver_data = (kernel_ulong_t) &mc13xxx_variant_mc13892,
 	}, {
 		.name = "mc34708",
-		.driver_data = (kernel_ulong_t)&mc13xxx_variant_mc34708,
+		.driver_data = (kernel_ulong_t) &mc13xxx_variant_mc34708,
 	}, {
 		/* sentinel */
 	}
 };
 MODULE_DEVICE_TABLE(i2c, mc13xxx_i2c_device_id);
 
-static const struct of_device_id mc13xxx_dt_ids[] = {
+static const struct of_device_id mc13xxx_dt_ids[] =
+{
 	{
 		.compatible = "fsl,mc13892",
 		.data = &mc13xxx_variant_mc13892,
@@ -46,7 +48,8 @@ static const struct of_device_id mc13xxx_dt_ids[] = {
 };
 MODULE_DEVICE_TABLE(of, mc13xxx_dt_ids);
 
-static const struct regmap_config mc13xxx_regmap_i2c_config = {
+static const struct regmap_config mc13xxx_regmap_i2c_config =
+{
 	.reg_bits = 8,
 	.val_bits = 24,
 
@@ -56,32 +59,40 @@ static const struct regmap_config mc13xxx_regmap_i2c_config = {
 };
 
 static int mc13xxx_i2c_probe(struct i2c_client *client,
-		const struct i2c_device_id *id)
+							 const struct i2c_device_id *id)
 {
 	struct mc13xxx *mc13xxx;
 	int ret;
 
 	mc13xxx = devm_kzalloc(&client->dev, sizeof(*mc13xxx), GFP_KERNEL);
+
 	if (!mc13xxx)
+	{
 		return -ENOMEM;
+	}
 
 	dev_set_drvdata(&client->dev, mc13xxx);
 
 	mc13xxx->irq = client->irq;
 
 	mc13xxx->regmap = devm_regmap_init_i2c(client,
-					       &mc13xxx_regmap_i2c_config);
-	if (IS_ERR(mc13xxx->regmap)) {
+										   &mc13xxx_regmap_i2c_config);
+
+	if (IS_ERR(mc13xxx->regmap))
+	{
 		ret = PTR_ERR(mc13xxx->regmap);
 		dev_err(&client->dev, "Failed to initialize regmap: %d\n", ret);
 		return ret;
 	}
 
-	if (client->dev.of_node) {
+	if (client->dev.of_node)
+	{
 		const struct of_device_id *of_id =
 			of_match_device(mc13xxx_dt_ids, &client->dev);
 		mc13xxx->variant = of_id->data;
-	} else {
+	}
+	else
+	{
 		mc13xxx->variant = (void *)id->driver_data;
 	}
 
@@ -93,7 +104,8 @@ static int mc13xxx_i2c_remove(struct i2c_client *client)
 	return mc13xxx_common_exit(&client->dev);
 }
 
-static struct i2c_driver mc13xxx_i2c_driver = {
+static struct i2c_driver mc13xxx_i2c_driver =
+{
 	.id_table = mc13xxx_i2c_device_id,
 	.driver = {
 		.name = "mc13xxx",

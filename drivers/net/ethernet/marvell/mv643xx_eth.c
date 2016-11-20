@@ -163,14 +163,14 @@ static char mv643xx_eth_driver_version[] = "1.4";
  */
 #if defined(__BIG_ENDIAN)
 #define PORT_SDMA_CONFIG_DEFAULT_VALUE		\
-		(RX_BURST_SIZE_4_64BIT	|	\
-		 TX_BURST_SIZE_4_64BIT)
+	(RX_BURST_SIZE_4_64BIT	|	\
+	 TX_BURST_SIZE_4_64BIT)
 #elif defined(__LITTLE_ENDIAN)
 #define PORT_SDMA_CONFIG_DEFAULT_VALUE		\
-		(RX_BURST_SIZE_4_64BIT	|	\
-		 BLM_RX_NO_SWAP		|	\
-		 BLM_TX_NO_SWAP		|	\
-		 TX_BURST_SIZE_4_64BIT)
+	(RX_BURST_SIZE_4_64BIT	|	\
+	 BLM_RX_NO_SWAP		|	\
+	 BLM_TX_NO_SWAP		|	\
+	 TX_BURST_SIZE_4_64BIT)
 #else
 #error One of __BIG_ENDIAN or __LITTLE_ENDIAN must be defined
 #endif
@@ -200,7 +200,8 @@ static char mv643xx_eth_driver_version[] = "1.4";
  * RX/TX descriptors.
  */
 #if defined(__BIG_ENDIAN)
-struct rx_desc {
+struct rx_desc
+{
 	u16 byte_cnt;		/* Descriptor buffer byte count		*/
 	u16 buf_size;		/* Buffer size				*/
 	u32 cmd_sts;		/* Descriptor command status		*/
@@ -208,7 +209,8 @@ struct rx_desc {
 	u32 buf_ptr;		/* Descriptor buffer pointer		*/
 };
 
-struct tx_desc {
+struct tx_desc
+{
 	u16 byte_cnt;		/* buffer byte count			*/
 	u16 l4i_chk;		/* CPU provided TCP checksum		*/
 	u32 cmd_sts;		/* Command/status field			*/
@@ -216,7 +218,8 @@ struct tx_desc {
 	u32 buf_ptr;		/* pointer to buffer for this descriptor*/
 };
 #elif defined(__LITTLE_ENDIAN)
-struct rx_desc {
+struct rx_desc
+{
 	u32 cmd_sts;		/* Descriptor command status		*/
 	u16 buf_size;		/* Buffer size				*/
 	u16 byte_cnt;		/* Descriptor buffer byte count		*/
@@ -224,7 +227,8 @@ struct rx_desc {
 	u32 next_desc_ptr;	/* Next descriptor pointer		*/
 };
 
-struct tx_desc {
+struct tx_desc
+{
 	u32 cmd_sts;		/* Command/status field			*/
 	u16 l4i_chk;		/* CPU provided TCP checksum		*/
 	u16 byte_cnt;		/* buffer byte count			*/
@@ -270,7 +274,8 @@ struct tx_desc {
 
 
 /* global *******************************************************************/
-struct mv643xx_eth_shared_private {
+struct mv643xx_eth_shared_private
+{
 	/*
 	 * Ethernet controller base address.
 	 */
@@ -299,7 +304,8 @@ static int mv643xx_eth_stop(struct net_device *dev);
 
 
 /* per-port *****************************************************************/
-struct mib_counters {
+struct mib_counters
+{
 	u64 good_octets_received;
 	u32 bad_octets_received;
 	u32 internal_mac_transmit_err;
@@ -335,7 +341,8 @@ struct mib_counters {
 	u32 rx_overrun;
 };
 
-struct rx_queue {
+struct rx_queue
+{
 	int index;
 
 	int rx_ring_size;
@@ -350,7 +357,8 @@ struct rx_queue {
 	struct sk_buff **rx_skb;
 };
 
-struct tx_queue {
+struct tx_queue
+{
 	int index;
 
 	int tx_ring_size;
@@ -377,7 +385,8 @@ struct tx_queue {
 	unsigned long tx_dropped;
 };
 
-struct mv643xx_eth_private {
+struct mv643xx_eth_private
+{
 	struct mv643xx_eth_shared_private *shared;
 	void __iomem *base;
 	int port_num;
@@ -475,8 +484,11 @@ static void rxq_disable(struct rx_queue *rxq)
 	u8 mask = 1 << rxq->index;
 
 	wrlp(mp, RXQ_COMMAND, mask << 8);
+
 	while (rdlp(mp, RXQ_COMMAND) & mask)
+	{
 		udelay(10);
+	}
 }
 
 static void txq_reset_hw_ptr(struct tx_queue *txq)
@@ -501,8 +513,11 @@ static void txq_disable(struct tx_queue *txq)
 	u8 mask = 1 << txq->index;
 
 	wrlp(mp, TXQ_COMMAND, mask << 8);
+
 	while (rdlp(mp, TXQ_COMMAND) & mask)
+	{
 		udelay(10);
+	}
 }
 
 static void txq_maybe_wake(struct tx_queue *txq)
@@ -510,10 +525,15 @@ static void txq_maybe_wake(struct tx_queue *txq)
 	struct mv643xx_eth_private *mp = txq_to_mp(txq);
 	struct netdev_queue *nq = netdev_get_tx_queue(mp->dev, txq->index);
 
-	if (netif_tx_queue_stopped(nq)) {
+	if (netif_tx_queue_stopped(nq))
+	{
 		__netif_tx_lock(nq, smp_processor_id());
+
 		if (txq->tx_desc_count <= txq->tx_wake_threshold)
+		{
 			netif_tx_wake_queue(nq);
+		}
+
 		__netif_tx_unlock(nq);
 	}
 }
@@ -525,7 +545,9 @@ static int rxq_process(struct rx_queue *rxq, int budget)
 	int rx;
 
 	rx = 0;
-	while (rx < budget && rxq->rx_desc_count) {
+
+	while (rx < budget && rxq->rx_desc_count)
+	{
 		struct rx_desc *rx_desc;
 		unsigned int cmd_sts;
 		struct sk_buff *skb;
@@ -534,19 +556,26 @@ static int rxq_process(struct rx_queue *rxq, int budget)
 		rx_desc = &rxq->rx_desc_area[rxq->rx_curr_desc];
 
 		cmd_sts = rx_desc->cmd_sts;
+
 		if (cmd_sts & BUFFER_OWNED_BY_DMA)
+		{
 			break;
+		}
+
 		rmb();
 
 		skb = rxq->rx_skb[rxq->rx_curr_desc];
 		rxq->rx_skb[rxq->rx_curr_desc] = NULL;
 
 		rxq->rx_curr_desc++;
+
 		if (rxq->rx_curr_desc == rxq->rx_ring_size)
+		{
 			rxq->rx_curr_desc = 0;
+		}
 
 		dma_unmap_single(mp->dev->dev.parent, rx_desc->buf_ptr,
-				 rx_desc->buf_size, DMA_FROM_DEVICE);
+						 rx_desc->buf_size, DMA_FROM_DEVICE);
 		rxq->rx_desc_count--;
 		rx++;
 
@@ -572,7 +601,9 @@ static int rxq_process(struct rx_queue *rxq, int budget)
 		 */
 		if ((cmd_sts & (RX_FIRST_DESC | RX_LAST_DESC | ERROR_SUMMARY))
 			!= (RX_FIRST_DESC | RX_LAST_DESC))
+		{
 			goto err;
+		}
 
 		/*
 		 * The -4 is for the CRC in the trailer of the
@@ -581,7 +612,10 @@ static int rxq_process(struct rx_queue *rxq, int budget)
 		skb_put(skb, byte_cnt - 2 - 4);
 
 		if (cmd_sts & LAYER_4_CHECKSUM_OK)
+		{
 			skb->ip_summed = CHECKSUM_UNNECESSARY;
+		}
+
 		skb->protocol = eth_type_trans(skb, mp->dev);
 
 		napi_gro_receive(&mp->napi, skb);
@@ -592,20 +626,25 @@ err:
 		stats->rx_dropped++;
 
 		if ((cmd_sts & (RX_FIRST_DESC | RX_LAST_DESC)) !=
-			(RX_FIRST_DESC | RX_LAST_DESC)) {
+			(RX_FIRST_DESC | RX_LAST_DESC))
+		{
 			if (net_ratelimit())
 				netdev_err(mp->dev,
-					   "received packet spanning multiple descriptors\n");
+						   "received packet spanning multiple descriptors\n");
 		}
 
 		if (cmd_sts & ERROR_SUMMARY)
+		{
 			stats->rx_errors++;
+		}
 
 		dev_kfree_skb(skb);
 	}
 
 	if (rx < budget)
+	{
 		mp->work_rx &= ~(1 << rxq->index);
+	}
 
 	return rx;
 }
@@ -616,7 +655,9 @@ static int rxq_refill(struct rx_queue *rxq, int budget)
 	int refilled;
 
 	refilled = 0;
-	while (refilled < budget && rxq->rx_desc_count < rxq->rx_ring_size) {
+
+	while (refilled < budget && rxq->rx_desc_count < rxq->rx_ring_size)
+	{
 		struct sk_buff *skb;
 		int rx;
 		struct rx_desc *rx_desc;
@@ -624,27 +665,33 @@ static int rxq_refill(struct rx_queue *rxq, int budget)
 
 		skb = netdev_alloc_skb(mp->dev, mp->skb_size);
 
-		if (skb == NULL) {
+		if (skb == NULL)
+		{
 			mp->oom = 1;
 			goto oom;
 		}
 
 		if (SKB_DMA_REALIGN)
+		{
 			skb_reserve(skb, SKB_DMA_REALIGN);
+		}
 
 		refilled++;
 		rxq->rx_desc_count++;
 
 		rx = rxq->rx_used_desc++;
+
 		if (rxq->rx_used_desc == rxq->rx_ring_size)
+		{
 			rxq->rx_used_desc = 0;
+		}
 
 		rx_desc = rxq->rx_desc_area + rx;
 
 		size = skb_end_pointer(skb) - skb->data;
 		rx_desc->buf_ptr = dma_map_single(mp->dev->dev.parent,
-						  skb->data, size,
-						  DMA_FROM_DEVICE);
+										  skb->data, size,
+										  DMA_FROM_DEVICE);
 		rx_desc->buf_size = size;
 		rxq->rx_skb[rx] = skb;
 		wmb();
@@ -660,7 +707,9 @@ static int rxq_refill(struct rx_queue *rxq, int budget)
 	}
 
 	if (refilled < budget)
+	{
 		mp->work_rx_refill &= ~(1 << rxq->index);
+	}
 
 oom:
 	return refilled;
@@ -672,11 +721,14 @@ static inline unsigned int has_tiny_unaligned_frags(struct sk_buff *skb)
 {
 	int frag;
 
-	for (frag = 0; frag < skb_shinfo(skb)->nr_frags; frag++) {
+	for (frag = 0; frag < skb_shinfo(skb)->nr_frags; frag++)
+	{
 		const skb_frag_t *fragp = &skb_shinfo(skb)->frags[frag];
 
 		if (skb_frag_size(fragp) <= 8 && fragp->page_offset & 7)
+		{
 			return 1;
+		}
 	}
 
 	return 0;
@@ -688,33 +740,44 @@ static inline __be16 sum16_as_be(__sum16 sum)
 }
 
 static int skb_tx_csum(struct mv643xx_eth_private *mp, struct sk_buff *skb,
-		       u16 *l4i_chk, u32 *command, int length)
+					   u16 *l4i_chk, u32 *command, int length)
 {
 	int ret;
 	u32 cmd = 0;
 
-	if (skb->ip_summed == CHECKSUM_PARTIAL) {
+	if (skb->ip_summed == CHECKSUM_PARTIAL)
+	{
 		int hdr_len;
 		int tag_bytes;
 
 		BUG_ON(skb->protocol != htons(ETH_P_IP) &&
-		       skb->protocol != htons(ETH_P_8021Q));
+			   skb->protocol != htons(ETH_P_8021Q));
 
 		hdr_len = (void *)ip_hdr(skb) - (void *)skb->data;
 		tag_bytes = hdr_len - ETH_HLEN;
 
 		if (length - hdr_len > mp->shared->tx_csum_limit ||
-		    unlikely(tag_bytes & ~12)) {
+			unlikely(tag_bytes & ~12))
+		{
 			ret = skb_checksum_help(skb);
+
 			if (!ret)
+			{
 				goto no_csum;
+			}
+
 			return ret;
 		}
 
 		if (tag_bytes & 4)
+		{
 			cmd |= MAC_HDR_EXTRA_4_BYTES;
+		}
+
 		if (tag_bytes & 8)
+		{
 			cmd |= MAC_HDR_EXTRA_8_BYTES;
+		}
 
 		cmd |= GEN_TCP_UDP_CHECKSUM | GEN_TCP_UDP_CHK_FULL |
 			   GEN_IP_V4_CHECKSUM   |
@@ -722,77 +785,98 @@ static int skb_tx_csum(struct mv643xx_eth_private *mp, struct sk_buff *skb,
 
 		/* TODO: Revisit this. With the usage of GEN_TCP_UDP_CHK_FULL
 		 * it seems we don't need to pass the initial checksum. */
-		switch (ip_hdr(skb)->protocol) {
-		case IPPROTO_UDP:
-			cmd |= UDP_FRAME;
-			*l4i_chk = 0;
-			break;
-		case IPPROTO_TCP:
-			*l4i_chk = 0;
-			break;
-		default:
-			WARN(1, "protocol not supported");
+		switch (ip_hdr(skb)->protocol)
+		{
+			case IPPROTO_UDP:
+				cmd |= UDP_FRAME;
+				*l4i_chk = 0;
+				break;
+
+			case IPPROTO_TCP:
+				*l4i_chk = 0;
+				break;
+
+			default:
+				WARN(1, "protocol not supported");
 		}
-	} else {
+	}
+	else
+	{
 no_csum:
 		/* Errata BTS #50, IHL must be 5 if no HW checksum */
 		cmd |= 5 << TX_IHL_SHIFT;
 	}
+
 	*command = cmd;
 	return 0;
 }
 
 static inline int
 txq_put_data_tso(struct net_device *dev, struct tx_queue *txq,
-		 struct sk_buff *skb, char *data, int length,
-		 bool last_tcp, bool is_last)
+				 struct sk_buff *skb, char *data, int length,
+				 bool last_tcp, bool is_last)
 {
 	int tx_index;
 	u32 cmd_sts;
 	struct tx_desc *desc;
 
 	tx_index = txq->tx_curr_desc++;
+
 	if (txq->tx_curr_desc == txq->tx_ring_size)
+	{
 		txq->tx_curr_desc = 0;
+	}
+
 	desc = &txq->tx_desc_area[tx_index];
 	txq->tx_desc_mapping[tx_index] = DESC_DMA_MAP_SINGLE;
 
 	desc->l4i_chk = 0;
 	desc->byte_cnt = length;
 
-	if (length <= 8 && (uintptr_t)data & 0x7) {
+	if (length <= 8 && (uintptr_t)data & 0x7)
+	{
 		/* Copy unaligned small data fragment to TSO header data area */
 		memcpy(txq->tso_hdrs + tx_index * TSO_HEADER_SIZE,
-		       data, length);
+			   data, length);
 		desc->buf_ptr = txq->tso_hdrs_dma
-			+ tx_index * TSO_HEADER_SIZE;
-	} else {
+						+ tx_index * TSO_HEADER_SIZE;
+	}
+	else
+	{
 		/* Alignment is okay, map buffer and hand off to hardware */
 		txq->tx_desc_mapping[tx_index] = DESC_DMA_MAP_SINGLE;
 		desc->buf_ptr = dma_map_single(dev->dev.parent, data,
-			length, DMA_TO_DEVICE);
+									   length, DMA_TO_DEVICE);
+
 		if (unlikely(dma_mapping_error(dev->dev.parent,
-					       desc->buf_ptr))) {
+									   desc->buf_ptr)))
+		{
 			WARN(1, "dma_map_single failed!\n");
 			return -ENOMEM;
 		}
 	}
 
 	cmd_sts = BUFFER_OWNED_BY_DMA;
-	if (last_tcp) {
+
+	if (last_tcp)
+	{
 		/* last descriptor in the TCP packet */
 		cmd_sts |= ZERO_PADDING | TX_LAST_DESC;
+
 		/* last descriptor in SKB */
 		if (is_last)
+		{
 			cmd_sts |= TX_ENABLE_INTERRUPT;
+		}
 	}
+
 	desc->cmd_sts = cmd_sts;
 	return 0;
 }
 
 static inline void
 txq_put_hdr_tso(struct sk_buff *skb, struct tx_queue *txq, int length,
-		u32 *first_cmd_sts, bool first_desc)
+				u32 *first_cmd_sts, bool first_desc)
 {
 	struct mv643xx_eth_private *mp = txq_to_mp(txq);
 	int hdr_len = skb_transport_offset(skb) + tcp_hdrlen(skb);
@@ -807,8 +891,11 @@ txq_put_hdr_tso(struct sk_buff *skb, struct tx_queue *txq, int length,
 	desc = &txq->tx_desc_area[tx_index];
 
 	ret = skb_tx_csum(mp, skb, &l4i_chk, &cmd_csum, length);
+
 	if (ret)
+	{
 		WARN(1, "failed to prepare checksum!");
+	}
 
 	/* Should we set this? Can't use the value from skb_tx_csum()
 	 * as it's not the correct initial L4 checksum to use. */
@@ -816,25 +903,32 @@ txq_put_hdr_tso(struct sk_buff *skb, struct tx_queue *txq, int length,
 
 	desc->byte_cnt = hdr_len;
 	desc->buf_ptr = txq->tso_hdrs_dma +
-			txq->tx_curr_desc * TSO_HEADER_SIZE;
+					txq->tx_curr_desc * TSO_HEADER_SIZE;
 	cmd_sts = cmd_csum | BUFFER_OWNED_BY_DMA  | TX_FIRST_DESC |
-				   GEN_CRC;
+			  GEN_CRC;
 
 	/* Defer updating the first command descriptor until all
 	 * following descriptors have been written.
 	 */
 	if (first_desc)
+	{
 		*first_cmd_sts = cmd_sts;
+	}
 	else
+	{
 		desc->cmd_sts = cmd_sts;
+	}
 
 	txq->tx_curr_desc++;
+
 	if (txq->tx_curr_desc == txq->tx_ring_size)
+	{
 		txq->tx_curr_desc = 0;
+	}
 }
 
 static int txq_submit_tso(struct tx_queue *txq, struct sk_buff *skb,
-			  struct net_device *dev)
+						  struct net_device *dev)
 {
 	struct mv643xx_eth_private *mp = txq_to_mp(txq);
 	int total_len, data_left, ret;
@@ -845,7 +939,8 @@ static int txq_submit_tso(struct tx_queue *txq, struct sk_buff *skb,
 	u32 first_cmd_sts = 0;
 
 	/* Count needed descriptors */
-	if ((txq->tx_desc_count + tso_count_descs(skb)) >= txq->tx_ring_size) {
+	if ((txq->tx_desc_count + tso_count_descs(skb)) >= txq->tx_ring_size)
+	{
 		netdev_dbg(dev, "not enough descriptors for TSO!\n");
 		return -EBUSY;
 	}
@@ -856,7 +951,9 @@ static int txq_submit_tso(struct tx_queue *txq, struct sk_buff *skb,
 	tso_start(skb, &tso);
 
 	total_len = skb->len - hdr_len;
-	while (total_len > 0) {
+
+	while (total_len > 0)
+	{
 		bool first_desc = (desc_count == 0);
 		char *hdr;
 
@@ -868,18 +965,23 @@ static int txq_submit_tso(struct tx_queue *txq, struct sk_buff *skb,
 		hdr = txq->tso_hdrs + txq->tx_curr_desc * TSO_HEADER_SIZE;
 		tso_build_hdr(skb, hdr, &tso, data_left, total_len == 0);
 		txq_put_hdr_tso(skb, txq, data_left, &first_cmd_sts,
-				first_desc);
+						first_desc);
 
-		while (data_left > 0) {
+		while (data_left > 0)
+		{
 			int size;
 			desc_count++;
 
 			size = min_t(int, tso.size, data_left);
 			ret = txq_put_data_tso(dev, txq, skb, tso.data, size,
-					       size == data_left,
-					       total_len == 0);
+								   size == data_left,
+								   total_len == 0);
+
 			if (ret)
+			{
 				goto err_release;
+			}
+
 			data_left -= size;
 			tso_build_data(skb, &tso, size);
 		}
@@ -913,15 +1015,20 @@ static void txq_submit_frag_skb(struct tx_queue *txq, struct sk_buff *skb)
 	int nr_frags = skb_shinfo(skb)->nr_frags;
 	int frag;
 
-	for (frag = 0; frag < nr_frags; frag++) {
+	for (frag = 0; frag < nr_frags; frag++)
+	{
 		skb_frag_t *this_frag;
 		int tx_index;
 		struct tx_desc *desc;
 
 		this_frag = &skb_shinfo(skb)->frags[frag];
 		tx_index = txq->tx_curr_desc++;
+
 		if (txq->tx_curr_desc == txq->tx_ring_size)
+		{
 			txq->tx_curr_desc = 0;
+		}
+
 		desc = &txq->tx_desc_area[tx_index];
 		txq->tx_desc_mapping[tx_index] = DESC_DMA_MAP_PAGE;
 
@@ -929,24 +1036,27 @@ static void txq_submit_frag_skb(struct tx_queue *txq, struct sk_buff *skb)
 		 * The last fragment will generate an interrupt
 		 * which will free the skb on TX completion.
 		 */
-		if (frag == nr_frags - 1) {
+		if (frag == nr_frags - 1)
+		{
 			desc->cmd_sts = BUFFER_OWNED_BY_DMA |
-					ZERO_PADDING | TX_LAST_DESC |
-					TX_ENABLE_INTERRUPT;
-		} else {
+							ZERO_PADDING | TX_LAST_DESC |
+							TX_ENABLE_INTERRUPT;
+		}
+		else
+		{
 			desc->cmd_sts = BUFFER_OWNED_BY_DMA;
 		}
 
 		desc->l4i_chk = 0;
 		desc->byte_cnt = skb_frag_size(this_frag);
 		desc->buf_ptr = skb_frag_dma_map(mp->dev->dev.parent,
-						 this_frag, 0, desc->byte_cnt,
-						 DMA_TO_DEVICE);
+										 this_frag, 0, desc->byte_cnt,
+										 DMA_TO_DEVICE);
 	}
 }
 
 static int txq_submit_skb(struct tx_queue *txq, struct sk_buff *skb,
-			  struct net_device *dev)
+						  struct net_device *dev)
 {
 	struct mv643xx_eth_private *mp = txq_to_mp(txq);
 	int nr_frags = skb_shinfo(skb)->nr_frags;
@@ -959,27 +1069,42 @@ static int txq_submit_skb(struct tx_queue *txq, struct sk_buff *skb,
 	cmd_sts = 0;
 	l4i_chk = 0;
 
-	if (txq->tx_ring_size - txq->tx_desc_count < MAX_SKB_FRAGS + 1) {
+	if (txq->tx_ring_size - txq->tx_desc_count < MAX_SKB_FRAGS + 1)
+	{
 		if (net_ratelimit())
+		{
 			netdev_err(dev, "tx queue full?!\n");
+		}
+
 		return -EBUSY;
 	}
 
 	ret = skb_tx_csum(mp, skb, &l4i_chk, &cmd_sts, skb->len);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	cmd_sts |= TX_FIRST_DESC | GEN_CRC | BUFFER_OWNED_BY_DMA;
 
 	tx_index = txq->tx_curr_desc++;
+
 	if (txq->tx_curr_desc == txq->tx_ring_size)
+	{
 		txq->tx_curr_desc = 0;
+	}
+
 	desc = &txq->tx_desc_area[tx_index];
 	txq->tx_desc_mapping[tx_index] = DESC_DMA_MAP_SINGLE;
 
-	if (nr_frags) {
+	if (nr_frags)
+	{
 		txq_submit_frag_skb(txq, skb);
 		length = skb_headlen(skb);
-	} else {
+	}
+	else
+	{
 		cmd_sts |= ZERO_PADDING | TX_LAST_DESC | TX_ENABLE_INTERRUPT;
 		length = skb->len;
 	}
@@ -987,7 +1112,7 @@ static int txq_submit_skb(struct tx_queue *txq, struct sk_buff *skb,
 	desc->l4i_chk = l4i_chk;
 	desc->byte_cnt = length;
 	desc->buf_ptr = dma_map_single(mp->dev->dev.parent, skb->data,
-				       length, DMA_TO_DEVICE);
+								   length, DMA_TO_DEVICE);
 
 	__skb_queue_tail(&txq->tx_skb, skb);
 
@@ -1020,25 +1145,36 @@ static netdev_tx_t mv643xx_eth_xmit(struct sk_buff *skb, struct net_device *dev)
 	txq = mp->txq + queue;
 	nq = netdev_get_tx_queue(dev, queue);
 
-	if (has_tiny_unaligned_frags(skb) && __skb_linearize(skb)) {
+	if (has_tiny_unaligned_frags(skb) && __skb_linearize(skb))
+	{
 		netdev_printk(KERN_DEBUG, dev,
-			      "failed to linearize skb with tiny unaligned fragment\n");
+					  "failed to linearize skb with tiny unaligned fragment\n");
 		return NETDEV_TX_BUSY;
 	}
 
 	length = skb->len;
 
 	if (skb_is_gso(skb))
+	{
 		ret = txq_submit_tso(txq, skb, dev);
+	}
 	else
+	{
 		ret = txq_submit_skb(txq, skb, dev);
-	if (!ret) {
+	}
+
+	if (!ret)
+	{
 		txq->tx_bytes += length;
 		txq->tx_packets++;
 
 		if (txq->tx_desc_count >= txq->tx_stop_threshold)
+		{
 			netif_tx_stop_queue(nq);
-	} else {
+		}
+	}
+	else
+	{
 		txq->tx_dropped++;
 		dev_kfree_skb_any(skb);
 	}
@@ -1058,14 +1194,18 @@ static void txq_kick(struct tx_queue *txq)
 	__netif_tx_lock(nq, smp_processor_id());
 
 	if (rdlp(mp, TXQ_COMMAND) & (1 << txq->index))
+	{
 		goto out;
+	}
 
 	hw_desc_ptr = rdlp(mp, TXQ_CURRENT_DESC_PTR(txq->index));
 	expected_ptr = (u32)txq->tx_desc_dma +
-				txq->tx_curr_desc * sizeof(struct tx_desc);
+				   txq->tx_curr_desc * sizeof(struct tx_desc);
 
 	if (hw_desc_ptr != expected_ptr)
+	{
 		txq_enable(txq);
+	}
 
 out:
 	__netif_tx_unlock(nq);
@@ -1082,7 +1222,9 @@ static int txq_reclaim(struct tx_queue *txq, int budget, int force)
 	__netif_tx_lock_bh(nq);
 
 	reclaimed = 0;
-	while (reclaimed < budget && txq->tx_desc_count > 0) {
+
+	while (reclaimed < budget && txq->tx_desc_count > 0)
+	{
 		int tx_index;
 		struct tx_desc *desc;
 		u32 cmd_sts;
@@ -1094,41 +1236,53 @@ static int txq_reclaim(struct tx_queue *txq, int budget, int force)
 
 		cmd_sts = desc->cmd_sts;
 
-		if (cmd_sts & BUFFER_OWNED_BY_DMA) {
+		if (cmd_sts & BUFFER_OWNED_BY_DMA)
+		{
 			if (!force)
+			{
 				break;
+			}
+
 			desc->cmd_sts = cmd_sts & ~BUFFER_OWNED_BY_DMA;
 		}
 
 		txq->tx_used_desc = tx_index + 1;
+
 		if (txq->tx_used_desc == txq->tx_ring_size)
+		{
 			txq->tx_used_desc = 0;
+		}
 
 		reclaimed++;
 		txq->tx_desc_count--;
 
-		if (!IS_TSO_HEADER(txq, desc->buf_ptr)) {
+		if (!IS_TSO_HEADER(txq, desc->buf_ptr))
+		{
 
 			if (desc_dma_map == DESC_DMA_MAP_PAGE)
 				dma_unmap_page(mp->dev->dev.parent,
-					       desc->buf_ptr,
-					       desc->byte_cnt,
-					       DMA_TO_DEVICE);
+							   desc->buf_ptr,
+							   desc->byte_cnt,
+							   DMA_TO_DEVICE);
 			else
 				dma_unmap_single(mp->dev->dev.parent,
-						 desc->buf_ptr,
-						 desc->byte_cnt,
-						 DMA_TO_DEVICE);
+								 desc->buf_ptr,
+								 desc->byte_cnt,
+								 DMA_TO_DEVICE);
 		}
 
-		if (cmd_sts & TX_ENABLE_INTERRUPT) {
+		if (cmd_sts & TX_ENABLE_INTERRUPT)
+		{
 			struct sk_buff *skb = __skb_dequeue(&txq->tx_skb);
 
 			if (!WARN_ON(!skb))
+			{
 				dev_kfree_skb(skb);
+			}
 		}
 
-		if (cmd_sts & ERROR_SUMMARY) {
+		if (cmd_sts & ERROR_SUMMARY)
+		{
 			netdev_info(mp->dev, "tx error\n");
 			mp->dev->stats.tx_errors++;
 		}
@@ -1138,7 +1292,9 @@ static int txq_reclaim(struct tx_queue *txq, int budget, int force)
 	__netif_tx_unlock_bh(nq);
 
 	if (reclaimed < budget)
+	{
 		mp->work_tx &= ~(1 << txq->index);
+	}
 
 	return reclaimed;
 }
@@ -1156,28 +1312,39 @@ static void tx_set_rate(struct mv643xx_eth_private *mp, int rate, int burst)
 	int bucket_size;
 
 	token_rate = ((rate / 1000) * 64) / (mp->t_clk / 1000);
+
 	if (token_rate > 1023)
+	{
 		token_rate = 1023;
+	}
 
 	mtu = (mp->dev->mtu + 255) >> 8;
+
 	if (mtu > 63)
+	{
 		mtu = 63;
+	}
 
 	bucket_size = (burst + 255) >> 8;
-	if (bucket_size > 65535)
-		bucket_size = 65535;
 
-	switch (mp->shared->tx_bw_control) {
-	case TX_BW_CONTROL_OLD_LAYOUT:
-		wrlp(mp, TX_BW_RATE, token_rate);
-		wrlp(mp, TX_BW_MTU, mtu);
-		wrlp(mp, TX_BW_BURST, bucket_size);
-		break;
-	case TX_BW_CONTROL_NEW_LAYOUT:
-		wrlp(mp, TX_BW_RATE_MOVED, token_rate);
-		wrlp(mp, TX_BW_MTU_MOVED, mtu);
-		wrlp(mp, TX_BW_BURST_MOVED, bucket_size);
-		break;
+	if (bucket_size > 65535)
+	{
+		bucket_size = 65535;
+	}
+
+	switch (mp->shared->tx_bw_control)
+	{
+		case TX_BW_CONTROL_OLD_LAYOUT:
+			wrlp(mp, TX_BW_RATE, token_rate);
+			wrlp(mp, TX_BW_MTU, mtu);
+			wrlp(mp, TX_BW_BURST, bucket_size);
+			break;
+
+		case TX_BW_CONTROL_NEW_LAYOUT:
+			wrlp(mp, TX_BW_RATE_MOVED, token_rate);
+			wrlp(mp, TX_BW_MTU_MOVED, mtu);
+			wrlp(mp, TX_BW_BURST_MOVED, bucket_size);
+			break;
 	}
 }
 
@@ -1188,12 +1355,18 @@ static void txq_set_rate(struct tx_queue *txq, int rate, int burst)
 	int bucket_size;
 
 	token_rate = ((rate / 1000) * 64) / (mp->t_clk / 1000);
+
 	if (token_rate > 1023)
+	{
 		token_rate = 1023;
+	}
 
 	bucket_size = (burst + 255) >> 8;
+
 	if (bucket_size > 65535)
+	{
 		bucket_size = 65535;
+	}
 
 	wrlp(mp, TXQ_BW_TOKENS(txq->index), token_rate << 14);
 	wrlp(mp, TXQ_BW_CONF(txq->index), (bucket_size << 10) | token_rate);
@@ -1209,16 +1382,20 @@ static void txq_set_fixed_prio_mode(struct tx_queue *txq)
 	 * Turn on fixed priority mode.
 	 */
 	off = 0;
-	switch (mp->shared->tx_bw_control) {
-	case TX_BW_CONTROL_OLD_LAYOUT:
-		off = TXQ_FIX_PRIO_CONF;
-		break;
-	case TX_BW_CONTROL_NEW_LAYOUT:
-		off = TXQ_FIX_PRIO_CONF_MOVED;
-		break;
+
+	switch (mp->shared->tx_bw_control)
+	{
+		case TX_BW_CONTROL_OLD_LAYOUT:
+			off = TXQ_FIX_PRIO_CONF;
+			break;
+
+		case TX_BW_CONTROL_NEW_LAYOUT:
+			off = TXQ_FIX_PRIO_CONF_MOVED;
+			break;
 	}
 
-	if (off) {
+	if (off)
+	{
 		val = rdlp(mp, off);
 		val |= 1 << txq->index;
 		wrlp(mp, off, val);
@@ -1232,11 +1409,12 @@ static void mv643xx_eth_adjust_link(struct net_device *dev)
 	struct mv643xx_eth_private *mp = netdev_priv(dev);
 	u32 pscr = rdlp(mp, PORT_SERIAL_CONTROL);
 	u32 autoneg_disable = FORCE_LINK_PASS |
-	             DISABLE_AUTO_NEG_SPEED_GMII |
-		     DISABLE_AUTO_NEG_FOR_FLOW_CTRL |
-		     DISABLE_AUTO_NEG_FOR_DUPLEX;
+						  DISABLE_AUTO_NEG_SPEED_GMII |
+						  DISABLE_AUTO_NEG_FOR_FLOW_CTRL |
+						  DISABLE_AUTO_NEG_FOR_DUPLEX;
 
-	if (mp->phy->autoneg == AUTONEG_ENABLE) {
+	if (mp->phy->autoneg == AUTONEG_ENABLE)
+	{
 		/* enable auto negotiation */
 		pscr &= ~autoneg_disable;
 		goto out_write;
@@ -1244,7 +1422,8 @@ static void mv643xx_eth_adjust_link(struct net_device *dev)
 
 	pscr |= autoneg_disable;
 
-	if (mp->phy->speed == SPEED_1000) {
+	if (mp->phy->speed == SPEED_1000)
+	{
 		/* force gigabit, half duplex not supported */
 		pscr |= SET_GMII_SPEED_TO_1000;
 		pscr |= SET_FULL_DUPLEX_MODE;
@@ -1254,14 +1433,22 @@ static void mv643xx_eth_adjust_link(struct net_device *dev)
 	pscr &= ~SET_GMII_SPEED_TO_1000;
 
 	if (mp->phy->speed == SPEED_100)
+	{
 		pscr |= SET_MII_SPEED_TO_100;
+	}
 	else
+	{
 		pscr &= ~SET_MII_SPEED_TO_100;
+	}
 
 	if (mp->phy->duplex == DUPLEX_FULL)
+	{
 		pscr |= SET_FULL_DUPLEX_MODE;
+	}
 	else
+	{
 		pscr &= ~SET_FULL_DUPLEX_MODE;
+	}
 
 out_write:
 	wrlp(mp, PORT_SERIAL_CONTROL, pscr);
@@ -1277,7 +1464,8 @@ static struct net_device_stats *mv643xx_eth_get_stats(struct net_device *dev)
 	unsigned long tx_dropped = 0;
 	int i;
 
-	for (i = 0; i < mp->txq_count; i++) {
+	for (i = 0; i < mp->txq_count; i++)
+	{
 		struct tx_queue *txq = mp->txq + i;
 
 		tx_packets += txq->tx_packets;
@@ -1302,7 +1490,9 @@ static void mib_counters_clear(struct mv643xx_eth_private *mp)
 	int i;
 
 	for (i = 0; i < 0x80; i += 4)
+	{
 		mib_read(mp, i);
+	}
 
 	/* Clear non MIB hw counters also */
 	rdlp(mp, RX_DISCARD_FRAME_CNT);
@@ -1376,9 +1566,13 @@ static unsigned int get_rx_coal(struct mv643xx_eth_private *mp)
 	u64 temp;
 
 	if (mp->shared->extended_rx_coal_limit)
+	{
 		temp = ((val & 0x02000000) >> 10) | ((val & 0x003fff80) >> 7);
+	}
 	else
+	{
 		temp = (val & 0x003fff00) >> 8;
+	}
 
 	temp *= 64000000;
 	temp += mp->t_clk / 2;
@@ -1397,18 +1591,29 @@ static void set_rx_coal(struct mv643xx_eth_private *mp, unsigned int usec)
 	do_div(temp, 64000000);
 
 	val = rdlp(mp, SDMA_CONFIG);
-	if (mp->shared->extended_rx_coal_limit) {
+
+	if (mp->shared->extended_rx_coal_limit)
+	{
 		if (temp > 0xffff)
+		{
 			temp = 0xffff;
+		}
+
 		val &= ~0x023fff80;
 		val |= (temp & 0x8000) << 10;
 		val |= (temp & 0x7fff) << 7;
-	} else {
+	}
+	else
+	{
 		if (temp > 0x3fff)
+		{
 			temp = 0x3fff;
+		}
+
 		val &= ~0x003fff00;
 		val |= (temp & 0x3fff) << 8;
 	}
+
 	wrlp(mp, SDMA_CONFIG, val);
 }
 
@@ -1433,14 +1638,17 @@ static void set_tx_coal(struct mv643xx_eth_private *mp, unsigned int usec)
 	do_div(temp, 64000000);
 
 	if (temp > 0x3fff)
+	{
 		temp = 0x3fff;
+	}
 
 	wrlp(mp, TX_FIFO_URGENT_THRESHOLD, temp << 4);
 }
 
 
 /* ethtool ******************************************************************/
-struct mv643xx_eth_stats {
+struct mv643xx_eth_stats
+{
 	char stat_string[ETH_GSTRING_LEN];
 	int sizeof_stat;
 	int netdev_off;
@@ -1449,13 +1657,14 @@ struct mv643xx_eth_stats {
 
 #define SSTAT(m)						\
 	{ #m, FIELD_SIZEOF(struct net_device_stats, m),		\
-	  offsetof(struct net_device, stats.m), -1 }
+		offsetof(struct net_device, stats.m), -1 }
 
 #define MIBSTAT(m)						\
 	{ #m, FIELD_SIZEOF(struct mib_counters, m),		\
-	  -1, offsetof(struct mv643xx_eth_private, mib_counters.m) }
+		-1, offsetof(struct mv643xx_eth_private, mib_counters.m) }
 
-static const struct mv643xx_eth_stats mv643xx_eth_stats[] = {
+static const struct mv643xx_eth_stats mv643xx_eth_stats[] =
+{
 	SSTAT(rx_packets),
 	SSTAT(tx_packets),
 	SSTAT(rx_bytes),
@@ -1500,13 +1709,16 @@ static const struct mv643xx_eth_stats mv643xx_eth_stats[] = {
 
 static int
 mv643xx_eth_get_settings_phy(struct mv643xx_eth_private *mp,
-			     struct ethtool_cmd *cmd)
+							 struct ethtool_cmd *cmd)
 {
 	int err;
 
 	err = phy_read_status(mp->phy);
+
 	if (err == 0)
+	{
 		err = phy_ethtool_gset(mp->phy, cmd);
+	}
 
 	/*
 	 * The MAC does not support 1000baseT_Half.
@@ -1519,7 +1731,7 @@ mv643xx_eth_get_settings_phy(struct mv643xx_eth_private *mp,
 
 static int
 mv643xx_eth_get_settings_phyless(struct mv643xx_eth_private *mp,
-				 struct ethtool_cmd *cmd)
+								 struct ethtool_cmd *cmd)
 {
 	u32 port_status;
 
@@ -1527,20 +1739,26 @@ mv643xx_eth_get_settings_phyless(struct mv643xx_eth_private *mp,
 
 	cmd->supported = SUPPORTED_MII;
 	cmd->advertising = ADVERTISED_MII;
-	switch (port_status & PORT_SPEED_MASK) {
-	case PORT_SPEED_10:
-		ethtool_cmd_speed_set(cmd, SPEED_10);
-		break;
-	case PORT_SPEED_100:
-		ethtool_cmd_speed_set(cmd, SPEED_100);
-		break;
-	case PORT_SPEED_1000:
-		ethtool_cmd_speed_set(cmd, SPEED_1000);
-		break;
-	default:
-		cmd->speed = -1;
-		break;
+
+	switch (port_status & PORT_SPEED_MASK)
+	{
+		case PORT_SPEED_10:
+			ethtool_cmd_speed_set(cmd, SPEED_10);
+			break;
+
+		case PORT_SPEED_100:
+			ethtool_cmd_speed_set(cmd, SPEED_100);
+			break;
+
+		case PORT_SPEED_1000:
+			ethtool_cmd_speed_set(cmd, SPEED_1000);
+			break;
+
+		default:
+			cmd->speed = -1;
+			break;
 	}
+
 	cmd->duplex = (port_status & FULL_DUPLEX) ? DUPLEX_FULL : DUPLEX_HALF;
 	cmd->port = PORT_MII;
 	cmd->phy_address = 0;
@@ -1558,8 +1776,11 @@ mv643xx_eth_get_wol(struct net_device *dev, struct ethtool_wolinfo *wol)
 	struct mv643xx_eth_private *mp = netdev_priv(dev);
 	wol->supported = 0;
 	wol->wolopts = 0;
+
 	if (mp->phy)
+	{
 		phy_ethtool_get_wol(mp->phy, wol);
+	}
 }
 
 static int
@@ -1569,14 +1790,20 @@ mv643xx_eth_set_wol(struct net_device *dev, struct ethtool_wolinfo *wol)
 	int err;
 
 	if (mp->phy == NULL)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	err = phy_ethtool_set_wol(mp->phy, wol);
+
 	/* Given that mv643xx_eth works without the marvell-specific PHY driver,
 	 * this debugging hint is useful to have.
 	 */
 	if (err == -EOPNOTSUPP)
+	{
 		netdev_info(dev, "The PHY does not support set_wol, was CONFIG_MARVELL_PHY enabled?\n");
+	}
+
 	return err;
 }
 
@@ -1586,9 +1813,13 @@ mv643xx_eth_get_settings(struct net_device *dev, struct ethtool_cmd *cmd)
 	struct mv643xx_eth_private *mp = netdev_priv(dev);
 
 	if (mp->phy != NULL)
+	{
 		return mv643xx_eth_get_settings_phy(mp, cmd);
+	}
 	else
+	{
 		return mv643xx_eth_get_settings_phyless(mp, cmd);
+	}
 }
 
 static int
@@ -1598,7 +1829,9 @@ mv643xx_eth_set_settings(struct net_device *dev, struct ethtool_cmd *cmd)
 	int ret;
 
 	if (mp->phy == NULL)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * The MAC does not support 1000baseT_Half.
@@ -1606,18 +1839,22 @@ mv643xx_eth_set_settings(struct net_device *dev, struct ethtool_cmd *cmd)
 	cmd->advertising &= ~ADVERTISED_1000baseT_Half;
 
 	ret = phy_ethtool_sset(mp->phy, cmd);
+
 	if (!ret)
+	{
 		mv643xx_eth_adjust_link(dev);
+	}
+
 	return ret;
 }
 
 static void mv643xx_eth_get_drvinfo(struct net_device *dev,
-				    struct ethtool_drvinfo *drvinfo)
+									struct ethtool_drvinfo *drvinfo)
 {
 	strlcpy(drvinfo->driver, mv643xx_eth_driver_name,
-		sizeof(drvinfo->driver));
+			sizeof(drvinfo->driver));
 	strlcpy(drvinfo->version, mv643xx_eth_driver_version,
-		sizeof(drvinfo->version));
+			sizeof(drvinfo->version));
 	strlcpy(drvinfo->fw_version, "N/A", sizeof(drvinfo->fw_version));
 	strlcpy(drvinfo->bus_info, "platform", sizeof(drvinfo->bus_info));
 }
@@ -1627,7 +1864,9 @@ static int mv643xx_eth_nway_reset(struct net_device *dev)
 	struct mv643xx_eth_private *mp = netdev_priv(dev);
 
 	if (mp->phy == NULL)
+	{
 		return -EINVAL;
+	}
 
 	return genphy_restart_aneg(mp->phy);
 }
@@ -1672,20 +1911,26 @@ mv643xx_eth_set_ringparam(struct net_device *dev, struct ethtool_ringparam *er)
 	struct mv643xx_eth_private *mp = netdev_priv(dev);
 
 	if (er->rx_mini_pending || er->rx_jumbo_pending)
+	{
 		return -EINVAL;
+	}
 
 	mp->rx_ring_size = er->rx_pending < 4096 ? er->rx_pending : 4096;
 	mp->tx_ring_size = clamp_t(unsigned int, er->tx_pending,
-				   MV643XX_MAX_SKB_DESCS * 2, 4096);
+							   MV643XX_MAX_SKB_DESCS * 2, 4096);
+
 	if (mp->tx_ring_size != er->tx_pending)
 		netdev_warn(dev, "TX queue size set to %u (requested %u)\n",
-			    mp->tx_ring_size, er->tx_pending);
+					mp->tx_ring_size, er->tx_pending);
 
-	if (netif_running(dev)) {
+	if (netif_running(dev))
+	{
 		mv643xx_eth_stop(dev);
-		if (mv643xx_eth_open(dev)) {
+
+		if (mv643xx_eth_open(dev))
+		{
 			netdev_err(dev,
-				   "fatal error on re-opening device after ring param change\n");
+					   "fatal error on re-opening device after ring param change\n");
 			return -ENOMEM;
 		}
 	}
@@ -1706,22 +1951,24 @@ mv643xx_eth_set_features(struct net_device *dev, netdev_features_t features)
 }
 
 static void mv643xx_eth_get_strings(struct net_device *dev,
-				    uint32_t stringset, uint8_t *data)
+									uint32_t stringset, uint8_t *data)
 {
 	int i;
 
-	if (stringset == ETH_SS_STATS) {
-		for (i = 0; i < ARRAY_SIZE(mv643xx_eth_stats); i++) {
+	if (stringset == ETH_SS_STATS)
+	{
+		for (i = 0; i < ARRAY_SIZE(mv643xx_eth_stats); i++)
+		{
 			memcpy(data + i * ETH_GSTRING_LEN,
-				mv643xx_eth_stats[i].stat_string,
-				ETH_GSTRING_LEN);
+				   mv643xx_eth_stats[i].stat_string,
+				   ETH_GSTRING_LEN);
 		}
 	}
 }
 
 static void mv643xx_eth_get_ethtool_stats(struct net_device *dev,
-					  struct ethtool_stats *stats,
-					  uint64_t *data)
+		struct ethtool_stats *stats,
+		uint64_t *data)
 {
 	struct mv643xx_eth_private *mp = netdev_priv(dev);
 	int i;
@@ -1729,31 +1976,39 @@ static void mv643xx_eth_get_ethtool_stats(struct net_device *dev,
 	mv643xx_eth_get_stats(dev);
 	mib_counters_update(mp);
 
-	for (i = 0; i < ARRAY_SIZE(mv643xx_eth_stats); i++) {
+	for (i = 0; i < ARRAY_SIZE(mv643xx_eth_stats); i++)
+	{
 		const struct mv643xx_eth_stats *stat;
 		void *p;
 
 		stat = mv643xx_eth_stats + i;
 
 		if (stat->netdev_off >= 0)
+		{
 			p = ((void *)mp->dev) + stat->netdev_off;
+		}
 		else
+		{
 			p = ((void *)mp) + stat->mp_off;
+		}
 
 		data[i] = (stat->sizeof_stat == 8) ?
-				*(uint64_t *)p : *(uint32_t *)p;
+				  *(uint64_t *)p : *(uint32_t *)p;
 	}
 }
 
 static int mv643xx_eth_get_sset_count(struct net_device *dev, int sset)
 {
 	if (sset == ETH_SS_STATS)
+	{
 		return ARRAY_SIZE(mv643xx_eth_stats);
+	}
 
 	return -EOPNOTSUPP;
 }
 
-static const struct ethtool_ops mv643xx_eth_ethtool_ops = {
+static const struct ethtool_ops mv643xx_eth_ethtool_ops =
+{
 	.get_settings		= mv643xx_eth_get_settings,
 	.set_settings		= mv643xx_eth_set_settings,
 	.get_drvinfo		= mv643xx_eth_get_drvinfo,
@@ -1789,7 +2044,7 @@ static void uc_addr_get(struct mv643xx_eth_private *mp, unsigned char *addr)
 static void uc_addr_set(struct mv643xx_eth_private *mp, unsigned char *addr)
 {
 	wrlp(mp, MAC_ADDR_HIGH,
-		(addr[0] << 24) | (addr[1] << 16) | (addr[2] << 8) | addr[3]);
+		 (addr[0] << 24) | (addr[1] << 16) | (addr[2] << 8) | addr[3]);
 	wrlp(mp, MAC_ADDR_LOW, (addr[4] << 8) | addr[5]);
 }
 
@@ -1799,14 +2054,22 @@ static u32 uc_addr_filter_mask(struct net_device *dev)
 	u32 nibbles;
 
 	if (dev->flags & IFF_PROMISC)
+	{
 		return 0;
+	}
 
 	nibbles = 1 << (dev->dev_addr[5] & 0x0f);
-	netdev_for_each_uc_addr(ha, dev) {
+	netdev_for_each_uc_addr(ha, dev)
+	{
 		if (memcmp(dev->dev_addr, ha->addr, 5))
+		{
 			return 0;
+		}
+
 		if ((dev->dev_addr[5] ^ ha->addr[5]) & 0xf0)
+		{
 			return 0;
+		}
 
 		nibbles |= 1 << (ha->addr[5] & 0x0f);
 	}
@@ -1826,24 +2089,40 @@ static void mv643xx_eth_program_unicast_filter(struct net_device *dev)
 	port_config = rdlp(mp, PORT_CONFIG) & ~UNICAST_PROMISCUOUS_MODE;
 
 	nibbles = uc_addr_filter_mask(dev);
-	if (!nibbles) {
+
+	if (!nibbles)
+	{
 		port_config |= UNICAST_PROMISCUOUS_MODE;
 		nibbles = 0xffff;
 	}
 
-	for (i = 0; i < 16; i += 4) {
+	for (i = 0; i < 16; i += 4)
+	{
 		int off = UNICAST_TABLE(mp->port_num) + i;
 		u32 v;
 
 		v = 0;
+
 		if (nibbles & 1)
+		{
 			v |= 0x00000001;
+		}
+
 		if (nibbles & 2)
+		{
 			v |= 0x00000100;
+		}
+
 		if (nibbles & 4)
+		{
 			v |= 0x00010000;
+		}
+
 		if (nibbles & 8)
+		{
 			v |= 0x01000000;
+		}
+
 		nibbles >>= 4;
 
 		wrl(mp, off, v);
@@ -1857,13 +2136,18 @@ static int addr_crc(unsigned char *addr)
 	int crc = 0;
 	int i;
 
-	for (i = 0; i < 6; i++) {
+	for (i = 0; i < 6; i++)
+	{
 		int j;
 
 		crc = (crc ^ addr[i]) << 8;
-		for (j = 7; j >= 0; j--) {
+
+		for (j = 7; j >= 0; j--)
+		{
 			if (crc & (0x100 << j))
+			{
 				crc ^= 0x107 << j;
+			}
 		}
 	}
 
@@ -1879,23 +2163,33 @@ static void mv643xx_eth_program_multicast_filter(struct net_device *dev)
 	int i;
 
 	if (dev->flags & (IFF_PROMISC | IFF_ALLMULTI))
+	{
 		goto promiscuous;
+	}
 
 	/* Allocate both mc_spec and mc_other tables */
 	mc_spec = kcalloc(128, sizeof(u32), GFP_ATOMIC);
+
 	if (!mc_spec)
+	{
 		goto promiscuous;
+	}
+
 	mc_other = &mc_spec[64];
 
-	netdev_for_each_mc_addr(ha, dev) {
+	netdev_for_each_mc_addr(ha, dev)
+	{
 		u8 *a = ha->addr;
 		u32 *table;
 		u8 entry;
 
-		if (memcmp(a, "\x01\x00\x5e\x00\x00", 5) == 0) {
+		if (memcmp(a, "\x01\x00\x5e\x00\x00", 5) == 0)
+		{
 			table = mc_spec;
 			entry = a[5];
-		} else {
+		}
+		else
+		{
 			table = mc_other;
 			entry = addr_crc(a);
 		}
@@ -1903,22 +2197,25 @@ static void mv643xx_eth_program_multicast_filter(struct net_device *dev)
 		table[entry >> 2] |= 1 << (8 * (entry & 3));
 	}
 
-	for (i = 0; i < 64; i++) {
+	for (i = 0; i < 64; i++)
+	{
 		wrl(mp, SPECIAL_MCAST_TABLE(mp->port_num) + i * sizeof(u32),
-		    mc_spec[i]);
+			mc_spec[i]);
 		wrl(mp, OTHER_MCAST_TABLE(mp->port_num) + i * sizeof(u32),
-		    mc_other[i]);
+			mc_other[i]);
 	}
 
 	kfree(mc_spec);
 	return;
 
 promiscuous:
-	for (i = 0; i < 64; i++) {
+
+	for (i = 0; i < 64; i++)
+	{
 		wrl(mp, SPECIAL_MCAST_TABLE(mp->port_num) + i * sizeof(u32),
-		    0x01010101u);
+			0x01010101u);
 		wrl(mp, OTHER_MCAST_TABLE(mp->port_num) + i * sizeof(u32),
-		    0x01010101u);
+			0x01010101u);
 	}
 }
 
@@ -1933,7 +2230,9 @@ static int mv643xx_eth_set_mac_address(struct net_device *dev, void *addr)
 	struct sockaddr *sa = addr;
 
 	if (!is_valid_ether_addr(sa->sa_data))
+	{
 		return -EADDRNOTAVAIL;
+	}
 
 	memcpy(dev->dev_addr, sa->sa_data, ETH_ALEN);
 
@@ -1963,51 +2262,67 @@ static int rxq_init(struct mv643xx_eth_private *mp, int index)
 
 	size = rxq->rx_ring_size * sizeof(struct rx_desc);
 
-	if (index == 0 && size <= mp->rx_desc_sram_size) {
+	if (index == 0 && size <= mp->rx_desc_sram_size)
+	{
 		rxq->rx_desc_area = ioremap(mp->rx_desc_sram_addr,
-						mp->rx_desc_sram_size);
+									mp->rx_desc_sram_size);
 		rxq->rx_desc_dma = mp->rx_desc_sram_addr;
-	} else {
+	}
+	else
+	{
 		rxq->rx_desc_area = dma_alloc_coherent(mp->dev->dev.parent,
-						       size, &rxq->rx_desc_dma,
-						       GFP_KERNEL);
+											   size, &rxq->rx_desc_dma,
+											   GFP_KERNEL);
 	}
 
-	if (rxq->rx_desc_area == NULL) {
+	if (rxq->rx_desc_area == NULL)
+	{
 		netdev_err(mp->dev,
-			   "can't allocate rx ring (%d bytes)\n", size);
+				   "can't allocate rx ring (%d bytes)\n", size);
 		goto out;
 	}
+
 	memset(rxq->rx_desc_area, 0, size);
 
 	rxq->rx_desc_area_size = size;
 	rxq->rx_skb = kcalloc(rxq->rx_ring_size, sizeof(*rxq->rx_skb),
-				    GFP_KERNEL);
+						  GFP_KERNEL);
+
 	if (rxq->rx_skb == NULL)
+	{
 		goto out_free;
+	}
 
 	rx_desc = rxq->rx_desc_area;
-	for (i = 0; i < rxq->rx_ring_size; i++) {
+
+	for (i = 0; i < rxq->rx_ring_size; i++)
+	{
 		int nexti;
 
 		nexti = i + 1;
+
 		if (nexti == rxq->rx_ring_size)
+		{
 			nexti = 0;
+		}
 
 		rx_desc[i].next_desc_ptr = rxq->rx_desc_dma +
-					nexti * sizeof(struct rx_desc);
+								   nexti * sizeof(struct rx_desc);
 	}
 
 	return 0;
 
 
 out_free:
+
 	if (index == 0 && size <= mp->rx_desc_sram_size)
+	{
 		iounmap(rxq->rx_desc_area);
+	}
 	else
 		dma_free_coherent(mp->dev->dev.parent, size,
-				  rxq->rx_desc_area,
-				  rxq->rx_desc_dma);
+						  rxq->rx_desc_area,
+						  rxq->rx_desc_dma);
 
 out:
 	return -ENOMEM;
@@ -2020,24 +2335,29 @@ static void rxq_deinit(struct rx_queue *rxq)
 
 	rxq_disable(rxq);
 
-	for (i = 0; i < rxq->rx_ring_size; i++) {
-		if (rxq->rx_skb[i]) {
+	for (i = 0; i < rxq->rx_ring_size; i++)
+	{
+		if (rxq->rx_skb[i])
+		{
 			dev_kfree_skb(rxq->rx_skb[i]);
 			rxq->rx_desc_count--;
 		}
 	}
 
-	if (rxq->rx_desc_count) {
+	if (rxq->rx_desc_count)
+	{
 		netdev_err(mp->dev, "error freeing rx ring -- %d skbs stuck\n",
-			   rxq->rx_desc_count);
+				   rxq->rx_desc_count);
 	}
 
 	if (rxq->index == 0 &&
-	    rxq->rx_desc_area_size <= mp->rx_desc_sram_size)
+		rxq->rx_desc_area_size <= mp->rx_desc_sram_size)
+	{
 		iounmap(rxq->rx_desc_area);
+	}
 	else
 		dma_free_coherent(mp->dev->dev.parent, rxq->rx_desc_area_size,
-				  rxq->rx_desc_area, rxq->rx_desc_dma);
+						  rxq->rx_desc_area, rxq->rx_desc_dma);
 
 	kfree(rxq->rx_skb);
 }
@@ -2067,54 +2387,69 @@ static int txq_init(struct mv643xx_eth_private *mp, int index)
 
 	size = txq->tx_ring_size * sizeof(struct tx_desc);
 
-	if (index == 0 && size <= mp->tx_desc_sram_size) {
+	if (index == 0 && size <= mp->tx_desc_sram_size)
+	{
 		txq->tx_desc_area = ioremap(mp->tx_desc_sram_addr,
-						mp->tx_desc_sram_size);
+									mp->tx_desc_sram_size);
 		txq->tx_desc_dma = mp->tx_desc_sram_addr;
-	} else {
+	}
+	else
+	{
 		txq->tx_desc_area = dma_alloc_coherent(mp->dev->dev.parent,
-						       size, &txq->tx_desc_dma,
-						       GFP_KERNEL);
+											   size, &txq->tx_desc_dma,
+											   GFP_KERNEL);
 	}
 
-	if (txq->tx_desc_area == NULL) {
+	if (txq->tx_desc_area == NULL)
+	{
 		netdev_err(mp->dev,
-			   "can't allocate tx ring (%d bytes)\n", size);
+				   "can't allocate tx ring (%d bytes)\n", size);
 		return -ENOMEM;
 	}
+
 	memset(txq->tx_desc_area, 0, size);
 
 	txq->tx_desc_area_size = size;
 
 	tx_desc = txq->tx_desc_area;
-	for (i = 0; i < txq->tx_ring_size; i++) {
+
+	for (i = 0; i < txq->tx_ring_size; i++)
+	{
 		struct tx_desc *txd = tx_desc + i;
 		int nexti;
 
 		nexti = i + 1;
+
 		if (nexti == txq->tx_ring_size)
+		{
 			nexti = 0;
+		}
 
 		txd->cmd_sts = 0;
 		txd->next_desc_ptr = txq->tx_desc_dma +
-					nexti * sizeof(struct tx_desc);
+							 nexti * sizeof(struct tx_desc);
 	}
 
 	txq->tx_desc_mapping = kcalloc(txq->tx_ring_size, sizeof(char),
-				       GFP_KERNEL);
-	if (!txq->tx_desc_mapping) {
+								   GFP_KERNEL);
+
+	if (!txq->tx_desc_mapping)
+	{
 		ret = -ENOMEM;
 		goto err_free_desc_area;
 	}
 
 	/* Allocate DMA buffers for TSO MAC/IP/TCP headers */
 	txq->tso_hdrs = dma_alloc_coherent(mp->dev->dev.parent,
-					   txq->tx_ring_size * TSO_HEADER_SIZE,
-					   &txq->tso_hdrs_dma, GFP_KERNEL);
-	if (txq->tso_hdrs == NULL) {
+									   txq->tx_ring_size * TSO_HEADER_SIZE,
+									   &txq->tso_hdrs_dma, GFP_KERNEL);
+
+	if (txq->tso_hdrs == NULL)
+	{
 		ret = -ENOMEM;
 		goto err_free_desc_mapping;
 	}
+
 	skb_queue_head_init(&txq->tx_skb);
 
 	return 0;
@@ -2122,11 +2457,15 @@ static int txq_init(struct mv643xx_eth_private *mp, int index)
 err_free_desc_mapping:
 	kfree(txq->tx_desc_mapping);
 err_free_desc_area:
+
 	if (index == 0 && size <= mp->tx_desc_sram_size)
+	{
 		iounmap(txq->tx_desc_area);
+	}
 	else
 		dma_free_coherent(mp->dev->dev.parent, txq->tx_desc_area_size,
-				  txq->tx_desc_area, txq->tx_desc_dma);
+						  txq->tx_desc_area, txq->tx_desc_dma);
+
 	return ret;
 }
 
@@ -2140,17 +2479,20 @@ static void txq_deinit(struct tx_queue *txq)
 	BUG_ON(txq->tx_used_desc != txq->tx_curr_desc);
 
 	if (txq->index == 0 &&
-	    txq->tx_desc_area_size <= mp->tx_desc_sram_size)
+		txq->tx_desc_area_size <= mp->tx_desc_sram_size)
+	{
 		iounmap(txq->tx_desc_area);
+	}
 	else
 		dma_free_coherent(mp->dev->dev.parent, txq->tx_desc_area_size,
-				  txq->tx_desc_area, txq->tx_desc_dma);
+						  txq->tx_desc_area, txq->tx_desc_dma);
+
 	kfree(txq->tx_desc_mapping);
 
 	if (txq->tso_hdrs)
 		dma_free_coherent(mp->dev->dev.parent,
-				  txq->tx_ring_size * TSO_HEADER_SIZE,
-				  txq->tso_hdrs, txq->tso_hdrs_dma);
+						  txq->tx_ring_size * TSO_HEADER_SIZE,
+						  txq->tso_hdrs, txq->tso_hdrs_dma);
 }
 
 
@@ -2161,27 +2503,39 @@ static int mv643xx_eth_collect_events(struct mv643xx_eth_private *mp)
 	u32 int_cause_ext;
 
 	int_cause = rdlp(mp, INT_CAUSE) & mp->int_mask;
+
 	if (int_cause == 0)
+	{
 		return 0;
+	}
 
 	int_cause_ext = 0;
-	if (int_cause & INT_EXT) {
+
+	if (int_cause & INT_EXT)
+	{
 		int_cause &= ~INT_EXT;
 		int_cause_ext = rdlp(mp, INT_CAUSE_EXT);
 	}
 
-	if (int_cause) {
+	if (int_cause)
+	{
 		wrlp(mp, INT_CAUSE, ~int_cause);
 		mp->work_tx_end |= ((int_cause & INT_TX_END) >> 19) &
-				~(rdlp(mp, TXQ_COMMAND) & 0xff);
+						   ~(rdlp(mp, TXQ_COMMAND) & 0xff);
 		mp->work_rx |= (int_cause & INT_RX) >> 2;
 	}
 
 	int_cause_ext &= INT_EXT_LINK_PHY | INT_EXT_TX;
-	if (int_cause_ext) {
+
+	if (int_cause_ext)
+	{
 		wrlp(mp, INT_CAUSE_EXT, ~int_cause_ext);
+
 		if (int_cause_ext & INT_EXT_LINK_PHY)
+		{
 			mp->work_link = 1;
+		}
+
 		mp->work_tx |= int_cause_ext & INT_EXT_TX;
 	}
 
@@ -2194,7 +2548,9 @@ static irqreturn_t mv643xx_eth_irq(int irq, void *dev_id)
 	struct mv643xx_eth_private *mp = netdev_priv(dev);
 
 	if (unlikely(!mv643xx_eth_collect_events(mp)))
+	{
 		return IRQ_NONE;
+	}
 
 	wrlp(mp, INT_MASK, 0);
 	napi_schedule(&mp->napi);
@@ -2211,46 +2567,58 @@ static void handle_link_event(struct mv643xx_eth_private *mp)
 	int fc;
 
 	port_status = rdlp(mp, PORT_STATUS);
-	if (!(port_status & LINK_UP)) {
-		if (netif_carrier_ok(dev)) {
+
+	if (!(port_status & LINK_UP))
+	{
+		if (netif_carrier_ok(dev))
+		{
 			int i;
 
 			netdev_info(dev, "link down\n");
 
 			netif_carrier_off(dev);
 
-			for (i = 0; i < mp->txq_count; i++) {
+			for (i = 0; i < mp->txq_count; i++)
+			{
 				struct tx_queue *txq = mp->txq + i;
 
 				txq_reclaim(txq, txq->tx_ring_size, 1);
 				txq_reset_hw_ptr(txq);
 			}
 		}
+
 		return;
 	}
 
-	switch (port_status & PORT_SPEED_MASK) {
-	case PORT_SPEED_10:
-		speed = 10;
-		break;
-	case PORT_SPEED_100:
-		speed = 100;
-		break;
-	case PORT_SPEED_1000:
-		speed = 1000;
-		break;
-	default:
-		speed = -1;
-		break;
+	switch (port_status & PORT_SPEED_MASK)
+	{
+		case PORT_SPEED_10:
+			speed = 10;
+			break;
+
+		case PORT_SPEED_100:
+			speed = 100;
+			break;
+
+		case PORT_SPEED_1000:
+			speed = 1000;
+			break;
+
+		default:
+			speed = -1;
+			break;
 	}
+
 	duplex = (port_status & FULL_DUPLEX) ? 1 : 0;
 	fc = (port_status & FLOW_CONTROL_ENABLED) ? 1 : 0;
 
 	netdev_info(dev, "link up, %d Mb/s, %s duplex, flow control %sabled\n",
-		    speed, duplex ? "full" : "half", fc ? "en" : "dis");
+				speed, duplex ? "full" : "half", fc ? "en" : "dis");
 
 	if (!netif_carrier_ok(dev))
+	{
 		netif_carrier_on(dev);
+	}
 }
 
 static int mv643xx_eth_poll(struct napi_struct *napi, int budget)
@@ -2260,18 +2628,22 @@ static int mv643xx_eth_poll(struct napi_struct *napi, int budget)
 
 	mp = container_of(napi, struct mv643xx_eth_private, napi);
 
-	if (unlikely(mp->oom)) {
+	if (unlikely(mp->oom))
+	{
 		mp->oom = 0;
 		del_timer(&mp->rx_oom);
 	}
 
 	work_done = 0;
-	while (work_done < budget) {
+
+	while (work_done < budget)
+	{
 		u8 queue_mask;
 		int queue;
 		int work_tbd;
 
-		if (mp->work_link) {
+		if (mp->work_link)
+		{
 			mp->work_link = 0;
 			handle_link_event(mp);
 			work_done++;
@@ -2279,12 +2651,19 @@ static int mv643xx_eth_poll(struct napi_struct *napi, int budget)
 		}
 
 		queue_mask = mp->work_tx | mp->work_tx_end | mp->work_rx;
-		if (likely(!mp->oom))
-			queue_mask |= mp->work_rx_refill;
 
-		if (!queue_mask) {
+		if (likely(!mp->oom))
+		{
+			queue_mask |= mp->work_rx_refill;
+		}
+
+		if (!queue_mask)
+		{
 			if (mv643xx_eth_collect_events(mp))
+			{
 				continue;
+			}
+
 			break;
 		}
 
@@ -2292,26 +2671,42 @@ static int mv643xx_eth_poll(struct napi_struct *napi, int budget)
 		queue_mask = 1 << queue;
 
 		work_tbd = budget - work_done;
-		if (work_tbd > 16)
-			work_tbd = 16;
 
-		if (mp->work_tx_end & queue_mask) {
+		if (work_tbd > 16)
+		{
+			work_tbd = 16;
+		}
+
+		if (mp->work_tx_end & queue_mask)
+		{
 			txq_kick(mp->txq + queue);
-		} else if (mp->work_tx & queue_mask) {
+		}
+		else if (mp->work_tx & queue_mask)
+		{
 			work_done += txq_reclaim(mp->txq + queue, work_tbd, 0);
 			txq_maybe_wake(mp->txq + queue);
-		} else if (mp->work_rx & queue_mask) {
+		}
+		else if (mp->work_rx & queue_mask)
+		{
 			work_done += rxq_process(mp->rxq + queue, work_tbd);
-		} else if (!mp->oom && (mp->work_rx_refill & queue_mask)) {
+		}
+		else if (!mp->oom && (mp->work_rx_refill & queue_mask))
+		{
 			work_done += rxq_refill(mp->rxq + queue, work_tbd);
-		} else {
+		}
+		else
+		{
 			BUG();
 		}
 	}
 
-	if (work_done < budget) {
+	if (work_done < budget)
+	{
 		if (mp->oom)
+		{
 			mod_timer(&mp->rx_oom, jiffies + (HZ / 10));
+		}
+
 		napi_complete(napi);
 		wrlp(mp, INT_MASK, mp->int_mask);
 	}
@@ -2334,7 +2729,8 @@ static void port_start(struct mv643xx_eth_private *mp)
 	/*
 	 * Perform PHY reset, if there is a PHY.
 	 */
-	if (mp->phy != NULL) {
+	if (mp->phy != NULL)
+	{
 		struct ethtool_cmd cmd;
 
 		mv643xx_eth_get_settings(mp->dev, &cmd);
@@ -2352,15 +2748,21 @@ static void port_start(struct mv643xx_eth_private *mp)
 	wrlp(mp, PORT_SERIAL_CONTROL, pscr);
 
 	pscr |= DO_NOT_FORCE_LINK_FAIL;
+
 	if (mp->phy == NULL)
+	{
 		pscr |= FORCE_LINK_PASS;
+	}
+
 	wrlp(mp, PORT_SERIAL_CONTROL, pscr);
 
 	/*
 	 * Configure TX path and queues.
 	 */
 	tx_set_rate(mp, 1000000000, 16777216);
-	for (i = 0; i < mp->txq_count; i++) {
+
+	for (i = 0; i < mp->txq_count; i++)
+	{
 		struct tx_queue *txq = mp->txq + i;
 
 		txq_reset_hw_ptr(txq);
@@ -2388,7 +2790,8 @@ static void port_start(struct mv643xx_eth_private *mp)
 	/*
 	 * Enable the receive queues.
 	 */
-	for (i = 0; i < mp->rxq_count; i++) {
+	for (i = 0; i < mp->rxq_count; i++)
+	{
 		struct rx_queue *rxq = mp->rxq + i;
 		u32 addr;
 
@@ -2439,8 +2842,10 @@ static int mv643xx_eth_open(struct net_device *dev)
 	rdlp(mp, INT_CAUSE_EXT);
 
 	err = request_irq(dev->irq, mv643xx_eth_irq,
-			  IRQF_SHARED, dev->name, dev);
-	if (err) {
+					  IRQF_SHARED, dev->name, dev);
+
+	if (err)
+	{
 		netdev_err(dev, "can't assign irq\n");
 		return -EAGAIN;
 	}
@@ -2451,11 +2856,17 @@ static int mv643xx_eth_open(struct net_device *dev)
 
 	mp->int_mask = INT_EXT;
 
-	for (i = 0; i < mp->rxq_count; i++) {
+	for (i = 0; i < mp->rxq_count; i++)
+	{
 		err = rxq_init(mp, i);
-		if (err) {
+
+		if (err)
+		{
 			while (--i >= 0)
+			{
 				rxq_deinit(mp->rxq + i);
+			}
+
 			goto out;
 		}
 
@@ -2463,18 +2874,26 @@ static int mv643xx_eth_open(struct net_device *dev)
 		mp->int_mask |= INT_RX_0 << i;
 	}
 
-	if (mp->oom) {
+	if (mp->oom)
+	{
 		mp->rx_oom.expires = jiffies + (HZ / 10);
 		add_timer(&mp->rx_oom);
 	}
 
-	for (i = 0; i < mp->txq_count; i++) {
+	for (i = 0; i < mp->txq_count; i++)
+	{
 		err = txq_init(mp, i);
-		if (err) {
+
+		if (err)
+		{
 			while (--i >= 0)
+			{
 				txq_deinit(mp->txq + i);
+			}
+
 			goto out_free;
 		}
+
 		mp->int_mask |= INT_TX_END_0 << i;
 	}
 
@@ -2488,8 +2907,12 @@ static int mv643xx_eth_open(struct net_device *dev)
 
 
 out_free:
+
 	for (i = 0; i < mp->rxq_count; i++)
+	{
 		rxq_deinit(mp->rxq + i);
+	}
+
 out:
 	free_irq(dev->irq, dev);
 
@@ -2502,23 +2925,32 @@ static void port_reset(struct mv643xx_eth_private *mp)
 	int i;
 
 	for (i = 0; i < mp->rxq_count; i++)
+	{
 		rxq_disable(mp->rxq + i);
-	for (i = 0; i < mp->txq_count; i++)
-		txq_disable(mp->txq + i);
+	}
 
-	while (1) {
+	for (i = 0; i < mp->txq_count; i++)
+	{
+		txq_disable(mp->txq + i);
+	}
+
+	while (1)
+	{
 		u32 ps = rdlp(mp, PORT_STATUS);
 
 		if ((ps & (TX_IN_PROGRESS | TX_FIFO_EMPTY)) == TX_FIFO_EMPTY)
+		{
 			break;
+		}
+
 		udelay(10);
 	}
 
 	/* Reset the Enable bit in the Configuration Register */
 	data = rdlp(mp, PORT_SERIAL_CONTROL);
 	data &= ~(SERIAL_PORT_ENABLE		|
-		  DO_NOT_FORCE_LINK_FAIL	|
-		  FORCE_LINK_PASS);
+			  DO_NOT_FORCE_LINK_FAIL	|
+			  FORCE_LINK_PASS);
 	wrlp(mp, PORT_SERIAL_CONTROL, data);
 }
 
@@ -2536,8 +2968,12 @@ static int mv643xx_eth_stop(struct net_device *dev)
 	del_timer_sync(&mp->rx_oom);
 
 	netif_carrier_off(dev);
+
 	if (mp->phy)
+	{
 		phy_stop(mp->phy);
+	}
+
 	free_irq(dev->irq, dev);
 
 	port_reset(mp);
@@ -2546,9 +2982,14 @@ static int mv643xx_eth_stop(struct net_device *dev)
 	del_timer_sync(&mp->mib_counters_timer);
 
 	for (i = 0; i < mp->rxq_count; i++)
+	{
 		rxq_deinit(mp->rxq + i);
+	}
+
 	for (i = 0; i < mp->txq_count; i++)
+	{
 		txq_deinit(mp->txq + i);
+	}
 
 	return 0;
 }
@@ -2559,11 +3000,17 @@ static int mv643xx_eth_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 	int ret;
 
 	if (mp->phy == NULL)
+	{
 		return -ENOTSUPP;
+	}
 
 	ret = phy_mii_ioctl(mp->phy, ifr, cmd);
+
 	if (!ret)
+	{
 		mv643xx_eth_adjust_link(dev);
+	}
+
 	return ret;
 }
 
@@ -2572,14 +3019,18 @@ static int mv643xx_eth_change_mtu(struct net_device *dev, int new_mtu)
 	struct mv643xx_eth_private *mp = netdev_priv(dev);
 
 	if (new_mtu < 64 || new_mtu > 9500)
+	{
 		return -EINVAL;
+	}
 
 	dev->mtu = new_mtu;
 	mv643xx_eth_recalc_skb_size(mp);
 	tx_set_rate(mp, 1000000000, 16777216);
 
 	if (!netif_running(dev))
+	{
 		return 0;
+	}
 
 	/*
 	 * Stop and then re-open the interface. This will allocate RX
@@ -2588,9 +3039,11 @@ static int mv643xx_eth_change_mtu(struct net_device *dev, int new_mtu)
 	 * due to memory being full.
 	 */
 	mv643xx_eth_stop(dev);
-	if (mv643xx_eth_open(dev)) {
+
+	if (mv643xx_eth_open(dev))
+	{
 		netdev_err(dev,
-			   "fatal error on re-opening device after MTU change\n");
+				   "fatal error on re-opening device after MTU change\n");
 	}
 
 	return 0;
@@ -2601,7 +3054,9 @@ static void tx_timeout_task(struct work_struct *ugly)
 	struct mv643xx_eth_private *mp;
 
 	mp = container_of(ugly, struct mv643xx_eth_private, tx_timeout_task);
-	if (netif_running(mp->dev)) {
+
+	if (netif_running(mp->dev))
+	{
 		netif_tx_stop_all_queues(mp->dev);
 		port_reset(mp);
 		port_start(mp);
@@ -2636,29 +3091,34 @@ static void mv643xx_eth_netpoll(struct net_device *dev)
 /* platform glue ************************************************************/
 static void
 mv643xx_eth_conf_mbus_windows(struct mv643xx_eth_shared_private *msp,
-			      const struct mbus_dram_target_info *dram)
+							  const struct mbus_dram_target_info *dram)
 {
 	void __iomem *base = msp->base;
 	u32 win_enable;
 	u32 win_protect;
 	int i;
 
-	for (i = 0; i < 6; i++) {
+	for (i = 0; i < 6; i++)
+	{
 		writel(0, base + WINDOW_BASE(i));
 		writel(0, base + WINDOW_SIZE(i));
+
 		if (i < 4)
+		{
 			writel(0, base + WINDOW_REMAP_HIGH(i));
+		}
 	}
 
 	win_enable = 0x3f;
 	win_protect = 0;
 
-	for (i = 0; i < dram->num_cs; i++) {
+	for (i = 0; i < dram->num_cs; i++)
+	{
 		const struct mbus_dram_window *cs = dram->cs + i;
 
 		writel((cs->base & 0xffff0000) |
-			(cs->mbus_attr << 8) |
-			dram->mbus_dram_target_id, base + WINDOW_BASE(i));
+			   (cs->mbus_attr << 8) |
+			   dram->mbus_dram_target_id, base + WINDOW_BASE(i));
 		writel((cs->size - 1) & 0xffff0000, base + WINDOW_SIZE(i));
 
 		win_enable &= ~(1 << i);
@@ -2677,10 +3137,15 @@ static void infer_hw_params(struct mv643xx_eth_shared_private *msp)
 	 * SDMA config register.
 	 */
 	writel(0x02000000, msp->base + 0x0400 + SDMA_CONFIG);
+
 	if (readl(msp->base + 0x0400 + SDMA_CONFIG) & 0x02000000)
+	{
 		msp->extended_rx_coal_limit = 1;
+	}
 	else
+	{
 		msp->extended_rx_coal_limit = 0;
+	}
 
 	/*
 	 * Check whether the MAC supports TX rate control, and if
@@ -2688,19 +3153,29 @@ static void infer_hw_params(struct mv643xx_eth_shared_private *msp)
 	 * the new place.
 	 */
 	writel(1, msp->base + 0x0400 + TX_BW_MTU_MOVED);
-	if (readl(msp->base + 0x0400 + TX_BW_MTU_MOVED) & 1) {
+
+	if (readl(msp->base + 0x0400 + TX_BW_MTU_MOVED) & 1)
+	{
 		msp->tx_bw_control = TX_BW_CONTROL_NEW_LAYOUT;
-	} else {
+	}
+	else
+	{
 		writel(7, msp->base + 0x0400 + TX_BW_RATE);
+
 		if (readl(msp->base + 0x0400 + TX_BW_RATE) & 7)
+		{
 			msp->tx_bw_control = TX_BW_CONTROL_OLD_LAYOUT;
+		}
 		else
+		{
 			msp->tx_bw_control = TX_BW_CONTROL_ABSENT;
+		}
 	}
 }
 
 #if defined(CONFIG_OF)
-static const struct of_device_id mv643xx_eth_shared_ids[] = {
+static const struct of_device_id mv643xx_eth_shared_ids[] =
+{
 	{ .compatible = "marvell,orion-eth", },
 	{ .compatible = "marvell,kirkwood-eth", },
 	{ }
@@ -2719,7 +3194,7 @@ MODULE_DEVICE_TABLE(of, mv643xx_eth_shared_ids);
 static struct platform_device *port_platdev[3];
 
 static int mv643xx_eth_shared_of_add_port(struct platform_device *pdev,
-					  struct device_node *pnp)
+		struct device_node *pnp)
 {
 	struct platform_device *ppdev;
 	struct mv643xx_eth_platform_data ppd;
@@ -2732,32 +3207,42 @@ static int mv643xx_eth_shared_of_add_port(struct platform_device *pdev,
 	ppd.shared = pdev;
 
 	memset(&res, 0, sizeof(res));
-	if (!of_irq_to_resource(pnp, 0, &res)) {
+
+	if (!of_irq_to_resource(pnp, 0, &res))
+	{
 		dev_err(&pdev->dev, "missing interrupt on %s\n", pnp->name);
 		return -EINVAL;
 	}
 
-	if (of_property_read_u32(pnp, "reg", &ppd.port_number)) {
+	if (of_property_read_u32(pnp, "reg", &ppd.port_number))
+	{
 		dev_err(&pdev->dev, "missing reg property on %s\n", pnp->name);
 		return -EINVAL;
 	}
 
-	if (ppd.port_number >= 3) {
+	if (ppd.port_number >= 3)
+	{
 		dev_err(&pdev->dev, "invalid reg property on %s\n", pnp->name);
 		return -EINVAL;
 	}
 
 	while (dev_num < 3 && port_platdev[dev_num])
+	{
 		dev_num++;
+	}
 
-	if (dev_num == 3) {
+	if (dev_num == 3)
+	{
 		dev_err(&pdev->dev, "too many ports registered\n");
 		return -EINVAL;
 	}
 
 	mac_addr = of_get_mac_address(pnp);
+
 	if (mac_addr)
+	{
 		memcpy(ppd.mac_addr, mac_addr, ETH_ALEN);
+	}
 
 	mv643xx_eth_property(pnp, "tx-queue-size", ppd.tx_queue_size);
 	mv643xx_eth_property(pnp, "tx-sram-addr", ppd.tx_sram_addr);
@@ -2767,29 +3252,44 @@ static int mv643xx_eth_shared_of_add_port(struct platform_device *pdev,
 	mv643xx_eth_property(pnp, "rx-sram-size", ppd.rx_sram_size);
 
 	ppd.phy_node = of_parse_phandle(pnp, "phy-handle", 0);
-	if (!ppd.phy_node) {
+
+	if (!ppd.phy_node)
+	{
 		ppd.phy_addr = MV643XX_ETH_PHY_NONE;
 		of_property_read_u32(pnp, "speed", &ppd.speed);
 		of_property_read_u32(pnp, "duplex", &ppd.duplex);
 	}
 
 	ppdev = platform_device_alloc(MV643XX_ETH_NAME, dev_num);
+
 	if (!ppdev)
+	{
 		return -ENOMEM;
+	}
+
 	ppdev->dev.coherent_dma_mask = DMA_BIT_MASK(32);
 	ppdev->dev.of_node = pnp;
 
 	ret = platform_device_add_resources(ppdev, &res, 1);
+
 	if (ret)
+	{
 		goto port_err;
+	}
 
 	ret = platform_device_add_data(ppdev, &ppd, sizeof(ppd));
+
 	if (ret)
+	{
 		goto port_err;
+	}
 
 	ret = platform_device_add(ppdev);
+
 	if (ret)
+	{
 		goto port_err;
+	}
 
 	port_platdev[dev_num] = ppdev;
 
@@ -2808,18 +3308,27 @@ static int mv643xx_eth_shared_of_probe(struct platform_device *pdev)
 
 	/* bail out if not registered from DT */
 	if (!np)
+	{
 		return 0;
+	}
 
 	pd = devm_kzalloc(&pdev->dev, sizeof(*pd), GFP_KERNEL);
+
 	if (!pd)
+	{
 		return -ENOMEM;
+	}
+
 	pdev->dev.platform_data = pd;
 
 	mv643xx_eth_property(np, "tx-checksum-limit", pd->tx_csum_limit);
 
-	for_each_available_child_of_node(np, pnp) {
+	for_each_available_child_of_node(np, pnp)
+	{
 		ret = mv643xx_eth_shared_of_add_port(pdev, pnp);
-		if (ret) {
+
+		if (ret)
+		{
 			of_node_put(pnp);
 			return ret;
 		}
@@ -2831,7 +3340,8 @@ static void mv643xx_eth_shared_of_remove(void)
 {
 	int n;
 
-	for (n = 0; n < 3; n++) {
+	for (n = 0; n < 3; n++)
+	{
 		platform_device_del(port_platdev[n]);
 		port_platdev[n] = NULL;
 	}
@@ -2858,39 +3368,59 @@ static int mv643xx_eth_shared_probe(struct platform_device *pdev)
 
 	if (!mv643xx_eth_version_printed++)
 		pr_notice("MV-643xx 10/100/1000 ethernet driver version %s\n",
-			  mv643xx_eth_driver_version);
+				  mv643xx_eth_driver_version);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (res == NULL)
+	{
 		return -EINVAL;
+	}
 
 	msp = devm_kzalloc(&pdev->dev, sizeof(*msp), GFP_KERNEL);
+
 	if (msp == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	platform_set_drvdata(pdev, msp);
 
 	msp->base = devm_ioremap(&pdev->dev, res->start, resource_size(res));
+
 	if (msp->base == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	msp->clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (!IS_ERR(msp->clk))
+	{
 		clk_prepare_enable(msp->clk);
+	}
 
 	/*
 	 * (Re-)program MBUS remapping windows if we are asked to.
 	 */
 	dram = mv_mbus_dram_info();
+
 	if (dram)
+	{
 		mv643xx_eth_conf_mbus_windows(msp, dram);
+	}
 
 	ret = mv643xx_eth_shared_of_probe(pdev);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	pd = dev_get_platdata(&pdev->dev);
 
 	msp->tx_csum_limit = (pd != NULL && pd->tx_csum_limit) ?
-					pd->tx_csum_limit : 9 * 1024;
+						 pd->tx_csum_limit : 9 * 1024;
 	infer_hw_params(msp);
 
 	return 0;
@@ -2901,12 +3431,17 @@ static int mv643xx_eth_shared_remove(struct platform_device *pdev)
 	struct mv643xx_eth_shared_private *msp = platform_get_drvdata(pdev);
 
 	mv643xx_eth_shared_of_remove();
+
 	if (!IS_ERR(msp->clk))
+	{
 		clk_disable_unprepare(msp->clk);
+	}
+
 	return 0;
 }
 
-static struct platform_driver mv643xx_eth_shared_driver = {
+static struct platform_driver mv643xx_eth_shared_driver =
+{
 	.probe		= mv643xx_eth_shared_probe,
 	.remove		= mv643xx_eth_shared_remove,
 	.driver = {
@@ -2936,33 +3471,45 @@ static int phy_addr_get(struct mv643xx_eth_private *mp)
 }
 
 static void set_params(struct mv643xx_eth_private *mp,
-		       struct mv643xx_eth_platform_data *pd)
+					   struct mv643xx_eth_platform_data *pd)
 {
 	struct net_device *dev = mp->dev;
 	unsigned int tx_ring_size;
 
 	if (is_valid_ether_addr(pd->mac_addr))
+	{
 		memcpy(dev->dev_addr, pd->mac_addr, ETH_ALEN);
+	}
 	else
+	{
 		uc_addr_get(mp, dev->dev_addr);
+	}
 
 	mp->rx_ring_size = DEFAULT_RX_QUEUE_SIZE;
+
 	if (pd->rx_queue_size)
+	{
 		mp->rx_ring_size = pd->rx_queue_size;
+	}
+
 	mp->rx_desc_sram_addr = pd->rx_sram_addr;
 	mp->rx_desc_sram_size = pd->rx_sram_size;
 
 	mp->rxq_count = pd->rx_queue_count ? : 1;
 
 	tx_ring_size = DEFAULT_TX_QUEUE_SIZE;
+
 	if (pd->tx_queue_size)
+	{
 		tx_ring_size = pd->tx_queue_size;
+	}
 
 	mp->tx_ring_size = clamp_t(unsigned int, tx_ring_size,
-				   MV643XX_MAX_SKB_DESCS * 2, 4096);
+							   MV643XX_MAX_SKB_DESCS * 2, 4096);
+
 	if (mp->tx_ring_size != tx_ring_size)
 		netdev_warn(dev, "TX queue size set to %u (requested %u)\n",
-			    mp->tx_ring_size, tx_ring_size);
+					mp->tx_ring_size, tx_ring_size);
 
 	mp->tx_desc_sram_addr = pd->tx_sram_addr;
 	mp->tx_desc_sram_size = pd->tx_sram_size;
@@ -2976,18 +3523,23 @@ static int get_phy_mode(struct mv643xx_eth_private *mp)
 	int iface = -1;
 
 	if (dev->of_node)
+	{
 		iface = of_get_phy_mode(dev->of_node);
+	}
 
 	/* Historical default if unspecified. We could also read/write
 	 * the interface state in the PSC1
 	 */
 	if (iface < 0)
+	{
 		iface = PHY_INTERFACE_MODE_GMII;
+	}
+
 	return iface;
 }
 
 static struct phy_device *phy_scan(struct mv643xx_eth_private *mp,
-				   int phy_addr)
+								   int phy_addr)
 {
 	struct phy_device *phydev;
 	int start;
@@ -2995,25 +3547,32 @@ static struct phy_device *phy_scan(struct mv643xx_eth_private *mp,
 	int i;
 	char phy_id[MII_BUS_ID_SIZE + 3];
 
-	if (phy_addr == MV643XX_ETH_PHY_ADDR_DEFAULT) {
+	if (phy_addr == MV643XX_ETH_PHY_ADDR_DEFAULT)
+	{
 		start = phy_addr_get(mp) & 0x1f;
 		num = 32;
-	} else {
+	}
+	else
+	{
 		start = phy_addr & 0x1f;
 		num = 1;
 	}
 
 	/* Attempt to connect to the PHY using orion-mdio */
 	phydev = ERR_PTR(-ENODEV);
-	for (i = 0; i < num; i++) {
+
+	for (i = 0; i < num; i++)
+	{
 		int addr = (start + i) & 0x1f;
 
 		snprintf(phy_id, sizeof(phy_id), PHY_ID_FMT,
-				"orion-mdio-mii", addr);
+				 "orion-mdio-mii", addr);
 
 		phydev = phy_connect(mp->dev, phy_id, mv643xx_eth_adjust_link,
-				     get_phy_mode(mp));
-		if (!IS_ERR(phydev)) {
+							 get_phy_mode(mp));
+
+		if (!IS_ERR(phydev))
+		{
 			phy_addr_set(mp, addr);
 			break;
 		}
@@ -3026,17 +3585,21 @@ static void phy_init(struct mv643xx_eth_private *mp, int speed, int duplex)
 {
 	struct phy_device *phy = mp->phy;
 
-	if (speed == 0) {
+	if (speed == 0)
+	{
 		phy->autoneg = AUTONEG_ENABLE;
 		phy->speed = 0;
 		phy->duplex = 0;
 		phy->advertising = phy->supported | ADVERTISED_Autoneg;
-	} else {
+	}
+	else
+	{
 		phy->autoneg = AUTONEG_DISABLE;
 		phy->advertising = 0;
 		phy->speed = speed;
 		phy->duplex = duplex;
 	}
+
 	phy_start_aneg(phy);
 }
 
@@ -3045,30 +3608,43 @@ static void init_pscr(struct mv643xx_eth_private *mp, int speed, int duplex)
 	u32 pscr;
 
 	pscr = rdlp(mp, PORT_SERIAL_CONTROL);
-	if (pscr & SERIAL_PORT_ENABLE) {
+
+	if (pscr & SERIAL_PORT_ENABLE)
+	{
 		pscr &= ~SERIAL_PORT_ENABLE;
 		wrlp(mp, PORT_SERIAL_CONTROL, pscr);
 	}
 
 	pscr = MAX_RX_PACKET_9700BYTE | SERIAL_PORT_CONTROL_RESERVED;
-	if (mp->phy == NULL) {
+
+	if (mp->phy == NULL)
+	{
 		pscr |= DISABLE_AUTO_NEG_SPEED_GMII;
+
 		if (speed == SPEED_1000)
+		{
 			pscr |= SET_GMII_SPEED_TO_1000;
+		}
 		else if (speed == SPEED_100)
+		{
 			pscr |= SET_MII_SPEED_TO_100;
+		}
 
 		pscr |= DISABLE_AUTO_NEG_FOR_FLOW_CTRL;
 
 		pscr |= DISABLE_AUTO_NEG_FOR_DUPLEX;
+
 		if (duplex == DUPLEX_FULL)
+		{
 			pscr |= SET_FULL_DUPLEX_MODE;
+		}
 	}
 
 	wrlp(mp, PORT_SERIAL_CONTROL, pscr);
 }
 
-static const struct net_device_ops mv643xx_eth_netdev_ops = {
+static const struct net_device_ops mv643xx_eth_netdev_ops =
+{
 	.ndo_open		= mv643xx_eth_open,
 	.ndo_stop		= mv643xx_eth_stop,
 	.ndo_start_xmit		= mv643xx_eth_xmit,
@@ -3094,19 +3670,25 @@ static int mv643xx_eth_probe(struct platform_device *pdev)
 	int err;
 
 	pd = dev_get_platdata(&pdev->dev);
-	if (pd == NULL) {
+
+	if (pd == NULL)
+	{
 		dev_err(&pdev->dev, "no mv643xx_eth_platform_data\n");
 		return -ENODEV;
 	}
 
-	if (pd->shared == NULL) {
+	if (pd->shared == NULL)
+	{
 		dev_err(&pdev->dev, "no mv643xx_eth_platform_data->shared\n");
 		return -ENODEV;
 	}
 
 	dev = alloc_etherdev_mq(sizeof(struct mv643xx_eth_private), 8);
+
 	if (!dev)
+	{
 		return -ENOMEM;
+	}
 
 	SET_NETDEV_DEV(dev, &pdev->dev);
 	mp = netdev_priv(dev);
@@ -3123,9 +3705,9 @@ static int mv643xx_eth_probe(struct platform_device *pdev)
 	 * all other SoCs/System Controllers using this driver.
 	 */
 	if (of_device_is_compatible(pdev->dev.of_node,
-				    "marvell,kirkwood-eth-port"))
+								"marvell,kirkwood-eth-port"))
 		wrlp(mp, PORT_SERIAL_CONTROL1,
-		     rdlp(mp, PORT_SERIAL_CONTROL1) & ~CLK125_BYPASS_EN);
+			 rdlp(mp, PORT_SERIAL_CONTROL1) & ~CLK125_BYPASS_EN);
 
 	/*
 	 * Start with a default rate, and if there is a clock, allow
@@ -3133,10 +3715,14 @@ static int mv643xx_eth_probe(struct platform_device *pdev)
 	 */
 	mp->t_clk = 133000000;
 	mp->clk = devm_clk_get(&pdev->dev, NULL);
-	if (!IS_ERR(mp->clk)) {
+
+	if (!IS_ERR(mp->clk))
+	{
 		clk_prepare_enable(mp->clk);
 		mp->t_clk = clk_get_rate(mp->clk);
-	} else if (!IS_ERR(mp->shared->clk)) {
+	}
+	else if (!IS_ERR(mp->shared->clk))
+	{
 		mp->t_clk = clk_get_rate(mp->shared->clk);
 	}
 
@@ -3145,28 +3731,46 @@ static int mv643xx_eth_probe(struct platform_device *pdev)
 	netif_set_real_num_rx_queues(dev, mp->rxq_count);
 
 	err = 0;
-	if (pd->phy_node) {
+
+	if (pd->phy_node)
+	{
 		mp->phy = of_phy_connect(mp->dev, pd->phy_node,
-					 mv643xx_eth_adjust_link, 0,
-					 get_phy_mode(mp));
+								 mv643xx_eth_adjust_link, 0,
+								 get_phy_mode(mp));
+
 		if (!mp->phy)
+		{
 			err = -ENODEV;
+		}
 		else
+		{
 			phy_addr_set(mp, mp->phy->mdio.addr);
-	} else if (pd->phy_addr != MV643XX_ETH_PHY_NONE) {
+		}
+	}
+	else if (pd->phy_addr != MV643XX_ETH_PHY_NONE)
+	{
 		mp->phy = phy_scan(mp, pd->phy_addr);
 
 		if (IS_ERR(mp->phy))
+		{
 			err = PTR_ERR(mp->phy);
+		}
 		else
+		{
 			phy_init(mp, pd->speed, pd->duplex);
+		}
 	}
-	if (err == -ENODEV) {
+
+	if (err == -ENODEV)
+	{
 		err = -EPROBE_DEFER;
 		goto out;
 	}
+
 	if (err)
+	{
 		goto out;
+	}
 
 	dev->ethtool_ops = &mv643xx_eth_ethtool_ops;
 
@@ -3176,7 +3780,7 @@ static int mv643xx_eth_probe(struct platform_device *pdev)
 	mib_counters_clear(mp);
 
 	setup_timer(&mp->mib_counters_timer, mib_counters_timer_wrapper,
-		    (unsigned long)mp);
+				(unsigned long)mp);
 	mp->mib_counters_timer.expires = jiffies + 30 * HZ;
 
 	spin_lock_init(&mp->mib_counters_lock);
@@ -3207,7 +3811,9 @@ static int mv643xx_eth_probe(struct platform_device *pdev)
 	dev->gso_max_segs = MV643XX_MAX_TSO_SEGS;
 
 	if (mp->shared->win_protect)
+	{
 		wrl(mp, WINDOW_PROTECT(mp->port_num), mp->shared->win_protect);
+	}
 
 	netif_carrier_off(dev);
 
@@ -3217,20 +3823,29 @@ static int mv643xx_eth_probe(struct platform_device *pdev)
 	set_tx_coal(mp, 0);
 
 	err = register_netdev(dev);
+
 	if (err)
+	{
 		goto out;
+	}
 
 	netdev_notice(dev, "port %d with MAC address %pM\n",
-		      mp->port_num, dev->dev_addr);
+				  mp->port_num, dev->dev_addr);
 
 	if (mp->tx_desc_sram_size > 0)
+	{
 		netdev_notice(dev, "configured with sram\n");
+	}
 
 	return 0;
 
 out:
+
 	if (!IS_ERR(mp->clk))
+	{
 		clk_disable_unprepare(mp->clk);
+	}
+
 	free_netdev(dev);
 
 	return err;
@@ -3241,12 +3856,18 @@ static int mv643xx_eth_remove(struct platform_device *pdev)
 	struct mv643xx_eth_private *mp = platform_get_drvdata(pdev);
 
 	unregister_netdev(mp->dev);
+
 	if (mp->phy != NULL)
+	{
 		phy_disconnect(mp->phy);
+	}
+
 	cancel_work_sync(&mp->tx_timeout_task);
 
 	if (!IS_ERR(mp->clk))
+	{
 		clk_disable_unprepare(mp->clk);
+	}
 
 	free_netdev(mp->dev);
 
@@ -3262,10 +3883,13 @@ static void mv643xx_eth_shutdown(struct platform_device *pdev)
 	rdlp(mp, INT_MASK);
 
 	if (netif_running(mp->dev))
+	{
 		port_reset(mp);
+	}
 }
 
-static struct platform_driver mv643xx_eth_driver = {
+static struct platform_driver mv643xx_eth_driver =
+{
 	.probe		= mv643xx_eth_probe,
 	.remove		= mv643xx_eth_remove,
 	.shutdown	= mv643xx_eth_shutdown,
@@ -3274,7 +3898,8 @@ static struct platform_driver mv643xx_eth_driver = {
 	},
 };
 
-static struct platform_driver * const drivers[] = {
+static struct platform_driver *const drivers[] =
+{
 	&mv643xx_eth_shared_driver,
 	&mv643xx_eth_driver,
 };
@@ -3292,7 +3917,7 @@ static void __exit mv643xx_eth_cleanup_module(void)
 module_exit(mv643xx_eth_cleanup_module);
 
 MODULE_AUTHOR("Rabeeh Khoury, Assaf Hoffman, Matthew Dharm, "
-	      "Manish Lachwani, Dale Farnsworth and Lennert Buytenhek");
+			  "Manish Lachwani, Dale Farnsworth and Lennert Buytenhek");
 MODULE_DESCRIPTION("Ethernet driver for Marvell MV643XX");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("platform:" MV643XX_ETH_SHARED_NAME);

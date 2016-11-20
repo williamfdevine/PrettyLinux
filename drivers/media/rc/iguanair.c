@@ -30,7 +30,8 @@
 #define DRIVER_NAME "iguanair"
 #define BUF_SIZE 152
 
-struct iguanair {
+struct iguanair
+{
 	struct rc_dev *rc;
 
 	struct device *dev;
@@ -77,13 +78,15 @@ struct iguanair {
 #define TIMEOUT			1000
 #define RX_RESOLUTION		21333
 
-struct packet {
+struct packet
+{
 	uint16_t start;
 	uint8_t direction;
 	uint8_t cmd;
 };
 
-struct send_packet {
+struct send_packet
+{
 	struct packet header;
 	uint8_t length;
 	uint8_t channels;
@@ -94,66 +97,90 @@ struct send_packet {
 
 static void process_ir_data(struct iguanair *ir, unsigned len)
 {
-	if (len >= 4 && ir->buf_in[0] == 0 && ir->buf_in[1] == 0) {
-		switch (ir->buf_in[3]) {
-		case CMD_GET_VERSION:
-			if (len == 6) {
-				ir->version = (ir->buf_in[5] << 8) |
-							ir->buf_in[4];
+	if (len >= 4 && ir->buf_in[0] == 0 && ir->buf_in[1] == 0)
+	{
+		switch (ir->buf_in[3])
+		{
+			case CMD_GET_VERSION:
+				if (len == 6)
+				{
+					ir->version = (ir->buf_in[5] << 8) |
+								  ir->buf_in[4];
+					complete(&ir->completion);
+				}
+
+				break;
+
+			case CMD_GET_BUFSIZE:
+				if (len >= 5)
+				{
+					ir->bufsize = ir->buf_in[4];
+					complete(&ir->completion);
+				}
+
+				break;
+
+			case CMD_GET_FEATURES:
+				if (len > 5)
+				{
+					ir->cycle_overhead = ir->buf_in[5];
+					complete(&ir->completion);
+				}
+
+				break;
+
+			case CMD_TX_OVERFLOW:
+				ir->tx_overflow = true;
+
+			case CMD_RECEIVER_OFF:
+			case CMD_RECEIVER_ON:
+			case CMD_SEND:
 				complete(&ir->completion);
-			}
-			break;
-		case CMD_GET_BUFSIZE:
-			if (len >= 5) {
-				ir->bufsize = ir->buf_in[4];
-				complete(&ir->completion);
-			}
-			break;
-		case CMD_GET_FEATURES:
-			if (len > 5) {
-				ir->cycle_overhead = ir->buf_in[5];
-				complete(&ir->completion);
-			}
-			break;
-		case CMD_TX_OVERFLOW:
-			ir->tx_overflow = true;
-		case CMD_RECEIVER_OFF:
-		case CMD_RECEIVER_ON:
-		case CMD_SEND:
-			complete(&ir->completion);
-			break;
-		case CMD_RX_OVERFLOW:
-			dev_warn(ir->dev, "receive overflow\n");
-			ir_raw_event_reset(ir->rc);
-			break;
-		default:
-			dev_warn(ir->dev, "control code %02x received\n",
-							ir->buf_in[3]);
-			break;
+				break;
+
+			case CMD_RX_OVERFLOW:
+				dev_warn(ir->dev, "receive overflow\n");
+				ir_raw_event_reset(ir->rc);
+				break;
+
+			default:
+				dev_warn(ir->dev, "control code %02x received\n",
+						 ir->buf_in[3]);
+				break;
 		}
-	} else if (len >= 7) {
+	}
+	else if (len >= 7)
+	{
 		DEFINE_IR_RAW_EVENT(rawir);
 		unsigned i;
 		bool event = false;
 
 		init_ir_raw_event(&rawir);
 
-		for (i = 0; i < 7; i++) {
-			if (ir->buf_in[i] == 0x80) {
+		for (i = 0; i < 7; i++)
+		{
+			if (ir->buf_in[i] == 0x80)
+			{
 				rawir.pulse = false;
 				rawir.duration = US_TO_NS(21845);
-			} else {
+			}
+			else
+			{
 				rawir.pulse = (ir->buf_in[i] & 0x80) == 0;
 				rawir.duration = ((ir->buf_in[i] & 0x7f) + 1) *
 								 RX_RESOLUTION;
 			}
 
 			if (ir_raw_event_store_with_filter(ir->rc, &rawir))
+			{
 				event = true;
+			}
 		}
 
 		if (event)
+		{
 			ir_raw_event_handle(ir->rc);
+		}
 	}
 }
 
@@ -163,32 +190,42 @@ static void iguanair_rx(struct urb *urb)
 	int rc;
 
 	if (!urb)
+	{
 		return;
+	}
 
 	ir = urb->context;
-	if (!ir) {
+
+	if (!ir)
+	{
 		usb_unlink_urb(urb);
 		return;
 	}
 
-	switch (urb->status) {
-	case 0:
-		process_ir_data(ir, urb->actual_length);
-		break;
-	case -ECONNRESET:
-	case -ENOENT:
-	case -ESHUTDOWN:
-		usb_unlink_urb(urb);
-		return;
-	case -EPIPE:
-	default:
-		dev_dbg(ir->dev, "Error: urb status = %d\n", urb->status);
-		break;
+	switch (urb->status)
+	{
+		case 0:
+			process_ir_data(ir, urb->actual_length);
+			break;
+
+		case -ECONNRESET:
+		case -ENOENT:
+		case -ESHUTDOWN:
+			usb_unlink_urb(urb);
+			return;
+
+		case -EPIPE:
+		default:
+			dev_dbg(ir->dev, "Error: urb status = %d\n", urb->status);
+			break;
 	}
 
 	rc = usb_submit_urb(urb, GFP_ATOMIC);
+
 	if (rc && rc != -ENODEV)
+	{
 		dev_warn(ir->dev, "failed to resubmit urb: %d\n", rc);
+	}
 }
 
 static void iguanair_irq_out(struct urb *urb)
@@ -196,11 +233,15 @@ static void iguanair_irq_out(struct urb *urb)
 	struct iguanair *ir = urb->context;
 
 	if (urb->status)
+	{
 		dev_dbg(ir->dev, "Error: out urb status = %d\n", urb->status);
+	}
 
 	/* if we sent an nop packet, do not expect a response */
 	if (urb->status == 0 && ir->packet->header.cmd == CMD_NOP)
+	{
 		complete(&ir->completion);
+	}
 }
 
 static int iguanair_send(struct iguanair *ir, unsigned size)
@@ -211,11 +252,16 @@ static int iguanair_send(struct iguanair *ir, unsigned size)
 
 	ir->urb_out->transfer_buffer_length = size;
 	rc = usb_submit_urb(ir->urb_out, GFP_KERNEL);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	if (wait_for_completion_timeout(&ir->completion, TIMEOUT) == 0)
+	{
 		return -ETIMEDOUT;
+	}
 
 	return rc;
 }
@@ -236,12 +282,15 @@ static int iguanair_get_features(struct iguanair *ir)
 
 	ir->packet->header.cmd = CMD_GET_VERSION;
 	rc = iguanair_send(ir, sizeof(ir->packet->header));
-	if (rc) {
+
+	if (rc)
+	{
 		dev_info(ir->dev, "failed to get version\n");
 		goto out;
 	}
 
-	if (ir->version < 0x205) {
+	if (ir->version < 0x205)
+	{
 		dev_err(ir->dev, "firmware 0x%04x is too old\n", ir->version);
 		rc = -ENODEV;
 		goto out;
@@ -253,22 +302,29 @@ static int iguanair_get_features(struct iguanair *ir)
 	ir->packet->header.cmd = CMD_GET_BUFSIZE;
 
 	rc = iguanair_send(ir, sizeof(ir->packet->header));
-	if (rc) {
+
+	if (rc)
+	{
 		dev_info(ir->dev, "failed to get buffer size\n");
 		goto out;
 	}
 
-	if (ir->bufsize > BUF_SIZE) {
+	if (ir->bufsize > BUF_SIZE)
+	{
 		dev_info(ir->dev, "buffer size %u larger than expected\n",
-								ir->bufsize);
+				 ir->bufsize);
 		ir->bufsize = BUF_SIZE;
 	}
 
 	ir->packet->header.cmd = CMD_GET_FEATURES;
 
 	rc = iguanair_send(ir, sizeof(ir->packet->header));
+
 	if (rc)
+	{
 		dev_info(ir->dev, "failed to get features\n");
+	}
+
 out:
 	return rc;
 }
@@ -280,7 +336,9 @@ static int iguanair_receiver(struct iguanair *ir, bool enable)
 	ir->packet->header.cmd = enable ? CMD_RECEIVER_ON : CMD_RECEIVER_OFF;
 
 	if (enable)
+	{
 		ir_raw_event_reset(ir->rc);
+	}
 
 	return iguanair_send(ir, sizeof(ir->packet->header));
 }
@@ -296,17 +354,20 @@ static int iguanair_set_tx_carrier(struct rc_dev *dev, uint32_t carrier)
 	struct iguanair *ir = dev->priv;
 
 	if (carrier < 25000 || carrier > 150000)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&ir->lock);
 
-	if (carrier != ir->carrier) {
+	if (carrier != ir->carrier)
+	{
 		uint32_t cycles, fours, sevens;
 
 		ir->carrier = carrier;
 
 		cycles = DIV_ROUND_CLOSEST(24000000, carrier * 2) -
-							ir->cycle_overhead;
+				 ir->cycle_overhead;
 
 		/*
 		 * Calculate minimum number of 7 cycles needed so
@@ -338,7 +399,9 @@ static int iguanair_set_tx_mask(struct rc_dev *dev, uint32_t mask)
 	struct iguanair *ir = dev->priv;
 
 	if (mask > 15)
+	{
 		return 4;
+	}
 
 	mutex_lock(&ir->lock);
 	ir->packet->channels = mask << 4;
@@ -357,18 +420,24 @@ static int iguanair_tx(struct rc_dev *dev, unsigned *txbuf, unsigned count)
 	mutex_lock(&ir->lock);
 
 	/* convert from us to carrier periods */
-	for (i = space = size = 0; i < count; i++) {
+	for (i = space = size = 0; i < count; i++)
+	{
 		periods = DIV_ROUND_CLOSEST(txbuf[i] * ir->carrier, 1000000);
 		bytes = DIV_ROUND_UP(periods, 127);
-		if (size + bytes > ir->bufsize) {
+
+		if (size + bytes > ir->bufsize)
+		{
 			rc = -EINVAL;
 			goto out;
 		}
-		while (periods) {
+
+		while (periods)
+		{
 			unsigned p = min(periods, 127u);
 			ir->packet->payload[size++] = p | space;
 			periods -= p;
 		}
+
 		space ^= 0x80;
 	}
 
@@ -382,7 +451,9 @@ static int iguanair_tx(struct rc_dev *dev, unsigned *txbuf, unsigned count)
 	rc = iguanair_send(ir, sizeof(*ir->packet) + size);
 
 	if (rc == 0 && ir->tx_overflow)
+	{
 		rc = -EOVERFLOW;
+	}
 
 out:
 	mutex_unlock(&ir->lock);
@@ -398,8 +469,11 @@ static int iguanair_open(struct rc_dev *rdev)
 	mutex_lock(&ir->lock);
 
 	rc = iguanair_receiver(ir, true);
+
 	if (rc == 0)
+	{
 		ir->receiver_on = true;
+	}
 
 	mutex_unlock(&ir->lock);
 
@@ -415,14 +489,17 @@ static void iguanair_close(struct rc_dev *rdev)
 
 	rc = iguanair_receiver(ir, false);
 	ir->receiver_on = false;
+
 	if (rc && rc != -ENODEV)
+	{
 		dev_warn(ir->dev, "failed to disable receiver: %d\n", rc);
+	}
 
 	mutex_unlock(&ir->lock);
 }
 
 static int iguanair_probe(struct usb_interface *intf,
-			  const struct usb_device_id *id)
+						  const struct usb_device_id *id)
 {
 	struct usb_device *udev = interface_to_usbdev(intf);
 	struct iguanair *ir;
@@ -432,26 +509,30 @@ static int iguanair_probe(struct usb_interface *intf,
 
 	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
 	rc = rc_allocate_device();
-	if (!ir || !rc) {
+
+	if (!ir || !rc)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
 
 	ir->buf_in = usb_alloc_coherent(udev, MAX_IN_PACKET, GFP_KERNEL,
-								&ir->dma_in);
+									&ir->dma_in);
 	ir->packet = usb_alloc_coherent(udev, MAX_OUT_PACKET, GFP_KERNEL,
-								&ir->dma_out);
+									&ir->dma_out);
 	ir->urb_in = usb_alloc_urb(0, GFP_KERNEL);
 	ir->urb_out = usb_alloc_urb(0, GFP_KERNEL);
 
-	if (!ir->buf_in || !ir->packet || !ir->urb_in || !ir->urb_out) {
+	if (!ir->buf_in || !ir->packet || !ir->urb_in || !ir->urb_out)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
 
 	idesc = intf->altsetting;
 
-	if (idesc->desc.bNumEndpoints < 2) {
+	if (idesc->desc.bNumEndpoints < 2)
+	{
 		ret = -ENODEV;
 		goto out;
 	}
@@ -463,30 +544,35 @@ static int iguanair_probe(struct usb_interface *intf,
 
 	init_completion(&ir->completion);
 	pipeout = usb_sndintpipe(udev,
-				idesc->endpoint[1].desc.bEndpointAddress);
+							 idesc->endpoint[1].desc.bEndpointAddress);
 	usb_fill_int_urb(ir->urb_out, udev, pipeout, ir->packet, MAX_OUT_PACKET,
-						iguanair_irq_out, ir, 1);
+					 iguanair_irq_out, ir, 1);
 	ir->urb_out->transfer_dma = ir->dma_out;
 	ir->urb_out->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
 
 	pipein = usb_rcvintpipe(udev, idesc->endpoint[0].desc.bEndpointAddress);
 	usb_fill_int_urb(ir->urb_in, udev, pipein, ir->buf_in, MAX_IN_PACKET,
-							 iguanair_rx, ir, 1);
+					 iguanair_rx, ir, 1);
 	ir->urb_in->transfer_dma = ir->dma_in;
 	ir->urb_in->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
 
 	ret = usb_submit_urb(ir->urb_in, GFP_KERNEL);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_warn(&intf->dev, "failed to submit urb: %d\n", ret);
 		goto out;
 	}
 
 	ret = iguanair_get_features(ir);
+
 	if (ret)
+	{
 		goto out2;
+	}
 
 	snprintf(ir->name, sizeof(ir->name),
-		"IguanaWorks USB IR Transceiver version 0x%04x", ir->version);
+			 "IguanaWorks USB IR Transceiver version 0x%04x", ir->version);
 
 	usb_make_path(ir->udev, ir->phys, sizeof(ir->phys));
 
@@ -511,7 +597,9 @@ static int iguanair_probe(struct usb_interface *intf,
 	iguanair_set_tx_mask(rc, 0);
 
 	ret = rc_register_device(rc);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&intf->dev, "failed to register rc device %d", ret);
 		goto out2;
 	}
@@ -523,13 +611,16 @@ out2:
 	usb_kill_urb(ir->urb_in);
 	usb_kill_urb(ir->urb_out);
 out:
-	if (ir) {
+
+	if (ir)
+	{
 		usb_free_urb(ir->urb_in);
 		usb_free_urb(ir->urb_out);
 		usb_free_coherent(udev, MAX_IN_PACKET, ir->buf_in, ir->dma_in);
 		usb_free_coherent(udev, MAX_OUT_PACKET, ir->packet,
-								ir->dma_out);
+						  ir->dma_out);
 	}
+
 	rc_free_device(rc);
 	kfree(ir);
 	return ret;
@@ -557,10 +648,14 @@ static int iguanair_suspend(struct usb_interface *intf, pm_message_t message)
 
 	mutex_lock(&ir->lock);
 
-	if (ir->receiver_on) {
+	if (ir->receiver_on)
+	{
 		rc = iguanair_receiver(ir, false);
+
 		if (rc)
+		{
 			dev_warn(ir->dev, "failed to disable receiver for suspend\n");
+		}
 	}
 
 	usb_kill_urb(ir->urb_in);
@@ -579,13 +674,20 @@ static int iguanair_resume(struct usb_interface *intf)
 	mutex_lock(&ir->lock);
 
 	rc = usb_submit_urb(ir->urb_in, GFP_KERNEL);
-	if (rc)
-		dev_warn(&intf->dev, "failed to submit urb: %d\n", rc);
 
-	if (ir->receiver_on) {
+	if (rc)
+	{
+		dev_warn(&intf->dev, "failed to submit urb: %d\n", rc);
+	}
+
+	if (ir->receiver_on)
+	{
 		rc = iguanair_receiver(ir, true);
+
 		if (rc)
+		{
 			dev_warn(ir->dev, "failed to enable receiver after resume\n");
+		}
 	}
 
 	mutex_unlock(&ir->lock);
@@ -593,12 +695,14 @@ static int iguanair_resume(struct usb_interface *intf)
 	return rc;
 }
 
-static const struct usb_device_id iguanair_table[] = {
+static const struct usb_device_id iguanair_table[] =
+{
 	{ USB_DEVICE(0x1781, 0x0938) },
 	{ }
 };
 
-static struct usb_driver iguanair_driver = {
+static struct usb_driver iguanair_driver =
+{
 	.name =	DRIVER_NAME,
 	.probe = iguanair_probe,
 	.disconnect = iguanair_disconnect,

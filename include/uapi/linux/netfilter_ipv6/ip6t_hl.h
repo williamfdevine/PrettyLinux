@@ -7,7 +7,8 @@
 
 #include <linux/types.h>
 
-enum {
+enum
+{
 	IP6T_HL_EQ = 0,		/* equals */
 	IP6T_HL_NE,		/* not equals */
 	IP6T_HL_LT,		/* less than */
@@ -15,7 +16,8 @@ enum {
 };
 
 
-struct ip6t_hl_info {
+struct ip6t_hl_info
+{
 	__u8	mode;
 	__u8	hop_limit;
 };

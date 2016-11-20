@@ -73,12 +73,14 @@
  * crypto-api for faster implementation
  */
 
-struct bf_ctx {
+struct bf_ctx
+{
 	u32 p[18];
 	u32 s[1024];
 };
 
-static const u32 bf_pbox[16 + 2] = {
+static const u32 bf_pbox[16 + 2] =
+{
 	0x243f6a88, 0x85a308d3, 0x13198a2e, 0x03707344,
 	0xa4093822, 0x299f31d0, 0x082efa98, 0xec4e6c89,
 	0x452821e6, 0x38d01377, 0xbe5466cf, 0x34e90c6c,
@@ -86,7 +88,8 @@ static const u32 bf_pbox[16 + 2] = {
 	0x9216d5d9, 0x8979fb1b,
 };
 
-static const u32 bf_sbox[256 * 4] = {
+static const u32 bf_sbox[256 * 4] =
+{
 	0xd1310ba6, 0x98dfb5ac, 0x2ffd72db, 0xd01adfb7,
 	0xb8e1afed, 0x6a267e96, 0xba7c9045, 0xf12c7f99,
 	0x24a19947, 0xb3916cf7, 0x0801f2e2, 0x858efc16,
@@ -355,7 +358,7 @@ static const u32 bf_sbox[256 * 4] = {
 #define GET32_0(x) (((x) >> (24)) & (0xff))
 
 #define bf_F(x) (((S[GET32_0(x)] + S[256 + GET32_1(x)]) ^	\
-		  S[512 + GET32_2(x)]) + S[768 + GET32_3(x)])
+				  S[512 + GET32_2(x)]) + S[768 + GET32_3(x)])
 
 #define EROUND(a, b, n)  do { b ^= P[n]; a ^= bf_F(b); } while (0)
 #define DROUND(a, b, n)  do { a ^= bf_F(b); b ^= P[n]; } while (0)
@@ -377,14 +380,17 @@ dsp_bf_encrypt(struct dsp *dsp, u8 *data, int len)
 	u32 cs;
 	u8 nibble;
 
-	while (i < len) {
+	while (i < len)
+	{
 		/* collect a block of 9 samples */
-		if (j < 9) {
+		if (j < 9)
+		{
 			bf_data_in[j] = *data;
 			*data++ = bf_crypt_out[j++];
 			i++;
 			continue;
 		}
+
 		j = 0;
 		/* transcode 9 samples xlaw to 8 bytes */
 		yl = dsp_audio_law2seven[bf_data_in[0]];
@@ -424,10 +430,10 @@ dsp_bf_encrypt(struct dsp *dsp, u8 *data, int len)
 
 		/* calculate 3-bit checksumme */
 		cs = yl ^ (yl >> 3) ^ (yl >> 6) ^ (yl >> 9) ^ (yl >> 12) ^ (yl >> 15)
-			^ (yl >> 18) ^ (yl >> 21) ^ (yl >> 24) ^ (yl >> 27) ^ (yl >> 30)
-			^ (yr << 2) ^ (yr >> 1) ^ (yr >> 4) ^ (yr >> 7) ^ (yr >> 10)
-			^ (yr >> 13) ^ (yr >> 16) ^ (yr >> 19) ^ (yr >> 22) ^ (yr >> 25)
-			^ (yr >> 28) ^ (yr >> 31);
+			 ^ (yl >> 18) ^ (yl >> 21) ^ (yl >> 24) ^ (yl >> 27) ^ (yl >> 30)
+			 ^ (yr << 2) ^ (yr >> 1) ^ (yr >> 4) ^ (yr >> 7) ^ (yr >> 10)
+			 ^ (yr >> 13) ^ (yr >> 16) ^ (yr >> 19) ^ (yr >> 22) ^ (yr >> 25)
+			 ^ (yr >> 28) ^ (yr >> 31);
 
 		/*
 		 * transcode 8 crypted bytes to 9 data bytes with sync
@@ -469,7 +475,8 @@ dsp_bf_decrypt(struct dsp *dsp, u8 *data, int len)
 	u8 nibble;
 	u8 cs, cs0, cs1, cs2;
 
-	while (i < len) {
+	while (i < len)
+	{
 		/*
 		 * shift upper bit and rotate data to buffer ring
 		 * send current decrypted data
@@ -478,11 +485,18 @@ dsp_bf_decrypt(struct dsp *dsp, u8 *data, int len)
 		bf_crypt_inring[j++ & 15] = *data;
 		*data++ = bf_data_out[k++];
 		i++;
+
 		if (k == 9)
-			k = 0; /* repeat if no sync has been found */
+		{
+			k = 0;    /* repeat if no sync has been found */
+		}
+
 		/* check if not in sync */
 		if ((sync & 0x1f0) != 0x100)
+		{
 			continue;
+		}
+
 		j -= 9;
 		/* transcode receive data to 64 bit block of encrypted data */
 		yl = bf_crypt_inring[j++ & 15];
@@ -502,17 +516,19 @@ dsp_bf_decrypt(struct dsp *dsp, u8 *data, int len)
 
 		/* calculate 3-bit checksumme */
 		cs = yl ^ (yl >> 3) ^ (yl >> 6) ^ (yl >> 9) ^ (yl >> 12) ^ (yl >> 15)
-			^ (yl >> 18) ^ (yl >> 21) ^ (yl >> 24) ^ (yl >> 27) ^ (yl >> 30)
-			^ (yr << 2) ^ (yr >> 1) ^ (yr >> 4) ^ (yr >> 7) ^ (yr >> 10)
-			^ (yr >> 13) ^ (yr >> 16) ^ (yr >> 19) ^ (yr >> 22) ^ (yr >> 25)
-			^ (yr >> 28) ^ (yr >> 31);
+			 ^ (yl >> 18) ^ (yl >> 21) ^ (yl >> 24) ^ (yl >> 27) ^ (yl >> 30)
+			 ^ (yr << 2) ^ (yr >> 1) ^ (yr >> 4) ^ (yr >> 7) ^ (yr >> 10)
+			 ^ (yr >> 13) ^ (yr >> 16) ^ (yr >> 19) ^ (yr >> 22) ^ (yr >> 25)
+			 ^ (yr >> 28) ^ (yr >> 31);
 
 		/* check if frame is valid */
-		if ((cs & 0x7) != (((cs2 >> 5) & 4) | ((cs1 >> 6) & 2) | (cs0 >> 7))) {
+		if ((cs & 0x7) != (((cs2 >> 5) & 4) | ((cs1 >> 6) & 2) | (cs0 >> 7)))
+		{
 			if (dsp_debug & DEBUG_DSP_BLOWFISH)
 				printk(KERN_DEBUG
-				       "DSP BLOWFISH: received corrupt frame, "
-				       "checksumme is not correct\n");
+					   "DSP BLOWFISH: received corrupt frame, "
+					   "checksumme is not correct\n");
+
 			continue;
 		}
 
@@ -542,7 +558,7 @@ dsp_bf_decrypt(struct dsp *dsp, u8 *data, int len)
 		bf_data_out[2] = dsp_audio_seven2law[(yl >> 11) & 0x7f];
 		bf_data_out[3] = dsp_audio_seven2law[(yl >> 4) & 0x7f];
 		bf_data_out[4] = dsp_audio_seven2law[((yl << 3) & 0x78) |
-						     ((yr >> 29) & 0x07)];
+											 ((yr >> 29) & 0x07)];
 
 		bf_data_out[5] = dsp_audio_seven2law[(yr >> 22) & 0x7f];
 		bf_data_out[6] = dsp_audio_seven2law[(yr >> 15) & 0x7f];
@@ -604,15 +620,20 @@ dsp_bf_init(struct dsp *dsp, const u8 *key, uint keylen)
 	u32 *S = (u32 *)dsp->bf_s;
 
 	if (keylen < 4 || keylen > 56)
+	{
 		return 1;
+	}
 
 	/* Set dsp states */
 	i = 0;
-	while (i < 9) {
+
+	while (i < 9)
+	{
 		dsp->bf_crypt_out[i] = 0xff;
 		dsp->bf_data_out[i] = dsp_silence;
 		i++;
 	}
+
 	dsp->bf_crypt_pos = 0;
 	dsp->bf_decrypt_in_pos = 0;
 	dsp->bf_decrypt_out_pos = 0;
@@ -622,18 +643,23 @@ dsp_bf_init(struct dsp *dsp, const u8 *key, uint keylen)
 	/* Copy the initialization s-boxes */
 	for (i = 0, count = 0; i < 256; i++)
 		for (j = 0; j < 4; j++, count++)
+		{
 			S[count] = bf_sbox[count];
+		}
 
 	/* Set the p-boxes */
 	for (i = 0; i < 16 + 2; i++)
+	{
 		P[i] = bf_pbox[i];
+	}
 
 	/* Actual subkey generation */
-	for (j = 0, i = 0; i < 16 + 2; i++) {
+	for (j = 0, i = 0; i < 16 + 2; i++)
+	{
 		temp = (((u32)key[j] << 24) |
-			((u32)key[(j + 1) % keylen] << 16) |
-			((u32)key[(j + 2) % keylen] << 8) |
-			((u32)key[(j + 3) % keylen]));
+				((u32)key[(j + 1) % keylen] << 16) |
+				((u32)key[(j + 2) % keylen] << 8) |
+				((u32)key[(j + 3) % keylen]));
 
 		P[i] = P[i] ^ temp;
 		j = (j + 4) % keylen;
@@ -642,15 +668,18 @@ dsp_bf_init(struct dsp *dsp, const u8 *key, uint keylen)
 	data[0] = 0x00000000;
 	data[1] = 0x00000000;
 
-	for (i = 0; i < 16 + 2; i += 2) {
+	for (i = 0; i < 16 + 2; i += 2)
+	{
 		encrypt_block(P, S, data, data);
 
 		P[i] = data[0];
 		P[i + 1] = data[1];
 	}
 
-	for (i = 0; i < 4; i++) {
-		for (j = 0, count = i * 256; j < 256; j += 2, count += 2) {
+	for (i = 0; i < 4; i++)
+	{
+		for (j = 0, count = i * 256; j < 256; j += 2, count += 2)
+		{
 			encrypt_block(P, S, data, data);
 
 			S[count] = data[0];

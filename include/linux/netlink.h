@@ -15,14 +15,16 @@ static inline struct nlmsghdr *nlmsg_hdr(const struct sk_buff *skb)
 	return (struct nlmsghdr *)skb->data;
 }
 
-enum netlink_skb_flags {
+enum netlink_skb_flags
+{
 	NETLINK_SKB_MMAPED	= 0x1,	/* Packet data is mmaped */
 	NETLINK_SKB_TX		= 0x2,	/* Packet was sent by userspace */
 	NETLINK_SKB_DELIVERED	= 0x4,	/* Packet was delivered */
 	NETLINK_SKB_DST		= 0x8,	/* Dst set in sendto or sendmsg */
 };
 
-struct netlink_skb_parms {
+struct netlink_skb_parms
+{
 	struct scm_creds	creds;		/* Skb credentials	*/
 	__u32			portid;
 	__u32			dst_group;
@@ -43,7 +45,8 @@ extern void netlink_table_ungrab(void);
 #define NL_CFG_F_NONROOT_SEND	(1 << 1)
 
 /* optional Netlink kernel configuration parameters */
-struct netlink_kernel_cfg {
+struct netlink_kernel_cfg
+{
 	unsigned int	groups;
 	unsigned int	flags;
 	void		(*input)(struct sk_buff *skb);
@@ -54,8 +57,8 @@ struct netlink_kernel_cfg {
 };
 
 extern struct sock *__netlink_kernel_create(struct net *net, int unit,
-					    struct module *module,
-					    struct netlink_kernel_cfg *cfg);
+		struct module *module,
+		struct netlink_kernel_cfg *cfg);
 static inline struct sock *
 netlink_kernel_create(struct net *net, int unit, struct netlink_kernel_cfg *cfg)
 {
@@ -71,11 +74,11 @@ extern int netlink_has_listeners(struct sock *sk, unsigned int group);
 
 extern int netlink_unicast(struct sock *ssk, struct sk_buff *skb, __u32 portid, int nonblock);
 extern int netlink_broadcast(struct sock *ssk, struct sk_buff *skb, __u32 portid,
-			     __u32 group, gfp_t allocation);
+							 __u32 group, gfp_t allocation);
 extern int netlink_broadcast_filtered(struct sock *ssk, struct sk_buff *skb,
-	__u32 portid, __u32 group, gfp_t allocation,
-	int (*filter)(struct sock *dsk, struct sk_buff *skb, void *data),
-	void *filter_data);
+									  __u32 portid, __u32 group, gfp_t allocation,
+									  int (*filter)(struct sock *dsk, struct sk_buff *skb, void *data),
+									  void *filter_data);
 extern int netlink_set_err(struct sock *ssk, __u32 portid, __u32 group, int code);
 extern int netlink_register_notifier(struct notifier_block *nb);
 extern int netlink_unregister_notifier(struct notifier_block *nb);
@@ -83,7 +86,7 @@ extern int netlink_unregister_notifier(struct notifier_block *nb);
 /* finegrained unicast helpers: */
 struct sock *netlink_getsockbyfilp(struct file *filp);
 int netlink_attachskb(struct sock *sk, struct sk_buff *skb,
-		      long *timeo, struct sock *ssk);
+					  long *timeo, struct sock *ssk);
 void netlink_detachskb(struct sock *sk, struct sk_buff *skb);
 int netlink_sendskb(struct sock *sk, struct sk_buff *skb);
 
@@ -93,12 +96,17 @@ netlink_skb_clone(struct sk_buff *skb, gfp_t gfp_mask)
 	struct sk_buff *nskb;
 
 	nskb = skb_clone(skb, gfp_mask);
+
 	if (!nskb)
+	{
 		return NULL;
+	}
 
 	/* This is a large skb, set destructor callback to release head */
 	if (is_vmalloc_addr(skb->head))
+	{
 		nskb->destructor = skb->destructor;
+	}
 
 	return nskb;
 }
@@ -110,20 +118,21 @@ netlink_skb_clone(struct sk_buff *skb, gfp_t gfp_mask)
  *	MSG_TRUNC when PAGE_SIZE is very large.
  */
 #if PAGE_SIZE < 8192UL
-#define NLMSG_GOODSIZE	SKB_WITH_OVERHEAD(PAGE_SIZE)
+	#define NLMSG_GOODSIZE	SKB_WITH_OVERHEAD(PAGE_SIZE)
 #else
-#define NLMSG_GOODSIZE	SKB_WITH_OVERHEAD(8192UL)
+	#define NLMSG_GOODSIZE	SKB_WITH_OVERHEAD(8192UL)
 #endif
 
 #define NLMSG_DEFAULT_SIZE (NLMSG_GOODSIZE - NLMSG_HDRLEN)
 
 
-struct netlink_callback {
+struct netlink_callback
+{
 	struct sk_buff		*skb;
 	const struct nlmsghdr	*nlh;
 	int			(*start)(struct netlink_callback *);
-	int			(*dump)(struct sk_buff * skb,
-					struct netlink_callback *cb);
+	int			(*dump)(struct sk_buff *skb,
+						struct netlink_callback *cb);
 	int			(*done)(struct netlink_callback *cb);
 	void			*data;
 	/* the module that dump function belong to */
@@ -134,7 +143,8 @@ struct netlink_callback {
 	long			args[6];
 };
 
-struct netlink_notify {
+struct netlink_notify
+{
 	struct net *net;
 	u32 portid;
 	int protocol;
@@ -143,7 +153,8 @@ struct netlink_notify {
 struct nlmsghdr *
 __nlmsg_put(struct sk_buff *skb, u32 portid, u32 seq, int type, int len, int flags);
 
-struct netlink_dump_control {
+struct netlink_dump_control
+{
 	int (*start)(struct netlink_callback *);
 	int (*dump)(struct sk_buff *skb, struct netlink_callback *);
 	int (*done)(struct netlink_callback *);
@@ -153,19 +164,22 @@ struct netlink_dump_control {
 };
 
 extern int __netlink_dump_start(struct sock *ssk, struct sk_buff *skb,
-				const struct nlmsghdr *nlh,
-				struct netlink_dump_control *control);
+								const struct nlmsghdr *nlh,
+								struct netlink_dump_control *control);
 static inline int netlink_dump_start(struct sock *ssk, struct sk_buff *skb,
-				     const struct nlmsghdr *nlh,
-				     struct netlink_dump_control *control)
+									 const struct nlmsghdr *nlh,
+									 struct netlink_dump_control *control)
 {
 	if (!control->module)
+	{
 		control->module = THIS_MODULE;
+	}
 
 	return __netlink_dump_start(ssk, skb, nlh, control);
 }
 
-struct netlink_tap {
+struct netlink_tap
+{
 	struct net_device *dev;
 	struct module *module;
 	struct list_head list;
@@ -175,9 +189,9 @@ extern int netlink_add_tap(struct netlink_tap *nt);
 extern int netlink_remove_tap(struct netlink_tap *nt);
 
 bool __netlink_ns_capable(const struct netlink_skb_parms *nsp,
-			  struct user_namespace *ns, int cap);
+						  struct user_namespace *ns, int cap);
 bool netlink_ns_capable(const struct sk_buff *skb,
-			struct user_namespace *ns, int cap);
+						struct user_namespace *ns, int cap);
 bool netlink_capable(const struct sk_buff *skb, int cap);
 bool netlink_net_capable(const struct sk_buff *skb, int cap);
 

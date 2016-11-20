@@ -57,32 +57,36 @@ u64 sst_shim32_read64(void __iomem *addr, u32 offset)
 EXPORT_SYMBOL_GPL(sst_shim32_read64);
 
 static inline void _sst_memcpy_toio_32(volatile u32 __iomem *dest,
-	u32 *src, size_t bytes)
+									   u32 *src, size_t bytes)
 {
 	int i, words = bytes >> 2;
 
 	for (i = 0; i < words; i++)
+	{
 		writel(src[i], dest + i);
+	}
 }
 
 static inline void _sst_memcpy_fromio_32(u32 *dest,
-	const volatile __iomem u32 *src, size_t bytes)
+		const volatile __iomem u32 *src, size_t bytes)
 {
 	int i, words = bytes >> 2;
 
 	for (i = 0; i < words; i++)
+	{
 		dest[i] = readl(src + i);
+	}
 }
 
 void sst_memcpy_toio_32(struct sst_dsp *sst,
-	void __iomem *dest, void *src, size_t bytes)
+						void __iomem *dest, void *src, size_t bytes)
 {
 	_sst_memcpy_toio_32(dest, src, bytes);
 }
 EXPORT_SYMBOL_GPL(sst_memcpy_toio_32);
 
 void sst_memcpy_fromio_32(struct sst_dsp *sst, void *dest,
-	void __iomem *src, size_t bytes)
+						  void __iomem *src, size_t bytes)
 {
 	_sst_memcpy_fromio_32(dest, src, bytes);
 }
@@ -160,7 +164,7 @@ u64 sst_dsp_shim_read64_unlocked(struct sst_dsp *sst, u32 offset)
 EXPORT_SYMBOL_GPL(sst_dsp_shim_read64_unlocked);
 
 int sst_dsp_shim_update_bits_unlocked(struct sst_dsp *sst, u32 offset,
-				u32 mask, u32 value)
+									  u32 mask, u32 value)
 {
 	bool change;
 	unsigned int old, new;
@@ -172,15 +176,18 @@ int sst_dsp_shim_update_bits_unlocked(struct sst_dsp *sst, u32 offset,
 	new = (old & (~mask)) | (value & mask);
 
 	change = (old != new);
+
 	if (change)
+	{
 		sst_dsp_shim_write_unlocked(sst, offset, new);
+	}
 
 	return change;
 }
 EXPORT_SYMBOL_GPL(sst_dsp_shim_update_bits_unlocked);
 
 int sst_dsp_shim_update_bits64_unlocked(struct sst_dsp *sst, u32 offset,
-				u64 mask, u64 value)
+										u64 mask, u64 value)
 {
 	bool change;
 	u64 old, new;
@@ -190,8 +197,11 @@ int sst_dsp_shim_update_bits64_unlocked(struct sst_dsp *sst, u32 offset,
 	new = (old & (~mask)) | (value & mask);
 
 	change = (old != new);
+
 	if (change)
+	{
 		sst_dsp_shim_write64_unlocked(sst, offset, new);
+	}
 
 	return change;
 }
@@ -199,7 +209,7 @@ EXPORT_SYMBOL_GPL(sst_dsp_shim_update_bits64_unlocked);
 
 /* This is for registers bits with attribute RWC */
 void sst_dsp_shim_update_bits_forced_unlocked(struct sst_dsp *sst, u32 offset,
-				u32 mask, u32 value)
+		u32 mask, u32 value)
 {
 	unsigned int old, new;
 	u32 ret;
@@ -214,7 +224,7 @@ void sst_dsp_shim_update_bits_forced_unlocked(struct sst_dsp *sst, u32 offset,
 EXPORT_SYMBOL_GPL(sst_dsp_shim_update_bits_forced_unlocked);
 
 int sst_dsp_shim_update_bits(struct sst_dsp *sst, u32 offset,
-				u32 mask, u32 value)
+							 u32 mask, u32 value)
 {
 	unsigned long flags;
 	bool change;
@@ -227,7 +237,7 @@ int sst_dsp_shim_update_bits(struct sst_dsp *sst, u32 offset,
 EXPORT_SYMBOL_GPL(sst_dsp_shim_update_bits);
 
 int sst_dsp_shim_update_bits64(struct sst_dsp *sst, u32 offset,
-				u64 mask, u64 value)
+							   u64 mask, u64 value)
 {
 	unsigned long flags;
 	bool change;
@@ -241,7 +251,7 @@ EXPORT_SYMBOL_GPL(sst_dsp_shim_update_bits64);
 
 /* This is for registers bits with attribute RWC */
 void sst_dsp_shim_update_bits_forced(struct sst_dsp *sst, u32 offset,
-				u32 mask, u32 value)
+									 u32 mask, u32 value)
 {
 	unsigned long flags;
 
@@ -252,7 +262,7 @@ void sst_dsp_shim_update_bits_forced(struct sst_dsp *sst, u32 offset,
 EXPORT_SYMBOL_GPL(sst_dsp_shim_update_bits_forced);
 
 int sst_dsp_register_poll(struct sst_dsp *ctx, u32 offset, u32 mask,
-			 u32 target, u32 timeout, char *operation)
+						  u32 target, u32 timeout, char *operation)
 {
 	int time, ret;
 	u32 reg;
@@ -264,21 +274,28 @@ int sst_dsp_register_poll(struct sst_dsp *ctx, u32 offset, u32 mask,
 	 */
 
 	/* check if set state successful */
-	for (time = 0; time < 5; time++) {
-		if ((sst_dsp_shim_read_unlocked(ctx, offset) & mask) == target) {
+	for (time = 0; time < 5; time++)
+	{
+		if ((sst_dsp_shim_read_unlocked(ctx, offset) & mask) == target)
+		{
 			done = true;
 			break;
 		}
+
 		mdelay(1);
 	}
 
-	if (done ==  false) {
+	if (done ==  false)
+	{
 		/* sleeping in 10ms steps so adjust timeout value */
 		timeout /= 10;
 
-		for (time = 0; time < timeout; time++) {
+		for (time = 0; time < timeout; time++)
+		{
 			if ((sst_dsp_shim_read_unlocked(ctx, offset) & mask) == target)
+			{
 				break;
+			}
 
 			usleep_range(5000, 10000);
 		}
@@ -296,21 +313,27 @@ EXPORT_SYMBOL_GPL(sst_dsp_register_poll);
 void sst_dsp_dump(struct sst_dsp *sst)
 {
 	if (sst->ops->dump)
+	{
 		sst->ops->dump(sst);
+	}
 }
 EXPORT_SYMBOL_GPL(sst_dsp_dump);
 
 void sst_dsp_reset(struct sst_dsp *sst)
 {
 	if (sst->ops->reset)
+	{
 		sst->ops->reset(sst);
+	}
 }
 EXPORT_SYMBOL_GPL(sst_dsp_reset);
 
 int sst_dsp_boot(struct sst_dsp *sst)
 {
 	if (sst->ops->boot)
+	{
 		sst->ops->boot(sst);
+	}
 
 	return 0;
 }
@@ -319,7 +342,9 @@ EXPORT_SYMBOL_GPL(sst_dsp_boot);
 int sst_dsp_wake(struct sst_dsp *sst)
 {
 	if (sst->ops->wake)
+	{
 		return sst->ops->wake(sst);
+	}
 
 	return 0;
 }
@@ -328,14 +353,18 @@ EXPORT_SYMBOL_GPL(sst_dsp_wake);
 void sst_dsp_sleep(struct sst_dsp *sst)
 {
 	if (sst->ops->sleep)
+	{
 		sst->ops->sleep(sst);
+	}
 }
 EXPORT_SYMBOL_GPL(sst_dsp_sleep);
 
 void sst_dsp_stall(struct sst_dsp *sst)
 {
 	if (sst->ops->stall)
+	{
 		sst->ops->stall(sst);
+	}
 }
 EXPORT_SYMBOL_GPL(sst_dsp_stall);
 
@@ -358,7 +387,7 @@ u32 sst_dsp_ipc_msg_rx(struct sst_dsp *dsp)
 EXPORT_SYMBOL_GPL(sst_dsp_ipc_msg_rx);
 
 int sst_dsp_mailbox_init(struct sst_dsp *sst, u32 inbox_offset, size_t inbox_size,
-	u32 outbox_offset, size_t outbox_size)
+						 u32 outbox_offset, size_t outbox_size)
 {
 	sst->mailbox.in_base = sst->addr.lpe + inbox_offset;
 	sst->mailbox.out_base = sst->addr.lpe + outbox_offset;
@@ -377,7 +406,9 @@ void sst_dsp_outbox_write(struct sst_dsp *sst, void *message, size_t bytes)
 	memcpy_toio(sst->mailbox.out_base, message, bytes);
 
 	for (i = 0; i < bytes; i += 4)
+	{
 		trace_sst_ipc_outbox_wdata(i, *(u32 *)(message + i));
+	}
 }
 EXPORT_SYMBOL_GPL(sst_dsp_outbox_write);
 
@@ -390,7 +421,9 @@ void sst_dsp_outbox_read(struct sst_dsp *sst, void *message, size_t bytes)
 	memcpy_fromio(message, sst->mailbox.out_base, bytes);
 
 	for (i = 0; i < bytes; i += 4)
+	{
 		trace_sst_ipc_outbox_rdata(i, *(u32 *)(message + i));
+	}
 }
 EXPORT_SYMBOL_GPL(sst_dsp_outbox_read);
 
@@ -403,7 +436,9 @@ void sst_dsp_inbox_write(struct sst_dsp *sst, void *message, size_t bytes)
 	memcpy_toio(sst->mailbox.in_base, message, bytes);
 
 	for (i = 0; i < bytes; i += 4)
+	{
 		trace_sst_ipc_inbox_wdata(i, *(u32 *)(message + i));
+	}
 }
 EXPORT_SYMBOL_GPL(sst_dsp_inbox_write);
 
@@ -416,7 +451,9 @@ void sst_dsp_inbox_read(struct sst_dsp *sst, void *message, size_t bytes)
 	memcpy_fromio(message, sst->mailbox.in_base, bytes);
 
 	for (i = 0; i < bytes; i += 4)
+	{
 		trace_sst_ipc_inbox_rdata(i, *(u32 *)(message + i));
+	}
 }
 EXPORT_SYMBOL_GPL(sst_dsp_inbox_read);
 

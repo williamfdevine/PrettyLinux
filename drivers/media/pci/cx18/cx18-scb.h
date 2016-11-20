@@ -81,12 +81,14 @@
 
 
 /* This structure is used by EPU to provide memory descriptors in its memory */
-struct cx18_mdl_ent {
-    u32 paddr;  /* Physical address of a buffer segment */
-    u32 length; /* Length of the buffer segment */
+struct cx18_mdl_ent
+{
+	u32 paddr;  /* Physical address of a buffer segment */
+	u32 length; /* Length of the buffer segment */
 };
 
-struct cx18_scb {
+struct cx18_scb
+{
 	/* These fields form the System Control Block which is used at boot time
 	   for localizing the IPC data as well as the code positions for all
 	   processors. The offsets are from the start of this struct. */

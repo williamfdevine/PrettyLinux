@@ -80,17 +80,17 @@ futex_unlock_pi(u_int32_t *uaddr, int opflags)
 */
 static inline int
 futex_cmp_requeue(u_int32_t *uaddr, u_int32_t val, u_int32_t *uaddr2, int nr_wake,
-		 int nr_requeue, int opflags)
+				  int nr_requeue, int opflags)
 {
 	return futex(uaddr, FUTEX_CMP_REQUEUE, nr_wake, nr_requeue, uaddr2,
-		 val, opflags);
+				 val, opflags);
 }
 
 #ifndef HAVE_PTHREAD_ATTR_SETAFFINITY_NP
 #include <pthread.h>
 static inline int pthread_attr_setaffinity_np(pthread_attr_t *attr,
-					      size_t cpusetsize,
-					      cpu_set_t *cpuset)
+		size_t cpusetsize,
+		cpu_set_t *cpuset)
 {
 	attr = attr;
 	cpusetsize = cpusetsize;

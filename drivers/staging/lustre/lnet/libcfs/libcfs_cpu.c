@@ -45,13 +45,16 @@ cfs_cpt_table_alloc(unsigned int ncpt)
 {
 	struct cfs_cpt_table *cptab;
 
-	if (ncpt != 1) {
+	if (ncpt != 1)
+	{
 		CERROR("Can't support cpu partition number %d\n", ncpt);
 		return NULL;
 	}
 
 	LIBCFS_ALLOC(cptab, sizeof(*cptab));
-	if (cptab) {
+
+	if (cptab)
+	{
 		cptab->ctb_version = CFS_CPU_VERSION_MAGIC;
 		node_set(0, cptab->ctb_nodemask);
 		cptab->ctb_nparts  = ncpt;
@@ -78,8 +81,11 @@ cfs_cpt_table_print(struct cfs_cpt_table *cptab, char *buf, int len)
 
 	rc = snprintf(buf, len, "%d\t: %d\n", 0, 0);
 	len -= rc;
+
 	if (len <= 0)
+	{
 		return -EFBIG;
+	}
 
 	return rc;
 }
@@ -210,7 +216,8 @@ EXPORT_SYMBOL(cfs_cpt_bind);
 void
 cfs_cpu_fini(void)
 {
-	if (cfs_cpt_table) {
+	if (cfs_cpt_table)
+	{
 		cfs_cpt_table_free(cfs_cpt_table);
 		cfs_cpt_table = NULL;
 	}

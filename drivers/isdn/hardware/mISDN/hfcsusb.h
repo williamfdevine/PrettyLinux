@@ -90,8 +90,9 @@
 
 /* defines how much ISO packets are handled in one URB */
 static int iso_packets[8] =
-{ ISOC_PACKETS_B, ISOC_PACKETS_B, ISOC_PACKETS_B, ISOC_PACKETS_B,
-  ISOC_PACKETS_D, ISOC_PACKETS_D, ISOC_PACKETS_D, ISOC_PACKETS_D
+{
+	ISOC_PACKETS_B, ISOC_PACKETS_B, ISOC_PACKETS_B, ISOC_PACKETS_B,
+	ISOC_PACKETS_D, ISOC_PACKETS_D, ISOC_PACKETS_D, ISOC_PACKETS_D
 };
 
 
@@ -105,13 +106,14 @@ static int iso_packets[8] =
 /* HFC-S USB register access by Control-URSs */
 #define write_reg_atomic(a, b, c)					\
 	usb_control_msg((a)->dev, (a)->ctrl_out_pipe, 0, 0x40, (c), (b), \
-			0, 0, HFC_CTRL_TIMEOUT)
+					0, 0, HFC_CTRL_TIMEOUT)
 #define read_reg_atomic(a, b, c)					\
 	usb_control_msg((a)->dev, (a)->ctrl_in_pipe, 1, 0xC0, 0, (b), (c), \
-			1, HFC_CTRL_TIMEOUT)
+					1, HFC_CTRL_TIMEOUT)
 #define HFC_CTRL_BUFSIZE 64
 
-struct ctrl_buf {
+struct ctrl_buf
+{
 	__u8 hfcs_reg;		/* register number */
 	__u8 reg_val;		/* value to be written (or read) */
 };
@@ -120,36 +122,42 @@ struct ctrl_buf {
  * URB error codes
  * Used to represent a list of values and their respective symbolic names
  */
-struct hfcusb_symbolic_list {
+struct hfcusb_symbolic_list
+{
 	const int num;
 	const char *name;
 };
 
-static struct hfcusb_symbolic_list urb_errlist[] = {
-	{-ENOMEM, "No memory for allocation of internal structures"},
-	{-ENOSPC, "The host controller's bandwidth is already consumed"},
-	{-ENOENT, "URB was canceled by unlink_urb"},
-	{-EXDEV, "ISO transfer only partially completed"},
-	{-EAGAIN, "Too match scheduled for the future"},
-	{-ENXIO, "URB already queued"},
-	{-EFBIG, "Too much ISO frames requested"},
-	{-ENOSR, "Buffer error (overrun)"},
-	{-EPIPE, "Specified endpoint is stalled (device not responding)"},
-	{-EOVERFLOW, "Babble (bad cable?)"},
-	{-EPROTO, "Bit-stuff error (bad cable?)"},
-	{-EILSEQ, "CRC/Timeout"},
-	{-ETIMEDOUT, "NAK (device does not respond)"},
-	{-ESHUTDOWN, "Device unplugged"},
-	{-1, NULL}
+static struct hfcusb_symbolic_list urb_errlist[] =
+{
+	{ -ENOMEM, "No memory for allocation of internal structures"},
+	{ -ENOSPC, "The host controller's bandwidth is already consumed"},
+	{ -ENOENT, "URB was canceled by unlink_urb"},
+	{ -EXDEV, "ISO transfer only partially completed"},
+	{ -EAGAIN, "Too match scheduled for the future"},
+	{ -ENXIO, "URB already queued"},
+	{ -EFBIG, "Too much ISO frames requested"},
+	{ -ENOSR, "Buffer error (overrun)"},
+	{ -EPIPE, "Specified endpoint is stalled (device not responding)"},
+	{ -EOVERFLOW, "Babble (bad cable?)"},
+	{ -EPROTO, "Bit-stuff error (bad cable?)"},
+	{ -EILSEQ, "CRC/Timeout"},
+	{ -ETIMEDOUT, "NAK (device does not respond)"},
+	{ -ESHUTDOWN, "Device unplugged"},
+	{ -1, NULL}
 };
 
 static inline const char *
 symbolic(struct hfcusb_symbolic_list list[], const int num)
 {
 	int i;
+
 	for (i = 0; list[i].name != NULL; i++)
 		if (list[i].num == num)
+		{
 			return list[i].name;
+		}
+
 	return "<unknown USB Error>";
 }
 
@@ -179,26 +187,36 @@ symbolic(struct hfcusb_symbolic_list list[], const int num)
  * with 4 RX endpoints even E-Channel logging is possible
  */
 static int
-validconf[][19] = {
+validconf[][19] =
+{
 	/* INT in, ISO out config */
-	{EP_NUL, EP_INT, EP_NUL, EP_INT, EP_NUL, EP_INT, EP_NOP, EP_INT,
-	 EP_ISO, EP_NUL, EP_ISO, EP_NUL, EP_ISO, EP_NUL, EP_NUL, EP_NUL,
-	 CNF_4INT3ISO, 2, 1},
-	{EP_NUL, EP_INT, EP_NUL, EP_INT, EP_NUL, EP_INT, EP_NUL, EP_NUL,
-	 EP_ISO, EP_NUL, EP_ISO, EP_NUL, EP_ISO, EP_NUL, EP_NUL, EP_NUL,
-	 CNF_3INT3ISO, 2, 0},
+	{
+		EP_NUL, EP_INT, EP_NUL, EP_INT, EP_NUL, EP_INT, EP_NOP, EP_INT,
+		EP_ISO, EP_NUL, EP_ISO, EP_NUL, EP_ISO, EP_NUL, EP_NUL, EP_NUL,
+		CNF_4INT3ISO, 2, 1
+	},
+	{
+		EP_NUL, EP_INT, EP_NUL, EP_INT, EP_NUL, EP_INT, EP_NUL, EP_NUL,
+		EP_ISO, EP_NUL, EP_ISO, EP_NUL, EP_ISO, EP_NUL, EP_NUL, EP_NUL,
+		CNF_3INT3ISO, 2, 0
+	},
 	/* ISO in, ISO out config */
-	{EP_NOP, EP_NOP, EP_NOP, EP_NOP, EP_NOP, EP_NOP, EP_NOP, EP_NOP,
-	 EP_ISO, EP_ISO, EP_ISO, EP_ISO, EP_ISO, EP_ISO, EP_NOP, EP_ISO,
-	 CNF_4ISO3ISO, 2, 1},
-	{EP_NUL, EP_NUL, EP_NUL, EP_NUL, EP_NUL, EP_NUL, EP_NUL, EP_NUL,
-	 EP_ISO, EP_ISO, EP_ISO, EP_ISO, EP_ISO, EP_ISO, EP_NUL, EP_NUL,
-	 CNF_3ISO3ISO, 2, 0},
+	{
+		EP_NOP, EP_NOP, EP_NOP, EP_NOP, EP_NOP, EP_NOP, EP_NOP, EP_NOP,
+		EP_ISO, EP_ISO, EP_ISO, EP_ISO, EP_ISO, EP_ISO, EP_NOP, EP_ISO,
+		CNF_4ISO3ISO, 2, 1
+	},
+	{
+		EP_NUL, EP_NUL, EP_NUL, EP_NUL, EP_NUL, EP_NUL, EP_NUL, EP_NUL,
+		EP_ISO, EP_ISO, EP_ISO, EP_ISO, EP_ISO, EP_ISO, EP_NUL, EP_NUL,
+		CNF_3ISO3ISO, 2, 0
+	},
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} /* EOL element */
 };
 
 /* string description of chosen config */
-static char *conf_str[] = {
+static char *conf_str[] =
+{
 	"4 Interrupt IN + 3 Isochron OUT",
 	"3 Interrupt IN + 3 Isochron OUT",
 	"4 Isochron IN + 3 Isochron OUT",
@@ -233,7 +251,8 @@ struct hfcsusb;
 struct usb_fifo;
 
 /* structure defining input+output fifos (interrupt/bulk mode) */
-struct iso_urb {
+struct iso_urb
+{
 	struct urb *urb;
 	__u8 buffer[ISO_BUFFER_SIZE];	/* buffer rx/tx USB URB data */
 	struct usb_fifo *owner_fifo;	/* pointer to owner fifo */
@@ -244,7 +263,8 @@ struct iso_urb {
 #endif
 };
 
-struct usb_fifo {
+struct usb_fifo
+{
 	int fifonum;		/* fifo index attached to this structure */
 	int active;		/* fifo is currently active */
 	struct hfcsusb *hw;	/* pointer to main structure */
@@ -267,7 +287,8 @@ struct usb_fifo {
 	__u8 stop_gracefull;	/* stops URB retransmission */
 };
 
-struct hfcsusb {
+struct hfcsusb
+{
 	struct list_head	list;
 	struct dchannel		dch;
 	struct bchannel		bch[2];
@@ -306,7 +327,8 @@ struct hfcsusb {
 };
 
 /* private vendor specific data */
-struct hfcsusb_vdata {
+struct hfcsusb_vdata
+{
 	__u8		led_scheme;  /* led display scheme */
 	signed short	led_bits[8]; /* array of 8 possible LED bitmask */
 	char		*vend_name;  /* device name */
@@ -316,7 +338,8 @@ struct hfcsusb_vdata {
 #define HFC_MAX_TE_LAYER1_STATE 8
 #define HFC_MAX_NT_LAYER1_STATE 4
 
-static const char *HFC_TE_LAYER1_STATES[HFC_MAX_TE_LAYER1_STATE + 1] = {
+static const char *HFC_TE_LAYER1_STATES[HFC_MAX_TE_LAYER1_STATE + 1] =
+{
 	"TE F0 - Reset",
 	"TE F1 - Reset",
 	"TE F2 - Sensing",
@@ -328,7 +351,8 @@ static const char *HFC_TE_LAYER1_STATES[HFC_MAX_TE_LAYER1_STATE + 1] = {
 	"TE F8 - Lost framing",
 };
 
-static const char *HFC_NT_LAYER1_STATES[HFC_MAX_NT_LAYER1_STATE + 1] = {
+static const char *HFC_NT_LAYER1_STATES[HFC_MAX_NT_LAYER1_STATE + 1] =
+{
 	"NT G0 - Reset",
 	"NT G1 - Deactive",
 	"NT G2 - Pending activation",
@@ -337,84 +361,111 @@ static const char *HFC_NT_LAYER1_STATES[HFC_MAX_NT_LAYER1_STATE + 1] = {
 };
 
 /* supported devices */
-static struct usb_device_id hfcsusb_idtab[] = {
+static struct usb_device_id hfcsusb_idtab[] =
+{
 	{
 		USB_DEVICE(0x0959, 0x2bd0),
-		.driver_info = (unsigned long) &((struct hfcsusb_vdata)
-			{LED_OFF, {4, 0, 2, 1},
-					"ISDN USB TA (Cologne Chip HFC-S USB based)"}),
+		.driver_info = (unsigned long) & ((struct hfcsusb_vdata)
+		{
+			LED_OFF, {4, 0, 2, 1},
+			"ISDN USB TA (Cologne Chip HFC-S USB based)"
+		}),
 	},
 	{
 		USB_DEVICE(0x0675, 0x1688),
-		.driver_info = (unsigned long) &((struct hfcsusb_vdata)
-			{LED_SCHEME1, {1, 2, 0, 0},
-					"DrayTek miniVigor 128 USB ISDN TA"}),
+		.driver_info = (unsigned long) & ((struct hfcsusb_vdata)
+		{
+			LED_SCHEME1, {1, 2, 0, 0},
+			"DrayTek miniVigor 128 USB ISDN TA"
+		}),
 	},
 	{
 		USB_DEVICE(0x07b0, 0x0007),
-		.driver_info = (unsigned long) &((struct hfcsusb_vdata)
-			{LED_SCHEME1, {0x80, -64, -32, -16},
-					"Billion tiny USB ISDN TA 128"}),
+		.driver_info = (unsigned long) & ((struct hfcsusb_vdata)
+		{
+			LED_SCHEME1, {0x80, -64, -32, -16},
+			"Billion tiny USB ISDN TA 128"
+		}),
 	},
 	{
 		USB_DEVICE(0x0742, 0x2008),
-		.driver_info = (unsigned long) &((struct hfcsusb_vdata)
-			{LED_SCHEME1, {4, 0, 2, 1},
-					"Stollmann USB TA"}),
+		.driver_info = (unsigned long) & ((struct hfcsusb_vdata)
+		{
+			LED_SCHEME1, {4, 0, 2, 1},
+			"Stollmann USB TA"
+		}),
 	},
 	{
 		USB_DEVICE(0x0742, 0x2009),
-		.driver_info = (unsigned long) &((struct hfcsusb_vdata)
-			{LED_SCHEME1, {4, 0, 2, 1},
-					"Aceex USB ISDN TA"}),
+		.driver_info = (unsigned long) & ((struct hfcsusb_vdata)
+		{
+			LED_SCHEME1, {4, 0, 2, 1},
+			"Aceex USB ISDN TA"
+		}),
 	},
 	{
 		USB_DEVICE(0x0742, 0x200A),
-		.driver_info = (unsigned long) &((struct hfcsusb_vdata)
-			{LED_SCHEME1, {4, 0, 2, 1},
-					"OEM USB ISDN TA"}),
+		.driver_info = (unsigned long) & ((struct hfcsusb_vdata)
+		{
+			LED_SCHEME1, {4, 0, 2, 1},
+			"OEM USB ISDN TA"
+		}),
 	},
 	{
 		USB_DEVICE(0x08e3, 0x0301),
-		.driver_info = (unsigned long) &((struct hfcsusb_vdata)
-			{LED_SCHEME1, {2, 0, 1, 4},
-					"Olitec USB RNIS"}),
+		.driver_info = (unsigned long) & ((struct hfcsusb_vdata)
+		{
+			LED_SCHEME1, {2, 0, 1, 4},
+			"Olitec USB RNIS"
+		}),
 	},
 	{
 		USB_DEVICE(0x07fa, 0x0846),
-		.driver_info = (unsigned long) &((struct hfcsusb_vdata)
-			{LED_SCHEME1, {0x80, -64, -32, -16},
-					"Bewan Modem RNIS USB"}),
+		.driver_info = (unsigned long) & ((struct hfcsusb_vdata)
+		{
+			LED_SCHEME1, {0x80, -64, -32, -16},
+			"Bewan Modem RNIS USB"
+		}),
 	},
 	{
 		USB_DEVICE(0x07fa, 0x0847),
-		.driver_info = (unsigned long) &((struct hfcsusb_vdata)
-			{LED_SCHEME1, {0x80, -64, -32, -16},
-					"Djinn Numeris USB"}),
+		.driver_info = (unsigned long) & ((struct hfcsusb_vdata)
+		{
+			LED_SCHEME1, {0x80, -64, -32, -16},
+			"Djinn Numeris USB"
+		}),
 	},
 	{
 		USB_DEVICE(0x07b0, 0x0006),
-		.driver_info = (unsigned long) &((struct hfcsusb_vdata)
-			{LED_SCHEME1, {0x80, -64, -32, -16},
-					"Twister ISDN TA"}),
+		.driver_info = (unsigned long) & ((struct hfcsusb_vdata)
+		{
+			LED_SCHEME1, {0x80, -64, -32, -16},
+			"Twister ISDN TA"
+		}),
 	},
 	{
 		USB_DEVICE(0x071d, 0x1005),
-		.driver_info = (unsigned long) &((struct hfcsusb_vdata)
-			{LED_SCHEME1, {0x02, 0, 0x01, 0x04},
-					"Eicon DIVA USB 4.0"}),
+		.driver_info = (unsigned long) & ((struct hfcsusb_vdata)
+		{
+			LED_SCHEME1, {0x02, 0, 0x01, 0x04},
+			"Eicon DIVA USB 4.0"
+		}),
 	},
 	{
 		USB_DEVICE(0x0586, 0x0102),
-		.driver_info = (unsigned long) &((struct hfcsusb_vdata)
-			{LED_SCHEME1, {0x88, -64, -32, -16},
-					"ZyXEL OMNI.NET USB II"}),
+		.driver_info = (unsigned long) & ((struct hfcsusb_vdata)
+		{
+			LED_SCHEME1, {0x88, -64, -32, -16},
+			"ZyXEL OMNI.NET USB II"
+		}),
 	},
 	{
 		USB_DEVICE(0x1ae7, 0x0525),
-		.driver_info = (unsigned long) &((struct hfcsusb_vdata)
-			{LED_SCHEME1, {0x88, -64, -32, -16},
-					"X-Tensions USB ISDN TA XC-525"}),
+		.driver_info = (unsigned long) & ((struct hfcsusb_vdata)
+		{
+			LED_SCHEME1, {0x88, -64, -32, -16},
+			"X-Tensions USB ISDN TA XC-525"
+		}),
 	},
 	{ }
 };

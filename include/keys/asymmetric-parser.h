@@ -17,7 +17,8 @@
 /*
  * Key data parser.  Called during key instantiation.
  */
-struct asymmetric_key_parser {
+struct asymmetric_key_parser
+{
 	struct list_head	link;
 	struct module		*owner;
 	const char		*name;

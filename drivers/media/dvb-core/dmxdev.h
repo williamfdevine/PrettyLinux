@@ -40,13 +40,15 @@
 #include "demux.h"
 #include "dvb_ringbuffer.h"
 
-enum dmxdev_type {
+enum dmxdev_type
+{
 	DMXDEV_TYPE_NONE,
 	DMXDEV_TYPE_SEC,
 	DMXDEV_TYPE_PES,
 };
 
-enum dmxdev_state {
+enum dmxdev_state
+{
 	DMXDEV_STATE_FREE,
 	DMXDEV_STATE_ALLOCATED,
 	DMXDEV_STATE_SET,
@@ -55,24 +57,29 @@ enum dmxdev_state {
 	DMXDEV_STATE_TIMEDOUT
 };
 
-struct dmxdev_feed {
+struct dmxdev_feed
+{
 	u16 pid;
 	struct dmx_ts_feed *ts;
 	struct list_head next;
 };
 
-struct dmxdev_filter {
-	union {
+struct dmxdev_filter
+{
+	union
+	{
 		struct dmx_section_filter *sec;
 	} filter;
 
-	union {
+	union
+	{
 		/* list of TS and PES feeds (struct dmxdev_feed) */
 		struct list_head ts;
 		struct dmx_section_feed *sec;
 	} feed;
 
-	union {
+	union
+	{
 		struct dmx_sct_filter_params sec;
 		struct dmx_pes_filter_params pes;
 	} params;
@@ -91,7 +98,8 @@ struct dmxdev_filter {
 };
 
 
-struct dmxdev {
+struct dmxdev
+{
 	struct dvb_device *dvbdev;
 	struct dvb_device *dvr_dvbdev;
 
@@ -101,7 +109,7 @@ struct dmxdev {
 	int filternum;
 	int capabilities;
 
-	unsigned int exit:1;
+	unsigned int exit: 1;
 #define DMXDEV_CAP_DUPLEX 1
 	struct dmx_frontend *dvr_orig_fe;
 

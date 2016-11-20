@@ -49,7 +49,8 @@
 #define MESH_DEFAULT_DTIM_PERIOD	2
 #define MESH_DEFAULT_AWAKE_WINDOW	10	/* in 1024 us units (=TUs) */
 
-const struct mesh_config default_mesh_config = {
+const struct mesh_config default_mesh_config =
+{
 	.dot11MeshRetryTimeout = MESH_RET_T,
 	.dot11MeshConfirmTimeout = MESH_CONF_T,
 	.dot11MeshHoldingTimeout = MESH_HOLD_T,
@@ -79,7 +80,8 @@ const struct mesh_config default_mesh_config = {
 	.plink_timeout = MESH_DEFAULT_PLINK_TIMEOUT,
 };
 
-const struct mesh_setup default_mesh_setup = {
+const struct mesh_setup default_mesh_setup =
+{
 	/* cfg80211_join_mesh() will pick a channel if needed */
 	.sync_method = IEEE80211_SYNC_METHOD_NEIGHBOR_OFFSET,
 	.path_sel_proto = IEEE80211_PATH_PROTOCOL_HWMP,
@@ -94,9 +96,9 @@ const struct mesh_setup default_mesh_setup = {
 };
 
 int __cfg80211_join_mesh(struct cfg80211_registered_device *rdev,
-			 struct net_device *dev,
-			 struct mesh_setup *setup,
-			 const struct mesh_config *conf)
+						 struct net_device *dev,
+						 struct mesh_setup *setup,
+						 const struct mesh_config *conf)
 {
 	struct wireless_dev *wdev = dev->ieee80211_ptr;
 	int err;
@@ -106,56 +108,81 @@ int __cfg80211_join_mesh(struct cfg80211_registered_device *rdev,
 	ASSERT_WDEV_LOCK(wdev);
 
 	if (dev->ieee80211_ptr->iftype != NL80211_IFTYPE_MESH_POINT)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	if (!(rdev->wiphy.flags & WIPHY_FLAG_MESH_AUTH) &&
-	      setup->is_secure)
+		setup->is_secure)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	if (wdev->mesh_id_len)
+	{
 		return -EALREADY;
+	}
 
 	if (!setup->mesh_id_len)
+	{
 		return -EINVAL;
+	}
 
 	if (!rdev->ops->join_mesh)
+	{
 		return -EOPNOTSUPP;
+	}
 
-	if (!setup->chandef.chan) {
+	if (!setup->chandef.chan)
+	{
 		/* if no channel explicitly given, use preset channel */
 		setup->chandef = wdev->preset_chandef;
 	}
 
-	if (!setup->chandef.chan) {
+	if (!setup->chandef.chan)
+	{
 		/* if we don't have that either, use the first usable channel */
 		enum nl80211_band band;
 
-		for (band = 0; band < NUM_NL80211_BANDS; band++) {
+		for (band = 0; band < NUM_NL80211_BANDS; band++)
+		{
 			struct ieee80211_supported_band *sband;
 			struct ieee80211_channel *chan;
 			int i;
 
 			sband = rdev->wiphy.bands[band];
-			if (!sband)
-				continue;
 
-			for (i = 0; i < sband->n_channels; i++) {
+			if (!sband)
+			{
+				continue;
+			}
+
+			for (i = 0; i < sband->n_channels; i++)
+			{
 				chan = &sband->channels[i];
+
 				if (chan->flags & (IEEE80211_CHAN_NO_IR |
-						   IEEE80211_CHAN_DISABLED |
-						   IEEE80211_CHAN_RADAR))
+								   IEEE80211_CHAN_DISABLED |
+								   IEEE80211_CHAN_RADAR))
+				{
 					continue;
+				}
+
 				setup->chandef.chan = chan;
 				break;
 			}
 
 			if (setup->chandef.chan)
+			{
 				break;
+			}
 		}
 
 		/* no usable channel ... */
 		if (!setup->chandef.chan)
+		{
 			return -EINVAL;
+		}
 
 		setup->chandef.width = NL80211_CHAN_WIDTH_20_NOHT;
 		setup->chandef.center_freq1 = setup->chandef.chan->center_freq;
@@ -165,21 +192,26 @@ int __cfg80211_join_mesh(struct cfg80211_registered_device *rdev,
 	 * check if basic rates are available otherwise use mandatory rates as
 	 * basic rates
 	 */
-	if (!setup->basic_rates) {
+	if (!setup->basic_rates)
+	{
 		enum nl80211_bss_scan_width scan_width;
 		struct ieee80211_supported_band *sband =
 				rdev->wiphy.bands[setup->chandef.chan->band];
 		scan_width = cfg80211_chandef_to_scan_width(&setup->chandef);
 		setup->basic_rates = ieee80211_mandatory_rates(sband,
-							       scan_width);
+							 scan_width);
 	}
 
 	if (!cfg80211_reg_can_beacon(&rdev->wiphy, &setup->chandef,
-				     NL80211_IFTYPE_MESH_POINT))
+								 NL80211_IFTYPE_MESH_POINT))
+	{
 		return -EINVAL;
+	}
 
 	err = rdev_join_mesh(rdev, dev, conf, setup);
-	if (!err) {
+
+	if (!err)
+	{
 		memcpy(wdev->ssid, setup->mesh_id, setup->mesh_id_len);
 		wdev->mesh_id_len = setup->mesh_id_len;
 		wdev->chandef = setup->chandef;
@@ -189,9 +221,9 @@ int __cfg80211_join_mesh(struct cfg80211_registered_device *rdev,
 }
 
 int cfg80211_join_mesh(struct cfg80211_registered_device *rdev,
-		       struct net_device *dev,
-		       struct mesh_setup *setup,
-		       const struct mesh_config *conf)
+					   struct net_device *dev,
+					   struct mesh_setup *setup,
+					   const struct mesh_config *conf)
 {
 	struct wireless_dev *wdev = dev->ieee80211_ptr;
 	int err;
@@ -204,8 +236,8 @@ int cfg80211_join_mesh(struct cfg80211_registered_device *rdev,
 }
 
 int cfg80211_set_mesh_channel(struct cfg80211_registered_device *rdev,
-			      struct wireless_dev *wdev,
-			      struct cfg80211_chan_def *chandef)
+							  struct wireless_dev *wdev,
+							  struct cfg80211_chan_def *chandef)
 {
 	int err;
 
@@ -216,30 +248,40 @@ int cfg80211_set_mesh_channel(struct cfg80211_registered_device *rdev,
 	 * you set the channel. Note that the libertas mesh isn't
 	 * compatible with 802.11 mesh.
 	 */
-	if (rdev->ops->libertas_set_mesh_channel) {
+	if (rdev->ops->libertas_set_mesh_channel)
+	{
 		if (chandef->width != NL80211_CHAN_WIDTH_20_NOHT)
+		{
 			return -EINVAL;
+		}
 
 		if (!netif_running(wdev->netdev))
+		{
 			return -ENETDOWN;
+		}
 
 		err = rdev_libertas_set_mesh_channel(rdev, wdev->netdev,
-						     chandef->chan);
+											 chandef->chan);
+
 		if (!err)
+		{
 			wdev->chandef = *chandef;
+		}
 
 		return err;
 	}
 
 	if (wdev->mesh_id_len)
+	{
 		return -EBUSY;
+	}
 
 	wdev->preset_chandef = *chandef;
 	return 0;
 }
 
 int __cfg80211_leave_mesh(struct cfg80211_registered_device *rdev,
-			  struct net_device *dev)
+						  struct net_device *dev)
 {
 	struct wireless_dev *wdev = dev->ieee80211_ptr;
 	int err;
@@ -247,16 +289,24 @@ int __cfg80211_leave_mesh(struct cfg80211_registered_device *rdev,
 	ASSERT_WDEV_LOCK(wdev);
 
 	if (dev->ieee80211_ptr->iftype != NL80211_IFTYPE_MESH_POINT)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	if (!rdev->ops->leave_mesh)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	if (!wdev->mesh_id_len)
+	{
 		return -ENOTCONN;
+	}
 
 	err = rdev_leave_mesh(rdev, dev);
-	if (!err) {
+
+	if (!err)
+	{
 		wdev->mesh_id_len = 0;
 		memset(&wdev->chandef, 0, sizeof(wdev->chandef));
 		rdev_set_qos_map(rdev, dev, NULL);
@@ -266,7 +316,7 @@ int __cfg80211_leave_mesh(struct cfg80211_registered_device *rdev,
 }
 
 int cfg80211_leave_mesh(struct cfg80211_registered_device *rdev,
-			struct net_device *dev)
+						struct net_device *dev)
 {
 	struct wireless_dev *wdev = dev->ieee80211_ptr;
 	int err;

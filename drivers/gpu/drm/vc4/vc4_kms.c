@@ -29,7 +29,8 @@ static void vc4_output_poll_changed(struct drm_device *dev)
 	drm_fbdev_cma_hotplug_event(vc4->fbdev);
 }
 
-struct vc4_commit {
+struct vc4_commit
+{
 	struct drm_device *dev;
 	struct drm_atomic_state *state;
 	struct vc4_seqno_cb cb;
@@ -81,7 +82,10 @@ static struct vc4_commit *commit_init(struct drm_atomic_state *state)
 	struct vc4_commit *c = kzalloc(sizeof(*c), GFP_KERNEL);
 
 	if (!c)
+	{
 		return NULL;
+	}
+
 	c->dev = state->dev;
 	c->state = state;
 
@@ -102,8 +106,8 @@ static struct vc4_commit *commit_init(struct drm_atomic_state *state)
  * Zero for success or -errno.
  */
 static int vc4_atomic_commit(struct drm_device *dev,
-			     struct drm_atomic_state *state,
-			     bool nonblock)
+							 struct drm_atomic_state *state,
+							 bool nonblock)
 {
 	struct vc4_dev *vc4 = to_vc4_dev(dev);
 	int ret;
@@ -114,33 +118,47 @@ static int vc4_atomic_commit(struct drm_device *dev,
 	struct drm_plane_state *new_state;
 
 	c = commit_init(state);
+
 	if (!c)
+	{
 		return -ENOMEM;
+	}
 
 	/* Make sure that any outstanding modesets have finished. */
-	if (nonblock) {
+	if (nonblock)
+	{
 		ret = down_trylock(&vc4->async_modeset);
-		if (ret) {
+
+		if (ret)
+		{
 			kfree(c);
 			return -EBUSY;
 		}
-	} else {
+	}
+	else
+	{
 		ret = down_interruptible(&vc4->async_modeset);
-		if (ret) {
+
+		if (ret)
+		{
 			kfree(c);
 			return ret;
 		}
 	}
 
 	ret = drm_atomic_helper_prepare_planes(dev, state);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(c);
 		up(&vc4->async_modeset);
 		return ret;
 	}
 
-	for_each_plane_in_state(state, plane, new_state, i) {
-		if ((plane->state->fb != new_state->fb) && new_state->fb) {
+	for_each_plane_in_state(state, plane, new_state, i)
+	{
+		if ((plane->state->fb != new_state->fb) && new_state->fb)
+		{
 			struct drm_gem_cma_object *cma_bo =
 				drm_fb_cma_get_gem_obj(new_state->fb, 0);
 			struct vc4_bo *bo = to_vc4_bo(&cma_bo->base);
@@ -173,10 +191,13 @@ static int vc4_atomic_commit(struct drm_device *dev,
 	 * current layout.
 	 */
 
-	if (nonblock) {
+	if (nonblock)
+	{
 		vc4_queue_seqno_cb(dev, &c->cb, wait_seqno,
-				   vc4_atomic_complete_commit_seqno_cb);
-	} else {
+						   vc4_atomic_complete_commit_seqno_cb);
+	}
+	else
+	{
 		vc4_wait_for_seqno(dev, wait_seqno, ~0ull, false);
 		vc4_atomic_complete_commit(c);
 	}
@@ -184,7 +205,8 @@ static int vc4_atomic_commit(struct drm_device *dev,
 	return 0;
 }
 
-static const struct drm_mode_config_funcs vc4_mode_funcs = {
+static const struct drm_mode_config_funcs vc4_mode_funcs =
+{
 	.output_poll_changed = vc4_output_poll_changed,
 	.atomic_check = drm_atomic_helper_check,
 	.atomic_commit = vc4_atomic_commit,
@@ -199,7 +221,9 @@ int vc4_kms_load(struct drm_device *dev)
 	sema_init(&vc4->async_modeset, 1);
 
 	ret = drm_vblank_init(dev, dev->mode_config.num_crtc);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev->dev, "failed to initialize vblank\n");
 		return ret;
 	}
@@ -213,10 +237,13 @@ int vc4_kms_load(struct drm_device *dev)
 	drm_mode_config_reset(dev);
 
 	vc4->fbdev = drm_fbdev_cma_init(dev, 32,
-					dev->mode_config.num_crtc,
-					dev->mode_config.num_connector);
+									dev->mode_config.num_crtc,
+									dev->mode_config.num_connector);
+
 	if (IS_ERR(vc4->fbdev))
+	{
 		vc4->fbdev = NULL;
+	}
 
 	drm_kms_helper_poll_init(dev);
 

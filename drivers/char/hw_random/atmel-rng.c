@@ -21,20 +21,22 @@
 
 #define TRNG_KEY	0x524e4700 /* RNG */
 
-struct atmel_trng {
+struct atmel_trng
+{
 	struct clk *clk;
 	void __iomem *base;
 	struct hwrng rng;
 };
 
 static int atmel_trng_read(struct hwrng *rng, void *buf, size_t max,
-			   bool wait)
+						   bool wait)
 {
 	struct atmel_trng *trng = container_of(rng, struct atmel_trng, rng);
 	u32 *data = buf;
 
 	/* data ready? */
-	if (readl(trng->base + TRNG_ISR) & 1) {
+	if (readl(trng->base + TRNG_ISR) & 1)
+	{
 		*data = readl(trng->base + TRNG_ODATA);
 		/*
 		  ensure data ready is only set again AFTER the next data
@@ -44,8 +46,11 @@ static int atmel_trng_read(struct hwrng *rng, void *buf, size_t max,
 		*/
 		readl(trng->base + TRNG_ISR);
 		return 4;
-	} else
+	}
+	else
+	{
 		return 0;
+	}
 }
 
 static int atmel_trng_probe(struct platform_device *pdev)
@@ -55,29 +60,44 @@ static int atmel_trng_probe(struct platform_device *pdev)
 	int ret;
 
 	trng = devm_kzalloc(&pdev->dev, sizeof(*trng), GFP_KERNEL);
+
 	if (!trng)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	trng->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(trng->base))
+	{
 		return PTR_ERR(trng->base);
+	}
 
 	trng->clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(trng->clk))
+	{
 		return PTR_ERR(trng->clk);
+	}
 
 	ret = clk_prepare_enable(trng->clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	writel(TRNG_KEY | 1, trng->base + TRNG_CR);
 	trng->rng.name = pdev->name;
 	trng->rng.read = atmel_trng_read;
 
 	ret = hwrng_register(&trng->rng);
+
 	if (ret)
+	{
 		goto err_register;
+	}
 
 	platform_set_drvdata(pdev, trng);
 
@@ -117,19 +137,22 @@ static int atmel_trng_resume(struct device *dev)
 	return clk_prepare_enable(trng->clk);
 }
 
-static const struct dev_pm_ops atmel_trng_pm_ops = {
+static const struct dev_pm_ops atmel_trng_pm_ops =
+{
 	.suspend	= atmel_trng_suspend,
 	.resume		= atmel_trng_resume,
 };
 #endif /* CONFIG_PM */
 
-static const struct of_device_id atmel_trng_dt_ids[] = {
+static const struct of_device_id atmel_trng_dt_ids[] =
+{
 	{ .compatible = "atmel,at91sam9g45-trng" },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, atmel_trng_dt_ids);
 
-static struct platform_driver atmel_trng_driver = {
+static struct platform_driver atmel_trng_driver =
+{
 	.probe		= atmel_trng_probe,
 	.remove		= atmel_trng_remove,
 	.driver		= {

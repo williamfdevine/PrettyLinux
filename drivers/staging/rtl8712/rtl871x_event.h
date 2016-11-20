@@ -35,7 +35,8 @@
 /*
  * Used to report a bss has been scanned
 */
-struct survey_event	{
+struct survey_event
+{
 	struct wlan_bssid_ex bss;
 };
 
@@ -43,7 +44,8 @@ struct survey_event	{
  * Used to report that the requested site survey has been done.
  * bss_cnt indicates the number of bss that has been reported.
 */
-struct surveydone_event {
+struct surveydone_event
+{
 	unsigned int	bss_cnt;
 
 };
@@ -55,7 +57,8 @@ struct surveydone_event {
  *  -2: association fail
  *  > 0: TID
 */
-struct joinbss_event {
+struct joinbss_event
+{
 	struct	wlan_network	network;
 };
 
@@ -63,30 +66,35 @@ struct joinbss_event {
  * Used to report a given STA has joinned the created BSS.
  * It is used in AP/Ad-HoC(M) mode.
 */
-struct stassoc_event {
+struct stassoc_event
+{
 	unsigned char macaddr[6];
 	unsigned char rsvd[2];
 	int    cam_id;
 };
 
-struct stadel_event {
+struct stadel_event
+{
 	unsigned char macaddr[6];
 	unsigned char rsvd[2];
 };
 
-struct addba_event {
+struct addba_event
+{
 	unsigned int tid;
 };
 
 #define GEN_EVT_CODE(event)	event ## _EVT_
 
-struct fwevent {
+struct fwevent
+{
 	u32	parmsize;
 	void (*event_callback)(struct _adapter *dev, u8 *pbuf);
 };
 
 #define C2HEVENT_SZ			32
-struct event_node {
+struct event_node
+{
 	unsigned char *node;
 	unsigned char evt_code;
 	unsigned short evt_sz;
@@ -94,7 +102,8 @@ struct event_node {
 	int	caller_ff_sz;
 };
 
-struct c2hevent_queue {
+struct c2hevent_queue
+{
 	/*volatile*/ int	head;
 	/*volatile*/ int	tail;
 	struct	event_node	nodes[C2HEVENT_SZ];
@@ -103,13 +112,15 @@ struct c2hevent_queue {
 
 #define NETWORK_QUEUE_SZ	4
 
-struct network_queue {
+struct network_queue
+{
 	/*volatile*/ int	head;
 	/*volatile*/ int	tail;
 	struct wlan_bssid_ex networks[NETWORK_QUEUE_SZ];
 };
 
-struct ADDBA_Req_Report_parm {
+struct ADDBA_Req_Report_parm
+{
 	unsigned char MacAddress[ETH_ALEN];
 	unsigned short StartSeqNum;
 	unsigned char tid;

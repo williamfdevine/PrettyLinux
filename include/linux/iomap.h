@@ -34,7 +34,8 @@ struct vm_fault;
  */
 #define IOMAP_NULL_BLOCK -1LL	/* blkno is not valid */
 
-struct iomap {
+struct iomap
+{
 	sector_t		blkno;	/* 1st sector of mapping, 512b units */
 	loff_t			offset;	/* file offset of mapping, bytes */
 	u64			length;	/* length of mapping, bytes */
@@ -50,14 +51,15 @@ struct iomap {
 #define IOMAP_ZERO		(1 << 1) /* zeroing operation, may skip holes */
 #define IOMAP_REPORT		(1 << 2) /* report extent status, e.g. FIEMAP */
 
-struct iomap_ops {
+struct iomap_ops
+{
 	/*
 	 * Return the existing mapping at pos, or reserve space starting at
 	 * pos for up to length, as long as we can do it as a single mapping.
 	 * The actual length is returned in iomap->length.
 	 */
 	int (*iomap_begin)(struct inode *inode, loff_t pos, loff_t length,
-			unsigned flags, struct iomap *iomap);
+					   unsigned flags, struct iomap *iomap);
 
 	/*
 	 * Commit and/or unreserve space previous allocated using iomap_begin.
@@ -66,20 +68,20 @@ struct iomap_ops {
 	 * Written might be zero if no data was written.
 	 */
 	int (*iomap_end)(struct inode *inode, loff_t pos, loff_t length,
-			ssize_t written, unsigned flags, struct iomap *iomap);
+					 ssize_t written, unsigned flags, struct iomap *iomap);
 };
 
 ssize_t iomap_file_buffered_write(struct kiocb *iocb, struct iov_iter *from,
-		struct iomap_ops *ops);
+								  struct iomap_ops *ops);
 int iomap_file_dirty(struct inode *inode, loff_t pos, loff_t len,
-		struct iomap_ops *ops);
+					 struct iomap_ops *ops);
 int iomap_zero_range(struct inode *inode, loff_t pos, loff_t len,
-		bool *did_zero, struct iomap_ops *ops);
+					 bool *did_zero, struct iomap_ops *ops);
 int iomap_truncate_page(struct inode *inode, loff_t pos, bool *did_zero,
-		struct iomap_ops *ops);
+						struct iomap_ops *ops);
 int iomap_page_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf,
-		struct iomap_ops *ops);
+					   struct iomap_ops *ops);
 int iomap_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
-		loff_t start, loff_t len, struct iomap_ops *ops);
+				 loff_t start, loff_t len, struct iomap_ops *ops);
 
 #endif /* LINUX_IOMAP_H */

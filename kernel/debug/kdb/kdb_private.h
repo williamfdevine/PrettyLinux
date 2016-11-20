@@ -32,33 +32,33 @@
 #define KDB_DEBUG_FLAG_SHIFT	16	/* Shift factor for dbflags */
 
 #define KDB_DEBUG(flag)	(kdb_flags & \
-	(KDB_DEBUG_FLAG_##flag << KDB_DEBUG_FLAG_SHIFT))
+						 (KDB_DEBUG_FLAG_##flag << KDB_DEBUG_FLAG_SHIFT))
 #define KDB_DEBUG_STATE(text, value) if (KDB_DEBUG(STATE)) \
 		kdb_print_state(text, value)
 
 #if BITS_PER_LONG == 32
 
-#define KDB_PLATFORM_ENV	"BYTESPERWORD=4"
+	#define KDB_PLATFORM_ENV	"BYTESPERWORD=4"
 
-#define kdb_machreg_fmt		"0x%lx"
-#define kdb_machreg_fmt0	"0x%08lx"
-#define kdb_bfd_vma_fmt		"0x%lx"
-#define kdb_bfd_vma_fmt0	"0x%08lx"
-#define kdb_elfw_addr_fmt	"0x%x"
-#define kdb_elfw_addr_fmt0	"0x%08x"
-#define kdb_f_count_fmt		"%d"
+	#define kdb_machreg_fmt		"0x%lx"
+	#define kdb_machreg_fmt0	"0x%08lx"
+	#define kdb_bfd_vma_fmt		"0x%lx"
+	#define kdb_bfd_vma_fmt0	"0x%08lx"
+	#define kdb_elfw_addr_fmt	"0x%x"
+	#define kdb_elfw_addr_fmt0	"0x%08x"
+	#define kdb_f_count_fmt		"%d"
 
 #elif BITS_PER_LONG == 64
 
-#define KDB_PLATFORM_ENV	"BYTESPERWORD=8"
+	#define KDB_PLATFORM_ENV	"BYTESPERWORD=8"
 
-#define kdb_machreg_fmt		"0x%lx"
-#define kdb_machreg_fmt0	"0x%016lx"
-#define kdb_bfd_vma_fmt		"0x%lx"
-#define kdb_bfd_vma_fmt0	"0x%016lx"
-#define kdb_elfw_addr_fmt	"0x%x"
-#define kdb_elfw_addr_fmt0	"0x%016x"
-#define kdb_f_count_fmt		"%ld"
+	#define kdb_machreg_fmt		"0x%lx"
+	#define kdb_machreg_fmt0	"0x%016lx"
+	#define kdb_bfd_vma_fmt		"0x%lx"
+	#define kdb_bfd_vma_fmt0	"0x%016lx"
+	#define kdb_elfw_addr_fmt	"0x%x"
+	#define kdb_elfw_addr_fmt0	"0x%016x"
+	#define kdb_f_count_fmt		"%ld"
 
 #endif
 
@@ -69,20 +69,21 @@
 #define KDB_MAXBPT	16
 
 /* Symbol table format returned by kallsyms. */
-typedef struct __ksymtab {
-		unsigned long value;	/* Address of symbol */
-		const char *mod_name;	/* Module containing symbol or
+typedef struct __ksymtab
+{
+	unsigned long value;	/* Address of symbol */
+	const char *mod_name;	/* Module containing symbol or
 					 * "kernel" */
-		unsigned long mod_start;
-		unsigned long mod_end;
-		const char *sec_name;	/* Section containing symbol */
-		unsigned long sec_start;
-		unsigned long sec_end;
-		const char *sym_name;	/* Full symbol name, including
+	unsigned long mod_start;
+	unsigned long mod_end;
+	const char *sec_name;	/* Section containing symbol */
+	unsigned long sec_start;
+	unsigned long sec_end;
+	const char *sym_name;	/* Full symbol name, including
 					 * any version */
-		unsigned long sym_start;
-		unsigned long sym_end;
-		} kdb_symtab_t;
+	unsigned long sym_start;
+	unsigned long sym_end;
+} kdb_symtab_t;
 extern int kallsyms_symbol_next(char *prefix_name, int flag);
 extern int kallsyms_symbol_complete(char *prefix_name, int max_len);
 
@@ -98,15 +99,15 @@ extern int kdb_putarea_size(unsigned long, void *, size_t);
 #define kdb_putarea(addr, x) kdb_putarea_size(addr, &(x), sizeof((x)))
 
 extern int kdb_getphysword(unsigned long *word,
-			unsigned long addr, size_t size);
+						   unsigned long addr, size_t size);
 extern int kdb_getword(unsigned long *, unsigned long, size_t);
 extern int kdb_putword(unsigned long, unsigned long, size_t);
 
 extern int kdbgetularg(const char *, unsigned long *);
 extern int kdbgetu64arg(const char *, u64 *);
 extern char *kdbgetenv(const char *);
-extern int kdbgetaddrarg(int, const char **, int*, unsigned long *,
-			 long *, char **);
+extern int kdbgetaddrarg(int, const char **, int *, unsigned long *,
+						 long *, char **);
 extern int kdbgetsymval(const char *, kdb_symtab_t *);
 extern int kdbnearsym(unsigned long, kdb_symtab_t *);
 extern void kdbnearsym_cleanup(void);
@@ -152,14 +153,15 @@ extern int kdb_state;
 
 extern int kdb_nextline; /* Current number of lines displayed */
 
-typedef struct _kdb_bp {
+typedef struct _kdb_bp
+{
 	unsigned long	bp_addr;	/* Address breakpoint is present at */
-	unsigned int	bp_free:1;	/* This entry is available */
-	unsigned int	bp_enabled:1;	/* Breakpoint is active in register */
-	unsigned int	bp_type:4;	/* Uses hardware register */
-	unsigned int	bp_installed:1;	/* Breakpoint is installed */
-	unsigned int	bp_delay:1;	/* Do delayed bp handling */
-	unsigned int	bp_delayed:1;	/* Delayed breakpoint */
+	unsigned int	bp_free: 1;	/* This entry is available */
+	unsigned int	bp_enabled: 1;	/* Breakpoint is active in register */
+	unsigned int	bp_type: 4;	/* Uses hardware register */
+	unsigned int	bp_installed: 1;	/* Breakpoint is installed */
+	unsigned int	bp_delay: 1;	/* Do delayed bp handling */
+	unsigned int	bp_delayed: 1;	/* Delayed breakpoint */
 	unsigned int	bph_length;	/* HW break length */
 } kdb_bp_t;
 
@@ -167,7 +169,8 @@ typedef struct _kdb_bp {
 extern kdb_bp_t kdb_breakpoints[/* KDB_MAXBPT */];
 
 /* The KDB shell command table */
-typedef struct _kdbtab {
+typedef struct _kdbtab
+{
 	char    *cmd_name;		/* Command name */
 	kdb_func_t cmd_func;		/* Function to execute command */
 	char    *cmd_usage;		/* Usage String for this command */
@@ -184,7 +187,8 @@ extern void kdb_initbptab(void);
 extern void kdb_bp_install(struct pt_regs *);
 extern void kdb_bp_remove(void);
 
-typedef enum {
+typedef enum
+{
 	KDB_DB_BPT,	/* Breakpoint */
 	KDB_DB_SS,	/* Single-step trap */
 	KDB_DB_SSBPT,	/* Single step over breakpoint */
@@ -192,7 +196,7 @@ typedef enum {
 } kdb_dbtrap_t;
 
 extern int kdb_main_loop(kdb_reason_t, kdb_reason_t,
-			 int, kdb_dbtrap_t, struct pt_regs *);
+						 int, kdb_dbtrap_t, struct pt_regs *);
 
 /* Miscellaneous functions and data areas */
 extern int kdb_grepping_flag;
@@ -205,7 +209,7 @@ extern char *kdb_cmds[];
 extern unsigned long kdb_task_state_string(const char *);
 extern char kdb_task_state_char (const struct task_struct *);
 extern unsigned long kdb_task_state(const struct task_struct *p,
-				    unsigned long mask);
+									unsigned long mask);
 extern void kdb_ps_suppressed(void);
 extern void kdb_ps1(const struct task_struct *p);
 extern void kdb_print_nameval(const char *name, unsigned long val);
@@ -244,13 +248,13 @@ extern void kdb_set_current_task(struct task_struct *);
 extern struct task_struct *kdb_current_task;
 
 #ifdef CONFIG_KDB_KEYBOARD
-extern void kdb_kbd_cleanup_state(void);
+	extern void kdb_kbd_cleanup_state(void);
 #else /* ! CONFIG_KDB_KEYBOARD */
-#define kdb_kbd_cleanup_state()
+	#define kdb_kbd_cleanup_state()
 #endif /* ! CONFIG_KDB_KEYBOARD */
 
 #ifdef CONFIG_MODULES
-extern struct list_head *kdb_modules;
+	extern struct list_head *kdb_modules;
 #endif /* CONFIG_MODULES */
 
 extern char kdb_prompt_str[];

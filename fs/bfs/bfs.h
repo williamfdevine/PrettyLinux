@@ -10,7 +10,8 @@
 /*
  * BFS file system in-core superblock info
  */
-struct bfs_sb_info {
+struct bfs_sb_info
+{
 	unsigned long si_blocks;
 	unsigned long si_freeb;
 	unsigned long si_freei;
@@ -23,7 +24,8 @@ struct bfs_sb_info {
 /*
  * BFS file system in-core inode info
  */
-struct bfs_inode_info {
+struct bfs_inode_info
+{
 	unsigned long i_dsk_ino; /* inode number from the disk, can be 0 */
 	unsigned long i_sblock;
 	unsigned long i_eblock;

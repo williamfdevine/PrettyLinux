@@ -20,7 +20,8 @@
 #define __LINUX_MFD_S2MPU02_H
 
 /* S2MPU02 registers */
-enum S2MPU02_reg {
+enum S2MPU02_reg
+{
 	S2MPU02_REG_ID,
 	S2MPU02_REG_INT1,
 	S2MPU02_REG_INT2,
@@ -110,7 +111,8 @@ enum S2MPU02_reg {
 };
 
 /* S2MPU02 regulator ids */
-enum S2MPU02_regulators {
+enum S2MPU02_regulators
+{
 	S2MPU02_LDO1,
 	S2MPU02_LDO2,
 	S2MPU02_LDO3,

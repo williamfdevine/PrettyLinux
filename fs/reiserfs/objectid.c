@@ -9,23 +9,24 @@
 
 /* find where objectid map starts */
 #define objectid_map(s,rs) (old_format_only (s) ? \
-                         (__le32 *)((struct reiserfs_super_block_v1 *)(rs) + 1) :\
-			 (__le32 *)((rs) + 1))
+							(__le32 *)((struct reiserfs_super_block_v1 *)(rs) + 1) :\
+							(__le32 *)((rs) + 1))
 
 #ifdef CONFIG_REISERFS_CHECK
 
-static void check_objectid_map(struct super_block *s, __le32 * map)
+static void check_objectid_map(struct super_block *s, __le32 *map)
 {
 	if (le32_to_cpu(map[0]) != 1)
 		reiserfs_panic(s, "vs-15010", "map corrupted: %lx",
-			       (long unsigned int)le32_to_cpu(map[0]));
+					   (long unsigned int)le32_to_cpu(map[0]));
 
 	/* FIXME: add something else here */
 }
 
 #else
-static void check_objectid_map(struct super_block *s, __le32 * map)
-{;
+static void check_objectid_map(struct super_block *s, __le32 *map)
+{
+	;
 }
 #endif
 
@@ -60,7 +61,9 @@ __u32 reiserfs_get_unused_objectid(struct reiserfs_transaction_handle *th)
 	reiserfs_prepare_for_journal(s, SB_BUFFER_WITH_SB(s), 1);
 	/* comment needed -Hans */
 	unused_objectid = le32_to_cpu(map[1]);
-	if (unused_objectid == U32_MAX) {
+
+	if (unused_objectid == U32_MAX)
+	{
 		reiserfs_warning(s, "reiserfs-15100", "no more object ids");
 		reiserfs_restore_prepared_buffer(s, SB_BUFFER_WITH_SB(s));
 		return 0;
@@ -83,9 +86,10 @@ __u32 reiserfs_get_unused_objectid(struct reiserfs_transaction_handle *th)
 	 * result is to eliminate a pair of objectids from oids.  We do this
 	 * by shifting the entire map to the left.
 	 */
-	if (sb_oid_cursize(rs) > 2 && map[1] == map[2]) {
+	if (sb_oid_cursize(rs) > 2 && map[1] == map[2])
+	{
 		memmove(map + 1, map + 3,
-			(sb_oid_cursize(rs) - 3) * sizeof(__u32));
+				(sb_oid_cursize(rs) - 3) * sizeof(__u32));
 		set_sb_oid_cursize(rs, sb_oid_cursize(rs) - 2);
 	}
 
@@ -95,7 +99,7 @@ __u32 reiserfs_get_unused_objectid(struct reiserfs_transaction_handle *th)
 
 /* makes object identifier unused */
 void reiserfs_release_objectid(struct reiserfs_transaction_handle *th,
-			       __u32 objectid_to_release)
+							   __u32 objectid_to_release)
 {
 	struct super_block *s = th->t_super;
 	struct reiserfs_super_block *rs = SB_DISK_SUPER_BLOCK(s);
@@ -116,8 +120,10 @@ void reiserfs_release_objectid(struct reiserfs_transaction_handle *th,
 	 * more efficient after performing lots of deletions (which is
 	 * when oids is large.)  We only check even i's.
 	 */
-	while (i < sb_oid_cursize(rs)) {
-		if (objectid_to_release == le32_to_cpu(map[i])) {
+	while (i < sb_oid_cursize(rs))
+	{
+		if (objectid_to_release == le32_to_cpu(map[i]))
+		{
 			/* This incrementation unallocates the objectid. */
 			le32_add_cpu(&map[i], 1);
 
@@ -125,25 +131,29 @@ void reiserfs_release_objectid(struct reiserfs_transaction_handle *th,
 			 * Did we unallocate the last member of an
 			 * odd sequence, and can shrink oids?
 			 */
-			if (map[i] == map[i + 1]) {
+			if (map[i] == map[i + 1])
+			{
 				/* shrink objectid map */
 				memmove(map + i, map + i + 2,
-					(sb_oid_cursize(rs) - i -
-					 2) * sizeof(__u32));
+						(sb_oid_cursize(rs) - i -
+						 2) * sizeof(__u32));
 				set_sb_oid_cursize(rs, sb_oid_cursize(rs) - 2);
 
 				RFALSE(sb_oid_cursize(rs) < 2 ||
-				       sb_oid_cursize(rs) > sb_oid_maxsize(rs),
-				       "vs-15005: objectid map corrupted cur_size == %d (max == %d)",
-				       sb_oid_cursize(rs), sb_oid_maxsize(rs));
+					   sb_oid_cursize(rs) > sb_oid_maxsize(rs),
+					   "vs-15005: objectid map corrupted cur_size == %d (max == %d)",
+					   sb_oid_cursize(rs), sb_oid_maxsize(rs));
 			}
+
 			return;
 		}
 
 		if (objectid_to_release > le32_to_cpu(map[i]) &&
-		    objectid_to_release < le32_to_cpu(map[i + 1])) {
+			objectid_to_release < le32_to_cpu(map[i + 1]))
+		{
 			/* size of objectid map is not changed */
-			if (objectid_to_release + 1 == le32_to_cpu(map[i + 1])) {
+			if (objectid_to_release + 1 == le32_to_cpu(map[i + 1]))
+			{
 				le32_add_cpu(&map[i + 1], -1);
 				return;
 			}
@@ -156,24 +166,26 @@ void reiserfs_release_objectid(struct reiserfs_transaction_handle *th,
 			 * objectid map must be expanded, but
 			 * there is no space
 			 */
-			if (sb_oid_cursize(rs) == sb_oid_maxsize(rs)) {
+			if (sb_oid_cursize(rs) == sb_oid_maxsize(rs))
+			{
 				PROC_INFO_INC(s, leaked_oid);
 				return;
 			}
 
 			/* expand the objectid map */
 			memmove(map + i + 3, map + i + 1,
-				(sb_oid_cursize(rs) - i - 1) * sizeof(__u32));
+					(sb_oid_cursize(rs) - i - 1) * sizeof(__u32));
 			map[i + 1] = cpu_to_le32(objectid_to_release);
 			map[i + 2] = cpu_to_le32(objectid_to_release + 1);
 			set_sb_oid_cursize(rs, sb_oid_cursize(rs) + 2);
 			return;
 		}
+
 		i += 2;
 	}
 
 	reiserfs_error(s, "vs-15011", "tried to free free object id (%lu)",
-		       (long unsigned)objectid_to_release);
+				   (long unsigned)objectid_to_release);
 }
 
 int reiserfs_convert_objectid_map_v1(struct super_block *s)
@@ -187,11 +199,12 @@ int reiserfs_convert_objectid_map_v1(struct super_block *s)
 	int i;
 
 	disk_sb_v1 =
-	    (struct reiserfs_super_block_v1 *)(SB_BUFFER_WITH_SB(s)->b_data);
+		(struct reiserfs_super_block_v1 *)(SB_BUFFER_WITH_SB(s)->b_data);
 	objectid_map = (__le32 *) (disk_sb_v1 + 1);
 	new_objectid_map = (__le32 *) (disk_sb + 1);
 
-	if (cur_size > new_size) {
+	if (cur_size > new_size)
+	{
 		/*
 		 * mark everyone used that was listed as free at
 		 * the end of the objectid map
@@ -199,8 +212,10 @@ int reiserfs_convert_objectid_map_v1(struct super_block *s)
 		objectid_map[new_size - 1] = objectid_map[cur_size - 1];
 		set_sb_oid_cursize(disk_sb, new_size);
 	}
+
 	/* move the smaller objectid map past the end of the new super */
-	for (i = new_size - 1; i >= 0; i--) {
+	for (i = new_size - 1; i >= 0; i--)
+	{
 		objectid_map[i + (old_max - new_size)] = objectid_map[i];
 	}
 

@@ -9,19 +9,22 @@
 /*
  * CS functions
  */
-struct r100_cs_track_cb {
+struct r100_cs_track_cb
+{
 	struct radeon_bo	*robj;
 	unsigned		pitch;
 	unsigned		cpp;
 	unsigned		offset;
 };
 
-struct r100_cs_track_array {
+struct r100_cs_track_array
+{
 	struct radeon_bo	*robj;
 	unsigned		esize;
 };
 
-struct r100_cs_cube_info {
+struct r100_cs_cube_info
+{
 	struct radeon_bo	*robj;
 	unsigned		offset;
 	unsigned		width;
@@ -32,7 +35,8 @@ struct r100_cs_cube_info {
 #define R100_TRACK_COMP_DXT1   1
 #define R100_TRACK_COMP_DXT35  2
 
-struct r100_cs_track_texture {
+struct r100_cs_track_texture
+{
 	struct radeon_bo	*robj;
 	struct r100_cs_cube_info cube_info[5]; /* info for 5 non-primary faces */
 	unsigned		pitch;
@@ -52,7 +56,8 @@ struct r100_cs_track_texture {
 	unsigned                compress_format;
 };
 
-struct r100_cs_track {
+struct r100_cs_track
+{
 	unsigned			num_cb;
 	unsigned                        num_texture;
 	unsigned			maxy;
@@ -85,13 +90,13 @@ void r100_cs_track_clear(struct radeon_device *rdev, struct r100_cs_track *track
 int r100_cs_packet_parse_vline(struct radeon_cs_parser *p);
 
 int r200_packet0_check(struct radeon_cs_parser *p,
-		       struct radeon_cs_packet *pkt,
-		       unsigned idx, unsigned reg);
+					   struct radeon_cs_packet *pkt,
+					   unsigned idx, unsigned reg);
 
 int r100_reloc_pitch_offset(struct radeon_cs_parser *p,
-			    struct radeon_cs_packet *pkt,
-			    unsigned idx,
-			    unsigned reg);
+							struct radeon_cs_packet *pkt,
+							unsigned idx,
+							unsigned reg);
 int r100_packet3_load_vbpntr(struct radeon_cs_parser *p,
-			     struct radeon_cs_packet *pkt,
-			     int idx);
+							 struct radeon_cs_packet *pkt,
+							 int idx);

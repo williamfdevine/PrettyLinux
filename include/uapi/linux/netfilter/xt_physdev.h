@@ -11,7 +11,8 @@
 #define XT_PHYSDEV_OP_ISOUT		0x10
 #define XT_PHYSDEV_OP_MASK		(0x20 - 1)
 
-struct xt_physdev_info {
+struct xt_physdev_info
+{
 	char physindev[IFNAMSIZ];
 	char in_mask[IFNAMSIZ];
 	char physoutdev[IFNAMSIZ];

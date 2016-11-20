@@ -62,7 +62,8 @@
  */
 #define MAX_STREAMS	2
 
-struct snd_dice {
+struct snd_dice
+{
 	struct snd_card *card;
 	struct fw_unit *unit;
 	spinlock_t lock;
@@ -101,7 +102,8 @@ struct snd_dice {
 	bool force_two_pcms;
 };
 
-enum snd_dice_addr_type {
+enum snd_dice_addr_type
+{
 	SND_DICE_ADDR_TYPE_PRIVATE,
 	SND_DICE_ADDR_TYPE_GLOBAL,
 	SND_DICE_ADDR_TYPE_TX,
@@ -111,74 +113,74 @@ enum snd_dice_addr_type {
 };
 
 int snd_dice_transaction_write(struct snd_dice *dice,
-			       enum snd_dice_addr_type type,
-			       unsigned int offset,
-			       void *buf, unsigned int len);
+							   enum snd_dice_addr_type type,
+							   unsigned int offset,
+							   void *buf, unsigned int len);
 int snd_dice_transaction_read(struct snd_dice *dice,
-			      enum snd_dice_addr_type type, unsigned int offset,
-			      void *buf, unsigned int len);
+							  enum snd_dice_addr_type type, unsigned int offset,
+							  void *buf, unsigned int len);
 
 static inline int snd_dice_transaction_write_global(struct snd_dice *dice,
-						    unsigned int offset,
-						    void *buf, unsigned int len)
+		unsigned int offset,
+		void *buf, unsigned int len)
 {
 	return snd_dice_transaction_write(dice,
-					  SND_DICE_ADDR_TYPE_GLOBAL, offset,
-					  buf, len);
+									  SND_DICE_ADDR_TYPE_GLOBAL, offset,
+									  buf, len);
 }
 static inline int snd_dice_transaction_read_global(struct snd_dice *dice,
-						   unsigned int offset,
-						   void *buf, unsigned int len)
+		unsigned int offset,
+		void *buf, unsigned int len)
 {
 	return snd_dice_transaction_read(dice,
-					 SND_DICE_ADDR_TYPE_GLOBAL, offset,
-					 buf, len);
+									 SND_DICE_ADDR_TYPE_GLOBAL, offset,
+									 buf, len);
 }
 static inline int snd_dice_transaction_write_tx(struct snd_dice *dice,
-						unsigned int offset,
-						void *buf, unsigned int len)
+		unsigned int offset,
+		void *buf, unsigned int len)
 {
 	return snd_dice_transaction_write(dice, SND_DICE_ADDR_TYPE_TX, offset,
-					  buf, len);
+									  buf, len);
 }
 static inline int snd_dice_transaction_read_tx(struct snd_dice *dice,
-					       unsigned int offset,
-					       void *buf, unsigned int len)
+		unsigned int offset,
+		void *buf, unsigned int len)
 {
 	return snd_dice_transaction_read(dice, SND_DICE_ADDR_TYPE_TX, offset,
-					 buf, len);
+									 buf, len);
 }
 static inline int snd_dice_transaction_write_rx(struct snd_dice *dice,
-						unsigned int offset,
-						void *buf, unsigned int len)
+		unsigned int offset,
+		void *buf, unsigned int len)
 {
 	return snd_dice_transaction_write(dice, SND_DICE_ADDR_TYPE_RX, offset,
-					  buf, len);
+									  buf, len);
 }
 static inline int snd_dice_transaction_read_rx(struct snd_dice *dice,
-					       unsigned int offset,
-					       void *buf, unsigned int len)
+		unsigned int offset,
+		void *buf, unsigned int len)
 {
 	return snd_dice_transaction_read(dice, SND_DICE_ADDR_TYPE_RX, offset,
-					 buf, len);
+									 buf, len);
 }
 static inline int snd_dice_transaction_write_sync(struct snd_dice *dice,
-						  unsigned int offset,
-						  void *buf, unsigned int len)
+		unsigned int offset,
+		void *buf, unsigned int len)
 {
 	return snd_dice_transaction_write(dice, SND_DICE_ADDR_TYPE_SYNC, offset,
-					  buf, len);
+									  buf, len);
 }
 static inline int snd_dice_transaction_read_sync(struct snd_dice *dice,
-						 unsigned int offset,
-						 void *buf, unsigned int len)
+		unsigned int offset,
+		void *buf, unsigned int len)
 {
 	return snd_dice_transaction_read(dice, SND_DICE_ADDR_TYPE_SYNC, offset,
-					 buf, len);
+									 buf, len);
 }
 
 int snd_dice_transaction_get_clock_source(struct snd_dice *dice,
-					  unsigned int *source);
+		unsigned int *source);
 int snd_dice_transaction_get_rate(struct snd_dice *dice, unsigned int *rate);
 int snd_dice_transaction_set_enable(struct snd_dice *dice);
 void snd_dice_transaction_clear_enable(struct snd_dice *dice);

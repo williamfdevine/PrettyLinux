@@ -18,7 +18,8 @@
  *	TTL:    Time to Live, 8 bits
  */
 
-struct mpls_label {
+struct mpls_label
+{
 	__be32 entry;
 };
 

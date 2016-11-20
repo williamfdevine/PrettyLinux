@@ -39,9 +39,13 @@ int dca_sysfs_add_req(struct dca_provider *dca, struct device *dev, int slot)
 	static int req_count;
 
 	cd = device_create(dca_class, dca->cd, MKDEV(0, slot + 1), NULL,
-			   "requester%d", req_count++);
+					   "requester%d", req_count++);
+
 	if (IS_ERR(cd))
+	{
 		return PTR_ERR(cd);
+	}
+
 	return 0;
 }
 
@@ -59,21 +63,30 @@ int dca_sysfs_add_provider(struct dca_provider *dca, struct device *dev)
 	spin_lock(&dca_idr_lock);
 
 	ret = idr_alloc(&dca_idr, dca, 0, 0, GFP_NOWAIT);
+
 	if (ret >= 0)
+	{
 		dca->id = ret;
+	}
 
 	spin_unlock(&dca_idr_lock);
 	idr_preload_end();
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	cd = device_create(dca_class, dev, MKDEV(0, 0), NULL, "dca%d", dca->id);
-	if (IS_ERR(cd)) {
+
+	if (IS_ERR(cd))
+	{
 		spin_lock(&dca_idr_lock);
 		idr_remove(&dca_idr, dca->id);
 		spin_unlock(&dca_idr_lock);
 		return PTR_ERR(cd);
 	}
+
 	dca->cd = cd;
 	return 0;
 }
@@ -93,10 +106,13 @@ int __init dca_sysfs_init(void)
 	spin_lock_init(&dca_idr_lock);
 
 	dca_class = class_create(THIS_MODULE, "dca");
-	if (IS_ERR(dca_class)) {
+
+	if (IS_ERR(dca_class))
+	{
 		idr_destroy(&dca_idr);
 		return PTR_ERR(dca_class);
 	}
+
 	return 0;
 }
 

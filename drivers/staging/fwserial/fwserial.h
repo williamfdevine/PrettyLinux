@@ -33,7 +33,8 @@ static inline void fwtty_profile_data(unsigned int stat[], unsigned int val)
 #endif
 
 /* Parameters for both VIRT_CABLE_PLUG & VIRT_CABLE_PLUG_RSP mgmt codes */
-struct virt_plug_params {
+struct virt_plug_params
+{
 	__be32  status_hi;
 	__be32  status_lo;
 	__be32	fifo_hi;
@@ -41,8 +42,10 @@ struct virt_plug_params {
 	__be32	fifo_len;
 };
 
-struct peer_work_params {
-	union {
+struct peer_work_params
+{
+	union
+	{
 		struct virt_plug_params plug_req;
 	};
 };
@@ -72,7 +75,8 @@ struct peer_work_params {
  * @connect_retries: # of connections already attempted
  * @port: associated tty_port (usable if state == FWSC_ATTACHED)
  */
-struct fwtty_peer {
+struct fwtty_peer
+{
 	struct fw_unit		*unit;
 	struct fw_serial	*serial;
 	u64			guid;
@@ -105,7 +109,8 @@ struct fwtty_peer {
 #define to_peer(ptr, field)	(container_of(ptr, struct fwtty_peer, field))
 
 /* state values for fwtty_peer.state field */
-enum fwtty_peer_state {
+enum fwtty_peer_state
+{
 	FWPS_GONE,
 	FWPS_NOT_ATTACHED,
 	FWPS_ATTACHED,
@@ -135,12 +140,15 @@ static inline struct fwtty_port *peer_revert_state(struct fwtty_peer *peer)
 	return port;
 }
 
-struct fwserial_mgmt_pkt {
-	struct {
+struct fwserial_mgmt_pkt
+{
+	struct
+	{
 		__be16		len;
 		__be16		code;
 	} hdr;
-	union {
+	union
+	{
 		struct virt_plug_params plug_req;
 		struct virt_plug_params plug_rsp;
 	};
@@ -159,7 +167,8 @@ struct fwserial_mgmt_pkt {
 /* 1 min. plug timeout -- suitable for userland authorization */
 #define VIRT_CABLE_PLUG_TIMEOUT		(60 * HZ)
 
-struct stats {
+struct stats
+{
 	unsigned int	xchars;
 	unsigned int	dropped;
 	unsigned int	tx_stall;
@@ -173,7 +182,8 @@ struct stats {
 	unsigned int	unthrottle[DISTRIBUTION_MAX_INDEX + 1];
 };
 
-struct fwconsole_ops {
+struct fwconsole_ops
+{
 	void (*notify)(int code, void *data);
 	void (*stats)(struct stats *stats, void *data);
 	void (*proc_show)(struct seq_file *m, void *data);
@@ -234,7 +244,8 @@ struct fwconsole_ops {
  * @icount: predefined statistics reported by the TIOCGICOUNT ioctl
  * @stats: additional statistics reported in /proc/tty/driver/firewire_serial
  */
-struct fwtty_port {
+struct fwtty_port
+{
 	struct tty_port		   port;
 	struct device		   *device;
 	unsigned int		   index;
@@ -260,10 +271,10 @@ struct fwtty_port {
 	int			   max_payload;
 	unsigned int		   status_mask;
 	unsigned int		   ignore_mask;
-	unsigned int		   break_ctl:1,
-				   write_only:1,
-				   overrun:1,
-				   loopback:1;
+	unsigned int		   break_ctl: 1,
+				   write_only: 1,
+				   overrun: 1,
+				   loopback: 1;
 	unsigned long		   flags;
 
 	struct fwtty_peer __rcu	   *peer;
@@ -285,7 +296,7 @@ struct fwtty_port {
 #define MSTATUS_RSRVD     0x00e00000
 
 #define MCTRL_MASK        (TIOCM_DTR | TIOCM_RTS | TIOCM_OUT1 | TIOCM_OUT2 | \
-			   TIOCM_LOOP | OOB_RX_THROTTLE | MCTRL_RSRVD)
+						   TIOCM_LOOP | OOB_RX_THROTTLE | MCTRL_RSRVD)
 
 /* XXX even every 1/50th secs. may be unnecessarily accurate */
 /* delay in jiffies between brk emits */
@@ -320,7 +331,8 @@ struct fwtty_port {
  * @peer_list: list of local & remote unit devices attached to this card
  * @ports: fixed array of tty_ports provided by this serial device
  */
-struct fw_serial {
+struct fw_serial
+{
 	struct fw_card	  *card;
 	struct kref	  kref;
 

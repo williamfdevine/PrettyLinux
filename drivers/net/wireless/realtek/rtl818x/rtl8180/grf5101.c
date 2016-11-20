@@ -26,7 +26,8 @@
 #include "rtl8180.h"
 #include "grf5101.h"
 
-static const int grf5101_encode[] = {
+static const int grf5101_encode[] =
+{
 	0x0, 0x8, 0x4, 0xC,
 	0x2, 0xA, 0x6, 0xE,
 	0x1, 0x9, 0x5, 0xD,
@@ -49,7 +50,7 @@ static void write_grf5101(struct ieee80211_hw *dev, u8 addr, u32 data)
 	phy_config |= 0x90000000;
 
 	rtl818x_iowrite32(priv,
-		(__le32 __iomem *) &priv->map->RFPinsOutput, phy_config);
+					  (__le32 __iomem *) &priv->map->RFPinsOutput, phy_config);
 
 	msleep(3);
 }
@@ -60,10 +61,14 @@ static void grf5101_write_phy_antenna(struct ieee80211_hw *dev, short chan)
 	u8 ant = GRF5101_ANTENNA;
 
 	if (priv->rfparam & RF_PARAM_ANTBDEFAULT)
+	{
 		ant |= BB_ANTENNA_B;
+	}
 
 	if (chan == 14)
+	{
 		ant |= BB_ANTATTEN_CHAN14;
+	}
 
 	rtl8180_write_phy(dev, 0x10, ant);
 }
@@ -71,14 +76,16 @@ static void grf5101_write_phy_antenna(struct ieee80211_hw *dev, short chan)
 static u8 grf5101_rf_calc_rssi(u8 agc, u8 sq)
 {
 	if (agc > 60)
+	{
 		return 65;
+	}
 
 	/* TODO(?): just return agc (or agc + 5) to avoid mult / div */
 	return 65 * agc / 60;
 }
 
 static void grf5101_rf_set_channel(struct ieee80211_hw *dev,
-				   struct ieee80211_conf *conf)
+								   struct ieee80211_conf *conf)
 {
 	struct rtl8180_priv *priv = dev->priv;
 	int channel =
@@ -169,10 +176,14 @@ static void grf5101_rf_init(struct ieee80211_hw *dev)
 	rtl8180_write_phy(dev, 0x11, 0x88);
 
 	if (rtl818x_ioread8(priv, &priv->map->CONFIG2) &
-	    RTL818X_CONFIG2_ANTENNA_DIV)
-		rtl8180_write_phy(dev, 0x12, 0xc0); /* enable ant diversity */
+		RTL818X_CONFIG2_ANTENNA_DIV)
+	{
+		rtl8180_write_phy(dev, 0x12, 0xc0);    /* enable ant diversity */
+	}
 	else
-		rtl8180_write_phy(dev, 0x12, 0x40); /* disable ant diversity */
+	{
+		rtl8180_write_phy(dev, 0x12, 0x40);    /* disable ant diversity */
+	}
 
 	rtl8180_write_phy(dev, 0x13, 0x90 | priv->csthreshold);
 
@@ -181,7 +192,8 @@ static void grf5101_rf_init(struct ieee80211_hw *dev)
 	rtl8180_write_phy(dev, 0x1b, 0x44);
 }
 
-const struct rtl818x_rf_ops grf5101_rf_ops = {
+const struct rtl818x_rf_ops grf5101_rf_ops =
+{
 	.name		= "GCT",
 	.init		= grf5101_rf_init,
 	.stop		= grf5101_rf_stop,

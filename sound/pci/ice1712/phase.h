@@ -25,8 +25,8 @@
  */
 
 #define PHASE_DEVICE_DESC	"{Terratec,Phase 22},"\
-				"{Terratec,Phase 28},"\
-				"{Terrasoniq,TS22},"
+	"{Terratec,Phase 28},"\
+	"{Terrasoniq,TS22},"
 
 #define VT1724_SUBDEVICE_PHASE22	0x3b155011
 #define VT1724_SUBDEVICE_PHASE28	0x3b154911

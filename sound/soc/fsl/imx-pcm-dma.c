@@ -26,20 +26,23 @@
 static bool filter(struct dma_chan *chan, void *param)
 {
 	if (!imx_dma_is_general_purpose(chan))
+	{
 		return false;
+	}
 
 	chan->private = param;
 
 	return true;
 }
 
-static const struct snd_pcm_hardware imx_pcm_hardware = {
+static const struct snd_pcm_hardware imx_pcm_hardware =
+{
 	.info = SNDRV_PCM_INFO_INTERLEAVED |
-		SNDRV_PCM_INFO_BLOCK_TRANSFER |
-		SNDRV_PCM_INFO_MMAP |
-		SNDRV_PCM_INFO_MMAP_VALID |
-		SNDRV_PCM_INFO_PAUSE |
-		SNDRV_PCM_INFO_RESUME,
+	SNDRV_PCM_INFO_BLOCK_TRANSFER |
+	SNDRV_PCM_INFO_MMAP |
+	SNDRV_PCM_INFO_MMAP_VALID |
+	SNDRV_PCM_INFO_PAUSE |
+	SNDRV_PCM_INFO_RESUME,
 	.buffer_bytes_max = IMX_DEFAULT_DMABUF_SIZE,
 	.period_bytes_min = 128,
 	.period_bytes_max = 65535, /* Limited by SDMA engine */
@@ -48,7 +51,8 @@ static const struct snd_pcm_hardware imx_pcm_hardware = {
 	.fifo_size = 0,
 };
 
-static const struct snd_dmaengine_pcm_config imx_dmaengine_pcm_config = {
+static const struct snd_dmaengine_pcm_config imx_dmaengine_pcm_config =
+{
 	.pcm_hardware = &imx_pcm_hardware,
 	.prepare_slave_config = snd_dmaengine_pcm_prepare_slave_config,
 	.compat_filter_fn = filter,
@@ -61,24 +65,34 @@ int imx_pcm_dma_init(struct platform_device *pdev, size_t size)
 	struct snd_pcm_hardware *pcm_hardware;
 
 	config = devm_kzalloc(&pdev->dev,
-			sizeof(struct snd_dmaengine_pcm_config), GFP_KERNEL);
+						  sizeof(struct snd_dmaengine_pcm_config), GFP_KERNEL);
+
 	if (!config)
+	{
 		return -ENOMEM;
+	}
+
 	*config = imx_dmaengine_pcm_config;
+
 	if (size)
+	{
 		config->prealloc_buffer_size = size;
+	}
 
 	pcm_hardware = devm_kzalloc(&pdev->dev,
-			sizeof(struct snd_pcm_hardware), GFP_KERNEL);
+								sizeof(struct snd_pcm_hardware), GFP_KERNEL);
 	*pcm_hardware = imx_pcm_hardware;
+
 	if (size)
+	{
 		pcm_hardware->buffer_bytes_max = size;
+	}
 
 	config->pcm_hardware = pcm_hardware;
 
 	return devm_snd_dmaengine_pcm_register(&pdev->dev,
-		config,
-		SND_DMAENGINE_PCM_FLAG_COMPAT);
+										   config,
+										   SND_DMAENGINE_PCM_FLAG_COMPAT);
 }
 EXPORT_SYMBOL_GPL(imx_pcm_dma_init);
 

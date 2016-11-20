@@ -5,7 +5,8 @@
 
 struct nft_af_info;
 
-struct netns_nftables {
+struct netns_nftables
+{
 	struct list_head	af_info;
 	struct list_head	commit_list;
 	struct nft_af_info	*ipv4;

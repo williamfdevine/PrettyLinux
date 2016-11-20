@@ -36,7 +36,7 @@ module_param(cal_data_cfg, charp, 0);
 static unsigned short driver_mode;
 module_param(driver_mode, ushort, 0);
 MODULE_PARM_DESC(driver_mode,
-		 "station=0x1(default), ap-sta=0x3, station-p2p=0x5, ap-sta-p2p=0x7");
+				 "station=0x1(default), ap-sta=0x3, station-p2p=0x5, ap-sta-p2p=0x7");
 
 bool mfg_mode;
 module_param(mfg_mode, bool, 0);
@@ -58,14 +58,17 @@ MODULE_PARM_DESC(mfg_mode, "manufacturing mode enable:1, disable:0");
  * proper cleanup before exiting.
  */
 static int mwifiex_register(void *card, struct mwifiex_if_ops *if_ops,
-			    void **padapter)
+							void **padapter)
 {
 	struct mwifiex_adapter *adapter;
 	int i;
 
 	adapter = kzalloc(sizeof(struct mwifiex_adapter), GFP_KERNEL);
+
 	if (!adapter)
+	{
 		return -ENOMEM;
+	}
 
 	*padapter = adapter;
 	adapter->card = card;
@@ -77,33 +80,42 @@ static int mwifiex_register(void *card, struct mwifiex_if_ops *if_ops,
 	/* card specific initialization has been deferred until now .. */
 	if (adapter->if_ops.init_if)
 		if (adapter->if_ops.init_if(adapter))
+		{
 			goto error;
+		}
 
 	adapter->priv_num = 0;
 
-	for (i = 0; i < MWIFIEX_MAX_BSS_NUM; i++) {
+	for (i = 0; i < MWIFIEX_MAX_BSS_NUM; i++)
+	{
 		/* Allocate memory for private structure */
 		adapter->priv[i] =
 			kzalloc(sizeof(struct mwifiex_private), GFP_KERNEL);
+
 		if (!adapter->priv[i])
+		{
 			goto error;
+		}
 
 		adapter->priv[i]->adapter = adapter;
 		adapter->priv_num++;
 	}
+
 	mwifiex_init_lock_list(adapter);
 
 	setup_timer(&adapter->cmd_timer, mwifiex_cmd_timeout_func,
-		    (unsigned long)adapter);
+				(unsigned long)adapter);
 
 	return 0;
 
 error:
 	mwifiex_dbg(adapter, ERROR,
-		    "info: leave mwifiex_register with error\n");
+				"info: leave mwifiex_register with error\n");
 
 	for (i = 0; i < adapter->priv_num; i++)
+	{
 		kfree(adapter->priv[i]);
+	}
 
 	kfree(adapter);
 
@@ -125,21 +137,29 @@ static int mwifiex_unregister(struct mwifiex_adapter *adapter)
 	s32 i;
 
 	if (adapter->if_ops.cleanup_if)
+	{
 		adapter->if_ops.cleanup_if(adapter);
+	}
 
 	del_timer_sync(&adapter->cmd_timer);
 
 	/* Free private structures */
-	for (i = 0; i < adapter->priv_num; i++) {
-		if (adapter->priv[i]) {
+	for (i = 0; i < adapter->priv_num; i++)
+	{
+		if (adapter->priv[i])
+		{
 			mwifiex_free_curr_bcn(adapter->priv[i]);
 			kfree(adapter->priv[i]);
 		}
 	}
 
-	if (adapter->nd_info) {
+	if (adapter->nd_info)
+	{
 		for (i = 0 ; i < adapter->nd_info->n_matches ; i++)
+		{
 			kfree(adapter->nd_info->matches[i]);
+		}
+
 		kfree(adapter->nd_info);
 		adapter->nd_info = NULL;
 	}
@@ -156,10 +176,14 @@ void mwifiex_queue_main_work(struct mwifiex_adapter *adapter)
 	unsigned long flags;
 
 	spin_lock_irqsave(&adapter->main_proc_lock, flags);
-	if (adapter->mwifiex_processing) {
+
+	if (adapter->mwifiex_processing)
+	{
 		adapter->more_task_flag = true;
 		spin_unlock_irqrestore(&adapter->main_proc_lock, flags);
-	} else {
+	}
+	else
+	{
 		spin_unlock_irqrestore(&adapter->main_proc_lock, flags);
 		queue_work(adapter->workqueue, &adapter->main_work);
 	}
@@ -171,9 +195,13 @@ static void mwifiex_queue_rx_work(struct mwifiex_adapter *adapter)
 	unsigned long flags;
 
 	spin_lock_irqsave(&adapter->rx_proc_lock, flags);
-	if (adapter->rx_processing) {
+
+	if (adapter->rx_processing)
+	{
 		spin_unlock_irqrestore(&adapter->rx_proc_lock, flags);
-	} else {
+	}
+	else
+	{
 		spin_unlock_irqrestore(&adapter->rx_proc_lock, flags);
 		queue_work(adapter->rx_workqueue, &adapter->rx_work);
 	}
@@ -186,34 +214,53 @@ static int mwifiex_process_rx(struct mwifiex_adapter *adapter)
 	struct mwifiex_rxinfo *rx_info;
 
 	spin_lock_irqsave(&adapter->rx_proc_lock, flags);
-	if (adapter->rx_processing || adapter->rx_locked) {
+
+	if (adapter->rx_processing || adapter->rx_locked)
+	{
 		spin_unlock_irqrestore(&adapter->rx_proc_lock, flags);
 		goto exit_rx_proc;
-	} else {
+	}
+	else
+	{
 		adapter->rx_processing = true;
 		spin_unlock_irqrestore(&adapter->rx_proc_lock, flags);
 	}
 
 	/* Check for Rx data */
-	while ((skb = skb_dequeue(&adapter->rx_data_q))) {
+	while ((skb = skb_dequeue(&adapter->rx_data_q)))
+	{
 		atomic_dec(&adapter->rx_pending);
+
 		if ((adapter->delay_main_work ||
-		     adapter->iface_type == MWIFIEX_USB) &&
-		    (atomic_read(&adapter->rx_pending) < LOW_RX_PENDING)) {
+			 adapter->iface_type == MWIFIEX_USB) &&
+			(atomic_read(&adapter->rx_pending) < LOW_RX_PENDING))
+		{
 			if (adapter->if_ops.submit_rem_rx_urbs)
+			{
 				adapter->if_ops.submit_rem_rx_urbs(adapter);
+			}
+
 			adapter->delay_main_work = false;
 			mwifiex_queue_main_work(adapter);
 		}
+
 		rx_info = MWIFIEX_SKB_RXCB(skb);
-		if (rx_info->buf_type == MWIFIEX_TYPE_AGGR_DATA) {
+
+		if (rx_info->buf_type == MWIFIEX_TYPE_AGGR_DATA)
+		{
 			if (adapter->if_ops.deaggr_pkt)
+			{
 				adapter->if_ops.deaggr_pkt(adapter, skb);
+			}
+
 			dev_kfree_skb_any(skb);
-		} else {
+		}
+		else
+		{
 			mwifiex_handle_rx_packet(adapter, skb);
 		}
 	}
+
 	spin_lock_irqsave(&adapter->rx_proc_lock, flags);
 	adapter->rx_processing = false;
 	spin_unlock_irqrestore(&adapter->rx_proc_lock, flags);
@@ -245,19 +292,27 @@ int mwifiex_main_process(struct mwifiex_adapter *adapter)
 	spin_lock_irqsave(&adapter->main_proc_lock, flags);
 
 	/* Check if already processing */
-	if (adapter->mwifiex_processing || adapter->main_locked) {
+	if (adapter->mwifiex_processing || adapter->main_locked)
+	{
 		adapter->more_task_flag = true;
 		spin_unlock_irqrestore(&adapter->main_proc_lock, flags);
 		goto exit_main_proc;
-	} else {
+	}
+	else
+	{
 		adapter->mwifiex_processing = true;
 		spin_unlock_irqrestore(&adapter->main_proc_lock, flags);
 	}
+
 process_start:
-	do {
+
+	do
+	{
 		if ((adapter->hw_status == MWIFIEX_HW_STATUS_CLOSING) ||
-		    (adapter->hw_status == MWIFIEX_HW_STATUS_NOT_READY))
+			(adapter->hw_status == MWIFIEX_HW_STATUS_NOT_READY))
+		{
 			break;
+		}
 
 		/* For non-USB interfaces, If we process interrupts first, it
 		 * would increase RX pending even further. Avoid this by
@@ -267,87 +322,122 @@ process_start:
 		 * HIGH_RX_PENDING check in usb.c
 		 */
 		if (atomic_read(&adapter->rx_pending) >= HIGH_RX_PENDING &&
-		    adapter->iface_type != MWIFIEX_USB) {
+			adapter->iface_type != MWIFIEX_USB)
+		{
 			adapter->delay_main_work = true;
 			mwifiex_queue_rx_work(adapter);
 			break;
 		}
 
 		/* Handle pending interrupt if any */
-		if (adapter->int_status) {
+		if (adapter->int_status)
+		{
 			if (adapter->hs_activated)
+			{
 				mwifiex_process_hs_config(adapter);
+			}
+
 			if (adapter->if_ops.process_int_status)
+			{
 				adapter->if_ops.process_int_status(adapter);
+			}
 		}
 
 		if (adapter->rx_work_enabled && adapter->data_received)
+		{
 			mwifiex_queue_rx_work(adapter);
+		}
 
 		/* Need to wake up the card ? */
 		if ((adapter->ps_state == PS_STATE_SLEEP) &&
-		    (adapter->pm_wakeup_card_req &&
-		     !adapter->pm_wakeup_fw_try) &&
-		    (is_command_pending(adapter) ||
-		     !skb_queue_empty(&adapter->tx_data_q) ||
-		     !mwifiex_bypass_txlist_empty(adapter) ||
-		     !mwifiex_wmm_lists_empty(adapter))) {
+			(adapter->pm_wakeup_card_req &&
+			 !adapter->pm_wakeup_fw_try) &&
+			(is_command_pending(adapter) ||
+			 !skb_queue_empty(&adapter->tx_data_q) ||
+			 !mwifiex_bypass_txlist_empty(adapter) ||
+			 !mwifiex_wmm_lists_empty(adapter)))
+		{
 			adapter->pm_wakeup_fw_try = true;
-			mod_timer(&adapter->wakeup_timer, jiffies + (HZ*3));
+			mod_timer(&adapter->wakeup_timer, jiffies + (HZ * 3));
 			adapter->if_ops.wakeup(adapter);
 			continue;
 		}
 
-		if (IS_CARD_RX_RCVD(adapter)) {
+		if (IS_CARD_RX_RCVD(adapter))
+		{
 			adapter->data_received = false;
 			adapter->pm_wakeup_fw_try = false;
 			del_timer(&adapter->wakeup_timer);
+
 			if (adapter->ps_state == PS_STATE_SLEEP)
+			{
 				adapter->ps_state = PS_STATE_AWAKE;
-		} else {
+			}
+		}
+		else
+		{
 			/* We have tried to wakeup the card already */
 			if (adapter->pm_wakeup_fw_try)
+			{
 				break;
+			}
+
 			if (adapter->ps_state != PS_STATE_AWAKE)
+			{
 				break;
-			if (adapter->tx_lock_flag) {
-				if (adapter->iface_type == MWIFIEX_USB) {
+			}
+
+			if (adapter->tx_lock_flag)
+			{
+				if (adapter->iface_type == MWIFIEX_USB)
+				{
 					if (!adapter->usb_mc_setup)
+					{
 						break;
-				} else
+					}
+				}
+				else
+				{
 					break;
+				}
 			}
 
 			if ((!adapter->scan_chan_gap_enabled &&
-			     adapter->scan_processing) || adapter->data_sent ||
-			     mwifiex_is_tdls_chan_switching
-			     (mwifiex_get_priv(adapter,
-					       MWIFIEX_BSS_ROLE_STA)) ||
-			    (mwifiex_wmm_lists_empty(adapter) &&
-			     mwifiex_bypass_txlist_empty(adapter) &&
-			     skb_queue_empty(&adapter->tx_data_q))) {
+				 adapter->scan_processing) || adapter->data_sent ||
+				mwifiex_is_tdls_chan_switching
+				(mwifiex_get_priv(adapter,
+								  MWIFIEX_BSS_ROLE_STA)) ||
+				(mwifiex_wmm_lists_empty(adapter) &&
+				 mwifiex_bypass_txlist_empty(adapter) &&
+				 skb_queue_empty(&adapter->tx_data_q)))
+			{
 				if (adapter->cmd_sent || adapter->curr_cmd ||
 					!mwifiex_is_send_cmd_allowed
-						(mwifiex_get_priv(adapter,
-						MWIFIEX_BSS_ROLE_STA)) ||
-				    (!is_command_pending(adapter)))
+					(mwifiex_get_priv(adapter,
+									  MWIFIEX_BSS_ROLE_STA)) ||
+					(!is_command_pending(adapter)))
+				{
 					break;
+				}
 			}
 		}
 
 		/* Check for event */
-		if (adapter->event_received) {
+		if (adapter->event_received)
+		{
 			adapter->event_received = false;
 			mwifiex_process_event(adapter);
 		}
 
 		/* Check for Cmd Resp */
-		if (adapter->cmd_resp_received) {
+		if (adapter->cmd_resp_received)
+		{
 			adapter->cmd_resp_received = false;
 			mwifiex_process_cmdresp(adapter);
 
 			/* call mwifiex back when init_fw is done */
-			if (adapter->hw_status == MWIFIEX_HW_STATUS_INIT_DONE) {
+			if (adapter->hw_status == MWIFIEX_HW_STATUS_INIT_DONE)
+			{
 				adapter->hw_status = MWIFIEX_HW_STATUS_READY;
 				mwifiex_init_fw_complete(adapter);
 			}
@@ -355,32 +445,45 @@ process_start:
 
 		/* Check if we need to confirm Sleep Request
 		   received previously */
-		if (adapter->ps_state == PS_STATE_PRE_SLEEP) {
+		if (adapter->ps_state == PS_STATE_PRE_SLEEP)
+		{
 			if (!adapter->cmd_sent && !adapter->curr_cmd)
+			{
 				mwifiex_check_ps_cond(adapter);
+			}
 		}
 
 		/* * The ps_state may have been changed during processing of
 		 * Sleep Request event.
 		 */
 		if ((adapter->ps_state == PS_STATE_SLEEP) ||
-		    (adapter->ps_state == PS_STATE_PRE_SLEEP) ||
-		    (adapter->ps_state == PS_STATE_SLEEP_CFM)) {
+			(adapter->ps_state == PS_STATE_PRE_SLEEP) ||
+			(adapter->ps_state == PS_STATE_SLEEP_CFM))
+		{
 			continue;
 		}
 
-		if (adapter->tx_lock_flag) {
-			if (adapter->iface_type == MWIFIEX_USB) {
+		if (adapter->tx_lock_flag)
+		{
+			if (adapter->iface_type == MWIFIEX_USB)
+			{
 				if (!adapter->usb_mc_setup)
+				{
 					continue;
-			} else
+				}
+			}
+			else
+			{
 				continue;
+			}
 		}
 
 		if (!adapter->cmd_sent && !adapter->curr_cmd &&
-		    mwifiex_is_send_cmd_allowed
-		    (mwifiex_get_priv(adapter, MWIFIEX_BSS_ROLE_STA))) {
-			if (mwifiex_exec_next_cmd(adapter) == -1) {
+			mwifiex_is_send_cmd_allowed
+			(mwifiex_get_priv(adapter, MWIFIEX_BSS_ROLE_STA)))
+		{
+			if (mwifiex_exec_next_cmd(adapter) == -1)
+			{
 				ret = -1;
 				break;
 			}
@@ -390,82 +493,104 @@ process_start:
 		 *  wait for ready to tx data.
 		 */
 		if (adapter->iface_type == MWIFIEX_USB &&
-		    adapter->usb_mc_setup)
+			adapter->usb_mc_setup)
+		{
 			continue;
+		}
 
 		if ((adapter->scan_chan_gap_enabled ||
-		     !adapter->scan_processing) &&
-		    !adapter->data_sent &&
-		    !skb_queue_empty(&adapter->tx_data_q)) {
+			 !adapter->scan_processing) &&
+			!adapter->data_sent &&
+			!skb_queue_empty(&adapter->tx_data_q))
+		{
 			mwifiex_process_tx_queue(adapter);
-			if (adapter->hs_activated) {
+
+			if (adapter->hs_activated)
+			{
 				adapter->is_hs_configured = false;
 				mwifiex_hs_activated_event
-					(mwifiex_get_priv
-					(adapter, MWIFIEX_BSS_ROLE_ANY),
-					false);
+				(mwifiex_get_priv
+				 (adapter, MWIFIEX_BSS_ROLE_ANY),
+				 false);
 			}
 		}
 
 		if ((adapter->scan_chan_gap_enabled ||
-		     !adapter->scan_processing) &&
-		    !adapter->data_sent &&
-		    !mwifiex_bypass_txlist_empty(adapter) &&
-		    !mwifiex_is_tdls_chan_switching
-			(mwifiex_get_priv(adapter, MWIFIEX_BSS_ROLE_STA))) {
+			 !adapter->scan_processing) &&
+			!adapter->data_sent &&
+			!mwifiex_bypass_txlist_empty(adapter) &&
+			!mwifiex_is_tdls_chan_switching
+			(mwifiex_get_priv(adapter, MWIFIEX_BSS_ROLE_STA)))
+		{
 			mwifiex_process_bypass_tx(adapter);
-			if (adapter->hs_activated) {
+
+			if (adapter->hs_activated)
+			{
 				adapter->is_hs_configured = false;
 				mwifiex_hs_activated_event
-					(mwifiex_get_priv
-					 (adapter, MWIFIEX_BSS_ROLE_ANY),
-					 false);
+				(mwifiex_get_priv
+				 (adapter, MWIFIEX_BSS_ROLE_ANY),
+				 false);
 			}
 		}
 
 		if ((adapter->scan_chan_gap_enabled ||
-		     !adapter->scan_processing) &&
-		    !adapter->data_sent && !mwifiex_wmm_lists_empty(adapter) &&
-		    !mwifiex_is_tdls_chan_switching
-			(mwifiex_get_priv(adapter, MWIFIEX_BSS_ROLE_STA))) {
+			 !adapter->scan_processing) &&
+			!adapter->data_sent && !mwifiex_wmm_lists_empty(adapter) &&
+			!mwifiex_is_tdls_chan_switching
+			(mwifiex_get_priv(adapter, MWIFIEX_BSS_ROLE_STA)))
+		{
 			mwifiex_wmm_process_tx(adapter);
-			if (adapter->hs_activated) {
+
+			if (adapter->hs_activated)
+			{
 				adapter->is_hs_configured = false;
 				mwifiex_hs_activated_event
-					(mwifiex_get_priv
-					 (adapter, MWIFIEX_BSS_ROLE_ANY),
-					 false);
+				(mwifiex_get_priv
+				 (adapter, MWIFIEX_BSS_ROLE_ANY),
+				 false);
 			}
 		}
 
 		if (adapter->delay_null_pkt && !adapter->cmd_sent &&
-		    !adapter->curr_cmd && !is_command_pending(adapter) &&
-		    (mwifiex_wmm_lists_empty(adapter) &&
-		     mwifiex_bypass_txlist_empty(adapter) &&
-		     skb_queue_empty(&adapter->tx_data_q))) {
+			!adapter->curr_cmd && !is_command_pending(adapter) &&
+			(mwifiex_wmm_lists_empty(adapter) &&
+			 mwifiex_bypass_txlist_empty(adapter) &&
+			 skb_queue_empty(&adapter->tx_data_q)))
+		{
 			if (!mwifiex_send_null_packet
-			    (mwifiex_get_priv(adapter, MWIFIEX_BSS_ROLE_STA),
-			     MWIFIEX_TxPD_POWER_MGMT_NULL_PACKET |
-			     MWIFIEX_TxPD_POWER_MGMT_LAST_PACKET)) {
+				(mwifiex_get_priv(adapter, MWIFIEX_BSS_ROLE_STA),
+				 MWIFIEX_TxPD_POWER_MGMT_NULL_PACKET |
+				 MWIFIEX_TxPD_POWER_MGMT_LAST_PACKET))
+			{
 				adapter->delay_null_pkt = false;
 				adapter->ps_state = PS_STATE_SLEEP;
 			}
+
 			break;
 		}
-	} while (true);
+	}
+	while (true);
 
 	spin_lock_irqsave(&adapter->main_proc_lock, flags);
-	if (adapter->more_task_flag) {
+
+	if (adapter->more_task_flag)
+	{
 		adapter->more_task_flag = false;
 		spin_unlock_irqrestore(&adapter->main_proc_lock, flags);
 		goto process_start;
 	}
+
 	adapter->mwifiex_processing = false;
 	spin_unlock_irqrestore(&adapter->main_proc_lock, flags);
 
 exit_main_proc:
+
 	if (adapter->hw_status == MWIFIEX_HW_STATUS_CLOSING)
+	{
 		mwifiex_shutdown_drv(adapter);
+	}
+
 	return ret;
 }
 EXPORT_SYMBOL_GPL(mwifiex_main_process);
@@ -478,7 +603,8 @@ EXPORT_SYMBOL_GPL(mwifiex_main_process);
  */
 static void mwifiex_free_adapter(struct mwifiex_adapter *adapter)
 {
-	if (!adapter) {
+	if (!adapter)
+	{
 		pr_err("%s: adapter is NULL\n", __func__);
 		return;
 	}
@@ -493,13 +619,15 @@ static void mwifiex_free_adapter(struct mwifiex_adapter *adapter)
  */
 static void mwifiex_terminate_workqueue(struct mwifiex_adapter *adapter)
 {
-	if (adapter->workqueue) {
+	if (adapter->workqueue)
+	{
 		flush_workqueue(adapter->workqueue);
 		destroy_workqueue(adapter->workqueue);
 		adapter->workqueue = NULL;
 	}
 
-	if (adapter->rx_workqueue) {
+	if (adapter->rx_workqueue)
+	{
 		flush_workqueue(adapter->rx_workqueue);
 		destroy_workqueue(adapter->rx_workqueue);
 		adapter->rx_workqueue = NULL;
@@ -524,9 +652,10 @@ static void mwifiex_fw_dpc(const struct firmware *firmware, void *context)
 	bool init_failed = false;
 	struct wireless_dev *wdev;
 
-	if (!firmware) {
+	if (!firmware)
+	{
 		mwifiex_dbg(adapter, ERROR,
-			    "Failed to get firmware %s\n", adapter->fw_name);
+					"Failed to get firmware %s\n", adapter->fw_name);
 		goto err_dnld_fw;
 	}
 
@@ -535,63 +664,85 @@ static void mwifiex_fw_dpc(const struct firmware *firmware, void *context)
 	fw.fw_buf = (u8 *) adapter->firmware->data;
 	fw.fw_len = adapter->firmware->size;
 
-	if (adapter->if_ops.dnld_fw) {
+	if (adapter->if_ops.dnld_fw)
+	{
 		ret = adapter->if_ops.dnld_fw(adapter, &fw);
-	} else {
+	}
+	else
+	{
 		ret = mwifiex_dnld_fw(adapter, &fw);
 	}
 
 	if (ret == -1)
+	{
 		goto err_dnld_fw;
+	}
 
 	mwifiex_dbg(adapter, MSG, "WLAN FW is active\n");
 
-	if (cal_data_cfg) {
+	if (cal_data_cfg)
+	{
 		if ((request_firmware(&adapter->cal_data, cal_data_cfg,
-				      adapter->dev)) < 0)
+							  adapter->dev)) < 0)
 			mwifiex_dbg(adapter, ERROR,
-				    "Cal data request_firmware() failed\n");
+						"Cal data request_firmware() failed\n");
 	}
 
 	/* enable host interrupt after fw dnld is successful */
-	if (adapter->if_ops.enable_int) {
+	if (adapter->if_ops.enable_int)
+	{
 		if (adapter->if_ops.enable_int(adapter))
+		{
 			goto err_dnld_fw;
+		}
 	}
 
 	adapter->init_wait_q_woken = false;
 	ret = mwifiex_init_fw(adapter);
-	if (ret == -1) {
+
+	if (ret == -1)
+	{
 		goto err_init_fw;
-	} else if (!ret) {
+	}
+	else if (!ret)
+	{
 		adapter->hw_status = MWIFIEX_HW_STATUS_READY;
 		goto done;
 	}
+
 	/* Wait for mwifiex_init to complete */
-	if (!adapter->mfg_mode) {
+	if (!adapter->mfg_mode)
+	{
 		wait_event_interruptible(adapter->init_wait_q,
-					 adapter->init_wait_q_woken);
+								 adapter->init_wait_q_woken);
+
 		if (adapter->hw_status != MWIFIEX_HW_STATUS_READY)
-			goto err_init_fw;
-	}
-
-	priv = adapter->priv[MWIFIEX_BSS_ROLE_STA];
-
-	if (!adapter->wiphy) {
-		if (mwifiex_register_cfg80211(adapter)) {
-			mwifiex_dbg(adapter, ERROR,
-				    "cannot register with cfg80211\n");
+		{
 			goto err_init_fw;
 		}
 	}
 
-	if (mwifiex_init_channel_scan_gap(adapter)) {
+	priv = adapter->priv[MWIFIEX_BSS_ROLE_STA];
+
+	if (!adapter->wiphy)
+	{
+		if (mwifiex_register_cfg80211(adapter))
+		{
+			mwifiex_dbg(adapter, ERROR,
+						"cannot register with cfg80211\n");
+			goto err_init_fw;
+		}
+	}
+
+	if (mwifiex_init_channel_scan_gap(adapter))
+	{
 		mwifiex_dbg(adapter, ERROR,
-			    "could not init channel stats table\n");
+					"could not init channel stats table\n");
 		goto err_init_fw;
 	}
 
-	if (driver_mode) {
+	if (driver_mode)
+	{
 		driver_mode &= MWIFIEX_DRIVER_MODE_BITMASK;
 		driver_mode |= MWIFIEX_DRIVER_MODE_STA;
 	}
@@ -599,36 +750,45 @@ static void mwifiex_fw_dpc(const struct firmware *firmware, void *context)
 	rtnl_lock();
 	/* Create station interface by default */
 	wdev = mwifiex_add_virtual_intf(adapter->wiphy, "mlan%d", NET_NAME_ENUM,
-					NL80211_IFTYPE_STATION, NULL, NULL);
-	if (IS_ERR(wdev)) {
+									NL80211_IFTYPE_STATION, NULL, NULL);
+
+	if (IS_ERR(wdev))
+	{
 		mwifiex_dbg(adapter, ERROR,
-			    "cannot create default STA interface\n");
+					"cannot create default STA interface\n");
 		rtnl_unlock();
 		goto err_add_intf;
 	}
 
-	if (driver_mode & MWIFIEX_DRIVER_MODE_UAP) {
+	if (driver_mode & MWIFIEX_DRIVER_MODE_UAP)
+	{
 		wdev = mwifiex_add_virtual_intf(adapter->wiphy, "uap%d", NET_NAME_ENUM,
-						NL80211_IFTYPE_AP, NULL, NULL);
-		if (IS_ERR(wdev)) {
+										NL80211_IFTYPE_AP, NULL, NULL);
+
+		if (IS_ERR(wdev))
+		{
 			mwifiex_dbg(adapter, ERROR,
-				    "cannot create AP interface\n");
+						"cannot create AP interface\n");
 			rtnl_unlock();
 			goto err_add_intf;
 		}
 	}
 
-	if (driver_mode & MWIFIEX_DRIVER_MODE_P2P) {
+	if (driver_mode & MWIFIEX_DRIVER_MODE_P2P)
+	{
 		wdev = mwifiex_add_virtual_intf(adapter->wiphy, "p2p%d", NET_NAME_ENUM,
-						NL80211_IFTYPE_P2P_CLIENT, NULL,
-						NULL);
-		if (IS_ERR(wdev)) {
+										NL80211_IFTYPE_P2P_CLIENT, NULL,
+										NULL);
+
+		if (IS_ERR(wdev))
+		{
 			mwifiex_dbg(adapter, ERROR,
-				    "cannot create p2p client interface\n");
+						"cannot create p2p client interface\n");
 			rtnl_unlock();
 			goto err_add_intf;
 		}
 	}
+
 	rtnl_unlock();
 
 	mwifiex_drv_get_driver_version(adapter, fmt, sizeof(fmt) - 1);
@@ -639,36 +799,53 @@ err_add_intf:
 	wiphy_unregister(adapter->wiphy);
 	wiphy_free(adapter->wiphy);
 err_init_fw:
+
 	if (adapter->if_ops.disable_int)
+	{
 		adapter->if_ops.disable_int(adapter);
+	}
+
 err_dnld_fw:
 	mwifiex_dbg(adapter, ERROR,
-		    "info: %s: unregister device\n", __func__);
-	if (adapter->if_ops.unregister_dev)
-		adapter->if_ops.unregister_dev(adapter);
+				"info: %s: unregister device\n", __func__);
 
-	if (adapter->hw_status == MWIFIEX_HW_STATUS_READY) {
+	if (adapter->if_ops.unregister_dev)
+	{
+		adapter->if_ops.unregister_dev(adapter);
+	}
+
+	if (adapter->hw_status == MWIFIEX_HW_STATUS_READY)
+	{
 		pr_debug("info: %s: shutdown mwifiex\n", __func__);
 		adapter->init_wait_q_woken = false;
 
 		if (mwifiex_shutdown_drv(adapter) == -EINPROGRESS)
 			wait_event_interruptible(adapter->init_wait_q,
-						 adapter->init_wait_q_woken);
+									 adapter->init_wait_q_woken);
 	}
+
 	adapter->surprise_removed = true;
 	mwifiex_terminate_workqueue(adapter);
 	init_failed = true;
 done:
-	if (adapter->cal_data) {
+
+	if (adapter->cal_data)
+	{
 		release_firmware(adapter->cal_data);
 		adapter->cal_data = NULL;
 	}
-	if (adapter->firmware) {
+
+	if (adapter->firmware)
+	{
 		release_firmware(adapter->firmware);
 		adapter->firmware = NULL;
 	}
+
 	if (init_failed)
+	{
 		mwifiex_free_adapter(adapter);
+	}
+
 	up(sem);
 	return;
 }
@@ -677,38 +854,47 @@ done:
  * This function initializes the hardware and gets firmware.
  */
 static int mwifiex_init_hw_fw(struct mwifiex_adapter *adapter,
-			      bool req_fw_nowait)
+							  bool req_fw_nowait)
 {
 	int ret;
 
 	/* Override default firmware with manufacturing one if
 	 * manufacturing mode is enabled
 	 */
-	if (mfg_mode) {
+	if (mfg_mode)
+	{
 		if (strlcpy(adapter->fw_name, MFG_FIRMWARE,
-			    sizeof(adapter->fw_name)) >=
-			    sizeof(adapter->fw_name)) {
+					sizeof(adapter->fw_name)) >=
+			sizeof(adapter->fw_name))
+		{
 			pr_err("%s: fw_name too long!\n", __func__);
 			return -1;
 		}
 	}
 
-	if (req_fw_nowait) {
+	if (req_fw_nowait)
+	{
 		ret = request_firmware_nowait(THIS_MODULE, 1, adapter->fw_name,
-					      adapter->dev, GFP_KERNEL, adapter,
-					      mwifiex_fw_dpc);
+									  adapter->dev, GFP_KERNEL, adapter,
+									  mwifiex_fw_dpc);
+
 		if (ret < 0)
 			mwifiex_dbg(adapter, ERROR,
-				    "request_firmware_nowait error %d\n", ret);
-	} else {
+						"request_firmware_nowait error %d\n", ret);
+	}
+	else
+	{
 		ret = request_firmware(&adapter->firmware,
-				       adapter->fw_name,
-				       adapter->dev);
+							   adapter->fw_name,
+							   adapter->dev);
+
 		if (ret < 0)
 			mwifiex_dbg(adapter, ERROR,
-				    "request_firmware error %d\n", ret);
+						"request_firmware error %d\n", ret);
 		else
+		{
 			mwifiex_fw_dpc(adapter->firmware, (void *)adapter);
+		}
 	}
 
 	return ret;
@@ -735,21 +921,24 @@ mwifiex_close(struct net_device *dev)
 {
 	struct mwifiex_private *priv = mwifiex_netdev_get_priv(dev);
 
-	if (priv->scan_request) {
-		struct cfg80211_scan_info info = {
+	if (priv->scan_request)
+	{
+		struct cfg80211_scan_info info =
+		{
 			.aborted = true,
 		};
 
 		mwifiex_dbg(priv->adapter, INFO,
-			    "aborting scan on ndo_stop\n");
+					"aborting scan on ndo_stop\n");
 		cfg80211_scan_done(priv->scan_request, &info);
 		priv->scan_request = NULL;
 		priv->scan_aborting = true;
 	}
 
-	if (priv->sched_scanning) {
+	if (priv->sched_scanning)
+	{
 		mwifiex_dbg(priv->adapter, INFO,
-			    "aborting bgscan on ndo_stop\n");
+					"aborting bgscan on ndo_stop\n");
 		mwifiex_stop_bg_scan(priv);
 		cfg80211_sched_scan_stopped(priv->wdev.wiphy);
 	}
@@ -759,19 +948,20 @@ mwifiex_close(struct net_device *dev)
 
 static bool
 mwifiex_bypass_tx_queue(struct mwifiex_private *priv,
-			struct sk_buff *skb)
+						struct sk_buff *skb)
 {
 	struct ethhdr *eth_hdr = (struct ethhdr *)skb->data;
 
 	if (ntohs(eth_hdr->h_proto) == ETH_P_PAE ||
-	    mwifiex_is_skb_mgmt_frame(skb) ||
-	    (GET_BSS_ROLE(priv) == MWIFIEX_BSS_ROLE_STA &&
-	     ISSUPP_TDLS_ENABLED(priv->adapter->fw_cap_info) &&
-	     (ntohs(eth_hdr->h_proto) == ETH_P_TDLS))) {
+		mwifiex_is_skb_mgmt_frame(skb) ||
+		(GET_BSS_ROLE(priv) == MWIFIEX_BSS_ROLE_STA &&
+		 ISSUPP_TDLS_ENABLED(priv->adapter->fw_cap_info) &&
+		 (ntohs(eth_hdr->h_proto) == ETH_P_TDLS)))
+	{
 		mwifiex_dbg(priv->adapter, DATA,
-			    "bypass txqueue; eth type %#x, mgmt %d\n",
-			     ntohs(eth_hdr->h_proto),
-			     mwifiex_is_skb_mgmt_frame(skb));
+					"bypass txqueue; eth type %#x, mgmt %d\n",
+					ntohs(eth_hdr->h_proto),
+					mwifiex_is_skb_mgmt_frame(skb));
 		return true;
 	}
 
@@ -785,23 +975,29 @@ int mwifiex_queue_tx_pkt(struct mwifiex_private *priv, struct sk_buff *skb)
 	struct netdev_queue *txq;
 	int index = mwifiex_1d_to_wmm_queue[skb->priority];
 
-	if (atomic_inc_return(&priv->wmm_tx_pending[index]) >= MAX_TX_PENDING) {
+	if (atomic_inc_return(&priv->wmm_tx_pending[index]) >= MAX_TX_PENDING)
+	{
 		txq = netdev_get_tx_queue(priv->netdev, index);
-		if (!netif_tx_queue_stopped(txq)) {
+
+		if (!netif_tx_queue_stopped(txq))
+		{
 			netif_tx_stop_queue(txq);
 			mwifiex_dbg(priv->adapter, DATA,
-				    "stop queue: %d\n", index);
+						"stop queue: %d\n", index);
 		}
 	}
 
-	if (mwifiex_bypass_tx_queue(priv, skb)) {
+	if (mwifiex_bypass_tx_queue(priv, skb))
+	{
 		atomic_inc(&priv->adapter->tx_pending);
 		atomic_inc(&priv->adapter->bypass_tx_pending);
 		mwifiex_wmm_add_buf_bypass_txqueue(priv, skb);
-	 } else {
+	}
+	else
+	{
 		atomic_inc(&priv->adapter->tx_pending);
 		mwifiex_wmm_add_buf_txqueue(priv, skb);
-	 }
+	}
 
 	mwifiex_queue_main_work(priv->adapter);
 
@@ -810,22 +1006,25 @@ int mwifiex_queue_tx_pkt(struct mwifiex_private *priv, struct sk_buff *skb)
 
 struct sk_buff *
 mwifiex_clone_skb_for_tx_status(struct mwifiex_private *priv,
-				struct sk_buff *skb, u8 flag, u64 *cookie)
+								struct sk_buff *skb, u8 flag, u64 *cookie)
 {
 	struct sk_buff *orig_skb = skb;
 	struct mwifiex_txinfo *tx_info, *orig_tx_info;
 
 	skb = skb_clone(skb, GFP_ATOMIC);
-	if (skb) {
+
+	if (skb)
+	{
 		unsigned long flags;
 		int id;
 
 		spin_lock_irqsave(&priv->ack_status_lock, flags);
 		id = idr_alloc(&priv->ack_status_frames, orig_skb,
-			       1, 0x10, GFP_ATOMIC);
+					   1, 0x10, GFP_ATOMIC);
 		spin_unlock_irqrestore(&priv->ack_status_lock, flags);
 
-		if (id >= 0) {
+		if (id >= 0)
+		{
 			tx_info = MWIFIEX_SKB_TXCB(skb);
 			tx_info->ack_frame_id = id;
 			tx_info->flags |= flag;
@@ -834,15 +1033,23 @@ mwifiex_clone_skb_for_tx_status(struct mwifiex_private *priv,
 			orig_tx_info->flags |= flag;
 
 			if (flag == MWIFIEX_BUF_FLAG_ACTION_TX_STATUS && cookie)
+			{
 				orig_tx_info->cookie = *cookie;
+			}
 
-		} else if (skb_shared(skb)) {
+		}
+		else if (skb_shared(skb))
+		{
 			kfree_skb(orig_skb);
-		} else {
+		}
+		else
+		{
 			kfree_skb(skb);
 			skb = orig_skb;
 		}
-	} else {
+	}
+	else
+	{
 		/* couldn't clone -- lose tx status ... */
 		skb = orig_skb;
 	}
@@ -862,40 +1069,48 @@ mwifiex_hard_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	bool multicast;
 
 	mwifiex_dbg(priv->adapter, DATA,
-		    "data: %lu BSS(%d-%d): Data <= kernel\n",
-		    jiffies, priv->bss_type, priv->bss_num);
+				"data: %lu BSS(%d-%d): Data <= kernel\n",
+				jiffies, priv->bss_type, priv->bss_num);
 
-	if (priv->adapter->surprise_removed) {
+	if (priv->adapter->surprise_removed)
+	{
 		kfree_skb(skb);
 		priv->stats.tx_dropped++;
 		return 0;
 	}
-	if (!skb->len || (skb->len > ETH_FRAME_LEN)) {
+
+	if (!skb->len || (skb->len > ETH_FRAME_LEN))
+	{
 		mwifiex_dbg(priv->adapter, ERROR,
-			    "Tx: bad skb len %d\n", skb->len);
+					"Tx: bad skb len %d\n", skb->len);
 		kfree_skb(skb);
 		priv->stats.tx_dropped++;
 		return 0;
 	}
-	if (skb_headroom(skb) < MWIFIEX_MIN_DATA_HEADER_LEN) {
+
+	if (skb_headroom(skb) < MWIFIEX_MIN_DATA_HEADER_LEN)
+	{
 		mwifiex_dbg(priv->adapter, DATA,
-			    "data: Tx: insufficient skb headroom %d\n",
-			    skb_headroom(skb));
+					"data: Tx: insufficient skb headroom %d\n",
+					skb_headroom(skb));
 		/* Insufficient skb headroom - allocate a new skb */
 		new_skb =
 			skb_realloc_headroom(skb, MWIFIEX_MIN_DATA_HEADER_LEN);
-		if (unlikely(!new_skb)) {
+
+		if (unlikely(!new_skb))
+		{
 			mwifiex_dbg(priv->adapter, ERROR,
-				    "Tx: cannot alloca new_skb\n");
+						"Tx: cannot alloca new_skb\n");
 			kfree_skb(skb);
 			priv->stats.tx_dropped++;
 			return 0;
 		}
+
 		kfree_skb(skb);
 		skb = new_skb;
 		mwifiex_dbg(priv->adapter, INFO,
-			    "info: new skb headroomd %d\n",
-			    skb_headroom(skb));
+					"info: new skb headroomd %d\n",
+					skb_headroom(skb));
 	}
 
 	tx_info = MWIFIEX_SKB_TXCB(skb);
@@ -907,11 +1122,11 @@ mwifiex_hard_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	multicast = is_multicast_ether_addr(skb->data);
 
 	if (unlikely(!multicast && skb->sk &&
-		     skb_shinfo(skb)->tx_flags & SKBTX_WIFI_STATUS &&
-		     priv->adapter->fw_api_ver == MWIFIEX_FW_V15))
+				 skb_shinfo(skb)->tx_flags & SKBTX_WIFI_STATUS &&
+				 priv->adapter->fw_api_ver == MWIFIEX_FW_V15))
 		skb = mwifiex_clone_skb_for_tx_status(priv,
-						      skb,
-					MWIFIEX_BUF_FLAG_EAPOL_TX_STATUS, NULL);
+											  skb,
+											  MWIFIEX_BUF_FLAG_EAPOL_TX_STATUS, NULL);
 
 	/* Record the current time the packet was queued; used to
 	 * determine the amount of time the packet was queued in
@@ -923,10 +1138,13 @@ mwifiex_hard_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	__net_timestamp(skb);
 
 	if (ISSUPP_TDLS_ENABLED(priv->adapter->fw_cap_info) &&
-	    priv->bss_type == MWIFIEX_BSS_TYPE_STA &&
-	    !ether_addr_equal_unaligned(priv->cfg_bssid, skb->data)) {
+		priv->bss_type == MWIFIEX_BSS_TYPE_STA &&
+		!ether_addr_equal_unaligned(priv->cfg_bssid, skb->data))
+	{
 		if (priv->adapter->auto_tdls && priv->check_tdls_tx)
+		{
 			mwifiex_tdls_check_tx(priv, skb);
+		}
 	}
 
 	mwifiex_queue_tx_pkt(priv, skb);
@@ -948,13 +1166,15 @@ mwifiex_set_mac_address(struct net_device *dev, void *addr)
 
 	/* Send request to firmware */
 	ret = mwifiex_send_cmd(priv, HostCmd_CMD_802_11_MAC_ADDRESS,
-			       HostCmd_ACT_GEN_SET, 0, NULL, true);
+						   HostCmd_ACT_GEN_SET, 0, NULL, true);
 
 	if (!ret)
+	{
 		memcpy(priv->netdev->dev_addr, priv->curr_addr, ETH_ALEN);
+	}
 	else
 		mwifiex_dbg(priv->adapter, ERROR,
-			    "set mac address failed: ret=%d\n", ret);
+					"set mac address failed: ret=%d\n", ret);
 
 	memcpy(dev->dev_addr, priv->curr_addr, ETH_ALEN);
 
@@ -969,16 +1189,22 @@ static void mwifiex_set_multicast_list(struct net_device *dev)
 	struct mwifiex_private *priv = mwifiex_netdev_get_priv(dev);
 	struct mwifiex_multicast_list mcast_list;
 
-	if (dev->flags & IFF_PROMISC) {
+	if (dev->flags & IFF_PROMISC)
+	{
 		mcast_list.mode = MWIFIEX_PROMISC_MODE;
-	} else if (dev->flags & IFF_ALLMULTI ||
-		   netdev_mc_count(dev) > MWIFIEX_MAX_MULTICAST_LIST_SIZE) {
+	}
+	else if (dev->flags & IFF_ALLMULTI ||
+			 netdev_mc_count(dev) > MWIFIEX_MAX_MULTICAST_LIST_SIZE)
+	{
 		mcast_list.mode = MWIFIEX_ALL_MULTI_MODE;
-	} else {
+	}
+	else
+	{
 		mcast_list.mode = MWIFIEX_MULTICAST_MODE;
 		mcast_list.num_multicast_addr =
 			mwifiex_copy_mcast_addr(&mcast_list, dev);
 	}
+
 	mwifiex_request_set_multicast_list(priv, &mcast_list);
 }
 
@@ -993,16 +1219,17 @@ mwifiex_tx_timeout(struct net_device *dev)
 	priv->num_tx_timeout++;
 	priv->tx_timeout_cnt++;
 	mwifiex_dbg(priv->adapter, ERROR,
-		    "%lu : Tx timeout(#%d), bss_type-num = %d-%d\n",
-		    jiffies, priv->tx_timeout_cnt, priv->bss_type,
-		    priv->bss_num);
+				"%lu : Tx timeout(#%d), bss_type-num = %d-%d\n",
+				jiffies, priv->tx_timeout_cnt, priv->bss_type,
+				priv->bss_num);
 	mwifiex_set_trans_start(dev);
 
 	if (priv->tx_timeout_cnt > TX_TIMEOUT_THRESHOLD &&
-	    priv->adapter->if_ops.card_reset) {
+		priv->adapter->if_ops.card_reset)
+	{
 		mwifiex_dbg(priv->adapter, ERROR,
-			    "tx_timeout_cnt exceeds threshold.\t"
-			    "Triggering card reset!\n");
+					"tx_timeout_cnt exceeds threshold.\t"
+					"Triggering card reset!\n");
 		priv->adapter->if_ops.card_reset(priv->adapter);
 	}
 }
@@ -1015,8 +1242,11 @@ void mwifiex_multi_chan_resync(struct mwifiex_adapter *adapter)
 	int i, ret;
 
 	card->mc_resync_flag = true;
-	for (i = 0; i < MWIFIEX_TX_DATA_PORT; i++) {
-		if (atomic_read(&card->port[i].tx_data_urb_pending)) {
+
+	for (i = 0; i < MWIFIEX_TX_DATA_PORT; i++)
+	{
+		if (atomic_read(&card->port[i].tx_data_urb_pending))
+		{
 			mwifiex_dbg(adapter, WARN, "pending data urb in sys\n");
 			return;
 		}
@@ -1026,10 +1256,11 @@ void mwifiex_multi_chan_resync(struct mwifiex_adapter *adapter)
 	tx_buf_size = 0xffff;
 	priv = mwifiex_get_priv(adapter, MWIFIEX_BSS_ROLE_ANY);
 	ret = mwifiex_send_cmd(priv, HostCmd_CMD_RECONFIGURE_TX_BUFF,
-			       HostCmd_ACT_GEN_SET, 0, &tx_buf_size, false);
+						   HostCmd_ACT_GEN_SET, 0, &tx_buf_size, false);
+
 	if (ret)
 		mwifiex_dbg(adapter, ERROR,
-			    "send reconfig tx buf size cmd err\n");
+					"send reconfig tx buf size cmd err\n");
 }
 EXPORT_SYMBOL_GPL(mwifiex_multi_chan_resync);
 
@@ -1044,7 +1275,8 @@ void mwifiex_drv_info_dump(struct mwifiex_adapter *adapter)
 	struct netdev_queue *txq;
 	struct mwifiex_debug_info *debug_info;
 
-	if (adapter->drv_info_dump) {
+	if (adapter->drv_info_dump)
+	{
 		vfree(adapter->drv_info_dump);
 		adapter->drv_info_dump = NULL;
 		adapter->drv_info_size = 0;
@@ -1055,89 +1287,112 @@ void mwifiex_drv_info_dump(struct mwifiex_adapter *adapter)
 	adapter->drv_info_dump = vzalloc(MWIFIEX_DRV_INFO_SIZE_MAX);
 
 	if (!adapter->drv_info_dump)
+	{
 		return;
+	}
 
 	p = (char *)(adapter->drv_info_dump);
 	p += sprintf(p, "driver_name = " "\"mwifiex\"\n");
 
 	mwifiex_drv_get_driver_version(adapter, drv_version,
-				       sizeof(drv_version) - 1);
+								   sizeof(drv_version) - 1);
 	p += sprintf(p, "driver_version = %s\n", drv_version);
 
-	if (adapter->iface_type == MWIFIEX_USB) {
+	if (adapter->iface_type == MWIFIEX_USB)
+	{
 		cardp = (struct usb_card_rec *)adapter->card;
 		p += sprintf(p, "tx_cmd_urb_pending = %d\n",
-			     atomic_read(&cardp->tx_cmd_urb_pending));
+					 atomic_read(&cardp->tx_cmd_urb_pending));
 		p += sprintf(p, "tx_data_urb_pending_port_0 = %d\n",
-			     atomic_read(&cardp->port[0].tx_data_urb_pending));
+					 atomic_read(&cardp->port[0].tx_data_urb_pending));
 		p += sprintf(p, "tx_data_urb_pending_port_1 = %d\n",
-			     atomic_read(&cardp->port[1].tx_data_urb_pending));
+					 atomic_read(&cardp->port[1].tx_data_urb_pending));
 		p += sprintf(p, "rx_cmd_urb_pending = %d\n",
-			     atomic_read(&cardp->rx_cmd_urb_pending));
+					 atomic_read(&cardp->rx_cmd_urb_pending));
 		p += sprintf(p, "rx_data_urb_pending = %d\n",
-			     atomic_read(&cardp->rx_data_urb_pending));
+					 atomic_read(&cardp->rx_data_urb_pending));
 	}
 
 	p += sprintf(p, "tx_pending = %d\n",
-		     atomic_read(&adapter->tx_pending));
+				 atomic_read(&adapter->tx_pending));
 	p += sprintf(p, "rx_pending = %d\n",
-		     atomic_read(&adapter->rx_pending));
+				 atomic_read(&adapter->rx_pending));
 
-	if (adapter->iface_type == MWIFIEX_SDIO) {
+	if (adapter->iface_type == MWIFIEX_SDIO)
+	{
 		sdio_card = (struct sdio_mmc_card *)adapter->card;
 		p += sprintf(p, "\nmp_rd_bitmap=0x%x curr_rd_port=0x%x\n",
-			     sdio_card->mp_rd_bitmap, sdio_card->curr_rd_port);
+					 sdio_card->mp_rd_bitmap, sdio_card->curr_rd_port);
 		p += sprintf(p, "mp_wr_bitmap=0x%x curr_wr_port=0x%x\n",
-			     sdio_card->mp_wr_bitmap, sdio_card->curr_wr_port);
+					 sdio_card->mp_wr_bitmap, sdio_card->curr_wr_port);
 	}
 
-	for (i = 0; i < adapter->priv_num; i++) {
+	for (i = 0; i < adapter->priv_num; i++)
+	{
 		if (!adapter->priv[i] || !adapter->priv[i]->netdev)
+		{
 			continue;
+		}
+
 		priv = adapter->priv[i];
 		p += sprintf(p, "\n[interface  : \"%s\"]\n",
-			     priv->netdev->name);
+					 priv->netdev->name);
 		p += sprintf(p, "wmm_tx_pending[0] = %d\n",
-			     atomic_read(&priv->wmm_tx_pending[0]));
+					 atomic_read(&priv->wmm_tx_pending[0]));
 		p += sprintf(p, "wmm_tx_pending[1] = %d\n",
-			     atomic_read(&priv->wmm_tx_pending[1]));
+					 atomic_read(&priv->wmm_tx_pending[1]));
 		p += sprintf(p, "wmm_tx_pending[2] = %d\n",
-			     atomic_read(&priv->wmm_tx_pending[2]));
+					 atomic_read(&priv->wmm_tx_pending[2]));
 		p += sprintf(p, "wmm_tx_pending[3] = %d\n",
-			     atomic_read(&priv->wmm_tx_pending[3]));
+					 atomic_read(&priv->wmm_tx_pending[3]));
 		p += sprintf(p, "media_state=\"%s\"\n", !priv->media_connected ?
-			     "Disconnected" : "Connected");
+					 "Disconnected" : "Connected");
 		p += sprintf(p, "carrier %s\n", (netif_carrier_ok(priv->netdev)
-			     ? "on" : "off"));
-		for (idx = 0; idx < priv->netdev->num_tx_queues; idx++) {
+										 ? "on" : "off"));
+
+		for (idx = 0; idx < priv->netdev->num_tx_queues; idx++)
+		{
 			txq = netdev_get_tx_queue(priv->netdev, idx);
 			p += sprintf(p, "tx queue %d:%s  ", idx,
-				     netif_tx_queue_stopped(txq) ?
-				     "stopped" : "started");
+						 netif_tx_queue_stopped(txq) ?
+						 "stopped" : "started");
 		}
+
 		p += sprintf(p, "\n%s: num_tx_timeout = %d\n",
-			     priv->netdev->name, priv->num_tx_timeout);
+					 priv->netdev->name, priv->num_tx_timeout);
 	}
 
 	if (adapter->iface_type == MWIFIEX_SDIO ||
-	    adapter->iface_type == MWIFIEX_PCIE) {
+		adapter->iface_type == MWIFIEX_PCIE)
+	{
 		p += sprintf(p, "\n=== %s register dump===\n",
-			     adapter->iface_type == MWIFIEX_SDIO ?
-							"SDIO" : "PCIE");
+					 adapter->iface_type == MWIFIEX_SDIO ?
+					 "SDIO" : "PCIE");
+
 		if (adapter->if_ops.reg_dump)
+		{
 			p += adapter->if_ops.reg_dump(adapter, p);
+		}
 	}
+
 	p += sprintf(p, "\n=== more debug information\n");
 	debug_info = kzalloc(sizeof(*debug_info), GFP_KERNEL);
-	if (debug_info) {
-		for (i = 0; i < adapter->priv_num; i++) {
+
+	if (debug_info)
+	{
+		for (i = 0; i < adapter->priv_num; i++)
+		{
 			if (!adapter->priv[i] || !adapter->priv[i]->netdev)
+			{
 				continue;
+			}
+
 			priv = adapter->priv[i];
 			mwifiex_get_debug_info(priv, debug_info);
 			p += mwifiex_debug_info_to_buffer(priv, p, debug_info);
 			break;
 		}
+
 		kfree(debug_info);
 	}
 
@@ -1152,25 +1407,30 @@ void mwifiex_upload_device_dump(struct mwifiex_adapter *adapter)
 	u32 dump_len;
 
 	dump_len = (strlen("========Start dump driverinfo========\n") +
-		       adapter->drv_info_size +
-		       strlen("\n========End dump========\n"));
+				adapter->drv_info_size +
+				strlen("\n========End dump========\n"));
 
-	for (idx = 0; idx < adapter->num_mem_types; idx++) {
+	for (idx = 0; idx < adapter->num_mem_types; idx++)
+	{
 		struct memory_type_mapping *entry =
 				&adapter->mem_type_mapping_tbl[idx];
 
-		if (entry->mem_ptr) {
+		if (entry->mem_ptr)
+		{
 			dump_len += (strlen("========Start dump ") +
-					strlen(entry->mem_name) +
-					strlen("========\n") +
-					(entry->mem_size + 1) +
-					strlen("\n========End dump========\n"));
+						 strlen(entry->mem_name) +
+						 strlen("========\n") +
+						 (entry->mem_size + 1) +
+						 strlen("\n========End dump========\n"));
 		}
 	}
 
 	dump_data = vzalloc(dump_len + 1);
+
 	if (!dump_data)
+	{
 		goto done;
+	}
 
 	fw_dump_ptr = dump_data;
 
@@ -1178,7 +1438,7 @@ void mwifiex_upload_device_dump(struct mwifiex_adapter *adapter)
 	 * be used to split all the memory data to multiple files
 	 */
 	mwifiex_dbg(adapter, MSG,
-		    "== mwifiex dump information to /sys/class/devcoredump start");
+				"== mwifiex dump information to /sys/class/devcoredump start");
 
 	strcpy(fw_dump_ptr, "========Start dump driverinfo========\n");
 	fw_dump_ptr += strlen("========Start dump driverinfo========\n");
@@ -1187,11 +1447,13 @@ void mwifiex_upload_device_dump(struct mwifiex_adapter *adapter)
 	strcpy(fw_dump_ptr, "\n========End dump========\n");
 	fw_dump_ptr += strlen("\n========End dump========\n");
 
-	for (idx = 0; idx < adapter->num_mem_types; idx++) {
+	for (idx = 0; idx < adapter->num_mem_types; idx++)
+	{
 		struct memory_type_mapping *entry =
-					&adapter->mem_type_mapping_tbl[idx];
+				&adapter->mem_type_mapping_tbl[idx];
 
-		if (entry->mem_ptr) {
+		if (entry->mem_ptr)
+		{
 			strcpy(fw_dump_ptr, "========Start dump ");
 			fw_dump_ptr += strlen("========Start dump ");
 
@@ -1214,21 +1476,26 @@ void mwifiex_upload_device_dump(struct mwifiex_adapter *adapter)
 	 */
 	dev_coredumpv(adapter->dev, dump_data, dump_len, GFP_KERNEL);
 	mwifiex_dbg(adapter, MSG,
-		    "== mwifiex dump information to /sys/class/devcoredump end");
+				"== mwifiex dump information to /sys/class/devcoredump end");
 
 done:
-	for (idx = 0; idx < adapter->num_mem_types; idx++) {
-		struct memory_type_mapping *entry =
-			&adapter->mem_type_mapping_tbl[idx];
 
-		if (entry->mem_ptr) {
+	for (idx = 0; idx < adapter->num_mem_types; idx++)
+	{
+		struct memory_type_mapping *entry =
+				&adapter->mem_type_mapping_tbl[idx];
+
+		if (entry->mem_ptr)
+		{
 			vfree(entry->mem_ptr);
 			entry->mem_ptr = NULL;
 		}
+
 		entry->mem_size = 0;
 	}
 
-	if (adapter->drv_info_dump) {
+	if (adapter->drv_info_dump)
+	{
 		vfree(adapter->drv_info_dump);
 		adapter->drv_info_dump = NULL;
 		adapter->drv_info_size = 0;
@@ -1248,14 +1515,15 @@ static struct net_device_stats *mwifiex_get_stats(struct net_device *dev)
 
 static u16
 mwifiex_netdev_select_wmm_queue(struct net_device *dev, struct sk_buff *skb,
-				void *accel_priv, select_queue_fallback_t fallback)
+								void *accel_priv, select_queue_fallback_t fallback)
 {
 	skb->priority = cfg80211_classify8021d(skb, NULL);
 	return mwifiex_1d_to_wmm_queue[skb->priority];
 }
 
 /* Network device handlers */
-static const struct net_device_ops mwifiex_netdev_ops = {
+static const struct net_device_ops mwifiex_netdev_ops =
+{
 	.ndo_open = mwifiex_open,
 	.ndo_stop = mwifiex_close,
 	.ndo_start_xmit = mwifiex_hard_start_xmit,
@@ -1288,7 +1556,7 @@ static const struct net_device_ops mwifiex_netdev_ops = {
  * In addition, the CFG80211 work queue is also created.
  */
 void mwifiex_init_priv_params(struct mwifiex_private *priv,
-			      struct net_device *dev)
+							  struct net_device *dev)
 {
 	dev->netdev_ops = &mwifiex_netdev_ops;
 	dev->destructor = free_netdev;
@@ -1296,7 +1564,7 @@ void mwifiex_init_priv_params(struct mwifiex_private *priv,
 	priv->current_key_index = 0;
 	priv->media_connected = false;
 	memset(priv->mgmt_ie, 0,
-	       sizeof(struct mwifiex_ie) * MAX_MGMT_IE_INDEX);
+		   sizeof(struct mwifiex_ie) * MAX_MGMT_IE_INDEX);
 	priv->beacon_idx = MWIFIEX_AUTO_IDX_MASK;
 	priv->proberesp_idx = MWIFIEX_AUTO_IDX_MASK;
 	priv->assocresp_idx = MWIFIEX_AUTO_IDX_MASK;
@@ -1306,10 +1574,14 @@ void mwifiex_init_priv_params(struct mwifiex_private *priv,
 	memcpy(dev->dev_addr, priv->curr_addr, ETH_ALEN);
 
 	if (GET_BSS_ROLE(priv) == MWIFIEX_BSS_ROLE_STA ||
-	    GET_BSS_ROLE(priv) == MWIFIEX_BSS_ROLE_UAP) {
+		GET_BSS_ROLE(priv) == MWIFIEX_BSS_ROLE_UAP)
+	{
 		priv->hist_data = kmalloc(sizeof(*priv->hist_data), GFP_KERNEL);
+
 		if (priv->hist_data)
+		{
 			mwifiex_hist_data_reset(priv);
+		}
 	}
 }
 
@@ -1339,7 +1611,10 @@ static void mwifiex_rx_work_queue(struct work_struct *work)
 		container_of(work, struct mwifiex_adapter, rx_work);
 
 	if (adapter->surprise_removed)
+	{
 		return;
+	}
+
 	mwifiex_process_rx(adapter);
 }
 
@@ -1355,7 +1630,10 @@ static void mwifiex_main_work_queue(struct work_struct *work)
 		container_of(work, struct mwifiex_adapter, main_work);
 
 	if (adapter->surprise_removed)
+	{
 		return;
+	}
+
 	mwifiex_main_process(adapter);
 }
 
@@ -1370,10 +1648,14 @@ mwifiex_shutdown_sw(struct mwifiex_adapter *adapter, struct semaphore *sem)
 	int i;
 
 	if (!adapter)
+	{
 		goto exit_return;
+	}
 
 	if (down_interruptible(sem))
+	{
 		goto exit_sem_err;
+	}
 
 	priv = mwifiex_get_priv(adapter, MWIFIEX_BSS_ROLE_ANY);
 	mwifiex_deauthenticate(priv, NULL);
@@ -1382,18 +1664,27 @@ mwifiex_shutdown_sw(struct mwifiex_adapter *adapter, struct semaphore *sem)
 	 * below.
 	 */
 	if (adapter->if_ops.disable_int)
+	{
 		adapter->if_ops.disable_int(adapter);
+	}
 
 	adapter->surprise_removed = true;
 	mwifiex_terminate_workqueue(adapter);
 
 	/* Stop data */
-	for (i = 0; i < adapter->priv_num; i++) {
+	for (i = 0; i < adapter->priv_num; i++)
+	{
 		priv = adapter->priv[i];
-		if (priv && priv->netdev) {
+
+		if (priv && priv->netdev)
+		{
 			mwifiex_stop_net_dev_queue(priv->netdev, adapter);
+
 			if (netif_carrier_ok(priv->netdev))
+			{
 				netif_carrier_off(priv->netdev);
+			}
+
 			netif_device_detach(priv->netdev);
 		}
 	}
@@ -1403,30 +1694,44 @@ mwifiex_shutdown_sw(struct mwifiex_adapter *adapter, struct semaphore *sem)
 
 	if (mwifiex_shutdown_drv(adapter) == -EINPROGRESS)
 		wait_event_interruptible(adapter->init_wait_q,
-					 adapter->init_wait_q_woken);
-	if (adapter->if_ops.down_dev)
-		adapter->if_ops.down_dev(adapter);
+								 adapter->init_wait_q_woken);
 
-	mwifiex_dbg(adapter, CMD, "cmd: mwifiex_shutdown_drv done\n");
-	if (atomic_read(&adapter->rx_pending) ||
-	    atomic_read(&adapter->tx_pending) ||
-	    atomic_read(&adapter->cmd_pending)) {
-		mwifiex_dbg(adapter, ERROR,
-			    "rx_pending=%d, tx_pending=%d,\t"
-			    "cmd_pending=%d\n",
-			    atomic_read(&adapter->rx_pending),
-			    atomic_read(&adapter->tx_pending),
-			    atomic_read(&adapter->cmd_pending));
+	if (adapter->if_ops.down_dev)
+	{
+		adapter->if_ops.down_dev(adapter);
 	}
 
-	for (i = 0; i < adapter->priv_num; i++) {
+	mwifiex_dbg(adapter, CMD, "cmd: mwifiex_shutdown_drv done\n");
+
+	if (atomic_read(&adapter->rx_pending) ||
+		atomic_read(&adapter->tx_pending) ||
+		atomic_read(&adapter->cmd_pending))
+	{
+		mwifiex_dbg(adapter, ERROR,
+					"rx_pending=%d, tx_pending=%d,\t"
+					"cmd_pending=%d\n",
+					atomic_read(&adapter->rx_pending),
+					atomic_read(&adapter->tx_pending),
+					atomic_read(&adapter->cmd_pending));
+	}
+
+	for (i = 0; i < adapter->priv_num; i++)
+	{
 		priv = adapter->priv[i];
+
 		if (!priv)
+		{
 			continue;
+		}
+
 		rtnl_lock();
+
 		if (priv->netdev &&
-		    priv->wdev.iftype != NL80211_IFTYPE_UNSPECIFIED)
+			priv->wdev.iftype != NL80211_IFTYPE_UNSPECIFIED)
+		{
 			mwifiex_del_virtual_intf(adapter->wiphy, &priv->wdev);
+		}
+
 		rtnl_unlock();
 	}
 
@@ -1442,17 +1747,22 @@ exit_return:
  */
 static int
 mwifiex_reinit_sw(struct mwifiex_adapter *adapter, struct semaphore *sem,
-		  struct mwifiex_if_ops *if_ops, u8 iface_type)
+				  struct mwifiex_if_ops *if_ops, u8 iface_type)
 {
 	char fw_name[32];
 	struct pcie_service_card *card = adapter->card;
 
 	if (down_interruptible(sem))
+	{
 		goto exit_sem_err;
+	}
 
 	mwifiex_init_lock_list(adapter);
+
 	if (adapter->if_ops.up_dev)
+	{
 		adapter->if_ops.up_dev(adapter);
+	}
 
 	adapter->iface_type = iface_type;
 	adapter->card_sem = sem;
@@ -1468,23 +1778,33 @@ mwifiex_reinit_sw(struct mwifiex_adapter *adapter, struct semaphore *sem,
 	adapter->scan_wait_q_woken = false;
 
 	if ((num_possible_cpus() > 1) || adapter->iface_type == MWIFIEX_USB)
+	{
 		adapter->rx_work_enabled = true;
+	}
 
 	adapter->workqueue =
 		alloc_workqueue("MWIFIEX_WORK_QUEUE",
-				WQ_HIGHPRI | WQ_MEM_RECLAIM | WQ_UNBOUND, 1);
+						WQ_HIGHPRI | WQ_MEM_RECLAIM | WQ_UNBOUND, 1);
+
 	if (!adapter->workqueue)
+	{
 		goto err_kmalloc;
+	}
 
 	INIT_WORK(&adapter->main_work, mwifiex_main_work_queue);
 
-	if (adapter->rx_work_enabled) {
+	if (adapter->rx_work_enabled)
+	{
 		adapter->rx_workqueue = alloc_workqueue("MWIFIEX_RX_WORK_QUEUE",
-							WQ_HIGHPRI |
-							WQ_MEM_RECLAIM |
-							WQ_UNBOUND, 1);
+												WQ_HIGHPRI |
+												WQ_MEM_RECLAIM |
+												WQ_UNBOUND, 1);
+
 		if (!adapter->rx_workqueue)
+		{
 			goto err_kmalloc;
+		}
+
 		INIT_WORK(&adapter->rx_work, mwifiex_rx_work_queue);
 	}
 
@@ -1498,12 +1818,15 @@ mwifiex_reinit_sw(struct mwifiex_adapter *adapter, struct semaphore *sem,
 
 	adapter->tx_buf_size = card->pcie.tx_buf_size;
 	adapter->ext_scan = card->pcie.can_ext_scan;
-	if (mwifiex_init_hw_fw(adapter, false)) {
+
+	if (mwifiex_init_hw_fw(adapter, false))
+	{
 		strcpy(adapter->fw_name, fw_name);
 		mwifiex_dbg(adapter, ERROR,
-			    "%s: firmware init failed\n", __func__);
+					"%s: firmware init failed\n", __func__);
 		goto err_init_fw;
 	}
+
 	strcpy(adapter->fw_name, fw_name);
 	mwifiex_dbg(adapter, INFO, "%s, successful\n", __func__);
 	up(sem);
@@ -1511,16 +1834,21 @@ mwifiex_reinit_sw(struct mwifiex_adapter *adapter, struct semaphore *sem,
 
 err_init_fw:
 	mwifiex_dbg(adapter, ERROR, "info: %s: unregister device\n", __func__);
+
 	if (adapter->if_ops.unregister_dev)
+	{
 		adapter->if_ops.unregister_dev(adapter);
-	if (adapter->hw_status == MWIFIEX_HW_STATUS_READY) {
+	}
+
+	if (adapter->hw_status == MWIFIEX_HW_STATUS_READY)
+	{
 		mwifiex_dbg(adapter, ERROR,
-			    "info: %s: shutdown mwifiex\n", __func__);
+					"info: %s: shutdown mwifiex\n", __func__);
 		adapter->init_wait_q_woken = false;
 
 		if (mwifiex_shutdown_drv(adapter) == -EINPROGRESS)
 			wait_event_interruptible(adapter->init_wait_q,
-						 adapter->init_wait_q_woken);
+									 adapter->init_wait_q_woken);
 	}
 
 err_kmalloc:
@@ -1541,12 +1869,15 @@ void mwifiex_do_flr(struct mwifiex_adapter *adapter, bool prepare)
 {
 	struct mwifiex_if_ops if_ops;
 
-	if (!prepare) {
+	if (!prepare)
+	{
 		mwifiex_reinit_sw(adapter, adapter->card_sem, &if_ops,
-				  adapter->iface_type);
-	} else {
+						  adapter->iface_type);
+	}
+	else
+	{
 		memcpy(&if_ops, &adapter->if_ops,
-		       sizeof(struct mwifiex_if_ops));
+			   sizeof(struct mwifiex_if_ops));
 		mwifiex_shutdown_sw(adapter, adapter->card_sem);
 	}
 }
@@ -1567,14 +1898,17 @@ EXPORT_SYMBOL_GPL(mwifiex_do_flr);
  */
 int
 mwifiex_add_card(void *card, struct semaphore *sem,
-		 struct mwifiex_if_ops *if_ops, u8 iface_type)
+				 struct mwifiex_if_ops *if_ops, u8 iface_type)
 {
 	struct mwifiex_adapter *adapter;
 
 	if (down_interruptible(sem))
+	{
 		goto exit_sem_err;
+	}
 
-	if (mwifiex_register(card, if_ops, (void **)&adapter)) {
+	if (mwifiex_register(card, if_ops, (void **)&adapter))
+	{
 		pr_err("%s: software init failed\n", __func__);
 		goto err_init_sw;
 	}
@@ -1592,38 +1926,48 @@ mwifiex_add_card(void *card, struct semaphore *sem,
 	adapter->cmd_wait_q.status = 0;
 	adapter->scan_wait_q_woken = false;
 
-	if ((num_possible_cpus() > 1) || adapter->iface_type == MWIFIEX_USB) {
+	if ((num_possible_cpus() > 1) || adapter->iface_type == MWIFIEX_USB)
+	{
 		adapter->rx_work_enabled = true;
 		pr_notice("rx work enabled, cpus %d\n", num_possible_cpus());
 	}
 
 	adapter->workqueue =
 		alloc_workqueue("MWIFIEX_WORK_QUEUE",
-				WQ_HIGHPRI | WQ_MEM_RECLAIM | WQ_UNBOUND, 1);
+						WQ_HIGHPRI | WQ_MEM_RECLAIM | WQ_UNBOUND, 1);
+
 	if (!adapter->workqueue)
+	{
 		goto err_kmalloc;
+	}
 
 	INIT_WORK(&adapter->main_work, mwifiex_main_work_queue);
 
-	if (adapter->rx_work_enabled) {
+	if (adapter->rx_work_enabled)
+	{
 		adapter->rx_workqueue = alloc_workqueue("MWIFIEX_RX_WORK_QUEUE",
-							WQ_HIGHPRI |
-							WQ_MEM_RECLAIM |
-							WQ_UNBOUND, 1);
+												WQ_HIGHPRI |
+												WQ_MEM_RECLAIM |
+												WQ_UNBOUND, 1);
+
 		if (!adapter->rx_workqueue)
+		{
 			goto err_kmalloc;
+		}
 
 		INIT_WORK(&adapter->rx_work, mwifiex_rx_work_queue);
 	}
 
 	/* Register the device. Fill up the private data structure with relevant
 	   information from the card. */
-	if (adapter->if_ops.register_dev(adapter)) {
+	if (adapter->if_ops.register_dev(adapter))
+	{
 		pr_err("%s: failed to register mwifiex device\n", __func__);
 		goto err_registerdev;
 	}
 
-	if (mwifiex_init_hw_fw(adapter, true)) {
+	if (mwifiex_init_hw_fw(adapter, true))
+	{
 		pr_err("%s: firmware init failed\n", __func__);
 		goto err_init_fw;
 	}
@@ -1632,16 +1976,22 @@ mwifiex_add_card(void *card, struct semaphore *sem,
 
 err_init_fw:
 	pr_debug("info: %s: unregister device\n", __func__);
+
 	if (adapter->if_ops.unregister_dev)
+	{
 		adapter->if_ops.unregister_dev(adapter);
-	if (adapter->hw_status == MWIFIEX_HW_STATUS_READY) {
+	}
+
+	if (adapter->hw_status == MWIFIEX_HW_STATUS_READY)
+	{
 		pr_debug("info: %s: shutdown mwifiex\n", __func__);
 		adapter->init_wait_q_woken = false;
 
 		if (mwifiex_shutdown_drv(adapter) == -EINPROGRESS)
 			wait_event_interruptible(adapter->init_wait_q,
-						 adapter->init_wait_q_woken);
+									 adapter->init_wait_q_woken);
 	}
+
 err_registerdev:
 	adapter->surprise_removed = true;
 	mwifiex_terminate_workqueue(adapter);
@@ -1673,60 +2023,82 @@ int mwifiex_remove_card(struct mwifiex_adapter *adapter, struct semaphore *sem)
 	int i;
 
 	if (down_trylock(sem))
+	{
 		goto exit_sem_err;
+	}
 
 	if (!adapter)
+	{
 		goto exit_remove;
+	}
 
 	/* We can no longer handle interrupts once we start doing the teardown
 	 * below. */
 	if (adapter->if_ops.disable_int)
+	{
 		adapter->if_ops.disable_int(adapter);
+	}
 
 	adapter->surprise_removed = true;
 
 	mwifiex_terminate_workqueue(adapter);
 
 	/* Stop data */
-	for (i = 0; i < adapter->priv_num; i++) {
+	for (i = 0; i < adapter->priv_num; i++)
+	{
 		priv = adapter->priv[i];
-		if (priv && priv->netdev) {
+
+		if (priv && priv->netdev)
+		{
 			mwifiex_stop_net_dev_queue(priv->netdev, adapter);
+
 			if (netif_carrier_ok(priv->netdev))
+			{
 				netif_carrier_off(priv->netdev);
+			}
 		}
 	}
 
 	mwifiex_dbg(adapter, CMD,
-		    "cmd: calling mwifiex_shutdown_drv...\n");
+				"cmd: calling mwifiex_shutdown_drv...\n");
 	adapter->init_wait_q_woken = false;
 
 	if (mwifiex_shutdown_drv(adapter) == -EINPROGRESS)
 		wait_event_interruptible(adapter->init_wait_q,
-					 adapter->init_wait_q_woken);
+								 adapter->init_wait_q_woken);
+
 	mwifiex_dbg(adapter, CMD,
-		    "cmd: mwifiex_shutdown_drv done\n");
+				"cmd: mwifiex_shutdown_drv done\n");
+
 	if (atomic_read(&adapter->rx_pending) ||
-	    atomic_read(&adapter->tx_pending) ||
-	    atomic_read(&adapter->cmd_pending)) {
+		atomic_read(&adapter->tx_pending) ||
+		atomic_read(&adapter->cmd_pending))
+	{
 		mwifiex_dbg(adapter, ERROR,
-			    "rx_pending=%d, tx_pending=%d,\t"
-			    "cmd_pending=%d\n",
-			    atomic_read(&adapter->rx_pending),
-			    atomic_read(&adapter->tx_pending),
-			    atomic_read(&adapter->cmd_pending));
+					"rx_pending=%d, tx_pending=%d,\t"
+					"cmd_pending=%d\n",
+					atomic_read(&adapter->rx_pending),
+					atomic_read(&adapter->tx_pending),
+					atomic_read(&adapter->cmd_pending));
 	}
 
-	for (i = 0; i < adapter->priv_num; i++) {
+	for (i = 0; i < adapter->priv_num; i++)
+	{
 		priv = adapter->priv[i];
 
 		if (!priv)
+		{
 			continue;
+		}
 
 		rtnl_lock();
+
 		if (priv->netdev &&
-		    priv->wdev.iftype != NL80211_IFTYPE_UNSPECIFIED)
+			priv->wdev.iftype != NL80211_IFTYPE_UNSPECIFIED)
+		{
 			mwifiex_del_virtual_intf(adapter->wiphy, &priv->wdev);
+		}
+
 		rtnl_unlock();
 	}
 
@@ -1735,12 +2107,16 @@ int mwifiex_remove_card(struct mwifiex_adapter *adapter, struct semaphore *sem)
 
 	/* Unregister device */
 	mwifiex_dbg(adapter, INFO,
-		    "info: unregister device\n");
+				"info: unregister device\n");
+
 	if (adapter->if_ops.unregister_dev)
+	{
 		adapter->if_ops.unregister_dev(adapter);
+	}
+
 	/* Free adapter structure */
 	mwifiex_dbg(adapter, INFO,
-		    "info: free adapter\n");
+				"info: free adapter\n");
 	mwifiex_free_adapter(adapter);
 
 exit_remove:
@@ -1751,13 +2127,15 @@ exit_sem_err:
 EXPORT_SYMBOL_GPL(mwifiex_remove_card);
 
 void _mwifiex_dbg(const struct mwifiex_adapter *adapter, int mask,
-		  const char *fmt, ...)
+				  const char *fmt, ...)
 {
 	struct va_format vaf;
 	va_list args;
 
 	if (!adapter->dev || !(adapter->debug_mask & mask))
+	{
 		return;
+	}
 
 	va_start(args, fmt);
 

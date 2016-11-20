@@ -23,7 +23,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- * 
+ *
  ********************************************************************/
 #ifndef __MSND_CLASSIC_H
 #define __MSND_CLASSIC_H
@@ -167,11 +167,11 @@
 #else
 #  ifndef CONFIG_MSNDCLAS_INIT_FILE
 #    define CONFIG_MSNDCLAS_INIT_FILE				\
-				"/etc/sound/msndinit.bin"
+	"/etc/sound/msndinit.bin"
 #  endif
 #  ifndef CONFIG_MSNDCLAS_PERM_FILE
 #    define CONFIG_MSNDCLAS_PERM_FILE				\
-				"/etc/sound/msndperm.bin"
+	"/etc/sound/msndperm.bin"
 #  endif
 #  define PERMCODEFILE		CONFIG_MSNDCLAS_PERM_FILE
 #  define INITCODEFILE		CONFIG_MSNDCLAS_INIT_FILE

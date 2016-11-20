@@ -24,7 +24,8 @@
 #include "pinctrl-mtk-common.h"
 #include "pinctrl-mtk-mt8127.h"
 
-static const struct mtk_drv_group_desc mt8127_drv_grp[] =  {
+static const struct mtk_drv_group_desc mt8127_drv_grp[] =
+{
 	/* 0E4E8SR 4/8/12/16 */
 	MTK_DRV_GRP(4, 16, 1, 2, 4),
 	/* 0E2E4SR  2/4/6/8 */
@@ -33,7 +34,8 @@ static const struct mtk_drv_group_desc mt8127_drv_grp[] =  {
 	MTK_DRV_GRP(2, 16, 0, 2, 2)
 };
 
-static const struct mtk_pin_drv_grp mt8127_pin_drv[] = {
+static const struct mtk_pin_drv_grp mt8127_pin_drv[] =
+{
 	MTK_PIN_DRV_GRP(0,   0xb00,  0, 1),
 	MTK_PIN_DRV_GRP(1,   0xb00,  0, 1),
 	MTK_PIN_DRV_GRP(2,   0xb00,  0, 1),
@@ -143,7 +145,8 @@ static const struct mtk_pin_drv_grp mt8127_pin_drv[] = {
 	MTK_PIN_DRV_GRP(142, 0xb50,  0, 2),
 };
 
-static const struct mtk_pin_spec_pupd_set_samereg mt8127_spec_pupd[] = {
+static const struct mtk_pin_spec_pupd_set_samereg mt8127_spec_pupd[] =
+{
 	MTK_PIN_PUPD_SPEC_SR(33,  0xd90, 2, 0, 1),	/* KPROW0 */
 	MTK_PIN_PUPD_SPEC_SR(34,  0xd90, 6, 4, 5),	/* KPROW1 */
 	MTK_PIN_PUPD_SPEC_SR(35,  0xd90, 10, 8, 9),	/* KPROW2 */
@@ -181,13 +184,14 @@ static const struct mtk_pin_spec_pupd_set_samereg mt8127_spec_pupd[] = {
 };
 
 static int mt8127_spec_pull_set(struct regmap *regmap, unsigned int pin,
-		unsigned char align, bool isup, unsigned int r1r0)
+								unsigned char align, bool isup, unsigned int r1r0)
 {
 	return mtk_pctrl_spec_pull_set_samereg(regmap, mt8127_spec_pupd,
-		ARRAY_SIZE(mt8127_spec_pupd), pin, align, isup, r1r0);
+										   ARRAY_SIZE(mt8127_spec_pupd), pin, align, isup, r1r0);
 }
 
-static const struct mtk_pin_ies_smt_set mt8127_ies_set[] = {
+static const struct mtk_pin_ies_smt_set mt8127_ies_set[] =
+{
 	MTK_PIN_IES_SMT_SPEC(0, 9, 0x900, 0),
 	MTK_PIN_IES_SMT_SPEC(10, 13, 0x900, 1),
 	MTK_PIN_IES_SMT_SPEC(14, 28, 0x900, 2),
@@ -219,7 +223,8 @@ static const struct mtk_pin_ies_smt_set mt8127_ies_set[] = {
 	MTK_PIN_IES_SMT_SPEC(142, 142, 0x900, 13),
 };
 
-static const struct mtk_pin_ies_smt_set mt8127_smt_set[] = {
+static const struct mtk_pin_ies_smt_set mt8127_smt_set[] =
+{
 	MTK_PIN_IES_SMT_SPEC(0, 9, 0x920, 0),
 	MTK_PIN_IES_SMT_SPEC(10, 13, 0x920, 1),
 	MTK_PIN_IES_SMT_SPEC(14, 28, 0x920, 2),
@@ -268,19 +273,21 @@ static const struct mtk_pin_ies_smt_set mt8127_smt_set[] = {
 };
 
 static int mt8127_ies_smt_set(struct regmap *regmap, unsigned int pin,
-		unsigned char align, int value, enum pin_config_param arg)
+							  unsigned char align, int value, enum pin_config_param arg)
 {
 	if (arg == PIN_CONFIG_INPUT_ENABLE)
 		return mtk_pconf_spec_set_ies_smt_range(regmap, mt8127_ies_set,
-			ARRAY_SIZE(mt8127_ies_set), pin, align, value);
+												ARRAY_SIZE(mt8127_ies_set), pin, align, value);
 	else if (arg == PIN_CONFIG_INPUT_SCHMITT_ENABLE)
 		return mtk_pconf_spec_set_ies_smt_range(regmap, mt8127_smt_set,
-			ARRAY_SIZE(mt8127_smt_set), pin, align, value);
+												ARRAY_SIZE(mt8127_smt_set), pin, align, value);
+
 	return -EINVAL;
 }
 
 
-static const struct mtk_pinctrl_devdata mt8127_pinctrl_data = {
+static const struct mtk_pinctrl_devdata mt8127_pinctrl_data =
+{
 	.pins = mtk_pins_mt8127,
 	.npins = ARRAY_SIZE(mtk_pins_mt8127),
 	.grp_desc = mt8127_drv_grp,
@@ -332,12 +339,14 @@ static int mt8127_pinctrl_probe(struct platform_device *pdev)
 	return mtk_pctrl_init(pdev, &mt8127_pinctrl_data, NULL);
 }
 
-static const struct of_device_id mt8127_pctrl_match[] = {
+static const struct of_device_id mt8127_pctrl_match[] =
+{
 	{ .compatible = "mediatek,mt8127-pinctrl", },
 	{ }
 };
 
-static struct platform_driver mtk_pinctrl_driver = {
+static struct platform_driver mtk_pinctrl_driver =
+{
 	.probe = mt8127_pinctrl_probe,
 	.driver = {
 		.name = "mediatek-mt8127-pinctrl",

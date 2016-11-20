@@ -38,7 +38,8 @@
 
 static u8 AD7414_REG_LIMIT[] = { AD7414_REG_T_HIGH, AD7414_REG_T_LOW };
 
-struct ad7414_data {
+struct ad7414_data
+{
 	struct i2c_client	*client;
 	struct mutex		lock;	/* atomic read data updates */
 	char			valid;	/* !=0 if following fields are valid */
@@ -60,9 +61,13 @@ static inline int ad7414_temp_from_reg(s16 reg)
 static inline int ad7414_read(struct i2c_client *client, u8 reg)
 {
 	if (reg == AD7414_REG_TEMP)
+	{
 		return i2c_smbus_read_word_swapped(client, reg);
+	}
 	else
+	{
 		return i2c_smbus_read_byte_data(client, reg);
+	}
 }
 
 static inline int ad7414_write(struct i2c_client *client, u8 reg, u8 value)
@@ -77,25 +82,33 @@ static struct ad7414_data *ad7414_update_device(struct device *dev)
 
 	mutex_lock(&data->lock);
 
-	if (time_after(jiffies, data->next_update) || !data->valid) {
+	if (time_after(jiffies, data->next_update) || !data->valid)
+	{
 		int value, i;
 
 		dev_dbg(&client->dev, "starting ad7414 update\n");
 
 		value = ad7414_read(client, AD7414_REG_TEMP);
+
 		if (value < 0)
 			dev_dbg(&client->dev, "AD7414_REG_TEMP err %d\n",
-				value);
+					value);
 		else
+		{
 			data->temp_input = value;
+		}
 
-		for (i = 0; i < ARRAY_SIZE(AD7414_REG_LIMIT); ++i) {
+		for (i = 0; i < ARRAY_SIZE(AD7414_REG_LIMIT); ++i)
+		{
 			value = ad7414_read(client, AD7414_REG_LIMIT[i]);
+
 			if (value < 0)
 				dev_dbg(&client->dev, "AD7414 reg %d err %d\n",
-					AD7414_REG_LIMIT[i], value);
+						AD7414_REG_LIMIT[i], value);
 			else
+			{
 				data->temps[i] = value;
+			}
 		}
 
 		data->next_update = jiffies + HZ + HZ / 2;
@@ -108,7 +121,7 @@ static struct ad7414_data *ad7414_update_device(struct device *dev)
 }
 
 static ssize_t show_temp_input(struct device *dev,
-			       struct device_attribute *attr, char *buf)
+							   struct device_attribute *attr, char *buf)
 {
 	struct ad7414_data *data = ad7414_update_device(dev);
 	return sprintf(buf, "%d\n", ad7414_temp_from_reg(data->temp_input));
@@ -116,7 +129,7 @@ static ssize_t show_temp_input(struct device *dev,
 static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input, NULL, 0);
 
 static ssize_t show_max_min(struct device *dev, struct device_attribute *attr,
-			  char *buf)
+							char *buf)
 {
 	int index = to_sensor_dev_attr(attr)->index;
 	struct ad7414_data *data = ad7414_update_device(dev);
@@ -124,8 +137,8 @@ static ssize_t show_max_min(struct device *dev, struct device_attribute *attr,
 }
 
 static ssize_t set_max_min(struct device *dev,
-			   struct device_attribute *attr,
-			   const char *buf, size_t count)
+						   struct device_attribute *attr,
+						   const char *buf, size_t count)
 {
 	struct ad7414_data *data = dev_get_drvdata(dev);
 	struct i2c_client *client = data->client;
@@ -135,7 +148,9 @@ static ssize_t set_max_min(struct device *dev,
 	int ret = kstrtol(buf, 10, &temp);
 
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	temp = clamp_val(temp, -40000, 85000);
 	temp = (temp + (temp < 0 ? -500 : 500)) / 1000;
@@ -148,12 +163,12 @@ static ssize_t set_max_min(struct device *dev,
 }
 
 static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO,
-			  show_max_min, set_max_min, 0);
+						  show_max_min, set_max_min, 0);
 static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO,
-			  show_max_min, set_max_min, 1);
+						  show_max_min, set_max_min, 1);
 
 static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
-			  char *buf)
+						  char *buf)
 {
 	int bitnr = to_sensor_dev_attr(attr)->index;
 	struct ad7414_data *data = ad7414_update_device(dev);
@@ -164,7 +179,8 @@ static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
 static SENSOR_DEVICE_ATTR(temp1_min_alarm, S_IRUGO, show_alarm, NULL, 3);
 static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL, 4);
 
-static struct attribute *ad7414_attrs[] = {
+static struct attribute *ad7414_attrs[] =
+{
 	&sensor_dev_attr_temp1_input.dev_attr.attr,
 	&sensor_dev_attr_temp1_max.dev_attr.attr,
 	&sensor_dev_attr_temp1_min.dev_attr.attr,
@@ -176,7 +192,7 @@ static struct attribute *ad7414_attrs[] = {
 ATTRIBUTE_GROUPS(ad7414);
 
 static int ad7414_probe(struct i2c_client *client,
-			const struct i2c_device_id *dev_id)
+						const struct i2c_device_id *dev_id)
 {
 	struct device *dev = &client->dev;
 	struct ad7414_data *data;
@@ -184,12 +200,17 @@ static int ad7414_probe(struct i2c_client *client,
 	int conf;
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA |
-				     I2C_FUNC_SMBUS_READ_WORD_DATA))
+								 I2C_FUNC_SMBUS_READ_WORD_DATA))
+	{
 		return -EOPNOTSUPP;
+	}
 
 	data = devm_kzalloc(dev, sizeof(struct ad7414_data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	data->client = client;
 	mutex_init(&data->lock);
@@ -198,26 +219,32 @@ static int ad7414_probe(struct i2c_client *client,
 
 	/* Make sure the chip is powered up. */
 	conf = i2c_smbus_read_byte_data(client, AD7414_REG_CONF);
+
 	if (conf < 0)
+	{
 		dev_warn(dev, "ad7414_probe unable to read config register.\n");
-	else {
+	}
+	else
+	{
 		conf &= ~(1 << 7);
 		i2c_smbus_write_byte_data(client, AD7414_REG_CONF, conf);
 	}
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(dev,
-							   client->name,
-							   data, ad7414_groups);
+				client->name,
+				data, ad7414_groups);
 	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
-static const struct i2c_device_id ad7414_id[] = {
+static const struct i2c_device_id ad7414_id[] =
+{
 	{ "ad7414", 0 },
 	{}
 };
 MODULE_DEVICE_TABLE(i2c, ad7414_id);
 
-static struct i2c_driver ad7414_driver = {
+static struct i2c_driver ad7414_driver =
+{
 	.driver = {
 		.name	= "ad7414",
 	},
@@ -228,7 +255,7 @@ static struct i2c_driver ad7414_driver = {
 module_i2c_driver(ad7414_driver);
 
 MODULE_AUTHOR("Stefan Roese <sr at denx.de>, "
-	      "Frank Edelhaeuser <frank.edelhaeuser at spansion.com>");
+			  "Frank Edelhaeuser <frank.edelhaeuser at spansion.com>");
 
 MODULE_DESCRIPTION("AD7414 driver");
 MODULE_LICENSE("GPL");

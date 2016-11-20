@@ -37,7 +37,8 @@
  * Keys A-F are intended to be user-programmable.
  */
 
-static struct rc_map_table ati_x10[] = {
+static struct rc_map_table ati_x10[] =
+{
 	/* keyboard - Above the cursor pad */
 	{ 0x00, KEY_A },
 	{ 0x01, KEY_B },
@@ -72,10 +73,10 @@ static struct rc_map_table ati_x10[] = {
 	{ 0x14, KEY_8 },
 	{ 0x15, KEY_9 },
 	{ 0x16, KEY_MENU },       /* "menu": DVD root menu */
-				  /* KEY_NUMERIC_STAR? */
+	/* KEY_NUMERIC_STAR? */
 	{ 0x17, KEY_0 },
 	{ 0x18, KEY_SETUP },      /* "check": DVD setup menu */
-				  /* KEY_NUMERIC_POUND? */
+	/* KEY_NUMERIC_POUND? */
 
 	/* DVD navigation buttons */
 	{ 0x19, KEY_C },
@@ -83,14 +84,14 @@ static struct rc_map_table ati_x10[] = {
 	{ 0x1b, KEY_D },
 
 	{ 0x1c, KEY_PROPS },      /* "timer" Should be Data On Screen */
-				  /* Symbol is "circle nailed to box" */
+	/* Symbol is "circle nailed to box" */
 	{ 0x1d, KEY_LEFT },       /* left */
 	{ 0x1e, KEY_OK },         /* "OK" */
 	{ 0x1f, KEY_RIGHT },      /* right */
 	{ 0x20, KEY_SCREEN },     /* "max" (X11 warning: 0x177) */
-				  /* Should be AC View Toggle, but
-				     that's not in <input/input.h>.
-				     KEY_ZOOM (0x174)? */
+	/* Should be AC View Toggle, but
+	   that's not in <input/input.h>.
+	   KEY_ZOOM (0x174)? */
 	{ 0x21, KEY_E },
 	{ 0x22, KEY_DOWN },       /* down */
 	{ 0x23, KEY_F },
@@ -112,7 +113,8 @@ static struct rc_map_table ati_x10[] = {
 	{ 0x30, KEY_SELECT },     /* SELECT  (X11 warning: 0x161) */
 };
 
-static struct rc_map_list ati_x10_map = {
+static struct rc_map_list ati_x10_map =
+{
 	.map = {
 		.scan    = ati_x10,
 		.size    = ARRAY_SIZE(ati_x10),

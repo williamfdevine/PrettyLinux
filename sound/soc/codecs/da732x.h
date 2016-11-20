@@ -113,7 +113,8 @@
 #define	DA732X_EQ_OVERALL_VOL_DB_MIN	-1800
 #define	DA732X_EQ_OVERALL_VOL_DB_INC	600
 
-enum da732x_sysctl {
+enum da732x_sysctl
+{
 	DA732X_SR_8KHZ		= 0x1,
 	DA732X_SR_11_025KHZ	= 0x2,
 	DA732X_SR_12KHZ		= 0x3,

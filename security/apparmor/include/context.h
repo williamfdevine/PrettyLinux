@@ -31,7 +31,8 @@
  * as the profile reference is now stored in the f_cred.  However the
  * cxt struct will expand in the future so we keep the struct.
  */
-struct aa_file_cxt {
+struct aa_file_cxt
+{
 	u16 allow;
 };
 
@@ -53,7 +54,9 @@ static inline struct aa_file_cxt *aa_alloc_file_context(gfp_t gfp)
 static inline void aa_free_file_context(struct aa_file_cxt *cxt)
 {
 	if (cxt)
+	{
 		kzfree(cxt);
+	}
 }
 
 /**
@@ -68,7 +71,8 @@ static inline void aa_free_file_context(struct aa_file_cxt *cxt)
  *
  * TODO: make so a task can be confined by a stack of contexts
  */
-struct aa_task_cxt {
+struct aa_task_cxt
+{
 	struct aa_profile *profile;
 	struct aa_profile *onexec;
 	struct aa_profile *previous;
@@ -78,7 +82,7 @@ struct aa_task_cxt {
 struct aa_task_cxt *aa_alloc_task_context(gfp_t flags);
 void aa_free_task_context(struct aa_task_cxt *cxt);
 void aa_dup_task_context(struct aa_task_cxt *new,
-			 const struct aa_task_cxt *old);
+						 const struct aa_task_cxt *old);
 int aa_replace_current_profile(struct aa_profile *profile);
 int aa_set_current_onexec(struct aa_profile *profile);
 int aa_set_current_hat(struct aa_profile *profile, u64 token);
@@ -152,7 +156,8 @@ static inline struct aa_profile *aa_current_profile(void)
 	struct aa_profile *profile;
 	BUG_ON(!cxt || !cxt->profile);
 
-	if (PROFILE_INVALID(cxt->profile)) {
+	if (PROFILE_INVALID(cxt->profile))
+	{
 		profile = aa_get_newest_profile(cxt->profile);
 		aa_replace_current_profile(profile);
 		aa_put_profile(profile);

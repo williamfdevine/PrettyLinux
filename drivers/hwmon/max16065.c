@@ -54,7 +54,8 @@ enum chips { max16065, max16066, max16067, max16068, max16070, max16071 };
 #define MAX16065_NUM_LIMIT	3
 #define MAX16065_NUM_ADC	12	/* maximum number of ADC channels */
 
-static const int max16065_num_adc[] = {
+static const int max16065_num_adc[] =
+{
 	[max16065] = 12,
 	[max16066] = 8,
 	[max16067] = 6,
@@ -63,7 +64,8 @@ static const int max16065_num_adc[] = {
 	[max16071] = 8,
 };
 
-static const bool max16065_have_secondary[] = {
+static const bool max16065_have_secondary[] =
+{
 	[max16065] = true,
 	[max16066] = true,
 	[max16067] = false,
@@ -72,7 +74,8 @@ static const bool max16065_have_secondary[] = {
 	[max16071] = true,
 };
 
-static const bool max16065_have_current[] = {
+static const bool max16065_have_current[] =
+{
 	[max16065] = true,
 	[max16066] = true,
 	[max16067] = false,
@@ -81,7 +84,8 @@ static const bool max16065_have_current[] = {
 	[max16071] = true,
 };
 
-struct max16065_data {
+struct max16065_data
+{
 	enum chips type;
 	struct i2c_client *client;
 	const struct attribute_group *groups[4];
@@ -138,8 +142,12 @@ static int max16065_read_adc(struct i2c_client *client, int reg)
 	int rv;
 
 	rv = i2c_smbus_read_word_swapped(client, reg);
+
 	if (unlikely(rv < 0))
+	{
 		return rv;
+	}
+
 	return rv >> 6;
 }
 
@@ -149,79 +157,90 @@ static struct max16065_data *max16065_update_device(struct device *dev)
 	struct i2c_client *client = data->client;
 
 	mutex_lock(&data->update_lock);
-	if (time_after(jiffies, data->last_updated + HZ) || !data->valid) {
+
+	if (time_after(jiffies, data->last_updated + HZ) || !data->valid)
+	{
 		int i;
 
 		for (i = 0; i < data->num_adc; i++)
 			data->adc[i]
-			  = max16065_read_adc(client, MAX16065_ADC(i));
+				= max16065_read_adc(client, MAX16065_ADC(i));
 
-		if (data->have_current) {
+		if (data->have_current)
+		{
 			data->adc[MAX16065_NUM_ADC]
-			  = max16065_read_adc(client, MAX16065_CSP_ADC);
+				= max16065_read_adc(client, MAX16065_CSP_ADC);
 			data->curr_sense
-			  = i2c_smbus_read_byte_data(client,
-						     MAX16065_CURR_SENSE);
+				= i2c_smbus_read_byte_data(client,
+										   MAX16065_CURR_SENSE);
 		}
 
 		for (i = 0; i < DIV_ROUND_UP(data->num_adc, 8); i++)
 			data->fault[i]
-			  = i2c_smbus_read_byte_data(client, MAX16065_FAULT(i));
+				= i2c_smbus_read_byte_data(client, MAX16065_FAULT(i));
 
 		data->last_updated = jiffies;
 		data->valid = 1;
 	}
+
 	mutex_unlock(&data->update_lock);
 	return data;
 }
 
 static ssize_t max16065_show_alarm(struct device *dev,
-				   struct device_attribute *da, char *buf)
+								   struct device_attribute *da, char *buf)
 {
 	struct sensor_device_attribute_2 *attr2 = to_sensor_dev_attr_2(da);
 	struct max16065_data *data = max16065_update_device(dev);
 	int val = data->fault[attr2->nr];
 
 	if (val < 0)
+	{
 		return val;
+	}
 
 	val &= (1 << attr2->index);
+
 	if (val)
 		i2c_smbus_write_byte_data(data->client,
-					  MAX16065_FAULT(attr2->nr), val);
+								  MAX16065_FAULT(attr2->nr), val);
 
 	return snprintf(buf, PAGE_SIZE, "%d\n", !!val);
 }
 
 static ssize_t max16065_show_input(struct device *dev,
-				   struct device_attribute *da, char *buf)
+								   struct device_attribute *da, char *buf)
 {
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
 	struct max16065_data *data = max16065_update_device(dev);
 	int adc = data->adc[attr->index];
 
 	if (unlikely(adc < 0))
+	{
 		return adc;
+	}
 
 	return snprintf(buf, PAGE_SIZE, "%d\n",
-			ADC_TO_MV(adc, data->range[attr->index]));
+					ADC_TO_MV(adc, data->range[attr->index]));
 }
 
 static ssize_t max16065_show_current(struct device *dev,
-				     struct device_attribute *da, char *buf)
+									 struct device_attribute *da, char *buf)
 {
 	struct max16065_data *data = max16065_update_device(dev);
 
 	if (unlikely(data->curr_sense < 0))
+	{
 		return data->curr_sense;
+	}
 
 	return snprintf(buf, PAGE_SIZE, "%d\n",
-			ADC_TO_CURR(data->curr_sense, data->curr_gain));
+					ADC_TO_CURR(data->curr_sense, data->curr_gain));
 }
 
 static ssize_t max16065_set_limit(struct device *dev,
-				  struct device_attribute *da,
-				  const char *buf, size_t count)
+								  struct device_attribute *da,
+								  const char *buf, size_t count)
 {
 	struct sensor_device_attribute_2 *attr2 = to_sensor_dev_attr_2(da);
 	struct max16065_data *data = dev_get_drvdata(dev);
@@ -230,30 +249,33 @@ static ssize_t max16065_set_limit(struct device *dev,
 	int limit;
 
 	err = kstrtoul(buf, 10, &val);
+
 	if (unlikely(err < 0))
+	{
 		return err;
+	}
 
 	limit = MV_TO_LIMIT(val, data->range[attr2->index]);
 
 	mutex_lock(&data->update_lock);
 	data->limit[attr2->nr][attr2->index]
-	  = LIMIT_TO_MV(limit, data->range[attr2->index]);
+		= LIMIT_TO_MV(limit, data->range[attr2->index]);
 	i2c_smbus_write_byte_data(data->client,
-				  MAX16065_LIMIT(attr2->nr, attr2->index),
-				  limit);
+							  MAX16065_LIMIT(attr2->nr, attr2->index),
+							  limit);
 	mutex_unlock(&data->update_lock);
 
 	return count;
 }
 
 static ssize_t max16065_show_limit(struct device *dev,
-				   struct device_attribute *da, char *buf)
+								   struct device_attribute *da, char *buf)
 {
 	struct sensor_device_attribute_2 *attr2 = to_sensor_dev_attr_2(da);
 	struct max16065_data *data = dev_get_drvdata(dev);
 
 	return snprintf(buf, PAGE_SIZE, "%d\n",
-			data->limit[attr2->nr][attr2->index]);
+					data->limit[attr2->nr][attr2->index]);
 }
 
 /* Construct a sensor_device_attribute structure for each register */
@@ -275,144 +297,145 @@ static SENSOR_DEVICE_ATTR(in12_input, S_IRUGO, max16065_show_input, NULL, 12);
 
 /* Input voltages lcrit */
 static SENSOR_DEVICE_ATTR_2(in0_lcrit, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 2, 0);
+							max16065_set_limit, 2, 0);
 static SENSOR_DEVICE_ATTR_2(in1_lcrit, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 2, 1);
+							max16065_set_limit, 2, 1);
 static SENSOR_DEVICE_ATTR_2(in2_lcrit, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 2, 2);
+							max16065_set_limit, 2, 2);
 static SENSOR_DEVICE_ATTR_2(in3_lcrit, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 2, 3);
+							max16065_set_limit, 2, 3);
 static SENSOR_DEVICE_ATTR_2(in4_lcrit, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 2, 4);
+							max16065_set_limit, 2, 4);
 static SENSOR_DEVICE_ATTR_2(in5_lcrit, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 2, 5);
+							max16065_set_limit, 2, 5);
 static SENSOR_DEVICE_ATTR_2(in6_lcrit, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 2, 6);
+							max16065_set_limit, 2, 6);
 static SENSOR_DEVICE_ATTR_2(in7_lcrit, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 2, 7);
+							max16065_set_limit, 2, 7);
 static SENSOR_DEVICE_ATTR_2(in8_lcrit, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 2, 8);
+							max16065_set_limit, 2, 8);
 static SENSOR_DEVICE_ATTR_2(in9_lcrit, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 2, 9);
+							max16065_set_limit, 2, 9);
 static SENSOR_DEVICE_ATTR_2(in10_lcrit, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 2, 10);
+							max16065_set_limit, 2, 10);
 static SENSOR_DEVICE_ATTR_2(in11_lcrit, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 2, 11);
+							max16065_set_limit, 2, 11);
 
 /* Input voltages crit */
 static SENSOR_DEVICE_ATTR_2(in0_crit, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 1, 0);
+							max16065_set_limit, 1, 0);
 static SENSOR_DEVICE_ATTR_2(in1_crit, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 1, 1);
+							max16065_set_limit, 1, 1);
 static SENSOR_DEVICE_ATTR_2(in2_crit, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 1, 2);
+							max16065_set_limit, 1, 2);
 static SENSOR_DEVICE_ATTR_2(in3_crit, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 1, 3);
+							max16065_set_limit, 1, 3);
 static SENSOR_DEVICE_ATTR_2(in4_crit, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 1, 4);
+							max16065_set_limit, 1, 4);
 static SENSOR_DEVICE_ATTR_2(in5_crit, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 1, 5);
+							max16065_set_limit, 1, 5);
 static SENSOR_DEVICE_ATTR_2(in6_crit, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 1, 6);
+							max16065_set_limit, 1, 6);
 static SENSOR_DEVICE_ATTR_2(in7_crit, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 1, 7);
+							max16065_set_limit, 1, 7);
 static SENSOR_DEVICE_ATTR_2(in8_crit, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 1, 8);
+							max16065_set_limit, 1, 8);
 static SENSOR_DEVICE_ATTR_2(in9_crit, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 1, 9);
+							max16065_set_limit, 1, 9);
 static SENSOR_DEVICE_ATTR_2(in10_crit, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 1, 10);
+							max16065_set_limit, 1, 10);
 static SENSOR_DEVICE_ATTR_2(in11_crit, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 1, 11);
+							max16065_set_limit, 1, 11);
 
 /* Input voltages min */
 static SENSOR_DEVICE_ATTR_2(in0_min, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 0, 0);
+							max16065_set_limit, 0, 0);
 static SENSOR_DEVICE_ATTR_2(in1_min, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 0, 1);
+							max16065_set_limit, 0, 1);
 static SENSOR_DEVICE_ATTR_2(in2_min, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 0, 2);
+							max16065_set_limit, 0, 2);
 static SENSOR_DEVICE_ATTR_2(in3_min, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 0, 3);
+							max16065_set_limit, 0, 3);
 static SENSOR_DEVICE_ATTR_2(in4_min, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 0, 4);
+							max16065_set_limit, 0, 4);
 static SENSOR_DEVICE_ATTR_2(in5_min, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 0, 5);
+							max16065_set_limit, 0, 5);
 static SENSOR_DEVICE_ATTR_2(in6_min, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 0, 6);
+							max16065_set_limit, 0, 6);
 static SENSOR_DEVICE_ATTR_2(in7_min, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 0, 7);
+							max16065_set_limit, 0, 7);
 static SENSOR_DEVICE_ATTR_2(in8_min, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 0, 8);
+							max16065_set_limit, 0, 8);
 static SENSOR_DEVICE_ATTR_2(in9_min, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 0, 9);
+							max16065_set_limit, 0, 9);
 static SENSOR_DEVICE_ATTR_2(in10_min, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 0, 10);
+							max16065_set_limit, 0, 10);
 static SENSOR_DEVICE_ATTR_2(in11_min, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 0, 11);
+							max16065_set_limit, 0, 11);
 
 /* Input voltages max */
 static SENSOR_DEVICE_ATTR_2(in0_max, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 0, 0);
+							max16065_set_limit, 0, 0);
 static SENSOR_DEVICE_ATTR_2(in1_max, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 0, 1);
+							max16065_set_limit, 0, 1);
 static SENSOR_DEVICE_ATTR_2(in2_max, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 0, 2);
+							max16065_set_limit, 0, 2);
 static SENSOR_DEVICE_ATTR_2(in3_max, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 0, 3);
+							max16065_set_limit, 0, 3);
 static SENSOR_DEVICE_ATTR_2(in4_max, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 0, 4);
+							max16065_set_limit, 0, 4);
 static SENSOR_DEVICE_ATTR_2(in5_max, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 0, 5);
+							max16065_set_limit, 0, 5);
 static SENSOR_DEVICE_ATTR_2(in6_max, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 0, 6);
+							max16065_set_limit, 0, 6);
 static SENSOR_DEVICE_ATTR_2(in7_max, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 0, 7);
+							max16065_set_limit, 0, 7);
 static SENSOR_DEVICE_ATTR_2(in8_max, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 0, 8);
+							max16065_set_limit, 0, 8);
 static SENSOR_DEVICE_ATTR_2(in9_max, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 0, 9);
+							max16065_set_limit, 0, 9);
 static SENSOR_DEVICE_ATTR_2(in10_max, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 0, 10);
+							max16065_set_limit, 0, 10);
 static SENSOR_DEVICE_ATTR_2(in11_max, S_IWUSR | S_IRUGO, max16065_show_limit,
-			    max16065_set_limit, 0, 11);
+							max16065_set_limit, 0, 11);
 
 /* alarms */
 static SENSOR_DEVICE_ATTR_2(in0_alarm, S_IRUGO, max16065_show_alarm, NULL,
-			    0, 0);
+							0, 0);
 static SENSOR_DEVICE_ATTR_2(in1_alarm, S_IRUGO, max16065_show_alarm, NULL,
-			    0, 1);
+							0, 1);
 static SENSOR_DEVICE_ATTR_2(in2_alarm, S_IRUGO, max16065_show_alarm, NULL,
-			    0, 2);
+							0, 2);
 static SENSOR_DEVICE_ATTR_2(in3_alarm, S_IRUGO, max16065_show_alarm, NULL,
-			    0, 3);
+							0, 3);
 static SENSOR_DEVICE_ATTR_2(in4_alarm, S_IRUGO, max16065_show_alarm, NULL,
-			    0, 4);
+							0, 4);
 static SENSOR_DEVICE_ATTR_2(in5_alarm, S_IRUGO, max16065_show_alarm, NULL,
-			    0, 5);
+							0, 5);
 static SENSOR_DEVICE_ATTR_2(in6_alarm, S_IRUGO, max16065_show_alarm, NULL,
-			    0, 6);
+							0, 6);
 static SENSOR_DEVICE_ATTR_2(in7_alarm, S_IRUGO, max16065_show_alarm, NULL,
-			    0, 7);
+							0, 7);
 static SENSOR_DEVICE_ATTR_2(in8_alarm, S_IRUGO, max16065_show_alarm, NULL,
-			    1, 0);
+							1, 0);
 static SENSOR_DEVICE_ATTR_2(in9_alarm, S_IRUGO, max16065_show_alarm, NULL,
-			    1, 1);
+							1, 1);
 static SENSOR_DEVICE_ATTR_2(in10_alarm, S_IRUGO, max16065_show_alarm, NULL,
-			    1, 2);
+							1, 2);
 static SENSOR_DEVICE_ATTR_2(in11_alarm, S_IRUGO, max16065_show_alarm, NULL,
-			    1, 3);
+							1, 3);
 
 /* Current and alarm */
 static SENSOR_DEVICE_ATTR(curr1_input, S_IRUGO, max16065_show_current, NULL, 0);
 static SENSOR_DEVICE_ATTR_2(curr1_alarm, S_IRUGO, max16065_show_alarm, NULL,
-			    1, 4);
+							1, 4);
 
 /*
  * Finally, construct an array of pointers to members of the above objects,
  * as required for sysfs_create_group()
  */
-static struct attribute *max16065_basic_attributes[] = {
+static struct attribute *max16065_basic_attributes[] =
+{
 	&sensor_dev_attr_in0_input.dev_attr.attr,
 	&sensor_dev_attr_in0_lcrit.dev_attr.attr,
 	&sensor_dev_attr_in0_crit.dev_attr.attr,
@@ -476,14 +499,16 @@ static struct attribute *max16065_basic_attributes[] = {
 	NULL
 };
 
-static struct attribute *max16065_current_attributes[] = {
+static struct attribute *max16065_current_attributes[] =
+{
 	&sensor_dev_attr_in12_input.dev_attr.attr,
 	&sensor_dev_attr_curr1_input.dev_attr.attr,
 	&sensor_dev_attr_curr1_alarm.dev_attr.attr,
 	NULL
 };
 
-static struct attribute *max16065_min_attributes[] = {
+static struct attribute *max16065_min_attributes[] =
+{
 	&sensor_dev_attr_in0_min.dev_attr.attr,
 	&sensor_dev_attr_in1_min.dev_attr.attr,
 	&sensor_dev_attr_in2_min.dev_attr.attr,
@@ -499,7 +524,8 @@ static struct attribute *max16065_min_attributes[] = {
 	NULL
 };
 
-static struct attribute *max16065_max_attributes[] = {
+static struct attribute *max16065_max_attributes[] =
+{
 	&sensor_dev_attr_in0_max.dev_attr.attr,
 	&sensor_dev_attr_in1_max.dev_attr.attr,
 	&sensor_dev_attr_in2_max.dev_attr.attr,
@@ -516,49 +542,59 @@ static struct attribute *max16065_max_attributes[] = {
 };
 
 static umode_t max16065_basic_is_visible(struct kobject *kobj,
-					 struct attribute *a, int n)
+		struct attribute *a, int n)
 {
 	struct device *dev = container_of(kobj, struct device, kobj);
 	struct max16065_data *data = dev_get_drvdata(dev);
 	int index = n / 4;
 
 	if (index >= data->num_adc || !data->range[index])
+	{
 		return 0;
+	}
+
 	return a->mode;
 }
 
 static umode_t max16065_secondary_is_visible(struct kobject *kobj,
-					     struct attribute *a, int index)
+		struct attribute *a, int index)
 {
 	struct device *dev = container_of(kobj, struct device, kobj);
 	struct max16065_data *data = dev_get_drvdata(dev);
 
 	if (index >= data->num_adc)
+	{
 		return 0;
+	}
+
 	return a->mode;
 }
 
-static const struct attribute_group max16065_basic_group = {
+static const struct attribute_group max16065_basic_group =
+{
 	.attrs = max16065_basic_attributes,
 	.is_visible = max16065_basic_is_visible,
 };
 
-static const struct attribute_group max16065_current_group = {
+static const struct attribute_group max16065_current_group =
+{
 	.attrs = max16065_current_attributes,
 };
 
-static const struct attribute_group max16065_min_group = {
+static const struct attribute_group max16065_min_group =
+{
 	.attrs = max16065_min_attributes,
 	.is_visible = max16065_secondary_is_visible,
 };
 
-static const struct attribute_group max16065_max_group = {
+static const struct attribute_group max16065_max_group =
+{
 	.attrs = max16065_max_attributes,
 	.is_visible = max16065_secondary_is_visible,
 };
 
 static int max16065_probe(struct i2c_client *client,
-			  const struct i2c_device_id *id)
+						  const struct i2c_device_id *id)
 {
 	struct i2c_adapter *adapter = client->adapter;
 	struct max16065_data *data;
@@ -570,12 +606,17 @@ static int max16065_probe(struct i2c_client *client,
 	int groups = 0;
 
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA
-				     | I2C_FUNC_SMBUS_READ_WORD_DATA))
+								 | I2C_FUNC_SMBUS_READ_WORD_DATA))
+	{
 		return -ENODEV;
+	}
 
 	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
+
 	if (unlikely(!data))
+	{
 		return -ENOMEM;
+	}
 
 	data->client = client;
 	mutex_init(&data->update_lock);
@@ -584,68 +625,97 @@ static int max16065_probe(struct i2c_client *client,
 	data->have_current = max16065_have_current[id->driver_data];
 	have_secondary = max16065_have_secondary[id->driver_data];
 
-	if (have_secondary) {
+	if (have_secondary)
+	{
 		val = i2c_smbus_read_byte_data(client, MAX16065_SW_ENABLE);
+
 		if (unlikely(val < 0))
+		{
 			return val;
+		}
+
 		secondary_is_max = val & MAX16065_WARNING_OV;
 	}
 
 	/* Read scale registers, convert to range */
-	for (i = 0; i < DIV_ROUND_UP(data->num_adc, 4); i++) {
+	for (i = 0; i < DIV_ROUND_UP(data->num_adc, 4); i++)
+	{
 		val = i2c_smbus_read_byte_data(client, MAX16065_SCALE(i));
+
 		if (unlikely(val < 0))
+		{
 			return val;
-		for (j = 0; j < 4 && i * 4 + j < data->num_adc; j++) {
+		}
+
+		for (j = 0; j < 4 && i * 4 + j < data->num_adc; j++)
+		{
 			data->range[i * 4 + j] =
-			  max16065_adc_range[(val >> (j * 2)) & 0x3];
+				max16065_adc_range[(val >> (j * 2)) & 0x3];
 		}
 	}
 
 	/* Read limits */
-	for (i = 0; i < MAX16065_NUM_LIMIT; i++) {
+	for (i = 0; i < MAX16065_NUM_LIMIT; i++)
+	{
 		if (i == 0 && !have_secondary)
+		{
 			continue;
+		}
 
-		for (j = 0; j < data->num_adc; j++) {
+		for (j = 0; j < data->num_adc; j++)
+		{
 			val = i2c_smbus_read_byte_data(client,
-						       MAX16065_LIMIT(i, j));
+										   MAX16065_LIMIT(i, j));
+
 			if (unlikely(val < 0))
+			{
 				return val;
+			}
+
 			data->limit[i][j] = LIMIT_TO_MV(val, data->range[j]);
 		}
 	}
 
 	/* sysfs hooks */
 	data->groups[groups++] = &max16065_basic_group;
+
 	if (have_secondary)
 		data->groups[groups++] = secondary_is_max ?
-			&max16065_max_group : &max16065_min_group;
+								 &max16065_max_group : &max16065_min_group;
 
-	if (data->have_current) {
+	if (data->have_current)
+	{
 		val = i2c_smbus_read_byte_data(client, MAX16065_CURR_CONTROL);
+
 		if (unlikely(val < 0))
+		{
 			return val;
-		if (val & MAX16065_CURR_ENABLE) {
+		}
+
+		if (val & MAX16065_CURR_ENABLE)
+		{
 			/*
 			 * Current gain is 6, 12, 24, 48 based on values in
 			 * bit 2,3.
 			 */
 			data->curr_gain = 6 << ((val >> 2) & 0x03);
 			data->range[MAX16065_NUM_ADC]
-			  = max16065_csp_adc_range[(val >> 1) & 0x01];
+				= max16065_csp_adc_range[(val >> 1) & 0x01];
 			data->groups[groups++] = &max16065_current_group;
-		} else {
+		}
+		else
+		{
 			data->have_current = false;
 		}
 	}
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
-							   data, data->groups);
+				data, data->groups);
 	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
-static const struct i2c_device_id max16065_id[] = {
+static const struct i2c_device_id max16065_id[] =
+{
 	{ "max16065", max16065 },
 	{ "max16066", max16066 },
 	{ "max16067", max16067 },
@@ -658,7 +728,8 @@ static const struct i2c_device_id max16065_id[] = {
 MODULE_DEVICE_TABLE(i2c, max16065_id);
 
 /* This is the driver that will be inserted */
-static struct i2c_driver max16065_driver = {
+static struct i2c_driver max16065_driver =
+{
 	.driver = {
 		.name = "max16065",
 	},

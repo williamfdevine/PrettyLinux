@@ -38,7 +38,8 @@
 
 #define CSUM_TAB_MASK 15
 
-static const struct nla_policy csum_policy[TCA_CSUM_MAX + 1] = {
+static const struct nla_policy csum_policy[TCA_CSUM_MAX + 1] =
+{
 	[TCA_CSUM_PARMS] = { .len = sizeof(struct tc_csum), },
 };
 
@@ -46,8 +47,8 @@ static int csum_net_id;
 static struct tc_action_ops act_csum_ops;
 
 static int tcf_csum_init(struct net *net, struct nlattr *nla,
-			 struct nlattr *est, struct tc_action **a, int ovr,
-			 int bind)
+						 struct nlattr *est, struct tc_action **a, int ovr,
+						 int bind)
 {
 	struct tc_action_net *tn = net_generic(net, csum_net_id);
 	struct nlattr *tb[TCA_CSUM_MAX + 1];
@@ -56,28 +57,49 @@ static int tcf_csum_init(struct net *net, struct nlattr *nla,
 	int ret = 0, err;
 
 	if (nla == NULL)
+	{
 		return -EINVAL;
+	}
 
 	err = nla_parse_nested(tb, TCA_CSUM_MAX, nla, csum_policy);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	if (tb[TCA_CSUM_PARMS] == NULL)
+	{
 		return -EINVAL;
+	}
+
 	parm = nla_data(tb[TCA_CSUM_PARMS]);
 
-	if (!tcf_hash_check(tn, parm->index, a, bind)) {
+	if (!tcf_hash_check(tn, parm->index, a, bind))
+	{
 		ret = tcf_hash_create(tn, parm->index, est, a,
-				      &act_csum_ops, bind, false);
+							  &act_csum_ops, bind, false);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		ret = ACT_P_CREATED;
-	} else {
+	}
+	else
+	{
 		if (bind)/* dont override defaults */
+		{
 			return 0;
+		}
+
 		tcf_hash_release(*a, bind);
+
 		if (!ovr)
+		{
 			return -EEXIST;
+		}
 	}
 
 	p = to_tcf_csum(*a);
@@ -87,7 +109,9 @@ static int tcf_csum_init(struct net *net, struct nlattr *nla,
 	spin_unlock_bh(&p->tcf_lock);
 
 	if (ret == ACT_P_CREATED)
+	{
 		tcf_hash_insert(tn, *a);
+	}
 
 	return ret;
 }
@@ -103,27 +127,34 @@ static int tcf_csum_init(struct net *net, struct nlattr *nla,
  * Return the next layer pointer if pass, NULL otherwise.
  */
 static void *tcf_csum_skb_nextlayer(struct sk_buff *skb,
-				    unsigned int ihl, unsigned int ipl,
-				    unsigned int jhl)
+									unsigned int ihl, unsigned int ipl,
+									unsigned int jhl)
 {
 	int ntkoff = skb_network_offset(skb);
 	int hl = ihl + jhl;
 
 	if (!pskb_may_pull(skb, ipl + ntkoff) || (ipl < hl) ||
-	    skb_try_make_writable(skb, hl + ntkoff))
+		skb_try_make_writable(skb, hl + ntkoff))
+	{
 		return NULL;
+	}
 	else
+	{
 		return (void *)(skb_network_header(skb) + ihl);
+	}
 }
 
 static int tcf_csum_ipv4_icmp(struct sk_buff *skb, unsigned int ihl,
-			      unsigned int ipl)
+							  unsigned int ipl)
 {
 	struct icmphdr *icmph;
 
 	icmph = tcf_csum_skb_nextlayer(skb, ihl, ipl, sizeof(*icmph));
+
 	if (icmph == NULL)
+	{
 		return 0;
+	}
 
 	icmph->checksum = 0;
 	skb->csum = csum_partial(icmph, ipl - ihl, 0);
@@ -135,13 +166,16 @@ static int tcf_csum_ipv4_icmp(struct sk_buff *skb, unsigned int ihl,
 }
 
 static int tcf_csum_ipv4_igmp(struct sk_buff *skb,
-			      unsigned int ihl, unsigned int ipl)
+							  unsigned int ihl, unsigned int ipl)
 {
 	struct igmphdr *igmph;
 
 	igmph = tcf_csum_skb_nextlayer(skb, ihl, ipl, sizeof(*igmph));
+
 	if (igmph == NULL)
+	{
 		return 0;
+	}
 
 	igmph->csum = 0;
 	skb->csum = csum_partial(igmph, ipl - ihl, 0);
@@ -153,21 +187,24 @@ static int tcf_csum_ipv4_igmp(struct sk_buff *skb,
 }
 
 static int tcf_csum_ipv6_icmp(struct sk_buff *skb, unsigned int ihl,
-			      unsigned int ipl)
+							  unsigned int ipl)
 {
 	struct icmp6hdr *icmp6h;
 	const struct ipv6hdr *ip6h;
 
 	icmp6h = tcf_csum_skb_nextlayer(skb, ihl, ipl, sizeof(*icmp6h));
+
 	if (icmp6h == NULL)
+	{
 		return 0;
+	}
 
 	ip6h = ipv6_hdr(skb);
 	icmp6h->icmp6_cksum = 0;
 	skb->csum = csum_partial(icmp6h, ipl - ihl, 0);
 	icmp6h->icmp6_cksum = csum_ipv6_magic(&ip6h->saddr, &ip6h->daddr,
-					      ipl - ihl, IPPROTO_ICMPV6,
-					      skb->csum);
+										  ipl - ihl, IPPROTO_ICMPV6,
+										  skb->csum);
 
 	skb->ip_summed = CHECKSUM_NONE;
 
@@ -175,20 +212,23 @@ static int tcf_csum_ipv6_icmp(struct sk_buff *skb, unsigned int ihl,
 }
 
 static int tcf_csum_ipv4_tcp(struct sk_buff *skb, unsigned int ihl,
-			     unsigned int ipl)
+							 unsigned int ipl)
 {
 	struct tcphdr *tcph;
 	const struct iphdr *iph;
 
 	tcph = tcf_csum_skb_nextlayer(skb, ihl, ipl, sizeof(*tcph));
+
 	if (tcph == NULL)
+	{
 		return 0;
+	}
 
 	iph = ip_hdr(skb);
 	tcph->check = 0;
 	skb->csum = csum_partial(tcph, ipl - ihl, 0);
 	tcph->check = tcp_v4_check(ipl - ihl,
-				   iph->saddr, iph->daddr, skb->csum);
+							   iph->saddr, iph->daddr, skb->csum);
 
 	skb->ip_summed = CHECKSUM_NONE;
 
@@ -196,21 +236,24 @@ static int tcf_csum_ipv4_tcp(struct sk_buff *skb, unsigned int ihl,
 }
 
 static int tcf_csum_ipv6_tcp(struct sk_buff *skb, unsigned int ihl,
-			     unsigned int ipl)
+							 unsigned int ipl)
 {
 	struct tcphdr *tcph;
 	const struct ipv6hdr *ip6h;
 
 	tcph = tcf_csum_skb_nextlayer(skb, ihl, ipl, sizeof(*tcph));
+
 	if (tcph == NULL)
+	{
 		return 0;
+	}
 
 	ip6h = ipv6_hdr(skb);
 	tcph->check = 0;
 	skb->csum = csum_partial(tcph, ipl - ihl, 0);
 	tcph->check = csum_ipv6_magic(&ip6h->saddr, &ip6h->daddr,
-				      ipl - ihl, IPPROTO_TCP,
-				      skb->csum);
+								  ipl - ihl, IPPROTO_TCP,
+								  skb->csum);
 
 	skb->ip_summed = CHECKSUM_NONE;
 
@@ -218,7 +261,7 @@ static int tcf_csum_ipv6_tcp(struct sk_buff *skb, unsigned int ihl,
 }
 
 static int tcf_csum_ipv4_udp(struct sk_buff *skb, unsigned int ihl,
-			     unsigned int ipl, int udplite)
+							 unsigned int ipl, int udplite)
 {
 	struct udphdr *udph;
 	const struct iphdr *iph;
@@ -232,36 +275,53 @@ static int tcf_csum_ipv4_udp(struct sk_buff *skb, unsigned int ihl,
 	 */
 
 	udph = tcf_csum_skb_nextlayer(skb, ihl, ipl, sizeof(*udph));
+
 	if (udph == NULL)
+	{
 		return 0;
+	}
 
 	iph = ip_hdr(skb);
 	ul = ntohs(udph->len);
 
-	if (udplite || udph->check) {
+	if (udplite || udph->check)
+	{
 
 		udph->check = 0;
 
-		if (udplite) {
+		if (udplite)
+		{
 			if (ul == 0)
+			{
 				skb->csum = csum_partial(udph, ipl - ihl, 0);
+			}
 			else if ((ul >= sizeof(*udph)) && (ul <= ipl - ihl))
+			{
 				skb->csum = csum_partial(udph, ul, 0);
+			}
 			else
+			{
 				goto ignore_obscure_skb;
-		} else {
+			}
+		}
+		else
+		{
 			if (ul != ipl - ihl)
+			{
 				goto ignore_obscure_skb;
+			}
 
 			skb->csum = csum_partial(udph, ul, 0);
 		}
 
 		udph->check = csum_tcpudp_magic(iph->saddr, iph->daddr,
-						ul, iph->protocol,
-						skb->csum);
+										ul, iph->protocol,
+										skb->csum);
 
 		if (!udph->check)
+		{
 			udph->check = CSUM_MANGLED_0;
+		}
 	}
 
 	skb->ip_summed = CHECKSUM_NONE;
@@ -271,7 +331,7 @@ ignore_obscure_skb:
 }
 
 static int tcf_csum_ipv6_udp(struct sk_buff *skb, unsigned int ihl,
-			     unsigned int ipl, int udplite)
+							 unsigned int ipl, int udplite)
 {
 	struct udphdr *udph;
 	const struct ipv6hdr *ip6h;
@@ -285,36 +345,52 @@ static int tcf_csum_ipv6_udp(struct sk_buff *skb, unsigned int ihl,
 	 */
 
 	udph = tcf_csum_skb_nextlayer(skb, ihl, ipl, sizeof(*udph));
+
 	if (udph == NULL)
+	{
 		return 0;
+	}
 
 	ip6h = ipv6_hdr(skb);
 	ul = ntohs(udph->len);
 
 	udph->check = 0;
 
-	if (udplite) {
+	if (udplite)
+	{
 		if (ul == 0)
+		{
 			skb->csum = csum_partial(udph, ipl - ihl, 0);
+		}
 
 		else if ((ul >= sizeof(*udph)) && (ul <= ipl - ihl))
+		{
 			skb->csum = csum_partial(udph, ul, 0);
+		}
 
 		else
+		{
 			goto ignore_obscure_skb;
-	} else {
+		}
+	}
+	else
+	{
 		if (ul != ipl - ihl)
+		{
 			goto ignore_obscure_skb;
+		}
 
 		skb->csum = csum_partial(udph, ul, 0);
 	}
 
 	udph->check = csum_ipv6_magic(&ip6h->saddr, &ip6h->daddr, ul,
-				      udplite ? IPPROTO_UDPLITE : IPPROTO_UDP,
-				      skb->csum);
+								  udplite ? IPPROTO_UDPLITE : IPPROTO_UDP,
+								  skb->csum);
 
 	if (!udph->check)
+	{
 		udph->check = CSUM_MANGLED_0;
+	}
 
 	skb->ip_summed = CHECKSUM_NONE;
 
@@ -330,46 +406,71 @@ static int tcf_csum_ipv4(struct sk_buff *skb, u32 update_flags)
 	ntkoff = skb_network_offset(skb);
 
 	if (!pskb_may_pull(skb, sizeof(*iph) + ntkoff))
+	{
 		goto fail;
+	}
 
 	iph = ip_hdr(skb);
 
-	switch (iph->frag_off & htons(IP_OFFSET) ? 0 : iph->protocol) {
-	case IPPROTO_ICMP:
-		if (update_flags & TCA_CSUM_UPDATE_FLAG_ICMP)
-			if (!tcf_csum_ipv4_icmp(skb, iph->ihl * 4,
-						ntohs(iph->tot_len)))
-				goto fail;
-		break;
-	case IPPROTO_IGMP:
-		if (update_flags & TCA_CSUM_UPDATE_FLAG_IGMP)
-			if (!tcf_csum_ipv4_igmp(skb, iph->ihl * 4,
-						ntohs(iph->tot_len)))
-				goto fail;
-		break;
-	case IPPROTO_TCP:
-		if (update_flags & TCA_CSUM_UPDATE_FLAG_TCP)
-			if (!tcf_csum_ipv4_tcp(skb, iph->ihl * 4,
-					       ntohs(iph->tot_len)))
-				goto fail;
-		break;
-	case IPPROTO_UDP:
-		if (update_flags & TCA_CSUM_UPDATE_FLAG_UDP)
-			if (!tcf_csum_ipv4_udp(skb, iph->ihl * 4,
-					       ntohs(iph->tot_len), 0))
-				goto fail;
-		break;
-	case IPPROTO_UDPLITE:
-		if (update_flags & TCA_CSUM_UPDATE_FLAG_UDPLITE)
-			if (!tcf_csum_ipv4_udp(skb, iph->ihl * 4,
-					       ntohs(iph->tot_len), 1))
-				goto fail;
-		break;
+	switch (iph->frag_off & htons(IP_OFFSET) ? 0 : iph->protocol)
+	{
+		case IPPROTO_ICMP:
+			if (update_flags & TCA_CSUM_UPDATE_FLAG_ICMP)
+				if (!tcf_csum_ipv4_icmp(skb, iph->ihl * 4,
+										ntohs(iph->tot_len)))
+				{
+					goto fail;
+				}
+
+			break;
+
+		case IPPROTO_IGMP:
+			if (update_flags & TCA_CSUM_UPDATE_FLAG_IGMP)
+				if (!tcf_csum_ipv4_igmp(skb, iph->ihl * 4,
+										ntohs(iph->tot_len)))
+				{
+					goto fail;
+				}
+
+			break;
+
+		case IPPROTO_TCP:
+			if (update_flags & TCA_CSUM_UPDATE_FLAG_TCP)
+				if (!tcf_csum_ipv4_tcp(skb, iph->ihl * 4,
+									   ntohs(iph->tot_len)))
+				{
+					goto fail;
+				}
+
+			break;
+
+		case IPPROTO_UDP:
+			if (update_flags & TCA_CSUM_UPDATE_FLAG_UDP)
+				if (!tcf_csum_ipv4_udp(skb, iph->ihl * 4,
+									   ntohs(iph->tot_len), 0))
+				{
+					goto fail;
+				}
+
+			break;
+
+		case IPPROTO_UDPLITE:
+			if (update_flags & TCA_CSUM_UPDATE_FLAG_UDPLITE)
+				if (!tcf_csum_ipv4_udp(skb, iph->ihl * 4,
+									   ntohs(iph->tot_len), 1))
+				{
+					goto fail;
+				}
+
+			break;
 	}
 
-	if (update_flags & TCA_CSUM_UPDATE_FLAG_IPV4HDR) {
+	if (update_flags & TCA_CSUM_UPDATE_FLAG_IPV4HDR)
+	{
 		if (skb_try_make_writable(skb, sizeof(*iph) + ntkoff))
+		{
 			goto fail;
+		}
 
 		ip_send_check(ip_hdr(skb));
 	}
@@ -381,7 +482,7 @@ fail:
 }
 
 static int tcf_csum_ipv6_hopopts(struct ipv6_opt_hdr *ip6xh, unsigned int ixhl,
-				 unsigned int *pl)
+								 unsigned int *pl)
 {
 	int off, len, optlen;
 	unsigned char *xh = (void *)ip6xh;
@@ -389,25 +490,38 @@ static int tcf_csum_ipv6_hopopts(struct ipv6_opt_hdr *ip6xh, unsigned int ixhl,
 	off = sizeof(*ip6xh);
 	len = ixhl - off;
 
-	while (len > 1) {
-		switch (xh[off]) {
-		case IPV6_TLV_PAD1:
-			optlen = 1;
-			break;
-		case IPV6_TLV_JUMBO:
-			optlen = xh[off + 1] + 2;
-			if (optlen != 6 || len < 6 || (off & 3) != 2)
-				/* wrong jumbo option length/alignment */
-				return 0;
-			*pl = ntohl(*(__be32 *)(xh + off + 2));
-			goto done;
-		default:
-			optlen = xh[off + 1] + 2;
-			if (optlen > len)
-				/* ignore obscure options */
+	while (len > 1)
+	{
+		switch (xh[off])
+		{
+			case IPV6_TLV_PAD1:
+				optlen = 1;
+				break;
+
+			case IPV6_TLV_JUMBO:
+				optlen = xh[off + 1] + 2;
+
+				if (optlen != 6 || len < 6 || (off & 3) != 2)
+					/* wrong jumbo option length/alignment */
+				{
+					return 0;
+				}
+
+				*pl = ntohl(*(__be32 *)(xh + off + 2));
 				goto done;
-			break;
+
+			default:
+				optlen = xh[off + 1] + 2;
+
+				if (optlen > len)
+					/* ignore obscure options */
+				{
+					goto done;
+				}
+
+				break;
 		}
+
 		off += optlen;
 		len -= optlen;
 	}
@@ -430,61 +544,95 @@ static int tcf_csum_ipv6(struct sk_buff *skb, u32 update_flags)
 	hl = sizeof(*ip6h);
 
 	if (!pskb_may_pull(skb, hl + ntkoff))
+	{
 		goto fail;
+	}
 
 	ip6h = ipv6_hdr(skb);
 
 	pl = ntohs(ip6h->payload_len);
 	nexthdr = ip6h->nexthdr;
 
-	do {
-		switch (nexthdr) {
-		case NEXTHDR_FRAGMENT:
-			goto ignore_skb;
-		case NEXTHDR_ROUTING:
-		case NEXTHDR_HOP:
-		case NEXTHDR_DEST:
-			if (!pskb_may_pull(skb, hl + sizeof(*ip6xh) + ntkoff))
-				goto fail;
-			ip6xh = (void *)(skb_network_header(skb) + hl);
-			ixhl = ipv6_optlen(ip6xh);
-			if (!pskb_may_pull(skb, hl + ixhl + ntkoff))
-				goto fail;
-			ip6xh = (void *)(skb_network_header(skb) + hl);
-			if ((nexthdr == NEXTHDR_HOP) &&
-			    !(tcf_csum_ipv6_hopopts(ip6xh, ixhl, &pl)))
-				goto fail;
-			nexthdr = ip6xh->nexthdr;
-			hl += ixhl;
-			break;
-		case IPPROTO_ICMPV6:
-			if (update_flags & TCA_CSUM_UPDATE_FLAG_ICMP)
-				if (!tcf_csum_ipv6_icmp(skb,
-							hl, pl + sizeof(*ip6h)))
+	do
+	{
+		switch (nexthdr)
+		{
+			case NEXTHDR_FRAGMENT:
+				goto ignore_skb;
+
+			case NEXTHDR_ROUTING:
+			case NEXTHDR_HOP:
+			case NEXTHDR_DEST:
+				if (!pskb_may_pull(skb, hl + sizeof(*ip6xh) + ntkoff))
+				{
 					goto fail;
-			goto done;
-		case IPPROTO_TCP:
-			if (update_flags & TCA_CSUM_UPDATE_FLAG_TCP)
-				if (!tcf_csum_ipv6_tcp(skb,
-						       hl, pl + sizeof(*ip6h)))
+				}
+
+				ip6xh = (void *)(skb_network_header(skb) + hl);
+				ixhl = ipv6_optlen(ip6xh);
+
+				if (!pskb_may_pull(skb, hl + ixhl + ntkoff))
+				{
 					goto fail;
-			goto done;
-		case IPPROTO_UDP:
-			if (update_flags & TCA_CSUM_UPDATE_FLAG_UDP)
-				if (!tcf_csum_ipv6_udp(skb, hl,
-						       pl + sizeof(*ip6h), 0))
+				}
+
+				ip6xh = (void *)(skb_network_header(skb) + hl);
+
+				if ((nexthdr == NEXTHDR_HOP) &&
+					!(tcf_csum_ipv6_hopopts(ip6xh, ixhl, &pl)))
+				{
 					goto fail;
-			goto done;
-		case IPPROTO_UDPLITE:
-			if (update_flags & TCA_CSUM_UPDATE_FLAG_UDPLITE)
-				if (!tcf_csum_ipv6_udp(skb, hl,
-						       pl + sizeof(*ip6h), 1))
-					goto fail;
-			goto done;
-		default:
-			goto ignore_skb;
+				}
+
+				nexthdr = ip6xh->nexthdr;
+				hl += ixhl;
+				break;
+
+			case IPPROTO_ICMPV6:
+				if (update_flags & TCA_CSUM_UPDATE_FLAG_ICMP)
+					if (!tcf_csum_ipv6_icmp(skb,
+											hl, pl + sizeof(*ip6h)))
+					{
+						goto fail;
+					}
+
+				goto done;
+
+			case IPPROTO_TCP:
+				if (update_flags & TCA_CSUM_UPDATE_FLAG_TCP)
+					if (!tcf_csum_ipv6_tcp(skb,
+										   hl, pl + sizeof(*ip6h)))
+					{
+						goto fail;
+					}
+
+				goto done;
+
+			case IPPROTO_UDP:
+				if (update_flags & TCA_CSUM_UPDATE_FLAG_UDP)
+					if (!tcf_csum_ipv6_udp(skb, hl,
+										   pl + sizeof(*ip6h), 0))
+					{
+						goto fail;
+					}
+
+				goto done;
+
+			case IPPROTO_UDPLITE:
+				if (update_flags & TCA_CSUM_UPDATE_FLAG_UDPLITE)
+					if (!tcf_csum_ipv6_udp(skb, hl,
+										   pl + sizeof(*ip6h), 1))
+					{
+						goto fail;
+					}
+
+				goto done;
+
+			default:
+				goto ignore_skb;
 		}
-	} while (pskb_may_pull(skb, hl + 1 + ntkoff));
+	}
+	while (pskb_may_pull(skb, hl + 1 + ntkoff));
 
 done:
 ignore_skb:
@@ -495,7 +643,7 @@ fail:
 }
 
 static int tcf_csum(struct sk_buff *skb, const struct tc_action *a,
-		    struct tcf_result *res)
+					struct tcf_result *res)
 {
 	struct tcf_csum *p = to_tcf_csum(a);
 	int action;
@@ -509,17 +657,27 @@ static int tcf_csum(struct sk_buff *skb, const struct tc_action *a,
 	spin_unlock(&p->tcf_lock);
 
 	if (unlikely(action == TC_ACT_SHOT))
+	{
 		goto drop;
+	}
 
-	switch (tc_skb_protocol(skb)) {
-	case cpu_to_be16(ETH_P_IP):
-		if (!tcf_csum_ipv4(skb, update_flags))
-			goto drop;
-		break;
-	case cpu_to_be16(ETH_P_IPV6):
-		if (!tcf_csum_ipv6(skb, update_flags))
-			goto drop;
-		break;
+	switch (tc_skb_protocol(skb))
+	{
+		case cpu_to_be16(ETH_P_IP):
+			if (!tcf_csum_ipv4(skb, update_flags))
+			{
+				goto drop;
+			}
+
+			break;
+
+		case cpu_to_be16(ETH_P_IPV6):
+			if (!tcf_csum_ipv6(skb, update_flags))
+			{
+				goto drop;
+			}
+
+			break;
 	}
 
 	return action;
@@ -532,11 +690,12 @@ drop:
 }
 
 static int tcf_csum_dump(struct sk_buff *skb, struct tc_action *a, int bind,
-			 int ref)
+						 int ref)
 {
 	unsigned char *b = skb_tail_pointer(skb);
 	struct tcf_csum *p = to_tcf_csum(a);
-	struct tc_csum opt = {
+	struct tc_csum opt =
+	{
 		.update_flags = p->update_flags,
 		.index   = p->tcf_index,
 		.action  = p->tcf_action,
@@ -546,11 +705,16 @@ static int tcf_csum_dump(struct sk_buff *skb, struct tc_action *a, int bind,
 	struct tcf_t t;
 
 	if (nla_put(skb, TCA_CSUM_PARMS, sizeof(opt), &opt))
+	{
 		goto nla_put_failure;
+	}
 
 	tcf_tm_dump(&t, &p->tcf_tm);
+
 	if (nla_put_64bit(skb, TCA_CSUM_TM, sizeof(t), &t, TCA_CSUM_PAD))
+	{
 		goto nla_put_failure;
+	}
 
 	return skb->len;
 
@@ -560,8 +724,8 @@ nla_put_failure:
 }
 
 static int tcf_csum_walker(struct net *net, struct sk_buff *skb,
-			   struct netlink_callback *cb, int type,
-			   const struct tc_action_ops *ops)
+						   struct netlink_callback *cb, int type,
+						   const struct tc_action_ops *ops)
 {
 	struct tc_action_net *tn = net_generic(net, csum_net_id);
 
@@ -575,7 +739,8 @@ static int tcf_csum_search(struct net *net, struct tc_action **a, u32 index)
 	return tcf_hash_search(tn, a, index);
 }
 
-static struct tc_action_ops act_csum_ops = {
+static struct tc_action_ops act_csum_ops =
+{
 	.kind		= "csum",
 	.type		= TCA_ACT_CSUM,
 	.owner		= THIS_MODULE,
@@ -601,7 +766,8 @@ static void __net_exit csum_exit_net(struct net *net)
 	tc_action_net_exit(tn);
 }
 
-static struct pernet_operations csum_net_ops = {
+static struct pernet_operations csum_net_ops =
+{
 	.init = csum_init_net,
 	.exit = csum_exit_net,
 	.id   = &csum_net_id,

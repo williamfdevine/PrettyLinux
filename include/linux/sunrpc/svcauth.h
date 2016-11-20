@@ -19,7 +19,8 @@
 #include <linux/stringhash.h>
 #include <linux/cred.h>
 
-struct svc_cred {
+struct svc_cred
+{
 	kuid_t			cr_uid;
 	kgid_t			cr_gid;
 	struct group_info	*cr_group_info;
@@ -44,7 +45,10 @@ static inline void init_svc_cred(struct svc_cred *cred)
 static inline void free_svc_cred(struct svc_cred *cred)
 {
 	if (cred->cr_group_info)
+	{
 		put_group_info(cred->cr_group_info);
+	}
+
 	kfree(cred->cr_raw_principal);
 	kfree(cred->cr_principal);
 	gss_mech_put(cred->cr_gss_mech);
@@ -73,7 +77,8 @@ struct in6_addr;
  * associated with entries in another cache representing the mapping
  * of ip addresses to the given client.
  */
-struct auth_domain {
+struct auth_domain
+{
 	struct kref		ref;
 	struct hlist_node	hash;
 	char			*name;
@@ -120,8 +125,9 @@ struct auth_domain {
  *   Givens a pending request (struct svc_rqst), finds and assigns
  *   an appropriate 'auth_domain' as the client.
  */
-struct auth_ops {
-	char *	name;
+struct auth_ops
+{
+	char 	*name;
 	struct module *owner;
 	int	flavour;
 	int	(*accept)(struct svc_rqst *rq, __be32 *authp);

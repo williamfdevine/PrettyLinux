@@ -25,7 +25,8 @@
 
 struct isar_hw;
 
-struct isar_ch {
+struct isar_ch
+{
 	struct bchannel		bch;
 	struct isar_hw		*is;
 	struct timer_list	ftimer;
@@ -41,7 +42,8 @@ struct isar_ch {
 	u8			conmsg[16];
 };
 
-struct isar_hw {
+struct isar_hw
+{
 	struct	isar_ch	ch[2];
 	void		*hw;
 	spinlock_t	*hwlock;	/* lock HW access */

@@ -64,7 +64,8 @@
  * mentioning ITR_INDX, ITR_NONE cannot be used as an index 'n' into any
  * register but instead is a special value meaning "don't update" ITR0/1/2.
  */
-enum i40e_dyn_idx_t {
+enum i40e_dyn_idx_t
+{
 	I40E_IDX_ITR0 = 0,
 	I40E_IDX_ITR1 = 1,
 	I40E_IDX_ITR2 = 2,
@@ -78,29 +79,29 @@ enum i40e_dyn_idx_t {
 
 /* Supported RSS offloads */
 #define I40E_DEFAULT_RSS_HENA ( \
-	BIT_ULL(I40E_FILTER_PCTYPE_NONF_IPV4_UDP) | \
-	BIT_ULL(I40E_FILTER_PCTYPE_NONF_IPV4_SCTP) | \
-	BIT_ULL(I40E_FILTER_PCTYPE_NONF_IPV4_TCP) | \
-	BIT_ULL(I40E_FILTER_PCTYPE_NONF_IPV4_OTHER) | \
-	BIT_ULL(I40E_FILTER_PCTYPE_FRAG_IPV4) | \
-	BIT_ULL(I40E_FILTER_PCTYPE_NONF_IPV6_UDP) | \
-	BIT_ULL(I40E_FILTER_PCTYPE_NONF_IPV6_TCP) | \
-	BIT_ULL(I40E_FILTER_PCTYPE_NONF_IPV6_SCTP) | \
-	BIT_ULL(I40E_FILTER_PCTYPE_NONF_IPV6_OTHER) | \
-	BIT_ULL(I40E_FILTER_PCTYPE_FRAG_IPV6) | \
-	BIT_ULL(I40E_FILTER_PCTYPE_L2_PAYLOAD))
+								BIT_ULL(I40E_FILTER_PCTYPE_NONF_IPV4_UDP) | \
+								BIT_ULL(I40E_FILTER_PCTYPE_NONF_IPV4_SCTP) | \
+								BIT_ULL(I40E_FILTER_PCTYPE_NONF_IPV4_TCP) | \
+								BIT_ULL(I40E_FILTER_PCTYPE_NONF_IPV4_OTHER) | \
+								BIT_ULL(I40E_FILTER_PCTYPE_FRAG_IPV4) | \
+								BIT_ULL(I40E_FILTER_PCTYPE_NONF_IPV6_UDP) | \
+								BIT_ULL(I40E_FILTER_PCTYPE_NONF_IPV6_TCP) | \
+								BIT_ULL(I40E_FILTER_PCTYPE_NONF_IPV6_SCTP) | \
+								BIT_ULL(I40E_FILTER_PCTYPE_NONF_IPV6_OTHER) | \
+								BIT_ULL(I40E_FILTER_PCTYPE_FRAG_IPV6) | \
+								BIT_ULL(I40E_FILTER_PCTYPE_L2_PAYLOAD))
 
 #define I40E_DEFAULT_RSS_HENA_EXPANDED (I40E_DEFAULT_RSS_HENA | \
-	BIT_ULL(I40E_FILTER_PCTYPE_NONF_IPV4_TCP_SYN_NO_ACK) | \
-	BIT_ULL(I40E_FILTER_PCTYPE_NONF_UNICAST_IPV4_UDP) | \
-	BIT_ULL(I40E_FILTER_PCTYPE_NONF_MULTICAST_IPV4_UDP) | \
-	BIT_ULL(I40E_FILTER_PCTYPE_NONF_IPV6_TCP_SYN_NO_ACK) | \
-	BIT_ULL(I40E_FILTER_PCTYPE_NONF_UNICAST_IPV6_UDP) | \
-	BIT_ULL(I40E_FILTER_PCTYPE_NONF_MULTICAST_IPV6_UDP))
+										BIT_ULL(I40E_FILTER_PCTYPE_NONF_IPV4_TCP_SYN_NO_ACK) | \
+										BIT_ULL(I40E_FILTER_PCTYPE_NONF_UNICAST_IPV4_UDP) | \
+										BIT_ULL(I40E_FILTER_PCTYPE_NONF_MULTICAST_IPV4_UDP) | \
+										BIT_ULL(I40E_FILTER_PCTYPE_NONF_IPV6_TCP_SYN_NO_ACK) | \
+										BIT_ULL(I40E_FILTER_PCTYPE_NONF_UNICAST_IPV6_UDP) | \
+										BIT_ULL(I40E_FILTER_PCTYPE_NONF_MULTICAST_IPV6_UDP))
 
 #define i40e_pf_get_default_rss_hena(pf) \
 	(((pf)->flags & I40E_FLAG_MULTIPLE_TCP_UDP_RSS_PCTYPE) ? \
-	  I40E_DEFAULT_RSS_HENA_EXPANDED : I40E_DEFAULT_RSS_HENA)
+	 I40E_DEFAULT_RSS_HENA_EXPANDED : I40E_DEFAULT_RSS_HENA)
 
 /* Supported Rx Buffer Sizes (a multiple of 128) */
 #define I40E_RXBUFFER_256   256
@@ -131,10 +132,10 @@ enum i40e_dyn_idx_t {
  * at offset zero.
  */
 static inline bool i40e_test_staterr(union i40e_rx_desc *rx_desc,
-				     const u64 stat_err_bits)
+									 const u64 stat_err_bits)
 {
 	return !!(rx_desc->wb.qword1.status_error_len &
-		  cpu_to_le64(stat_err_bits));
+			  cpu_to_le64(stat_err_bits));
 }
 
 /* How many Rx Buffers do we bundle into one write to the hardware ? */
@@ -190,7 +191,9 @@ static inline unsigned int i40e_txd_use_count(unsigned int size)
 
 	/* if we rounded up on the reciprocal pull down the adjustment */
 	if ((max * reciprocal) > adjust)
+	{
 		adjust = ~(u32)(reciprocal - 1);
+	}
 
 	return (u32)((((u64)size * reciprocal) + adjust) >> 32);
 }
@@ -213,9 +216,11 @@ static inline unsigned int i40e_txd_use_count(unsigned int size)
 #define I40E_TX_FLAGS_VLAN_PRIO_SHIFT	29
 #define I40E_TX_FLAGS_VLAN_SHIFT	16
 
-struct i40e_tx_buffer {
+struct i40e_tx_buffer
+{
 	struct i40e_tx_desc *next_to_watch;
-	union {
+	union
+	{
 		struct sk_buff *skb;
 		void *raw_buf;
 	};
@@ -227,19 +232,22 @@ struct i40e_tx_buffer {
 	u32 tx_flags;
 };
 
-struct i40e_rx_buffer {
+struct i40e_rx_buffer
+{
 	struct sk_buff *skb;
 	dma_addr_t dma;
 	struct page *page;
 	unsigned int page_offset;
 };
 
-struct i40e_queue_stats {
+struct i40e_queue_stats
+{
 	u64 packets;
 	u64 bytes;
 };
 
-struct i40e_tx_queue_stats {
+struct i40e_tx_queue_stats
+{
 	u64 restart_queue;
 	u64 tx_busy;
 	u64 tx_done_old;
@@ -248,7 +256,8 @@ struct i40e_tx_queue_stats {
 	u64 tx_lost_interrupt;
 };
 
-struct i40e_rx_queue_stats {
+struct i40e_rx_queue_stats
+{
 	u64 non_eop_descs;
 	u64 alloc_page_failed;
 	u64 alloc_buff_failed;
@@ -256,7 +265,8 @@ struct i40e_rx_queue_stats {
 	u64 realloc_count;
 };
 
-enum i40e_ring_state_t {
+enum i40e_ring_state_t
+{
 	__I40E_TX_FDIR_INIT_DONE,
 	__I40E_TX_XPS_INIT_DONE,
 };
@@ -273,12 +283,14 @@ enum i40e_ring_state_t {
 #define I40E_RX_SPLIT_SCTP    0x8
 
 /* struct that defines a descriptor ring, associated with a VSI */
-struct i40e_ring {
+struct i40e_ring
+{
 	struct i40e_ring *next;		/* pointer to next ring in q_vector */
 	void *desc;			/* Descriptor ring memory */
 	struct device *dev;		/* Used for DMA mapping */
 	struct net_device *netdev;	/* netdev ring maps to */
-	union {
+	union
+	{
 		struct i40e_tx_buffer *tx_bi;
 		struct i40e_rx_buffer *rx_bi;
 	};
@@ -317,7 +329,8 @@ struct i40e_ring {
 	/* stats structs */
 	struct i40e_queue_stats	stats;
 	struct u64_stats_sync syncp;
-	union {
+	union
+	{
 		struct i40e_tx_queue_stats tx_stats;
 		struct i40e_rx_queue_stats rx_stats;
 	};
@@ -332,14 +345,16 @@ struct i40e_ring {
 	u16 next_to_alloc;
 } ____cacheline_internodealigned_in_smp;
 
-enum i40e_latency_range {
+enum i40e_latency_range
+{
 	I40E_LOWEST_LATENCY = 0,
 	I40E_LOW_LATENCY = 1,
 	I40E_BULK_LATENCY = 2,
 	I40E_ULTRA_LATENCY = 3,
 };
 
-struct i40e_ring_container {
+struct i40e_ring_container
+{
 	/* array of pointers to rings */
 	struct i40e_ring *ring;
 	unsigned int total_bytes;	/* total bytes processed this int */
@@ -396,11 +411,14 @@ static inline int i40e_xmit_descriptor_count(struct sk_buff *skb)
 	unsigned int nr_frags = skb_shinfo(skb)->nr_frags;
 	int count = 0, size = skb_headlen(skb);
 
-	for (;;) {
+	for (;;)
+	{
 		count += i40e_txd_use_count(size);
 
 		if (!nr_frags--)
+		{
 			break;
+		}
 
 		size = skb_frag_size(frag++);
 	}
@@ -418,7 +436,10 @@ static inline int i40e_xmit_descriptor_count(struct sk_buff *skb)
 static inline int i40e_maybe_stop_tx(struct i40e_ring *tx_ring, int size)
 {
 	if (likely(I40E_DESC_UNUSED(tx_ring) >= size))
+	{
 		return 0;
+	}
+
 	return __i40evf_maybe_stop_tx(tx_ring, size);
 }
 
@@ -435,10 +456,14 @@ static inline bool i40e_chk_linearize(struct sk_buff *skb, int count)
 {
 	/* Both TSO and single send will work if count is less than 8 */
 	if (likely(count < I40E_MAX_BUFFER_TXD))
+	{
 		return false;
+	}
 
 	if (skb_is_gso(skb))
+	{
 		return __i40evf_chk_linearize(skb);
+	}
 
 	/* we can support up to 8 data buffers for a single send */
 	return count != I40E_MAX_BUFFER_TXD;
@@ -451,7 +476,7 @@ static inline bool i40e_chk_linearize(struct sk_buff *skb, int count)
 static inline bool i40e_rx_is_fcoe(u16 ptype)
 {
 	return (ptype >= I40E_RX_PTYPE_L2_FCOE_PAY3) &&
-	       (ptype <= I40E_RX_PTYPE_L2_FCOE_VFT_FCOTHER);
+		   (ptype <= I40E_RX_PTYPE_L2_FCOE_VFT_FCOTHER);
 }
 
 /**

@@ -46,7 +46,8 @@ struct device;
  * This structure describes all the operations that can be done on the
  * physical hardware.  See Documentation/serial/driver for details.
  */
-struct uart_ops {
+struct uart_ops
+{
 	unsigned int	(*tx_empty)(struct uart_port *);
 	void		(*set_mctrl)(struct uart_port *, unsigned int mctrl);
 	unsigned int	(*get_mctrl)(struct uart_port *);
@@ -62,10 +63,10 @@ struct uart_ops {
 	void		(*shutdown)(struct uart_port *);
 	void		(*flush_buffer)(struct uart_port *);
 	void		(*set_termios)(struct uart_port *, struct ktermios *new,
-				       struct ktermios *old);
+							   struct ktermios *old);
 	void		(*set_ldisc)(struct uart_port *, struct ktermios *);
 	void		(*pm)(struct uart_port *, unsigned int state,
-			      unsigned int oldstate);
+					  unsigned int oldstate);
 
 	/*
 	 * Return a string describing the type of the port
@@ -97,7 +98,8 @@ struct uart_ops {
 #define UART_CONFIG_TYPE	(1 << 0)
 #define UART_CONFIG_IRQ		(1 << 1)
 
-struct uart_icount {
+struct uart_icount
+{
 	__u32	cts;
 	__u32	dsr;
 	__u32	rng;
@@ -114,15 +116,16 @@ struct uart_icount {
 typedef unsigned int __bitwise__ upf_t;
 typedef unsigned int __bitwise__ upstat_t;
 
-struct uart_port {
+struct uart_port
+{
 	spinlock_t		lock;			/* port lock */
 	unsigned long		iobase;			/* in/out[bwl] */
 	unsigned char __iomem	*membase;		/* read/write[bwl] */
 	unsigned int		(*serial_in)(struct uart_port *, int);
 	void			(*serial_out)(struct uart_port *, int, int);
 	void			(*set_termios)(struct uart_port *,
-				               struct ktermios *new,
-				               struct ktermios *old);
+								   struct ktermios *new,
+								   struct ktermios *old);
 	unsigned int		(*get_mctrl)(struct uart_port *);
 	void			(*set_mctrl)(struct uart_port *, unsigned int);
 	int			(*startup)(struct uart_port *port);
@@ -131,10 +134,10 @@ struct uart_port {
 	void			(*unthrottle)(struct uart_port *port);
 	int			(*handle_irq)(struct uart_port *);
 	void			(*pm)(struct uart_port *, unsigned int state,
-				      unsigned int old);
+						  unsigned int old);
 	void			(*handle_break)(struct uart_port *);
 	int			(*rs485_config)(struct uart_port *,
-						struct serial_rs485 *rs485);
+								struct serial_rs485 *rs485);
 	unsigned int		irq;			/* irq number */
 	unsigned long		irqflags;		/* irq flags  */
 	unsigned int		uartclk;		/* base uart clock */
@@ -193,17 +196,17 @@ struct uart_port {
 #define UPF_NO_TXEN_TEST	((__force upf_t) (1 << 15))
 #define UPF_MAGIC_MULTIPLIER	((__force upf_t) ASYNC_MAGIC_MULTIPLIER /* 16 */ )
 
-/* Port has hardware-assisted h/w flow control */
+	/* Port has hardware-assisted h/w flow control */
 #define UPF_AUTO_CTS		((__force upf_t) (1 << 20))
 #define UPF_AUTO_RTS		((__force upf_t) (1 << 21))
 #define UPF_HARD_FLOW		((__force upf_t) (UPF_AUTO_CTS | UPF_AUTO_RTS))
-/* Port has hardware-assisted s/w flow control */
+	/* Port has hardware-assisted s/w flow control */
 #define UPF_SOFT_FLOW		((__force upf_t) (1 << 22))
 #define UPF_CONS_FLOW		((__force upf_t) (1 << 23))
 #define UPF_SHARE_IRQ		((__force upf_t) (1 << 24))
 #define UPF_EXAR_EFR		((__force upf_t) (1 << 25))
 #define UPF_BUG_THRE		((__force upf_t) (1 << 26))
-/* The exact UART type is known and should not be probed.  */
+	/* The exact UART type is known and should not be probed.  */
 #define UPF_FIXED_TYPE		((__force upf_t) (1 << 27))
 #define UPF_BOOT_AUTOCONF	((__force upf_t) (1 << 28))
 #define UPF_FIXED_PORT		((__force upf_t) (1 << 29))
@@ -267,7 +270,8 @@ static inline void serial_port_out(struct uart_port *up, int offset, int value)
  * @UART_PM_STATE_OFF: UART is powered off
  * @UART_PM_STATE_UNDEFINED: sentinel
  */
-enum uart_pm_state {
+enum uart_pm_state
+{
 	UART_PM_STATE_ON = 0,
 	UART_PM_STATE_OFF = 3, /* number taken from ACPI */
 	UART_PM_STATE_UNDEFINED,
@@ -276,7 +280,8 @@ enum uart_pm_state {
 /*
  * This is the state information which is persistent across opens.
  */
-struct uart_state {
+struct uart_state
+{
 	struct tty_port		port;
 
 	enum uart_pm_state	pm_state;
@@ -296,7 +301,8 @@ struct uart_state {
 struct module;
 struct tty_driver;
 
-struct uart_driver {
+struct uart_driver
+{
 	struct module		*owner;
 	const char		*driver_name;
 	const char		*dev_name;
@@ -319,10 +325,10 @@ void uart_write_wakeup(struct uart_port *port);
  * Baud rate helpers.
  */
 void uart_update_timeout(struct uart_port *port, unsigned int cflag,
-			 unsigned int baud);
+						 unsigned int baud);
 unsigned int uart_get_baud_rate(struct uart_port *port, struct ktermios *termios,
-				struct ktermios *old, unsigned int min,
-				unsigned int max);
+								struct ktermios *old, unsigned int min,
+								unsigned int max);
 unsigned int uart_get_divisor(struct uart_port *port, unsigned int baud);
 
 /* Base timer interval for polling */
@@ -336,14 +342,16 @@ static inline int uart_poll_timeout(struct uart_port *port)
 /*
  * Console helpers.
  */
-struct earlycon_device {
+struct earlycon_device
+{
 	struct console *con;
 	struct uart_port port;
 	char options[16];		/* e.g., 115200n8 */
 	unsigned int baud;
 };
 
-struct earlycon_id {
+struct earlycon_id
+{
 	char	name[16];
 	char	compatible[128];
 	int	(*setup)(struct earlycon_device *, const char *options);
@@ -353,23 +361,23 @@ extern const struct earlycon_id __earlycon_table[];
 extern const struct earlycon_id __earlycon_table_end[];
 
 #if defined(CONFIG_SERIAL_EARLYCON) && !defined(MODULE)
-#define EARLYCON_USED_OR_UNUSED	__used
+	#define EARLYCON_USED_OR_UNUSED	__used
 #else
-#define EARLYCON_USED_OR_UNUSED	__maybe_unused
+	#define EARLYCON_USED_OR_UNUSED	__maybe_unused
 #endif
 
 #define OF_EARLYCON_DECLARE(_name, compat, fn)				\
 	static const struct earlycon_id __UNIQUE_ID(__earlycon_##_name)	\
-	     EARLYCON_USED_OR_UNUSED __section(__earlycon_table)	\
+	EARLYCON_USED_OR_UNUSED __section(__earlycon_table)	\
 		= { .name = __stringify(_name),				\
-		    .compatible = compat,				\
-		    .setup = fn  }
+			.compatible = compat,				\
+			.setup = fn  }
 
 #define EARLYCON_DECLARE(_name, fn)	OF_EARLYCON_DECLARE(_name, "", fn)
 
 extern int of_setup_earlycon(const struct earlycon_id *match,
-			     unsigned long node,
-			     const char *options);
+							 unsigned long node,
+							 const char *options);
 
 #ifdef CONFIG_SERIAL_EARLYCON
 extern bool earlycon_init_is_deferred __initdata;
@@ -380,17 +388,17 @@ static inline int setup_earlycon(char *buf) { return 0; }
 #endif
 
 struct uart_port *uart_get_console(struct uart_port *ports, int nr,
-				   struct console *c);
+								   struct console *c);
 int uart_parse_earlycon(char *p, unsigned char *iotype, resource_size_t *addr,
-			char **options);
+						char **options);
 void uart_parse_options(char *options, int *baud, int *parity, int *bits,
-			int *flow);
+						int *flow);
 int uart_set_options(struct uart_port *port, struct console *co, int baud,
-		     int parity, int bits, int flow);
+					 int parity, int bits, int flow);
 struct tty_driver *uart_console_device(struct console *co, int *index);
 void uart_console_write(struct uart_port *port, const char *s,
-			unsigned int count,
-			void (*putchar)(struct uart_port *, int));
+						unsigned int count,
+						void (*putchar)(struct uart_port *, int));
 
 /*
  * Port/driver registration/removal
@@ -419,8 +427,12 @@ int uart_resume_port(struct uart_driver *reg, struct uart_port *port);
 static inline int uart_tx_stopped(struct uart_port *port)
 {
 	struct tty_struct *tty = port->state->port.tty;
+
 	if ((tty && tty->stopped) || port->hw_stopped)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -441,25 +453,29 @@ static inline bool uart_softcts_mode(struct uart_port *uport)
  */
 
 extern void uart_handle_dcd_change(struct uart_port *uport,
-		unsigned int status);
+								   unsigned int status);
 extern void uart_handle_cts_change(struct uart_port *uport,
-		unsigned int status);
+								   unsigned int status);
 
 extern void uart_insert_char(struct uart_port *port, unsigned int status,
-		 unsigned int overrun, unsigned int ch, unsigned int flag);
+							 unsigned int overrun, unsigned int ch, unsigned int flag);
 
 #ifdef SUPPORT_SYSRQ
 static inline int
 uart_handle_sysrq_char(struct uart_port *port, unsigned int ch)
 {
-	if (port->sysrq) {
-		if (ch && time_before(jiffies, port->sysrq)) {
+	if (port->sysrq)
+	{
+		if (ch && time_before(jiffies, port->sysrq))
+		{
 			handle_sysrq(ch);
 			port->sysrq = 0;
 			return 1;
 		}
+
 		port->sysrq = 0;
 	}
+
 	return 0;
 }
 #else
@@ -474,19 +490,30 @@ static inline int uart_handle_break(struct uart_port *port)
 	struct uart_state *state = port->state;
 
 	if (port->handle_break)
+	{
 		port->handle_break(port);
+	}
 
 #ifdef SUPPORT_SYSRQ
-	if (port->cons && port->cons->index == port->line) {
-		if (!port->sysrq) {
-			port->sysrq = jiffies + HZ*5;
+
+	if (port->cons && port->cons->index == port->line)
+	{
+		if (!port->sysrq)
+		{
+			port->sysrq = jiffies + HZ * 5;
 			return 1;
 		}
+
 		port->sysrq = 0;
 	}
+
 #endif
+
 	if (port->flags & UPF_SAK)
+	{
 		do_SAK(state->port.tty);
+	}
+
 	return 0;
 }
 
@@ -494,7 +521,7 @@ static inline int uart_handle_break(struct uart_port *port)
  *	UART_ENABLE_MS - determine if port should enable modem status irqs
  */
 #define UART_ENABLE_MS(port,cflag)	((port)->flags & UPF_HARDPPS_CD || \
-					 (cflag) & CRTSCTS || \
-					 !((cflag) & CLOCAL))
+									 (cflag) & CRTSCTS || \
+									 !((cflag) & CLOCAL))
 
 #endif /* LINUX_SERIAL_CORE_H */

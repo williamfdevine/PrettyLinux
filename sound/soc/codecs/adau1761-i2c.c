@@ -16,7 +16,7 @@
 #include "adau1761.h"
 
 static int adau1761_i2c_probe(struct i2c_client *client,
-	const struct i2c_device_id *id)
+							  const struct i2c_device_id *id)
 {
 	struct regmap_config config;
 
@@ -25,8 +25,8 @@ static int adau1761_i2c_probe(struct i2c_client *client,
 	config.reg_bits = 16;
 
 	return adau1761_probe(&client->dev,
-		devm_regmap_init_i2c(client, &config),
-		id->driver_data, NULL);
+						  devm_regmap_init_i2c(client, &config),
+						  id->driver_data, NULL);
 }
 
 static int adau1761_i2c_remove(struct i2c_client *client)
@@ -35,7 +35,8 @@ static int adau1761_i2c_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id adau1761_i2c_ids[] = {
+static const struct i2c_device_id adau1761_i2c_ids[] =
+{
 	{ "adau1361", ADAU1361 },
 	{ "adau1461", ADAU1761 },
 	{ "adau1761", ADAU1761 },
@@ -45,7 +46,8 @@ static const struct i2c_device_id adau1761_i2c_ids[] = {
 MODULE_DEVICE_TABLE(i2c, adau1761_i2c_ids);
 
 #if defined(CONFIG_OF)
-static const struct of_device_id adau1761_i2c_dt_ids[] = {
+static const struct of_device_id adau1761_i2c_dt_ids[] =
+{
 	{ .compatible = "adi,adau1361", },
 	{ .compatible = "adi,adau1461", },
 	{ .compatible = "adi,adau1761", },
@@ -55,7 +57,8 @@ static const struct of_device_id adau1761_i2c_dt_ids[] = {
 MODULE_DEVICE_TABLE(of, adau1761_i2c_dt_ids);
 #endif
 
-static struct i2c_driver adau1761_i2c_driver = {
+static struct i2c_driver adau1761_i2c_driver =
+{
 	.driver = {
 		.name = "adau1761",
 		.of_match_table = of_match_ptr(adau1761_i2c_dt_ids),

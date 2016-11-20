@@ -27,7 +27,8 @@
 #include <linux/workqueue.h>
 #include <linux/mfd/wm831x/core.h>
 
-struct wm831x_on {
+struct wm831x_on
+{
 	struct input_dev *dev;
 	struct delayed_work work;
 	struct wm831x *wm831x;
@@ -40,23 +41,29 @@ struct wm831x_on {
 static void wm831x_poll_on(struct work_struct *work)
 {
 	struct wm831x_on *wm831x_on = container_of(work, struct wm831x_on,
-						   work.work);
+								  work.work);
 	struct wm831x *wm831x = wm831x_on->wm831x;
 	int poll, ret;
 
 	ret = wm831x_reg_read(wm831x, WM831X_ON_PIN_CONTROL);
-	if (ret >= 0) {
+
+	if (ret >= 0)
+	{
 		poll = !(ret & WM831X_ON_PIN_STS);
 
 		input_report_key(wm831x_on->dev, KEY_POWER, poll);
 		input_sync(wm831x_on->dev);
-	} else {
+	}
+	else
+	{
 		dev_err(wm831x->dev, "Failed to read ON status: %d\n", ret);
 		poll = 1;
 	}
 
 	if (poll)
+	{
 		schedule_delayed_work(&wm831x_on->work, 100);
+	}
 }
 
 static irqreturn_t wm831x_on_irq(int irq, void *data)
@@ -76,8 +83,10 @@ static int wm831x_on_probe(struct platform_device *pdev)
 	int ret;
 
 	wm831x_on = devm_kzalloc(&pdev->dev, sizeof(struct wm831x_on),
-				 GFP_KERNEL);
-	if (!wm831x_on) {
+							 GFP_KERNEL);
+
+	if (!wm831x_on)
+	{
 		dev_err(&pdev->dev, "Can't allocate data\n");
 		return -ENOMEM;
 	}
@@ -86,7 +95,9 @@ static int wm831x_on_probe(struct platform_device *pdev)
 	INIT_DELAYED_WORK(&wm831x_on->work, wm831x_poll_on);
 
 	wm831x_on->dev = devm_input_allocate_device(&pdev->dev);
-	if (!wm831x_on->dev) {
+
+	if (!wm831x_on->dev)
+	{
 		dev_err(&pdev->dev, "Can't allocate input dev\n");
 		ret = -ENOMEM;
 		goto err;
@@ -99,15 +110,20 @@ static int wm831x_on_probe(struct platform_device *pdev)
 	wm831x_on->dev->dev.parent = &pdev->dev;
 
 	ret = request_threaded_irq(irq, NULL, wm831x_on_irq,
-				   IRQF_TRIGGER_RISING | IRQF_ONESHOT,
-				   "wm831x_on",
-				   wm831x_on);
-	if (ret < 0) {
+							   IRQF_TRIGGER_RISING | IRQF_ONESHOT,
+							   "wm831x_on",
+							   wm831x_on);
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Unable to request IRQ: %d\n", ret);
 		goto err_input_dev;
 	}
+
 	ret = input_register_device(wm831x_on->dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_dbg(&pdev->dev, "Can't register input device: %d\n", ret);
 		goto err_irq;
 	}
@@ -134,7 +150,8 @@ static int wm831x_on_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver wm831x_on_driver = {
+static struct platform_driver wm831x_on_driver =
+{
 	.probe		= wm831x_on_probe,
 	.remove		= wm831x_on_remove,
 	.driver		= {

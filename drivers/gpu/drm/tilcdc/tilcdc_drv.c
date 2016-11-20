@@ -36,19 +36,22 @@ static LIST_HEAD(module_list);
 static const u32 tilcdc_rev1_formats[] = { DRM_FORMAT_RGB565 };
 
 static const u32 tilcdc_straight_formats[] = { DRM_FORMAT_RGB565,
-					       DRM_FORMAT_BGR888,
-					       DRM_FORMAT_XBGR8888 };
+											   DRM_FORMAT_BGR888,
+											   DRM_FORMAT_XBGR8888
+											 };
 
 static const u32 tilcdc_crossed_formats[] = { DRM_FORMAT_BGR565,
-					      DRM_FORMAT_RGB888,
-					      DRM_FORMAT_XRGB8888 };
+											  DRM_FORMAT_RGB888,
+											  DRM_FORMAT_XRGB8888
+											};
 
 static const u32 tilcdc_legacy_formats[] = { DRM_FORMAT_RGB565,
-					     DRM_FORMAT_RGB888,
-					     DRM_FORMAT_XRGB8888 };
+											 DRM_FORMAT_RGB888,
+											 DRM_FORMAT_XRGB8888
+										   };
 
 void tilcdc_module_init(struct tilcdc_module *mod, const char *name,
-		const struct tilcdc_module_ops *funcs)
+						const struct tilcdc_module_ops *funcs)
 {
 	mod->name = name;
 	mod->funcs = funcs;
@@ -76,38 +79,50 @@ static void tilcdc_fb_output_poll_changed(struct drm_device *dev)
 }
 
 static int tilcdc_atomic_check(struct drm_device *dev,
-			       struct drm_atomic_state *state)
+							   struct drm_atomic_state *state)
 {
 	int ret;
 
 	ret = drm_atomic_helper_check_modeset(dev, state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = drm_atomic_helper_check_planes(dev, state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/*
 	 * tilcdc ->atomic_check can update ->mode_changed if pixel format
 	 * changes, hence will we check modeset changes again.
 	 */
 	ret = drm_atomic_helper_check_modeset(dev, state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return ret;
 }
 
 static int tilcdc_commit(struct drm_device *dev,
-		  struct drm_atomic_state *state,
-		  bool async)
+						 struct drm_atomic_state *state,
+						 bool async)
 {
 	int ret;
 
 	ret = drm_atomic_helper_prepare_planes(dev, state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	drm_atomic_helper_swap_state(state, true);
 
@@ -148,7 +163,8 @@ static int tilcdc_commit(struct drm_device *dev,
 	return 0;
 }
 
-static const struct drm_mode_config_funcs mode_config_funcs = {
+static const struct drm_mode_config_funcs mode_config_funcs =
+{
 	.fb_create = tilcdc_fb_create,
 	.output_poll_changed = tilcdc_fb_output_poll_changed,
 	.atomic_check = tilcdc_atomic_check,
@@ -164,7 +180,8 @@ static int modeset_init(struct drm_device *dev)
 
 	priv->crtc = tilcdc_crtc_create(dev);
 
-	list_for_each_entry(mod, &module_list, list) {
+	list_for_each_entry(mod, &module_list, list)
+	{
 		DBG("loading module: %s", mod->name);
 		mod->funcs->modeset_init(mod, dev);
 	}
@@ -180,13 +197,15 @@ static int modeset_init(struct drm_device *dev)
 
 #ifdef CONFIG_CPU_FREQ
 static int cpufreq_transition(struct notifier_block *nb,
-				     unsigned long val, void *data)
+							  unsigned long val, void *data)
 {
 	struct tilcdc_drm_private *priv = container_of(nb,
-			struct tilcdc_drm_private, freq_transition);
+									  struct tilcdc_drm_private, freq_transition);
 
 	if (val == CPUFREQ_POSTCHANGE)
+	{
 		tilcdc_crtc_update_clk(priv->crtc);
+	}
 
 	return 0;
 }
@@ -211,14 +230,18 @@ static int tilcdc_unload(struct drm_device *dev)
 
 #ifdef CONFIG_CPU_FREQ
 	cpufreq_unregister_notifier(&priv->freq_transition,
-			CPUFREQ_TRANSITION_NOTIFIER);
+								CPUFREQ_TRANSITION_NOTIFIER);
 #endif
 
 	if (priv->clk)
+	{
 		clk_put(priv->clk);
+	}
 
 	if (priv->mmio)
+	{
 		iounmap(priv->mmio);
+	}
 
 	flush_workqueue(priv->wq);
 	destroy_workqueue(priv->wq);
@@ -240,7 +263,9 @@ static int tilcdc_load(struct drm_device *dev, unsigned long flags)
 	int ret;
 
 	priv = devm_kzalloc(dev->dev, sizeof(*priv), GFP_KERNEL);
-	if (!priv) {
+
+	if (!priv)
+	{
 		dev_err(dev->dev, "failed to allocate private data\n");
 		return -ENOMEM;
 	}
@@ -251,27 +276,35 @@ static int tilcdc_load(struct drm_device *dev, unsigned long flags)
 		tilcdc_get_external_components(dev->dev, NULL) > 0;
 
 	priv->wq = alloc_ordered_workqueue("tilcdc", 0);
-	if (!priv->wq) {
+
+	if (!priv->wq)
+	{
 		ret = -ENOMEM;
 		goto fail_unset_priv;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(dev->dev, "failed to get memory resource\n");
 		ret = -EINVAL;
 		goto fail_free_wq;
 	}
 
 	priv->mmio = ioremap_nocache(res->start, resource_size(res));
-	if (!priv->mmio) {
+
+	if (!priv->mmio)
+	{
 		dev_err(dev->dev, "failed to ioremap\n");
 		ret = -ENOMEM;
 		goto fail_free_wq;
 	}
 
 	priv->clk = clk_get(dev->dev, "fck");
-	if (IS_ERR(priv->clk)) {
+
+	if (IS_ERR(priv->clk))
+	{
 		dev_err(dev->dev, "failed to get functional clock\n");
 		ret = -ENODEV;
 		goto fail_iounmap;
@@ -280,26 +313,35 @@ static int tilcdc_load(struct drm_device *dev, unsigned long flags)
 #ifdef CONFIG_CPU_FREQ
 	priv->freq_transition.notifier_call = cpufreq_transition;
 	ret = cpufreq_register_notifier(&priv->freq_transition,
-			CPUFREQ_TRANSITION_NOTIFIER);
-	if (ret) {
+									CPUFREQ_TRANSITION_NOTIFIER);
+
+	if (ret)
+	{
 		dev_err(dev->dev, "failed to register cpufreq notifier\n");
 		goto fail_put_clk;
 	}
+
 #endif
 
 	if (of_property_read_u32(node, "max-bandwidth", &priv->max_bandwidth))
+	{
 		priv->max_bandwidth = TILCDC_DEFAULT_MAX_BANDWIDTH;
+	}
 
 	DBG("Maximum Bandwidth Value %d", priv->max_bandwidth);
 
 	if (of_property_read_u32(node, "ti,max-width", &priv->max_width))
+	{
 		priv->max_width = TILCDC_DEFAULT_MAX_WIDTH;
+	}
 
 	DBG("Maximum Horizontal Pixel Width Value %dpixels", priv->max_width);
 
 	if (of_property_read_u32(node, "ti,max-pixelclock",
-					&priv->max_pixelclock))
+							 &priv->max_pixelclock))
+	{
 		priv->max_pixelclock = TILCDC_DEFAULT_MAX_PIXELCLOCK;
+	}
 
 	DBG("Maximum Pixel Clock Value %dKHz", priv->max_pixelclock);
 
@@ -307,48 +349,61 @@ static int tilcdc_load(struct drm_device *dev, unsigned long flags)
 
 	/* Determine LCD IP Version */
 	pm_runtime_get_sync(dev->dev);
-	switch (tilcdc_read(dev, LCDC_PID_REG)) {
-	case 0x4c100102:
-		priv->rev = 1;
-		break;
-	case 0x4f200800:
-	case 0x4f201000:
-		priv->rev = 2;
-		break;
-	default:
-		dev_warn(dev->dev, "Unknown PID Reg value 0x%08x, "
-				"defaulting to LCD revision 1\n",
-				tilcdc_read(dev, LCDC_PID_REG));
-		priv->rev = 1;
-		break;
+
+	switch (tilcdc_read(dev, LCDC_PID_REG))
+	{
+		case 0x4c100102:
+			priv->rev = 1;
+			break;
+
+		case 0x4f200800:
+		case 0x4f201000:
+			priv->rev = 2;
+			break;
+
+		default:
+			dev_warn(dev->dev, "Unknown PID Reg value 0x%08x, "
+					 "defaulting to LCD revision 1\n",
+					 tilcdc_read(dev, LCDC_PID_REG));
+			priv->rev = 1;
+			break;
 	}
 
 	pm_runtime_put_sync(dev->dev);
 
-	if (priv->rev == 1) {
+	if (priv->rev == 1)
+	{
 		DBG("Revision 1 LCDC supports only RGB565 format");
 		priv->pixelformats = tilcdc_rev1_formats;
 		priv->num_pixelformats = ARRAY_SIZE(tilcdc_rev1_formats);
 		bpp = 16;
-	} else {
+	}
+	else
+	{
 		const char *str = "\0";
 
 		of_property_read_string(node, "blue-and-red-wiring", &str);
-		if (0 == strcmp(str, "crossed")) {
+
+		if (0 == strcmp(str, "crossed"))
+		{
 			DBG("Configured for crossed blue and red wires");
 			priv->pixelformats = tilcdc_crossed_formats;
 			priv->num_pixelformats =
 				ARRAY_SIZE(tilcdc_crossed_formats);
 			bpp = 32; /* Choose bpp with RGB support for fbdef */
-		} else if (0 == strcmp(str, "straight")) {
+		}
+		else if (0 == strcmp(str, "straight"))
+		{
 			DBG("Configured for straight blue and red wires");
 			priv->pixelformats = tilcdc_straight_formats;
 			priv->num_pixelformats =
 				ARRAY_SIZE(tilcdc_straight_formats);
 			bpp = 16; /* Choose bpp with RGB support for fbdef */
-		} else {
+		}
+		else
+		{
 			DBG("Blue and red wiring '%s' unknown, use legacy mode",
-			    str);
+				str);
 			priv->pixelformats = tilcdc_legacy_formats;
 			priv->num_pixelformats =
 				ARRAY_SIZE(tilcdc_legacy_formats);
@@ -357,37 +412,51 @@ static int tilcdc_load(struct drm_device *dev, unsigned long flags)
 	}
 
 	ret = modeset_init(dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev->dev, "failed to initialize mode setting\n");
 		goto fail_cpufreq_unregister;
 	}
 
 	platform_set_drvdata(pdev, dev);
 
-	if (priv->is_componentized) {
+	if (priv->is_componentized)
+	{
 		ret = component_bind_all(dev->dev, dev);
+
 		if (ret < 0)
+		{
 			goto fail_mode_config_cleanup;
+		}
 
 		ret = tilcdc_add_external_encoders(dev);
+
 		if (ret < 0)
+		{
 			goto fail_component_cleanup;
+		}
 	}
 
-	if ((priv->num_encoders == 0) || (priv->num_connectors == 0)) {
+	if ((priv->num_encoders == 0) || (priv->num_connectors == 0))
+	{
 		dev_err(dev->dev, "no encoders/connectors found\n");
 		ret = -ENXIO;
 		goto fail_external_cleanup;
 	}
 
 	ret = drm_vblank_init(dev, 1);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev->dev, "failed to initialize vblank\n");
 		goto fail_external_cleanup;
 	}
 
 	ret = drm_irq_install(dev, platform_get_irq(dev->platformdev, 0));
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev->dev, "failed to install IRQ handler\n");
 		goto fail_vblank_cleanup;
 	}
@@ -395,9 +464,11 @@ static int tilcdc_load(struct drm_device *dev, unsigned long flags)
 	drm_mode_config_reset(dev);
 
 	priv->fbdev = drm_fbdev_cma_init(dev, bpp,
-			dev->mode_config.num_crtc,
-			dev->mode_config.num_connector);
-	if (IS_ERR(priv->fbdev)) {
+									 dev->mode_config.num_crtc,
+									 dev->mode_config.num_connector);
+
+	if (IS_ERR(priv->fbdev))
+	{
 		ret = PTR_ERR(priv->fbdev);
 		goto fail_irq_uninstall;
 	}
@@ -413,8 +484,11 @@ fail_vblank_cleanup:
 	drm_vblank_cleanup(dev);
 
 fail_component_cleanup:
+
 	if (priv->is_componentized)
+	{
 		component_unbind_all(dev->dev, dev);
+	}
 
 fail_mode_config_cleanup:
 	drm_mode_config_cleanup(dev);
@@ -426,7 +500,7 @@ fail_cpufreq_unregister:
 	pm_runtime_disable(dev->dev);
 #ifdef CONFIG_CPU_FREQ
 	cpufreq_unregister_notifier(&priv->freq_transition,
-			CPUFREQ_TRANSITION_NOTIFIER);
+								CPUFREQ_TRANSITION_NOTIFIER);
 
 fail_put_clk:
 #endif
@@ -469,33 +543,35 @@ static void tilcdc_disable_vblank(struct drm_device *dev, unsigned int pipe)
 }
 
 #if defined(CONFIG_DEBUG_FS)
-static const struct {
+static const struct
+{
 	const char *name;
 	uint8_t  rev;
 	uint8_t  save;
 	uint32_t reg;
-} registers[] =		{
+} registers[] =
+{
 #define REG(rev, save, reg) { #reg, rev, save, reg }
-		/* exists in revision 1: */
-		REG(1, false, LCDC_PID_REG),
-		REG(1, true,  LCDC_CTRL_REG),
-		REG(1, false, LCDC_STAT_REG),
-		REG(1, true,  LCDC_RASTER_CTRL_REG),
-		REG(1, true,  LCDC_RASTER_TIMING_0_REG),
-		REG(1, true,  LCDC_RASTER_TIMING_1_REG),
-		REG(1, true,  LCDC_RASTER_TIMING_2_REG),
-		REG(1, true,  LCDC_DMA_CTRL_REG),
-		REG(1, true,  LCDC_DMA_FB_BASE_ADDR_0_REG),
-		REG(1, true,  LCDC_DMA_FB_CEILING_ADDR_0_REG),
-		REG(1, true,  LCDC_DMA_FB_BASE_ADDR_1_REG),
-		REG(1, true,  LCDC_DMA_FB_CEILING_ADDR_1_REG),
-		/* new in revision 2: */
-		REG(2, false, LCDC_RAW_STAT_REG),
-		REG(2, false, LCDC_MASKED_STAT_REG),
-		REG(2, true, LCDC_INT_ENABLE_SET_REG),
-		REG(2, false, LCDC_INT_ENABLE_CLR_REG),
-		REG(2, false, LCDC_END_OF_INT_IND_REG),
-		REG(2, true,  LCDC_CLK_ENABLE_REG),
+	/* exists in revision 1: */
+	REG(1, false, LCDC_PID_REG),
+	REG(1, true,  LCDC_CTRL_REG),
+	REG(1, false, LCDC_STAT_REG),
+	REG(1, true,  LCDC_RASTER_CTRL_REG),
+	REG(1, true,  LCDC_RASTER_TIMING_0_REG),
+	REG(1, true,  LCDC_RASTER_TIMING_1_REG),
+	REG(1, true,  LCDC_RASTER_TIMING_2_REG),
+	REG(1, true,  LCDC_DMA_CTRL_REG),
+	REG(1, true,  LCDC_DMA_FB_BASE_ADDR_0_REG),
+	REG(1, true,  LCDC_DMA_FB_CEILING_ADDR_0_REG),
+	REG(1, true,  LCDC_DMA_FB_BASE_ADDR_1_REG),
+	REG(1, true,  LCDC_DMA_FB_CEILING_ADDR_1_REG),
+	/* new in revision 2: */
+	REG(2, false, LCDC_RAW_STAT_REG),
+	REG(2, false, LCDC_MASKED_STAT_REG),
+	REG(2, true, LCDC_INT_ENABLE_SET_REG),
+	REG(2, false, LCDC_INT_ENABLE_CLR_REG),
+	REG(2, false, LCDC_END_OF_INT_IND_REG),
+	REG(2, true,  LCDC_CLK_ENABLE_REG),
 #undef REG
 };
 
@@ -516,7 +592,7 @@ static int tilcdc_regs_show(struct seq_file *m, void *arg)
 	for (i = 0; i < ARRAY_SIZE(registers); i++)
 		if (priv->rev >= registers[i].rev)
 			seq_printf(m, "%s:\t %08x\n", registers[i].name,
-					tilcdc_read(dev, registers[i].reg));
+					   tilcdc_read(dev, registers[i].reg));
 
 	pm_runtime_put_sync(dev->dev);
 
@@ -530,10 +606,11 @@ static int tilcdc_mm_show(struct seq_file *m, void *arg)
 	return drm_mm_dump_table(m, &dev->vma_offset_manager->vm_addr_space_mm);
 }
 
-static struct drm_info_list tilcdc_debugfs_list[] = {
-		{ "regs", tilcdc_regs_show, 0 },
-		{ "mm",   tilcdc_mm_show,   0 },
-		{ "fb",   drm_fb_cma_debugfs_show, 0 },
+static struct drm_info_list tilcdc_debugfs_list[] =
+{
+	{ "regs", tilcdc_regs_show, 0 },
+	{ "mm",   tilcdc_mm_show,   0 },
+	{ "fb",   drm_fb_cma_debugfs_show, 0 },
 };
 
 static int tilcdc_debugfs_init(struct drm_minor *minor)
@@ -543,14 +620,18 @@ static int tilcdc_debugfs_init(struct drm_minor *minor)
 	int ret;
 
 	ret = drm_debugfs_create_files(tilcdc_debugfs_list,
-			ARRAY_SIZE(tilcdc_debugfs_list),
-			minor->debugfs_root, minor);
+								   ARRAY_SIZE(tilcdc_debugfs_list),
+								   minor->debugfs_root, minor);
 
 	list_for_each_entry(mod, &module_list, list)
-		if (mod->funcs->debugfs_init)
-			mod->funcs->debugfs_init(mod, minor);
 
-	if (ret) {
+	if (mod->funcs->debugfs_init)
+	{
+		mod->funcs->debugfs_init(mod, minor);
+	}
+
+	if (ret)
+	{
 		dev_err(dev->dev, "could not install tilcdc_debugfs_list\n");
 		return ret;
 	}
@@ -562,15 +643,19 @@ static void tilcdc_debugfs_cleanup(struct drm_minor *minor)
 {
 	struct tilcdc_module *mod;
 	drm_debugfs_remove_files(tilcdc_debugfs_list,
-			ARRAY_SIZE(tilcdc_debugfs_list), minor);
+							 ARRAY_SIZE(tilcdc_debugfs_list), minor);
 
 	list_for_each_entry(mod, &module_list, list)
-		if (mod->funcs->debugfs_cleanup)
-			mod->funcs->debugfs_cleanup(mod, minor);
+
+	if (mod->funcs->debugfs_cleanup)
+	{
+		mod->funcs->debugfs_cleanup(mod, minor);
+	}
 }
 #endif
 
-static const struct file_operations fops = {
+static const struct file_operations fops =
+{
 	.owner              = THIS_MODULE,
 	.open               = drm_open,
 	.release            = drm_release,
@@ -584,9 +669,10 @@ static const struct file_operations fops = {
 	.mmap               = drm_gem_cma_mmap,
 };
 
-static struct drm_driver tilcdc_driver = {
+static struct drm_driver tilcdc_driver =
+{
 	.driver_features    = (DRIVER_HAVE_IRQ | DRIVER_GEM | DRIVER_MODESET |
-			       DRIVER_PRIME | DRIVER_ATOMIC),
+	DRIVER_PRIME | DRIVER_ATOMIC),
 	.load               = tilcdc_load,
 	.unload             = tilcdc_unload,
 	.lastclose          = tilcdc_lastclose,
@@ -649,13 +735,16 @@ static int tilcdc_pm_resume(struct device *dev)
 	pinctrl_pm_select_default_state(dev);
 
 	if (priv->saved_state)
+	{
 		ret = drm_atomic_helper_resume(ddev, priv->saved_state);
+	}
 
 	return ret;
 }
 #endif
 
-static const struct dev_pm_ops tilcdc_pm_ops = {
+static const struct dev_pm_ops tilcdc_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(tilcdc_pm_suspend, tilcdc_pm_resume)
 };
 
@@ -674,12 +763,15 @@ static void tilcdc_unbind(struct device *dev)
 
 	/* Check if a subcomponent has already triggered the unloading. */
 	if (!ddev->dev_private)
+	{
 		return;
+	}
 
 	drm_put_dev(dev_get_drvdata(dev));
 }
 
-static const struct component_master_ops tilcdc_comp_ops = {
+static const struct component_master_ops tilcdc_comp_ops =
+{
 	.bind = tilcdc_bind,
 	.unbind = tilcdc_unbind,
 };
@@ -690,20 +782,26 @@ static int tilcdc_pdev_probe(struct platform_device *pdev)
 	int ret;
 
 	/* bail out early if no DT data: */
-	if (!pdev->dev.of_node) {
+	if (!pdev->dev.of_node)
+	{
 		dev_err(&pdev->dev, "device-tree data is missing\n");
 		return -ENXIO;
 	}
 
 	ret = tilcdc_get_external_components(&pdev->dev, &match);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 	else if (ret == 0)
+	{
 		return drm_platform_init(&tilcdc_driver, pdev);
+	}
 	else
 		return component_master_add_with_match(&pdev->dev,
-						       &tilcdc_comp_ops,
-						       match);
+											   &tilcdc_comp_ops,
+											   match);
 }
 
 static int tilcdc_pdev_remove(struct platform_device *pdev)
@@ -711,23 +809,32 @@ static int tilcdc_pdev_remove(struct platform_device *pdev)
 	int ret;
 
 	ret = tilcdc_get_external_components(&pdev->dev, NULL);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 	else if (ret == 0)
+	{
 		drm_put_dev(platform_get_drvdata(pdev));
+	}
 	else
+	{
 		component_master_del(&pdev->dev, &tilcdc_comp_ops);
+	}
 
 	return 0;
 }
 
-static struct of_device_id tilcdc_of_match[] = {
-		{ .compatible = "ti,am33xx-tilcdc", },
-		{ },
+static struct of_device_id tilcdc_of_match[] =
+{
+	{ .compatible = "ti,am33xx-tilcdc", },
+	{ },
 };
 MODULE_DEVICE_TABLE(of, tilcdc_of_match);
 
-static struct platform_driver tilcdc_platform_driver = {
+static struct platform_driver tilcdc_platform_driver =
+{
 	.probe      = tilcdc_pdev_probe,
 	.remove     = tilcdc_pdev_remove,
 	.driver     = {

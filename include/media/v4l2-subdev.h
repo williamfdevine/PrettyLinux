@@ -58,7 +58,8 @@ struct v4l2_mbus_frame_desc;
  * @line: Line number of the sliced VBI data (1-23)
  * @type: VBI service type (V4L2_SLICED_*). 0 if no service found
  */
-struct v4l2_decode_vbi_line {
+struct v4l2_decode_vbi_line
+{
 	u32 is_second_field;
 	u8 *p;
 	u32 line;
@@ -129,7 +130,8 @@ struct v4l2_decode_vbi_line {
  * @value: Initial value for pin - e.g. GPIO output value
  * @strength: Pin drive strength
  */
-struct v4l2_subdev_io_pin_config {
+struct v4l2_subdev_io_pin_config
+{
 	u32 flags;
 	u8 pin;
 	u8 function;
@@ -185,10 +187,11 @@ struct v4l2_subdev_io_pin_config {
  *
  * @unsubscribe_event: remove event subscription from the control framework.
  */
-struct v4l2_subdev_core_ops {
+struct v4l2_subdev_core_ops
+{
 	int (*log_status)(struct v4l2_subdev *sd);
 	int (*s_io_pin_config)(struct v4l2_subdev *sd, size_t n,
-				      struct v4l2_subdev_io_pin_config *pincfg);
+						   struct v4l2_subdev_io_pin_config *pincfg);
 	int (*init)(struct v4l2_subdev *sd, u32 val);
 	int (*load_fw)(struct v4l2_subdev *sd);
 	int (*reset)(struct v4l2_subdev *sd, u32 val);
@@ -196,7 +199,7 @@ struct v4l2_subdev_core_ops {
 	long (*ioctl)(struct v4l2_subdev *sd, unsigned int cmd, void *arg);
 #ifdef CONFIG_COMPAT
 	long (*compat_ioctl32)(struct v4l2_subdev *sd, unsigned int cmd,
-			       unsigned long arg);
+						   unsigned long arg);
 #endif
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 	int (*g_register)(struct v4l2_subdev *sd, struct v4l2_dbg_register *reg);
@@ -204,11 +207,11 @@ struct v4l2_subdev_core_ops {
 #endif
 	int (*s_power)(struct v4l2_subdev *sd, int on);
 	int (*interrupt_service_routine)(struct v4l2_subdev *sd,
-						u32 status, bool *handled);
+									 u32 status, bool *handled);
 	int (*subscribe_event)(struct v4l2_subdev *sd, struct v4l2_fh *fh,
-			       struct v4l2_event_subscription *sub);
+						   struct v4l2_event_subscription *sub);
 	int (*unsubscribe_event)(struct v4l2_subdev *sd, struct v4l2_fh *fh,
-				 struct v4l2_event_subscription *sub);
+							 struct v4l2_event_subscription *sub);
 };
 
 /**
@@ -239,7 +242,8 @@ struct v4l2_subdev_core_ops {
  *
  * @s_config: sets tda9887 specific stuff, like port1, port2 and qss
  */
-struct v4l2_subdev_tuner_ops {
+struct v4l2_subdev_tuner_ops
+{
 	int (*s_radio)(struct v4l2_subdev *sd);
 	int (*s_frequency)(struct v4l2_subdev *sd, const struct v4l2_frequency *freq);
 	int (*g_frequency)(struct v4l2_subdev *sd, struct v4l2_frequency *freq);
@@ -278,7 +282,8 @@ struct v4l2_subdev_tuner_ops {
  * @s_stream: used to notify the audio code that stream will start or has
  *	stopped.
  */
-struct v4l2_subdev_audio_ops {
+struct v4l2_subdev_audio_ops
+{
 	int (*s_clock_freq)(struct v4l2_subdev *sd, u32 freq);
 	int (*s_i2s_clock_freq)(struct v4l2_subdev *sd, u32 freq);
 	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 config);
@@ -302,7 +307,8 @@ struct v4l2_subdev_audio_ops {
  * @length: number of octets per frame, valid if V4L2_MBUS_FRAME_DESC_FL_BLOB
  *	    is set
  */
-struct v4l2_mbus_frame_desc_entry {
+struct v4l2_mbus_frame_desc_entry
+{
 	u16 flags;
 	u32 pixelcode;
 	u32 length;
@@ -315,7 +321,8 @@ struct v4l2_mbus_frame_desc_entry {
  * @entry: frame descriptors array
  * @num_entries: number of entries in @entry array
  */
-struct v4l2_mbus_frame_desc {
+struct v4l2_mbus_frame_desc
+{
 	struct v4l2_mbus_frame_desc_entry entry[V4L2_FRAME_DESC_ENTRY_MAX];
 	unsigned short num_entries;
 };
@@ -384,7 +391,8 @@ struct v4l2_mbus_frame_desc {
  *	can adjust @size to a lower value and must not write more data to the
  *	buffer starting at @data than the original value of @size.
  */
-struct v4l2_subdev_video_ops {
+struct v4l2_subdev_video_ops
+{
 	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 config);
 	int (*s_crystal_freq)(struct v4l2_subdev *sd, u32 freq, u32 flags);
 	int (*g_std)(struct v4l2_subdev *sd, v4l2_std_id *norm);
@@ -400,21 +408,21 @@ struct v4l2_subdev_video_ops {
 	int (*g_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
 	int (*s_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
 	int (*g_frame_interval)(struct v4l2_subdev *sd,
-				struct v4l2_subdev_frame_interval *interval);
+							struct v4l2_subdev_frame_interval *interval);
 	int (*s_frame_interval)(struct v4l2_subdev *sd,
-				struct v4l2_subdev_frame_interval *interval);
+							struct v4l2_subdev_frame_interval *interval);
 	int (*s_dv_timings)(struct v4l2_subdev *sd,
-			struct v4l2_dv_timings *timings);
+						struct v4l2_dv_timings *timings);
 	int (*g_dv_timings)(struct v4l2_subdev *sd,
-			struct v4l2_dv_timings *timings);
+						struct v4l2_dv_timings *timings);
 	int (*query_dv_timings)(struct v4l2_subdev *sd,
-			struct v4l2_dv_timings *timings);
+							struct v4l2_dv_timings *timings);
 	int (*g_mbus_config)(struct v4l2_subdev *sd,
-			     struct v4l2_mbus_config *cfg);
+						 struct v4l2_mbus_config *cfg);
 	int (*s_mbus_config)(struct v4l2_subdev *sd,
-			     const struct v4l2_mbus_config *cfg);
+						 const struct v4l2_mbus_config *cfg);
 	int (*s_rx_buffer)(struct v4l2_subdev *sd, void *buf,
-			   unsigned int *size);
+					   unsigned int *size);
 };
 
 /**
@@ -451,7 +459,8 @@ struct v4l2_subdev_video_ops {
  *
  * @s_sliced_fmt: setup the sliced VBI settings.
  */
-struct v4l2_subdev_vbi_ops {
+struct v4l2_subdev_vbi_ops
+{
 	int (*decode_vbi_line)(struct v4l2_subdev *sd, struct v4l2_decode_vbi_line *vbi_line);
 	int (*s_vbi_data)(struct v4l2_subdev *sd, const struct v4l2_sliced_vbi_data *vbi_data);
 	int (*g_vbi_data)(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_data *vbi_data);
@@ -471,7 +480,8 @@ struct v4l2_subdev_vbi_ops {
  *		   buggy sensors that generate faulty frames when they are
  *		   turned on.
  */
-struct v4l2_subdev_sensor_ops {
+struct v4l2_subdev_sensor_ops
+{
 	int (*g_skip_top_lines)(struct v4l2_subdev *sd, u32 *lines);
 	int (*g_skip_frames)(struct v4l2_subdev *sd, u32 *frames);
 };
@@ -481,7 +491,8 @@ struct v4l2_subdev_sensor_ops {
  *
  * @V4L2_SUBDEV_IR_MODE_PULSE_WIDTH: IR uses struct ir_raw_event records
  */
-enum v4l2_subdev_ir_mode {
+enum v4l2_subdev_ir_mode
+{
 	V4L2_SUBDEV_IR_MODE_PULSE_WIDTH,
 };
 
@@ -510,7 +521,8 @@ enum v4l2_subdev_ir_mode {
  *	signal. Used only for RX.
  * @resolution: The receive resolution, in ns . Used only for RX.
  */
-struct v4l2_subdev_ir_parameters {
+struct v4l2_subdev_ir_parameters
+{
 	unsigned int bytes_per_data_element;
 	enum v4l2_subdev_ir_mode mode;
 
@@ -569,24 +581,25 @@ struct v4l2_subdev_ir_parameters {
  *	state of the hardware be different to minimize power consumption and
  *	processing when shutdown is true.
  */
-struct v4l2_subdev_ir_ops {
+struct v4l2_subdev_ir_ops
+{
 	/* Receiver */
 	int (*rx_read)(struct v4l2_subdev *sd, u8 *buf, size_t count,
-				ssize_t *num);
+				   ssize_t *num);
 
 	int (*rx_g_parameters)(struct v4l2_subdev *sd,
-				struct v4l2_subdev_ir_parameters *params);
+						   struct v4l2_subdev_ir_parameters *params);
 	int (*rx_s_parameters)(struct v4l2_subdev *sd,
-				struct v4l2_subdev_ir_parameters *params);
+						   struct v4l2_subdev_ir_parameters *params);
 
 	/* Transmitter */
 	int (*tx_write)(struct v4l2_subdev *sd, u8 *buf, size_t count,
-				ssize_t *num);
+					ssize_t *num);
 
 	int (*tx_g_parameters)(struct v4l2_subdev *sd,
-				struct v4l2_subdev_ir_parameters *params);
+						   struct v4l2_subdev_ir_parameters *params);
 	int (*tx_s_parameters)(struct v4l2_subdev *sd,
-				struct v4l2_subdev_ir_parameters *params);
+						   struct v4l2_subdev_ir_parameters *params);
 };
 
 /**
@@ -600,7 +613,8 @@ struct v4l2_subdev_ir_ops {
  * of the main argument is set to %V4L2_SUBDEV_FORMAT_TRY. For
  * %V4L2_SUBDEV_FORMAT_ACTIVE it is safe to pass %NULL.
  */
-struct v4l2_subdev_pad_config {
+struct v4l2_subdev_pad_config
+{
 	struct v4l2_mbus_framefmt try_fmt;
 	struct v4l2_rect try_crop;
 	struct v4l2_rect try_compose;
@@ -644,45 +658,46 @@ struct v4l2_subdev_pad_config {
  * @set_frame_desc: set the low level media bus frame parameters, @fd array
  *                  may be adjusted by the subdev driver to device capabilities.
  */
-struct v4l2_subdev_pad_ops {
+struct v4l2_subdev_pad_ops
+{
 	int (*init_cfg)(struct v4l2_subdev *sd,
-			struct v4l2_subdev_pad_config *cfg);
+					struct v4l2_subdev_pad_config *cfg);
 	int (*enum_mbus_code)(struct v4l2_subdev *sd,
-			      struct v4l2_subdev_pad_config *cfg,
-			      struct v4l2_subdev_mbus_code_enum *code);
+						  struct v4l2_subdev_pad_config *cfg,
+						  struct v4l2_subdev_mbus_code_enum *code);
 	int (*enum_frame_size)(struct v4l2_subdev *sd,
-			       struct v4l2_subdev_pad_config *cfg,
-			       struct v4l2_subdev_frame_size_enum *fse);
+						   struct v4l2_subdev_pad_config *cfg,
+						   struct v4l2_subdev_frame_size_enum *fse);
 	int (*enum_frame_interval)(struct v4l2_subdev *sd,
-				   struct v4l2_subdev_pad_config *cfg,
-				   struct v4l2_subdev_frame_interval_enum *fie);
+							   struct v4l2_subdev_pad_config *cfg,
+							   struct v4l2_subdev_frame_interval_enum *fie);
 	int (*get_fmt)(struct v4l2_subdev *sd,
-		       struct v4l2_subdev_pad_config *cfg,
-		       struct v4l2_subdev_format *format);
+				   struct v4l2_subdev_pad_config *cfg,
+				   struct v4l2_subdev_format *format);
 	int (*set_fmt)(struct v4l2_subdev *sd,
-		       struct v4l2_subdev_pad_config *cfg,
-		       struct v4l2_subdev_format *format);
+				   struct v4l2_subdev_pad_config *cfg,
+				   struct v4l2_subdev_format *format);
 	int (*get_selection)(struct v4l2_subdev *sd,
-			     struct v4l2_subdev_pad_config *cfg,
-			     struct v4l2_subdev_selection *sel);
+						 struct v4l2_subdev_pad_config *cfg,
+						 struct v4l2_subdev_selection *sel);
 	int (*set_selection)(struct v4l2_subdev *sd,
-			     struct v4l2_subdev_pad_config *cfg,
-			     struct v4l2_subdev_selection *sel);
+						 struct v4l2_subdev_pad_config *cfg,
+						 struct v4l2_subdev_selection *sel);
 	int (*get_edid)(struct v4l2_subdev *sd, struct v4l2_edid *edid);
 	int (*set_edid)(struct v4l2_subdev *sd, struct v4l2_edid *edid);
 	int (*dv_timings_cap)(struct v4l2_subdev *sd,
-			      struct v4l2_dv_timings_cap *cap);
+						  struct v4l2_dv_timings_cap *cap);
 	int (*enum_dv_timings)(struct v4l2_subdev *sd,
-			       struct v4l2_enum_dv_timings *timings);
+						   struct v4l2_enum_dv_timings *timings);
 #ifdef CONFIG_MEDIA_CONTROLLER
 	int (*link_validate)(struct v4l2_subdev *sd, struct media_link *link,
-			     struct v4l2_subdev_format *source_fmt,
-			     struct v4l2_subdev_format *sink_fmt);
+						 struct v4l2_subdev_format *source_fmt,
+						 struct v4l2_subdev_format *sink_fmt);
 #endif /* CONFIG_MEDIA_CONTROLLER */
 	int (*get_frame_desc)(struct v4l2_subdev *sd, unsigned int pad,
-			      struct v4l2_mbus_frame_desc *fd);
+						  struct v4l2_mbus_frame_desc *fd);
 	int (*set_frame_desc)(struct v4l2_subdev *sd, unsigned int pad,
-			      struct v4l2_mbus_frame_desc *fd);
+						  struct v4l2_mbus_frame_desc *fd);
 };
 
 /**
@@ -697,7 +712,8 @@ struct v4l2_subdev_pad_ops {
  * @sensor: pointer to &struct v4l2_subdev_sensor_ops. Can be %NULL
  * @pad: pointer to &struct v4l2_subdev_pad_ops. Can be %NULL
  */
-struct v4l2_subdev_ops {
+struct v4l2_subdev_ops
+{
 	const struct v4l2_subdev_core_ops	*core;
 	const struct v4l2_subdev_tuner_ops	*tuner;
 	const struct v4l2_subdev_audio_ops	*audio;
@@ -725,7 +741,8 @@ struct v4l2_subdev_ops {
  *	Never call this from drivers, only the v4l2 framework can call
  *	these ops.
  */
-struct v4l2_subdev_internal_ops {
+struct v4l2_subdev_internal_ops
+{
 	int (*registered)(struct v4l2_subdev *sd);
 	void (*unregistered)(struct v4l2_subdev *sd);
 	int (*open)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh);
@@ -752,7 +769,8 @@ struct regulator_bulk_data;
  * @num_regulators: Number of regululators
  * @host_priv: Per-subdevice data, specific for a certain video host device
  */
-struct v4l2_subdev_platform_data {
+struct v4l2_subdev_platform_data
+{
 	struct regulator_bulk_data *regulators;
 	int num_regulators;
 
@@ -800,7 +818,8 @@ struct v4l2_subdev_platform_data {
  * This structure should be initialized by v4l2_subdev_init() or one of
  * its variants: v4l2_spi_subdev_init(), v4l2_i2c_subdev_init().
  */
-struct v4l2_subdev {
+struct v4l2_subdev
+{
 #if defined(CONFIG_MEDIA_CONTROLLER)
 	struct media_entity entity;
 #endif
@@ -836,7 +855,8 @@ struct v4l2_subdev {
  * @vfh: pointer to struct v4l2_fh
  * @pad: pointer to v4l2_subdev_pad_config
  */
-struct v4l2_subdev_fh {
+struct v4l2_subdev_fh
+{
 	struct v4l2_fh vfh;
 #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
 	struct v4l2_subdev_pad_config *pad;
@@ -850,8 +870,8 @@ struct v4l2_subdev_fh {
 #define __V4L2_SUBDEV_MK_GET_TRY(rtype, fun_name, field_name)		\
 	static inline struct rtype *					\
 	fun_name(struct v4l2_subdev *sd,				\
-		 struct v4l2_subdev_pad_config *cfg,			\
-		 unsigned int pad)					\
+			 struct v4l2_subdev_pad_config *cfg,			\
+			 unsigned int pad)					\
 	{								\
 		BUG_ON(pad >= sd->entity.num_pads);			\
 		return &cfg[pad].field_name;				\
@@ -924,9 +944,9 @@ static inline void *v4l2_get_subdev_hostdata(const struct v4l2_subdev *sd)
  * code are equal on both source and sink of the link.
  */
 int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
-				      struct media_link *link,
-				      struct v4l2_subdev_format *source_fmt,
-				      struct v4l2_subdev_format *sink_fmt);
+									  struct media_link *link,
+									  struct v4l2_subdev_format *source_fmt,
+									  struct v4l2_subdev_format *sink_fmt);
 
 /**
  * v4l2_subdev_link_validate - validates a media link
@@ -965,7 +985,7 @@ void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg);
  * @ops: pointer to &struct v4l2_subdev_ops.
  */
 void v4l2_subdev_init(struct v4l2_subdev *sd,
-		      const struct v4l2_subdev_ops *ops);
+					  const struct v4l2_subdev_ops *ops);
 
 /*
  * Call an ops of a v4l2_subdev, doing the right checks against
@@ -975,7 +995,7 @@ void v4l2_subdev_init(struct v4l2_subdev *sd,
  */
 #define v4l2_subdev_call(sd, o, f, args...)				\
 	(!(sd) ? -ENODEV : (((sd)->ops->o && (sd)->ops->o->f) ?	\
-		(sd)->ops->o->f((sd), ##args) : -ENOIOCTLCMD))
+						(sd)->ops->o->f((sd), ##args) : -ENOIOCTLCMD))
 
 #define v4l2_subdev_has_op(sd, o, f) \
 	((sd)->ops->o && (sd)->ops->o->f)
@@ -991,6 +1011,6 @@ void v4l2_subdev_init(struct v4l2_subdev *sd,
  * will be %V4L2_DEVICE_NOTIFY_EVENT.
  */
 void v4l2_subdev_notify_event(struct v4l2_subdev *sd,
-			      const struct v4l2_event *ev);
+							  const struct v4l2_event *ev);
 
 #endif

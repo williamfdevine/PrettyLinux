@@ -5,7 +5,8 @@
 #define MIDI_MAX_ENDPOINTS 2
 
 /* data for QUIRK_MIDI_FIXED_ENDPOINT */
-struct snd_usb_midi_endpoint_info {
+struct snd_usb_midi_endpoint_info
+{
 	int8_t   out_ep;	/* ep number, 0 autodetect */
 	uint8_t  out_interval;	/* interval for interrupt endpoints */
 	int8_t   in_ep;
@@ -40,15 +41,15 @@ struct snd_usb_midi_endpoint_info {
 /* for QUIRK_MIDI_AKAI, data is NULL */
 
 int __snd_usbmidi_create(struct snd_card *card,
-			 struct usb_interface *iface,
-			 struct list_head *midi_list,
-			 const struct snd_usb_audio_quirk *quirk,
-			 unsigned int usb_id);
+						 struct usb_interface *iface,
+						 struct list_head *midi_list,
+						 const struct snd_usb_audio_quirk *quirk,
+						 unsigned int usb_id);
 
 static inline int snd_usbmidi_create(struct snd_card *card,
-		       struct usb_interface *iface,
-		       struct list_head *midi_list,
-		       const struct snd_usb_audio_quirk *quirk)
+									 struct usb_interface *iface,
+									 struct list_head *midi_list,
+									 const struct snd_usb_audio_quirk *quirk)
 {
 	return __snd_usbmidi_create(card, iface, midi_list, quirk, 0);
 }

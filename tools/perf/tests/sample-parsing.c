@@ -9,131 +9,191 @@
 #include "tests.h"
 
 #define COMP(m) do {					\
-	if (s1->m != s2->m) {				\
-		pr_debug("Samples differ at '"#m"'\n");	\
-		return false;				\
-	}						\
-} while (0)
+		if (s1->m != s2->m) {				\
+			pr_debug("Samples differ at '"#m"'\n");	\
+			return false;				\
+		}						\
+	} while (0)
 
 #define MCOMP(m) do {					\
-	if (memcmp(&s1->m, &s2->m, sizeof(s1->m))) {	\
-		pr_debug("Samples differ at '"#m"'\n");	\
-		return false;				\
-	}						\
-} while (0)
+		if (memcmp(&s1->m, &s2->m, sizeof(s1->m))) {	\
+			pr_debug("Samples differ at '"#m"'\n");	\
+			return false;				\
+		}						\
+	} while (0)
 
 static bool samples_same(const struct perf_sample *s1,
-			 const struct perf_sample *s2,
-			 u64 type, u64 read_format)
+						 const struct perf_sample *s2,
+						 u64 type, u64 read_format)
 {
 	size_t i;
 
 	if (type & PERF_SAMPLE_IDENTIFIER)
+	{
 		COMP(id);
+	}
 
 	if (type & PERF_SAMPLE_IP)
+	{
 		COMP(ip);
+	}
 
-	if (type & PERF_SAMPLE_TID) {
+	if (type & PERF_SAMPLE_TID)
+	{
 		COMP(pid);
 		COMP(tid);
 	}
 
 	if (type & PERF_SAMPLE_TIME)
+	{
 		COMP(time);
+	}
 
 	if (type & PERF_SAMPLE_ADDR)
+	{
 		COMP(addr);
+	}
 
 	if (type & PERF_SAMPLE_ID)
+	{
 		COMP(id);
+	}
 
 	if (type & PERF_SAMPLE_STREAM_ID)
+	{
 		COMP(stream_id);
+	}
 
 	if (type & PERF_SAMPLE_CPU)
+	{
 		COMP(cpu);
+	}
 
 	if (type & PERF_SAMPLE_PERIOD)
+	{
 		COMP(period);
+	}
 
-	if (type & PERF_SAMPLE_READ) {
+	if (type & PERF_SAMPLE_READ)
+	{
 		if (read_format & PERF_FORMAT_GROUP)
+		{
 			COMP(read.group.nr);
+		}
 		else
+		{
 			COMP(read.one.value);
+		}
+
 		if (read_format & PERF_FORMAT_TOTAL_TIME_ENABLED)
+		{
 			COMP(read.time_enabled);
+		}
+
 		if (read_format & PERF_FORMAT_TOTAL_TIME_RUNNING)
+		{
 			COMP(read.time_running);
+		}
+
 		/* PERF_FORMAT_ID is forced for PERF_SAMPLE_READ */
-		if (read_format & PERF_FORMAT_GROUP) {
+		if (read_format & PERF_FORMAT_GROUP)
+		{
 			for (i = 0; i < s1->read.group.nr; i++)
+			{
 				MCOMP(read.group.values[i]);
-		} else {
+			}
+		}
+		else
+		{
 			COMP(read.one.id);
 		}
 	}
 
-	if (type & PERF_SAMPLE_CALLCHAIN) {
+	if (type & PERF_SAMPLE_CALLCHAIN)
+	{
 		COMP(callchain->nr);
+
 		for (i = 0; i < s1->callchain->nr; i++)
+		{
 			COMP(callchain->ips[i]);
+		}
 	}
 
-	if (type & PERF_SAMPLE_RAW) {
+	if (type & PERF_SAMPLE_RAW)
+	{
 		COMP(raw_size);
-		if (memcmp(s1->raw_data, s2->raw_data, s1->raw_size)) {
+
+		if (memcmp(s1->raw_data, s2->raw_data, s1->raw_size))
+		{
 			pr_debug("Samples differ at 'raw_data'\n");
 			return false;
 		}
 	}
 
-	if (type & PERF_SAMPLE_BRANCH_STACK) {
+	if (type & PERF_SAMPLE_BRANCH_STACK)
+	{
 		COMP(branch_stack->nr);
+
 		for (i = 0; i < s1->branch_stack->nr; i++)
+		{
 			MCOMP(branch_stack->entries[i]);
+		}
 	}
 
-	if (type & PERF_SAMPLE_REGS_USER) {
+	if (type & PERF_SAMPLE_REGS_USER)
+	{
 		size_t sz = hweight_long(s1->user_regs.mask) * sizeof(u64);
 
 		COMP(user_regs.mask);
 		COMP(user_regs.abi);
+
 		if (s1->user_regs.abi &&
-		    (!s1->user_regs.regs || !s2->user_regs.regs ||
-		     memcmp(s1->user_regs.regs, s2->user_regs.regs, sz))) {
+			(!s1->user_regs.regs || !s2->user_regs.regs ||
+			 memcmp(s1->user_regs.regs, s2->user_regs.regs, sz)))
+		{
 			pr_debug("Samples differ at 'user_regs'\n");
 			return false;
 		}
 	}
 
-	if (type & PERF_SAMPLE_STACK_USER) {
+	if (type & PERF_SAMPLE_STACK_USER)
+	{
 		COMP(user_stack.size);
+
 		if (memcmp(s1->user_stack.data, s2->user_stack.data,
-			   s1->user_stack.size)) {
+				   s1->user_stack.size))
+		{
 			pr_debug("Samples differ at 'user_stack'\n");
 			return false;
 		}
 	}
 
 	if (type & PERF_SAMPLE_WEIGHT)
+	{
 		COMP(weight);
+	}
 
 	if (type & PERF_SAMPLE_DATA_SRC)
+	{
 		COMP(data_src);
+	}
 
 	if (type & PERF_SAMPLE_TRANSACTION)
+	{
 		COMP(transaction);
+	}
 
-	if (type & PERF_SAMPLE_REGS_INTR) {
+	if (type & PERF_SAMPLE_REGS_INTR)
+	{
 		size_t sz = hweight_long(s1->intr_regs.mask) * sizeof(u64);
 
 		COMP(intr_regs.mask);
 		COMP(intr_regs.abi);
+
 		if (s1->intr_regs.abi &&
-		    (!s1->intr_regs.regs || !s2->intr_regs.regs ||
-		     memcmp(s1->intr_regs.regs, s2->intr_regs.regs, sz))) {
+			(!s1->intr_regs.regs || !s2->intr_regs.regs ||
+			 memcmp(s1->intr_regs.regs, s2->intr_regs.regs, sz)))
+		{
 			pr_debug("Samples differ at 'intr_regs'\n");
 			return false;
 		}
@@ -144,7 +204,8 @@ static bool samples_same(const struct perf_sample *s1,
 
 static int do_test(u64 sample_type, u64 sample_regs, u64 read_format)
 {
-	struct perf_evsel evsel = {
+	struct perf_evsel evsel =
+	{
 		.needs_swap = false,
 		.attr = {
 			.sample_type = sample_type,
@@ -152,24 +213,29 @@ static int do_test(u64 sample_type, u64 sample_regs, u64 read_format)
 		},
 	};
 	union perf_event *event;
-	union {
+	union
+	{
 		struct ip_callchain callchain;
 		u64 data[64];
-	} callchain = {
+	} callchain =
+	{
 		/* 3 ips */
 		.data = {3, 201, 202, 203},
 	};
-	union {
+	union
+	{
 		struct branch_stack branch_stack;
 		u64 data[64];
-	} branch_stack = {
+	} branch_stack =
+	{
 		/* 1 branch_entry */
 		.data = {1, 211, 212, 213},
 	};
 	u64 regs[64];
 	const u64 raw_data[] = {0x123456780a0b0c0dULL, 0x1102030405060708ULL};
 	const u64 data[] = {0x2211443366558877ULL, 0, 0xaabbccddeeff4321ULL};
-	struct perf_sample sample = {
+	struct perf_sample sample =
+	{
 		.ip		= 101,
 		.pid		= 102,
 		.tid		= 103,
@@ -211,18 +277,27 @@ static int do_test(u64 sample_type, u64 sample_regs, u64 read_format)
 	int err, ret = -1;
 
 	if (sample_type & PERF_SAMPLE_REGS_USER)
+	{
 		evsel.attr.sample_regs_user = sample_regs;
+	}
 
 	if (sample_type & PERF_SAMPLE_REGS_INTR)
+	{
 		evsel.attr.sample_regs_intr = sample_regs;
+	}
 
 	for (i = 0; i < sizeof(regs); i++)
+	{
 		*(i + (u8 *)regs) = i & 0xfe;
+	}
 
-	if (read_format & PERF_FORMAT_GROUP) {
+	if (read_format & PERF_FORMAT_GROUP)
+	{
 		sample.read.group.nr     = 4;
 		sample.read.group.values = values;
-	} else {
+	}
+	else
+	{
 		sample.read.one.value = 0x08789faeb786aa87ULL;
 		sample.read.one.id    = 99;
 	}
@@ -230,7 +305,9 @@ static int do_test(u64 sample_type, u64 sample_regs, u64 read_format)
 	sz = perf_event__sample_event_size(&sample, sample_type, read_format);
 	bufsz = sz + 4096; /* Add a bit for overrun checking */
 	event = malloc(bufsz);
-	if (!event) {
+
+	if (!event)
+	{
 		pr_debug("malloc failed\n");
 		return -1;
 	}
@@ -241,44 +318,58 @@ static int do_test(u64 sample_type, u64 sample_regs, u64 read_format)
 	event->header.size = sz;
 
 	err = perf_event__synthesize_sample(event, sample_type, read_format,
-					    &sample, false);
-	if (err) {
+										&sample, false);
+
+	if (err)
+	{
 		pr_debug("%s failed for sample_type %#"PRIx64", error %d\n",
-			 "perf_event__synthesize_sample", sample_type, err);
+				 "perf_event__synthesize_sample", sample_type, err);
 		goto out_free;
 	}
 
 	/* The data does not contain 0xff so we use that to check the size */
-	for (i = bufsz; i > 0; i--) {
+	for (i = bufsz; i > 0; i--)
+	{
 		if (*(i - 1 + (u8 *)event) != 0xff)
+		{
 			break;
+		}
 	}
-	if (i != sz) {
+
+	if (i != sz)
+	{
 		pr_debug("Event size mismatch: actual %zu vs expected %zu\n",
-			 i, sz);
+				 i, sz);
 		goto out_free;
 	}
 
 	evsel.sample_size = __perf_evsel__sample_size(sample_type);
 
 	err = perf_evsel__parse_sample(&evsel, event, &sample_out);
-	if (err) {
+
+	if (err)
+	{
 		pr_debug("%s failed for sample_type %#"PRIx64", error %d\n",
-			 "perf_evsel__parse_sample", sample_type, err);
+				 "perf_evsel__parse_sample", sample_type, err);
 		goto out_free;
 	}
 
-	if (!samples_same(&sample, &sample_out, sample_type, read_format)) {
+	if (!samples_same(&sample, &sample_out, sample_type, read_format))
+	{
 		pr_debug("parsing failed for sample_type %#"PRIx64"\n",
-			 sample_type);
+				 sample_type);
 		goto out_free;
 	}
 
 	ret = 0;
 out_free:
 	free(event);
+
 	if (ret && read_format)
+	{
 		pr_debug("read_format %#"PRIx64"\n", read_format);
+	}
+
 	return ret;
 }
 
@@ -303,43 +394,64 @@ int test__sample_parsing(int subtest __maybe_unused)
 	 * were added.  Please actually update the test rather than just change
 	 * the condition below.
 	 */
-	if (PERF_SAMPLE_MAX > PERF_SAMPLE_REGS_INTR << 1) {
+	if (PERF_SAMPLE_MAX > PERF_SAMPLE_REGS_INTR << 1)
+	{
 		pr_debug("sample format has changed, some new PERF_SAMPLE_ bit was introduced - test needs updating\n");
 		return -1;
 	}
 
 	/* Test each sample format bit separately */
 	for (sample_type = 1; sample_type != PERF_SAMPLE_MAX;
-	     sample_type <<= 1) {
+		 sample_type <<= 1)
+	{
 		/* Test read_format variations */
-		if (sample_type == PERF_SAMPLE_READ) {
-			for (i = 0; i < ARRAY_SIZE(rf); i++) {
+		if (sample_type == PERF_SAMPLE_READ)
+		{
+			for (i = 0; i < ARRAY_SIZE(rf); i++)
+			{
 				err = do_test(sample_type, 0, rf[i]);
+
 				if (err)
+				{
 					return err;
+				}
 			}
+
 			continue;
 		}
+
 		sample_regs = 0;
 
 		if (sample_type == PERF_SAMPLE_REGS_USER)
+		{
 			sample_regs = 0x3fff;
+		}
 
 		if (sample_type == PERF_SAMPLE_REGS_INTR)
+		{
 			sample_regs = 0xff0fff;
+		}
 
 		err = do_test(sample_type, sample_regs, 0);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	/* Test all sample format bits together */
 	sample_type = PERF_SAMPLE_MAX - 1;
 	sample_regs = 0x3fff; /* shared yb intr and user regs */
-	for (i = 0; i < ARRAY_SIZE(rf); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(rf); i++)
+	{
 		err = do_test(sample_type, sample_regs, rf[i]);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	return 0;

@@ -27,8 +27,8 @@
 
 #define VPIF_VALID_FIELD(field) \
 	(((V4L2_FIELD_ANY == field) || (V4L2_FIELD_NONE == field)) || \
-	(((V4L2_FIELD_INTERLACED == field) || (V4L2_FIELD_SEQ_TB == field)) || \
-	(V4L2_FIELD_SEQ_BT == field)))
+	 (((V4L2_FIELD_INTERLACED == field) || (V4L2_FIELD_SEQ_TB == field)) || \
+	  (V4L2_FIELD_SEQ_BT == field)))
 
 #define VPIF_DISPLAY_MAX_DEVICES	(2)
 #define VPIF_SLICED_BUF_SIZE		(256)
@@ -45,14 +45,16 @@
 
 /* enumerated data types */
 /* Enumerated data type to give id to each device per channel */
-enum vpif_channel_id {
+enum vpif_channel_id
+{
 	VPIF_CHANNEL2_VIDEO = 0,	/* Channel2 Video */
 	VPIF_CHANNEL3_VIDEO,		/* Channel3 Video */
 };
 
 /* structures */
 
-struct video_obj {
+struct video_obj
+{
 	enum v4l2_field buf_field;
 	u32 latest_only;		/* indicate whether to return
 					 * most recent displayed frame only */
@@ -61,12 +63,14 @@ struct video_obj {
 	struct v4l2_dv_timings dv_timings;
 };
 
-struct vpif_disp_buffer {
+struct vpif_disp_buffer
+{
 	struct vb2_v4l2_buffer vb;
 	struct list_head list;
 };
 
-struct common_obj {
+struct common_obj
+{
 	struct vpif_disp_buffer *cur_frm;	/* Pointer pointing to current
 						 * vb2_buffer */
 	struct vpif_disp_buffer *next_frm;	/* Pointer pointing to next
@@ -91,12 +95,13 @@ struct common_obj {
 						 * starting of the buffer */
 	/* Function pointer to set the addresses */
 	void (*set_addr)(unsigned long, unsigned long,
-				unsigned long, unsigned long);
+					 unsigned long, unsigned long);
 	u32 height;
 	u32 width;
 };
 
-struct channel_obj {
+struct channel_obj
+{
 	/* V4l2 specific parameters */
 	struct video_device video_dev;	/* Identifies video device for
 					 * this channel */
@@ -114,7 +119,8 @@ struct channel_obj {
 };
 
 /* vpif device structure */
-struct vpif_device {
+struct vpif_device
+{
 	struct v4l2_device v4l2_dev;
 	struct channel_obj *dev[VPIF_DISPLAY_NUM_CHANNELS];
 	struct v4l2_subdev **sd;

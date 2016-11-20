@@ -61,7 +61,8 @@
 #include "remote_node_context.h"
 #include "port.h"
 
-enum sci_remote_device_not_ready_reason_code {
+enum sci_remote_device_not_ready_reason_code
+{
 	SCIC_REMOTE_DEVICE_NOT_READY_START_REQUESTED,
 	SCIC_REMOTE_DEVICE_NOT_READY_STOP_REQUESTED,
 	SCIC_REMOTE_DEVICE_NOT_READY_SATA_REQUEST_STARTED,
@@ -78,16 +79,17 @@ enum sci_remote_device_not_ready_reason_code {
  *                   protocols we need a method to associate unsolicited
  *                   frames with a pending request
  */
-struct isci_remote_device {
-	#define IDEV_START_PENDING 0
-	#define IDEV_STOP_PENDING 1
-	#define IDEV_ALLOCATED 2
-	#define IDEV_GONE 3
-	#define IDEV_IO_READY 4
-	#define IDEV_IO_NCQERROR 5
-	#define IDEV_RNC_LLHANG_ENABLED 6
-	#define IDEV_ABORT_PATH_ACTIVE 7
-	#define IDEV_ABORT_PATH_RESUME_PENDING 8
+struct isci_remote_device
+{
+#define IDEV_START_PENDING 0
+#define IDEV_STOP_PENDING 1
+#define IDEV_ALLOCATED 2
+#define IDEV_GONE 3
+#define IDEV_IO_READY 4
+#define IDEV_IO_NCQERROR 5
+#define IDEV_RNC_LLHANG_ENABLED 6
+#define IDEV_ABORT_PATH_ACTIVE 7
+#define IDEV_ABORT_PATH_RESUME_PENDING 8
 	unsigned long flags;
 	struct kref kref;
 	struct isci_port *isci_port;
@@ -113,7 +115,10 @@ static inline struct isci_remote_device *isci_get_device(
 	struct isci_remote_device *idev)
 {
 	if (idev)
+	{
 		kref_get(&idev->kref);
+	}
+
 	return idev;
 }
 
@@ -121,7 +126,8 @@ static inline struct isci_remote_device *isci_lookup_device(struct domain_device
 {
 	struct isci_remote_device *idev = dev->lldd_dev;
 
-	if (idev && !test_bit(IDEV_GONE, &idev->flags)) {
+	if (idev && !test_bit(IDEV_GONE, &idev->flags))
+	{
 		kref_get(&idev->kref);
 		return idev;
 	}
@@ -133,13 +139,15 @@ void isci_remote_device_release(struct kref *kref);
 static inline void isci_put_device(struct isci_remote_device *idev)
 {
 	if (idev)
+	{
 		kref_put(&idev->kref, isci_remote_device_release);
+	}
 }
 
 enum sci_status isci_remote_device_stop(struct isci_host *ihost,
-					struct isci_remote_device *idev);
+										struct isci_remote_device *idev);
 void isci_remote_device_nuke_requests(struct isci_host *ihost,
-				      struct isci_remote_device *idev);
+									  struct isci_remote_device *idev);
 void isci_remote_device_gone(struct domain_device *domain_dev);
 int isci_remote_device_found(struct domain_device *domain_dev);
 
@@ -263,22 +271,22 @@ enum sci_status sci_remote_device_reset_complete(
  * state machine.
  */
 #define REMOTE_DEV_STATES {\
-	C(DEV_INITIAL),\
-	C(DEV_STOPPED),\
-	C(DEV_STARTING),\
-	C(DEV_READY),\
-	C(STP_DEV_IDLE),\
-	C(STP_DEV_CMD),\
-	C(STP_DEV_NCQ),\
-	C(STP_DEV_NCQ_ERROR),\
-	C(STP_DEV_ATAPI_ERROR),\
-	C(STP_DEV_AWAIT_RESET),\
-	C(SMP_DEV_IDLE),\
-	C(SMP_DEV_CMD),\
-	C(DEV_STOPPING),\
-	C(DEV_FAILED),\
-	C(DEV_RESETTING),\
-	C(DEV_FINAL),\
+		C(DEV_INITIAL),\
+		C(DEV_STOPPED),\
+		C(DEV_STARTING),\
+		C(DEV_READY),\
+		C(STP_DEV_IDLE),\
+		C(STP_DEV_CMD),\
+		C(STP_DEV_NCQ),\
+		C(STP_DEV_NCQ_ERROR),\
+		C(STP_DEV_ATAPI_ERROR),\
+		C(STP_DEV_AWAIT_RESET),\
+		C(SMP_DEV_IDLE),\
+		C(SMP_DEV_CMD),\
+		C(DEV_STOPPING),\
+		C(DEV_FAILED),\
+		C(DEV_RESETTING),\
+		C(DEV_FINAL),\
 	}
 #undef C
 #define C(a) SCI_##a
@@ -306,11 +314,13 @@ static inline void sci_remote_device_decrement_request_count(struct isci_remote_
 	 * reference count
 	 */
 	if (WARN_ONCE(idev->started_request_count == 0,
-		      "%s: tried to decrement started_request_count past 0!?",
-			__func__))
+				  "%s: tried to decrement started_request_count past 0!?",
+				  __func__))
 		/* pass */;
 	else
+	{
 		idev->started_request_count--;
+	}
 }
 
 void isci_dev_set_hang_detection_timeout(struct isci_remote_device *idev, u32 timeout);
@@ -383,5 +393,5 @@ enum sci_status isci_remote_device_terminate_requests(
 	struct isci_remote_device *idev,
 	struct isci_request *ireq);
 enum sci_status sci_remote_device_suspend(struct isci_remote_device *idev,
-					  enum sci_remote_node_suspension_reasons reason);
+		enum sci_remote_node_suspension_reasons reason);
 #endif /* !defined(_ISCI_REMOTE_DEVICE_H_) */

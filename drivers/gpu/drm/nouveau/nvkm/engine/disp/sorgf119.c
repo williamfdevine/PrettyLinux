@@ -56,8 +56,11 @@ gf119_sor_dp_lnk_ctl(struct nvkm_output_dp *outp, int nr, int bw, bool ef)
 
 	clksor |= bw << 18;
 	dpctrl |= ((1 << nr) - 1) << 16;
+
 	if (ef)
+	{
 		dpctrl |= 0x00004000;
+	}
 
 	nvkm_mask(device, 0x612300 + soff, 0x007c0000, clksor);
 	nvkm_mask(device, 0x61c10c + loff, 0x001f4000, dpctrl);
@@ -66,7 +69,7 @@ gf119_sor_dp_lnk_ctl(struct nvkm_output_dp *outp, int nr, int bw, bool ef)
 
 int
 gf119_sor_dp_drv_ctl(struct nvkm_output_dp *outp,
-		     int ln, int vs, int pe, int pc)
+					 int ln, int vs, int pe, int pc)
 {
 	struct nvkm_device *device = outp->base.disp->engine.subdev.device;
 	struct nvkm_bios *bios = device->bios;
@@ -78,21 +81,31 @@ gf119_sor_dp_drv_ctl(struct nvkm_output_dp *outp,
 	struct nvbios_dpcfg ocfg;
 
 	addr = nvbios_dpout_match(bios, outp->base.info.hasht,
-					outp->base.info.hashm,
-				  &ver, &hdr, &cnt, &len, &info);
+							  outp->base.info.hashm,
+							  &ver, &hdr, &cnt, &len, &info);
+
 	if (!addr)
+	{
 		return -ENODEV;
+	}
 
 	addr = nvbios_dpcfg_match(bios, addr, pc, vs, pe,
-				  &ver, &hdr, &cnt, &len, &ocfg);
+							  &ver, &hdr, &cnt, &len, &ocfg);
+
 	if (!addr)
+	{
 		return -EINVAL;
+	}
 
 	data[0] = nvkm_rd32(device, 0x61c118 + loff) & ~(0x000000ff << shift);
 	data[1] = nvkm_rd32(device, 0x61c120 + loff) & ~(0x000000ff << shift);
 	data[2] = nvkm_rd32(device, 0x61c130 + loff);
+
 	if ((data[2] & 0x0000ff00) < (ocfg.tx_pu << 8) || ln == 0)
+	{
 		data[2] = (data[2] & ~0x0000ff00) | (ocfg.tx_pu << 8);
+	}
+
 	nvkm_wr32(device, 0x61c118 + loff, data[0] | (ocfg.dc << shift));
 	nvkm_wr32(device, 0x61c120 + loff, data[1] | (ocfg.pe << shift));
 	nvkm_wr32(device, 0x61c130 + loff, data[2]);
@@ -102,7 +115,8 @@ gf119_sor_dp_drv_ctl(struct nvkm_output_dp *outp,
 }
 
 static const struct nvkm_output_dp_func
-gf119_sor_dp_func = {
+	gf119_sor_dp_func =
+{
 	.pattern = gf119_sor_dp_pattern,
 	.lnk_pwr = g94_sor_dp_lnk_pwr,
 	.lnk_ctl = gf119_sor_dp_lnk_ctl,
@@ -111,7 +125,7 @@ gf119_sor_dp_func = {
 
 int
 gf119_sor_dp_new(struct nvkm_disp *disp, int index,
-		 struct dcb_output *dcbE, struct nvkm_output **poutp)
+				 struct dcb_output *dcbE, struct nvkm_output **poutp)
 {
 	return nvkm_output_dp_new_(&gf119_sor_dp_func, disp, index, dcbE, poutp);
 }

@@ -43,8 +43,12 @@ xfs_trans_ijoin(
 	xfs_inode_log_item_t	*iip;
 
 	ASSERT(xfs_isilocked(ip, XFS_ILOCK_EXCL));
+
 	if (ip->i_itemp == NULL)
+	{
 		xfs_inode_item_init(ip, ip->i_mount);
+	}
+
 	iip = ip->i_itemp;
 
 	ASSERT(iip->ili_lock_flags == 0);
@@ -76,9 +80,14 @@ xfs_trans_ichgtime(
 	tv = current_time(inode);
 
 	if (flags & XFS_ICHGTIME_MOD)
+	{
 		inode->i_mtime = tv;
+	}
+
 	if (flags & XFS_ICHGTIME_CHG)
+	{
 		inode->i_ctime = tv;
+	}
 }
 
 /*
@@ -116,7 +125,8 @@ xfs_trans_log_inode(
 	 * metadata modification.
 	 */
 	if (!(ip->i_itemp->ili_item.li_desc->lid_flags & XFS_LID_DIRTY) &&
-	    IS_I_VERSION(VFS_I(ip))) {
+		IS_I_VERSION(VFS_I(ip)))
+	{
 		VFS_I(ip)->i_version++;
 		flags |= XFS_ILOG_CORE;
 	}

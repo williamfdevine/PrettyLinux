@@ -45,7 +45,7 @@ static struct dentry *rproc_dbg;
  * as it provides very early tracing with little to no dependencies at all.
  */
 static ssize_t rproc_trace_read(struct file *filp, char __user *userbuf,
-				size_t count, loff_t *ppos)
+								size_t count, loff_t *ppos)
 {
 	struct rproc_mem_entry *trace = filp->private_data;
 	int len = strnlen(trace->va, trace->len);
@@ -53,7 +53,8 @@ static ssize_t rproc_trace_read(struct file *filp, char __user *userbuf,
 	return simple_read_from_buffer(userbuf, count, ppos, trace->va, len);
 }
 
-static const struct file_operations trace_rproc_ops = {
+static const struct file_operations trace_rproc_ops =
+{
 	.read = rproc_trace_read,
 	.open = simple_open,
 	.llseek	= generic_file_llseek,
@@ -63,7 +64,8 @@ static const struct file_operations trace_rproc_ops = {
  * A state-to-string lookup table, for exposing a human readable state
  * via debugfs. Always keep in sync with enum rproc_state
  */
-static const char * const rproc_state_string[] = {
+static const char *const rproc_state_string[] =
+{
 	"offline",
 	"suspended",
 	"running",
@@ -73,7 +75,7 @@ static const char * const rproc_state_string[] = {
 
 /* expose the state of the remote processor via debugfs */
 static ssize_t rproc_state_read(struct file *filp, char __user *userbuf,
-				size_t count, loff_t *ppos)
+								size_t count, loff_t *ppos)
 {
 	struct rproc *rproc = filp->private_data;
 	unsigned int state;
@@ -83,37 +85,51 @@ static ssize_t rproc_state_read(struct file *filp, char __user *userbuf,
 	state = rproc->state > RPROC_LAST ? RPROC_LAST : rproc->state;
 
 	i = scnprintf(buf, 30, "%.28s (%d)\n", rproc_state_string[state],
-		      rproc->state);
+				  rproc->state);
 
 	return simple_read_from_buffer(userbuf, count, ppos, buf, i);
 }
 
 static ssize_t rproc_state_write(struct file *filp, const char __user *userbuf,
-				 size_t count, loff_t *ppos)
+								 size_t count, loff_t *ppos)
 {
 	struct rproc *rproc = filp->private_data;
 	char buf[10];
 	int ret;
 
 	if (count > sizeof(buf) || count <= 0)
+	{
 		return -EINVAL;
+	}
 
 	ret = copy_from_user(buf, userbuf, count);
+
 	if (ret)
+	{
 		return -EFAULT;
+	}
 
 	if (buf[count - 1] == '\n')
+	{
 		buf[count - 1] = '\0';
+	}
 
-	if (!strncmp(buf, "start", count)) {
+	if (!strncmp(buf, "start", count))
+	{
 		ret = rproc_boot(rproc);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(&rproc->dev, "Boot failed: %d\n", ret);
 			return ret;
 		}
-	} else if (!strncmp(buf, "stop", count)) {
+	}
+	else if (!strncmp(buf, "stop", count))
+	{
 		rproc_shutdown(rproc);
-	} else {
+	}
+	else
+	{
 		dev_err(&rproc->dev, "Unrecognised option: %s\n", buf);
 		return -EINVAL;
 	}
@@ -121,7 +137,8 @@ static ssize_t rproc_state_write(struct file *filp, const char __user *userbuf,
 	return count;
 }
 
-static const struct file_operations rproc_state_ops = {
+static const struct file_operations rproc_state_ops =
+{
 	.read = rproc_state_read,
 	.write = rproc_state_write,
 	.open = simple_open,
@@ -130,7 +147,7 @@ static const struct file_operations rproc_state_ops = {
 
 /* expose the name of the remote processor via debugfs */
 static ssize_t rproc_name_read(struct file *filp, char __user *userbuf,
-			       size_t count, loff_t *ppos)
+							   size_t count, loff_t *ppos)
 {
 	struct rproc *rproc = filp->private_data;
 	/* need room for the name, a newline and a terminating null */
@@ -142,7 +159,8 @@ static ssize_t rproc_name_read(struct file *filp, char __user *userbuf,
 	return simple_read_from_buffer(userbuf, count, ppos, buf, i);
 }
 
-static const struct file_operations rproc_name_ops = {
+static const struct file_operations rproc_name_ops =
+{
 	.read = rproc_name_read,
 	.open = simple_open,
 	.llseek	= generic_file_llseek,
@@ -150,7 +168,7 @@ static const struct file_operations rproc_name_ops = {
 
 /* expose recovery flag via debugfs */
 static ssize_t rproc_recovery_read(struct file *filp, char __user *userbuf,
-				   size_t count, loff_t *ppos)
+								   size_t count, loff_t *ppos)
 {
 	struct rproc *rproc = filp->private_data;
 	char *buf = rproc->recovery_disabled ? "disabled\n" : "enabled\n";
@@ -184,40 +202,58 @@ static ssize_t rproc_recovery_read(struct file *filp, char __user *userbuf,
  */
 static ssize_t
 rproc_recovery_write(struct file *filp, const char __user *user_buf,
-		     size_t count, loff_t *ppos)
+					 size_t count, loff_t *ppos)
 {
 	struct rproc *rproc = filp->private_data;
 	char buf[10];
 	int ret;
 
 	if (count < 1 || count > sizeof(buf))
+	{
 		return -EINVAL;
+	}
 
 	ret = copy_from_user(buf, user_buf, count);
+
 	if (ret)
+	{
 		return -EFAULT;
+	}
 
 	/* remove end of line */
 	if (buf[count - 1] == '\n')
+	{
 		buf[count - 1] = '\0';
+	}
 
-	if (!strncmp(buf, "enabled", count)) {
+	if (!strncmp(buf, "enabled", count))
+	{
 		rproc->recovery_disabled = false;
+
 		/* if rproc has crashed, trigger recovery */
 		if (rproc->state == RPROC_CRASHED)
+		{
 			rproc_trigger_recovery(rproc);
-	} else if (!strncmp(buf, "disabled", count)) {
+		}
+	}
+	else if (!strncmp(buf, "disabled", count))
+	{
 		rproc->recovery_disabled = true;
-	} else if (!strncmp(buf, "recover", count)) {
+	}
+	else if (!strncmp(buf, "recover", count))
+	{
 		/* if rproc has crashed, trigger recovery */
 		if (rproc->state == RPROC_CRASHED)
+		{
 			rproc_trigger_recovery(rproc);
+		}
 	}
 
 	return count;
 }
 
-static const struct file_operations rproc_recovery_ops = {
+static const struct file_operations rproc_recovery_ops =
+{
 	.read = rproc_recovery_read,
 	.write = rproc_recovery_write,
 	.open = simple_open,
@@ -230,13 +266,15 @@ void rproc_remove_trace_file(struct dentry *tfile)
 }
 
 struct dentry *rproc_create_trace_file(const char *name, struct rproc *rproc,
-				       struct rproc_mem_entry *trace)
+									   struct rproc_mem_entry *trace)
 {
 	struct dentry *tfile;
 
 	tfile = debugfs_create_file(name, 0400, rproc->dbg_dir, trace,
-				    &trace_rproc_ops);
-	if (!tfile) {
+								&trace_rproc_ops);
+
+	if (!tfile)
+	{
 		dev_err(&rproc->dev, "failed to create debugfs trace entry\n");
 		return NULL;
 	}
@@ -247,7 +285,9 @@ struct dentry *rproc_create_trace_file(const char *name, struct rproc *rproc,
 void rproc_delete_debug_dir(struct rproc *rproc)
 {
 	if (!rproc->dbg_dir)
+	{
 		return;
+	}
 
 	debugfs_remove_recursive(rproc->dbg_dir);
 }
@@ -257,26 +297,35 @@ void rproc_create_debug_dir(struct rproc *rproc)
 	struct device *dev = &rproc->dev;
 
 	if (!rproc_dbg)
+	{
 		return;
+	}
 
 	rproc->dbg_dir = debugfs_create_dir(dev_name(dev), rproc_dbg);
+
 	if (!rproc->dbg_dir)
+	{
 		return;
+	}
 
 	debugfs_create_file("name", 0400, rproc->dbg_dir,
-			    rproc, &rproc_name_ops);
+						rproc, &rproc_name_ops);
 	debugfs_create_file("state", 0400, rproc->dbg_dir,
-			    rproc, &rproc_state_ops);
+						rproc, &rproc_state_ops);
 	debugfs_create_file("recovery", 0400, rproc->dbg_dir,
-			    rproc, &rproc_recovery_ops);
+						rproc, &rproc_recovery_ops);
 }
 
 void __init rproc_init_debugfs(void)
 {
-	if (debugfs_initialized()) {
+	if (debugfs_initialized())
+	{
 		rproc_dbg = debugfs_create_dir(KBUILD_MODNAME, NULL);
+
 		if (!rproc_dbg)
+		{
 			pr_err("can't create debugfs dir\n");
+		}
 	}
 }
 

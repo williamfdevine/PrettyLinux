@@ -33,7 +33,8 @@
  * LED customization.
  *===========================================================================
  */
-enum LED_CTL_MODE {
+enum LED_CTL_MODE
+{
 	LED_CTL_POWER_ON = 1,
 	LED_CTL_LINK = 2,
 	LED_CTL_NO_LINK = 3,
@@ -51,14 +52,15 @@ enum LED_CTL_MODE {
 
 #define IS_LED_WPS_BLINKING(_LED_871x)	\
 	(((struct LED_871x *)_LED_871x)->CurrLedState == LED_BLINK_WPS \
-	|| ((struct LED_871x *)_LED_871x)->CurrLedState == LED_BLINK_WPS_STOP \
-	|| ((struct LED_871x *)_LED_871x)->bLedWPSBlinkInProgress)
+	 || ((struct LED_871x *)_LED_871x)->CurrLedState == LED_BLINK_WPS_STOP \
+	 || ((struct LED_871x *)_LED_871x)->bLedWPSBlinkInProgress)
 
 #define IS_LED_BLINKING(_LED_871x)	\
-		(((struct LED_871x *)_LED_871x)->bLedWPSBlinkInProgress \
-		|| ((struct LED_871x *)_LED_871x)->bLedScanBlinkInProgress)
+	(((struct LED_871x *)_LED_871x)->bLedWPSBlinkInProgress \
+	 || ((struct LED_871x *)_LED_871x)->bLedScanBlinkInProgress)
 
-enum LED_PIN_871x {
+enum LED_PIN_871x
+{
 	LED_PIN_GPIO0,
 	LED_PIN_LED0,
 	LED_PIN_LED1
@@ -68,7 +70,8 @@ enum LED_PIN_871x {
  * LED customization.
  *===========================================================================
  */
-enum LED_STRATEGY_871x {
+enum LED_STRATEGY_871x
+{
 	SW_LED_MODE0, /* SW control 1 LED via GPIO0. It is default option. */
 	SW_LED_MODE1, /* 2 LEDs, through LED0 and LED1. For ALPHA. */
 	SW_LED_MODE2, /* SW control 1 LED via GPIO0,
@@ -85,7 +88,8 @@ enum LED_STRATEGY_871x {
 		 */
 };
 
-struct LED_871x {
+struct LED_871x
+{
 	struct _adapter		*padapter;
 	enum LED_PIN_871x	LedPin;	/* Implementation for this SW led. */
 	u32			CurrLedState; /* Current LED state. */
@@ -106,14 +110,15 @@ struct LED_871x {
 	struct work_struct	BlinkWorkItem; /* Workitem used by BlinkTimer */
 };
 
-struct led_priv {
+struct led_priv
+{
 	/* add for led control */
 	struct LED_871x		SwLed0;
 	struct LED_871x		SwLed1;
 	enum LED_STRATEGY_871x	LedStrategy;
 	u8			bRegUseLed;
 	void (*LedControlHandler)(struct _adapter *padapter,
-				  enum LED_CTL_MODE LedAction);
+							  enum LED_CTL_MODE LedAction);
 	/* add for led control */
 };
 

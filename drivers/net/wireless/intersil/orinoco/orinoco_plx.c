@@ -123,13 +123,16 @@ static int orinoco_plx_cor_reset(struct orinoco_private *priv)
 	/* Just in case, wait more until the card is no longer busy */
 	timeout = jiffies + msecs_to_jiffies(PLX_RESET_TIME);
 	reg = hermes_read_regn(hw, CMD);
-	while (time_before(jiffies, timeout) && (reg & HERMES_CMD_BUSY)) {
+
+	while (time_before(jiffies, timeout) && (reg & HERMES_CMD_BUSY))
+	{
 		mdelay(1);
 		reg = hermes_read_regn(hw, CMD);
 	}
 
 	/* Still busy? */
-	if (reg & HERMES_CMD_BUSY) {
+	if (reg & HERMES_CMD_BUSY)
+	{
 		printk(KERN_ERR PFX "Busy timeout\n");
 		return -ETIMEDOUT;
 	}
@@ -141,21 +144,28 @@ static int orinoco_plx_hw_init(struct orinoco_pci_card *card)
 {
 	int i;
 	u32 csr_reg;
-	static const u8 cis_magic[] = {
+	static const u8 cis_magic[] =
+	{
 		0x01, 0x03, 0x00, 0x00, 0xff, 0x17, 0x04, 0x67
 	};
 
 	printk(KERN_DEBUG PFX "CIS: ");
+
 	for (i = 0; i < 16; i++)
+	{
 		printk("%02X:", ioread8(card->attr_io + (i << 1)));
+	}
+
 	printk("\n");
 
 	/* Verify whether a supported PC card is present */
 	/* FIXME: we probably need to be smarted about this */
-	for (i = 0; i < sizeof(cis_magic); i++) {
-		if (cis_magic[i] != ioread8(card->attr_io + (i << 1))) {
+	for (i = 0; i < sizeof(cis_magic); i++)
+	{
+		if (cis_magic[i] != ioread8(card->attr_io + (i << 1)))
+		{
 			printk(KERN_ERR PFX "The CIS value of Prism2 PC "
-			       "card is unexpected\n");
+				   "card is unexpected\n");
 			return -ENODEV;
 		}
 	}
@@ -164,11 +174,15 @@ static int orinoco_plx_hw_init(struct orinoco_pci_card *card)
 	   case the serial eprom didn't do this already.  See the
 	   PLX9052 data book, p8-1 and 8-24 for reference. */
 	csr_reg = ioread32(card->bridge_io + PLX_INTCSR);
-	if (!(csr_reg & PLX_INTCSR_INTEN)) {
+
+	if (!(csr_reg & PLX_INTCSR_INTEN))
+	{
 		csr_reg |= PLX_INTCSR_INTEN;
 		iowrite32(csr_reg, card->bridge_io + PLX_INTCSR);
 		csr_reg = ioread32(card->bridge_io + PLX_INTCSR);
-		if (!(csr_reg & PLX_INTCSR_INTEN)) {
+
+		if (!(csr_reg & PLX_INTCSR_INTEN))
+		{
 			printk(KERN_ERR PFX "Cannot enable interrupts\n");
 			return -EIO;
 		}
@@ -178,7 +192,7 @@ static int orinoco_plx_hw_init(struct orinoco_pci_card *card)
 }
 
 static int orinoco_plx_init_one(struct pci_dev *pdev,
-				const struct pci_device_id *ent)
+								const struct pci_device_id *ent)
 {
 	int err;
 	struct orinoco_private *priv;
@@ -186,33 +200,43 @@ static int orinoco_plx_init_one(struct pci_dev *pdev,
 	void __iomem *hermes_io, *attr_io, *bridge_io;
 
 	err = pci_enable_device(pdev);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR PFX "Cannot enable PCI device\n");
 		return err;
 	}
 
 	err = pci_request_regions(pdev, DRIVER_NAME);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR PFX "Cannot obtain PCI resources\n");
 		goto fail_resources;
 	}
 
 	bridge_io = pci_iomap(pdev, 1, 0);
-	if (!bridge_io) {
+
+	if (!bridge_io)
+	{
 		printk(KERN_ERR PFX "Cannot map bridge registers\n");
 		err = -EIO;
 		goto fail_map_bridge;
 	}
 
 	attr_io = pci_iomap(pdev, 2, 0);
-	if (!attr_io) {
+
+	if (!attr_io)
+	{
 		printk(KERN_ERR PFX "Cannot map PCMCIA attributes\n");
 		err = -EIO;
 		goto fail_map_attr;
 	}
 
 	hermes_io = pci_iomap(pdev, 3, 0);
-	if (!hermes_io) {
+
+	if (!hermes_io)
+	{
 		printk(KERN_ERR PFX "Cannot map chipset registers\n");
 		err = -EIO;
 		goto fail_map_hermes;
@@ -220,8 +244,10 @@ static int orinoco_plx_init_one(struct pci_dev *pdev,
 
 	/* Allocate network device */
 	priv = alloc_orinocodev(sizeof(*card), &pdev->dev,
-				orinoco_plx_cor_reset, NULL);
-	if (!priv) {
+							orinoco_plx_cor_reset, NULL);
+
+	if (!priv)
+	{
 		printk(KERN_ERR PFX "Cannot allocate network device\n");
 		err = -ENOMEM;
 		goto fail_alloc;
@@ -234,33 +260,43 @@ static int orinoco_plx_init_one(struct pci_dev *pdev,
 	hermes_struct_init(&priv->hw, hermes_io, HERMES_16BIT_REGSPACING);
 
 	err = request_irq(pdev->irq, orinoco_interrupt, IRQF_SHARED,
-			  DRIVER_NAME, priv);
-	if (err) {
+					  DRIVER_NAME, priv);
+
+	if (err)
+	{
 		printk(KERN_ERR PFX "Cannot allocate IRQ %d\n", pdev->irq);
 		err = -EBUSY;
 		goto fail_irq;
 	}
 
 	err = orinoco_plx_hw_init(card);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR PFX "Hardware initialization failed\n");
 		goto fail;
 	}
 
 	err = orinoco_plx_cor_reset(priv);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR PFX "Initial reset failed\n");
 		goto fail;
 	}
 
 	err = orinoco_init(priv);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR PFX "orinoco_init() failed\n");
 		goto fail;
 	}
 
 	err = orinoco_if_add(priv, 0, 0, NULL);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR PFX "orinoco_if_add() failed\n");
 		goto fail_wiphy;
 	}
@@ -269,27 +305,27 @@ static int orinoco_plx_init_one(struct pci_dev *pdev,
 
 	return 0;
 
- fail_wiphy:
+fail_wiphy:
 	wiphy_unregister(priv_to_wiphy(priv));
- fail:
+fail:
 	free_irq(pdev->irq, priv);
 
- fail_irq:
+fail_irq:
 	free_orinocodev(priv);
 
- fail_alloc:
+fail_alloc:
 	pci_iounmap(pdev, hermes_io);
 
- fail_map_hermes:
+fail_map_hermes:
 	pci_iounmap(pdev, attr_io);
 
- fail_map_attr:
+fail_map_attr:
 	pci_iounmap(pdev, bridge_io);
 
- fail_map_bridge:
+fail_map_bridge:
 	pci_release_regions(pdev);
 
- fail_resources:
+fail_resources:
 	pci_disable_device(pdev);
 
 	return err;
@@ -311,7 +347,8 @@ static void orinoco_plx_remove_one(struct pci_dev *pdev)
 	pci_disable_device(pdev);
 }
 
-static const struct pci_device_id orinoco_plx_id_table[] = {
+static const struct pci_device_id orinoco_plx_id_table[] =
+{
 	{0x111a, 0x1023, PCI_ANY_ID, PCI_ANY_ID,},	/* Siemens SpeedStream SS1023 */
 	{0x1385, 0x4100, PCI_ANY_ID, PCI_ANY_ID,},	/* Netgear MA301 */
 	{0x15e8, 0x0130, PCI_ANY_ID, PCI_ANY_ID,},	/* Correga  - does this work? */
@@ -331,7 +368,8 @@ static const struct pci_device_id orinoco_plx_id_table[] = {
 
 MODULE_DEVICE_TABLE(pci, orinoco_plx_id_table);
 
-static struct pci_driver orinoco_plx_driver = {
+static struct pci_driver orinoco_plx_driver =
+{
 	.name		= DRIVER_NAME,
 	.id_table	= orinoco_plx_id_table,
 	.probe		= orinoco_plx_init_one,
@@ -341,9 +379,9 @@ static struct pci_driver orinoco_plx_driver = {
 };
 
 static char version[] __initdata = DRIVER_NAME " " DRIVER_VERSION
-	" (Pavel Roskin <proski@gnu.org>,"
-	" David Gibson <hermes@gibson.dropbear.id.au>,"
-	" Daniel Barlow <dan@telent.net>)";
+								   " (Pavel Roskin <proski@gnu.org>,"
+								   " David Gibson <hermes@gibson.dropbear.id.au>,"
+								   " Daniel Barlow <dan@telent.net>)";
 MODULE_AUTHOR("Daniel Barlow <dan@telent.net>");
 MODULE_DESCRIPTION("Driver for wireless LAN cards using the PLX9052 PCI bridge");
 MODULE_LICENSE("Dual MPL/GPL");

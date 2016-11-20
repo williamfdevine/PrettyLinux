@@ -50,7 +50,7 @@ static u8 usb_read8(struct intf_hdl *pintfhdl, u32 addr)
 	wvalue = (u16)(addr & 0x0000ffff);
 	len = 1;
 	r8712_usbctrl_vendorreq(pintfpriv, request, wvalue, index, &data, len,
-			  requesttype);
+							requesttype);
 	return (u8)(le32_to_cpu(data) & 0x0ff);
 }
 
@@ -70,7 +70,7 @@ static u16 usb_read16(struct intf_hdl *pintfhdl, u32 addr)
 	wvalue = (u16)(addr & 0x0000ffff);
 	len = 2;
 	r8712_usbctrl_vendorreq(pintfpriv, request, wvalue, index, &data, len,
-			  requesttype);
+							requesttype);
 	return (u16)(le32_to_cpu(data) & 0xffff);
 }
 
@@ -90,7 +90,7 @@ static u32 usb_read32(struct intf_hdl *pintfhdl, u32 addr)
 	wvalue = (u16)(addr & 0x0000ffff);
 	len = 4;
 	r8712_usbctrl_vendorreq(pintfpriv, request, wvalue, index, &data, len,
-			  requesttype);
+							requesttype);
 	return le32_to_cpu(data);
 }
 
@@ -112,7 +112,7 @@ static void usb_write8(struct intf_hdl *pintfhdl, u32 addr, u8 val)
 	data = val;
 	data = cpu_to_le32(data & 0x000000ff);
 	r8712_usbctrl_vendorreq(pintfpriv, request, wvalue, index, &data, len,
-			  requesttype);
+							requesttype);
 }
 
 static void usb_write16(struct intf_hdl *pintfhdl, u32 addr, u16 val)
@@ -133,7 +133,7 @@ static void usb_write16(struct intf_hdl *pintfhdl, u32 addr, u16 val)
 	data = val;
 	data = cpu_to_le32(data & 0x0000ffff);
 	r8712_usbctrl_vendorreq(pintfpriv, request, wvalue, index, &data, len,
-			  requesttype);
+							requesttype);
 }
 
 static void usb_write32(struct intf_hdl *pintfhdl, u32 addr, u32 val)
@@ -153,7 +153,7 @@ static void usb_write32(struct intf_hdl *pintfhdl, u32 addr, u32 val)
 	len = 4;
 	data = cpu_to_le32(val);
 	r8712_usbctrl_vendorreq(pintfpriv, request, wvalue, index, &data, len,
-			  requesttype);
+							requesttype);
 }
 
 void r8712_usb_set_intf_option(u32 *poption)

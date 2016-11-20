@@ -72,7 +72,8 @@ static u16 mc_cmd_hdr_read_cmdid(struct mc_command *cmd)
 
 static int mc_status_to_error(enum mc_cmd_status status)
 {
-	static const int mc_status_to_error_map[] = {
+	static const int mc_status_to_error_map[] =
+	{
 		[MC_CMD_STATUS_OK] = 0,
 		[MC_CMD_STATUS_AUTH_ERR] = -EACCES,
 		[MC_CMD_STATUS_NO_PRIVILEGE] = -EPERM,
@@ -87,14 +88,17 @@ static int mc_status_to_error(enum mc_cmd_status status)
 	};
 
 	if (WARN_ON((u32)status >= ARRAY_SIZE(mc_status_to_error_map)))
+	{
 		return -EINVAL;
+	}
 
 	return mc_status_to_error_map[status];
 }
 
 static const char *mc_status_to_string(enum mc_cmd_status status)
 {
-	static const char *const status_strings[] = {
+	static const char *const status_strings[] =
+	{
 		[MC_CMD_STATUS_OK] = "Command completed successfully",
 		[MC_CMD_STATUS_READY] = "Command ready to be processed",
 		[MC_CMD_STATUS_AUTH_ERR] = "Authentication error",
@@ -110,7 +114,9 @@ static const char *mc_status_to_string(enum mc_cmd_status status)
 	};
 
 	if ((unsigned int)status >= ARRAY_SIZE(status_strings))
+	{
 		return "Unknown MC error";
+	}
 
 	return status_strings[status];
 }
@@ -122,13 +128,16 @@ static const char *mc_status_to_string(enum mc_cmd_status status)
  * @cmd: pointer to a filled command
  */
 static inline void mc_write_command(struct mc_command __iomem *portal,
-				    struct mc_command *cmd)
+									struct mc_command *cmd)
 {
 	int i;
 
 	/* copy command parameters into the portal */
 	for (i = 0; i < MC_CMD_NUM_OF_PARAMS; i++)
+	{
 		__raw_writeq(cmd->params[i], &portal->params[i]);
+	}
+
 	__iowmb();
 
 	/* submit the command by writing the header */
@@ -145,8 +154,8 @@ static inline void mc_write_command(struct mc_command __iomem *portal,
  * Returns MC_CMD_STATUS_OK on Success; Error code otherwise.
  */
 static inline enum mc_cmd_status mc_read_response(struct mc_command __iomem *
-						  portal,
-						  struct mc_command *resp)
+		portal,
+		struct mc_command *resp)
 {
 	int i;
 	enum mc_cmd_status status;
@@ -156,12 +165,18 @@ static inline enum mc_cmd_status mc_read_response(struct mc_command __iomem *
 	resp->header = __raw_readq(&portal->header);
 	__iormb();
 	status = mc_cmd_hdr_read_status(resp);
+
 	if (status != MC_CMD_STATUS_OK)
+	{
 		return status;
+	}
 
 	/* Copy command response data from MC portal: */
 	for (i = 0; i < MC_CMD_NUM_OF_PARAMS; i++)
+	{
 		resp->params[i] = __raw_readq(&portal->params[i]);
+	}
+
 	__iormb();
 
 	return status;
@@ -176,8 +191,8 @@ static inline enum mc_cmd_status mc_read_response(struct mc_command __iomem *
  * @mc_status: MC command completion status
  */
 static int mc_polling_wait_preemptible(struct fsl_mc_io *mc_io,
-				       struct mc_command *cmd,
-				       enum mc_cmd_status *mc_status)
+									   struct mc_command *cmd,
+									   enum mc_cmd_status *mc_status)
 {
 	enum mc_cmd_status status;
 	unsigned long jiffies_until_timeout =
@@ -186,24 +201,29 @@ static int mc_polling_wait_preemptible(struct fsl_mc_io *mc_io,
 	/*
 	 * Wait for response from the MC hardware:
 	 */
-	for (;;) {
+	for (;;)
+	{
 		status = mc_read_response(mc_io->portal_virt_addr, cmd);
+
 		if (status != MC_CMD_STATUS_READY)
+		{
 			break;
+		}
 
 		/*
 		 * TODO: When MC command completion interrupts are supported
 		 * call wait function here instead of usleep_range()
 		 */
 		usleep_range(MC_CMD_COMPLETION_POLLING_MIN_SLEEP_USECS,
-			     MC_CMD_COMPLETION_POLLING_MAX_SLEEP_USECS);
+					 MC_CMD_COMPLETION_POLLING_MAX_SLEEP_USECS);
 
-		if (time_after_eq(jiffies, jiffies_until_timeout)) {
+		if (time_after_eq(jiffies, jiffies_until_timeout))
+		{
 			dev_dbg(mc_io->dev,
-				"MC command timed out (portal: %#llx, obj handle: %#x, command: %#x)\n",
-				 mc_io->portal_phys_addr,
-				 (unsigned int)mc_cmd_hdr_read_token(cmd),
-				 (unsigned int)mc_cmd_hdr_read_cmdid(cmd));
+					"MC command timed out (portal: %#llx, obj handle: %#x, command: %#x)\n",
+					mc_io->portal_phys_addr,
+					(unsigned int)mc_cmd_hdr_read_token(cmd),
+					(unsigned int)mc_cmd_hdr_read_cmdid(cmd));
 
 			return -ETIMEDOUT;
 		}
@@ -222,28 +242,34 @@ static int mc_polling_wait_preemptible(struct fsl_mc_io *mc_io,
  * @mc_status: MC command completion status
  */
 static int mc_polling_wait_atomic(struct fsl_mc_io *mc_io,
-				  struct mc_command *cmd,
-				  enum mc_cmd_status *mc_status)
+								  struct mc_command *cmd,
+								  enum mc_cmd_status *mc_status)
 {
 	enum mc_cmd_status status;
 	unsigned long timeout_usecs = MC_CMD_COMPLETION_TIMEOUT_MS * 1000;
 
 	BUILD_BUG_ON((MC_CMD_COMPLETION_TIMEOUT_MS * 1000) %
-		     MC_CMD_COMPLETION_POLLING_MAX_SLEEP_USECS != 0);
+				 MC_CMD_COMPLETION_POLLING_MAX_SLEEP_USECS != 0);
 
-	for (;;) {
+	for (;;)
+	{
 		status = mc_read_response(mc_io->portal_virt_addr, cmd);
+
 		if (status != MC_CMD_STATUS_READY)
+		{
 			break;
+		}
 
 		udelay(MC_CMD_COMPLETION_POLLING_MAX_SLEEP_USECS);
 		timeout_usecs -= MC_CMD_COMPLETION_POLLING_MAX_SLEEP_USECS;
-		if (timeout_usecs == 0) {
+
+		if (timeout_usecs == 0)
+		{
 			dev_dbg(mc_io->dev,
-				"MC command timed out (portal: %#llx, obj handle: %#x, command: %#x)\n",
-				 mc_io->portal_phys_addr,
-				 (unsigned int)mc_cmd_hdr_read_token(cmd),
-				 (unsigned int)mc_cmd_hdr_read_cmdid(cmd));
+					"MC command timed out (portal: %#llx, obj handle: %#x, command: %#x)\n",
+					mc_io->portal_phys_addr,
+					(unsigned int)mc_cmd_hdr_read_token(cmd),
+					(unsigned int)mc_cmd_hdr_read_cmdid(cmd));
 
 			return -ETIMEDOUT;
 		}
@@ -268,13 +294,19 @@ int mc_send_command(struct fsl_mc_io *mc_io, struct mc_command *cmd)
 	unsigned long irq_flags = 0;
 
 	if (WARN_ON(in_irq() &&
-		    !(mc_io->flags & FSL_MC_IO_ATOMIC_CONTEXT_PORTAL)))
+				!(mc_io->flags & FSL_MC_IO_ATOMIC_CONTEXT_PORTAL)))
+	{
 		return -EINVAL;
+	}
 
 	if (mc_io->flags & FSL_MC_IO_ATOMIC_CONTEXT_PORTAL)
+	{
 		spin_lock_irqsave(&mc_io->spinlock, irq_flags);
+	}
 	else
+	{
 		mutex_lock(&mc_io->mutex);
+	}
 
 	/*
 	 * Send command to the MC hardware:
@@ -285,21 +317,28 @@ int mc_send_command(struct fsl_mc_io *mc_io, struct mc_command *cmd)
 	 * Wait for response from the MC hardware:
 	 */
 	if (!(mc_io->flags & FSL_MC_IO_ATOMIC_CONTEXT_PORTAL))
+	{
 		error = mc_polling_wait_preemptible(mc_io, cmd, &status);
+	}
 	else
+	{
 		error = mc_polling_wait_atomic(mc_io, cmd, &status);
+	}
 
 	if (error < 0)
+	{
 		goto common_exit;
+	}
 
-	if (status != MC_CMD_STATUS_OK) {
+	if (status != MC_CMD_STATUS_OK)
+	{
 		dev_dbg(mc_io->dev,
-			"MC command failed: portal: %#llx, obj handle: %#x, command: %#x, status: %s (%#x)\n",
-			 mc_io->portal_phys_addr,
-			 (unsigned int)mc_cmd_hdr_read_token(cmd),
-			 (unsigned int)mc_cmd_hdr_read_cmdid(cmd),
-			 mc_status_to_string(status),
-			 (unsigned int)status);
+				"MC command failed: portal: %#llx, obj handle: %#x, command: %#x, status: %s (%#x)\n",
+				mc_io->portal_phys_addr,
+				(unsigned int)mc_cmd_hdr_read_token(cmd),
+				(unsigned int)mc_cmd_hdr_read_cmdid(cmd),
+				mc_status_to_string(status),
+				(unsigned int)status);
 
 		error = mc_status_to_error(status);
 		goto common_exit;
@@ -307,10 +346,15 @@ int mc_send_command(struct fsl_mc_io *mc_io, struct mc_command *cmd)
 
 	error = 0;
 common_exit:
+
 	if (mc_io->flags & FSL_MC_IO_ATOMIC_CONTEXT_PORTAL)
+	{
 		spin_unlock_irqrestore(&mc_io->spinlock, irq_flags);
+	}
 	else
+	{
 		mutex_unlock(&mc_io->mutex);
+	}
 
 	return error;
 }

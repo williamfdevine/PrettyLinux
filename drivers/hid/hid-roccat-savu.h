@@ -14,18 +14,21 @@
 
 #include <linux/types.h>
 
-struct savu_mouse_report_special {
+struct savu_mouse_report_special
+{
 	uint8_t report_number; /* always 3 */
 	uint8_t zero;
 	uint8_t type;
 	uint8_t data[2];
 } __packed;
 
-enum {
+enum
+{
 	SAVU_MOUSE_REPORT_NUMBER_SPECIAL = 3,
 };
 
-enum savu_mouse_report_button_types {
+enum savu_mouse_report_button_types
+{
 	/* data1 = new profile range 1-5 */
 	SAVU_MOUSE_REPORT_BUTTON_TYPE_PROFILE = 0x20,
 
@@ -47,7 +50,8 @@ enum savu_mouse_report_button_types {
 	SAVU_MOUSE_REPORT_BUTTON_TYPE_MULTIMEDIA = 0xf0,
 };
 
-struct savu_roccat_report {
+struct savu_roccat_report
+{
 	uint8_t type;
 	uint8_t data[2];
 } __packed;

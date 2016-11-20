@@ -93,14 +93,15 @@
  * @wusb_cap_descr: points into @bos, and has been verified to be size
  *                  safe.
  */
-struct wusb_dev {
+struct wusb_dev
+{
 	struct kref refcnt;
 	struct wusbhc *wusbhc;
 	struct list_head cack_node;	/* Connect-Ack list */
 	struct list_head rekey_node;	/* GTK rekey list */
 	u8 port_idx;
 	u8 addr;
-	u8 beacon_type:4;
+	u8 beacon_type: 4;
 	struct usb_encryption_descriptor ccm1_etd;
 	struct wusb_ckhdid cdid;
 	unsigned long entry_ts;
@@ -149,7 +150,8 @@ static inline void wusb_dev_put(struct wusb_dev *wusb_dev)
  * WUSB1.0[7.1], USB2.0[11.24.2.7.1,fig 11-10],
  * include/linux/usb_ch9.h (#define USB_PORT_STAT_*)
  */
-struct wusb_port {
+struct wusb_port
+{
 	u16 status;
 	u16 change;
 	struct wusb_dev *wusb_dev;	/* connected device's info */
@@ -244,7 +246,8 @@ struct wusb_port {
  *    wusbhc_create_b(); b are the parts that need to be called after
  *    calling usb_hcd_add(&wusbhc->usb_hcd).
  */
-struct wusbhc {
+struct wusbhc
+{
 	struct usb_hcd usb_hcd;		/* HAS TO BE 1st */
 	struct device *dev;
 	struct uwb_rc *uwb_rc;
@@ -263,7 +266,7 @@ struct wusbhc {
 	struct wusb_port *port;			/* Fake port status handling */
 	struct wusb_dev_info *dev_info;		/* for Set Device Info mgmt */
 	u8 ports_max;
-	unsigned active:1;			/* currently xmit'ing MMCs */
+	unsigned active: 1;			/* currently xmit'ing MMCs */
 	struct wuie_keep_alive keep_alive_ie;	/* protected by mutex */
 	struct delayed_work keep_alive_timer;
 	struct list_head cack_list;		/* Connect acknowledging */
@@ -278,18 +281,19 @@ struct wusbhc {
 	int (*start)(struct wusbhc *wusbhc);
 	void (*stop)(struct wusbhc *wusbhc, int delay);
 	int (*mmcie_add)(struct wusbhc *wusbhc, u8 interval, u8 repeat_cnt,
-			 u8 handle, struct wuie_hdr *wuie);
+					 u8 handle, struct wuie_hdr *wuie);
 	int (*mmcie_rm)(struct wusbhc *wusbhc, u8 handle);
 	int (*dev_info_set)(struct wusbhc *, struct wusb_dev *wusb_dev);
 	int (*bwa_set)(struct wusbhc *wusbhc, s8 stream_index,
-		       const struct uwb_mas_bm *);
+				   const struct uwb_mas_bm *);
 	int (*set_ptk)(struct wusbhc *wusbhc, u8 port_idx,
-		       u32 tkid, const void *key, size_t key_size);
+				   u32 tkid, const void *key, size_t key_size);
 	int (*set_gtk)(struct wusbhc *wusbhc,
-		       u32 tkid, const void *key, size_t key_size);
+				   u32 tkid, const void *key, size_t key_size);
 	int (*set_num_dnts)(struct wusbhc *wusbhc, u8 interval, u8 slots);
 
-	struct {
+	struct
+	{
 		struct usb_key_descriptor descr;
 		u8 data[16];				/* GTK key data */
 	} __attribute__((packed)) gtk;
@@ -311,14 +315,14 @@ extern int wusbhc_b_create(struct wusbhc *);
 extern void wusbhc_b_destroy(struct wusbhc *);
 extern void wusbhc_destroy(struct wusbhc *);
 extern int wusb_dev_sysfs_add(struct wusbhc *, struct usb_device *,
-			      struct wusb_dev *);
+							  struct wusb_dev *);
 extern void wusb_dev_sysfs_rm(struct wusb_dev *);
 extern int wusbhc_sec_create(struct wusbhc *);
 extern int wusbhc_sec_start(struct wusbhc *);
 extern void wusbhc_sec_stop(struct wusbhc *);
 extern void wusbhc_sec_destroy(struct wusbhc *);
 extern void wusbhc_giveback_urb(struct wusbhc *wusbhc, struct urb *urb,
-				int status);
+								int status);
 void wusbhc_reset_all(struct wusbhc *wusbhc);
 
 int wusbhc_pal_register(struct wusbhc *wusbhc);
@@ -364,15 +368,22 @@ static inline struct wusbhc *wusbhc_get_by_usb_dev(struct usb_device *usb_dev)
 {
 	struct wusbhc *wusbhc = NULL;
 	struct usb_hcd *usb_hcd;
-	if (usb_dev->devnum > 1 && !usb_dev->wusb) {
+
+	if (usb_dev->devnum > 1 && !usb_dev->wusb)
+	{
 		/* but root hubs */
 		dev_err(&usb_dev->dev, "devnum %d wusb %d\n", usb_dev->devnum,
-			usb_dev->wusb);
+				usb_dev->wusb);
 		BUG_ON(usb_dev->devnum > 1 && !usb_dev->wusb);
 	}
+
 	usb_hcd = usb_hcd_get_by_usb_dev(usb_dev);
+
 	if (usb_hcd == NULL)
+	{
 		return NULL;
+	}
+
 	BUG_ON(usb_hcd->wireless == 0);
 	return wusbhc = usb_hcd_to_wusbhc(usb_hcd);
 }
@@ -393,12 +404,12 @@ extern void wusbhc_devconnect_destroy(struct wusbhc *);
 extern int wusbhc_devconnect_start(struct wusbhc *wusbhc);
 extern void wusbhc_devconnect_stop(struct wusbhc *wusbhc);
 extern void wusbhc_handle_dn(struct wusbhc *, u8 srcaddr,
-			     struct wusb_dn_hdr *dn_hdr, size_t size);
+							 struct wusb_dn_hdr *dn_hdr, size_t size);
 extern void __wusbhc_dev_disable(struct wusbhc *wusbhc, u8 port);
 extern int wusb_usb_ncb(struct notifier_block *nb, unsigned long val,
-			void *priv);
+						void *priv);
 extern int wusb_set_dev_addr(struct wusbhc *wusbhc, struct wusb_dev *wusb_dev,
-			     u8 addr);
+							 u8 addr);
 
 /* Wireless USB fake Root Hub methods */
 extern int wusbhc_rh_create(struct wusbhc *);
@@ -412,7 +423,7 @@ extern int wusbhc_rh_start_port_reset(struct usb_hcd *, unsigned);
 extern int wusbhc_mmcie_create(struct wusbhc *);
 extern void wusbhc_mmcie_destroy(struct wusbhc *);
 extern int wusbhc_mmcie_set(struct wusbhc *, u8 interval, u8 repeat_cnt,
-			    struct wuie_hdr *);
+							struct wuie_hdr *);
 extern void wusbhc_mmcie_rm(struct wusbhc *, struct wuie_hdr *);
 
 /* Bandwidth reservation */
@@ -432,10 +443,10 @@ void wusbhc_rsv_terminate(struct wusbhc *wusbhc);
  * --Security!
  */
 extern int wusb_dev_sec_add(struct wusbhc *, struct usb_device *,
-				struct wusb_dev *);
+							struct wusb_dev *);
 extern void wusb_dev_sec_rm(struct wusb_dev *) ;
 extern int wusb_dev_4way_handshake(struct wusbhc *, struct wusb_dev *,
-				   struct wusb_ckhdid *ck);
+								   struct wusb_ckhdid *ck);
 void wusbhc_gtk_rekey(struct wusbhc *wusbhc);
 int wusb_dev_update_address(struct wusbhc *wusbhc, struct wusb_dev *wusb_dev);
 
@@ -452,7 +463,7 @@ extern void wusb_cluster_id_put(u8);
  *       be verified though :)
  */
 static inline struct wusb_port *wusb_port_by_idx(struct wusbhc *wusbhc,
-						 u8 port_idx)
+		u8 port_idx)
 {
 	return &wusbhc->port[port_idx];
 }
@@ -471,7 +482,7 @@ static inline u8 wusb_port_no_to_idx(u8 port_no)
 }
 
 extern struct wusb_dev *__wusb_dev_get_by_usb_dev(struct wusbhc *,
-						  struct usb_device *);
+		struct usb_device *);
 
 /*
  * Return a referenced wusb_dev given a @usb_dev
@@ -486,8 +497,12 @@ struct wusb_dev *wusb_dev_get_by_usb_dev(struct usb_device *usb_dev)
 	struct wusbhc *wusbhc;
 	struct wusb_dev *wusb_dev;
 	wusbhc = wusbhc_get_by_usb_dev(usb_dev);
+
 	if (wusbhc == NULL)
+	{
 		return NULL;
+	}
+
 	mutex_lock(&wusbhc->mutex);
 	wusb_dev = __wusb_dev_get_by_usb_dev(wusbhc, usb_dev);
 	mutex_unlock(&wusbhc->mutex);

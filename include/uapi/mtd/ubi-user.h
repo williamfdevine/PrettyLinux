@@ -200,7 +200,7 @@
 #define UBI_IOCEBISMAP _IOR(UBI_VOL_IOC_MAGIC, 5, __s32)
 /* Set an UBI volume property */
 #define UBI_IOCSETVOLPROP _IOW(UBI_VOL_IOC_MAGIC, 6, \
-			       struct ubi_set_vol_prop_req)
+							   struct ubi_set_vol_prop_req)
 /* Create a R/O block device on top of an UBI volume */
 #define UBI_IOCVOLCRBLK _IOW(UBI_VOL_IOC_MAGIC, 7, struct ubi_blkcreate_req)
 /* Remove the R/O block device */
@@ -218,7 +218,8 @@
  * @UBI_DYNAMIC_VOLUME: dynamic volume
  * @UBI_STATIC_VOLUME:  static volume
  */
-enum {
+enum
+{
 	UBI_DYNAMIC_VOLUME = 3,
 	UBI_STATIC_VOLUME  = 4,
 };
@@ -230,7 +231,8 @@ enum {
  *                             user to directly write and erase individual
  *                             eraseblocks on dynamic volumes
  */
-enum {
+enum
+{
 	UBI_VOL_PROP_DIRECT_WRITE = 1,
 };
 
@@ -276,7 +278,8 @@ enum {
  * eraseblocks (if any). The accepted range is 0-768. If 0 is given, the
  * default kernel value of %CONFIG_MTD_UBI_BEB_LIMIT will be used.
  */
-struct ubi_attach_req {
+struct ubi_attach_req
+{
 	__s32 ubi_num;
 	__s32 mtd_num;
 	__s32 vid_hdr_offset;
@@ -315,7 +318,8 @@ struct ubi_attach_req {
  * alignment it is possible to update this volume using plane UBI volume image
  * BLOBs, without caring about how to properly align them.
  */
-struct ubi_mkvol_req {
+struct ubi_mkvol_req
+{
 	__s32 vol_id;
 	__s32 alignment;
 	__s64 bytes;
@@ -337,7 +341,8 @@ struct ubi_mkvol_req {
  * volume, it must be wiped out first (by means of volume update operation with
  * zero number of bytes).
  */
-struct ubi_rsvol_req {
+struct ubi_rsvol_req
+{
 	__s64 bytes;
 	__s32 vol_id;
 } __packed;
@@ -373,10 +378,12 @@ struct ubi_rsvol_req {
  * existing volume is removed, unless it is re-named as well at the same
  * re-name request.
  */
-struct ubi_rnvol_req {
+struct ubi_rnvol_req
+{
 	__s32 count;
 	__s8 padding1[12];
-	struct {
+	struct
+	{
 		__s32 vol_id;
 		__s16 name_len;
 		__s8  padding2[2];
@@ -401,7 +408,8 @@ struct ubi_rnvol_req {
  * field. But for better compatibility with older kernels it is recommended to
  * set @dtype to 3 (unknown).
  */
-struct ubi_leb_change_req {
+struct ubi_leb_change_req
+{
 	__s32 lnum;
 	__s32 bytes;
 	__s8  dtype; /* obsolete, do not use! */
@@ -414,7 +422,8 @@ struct ubi_leb_change_req {
  * @lnum: logical eraseblock number to unmap
  * @padding: reserved for future, not used, has to be zeroed
  */
-struct ubi_map_req {
+struct ubi_map_req
+{
 	__s32 lnum;
 	__s8  dtype; /* obsolete, do not use! */
 	__s8  padding[3];
@@ -428,7 +437,8 @@ struct ubi_map_req {
  * @padding: reserved for future, not used, has to be zeroed
  * @value: value to set
  */
-struct ubi_set_vol_prop_req {
+struct ubi_set_vol_prop_req
+{
 	__u8  property;
 	__u8  padding[7];
 	__u64 value;
@@ -438,7 +448,8 @@ struct ubi_set_vol_prop_req {
  * struct ubi_blkcreate_req - a data structure used in block creation requests.
  * @padding: reserved for future, not used, has to be zeroed
  */
-struct ubi_blkcreate_req {
+struct ubi_blkcreate_req
+{
 	__s8  padding[128];
 }  __packed;
 

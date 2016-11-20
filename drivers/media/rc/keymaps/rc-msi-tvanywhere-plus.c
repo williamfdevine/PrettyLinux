@@ -27,27 +27,28 @@
   Some changes to formatting and keycodes by Mark Schultz <n9xmj@yahoo.com>
 */
 
-static struct rc_map_table msi_tvanywhere_plus[] = {
+static struct rc_map_table msi_tvanywhere_plus[] =
+{
 
-/*  ---- Remote Button Layout ----
+	/*  ---- Remote Button Layout ----
 
-    POWER   SOURCE  SCAN    MUTE
-    TV/FM   1       2       3
-    |>      4       5       6
-    <|      7       8       9
-    ^^UP    0       +       RECALL
-    vvDN    RECORD  STOP    PLAY
+	    POWER   SOURCE  SCAN    MUTE
+	    TV/FM   1       2       3
+	    |>      4       5       6
+	    <|      7       8       9
+	    ^^UP    0       +       RECALL
+	    vvDN    RECORD  STOP    PLAY
 
-	MINIMIZE          ZOOM
+		MINIMIZE          ZOOM
 
-		  CH+
-      VOL-                   VOL+
-		  CH-
+			  CH+
+	      VOL-                   VOL+
+			  CH-
 
-	SNAPSHOT           MTS
+		SNAPSHOT           MTS
 
-     <<      FUNC    >>     RESET
-*/
+	     <<      FUNC    >>     RESET
+	*/
 
 	{ 0x01, KEY_1 },		/* 1 */
 	{ 0x0b, KEY_2 },		/* 2 */
@@ -98,7 +99,8 @@ static struct rc_map_table msi_tvanywhere_plus[] = {
 	{ 0x1d, KEY_RESTART },		/* Reset */
 };
 
-static struct rc_map_list msi_tvanywhere_plus_map = {
+static struct rc_map_list msi_tvanywhere_plus_map =
+{
 	.map = {
 		.scan    = msi_tvanywhere_plus,
 		.size    = ARRAY_SIZE(msi_tvanywhere_plus),

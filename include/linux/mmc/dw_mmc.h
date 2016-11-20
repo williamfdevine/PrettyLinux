@@ -21,7 +21,8 @@
 
 #define MAX_MCI_SLOTS	2
 
-enum dw_mci_state {
+enum dw_mci_state
+{
 	STATE_IDLE = 0,
 	STATE_SENDING_CMD,
 	STATE_SENDING_DATA,
@@ -32,7 +33,8 @@ enum dw_mci_state {
 	STATE_WAITING_CMD11_DONE,
 };
 
-enum {
+enum
+{
 	EVENT_CMD_COMPLETE = 0,
 	EVENT_XFER_COMPLETE,
 	EVENT_DATA_COMPLETE,
@@ -41,13 +43,15 @@ enum {
 
 struct mmc_data;
 
-enum {
+enum
+{
 	TRANS_MODE_PIO = 0,
 	TRANS_MODE_IDMAC,
 	TRANS_MODE_EDMAC
 };
 
-struct dw_mci_dma_slave {
+struct dw_mci_dma_slave
+{
 	struct dma_chan *ch;
 	enum dma_transfer_direction direction;
 };
@@ -149,7 +153,8 @@ struct dw_mci_dma_slave {
  * bytes_xfered field of @data must be written. This is ensured by
  * using barriers.
  */
-struct dw_mci {
+struct dw_mci
+{
 	spinlock_t		lock;
 	spinlock_t		irq_lock;
 	void __iomem		*regs;
@@ -210,7 +215,8 @@ struct dw_mci {
 	int			data_shift;
 	u8			part_buf_start;
 	u8			part_buf_count;
-	union {
+	union
+	{
 		u16		part_buf16;
 		u32		part_buf32;
 		u64		part_buf;
@@ -229,7 +235,8 @@ struct dw_mci {
 };
 
 /* DMA ops for Internal/External DMAC interface */
-struct dw_mci_dma_ops {
+struct dw_mci_dma_ops
+{
 	/* DMA Ops */
 	int (*init)(struct dw_mci *host);
 	int (*start)(struct dw_mci *host, unsigned int sg_len);
@@ -242,7 +249,8 @@ struct dw_mci_dma_ops {
 struct dma_pdata;
 
 /* Board platform data */
-struct dw_mci_board {
+struct dw_mci_board
+{
 	u32 num_slots;
 
 	unsigned int bus_hz; /* Clock speed at the cclk_in pad */

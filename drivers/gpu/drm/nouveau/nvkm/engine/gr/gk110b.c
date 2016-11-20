@@ -31,7 +31,8 @@
  ******************************************************************************/
 
 static const struct gf100_gr_init
-gk110b_gr_init_l1c_0[] = {
+	gk110b_gr_init_l1c_0[] =
+{
 	{ 0x419c98,   1, 0x04, 0x00000000 },
 	{ 0x419ca8,   1, 0x04, 0x00000000 },
 	{ 0x419cb0,   1, 0x04, 0x09000000 },
@@ -46,7 +47,8 @@ gk110b_gr_init_l1c_0[] = {
 };
 
 static const struct gf100_gr_init
-gk110b_gr_init_sm_0[] = {
+	gk110b_gr_init_sm_0[] =
+{
 	{ 0x419e00,   1, 0x04, 0x00000080 },
 	{ 0x419ea0,   1, 0x04, 0x00000000 },
 	{ 0x419ee4,   1, 0x04, 0x00000000 },
@@ -63,7 +65,8 @@ gk110b_gr_init_sm_0[] = {
 };
 
 static const struct gf100_gr_pack
-gk110b_gr_pack_mmio[] = {
+	gk110b_gr_pack_mmio[] =
+{
 	{ gk104_gr_init_main_0 },
 	{ gk110_gr_init_fe_0 },
 	{ gf100_gr_init_pri_0 },
@@ -101,7 +104,8 @@ gk110b_gr_pack_mmio[] = {
  ******************************************************************************/
 
 static const struct gf100_gr_func
-gk110b_gr = {
+	gk110b_gr =
+{
 	.init = gk104_gr_init,
 	.init_rop_active_fbps = gk104_gr_init_rop_active_fbps,
 	.init_ppc_exceptions = gk104_gr_init_ppc_exceptions,

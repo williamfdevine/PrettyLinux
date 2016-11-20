@@ -28,7 +28,8 @@ DEFINE_SPINLOCK(mq_lock);
  * compiled when either CONFIG_SYSVIPC and CONFIG_POSIX_MQUEUE
  * and not CONFIG_IPC_NS.
  */
-struct ipc_namespace init_ipc_ns = {
+struct ipc_namespace init_ipc_ns =
+{
 	.count		= ATOMIC_INIT(1),
 	.user_ns = &init_user_ns,
 	.ns.inum = PROC_IPC_INIT_INO,
@@ -37,7 +38,8 @@ struct ipc_namespace init_ipc_ns = {
 #endif
 };
 
-struct msg_msgseg {
+struct msg_msgseg
+{
 	struct msg_msgseg *next;
 	/* the next part of the message follows immediately */
 };
@@ -54,20 +56,29 @@ static struct msg_msg *alloc_msg(size_t len)
 
 	alen = min(len, DATALEN_MSG);
 	msg = kmalloc(sizeof(*msg) + alen, GFP_KERNEL_ACCOUNT);
+
 	if (msg == NULL)
+	{
 		return NULL;
+	}
 
 	msg->next = NULL;
 	msg->security = NULL;
 
 	len -= alen;
 	pseg = &msg->next;
-	while (len > 0) {
+
+	while (len > 0)
+	{
 		struct msg_msgseg *seg;
 		alen = min(len, DATALEN_SEG);
 		seg = kmalloc(sizeof(*seg) + alen, GFP_KERNEL_ACCOUNT);
+
 		if (seg == NULL)
+		{
 			goto out_err;
+		}
+
 		*pseg = seg;
 		seg->next = NULL;
 		pseg = &seg->next;
@@ -89,24 +100,37 @@ struct msg_msg *load_msg(const void __user *src, size_t len)
 	size_t alen;
 
 	msg = alloc_msg(len);
+
 	if (msg == NULL)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	alen = min(len, DATALEN_MSG);
-	if (copy_from_user(msg + 1, src, alen))
-		goto out_err;
 
-	for (seg = msg->next; seg != NULL; seg = seg->next) {
+	if (copy_from_user(msg + 1, src, alen))
+	{
+		goto out_err;
+	}
+
+	for (seg = msg->next; seg != NULL; seg = seg->next)
+	{
 		len -= alen;
 		src = (char __user *)src + alen;
 		alen = min(len, DATALEN_SEG);
+
 		if (copy_from_user(seg + 1, src, alen))
+		{
 			goto out_err;
+		}
 	}
 
 	err = security_msg_msg_alloc(msg);
+
 	if (err)
+	{
 		goto out_err;
+	}
 
 	return msg;
 
@@ -122,14 +146,17 @@ struct msg_msg *copy_msg(struct msg_msg *src, struct msg_msg *dst)
 	size_t alen;
 
 	if (src->m_ts > dst->m_ts)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	alen = min(len, DATALEN_MSG);
 	memcpy(dst + 1, src + 1, alen);
 
 	for (dst_pseg = dst->next, src_pseg = src->next;
-	     src_pseg != NULL;
-	     dst_pseg = dst_pseg->next, src_pseg = src_pseg->next) {
+		 src_pseg != NULL;
+		 dst_pseg = dst_pseg->next, src_pseg = src_pseg->next)
+	{
 
 		len -= alen;
 		alen = min(len, DATALEN_SEG);
@@ -153,16 +180,24 @@ int store_msg(void __user *dest, struct msg_msg *msg, size_t len)
 	struct msg_msgseg *seg;
 
 	alen = min(len, DATALEN_MSG);
-	if (copy_to_user(dest, msg + 1, alen))
-		return -1;
 
-	for (seg = msg->next; seg != NULL; seg = seg->next) {
+	if (copy_to_user(dest, msg + 1, alen))
+	{
+		return -1;
+	}
+
+	for (seg = msg->next; seg != NULL; seg = seg->next)
+	{
 		len -= alen;
 		dest = (char __user *)dest + alen;
 		alen = min(len, DATALEN_SEG);
+
 		if (copy_to_user(dest, seg + 1, alen))
+		{
 			return -1;
+		}
 	}
+
 	return 0;
 }
 
@@ -174,7 +209,9 @@ void free_msg(struct msg_msg *msg)
 
 	seg = msg->next;
 	kfree(msg);
-	while (seg != NULL) {
+
+	while (seg != NULL)
+	{
 		struct msg_msgseg *tmp = seg->next;
 		kfree(seg);
 		seg = tmp;

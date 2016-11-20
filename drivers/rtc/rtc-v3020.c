@@ -36,9 +36,10 @@
 
 struct v3020;
 
-struct v3020_chip_ops {
+struct v3020_chip_ops
+{
 	int (*map_io)(struct v3020 *chip, struct platform_device *pdev,
-		      struct v3020_platform_data *pdata);
+				  struct v3020_platform_data *pdata);
 	void (*unmap_io)(struct v3020 *chip);
 	unsigned char (*read_bit)(struct v3020 *chip);
 	void (*write_bit)(struct v3020 *chip, unsigned char bit);
@@ -49,7 +50,8 @@ struct v3020_chip_ops {
 #define V3020_RD	2
 #define V3020_IO	3
 
-struct v3020 {
+struct v3020
+{
 	/* MMIO access */
 	void __iomem *ioaddress;
 	int leftshift;
@@ -64,18 +66,25 @@ struct v3020 {
 
 
 static int v3020_mmio_map(struct v3020 *chip, struct platform_device *pdev,
-			  struct v3020_platform_data *pdata)
+						  struct v3020_platform_data *pdata)
 {
 	if (pdev->num_resources != 1)
+	{
 		return -EBUSY;
+	}
 
 	if (pdev->resource[0].flags != IORESOURCE_MEM)
+	{
 		return -EBUSY;
+	}
 
 	chip->leftshift = pdata->leftshift;
 	chip->ioaddress = ioremap(pdev->resource[0].start, 1);
+
 	if (chip->ioaddress == NULL)
+	{
 		return -EBUSY;
+	}
 
 	return 0;
 }
@@ -95,14 +104,16 @@ static unsigned char v3020_mmio_read_bit(struct v3020 *chip)
 	return !!(readl(chip->ioaddress) & (1 << chip->leftshift));
 }
 
-static const struct v3020_chip_ops v3020_mmio_ops = {
+static const struct v3020_chip_ops v3020_mmio_ops =
+{
 	.map_io		= v3020_mmio_map,
 	.unmap_io	= v3020_mmio_unmap,
 	.read_bit	= v3020_mmio_read_bit,
 	.write_bit	= v3020_mmio_write_bit,
 };
 
-static struct gpio v3020_gpio[] = {
+static struct gpio v3020_gpio[] =
+{
 	{ 0, GPIOF_OUT_INIT_HIGH, "RTC CS"},
 	{ 0, GPIOF_OUT_INIT_HIGH, "RTC WR"},
 	{ 0, GPIOF_OUT_INIT_HIGH, "RTC RD"},
@@ -110,7 +121,7 @@ static struct gpio v3020_gpio[] = {
 };
 
 static int v3020_gpio_map(struct v3020 *chip, struct platform_device *pdev,
-			  struct v3020_platform_data *pdata)
+						  struct v3020_platform_data *pdata)
 {
 	int err;
 
@@ -122,7 +133,9 @@ static int v3020_gpio_map(struct v3020 *chip, struct platform_device *pdev,
 	err = gpio_request_array(v3020_gpio, ARRAY_SIZE(v3020_gpio));
 
 	if (!err)
+	{
 		chip->gpio = v3020_gpio;
+	}
 
 	return err;
 }
@@ -158,7 +171,8 @@ static unsigned char v3020_gpio_read_bit(struct v3020 *chip)
 	return bit;
 }
 
-static const struct v3020_chip_ops v3020_gpio_ops = {
+static const struct v3020_chip_ops v3020_gpio_ops =
+{
 	.map_io		= v3020_gpio_map,
 	.unmap_io	= v3020_gpio_unmap,
 	.read_bit	= v3020_gpio_read_bit,
@@ -166,21 +180,25 @@ static const struct v3020_chip_ops v3020_gpio_ops = {
 };
 
 static void v3020_set_reg(struct v3020 *chip, unsigned char address,
-			unsigned char data)
+						  unsigned char data)
 {
 	int i;
 	unsigned char tmp;
 
 	tmp = address;
-	for (i = 0; i < 4; i++) {
+
+	for (i = 0; i < 4; i++)
+	{
 		chip->ops->write_bit(chip, (tmp & 1));
 		tmp >>= 1;
 		udelay(1);
 	}
 
 	/* Commands dont have data */
-	if (!V3020_IS_COMMAND(address)) {
-		for (i = 0; i < 8; i++) {
+	if (!V3020_IS_COMMAND(address))
+	{
+		for (i = 0; i < 8; i++)
+		{
 			chip->ops->write_bit(chip, (data & 1));
 			data >>= 1;
 			udelay(1);
@@ -193,16 +211,22 @@ static unsigned char v3020_get_reg(struct v3020 *chip, unsigned char address)
 	unsigned int data = 0;
 	int i;
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		chip->ops->write_bit(chip, (address & 1));
 		address >>= 1;
 		udelay(1);
 	}
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		data >>= 1;
+
 		if (chip->ops->read_bit(chip))
+		{
 			data |= 0x80;
+		}
+
 		udelay(1);
 	}
 
@@ -231,7 +255,7 @@ static int v3020_read_time(struct device *dev, struct rtc_time *dt)
 	tmp = v3020_get_reg(chip, V3020_WEEK_DAY);
 	dt->tm_wday	= bcd2bin(tmp);
 	tmp = v3020_get_reg(chip, V3020_YEAR);
-	dt->tm_year = bcd2bin(tmp)+100;
+	dt->tm_year = bcd2bin(tmp) + 100;
 
 	dev_dbg(dev, "\n%s : Read RTC values\n", __func__);
 	dev_dbg(dev, "tm_hour: %i\n", dt->tm_hour);
@@ -277,7 +301,8 @@ static int v3020_set_time(struct device *dev, struct rtc_time *dt)
 	return 0;
 }
 
-static const struct rtc_class_ops v3020_rtc_ops = {
+static const struct rtc_class_ops v3020_rtc_ops =
+{
 	.read_time	= v3020_read_time,
 	.set_time	= v3020_set_time,
 };
@@ -291,27 +316,41 @@ static int rtc_probe(struct platform_device *pdev)
 	int temp;
 
 	chip = devm_kzalloc(&pdev->dev, sizeof(*chip), GFP_KERNEL);
+
 	if (!chip)
+	{
 		return -ENOMEM;
+	}
 
 	if (pdata->use_gpio)
+	{
 		chip->ops = &v3020_gpio_ops;
+	}
 	else
+	{
 		chip->ops = &v3020_mmio_ops;
+	}
 
 	retval = chip->ops->map_io(chip, pdev, pdata);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	/* Make sure the v3020 expects a communication cycle
 	 * by reading 8 times */
 	for (i = 0; i < 8; i++)
+	{
 		temp = chip->ops->read_bit(chip);
+	}
 
 	/* Test chip by doing a write/read sequence
 	 * to the chip ram */
 	v3020_set_reg(chip, V3020_SECONDS, 0x33);
-	if (v3020_get_reg(chip, V3020_SECONDS) != 0x33) {
+
+	if (v3020_get_reg(chip, V3020_SECONDS) != 0x33)
+	{
 		retval = -ENODEV;
 		goto err_io;
 	}
@@ -322,21 +361,23 @@ static int rtc_probe(struct platform_device *pdev)
 
 	if (pdata->use_gpio)
 		dev_info(&pdev->dev, "Chip available at GPIOs "
-			 "%d, %d, %d, %d\n",
-			 chip->gpio[V3020_CS].gpio, chip->gpio[V3020_WR].gpio,
-			 chip->gpio[V3020_RD].gpio, chip->gpio[V3020_IO].gpio);
+				 "%d, %d, %d, %d\n",
+				 chip->gpio[V3020_CS].gpio, chip->gpio[V3020_WR].gpio,
+				 chip->gpio[V3020_RD].gpio, chip->gpio[V3020_IO].gpio);
 	else
 		dev_info(&pdev->dev, "Chip available at "
-			 "physical address 0x%llx,"
-			 "data connected to D%d\n",
-			 (unsigned long long)pdev->resource[0].start,
-			 chip->leftshift);
+				 "physical address 0x%llx,"
+				 "data connected to D%d\n",
+				 (unsigned long long)pdev->resource[0].start,
+				 chip->leftshift);
 
 	platform_set_drvdata(pdev, chip);
 
 	chip->rtc = devm_rtc_device_register(&pdev->dev, "v3020",
-					&v3020_rtc_ops, THIS_MODULE);
-	if (IS_ERR(chip->rtc)) {
+										 &v3020_rtc_ops, THIS_MODULE);
+
+	if (IS_ERR(chip->rtc))
+	{
 		retval = PTR_ERR(chip->rtc);
 		goto err_io;
 	}
@@ -358,7 +399,8 @@ static int rtc_remove(struct platform_device *dev)
 	return 0;
 }
 
-static struct platform_driver rtc_device_driver = {
+static struct platform_driver rtc_device_driver =
+{
 	.probe	= rtc_probe,
 	.remove = rtc_remove,
 	.driver = {

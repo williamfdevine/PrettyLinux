@@ -60,12 +60,17 @@ vortex_game_cooked_read(struct gameport *gameport, int *axes, int *buttons)
 
 	*buttons = (~hwread(vortex->mmio, VORTEX_GAME_LEGACY) >> 4) & 0xf;
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		axes[i] =
-		    hwread(vortex->mmio, VORTEX_GAME_AXIS + (i * AXIS_SIZE));
+			hwread(vortex->mmio, VORTEX_GAME_AXIS + (i * AXIS_SIZE));
+
 		if (axes[i] == AXIS_RANGE)
+		{
 			axes[i] = -1;
+		}
 	}
+
 	return 0;
 }
 
@@ -73,20 +78,23 @@ static int vortex_game_open(struct gameport *gameport, int mode)
 {
 	vortex_t *vortex = gameport_get_port_data(gameport);
 
-	switch (mode) {
-	case GAMEPORT_MODE_COOKED:
-		hwwrite(vortex->mmio, VORTEX_CTRL2,
-			hwread(vortex->mmio,
-			       VORTEX_CTRL2) | CTRL2_GAME_ADCMODE);
-		msleep(VORTEX_GAME_DWAIT);
-		return 0;
-	case GAMEPORT_MODE_RAW:
-		hwwrite(vortex->mmio, VORTEX_CTRL2,
-			hwread(vortex->mmio,
-			       VORTEX_CTRL2) & ~CTRL2_GAME_ADCMODE);
-		return 0;
-	default:
-		return -1;
+	switch (mode)
+	{
+		case GAMEPORT_MODE_COOKED:
+			hwwrite(vortex->mmio, VORTEX_CTRL2,
+					hwread(vortex->mmio,
+						   VORTEX_CTRL2) | CTRL2_GAME_ADCMODE);
+			msleep(VORTEX_GAME_DWAIT);
+			return 0;
+
+		case GAMEPORT_MODE_RAW:
+			hwwrite(vortex->mmio, VORTEX_CTRL2,
+					hwread(vortex->mmio,
+						   VORTEX_CTRL2) & ~CTRL2_GAME_ADCMODE);
+			return 0;
+
+		default:
+			return -1;
 	}
 
 	return 0;
@@ -97,9 +105,11 @@ static int vortex_gameport_register(vortex_t *vortex)
 	struct gameport *gp;
 
 	vortex->gameport = gp = gameport_allocate_port();
-	if (!gp) {
+
+	if (!gp)
+	{
 		dev_err(vortex->card->dev,
-			"cannot allocate memory for gameport\n");
+				"cannot allocate memory for gameport\n");
 		return -ENOMEM;
 	}
 
@@ -120,15 +130,16 @@ static int vortex_gameport_register(vortex_t *vortex)
 	return 0;
 }
 
-static void vortex_gameport_unregister(vortex_t * vortex)
+static void vortex_gameport_unregister(vortex_t *vortex)
 {
-	if (vortex->gameport) {
+	if (vortex->gameport)
+	{
 		gameport_unregister_port(vortex->gameport);
 		vortex->gameport = NULL;
 	}
 }
 
 #else
-static inline int vortex_gameport_register(vortex_t * vortex) { return -ENOSYS; }
-static inline void vortex_gameport_unregister(vortex_t * vortex) { }
+static inline int vortex_gameport_register(vortex_t *vortex) { return -ENOSYS; }
+static inline void vortex_gameport_unregister(vortex_t *vortex) { }
 #endif

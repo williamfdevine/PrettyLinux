@@ -30,14 +30,15 @@
 #define MAX_CLK		4000            /* Fits into 12-bit Time registers */
 #define MAX_MS		CLK_TO_MS(MAX_CLK)
 
-static const unsigned int led_n_base[ASIC3_NUM_LEDS] = {
+static const unsigned int led_n_base[ASIC3_NUM_LEDS] =
+{
 	[0] = ASIC3_LED_0_Base,
 	[1] = ASIC3_LED_1_Base,
 	[2] = ASIC3_LED_2_Base,
 };
 
 static void brightness_set(struct led_classdev *cdev,
-	enum led_brightness value)
+						   enum led_brightness value)
 {
 	struct platform_device *pdev = to_platform_device(cdev->dev->parent);
 	const struct mfd_cell *cell = mfd_get_cell(pdev);
@@ -45,7 +46,7 @@ static void brightness_set(struct led_classdev *cdev,
 	u32 timebase;
 	unsigned int base;
 
-	timebase = (value == LED_OFF) ? 0 : (LED_EN|0x4);
+	timebase = (value == LED_OFF) ? 0 : (LED_EN | 0x4);
 
 	base = led_n_base[cell->id];
 	asic3_write_register(asic, (base + ASIC3_LED_PeriodTime), 32);
@@ -55,8 +56,8 @@ static void brightness_set(struct led_classdev *cdev,
 }
 
 static int blink_set(struct led_classdev *cdev,
-	unsigned long *delay_on,
-	unsigned long *delay_off)
+					 unsigned long *delay_on,
+					 unsigned long *delay_off)
 {
 	struct platform_device *pdev = to_platform_device(cdev->dev->parent);
 	const struct mfd_cell *cell = mfd_get_cell(pdev);
@@ -66,24 +67,32 @@ static int blink_set(struct led_classdev *cdev,
 	unsigned int base;
 
 	if (*delay_on > MAX_MS || *delay_off > MAX_MS)
+	{
 		return -EINVAL;
+	}
 
-	if (*delay_on == 0 && *delay_off == 0) {
+	if (*delay_on == 0 && *delay_off == 0)
+	{
 		/* If both are zero then a sensible default should be chosen */
 		on = MS_TO_CLK(500);
 		off = MS_TO_CLK(500);
-	} else {
+	}
+	else
+	{
 		on = MS_TO_CLK(*delay_on);
 		off = MS_TO_CLK(*delay_off);
+
 		if ((on + off) > MAX_CLK)
+		{
 			return -EINVAL;
+		}
 	}
 
 	base = led_n_base[cell->id];
 	asic3_write_register(asic, (base + ASIC3_LED_PeriodTime), (on + off));
 	asic3_write_register(asic, (base + ASIC3_LED_DutyTime), on);
 	asic3_write_register(asic, (base + ASIC3_LED_AutoStopCount), 0);
-	asic3_write_register(asic, (base + ASIC3_LED_TimeBase), (LED_EN|0x4));
+	asic3_write_register(asic, (base + ASIC3_LED_TimeBase), (LED_EN | 0x4));
 
 	*delay_on = CLK_TO_MS(on);
 	*delay_off = CLK_TO_MS(off);
@@ -97,12 +106,17 @@ static int asic3_led_probe(struct platform_device *pdev)
 	int ret;
 
 	ret = mfd_cell_enable(pdev);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	led->cdev = devm_kzalloc(&pdev->dev, sizeof(struct led_classdev),
-				GFP_KERNEL);
-	if (!led->cdev) {
+							 GFP_KERNEL);
+
+	if (!led->cdev)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
@@ -114,8 +128,11 @@ static int asic3_led_probe(struct platform_device *pdev)
 	led->cdev->default_trigger = led->default_trigger;
 
 	ret = led_classdev_register(&pdev->dev, led->cdev);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	return 0;
 
@@ -141,8 +158,11 @@ static int asic3_led_suspend(struct device *dev)
 	int ret;
 
 	ret = 0;
+
 	if (cell->suspend)
+	{
 		ret = (*cell->suspend)(pdev);
+	}
 
 	return ret;
 }
@@ -154,8 +174,11 @@ static int asic3_led_resume(struct device *dev)
 	int ret;
 
 	ret = 0;
+
 	if (cell->resume)
+	{
 		ret = (*cell->resume)(pdev);
+	}
 
 	return ret;
 }
@@ -163,7 +186,8 @@ static int asic3_led_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(asic3_led_pm_ops, asic3_led_suspend, asic3_led_resume);
 
-static struct platform_driver asic3_led_driver = {
+static struct platform_driver asic3_led_driver =
+{
 	.probe		= asic3_led_probe,
 	.remove		= asic3_led_remove,
 	.driver		= {

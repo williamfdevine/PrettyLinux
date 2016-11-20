@@ -14,7 +14,8 @@
 
 #include <linux/usb/ulpi.h>
 
-struct pxa3xx_u2d_platform_data {
+struct pxa3xx_u2d_platform_data
+{
 
 #define ULPI_SER_6PIN	(1 << 0)
 #define ULPI_SER_3PIN	(1 << 1)

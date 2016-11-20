@@ -53,7 +53,9 @@ int change_skew_test(int ppm)
 	tx.freq = ppm << 16;
 
 	ret = adjtimex(&tx);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		printf("Error adjusting freq\n");
 		return ret;
 	}
@@ -81,16 +83,21 @@ int main(int argv, char **argc)
 	tx.offset = 0;
 	ret = adjtimex(&tx);
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		printf("Maybe you're not running as root?\n");
 		return -1;
 	}
 
-	for (i = 0; i < 5; i++) {
+	for (i = 0; i < 5; i++)
+	{
 		printf("Using %i ppm adjustment\n", ppm[i]);
 		ret = change_skew_test(ppm[i]);
+
 		if (ret)
+		{
 			break;
+		}
 	}
 
 	/* Set things back */
@@ -98,10 +105,12 @@ int main(int argv, char **argc)
 	tx.offset = 0;
 	adjtimex(&tx);
 
-	if (ret) {
+	if (ret)
+	{
 		printf("[FAIL]");
 		return ksft_exit_fail();
 	}
+
 	printf("[OK]");
 	return ksft_exit_pass();
 }

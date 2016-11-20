@@ -24,31 +24,35 @@
 
 struct crypto_async_request;
 
-struct alg_sock {
-	/* struct sock must be the first member of struct alg_sock */
-	struct sock sk;
+struct alg_sock
+{
+		/* struct sock must be the first member of struct alg_sock */
+		struct sock sk;
 
-	struct sock *parent;
+		struct sock *parent;
 
-	unsigned int refcnt;
-	unsigned int nokey_refcnt;
+		unsigned int refcnt;
+		unsigned int nokey_refcnt;
 
-	const struct af_alg_type *type;
-	void *private;
+		const struct af_alg_type *type;
+		void *private;
 };
 
-struct af_alg_completion {
+struct af_alg_completion
+{
 	struct completion completion;
 	int err;
 };
 
-struct af_alg_control {
+struct af_alg_control
+{
 	struct af_alg_iv *iv;
 	int op;
 	unsigned int aead_assoclen;
 };
 
-struct af_alg_type {
+struct af_alg_type
+{
 	void *(*bind)(const char *name, u32 type, u32 mask);
 	void (*release)(void *private);
 	int (*setkey)(void *private, const u8 *key, unsigned int keylen);
@@ -62,7 +66,8 @@ struct af_alg_type {
 	char name[14];
 };
 
-struct af_alg_sgl {
+struct af_alg_sgl
+{
 	struct scatterlist sg[ALG_MAX_PAGES + 1];
 	struct page *pages[ALG_MAX_PAGES];
 	unsigned int npages;

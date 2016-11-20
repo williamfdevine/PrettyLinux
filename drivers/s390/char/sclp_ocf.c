@@ -47,39 +47,57 @@ static void sclp_ocf_handler(struct evbuf_header *evbuf)
 
 	/* Find the 0x9f00 block. */
 	v = sclp_find_gds_vector(evbuf + 1, (void *) evbuf + evbuf->length,
-				 0x9f00);
+							 0x9f00);
+
 	if (!v)
+	{
 		return;
+	}
+
 	/* Find the 0x9f22 block inside the 0x9f00 block. */
 	v = sclp_find_gds_vector(v + 1, (void *) v + v->length, 0x9f22);
+
 	if (!v)
+	{
 		return;
+	}
+
 	/* Find the 0x81 block inside the 0x9f22 block. */
 	sv = sclp_find_gds_subvector(v + 1, (void *) v + v->length, 0x81);
+
 	if (!sv)
+	{
 		return;
+	}
+
 	/* Find the 0x01 block inside the 0x81 block. */
 	netid = sclp_find_gds_subvector(sv + 1, (void *) sv + sv->length, 1);
 	/* Find the 0x02 block inside the 0x81 block. */
 	cpc = sclp_find_gds_subvector(sv + 1, (void *) sv + sv->length, 2);
 	/* Copy network name and cpc name. */
 	spin_lock(&sclp_ocf_lock);
-	if (netid) {
+
+	if (netid)
+	{
 		size = min(OCF_LENGTH_HMC_NETWORK, (size_t) netid->length);
 		memcpy(hmc_network, netid + 1, size);
 		EBCASC(hmc_network, size);
 		hmc_network[size] = 0;
 	}
-	if (cpc) {
+
+	if (cpc)
+	{
 		size = min(OCF_LENGTH_CPC_NAME, (size_t) cpc->length);
 		memset(cpc_name, 0, OCF_LENGTH_CPC_NAME);
 		memcpy(cpc_name, cpc + 1, size);
 	}
+
 	spin_unlock(&sclp_ocf_lock);
 	schedule_work(&sclp_ocf_change_work);
 }
 
-static struct sclp_register sclp_ocf_event = {
+static struct sclp_register sclp_ocf_event =
+{
 	.receive_mask = EVTYP_OCF_MASK,
 	.receiver_fn = sclp_ocf_handler,
 };
@@ -93,7 +111,7 @@ void sclp_ocf_cpc_name_copy(char *dst)
 EXPORT_SYMBOL(sclp_ocf_cpc_name_copy);
 
 static ssize_t cpc_name_show(struct kobject *kobj,
-			     struct kobj_attribute *attr, char *page)
+							 struct kobj_attribute *attr, char *page)
 {
 	char name[OCF_LENGTH_CPC_NAME + 1];
 
@@ -107,7 +125,7 @@ static struct kobj_attribute cpc_name_attr =
 	__ATTR(cpc_name, 0444, cpc_name_show, NULL);
 
 static ssize_t hmc_network_show(struct kobject *kobj,
-				struct kobj_attribute *attr, char *page)
+								struct kobj_attribute *attr, char *page)
 {
 	int rc;
 
@@ -120,13 +138,15 @@ static ssize_t hmc_network_show(struct kobject *kobj,
 static struct kobj_attribute hmc_network_attr =
 	__ATTR(hmc_network, 0444, hmc_network_show, NULL);
 
-static struct attribute *ocf_attrs[] = {
+static struct attribute *ocf_attrs[] =
+{
 	&cpc_name_attr.attr,
 	&hmc_network_attr.attr,
 	NULL,
 };
 
-static struct attribute_group ocf_attr_group = {
+static struct attribute_group ocf_attr_group =
+{
 	.attrs = ocf_attrs,
 };
 
@@ -136,11 +156,16 @@ static int __init ocf_init(void)
 
 	INIT_WORK(&sclp_ocf_change_work, sclp_ocf_change_notify);
 	ocf_kset = kset_create_and_add("ocf", NULL, firmware_kobj);
+
 	if (!ocf_kset)
+	{
 		return -ENOMEM;
+	}
 
 	rc = sysfs_create_group(&ocf_kset->kobj, &ocf_attr_group);
-	if (rc) {
+
+	if (rc)
+	{
 		kset_unregister(ocf_kset);
 		return rc;
 	}

@@ -3,7 +3,8 @@
 #include <linux/once.h>
 #include <linux/random.h>
 
-struct once_work {
+struct once_work
+{
 	struct work_struct work;
 	struct static_key *key;
 };
@@ -23,8 +24,11 @@ static void once_disable_jump(struct static_key *key)
 	struct once_work *w;
 
 	w = kmalloc(sizeof(*w), GFP_ATOMIC);
+
 	if (!w)
+	{
 		return;
+	}
 
 	INIT_WORK(&w->work, once_deferred);
 	w->key = key;
@@ -34,10 +38,12 @@ static void once_disable_jump(struct static_key *key)
 static DEFINE_SPINLOCK(once_lock);
 
 bool __do_once_start(bool *done, unsigned long *flags)
-	__acquires(once_lock)
+__acquires(once_lock)
 {
 	spin_lock_irqsave(&once_lock, *flags);
-	if (*done) {
+
+	if (*done)
+	{
 		spin_unlock_irqrestore(&once_lock, *flags);
 		/* Keep sparse happy by restoring an even lock count on
 		 * this lock. In case we return here, we don't call into
@@ -52,8 +58,8 @@ bool __do_once_start(bool *done, unsigned long *flags)
 EXPORT_SYMBOL(__do_once_start);
 
 void __do_once_done(bool *done, struct static_key *once_key,
-		    unsigned long *flags)
-	__releases(once_lock)
+					unsigned long *flags)
+__releases(once_lock)
 {
 	*done = true;
 	spin_unlock_irqrestore(&once_lock, *flags);

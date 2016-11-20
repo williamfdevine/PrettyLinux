@@ -28,7 +28,8 @@
 #define VNIC_INTR_TIMER_TYPE_QUIET	1
 
 /* Interrupt control */
-struct vnic_intr_ctrl {
+struct vnic_intr_ctrl
+{
 	u32 coalescing_timer;		/* 0x00 */
 	u32 pad0;
 	u32 coalescing_value;		/* 0x08 */
@@ -45,7 +46,8 @@ struct vnic_intr_ctrl {
 	u32 pad6;
 };
 
-struct vnic_intr {
+struct vnic_intr
+{
 	unsigned int index;
 	struct vnic_dev *vdev;
 	struct vnic_intr_ctrl __iomem *ctrl;		/* memory-mapped */
@@ -67,14 +69,14 @@ static inline int vnic_intr_masked(struct vnic_intr *intr)
 }
 
 static inline void vnic_intr_return_credits(struct vnic_intr *intr,
-	unsigned int credits, int unmask, int reset_timer)
+		unsigned int credits, int unmask, int reset_timer)
 {
 #define VNIC_INTR_UNMASK_SHIFT		16
 #define VNIC_INTR_RESET_TIMER_SHIFT	17
 
 	u32 int_credit_return = (credits & 0xffff) |
-		(unmask ? (1 << VNIC_INTR_UNMASK_SHIFT) : 0) |
-		(reset_timer ? (1 << VNIC_INTR_RESET_TIMER_SHIFT) : 0);
+							(unmask ? (1 << VNIC_INTR_UNMASK_SHIFT) : 0) |
+							(reset_timer ? (1 << VNIC_INTR_RESET_TIMER_SHIFT) : 0);
 
 	iowrite32(int_credit_return, &intr->ctrl->int_credit_return);
 }
@@ -101,11 +103,11 @@ static inline u32 vnic_intr_legacy_pba(u32 __iomem *legacy_pba)
 
 void vnic_intr_free(struct vnic_intr *intr);
 int vnic_intr_alloc(struct vnic_dev *vdev, struct vnic_intr *intr,
-	unsigned int index);
+					unsigned int index);
 void vnic_intr_init(struct vnic_intr *intr, u32 coalescing_timer,
-	unsigned int coalescing_type, unsigned int mask_on_assertion);
+					unsigned int coalescing_type, unsigned int mask_on_assertion);
 void vnic_intr_coalescing_timer_set(struct vnic_intr *intr,
-	u32 coalescing_timer);
+									u32 coalescing_timer);
 void vnic_intr_clean(struct vnic_intr *intr);
 
 #endif /* _VNIC_INTR_H_ */

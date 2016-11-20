@@ -38,7 +38,8 @@
 #include "csio_defs.h"
 
 /* State machine evets */
-enum csio_rn_ev {
+enum csio_rn_ev
+{
 	CSIO_RNFE_NONE = (uint32_t)0,			/* None */
 	CSIO_RNFE_LOGGED_IN,				/* [N/F]Port login
 							 * complete.
@@ -57,7 +58,8 @@ enum csio_rn_ev {
 };
 
 /* rnode stats */
-struct csio_rnode_stats {
+struct csio_rnode_stats
+{
 	uint32_t	n_err;		/* error */
 	uint32_t	n_err_inval;	/* invalid parameter */
 	uint32_t	n_err_nomem;	/* error nomem */
@@ -85,7 +87,8 @@ struct csio_rnode_stats {
 #define	CSIO_RNFR_NS		0x8
 #define CSIO_RNFR_NPORT		0x10
 
-struct csio_rnode {
+struct csio_rnode
+{
 	struct csio_sm		sm;			/* State machine -
 							 * should be the
 							 * 1st member
@@ -127,7 +130,7 @@ void csio_rnode_state_to_str(struct csio_rnode *rn, int8_t *str);
 
 struct csio_rnode *csio_rnode_lookup_portid(struct csio_lnode *, uint32_t);
 struct csio_rnode *csio_confirm_rnode(struct csio_lnode *,
-					  uint32_t, struct fcoe_rdev_entry *);
+									  uint32_t, struct fcoe_rdev_entry *);
 
 void csio_rnode_fwevt_handler(struct csio_rnode *rn, uint8_t fwevt);
 

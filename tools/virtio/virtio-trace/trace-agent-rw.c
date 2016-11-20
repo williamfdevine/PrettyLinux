@@ -24,7 +24,9 @@ void *rw_thread_info_new(void)
 	struct rw_thread_info *rw_ti;
 
 	rw_ti = zalloc(sizeof(struct rw_thread_info));
-	if (rw_ti == NULL) {
+
+	if (rw_ti == NULL)
+	{
 		pr_err("rw_thread_info zalloc error\n");
 		exit(EXIT_FAILURE);
 	}
@@ -40,8 +42,8 @@ void *rw_thread_info_new(void)
 }
 
 void *rw_thread_init(int cpu, const char *in_path, const char *out_path,
-				bool stdout_flag, unsigned long pipe_size,
-				struct rw_thread_info *rw_ti)
+					 bool stdout_flag, unsigned long pipe_size,
+					 struct rw_thread_info *rw_ti)
 {
 	int data_pipe[2];
 
@@ -49,24 +51,33 @@ void *rw_thread_init(int cpu, const char *in_path, const char *out_path,
 
 	/* set read(input) fd */
 	rw_ti->in_fd = open(in_path, O_RDONLY);
-	if (rw_ti->in_fd == -1) {
+
+	if (rw_ti->in_fd == -1)
+	{
 		pr_err("Could not open in_fd (CPU:%d)\n", cpu);
 		goto error;
 	}
 
 	/* set write(output) fd */
-	if (!stdout_flag) {
+	if (!stdout_flag)
+	{
 		/* virtio-serial output mode */
 		rw_ti->out_fd = open(out_path, O_WRONLY);
-		if (rw_ti->out_fd == -1) {
+
+		if (rw_ti->out_fd == -1)
+		{
 			pr_err("Could not open out_fd (CPU:%d)\n", cpu);
 			goto error;
 		}
-	} else
+	}
+	else
 		/* stdout mode */
+	{
 		rw_ti->out_fd = STDOUT_FILENO;
+	}
 
-	if (pipe2(data_pipe, O_NONBLOCK) < 0) {
+	if (pipe2(data_pipe, O_NONBLOCK) < 0)
+	{
 		pr_err("Could not create pipe in rw-thread(%d)\n", cpu);
 		goto error;
 	}
@@ -75,7 +86,8 @@ void *rw_thread_init(int cpu, const char *in_path, const char *out_path,
 	 * Size of pipe is 64kB in default based on fs/pipe.c.
 	 * To read/write trace data speedy, pipe size is changed.
 	 */
-	if (fcntl(*data_pipe, F_SETPIPE_SZ, pipe_size) < 0) {
+	if (fcntl(*data_pipe, F_SETPIPE_SZ, pipe_size) < 0)
+	{
 		pr_err("Could not change pipe size in rw-thread(%d)\n", cpu);
 		goto error;
 	}
@@ -100,7 +112,9 @@ static void bind_cpu(int cpu_num)
 
 	/* bind my thread to cpu_num by assigning zero to the first argument */
 	if (sched_setaffinity(0, sizeof(mask), &mask) == -1)
+	{
 		pr_err("Could not set CPU#%d affinity\n", (int)cpu_num);
+	}
 }
 
 static void *rw_thread_main(void *thread_info)
@@ -111,28 +125,35 @@ static void *rw_thread_main(void *thread_info)
 
 	bind_cpu(ts->cpu_num);
 
-	while (1) {
+	while (1)
+	{
 		/* Wait for a read order of trace data by Host OS */
-		if (!global_run_operation) {
+		if (!global_run_operation)
+		{
 			pthread_mutex_lock(&mutex_notify);
 			pthread_cond_wait(&cond_wakeup, &mutex_notify);
 			pthread_mutex_unlock(&mutex_notify);
 		}
 
 		if (global_sig_receive)
+		{
 			break;
+		}
 
 		/*
 		 * Each thread read trace_pipe_raw of each cpu bounding the
 		 * thread, so contention of multi-threads does not occur.
 		 */
 		rlen = splice(ts->in_fd, NULL, ts->read_pipe, NULL,
-				ts->pipe_size, SPLICE_F_MOVE | SPLICE_F_MORE);
+					  ts->pipe_size, SPLICE_F_MOVE | SPLICE_F_MORE);
 
-		if (rlen < 0) {
+		if (rlen < 0)
+		{
 			pr_err("Splice_read in rw-thread(%d)\n", ts->cpu_num);
 			goto error;
-		} else if (rlen == 0) {
+		}
+		else if (rlen == 0)
+		{
 			/*
 			 * If trace data do not exist or are unreadable not
 			 * for exceeding the page size, splice_read returns
@@ -146,16 +167,19 @@ static void *rw_thread_main(void *thread_info)
 
 		wlen = 0;
 
-		do {
+		do
+		{
 			ret = splice(ts->write_pipe, NULL, ts->out_fd, NULL,
-					rlen - wlen,
-					SPLICE_F_MOVE | SPLICE_F_MORE);
+						 rlen - wlen,
+						 SPLICE_F_MOVE | SPLICE_F_MORE);
 
-			if (ret < 0) {
+			if (ret < 0)
+			{
 				pr_err("Splice_write in rw-thread(%d)\n",
-								ts->cpu_num);
+					   ts->cpu_num);
 				goto error;
-			} else if (ret == 0)
+			}
+			else if (ret == 0)
 				/*
 				 * When host reader is not in time for reading
 				 * trace data, guest will be stopped. This is
@@ -165,9 +189,13 @@ static void *rw_thread_main(void *thread_info)
 				 * This sleep will be removed by supporting
 				 * non-blocking mode.
 				 */
+			{
 				sleep(1);
+			}
+
 			wlen += ret;
-		} while (wlen < rlen);
+		}
+		while (wlen < rlen);
 	}
 
 	return NULL;
@@ -183,7 +211,9 @@ pthread_t rw_thread_run(struct rw_thread_info *rw_ti)
 	pthread_t rw_thread_per_cpu;
 
 	ret = pthread_create(&rw_thread_per_cpu, NULL, rw_thread_main, rw_ti);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		pr_err("Could not create a rw thread(%d)\n", rw_ti->cpu_num);
 		exit(EXIT_FAILURE);
 	}

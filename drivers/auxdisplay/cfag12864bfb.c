@@ -37,7 +37,8 @@
 
 #define CFAG12864BFB_NAME "cfag12864bfb"
 
-static struct fb_fix_screeninfo cfag12864bfb_fix = {
+static struct fb_fix_screeninfo cfag12864bfb_fix =
+{
 	.id = "cfag12864b",
 	.type = FB_TYPE_PACKED_PIXELS,
 	.visual = FB_VISUAL_MONO10,
@@ -48,15 +49,16 @@ static struct fb_fix_screeninfo cfag12864bfb_fix = {
 	.accel = FB_ACCEL_NONE,
 };
 
-static struct fb_var_screeninfo cfag12864bfb_var = {
+static struct fb_var_screeninfo cfag12864bfb_var =
+{
 	.xres = CFAG12864B_WIDTH,
 	.yres = CFAG12864B_HEIGHT,
 	.xres_virtual = CFAG12864B_WIDTH,
 	.yres_virtual = CFAG12864B_HEIGHT,
 	.bits_per_pixel = 1,
 	.red = { 0, 1, 0 },
-      	.green = { 0, 1, 0 },
-      	.blue = { 0, 1, 0 },
+	.green = { 0, 1, 0 },
+	.blue = { 0, 1, 0 },
 	.left_margin = 0,
 	.right_margin = 0,
 	.upper_margin = 0,
@@ -67,10 +69,11 @@ static struct fb_var_screeninfo cfag12864bfb_var = {
 static int cfag12864bfb_mmap(struct fb_info *info, struct vm_area_struct *vma)
 {
 	return vm_insert_page(vma, vma->vm_start,
-		virt_to_page(cfag12864b_buffer));
+						  virt_to_page(cfag12864b_buffer));
 }
 
-static struct fb_ops cfag12864bfb_ops = {
+static struct fb_ops cfag12864bfb_ops =
+{
 	.owner = THIS_MODULE,
 	.fb_read = fb_sys_read,
 	.fb_write = fb_sys_write,
@@ -83,10 +86,12 @@ static struct fb_ops cfag12864bfb_ops = {
 static int cfag12864bfb_probe(struct platform_device *device)
 {
 	int ret = -EINVAL;
- 	struct fb_info *info = framebuffer_alloc(0, &device->dev);
+	struct fb_info *info = framebuffer_alloc(0, &device->dev);
 
 	if (!info)
+	{
 		goto none;
+	}
 
 	info->screen_base = (char __iomem *) cfag12864b_buffer;
 	info->screen_size = CFAG12864B_SIZE;
@@ -98,7 +103,9 @@ static int cfag12864bfb_probe(struct platform_device *device)
 	info->flags = FBINFO_FLAG_DEFAULT;
 
 	if (register_framebuffer(info) < 0)
+	{
 		goto fballoced;
+	}
 
 	platform_set_drvdata(device, info);
 
@@ -117,7 +124,8 @@ static int cfag12864bfb_remove(struct platform_device *device)
 {
 	struct fb_info *info = platform_get_drvdata(device);
 
-	if (info) {
+	if (info)
+	{
 		unregister_framebuffer(info);
 		framebuffer_release(info);
 	}
@@ -125,7 +133,8 @@ static int cfag12864bfb_remove(struct platform_device *device)
 	return 0;
 }
 
-static struct platform_driver cfag12864bfb_driver = {
+static struct platform_driver cfag12864bfb_driver =
+{
 	.probe	= cfag12864bfb_probe,
 	.remove = cfag12864bfb_remove,
 	.driver = {
@@ -140,30 +149,38 @@ static int __init cfag12864bfb_init(void)
 	int ret = -EINVAL;
 
 	/* cfag12864b_init() must be called first */
-	if (!cfag12864b_isinited()) {
+	if (!cfag12864b_isinited())
+	{
 		printk(KERN_ERR CFAG12864BFB_NAME ": ERROR: "
-			"cfag12864b is not initialized\n");
+			   "cfag12864b is not initialized\n");
 		goto none;
 	}
 
-	if (cfag12864b_enable()) {
+	if (cfag12864b_enable())
+	{
 		printk(KERN_ERR CFAG12864BFB_NAME ": ERROR: "
-			"can't enable cfag12864b refreshing (being used)\n");
+			   "can't enable cfag12864b refreshing (being used)\n");
 		return -ENODEV;
 	}
 
 	ret = platform_driver_register(&cfag12864bfb_driver);
 
-	if (!ret) {
+	if (!ret)
+	{
 		cfag12864bfb_device =
 			platform_device_alloc(CFAG12864BFB_NAME, 0);
 
 		if (cfag12864bfb_device)
+		{
 			ret = platform_device_add(cfag12864bfb_device);
+		}
 		else
+		{
 			ret = -ENOMEM;
+		}
 
-		if (ret) {
+		if (ret)
+		{
 			platform_device_put(cfag12864bfb_device);
 			platform_driver_unregister(&cfag12864bfb_driver);
 		}

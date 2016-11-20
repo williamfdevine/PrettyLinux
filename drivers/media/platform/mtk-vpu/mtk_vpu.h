@@ -24,8 +24,8 @@
  **/
 
 typedef void (*ipi_handler_t) (void *data,
-			       unsigned int len,
-			       void *priv);
+							   unsigned int len,
+							   void *priv);
 
 /**
  * enum ipi_id - the id of inter-processor interrupt
@@ -44,7 +44,8 @@ typedef void (*ipi_handler_t) (void *data,
  * @IPI_MAX:		 The maximum IPI number
  */
 
-enum ipi_id {
+enum ipi_id
+{
 	IPI_VPU_INIT = 0,
 	IPI_VENC_H264,
 	IPI_VENC_VP8,
@@ -57,7 +58,8 @@ enum ipi_id {
  * @VPU_RST_ENC: encoder reset id
  * @VPU_RST_MAX: maximum reset id
  */
-enum rst_id {
+enum rst_id
+{
 	VPU_RST_ENC,
 	VPU_RST_MAX,
 };
@@ -76,7 +78,7 @@ enum rst_id {
  * Return: Return 0 if ipi registers successfully, otherwise it is failed.
  */
 int vpu_ipi_register(struct platform_device *pdev, enum ipi_id id,
-		     ipi_handler_t handler, const char *name, void *priv);
+					 ipi_handler_t handler, const char *name, void *priv);
 
 /**
  * vpu_ipi_send - send data from AP to vpu.
@@ -94,8 +96,8 @@ int vpu_ipi_register(struct platform_device *pdev, enum ipi_id id,
  * Return: Return 0 if sending data successfully, otherwise it is failed.
  **/
 int vpu_ipi_send(struct platform_device *pdev,
-		 enum ipi_id id, void *buf,
-		 unsigned int len);
+				 enum ipi_id id, void *buf,
+				 unsigned int len);
 
 /**
  * vpu_get_plat_device - get VPU's platform device
@@ -123,8 +125,8 @@ struct platform_device *vpu_get_plat_device(struct platform_device *pdev);
  *
  **/
 int vpu_wdt_reg_handler(struct platform_device *pdev,
-			void vpu_wdt_reset_func(void *),
-			void *priv, enum rst_id id);
+						void vpu_wdt_reset_func(void *),
+						void *priv, enum rst_id id);
 /**
  * vpu_get_venc_hw_capa - get video encoder hardware capability
  *
@@ -158,5 +160,5 @@ int vpu_load_firmware(struct platform_device *pdev);
  * otherwise the mapped kernel virtual address
  **/
 void *vpu_mapping_dm_addr(struct platform_device *pdev,
-			  u32 dtcm_dmem_addr);
+						  u32 dtcm_dmem_addr);
 #endif /* _MTK_VPU_H */

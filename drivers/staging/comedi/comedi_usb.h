@@ -27,7 +27,7 @@ struct usb_interface *comedi_to_usb_interface(struct comedi_device *);
 struct usb_device *comedi_to_usb_dev(struct comedi_device *);
 
 int comedi_usb_auto_config(struct usb_interface *, struct comedi_driver *,
-			   unsigned long context);
+						   unsigned long context);
 void comedi_usb_auto_unconfig(struct usb_interface *);
 
 int comedi_usb_driver_register(struct comedi_driver *, struct usb_driver *);
@@ -45,6 +45,6 @@ void comedi_usb_driver_unregister(struct comedi_driver *, struct usb_driver *);
  */
 #define module_comedi_usb_driver(__comedi_driver, __usb_driver) \
 	module_driver(__comedi_driver, comedi_usb_driver_register, \
-			comedi_usb_driver_unregister, &(__usb_driver))
+				  comedi_usb_driver_unregister, &(__usb_driver))
 
 #endif /* _COMEDI_USB_H */

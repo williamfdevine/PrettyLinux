@@ -29,7 +29,8 @@
 /* upper limit for ICV length as recommended by IEEE802.1AE-2006 */
 #define MACSEC_STD_ICV_LEN 16
 
-enum macsec_attrs {
+enum macsec_attrs
+{
 	MACSEC_ATTR_UNSPEC,
 	MACSEC_ATTR_IFINDEX,     /* u32, ifindex of the MACsec netdevice */
 	MACSEC_ATTR_RXSC_CONFIG, /* config, nested macsec_rxsc_attrs */
@@ -44,7 +45,8 @@ enum macsec_attrs {
 	MACSEC_ATTR_MAX = __MACSEC_ATTR_END - 1,
 };
 
-enum macsec_secy_attrs {
+enum macsec_secy_attrs
+{
 	MACSEC_SECY_ATTR_UNSPEC,
 	MACSEC_SECY_ATTR_SCI,
 	MACSEC_SECY_ATTR_ENCODING_SA,
@@ -65,7 +67,8 @@ enum macsec_secy_attrs {
 	MACSEC_SECY_ATTR_MAX = __MACSEC_SECY_ATTR_END - 1,
 };
 
-enum macsec_rxsc_attrs {
+enum macsec_rxsc_attrs
+{
 	MACSEC_RXSC_ATTR_UNSPEC,
 	MACSEC_RXSC_ATTR_SCI,     /* config/dump, u64 */
 	MACSEC_RXSC_ATTR_ACTIVE,  /* config/dump, u8 0..1 */
@@ -77,7 +80,8 @@ enum macsec_rxsc_attrs {
 	MACSEC_RXSC_ATTR_MAX = __MACSEC_RXSC_ATTR_END - 1,
 };
 
-enum macsec_sa_attrs {
+enum macsec_sa_attrs
+{
 	MACSEC_SA_ATTR_UNSPEC,
 	MACSEC_SA_ATTR_AN,     /* config/dump, u8 0..3 */
 	MACSEC_SA_ATTR_ACTIVE, /* config/dump, u8 0..1 */
@@ -91,7 +95,8 @@ enum macsec_sa_attrs {
 	MACSEC_SA_ATTR_MAX = __MACSEC_SA_ATTR_END - 1,
 };
 
-enum macsec_nl_commands {
+enum macsec_nl_commands
+{
 	MACSEC_CMD_GET_TXSC,
 	MACSEC_CMD_ADD_RXSC,
 	MACSEC_CMD_DEL_RXSC,
@@ -105,7 +110,8 @@ enum macsec_nl_commands {
 };
 
 /* u64 per-RXSC stats */
-enum macsec_rxsc_stats_attr {
+enum macsec_rxsc_stats_attr
+{
 	MACSEC_RXSC_STATS_ATTR_UNSPEC,
 	MACSEC_RXSC_STATS_ATTR_IN_OCTETS_VALIDATED,
 	MACSEC_RXSC_STATS_ATTR_IN_OCTETS_DECRYPTED,
@@ -124,7 +130,8 @@ enum macsec_rxsc_stats_attr {
 };
 
 /* u32 per-{RX,TX}SA stats */
-enum macsec_sa_stats_attr {
+enum macsec_sa_stats_attr
+{
 	MACSEC_SA_STATS_ATTR_UNSPEC,
 	MACSEC_SA_STATS_ATTR_IN_PKTS_OK,
 	MACSEC_SA_STATS_ATTR_IN_PKTS_INVALID,
@@ -139,7 +146,8 @@ enum macsec_sa_stats_attr {
 };
 
 /* u64 per-TXSC stats */
-enum macsec_txsc_stats_attr {
+enum macsec_txsc_stats_attr
+{
 	MACSEC_TXSC_STATS_ATTR_UNSPEC,
 	MACSEC_TXSC_STATS_ATTR_OUT_PKTS_PROTECTED,
 	MACSEC_TXSC_STATS_ATTR_OUT_PKTS_ENCRYPTED,
@@ -152,7 +160,8 @@ enum macsec_txsc_stats_attr {
 };
 
 /* u64 per-SecY stats */
-enum macsec_secy_stats_attr {
+enum macsec_secy_stats_attr
+{
 	MACSEC_SECY_STATS_ATTR_UNSPEC,
 	MACSEC_SECY_STATS_ATTR_OUT_PKTS_UNTAGGED,
 	MACSEC_SECY_STATS_ATTR_IN_PKTS_UNTAGGED,

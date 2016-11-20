@@ -36,7 +36,9 @@ int rw_ctl_init(const char *ctl_path)
 	int ctl_fd;
 
 	ctl_fd = open(ctl_path, O_RDONLY);
-	if (ctl_fd == -1) {
+
+	if (ctl_fd == -1)
+	{
 		pr_err("Cannot open ctl_fd\n");
 		goto error;
 	}
@@ -52,31 +54,38 @@ static int wait_order(int ctl_fd)
 	struct pollfd poll_fd;
 	int ret = 0;
 
-	while (!global_sig_receive) {
+	while (!global_sig_receive)
+	{
 		poll_fd.fd = ctl_fd;
 		poll_fd.events = POLLIN;
 
 		ret = poll(&poll_fd, 1, EVENT_WAIT_MSEC);
 
-		if (global_signal_val) {
+		if (global_signal_val)
+		{
 			global_sig_receive = true;
 			pr_info("Receive interrupt %d\n", global_signal_val);
 
 			/* Wakes rw-threads when they are sleeping */
 			if (!global_run_operation)
+			{
 				pthread_cond_broadcast(&cond_wakeup);
+			}
 
 			ret = -1;
 			break;
 		}
 
-		if (ret < 0) {
+		if (ret < 0)
+		{
 			pr_err("Polling error\n");
 			goto error;
 		}
 
 		if (ret)
+		{
 			break;
+		}
 	};
 
 	return ret;
@@ -99,19 +108,26 @@ void *rw_ctl_loop(int ctl_fd)
 	signal(SIGINT, signal_handler);
 	signal(SIGQUIT, signal_handler);
 
-	while (!global_sig_receive) {
+	while (!global_sig_receive)
+	{
 
 		ret = wait_order(ctl_fd);
+
 		if (ret < 0)
+		{
 			break;
+		}
 
 		rlen = read(ctl_fd, buf, sizeof(buf));
-		if (rlen < 0) {
+
+		if (rlen < 0)
+		{
 			pr_err("read data error in ctl thread\n");
 			goto error;
 		}
 
-		if (rlen == 2 && buf[0] == '1') {
+		if (rlen == 2 && buf[0] == '1')
+		{
 			/*
 			 * If host writes '1' to a control path,
 			 * this controller wakes all read/write threads.
@@ -119,15 +135,20 @@ void *rw_ctl_loop(int ctl_fd)
 			global_run_operation = true;
 			pthread_cond_broadcast(&cond_wakeup);
 			pr_debug("Wake up all read/write threads\n");
-		} else if (rlen == 2 && buf[0] == '0') {
+		}
+		else if (rlen == 2 && buf[0] == '0')
+		{
 			/*
 			 * If host writes '0' to a control path, read/write
 			 * threads will wait for notification from Host.
 			 */
 			global_run_operation = false;
 			pr_debug("Stop all read/write threads\n");
-		} else
+		}
+		else
+		{
 			pr_info("Invalid host notification: %s\n", buf);
+		}
 	}
 
 	return NULL;

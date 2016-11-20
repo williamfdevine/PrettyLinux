@@ -188,7 +188,9 @@ static void ixgbe_ptp_setup_sdp_x540(struct ixgbe_adapter *adapter)
 	IXGBE_WRITE_FLUSH(hw);
 
 	if (!(adapter->flags2 & IXGBE_FLAG2_PTP_PPS_ENABLED))
+	{
 		return;
+	}
 
 	esdp = IXGBE_READ_REG(hw, IXGBE_ESDP);
 
@@ -196,14 +198,14 @@ static void ixgbe_ptp_setup_sdp_x540(struct ixgbe_adapter *adapter)
 	 * native function for Timesync (ClockOut)
 	 */
 	esdp |= IXGBE_ESDP_SDP0_DIR |
-		IXGBE_ESDP_SDP0_NATIVE;
+			IXGBE_ESDP_SDP0_NATIVE;
 
 	/* enable the Clock Out feature on SDP0, and allow
 	 * interrupts to occur when the pin changes
 	 */
 	tsauxc = IXGBE_TSAUXC_EN_CLK |
-		 IXGBE_TSAUXC_SYNCLK |
-		 IXGBE_TSAUXC_SDP0_INT;
+			 IXGBE_TSAUXC_SYNCLK |
+			 IXGBE_TSAUXC_SDP0_INT;
 
 	/* clock period (or pulse length) */
 	clktiml = (u32)(IXGBE_PTP_PPS_HALF_SECOND << shift);
@@ -248,7 +250,7 @@ static void ixgbe_ptp_setup_sdp_x540(struct ixgbe_adapter *adapter)
 static cycle_t ixgbe_ptp_read_X550(const struct cyclecounter *hw_cc)
 {
 	struct ixgbe_adapter *adapter =
-			container_of(hw_cc, struct ixgbe_adapter, hw_cc);
+		container_of(hw_cc, struct ixgbe_adapter, hw_cc);
 	struct ixgbe_hw *hw = &adapter->hw;
 	struct timespec64 ts;
 
@@ -313,8 +315,8 @@ static cycle_t ixgbe_ptp_read_82599(const struct cyclecounter *cc)
  * overflow cyclecounter, and this function takes this into account as well.
  **/
 static void ixgbe_ptp_convert_to_hwtstamp(struct ixgbe_adapter *adapter,
-					  struct skb_shared_hwtstamps *hwtstamp,
-					  u64 timestamp)
+		struct skb_shared_hwtstamps *hwtstamp,
+		u64 timestamp)
 {
 	unsigned long flags;
 	struct timespec64 systime;
@@ -322,30 +324,32 @@ static void ixgbe_ptp_convert_to_hwtstamp(struct ixgbe_adapter *adapter,
 
 	memset(hwtstamp, 0, sizeof(*hwtstamp));
 
-	switch (adapter->hw.mac.type) {
-	/* X550 and later hardware supposedly represent time using a seconds
-	 * and nanoseconds counter, instead of raw 64bits nanoseconds. We need
-	 * to convert the timestamp into cycles before it can be fed to the
-	 * cyclecounter. We need an actual cyclecounter because some revisions
-	 * of hardware run at a higher frequency and thus the counter does
-	 * not represent seconds/nanoseconds. Instead it can be thought of as
-	 * cycles and billions of cycles.
-	 */
-	case ixgbe_mac_X550:
-	case ixgbe_mac_X550EM_x:
-	case ixgbe_mac_x550em_a:
-		/* Upper 32 bits represent billions of cycles, lower 32 bits
-		 * represent cycles. However, we use timespec64_to_ns for the
-		 * correct math even though the units haven't been corrected
-		 * yet.
+	switch (adapter->hw.mac.type)
+	{
+		/* X550 and later hardware supposedly represent time using a seconds
+		 * and nanoseconds counter, instead of raw 64bits nanoseconds. We need
+		 * to convert the timestamp into cycles before it can be fed to the
+		 * cyclecounter. We need an actual cyclecounter because some revisions
+		 * of hardware run at a higher frequency and thus the counter does
+		 * not represent seconds/nanoseconds. Instead it can be thought of as
+		 * cycles and billions of cycles.
 		 */
-		systime.tv_sec = timestamp >> 32;
-		systime.tv_nsec = timestamp & 0xFFFFFFFF;
+		case ixgbe_mac_X550:
+		case ixgbe_mac_X550EM_x:
+		case ixgbe_mac_x550em_a:
+			/* Upper 32 bits represent billions of cycles, lower 32 bits
+			 * represent cycles. However, we use timespec64_to_ns for the
+			 * correct math even though the units haven't been corrected
+			 * yet.
+			 */
+			systime.tv_sec = timestamp >> 32;
+			systime.tv_nsec = timestamp & 0xFFFFFFFF;
 
-		timestamp = timespec64_to_ns(&systime);
-		break;
-	default:
-		break;
+			timestamp = timespec64_to_ns(&systime);
+			break;
+
+		default:
+			break;
 	}
 
 	spin_lock_irqsave(&adapter->tmreg_lock, flags);
@@ -372,7 +376,8 @@ static int ixgbe_ptp_adjfreq_82599(struct ptp_clock_info *ptp, s32 ppb)
 	u32 diff;
 	int neg_adj = 0;
 
-	if (ppb < 0) {
+	if (ppb < 0)
+	{
 		neg_adj = 1;
 		ppb = -ppb;
 	}
@@ -386,21 +391,30 @@ static int ixgbe_ptp_adjfreq_82599(struct ptp_clock_info *ptp, s32 ppb)
 
 	incval = neg_adj ? (incval - diff) : (incval + diff);
 
-	switch (hw->mac.type) {
-	case ixgbe_mac_X540:
-		if (incval > 0xFFFFFFFFULL)
-			e_dev_warn("PTP ppb adjusted SYSTIME rate overflowed!\n");
-		IXGBE_WRITE_REG(hw, IXGBE_TIMINCA, (u32)incval);
-		break;
-	case ixgbe_mac_82599EB:
-		if (incval > 0x00FFFFFFULL)
-			e_dev_warn("PTP ppb adjusted SYSTIME rate overflowed!\n");
-		IXGBE_WRITE_REG(hw, IXGBE_TIMINCA,
-				BIT(IXGBE_INCPER_SHIFT_82599) |
-				((u32)incval & 0x00FFFFFFUL));
-		break;
-	default:
-		break;
+	switch (hw->mac.type)
+	{
+		case ixgbe_mac_X540:
+			if (incval > 0xFFFFFFFFULL)
+			{
+				e_dev_warn("PTP ppb adjusted SYSTIME rate overflowed!\n");
+			}
+
+			IXGBE_WRITE_REG(hw, IXGBE_TIMINCA, (u32)incval);
+			break;
+
+		case ixgbe_mac_82599EB:
+			if (incval > 0x00FFFFFFULL)
+			{
+				e_dev_warn("PTP ppb adjusted SYSTIME rate overflowed!\n");
+			}
+
+			IXGBE_WRITE_REG(hw, IXGBE_TIMINCA,
+							BIT(IXGBE_INCPER_SHIFT_82599) |
+							((u32)incval & 0x00FFFFFFUL));
+			break;
+
+		default:
+			break;
 	}
 
 	return 0;
@@ -417,26 +431,33 @@ static int ixgbe_ptp_adjfreq_82599(struct ptp_clock_info *ptp, s32 ppb)
 static int ixgbe_ptp_adjfreq_X550(struct ptp_clock_info *ptp, s32 ppb)
 {
 	struct ixgbe_adapter *adapter =
-			container_of(ptp, struct ixgbe_adapter, ptp_caps);
+		container_of(ptp, struct ixgbe_adapter, ptp_caps);
 	struct ixgbe_hw *hw = &adapter->hw;
 	int neg_adj = 0;
 	u64 rate = IXGBE_X550_BASE_PERIOD;
 	u32 inca;
 
-	if (ppb < 0) {
+	if (ppb < 0)
+	{
 		neg_adj = 1;
 		ppb = -ppb;
 	}
+
 	rate *= ppb;
 	rate = div_u64(rate, 1000000000ULL);
 
 	/* warn if rate is too large */
 	if (rate >= INCVALUE_MASK)
+	{
 		e_dev_warn("PTP ppb adjusted SYSTIME rate overflowed!\n");
+	}
 
 	inca = rate & INCVALUE_MASK;
+
 	if (neg_adj)
+	{
 		inca |= ISGN;
+	}
 
 	IXGBE_WRITE_REG(hw, IXGBE_TIMINCA, inca);
 
@@ -461,7 +482,9 @@ static int ixgbe_ptp_adjtime(struct ptp_clock_info *ptp, s64 delta)
 	spin_unlock_irqrestore(&adapter->tmreg_lock, flags);
 
 	if (adapter->ptp_setup_sdp)
+	{
 		adapter->ptp_setup_sdp(adapter);
+	}
 
 	return 0;
 }
@@ -499,7 +522,7 @@ static int ixgbe_ptp_gettime(struct ptp_clock_info *ptp, struct timespec64 *ts)
  * wall timer value.
  */
 static int ixgbe_ptp_settime(struct ptp_clock_info *ptp,
-			     const struct timespec64 *ts)
+							 const struct timespec64 *ts)
 {
 	struct ixgbe_adapter *adapter =
 		container_of(ptp, struct ixgbe_adapter, ptp_caps);
@@ -512,7 +535,10 @@ static int ixgbe_ptp_settime(struct ptp_clock_info *ptp,
 	spin_unlock_irqrestore(&adapter->tmreg_lock, flags);
 
 	if (adapter->ptp_setup_sdp)
+	{
 		adapter->ptp_setup_sdp(adapter);
+	}
+
 	return 0;
 }
 
@@ -526,7 +552,7 @@ static int ixgbe_ptp_settime(struct ptp_clock_info *ptp,
  * our driver only supports the PPS feature on the X540
  */
 static int ixgbe_ptp_feature_enable(struct ptp_clock_info *ptp,
-				    struct ptp_clock_request *rq, int on)
+									struct ptp_clock_request *rq, int on)
 {
 	struct ixgbe_adapter *adapter =
 		container_of(ptp, struct ixgbe_adapter, ptp_caps);
@@ -538,12 +564,18 @@ static int ixgbe_ptp_feature_enable(struct ptp_clock_info *ptp,
 	 * disabled
 	 */
 	if (rq->type != PTP_CLK_REQ_PPS || !adapter->ptp_setup_sdp)
+	{
 		return -ENOTSUPP;
+	}
 
 	if (on)
+	{
 		adapter->flags2 |= IXGBE_FLAG2_PTP_PPS_ENABLED;
+	}
 	else
+	{
 		adapter->flags2 &= ~IXGBE_FLAG2_PTP_PPS_ENABLED;
+	}
 
 	adapter->ptp_setup_sdp(adapter);
 	return 0;
@@ -568,14 +600,18 @@ void ixgbe_ptp_check_pps_event(struct ixgbe_adapter *adapter)
 	 * everywhere that calls this function.
 	 */
 	if (!adapter->ptp_clock)
+	{
 		return;
+	}
 
-	switch (hw->mac.type) {
-	case ixgbe_mac_X540:
-		ptp_clock_event(adapter->ptp_clock, &event);
-		break;
-	default:
-		break;
+	switch (hw->mac.type)
+	{
+		case ixgbe_mac_X540:
+			ptp_clock_event(adapter->ptp_clock, &event);
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -590,10 +626,11 @@ void ixgbe_ptp_check_pps_event(struct ixgbe_adapter *adapter)
 void ixgbe_ptp_overflow_check(struct ixgbe_adapter *adapter)
 {
 	bool timeout = time_is_before_jiffies(adapter->last_overflow_check +
-					     IXGBE_OVERFLOW_PERIOD);
+										  IXGBE_OVERFLOW_PERIOD);
 	struct timespec64 ts;
 
-	if (timeout) {
+	if (timeout)
+	{
 		ixgbe_ptp_gettime(&adapter->ptp_caps, &ts);
 		adapter->last_overflow_check = jiffies;
 	}
@@ -619,21 +656,28 @@ void ixgbe_ptp_rx_hang(struct ixgbe_adapter *adapter)
 	/* if we don't have a valid timestamp in the registers, just update the
 	 * timeout counter and exit
 	 */
-	if (!(tsyncrxctl & IXGBE_TSYNCRXCTL_VALID)) {
+	if (!(tsyncrxctl & IXGBE_TSYNCRXCTL_VALID))
+	{
 		adapter->last_rx_ptp_check = jiffies;
 		return;
 	}
 
 	/* determine the most recent watchdog or rx_timestamp event */
 	rx_event = adapter->last_rx_ptp_check;
-	for (n = 0; n < adapter->num_rx_queues; n++) {
+
+	for (n = 0; n < adapter->num_rx_queues; n++)
+	{
 		rx_ring = adapter->rx_ring[n];
+
 		if (time_after(rx_ring->last_rx_timestamp, rx_event))
+		{
 			rx_event = rx_ring->last_rx_timestamp;
+		}
 	}
 
 	/* only need to read the high RXSTMP register to clear the lock */
-	if (time_is_before_jiffies(rx_event + 5 * HZ)) {
+	if (time_is_before_jiffies(rx_event + 5 * HZ))
+	{
 		IXGBE_READ_REG(hw, IXGBE_RXSTMPH);
 		adapter->last_rx_ptp_check = jiffies;
 
@@ -655,10 +699,13 @@ static void ixgbe_ptp_clear_tx_timestamp(struct ixgbe_adapter *adapter)
 	struct ixgbe_hw *hw = &adapter->hw;
 
 	IXGBE_READ_REG(hw, IXGBE_TXSTMPH);
-	if (adapter->ptp_tx_skb) {
+
+	if (adapter->ptp_tx_skb)
+	{
 		dev_kfree_skb_any(adapter->ptp_tx_skb);
 		adapter->ptp_tx_skb = NULL;
 	}
+
 	clear_bit_unlock(__IXGBE_PTP_TX_IN_PROGRESS, &adapter->state);
 }
 
@@ -696,30 +743,36 @@ static void ixgbe_ptp_tx_hwtstamp(struct ixgbe_adapter *adapter)
 static void ixgbe_ptp_tx_hwtstamp_work(struct work_struct *work)
 {
 	struct ixgbe_adapter *adapter = container_of(work, struct ixgbe_adapter,
-						     ptp_tx_work);
+									ptp_tx_work);
 	struct ixgbe_hw *hw = &adapter->hw;
 	bool timeout = time_is_before_jiffies(adapter->ptp_tx_start +
-					      IXGBE_PTP_TX_TIMEOUT);
+										  IXGBE_PTP_TX_TIMEOUT);
 	u32 tsynctxctl;
 
 	/* we have to have a valid skb to poll for a timestamp */
-	if (!adapter->ptp_tx_skb) {
+	if (!adapter->ptp_tx_skb)
+	{
 		ixgbe_ptp_clear_tx_timestamp(adapter);
 		return;
 	}
 
 	/* stop polling once we have a valid timestamp */
 	tsynctxctl = IXGBE_READ_REG(hw, IXGBE_TSYNCTXCTL);
-	if (tsynctxctl & IXGBE_TSYNCTXCTL_VALID) {
+
+	if (tsynctxctl & IXGBE_TSYNCTXCTL_VALID)
+	{
 		ixgbe_ptp_tx_hwtstamp(adapter);
 		return;
 	}
 
-	if (timeout) {
+	if (timeout)
+	{
 		ixgbe_ptp_clear_tx_timestamp(adapter);
 		adapter->tx_hwtstamp_timeouts++;
 		e_warn(drv, "clearing Tx Timestamp hang\n");
-	} else {
+	}
+	else
+	{
 		/* reschedule to keep checking if it's not available yet */
 		schedule_work(&adapter->ptp_tx_work);
 	}
@@ -735,13 +788,13 @@ static void ixgbe_ptp_tx_hwtstamp_work(struct work_struct *work)
  * starting at the end of the packet data.
  */
 void ixgbe_ptp_rx_pktstamp(struct ixgbe_q_vector *q_vector,
-			   struct sk_buff *skb)
+						   struct sk_buff *skb)
 {
 	__le64 regval;
 
 	/* copy the bits out of the skb, and then trim the skb length */
 	skb_copy_bits(skb, skb->len - IXGBE_TS_HDR_LEN, &regval,
-		      IXGBE_TS_HDR_LEN);
+				  IXGBE_TS_HDR_LEN);
 	__pskb_trim(skb, skb->len - IXGBE_TS_HDR_LEN);
 
 	/* The timestamp is recorded in little endian format, and is stored at
@@ -751,7 +804,7 @@ void ixgbe_ptp_rx_pktstamp(struct ixgbe_q_vector *q_vector,
 	 * Field: End of Packet  SYSTIMH    SYSTIML
 	 */
 	ixgbe_ptp_convert_to_hwtstamp(q_vector->adapter, skb_hwtstamps(skb),
-				      le64_to_cpu(regval));
+								  le64_to_cpu(regval));
 }
 
 /**
@@ -764,7 +817,7 @@ void ixgbe_ptp_rx_pktstamp(struct ixgbe_q_vector *q_vector,
  * is passed up the network stack
  */
 void ixgbe_ptp_rx_rgtstamp(struct ixgbe_q_vector *q_vector,
-			   struct sk_buff *skb)
+						   struct sk_buff *skb)
 {
 	struct ixgbe_adapter *adapter;
 	struct ixgbe_hw *hw;
@@ -773,7 +826,9 @@ void ixgbe_ptp_rx_rgtstamp(struct ixgbe_q_vector *q_vector,
 
 	/* we cannot process timestamps on a ring without a q_vector */
 	if (!q_vector || !q_vector->adapter)
+	{
 		return;
+	}
 
 	adapter = q_vector->adapter;
 	hw = &adapter->hw;
@@ -783,8 +838,11 @@ void ixgbe_ptp_rx_rgtstamp(struct ixgbe_q_vector *q_vector,
 	 */
 
 	tsyncrxctl = IXGBE_READ_REG(hw, IXGBE_TSYNCRXCTL);
+
 	if (!(tsyncrxctl & IXGBE_TSYNCRXCTL_VALID))
+	{
 		return;
+	}
 
 	regval |= (u64)IXGBE_READ_REG(hw, IXGBE_RXSTMPL);
 	regval |= (u64)IXGBE_READ_REG(hw, IXGBE_RXSTMPH) << 32;
@@ -797,7 +855,7 @@ int ixgbe_ptp_get_ts_config(struct ixgbe_adapter *adapter, struct ifreq *ifr)
 	struct hwtstamp_config *config = &adapter->tstamp_config;
 
 	return copy_to_user(ifr->ifr_data, config,
-			    sizeof(*config)) ? -EFAULT : 0;
+						sizeof(*config)) ? -EFAULT : 0;
 }
 
 /**
@@ -826,7 +884,7 @@ int ixgbe_ptp_get_ts_config(struct ixgbe_adapter *adapter, struct ifreq *ifr)
  * mode, if required to support the specifically requested mode.
  */
 static int ixgbe_ptp_set_timestamp_mode(struct ixgbe_adapter *adapter,
-				 struct hwtstamp_config *config)
+										struct hwtstamp_config *config)
 {
 	struct ixgbe_hw *hw = &adapter->hw;
 	u32 tsync_tx_ctl = IXGBE_TSYNCTXCTL_ENABLED;
@@ -837,81 +895,99 @@ static int ixgbe_ptp_set_timestamp_mode(struct ixgbe_adapter *adapter,
 
 	/* reserved for future extensions */
 	if (config->flags)
+	{
 		return -EINVAL;
-
-	switch (config->tx_type) {
-	case HWTSTAMP_TX_OFF:
-		tsync_tx_ctl = 0;
-	case HWTSTAMP_TX_ON:
-		break;
-	default:
-		return -ERANGE;
 	}
 
-	switch (config->rx_filter) {
-	case HWTSTAMP_FILTER_NONE:
-		tsync_rx_ctl = 0;
-		tsync_rx_mtrl = 0;
-		adapter->flags &= ~(IXGBE_FLAG_RX_HWTSTAMP_ENABLED |
-				    IXGBE_FLAG_RX_HWTSTAMP_IN_REGISTER);
-		break;
-	case HWTSTAMP_FILTER_PTP_V1_L4_SYNC:
-		tsync_rx_ctl |= IXGBE_TSYNCRXCTL_TYPE_L4_V1;
-		tsync_rx_mtrl |= IXGBE_RXMTRL_V1_SYNC_MSG;
-		adapter->flags &= ~(IXGBE_FLAG_RX_HWTSTAMP_ENABLED |
-				    IXGBE_FLAG_RX_HWTSTAMP_IN_REGISTER);
-		break;
-	case HWTSTAMP_FILTER_PTP_V1_L4_DELAY_REQ:
-		tsync_rx_ctl |= IXGBE_TSYNCRXCTL_TYPE_L4_V1;
-		tsync_rx_mtrl |= IXGBE_RXMTRL_V1_DELAY_REQ_MSG;
-		adapter->flags &= ~(IXGBE_FLAG_RX_HWTSTAMP_ENABLED |
-				    IXGBE_FLAG_RX_HWTSTAMP_IN_REGISTER);
-		break;
-	case HWTSTAMP_FILTER_PTP_V2_EVENT:
-	case HWTSTAMP_FILTER_PTP_V2_L2_EVENT:
-	case HWTSTAMP_FILTER_PTP_V2_L4_EVENT:
-	case HWTSTAMP_FILTER_PTP_V2_SYNC:
-	case HWTSTAMP_FILTER_PTP_V2_L2_SYNC:
-	case HWTSTAMP_FILTER_PTP_V2_L4_SYNC:
-	case HWTSTAMP_FILTER_PTP_V2_DELAY_REQ:
-	case HWTSTAMP_FILTER_PTP_V2_L2_DELAY_REQ:
-	case HWTSTAMP_FILTER_PTP_V2_L4_DELAY_REQ:
-		tsync_rx_ctl |= IXGBE_TSYNCRXCTL_TYPE_EVENT_V2;
-		is_l2 = true;
-		config->rx_filter = HWTSTAMP_FILTER_PTP_V2_EVENT;
-		adapter->flags &= ~(IXGBE_FLAG_RX_HWTSTAMP_ENABLED |
-				    IXGBE_FLAG_RX_HWTSTAMP_IN_REGISTER);
-		break;
-	case HWTSTAMP_FILTER_PTP_V1_L4_EVENT:
-	case HWTSTAMP_FILTER_ALL:
-		/* The X550 controller is capable of timestamping all packets,
-		 * which allows it to accept any filter.
-		 */
-		if (hw->mac.type >= ixgbe_mac_X550) {
-			tsync_rx_ctl |= IXGBE_TSYNCRXCTL_TYPE_ALL;
-			config->rx_filter = HWTSTAMP_FILTER_ALL;
-			adapter->flags |= IXGBE_FLAG_RX_HWTSTAMP_ENABLED;
+	switch (config->tx_type)
+	{
+		case HWTSTAMP_TX_OFF:
+			tsync_tx_ctl = 0;
+
+		case HWTSTAMP_TX_ON:
 			break;
-		}
-		/* fall through */
-	default:
-		/*
-		 * register RXMTRL must be set in order to do V1 packets,
-		 * therefore it is not possible to time stamp both V1 Sync and
-		 * Delay_Req messages and hardware does not support
-		 * timestamping all packets => return error
-		 */
-		adapter->flags &= ~(IXGBE_FLAG_RX_HWTSTAMP_ENABLED |
-				    IXGBE_FLAG_RX_HWTSTAMP_IN_REGISTER);
-		config->rx_filter = HWTSTAMP_FILTER_NONE;
-		return -ERANGE;
+
+		default:
+			return -ERANGE;
 	}
 
-	if (hw->mac.type == ixgbe_mac_82598EB) {
-		adapter->flags &= ~(IXGBE_FLAG_RX_HWTSTAMP_ENABLED |
-				    IXGBE_FLAG_RX_HWTSTAMP_IN_REGISTER);
-		if (tsync_rx_ctl | tsync_tx_ctl)
+	switch (config->rx_filter)
+	{
+		case HWTSTAMP_FILTER_NONE:
+			tsync_rx_ctl = 0;
+			tsync_rx_mtrl = 0;
+			adapter->flags &= ~(IXGBE_FLAG_RX_HWTSTAMP_ENABLED |
+								IXGBE_FLAG_RX_HWTSTAMP_IN_REGISTER);
+			break;
+
+		case HWTSTAMP_FILTER_PTP_V1_L4_SYNC:
+			tsync_rx_ctl |= IXGBE_TSYNCRXCTL_TYPE_L4_V1;
+			tsync_rx_mtrl |= IXGBE_RXMTRL_V1_SYNC_MSG;
+			adapter->flags &= ~(IXGBE_FLAG_RX_HWTSTAMP_ENABLED |
+								IXGBE_FLAG_RX_HWTSTAMP_IN_REGISTER);
+			break;
+
+		case HWTSTAMP_FILTER_PTP_V1_L4_DELAY_REQ:
+			tsync_rx_ctl |= IXGBE_TSYNCRXCTL_TYPE_L4_V1;
+			tsync_rx_mtrl |= IXGBE_RXMTRL_V1_DELAY_REQ_MSG;
+			adapter->flags &= ~(IXGBE_FLAG_RX_HWTSTAMP_ENABLED |
+								IXGBE_FLAG_RX_HWTSTAMP_IN_REGISTER);
+			break;
+
+		case HWTSTAMP_FILTER_PTP_V2_EVENT:
+		case HWTSTAMP_FILTER_PTP_V2_L2_EVENT:
+		case HWTSTAMP_FILTER_PTP_V2_L4_EVENT:
+		case HWTSTAMP_FILTER_PTP_V2_SYNC:
+		case HWTSTAMP_FILTER_PTP_V2_L2_SYNC:
+		case HWTSTAMP_FILTER_PTP_V2_L4_SYNC:
+		case HWTSTAMP_FILTER_PTP_V2_DELAY_REQ:
+		case HWTSTAMP_FILTER_PTP_V2_L2_DELAY_REQ:
+		case HWTSTAMP_FILTER_PTP_V2_L4_DELAY_REQ:
+			tsync_rx_ctl |= IXGBE_TSYNCRXCTL_TYPE_EVENT_V2;
+			is_l2 = true;
+			config->rx_filter = HWTSTAMP_FILTER_PTP_V2_EVENT;
+			adapter->flags &= ~(IXGBE_FLAG_RX_HWTSTAMP_ENABLED |
+								IXGBE_FLAG_RX_HWTSTAMP_IN_REGISTER);
+			break;
+
+		case HWTSTAMP_FILTER_PTP_V1_L4_EVENT:
+		case HWTSTAMP_FILTER_ALL:
+
+			/* The X550 controller is capable of timestamping all packets,
+			 * which allows it to accept any filter.
+			 */
+			if (hw->mac.type >= ixgbe_mac_X550)
+			{
+				tsync_rx_ctl |= IXGBE_TSYNCRXCTL_TYPE_ALL;
+				config->rx_filter = HWTSTAMP_FILTER_ALL;
+				adapter->flags |= IXGBE_FLAG_RX_HWTSTAMP_ENABLED;
+				break;
+			}
+
+		/* fall through */
+		default:
+			/*
+			 * register RXMTRL must be set in order to do V1 packets,
+			 * therefore it is not possible to time stamp both V1 Sync and
+			 * Delay_Req messages and hardware does not support
+			 * timestamping all packets => return error
+			 */
+			adapter->flags &= ~(IXGBE_FLAG_RX_HWTSTAMP_ENABLED |
+								IXGBE_FLAG_RX_HWTSTAMP_IN_REGISTER);
+			config->rx_filter = HWTSTAMP_FILTER_NONE;
 			return -ERANGE;
+	}
+
+	if (hw->mac.type == ixgbe_mac_82598EB)
+	{
+		adapter->flags &= ~(IXGBE_FLAG_RX_HWTSTAMP_ENABLED |
+							IXGBE_FLAG_RX_HWTSTAMP_IN_REGISTER);
+
+		if (tsync_rx_ctl | tsync_tx_ctl)
+		{
+			return -ERANGE;
+		}
+
 		return 0;
 	}
 
@@ -919,37 +995,44 @@ static int ixgbe_ptp_set_timestamp_mode(struct ixgbe_adapter *adapter,
 	 * packets. Since this is desired, always timestamp all packets as long
 	 * as any Rx filter was configured.
 	 */
-	switch (hw->mac.type) {
-	case ixgbe_mac_X550:
-	case ixgbe_mac_X550EM_x:
-	case ixgbe_mac_x550em_a:
-		/* enable timestamping all packets only if at least some
-		 * packets were requested. Otherwise, play nice and disable
-		 * timestamping
-		 */
-		if (config->rx_filter == HWTSTAMP_FILTER_NONE)
+	switch (hw->mac.type)
+	{
+		case ixgbe_mac_X550:
+		case ixgbe_mac_X550EM_x:
+		case ixgbe_mac_x550em_a:
+
+			/* enable timestamping all packets only if at least some
+			 * packets were requested. Otherwise, play nice and disable
+			 * timestamping
+			 */
+			if (config->rx_filter == HWTSTAMP_FILTER_NONE)
+			{
+				break;
+			}
+
+			tsync_rx_ctl = IXGBE_TSYNCRXCTL_ENABLED |
+						   IXGBE_TSYNCRXCTL_TYPE_ALL |
+						   IXGBE_TSYNCRXCTL_TSIP_UT_EN;
+			config->rx_filter = HWTSTAMP_FILTER_ALL;
+			adapter->flags |= IXGBE_FLAG_RX_HWTSTAMP_ENABLED;
+			adapter->flags &= ~IXGBE_FLAG_RX_HWTSTAMP_IN_REGISTER;
+			is_l2 = true;
 			break;
 
-		tsync_rx_ctl = IXGBE_TSYNCRXCTL_ENABLED |
-			       IXGBE_TSYNCRXCTL_TYPE_ALL |
-			       IXGBE_TSYNCRXCTL_TSIP_UT_EN;
-		config->rx_filter = HWTSTAMP_FILTER_ALL;
-		adapter->flags |= IXGBE_FLAG_RX_HWTSTAMP_ENABLED;
-		adapter->flags &= ~IXGBE_FLAG_RX_HWTSTAMP_IN_REGISTER;
-		is_l2 = true;
-		break;
-	default:
-		break;
+		default:
+			break;
 	}
 
 	/* define ethertype filter for timestamping L2 packets */
 	if (is_l2)
 		IXGBE_WRITE_REG(hw, IXGBE_ETQF(IXGBE_ETQF_FILTER_1588),
-				(IXGBE_ETQF_FILTER_EN | /* enable filter */
-				 IXGBE_ETQF_1588 | /* enable timestamping */
-				 ETH_P_1588));     /* 1588 eth protocol type */
+						(IXGBE_ETQF_FILTER_EN | /* enable filter */
+						 IXGBE_ETQF_1588 | /* enable timestamping */
+						 ETH_P_1588));     /* 1588 eth protocol type */
 	else
+	{
 		IXGBE_WRITE_REG(hw, IXGBE_ETQF(IXGBE_ETQF_FILTER_1588), 0);
+	}
 
 	/* enable/disable TX */
 	regval = IXGBE_READ_REG(hw, IXGBE_TSYNCTXCTL);
@@ -989,22 +1072,27 @@ int ixgbe_ptp_set_ts_config(struct ixgbe_adapter *adapter, struct ifreq *ifr)
 	int err;
 
 	if (copy_from_user(&config, ifr->ifr_data, sizeof(config)))
+	{
 		return -EFAULT;
+	}
 
 	err = ixgbe_ptp_set_timestamp_mode(adapter, &config);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* save these settings for future reference */
 	memcpy(&adapter->tstamp_config, &config,
-	       sizeof(adapter->tstamp_config));
+		   sizeof(adapter->tstamp_config));
 
 	return copy_to_user(ifr->ifr_data, &config, sizeof(config)) ?
-		-EFAULT : 0;
+		   -EFAULT : 0;
 }
 
 static void ixgbe_ptp_link_speed_adjust(struct ixgbe_adapter *adapter,
-					u32 *shift, u32 *incval)
+										u32 *shift, u32 *incval)
 {
 	/**
 	 * Scale the NIC cycle counter by a large factor so that
@@ -1020,20 +1108,23 @@ static void ixgbe_ptp_link_speed_adjust(struct ixgbe_adapter *adapter,
 	 * link speed is 10Gb. Set the registers correctly even when link is
 	 * down to preserve the clock setting
 	 */
-	switch (adapter->link_speed) {
-	case IXGBE_LINK_SPEED_100_FULL:
-		*shift = IXGBE_INCVAL_SHIFT_100;
-		*incval = IXGBE_INCVAL_100;
-		break;
-	case IXGBE_LINK_SPEED_1GB_FULL:
-		*shift = IXGBE_INCVAL_SHIFT_1GB;
-		*incval = IXGBE_INCVAL_1GB;
-		break;
-	case IXGBE_LINK_SPEED_10GB_FULL:
-	default:
-		*shift = IXGBE_INCVAL_SHIFT_10GB;
-		*incval = IXGBE_INCVAL_10GB;
-		break;
+	switch (adapter->link_speed)
+	{
+		case IXGBE_LINK_SPEED_100_FULL:
+			*shift = IXGBE_INCVAL_SHIFT_100;
+			*incval = IXGBE_INCVAL_100;
+			break;
+
+		case IXGBE_LINK_SPEED_1GB_FULL:
+			*shift = IXGBE_INCVAL_SHIFT_1GB;
+			*incval = IXGBE_INCVAL_1GB;
+			break;
+
+		case IXGBE_LINK_SPEED_10GB_FULL:
+		default:
+			*shift = IXGBE_INCVAL_SHIFT_10GB;
+			*incval = IXGBE_INCVAL_10GB;
+			break;
 	}
 }
 
@@ -1071,54 +1162,61 @@ void ixgbe_ptp_start_cyclecounter(struct ixgbe_adapter *adapter)
 	cc.mult = 1;
 	cc.shift = 0;
 
-	switch (hw->mac.type) {
-	case ixgbe_mac_X550EM_x:
-		/* SYSTIME assumes X550EM_x board frequency is 300Mhz, and is
-		 * designed to represent seconds and nanoseconds when this is
-		 * the case. However, some revisions of hardware have a 400Mhz
-		 * clock and we have to compensate for this frequency
-		 * variation using corrected mult and shift values.
-		 */
-		fuse0 = IXGBE_READ_REG(hw, IXGBE_FUSES0_GROUP(0));
-		if (!(fuse0 & IXGBE_FUSES0_300MHZ)) {
-			cc.mult = 3;
-			cc.shift = 2;
-		}
+	switch (hw->mac.type)
+	{
+		case ixgbe_mac_X550EM_x:
+			/* SYSTIME assumes X550EM_x board frequency is 300Mhz, and is
+			 * designed to represent seconds and nanoseconds when this is
+			 * the case. However, some revisions of hardware have a 400Mhz
+			 * clock and we have to compensate for this frequency
+			 * variation using corrected mult and shift values.
+			 */
+			fuse0 = IXGBE_READ_REG(hw, IXGBE_FUSES0_GROUP(0));
+
+			if (!(fuse0 & IXGBE_FUSES0_300MHZ))
+			{
+				cc.mult = 3;
+				cc.shift = 2;
+			}
+
 		/* fallthrough */
-	case ixgbe_mac_x550em_a:
-	case ixgbe_mac_X550:
-		cc.read = ixgbe_ptp_read_X550;
+		case ixgbe_mac_x550em_a:
+		case ixgbe_mac_X550:
+			cc.read = ixgbe_ptp_read_X550;
 
-		/* enable SYSTIME counter */
-		IXGBE_WRITE_REG(hw, IXGBE_SYSTIMR, 0);
-		IXGBE_WRITE_REG(hw, IXGBE_SYSTIML, 0);
-		IXGBE_WRITE_REG(hw, IXGBE_SYSTIMH, 0);
-		tsauxc = IXGBE_READ_REG(hw, IXGBE_TSAUXC);
-		IXGBE_WRITE_REG(hw, IXGBE_TSAUXC,
-				tsauxc & ~IXGBE_TSAUXC_DISABLE_SYSTIME);
-		IXGBE_WRITE_REG(hw, IXGBE_TSIM, IXGBE_TSIM_TXTS);
-		IXGBE_WRITE_REG(hw, IXGBE_EIMS, IXGBE_EIMS_TIMESYNC);
+			/* enable SYSTIME counter */
+			IXGBE_WRITE_REG(hw, IXGBE_SYSTIMR, 0);
+			IXGBE_WRITE_REG(hw, IXGBE_SYSTIML, 0);
+			IXGBE_WRITE_REG(hw, IXGBE_SYSTIMH, 0);
+			tsauxc = IXGBE_READ_REG(hw, IXGBE_TSAUXC);
+			IXGBE_WRITE_REG(hw, IXGBE_TSAUXC,
+							tsauxc & ~IXGBE_TSAUXC_DISABLE_SYSTIME);
+			IXGBE_WRITE_REG(hw, IXGBE_TSIM, IXGBE_TSIM_TXTS);
+			IXGBE_WRITE_REG(hw, IXGBE_EIMS, IXGBE_EIMS_TIMESYNC);
 
-		IXGBE_WRITE_FLUSH(hw);
-		break;
-	case ixgbe_mac_X540:
-		cc.read = ixgbe_ptp_read_82599;
+			IXGBE_WRITE_FLUSH(hw);
+			break;
 
-		ixgbe_ptp_link_speed_adjust(adapter, &cc.shift, &incval);
-		IXGBE_WRITE_REG(hw, IXGBE_TIMINCA, incval);
-		break;
-	case ixgbe_mac_82599EB:
-		cc.read = ixgbe_ptp_read_82599;
+		case ixgbe_mac_X540:
+			cc.read = ixgbe_ptp_read_82599;
 
-		ixgbe_ptp_link_speed_adjust(adapter, &cc.shift, &incval);
-		incval >>= IXGBE_INCVAL_SHIFT_82599;
-		cc.shift -= IXGBE_INCVAL_SHIFT_82599;
-		IXGBE_WRITE_REG(hw, IXGBE_TIMINCA,
-				BIT(IXGBE_INCPER_SHIFT_82599) | incval);
-		break;
-	default:
-		/* other devices aren't supported */
-		return;
+			ixgbe_ptp_link_speed_adjust(adapter, &cc.shift, &incval);
+			IXGBE_WRITE_REG(hw, IXGBE_TIMINCA, incval);
+			break;
+
+		case ixgbe_mac_82599EB:
+			cc.read = ixgbe_ptp_read_82599;
+
+			ixgbe_ptp_link_speed_adjust(adapter, &cc.shift, &incval);
+			incval >>= IXGBE_INCVAL_SHIFT_82599;
+			cc.shift -= IXGBE_INCVAL_SHIFT_82599;
+			IXGBE_WRITE_REG(hw, IXGBE_TIMINCA,
+							BIT(IXGBE_INCPER_SHIFT_82599) | incval);
+			break;
+
+		default:
+			/* other devices aren't supported */
+			return;
 	}
 
 	/* update the base incval used to calculate frequency adjustment */
@@ -1153,13 +1251,15 @@ void ixgbe_ptp_reset(struct ixgbe_adapter *adapter)
 
 	/* 82598 does not support PTP */
 	if (hw->mac.type == ixgbe_mac_82598EB)
+	{
 		return;
+	}
 
 	ixgbe_ptp_start_cyclecounter(adapter);
 
 	spin_lock_irqsave(&adapter->tmreg_lock, flags);
 	timecounter_init(&adapter->hw_tc, &adapter->hw_cc,
-			 ktime_to_ns(ktime_get_real()));
+					 ktime_to_ns(ktime_get_real()));
 	spin_unlock_irqrestore(&adapter->tmreg_lock, flags);
 
 	adapter->last_overflow_check = jiffies;
@@ -1168,7 +1268,9 @@ void ixgbe_ptp_reset(struct ixgbe_adapter *adapter)
 	 * registers reset, (re-)enable the Clock out feature
 	 */
 	if (adapter->ptp_setup_sdp)
+	{
 		adapter->ptp_setup_sdp(adapter);
+	}
 }
 
 /**
@@ -1188,74 +1290,85 @@ static long ixgbe_ptp_create_clock(struct ixgbe_adapter *adapter)
 
 	/* do nothing if we already have a clock device */
 	if (!IS_ERR_OR_NULL(adapter->ptp_clock))
+	{
 		return 0;
+	}
 
-	switch (adapter->hw.mac.type) {
-	case ixgbe_mac_X540:
-		snprintf(adapter->ptp_caps.name,
-			 sizeof(adapter->ptp_caps.name),
-			 "%s", netdev->name);
-		adapter->ptp_caps.owner = THIS_MODULE;
-		adapter->ptp_caps.max_adj = 250000000;
-		adapter->ptp_caps.n_alarm = 0;
-		adapter->ptp_caps.n_ext_ts = 0;
-		adapter->ptp_caps.n_per_out = 0;
-		adapter->ptp_caps.pps = 1;
-		adapter->ptp_caps.adjfreq = ixgbe_ptp_adjfreq_82599;
-		adapter->ptp_caps.adjtime = ixgbe_ptp_adjtime;
-		adapter->ptp_caps.gettime64 = ixgbe_ptp_gettime;
-		adapter->ptp_caps.settime64 = ixgbe_ptp_settime;
-		adapter->ptp_caps.enable = ixgbe_ptp_feature_enable;
-		adapter->ptp_setup_sdp = ixgbe_ptp_setup_sdp_x540;
-		break;
-	case ixgbe_mac_82599EB:
-		snprintf(adapter->ptp_caps.name,
-			 sizeof(adapter->ptp_caps.name),
-			 "%s", netdev->name);
-		adapter->ptp_caps.owner = THIS_MODULE;
-		adapter->ptp_caps.max_adj = 250000000;
-		adapter->ptp_caps.n_alarm = 0;
-		adapter->ptp_caps.n_ext_ts = 0;
-		adapter->ptp_caps.n_per_out = 0;
-		adapter->ptp_caps.pps = 0;
-		adapter->ptp_caps.adjfreq = ixgbe_ptp_adjfreq_82599;
-		adapter->ptp_caps.adjtime = ixgbe_ptp_adjtime;
-		adapter->ptp_caps.gettime64 = ixgbe_ptp_gettime;
-		adapter->ptp_caps.settime64 = ixgbe_ptp_settime;
-		adapter->ptp_caps.enable = ixgbe_ptp_feature_enable;
-		break;
-	case ixgbe_mac_X550:
-	case ixgbe_mac_X550EM_x:
-	case ixgbe_mac_x550em_a:
-		snprintf(adapter->ptp_caps.name, 16, "%s", netdev->name);
-		adapter->ptp_caps.owner = THIS_MODULE;
-		adapter->ptp_caps.max_adj = 30000000;
-		adapter->ptp_caps.n_alarm = 0;
-		adapter->ptp_caps.n_ext_ts = 0;
-		adapter->ptp_caps.n_per_out = 0;
-		adapter->ptp_caps.pps = 0;
-		adapter->ptp_caps.adjfreq = ixgbe_ptp_adjfreq_X550;
-		adapter->ptp_caps.adjtime = ixgbe_ptp_adjtime;
-		adapter->ptp_caps.gettime64 = ixgbe_ptp_gettime;
-		adapter->ptp_caps.settime64 = ixgbe_ptp_settime;
-		adapter->ptp_caps.enable = ixgbe_ptp_feature_enable;
-		adapter->ptp_setup_sdp = NULL;
-		break;
-	default:
-		adapter->ptp_clock = NULL;
-		adapter->ptp_setup_sdp = NULL;
-		return -EOPNOTSUPP;
+	switch (adapter->hw.mac.type)
+	{
+		case ixgbe_mac_X540:
+			snprintf(adapter->ptp_caps.name,
+					 sizeof(adapter->ptp_caps.name),
+					 "%s", netdev->name);
+			adapter->ptp_caps.owner = THIS_MODULE;
+			adapter->ptp_caps.max_adj = 250000000;
+			adapter->ptp_caps.n_alarm = 0;
+			adapter->ptp_caps.n_ext_ts = 0;
+			adapter->ptp_caps.n_per_out = 0;
+			adapter->ptp_caps.pps = 1;
+			adapter->ptp_caps.adjfreq = ixgbe_ptp_adjfreq_82599;
+			adapter->ptp_caps.adjtime = ixgbe_ptp_adjtime;
+			adapter->ptp_caps.gettime64 = ixgbe_ptp_gettime;
+			adapter->ptp_caps.settime64 = ixgbe_ptp_settime;
+			adapter->ptp_caps.enable = ixgbe_ptp_feature_enable;
+			adapter->ptp_setup_sdp = ixgbe_ptp_setup_sdp_x540;
+			break;
+
+		case ixgbe_mac_82599EB:
+			snprintf(adapter->ptp_caps.name,
+					 sizeof(adapter->ptp_caps.name),
+					 "%s", netdev->name);
+			adapter->ptp_caps.owner = THIS_MODULE;
+			adapter->ptp_caps.max_adj = 250000000;
+			adapter->ptp_caps.n_alarm = 0;
+			adapter->ptp_caps.n_ext_ts = 0;
+			adapter->ptp_caps.n_per_out = 0;
+			adapter->ptp_caps.pps = 0;
+			adapter->ptp_caps.adjfreq = ixgbe_ptp_adjfreq_82599;
+			adapter->ptp_caps.adjtime = ixgbe_ptp_adjtime;
+			adapter->ptp_caps.gettime64 = ixgbe_ptp_gettime;
+			adapter->ptp_caps.settime64 = ixgbe_ptp_settime;
+			adapter->ptp_caps.enable = ixgbe_ptp_feature_enable;
+			break;
+
+		case ixgbe_mac_X550:
+		case ixgbe_mac_X550EM_x:
+		case ixgbe_mac_x550em_a:
+			snprintf(adapter->ptp_caps.name, 16, "%s", netdev->name);
+			adapter->ptp_caps.owner = THIS_MODULE;
+			adapter->ptp_caps.max_adj = 30000000;
+			adapter->ptp_caps.n_alarm = 0;
+			adapter->ptp_caps.n_ext_ts = 0;
+			adapter->ptp_caps.n_per_out = 0;
+			adapter->ptp_caps.pps = 0;
+			adapter->ptp_caps.adjfreq = ixgbe_ptp_adjfreq_X550;
+			adapter->ptp_caps.adjtime = ixgbe_ptp_adjtime;
+			adapter->ptp_caps.gettime64 = ixgbe_ptp_gettime;
+			adapter->ptp_caps.settime64 = ixgbe_ptp_settime;
+			adapter->ptp_caps.enable = ixgbe_ptp_feature_enable;
+			adapter->ptp_setup_sdp = NULL;
+			break;
+
+		default:
+			adapter->ptp_clock = NULL;
+			adapter->ptp_setup_sdp = NULL;
+			return -EOPNOTSUPP;
 	}
 
 	adapter->ptp_clock = ptp_clock_register(&adapter->ptp_caps,
-						&adapter->pdev->dev);
-	if (IS_ERR(adapter->ptp_clock)) {
+											&adapter->pdev->dev);
+
+	if (IS_ERR(adapter->ptp_clock))
+	{
 		err = PTR_ERR(adapter->ptp_clock);
 		adapter->ptp_clock = NULL;
 		e_dev_err("ptp_clock_register failed\n");
 		return err;
-	} else if (adapter->ptp_clock)
+	}
+	else if (adapter->ptp_clock)
+	{
 		e_dev_info("registered PHC device on %s\n", netdev->name);
+	}
 
 	/* set default timestamp mode to disabled here. We do this in
 	 * create_clock instead of init, because we don't want to override the
@@ -1285,7 +1398,9 @@ void ixgbe_ptp_init(struct ixgbe_adapter *adapter)
 
 	/* obtain a PTP device, or re-use an existing device */
 	if (ixgbe_ptp_create_clock(adapter))
+	{
 		return;
+	}
 
 	/* we have a clock so we can initialize work now */
 	INIT_WORK(&adapter->ptp_tx_work, ixgbe_ptp_tx_hwtstamp_work);
@@ -1310,11 +1425,16 @@ void ixgbe_ptp_suspend(struct ixgbe_adapter *adapter)
 {
 	/* Leave the IXGBE_PTP_RUNNING state. */
 	if (!test_and_clear_bit(__IXGBE_PTP_RUNNING, &adapter->state))
+	{
 		return;
+	}
 
 	adapter->flags2 &= ~IXGBE_FLAG2_PTP_PPS_ENABLED;
+
 	if (adapter->ptp_setup_sdp)
+	{
 		adapter->ptp_setup_sdp(adapter);
+	}
 
 	/* ensure that we cancel any pending PTP Tx work item in progress */
 	cancel_work_sync(&adapter->ptp_tx_work);
@@ -1334,10 +1454,11 @@ void ixgbe_ptp_stop(struct ixgbe_adapter *adapter)
 	ixgbe_ptp_suspend(adapter);
 
 	/* disable the PTP clock device */
-	if (adapter->ptp_clock) {
+	if (adapter->ptp_clock)
+	{
 		ptp_clock_unregister(adapter->ptp_clock);
 		adapter->ptp_clock = NULL;
 		e_dev_info("removed PHC on %s\n",
-			   adapter->netdev->name);
+				   adapter->netdev->name);
 	}
 }

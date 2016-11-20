@@ -20,12 +20,12 @@
 #define _UAPI_LINUX_LIGHTNVM_H
 
 #ifdef __KERNEL__
-#include <linux/kernel.h>
-#include <linux/ioctl.h>
+	#include <linux/kernel.h>
+	#include <linux/ioctl.h>
 #else /* __KERNEL__ */
-#include <stdio.h>
-#include <sys/ioctl.h>
-#define DISK_NAME_LEN 32
+	#include <stdio.h>
+	#include <sys/ioctl.h>
+	#define DISK_NAME_LEN 32
 #endif /* __KERNEL__ */
 
 #include <linux/types.h>
@@ -37,13 +37,15 @@
 
 #define NVM_CTRL_FILE "/dev/lightnvm/control"
 
-struct nvm_ioctl_info_tgt {
+struct nvm_ioctl_info_tgt
+{
 	__u32 version[3];
 	__u32 reserved;
 	char tgtname[NVM_TTYPE_NAME_MAX];
 };
 
-struct nvm_ioctl_info {
+struct nvm_ioctl_info
+{
 	__u32 version[3];	/* in/out - major, minor, patch */
 	__u16 tgtsize;		/* number of targets */
 	__u16 reserved16;	/* pad to 4K page */
@@ -51,11 +53,13 @@ struct nvm_ioctl_info {
 	struct nvm_ioctl_info_tgt tgts[NVM_TTYPE_MAX];
 };
 
-enum {
+enum
+{
 	NVM_DEVICE_ACTIVE = 1 << 0,
 };
 
-struct nvm_ioctl_device_info {
+struct nvm_ioctl_device_info
+{
 	char devname[DISK_NAME_LEN];
 	char bmname[NVM_TTYPE_NAME_MAX];
 	__u32 bmversion[3];
@@ -63,29 +67,35 @@ struct nvm_ioctl_device_info {
 	__u32 reserved[8];
 };
 
-struct nvm_ioctl_get_devices {
+struct nvm_ioctl_get_devices
+{
 	__u32 nr_devices;
 	__u32 reserved[31];
 	struct nvm_ioctl_device_info info[31];
 };
 
-struct nvm_ioctl_create_simple {
+struct nvm_ioctl_create_simple
+{
 	__u32 lun_begin;
 	__u32 lun_end;
 };
 
-enum {
+enum
+{
 	NVM_CONFIG_TYPE_SIMPLE = 0,
 };
 
-struct nvm_ioctl_create_conf {
+struct nvm_ioctl_create_conf
+{
 	__u32 type;
-	union {
+	union
+	{
 		struct nvm_ioctl_create_simple s;
 	};
 };
 
-struct nvm_ioctl_create {
+struct nvm_ioctl_create
+{
 	char dev[DISK_NAME_LEN];		/* open-channel SSD device */
 	char tgttype[NVM_TTYPE_NAME_MAX];	/* target type name */
 	char tgtname[DISK_NAME_LEN];		/* dev to expose target as */
@@ -95,20 +105,23 @@ struct nvm_ioctl_create {
 	struct nvm_ioctl_create_conf conf;
 };
 
-struct nvm_ioctl_remove {
+struct nvm_ioctl_remove
+{
 	char tgtname[DISK_NAME_LEN];
 
 	__u32 flags;
 };
 
-struct nvm_ioctl_dev_init {
+struct nvm_ioctl_dev_init
+{
 	char dev[DISK_NAME_LEN];		/* open-channel SSD device */
 	char mmtype[NVM_MMTYPE_LEN];		/* register to media manager */
 
 	__u32 flags;
 };
 
-enum {
+enum
+{
 	NVM_FACTORY_ERASE_ONLY_USER	= 1 << 0, /* erase only blocks used as
 						   * host blks or grown blks */
 	NVM_FACTORY_RESET_HOST_BLKS	= 1 << 1, /* remove host blk marks */
@@ -116,14 +129,16 @@ enum {
 	NVM_FACTORY_NR_BITS		= 1 << 3, /* stops here */
 };
 
-struct nvm_ioctl_dev_factory {
+struct nvm_ioctl_dev_factory
+{
 	char dev[DISK_NAME_LEN];
 
 	__u32 flags;
 };
 
 /* The ioctl type, 'L', 0x20 - 0x2F documented in ioctl-number.txt */
-enum {
+enum
+{
 	/* top level cmds */
 	NVM_INFO_CMD = 0x20,
 	NVM_GET_DEVICES_CMD,
@@ -142,17 +157,17 @@ enum {
 #define NVM_IOCTL 'L' /* 0x4c */
 
 #define NVM_INFO		_IOWR(NVM_IOCTL, NVM_INFO_CMD, \
-						struct nvm_ioctl_info)
+							  struct nvm_ioctl_info)
 #define NVM_GET_DEVICES		_IOR(NVM_IOCTL, NVM_GET_DEVICES_CMD, \
-						struct nvm_ioctl_get_devices)
+								 struct nvm_ioctl_get_devices)
 #define NVM_DEV_CREATE		_IOW(NVM_IOCTL, NVM_DEV_CREATE_CMD, \
-						struct nvm_ioctl_create)
+								 struct nvm_ioctl_create)
 #define NVM_DEV_REMOVE		_IOW(NVM_IOCTL, NVM_DEV_REMOVE_CMD, \
-						struct nvm_ioctl_remove)
+								 struct nvm_ioctl_remove)
 #define NVM_DEV_INIT		_IOW(NVM_IOCTL, NVM_DEV_INIT_CMD, \
-						struct nvm_ioctl_dev_init)
+								 struct nvm_ioctl_dev_init)
 #define NVM_DEV_FACTORY		_IOW(NVM_IOCTL, NVM_DEV_FACTORY_CMD, \
-						struct nvm_ioctl_dev_factory)
+								 struct nvm_ioctl_dev_factory)
 
 #define NVM_VERSION_MAJOR	1
 #define NVM_VERSION_MINOR	0

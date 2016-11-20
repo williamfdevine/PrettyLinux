@@ -2,15 +2,18 @@
 #define _VB_STRUCT_
 #include "../../video/fbdev/sis/vstruct.h"
 
-struct XGI_LVDSCRT1HDataStruct {
+struct XGI_LVDSCRT1HDataStruct
+{
 	unsigned char Reg[8];
 };
 
-struct XGI_LVDSCRT1VDataStruct {
+struct XGI_LVDSCRT1VDataStruct
+{
 	unsigned char Reg[7];
 };
 
-struct XGI_ExtStruct {
+struct XGI_ExtStruct
+{
 	unsigned char Ext_ModeID;
 	unsigned short Ext_ModeFlag;
 	unsigned short Ext_ModeInfo;
@@ -19,7 +22,8 @@ struct XGI_ExtStruct {
 	unsigned char REFindex;
 };
 
-struct XGI_Ext2Struct {
+struct XGI_Ext2Struct
+{
 	unsigned short Ext_InfoFlag;
 	unsigned char Ext_CRT1CRTC;
 	unsigned char Ext_CRTVCLK;
@@ -30,20 +34,23 @@ struct XGI_Ext2Struct {
 	unsigned short YRes;
 };
 
-struct XGI_ECLKDataStruct {
+struct XGI_ECLKDataStruct
+{
 	unsigned char SR2E, SR2F, SR30;
 	unsigned short CLOCK;
 };
 
 /*add for new UNIVGABIOS*/
-struct XGI_LCDDesStruct {
+struct XGI_LCDDesStruct
+{
 	unsigned short LCDHDES;
 	unsigned short LCDHRS;
 	unsigned short LCDVDES;
 	unsigned short LCDVRS;
 };
 
-struct XGI330_LCDDataDesStruct2 {
+struct XGI330_LCDDataDesStruct2
+{
 	unsigned short LCDHDES;
 	unsigned short LCDHRS;
 	unsigned short LCDVDES;
@@ -52,32 +59,38 @@ struct XGI330_LCDDataDesStruct2 {
 	unsigned short LCDVSync;
 };
 
-struct XGI330_LCDDataTablStruct {
+struct XGI330_LCDDataTablStruct
+{
 	unsigned char  PANELID;
 	unsigned short MASK;
 	unsigned short CAP;
 	void const *DATAPTR;
 };
 
-struct XGI330_TVDataTablStruct {
+struct XGI330_TVDataTablStruct
+{
 	unsigned short MASK;
 	unsigned short CAP;
 	struct SiS_TVData const *DATAPTR;
 };
 
-struct XGI_TimingHStruct {
+struct XGI_TimingHStruct
+{
 	unsigned char data[8];
 };
 
-struct XGI_TimingVStruct {
+struct XGI_TimingVStruct
+{
 	unsigned char data[7];
 };
 
-struct XGI_XG21CRT1Struct {
+struct XGI_XG21CRT1Struct
+{
 	unsigned char ModeID, CR02, CR03, CR15, CR16;
 };
 
-struct XGI330_LCDCapStruct {
+struct XGI330_LCDCapStruct
+{
 	unsigned char	LCD_ID;
 	unsigned short	LCD_Capability;
 	unsigned char	LCD_HSyncWidth;
@@ -93,7 +106,8 @@ struct XGI330_LCDCapStruct {
 	unsigned char	Spectrum_34;
 };
 
-struct XGI21_LVDSCapStruct {
+struct XGI21_LVDSCapStruct
+{
 	unsigned short LVDS_Capability;
 	unsigned short LVDSHT;
 	unsigned short LVDSVT;
@@ -112,16 +126,19 @@ struct XGI21_LVDSCapStruct {
 	unsigned char  PSC_S5;
 };
 
-struct XGI_CRT1TableStruct {
+struct XGI_CRT1TableStruct
+{
 	unsigned char CR[16];
 };
 
-struct XGI301C_Tap4TimingStruct {
+struct XGI301C_Tap4TimingStruct
+{
 	unsigned short DE;
 	unsigned char  Reg[64];   /* C0-FF */
 };
 
-struct vb_device_info {
+struct vb_device_info
+{
 	unsigned long   P3c4, P3d4, P3c0, P3ce, P3c2, P3cc;
 	unsigned long   P3ca, P3c6, P3c7, P3c8, P3c9, P3da;
 	unsigned long   Part0Port, Part1Port, Part2Port;

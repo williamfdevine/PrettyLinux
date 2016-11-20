@@ -122,7 +122,8 @@ struct e1000_info;
 #define E1000_TIDV_FPD BIT(31)
 #define E1000_RDTR_FPD BIT(31)
 
-enum e1000_boards {
+enum e1000_boards
+{
 	board_82571,
 	board_82572,
 	board_82573,
@@ -138,7 +139,8 @@ enum e1000_boards {
 	board_pch_spt
 };
 
-struct e1000_ps_page {
+struct e1000_ps_page
+{
 	struct page *page;
 	u64 dma; /* must be u64 - written to hw */
 };
@@ -146,12 +148,15 @@ struct e1000_ps_page {
 /* wrappers around a pointer to a socket buffer,
  * so a DMA handle can be stored along with the buffer
  */
-struct e1000_buffer {
+struct e1000_buffer
+{
 	dma_addr_t dma;
 	struct sk_buff *skb;
-	union {
+	union
+	{
 		/* Tx */
-		struct {
+		struct
+		{
 			unsigned long time_stamp;
 			u16 length;
 			u16 next_to_watch;
@@ -160,7 +165,8 @@ struct e1000_buffer {
 			u16 mapped_as_page;
 		};
 		/* Rx */
-		struct {
+		struct
+		{
 			/* arrays of page information for packet split */
 			struct e1000_ps_page *ps_pages;
 			struct page *page;
@@ -168,7 +174,8 @@ struct e1000_buffer {
 	};
 };
 
-struct e1000_ring {
+struct e1000_ring
+{
 	struct e1000_adapter *adapter;	/* back pointer to adapter */
 	void *desc;			/* pointer to ring memory  */
 	dma_addr_t dma;			/* phys address of ring    */
@@ -194,7 +201,8 @@ struct e1000_ring {
 };
 
 /* PHY register snapshot values */
-struct e1000_phy_regs {
+struct e1000_phy_regs
+{
 	u16 bmcr;		/* basic mode control register    */
 	u16 bmsr;		/* basic mode status register     */
 	u16 advertise;		/* auto-negotiation advertisement */
@@ -206,7 +214,8 @@ struct e1000_phy_regs {
 };
 
 /* board specific private data structure */
-struct e1000_adapter {
+struct e1000_adapter
+{
 	struct timer_list watchdog_timer;
 	struct timer_list phy_info_timer;
 	struct timer_list blink_timer;
@@ -270,9 +279,9 @@ struct e1000_adapter {
 
 	/* Rx */
 	bool (*clean_rx)(struct e1000_ring *ring, int *work_done,
-			 int work_to_do) ____cacheline_aligned_in_smp;
+					 int work_to_do) ____cacheline_aligned_in_smp;
 	void (*alloc_rx_buf)(struct e1000_ring *ring, int cleaned_count,
-			     gfp_t gfp);
+						 gfp_t gfp);
 	struct e1000_ring *rx_ring;
 
 	u32 rx_int_delay;
@@ -352,7 +361,8 @@ struct e1000_adapter {
 	u16 eee_advert;
 };
 
-struct e1000_info {
+struct e1000_info
+{
 	enum e1000_mac_type	mac;
 	unsigned int		flags;
 	unsigned int		flags2;
@@ -462,14 +472,16 @@ s32 e1000e_get_base_timinca(struct e1000_adapter *adapter, u32 *timinca);
 #define E1000_TX_DESC(R, i)		E1000_GET_DESC(R, i, e1000_tx_desc)
 #define E1000_CONTEXT_DESC(R, i)	E1000_GET_DESC(R, i, e1000_context_desc)
 
-enum e1000_state_t {
+enum e1000_state_t
+{
 	__E1000_TESTING,
 	__E1000_RESETTING,
 	__E1000_ACCESS_SHARED_RESOURCE,
 	__E1000_DOWN
 };
 
-enum latency_range {
+enum latency_range
+{
 	lowest_latency = 0,
 	low_latency = 1,
 	bulk_latency = 2,
@@ -494,7 +506,7 @@ int e1000e_setup_tx_resources(struct e1000_ring *ring);
 void e1000e_free_rx_resources(struct e1000_ring *ring);
 void e1000e_free_tx_resources(struct e1000_ring *ring);
 struct rtnl_link_stats64 *e1000e_get_stats64(struct net_device *netdev,
-					     struct rtnl_link_stats64 *stats);
+		struct rtnl_link_stats64 *stats);
 void e1000e_set_interrupt_capability(struct e1000_adapter *adapter);
 void e1000e_reset_interrupt_capability(struct e1000_adapter *adapter);
 void e1000e_get_hw_control(struct e1000_adapter *adapter);
@@ -550,7 +562,9 @@ void e1000e_reload_nvm_generic(struct e1000_hw *hw);
 static inline s32 e1000e_read_mac_addr(struct e1000_hw *hw)
 {
 	if (hw->mac.ops.read_mac_addr)
+	{
 		return hw->mac.ops.read_mac_addr(hw);
+	}
 
 	return e1000_read_mac_addr_generic(hw);
 }
@@ -566,13 +580,13 @@ static inline s32 e1000e_update_nvm_checksum(struct e1000_hw *hw)
 }
 
 static inline s32 e1000_read_nvm(struct e1000_hw *hw, u16 offset, u16 words,
-				 u16 *data)
+								 u16 *data)
 {
 	return hw->nvm.ops.read(hw, offset, words, data);
 }
 
 static inline s32 e1000_write_nvm(struct e1000_hw *hw, u16 offset, u16 words,
-				  u16 *data)
+								  u16 *data)
 {
 	return hw->nvm.ops.write(hw, offset, words, data);
 }

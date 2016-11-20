@@ -89,10 +89,10 @@ static unsigned short address;
 static int wdt_control_reg = WDT_RESET_GAME;
 module_param(wdt_control_reg, int, 0);
 MODULE_PARM_DESC(wdt_control_reg, "Value to write to watchdog control "
-		"register. The default WDT_RESET_GAME resets the timer on "
-		"game port reads that this driver generates. You can also "
-		"use KBD, MOUSE or CIR if you have some external way to "
-		"generate those interrupts.");
+				 "register. The default WDT_RESET_GAME resets the timer on "
+				 "game port reads that this driver generates. You can also "
+				 "use KBD, MOUSE or CIR if you have some external way to "
+				 "generate those interrupts.");
 
 static int superio_inb(int reg)
 {
@@ -128,7 +128,9 @@ static inline int superio_enter(void)
 	 * Try to reserve REG and REG + 1 for exclusive access.
 	 */
 	if (!request_muxed_region(REG, 2, NAME))
+	{
 		return -EBUSY;
+	}
 
 	outb(0x87, REG);
 	outb(0x01, REG);
@@ -147,7 +149,9 @@ static inline void superio_exit(void)
 static inline void it8712f_wdt_ping(void)
 {
 	if (wdt_control_reg & WDT_RESET_GAME)
+	{
 		inb(address);
+	}
 }
 
 static void it8712f_wdt_update_margin(void)
@@ -158,33 +162,47 @@ static void it8712f_wdt_update_margin(void)
 	/* Switch to minutes precision if the configured margin
 	 * value does not fit within the register width.
 	 */
-	if (units <= max_units) {
+	if (units <= max_units)
+	{
 		config |= WDT_UNIT_SEC; /* else UNIT is MINUTES */
 		pr_info("timer margin %d seconds\n", units);
-	} else {
+	}
+	else
+	{
 		units /= 60;
 		pr_info("timer margin %d minutes\n", units);
 	}
+
 	superio_outb(config, WDT_CONFIG);
 
 	if (revision >= 0x08)
+	{
 		superio_outb(units >> 8, WDT_TIMEOUT + 1);
+	}
+
 	superio_outb(units, WDT_TIMEOUT);
 }
 
 static int it8712f_wdt_get_status(void)
 {
 	if (superio_inb(WDT_CONTROL) & 0x01)
+	{
 		return WDIOF_CARDRESET;
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 static int it8712f_wdt_enable(void)
 {
 	int ret = superio_enter();
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	pr_debug("enabling watchdog timer\n");
 	superio_select(LDN_GPIO);
@@ -203,16 +221,23 @@ static int it8712f_wdt_enable(void)
 static int it8712f_wdt_disable(void)
 {
 	int ret = superio_enter();
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	pr_debug("disabling watchdog timer\n");
 	superio_select(LDN_GPIO);
 
 	superio_outb(0, WDT_CONFIG);
 	superio_outb(0, WDT_CONTROL);
+
 	if (revision >= 0x08)
+	{
 		superio_outb(0, WDT_TIMEOUT + 1);
+	}
+
 	superio_outb(0, WDT_TIMEOUT);
 
 	superio_exit();
@@ -220,35 +245,47 @@ static int it8712f_wdt_disable(void)
 }
 
 static int it8712f_wdt_notify(struct notifier_block *this,
-		    unsigned long code, void *unused)
+							  unsigned long code, void *unused)
 {
 	if (code == SYS_HALT || code == SYS_POWER_OFF)
 		if (!nowayout)
+		{
 			it8712f_wdt_disable();
+		}
 
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block it8712f_wdt_notifier = {
+static struct notifier_block it8712f_wdt_notifier =
+{
 	.notifier_call = it8712f_wdt_notify,
 };
 
 static ssize_t it8712f_wdt_write(struct file *file, const char __user *data,
-					size_t len, loff_t *ppos)
+								 size_t len, loff_t *ppos)
 {
 	/* check for a magic close character */
-	if (len) {
+	if (len)
+	{
 		size_t i;
 
 		it8712f_wdt_ping();
 
 		expect_close = 0;
-		for (i = 0; i < len; ++i) {
+
+		for (i = 0; i < len; ++i)
+		{
 			char c;
+
 			if (get_user(c, data + i))
+			{
 				return -EFAULT;
+			}
+
 			if (c == 'V')
+			{
 				expect_close = 42;
+			}
 		}
 	}
 
@@ -256,95 +293,140 @@ static ssize_t it8712f_wdt_write(struct file *file, const char __user *data,
 }
 
 static long it8712f_wdt_ioctl(struct file *file, unsigned int cmd,
-							unsigned long arg)
+							  unsigned long arg)
 {
 	void __user *argp = (void __user *)arg;
 	int __user *p = argp;
-	static const struct watchdog_info ident = {
+	static const struct watchdog_info ident =
+	{
 		.identity = "IT8712F Watchdog",
 		.firmware_version = 1,
 		.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING |
-						WDIOF_MAGICCLOSE,
+		WDIOF_MAGICCLOSE,
 	};
 	int value;
 	int ret;
 
-	switch (cmd) {
-	case WDIOC_GETSUPPORT:
-		if (copy_to_user(argp, &ident, sizeof(ident)))
-			return -EFAULT;
-		return 0;
-	case WDIOC_GETSTATUS:
-		ret = superio_enter();
-		if (ret)
-			return ret;
-		superio_select(LDN_GPIO);
+	switch (cmd)
+	{
+		case WDIOC_GETSUPPORT:
+			if (copy_to_user(argp, &ident, sizeof(ident)))
+			{
+				return -EFAULT;
+			}
 
-		value = it8712f_wdt_get_status();
+			return 0;
 
-		superio_exit();
+		case WDIOC_GETSTATUS:
+			ret = superio_enter();
 
-		return put_user(value, p);
-	case WDIOC_GETBOOTSTATUS:
-		return put_user(0, p);
-	case WDIOC_KEEPALIVE:
-		it8712f_wdt_ping();
-		return 0;
-	case WDIOC_SETTIMEOUT:
-		if (get_user(value, p))
-			return -EFAULT;
-		if (value < 1)
-			return -EINVAL;
-		if (value > (max_units * 60))
-			return -EINVAL;
-		margin = value;
-		ret = superio_enter();
-		if (ret)
-			return ret;
-		superio_select(LDN_GPIO);
+			if (ret)
+			{
+				return ret;
+			}
 
-		it8712f_wdt_update_margin();
+			superio_select(LDN_GPIO);
 
-		superio_exit();
-		it8712f_wdt_ping();
+			value = it8712f_wdt_get_status();
+
+			superio_exit();
+
+			return put_user(value, p);
+
+		case WDIOC_GETBOOTSTATUS:
+			return put_user(0, p);
+
+		case WDIOC_KEEPALIVE:
+			it8712f_wdt_ping();
+			return 0;
+
+		case WDIOC_SETTIMEOUT:
+			if (get_user(value, p))
+			{
+				return -EFAULT;
+			}
+
+			if (value < 1)
+			{
+				return -EINVAL;
+			}
+
+			if (value > (max_units * 60))
+			{
+				return -EINVAL;
+			}
+
+			margin = value;
+			ret = superio_enter();
+
+			if (ret)
+			{
+				return ret;
+			}
+
+			superio_select(LDN_GPIO);
+
+			it8712f_wdt_update_margin();
+
+			superio_exit();
+			it8712f_wdt_ping();
+
 		/* Fall through */
-	case WDIOC_GETTIMEOUT:
-		if (put_user(margin, p))
-			return -EFAULT;
-		return 0;
-	default:
-		return -ENOTTY;
+		case WDIOC_GETTIMEOUT:
+			if (put_user(margin, p))
+			{
+				return -EFAULT;
+			}
+
+			return 0;
+
+		default:
+			return -ENOTTY;
 	}
 }
 
 static int it8712f_wdt_open(struct inode *inode, struct file *file)
 {
 	int ret;
+
 	/* only allow one at a time */
 	if (test_and_set_bit(0, &wdt_open))
+	{
 		return -EBUSY;
+	}
 
 	ret = it8712f_wdt_enable();
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	return nonseekable_open(inode, file);
 }
 
 static int it8712f_wdt_release(struct inode *inode, struct file *file)
 {
-	if (expect_close != 42) {
+	if (expect_close != 42)
+	{
 		pr_warn("watchdog device closed unexpectedly, will not disable the watchdog timer\n");
-	} else if (!nowayout) {
-		if (it8712f_wdt_disable())
-			pr_warn("Watchdog disable failed\n");
 	}
+	else if (!nowayout)
+	{
+		if (it8712f_wdt_disable())
+		{
+			pr_warn("Watchdog disable failed\n");
+		}
+	}
+
 	expect_close = 0;
 	clear_bit(0, &wdt_open);
 
 	return 0;
 }
 
-static const struct file_operations it8712f_wdt_fops = {
+static const struct file_operations it8712f_wdt_fops =
+{
 	.owner = THIS_MODULE,
 	.llseek = no_llseek,
 	.write = it8712f_wdt_write,
@@ -353,7 +435,8 @@ static const struct file_operations it8712f_wdt_fops = {
 	.release = it8712f_wdt_release,
 };
 
-static struct miscdevice it8712f_wdt_miscdev = {
+static struct miscdevice it8712f_wdt_miscdev =
+{
 	.minor = WATCHDOG_MINOR,
 	.name = "watchdog",
 	.fops = &it8712f_wdt_fops,
@@ -364,22 +447,32 @@ static int __init it8712f_wdt_find(unsigned short *address)
 	int err = -ENODEV;
 	int chip_type;
 	int ret = superio_enter();
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	chip_type = superio_inw(DEVID);
+
 	if (chip_type != IT8712F_DEVID)
+	{
 		goto exit;
+	}
 
 	superio_select(LDN_GAME);
 	superio_outb(1, ACT_REG);
-	if (!(superio_inb(ACT_REG) & 0x01)) {
+
+	if (!(superio_inb(ACT_REG) & 0x01))
+	{
 		pr_err("Device not activated, skipping\n");
 		goto exit;
 	}
 
 	*address = superio_inw(BASE_REG);
-	if (*address == 0) {
+
+	if (*address == 0)
+	{
 		pr_err("Base address not set, skipping\n");
 		goto exit;
 	}
@@ -389,13 +482,17 @@ static int __init it8712f_wdt_find(unsigned short *address)
 
 	/* Later revisions have 16-bit values per datasheet 0.9.1 */
 	if (revision >= 0x08)
+	{
 		max_units = 65535;
+	}
 
 	if (margin > (max_units * 60))
+	{
 		margin = (max_units * 60);
+	}
 
 	pr_info("Found IT%04xF chip revision %d - using DogFood address 0x%x\n",
-		chip_type, revision, *address);
+			chip_type, revision, *address);
 
 exit:
 	superio_exit();
@@ -407,29 +504,38 @@ static int __init it8712f_wdt_init(void)
 	int err = 0;
 
 	if (it8712f_wdt_find(&address))
+	{
 		return -ENODEV;
+	}
 
-	if (!request_region(address, 1, "IT8712F Watchdog")) {
+	if (!request_region(address, 1, "IT8712F Watchdog"))
+	{
 		pr_warn("watchdog I/O region busy\n");
 		return -EBUSY;
 	}
 
 	err = it8712f_wdt_disable();
-	if (err) {
+
+	if (err)
+	{
 		pr_err("unable to disable watchdog timer\n");
 		goto out;
 	}
 
 	err = register_reboot_notifier(&it8712f_wdt_notifier);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("unable to register reboot notifier\n");
 		goto out;
 	}
 
 	err = misc_register(&it8712f_wdt_miscdev);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("cannot register miscdev on minor=%d (err=%d)\n",
-		       WATCHDOG_MINOR, err);
+			   WATCHDOG_MINOR, err);
 		goto reboot_out;
 	}
 

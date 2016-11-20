@@ -27,7 +27,9 @@ struct nvkm_top_device *
 nvkm_top_device_new(struct nvkm_top *top)
 {
 	struct nvkm_top_device *info = kmalloc(sizeof(*info), GFP_KERNEL);
-	if (info) {
+
+	if (info)
+	{
 		info->index = NVKM_SUBDEV_NR;
 		info->addr = 0;
 		info->fault = -1;
@@ -37,6 +39,7 @@ nvkm_top_device_new(struct nvkm_top *top)
 		info->intr = -1;
 		list_add_tail(&info->head, &top->device);
 	}
+
 	return info;
 }
 
@@ -46,10 +49,14 @@ nvkm_top_reset(struct nvkm_device *device, enum nvkm_devidx index)
 	struct nvkm_top *top = device->top;
 	struct nvkm_top_device *info;
 
-	if (top) {
-		list_for_each_entry(info, &top->device, head) {
+	if (top)
+	{
+		list_for_each_entry(info, &top->device, head)
+		{
 			if (info->index == index && info->reset >= 0)
+			{
 				return BIT(info->reset);
+			}
 		}
 	}
 
@@ -62,10 +69,14 @@ nvkm_top_intr_mask(struct nvkm_device *device, enum nvkm_devidx devidx)
 	struct nvkm_top *top = device->top;
 	struct nvkm_top_device *info;
 
-	if (top) {
-		list_for_each_entry(info, &top->device, head) {
+	if (top)
+	{
+		list_for_each_entry(info, &top->device, head)
+		{
 			if (info->index == devidx && info->intr >= 0)
+			{
 				return BIT(info->intr);
+			}
 		}
 	}
 
@@ -80,10 +91,14 @@ nvkm_top_intr(struct nvkm_device *device, u32 intr, u64 *psubdevs)
 	u64 subdevs = 0;
 	u32 handled = 0;
 
-	if (top) {
-		list_for_each_entry(info, &top->device, head) {
-			if (info->index != NVKM_SUBDEV_NR && info->intr >= 0) {
-				if (intr & BIT(info->intr)) {
+	if (top)
+	{
+		list_for_each_entry(info, &top->device, head)
+		{
+			if (info->index != NVKM_SUBDEV_NR && info->intr >= 0)
+			{
+				if (intr & BIT(info->intr))
+				{
 					subdevs |= BIT_ULL(info->index);
 					handled |= BIT(info->intr);
 				}
@@ -101,9 +116,12 @@ nvkm_top_fault(struct nvkm_device *device, int fault)
 	struct nvkm_top *top = device->top;
 	struct nvkm_top_device *info;
 
-	list_for_each_entry(info, &top->device, head) {
+	list_for_each_entry(info, &top->device, head)
+	{
 		if (info->fault == fault)
+		{
 			return info->index;
+		}
 	}
 
 	return NVKM_SUBDEV_NR;
@@ -116,8 +134,10 @@ nvkm_top_engine(struct nvkm_device *device, int index, int *runl, int *engn)
 	struct nvkm_top_device *info;
 	int n = 0;
 
-	list_for_each_entry(info, &top->device, head) {
-		if (info->engine >= 0 && info->runlist >= 0 && n++ == index) {
+	list_for_each_entry(info, &top->device, head)
+	{
+		if (info->engine >= 0 && info->runlist >= 0 && n++ == index)
+		{
 			*runl = info->runlist;
 			*engn = info->engine;
 			return info->index;
@@ -140,7 +160,8 @@ nvkm_top_dtor(struct nvkm_subdev *subdev)
 	struct nvkm_top *top = nvkm_top(subdev);
 	struct nvkm_top_device *info, *temp;
 
-	list_for_each_entry_safe(info, temp, &top->device, head) {
+	list_for_each_entry_safe(info, temp, &top->device, head)
+	{
 		list_del(&info->head);
 		kfree(info);
 	}
@@ -149,18 +170,23 @@ nvkm_top_dtor(struct nvkm_subdev *subdev)
 }
 
 static const struct nvkm_subdev_func
-nvkm_top = {
+	nvkm_top =
+{
 	.dtor = nvkm_top_dtor,
 	.oneinit = nvkm_top_oneinit,
 };
 
 int
 nvkm_top_new_(const struct nvkm_top_func *func, struct nvkm_device *device,
-	      int index, struct nvkm_top **ptop)
+			  int index, struct nvkm_top **ptop)
 {
 	struct nvkm_top *top;
+
 	if (!(top = *ptop = kzalloc(sizeof(*top), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	nvkm_subdev_ctor(&nvkm_top, device, index, &top->subdev);
 	top->func = func;
 	INIT_LIST_HEAD(&top->device);

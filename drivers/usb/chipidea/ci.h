@@ -39,7 +39,8 @@
 #define ID_SBUSCFG			0x90
 
 /* register indices */
-enum ci_hw_regs {
+enum ci_hw_regs
+{
 	CAP_CAPLENGTH,
 	CAP_HCCPARAMS,
 	CAP_DCCPARAMS,
@@ -82,13 +83,15 @@ enum ci_hw_regs {
  * @lock: pointer to controller's spinlock
  * @td_pool: pointer to controller's TD pool
  */
-struct ci_hw_ep {
+struct ci_hw_ep
+{
 	struct usb_ep				ep;
 	u8					dir;
 	u8					num;
 	u8					type;
 	char					name[16];
-	struct {
+	struct
+	{
 		struct list_head	queue;
 		struct ci_hw_qh		*ptr;
 		dma_addr_t		dma;
@@ -102,13 +105,15 @@ struct ci_hw_ep {
 	struct td_node				*pending_td;
 };
 
-enum ci_role {
+enum ci_role
+{
 	CI_ROLE_HOST = 0,
 	CI_ROLE_GADGET,
 	CI_ROLE_END,
 };
 
-enum ci_revision {
+enum ci_revision
+{
 	CI_REVISION_1X = 10,	/* Revision 1.x */
 	CI_REVISION_20 = 20, /* Revision 2.0 */
 	CI_REVISION_21, /* Revision 2.1 */
@@ -127,7 +132,8 @@ enum ci_revision {
  * @irq: irq handler for this role
  * @name: role name string (host/gadget)
  */
-struct ci_role_driver {
+struct ci_role_driver
+{
 	int		(*start)(struct ci_hdrc *);
 	void		(*stop)(struct ci_hdrc *);
 	irqreturn_t	(*irq)(struct ci_hdrc *);
@@ -144,7 +150,8 @@ struct ci_role_driver {
  * @size: size of the register window
  * @regmap: register lookup table
  */
-struct hw_bank {
+struct hw_bank
+{
 	unsigned	lpm;
 	resource_size_t	phys;
 	void __iomem	*abs;
@@ -200,7 +207,8 @@ struct hw_bank {
  * @wakeup_int: if wakeup interrupt occur
  * @rev: The revision number for controller
  */
-struct ci_hdrc {
+struct ci_hdrc
+{
 	struct device			*dev;
 	spinlock_t			lock;
 	struct hw_bank			hw_bank;
@@ -261,14 +269,22 @@ static inline int ci_role_start(struct ci_hdrc *ci, enum ci_role role)
 	int ret;
 
 	if (role >= CI_ROLE_END)
+	{
 		return -EINVAL;
+	}
 
 	if (!ci->roles[role])
+	{
 		return -ENXIO;
+	}
 
 	ret = ci->roles[role]->start(ci);
+
 	if (!ret)
+	{
 		ci->role = role;
+	}
+
 	return ret;
 }
 
@@ -277,7 +293,9 @@ static inline void ci_role_stop(struct ci_hdrc *ci)
 	enum ci_role role = ci->role;
 
 	if (role == CI_ROLE_END)
+	{
 		return;
+	}
 
 	ci->role = CI_ROLE_END;
 
@@ -305,11 +323,11 @@ static inline u32 hw_read_id_reg(struct ci_hdrc *ci, u32 offset, u32 mask)
  * @data: new value
  */
 static inline void hw_write_id_reg(struct ci_hdrc *ci, u32 offset,
-			    u32 mask, u32 data)
+								   u32 mask, u32 data)
 {
 	if (~mask)
 		data = (ioread32(ci->hw_bank.abs + offset) & ~mask)
-			| (data & mask);
+			   | (data & mask);
 
 	iowrite32(data, ci->hw_bank.abs + offset);
 }
@@ -339,12 +357,16 @@ static inline void imx28_ci_writel(u32 val, volatile void __iomem *addr)
 #endif
 
 static inline void __hw_write(struct ci_hdrc *ci, u32 val,
-		void __iomem *addr)
+							  void __iomem *addr)
 {
 	if (ci->imx28_write_fix)
+	{
 		imx28_ci_writel(val, addr);
+	}
 	else
+	{
 		iowrite32(val, addr);
+	}
 }
 
 /**
@@ -355,11 +377,11 @@ static inline void __hw_write(struct ci_hdrc *ci, u32 val,
  * @data: new value
  */
 static inline void hw_write(struct ci_hdrc *ci, enum ci_hw_regs reg,
-			    u32 mask, u32 data)
+							u32 mask, u32 data)
 {
 	if (~mask)
 		data = (ioread32(ci->hw_bank.regmap[reg]) & ~mask)
-			| (data & mask);
+			   | (data & mask);
 
 	__hw_write(ci, data, ci->hw_bank.regmap[reg]);
 }
@@ -373,7 +395,7 @@ static inline void hw_write(struct ci_hdrc *ci, enum ci_hw_regs reg,
  * This function returns register contents
  */
 static inline u32 hw_test_and_clear(struct ci_hdrc *ci, enum ci_hw_regs reg,
-				    u32 mask)
+									u32 mask)
 {
 	u32 val = ioread32(ci->hw_bank.regmap[reg]) & mask;
 
@@ -391,7 +413,7 @@ static inline u32 hw_test_and_clear(struct ci_hdrc *ci, enum ci_hw_regs reg,
  * This function returns register contents
  */
 static inline u32 hw_test_and_write(struct ci_hdrc *ci, enum ci_hw_regs reg,
-				    u32 mask, u32 data)
+									u32 mask, u32 data)
 {
 	u32 val = hw_read(ci, reg, ~0);
 
@@ -411,8 +433,8 @@ static inline bool ci_otg_is_fsm_mode(struct ci_hdrc *ci)
 	struct usb_otg_caps *otg_caps = &ci->platdata->ci_otg_caps;
 
 	return ci->is_otg && ci->roles[CI_ROLE_HOST] &&
-		ci->roles[CI_ROLE_GADGET] && (otg_caps->srp_support ||
-		otg_caps->hnp_support || otg_caps->adp_support);
+		   ci->roles[CI_ROLE_GADGET] && (otg_caps->srp_support ||
+										 otg_caps->hnp_support || otg_caps->adp_support);
 #else
 	return false;
 #endif

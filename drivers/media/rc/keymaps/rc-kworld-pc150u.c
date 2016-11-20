@@ -19,7 +19,8 @@
    Kyle Strickland <kyle@kyle.strickland.name>
  */
 
-static struct rc_map_table kworld_pc150u[] = {
+static struct rc_map_table kworld_pc150u[] =
+{
 	{ 0x0c, KEY_MEDIA },		/* Kworld key */
 	{ 0x16, KEY_EJECTCLOSECD },	/* -> ) */
 	{ 0x1d, KEY_POWER2 },
@@ -76,7 +77,8 @@ static struct rc_map_table kworld_pc150u[] = {
 	{ 0x23, KEY_GREEN},		/* C */
 };
 
-static struct rc_map_list kworld_pc150u_map = {
+static struct rc_map_list kworld_pc150u_map =
+{
 	.map = {
 		.scan    = kworld_pc150u,
 		.size    = ARRAY_SIZE(kworld_pc150u),

@@ -46,39 +46,39 @@
 
 /* Miscellaneous internal discovery routines */
 static void esas2r_disc_abort(struct esas2r_adapter *a,
-			      struct esas2r_request *rq);
+							  struct esas2r_request *rq);
 static bool esas2r_disc_continue(struct esas2r_adapter *a,
-				 struct esas2r_request *rq);
+								 struct esas2r_request *rq);
 static void esas2r_disc_fix_curr_requests(struct esas2r_adapter *a);
 static u32 esas2r_disc_get_phys_addr(struct esas2r_sg_context *sgc, u64 *addr);
 static bool esas2r_disc_start_request(struct esas2r_adapter *a,
-				      struct esas2r_request *rq);
+									  struct esas2r_request *rq);
 
 /* Internal discovery routines that process the states */
 static bool esas2r_disc_block_dev_scan(struct esas2r_adapter *a,
-				       struct esas2r_request *rq);
+									   struct esas2r_request *rq);
 static void esas2r_disc_block_dev_scan_cb(struct esas2r_adapter *a,
-					  struct esas2r_request *rq);
+		struct esas2r_request *rq);
 static bool esas2r_disc_dev_add(struct esas2r_adapter *a,
-				struct esas2r_request *rq);
+								struct esas2r_request *rq);
 static bool esas2r_disc_dev_remove(struct esas2r_adapter *a,
-				   struct esas2r_request *rq);
+								   struct esas2r_request *rq);
 static bool esas2r_disc_part_info(struct esas2r_adapter *a,
-				  struct esas2r_request *rq);
+								  struct esas2r_request *rq);
 static void esas2r_disc_part_info_cb(struct esas2r_adapter *a,
-				     struct esas2r_request *rq);
+									 struct esas2r_request *rq);
 static bool esas2r_disc_passthru_dev_info(struct esas2r_adapter *a,
-					  struct esas2r_request *rq);
+		struct esas2r_request *rq);
 static void esas2r_disc_passthru_dev_info_cb(struct esas2r_adapter *a,
-					     struct esas2r_request *rq);
+		struct esas2r_request *rq);
 static bool esas2r_disc_passthru_dev_addr(struct esas2r_adapter *a,
-					  struct esas2r_request *rq);
+		struct esas2r_request *rq);
 static void esas2r_disc_passthru_dev_addr_cb(struct esas2r_adapter *a,
-					     struct esas2r_request *rq);
+		struct esas2r_request *rq);
 static bool esas2r_disc_raid_grp_info(struct esas2r_adapter *a,
-				      struct esas2r_request *rq);
+									  struct esas2r_request *rq);
 static void esas2r_disc_raid_grp_info_cb(struct esas2r_adapter *a,
-					 struct esas2r_request *rq);
+		struct esas2r_request *rq);
 
 void esas2r_disc_initialize(struct esas2r_adapter *a)
 {
@@ -95,7 +95,9 @@ void esas2r_disc_initialize(struct esas2r_adapter *a)
 	a->disc_wait_cnt = nvr->dev_wait_count;
 
 	if (a->disc_wait_cnt > ESAS2R_MAX_TARGETS)
+	{
 		a->disc_wait_cnt = ESAS2R_MAX_TARGETS;
+	}
 
 	/*
 	 * If we are doing chip reset or power management processing, always
@@ -108,13 +110,17 @@ void esas2r_disc_initialize(struct esas2r_adapter *a)
 	a->general_req.interrupt_cx = NULL;
 
 	if (test_bit(AF_CHPRST_DETECTED, &a->flags) ||
-	    test_bit(AF_POWER_MGT, &a->flags)) {
-		if (a->prev_dev_cnt == 0) {
+		test_bit(AF_POWER_MGT, &a->flags))
+	{
+		if (a->prev_dev_cnt == 0)
+		{
 			/* Don't bother waiting if there is nothing to wait
 			 * for.
 			 */
 			a->disc_wait_time = 0;
-		} else {
+		}
+		else
+		{
 			/*
 			 * Set the device wait count to what was previously
 			 * found.  We don't care if the user only configured
@@ -130,7 +136,9 @@ void esas2r_disc_initialize(struct esas2r_adapter *a)
 			 * buys us more time).
 			 */
 			if (a->disc_wait_time < 15000)
+			{
 				a->disc_wait_time = 15000;
+			}
 		}
 	}
 
@@ -138,7 +146,9 @@ void esas2r_disc_initialize(struct esas2r_adapter *a)
 	esas2r_trace("disc wait time: %d", a->disc_wait_time);
 
 	if (a->disc_wait_time == 0)
+	{
 		esas2r_disc_check_complete(a);
+	}
 
 	esas2r_trace_exit();
 }
@@ -150,7 +160,9 @@ void esas2r_disc_start_waiting(struct esas2r_adapter *a)
 	spin_lock_irqsave(&a->mem_lock, flags);
 
 	if (a->disc_ctx.disc_evt)
+	{
 		esas2r_disc_start_port(a);
+	}
 
 	spin_unlock_irqrestore(&a->mem_lock, flags);
 }
@@ -172,14 +184,18 @@ void esas2r_disc_check_for_work(struct esas2r_adapter *a)
 	esas2r_disc_start_waiting(a);
 
 	if (rq->interrupt_cx == NULL)
+	{
 		return;
+	}
 
 	if (rq->req_stat == RS_STARTED
-	    && rq->timeout <= RQ_MAX_TIMEOUT) {
+		&& rq->timeout <= RQ_MAX_TIMEOUT)
+	{
 		/* wait for the current discovery request to complete. */
 		esas2r_wait_request(a, rq);
 
-		if (rq->req_stat == RS_TIMEOUT) {
+		if (rq->req_stat == RS_TIMEOUT)
+		{
 			esas2r_disc_abort(a, rq);
 			esas2r_local_reset_adapter(a);
 			return;
@@ -187,8 +203,10 @@ void esas2r_disc_check_for_work(struct esas2r_adapter *a)
 	}
 
 	if (rq->req_stat == RS_PENDING
-	    || rq->req_stat == RS_STARTED)
+		|| rq->req_stat == RS_STARTED)
+	{
 		return;
+	}
 
 	esas2r_disc_continue(a, rq);
 }
@@ -200,7 +218,8 @@ void esas2r_disc_check_complete(struct esas2r_adapter *a)
 	esas2r_trace_enter();
 
 	/* check to see if we should be waiting for devices */
-	if (a->disc_wait_time) {
+	if (a->disc_wait_time)
+	{
 		u32 currtime = jiffies_to_msecs(jiffies);
 		u32 time = currtime - a->disc_start_time;
 
@@ -209,11 +228,13 @@ void esas2r_disc_check_complete(struct esas2r_adapter *a)
 		 * wait count is satisfied.
 		 */
 		if (time < a->disc_wait_time
-		    && (esas2r_targ_db_get_tgt_cnt(a) < a->disc_wait_cnt
-			|| a->disc_wait_cnt == 0)) {
+			&& (esas2r_targ_db_get_tgt_cnt(a) < a->disc_wait_cnt
+				|| a->disc_wait_cnt == 0))
+		{
 			/* After three seconds of waiting, schedule a scan. */
 			if (time >= 3000
-			    && !test_and_set_bit(AF2_DEV_SCAN, &a->flags2)) {
+				&& !test_and_set_bit(AF2_DEV_SCAN, &a->flags2))
+			{
 				spin_lock_irqsave(&a->mem_lock, flags);
 				esas2r_disc_queue_event(a, DCDE_DEV_SCAN);
 				spin_unlock_irqrestore(&a->mem_lock, flags);
@@ -228,10 +249,13 @@ void esas2r_disc_check_complete(struct esas2r_adapter *a)
 		 * consume events after the count is met.
 		 */
 		if (!test_and_set_bit(AF2_DEV_CNT_OK, &a->flags2))
+		{
 			a->disc_wait_time = time + 3000;
+		}
 
 		/* If we haven't done a full scan yet, do it now. */
-		if (!test_and_set_bit(AF2_DEV_SCAN, &a->flags2)) {
+		if (!test_and_set_bit(AF2_DEV_SCAN, &a->flags2))
+		{
 			spin_lock_irqsave(&a->mem_lock, flags);
 			esas2r_disc_queue_event(a, DCDE_DEV_SCAN);
 			spin_unlock_irqrestore(&a->mem_lock, flags);
@@ -243,12 +267,16 @@ void esas2r_disc_check_complete(struct esas2r_adapter *a)
 		 * Now, if there is still time left to consume events, continue
 		 * waiting.
 		 */
-		if (time < a->disc_wait_time) {
+		if (time < a->disc_wait_time)
+		{
 			esas2r_trace_exit();
 			return;
 		}
-	} else {
-		if (!test_and_set_bit(AF2_DEV_SCAN, &a->flags2)) {
+	}
+	else
+	{
+		if (!test_and_set_bit(AF2_DEV_SCAN, &a->flags2))
+		{
 			spin_lock_irqsave(&a->mem_lock, flags);
 			esas2r_disc_queue_event(a, DCDE_DEV_SCAN);
 			spin_unlock_irqrestore(&a->mem_lock, flags);
@@ -259,14 +287,17 @@ void esas2r_disc_check_complete(struct esas2r_adapter *a)
 	a->disc_wait_time = 0;
 
 	if (test_bit(AF_DISC_POLLED, &a->flags) &&
-	    test_bit(AF_DISC_IN_PROG, &a->flags)) {
+		test_bit(AF_DISC_IN_PROG, &a->flags))
+	{
 		/*
 		 * Polled discovery is still pending so continue the active
 		 * discovery until it is done.  At that point, we will stop
 		 * polled discovery and transition to interrupt driven
 		 * discovery.
 		 */
-	} else {
+	}
+	else
+	{
 		/*
 		 * Done waiting for devices.  Note that we get here immediately
 		 * after deferred waiting completes because that is interrupt
@@ -302,8 +333,10 @@ void esas2r_disc_queue_event(struct esas2r_adapter *a, u8 disc_evt)
 	 * we would have a deadlock if we are in the ISR already.
 	 */
 	if (!test_bit(AF_CHPRST_PENDING, &a->flags) &&
-	    !test_bit(AF_DISC_POLLED, &a->flags))
+		!test_bit(AF_DISC_POLLED, &a->flags))
+	{
 		esas2r_disc_start_port(a);
+	}
 
 	esas2r_trace_exit();
 }
@@ -316,16 +349,19 @@ bool esas2r_disc_start_port(struct esas2r_adapter *a)
 
 	esas2r_trace_enter();
 
-	if (test_bit(AF_DISC_IN_PROG, &a->flags)) {
+	if (test_bit(AF_DISC_IN_PROG, &a->flags))
+	{
 		esas2r_trace_exit();
 
 		return false;
 	}
 
 	/* If there is a discovery waiting, process it. */
-	if (dc->disc_evt) {
+	if (dc->disc_evt)
+	{
 		if (test_bit(AF_DISC_POLLED, &a->flags)
-		    && a->disc_wait_time == 0) {
+			&& a->disc_wait_time == 0)
+		{
 			/*
 			 * We are doing polled discovery, but we no longer want
 			 * to wait for devices.  Stop polled discovery and
@@ -336,7 +372,9 @@ bool esas2r_disc_start_port(struct esas2r_adapter *a)
 
 			return false;
 		}
-	} else {
+	}
+	else
+	{
 		/* Discovery is complete. */
 
 		esas2r_hdebug("disc done");
@@ -354,18 +392,23 @@ bool esas2r_disc_start_port(struct esas2r_adapter *a)
 	dc->flags = 0;
 
 	if (test_bit(AF_DISC_POLLED, &a->flags))
+	{
 		dc->flags |= DCF_POLLED;
+	}
 
 	rq->interrupt_cx = dc;
 	rq->req_stat = RS_SUCCESS;
 
 	/* Decode the event code */
-	if (dc->disc_evt & DCDE_DEV_SCAN) {
+	if (dc->disc_evt & DCDE_DEV_SCAN)
+	{
 		dc->disc_evt &= ~DCDE_DEV_SCAN;
 
 		dc->flags |= DCF_DEV_SCAN;
 		dc->state = DCS_BLOCK_DEV_SCAN;
-	} else if (dc->disc_evt & DCDE_DEV_CHANGE) {
+	}
+	else if (dc->disc_evt & DCDE_DEV_CHANGE)
+	{
 		dc->disc_evt &= ~DCDE_DEV_CHANGE;
 
 		dc->flags |= DCF_DEV_CHANGE;
@@ -374,9 +417,13 @@ bool esas2r_disc_start_port(struct esas2r_adapter *a)
 
 	/* Continue interrupt driven discovery */
 	if (!test_bit(AF_DISC_POLLED, &a->flags))
+	{
 		ret = esas2r_disc_continue(a, rq);
+	}
 	else
+	{
 		ret = true;
+	}
 
 	esas2r_trace_exit();
 
@@ -384,71 +431,79 @@ bool esas2r_disc_start_port(struct esas2r_adapter *a)
 }
 
 static bool esas2r_disc_continue(struct esas2r_adapter *a,
-				 struct esas2r_request *rq)
+								 struct esas2r_request *rq)
 {
 	struct esas2r_disc_context *dc =
 		(struct esas2r_disc_context *)rq->interrupt_cx;
 	bool rslt;
 
 	/* Device discovery/removal */
-	while (dc->flags & (DCF_DEV_CHANGE | DCF_DEV_SCAN)) {
+	while (dc->flags & (DCF_DEV_CHANGE | DCF_DEV_SCAN))
+	{
 		rslt = false;
 
-		switch (dc->state) {
-		case DCS_DEV_RMV:
+		switch (dc->state)
+		{
+			case DCS_DEV_RMV:
 
-			rslt = esas2r_disc_dev_remove(a, rq);
-			break;
+				rslt = esas2r_disc_dev_remove(a, rq);
+				break;
 
-		case DCS_DEV_ADD:
+			case DCS_DEV_ADD:
 
-			rslt = esas2r_disc_dev_add(a, rq);
-			break;
+				rslt = esas2r_disc_dev_add(a, rq);
+				break;
 
-		case DCS_BLOCK_DEV_SCAN:
+			case DCS_BLOCK_DEV_SCAN:
 
-			rslt = esas2r_disc_block_dev_scan(a, rq);
-			break;
+				rslt = esas2r_disc_block_dev_scan(a, rq);
+				break;
 
-		case DCS_RAID_GRP_INFO:
+			case DCS_RAID_GRP_INFO:
 
-			rslt = esas2r_disc_raid_grp_info(a, rq);
-			break;
+				rslt = esas2r_disc_raid_grp_info(a, rq);
+				break;
 
-		case DCS_PART_INFO:
+			case DCS_PART_INFO:
 
-			rslt = esas2r_disc_part_info(a, rq);
-			break;
+				rslt = esas2r_disc_part_info(a, rq);
+				break;
 
-		case DCS_PT_DEV_INFO:
+			case DCS_PT_DEV_INFO:
 
-			rslt = esas2r_disc_passthru_dev_info(a, rq);
-			break;
-		case DCS_PT_DEV_ADDR:
+				rslt = esas2r_disc_passthru_dev_info(a, rq);
+				break;
 
-			rslt = esas2r_disc_passthru_dev_addr(a, rq);
-			break;
-		case DCS_DISC_DONE:
+			case DCS_PT_DEV_ADDR:
 
-			dc->flags &= ~(DCF_DEV_CHANGE | DCF_DEV_SCAN);
-			break;
+				rslt = esas2r_disc_passthru_dev_addr(a, rq);
+				break;
 
-		default:
+			case DCS_DISC_DONE:
 
-			esas2r_bugon();
-			dc->state = DCS_DISC_DONE;
-			break;
+				dc->flags &= ~(DCF_DEV_CHANGE | DCF_DEV_SCAN);
+				break;
+
+			default:
+
+				esas2r_bugon();
+				dc->state = DCS_DISC_DONE;
+				break;
 		}
 
 		if (rslt)
+		{
 			return true;
+		}
 	}
 
 	/* Discovery is done...for now. */
 	rq->interrupt_cx = NULL;
 
 	if (!test_bit(AF_DISC_PENDING, &a->flags))
+	{
 		esas2r_disc_fix_curr_requests(a);
+	}
 
 	clear_bit(AF_DISC_IN_PROG, &a->flags);
 
@@ -457,13 +512,15 @@ static bool esas2r_disc_continue(struct esas2r_adapter *a,
 }
 
 static bool esas2r_disc_start_request(struct esas2r_adapter *a,
-				      struct esas2r_request *rq)
+									  struct esas2r_request *rq)
 {
 	unsigned long flags;
 
 	/* Set the timeout to a minimum value. */
 	if (rq->timeout < ESAS2R_DEFAULT_TMO)
+	{
 		rq->timeout = ESAS2R_DEFAULT_TMO;
+	}
 
 	/*
 	 * Override the request type to distinguish discovery requests.  If we
@@ -475,10 +532,14 @@ static bool esas2r_disc_start_request(struct esas2r_adapter *a,
 	spin_lock_irqsave(&a->queue_lock, flags);
 
 	if (!test_bit(AF_CHPRST_PENDING, &a->flags) &&
-	    !test_bit(AF_FLASHING, &a->flags))
+		!test_bit(AF_FLASHING, &a->flags))
+	{
 		esas2r_disc_local_start_request(a, rq);
+	}
 	else
+	{
 		list_add_tail(&rq->req_list, &a->defer_list);
+	}
 
 	spin_unlock_irqrestore(&a->queue_lock, flags);
 
@@ -486,7 +547,7 @@ static bool esas2r_disc_start_request(struct esas2r_adapter *a,
 }
 
 void esas2r_disc_local_start_request(struct esas2r_adapter *a,
-				     struct esas2r_request *rq)
+									 struct esas2r_request *rq)
 {
 	esas2r_trace_enter();
 
@@ -500,7 +561,7 @@ void esas2r_disc_local_start_request(struct esas2r_adapter *a,
 }
 
 static void esas2r_disc_abort(struct esas2r_adapter *a,
-			      struct esas2r_request *rq)
+							  struct esas2r_request *rq)
 {
 	struct esas2r_disc_context *dc =
 		(struct esas2r_disc_context *)rq->interrupt_cx;
@@ -515,7 +576,7 @@ static void esas2r_disc_abort(struct esas2r_adapter *a,
 }
 
 static bool esas2r_disc_block_dev_scan(struct esas2r_adapter *a,
-				       struct esas2r_request *rq)
+									   struct esas2r_request *rq)
 {
 	struct esas2r_disc_context *dc =
 		(struct esas2r_disc_context *)rq->interrupt_cx;
@@ -526,12 +587,12 @@ static bool esas2r_disc_block_dev_scan(struct esas2r_adapter *a,
 	esas2r_rq_init_request(rq, a);
 
 	esas2r_build_mgt_req(a,
-			     rq,
-			     VDAMGT_DEV_SCAN,
-			     0,
-			     0,
-			     0,
-			     NULL);
+						 rq,
+						 VDAMGT_DEV_SCAN,
+						 0,
+						 0,
+						 0,
+						 NULL);
 
 	rq->comp_cb = esas2r_disc_block_dev_scan_cb;
 
@@ -546,7 +607,7 @@ static bool esas2r_disc_block_dev_scan(struct esas2r_adapter *a,
 }
 
 static void esas2r_disc_block_dev_scan_cb(struct esas2r_adapter *a,
-					  struct esas2r_request *rq)
+		struct esas2r_request *rq)
 {
 	struct esas2r_disc_context *dc =
 		(struct esas2r_disc_context *)rq->interrupt_cx;
@@ -557,7 +618,9 @@ static void esas2r_disc_block_dev_scan_cb(struct esas2r_adapter *a,
 	spin_lock_irqsave(&a->mem_lock, flags);
 
 	if (rq->req_stat == RS_SUCCESS)
+	{
 		dc->scan_gen = rq->func_rsp.mgt_rsp.scan_generation;
+	}
 
 	dc->state = DCS_RAID_GRP_INFO;
 	dc->raid_grp_ix = 0;
@@ -567,7 +630,9 @@ static void esas2r_disc_block_dev_scan_cb(struct esas2r_adapter *a,
 	/* continue discovery if it's interrupt driven */
 
 	if (!(dc->flags & DCF_POLLED))
+	{
 		esas2r_disc_continue(a, rq);
+	}
 
 	spin_unlock_irqrestore(&a->mem_lock, flags);
 
@@ -575,7 +640,7 @@ static void esas2r_disc_block_dev_scan_cb(struct esas2r_adapter *a,
 }
 
 static bool esas2r_disc_raid_grp_info(struct esas2r_adapter *a,
-				      struct esas2r_request *rq)
+									  struct esas2r_request *rq)
 {
 	struct esas2r_disc_context *dc =
 		(struct esas2r_disc_context *)rq->interrupt_cx;
@@ -586,7 +651,8 @@ static bool esas2r_disc_raid_grp_info(struct esas2r_adapter *a,
 
 	esas2r_trace("raid_group_idx: %d", dc->raid_grp_ix);
 
-	if (dc->raid_grp_ix >= VDA_MAX_RAID_GROUPS) {
+	if (dc->raid_grp_ix >= VDA_MAX_RAID_GROUPS)
+	{
 		dc->state = DCS_DISC_DONE;
 
 		esas2r_trace_exit();
@@ -601,12 +667,12 @@ static bool esas2r_disc_raid_grp_info(struct esas2r_adapter *a,
 	memset(grpinfo, 0, sizeof(struct atto_vda_grp_info));
 
 	esas2r_build_mgt_req(a,
-			     rq,
-			     VDAMGT_GRP_INFO,
-			     dc->scan_gen,
-			     0,
-			     sizeof(struct atto_vda_grp_info),
-			     NULL);
+						 rq,
+						 VDAMGT_GRP_INFO,
+						 dc->scan_gen,
+						 0,
+						 sizeof(struct atto_vda_grp_info),
+						 NULL);
 
 	grpinfo->grp_index = dc->raid_grp_ix;
 
@@ -622,7 +688,7 @@ static bool esas2r_disc_raid_grp_info(struct esas2r_adapter *a,
 }
 
 static void esas2r_disc_raid_grp_info_cb(struct esas2r_adapter *a,
-					 struct esas2r_request *rq)
+		struct esas2r_request *rq)
 {
 	struct esas2r_disc_context *dc =
 		(struct esas2r_disc_context *)rq->interrupt_cx;
@@ -633,24 +699,29 @@ static void esas2r_disc_raid_grp_info_cb(struct esas2r_adapter *a,
 
 	spin_lock_irqsave(&a->mem_lock, flags);
 
-	if (rq->req_stat == RS_SCAN_GEN) {
+	if (rq->req_stat == RS_SCAN_GEN)
+	{
 		dc->scan_gen = rq->func_rsp.mgt_rsp.scan_generation;
 		dc->raid_grp_ix = 0;
 		goto done;
 	}
 
-	if (rq->req_stat == RS_SUCCESS) {
+	if (rq->req_stat == RS_SUCCESS)
+	{
 		grpinfo = &rq->vda_rsp_data->mgt_data.data.grp_info;
 
 		if (grpinfo->status != VDA_GRP_STAT_ONLINE
-		    && grpinfo->status != VDA_GRP_STAT_DEGRADED) {
+			&& grpinfo->status != VDA_GRP_STAT_DEGRADED)
+		{
 			/* go to the next group. */
 
 			dc->raid_grp_ix++;
-		} else {
+		}
+		else
+		{
 			memcpy(&dc->raid_grp_name[0],
-			       &grpinfo->grp_name[0],
-			       sizeof(grpinfo->grp_name));
+				   &grpinfo->grp_name[0],
+				   sizeof(grpinfo->grp_name));
 
 			dc->interleave = le32_to_cpu(grpinfo->interleave);
 			dc->block_size = le32_to_cpu(grpinfo->block_size);
@@ -658,12 +729,15 @@ static void esas2r_disc_raid_grp_info_cb(struct esas2r_adapter *a,
 			dc->state = DCS_PART_INFO;
 			dc->part_num = 0;
 		}
-	} else {
-		if (!(rq->req_stat == RS_GRP_INVALID)) {
+	}
+	else
+	{
+		if (!(rq->req_stat == RS_GRP_INVALID))
+		{
 			esas2r_log(ESAS2R_LOG_WARN,
-				   "A request for RAID group info failed - "
-				   "returned with %x",
-				   rq->req_stat);
+					   "A request for RAID group info failed - "
+					   "returned with %x",
+					   rq->req_stat);
 		}
 
 		dc->dev_ix = 0;
@@ -677,7 +751,9 @@ done:
 	/* continue discovery if it's interrupt driven */
 
 	if (!(dc->flags & DCF_POLLED))
+	{
 		esas2r_disc_continue(a, rq);
+	}
 
 	spin_unlock_irqrestore(&a->mem_lock, flags);
 
@@ -685,7 +761,7 @@ done:
 }
 
 static bool esas2r_disc_part_info(struct esas2r_adapter *a,
-				  struct esas2r_request *rq)
+								  struct esas2r_request *rq)
 {
 	struct esas2r_disc_context *dc =
 		(struct esas2r_disc_context *)rq->interrupt_cx;
@@ -696,7 +772,8 @@ static bool esas2r_disc_part_info(struct esas2r_adapter *a,
 
 	esas2r_trace("part_num: %d", dc->part_num);
 
-	if (dc->part_num >= VDA_MAX_PARTITIONS) {
+	if (dc->part_num >= VDA_MAX_PARTITIONS)
+	{
 		dc->state = DCS_RAID_GRP_INFO;
 		dc->raid_grp_ix++;
 
@@ -712,18 +789,18 @@ static bool esas2r_disc_part_info(struct esas2r_adapter *a,
 	memset(partinfo, 0, sizeof(struct atto_vdapart_info));
 
 	esas2r_build_mgt_req(a,
-			     rq,
-			     VDAMGT_PART_INFO,
-			     dc->scan_gen,
-			     0,
-			     sizeof(struct atto_vdapart_info),
-			     NULL);
+						 rq,
+						 VDAMGT_PART_INFO,
+						 dc->scan_gen,
+						 0,
+						 sizeof(struct atto_vdapart_info),
+						 NULL);
 
 	partinfo->part_no = dc->part_num;
 
 	memcpy(&partinfo->grp_name[0],
-	       &dc->raid_grp_name[0],
-	       sizeof(partinfo->grp_name));
+		   &dc->raid_grp_name[0],
+		   sizeof(partinfo->grp_name));
 
 	rq->comp_cb = esas2r_disc_part_info_cb;
 
@@ -737,7 +814,7 @@ static bool esas2r_disc_part_info(struct esas2r_adapter *a,
 }
 
 static void esas2r_disc_part_info_cb(struct esas2r_adapter *a,
-				     struct esas2r_request *rq)
+									 struct esas2r_request *rq)
 {
 	struct esas2r_disc_context *dc =
 		(struct esas2r_disc_context *)rq->interrupt_cx;
@@ -748,11 +825,14 @@ static void esas2r_disc_part_info_cb(struct esas2r_adapter *a,
 
 	spin_lock_irqsave(&a->mem_lock, flags);
 
-	if (rq->req_stat == RS_SCAN_GEN) {
+	if (rq->req_stat == RS_SCAN_GEN)
+	{
 		dc->scan_gen = rq->func_rsp.mgt_rsp.scan_generation;
 		dc->raid_grp_ix = 0;
 		dc->state = DCS_RAID_GRP_INFO;
-	} else if (rq->req_stat == RS_SUCCESS) {
+	}
+	else if (rq->req_stat == RS_SUCCESS)
+	{
 		partinfo = &rq->vda_rsp_data->mgt_data.data.part_info;
 
 		dc->part_num = partinfo->part_no;
@@ -762,11 +842,14 @@ static void esas2r_disc_part_info_cb(struct esas2r_adapter *a,
 		esas2r_targ_db_add_raid(a, dc);
 
 		dc->part_num++;
-	} else {
-		if (!(rq->req_stat == RS_PART_LAST)) {
+	}
+	else
+	{
+		if (!(rq->req_stat == RS_PART_LAST))
+		{
 			esas2r_log(ESAS2R_LOG_WARN,
-				   "A request for RAID group partition info "
-				   "failed - status:%d", rq->req_stat);
+					   "A request for RAID group partition info "
+					   "failed - status:%d", rq->req_stat);
 		}
 
 		dc->state = DCS_RAID_GRP_INFO;
@@ -778,7 +861,9 @@ static void esas2r_disc_part_info_cb(struct esas2r_adapter *a,
 	/* continue discovery if it's interrupt driven */
 
 	if (!(dc->flags & DCF_POLLED))
+	{
 		esas2r_disc_continue(a, rq);
+	}
 
 	spin_unlock_irqrestore(&a->mem_lock, flags);
 
@@ -786,7 +871,7 @@ static void esas2r_disc_part_info_cb(struct esas2r_adapter *a,
 }
 
 static bool esas2r_disc_passthru_dev_info(struct esas2r_adapter *a,
-					  struct esas2r_request *rq)
+		struct esas2r_request *rq)
 {
 	struct esas2r_disc_context *dc =
 		(struct esas2r_disc_context *)rq->interrupt_cx;
@@ -804,12 +889,12 @@ static bool esas2r_disc_passthru_dev_info(struct esas2r_adapter *a,
 	memset(devinfo, 0, sizeof(struct atto_vda_devinfo));
 
 	esas2r_build_mgt_req(a,
-			     rq,
-			     VDAMGT_DEV_PT_INFO,
-			     dc->scan_gen,
-			     dc->dev_ix,
-			     sizeof(struct atto_vda_devinfo),
-			     NULL);
+						 rq,
+						 VDAMGT_DEV_PT_INFO,
+						 dc->scan_gen,
+						 dc->dev_ix,
+						 sizeof(struct atto_vda_devinfo),
+						 NULL);
 
 	rq->comp_cb = esas2r_disc_passthru_dev_info_cb;
 
@@ -823,7 +908,7 @@ static bool esas2r_disc_passthru_dev_info(struct esas2r_adapter *a,
 }
 
 static void esas2r_disc_passthru_dev_info_cb(struct esas2r_adapter *a,
-					     struct esas2r_request *rq)
+		struct esas2r_request *rq)
 {
 	struct esas2r_disc_context *dc =
 		(struct esas2r_disc_context *)rq->interrupt_cx;
@@ -834,18 +919,22 @@ static void esas2r_disc_passthru_dev_info_cb(struct esas2r_adapter *a,
 
 	spin_lock_irqsave(&a->mem_lock, flags);
 
-	if (rq->req_stat == RS_SCAN_GEN) {
+	if (rq->req_stat == RS_SCAN_GEN)
+	{
 		dc->scan_gen = rq->func_rsp.mgt_rsp.scan_generation;
 		dc->dev_ix = 0;
 		dc->state = DCS_PT_DEV_INFO;
-	} else if (rq->req_stat == RS_SUCCESS) {
+	}
+	else if (rq->req_stat == RS_SUCCESS)
+	{
 		devinfo = &rq->vda_rsp_data->mgt_data.data.dev_info;
 
 		dc->dev_ix = le16_to_cpu(rq->func_rsp.mgt_rsp.dev_index);
 
 		dc->curr_virt_id = le16_to_cpu(devinfo->target_id);
 
-		if (le16_to_cpu(devinfo->features) & VDADEVFEAT_PHYS_ID) {
+		if (le16_to_cpu(devinfo->features) & VDADEVFEAT_PHYS_ID)
+		{
 			dc->curr_phys_id =
 				le16_to_cpu(devinfo->phys_target_id);
 			dc->dev_addr_type = ATTO_GDA_AT_PORT;
@@ -853,14 +942,19 @@ static void esas2r_disc_passthru_dev_info_cb(struct esas2r_adapter *a,
 
 			esas2r_trace("curr_virt_id: %d", dc->curr_virt_id);
 			esas2r_trace("curr_phys_id: %d", dc->curr_phys_id);
-		} else {
+		}
+		else
+		{
 			dc->dev_ix++;
 		}
-	} else {
-		if (!(rq->req_stat == RS_DEV_INVALID)) {
+	}
+	else
+	{
+		if (!(rq->req_stat == RS_DEV_INVALID))
+		{
 			esas2r_log(ESAS2R_LOG_WARN,
-				   "A request for device information failed - "
-				   "status:%d", rq->req_stat);
+					   "A request for device information failed - "
+					   "status:%d", rq->req_stat);
 		}
 
 		dc->state = DCS_DISC_DONE;
@@ -871,7 +965,9 @@ static void esas2r_disc_passthru_dev_info_cb(struct esas2r_adapter *a,
 	/* continue discovery if it's interrupt driven */
 
 	if (!(dc->flags & DCF_POLLED))
+	{
 		esas2r_disc_continue(a, rq);
+	}
 
 	spin_unlock_irqrestore(&a->mem_lock, flags);
 
@@ -879,7 +975,7 @@ static void esas2r_disc_passthru_dev_info_cb(struct esas2r_adapter *a,
 }
 
 static bool esas2r_disc_passthru_dev_addr(struct esas2r_adapter *a,
-					  struct esas2r_request *rq)
+		struct esas2r_request *rq)
 {
 	struct esas2r_disc_context *dc =
 		(struct esas2r_disc_context *)rq->interrupt_cx;
@@ -896,13 +992,14 @@ static bool esas2r_disc_passthru_dev_addr(struct esas2r_adapter *a,
 	sgc.cur_offset = NULL;
 	sgc.get_phys_addr = (PGETPHYSADDR)esas2r_disc_get_phys_addr;
 	sgc.length = offsetof(struct atto_ioctl, data)
-		     + sizeof(struct atto_hba_get_device_address);
+				 + sizeof(struct atto_hba_get_device_address);
 
 	esas2r_sgc_init(&sgc, a, rq, rq->vrq->ioctl.sge);
 
 	esas2r_build_ioctl_req(a, rq, sgc.length, VDA_IOCTL_HBA);
 
-	if (!esas2r_build_sg_list(a, rq, &sgc)) {
+	if (!esas2r_build_sg_list(a, rq, &sgc))
+	{
 		esas2r_rq_destroy_request(rq, a);
 
 		esas2r_trace_exit();
@@ -937,7 +1034,7 @@ static bool esas2r_disc_passthru_dev_addr(struct esas2r_adapter *a,
 }
 
 static void esas2r_disc_passthru_dev_addr_cb(struct esas2r_adapter *a,
-					     struct esas2r_request *rq)
+		struct esas2r_request *rq)
 {
 	struct esas2r_disc_context *dc =
 		(struct esas2r_disc_context *)rq->interrupt_cx;
@@ -953,64 +1050,80 @@ static void esas2r_disc_passthru_dev_addr_cb(struct esas2r_adapter *a,
 	hi = (struct atto_ioctl *)a->disc_buffer;
 
 	if (rq->req_stat == RS_SUCCESS
-	    && hi->status == ATTO_STS_SUCCESS) {
+		&& hi->status == ATTO_STS_SUCCESS)
+	{
 		addrlen = le16_to_cpu(hi->data.get_dev_addr.addr_len);
 
-		if (dc->dev_addr_type == ATTO_GDA_AT_PORT) {
+		if (dc->dev_addr_type == ATTO_GDA_AT_PORT)
+		{
 			if (addrlen == sizeof(u64))
 				memcpy(&dc->sas_addr,
-				       &hi->data.get_dev_addr.address[0],
-				       addrlen);
+					   &hi->data.get_dev_addr.address[0],
+					   addrlen);
 			else
+			{
 				memset(&dc->sas_addr, 0, sizeof(dc->sas_addr));
+			}
 
 			/* Get the unique identifier. */
 			dc->dev_addr_type = ATTO_GDA_AT_UNIQUE;
 
 			goto next_dev_addr;
-		} else {
+		}
+		else
+		{
 			/* Add the pass through target. */
-			if (HIBYTE(addrlen) == 0) {
+			if (HIBYTE(addrlen) == 0)
+			{
 				t = esas2r_targ_db_add_pthru(a,
-							     dc,
-							     &hi->data.
-							     get_dev_addr.
-							     address[0],
-							     (u8)hi->data.
-							     get_dev_addr.
-							     addr_len);
+											 dc,
+											 &hi->data.
+											 get_dev_addr.
+											 address[0],
+											 (u8)hi->data.
+											 get_dev_addr.
+											 addr_len);
 
 				if (t)
 					memcpy(&t->sas_addr, &dc->sas_addr,
-					       sizeof(t->sas_addr));
-			} else {
+						   sizeof(t->sas_addr));
+			}
+			else
+			{
 				/* getting the back end data failed */
 
 				esas2r_log(ESAS2R_LOG_WARN,
-					   "an error occurred retrieving the "
-					   "back end data (%s:%d)",
-					   __func__,
-					   __LINE__);
+						   "an error occurred retrieving the "
+						   "back end data (%s:%d)",
+						   __func__,
+						   __LINE__);
 			}
 		}
-	} else {
+	}
+	else
+	{
 		/* getting the back end data failed */
 
 		esas2r_log(ESAS2R_LOG_WARN,
-			   "an error occurred retrieving the back end data - "
-			   "rq->req_stat:%d hi->status:%d",
-			   rq->req_stat, hi->status);
+				   "an error occurred retrieving the back end data - "
+				   "rq->req_stat:%d hi->status:%d",
+				   rq->req_stat, hi->status);
 	}
 
 	/* proceed to the next device. */
 
-	if (dc->flags & DCF_DEV_SCAN) {
+	if (dc->flags & DCF_DEV_SCAN)
+	{
 		dc->dev_ix++;
 		dc->state = DCS_PT_DEV_INFO;
-	} else if (dc->flags & DCF_DEV_CHANGE) {
+	}
+	else if (dc->flags & DCF_DEV_CHANGE)
+	{
 		dc->curr_targ++;
 		dc->state = DCS_DEV_ADD;
-	} else {
+	}
+	else
+	{
 		esas2r_bugon();
 	}
 
@@ -1020,7 +1133,9 @@ next_dev_addr:
 	/* continue discovery if it's interrupt driven */
 
 	if (!(dc->flags & DCF_POLLED))
+	{
 		esas2r_disc_continue(a, rq);
+	}
 
 	spin_unlock_irqrestore(&a->mem_lock, flags);
 
@@ -1032,16 +1147,18 @@ static u32 esas2r_disc_get_phys_addr(struct esas2r_sg_context *sgc, u64 *addr)
 	struct esas2r_adapter *a = sgc->adapter;
 
 	if (sgc->length > ESAS2R_DISC_BUF_LEN)
+	{
 		esas2r_bugon();
+	}
 
 	*addr = a->uncached_phys
-		+ (u64)((u8 *)a->disc_buffer - a->uncached);
+			+ (u64)((u8 *)a->disc_buffer - a->uncached);
 
 	return sgc->length;
 }
 
 static bool esas2r_disc_dev_remove(struct esas2r_adapter *a,
-				   struct esas2r_request *rq)
+								   struct esas2r_request *rq)
 {
 	struct esas2r_disc_context *dc =
 		(struct esas2r_disc_context *)rq->interrupt_cx;
@@ -1052,9 +1169,12 @@ static bool esas2r_disc_dev_remove(struct esas2r_adapter *a,
 
 	/* process removals. */
 
-	for (t = a->targetdb; t < a->targetdb_end; t++) {
+	for (t = a->targetdb; t < a->targetdb_end; t++)
+	{
 		if (t->new_target_state != TS_NOT_PRESENT)
+		{
 			continue;
+		}
 
 		t->new_target_state = TS_INVALID;
 
@@ -1062,11 +1182,13 @@ static bool esas2r_disc_dev_remove(struct esas2r_adapter *a,
 
 		t2 =
 			esas2r_targ_db_find_by_virt_id(a,
-						       esas2r_targ_get_id(t,
-									  a));
+										   esas2r_targ_get_id(t,
+												   a));
 
 		if (t2)
+		{
 			esas2r_targ_db_remove(a, t2);
+		}
 	}
 
 	/* removals complete.  process arrivals. */
@@ -1080,17 +1202,20 @@ static bool esas2r_disc_dev_remove(struct esas2r_adapter *a,
 }
 
 static bool esas2r_disc_dev_add(struct esas2r_adapter *a,
-				struct esas2r_request *rq)
+								struct esas2r_request *rq)
 {
 	struct esas2r_disc_context *dc =
 		(struct esas2r_disc_context *)rq->interrupt_cx;
 	struct esas2r_target *t = dc->curr_targ;
 
-	if (t >= a->targetdb_end) {
+	if (t >= a->targetdb_end)
+	{
 		/* done processing state changes. */
 
 		dc->state = DCS_DISC_DONE;
-	} else if (t->new_target_state == TS_PRESENT) {
+	}
+	else if (t->new_target_state == TS_PRESENT)
+	{
 		struct atto_vda_ae_lu *luevt = &t->lu_event;
 
 		esas2r_trace_enter();
@@ -1104,29 +1229,38 @@ static bool esas2r_disc_dev_add(struct esas2r_adapter *a,
 		dc->curr_virt_id = esas2r_targ_get_id(t, a);
 
 		if ((luevt->hdr.bylength >= offsetof(struct atto_vda_ae_lu, id)
-		     + sizeof(struct atto_vda_ae_lu_tgt_lun_raid))
-		    && !(luevt->dwevent & VDAAE_LU_PASSTHROUGH)) {
+			 + sizeof(struct atto_vda_ae_lu_tgt_lun_raid))
+			&& !(luevt->dwevent & VDAAE_LU_PASSTHROUGH))
+		{
 			dc->block_size = luevt->id.tgtlun_raid.dwblock_size;
 			dc->interleave = luevt->id.tgtlun_raid.dwinterleave;
-		} else {
+		}
+		else
+		{
 			dc->block_size = 0;
 			dc->interleave = 0;
 		}
 
 		/* determine the device type being added. */
 
-		if (luevt->dwevent & VDAAE_LU_PASSTHROUGH) {
-			if (luevt->dwevent & VDAAE_LU_PHYS_ID) {
+		if (luevt->dwevent & VDAAE_LU_PASSTHROUGH)
+		{
+			if (luevt->dwevent & VDAAE_LU_PHYS_ID)
+			{
 				dc->state = DCS_PT_DEV_ADDR;
 				dc->dev_addr_type = ATTO_GDA_AT_PORT;
 				dc->curr_phys_id = luevt->wphys_target_id;
-			} else {
-				esas2r_log(ESAS2R_LOG_WARN,
-					   "luevt->dwevent does not have the "
-					   "VDAAE_LU_PHYS_ID bit set (%s:%d)",
-					   __func__, __LINE__);
 			}
-		} else {
+			else
+			{
+				esas2r_log(ESAS2R_LOG_WARN,
+						   "luevt->dwevent does not have the "
+						   "VDAAE_LU_PHYS_ID bit set (%s:%d)",
+						   __func__, __LINE__);
+			}
+		}
+		else
+		{
 			dc->raid_grp_name[0] = 0;
 
 			esas2r_targ_db_add_raid(a, dc);
@@ -1139,7 +1273,8 @@ static bool esas2r_disc_dev_add(struct esas2r_adapter *a,
 		esas2r_trace_exit();
 	}
 
-	if (dc->state == DCS_DEV_ADD) {
+	if (dc->state == DCS_DEV_ADD)
+	{
 		/* go to the next device. */
 
 		dc->curr_targ++;
@@ -1166,16 +1301,21 @@ static void esas2r_disc_fix_curr_requests(struct esas2r_adapter *a)
 
 	spin_lock_irqsave(&a->queue_lock, flags);
 
-	list_for_each(element, &a->defer_list) {
+	list_for_each(element, &a->defer_list)
+	{
 		rq = list_entry(element, struct esas2r_request, req_list);
-		if (rq->vrq->scsi.function == VDA_FUNC_SCSI) {
+
+		if (rq->vrq->scsi.function == VDA_FUNC_SCSI)
+		{
 			t = a->targetdb + rq->target_id;
 
 			if (t->target_state == TS_PRESENT)
 				rq->vrq->scsi.target_id = le16_to_cpu(
-					t->virt_targ_id);
+											  t->virt_targ_id);
 			else
+			{
 				rq->req_stat = RS_SEL;
+			}
 		}
 
 	}

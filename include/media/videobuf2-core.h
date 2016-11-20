@@ -34,7 +34,8 @@
  *			memory mapped via mmap() ioctl.
  * @VB2_MEMORY_DMABUF:	The buffers are passed to userspace via DMA buffer.
  */
-enum vb2_memory {
+enum vb2_memory
+{
 	VB2_MEMORY_UNKNOWN	= 0,
 	VB2_MEMORY_MMAP		= 1,
 	VB2_MEMORY_USERPTR	= 2,
@@ -112,26 +113,27 @@ struct vb2_threadio_data;
  *    #) Required ops for DMABUF types: attach_dmabuf, detach_dmabuf,
  *       map_dmabuf, unmap_dmabuf.
  */
-struct vb2_mem_ops {
+struct vb2_mem_ops
+{
 	void		*(*alloc)(struct device *dev, unsigned long attrs,
-				  unsigned long size,
-				  enum dma_data_direction dma_dir,
-				  gfp_t gfp_flags);
+						  unsigned long size,
+						  enum dma_data_direction dma_dir,
+						  gfp_t gfp_flags);
 	void		(*put)(void *buf_priv);
 	struct dma_buf *(*get_dmabuf)(void *buf_priv, unsigned long flags);
 
 	void		*(*get_userptr)(struct device *dev, unsigned long vaddr,
-					unsigned long size,
-					enum dma_data_direction dma_dir);
+								unsigned long size,
+								enum dma_data_direction dma_dir);
 	void		(*put_userptr)(void *buf_priv);
 
 	void		(*prepare)(void *buf_priv);
 	void		(*finish)(void *buf_priv);
 
 	void		*(*attach_dmabuf)(struct device *dev,
-					  struct dma_buf *dbuf,
-					  unsigned long size,
-					  enum dma_data_direction dma_dir);
+								  struct dma_buf *dbuf,
+								  unsigned long size,
+								  enum dma_data_direction dma_dir);
 	void		(*detach_dmabuf)(void *buf_priv);
 	int		(*map_dmabuf)(void *buf_priv);
 	void		(*unmap_dmabuf)(void *buf_priv);
@@ -168,14 +170,16 @@ struct vb2_mem_ops {
  * Should contain enough information to be able to cover all the fields
  * of struct v4l2_plane at videodev2.h
  */
-struct vb2_plane {
+struct vb2_plane
+{
 	void			*mem_priv;
 	struct dma_buf		*dbuf;
 	unsigned int		dbuf_mapped;
 	unsigned int		bytesused;
 	unsigned int		length;
 	unsigned int		min_length;
-	union {
+	union
+	{
 		unsigned int	offset;
 		unsigned long	userptr;
 		int		fd;
@@ -191,7 +195,8 @@ struct vb2_plane {
  * @VB2_WRITE:		driver supports write() style access
  * @VB2_DMABUF:		driver supports DMABUF with streaming API
  */
-enum vb2_io_modes {
+enum vb2_io_modes
+{
 	VB2_MMAP	= (1 << 0),
 	VB2_USERPTR	= (1 << 1),
 	VB2_READ	= (1 << 2),
@@ -214,7 +219,8 @@ enum vb2_io_modes {
  *				has ended with an error, which will be reported
  *				to the userspace when it is dequeued
  */
-enum vb2_buffer_state {
+enum vb2_buffer_state
+{
 	VB2_BUF_STATE_DEQUEUED,
 	VB2_BUF_STATE_PREPARING,
 	VB2_BUF_STATE_PREPARED,
@@ -238,7 +244,8 @@ struct vb2_queue;
  * @planes:		private per-plane information; do not change
  * @timestamp:		frame timestamp in ns
  */
-struct vb2_buffer {
+struct vb2_buffer
+{
 	struct vb2_queue	*vb2_queue;
 	unsigned int		index;
 	unsigned int		type;
@@ -376,10 +383,11 @@ struct vb2_buffer {
  *			if user pre-queued buffers before calling
  *			VIDIOC_STREAMON().
  */
-struct vb2_ops {
+struct vb2_ops
+{
 	int (*queue_setup)(struct vb2_queue *q,
-			   unsigned int *num_buffers, unsigned int *num_planes,
-			   unsigned int sizes[], struct device *alloc_devs[]);
+					   unsigned int *num_buffers, unsigned int *num_planes,
+					   unsigned int sizes[], struct device *alloc_devs[]);
 
 	void (*wait_prepare)(struct vb2_queue *q);
 	void (*wait_finish)(struct vb2_queue *q);
@@ -409,11 +417,12 @@ struct vb2_ops {
  * @copy_timestamp:	copy the timestamp from a userspace structure to
  *			the vb2_buffer struct.
  */
-struct vb2_buf_ops {
+struct vb2_buf_ops
+{
 	int (*verify_planes_array)(struct vb2_buffer *vb, const void *pb);
 	void (*fill_user_buffer)(struct vb2_buffer *vb, void *pb);
 	int (*fill_vb2_buffer)(struct vb2_buffer *vb, const void *pb,
-				struct vb2_plane *planes);
+						   struct vb2_plane *planes);
 	void (*copy_timestamp)(struct vb2_buffer *vb, const void *pb);
 };
 
@@ -490,15 +499,16 @@ struct vb2_buf_ops {
  * @fileio:	file io emulator internal data, used only if emulator is active
  * @threadio:	thread io internal data, used only if thread is active
  */
-struct vb2_queue {
+struct vb2_queue
+{
 	unsigned int			type;
 	unsigned int			io_modes;
 	struct device			*dev;
 	unsigned long			dma_attrs;
-	unsigned			fileio_read_once:1;
-	unsigned			fileio_write_immediately:1;
-	unsigned			allow_zero_bytesused:1;
-	unsigned		   quirk_poll_must_check_waiting_for_buffers:1;
+	unsigned			fileio_read_once: 1;
+	unsigned			fileio_write_immediately: 1;
+	unsigned			allow_zero_bytesused: 1;
+	unsigned		   quirk_poll_must_check_waiting_for_buffers: 1;
 
 	struct mutex			*lock;
 	void				*owner;
@@ -529,14 +539,14 @@ struct vb2_queue {
 
 	struct device			*alloc_devs[VB2_MAX_PLANES];
 
-	unsigned int			streaming:1;
-	unsigned int			start_streaming_called:1;
-	unsigned int			error:1;
-	unsigned int			waiting_for_buffers:1;
-	unsigned int			is_multiplanar:1;
-	unsigned int			is_output:1;
-	unsigned int			copy_timestamp:1;
-	unsigned int			last_buffer_dequeued:1;
+	unsigned int			streaming: 1;
+	unsigned int			start_streaming_called: 1;
+	unsigned int			error: 1;
+	unsigned int			waiting_for_buffers: 1;
+	unsigned int			is_multiplanar: 1;
+	unsigned int			is_output: 1;
+	unsigned int			copy_timestamp: 1;
+	unsigned int			last_buffer_dequeued: 1;
 
 	struct vb2_fileio_data		*fileio;
 	struct vb2_threadio_data	*threadio;
@@ -664,7 +674,7 @@ void vb2_core_querybuf(struct vb2_queue *q, unsigned int index, void *pb);
  * from vidioc_reqbufs handler in driver.
  */
 int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_memory memory,
-		unsigned int *count);
+					 unsigned int *count);
 
 /**
  * vb2_core_create_bufs() - Allocate buffers and any required auxiliary structs
@@ -685,8 +695,8 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_memory memory,
  * returned from VIDIOC_CREATE_BUFS() handler in driver.
  */
 int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
-			 unsigned int *count, unsigned int requested_planes,
-			 const unsigned int requested_sizes[]);
+						 unsigned int *count, unsigned int requested_planes,
+						 const unsigned int requested_sizes[]);
 
 /**
  * vb2_core_prepare_buf() - Pass ownership of a buffer from userspace
@@ -754,7 +764,7 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb);
  * from vidioc_dqbuf handler in driver.
  */
 int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
-		   bool nonblocking);
+				   bool nonblocking);
 
 int vb2_core_streamon(struct vb2_queue *q, unsigned int type);
 int vb2_core_streamoff(struct vb2_queue *q, unsigned int type);
@@ -773,7 +783,7 @@ int vb2_core_streamoff(struct vb2_queue *q, unsigned int type);
  * from vidioc_expbuf handler in driver.
  */
 int vb2_core_expbuf(struct vb2_queue *q, int *fd, unsigned int type,
-		unsigned int index, unsigned int plane, unsigned int flags);
+					unsigned int index, unsigned int plane, unsigned int flags);
 
 /**
  * vb2_core_queue_init() - initialize a videobuf2 queue
@@ -836,10 +846,10 @@ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma);
 
 #ifndef CONFIG_MMU
 unsigned long vb2_get_unmapped_area(struct vb2_queue *q,
-				    unsigned long addr,
-				    unsigned long len,
-				    unsigned long pgoff,
-				    unsigned long flags);
+									unsigned long addr,
+									unsigned long len,
+									unsigned long pgoff,
+									unsigned long flags);
 #endif
 
 /**
@@ -859,12 +869,12 @@ unsigned long vb2_get_unmapped_area(struct vb2_queue *q,
  * from poll handler in driver.
  */
 unsigned int vb2_core_poll(struct vb2_queue *q, struct file *file,
-			   poll_table *wait);
+						   poll_table *wait);
 
 size_t vb2_read(struct vb2_queue *q, char __user *data, size_t count,
-		loff_t *ppos, int nonblock);
+				loff_t *ppos, int nonblock);
 size_t vb2_write(struct vb2_queue *q, const char __user *data, size_t count,
-		loff_t *ppos, int nonblock);
+				 loff_t *ppos, int nonblock);
 
 /**
  * typedef vb2_thread_fnc - callback function for use with vb2_thread
@@ -893,7 +903,7 @@ typedef int (*vb2_thread_fnc)(struct vb2_buffer *vb, void *priv);
  *   contact the linux-media mailing list first.
  */
 int vb2_thread_start(struct vb2_queue *q, vb2_thread_fnc fnc, void *priv,
-		     const char *thread_name);
+					 const char *thread_name);
 
 /**
  * vb2_thread_stop() - stop the thread for the given queue.
@@ -954,10 +964,12 @@ static inline void *vb2_get_drv_priv(struct vb2_queue *q)
  * @size:	payload in bytes
  */
 static inline void vb2_set_plane_payload(struct vb2_buffer *vb,
-				 unsigned int plane_no, unsigned long size)
+		unsigned int plane_no, unsigned long size)
 {
 	if (plane_no < vb->num_planes)
+	{
 		vb->planes[plane_no].bytesused = size;
+	}
 }
 
 /**
@@ -966,10 +978,13 @@ static inline void vb2_set_plane_payload(struct vb2_buffer *vb,
  * @plane_no:	plane number for which payload should be set
  */
 static inline unsigned long vb2_get_plane_payload(struct vb2_buffer *vb,
-				 unsigned int plane_no)
+		unsigned int plane_no)
 {
 	if (plane_no < vb->num_planes)
+	{
 		return vb->planes[plane_no].bytesused;
+	}
+
 	return 0;
 }
 
@@ -982,7 +997,10 @@ static inline unsigned long
 vb2_plane_size(struct vb2_buffer *vb, unsigned int plane_no)
 {
 	if (plane_no < vb->num_planes)
+	{
 		return vb->planes[plane_no].length;
+	}
+
 	return 0;
 }
 
@@ -1029,5 +1047,5 @@ bool vb2_buffer_in_use(struct vb2_queue *q, struct vb2_buffer *vb);
  *		the types defined on enum &v4l2_buf_type
  */
 int vb2_verify_memory_type(struct vb2_queue *q,
-		enum vb2_memory memory, unsigned int type);
+						   enum vb2_memory memory, unsigned int type);
 #endif /* _MEDIA_VIDEOBUF2_CORE_H */

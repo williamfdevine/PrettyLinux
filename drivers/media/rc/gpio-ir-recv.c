@@ -26,7 +26,8 @@
 #define GPIO_IR_DRIVER_NAME	"gpio-rc-recv"
 #define GPIO_IR_DEVICE_NAME	"gpio_ir_recv"
 
-struct gpio_rc_dev {
+struct gpio_rc_dev
+{
 	struct rc_dev *rcdev;
 	int gpio_nr;
 	bool active_low;
@@ -38,16 +39,21 @@ struct gpio_rc_dev {
  * Translate OpenFirmware node properties into platform_data
  */
 static int gpio_ir_recv_get_devtree_pdata(struct device *dev,
-				  struct gpio_ir_recv_platform_data *pdata)
+		struct gpio_ir_recv_platform_data *pdata)
 {
 	struct device_node *np = dev->of_node;
 	enum of_gpio_flags flags;
 	int gpio;
 
 	gpio = of_get_gpio_flags(np, 0, &flags);
-	if (gpio < 0) {
+
+	if (gpio < 0)
+	{
 		if (gpio != -EPROBE_DEFER)
+		{
 			dev_err(dev, "Failed to get gpio flags (%d)\n", gpio);
+		}
+
 		return gpio;
 	}
 
@@ -60,7 +66,8 @@ static int gpio_ir_recv_get_devtree_pdata(struct device *dev,
 	return 0;
 }
 
-static const struct of_device_id gpio_ir_recv_of_match[] = {
+static const struct of_device_id gpio_ir_recv_of_match[] =
+{
 	{ .compatible = "gpio-ir-receiver", },
 	{ },
 };
@@ -82,20 +89,29 @@ static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
 	gval = gpio_get_value(gpio_dev->gpio_nr);
 
 	if (gval < 0)
+	{
 		goto err_get_value;
+	}
 
 	if (gpio_dev->active_low)
+	{
 		gval = !gval;
+	}
 
 	if (gval == 1)
+	{
 		type = IR_PULSE;
+	}
 
 	rc = ir_raw_event_store_edge(gpio_dev->rcdev, type);
+
 	if (rc < 0)
+	{
 		goto err_get_value;
+	}
 
 	mod_timer(&gpio_dev->flush_timer,
-		  jiffies + nsecs_to_jiffies(gpio_dev->rcdev->timeout));
+			  jiffies + nsecs_to_jiffies(gpio_dev->rcdev->timeout));
 
 	ir_raw_event_handle(gpio_dev->rcdev);
 
@@ -119,32 +135,50 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
 	struct gpio_rc_dev *gpio_dev;
 	struct rc_dev *rcdev;
 	const struct gpio_ir_recv_platform_data *pdata =
-					pdev->dev.platform_data;
+			pdev->dev.platform_data;
 	int rc;
 
-	if (pdev->dev.of_node) {
+	if (pdev->dev.of_node)
+	{
 		struct gpio_ir_recv_platform_data *dtpdata =
 			devm_kzalloc(&pdev->dev, sizeof(*dtpdata), GFP_KERNEL);
+
 		if (!dtpdata)
+		{
 			return -ENOMEM;
+		}
+
 		rc = gpio_ir_recv_get_devtree_pdata(&pdev->dev, dtpdata);
+
 		if (rc)
+		{
 			return rc;
+		}
+
 		pdata = dtpdata;
 	}
 
 	if (!pdata)
+	{
 		return -EINVAL;
+	}
 
 	if (pdata->gpio_nr < 0)
+	{
 		return -EINVAL;
+	}
 
 	gpio_dev = kzalloc(sizeof(struct gpio_rc_dev), GFP_KERNEL);
+
 	if (!gpio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	rcdev = rc_allocate_device();
-	if (!rcdev) {
+
+	if (!rcdev)
+	{
 		rc = -ENOMEM;
 		goto err_allocate_device;
 	}
@@ -162,28 +196,43 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
 	rcdev->min_timeout = 0;
 	rcdev->timeout = IR_DEFAULT_TIMEOUT;
 	rcdev->max_timeout = 10 * IR_DEFAULT_TIMEOUT;
+
 	if (pdata->allowed_protos)
+	{
 		rcdev->allowed_protocols = pdata->allowed_protos;
+	}
 	else
+	{
 		rcdev->allowed_protocols = RC_BIT_ALL;
-	rcdev->map_name = pdata->map_name ?: RC_MAP_EMPTY;
+	}
+
+	rcdev->map_name = pdata->map_name ? : RC_MAP_EMPTY;
 
 	gpio_dev->rcdev = rcdev;
 	gpio_dev->gpio_nr = pdata->gpio_nr;
 	gpio_dev->active_low = pdata->active_low;
 
 	setup_timer(&gpio_dev->flush_timer, flush_timer,
-		    (unsigned long)gpio_dev);
+				(unsigned long)gpio_dev);
 
 	rc = gpio_request(pdata->gpio_nr, "gpio-ir-recv");
+
 	if (rc < 0)
+	{
 		goto err_gpio_request;
+	}
+
 	rc  = gpio_direction_input(pdata->gpio_nr);
+
 	if (rc < 0)
+	{
 		goto err_gpio_direction_input;
+	}
 
 	rc = rc_register_device(rcdev);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		dev_err(&pdev->dev, "failed to register rc device\n");
 		goto err_register_rc_device;
 	}
@@ -191,11 +240,14 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, gpio_dev);
 
 	rc = request_any_context_irq(gpio_to_irq(pdata->gpio_nr),
-				gpio_ir_recv_irq,
-			IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
-					"gpio-ir-recv-irq", gpio_dev);
+								 gpio_ir_recv_irq,
+								 IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
+								 "gpio-ir-recv-irq", gpio_dev);
+
 	if (rc < 0)
+	{
 		goto err_request_irq;
+	}
 
 	return 0;
 
@@ -231,9 +283,13 @@ static int gpio_ir_recv_suspend(struct device *dev)
 	struct gpio_rc_dev *gpio_dev = platform_get_drvdata(pdev);
 
 	if (device_may_wakeup(dev))
+	{
 		enable_irq_wake(gpio_to_irq(gpio_dev->gpio_nr));
+	}
 	else
+	{
 		disable_irq(gpio_to_irq(gpio_dev->gpio_nr));
+	}
 
 	return 0;
 }
@@ -244,20 +300,26 @@ static int gpio_ir_recv_resume(struct device *dev)
 	struct gpio_rc_dev *gpio_dev = platform_get_drvdata(pdev);
 
 	if (device_may_wakeup(dev))
+	{
 		disable_irq_wake(gpio_to_irq(gpio_dev->gpio_nr));
+	}
 	else
+	{
 		enable_irq(gpio_to_irq(gpio_dev->gpio_nr));
+	}
 
 	return 0;
 }
 
-static const struct dev_pm_ops gpio_ir_recv_pm_ops = {
+static const struct dev_pm_ops gpio_ir_recv_pm_ops =
+{
 	.suspend        = gpio_ir_recv_suspend,
 	.resume         = gpio_ir_recv_resume,
 };
 #endif
 
-static struct platform_driver gpio_ir_recv_driver = {
+static struct platform_driver gpio_ir_recv_driver =
+{
 	.probe  = gpio_ir_recv_probe,
 	.remove = gpio_ir_recv_remove,
 	.driver = {

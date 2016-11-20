@@ -16,7 +16,8 @@
  * @is_rmii:		using RMII interface?
  * @rev_eth_addr:	reverse Ethernet address byte order
  */
-struct macb_platform_data {
+struct macb_platform_data
+{
 	u32		phy_mask;
 	int		phy_irq_pin;
 	u8		is_rmii;

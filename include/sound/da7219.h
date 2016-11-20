@@ -15,7 +15,8 @@
 #define __DA7219_PDATA_H
 
 /* Mic Bias */
-enum da7219_micbias_voltage {
+enum da7219_micbias_voltage
+{
 	DA7219_MICBIAS_1_6V = 0,
 	DA7219_MICBIAS_1_8V,
 	DA7219_MICBIAS_2_0V,
@@ -25,7 +26,8 @@ enum da7219_micbias_voltage {
 };
 
 /* Mic input type */
-enum da7219_mic_amp_in_sel {
+enum da7219_mic_amp_in_sel
+{
 	DA7219_MIC_AMP_IN_SEL_DIFF = 0,
 	DA7219_MIC_AMP_IN_SEL_SE_P,
 	DA7219_MIC_AMP_IN_SEL_SE_N,
@@ -33,7 +35,8 @@ enum da7219_mic_amp_in_sel {
 
 struct da7219_aad_pdata;
 
-struct da7219_pdata {
+struct da7219_pdata
+{
 	bool wakeup_source;
 
 	/* Mic */

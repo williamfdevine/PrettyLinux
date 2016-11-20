@@ -41,37 +41,43 @@
 #define PPC_UNIT(t, m, r) (0x503000 + (t) * 0x8000 + (m) * 0x200 + (r))
 #define TPC_UNIT(t, m, r) (0x504000 + (t) * 0x8000 + (m) * 0x800 + (r))
 
-struct gf100_gr_data {
+struct gf100_gr_data
+{
 	u32 size;
 	u32 align;
 	u32 access;
 };
 
-struct gf100_gr_mmio {
+struct gf100_gr_mmio
+{
 	u32 addr;
 	u32 data;
 	u32 shift;
 	int buffer;
 };
 
-struct gf100_gr_fuc {
+struct gf100_gr_fuc
+{
 	u32 *data;
 	u32  size;
 };
 
-struct gf100_gr_zbc_color {
+struct gf100_gr_zbc_color
+{
 	u32 format;
 	u32 ds[4];
 	u32 l2[4];
 };
 
-struct gf100_gr_zbc_depth {
+struct gf100_gr_zbc_depth
+{
 	u32 format;
 	u32 ds;
 	u32 l2;
 };
 
-struct gf100_gr {
+struct gf100_gr
+{
 	const struct gf100_gr_func *func;
 	struct nvkm_gr base;
 
@@ -102,7 +108,7 @@ struct gf100_gr {
 	u8 ppc_tpc_nr[GPC_MAX][4];
 
 	struct gf100_gr_data mmio_data[4];
-	struct gf100_gr_mmio mmio_list[4096/8];
+	struct gf100_gr_mmio mmio_list[4096 / 8];
 	u32  size;
 	u32 *data;
 
@@ -110,12 +116,13 @@ struct gf100_gr {
 };
 
 int gf100_gr_ctor(const struct gf100_gr_func *, struct nvkm_device *,
-		  int, struct gf100_gr *);
+				  int, struct gf100_gr *);
 int gf100_gr_new_(const struct gf100_gr_func *, struct nvkm_device *,
-		  int, struct nvkm_gr **);
+				  int, struct nvkm_gr **);
 void *gf100_gr_dtor(struct nvkm_gr *);
 
-struct gf100_gr_func {
+struct gf100_gr_func
+{
 	void (*dtor)(struct gf100_gr *);
 	int (*init)(struct gf100_gr *);
 	void (*init_gpc_mmu)(struct gf100_gr *);
@@ -123,10 +130,12 @@ struct gf100_gr_func {
 	void (*init_ppc_exceptions)(struct gf100_gr *);
 	void (*set_hww_esr_report_mask)(struct gf100_gr *);
 	const struct gf100_gr_pack *mmio;
-	struct {
+	struct
+	{
 		struct gf100_gr_ucode *ucode;
 	} fecs;
-	struct {
+	struct
+	{
 		struct gf100_gr_ucode *ucode;
 	} gpccs;
 	int (*rops)(struct gf100_gr *);
@@ -149,7 +158,8 @@ int gm200_gr_rops(struct gf100_gr *);
 
 #define gf100_gr_chan(p) container_of((p), struct gf100_gr_chan, object)
 
-struct gf100_gr_chan {
+struct gf100_gr_chan
+{
 	struct nvkm_object object;
 	struct gf100_gr *gr;
 
@@ -157,7 +167,8 @@ struct gf100_gr_chan {
 	struct nvkm_vma mmio_vma;
 	int mmio_nr;
 
-	struct {
+	struct
+	{
 		struct nvkm_memory *mem;
 		struct nvkm_vma vma;
 	} data[4];
@@ -167,29 +178,32 @@ void gf100_gr_ctxctl_debug(struct gf100_gr *);
 
 void gf100_gr_dtor_fw(struct gf100_gr_fuc *);
 int  gf100_gr_ctor_fw(struct gf100_gr *, const char *,
-		      struct gf100_gr_fuc *);
+					  struct gf100_gr_fuc *);
 u64  gf100_gr_units(struct nvkm_gr *);
 void gf100_gr_zbc_init(struct gf100_gr *);
 
 extern const struct nvkm_object_func gf100_fermi;
 
-struct gf100_gr_init {
+struct gf100_gr_init
+{
 	u32 addr;
 	u8  count;
 	u8  pitch;
 	u32 data;
 };
 
-struct gf100_gr_pack {
+struct gf100_gr_pack
+{
 	const struct gf100_gr_init *init;
 	u32 type;
 };
 
 #define pack_for_each_init(init, pack, head)                                   \
 	for (pack = head; pack && pack->init; pack++)                          \
-		  for (init = pack->init; init && init->count; init++)
+		for (init = pack->init; init && init->count; init++)
 
-struct gf100_gr_ucode {
+struct gf100_gr_ucode
+{
 	struct gf100_gr_fuc code;
 	struct gf100_gr_fuc data;
 };
@@ -208,14 +222,14 @@ int  gf100_gr_init_ctxctl(struct gf100_gr *);
 
 /* external bundles loading functions */
 int gk20a_gr_av_to_init(struct gf100_gr *, const char *,
-			struct gf100_gr_pack **);
+						struct gf100_gr_pack **);
 int gk20a_gr_aiv_to_init(struct gf100_gr *, const char *,
-			 struct gf100_gr_pack **);
+						 struct gf100_gr_pack **);
 int gk20a_gr_av_to_method(struct gf100_gr *, const char *,
-			  struct gf100_gr_pack **);
+						  struct gf100_gr_pack **);
 
 int gm200_gr_new_(const struct gf100_gr_func *, struct nvkm_device *, int,
-		  struct nvkm_gr **);
+				  struct nvkm_gr **);
 
 /* register init value lists */
 

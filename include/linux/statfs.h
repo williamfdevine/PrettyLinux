@@ -4,7 +4,8 @@
 #include <linux/types.h>
 #include <asm/statfs.h>
 
-struct kstatfs {
+struct kstatfs
+{
 	long f_type;
 	long f_bsize;
 	u64 f_blocks;

@@ -21,90 +21,93 @@
 USB_GADGET_COMPOSITE_OPTIONS();
 
 #ifndef CONFIG_GADGET_UAC1
-#include "u_uac2.h"
+	#include "u_uac2.h"
 
-/* Playback(USB-IN) Default Stereo - Fl/Fr */
-static int p_chmask = UAC2_DEF_PCHMASK;
-module_param(p_chmask, uint, S_IRUGO);
-MODULE_PARM_DESC(p_chmask, "Playback Channel Mask");
+	/* Playback(USB-IN) Default Stereo - Fl/Fr */
+	static int p_chmask = UAC2_DEF_PCHMASK;
+	module_param(p_chmask, uint, S_IRUGO);
+	MODULE_PARM_DESC(p_chmask, "Playback Channel Mask");
 
-/* Playback Default 48 KHz */
-static int p_srate = UAC2_DEF_PSRATE;
-module_param(p_srate, uint, S_IRUGO);
-MODULE_PARM_DESC(p_srate, "Playback Sampling Rate");
+	/* Playback Default 48 KHz */
+	static int p_srate = UAC2_DEF_PSRATE;
+	module_param(p_srate, uint, S_IRUGO);
+	MODULE_PARM_DESC(p_srate, "Playback Sampling Rate");
 
-/* Playback Default 16bits/sample */
-static int p_ssize = UAC2_DEF_PSSIZE;
-module_param(p_ssize, uint, S_IRUGO);
-MODULE_PARM_DESC(p_ssize, "Playback Sample Size(bytes)");
+	/* Playback Default 16bits/sample */
+	static int p_ssize = UAC2_DEF_PSSIZE;
+	module_param(p_ssize, uint, S_IRUGO);
+	MODULE_PARM_DESC(p_ssize, "Playback Sample Size(bytes)");
 
-/* Capture(USB-OUT) Default Stereo - Fl/Fr */
-static int c_chmask = UAC2_DEF_CCHMASK;
-module_param(c_chmask, uint, S_IRUGO);
-MODULE_PARM_DESC(c_chmask, "Capture Channel Mask");
+	/* Capture(USB-OUT) Default Stereo - Fl/Fr */
+	static int c_chmask = UAC2_DEF_CCHMASK;
+	module_param(c_chmask, uint, S_IRUGO);
+	MODULE_PARM_DESC(c_chmask, "Capture Channel Mask");
 
-/* Capture Default 64 KHz */
-static int c_srate = UAC2_DEF_CSRATE;
-module_param(c_srate, uint, S_IRUGO);
-MODULE_PARM_DESC(c_srate, "Capture Sampling Rate");
+	/* Capture Default 64 KHz */
+	static int c_srate = UAC2_DEF_CSRATE;
+	module_param(c_srate, uint, S_IRUGO);
+	MODULE_PARM_DESC(c_srate, "Capture Sampling Rate");
 
-/* Capture Default 16bits/sample */
-static int c_ssize = UAC2_DEF_CSSIZE;
-module_param(c_ssize, uint, S_IRUGO);
-MODULE_PARM_DESC(c_ssize, "Capture Sample Size(bytes)");
+	/* Capture Default 16bits/sample */
+	static int c_ssize = UAC2_DEF_CSSIZE;
+	module_param(c_ssize, uint, S_IRUGO);
+	MODULE_PARM_DESC(c_ssize, "Capture Sample Size(bytes)");
 #else
-#include "u_uac1.h"
+	#include "u_uac1.h"
 
-static char *fn_play = FILE_PCM_PLAYBACK;
-module_param(fn_play, charp, S_IRUGO);
-MODULE_PARM_DESC(fn_play, "Playback PCM device file name");
+	static char *fn_play = FILE_PCM_PLAYBACK;
+	module_param(fn_play, charp, S_IRUGO);
+	MODULE_PARM_DESC(fn_play, "Playback PCM device file name");
 
-static char *fn_cap = FILE_PCM_CAPTURE;
-module_param(fn_cap, charp, S_IRUGO);
-MODULE_PARM_DESC(fn_cap, "Capture PCM device file name");
+	static char *fn_cap = FILE_PCM_CAPTURE;
+	module_param(fn_cap, charp, S_IRUGO);
+	MODULE_PARM_DESC(fn_cap, "Capture PCM device file name");
 
-static char *fn_cntl = FILE_CONTROL;
-module_param(fn_cntl, charp, S_IRUGO);
-MODULE_PARM_DESC(fn_cntl, "Control device file name");
+	static char *fn_cntl = FILE_CONTROL;
+	module_param(fn_cntl, charp, S_IRUGO);
+	MODULE_PARM_DESC(fn_cntl, "Control device file name");
 
-static int req_buf_size = UAC1_OUT_EP_MAX_PACKET_SIZE;
-module_param(req_buf_size, int, S_IRUGO);
-MODULE_PARM_DESC(req_buf_size, "ISO OUT endpoint request buffer size");
+	static int req_buf_size = UAC1_OUT_EP_MAX_PACKET_SIZE;
+	module_param(req_buf_size, int, S_IRUGO);
+	MODULE_PARM_DESC(req_buf_size, "ISO OUT endpoint request buffer size");
 
-static int req_count = UAC1_REQ_COUNT;
-module_param(req_count, int, S_IRUGO);
-MODULE_PARM_DESC(req_count, "ISO OUT endpoint request count");
+	static int req_count = UAC1_REQ_COUNT;
+	module_param(req_count, int, S_IRUGO);
+	MODULE_PARM_DESC(req_count, "ISO OUT endpoint request count");
 
-static int audio_buf_size = UAC1_AUDIO_BUF_SIZE;
-module_param(audio_buf_size, int, S_IRUGO);
-MODULE_PARM_DESC(audio_buf_size, "Audio buffer size");
+	static int audio_buf_size = UAC1_AUDIO_BUF_SIZE;
+	module_param(audio_buf_size, int, S_IRUGO);
+	MODULE_PARM_DESC(audio_buf_size, "Audio buffer size");
 #endif
 
 /* string IDs are assigned dynamically */
 
-static struct usb_string strings_dev[] = {
+static struct usb_string strings_dev[] =
+{
 	[USB_GADGET_MANUFACTURER_IDX].s = "",
 	[USB_GADGET_PRODUCT_IDX].s = DRIVER_DESC,
 	[USB_GADGET_SERIAL_IDX].s = "",
 	{  } /* end of list */
 };
 
-static struct usb_gadget_strings stringtab_dev = {
+static struct usb_gadget_strings stringtab_dev =
+{
 	.language = 0x0409,	/* en-us */
 	.strings = strings_dev,
 };
 
-static struct usb_gadget_strings *audio_strings[] = {
+static struct usb_gadget_strings *audio_strings[] =
+{
 	&stringtab_dev,
 	NULL,
 };
 
 #ifndef CONFIG_GADGET_UAC1
-static struct usb_function_instance *fi_uac2;
-static struct usb_function *f_uac2;
+	static struct usb_function_instance *fi_uac2;
+	static struct usb_function *f_uac2;
 #else
-static struct usb_function_instance *fi_uac1;
-static struct usb_function *f_uac1;
+	static struct usb_function_instance *fi_uac1;
+	static struct usb_function *f_uac1;
 #endif
 
 /*-------------------------------------------------------------------------*/
@@ -119,7 +122,8 @@ static struct usb_function *f_uac1;
 
 /*-------------------------------------------------------------------------*/
 
-static struct usb_device_descriptor device_desc = {
+static struct usb_device_descriptor device_desc =
+{
 	.bLength =		sizeof device_desc,
 	.bDescriptorType =	USB_DT_DEVICE,
 
@@ -159,41 +163,53 @@ static int audio_do_config(struct usb_configuration *c)
 
 	/* FIXME alloc iConfiguration string, set it in c->strings */
 
-	if (gadget_is_otg(c->cdev->gadget)) {
+	if (gadget_is_otg(c->cdev->gadget))
+	{
 		c->descriptors = otg_desc;
 		c->bmAttributes |= USB_CONFIG_ATT_WAKEUP;
 	}
 
 #ifdef CONFIG_GADGET_UAC1
 	f_uac1 = usb_get_function(fi_uac1);
-	if (IS_ERR(f_uac1)) {
+
+	if (IS_ERR(f_uac1))
+	{
 		status = PTR_ERR(f_uac1);
 		return status;
 	}
 
 	status = usb_add_function(c, f_uac1);
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		usb_put_function(f_uac1);
 		return status;
 	}
+
 #else
 	f_uac2 = usb_get_function(fi_uac2);
-	if (IS_ERR(f_uac2)) {
+
+	if (IS_ERR(f_uac2))
+	{
 		status = PTR_ERR(f_uac2);
 		return status;
 	}
 
 	status = usb_add_function(c, f_uac2);
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		usb_put_function(f_uac2);
 		return status;
 	}
+
 #endif
 
 	return 0;
 }
 
-static struct usb_configuration audio_config_driver = {
+static struct usb_configuration audio_config_driver =
+{
 	.label			= DRIVER_DESC,
 	.bConfigurationValue	= 1,
 	/* .iConfiguration = DYNAMIC */
@@ -213,12 +229,20 @@ static int audio_bind(struct usb_composite_dev *cdev)
 
 #ifndef CONFIG_GADGET_UAC1
 	fi_uac2 = usb_get_function_instance("uac2");
+
 	if (IS_ERR(fi_uac2))
+	{
 		return PTR_ERR(fi_uac2);
+	}
+
 #else
 	fi_uac1 = usb_get_function_instance("uac1");
+
 	if (IS_ERR(fi_uac1))
+	{
 		return PTR_ERR(fi_uac1);
+	}
+
 #endif
 
 #ifndef CONFIG_GADGET_UAC1
@@ -240,25 +264,38 @@ static int audio_bind(struct usb_composite_dev *cdev)
 #endif
 
 	status = usb_string_ids_tab(cdev, strings_dev);
+
 	if (status < 0)
+	{
 		goto fail;
+	}
+
 	device_desc.iManufacturer = strings_dev[USB_GADGET_MANUFACTURER_IDX].id;
 	device_desc.iProduct = strings_dev[USB_GADGET_PRODUCT_IDX].id;
 
-	if (gadget_is_otg(cdev->gadget) && !otg_desc[0]) {
+	if (gadget_is_otg(cdev->gadget) && !otg_desc[0])
+	{
 		struct usb_descriptor_header *usb_desc;
 
 		usb_desc = usb_otg_descriptor_alloc(cdev->gadget);
+
 		if (!usb_desc)
+		{
 			goto fail;
+		}
+
 		usb_otg_descriptor_init(cdev->gadget, usb_desc);
 		otg_desc[0] = usb_desc;
 		otg_desc[1] = NULL;
 	}
 
 	status = usb_add_config(cdev, &audio_config_driver, audio_do_config);
+
 	if (status < 0)
+	{
 		goto fail_otg_desc;
+	}
+
 	usb_composite_overwrite_options(cdev, &coverwrite);
 
 	INFO(cdev, "%s, version: %s\n", DRIVER_DESC, DRIVER_VERSION);
@@ -279,15 +316,29 @@ fail:
 static int audio_unbind(struct usb_composite_dev *cdev)
 {
 #ifdef CONFIG_GADGET_UAC1
+
 	if (!IS_ERR_OR_NULL(f_uac1))
+	{
 		usb_put_function(f_uac1);
+	}
+
 	if (!IS_ERR_OR_NULL(fi_uac1))
+	{
 		usb_put_function_instance(fi_uac1);
+	}
+
 #else
+
 	if (!IS_ERR_OR_NULL(f_uac2))
+	{
 		usb_put_function(f_uac2);
+	}
+
 	if (!IS_ERR_OR_NULL(fi_uac2))
+	{
 		usb_put_function_instance(fi_uac2);
+	}
+
 #endif
 	kfree(otg_desc[0]);
 	otg_desc[0] = NULL;
@@ -295,7 +346,8 @@ static int audio_unbind(struct usb_composite_dev *cdev)
 	return 0;
 }
 
-static struct usb_composite_driver audio_driver = {
+static struct usb_composite_driver audio_driver =
+{
 	.name		= "g_audio",
 	.dev		= &device_desc,
 	.strings	= audio_strings,

@@ -25,7 +25,8 @@
 #define IPP_SET_WRITEBACK	_IOW('F', 304, u32)
 
 /* definition of state */
-enum drm_exynos_ipp_state {
+enum drm_exynos_ipp_state
+{
 	IPP_STATE_IDLE,
 	IPP_STATE_START,
 	IPP_STATE_STOP,
@@ -38,7 +39,8 @@ enum drm_exynos_ipp_state {
  * @c_node: command node information.
  * @ctrl: command control.
  */
-struct drm_exynos_ipp_cmd_work {
+struct drm_exynos_ipp_cmd_work
+{
 	struct work_struct	work;
 	struct exynos_drm_ippdrv	*ippdrv;
 	struct drm_exynos_ipp_cmd_node *c_node;
@@ -63,7 +65,8 @@ struct drm_exynos_ipp_cmd_work {
  * @state: state of command node.
  * @filp: associated file pointer.
  */
-struct drm_exynos_ipp_cmd_node {
+struct drm_exynos_ipp_cmd_node
+{
 	struct list_head	list;
 	struct list_head	event_list;
 	struct list_head	mem_list[EXYNOS_DRM_OPS_MAX];
@@ -86,7 +89,8 @@ struct drm_exynos_ipp_cmd_node {
  * @handles: Y, Cb, Cr each gem object handle.
  * @base: Y, Cb, Cr each planar address.
  */
-struct drm_exynos_ipp_buf_info {
+struct drm_exynos_ipp_buf_info
+{
 	unsigned long	handles[EXYNOS_DRM_PLANAR_MAX];
 	dma_addr_t	base[EXYNOS_DRM_PLANAR_MAX];
 };
@@ -97,7 +101,8 @@ struct drm_exynos_ipp_buf_info {
  * @enable: enable flag for wb.
  * @refresh: HZ of the refresh rate.
  */
-struct drm_exynos_ipp_set_wb {
+struct drm_exynos_ipp_set_wb
+{
 	__u32	enable;
 	__u32	refresh;
 };
@@ -109,7 +114,8 @@ struct drm_exynos_ipp_set_wb {
  * @ippdrv: current work ippdrv.
  * @buf_id: id of src, dst buffer.
  */
-struct drm_exynos_ipp_event_work {
+struct drm_exynos_ipp_event_work
+{
 	struct work_struct	work;
 	struct exynos_drm_ippdrv *ippdrv;
 	u32	buf_id[EXYNOS_DRM_OPS_MAX];
@@ -123,16 +129,17 @@ struct drm_exynos_ipp_event_work {
  * @set_size: set size of region.
  * @set_addr: set address for dma.
  */
-struct exynos_drm_ipp_ops {
+struct exynos_drm_ipp_ops
+{
 	int (*set_fmt)(struct device *dev, u32 fmt);
 	int (*set_transf)(struct device *dev,
-		enum drm_exynos_degree degree,
-		enum drm_exynos_flip flip, bool *swap);
+					  enum drm_exynos_degree degree,
+					  enum drm_exynos_flip flip, bool *swap);
 	int (*set_size)(struct device *dev, int swap,
-		struct drm_exynos_pos *pos, struct drm_exynos_sz *sz);
+					struct drm_exynos_pos *pos, struct drm_exynos_sz *sz);
 	int (*set_addr)(struct device *dev,
-		 struct drm_exynos_ipp_buf_info *buf_info, u32 buf_id,
-		enum drm_exynos_ipp_buf_type buf_type);
+					struct drm_exynos_ipp_buf_info *buf_info, u32 buf_id,
+					enum drm_exynos_ipp_buf_type buf_type);
 };
 
 /*
@@ -155,7 +162,8 @@ struct exynos_drm_ipp_ops {
  * @stop: ipp each device stop.
  * @sched_event: work schedule handler.
  */
-struct exynos_drm_ippdrv {
+struct exynos_drm_ippdrv
+{
 	struct list_head	drv_list;
 	struct device	*parent_dev;
 	struct device	*dev;
@@ -169,7 +177,7 @@ struct exynos_drm_ippdrv {
 	struct drm_exynos_ipp_prop_list prop_list;
 
 	int (*check_property)(struct device *dev,
-		struct drm_exynos_ipp_property *property);
+						  struct drm_exynos_ipp_property *property);
 	int (*reset)(struct device *dev);
 	int (*start)(struct device *dev, enum drm_exynos_ipp_cmd cmd);
 	void (*stop)(struct device *dev, enum drm_exynos_ipp_cmd cmd);
@@ -180,13 +188,13 @@ struct exynos_drm_ippdrv {
 extern int exynos_drm_ippdrv_register(struct exynos_drm_ippdrv *ippdrv);
 extern int exynos_drm_ippdrv_unregister(struct exynos_drm_ippdrv *ippdrv);
 extern int exynos_drm_ipp_get_property(struct drm_device *drm_dev, void *data,
-					 struct drm_file *file);
+									   struct drm_file *file);
 extern int exynos_drm_ipp_set_property(struct drm_device *drm_dev, void *data,
-					 struct drm_file *file);
+									   struct drm_file *file);
 extern int exynos_drm_ipp_queue_buf(struct drm_device *drm_dev, void *data,
-					 struct drm_file *file);
+									struct drm_file *file);
 extern int exynos_drm_ipp_cmd_ctrl(struct drm_device *drm_dev, void *data,
-					 struct drm_file *file);
+								   struct drm_file *file);
 extern int exynos_drm_ippnb_register(struct notifier_block *nb);
 extern int exynos_drm_ippnb_unregister(struct notifier_block *nb);
 extern int exynos_drm_ippnb_send_event(unsigned long val, void *v);
@@ -205,29 +213,29 @@ static inline int exynos_drm_ippdrv_unregister(struct exynos_drm_ippdrv *ippdrv)
 }
 
 static inline int exynos_drm_ipp_get_property(struct drm_device *drm_dev,
-						void *data,
-						struct drm_file *file_priv)
+		void *data,
+		struct drm_file *file_priv)
 {
 	return -ENOTTY;
 }
 
 static inline int exynos_drm_ipp_set_property(struct drm_device *drm_dev,
-						void *data,
-						struct drm_file *file_priv)
+		void *data,
+		struct drm_file *file_priv)
 {
 	return -ENOTTY;
 }
 
 static inline int exynos_drm_ipp_queue_buf(struct drm_device *drm_dev,
-						void *data,
-						struct drm_file *file)
+		void *data,
+		struct drm_file *file)
 {
 	return -ENOTTY;
 }
 
 static inline int exynos_drm_ipp_cmd_ctrl(struct drm_device *drm_dev,
-						void *data,
-						struct drm_file *file)
+		void *data,
+		struct drm_file *file)
 {
 	return -ENOTTY;
 }

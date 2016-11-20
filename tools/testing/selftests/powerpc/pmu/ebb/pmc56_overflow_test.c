@@ -21,7 +21,9 @@ static void ebb_callee(void)
 	uint64_t val;
 
 	val = mfspr(SPRN_BESCR);
-	if (!(val & BESCR_PMEO)) {
+
+	if (!(val & BESCR_PMEO))
+	{
 		ebb_state.stats.spurious++;
 		goto out;
 	}
@@ -30,14 +32,20 @@ static void ebb_callee(void)
 	count_pmc(2, sample_period);
 
 	val = mfspr(SPRN_PMC5);
+
 	if (val >= COUNTER_OVERFLOW)
+	{
 		pmc56_overflowed++;
+	}
 
 	count_pmc(5, COUNTER_OVERFLOW);
 
 	val = mfspr(SPRN_PMC6);
+
 	if (val >= COUNTER_OVERFLOW)
+	{
 		pmc56_overflowed++;
+	}
 
 	count_pmc(6, COUNTER_OVERFLOW);
 
@@ -71,7 +79,9 @@ int pmc56_overflow(void)
 	mtspr(SPRN_PMC6, 0);
 
 	while (ebb_state.stats.ebb_count < 10)
+	{
 		FAIL_IF(core_busy_loop());
+	}
 
 	ebb_global_disable();
 	ebb_freeze_pmcs();

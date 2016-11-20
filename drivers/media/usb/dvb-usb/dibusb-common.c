@@ -24,38 +24,50 @@ MODULE_LICENSE("GPL");
 /* common stuff used by the different dibusb modules */
 int dibusb_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
 {
-	if (adap->priv != NULL) {
+	if (adap->priv != NULL)
+	{
 		struct dibusb_state *st = adap->priv;
+
 		if (st->ops.fifo_ctrl != NULL)
-			if (st->ops.fifo_ctrl(adap->fe_adap[0].fe, onoff)) {
+			if (st->ops.fifo_ctrl(adap->fe_adap[0].fe, onoff))
+			{
 				err("error while controlling the fifo of the demod.");
 				return -ENODEV;
 			}
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL(dibusb_streaming_ctrl);
 
 int dibusb_pid_filter(struct dvb_usb_adapter *adap, int index, u16 pid, int onoff)
 {
-	if (adap->priv != NULL) {
+	if (adap->priv != NULL)
+	{
 		struct dibusb_state *st = adap->priv;
+
 		if (st->ops.pid_ctrl != NULL)
 			st->ops.pid_ctrl(adap->fe_adap[0].fe,
-					 index, pid, onoff);
+							 index, pid, onoff);
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL(dibusb_pid_filter);
 
 int dibusb_pid_filter_ctrl(struct dvb_usb_adapter *adap, int onoff)
 {
-	if (adap->priv != NULL) {
+	if (adap->priv != NULL)
+	{
 		struct dibusb_state *st = adap->priv;
+
 		if (st->ops.pid_parse != NULL)
 			if (st->ops.pid_parse(adap->fe_adap[0].fe, onoff) < 0)
+			{
 				err("could not handle pid_parser");
+			}
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL(dibusb_pid_filter_ctrl);
@@ -66,8 +78,11 @@ int dibusb_power_ctrl(struct dvb_usb_device *d, int onoff)
 	int ret;
 
 	b = kmalloc(3, GFP_KERNEL);
+
 	if (!b)
+	{
 		return -ENOMEM;
+	}
 
 	b[0] = DIBUSB_REQ_SET_IOCTL;
 	b[1] = DIBUSB_IOCTL_CMD_POWER_MODE;
@@ -89,18 +104,27 @@ int dibusb2_0_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
 	u8 *b;
 
 	b = kmalloc(3, GFP_KERNEL);
+
 	if (!b)
+	{
 		return -ENOMEM;
+	}
 
-	if ((ret = dibusb_streaming_ctrl(adap,onoff)) < 0)
+	if ((ret = dibusb_streaming_ctrl(adap, onoff)) < 0)
+	{
 		goto ret;
+	}
 
-	if (onoff) {
+	if (onoff)
+	{
 		b[0] = DIBUSB_REQ_SET_STREAMING_MODE;
 		b[1] = 0x00;
 		ret = dvb_usb_generic_write(adap->dev, b, 2);
+
 		if (ret  < 0)
+		{
 			goto ret;
+		}
 	}
 
 	b[0] = DIBUSB_REQ_SET_IOCTL;
@@ -119,11 +143,16 @@ int dibusb2_0_power_ctrl(struct dvb_usb_device *d, int onoff)
 	int ret;
 
 	if (!onoff)
+	{
 		return 0;
+	}
 
 	b = kmalloc(3, GFP_KERNEL);
+
 	if (!b)
+	{
 		return -ENOMEM;
+	}
 
 	b[0] = DIBUSB_REQ_SET_IOCTL;
 	b[1] = DIBUSB_IOCTL_CMD_POWER_MODE;
@@ -138,7 +167,7 @@ int dibusb2_0_power_ctrl(struct dvb_usb_device *d, int onoff)
 EXPORT_SYMBOL(dibusb2_0_power_ctrl);
 
 static int dibusb_i2c_msg(struct dvb_usb_device *d, u8 addr,
-			  u8 *wbuf, u16 wlen, u8 *rbuf, u16 rlen)
+						  u8 *wbuf, u16 wlen, u8 *rbuf, u16 rlen)
 {
 	u8 *sndbuf;
 	int ret, wo, len;
@@ -149,10 +178,14 @@ static int dibusb_i2c_msg(struct dvb_usb_device *d, u8 addr,
 	len = 2 + wlen + (wo ? 0 : 2);
 
 	sndbuf = kmalloc(MAX_XFER_SIZE, GFP_KERNEL);
-	if (!sndbuf)
-		return -ENOMEM;
 
-	if (4 + wlen > MAX_XFER_SIZE) {
+	if (!sndbuf)
+	{
+		return -ENOMEM;
+	}
+
+	if (4 + wlen > MAX_XFER_SIZE)
+	{
 		warn("i2c wr: len=%d is too big!\n", wlen);
 		ret = -EOPNOTSUPP;
 		goto ret;
@@ -163,7 +196,8 @@ static int dibusb_i2c_msg(struct dvb_usb_device *d, u8 addr,
 
 	memcpy(&sndbuf[2], wbuf, wlen);
 
-	if (!wo) {
+	if (!wo)
+	{
 		sndbuf[wlen + 2] = (rlen >> 8) & 0xff;
 		sndbuf[wlen + 3] = rlen & 0xff;
 	}
@@ -178,31 +212,46 @@ ret:
 /*
  * I2C master xfer function
  */
-static int dibusb_i2c_xfer(struct i2c_adapter *adap,struct i2c_msg msg[],int num)
+static int dibusb_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[], int num)
 {
 	struct dvb_usb_device *d = i2c_get_adapdata(adap);
 	int i;
 
 	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
+	{
 		return -EAGAIN;
+	}
 
-	for (i = 0; i < num; i++) {
+	for (i = 0; i < num; i++)
+	{
 		/* write/read request */
-		if (i+1 < num && (msg[i].flags & I2C_M_RD) == 0
-					  && (msg[i+1].flags & I2C_M_RD)) {
-			if (dibusb_i2c_msg(d, msg[i].addr, msg[i].buf,msg[i].len,
-						msg[i+1].buf,msg[i+1].len) < 0)
+		if (i + 1 < num && (msg[i].flags & I2C_M_RD) == 0
+			&& (msg[i + 1].flags & I2C_M_RD))
+		{
+			if (dibusb_i2c_msg(d, msg[i].addr, msg[i].buf, msg[i].len,
+							   msg[i + 1].buf, msg[i + 1].len) < 0)
+			{
 				break;
+			}
+
 			i++;
-		} else if ((msg[i].flags & I2C_M_RD) == 0) {
-			if (dibusb_i2c_msg(d, msg[i].addr, msg[i].buf,msg[i].len,NULL,0) < 0)
+		}
+		else if ((msg[i].flags & I2C_M_RD) == 0)
+		{
+			if (dibusb_i2c_msg(d, msg[i].addr, msg[i].buf, msg[i].len, NULL, 0) < 0)
+			{
 				break;
-		} else if (msg[i].addr != 0x50) {
+			}
+		}
+		else if (msg[i].addr != 0x50)
+		{
 			/* 0x50 is the address of the eeprom - we need to protect it
 			 * from dibusb's bad i2c implementation: reads without
 			 * writing the offset before are forbidden */
 			if (dibusb_i2c_msg(d, msg[i].addr, NULL, 0, msg[i].buf, msg[i].len) < 0)
+			{
 				break;
+			}
 		}
 	}
 
@@ -215,7 +264,8 @@ static u32 dibusb_i2c_func(struct i2c_adapter *adapter)
 	return I2C_FUNC_I2C;
 }
 
-struct i2c_algorithm dibusb_i2c_algo = {
+struct i2c_algorithm dibusb_i2c_algo =
+{
 	.master_xfer   = dibusb_i2c_xfer,
 	.functionality = dibusb_i2c_func,
 };
@@ -231,7 +281,8 @@ EXPORT_SYMBOL(dibusb_read_eeprom_byte);
 /*
  * common remote control stuff
  */
-struct rc_map_table rc_map_dibusb_table[] = {
+struct rc_map_table rc_map_dibusb_table[] =
+{
 	/* Key codes for the little Artec T1/Twinhan/HAMA/ remote. */
 	{ 0x0016, KEY_POWER },
 	{ 0x0010, KEY_MUTE },
@@ -368,19 +419,27 @@ int dibusb_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
 	int ret;
 
 	buf = kmalloc(5, GFP_KERNEL);
+
 	if (!buf)
+	{
 		return -ENOMEM;
+	}
 
 	buf[0] = DIBUSB_REQ_POLL_REMOTE;
 
 	ret = dvb_usb_generic_rw(d, buf, 1, buf, 5, 0);
+
 	if (ret < 0)
+	{
 		goto ret;
+	}
 
 	dvb_usb_nec_rc_key_to_event(d, buf, event, state);
 
 	if (buf[0] != 0)
+	{
 		deb_info("key: %*ph\n", 5, buf);
+	}
 
 	kfree(buf);
 

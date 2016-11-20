@@ -48,13 +48,13 @@
 #define DPAA_PORTAL_CI 1
 
 #if (L1_CACHE_BYTES != 32) && (L1_CACHE_BYTES != 64)
-#error "Unsupported Cacheline Size"
+	#error "Unsupported Cacheline Size"
 #endif
 
 static inline void dpaa_flush(void *p)
 {
 #ifdef CONFIG_PPC
-	flush_dcache_range((unsigned long)p, (unsigned long)p+64);
+	flush_dcache_range((unsigned long)p, (unsigned long)p + 64);
 #elif defined(CONFIG_ARM32)
 	__cpuc_flush_dcache_area(p, 64);
 #elif defined(CONFIG_ARM64)
@@ -69,7 +69,7 @@ static inline void dpaa_flush(void *p)
 static inline void dpaa_touch_ro(void *p)
 {
 #if (L1_CACHE_BYTES == 32)
-	prefetch(p+32);
+	prefetch(p + 32);
 #endif
 	prefetch(p);
 }
@@ -83,9 +83,9 @@ static inline void dpaa_invalidate_touch_ro(void *p)
 
 
 #ifdef CONFIG_FSL_DPAA_CHECKING
-#define DPAA_ASSERT(x) WARN_ON(!(x))
+	#define DPAA_ASSERT(x) WARN_ON(!(x))
 #else
-#define DPAA_ASSERT(x)
+	#define DPAA_ASSERT(x)
 #endif
 
 /* cyclic helper for rings */
@@ -93,7 +93,10 @@ static inline u8 dpaa_cyc_diff(u8 ringsize, u8 first, u8 last)
 {
 	/* 'first' is included, 'last' is excluded */
 	if (first <= last)
+	{
 		return last - first;
+	}
+
 	return ringsize + last - first;
 }
 

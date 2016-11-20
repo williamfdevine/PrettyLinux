@@ -14,47 +14,61 @@
 
 /* Convert NEC data to a scancode */
 static int img_ir_nec_scancode(int len, u64 raw, u64 enabled_protocols,
-			       struct img_ir_scancode_req *request)
+							   struct img_ir_scancode_req *request)
 {
 	unsigned int addr, addr_inv, data, data_inv;
+
 	/* a repeat code has no data */
 	if (!len)
+	{
 		return IMG_IR_REPEATCODE;
+	}
+
 	if (len != 32)
+	{
 		return -EINVAL;
+	}
+
 	/* raw encoding: ddDDaaAA */
 	addr     = (raw >>  0) & 0xff;
 	addr_inv = (raw >>  8) & 0xff;
 	data     = (raw >> 16) & 0xff;
 	data_inv = (raw >> 24) & 0xff;
-	if ((data_inv ^ data) != 0xff) {
+
+	if ((data_inv ^ data) != 0xff)
+	{
 		/* 32-bit NEC (used by Apple and TiVo remotes) */
 		/* scan encoding: as transmitted, MSBit = first received bit */
 		request->scancode = bitrev8(addr)     << 24 |
-				bitrev8(addr_inv) << 16 |
-				bitrev8(data)     <<  8 |
-				bitrev8(data_inv);
+							bitrev8(addr_inv) << 16 |
+							bitrev8(data)     <<  8 |
+							bitrev8(data_inv);
 		request->protocol = RC_TYPE_NEC32;
-	} else if ((addr_inv ^ addr) != 0xff) {
+	}
+	else if ((addr_inv ^ addr) != 0xff)
+	{
 		/* Extended NEC */
 		/* scan encoding: AAaaDD */
 		request->scancode = addr     << 16 |
-				addr_inv <<  8 |
-				data;
+							addr_inv <<  8 |
+							data;
 		request->protocol = RC_TYPE_NECX;
-	} else {
+	}
+	else
+	{
 		/* Normal NEC */
 		/* scan encoding: AADD */
 		request->scancode = addr << 8 |
-				data;
+							data;
 		request->protocol = RC_TYPE_NEC;
 	}
+
 	return IMG_IR_SCANCODE;
 }
 
 /* Convert NEC scancode to NEC data filter */
 static int img_ir_nec_filter(const struct rc_scancode_filter *in,
-			     struct img_ir_filter *out, u64 protocols)
+							 struct img_ir_filter *out, u64 protocols)
 {
 	unsigned int addr, addr_inv, data, data_inv;
 	unsigned int addr_m, addr_inv_m, data_m, data_inv_m;
@@ -62,7 +76,8 @@ static int img_ir_nec_filter(const struct rc_scancode_filter *in,
 	data       = in->data & 0xff;
 	data_m     = in->mask & 0xff;
 
-	if ((in->data | in->mask) & 0xff000000) {
+	if ((in->data | in->mask) & 0xff000000)
+	{
 		/* 32-bit NEC (used by Apple and TiVo remotes) */
 		/* scan encoding: as transmitted, MSBit = first received bit */
 		addr       = bitrev8(in->data >> 24);
@@ -73,7 +88,9 @@ static int img_ir_nec_filter(const struct rc_scancode_filter *in,
 		data_m     = bitrev8(in->mask >>  8);
 		data_inv   = bitrev8(in->data >>  0);
 		data_inv_m = bitrev8(in->mask >>  0);
-	} else if ((in->data | in->mask) & 0x00ff0000) {
+	}
+	else if ((in->data | in->mask) & 0x00ff0000)
+	{
 		/* Extended NEC */
 		/* scan encoding AAaaDD */
 		addr       = (in->data >> 16) & 0xff;
@@ -82,7 +99,9 @@ static int img_ir_nec_filter(const struct rc_scancode_filter *in,
 		addr_inv_m = (in->mask >>  8) & 0xff;
 		data_inv   = data ^ 0xff;
 		data_inv_m = data_m;
-	} else {
+	}
+	else
+	{
 		/* Normal NEC */
 		/* scan encoding: AADD */
 		addr       = (in->data >>  8) & 0xff;
@@ -95,13 +114,13 @@ static int img_ir_nec_filter(const struct rc_scancode_filter *in,
 
 	/* raw encoding: ddDDaaAA */
 	out->data = data_inv << 24 |
-		    data     << 16 |
-		    addr_inv <<  8 |
-		    addr;
+				data     << 16 |
+				addr_inv <<  8 |
+				addr;
 	out->mask = data_inv_m << 24 |
-		    data_m     << 16 |
-		    addr_inv_m <<  8 |
-		    addr_m;
+				data_m     << 16 |
+				addr_inv_m <<  8 |
+				addr_m;
 	return 0;
 }
 
@@ -110,7 +129,8 @@ static int img_ir_nec_filter(const struct rc_scancode_filter *in,
  * See also http://www.sbprojects.com/knowledge/ir/nec.php
  *        http://wiki.altium.com/display/ADOH/NEC+Infrared+Transmission+Protocol
  */
-struct img_ir_decoder img_ir_nec = {
+struct img_ir_decoder img_ir_nec =
+{
 	.type = RC_BIT_NEC | RC_BIT_NECX | RC_BIT_NEC32,
 	.control = {
 		.decoden = 1,

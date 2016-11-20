@@ -58,7 +58,7 @@ struct inode *v9fs_alloc_inode(struct super_block *sb);
 void v9fs_destroy_inode(struct inode *inode);
 struct inode *v9fs_get_inode(struct super_block *sb, umode_t mode, dev_t);
 int v9fs_init_inode(struct v9fs_session_info *v9ses,
-		    struct inode *inode, umode_t mode, dev_t);
+					struct inode *inode, umode_t mode, dev_t);
 void v9fs_evict_inode(struct inode *inode);
 ino_t v9fs_qid2ino(struct p9_qid *qid);
 void v9fs_stat2inode(struct p9_wstat *, struct inode *, struct super_block *);
@@ -71,7 +71,7 @@ int v9fs_uflags2omode(int uflags, int extended);
 void v9fs_blank_wstat(struct p9_wstat *wstat);
 int v9fs_vfs_setattr_dotl(struct dentry *, struct iattr *);
 int v9fs_file_fsync_dotl(struct file *filp, loff_t start, loff_t end,
-			 int datasync);
+						 int datasync);
 int v9fs_refresh_inode(struct p9_fid *fid, struct inode *inode);
 int v9fs_refresh_inode_dotl(struct p9_fid *fid, struct inode *inode);
 static inline void v9fs_invalidate_inode_attr(struct inode *inode)

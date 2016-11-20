@@ -48,21 +48,24 @@
 #define APMU_DFC	0x60
 #define MPMU_UART_PLL	0x14
 
-struct pxa168_clk_unit {
+struct pxa168_clk_unit
+{
 	struct mmp_clk_unit unit;
 	void __iomem *mpmu_base;
 	void __iomem *apmu_base;
 	void __iomem *apbc_base;
 };
 
-static struct mmp_param_fixed_rate_clk fixed_rate_clks[] = {
+static struct mmp_param_fixed_rate_clk fixed_rate_clks[] =
+{
 	{PXA168_CLK_CLK32, "clk32", NULL, 0, 32768},
 	{PXA168_CLK_VCTCXO, "vctcxo", NULL, 0, 26000000},
 	{PXA168_CLK_PLL1, "pll1", NULL, 0, 624000000},
 	{PXA168_CLK_USB_PLL, "usb_pll", NULL, 0, 480000000},
 };
 
-static struct mmp_param_fixed_factor_clk fixed_factor_clks[] = {
+static struct mmp_param_fixed_factor_clk fixed_factor_clks[] =
+{
 	{PXA168_CLK_PLL1_2, "pll1_2", "pll1", 1, 2, 0},
 	{PXA168_CLK_PLL1_4, "pll1_4", "pll1_2", 1, 2, 0},
 	{PXA168_CLK_PLL1_8, "pll1_8", "pll1_4", 1, 2, 0},
@@ -79,7 +82,8 @@ static struct mmp_param_fixed_factor_clk fixed_factor_clks[] = {
 	{PXA168_CLK_PLL1_3_16, "pll1_3_16", "pll1", 3, 16, 0},
 };
 
-static struct mmp_clk_factor_masks uart_factor_masks = {
+static struct mmp_clk_factor_masks uart_factor_masks =
+{
 	.factor = 2,
 	.num_mask = 0x1fff,
 	.den_mask = 0x1fff,
@@ -87,7 +91,8 @@ static struct mmp_clk_factor_masks uart_factor_masks = {
 	.den_shift = 0,
 };
 
-static struct mmp_clk_factor_tbl uart_factor_tbl[] = {
+static struct mmp_clk_factor_tbl uart_factor_tbl[] =
+{
 	{.num = 8125, .den = 1536},	/*14.745MHZ */
 };
 
@@ -97,16 +102,16 @@ static void pxa168_pll_init(struct pxa168_clk_unit *pxa_unit)
 	struct mmp_clk_unit *unit = &pxa_unit->unit;
 
 	mmp_register_fixed_rate_clks(unit, fixed_rate_clks,
-					ARRAY_SIZE(fixed_rate_clks));
+								 ARRAY_SIZE(fixed_rate_clks));
 
 	mmp_register_fixed_factor_clks(unit, fixed_factor_clks,
-					ARRAY_SIZE(fixed_factor_clks));
+								   ARRAY_SIZE(fixed_factor_clks));
 
 	clk = mmp_clk_register_factor("uart_pll", "pll1_4",
-				CLK_SET_RATE_PARENT,
-				pxa_unit->mpmu_base + MPMU_UART_PLL,
-				&uart_factor_masks, uart_factor_tbl,
-				ARRAY_SIZE(uart_factor_tbl), NULL);
+								  CLK_SET_RATE_PARENT,
+								  pxa_unit->mpmu_base + MPMU_UART_PLL,
+								  &uart_factor_masks, uart_factor_tbl,
+								  ARRAY_SIZE(uart_factor_tbl), NULL);
 	mmp_clk_add(unit, PXA168_CLK_UART_PLL, clk);
 }
 
@@ -127,7 +132,8 @@ static const char *timer_parent_names[] = {"pll1_48", "clk32", "pll1_96", "pll1_
 
 static DEFINE_SPINLOCK(reset_lock);
 
-static struct mmp_param_mux_clk apbc_mux_clks[] = {
+static struct mmp_param_mux_clk apbc_mux_clks[] =
+{
 	{0, "uart0_mux", uart_parent_names, ARRAY_SIZE(uart_parent_names), CLK_SET_RATE_PARENT, APBC_UART0, 4, 3, 0, &uart0_lock},
 	{0, "uart1_mux", uart_parent_names, ARRAY_SIZE(uart_parent_names), CLK_SET_RATE_PARENT, APBC_UART1, 4, 3, 0, &uart1_lock},
 	{0, "uart2_mux", uart_parent_names, ARRAY_SIZE(uart_parent_names), CLK_SET_RATE_PARENT, APBC_UART2, 4, 3, 0, &uart2_lock},
@@ -139,7 +145,8 @@ static struct mmp_param_mux_clk apbc_mux_clks[] = {
 	{0, "timer_mux", timer_parent_names, ARRAY_SIZE(timer_parent_names), CLK_SET_RATE_PARENT, APBC_TIMER, 4, 3, 0, &timer_lock},
 };
 
-static struct mmp_param_gate_clk apbc_gate_clks[] = {
+static struct mmp_param_gate_clk apbc_gate_clks[] =
+{
 	{PXA168_CLK_TWSI0, "twsi0_clk", "pll1_13_1_5", CLK_SET_RATE_PARENT, APBC_TWSI0, 0x3, 0x3, 0x0, 0, &reset_lock},
 	{PXA168_CLK_TWSI1, "twsi1_clk", "pll1_13_1_5", CLK_SET_RATE_PARENT, APBC_TWSI1, 0x3, 0x3, 0x0, 0, &reset_lock},
 	{PXA168_CLK_GPIO, "gpio_clk", "vctcxo", CLK_SET_RATE_PARENT, APBC_GPIO, 0x3, 0x3, 0x0, 0, &reset_lock},
@@ -166,10 +173,10 @@ static void pxa168_apb_periph_clk_init(struct pxa168_clk_unit *pxa_unit)
 	struct mmp_clk_unit *unit = &pxa_unit->unit;
 
 	mmp_register_mux_clks(unit, apbc_mux_clks, pxa_unit->apbc_base,
-				ARRAY_SIZE(apbc_mux_clks));
+						  ARRAY_SIZE(apbc_mux_clks));
 
 	mmp_register_gate_clks(unit, apbc_gate_clks, pxa_unit->apbc_base,
-				ARRAY_SIZE(apbc_gate_clks));
+						   ARRAY_SIZE(apbc_gate_clks));
 
 }
 
@@ -186,7 +193,8 @@ static DEFINE_SPINLOCK(ccic0_lock);
 static const char *ccic_parent_names[] = {"pll1_2", "pll1_12"};
 static const char *ccic_phy_parent_names[] = {"pll1_6", "pll1_12"};
 
-static struct mmp_param_mux_clk apmu_mux_clks[] = {
+static struct mmp_param_mux_clk apmu_mux_clks[] =
+{
 	{0, "sdh0_mux", sdh_parent_names, ARRAY_SIZE(sdh_parent_names), CLK_SET_RATE_PARENT, APMU_SDH0, 6, 1, 0, &sdh0_lock},
 	{0, "sdh1_mux", sdh_parent_names, ARRAY_SIZE(sdh_parent_names), CLK_SET_RATE_PARENT, APMU_SDH1, 6, 1, 0, &sdh1_lock},
 	{0, "disp0_mux", disp_parent_names, ARRAY_SIZE(disp_parent_names), CLK_SET_RATE_PARENT, APMU_DISP0, 6, 1, 0, &disp0_lock},
@@ -194,11 +202,13 @@ static struct mmp_param_mux_clk apmu_mux_clks[] = {
 	{0, "ccic0_phy_mux", ccic_phy_parent_names, ARRAY_SIZE(ccic_phy_parent_names), CLK_SET_RATE_PARENT, APMU_CCIC0, 7, 1, 0, &ccic0_lock},
 };
 
-static struct mmp_param_div_clk apmu_div_clks[] = {
+static struct mmp_param_div_clk apmu_div_clks[] =
+{
 	{0, "ccic0_sphy_div", "ccic0_mux", CLK_SET_RATE_PARENT, APMU_CCIC0, 10, 5, 0, &ccic0_lock},
 };
 
-static struct mmp_param_gate_clk apmu_gate_clks[] = {
+static struct mmp_param_gate_clk apmu_gate_clks[] =
+{
 	{PXA168_CLK_DFC, "dfc_clk", "pll1_4", CLK_SET_RATE_PARENT, APMU_DFC, 0x19b, 0x19b, 0x0, 0, NULL},
 	{PXA168_CLK_USB, "usb_clk", "usb_pll", 0, APMU_USB, 0x9, 0x9, 0x0, 0, &usb_lock},
 	{PXA168_CLK_SPH, "sph_clk", "usb_pll", 0, APMU_USB, 0x12, 0x12, 0x0, 0, &usb_lock},
@@ -216,27 +226,31 @@ static void pxa168_axi_periph_clk_init(struct pxa168_clk_unit *pxa_unit)
 	struct mmp_clk_unit *unit = &pxa_unit->unit;
 
 	mmp_register_mux_clks(unit, apmu_mux_clks, pxa_unit->apmu_base,
-				ARRAY_SIZE(apmu_mux_clks));
+						  ARRAY_SIZE(apmu_mux_clks));
 
 	mmp_register_div_clks(unit, apmu_div_clks, pxa_unit->apmu_base,
-				ARRAY_SIZE(apmu_div_clks));
+						  ARRAY_SIZE(apmu_div_clks));
 
 	mmp_register_gate_clks(unit, apmu_gate_clks, pxa_unit->apmu_base,
-				ARRAY_SIZE(apmu_gate_clks));
+						   ARRAY_SIZE(apmu_gate_clks));
 }
 
 static void pxa168_clk_reset_init(struct device_node *np,
-				struct pxa168_clk_unit *pxa_unit)
+								  struct pxa168_clk_unit *pxa_unit)
 {
 	struct mmp_clk_reset_cell *cells;
 	int i, nr_resets;
 
 	nr_resets = ARRAY_SIZE(apbc_gate_clks);
 	cells = kcalloc(nr_resets, sizeof(*cells), GFP_KERNEL);
-	if (!cells)
-		return;
 
-	for (i = 0; i < nr_resets; i++) {
+	if (!cells)
+	{
+		return;
+	}
+
+	for (i = 0; i < nr_resets; i++)
+	{
 		cells[i].clk_id = apbc_gate_clks[i].id;
 		cells[i].reg = pxa_unit->apbc_base + apbc_gate_clks[i].offset;
 		cells[i].flags = 0;
@@ -252,23 +266,32 @@ static void __init pxa168_clk_init(struct device_node *np)
 	struct pxa168_clk_unit *pxa_unit;
 
 	pxa_unit = kzalloc(sizeof(*pxa_unit), GFP_KERNEL);
+
 	if (!pxa_unit)
+	{
 		return;
+	}
 
 	pxa_unit->mpmu_base = of_iomap(np, 0);
-	if (!pxa_unit->mpmu_base) {
+
+	if (!pxa_unit->mpmu_base)
+	{
 		pr_err("failed to map mpmu registers\n");
 		return;
 	}
 
 	pxa_unit->apmu_base = of_iomap(np, 1);
-	if (!pxa_unit->apmu_base) {
+
+	if (!pxa_unit->apmu_base)
+	{
 		pr_err("failed to map apmu registers\n");
 		return;
 	}
 
 	pxa_unit->apbc_base = of_iomap(np, 2);
-	if (!pxa_unit->apbc_base) {
+
+	if (!pxa_unit->apbc_base)
+	{
 		pr_err("failed to map apbc registers\n");
 		return;
 	}

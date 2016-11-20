@@ -53,16 +53,16 @@ static	DEFINE_SPINLOCK(spinlock);
 
 module_param(timeout, int, 0);
 MODULE_PARM_DESC(timeout,
-		"Watchdog timeout in seconds (15..7635), default="
-				__MODULE_STRING(DEFAULT_TIMEOUT) ")");
+				 "Watchdog timeout in seconds (15..7635), default="
+				 __MODULE_STRING(DEFAULT_TIMEOUT) ")");
 module_param(testmode, int, 0);
 MODULE_PARM_DESC(testmode, "Watchdog testmode (1 = no reboot), default=0");
 
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout,
-		"Watchdog cannot be stopped once started (default="
-				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "Watchdog cannot be stopped once started (default="
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 /*
  * Start the watchdog
@@ -106,7 +106,9 @@ static int wdt_start(void)
 	 */
 	outb_p(DEVICE_REGISTER, IO_INDEX_PORT);
 	outb_p(0x07, IO_DATA_PORT);
-	if (!testmode) {
+
+	if (!testmode)
+	{
 		unsigned pin_map;
 
 		outb_p(0xE6, IO_INDEX_PORT);
@@ -118,6 +120,7 @@ static int wdt_start(void)
 		outb_p(0x2C, IO_INDEX_PORT);
 		outb_p(pin_map, IO_DATA_PORT);
 	}
+
 	outb_p(0xE3, IO_INDEX_PORT);
 	outb_p(0x08, IO_DATA_PORT);
 
@@ -172,10 +175,13 @@ static int wdt_stop(void)
 	 */
 	outb_p(DEVICE_REGISTER, IO_INDEX_PORT);
 	outb_p(0x07, IO_DATA_PORT);
-	if (!testmode) {
+
+	if (!testmode)
+	{
 		outb_p(0xE6, IO_INDEX_PORT);
 		outb_p(0x01, IO_DATA_PORT);
 	}
+
 	outb_p(0xE3, IO_INDEX_PORT);
 	outb_p(0x01, IO_DATA_PORT);
 
@@ -234,12 +240,16 @@ static int wdt_set_timeout(int t)
 	 * datasheet says counter unit is in minutes!
 	 */
 	if (t < 15)
+	{
 		return -EINVAL;
+	}
 
 	tmrval = ((t + 15) + 29) / 30;
 
 	if (tmrval > 255)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * timeout is the timeout in seconds,
@@ -277,8 +287,11 @@ static int wdt_get_status(int *status)
 	spin_unlock_irqrestore(&spinlock, flags);
 
 	*status = 0;
+
 	if (new_status & 1)
+	{
 		*status |= WDIOF_CARDRESET;
+	}
 
 	return 0;
 }
@@ -292,10 +305,14 @@ static int wdt_open(struct inode *inode, struct file *file)
 {
 	/* If the watchdog is alive we don't need to start it again */
 	if (test_and_set_bit(0, &timer_alive))
+	{
 		return -EBUSY;
+	}
 
 	if (nowayout)
+	{
 		__module_get(THIS_MODULE);
+	}
 
 	wdt_start();
 	return nonseekable_open(inode, file);
@@ -307,13 +324,17 @@ static int wdt_release(struct inode *inode, struct file *file)
 	 * Shut off the timer.
 	 * Lock it in if it's a module and we set nowayout
 	 */
-	if (expect_close == 42) {
+	if (expect_close == 42)
+	{
 		wdt_stop();
 		clear_bit(0, &timer_alive);
-	} else {
+	}
+	else
+	{
 		wdt_keepalive();
 		pr_crit("unexpected close, not stopping watchdog!\n");
 	}
+
 	expect_close = 0;
 	return 0;
 }
@@ -330,11 +351,13 @@ static int wdt_release(struct inode *inode, struct file *file)
  */
 
 static ssize_t wdt_write(struct file *file, const char __user *buf,
-			    size_t count, loff_t *ppos)
+						 size_t count, loff_t *ppos)
 {
 	/* See if we got the magic character 'V' and reload the timer */
-	if (count) {
-		if (!nowayout) {
+	if (count)
+	{
+		if (!nowayout)
+		{
 			size_t ofs;
 
 			/* note: just in case someone wrote the
@@ -343,18 +366,26 @@ static ssize_t wdt_write(struct file *file, const char __user *buf,
 
 			/* scan to see whether or not we got the
 			   magic character */
-			for (ofs = 0; ofs != count; ofs++) {
+			for (ofs = 0; ofs != count; ofs++)
+			{
 				char c;
+
 				if (get_user(c, buf + ofs))
+				{
 					return -EFAULT;
+				}
+
 				if (c == 'V')
+				{
 					expect_close = 42;
+				}
 			}
 		}
 
 		/* someone wrote to us, we should restart timer */
 		wdt_keepalive();
 	}
+
 	return count;
 }
 
@@ -369,7 +400,8 @@ static ssize_t wdt_write(struct file *file, const char __user *buf,
  *      according to their available features.
  */
 
-static const struct watchdog_info ident = {
+static const struct watchdog_info ident =
+{
 	.options = WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE | WDIOF_KEEPALIVEPING,
 	.firmware_version =	1,
 	.identity = WATCHDOG_NAME,
@@ -380,73 +412,88 @@ static long wdt_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	int status;
 	int new_options, retval = -EINVAL;
 	int new_timeout;
-	union {
+	union
+	{
 		struct watchdog_info __user *ident;
 		int __user *i;
 	} uarg;
 
 	uarg.i = (int __user *)arg;
 
-	switch (cmd) {
-	case WDIOC_GETSUPPORT:
-		return copy_to_user(uarg.ident, &ident,
-						sizeof(ident)) ? -EFAULT : 0;
+	switch (cmd)
+	{
+		case WDIOC_GETSUPPORT:
+			return copy_to_user(uarg.ident, &ident,
+								sizeof(ident)) ? -EFAULT : 0;
 
-	case WDIOC_GETSTATUS:
-		wdt_get_status(&status);
-		return put_user(status, uarg.i);
+		case WDIOC_GETSTATUS:
+			wdt_get_status(&status);
+			return put_user(status, uarg.i);
 
-	case WDIOC_GETBOOTSTATUS:
-		return put_user(0, uarg.i);
+		case WDIOC_GETBOOTSTATUS:
+			return put_user(0, uarg.i);
 
-	case WDIOC_SETOPTIONS:
-		if (get_user(new_options, uarg.i))
-			return -EFAULT;
+		case WDIOC_SETOPTIONS:
+			if (get_user(new_options, uarg.i))
+			{
+				return -EFAULT;
+			}
 
-		if (new_options & WDIOS_DISABLECARD) {
-			wdt_stop();
-			retval = 0;
-		}
+			if (new_options & WDIOS_DISABLECARD)
+			{
+				wdt_stop();
+				retval = 0;
+			}
 
-		if (new_options & WDIOS_ENABLECARD) {
-			wdt_start();
-			retval = 0;
-		}
+			if (new_options & WDIOS_ENABLECARD)
+			{
+				wdt_start();
+				retval = 0;
+			}
 
-		return retval;
+			return retval;
 
-	case WDIOC_KEEPALIVE:
-		wdt_keepalive();
-		return 0;
+		case WDIOC_KEEPALIVE:
+			wdt_keepalive();
+			return 0;
 
-	case WDIOC_SETTIMEOUT:
-		if (get_user(new_timeout, uarg.i))
-			return -EFAULT;
+		case WDIOC_SETTIMEOUT:
+			if (get_user(new_timeout, uarg.i))
+			{
+				return -EFAULT;
+			}
 
-		if (wdt_set_timeout(new_timeout))
-			return -EINVAL;
+			if (wdt_set_timeout(new_timeout))
+			{
+				return -EINVAL;
+			}
 
-		wdt_keepalive();
+			wdt_keepalive();
+
 		/* Fall */
 
-	case WDIOC_GETTIMEOUT:
-		return put_user(timeout, uarg.i);
+		case WDIOC_GETTIMEOUT:
+			return put_user(timeout, uarg.i);
 
-	default:
-		return -ENOTTY;
+		default:
+			return -ENOTTY;
 
 	}
 }
 
 static int wdt_notify_sys(struct notifier_block *this, unsigned long code,
-	void *unused)
+						  void *unused)
 {
 	if (code == SYS_DOWN || code == SYS_HALT)
+	{
 		wdt_stop();
+	}
+
 	return NOTIFY_DONE;
 }
 
-static const struct file_operations wdt_fops = {
+static const struct file_operations wdt_fops =
+{
 	.owner		= THIS_MODULE,
 	.llseek		= no_llseek,
 	.write		= wdt_write,
@@ -455,13 +502,15 @@ static const struct file_operations wdt_fops = {
 	.release	= wdt_release,
 };
 
-static struct miscdevice wdt_miscdev = {
+static struct miscdevice wdt_miscdev =
+{
 	.minor		= WATCHDOG_MINOR,
 	.name		= "watchdog",
 	.fops		= &wdt_fops,
 };
 
-static struct notifier_block wdt_notifier = {
+static struct notifier_block wdt_notifier =
+{
 	.notifier_call = wdt_notify_sys,
 };
 
@@ -475,33 +524,39 @@ static int __init w83977f_wdt_init(void)
 	 * Check that the timeout value is within it's range;
 	 * if not reset to the default
 	 */
-	if (wdt_set_timeout(timeout)) {
+	if (wdt_set_timeout(timeout))
+	{
 		wdt_set_timeout(DEFAULT_TIMEOUT);
 		pr_info("timeout value must be 15 <= timeout <= 7635, using %d\n",
-			DEFAULT_TIMEOUT);
+				DEFAULT_TIMEOUT);
 	}
 
-	if (!request_region(IO_INDEX_PORT, 2, WATCHDOG_NAME)) {
+	if (!request_region(IO_INDEX_PORT, 2, WATCHDOG_NAME))
+	{
 		pr_err("I/O address 0x%04x already in use\n", IO_INDEX_PORT);
 		rc = -EIO;
 		goto err_out;
 	}
 
 	rc = register_reboot_notifier(&wdt_notifier);
-	if (rc) {
+
+	if (rc)
+	{
 		pr_err("cannot register reboot notifier (err=%d)\n", rc);
 		goto err_out_region;
 	}
 
 	rc = misc_register(&wdt_miscdev);
-	if (rc) {
+
+	if (rc)
+	{
 		pr_err("cannot register miscdev on minor=%d (err=%d)\n",
-		       wdt_miscdev.minor, rc);
+			   wdt_miscdev.minor, rc);
 		goto err_out_reboot;
 	}
 
 	pr_info("initialized. timeout=%d sec (nowayout=%d testmode=%d)\n",
-		timeout, nowayout, testmode);
+			timeout, nowayout, testmode);
 
 	return 0;
 

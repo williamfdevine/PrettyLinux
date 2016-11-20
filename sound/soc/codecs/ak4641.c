@@ -30,7 +30,8 @@
 #include "ak4641.h"
 
 /* codec private data */
-struct ak4641_priv {
+struct ak4641_priv
+{
 	struct regmap *regmap;
 	unsigned int sysclk;
 	int deemph;
@@ -40,7 +41,8 @@ struct ak4641_priv {
 /*
  * ak4641 register cache
  */
-static const struct reg_default ak4641_reg_defaults[] = {
+static const struct reg_default ak4641_reg_defaults[] =
+{
 	{  0, 0x00 }, {  1, 0x80 }, {  2, 0x00 }, {  3, 0x80 },
 	{  4, 0x02 }, {  5, 0x00 }, {  6, 0x11 }, {  7, 0x05 },
 	{  8, 0x00 }, {  9, 0x00 }, { 10, 0x36 }, { 11, 0x10 },
@@ -55,15 +57,20 @@ static int ak4641_set_deemph(struct snd_soc_codec *codec)
 	struct ak4641_priv *ak4641 = snd_soc_codec_get_drvdata(codec);
 	int i, best = 0;
 
-	for (i = 0 ; i < ARRAY_SIZE(deemph_settings); i++) {
+	for (i = 0 ; i < ARRAY_SIZE(deemph_settings); i++)
+	{
 		/* if deemphasis is on, select the nearest available rate */
 		if (ak4641->deemph && deemph_settings[i] != 0 &&
-		    abs(deemph_settings[i] - ak4641->playback_fs) <
-		    abs(deemph_settings[best] - ak4641->playback_fs))
+			abs(deemph_settings[i] - ak4641->playback_fs) <
+			abs(deemph_settings[best] - ak4641->playback_fs))
+		{
 			best = i;
+		}
 
 		if (!ak4641->deemph && deemph_settings[i] == 0)
+		{
 			best = i;
+		}
 	}
 
 	dev_dbg(codec->dev, "Set deemphasis %d\n", best);
@@ -72,14 +79,16 @@ static int ak4641_set_deemph(struct snd_soc_codec *codec)
 }
 
 static int ak4641_put_deemph(struct snd_kcontrol *kcontrol,
-				struct snd_ctl_elem_value *ucontrol)
+							 struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
 	struct ak4641_priv *ak4641 = snd_soc_codec_get_drvdata(codec);
 	int deemph = ucontrol->value.integer.value[0];
 
 	if (deemph > 1)
+	{
 		return -EINVAL;
+	}
 
 	ak4641->deemph = deemph;
 
@@ -87,7 +96,7 @@ static int ak4641_put_deemph(struct snd_kcontrol *kcontrol,
 }
 
 static int ak4641_get_deemph(struct snd_kcontrol *kcontrol,
-				struct snd_ctl_elem_value *ucontrol)
+							 struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
 	struct ak4641_priv *ak4641 = snd_soc_codec_get_drvdata(codec);
@@ -114,21 +123,22 @@ static const DECLARE_TLV_DB_SCALE(aux_in_tlv, -2100, 300, 0);
 
 
 static SOC_ENUM_SINGLE_DECL(ak4641_mono_out_enum,
-			    AK4641_SIG1, 6, ak4641_mono_out);
+							AK4641_SIG1, 6, ak4641_mono_out);
 static SOC_ENUM_SINGLE_DECL(ak4641_hp_out_enum,
-			    AK4641_MODE2, 2, ak4641_hp_out);
+							AK4641_MODE2, 2, ak4641_hp_out);
 static SOC_ENUM_SINGLE_DECL(ak4641_mic_select_enum,
-			    AK4641_MIC, 1, ak4641_mic_select);
+							AK4641_MIC, 1, ak4641_mic_select);
 static SOC_ENUM_SINGLE_DECL(ak4641_mic_or_dac_enum,
-			    AK4641_BTIF, 4, ak4641_mic_or_dac);
+							AK4641_BTIF, 4, ak4641_mic_or_dac);
 
-static const struct snd_kcontrol_new ak4641_snd_controls[] = {
+static const struct snd_kcontrol_new ak4641_snd_controls[] =
+{
 	SOC_ENUM("Mono 1 Output", ak4641_mono_out_enum),
 	SOC_SINGLE_TLV("Mono 1 Gain Volume", AK4641_SIG1, 7, 1, 1,
-							mono_gain_tlv),
+	mono_gain_tlv),
 	SOC_ENUM("Headphone Output", ak4641_hp_out_enum),
 	SOC_SINGLE_BOOL_EXT("Playback Deemphasis Switch", 0,
-					ak4641_get_deemph, ak4641_put_deemph),
+	ak4641_get_deemph, ak4641_put_deemph),
 
 	SOC_SINGLE_TLV("Mic Boost Volume", AK4641_MIC, 0, 1, 0, mic_boost_tlv),
 
@@ -145,7 +155,7 @@ static const struct snd_kcontrol_new ak4641_snd_controls[] = {
 	SOC_SINGLE_TLV("Capture Volume", AK4641_PGA, 0, 71, 0, capture_tlv),
 
 	SOC_DOUBLE_R_TLV("Master Playback Volume", AK4641_LATT,
-				AK4641_RATT, 0, 255, 1, master_tlv),
+	AK4641_RATT, 0, 255, 1, master_tlv),
 
 	SOC_SINGLE_TLV("AUX In Volume", AK4641_VOL, 0, 15, 0, aux_in_tlv),
 
@@ -158,24 +168,27 @@ static const struct snd_kcontrol_new ak4641_snd_controls[] = {
 };
 
 /* Mono 1 Mixer */
-static const struct snd_kcontrol_new ak4641_mono1_mixer_controls[] = {
+static const struct snd_kcontrol_new ak4641_mono1_mixer_controls[] =
+{
 	SOC_DAPM_SINGLE_TLV("Mic Mono Sidetone Volume", AK4641_VOL, 7, 1, 0,
-						mic_mono_sidetone_tlv),
+	mic_mono_sidetone_tlv),
 	SOC_DAPM_SINGLE("Mic Mono Sidetone Switch", AK4641_SIG1, 4, 1, 0),
 	SOC_DAPM_SINGLE("Mono Playback Switch", AK4641_SIG1, 5, 1, 0),
 };
 
 /* Stereo Mixer */
-static const struct snd_kcontrol_new ak4641_stereo_mixer_controls[] = {
+static const struct snd_kcontrol_new ak4641_stereo_mixer_controls[] =
+{
 	SOC_DAPM_SINGLE_TLV("Mic Sidetone Volume", AK4641_VOL, 4, 7, 0,
-						mic_stereo_sidetone_tlv),
+	mic_stereo_sidetone_tlv),
 	SOC_DAPM_SINGLE("Mic Sidetone Switch", AK4641_SIG2, 4, 1, 0),
 	SOC_DAPM_SINGLE("Playback Switch", AK4641_SIG2, 7, 1, 0),
 	SOC_DAPM_SINGLE("Aux Bypass Switch", AK4641_SIG2, 5, 1, 0),
 };
 
 /* Input Mixer */
-static const struct snd_kcontrol_new ak4641_input_mixer_controls[] = {
+static const struct snd_kcontrol_new ak4641_input_mixer_controls[] =
+{
 	SOC_DAPM_SINGLE("Mic Capture Switch", AK4641_MIC, 2, 1, 0),
 	SOC_DAPM_SINGLE("Aux Capture Switch", AK4641_MIC, 5, 1, 0),
 };
@@ -193,22 +206,23 @@ static const struct snd_kcontrol_new ak4641_mono2_control =
 	SOC_DAPM_SINGLE("Switch", AK4641_SIG1, 0, 1, 0);
 
 /* ak4641 dapm widgets */
-static const struct snd_soc_dapm_widget ak4641_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget ak4641_dapm_widgets[] =
+{
 	SND_SOC_DAPM_MIXER("Stereo Mixer", SND_SOC_NOPM, 0, 0,
-		&ak4641_stereo_mixer_controls[0],
-		ARRAY_SIZE(ak4641_stereo_mixer_controls)),
+	&ak4641_stereo_mixer_controls[0],
+	ARRAY_SIZE(ak4641_stereo_mixer_controls)),
 	SND_SOC_DAPM_MIXER("Mono1 Mixer", SND_SOC_NOPM, 0, 0,
-		&ak4641_mono1_mixer_controls[0],
-		ARRAY_SIZE(ak4641_mono1_mixer_controls)),
+	&ak4641_mono1_mixer_controls[0],
+	ARRAY_SIZE(ak4641_mono1_mixer_controls)),
 	SND_SOC_DAPM_MIXER("Input Mixer", SND_SOC_NOPM, 0, 0,
-		&ak4641_input_mixer_controls[0],
-		ARRAY_SIZE(ak4641_input_mixer_controls)),
+	&ak4641_input_mixer_controls[0],
+	ARRAY_SIZE(ak4641_input_mixer_controls)),
 	SND_SOC_DAPM_MUX("Mic Mux", SND_SOC_NOPM, 0, 0,
-		&ak4641_mic_mux_control),
+	&ak4641_mic_mux_control),
 	SND_SOC_DAPM_MUX("Input Mux", SND_SOC_NOPM, 0, 0,
-		&ak4641_input_mux_control),
+	&ak4641_input_mux_control),
 	SND_SOC_DAPM_SWITCH("Mono 2 Enable", SND_SOC_NOPM, 0, 0,
-		&ak4641_mono2_control),
+	&ak4641_mono2_control),
 
 	SND_SOC_DAPM_OUTPUT("LOUT"),
 	SND_SOC_DAPM_OUTPUT("ROUT"),
@@ -237,7 +251,8 @@ static const struct snd_soc_dapm_widget ak4641_dapm_widgets[] = {
 	SND_SOC_DAPM_INPUT("AIN"),
 };
 
-static const struct snd_soc_dapm_route ak4641_audio_map[] = {
+static const struct snd_soc_dapm_route ak4641_audio_map[] =
+{
 	/* Stereo Mixer */
 	{"Stereo Mixer", "Playback Switch", "DAC"},
 	{"Stereo Mixer", "Mic Sidetone Switch", "Input Mux"},
@@ -285,7 +300,7 @@ static const struct snd_soc_dapm_route ak4641_audio_map[] = {
 };
 
 static int ak4641_set_dai_sysclk(struct snd_soc_dai *codec_dai,
-	int clk_id, unsigned int freq, int dir)
+								 int clk_id, unsigned int freq, int dir)
 {
 	struct snd_soc_codec *codec = codec_dai->codec;
 	struct ak4641_priv *ak4641 = snd_soc_codec_get_drvdata(codec);
@@ -295,8 +310,8 @@ static int ak4641_set_dai_sysclk(struct snd_soc_dai *codec_dai,
 }
 
 static int ak4641_i2s_hw_params(struct snd_pcm_substream *substream,
-				 struct snd_pcm_hw_params *params,
-				 struct snd_soc_dai *dai)
+								struct snd_pcm_hw_params *params,
+								struct snd_soc_dai *dai)
 {
 	struct snd_soc_codec *codec = dai->codec;
 	struct ak4641_priv *ak4641 = snd_soc_codec_get_drvdata(codec);
@@ -304,30 +319,39 @@ static int ak4641_i2s_hw_params(struct snd_pcm_substream *substream,
 	u8 mode2;
 
 	if (rate)
+	{
 		fs = ak4641->sysclk / rate;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	/* set fs */
-	switch (fs) {
-	case 1024:
-		mode2 = (0x2 << 5);
-		break;
-	case 512:
-		mode2 = (0x1 << 5);
-		break;
-	case 256:
-		mode2 = (0x0 << 5);
-		break;
-	default:
-		dev_err(codec->dev, "Error: unsupported fs=%d\n", fs);
-		return -EINVAL;
+	switch (fs)
+	{
+		case 1024:
+			mode2 = (0x2 << 5);
+			break;
+
+		case 512:
+			mode2 = (0x1 << 5);
+			break;
+
+		case 256:
+			mode2 = (0x0 << 5);
+			break;
+
+		default:
+			dev_err(codec->dev, "Error: unsupported fs=%d\n", fs);
+			return -EINVAL;
 	}
 
 	snd_soc_update_bits(codec, AK4641_MODE2, (0x3 << 5), mode2);
 
 	/* Update de-emphasis filter for the new rate */
-	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
+	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
+	{
 		ak4641->playback_fs = rate;
 		ak4641_set_deemph(codec);
 	}
@@ -336,53 +360,64 @@ static int ak4641_i2s_hw_params(struct snd_pcm_substream *substream,
 }
 
 static int ak4641_pcm_set_dai_fmt(struct snd_soc_dai *codec_dai,
-				  unsigned int fmt)
+								  unsigned int fmt)
 {
 	struct snd_soc_codec *codec = codec_dai->codec;
 	u8 btif;
 	int ret;
 
 	/* interface format */
-	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
-	case SND_SOC_DAIFMT_I2S:
-		btif = (0x3 << 5);
-		break;
-	case SND_SOC_DAIFMT_LEFT_J:
-		btif = (0x2 << 5);
-		break;
-	case SND_SOC_DAIFMT_DSP_A:	/* MSB after FRM */
-		btif = (0x0 << 5);
-		break;
-	case SND_SOC_DAIFMT_DSP_B:	/* MSB during FRM */
-		btif = (0x1 << 5);
-		break;
-	default:
-		return -EINVAL;
+	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK)
+	{
+		case SND_SOC_DAIFMT_I2S:
+			btif = (0x3 << 5);
+			break;
+
+		case SND_SOC_DAIFMT_LEFT_J:
+			btif = (0x2 << 5);
+			break;
+
+		case SND_SOC_DAIFMT_DSP_A:	/* MSB after FRM */
+			btif = (0x0 << 5);
+			break;
+
+		case SND_SOC_DAIFMT_DSP_B:	/* MSB during FRM */
+			btif = (0x1 << 5);
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	ret = snd_soc_update_bits(codec, AK4641_BTIF, (0x3 << 5), btif);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
 
 static int ak4641_i2s_set_dai_fmt(struct snd_soc_dai *codec_dai,
-		unsigned int fmt)
+								  unsigned int fmt)
 {
 	struct snd_soc_codec *codec = codec_dai->codec;
 	u8 mode1 = 0;
 
 	/* interface format */
-	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
-	case SND_SOC_DAIFMT_I2S:
-		mode1 = 0x02;
-		break;
-	case SND_SOC_DAIFMT_LEFT_J:
-		mode1 = 0x01;
-		break;
-	default:
-		return -EINVAL;
+	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK)
+	{
+		case SND_SOC_DAIFMT_I2S:
+			mode1 = 0x02;
+			break;
+
+		case SND_SOC_DAIFMT_LEFT_J:
+			mode1 = 0x01;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return snd_soc_write(codec, AK4641_MODE1, mode1);
@@ -396,115 +431,142 @@ static int ak4641_mute(struct snd_soc_dai *dai, int mute)
 }
 
 static int ak4641_set_bias_level(struct snd_soc_codec *codec,
-	enum snd_soc_bias_level level)
+								 enum snd_soc_bias_level level)
 {
 	struct ak4641_priv *ak4641 = snd_soc_codec_get_drvdata(codec);
 	struct ak4641_platform_data *pdata = codec->dev->platform_data;
 	int ret;
 
-	switch (level) {
-	case SND_SOC_BIAS_ON:
-		/* unmute */
-		snd_soc_update_bits(codec, AK4641_DAC, 0x20, 0);
-		break;
-	case SND_SOC_BIAS_PREPARE:
-		/* mute */
-		snd_soc_update_bits(codec, AK4641_DAC, 0x20, 0x20);
-		break;
-	case SND_SOC_BIAS_STANDBY:
-		if (snd_soc_codec_get_bias_level(codec) == SND_SOC_BIAS_OFF) {
-			if (pdata && gpio_is_valid(pdata->gpio_power))
-				gpio_set_value(pdata->gpio_power, 1);
-			mdelay(1);
-			if (pdata && gpio_is_valid(pdata->gpio_npdn))
-				gpio_set_value(pdata->gpio_npdn, 1);
-			mdelay(1);
+	switch (level)
+	{
+		case SND_SOC_BIAS_ON:
+			/* unmute */
+			snd_soc_update_bits(codec, AK4641_DAC, 0x20, 0);
+			break;
 
-			ret = regcache_sync(ak4641->regmap);
-			if (ret) {
-				dev_err(codec->dev,
-					"Failed to sync cache: %d\n", ret);
-				return ret;
+		case SND_SOC_BIAS_PREPARE:
+			/* mute */
+			snd_soc_update_bits(codec, AK4641_DAC, 0x20, 0x20);
+			break;
+
+		case SND_SOC_BIAS_STANDBY:
+			if (snd_soc_codec_get_bias_level(codec) == SND_SOC_BIAS_OFF)
+			{
+				if (pdata && gpio_is_valid(pdata->gpio_power))
+				{
+					gpio_set_value(pdata->gpio_power, 1);
+				}
+
+				mdelay(1);
+
+				if (pdata && gpio_is_valid(pdata->gpio_npdn))
+				{
+					gpio_set_value(pdata->gpio_npdn, 1);
+				}
+
+				mdelay(1);
+
+				ret = regcache_sync(ak4641->regmap);
+
+				if (ret)
+				{
+					dev_err(codec->dev,
+							"Failed to sync cache: %d\n", ret);
+					return ret;
+				}
 			}
-		}
-		snd_soc_update_bits(codec, AK4641_PM1, 0x80, 0x80);
-		snd_soc_update_bits(codec, AK4641_PM2, 0x80, 0);
-		break;
-	case SND_SOC_BIAS_OFF:
-		snd_soc_update_bits(codec, AK4641_PM1, 0x80, 0);
-		if (pdata && gpio_is_valid(pdata->gpio_npdn))
-			gpio_set_value(pdata->gpio_npdn, 0);
-		if (pdata && gpio_is_valid(pdata->gpio_power))
-			gpio_set_value(pdata->gpio_power, 0);
-		regcache_mark_dirty(ak4641->regmap);
-		break;
+
+			snd_soc_update_bits(codec, AK4641_PM1, 0x80, 0x80);
+			snd_soc_update_bits(codec, AK4641_PM2, 0x80, 0);
+			break;
+
+		case SND_SOC_BIAS_OFF:
+			snd_soc_update_bits(codec, AK4641_PM1, 0x80, 0);
+
+			if (pdata && gpio_is_valid(pdata->gpio_npdn))
+			{
+				gpio_set_value(pdata->gpio_npdn, 0);
+			}
+
+			if (pdata && gpio_is_valid(pdata->gpio_power))
+			{
+				gpio_set_value(pdata->gpio_power, 0);
+			}
+
+			regcache_mark_dirty(ak4641->regmap);
+			break;
 	}
+
 	return 0;
 }
 
 #define AK4641_RATES	(SNDRV_PCM_RATE_8000_48000)
 #define AK4641_RATES_BT (SNDRV_PCM_RATE_8000 | SNDRV_PCM_RATE_11025 |\
-			 SNDRV_PCM_RATE_16000)
+						 SNDRV_PCM_RATE_16000)
 #define AK4641_FORMATS	(SNDRV_PCM_FMTBIT_S16_LE)
 
-static const struct snd_soc_dai_ops ak4641_i2s_dai_ops = {
+static const struct snd_soc_dai_ops ak4641_i2s_dai_ops =
+{
 	.hw_params    = ak4641_i2s_hw_params,
 	.set_fmt      = ak4641_i2s_set_dai_fmt,
 	.digital_mute = ak4641_mute,
 	.set_sysclk   = ak4641_set_dai_sysclk,
 };
 
-static const struct snd_soc_dai_ops ak4641_pcm_dai_ops = {
+static const struct snd_soc_dai_ops ak4641_pcm_dai_ops =
+{
 	.hw_params    = NULL, /* rates are controlled by BT chip */
 	.set_fmt      = ak4641_pcm_set_dai_fmt,
 	.digital_mute = ak4641_mute,
 	.set_sysclk   = ak4641_set_dai_sysclk,
 };
 
-static struct snd_soc_dai_driver ak4641_dai[] = {
+static struct snd_soc_dai_driver ak4641_dai[] =
 {
-	.name = "ak4641-hifi",
-	.id = 1,
-	.playback = {
-		.stream_name = "HiFi Playback",
-		.channels_min = 1,
-		.channels_max = 2,
-		.rates = AK4641_RATES,
-		.formats = AK4641_FORMATS,
+	{
+		.name = "ak4641-hifi",
+		.id = 1,
+		.playback = {
+			.stream_name = "HiFi Playback",
+			.channels_min = 1,
+			.channels_max = 2,
+			.rates = AK4641_RATES,
+			.formats = AK4641_FORMATS,
+		},
+		.capture = {
+			.stream_name = "HiFi Capture",
+			.channels_min = 1,
+			.channels_max = 2,
+			.rates = AK4641_RATES,
+			.formats = AK4641_FORMATS,
+		},
+		.ops = &ak4641_i2s_dai_ops,
+		.symmetric_rates = 1,
 	},
-	.capture = {
-		.stream_name = "HiFi Capture",
-		.channels_min = 1,
-		.channels_max = 2,
-		.rates = AK4641_RATES,
-		.formats = AK4641_FORMATS,
+	{
+		.name = "ak4641-voice",
+		.id = 1,
+		.playback = {
+			.stream_name = "Voice Playback",
+			.channels_min = 1,
+			.channels_max = 1,
+			.rates = AK4641_RATES_BT,
+			.formats = AK4641_FORMATS,
+		},
+		.capture = {
+			.stream_name = "Voice Capture",
+			.channels_min = 1,
+			.channels_max = 1,
+			.rates = AK4641_RATES_BT,
+			.formats = AK4641_FORMATS,
+		},
+		.ops = &ak4641_pcm_dai_ops,
+		.symmetric_rates = 1,
 	},
-	.ops = &ak4641_i2s_dai_ops,
-	.symmetric_rates = 1,
-},
-{
-	.name = "ak4641-voice",
-	.id = 1,
-	.playback = {
-		.stream_name = "Voice Playback",
-		.channels_min = 1,
-		.channels_max = 1,
-		.rates = AK4641_RATES_BT,
-		.formats = AK4641_FORMATS,
-	},
-	.capture = {
-		.stream_name = "Voice Capture",
-		.channels_min = 1,
-		.channels_max = 1,
-		.rates = AK4641_RATES_BT,
-		.formats = AK4641_FORMATS,
-	},
-	.ops = &ak4641_pcm_dai_ops,
-	.symmetric_rates = 1,
-},
 };
 
-static struct snd_soc_codec_driver soc_codec_dev_ak4641 = {
+static struct snd_soc_codec_driver soc_codec_dev_ak4641 =
+{
 	.component_driver = {
 		.controls		= ak4641_snd_controls,
 		.num_controls		= ARRAY_SIZE(ak4641_snd_controls),
@@ -517,7 +579,8 @@ static struct snd_soc_codec_driver soc_codec_dev_ak4641 = {
 	.suspend_bias_off	= true,
 };
 
-static const struct regmap_config ak4641_regmap = {
+static const struct regmap_config ak4641_regmap =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 
@@ -528,33 +591,49 @@ static const struct regmap_config ak4641_regmap = {
 };
 
 static int ak4641_i2c_probe(struct i2c_client *i2c,
-			    const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	struct ak4641_platform_data *pdata = i2c->dev.platform_data;
 	struct ak4641_priv *ak4641;
 	int ret;
 
 	ak4641 = devm_kzalloc(&i2c->dev, sizeof(struct ak4641_priv),
-			      GFP_KERNEL);
+						  GFP_KERNEL);
+
 	if (!ak4641)
+	{
 		return -ENOMEM;
+	}
 
 	ak4641->regmap = devm_regmap_init_i2c(i2c, &ak4641_regmap);
-	if (IS_ERR(ak4641->regmap))
-		return PTR_ERR(ak4641->regmap);
 
-	if (pdata) {
-		if (gpio_is_valid(pdata->gpio_power)) {
+	if (IS_ERR(ak4641->regmap))
+	{
+		return PTR_ERR(ak4641->regmap);
+	}
+
+	if (pdata)
+	{
+		if (gpio_is_valid(pdata->gpio_power))
+		{
 			ret = gpio_request_one(pdata->gpio_power,
-					GPIOF_OUT_INIT_LOW, "ak4641 power");
+								   GPIOF_OUT_INIT_LOW, "ak4641 power");
+
 			if (ret)
+			{
 				goto err_out;
+			}
 		}
-		if (gpio_is_valid(pdata->gpio_npdn)) {
+
+		if (gpio_is_valid(pdata->gpio_npdn))
+		{
 			ret = gpio_request_one(pdata->gpio_npdn,
-					GPIOF_OUT_INIT_LOW, "ak4641 npdn");
+								   GPIOF_OUT_INIT_LOW, "ak4641 npdn");
+
 			if (ret)
+			{
 				goto err_gpio;
+			}
 
 			udelay(1); /* > 150 ns */
 			gpio_set_value(pdata->gpio_npdn, 1);
@@ -564,22 +643,37 @@ static int ak4641_i2c_probe(struct i2c_client *i2c,
 	i2c_set_clientdata(i2c, ak4641);
 
 	ret = snd_soc_register_codec(&i2c->dev, &soc_codec_dev_ak4641,
-				ak4641_dai, ARRAY_SIZE(ak4641_dai));
+								 ak4641_dai, ARRAY_SIZE(ak4641_dai));
+
 	if (ret != 0)
+	{
 		goto err_gpio2;
+	}
 
 	return 0;
 
 err_gpio2:
-	if (pdata) {
+
+	if (pdata)
+	{
 		if (gpio_is_valid(pdata->gpio_power))
+		{
 			gpio_set_value(pdata->gpio_power, 0);
+		}
+
 		if (gpio_is_valid(pdata->gpio_npdn))
+		{
 			gpio_free(pdata->gpio_npdn);
+		}
 	}
+
 err_gpio:
+
 	if (pdata && gpio_is_valid(pdata->gpio_power))
+	{
 		gpio_free(pdata->gpio_power);
+	}
+
 err_out:
 	return ret;
 }
@@ -590,25 +684,32 @@ static int ak4641_i2c_remove(struct i2c_client *i2c)
 
 	snd_soc_unregister_codec(&i2c->dev);
 
-	if (pdata) {
-		if (gpio_is_valid(pdata->gpio_power)) {
+	if (pdata)
+	{
+		if (gpio_is_valid(pdata->gpio_power))
+		{
 			gpio_set_value(pdata->gpio_power, 0);
 			gpio_free(pdata->gpio_power);
 		}
+
 		if (gpio_is_valid(pdata->gpio_npdn))
+		{
 			gpio_free(pdata->gpio_npdn);
+		}
 	}
 
 	return 0;
 }
 
-static const struct i2c_device_id ak4641_i2c_id[] = {
+static const struct i2c_device_id ak4641_i2c_id[] =
+{
 	{ "ak4641", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, ak4641_i2c_id);
 
-static struct i2c_driver ak4641_i2c_driver = {
+static struct i2c_driver ak4641_i2c_driver =
+{
 	.driver = {
 		.name = "ak4641",
 	},

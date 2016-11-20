@@ -17,11 +17,13 @@
 #include <linux/device.h>
 #include <linux/badblocks.h>
 
-enum nvdimm_event {
+enum nvdimm_event
+{
 	NVDIMM_REVALIDATE_POISON,
 };
 
-struct nd_device_driver {
+struct nd_device_driver
+{
 	struct device_driver drv;
 	unsigned long type;
 	int (*probe)(struct device *dev);
@@ -31,7 +33,7 @@ struct nd_device_driver {
 };
 
 static inline struct nd_device_driver *to_nd_device_driver(
-		struct device_driver *drv)
+	struct device_driver *drv)
 {
 	return container_of(drv, struct nd_device_driver, drv);
 };
@@ -43,12 +45,13 @@ static inline struct nd_device_driver *to_nd_device_driver(
  * @claim: when set a another personality has taken ownership of the namespace
  * @rw_bytes: access the raw namespace capacity with byte-aligned transfers
  */
-struct nd_namespace_common {
+struct nd_namespace_common
+{
 	int force_raw;
 	struct device dev;
 	struct device *claim;
 	int (*rw_bytes)(struct nd_namespace_common *, resource_size_t offset,
-			void *buf, size_t size, int rw);
+					void *buf, size_t size, int rw);
 };
 
 static inline struct nd_namespace_common *to_ndns(struct device *dev)
@@ -64,7 +67,8 @@ static inline struct nd_namespace_common *to_ndns(struct device *dev)
  * @addr: virtual address to access the namespace range
  * @bb: badblocks list for the namespace range
  */
-struct nd_namespace_io {
+struct nd_namespace_io
+{
 	struct nd_namespace_common common;
 	struct resource res;
 	resource_size_t size;
@@ -79,7 +83,8 @@ struct nd_namespace_io {
  * @uuid: namespace name supplied in the dimm label
  * @id: ida allocated id
  */
-struct nd_namespace_pmem {
+struct nd_namespace_pmem
+{
 	struct nd_namespace_io nsio;
 	char *alt_name;
 	u8 *uuid;
@@ -96,7 +101,8 @@ struct nd_namespace_pmem {
  * @num_resources: number of dpa extents to claim
  * @res: discontiguous dpa extents for given dimm
  */
-struct nd_namespace_blk {
+struct nd_namespace_blk
+{
 	struct nd_namespace_common common;
 	char *alt_name;
 	u8 *uuid;
@@ -134,7 +140,7 @@ static inline struct nd_namespace_blk *to_nd_namespace_blk(const struct device *
  * @buf is up-to-date upon return from this routine.
  */
 static inline int nvdimm_read_bytes(struct nd_namespace_common *ndns,
-		resource_size_t offset, void *buf, size_t size)
+									resource_size_t offset, void *buf, size_t size)
 {
 	return ndns->rw_bytes(ndns, offset, buf, size, READ);
 }
@@ -152,7 +158,7 @@ static inline int nvdimm_read_bytes(struct nd_namespace_common *ndns,
  * to media is handled internal to the @ndns driver, if at all.
  */
 static inline int nvdimm_write_bytes(struct nd_namespace_common *ndns,
-		resource_size_t offset, void *buf, size_t size)
+									 resource_size_t offset, void *buf, size_t size)
 {
 	return ndns->rw_bytes(ndns, offset, buf, size, WRITE);
 }
@@ -164,7 +170,7 @@ static inline int nvdimm_write_bytes(struct nd_namespace_common *ndns,
 struct nd_region;
 void nvdimm_region_notify(struct nd_region *nd_region, enum nvdimm_event event);
 int __must_check __nd_driver_register(struct nd_device_driver *nd_drv,
-		struct module *module, const char *mod_name);
+									  struct module *module, const char *mod_name);
 #define nd_driver_register(driver) \
 	__nd_driver_register(driver, THIS_MODULE, KBUILD_MODNAME)
 #endif /* __LINUX_ND_H__ */

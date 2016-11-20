@@ -69,19 +69,19 @@ static inline u64 div_u64_rem(u64 dividend, u32 divisor, u32 *remainder)
 #endif
 
 #ifndef div_s64_rem
-extern s64 div_s64_rem(s64 dividend, s32 divisor, s32 *remainder);
+	extern s64 div_s64_rem(s64 dividend, s32 divisor, s32 *remainder);
 #endif
 
 #ifndef div64_u64_rem
-extern u64 div64_u64_rem(u64 dividend, u64 divisor, u64 *remainder);
+	extern u64 div64_u64_rem(u64 dividend, u64 divisor, u64 *remainder);
 #endif
 
 #ifndef div64_u64
-extern u64 div64_u64(u64 dividend, u64 divisor);
+	extern u64 div64_u64(u64 dividend, u64 divisor);
 #endif
 
 #ifndef div64_s64
-extern s64 div64_s64(s64 dividend, s64 divisor);
+	extern s64 div64_s64(s64 dividend, s64 divisor);
 #endif
 
 #endif /* BITS_PER_LONG */
@@ -119,7 +119,8 @@ __iter_div_u64_rem(u64 dividend, u32 divisor, u64 *remainder)
 {
 	u32 ret = 0;
 
-	while (dividend >= divisor) {
+	while (dividend >= divisor)
+	{
 		/* The following asm() prevents the compiler from
 		   optimising this loop into a modulo operation.  */
 		asm("" : "+rm"(dividend));
@@ -161,8 +162,11 @@ static inline u64 mul_u64_u32_shr(u64 a, u32 mul, unsigned int shift)
 	ah = a >> 32;
 
 	ret = ((u64)al * mul) >> shift;
+
 	if (ah)
+	{
 		ret += ((u64)ah * mul) << (32 - shift);
+	}
 
 	return ret;
 }
@@ -171,9 +175,11 @@ static inline u64 mul_u64_u32_shr(u64 a, u32 mul, unsigned int shift)
 #ifndef mul_u64_u64_shr
 static inline u64 mul_u64_u64_shr(u64 a, u64 b, unsigned int shift)
 {
-	union {
+	union
+	{
 		u64 ll;
-		struct {
+		struct
+		{
 #ifdef __BIG_ENDIAN
 			u32 high, low;
 #else
@@ -205,9 +211,15 @@ static inline u64 mul_u64_u64_shr(u64 a, u64 b, unsigned int shift)
 	 * shift it right and throw away the high part of the result.
 	 */
 	if (shift == 0)
+	{
 		return rl.ll;
+	}
+
 	if (shift < 64)
+	{
 		return (rl.ll >> shift) | (rh.ll << (64 - shift));
+	}
+
 	return rh.ll >> (shift & 63);
 }
 #endif /* mul_u64_u64_shr */
@@ -217,9 +229,11 @@ static inline u64 mul_u64_u64_shr(u64 a, u64 b, unsigned int shift)
 #ifndef mul_u64_u32_div
 static inline u64 mul_u64_u32_div(u64 a, u32 mul, u32 divisor)
 {
-	union {
+	union
+	{
 		u64 ll;
-		struct {
+		struct
+		{
 #ifdef __BIG_ENDIAN
 			u32 high, low;
 #else

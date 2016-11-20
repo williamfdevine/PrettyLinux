@@ -21,7 +21,8 @@
 #define HNS_DEBUG_OFFSET	6
 #define HNS_SRV_OFFSET		2
 
-enum hns_nic_state {
+enum hns_nic_state
+{
 	NIC_STATE_TESTING = 0,
 	NIC_STATE_RESETTING,
 	NIC_STATE_REINITING,
@@ -34,7 +35,8 @@ enum hns_nic_state {
 	NIC_STATE_MAX
 };
 
-struct hns_nic_ring_data {
+struct hns_nic_ring_data
+{
 	struct hnae_ring *ring;
 	struct napi_struct napi;
 	int queue_index;
@@ -44,16 +46,18 @@ struct hns_nic_ring_data {
 };
 
 /* compatible the difference between two versions */
-struct hns_nic_ops {
+struct hns_nic_ops
+{
 	void (*fill_desc)(struct hnae_ring *ring, void *priv,
-			  int size, dma_addr_t dma, int frag_end,
-			  int buf_num, enum hns_desc_type type, int mtu);
+					  int size, dma_addr_t dma, int frag_end,
+					  int buf_num, enum hns_desc_type type, int mtu);
 	int (*maybe_stop_tx)(struct sk_buff **out_skb,
-			     int *bnum, struct hnae_ring *ring);
+						 int *bnum, struct hnae_ring *ring);
 	void (*get_rxd_bnum)(u32 bnum_flag, int *out_bnum);
 };
 
-struct hns_nic_priv {
+struct hns_nic_priv
+{
 	const struct fwnode_handle      *fwnode;
 	u32 enet_ver;
 	u32 port_id;
@@ -92,7 +96,7 @@ void hns_nic_net_reset(struct net_device *ndev);
 void hns_nic_net_reinit(struct net_device *netdev);
 int hns_nic_init_phy(struct net_device *ndev, struct hnae_handle *h);
 int hns_nic_net_xmit_hw(struct net_device *ndev,
-			struct sk_buff *skb,
-			struct hns_nic_ring_data *ring_data);
+						struct sk_buff *skb,
+						struct hns_nic_ring_data *ring_data);
 
 #endif	/**__HNS_ENET_H */

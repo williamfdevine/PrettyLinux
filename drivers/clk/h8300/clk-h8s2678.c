@@ -15,7 +15,8 @@ static DEFINE_SPINLOCK(clklock);
 #define MAX_FREQ 33333333
 #define MIN_FREQ  8000000
 
-struct pll_clock {
+struct pll_clock
+{
 	struct clk_hw hw;
 	void __iomem *sckcr;
 	void __iomem *pllcr;
@@ -24,7 +25,7 @@ struct pll_clock {
 #define to_pll_clock(_hw) container_of(_hw, struct pll_clock, hw)
 
 static unsigned long pll_recalc_rate(struct clk_hw *hw,
-		unsigned long parent_rate)
+									 unsigned long parent_rate)
 {
 	struct pll_clock *pll_clock = to_pll_clock(hw);
 	int mul = 1 << (readb(pll_clock->pllcr) & 3);
@@ -33,29 +34,41 @@ static unsigned long pll_recalc_rate(struct clk_hw *hw,
 }
 
 static long pll_round_rate(struct clk_hw *hw, unsigned long rate,
-				unsigned long *prate)
+						   unsigned long *prate)
 {
 	int i, m = -1;
 	long offset[3];
 
 	if (rate > MAX_FREQ)
+	{
 		rate = MAX_FREQ;
+	}
+
 	if (rate < MIN_FREQ)
+	{
 		rate = MIN_FREQ;
+	}
 
 	for (i = 0; i < 3; i++)
+	{
 		offset[i] = abs(rate - (*prate * (1 << i)));
+	}
+
 	for (i = 0; i < 3; i++)
 		if (m < 0)
+		{
 			m = i;
+		}
 		else
-			m = (offset[i] < offset[m])?i:m;
+		{
+			m = (offset[i] < offset[m]) ? i : m;
+		}
 
 	return *prate * (1 << m);
 }
 
 static int pll_set_rate(struct clk_hw *hw, unsigned long rate,
-			unsigned long parent_rate)
+						unsigned long parent_rate)
 {
 	int pll;
 	unsigned char val;
@@ -75,7 +88,8 @@ static int pll_set_rate(struct clk_hw *hw, unsigned long rate,
 	return 0;
 }
 
-static const struct clk_ops pll_ops = {
+static const struct clk_ops pll_ops =
+{
 	.recalc_rate = pll_recalc_rate,
 	.round_rate = pll_round_rate,
 	.set_rate = pll_set_rate,
@@ -91,24 +105,33 @@ static void __init h8s2678_pll_clk_setup(struct device_node *node)
 	int ret;
 
 	num_parents = of_clk_get_parent_count(node);
-	if (!num_parents) {
+
+	if (!num_parents)
+	{
 		pr_err("%s: no parent found", clk_name);
 		return;
 	}
 
 
 	pll_clock = kzalloc(sizeof(*pll_clock), GFP_KERNEL);
+
 	if (!pll_clock)
+	{
 		return;
+	}
 
 	pll_clock->sckcr = of_iomap(node, 0);
-	if (pll_clock->sckcr == NULL) {
+
+	if (pll_clock->sckcr == NULL)
+	{
 		pr_err("%s: failed to map divide register", clk_name);
 		goto free_clock;
 	}
 
 	pll_clock->pllcr = of_iomap(node, 1);
-	if (pll_clock->pllcr == NULL) {
+
+	if (pll_clock->pllcr == NULL)
+	{
 		pr_err("%s: failed to map multiply register", clk_name);
 		goto unmap_sckcr;
 	}
@@ -122,9 +145,11 @@ static void __init h8s2678_pll_clk_setup(struct device_node *node)
 	pll_clock->hw.init = &init;
 
 	ret = clk_hw_register(NULL, &pll_clock->hw);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("%s: failed to register %s div clock (%d)\n",
-		       __func__, clk_name, ret);
+			   __func__, clk_name, ret);
 		goto unmap_pllcr;
 	}
 
@@ -140,4 +165,4 @@ free_clock:
 }
 
 CLK_OF_DECLARE(h8s2678_div_clk, "renesas,h8s2678-pll-clock",
-	       h8s2678_pll_clk_setup);
+			   h8s2678_pll_clk_setup);

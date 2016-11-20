@@ -39,7 +39,8 @@ static int poll_interval = 0;
 
 typedef enum pcc_space { as_none = 0, as_comm, as_attr, as_io } pcc_as_t;
 
-typedef struct pcc_socket {
+typedef struct pcc_socket
+{
 	u_short			type, flags;
 	struct pcmcia_socket	socket;
 	unsigned int		number;
@@ -59,7 +60,8 @@ typedef struct pcc_socket {
 } pcc_socket_t;
 
 static int pcc_sockets = 0;
-static pcc_socket_t socket[M32R_MAX_PCC] = {
+static pcc_socket_t socket[M32R_MAX_PCC] =
+{
 	{ 0, }, /* ... */
 };
 
@@ -71,151 +73,198 @@ static void pcc_set(u_short, unsigned int , unsigned int );
 static DEFINE_SPINLOCK(pcc_lock);
 
 #if !defined(CONFIG_PLAT_USRV)
-static inline u_long pcc_port2addr(unsigned long port, int size) {
+static inline u_long pcc_port2addr(unsigned long port, int size)
+{
 	u_long addr = 0;
 	u_long odd;
 
-	if (size == 1) {	/* byte access */
-		odd = (port&1) << 11;
+	if (size == 1)  	/* byte access */
+	{
+		odd = (port & 1) << 11;
 		port -= port & 1;
 		addr = CFC_IO_MAPBASE_BYTE - CFC_IOPORT_BASE + odd + port;
-	} else if (size == 2)
+	}
+	else if (size == 2)
+	{
 		addr = CFC_IO_MAPBASE_WORD - CFC_IOPORT_BASE + port;
+	}
 
 	return addr;
 }
 #else	/* CONFIG_PLAT_USRV */
-static inline u_long pcc_port2addr(unsigned long port, int size) {
+static inline u_long pcc_port2addr(unsigned long port, int size)
+{
 	u_long odd;
 	u_long addr = ((port - CFC_IOPORT_BASE) & 0xf000) << 8;
 
-	if (size == 1) {	/* byte access */
+	if (size == 1)  	/* byte access */
+	{
 		odd = port & 1;
 		port -= odd;
 		odd <<= 11;
 		addr = (addr | CFC_IO_MAPBASE_BYTE) + odd + (port & 0xfff);
-	} else if (size == 2)	/* word access */
+	}
+	else if (size == 2)	/* word access */
+	{
 		addr = (addr | CFC_IO_MAPBASE_WORD) + (port & 0xfff);
+	}
 
 	return addr;
 }
 #endif	/* CONFIG_PLAT_USRV */
 
 void pcc_ioread_byte(int sock, unsigned long port, void *buf, size_t size,
-	size_t nmemb, int flag)
+					 size_t nmemb, int flag)
 {
 	u_long addr;
 	unsigned char *bp = (unsigned char *)buf;
 	unsigned long flags;
 
 	pr_debug("m32r_cfc: pcc_ioread_byte: sock=%d, port=%#lx, buf=%p, "
-		 "size=%u, nmemb=%d, flag=%d\n",
-		  sock, port, buf, size, nmemb, flag);
+			 "size=%u, nmemb=%d, flag=%d\n",
+			 sock, port, buf, size, nmemb, flag);
 
 	addr = pcc_port2addr(port, 1);
-	if (!addr) {
-		printk("m32r_cfc:ioread_byte null port :%#lx\n",port);
+
+	if (!addr)
+	{
+		printk("m32r_cfc:ioread_byte null port :%#lx\n", port);
 		return;
 	}
+
 	pr_debug("m32r_cfc: pcc_ioread_byte: addr=%#lx\n", addr);
 
 	spin_lock_irqsave(&pcc_lock, flags);
+
 	/* read Byte */
 	while (nmemb--)
+	{
 		*bp++ = readb(addr);
+	}
+
 	spin_unlock_irqrestore(&pcc_lock, flags);
 }
 
 void pcc_ioread_word(int sock, unsigned long port, void *buf, size_t size,
-	size_t nmemb, int flag)
+					 size_t nmemb, int flag)
 {
 	u_long addr;
 	unsigned short *bp = (unsigned short *)buf;
 	unsigned long flags;
 
 	pr_debug("m32r_cfc: pcc_ioread_word: sock=%d, port=%#lx, "
-		 "buf=%p, size=%u, nmemb=%d, flag=%d\n",
-		 sock, port, buf, size, nmemb, flag);
+			 "buf=%p, size=%u, nmemb=%d, flag=%d\n",
+			 sock, port, buf, size, nmemb, flag);
 
 	if (size != 2)
 		printk("m32r_cfc: ioread_word :illigal size %u : %#lx\n", size,
-			port);
+			   port);
+
 	if (size == 9)
+	{
 		printk("m32r_cfc: ioread_word :insw \n");
+	}
 
 	addr = pcc_port2addr(port, 2);
-	if (!addr) {
-		printk("m32r_cfc:ioread_word null port :%#lx\n",port);
+
+	if (!addr)
+	{
+		printk("m32r_cfc:ioread_word null port :%#lx\n", port);
 		return;
 	}
+
 	pr_debug("m32r_cfc: pcc_ioread_word: addr=%#lx\n", addr);
 
 	spin_lock_irqsave(&pcc_lock, flags);
+
 	/* read Word */
 	while (nmemb--)
+	{
 		*bp++ = readw(addr);
+	}
+
 	spin_unlock_irqrestore(&pcc_lock, flags);
 }
 
 void pcc_iowrite_byte(int sock, unsigned long port, void *buf, size_t size,
-	size_t nmemb, int flag)
+					  size_t nmemb, int flag)
 {
 	u_long addr;
 	unsigned char *bp = (unsigned char *)buf;
 	unsigned long flags;
 
 	pr_debug("m32r_cfc: pcc_iowrite_byte: sock=%d, port=%#lx, "
-		 "buf=%p, size=%u, nmemb=%d, flag=%d\n",
-		 sock, port, buf, size, nmemb, flag);
+			 "buf=%p, size=%u, nmemb=%d, flag=%d\n",
+			 sock, port, buf, size, nmemb, flag);
 
 	/* write Byte */
 	addr = pcc_port2addr(port, 1);
-	if (!addr) {
-		printk("m32r_cfc:iowrite_byte null port:%#lx\n",port);
+
+	if (!addr)
+	{
+		printk("m32r_cfc:iowrite_byte null port:%#lx\n", port);
 		return;
 	}
+
 	pr_debug("m32r_cfc: pcc_iowrite_byte: addr=%#lx\n", addr);
 
 	spin_lock_irqsave(&pcc_lock, flags);
+
 	while (nmemb--)
+	{
 		writeb(*bp++, addr);
+	}
+
 	spin_unlock_irqrestore(&pcc_lock, flags);
 }
 
 void pcc_iowrite_word(int sock, unsigned long port, void *buf, size_t size,
-	size_t nmemb, int flag)
+					  size_t nmemb, int flag)
 {
 	u_long addr;
 	unsigned short *bp = (unsigned short *)buf;
 	unsigned long flags;
 
 	pr_debug("m32r_cfc: pcc_iowrite_word: sock=%d, port=%#lx, "
-		 "buf=%p, size=%u, nmemb=%d, flag=%d\n",
-		 sock, port, buf, size, nmemb, flag);
+			 "buf=%p, size=%u, nmemb=%d, flag=%d\n",
+			 sock, port, buf, size, nmemb, flag);
 
-	if(size != 2)
+	if (size != 2)
 		printk("m32r_cfc: iowrite_word :illigal size %u : %#lx\n",
-			size, port);
-	if(size == 9)
+			   size, port);
+
+	if (size == 9)
+	{
 		printk("m32r_cfc: iowrite_word :outsw \n");
+	}
 
 	addr = pcc_port2addr(port, 2);
-	if (!addr) {
-		printk("m32r_cfc:iowrite_word null addr :%#lx\n",port);
+
+	if (!addr)
+	{
+		printk("m32r_cfc:iowrite_word null addr :%#lx\n", port);
 		return;
 	}
+
 #if 1
-	if (addr & 1) {
+
+	if (addr & 1)
+	{
 		printk("m32r_cfc:iowrite_word port addr (%#lx):%#lx\n", port,
-			addr);
+			   addr);
 		return;
 	}
+
 #endif
 	pr_debug("m32r_cfc: pcc_iowrite_word: addr=%#lx\n", addr);
 
 	spin_lock_irqsave(&pcc_lock, flags);
+
 	while (nmemb--)
+	{
 		writew(*bp++, addr);
+	}
+
 	spin_unlock_irqrestore(&pcc_lock, flags);
 }
 
@@ -224,12 +273,14 @@ void pcc_iowrite_word(int sock, unsigned long port, void *buf, size_t size,
 #define IS_REGISTERED		0x2000
 #define IS_ALIVE		0x8000
 
-typedef struct pcc_t {
+typedef struct pcc_t
+{
 	char			*name;
 	u_short			flags;
 } pcc_t;
 
-static pcc_t pcc[] = {
+static pcc_t pcc[] =
+{
 #if !defined(CONFIG_PLAT_USRV)
 	{ "m32r_cfc", 0 }, { "", 0 },
 #else	/* CONFIG_PLAT_USRV */
@@ -275,8 +326,12 @@ static int __init is_alive(u_short sock)
 
 	printk("CF: ");
 	stat = pcc_get(sock, (unsigned int)PLD_CFSTS);
+
 	if (!stat)
+	{
 		printk("No ");
+	}
+
 	printk("Card is detected at socket %d : stat = 0x%08x\n", sock, stat);
 	pr_debug("m32r_cfc: is_alive: sock stat is 0x%04x\n", stat);
 
@@ -284,13 +339,13 @@ static int __init is_alive(u_short sock)
 }
 
 static void add_pcc_socket(ulong base, int irq, ulong mapaddr,
-			   unsigned int ioaddr)
+						   unsigned int ioaddr)
 {
 	pcc_socket_t *t = &socket[pcc_sockets];
 
 	pr_debug("m32r_cfc: add_pcc_socket: base=%#lx, irq=%d, "
-		 "mapaddr=%#lx, ioaddr=%08x\n",
-		 base, irq, mapaddr, ioaddr);
+			 "mapaddr=%#lx, ioaddr=%08x\n",
+			 base, irq, mapaddr, ioaddr);
 
 	/* add sockets */
 	t->ioaddr = ioaddr;
@@ -308,7 +363,9 @@ static void add_pcc_socket(ulong base, int irq, ulong mapaddr,
 #endif	/* CONFIG_PLAT_USRV */
 
 	if (is_alive(pcc_sockets))
+	{
 		t->flags |= IS_ALIVE;
+	}
 
 	/* add pcc */
 #if !defined(CONFIG_PLAT_USRV)
@@ -341,7 +398,7 @@ static void add_pcc_socket(ulong base, int irq, ulong mapaddr,
 	request_irq(irq, pcc_interrupt, 0, "m32r_cfc", pcc_interrupt);
 #ifndef CONFIG_PLAT_MAPPI3
 	/* eject interrupt */
-	request_irq(irq+1, pcc_interrupt, 0, "m32r_cfc", pcc_interrupt);
+	request_irq(irq + 1, pcc_interrupt, 0, "m32r_cfc", pcc_interrupt);
 #endif
 	pr_debug("m32r_cfc: enable CFMSK, RDYSEL\n");
 	pcc_set(pcc_sockets, (unsigned int)PLD_CFIMASK, 0x01);
@@ -364,17 +421,25 @@ static irqreturn_t pcc_interrupt(int irq, void *dev)
 	int handled = 0;
 
 	pr_debug("m32r_cfc: pcc_interrupt: irq=%d, dev=%p\n", irq, dev);
-	for (i = 0; i < pcc_sockets; i++) {
+
+	for (i = 0; i < pcc_sockets; i++)
+	{
 		if (socket[i].cs_irq1 != irq && socket[i].cs_irq2 != irq)
+		{
 			continue;
+		}
 
 		handled = 1;
 		pr_debug("m32r_cfc: pcc_interrupt: socket %d irq 0x%02x ",
-			i, irq);
+				 i, irq);
 		events |= SS_DETECT;	/* insert or eject */
+
 		if (events)
+		{
 			pcmcia_parse_events(&socket[i].socket, events);
+		}
 	}
+
 	pr_debug("m32r_cfc: pcc_interrupt: done\n");
 
 	return IRQ_RETVAL(handled);
@@ -401,43 +466,56 @@ static int _pcc_get_status(u_short sock, u_int *value)
 	pr_debug("m32r_cfc: _pcc_get_status: status=0x%08x\n", status);
 
 #if defined(CONFIG_PLAT_M32700UT) || defined(CONFIG_PLAT_USRV) || defined(CONFIG_PLAT_OPSPUT)
-	if ( status ) {
+
+	if ( status )
+	{
 		/* enable CF power */
 		status = inw((unsigned int)PLD_CPCR);
-		if (!(status & PLD_CPCR_CF)) {
+
+		if (!(status & PLD_CPCR_CF))
+		{
 			pr_debug("m32r_cfc: _pcc_get_status: "
-				 "power on (CPCR=0x%08x)\n", status);
+					 "power on (CPCR=0x%08x)\n", status);
 			status |= PLD_CPCR_CF;
 			outw(status, (unsigned int)PLD_CPCR);
 			udelay(100);
 		}
+
 		*value |= SS_POWERON;
 
-		pcc_set(sock, (unsigned int)PLD_CFBUFCR,0);/* enable buffer */
+		pcc_set(sock, (unsigned int)PLD_CFBUFCR, 0); /* enable buffer */
 		udelay(100);
 
 		*value |= SS_READY; 		/* always ready */
 		*value |= SS_3VCARD;
-	} else {
+	}
+	else
+	{
 		/* disable CF power */
 		status = inw((unsigned int)PLD_CPCR);
 		status &= ~PLD_CPCR_CF;
 		outw(status, (unsigned int)PLD_CPCR);
 		udelay(100);
 		pr_debug("m32r_cfc: _pcc_get_status: "
-			 "power off (CPCR=0x%08x)\n", status);
+				 "power off (CPCR=0x%08x)\n", status);
 	}
+
 #elif defined(CONFIG_PLAT_MAPPI2) || defined(CONFIG_PLAT_MAPPI3)
-	if ( status ) {
+
+	if ( status )
+	{
 		status = pcc_get(sock, (unsigned int)PLD_CPCR);
-		if (status == 0) { /* power off */
+
+		if (status == 0)   /* power off */
+		{
 			pcc_set(sock, (unsigned int)PLD_CPCR, 1);
-			pcc_set(sock, (unsigned int)PLD_CFBUFCR,0); /* force buffer off for ZA-36 */
+			pcc_set(sock, (unsigned int)PLD_CFBUFCR, 0); /* force buffer off for ZA-36 */
 			udelay(50);
 		}
+
 		*value |= SS_POWERON;
 
-		pcc_set(sock, (unsigned int)PLD_CFBUFCR,0);
+		pcc_set(sock, (unsigned int)PLD_CFBUFCR, 0);
 		udelay(50);
 		pcc_set(sock, (unsigned int)PLD_CFRSTCR, 0x0101);
 		udelay(25); /* for IDE reset */
@@ -446,18 +524,21 @@ static int _pcc_get_status(u_short sock, u_int *value)
 
 		*value |= SS_READY;
 		*value |= SS_3VCARD;
-	} else {
+	}
+	else
+	{
 		/* disable CF power */
-	        pcc_set(sock, (unsigned int)PLD_CPCR, 0);
+		pcc_set(sock, (unsigned int)PLD_CPCR, 0);
 		udelay(100);
 		pr_debug("m32r_cfc: _pcc_get_status: "
-			 "power off (CPCR=0x%08x)\n", status);
+				 "power off (CPCR=0x%08x)\n", status);
 	}
+
 #else
 #error no platform configuration
 #endif
 	pr_debug("m32r_cfc: _pcc_get_status: GetStatus(%d) = %#4.4x\n",
-		 sock, *value);
+			 sock, *value);
 	return 0;
 } /* _get_status */
 
@@ -466,49 +547,84 @@ static int _pcc_get_status(u_short sock, u_int *value)
 static int _pcc_set_socket(u_short sock, socket_state_t *state)
 {
 	pr_debug("m32r_cfc: SetSocket(%d, flags %#3.3x, Vcc %d, Vpp %d, "
-		  "io_irq %d, csc_mask %#2.2x)\n", sock, state->flags,
-		  state->Vcc, state->Vpp, state->io_irq, state->csc_mask);
+			 "io_irq %d, csc_mask %#2.2x)\n", sock, state->flags,
+			 state->Vcc, state->Vpp, state->io_irq, state->csc_mask);
 
 #if defined(CONFIG_PLAT_M32700UT) || defined(CONFIG_PLAT_USRV) || defined(CONFIG_PLAT_OPSPUT) || defined(CONFIG_PLAT_MAPPI2) || defined(CONFIG_PLAT_MAPPI3)
-	if (state->Vcc) {
+
+	if (state->Vcc)
+	{
 		if ((state->Vcc != 50) && (state->Vcc != 33))
+		{
 			return -EINVAL;
+		}
+
 		/* accept 5V and 3.3V */
 	}
+
 #endif
-	if (state->flags & SS_RESET) {
+
+	if (state->flags & SS_RESET)
+	{
 		pr_debug(":RESET\n");
-		pcc_set(sock,(unsigned int)PLD_CFRSTCR,0x101);
-	}else{
-		pcc_set(sock,(unsigned int)PLD_CFRSTCR,0x100);
+		pcc_set(sock, (unsigned int)PLD_CFRSTCR, 0x101);
 	}
-	if (state->flags & SS_OUTPUT_ENA){
-		pr_debug(":OUTPUT_ENA\n");
-		/* bit clear */
-		pcc_set(sock,(unsigned int)PLD_CFBUFCR,0);
-	} else {
-		pcc_set(sock,(unsigned int)PLD_CFBUFCR,1);
+	else
+	{
+		pcc_set(sock, (unsigned int)PLD_CFRSTCR, 0x100);
 	}
 
-	if(state->flags & SS_IOCARD){
+	if (state->flags & SS_OUTPUT_ENA)
+	{
+		pr_debug(":OUTPUT_ENA\n");
+		/* bit clear */
+		pcc_set(sock, (unsigned int)PLD_CFBUFCR, 0);
+	}
+	else
+	{
+		pcc_set(sock, (unsigned int)PLD_CFBUFCR, 1);
+	}
+
+	if (state->flags & SS_IOCARD)
+	{
 		pr_debug(":IOCARD");
 	}
-	if (state->flags & SS_PWR_AUTO) {
+
+	if (state->flags & SS_PWR_AUTO)
+	{
 		pr_debug(":PWR_AUTO");
 	}
+
 	if (state->csc_mask & SS_DETECT)
+	{
 		pr_debug(":csc-SS_DETECT");
-	if (state->flags & SS_IOCARD) {
-		if (state->csc_mask & SS_STSCHG)
-			pr_debug(":STSCHG");
-	} else {
-		if (state->csc_mask & SS_BATDEAD)
-			pr_debug(":BATDEAD");
-		if (state->csc_mask & SS_BATWARN)
-			pr_debug(":BATWARN");
-		if (state->csc_mask & SS_READY)
-			pr_debug(":READY");
 	}
+
+	if (state->flags & SS_IOCARD)
+	{
+		if (state->csc_mask & SS_STSCHG)
+		{
+			pr_debug(":STSCHG");
+		}
+	}
+	else
+	{
+		if (state->csc_mask & SS_BATDEAD)
+		{
+			pr_debug(":BATDEAD");
+		}
+
+		if (state->csc_mask & SS_BATWARN)
+		{
+			pr_debug(":BATWARN");
+		}
+
+		if (state->csc_mask & SS_READY)
+		{
+			pr_debug(":READY");
+		}
+	}
+
 	pr_debug("\n");
 	return 0;
 } /* _set_socket */
@@ -520,9 +636,9 @@ static int _pcc_set_io_map(u_short sock, struct pccard_io_map *io)
 	u_char map;
 
 	pr_debug("m32r_cfc: SetIOMap(%d, %d, %#2.2x, %d ns, "
-		  "%#llx-%#llx)\n", sock, io->map, io->flags,
-		  io->speed, (unsigned long long)io->start,
-		  (unsigned long long)io->stop);
+			 "%#llx-%#llx)\n", sock, io->map, io->flags,
+			 io->speed, (unsigned long long)io->start,
+			 (unsigned long long)io->stop);
 	map = io->map;
 
 	return 0;
@@ -538,21 +654,23 @@ static int _pcc_set_mem_map(u_short sock, struct pccard_mem_map *mem)
 	pcc_socket_t *t = &socket[sock];
 
 	pr_debug("m32r_cfc: SetMemMap(%d, %d, %#2.2x, %d ns, "
-		 "%#llx, %#x)\n", sock, map, mem->flags,
-		 mem->speed, (unsigned long long)mem->static_start,
-		 mem->card_start);
+			 "%#llx, %#x)\n", sock, map, mem->flags,
+			 mem->speed, (unsigned long long)mem->static_start,
+			 mem->card_start);
 
 	/*
 	 * sanity check
 	 */
-	if ((map > MAX_WIN) || (mem->card_start > 0x3ffffff)){
+	if ((map > MAX_WIN) || (mem->card_start > 0x3ffffff))
+	{
 		return -EINVAL;
 	}
 
 	/*
 	 * de-activate
 	 */
-	if ((mem->flags & MAP_ACTIVE) == 0) {
+	if ((mem->flags & MAP_ACTIVE) == 0)
+	{
 		t->current_space = as_none;
 		return 0;
 	}
@@ -560,9 +678,12 @@ static int _pcc_set_mem_map(u_short sock, struct pccard_mem_map *mem)
 	/*
 	 * Set mode
 	 */
-	if (mem->flags & MAP_ATTRIB) {
+	if (mem->flags & MAP_ATTRIB)
+	{
 		t->current_space = as_attr;
-	} else {
+	}
+	else
+	{
 		t->current_space = as_comm;
 	}
 
@@ -587,10 +708,10 @@ static int _pcc_set_mem_map(u_short sock, struct pccard_mem_map *mem)
 static ssize_t show_info(struct class_device *class_dev, char *buf)
 {
 	pcc_socket_t *s = container_of(class_dev, struct pcc_socket,
-		socket.dev);
+								   socket.dev);
 
 	return sprintf(buf, "type:     %s\nbase addr:    0x%08lx\n",
-		pcc[s->type].name, s->base);
+				   pcc[s->type].name, s->base);
 }
 
 static ssize_t show_exca(struct class_device *class_dev, char *buf)
@@ -609,24 +730,26 @@ static CLASS_DEVICE_ATTR(exca, S_IRUGO, show_exca, NULL);
 /* this is horribly ugly... proper locking needs to be done here at
  * some time... */
 #define LOCKED(x) do {					\
-	int retval;					\
-	unsigned long flags;				\
-	spin_lock_irqsave(&pcc_lock, flags);		\
-	retval = x;					\
-	spin_unlock_irqrestore(&pcc_lock, flags);	\
-	return retval;					\
-} while (0)
+		int retval;					\
+		unsigned long flags;				\
+		spin_lock_irqsave(&pcc_lock, flags);		\
+		retval = x;					\
+		spin_unlock_irqrestore(&pcc_lock, flags);	\
+		return retval;					\
+	} while (0)
 
 
 static int pcc_get_status(struct pcmcia_socket *s, u_int *value)
 {
 	unsigned int sock = container_of(s, struct pcc_socket, socket)->number;
 
-	if (socket[sock].flags & IS_ALIVE) {
+	if (socket[sock].flags & IS_ALIVE)
+	{
 		dev_dbg(&s->dev, "pcc_get_status: sock(%d) -EINVAL\n", sock);
 		*value = 0;
 		return -EINVAL;
 	}
+
 	dev_dbg(&s->dev, "pcc_get_status: sock(%d)\n", sock);
 	LOCKED(_pcc_get_status(sock, value));
 }
@@ -635,10 +758,12 @@ static int pcc_set_socket(struct pcmcia_socket *s, socket_state_t *state)
 {
 	unsigned int sock = container_of(s, struct pcc_socket, socket)->number;
 
-	if (socket[sock].flags & IS_ALIVE) {
+	if (socket[sock].flags & IS_ALIVE)
+	{
 		dev_dbg(&s->dev, "pcc_set_socket: sock(%d) -EINVAL\n", sock);
 		return -EINVAL;
 	}
+
 	dev_dbg(&s->dev, "pcc_set_socket: sock(%d)\n", sock);
 	LOCKED(_pcc_set_socket(sock, state));
 }
@@ -647,10 +772,12 @@ static int pcc_set_io_map(struct pcmcia_socket *s, struct pccard_io_map *io)
 {
 	unsigned int sock = container_of(s, struct pcc_socket, socket)->number;
 
-	if (socket[sock].flags & IS_ALIVE) {
+	if (socket[sock].flags & IS_ALIVE)
+	{
 		dev_dbg(&s->dev, "pcc_set_io_map: sock(%d) -EINVAL\n", sock);
 		return -EINVAL;
 	}
+
 	dev_dbg(&s->dev, "pcc_set_io_map: sock(%d)\n", sock);
 	LOCKED(_pcc_set_io_map(sock, io));
 }
@@ -659,10 +786,12 @@ static int pcc_set_mem_map(struct pcmcia_socket *s, struct pccard_mem_map *mem)
 {
 	unsigned int sock = container_of(s, struct pcc_socket, socket)->number;
 
-	if (socket[sock].flags & IS_ALIVE) {
+	if (socket[sock].flags & IS_ALIVE)
+	{
 		dev_dbg(&s->dev, "pcc_set_mem_map: sock(%d) -EINVAL\n", sock);
 		return -EINVAL;
 	}
+
 	dev_dbg(&s->dev, "pcc_set_mem_map: sock(%d)\n", sock);
 	LOCKED(_pcc_set_mem_map(sock, mem));
 }
@@ -673,7 +802,8 @@ static int pcc_init(struct pcmcia_socket *s)
 	return 0;
 }
 
-static struct pccard_operations pcc_operations = {
+static struct pccard_operations pcc_operations =
+{
 	.init			= pcc_init,
 	.get_status		= pcc_get_status,
 	.set_socket		= pcc_set_socket,
@@ -684,13 +814,15 @@ static struct pccard_operations pcc_operations = {
 
 /*====================================================================*/
 
-static struct platform_driver pcc_driver = {
+static struct platform_driver pcc_driver =
+{
 	.driver = {
 		.name		= "cfc",
 	},
 };
 
-static struct platform_device pcc_device = {
+static struct platform_device pcc_device =
+{
 	.name = "cfc",
 	.id = 0,
 };
@@ -702,11 +834,16 @@ static int __init init_m32r_pcc(void)
 	int i, ret;
 
 	ret = platform_driver_register(&pcc_driver);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = platform_device_register(&pcc_device);
-	if (ret){
+
+	if (ret)
+	{
 		platform_driver_unregister(&pcc_driver);
 		return ret;
 	}
@@ -720,13 +857,14 @@ static int __init init_m32r_pcc(void)
 
 #if !defined(CONFIG_PLAT_USRV)
 	add_pcc_socket(M32R_PCC0_BASE, PLD_IRQ_CFC_INSERT, CFC_ATTR_MAPBASE,
-		       CFC_IOPORT_BASE);
+				   CFC_IOPORT_BASE);
 #else	/* CONFIG_PLAT_USRV */
 	{
 		ulong base, mapaddr;
 		unsigned int ioaddr;
 
-		for (i = 0 ; i < M32R_MAX_PCC ; i++) {
+		for (i = 0 ; i < M32R_MAX_PCC ; i++)
+		{
 			base = (ulong)PLD_CFRSTCR;
 			base = base | (i << 8);
 			ioaddr = (i + 1) << 12;
@@ -736,7 +874,8 @@ static int __init init_m32r_pcc(void)
 	}
 #endif	/* CONFIG_PLAT_USRV */
 
-	if (pcc_sockets == 0) {
+	if (pcc_sockets == 0)
+	{
 		printk("socket is not found.\n");
 		platform_device_unregister(&pcc_device);
 		platform_driver_unregister(&pcc_driver);
@@ -745,19 +884,24 @@ static int __init init_m32r_pcc(void)
 
 	/* Set up interrupt handler(s) */
 
-	for (i = 0 ; i < pcc_sockets ; i++) {
+	for (i = 0 ; i < pcc_sockets ; i++)
+	{
 		socket[i].socket.dev.parent = &pcc_device.dev;
 		socket[i].socket.ops = &pcc_operations;
 		socket[i].socket.resource_ops = &pccard_static_ops;
 		socket[i].socket.owner = THIS_MODULE;
 		socket[i].number = i;
 		ret = pcmcia_register_socket(&socket[i].socket);
+
 		if (!ret)
+		{
 			socket[i].flags |= IS_REGISTERED;
+		}
 	}
 
 	/* Finally, schedule a polling interrupt */
-	if (poll_interval != 0) {
+	if (poll_interval != 0)
+	{
 		poll_timer.function = pcc_interrupt_wrapper;
 		poll_timer.data = 0;
 		init_timer(&poll_timer);
@@ -774,11 +918,16 @@ static void __exit exit_m32r_pcc(void)
 
 	for (i = 0; i < pcc_sockets; i++)
 		if (socket[i].flags & IS_REGISTERED)
+		{
 			pcmcia_unregister_socket(&socket[i].socket);
+		}
 
 	platform_device_unregister(&pcc_device);
+
 	if (poll_interval != 0)
+	{
 		del_timer_sync(&poll_timer);
+	}
 
 	platform_driver_unregister(&pcc_driver);
 } /* exit_m32r_pcc */

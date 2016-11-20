@@ -99,7 +99,7 @@
 /* Default pressure sensitivity */
 #define ST_PRESS_LSB_PER_MBAR			4096UL
 #define ST_PRESS_KPASCAL_NANO_SCALE		(100000000UL / \
-						 ST_PRESS_LSB_PER_MBAR)
+		ST_PRESS_LSB_PER_MBAR)
 
 /* Default temperature sensitivity */
 #define ST_PRESS_LSB_PER_CELSIUS		480UL
@@ -221,7 +221,8 @@
 #define ST_PRESS_LPS22HB_OD_IRQ_MASK		0x40
 #define ST_PRESS_LPS22HB_MULTIREAD_BIT		true
 
-static const struct iio_chan_spec st_press_1_channels[] = {
+static const struct iio_chan_spec st_press_1_channels[] =
+{
 	{
 		.type = IIO_PRESSURE,
 		.address = ST_PRESS_1_OUT_XL_ADDR,
@@ -233,7 +234,7 @@ static const struct iio_chan_spec st_press_1_channels[] = {
 			.endianness = IIO_LE,
 		},
 		.info_mask_separate =
-			BIT(IIO_CHAN_INFO_RAW) | BIT(IIO_CHAN_INFO_SCALE),
+		BIT(IIO_CHAN_INFO_RAW) | BIT(IIO_CHAN_INFO_SCALE),
 	},
 	{
 		.type = IIO_TEMP,
@@ -246,14 +247,15 @@ static const struct iio_chan_spec st_press_1_channels[] = {
 			.endianness = IIO_LE,
 		},
 		.info_mask_separate =
-			BIT(IIO_CHAN_INFO_RAW) |
-			BIT(IIO_CHAN_INFO_SCALE) |
-			BIT(IIO_CHAN_INFO_OFFSET),
+		BIT(IIO_CHAN_INFO_RAW) |
+		BIT(IIO_CHAN_INFO_SCALE) |
+		BIT(IIO_CHAN_INFO_OFFSET),
 	},
 	IIO_CHAN_SOFT_TIMESTAMP(2)
 };
 
-static const struct iio_chan_spec st_press_lps001wp_channels[] = {
+static const struct iio_chan_spec st_press_lps001wp_channels[] =
+{
 	{
 		.type = IIO_PRESSURE,
 		.address = ST_PRESS_LPS001WP_OUT_L_ADDR,
@@ -265,8 +267,8 @@ static const struct iio_chan_spec st_press_lps001wp_channels[] = {
 			.endianness = IIO_LE,
 		},
 		.info_mask_separate =
-			BIT(IIO_CHAN_INFO_RAW) |
-			BIT(IIO_CHAN_INFO_SCALE),
+		BIT(IIO_CHAN_INFO_RAW) |
+		BIT(IIO_CHAN_INFO_SCALE),
 	},
 	{
 		.type = IIO_TEMP,
@@ -279,13 +281,14 @@ static const struct iio_chan_spec st_press_lps001wp_channels[] = {
 			.endianness = IIO_LE,
 		},
 		.info_mask_separate =
-			BIT(IIO_CHAN_INFO_RAW) |
-			BIT(IIO_CHAN_INFO_SCALE),
+		BIT(IIO_CHAN_INFO_RAW) |
+		BIT(IIO_CHAN_INFO_SCALE),
 	},
 	IIO_CHAN_SOFT_TIMESTAMP(2)
 };
 
-static const struct iio_chan_spec st_press_lps22hb_channels[] = {
+static const struct iio_chan_spec st_press_lps22hb_channels[] =
+{
 	{
 		.type = IIO_PRESSURE,
 		.address = ST_PRESS_1_OUT_XL_ADDR,
@@ -297,8 +300,8 @@ static const struct iio_chan_spec st_press_lps22hb_channels[] = {
 			.endianness = IIO_LE,
 		},
 		.info_mask_separate =
-			BIT(IIO_CHAN_INFO_RAW) |
-			BIT(IIO_CHAN_INFO_SCALE),
+		BIT(IIO_CHAN_INFO_RAW) |
+		BIT(IIO_CHAN_INFO_SCALE),
 		.info_mask_shared_by_all = BIT(IIO_CHAN_INFO_SAMP_FREQ),
 	},
 	{
@@ -312,14 +315,15 @@ static const struct iio_chan_spec st_press_lps22hb_channels[] = {
 			.endianness = IIO_LE,
 		},
 		.info_mask_separate =
-			BIT(IIO_CHAN_INFO_RAW) |
-			BIT(IIO_CHAN_INFO_SCALE),
+		BIT(IIO_CHAN_INFO_RAW) |
+		BIT(IIO_CHAN_INFO_SCALE),
 		.info_mask_shared_by_all = BIT(IIO_CHAN_INFO_SAMP_FREQ),
 	},
 	IIO_CHAN_SOFT_TIMESTAMP(2)
 };
 
-static const struct st_sensor_settings st_press_sensors_settings[] = {
+static const struct st_sensor_settings st_press_sensors_settings[] =
+{
 	{
 		.wai = ST_PRESS_LPS331AP_WAI_EXP,
 		.wai_addr = ST_SENSORS_DEFAULT_WAI_ADDRESS,
@@ -532,73 +536,90 @@ static const struct st_sensor_settings st_press_sensors_settings[] = {
 };
 
 static int st_press_write_raw(struct iio_dev *indio_dev,
-			      struct iio_chan_spec const *ch,
-			      int val,
-			      int val2,
-			      long mask)
+							  struct iio_chan_spec const *ch,
+							  int val,
+							  int val2,
+							  long mask)
 {
 	int err;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_SAMP_FREQ:
-		if (val2)
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_SAMP_FREQ:
+			if (val2)
+			{
+				return -EINVAL;
+			}
+
+			mutex_lock(&indio_dev->mlock);
+			err = st_sensors_set_odr(indio_dev, val);
+			mutex_unlock(&indio_dev->mlock);
+			return err;
+
+		default:
 			return -EINVAL;
-		mutex_lock(&indio_dev->mlock);
-		err = st_sensors_set_odr(indio_dev, val);
-		mutex_unlock(&indio_dev->mlock);
-		return err;
-	default:
-		return -EINVAL;
 	}
 }
 
 static int st_press_read_raw(struct iio_dev *indio_dev,
-			struct iio_chan_spec const *ch, int *val,
-							int *val2, long mask)
+							 struct iio_chan_spec const *ch, int *val,
+							 int *val2, long mask)
 {
 	int err;
 	struct st_sensor_data *press_data = iio_priv(indio_dev);
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		err = st_sensors_read_info_raw(indio_dev, ch, val);
-		if (err < 0)
-			goto read_error;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			err = st_sensors_read_info_raw(indio_dev, ch, val);
 
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_SCALE:
-		switch (ch->type) {
-		case IIO_PRESSURE:
-			*val = 0;
-			*val2 = press_data->current_fullscale->gain;
-			return IIO_VAL_INT_PLUS_NANO;
-		case IIO_TEMP:
-			*val = MCELSIUS_PER_CELSIUS;
-			*val2 = press_data->current_fullscale->gain2;
+			if (err < 0)
+			{
+				goto read_error;
+			}
+
+			return IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_SCALE:
+			switch (ch->type)
+			{
+				case IIO_PRESSURE:
+					*val = 0;
+					*val2 = press_data->current_fullscale->gain;
+					return IIO_VAL_INT_PLUS_NANO;
+
+				case IIO_TEMP:
+					*val = MCELSIUS_PER_CELSIUS;
+					*val2 = press_data->current_fullscale->gain2;
+					return IIO_VAL_FRACTIONAL;
+
+				default:
+					err = -EINVAL;
+					goto read_error;
+			}
+
+		case IIO_CHAN_INFO_OFFSET:
+			switch (ch->type)
+			{
+				case IIO_TEMP:
+					*val = ST_PRESS_MILLI_CELSIUS_OFFSET *
+						   press_data->current_fullscale->gain2;
+					*val2 = MCELSIUS_PER_CELSIUS;
+					break;
+
+				default:
+					err = -EINVAL;
+					goto read_error;
+			}
+
 			return IIO_VAL_FRACTIONAL;
-		default:
-			err = -EINVAL;
-			goto read_error;
-		}
 
-	case IIO_CHAN_INFO_OFFSET:
-		switch (ch->type) {
-		case IIO_TEMP:
-			*val = ST_PRESS_MILLI_CELSIUS_OFFSET *
-			       press_data->current_fullscale->gain2;
-			*val2 = MCELSIUS_PER_CELSIUS;
-			break;
-		default:
-			err = -EINVAL;
-			goto read_error;
-		}
+		case IIO_CHAN_INFO_SAMP_FREQ:
+			*val = press_data->odr;
+			return IIO_VAL_INT;
 
-		return IIO_VAL_FRACTIONAL;
-	case IIO_CHAN_INFO_SAMP_FREQ:
-		*val = press_data->odr;
-		return IIO_VAL_INT;
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
 read_error:
@@ -607,16 +628,19 @@ read_error:
 
 static ST_SENSORS_DEV_ATTR_SAMP_FREQ_AVAIL();
 
-static struct attribute *st_press_attributes[] = {
+static struct attribute *st_press_attributes[] =
+{
 	&iio_dev_attr_sampling_frequency_available.dev_attr.attr,
 	NULL,
 };
 
-static const struct attribute_group st_press_attribute_group = {
+static const struct attribute_group st_press_attribute_group =
+{
 	.attrs = st_press_attributes,
 };
 
-static const struct iio_info press_info = {
+static const struct iio_info press_info =
+{
 	.driver_module = THIS_MODULE,
 	.attrs = &st_press_attribute_group,
 	.read_raw = &st_press_read_raw,
@@ -625,7 +649,8 @@ static const struct iio_info press_info = {
 };
 
 #ifdef CONFIG_IIO_TRIGGER
-static const struct iio_trigger_ops st_press_trigger_ops = {
+static const struct iio_trigger_ops st_press_trigger_ops =
+{
 	.owner = THIS_MODULE,
 	.set_trigger_state = ST_PRESS_TRIGGER_SET_STATE,
 	.validate_device = st_sensors_validate_device,
@@ -646,14 +671,20 @@ int st_press_common_probe(struct iio_dev *indio_dev)
 	mutex_init(&press_data->tb.buf_lock);
 
 	err = st_sensors_power_enable(indio_dev);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = st_sensors_check_device_support(indio_dev,
-					ARRAY_SIZE(st_press_sensors_settings),
-					st_press_sensors_settings);
+										  ARRAY_SIZE(st_press_sensors_settings),
+										  st_press_sensors_settings);
+
 	if (err < 0)
+	{
 		goto st_press_power_off;
+	}
 
 	/*
 	 * Skip timestamping channel while declaring available channels to
@@ -668,43 +699,60 @@ int st_press_common_probe(struct iio_dev *indio_dev)
 
 	press_data->current_fullscale =
 		(struct st_sensor_fullscale_avl *)
-			&press_data->sensor_settings->fs.fs_avl[0];
+		&press_data->sensor_settings->fs.fs_avl[0];
 
 	press_data->odr = press_data->sensor_settings->odr.odr_avl[0].hz;
 
 	/* Some devices don't support a data ready pin. */
 	if (!press_data->dev->platform_data &&
-				press_data->sensor_settings->drdy_irq.addr)
+		press_data->sensor_settings->drdy_irq.addr)
 		press_data->dev->platform_data =
 			(struct st_sensors_platform_data *)&default_press_pdata;
 
 	err = st_sensors_init_sensor(indio_dev, press_data->dev->platform_data);
+
 	if (err < 0)
+	{
 		goto st_press_power_off;
+	}
 
 	err = st_press_allocate_ring(indio_dev);
-	if (err < 0)
-		goto st_press_power_off;
 
-	if (irq > 0) {
+	if (err < 0)
+	{
+		goto st_press_power_off;
+	}
+
+	if (irq > 0)
+	{
 		err = st_sensors_allocate_trigger(indio_dev,
-						  ST_PRESS_TRIGGER_OPS);
+										  ST_PRESS_TRIGGER_OPS);
+
 		if (err < 0)
+		{
 			goto st_press_probe_trigger_error;
+		}
 	}
 
 	err = iio_device_register(indio_dev);
+
 	if (err)
+	{
 		goto st_press_device_register_error;
+	}
 
 	dev_info(&indio_dev->dev, "registered pressure sensor %s\n",
-		 indio_dev->name);
+			 indio_dev->name);
 
 	return err;
 
 st_press_device_register_error:
+
 	if (irq > 0)
+	{
 		st_sensors_deallocate_trigger(indio_dev);
+	}
+
 st_press_probe_trigger_error:
 	st_press_deallocate_ring(indio_dev);
 st_press_power_off:
@@ -721,8 +769,11 @@ void st_press_common_remove(struct iio_dev *indio_dev)
 	st_sensors_power_disable(indio_dev);
 
 	iio_device_unregister(indio_dev);
+
 	if (press_data->get_irq_data_ready(indio_dev) > 0)
+	{
 		st_sensors_deallocate_trigger(indio_dev);
+	}
 
 	st_press_deallocate_ring(indio_dev);
 }

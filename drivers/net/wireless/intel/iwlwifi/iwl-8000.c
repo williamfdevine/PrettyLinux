@@ -109,7 +109,8 @@
 #define MAX_HT_AMPDU_EXPONENT_8260_SDIO	IEEE80211_HT_MAX_AMPDU_32K
 #define MAX_VHT_AMPDU_EXPONENT_8260_SDIO	IEEE80211_VHT_MAX_AMPDU_32K
 
-static const struct iwl_base_params iwl8000_base_params = {
+static const struct iwl_base_params iwl8000_base_params =
+{
 	.eeprom_size = OTP_LOW_IMAGE_SIZE_FAMILY_8000,
 	.num_of_queues = 31,
 	.shadow_ram_support = true,
@@ -120,13 +121,15 @@ static const struct iwl_base_params iwl8000_base_params = {
 	.pcie_l1_allowed = true,
 };
 
-static const struct iwl_ht_params iwl8000_ht_params = {
+static const struct iwl_ht_params iwl8000_ht_params =
+{
 	.stbc = true,
 	.ldpc = true,
 	.ht40_bands = BIT(NL80211_BAND_2GHZ) | BIT(NL80211_BAND_5GHZ),
 };
 
-static const struct iwl_tt_params iwl8000_tt_params = {
+static const struct iwl_tt_params iwl8000_tt_params =
+{
 	.ct_kill_entry = 115,
 	.ct_kill_exit = 93,
 	.ct_kill_duration = 5,
@@ -149,132 +152,140 @@ static const struct iwl_tt_params iwl8000_tt_params = {
 
 #define IWL_DEVICE_8000_COMMON						\
 	.device_family = IWL_DEVICE_FAMILY_8000,			\
-	.max_inst_size = IWL60_RTC_INST_SIZE,				\
-	.max_data_size = IWL60_RTC_DATA_SIZE,				\
-	.base_params = &iwl8000_base_params,				\
-	.led_mode = IWL_LED_RF_STATE,					\
-	.nvm_hw_section_num = NVM_HW_SECTION_NUM_FAMILY_8000,		\
-	.features = NETIF_F_RXCSUM,					\
-	.non_shared_ant = ANT_A,					\
-	.dccm_offset = IWL8260_DCCM_OFFSET,				\
-	.dccm_len = IWL8260_DCCM_LEN,					\
-	.dccm2_offset = IWL8260_DCCM2_OFFSET,				\
-	.dccm2_len = IWL8260_DCCM2_LEN,					\
-	.smem_offset = IWL8260_SMEM_OFFSET,				\
-	.smem_len = IWL8260_SMEM_LEN,					\
-	.default_nvm_file_B_step = DEFAULT_NVM_FILE_FAMILY_8000B,	\
-	.default_nvm_file_C_step = DEFAULT_NVM_FILE_FAMILY_8000C,	\
-	.thermal_params = &iwl8000_tt_params,				\
-	.apmg_not_supported = true
+					 .max_inst_size = IWL60_RTC_INST_SIZE,				\
+									  .max_data_size = IWL60_RTC_DATA_SIZE,				\
+											  .base_params = &iwl8000_base_params,				\
+													  .led_mode = IWL_LED_RF_STATE,					\
+															  .nvm_hw_section_num = NVM_HW_SECTION_NUM_FAMILY_8000,		\
+																	  .features = NETIF_F_RXCSUM,					\
+																			  .non_shared_ant = ANT_A,					\
+																					  .dccm_offset = IWL8260_DCCM_OFFSET,				\
+																							  .dccm_len = IWL8260_DCCM_LEN,					\
+																									  .dccm2_offset = IWL8260_DCCM2_OFFSET,				\
+																											  .dccm2_len = IWL8260_DCCM2_LEN,					\
+																													  .smem_offset = IWL8260_SMEM_OFFSET,				\
+																															  .smem_len = IWL8260_SMEM_LEN,					\
+																																	  .default_nvm_file_B_step = DEFAULT_NVM_FILE_FAMILY_8000B,	\
+																																			  .default_nvm_file_C_step = DEFAULT_NVM_FILE_FAMILY_8000C,	\
+																																					  .thermal_params = &iwl8000_tt_params,				\
+																																							  .apmg_not_supported = true
 
 #define IWL_DEVICE_8000							\
 	IWL_DEVICE_8000_COMMON,						\
 	.ucode_api_max = IWL8000_UCODE_API_MAX,				\
-	.ucode_api_min = IWL8000_UCODE_API_MIN				\
+					 .ucode_api_min = IWL8000_UCODE_API_MIN				\
 
 #define IWL_DEVICE_8260							\
 	IWL_DEVICE_8000_COMMON,						\
 	.ucode_api_max = IWL8000_UCODE_API_MAX,				\
-	.ucode_api_min = IWL8000_UCODE_API_MIN				\
+					 .ucode_api_min = IWL8000_UCODE_API_MIN				\
 
 #define IWL_DEVICE_8265							\
 	IWL_DEVICE_8000_COMMON,						\
 	.ucode_api_max = IWL8265_UCODE_API_MAX,				\
-	.ucode_api_min = IWL8265_UCODE_API_MIN				\
+					 .ucode_api_min = IWL8265_UCODE_API_MIN				\
 
-const struct iwl_cfg iwl8260_2n_cfg = {
-	.name = "Intel(R) Dual Band Wireless N 8260",
-	.fw_name_pre = IWL8000_FW_PRE,
-	IWL_DEVICE_8260,
-	.ht_params = &iwl8000_ht_params,
-	.nvm_ver = IWL8000_NVM_VERSION,
-	.nvm_calib_ver = IWL8000_TX_POWER_VERSION,
-};
+									  const struct iwl_cfg iwl8260_2n_cfg =
+	{
+		.name = "Intel(R) Dual Band Wireless N 8260",
+		.fw_name_pre = IWL8000_FW_PRE,
+		IWL_DEVICE_8260,
+		.ht_params = &iwl8000_ht_params,
+		.nvm_ver = IWL8000_NVM_VERSION,
+		.nvm_calib_ver = IWL8000_TX_POWER_VERSION,
+	};
 
-const struct iwl_cfg iwl8260_2ac_cfg = {
-	.name = "Intel(R) Dual Band Wireless AC 8260",
-	.fw_name_pre = IWL8000_FW_PRE,
-	IWL_DEVICE_8260,
-	.ht_params = &iwl8000_ht_params,
-	.nvm_ver = IWL8000_NVM_VERSION,
-	.nvm_calib_ver = IWL8000_TX_POWER_VERSION,
-	.max_ht_ampdu_exponent = IEEE80211_HT_MAX_AMPDU_64K,
-};
+	const struct iwl_cfg iwl8260_2ac_cfg =
+	{
+		.name = "Intel(R) Dual Band Wireless AC 8260",
+		.fw_name_pre = IWL8000_FW_PRE,
+		IWL_DEVICE_8260,
+		.ht_params = &iwl8000_ht_params,
+		.nvm_ver = IWL8000_NVM_VERSION,
+		.nvm_calib_ver = IWL8000_TX_POWER_VERSION,
+		.max_ht_ampdu_exponent = IEEE80211_HT_MAX_AMPDU_64K,
+	};
 
-const struct iwl_cfg iwl8265_2ac_cfg = {
-	.name = "Intel(R) Dual Band Wireless AC 8265",
-	.fw_name_pre = IWL8265_FW_PRE,
-	IWL_DEVICE_8265,
-	.ht_params = &iwl8000_ht_params,
-	.nvm_ver = IWL8000_NVM_VERSION,
-	.nvm_calib_ver = IWL8000_TX_POWER_VERSION,
-	.max_ht_ampdu_exponent = IEEE80211_HT_MAX_AMPDU_64K,
-	.vht_mu_mimo_supported = true,
-};
+	const struct iwl_cfg iwl8265_2ac_cfg =
+	{
+		.name = "Intel(R) Dual Band Wireless AC 8265",
+		.fw_name_pre = IWL8265_FW_PRE,
+		IWL_DEVICE_8265,
+		.ht_params = &iwl8000_ht_params,
+		.nvm_ver = IWL8000_NVM_VERSION,
+		.nvm_calib_ver = IWL8000_TX_POWER_VERSION,
+		.max_ht_ampdu_exponent = IEEE80211_HT_MAX_AMPDU_64K,
+		.vht_mu_mimo_supported = true,
+	};
 
-const struct iwl_cfg iwl8275_2ac_cfg = {
-	.name = "Intel(R) Dual Band Wireless AC 8275",
-	.fw_name_pre = IWL8265_FW_PRE,
-	IWL_DEVICE_8265,
-	.ht_params = &iwl8000_ht_params,
-	.nvm_ver = IWL8000_NVM_VERSION,
-	.nvm_calib_ver = IWL8000_TX_POWER_VERSION,
-	.max_ht_ampdu_exponent = IEEE80211_HT_MAX_AMPDU_64K,
-	.vht_mu_mimo_supported = true,
-};
+	const struct iwl_cfg iwl8275_2ac_cfg =
+	{
+		.name = "Intel(R) Dual Band Wireless AC 8275",
+		.fw_name_pre = IWL8265_FW_PRE,
+		IWL_DEVICE_8265,
+		.ht_params = &iwl8000_ht_params,
+		.nvm_ver = IWL8000_NVM_VERSION,
+		.nvm_calib_ver = IWL8000_TX_POWER_VERSION,
+		.max_ht_ampdu_exponent = IEEE80211_HT_MAX_AMPDU_64K,
+		.vht_mu_mimo_supported = true,
+	};
 
-const struct iwl_cfg iwl4165_2ac_cfg = {
-	.name = "Intel(R) Dual Band Wireless AC 4165",
-	.fw_name_pre = IWL8000_FW_PRE,
-	IWL_DEVICE_8000,
-	.ht_params = &iwl8000_ht_params,
-	.nvm_ver = IWL8000_NVM_VERSION,
-	.nvm_calib_ver = IWL8000_TX_POWER_VERSION,
-	.max_ht_ampdu_exponent = IEEE80211_HT_MAX_AMPDU_64K,
-};
+	const struct iwl_cfg iwl4165_2ac_cfg =
+	{
+		.name = "Intel(R) Dual Band Wireless AC 4165",
+		.fw_name_pre = IWL8000_FW_PRE,
+		IWL_DEVICE_8000,
+		.ht_params = &iwl8000_ht_params,
+		.nvm_ver = IWL8000_NVM_VERSION,
+		.nvm_calib_ver = IWL8000_TX_POWER_VERSION,
+		.max_ht_ampdu_exponent = IEEE80211_HT_MAX_AMPDU_64K,
+	};
 
-const struct iwl_cfg iwl8260_2ac_sdio_cfg = {
-	.name = "Intel(R) Dual Band Wireless-AC 8260",
-	.fw_name_pre = IWL8000_FW_PRE,
-	IWL_DEVICE_8260,
-	.ht_params = &iwl8000_ht_params,
-	.nvm_ver = IWL8000_NVM_VERSION,
-	.nvm_calib_ver = IWL8000_TX_POWER_VERSION,
-	.max_rx_agg_size = MAX_RX_AGG_SIZE_8260_SDIO,
-	.max_tx_agg_size = MAX_TX_AGG_SIZE_8260_SDIO,
-	.disable_dummy_notification = true,
-	.max_ht_ampdu_exponent  = MAX_HT_AMPDU_EXPONENT_8260_SDIO,
-	.max_vht_ampdu_exponent = MAX_VHT_AMPDU_EXPONENT_8260_SDIO,
-};
+	const struct iwl_cfg iwl8260_2ac_sdio_cfg =
+	{
+		.name = "Intel(R) Dual Band Wireless-AC 8260",
+		.fw_name_pre = IWL8000_FW_PRE,
+		IWL_DEVICE_8260,
+		.ht_params = &iwl8000_ht_params,
+		.nvm_ver = IWL8000_NVM_VERSION,
+		.nvm_calib_ver = IWL8000_TX_POWER_VERSION,
+		.max_rx_agg_size = MAX_RX_AGG_SIZE_8260_SDIO,
+		.max_tx_agg_size = MAX_TX_AGG_SIZE_8260_SDIO,
+		.disable_dummy_notification = true,
+		.max_ht_ampdu_exponent  = MAX_HT_AMPDU_EXPONENT_8260_SDIO,
+		.max_vht_ampdu_exponent = MAX_VHT_AMPDU_EXPONENT_8260_SDIO,
+	};
 
-const struct iwl_cfg iwl8265_2ac_sdio_cfg = {
-	.name = "Intel(R) Dual Band Wireless-AC 8265",
-	.fw_name_pre = IWL8265_FW_PRE,
-	IWL_DEVICE_8265,
-	.ht_params = &iwl8000_ht_params,
-	.nvm_ver = IWL8000_NVM_VERSION,
-	.nvm_calib_ver = IWL8000_TX_POWER_VERSION,
-	.max_rx_agg_size = MAX_RX_AGG_SIZE_8260_SDIO,
-	.max_tx_agg_size = MAX_TX_AGG_SIZE_8260_SDIO,
-	.disable_dummy_notification = true,
-	.max_ht_ampdu_exponent  = MAX_HT_AMPDU_EXPONENT_8260_SDIO,
-	.max_vht_ampdu_exponent = MAX_VHT_AMPDU_EXPONENT_8260_SDIO,
-};
+	const struct iwl_cfg iwl8265_2ac_sdio_cfg =
+	{
+		.name = "Intel(R) Dual Band Wireless-AC 8265",
+		.fw_name_pre = IWL8265_FW_PRE,
+		IWL_DEVICE_8265,
+		.ht_params = &iwl8000_ht_params,
+		.nvm_ver = IWL8000_NVM_VERSION,
+		.nvm_calib_ver = IWL8000_TX_POWER_VERSION,
+		.max_rx_agg_size = MAX_RX_AGG_SIZE_8260_SDIO,
+		.max_tx_agg_size = MAX_TX_AGG_SIZE_8260_SDIO,
+		.disable_dummy_notification = true,
+		.max_ht_ampdu_exponent  = MAX_HT_AMPDU_EXPONENT_8260_SDIO,
+		.max_vht_ampdu_exponent = MAX_VHT_AMPDU_EXPONENT_8260_SDIO,
+	};
 
-const struct iwl_cfg iwl4165_2ac_sdio_cfg = {
-	.name = "Intel(R) Dual Band Wireless-AC 4165",
-	.fw_name_pre = IWL8000_FW_PRE,
-	IWL_DEVICE_8000,
-	.ht_params = &iwl8000_ht_params,
-	.nvm_ver = IWL8000_NVM_VERSION,
-	.nvm_calib_ver = IWL8000_TX_POWER_VERSION,
-	.max_rx_agg_size = MAX_RX_AGG_SIZE_8260_SDIO,
-	.max_tx_agg_size = MAX_TX_AGG_SIZE_8260_SDIO,
-	.bt_shared_single_ant = true,
-	.disable_dummy_notification = true,
-	.max_ht_ampdu_exponent  = MAX_HT_AMPDU_EXPONENT_8260_SDIO,
-	.max_vht_ampdu_exponent = MAX_VHT_AMPDU_EXPONENT_8260_SDIO,
-};
+	const struct iwl_cfg iwl4165_2ac_sdio_cfg =
+	{
+		.name = "Intel(R) Dual Band Wireless-AC 4165",
+		.fw_name_pre = IWL8000_FW_PRE,
+		IWL_DEVICE_8000,
+		.ht_params = &iwl8000_ht_params,
+		.nvm_ver = IWL8000_NVM_VERSION,
+		.nvm_calib_ver = IWL8000_TX_POWER_VERSION,
+		.max_rx_agg_size = MAX_RX_AGG_SIZE_8260_SDIO,
+		.max_tx_agg_size = MAX_TX_AGG_SIZE_8260_SDIO,
+		.bt_shared_single_ant = true,
+		.disable_dummy_notification = true,
+		.max_ht_ampdu_exponent  = MAX_HT_AMPDU_EXPONENT_8260_SDIO,
+		.max_vht_ampdu_exponent = MAX_VHT_AMPDU_EXPONENT_8260_SDIO,
+	};
 
-MODULE_FIRMWARE(IWL8000_MODULE_FIRMWARE(IWL8000_UCODE_API_MAX));
-MODULE_FIRMWARE(IWL8265_MODULE_FIRMWARE(IWL8265_UCODE_API_MAX));
+	MODULE_FIRMWARE(IWL8000_MODULE_FIRMWARE(IWL8000_UCODE_API_MAX));
+	MODULE_FIRMWARE(IWL8265_MODULE_FIRMWARE(IWL8265_UCODE_API_MAX));

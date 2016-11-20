@@ -42,7 +42,8 @@
 #define IMAGE_1280  2
 #define IMAGE_1600  3
 
-struct sd_gl860 {
+struct sd_gl860
+{
 	u16 backlight;
 	u16 brightness;
 	u16 sharpness;
@@ -57,7 +58,8 @@ struct sd_gl860 {
 };
 
 /* Specific webcam descriptor */
-struct sd {
+struct sd
+{
 	struct gspca_dev gspca_dev;	/* !! must be the first item */
 
 	struct sd_gl860 vcur;
@@ -78,24 +80,26 @@ struct sd {
 	u8   waitSet;
 };
 
-struct validx {
+struct validx
+{
 	u16 val;
 	u16 idx;
 };
 
-struct idxdata {
+struct idxdata
+{
 	u8 idx;
 	u8 data[3];
 };
 
 int fetch_validx(struct gspca_dev *gspca_dev, struct validx *tbl, int len);
 int keep_on_fetching_validx(struct gspca_dev *gspca_dev, struct validx *tbl,
-				int len, int n);
+							int len, int n);
 void fetch_idxdata(struct gspca_dev *gspca_dev, struct idxdata *tbl, int len);
 
 int gl860_RTx(struct gspca_dev *gspca_dev,
-			unsigned char pref, u32 req, u16 val, u16 index,
-			s32 len, void *pdata);
+			  unsigned char pref, u32 req, u16 val, u16 index,
+			  s32 len, void *pdata);
 
 void mi1320_init_settings(struct gspca_dev *);
 void ov2640_init_settings(struct gspca_dev *);

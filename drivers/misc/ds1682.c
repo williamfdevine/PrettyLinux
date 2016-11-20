@@ -55,7 +55,7 @@
  * Generic counter attributes
  */
 static ssize_t ds1682_show(struct device *dev, struct device_attribute *attr,
-			   char *buf)
+						   char *buf)
 {
 	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
 	struct i2c_client *client = to_i2c_client(dev);
@@ -66,22 +66,25 @@ static ssize_t ds1682_show(struct device *dev, struct device_attribute *attr,
 
 	/* Read the register */
 	rc = i2c_smbus_read_i2c_block_data(client, sattr->index, sattr->nr,
-					   (u8 *) & val);
+									   (u8 *) & val);
+
 	if (rc < 0)
+	{
 		return -EIO;
+	}
 
 	/* Special case: the 32 bit regs are time values with 1/4s
 	 * resolution, scale them up to milliseconds */
 	if (sattr->nr == 4)
 		return sprintf(buf, "%llu\n",
-			((unsigned long long)le32_to_cpu(val)) * 250);
+					   ((unsigned long long)le32_to_cpu(val)) * 250);
 
 	/* Format the output string and return # of bytes */
 	return sprintf(buf, "%li\n", (long)le32_to_cpu(val));
 }
 
 static ssize_t ds1682_store(struct device *dev, struct device_attribute *attr,
-			    const char *buf, size_t count)
+							const char *buf, size_t count)
 {
 	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
 	struct i2c_client *client = to_i2c_client(dev);
@@ -93,7 +96,9 @@ static ssize_t ds1682_store(struct device *dev, struct device_attribute *attr,
 
 	/* Decode input */
 	rc = kstrtoull(buf, 0, &val);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		dev_dbg(dev, "input string not a number\n");
 		return -EINVAL;
 	}
@@ -101,15 +106,19 @@ static ssize_t ds1682_store(struct device *dev, struct device_attribute *attr,
 	/* Special case: the 32 bit regs are time values with 1/4s
 	 * resolution, scale input down to quarter-seconds */
 	if (sattr->nr == 4)
+	{
 		do_div(val, 250);
+	}
 
 	/* write out the value */
 	val_le = cpu_to_le32(val);
 	rc = i2c_smbus_write_i2c_block_data(client, sattr->index, sattr->nr,
-					    (u8 *) & val_le);
-	if (rc < 0) {
+										(u8 *) & val_le);
+
+	if (rc < 0)
+	{
 		dev_err(dev, "register write failed; reg=0x%x, size=%i\n",
-			sattr->index, sattr->nr);
+				sattr->index, sattr->nr);
 		return -EIO;
 	}
 
@@ -120,14 +129,16 @@ static ssize_t ds1682_store(struct device *dev, struct device_attribute *attr,
  * Simple register attributes
  */
 static SENSOR_DEVICE_ATTR_2(elapsed_time, S_IRUGO | S_IWUSR, ds1682_show,
-			    ds1682_store, 4, DS1682_REG_ELAPSED);
+							ds1682_store, 4, DS1682_REG_ELAPSED);
 static SENSOR_DEVICE_ATTR_2(alarm_time, S_IRUGO | S_IWUSR, ds1682_show,
-			    ds1682_store, 4, DS1682_REG_ALARM);
+							ds1682_store, 4, DS1682_REG_ALARM);
 static SENSOR_DEVICE_ATTR_2(event_count, S_IRUGO | S_IWUSR, ds1682_show,
-			    ds1682_store, 2, DS1682_REG_EVT_CNTR);
+							ds1682_store, 2, DS1682_REG_EVT_CNTR);
 
-static const struct attribute_group ds1682_group = {
-	.attrs = (struct attribute *[]) {
+static const struct attribute_group ds1682_group =
+{
+	.attrs = (struct attribute * [])
+	{
 		&sensor_dev_attr_elapsed_time.dev_attr.attr,
 		&sensor_dev_attr_alarm_time.dev_attr.attr,
 		&sensor_dev_attr_event_count.dev_attr.attr,
@@ -139,41 +150,47 @@ static const struct attribute_group ds1682_group = {
  * User data attribute
  */
 static ssize_t ds1682_eeprom_read(struct file *filp, struct kobject *kobj,
-				  struct bin_attribute *attr,
-				  char *buf, loff_t off, size_t count)
+								  struct bin_attribute *attr,
+								  char *buf, loff_t off, size_t count)
 {
 	struct i2c_client *client = kobj_to_i2c_client(kobj);
 	int rc;
 
 	dev_dbg(&client->dev, "ds1682_eeprom_read(p=%p, off=%lli, c=%zi)\n",
-		buf, off, count);
+			buf, off, count);
 
 	rc = i2c_smbus_read_i2c_block_data(client, DS1682_REG_EEPROM + off,
-					   count, buf);
+									   count, buf);
+
 	if (rc < 0)
+	{
 		return -EIO;
+	}
 
 	return count;
 }
 
 static ssize_t ds1682_eeprom_write(struct file *filp, struct kobject *kobj,
-				   struct bin_attribute *attr,
-				   char *buf, loff_t off, size_t count)
+								   struct bin_attribute *attr,
+								   char *buf, loff_t off, size_t count)
 {
 	struct i2c_client *client = kobj_to_i2c_client(kobj);
 
 	dev_dbg(&client->dev, "ds1682_eeprom_write(p=%p, off=%lli, c=%zi)\n",
-		buf, off, count);
+			buf, off, count);
 
 	/* Write out to the device */
 	if (i2c_smbus_write_i2c_block_data(client, DS1682_REG_EEPROM + off,
-					   count, buf) < 0)
+									   count, buf) < 0)
+	{
 		return -EIO;
+	}
 
 	return count;
 }
 
-static struct bin_attribute ds1682_eeprom_attr = {
+static struct bin_attribute ds1682_eeprom_attr =
+{
 	.attr = {
 		.name = "eeprom",
 		.mode = S_IRUGO | S_IWUSR,
@@ -187,30 +204,37 @@ static struct bin_attribute ds1682_eeprom_attr = {
  * Called when a ds1682 device is matched with this driver
  */
 static int ds1682_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	int rc;
 
 	if (!i2c_check_functionality(client->adapter,
-				     I2C_FUNC_SMBUS_I2C_BLOCK)) {
+								 I2C_FUNC_SMBUS_I2C_BLOCK))
+	{
 		dev_err(&client->dev, "i2c bus does not support the ds1682\n");
 		rc = -ENODEV;
 		goto exit;
 	}
 
 	rc = sysfs_create_group(&client->dev.kobj, &ds1682_group);
+
 	if (rc)
+	{
 		goto exit;
+	}
 
 	rc = sysfs_create_bin_file(&client->dev.kobj, &ds1682_eeprom_attr);
+
 	if (rc)
+	{
 		goto exit_bin_attr;
+	}
 
 	return 0;
 
- exit_bin_attr:
+exit_bin_attr:
 	sysfs_remove_group(&client->dev.kobj, &ds1682_group);
- exit:
+exit:
 	return rc;
 }
 
@@ -221,13 +245,15 @@ static int ds1682_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id ds1682_id[] = {
+static const struct i2c_device_id ds1682_id[] =
+{
 	{ "ds1682", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, ds1682_id);
 
-static struct i2c_driver ds1682_driver = {
+static struct i2c_driver ds1682_driver =
+{
 	.driver = {
 		.name = "ds1682",
 	},

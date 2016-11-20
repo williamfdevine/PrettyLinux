@@ -10,7 +10,8 @@
 #define TCP_METRICS_GENL_NAME		"tcp_metrics"
 #define TCP_METRICS_GENL_VERSION	0x1
 
-enum tcp_metric_index {
+enum tcp_metric_index
+{
 	TCP_METRIC_RTT,		/* in ms units */
 	TCP_METRIC_RTTVAR,	/* in ms units */
 	TCP_METRIC_SSTHRESH,
@@ -26,7 +27,8 @@ enum tcp_metric_index {
 
 #define TCP_METRIC_MAX	(__TCP_METRIC_MAX - 1)
 
-enum {
+enum
+{
 	TCP_METRICS_ATTR_UNSPEC,
 	TCP_METRICS_ATTR_ADDR_IPV4,		/* u32 */
 	TCP_METRICS_ATTR_ADDR_IPV6,		/* binary */
@@ -47,7 +49,8 @@ enum {
 
 #define TCP_METRICS_ATTR_MAX	(__TCP_METRICS_ATTR_MAX - 1)
 
-enum {
+enum
+{
 	TCP_METRICS_CMD_UNSPEC,
 	TCP_METRICS_CMD_GET,
 	TCP_METRICS_CMD_DEL,

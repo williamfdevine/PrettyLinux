@@ -131,7 +131,8 @@
 
 #define ADIS16201_ERROR_ACTIVE          BIT(14)
 
-enum adis16201_scan {
+enum adis16201_scan
+{
 	ADIS16201_SCAN_ACC_X,
 	ADIS16201_SCAN_ACC_Y,
 	ADIS16201_SCAN_INCLI_X,

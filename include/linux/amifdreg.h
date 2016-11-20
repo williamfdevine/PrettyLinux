@@ -38,7 +38,7 @@
 */
 
 #ifndef SETCLR
-#define ADK_SETCLR      (1<<15)     /* control bit */
+	#define ADK_SETCLR      (1<<15)     /* control bit */
 #endif
 #define ADK_PRECOMP1    (1<<14)     /* precompensation selection */
 #define ADK_PRECOMP0    (1<<13)     /* 00=none, 01=140ns, 10=280ns, 11=500ns */
@@ -46,7 +46,7 @@
 #define ADK_WORDSYNC    (1<<10)     /* enable DSKSYNC auto DMA */
 #define ADK_MSBSYNC     (1<<9)      /* when 1, enable sync on MSbit (for GCR) */
 #define ADK_FAST        (1<<8)      /* bit cell: 0=2us (GCR), 1=1us (MFM) */
- 
+
 /*
 ** DSKLEN bits
 */
@@ -63,7 +63,7 @@
 /*
 ** Misc
 */
- 
+
 #define MFM_SYNC    0x4489          /* standard MFM sync value */
 
 /* Values for FD_COMMAND */

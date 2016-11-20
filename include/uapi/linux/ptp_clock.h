@@ -38,13 +38,15 @@
  * this ever appear.
  *
  */
-struct ptp_clock_time {
+struct ptp_clock_time
+{
 	__s64 sec;  /* seconds */
 	__u32 nsec; /* nanoseconds */
 	__u32 reserved;
 };
 
-struct ptp_clock_caps {
+struct ptp_clock_caps
+{
 	int max_adj;   /* Maximum frequency adjustment in parts per billon. */
 	int n_alarm;   /* Number of programmable alarms. */
 	int n_ext_ts;  /* Number of external time stamp channels. */
@@ -56,13 +58,15 @@ struct ptp_clock_caps {
 	int rsv[13];   /* Reserved for future use. */
 };
 
-struct ptp_extts_request {
+struct ptp_extts_request
+{
 	unsigned int index;  /* Which channel to configure. */
 	unsigned int flags;  /* Bit field for PTP_xxx flags. */
 	unsigned int rsv[2]; /* Reserved for future use. */
 };
 
-struct ptp_perout_request {
+struct ptp_perout_request
+{
 	struct ptp_clock_time start;  /* Absolute start time. */
 	struct ptp_clock_time period; /* Desired period, zero means disable. */
 	unsigned int index;           /* Which channel to configure. */
@@ -72,7 +76,8 @@ struct ptp_perout_request {
 
 #define PTP_MAX_SAMPLES 25 /* Maximum allowed offset measurement samples. */
 
-struct ptp_sys_offset {
+struct ptp_sys_offset
+{
 	unsigned int n_samples; /* Desired number of measurements. */
 	unsigned int rsv[3];    /* Reserved for future use. */
 	/*
@@ -83,21 +88,24 @@ struct ptp_sys_offset {
 	struct ptp_clock_time ts[2 * PTP_MAX_SAMPLES + 1];
 };
 
-struct ptp_sys_offset_precise {
+struct ptp_sys_offset_precise
+{
 	struct ptp_clock_time device;
 	struct ptp_clock_time sys_realtime;
 	struct ptp_clock_time sys_monoraw;
 	unsigned int rsv[4];    /* Reserved for future use. */
 };
 
-enum ptp_pin_function {
+enum ptp_pin_function
+{
 	PTP_PF_NONE,
 	PTP_PF_EXTTS,
 	PTP_PF_PEROUT,
 	PTP_PF_PHYSYNC,
 };
 
-struct ptp_pin_desc {
+struct ptp_pin_desc
+{
 	/*
 	 * Hardware specific human readable pin name. This field is
 	 * set by the kernel during the PTP_PIN_GETFUNC ioctl and is
@@ -136,7 +144,8 @@ struct ptp_pin_desc {
 #define PTP_SYS_OFFSET_PRECISE \
 	_IOWR(PTP_CLK_MAGIC, 8, struct ptp_sys_offset_precise)
 
-struct ptp_extts_event {
+struct ptp_extts_event
+{
 	struct ptp_clock_time t; /* Time event occured. */
 	unsigned int index;      /* Which channel produced the event. */
 	unsigned int flags;      /* Reserved for future use. */

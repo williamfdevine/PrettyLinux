@@ -22,14 +22,16 @@ extern "C" {
 #define ARMADA_IOCTL(dir, name, str) \
 	DRM_##dir(DRM_COMMAND_BASE + DRM_ARMADA_##name, struct drm_armada_##str)
 
-struct drm_armada_gem_create {
+struct drm_armada_gem_create
+{
 	uint32_t handle;
 	uint32_t size;
 };
 #define DRM_IOCTL_ARMADA_GEM_CREATE \
 	ARMADA_IOCTL(IOWR, GEM_CREATE, gem_create)
 
-struct drm_armada_gem_mmap {
+struct drm_armada_gem_mmap
+{
 	uint32_t handle;
 	uint32_t pad;
 	uint64_t offset;
@@ -39,7 +41,8 @@ struct drm_armada_gem_mmap {
 #define DRM_IOCTL_ARMADA_GEM_MMAP \
 	ARMADA_IOCTL(IOWR, GEM_MMAP, gem_mmap)
 
-struct drm_armada_gem_pwrite {
+struct drm_armada_gem_pwrite
+{
 	uint64_t ptr;
 	uint32_t handle;
 	uint32_t offset;

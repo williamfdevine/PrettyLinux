@@ -13,10 +13,10 @@
 #include <linux/tick.h>
 
 #ifndef arch_irq_stat_cpu
-#define arch_irq_stat_cpu(cpu) 0
+	#define arch_irq_stat_cpu(cpu) 0
 #endif
 #ifndef arch_irq_stat
-#define arch_irq_stat() 0
+	#define arch_irq_stat() 0
 #endif
 
 #ifdef arch_idle_time
@@ -26,8 +26,12 @@ static cputime64_t get_idle_time(int cpu)
 	cputime64_t idle;
 
 	idle = kcpustat_cpu(cpu).cpustat[CPUTIME_IDLE];
+
 	if (cpu_online(cpu) && !nr_iowait_cpu(cpu))
+	{
 		idle += arch_idle_time(cpu);
+	}
+
 	return idle;
 }
 
@@ -36,8 +40,12 @@ static cputime64_t get_iowait_time(int cpu)
 	cputime64_t iowait;
 
 	iowait = kcpustat_cpu(cpu).cpustat[CPUTIME_IOWAIT];
+
 	if (cpu_online(cpu) && nr_iowait_cpu(cpu))
+	{
 		iowait += arch_idle_time(cpu);
+	}
+
 	return iowait;
 }
 
@@ -48,13 +56,19 @@ static u64 get_idle_time(int cpu)
 	u64 idle, idle_time = -1ULL;
 
 	if (cpu_online(cpu))
+	{
 		idle_time = get_cpu_idle_time_us(cpu, NULL);
+	}
 
 	if (idle_time == -1ULL)
 		/* !NO_HZ or cpu offline so we can rely on cpustat.idle */
+	{
 		idle = kcpustat_cpu(cpu).cpustat[CPUTIME_IDLE];
+	}
 	else
+	{
 		idle = usecs_to_cputime64(idle_time);
+	}
 
 	return idle;
 }
@@ -64,13 +78,19 @@ static u64 get_iowait_time(int cpu)
 	u64 iowait, iowait_time = -1ULL;
 
 	if (cpu_online(cpu))
+	{
 		iowait_time = get_cpu_iowait_time_us(cpu, NULL);
+	}
 
 	if (iowait_time == -1ULL)
 		/* !NO_HZ or cpu offline so we can rely on cpustat.iowait */
+	{
 		iowait = kcpustat_cpu(cpu).cpustat[CPUTIME_IOWAIT];
+	}
 	else
+	{
 		iowait = usecs_to_cputime64(iowait_time);
+	}
 
 	return iowait;
 }
@@ -88,11 +108,12 @@ static int show_stat(struct seq_file *p, void *v)
 	struct timespec64 boottime;
 
 	user = nice = system = idle = iowait =
-		irq = softirq = steal = 0;
+									  irq = softirq = steal = 0;
 	guest = guest_nice = 0;
 	getboottime64(&boottime);
 
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		user += kcpustat_cpu(i).cpustat[CPUTIME_USER];
 		nice += kcpustat_cpu(i).cpustat[CPUTIME_NICE];
 		system += kcpustat_cpu(i).cpustat[CPUTIME_SYSTEM];
@@ -106,7 +127,8 @@ static int show_stat(struct seq_file *p, void *v)
 		sum += kstat_cpu_irqs_sum(i);
 		sum += arch_irq_stat_cpu(i);
 
-		for (j = 0; j < NR_SOFTIRQS; j++) {
+		for (j = 0; j < NR_SOFTIRQS; j++)
+		{
 			unsigned int softirq_stat = kstat_softirqs_cpu(j, i);
 
 			per_softirq_sums[j] += softirq_stat;
@@ -127,7 +149,8 @@ static int show_stat(struct seq_file *p, void *v)
 	seq_put_decimal_ull(p, " ", cputime64_to_clock_t(guest_nice));
 	seq_putc(p, '\n');
 
-	for_each_online_cpu(i) {
+	for_each_online_cpu(i)
+	{
 		/* Copy values here to work around gcc-2.95.3, gcc-2.96 */
 		user = kcpustat_cpu(i).cpustat[CPUTIME_USER];
 		nice = kcpustat_cpu(i).cpustat[CPUTIME_NICE];
@@ -156,24 +179,27 @@ static int show_stat(struct seq_file *p, void *v)
 
 	/* sum again ? it could be updated? */
 	for_each_irq_nr(j)
-		seq_put_decimal_ull(p, " ", kstat_irqs_usr(j));
+	seq_put_decimal_ull(p, " ", kstat_irqs_usr(j));
 
 	seq_printf(p,
-		"\nctxt %llu\n"
-		"btime %llu\n"
-		"processes %lu\n"
-		"procs_running %lu\n"
-		"procs_blocked %lu\n",
-		nr_context_switches(),
-		(unsigned long long)boottime.tv_sec,
-		total_forks,
-		nr_running(),
-		nr_iowait());
+			   "\nctxt %llu\n"
+			   "btime %llu\n"
+			   "processes %lu\n"
+			   "procs_running %lu\n"
+			   "procs_blocked %lu\n",
+			   nr_context_switches(),
+			   (unsigned long long)boottime.tv_sec,
+			   total_forks,
+			   nr_running(),
+			   nr_iowait());
 
 	seq_put_decimal_ull(p, "softirq ", (unsigned long long)sum_softirq);
 
 	for (i = 0; i < NR_SOFTIRQS; i++)
+	{
 		seq_put_decimal_ull(p, " ", per_softirq_sums[i]);
+	}
+
 	seq_putc(p, '\n');
 
 	return 0;
@@ -188,7 +214,8 @@ static int stat_open(struct inode *inode, struct file *file)
 	return single_open_size(file, show_stat, NULL, size);
 }
 
-static const struct file_operations proc_stat_operations = {
+static const struct file_operations proc_stat_operations =
+{
 	.open		= stat_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,

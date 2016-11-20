@@ -23,7 +23,8 @@
 
 #include "dvb_frontend.h"
 
-enum r820t_chip {
+enum r820t_chip
+{
 	CHIP_R820T,
 	CHIP_R620D,
 	CHIP_R828D,
@@ -32,7 +33,8 @@ enum r820t_chip {
 	CHIP_R820C,
 };
 
-struct r820t_config {
+struct r820t_config
+{
 	u8 i2c_addr;		/* 0x34 */
 	u32 xtal;
 	enum r820t_chip rafael_chip;
@@ -43,12 +45,12 @@ struct r820t_config {
 
 #if IS_REACHABLE(CONFIG_MEDIA_TUNER_R820T)
 struct dvb_frontend *r820t_attach(struct dvb_frontend *fe,
-				  struct i2c_adapter *i2c,
-				  const struct r820t_config *cfg);
+								  struct i2c_adapter *i2c,
+								  const struct r820t_config *cfg);
 #else
 static inline struct dvb_frontend *r820t_attach(struct dvb_frontend *fe,
-						struct i2c_adapter *i2c,
-						const struct r820t_config *cfg)
+		struct i2c_adapter *i2c,
+		const struct r820t_config *cfg)
 {
 	pr_warn("%s: driver disabled by Kconfig\n", __func__);
 	return NULL;

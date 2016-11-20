@@ -34,7 +34,8 @@
 #define AT91_AIC_SRCTYPE_HIGH		(2 << 5)
 #define AT91_AIC_SRCTYPE_RISING		(3 << 5)
 
-struct aic_chip_data {
+struct aic_chip_data
+{
 	u32 ext_irqs;
 };
 
@@ -51,27 +52,36 @@ int aic_common_set_type(struct irq_data *d, unsigned type, unsigned *val)
 	struct aic_chip_data *aic = gc->private;
 	unsigned aic_type;
 
-	switch (type) {
-	case IRQ_TYPE_LEVEL_HIGH:
-		aic_type = AT91_AIC_SRCTYPE_HIGH;
-		break;
-	case IRQ_TYPE_EDGE_RISING:
-		aic_type = AT91_AIC_SRCTYPE_RISING;
-		break;
-	case IRQ_TYPE_LEVEL_LOW:
-		if (!(d->mask & aic->ext_irqs))
-			return -EINVAL;
+	switch (type)
+	{
+		case IRQ_TYPE_LEVEL_HIGH:
+			aic_type = AT91_AIC_SRCTYPE_HIGH;
+			break;
 
-		aic_type = AT91_AIC_SRCTYPE_LOW;
-		break;
-	case IRQ_TYPE_EDGE_FALLING:
-		if (!(d->mask & aic->ext_irqs))
-			return -EINVAL;
+		case IRQ_TYPE_EDGE_RISING:
+			aic_type = AT91_AIC_SRCTYPE_RISING;
+			break;
 
-		aic_type = AT91_AIC_SRCTYPE_FALLING;
-		break;
-	default:
-		return -EINVAL;
+		case IRQ_TYPE_LEVEL_LOW:
+			if (!(d->mask & aic->ext_irqs))
+			{
+				return -EINVAL;
+			}
+
+			aic_type = AT91_AIC_SRCTYPE_LOW;
+			break;
+
+		case IRQ_TYPE_EDGE_FALLING:
+			if (!(d->mask & aic->ext_irqs))
+			{
+				return -EINVAL;
+			}
+
+			aic_type = AT91_AIC_SRCTYPE_FALLING;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	*val &= ~AT91_AIC_SRCTYPE;
@@ -87,18 +97,22 @@ void aic_common_set_priority(int priority, unsigned *val)
 }
 
 int aic_common_irq_domain_xlate(struct irq_domain *d,
-				struct device_node *ctrlr,
-				const u32 *intspec,
-				unsigned int intsize,
-				irq_hw_number_t *out_hwirq,
-				unsigned int *out_type)
+								struct device_node *ctrlr,
+								const u32 *intspec,
+								unsigned int intsize,
+								irq_hw_number_t *out_hwirq,
+								unsigned int *out_type)
 {
 	if (WARN_ON(intsize < 3))
+	{
 		return -EINVAL;
+	}
 
 	if (WARN_ON((intspec[2] < AT91_AIC_IRQ_MIN_PRIORITY) ||
-		    (intspec[2] > AT91_AIC_IRQ_MAX_PRIORITY)))
+				(intspec[2] > AT91_AIC_IRQ_MAX_PRIORITY)))
+	{
 		return -EINVAL;
+	}
 
 	*out_hwirq = intspec[0];
 	*out_type = intspec[1] & IRQ_TYPE_SENSE_MASK;
@@ -120,11 +134,14 @@ static void __init aic_common_ext_irq_of_init(struct irq_domain *domain)
 	aic = gc->private;
 	aic->ext_irqs |= 1;
 
-	of_property_for_each_u32(node, "atmel,external-irqs", prop, p, hwirq) {
+	of_property_for_each_u32(node, "atmel,external-irqs", prop, p, hwirq)
+	{
 		gc = irq_get_domain_generic_chip(domain, hwirq);
-		if (!gc) {
+
+		if (!gc)
+		{
 			pr_warn("AIC: external irq %d >= %d skip it\n",
-				hwirq, domain->revmap_size);
+					hwirq, domain->revmap_size);
 			continue;
 		}
 
@@ -143,18 +160,23 @@ void __init aic_common_rtc_irq_fixup(struct device_node *root)
 	void __iomem *regs;
 
 	np = of_find_compatible_node(root, NULL, "atmel,at91rm9200-rtc");
-	if (!np)
-		np = of_find_compatible_node(root, NULL,
-					     "atmel,at91sam9x5-rtc");
 
 	if (!np)
+		np = of_find_compatible_node(root, NULL,
+									 "atmel,at91sam9x5-rtc");
+
+	if (!np)
+	{
 		return;
+	}
 
 	regs = of_iomap(np, 0);
 	of_node_put(np);
 
 	if (!regs)
+	{
 		return;
+	}
 
 	writel(AT91_RTC_IRQ_MASK, regs + AT91_RTC_IDR);
 
@@ -174,14 +196,18 @@ void __init aic_common_rtt_irq_fixup(struct device_node *root)
 	 * The at91sam9263 SoC has 2 instances of the RTT block, hence we
 	 * iterate over the DT to find each occurrence.
 	 */
-	for_each_compatible_node(np, NULL, "atmel,at91sam9260-rtt") {
+	for_each_compatible_node(np, NULL, "atmel,at91sam9260-rtt")
+	{
 		regs = of_iomap(np, 0);
+
 		if (!regs)
+		{
 			continue;
+		}
 
 		writel(readl(regs + AT91_RTT_MR) &
-		       ~(AT91_RTT_ALMIEN | AT91_RTT_RTTINCIEN),
-		       regs + AT91_RTT_MR);
+			   ~(AT91_RTT_ALMIEN | AT91_RTT_RTTINCIEN),
+			   regs + AT91_RTT_MR);
 
 		iounmap(regs);
 	}
@@ -193,12 +219,15 @@ static void __init aic_common_irq_fixup(const struct of_device_id *matches)
 	const struct of_device_id *match;
 
 	if (!root)
+	{
 		return;
+	}
 
 	match = of_match_node(matches, root);
 	of_node_put(root);
 
-	if (match) {
+	if (match)
+	{
 		void (*fixup)(struct device_node *) = match->data;
 		fixup(root);
 	}
@@ -207,9 +236,9 @@ static void __init aic_common_irq_fixup(const struct of_device_id *matches)
 }
 
 struct irq_domain *__init aic_common_of_init(struct device_node *node,
-					     const struct irq_domain_ops *ops,
-					     const char *name, int nirqs,
-					     const struct of_device_id *matches)
+		const struct irq_domain_ops *ops,
+		const char *name, int nirqs,
+		const struct of_device_id *matches)
 {
 	struct irq_chip_generic *gc;
 	struct irq_domain *domain;
@@ -222,29 +251,40 @@ struct irq_domain *__init aic_common_of_init(struct device_node *node,
 	nchips = DIV_ROUND_UP(nirqs, 32);
 
 	reg_base = of_iomap(node, 0);
+
 	if (!reg_base)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	aic = kcalloc(nchips, sizeof(*aic), GFP_KERNEL);
-	if (!aic) {
+
+	if (!aic)
+	{
 		ret = -ENOMEM;
 		goto err_iounmap;
 	}
 
 	domain = irq_domain_add_linear(node, nchips * 32, ops, aic);
-	if (!domain) {
+
+	if (!domain)
+	{
 		ret = -ENOMEM;
 		goto err_free_aic;
 	}
 
 	ret = irq_alloc_domain_generic_chips(domain, 32, 1, name,
-					     handle_fasteoi_irq,
-					     IRQ_NOREQUEST | IRQ_NOPROBE |
-					     IRQ_NOAUTOEN, 0, 0);
-	if (ret)
-		goto err_domain_remove;
+										 handle_fasteoi_irq,
+										 IRQ_NOREQUEST | IRQ_NOPROBE |
+										 IRQ_NOAUTOEN, 0, 0);
 
-	for (i = 0; i < nchips; i++) {
+	if (ret)
+	{
+		goto err_domain_remove;
+	}
+
+	for (i = 0; i < nchips; i++)
+	{
 		gc = irq_get_domain_generic_chip(domain, i * 32);
 
 		gc->reg_base = reg_base;

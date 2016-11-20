@@ -56,7 +56,8 @@ static const struct of_device_id musb_dsps_of_match[];
  * FIXME: This should be expanded to have all the wrapper registers from TI DSPS
  * musb ips.
  */
-struct dsps_musb_wrapper {
+struct dsps_musb_wrapper
+{
 	u16	revision;
 	u16	control;
 	u16	status;
@@ -72,28 +73,28 @@ struct dsps_musb_wrapper {
 	u16	rx_mode;
 
 	/* bit positions for control */
-	unsigned	reset:5;
+	unsigned	reset: 5;
 
 	/* bit positions for interrupt */
-	unsigned	usb_shift:5;
+	unsigned	usb_shift: 5;
 	u32		usb_mask;
 	u32		usb_bitmap;
-	unsigned	drvvbus:5;
+	unsigned	drvvbus: 5;
 
-	unsigned	txep_shift:5;
+	unsigned	txep_shift: 5;
 	u32		txep_mask;
 	u32		txep_bitmap;
 
-	unsigned	rxep_shift:5;
+	unsigned	rxep_shift: 5;
 	u32		rxep_mask;
 	u32		rxep_bitmap;
 
 	/* bit positions for phy_utmi */
-	unsigned	otg_disable:5;
+	unsigned	otg_disable: 5;
 
 	/* bit positions for mode */
-	unsigned	iddig:5;
-	unsigned	iddig_mux:5;
+	unsigned	iddig: 5;
+	unsigned	iddig_mux: 5;
 	/* miscellaneous stuff */
 	unsigned	poll_timeout;
 };
@@ -101,7 +102,8 @@ struct dsps_musb_wrapper {
 /*
  * register shadow for suspend
  */
-struct dsps_context {
+struct dsps_context
+{
 	u32 control;
 	u32 epintr;
 	u32 coreintr;
@@ -114,7 +116,8 @@ struct dsps_context {
 /**
  * DSPS glue structure.
  */
-struct dsps_glue {
+struct dsps_glue
+{
 	struct device *dev;
 	struct platform_device *musb;	/* child musb pdev */
 	const struct dsps_musb_wrapper *wrp; /* wrapper register offsets */
@@ -127,7 +130,8 @@ struct dsps_glue {
 	struct dentry *dbgfs_root;
 };
 
-static const struct debugfs_reg32 dsps_musb_regs[] = {
+static const struct debugfs_reg32 dsps_musb_regs[] =
+{
 	{ "revision",		0x00 },
 	{ "control",		0x14 },
 	{ "status",		0x18 },
@@ -159,16 +163,17 @@ static void dsps_musb_enable(struct musb *musb)
 
 	/* Workaround: setup IRQs through both register sets. */
 	epmask = ((musb->epmask & wrp->txep_mask) << wrp->txep_shift) |
-	       ((musb->epmask & wrp->rxep_mask) << wrp->rxep_shift);
+			 ((musb->epmask & wrp->rxep_mask) << wrp->rxep_shift);
 	coremask = (wrp->usb_bitmap & ~MUSB_INTR_SOF);
 
 	musb_writel(reg_base, wrp->epintr_set, epmask);
 	musb_writel(reg_base, wrp->coreintr_set, coremask);
+
 	/* start polling for ID change in dual-role idle mode */
 	if (musb->xceiv->otg->state == OTG_STATE_B_IDLE &&
-			musb->port_mode == MUSB_PORT_MODE_DUAL_ROLE)
+		musb->port_mode == MUSB_PORT_MODE_DUAL_ROLE)
 		mod_timer(&glue->timer, jiffies +
-				msecs_to_jiffies(wrp->poll_timeout));
+				  msecs_to_jiffies(wrp->poll_timeout));
 }
 
 /**
@@ -184,7 +189,7 @@ static void dsps_musb_disable(struct musb *musb)
 
 	musb_writel(reg_base, wrp->coreintr_clear, wrp->usb_bitmap);
 	musb_writel(reg_base, wrp->epintr_clear,
-			 wrp->txep_bitmap | wrp->rxep_bitmap);
+				wrp->txep_bitmap | wrp->rxep_bitmap);
 	musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
 }
 
@@ -201,8 +206,11 @@ static void otg_timer(unsigned long _musb)
 	int err;
 
 	err = pm_runtime_get_sync(dev);
+
 	if (err < 0)
+	{
 		dev_err(dev, "Poll could not pm_runtime_get: %i\n", err);
+	}
 
 	/*
 	 * We poll because DSPS IP's won't expose several OTG-critical
@@ -210,41 +218,55 @@ static void otg_timer(unsigned long _musb)
 	 */
 	devctl = musb_readb(mregs, MUSB_DEVCTL);
 	dev_dbg(musb->controller, "Poll devctl %02x (%s)\n", devctl,
-				usb_otg_state_string(musb->xceiv->otg->state));
+			usb_otg_state_string(musb->xceiv->otg->state));
 
 	spin_lock_irqsave(&musb->lock, flags);
-	switch (musb->xceiv->otg->state) {
-	case OTG_STATE_A_WAIT_VRISE:
-		mod_timer(&glue->timer, jiffies +
-				msecs_to_jiffies(wrp->poll_timeout));
-		break;
-	case OTG_STATE_A_WAIT_BCON:
-		musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
-		skip_session = 1;
+
+	switch (musb->xceiv->otg->state)
+	{
+		case OTG_STATE_A_WAIT_VRISE:
+			mod_timer(&glue->timer, jiffies +
+					  msecs_to_jiffies(wrp->poll_timeout));
+			break;
+
+		case OTG_STATE_A_WAIT_BCON:
+			musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
+			skip_session = 1;
+
 		/* fall */
 
-	case OTG_STATE_A_IDLE:
-	case OTG_STATE_B_IDLE:
-		if (devctl & MUSB_DEVCTL_BDEVICE) {
-			musb->xceiv->otg->state = OTG_STATE_B_IDLE;
-			MUSB_DEV_MODE(musb);
-		} else {
-			musb->xceiv->otg->state = OTG_STATE_A_IDLE;
-			MUSB_HST_MODE(musb);
-		}
-		if (!(devctl & MUSB_DEVCTL_SESSION) && !skip_session)
-			musb_writeb(mregs, MUSB_DEVCTL, MUSB_DEVCTL_SESSION);
-		mod_timer(&glue->timer, jiffies +
-				msecs_to_jiffies(wrp->poll_timeout));
-		break;
-	case OTG_STATE_A_WAIT_VFALL:
-		musb->xceiv->otg->state = OTG_STATE_A_WAIT_VRISE;
-		musb_writel(musb->ctrl_base, wrp->coreintr_set,
-			    MUSB_INTR_VBUSERROR << wrp->usb_shift);
-		break;
-	default:
-		break;
+		case OTG_STATE_A_IDLE:
+		case OTG_STATE_B_IDLE:
+			if (devctl & MUSB_DEVCTL_BDEVICE)
+			{
+				musb->xceiv->otg->state = OTG_STATE_B_IDLE;
+				MUSB_DEV_MODE(musb);
+			}
+			else
+			{
+				musb->xceiv->otg->state = OTG_STATE_A_IDLE;
+				MUSB_HST_MODE(musb);
+			}
+
+			if (!(devctl & MUSB_DEVCTL_SESSION) && !skip_session)
+			{
+				musb_writeb(mregs, MUSB_DEVCTL, MUSB_DEVCTL_SESSION);
+			}
+
+			mod_timer(&glue->timer, jiffies +
+					  msecs_to_jiffies(wrp->poll_timeout));
+			break;
+
+		case OTG_STATE_A_WAIT_VFALL:
+			musb->xceiv->otg->state = OTG_STATE_A_WAIT_VRISE;
+			musb_writel(musb->ctrl_base, wrp->coreintr_set,
+						MUSB_INTR_VBUSERROR << wrp->usb_shift);
+			break;
+
+		default:
+			break;
 	}
+
 	spin_unlock_irqrestore(&musb->lock, flags);
 
 	pm_runtime_mark_last_busy(dev);
@@ -270,28 +292,39 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
 	musb->int_tx = (epintr & wrp->txep_bitmap) >> wrp->txep_shift;
 
 	if (epintr)
+	{
 		musb_writel(reg_base, wrp->epintr_status, epintr);
+	}
 
 	/* Get usb core interrupts */
 	usbintr = musb_readl(reg_base, wrp->coreintr_status);
+
 	if (!usbintr && !epintr)
+	{
 		goto out;
+	}
 
 	musb->int_usb =	(usbintr & wrp->usb_bitmap) >> wrp->usb_shift;
+
 	if (usbintr)
+	{
 		musb_writel(reg_base, wrp->coreintr_status, usbintr);
+	}
 
 	dev_dbg(musb->controller, "usbintr (%x) epintr(%x)\n",
 			usbintr, epintr);
 
-	if (usbintr & ((1 << wrp->drvvbus) << wrp->usb_shift)) {
+	if (usbintr & ((1 << wrp->drvvbus) << wrp->usb_shift))
+	{
 		int drvvbus = musb_readl(reg_base, wrp->status);
 		void __iomem *mregs = musb->mregs;
 		u8 devctl = musb_readb(mregs, MUSB_DEVCTL);
 		int err;
 
 		err = musb->int_usb & MUSB_INTR_VBUSERROR;
-		if (err) {
+
+		if (err)
+		{
 			/*
 			 * The Mentor core doesn't debounce VBUS as needed
 			 * to cope with device connect current spikes. This
@@ -306,15 +339,19 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
 			musb->int_usb &= ~MUSB_INTR_VBUSERROR;
 			musb->xceiv->otg->state = OTG_STATE_A_WAIT_VFALL;
 			mod_timer(&glue->timer, jiffies +
-					msecs_to_jiffies(wrp->poll_timeout));
+					  msecs_to_jiffies(wrp->poll_timeout));
 			WARNING("VBUS error workaround (delay coming)\n");
-		} else if (drvvbus) {
+		}
+		else if (drvvbus)
+		{
 			MUSB_HST_MODE(musb);
 			musb->xceiv->otg->default_a = 1;
 			musb->xceiv->otg->state = OTG_STATE_A_WAIT_VRISE;
 			mod_timer(&glue->timer, jiffies +
-				  msecs_to_jiffies(wrp->poll_timeout));
-		} else {
+					  msecs_to_jiffies(wrp->poll_timeout));
+		}
+		else
+		{
 			musb->is_active = 0;
 			MUSB_DEV_MODE(musb);
 			musb->xceiv->otg->default_a = 0;
@@ -331,17 +368,21 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
 	}
 
 	if (musb->int_tx || musb->int_rx || musb->int_usb)
+	{
 		ret |= musb_interrupt(musb);
+	}
 
 	/* Poll for ID change and connect */
-	switch (musb->xceiv->otg->state) {
-	case OTG_STATE_B_IDLE:
-	case OTG_STATE_A_WAIT_BCON:
-		mod_timer(&glue->timer, jiffies +
-				msecs_to_jiffies(wrp->poll_timeout));
-		break;
-	default:
-		break;
+	switch (musb->xceiv->otg->state)
+	{
+		case OTG_STATE_B_IDLE:
+		case OTG_STATE_A_WAIT_BCON:
+			mod_timer(&glue->timer, jiffies +
+					  msecs_to_jiffies(wrp->poll_timeout));
+			break;
+
+		default:
+			break;
 	}
 
 out:
@@ -358,8 +399,12 @@ static int dsps_musb_dbg_init(struct musb *musb, struct dsps_glue *glue)
 
 	sprintf(buf, "%s.dsps", dev_name(musb->controller));
 	root = debugfs_create_dir(buf, NULL);
+
 	if (!root)
+	{
 		return -ENOMEM;
+	}
+
 	glue->dbgfs_root = root;
 
 	glue->regset.regs = dsps_musb_regs;
@@ -367,10 +412,13 @@ static int dsps_musb_dbg_init(struct musb *musb, struct dsps_glue *glue)
 	glue->regset.base = musb->ctrl_base;
 
 	file = debugfs_create_regset32("regdump", S_IRUGO, root, &glue->regset);
-	if (!file) {
+
+	if (!file)
+	{
 		debugfs_remove_recursive(root);
 		return -ENOMEM;
 	}
+
 	return 0;
 }
 
@@ -387,31 +435,51 @@ static int dsps_musb_init(struct musb *musb)
 
 	r = platform_get_resource_byname(parent, IORESOURCE_MEM, "control");
 	reg_base = devm_ioremap_resource(dev, r);
+
 	if (IS_ERR(reg_base))
+	{
 		return PTR_ERR(reg_base);
+	}
+
 	musb->ctrl_base = reg_base;
 
 	/* NOP driver needs change if supporting dual instance */
 	musb->xceiv = devm_usb_get_phy_by_phandle(dev->parent, "phys", 0);
+
 	if (IS_ERR(musb->xceiv))
+	{
 		return PTR_ERR(musb->xceiv);
+	}
 
 	musb->phy = devm_phy_get(dev->parent, "usb2-phy");
 
 	/* Returns zero if e.g. not clocked */
 	rev = musb_readl(reg_base, wrp->revision);
+
 	if (!rev)
+	{
 		return -ENODEV;
+	}
 
 	usb_phy_init(musb->xceiv);
-	if (IS_ERR(musb->phy))  {
+
+	if (IS_ERR(musb->phy))
+	{
 		musb->phy = NULL;
-	} else {
+	}
+	else
+	{
 		ret = phy_init(musb->phy);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		ret = phy_power_on(musb->phy);
-		if (ret) {
+
+		if (ret)
+		{
 			phy_exit(musb->phy);
 			return ret;
 		}
@@ -436,14 +504,16 @@ static int dsps_musb_init(struct musb *musb)
 	 * logic enabled.
 	 */
 	val = musb_readb(musb->mregs, MUSB_BABBLE_CTL);
-	if (val & MUSB_BABBLE_RCV_DISABLE) {
+
+	if (val & MUSB_BABBLE_RCV_DISABLE)
+	{
 		glue->sw_babble_enabled = true;
 		val |= MUSB_BABBLE_SW_SESSION_CTRL;
 		musb_writeb(musb->mregs, MUSB_BABBLE_CTL, val);
 	}
 
 	mod_timer(&glue->timer, jiffies +
-		  msecs_to_jiffies(glue->wrp->poll_timeout));
+			  msecs_to_jiffies(glue->wrp->poll_timeout));
 
 	return dsps_musb_dbg_init(musb, glue);
 }
@@ -472,38 +542,42 @@ static int dsps_musb_set_mode(struct musb *musb, u8 mode)
 
 	reg = musb_readl(ctrl_base, wrp->mode);
 
-	switch (mode) {
-	case MUSB_HOST:
-		reg &= ~(1 << wrp->iddig);
+	switch (mode)
+	{
+		case MUSB_HOST:
+			reg &= ~(1 << wrp->iddig);
 
-		/*
-		 * if we're setting mode to host-only or device-only, we're
-		 * going to ignore whatever the PHY sends us and just force
-		 * ID pin status by SW
-		 */
-		reg |= (1 << wrp->iddig_mux);
+			/*
+			 * if we're setting mode to host-only or device-only, we're
+			 * going to ignore whatever the PHY sends us and just force
+			 * ID pin status by SW
+			 */
+			reg |= (1 << wrp->iddig_mux);
 
-		musb_writel(ctrl_base, wrp->mode, reg);
-		musb_writel(ctrl_base, wrp->phy_utmi, 0x02);
-		break;
-	case MUSB_PERIPHERAL:
-		reg |= (1 << wrp->iddig);
+			musb_writel(ctrl_base, wrp->mode, reg);
+			musb_writel(ctrl_base, wrp->phy_utmi, 0x02);
+			break;
 
-		/*
-		 * if we're setting mode to host-only or device-only, we're
-		 * going to ignore whatever the PHY sends us and just force
-		 * ID pin status by SW
-		 */
-		reg |= (1 << wrp->iddig_mux);
+		case MUSB_PERIPHERAL:
+			reg |= (1 << wrp->iddig);
 
-		musb_writel(ctrl_base, wrp->mode, reg);
-		break;
-	case MUSB_OTG:
-		musb_writel(ctrl_base, wrp->phy_utmi, 0x02);
-		break;
-	default:
-		dev_err(glue->dev, "unsupported mode %d\n", mode);
-		return -EINVAL;
+			/*
+			 * if we're setting mode to host-only or device-only, we're
+			 * going to ignore whatever the PHY sends us and just force
+			 * ID pin status by SW
+			 */
+			reg |= (1 << wrp->iddig_mux);
+
+			musb_writel(ctrl_base, wrp->mode, reg);
+			break;
+
+		case MUSB_OTG:
+			musb_writel(ctrl_base, wrp->phy_utmi, 0x02);
+			break;
+
+		default:
+			dev_err(glue->dev, "unsupported mode %d\n", mode);
+			return -EINVAL;
 	}
 
 	return 0;
@@ -516,15 +590,16 @@ static bool dsps_sw_babble_control(struct musb *musb)
 
 	babble_ctl = musb_readb(musb->mregs, MUSB_BABBLE_CTL);
 	dev_dbg(musb->controller, "babble: MUSB_BABBLE_CTL value %x\n",
-		babble_ctl);
+			babble_ctl);
 	/*
 	 * check line monitor flag to check whether babble is
 	 * due to noise
 	 */
 	dev_dbg(musb->controller, "STUCK_J is %s\n",
-		babble_ctl & MUSB_BABBLE_STUCK_J ? "set" : "reset");
+			babble_ctl & MUSB_BABBLE_STUCK_J ? "set" : "reset");
 
-	if (babble_ctl & MUSB_BABBLE_STUCK_J) {
+	if (babble_ctl & MUSB_BABBLE_STUCK_J)
+	{
 		int timeout = 10;
 
 		/*
@@ -537,23 +612,29 @@ static bool dsps_sw_babble_control(struct musb *musb)
 
 		/* wait till line monitor flag cleared */
 		dev_dbg(musb->controller, "Set TXIDLE, wait J to clear\n");
-		do {
+
+		do
+		{
 			babble_ctl = musb_readb(musb->mregs, MUSB_BABBLE_CTL);
 			udelay(1);
-		} while ((babble_ctl & MUSB_BABBLE_STUCK_J) && timeout--);
+		}
+		while ((babble_ctl & MUSB_BABBLE_STUCK_J) && timeout--);
 
 		/* check whether stuck_at_j bit cleared */
-		if (babble_ctl & MUSB_BABBLE_STUCK_J) {
+		if (babble_ctl & MUSB_BABBLE_STUCK_J)
+		{
 			/*
 			 * real babble condition has occurred
 			 * restart the controller to start the
 			 * session again
 			 */
 			dev_dbg(musb->controller, "J not cleared, misc (%x)\n",
-				babble_ctl);
+					babble_ctl);
 			session_restart = true;
 		}
-	} else {
+	}
+	else
+	{
 		session_restart = true;
 	}
 
@@ -567,9 +648,13 @@ static int dsps_musb_recover(struct musb *musb)
 	int session_restart = 0;
 
 	if (glue->sw_babble_enabled)
+	{
 		session_restart = dsps_sw_babble_control(musb);
+	}
 	else
+	{
 		session_restart = 1;
+	}
 
 	return session_restart ? 0 : -EPIPE;
 }
@@ -579,20 +664,23 @@ static void dsps_read_fifo32(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
 {
 	void __iomem *fifo = hw_ep->fifo;
 
-	if (len >= 4) {
+	if (len >= 4)
+	{
 		ioread32_rep(fifo, dst, len >> 2);
 		dst += len & ~0x03;
 		len &= 0x03;
 	}
 
 	/* Read any remaining 1 to 3 bytes */
-	if (len > 0) {
+	if (len > 0)
+	{
 		u32 val = musb_readl(fifo, 0);
 		memcpy(dst, &val, len);
 	}
 }
 
-static struct musb_platform_ops dsps_ops = {
+static struct musb_platform_ops dsps_ops =
+{
 	.quirks		= MUSB_DMA_CPPI41 | MUSB_INDEXED_EP,
 	.init		= dsps_musb_init,
 	.exit		= dsps_musb_exit,
@@ -616,8 +704,12 @@ static int get_int_prop(struct device_node *dn, const char *s)
 	u32 val;
 
 	ret = of_property_read_u32(dn, s, &val);
+
 	if (ret)
+	{
 		return 0;
+	}
+
 	return val;
 }
 
@@ -626,22 +718,24 @@ static int get_musb_port_mode(struct device *dev)
 	enum usb_dr_mode mode;
 
 	mode = usb_get_dr_mode(dev);
-	switch (mode) {
-	case USB_DR_MODE_HOST:
-		return MUSB_PORT_MODE_HOST;
 
-	case USB_DR_MODE_PERIPHERAL:
-		return MUSB_PORT_MODE_GADGET;
+	switch (mode)
+	{
+		case USB_DR_MODE_HOST:
+			return MUSB_PORT_MODE_HOST;
 
-	case USB_DR_MODE_UNKNOWN:
-	case USB_DR_MODE_OTG:
-	default:
-		return MUSB_PORT_MODE_DUAL_ROLE;
+		case USB_DR_MODE_PERIPHERAL:
+			return MUSB_PORT_MODE_GADGET;
+
+		case USB_DR_MODE_UNKNOWN:
+		case USB_DR_MODE_OTG:
+		default:
+			return MUSB_PORT_MODE_DUAL_ROLE;
 	}
 }
 
 static int dsps_create_musb_pdev(struct dsps_glue *glue,
-		struct platform_device *parent)
+								 struct platform_device *parent)
 {
 	struct musb_hdrc_platform_data pdata;
 	struct resource	resources[2];
@@ -654,22 +748,30 @@ static int dsps_create_musb_pdev(struct dsps_glue *glue,
 
 	memset(resources, 0, sizeof(resources));
 	res = platform_get_resource_byname(parent, IORESOURCE_MEM, "mc");
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(dev, "failed to get memory.\n");
 		return -EINVAL;
 	}
+
 	resources[0] = *res;
 
 	res = platform_get_resource_byname(parent, IORESOURCE_IRQ, "mc");
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(dev, "failed to get irq.\n");
 		return -EINVAL;
 	}
+
 	resources[1] = *res;
 
 	/* allocate the child platform device */
 	musb = platform_device_alloc("musb-hdrc", PLATFORM_DEVID_AUTO);
-	if (!musb) {
+
+	if (!musb)
+	{
 		dev_err(dev, "failed to allocate musb device\n");
 		return -ENOMEM;
 	}
@@ -681,17 +783,22 @@ static int dsps_create_musb_pdev(struct dsps_glue *glue,
 	glue->musb = musb;
 
 	ret = platform_device_add_resources(musb, resources,
-			ARRAY_SIZE(resources));
-	if (ret) {
+										ARRAY_SIZE(resources));
+
+	if (ret)
+	{
 		dev_err(dev, "failed to add resources\n");
 		goto err;
 	}
 
 	config = devm_kzalloc(&parent->dev, sizeof(*config), GFP_KERNEL);
-	if (!config) {
+
+	if (!config)
+	{
 		ret = -ENOMEM;
 		goto err;
 	}
+
 	pdata.config = config;
 	pdata.platform_ops = &dsps_ops;
 
@@ -703,33 +810,45 @@ static int dsps_create_musb_pdev(struct dsps_glue *glue,
 	pdata.power = get_int_prop(dn, "mentor,power") / 2;
 
 	ret = of_property_read_u32(dn, "mentor,multipoint", &val);
+
 	if (!ret && val)
+	{
 		config->multipoint = true;
+	}
 
 	config->maximum_speed = usb_get_maximum_speed(&parent->dev);
-	switch (config->maximum_speed) {
-	case USB_SPEED_LOW:
-	case USB_SPEED_FULL:
-		break;
-	case USB_SPEED_SUPER:
-		dev_warn(dev, "ignore incorrect maximum_speed "
-				"(super-speed) setting in dts");
+
+	switch (config->maximum_speed)
+	{
+		case USB_SPEED_LOW:
+		case USB_SPEED_FULL:
+			break;
+
+		case USB_SPEED_SUPER:
+			dev_warn(dev, "ignore incorrect maximum_speed "
+					 "(super-speed) setting in dts");
+
 		/* fall through */
-	default:
-		config->maximum_speed = USB_SPEED_HIGH;
+		default:
+			config->maximum_speed = USB_SPEED_HIGH;
 	}
 
 	ret = platform_device_add_data(musb, &pdata, sizeof(pdata));
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to add platform_data\n");
 		goto err;
 	}
 
 	ret = platform_device_add(musb);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to register musb device\n");
 		goto err;
 	}
+
 	return 0;
 
 err:
@@ -745,22 +864,32 @@ static int dsps_probe(struct platform_device *pdev)
 	int ret;
 
 	if (!strcmp(pdev->name, "musb-hdrc"))
+	{
 		return -ENODEV;
+	}
 
 	match = of_match_node(musb_dsps_of_match, pdev->dev.of_node);
-	if (!match) {
+
+	if (!match)
+	{
 		dev_err(&pdev->dev, "fail to get matching of_match struct\n");
 		return -EINVAL;
 	}
+
 	wrp = match->data;
 
 	if (of_device_is_compatible(pdev->dev.of_node, "ti,musb-dm816"))
+	{
 		dsps_ops.read_fifo = dsps_read_fifo32;
+	}
 
 	/* allocate glue */
 	glue = devm_kzalloc(&pdev->dev, sizeof(*glue), GFP_KERNEL);
+
 	if (!glue)
+	{
 		return -ENOMEM;
+	}
 
 	glue->dev = &pdev->dev;
 	glue->wrp = wrp;
@@ -771,14 +900,19 @@ static int dsps_probe(struct platform_device *pdev)
 	pm_runtime_set_autosuspend_delay(&pdev->dev, 200);
 
 	ret = pm_runtime_get_sync(&pdev->dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "pm_runtime_get_sync FAILED");
 		goto err2;
 	}
 
 	ret = dsps_create_musb_pdev(glue, pdev);
+
 	if (ret)
+	{
 		goto err3;
+	}
 
 	pm_runtime_mark_last_busy(&pdev->dev);
 	pm_runtime_put_autosuspend(&pdev->dev);
@@ -807,7 +941,8 @@ static int dsps_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct dsps_musb_wrapper am33xx_driver_data = {
+static const struct dsps_musb_wrapper am33xx_driver_data =
+{
 	.revision		= 0x00,
 	.control		= 0x14,
 	.status			= 0x18,
@@ -838,11 +973,16 @@ static const struct dsps_musb_wrapper am33xx_driver_data = {
 	.poll_timeout		= 2000, /* ms */
 };
 
-static const struct of_device_id musb_dsps_of_match[] = {
-	{ .compatible = "ti,musb-am33xx",
-		.data = &am33xx_driver_data, },
-	{ .compatible = "ti,musb-dm816",
-		.data = &am33xx_driver_data, },
+static const struct of_device_id musb_dsps_of_match[] =
+{
+	{
+		.compatible = "ti,musb-am33xx",
+		.data = &am33xx_driver_data,
+	},
+	{
+		.compatible = "ti,musb-dm816",
+		.data = &am33xx_driver_data,
+	},
 	{  },
 };
 MODULE_DEVICE_TABLE(of, musb_dsps_of_match);
@@ -859,7 +999,9 @@ static int dsps_suspend(struct device *dev)
 
 	if (!musb)
 		/* This can happen if the musb device is in -EPROBE_DEFER */
+	{
 		return 0;
+	}
 
 	mbase = musb->ctrl_base;
 	glue->context.control = musb_readl(mbase, wrp->control);
@@ -881,7 +1023,9 @@ static int dsps_resume(struct device *dev)
 	void __iomem *mbase;
 
 	if (!musb)
+	{
 		return 0;
+	}
 
 	mbase = musb->ctrl_base;
 	musb_writel(mbase, wrp->control, glue->context.control);
@@ -891,10 +1035,11 @@ static int dsps_resume(struct device *dev)
 	musb_writel(mbase, wrp->mode, glue->context.mode);
 	musb_writel(mbase, wrp->tx_mode, glue->context.tx_mode);
 	musb_writel(mbase, wrp->rx_mode, glue->context.rx_mode);
+
 	if (musb->xceiv->otg->state == OTG_STATE_B_IDLE &&
-	    musb->port_mode == MUSB_PORT_MODE_DUAL_ROLE)
+		musb->port_mode == MUSB_PORT_MODE_DUAL_ROLE)
 		mod_timer(&glue->timer, jiffies +
-				msecs_to_jiffies(wrp->poll_timeout));
+				  msecs_to_jiffies(wrp->poll_timeout));
 
 	return 0;
 }
@@ -902,7 +1047,8 @@ static int dsps_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(dsps_pm_ops, dsps_suspend, dsps_resume);
 
-static struct platform_driver dsps_usbss_driver = {
+static struct platform_driver dsps_usbss_driver =
+{
 	.probe		= dsps_probe,
 	.remove         = dsps_remove,
 	.driver         = {

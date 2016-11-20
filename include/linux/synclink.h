@@ -16,7 +16,8 @@
 /* provide 32 bit ioctl compatibility on 64 bit systems */
 #ifdef CONFIG_COMPAT
 #include <linux/compat.h>
-struct MGSL_PARAMS32 {
+struct MGSL_PARAMS32
+{
 	compat_ulong_t	mode;
 	unsigned char	loopback;
 	unsigned short	flags;

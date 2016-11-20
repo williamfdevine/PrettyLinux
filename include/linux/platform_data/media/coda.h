@@ -11,7 +11,8 @@
 
 struct device;
 
-struct coda_platform_data {
+struct coda_platform_data
+{
 	struct device *iram_dev;
 };
 

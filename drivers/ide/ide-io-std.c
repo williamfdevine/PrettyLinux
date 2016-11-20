@@ -4,10 +4,10 @@
 #include <linux/ide.h>
 
 #if defined(CONFIG_ARM) || defined(CONFIG_M68K) || defined(CONFIG_MIPS) || \
-    defined(CONFIG_PARISC) || defined(CONFIG_PPC) || defined(CONFIG_SPARC)
-#include <asm/ide.h>
+	defined(CONFIG_PARISC) || defined(CONFIG_PPC) || defined(CONFIG_SPARC)
+	#include <asm/ide.h>
 #else
-#include <asm-generic/ide_iops.h>
+	#include <asm-generic/ide_iops.h>
 #endif
 
 /*
@@ -41,36 +41,52 @@ static void ide_mm_outb(u8 value, unsigned long port)
 void ide_exec_command(ide_hwif_t *hwif, u8 cmd)
 {
 	if (hwif->host_flags & IDE_HFLAG_MMIO)
+	{
 		writeb(cmd, (void __iomem *)hwif->io_ports.command_addr);
+	}
 	else
+	{
 		outb(cmd, hwif->io_ports.command_addr);
+	}
 }
 EXPORT_SYMBOL_GPL(ide_exec_command);
 
 u8 ide_read_status(ide_hwif_t *hwif)
 {
 	if (hwif->host_flags & IDE_HFLAG_MMIO)
+	{
 		return readb((void __iomem *)hwif->io_ports.status_addr);
+	}
 	else
+	{
 		return inb(hwif->io_ports.status_addr);
+	}
 }
 EXPORT_SYMBOL_GPL(ide_read_status);
 
 u8 ide_read_altstatus(ide_hwif_t *hwif)
 {
 	if (hwif->host_flags & IDE_HFLAG_MMIO)
+	{
 		return readb((void __iomem *)hwif->io_ports.ctl_addr);
+	}
 	else
+	{
 		return inb(hwif->io_ports.ctl_addr);
+	}
 }
 EXPORT_SYMBOL_GPL(ide_read_altstatus);
 
 void ide_write_devctl(ide_hwif_t *hwif, u8 ctl)
 {
 	if (hwif->host_flags & IDE_HFLAG_MMIO)
+	{
 		writeb(ctl, (void __iomem *)hwif->io_ports.ctl_addr);
+	}
 	else
+	{
 		outb(ctl, hwif->io_ports.ctl_addr);
+	}
 }
 EXPORT_SYMBOL_GPL(ide_write_devctl);
 
@@ -80,9 +96,13 @@ void ide_dev_select(ide_drive_t *drive)
 	u8 select = drive->select | ATA_DEVICE_OBS;
 
 	if (hwif->host_flags & IDE_HFLAG_MMIO)
+	{
 		writeb(select, (void __iomem *)hwif->io_ports.device_addr);
+	}
 	else
+	{
 		outb(select, hwif->io_ports.device_addr);
+	}
 }
 EXPORT_SYMBOL_GPL(ide_dev_select);
 
@@ -94,22 +114,43 @@ void ide_tf_load(ide_drive_t *drive, struct ide_taskfile *tf, u8 valid)
 	u8 mmio = (hwif->host_flags & IDE_HFLAG_MMIO) ? 1 : 0;
 
 	if (mmio)
+	{
 		tf_outb = ide_mm_outb;
+	}
 	else
+	{
 		tf_outb = ide_outb;
+	}
 
 	if (valid & IDE_VALID_FEATURE)
+	{
 		tf_outb(tf->feature, io_ports->feature_addr);
+	}
+
 	if (valid & IDE_VALID_NSECT)
+	{
 		tf_outb(tf->nsect, io_ports->nsect_addr);
+	}
+
 	if (valid & IDE_VALID_LBAL)
+	{
 		tf_outb(tf->lbal, io_ports->lbal_addr);
+	}
+
 	if (valid & IDE_VALID_LBAM)
+	{
 		tf_outb(tf->lbam, io_ports->lbam_addr);
+	}
+
 	if (valid & IDE_VALID_LBAH)
+	{
 		tf_outb(tf->lbah, io_ports->lbah_addr);
+	}
+
 	if (valid & IDE_VALID_DEVICE)
+	{
 		tf_outb(tf->device, io_ports->device_addr);
+	}
 }
 EXPORT_SYMBOL_GPL(ide_tf_load);
 
@@ -121,22 +162,43 @@ void ide_tf_read(ide_drive_t *drive, struct ide_taskfile *tf, u8 valid)
 	u8 mmio = (hwif->host_flags & IDE_HFLAG_MMIO) ? 1 : 0;
 
 	if (mmio)
+	{
 		tf_inb  = ide_mm_inb;
+	}
 	else
+	{
 		tf_inb  = ide_inb;
+	}
 
 	if (valid & IDE_VALID_ERROR)
+	{
 		tf->error  = tf_inb(io_ports->feature_addr);
+	}
+
 	if (valid & IDE_VALID_NSECT)
+	{
 		tf->nsect  = tf_inb(io_ports->nsect_addr);
+	}
+
 	if (valid & IDE_VALID_LBAL)
+	{
 		tf->lbal   = tf_inb(io_ports->lbal_addr);
+	}
+
 	if (valid & IDE_VALID_LBAM)
+	{
 		tf->lbam   = tf_inb(io_ports->lbam_addr);
+	}
+
 	if (valid & IDE_VALID_LBAH)
+	{
 		tf->lbah   = tf_inb(io_ports->lbah_addr);
+	}
+
 	if (valid & IDE_VALID_DEVICE)
+	{
 		tf->device = tf_inb(io_ports->device_addr);
+	}
 }
 EXPORT_SYMBOL_GPL(ide_tf_read);
 
@@ -162,7 +224,7 @@ static void ata_vlb_sync(unsigned long port)
  * extra byte allocated for the buffer.
  */
 void ide_input_data(ide_drive_t *drive, struct ide_cmd *cmd, void *buf,
-		    unsigned int len)
+					unsigned int len)
 {
 	ide_hwif_t *hwif = drive->hwif;
 	struct ide_io_ports *io_ports = &hwif->io_ports;
@@ -171,34 +233,49 @@ void ide_input_data(ide_drive_t *drive, struct ide_cmd *cmd, void *buf,
 	u8 io_32bit = drive->io_32bit;
 	u8 mmio = (hwif->host_flags & IDE_HFLAG_MMIO) ? 1 : 0;
 
-	if (io_32bit) {
+	if (io_32bit)
+	{
 		unsigned long uninitialized_var(flags);
 
-		if ((io_32bit & 2) && !mmio) {
+		if ((io_32bit & 2) && !mmio)
+		{
 			local_irq_save(flags);
 			ata_vlb_sync(io_ports->nsect_addr);
 		}
 
 		words >>= 1;
+
 		if (mmio)
+		{
 			__ide_mm_insl((void __iomem *)data_addr, buf, words);
+		}
 		else
+		{
 			insl(data_addr, buf, words);
+		}
 
 		if ((io_32bit & 2) && !mmio)
+		{
 			local_irq_restore(flags);
+		}
 
 		if (((len + 1) & 3) < 2)
+		{
 			return;
+		}
 
 		buf += len & ~3;
 		words = 1;
 	}
 
 	if (mmio)
+	{
 		__ide_mm_insw((void __iomem *)data_addr, buf, words);
+	}
 	else
+	{
 		insw(data_addr, buf, words);
+	}
 }
 EXPORT_SYMBOL_GPL(ide_input_data);
 
@@ -206,7 +283,7 @@ EXPORT_SYMBOL_GPL(ide_input_data);
  * This is used for most PIO data transfers *to* the IDE interface
  */
 void ide_output_data(ide_drive_t *drive, struct ide_cmd *cmd, void *buf,
-		     unsigned int len)
+					 unsigned int len)
 {
 	ide_hwif_t *hwif = drive->hwif;
 	struct ide_io_ports *io_ports = &hwif->io_ports;
@@ -215,38 +292,54 @@ void ide_output_data(ide_drive_t *drive, struct ide_cmd *cmd, void *buf,
 	u8 io_32bit = drive->io_32bit;
 	u8 mmio = (hwif->host_flags & IDE_HFLAG_MMIO) ? 1 : 0;
 
-	if (io_32bit) {
+	if (io_32bit)
+	{
 		unsigned long uninitialized_var(flags);
 
-		if ((io_32bit & 2) && !mmio) {
+		if ((io_32bit & 2) && !mmio)
+		{
 			local_irq_save(flags);
 			ata_vlb_sync(io_ports->nsect_addr);
 		}
 
 		words >>= 1;
+
 		if (mmio)
+		{
 			__ide_mm_outsl((void __iomem *)data_addr, buf, words);
+		}
 		else
+		{
 			outsl(data_addr, buf, words);
+		}
 
 		if ((io_32bit & 2) && !mmio)
+		{
 			local_irq_restore(flags);
+		}
 
 		if (((len + 1) & 3) < 2)
+		{
 			return;
+		}
 
 		buf += len & ~3;
 		words = 1;
 	}
 
 	if (mmio)
+	{
 		__ide_mm_outsw((void __iomem *)data_addr, buf, words);
+	}
 	else
+	{
 		outsw(data_addr, buf, words);
+	}
 }
 EXPORT_SYMBOL_GPL(ide_output_data);
 
-const struct ide_tp_ops default_tp_ops = {
+const struct ide_tp_ops default_tp_ops =
+{
 	.exec_command		= ide_exec_command,
 	.read_status		= ide_read_status,
 	.read_altstatus		= ide_read_altstatus,

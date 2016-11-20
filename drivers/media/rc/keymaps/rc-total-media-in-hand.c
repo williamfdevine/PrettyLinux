@@ -22,7 +22,8 @@
 #include <linux/module.h>
 
 /* Uses NEC extended 0x02bd */
-static struct rc_map_table total_media_in_hand[] = {
+static struct rc_map_table total_media_in_hand[] =
+{
 	{ 0x02bd00, KEY_1 },
 	{ 0x02bd01, KEY_2 },
 	{ 0x02bd02, KEY_3 },
@@ -60,7 +61,8 @@ static struct rc_map_table total_media_in_hand[] = {
 	{ 0x02bd45, KEY_INFO },            /* [red (I)] */
 };
 
-static struct rc_map_list total_media_in_hand_map = {
+static struct rc_map_list total_media_in_hand_map =
+{
 	.map = {
 		.scan    = total_media_in_hand,
 		.size    = ARRAY_SIZE(total_media_in_hand),

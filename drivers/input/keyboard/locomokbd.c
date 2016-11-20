@@ -46,7 +46,8 @@ MODULE_LICENSE("GPL");
 #define KEY_CENTER		KEY_F15
 
 static const unsigned char
-locomokbd_keycode[LOCOMOKBD_NUMKEYS] = {
+locomokbd_keycode[LOCOMOKBD_NUMKEYS] =
+{
 	0, KEY_ESC, KEY_ACTIVITY, 0, 0, 0, 0, 0, 0, 0,				/* 0 - 9 */
 	0, 0, 0, 0, 0, 0, 0, KEY_MENU, KEY_HOME, KEY_CONTACT,			/* 10 - 19 */
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,						/* 20 - 29 */
@@ -70,7 +71,8 @@ locomokbd_keycode[LOCOMOKBD_NUMKEYS] = {
 #define KB_DELAY		8
 #define SCAN_INTERVAL		(HZ/10)
 
-struct locomokbd {
+struct locomokbd
+{
 	unsigned char keycode[LOCOMOKBD_NUMKEYS];
 	struct input_dev *input;
 	char phys[32];
@@ -136,13 +138,17 @@ static void locomokbd_scankeyboard(struct locomokbd *locomokbd)
 	locomokbd_charge_all(membase);
 
 	num_pressed = 0;
-	for (col = 0; col < KB_COLS; col++) {
+
+	for (col = 0; col < KB_COLS; col++)
+	{
 
 		locomokbd_activate_col(membase, col);
 		udelay(KB_DELAY);
 
 		rowd = ~locomo_readl(membase + LOCOMO_KIB);
-		for (row = 0; row < KB_ROWS; row++) {
+
+		for (row = 0; row < KB_ROWS; row++)
+		{
 			unsigned int scancode, pressed, key;
 
 			scancode = SCANCODE(col, row);
@@ -150,38 +156,57 @@ static void locomokbd_scankeyboard(struct locomokbd *locomokbd)
 			key = locomokbd->keycode[scancode];
 
 			input_report_key(locomokbd->input, key, pressed);
+
 			if (likely(!pressed))
+			{
 				continue;
+			}
 
 			num_pressed++;
 
 			/* The "Cancel/ESC" key is labeled "On/Off" on
 			 * Collie and Poodle and should suspend the device
 			 * if it was pressed for more than a second. */
-			if (unlikely(key == KEY_ESC)) {
+			if (unlikely(key == KEY_ESC))
+			{
 				if (!time_after(jiffies,
-					locomokbd->suspend_jiffies + HZ))
+								locomokbd->suspend_jiffies + HZ))
+				{
 					continue;
+				}
+
 				if (locomokbd->count_cancel++
-					!= (HZ/SCAN_INTERVAL + 1))
+					!= (HZ / SCAN_INTERVAL + 1))
+				{
 					continue;
+				}
+
 				input_event(locomokbd->input, EV_PWR,
-					KEY_SUSPEND, 1);
+							KEY_SUSPEND, 1);
 				locomokbd->suspend_jiffies = jiffies;
-			} else
+			}
+			else
+			{
 				locomokbd->count_cancel = 0;
+			}
 		}
+
 		locomokbd_reset_col(membase, col);
 	}
+
 	locomokbd_activate_all(membase);
 
 	input_sync(locomokbd->input);
 
 	/* if any keys are pressed, enable the timer */
 	if (num_pressed)
+	{
 		mod_timer(&locomokbd->timer, jiffies + SCAN_INTERVAL);
+	}
 	else
+	{
 		locomokbd->count_cancel = 0;
+	}
 
 	spin_unlock_irqrestore(&locomokbd->lock, flags);
 }
@@ -195,8 +220,11 @@ static irqreturn_t locomokbd_interrupt(int irq, void *dev_id)
 	u16 r;
 
 	r = locomo_readl(locomokbd->base + LOCOMO_KIC);
+
 	if ((r & 0x0001) == 0)
+	{
 		return IRQ_HANDLED;
+	}
 
 	locomo_writel(r & ~0x0100, locomokbd->base + LOCOMO_KIC); /* Ack */
 
@@ -221,7 +249,7 @@ static int locomokbd_open(struct input_dev *dev)
 {
 	struct locomokbd *locomokbd = input_get_drvdata(dev);
 	u16 r;
-	
+
 	r = locomo_readl(locomokbd->base + LOCOMO_KIC) | 0x0010;
 	locomo_writel(r, locomokbd->base + LOCOMO_KIC);
 	return 0;
@@ -231,7 +259,7 @@ static void locomokbd_close(struct input_dev *dev)
 {
 	struct locomokbd *locomokbd = input_get_drvdata(dev);
 	u16 r;
-	
+
 	r = locomo_readl(locomokbd->base + LOCOMO_KIC) & ~0x0010;
 	locomo_writel(r, locomokbd->base + LOCOMO_KIC);
 }
@@ -244,15 +272,18 @@ static int locomokbd_probe(struct locomo_dev *dev)
 
 	locomokbd = kzalloc(sizeof(struct locomokbd), GFP_KERNEL);
 	input_dev = input_allocate_device();
-	if (!locomokbd || !input_dev) {
+
+	if (!locomokbd || !input_dev)
+	{
 		err = -ENOMEM;
 		goto err_free_mem;
 	}
 
 	/* try and claim memory region */
 	if (!request_mem_region((unsigned long) dev->mapbase,
-				dev->length,
-				LOCOMO_DRIVER_NAME(dev))) {
+							dev->length,
+							LOCOMO_DRIVER_NAME(dev)))
+	{
 		err = -EBUSY;
 		printk(KERN_ERR "locomokbd: Can't acquire access to io memory for keyboard\n");
 		goto err_free_mem;
@@ -284,7 +315,7 @@ static int locomokbd_probe(struct locomo_dev *dev)
 	input_dev->dev.parent = &dev->dev;
 
 	input_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REP) |
-				BIT_MASK(EV_PWR);
+						  BIT_MASK(EV_PWR);
 	input_dev->keycode = locomokbd->keycode;
 	input_dev->keycodesize = sizeof(locomokbd_keycode[0]);
 	input_dev->keycodemax = ARRAY_SIZE(locomokbd_keycode);
@@ -292,29 +323,38 @@ static int locomokbd_probe(struct locomo_dev *dev)
 	input_set_drvdata(input_dev, locomokbd);
 
 	memcpy(locomokbd->keycode, locomokbd_keycode, sizeof(locomokbd->keycode));
+
 	for (i = 0; i < LOCOMOKBD_NUMKEYS; i++)
+	{
 		set_bit(locomokbd->keycode[i], input_dev->keybit);
+	}
+
 	clear_bit(0, input_dev->keybit);
 
 	/* attempt to get the interrupt */
 	err = request_irq(dev->irq[0], locomokbd_interrupt, 0, "locomokbd", locomokbd);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR "locomokbd: Can't get irq for keyboard\n");
 		goto err_release_region;
 	}
 
 	err = input_register_device(locomokbd->input);
+
 	if (err)
+	{
 		goto err_free_irq;
+	}
 
 	return 0;
 
- err_free_irq:
+err_free_irq:
 	free_irq(dev->irq[0], locomokbd);
- err_release_region:
+err_release_region:
 	release_mem_region((unsigned long) dev->mapbase, dev->length);
 	locomo_set_drvdata(dev, NULL);
- err_free_mem:
+err_free_mem:
 	input_free_device(input_dev);
 	kfree(locomokbd);
 
@@ -339,7 +379,8 @@ static int locomokbd_remove(struct locomo_dev *dev)
 	return 0;
 }
 
-static struct locomo_driver keyboard_driver = {
+static struct locomo_driver keyboard_driver =
+{
 	.drv = {
 		.name = "locomokbd"
 	},

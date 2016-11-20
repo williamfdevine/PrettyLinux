@@ -30,7 +30,8 @@
 #include <sys/syscall.h>
 
 /* Open-code this -- the headers are too messy to easily use them. */
-struct real_sigaction {
+struct real_sigaction
+{
 	void *handler;
 	unsigned long flags;
 	void *restorer;
@@ -60,28 +61,40 @@ int main()
 	sa.restorer = NULL;	/* request kernel-provided restorer */
 
 	if (syscall(SYS_rt_sigaction, SIGUSR1, &sa, NULL, 8) != 0)
+	{
 		err(1, "raw rt_sigaction syscall");
+	}
 
 	raise(SIGUSR1);
 
-	if (handler_called) {
+	if (handler_called)
+	{
 		printf("[OK]\tSA_SIGINFO handler returned successfully\n");
-	} else {
+	}
+	else
+	{
 		printf("[FAIL]\tSA_SIGINFO handler was not called\n");
 		nerrs++;
 	}
 
 	sa.flags = 0;
 	sa.handler = handler_without_siginfo;
+
 	if (syscall(SYS_sigaction, SIGUSR1, &sa, 0) != 0)
+	{
 		err(1, "raw sigaction syscall");
+	}
+
 	handler_called = 0;
 
 	raise(SIGUSR1);
 
-	if (handler_called) {
+	if (handler_called)
+	{
 		printf("[OK]\t!SA_SIGINFO handler returned successfully\n");
-	} else {
+	}
+	else
+	{
 		printf("[FAIL]\t!SA_SIGINFO handler was not called\n");
 		nerrs++;
 	}

@@ -7,7 +7,8 @@
  *	is too significant
  * MIGRATE_SYNC will block when migrating pages
  */
-enum migrate_mode {
+enum migrate_mode
+{
 	MIGRATE_ASYNC,
 	MIGRATE_SYNC_LIGHT,
 	MIGRATE_SYNC,

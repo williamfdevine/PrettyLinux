@@ -18,7 +18,8 @@
 
 #include "../dss/omapdss.h"
 
-struct panel_drv_data {
+struct panel_drv_data
+{
 	struct omap_dss_device dssdev;
 	struct omap_dss_device *in;
 
@@ -32,15 +33,18 @@ struct panel_drv_data {
 #define to_panel_data(x) container_of(x, struct panel_drv_data, dssdev)
 
 static int tpd_connect(struct omap_dss_device *dssdev,
-		struct omap_dss_device *dst)
+					   struct omap_dss_device *dst)
 {
 	struct panel_drv_data *ddata = to_panel_data(dssdev);
 	struct omap_dss_device *in = ddata->in;
 	int r;
 
 	r = in->ops.hdmi->connect(in, dssdev);
+
 	if (r)
+	{
 		return r;
+	}
 
 	dst->src = dssdev;
 	dssdev->dst = dst;
@@ -53,7 +57,7 @@ static int tpd_connect(struct omap_dss_device *dssdev,
 }
 
 static void tpd_disconnect(struct omap_dss_device *dssdev,
-		struct omap_dss_device *dst)
+						   struct omap_dss_device *dst)
 {
 	struct panel_drv_data *ddata = to_panel_data(dssdev);
 	struct omap_dss_device *in = ddata->in;
@@ -61,7 +65,9 @@ static void tpd_disconnect(struct omap_dss_device *dssdev,
 	WARN_ON(dst != dssdev->dst);
 
 	if (dst != dssdev->dst)
+	{
 		return;
+	}
 
 	gpiod_set_value_cansleep(ddata->ct_cp_hpd_gpio, 0);
 
@@ -78,13 +84,18 @@ static int tpd_enable(struct omap_dss_device *dssdev)
 	int r;
 
 	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
+	{
 		return 0;
+	}
 
 	in->ops.hdmi->set_timings(in, &ddata->timings);
 
 	r = in->ops.hdmi->enable(in);
+
 	if (r)
+	{
 		return r;
+	}
 
 	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
 
@@ -97,7 +108,9 @@ static void tpd_disable(struct omap_dss_device *dssdev)
 	struct omap_dss_device *in = ddata->in;
 
 	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
+	{
 		return;
+	}
 
 	in->ops.hdmi->disable(in);
 
@@ -105,7 +118,7 @@ static void tpd_disable(struct omap_dss_device *dssdev)
 }
 
 static void tpd_set_timings(struct omap_dss_device *dssdev,
-		struct omap_video_timings *timings)
+							struct omap_video_timings *timings)
 {
 	struct panel_drv_data *ddata = to_panel_data(dssdev);
 	struct omap_dss_device *in = ddata->in;
@@ -117,7 +130,7 @@ static void tpd_set_timings(struct omap_dss_device *dssdev,
 }
 
 static void tpd_get_timings(struct omap_dss_device *dssdev,
-		struct omap_video_timings *timings)
+							struct omap_video_timings *timings)
 {
 	struct panel_drv_data *ddata = to_panel_data(dssdev);
 
@@ -125,7 +138,7 @@ static void tpd_get_timings(struct omap_dss_device *dssdev,
 }
 
 static int tpd_check_timings(struct omap_dss_device *dssdev,
-		struct omap_video_timings *timings)
+							 struct omap_video_timings *timings)
 {
 	struct panel_drv_data *ddata = to_panel_data(dssdev);
 	struct omap_dss_device *in = ddata->in;
@@ -137,14 +150,16 @@ static int tpd_check_timings(struct omap_dss_device *dssdev,
 }
 
 static int tpd_read_edid(struct omap_dss_device *dssdev,
-		u8 *edid, int len)
+						 u8 *edid, int len)
 {
 	struct panel_drv_data *ddata = to_panel_data(dssdev);
 	struct omap_dss_device *in = ddata->in;
 	int r;
 
 	if (!gpiod_get_value_cansleep(ddata->hpd_gpio))
+	{
 		return -ENODEV;
+	}
 
 	gpiod_set_value_cansleep(ddata->ls_oe_gpio, 1);
 
@@ -163,7 +178,7 @@ static bool tpd_detect(struct omap_dss_device *dssdev)
 }
 
 static int tpd_set_infoframe(struct omap_dss_device *dssdev,
-		const struct hdmi_avi_infoframe *avi)
+							 const struct hdmi_avi_infoframe *avi)
 {
 	struct panel_drv_data *ddata = to_panel_data(dssdev);
 	struct omap_dss_device *in = ddata->in;
@@ -172,7 +187,7 @@ static int tpd_set_infoframe(struct omap_dss_device *dssdev,
 }
 
 static int tpd_set_hdmi_mode(struct omap_dss_device *dssdev,
-		bool hdmi_mode)
+							 bool hdmi_mode)
 {
 	struct panel_drv_data *ddata = to_panel_data(dssdev);
 	struct omap_dss_device *in = ddata->in;
@@ -180,7 +195,8 @@ static int tpd_set_hdmi_mode(struct omap_dss_device *dssdev,
 	return in->ops.hdmi->set_hdmi_mode(in, hdmi_mode);
 }
 
-static const struct omapdss_hdmi_ops tpd_hdmi_ops = {
+static const struct omapdss_hdmi_ops tpd_hdmi_ops =
+{
 	.connect		= tpd_connect,
 	.disconnect		= tpd_disconnect,
 
@@ -204,7 +220,9 @@ static int tpd_probe_of(struct platform_device *pdev)
 	struct omap_dss_device *in;
 
 	in = omapdss_of_find_source_for_first_ep(node);
-	if (IS_ERR(in)) {
+
+	if (IS_ERR(in))
+	{
 		dev_err(&pdev->dev, "failed to find video source\n");
 		return PTR_ERR(in);
 	}
@@ -222,37 +240,54 @@ static int tpd_probe(struct platform_device *pdev)
 	struct gpio_desc *gpio;
 
 	ddata = devm_kzalloc(&pdev->dev, sizeof(*ddata), GFP_KERNEL);
+
 	if (!ddata)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, ddata);
 
 	if (!pdev->dev.of_node)
+	{
 		return -ENODEV;
+	}
 
 	r = tpd_probe_of(pdev);
+
 	if (r)
+	{
 		return r;
+	}
 
 
 	gpio = devm_gpiod_get_index_optional(&pdev->dev, NULL, 0,
-		 GPIOD_OUT_LOW);
+										 GPIOD_OUT_LOW);
+
 	if (IS_ERR(gpio))
+	{
 		goto err_gpio;
+	}
 
 	ddata->ct_cp_hpd_gpio = gpio;
 
 	gpio = devm_gpiod_get_index_optional(&pdev->dev, NULL, 1,
-		 GPIOD_OUT_LOW);
+										 GPIOD_OUT_LOW);
+
 	if (IS_ERR(gpio))
+	{
 		goto err_gpio;
+	}
 
 	ddata->ls_oe_gpio = gpio;
 
 	gpio = devm_gpiod_get_index(&pdev->dev, NULL, 2,
-		GPIOD_IN);
+								GPIOD_IN);
+
 	if (IS_ERR(gpio))
+	{
 		goto err_gpio;
+	}
 
 	ddata->hpd_gpio = gpio;
 
@@ -267,7 +302,9 @@ static int tpd_probe(struct platform_device *pdev)
 	in = ddata->in;
 
 	r = omapdss_register_output(dssdev);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(&pdev->dev, "Failed to register output\n");
 		goto err_reg;
 	}
@@ -288,26 +325,34 @@ static int __exit tpd_remove(struct platform_device *pdev)
 	omapdss_unregister_output(&ddata->dssdev);
 
 	WARN_ON(omapdss_device_is_enabled(dssdev));
+
 	if (omapdss_device_is_enabled(dssdev))
+	{
 		tpd_disable(dssdev);
+	}
 
 	WARN_ON(omapdss_device_is_connected(dssdev));
+
 	if (omapdss_device_is_connected(dssdev))
+	{
 		tpd_disconnect(dssdev, dssdev->dst);
+	}
 
 	omap_dss_put_device(in);
 
 	return 0;
 }
 
-static const struct of_device_id tpd_of_match[] = {
+static const struct of_device_id tpd_of_match[] =
+{
 	{ .compatible = "omapdss,ti,tpd12s015", },
 	{},
 };
 
 MODULE_DEVICE_TABLE(of, tpd_of_match);
 
-static struct platform_driver tpd_driver = {
+static struct platform_driver tpd_driver =
+{
 	.probe	= tpd_probe,
 	.remove	= __exit_p(tpd_remove),
 	.driver	= {

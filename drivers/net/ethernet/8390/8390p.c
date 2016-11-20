@@ -1,7 +1,7 @@
 /* 8390 core for ISA devices needing bus delays */
 
 static const char version[] =
-    "8390p.c:v1.10cvs 9/23/94 Donald Becker (becker@cesdis.gsfc.nasa.gov)\n";
+	"8390p.c:v1.10cvs 9/23/94 Donald Becker (becker@cesdis.gsfc.nasa.gov)\n";
 
 #define ei_inb(_p)	inb(_p)
 #define ei_outb(_v, _p)	outb(_v, _p)
@@ -60,7 +60,8 @@ void eip_poll(struct net_device *dev)
 EXPORT_SYMBOL(eip_poll);
 #endif
 
-const struct net_device_ops eip_netdev_ops = {
+const struct net_device_ops eip_netdev_ops =
+{
 	.ndo_open		= eip_open,
 	.ndo_stop		= eip_close,
 	.ndo_start_xmit		= eip_start_xmit,
@@ -79,8 +80,12 @@ EXPORT_SYMBOL(eip_netdev_ops);
 struct net_device *__alloc_eip_netdev(int size)
 {
 	struct net_device *dev = ____alloc_ei_netdev(size);
+
 	if (dev)
+	{
 		dev->netdev_ops = &eip_netdev_ops;
+	}
+
 	return dev;
 }
 EXPORT_SYMBOL(__alloc_eip_netdev);

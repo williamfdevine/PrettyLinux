@@ -201,14 +201,14 @@ int  rndis_msg_parser(struct rndis_params *params, u8 *buf);
 struct rndis_params *rndis_register(void (*resp_avail)(void *v), void *v);
 void rndis_deregister(struct rndis_params *params);
 int  rndis_set_param_dev(struct rndis_params *params, struct net_device *dev,
-			 u16 *cdc_filter);
+						 u16 *cdc_filter);
 int  rndis_set_param_vendor(struct rndis_params *params, u32 vendorID,
-			    const char *vendorDescr);
+							const char *vendorDescr);
 int  rndis_set_param_medium(struct rndis_params *params, u32 medium,
-			     u32 speed);
+							u32 speed);
 void rndis_add_hdr(struct sk_buff *skb);
 int rndis_rm_hdr(struct gether *port, struct sk_buff *skb,
-			struct sk_buff_head *list);
+				 struct sk_buff_head *list);
 u8   *rndis_get_next_response(struct rndis_params *params, u32 *length);
 void rndis_free_response(struct rndis_params *params, u8 *buf);
 

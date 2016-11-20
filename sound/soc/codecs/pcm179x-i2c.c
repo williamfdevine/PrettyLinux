@@ -24,13 +24,15 @@
 #include "pcm179x.h"
 
 static int pcm179x_i2c_probe(struct i2c_client *client,
-			      const struct i2c_device_id *id)
+							 const struct i2c_device_id *id)
 {
 	struct regmap *regmap;
 	int ret;
 
 	regmap = devm_regmap_init_i2c(client, &pcm179x_regmap_config);
-	if (IS_ERR(regmap)) {
+
+	if (IS_ERR(regmap))
+	{
 		ret = PTR_ERR(regmap);
 		dev_err(&client->dev, "Failed to allocate regmap: %d\n", ret);
 		return ret;
@@ -44,19 +46,22 @@ static int pcm179x_i2c_remove(struct i2c_client *client)
 	return pcm179x_common_exit(&client->dev);
 }
 
-static const struct of_device_id pcm179x_of_match[] = {
+static const struct of_device_id pcm179x_of_match[] =
+{
 	{ .compatible = "ti,pcm1792a", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, pcm179x_of_match);
 
-static const struct i2c_device_id pcm179x_i2c_ids[] = {
+static const struct i2c_device_id pcm179x_i2c_ids[] =
+{
 	{ "pcm179x", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, pcm179x_i2c_ids);
 
-static struct i2c_driver pcm179x_i2c_driver = {
+static struct i2c_driver pcm179x_i2c_driver =
+{
 	.driver = {
 		.name	= "pcm179x",
 		.of_match_table = of_match_ptr(pcm179x_of_match),

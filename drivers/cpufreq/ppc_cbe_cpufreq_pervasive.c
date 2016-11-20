@@ -33,12 +33,14 @@
 #include "ppc_cbe_cpufreq.h"
 
 /* to write to MIC register */
-static u64 MIC_Slow_Fast_Timer_table[] = {
+static u64 MIC_Slow_Fast_Timer_table[] =
+{
 	[0 ... 7] = 0x007fc00000000000ull,
 };
 
 /* more values for the MIC */
-static u64 MIC_Slow_Next_Timer_table[] = {
+static u64 MIC_Slow_Next_Timer_table[] =
+{
 	0x0000240000000000ull,
 	0x0000268000000000ull,
 	0x000029C000000000ull,
@@ -86,7 +88,9 @@ int cbe_cpufreq_set_pmode(int cpu, unsigned int pmode)
 #ifdef DEBUG
 	/* wait until new pmode appears in status register */
 	value = in_be64(&pmd_regs->pmsr) & 0x07;
-	while (value != pmode) {
+
+	while (value != pmode)
+	{
 		cpu_relax();
 		value = in_be64(&pmd_regs->pmsr) & 0x07;
 	}
@@ -94,7 +98,7 @@ int cbe_cpufreq_set_pmode(int cpu, unsigned int pmode)
 	time = jiffies  - time;
 	time = jiffies_to_msecs(time);
 	pr_debug("had to wait %lu ms for a transition using " \
-		 "pervasive unit\n", time);
+			 "pervasive unit\n", time);
 #endif
 	local_irq_restore(flags);
 

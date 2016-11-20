@@ -44,13 +44,13 @@ rsz_set_common_params(void __iomem *rsz_base, struct resizer_params *params)
 
 	/* data source selection  and bypass */
 	val = (rsz_common->passthrough << RSZ_BYPASS_SHIFT) |
-	      rsz_common->source;
+		  rsz_common->source;
 	regw_rsz(rsz_base, val, RSZ_SRC_FMT0);
 
 	/* src image selection */
 	val = (rsz_common->raw_flip & 1) |
-	      (rsz_common->src_img_fmt << RSZ_SRC_IMG_FMT_SHIFT) |
-	      ((rsz_common->y_c & 1) << RSZ_SRC_Y_C_SEL_SHIFT);
+		  (rsz_common->src_img_fmt << RSZ_SRC_IMG_FMT_SHIFT) |
+		  ((rsz_common->y_c & 1) << RSZ_SRC_Y_C_SEL_SHIFT);
 	regw_rsz(rsz_base, val, RSZ_SRC_FMT1);
 
 	regw_rsz(rsz_base, rsz_common->vps & IPIPE_RSZ_VPS_MASK, RSZ_SRC_VPS);
@@ -67,7 +67,7 @@ rsz_set_common_params(void __iomem *rsz_base, struct resizer_params *params)
 
 static void
 rsz_set_rsz_regs(void __iomem *rsz_base, unsigned int rsz_id,
-		 struct resizer_params *params)
+				 struct resizer_params *params)
 {
 	struct resizer_scale_param *rsc_params;
 	struct rsz_ext_mem_param *ext_mem;
@@ -79,15 +79,19 @@ rsz_set_rsz_regs(void __iomem *rsz_base, unsigned int rsz_id,
 	rgb = &params->rsz2rgb[rsz_id];
 	ext_mem = &params->ext_mem_param[rsz_id];
 
-	if (rsz_id == RSZ_A) {
+	if (rsz_id == RSZ_A)
+	{
 		val = rsc_params->h_flip << RSZA_H_FLIP_SHIFT;
 		val |= rsc_params->v_flip << RSZA_V_FLIP_SHIFT;
 		reg_base = RSZ_EN_A;
-	} else {
+	}
+	else
+	{
 		val = rsc_params->h_flip << RSZB_H_FLIP_SHIFT;
 		val |= rsc_params->v_flip << RSZB_V_FLIP_SHIFT;
 		reg_base = RSZ_EN_B;
 	}
+
 	/* update flip settings */
 	regw_rsz(rsz_base, val, RSZ_SEQ);
 
@@ -97,76 +101,76 @@ rsz_set_rsz_regs(void __iomem *rsz_base, unsigned int rsz_id,
 	regw_rsz(rsz_base, val, reg_base + RSZ_420);
 
 	regw_rsz(rsz_base, rsc_params->i_vps & RSZ_VPS_MASK,
-		 reg_base + RSZ_I_VPS);
+			 reg_base + RSZ_I_VPS);
 	regw_rsz(rsz_base, rsc_params->i_hps & RSZ_HPS_MASK,
-		 reg_base + RSZ_I_HPS);
+			 reg_base + RSZ_I_HPS);
 	regw_rsz(rsz_base, rsc_params->o_vsz & RSZ_O_VSZ_MASK,
-		 reg_base + RSZ_O_VSZ);
+			 reg_base + RSZ_O_VSZ);
 	regw_rsz(rsz_base, rsc_params->o_hsz & RSZ_O_HSZ_MASK,
-		 reg_base + RSZ_O_HSZ);
+			 reg_base + RSZ_O_HSZ);
 	regw_rsz(rsz_base, rsc_params->v_phs_y & RSZ_V_PHS_MASK,
-		 reg_base + RSZ_V_PHS_Y);
+			 reg_base + RSZ_V_PHS_Y);
 	regw_rsz(rsz_base, rsc_params->v_phs_c & RSZ_V_PHS_MASK,
-		 reg_base + RSZ_V_PHS_C);
+			 reg_base + RSZ_V_PHS_C);
 
 	/* keep this additional adjustment to zero for now */
 	regw_rsz(rsz_base, rsc_params->v_dif & RSZ_V_DIF_MASK,
-		 reg_base + RSZ_V_DIF);
+			 reg_base + RSZ_V_DIF);
 
 	val = (rsc_params->v_typ_y & 1) |
-	      ((rsc_params->v_typ_c & 1) << RSZ_TYP_C_SHIFT);
+		  ((rsc_params->v_typ_c & 1) << RSZ_TYP_C_SHIFT);
 	regw_rsz(rsz_base, val, reg_base + RSZ_V_TYP);
 
 	val = (rsc_params->v_lpf_int_y & RSZ_LPF_INT_MASK) |
-	      ((rsc_params->v_lpf_int_c & RSZ_LPF_INT_MASK) <<
-	      RSZ_LPF_INT_C_SHIFT);
+		  ((rsc_params->v_lpf_int_c & RSZ_LPF_INT_MASK) <<
+		   RSZ_LPF_INT_C_SHIFT);
 	regw_rsz(rsz_base, val, reg_base + RSZ_V_LPF);
 
 	regw_rsz(rsz_base, rsc_params->h_phs &
-		RSZ_H_PHS_MASK, reg_base + RSZ_H_PHS);
+			 RSZ_H_PHS_MASK, reg_base + RSZ_H_PHS);
 
 	regw_rsz(rsz_base, 0, reg_base + RSZ_H_PHS_ADJ);
 	regw_rsz(rsz_base, rsc_params->h_dif &
-		RSZ_H_DIF_MASK, reg_base + RSZ_H_DIF);
+			 RSZ_H_DIF_MASK, reg_base + RSZ_H_DIF);
 
 	val = (rsc_params->h_typ_y & 1) |
-	      ((rsc_params->h_typ_c & 1) << RSZ_TYP_C_SHIFT);
+		  ((rsc_params->h_typ_c & 1) << RSZ_TYP_C_SHIFT);
 	regw_rsz(rsz_base, val, reg_base + RSZ_H_TYP);
 
 	val = (rsc_params->h_lpf_int_y & RSZ_LPF_INT_MASK) |
-		 ((rsc_params->h_lpf_int_c & RSZ_LPF_INT_MASK) <<
-		 RSZ_LPF_INT_C_SHIFT);
+		  ((rsc_params->h_lpf_int_c & RSZ_LPF_INT_MASK) <<
+		   RSZ_LPF_INT_C_SHIFT);
 	regw_rsz(rsz_base, val, reg_base + RSZ_H_LPF);
 
 	regw_rsz(rsz_base, rsc_params->dscale_en & 1, reg_base + RSZ_DWN_EN);
 
 	val = (rsc_params->h_dscale_ave_sz & RSZ_DWN_SCALE_AV_SZ_MASK) |
-	      ((rsc_params->v_dscale_ave_sz & RSZ_DWN_SCALE_AV_SZ_MASK) <<
-	      RSZ_DWN_SCALE_AV_SZ_V_SHIFT);
+		  ((rsc_params->v_dscale_ave_sz & RSZ_DWN_SCALE_AV_SZ_MASK) <<
+		   RSZ_DWN_SCALE_AV_SZ_V_SHIFT);
 	regw_rsz(rsz_base, val, reg_base + RSZ_DWN_AV);
 
 	/* setting rgb conversion parameters */
 	regw_rsz(rsz_base, rgb->rgb_en, reg_base + RSZ_RGB_EN);
 
 	val = (rgb->rgb_typ << RSZ_RGB_TYP_SHIFT) |
-	      (rgb->rgb_msk0 << RSZ_RGB_MSK0_SHIFT) |
-	      (rgb->rgb_msk1 << RSZ_RGB_MSK1_SHIFT);
+		  (rgb->rgb_msk0 << RSZ_RGB_MSK0_SHIFT) |
+		  (rgb->rgb_msk1 << RSZ_RGB_MSK1_SHIFT);
 	regw_rsz(rsz_base, val, reg_base + RSZ_RGB_TYP);
 
 	regw_rsz(rsz_base, rgb->rgb_alpha_val & RSZ_RGB_ALPHA_MASK,
-		reg_base + RSZ_RGB_BLD);
+			 reg_base + RSZ_RGB_BLD);
 
 	/* setting external memory parameters */
 	regw_rsz(rsz_base, ext_mem->rsz_sdr_oft_y, reg_base + RSZ_SDR_Y_OFT);
 	regw_rsz(rsz_base, ext_mem->rsz_sdr_ptr_s_y,
-		 reg_base + RSZ_SDR_Y_PTR_S);
+			 reg_base + RSZ_SDR_Y_PTR_S);
 	regw_rsz(rsz_base, ext_mem->rsz_sdr_ptr_e_y,
-		 reg_base + RSZ_SDR_Y_PTR_E);
+			 reg_base + RSZ_SDR_Y_PTR_E);
 	regw_rsz(rsz_base, ext_mem->rsz_sdr_oft_c, reg_base + RSZ_SDR_C_OFT);
 	regw_rsz(rsz_base, ext_mem->rsz_sdr_ptr_s_c,
-		 reg_base + RSZ_SDR_C_PTR_S);
+			 reg_base + RSZ_SDR_C_PTR_S);
 	regw_rsz(rsz_base, (ext_mem->rsz_sdr_ptr_e_c >> 1),
-		 reg_base + RSZ_SDR_C_PTR_E);
+			 reg_base + RSZ_SDR_C_PTR_E);
 }
 
 /*set the registers of either RSZ0 or RSZ1 */
@@ -178,9 +182,13 @@ ipipe_setup_resizer(void __iomem *rsz_base, struct resizer_params *params)
 
 	/* Enable resizer if it is not in bypass mode */
 	if (params->rsz_common.passthrough)
+	{
 		regw_rsz(rsz_base, 0, RSZ_GCK_SDR);
+	}
 	else
+	{
 		regw_rsz(rsz_base, 1, RSZ_GCK_SDR);
+	}
 
 	rsz_set_common_params(rsz_base, params);
 
@@ -188,24 +196,29 @@ ipipe_setup_resizer(void __iomem *rsz_base, struct resizer_params *params)
 
 	if (params->rsz_en[RSZ_A])
 		/*setting rescale parameters */
+	{
 		rsz_set_rsz_regs(rsz_base, RSZ_A, params);
+	}
 
 	regw_rsz(rsz_base, params->rsz_en[RSZ_B], RSZ_EN_B);
 
 	if (params->rsz_en[RSZ_B])
+	{
 		rsz_set_rsz_regs(rsz_base, RSZ_B, params);
+	}
 }
 
 static u32 ipipe_get_color_pat(u32 pix)
 {
-	switch (pix) {
-	case MEDIA_BUS_FMT_SGRBG10_ALAW8_1X8:
-	case MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8:
-	case MEDIA_BUS_FMT_SGRBG12_1X12:
-		return ipipe_sgrbg_pattern;
+	switch (pix)
+	{
+		case MEDIA_BUS_FMT_SGRBG10_ALAW8_1X8:
+		case MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8:
+		case MEDIA_BUS_FMT_SGRBG12_1X12:
+			return ipipe_sgrbg_pattern;
 
-	default:
-		return ipipe_srggb_pattern;
+		default:
+			return ipipe_srggb_pattern;
 	}
 }
 
@@ -213,22 +226,27 @@ static int ipipe_get_data_path(struct vpfe_ipipe_device *ipipe)
 {
 	u32 temp_pix_fmt;
 
-	switch (ipipe->formats[IPIPE_PAD_SINK].code) {
-	case MEDIA_BUS_FMT_SBGGR8_1X8:
-	case MEDIA_BUS_FMT_SGRBG10_ALAW8_1X8:
-	case MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8:
-	case MEDIA_BUS_FMT_SGRBG12_1X12:
-		temp_pix_fmt = MEDIA_BUS_FMT_SGRBG12_1X12;
-		break;
+	switch (ipipe->formats[IPIPE_PAD_SINK].code)
+	{
+		case MEDIA_BUS_FMT_SBGGR8_1X8:
+		case MEDIA_BUS_FMT_SGRBG10_ALAW8_1X8:
+		case MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8:
+		case MEDIA_BUS_FMT_SGRBG12_1X12:
+			temp_pix_fmt = MEDIA_BUS_FMT_SGRBG12_1X12;
+			break;
 
-	default:
-		temp_pix_fmt = MEDIA_BUS_FMT_UYVY8_2X8;
+		default:
+			temp_pix_fmt = MEDIA_BUS_FMT_UYVY8_2X8;
 	}
 
-	if (temp_pix_fmt == MEDIA_BUS_FMT_SGRBG12_1X12) {
+	if (temp_pix_fmt == MEDIA_BUS_FMT_SGRBG12_1X12)
+	{
 		if (ipipe->formats[IPIPE_PAD_SOURCE].code ==
 			MEDIA_BUS_FMT_SGRBG12_1X12)
+		{
 			return IPIPE_RAW2RAW;
+		}
+
 		return IPIPE_RAW2YUV;
 	}
 
@@ -241,9 +259,14 @@ static int get_ipipe_mode(struct vpfe_ipipe_device *ipipe)
 	u16 ipipeif_sink = vpfe_dev->vpfe_ipipeif.input;
 
 	if (ipipeif_sink == IPIPEIF_INPUT_MEMORY)
+	{
 		return IPIPE_MODE_SINGLE_SHOT;
+	}
+
 	if (ipipeif_sink == IPIPEIF_INPUT_ISIF)
+	{
 		return IPIPE_MODE_CONTINUOUS;
+	}
 
 	return -EINVAL;
 }
@@ -261,16 +284,20 @@ int config_ipipe_hw(struct vpfe_ipipe_device *ipipe)
 	vpss_enable_clock(VPSS_IPIPE_CLOCK, 1);
 	ipipe_clock_enable(ipipe_base);
 
-	if (ipipe->input == IPIPE_INPUT_NONE) {
+	if (ipipe->input == IPIPE_INPUT_NONE)
+	{
 		regw_ip(ipipe_base, 0, IPIPE_SRC_EN);
 		return 0;
 	}
 
 	ipipe_mode = get_ipipe_mode(ipipe);
-	if (ipipe_mode < 0) {
+
+	if (ipipe_mode < 0)
+	{
 		pr_err("Failed to get ipipe mode");
 		return -EINVAL;
 	}
+
 	regw_ip(ipipe_base, ipipe_mode, IPIPE_SRC_MODE);
 
 	data_path = ipipe_get_data_path(ipipe);
@@ -281,14 +308,15 @@ int config_ipipe_hw(struct vpfe_ipipe_device *ipipe)
 
 	outformat = &ipipe->formats[IPIPE_PAD_SOURCE];
 	regw_ip(ipipe_base, (outformat->height + 1) & IPIPE_RSZ_VSZ_MASK,
-		IPIPE_SRC_VSZ);
+			IPIPE_SRC_VSZ);
 	regw_ip(ipipe_base, (outformat->width + 1) & IPIPE_RSZ_HSZ_MASK,
-		IPIPE_SRC_HSZ);
+			IPIPE_SRC_HSZ);
 
 	if (data_path == IPIPE_RAW2YUV ||
-	    data_path == IPIPE_RAW2RAW) {
+		data_path == IPIPE_RAW2RAW)
+	{
 		color_pat =
-		ipipe_get_color_pat(ipipe->formats[IPIPE_PAD_SINK].code);
+			ipipe_get_color_pat(ipipe->formats[IPIPE_PAD_SINK].code);
 		regw_ip(ipipe_base, color_pat, IPIPE_SRC_COL);
 	}
 
@@ -299,7 +327,7 @@ int config_ipipe_hw(struct vpfe_ipipe_device *ipipe)
  * config_rsz_hw() - Performs hardware setup of resizer.
  */
 int config_rsz_hw(struct vpfe_resizer_device *resizer,
-		  struct resizer_params *config)
+				  struct resizer_params *config)
 {
 	struct vpfe_device *vpfe_dev = to_vpfe_device(resizer);
 	void __iomem *ipipe_base = vpfe_dev->vpfe_ipipe.base_addr;
@@ -316,7 +344,7 @@ int config_rsz_hw(struct vpfe_resizer_device *resizer,
 
 static void
 rsz_set_y_address(void __iomem *rsz_base, unsigned int address,
-		  unsigned int offset)
+				  unsigned int offset)
 {
 	u32 val;
 
@@ -331,7 +359,7 @@ rsz_set_y_address(void __iomem *rsz_base, unsigned int address,
 
 static void
 rsz_set_c_address(void __iomem *rsz_base, unsigned int address,
-		  unsigned int offset)
+				  unsigned int offset)
 {
 	u32 val;
 
@@ -353,7 +381,7 @@ rsz_set_c_address(void __iomem *rsz_base, unsigned int address,
  */
 int
 resizer_set_outaddr(void __iomem *rsz_base, struct resizer_params *params,
-		    int resize_no, unsigned int address)
+					int resize_no, unsigned int address)
 {
 	struct resizer_scale_param *rsc_param;
 	struct rsz_ext_mem_param *mem_param;
@@ -362,48 +390,67 @@ resizer_set_outaddr(void __iomem *rsz_base, struct resizer_params *params,
 	unsigned int val;
 
 	if (resize_no != RSZ_A && resize_no != RSZ_B)
+	{
 		return -EINVAL;
+	}
 
 	mem_param = &params->ext_mem_param[resize_no];
 	rsc_param = &params->rsz_rsc_param[resize_no];
 	rsz_common = &params->rsz_common;
 
 	if (resize_no == RSZ_A)
+	{
 		rsz_start_add = RSZ_EN_A;
+	}
 	else
+	{
 		rsz_start_add = RSZ_EN_B;
+	}
 
 	/* y_c = 0 for y, = 1 for c */
-	if (rsz_common->src_img_fmt == RSZ_IMG_420) {
-		if (rsz_common->y_c) {
+	if (rsz_common->src_img_fmt == RSZ_IMG_420)
+	{
+		if (rsz_common->y_c)
+		{
 			/* C channel */
 			val = address + mem_param->flip_ofst_c;
 			rsz_set_c_address(rsz_base, val, rsz_start_add);
-		} else {
+		}
+		else
+		{
 			val = address + mem_param->flip_ofst_y;
 			rsz_set_y_address(rsz_base, val, rsz_start_add);
 		}
-	} else {
-		if (rsc_param->cen && rsc_param->yen) {
+	}
+	else
+	{
+		if (rsc_param->cen && rsc_param->yen)
+		{
 			/* 420 */
 			val = address + mem_param->c_offset +
-			      mem_param->flip_ofst_c +
-			      mem_param->user_y_ofst +
-			      mem_param->user_c_ofst;
+				  mem_param->flip_ofst_c +
+				  mem_param->user_y_ofst +
+				  mem_param->user_c_ofst;
+
 			if (resize_no == RSZ_B)
 				val +=
-				params->ext_mem_param[RSZ_A].user_y_ofst +
-				params->ext_mem_param[RSZ_A].user_c_ofst;
+					params->ext_mem_param[RSZ_A].user_y_ofst +
+					params->ext_mem_param[RSZ_A].user_c_ofst;
+
 			/* set C address */
 			rsz_set_c_address(rsz_base, val, rsz_start_add);
 		}
+
 		val = address + mem_param->flip_ofst_y + mem_param->user_y_ofst;
+
 		if (resize_no == RSZ_B)
 			val += params->ext_mem_param[RSZ_A].user_y_ofst +
-				params->ext_mem_param[RSZ_A].user_c_ofst;
+				   params->ext_mem_param[RSZ_A].user_c_ofst;
+
 		/* set Y address */
 		rsz_set_y_address(rsz_base, val, rsz_start_add);
 	}
+
 	/* resizer must be enabled */
 	regw_rsz(rsz_base, params->rsz_en[resize_no], rsz_start_add);
 
@@ -412,7 +459,7 @@ resizer_set_outaddr(void __iomem *rsz_base, struct resizer_params *params,
 
 void
 ipipe_set_lutdpc_regs(void __iomem *base_addr, void __iomem *isp5_base_addr,
-		      struct vpfe_ipipe_lutdpc *dpc)
+					  struct vpfe_ipipe_lutdpc *dpc)
 {
 	u32 max_tbl_size = LUT_DPC_MAX_SIZE >> 1;
 	u32 lut_start_addr = DPC_TB0_START_ADDR;
@@ -423,7 +470,9 @@ ipipe_set_lutdpc_regs(void __iomem *base_addr, void __iomem *isp5_base_addr,
 	regw_ip(base_addr, dpc->en, DPC_LUT_EN);
 
 	if (dpc->en != 1)
+	{
 		return;
+	}
 
 	val = LUTDPC_TBL_256_EN | (dpc->repl_white & 1);
 	regw_ip(base_addr, val, DPC_LUT_SEL);
@@ -431,44 +480,50 @@ ipipe_set_lutdpc_regs(void __iomem *base_addr, void __iomem *isp5_base_addr,
 	regw_ip(base_addr, dpc->dpc_size, DPC_LUT_SIZ & LUT_DPC_SIZE_MASK);
 
 	if (dpc->table == NULL)
+	{
 		return;
+	}
 
-	for (count = 0; count < dpc->dpc_size; count++) {
+	for (count = 0; count < dpc->dpc_size; count++)
+	{
 		if (count >= max_tbl_size)
+		{
 			lut_start_addr = DPC_TB1_START_ADDR;
+		}
+
 		val = (dpc->table[count].horz_pos & LUT_DPC_H_POS_MASK) |
-		      ((dpc->table[count].vert_pos & LUT_DPC_V_POS_MASK) <<
-			LUT_DPC_V_POS_SHIFT) | (dpc->table[count].method <<
-			LUT_DPC_CORR_METH_SHIFT);
+			  ((dpc->table[count].vert_pos & LUT_DPC_V_POS_MASK) <<
+			   LUT_DPC_V_POS_SHIFT) | (dpc->table[count].method <<
+									   LUT_DPC_CORR_METH_SHIFT);
 		w_ip_table(isp5_base_addr, val, (lut_start_addr +
-		((count % max_tbl_size) << 2)));
+										 ((count % max_tbl_size) << 2)));
 	}
 }
 
 static void
 set_dpc_thresholds(void __iomem *base_addr,
-		   struct vpfe_ipipe_otfdpc_2_0_cfg *dpc_thr)
+				   struct vpfe_ipipe_otfdpc_2_0_cfg *dpc_thr)
 {
 	regw_ip(base_addr, dpc_thr->corr_thr.r & OTFDPC_DPC2_THR_MASK,
-		DPC_OTF_2C_THR_R);
+			DPC_OTF_2C_THR_R);
 	regw_ip(base_addr, dpc_thr->corr_thr.gr & OTFDPC_DPC2_THR_MASK,
-		DPC_OTF_2C_THR_GR);
+			DPC_OTF_2C_THR_GR);
 	regw_ip(base_addr, dpc_thr->corr_thr.gb & OTFDPC_DPC2_THR_MASK,
-		DPC_OTF_2C_THR_GB);
+			DPC_OTF_2C_THR_GB);
 	regw_ip(base_addr, dpc_thr->corr_thr.b & OTFDPC_DPC2_THR_MASK,
-		DPC_OTF_2C_THR_B);
+			DPC_OTF_2C_THR_B);
 	regw_ip(base_addr, dpc_thr->det_thr.r & OTFDPC_DPC2_THR_MASK,
-		DPC_OTF_2D_THR_R);
+			DPC_OTF_2D_THR_R);
 	regw_ip(base_addr, dpc_thr->det_thr.gr & OTFDPC_DPC2_THR_MASK,
-		DPC_OTF_2D_THR_GR);
+			DPC_OTF_2D_THR_GR);
 	regw_ip(base_addr, dpc_thr->det_thr.gb & OTFDPC_DPC2_THR_MASK,
-		DPC_OTF_2D_THR_GB);
+			DPC_OTF_2D_THR_GB);
 	regw_ip(base_addr, dpc_thr->det_thr.b & OTFDPC_DPC2_THR_MASK,
-		DPC_OTF_2D_THR_B);
+			DPC_OTF_2D_THR_B);
 }
 
 void ipipe_set_otfdpc_regs(void __iomem *base_addr,
-			   struct vpfe_ipipe_otfdpc *otfdpc)
+						   struct vpfe_ipipe_otfdpc *otfdpc)
 {
 	struct vpfe_ipipe_otfdpc_2_0_cfg *dpc_2_0 = &otfdpc->alg_cfg.dpc_2_0;
 	struct vpfe_ipipe_otfdpc_3_0_cfg *dpc_3_0 = &otfdpc->alg_cfg.dpc_3_0;
@@ -477,54 +532,61 @@ void ipipe_set_otfdpc_regs(void __iomem *base_addr,
 	ipipe_clock_enable(base_addr);
 
 	regw_ip(base_addr, (otfdpc->en & 1), DPC_OTF_EN);
+
 	if (!otfdpc->en)
+	{
 		return;
+	}
 
 	/* dpc enabled */
 	val = (otfdpc->det_method << OTF_DET_METHOD_SHIFT) | otfdpc->alg;
 	regw_ip(base_addr, val, DPC_OTF_TYP);
 
-	if (otfdpc->det_method == VPFE_IPIPE_DPC_OTF_MIN_MAX) {
+	if (otfdpc->det_method == VPFE_IPIPE_DPC_OTF_MIN_MAX)
+	{
 		/* ALG= 0, TYP = 0, DPC_OTF_2D_THR_[x]=0
 		 * DPC_OTF_2C_THR_[x] = Maximum thresohld
 		 * MinMax method
 		 */
 		dpc_2_0->det_thr.r = dpc_2_0->det_thr.gb =
-		dpc_2_0->det_thr.gr = dpc_2_0->det_thr.b = 0;
+								 dpc_2_0->det_thr.gr = dpc_2_0->det_thr.b = 0;
 		set_dpc_thresholds(base_addr, dpc_2_0);
 		return;
 	}
+
 	/* MinMax2 */
-	if (otfdpc->alg == VPFE_IPIPE_OTFDPC_2_0) {
+	if (otfdpc->alg == VPFE_IPIPE_OTFDPC_2_0)
+	{
 		set_dpc_thresholds(base_addr, dpc_2_0);
 		return;
 	}
+
 	regw_ip(base_addr, dpc_3_0->act_adj_shf &
-		OTF_DPC3_0_SHF_MASK, DPC_OTF_3_SHF);
+			OTF_DPC3_0_SHF_MASK, DPC_OTF_3_SHF);
 	/* Detection thresholds */
 	regw_ip(base_addr, ((dpc_3_0->det_thr & OTF_DPC3_0_THR_MASK) <<
-		OTF_DPC3_0_THR_SHIFT), DPC_OTF_3D_THR);
+						OTF_DPC3_0_THR_SHIFT), DPC_OTF_3D_THR);
 	regw_ip(base_addr, dpc_3_0->det_slp &
-		OTF_DPC3_0_SLP_MASK, DPC_OTF_3D_SLP);
+			OTF_DPC3_0_SLP_MASK, DPC_OTF_3D_SLP);
 	regw_ip(base_addr, dpc_3_0->det_thr_min &
-		OTF_DPC3_0_DET_MASK, DPC_OTF_3D_MIN);
+			OTF_DPC3_0_DET_MASK, DPC_OTF_3D_MIN);
 	regw_ip(base_addr, dpc_3_0->det_thr_max &
-		OTF_DPC3_0_DET_MASK, DPC_OTF_3D_MAX);
+			OTF_DPC3_0_DET_MASK, DPC_OTF_3D_MAX);
 	/* Correction thresholds */
 	regw_ip(base_addr, ((dpc_3_0->corr_thr & OTF_DPC3_0_THR_MASK) <<
-		OTF_DPC3_0_THR_SHIFT), DPC_OTF_3C_THR);
+						OTF_DPC3_0_THR_SHIFT), DPC_OTF_3C_THR);
 	regw_ip(base_addr, dpc_3_0->corr_slp &
-		OTF_DPC3_0_SLP_MASK, DPC_OTF_3C_SLP);
+			OTF_DPC3_0_SLP_MASK, DPC_OTF_3C_SLP);
 	regw_ip(base_addr, dpc_3_0->corr_thr_min &
-		OTF_DPC3_0_CORR_MASK, DPC_OTF_3C_MIN);
+			OTF_DPC3_0_CORR_MASK, DPC_OTF_3C_MIN);
 	regw_ip(base_addr, dpc_3_0->corr_thr_max &
-		OTF_DPC3_0_CORR_MASK, DPC_OTF_3C_MAX);
+			OTF_DPC3_0_CORR_MASK, DPC_OTF_3C_MAX);
 }
 
 /* 2D Noise filter */
 void
 ipipe_set_d2f_regs(void __iomem *base_addr, unsigned int id,
-		   struct vpfe_ipipe_nf *noise_filter)
+				   struct vpfe_ipipe_nf *noise_filter)
 {
 
 	u32 offset = D2F_1ST;
@@ -532,39 +594,44 @@ ipipe_set_d2f_regs(void __iomem *base_addr, unsigned int id,
 	u32 val;
 
 	if (id == IPIPE_D2F_2ND)
+	{
 		offset = D2F_2ND;
+	}
 
 	ipipe_clock_enable(base_addr);
 	regw_ip(base_addr, noise_filter->en & 1, offset + D2F_EN);
+
 	if (!noise_filter->en)
+	{
 		return;
+	}
 
 	/*noise filter enabled */
 	/* Combine all the fields to make D2F_CFG register of IPIPE */
 	val = ((noise_filter->spread_val & D2F_SPR_VAL_MASK) <<
-		D2F_SPR_VAL_SHIFT) | ((noise_filter->shft_val &
-		D2F_SHFT_VAL_MASK) << D2F_SHFT_VAL_SHIFT) |
-		(noise_filter->gr_sample_meth << D2F_SAMPLE_METH_SHIFT) |
-		((noise_filter->apply_lsc_gain & 1) <<
-		D2F_APPLY_LSC_GAIN_SHIFT) | D2F_USE_SPR_REG_VAL;
+		   D2F_SPR_VAL_SHIFT) | ((noise_filter->shft_val &
+								  D2F_SHFT_VAL_MASK) << D2F_SHFT_VAL_SHIFT) |
+		  (noise_filter->gr_sample_meth << D2F_SAMPLE_METH_SHIFT) |
+		  ((noise_filter->apply_lsc_gain & 1) <<
+		   D2F_APPLY_LSC_GAIN_SHIFT) | D2F_USE_SPR_REG_VAL;
 	regw_ip(base_addr, val, offset + D2F_TYP);
 
 	/* edge detection minimum */
 	regw_ip(base_addr, noise_filter->edge_det_min_thr &
-		D2F_EDGE_DET_THR_MASK, offset + D2F_EDG_MIN);
+			D2F_EDGE_DET_THR_MASK, offset + D2F_EDG_MIN);
 
 	/* edge detection maximum */
 	regw_ip(base_addr, noise_filter->edge_det_max_thr &
-		D2F_EDGE_DET_THR_MASK, offset + D2F_EDG_MAX);
+			D2F_EDGE_DET_THR_MASK, offset + D2F_EDG_MAX);
 
 	for (count = 0; count < VPFE_IPIPE_NF_STR_TABLE_SIZE; count++)
 		regw_ip(base_addr,
-			(noise_filter->str[count] & D2F_STR_VAL_MASK),
-			offset + D2F_STR + count * 4);
+				(noise_filter->str[count] & D2F_STR_VAL_MASK),
+				offset + D2F_STR + count * 4);
 
 	for (count = 0; count < VPFE_IPIPE_NF_THR_TABLE_SIZE; count++)
 		regw_ip(base_addr, noise_filter->thr[count] & D2F_THR_VAL_MASK,
-			offset + D2F_THR + count * 4);
+				offset + D2F_THR + count * 4);
 }
 
 #define IPIPE_U8Q5(decimal, integer) \
@@ -579,29 +646,35 @@ void ipipe_set_gic_regs(void __iomem *base_addr, struct vpfe_ipipe_gic *gic)
 	regw_ip(base_addr, gic->en & 1, GIC_EN);
 
 	if (!gic->en)
+	{
 		return;
+	}
 
 	/*gic enabled */
 	val = (gic->wt_fn_type << GIC_TYP_SHIFT) |
-	      (gic->thr_sel << GIC_THR_SEL_SHIFT) |
-	      ((gic->apply_lsc_gain & 1) << GIC_APPLY_LSC_GAIN_SHIFT);
+		  (gic->thr_sel << GIC_THR_SEL_SHIFT) |
+		  ((gic->apply_lsc_gain & 1) << GIC_APPLY_LSC_GAIN_SHIFT);
 	regw_ip(base_addr, val, GIC_TYP);
 
 	regw_ip(base_addr, gic->gain & GIC_GAIN_MASK, GIC_GAN);
 
-	if (gic->gic_alg != VPFE_IPIPE_GIC_ALG_ADAPT_GAIN) {
+	if (gic->gic_alg != VPFE_IPIPE_GIC_ALG_ADAPT_GAIN)
+	{
 		/* Constant Gain. Set threshold to maximum */
 		regw_ip(base_addr, GIC_THR_MASK, GIC_THR);
 		return;
 	}
 
-	if (gic->thr_sel == VPFE_IPIPE_GIC_THR_REG) {
+	if (gic->thr_sel == VPFE_IPIPE_GIC_THR_REG)
+	{
 		regw_ip(base_addr, gic->thr & GIC_THR_MASK, GIC_THR);
 		regw_ip(base_addr, gic->slope & GIC_SLOPE_MASK, GIC_SLP);
-	} else {
+	}
+	else
+	{
 		/* Use NF thresholds */
 		val = IPIPE_U8Q5(gic->nf2_thr_gain.decimal,
-				gic->nf2_thr_gain.integer);
+						 gic->nf2_thr_gain.integer);
 		regw_ip(base_addr, val, GIC_NFGAN);
 	}
 }
@@ -641,38 +714,38 @@ void ipipe_set_cfa_regs(void __iomem *base_addr, struct vpfe_ipipe_cfa *cfa)
 
 	regw_ip(base_addr, cfa->alg, CFA_MODE);
 	regw_ip(base_addr, cfa->hpf_thr_2dir & CFA_HPF_THR_2DIR_MASK,
-		CFA_2DIR_HPF_THR);
+			CFA_2DIR_HPF_THR);
 	regw_ip(base_addr, cfa->hpf_slp_2dir & CFA_HPF_SLOPE_2DIR_MASK,
-		CFA_2DIR_HPF_SLP);
+			CFA_2DIR_HPF_SLP);
 	regw_ip(base_addr, cfa->hp_mix_thr_2dir & CFA_HPF_MIX_THR_2DIR_MASK,
-		CFA_2DIR_MIX_THR);
+			CFA_2DIR_MIX_THR);
 	regw_ip(base_addr, cfa->hp_mix_slope_2dir & CFA_HPF_MIX_SLP_2DIR_MASK,
-		CFA_2DIR_MIX_SLP);
+			CFA_2DIR_MIX_SLP);
 	regw_ip(base_addr, cfa->dir_thr_2dir & CFA_DIR_THR_2DIR_MASK,
-		CFA_2DIR_DIR_THR);
+			CFA_2DIR_DIR_THR);
 	regw_ip(base_addr, cfa->dir_slope_2dir & CFA_DIR_SLP_2DIR_MASK,
-		CFA_2DIR_DIR_SLP);
+			CFA_2DIR_DIR_SLP);
 	regw_ip(base_addr, cfa->nd_wt_2dir & CFA_ND_WT_2DIR_MASK,
-		CFA_2DIR_NDWT);
+			CFA_2DIR_NDWT);
 	regw_ip(base_addr, cfa->hue_fract_daa & CFA_DAA_HUE_FRA_MASK,
-		CFA_MONO_HUE_FRA);
+			CFA_MONO_HUE_FRA);
 	regw_ip(base_addr, cfa->edge_thr_daa & CFA_DAA_EDG_THR_MASK,
-		CFA_MONO_EDG_THR);
+			CFA_MONO_EDG_THR);
 	regw_ip(base_addr, cfa->thr_min_daa & CFA_DAA_THR_MIN_MASK,
-		CFA_MONO_THR_MIN);
+			CFA_MONO_THR_MIN);
 	regw_ip(base_addr, cfa->thr_slope_daa & CFA_DAA_THR_SLP_MASK,
-		CFA_MONO_THR_SLP);
+			CFA_MONO_THR_SLP);
 	regw_ip(base_addr, cfa->slope_min_daa & CFA_DAA_SLP_MIN_MASK,
-		CFA_MONO_SLP_MIN);
+			CFA_MONO_SLP_MIN);
 	regw_ip(base_addr, cfa->slope_slope_daa & CFA_DAA_SLP_SLP_MASK,
-		CFA_MONO_SLP_SLP);
+			CFA_MONO_SLP_SLP);
 	regw_ip(base_addr, cfa->lp_wt_daa & CFA_DAA_LP_WT_MASK,
-		CFA_MONO_LPWT);
+			CFA_MONO_LPWT);
 }
 
 void
 ipipe_set_rgb2rgb_regs(void __iomem *base_addr, unsigned int id,
-		       struct vpfe_ipipe_rgb2rgb *rgb)
+					   struct vpfe_ipipe_rgb2rgb *rgb)
 {
 	u32 offset_mask = RGB2RGB_1_OFST_MASK;
 	u32 offset = RGB1_MUL_BASE;
@@ -681,7 +754,8 @@ ipipe_set_rgb2rgb_regs(void __iomem *base_addr, unsigned int id,
 
 	ipipe_clock_enable(base_addr);
 
-	if (id == IPIPE_RGB2RGB_2) {
+	if (id == IPIPE_RGB2RGB_2)
+	{
 		/*
 		 * For second RGB module, gain integer is 3 bits instead
 		 * of 4, offset has 11 bits insread of 13
@@ -690,33 +764,34 @@ ipipe_set_rgb2rgb_regs(void __iomem *base_addr, unsigned int id,
 		integ_mask = 0x7;
 		offset_mask = RGB2RGB_2_OFST_MASK;
 	}
+
 	/* Gains */
 	val = (rgb->coef_rr.decimal & 0xff) |
-		((rgb->coef_rr.integer & integ_mask) << 8);
+		  ((rgb->coef_rr.integer & integ_mask) << 8);
 	regw_ip(base_addr, val, offset + RGB_MUL_RR);
 	val = (rgb->coef_gr.decimal & 0xff) |
-		((rgb->coef_gr.integer & integ_mask) << 8);
+		  ((rgb->coef_gr.integer & integ_mask) << 8);
 	regw_ip(base_addr, val, offset + RGB_MUL_GR);
 	val = (rgb->coef_br.decimal & 0xff) |
-		((rgb->coef_br.integer & integ_mask) << 8);
+		  ((rgb->coef_br.integer & integ_mask) << 8);
 	regw_ip(base_addr, val, offset + RGB_MUL_BR);
 	val = (rgb->coef_rg.decimal & 0xff) |
-		((rgb->coef_rg.integer & integ_mask) << 8);
+		  ((rgb->coef_rg.integer & integ_mask) << 8);
 	regw_ip(base_addr, val, offset + RGB_MUL_RG);
 	val = (rgb->coef_gg.decimal & 0xff) |
-		((rgb->coef_gg.integer & integ_mask) << 8);
+		  ((rgb->coef_gg.integer & integ_mask) << 8);
 	regw_ip(base_addr, val, offset + RGB_MUL_GG);
 	val = (rgb->coef_bg.decimal & 0xff) |
-		((rgb->coef_bg.integer & integ_mask) << 8);
+		  ((rgb->coef_bg.integer & integ_mask) << 8);
 	regw_ip(base_addr, val, offset + RGB_MUL_BG);
 	val = (rgb->coef_rb.decimal & 0xff) |
-		((rgb->coef_rb.integer & integ_mask) << 8);
+		  ((rgb->coef_rb.integer & integ_mask) << 8);
 	regw_ip(base_addr, val, offset + RGB_MUL_RB);
 	val = (rgb->coef_gb.decimal & 0xff) |
-		((rgb->coef_gb.integer & integ_mask) << 8);
+		  ((rgb->coef_gb.integer & integ_mask) << 8);
 	regw_ip(base_addr, val, offset + RGB_MUL_GB);
 	val = (rgb->coef_bb.decimal & 0xff) |
-		((rgb->coef_bb.integer & integ_mask) << 8);
+		  ((rgb->coef_bb.integer & integ_mask) << 8);
 	regw_ip(base_addr, val, offset + RGB_MUL_BB);
 
 	/* Offsets */
@@ -727,12 +802,13 @@ ipipe_set_rgb2rgb_regs(void __iomem *base_addr, unsigned int id,
 
 static void
 ipipe_update_gamma_tbl(void __iomem *isp5_base_addr,
-	struct vpfe_ipipe_gamma_entry *table, int size, u32 addr)
+					   struct vpfe_ipipe_gamma_entry *table, int size, u32 addr)
 {
 	int count;
 	u32 val;
 
-	for (count = 0; count < size; count++) {
+	for (count = 0; count < size; count++)
+	{
 		val = table[count].slope & GAMMA_MASK;
 		val |= (table[count].offset & GAMMA_MASK) << GAMMA_SHIFT;
 		w_ip_table(isp5_base_addr, val, (addr + (count * 4)));
@@ -741,39 +817,43 @@ ipipe_update_gamma_tbl(void __iomem *isp5_base_addr,
 
 void
 ipipe_set_gamma_regs(void __iomem *base_addr, void __iomem *isp5_base_addr,
-			  struct vpfe_ipipe_gamma *gamma)
+					 struct vpfe_ipipe_gamma *gamma)
 {
 	int table_size;
 	u32 val;
 
 	ipipe_clock_enable(base_addr);
 	val = (gamma->bypass_r << GAMMA_BYPR_SHIFT) |
-		(gamma->bypass_b << GAMMA_BYPG_SHIFT) |
-		(gamma->bypass_g << GAMMA_BYPB_SHIFT) |
-		(gamma->tbl_sel << GAMMA_TBL_SEL_SHIFT) |
-		(gamma->tbl_size << GAMMA_TBL_SIZE_SHIFT);
+		  (gamma->bypass_b << GAMMA_BYPG_SHIFT) |
+		  (gamma->bypass_g << GAMMA_BYPB_SHIFT) |
+		  (gamma->tbl_sel << GAMMA_TBL_SEL_SHIFT) |
+		  (gamma->tbl_size << GAMMA_TBL_SIZE_SHIFT);
 
 	regw_ip(base_addr, val, GMM_CFG);
 
 	if (gamma->tbl_sel != VPFE_IPIPE_GAMMA_TBL_RAM)
+	{
 		return;
+	}
 
 	table_size = gamma->tbl_size;
 
 	if (!gamma->bypass_r && gamma->table_r != NULL)
 		ipipe_update_gamma_tbl(isp5_base_addr, gamma->table_r,
-			table_size, GAMMA_R_START_ADDR);
+							   table_size, GAMMA_R_START_ADDR);
+
 	if (!gamma->bypass_b && gamma->table_b != NULL)
 		ipipe_update_gamma_tbl(isp5_base_addr, gamma->table_b,
-			table_size, GAMMA_B_START_ADDR);
+							   table_size, GAMMA_B_START_ADDR);
+
 	if (!gamma->bypass_g && gamma->table_g != NULL)
 		ipipe_update_gamma_tbl(isp5_base_addr, gamma->table_g,
-			table_size, GAMMA_G_START_ADDR);
+							   table_size, GAMMA_G_START_ADDR);
 }
 
 void
 ipipe_set_3d_lut_regs(void __iomem *base_addr, void __iomem *isp5_base_addr,
-			   struct vpfe_ipipe_3d_lut *lut_3d)
+					  struct vpfe_ipipe_3d_lut *lut_3d)
 {
 	struct vpfe_ipipe_3d_lut_entry *tbl;
 	u32 bnk_index;
@@ -785,39 +865,46 @@ ipipe_set_3d_lut_regs(void __iomem *base_addr, void __iomem *isp5_base_addr,
 	regw_ip(base_addr, lut_3d->en, D3LUT_EN);
 
 	if (!lut_3d->en)
+	{
 		return;
+	}
 
 	/* lut_3d enabled */
 	if (!lut_3d->table)
+	{
 		return;
+	}
 
 	/* valied table */
 	tbl = lut_3d->table;
-	for (i = 0; i < VPFE_IPIPE_MAX_SIZE_3D_LUT; i++) {
+
+	for (i = 0; i < VPFE_IPIPE_MAX_SIZE_3D_LUT; i++)
+	{
 		/*
 		 * Each entry has 0-9 (B), 10-19 (G) and
 		 * 20-29 R values
 		 */
 		val = tbl[i].b & D3_LUT_ENTRY_MASK;
 		val |= (tbl[i].g & D3_LUT_ENTRY_MASK) <<
-			 D3_LUT_ENTRY_G_SHIFT;
+			   D3_LUT_ENTRY_G_SHIFT;
 		val |= (tbl[i].r & D3_LUT_ENTRY_MASK) <<
-			 D3_LUT_ENTRY_R_SHIFT;
+			   D3_LUT_ENTRY_R_SHIFT;
 		bnk_index = i % 4;
 		tbl_index = i >> 2;
 		tbl_index <<= 2;
+
 		if (bnk_index == 0)
 			w_ip_table(isp5_base_addr, val,
-				   tbl_index + D3L_TB0_START_ADDR);
+					   tbl_index + D3L_TB0_START_ADDR);
 		else if (bnk_index == 1)
 			w_ip_table(isp5_base_addr, val,
-				   tbl_index + D3L_TB1_START_ADDR);
+					   tbl_index + D3L_TB1_START_ADDR);
 		else if (bnk_index == 2)
 			w_ip_table(isp5_base_addr, val,
-				   tbl_index + D3L_TB2_START_ADDR);
+					   tbl_index + D3L_TB2_START_ADDR);
 		else
 			w_ip_table(isp5_base_addr, val,
-				   tbl_index + D3L_TB3_START_ADDR);
+					   tbl_index + D3L_TB3_START_ADDR);
 	}
 }
 
@@ -831,7 +918,7 @@ ipipe_set_lum_adj_regs(void __iomem *base_addr, struct ipipe_lum_adj *lum_adj)
 
 	/* combine fields of YUV_ADJ to set brightness and contrast */
 	val = lum_adj->contrast << LUM_ADJ_CONTR_SHIFT |
-	      lum_adj->brightness << LUM_ADJ_BRIGHT_SHIFT;
+		  lum_adj->brightness << LUM_ADJ_BRIGHT_SHIFT;
 	regw_ip(base_addr, val, YUV_ADJ);
 }
 
@@ -839,7 +926,7 @@ ipipe_set_lum_adj_regs(void __iomem *base_addr, struct ipipe_lum_adj *lum_adj)
 	(((decimal & 0xff) | ((integer & 0xf) << 8)))
 
 void ipipe_set_rgb2ycbcr_regs(void __iomem *base_addr,
-			      struct vpfe_ipipe_rgb2yuv *yuv)
+							  struct vpfe_ipipe_rgb2yuv *yuv)
 {
 	u32 val;
 
@@ -871,7 +958,7 @@ void ipipe_set_rgb2ycbcr_regs(void __iomem *base_addr,
 /* YUV 422 conversion */
 void
 ipipe_set_yuv422_conv_regs(void __iomem *base_addr,
-			   struct vpfe_ipipe_yuv422_conv *conv)
+						   struct vpfe_ipipe_yuv422_conv *conv)
 {
 	u32 val;
 
@@ -884,34 +971,40 @@ ipipe_set_yuv422_conv_regs(void __iomem *base_addr,
 
 void
 ipipe_set_gbce_regs(void __iomem *base_addr, void __iomem *isp5_base_addr,
-		    struct vpfe_ipipe_gbce *gbce)
+					struct vpfe_ipipe_gbce *gbce)
 {
 	unsigned int count;
 	u32 mask = GBCE_Y_VAL_MASK;
 
 	if (gbce->type == VPFE_IPIPE_GBCE_GAIN_TBL)
+	{
 		mask = GBCE_GAIN_VAL_MASK;
+	}
 
 	ipipe_clock_enable(base_addr);
 	regw_ip(base_addr, gbce->en & 1, GBCE_EN);
 
 	if (!gbce->en)
+	{
 		return;
+	}
 
 	regw_ip(base_addr, gbce->type, GBCE_TYP);
 
 	if (!gbce->table)
+	{
 		return;
+	}
 
 	for (count = 0; count < VPFE_IPIPE_MAX_SIZE_GBCE_LUT; count += 2)
 		w_ip_table(isp5_base_addr, ((gbce->table[count + 1] & mask) <<
-		GBCE_ENTRY_SHIFT) | (gbce->table[count] & mask),
-		((count/2) << 2) + GBCE_TB_START_ADDR);
+									GBCE_ENTRY_SHIFT) | (gbce->table[count] & mask),
+				   ((count / 2) << 2) + GBCE_TB_START_ADDR);
 }
 
 void
 ipipe_set_ee_regs(void __iomem *base_addr, void __iomem *isp5_base_addr,
-		  struct vpfe_ipipe_yee *ee)
+				  struct vpfe_ipipe_yee *ee)
 {
 	unsigned int count;
 	u32 val;
@@ -920,7 +1013,9 @@ ipipe_set_ee_regs(void __iomem *base_addr, void __iomem *isp5_base_addr,
 	regw_ip(base_addr, ee->en, YEE_EN);
 
 	if (!ee->en)
+	{
 		return;
+	}
 
 	val = ee->en_halo_red & 1;
 	val |= ee->merge_meth << YEE_HALO_RED_EN_SHIFT;
@@ -944,13 +1039,15 @@ ipipe_set_ee_regs(void __iomem *base_addr, void __iomem *isp5_base_addr,
 	regw_ip(base_addr, ee->es_ofst_grad & YEE_THR_MASK, YEE_G_OFT);
 
 	if (ee->table == NULL)
+	{
 		return;
+	}
 
 	for (count = 0; count < VPFE_IPIPE_MAX_SIZE_YEE_LUT; count += 2)
 		w_ip_table(isp5_base_addr, ((ee->table[count + 1] &
-		YEE_ENTRY_MASK) << YEE_ENTRY_SHIFT) |
-		(ee->table[count] & YEE_ENTRY_MASK),
-		((count/2) << 2) + YEE_TB_START_ADDR);
+									 YEE_ENTRY_MASK) << YEE_ENTRY_SHIFT) |
+				   (ee->table[count] & YEE_ENTRY_MASK),
+				   ((count / 2) << 2) + YEE_TB_START_ADDR);
 }
 
 /* Chromatic Artifact Correction. CAR */
@@ -972,11 +1069,11 @@ ipipe_set_gain_ctrl(void __iomem *base_addr, struct vpfe_ipipe_car *car)
 	regw_ip(base_addr, car->gain1.gain, CAR_GN1_GAN);
 	regw_ip(base_addr, car->gain1.shft & CAR_GAIN1_SHFT_MASK, CAR_GN1_SHF);
 	regw_ip(base_addr, car->gain1.gain_min & CAR_GAIN_MIN_MASK,
-		CAR_GN1_MIN);
+			CAR_GN1_MIN);
 	regw_ip(base_addr, car->gain2.gain, CAR_GN2_GAN);
 	regw_ip(base_addr, car->gain2.shft & CAR_GAIN2_SHFT_MASK, CAR_GN2_SHF);
 	regw_ip(base_addr, car->gain2.gain_min & CAR_GAIN_MIN_MASK,
-		CAR_GN2_MIN);
+			CAR_GN2_MIN);
 }
 
 void ipipe_set_car_regs(void __iomem *base_addr, struct vpfe_ipipe_car *car)
@@ -987,29 +1084,32 @@ void ipipe_set_car_regs(void __iomem *base_addr, struct vpfe_ipipe_car *car)
 	regw_ip(base_addr, car->en, CAR_EN);
 
 	if (!car->en)
+	{
 		return;
+	}
 
-	switch (car->meth) {
-	case VPFE_IPIPE_CAR_MED_FLTR:
-		ipipe_set_mf(base_addr);
-		break;
+	switch (car->meth)
+	{
+		case VPFE_IPIPE_CAR_MED_FLTR:
+			ipipe_set_mf(base_addr);
+			break;
 
-	case VPFE_IPIPE_CAR_CHR_GAIN_CTRL:
-		ipipe_set_gain_ctrl(base_addr, car);
-		break;
+		case VPFE_IPIPE_CAR_CHR_GAIN_CTRL:
+			ipipe_set_gain_ctrl(base_addr, car);
+			break;
 
-	default:
-		/* Dynamic switch between MF and Gain Ctrl. */
-		ipipe_set_mf(base_addr);
-		ipipe_set_gain_ctrl(base_addr, car);
-		/* Set the threshold for switching between
-		  * the two Here we overwrite the MF SW0 value
-		  */
-		regw_ip(base_addr, VPFE_IPIPE_CAR_DYN_SWITCH, CAR_TYP);
-		val = car->sw1;
-		val <<= CAR_SW1_SHIFT;
-		val |= car->sw0;
-		regw_ip(base_addr, val, CAR_SW);
+		default:
+			/* Dynamic switch between MF and Gain Ctrl. */
+			ipipe_set_mf(base_addr);
+			ipipe_set_gain_ctrl(base_addr, car);
+			/* Set the threshold for switching between
+			  * the two Here we overwrite the MF SW0 value
+			  */
+			regw_ip(base_addr, VPFE_IPIPE_CAR_DYN_SWITCH, CAR_TYP);
+			val = car->sw1;
+			val <<= CAR_SW1_SHIFT;
+			val |= car->sw0;
+			regw_ip(base_addr, val, CAR_SW);
 	}
 }
 
@@ -1020,7 +1120,9 @@ void ipipe_set_cgs_regs(void __iomem *base_addr, struct vpfe_ipipe_cgs *cgs)
 	regw_ip(base_addr, cgs->en, CGS_EN);
 
 	if (!cgs->en)
+	{
 		return;
+	}
 
 	/* Set the bright side parameters */
 	regw_ip(base_addr, cgs->h_thr, CGS_GN1_H_THR);
@@ -1036,15 +1138,20 @@ void rsz_src_enable(void __iomem *rsz_base, int enable)
 
 int rsz_enable(void __iomem *rsz_base, int rsz_id, int enable)
 {
-	if (rsz_id == RSZ_A) {
+	if (rsz_id == RSZ_A)
+	{
 		regw_rsz(rsz_base, enable, RSZ_EN_A);
 		/* We always enable RSZ_A. RSZ_B is enable upon request from
 		 * application. So enable RSZ_SRC_EN along with RSZ_A
 		 */
 		regw_rsz(rsz_base, enable, RSZ_SRC_EN);
-	} else if (rsz_id == RSZ_B) {
+	}
+	else if (rsz_id == RSZ_B)
+	{
 		regw_rsz(rsz_base, enable, RSZ_EN_B);
-	} else {
+	}
+	else
+	{
 		BUG();
 	}
 

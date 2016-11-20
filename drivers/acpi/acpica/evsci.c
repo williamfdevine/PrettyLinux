@@ -74,7 +74,8 @@ u32 acpi_ev_sci_dispatch(void)
 
 	/* Are there any host-installed SCI handlers? */
 
-	if (!acpi_gbl_sci_handler_list) {
+	if (!acpi_gbl_sci_handler_list)
+	{
 		return (int_status);
 	}
 
@@ -83,7 +84,9 @@ u32 acpi_ev_sci_dispatch(void)
 	/* Invoke all host-installed SCI handlers */
 
 	sci_handler = acpi_gbl_sci_handler_list;
-	while (sci_handler) {
+
+	while (sci_handler)
+	{
 
 		/* Invoke the installed handler (at interrupt level) */
 
@@ -190,9 +193,9 @@ u32 acpi_ev_install_sci_handler(void)
 	ACPI_FUNCTION_TRACE(ev_install_sci_handler);
 
 	status =
-	    acpi_os_install_interrupt_handler((u32) acpi_gbl_FADT.sci_interrupt,
-					      acpi_ev_sci_xrupt_handler,
-					      acpi_gbl_gpe_xrupt_list_head);
+		acpi_os_install_interrupt_handler((u32) acpi_gbl_FADT.sci_interrupt,
+										  acpi_ev_sci_xrupt_handler,
+										  acpi_gbl_gpe_xrupt_list_head);
 	return_ACPI_STATUS(status);
 }
 
@@ -226,10 +229,11 @@ acpi_status acpi_ev_remove_all_sci_handlers(void)
 	/* Just let the OS remove the handler and disable the level */
 
 	status =
-	    acpi_os_remove_interrupt_handler((u32) acpi_gbl_FADT.sci_interrupt,
-					     acpi_ev_sci_xrupt_handler);
+		acpi_os_remove_interrupt_handler((u32) acpi_gbl_FADT.sci_interrupt,
+										 acpi_ev_sci_xrupt_handler);
 
-	if (!acpi_gbl_sci_handler_list) {
+	if (!acpi_gbl_sci_handler_list)
+	{
 		return (status);
 	}
 
@@ -237,7 +241,8 @@ acpi_status acpi_ev_remove_all_sci_handlers(void)
 
 	/* Free all host-installed SCI handlers */
 
-	while (acpi_gbl_sci_handler_list) {
+	while (acpi_gbl_sci_handler_list)
+	{
 		sci_handler = acpi_gbl_sci_handler_list;
 		acpi_gbl_sci_handler_list = sci_handler->next;
 		ACPI_FREE(sci_handler);

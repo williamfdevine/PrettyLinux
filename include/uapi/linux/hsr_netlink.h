@@ -17,7 +17,8 @@
  */
 
 /* attributes */
-enum {
+enum
+{
 	HSR_A_UNSPEC,
 	HSR_A_NODE_ADDR,
 	HSR_A_IFINDEX,
@@ -35,7 +36,8 @@ enum {
 
 
 /* commands */
-enum {
+enum
+{
 	HSR_C_UNSPEC,
 	HSR_C_RING_ERROR,
 	HSR_C_NODE_DOWN,

@@ -37,9 +37,10 @@
  */
 
 static int isight_decode(struct uvc_video_queue *queue, struct uvc_buffer *buf,
-		const __u8 *data, unsigned int len)
+						 const __u8 *data, unsigned int len)
 {
-	static const __u8 hdr[] = {
+	static const __u8 hdr[] =
+	{
 		0x11, 0x22, 0x33, 0x44,
 		0xde, 0xad, 0xbe, 0xef,
 		0xde, 0xad, 0xfa, 0xce
@@ -50,19 +51,24 @@ static int isight_decode(struct uvc_video_queue *queue, struct uvc_buffer *buf,
 	int is_header = 0;
 
 	if (buf == NULL)
+	{
 		return 0;
+	}
 
 	if ((len >= 14 && memcmp(&data[2], hdr, 12) == 0) ||
-	    (len >= 15 && memcmp(&data[3], hdr, 12) == 0)) {
+		(len >= 15 && memcmp(&data[3], hdr, 12) == 0))
+	{
 		uvc_trace(UVC_TRACE_FRAME, "iSight header found\n");
 		is_header = 1;
 	}
 
 	/* Synchronize to the input stream by waiting for a header packet. */
-	if (buf->state != UVC_BUF_STATE_ACTIVE) {
-		if (!is_header) {
+	if (buf->state != UVC_BUF_STATE_ACTIVE)
+	{
+		if (!is_header)
+		{
 			uvc_trace(UVC_TRACE_FRAME, "Dropping packet (out of "
-				  "sync).\n");
+					  "sync).\n");
 			return 0;
 		}
 
@@ -74,7 +80,8 @@ static int isight_decode(struct uvc_video_queue *queue, struct uvc_buffer *buf,
 	 * Empty buffers (bytesused == 0) don't trigger end of frame detection
 	 * as it doesn't make sense to return an empty buffer.
 	 */
-	if (is_header && buf->bytesused != 0) {
+	if (is_header && buf->bytesused != 0)
+	{
 		buf->state = UVC_BUF_STATE_DONE;
 		return -EAGAIN;
 	}
@@ -82,16 +89,18 @@ static int isight_decode(struct uvc_video_queue *queue, struct uvc_buffer *buf,
 	/* Copy the video data to the buffer. Skip header packets, as they
 	 * contain no data.
 	 */
-	if (!is_header) {
+	if (!is_header)
+	{
 		maxlen = buf->length - buf->bytesused;
 		mem = buf->mem + buf->bytesused;
 		nbytes = min(len, maxlen);
 		memcpy(mem, data, nbytes);
 		buf->bytesused += nbytes;
 
-		if (len > maxlen || buf->bytesused == buf->length) {
+		if (len > maxlen || buf->bytesused == buf->length)
+		{
 			uvc_trace(UVC_TRACE_FRAME, "Frame complete "
-				  "(overflow).\n");
+					  "(overflow).\n");
 			buf->state = UVC_BUF_STATE_DONE;
 		}
 	}
@@ -100,15 +109,17 @@ static int isight_decode(struct uvc_video_queue *queue, struct uvc_buffer *buf,
 }
 
 void uvc_video_decode_isight(struct urb *urb, struct uvc_streaming *stream,
-		struct uvc_buffer *buf)
+							 struct uvc_buffer *buf)
 {
 	int ret, i;
 
-	for (i = 0; i < urb->number_of_packets; ++i) {
-		if (urb->iso_frame_desc[i].status < 0) {
+	for (i = 0; i < urb->number_of_packets; ++i)
+	{
+		if (urb->iso_frame_desc[i].status < 0)
+		{
 			uvc_trace(UVC_TRACE_FRAME, "USB isochronous frame "
-				  "lost (%d).\n",
-				  urb->iso_frame_desc[i].status);
+					  "lost (%d).\n",
+					  urb->iso_frame_desc[i].status);
 		}
 
 		/* Decode the payload packet.
@@ -119,19 +130,23 @@ void uvc_video_decode_isight(struct urb *urb, struct uvc_streaming *stream,
 		 * closes the previous frame's buffer, the second pass
 		 * processes the data of the first payload of the new frame.
 		 */
-		do {
+		do
+		{
 			ret = isight_decode(&stream->queue, buf,
-					urb->transfer_buffer +
-					urb->iso_frame_desc[i].offset,
-					urb->iso_frame_desc[i].actual_length);
+								urb->transfer_buffer +
+								urb->iso_frame_desc[i].offset,
+								urb->iso_frame_desc[i].actual_length);
 
 			if (buf == NULL)
+			{
 				break;
+			}
 
 			if (buf->state == UVC_BUF_STATE_DONE ||
-			    buf->state == UVC_BUF_STATE_ERROR)
+				buf->state == UVC_BUF_STATE_ERROR)
 				buf = uvc_queue_next_buffer(&stream->queue,
-							buf);
-		} while (ret == -EAGAIN);
+											buf);
+		}
+		while (ret == -EAGAIN);
 	}
 }

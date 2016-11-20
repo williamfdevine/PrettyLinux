@@ -27,13 +27,14 @@
 #define ST_RUNNING		(1<<0)
 #define ST_OPENED		(1<<1)
 
-static const struct snd_pcm_hardware idma_hardware = {
+static const struct snd_pcm_hardware idma_hardware =
+{
 	.info = SNDRV_PCM_INFO_INTERLEAVED |
-		    SNDRV_PCM_INFO_BLOCK_TRANSFER |
-		    SNDRV_PCM_INFO_MMAP |
-		    SNDRV_PCM_INFO_MMAP_VALID |
-		    SNDRV_PCM_INFO_PAUSE |
-		    SNDRV_PCM_INFO_RESUME,
+	SNDRV_PCM_INFO_BLOCK_TRANSFER |
+	SNDRV_PCM_INFO_MMAP |
+	SNDRV_PCM_INFO_MMAP_VALID |
+	SNDRV_PCM_INFO_PAUSE |
+	SNDRV_PCM_INFO_RESUME,
 	.buffer_bytes_max = MAX_IDMA_BUFFER,
 	.period_bytes_min = 128,
 	.period_bytes_max = MAX_IDMA_PERIOD,
@@ -41,7 +42,8 @@ static const struct snd_pcm_hardware idma_hardware = {
 	.periods_max = 2,
 };
 
-struct idma_ctrl {
+struct idma_ctrl
+{
 	spinlock_t	lock;
 	int		state;
 	dma_addr_t	start;
@@ -53,7 +55,8 @@ struct idma_ctrl {
 	void		(*cb)(void *dt, int bytes_xfer);
 };
 
-static struct idma_info {
+static struct idma_info
+{
 	spinlock_t	lock;
 	void		 __iomem  *regs;
 	dma_addr_t	lp_tx_addr;
@@ -64,7 +67,7 @@ static int idma_irq;
 static void idma_getpos(dma_addr_t *src)
 {
 	*src = idma.lp_tx_addr +
-		(readl(idma.regs + I2STRNCNT) & 0xffffff) * 4;
+		   (readl(idma.regs + I2STRNCNT) & 0xffffff) * 4;
 }
 
 static int idma_enqueue(struct snd_pcm_substream *substream)
@@ -92,7 +95,7 @@ static int idma_enqueue(struct snd_pcm_substream *substream)
 	val = readl(idma.regs + I2SSIZE);
 	val &= ~(I2SSIZE_TRNMSK << I2SSIZE_SHIFT);
 	val |= (((runtime->dma_bytes >> 2) &
-			I2SSIZE_TRNMSK) << I2SSIZE_SHIFT);
+			 I2SSIZE_TRNMSK) << I2SSIZE_SHIFT);
 	writel(val, idma.regs + I2SSIZE);
 
 	val = readl(idma.regs + I2SAHB);
@@ -103,7 +106,7 @@ static int idma_enqueue(struct snd_pcm_substream *substream)
 }
 
 static void idma_setcallbk(struct snd_pcm_substream *substream,
-				void (*cb)(void *, int))
+						   void (*cb)(void *, int))
 {
 	struct idma_ctrl *prtd = substream->runtime->private_data;
 
@@ -118,16 +121,19 @@ static void idma_control(int op)
 
 	spin_lock(&idma.lock);
 
-	switch (op) {
-	case LPAM_DMA_START:
-		val |= (AHB_INTENLVL0 | AHB_DMAEN);
-		break;
-	case LPAM_DMA_STOP:
-		val &= ~(AHB_INTENLVL0 | AHB_DMAEN);
-		break;
-	default:
-		spin_unlock(&idma.lock);
-		return;
+	switch (op)
+	{
+		case LPAM_DMA_START:
+			val |= (AHB_INTENLVL0 | AHB_DMAEN);
+			break;
+
+		case LPAM_DMA_STOP:
+			val &= ~(AHB_INTENLVL0 | AHB_DMAEN);
+			break;
+
+		default:
+			spin_unlock(&idma.lock);
+			return;
 	}
 
 	writel(val, idma.regs + I2SAHB);
@@ -140,11 +146,13 @@ static void idma_done(void *id, int bytes_xfer)
 	struct idma_ctrl *prtd = substream->runtime->private_data;
 
 	if (prtd && (prtd->state & ST_RUNNING))
+	{
 		snd_pcm_period_elapsed(substream);
+	}
 }
 
 static int idma_hw_params(struct snd_pcm_substream *substream,
-				struct snd_pcm_hw_params *params)
+						  struct snd_pcm_hw_params *params)
 {
 	struct snd_pcm_runtime *runtime = substream->runtime;
 	struct idma_ctrl *prtd = substream->runtime->private_data;
@@ -196,24 +204,25 @@ static int idma_trigger(struct snd_pcm_substream *substream, int cmd)
 
 	spin_lock(&prtd->lock);
 
-	switch (cmd) {
-	case SNDRV_PCM_TRIGGER_RESUME:
-	case SNDRV_PCM_TRIGGER_START:
-	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
-		prtd->state |= ST_RUNNING;
-		idma_control(LPAM_DMA_START);
-		break;
+	switch (cmd)
+	{
+		case SNDRV_PCM_TRIGGER_RESUME:
+		case SNDRV_PCM_TRIGGER_START:
+		case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
+			prtd->state |= ST_RUNNING;
+			idma_control(LPAM_DMA_START);
+			break;
 
-	case SNDRV_PCM_TRIGGER_SUSPEND:
-	case SNDRV_PCM_TRIGGER_STOP:
-	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
-		prtd->state &= ~ST_RUNNING;
-		idma_control(LPAM_DMA_STOP);
-		break;
+		case SNDRV_PCM_TRIGGER_SUSPEND:
+		case SNDRV_PCM_TRIGGER_STOP:
+		case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
+			prtd->state &= ~ST_RUNNING;
+			idma_control(LPAM_DMA_STOP);
+			break;
 
-	default:
-		ret = -EINVAL;
-		break;
+		default:
+			ret = -EINVAL;
+			break;
 	}
 
 	spin_unlock(&prtd->lock);
@@ -222,7 +231,7 @@ static int idma_trigger(struct snd_pcm_substream *substream, int cmd)
 }
 
 static snd_pcm_uframes_t
-	idma_pointer(struct snd_pcm_substream *substream)
+idma_pointer(struct snd_pcm_substream *substream)
 {
 	struct snd_pcm_runtime *runtime = substream->runtime;
 	struct idma_ctrl *prtd = runtime->private_data;
@@ -240,7 +249,7 @@ static snd_pcm_uframes_t
 }
 
 static int idma_mmap(struct snd_pcm_substream *substream,
-	struct vm_area_struct *vma)
+					 struct vm_area_struct *vma)
 {
 	struct snd_pcm_runtime *runtime = substream->runtime;
 	unsigned long size, offset;
@@ -251,8 +260,8 @@ static int idma_mmap(struct snd_pcm_substream *substream,
 	size = vma->vm_end - vma->vm_start;
 	offset = vma->vm_pgoff << PAGE_SHIFT;
 	ret = io_remap_pfn_range(vma, vma->vm_start,
-			(runtime->dma_addr + offset) >> PAGE_SHIFT,
-			size, vma->vm_page_prot);
+							 (runtime->dma_addr + offset) >> PAGE_SHIFT,
+							 size, vma->vm_page_prot);
 
 	return ret;
 }
@@ -266,7 +275,8 @@ static irqreturn_t iis_irq(int irqno, void *dev_id)
 
 	val = (iisahb & AHB_LVL0INT) ? AHB_CLRLVL0INT : 0;
 
-	if (val) {
+	if (val)
+	{
 		iisahb |= val;
 		writel(iisahb, idma.regs + I2SAHB);
 
@@ -278,7 +288,9 @@ static irqreturn_t iis_irq(int irqno, void *dev_id)
 		writel(addr, idma.regs + I2SLVL0ADDR);
 
 		if (prtd->cb)
+		{
 			prtd->cb(prtd->token, prtd->period);
+		}
 	}
 
 	return IRQ_HANDLED;
@@ -293,11 +305,16 @@ static int idma_open(struct snd_pcm_substream *substream)
 	snd_soc_set_runtime_hwparams(substream, &idma_hardware);
 
 	prtd = kzalloc(sizeof(struct idma_ctrl), GFP_KERNEL);
+
 	if (prtd == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	ret = request_irq(idma_irq, iis_irq, 0, "i2s", prtd);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("fail to claim i2s irq , ret = %d\n", ret);
 		kfree(prtd);
 		return ret;
@@ -318,14 +335,17 @@ static int idma_close(struct snd_pcm_substream *substream)
 	free_irq(idma_irq, prtd);
 
 	if (!prtd)
+	{
 		pr_err("idma_close called with prtd == NULL\n");
+	}
 
 	kfree(prtd);
 
 	return 0;
 }
 
-static struct snd_pcm_ops idma_ops = {
+static struct snd_pcm_ops idma_ops =
+{
 	.open		= idma_open,
 	.close		= idma_close,
 	.ioctl		= snd_pcm_lib_ioctl,
@@ -343,12 +363,18 @@ static void idma_free(struct snd_pcm *pcm)
 	struct snd_dma_buffer *buf;
 
 	substream = pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream;
+
 	if (!substream)
+	{
 		return;
+	}
 
 	buf = &substream->dma_buffer;
+
 	if (!buf->area)
+	{
 		return;
+	}
 
 	iounmap((void __iomem *)buf->area);
 
@@ -368,7 +394,7 @@ static int preallocate_idma_buffer(struct snd_pcm *pcm, int stream)
 	buf->dev.type = SNDRV_DMA_TYPE_CONTINUOUS;
 	buf->addr = idma.lp_tx_addr;
 	buf->bytes = idma_hardware.buffer_bytes_max;
-	buf->area = (unsigned char * __force)ioremap(buf->addr, buf->bytes);
+	buf->area = (unsigned char *__force)ioremap(buf->addr, buf->bytes);
 
 	return 0;
 }
@@ -380,12 +406,16 @@ static int idma_new(struct snd_soc_pcm_runtime *rtd)
 	int ret;
 
 	ret = dma_coerce_mask_and_coherent(card->dev, DMA_BIT_MASK(32));
-	if (ret)
-		return ret;
 
-	if (pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (pcm->streams[SNDRV_PCM_STREAM_PLAYBACK].substream)
+	{
 		ret = preallocate_idma_buffer(pcm,
-				SNDRV_PCM_STREAM_PLAYBACK);
+									  SNDRV_PCM_STREAM_PLAYBACK);
 	}
 
 	return ret;
@@ -399,7 +429,8 @@ void idma_reg_addr_init(void __iomem *regs, dma_addr_t addr)
 }
 EXPORT_SYMBOL_GPL(idma_reg_addr_init);
 
-static struct snd_soc_platform_driver asoc_idma_platform = {
+static struct snd_soc_platform_driver asoc_idma_platform =
+{
 	.ops = &idma_ops,
 	.pcm_new = idma_new,
 	.pcm_free = idma_free,
@@ -408,13 +439,17 @@ static struct snd_soc_platform_driver asoc_idma_platform = {
 static int asoc_idma_platform_probe(struct platform_device *pdev)
 {
 	idma_irq = platform_get_irq(pdev, 0);
+
 	if (idma_irq < 0)
+	{
 		return idma_irq;
+	}
 
 	return devm_snd_soc_register_platform(&pdev->dev, &asoc_idma_platform);
 }
 
-static struct platform_driver asoc_idma_driver = {
+static struct platform_driver asoc_idma_driver =
+{
 	.driver = {
 		.name = "samsung-idma",
 	},

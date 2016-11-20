@@ -19,26 +19,26 @@
 
 #ifndef __ASSEMBLY__
 
-#include <linux/compiler.h>
+	#include <linux/compiler.h>
 
-/*
- * Force strict CPU ordering. And yes, this is required on UP too when we're
- * talking to devices.
- *
- * Fall back to compiler barriers if nothing better is provided.
- */
+	/*
+	* Force strict CPU ordering. And yes, this is required on UP too when we're
+	* talking to devices.
+	*
+	* Fall back to compiler barriers if nothing better is provided.
+	*/
 
-#ifndef mb
-#define mb()	barrier()
-#endif
+	#ifndef mb
+		#define mb()	barrier()
+	#endif
 
-#ifndef rmb
-#define rmb()	mb()
-#endif
+	#ifndef rmb
+		#define rmb()	mb()
+	#endif
 
-#ifndef wmb
-#define wmb()	mb()
-#endif
+	#ifndef wmb
+		#define wmb()	mb()
+	#endif
 
 #endif /* !__ASSEMBLY__ */
 #endif /* __TOOLS_LINUX_ASM_GENERIC_BARRIER_H */

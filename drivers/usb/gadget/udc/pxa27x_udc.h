@@ -107,7 +107,7 @@
 /* Host Port 2 field bits */
 #define UP2OCR_CPVEN	(1 << 0)	/* Charge Pump Vbus Enable */
 #define UP2OCR_CPVPE	(1 << 1)	/* Charge Pump Vbus Pulse Enable */
-					/* Transceiver enablers */
+/* Transceiver enablers */
 #define UP2OCR_DPPDE	(1 << 2)	/*   D+ Pull Down Enable */
 #define UP2OCR_DMPDE	(1 << 3)	/*   D- Pull Down Enable */
 #define UP2OCR_DPPUE	(1 << 4)	/*   D+ Pull Up Enable */
@@ -235,53 +235,53 @@
  * Endpoint definition helpers
  */
 #define USB_EP_DEF(addr, bname, dir, type, maxpkt, ctype, cdir) \
-{ .usb_ep = {	.name = bname, .ops = &pxa_ep_ops, .maxpacket = maxpkt, \
-		.caps = USB_EP_CAPS(ctype, cdir), }, \
-  .desc = {	.bEndpointAddress = addr | (dir ? USB_DIR_IN : 0), \
-		.bmAttributes = USB_ENDPOINT_XFER_ ## type, \
-		.wMaxPacketSize = maxpkt, }, \
-  .dev = &memory \
-}
+	{ .usb_ep = {	.name = bname, .ops = &pxa_ep_ops, .maxpacket = maxpkt, \
+					.caps = USB_EP_CAPS(ctype, cdir), }, \
+				.desc = {	.bEndpointAddress = addr | (dir ? USB_DIR_IN : 0), \
+							.bmAttributes = USB_ENDPOINT_XFER_ ## type, \
+							.wMaxPacketSize = maxpkt, }, \
+						.dev = &memory \
+	}
 #define USB_EP_BULK(addr, bname, dir, cdir) \
 	USB_EP_DEF(addr, bname, dir, BULK, BULK_FIFO_SIZE, \
-		USB_EP_CAPS_TYPE_BULK, cdir)
+			   USB_EP_CAPS_TYPE_BULK, cdir)
 #define USB_EP_ISO(addr, bname, dir, cdir) \
 	USB_EP_DEF(addr, bname, dir, ISOC, ISO_FIFO_SIZE, \
-		USB_EP_CAPS_TYPE_ISO, cdir)
+			   USB_EP_CAPS_TYPE_ISO, cdir)
 #define USB_EP_INT(addr, bname, dir, cdir) \
 	USB_EP_DEF(addr, bname, dir, INT, INT_FIFO_SIZE, \
-		USB_EP_CAPS_TYPE_INT, cdir)
+			   USB_EP_CAPS_TYPE_INT, cdir)
 #define USB_EP_IN_BULK(n)	USB_EP_BULK(n, "ep" #n "in-bulk", 1, \
-					USB_EP_CAPS_DIR_IN)
+										USB_EP_CAPS_DIR_IN)
 #define USB_EP_OUT_BULK(n)	USB_EP_BULK(n, "ep" #n "out-bulk", 0, \
-					USB_EP_CAPS_DIR_OUT)
+										USB_EP_CAPS_DIR_OUT)
 #define USB_EP_IN_ISO(n)	USB_EP_ISO(n,  "ep" #n "in-iso", 1, \
-					USB_EP_CAPS_DIR_IN)
+									   USB_EP_CAPS_DIR_IN)
 #define USB_EP_OUT_ISO(n)	USB_EP_ISO(n,  "ep" #n "out-iso", 0, \
-					USB_EP_CAPS_DIR_OUT)
+									   USB_EP_CAPS_DIR_OUT)
 #define USB_EP_IN_INT(n)	USB_EP_INT(n,  "ep" #n "in-int", 1, \
-					USB_EP_CAPS_DIR_IN)
+									   USB_EP_CAPS_DIR_IN)
 #define USB_EP_CTRL	USB_EP_DEF(0,  "ep0", 0, CONTROL, EP0_FIFO_SIZE, \
-				USB_EP_CAPS_TYPE_CONTROL, USB_EP_CAPS_DIR_ALL)
+							   USB_EP_CAPS_TYPE_CONTROL, USB_EP_CAPS_DIR_ALL)
 
 #define PXA_EP_DEF(_idx, _addr, dir, _type, maxpkt, _config, iface, altset) \
-{ \
-	.dev = &memory, \
-	.name = "ep" #_idx, \
-	.idx = _idx, .enabled = 0, \
-	.dir_in = dir, .addr = _addr, \
-	.config = _config, .interface = iface, .alternate = altset, \
-	.type = _type, .fifo_size = maxpkt, \
-}
+	{ \
+		.dev = &memory, \
+			   .name = "ep" #_idx, \
+					   .idx = _idx, .enabled = 0, \
+											   .dir_in = dir, .addr = _addr, \
+													   .config = _config, .interface = iface, .alternate = altset, \
+															   .type = _type, .fifo_size = maxpkt, \
+	}
 #define PXA_EP_BULK(_idx, addr, dir, config, iface, alt) \
-  PXA_EP_DEF(_idx, addr, dir, USB_ENDPOINT_XFER_BULK, BULK_FIFO_SIZE, \
-		config, iface, alt)
+	PXA_EP_DEF(_idx, addr, dir, USB_ENDPOINT_XFER_BULK, BULK_FIFO_SIZE, \
+			   config, iface, alt)
 #define PXA_EP_ISO(_idx, addr, dir, config, iface, alt) \
-  PXA_EP_DEF(_idx, addr, dir, USB_ENDPOINT_XFER_ISOC, ISO_FIFO_SIZE, \
-		config, iface, alt)
+	PXA_EP_DEF(_idx, addr, dir, USB_ENDPOINT_XFER_ISOC, ISO_FIFO_SIZE, \
+			   config, iface, alt)
 #define PXA_EP_INT(_idx, addr, dir, config, iface, alt) \
-  PXA_EP_DEF(_idx, addr, dir, USB_ENDPOINT_XFER_INT, INT_FIFO_SIZE, \
-		config, iface, alt)
+	PXA_EP_DEF(_idx, addr, dir, USB_ENDPOINT_XFER_INT, INT_FIFO_SIZE, \
+			   config, iface, alt)
 #define PXA_EP_IN_BULK(i, adr, c, f, a)		PXA_EP_BULK(i, adr, 1, c, f, a)
 #define PXA_EP_OUT_BULK(i, adr, c, f, a)	PXA_EP_BULK(i, adr, 0, c, f, a)
 #define PXA_EP_IN_ISO(i, adr, c, f, a)		PXA_EP_ISO(i, adr, 1, c, f, a)
@@ -291,7 +291,8 @@
 
 struct pxa27x_udc;
 
-struct stats {
+struct stats
+{
 	unsigned long in_ops;
 	unsigned long out_ops;
 	unsigned long in_bytes;
@@ -306,7 +307,8 @@ struct stats {
  * @dev: udc managing this endpoint
  * @pxa_ep: matching pxa_ep (cache of find_pxa_ep() call)
  */
-struct udc_usb_ep {
+struct udc_usb_ep
+{
 	struct usb_ep usb_ep;
 	struct usb_endpoint_descriptor desc;
 	struct pxa_udc *dev;
@@ -345,26 +347,27 @@ struct udc_usb_ep {
  * As we define the pxa_ep statically, we must guess all needed pxa_ep for all
  * gadget which may work with this udc driver.
  */
-struct pxa_ep {
+struct pxa_ep
+{
 	struct pxa_udc		*dev;
 
 	struct list_head	queue;
 	spinlock_t		lock;		/* Protects this structure */
-						/* (queues, stats) */
-	unsigned		enabled:1;
-	unsigned		in_handle_ep:1;
+	/* (queues, stats) */
+	unsigned		enabled: 1;
+	unsigned		in_handle_ep: 1;
 
-	unsigned		idx:5;
+	unsigned		idx: 5;
 	char			*name;
 
 	/*
 	 * Specific pxa endpoint data, needed for hardware initialization
 	 */
-	unsigned		dir_in:1;
-	unsigned		addr:4;
-	unsigned		config:2;
-	unsigned		interface:3;
-	unsigned		alternate:3;
+	unsigned		dir_in: 1;
+	unsigned		addr: 4;
+	unsigned		config: 2;
+	unsigned		interface: 3;
+	unsigned		alternate: 3;
 	unsigned		fifo_size;
 	unsigned		type;
 
@@ -382,14 +385,16 @@ struct pxa_ep {
  * @in_use: sanity check if request already queued on an pxa_ep
  * @queue: linked list of requests, linked on pxa_ep->queue
  */
-struct pxa27x_request {
+struct pxa27x_request
+{
 	struct usb_request			req;
 	struct udc_usb_ep			*udc_usb_ep;
-	unsigned				in_use:1;
+	unsigned				in_use: 1;
 	struct list_head			queue;
 };
 
-enum ep0_state {
+enum ep0_state
+{
 	WAIT_FOR_SETUP,
 	SETUP_STAGE,
 	IN_DATA_STAGE,
@@ -400,7 +405,8 @@ enum ep0_state {
 	WAIT_ACK_SET_CONF_INTERF
 };
 
-static char *ep0_state_name[] = {
+static char *ep0_state_name[] =
+{
 	"WAIT_FOR_SETUP", "SETUP_STAGE", "IN_DATA_STAGE", "OUT_DATA_STAGE",
 	"IN_STATUS_STAGE", "OUT_STATUS_STAGE", "STALL",
 	"WAIT_ACK_SET_CONF_INTERF"
@@ -412,7 +418,8 @@ static char *ep0_state_name[] = {
 #define ISO_FIFO_SIZE	256U
 #define INT_FIFO_SIZE	16U
 
-struct udc_stats {
+struct udc_stats
+{
 	unsigned long	irqs_reset;
 	unsigned long	irqs_suspend;
 	unsigned long	irqs_resume;
@@ -449,7 +456,8 @@ struct udc_stats {
  * @debugfs_queues: debugfs entry for "queues"
  * @debugfs_eps: debugfs entry for "epstate"
  */
-struct pxa_udc {
+struct pxa_udc
+{
 	void __iomem				*regs;
 	int					irq;
 	struct clk				*clk;
@@ -467,13 +475,13 @@ struct pxa_udc {
 	struct udc_usb_ep			udc_usb_ep[NR_USB_ENDPOINTS];
 	struct pxa_ep				pxa_ep[NR_PXA_ENDPOINTS];
 
-	unsigned				enabled:1;
-	unsigned				pullup_on:1;
-	unsigned				pullup_resume:1;
-	unsigned				vbus_sensed:1;
-	unsigned				config:2;
-	unsigned				last_interface:3;
-	unsigned				last_alternate:3;
+	unsigned				enabled: 1;
+	unsigned				pullup_on: 1;
+	unsigned				pullup_resume: 1;
+	unsigned				vbus_sensed: 1;
+	unsigned				config: 2;
+	unsigned				last_interface: 3;
+	unsigned				last_alternate: 3;
 
 #ifdef CONFIG_PM
 	unsigned				udccsr0;

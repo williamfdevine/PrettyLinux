@@ -20,7 +20,10 @@ extern u32 pmtmr_ioport;
 static inline u32 acpi_pm_read_early(void)
 {
 	if (!pmtmr_ioport)
+	{
 		return 0;
+	}
+
 	/* mask the output to 24 bits */
 	return acpi_pm_read_verified() & ACPI_PM_MASK;
 }

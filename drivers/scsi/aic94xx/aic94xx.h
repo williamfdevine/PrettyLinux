@@ -39,18 +39,18 @@
 
 #ifdef ASD_ENTER_EXIT
 #define ENTER  printk(KERN_NOTICE "%s: ENTER %s\n", ASD_DRIVER_NAME, \
-		__func__)
+					  __func__)
 #define EXIT   printk(KERN_NOTICE "%s: --EXIT %s\n", ASD_DRIVER_NAME, \
-		__func__)
+					  __func__)
 #else
 #define ENTER
 #define EXIT
 #endif
 
 #ifdef ASD_DEBUG
-#define ASD_DPRINTK asd_printk
+	#define ASD_DPRINTK asd_printk
 #else
-#define ASD_DPRINTK(fmt, ...)
+	#define ASD_DPRINTK(fmt, ...)
 #endif
 
 /* 2*ITNL timeout + 1 second */
@@ -62,8 +62,12 @@ extern struct kmem_cache *asd_ascb_cache;
 static inline void asd_stringify_sas_addr(char *p, const u8 *sas_addr)
 {
 	int i;
+
 	for (i = 0; i < SAS_ADDR_SIZE; i++, p += 2)
+	{
 		snprintf(p, 3, "%02X", sas_addr[i]);
+	}
+
 	*p = '\0';
 }
 

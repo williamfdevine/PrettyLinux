@@ -31,7 +31,8 @@
 #define MG_STORAGE_DEV_SKIP_RST	(1 << 2)
 
 /* private driver data */
-struct mg_drv_data {
+struct mg_drv_data
+{
 	/* disk resource */
 	u32 use_polling;
 

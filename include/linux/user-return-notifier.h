@@ -6,7 +6,8 @@
 #include <linux/list.h>
 #include <linux/sched.h>
 
-struct user_return_notifier {
+struct user_return_notifier
+{
 	void (*on_user_return)(struct user_return_notifier *urn);
 	struct hlist_node link;
 };
@@ -16,9 +17,10 @@ void user_return_notifier_register(struct user_return_notifier *urn);
 void user_return_notifier_unregister(struct user_return_notifier *urn);
 
 static inline void propagate_user_return_notify(struct task_struct *prev,
-						struct task_struct *next)
+		struct task_struct *next)
 {
-	if (test_tsk_thread_flag(prev, TIF_USER_RETURN_NOTIFY)) {
+	if (test_tsk_thread_flag(prev, TIF_USER_RETURN_NOTIFY))
+	{
 		clear_tsk_thread_flag(prev, TIF_USER_RETURN_NOTIFY);
 		set_tsk_thread_flag(next, TIF_USER_RETURN_NOTIFY);
 	}
@@ -36,7 +38,7 @@ static inline void clear_user_return_notifier(struct task_struct *p)
 struct user_return_notifier {};
 
 static inline void propagate_user_return_notify(struct task_struct *prev,
-						struct task_struct *next)
+		struct task_struct *next)
 {
 }
 

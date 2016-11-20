@@ -59,7 +59,8 @@
 
 #define ADXRS450_GET_ST(a)	((a >> 26) & 0x3)
 
-enum {
+enum
+{
 	ID_ADXRS450,
 	ID_ADXRS453,
 };
@@ -71,7 +72,8 @@ enum {
  * @tx:			transmit buffer
  * @rx:			receive buffer
  **/
-struct adxrs450_state {
+struct adxrs450_state
+{
 	struct spi_device	*us;
 	struct mutex		buf_lock;
 	__be32			tx ____cacheline_aligned;
@@ -87,13 +89,14 @@ struct adxrs450_state {
  * @val: somewhere to pass back the value read
  **/
 static int adxrs450_spi_read_reg_16(struct iio_dev *indio_dev,
-				    u8 reg_address,
-				    u16 *val)
+									u8 reg_address,
+									u16 *val)
 {
 	struct adxrs450_state *st = iio_priv(indio_dev);
 	u32 tx;
 	int ret;
-	struct spi_transfer xfers[] = {
+	struct spi_transfer xfers[] =
+	{
 		{
 			.tx_buf = &st->tx,
 			.bits_per_word = 8,
@@ -110,11 +113,15 @@ static int adxrs450_spi_read_reg_16(struct iio_dev *indio_dev,
 	tx = ADXRS450_READ_DATA | (reg_address << 17);
 
 	if (!(hweight32(tx) & 1))
+	{
 		tx |= ADXRS450_P;
+	}
 
 	st->tx = cpu_to_be32(tx);
 	ret = spi_sync_transfer(st->us, xfers, ARRAY_SIZE(xfers));
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&st->us->dev, "problem while reading 16 bit register 0x%02x\n",
 				reg_address);
 		goto error_ret;
@@ -135,8 +142,8 @@ error_ret:
  * @val: value to be written.
  **/
 static int adxrs450_spi_write_reg_16(struct iio_dev *indio_dev,
-				     u8 reg_address,
-				     u16 val)
+									 u8 reg_address,
+									 u16 val)
 {
 	struct adxrs450_state *st = iio_priv(indio_dev);
 	u32 tx;
@@ -146,13 +153,17 @@ static int adxrs450_spi_write_reg_16(struct iio_dev *indio_dev,
 	tx = ADXRS450_WRITE_DATA | (reg_address << 17) | (val << 1);
 
 	if (!(hweight32(tx) & 1))
+	{
 		tx |= ADXRS450_P;
+	}
 
 	st->tx = cpu_to_be32(tx);
 	ret = spi_write(st->us, &st->tx, sizeof(st->tx));
+
 	if (ret)
 		dev_err(&st->us->dev, "problem while writing 16 bit register 0x%02x\n",
-			reg_address);
+				reg_address);
+
 	usleep_range(100, 1000); /* enforce sequential transfer delay 0.1ms */
 	mutex_unlock(&st->buf_lock);
 	return ret;
@@ -167,7 +178,8 @@ static int adxrs450_spi_sensor_data(struct iio_dev *indio_dev, s16 *val)
 {
 	struct adxrs450_state *st = iio_priv(indio_dev);
 	int ret;
-	struct spi_transfer xfers[] = {
+	struct spi_transfer xfers[] =
+	{
 		{
 			.tx_buf = &st->tx,
 			.bits_per_word = 8,
@@ -184,7 +196,9 @@ static int adxrs450_spi_sensor_data(struct iio_dev *indio_dev, s16 *val)
 	st->tx = cpu_to_be32(ADXRS450_SENSOR_DATA);
 
 	ret = spi_sync_transfer(st->us, xfers, ARRAY_SIZE(xfers));
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&st->us->dev, "Problem while reading sensor data\n");
 		goto error_ret;
 	}
@@ -203,11 +217,12 @@ error_ret:
  * @chk: Whether to perform fault check
  **/
 static int adxrs450_spi_initial(struct adxrs450_state *st,
-		u32 *val, char chk)
+								u32 *val, char chk)
 {
 	int ret;
 	u32 tx;
-	struct spi_transfer xfers = {
+	struct spi_transfer xfers =
+	{
 		.tx_buf = &st->tx,
 		.rx_buf = &st->rx,
 		.bits_per_word = 8,
@@ -216,11 +231,17 @@ static int adxrs450_spi_initial(struct adxrs450_state *st,
 
 	mutex_lock(&st->buf_lock);
 	tx = ADXRS450_SENSOR_DATA;
+
 	if (chk)
+	{
 		tx |= (ADXRS450_CHK | ADXRS450_P);
+	}
+
 	st->tx = cpu_to_be32(tx);
 	ret = spi_sync_transfer(st->us, &xfers, 1);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&st->us->dev, "Problem while reading initializing data\n");
 		goto error_ret;
 	}
@@ -240,39 +261,65 @@ static int adxrs450_initial_setup(struct iio_dev *indio_dev)
 	int ret;
 	struct adxrs450_state *st = iio_priv(indio_dev);
 
-	msleep(ADXRS450_STARTUP_DELAY*2);
+	msleep(ADXRS450_STARTUP_DELAY * 2);
 	ret = adxrs450_spi_initial(st, &t, 1);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	if (t != 0x01)
+	{
 		dev_warn(&st->us->dev, "The initial power on response is not correct! Restart without reset?\n");
+	}
 
 	msleep(ADXRS450_STARTUP_DELAY);
 	ret = adxrs450_spi_initial(st, &t, 0);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	msleep(ADXRS450_STARTUP_DELAY);
 	ret = adxrs450_spi_initial(st, &t, 0);
+
 	if (ret)
+	{
 		return ret;
-	if (((t & 0xff) | 0x01) != 0xff || ADXRS450_GET_ST(t) != 2) {
+	}
+
+	if (((t & 0xff) | 0x01) != 0xff || ADXRS450_GET_ST(t) != 2)
+	{
 		dev_err(&st->us->dev, "The second response is not correct!\n");
 		return -EIO;
 
 	}
+
 	ret = adxrs450_spi_initial(st, &t, 0);
+
 	if (ret)
+	{
 		return ret;
-	if (((t & 0xff) | 0x01) != 0xff || ADXRS450_GET_ST(t) != 2) {
+	}
+
+	if (((t & 0xff) | 0x01) != 0xff || ADXRS450_GET_ST(t) != 2)
+	{
 		dev_err(&st->us->dev, "The third response is not correct!\n");
 		return -EIO;
 
 	}
+
 	ret = adxrs450_spi_read_reg_16(indio_dev, ADXRS450_FAULT1, &data);
+
 	if (ret)
+	{
 		return ret;
-	if (data & 0x0fff) {
+	}
+
+	if (data & 0x0fff)
+	{
 		dev_err(&st->us->dev, "The device is not in normal status!\n");
 		return -EINVAL;
 	}
@@ -281,94 +328,130 @@ static int adxrs450_initial_setup(struct iio_dev *indio_dev)
 }
 
 static int adxrs450_write_raw(struct iio_dev *indio_dev,
-			      struct iio_chan_spec const *chan,
-			      int val,
-			      int val2,
-			      long mask)
+							  struct iio_chan_spec const *chan,
+							  int val,
+							  int val2,
+							  long mask)
 {
 	int ret;
-	switch (mask) {
-	case IIO_CHAN_INFO_CALIBBIAS:
-		if (val < -0x400 || val >= 0x400)
-			return -EINVAL;
-		ret = adxrs450_spi_write_reg_16(indio_dev,
-						ADXRS450_DNC1, val);
-		break;
-	default:
-		ret = -EINVAL;
-		break;
+
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_CALIBBIAS:
+			if (val < -0x400 || val >= 0x400)
+			{
+				return -EINVAL;
+			}
+
+			ret = adxrs450_spi_write_reg_16(indio_dev,
+											ADXRS450_DNC1, val);
+			break;
+
+		default:
+			ret = -EINVAL;
+			break;
 	}
+
 	return ret;
 }
 
 static int adxrs450_read_raw(struct iio_dev *indio_dev,
-			     struct iio_chan_spec const *chan,
-			     int *val,
-			     int *val2,
-			     long mask)
+							 struct iio_chan_spec const *chan,
+							 int *val,
+							 int *val2,
+							 long mask)
 {
 	int ret;
 	s16 t;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		switch (chan->type) {
-		case IIO_ANGL_VEL:
-			ret = adxrs450_spi_sensor_data(indio_dev, &t);
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			switch (chan->type)
+			{
+				case IIO_ANGL_VEL:
+					ret = adxrs450_spi_sensor_data(indio_dev, &t);
+
+					if (ret)
+					{
+						break;
+					}
+
+					*val = t;
+					ret = IIO_VAL_INT;
+					break;
+
+				case IIO_TEMP:
+					ret = adxrs450_spi_read_reg_16(indio_dev,
+												   ADXRS450_TEMP1, &t);
+
+					if (ret)
+					{
+						break;
+					}
+
+					*val = (t >> 6) + 225;
+					ret = IIO_VAL_INT;
+					break;
+
+				default:
+					ret = -EINVAL;
+					break;
+			}
+
+			break;
+
+		case IIO_CHAN_INFO_SCALE:
+			switch (chan->type)
+			{
+				case IIO_ANGL_VEL:
+					*val = 0;
+					*val2 = 218166;
+					return IIO_VAL_INT_PLUS_NANO;
+
+				case IIO_TEMP:
+					*val = 200;
+					*val2 = 0;
+					return IIO_VAL_INT;
+
+				default:
+					return -EINVAL;
+			}
+
+		case IIO_CHAN_INFO_QUADRATURE_CORRECTION_RAW:
+			ret = adxrs450_spi_read_reg_16(indio_dev, ADXRS450_QUAD1, &t);
+
 			if (ret)
+			{
 				break;
+			}
+
 			*val = t;
 			ret = IIO_VAL_INT;
 			break;
-		case IIO_TEMP:
-			ret = adxrs450_spi_read_reg_16(indio_dev,
-						       ADXRS450_TEMP1, &t);
+
+		case IIO_CHAN_INFO_CALIBBIAS:
+			ret = adxrs450_spi_read_reg_16(indio_dev, ADXRS450_DNC1, &t);
+
 			if (ret)
+			{
 				break;
-			*val = (t >> 6) + 225;
+			}
+
+			*val = sign_extend32(t, 9);
 			ret = IIO_VAL_INT;
 			break;
+
 		default:
 			ret = -EINVAL;
 			break;
-		}
-		break;
-	case IIO_CHAN_INFO_SCALE:
-		switch (chan->type) {
-		case IIO_ANGL_VEL:
-			*val = 0;
-			*val2 = 218166;
-			return IIO_VAL_INT_PLUS_NANO;
-		case IIO_TEMP:
-			*val = 200;
-			*val2 = 0;
-			return IIO_VAL_INT;
-		default:
-			return -EINVAL;
-		}
-	case IIO_CHAN_INFO_QUADRATURE_CORRECTION_RAW:
-		ret = adxrs450_spi_read_reg_16(indio_dev, ADXRS450_QUAD1, &t);
-		if (ret)
-			break;
-		*val = t;
-		ret = IIO_VAL_INT;
-		break;
-	case IIO_CHAN_INFO_CALIBBIAS:
-		ret = adxrs450_spi_read_reg_16(indio_dev, ADXRS450_DNC1, &t);
-		if (ret)
-			break;
-		*val = sign_extend32(t, 9);
-		ret = IIO_VAL_INT;
-		break;
-	default:
-		ret = -EINVAL;
-		break;
 	}
 
 	return ret;
 }
 
-static const struct iio_chan_spec adxrs450_channels[2][2] = {
+static const struct iio_chan_spec adxrs450_channels[2][2] =
+{
 	[ID_ADXRS450] = {
 		{
 			.type = IIO_ANGL_VEL,
@@ -404,7 +487,8 @@ static const struct iio_chan_spec adxrs450_channels[2][2] = {
 	},
 };
 
-static const struct iio_info adxrs450_info = {
+static const struct iio_info adxrs450_info =
+{
 	.driver_module = THIS_MODULE,
 	.read_raw = &adxrs450_read_raw,
 	.write_raw = &adxrs450_write_raw,
@@ -418,8 +502,12 @@ static int adxrs450_probe(struct spi_device *spi)
 
 	/* setup the industrialio driver allocated elements */
 	indio_dev = devm_iio_device_alloc(&spi->dev, sizeof(*st));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
+
 	st = iio_priv(indio_dev);
 	st->us = spi;
 	mutex_init(&st->buf_lock);
@@ -435,25 +523,33 @@ static int adxrs450_probe(struct spi_device *spi)
 	indio_dev->name = spi->dev.driver->name;
 
 	ret = devm_iio_device_register(&spi->dev, indio_dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Get the device into a sane initial state */
 	ret = adxrs450_initial_setup(indio_dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return 0;
 }
 
-static const struct spi_device_id adxrs450_id[] = {
+static const struct spi_device_id adxrs450_id[] =
+{
 	{"adxrs450", ID_ADXRS450},
 	{"adxrs453", ID_ADXRS453},
 	{}
 };
 MODULE_DEVICE_TABLE(spi, adxrs450_id);
 
-static struct spi_driver adxrs450_driver = {
+static struct spi_driver adxrs450_driver =
+{
 	.driver = {
 		.name = "adxrs450",
 	},

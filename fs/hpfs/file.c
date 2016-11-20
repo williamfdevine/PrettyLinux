@@ -25,8 +25,12 @@ int hpfs_file_fsync(struct file *file, loff_t start, loff_t end, int datasync)
 	int ret;
 
 	ret = filemap_write_and_wait_range(file->f_mapping, start, end);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	return sync_blockdev(inode->i_sb->s_bdev);
 }
 
@@ -41,28 +45,41 @@ static secno hpfs_bmap(struct inode *inode, unsigned file_secno, unsigned *n_sec
 	unsigned n, disk_secno;
 	struct fnode *fnode;
 	struct buffer_head *bh;
-	if (BLOCKS(hpfs_i(inode)->mmu_private) <= file_secno) return 0;
+
+	if (BLOCKS(hpfs_i(inode)->mmu_private) <= file_secno) { return 0; }
+
 	n = file_secno - hpfs_inode->i_file_sec;
-	if (n < hpfs_inode->i_n_secs) {
+
+	if (n < hpfs_inode->i_n_secs)
+	{
 		*n_secs = hpfs_inode->i_n_secs - n;
 		return hpfs_inode->i_disk_sec + n;
 	}
-	if (!(fnode = hpfs_map_fnode(inode->i_sb, inode->i_ino, &bh))) return 0;
+
+	if (!(fnode = hpfs_map_fnode(inode->i_sb, inode->i_ino, &bh))) { return 0; }
+
 	disk_secno = hpfs_bplus_lookup(inode->i_sb, inode, &fnode->btree, file_secno, bh);
-	if (disk_secno == -1) return 0;
-	if (hpfs_chk_sectors(inode->i_sb, disk_secno, 1, "bmap")) return 0;
+
+	if (disk_secno == -1) { return 0; }
+
+	if (hpfs_chk_sectors(inode->i_sb, disk_secno, 1, "bmap")) { return 0; }
+
 	n = file_secno - hpfs_inode->i_file_sec;
-	if (n < hpfs_inode->i_n_secs) {
+
+	if (n < hpfs_inode->i_n_secs)
+	{
 		*n_secs = hpfs_inode->i_n_secs - n;
 		return hpfs_inode->i_disk_sec + n;
 	}
+
 	*n_secs = 1;
 	return disk_secno;
 }
 
 void hpfs_truncate(struct inode *i)
 {
-	if (IS_IMMUTABLE(i)) return /*-EPERM*/;
+	if (IS_IMMUTABLE(i)) { return /*-EPERM*/; }
+
 	hpfs_lock_assert(i->i_sb);
 
 	hpfs_i(i)->i_n_secs = 0;
@@ -80,36 +97,50 @@ static int hpfs_get_block(struct inode *inode, sector_t iblock, struct buffer_he
 	unsigned n_secs;
 	hpfs_lock(inode->i_sb);
 	s = hpfs_bmap(inode, iblock, &n_secs);
-	if (s) {
+
+	if (s)
+	{
 		if (bh_result->b_size >> 9 < n_secs)
+		{
 			n_secs = bh_result->b_size >> 9;
+		}
+
 		n_secs = hpfs_search_hotfix_map_for_range(inode->i_sb, s, n_secs);
-		if (unlikely(!n_secs)) {
+
+		if (unlikely(!n_secs))
+		{
 			s = hpfs_search_hotfix_map(inode->i_sb, s);
 			n_secs = 1;
 		}
+
 		map_bh(bh_result, inode->i_sb, s);
 		bh_result->b_size = n_secs << 9;
 		goto ret_0;
 	}
-	if (!create) goto ret_0;
-	if (iblock<<9 != hpfs_i(inode)->mmu_private) {
+
+	if (!create) { goto ret_0; }
+
+	if (iblock << 9 != hpfs_i(inode)->mmu_private)
+	{
 		BUG();
 		r = -EIO;
 		goto ret_r;
 	}
-	if ((s = hpfs_add_sector_to_btree(inode->i_sb, inode->i_ino, 1, inode->i_blocks - 1)) == -1) {
+
+	if ((s = hpfs_add_sector_to_btree(inode->i_sb, inode->i_ino, 1, inode->i_blocks - 1)) == -1)
+	{
 		hpfs_truncate_btree(inode->i_sb, inode->i_ino, 1, inode->i_blocks - 1);
 		r = -ENOSPC;
 		goto ret_r;
 	}
+
 	inode->i_blocks++;
 	hpfs_i(inode)->mmu_private += 512;
 	set_buffer_new(bh_result);
 	map_bh(bh_result, inode->i_sb, hpfs_search_hotfix_map(inode->i_sb, s));
-	ret_0:
+ret_0:
 	r = 0;
-	ret_r:
+ret_r:
 	hpfs_unlock(inode->i_sb);
 	return r;
 }
@@ -125,13 +156,13 @@ static int hpfs_writepage(struct page *page, struct writeback_control *wbc)
 }
 
 static int hpfs_readpages(struct file *file, struct address_space *mapping,
-			  struct list_head *pages, unsigned nr_pages)
+						  struct list_head *pages, unsigned nr_pages)
 {
 	return mpage_readpages(mapping, pages, nr_pages, hpfs_get_block);
 }
 
 static int hpfs_writepages(struct address_space *mapping,
-			   struct writeback_control *wbc)
+						   struct writeback_control *wbc)
 {
 	return mpage_writepages(mapping, wbc, hpfs_get_block);
 }
@@ -142,7 +173,8 @@ static void hpfs_write_failed(struct address_space *mapping, loff_t to)
 
 	hpfs_lock(inode->i_sb);
 
-	if (to > inode->i_size) {
+	if (to > inode->i_size)
+	{
 		truncate_pagecache(inode, inode->i_size);
 		hpfs_truncate(inode);
 	}
@@ -151,36 +183,45 @@ static void hpfs_write_failed(struct address_space *mapping, loff_t to)
 }
 
 static int hpfs_write_begin(struct file *file, struct address_space *mapping,
-			loff_t pos, unsigned len, unsigned flags,
-			struct page **pagep, void **fsdata)
+							loff_t pos, unsigned len, unsigned flags,
+							struct page **pagep, void **fsdata)
 {
 	int ret;
 
 	*pagep = NULL;
 	ret = cont_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
-				hpfs_get_block,
-				&hpfs_i(mapping->host)->mmu_private);
+						   hpfs_get_block,
+						   &hpfs_i(mapping->host)->mmu_private);
+
 	if (unlikely(ret))
+	{
 		hpfs_write_failed(mapping, pos + len);
+	}
 
 	return ret;
 }
 
 static int hpfs_write_end(struct file *file, struct address_space *mapping,
-			loff_t pos, unsigned len, unsigned copied,
-			struct page *pagep, void *fsdata)
+						  loff_t pos, unsigned len, unsigned copied,
+						  struct page *pagep, void *fsdata)
 {
 	struct inode *inode = mapping->host;
 	int err;
 	err = generic_write_end(file, mapping, pos, len, copied, pagep, fsdata);
+
 	if (err < len)
+	{
 		hpfs_write_failed(mapping, pos + len);
-	if (!(err < 0)) {
+	}
+
+	if (!(err < 0))
+	{
 		/* make sure we write it on close, if not earlier */
 		hpfs_lock(inode->i_sb);
 		hpfs_i(inode)->i_dirty = 1;
 		hpfs_unlock(inode->i_sb);
 	}
+
 	return err;
 }
 
@@ -194,7 +235,8 @@ static int hpfs_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo, 
 	return generic_block_fiemap(inode, fieinfo, start, len, hpfs_get_block);
 }
 
-const struct address_space_operations hpfs_aops = {
+const struct address_space_operations hpfs_aops =
+{
 	.readpage = hpfs_readpage,
 	.writepage = hpfs_writepage,
 	.readpages = hpfs_readpages,

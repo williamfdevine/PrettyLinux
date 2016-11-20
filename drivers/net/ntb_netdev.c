@@ -70,7 +70,8 @@ static unsigned int tx_start = 10;
 /* Number of descriptors still available before stop upper layer tx */
 static unsigned int tx_stop = 5;
 
-struct ntb_netdev {
+struct ntb_netdev
+{
 	struct list_head list;
 	struct pci_dev *pdev;
 	struct net_device *ndev;
@@ -89,30 +90,39 @@ static void ntb_netdev_event_handler(void *data, int link_is_up)
 	struct ntb_netdev *dev = netdev_priv(ndev);
 
 	netdev_dbg(ndev, "Event %x, Link %x\n", link_is_up,
-		   ntb_transport_link_query(dev->qp));
+			   ntb_transport_link_query(dev->qp));
 
-	if (link_is_up) {
+	if (link_is_up)
+	{
 		if (ntb_transport_link_query(dev->qp))
+		{
 			netif_carrier_on(ndev);
-	} else {
+		}
+	}
+	else
+	{
 		netif_carrier_off(ndev);
 	}
 }
 
 static void ntb_netdev_rx_handler(struct ntb_transport_qp *qp, void *qp_data,
-				  void *data, int len)
+								  void *data, int len)
 {
 	struct net_device *ndev = qp_data;
 	struct sk_buff *skb;
 	int rc;
 
 	skb = data;
+
 	if (!skb)
+	{
 		return;
+	}
 
 	netdev_dbg(ndev, "%s: %d byte payload received\n", __func__, len);
 
-	if (len < 0) {
+	if (len < 0)
+	{
 		ndev->stats.rx_errors++;
 		ndev->stats.rx_length_errors++;
 		goto enqueue_again;
@@ -122,16 +132,21 @@ static void ntb_netdev_rx_handler(struct ntb_transport_qp *qp, void *qp_data,
 	skb->protocol = eth_type_trans(skb, ndev);
 	skb->ip_summed = CHECKSUM_NONE;
 
-	if (netif_rx(skb) == NET_RX_DROP) {
+	if (netif_rx(skb) == NET_RX_DROP)
+	{
 		ndev->stats.rx_errors++;
 		ndev->stats.rx_dropped++;
-	} else {
+	}
+	else
+	{
 		ndev->stats.rx_packets++;
 		ndev->stats.rx_bytes += len;
 	}
 
 	skb = netdev_alloc_skb(ndev, ndev->mtu + ETH_HLEN);
-	if (!skb) {
+
+	if (!skb)
+	{
 		ndev->stats.rx_errors++;
 		ndev->stats.rx_frame_errors++;
 		return;
@@ -139,7 +154,9 @@ static void ntb_netdev_rx_handler(struct ntb_transport_qp *qp, void *qp_data,
 
 enqueue_again:
 	rc = ntb_transport_rx_enqueue(qp, skb, skb->data, ndev->mtu + ETH_HLEN);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_kfree_skb(skb);
 		ndev->stats.rx_errors++;
 		ndev->stats.rx_fifo_errors++;
@@ -147,7 +164,7 @@ enqueue_again:
 }
 
 static int __ntb_netdev_maybe_stop_tx(struct net_device *netdev,
-				      struct ntb_transport_qp *qp, int size)
+									  struct ntb_transport_qp *qp, int size)
 {
 	struct ntb_netdev *dev = netdev_priv(netdev);
 
@@ -157,7 +174,8 @@ static int __ntb_netdev_maybe_stop_tx(struct net_device *netdev,
 	 */
 	smp_mb();
 
-	if (likely(ntb_transport_tx_free_entry(qp) < size)) {
+	if (likely(ntb_transport_tx_free_entry(qp) < size))
+	{
 		mod_timer(&dev->tx_timer, jiffies + usecs_to_jiffies(tx_time));
 		return -EBUSY;
 	}
@@ -167,48 +185,60 @@ static int __ntb_netdev_maybe_stop_tx(struct net_device *netdev,
 }
 
 static int ntb_netdev_maybe_stop_tx(struct net_device *ndev,
-				    struct ntb_transport_qp *qp, int size)
+									struct ntb_transport_qp *qp, int size)
 {
 	if (netif_queue_stopped(ndev) ||
-	    (ntb_transport_tx_free_entry(qp) >= size))
+		(ntb_transport_tx_free_entry(qp) >= size))
+	{
 		return 0;
+	}
 
 	return __ntb_netdev_maybe_stop_tx(ndev, qp, size);
 }
 
 static void ntb_netdev_tx_handler(struct ntb_transport_qp *qp, void *qp_data,
-				  void *data, int len)
+								  void *data, int len)
 {
 	struct net_device *ndev = qp_data;
 	struct sk_buff *skb;
 	struct ntb_netdev *dev = netdev_priv(ndev);
 
 	skb = data;
-	if (!skb || !ndev)
-		return;
 
-	if (len > 0) {
+	if (!skb || !ndev)
+	{
+		return;
+	}
+
+	if (len > 0)
+	{
 		ndev->stats.tx_packets++;
 		ndev->stats.tx_bytes += skb->len;
-	} else {
+	}
+	else
+	{
 		ndev->stats.tx_errors++;
 		ndev->stats.tx_aborted_errors++;
 	}
 
 	dev_kfree_skb(skb);
 
-	if (ntb_transport_tx_free_entry(dev->qp) >= tx_start) {
+	if (ntb_transport_tx_free_entry(dev->qp) >= tx_start)
+	{
 		/* Make sure anybody stopping the queue after this sees the new
 		 * value of ntb_transport_tx_free_entry()
 		 */
 		smp_mb();
+
 		if (netif_queue_stopped(ndev))
+		{
 			netif_wake_queue(ndev);
+		}
 	}
 }
 
 static netdev_tx_t ntb_netdev_start_xmit(struct sk_buff *skb,
-					 struct net_device *ndev)
+		struct net_device *ndev)
 {
 	struct ntb_netdev *dev = netdev_priv(ndev);
 	int rc;
@@ -216,8 +246,11 @@ static netdev_tx_t ntb_netdev_start_xmit(struct sk_buff *skb,
 	ntb_netdev_maybe_stop_tx(ndev, dev->qp, tx_stop);
 
 	rc = ntb_transport_tx_enqueue(dev->qp, skb, skb->data, skb->len);
+
 	if (rc)
+	{
 		goto err;
+	}
 
 	/* check for next submit */
 	ntb_netdev_maybe_stop_tx(ndev, dev->qp, tx_stop);
@@ -235,15 +268,21 @@ static void ntb_netdev_tx_timer(unsigned long data)
 	struct net_device *ndev = (struct net_device *)data;
 	struct ntb_netdev *dev = netdev_priv(ndev);
 
-	if (ntb_transport_tx_free_entry(dev->qp) < tx_stop) {
+	if (ntb_transport_tx_free_entry(dev->qp) < tx_stop)
+	{
 		mod_timer(&dev->tx_timer, jiffies + msecs_to_jiffies(tx_time));
-	} else {
+	}
+	else
+	{
 		/* Make sure anybody stopping the queue after this sees the new
 		 * value of ntb_transport_tx_free_entry()
 		 */
 		smp_mb();
+
 		if (netif_queue_stopped(ndev))
+		{
 			netif_wake_queue(ndev);
+		}
 	}
 }
 
@@ -254,16 +293,21 @@ static int ntb_netdev_open(struct net_device *ndev)
 	int rc, i, len;
 
 	/* Add some empty rx bufs */
-	for (i = 0; i < NTB_RXQ_SIZE; i++) {
+	for (i = 0; i < NTB_RXQ_SIZE; i++)
+	{
 		skb = netdev_alloc_skb(ndev, ndev->mtu + ETH_HLEN);
-		if (!skb) {
+
+		if (!skb)
+		{
 			rc = -ENOMEM;
 			goto err;
 		}
 
 		rc = ntb_transport_rx_enqueue(dev->qp, skb, skb->data,
-					      ndev->mtu + ETH_HLEN);
-		if (rc) {
+									  ndev->mtu + ETH_HLEN);
+
+		if (rc)
+		{
 			dev_kfree_skb(skb);
 			goto err;
 		}
@@ -278,8 +322,12 @@ static int ntb_netdev_open(struct net_device *ndev)
 	return 0;
 
 err:
+
 	while ((skb = ntb_transport_rx_remove(dev->qp, &len)))
+	{
 		dev_kfree_skb(skb);
+	}
+
 	return rc;
 }
 
@@ -292,7 +340,9 @@ static int ntb_netdev_close(struct net_device *ndev)
 	ntb_transport_link_down(dev->qp);
 
 	while ((skb = ntb_transport_rx_remove(dev->qp, &len)))
+	{
 		dev_kfree_skb(skb);
+	}
 
 	del_timer_sync(&dev->tx_timer);
 
@@ -306,9 +356,12 @@ static int ntb_netdev_change_mtu(struct net_device *ndev, int new_mtu)
 	int len, rc;
 
 	if (new_mtu > ntb_transport_max_size(dev->qp) - ETH_HLEN)
+	{
 		return -EINVAL;
+	}
 
-	if (!netif_running(ndev)) {
+	if (!netif_running(ndev))
+	{
 		ndev->mtu = new_mtu;
 		return 0;
 	}
@@ -316,22 +369,30 @@ static int ntb_netdev_change_mtu(struct net_device *ndev, int new_mtu)
 	/* Bring down the link and dispose of posted rx entries */
 	ntb_transport_link_down(dev->qp);
 
-	if (ndev->mtu < new_mtu) {
+	if (ndev->mtu < new_mtu)
+	{
 		int i;
 
 		for (i = 0; (skb = ntb_transport_rx_remove(dev->qp, &len)); i++)
+		{
 			dev_kfree_skb(skb);
+		}
 
-		for (; i; i--) {
+		for (; i; i--)
+		{
 			skb = netdev_alloc_skb(ndev, new_mtu + ETH_HLEN);
-			if (!skb) {
+
+			if (!skb)
+			{
 				rc = -ENOMEM;
 				goto err;
 			}
 
 			rc = ntb_transport_rx_enqueue(dev->qp, skb, skb->data,
-						      new_mtu + ETH_HLEN);
-			if (rc) {
+										  new_mtu + ETH_HLEN);
+
+			if (rc)
+			{
 				dev_kfree_skb(skb);
 				goto err;
 			}
@@ -348,13 +409,16 @@ err:
 	ntb_transport_link_down(dev->qp);
 
 	while ((skb = ntb_transport_rx_remove(dev->qp, &len)))
+	{
 		dev_kfree_skb(skb);
+	}
 
 	netdev_err(ndev, "Error changing MTU, device inoperable\n");
 	return rc;
 }
 
-static const struct net_device_ops ntb_netdev_ops = {
+static const struct net_device_ops ntb_netdev_ops =
+{
 	.ndo_open = ntb_netdev_open,
 	.ndo_stop = ntb_netdev_close,
 	.ndo_start_xmit = ntb_netdev_start_xmit,
@@ -363,7 +427,7 @@ static const struct net_device_ops ntb_netdev_ops = {
 };
 
 static void ntb_get_drvinfo(struct net_device *ndev,
-			    struct ethtool_drvinfo *info)
+							struct ethtool_drvinfo *info)
 {
 	struct ntb_netdev *dev = netdev_priv(ndev);
 
@@ -388,13 +452,15 @@ static int ntb_get_settings(struct net_device *dev, struct ethtool_cmd *cmd)
 	return 0;
 }
 
-static const struct ethtool_ops ntb_ethtool_ops = {
+static const struct ethtool_ops ntb_ethtool_ops =
+{
 	.get_drvinfo = ntb_get_drvinfo,
 	.get_link = ethtool_op_get_link,
 	.get_settings = ntb_get_settings,
 };
 
-static const struct ntb_queue_handlers ntb_netdev_handlers = {
+static const struct ntb_queue_handlers ntb_netdev_handlers =
+{
 	.tx_handler = ntb_netdev_tx_handler,
 	.rx_handler = ntb_netdev_rx_handler,
 	.event_handler = ntb_netdev_event_handler,
@@ -410,12 +476,18 @@ static int ntb_netdev_probe(struct device *client_dev)
 
 	ntb = dev_ntb(client_dev->parent);
 	pdev = ntb->pdev;
+
 	if (!pdev)
+	{
 		return -ENODEV;
+	}
 
 	ndev = alloc_etherdev(sizeof(*dev));
+
 	if (!ndev)
+	{
 		return -ENOMEM;
+	}
 
 	dev = netdev_priv(ndev);
 	dev->ndev = ndev;
@@ -434,8 +506,10 @@ static int ntb_netdev_probe(struct device *client_dev)
 	ndev->ethtool_ops = &ntb_ethtool_ops;
 
 	dev->qp = ntb_transport_create_queue(ndev, client_dev,
-					     &ntb_netdev_handlers);
-	if (!dev->qp) {
+										 &ntb_netdev_handlers);
+
+	if (!dev->qp)
+	{
 		rc = -EIO;
 		goto err;
 	}
@@ -443,8 +517,11 @@ static int ntb_netdev_probe(struct device *client_dev)
 	ndev->mtu = ntb_transport_max_size(dev->qp) - ETH_HLEN;
 
 	rc = register_netdev(ndev);
+
 	if (rc)
+	{
 		goto err1;
+	}
 
 	list_add(&dev->list, &dev_list);
 	dev_info(&pdev->dev, "%s created\n", ndev->name);
@@ -468,14 +545,19 @@ static void ntb_netdev_remove(struct device *client_dev)
 	ntb = dev_ntb(client_dev->parent);
 	pdev = ntb->pdev;
 
-	list_for_each_entry(dev, &dev_list, list) {
-		if (dev->pdev == pdev) {
+	list_for_each_entry(dev, &dev_list, list)
+	{
+		if (dev->pdev == pdev)
+		{
 			found = true;
 			break;
 		}
 	}
+
 	if (!found)
+	{
 		return;
+	}
 
 	list_del(&dev->list);
 
@@ -486,7 +568,8 @@ static void ntb_netdev_remove(struct device *client_dev)
 	free_netdev(ndev);
 }
 
-static struct ntb_transport_client ntb_netdev_client = {
+static struct ntb_transport_client ntb_netdev_client =
+{
 	.driver.name = KBUILD_MODNAME,
 	.driver.owner = THIS_MODULE,
 	.probe = ntb_netdev_probe,
@@ -498,8 +581,12 @@ static int __init ntb_netdev_init_module(void)
 	int rc;
 
 	rc = ntb_transport_register_client_dev(KBUILD_MODNAME);
+
 	if (rc)
+	{
 		return rc;
+	}
+
 	return ntb_transport_register_client(&ntb_netdev_client);
 }
 module_init(ntb_netdev_init_module);

@@ -27,7 +27,7 @@ static void setup_event(struct event *e, u64 config, char *name)
 }
 
 static int do_count_loop(struct event *events, u64 instructions,
-			 u64 overhead, bool report)
+						 u64 overhead, bool report)
 {
 	s64 difference, expected;
 	double percentage;
@@ -46,7 +46,8 @@ static int do_count_loop(struct event *events, u64 instructions,
 	difference = events[0].result.value - expected;
 	percentage = (double)difference / events[0].result.value * 100;
 
-	if (report) {
+	if (report)
+	{
 		event_report(&events[0]);
 		event_report(&events[1]);
 
@@ -60,12 +61,17 @@ static int do_count_loop(struct event *events, u64 instructions,
 	event_reset(&events[1]);
 
 	if (difference < 0)
+	{
 		difference = -difference;
+	}
 
 	/* Tolerate a difference below 0.0001 % */
 	difference *= 10000 * 100;
+
 	if (difference / events[0].result.value)
+	{
 		return -1;
+	}
 
 	return 0;
 }
@@ -79,10 +85,13 @@ static u64 determine_overhead(struct event *events)
 	do_count_loop(events, 0, 0, false);
 	overhead = events[0].result.value;
 
-	for (i = 0; i < 100; i++) {
+	for (i = 0; i < 100; i++)
+	{
 		do_count_loop(events, 0, 0, false);
 		current = events[0].result.value;
-		if (current < overhead) {
+
+		if (current < overhead)
+		{
 			printf("Replacing overhead %llu with %llu\n", overhead, current);
 			overhead = current;
 		}
@@ -99,12 +108,14 @@ static int test_body(void)
 	setup_event(&events[0], PERF_COUNT_HW_INSTRUCTIONS, "instructions");
 	setup_event(&events[1], PERF_COUNT_HW_CPU_CYCLES, "cycles");
 
-	if (event_open(&events[0])) {
+	if (event_open(&events[0]))
+	{
 		perror("perf_event_open");
 		return -1;
 	}
 
-	if (event_open_with_group(&events[1], events[0].fd)) {
+	if (event_open_with_group(&events[1], events[0].fd))
+	{
 		perror("perf_event_open");
 		return -1;
 	}

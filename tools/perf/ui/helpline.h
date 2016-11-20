@@ -6,7 +6,8 @@
 
 #include "../util/cache.h"
 
-struct ui_helpline {
+struct ui_helpline
+{
 	void (*pop)(void);
 	void (*push)(const char *msg);
 	int  (*show)(const char *fmt, va_list ap);

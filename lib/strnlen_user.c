@@ -6,9 +6,9 @@
 
 /* Set bits in the first 'n' bytes when loaded from memory */
 #ifdef __LITTLE_ENDIAN
-#  define aligned_byte_mask(n) ((1ul << 8*(n))-1)
+	#define aligned_byte_mask(n) ((1ul << 8*(n))-1)
 #else
-#  define aligned_byte_mask(n) (~0xfful << (BITS_PER_LONG - 8 - 8*(n)))
+	#define aligned_byte_mask(n) (~0xfful << (BITS_PER_LONG - 8 - 8*(n)))
 #endif
 
 /*
@@ -35,7 +35,9 @@ static inline long do_strnlen_user(const char __user *src, unsigned long count, 
 	 * we only have one limit we need to check in the loop
 	 */
 	if (max > count)
+	{
 		max = count;
+	}
 
 	/*
 	 * Do everything aligned. But that means that we
@@ -48,20 +50,29 @@ static inline long do_strnlen_user(const char __user *src, unsigned long count, 
 	unsafe_get_user(c, (unsigned long __user *)src, efault);
 	c |= aligned_byte_mask(align);
 
-	for (;;) {
+	for (;;)
+	{
 		unsigned long data;
-		if (has_zero(c, &data, &constants)) {
+
+		if (has_zero(c, &data, &constants))
+		{
 			data = prep_zero_mask(c, data, &constants);
 			data = create_zero_mask(data);
 			return res + find_zero(data) + 1 - align;
 		}
+
 		res += sizeof(unsigned long);
+
 		/* We already handled 'unsigned long' bytes. Did we do it all ? */
 		if (unlikely(max <= sizeof(unsigned long)))
+		{
 			break;
+		}
+
 		max -= sizeof(unsigned long);
-		unsafe_get_user(c, (unsigned long __user *)(src+res), efault);
+		unsafe_get_user(c, (unsigned long __user *)(src + res), efault);
 	}
+
 	res -= align;
 
 	/*
@@ -69,7 +80,9 @@ static inline long do_strnlen_user(const char __user *src, unsigned long count, 
 	 * too? If so, return the marker for "too long".
 	 */
 	if (res >= count)
-		return count+1;
+	{
+		return count + 1;
+	}
 
 	/*
 	 * Nope: we hit the address space limit, and we still had more
@@ -105,11 +118,15 @@ long strnlen_user(const char __user *str, long count)
 	unsigned long max_addr, src_addr;
 
 	if (unlikely(count <= 0))
+	{
 		return 0;
+	}
 
 	max_addr = user_addr_max();
 	src_addr = (unsigned long)str;
-	if (likely(src_addr < max_addr)) {
+
+	if (likely(src_addr < max_addr))
+	{
 		unsigned long max = max_addr - src_addr;
 		long retval;
 
@@ -118,6 +135,7 @@ long strnlen_user(const char __user *str, long count)
 		user_access_end();
 		return retval;
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL(strnlen_user);
@@ -143,7 +161,9 @@ long strlen_user(const char __user *str)
 
 	max_addr = user_addr_max();
 	src_addr = (unsigned long)str;
-	if (likely(src_addr < max_addr)) {
+
+	if (likely(src_addr < max_addr))
+	{
 		unsigned long max = max_addr - src_addr;
 		long retval;
 
@@ -152,6 +172,7 @@ long strlen_user(const char __user *str)
 		user_access_end();
 		return retval;
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL(strlen_user);

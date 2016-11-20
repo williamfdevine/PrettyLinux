@@ -20,12 +20,14 @@
 #include <linux/property.h>
 #include <linux/slab.h>
 
-struct adc_keys_button {
+struct adc_keys_button
+{
 	u32 voltage;
 	u32 keycode;
 };
 
-struct adc_keys_state {
+struct adc_keys_state
+{
 	struct iio_channel *channel;
 	u32 num_keys;
 	u32 last_key;
@@ -41,13 +43,20 @@ static void adc_keys_poll(struct input_polled_dev *dev)
 	int keycode = 0;
 
 	ret = iio_read_channel_processed(st->channel, &value);
-	if (unlikely(ret < 0)) {
+
+	if (unlikely(ret < 0))
+	{
 		/* Forcibly release key if any was pressed */
 		value = st->keyup_voltage;
-	} else {
-		for (i = 0; i < st->num_keys; i++) {
+	}
+	else
+	{
+		for (i = 0; i < st->num_keys; i++)
+		{
 			diff = abs(st->map[i].voltage - value);
-			if (diff < closest) {
+
+			if (diff < closest)
+			{
 				closest = diff;
 				keycode = st->map[i].keycode;
 			}
@@ -55,13 +64,19 @@ static void adc_keys_poll(struct input_polled_dev *dev)
 	}
 
 	if (abs(st->keyup_voltage - value) < closest)
+	{
 		keycode = 0;
+	}
 
 	if (st->last_key && st->last_key != keycode)
+	{
 		input_report_key(dev->input, st->last_key, 0);
+	}
 
 	if (keycode)
+	{
 		input_report_key(dev->input, keycode, 1);
+	}
 
 	input_sync(dev->input);
 	st->last_key = keycode;
@@ -74,27 +89,36 @@ static int adc_keys_load_keymap(struct device *dev, struct adc_keys_state *st)
 	int i;
 
 	st->num_keys = device_get_child_node_count(dev);
-	if (st->num_keys == 0) {
+
+	if (st->num_keys == 0)
+	{
 		dev_err(dev, "keymap is missing\n");
 		return -EINVAL;
 	}
 
 	map = devm_kmalloc_array(dev, st->num_keys, sizeof(*map), GFP_KERNEL);
+
 	if (!map)
+	{
 		return -ENOMEM;
+	}
 
 	i = 0;
-	device_for_each_child_node(dev, child) {
+	device_for_each_child_node(dev, child)
+	{
 		if (fwnode_property_read_u32(child, "press-threshold-microvolt",
-					     &map[i].voltage)) {
+									 &map[i].voltage))
+		{
 			dev_err(dev, "Key with invalid or missing voltage\n");
 			fwnode_handle_put(child);
 			return -EINVAL;
 		}
+
 		map[i].voltage /= 1000;
 
 		if (fwnode_property_read_u32(child, "linux,code",
-					     &map[i].keycode)) {
+									 &map[i].keycode))
+		{
 			dev_err(dev, "Key with invalid or missing linux,code\n");
 			fwnode_handle_put(child);
 			return -EINVAL;
@@ -118,46 +142,67 @@ static int adc_keys_probe(struct platform_device *pdev)
 	int error;
 
 	st = devm_kzalloc(dev, sizeof(*st), GFP_KERNEL);
+
 	if (!st)
+	{
 		return -ENOMEM;
+	}
 
 	st->channel = devm_iio_channel_get(dev, "buttons");
+
 	if (IS_ERR(st->channel))
+	{
 		return PTR_ERR(st->channel);
+	}
 
 	if (!st->channel->indio_dev)
+	{
 		return -ENXIO;
+	}
 
 	error = iio_get_channel_type(st->channel, &type);
-	if (error < 0)
-		return error;
 
-	if (type != IIO_VOLTAGE) {
+	if (error < 0)
+	{
+		return error;
+	}
+
+	if (type != IIO_VOLTAGE)
+	{
 		dev_err(dev, "Incompatible channel type %d\n", type);
 		return -EINVAL;
 	}
 
 	if (device_property_read_u32(dev, "keyup-threshold-microvolt",
-				     &st->keyup_voltage)) {
+								 &st->keyup_voltage))
+	{
 		dev_err(dev, "Invalid or missing keyup voltage\n");
 		return -EINVAL;
 	}
+
 	st->keyup_voltage /= 1000;
 
 	error = adc_keys_load_keymap(dev, st);
+
 	if (error)
+	{
 		return error;
+	}
 
 	platform_set_drvdata(pdev, st);
 
 	poll_dev = devm_input_allocate_polled_device(dev);
-	if (!poll_dev) {
+
+	if (!poll_dev)
+	{
 		dev_err(dev, "failed to allocate input device\n");
 		return -ENOMEM;
 	}
 
 	if (!device_property_read_u32(dev, "poll-interval", &value))
+	{
 		poll_dev->poll_interval = value;
+	}
 
 	poll_dev->poll = adc_keys_poll;
 	poll_dev->private = st;
@@ -173,14 +218,21 @@ static int adc_keys_probe(struct platform_device *pdev)
 	input->id.version = 0x0100;
 
 	__set_bit(EV_KEY, input->evbit);
+
 	for (i = 0; i < st->num_keys; i++)
+	{
 		__set_bit(st->map[i].keycode, input->keybit);
+	}
 
 	if (device_property_read_bool(dev, "autorepeat"))
+	{
 		__set_bit(EV_REP, input->evbit);
+	}
 
 	error = input_register_polled_device(poll_dev);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(dev, "Unable to register input device: %d\n", error);
 		return error;
 	}
@@ -189,14 +241,16 @@ static int adc_keys_probe(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id adc_keys_of_match[] = {
+static const struct of_device_id adc_keys_of_match[] =
+{
 	{ .compatible = "adc-keys", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, adc_keys_of_match);
 #endif
 
-static struct platform_driver __refdata adc_keys_driver = {
+static struct platform_driver __refdata adc_keys_driver =
+{
 	.driver = {
 		.name = "adc_keys",
 		.of_match_table = of_match_ptr(adc_keys_of_match),

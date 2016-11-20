@@ -24,7 +24,8 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
-struct thread_data {
+struct thread_data
+{
 	pthread_t worker;
 	unsigned int nwoken;
 	struct timeval runtime;
@@ -44,7 +45,8 @@ static struct stats waketime_stats, wakeup_stats;
 static unsigned int ncpus, threads_starting;
 static int futex_flag = 0;
 
-static const struct option options[] = {
+static const struct option options[] =
+{
 	OPT_UINTEGER('t', "threads", &nblocked_threads, "Specify amount of threads"),
 	OPT_UINTEGER('w', "nwakers", &nwaking_threads, "Specify amount of waking threads"),
 	OPT_BOOLEAN( 's', "silent",  &silent,   "Silent mode: do not display data/details"),
@@ -52,7 +54,8 @@ static const struct option options[] = {
 	OPT_END()
 };
 
-static const char * const bench_futex_wake_parallel_usage[] = {
+static const char *const bench_futex_wake_parallel_usage[] =
+{
 	"perf bench futex wake-parallel <options>",
 	NULL
 };
@@ -65,9 +68,10 @@ static void *waking_workerfn(void *arg)
 	gettimeofday(&start, NULL);
 
 	waker->nwoken = futex_wake(&futex, nwakes, futex_flag);
+
 	if (waker->nwoken != nwakes)
 		warnx("couldn't wakeup all tasks (%d/%d)",
-		      waker->nwoken, nwakes);
+			  waker->nwoken, nwakes);
 
 	gettimeofday(&end, NULL);
 	timersub(&end, &start, &waker->runtime);
@@ -83,34 +87,46 @@ static void wakeup_threads(struct thread_data *td, pthread_attr_t thread_attr)
 	pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_JOINABLE);
 
 	/* create and block all threads */
-	for (i = 0; i < nwaking_threads; i++) {
+	for (i = 0; i < nwaking_threads; i++)
+	{
 		/*
 		 * Thread creation order will impact per-thread latency
 		 * as it will affect the order to acquire the hb spinlock.
 		 * For now let the scheduler decide.
 		 */
 		if (pthread_create(&td[i].worker, &thread_attr,
-				   waking_workerfn, (void *)&td[i]))
+						   waking_workerfn, (void *)&td[i]))
+		{
 			err(EXIT_FAILURE, "pthread_create");
+		}
 	}
 
 	for (i = 0; i < nwaking_threads; i++)
 		if (pthread_join(td[i].worker, NULL))
+		{
 			err(EXIT_FAILURE, "pthread_join");
+		}
 }
 
 static void *blocked_workerfn(void *arg __maybe_unused)
 {
 	pthread_mutex_lock(&thread_lock);
 	threads_starting--;
+
 	if (!threads_starting)
+	{
 		pthread_cond_signal(&thread_parent);
+	}
+
 	pthread_cond_wait(&thread_worker, &thread_lock);
 	pthread_mutex_unlock(&thread_lock);
 
-	while (1) { /* handle spurious wakeups */
+	while (1)   /* handle spurious wakeups */
+	{
 		if (futex_wait(&futex, 0, NULL, futex_flag) != EINTR)
+		{
 			break;
+		}
 	}
 
 	pthread_exit(NULL);
@@ -125,15 +141,20 @@ static void block_threads(pthread_t *w, pthread_attr_t thread_attr)
 	threads_starting = nblocked_threads;
 
 	/* create and block all threads */
-	for (i = 0; i < nblocked_threads; i++) {
+	for (i = 0; i < nblocked_threads; i++)
+	{
 		CPU_ZERO(&cpu);
 		CPU_SET(i % ncpus, &cpu);
 
 		if (pthread_attr_setaffinity_np(&thread_attr, sizeof(cpu_set_t), &cpu))
+		{
 			err(EXIT_FAILURE, "pthread_attr_setaffinity_np");
+		}
 
 		if (pthread_create(&w[i], &thread_attr, blocked_workerfn, NULL))
+		{
 			err(EXIT_FAILURE, "pthread_create");
+		}
 	}
 }
 
@@ -146,7 +167,8 @@ static void print_run(struct thread_data *waking_worker, unsigned int run_num)
 	init_stats(&__wakeup_stats);
 	init_stats(&__waketime_stats);
 
-	for (i = 0; i < nwaking_threads; i++) {
+	for (i = 0; i < nwaking_threads; i++)
+	{
 		update_stats(&__waketime_stats, waking_worker[i].runtime.tv_usec);
 		update_stats(&__wakeup_stats, waking_worker[i].nwoken);
 	}
@@ -156,9 +178,9 @@ static void print_run(struct thread_data *waking_worker, unsigned int run_num)
 	wakeup_avg = avg_stats(&__wakeup_stats);
 
 	printf("[Run %d]: Avg per-thread latency (waking %d/%d threads) "
-	       "in %.4f ms (+-%.2f%%)\n", run_num + 1, wakeup_avg,
-	       nblocked_threads, waketime_avg / USEC_PER_MSEC,
-	       rel_stddev_stats(waketime_stddev, waketime_avg));
+		   "in %.4f ms (+-%.2f%%)\n", run_num + 1, wakeup_avg,
+		   nblocked_threads, waketime_avg / USEC_PER_MSEC,
+		   rel_stddev_stats(waketime_stddev, waketime_avg));
 }
 
 static void print_summary(void)
@@ -171,10 +193,10 @@ static void print_summary(void)
 	wakeup_avg = avg_stats(&wakeup_stats);
 
 	printf("Avg per-thread latency (waking %d/%d threads) in %.4f ms (+-%.2f%%)\n",
-	       wakeup_avg,
-	       nblocked_threads,
-	       waketime_avg / USEC_PER_MSEC,
-	       rel_stddev_stats(waketime_stddev, waketime_avg));
+		   wakeup_avg,
+		   nblocked_threads,
+		   waketime_avg / USEC_PER_MSEC,
+		   rel_stddev_stats(waketime_stddev, waketime_avg));
 }
 
 
@@ -182,7 +204,8 @@ static void do_run_stats(struct thread_data *waking_worker)
 {
 	unsigned int i;
 
-	for (i = 0; i < nwaking_threads; i++) {
+	for (i = 0; i < nwaking_threads; i++)
+	{
 		update_stats(&waketime_stats, waking_worker[i].runtime.tv_usec);
 		update_stats(&wakeup_stats, waking_worker[i].nwoken);
 	}
@@ -190,14 +213,14 @@ static void do_run_stats(struct thread_data *waking_worker)
 }
 
 static void toggle_done(int sig __maybe_unused,
-			siginfo_t *info __maybe_unused,
-			void *uc __maybe_unused)
+						siginfo_t *info __maybe_unused,
+						void *uc __maybe_unused)
 {
 	done = true;
 }
 
 int bench_futex_wake_parallel(int argc, const char **argv,
-			      const char *prefix __maybe_unused)
+							  const char *prefix __maybe_unused)
 {
 	int ret = 0;
 	unsigned int i, j;
@@ -206,8 +229,10 @@ int bench_futex_wake_parallel(int argc, const char **argv,
 	struct thread_data *waking_worker;
 
 	argc = parse_options(argc, argv, options,
-			     bench_futex_wake_parallel_usage, 0);
-	if (argc) {
+						 bench_futex_wake_parallel_usage, 0);
+
+	if (argc)
+	{
 		usage_with_options(bench_futex_wake_parallel_usage, options);
 		exit(EXIT_FAILURE);
 	}
@@ -217,32 +242,45 @@ int bench_futex_wake_parallel(int argc, const char **argv,
 	sigaction(SIGINT, &act, NULL);
 
 	ncpus = sysconf(_SC_NPROCESSORS_ONLN);
+
 	if (!nblocked_threads)
+	{
 		nblocked_threads = ncpus;
+	}
 
 	/* some sanity checks */
 	if (nwaking_threads > nblocked_threads || !nwaking_threads)
+	{
 		nwaking_threads = nblocked_threads;
+	}
 
 	if (nblocked_threads % nwaking_threads)
+	{
 		errx(EXIT_FAILURE, "Must be perfectly divisible");
+	}
+
 	/*
 	 * Each thread will wakeup nwakes tasks in
 	 * a single futex_wait call.
 	 */
-	nwakes = nblocked_threads/nwaking_threads;
+	nwakes = nblocked_threads / nwaking_threads;
 
 	blocked_worker = calloc(nblocked_threads, sizeof(*blocked_worker));
+
 	if (!blocked_worker)
+	{
 		err(EXIT_FAILURE, "calloc");
+	}
 
 	if (!fshared)
+	{
 		futex_flag = FUTEX_PRIVATE_FLAG;
+	}
 
 	printf("Run summary [PID %d]: blocking on %d threads (at [%s] "
-	       "futex %p), %d threads waking up %d at a time.\n\n",
-	       getpid(), nblocked_threads, fshared ? "shared":"private",
-	       &futex, nwaking_threads, nwakes);
+		   "futex %p), %d threads waking up %d at a time.\n\n",
+		   getpid(), nblocked_threads, fshared ? "shared" : "private",
+		   &futex, nwaking_threads, nwakes);
 
 	init_stats(&wakeup_stats);
 	init_stats(&waketime_stats);
@@ -252,18 +290,26 @@ int bench_futex_wake_parallel(int argc, const char **argv,
 	pthread_cond_init(&thread_parent, NULL);
 	pthread_cond_init(&thread_worker, NULL);
 
-	for (j = 0; j < bench_repeat && !done; j++) {
+	for (j = 0; j < bench_repeat && !done; j++)
+	{
 		waking_worker = calloc(nwaking_threads, sizeof(*waking_worker));
+
 		if (!waking_worker)
+		{
 			err(EXIT_FAILURE, "calloc");
+		}
 
 		/* create, launch & block all threads */
 		block_threads(blocked_worker, thread_attr);
 
 		/* make sure all threads are already blocked */
 		pthread_mutex_lock(&thread_lock);
+
 		while (threads_starting)
+		{
 			pthread_cond_wait(&thread_parent, &thread_lock);
+		}
+
 		pthread_cond_broadcast(&thread_worker);
 		pthread_mutex_unlock(&thread_lock);
 
@@ -272,15 +318,22 @@ int bench_futex_wake_parallel(int argc, const char **argv,
 		/* Ok, all threads are patiently blocked, start waking folks up */
 		wakeup_threads(waking_worker, thread_attr);
 
-		for (i = 0; i < nblocked_threads; i++) {
+		for (i = 0; i < nblocked_threads; i++)
+		{
 			ret = pthread_join(blocked_worker[i], NULL);
+
 			if (ret)
+			{
 				err(EXIT_FAILURE, "pthread_join");
+			}
 		}
 
 		do_run_stats(waking_worker);
+
 		if (!silent)
+		{
 			print_run(waking_worker, j);
+		}
 
 		free(waking_worker);
 	}

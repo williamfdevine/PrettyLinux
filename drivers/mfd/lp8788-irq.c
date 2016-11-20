@@ -36,7 +36,8 @@
  * @domain           : IRQ domain for handling nested interrupt
  * @enabled          : status of enabled interrupt
  */
-struct lp8788_irq_data {
+struct lp8788_irq_data
+{
 	struct lp8788 *lp;
 	struct mutex irq_lock;
 	struct irq_domain *domain;
@@ -99,7 +100,8 @@ static void lp8788_irq_bus_sync_unlock(struct irq_data *data)
 	mutex_unlock(&irqd->irq_lock);
 }
 
-static struct irq_chip lp8788_irq_chip = {
+static struct irq_chip lp8788_irq_chip =
+{
 	.name			= "lp8788",
 	.irq_enable		= lp8788_irq_enable,
 	.irq_disable		= lp8788_irq_disable,
@@ -116,14 +118,18 @@ static irqreturn_t lp8788_irq_handler(int irq, void *ptr)
 	int i;
 
 	if (lp8788_read_multi_bytes(lp, LP8788_INT_1, status, NUM_REGS))
+	{
 		return IRQ_NONE;
+	}
 
-	for (i = 0 ; i < LP8788_INT_MAX ; i++) {
+	for (i = 0 ; i < LP8788_INT_MAX ; i++)
+	{
 		addr = _irq_to_addr(i);
 		mask = _irq_to_mask(i);
 
 		/* reporting only if the irq is enabled */
-		if (status[addr] & mask) {
+		if (status[addr] & mask)
+		{
 			handle_nested_irq(irq_find_mapping(irqd->domain, i));
 			handled = true;
 		}
@@ -133,7 +139,7 @@ static irqreturn_t lp8788_irq_handler(int irq, void *ptr)
 }
 
 static int lp8788_irq_map(struct irq_domain *d, unsigned int virq,
-			irq_hw_number_t hwirq)
+						  irq_hw_number_t hwirq)
 {
 	struct lp8788_irq_data *irqd = d->host_data;
 	struct irq_chip *chip = &lp8788_irq_chip;
@@ -146,7 +152,8 @@ static int lp8788_irq_map(struct irq_domain *d, unsigned int virq,
 	return 0;
 }
 
-static const struct irq_domain_ops lp8788_domain_ops = {
+static const struct irq_domain_ops lp8788_domain_ops =
+{
 	.map = lp8788_irq_map,
 };
 
@@ -155,19 +162,25 @@ int lp8788_irq_init(struct lp8788 *lp, int irq)
 	struct lp8788_irq_data *irqd;
 	int ret;
 
-	if (irq <= 0) {
+	if (irq <= 0)
+	{
 		dev_warn(lp->dev, "invalid irq number: %d\n", irq);
 		return 0;
 	}
 
 	irqd = devm_kzalloc(lp->dev, sizeof(*irqd), GFP_KERNEL);
+
 	if (!irqd)
+	{
 		return -ENOMEM;
+	}
 
 	irqd->lp = lp;
 	irqd->domain = irq_domain_add_linear(lp->dev->of_node, LP8788_INT_MAX,
-					&lp8788_domain_ops, irqd);
-	if (!irqd->domain) {
+										 &lp8788_domain_ops, irqd);
+
+	if (!irqd->domain)
+	{
 		dev_err(lp->dev, "failed to add irq domain err\n");
 		return -EINVAL;
 	}
@@ -176,9 +189,11 @@ int lp8788_irq_init(struct lp8788 *lp, int irq)
 	mutex_init(&irqd->irq_lock);
 
 	ret = request_threaded_irq(irq, NULL, lp8788_irq_handler,
-				IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
-				"lp8788-irq", irqd);
-	if (ret) {
+							   IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+							   "lp8788-irq", irqd);
+
+	if (ret)
+	{
 		dev_err(lp->dev, "failed to create a thread for IRQ_N\n");
 		return ret;
 	}
@@ -191,5 +206,7 @@ int lp8788_irq_init(struct lp8788 *lp, int irq)
 void lp8788_irq_exit(struct lp8788 *lp)
 {
 	if (lp->irq)
+	{
 		free_irq(lp->irq, lp->irqdm);
+	}
 }

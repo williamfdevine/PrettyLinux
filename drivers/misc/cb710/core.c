@@ -19,7 +19,7 @@ static DEFINE_IDA(cb710_ida);
 static DEFINE_SPINLOCK(cb710_ida_lock);
 
 void cb710_pci_update_config_reg(struct pci_dev *pdev,
-	int reg, uint32_t mask, uint32_t xor)
+								 int reg, uint32_t mask, uint32_t xor)
 {
 	u32 rval;
 
@@ -37,28 +37,35 @@ static int cb710_pci_configure(struct pci_dev *pdev)
 	u32 val;
 
 	cb710_pci_update_config_reg(pdev, 0x48,
-		~0x000000FF, 0x0000003F);
+								~0x000000FF, 0x0000003F);
 
 	pci_read_config_dword(pdev, 0x48, &val);
+
 	if (val & 0x80000000)
+	{
 		return 0;
+	}
 
 	pdev0 = pci_get_slot(pdev->bus, devfn);
+
 	if (!pdev0)
+	{
 		return -ENODEV;
+	}
 
 	if (pdev0->vendor == PCI_VENDOR_ID_ENE
-	    && pdev0->device == PCI_DEVICE_ID_ENE_720) {
+		&& pdev0->device == PCI_DEVICE_ID_ENE_720)
+	{
 		cb710_pci_update_config_reg(pdev0, 0x8C,
-			~0x00F00000, 0x00100000);
+									~0x00F00000, 0x00100000);
 		cb710_pci_update_config_reg(pdev0, 0xB0,
-			~0x08000000, 0x08000000);
+									~0x08000000, 0x08000000);
 	}
 
 	cb710_pci_update_config_reg(pdev0, 0x8C,
-		~0x00000F00, 0x00000200);
+								~0x00000F00, 0x00000200);
 	cb710_pci_update_config_reg(pdev0, 0x90,
-		~0x00060000, 0x00040000);
+								~0x00060000, 0x00040000);
 
 	pci_dev_put(pdev0);
 
@@ -74,10 +81,14 @@ static irqreturn_t cb710_irq_handler(int irq, void *data)
 
 	spin_lock(&chip->irq_lock); /* incl. smp_rmb() */
 
-	for (nr = chip->slots; nr; ++slot, --nr) {
+	for (nr = chip->slots; nr; ++slot, --nr)
+	{
 		cb710_irq_handler_t handler_func = slot->irq_handler;
+
 		if (handler_func && handler_func(slot))
+		{
 			handled = IRQ_HANDLED;
+		}
 	}
 
 	spin_unlock(&chip->irq_lock);
@@ -97,15 +108,15 @@ static void cb710_release_slot(struct device *dev)
 }
 
 static int cb710_register_slot(struct cb710_chip *chip,
-	unsigned slot_mask, unsigned io_offset, const char *name)
+							   unsigned slot_mask, unsigned io_offset, const char *name)
 {
 	int nr = chip->slots;
 	struct cb710_slot *slot = &chip->slot[nr];
 	int err;
 
 	dev_dbg(cb710_chip_dev(chip),
-		"register: %s.%d; slot %d; mask %d; IO offset: 0x%02X\n",
-		name, chip->platform_id, nr, slot_mask, io_offset);
+			"register: %s.%d; slot %d; mask %d; IO offset: 0x%02X\n",
+			name, chip->platform_id, nr, slot_mask, io_offset);
 
 	/* slot->irq_handler == NULL here; this needs to be
 	 * seen before platform_device_register() */
@@ -124,7 +135,8 @@ static int cb710_register_slot(struct cb710_chip *chip,
 	atomic_inc(&chip->slot_refs_count);
 #endif
 
-	if (err) {
+	if (err)
+	{
 		/* device_initialize() called from platform_device_register()
 		 * wants this on error path */
 		platform_device_put(&slot->pdev);
@@ -140,12 +152,14 @@ static int cb710_register_slot(struct cb710_chip *chip,
 }
 
 static void cb710_unregister_slot(struct cb710_chip *chip,
-	unsigned slot_mask)
+								  unsigned slot_mask)
 {
 	int nr = chip->slots - 1;
 
 	if (!(chip->slot_mask & slot_mask))
+	{
 		return;
+	}
 
 	platform_device_unregister(&chip->slot[nr].pdev);
 
@@ -159,7 +173,7 @@ static void cb710_unregister_slot(struct cb710_chip *chip,
 }
 
 void cb710_set_irq_handler(struct cb710_slot *slot,
-	cb710_irq_handler_t handler)
+						   cb710_irq_handler_t handler)
 {
 	struct cb710_chip *chip = cb710_slot_to_chip(slot);
 	unsigned long flags;
@@ -179,8 +193,12 @@ static int cb710_suspend(struct pci_dev *pdev, pm_message_t state)
 	devm_free_irq(&pdev->dev, pdev->irq, chip);
 	pci_save_state(pdev);
 	pci_disable_device(pdev);
+
 	if (state.event & PM_EVENT_SLEEP)
+	{
 		pci_set_power_state(pdev, PCI_D3hot);
+	}
+
 	return 0;
 }
 
@@ -192,17 +210,20 @@ static int cb710_resume(struct pci_dev *pdev)
 	pci_set_power_state(pdev, PCI_D0);
 	pci_restore_state(pdev);
 	err = pcim_enable_device(pdev);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return devm_request_irq(&pdev->dev, pdev->irq,
-		cb710_irq_handler, IRQF_SHARED, KBUILD_MODNAME, chip);
+							cb710_irq_handler, IRQF_SHARED, KBUILD_MODNAME, chip);
 }
 
 #endif /* CONFIG_PM */
 
 static int cb710_probe(struct pci_dev *pdev,
-	const struct pci_device_id *ent)
+					   const struct pci_device_id *ent)
 {
 	struct cb710_chip *chip;
 	unsigned long flags;
@@ -211,39 +232,66 @@ static int cb710_probe(struct pci_dev *pdev,
 	int n = 0;
 
 	err = cb710_pci_configure(pdev);
+
 	if (err)
+	{
 		return err;
+	}
 
 	/* this is actually magic... */
 	pci_read_config_dword(pdev, 0x48, &val);
-	if (!(val & 0x80000000)) {
-		pci_write_config_dword(pdev, 0x48, val|0x71000000);
+
+	if (!(val & 0x80000000))
+	{
+		pci_write_config_dword(pdev, 0x48, val | 0x71000000);
 		pci_read_config_dword(pdev, 0x48, &val);
 	}
 
 	dev_dbg(&pdev->dev, "PCI config[0x48] = 0x%08X\n", val);
+
 	if (!(val & 0x70000000))
+	{
 		return -ENODEV;
+	}
+
 	val = (val >> 28) & 7;
+
 	if (val & CB710_SLOT_MMC)
+	{
 		++n;
+	}
+
 	if (val & CB710_SLOT_MS)
+	{
 		++n;
+	}
+
 	if (val & CB710_SLOT_SM)
+	{
 		++n;
+	}
 
 	chip = devm_kzalloc(&pdev->dev,
-		sizeof(*chip) + n * sizeof(*chip->slot), GFP_KERNEL);
+						sizeof(*chip) + n * sizeof(*chip->slot), GFP_KERNEL);
+
 	if (!chip)
+	{
 		return -ENOMEM;
+	}
 
 	err = pcim_enable_device(pdev);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = pcim_iomap_regions(pdev, 0x0001, KBUILD_MODNAME);
+
 	if (err)
+	{
 		return err;
+	}
 
 	spin_lock_init(&chip->irq_lock);
 	chip->pdev = pdev;
@@ -252,45 +300,66 @@ static int cb710_probe(struct pci_dev *pdev,
 	pci_set_drvdata(pdev, chip);
 
 	err = devm_request_irq(&pdev->dev, pdev->irq,
-		cb710_irq_handler, IRQF_SHARED, KBUILD_MODNAME, chip);
-	if (err)
-		return err;
+						   cb710_irq_handler, IRQF_SHARED, KBUILD_MODNAME, chip);
 
-	do {
+	if (err)
+	{
+		return err;
+	}
+
+	do
+	{
 		if (!ida_pre_get(&cb710_ida, GFP_KERNEL))
+		{
 			return -ENOMEM;
+		}
 
 		spin_lock_irqsave(&cb710_ida_lock, flags);
 		err = ida_get_new(&cb710_ida, &chip->platform_id);
 		spin_unlock_irqrestore(&cb710_ida_lock, flags);
 
 		if (err && err != -EAGAIN)
+		{
 			return err;
-	} while (err);
+		}
+	}
+	while (err);
 
 
 	dev_info(&pdev->dev, "id %d, IO 0x%p, IRQ %d\n",
-		chip->platform_id, chip->iobase, pdev->irq);
+			 chip->platform_id, chip->iobase, pdev->irq);
 
-	if (val & CB710_SLOT_MMC) {	/* MMC/SD slot */
+	if (val & CB710_SLOT_MMC)  	/* MMC/SD slot */
+	{
 		err = cb710_register_slot(chip,
-			CB710_SLOT_MMC, 0x00, "cb710-mmc");
+								  CB710_SLOT_MMC, 0x00, "cb710-mmc");
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
-	if (val & CB710_SLOT_MS) {	/* MemoryStick slot */
+	if (val & CB710_SLOT_MS)  	/* MemoryStick slot */
+	{
 		err = cb710_register_slot(chip,
-			CB710_SLOT_MS, 0x40, "cb710-ms");
+								  CB710_SLOT_MS, 0x40, "cb710-ms");
+
 		if (err)
+		{
 			goto unreg_mmc;
+		}
 	}
 
-	if (val & CB710_SLOT_SM) {	/* SmartMedia slot */
+	if (val & CB710_SLOT_SM)  	/* SmartMedia slot */
+	{
 		err = cb710_register_slot(chip,
-			CB710_SLOT_SM, 0x60, "cb710-sm");
+								  CB710_SLOT_SM, 0x60, "cb710-sm");
+
 		if (err)
+		{
 			goto unreg_ms;
+		}
 	}
 
 	return 0;
@@ -322,13 +391,17 @@ static void cb710_remove_one(struct pci_dev *pdev)
 	spin_unlock_irqrestore(&cb710_ida_lock, flags);
 }
 
-static const struct pci_device_id cb710_pci_tbl[] = {
-	{ PCI_VENDOR_ID_ENE, PCI_DEVICE_ID_ENE_CB710_FLASH,
-		PCI_ANY_ID, PCI_ANY_ID, },
+static const struct pci_device_id cb710_pci_tbl[] =
+{
+	{
+		PCI_VENDOR_ID_ENE, PCI_DEVICE_ID_ENE_CB710_FLASH,
+		PCI_ANY_ID, PCI_ANY_ID,
+	},
 	{ 0, }
 };
 
-static struct pci_driver cb710_driver = {
+static struct pci_driver cb710_driver =
+{
 	.name = KBUILD_MODNAME,
 	.id_table = cb710_pci_tbl,
 	.probe = cb710_probe,

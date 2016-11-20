@@ -29,7 +29,8 @@
  *
  * Do not reorder these banks as it will change the pin numbering
  */
-static const struct wmt_pinctrl_bank_registers vt8500_banks[] = {
+static const struct wmt_pinctrl_bank_registers vt8500_banks[] =
+{
 	WMT_PINCTRL_BANK(NO_REG, 0x3C, 0x5C, 0x7C, NO_REG, NO_REG),	/* 0 */
 	WMT_PINCTRL_BANK(0x00, 0x20, 0x40, 0x60, NO_REG, NO_REG),	/* 1 */
 	WMT_PINCTRL_BANK(0x04, 0x24, 0x44, 0x64, NO_REG, NO_REG),	/* 2 */
@@ -176,7 +177,8 @@ static const struct wmt_pinctrl_bank_registers vt8500_banks[] = {
 #define WMT_PIN_LCDFRM		WMT_PIN(6, 21)
 #define WMT_PIN_LCDBIAS		WMT_PIN(6, 22)
 
-static const struct pinctrl_pin_desc vt8500_pins[] = {
+static const struct pinctrl_pin_desc vt8500_pins[] =
+{
 	PINCTRL_PIN(WMT_PIN_EXTGPIO0, "extgpio0"),
 	PINCTRL_PIN(WMT_PIN_EXTGPIO1, "extgpio1"),
 	PINCTRL_PIN(WMT_PIN_EXTGPIO2, "extgpio2"),
@@ -315,7 +317,8 @@ static const struct pinctrl_pin_desc vt8500_pins[] = {
 };
 
 /* Order of these names must match the above list */
-static const char * const vt8500_groups[] = {
+static const char *const vt8500_groups[] =
+{
 	"extgpio0",
 	"extgpio1",
 	"extgpio2",
@@ -458,7 +461,9 @@ static int vt8500_pinctrl_probe(struct platform_device *pdev)
 	struct wmt_pinctrl_data *data;
 
 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
-	if (!data) {
+
+	if (!data)
+	{
 		dev_err(&pdev->dev, "failed to allocate data\n");
 		return -ENOMEM;
 	}
@@ -478,12 +483,14 @@ static int vt8500_pinctrl_remove(struct platform_device *pdev)
 	return wmt_pinctrl_remove(pdev);
 }
 
-static const struct of_device_id wmt_pinctrl_of_match[] = {
+static const struct of_device_id wmt_pinctrl_of_match[] =
+{
 	{ .compatible = "via,vt8500-pinctrl" },
 	{ /* sentinel */ },
 };
 
-static struct platform_driver wmt_pinctrl_driver = {
+static struct platform_driver wmt_pinctrl_driver =
+{
 	.probe	= vt8500_pinctrl_probe,
 	.remove	= vt8500_pinctrl_remove,
 	.driver = {

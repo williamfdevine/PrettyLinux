@@ -50,14 +50,16 @@
  * The simple fix is probably to add an explicit padding.
  *					 		[David Woodhouse]
  */
-struct pps_ktime {
+struct pps_ktime
+{
 	__s64 sec;
 	__s32 nsec;
 	__u32 flags;
 };
 #define PPS_TIME_INVALID	(1<<0)	/* used to specify timeout==NULL */
 
-struct pps_kinfo {
+struct pps_kinfo
+{
 	__u32 assert_sequence;		/* seq. num. of assert event */
 	__u32 clear_sequence; 		/* seq. num. of clear event */
 	struct pps_ktime assert_tu;	/* time of assert event */
@@ -65,7 +67,8 @@ struct pps_kinfo {
 	int current_mode;		/* current mode bits */
 };
 
-struct pps_kparams {
+struct pps_kparams
+{
 	int api_version;		/* API version # */
 	int mode;			/* mode bits */
 	struct pps_ktime assert_off_tu;	/* offset compensation for assert */
@@ -109,12 +112,14 @@ struct pps_kparams {
  * Here begins the implementation-specific part!
  */
 
-struct pps_fdata {
+struct pps_fdata
+{
 	struct pps_kinfo info;
 	struct pps_ktime timeout;
 };
 
-struct pps_bind_args {
+struct pps_bind_args
+{
 	int tsformat;	/* format of time stamps */
 	int edge;	/* selected event type */
 	int consumer;	/* selected kernel consumer */

@@ -42,7 +42,8 @@ static DEFINE_MUTEX(phantom_mutex);
 static struct class *phantom_class;
 static int phantom_major;
 
-struct phantom_device {
+struct phantom_device
+{
 	unsigned int opened;
 	void __iomem *caddr;
 	u32 __iomem *iaddr;
@@ -67,12 +68,15 @@ static int phantom_status(struct phantom_device *dev, unsigned long newstat)
 {
 	pr_debug("phantom_status %lx %lx\n", dev->status, newstat);
 
-	if (!(dev->status & PHB_RUNNING) && (newstat & PHB_RUNNING)) {
+	if (!(dev->status & PHB_RUNNING) && (newstat & PHB_RUNNING))
+	{
 		atomic_set(&dev->counter, 0);
 		iowrite32(PHN_CTL_IRQ, dev->iaddr + PHN_CONTROL);
 		iowrite32(0x43, dev->caddr + PHN_IRQCTL);
 		ioread32(dev->caddr + PHN_IRQCTL); /* PCI posting */
-	} else if ((dev->status & PHB_RUNNING) && !(newstat & PHB_RUNNING)) {
+	}
+	else if ((dev->status & PHB_RUNNING) && !(newstat & PHB_RUNNING))
+	{
 		iowrite32(0, dev->caddr + PHN_IRQCTL);
 		ioread32(dev->caddr + PHN_IRQCTL); /* PCI posting */
 	}
@@ -87,7 +91,7 @@ static int phantom_status(struct phantom_device *dev, unsigned long newstat)
  */
 
 static long phantom_ioctl(struct file *file, unsigned int cmd,
-		unsigned long arg)
+						  unsigned long arg)
 {
 	struct phantom_device *dev = file->private_data;
 	struct phm_regs rs;
@@ -96,102 +100,149 @@ static long phantom_ioctl(struct file *file, unsigned int cmd,
 	unsigned long flags;
 	unsigned int i;
 
-	switch (cmd) {
-	case PHN_SETREG:
-	case PHN_SET_REG:
-		if (copy_from_user(&r, argp, sizeof(r)))
-			return -EFAULT;
+	switch (cmd)
+	{
+		case PHN_SETREG:
+		case PHN_SET_REG:
+			if (copy_from_user(&r, argp, sizeof(r)))
+			{
+				return -EFAULT;
+			}
 
-		if (r.reg > 7)
-			return -EINVAL;
+			if (r.reg > 7)
+			{
+				return -EINVAL;
+			}
 
-		spin_lock_irqsave(&dev->regs_lock, flags);
-		if (r.reg == PHN_CONTROL && (r.value & PHN_CTL_IRQ) &&
-				phantom_status(dev, dev->status | PHB_RUNNING)){
-			spin_unlock_irqrestore(&dev->regs_lock, flags);
-			return -ENODEV;
-		}
+			spin_lock_irqsave(&dev->regs_lock, flags);
 
-		pr_debug("phantom: writing %x to %u\n", r.value, r.reg);
+			if (r.reg == PHN_CONTROL && (r.value & PHN_CTL_IRQ) &&
+				phantom_status(dev, dev->status | PHB_RUNNING))
+			{
+				spin_unlock_irqrestore(&dev->regs_lock, flags);
+				return -ENODEV;
+			}
 
-		/* preserve amp bit (don't allow to change it when in NOT_OH) */
-		if (r.reg == PHN_CONTROL && (dev->status & PHB_NOT_OH)) {
-			r.value &= ~PHN_CTL_AMP;
-			r.value |= dev->ctl_reg & PHN_CTL_AMP;
-			dev->ctl_reg = r.value;
-		}
+			pr_debug("phantom: writing %x to %u\n", r.value, r.reg);
 
-		iowrite32(r.value, dev->iaddr + r.reg);
-		ioread32(dev->iaddr); /* PCI posting */
+			/* preserve amp bit (don't allow to change it when in NOT_OH) */
+			if (r.reg == PHN_CONTROL && (dev->status & PHB_NOT_OH))
+			{
+				r.value &= ~PHN_CTL_AMP;
+				r.value |= dev->ctl_reg & PHN_CTL_AMP;
+				dev->ctl_reg = r.value;
+			}
 
-		if (r.reg == PHN_CONTROL && !(r.value & PHN_CTL_IRQ))
-			phantom_status(dev, dev->status & ~PHB_RUNNING);
-		spin_unlock_irqrestore(&dev->regs_lock, flags);
-		break;
-	case PHN_SETREGS:
-	case PHN_SET_REGS:
-		if (copy_from_user(&rs, argp, sizeof(rs)))
-			return -EFAULT;
-
-		pr_debug("phantom: SRS %u regs %x\n", rs.count, rs.mask);
-		spin_lock_irqsave(&dev->regs_lock, flags);
-		if (dev->status & PHB_NOT_OH)
-			memcpy(&dev->oregs, &rs, sizeof(rs));
-		else {
-			u32 m = min(rs.count, 8U);
-			for (i = 0; i < m; i++)
-				if (rs.mask & BIT(i))
-					iowrite32(rs.values[i], dev->oaddr + i);
+			iowrite32(r.value, dev->iaddr + r.reg);
 			ioread32(dev->iaddr); /* PCI posting */
-		}
-		spin_unlock_irqrestore(&dev->regs_lock, flags);
-		break;
-	case PHN_GETREG:
-	case PHN_GET_REG:
-		if (copy_from_user(&r, argp, sizeof(r)))
-			return -EFAULT;
 
-		if (r.reg > 7)
-			return -EINVAL;
+			if (r.reg == PHN_CONTROL && !(r.value & PHN_CTL_IRQ))
+			{
+				phantom_status(dev, dev->status & ~PHB_RUNNING);
+			}
 
-		r.value = ioread32(dev->iaddr + r.reg);
-
-		if (copy_to_user(argp, &r, sizeof(r)))
-			return -EFAULT;
-		break;
-	case PHN_GETREGS:
-	case PHN_GET_REGS: {
-		u32 m;
-
-		if (copy_from_user(&rs, argp, sizeof(rs)))
-			return -EFAULT;
-
-		m = min(rs.count, 8U);
-
-		pr_debug("phantom: GRS %u regs %x\n", rs.count, rs.mask);
-		spin_lock_irqsave(&dev->regs_lock, flags);
-		for (i = 0; i < m; i++)
-			if (rs.mask & BIT(i))
-				rs.values[i] = ioread32(dev->iaddr + i);
-		atomic_set(&dev->counter, 0);
-		spin_unlock_irqrestore(&dev->regs_lock, flags);
-
-		if (copy_to_user(argp, &rs, sizeof(rs)))
-			return -EFAULT;
-		break;
-	} case PHN_NOT_OH:
-		spin_lock_irqsave(&dev->regs_lock, flags);
-		if (dev->status & PHB_RUNNING) {
-			printk(KERN_ERR "phantom: you need to set NOT_OH "
-					"before you start the device!\n");
 			spin_unlock_irqrestore(&dev->regs_lock, flags);
-			return -EINVAL;
-		}
-		dev->status |= PHB_NOT_OH;
-		spin_unlock_irqrestore(&dev->regs_lock, flags);
-		break;
-	default:
-		return -ENOTTY;
+			break;
+
+		case PHN_SETREGS:
+		case PHN_SET_REGS:
+			if (copy_from_user(&rs, argp, sizeof(rs)))
+			{
+				return -EFAULT;
+			}
+
+			pr_debug("phantom: SRS %u regs %x\n", rs.count, rs.mask);
+			spin_lock_irqsave(&dev->regs_lock, flags);
+
+			if (dev->status & PHB_NOT_OH)
+			{
+				memcpy(&dev->oregs, &rs, sizeof(rs));
+			}
+			else
+			{
+				u32 m = min(rs.count, 8U);
+
+				for (i = 0; i < m; i++)
+					if (rs.mask & BIT(i))
+					{
+						iowrite32(rs.values[i], dev->oaddr + i);
+					}
+
+				ioread32(dev->iaddr); /* PCI posting */
+			}
+
+			spin_unlock_irqrestore(&dev->regs_lock, flags);
+			break;
+
+		case PHN_GETREG:
+		case PHN_GET_REG:
+			if (copy_from_user(&r, argp, sizeof(r)))
+			{
+				return -EFAULT;
+			}
+
+			if (r.reg > 7)
+			{
+				return -EINVAL;
+			}
+
+			r.value = ioread32(dev->iaddr + r.reg);
+
+			if (copy_to_user(argp, &r, sizeof(r)))
+			{
+				return -EFAULT;
+			}
+
+			break;
+
+		case PHN_GETREGS:
+		case PHN_GET_REGS:
+			{
+				u32 m;
+
+				if (copy_from_user(&rs, argp, sizeof(rs)))
+				{
+					return -EFAULT;
+				}
+
+				m = min(rs.count, 8U);
+
+				pr_debug("phantom: GRS %u regs %x\n", rs.count, rs.mask);
+				spin_lock_irqsave(&dev->regs_lock, flags);
+
+				for (i = 0; i < m; i++)
+					if (rs.mask & BIT(i))
+					{
+						rs.values[i] = ioread32(dev->iaddr + i);
+					}
+
+				atomic_set(&dev->counter, 0);
+				spin_unlock_irqrestore(&dev->regs_lock, flags);
+
+				if (copy_to_user(argp, &rs, sizeof(rs)))
+				{
+					return -EFAULT;
+				}
+
+				break;
+		} case PHN_NOT_OH:
+
+			spin_lock_irqsave(&dev->regs_lock, flags);
+
+			if (dev->status & PHB_RUNNING)
+			{
+				printk(KERN_ERR "phantom: you need to set NOT_OH "
+					   "before you start the device!\n");
+				spin_unlock_irqrestore(&dev->regs_lock, flags);
+				return -EINVAL;
+			}
+
+			dev->status |= PHB_NOT_OH;
+			spin_unlock_irqrestore(&dev->regs_lock, flags);
+			break;
+
+		default:
+			return -ENOTTY;
 	}
 
 	return 0;
@@ -199,12 +250,14 @@ static long phantom_ioctl(struct file *file, unsigned int cmd,
 
 #ifdef CONFIG_COMPAT
 static long phantom_compat_ioctl(struct file *filp, unsigned int cmd,
-		unsigned long arg)
+								 unsigned long arg)
 {
-	if (_IOC_NR(cmd) <= 3 && _IOC_SIZE(cmd) == sizeof(compat_uptr_t)) {
+	if (_IOC_NR(cmd) <= 3 && _IOC_SIZE(cmd) == sizeof(compat_uptr_t))
+	{
 		cmd &= ~(_IOC_SIZEMASK << _IOC_SIZESHIFT);
 		cmd |= sizeof(void *) << _IOC_SIZESHIFT;
 	}
+
 	return phantom_ioctl(filp, cmd, (unsigned long)compat_ptr(arg));
 }
 #else
@@ -214,17 +267,19 @@ static long phantom_compat_ioctl(struct file *filp, unsigned int cmd,
 static int phantom_open(struct inode *inode, struct file *file)
 {
 	struct phantom_device *dev = container_of(inode->i_cdev,
-			struct phantom_device, cdev);
+								 struct phantom_device, cdev);
 
 	mutex_lock(&phantom_mutex);
 	nonseekable_open(inode, file);
 
-	if (mutex_lock_interruptible(&dev->open_lock)) {
+	if (mutex_lock_interruptible(&dev->open_lock))
+	{
 		mutex_unlock(&phantom_mutex);
 		return -ERESTARTSYS;
 	}
 
-	if (dev->opened) {
+	if (dev->opened)
+	{
 		mutex_unlock(&dev->open_lock);
 		mutex_unlock(&phantom_mutex);
 		return -EINVAL;
@@ -265,16 +320,21 @@ static unsigned int phantom_poll(struct file *file, poll_table *wait)
 	poll_wait(file, &dev->wait, wait);
 
 	if (!(dev->status & PHB_RUNNING))
+	{
 		mask = POLLERR;
+	}
 	else if (atomic_read(&dev->counter))
+	{
 		mask = POLLIN | POLLRDNORM;
+	}
 
 	pr_debug("phantom_poll end: %x/%d\n", mask, atomic_read(&dev->counter));
 
 	return mask;
 }
 
-static const struct file_operations phantom_file_ops = {
+static const struct file_operations phantom_file_ops =
+{
 	.open = phantom_open,
 	.release = phantom_release,
 	.unlocked_ioctl = phantom_ioctl,
@@ -291,7 +351,9 @@ static irqreturn_t phantom_isr(int irq, void *data)
 
 	spin_lock(&dev->regs_lock);
 	ctl = ioread32(dev->iaddr + PHN_CONTROL);
-	if (!(ctl & PHN_CTL_IRQ)) {
+
+	if (!(ctl & PHN_CTL_IRQ))
+	{
 		spin_unlock(&dev->regs_lock);
 		return IRQ_NONE;
 	}
@@ -299,17 +361,21 @@ static irqreturn_t phantom_isr(int irq, void *data)
 	iowrite32(0, dev->iaddr);
 	iowrite32(0xc0, dev->iaddr);
 
-	if (dev->status & PHB_NOT_OH) {
+	if (dev->status & PHB_NOT_OH)
+	{
 		struct phm_regs *r = &dev->oregs;
 		u32 m = min(r->count, 8U);
 
 		for (i = 0; i < m; i++)
 			if (r->mask & BIT(i))
+			{
 				iowrite32(r->values[i], dev->oaddr + i);
+			}
 
 		dev->ctl_reg ^= PHN_CTL_AMP;
 		iowrite32(dev->ctl_reg, dev->iaddr + PHN_CONTROL);
 	}
+
 	spin_unlock(&dev->regs_lock);
 
 	ioread32(dev->iaddr); /* PCI posting */
@@ -330,26 +396,32 @@ static unsigned int phantom_get_free(void)
 
 	for (i = 0; i < PHANTOM_MAX_MINORS; i++)
 		if (phantom_devices[i] == 0)
+		{
 			break;
+		}
 
 	return i;
 }
 
 static int phantom_probe(struct pci_dev *pdev,
-	const struct pci_device_id *pci_id)
+						 const struct pci_device_id *pci_id)
 {
 	struct phantom_device *pht;
 	unsigned int minor;
 	int retval;
 
 	retval = pci_enable_device(pdev);
-	if (retval) {
+
+	if (retval)
+	{
 		dev_err(&pdev->dev, "pci_enable_device failed!\n");
 		goto err;
 	}
 
 	minor = phantom_get_free();
-	if (minor == PHANTOM_MAX_MINORS) {
+
+	if (minor == PHANTOM_MAX_MINORS)
+	{
 		dev_err(&pdev->dev, "too many devices found!\n");
 		retval = -EIO;
 		goto err_dis;
@@ -358,30 +430,42 @@ static int phantom_probe(struct pci_dev *pdev,
 	phantom_devices[minor] = 1;
 
 	retval = pci_request_regions(pdev, "phantom");
-	if (retval) {
+
+	if (retval)
+	{
 		dev_err(&pdev->dev, "pci_request_regions failed!\n");
 		goto err_null;
 	}
 
 	retval = -ENOMEM;
 	pht = kzalloc(sizeof(*pht), GFP_KERNEL);
-	if (pht == NULL) {
+
+	if (pht == NULL)
+	{
 		dev_err(&pdev->dev, "unable to allocate device\n");
 		goto err_reg;
 	}
 
 	pht->caddr = pci_iomap(pdev, 0, 0);
-	if (pht->caddr == NULL) {
+
+	if (pht->caddr == NULL)
+	{
 		dev_err(&pdev->dev, "can't remap conf space\n");
 		goto err_fr;
 	}
+
 	pht->iaddr = pci_iomap(pdev, 2, 0);
-	if (pht->iaddr == NULL) {
+
+	if (pht->iaddr == NULL)
+	{
 		dev_err(&pdev->dev, "can't remap input space\n");
 		goto err_unmc;
 	}
+
 	pht->oaddr = pci_iomap(pdev, 3, 0);
-	if (pht->oaddr == NULL) {
+
+	if (pht->oaddr == NULL)
+	{
 		dev_err(&pdev->dev, "can't remap output space\n");
 		goto err_unmi;
 	}
@@ -395,22 +479,28 @@ static int phantom_probe(struct pci_dev *pdev,
 	iowrite32(0, pht->caddr + PHN_IRQCTL);
 	ioread32(pht->caddr + PHN_IRQCTL); /* PCI posting */
 	retval = request_irq(pdev->irq, phantom_isr,
-			IRQF_SHARED, "phantom", pht);
-	if (retval) {
+						 IRQF_SHARED, "phantom", pht);
+
+	if (retval)
+	{
 		dev_err(&pdev->dev, "can't establish ISR\n");
 		goto err_unmo;
 	}
 
 	retval = cdev_add(&pht->cdev, MKDEV(phantom_major, minor), 1);
-	if (retval) {
+
+	if (retval)
+	{
 		dev_err(&pdev->dev, "chardev registration failed\n");
 		goto err_irq;
 	}
 
 	if (IS_ERR(device_create(phantom_class, &pdev->dev,
-				 MKDEV(phantom_major, minor), NULL,
-				 "phantom%u", minor)))
+							 MKDEV(phantom_major, minor), NULL,
+							 "phantom%u", minor)))
+	{
 		dev_err(&pdev->dev, "can't create device\n");
+	}
 
 	pci_set_drvdata(pdev, pht);
 
@@ -487,15 +577,19 @@ static int phantom_resume(struct pci_dev *pdev)
 #define phantom_resume	NULL
 #endif
 
-static struct pci_device_id phantom_pci_tbl[] = {
-	{ .vendor = PCI_VENDOR_ID_PLX, .device = PCI_DEVICE_ID_PLX_9050,
-	  .subvendor = PCI_VENDOR_ID_PLX, .subdevice = PCI_DEVICE_ID_PLX_9050,
-	  .class = PCI_CLASS_BRIDGE_OTHER << 8, .class_mask = 0xffff00 },
+static struct pci_device_id phantom_pci_tbl[] =
+{
+	{
+		.vendor = PCI_VENDOR_ID_PLX, .device = PCI_DEVICE_ID_PLX_9050,
+		.subvendor = PCI_VENDOR_ID_PLX, .subdevice = PCI_DEVICE_ID_PLX_9050,
+		.class = PCI_CLASS_BRIDGE_OTHER << 8, .class_mask = 0xffff00
+	},
 	{ 0, }
 };
 MODULE_DEVICE_TABLE(pci, phantom_pci_tbl);
 
-static struct pci_driver phantom_pci_driver = {
+static struct pci_driver phantom_pci_driver =
+{
 	.name = "phantom",
 	.id_table = phantom_pci_tbl,
 	.probe = phantom_probe,
@@ -512,32 +606,42 @@ static int __init phantom_init(void)
 	dev_t dev;
 
 	phantom_class = class_create(THIS_MODULE, "phantom");
-	if (IS_ERR(phantom_class)) {
+
+	if (IS_ERR(phantom_class))
+	{
 		retval = PTR_ERR(phantom_class);
 		printk(KERN_ERR "phantom: can't register phantom class\n");
 		goto err;
 	}
+
 	retval = class_create_file(phantom_class, &class_attr_version.attr);
-	if (retval) {
+
+	if (retval)
+	{
 		printk(KERN_ERR "phantom: can't create sysfs version file\n");
 		goto err_class;
 	}
 
 	retval = alloc_chrdev_region(&dev, 0, PHANTOM_MAX_MINORS, "phantom");
-	if (retval) {
+
+	if (retval)
+	{
 		printk(KERN_ERR "phantom: can't register character device\n");
 		goto err_attr;
 	}
+
 	phantom_major = MAJOR(dev);
 
 	retval = pci_register_driver(&phantom_pci_driver);
-	if (retval) {
+
+	if (retval)
+	{
 		printk(KERN_ERR "phantom: can't register pci driver\n");
 		goto err_unchr;
 	}
 
 	printk(KERN_INFO "Phantom Linux Driver, version " PHANTOM_VERSION ", "
-			"init OK\n");
+		   "init OK\n");
 
 	return 0;
 err_unchr:

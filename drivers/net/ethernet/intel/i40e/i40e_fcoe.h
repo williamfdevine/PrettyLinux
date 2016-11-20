@@ -80,12 +80,13 @@
 
 /* supported netdev features for FCoE */
 #define I40E_FCOE_NETIF_FEATURES (NETIF_F_ALL_FCOE | \
-	NETIF_F_HW_VLAN_CTAG_TX | \
-	NETIF_F_HW_VLAN_CTAG_RX | \
-	NETIF_F_HW_VLAN_CTAG_FILTER)
+								  NETIF_F_HW_VLAN_CTAG_TX | \
+								  NETIF_F_HW_VLAN_CTAG_RX | \
+								  NETIF_F_HW_VLAN_CTAG_FILTER)
 
 /* DDP context flags */
-enum i40e_fcoe_ddp_flags {
+enum i40e_fcoe_ddp_flags
+{
 	__I40E_FCOE_DDP_NONE = 1,
 	__I40E_FCOE_DDP_TARGET,
 	__I40E_FCOE_DDP_INITALIZED,
@@ -96,7 +97,8 @@ enum i40e_fcoe_ddp_flags {
 };
 
 /* DDP SW context struct */
-struct i40e_fcoe_ddp {
+struct i40e_fcoe_ddp
+{
 	int len;
 	u16 xid;
 	u16 firstoff;
@@ -113,11 +115,13 @@ struct i40e_fcoe_ddp {
 
 };
 
-struct i40e_fcoe_ddp_pool {
+struct i40e_fcoe_ddp_pool
+{
 	struct dma_pool *pool;
 };
 
-struct i40e_fcoe {
+struct i40e_fcoe
+{
 	unsigned long mode;
 	atomic_t refcnt;
 	struct i40e_fcoe_ddp_pool __percpu *ddp_pool;

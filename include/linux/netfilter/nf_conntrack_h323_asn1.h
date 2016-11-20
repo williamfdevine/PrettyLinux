@@ -42,8 +42,10 @@
  ****************************************************************************/
 #include <linux/netfilter/nf_conntrack_h323_types.h>
 
-typedef struct {
-	enum {
+typedef struct
+{
+	enum
+	{
 		Q931_NationalEscape = 0x00,
 		Q931_Alerting = 0x01,
 		Q931_CallProceeding = 0x02,
@@ -89,10 +91,10 @@ typedef struct {
  * Decode Functions
  ****************************************************************************/
 
-int DecodeRasMessage(unsigned char *buf, size_t sz, RasMessage * ras);
-int DecodeQ931(unsigned char *buf, size_t sz, Q931 * q931);
+int DecodeRasMessage(unsigned char *buf, size_t sz, RasMessage *ras);
+int DecodeQ931(unsigned char *buf, size_t sz, Q931 *q931);
 int DecodeMultimediaSystemControlMessage(unsigned char *buf, size_t sz,
-					 MultimediaSystemControlMessage *
-					 mscm);
+		MultimediaSystemControlMessage *
+		mscm);
 
 #endif

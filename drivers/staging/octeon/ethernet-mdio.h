@@ -19,8 +19,8 @@
 #include <linux/proc_fs.h>
 #include <net/dst.h>
 #ifdef CONFIG_XFRM
-#include <linux/xfrm.h>
-#include <net/xfrm.h>
+	#include <linux/xfrm.h>
+	#include <net/xfrm.h>
 #endif /* CONFIG_XFRM */
 
 extern const struct ethtool_ops cvm_oct_ethtool_ops;

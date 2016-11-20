@@ -203,7 +203,8 @@
 #define __F0_PORT_MAP(_v)		((_v) << __F0_PORT_MAP_SH)
 #define __F0_VM_MODE			0x00000008
 #define __F0_INTX_STATUS		0x00000007
-enum {
+enum
+{
 	__F0_INTX_STATUS_MSIX = 0x0,
 	__F0_INTX_STATUS_INTA = 0x1,
 	__F0_INTX_STATUS_INTB = 0x2,
@@ -302,7 +303,8 @@ enum {
 #define __APP_PLL_LCLK_FBCNT_MK		0x1fe00000
 #define __APP_PLL_LCLK_FBCNT_SH		21
 #define __APP_PLL_LCLK_FBCNT(_v)	((_v) << __APP_PLL_SCLK_FBCNT_SH)
-enum {
+enum
+{
 	__APP_PLL_LCLK_FBCNT_425_MHZ = 6,
 	__APP_PLL_LCLK_FBCNT_468_MHZ = 4,
 };
@@ -317,7 +319,8 @@ enum {
 #define __APP_PLL_SCLK_FBCNT_MK		0x0ff00000
 #define __APP_PLL_SCLK_FBCNT_SH		20
 #define __APP_PLL_SCLK_FBCNT(_v)	((_v) << __APP_PLL_SCLK_FBCNT_SH)
-enum {
+enum
+{
 	__APP_PLL_SCLK_FBCNT_NORM = 6,
 	__APP_PLL_SCLK_FBCNT_10G_FC = 10,
 };
@@ -354,7 +357,7 @@ enum {
 #define CT2_CSI_MAC1_CONTROL_REG	0x000270d4
 #define CT2_CSI_MAC_CONTROL_REG(__n) \
 	(CT2_CSI_MAC0_CONTROL_REG + \
-	(__n) * (CT2_CSI_MAC1_CONTROL_REG - CT2_CSI_MAC0_CONTROL_REG))
+	 (__n) * (CT2_CSI_MAC1_CONTROL_REG - CT2_CSI_MAC0_CONTROL_REG))
 
 /*
  * Name semaphore registers based on usage

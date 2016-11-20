@@ -26,7 +26,8 @@ struct inode;
 /*
  * COW Supplementary groups list
  */
-struct group_info {
+struct group_info
+{
 	atomic_t	usage;
 	int		ngroups;
 	kgid_t		gid[0];
@@ -52,10 +53,10 @@ static inline struct group_info *get_group_info(struct group_info *gi)
  * @group_info: The group info to release
  */
 #define put_group_info(group_info)			\
-do {							\
-	if (atomic_dec_and_test(&(group_info)->usage))	\
-		groups_free(group_info);		\
-} while (0)
+	do {							\
+		if (atomic_dec_and_test(&(group_info)->usage))	\
+			groups_free(group_info);		\
+	} while (0)
 
 extern struct group_info init_groups;
 #ifdef CONFIG_MULTIUSER
@@ -71,11 +72,11 @@ static inline void groups_free(struct group_info *group_info)
 
 static inline int in_group_p(kgid_t grp)
 {
-        return 1;
+	return 1;
 }
 static inline int in_egroup_p(kgid_t grp)
 {
-        return 1;
+	return 1;
 }
 #endif
 extern int set_current_groups(struct group_info *);
@@ -106,7 +107,8 @@ extern bool may_setgroups(void);
  * temporarily to point to another security context, but normally points to the
  * same context as task->real_cred.
  */
-struct cred {
+struct cred
+{
 	atomic_t	usage;
 #ifdef CONFIG_DEBUG_CREDENTIALS
 	atomic_t	subscribers;	/* number of processes subscribed */
@@ -170,26 +172,28 @@ extern void __init cred_init(void);
 #ifdef CONFIG_DEBUG_CREDENTIALS
 extern void __invalid_creds(const struct cred *, const char *, unsigned);
 extern void __validate_process_creds(struct task_struct *,
-				     const char *, unsigned);
+									 const char *, unsigned);
 
 extern bool creds_are_invalid(const struct cred *cred);
 
 static inline void __validate_creds(const struct cred *cred,
-				    const char *file, unsigned line)
+									const char *file, unsigned line)
 {
 	if (unlikely(creds_are_invalid(cred)))
+	{
 		__invalid_creds(cred, file, line);
+	}
 }
 
 #define validate_creds(cred)				\
-do {							\
-	__validate_creds((cred), __FILE__, __LINE__);	\
-} while(0)
+	do {							\
+		__validate_creds((cred), __FILE__, __LINE__);	\
+	} while(0)
 
 #define validate_process_creds()				\
-do {								\
-	__validate_process_creds(current, __FILE__, __LINE__);	\
-} while(0)
+	do {								\
+		__validate_process_creds(current, __FILE__, __LINE__);	\
+	} while(0)
 
 extern void validate_creds_for_do_exit(struct task_struct *);
 #else
@@ -207,8 +211,8 @@ static inline void validate_process_creds(void)
 static inline bool cap_ambient_invariant_ok(const struct cred *cred)
 {
 	return cap_issubset(cred->cap_ambient,
-			    cap_intersect(cred->cap_permitted,
-					  cred->cap_inheritable));
+						cap_intersect(cred->cap_permitted,
+									  cred->cap_inheritable));
 }
 
 /**
@@ -260,8 +264,11 @@ static inline void put_cred(const struct cred *_cred)
 	struct cred *cred = (struct cred *) _cred;
 
 	validate_creds(cred);
+
 	if (atomic_dec_and_test(&(cred)->usage))
+	{
 		__put_cred(cred);
+	}
 }
 
 /**
@@ -312,13 +319,13 @@ static inline void put_cred(const struct cred *_cred)
  * away.
  */
 #define get_current_user()				\
-({							\
-	struct user_struct *__u;			\
-	const struct cred *__cred;			\
-	__cred = current_cred();			\
-	__u = get_uid(__cred->user);			\
-	__u;						\
-})
+	({							\
+		struct user_struct *__u;			\
+		const struct cred *__cred;			\
+		__cred = current_cred();			\
+		__u = get_uid(__cred->user);			\
+		__u;						\
+	})
 
 /**
  * get_current_groups - Get the current task's supplementary group list
@@ -327,30 +334,30 @@ static inline void put_cred(const struct cred *_cred)
  * can't go away.
  */
 #define get_current_groups()				\
-({							\
-	struct group_info *__groups;			\
-	const struct cred *__cred;			\
-	__cred = current_cred();			\
-	__groups = get_group_info(__cred->group_info);	\
-	__groups;					\
-})
+	({							\
+		struct group_info *__groups;			\
+		const struct cred *__cred;			\
+		__cred = current_cred();			\
+		__groups = get_group_info(__cred->group_info);	\
+		__groups;					\
+	})
 
 #define task_cred_xxx(task, xxx)			\
-({							\
-	__typeof__(((struct cred *)NULL)->xxx) ___val;	\
-	rcu_read_lock();				\
-	___val = __task_cred((task))->xxx;		\
-	rcu_read_unlock();				\
-	___val;						\
-})
+	({							\
+		__typeof__(((struct cred *)NULL)->xxx) ___val;	\
+		rcu_read_lock();				\
+		___val = __task_cred((task))->xxx;		\
+		rcu_read_unlock();				\
+		___val;						\
+	})
 
 #define task_uid(task)		(task_cred_xxx((task), uid))
 #define task_euid(task)		(task_cred_xxx((task), euid))
 
 #define current_cred_xxx(xxx)			\
-({						\
-	current_cred()->xxx;			\
-})
+	({						\
+		current_cred()->xxx;			\
+	})
 
 #define current_uid()		(current_cred_xxx(uid))
 #define current_gid()		(current_cred_xxx(gid))
@@ -376,27 +383,27 @@ static inline struct user_namespace *current_user_ns(void)
 
 
 #define current_uid_gid(_uid, _gid)		\
-do {						\
-	const struct cred *__cred;		\
-	__cred = current_cred();		\
-	*(_uid) = __cred->uid;			\
-	*(_gid) = __cred->gid;			\
-} while(0)
+	do {						\
+		const struct cred *__cred;		\
+		__cred = current_cred();		\
+		*(_uid) = __cred->uid;			\
+		*(_gid) = __cred->gid;			\
+	} while(0)
 
 #define current_euid_egid(_euid, _egid)		\
-do {						\
-	const struct cred *__cred;		\
-	__cred = current_cred();		\
-	*(_euid) = __cred->euid;		\
-	*(_egid) = __cred->egid;		\
-} while(0)
+	do {						\
+		const struct cred *__cred;		\
+		__cred = current_cred();		\
+		*(_euid) = __cred->euid;		\
+		*(_egid) = __cred->egid;		\
+	} while(0)
 
 #define current_fsuid_fsgid(_fsuid, _fsgid)	\
-do {						\
-	const struct cred *__cred;		\
-	__cred = current_cred();		\
-	*(_fsuid) = __cred->fsuid;		\
-	*(_fsgid) = __cred->fsgid;		\
-} while(0)
+	do {						\
+		const struct cred *__cred;		\
+		__cred = current_cred();		\
+		*(_fsuid) = __cred->fsuid;		\
+		*(_fsgid) = __cred->fsgid;		\
+	} while(0)
 
 #endif /* _LINUX_CRED_H */

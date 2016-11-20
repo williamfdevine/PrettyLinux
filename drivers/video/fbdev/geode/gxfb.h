@@ -20,7 +20,8 @@
 
 #define DC_PAL_COUNT   0x104
 
-struct gxfb_par {
+struct gxfb_par
+{
 	int enable_crt;
 	void __iomem *dc_regs;
 	void __iomem *vid_regs;
@@ -29,7 +30,8 @@ struct gxfb_par {
 	int powered_down;
 
 	/* register state, for power management functionality */
-	struct {
+	struct
+	{
 		uint64_t padsel;
 		uint64_t dotpll;
 	} msr;
@@ -47,20 +49,21 @@ unsigned int gx_frame_buffer_size(void);
 int gx_line_delta(int xres, int bpp);
 void gx_set_mode(struct fb_info *info);
 void gx_set_hw_palette_reg(struct fb_info *info, unsigned regno,
-		unsigned red, unsigned green, unsigned blue);
+						   unsigned red, unsigned green, unsigned blue);
 
 void gx_set_dclk_frequency(struct fb_info *info);
 void gx_configure_display(struct fb_info *info);
 int gx_blank_display(struct fb_info *info, int blank_mode);
 
 #ifdef CONFIG_PM
-int gx_powerdown(struct fb_info *info);
-int gx_powerup(struct fb_info *info);
+	int gx_powerdown(struct fb_info *info);
+	int gx_powerup(struct fb_info *info);
 #endif
 
 
 /* Graphics Processor registers (table 6-23 from the data book) */
-enum gp_registers {
+enum gp_registers
+{
 	GP_DST_OFFSET = 0,
 	GP_SRC_OFFSET,
 	GP_STRIDE,
@@ -92,7 +95,8 @@ enum gp_registers {
 
 
 /* Display Controller registers (table 6-38 from the data book) */
-enum dc_registers {
+enum dc_registers
+{
 	DC_UNLOCK = 0,
 	DC_GENERAL_CFG,
 	DC_DISPLAY_CFG,
@@ -170,7 +174,8 @@ enum dc_registers {
  * lower 32 bits.  The actual register save/restore code only bothers
  * to restore those 32 bits.
  */
-enum vp_registers {
+enum vp_registers
+{
 	VP_VCFG = 0,
 	VP_DCFG,
 
@@ -260,7 +265,8 @@ enum vp_registers {
 /* we're actually in the VP register space, starting at address 0x400 */
 #define VP_FP_START		0x400
 
-enum fp_registers {
+enum fp_registers
+{
 	FP_PT1 = 0,
 	FP_PT2,
 
@@ -301,42 +307,42 @@ enum fp_registers {
 
 static inline uint32_t read_gp(struct gxfb_par *par, int reg)
 {
-	return readl(par->gp_regs + 4*reg);
+	return readl(par->gp_regs + 4 * reg);
 }
 
 static inline void write_gp(struct gxfb_par *par, int reg, uint32_t val)
 {
-	writel(val, par->gp_regs + 4*reg);
+	writel(val, par->gp_regs + 4 * reg);
 }
 
 static inline uint32_t read_dc(struct gxfb_par *par, int reg)
 {
-	return readl(par->dc_regs + 4*reg);
+	return readl(par->dc_regs + 4 * reg);
 }
 
 static inline void write_dc(struct gxfb_par *par, int reg, uint32_t val)
 {
-	writel(val, par->dc_regs + 4*reg);
+	writel(val, par->dc_regs + 4 * reg);
 }
 
 static inline uint32_t read_vp(struct gxfb_par *par, int reg)
 {
-	return readl(par->vid_regs + 8*reg);
+	return readl(par->vid_regs + 8 * reg);
 }
 
 static inline void write_vp(struct gxfb_par *par, int reg, uint32_t val)
 {
-	writel(val, par->vid_regs + 8*reg);
+	writel(val, par->vid_regs + 8 * reg);
 }
 
 static inline uint32_t read_fp(struct gxfb_par *par, int reg)
 {
-	return readl(par->vid_regs + 8*reg + VP_FP_START);
+	return readl(par->vid_regs + 8 * reg + VP_FP_START);
 }
 
 static inline void write_fp(struct gxfb_par *par, int reg, uint32_t val)
 {
-	writel(val, par->vid_regs + 8*reg + VP_FP_START);
+	writel(val, par->vid_regs + 8 * reg + VP_FP_START);
 }
 
 

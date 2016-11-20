@@ -1,9 +1,9 @@
 /*
  * 	connector.h
- * 
+ *
  * 2004-2005 Copyright (c) Evgeniy Polyakov <zbr@ioremap.net>
  * All rights reserved.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -32,7 +32,8 @@
 
 #define CN_CBQ_NAMELEN		32
 
-struct cn_queue_dev {
+struct cn_queue_dev
+{
 	atomic_t refcnt;
 	unsigned char name[CN_CBQ_NAMELEN];
 
@@ -42,12 +43,14 @@ struct cn_queue_dev {
 	struct sock *nls;
 };
 
-struct cn_callback_id {
+struct cn_callback_id
+{
 	unsigned char name[CN_CBQ_NAMELEN];
 	struct cb_id id;
 };
 
-struct cn_callback_entry {
+struct cn_callback_entry
+{
 	struct list_head callback_entry;
 	atomic_t refcnt;
 	struct cn_queue_dev *pdev;
@@ -58,7 +61,8 @@ struct cn_callback_entry {
 	u32 seq, group;
 };
 
-struct cn_dev {
+struct cn_dev
+{
 	struct cb_id id;
 
 	u32 seq, groups;
@@ -69,14 +73,14 @@ struct cn_dev {
 };
 
 int cn_add_callback(struct cb_id *id, const char *name,
-		    void (*callback)(struct cn_msg *, struct netlink_skb_parms *));
+					void (*callback)(struct cn_msg *, struct netlink_skb_parms *));
 void cn_del_callback(struct cb_id *);
 int cn_netlink_send_mult(struct cn_msg *msg, u16 len, u32 portid, u32 group, gfp_t gfp_mask);
 int cn_netlink_send(struct cn_msg *msg, u32 portid, u32 group, gfp_t gfp_mask);
 
 int cn_queue_add_callback(struct cn_queue_dev *dev, const char *name,
-			  struct cb_id *id,
-			  void (*callback)(struct cn_msg *, struct netlink_skb_parms *));
+						  struct cb_id *id,
+						  void (*callback)(struct cn_msg *, struct netlink_skb_parms *));
 void cn_queue_del_callback(struct cn_queue_dev *dev, struct cb_id *id);
 void cn_queue_release_callback(struct cn_callback_entry *);
 

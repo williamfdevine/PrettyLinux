@@ -10,7 +10,8 @@
 #include <linux/types.h>
 #include <linux/ptrace.h>
 
-struct bpf_perf_event_data {
+struct bpf_perf_event_data
+{
 	struct pt_regs regs;
 	__u64 sample_period;
 };

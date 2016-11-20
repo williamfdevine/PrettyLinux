@@ -25,8 +25,8 @@
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout,
-		 "Watchdog cannot be stopped once started (default="
-		 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "Watchdog cannot be stopped once started (default="
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 static unsigned int timeout;
 module_param(timeout, int, 0);
@@ -42,7 +42,8 @@ MODULE_PARM_DESC(timeout, "Watchdog timeout");
 #define WD_CONFIG_XTAL_IN	BIT(0)
 #define WD_CONFIG_DISABLE	BIT(31)
 
-struct tangox_wdt_device {
+struct tangox_wdt_device
+{
 	struct watchdog_device wdt;
 	void __iomem *base;
 	unsigned long clk_rate;
@@ -51,7 +52,7 @@ struct tangox_wdt_device {
 };
 
 static int tangox_wdt_set_timeout(struct watchdog_device *wdt,
-				  unsigned int new_timeout)
+								  unsigned int new_timeout)
 {
 	wdt->timeout = new_timeout;
 
@@ -86,17 +87,21 @@ static unsigned int tangox_wdt_get_timeleft(struct watchdog_device *wdt)
 	count = readl(dev->base + WD_COUNTER);
 
 	if (!count)
+	{
 		return 0;
+	}
 
 	return (count - 1) / dev->clk_rate;
 }
 
-static const struct watchdog_info tangox_wdt_info = {
+static const struct watchdog_info tangox_wdt_info =
+{
 	.options  = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING | WDIOF_MAGICCLOSE,
 	.identity = "tangox watchdog",
 };
 
-static const struct watchdog_ops tangox_wdt_ops = {
+static const struct watchdog_ops tangox_wdt_ops =
+{
 	.start		= tangox_wdt_start,
 	.stop		= tangox_wdt_stop,
 	.set_timeout	= tangox_wdt_set_timeout,
@@ -104,7 +109,7 @@ static const struct watchdog_ops tangox_wdt_ops = {
 };
 
 static int tangox_wdt_restart(struct notifier_block *nb, unsigned long action,
-			      void *data)
+							  void *data)
 {
 	struct tangox_wdt_device *dev =
 		container_of(nb, struct tangox_wdt_device, restart);
@@ -122,24 +127,38 @@ static int tangox_wdt_probe(struct platform_device *pdev)
 	int err;
 
 	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
+
 	if (!dev)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	dev->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(dev->base))
+	{
 		return PTR_ERR(dev->base);
+	}
 
 	dev->clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(dev->clk))
+	{
 		return PTR_ERR(dev->clk);
+	}
 
 	err = clk_prepare_enable(dev->clk);
+
 	if (err)
+	{
 		return err;
+	}
 
 	dev->clk_rate = clk_get_rate(dev->clk);
-	if (!dev->clk_rate) {
+
+	if (!dev->clk_rate)
+	{
 		err = -EINVAL;
 		goto err;
 	}
@@ -160,8 +179,11 @@ static int tangox_wdt_probe(struct platform_device *pdev)
 	 * accidental reset.
 	 */
 	config = readl(dev->base + WD_CONFIG);
+
 	if (config & WD_CONFIG_DISABLE)
+	{
 		writel(0, dev->base + WD_COUNTER);
+	}
 
 	writel(WD_CONFIG_XTAL_IN, dev->base + WD_CONFIG);
 
@@ -169,28 +191,35 @@ static int tangox_wdt_probe(struct platform_device *pdev)
 	 * Mark as active and restart with configured timeout if
 	 * already running.
 	 */
-	if (readl(dev->base + WD_COUNTER)) {
+	if (readl(dev->base + WD_COUNTER))
+	{
 		set_bit(WDOG_HW_RUNNING, &dev->wdt.status);
 		tangox_wdt_start(&dev->wdt);
 	}
 
 	err = watchdog_register_device(&dev->wdt);
+
 	if (err)
+	{
 		goto err;
+	}
 
 	platform_set_drvdata(pdev, dev);
 
 	dev->restart.notifier_call = tangox_wdt_restart;
 	dev->restart.priority = 128;
 	err = register_restart_handler(&dev->restart);
+
 	if (err)
+	{
 		dev_warn(&pdev->dev, "failed to register restart handler\n");
+	}
 
 	dev_info(&pdev->dev, "SMP86xx/SMP87xx watchdog registered\n");
 
 	return 0;
 
- err:
+err:
 	clk_disable_unprepare(dev->clk);
 	return err;
 }
@@ -208,14 +237,16 @@ static int tangox_wdt_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id tangox_wdt_dt_ids[] = {
+static const struct of_device_id tangox_wdt_dt_ids[] =
+{
 	{ .compatible = "sigma,smp8642-wdt" },
 	{ .compatible = "sigma,smp8759-wdt" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, tangox_wdt_dt_ids);
 
-static struct platform_driver tangox_wdt_driver = {
+static struct platform_driver tangox_wdt_driver =
+{
 	.probe	= tangox_wdt_probe,
 	.remove	= tangox_wdt_remove,
 	.driver	= {

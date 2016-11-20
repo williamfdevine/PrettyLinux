@@ -34,7 +34,7 @@
  */
 
 
-/* 
+/*
 
 NOTE: the current implementation of the port structure as a linked list is
 not optimal for clients that have many ports. For sending messages to all
@@ -57,17 +57,25 @@ much elements are in array.
 
 /* return pointer to port structure - port is locked if found */
 struct snd_seq_client_port *snd_seq_port_use_ptr(struct snd_seq_client *client,
-						 int num)
+		int num)
 {
 	struct snd_seq_client_port *port;
 
 	if (client == NULL)
+	{
 		return NULL;
+	}
+
 	read_lock(&client->ports_lock);
-	list_for_each_entry(port, &client->ports_list_head, list) {
-		if (port->addr.port == num) {
+	list_for_each_entry(port, &client->ports_list_head, list)
+	{
+		if (port->addr.port == num)
+		{
 			if (port->closing)
-				break; /* deleting now */
+			{
+				break;    /* deleting now */
+			}
+
 			snd_use_lock_use(&port->use_lock);
 			read_unlock(&client->ports_lock);
 			return port;
@@ -80,7 +88,7 @@ struct snd_seq_client_port *snd_seq_port_use_ptr(struct snd_seq_client *client,
 
 /* search for the next port - port is locked if found */
 struct snd_seq_client_port *snd_seq_port_query_nearest(struct snd_seq_client *client,
-						       struct snd_seq_port_info *pinfo)
+		struct snd_seq_port_info *pinfo)
 {
 	int num;
 	struct snd_seq_client_port *port, *found;
@@ -88,22 +96,37 @@ struct snd_seq_client_port *snd_seq_port_query_nearest(struct snd_seq_client *cl
 	num = pinfo->addr.port;
 	found = NULL;
 	read_lock(&client->ports_lock);
-	list_for_each_entry(port, &client->ports_list_head, list) {
+	list_for_each_entry(port, &client->ports_list_head, list)
+	{
 		if (port->addr.port < num)
+		{
 			continue;
-		if (port->addr.port == num) {
+		}
+
+		if (port->addr.port == num)
+		{
 			found = port;
 			break;
 		}
+
 		if (found == NULL || port->addr.port < found->addr.port)
+		{
 			found = port;
+		}
 	}
-	if (found) {
+
+	if (found)
+	{
 		if (found->closing)
+		{
 			found = NULL;
+		}
 		else
+		{
 			snd_use_lock_use(&found->use_lock);
+		}
 	}
+
 	read_unlock(&client->ports_lock);
 	return found;
 }
@@ -124,25 +147,32 @@ static void port_subs_info_init(struct snd_seq_port_subs_info *grp)
 
 /* create a port, port number is returned (-1 on failure) */
 struct snd_seq_client_port *snd_seq_create_port(struct snd_seq_client *client,
-						int port)
+		int port)
 {
 	unsigned long flags;
 	struct snd_seq_client_port *new_port, *p;
 	int num = -1;
-	
+
 	/* sanity check */
 	if (snd_BUG_ON(!client))
+	{
 		return NULL;
+	}
 
-	if (client->num_ports >= SNDRV_SEQ_MAX_PORTS) {
+	if (client->num_ports >= SNDRV_SEQ_MAX_PORTS)
+	{
 		pr_warn("ALSA: seq: too many ports for client %d\n", client->number);
 		return NULL;
 	}
 
 	/* create a new port */
 	new_port = kzalloc(sizeof(*new_port), GFP_KERNEL);
+
 	if (!new_port)
-		return NULL;	/* failure, out of memory */
+	{
+		return NULL;    /* failure, out of memory */
+	}
+
 	/* init port data */
 	new_port->addr.client = client->number;
 	new_port->addr.port = -1;
@@ -155,11 +185,17 @@ struct snd_seq_client_port *snd_seq_create_port(struct snd_seq_client *client,
 	num = port >= 0 ? port : 0;
 	mutex_lock(&client->ports_mutex);
 	write_lock_irqsave(&client->ports_lock, flags);
-	list_for_each_entry(p, &client->ports_list_head, list) {
+	list_for_each_entry(p, &client->ports_list_head, list)
+	{
 		if (p->addr.port > num)
+		{
 			break;
+		}
+
 		if (port < 0) /* auto-probe mode */
+		{
 			num = p->addr.port + 1;
+		}
 	}
 	/* insert the new port */
 	list_add_tail(&new_port->list, &p->list);
@@ -174,43 +210,53 @@ struct snd_seq_client_port *snd_seq_create_port(struct snd_seq_client *client,
 
 /* */
 static int subscribe_port(struct snd_seq_client *client,
-			  struct snd_seq_client_port *port,
-			  struct snd_seq_port_subs_info *grp,
-			  struct snd_seq_port_subscribe *info, int send_ack);
+						  struct snd_seq_client_port *port,
+						  struct snd_seq_port_subs_info *grp,
+						  struct snd_seq_port_subscribe *info, int send_ack);
 static int unsubscribe_port(struct snd_seq_client *client,
-			    struct snd_seq_client_port *port,
-			    struct snd_seq_port_subs_info *grp,
-			    struct snd_seq_port_subscribe *info, int send_ack);
+							struct snd_seq_client_port *port,
+							struct snd_seq_port_subs_info *grp,
+							struct snd_seq_port_subscribe *info, int send_ack);
 
 
 static struct snd_seq_client_port *get_client_port(struct snd_seq_addr *addr,
-						   struct snd_seq_client **cp)
+		struct snd_seq_client **cp)
 {
 	struct snd_seq_client_port *p;
 	*cp = snd_seq_client_use_ptr(addr->client);
-	if (*cp) {
+
+	if (*cp)
+	{
 		p = snd_seq_port_use_ptr(*cp, addr->port);
-		if (! p) {
+
+		if (! p)
+		{
 			snd_seq_client_unlock(*cp);
 			*cp = NULL;
 		}
+
 		return p;
 	}
+
 	return NULL;
 }
 
 static void delete_and_unsubscribe_port(struct snd_seq_client *client,
-					struct snd_seq_client_port *port,
-					struct snd_seq_subscribers *subs,
-					bool is_src, bool ack);
+										struct snd_seq_client_port *port,
+										struct snd_seq_subscribers *subs,
+										bool is_src, bool ack);
 
 static inline struct snd_seq_subscribers *
 get_subscriber(struct list_head *p, bool is_src)
 {
 	if (is_src)
+	{
 		return list_entry(p, struct snd_seq_subscribers, src_list);
+	}
 	else
+	{
 		return list_entry(p, struct snd_seq_subscribers, dest_list);
+	}
 }
 
 /*
@@ -218,31 +264,42 @@ get_subscriber(struct list_head *p, bool is_src)
  * this is called from port_delete, for each src and dest list.
  */
 static void clear_subscriber_list(struct snd_seq_client *client,
-				  struct snd_seq_client_port *port,
-				  struct snd_seq_port_subs_info *grp,
-				  int is_src)
+								  struct snd_seq_client_port *port,
+								  struct snd_seq_port_subs_info *grp,
+								  int is_src)
 {
 	struct list_head *p, *n;
 
-	list_for_each_safe(p, n, &grp->list_head) {
+	list_for_each_safe(p, n, &grp->list_head)
+	{
 		struct snd_seq_subscribers *subs;
 		struct snd_seq_client *c;
 		struct snd_seq_client_port *aport;
 
 		subs = get_subscriber(p, is_src);
+
 		if (is_src)
+		{
 			aport = get_client_port(&subs->info.dest, &c);
+		}
 		else
+		{
 			aport = get_client_port(&subs->info.sender, &c);
+		}
+
 		delete_and_unsubscribe_port(client, port, subs, is_src, false);
 
-		if (!aport) {
+		if (!aport)
+		{
 			/* looks like the connected port is being deleted.
 			 * we decrease the counter, and when both ports are deleted
 			 * remove the subscriber info
 			 */
 			if (atomic_dec_and_test(&subs->ref_count))
+			{
 				kfree(subs);
+			}
+
 			continue;
 		}
 
@@ -256,18 +313,20 @@ static void clear_subscriber_list(struct snd_seq_client *client,
 
 /* delete port data */
 static int port_delete(struct snd_seq_client *client,
-		       struct snd_seq_client_port *port)
+					   struct snd_seq_client_port *port)
 {
 	/* set closing flag and wait for all port access are gone */
 	port->closing = 1;
-	snd_use_lock_sync(&port->use_lock); 
+	snd_use_lock_sync(&port->use_lock);
 
 	/* clear subscribers info */
 	clear_subscriber_list(client, port, &port->c_src, true);
 	clear_subscriber_list(client, port, &port->c_dest, false);
 
 	if (port->private_free)
+	{
 		port->private_free(port->private_data);
+	}
 
 	snd_BUG_ON(port->c_src.count != 0);
 	snd_BUG_ON(port->c_dest.count != 0);
@@ -285,8 +344,10 @@ int snd_seq_delete_port(struct snd_seq_client *client, int port)
 
 	mutex_lock(&client->ports_mutex);
 	write_lock_irqsave(&client->ports_lock, flags);
-	list_for_each_entry(p, &client->ports_list_head, list) {
-		if (p->addr.port == port) {
+	list_for_each_entry(p, &client->ports_list_head, list)
+	{
+		if (p->addr.port == port)
+		{
 			/* ok found.  delete from the list at first */
 			list_del(&p->list);
 			client->num_ports--;
@@ -296,10 +357,15 @@ int snd_seq_delete_port(struct snd_seq_client *client, int port)
 	}
 	write_unlock_irqrestore(&client->ports_lock, flags);
 	mutex_unlock(&client->ports_mutex);
+
 	if (found)
+	{
 		return port_delete(client, found);
+	}
 	else
+	{
 		return -ENOENT;
+	}
 }
 
 /* delete the all ports belonging to the given client */
@@ -308,23 +374,29 @@ int snd_seq_delete_all_ports(struct snd_seq_client *client)
 	unsigned long flags;
 	struct list_head deleted_list;
 	struct snd_seq_client_port *port, *tmp;
-	
+
 	/* move the port list to deleted_list, and
 	 * clear the port list in the client data.
 	 */
 	mutex_lock(&client->ports_mutex);
 	write_lock_irqsave(&client->ports_lock, flags);
-	if (! list_empty(&client->ports_list_head)) {
+
+	if (! list_empty(&client->ports_list_head))
+	{
 		list_add(&deleted_list, &client->ports_list_head);
 		list_del_init(&client->ports_list_head);
-	} else {
+	}
+	else
+	{
 		INIT_LIST_HEAD(&deleted_list);
 	}
+
 	client->num_ports = 0;
 	write_unlock_irqrestore(&client->ports_lock, flags);
 
 	/* remove each port in deleted_list */
-	list_for_each_entry_safe(port, tmp, &deleted_list, list) {
+	list_for_each_entry_safe(port, tmp, &deleted_list, list)
+	{
 		list_del(&port->list);
 		snd_seq_system_client_ev_port_exit(port->addr.client, port->addr.port);
 		port_delete(client, port);
@@ -334,19 +406,23 @@ int snd_seq_delete_all_ports(struct snd_seq_client *client)
 }
 
 /* set port info fields */
-int snd_seq_set_port_info(struct snd_seq_client_port * port,
-			  struct snd_seq_port_info * info)
+int snd_seq_set_port_info(struct snd_seq_client_port *port,
+						  struct snd_seq_port_info *info)
 {
 	if (snd_BUG_ON(!port || !info))
+	{
 		return -EINVAL;
+	}
 
 	/* set port name */
 	if (info->name[0])
+	{
 		strlcpy(port->name, info->name, sizeof(port->name));
-	
+	}
+
 	/* set capabilities */
 	port->capability = info->capability;
-	
+
 	/* get port type */
 	port->type = info->type;
 
@@ -364,15 +440,17 @@ int snd_seq_set_port_info(struct snd_seq_client_port * port,
 }
 
 /* get port info fields */
-int snd_seq_get_port_info(struct snd_seq_client_port * port,
-			  struct snd_seq_port_info * info)
+int snd_seq_get_port_info(struct snd_seq_client_port *port,
+						  struct snd_seq_port_info *info)
 {
 	if (snd_BUG_ON(!port || !info))
+	{
 		return -EINVAL;
+	}
 
 	/* get port name */
 	strlcpy(info->name, port->name, sizeof(info->name));
-	
+
 	/* get capabilities */
 	info->capability = port->capability;
 
@@ -387,13 +465,19 @@ int snd_seq_get_port_info(struct snd_seq_client_port * port,
 	/* get subscriber counts */
 	info->read_use = port->c_src.count;
 	info->write_use = port->c_dest.count;
-	
+
 	/* timestamping */
 	info->flags = 0;
-	if (port->timestamping) {
+
+	if (port->timestamping)
+	{
 		info->flags |= SNDRV_SEQ_PORT_FLG_TIMESTAMP;
+
 		if (port->time_real)
+		{
 			info->flags |= SNDRV_SEQ_PORT_FLG_TIME_REAL;
+		}
+
 		info->time_queue = port->time_queue;
 	}
 
@@ -413,46 +497,62 @@ int snd_seq_get_port_info(struct snd_seq_client_port * port,
  */
 
 static int subscribe_port(struct snd_seq_client *client,
-			  struct snd_seq_client_port *port,
-			  struct snd_seq_port_subs_info *grp,
-			  struct snd_seq_port_subscribe *info,
-			  int send_ack)
+						  struct snd_seq_client_port *port,
+						  struct snd_seq_port_subs_info *grp,
+						  struct snd_seq_port_subscribe *info,
+						  int send_ack)
 {
 	int err = 0;
 
 	if (!try_module_get(port->owner))
+	{
 		return -EFAULT;
+	}
+
 	grp->count++;
-	if (grp->open && grp->count == 1) {
+
+	if (grp->open && grp->count == 1)
+	{
 		err = grp->open(port->private_data, info);
-		if (err < 0) {
+
+		if (err < 0)
+		{
 			module_put(port->owner);
 			grp->count--;
 		}
 	}
+
 	if (err >= 0 && send_ack && client->type == USER_CLIENT)
 		snd_seq_client_notify_subscription(port->addr.client, port->addr.port,
-						   info, SNDRV_SEQ_EVENT_PORT_SUBSCRIBED);
+										   info, SNDRV_SEQ_EVENT_PORT_SUBSCRIBED);
 
 	return err;
 }
 
 static int unsubscribe_port(struct snd_seq_client *client,
-			    struct snd_seq_client_port *port,
-			    struct snd_seq_port_subs_info *grp,
-			    struct snd_seq_port_subscribe *info,
-			    int send_ack)
+							struct snd_seq_client_port *port,
+							struct snd_seq_port_subs_info *grp,
+							struct snd_seq_port_subscribe *info,
+							int send_ack)
 {
 	int err = 0;
 
 	if (! grp->count)
+	{
 		return -EINVAL;
+	}
+
 	grp->count--;
+
 	if (grp->close && grp->count == 0)
+	{
 		err = grp->close(port->private_data, info);
+	}
+
 	if (send_ack && client->type == USER_CLIENT)
 		snd_seq_client_notify_subscription(port->addr.client, port->addr.port,
-						   info, SNDRV_SEQ_EVENT_PORT_UNSUBSCRIBED);
+										   info, SNDRV_SEQ_EVENT_PORT_UNSUBSCRIBED);
+
 	module_put(port->owner);
 	return err;
 }
@@ -468,22 +568,28 @@ static inline int addr_match(struct snd_seq_addr *r, struct snd_seq_addr *s)
 /* check the two subscribe info match */
 /* if flags is zero, checks only sender and destination addresses */
 static int match_subs_info(struct snd_seq_port_subscribe *r,
-			   struct snd_seq_port_subscribe *s)
+						   struct snd_seq_port_subscribe *s)
 {
 	if (addr_match(&r->sender, &s->sender) &&
-	    addr_match(&r->dest, &s->dest)) {
+		addr_match(&r->dest, &s->dest))
+	{
 		if (r->flags && r->flags == s->flags)
+		{
 			return r->queue == s->queue;
+		}
 		else if (! r->flags)
+		{
 			return 1;
+		}
 	}
+
 	return 0;
 }
 
 static int check_and_subscribe_port(struct snd_seq_client *client,
-				    struct snd_seq_client_port *port,
-				    struct snd_seq_subscribers *subs,
-				    bool is_src, bool exclusive, bool ack)
+									struct snd_seq_client_port *port,
+									struct snd_seq_subscribers *subs,
+									bool is_src, bool exclusive, bool ack)
 {
 	struct snd_seq_port_subs_info *grp;
 	struct list_head *p;
@@ -493,46 +599,67 @@ static int check_and_subscribe_port(struct snd_seq_client *client,
 	grp = is_src ? &port->c_src : &port->c_dest;
 	err = -EBUSY;
 	down_write(&grp->list_mutex);
-	if (exclusive) {
+
+	if (exclusive)
+	{
 		if (!list_empty(&grp->list_head))
+		{
 			goto __error;
-	} else {
+		}
+	}
+	else
+	{
 		if (grp->exclusive)
+		{
 			goto __error;
+		}
+
 		/* check whether already exists */
-		list_for_each(p, &grp->list_head) {
+		list_for_each(p, &grp->list_head)
+		{
 			s = get_subscriber(p, is_src);
+
 			if (match_subs_info(&subs->info, &s->info))
+			{
 				goto __error;
+			}
 		}
 	}
 
 	err = subscribe_port(client, port, grp, &subs->info, ack);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		grp->exclusive = 0;
 		goto __error;
 	}
 
 	/* add to list */
 	write_lock_irq(&grp->list_lock);
+
 	if (is_src)
+	{
 		list_add_tail(&subs->src_list, &grp->list_head);
+	}
 	else
+	{
 		list_add_tail(&subs->dest_list, &grp->list_head);
+	}
+
 	grp->exclusive = exclusive;
 	atomic_inc(&subs->ref_count);
 	write_unlock_irq(&grp->list_lock);
 	err = 0;
 
- __error:
+__error:
 	up_write(&grp->list_mutex);
 	return err;
 }
 
 static void delete_and_unsubscribe_port(struct snd_seq_client *client,
-					struct snd_seq_client_port *port,
-					struct snd_seq_subscribers *subs,
-					bool is_src, bool ack)
+										struct snd_seq_client_port *port,
+										struct snd_seq_subscribers *subs,
+										bool is_src, bool ack)
 {
 	struct snd_seq_port_subs_info *grp;
 	struct list_head *list;
@@ -543,31 +670,40 @@ static void delete_and_unsubscribe_port(struct snd_seq_client *client,
 	down_write(&grp->list_mutex);
 	write_lock_irq(&grp->list_lock);
 	empty = list_empty(list);
+
 	if (!empty)
+	{
 		list_del_init(list);
+	}
+
 	grp->exclusive = 0;
 	write_unlock_irq(&grp->list_lock);
 	up_write(&grp->list_mutex);
 
 	if (!empty)
+	{
 		unsubscribe_port(client, port, grp, &subs->info, ack);
+	}
 }
 
 /* connect two ports */
 int snd_seq_port_connect(struct snd_seq_client *connector,
-			 struct snd_seq_client *src_client,
-			 struct snd_seq_client_port *src_port,
-			 struct snd_seq_client *dest_client,
-			 struct snd_seq_client_port *dest_port,
-			 struct snd_seq_port_subscribe *info)
+						 struct snd_seq_client *src_client,
+						 struct snd_seq_client_port *src_port,
+						 struct snd_seq_client *dest_client,
+						 struct snd_seq_client_port *dest_port,
+						 struct snd_seq_port_subscribe *info)
 {
 	struct snd_seq_subscribers *subs;
 	bool exclusive;
 	int err;
 
 	subs = kzalloc(sizeof(*subs), GFP_KERNEL);
+
 	if (!subs)
+	{
 		return -ENOMEM;
+	}
 
 	subs->info = *info;
 	atomic_set(&subs->ref_count, 0);
@@ -577,33 +713,40 @@ int snd_seq_port_connect(struct snd_seq_client *connector,
 	exclusive = !!(info->flags & SNDRV_SEQ_PORT_SUBS_EXCLUSIVE);
 
 	err = check_and_subscribe_port(src_client, src_port, subs, true,
-				       exclusive,
-				       connector->number != src_client->number);
+								   exclusive,
+								   connector->number != src_client->number);
+
 	if (err < 0)
+	{
 		goto error;
+	}
+
 	err = check_and_subscribe_port(dest_client, dest_port, subs, false,
-				       exclusive,
-				       connector->number != dest_client->number);
+								   exclusive,
+								   connector->number != dest_client->number);
+
 	if (err < 0)
+	{
 		goto error_dest;
+	}
 
 	return 0;
 
- error_dest:
+error_dest:
 	delete_and_unsubscribe_port(src_client, src_port, subs, true,
-				    connector->number != src_client->number);
- error:
+								connector->number != src_client->number);
+error:
 	kfree(subs);
 	return err;
 }
 
 /* remove the connection */
 int snd_seq_port_disconnect(struct snd_seq_client *connector,
-			    struct snd_seq_client *src_client,
-			    struct snd_seq_client_port *src_port,
-			    struct snd_seq_client *dest_client,
-			    struct snd_seq_client_port *dest_port,
-			    struct snd_seq_port_subscribe *info)
+							struct snd_seq_client *src_client,
+							struct snd_seq_client_port *src_port,
+							struct snd_seq_client *dest_client,
+							struct snd_seq_client_port *dest_port,
+							struct snd_seq_port_subscribe *info)
 {
 	struct snd_seq_port_subs_info *src = &src_port->c_src;
 	struct snd_seq_subscribers *subs;
@@ -611,21 +754,26 @@ int snd_seq_port_disconnect(struct snd_seq_client *connector,
 
 	down_write(&src->list_mutex);
 	/* look for the connection */
-	list_for_each_entry(subs, &src->list_head, src_list) {
-		if (match_subs_info(info, &subs->info)) {
+	list_for_each_entry(subs, &src->list_head, src_list)
+	{
+		if (match_subs_info(info, &subs->info))
+		{
 			atomic_dec(&subs->ref_count); /* mark as not ready */
 			err = 0;
 			break;
 		}
 	}
 	up_write(&src->list_mutex);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	delete_and_unsubscribe_port(src_client, src_port, subs, true,
-				    connector->number != src_client->number);
+								connector->number != src_client->number);
 	delete_and_unsubscribe_port(dest_client, dest_port, subs, false,
-				    connector->number != dest_client->number);
+								connector->number != dest_client->number);
 	kfree(subs);
 	return 0;
 }
@@ -633,13 +781,15 @@ int snd_seq_port_disconnect(struct snd_seq_client *connector,
 
 /* get matched subscriber */
 struct snd_seq_subscribers *snd_seq_port_get_subscription(struct snd_seq_port_subs_info *src_grp,
-							  struct snd_seq_addr *dest_addr)
+		struct snd_seq_addr *dest_addr)
 {
 	struct snd_seq_subscribers *s, *found = NULL;
 
 	down_read(&src_grp->list_mutex);
-	list_for_each_entry(s, &src_grp->list_head, src_list) {
-		if (addr_match(dest_addr, &s->info.dest)) {
+	list_for_each_entry(s, &src_grp->list_head, src_list)
+	{
+		if (addr_match(dest_addr, &s->info.dest))
+		{
 			found = s;
 			break;
 		}
@@ -656,9 +806,9 @@ struct snd_seq_subscribers *snd_seq_port_get_subscription(struct snd_seq_port_su
  */
 /* exported */
 int snd_seq_event_port_attach(int client,
-			      struct snd_seq_port_callback *pcbp,
-			      int cap, int type, int midi_channels,
-			      int midi_voices, char *portname)
+							  struct snd_seq_port_callback *pcbp,
+							  int cap, int type, int midi_channels,
+							  int midi_voices, char *portname)
 {
 	struct snd_seq_port_info portinfo;
 	int  ret;
@@ -667,7 +817,7 @@ int snd_seq_event_port_attach(int client,
 	memset(&portinfo, 0, sizeof(portinfo));
 	portinfo.addr.client = client;
 	strlcpy(portinfo.name, portname ? portname : "Unamed port",
-		sizeof(portinfo.name));
+			sizeof(portinfo.name));
 
 	portinfo.capability = cap;
 	portinfo.type = type;
@@ -677,11 +827,13 @@ int snd_seq_event_port_attach(int client,
 
 	/* Create it */
 	ret = snd_seq_kernel_client_ctl(client,
-					SNDRV_SEQ_IOCTL_CREATE_PORT,
-					&portinfo);
+									SNDRV_SEQ_IOCTL_CREATE_PORT,
+									&portinfo);
 
 	if (ret >= 0)
+	{
 		ret = portinfo.addr.port;
+	}
 
 	return ret;
 }
@@ -701,8 +853,8 @@ int snd_seq_event_port_detach(int client, int port)
 	portinfo.addr.client = client;
 	portinfo.addr.port   = port;
 	err = snd_seq_kernel_client_ctl(client,
-					SNDRV_SEQ_IOCTL_DELETE_PORT,
-					&portinfo);
+									SNDRV_SEQ_IOCTL_DELETE_PORT,
+									&portinfo);
 
 	return err;
 }

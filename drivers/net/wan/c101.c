@@ -33,8 +33,8 @@
 #include "hd64570.h"
 
 
-static const char* version = "Moxa C101 driver version: 1.15";
-static const char* devname = "C101";
+static const char *version = "Moxa C101 driver version: 1.15";
+static const char *devname = "C101";
 
 #undef DEBUG_PKT
 #define DEBUG_RINGS
@@ -48,7 +48,7 @@ static const char* devname = "C101";
 #define RAM_SIZE (256 * 1024)
 #define TX_RING_BUFFERS 10
 #define RX_RING_BUFFERS ((RAM_SIZE - C101_WINDOW_SIZE) /		\
-			 (sizeof(pkt_desc) + HDLC_MAX_MRU) - TX_RING_BUFFERS)
+						 (sizeof(pkt_desc) + HDLC_MAX_MRU) - TX_RING_BUFFERS)
 
 #define CLOCK_BASE 9830400	/* 9.8304 MHz */
 #define PAGE0_ALWAYS_MAPPED
@@ -56,7 +56,8 @@ static const char* devname = "C101";
 static char *hw;		/* pointer to hw=xxx command line string */
 
 
-typedef struct card_s {
+typedef struct card_s
+{
 	struct net_device *dev;
 	spinlock_t lock;	/* TX lock */
 	u8 __iomem *win0base;	/* ISA window base address */
@@ -76,7 +77,7 @@ typedef struct card_s {
 	u8 page;
 
 	struct card_s *next_card;
-}card_t;
+} card_t;
 
 typedef card_t port_t;
 
@@ -90,9 +91,9 @@ static card_t **new_card = &first_card;
 
 /* EDA address register must be set in EDAL, EDAH order - 8 bit ISA bus */
 #define sca_outw(value, reg, card) do { \
-	writeb(value & 0xFF, (card)->win0base + C101_SCA + (reg)); \
-	writeb((value >> 8 ) & 0xFF, (card)->win0base + C101_SCA + (reg + 1));\
-} while(0)
+		writeb(value & 0xFF, (card)->win0base + C101_SCA + (reg)); \
+		writeb((value >> 8 ) & 0xFF, (card)->win0base + C101_SCA + (reg + 1));\
+	} while(0)
 
 #define port_to_card(port)	   (port)
 #define log_node(port)		   (0)
@@ -122,9 +123,13 @@ static inline void openwin(card_t *card, u8 page)
 static inline void set_carrier(port_t *port)
 {
 	if (!(sca_in(MSCI1_OFFSET + ST3, port) & ST3_DCD))
+	{
 		netif_carrier_on(port_to_dev(port));
+	}
 	else
+	{
 		netif_carrier_off(port_to_dev(port));
+	}
 }
 
 
@@ -135,7 +140,8 @@ static void sca_msci_intr(port_t *port)
 	/* Reset MSCI TX underrun and CDCD (ignored) status bit */
 	sca_out(stat & (ST1_UDRN | ST1_CDCD), MSCI0_OFFSET + ST1, port);
 
-	if (stat & ST1_UDRN) {
+	if (stat & ST1_UDRN)
+	{
 		/* TX Underrun error detected */
 		port_to_dev(port)->stats.tx_errors++;
 		port_to_dev(port)->stats.tx_fifo_errors++;
@@ -146,7 +152,9 @@ static void sca_msci_intr(port_t *port)
 	sca_out(stat & ST1_CDCD, MSCI1_OFFSET + ST1, port);
 
 	if (stat & ST1_CDCD)
+	{
 		set_carrier(port);
+	}
 }
 
 
@@ -155,25 +163,26 @@ static void c101_set_iface(port_t *port)
 	u8 rxs = port->rxs & CLK_BRG_MASK;
 	u8 txs = port->txs & CLK_BRG_MASK;
 
-	switch(port->settings.clock_type) {
-	case CLOCK_INT:
-		rxs |= CLK_BRG_RX; /* TX clock */
-		txs |= CLK_RXCLK_TX; /* BRG output */
-		break;
+	switch (port->settings.clock_type)
+	{
+		case CLOCK_INT:
+			rxs |= CLK_BRG_RX; /* TX clock */
+			txs |= CLK_RXCLK_TX; /* BRG output */
+			break;
 
-	case CLOCK_TXINT:
-		rxs |= CLK_LINE_RX; /* RXC input */
-		txs |= CLK_BRG_TX; /* BRG output */
-		break;
+		case CLOCK_TXINT:
+			rxs |= CLK_LINE_RX; /* RXC input */
+			txs |= CLK_BRG_TX; /* BRG output */
+			break;
 
-	case CLOCK_TXFROMRX:
-		rxs |= CLK_LINE_RX; /* RXC input */
-		txs |= CLK_RXCLK_TX; /* RX clock */
-		break;
+		case CLOCK_TXFROMRX:
+			rxs |= CLK_LINE_RX; /* RXC input */
+			txs |= CLK_RXCLK_TX; /* RX clock */
+			break;
 
-	default:	/* EXTernal clock */
-		rxs |= CLK_LINE_RX; /* RXC input */
-		txs |= CLK_LINE_TX; /* TXC input */
+		default:	/* EXTernal clock */
+			rxs |= CLK_LINE_RX; /* RXC input */
+			txs |= CLK_LINE_TX; /* TXC input */
 	}
 
 	port->rxs = rxs;
@@ -190,8 +199,11 @@ static int c101_open(struct net_device *dev)
 	int result;
 
 	result = hdlc_open(dev);
+
 	if (result)
+	{
 		return result;
+	}
 
 	writeb(1, port->win0base + C101_DTR);
 	sca_out(0, MSCI1_OFFSET + CTL, port); /* RTS uses ch#2 output */
@@ -231,52 +243,73 @@ static int c101_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 	port_t *port = dev_to_port(dev);
 
 #ifdef DEBUG_RINGS
-	if (cmd == SIOCDEVPRIVATE) {
+
+	if (cmd == SIOCDEVPRIVATE)
+	{
 		sca_dump_rings(dev);
 		printk(KERN_DEBUG "MSCI1: ST: %02x %02x %02x %02x\n",
-		       sca_in(MSCI1_OFFSET + ST0, port),
-		       sca_in(MSCI1_OFFSET + ST1, port),
-		       sca_in(MSCI1_OFFSET + ST2, port),
-		       sca_in(MSCI1_OFFSET + ST3, port));
+			   sca_in(MSCI1_OFFSET + ST0, port),
+			   sca_in(MSCI1_OFFSET + ST1, port),
+			   sca_in(MSCI1_OFFSET + ST2, port),
+			   sca_in(MSCI1_OFFSET + ST3, port));
 		return 0;
 	}
+
 #endif
+
 	if (cmd != SIOCWANDEV)
+	{
 		return hdlc_ioctl(dev, ifr, cmd);
+	}
 
-	switch(ifr->ifr_settings.type) {
-	case IF_GET_IFACE:
-		ifr->ifr_settings.type = IF_IFACE_SYNC_SERIAL;
-		if (ifr->ifr_settings.size < size) {
-			ifr->ifr_settings.size = size; /* data size wanted */
-			return -ENOBUFS;
-		}
-		if (copy_to_user(line, &port->settings, size))
-			return -EFAULT;
-		return 0;
+	switch (ifr->ifr_settings.type)
+	{
+		case IF_GET_IFACE:
+			ifr->ifr_settings.type = IF_IFACE_SYNC_SERIAL;
 
-	case IF_IFACE_SYNC_SERIAL:
-		if(!capable(CAP_NET_ADMIN))
-			return -EPERM;
+			if (ifr->ifr_settings.size < size)
+			{
+				ifr->ifr_settings.size = size; /* data size wanted */
+				return -ENOBUFS;
+			}
 
-		if (copy_from_user(&new_line, line, size))
-			return -EFAULT;
+			if (copy_to_user(line, &port->settings, size))
+			{
+				return -EFAULT;
+			}
 
-		if (new_line.clock_type != CLOCK_EXT &&
-		    new_line.clock_type != CLOCK_TXFROMRX &&
-		    new_line.clock_type != CLOCK_INT &&
-		    new_line.clock_type != CLOCK_TXINT)
-			return -EINVAL;	/* No such clock setting */
+			return 0;
 
-		if (new_line.loopback != 0 && new_line.loopback != 1)
-			return -EINVAL;
+		case IF_IFACE_SYNC_SERIAL:
+			if (!capable(CAP_NET_ADMIN))
+			{
+				return -EPERM;
+			}
 
-		memcpy(&port->settings, &new_line, size); /* Update settings */
-		c101_set_iface(port);
-		return 0;
+			if (copy_from_user(&new_line, line, size))
+			{
+				return -EFAULT;
+			}
 
-	default:
-		return hdlc_ioctl(dev, ifr, cmd);
+			if (new_line.clock_type != CLOCK_EXT &&
+				new_line.clock_type != CLOCK_TXFROMRX &&
+				new_line.clock_type != CLOCK_INT &&
+				new_line.clock_type != CLOCK_TXINT)
+			{
+				return -EINVAL;    /* No such clock setting */
+			}
+
+			if (new_line.loopback != 0 && new_line.loopback != 1)
+			{
+				return -EINVAL;
+			}
+
+			memcpy(&port->settings, &new_line, size); /* Update settings */
+			c101_set_iface(port);
+			return 0;
+
+		default:
+			return hdlc_ioctl(dev, ifr, cmd);
 	}
 }
 
@@ -287,9 +320,12 @@ static void c101_destroy_card(card_t *card)
 	readb(card->win0base + C101_PAGE); /* Resets SCA? */
 
 	if (card->irq)
+	{
 		free_irq(card->irq, card);
+	}
 
-	if (card->win0base) {
+	if (card->win0base)
+	{
 		iounmap(card->win0base);
 		release_mem_region(card->phy_winbase, C101_MAPPED_RAM_SIZE);
 	}
@@ -299,7 +335,8 @@ static void c101_destroy_card(card_t *card)
 	kfree(card);
 }
 
-static const struct net_device_ops c101_ops = {
+static const struct net_device_ops c101_ops =
+{
 	.ndo_open       = c101_open,
 	.ndo_stop       = c101_close,
 	.ndo_change_mtu = hdlc_change_mtu,
@@ -314,42 +351,55 @@ static int __init c101_run(unsigned long irq, unsigned long winbase)
 	card_t *card;
 	int result;
 
-	if (irq<3 || irq>15 || irq == 6) /* FIXME */ {
+	if (irq < 3 || irq > 15 || irq == 6) /* FIXME */
+	{
 		pr_err("invalid IRQ value\n");
 		return -ENODEV;
 	}
 
-	if (winbase < 0xC0000 || winbase > 0xDFFFF || (winbase & 0x3FFF) !=0) {
+	if (winbase < 0xC0000 || winbase > 0xDFFFF || (winbase & 0x3FFF) != 0)
+	{
 		pr_err("invalid RAM value\n");
 		return -ENODEV;
 	}
 
 	card = kzalloc(sizeof(card_t), GFP_KERNEL);
+
 	if (card == NULL)
+	{
 		return -ENOBUFS;
+	}
 
 	card->dev = alloc_hdlcdev(card);
-	if (!card->dev) {
+
+	if (!card->dev)
+	{
 		pr_err("unable to allocate memory\n");
 		kfree(card);
 		return -ENOBUFS;
 	}
 
-	if (request_irq(irq, sca_intr, 0, devname, card)) {
+	if (request_irq(irq, sca_intr, 0, devname, card))
+	{
 		pr_err("could not allocate IRQ\n");
 		c101_destroy_card(card);
 		return -EBUSY;
 	}
+
 	card->irq = irq;
 
-	if (!request_mem_region(winbase, C101_MAPPED_RAM_SIZE, devname)) {
+	if (!request_mem_region(winbase, C101_MAPPED_RAM_SIZE, devname))
+	{
 		pr_err("could not request RAM window\n");
 		c101_destroy_card(card);
 		return -EBUSY;
 	}
+
 	card->phy_winbase = winbase;
 	card->win0base = ioremap(winbase, C101_MAPPED_RAM_SIZE);
-	if (!card->win0base) {
+
+	if (!card->win0base)
+	{
 		pr_err("could not map I/O address\n");
 		c101_destroy_card(card);
 		return -EFAULT;
@@ -380,7 +430,9 @@ static int __init c101_run(unsigned long irq, unsigned long winbase)
 	card->settings.clock_type = CLOCK_EXT;
 
 	result = register_hdlc_device(dev);
-	if (result) {
+
+	if (result)
+	{
 		pr_warn("unable to register hdlc device\n");
 		c101_destroy_card(card);
 		return result;
@@ -390,7 +442,7 @@ static int __init c101_run(unsigned long irq, unsigned long winbase)
 	set_carrier(card);
 
 	netdev_info(dev, "Moxa C101 on IRQ%u, using %u TX + %u RX packets rings\n",
-		    card->irq, card->tx_ring_buffers, card->rx_ring_buffers);
+				card->irq, card->tx_ring_buffers, card->rx_ring_buffers);
 
 	*new_card = card;
 	new_card = &card->next_card;
@@ -401,7 +453,8 @@ static int __init c101_run(unsigned long irq, unsigned long winbase)
 
 static int __init c101_init(void)
 {
-	if (hw == NULL) {
+	if (hw == NULL)
+	{
 #ifdef MODULE
 		pr_info("no card initialized\n");
 #endif
@@ -410,21 +463,30 @@ static int __init c101_init(void)
 
 	pr_info("%s\n", version);
 
-	do {
+	do
+	{
 		unsigned long irq, ram;
 
 		irq = simple_strtoul(hw, &hw, 0);
 
 		if (*hw++ != ',')
+		{
 			break;
+		}
+
 		ram = simple_strtoul(hw, &hw, 0);
 
 		if (*hw == ':' || *hw == '\x0')
+		{
 			c101_run(irq, ram);
+		}
 
 		if (*hw == '\x0')
+		{
 			return first_card ? 0 : -EINVAL;
-	}while(*hw++ == ':');
+		}
+	}
+	while (*hw++ == ':');
 
 	pr_err("invalid hardware parameters\n");
 	return first_card ? 0 : -EINVAL;
@@ -435,7 +497,8 @@ static void __exit c101_cleanup(void)
 {
 	card_t *card = first_card;
 
-	while (card) {
+	while (card)
+	{
 		card_t *ptr = card;
 		card = card->next_card;
 		unregister_hdlc_device(port_to_dev(ptr));

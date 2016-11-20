@@ -18,14 +18,14 @@
 enum
 {
 	IPSTATS_MIB_NUM = 0,
-/* frequently written fields in fast path, kept in same cache line */
+	/* frequently written fields in fast path, kept in same cache line */
 	IPSTATS_MIB_INPKTS,			/* InReceives */
 	IPSTATS_MIB_INOCTETS,			/* InOctets */
 	IPSTATS_MIB_INDELIVERS,			/* InDelivers */
 	IPSTATS_MIB_OUTFORWDATAGRAMS,		/* OutForwDatagrams */
 	IPSTATS_MIB_OUTPKTS,			/* OutRequests */
 	IPSTATS_MIB_OUTOCTETS,			/* OutOctets */
-/* other fields */
+	/* other fields */
 	IPSTATS_MIB_INHDRERRORS,		/* InHdrErrors */
 	IPSTATS_MIB_INTOOBIGERRORS,		/* InTooBigErrors */
 	IPSTATS_MIB_INNOROUTES,			/* InNoRoutes */

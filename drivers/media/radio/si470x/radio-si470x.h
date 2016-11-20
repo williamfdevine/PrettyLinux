@@ -143,7 +143,8 @@
 /*
  * si470x_device - private data
  */
-struct si470x_device {
+struct si470x_device
+{
 	struct v4l2_device v4l2_dev;
 	struct video_device videodev;
 	struct v4l2_ctrl_handler hdl;
@@ -224,4 +225,4 @@ int si470x_stop(struct si470x_device *radio);
 int si470x_fops_open(struct file *file);
 int si470x_fops_release(struct file *file);
 int si470x_vidioc_querycap(struct file *file, void *priv,
-		struct v4l2_capability *capability);
+						   struct v4l2_capability *capability);

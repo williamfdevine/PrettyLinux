@@ -58,14 +58,16 @@
 #define EX_PIN_CONTROL_MASK		(0x71)
 #define EX_PIN_ENABLE_MASK		(0x70)
 
-enum lm3642_mode {
+enum lm3642_mode
+{
 	MODES_STASNDBY = 0,
 	MODES_INDIC,
 	MODES_TORCH,
 	MODES_FLASH
 };
 
-struct lm3642_chip_data {
+struct lm3642_chip_data
+{
 	struct device *dev;
 
 	struct led_classdev cdev_flash;
@@ -95,74 +97,95 @@ static int lm3642_chip_init(struct lm3642_chip_data *chip)
 
 	/* set enable register */
 	ret = regmap_update_bits(chip->regmap, REG_ENABLE, EX_PIN_ENABLE_MASK,
-				 pdata->tx_pin);
+							 pdata->tx_pin);
+
 	if (ret < 0)
+	{
 		dev_err(chip->dev, "Failed to update REG_ENABLE Register\n");
+	}
+
 	return ret;
 }
 
 /* chip control */
 static int lm3642_control(struct lm3642_chip_data *chip,
-			  u8 brightness, enum lm3642_mode opmode)
+						  u8 brightness, enum lm3642_mode opmode)
 {
 	int ret;
 
 	ret = regmap_read(chip->regmap, REG_FLAG, &chip->last_flag);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(chip->dev, "Failed to read REG_FLAG Register\n");
 		goto out;
 	}
 
 	if (chip->last_flag)
+	{
 		dev_info(chip->dev, "Last FLAG is 0x%x\n", chip->last_flag);
+	}
 
 	/* brightness 0 means off-state */
 	if (!brightness)
+	{
 		opmode = MODES_STASNDBY;
-
-	switch (opmode) {
-	case MODES_TORCH:
-		ret = regmap_update_bits(chip->regmap, REG_I_CTRL,
-					 TORCH_I_MASK << TORCH_I_SHIFT,
-					 (brightness - 1) << TORCH_I_SHIFT);
-
-		if (chip->torch_pin)
-			opmode |= (TORCH_PIN_EN_MASK << TORCH_PIN_EN_SHIFT);
-		break;
-
-	case MODES_FLASH:
-		ret = regmap_update_bits(chip->regmap, REG_I_CTRL,
-					 FLASH_I_MASK << FLASH_I_SHIFT,
-					 (brightness - 1) << FLASH_I_SHIFT);
-
-		if (chip->strobe_pin)
-			opmode |= (STROBE_PIN_EN_MASK << STROBE_PIN_EN_SHIFT);
-		break;
-
-	case MODES_INDIC:
-		ret = regmap_update_bits(chip->regmap, REG_I_CTRL,
-					 TORCH_I_MASK << TORCH_I_SHIFT,
-					 (brightness - 1) << TORCH_I_SHIFT);
-		break;
-
-	case MODES_STASNDBY:
-
-		break;
-
-	default:
-		return ret;
 	}
-	if (ret < 0) {
+
+	switch (opmode)
+	{
+		case MODES_TORCH:
+			ret = regmap_update_bits(chip->regmap, REG_I_CTRL,
+									 TORCH_I_MASK << TORCH_I_SHIFT,
+									 (brightness - 1) << TORCH_I_SHIFT);
+
+			if (chip->torch_pin)
+			{
+				opmode |= (TORCH_PIN_EN_MASK << TORCH_PIN_EN_SHIFT);
+			}
+
+			break;
+
+		case MODES_FLASH:
+			ret = regmap_update_bits(chip->regmap, REG_I_CTRL,
+									 FLASH_I_MASK << FLASH_I_SHIFT,
+									 (brightness - 1) << FLASH_I_SHIFT);
+
+			if (chip->strobe_pin)
+			{
+				opmode |= (STROBE_PIN_EN_MASK << STROBE_PIN_EN_SHIFT);
+			}
+
+			break;
+
+		case MODES_INDIC:
+			ret = regmap_update_bits(chip->regmap, REG_I_CTRL,
+									 TORCH_I_MASK << TORCH_I_SHIFT,
+									 (brightness - 1) << TORCH_I_SHIFT);
+			break;
+
+		case MODES_STASNDBY:
+
+			break;
+
+		default:
+			return ret;
+	}
+
+	if (ret < 0)
+	{
 		dev_err(chip->dev, "Failed to write REG_I_CTRL Register\n");
 		goto out;
 	}
 
 	if (chip->tx_pin)
+	{
 		opmode |= (TX_PIN_EN_MASK << TX_PIN_EN_SHIFT);
+	}
 
 	ret = regmap_update_bits(chip->regmap, REG_ENABLE,
-				 MODE_BITS_MASK << MODE_BITS_SHIFT,
-				 opmode << MODE_BITS_SHIFT);
+							 MODE_BITS_MASK << MODE_BITS_SHIFT,
+							 opmode << MODE_BITS_SHIFT);
 out:
 	return ret;
 }
@@ -171,27 +194,36 @@ out:
 
 /* torch pin config for lm3642*/
 static ssize_t lm3642_torch_pin_store(struct device *dev,
-				      struct device_attribute *attr,
-				      const char *buf, size_t size)
+									  struct device_attribute *attr,
+									  const char *buf, size_t size)
 {
 	ssize_t ret;
 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
 	struct lm3642_chip_data *chip =
-	    container_of(led_cdev, struct lm3642_chip_data, cdev_indicator);
+		container_of(led_cdev, struct lm3642_chip_data, cdev_indicator);
 	unsigned int state;
 
 	ret = kstrtouint(buf, 10, &state);
+
 	if (ret)
+	{
 		goto out_strtoint;
+	}
+
 	if (state != 0)
+	{
 		state = 0x01 << TORCH_PIN_EN_SHIFT;
+	}
 
 	chip->torch_pin = state;
 	ret = regmap_update_bits(chip->regmap, REG_ENABLE,
-				 TORCH_PIN_EN_MASK << TORCH_PIN_EN_SHIFT,
-				 state);
+							 TORCH_PIN_EN_MASK << TORCH_PIN_EN_SHIFT,
+							 state);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	return size;
 out:
@@ -205,10 +237,10 @@ out_strtoint:
 static DEVICE_ATTR(torch_pin, S_IWUSR, NULL, lm3642_torch_pin_store);
 
 static int lm3642_torch_brightness_set(struct led_classdev *cdev,
-					enum led_brightness brightness)
+									   enum led_brightness brightness)
 {
 	struct lm3642_chip_data *chip =
-	    container_of(cdev, struct lm3642_chip_data, cdev_torch);
+		container_of(cdev, struct lm3642_chip_data, cdev_torch);
 	int ret;
 
 	mutex_lock(&chip->lock);
@@ -222,27 +254,36 @@ static int lm3642_torch_brightness_set(struct led_classdev *cdev,
 
 /* strobe pin config for lm3642*/
 static ssize_t lm3642_strobe_pin_store(struct device *dev,
-				       struct device_attribute *attr,
-				       const char *buf, size_t size)
+									   struct device_attribute *attr,
+									   const char *buf, size_t size)
 {
 	ssize_t ret;
 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
 	struct lm3642_chip_data *chip =
-	    container_of(led_cdev, struct lm3642_chip_data, cdev_indicator);
+		container_of(led_cdev, struct lm3642_chip_data, cdev_indicator);
 	unsigned int state;
 
 	ret = kstrtouint(buf, 10, &state);
+
 	if (ret)
+	{
 		goto out_strtoint;
+	}
+
 	if (state != 0)
+	{
 		state = 0x01 << STROBE_PIN_EN_SHIFT;
+	}
 
 	chip->strobe_pin = state;
 	ret = regmap_update_bits(chip->regmap, REG_ENABLE,
-				 STROBE_PIN_EN_MASK << STROBE_PIN_EN_SHIFT,
-				 state);
+							 STROBE_PIN_EN_MASK << STROBE_PIN_EN_SHIFT,
+							 state);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	return size;
 out:
@@ -256,10 +297,10 @@ out_strtoint:
 static DEVICE_ATTR(strobe_pin, S_IWUSR, NULL, lm3642_strobe_pin_store);
 
 static int lm3642_strobe_brightness_set(struct led_classdev *cdev,
-					 enum led_brightness brightness)
+										enum led_brightness brightness)
 {
 	struct lm3642_chip_data *chip =
-	    container_of(cdev, struct lm3642_chip_data, cdev_flash);
+		container_of(cdev, struct lm3642_chip_data, cdev_flash);
 	int ret;
 
 	mutex_lock(&chip->lock);
@@ -271,10 +312,10 @@ static int lm3642_strobe_brightness_set(struct led_classdev *cdev,
 
 /* indicator */
 static int lm3642_indicator_brightness_set(struct led_classdev *cdev,
-					    enum led_brightness brightness)
+		enum led_brightness brightness)
 {
 	struct lm3642_chip_data *chip =
-	    container_of(cdev, struct lm3642_chip_data, cdev_indicator);
+		container_of(cdev, struct lm3642_chip_data, cdev_indicator);
 	int ret;
 
 	mutex_lock(&chip->lock);
@@ -284,46 +325,54 @@ static int lm3642_indicator_brightness_set(struct led_classdev *cdev,
 	return ret;
 }
 
-static const struct regmap_config lm3642_regmap = {
+static const struct regmap_config lm3642_regmap =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 	.max_register = REG_MAX,
 };
 
-static struct attribute *lm3642_flash_attrs[] = {
+static struct attribute *lm3642_flash_attrs[] =
+{
 	&dev_attr_strobe_pin.attr,
 	NULL
 };
 ATTRIBUTE_GROUPS(lm3642_flash);
 
-static struct attribute *lm3642_torch_attrs[] = {
+static struct attribute *lm3642_torch_attrs[] =
+{
 	&dev_attr_torch_pin.attr,
 	NULL
 };
 ATTRIBUTE_GROUPS(lm3642_torch);
 
 static int lm3642_probe(struct i2c_client *client,
-				  const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	struct lm3642_platform_data *pdata = dev_get_platdata(&client->dev);
 	struct lm3642_chip_data *chip;
 
 	int err;
 
-	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+	{
 		dev_err(&client->dev, "i2c functionality check fail.\n");
 		return -EOPNOTSUPP;
 	}
 
-	if (pdata == NULL) {
+	if (pdata == NULL)
+	{
 		dev_err(&client->dev, "needs Platform Data.\n");
 		return -ENODATA;
 	}
 
 	chip = devm_kzalloc(&client->dev,
-			    sizeof(struct lm3642_chip_data), GFP_KERNEL);
+						sizeof(struct lm3642_chip_data), GFP_KERNEL);
+
 	if (!chip)
+	{
 		return -ENOMEM;
+	}
 
 	chip->dev = &client->dev;
 	chip->pdata = pdata;
@@ -333,10 +382,12 @@ static int lm3642_probe(struct i2c_client *client,
 	chip->strobe_pin = pdata->strobe_pin;
 
 	chip->regmap = devm_regmap_init_i2c(client, &lm3642_regmap);
-	if (IS_ERR(chip->regmap)) {
+
+	if (IS_ERR(chip->regmap))
+	{
 		err = PTR_ERR(chip->regmap);
 		dev_err(&client->dev, "Failed to allocate register map: %d\n",
-			err);
+				err);
 		return err;
 	}
 
@@ -344,8 +395,11 @@ static int lm3642_probe(struct i2c_client *client,
 	i2c_set_clientdata(client, chip);
 
 	err = lm3642_chip_init(chip);
+
 	if (err < 0)
+	{
 		goto err_out;
+	}
 
 	/* flash */
 	chip->cdev_flash.name = "flash";
@@ -353,9 +407,11 @@ static int lm3642_probe(struct i2c_client *client,
 	chip->cdev_flash.brightness_set_blocking = lm3642_strobe_brightness_set;
 	chip->cdev_flash.default_trigger = "flash";
 	chip->cdev_flash.groups = lm3642_flash_groups,
-	err = led_classdev_register((struct device *)
-				    &client->dev, &chip->cdev_flash);
-	if (err < 0) {
+					 err = led_classdev_register((struct device *)
+							 &client->dev, &chip->cdev_flash);
+
+	if (err < 0)
+	{
 		dev_err(chip->dev, "failed to register flash\n");
 		goto err_out;
 	}
@@ -366,9 +422,11 @@ static int lm3642_probe(struct i2c_client *client,
 	chip->cdev_torch.brightness_set_blocking = lm3642_torch_brightness_set;
 	chip->cdev_torch.default_trigger = "torch";
 	chip->cdev_torch.groups = lm3642_torch_groups,
-	err = led_classdev_register((struct device *)
-				    &client->dev, &chip->cdev_torch);
-	if (err < 0) {
+					 err = led_classdev_register((struct device *)
+							 &client->dev, &chip->cdev_torch);
+
+	if (err < 0)
+	{
 		dev_err(chip->dev, "failed to register torch\n");
 		goto err_create_torch_file;
 	}
@@ -377,10 +435,12 @@ static int lm3642_probe(struct i2c_client *client,
 	chip->cdev_indicator.name = "indicator";
 	chip->cdev_indicator.max_brightness = 8;
 	chip->cdev_indicator.brightness_set_blocking =
-						lm3642_indicator_brightness_set;
+		lm3642_indicator_brightness_set;
 	err = led_classdev_register((struct device *)
-				    &client->dev, &chip->cdev_indicator);
-	if (err < 0) {
+								&client->dev, &chip->cdev_indicator);
+
+	if (err < 0)
+	{
 		dev_err(chip->dev, "failed to register indicator\n");
 		goto err_create_indicator_file;
 	}
@@ -407,18 +467,20 @@ static int lm3642_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id lm3642_id[] = {
+static const struct i2c_device_id lm3642_id[] =
+{
 	{LM3642_NAME, 0},
 	{}
 };
 
 MODULE_DEVICE_TABLE(i2c, lm3642_id);
 
-static struct i2c_driver lm3642_i2c_driver = {
+static struct i2c_driver lm3642_i2c_driver =
+{
 	.driver = {
-		   .name = LM3642_NAME,
-		   .pm = NULL,
-		   },
+		.name = LM3642_NAME,
+		.pm = NULL,
+	},
 	.probe = lm3642_probe,
 	.remove = lm3642_remove,
 	.id_table = lm3642_id,

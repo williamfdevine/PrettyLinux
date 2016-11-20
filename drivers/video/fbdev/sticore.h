@@ -4,9 +4,9 @@
 /* generic STI structures & functions */
 
 #if 0
-#define DPRINTK(x)	printk x
+	#define DPRINTK(x)	printk x
 #else
-#define DPRINTK(x) 
+	#define DPRINTK(x)
 #endif
 
 #define MAX_STI_ROMS 4		/* max no. of ROMs which this driver handles */
@@ -32,11 +32,11 @@
  *
  * Probably the best solution to all this is have the generic code manage
  * the screen buffer and a kernel thread to call STI occasionally.
- * 
+ *
  * Luckily, the frame buffer guys have the same problem so we can just wait
  * for them to fix it and steal their solution.   prumpf
  */
- 
+
 #include <asm/io.h>
 
 #define STI_WAIT 1
@@ -52,16 +52,18 @@
 #define sti_font_y(sti) (PTR_STI(sti->font)->height)
 
 #ifdef CONFIG_64BIT
-#define STI_LOWMEM	(GFP_KERNEL | GFP_DMA)
+	#define STI_LOWMEM	(GFP_KERNEL | GFP_DMA)
 #else
-#define STI_LOWMEM	(GFP_KERNEL)
+	#define STI_LOWMEM	(GFP_KERNEL)
 #endif
 
 
 /* STI function configuration structs */
 
-typedef union region {
-	struct { 
+typedef union region
+{
+	struct
+	{
 		u32 offset	: 14;	/* offset in 4kbyte page */
 		u32 sys_only	: 1;	/* don't map to user space */
 		u32 cache	: 1;	/* map to data cache */
@@ -76,16 +78,18 @@ typedef union region {
 #define REGION_OFFSET_TO_PHYS( rt, hpa ) \
 	(((rt).region_desc.offset << 12) + (hpa))
 
-struct sti_glob_cfg_ext {
-	 u8 curr_mon;			/* current monitor configured */
-	 u8 friendly_boot;		/* in friendly boot mode */
+struct sti_glob_cfg_ext
+{
+	u8 curr_mon;			/* current monitor configured */
+	u8 friendly_boot;		/* in friendly boot mode */
 	s16 power;			/* power calculation (in Watts) */
 	s32 freq_ref;			/* frequency reference */
 	u32 sti_mem_addr;		/* pointer to global sti memory (size=sti_mem_request) */
 	u32 future_ptr; 		/* pointer to future data */
 };
 
-struct sti_glob_cfg {
+struct sti_glob_cfg
+{
 	s32 text_planes;		/* number of planes used for text */
 	s16 onscreen_x;			/* screen width in pixels */
 	s16 onscreen_y;			/* screen height in pixels */
@@ -102,7 +106,8 @@ struct sti_glob_cfg {
 
 /* STI init function structs */
 
-struct sti_init_flags {
+struct sti_init_flags
+{
 	u32 wait : 1;		/* should routine idle wait or not */
 	u32 reset : 1;		/* hard reset the device? */
 	u32 text : 1;		/* turn on text display planes? */
@@ -125,20 +130,23 @@ struct sti_init_flags {
 	u32 future_ptr; 	/* pointer to future data */
 };
 
-struct sti_init_inptr_ext {
+struct sti_init_inptr_ext
+{
 	u8  config_mon_type;	/* configure to monitor type */
 	u8  pad[1];		/* pad to word boundary */
 	u16 inflight_data;	/* inflight data possible on PCI */
 	u32 future_ptr; 	/* pointer to future data */
 };
 
-struct sti_init_inptr {
+struct sti_init_inptr
+{
 	s32 text_planes;	/* number of planes to use for text */
 	u32 ext_ptr;		/* pointer to extended init_graph inptr data structure*/
 };
 
 
-struct sti_init_outptr {
+struct sti_init_outptr
+{
 	s32 errno;		/* error number on failure */
 	s32 text_planes;	/* number of planes used for text */
 	u32 future_ptr; 	/* pointer to future data */
@@ -148,23 +156,27 @@ struct sti_init_outptr {
 
 /* STI configuration function structs */
 
-struct sti_conf_flags {
+struct sti_conf_flags
+{
 	u32 wait : 1;		/* should routine idle wait or not */
 	u32 pad : 31;		/* pad to word boundary */
 	u32 future_ptr; 	/* pointer to future data */
 };
 
-struct sti_conf_inptr {
+struct sti_conf_inptr
+{
 	u32 future_ptr; 	/* pointer to future data */
 };
 
-struct sti_conf_outptr_ext {
-	u32 crt_config[3];	/* hardware specific X11/OGL information */	
+struct sti_conf_outptr_ext
+{
+	u32 crt_config[3];	/* hardware specific X11/OGL information */
 	u32 crt_hdw[3];
 	u32 future_ptr;
 };
 
-struct sti_conf_outptr {
+struct sti_conf_outptr
+{
 	s32 errno;		/* error number on failure */
 	s16 onscreen_x;		/* screen width in pixels */
 	s16 onscreen_y;		/* screen height in pixels */
@@ -175,16 +187,17 @@ struct sti_conf_outptr {
 	s32 bits_per_pixel;	/* bits/pixel device has configured */
 	s32 bits_used;		/* bits which can be accessed */
 	s32 planes;		/* number of fb planes in system */
-	 u8 dev_name[STI_DEV_NAME_LENGTH]; /* null terminated product name */
+	u8 dev_name[STI_DEV_NAME_LENGTH]; /* null terminated product name */
 	u32 attributes;		/* flags denoting attributes */
 	u32 ext_ptr;		/* pointer to future data */
 };
 
-struct sti_rom {
-	 u8 type[4];
-	 u8 res004;
-	 u8 num_mons;
-	 u8 revno[2];
+struct sti_rom
+{
+	u8 type[4];
+	u8 res004;
+	u8 num_mons;
+	u8 revno[2];
 	u32 graphics_id[2];
 
 	u32 font_start;
@@ -200,10 +213,10 @@ struct sti_rom {
 
 	u32 user_data_size;
 	u16 power;
-	 u8 bus_support;
-	 u8 ext_bus_support;
-	 u8 alt_code_type;
-	 u8 ext_dd_struct[3];
+	u8 bus_support;
+	u8 ext_bus_support;
+	u8 alt_code_type;
+	u8 ext_dd_struct[3];
 	u32 cfb_addr;
 
 	u32 init_graph;
@@ -215,8 +228,8 @@ struct sti_rom {
 	u32 inq_conf;
 	u32 set_cm_entry;
 	u32 dma_ctrl;
-	 u8 res040[7 * 4];
-	
+	u8 res040[7 * 4];
+
 	u32 init_graph_addr;
 	u32 state_mgmt_addr;
 	u32 font_unp_addr;
@@ -229,34 +242,38 @@ struct sti_rom {
 	u32 pa_risx_addrs[7];
 };
 
-struct sti_rom_font {
+struct sti_rom_font
+{
 	u16 first_char;
 	u16 last_char;
-	 u8 width;
-	 u8 height;
-	 u8 font_type;		/* language type */
-	 u8 bytes_per_char;
+	u8 width;
+	u8 height;
+	u8 font_type;		/* language type */
+	u8 bytes_per_char;
 	u32 next_font;
-	 u8 underline_height;
-	 u8 underline_pos;
-	 u8 res008[2];
+	u8 underline_height;
+	u8 underline_pos;
+	u8 res008[2];
 };
 
 /* sticore internal font handling */
 
-struct sti_cooked_font {
-        struct sti_rom_font *raw;
+struct sti_cooked_font
+{
+	struct sti_rom_font *raw;
 	struct sti_cooked_font *next_font;
 };
 
-struct sti_cooked_rom {
-        struct sti_rom *raw;
+struct sti_cooked_rom
+{
+	struct sti_rom *raw;
 	struct sti_cooked_font *font_start;
 };
 
 /* STI font printing function structs */
 
-struct sti_font_inptr {
+struct sti_font_inptr
+{
 	u32 font_start_addr;	/* address of font start */
 	s16 index;		/* index into font table of character */
 	u8 fg_color;		/* foreground color of character */
@@ -266,21 +283,24 @@ struct sti_font_inptr {
 	u32 future_ptr; 	/* pointer to future data */
 };
 
-struct sti_font_flags {
+struct sti_font_flags
+{
 	u32 wait : 1;		/* should routine idle wait or not */
 	u32 non_text : 1;	/* font unpack/move in non_text planes =1, text =0 */
 	u32 pad : 30;		/* pad to word boundary */
 	u32 future_ptr; 	/* pointer to future data */
 };
-	
-struct sti_font_outptr {
+
+struct sti_font_outptr
+{
 	s32 errno;		/* error number on failure */
 	u32 future_ptr; 	/* pointer to future data */
 };
 
 /* STI blockmove structs */
 
-struct sti_blkmv_flags {
+struct sti_blkmv_flags
+{
 	u32 wait : 1;		/* should routine idle wait or not */
 	u32 color : 1;		/* change color during move? */
 	u32 clear : 1;		/* clear during move? */
@@ -289,7 +309,8 @@ struct sti_blkmv_flags {
 	u32 future_ptr; 	/* pointer to future data */
 };
 
-struct sti_blkmv_inptr {
+struct sti_blkmv_inptr
+{
 	u8 fg_color;		/* foreground color after move */
 	u8 bg_color;		/* background color after move */
 	s16 src_x;		/* source upper left pixel x location */
@@ -301,7 +322,8 @@ struct sti_blkmv_inptr {
 	u32 future_ptr; 	/* pointer to future data */
 };
 
-struct sti_blkmv_outptr {
+struct sti_blkmv_outptr
+{
 	s32 errno;		/* error number on failure */
 	u32 future_ptr; 	/* pointer to future data */
 };
@@ -310,7 +332,8 @@ struct sti_blkmv_outptr {
 /* sti_all_data is an internal struct which needs to be allocated in
  * low memory (< 4GB) if STI is used with 32bit STI on a 64bit kernel */
 
-struct sti_all_data {
+struct sti_all_data
+{
 	struct sti_glob_cfg glob_cfg;
 	struct sti_glob_cfg_ext glob_cfg_ext;
 
@@ -330,18 +353,19 @@ struct sti_all_data {
 
 	/* leave as last entries */
 	unsigned long save_addr[1024 / sizeof(unsigned long)];
-	   /* min 256 bytes which is STI default, max sti->sti_mem_request */
+	/* min 256 bytes which is STI default, max sti->sti_mem_request */
 	unsigned long sti_mem_addr[256 / sizeof(unsigned long)];
 	/* do not add something below here ! */
 };
 
 /* internal generic STI struct */
 
-struct sti_struct {
+struct sti_struct
+{
 	spinlock_t lock;
-		
+
 	/* the following fields needs to be filled in by the word/byte routines */
-	int font_width;	
+	int font_width;
 	int font_height;
 	/* char **mon_strings; */
 	int sti_mem_request;
@@ -384,18 +408,18 @@ struct sti_struct *sti_get_rom(unsigned int index); /* 0: default sti */
 /* sticore main function to call STI firmware */
 
 int sti_call(const struct sti_struct *sti, unsigned long func,
-		const void *flags, void *inptr, void *outptr,
-		struct sti_glob_cfg *glob_cfg);
+			 const void *flags, void *inptr, void *outptr,
+			 struct sti_glob_cfg *glob_cfg);
 
 
 /* functions to call the STI ROM directly */
 
 void sti_putc(struct sti_struct *sti, int c, int y, int x);
 void sti_set(struct sti_struct *sti, int src_y, int src_x,
-	     int height, int width, u8 color);
+			 int height, int width, u8 color);
 void sti_clear(struct sti_struct *sti, int src_y, int src_x,
-	       int height, int width, int c);
+			   int height, int width, int c);
 void sti_bmove(struct sti_struct *sti, int src_y, int src_x,
-	       int dst_y, int dst_x, int height, int width);
+			   int dst_y, int dst_x, int height, int width);
 
 #endif	/* STICORE_H */

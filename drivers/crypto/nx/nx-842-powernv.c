@@ -32,7 +32,8 @@ MODULE_ALIAS_CRYPTO("842-nx");
 #define WORKMEM_ALIGN	(CRB_ALIGN)
 #define CSB_WAIT_MAX	(5000) /* ms */
 
-struct nx842_workmem {
+struct nx842_workmem
+{
 	/* Below fields must be properly aligned */
 	struct coprocessor_request_block crb; /* CRB_ALIGN align */
 	struct data_descriptor_entry ddl_in[DDL_LEN_MAX]; /* DDE_ALIGN align */
@@ -44,7 +45,8 @@ struct nx842_workmem {
 	char padding[WORKMEM_ALIGN]; /* unused, to allow alignment */
 } __packed __aligned(WORKMEM_ALIGN);
 
-struct nx842_coproc {
+struct nx842_coproc
+{
 	unsigned int chip_id;
 	unsigned int ct;
 	unsigned int ci;
@@ -62,8 +64,8 @@ static unsigned int nx842_ct;
  * first direct DDE in the list.
  */
 static void setup_indirect_dde(struct data_descriptor_entry *dde,
-			       struct data_descriptor_entry *ddl,
-			       unsigned int dde_count, unsigned int byte_count)
+							   struct data_descriptor_entry *ddl,
+							   unsigned int dde_count, unsigned int byte_count)
 {
 	dde->flags = 0;
 	dde->count = dde_count;
@@ -81,7 +83,7 @@ static void setup_indirect_dde(struct data_descriptor_entry *dde,
  *   N    Successfully set up DDE with N bytes
  */
 static unsigned int setup_direct_dde(struct data_descriptor_entry *dde,
-				     unsigned long pa, unsigned int len)
+									 unsigned long pa, unsigned int len)
 {
 	unsigned int l = min_t(unsigned int, len, LEN_ON_PAGE(pa));
 
@@ -101,16 +103,17 @@ static unsigned int setup_direct_dde(struct data_descriptor_entry *dde,
  *   0		Successfully set up DDL
  */
 static int setup_ddl(struct data_descriptor_entry *dde,
-		     struct data_descriptor_entry *ddl,
-		     unsigned char *buf, unsigned int len,
-		     bool in)
+					 struct data_descriptor_entry *ddl,
+					 unsigned char *buf, unsigned int len,
+					 bool in)
 {
 	unsigned long pa = nx842_get_pa(buf);
 	int i, ret, total_len = len;
 
-	if (!IS_ALIGNED(pa, DDE_BUFFER_ALIGN)) {
+	if (!IS_ALIGNED(pa, DDE_BUFFER_ALIGN))
+	{
 		pr_debug("%s buffer pa 0x%lx not 0x%x-byte aligned\n",
-			 in ? "input" : "output", pa, DDE_BUFFER_ALIGN);
+				 in ? "input" : "output", pa, DDE_BUFFER_ALIGN);
 		return -EINVAL;
 	}
 
@@ -119,36 +122,49 @@ static int setup_ddl(struct data_descriptor_entry *dde,
 	 * DDE_BUFFER_SIZE_MULT, and pre-last page DDE buffers
 	 * are guaranteed a multiple of DDE_BUFFER_SIZE_MULT.
 	 */
-	if (len % DDE_BUFFER_LAST_MULT) {
+	if (len % DDE_BUFFER_LAST_MULT)
+	{
 		pr_debug("%s buffer len 0x%x not a multiple of 0x%x\n",
-			 in ? "input" : "output", len, DDE_BUFFER_LAST_MULT);
+				 in ? "input" : "output", len, DDE_BUFFER_LAST_MULT);
+
 		if (in)
+		{
 			return -EINVAL;
+		}
+
 		len = round_down(len, DDE_BUFFER_LAST_MULT);
 	}
 
 	/* use a single direct DDE */
-	if (len <= LEN_ON_PAGE(pa)) {
+	if (len <= LEN_ON_PAGE(pa))
+	{
 		ret = setup_direct_dde(dde, pa, len);
 		WARN_ON(ret < len);
 		return 0;
 	}
 
 	/* use the DDL */
-	for (i = 0; i < DDL_LEN_MAX && len > 0; i++) {
+	for (i = 0; i < DDL_LEN_MAX && len > 0; i++)
+	{
 		ret = setup_direct_dde(&ddl[i], pa, len);
 		buf += ret;
 		len -= ret;
 		pa = nx842_get_pa(buf);
 	}
 
-	if (len > 0) {
+	if (len > 0)
+	{
 		pr_debug("0x%x total %s bytes 0x%x too many for DDL.\n",
-			 total_len, in ? "input" : "output", len);
+				 total_len, in ? "input" : "output", len);
+
 		if (in)
+		{
 			return -EMSGSIZE;
+		}
+
 		total_len -= len;
 	}
+
 	setup_indirect_dde(dde, ddl, i, total_len);
 
 	return 0;
@@ -156,199 +172,238 @@ static int setup_ddl(struct data_descriptor_entry *dde,
 
 #define CSB_ERR(csb, msg, ...)					\
 	pr_err("ERROR: " msg " : %02x %02x %02x %02x %08x\n",	\
-	       ##__VA_ARGS__, (csb)->flags,			\
-	       (csb)->cs, (csb)->cc, (csb)->ce,			\
-	       be32_to_cpu((csb)->count))
+		   ##__VA_ARGS__, (csb)->flags,			\
+		   (csb)->cs, (csb)->cc, (csb)->ce,			\
+		   be32_to_cpu((csb)->count))
 
 #define CSB_ERR_ADDR(csb, msg, ...)				\
 	CSB_ERR(csb, msg " at %lx", ##__VA_ARGS__,		\
-		(unsigned long)be64_to_cpu((csb)->address))
+			(unsigned long)be64_to_cpu((csb)->address))
 
 /**
  * wait_for_csb
  */
 static int wait_for_csb(struct nx842_workmem *wmem,
-			struct coprocessor_status_block *csb)
+						struct coprocessor_status_block *csb)
 {
 	ktime_t start = wmem->start, now = ktime_get();
 	ktime_t timeout = ktime_add_ms(start, CSB_WAIT_MAX);
 
-	while (!(ACCESS_ONCE(csb->flags) & CSB_V)) {
+	while (!(ACCESS_ONCE(csb->flags) & CSB_V))
+	{
 		cpu_relax();
 		now = ktime_get();
+
 		if (ktime_after(now, timeout))
+		{
 			break;
+		}
 	}
 
 	/* hw has updated csb and output buffer */
 	barrier();
 
 	/* check CSB flags */
-	if (!(csb->flags & CSB_V)) {
+	if (!(csb->flags & CSB_V))
+	{
 		CSB_ERR(csb, "CSB still not valid after %ld us, giving up",
-			(long)ktime_us_delta(now, start));
+				(long)ktime_us_delta(now, start));
 		return -ETIMEDOUT;
 	}
-	if (csb->flags & CSB_F) {
+
+	if (csb->flags & CSB_F)
+	{
 		CSB_ERR(csb, "Invalid CSB format");
 		return -EPROTO;
 	}
-	if (csb->flags & CSB_CH) {
+
+	if (csb->flags & CSB_CH)
+	{
 		CSB_ERR(csb, "Invalid CSB chaining state");
 		return -EPROTO;
 	}
 
 	/* verify CSB completion sequence is 0 */
-	if (csb->cs) {
+	if (csb->cs)
+	{
 		CSB_ERR(csb, "Invalid CSB completion sequence");
 		return -EPROTO;
 	}
 
 	/* check CSB Completion Code */
-	switch (csb->cc) {
-	/* no error */
-	case CSB_CC_SUCCESS:
-		break;
-	case CSB_CC_TPBC_GT_SPBC:
-		/* not an error, but the compressed data is
-		 * larger than the uncompressed data :(
-		 */
-		break;
+	switch (csb->cc)
+	{
+		/* no error */
+		case CSB_CC_SUCCESS:
+			break;
 
-	/* input data errors */
-	case CSB_CC_OPERAND_OVERLAP:
-		/* input and output buffers overlap */
-		CSB_ERR(csb, "Operand Overlap error");
-		return -EINVAL;
-	case CSB_CC_INVALID_OPERAND:
-		CSB_ERR(csb, "Invalid operand");
-		return -EINVAL;
-	case CSB_CC_NOSPC:
-		/* output buffer too small */
-		return -ENOSPC;
-	case CSB_CC_ABORT:
-		CSB_ERR(csb, "Function aborted");
-		return -EINTR;
-	case CSB_CC_CRC_MISMATCH:
-		CSB_ERR(csb, "CRC mismatch");
-		return -EINVAL;
-	case CSB_CC_TEMPL_INVALID:
-		CSB_ERR(csb, "Compressed data template invalid");
-		return -EINVAL;
-	case CSB_CC_TEMPL_OVERFLOW:
-		CSB_ERR(csb, "Compressed data template shows data past end");
-		return -EINVAL;
+		case CSB_CC_TPBC_GT_SPBC:
+			/* not an error, but the compressed data is
+			 * larger than the uncompressed data :(
+			 */
+			break;
 
-	/* these should not happen */
-	case CSB_CC_INVALID_ALIGN:
-		/* setup_ddl should have detected this */
-		CSB_ERR_ADDR(csb, "Invalid alignment");
-		return -EINVAL;
-	case CSB_CC_DATA_LENGTH:
-		/* setup_ddl should have detected this */
-		CSB_ERR(csb, "Invalid data length");
-		return -EINVAL;
-	case CSB_CC_WR_TRANSLATION:
-	case CSB_CC_TRANSLATION:
-	case CSB_CC_TRANSLATION_DUP1:
-	case CSB_CC_TRANSLATION_DUP2:
-	case CSB_CC_TRANSLATION_DUP3:
-	case CSB_CC_TRANSLATION_DUP4:
-	case CSB_CC_TRANSLATION_DUP5:
-	case CSB_CC_TRANSLATION_DUP6:
-		/* should not happen, we use physical addrs */
-		CSB_ERR_ADDR(csb, "Translation error");
-		return -EPROTO;
-	case CSB_CC_WR_PROTECTION:
-	case CSB_CC_PROTECTION:
-	case CSB_CC_PROTECTION_DUP1:
-	case CSB_CC_PROTECTION_DUP2:
-	case CSB_CC_PROTECTION_DUP3:
-	case CSB_CC_PROTECTION_DUP4:
-	case CSB_CC_PROTECTION_DUP5:
-	case CSB_CC_PROTECTION_DUP6:
-		/* should not happen, we use physical addrs */
-		CSB_ERR_ADDR(csb, "Protection error");
-		return -EPROTO;
-	case CSB_CC_PRIVILEGE:
-		/* shouldn't happen, we're in HYP mode */
-		CSB_ERR(csb, "Insufficient Privilege error");
-		return -EPROTO;
-	case CSB_CC_EXCESSIVE_DDE:
-		/* shouldn't happen, setup_ddl doesn't use many dde's */
-		CSB_ERR(csb, "Too many DDEs in DDL");
-		return -EINVAL;
-	case CSB_CC_TRANSPORT:
-		/* shouldn't happen, we setup CRB correctly */
-		CSB_ERR(csb, "Invalid CRB");
-		return -EINVAL;
-	case CSB_CC_SEGMENTED_DDL:
-		/* shouldn't happen, setup_ddl creates DDL right */
-		CSB_ERR(csb, "Segmented DDL error");
-		return -EINVAL;
-	case CSB_CC_DDE_OVERFLOW:
-		/* shouldn't happen, setup_ddl creates DDL right */
-		CSB_ERR(csb, "DDE overflow error");
-		return -EINVAL;
-	case CSB_CC_SESSION:
-		/* should not happen with ICSWX */
-		CSB_ERR(csb, "Session violation error");
-		return -EPROTO;
-	case CSB_CC_CHAIN:
-		/* should not happen, we don't use chained CRBs */
-		CSB_ERR(csb, "Chained CRB error");
-		return -EPROTO;
-	case CSB_CC_SEQUENCE:
-		/* should not happen, we don't use chained CRBs */
-		CSB_ERR(csb, "CRB seqeunce number error");
-		return -EPROTO;
-	case CSB_CC_UNKNOWN_CODE:
-		CSB_ERR(csb, "Unknown subfunction code");
-		return -EPROTO;
+		/* input data errors */
+		case CSB_CC_OPERAND_OVERLAP:
+			/* input and output buffers overlap */
+			CSB_ERR(csb, "Operand Overlap error");
+			return -EINVAL;
 
-	/* hardware errors */
-	case CSB_CC_RD_EXTERNAL:
-	case CSB_CC_RD_EXTERNAL_DUP1:
-	case CSB_CC_RD_EXTERNAL_DUP2:
-	case CSB_CC_RD_EXTERNAL_DUP3:
-		CSB_ERR_ADDR(csb, "Read error outside coprocessor");
-		return -EPROTO;
-	case CSB_CC_WR_EXTERNAL:
-		CSB_ERR_ADDR(csb, "Write error outside coprocessor");
-		return -EPROTO;
-	case CSB_CC_INTERNAL:
-		CSB_ERR(csb, "Internal error in coprocessor");
-		return -EPROTO;
-	case CSB_CC_PROVISION:
-		CSB_ERR(csb, "Storage provision error");
-		return -EPROTO;
-	case CSB_CC_HW:
-		CSB_ERR(csb, "Correctable hardware error");
-		return -EPROTO;
+		case CSB_CC_INVALID_OPERAND:
+			CSB_ERR(csb, "Invalid operand");
+			return -EINVAL;
 
-	default:
-		CSB_ERR(csb, "Invalid CC %d", csb->cc);
-		return -EPROTO;
+		case CSB_CC_NOSPC:
+			/* output buffer too small */
+			return -ENOSPC;
+
+		case CSB_CC_ABORT:
+			CSB_ERR(csb, "Function aborted");
+			return -EINTR;
+
+		case CSB_CC_CRC_MISMATCH:
+			CSB_ERR(csb, "CRC mismatch");
+			return -EINVAL;
+
+		case CSB_CC_TEMPL_INVALID:
+			CSB_ERR(csb, "Compressed data template invalid");
+			return -EINVAL;
+
+		case CSB_CC_TEMPL_OVERFLOW:
+			CSB_ERR(csb, "Compressed data template shows data past end");
+			return -EINVAL;
+
+		/* these should not happen */
+		case CSB_CC_INVALID_ALIGN:
+			/* setup_ddl should have detected this */
+			CSB_ERR_ADDR(csb, "Invalid alignment");
+			return -EINVAL;
+
+		case CSB_CC_DATA_LENGTH:
+			/* setup_ddl should have detected this */
+			CSB_ERR(csb, "Invalid data length");
+			return -EINVAL;
+
+		case CSB_CC_WR_TRANSLATION:
+		case CSB_CC_TRANSLATION:
+		case CSB_CC_TRANSLATION_DUP1:
+		case CSB_CC_TRANSLATION_DUP2:
+		case CSB_CC_TRANSLATION_DUP3:
+		case CSB_CC_TRANSLATION_DUP4:
+		case CSB_CC_TRANSLATION_DUP5:
+		case CSB_CC_TRANSLATION_DUP6:
+			/* should not happen, we use physical addrs */
+			CSB_ERR_ADDR(csb, "Translation error");
+			return -EPROTO;
+
+		case CSB_CC_WR_PROTECTION:
+		case CSB_CC_PROTECTION:
+		case CSB_CC_PROTECTION_DUP1:
+		case CSB_CC_PROTECTION_DUP2:
+		case CSB_CC_PROTECTION_DUP3:
+		case CSB_CC_PROTECTION_DUP4:
+		case CSB_CC_PROTECTION_DUP5:
+		case CSB_CC_PROTECTION_DUP6:
+			/* should not happen, we use physical addrs */
+			CSB_ERR_ADDR(csb, "Protection error");
+			return -EPROTO;
+
+		case CSB_CC_PRIVILEGE:
+			/* shouldn't happen, we're in HYP mode */
+			CSB_ERR(csb, "Insufficient Privilege error");
+			return -EPROTO;
+
+		case CSB_CC_EXCESSIVE_DDE:
+			/* shouldn't happen, setup_ddl doesn't use many dde's */
+			CSB_ERR(csb, "Too many DDEs in DDL");
+			return -EINVAL;
+
+		case CSB_CC_TRANSPORT:
+			/* shouldn't happen, we setup CRB correctly */
+			CSB_ERR(csb, "Invalid CRB");
+			return -EINVAL;
+
+		case CSB_CC_SEGMENTED_DDL:
+			/* shouldn't happen, setup_ddl creates DDL right */
+			CSB_ERR(csb, "Segmented DDL error");
+			return -EINVAL;
+
+		case CSB_CC_DDE_OVERFLOW:
+			/* shouldn't happen, setup_ddl creates DDL right */
+			CSB_ERR(csb, "DDE overflow error");
+			return -EINVAL;
+
+		case CSB_CC_SESSION:
+			/* should not happen with ICSWX */
+			CSB_ERR(csb, "Session violation error");
+			return -EPROTO;
+
+		case CSB_CC_CHAIN:
+			/* should not happen, we don't use chained CRBs */
+			CSB_ERR(csb, "Chained CRB error");
+			return -EPROTO;
+
+		case CSB_CC_SEQUENCE:
+			/* should not happen, we don't use chained CRBs */
+			CSB_ERR(csb, "CRB seqeunce number error");
+			return -EPROTO;
+
+		case CSB_CC_UNKNOWN_CODE:
+			CSB_ERR(csb, "Unknown subfunction code");
+			return -EPROTO;
+
+		/* hardware errors */
+		case CSB_CC_RD_EXTERNAL:
+		case CSB_CC_RD_EXTERNAL_DUP1:
+		case CSB_CC_RD_EXTERNAL_DUP2:
+		case CSB_CC_RD_EXTERNAL_DUP3:
+			CSB_ERR_ADDR(csb, "Read error outside coprocessor");
+			return -EPROTO;
+
+		case CSB_CC_WR_EXTERNAL:
+			CSB_ERR_ADDR(csb, "Write error outside coprocessor");
+			return -EPROTO;
+
+		case CSB_CC_INTERNAL:
+			CSB_ERR(csb, "Internal error in coprocessor");
+			return -EPROTO;
+
+		case CSB_CC_PROVISION:
+			CSB_ERR(csb, "Storage provision error");
+			return -EPROTO;
+
+		case CSB_CC_HW:
+			CSB_ERR(csb, "Correctable hardware error");
+			return -EPROTO;
+
+		default:
+			CSB_ERR(csb, "Invalid CC %d", csb->cc);
+			return -EPROTO;
 	}
 
 	/* check Completion Extension state */
-	if (csb->ce & CSB_CE_TERMINATION) {
+	if (csb->ce & CSB_CE_TERMINATION)
+	{
 		CSB_ERR(csb, "CSB request was terminated");
 		return -EPROTO;
 	}
-	if (csb->ce & CSB_CE_INCOMPLETE) {
+
+	if (csb->ce & CSB_CE_INCOMPLETE)
+	{
 		CSB_ERR(csb, "CSB request not complete");
 		return -EPROTO;
 	}
-	if (!(csb->ce & CSB_CE_TPBC)) {
+
+	if (!(csb->ce & CSB_CE_TPBC))
+	{
 		CSB_ERR(csb, "TPBC not provided, unknown target length");
 		return -EPROTO;
 	}
 
 	/* successful completion */
 	pr_debug_ratelimited("Processed %u bytes in %lu us\n",
-			     be32_to_cpu(csb->count),
-			     (unsigned long)ktime_us_delta(now, start));
+						 be32_to_cpu(csb->count),
+						 (unsigned long)ktime_us_delta(now, start));
 
 	return 0;
 }
@@ -385,8 +440,8 @@ static int wait_for_csb(struct nx842_workmem *wmem,
  *   -EINTR	operation was aborted
  */
 static int nx842_powernv_function(const unsigned char *in, unsigned int inlen,
-				  unsigned char *out, unsigned int *outlenp,
-				  void *workmem, int fc)
+								  unsigned char *out, unsigned int *outlenp,
+								  void *workmem, int fc)
 {
 	struct coprocessor_request_block *crb;
 	struct coprocessor_status_block *csb;
@@ -401,7 +456,8 @@ static int nx842_powernv_function(const unsigned char *in, unsigned int inlen,
 	*outlenp = 0;
 
 	/* shoudn't happen, we don't load without a coproc */
-	if (!nx842_ct) {
+	if (!nx842_ct)
+	{
 		pr_err_ratelimited("coprocessor CT is 0");
 		return -ENODEV;
 	}
@@ -414,13 +470,20 @@ static int nx842_powernv_function(const unsigned char *in, unsigned int inlen,
 
 	/* set up DDLs */
 	ret = setup_ddl(&crb->source, wmem->ddl_in,
-			(unsigned char *)in, inlen, true);
+					(unsigned char *)in, inlen, true);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	ret = setup_ddl(&crb->target, wmem->ddl_out,
-			out, outlen, false);
+					out, outlen, false);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* set up CCW */
 	ccw = 0;
@@ -439,8 +502,8 @@ static int nx842_powernv_function(const unsigned char *in, unsigned int inlen,
 	ret = icswx(cpu_to_be32(ccw), crb);
 
 	pr_debug_ratelimited("icswx CR %x ccw %x crb->ccw %x\n", ret,
-			     (unsigned int)ccw,
-			     (unsigned int)be32_to_cpu(crb->ccw));
+						 (unsigned int)ccw,
+						 (unsigned int)be32_to_cpu(crb->ccw));
 
 	/*
 	 * NX842 coprocessor sets 3rd bit in CR register with XER[S0].
@@ -450,22 +513,27 @@ static int nx842_powernv_function(const unsigned char *in, unsigned int inlen,
 	 */
 	ret &= ~ICSWX_XERS0;
 
-	switch (ret) {
-	case ICSWX_INITIATED:
-		ret = wait_for_csb(wmem, csb);
-		break;
-	case ICSWX_BUSY:
-		pr_debug_ratelimited("842 Coprocessor busy\n");
-		ret = -EBUSY;
-		break;
-	case ICSWX_REJECTED:
-		pr_err_ratelimited("ICSWX rejected\n");
-		ret = -EPROTO;
-		break;
+	switch (ret)
+	{
+		case ICSWX_INITIATED:
+			ret = wait_for_csb(wmem, csb);
+			break;
+
+		case ICSWX_BUSY:
+			pr_debug_ratelimited("842 Coprocessor busy\n");
+			ret = -EBUSY;
+			break;
+
+		case ICSWX_REJECTED:
+			pr_err_ratelimited("ICSWX rejected\n");
+			ret = -EPROTO;
+			break;
 	}
 
 	if (!ret)
+	{
 		*outlenp = be32_to_cpu(csb->count);
+	}
 
 	return ret;
 }
@@ -491,11 +559,11 @@ static int nx842_powernv_function(const unsigned char *in, unsigned int inlen,
  * Returns: see @nx842_powernv_function()
  */
 static int nx842_powernv_compress(const unsigned char *in, unsigned int inlen,
-				  unsigned char *out, unsigned int *outlenp,
-				  void *wmem)
+								  unsigned char *out, unsigned int *outlenp,
+								  void *wmem)
 {
 	return nx842_powernv_function(in, inlen, out, outlenp,
-				      wmem, CCW_FC_842_COMP_CRC);
+								  wmem, CCW_FC_842_COMP_CRC);
 }
 
 /**
@@ -519,11 +587,11 @@ static int nx842_powernv_compress(const unsigned char *in, unsigned int inlen,
  * Returns: see @nx842_powernv_function()
  */
 static int nx842_powernv_decompress(const unsigned char *in, unsigned int inlen,
-				    unsigned char *out, unsigned int *outlenp,
-				    void *wmem)
+									unsigned char *out, unsigned int *outlenp,
+									void *wmem)
 {
 	return nx842_powernv_function(in, inlen, out, outlenp,
-				      wmem, CCW_FC_842_DECOMP_CRC);
+								  wmem, CCW_FC_842_DECOMP_CRC);
 }
 
 static int __init nx842_powernv_probe(struct device_node *dn)
@@ -533,24 +601,31 @@ static int __init nx842_powernv_probe(struct device_node *dn)
 	int chip_id;
 
 	chip_id = of_get_ibm_chip_id(dn);
-	if (chip_id < 0) {
+
+	if (chip_id < 0)
+	{
 		pr_err("ibm,chip-id missing\n");
 		return -EINVAL;
 	}
 
-	if (of_property_read_u32(dn, "ibm,842-coprocessor-type", &ct)) {
+	if (of_property_read_u32(dn, "ibm,842-coprocessor-type", &ct))
+	{
 		pr_err("ibm,842-coprocessor-type missing\n");
 		return -EINVAL;
 	}
 
-	if (of_property_read_u32(dn, "ibm,842-coprocessor-instance", &ci)) {
+	if (of_property_read_u32(dn, "ibm,842-coprocessor-instance", &ci))
+	{
 		pr_err("ibm,842-coprocessor-instance missing\n");
 		return -EINVAL;
 	}
 
 	coproc = kmalloc(sizeof(*coproc), GFP_KERNEL);
+
 	if (!coproc)
+	{
 		return -ENOMEM;
+	}
 
 	coproc->chip_id = chip_id;
 	coproc->ct = ct;
@@ -561,22 +636,26 @@ static int __init nx842_powernv_probe(struct device_node *dn)
 	pr_info("coprocessor found on chip %d, CT %d CI %d\n", chip_id, ct, ci);
 
 	if (!nx842_ct)
+	{
 		nx842_ct = ct;
+	}
 	else if (nx842_ct != ct)
 		pr_err("NX842 chip %d, CT %d != first found CT %d\n",
-		       chip_id, ct, nx842_ct);
+			   chip_id, ct, nx842_ct);
 
 	return 0;
 }
 
-static struct nx842_constraints nx842_powernv_constraints = {
+static struct nx842_constraints nx842_powernv_constraints =
+{
 	.alignment =	DDE_BUFFER_ALIGN,
 	.multiple =	DDE_BUFFER_LAST_MULT,
 	.minimum =	DDE_BUFFER_LAST_MULT,
 	.maximum =	(DDL_LEN_MAX - 1) * PAGE_SIZE,
 };
 
-static struct nx842_driver nx842_powernv_driver = {
+static struct nx842_driver nx842_powernv_driver =
+{
 	.name =		KBUILD_MODNAME,
 	.owner =	THIS_MODULE,
 	.workmem_size =	sizeof(struct nx842_workmem),
@@ -590,7 +669,8 @@ static int nx842_powernv_crypto_init(struct crypto_tfm *tfm)
 	return nx842_crypto_init(tfm, &nx842_powernv_driver);
 }
 
-static struct crypto_alg nx842_powernv_alg = {
+static struct crypto_alg nx842_powernv_alg =
+{
 	.cra_name		= "842",
 	.cra_driver_name	= "842-nx",
 	.cra_priority		= 300,
@@ -599,9 +679,12 @@ static struct crypto_alg nx842_powernv_alg = {
 	.cra_module		= THIS_MODULE,
 	.cra_init		= nx842_powernv_crypto_init,
 	.cra_exit		= nx842_crypto_exit,
-	.cra_u			= { .compress = {
-	.coa_compress		= nx842_crypto_compress,
-	.coa_decompress		= nx842_crypto_decompress } }
+	.cra_u			= {
+		.compress = {
+			.coa_compress		= nx842_crypto_compress,
+			.coa_decompress		= nx842_crypto_decompress
+		}
+	}
 };
 
 static __init int nx842_powernv_init(void)
@@ -619,16 +702,21 @@ static __init int nx842_powernv_init(void)
 	BUILD_BUG_ON(DDE_BUFFER_SIZE_MULT % DDE_BUFFER_LAST_MULT);
 
 	for_each_compatible_node(dn, NULL, "ibm,power-nx")
-		nx842_powernv_probe(dn);
+	nx842_powernv_probe(dn);
 
 	if (!nx842_ct)
+	{
 		return -ENODEV;
+	}
 
 	ret = crypto_register_alg(&nx842_powernv_alg);
-	if (ret) {
+
+	if (ret)
+	{
 		struct nx842_coproc *coproc, *n;
 
-		list_for_each_entry_safe(coproc, n, &nx842_coprocs, list) {
+		list_for_each_entry_safe(coproc, n, &nx842_coprocs, list)
+		{
 			list_del(&coproc->list);
 			kfree(coproc);
 		}
@@ -646,7 +734,8 @@ static void __exit nx842_powernv_exit(void)
 
 	crypto_unregister_alg(&nx842_powernv_alg);
 
-	list_for_each_entry_safe(coproc, n, &nx842_coprocs, list) {
+	list_for_each_entry_safe(coproc, n, &nx842_coprocs, list)
+	{
 		list_del(&coproc->list);
 		kfree(coproc);
 	}

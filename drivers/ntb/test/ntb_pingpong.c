@@ -90,7 +90,8 @@ static unsigned long db_init = 0x7;
 module_param(db_init, ulong, 0644);
 MODULE_PARM_DESC(db_init, "Initial doorbell bits to ring on the peer");
 
-struct pp_ctx {
+struct pp_ctx
+{
 	struct ntb_dev			*ntb;
 	u64				db_bits;
 	/* synchronize access to db_bits by ping and pong */
@@ -116,24 +117,27 @@ static void pp_ping(unsigned long ctx)
 		db_mask = ntb_db_valid_mask(pp->ntb);
 		db_bits = ntb_db_read(pp->ntb);
 
-		if (db_bits) {
+		if (db_bits)
+		{
 			dev_dbg(&pp->ntb->dev,
-				"Masked pongs %#llx\n",
-				db_bits);
+					"Masked pongs %#llx\n",
+					db_bits);
 			ntb_db_clear(pp->ntb, db_bits);
 		}
 
 		db_bits = ((pp->db_bits | db_bits) << 1) & db_mask;
 
 		if (!db_bits)
+		{
 			db_bits = db_init;
+		}
 
 		spad_rd = ntb_spad_read(pp->ntb, 0);
 		spad_wr = spad_rd + 1;
 
 		dev_dbg(&pp->ntb->dev,
-			"Ping bits %#llx read %#x write %#x\n",
-			db_bits, spad_rd, spad_wr);
+				"Ping bits %#llx read %#x write %#x\n",
+				db_bits, spad_rd, spad_wr);
 
 		ntb_peer_spad_write(pp->ntb, 0, spad_wr);
 		ntb_peer_db_set(pp->ntb, db_bits);
@@ -148,10 +152,13 @@ static void pp_link_event(void *ctx)
 {
 	struct pp_ctx *pp = ctx;
 
-	if (ntb_link_is_up(pp->ntb, NULL, NULL) == 1) {
+	if (ntb_link_is_up(pp->ntb, NULL, NULL) == 1)
+	{
 		dev_dbg(&pp->ntb->dev, "link is up\n");
 		pp_ping((unsigned long)pp);
-	} else {
+	}
+	else
+	{
 		dev_dbg(&pp->ntb->dev, "link is down\n");
 		del_timer(&pp->db_timer);
 	}
@@ -175,8 +182,8 @@ static void pp_db_event(void *ctx, int vec)
 		mod_timer(&pp->db_timer, jiffies + pp->db_delay);
 
 		dev_dbg(&pp->ntb->dev,
-			"Pong vec %d bits %#llx\n",
-			vec, db_bits);
+				"Pong vec %d bits %#llx\n",
+				vec, db_bits);
 		atomic_inc(&pp->count);
 	}
 	spin_unlock_irqrestore(&pp->db_lock, irqflags);
@@ -187,51 +194,68 @@ static int pp_debugfs_setup(struct pp_ctx *pp)
 	struct pci_dev *pdev = pp->ntb->pdev;
 
 	if (!pp_debugfs_dir)
+	{
 		return -ENODEV;
+	}
 
 	pp->debugfs_node_dir = debugfs_create_dir(pci_name(pdev),
-						  pp_debugfs_dir);
+						   pp_debugfs_dir);
+
 	if (!pp->debugfs_node_dir)
+	{
 		return -ENODEV;
+	}
 
 	pp->debugfs_count = debugfs_create_atomic_t("count", S_IRUSR | S_IWUSR,
-						    pp->debugfs_node_dir,
-						    &pp->count);
+						pp->debugfs_node_dir,
+						&pp->count);
+
 	if (!pp->debugfs_count)
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 }
 
-static const struct ntb_ctx_ops pp_ops = {
+static const struct ntb_ctx_ops pp_ops =
+{
 	.link_event = pp_link_event,
 	.db_event = pp_db_event,
 };
 
 static int pp_probe(struct ntb_client *client,
-		    struct ntb_dev *ntb)
+					struct ntb_dev *ntb)
 {
 	struct pp_ctx *pp;
 	int rc;
 
-	if (ntb_db_is_unsafe(ntb)) {
+	if (ntb_db_is_unsafe(ntb))
+	{
 		dev_dbg(&ntb->dev, "doorbell is unsafe\n");
-		if (!unsafe) {
+
+		if (!unsafe)
+		{
 			rc = -EINVAL;
 			goto err_pp;
 		}
 	}
 
-	if (ntb_spad_is_unsafe(ntb)) {
+	if (ntb_spad_is_unsafe(ntb))
+	{
 		dev_dbg(&ntb->dev, "scratchpad is unsafe\n");
-		if (!unsafe) {
+
+		if (!unsafe)
+		{
 			rc = -EINVAL;
 			goto err_pp;
 		}
 	}
 
 	pp = kmalloc(sizeof(*pp), GFP_KERNEL);
-	if (!pp) {
+
+	if (!pp)
+	{
 		rc = -ENOMEM;
 		goto err_pp;
 	}
@@ -244,12 +268,18 @@ static int pp_probe(struct ntb_client *client,
 	pp->db_delay = msecs_to_jiffies(delay_ms);
 
 	rc = ntb_set_ctx(ntb, pp, &pp_ops);
+
 	if (rc)
+	{
 		goto err_ctx;
+	}
 
 	rc = pp_debugfs_setup(pp);
+
 	if (rc)
+	{
 		goto err_ctx;
+	}
 
 	ntb_link_enable(ntb, NTB_SPEED_AUTO, NTB_WIDTH_AUTO);
 	ntb_link_event(ntb);
@@ -263,7 +293,7 @@ err_pp:
 }
 
 static void pp_remove(struct ntb_client *client,
-		      struct ntb_dev *ntb)
+					  struct ntb_dev *ntb)
 {
 	struct pp_ctx *pp = ntb->ctx;
 
@@ -276,7 +306,8 @@ static void pp_remove(struct ntb_client *client,
 	kfree(pp);
 }
 
-static struct ntb_client pp_client = {
+static struct ntb_client pp_client =
+{
 	.ops = {
 		.probe = pp_probe,
 		.remove = pp_remove,
@@ -288,11 +319,16 @@ static int __init pp_init(void)
 	int rc;
 
 	if (debugfs_initialized())
+	{
 		pp_debugfs_dir = debugfs_create_dir(KBUILD_MODNAME, NULL);
+	}
 
 	rc = ntb_register_client(&pp_client);
+
 	if (rc)
+	{
 		goto err_client;
+	}
 
 	return 0;
 

@@ -21,7 +21,8 @@
 #include <asm/opal.h>
 
 
-struct ipmi_smi_powernv {
+struct ipmi_smi_powernv
+{
 	u64			interface_id;
 	struct ipmi_device_id	ipmi_id;
 	ipmi_smi_t		intf;
@@ -47,7 +48,7 @@ static int ipmi_powernv_start_processing(void *send_info, ipmi_smi_t intf)
 }
 
 static void send_error_reply(struct ipmi_smi_powernv *smi,
-		struct ipmi_smi_msg *msg, u8 completion_code)
+							 struct ipmi_smi_msg *msg, u8 completion_code)
 {
 	msg->rsp[0] = msg->data[0] | 0x4;
 	msg->rsp[1] = msg->data[1];
@@ -65,20 +66,23 @@ static void ipmi_powernv_send(void *send_info, struct ipmi_smi_msg *msg)
 	size_t size;
 
 	/* ensure data_len will fit in the opal_ipmi_msg buffer... */
-	if (msg->data_size > IPMI_MAX_MSG_LENGTH) {
+	if (msg->data_size > IPMI_MAX_MSG_LENGTH)
+	{
 		comp = IPMI_REQ_LEN_EXCEEDED_ERR;
 		goto err;
 	}
 
 	/* ... and that we at least have netfn and cmd bytes */
-	if (msg->data_size < 2) {
+	if (msg->data_size < 2)
+	{
 		comp = IPMI_REQ_LEN_INVALID_ERR;
 		goto err;
 	}
 
 	spin_lock_irqsave(&smi->msg_lock, flags);
 
-	if (smi->cur_msg) {
+	if (smi->cur_msg)
+	{
 		comp = IPMI_NODE_BUSY_ERR;
 		goto err_unlock;
 	}
@@ -88,18 +92,22 @@ static void ipmi_powernv_send(void *send_info, struct ipmi_smi_msg *msg)
 	opal_msg->version = OPAL_IPMI_MSG_FORMAT_VERSION_1;
 	opal_msg->netfn = msg->data[0];
 	opal_msg->cmd = msg->data[1];
+
 	if (msg->data_size > 2)
+	{
 		memcpy(opal_msg->data, msg->data + 2, msg->data_size - 2);
+	}
 
 	/* data_size already includes the netfn and cmd bytes */
 	size = sizeof(*opal_msg) + msg->data_size - 2;
 
 	pr_devel("%s: opal_ipmi_send(0x%llx, %p, %ld)\n", __func__,
-			smi->interface_id, opal_msg, size);
+			 smi->interface_id, opal_msg, size);
 	rc = opal_ipmi_send(smi->interface_id, opal_msg, size);
 	pr_devel("%s:  -> %d\n", __func__, rc);
 
-	if (!rc) {
+	if (!rc)
+	{
 		smi->cur_msg = msg;
 		spin_unlock_irqrestore(&smi->msg_lock, flags);
 		return;
@@ -121,11 +129,12 @@ static int ipmi_powernv_recv(struct ipmi_smi_powernv *smi)
 	int rc;
 
 	pr_devel("%s: opal_ipmi_recv(%llx, msg, sz)\n", __func__,
-			smi->interface_id);
+			 smi->interface_id);
 
 	spin_lock_irqsave(&smi->msg_lock, flags);
 
-	if (!smi->cur_msg) {
+	if (!smi->cur_msg)
+	{
 		spin_unlock_irqrestore(&smi->msg_lock, flags);
 		pr_warn("no current message?\n");
 		return 0;
@@ -137,14 +146,17 @@ static int ipmi_powernv_recv(struct ipmi_smi_powernv *smi)
 	size = cpu_to_be64(sizeof(*opal_msg) + IPMI_MAX_MSG_LENGTH);
 
 	rc = opal_ipmi_recv(smi->interface_id,
-			opal_msg,
-			&size);
+						opal_msg,
+						&size);
 	size = be64_to_cpu(size);
 	pr_devel("%s:   -> %d (size %lld)\n", __func__,
-			rc, rc == 0 ? size : 0);
-	if (rc) {
+			 rc, rc == 0 ? size : 0);
+
+	if (rc)
+	{
 		/* If came via the poll, and response was not yet ready */
-		if (rc == OPAL_EMPTY) {
+		if (rc == OPAL_EMPTY)
+		{
 			spin_unlock_irqrestore(&smi->msg_lock, flags);
 			return 0;
 		}
@@ -155,13 +167,15 @@ static int ipmi_powernv_recv(struct ipmi_smi_powernv *smi)
 		return 0;
 	}
 
-	if (size < sizeof(*opal_msg)) {
+	if (size < sizeof(*opal_msg))
+	{
 		spin_unlock_irqrestore(&smi->msg_lock, flags);
 		pr_warn("unexpected IPMI message size %lld\n", size);
 		return 0;
 	}
 
-	if (opal_msg->version != OPAL_IPMI_MSG_FORMAT_VERSION_1) {
+	if (opal_msg->version != OPAL_IPMI_MSG_FORMAT_VERSION_1)
+	{
 		spin_unlock_irqrestore(&smi->msg_lock, flags);
 		pr_warn("unexpected IPMI message format (version %d)\n",
 				opal_msg->version);
@@ -170,8 +184,12 @@ static int ipmi_powernv_recv(struct ipmi_smi_powernv *smi)
 
 	msg->rsp[0] = opal_msg->netfn;
 	msg->rsp[1] = opal_msg->cmd;
+
 	if (size > sizeof(*opal_msg))
+	{
 		memcpy(&msg->rsp[2], opal_msg->data, size - sizeof(*opal_msg));
+	}
+
 	msg->rsp_size = 2 + size - sizeof(*opal_msg);
 
 	smi->cur_msg = NULL;
@@ -196,7 +214,8 @@ static void ipmi_powernv_poll(void *send_info)
 	ipmi_powernv_recv(smi);
 }
 
-static struct ipmi_smi_handlers ipmi_powernv_smi_handlers = {
+static struct ipmi_smi_handlers ipmi_powernv_smi_handlers =
+{
 	.owner			= THIS_MODULE,
 	.start_processing	= ipmi_powernv_start_processing,
 	.sender			= ipmi_powernv_send,
@@ -221,54 +240,71 @@ static int ipmi_powernv_probe(struct platform_device *pdev)
 	int rc;
 
 	if (!pdev || !pdev->dev.of_node)
+	{
 		return -ENODEV;
+	}
 
 	dev = &pdev->dev;
 
 	ipmi = devm_kzalloc(dev, sizeof(*ipmi), GFP_KERNEL);
+
 	if (!ipmi)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&ipmi->msg_lock);
 
 	rc = of_property_read_u32(dev->of_node, "ibm,ipmi-interface-id",
-			&prop);
-	if (rc) {
+							  &prop);
+
+	if (rc)
+	{
 		dev_warn(dev, "No interface ID property\n");
 		goto err_free;
 	}
+
 	ipmi->interface_id = prop;
 
 	rc = of_property_read_u32(dev->of_node, "interrupts", &prop);
-	if (rc) {
+
+	if (rc)
+	{
 		dev_warn(dev, "No interrupts property\n");
 		goto err_free;
 	}
 
 	ipmi->irq = irq_of_parse_and_map(dev->of_node, 0);
-	if (!ipmi->irq) {
+
+	if (!ipmi->irq)
+	{
 		dev_info(dev, "Unable to map irq from device tree\n");
 		ipmi->irq = opal_event_request(prop);
 	}
 
 	if (request_irq(ipmi->irq, ipmi_opal_event, IRQ_TYPE_LEVEL_HIGH,
-				"opal-ipmi", ipmi)) {
+					"opal-ipmi", ipmi))
+	{
 		dev_warn(dev, "Unable to request irq\n");
 		goto err_dispose;
 	}
 
 	ipmi->opal_msg = devm_kmalloc(dev,
-			sizeof(*ipmi->opal_msg) + IPMI_MAX_MSG_LENGTH,
-			GFP_KERNEL);
-	if (!ipmi->opal_msg) {
+								  sizeof(*ipmi->opal_msg) + IPMI_MAX_MSG_LENGTH,
+								  GFP_KERNEL);
+
+	if (!ipmi->opal_msg)
+	{
 		rc = -ENOMEM;
 		goto err_unregister;
 	}
 
 	/* todo: query actual ipmi_device_id */
 	rc = ipmi_register_smi(&ipmi_powernv_smi_handlers, ipmi,
-			&ipmi->ipmi_id, dev, 0);
-	if (rc) {
+						   &ipmi->ipmi_id, dev, 0);
+
+	if (rc)
+	{
 		dev_warn(dev, "IPMI SMI registration failed (%d)\n", rc);
 		goto err_free_msg;
 	}
@@ -298,13 +334,15 @@ static int ipmi_powernv_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id ipmi_powernv_match[] = {
+static const struct of_device_id ipmi_powernv_match[] =
+{
 	{ .compatible = "ibm,opal-ipmi" },
 	{ },
 };
 
 
-static struct platform_driver powernv_ipmi_driver = {
+static struct platform_driver powernv_ipmi_driver =
+{
 	.driver = {
 		.name		= "ipmi-powernv",
 		.of_match_table	= ipmi_powernv_match,

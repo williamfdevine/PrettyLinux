@@ -18,7 +18,7 @@
 #define __WIL6210_UAPI_H__
 
 #if !defined(__KERNEL__)
-#define __user
+	#define __user
 #endif
 
 #include <linux/sockios.h>
@@ -61,7 +61,8 @@
  * @wil_mmio_op_mask - bits defining operation,
  * @wil_mmio_addr_mask - bits defining addressing mode
  */
-enum wil_memio_op {
+enum wil_memio_op
+{
 	wil_mmio_read = 0,
 	wil_mmio_write = 1,
 	wil_mmio_op_mask = 0xff,
@@ -71,13 +72,15 @@ enum wil_memio_op {
 	wil_mmio_addr_mask = 0xff00,
 };
 
-struct wil_memio {
+struct wil_memio
+{
 	uint32_t op; /* enum wil_memio_op */
 	uint32_t addr; /* should be 32-bit aligned */
 	uint32_t val;
 };
 
-struct wil_memio_block {
+struct wil_memio_block
+{
 	uint32_t op; /* enum wil_memio_op */
 	uint32_t addr; /* should be 32-bit aligned */
 	uint32_t size; /* should be multiple of 4 */

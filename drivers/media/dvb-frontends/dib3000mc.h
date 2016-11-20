@@ -15,7 +15,8 @@
 
 #include "dibx000_common.h"
 
-struct dib3000mc_config {
+struct dib3000mc_config
+{
 	struct dibx000_agc_config *agc;
 
 	u8 phase_noise_mode;
@@ -28,8 +29,8 @@ struct dib3000mc_config {
 	u16 max_time;
 	u16 ln_adc_level;
 
-	u8 agc_command1 :1;
-	u8 agc_command2 :1;
+	u8 agc_command1 : 1;
+	u8 agc_command2 : 1;
 
 	u8 mobile_mode;
 
@@ -41,18 +42,18 @@ struct dib3000mc_config {
 
 #if IS_REACHABLE(CONFIG_DVB_DIB3000MC)
 extern struct dvb_frontend *dib3000mc_attach(struct i2c_adapter *i2c_adap,
-					     u8 i2c_addr,
-					     struct dib3000mc_config *cfg);
+		u8 i2c_addr,
+		struct dib3000mc_config *cfg);
 extern int dib3000mc_i2c_enumeration(struct i2c_adapter *i2c,
-				     int no_of_demods, u8 default_addr,
-				     struct dib3000mc_config cfg[]);
+									 int no_of_demods, u8 default_addr,
+									 struct dib3000mc_config cfg[]);
 extern
 struct i2c_adapter *dib3000mc_get_tuner_i2c_master(struct dvb_frontend *demod,
-						   int gating);
+		int gating);
 #else
 static inline
 struct dvb_frontend *dib3000mc_attach(struct i2c_adapter *i2c_adap, u8 i2c_addr,
-				      struct dib3000mc_config *cfg)
+									  struct dib3000mc_config *cfg)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;
@@ -60,8 +61,8 @@ struct dvb_frontend *dib3000mc_attach(struct i2c_adapter *i2c_adap, u8 i2c_addr,
 
 static inline
 int dib3000mc_i2c_enumeration(struct i2c_adapter *i2c,
-			      int no_of_demods, u8 default_addr,
-			      struct dib3000mc_config cfg[])
+							  int no_of_demods, u8 default_addr,
+							  struct dib3000mc_config cfg[])
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return -ENODEV;
@@ -69,14 +70,14 @@ int dib3000mc_i2c_enumeration(struct i2c_adapter *i2c,
 
 static inline
 struct i2c_adapter *dib3000mc_get_tuner_i2c_master(struct dvb_frontend *demod,
-						   int gating)
+		int gating)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;
 }
 #endif // CONFIG_DVB_DIB3000MC
 
-extern int dib3000mc_pid_control(struct dvb_frontend *fe, int index, int pid,int onoff);
+extern int dib3000mc_pid_control(struct dvb_frontend *fe, int index, int pid, int onoff);
 extern int dib3000mc_pid_parse(struct dvb_frontend *fe, int onoff);
 
 extern void dib3000mc_set_config(struct dvb_frontend *, struct dib3000mc_config *);

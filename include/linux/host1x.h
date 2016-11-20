@@ -22,7 +22,8 @@
 #include <linux/device.h>
 #include <linux/types.h>
 
-enum host1x_class {
+enum host1x_class
+{
 	HOST1X_CLASS_HOST1X = 0x1,
 	HOST1X_CLASS_GR2D = 0x51,
 	HOST1X_CLASS_GR2D_SB = 0x52,
@@ -31,12 +32,14 @@ enum host1x_class {
 
 struct host1x_client;
 
-struct host1x_client_ops {
+struct host1x_client_ops
+{
 	int (*init)(struct host1x_client *client);
 	int (*exit)(struct host1x_client *client);
 };
 
-struct host1x_client {
+struct host1x_client
+{
 	struct list_head list;
 	struct device *parent;
 	struct device *dev;
@@ -57,7 +60,8 @@ struct host1x_client {
 struct host1x_bo;
 struct sg_table;
 
-struct host1x_bo_ops {
+struct host1x_bo_ops
+{
 	struct host1x_bo *(*get)(struct host1x_bo *bo);
 	void (*put)(struct host1x_bo *bo);
 	dma_addr_t (*pin)(struct host1x_bo *bo, struct sg_table **sgt);
@@ -68,12 +72,13 @@ struct host1x_bo_ops {
 	void (*kunmap)(struct host1x_bo *bo, unsigned int pagenum, void *addr);
 };
 
-struct host1x_bo {
+struct host1x_bo
+{
 	const struct host1x_bo_ops *ops;
 };
 
 static inline void host1x_bo_init(struct host1x_bo *bo,
-				  const struct host1x_bo_ops *ops)
+								  const struct host1x_bo_ops *ops)
 {
 	bo->ops = ops;
 }
@@ -89,7 +94,7 @@ static inline void host1x_bo_put(struct host1x_bo *bo)
 }
 
 static inline dma_addr_t host1x_bo_pin(struct host1x_bo *bo,
-				       struct sg_table **sgt)
+									   struct sg_table **sgt)
 {
 	return bo->ops->pin(bo, sgt);
 }
@@ -115,7 +120,7 @@ static inline void *host1x_bo_kmap(struct host1x_bo *bo, unsigned int pagenum)
 }
 
 static inline void host1x_bo_kunmap(struct host1x_bo *bo,
-				    unsigned int pagenum, void *addr)
+									unsigned int pagenum, void *addr)
 {
 	bo->ops->kunmap(bo, pagenum, addr);
 }
@@ -139,9 +144,9 @@ u32 host1x_syncpt_read(struct host1x_syncpt *sp);
 int host1x_syncpt_incr(struct host1x_syncpt *sp);
 u32 host1x_syncpt_incr_max(struct host1x_syncpt *sp, u32 incrs);
 int host1x_syncpt_wait(struct host1x_syncpt *sp, u32 thresh, long timeout,
-		       u32 *value);
+					   u32 *value);
 struct host1x_syncpt *host1x_syncpt_request(struct device *dev,
-					    unsigned long flags);
+		unsigned long flags);
 void host1x_syncpt_free(struct host1x_syncpt *sp);
 
 struct host1x_syncpt_base *host1x_syncpt_get_base(struct host1x_syncpt *sp);
@@ -164,19 +169,23 @@ int host1x_job_submit(struct host1x_job *job);
  * host1x job
  */
 
-struct host1x_reloc {
-	struct {
+struct host1x_reloc
+{
+	struct
+	{
 		struct host1x_bo *bo;
 		unsigned long offset;
 	} cmdbuf;
-	struct {
+	struct
+	{
 		struct host1x_bo *bo;
 		unsigned long offset;
 	} target;
 	unsigned long shift;
 };
 
-struct host1x_job {
+struct host1x_job
+{
 	/* When refcount goes to zero, job can be freed */
 	struct kref ref;
 
@@ -235,10 +244,10 @@ struct host1x_job {
 };
 
 struct host1x_job *host1x_job_alloc(struct host1x_channel *ch,
-				    u32 num_cmdbufs, u32 num_relocs,
-				    u32 num_waitchks);
+									u32 num_cmdbufs, u32 num_relocs,
+									u32 num_waitchks);
 void host1x_job_add_gather(struct host1x_job *job, struct host1x_bo *mem_id,
-			   u32 words, u32 offset);
+						   u32 words, u32 offset);
 struct host1x_job *host1x_job_get(struct host1x_job *job);
 void host1x_job_put(struct host1x_job *job);
 int host1x_job_pin(struct host1x_job *job, struct device *dev);
@@ -250,7 +259,8 @@ void host1x_job_unpin(struct host1x_job *job);
 
 struct host1x_device;
 
-struct host1x_driver {
+struct host1x_driver
+{
 	struct device_driver driver;
 
 	const struct of_device_id *subdevs;
@@ -268,13 +278,14 @@ to_host1x_driver(struct device_driver *driver)
 }
 
 int host1x_driver_register_full(struct host1x_driver *driver,
-				struct module *owner);
+								struct module *owner);
 void host1x_driver_unregister(struct host1x_driver *driver);
 
 #define host1x_driver_register(driver) \
 	host1x_driver_register_full(driver, THIS_MODULE)
 
-struct host1x_device {
+struct host1x_device
+{
 	struct host1x_driver *driver;
 	struct list_head list;
 	struct device dev;

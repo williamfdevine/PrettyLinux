@@ -44,24 +44,28 @@
 #define MTHCA_MPT_FLAG_LOCAL_WRITE   (1 << 11)
 #define MTHCA_MPT_FLAG_LOCAL_READ    (1 << 10)
 
-struct mthca_buf_list {
+struct mthca_buf_list
+{
 	void *buf;
 	DEFINE_DMA_UNMAP_ADDR(mapping);
 };
 
-union mthca_buf {
+union mthca_buf
+{
 	struct mthca_buf_list direct;
 	struct mthca_buf_list *page_list;
 };
 
-struct mthca_uar {
+struct mthca_uar
+{
 	unsigned long pfn;
 	int           index;
 };
 
 struct mthca_user_db_table;
 
-struct mthca_ucontext {
+struct mthca_ucontext
+{
 	struct ib_ucontext          ibucontext;
 	struct mthca_uar            uar;
 	struct mthca_user_db_table *db_tab;
@@ -70,23 +74,28 @@ struct mthca_ucontext {
 
 struct mthca_mtt;
 
-struct mthca_mr {
+struct mthca_mr
+{
 	struct ib_mr      ibmr;
 	struct ib_umem   *umem;
 	struct mthca_mtt *mtt;
 };
 
-struct mthca_fmr {
+struct mthca_fmr
+{
 	struct ib_fmr      ibmr;
 	struct ib_fmr_attr attr;
 	struct mthca_mtt  *mtt;
 	int                maps;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			struct mthca_mpt_entry __iomem *mpt;
 			u64 __iomem *mtts;
 		} tavor;
-		struct {
+		struct
+		{
 			struct mthca_mpt_entry *mpt;
 			__be64 *mtts;
 			dma_addr_t dma_handle;
@@ -94,7 +103,8 @@ struct mthca_fmr {
 	} mem;
 };
 
-struct mthca_pd {
+struct mthca_pd
+{
 	struct ib_pd    ibpd;
 	u32             pd_num;
 	atomic_t        sqp_count;
@@ -102,7 +112,8 @@ struct mthca_pd {
 	int             privileged;
 };
 
-struct mthca_eq {
+struct mthca_eq
+{
 	struct mthca_dev      *dev;
 	int                    eqn;
 	u32                    eqn_mask;
@@ -118,13 +129,15 @@ struct mthca_eq {
 
 struct mthca_av;
 
-enum mthca_ah_type {
+enum mthca_ah_type
+{
 	MTHCA_AH_ON_HCA,
 	MTHCA_AH_PCI_POOL,
 	MTHCA_AH_KMALLOC
 };
 
-struct mthca_ah {
+struct mthca_ah
+{
 	struct ib_ah       ibah;
 	enum mthca_ah_type type;
 	u32                key;
@@ -182,23 +195,27 @@ struct mthca_ah {
  *   send queue and one for the receive queue)
  */
 
-struct mthca_cq_buf {
+struct mthca_cq_buf
+{
 	union mthca_buf		queue;
 	struct mthca_mr		mr;
 	int			is_direct;
 };
 
-struct mthca_cq_resize {
+struct mthca_cq_resize
+{
 	struct mthca_cq_buf	buf;
 	int			cqe;
-	enum {
+	enum
+	{
 		CQ_RESIZE_ALLOC,
 		CQ_RESIZE_READY,
 		CQ_RESIZE_SWAPPED
 	}			state;
 };
 
-struct mthca_cq {
+struct mthca_cq
+{
 	struct ib_cq		ibcq;
 	spinlock_t		lock;
 	int			refcount;
@@ -219,7 +236,8 @@ struct mthca_cq {
 	struct mutex		mutex;
 };
 
-struct mthca_srq {
+struct mthca_srq
+{
 	struct ib_srq		ibsrq;
 	spinlock_t		lock;
 	int			refcount;
@@ -243,7 +261,8 @@ struct mthca_srq {
 	struct mutex		mutex;
 };
 
-struct mthca_wq {
+struct mthca_wq
+{
 	spinlock_t lock;
 	int        max;
 	unsigned   next_ind;
@@ -258,7 +277,8 @@ struct mthca_wq {
 	__be32    *db;
 };
 
-struct mthca_qp {
+struct mthca_qp
+{
 	struct ib_qp           ibqp;
 	int                    refcount;
 	u32                    qpn;
@@ -285,7 +305,8 @@ struct mthca_qp {
 	struct mutex	       mutex;
 };
 
-struct mthca_sqp {
+struct mthca_sqp
+{
 	struct mthca_qp qp;
 	int             pkey_index;
 	u32             qkey;

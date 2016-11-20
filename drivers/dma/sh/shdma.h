@@ -24,7 +24,8 @@
 
 struct device;
 
-struct sh_dmae_chan {
+struct sh_dmae_chan
+{
 	struct shdma_chan shdma_chan;
 	const struct sh_dmae_slave_config *config; /* Slave DMA configuration */
 	int xmit_shift;			/* log_2(bytes_per_xfer) */
@@ -34,7 +35,8 @@ struct sh_dmae_chan {
 	dma_addr_t slave_addr;
 };
 
-struct sh_dmae_device {
+struct sh_dmae_device
+{
 	struct shdma_dev shdma_dev;
 	struct sh_dmae_chan *chan[SH_DMAE_MAX_CHANNELS];
 	const struct sh_dmae_pdata *pdata;
@@ -45,13 +47,15 @@ struct sh_dmae_device {
 	u32 chcr_ie_bit;
 };
 
-struct sh_dmae_regs {
+struct sh_dmae_regs
+{
 	u32 sar; /* SAR / source address */
 	u32 dar; /* DAR / destination address */
 	u32 tcr; /* TCR / transfer count */
 };
 
-struct sh_dmae_desc {
+struct sh_dmae_desc
+{
 	struct sh_dmae_regs hw;
 	struct shdma_desc shdma_desc;
 };
@@ -60,13 +64,13 @@ struct sh_dmae_desc {
 #define to_sh_desc(lh) container_of(lh, struct sh_desc, node)
 #define tx_to_sh_desc(tx) container_of(tx, struct sh_desc, async_tx)
 #define to_sh_dev(chan) container_of(chan->shdma_chan.dma_chan.device,\
-				     struct sh_dmae_device, shdma_dev.dma_dev)
+									 struct sh_dmae_device, shdma_dev.dma_dev)
 
 #ifdef CONFIG_SH_DMAE_R8A73A4
-extern const struct sh_dmae_pdata r8a73a4_dma_pdata;
-#define r8a73a4_shdma_devid (&r8a73a4_dma_pdata)
+	extern const struct sh_dmae_pdata r8a73a4_dma_pdata;
+	#define r8a73a4_shdma_devid (&r8a73a4_dma_pdata)
 #else
-#define r8a73a4_shdma_devid NULL
+	#define r8a73a4_shdma_devid NULL
 #endif
 
 #endif	/* __DMA_SHDMA_H */

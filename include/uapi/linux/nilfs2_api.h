@@ -26,7 +26,8 @@
  * @ci_blocks_count: blocks count
  * @ci_next: next checkpoint number in snapshot list
  */
-struct nilfs_cpinfo {
+struct nilfs_cpinfo
+{
 	__u32 ci_flags;
 	__u32 ci_pad;
 	__u64 ci_cno;
@@ -38,7 +39,8 @@ struct nilfs_cpinfo {
 };
 
 /* checkpoint flags */
-enum {
+enum
+{
 	NILFS_CPINFO_SNAPSHOT,
 	NILFS_CPINFO_INVALID,
 	NILFS_CPINFO_SKETCH,
@@ -46,11 +48,11 @@ enum {
 };
 
 #define NILFS_CPINFO_FNS(flag, name)					\
-static inline int							\
-nilfs_cpinfo_##name(const struct nilfs_cpinfo *cpinfo)			\
-{									\
-	return !!(cpinfo->ci_flags & (1UL << NILFS_CPINFO_##flag));	\
-}
+	static inline int							\
+	nilfs_cpinfo_##name(const struct nilfs_cpinfo *cpinfo)			\
+	{									\
+		return !!(cpinfo->ci_flags & (1UL << NILFS_CPINFO_##flag));	\
+	}
 
 NILFS_CPINFO_FNS(SNAPSHOT, snapshot)
 NILFS_CPINFO_FNS(INVALID, invalid)
@@ -62,25 +64,27 @@ NILFS_CPINFO_FNS(MINOR, minor)
  * @sui_nblocks: number of written blocks in segment
  * @sui_flags: segment usage flags
  */
-struct nilfs_suinfo {
+struct nilfs_suinfo
+{
 	__u64 sui_lastmod;
 	__u32 sui_nblocks;
 	__u32 sui_flags;
 };
 
 /* segment usage flags */
-enum {
+enum
+{
 	NILFS_SUINFO_ACTIVE,
 	NILFS_SUINFO_DIRTY,
 	NILFS_SUINFO_ERROR,
 };
 
 #define NILFS_SUINFO_FNS(flag, name)					\
-static inline int							\
-nilfs_suinfo_##name(const struct nilfs_suinfo *si)			\
-{									\
-	return si->sui_flags & (1UL << NILFS_SUINFO_##flag);		\
-}
+	static inline int							\
+	nilfs_suinfo_##name(const struct nilfs_suinfo *si)			\
+	{									\
+		return si->sui_flags & (1UL << NILFS_SUINFO_##flag);		\
+	}
 
 NILFS_SUINFO_FNS(ACTIVE, active)
 NILFS_SUINFO_FNS(DIRTY, dirty)
@@ -98,14 +102,16 @@ static inline int nilfs_suinfo_clean(const struct nilfs_suinfo *si)
  * @sup_reserved: reserved necessary for alignment
  * @sup_sui: segment usage information
  */
-struct nilfs_suinfo_update {
+struct nilfs_suinfo_update
+{
 	__u64 sup_segnum;
 	__u32 sup_flags;
 	__u32 sup_reserved;
 	struct nilfs_suinfo sup_sui;
 };
 
-enum {
+enum
+{
 	NILFS_SUINFO_UPDATE_LASTMOD,
 	NILFS_SUINFO_UPDATE_NBLOCKS,
 	NILFS_SUINFO_UPDATE_FLAGS,
@@ -113,27 +119,28 @@ enum {
 };
 
 #define NILFS_SUINFO_UPDATE_FNS(flag, name)				\
-static inline void							\
-nilfs_suinfo_update_set_##name(struct nilfs_suinfo_update *sup)		\
-{									\
-	sup->sup_flags |= 1UL << NILFS_SUINFO_UPDATE_##flag;		\
-}									\
-static inline void							\
-nilfs_suinfo_update_clear_##name(struct nilfs_suinfo_update *sup)	\
-{									\
-	sup->sup_flags &= ~(1UL << NILFS_SUINFO_UPDATE_##flag);		\
-}									\
-static inline int							\
-nilfs_suinfo_update_##name(const struct nilfs_suinfo_update *sup)	\
-{									\
-	return !!(sup->sup_flags & (1UL << NILFS_SUINFO_UPDATE_##flag));\
-}
+	static inline void							\
+	nilfs_suinfo_update_set_##name(struct nilfs_suinfo_update *sup)		\
+	{									\
+		sup->sup_flags |= 1UL << NILFS_SUINFO_UPDATE_##flag;		\
+	}									\
+	static inline void							\
+	nilfs_suinfo_update_clear_##name(struct nilfs_suinfo_update *sup)	\
+	{									\
+		sup->sup_flags &= ~(1UL << NILFS_SUINFO_UPDATE_##flag);		\
+	}									\
+	static inline int							\
+	nilfs_suinfo_update_##name(const struct nilfs_suinfo_update *sup)	\
+	{									\
+		return !!(sup->sup_flags & (1UL << NILFS_SUINFO_UPDATE_##flag));\
+	}
 
 NILFS_SUINFO_UPDATE_FNS(LASTMOD, lastmod)
 NILFS_SUINFO_UPDATE_FNS(NBLOCKS, nblocks)
 NILFS_SUINFO_UPDATE_FNS(FLAGS, flags)
 
-enum {
+enum
+{
 	NILFS_CHECKPOINT,
 	NILFS_SNAPSHOT,
 };
@@ -144,7 +151,8 @@ enum {
  * @cm_mode: mode of checkpoint
  * @cm_pad: padding
  */
-struct nilfs_cpmode {
+struct nilfs_cpmode
+{
 	__u64 cm_cno;
 	__u32 cm_mode;
 	__u32 cm_pad;
@@ -158,7 +166,8 @@ struct nilfs_cpmode {
  * @v_flags: flags
  * @v_index: start number of target data items
  */
-struct nilfs_argv {
+struct nilfs_argv
+{
 	__u64 v_base;
 	__u32 v_nmembs;	/* number of members */
 	__u16 v_size;	/* size of members */
@@ -171,7 +180,8 @@ struct nilfs_argv {
  * @p_start: start checkpoint number (inclusive)
  * @p_end: end checkpoint number (exclusive)
  */
-struct nilfs_period {
+struct nilfs_period
+{
 	__u64 p_start;
 	__u64 p_end;
 };
@@ -182,7 +192,8 @@ struct nilfs_period {
  * @cs_ncps: number of checkpoints
  * @cs_nsss: number of snapshots
  */
-struct nilfs_cpstat {
+struct nilfs_cpstat
+{
 	__u64 cs_cno;
 	__u64 cs_ncps;
 	__u64 cs_nsss;
@@ -197,7 +208,8 @@ struct nilfs_cpstat {
  * @ss_nongc_ctime: creation time of the last segment not for GC
  * @ss_prot_seq: least sequence number of segments which must not be reclaimed
  */
-struct nilfs_sustat {
+struct nilfs_sustat
+{
 	__u64 ss_nsegs;
 	__u64 ss_ncleansegs;
 	__u64 ss_ndirtysegs;
@@ -213,7 +225,8 @@ struct nilfs_sustat {
  * @vi_end: end checkpoint number (exclusive)
  * @vi_blocknr: disk block number
  */
-struct nilfs_vinfo {
+struct nilfs_vinfo
+{
 	__u64 vi_vblocknr;
 	__u64 vi_start;
 	__u64 vi_end;
@@ -231,7 +244,8 @@ struct nilfs_vinfo {
  * @vd_flags: flags (data or node block)
  * @vd_pad: padding
  */
-struct nilfs_vdesc {
+struct nilfs_vdesc
+{
 	__u64 vd_ino;
 	__u64 vd_cno;
 	__u64 vd_vblocknr;
@@ -251,7 +265,8 @@ struct nilfs_vdesc {
  * @bd_level: level in the b-tree organization
  * @bd_pad: padding
  */
-struct nilfs_bdesc {
+struct nilfs_bdesc
+{
 	__u64 bd_ino;
 	__u64 bd_oblocknr;
 	__u64 bd_blocknr;

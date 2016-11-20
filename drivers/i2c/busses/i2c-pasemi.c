@@ -25,7 +25,8 @@
 
 static struct pci_driver pasemi_smb_driver;
 
-struct pasemi_smbus {
+struct pasemi_smbus
+{
 	struct pci_dev		*dev;
 	struct i2c_adapter	 adapter;
 	unsigned long		 base;
@@ -60,7 +61,7 @@ struct pasemi_smbus {
 static inline void reg_write(struct pasemi_smbus *smbus, int reg, int val)
 {
 	dev_dbg(&smbus->dev->dev, "smbus write reg %lx val %08x\n",
-		smbus->base + reg, val);
+			smbus->base + reg, val);
 	outl(val, smbus->base + reg);
 }
 
@@ -69,7 +70,7 @@ static inline int reg_read(struct pasemi_smbus *smbus, int reg)
 	int ret;
 	ret = inl(smbus->base + reg);
 	dev_dbg(&smbus->dev->dev, "smbus read reg %lx val %08x\n",
-		smbus->base + reg, ret);
+			smbus->base + reg, ret);
 	return ret;
 }
 
@@ -91,16 +92,20 @@ static int pasemi_smb_waitready(struct pasemi_smbus *smbus)
 
 	status = reg_read(smbus, REG_SMSTA);
 
-	while (!(status & SMSTA_XEN) && timeout--) {
+	while (!(status & SMSTA_XEN) && timeout--)
+	{
 		msleep(1);
 		status = reg_read(smbus, REG_SMSTA);
 	}
 
 	/* Got NACK? */
 	if (status & SMSTA_MTN)
+	{
 		return -ENXIO;
+	}
 
-	if (timeout < 0) {
+	if (timeout < 0)
+	{
 		dev_warn(&smbus->dev->dev, "Timeout, status 0x%08x\n", status);
 		reg_write(smbus, REG_SMSTA, status);
 		return -ETIME;
@@ -113,7 +118,7 @@ static int pasemi_smb_waitready(struct pasemi_smbus *smbus)
 }
 
 static int pasemi_i2c_xfer_msg(struct i2c_adapter *adapter,
-			       struct i2c_msg *msg, int stop)
+							   struct i2c_msg *msg, int stop)
 {
 	struct pasemi_smbus *smbus = adapter->algo_data;
 	int read, i, err;
@@ -123,40 +128,52 @@ static int pasemi_i2c_xfer_msg(struct i2c_adapter *adapter,
 
 	TXFIFO_WR(smbus, MTXFIFO_START | (msg->addr << 1) | read);
 
-	if (read) {
+	if (read)
+	{
 		TXFIFO_WR(smbus, msg->len | MTXFIFO_READ |
-				 (stop ? MTXFIFO_STOP : 0));
+				  (stop ? MTXFIFO_STOP : 0));
 
 		err = pasemi_smb_waitready(smbus);
-		if (err)
-			goto reset_out;
 
-		for (i = 0; i < msg->len; i++) {
+		if (err)
+		{
+			goto reset_out;
+		}
+
+		for (i = 0; i < msg->len; i++)
+		{
 			rd = RXFIFO_RD(smbus);
-			if (rd & MRXFIFO_EMPTY) {
+
+			if (rd & MRXFIFO_EMPTY)
+			{
 				err = -ENODATA;
 				goto reset_out;
 			}
+
 			msg->buf[i] = rd & MRXFIFO_DATA_M;
 		}
-	} else {
+	}
+	else
+	{
 		for (i = 0; i < msg->len - 1; i++)
+		{
 			TXFIFO_WR(smbus, msg->buf[i]);
+		}
 
-		TXFIFO_WR(smbus, msg->buf[msg->len-1] |
-			  (stop ? MTXFIFO_STOP : 0));
+		TXFIFO_WR(smbus, msg->buf[msg->len - 1] |
+				  (stop ? MTXFIFO_STOP : 0));
 	}
 
 	return 0;
 
- reset_out:
+reset_out:
 	reg_write(smbus, REG_CTL, (CTL_MTR | CTL_MRR |
-		  (CLK_100K_DIV & CTL_CLK_M)));
+							   (CLK_100K_DIV & CTL_CLK_M)));
 	return err;
 }
 
 static int pasemi_i2c_xfer(struct i2c_adapter *adapter,
-			   struct i2c_msg *msgs, int num)
+						   struct i2c_msg *msgs, int num)
 {
 	struct pasemi_smbus *smbus = adapter->algo_data;
 	int ret, i;
@@ -166,14 +183,16 @@ static int pasemi_i2c_xfer(struct i2c_adapter *adapter,
 	ret = 0;
 
 	for (i = 0; i < num && !ret; i++)
+	{
 		ret = pasemi_i2c_xfer_msg(adapter, &msgs[i], (i == (num - 1)));
+	}
 
 	return ret ? ret : num;
 }
 
 static int pasemi_smb_xfer(struct i2c_adapter *adapter,
-		u16 addr, unsigned short flags, char read_write, u8 command,
-		int size, union i2c_smbus_data *data)
+						   u16 addr, unsigned short flags, char read_write, u8 command,
+						   int size, union i2c_smbus_data *data)
 {
 	struct pasemi_smbus *smbus = adapter->algo_data;
 	unsigned int rd;
@@ -186,182 +205,248 @@ static int pasemi_smb_xfer(struct i2c_adapter *adapter,
 
 	pasemi_smb_clear(smbus);
 
-	switch (size) {
-	case I2C_SMBUS_QUICK:
-		TXFIFO_WR(smbus, addr | read_flag | MTXFIFO_START |
-			  MTXFIFO_STOP);
-		break;
-	case I2C_SMBUS_BYTE:
-		TXFIFO_WR(smbus, addr | read_flag | MTXFIFO_START);
-		if (read_write)
-			TXFIFO_WR(smbus, 1 | MTXFIFO_STOP | MTXFIFO_READ);
-		else
-			TXFIFO_WR(smbus, MTXFIFO_STOP | command);
-		break;
-	case I2C_SMBUS_BYTE_DATA:
-		TXFIFO_WR(smbus, addr | MTXFIFO_START);
-		TXFIFO_WR(smbus, command);
-		if (read_write) {
-			TXFIFO_WR(smbus, addr | I2C_SMBUS_READ | MTXFIFO_START);
-			TXFIFO_WR(smbus, 1 | MTXFIFO_READ | MTXFIFO_STOP);
-		} else {
-			TXFIFO_WR(smbus, MTXFIFO_STOP | data->byte);
-		}
-		break;
-	case I2C_SMBUS_WORD_DATA:
-		TXFIFO_WR(smbus, addr | MTXFIFO_START);
-		TXFIFO_WR(smbus, command);
-		if (read_write) {
-			TXFIFO_WR(smbus, addr | I2C_SMBUS_READ | MTXFIFO_START);
-			TXFIFO_WR(smbus, 2 | MTXFIFO_READ | MTXFIFO_STOP);
-		} else {
+	switch (size)
+	{
+		case I2C_SMBUS_QUICK:
+			TXFIFO_WR(smbus, addr | read_flag | MTXFIFO_START |
+					  MTXFIFO_STOP);
+			break;
+
+		case I2C_SMBUS_BYTE:
+			TXFIFO_WR(smbus, addr | read_flag | MTXFIFO_START);
+
+			if (read_write)
+			{
+				TXFIFO_WR(smbus, 1 | MTXFIFO_STOP | MTXFIFO_READ);
+			}
+			else
+			{
+				TXFIFO_WR(smbus, MTXFIFO_STOP | command);
+			}
+
+			break;
+
+		case I2C_SMBUS_BYTE_DATA:
+			TXFIFO_WR(smbus, addr | MTXFIFO_START);
+			TXFIFO_WR(smbus, command);
+
+			if (read_write)
+			{
+				TXFIFO_WR(smbus, addr | I2C_SMBUS_READ | MTXFIFO_START);
+				TXFIFO_WR(smbus, 1 | MTXFIFO_READ | MTXFIFO_STOP);
+			}
+			else
+			{
+				TXFIFO_WR(smbus, MTXFIFO_STOP | data->byte);
+			}
+
+			break;
+
+		case I2C_SMBUS_WORD_DATA:
+			TXFIFO_WR(smbus, addr | MTXFIFO_START);
+			TXFIFO_WR(smbus, command);
+
+			if (read_write)
+			{
+				TXFIFO_WR(smbus, addr | I2C_SMBUS_READ | MTXFIFO_START);
+				TXFIFO_WR(smbus, 2 | MTXFIFO_READ | MTXFIFO_STOP);
+			}
+			else
+			{
+				TXFIFO_WR(smbus, data->word & MTXFIFO_DATA_M);
+				TXFIFO_WR(smbus, MTXFIFO_STOP | (data->word >> 8));
+			}
+
+			break;
+
+		case I2C_SMBUS_BLOCK_DATA:
+			TXFIFO_WR(smbus, addr | MTXFIFO_START);
+			TXFIFO_WR(smbus, command);
+
+			if (read_write)
+			{
+				TXFIFO_WR(smbus, addr | I2C_SMBUS_READ | MTXFIFO_START);
+				TXFIFO_WR(smbus, 1 | MTXFIFO_READ);
+				rd = RXFIFO_RD(smbus);
+				len = min_t(u8, (rd & MRXFIFO_DATA_M),
+							I2C_SMBUS_BLOCK_MAX);
+				TXFIFO_WR(smbus, len | MTXFIFO_READ |
+						  MTXFIFO_STOP);
+			}
+			else
+			{
+				len = min_t(u8, data->block[0], I2C_SMBUS_BLOCK_MAX);
+				TXFIFO_WR(smbus, len);
+
+				for (i = 1; i < len; i++)
+				{
+					TXFIFO_WR(smbus, data->block[i]);
+				}
+
+				TXFIFO_WR(smbus, data->block[len] | MTXFIFO_STOP);
+			}
+
+			break;
+
+		case I2C_SMBUS_PROC_CALL:
+			read_write = I2C_SMBUS_READ;
+			TXFIFO_WR(smbus, addr | MTXFIFO_START);
+			TXFIFO_WR(smbus, command);
 			TXFIFO_WR(smbus, data->word & MTXFIFO_DATA_M);
-			TXFIFO_WR(smbus, MTXFIFO_STOP | (data->word >> 8));
-		}
-		break;
-	case I2C_SMBUS_BLOCK_DATA:
-		TXFIFO_WR(smbus, addr | MTXFIFO_START);
-		TXFIFO_WR(smbus, command);
-		if (read_write) {
+			TXFIFO_WR(smbus, (data->word >> 8) & MTXFIFO_DATA_M);
 			TXFIFO_WR(smbus, addr | I2C_SMBUS_READ | MTXFIFO_START);
-			TXFIFO_WR(smbus, 1 | MTXFIFO_READ);
+			TXFIFO_WR(smbus, 2 | MTXFIFO_STOP | MTXFIFO_READ);
+			break;
+
+		case I2C_SMBUS_BLOCK_PROC_CALL:
+			len = min_t(u8, data->block[0], I2C_SMBUS_BLOCK_MAX - 1);
+			read_write = I2C_SMBUS_READ;
+			TXFIFO_WR(smbus, addr | MTXFIFO_START);
+			TXFIFO_WR(smbus, command);
+			TXFIFO_WR(smbus, len);
+
+			for (i = 1; i <= len; i++)
+			{
+				TXFIFO_WR(smbus, data->block[i]);
+			}
+
+			TXFIFO_WR(smbus, addr | I2C_SMBUS_READ);
+			TXFIFO_WR(smbus, MTXFIFO_READ | 1);
 			rd = RXFIFO_RD(smbus);
 			len = min_t(u8, (rd & MRXFIFO_DATA_M),
-				    I2C_SMBUS_BLOCK_MAX);
-			TXFIFO_WR(smbus, len | MTXFIFO_READ |
-					 MTXFIFO_STOP);
-		} else {
-			len = min_t(u8, data->block[0], I2C_SMBUS_BLOCK_MAX);
-			TXFIFO_WR(smbus, len);
-			for (i = 1; i < len; i++)
-				TXFIFO_WR(smbus, data->block[i]);
-			TXFIFO_WR(smbus, data->block[len] | MTXFIFO_STOP);
-		}
-		break;
-	case I2C_SMBUS_PROC_CALL:
-		read_write = I2C_SMBUS_READ;
-		TXFIFO_WR(smbus, addr | MTXFIFO_START);
-		TXFIFO_WR(smbus, command);
-		TXFIFO_WR(smbus, data->word & MTXFIFO_DATA_M);
-		TXFIFO_WR(smbus, (data->word >> 8) & MTXFIFO_DATA_M);
-		TXFIFO_WR(smbus, addr | I2C_SMBUS_READ | MTXFIFO_START);
-		TXFIFO_WR(smbus, 2 | MTXFIFO_STOP | MTXFIFO_READ);
-		break;
-	case I2C_SMBUS_BLOCK_PROC_CALL:
-		len = min_t(u8, data->block[0], I2C_SMBUS_BLOCK_MAX - 1);
-		read_write = I2C_SMBUS_READ;
-		TXFIFO_WR(smbus, addr | MTXFIFO_START);
-		TXFIFO_WR(smbus, command);
-		TXFIFO_WR(smbus, len);
-		for (i = 1; i <= len; i++)
-			TXFIFO_WR(smbus, data->block[i]);
-		TXFIFO_WR(smbus, addr | I2C_SMBUS_READ);
-		TXFIFO_WR(smbus, MTXFIFO_READ | 1);
-		rd = RXFIFO_RD(smbus);
-		len = min_t(u8, (rd & MRXFIFO_DATA_M),
-			    I2C_SMBUS_BLOCK_MAX - len);
-		TXFIFO_WR(smbus, len | MTXFIFO_READ | MTXFIFO_STOP);
-		break;
+						I2C_SMBUS_BLOCK_MAX - len);
+			TXFIFO_WR(smbus, len | MTXFIFO_READ | MTXFIFO_STOP);
+			break;
 
-	default:
-		dev_warn(&adapter->dev, "Unsupported transaction %d\n", size);
-		return -EINVAL;
+		default:
+			dev_warn(&adapter->dev, "Unsupported transaction %d\n", size);
+			return -EINVAL;
 	}
 
 	err = pasemi_smb_waitready(smbus);
+
 	if (err)
+	{
 		goto reset_out;
+	}
 
 	if (read_write == I2C_SMBUS_WRITE)
+	{
 		return 0;
+	}
 
-	switch (size) {
-	case I2C_SMBUS_BYTE:
-	case I2C_SMBUS_BYTE_DATA:
-		rd = RXFIFO_RD(smbus);
-		if (rd & MRXFIFO_EMPTY) {
-			err = -ENODATA;
-			goto reset_out;
-		}
-		data->byte = rd & MRXFIFO_DATA_M;
-		break;
-	case I2C_SMBUS_WORD_DATA:
-	case I2C_SMBUS_PROC_CALL:
-		rd = RXFIFO_RD(smbus);
-		if (rd & MRXFIFO_EMPTY) {
-			err = -ENODATA;
-			goto reset_out;
-		}
-		data->word = rd & MRXFIFO_DATA_M;
-		rd = RXFIFO_RD(smbus);
-		if (rd & MRXFIFO_EMPTY) {
-			err = -ENODATA;
-			goto reset_out;
-		}
-		data->word |= (rd & MRXFIFO_DATA_M) << 8;
-		break;
-	case I2C_SMBUS_BLOCK_DATA:
-	case I2C_SMBUS_BLOCK_PROC_CALL:
-		data->block[0] = len;
-		for (i = 1; i <= len; i ++) {
+	switch (size)
+	{
+		case I2C_SMBUS_BYTE:
+		case I2C_SMBUS_BYTE_DATA:
 			rd = RXFIFO_RD(smbus);
-			if (rd & MRXFIFO_EMPTY) {
+
+			if (rd & MRXFIFO_EMPTY)
+			{
 				err = -ENODATA;
 				goto reset_out;
 			}
-			data->block[i] = rd & MRXFIFO_DATA_M;
-		}
-		break;
+
+			data->byte = rd & MRXFIFO_DATA_M;
+			break;
+
+		case I2C_SMBUS_WORD_DATA:
+		case I2C_SMBUS_PROC_CALL:
+			rd = RXFIFO_RD(smbus);
+
+			if (rd & MRXFIFO_EMPTY)
+			{
+				err = -ENODATA;
+				goto reset_out;
+			}
+
+			data->word = rd & MRXFIFO_DATA_M;
+			rd = RXFIFO_RD(smbus);
+
+			if (rd & MRXFIFO_EMPTY)
+			{
+				err = -ENODATA;
+				goto reset_out;
+			}
+
+			data->word |= (rd & MRXFIFO_DATA_M) << 8;
+			break;
+
+		case I2C_SMBUS_BLOCK_DATA:
+		case I2C_SMBUS_BLOCK_PROC_CALL:
+			data->block[0] = len;
+
+			for (i = 1; i <= len; i ++)
+			{
+				rd = RXFIFO_RD(smbus);
+
+				if (rd & MRXFIFO_EMPTY)
+				{
+					err = -ENODATA;
+					goto reset_out;
+				}
+
+				data->block[i] = rd & MRXFIFO_DATA_M;
+			}
+
+			break;
 	}
 
 	return 0;
 
- reset_out:
+reset_out:
 	reg_write(smbus, REG_CTL, (CTL_MTR | CTL_MRR |
-		  (CLK_100K_DIV & CTL_CLK_M)));
+							   (CLK_100K_DIV & CTL_CLK_M)));
 	return err;
 }
 
 static u32 pasemi_smb_func(struct i2c_adapter *adapter)
 {
 	return I2C_FUNC_SMBUS_QUICK | I2C_FUNC_SMBUS_BYTE |
-	       I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA |
-	       I2C_FUNC_SMBUS_BLOCK_DATA | I2C_FUNC_SMBUS_PROC_CALL |
-	       I2C_FUNC_SMBUS_BLOCK_PROC_CALL | I2C_FUNC_I2C;
+		   I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA |
+		   I2C_FUNC_SMBUS_BLOCK_DATA | I2C_FUNC_SMBUS_PROC_CALL |
+		   I2C_FUNC_SMBUS_BLOCK_PROC_CALL | I2C_FUNC_I2C;
 }
 
-static const struct i2c_algorithm smbus_algorithm = {
+static const struct i2c_algorithm smbus_algorithm =
+{
 	.master_xfer	= pasemi_i2c_xfer,
 	.smbus_xfer	= pasemi_smb_xfer,
 	.functionality	= pasemi_smb_func,
 };
 
 static int pasemi_smb_probe(struct pci_dev *dev,
-				      const struct pci_device_id *id)
+							const struct pci_device_id *id)
 {
 	struct pasemi_smbus *smbus;
 	int error;
 
 	if (!(pci_resource_flags(dev, 0) & IORESOURCE_IO))
+	{
 		return -ENODEV;
+	}
 
 	smbus = kzalloc(sizeof(struct pasemi_smbus), GFP_KERNEL);
+
 	if (!smbus)
+	{
 		return -ENOMEM;
+	}
 
 	smbus->dev = dev;
 	smbus->base = pci_resource_start(dev, 0);
 	smbus->size = pci_resource_len(dev, 0);
 
 	if (!request_region(smbus->base, smbus->size,
-			    pasemi_smb_driver.name)) {
+						pasemi_smb_driver.name))
+	{
 		error = -EBUSY;
 		goto out_kfree;
 	}
 
 	smbus->adapter.owner = THIS_MODULE;
 	snprintf(smbus->adapter.name, sizeof(smbus->adapter.name),
-		 "PA Semi SMBus adapter at 0x%lx", smbus->base);
+			 "PA Semi SMBus adapter at 0x%lx", smbus->base);
 	smbus->adapter.class = I2C_CLASS_HWMON | I2C_CLASS_SPD;
 	smbus->adapter.algo = &smbus_algorithm;
 	smbus->adapter.algo_data = smbus;
@@ -371,19 +456,22 @@ static int pasemi_smb_probe(struct pci_dev *dev,
 	smbus->adapter.dev.parent = &dev->dev;
 
 	reg_write(smbus, REG_CTL, (CTL_MTR | CTL_MRR |
-		  (CLK_100K_DIV & CTL_CLK_M)));
+							   (CLK_100K_DIV & CTL_CLK_M)));
 
 	error = i2c_add_numbered_adapter(&smbus->adapter);
+
 	if (error)
+	{
 		goto out_release_region;
+	}
 
 	pci_set_drvdata(dev, smbus);
 
 	return 0;
 
- out_release_region:
+out_release_region:
 	release_region(smbus->base, smbus->size);
- out_kfree:
+out_kfree:
 	kfree(smbus);
 	return error;
 }
@@ -397,14 +485,16 @@ static void pasemi_smb_remove(struct pci_dev *dev)
 	kfree(smbus);
 }
 
-static const struct pci_device_id pasemi_smb_ids[] = {
+static const struct pci_device_id pasemi_smb_ids[] =
+{
 	{ PCI_DEVICE(0x1959, 0xa003) },
 	{ 0, }
 };
 
 MODULE_DEVICE_TABLE(pci, pasemi_smb_ids);
 
-static struct pci_driver pasemi_smb_driver = {
+static struct pci_driver pasemi_smb_driver =
+{
 	.name		= "i2c-pasemi",
 	.id_table	= pasemi_smb_ids,
 	.probe		= pasemi_smb_probe,

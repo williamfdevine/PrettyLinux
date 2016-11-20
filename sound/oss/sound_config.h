@@ -22,11 +22,11 @@
 
 
 #ifndef SND_DEFAULT_ENABLE
-#define SND_DEFAULT_ENABLE	1
+	#define SND_DEFAULT_ENABLE	1
 #endif
 
 #ifndef MAX_REALTIME_FACTOR
-#define MAX_REALTIME_FACTOR	4
+	#define MAX_REALTIME_FACTOR	4
 #endif
 
 /*
@@ -36,13 +36,13 @@
 #define DSP_BUFFSIZE		(64*1024)
 
 #ifndef DSP_BUFFCOUNT
-#define DSP_BUFFCOUNT		1	/* 1 is recommended. */
+	#define DSP_BUFFCOUNT		1	/* 1 is recommended. */
 #endif
 
 #define FM_MONO		0x388	/* This is the I/O address used by AdLib */
 
 #ifndef CONFIG_PAS_BASE
-#define CONFIG_PAS_BASE	0x388
+	#define CONFIG_PAS_BASE	0x388
 #endif
 
 /* SEQ_MAX_QUEUE is the maximum number of sequencer events buffered by the
@@ -62,7 +62,8 @@
 #define MAX_MIDI_DEV	6
 #define MAX_TIMER_DEV	4
 
-struct address_info {
+struct address_info
+{
 	int io_base;
 	int irq;
 	int dma;
@@ -79,21 +80,23 @@ struct address_info {
 
 #define SYNTH_MAX_VOICES	32
 
-struct voice_alloc_info {
-		int max_voice;
-		int used_voices;
-		int ptr;		/* For device specific use */
-		unsigned short map[SYNTH_MAX_VOICES]; /* (ch << 8) | (note+1) */
-		int timestamp;
-		int alloc_times[SYNTH_MAX_VOICES];
-	};
+struct voice_alloc_info
+{
+	int max_voice;
+	int used_voices;
+	int ptr;		/* For device specific use */
+	unsigned short map[SYNTH_MAX_VOICES]; /* (ch << 8) | (note+1) */
+	int timestamp;
+	int alloc_times[SYNTH_MAX_VOICES];
+};
 
-struct channel_info {
-		int pgm_num;
-		int bender_value;
-		int bender_range;
-		unsigned char controllers[128];
-	};
+struct channel_info
+{
+	int pgm_num;
+	int bender_value;
+	int bender_range;
+	unsigned char controllers[128];
+};
 
 /*
  * Process wakeup reasons
@@ -113,26 +116,28 @@ struct channel_info {
 static inline int translate_mode(struct file *file)
 {
 	if (OPEN_READ == (__force int)FMODE_READ &&
-	    OPEN_WRITE == (__force int)FMODE_WRITE)
+		OPEN_WRITE == (__force int)FMODE_WRITE)
+	{
 		return (__force int)(file->f_mode & (FMODE_READ | FMODE_WRITE));
+	}
 	else
 		return ((file->f_mode & FMODE_READ) ? OPEN_READ : 0) |
-			((file->f_mode & FMODE_WRITE) ? OPEN_WRITE : 0);
+			   ((file->f_mode & FMODE_WRITE) ? OPEN_WRITE : 0);
 }
 
 #include "sound_calls.h"
 #include "dev_table.h"
 
 #ifndef DDB
-#define DDB(x) do {} while (0)
+	#define DDB(x) do {} while (0)
 #endif
 
 #ifndef MDB
-#ifdef MODULE
-#define MDB(x) x
-#else
-#define MDB(x)
-#endif
+	#ifdef MODULE
+		#define MDB(x) x
+	#else
+		#define MDB(x)
+	#endif
 #endif
 
 #define TIMER_ARMED	121234

@@ -23,8 +23,10 @@
 /* insn_attr_t is defined in inat.h */
 #include "inat.h"
 
-struct insn_field {
-	union {
+struct insn_field
+{
+	union
+	{
 		insn_value_t value;
 		insn_byte_t bytes[4];
 	};
@@ -33,7 +35,8 @@ struct insn_field {
 	unsigned char nbytes;
 };
 
-struct insn {
+struct insn
+{
 	struct insn_field prefixes;	/*
 					 * Prefixes
 					 * prefixes.bytes[3]: last prefix
@@ -48,12 +51,14 @@ struct insn {
 	struct insn_field modrm;
 	struct insn_field sib;
 	struct insn_field displacement;
-	union {
+	union
+	{
 		struct insn_field immediate;
 		struct insn_field moffset1;	/* for 64bit MOV */
 		struct insn_field immediate1;	/* for 64bit imm or off16/32 */
 	};
-	union {
+	union
+	{
 		struct insn_field moffset2;	/* for 64bit MOV */
 		struct insn_field immediate2;	/* for 64bit imm or seg16 */
 	};
@@ -118,7 +123,7 @@ extern int insn_rip_relative(struct insn *insn);
 
 /* Init insn for kernel text */
 static inline void kernel_insn_init(struct insn *insn,
-				    const void *kaddr, int buf_len)
+									const void *kaddr, int buf_len)
 {
 #ifdef CONFIG_X86_64
 	insn_init(insn, kaddr, buf_len, 1);
@@ -130,14 +135,20 @@ static inline void kernel_insn_init(struct insn *insn,
 static inline int insn_is_avx(struct insn *insn)
 {
 	if (!insn->prefixes.got)
+	{
 		insn_get_prefixes(insn);
+	}
+
 	return (insn->vex_prefix.value != 0);
 }
 
 static inline int insn_is_evex(struct insn *insn)
 {
 	if (!insn->prefixes.got)
+	{
 		insn_get_prefixes(insn);
+	}
+
 	return (insn->vex_prefix.nbytes == 4);
 }
 
@@ -145,35 +156,49 @@ static inline int insn_is_evex(struct insn *insn)
 static inline int insn_complete(struct insn *insn)
 {
 	return insn->opcode.got && insn->modrm.got && insn->sib.got &&
-		insn->displacement.got && insn->immediate.got;
+		   insn->displacement.got && insn->immediate.got;
 }
 
 static inline insn_byte_t insn_vex_m_bits(struct insn *insn)
 {
 	if (insn->vex_prefix.nbytes == 2)	/* 2 bytes VEX */
+	{
 		return X86_VEX2_M;
+	}
 	else if (insn->vex_prefix.nbytes == 3)	/* 3 bytes VEX */
+	{
 		return X86_VEX3_M(insn->vex_prefix.bytes[1]);
+	}
 	else					/* EVEX */
+	{
 		return X86_EVEX_M(insn->vex_prefix.bytes[1]);
+	}
 }
 
 static inline insn_byte_t insn_vex_p_bits(struct insn *insn)
 {
 	if (insn->vex_prefix.nbytes == 2)	/* 2 bytes VEX */
+	{
 		return X86_VEX_P(insn->vex_prefix.bytes[1]);
+	}
 	else
+	{
 		return X86_VEX_P(insn->vex_prefix.bytes[2]);
+	}
 }
 
 /* Get the last prefix id from last prefix or VEX prefix */
 static inline int insn_last_prefix_id(struct insn *insn)
 {
 	if (insn_is_avx(insn))
-		return insn_vex_p_bits(insn);	/* VEX_p is a SIMD prefix id */
+	{
+		return insn_vex_p_bits(insn);    /* VEX_p is a SIMD prefix id */
+	}
 
 	if (insn->prefixes.bytes[3])
+	{
 		return inat_get_last_prefix_id(insn->prefixes.bytes[3]);
+	}
 
 	return 0;
 }

@@ -33,14 +33,16 @@
 #define DS1347_STATUS_REG	0x17
 #define DS1347_CLOCK_BURST	0x3F
 
-static const struct regmap_range ds1347_ranges[] = {
+static const struct regmap_range ds1347_ranges[] =
+{
 	{
 		.range_min = DS1347_SECONDS_REG,
 		.range_max = DS1347_STATUS_REG,
 	},
 };
 
-static const struct regmap_access_table ds1347_access_table = {
+static const struct regmap_access_table ds1347_access_table =
+{
 	.yes_ranges = ds1347_ranges,
 	.n_yes_ranges = ARRAY_SIZE(ds1347_ranges),
 };
@@ -55,8 +57,11 @@ static int ds1347_read_time(struct device *dev, struct rtc_time *dt)
 	map = spi_get_drvdata(spi);
 
 	err = regmap_bulk_read(map, DS1347_CLOCK_BURST, buf, 8);
+
 	if (err)
+	{
 		return err;
+	}
 
 	dt->tm_sec = bcd2bin(buf[0]);
 	dt->tm_min = bcd2bin(buf[1]);
@@ -95,7 +100,8 @@ static int ds1347_set_time(struct device *dev, struct rtc_time *dt)
 	return regmap_bulk_write(map, DS1347_CLOCK_BURST, buf, 8);
 }
 
-static const struct rtc_class_ops ds1347_rtc_ops = {
+static const struct rtc_class_ops ds1347_rtc_ops =
+{
 	.read_time = ds1347_read_time,
 	.set_time = ds1347_set_time,
 };
@@ -122,7 +128,8 @@ static int ds1347_probe(struct spi_device *spi)
 
 	map = devm_regmap_init_spi(spi, &config);
 
-	if (IS_ERR(map)) {
+	if (IS_ERR(map))
+	{
 		dev_err(&spi->dev, "ds1347 regmap init spi failed\n");
 		return PTR_ERR(map);
 	}
@@ -131,12 +138,15 @@ static int ds1347_probe(struct spi_device *spi)
 
 	/* RTC Settings */
 	res = regmap_read(map, DS1347_SECONDS_REG, &data);
+
 	if (res)
+	{
 		return res;
+	}
 
 	/* Disable the write protect of rtc */
 	regmap_read(map, DS1347_CONTROL_REG, &data);
-	data = data & ~(1<<7);
+	data = data & ~(1 << 7);
 	regmap_write(map, DS1347_CONTROL_REG, data);
 
 	/* Enable the oscillator , disable the oscillator stop flag,
@@ -153,15 +163,18 @@ static int ds1347_probe(struct spi_device *spi)
 	dev_info(&spi->dev, "DS1347 RTC Status Reg = 0x%02x\n", data);
 
 	rtc = devm_rtc_device_register(&spi->dev, "ds1347",
-				&ds1347_rtc_ops, THIS_MODULE);
+								   &ds1347_rtc_ops, THIS_MODULE);
 
 	if (IS_ERR(rtc))
+	{
 		return PTR_ERR(rtc);
+	}
 
 	return 0;
 }
 
-static struct spi_driver ds1347_driver = {
+static struct spi_driver ds1347_driver =
+{
 	.driver = {
 		.name = "ds1347",
 	},

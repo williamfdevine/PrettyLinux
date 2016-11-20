@@ -14,19 +14,22 @@
 #define WM2200_GPIO_SET 0x10000
 #define WM2200_MAX_MICBIAS 2
 
-enum wm2200_in_mode {
+enum wm2200_in_mode
+{
 	WM2200_IN_SE = 0,
 	WM2200_IN_DIFF = 1,
 	WM2200_IN_DMIC = 2,
 };
 
-enum wm2200_dmic_sup {
+enum wm2200_dmic_sup
+{
 	WM2200_DMIC_SUP_MICVDD = 0,
 	WM2200_DMIC_SUP_MICBIAS1 = 1,
 	WM2200_DMIC_SUP_MICBIAS2 = 2,
 };
 
-enum wm2200_mbias_lvl {
+enum wm2200_mbias_lvl
+{
 	WM2200_MBIAS_LVL_1V5 = 1,
 	WM2200_MBIAS_LVL_1V8 = 2,
 	WM2200_MBIAS_LVL_1V9 = 3,
@@ -37,14 +40,16 @@ enum wm2200_mbias_lvl {
 	WM2200_MBIAS_LVL_2V6 = 8,
 };
 
-struct wm2200_micbias {
+struct wm2200_micbias
+{
 	enum wm2200_mbias_lvl mb_lvl;      /** Regulated voltage */
-	unsigned int discharge:1;          /** Actively discharge */
-	unsigned int fast_start:1;         /** Enable aggressive startup ramp rate */
-	unsigned int bypass:1;             /** Use bypass mode */
+	unsigned int discharge: 1;         /** Actively discharge */
+	unsigned int fast_start: 1;        /** Enable aggressive startup ramp rate */
+	unsigned int bypass: 1;            /** Use bypass mode */
 };
 
-struct wm2200_pdata {
+struct wm2200_pdata
+{
 	int reset;      /** GPIO controlling /RESET, if any */
 	int ldo_ena;    /** GPIO controlling LODENA, if any */
 	int irq_flags;

@@ -38,7 +38,8 @@
 #define DRV_VERSION	"0.2"
 
 /* see SCH datasheet page 351 */
-enum {
+enum
+{
 	D0TIM	= 0x80,		/* Device 0 Timing Register */
 	D1TIM	= 0x84,		/* Device 1 Timing Register */
 	PM	= 0x07,		/* PIO Mode Bit Mask */
@@ -49,17 +50,19 @@ enum {
 };
 
 static int sch_init_one(struct pci_dev *pdev,
-			 const struct pci_device_id *ent);
+						const struct pci_device_id *ent);
 static void sch_set_piomode(struct ata_port *ap, struct ata_device *adev);
 static void sch_set_dmamode(struct ata_port *ap, struct ata_device *adev);
 
-static const struct pci_device_id sch_pci_tbl[] = {
+static const struct pci_device_id sch_pci_tbl[] =
+{
 	/* Intel SCH PATA Controller */
 	{ PCI_VDEVICE(INTEL, PCI_DEVICE_ID_INTEL_SCH_IDE), 0 },
 	{ }	/* terminate list */
 };
 
-static struct pci_driver sch_pci_driver = {
+static struct pci_driver sch_pci_driver =
+{
 	.name			= DRV_NAME,
 	.id_table		= sch_pci_tbl,
 	.probe			= sch_init_one,
@@ -70,18 +73,21 @@ static struct pci_driver sch_pci_driver = {
 #endif
 };
 
-static struct scsi_host_template sch_sht = {
+static struct scsi_host_template sch_sht =
+{
 	ATA_BMDMA_SHT(DRV_NAME),
 };
 
-static struct ata_port_operations sch_pata_ops = {
+static struct ata_port_operations sch_pata_ops =
+{
 	.inherits		= &ata_bmdma_port_ops,
 	.cable_detect		= ata_cable_unknown,
 	.set_piomode		= sch_set_piomode,
 	.set_dmamode		= sch_set_dmamode,
 };
 
-static struct ata_port_info sch_port_info = {
+static struct ata_port_info sch_port_info =
+{
 	.flags		= ATA_FLAG_SLAVE_POSS,
 	.pio_mask	= ATA_PIO4,
 	.mwdma_mask	= ATA_MWDMA2,
@@ -118,9 +124,13 @@ static void sch_set_piomode(struct ata_port *ap, struct ata_device *adev)
 	/* set PIO mode */
 	data &= ~(PM | PPE);
 	data |= pio;
+
 	/* enable PPE for block device */
 	if (adev->class == ATA_DEV_ATA)
+	{
 		data |= PPE;
+	}
+
 	pci_write_config_dword(dev, port, data);
 }
 
@@ -143,16 +153,21 @@ static void sch_set_dmamode(struct ata_port *ap, struct ata_device *adev)
 	unsigned int data;
 
 	pci_read_config_dword(dev, port, &data);
+
 	/* see SCH datasheet page 351 */
-	if (dma_mode >= XFER_UDMA_0) {
+	if (dma_mode >= XFER_UDMA_0)
+	{
 		/* enable Synchronous DMA mode */
 		data |= USD;
 		data &= ~UDM;
 		data |= (dma_mode - XFER_UDMA_0) << 16;
-	} else { /* must be MWDMA mode, since we masked SWDMA already */
+	}
+	else     /* must be MWDMA mode, since we masked SWDMA already */
+	{
 		data &= ~(USD | MDM);
 		data |= (dma_mode - XFER_MW_DMA_0) << 8;
 	}
+
 	pci_write_config_dword(dev, port, data);
 }
 

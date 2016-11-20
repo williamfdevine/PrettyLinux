@@ -32,7 +32,8 @@
 #include <nvif/class.h>
 
 static const struct nvkm_enum
-gt215_ce_isr_error_name[] = {
+	gt215_ce_isr_error_name[] =
+{
 	{ 0x0001, "ILLEGAL_MTHD" },
 	{ 0x0002, "INVALID_ENUM" },
 	{ 0x0003, "INVALID_BITFIELD" },
@@ -55,14 +56,15 @@ gt215_ce_intr(struct nvkm_falcon *ce, struct nvkm_fifo_chan *chan)
 
 	nvkm_error(subdev, "DISPATCH_ERROR %04x [%s] ch %d [%010llx %s] "
 			   "subc %d mthd %04x data %08x\n", ssta,
-		   en ? en->name : "", chan ? chan->chid : -1,
-		   chan ? chan->inst->addr : 0,
-		   chan ? chan->object.client->name : "unknown",
-		   subc, mthd, data);
+			   en ? en->name : "", chan ? chan->chid : -1,
+			   chan ? chan->inst->addr : 0,
+			   chan ? chan->object.client->name : "unknown",
+			   subc, mthd, data);
 }
 
 static const struct nvkm_falcon_func
-gt215_ce = {
+	gt215_ce =
+{
 	.code.data = gt215_ce_code,
 	.code.size = sizeof(gt215_ce_code),
 	.data.data = gt215_ce_data,
@@ -76,8 +78,8 @@ gt215_ce = {
 
 int
 gt215_ce_new(struct nvkm_device *device, int index,
-	     struct nvkm_engine **pengine)
+			 struct nvkm_engine **pengine)
 {
 	return nvkm_falcon_new_(&gt215_ce, device, index,
-				(device->chipset != 0xaf), 0x104000, pengine);
+							(device->chipset != 0xaf), 0x104000, pengine);
 }

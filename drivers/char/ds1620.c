@@ -17,8 +17,8 @@
 #include <asm/therm.h>
 
 #ifdef CONFIG_PROC_FS
-/* define for /proc interface */
-#define THERM_USE_PROC
+	/* define for /proc interface */
+	#define THERM_USE_PROC
 #endif
 
 /* Definitions for DS1620 chip */
@@ -95,7 +95,9 @@ static inline void netwinder_set_fan(int i)
 static inline int netwinder_get_fan(void)
 {
 	if ((system_rev & 0xf000) == 0x4000)
+	{
 		return FAN_ALWAYS_ON;
+	}
 
 	return (nw_gpio_read() & GPIO_FAN) ? FAN_ON : FAN_OFF;
 }
@@ -108,7 +110,8 @@ static void ds1620_send_bits(int nr, int value)
 {
 	int i;
 
-	for (i = 0; i < nr; i++) {
+	for (i = 0; i < nr; i++)
+	{
 		netwinder_ds1620_set_data(value & 1);
 		netwinder_ds1620_set_clk(0);
 		udelay(1);
@@ -126,12 +129,15 @@ static unsigned int ds1620_recv_bits(int nr)
 
 	netwinder_ds1620_set_data(0);
 
-	for (i = 0; i < nr; i++) {
+	for (i = 0; i < nr; i++)
+	{
 		netwinder_ds1620_set_clk(0);
 		udelay(1);
 
 		if (netwinder_ds1620_get_data())
+		{
 			value |= mask;
+		}
 
 		mask <<= 1;
 
@@ -154,8 +160,11 @@ static void ds1620_out(int cmd, int bits, int value)
 	udelay(1);
 
 	ds1620_send_bits(8, cmd);
+
 	if (bits)
+	{
 		ds1620_send_bits(bits, value);
+	}
 
 	udelay(1);
 
@@ -191,7 +200,9 @@ static unsigned int ds1620_in(int cmd, int bits)
 static int cvt_9_to_int(unsigned int val)
 {
 	if (val & 0x100)
+	{
 		val |= 0xfffffe00;
+	}
 
 	return val;
 }
@@ -227,7 +238,9 @@ ds1620_read(struct file *file, char __user *buf, size_t count, loff_t *ptr)
 	cur_temp_degF = (cur_temp * 9) / 5 + 32;
 
 	if (copy_to_user(buf, &cur_temp_degF, 1))
+	{
 		return -EFAULT;
+	}
 
 	return 1;
 }
@@ -236,7 +249,8 @@ static int
 ds1620_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	struct therm therm;
-	union {
+	union
+	{
 		struct therm __user *therm;
 		int __user *i;
 	} uarg;
@@ -244,74 +258,99 @@ ds1620_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 
 	uarg.i = (int __user *)arg;
 
-	switch(cmd) {
-	case CMD_SET_THERMOSTATE:
-	case CMD_SET_THERMOSTATE2:
-		if (!capable(CAP_SYS_ADMIN))
-			return -EPERM;
+	switch (cmd)
+	{
+		case CMD_SET_THERMOSTATE:
+		case CMD_SET_THERMOSTATE2:
+			if (!capable(CAP_SYS_ADMIN))
+			{
+				return -EPERM;
+			}
 
-		if (cmd == CMD_SET_THERMOSTATE) {
-			if (get_user(therm.hi, uarg.i))
+			if (cmd == CMD_SET_THERMOSTATE)
+			{
+				if (get_user(therm.hi, uarg.i))
+				{
+					return -EFAULT;
+				}
+
+				therm.lo = therm.hi - 3;
+			}
+			else
+			{
+				if (copy_from_user(&therm, uarg.therm, sizeof(therm)))
+				{
+					return -EFAULT;
+				}
+			}
+
+			therm.lo <<= 1;
+			therm.hi <<= 1;
+
+			ds1620_write_state(&therm);
+			break;
+
+		case CMD_GET_THERMOSTATE:
+		case CMD_GET_THERMOSTATE2:
+			ds1620_read_state(&therm);
+
+			therm.lo >>= 1;
+			therm.hi >>= 1;
+
+			if (cmd == CMD_GET_THERMOSTATE)
+			{
+				if (put_user(therm.hi, uarg.i))
+				{
+					return -EFAULT;
+				}
+			}
+			else
+			{
+				if (copy_to_user(uarg.therm, &therm, sizeof(therm)))
+				{
+					return -EFAULT;
+				}
+			}
+
+			break;
+
+		case CMD_GET_TEMPERATURE:
+		case CMD_GET_TEMPERATURE2:
+			i = cvt_9_to_int(ds1620_in(THERM_READ_TEMP, 9));
+
+			if (cmd == CMD_GET_TEMPERATURE)
+			{
+				i >>= 1;
+			}
+
+			return put_user(i, uarg.i) ? -EFAULT : 0;
+
+		case CMD_GET_STATUS:
+			i = ds1620_in(THERM_READ_CONFIG, 8) & 0xe3;
+
+			return put_user(i, uarg.i) ? -EFAULT : 0;
+
+		case CMD_GET_FAN:
+			i = netwinder_get_fan();
+
+			return put_user(i, uarg.i) ? -EFAULT : 0;
+
+		case CMD_SET_FAN:
+			if (!capable(CAP_SYS_ADMIN))
+			{
+				return -EPERM;
+			}
+
+			if (get_user(i, uarg.i))
+			{
 				return -EFAULT;
-			therm.lo = therm.hi - 3;
-		} else {
-			if (copy_from_user(&therm, uarg.therm, sizeof(therm)))
-				return -EFAULT;
-		}
+			}
 
-		therm.lo <<= 1;
-		therm.hi <<= 1;
+			netwinder_set_fan(i);
+			break;
 
-		ds1620_write_state(&therm);
-		break;
-
-	case CMD_GET_THERMOSTATE:
-	case CMD_GET_THERMOSTATE2:
-		ds1620_read_state(&therm);
-
-		therm.lo >>= 1;
-		therm.hi >>= 1;
-
-		if (cmd == CMD_GET_THERMOSTATE) {
-			if (put_user(therm.hi, uarg.i))
-				return -EFAULT;
-		} else {
-			if (copy_to_user(uarg.therm, &therm, sizeof(therm)))
-				return -EFAULT;
-		}
-		break;
-
-	case CMD_GET_TEMPERATURE:
-	case CMD_GET_TEMPERATURE2:
-		i = cvt_9_to_int(ds1620_in(THERM_READ_TEMP, 9));
-
-		if (cmd == CMD_GET_TEMPERATURE)
-			i >>= 1;
-
-		return put_user(i, uarg.i) ? -EFAULT : 0;
-
-	case CMD_GET_STATUS:
-		i = ds1620_in(THERM_READ_CONFIG, 8) & 0xe3;
-
-		return put_user(i, uarg.i) ? -EFAULT : 0;
-
-	case CMD_GET_FAN:
-		i = netwinder_get_fan();
-
-		return put_user(i, uarg.i) ? -EFAULT : 0;
-
-	case CMD_SET_FAN:
-		if (!capable(CAP_SYS_ADMIN))
-			return -EPERM;
-
-		if (get_user(i, uarg.i))
-			return -EFAULT;
-
-		netwinder_set_fan(i);
-		break;
-		
-	default:
-		return -ENOIOCTLCMD;
+		default:
+			return -ENOIOCTLCMD;
 	}
 
 	return 0;
@@ -339,10 +378,10 @@ static int ds1620_proc_therm_show(struct seq_file *m, void *v)
 	temp =  cvt_9_to_int(ds1620_in(THERM_READ_TEMP, 9));
 
 	seq_printf(m, "Thermostat: HI %i.%i, LOW %i.%i; temperature: %i.%i C, fan %s\n",
-		   th.hi >> 1, th.hi & 1 ? 5 : 0,
-		   th.lo >> 1, th.lo & 1 ? 5 : 0,
-		   temp  >> 1, temp  & 1 ? 5 : 0,
-		   fan_state[netwinder_get_fan()]);
+			   th.hi >> 1, th.hi & 1 ? 5 : 0,
+			   th.lo >> 1, th.lo & 1 ? 5 : 0,
+			   temp  >> 1, temp  & 1 ? 5 : 0,
+			   fan_state[netwinder_get_fan()]);
 	return 0;
 }
 
@@ -351,7 +390,8 @@ static int ds1620_proc_therm_open(struct inode *inode, struct file *file)
 	return single_open(file, ds1620_proc_therm_show, NULL);
 }
 
-static const struct file_operations ds1620_proc_therm_fops = {
+static const struct file_operations ds1620_proc_therm_fops =
+{
 	.open		= ds1620_proc_therm_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,
@@ -359,7 +399,8 @@ static const struct file_operations ds1620_proc_therm_fops = {
 };
 #endif
 
-static const struct file_operations ds1620_fops = {
+static const struct file_operations ds1620_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= ds1620_open,
 	.read		= ds1620_read,
@@ -367,7 +408,8 @@ static const struct file_operations ds1620_fops = {
 	.llseek		= no_llseek,
 };
 
-static struct miscdevice ds1620_miscdev = {
+static struct miscdevice ds1620_miscdev =
+{
 	TEMP_MINOR,
 	"temp",
 	&ds1620_fops
@@ -379,7 +421,9 @@ static int __init ds1620_init(void)
 	struct therm th, th_start;
 
 	if (!machine_is_netwinder())
+	{
 		return -ENODEV;
+	}
 
 	ds1620_out(THERM_RESET, 0, 0);
 	ds1620_out(THERM_WRITE_CONFIG, 8, CFG_CPU);
@@ -400,23 +444,30 @@ static int __init ds1620_init(void)
 	ds1620_write_state(&th);
 
 	ret = misc_register(&ds1620_miscdev);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 #ifdef THERM_USE_PROC
+
 	if (!proc_create("therm", 0, NULL, &ds1620_proc_therm_fops))
+	{
 		printk(KERN_ERR "therm: unable to register /proc/therm\n");
+	}
+
 #endif
 
 	ds1620_read_state(&th);
 	ret = cvt_9_to_int(ds1620_in(THERM_READ_TEMP, 9));
 
 	printk(KERN_INFO "Thermostat: high %i.%i, low %i.%i, "
-	       "current %i.%i C, fan %s.\n",
-	       th.hi >> 1, th.hi & 1 ? 5 : 0,
-	       th.lo >> 1, th.lo & 1 ? 5 : 0,
-	       ret   >> 1, ret   & 1 ? 5 : 0,
-	       fan_state[netwinder_get_fan()]);
+		   "current %i.%i C, fan %s.\n",
+		   th.hi >> 1, th.hi & 1 ? 5 : 0,
+		   th.lo >> 1, th.lo & 1 ? 5 : 0,
+		   ret   >> 1, ret   & 1 ? 5 : 0,
+		   fan_state[netwinder_get_fan()]);
 
 	return 0;
 }

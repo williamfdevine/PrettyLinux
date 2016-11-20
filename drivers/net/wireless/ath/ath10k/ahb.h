@@ -20,7 +20,8 @@
 
 #include <linux/platform_device.h>
 
-struct ath10k_ahb {
+struct ath10k_ahb
+{
 	struct platform_device *pdev;
 	void __iomem *mem;
 	unsigned long mem_len;

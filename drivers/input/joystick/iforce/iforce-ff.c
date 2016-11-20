@@ -34,19 +34,23 @@
  * Note: caller must ensure exclusive access to device
  */
 
-static int make_magnitude_modifier(struct iforce* iforce,
-	struct resource* mod_chunk, int no_alloc, __s16 level)
+static int make_magnitude_modifier(struct iforce *iforce,
+								   struct resource *mod_chunk, int no_alloc, __s16 level)
 {
 	unsigned char data[3];
 
-	if (!no_alloc) {
+	if (!no_alloc)
+	{
 		mutex_lock(&iforce->mem_mutex);
+
 		if (allocate_resource(&(iforce->device_memory), mod_chunk, 2,
-			iforce->device_memory.start, iforce->device_memory.end, 2L,
-			NULL, NULL)) {
+							  iforce->device_memory.start, iforce->device_memory.end, 2L,
+							  NULL, NULL))
+		{
 			mutex_unlock(&iforce->mem_mutex);
 			return -ENOSPC;
 		}
+
 		mutex_unlock(&iforce->mem_mutex);
 	}
 
@@ -64,22 +68,26 @@ static int make_magnitude_modifier(struct iforce* iforce,
  * Upload the component of an effect dealing with the period, phase and magnitude
  */
 
-static int make_period_modifier(struct iforce* iforce,
-	struct resource* mod_chunk, int no_alloc,
-	__s16 magnitude, __s16 offset, u16 period, u16 phase)
+static int make_period_modifier(struct iforce *iforce,
+								struct resource *mod_chunk, int no_alloc,
+								__s16 magnitude, __s16 offset, u16 period, u16 phase)
 {
 	unsigned char data[7];
 
 	period = TIME_SCALE(period);
 
-	if (!no_alloc) {
+	if (!no_alloc)
+	{
 		mutex_lock(&iforce->mem_mutex);
+
 		if (allocate_resource(&(iforce->device_memory), mod_chunk, 0x0c,
-			iforce->device_memory.start, iforce->device_memory.end, 2L,
-			NULL, NULL)) {
+							  iforce->device_memory.start, iforce->device_memory.end, 2L,
+							  NULL, NULL))
+		{
 			mutex_unlock(&iforce->mem_mutex);
 			return -ENOSPC;
 		}
+
 		mutex_unlock(&iforce->mem_mutex);
 	}
 
@@ -102,24 +110,28 @@ static int make_period_modifier(struct iforce* iforce,
  * Uploads the part of an effect setting the envelope of the force
  */
 
-static int make_envelope_modifier(struct iforce* iforce,
-	struct resource* mod_chunk, int no_alloc,
-	u16 attack_duration, __s16 initial_level,
-	u16 fade_duration, __s16 final_level)
+static int make_envelope_modifier(struct iforce *iforce,
+								  struct resource *mod_chunk, int no_alloc,
+								  u16 attack_duration, __s16 initial_level,
+								  u16 fade_duration, __s16 final_level)
 {
 	unsigned char data[8];
 
 	attack_duration = TIME_SCALE(attack_duration);
 	fade_duration = TIME_SCALE(fade_duration);
 
-	if (!no_alloc) {
+	if (!no_alloc)
+	{
 		mutex_lock(&iforce->mem_mutex);
+
 		if (allocate_resource(&(iforce->device_memory), mod_chunk, 0x0e,
-			iforce->device_memory.start, iforce->device_memory.end, 2L,
-			NULL, NULL)) {
+							  iforce->device_memory.start, iforce->device_memory.end, 2L,
+							  NULL, NULL))
+		{
 			mutex_unlock(&iforce->mem_mutex);
 			return -ENOSPC;
 		}
+
 		mutex_unlock(&iforce->mem_mutex);
 	}
 
@@ -143,20 +155,24 @@ static int make_envelope_modifier(struct iforce* iforce,
  * Component of spring, friction, inertia... effects
  */
 
-static int make_condition_modifier(struct iforce* iforce,
-	struct resource* mod_chunk, int no_alloc,
-	__u16 rsat, __u16 lsat, __s16 rk, __s16 lk, u16 db, __s16 center)
+static int make_condition_modifier(struct iforce *iforce,
+								   struct resource *mod_chunk, int no_alloc,
+								   __u16 rsat, __u16 lsat, __s16 rk, __s16 lk, u16 db, __s16 center)
 {
 	unsigned char data[10];
 
-	if (!no_alloc) {
+	if (!no_alloc)
+	{
 		mutex_lock(&iforce->mem_mutex);
+
 		if (allocate_resource(&(iforce->device_memory), mod_chunk, 8,
-			iforce->device_memory.start, iforce->device_memory.end, 2L,
-			NULL, NULL)) {
+							  iforce->device_memory.start, iforce->device_memory.end, 2L,
+							  NULL, NULL))
+		{
 			mutex_unlock(&iforce->mem_mutex);
 			return -ENOSPC;
 		}
+
 		mutex_unlock(&iforce->mem_mutex);
 	}
 
@@ -189,7 +205,10 @@ static unsigned char find_button(struct iforce *iforce, signed short button)
 
 	for (i = 1; iforce->type->btn[i] >= 0; i++)
 		if (iforce->type->btn[i] == button)
+		{
 			return i + 1;
+		}
+
 	return 0;
 }
 
@@ -198,26 +217,29 @@ static unsigned char find_button(struct iforce *iforce, signed short button)
  * parameter packet
  */
 static int need_condition_modifier(struct iforce *iforce,
-				   struct ff_effect *old,
-				   struct ff_effect *new)
+								   struct ff_effect *old,
+								   struct ff_effect *new)
 {
 	int ret = 0;
 	int i;
 
-	if (new->type != FF_SPRING && new->type != FF_FRICTION) {
+	if (new->type != FF_SPRING && new->type != FF_FRICTION)
+	{
 		dev_warn(&iforce->dev->dev, "bad effect type in %s\n",
-			 __func__);
+				 __func__);
 		return 0;
 	}
 
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		ret |= old->u.condition[i].right_saturation != new->u.condition[i].right_saturation
-			|| old->u.condition[i].left_saturation != new->u.condition[i].left_saturation
-			|| old->u.condition[i].right_coeff != new->u.condition[i].right_coeff
-			|| old->u.condition[i].left_coeff != new->u.condition[i].left_coeff
-			|| old->u.condition[i].deadband != new->u.condition[i].deadband
-			|| old->u.condition[i].center != new->u.condition[i].center;
+			   || old->u.condition[i].left_saturation != new->u.condition[i].left_saturation
+			   || old->u.condition[i].right_coeff != new->u.condition[i].right_coeff
+			   || old->u.condition[i].left_coeff != new->u.condition[i].left_coeff
+			   || old->u.condition[i].deadband != new->u.condition[i].deadband
+			   || old->u.condition[i].center != new->u.condition[i].center;
 	}
+
 	return ret;
 }
 
@@ -226,12 +248,13 @@ static int need_condition_modifier(struct iforce *iforce,
  * parameter packet
  */
 static int need_magnitude_modifier(struct iforce *iforce,
-				   struct ff_effect *old,
-				   struct ff_effect *effect)
+								   struct ff_effect *old,
+								   struct ff_effect *effect)
 {
-	if (effect->type != FF_CONSTANT) {
+	if (effect->type != FF_CONSTANT)
+	{
 		dev_warn(&iforce->dev->dev, "bad effect type in %s\n",
-			 __func__);
+				 __func__);
 		return 0;
 	}
 
@@ -243,28 +266,35 @@ static int need_magnitude_modifier(struct iforce *iforce,
  * parameter packet
  */
 static int need_envelope_modifier(struct iforce *iforce, struct ff_effect *old,
-				  struct ff_effect *effect)
+								  struct ff_effect *effect)
 {
-	switch (effect->type) {
-	case FF_CONSTANT:
-		if (old->u.constant.envelope.attack_length != effect->u.constant.envelope.attack_length
-		|| old->u.constant.envelope.attack_level != effect->u.constant.envelope.attack_level
-		|| old->u.constant.envelope.fade_length != effect->u.constant.envelope.fade_length
-		|| old->u.constant.envelope.fade_level != effect->u.constant.envelope.fade_level)
-			return 1;
-		break;
+	switch (effect->type)
+	{
+		case FF_CONSTANT:
+			if (old->u.constant.envelope.attack_length != effect->u.constant.envelope.attack_length
+				|| old->u.constant.envelope.attack_level != effect->u.constant.envelope.attack_level
+				|| old->u.constant.envelope.fade_length != effect->u.constant.envelope.fade_length
+				|| old->u.constant.envelope.fade_level != effect->u.constant.envelope.fade_level)
+			{
+				return 1;
+			}
 
-	case FF_PERIODIC:
-		if (old->u.periodic.envelope.attack_length != effect->u.periodic.envelope.attack_length
-		|| old->u.periodic.envelope.attack_level != effect->u.periodic.envelope.attack_level
-		|| old->u.periodic.envelope.fade_length != effect->u.periodic.envelope.fade_length
-		|| old->u.periodic.envelope.fade_level != effect->u.periodic.envelope.fade_level)
-			return 1;
-		break;
+			break;
 
-	default:
-		dev_warn(&iforce->dev->dev, "bad effect type in %s\n",
-			 __func__);
+		case FF_PERIODIC:
+			if (old->u.periodic.envelope.attack_length != effect->u.periodic.envelope.attack_length
+				|| old->u.periodic.envelope.attack_level != effect->u.periodic.envelope.attack_level
+				|| old->u.periodic.envelope.fade_length != effect->u.periodic.envelope.fade_length
+				|| old->u.periodic.envelope.fade_level != effect->u.periodic.envelope.fade_level)
+			{
+				return 1;
+			}
+
+			break;
+
+		default:
+			dev_warn(&iforce->dev->dev, "bad effect type in %s\n",
+					 __func__);
 	}
 
 	return 0;
@@ -275,17 +305,19 @@ static int need_envelope_modifier(struct iforce *iforce, struct ff_effect *old,
  * parameter effect
  */
 static int need_period_modifier(struct iforce *iforce, struct ff_effect *old,
-				struct ff_effect *new)
+								struct ff_effect *new)
 {
-	if (new->type != FF_PERIODIC) {
+	if (new->type != FF_PERIODIC)
+	{
 		dev_warn(&iforce->dev->dev, "bad effect type in %s\n",
-			 __func__);
+				 __func__);
 		return 0;
 	}
+
 	return (old->u.periodic.period != new->u.periodic.period
-		|| old->u.periodic.magnitude != new->u.periodic.magnitude
-		|| old->u.periodic.offset != new->u.periodic.offset
-		|| old->u.periodic.phase != new->u.periodic.phase);
+			|| old->u.periodic.magnitude != new->u.periodic.magnitude
+			|| old->u.periodic.offset != new->u.periodic.offset
+			|| old->u.periodic.phase != new->u.periodic.phase);
 }
 
 /*
@@ -299,16 +331,18 @@ static int need_core(struct ff_effect *old, struct ff_effect *new)
 		|| old->trigger.interval != new->trigger.interval
 		|| old->replay.length != new->replay.length
 		|| old->replay.delay != new->replay.delay)
+	{
 		return 1;
+	}
 
 	return 0;
 }
 /*
  * Send the part common to all effects to the device
  */
-static int make_core(struct iforce* iforce, u16 id, u16 mod_id1, u16 mod_id2,
-	u8 effect_type, u8 axes, u16 duration, u16 delay, u16 button,
-	u16 interval, u16 direction)
+static int make_core(struct iforce *iforce, u16 id, u16 mod_id1, u16 mod_id2,
+					 u8 effect_type, u8 axes, u16 duration, u16 delay, u16 button,
+					 u16 interval, u16 direction)
 {
 	unsigned char data[14];
 
@@ -337,12 +371,13 @@ static int make_core(struct iforce* iforce, u16 id, u16 mod_id1, u16 mod_id2,
 	data[13] = HI(delay);
 
 	/* Stop effect */
-/*	iforce_control_playback(iforce, id, 0);*/
+	/*	iforce_control_playback(iforce, id, 0);*/
 
 	iforce_send_packet(iforce, FF_CMD_EFFECT, data);
 
 	/* If needed, restart effect */
-	if (test_bit(FF_CORE_SHOULD_PLAY, iforce->core_effects[id].flags)) {
+	if (test_bit(FF_CORE_SHOULD_PLAY, iforce->core_effects[id].flags))
+	{
 		/* BUG: perhaps we should replay n times, instead of 1. But we do not know n */
 		iforce_control_playback(iforce, id, 1);
 	}
@@ -358,55 +393,72 @@ int iforce_upload_periodic(struct iforce *iforce, struct ff_effect *effect, stru
 {
 	u8 wave_code;
 	int core_id = effect->id;
-	struct iforce_core_effect* core_effect = iforce->core_effects + core_id;
-	struct resource* mod1_chunk = &(iforce->core_effects[core_id].mod1_chunk);
-	struct resource* mod2_chunk = &(iforce->core_effects[core_id].mod2_chunk);
+	struct iforce_core_effect *core_effect = iforce->core_effects + core_id;
+	struct resource *mod1_chunk = &(iforce->core_effects[core_id].mod1_chunk);
+	struct resource *mod2_chunk = &(iforce->core_effects[core_id].mod2_chunk);
 	int param1_err = 1;
 	int param2_err = 1;
 	int core_err = 0;
 
-	if (!old || need_period_modifier(iforce, old, effect)) {
+	if (!old || need_period_modifier(iforce, old, effect))
+	{
 		param1_err = make_period_modifier(iforce, mod1_chunk,
-			old != NULL,
-			effect->u.periodic.magnitude, effect->u.periodic.offset,
-			effect->u.periodic.period, effect->u.periodic.phase);
+										  old != NULL,
+										  effect->u.periodic.magnitude, effect->u.periodic.offset,
+										  effect->u.periodic.period, effect->u.periodic.phase);
+
 		if (param1_err)
+		{
 			return param1_err;
+		}
+
 		set_bit(FF_MOD1_IS_USED, core_effect->flags);
 	}
 
-	if (!old || need_envelope_modifier(iforce, old, effect)) {
+	if (!old || need_envelope_modifier(iforce, old, effect))
+	{
 		param2_err = make_envelope_modifier(iforce, mod2_chunk,
-			old !=NULL,
-			effect->u.periodic.envelope.attack_length,
-			effect->u.periodic.envelope.attack_level,
-			effect->u.periodic.envelope.fade_length,
-			effect->u.periodic.envelope.fade_level);
+											old != NULL,
+											effect->u.periodic.envelope.attack_length,
+											effect->u.periodic.envelope.attack_level,
+											effect->u.periodic.envelope.fade_length,
+											effect->u.periodic.envelope.fade_level);
+
 		if (param2_err)
+		{
 			return param2_err;
+		}
+
 		set_bit(FF_MOD2_IS_USED, core_effect->flags);
 	}
 
-	switch (effect->u.periodic.waveform) {
+	switch (effect->u.periodic.waveform)
+	{
 		case FF_SQUARE:		wave_code = 0x20; break;
+
 		case FF_TRIANGLE:	wave_code = 0x21; break;
+
 		case FF_SINE:		wave_code = 0x22; break;
+
 		case FF_SAW_UP:		wave_code = 0x23; break;
+
 		case FF_SAW_DOWN:	wave_code = 0x24; break;
+
 		default:		wave_code = 0x20; break;
 	}
 
-	if (!old || need_core(old, effect)) {
+	if (!old || need_core(old, effect))
+	{
 		core_err = make_core(iforce, effect->id,
-			mod1_chunk->start,
-			mod2_chunk->start,
-			wave_code,
-			0x20,
-			effect->replay.length,
-			effect->replay.delay,
-			effect->trigger.button,
-			effect->trigger.interval,
-			effect->direction);
+							 mod1_chunk->start,
+							 mod2_chunk->start,
+							 wave_code,
+							 0x20,
+							 effect->replay.length,
+							 effect->replay.delay,
+							 effect->trigger.button,
+							 effect->trigger.interval,
+							 effect->direction);
 	}
 
 	/* If one of the parameter creation failed, we already returned an
@@ -428,45 +480,56 @@ int iforce_upload_periodic(struct iforce *iforce, struct ff_effect *effect, stru
 int iforce_upload_constant(struct iforce *iforce, struct ff_effect *effect, struct ff_effect *old)
 {
 	int core_id = effect->id;
-	struct iforce_core_effect* core_effect = iforce->core_effects + core_id;
-	struct resource* mod1_chunk = &(iforce->core_effects[core_id].mod1_chunk);
-	struct resource* mod2_chunk = &(iforce->core_effects[core_id].mod2_chunk);
+	struct iforce_core_effect *core_effect = iforce->core_effects + core_id;
+	struct resource *mod1_chunk = &(iforce->core_effects[core_id].mod1_chunk);
+	struct resource *mod2_chunk = &(iforce->core_effects[core_id].mod2_chunk);
 	int param1_err = 1;
 	int param2_err = 1;
 	int core_err = 0;
 
-	if (!old || need_magnitude_modifier(iforce, old, effect)) {
+	if (!old || need_magnitude_modifier(iforce, old, effect))
+	{
 		param1_err = make_magnitude_modifier(iforce, mod1_chunk,
-			old != NULL,
-			effect->u.constant.level);
+											 old != NULL,
+											 effect->u.constant.level);
+
 		if (param1_err)
+		{
 			return param1_err;
+		}
+
 		set_bit(FF_MOD1_IS_USED, core_effect->flags);
 	}
 
-	if (!old || need_envelope_modifier(iforce, old, effect)) {
+	if (!old || need_envelope_modifier(iforce, old, effect))
+	{
 		param2_err = make_envelope_modifier(iforce, mod2_chunk,
-			old != NULL,
-			effect->u.constant.envelope.attack_length,
-			effect->u.constant.envelope.attack_level,
-			effect->u.constant.envelope.fade_length,
-			effect->u.constant.envelope.fade_level);
+											old != NULL,
+											effect->u.constant.envelope.attack_length,
+											effect->u.constant.envelope.attack_level,
+											effect->u.constant.envelope.fade_length,
+											effect->u.constant.envelope.fade_level);
+
 		if (param2_err)
+		{
 			return param2_err;
+		}
+
 		set_bit(FF_MOD2_IS_USED, core_effect->flags);
 	}
 
-	if (!old || need_core(old, effect)) {
+	if (!old || need_core(old, effect))
+	{
 		core_err = make_core(iforce, effect->id,
-			mod1_chunk->start,
-			mod2_chunk->start,
-			0x00,
-			0x20,
-			effect->replay.length,
-			effect->replay.delay,
-			effect->trigger.button,
-			effect->trigger.interval,
-			effect->direction);
+							 mod1_chunk->start,
+							 mod2_chunk->start,
+							 0x00,
+							 0x20,
+							 effect->replay.length,
+							 effect->replay.delay,
+							 effect->trigger.button,
+							 effect->trigger.interval,
+							 effect->direction);
 	}
 
 	/* If one of the parameter creation failed, we already returned an
@@ -484,53 +547,66 @@ int iforce_upload_constant(struct iforce *iforce, struct ff_effect *effect, stru
 int iforce_upload_condition(struct iforce *iforce, struct ff_effect *effect, struct ff_effect *old)
 {
 	int core_id = effect->id;
-	struct iforce_core_effect* core_effect = iforce->core_effects + core_id;
-	struct resource* mod1_chunk = &(core_effect->mod1_chunk);
-	struct resource* mod2_chunk = &(core_effect->mod2_chunk);
+	struct iforce_core_effect *core_effect = iforce->core_effects + core_id;
+	struct resource *mod1_chunk = &(core_effect->mod1_chunk);
+	struct resource *mod2_chunk = &(core_effect->mod2_chunk);
 	u8 type;
 	int param_err = 1;
 	int core_err = 0;
 
-	switch (effect->type) {
+	switch (effect->type)
+	{
 		case FF_SPRING:	type = 0x40; break;
+
 		case FF_DAMPER:	type = 0x41; break;
+
 		default: return -1;
 	}
 
-	if (!old || need_condition_modifier(iforce, old, effect)) {
+	if (!old || need_condition_modifier(iforce, old, effect))
+	{
 		param_err = make_condition_modifier(iforce, mod1_chunk,
-			old != NULL,
-			effect->u.condition[0].right_saturation,
-			effect->u.condition[0].left_saturation,
-			effect->u.condition[0].right_coeff,
-			effect->u.condition[0].left_coeff,
-			effect->u.condition[0].deadband,
-			effect->u.condition[0].center);
+											old != NULL,
+											effect->u.condition[0].right_saturation,
+											effect->u.condition[0].left_saturation,
+											effect->u.condition[0].right_coeff,
+											effect->u.condition[0].left_coeff,
+											effect->u.condition[0].deadband,
+											effect->u.condition[0].center);
+
 		if (param_err)
+		{
 			return param_err;
+		}
+
 		set_bit(FF_MOD1_IS_USED, core_effect->flags);
 
 		param_err = make_condition_modifier(iforce, mod2_chunk,
-			old != NULL,
-			effect->u.condition[1].right_saturation,
-			effect->u.condition[1].left_saturation,
-			effect->u.condition[1].right_coeff,
-			effect->u.condition[1].left_coeff,
-			effect->u.condition[1].deadband,
-			effect->u.condition[1].center);
+											old != NULL,
+											effect->u.condition[1].right_saturation,
+											effect->u.condition[1].left_saturation,
+											effect->u.condition[1].right_coeff,
+											effect->u.condition[1].left_coeff,
+											effect->u.condition[1].deadband,
+											effect->u.condition[1].center);
+
 		if (param_err)
+		{
 			return param_err;
+		}
+
 		set_bit(FF_MOD2_IS_USED, core_effect->flags);
 
 	}
 
-	if (!old || need_core(old, effect)) {
+	if (!old || need_core(old, effect))
+	{
 		core_err = make_core(iforce, effect->id,
-			mod1_chunk->start, mod2_chunk->start,
-			type, 0xc0,
-			effect->replay.length, effect->replay.delay,
-			effect->trigger.button, effect->trigger.interval,
-			effect->direction);
+							 mod1_chunk->start, mod2_chunk->start,
+							 type, 0xc0,
+							 effect->replay.length, effect->replay.delay,
+							 effect->trigger.button, effect->trigger.interval,
+							 effect->direction);
 	}
 
 	/* If the parameter creation failed, we already returned an

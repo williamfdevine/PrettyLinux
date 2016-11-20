@@ -54,7 +54,8 @@ struct scsi_transport_template;
  * fc_port_type: If you alter this, you also need to alter scsi_transport_fc.c
  * (for the ascii descriptions).
  */
-enum fc_port_type {
+enum fc_port_type
+{
 	FC_PORTTYPE_UNKNOWN,
 	FC_PORTTYPE_OTHER,
 	FC_PORTTYPE_NOTPRESENT,
@@ -70,7 +71,8 @@ enum fc_port_type {
  * fc_port_state: If you alter this, you also need to alter scsi_transport_fc.c
  * (for the ascii descriptions).
  */
-enum fc_port_state {
+enum fc_port_state
+{
 	FC_PORTSTATE_UNKNOWN,
 	FC_PORTSTATE_NOTPRESENT,
 	FC_PORTSTATE_ONLINE,
@@ -89,7 +91,8 @@ enum fc_port_state {
  * fc_vport_state: If you alter this, you also need to alter
  * scsi_transport_fc.c (for the ascii descriptions).
  */
-enum fc_vport_state {
+enum fc_vport_state
+{
 	FC_VPORT_UNKNOWN,
 	FC_VPORT_ACTIVE,
 	FC_VPORT_DISABLED,
@@ -143,7 +146,8 @@ enum fc_vport_state {
  * fc_tgtid_binding_type: If you alter this, you also need to alter
  * scsi_transport_fc.c (for the ascii descriptions).
  */
-enum fc_tgtid_binding_type  {
+enum fc_tgtid_binding_type
+{
 	FC_TGTID_BIND_NONE,
 	FC_TGTID_BIND_BY_WWPN,
 	FC_TGTID_BIND_BY_WWNN,
@@ -170,8 +174,8 @@ enum fc_tgtid_binding_type  {
 
 /* Macro for use in defining Virtual Port attributes */
 #define FC_VPORT_ATTR(_name,_mode,_show,_store)		\
-struct device_attribute dev_attr_vport_##_name = 	\
-	__ATTR(_name,_mode,_show,_store)
+	struct device_attribute dev_attr_vport_##_name = 	\
+			__ATTR(_name,_mode,_show,_store)
 
 /*
  * fc_vport_identifiers: This set of data contains all elements
@@ -185,7 +189,8 @@ struct device_attribute dev_attr_vport_##_name = 	\
  *      this field.
  */
 #define FC_VPORT_SYMBOLIC_NAMELEN		64
-struct fc_vport_identifiers {
+struct fc_vport_identifiers
+{
 	u64 node_name;
 	u64 port_name;
 	u32 roles;
@@ -223,7 +228,8 @@ struct fc_vport_identifiers {
  * managed by the transport w/o driver interaction.
  */
 
-struct fc_vport {
+struct fc_vport
+{
 	/* Fixed Attributes */
 
 	/* Dynamic Attributes */
@@ -286,7 +292,8 @@ struct fc_vport {
  * the transport uses this data for attributes and to manage consistent
  * target id bindings.
  */
-struct fc_rport_identifiers {
+struct fc_rport_identifiers
+{
 	u64 node_name;
 	u64 port_name;
 	u32 port_id;
@@ -296,8 +303,8 @@ struct fc_rport_identifiers {
 
 /* Macro for use in defining Remote Port attributes */
 #define FC_RPORT_ATTR(_name,_mode,_show,_store)				\
-struct device_attribute dev_attr_rport_##_name = 	\
-	__ATTR(_name,_mode,_show,_store)
+	struct device_attribute dev_attr_rport_##_name = 	\
+			__ATTR(_name,_mode,_show,_store)
 
 
 /*
@@ -327,7 +334,8 @@ struct device_attribute dev_attr_rport_##_name = 	\
  * managed by the transport w/o driver interaction.
  */
 
-struct fc_rport {	/* aka fc_starget_attrs */
+struct fc_rport  	/* aka fc_starget_attrs */
+{
 	/* Fixed Attributes */
 	u32 maxframe_size;
 	u32 supported_classes;
@@ -353,10 +361,10 @@ struct fc_rport {	/* aka fc_starget_attrs */
 	u8 flags;
 	struct list_head peers;
 	struct device dev;
- 	struct delayed_work dev_loss_work;
- 	struct work_struct scan_work;
- 	struct delayed_work fail_io_work;
- 	struct work_struct stgt_delete_work;
+	struct delayed_work dev_loss_work;
+	struct work_struct scan_work;
+	struct delayed_work fail_io_work;
+	struct work_struct stgt_delete_work;
 	struct work_struct rport_delete_work;
 	struct request_queue *rqst_q;	/* bsg support */
 } __attribute__((aligned(sizeof(unsigned long))));
@@ -386,7 +394,8 @@ struct fc_rport {	/* aka fc_starget_attrs */
  * some data will be duplicated.
  */
 
-struct fc_starget_attrs {	/* aka fc_target_attrs */
+struct fc_starget_attrs  	/* aka fc_target_attrs */
+{
 	/* Dynamic Attributes */
 	u64 node_name;
 	u64 port_name;
@@ -409,7 +418,8 @@ struct fc_starget_attrs {	/* aka fc_target_attrs */
  */
 
 /* FC Statistics - Following FC HBAAPI v2.0 guidelines */
-struct fc_host_statistics {
+struct fc_host_statistics
+{
 	/* port statistics */
 	u64 seconds_since_last_reset;
 	u64 tx_frames;
@@ -456,7 +466,8 @@ struct fc_host_statistics {
  * fc_host_event_code: If you alter this, you also need to alter
  * scsi_transport_fc.c (for the ascii descriptions).
  */
-enum fc_host_event_code  {
+enum fc_host_event_code
+{
 	FCH_EVT_LIP			= 0x1,
 	FCH_EVT_LINKUP			= 0x2,
 	FCH_EVT_LINKDOWN		= 0x3,
@@ -494,7 +505,8 @@ enum fc_host_event_code  {
 #define FC_VERSION_STRING_SIZE		64
 #define FC_SERIAL_NUMBER_SIZE		80
 
-struct fc_host_attrs {
+struct fc_host_attrs
+{
 	/* Fixed Attributes */
 	u64 node_name;
 	u64 port_name;
@@ -625,7 +637,8 @@ struct fc_host_attrs {
 	(((struct fc_host_attrs *)(x)->shost_data)->dev_loss_tmo)
 
 
-struct fc_bsg_buffer {
+struct fc_bsg_buffer
+{
 	unsigned int payload_len;
 	int sg_cnt;
 	struct scatterlist *sg_list;
@@ -635,7 +648,8 @@ struct fc_bsg_buffer {
 #define FC_RQST_STATE_INPROGRESS	0
 #define FC_RQST_STATE_DONE		1
 
-struct fc_bsg_job {
+struct fc_bsg_job
+{
 	struct Scsi_Host *shost;
 	struct fc_rport *rport;
 	struct device *dev;
@@ -667,7 +681,8 @@ struct fc_bsg_job {
 
 
 /* The functions by which the transport class and the driver communicate */
-struct fc_function_template {
+struct fc_function_template
+{
 	void    (*get_rport_dev_loss_tmo)(struct fc_rport *);
 	void	(*set_rport_dev_loss_tmo)(struct fc_rport *, u32);
 
@@ -684,7 +699,7 @@ struct fc_function_template {
 	void	(*get_host_symbolic_name)(struct Scsi_Host *);
 	void	(*set_host_system_hostname)(struct Scsi_Host *);
 
-	struct fc_host_statistics * (*get_fc_host_stats)(struct Scsi_Host *);
+	struct fc_host_statistics *(*get_fc_host_stats)(struct Scsi_Host *);
 	void	(*reset_fc_host_stats)(struct Scsi_Host *);
 
 	int	(*issue_fc_host_lip)(struct Scsi_Host *);
@@ -718,46 +733,46 @@ struct fc_function_template {
 	 */
 
 	/* remote port fixed attributes */
-	unsigned long	show_rport_maxframe_size:1;
-	unsigned long	show_rport_supported_classes:1;
-	unsigned long   show_rport_dev_loss_tmo:1;
+	unsigned long	show_rport_maxframe_size: 1;
+	unsigned long	show_rport_supported_classes: 1;
+	unsigned long   show_rport_dev_loss_tmo: 1;
 
 	/*
 	 * target dynamic attributes
 	 * These should all be "1" if the driver uses the remote port
 	 * add/delete functions (so attributes reflect rport values).
 	 */
-	unsigned long	show_starget_node_name:1;
-	unsigned long	show_starget_port_name:1;
-	unsigned long	show_starget_port_id:1;
+	unsigned long	show_starget_node_name: 1;
+	unsigned long	show_starget_port_name: 1;
+	unsigned long	show_starget_port_id: 1;
 
 	/* host fixed attributes */
-	unsigned long	show_host_node_name:1;
-	unsigned long	show_host_port_name:1;
-	unsigned long	show_host_permanent_port_name:1;
-	unsigned long	show_host_supported_classes:1;
-	unsigned long	show_host_supported_fc4s:1;
-	unsigned long	show_host_supported_speeds:1;
-	unsigned long	show_host_maxframe_size:1;
-	unsigned long	show_host_serial_number:1;
-	unsigned long	show_host_manufacturer:1;
-	unsigned long	show_host_model:1;
-	unsigned long	show_host_model_description:1;
-	unsigned long	show_host_hardware_version:1;
-	unsigned long	show_host_driver_version:1;
-	unsigned long	show_host_firmware_version:1;
-	unsigned long	show_host_optionrom_version:1;
+	unsigned long	show_host_node_name: 1;
+	unsigned long	show_host_port_name: 1;
+	unsigned long	show_host_permanent_port_name: 1;
+	unsigned long	show_host_supported_classes: 1;
+	unsigned long	show_host_supported_fc4s: 1;
+	unsigned long	show_host_supported_speeds: 1;
+	unsigned long	show_host_maxframe_size: 1;
+	unsigned long	show_host_serial_number: 1;
+	unsigned long	show_host_manufacturer: 1;
+	unsigned long	show_host_model: 1;
+	unsigned long	show_host_model_description: 1;
+	unsigned long	show_host_hardware_version: 1;
+	unsigned long	show_host_driver_version: 1;
+	unsigned long	show_host_firmware_version: 1;
+	unsigned long	show_host_optionrom_version: 1;
 	/* host dynamic attributes */
-	unsigned long	show_host_port_id:1;
-	unsigned long	show_host_port_type:1;
-	unsigned long	show_host_port_state:1;
-	unsigned long	show_host_active_fc4s:1;
-	unsigned long	show_host_speed:1;
-	unsigned long	show_host_fabric_name:1;
-	unsigned long	show_host_symbolic_name:1;
-	unsigned long	show_host_system_hostname:1;
+	unsigned long	show_host_port_id: 1;
+	unsigned long	show_host_port_type: 1;
+	unsigned long	show_host_port_state: 1;
+	unsigned long	show_host_active_fc4s: 1;
+	unsigned long	show_host_speed: 1;
+	unsigned long	show_host_fabric_name: 1;
+	unsigned long	show_host_symbolic_name: 1;
+	unsigned long	show_host_system_hostname: 1;
 
-	unsigned long	disable_target_scan:1;
+	unsigned long	disable_target_scan: 1;
 };
 
 
@@ -774,25 +789,41 @@ fc_remote_port_chkready(struct fc_rport *rport)
 {
 	int result;
 
-	switch (rport->port_state) {
-	case FC_PORTSTATE_ONLINE:
-		if (rport->roles & FC_PORT_ROLE_FCP_TARGET)
-			result = 0;
-		else if (rport->flags & FC_RPORT_DEVLOSS_PENDING)
-			result = DID_IMM_RETRY << 16;
-		else
+	switch (rport->port_state)
+	{
+		case FC_PORTSTATE_ONLINE:
+			if (rport->roles & FC_PORT_ROLE_FCP_TARGET)
+			{
+				result = 0;
+			}
+			else if (rport->flags & FC_RPORT_DEVLOSS_PENDING)
+			{
+				result = DID_IMM_RETRY << 16;
+			}
+			else
+			{
+				result = DID_NO_CONNECT << 16;
+			}
+
+			break;
+
+		case FC_PORTSTATE_BLOCKED:
+			if (rport->flags & FC_RPORT_FAST_FAIL_TIMEDOUT)
+			{
+				result = DID_TRANSPORT_FAILFAST << 16;
+			}
+			else
+			{
+				result = DID_IMM_RETRY << 16;
+			}
+
+			break;
+
+		default:
 			result = DID_NO_CONNECT << 16;
-		break;
-	case FC_PORTSTATE_BLOCKED:
-		if (rport->flags & FC_RPORT_FAST_FAIL_TIMEDOUT)
-			result = DID_TRANSPORT_FAILFAST << 16;
-		else
-			result = DID_IMM_RETRY << 16;
-		break;
-	default:
-		result = DID_NO_CONNECT << 16;
-		break;
+			break;
 	}
+
 	return result;
 }
 
@@ -821,31 +852,34 @@ static inline void
 fc_vport_set_state(struct fc_vport *vport, enum fc_vport_state new_state)
 {
 	if ((new_state != FC_VPORT_UNKNOWN) &&
-	    (new_state != FC_VPORT_INITIALIZING))
+		(new_state != FC_VPORT_INITIALIZING))
+	{
 		vport->vport_last_state = vport->vport_state;
+	}
+
 	vport->vport_state = new_state;
 }
 
 struct scsi_transport_template *fc_attach_transport(
-			struct fc_function_template *);
+	struct fc_function_template *);
 void fc_release_transport(struct scsi_transport_template *);
 void fc_remove_host(struct Scsi_Host *);
 struct fc_rport *fc_remote_port_add(struct Scsi_Host *shost,
-			int channel, struct fc_rport_identifiers  *ids);
+									int channel, struct fc_rport_identifiers  *ids);
 void fc_remote_port_delete(struct fc_rport  *rport);
 void fc_remote_port_rolechg(struct fc_rport  *rport, u32 roles);
 int scsi_is_fc_rport(const struct device *);
 u32 fc_get_event_number(void);
 void fc_host_post_event(struct Scsi_Host *shost, u32 event_number,
-		enum fc_host_event_code event_code, u32 event_data);
+						enum fc_host_event_code event_code, u32 event_data);
 void fc_host_post_vendor_event(struct Scsi_Host *shost, u32 event_number,
-		u32 data_len, char * data_buf, u64 vendor_id);
-	/* Note: when specifying vendor_id to fc_host_post_vendor_event()
-	 *   be sure to read the Vendor Type and ID formatting requirements
-	 *   specified in scsi_netlink.h
-	 */
+							   u32 data_len, char *data_buf, u64 vendor_id);
+/* Note: when specifying vendor_id to fc_host_post_vendor_event()
+ *   be sure to read the Vendor Type and ID formatting requirements
+ *   specified in scsi_netlink.h
+ */
 struct fc_vport *fc_vport_create(struct Scsi_Host *shost, int channel,
-		struct fc_vport_identifiers *);
+								 struct fc_vport_identifiers *);
 int fc_vport_terminate(struct fc_vport *vport);
 int fc_block_scsi_eh(struct scsi_cmnd *cmnd);
 

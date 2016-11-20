@@ -25,16 +25,16 @@
 extern unsigned int bnx2fc_debug_level;
 
 #define BNX2FC_ELS_DBG(fmt, ...)				\
-do {								\
-	if (unlikely(bnx2fc_debug_level & LOG_ELS))		\
-		pr_info(fmt, ##__VA_ARGS__);			\
-} while (0)
+	do {								\
+		if (unlikely(bnx2fc_debug_level & LOG_ELS))		\
+			pr_info(fmt, ##__VA_ARGS__);			\
+	} while (0)
 
 #define BNX2FC_MISC_DBG(fmt, ...)				\
-do {								\
-	if (unlikely(bnx2fc_debug_level & LOG_MISC))		\
-		pr_info(fmt, ##__VA_ARGS__);			\
-} while (0)
+	do {								\
+		if (unlikely(bnx2fc_debug_level & LOG_MISC))		\
+			pr_info(fmt, ##__VA_ARGS__);			\
+	} while (0)
 
 __printf(2, 3)
 void BNX2FC_IO_DBG(const struct bnx2fc_cmd *io_req, const char *fmt, ...);

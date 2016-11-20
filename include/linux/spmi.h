@@ -44,7 +44,8 @@
  * @ctrl:	SPMI controller managing the bus hosting this device.
  * @usid:	This devices' Unique Slave IDentifier.
  */
-struct spmi_device {
+struct spmi_device
+{
 	struct device		dev;
 	struct spmi_controller	*ctrl;
 	u8			usid;
@@ -70,7 +71,9 @@ struct spmi_device *spmi_device_alloc(struct spmi_controller *ctrl);
 static inline void spmi_device_put(struct spmi_device *sdev)
 {
 	if (sdev)
+	{
 		put_device(&sdev->dev);
+	}
 }
 
 int spmi_device_add(struct spmi_device *sdev);
@@ -85,14 +88,15 @@ void spmi_device_remove(struct spmi_device *sdev);
  * @read_cmd:	sends a register read command sequence on the SPMI bus.
  * @write_cmd:	sends a register write command sequence on the SPMI bus.
  */
-struct spmi_controller {
+struct spmi_controller
+{
 	struct device		dev;
 	unsigned int		nr;
 	int	(*cmd)(struct spmi_controller *ctrl, u8 opcode, u8 sid);
 	int	(*read_cmd)(struct spmi_controller *ctrl, u8 opcode,
-			    u8 sid, u16 addr, u8 *buf, size_t len);
+					u8 sid, u16 addr, u8 *buf, size_t len);
 	int	(*write_cmd)(struct spmi_controller *ctrl, u8 opcode,
-			     u8 sid, u16 addr, const u8 *buf, size_t len);
+					 u8 sid, u16 addr, const u8 *buf, size_t len);
 };
 
 static inline struct spmi_controller *to_spmi_controller(struct device *d)
@@ -107,13 +111,13 @@ void *spmi_controller_get_drvdata(const struct spmi_controller *ctrl)
 }
 
 static inline void spmi_controller_set_drvdata(struct spmi_controller *ctrl,
-					       void *data)
+		void *data)
 {
 	dev_set_drvdata(&ctrl->dev, data);
 }
 
 struct spmi_controller *spmi_controller_alloc(struct device *parent,
-					      size_t size);
+		size_t size);
 
 /**
  * spmi_controller_put() - decrement controller refcount
@@ -122,7 +126,9 @@ struct spmi_controller *spmi_controller_alloc(struct device *parent,
 static inline void spmi_controller_put(struct spmi_controller *ctrl)
 {
 	if (ctrl)
+	{
 		put_device(&ctrl->dev);
+	}
 }
 
 int spmi_controller_add(struct spmi_controller *ctrl);
@@ -142,7 +148,8 @@ void spmi_controller_remove(struct spmi_controller *ctrl);
  * transitioning the slave into the SLEEP state.  On runtime_resume(), a WAKEUP
  * command is sent to the slave to bring it back to ACTIVE.
  */
-struct spmi_driver {
+struct spmi_driver
+{
 	struct device_driver driver;
 	int	(*probe)(struct spmi_device *sdev);
 	void	(*remove)(struct spmi_device *sdev);
@@ -164,24 +171,26 @@ int __spmi_driver_register(struct spmi_driver *sdrv, struct module *owner);
 static inline void spmi_driver_unregister(struct spmi_driver *sdrv)
 {
 	if (sdrv)
+	{
 		driver_unregister(&sdrv->driver);
+	}
 }
 
 #define module_spmi_driver(__spmi_driver) \
 	module_driver(__spmi_driver, spmi_driver_register, \
-			spmi_driver_unregister)
+				  spmi_driver_unregister)
 
 int spmi_register_read(struct spmi_device *sdev, u8 addr, u8 *buf);
 int spmi_ext_register_read(struct spmi_device *sdev, u8 addr, u8 *buf,
-			   size_t len);
+						   size_t len);
 int spmi_ext_register_readl(struct spmi_device *sdev, u16 addr, u8 *buf,
-			    size_t len);
+							size_t len);
 int spmi_register_write(struct spmi_device *sdev, u8 addr, u8 data);
 int spmi_register_zero_write(struct spmi_device *sdev, u8 data);
 int spmi_ext_register_write(struct spmi_device *sdev, u8 addr,
-			    const u8 *buf, size_t len);
+							const u8 *buf, size_t len);
 int spmi_ext_register_writel(struct spmi_device *sdev, u16 addr,
-			     const u8 *buf, size_t len);
+							 const u8 *buf, size_t len);
 int spmi_command_reset(struct spmi_device *sdev);
 int spmi_command_sleep(struct spmi_device *sdev);
 int spmi_command_wakeup(struct spmi_device *sdev);

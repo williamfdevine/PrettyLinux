@@ -48,7 +48,8 @@
 
 void as102_urb_stream_irq(struct urb *urb);
 
-struct as10x_usb_token_cmd_t {
+struct as10x_usb_token_cmd_t
+{
 	/* token cmd */
 	struct as10x_cmd_t c;
 	/* token response */

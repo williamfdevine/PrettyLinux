@@ -347,9 +347,10 @@
 struct wm8350;
 
 int wm8350_gpio_config(struct wm8350 *wm8350, int gpio, int dir, int func,
-		       int pol, int pull, int invert, int debounce);
+					   int pol, int pull, int invert, int debounce);
 
-struct wm8350_gpio {
+struct wm8350_gpio
+{
 	struct platform_device *pdev;
 };
 

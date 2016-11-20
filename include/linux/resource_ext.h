@@ -19,7 +19,8 @@
 #include <linux/slab.h>
 
 /* Represent resource window for bridge devices */
-struct resource_win {
+struct resource_win
+{
 	struct resource res;		/* In master (CPU) address space */
 	resource_size_t offset;		/* Translation offset for bridge */
 };
@@ -28,7 +29,8 @@ struct resource_win {
  * Common resource list management data structure and interfaces to support
  * ACPI, PNP and PCI host bridge etc.
  */
-struct resource_entry {
+struct resource_entry
+{
 	struct list_head	node;
 	struct resource		*res;	/* In master (CPU) address space */
 	resource_size_t		offset;	/* Translation offset for bridge */
@@ -40,13 +42,13 @@ resource_list_create_entry(struct resource *res, size_t extra_size);
 extern void resource_list_free(struct list_head *head);
 
 static inline void resource_list_add(struct resource_entry *entry,
-				     struct list_head *head)
+									 struct list_head *head)
 {
 	list_add(&entry->node, head);
 }
 
 static inline void resource_list_add_tail(struct resource_entry *entry,
-					  struct list_head *head)
+		struct list_head *head)
 {
 	list_add_tail(&entry->node, head);
 }

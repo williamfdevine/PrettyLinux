@@ -18,7 +18,8 @@
  * Daniel Fraga <fragabr@gmail.com>
  */
 
-static struct rc_map_table powercolor_real_angel[] = {
+static struct rc_map_table powercolor_real_angel[] =
+{
 	{ 0x38, KEY_SWITCHVIDEOMODE },	/* switch inputs */
 	{ 0x0c, KEY_MEDIA },		/* Turn ON/OFF App */
 	{ 0x00, KEY_0 },
@@ -56,7 +57,8 @@ static struct rc_map_table powercolor_real_angel[] = {
 	{ 0x25, KEY_POWER },		/* power */
 };
 
-static struct rc_map_list powercolor_real_angel_map = {
+static struct rc_map_list powercolor_real_angel_map =
+{
 	.map = {
 		.scan    = powercolor_real_angel,
 		.size    = ARRAY_SIZE(powercolor_real_angel),

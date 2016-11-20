@@ -4,7 +4,7 @@
 /* Helpers for Goldfish virtual platform */
 
 static inline void gf_write_ptr(const void *ptr, void __iomem *portl,
-				void __iomem *porth)
+								void __iomem *porth)
 {
 	writel((u32)(unsigned long)ptr, portl);
 #ifdef CONFIG_64BIT
@@ -13,8 +13,8 @@ static inline void gf_write_ptr(const void *ptr, void __iomem *portl,
 }
 
 static inline void gf_write_dma_addr(const dma_addr_t addr,
-				     void __iomem *portl,
-				     void __iomem *porth)
+									 void __iomem *portl,
+									 void __iomem *porth)
 {
 	writel((u32)addr, portl);
 #ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT

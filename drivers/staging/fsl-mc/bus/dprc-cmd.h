@@ -85,11 +85,13 @@
 
 #define DPRC_CMDID_GET_CONNECTION		0x16C
 
-struct dprc_cmd_open {
+struct dprc_cmd_open
+{
 	__le32 container_id;
 };
 
-struct dprc_cmd_create_container {
+struct dprc_cmd_create_container
+{
 	/* cmd word 0 */
 	__le32 options;
 	__le16 icid;
@@ -101,7 +103,8 @@ struct dprc_cmd_create_container {
 	u8 label[16];
 };
 
-struct dprc_rsp_create_container {
+struct dprc_rsp_create_container
+{
 	/* response word 0 */
 	__le64 pad0;
 	/* response word 1 */
@@ -111,15 +114,18 @@ struct dprc_rsp_create_container {
 	__le64 child_portal_addr;
 };
 
-struct dprc_cmd_destroy_container {
+struct dprc_cmd_destroy_container
+{
 	__le32 child_container_id;
 };
 
-struct dprc_cmd_reset_container {
+struct dprc_cmd_reset_container
+{
 	__le32 child_container_id;
 };
 
-struct dprc_cmd_set_irq {
+struct dprc_cmd_set_irq
+{
 	/* cmd word 0 */
 	__le32 irq_val;
 	u8 irq_index;
@@ -130,12 +136,14 @@ struct dprc_cmd_set_irq {
 	__le32 irq_num;
 };
 
-struct dprc_cmd_get_irq {
+struct dprc_cmd_get_irq
+{
 	__le32 pad;
 	u8 irq_index;
 };
 
-struct dprc_rsp_get_irq {
+struct dprc_rsp_get_irq
+{
 	/* response word 0 */
 	__le32 irq_val;
 	__le32 pad;
@@ -148,50 +156,60 @@ struct dprc_rsp_get_irq {
 
 #define DPRC_ENABLE		0x1
 
-struct dprc_cmd_set_irq_enable {
+struct dprc_cmd_set_irq_enable
+{
 	u8 enable;
 	u8 pad[3];
 	u8 irq_index;
 };
 
-struct dprc_cmd_get_irq_enable {
+struct dprc_cmd_get_irq_enable
+{
 	__le32 pad;
 	u8 irq_index;
 };
 
-struct dprc_rsp_get_irq_enable {
+struct dprc_rsp_get_irq_enable
+{
 	u8 enabled;
 };
 
-struct dprc_cmd_set_irq_mask {
+struct dprc_cmd_set_irq_mask
+{
 	__le32 mask;
 	u8 irq_index;
 };
 
-struct dprc_cmd_get_irq_mask {
+struct dprc_cmd_get_irq_mask
+{
 	__le32 pad;
 	u8 irq_index;
 };
 
-struct dprc_rsp_get_irq_mask {
+struct dprc_rsp_get_irq_mask
+{
 	__le32 mask;
 };
 
-struct dprc_cmd_get_irq_status {
+struct dprc_cmd_get_irq_status
+{
 	__le32 status;
 	u8 irq_index;
 };
 
-struct dprc_rsp_get_irq_status {
+struct dprc_rsp_get_irq_status
+{
 	__le32 status;
 };
 
-struct dprc_cmd_clear_irq_status {
+struct dprc_cmd_clear_irq_status
+{
 	__le32 status;
 	u8 irq_index;
 };
 
-struct dprc_rsp_get_attributes {
+struct dprc_rsp_get_attributes
+{
 	/* response word 0 */
 	__le32 container_id;
 	__le16 icid;
@@ -204,7 +222,8 @@ struct dprc_rsp_get_attributes {
 	__le16 version_minor;
 };
 
-struct dprc_cmd_set_res_quota {
+struct dprc_cmd_set_res_quota
+{
 	/* cmd word 0 */
 	__le32 child_container_id;
 	__le16 quota;
@@ -213,7 +232,8 @@ struct dprc_cmd_set_res_quota {
 	u8 type[16];
 };
 
-struct dprc_cmd_get_res_quota {
+struct dprc_cmd_get_res_quota
+{
 	/* cmd word 0 */
 	__le32 child_container_id;
 	__le32 pad;
@@ -221,12 +241,14 @@ struct dprc_cmd_get_res_quota {
 	u8 type[16];
 };
 
-struct dprc_rsp_get_res_quota {
+struct dprc_rsp_get_res_quota
+{
 	__le32 pad;
 	__le16 quota;
 };
 
-struct dprc_cmd_assign {
+struct dprc_cmd_assign
+{
 	/* cmd word 0 */
 	__le32 container_id;
 	__le32 options;
@@ -237,7 +259,8 @@ struct dprc_cmd_assign {
 	u8 type[16];
 };
 
-struct dprc_cmd_unassign {
+struct dprc_cmd_unassign
+{
 	/* cmd word 0 */
 	__le32 child_container_id;
 	__le32 options;
@@ -248,31 +271,37 @@ struct dprc_cmd_unassign {
 	u8 type[16];
 };
 
-struct dprc_rsp_get_pool_count {
+struct dprc_rsp_get_pool_count
+{
 	__le32 pool_count;
 };
 
-struct dprc_cmd_get_pool {
+struct dprc_cmd_get_pool
+{
 	__le32 pool_index;
 };
 
-struct dprc_rsp_get_pool {
+struct dprc_rsp_get_pool
+{
 	/* response word 0 */
 	__le64 pad;
 	/* response word 1-2 */
 	u8 type[16];
 };
 
-struct dprc_rsp_get_obj_count {
+struct dprc_rsp_get_obj_count
+{
 	__le32 pad;
 	__le32 obj_count;
 };
 
-struct dprc_cmd_get_obj {
+struct dprc_cmd_get_obj
+{
 	__le32 obj_index;
 };
 
-struct dprc_rsp_get_obj {
+struct dprc_rsp_get_obj
+{
 	/* response word 0 */
 	__le32 pad0;
 	__le32 id;
@@ -292,7 +321,8 @@ struct dprc_rsp_get_obj {
 	u8 label[16];
 };
 
-struct dprc_cmd_get_obj_desc {
+struct dprc_cmd_get_obj_desc
+{
 	/* cmd word 0 */
 	__le32 obj_id;
 	__le32 pad;
@@ -300,7 +330,8 @@ struct dprc_cmd_get_obj_desc {
 	u8 type[16];
 };
 
-struct dprc_rsp_get_obj_desc {
+struct dprc_rsp_get_obj_desc
+{
 	/* response word 0 */
 	__le32 pad0;
 	__le32 id;
@@ -320,18 +351,21 @@ struct dprc_rsp_get_obj_desc {
 	u8 label[16];
 };
 
-struct dprc_cmd_get_res_count {
+struct dprc_cmd_get_res_count
+{
 	/* cmd word 0 */
 	__le64 pad;
 	/* cmd word 1-2 */
 	u8 type[16];
 };
 
-struct dprc_rsp_get_res_count {
+struct dprc_rsp_get_res_count
+{
 	__le32 res_count;
 };
 
-struct dprc_cmd_get_res_ids {
+struct dprc_cmd_get_res_ids
+{
 	/* cmd word 0 */
 	u8 pad0[5];
 	u8 iter_status;
@@ -343,7 +377,8 @@ struct dprc_cmd_get_res_ids {
 	u8 type[16];
 };
 
-struct dprc_rsp_get_res_ids {
+struct dprc_rsp_get_res_ids
+{
 	/* response word 0 */
 	u8 pad0[5];
 	u8 iter_status;
@@ -353,7 +388,8 @@ struct dprc_rsp_get_res_ids {
 	__le32 last_id;
 };
 
-struct dprc_cmd_get_obj_region {
+struct dprc_cmd_get_obj_region
+{
 	/* cmd word 0 */
 	__le32 obj_id;
 	__le16 pad0;
@@ -365,7 +401,8 @@ struct dprc_cmd_get_obj_region {
 	u8 obj_type[16];
 };
 
-struct dprc_rsp_get_obj_region {
+struct dprc_rsp_get_obj_region
+{
 	/* response word 0 */
 	__le64 pad;
 	/* response word 1 */
@@ -374,7 +411,8 @@ struct dprc_rsp_get_obj_region {
 	__le32 size;
 };
 
-struct dprc_cmd_set_obj_label {
+struct dprc_cmd_set_obj_label
+{
 	/* cmd word 0 */
 	__le32 obj_id;
 	__le32 pad;
@@ -384,7 +422,8 @@ struct dprc_cmd_set_obj_label {
 	u8 obj_type[16];
 };
 
-struct dprc_cmd_set_obj_irq {
+struct dprc_cmd_set_obj_irq
+{
 	/* cmd word 0 */
 	__le32 irq_val;
 	u8 irq_index;
@@ -398,7 +437,8 @@ struct dprc_cmd_set_obj_irq {
 	u8 obj_type[16];
 };
 
-struct dprc_cmd_get_obj_irq {
+struct dprc_cmd_get_obj_irq
+{
 	/* cmd word 0 */
 	__le32 obj_id;
 	u8 irq_index;
@@ -407,7 +447,8 @@ struct dprc_cmd_get_obj_irq {
 	u8 obj_type[16];
 };
 
-struct dprc_rsp_get_obj_irq {
+struct dprc_rsp_get_obj_irq
+{
 	/* response word 0 */
 	__le32 irq_val;
 	__le32 pad;
@@ -418,7 +459,8 @@ struct dprc_rsp_get_obj_irq {
 	__le32 type;
 };
 
-struct dprc_cmd_connect {
+struct dprc_cmd_connect
+{
 	/* cmd word 0 */
 	__le32 ep1_id;
 	__le32 ep1_interface_id;
@@ -434,7 +476,8 @@ struct dprc_cmd_connect {
 	u8 ep2_type[16];
 };
 
-struct dprc_cmd_disconnect {
+struct dprc_cmd_disconnect
+{
 	/* cmd word 0 */
 	__le32 id;
 	__le32 interface_id;
@@ -442,7 +485,8 @@ struct dprc_cmd_disconnect {
 	u8 type[16];
 };
 
-struct dprc_cmd_get_connection {
+struct dprc_cmd_get_connection
+{
 	/* cmd word 0 */
 	__le32 ep1_id;
 	__le32 ep1_interface_id;
@@ -450,7 +494,8 @@ struct dprc_cmd_get_connection {
 	u8 ep1_type[16];
 };
 
-struct dprc_rsp_get_connection {
+struct dprc_rsp_get_connection
+{
 	/* response word 0-2 */
 	__le64 pad[3];
 	/* response word 3 */

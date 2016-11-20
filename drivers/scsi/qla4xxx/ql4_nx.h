@@ -35,7 +35,8 @@
 /*
  * Temperature control.
  */
-enum {
+enum
+{
 	QLA82XX_TEMP_NORMAL = 0x1,	/* Normal operating range */
 	QLA82XX_TEMP_WARN,	/* Sound alert, temperature getting high */
 	QLA82XX_TEMP_PANIC	/* Fatal error, hardware has shut down. */
@@ -205,141 +206,141 @@ enum {
 /*  */
 
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_MN	((QLA82XX_HW_H0_CH_HUB_ADR << 7) | \
-					QLA82XX_HW_MN_CRB_AGT_ADR)
+		QLA82XX_HW_MN_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_PH	((QLA82XX_HW_H0_CH_HUB_ADR << 7) | \
-					QLA82XX_HW_PH_CRB_AGT_ADR)
+		QLA82XX_HW_PH_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_MS	((QLA82XX_HW_H0_CH_HUB_ADR << 7) | \
-					QLA82XX_HW_MS_CRB_AGT_ADR)
+		QLA82XX_HW_MS_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_PS	((QLA82XX_HW_H1_CH_HUB_ADR << 7) | \
-					QLA82XX_HW_PS_CRB_AGT_ADR)
+		QLA82XX_HW_PS_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_SS	((QLA82XX_HW_H1_CH_HUB_ADR << 7) | \
-					QLA82XX_HW_SS_CRB_AGT_ADR)
+		QLA82XX_HW_SS_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_RPMX3    ((QLA82XX_HW_H1_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_RPMX3_CRB_AGT_ADR)
+		QLA82XX_HW_RPMX3_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_QMS	    ((QLA82XX_HW_H1_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_QMS_CRB_AGT_ADR)
+		QLA82XX_HW_QMS_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_SQS0     ((QLA82XX_HW_H1_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_SQGS0_CRB_AGT_ADR)
+		QLA82XX_HW_SQGS0_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_SQS1     ((QLA82XX_HW_H1_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_SQGS1_CRB_AGT_ADR)
+		QLA82XX_HW_SQGS1_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_SQS2     ((QLA82XX_HW_H1_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_SQGS2_CRB_AGT_ADR)
+		QLA82XX_HW_SQGS2_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_SQS3     ((QLA82XX_HW_H1_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_SQGS3_CRB_AGT_ADR)
+		QLA82XX_HW_SQGS3_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_C2C0     ((QLA82XX_HW_H1_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_C2C0_CRB_AGT_ADR)
+		QLA82XX_HW_C2C0_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_C2C1     ((QLA82XX_HW_H1_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_C2C1_CRB_AGT_ADR)
+		QLA82XX_HW_C2C1_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_RPMX2    ((QLA82XX_HW_H1_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_RPMX2_CRB_AGT_ADR)
+		QLA82XX_HW_RPMX2_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_RPMX4    ((QLA82XX_HW_H1_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_RPMX4_CRB_AGT_ADR)
+		QLA82XX_HW_RPMX4_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_RPMX7    ((QLA82XX_HW_H1_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_RPMX7_CRB_AGT_ADR)
+		QLA82XX_HW_RPMX7_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_RPMX9    ((QLA82XX_HW_H1_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_RPMX9_CRB_AGT_ADR)
+		QLA82XX_HW_RPMX9_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_SMB	    ((QLA82XX_HW_H1_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_SMB_CRB_AGT_ADR)
+		QLA82XX_HW_SMB_CRB_AGT_ADR)
 
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_NIU      ((QLA82XX_HW_H2_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_NIU_CRB_AGT_ADR)
+		QLA82XX_HW_NIU_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_I2C0     ((QLA82XX_HW_H2_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_I2C0_CRB_AGT_ADR)
+		QLA82XX_HW_I2C0_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_I2C1     ((QLA82XX_HW_H2_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_I2C1_CRB_AGT_ADR)
+		QLA82XX_HW_I2C1_CRB_AGT_ADR)
 
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_SRE      ((QLA82XX_HW_H3_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_SRE_CRB_AGT_ADR)
+		QLA82XX_HW_SRE_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_EG       ((QLA82XX_HW_H3_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_EG_CRB_AGT_ADR)
+		QLA82XX_HW_EG_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_RPMX0    ((QLA82XX_HW_H3_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_RPMX0_CRB_AGT_ADR)
+		QLA82XX_HW_RPMX0_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_QMN      ((QLA82XX_HW_H3_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_QM_CRB_AGT_ADR)
+		QLA82XX_HW_QM_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_SQN0     ((QLA82XX_HW_H3_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_SQG0_CRB_AGT_ADR)
+		QLA82XX_HW_SQG0_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_SQN1     ((QLA82XX_HW_H3_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_SQG1_CRB_AGT_ADR)
+		QLA82XX_HW_SQG1_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_SQN2     ((QLA82XX_HW_H3_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_SQG2_CRB_AGT_ADR)
+		QLA82XX_HW_SQG2_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_SQN3     ((QLA82XX_HW_H3_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_SQG3_CRB_AGT_ADR)
+		QLA82XX_HW_SQG3_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_RPMX1    ((QLA82XX_HW_H3_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_RPMX1_CRB_AGT_ADR)
+		QLA82XX_HW_RPMX1_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_RPMX5    ((QLA82XX_HW_H3_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_RPMX5_CRB_AGT_ADR)
+		QLA82XX_HW_RPMX5_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_RPMX6    ((QLA82XX_HW_H3_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_RPMX6_CRB_AGT_ADR)
+		QLA82XX_HW_RPMX6_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_RPMX8    ((QLA82XX_HW_H3_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_RPMX8_CRB_AGT_ADR)
+		QLA82XX_HW_RPMX8_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_CAS0     ((QLA82XX_HW_H3_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_CAS0_CRB_AGT_ADR)
+		QLA82XX_HW_CAS0_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_CAS1     ((QLA82XX_HW_H3_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_CAS1_CRB_AGT_ADR)
+		QLA82XX_HW_CAS1_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_CAS2     ((QLA82XX_HW_H3_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_CAS2_CRB_AGT_ADR)
+		QLA82XX_HW_CAS2_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_CAS3     ((QLA82XX_HW_H3_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_CAS3_CRB_AGT_ADR)
+		QLA82XX_HW_CAS3_CRB_AGT_ADR)
 
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_PGNI     ((QLA82XX_HW_H4_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_PEGNI_CRB_AGT_ADR)
+		QLA82XX_HW_PEGNI_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_PGND     ((QLA82XX_HW_H4_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_PEGND_CRB_AGT_ADR)
+		QLA82XX_HW_PEGND_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_PGN0     ((QLA82XX_HW_H4_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_PEGN0_CRB_AGT_ADR)
+		QLA82XX_HW_PEGN0_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_PGN1     ((QLA82XX_HW_H4_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_PEGN1_CRB_AGT_ADR)
+		QLA82XX_HW_PEGN1_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_PGN2     ((QLA82XX_HW_H4_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_PEGN2_CRB_AGT_ADR)
+		QLA82XX_HW_PEGN2_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_PGN3     ((QLA82XX_HW_H4_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_PEGN3_CRB_AGT_ADR)
+		QLA82XX_HW_PEGN3_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_PGN4     ((QLA82XX_HW_H4_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_PEGN4_CRB_AGT_ADR)
+		QLA82XX_HW_PEGN4_CRB_AGT_ADR)
 
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_PGNC     ((QLA82XX_HW_H4_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_PEGNC_CRB_AGT_ADR)
+		QLA82XX_HW_PEGNC_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_PGR0     ((QLA82XX_HW_H4_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_PEGR0_CRB_AGT_ADR)
+		QLA82XX_HW_PEGR0_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_PGR1     ((QLA82XX_HW_H4_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_PEGR1_CRB_AGT_ADR)
+		QLA82XX_HW_PEGR1_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_PGR2     ((QLA82XX_HW_H4_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_PEGR2_CRB_AGT_ADR)
+		QLA82XX_HW_PEGR2_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_PGR3     ((QLA82XX_HW_H4_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_PEGR3_CRB_AGT_ADR)
+		QLA82XX_HW_PEGR3_CRB_AGT_ADR)
 
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_PGSI     ((QLA82XX_HW_H5_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_PEGSI_CRB_AGT_ADR)
+		QLA82XX_HW_PEGSI_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_PGSD     ((QLA82XX_HW_H5_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_PEGSD_CRB_AGT_ADR)
+		QLA82XX_HW_PEGSD_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_PGS0     ((QLA82XX_HW_H5_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_PEGS0_CRB_AGT_ADR)
+		QLA82XX_HW_PEGS0_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_PGS1     ((QLA82XX_HW_H5_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_PEGS1_CRB_AGT_ADR)
+		QLA82XX_HW_PEGS1_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_PGS2     ((QLA82XX_HW_H5_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_PEGS2_CRB_AGT_ADR)
+		QLA82XX_HW_PEGS2_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_PGS3     ((QLA82XX_HW_H5_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_PEGS3_CRB_AGT_ADR)
+		QLA82XX_HW_PEGS3_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_PGSC     ((QLA82XX_HW_H5_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_PEGSC_CRB_AGT_ADR)
+		QLA82XX_HW_PEGSC_CRB_AGT_ADR)
 
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_CAM      ((QLA82XX_HW_H6_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_NCM_CRB_AGT_ADR)
+		QLA82XX_HW_NCM_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_TIMR     ((QLA82XX_HW_H6_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_TMR_CRB_AGT_ADR)
+		QLA82XX_HW_TMR_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_XDMA     ((QLA82XX_HW_H6_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_XDMA_CRB_AGT_ADR)
+		QLA82XX_HW_XDMA_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_SN       ((QLA82XX_HW_H6_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_SN_CRB_AGT_ADR)
+		QLA82XX_HW_SN_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_I2Q      ((QLA82XX_HW_H6_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_I2Q_CRB_AGT_ADR)
+		QLA82XX_HW_I2Q_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_ROMUSB   ((QLA82XX_HW_H6_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_ROMUSB_CRB_AGT_ADR)
+		QLA82XX_HW_ROMUSB_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_OCM0     ((QLA82XX_HW_H6_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_OCM0_CRB_AGT_ADR)
+		QLA82XX_HW_OCM0_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_OCM1     ((QLA82XX_HW_H6_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_OCM1_CRB_AGT_ADR)
+		QLA82XX_HW_OCM1_CRB_AGT_ADR)
 #define QLA82XX_HW_CRB_HUB_AGT_ADR_LPC      ((QLA82XX_HW_H6_CH_HUB_ADR << 7) | \
-					    QLA82XX_HW_LPC_CRB_AGT_ADR)
+		QLA82XX_HW_LPC_CRB_AGT_ADR)
 
 #define ROMUSB_GLB	(QLA82XX_CRB_ROMUSB + 0x00000)
 #define QLA82XX_ROMUSB_GLB_PEGTUNE_DONE		(ROMUSB_GLB + 0x005c)
@@ -360,7 +361,7 @@ enum {
 
 #define QLA82XX_PCI_CRB_WINDOWSIZE	0x00100000    /* all are 1MB windows */
 #define QLA82XX_PCI_CRB_WINDOW(A)	(QLA82XX_PCI_CRBSPACE + \
-					(A)*QLA82XX_PCI_CRB_WINDOWSIZE)
+									 (A)*QLA82XX_PCI_CRB_WINDOWSIZE)
 
 #define QLA82XX_CRB_C2C_0 \
 	QLA82XX_PCI_CRB_WINDOW(QLA82XX_HW_PX_MAP_CRB_C2C0)
@@ -549,7 +550,7 @@ enum {
 
 #define MIU_TA_CTL_WRITE_ENABLE		(MIU_TA_CTL_WRITE | MIU_TA_CTL_ENABLE)
 #define MIU_TA_CTL_WRITE_START		(MIU_TA_CTL_WRITE | MIU_TA_CTL_ENABLE |\
-					 MIU_TA_CTL_START)
+									 MIU_TA_CTL_START)
 #define MIU_TA_CTL_START_ENABLE		(MIU_TA_CTL_START | MIU_TA_CTL_ENABLE)
 
 /*CAM RAM */
@@ -582,7 +583,8 @@ enum {
 #define QLA82XX_CRB_DEV_PART_INFO	(QLA82XX_CAM_RAM(0x14c))
 #define QLA82XX_CRB_DRV_IDC_VERSION	(QLA82XX_CAM_RAM(0x174))
 
-enum qla_regs {
+enum qla_regs
+{
 	QLA8XXX_PEG_HALT_STATUS1 = 0,
 	QLA8XXX_PEG_HALT_STATUS2,
 	QLA8XXX_PEG_ALIVE_COUNTER,
@@ -599,7 +601,8 @@ enum qla_regs {
 	QLA8XXX_CRB_TEMP_STATE,
 };
 
-static const uint32_t qla4_82xx_reg_tbl[] = {
+static const uint32_t qla4_82xx_reg_tbl[] =
+{
 	QLA82XX_PEG_HALT_STATUS1,
 	QLA82XX_PEG_HALT_STATUS2,
 	QLA82XX_PEG_ALIVE_COUNTER,
@@ -650,18 +653,21 @@ static const uint32_t qla4_82xx_reg_tbl[] = {
 #define QLA82XX_PCI_REG_MSIX_TBL	0x44
 #define QLA82XX_PCI_MSIX_CONTROL	0x40
 
-struct crb_128M_2M_sub_block_map {
+struct crb_128M_2M_sub_block_map
+{
 	unsigned valid;
 	unsigned start_128M;
 	unsigned end_128M;
 	unsigned start_2M;
 };
 
-struct crb_128M_2M_block_map {
+struct crb_128M_2M_block_map
+{
 	struct crb_128M_2M_sub_block_map sub_block[16];
 };
 
-struct crb_addr_pair {
+struct crb_addr_pair
+{
 	long addr;
 	long data;
 };
@@ -779,55 +785,55 @@ struct crb_addr_pair {
 /* struct qla4_8xxx_legacy_intr_set defined in ql4_def.h */
 
 #define QLA82XX_LEGACY_INTR_CONFIG                                      \
-{                                                                       \
-	{                                                               \
-		.int_vec_bit    =	PCIX_INT_VECTOR_BIT_F0,         \
-		.tgt_status_reg =	ISR_INT_TARGET_STATUS,          \
-		.tgt_mask_reg   =	ISR_INT_TARGET_MASK,            \
-		.pci_int_reg    =	ISR_MSI_INT_TRIGGER(0) },       \
-									\
-	{								\
-		.int_vec_bit    =	PCIX_INT_VECTOR_BIT_F1,         \
-		.tgt_status_reg =	ISR_INT_TARGET_STATUS_F1,       \
-		.tgt_mask_reg   =	ISR_INT_TARGET_MASK_F1,         \
-		.pci_int_reg    =	ISR_MSI_INT_TRIGGER(1) },       \
-									\
-	{								\
-		.int_vec_bit    =	PCIX_INT_VECTOR_BIT_F2,         \
-		.tgt_status_reg =	ISR_INT_TARGET_STATUS_F2,       \
-		.tgt_mask_reg   =	ISR_INT_TARGET_MASK_F2,         \
-		.pci_int_reg    =	ISR_MSI_INT_TRIGGER(2) },       \
-									\
-	{								\
-		.int_vec_bit    =	PCIX_INT_VECTOR_BIT_F3,         \
-		.tgt_status_reg =	ISR_INT_TARGET_STATUS_F3,       \
-		.tgt_mask_reg   =	ISR_INT_TARGET_MASK_F3,         \
-		.pci_int_reg    =	ISR_MSI_INT_TRIGGER(3) },       \
-									\
-	{								\
-		.int_vec_bit    =	PCIX_INT_VECTOR_BIT_F4,         \
-		.tgt_status_reg =	ISR_INT_TARGET_STATUS_F4,       \
-		.tgt_mask_reg   =	ISR_INT_TARGET_MASK_F4,         \
-		.pci_int_reg    =	ISR_MSI_INT_TRIGGER(4) },       \
-									\
-	{								\
-		.int_vec_bit    =	PCIX_INT_VECTOR_BIT_F5,         \
-		.tgt_status_reg =	ISR_INT_TARGET_STATUS_F5,       \
-		.tgt_mask_reg   =	ISR_INT_TARGET_MASK_F5,         \
-		.pci_int_reg    =	ISR_MSI_INT_TRIGGER(5) },       \
-									\
-	{								\
-		.int_vec_bit    =	PCIX_INT_VECTOR_BIT_F6,         \
-		.tgt_status_reg =	ISR_INT_TARGET_STATUS_F6,       \
-		.tgt_mask_reg   =	ISR_INT_TARGET_MASK_F6,         \
-		.pci_int_reg    =	ISR_MSI_INT_TRIGGER(6) },       \
-									\
-	{								\
-		.int_vec_bit    =	PCIX_INT_VECTOR_BIT_F7,         \
-		.tgt_status_reg =	ISR_INT_TARGET_STATUS_F7,       \
-		.tgt_mask_reg   =	ISR_INT_TARGET_MASK_F7,         \
-		.pci_int_reg    =	ISR_MSI_INT_TRIGGER(7) },       \
-}
+	{                                                                       \
+		{                                                               \
+			.int_vec_bit    =	PCIX_INT_VECTOR_BIT_F0,         \
+								.tgt_status_reg =	ISR_INT_TARGET_STATUS,          \
+													.tgt_mask_reg   =	ISR_INT_TARGET_MASK,            \
+															.pci_int_reg    =	ISR_MSI_INT_TRIGGER(0) },       \
+		\
+		{								\
+										.int_vec_bit    =	PCIX_INT_VECTOR_BIT_F1,         \
+										.tgt_status_reg =	ISR_INT_TARGET_STATUS_F1,       \
+										.tgt_mask_reg   =	ISR_INT_TARGET_MASK_F1,         \
+										.pci_int_reg    =	ISR_MSI_INT_TRIGGER(1) },       \
+		\
+		{								\
+										.int_vec_bit    =	PCIX_INT_VECTOR_BIT_F2,         \
+										.tgt_status_reg =	ISR_INT_TARGET_STATUS_F2,       \
+										.tgt_mask_reg   =	ISR_INT_TARGET_MASK_F2,         \
+										.pci_int_reg    =	ISR_MSI_INT_TRIGGER(2) },       \
+		\
+		{								\
+										.int_vec_bit    =	PCIX_INT_VECTOR_BIT_F3,         \
+										.tgt_status_reg =	ISR_INT_TARGET_STATUS_F3,       \
+										.tgt_mask_reg   =	ISR_INT_TARGET_MASK_F3,         \
+										.pci_int_reg    =	ISR_MSI_INT_TRIGGER(3) },       \
+		\
+		{								\
+										.int_vec_bit    =	PCIX_INT_VECTOR_BIT_F4,         \
+										.tgt_status_reg =	ISR_INT_TARGET_STATUS_F4,       \
+										.tgt_mask_reg   =	ISR_INT_TARGET_MASK_F4,         \
+										.pci_int_reg    =	ISR_MSI_INT_TRIGGER(4) },       \
+		\
+		{								\
+										.int_vec_bit    =	PCIX_INT_VECTOR_BIT_F5,         \
+										.tgt_status_reg =	ISR_INT_TARGET_STATUS_F5,       \
+										.tgt_mask_reg   =	ISR_INT_TARGET_MASK_F5,         \
+										.pci_int_reg    =	ISR_MSI_INT_TRIGGER(5) },       \
+		\
+		{								\
+										.int_vec_bit    =	PCIX_INT_VECTOR_BIT_F6,         \
+										.tgt_status_reg =	ISR_INT_TARGET_STATUS_F6,       \
+										.tgt_mask_reg   =	ISR_INT_TARGET_MASK_F6,         \
+										.pci_int_reg    =	ISR_MSI_INT_TRIGGER(6) },       \
+		\
+		{								\
+										.int_vec_bit    =	PCIX_INT_VECTOR_BIT_F7,         \
+										.tgt_status_reg =	ISR_INT_TARGET_STATUS_F7,       \
+										.tgt_mask_reg   =	ISR_INT_TARGET_MASK_F7,         \
+										.pci_int_reg    =	ISR_MSI_INT_TRIGGER(7) },       \
+	}
 
 /* Magic number to let user know flash is programmed */
 #define	QLA82XX_BDINFO_MAGIC	0x12345678
@@ -887,11 +893,13 @@ struct crb_addr_pair {
 /* Driver_code is for driver to write some info about the entry
  * currently not used.
  */
-struct qla8xxx_minidump_entry_hdr {
+struct qla8xxx_minidump_entry_hdr
+{
 	uint32_t entry_type;
 	uint32_t entry_size;
 	uint32_t entry_capture_size;
-	struct {
+	struct
+	{
 		uint8_t entry_capture_mask;
 		uint8_t entry_code;
 		uint8_t driver_code;
@@ -900,10 +908,12 @@ struct qla8xxx_minidump_entry_hdr {
 };
 
 /*  Read CRB entry header */
-struct qla8xxx_minidump_entry_crb {
+struct qla8xxx_minidump_entry_crb
+{
 	struct qla8xxx_minidump_entry_hdr h;
 	uint32_t addr;
-	struct {
+	struct
+	{
 		uint8_t addr_stride;
 		uint8_t state_index_a;
 		uint16_t poll_timeout;
@@ -911,7 +921,8 @@ struct qla8xxx_minidump_entry_crb {
 	uint32_t data_size;
 	uint32_t op_count;
 
-	struct {
+	struct
+	{
 		uint8_t opcode;
 		uint8_t state_index_v;
 		uint8_t shl;
@@ -923,23 +934,27 @@ struct qla8xxx_minidump_entry_crb {
 	uint32_t value_3;
 };
 
-struct qla8xxx_minidump_entry_cache {
+struct qla8xxx_minidump_entry_cache
+{
 	struct qla8xxx_minidump_entry_hdr h;
 	uint32_t tag_reg_addr;
-	struct {
+	struct
+	{
 		uint16_t tag_value_stride;
 		uint16_t init_tag_value;
 	} addr_ctrl;
 	uint32_t data_size;
 	uint32_t op_count;
 	uint32_t control_addr;
-	struct {
+	struct
+	{
 		uint16_t write_value;
 		uint8_t poll_mask;
 		uint8_t poll_wait;
 	} cache_ctrl;
 	uint32_t read_addr;
-	struct {
+	struct
+	{
 		uint8_t read_addr_stride;
 		uint8_t read_addr_cnt;
 		uint16_t rsvd_1;
@@ -947,7 +962,8 @@ struct qla8xxx_minidump_entry_cache {
 };
 
 /* Read OCM */
-struct qla8xxx_minidump_entry_rdocm {
+struct qla8xxx_minidump_entry_rdocm
+{
 	struct qla8xxx_minidump_entry_hdr h;
 	uint32_t rsvd_0;
 	uint32_t rsvd_1;
@@ -960,7 +976,8 @@ struct qla8xxx_minidump_entry_rdocm {
 };
 
 /* Read Memory */
-struct qla8xxx_minidump_entry_rdmem {
+struct qla8xxx_minidump_entry_rdmem
+{
 	struct qla8xxx_minidump_entry_hdr h;
 	uint32_t rsvd[6];
 	uint32_t read_addr;
@@ -968,7 +985,8 @@ struct qla8xxx_minidump_entry_rdmem {
 };
 
 /* Read ROM */
-struct qla8xxx_minidump_entry_rdrom {
+struct qla8xxx_minidump_entry_rdrom
+{
 	struct qla8xxx_minidump_entry_hdr h;
 	uint32_t rsvd[6];
 	uint32_t read_addr;
@@ -976,7 +994,8 @@ struct qla8xxx_minidump_entry_rdrom {
 };
 
 /* Mux entry */
-struct qla8xxx_minidump_entry_mux {
+struct qla8xxx_minidump_entry_mux
+{
 	struct qla8xxx_minidump_entry_hdr h;
 	uint32_t select_addr;
 	uint32_t rsvd_0;
@@ -989,10 +1008,12 @@ struct qla8xxx_minidump_entry_mux {
 };
 
 /* Queue entry */
-struct qla8xxx_minidump_entry_queue {
+struct qla8xxx_minidump_entry_queue
+{
 	struct qla8xxx_minidump_entry_hdr h;
 	uint32_t select_addr;
-	struct {
+	struct
+	{
 		uint16_t queue_id_stride;
 		uint16_t rsvd_0;
 	} q_strd;
@@ -1001,7 +1022,8 @@ struct qla8xxx_minidump_entry_queue {
 	uint32_t rsvd_1;
 	uint32_t rsvd_2;
 	uint32_t read_addr;
-	struct {
+	struct
+	{
 		uint8_t read_addr_stride;
 		uint8_t read_addr_cnt;
 		uint16_t rsvd_3;
@@ -1028,5 +1050,6 @@ struct qla8xxx_minidump_entry_queue {
 #define MD_MIU_TEST_AGT_RDDATA_UHI		0x410000BC
 
 static const int MD_MIU_TEST_AGT_RDDATA[] = { 0x410000A8,
-				0x410000AC, 0x410000B8, 0x410000BC };
+											  0x410000AC, 0x410000B8, 0x410000BC
+											};
 #endif

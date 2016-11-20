@@ -39,7 +39,8 @@ struct i40e_hw;
  * size then we could end up shifting bits off the top of the variable when the
  * variable is at the top of a byte and crosses over into the next byte.
  */
-struct i40e_hmc_obj_rxq {
+struct i40e_hmc_obj_rxq
+{
 	u16 head;
 	u16 cpuid; /* bigger than needed, see above for reason */
 	u64 base;
@@ -72,7 +73,8 @@ struct i40e_hmc_obj_rxq {
 * size then we could end up shifting bits off the top of the variable when the
 * variable is at the top of a byte and crosses over into the next byte.
 */
-struct i40e_hmc_obj_txq {
+struct i40e_hmc_obj_txq
+{
 	u16 head;
 	u8  new_context;
 	u64 base;
@@ -94,7 +96,8 @@ struct i40e_hmc_obj_txq {
 };
 
 /* for hsplit_0 field of Rx HMC context */
-enum i40e_hmc_obj_rx_hsplit_0 {
+enum i40e_hmc_obj_rx_hsplit_0
+{
 	I40E_HMC_OBJ_RX_HSPLIT_0_NO_SPLIT      = 0,
 	I40E_HMC_OBJ_RX_HSPLIT_0_SPLIT_L2      = 1,
 	I40E_HMC_OBJ_RX_HSPLIT_0_SPLIT_IP      = 2,
@@ -103,16 +106,19 @@ enum i40e_hmc_obj_rx_hsplit_0 {
 };
 
 /* fcoe_cntx and fcoe_filt are for debugging purpose only */
-struct i40e_hmc_obj_fcoe_cntx {
+struct i40e_hmc_obj_fcoe_cntx
+{
 	u32 rsv[32];
 };
 
-struct i40e_hmc_obj_fcoe_filt {
+struct i40e_hmc_obj_fcoe_filt
+{
 	u32 rsv[8];
 };
 
 /* Context sizes for LAN objects */
-enum i40e_hmc_lan_object_size {
+enum i40e_hmc_lan_object_size
+{
 	I40E_HMC_LAN_OBJ_SZ_8   = 0x3,
 	I40E_HMC_LAN_OBJ_SZ_16  = 0x4,
 	I40E_HMC_LAN_OBJ_SZ_32  = 0x5,
@@ -128,7 +134,8 @@ enum i40e_hmc_lan_object_size {
 #define I40E_HMC_OBJ_SIZE_FCOE_CNTX   64
 #define I40E_HMC_OBJ_SIZE_FCOE_FILT   64
 
-enum i40e_hmc_lan_rsrc_type {
+enum i40e_hmc_lan_rsrc_type
+{
 	I40E_HMC_LAN_FULL  = 0,
 	I40E_HMC_LAN_TX    = 1,
 	I40E_HMC_LAN_RX    = 2,
@@ -137,14 +144,16 @@ enum i40e_hmc_lan_rsrc_type {
 	I40E_HMC_LAN_MAX   = 5
 };
 
-enum i40e_hmc_model {
+enum i40e_hmc_model
+{
 	I40E_HMC_MODEL_DIRECT_PREFERRED = 0,
 	I40E_HMC_MODEL_DIRECT_ONLY      = 1,
 	I40E_HMC_MODEL_PAGED_ONLY       = 2,
 	I40E_HMC_MODEL_UNKNOWN,
 };
 
-struct i40e_hmc_lan_create_obj_info {
+struct i40e_hmc_lan_create_obj_info
+{
 	struct i40e_hmc_info *hmc_info;
 	u32 rsrc_type;
 	u32 start_idx;
@@ -153,7 +162,8 @@ struct i40e_hmc_lan_create_obj_info {
 	u64 direct_mode_sz;
 };
 
-struct i40e_hmc_lan_delete_obj_info {
+struct i40e_hmc_lan_delete_obj_info
+{
 	struct i40e_hmc_info *hmc_info;
 	u32 rsrc_type;
 	u32 start_idx;
@@ -161,21 +171,21 @@ struct i40e_hmc_lan_delete_obj_info {
 };
 
 i40e_status i40e_init_lan_hmc(struct i40e_hw *hw, u32 txq_num,
-					u32 rxq_num, u32 fcoe_cntx_num,
-					u32 fcoe_filt_num);
+							  u32 rxq_num, u32 fcoe_cntx_num,
+							  u32 fcoe_filt_num);
 i40e_status i40e_configure_lan_hmc(struct i40e_hw *hw,
-					     enum i40e_hmc_model model);
+								   enum i40e_hmc_model model);
 i40e_status i40e_shutdown_lan_hmc(struct i40e_hw *hw);
 
 i40e_status i40e_clear_lan_tx_queue_context(struct i40e_hw *hw,
-						      u16 queue);
+		u16 queue);
 i40e_status i40e_set_lan_tx_queue_context(struct i40e_hw *hw,
-						    u16 queue,
-						    struct i40e_hmc_obj_txq *s);
+		u16 queue,
+		struct i40e_hmc_obj_txq *s);
 i40e_status i40e_clear_lan_rx_queue_context(struct i40e_hw *hw,
-						      u16 queue);
+		u16 queue);
 i40e_status i40e_set_lan_rx_queue_context(struct i40e_hw *hw,
-						    u16 queue,
-						    struct i40e_hmc_obj_rxq *s);
+		u16 queue,
+		struct i40e_hmc_obj_rxq *s);
 
 #endif /* _I40E_LAN_HMC_H_ */

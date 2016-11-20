@@ -8,12 +8,14 @@
 #include <linux/bitops.h>
 #include <linux/log2.h>
 #include <linux/hrtimer.h>
-struct sirfsoc_uart_param {
+struct sirfsoc_uart_param
+{
 	const char *uart_name;
 	const char *port_name;
 };
 
-struct sirfsoc_register {
+struct sirfsoc_register
+{
 	/* hardware uart specific */
 	u32 sirfsoc_line_ctrl;
 	u32 sirfsoc_divisor;
@@ -49,12 +51,14 @@ struct sirfsoc_register {
 typedef u32 (*fifo_full_mask)(struct uart_port *port);
 typedef u32 (*fifo_empty_mask)(struct uart_port *port);
 
-struct sirfsoc_fifo_status {
+struct sirfsoc_fifo_status
+{
 	fifo_full_mask ff_full;
 	fifo_empty_mask ff_empty;
 };
 
-struct sirfsoc_int_en {
+struct sirfsoc_int_en
+{
 	u32 sirfsoc_rx_done_en;
 	u32 sirfsoc_tx_done_en;
 	u32 sirfsoc_rx_oflow_en;
@@ -73,7 +77,8 @@ struct sirfsoc_int_en {
 	u32 sirfsoc_rts_en;
 };
 
-struct sirfsoc_int_status {
+struct sirfsoc_int_status
+{
 	u32 sirfsoc_rx_done;
 	u32 sirfsoc_tx_done;
 	u32 sirfsoc_rx_oflow;
@@ -92,12 +97,14 @@ struct sirfsoc_int_status {
 	u32 sirfsoc_rts;
 };
 
-enum sirfsoc_uart_type {
+enum sirfsoc_uart_type
+{
 	SIRF_REAL_UART,
 	SIRF_USP_UART,
 };
 
-struct sirfsoc_uart_register {
+struct sirfsoc_uart_register
+{
 	struct sirfsoc_register uart_reg;
 	struct sirfsoc_int_en uart_int_en;
 	struct sirfsoc_int_status uart_int_st;
@@ -121,7 +128,8 @@ static u32 uart_usp_ff_empty_mask(struct uart_port *port)
 	empty_bit = ilog2(port->fifosize) + 1;
 	return (1 << empty_bit);
 }
-struct sirfsoc_uart_register sirfsoc_usp = {
+struct sirfsoc_uart_register sirfsoc_usp =
+{
 	.uart_reg = {
 		.sirfsoc_mode1		= 0x0000,
 		.sirfsoc_mode2		= 0x0004,
@@ -187,7 +195,8 @@ struct sirfsoc_uart_register sirfsoc_usp = {
 	},
 };
 
-struct sirfsoc_uart_register sirfsoc_uart = {
+struct sirfsoc_uart_register sirfsoc_uart =
+{
 	.uart_reg = {
 		.sirfsoc_line_ctrl	= 0x0040,
 		.sirfsoc_tx_rx_en	= 0x004c,
@@ -330,38 +339,38 @@ struct sirfsoc_uart_register sirfsoc_uart = {
 /* USP-UART Common */
 #define SIRFSOC_UART_RX_TIMEOUT(br, to)	(((br) * (((to) + 999) / 1000)) / 1000)
 #define SIRFUART_RECV_TIMEOUT_VALUE(x)	\
-				(((x) > 0xFFFF) ? 0xFFFF : ((x) & 0xFFFF))
+	(((x) > 0xFFFF) ? 0xFFFF : ((x) & 0xFFFF))
 #define SIRFUART_USP_RECV_TIMEOUT(x)	(x & 0xFFFF)
 #define SIRFUART_UART_RECV_TIMEOUT(x)	((x & 0xFFFF) << 16)
 
 #define SIRFUART_FIFO_THD(port)		(port->fifosize >> 1)
 #define SIRFUART_ERR_INT_STAT(unit_st, uart_type)			\
-				(uint_st->sirfsoc_rx_oflow |		\
-				uint_st->sirfsoc_frm_err |		\
-				uint_st->sirfsoc_rxd_brk |		\
-				((uart_type != SIRF_REAL_UART) ? \
-				 0 : uint_st->sirfsoc_parity_err))
+	(uint_st->sirfsoc_rx_oflow |		\
+	 uint_st->sirfsoc_frm_err |		\
+	 uint_st->sirfsoc_rxd_brk |		\
+	 ((uart_type != SIRF_REAL_UART) ? \
+	  0 : uint_st->sirfsoc_parity_err))
 #define SIRFUART_RX_IO_INT_EN(uint_en, uart_type)			\
-				(uint_en->sirfsoc_rx_done_en |\
-				 uint_en->sirfsoc_rxfifo_thd_en |\
-				 uint_en->sirfsoc_rxfifo_full_en |\
-				 uint_en->sirfsoc_frm_err_en |\
-				 uint_en->sirfsoc_rx_oflow_en |\
-				 uint_en->sirfsoc_rxd_brk_en |\
-				((uart_type != SIRF_REAL_UART) ? \
-				 0 : uint_en->sirfsoc_parity_err_en))
+	(uint_en->sirfsoc_rx_done_en |\
+	 uint_en->sirfsoc_rxfifo_thd_en |\
+	 uint_en->sirfsoc_rxfifo_full_en |\
+	 uint_en->sirfsoc_frm_err_en |\
+	 uint_en->sirfsoc_rx_oflow_en |\
+	 uint_en->sirfsoc_rxd_brk_en |\
+	 ((uart_type != SIRF_REAL_UART) ? \
+	  0 : uint_en->sirfsoc_parity_err_en))
 #define SIRFUART_RX_IO_INT_ST(uint_st)				\
-				(uint_st->sirfsoc_rxfifo_thd |\
-				 uint_st->sirfsoc_rxfifo_full|\
-				 uint_st->sirfsoc_rx_done |\
-				 uint_st->sirfsoc_rx_timeout)
+	(uint_st->sirfsoc_rxfifo_thd |\
+	 uint_st->sirfsoc_rxfifo_full|\
+	 uint_st->sirfsoc_rx_done |\
+	 uint_st->sirfsoc_rx_timeout)
 #define SIRFUART_CTS_INT_ST(uint_st)	(uint_st->sirfsoc_cts)
 #define SIRFUART_RX_DMA_INT_EN(uint_en, uart_type)		\
-				(uint_en->sirfsoc_frm_err_en |\
-				 uint_en->sirfsoc_rx_oflow_en |\
-				 uint_en->sirfsoc_rxd_brk_en |\
-				((uart_type != SIRF_REAL_UART) ? \
-				 0 : uint_en->sirfsoc_parity_err_en))
+	(uint_en->sirfsoc_frm_err_en |\
+	 uint_en->sirfsoc_rx_oflow_en |\
+	 uint_en->sirfsoc_rxd_brk_en |\
+	 ((uart_type != SIRF_REAL_UART) ? \
+	  0 : uint_en->sirfsoc_parity_err_en))
 /* Generic Definitions */
 #define SIRFSOC_UART_NAME			"ttySiRF"
 #define SIRFSOC_UART_MAJOR			0
@@ -379,11 +388,11 @@ struct sirfsoc_uart_register sirfsoc_uart = {
 #define SIRFUART_TX_FIFO_LC_OFFSET	10
 #define SIRFUART_TX_FIFO_HC_OFFSET	20
 #define SIRFUART_TX_FIFO_CHK_SC(line, value) ((((line) == 1) ? (value & 0x3) :\
-				(value & 0x1f)) << SIRFUART_TX_FIFO_SC_OFFSET)
+		(value & 0x1f)) << SIRFUART_TX_FIFO_SC_OFFSET)
 #define SIRFUART_TX_FIFO_CHK_LC(line, value) ((((line) == 1) ? (value & 0x3) :\
-				(value & 0x1f)) << SIRFUART_TX_FIFO_LC_OFFSET)
+		(value & 0x1f)) << SIRFUART_TX_FIFO_LC_OFFSET)
 #define SIRFUART_TX_FIFO_CHK_HC(line, value) ((((line) == 1) ? (value & 0x3) :\
-				(value & 0x1f)) << SIRFUART_TX_FIFO_HC_OFFSET)
+		(value & 0x1f)) << SIRFUART_TX_FIFO_HC_OFFSET)
 
 #define SIRFUART_RX_FIFO_CHK_SC SIRFUART_TX_FIFO_CHK_SC
 #define	SIRFUART_RX_FIFO_CHK_LC SIRFUART_TX_FIFO_CHK_LC
@@ -392,25 +401,29 @@ struct sirfsoc_uart_register sirfsoc_uart = {
 /* Indicate how many buffers used */
 
 /* For Fast Baud Rate Calculation */
-struct sirfsoc_baudrate_to_regv {
+struct sirfsoc_baudrate_to_regv
+{
 	unsigned int baud_rate;
 	unsigned int reg_val;
 };
 
-enum sirfsoc_tx_state {
+enum sirfsoc_tx_state
+{
 	TX_DMA_IDLE,
 	TX_DMA_RUNNING,
 	TX_DMA_PAUSE,
 };
 
-struct sirfsoc_rx_buffer {
+struct sirfsoc_rx_buffer
+{
 	struct circ_buf			xmit;
 	dma_cookie_t			cookie;
 	struct dma_async_tx_descriptor	*desc;
 	dma_addr_t			dma_addr;
 };
 
-struct sirfsoc_uart_port {
+struct sirfsoc_uart_port
+{
 	bool				hw_flow_ctrl;
 	bool				ms_enabled;
 

@@ -50,7 +50,8 @@ struct ion_buffer;
  *
  * Provided by the board file.
  */
-struct ion_platform_heap {
+struct ion_platform_heap
+{
 	enum ion_heap_type type;
 	unsigned int id;
 	const char *name;
@@ -67,7 +68,8 @@ struct ion_platform_heap {
  *
  * Provided by the board file in the form of platform data to a platform device.
  */
-struct ion_platform_data {
+struct ion_platform_data
+{
 	int nr;
 	struct ion_platform_heap *heaps;
 };
@@ -78,7 +80,7 @@ struct ion_platform_data {
  * @name:		used for debugging
  */
 struct ion_client *ion_client_create(struct ion_device *dev,
-				     const char *name);
+									 const char *name);
 
 /**
  * ion_client_destroy() -  free's a client and all it's handles
@@ -106,8 +108,8 @@ void ion_client_destroy(struct ion_client *client);
  * an opaque handle to it.
  */
 struct ion_handle *ion_alloc(struct ion_client *client, size_t len,
-			     size_t align, unsigned int heap_id_mask,
-			     unsigned int flags);
+							 size_t align, unsigned int heap_id_mask,
+							 unsigned int flags);
 
 /**
  * ion_free - free a handle
@@ -141,7 +143,7 @@ void ion_unmap_kernel(struct ion_client *client, struct ion_handle *handle);
  * @handle:	the handle
  */
 struct dma_buf *ion_share_dma_buf(struct ion_client *client,
-						struct ion_handle *handle);
+								  struct ion_handle *handle);
 
 /**
  * ion_share_dma_buf_fd() - given an ion client, create a dma-buf fd
@@ -160,7 +162,7 @@ int ion_share_dma_buf_fd(struct ion_client *client, struct ion_handle *handle);
  * If dma-buf from another exporter is passed, return ERR_PTR(-EINVAL)
  */
 struct ion_handle *ion_import_dma_buf(struct ion_client *client,
-				      struct dma_buf *dmabuf);
+									  struct dma_buf *dmabuf);
 
 /**
  * ion_import_dma_buf_fd() - given a dma-buf fd from the ion exporter get handle

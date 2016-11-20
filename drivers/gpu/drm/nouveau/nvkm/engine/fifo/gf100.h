@@ -6,25 +6,29 @@
 #include <subdev/mmu.h>
 
 struct gf100_fifo_chan;
-struct gf100_fifo {
+struct gf100_fifo
+{
 	struct nvkm_fifo base;
 
 	struct list_head chan;
 
-	struct {
+	struct
+	{
 		struct work_struct work;
 		u64 mask;
 	} recover;
 
 	int pbdma_nr;
 
-	struct {
+	struct
+	{
 		struct nvkm_memory *mem[2];
 		int active;
 		wait_queue_head_t wait;
 	} runlist;
 
-	struct {
+	struct
+	{
 		struct nvkm_memory *mem;
 		struct nvkm_vma bar;
 	} user;

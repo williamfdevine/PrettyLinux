@@ -55,7 +55,7 @@
 #define   GMBUS_PORT_PANEL	3
 #define   GMBUS_PORT_DPC	4 /* HDMIC */
 #define   GMBUS_PORT_DPB	5 /* SDVO, HDMIB */
-				  /* 6 reserved */
+/* 6 reserved */
 #define   GMBUS_PORT_DPD	7 /* HDMID */
 #define   GMBUS_NUM_PORTS       8
 #define GMBUS1			0x5104 /* command/status */
@@ -544,7 +544,7 @@
 #define PIPE_HDMI_AUDIO_BUFFER_DONE		(1UL << 27)
 #define PIPE_FIFO_UNDERRUN			(1UL << 31)
 #define PIPE_HDMI_AUDIO_INT_MASK		(PIPE_HDMI_AUDIO_UNDERRUN | \
-						PIPE_HDMI_AUDIO_BUFFER_DONE)
+		PIPE_HDMI_AUDIO_BUFFER_DONE)
 #define PIPE_EVENT_MASK ((1 << 29)|(1 << 28)|(1 << 27)|(1 << 26)|(1 << 24)|(1 << 23)|(1 << 22)|(1 << 21)|(1 << 20)|(1 << 16))
 #define PIPE_VBLANK_MASK ((1 << 25)|(1 << 24)|(1 << 18)|(1 << 17))
 #define HISTOGRAM_INT_CONTROL		0x61268
@@ -562,34 +562,40 @@
 #define HISTOGRAM_INT_CTRL_CLEAR		(1UL << 30)
 #define DPST_YUV_LUMA_MODE			0
 
-struct dpst_ie_histogram_control {
-	union {
+struct dpst_ie_histogram_control
+{
+	union
+	{
 		uint32_t data;
-		struct {
-			uint32_t bin_reg_index:7;
-			uint32_t reserved:4;
-			uint32_t bin_reg_func_select:1;
-			uint32_t sync_to_phase_in:1;
-			uint32_t alt_enhancement_mode:2;
-			uint32_t reserved1:1;
-			uint32_t sync_to_phase_in_count:8;
-			uint32_t histogram_mode_select:1;
-			uint32_t reserved2:4;
-			uint32_t ie_pipe_assignment:1;
-			uint32_t ie_mode_table_enabled:1;
-			uint32_t ie_histogram_enable:1;
+		struct
+		{
+			uint32_t bin_reg_index: 7;
+			uint32_t reserved: 4;
+			uint32_t bin_reg_func_select: 1;
+			uint32_t sync_to_phase_in: 1;
+			uint32_t alt_enhancement_mode: 2;
+			uint32_t reserved1: 1;
+			uint32_t sync_to_phase_in_count: 8;
+			uint32_t histogram_mode_select: 1;
+			uint32_t reserved2: 4;
+			uint32_t ie_pipe_assignment: 1;
+			uint32_t ie_mode_table_enabled: 1;
+			uint32_t ie_histogram_enable: 1;
 		};
 	};
 };
 
-struct dpst_guardband {
-	union {
+struct dpst_guardband
+{
+	union
+	{
 		uint32_t data;
-		struct {
-			uint32_t guardband:22;
-			uint32_t guardband_interrupt_delay:8;
-			uint32_t interrupt_status:1;
-			uint32_t interrupt_enable:1;
+		struct
+		{
+			uint32_t guardband: 22;
+			uint32_t guardband_interrupt_delay: 8;
+			uint32_t interrupt_status: 1;
+			uint32_t interrupt_enable: 1;
 		};
 	};
 };
@@ -607,7 +613,7 @@ struct dpst_guardband {
 #define PIPE_PIXEL_MASK		0x00ffffff
 #define PIPE_PIXEL_SHIFT	0
 
-#define FW_BLC_SELF		0x20e0 
+#define FW_BLC_SELF		0x20e0
 #define FW_BLC_SELF_EN          (1<<15)
 
 #define DSPARB			0x70030
@@ -1224,9 +1230,9 @@ No status bits are changed.
 #define write_display_brightness	0x51
 #define write_ctrl_display		0x53
 #define write_ctrl_cabc			0x55
-  #define UI_IMAGE		0x01
-  #define STILL_IMAGE		0x02
-  #define MOVING_IMAGE		0x03
+#define UI_IMAGE		0x01
+#define STILL_IMAGE		0x02
+#define MOVING_IMAGE		0x03
 #define write_hysteresis		0x57
 #define write_gamma_setting		0x58
 #define write_cabc_min_bright		0x5e
@@ -1270,10 +1276,10 @@ No status bits are changed.
 						 */
 #define BURST_MODE			0x03	/* Burst Mode */
 #define DBI_COMMAND_BUFFER_SIZE		0x240   /* 0x32 */    /* 0x120 */
-						/* Allocate at least
-						 * 0x100 Byte with 32
-						 * byte alignment
-						 */
+/* Allocate at least
+ * 0x100 Byte with 32
+ * byte alignment
+ */
 #define DBI_DATA_BUFFER_SIZE		0x120	/* Allocate at least
 						 * 0x100 Byte with 32
 						 * byte alignment

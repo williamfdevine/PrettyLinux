@@ -1,6 +1,6 @@
 /********************************************************************
  Filename:      via-ircc.c
- Version:       1.0 
+ Version:       1.0
  Description:   Driver for the VIA VT8231/VT8233 IrDA chipsets
  Author:        VIA Technologies,inc
  Date  :	08/06/2003
@@ -29,13 +29,13 @@ F02 Oct/28/02: Add SB device ID for 3147 and 3177.
 2004-02-16: <sda@bdit.de>
 - Removed unneeded 'legacy' pci stuff.
 - Make sure SIR mode is set (hw_init()) before calling mode-dependent stuff.
-- On speed change from core, don't send SIR frame with new speed. 
+- On speed change from core, don't send SIR frame with new speed.
   Use current speed and change speeds later.
 - Make module-param dongle_id actually work.
-- New dongle_id 17 (0x11): TDFS4500. Single-ended SIR only. 
+- New dongle_id 17 (0x11): TDFS4500. Single-ended SIR only.
   Tested with home-grown PCB on EPIA boards.
 - Code cleanup.
-       
+
  ********************************************************************/
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -77,14 +77,14 @@ module_param(dongle_id, int, 0);
 
 /* Some prototypes */
 static int via_ircc_open(struct pci_dev *pdev, chipio_t *info,
-			 unsigned int id);
+						 unsigned int id);
 static int via_ircc_dma_receive(struct via_ircc_cb *self);
 static int via_ircc_dma_receive_complete(struct via_ircc_cb *self,
-					 int iobase);
+		int iobase);
 static netdev_tx_t via_ircc_hard_xmit_sir(struct sk_buff *skb,
-						struct net_device *dev);
+		struct net_device *dev);
 static netdev_tx_t via_ircc_hard_xmit_fir(struct sk_buff *skb,
-						struct net_device *dev);
+		struct net_device *dev);
 static void via_hw_init(struct via_ircc_cb *self);
 static void via_ircc_change_speed(struct via_ircc_cb *self, __u32 baud);
 static irqreturn_t via_ircc_interrupt(int irq, void *dev_id);
@@ -94,9 +94,9 @@ static int via_ircc_read_dongle_id(int iobase);
 static int via_ircc_net_open(struct net_device *dev);
 static int via_ircc_net_close(struct net_device *dev);
 static int via_ircc_net_ioctl(struct net_device *dev, struct ifreq *rq,
-			      int cmd);
+							  int cmd);
 static void via_ircc_change_dongle_speed(int iobase, int speed,
-					 int dongle_id);
+		int dongle_id);
 static int RxTimerHandler(struct via_ircc_cb *self, int iobase);
 static void hwreset(struct via_ircc_cb *self);
 static int via_ircc_dma_xmit(struct via_ircc_cb *self, u16 iobase);
@@ -110,24 +110,27 @@ static void iodelay(int udelay)
 	u8 data;
 	int i;
 
-	for (i = 0; i < udelay; i++) {
+	for (i = 0; i < udelay; i++)
+	{
 		data = inb(0x80);
 	}
 }
 
-static const struct pci_device_id via_pci_tbl[] = {
-	{ PCI_VENDOR_ID_VIA, 0x8231, PCI_ANY_ID, PCI_ANY_ID,0,0,0 },
-	{ PCI_VENDOR_ID_VIA, 0x3109, PCI_ANY_ID, PCI_ANY_ID,0,0,1 },
-	{ PCI_VENDOR_ID_VIA, 0x3074, PCI_ANY_ID, PCI_ANY_ID,0,0,2 },
-	{ PCI_VENDOR_ID_VIA, 0x3147, PCI_ANY_ID, PCI_ANY_ID,0,0,3 },
-	{ PCI_VENDOR_ID_VIA, 0x3177, PCI_ANY_ID, PCI_ANY_ID,0,0,4 },
+static const struct pci_device_id via_pci_tbl[] =
+{
+	{ PCI_VENDOR_ID_VIA, 0x8231, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
+	{ PCI_VENDOR_ID_VIA, 0x3109, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 1 },
+	{ PCI_VENDOR_ID_VIA, 0x3074, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 2 },
+	{ PCI_VENDOR_ID_VIA, 0x3147, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 3 },
+	{ PCI_VENDOR_ID_VIA, 0x3177, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 4 },
 	{ 0, }
 };
 
-MODULE_DEVICE_TABLE(pci,via_pci_tbl);
+MODULE_DEVICE_TABLE(pci, via_pci_tbl);
 
 
-static struct pci_driver via_driver = {
+static struct pci_driver via_driver =
+{
 	.name		= VIA_MODULE_NAME,
 	.id_table	= via_pci_tbl,
 	.probe		= via_init_one,
@@ -145,109 +148,141 @@ static int __init via_ircc_init(void)
 	int rc;
 
 	rc = pci_register_driver(&via_driver);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		pr_debug("%s(): error rc = %d, returning  -ENODEV...\n",
-			 __func__, rc);
+				 __func__, rc);
 		return -ENODEV;
 	}
+
 	return 0;
 }
 
 static int via_init_one(struct pci_dev *pcidev, const struct pci_device_id *id)
 {
 	int rc;
-        u8 temp,oldPCI_40,oldPCI_44,bTmp,bTmp1;
-	u16 Chipset,FirDRQ1,FirDRQ0,FirIRQ,FirIOBase;
+	u8 temp, oldPCI_40, oldPCI_44, bTmp, bTmp1;
+	u16 Chipset, FirDRQ1, FirDRQ0, FirIRQ, FirIOBase;
 	chipio_t info;
 
 	pr_debug("%s(): Device ID=(0X%X)\n", __func__, id->device);
 
 	rc = pci_enable_device (pcidev);
-	if (rc) {
+
+	if (rc)
+	{
 		pr_debug("%s(): error rc = %d\n", __func__, rc);
 		return -ENODEV;
 	}
 
 	// South Bridge exist
-        if ( ReadLPCReg(0x20) != 0x3C )
-		Chipset=0x3096;
+	if ( ReadLPCReg(0x20) != 0x3C )
+	{
+		Chipset = 0x3096;
+	}
 	else
-		Chipset=0x3076;
+	{
+		Chipset = 0x3076;
+	}
 
-	if (Chipset==0x3076) {
+	if (Chipset == 0x3076)
+	{
 		pr_debug("%s(): Chipset = 3076\n", __func__);
 
-		WriteLPCReg(7,0x0c );
-		temp=ReadLPCReg(0x30);//check if BIOS Enable Fir
-		if((temp&0x01)==1) {   // BIOS close or no FIR
+		WriteLPCReg(7, 0x0c );
+		temp = ReadLPCReg(0x30); //check if BIOS Enable Fir
+
+		if ((temp & 0x01) == 1) // BIOS close or no FIR
+		{
 			WriteLPCReg(0x1d, 0x82 );
-			WriteLPCReg(0x23,0x18);
-			temp=ReadLPCReg(0xF0);
-			if((temp&0x01)==0) {
-				temp=(ReadLPCReg(0x74)&0x03);    //DMA
-				FirDRQ0=temp + 4;
-				temp=(ReadLPCReg(0x74)&0x0C) >> 2;
-				FirDRQ1=temp + 4;
-			} else {
-				temp=(ReadLPCReg(0x74)&0x0C) >> 2;    //DMA
-				FirDRQ0=temp + 4;
-				FirDRQ1=FirDRQ0;
+			WriteLPCReg(0x23, 0x18);
+			temp = ReadLPCReg(0xF0);
+
+			if ((temp & 0x01) == 0)
+			{
+				temp = (ReadLPCReg(0x74) & 0x03); //DMA
+				FirDRQ0 = temp + 4;
+				temp = (ReadLPCReg(0x74) & 0x0C) >> 2;
+				FirDRQ1 = temp + 4;
 			}
-			FirIRQ=(ReadLPCReg(0x70)&0x0f);		//IRQ
-			FirIOBase=ReadLPCReg(0x60 ) << 8;	//IO Space :high byte
-			FirIOBase=FirIOBase| ReadLPCReg(0x61) ;	//low byte
-			FirIOBase=FirIOBase  ;
-			info.fir_base=FirIOBase;
-			info.irq=FirIRQ;
-			info.dma=FirDRQ1;
-			info.dma2=FirDRQ0;
-			pci_read_config_byte(pcidev,0x40,&bTmp);
-			pci_write_config_byte(pcidev,0x40,((bTmp | 0x08) & 0xfe));
-			pci_read_config_byte(pcidev,0x42,&bTmp);
-			pci_write_config_byte(pcidev,0x42,(bTmp | 0xf0));
-			pci_write_config_byte(pcidev,0x5a,0xc0);
+			else
+			{
+				temp = (ReadLPCReg(0x74) & 0x0C) >> 2; //DMA
+				FirDRQ0 = temp + 4;
+				FirDRQ1 = FirDRQ0;
+			}
+
+			FirIRQ = (ReadLPCReg(0x70) & 0x0f);		//IRQ
+			FirIOBase = ReadLPCReg(0x60 ) << 8;	//IO Space :high byte
+			FirIOBase = FirIOBase | ReadLPCReg(0x61) ;	//low byte
+			FirIOBase = FirIOBase  ;
+			info.fir_base = FirIOBase;
+			info.irq = FirIRQ;
+			info.dma = FirDRQ1;
+			info.dma2 = FirDRQ0;
+			pci_read_config_byte(pcidev, 0x40, &bTmp);
+			pci_write_config_byte(pcidev, 0x40, ((bTmp | 0x08) & 0xfe));
+			pci_read_config_byte(pcidev, 0x42, &bTmp);
+			pci_write_config_byte(pcidev, 0x42, (bTmp | 0xf0));
+			pci_write_config_byte(pcidev, 0x5a, 0xc0);
 			WriteLPCReg(0x28, 0x70 );
 			rc = via_ircc_open(pcidev, &info, 0x3076);
-		} else
-			rc = -ENODEV; //IR not turn on	 
-	} else { //Not VT1211
+		}
+		else
+		{
+			rc = -ENODEV;    //IR not turn on
+		}
+	}
+	else     //Not VT1211
+	{
 		pr_debug("%s(): Chipset = 3096\n", __func__);
 
-		pci_read_config_byte(pcidev,0x67,&bTmp);//check if BIOS Enable Fir
-		if((bTmp&0x01)==1) {  // BIOS enable FIR
+		pci_read_config_byte(pcidev, 0x67, &bTmp); //check if BIOS Enable Fir
+
+		if ((bTmp & 0x01) == 1) // BIOS enable FIR
+		{
 			//Enable Double DMA clock
-			pci_read_config_byte(pcidev,0x42,&oldPCI_40);
-			pci_write_config_byte(pcidev,0x42,oldPCI_40 | 0x80);
-			pci_read_config_byte(pcidev,0x40,&oldPCI_40);
-			pci_write_config_byte(pcidev,0x40,oldPCI_40 & 0xf7);
-			pci_read_config_byte(pcidev,0x44,&oldPCI_44);
-			pci_write_config_byte(pcidev,0x44,0x4e);
-  //---------- read configuration from Function0 of south bridge
-			if((bTmp&0x02)==0) {
-				pci_read_config_byte(pcidev,0x44,&bTmp1); //DMA
+			pci_read_config_byte(pcidev, 0x42, &oldPCI_40);
+			pci_write_config_byte(pcidev, 0x42, oldPCI_40 | 0x80);
+			pci_read_config_byte(pcidev, 0x40, &oldPCI_40);
+			pci_write_config_byte(pcidev, 0x40, oldPCI_40 & 0xf7);
+			pci_read_config_byte(pcidev, 0x44, &oldPCI_44);
+			pci_write_config_byte(pcidev, 0x44, 0x4e);
+
+			//---------- read configuration from Function0 of south bridge
+			if ((bTmp & 0x02) == 0)
+			{
+				pci_read_config_byte(pcidev, 0x44, &bTmp1); //DMA
 				FirDRQ0 = (bTmp1 & 0x30) >> 4;
-				pci_read_config_byte(pcidev,0x44,&bTmp1);
+				pci_read_config_byte(pcidev, 0x44, &bTmp1);
 				FirDRQ1 = (bTmp1 & 0xc0) >> 6;
-			} else  {
-				pci_read_config_byte(pcidev,0x44,&bTmp1);    //DMA
-				FirDRQ0 = (bTmp1 & 0x30) >> 4 ;
-				FirDRQ1=0;
 			}
-			pci_read_config_byte(pcidev,0x47,&bTmp1);  //IRQ
+			else
+			{
+				pci_read_config_byte(pcidev, 0x44, &bTmp1);  //DMA
+				FirDRQ0 = (bTmp1 & 0x30) >> 4 ;
+				FirDRQ1 = 0;
+			}
+
+			pci_read_config_byte(pcidev, 0x47, &bTmp1); //IRQ
 			FirIRQ = bTmp1 & 0x0f;
 
-			pci_read_config_byte(pcidev,0x69,&bTmp);
+			pci_read_config_byte(pcidev, 0x69, &bTmp);
 			FirIOBase = bTmp << 8;//hight byte
-			pci_read_config_byte(pcidev,0x68,&bTmp);
+			pci_read_config_byte(pcidev, 0x68, &bTmp);
 			FirIOBase = (FirIOBase | bTmp ) & 0xfff0;
-  //-------------------------
-			info.fir_base=FirIOBase;
-			info.irq=FirIRQ;
-			info.dma=FirDRQ1;
-			info.dma2=FirDRQ0;
+			//-------------------------
+			info.fir_base = FirIOBase;
+			info.irq = FirIRQ;
+			info.dma = FirDRQ1;
+			info.dma2 = FirDRQ0;
 			rc = via_ircc_open(pcidev, &info, 0x3096);
-		} else
-			rc = -ENODEV; //IR not turn on !!!!!
+		}
+		else
+		{
+			rc = -ENODEV;    //IR not turn on !!!!!
+		}
 	}//Not VT1211
 
 	pr_debug("%s(): End - rc = %d\n", __func__, rc);
@@ -257,16 +292,18 @@ static int via_init_one(struct pci_dev *pcidev, const struct pci_device_id *id)
 static void __exit via_ircc_cleanup(void)
 {
 	/* Cleanup all instances of the driver */
-	pci_unregister_driver (&via_driver); 
+	pci_unregister_driver (&via_driver);
 }
 
-static const struct net_device_ops via_ircc_sir_ops = {
+static const struct net_device_ops via_ircc_sir_ops =
+{
 	.ndo_start_xmit = via_ircc_hard_xmit_sir,
 	.ndo_open = via_ircc_net_open,
 	.ndo_stop = via_ircc_net_close,
 	.ndo_do_ioctl = via_ircc_net_ioctl,
 };
-static const struct net_device_ops via_ircc_fir_ops = {
+static const struct net_device_ops via_ircc_fir_ops =
+{
 	.ndo_start_xmit = via_ircc_hard_xmit_fir,
 	.ndo_open = via_ircc_net_open,
 	.ndo_stop = via_ircc_net_close,
@@ -287,8 +324,11 @@ static int via_ircc_open(struct pci_dev *pdev, chipio_t *info, unsigned int id)
 
 	/* Allocate new instance of the driver */
 	dev = alloc_irdadev(sizeof(struct via_ircc_cb));
-	if (dev == NULL) 
+
+	if (dev == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	self = netdev_priv(dev);
 	self->netdev = dev;
@@ -309,33 +349,39 @@ static int via_ircc_open(struct pci_dev *pdev, chipio_t *info, unsigned int id)
 	self->RxDataReady = 0;
 
 	/* Reserve the ioports that we need */
-	if (!request_region(self->io.fir_base, self->io.fir_ext, driver_name)) {
+	if (!request_region(self->io.fir_base, self->io.fir_ext, driver_name))
+	{
 		pr_debug("%s(), can't get iobase of 0x%03x\n",
-			 __func__, self->io.fir_base);
+				 __func__, self->io.fir_base);
 		err = -ENODEV;
 		goto err_out1;
 	}
-	
+
 	/* Initialize QoS for this device */
 	irda_init_max_qos_capabilies(&self->qos);
 
 	/* Check if user has supplied the dongle id or not */
 	if (!dongle_id)
+	{
 		dongle_id = via_ircc_read_dongle_id(self->io.fir_base);
+	}
+
 	self->io.dongle_id = dongle_id;
 
 	/* The only value we must override it the baudrate */
 	/* Maximum speeds and capabilities are dongle-dependent. */
-	switch( self->io.dongle_id ){
-	case 0x0d:
-		self->qos.baud_rate.bits =
-		    IR_9600 | IR_19200 | IR_38400 | IR_57600 | IR_115200 |
-		    IR_576000 | IR_1152000 | (IR_4000000 << 8);
-		break;
-	default:
-		self->qos.baud_rate.bits =
-		    IR_9600 | IR_19200 | IR_38400 | IR_57600 | IR_115200;
-		break;
+	switch ( self->io.dongle_id )
+	{
+		case 0x0d:
+			self->qos.baud_rate.bits =
+				IR_9600 | IR_19200 | IR_38400 | IR_57600 | IR_115200 |
+				IR_576000 | IR_1152000 | (IR_4000000 << 8);
+			break;
+
+		default:
+			self->qos.baud_rate.bits =
+				IR_9600 | IR_19200 | IR_38400 | IR_57600 | IR_115200;
+			break;
 	}
 
 	/* Following was used for testing:
@@ -355,16 +401,20 @@ static int via_ircc_open(struct pci_dev *pdev, chipio_t *info, unsigned int id)
 	/* Allocate memory if needed */
 	self->rx_buff.head =
 		dma_zalloc_coherent(&pdev->dev, self->rx_buff.truesize,
-				    &self->rx_buff_dma, GFP_KERNEL);
-	if (self->rx_buff.head == NULL) {
+							&self->rx_buff_dma, GFP_KERNEL);
+
+	if (self->rx_buff.head == NULL)
+	{
 		err = -ENOMEM;
 		goto err_out2;
 	}
 
 	self->tx_buff.head =
 		dma_zalloc_coherent(&pdev->dev, self->tx_buff.truesize,
-				    &self->tx_buff_dma, GFP_KERNEL);
-	if (self->tx_buff.head == NULL) {
+							&self->tx_buff_dma, GFP_KERNEL);
+
+	if (self->tx_buff.head == NULL)
+	{
 		err = -ENOMEM;
 		goto err_out3;
 	}
@@ -382,26 +432,29 @@ static int via_ircc_open(struct pci_dev *pdev, chipio_t *info, unsigned int id)
 	dev->netdev_ops = &via_ircc_sir_ops;
 
 	err = register_netdev(dev);
+
 	if (err)
+	{
 		goto err_out4;
+	}
 
 	net_info_ratelimited("IrDA: Registered device %s (via-ircc)\n",
-			     dev->name);
+						 dev->name);
 
 	/* Initialise the hardware..
 	*/
 	self->io.speed = 9600;
 	via_hw_init(self);
 	return 0;
- err_out4:
+err_out4:
 	dma_free_coherent(&pdev->dev, self->tx_buff.truesize,
-			  self->tx_buff.head, self->tx_buff_dma);
- err_out3:
+					  self->tx_buff.head, self->tx_buff_dma);
+err_out3:
 	dma_free_coherent(&pdev->dev, self->rx_buff.truesize,
-			  self->rx_buff.head, self->rx_buff_dma);
- err_out2:
+					  self->rx_buff.head, self->rx_buff_dma);
+err_out2:
 	release_region(self->io.fir_base, self->io.fir_ext);
- err_out1:
+err_out1:
 	free_netdev(dev);
 	return err;
 }
@@ -425,14 +478,16 @@ static void via_remove_one(struct pci_dev *pdev)
 
 	/* Release the PORT that this driver is using */
 	pr_debug("%s(), Releasing Region %03x\n",
-		 __func__, self->io.fir_base);
+			 __func__, self->io.fir_base);
 	release_region(self->io.fir_base, self->io.fir_ext);
+
 	if (self->tx_buff.head)
 		dma_free_coherent(&pdev->dev, self->tx_buff.truesize,
-				  self->tx_buff.head, self->tx_buff_dma);
+						  self->tx_buff.head, self->tx_buff_dma);
+
 	if (self->rx_buff.head)
 		dma_free_coherent(&pdev->dev, self->rx_buff.truesize,
-				  self->rx_buff.head, self->rx_buff_dma);
+						  self->rx_buff.head, self->rx_buff_dma);
 
 	free_netdev(self->netdev);
 
@@ -444,7 +499,7 @@ static void via_remove_one(struct pci_dev *pdev)
  *
  *    Returns non-negative on success.
  *
- * Formerly via_ircc_setup 
+ * Formerly via_ircc_setup
  */
 static void via_hw_init(struct via_ircc_cb *self)
 {
@@ -461,7 +516,10 @@ static void via_hw_init(struct via_ircc_cb *self)
 	InvertRX(iobase, OFF);
 
 	if (ReadLPCReg(0x20) == 0x3c)
-		WriteLPCReg(0xF0, 0);	// for VT1211
+	{
+		WriteLPCReg(0xF0, 0);    // for VT1211
+	}
+
 	/* Int Init */
 	EnRXSpecInt(iobase, ON);
 
@@ -490,7 +548,7 @@ static void via_hw_init(struct via_ircc_cb *self)
 	self->st_fifo.len = 0;
 
 	via_ircc_change_dongle_speed(iobase, self->io.speed,
-				     self->io.dongle_id);
+								 self->io.dongle_id);
 
 	WriteReg(iobase, I_ST_CT_0, 0x80);
 }
@@ -511,7 +569,7 @@ static int via_ircc_read_dongle_id(int iobase)
  *    only implement two type of dongle currently.
  */
 static void via_ircc_change_dongle_speed(int iobase, int speed,
-					 int dongle_id)
+		int dongle_id)
 {
 	u8 mode = 0;
 
@@ -519,134 +577,169 @@ static void via_ircc_change_dongle_speed(int iobase, int speed,
 	speed = speed;
 
 	pr_debug("%s(): change_dongle_speed to %d for 0x%x, %d\n",
-		 __func__, speed, iobase, dongle_id);
+			 __func__, speed, iobase, dongle_id);
 
-	switch (dongle_id) {
+	switch (dongle_id)
+	{
 
 		/* Note: The dongle_id's listed here are derived from
-		 * nsc-ircc.c */ 
+		 * nsc-ircc.c */
 
-	case 0x08:		/* HP HSDL-2300, HP HSDL-3600/HSDL-3610 */
-		UseOneRX(iobase, ON);	// use one RX pin   RX1,RX2
-		InvertTX(iobase, OFF);
-		InvertRX(iobase, OFF);
+		case 0x08:		/* HP HSDL-2300, HP HSDL-3600/HSDL-3610 */
+			UseOneRX(iobase, ON);	// use one RX pin   RX1,RX2
+			InvertTX(iobase, OFF);
+			InvertRX(iobase, OFF);
 
-		EnRX2(iobase, ON);	//sir to rx2
-		EnGPIOtoRX2(iobase, OFF);
+			EnRX2(iobase, ON);	//sir to rx2
+			EnGPIOtoRX2(iobase, OFF);
 
-		if (IsSIROn(iobase)) {	//sir
-			// Mode select Off
-			SlowIRRXLowActive(iobase, ON);
-			udelay(1000);
-			SlowIRRXLowActive(iobase, OFF);
-		} else {
-			if (IsMIROn(iobase)) {	//mir
-				// Mode select On
+			if (IsSIROn(iobase))  	//sir
+			{
+				// Mode select Off
+				SlowIRRXLowActive(iobase, ON);
+				udelay(1000);
 				SlowIRRXLowActive(iobase, OFF);
-				udelay(20);
-			} else {	// fir
-				if (IsFIROn(iobase)) {	//fir
+			}
+			else
+			{
+				if (IsMIROn(iobase))  	//mir
+				{
 					// Mode select On
 					SlowIRRXLowActive(iobase, OFF);
 					udelay(20);
 				}
+				else  	// fir
+				{
+					if (IsFIROn(iobase))  	//fir
+					{
+						// Mode select On
+						SlowIRRXLowActive(iobase, OFF);
+						udelay(20);
+					}
+				}
 			}
-		}
-		break;
 
-	case 0x09:		/* IBM31T1100 or Temic TFDS6000/TFDS6500 */
-		UseOneRX(iobase, ON);	//use ONE RX....RX1
-		InvertTX(iobase, OFF);
-		InvertRX(iobase, OFF);	// invert RX pin
+			break;
 
-		EnRX2(iobase, ON);
-		EnGPIOtoRX2(iobase, OFF);
-		if (IsSIROn(iobase)) {	//sir
-			// Mode select On
-			SlowIRRXLowActive(iobase, ON);
-			udelay(20);
-			// Mode select Off
-			SlowIRRXLowActive(iobase, OFF);
-		}
-		if (IsMIROn(iobase)) {	//mir
-			// Mode select On
-			SlowIRRXLowActive(iobase, OFF);
-			udelay(20);
-			// Mode select Off
-			SlowIRRXLowActive(iobase, ON);
-		} else {	// fir
-			if (IsFIROn(iobase)) {	//fir
+		case 0x09:		/* IBM31T1100 or Temic TFDS6000/TFDS6500 */
+			UseOneRX(iobase, ON);	//use ONE RX....RX1
+			InvertTX(iobase, OFF);
+			InvertRX(iobase, OFF);	// invert RX pin
+
+			EnRX2(iobase, ON);
+			EnGPIOtoRX2(iobase, OFF);
+
+			if (IsSIROn(iobase))  	//sir
+			{
 				// Mode select On
-				SlowIRRXLowActive(iobase, OFF);
-				// TX On
-				WriteTX(iobase, ON);
-				udelay(20);
-				// Mode select OFF
 				SlowIRRXLowActive(iobase, ON);
 				udelay(20);
-				// TX Off
-				WriteTX(iobase, OFF);
+				// Mode select Off
+				SlowIRRXLowActive(iobase, OFF);
 			}
-		}
-		break;
 
-	case 0x0d:
-		UseOneRX(iobase, OFF);	// use two RX pin   RX1,RX2
-		InvertTX(iobase, OFF);
-		InvertRX(iobase, OFF);
-		SlowIRRXLowActive(iobase, OFF);
-		if (IsSIROn(iobase)) {	//sir
-			EnGPIOtoRX2(iobase, OFF);
-			WriteGIO(iobase, OFF);
-			EnRX2(iobase, OFF);	//sir to rx2
-		} else {	// fir mir
-			EnGPIOtoRX2(iobase, OFF);
-			WriteGIO(iobase, OFF);
-			EnRX2(iobase, OFF);	//fir to rx
-		}
-		break;
+			if (IsMIROn(iobase))  	//mir
+			{
+				// Mode select On
+				SlowIRRXLowActive(iobase, OFF);
+				udelay(20);
+				// Mode select Off
+				SlowIRRXLowActive(iobase, ON);
+			}
+			else  	// fir
+			{
+				if (IsFIROn(iobase))  	//fir
+				{
+					// Mode select On
+					SlowIRRXLowActive(iobase, OFF);
+					// TX On
+					WriteTX(iobase, ON);
+					udelay(20);
+					// Mode select OFF
+					SlowIRRXLowActive(iobase, ON);
+					udelay(20);
+					// TX Off
+					WriteTX(iobase, OFF);
+				}
+			}
 
-	case 0x11:		/* Temic TFDS4500 */
+			break;
 
-		pr_debug("%s: Temic TFDS4500: One RX pin, TX normal, RX inverted\n",
-			 __func__);
-
-		UseOneRX(iobase, ON);	//use ONE RX....RX1
-		InvertTX(iobase, OFF);
-		InvertRX(iobase, ON);	// invert RX pin
-	
-		EnRX2(iobase, ON);	//sir to rx2
-		EnGPIOtoRX2(iobase, OFF);
-
-		if( IsSIROn(iobase) ){	//sir
-
-			// Mode select On
-			SlowIRRXLowActive(iobase, ON);
-			udelay(20);
-			// Mode select Off
+		case 0x0d:
+			UseOneRX(iobase, OFF);	// use two RX pin   RX1,RX2
+			InvertTX(iobase, OFF);
+			InvertRX(iobase, OFF);
 			SlowIRRXLowActive(iobase, OFF);
 
-		} else{
-			pr_debug("%s: Warning: TFDS4500 not running in SIR mode !\n",
-				 __func__);
-		}
-		break;
+			if (IsSIROn(iobase))  	//sir
+			{
+				EnGPIOtoRX2(iobase, OFF);
+				WriteGIO(iobase, OFF);
+				EnRX2(iobase, OFF);	//sir to rx2
+			}
+			else  	// fir mir
+			{
+				EnGPIOtoRX2(iobase, OFF);
+				WriteGIO(iobase, OFF);
+				EnRX2(iobase, OFF);	//fir to rx
+			}
 
-	case 0x0ff:		/* Vishay */
-		if (IsSIROn(iobase))
-			mode = 0;
-		else if (IsMIROn(iobase))
-			mode = 1;
-		else if (IsFIROn(iobase))
-			mode = 2;
-		else if (IsVFIROn(iobase))
-			mode = 5;	//VFIR-16
-		SI_SetMode(iobase, mode);
-		break;
+			break;
 
-	default:
-		net_err_ratelimited("%s: Error: dongle_id %d unsupported !\n",
-				    __func__, dongle_id);
+		case 0x11:		/* Temic TFDS4500 */
+
+			pr_debug("%s: Temic TFDS4500: One RX pin, TX normal, RX inverted\n",
+					 __func__);
+
+			UseOneRX(iobase, ON);	//use ONE RX....RX1
+			InvertTX(iobase, OFF);
+			InvertRX(iobase, ON);	// invert RX pin
+
+			EnRX2(iobase, ON);	//sir to rx2
+			EnGPIOtoRX2(iobase, OFF);
+
+			if ( IsSIROn(iobase) ) 	//sir
+			{
+
+				// Mode select On
+				SlowIRRXLowActive(iobase, ON);
+				udelay(20);
+				// Mode select Off
+				SlowIRRXLowActive(iobase, OFF);
+
+			}
+			else
+			{
+				pr_debug("%s: Warning: TFDS4500 not running in SIR mode !\n",
+						 __func__);
+			}
+
+			break;
+
+		case 0x0ff:		/* Vishay */
+			if (IsSIROn(iobase))
+			{
+				mode = 0;
+			}
+			else if (IsMIROn(iobase))
+			{
+				mode = 1;
+			}
+			else if (IsFIROn(iobase))
+			{
+				mode = 2;
+			}
+			else if (IsVFIROn(iobase))
+			{
+				mode = 5;    //VFIR-16
+			}
+
+			SI_SetMode(iobase, mode);
+			break;
+
+		default:
+			net_err_ratelimited("%s: Error: dongle_id %d unsupported !\n",
+								__func__, dongle_id);
 	}
 }
 
@@ -670,45 +763,51 @@ static void via_ircc_change_speed(struct via_ircc_cb *self, __u32 speed)
 	WriteReg(iobase, I_ST_CT_0, 0x0);
 
 	/* Controller mode sellection */
-	switch (speed) {
-	case 2400:
-	case 9600:
-	case 19200:
-	case 38400:
-	case 57600:
-	case 115200:
-		value = (115200/speed)-1;
-		SetSIR(iobase, ON);
-		CRC16(iobase, ON);
-		break;
-	case 576000:
-		/* FIXME: this can't be right, as it's the same as 115200,
-		 * and 576000 is MIR, not SIR. */
-		value = 0;
-		SetSIR(iobase, ON);
-		CRC16(iobase, ON);
-		break;
-	case 1152000:
-		value = 0;
-		SetMIR(iobase, ON);
-		/* FIXME: CRC ??? */
-		break;
-	case 4000000:
-		value = 0;
-		SetFIR(iobase, ON);
-		SetPulseWidth(iobase, 0);
-		SetSendPreambleCount(iobase, 14);
-		CRC16(iobase, OFF);
-		EnTXCRC(iobase, ON);
-		break;
-	case 16000000:
-		value = 0;
-		SetVFIR(iobase, ON);
-		/* FIXME: CRC ??? */
-		break;
-	default:
-		value = 0;
-		break;
+	switch (speed)
+	{
+		case 2400:
+		case 9600:
+		case 19200:
+		case 38400:
+		case 57600:
+		case 115200:
+			value = (115200 / speed) - 1;
+			SetSIR(iobase, ON);
+			CRC16(iobase, ON);
+			break;
+
+		case 576000:
+			/* FIXME: this can't be right, as it's the same as 115200,
+			 * and 576000 is MIR, not SIR. */
+			value = 0;
+			SetSIR(iobase, ON);
+			CRC16(iobase, ON);
+			break;
+
+		case 1152000:
+			value = 0;
+			SetMIR(iobase, ON);
+			/* FIXME: CRC ??? */
+			break;
+
+		case 4000000:
+			value = 0;
+			SetFIR(iobase, ON);
+			SetPulseWidth(iobase, 0);
+			SetSendPreambleCount(iobase, 14);
+			CRC16(iobase, OFF);
+			EnTXCRC(iobase, ON);
+			break;
+
+		case 16000000:
+			value = 0;
+			SetVFIR(iobase, ON);
+			/* FIXME: CRC ??? */
+			break;
+
+		default:
+			value = 0;
+			break;
 	}
 
 	/* Set baudrate to 0x19[2..7] */
@@ -730,22 +829,29 @@ static void via_ircc_change_speed(struct via_ircc_cb *self, __u32 speed)
 	/* Enable some interrupts so we can receive frames */
 	//EnAllInt(iobase,ON);
 
-	if (IsSIROn(iobase)) {
+	if (IsSIROn(iobase))
+	{
 		SIRFilter(iobase, ON);
 		SIRRecvAny(iobase, ON);
-	} else {
+	}
+	else
+	{
 		SIRFilter(iobase, OFF);
 		SIRRecvAny(iobase, OFF);
 	}
 
-	if (speed > 115200) {
+	if (speed > 115200)
+	{
 		/* Install FIR xmit handler */
 		dev->netdev_ops = &via_ircc_fir_ops;
 		via_ircc_dma_receive(self);
-	} else {
+	}
+	else
+	{
 		/* Install SIR xmit handler */
 		dev->netdev_ops = &via_ircc_sir_ops;
 	}
+
 	netif_wake_queue(dev);
 }
 
@@ -756,7 +862,7 @@ static void via_ircc_change_speed(struct via_ircc_cb *self, __u32 speed)
  *
  */
 static netdev_tx_t via_ircc_hard_xmit_sir(struct sk_buff *skb,
-						struct net_device *dev)
+		struct net_device *dev)
 {
 	struct via_ircc_cb *self;
 	unsigned long flags;
@@ -770,16 +876,23 @@ static netdev_tx_t via_ircc_hard_xmit_sir(struct sk_buff *skb,
 	netif_stop_queue(dev);
 	/* Check if we need to change the speed */
 	speed = irda_get_next_speed(skb);
-	if ((speed != self->io.speed) && (speed != -1)) {
+
+	if ((speed != self->io.speed) && (speed != -1))
+	{
 		/* Check for empty frame */
-		if (!skb->len) {
+		if (!skb->len)
+		{
 			via_ircc_change_speed(self, speed);
 			netif_trans_update(dev);
 			dev_kfree_skb(skb);
 			return NETDEV_TX_OK;
-		} else
+		}
+		else
+		{
 			self->new_speed = speed;
+		}
 	}
+
 	InitCard(iobase);
 	CommonInit(iobase);
 	SIRFilter(iobase, ON);
@@ -791,8 +904,8 @@ static netdev_tx_t via_ircc_hard_xmit_sir(struct sk_buff *skb,
 	spin_lock_irqsave(&self->lock, flags);
 	self->tx_buff.data = self->tx_buff.head;
 	self->tx_buff.len =
-	    async_wrap_skb(skb, self->tx_buff.data,
-			   self->tx_buff.truesize);
+		async_wrap_skb(skb, self->tx_buff.data,
+					   self->tx_buff.truesize);
 
 	dev->stats.tx_bytes += self->tx_buff.len;
 	/* Send this frame with old speed */
@@ -815,7 +928,7 @@ static netdev_tx_t via_ircc_hard_xmit_sir(struct sk_buff *skb,
 	EnRXDMA(iobase, OFF);
 
 	irda_setup_dma(self->io.dma, self->tx_buff_dma, self->tx_buff.len,
-		       DMA_TX_MODE);
+				   DMA_TX_MODE);
 
 	SetSendByte(iobase, self->tx_buff.len);
 	RXStart(iobase, OFF);
@@ -828,7 +941,7 @@ static netdev_tx_t via_ircc_hard_xmit_sir(struct sk_buff *skb,
 }
 
 static netdev_tx_t via_ircc_hard_xmit_fir(struct sk_buff *skb,
-						struct net_device *dev)
+		struct net_device *dev)
 {
 	struct via_ircc_cb *self;
 	u16 iobase;
@@ -839,22 +952,37 @@ static netdev_tx_t via_ircc_hard_xmit_fir(struct sk_buff *skb,
 	iobase = self->io.fir_base;
 
 	if (self->st_fifo.len)
+	{
 		return NETDEV_TX_OK;
+	}
+
 	if (self->chip_id == 0x3076)
+	{
 		iodelay(1500);
+	}
 	else
+	{
 		udelay(1500);
+	}
+
 	netif_stop_queue(dev);
 	speed = irda_get_next_speed(skb);
-	if ((speed != self->io.speed) && (speed != -1)) {
-		if (!skb->len) {
+
+	if ((speed != self->io.speed) && (speed != -1))
+	{
+		if (!skb->len)
+		{
 			via_ircc_change_speed(self, speed);
 			netif_trans_update(dev);
 			dev_kfree_skb(skb);
 			return NETDEV_TX_OK;
-		} else
+		}
+		else
+		{
 			self->new_speed = speed;
+		}
 	}
+
 	spin_lock_irqsave(&self->lock, flags);
 	self->tx_fifo.queue[self->tx_fifo.free].start = self->tx_fifo.tail;
 	self->tx_fifo.queue[self->tx_fifo.free].len = skb->len;
@@ -862,13 +990,13 @@ static netdev_tx_t via_ircc_hard_xmit_fir(struct sk_buff *skb,
 	self->tx_fifo.tail += skb->len;
 	dev->stats.tx_bytes += skb->len;
 	skb_copy_from_linear_data(skb,
-		      self->tx_fifo.queue[self->tx_fifo.free].start, skb->len);
+							  self->tx_fifo.queue[self->tx_fifo.free].start, skb->len);
 	self->tx_fifo.len++;
 	self->tx_fifo.free++;
-//F01   if (self->tx_fifo.len == 1) {
+	//F01   if (self->tx_fifo.len == 1) {
 	via_ircc_dma_xmit(self, iobase);
-//F01   }
-//F01   if (self->tx_fifo.free < (MAX_TX_WINDOW -1 )) netif_wake_queue(self->netdev);
+	//F01   }
+	//F01   if (self->tx_fifo.free < (MAX_TX_WINDOW -1 )) netif_wake_queue(self->netdev);
 	netif_trans_update(dev);
 	dev_kfree_skb(skb);
 	spin_unlock_irqrestore(&self->lock, flags);
@@ -892,13 +1020,13 @@ static int via_ircc_dma_xmit(struct via_ircc_cb *self, u16 iobase)
 	EnTXDMA(iobase, ON);
 	EnRXDMA(iobase, OFF);
 	irda_setup_dma(self->io.dma,
-		       ((u8 *)self->tx_fifo.queue[self->tx_fifo.ptr].start -
-			self->tx_buff.head) + self->tx_buff_dma,
-		       self->tx_fifo.queue[self->tx_fifo.ptr].len, DMA_TX_MODE);
+				   ((u8 *)self->tx_fifo.queue[self->tx_fifo.ptr].start -
+					self->tx_buff.head) + self->tx_buff_dma,
+				   self->tx_fifo.queue[self->tx_fifo.ptr].len, DMA_TX_MODE);
 	pr_debug("%s: tx_fifo.ptr=%x,len=%x,tx_fifo.len=%x..\n",
-		 __func__, self->tx_fifo.ptr,
-		 self->tx_fifo.queue[self->tx_fifo.ptr].len,
-		 self->tx_fifo.len);
+			 __func__, self->tx_fifo.ptr,
+			 self->tx_fifo.queue[self->tx_fifo.ptr].len,
+			 self->tx_fifo.len);
 
 	SetSendByte(iobase, self->tx_fifo.queue[self->tx_fifo.ptr].len);
 	RXStart(iobase, OFF);
@@ -910,7 +1038,7 @@ static int via_ircc_dma_xmit(struct via_ircc_cb *self, u16 iobase)
 /*
  * Function via_ircc_dma_xmit_complete (self)
  *
- *    The transfer of a frame in finished. This function will only be called 
+ *    The transfer of a frame in finished. This function will only be called
  *    by the interrupt handler
  *
  */
@@ -921,55 +1049,64 @@ static int via_ircc_dma_xmit_complete(struct via_ircc_cb *self)
 
 	iobase = self->io.fir_base;
 	/* Disable DMA */
-//      DisableDmaChannel(self->io.dma);
+	//      DisableDmaChannel(self->io.dma);
 	/* Check for underrun! */
 	/* Clear bit, by writing 1 into it */
 	Tx_status = GetTXStatus(iobase);
-	if (Tx_status & 0x08) {
+
+	if (Tx_status & 0x08)
+	{
 		self->netdev->stats.tx_errors++;
 		self->netdev->stats.tx_fifo_errors++;
 		hwreset(self);
-	/* how to clear underrun? */
-	} else {
+		/* how to clear underrun? */
+	}
+	else
+	{
 		self->netdev->stats.tx_packets++;
 		ResetChip(iobase, 3);
 		ResetChip(iobase, 4);
 	}
+
 	/* Check if we need to change the speed */
-	if (self->new_speed) {
+	if (self->new_speed)
+	{
 		via_ircc_change_speed(self, self->new_speed);
 		self->new_speed = 0;
 	}
 
 	/* Finished with this frame, so prepare for next */
-	if (IsFIROn(iobase)) {
-		if (self->tx_fifo.len) {
+	if (IsFIROn(iobase))
+	{
+		if (self->tx_fifo.len)
+		{
 			self->tx_fifo.len--;
 			self->tx_fifo.ptr++;
 		}
 	}
+
 	pr_debug("%s: tx_fifo.len=%x ,tx_fifo.ptr=%x,tx_fifo.free=%x...\n",
-		 __func__,
-		 self->tx_fifo.len, self->tx_fifo.ptr, self->tx_fifo.free);
-/* F01_S
-	// Any frames to be sent back-to-back? 
-	if (self->tx_fifo.len) {
-		// Not finished yet! 
-	  	via_ircc_dma_xmit(self, iobase);
-		ret = FALSE;
-	} else { 
-F01_E*/
-	// Reset Tx FIFO info 
+			 __func__,
+			 self->tx_fifo.len, self->tx_fifo.ptr, self->tx_fifo.free);
+	/* F01_S
+		// Any frames to be sent back-to-back?
+		if (self->tx_fifo.len) {
+			// Not finished yet!
+		  	via_ircc_dma_xmit(self, iobase);
+			ret = FALSE;
+		} else {
+	F01_E*/
+	// Reset Tx FIFO info
 	self->tx_fifo.len = self->tx_fifo.ptr = self->tx_fifo.free = 0;
 	self->tx_fifo.tail = self->tx_buff.head;
-//F01   }
+	//F01   }
 
-	// Make sure we have room for more frames 
-//F01   if (self->tx_fifo.free < (MAX_TX_WINDOW -1 )) {
-	// Not busy transmitting anymore 
-	// Tell the network layer, that we can accept more frames 
+	// Make sure we have room for more frames
+	//F01   if (self->tx_fifo.free < (MAX_TX_WINDOW -1 )) {
+	// Not busy transmitting anymore
+	// Tell the network layer, that we can accept more frames
 	netif_wake_queue(self->netdev);
-//F01   }
+	//F01   }
 	return TRUE;
 }
 
@@ -1007,7 +1144,7 @@ static int via_ircc_dma_receive(struct via_ircc_cb *self)
 	EnTXDMA(iobase, OFF);
 	EnRXDMA(iobase, ON);
 	irda_setup_dma(self->io.dma2, self->rx_buff_dma,
-		  self->rx_buff.truesize, DMA_RX_MODE);
+				   self->rx_buff.truesize, DMA_RX_MODE);
 	TXStart(iobase, OFF);
 	RXStart(iobase, ON);
 
@@ -1019,10 +1156,10 @@ static int via_ircc_dma_receive(struct via_ircc_cb *self)
  *
  *    Controller Finished with receiving frames,
  *    and this routine is call by ISR
- *    
+ *
  */
 static int via_ircc_dma_receive_complete(struct via_ircc_cb *self,
-					 int iobase)
+		int iobase)
 {
 	struct st_fifo *st_fifo;
 	struct sk_buff *skb;
@@ -1032,25 +1169,38 @@ static int via_ircc_dma_receive_complete(struct via_ircc_cb *self,
 	iobase = self->io.fir_base;
 	st_fifo = &self->st_fifo;
 
-	if (self->io.speed < 4000000) {	//Speed below FIR
+	if (self->io.speed < 4000000)  	//Speed below FIR
+	{
 		len = GetRecvByte(iobase, self);
 		skb = dev_alloc_skb(len + 1);
+
 		if (skb == NULL)
+		{
 			return FALSE;
-		// Make sure IP header gets aligned 
+		}
+
+		// Make sure IP header gets aligned
 		skb_reserve(skb, 1);
 		skb_put(skb, len - 2);
-		if (self->chip_id == 0x3076) {
+
+		if (self->chip_id == 0x3076)
+		{
 			for (i = 0; i < len - 2; i++)
+			{
 				skb->data[i] = self->rx_buff.data[i * 2];
-		} else {
-			if (self->chip_id == 0x3096) {
-				for (i = 0; i < len - 2; i++)
-					skb->data[i] =
-					    self->rx_buff.data[i];
 			}
 		}
-		// Move to next frame 
+		else
+		{
+			if (self->chip_id == 0x3096)
+			{
+				for (i = 0; i < len - 2; i++)
+					skb->data[i] =
+						self->rx_buff.data[i];
+			}
+		}
+
+		// Move to next frame
 		self->rx_buff.data += len;
 		self->netdev->stats.rx_bytes += len;
 		self->netdev->stats.rx_packets++;
@@ -1061,70 +1211,88 @@ static int via_ircc_dma_receive_complete(struct via_ircc_cb *self,
 		return TRUE;
 	}
 
-	else {			//FIR mode
+	else  			//FIR mode
+	{
 		len = GetRecvByte(iobase, self);
+
 		if (len == 0)
-			return TRUE;	//interrupt only, data maybe move by RxT  
-		if (((len - 4) < 2) || ((len - 4) > 2048)) {
+		{
+			return TRUE;    //interrupt only, data maybe move by RxT
+		}
+
+		if (((len - 4) < 2) || ((len - 4) > 2048))
+		{
 			pr_debug("%s(): Trouble:len=%x,CurCount=%x,LastCount=%x\n",
-				 __func__, len, RxCurCount(iobase, self),
-				 self->RxLastCount);
+					 __func__, len, RxCurCount(iobase, self),
+					 self->RxLastCount);
 			hwreset(self);
 			return FALSE;
 		}
+
 		pr_debug("%s(): fifo.len=%x,len=%x,CurCount=%x..\n",
-			 __func__,
-			 st_fifo->len, len - 4, RxCurCount(iobase, self));
+				 __func__,
+				 st_fifo->len, len - 4, RxCurCount(iobase, self));
 
 		st_fifo->entries[st_fifo->tail].status = status;
 		st_fifo->entries[st_fifo->tail].len = len;
 		st_fifo->pending_bytes += len;
 		st_fifo->tail++;
 		st_fifo->len++;
+
 		if (st_fifo->tail > MAX_RX_WINDOW)
+		{
 			st_fifo->tail = 0;
+		}
+
 		self->RxDataReady = 0;
 
 		// It maybe have MAX_RX_WINDOW package receive by
 		// receive_complete before Timer IRQ
-/* F01_S
-          if (st_fifo->len < (MAX_RX_WINDOW+2 )) { 
-		  RXStart(iobase,ON);
-	  	  SetTimer(iobase,4);
-	  }
-	  else	  { 
-F01_E */
+		/* F01_S
+		          if (st_fifo->len < (MAX_RX_WINDOW+2 )) {
+				  RXStart(iobase,ON);
+			  	  SetTimer(iobase,4);
+			  }
+			  else	  {
+		F01_E */
 		EnableRX(iobase, OFF);
 		EnRXDMA(iobase, OFF);
 		RXStart(iobase, OFF);
-//F01_S
-		// Put this entry back in fifo 
+
+		//F01_S
+		// Put this entry back in fifo
 		if (st_fifo->head > MAX_RX_WINDOW)
+		{
 			st_fifo->head = 0;
+		}
+
 		status = st_fifo->entries[st_fifo->head].status;
 		len = st_fifo->entries[st_fifo->head].len;
 		st_fifo->head++;
 		st_fifo->len--;
 
 		skb = dev_alloc_skb(len + 1 - 4);
+
 		/*
 		 * if frame size, data ptr, or skb ptr are wrong, then get next
 		 * entry.
 		 */
 		if ((skb == NULL) || (skb->data == NULL) ||
-		    (self->rx_buff.data == NULL) || (len < 6)) {
+			(self->rx_buff.data == NULL) || (len < 6))
+		{
 			self->netdev->stats.rx_dropped++;
 			kfree_skb(skb);
 			return TRUE;
 		}
+
 		skb_reserve(skb, 1);
 		skb_put(skb, len - 4);
 
 		skb_copy_to_linear_data(skb, self->rx_buff.data, len - 4);
 		pr_debug("%s(): len=%x.rx_buff=%p\n", __func__,
-			 len - 4, self->rx_buff.data);
+				 len - 4, self->rx_buff.data);
 
-		// Move to next frame 
+		// Move to next frame
 		self->rx_buff.data += len;
 		self->netdev->stats.rx_bytes += len;
 		self->netdev->stats.rx_packets++;
@@ -1133,8 +1301,9 @@ F01_E */
 		skb->protocol = htons(ETH_P_IRDA);
 		netif_rx(skb);
 
-//F01_E
+		//F01_E
 	}			//FIR
+
 	return TRUE;
 
 }
@@ -1153,24 +1322,32 @@ static int upload_rxdata(struct via_ircc_cb *self, int iobase)
 
 	pr_debug("%s(): len=%x\n", __func__, len);
 
-	if ((len - 4) < 2) {
+	if ((len - 4) < 2)
+	{
 		self->netdev->stats.rx_dropped++;
 		return FALSE;
 	}
 
 	skb = dev_alloc_skb(len + 1);
-	if (skb == NULL) {
+
+	if (skb == NULL)
+	{
 		self->netdev->stats.rx_dropped++;
 		return FALSE;
 	}
+
 	skb_reserve(skb, 1);
 	skb_put(skb, len - 4 + 1);
 	skb_copy_to_linear_data(skb, self->rx_buff.data, len - 4 + 1);
 	st_fifo->tail++;
 	st_fifo->len++;
+
 	if (st_fifo->tail > MAX_RX_WINDOW)
+	{
 		st_fifo->tail = 0;
-	// Move to next frame 
+	}
+
+	// Move to next frame
 	self->rx_buff.data += len;
 	self->netdev->stats.rx_bytes += len;
 	self->netdev->stats.rx_packets++;
@@ -1178,13 +1355,18 @@ static int upload_rxdata(struct via_ircc_cb *self, int iobase)
 	skb_reset_mac_header(skb);
 	skb->protocol = htons(ETH_P_IRDA);
 	netif_rx(skb);
-	if (st_fifo->len < (MAX_RX_WINDOW + 2)) {
+
+	if (st_fifo->len < (MAX_RX_WINDOW + 2))
+	{
 		RXStart(iobase, ON);
-	} else {
+	}
+	else
+	{
 		EnableRX(iobase, OFF);
 		EnRXDMA(iobase, OFF);
 		RXStart(iobase, OFF);
 	}
+
 	return TRUE;
 }
 
@@ -1201,45 +1383,57 @@ static int RxTimerHandler(struct via_ircc_cb *self, int iobase)
 
 	st_fifo = &self->st_fifo;
 
-	if (CkRxRecv(iobase, self)) {
-		// if still receiving ,then return ,don't upload frame 
+	if (CkRxRecv(iobase, self))
+	{
+		// if still receiving ,then return ,don't upload frame
 		self->RetryCount = 0;
 		SetTimer(iobase, 20);
 		self->RxDataReady++;
 		return FALSE;
-	} else
+	}
+	else
+	{
 		self->RetryCount++;
+	}
 
 	if ((self->RetryCount >= 1) ||
-	    ((st_fifo->pending_bytes + 2048) > self->rx_buff.truesize) ||
-	    (st_fifo->len >= (MAX_RX_WINDOW))) {
-		while (st_fifo->len > 0) {	//upload frame
-			// Put this entry back in fifo 
+		((st_fifo->pending_bytes + 2048) > self->rx_buff.truesize) ||
+		(st_fifo->len >= (MAX_RX_WINDOW)))
+	{
+		while (st_fifo->len > 0)  	//upload frame
+		{
+			// Put this entry back in fifo
 			if (st_fifo->head > MAX_RX_WINDOW)
+			{
 				st_fifo->head = 0;
+			}
+
 			status = st_fifo->entries[st_fifo->head].status;
 			len = st_fifo->entries[st_fifo->head].len;
 			st_fifo->head++;
 			st_fifo->len--;
 
 			skb = dev_alloc_skb(len + 1 - 4);
+
 			/*
 			 * if frame size, data ptr, or skb ptr are wrong,
 			 * then get next entry.
 			 */
 			if ((skb == NULL) || (skb->data == NULL) ||
-			    (self->rx_buff.data == NULL) || (len < 6)) {
+				(self->rx_buff.data == NULL) || (len < 6))
+			{
 				self->netdev->stats.rx_dropped++;
 				continue;
 			}
+
 			skb_reserve(skb, 1);
 			skb_put(skb, len - 4);
 			skb_copy_to_linear_data(skb, self->rx_buff.data, len - 4);
 
 			pr_debug("%s(): len=%x.head=%x\n", __func__,
-				 len - 4, st_fifo->head);
+					 len - 4, st_fifo->head);
 
-			// Move to next frame 
+			// Move to next frame
 			self->rx_buff.data += len;
 			self->netdev->stats.rx_bytes += len;
 			self->netdev->stats.rx_packets++;
@@ -1248,24 +1442,32 @@ static int RxTimerHandler(struct via_ircc_cb *self, int iobase)
 			skb->protocol = htons(ETH_P_IRDA);
 			netif_rx(skb);
 		}		//while
+
 		self->RetryCount = 0;
 
 		pr_debug("%s(): End of upload HostStatus=%x,RxStatus=%x\n",
-			 __func__, GetHostStatus(iobase), GetRXStatus(iobase));
+				 __func__, GetHostStatus(iobase), GetRXStatus(iobase));
 
 		/*
 		 * if frame is receive complete at this routine ,then upload
 		 * frame.
 		 */
 		if ((GetRXStatus(iobase) & 0x10) &&
-		    (RxCurCount(iobase, self) != self->RxLastCount)) {
+			(RxCurCount(iobase, self) != self->RxLastCount))
+		{
 			upload_rxdata(self, iobase);
+
 			if (irda_device_txqueue_empty(self->netdev))
+			{
 				via_ircc_dma_receive(self);
+			}
 		}
 	}			// timer detect complete
 	else
+	{
 		SetTimer(iobase, 4);
+	}
+
 	return TRUE;
 
 }
@@ -1290,94 +1492,127 @@ static irqreturn_t via_ircc_interrupt(int dummy, void *dev_id)
 	iHostIntType = GetHostStatus(iobase);
 
 	pr_debug("%s(): iHostIntType %02x:  %s %s %s  %02x\n",
-		 __func__, iHostIntType,
-		 (iHostIntType & 0x40) ? "Timer" : "",
-		 (iHostIntType & 0x20) ? "Tx" : "",
-		 (iHostIntType & 0x10) ? "Rx" : "",
-		 (iHostIntType & 0x0e) >> 1);
+			 __func__, iHostIntType,
+			 (iHostIntType & 0x40) ? "Timer" : "",
+			 (iHostIntType & 0x20) ? "Tx" : "",
+			 (iHostIntType & 0x10) ? "Rx" : "",
+			 (iHostIntType & 0x0e) >> 1);
 
-	if ((iHostIntType & 0x40) != 0) {	//Timer Event
+	if ((iHostIntType & 0x40) != 0)  	//Timer Event
+	{
 		self->EventFlag.TimeOut++;
 		ClearTimerInt(iobase, 1);
-		if (self->io.direction == IO_XMIT) {
+
+		if (self->io.direction == IO_XMIT)
+		{
 			via_ircc_dma_xmit(self, iobase);
 		}
-		if (self->io.direction == IO_RECV) {
+
+		if (self->io.direction == IO_RECV)
+		{
 			/*
 			 * frame ready hold too long, must reset.
 			 */
-			if (self->RxDataReady > 30) {
+			if (self->RxDataReady > 30)
+			{
 				hwreset(self);
-				if (irda_device_txqueue_empty(self->netdev)) {
+
+				if (irda_device_txqueue_empty(self->netdev))
+				{
 					via_ircc_dma_receive(self);
 				}
-			} else {	// call this to upload frame.
+			}
+			else  	// call this to upload frame.
+			{
 				RxTimerHandler(self, iobase);
 			}
 		}		//RECV
 	}			//Timer Event
-	if ((iHostIntType & 0x20) != 0) {	//Tx Event
+
+	if ((iHostIntType & 0x20) != 0)  	//Tx Event
+	{
 		iTxIntType = GetTXStatus(iobase);
 
 		pr_debug("%s(): iTxIntType %02x:  %s %s %s %s\n",
-			 __func__, iTxIntType,
-			 (iTxIntType & 0x08) ? "FIFO underr." : "",
-			 (iTxIntType & 0x04) ? "EOM" : "",
-			 (iTxIntType & 0x02) ? "FIFO ready" : "",
-			 (iTxIntType & 0x01) ? "Early EOM" : "");
+				 __func__, iTxIntType,
+				 (iTxIntType & 0x08) ? "FIFO underr." : "",
+				 (iTxIntType & 0x04) ? "EOM" : "",
+				 (iTxIntType & 0x02) ? "FIFO ready" : "",
+				 (iTxIntType & 0x01) ? "Early EOM" : "");
 
-		if (iTxIntType & 0x4) {
+		if (iTxIntType & 0x4)
+		{
 			self->EventFlag.EOMessage++;	// read and will auto clean
-			if (via_ircc_dma_xmit_complete(self)) {
+
+			if (via_ircc_dma_xmit_complete(self))
+			{
 				if (irda_device_txqueue_empty
-				    (self->netdev)) {
+					(self->netdev))
+				{
 					via_ircc_dma_receive(self);
 				}
-			} else {
+			}
+			else
+			{
 				self->EventFlag.Unknown++;
 			}
 		}		//EOP
 	}			//Tx Event
+
 	//----------------------------------------
-	if ((iHostIntType & 0x10) != 0) {	//Rx Event
+	if ((iHostIntType & 0x10) != 0)  	//Rx Event
+	{
 		/* Check if DMA has finished */
 		iRxIntType = GetRXStatus(iobase);
 
 		pr_debug("%s(): iRxIntType %02x:  %s %s %s %s %s %s %s\n",
-			 __func__, iRxIntType,
-			 (iRxIntType & 0x80) ? "PHY err."	: "",
-			 (iRxIntType & 0x40) ? "CRC err"	: "",
-			 (iRxIntType & 0x20) ? "FIFO overr."	: "",
-			 (iRxIntType & 0x10) ? "EOF"		: "",
-			 (iRxIntType & 0x08) ? "RxData"		: "",
-			 (iRxIntType & 0x02) ? "RxMaxLen"	: "",
-			 (iRxIntType & 0x01) ? "SIR bad"	: "");
-		if (!iRxIntType)
-			pr_debug("%s(): RxIRQ =0\n", __func__);
+				 __func__, iRxIntType,
+				 (iRxIntType & 0x80) ? "PHY err."	: "",
+				 (iRxIntType & 0x40) ? "CRC err"	: "",
+				 (iRxIntType & 0x20) ? "FIFO overr."	: "",
+				 (iRxIntType & 0x10) ? "EOF"		: "",
+				 (iRxIntType & 0x08) ? "RxData"		: "",
+				 (iRxIntType & 0x02) ? "RxMaxLen"	: "",
+				 (iRxIntType & 0x01) ? "SIR bad"	: "");
 
-		if (iRxIntType & 0x10) {
-			if (via_ircc_dma_receive_complete(self, iobase)) {
-//F01       if(!(IsFIROn(iobase)))  via_ircc_dma_receive(self);
+		if (!iRxIntType)
+		{
+			pr_debug("%s(): RxIRQ =0\n", __func__);
+		}
+
+		if (iRxIntType & 0x10)
+		{
+			if (via_ircc_dma_receive_complete(self, iobase))
+			{
+				//F01       if(!(IsFIROn(iobase)))  via_ircc_dma_receive(self);
 				via_ircc_dma_receive(self);
 			}
-		}		// No ERR     
-		else {		//ERR
+		}		// No ERR
+		else  		//ERR
+		{
 			pr_debug("%s(): RxIRQ ERR:iRxIntType=%x,HostIntType=%x,CurCount=%x,RxLastCount=%x_____\n",
-				 __func__, iRxIntType, iHostIntType,
-				 RxCurCount(iobase, self), self->RxLastCount);
+					 __func__, iRxIntType, iHostIntType,
+					 RxCurCount(iobase, self), self->RxLastCount);
 
-			if (iRxIntType & 0x20) {	//FIFO OverRun ERR
+			if (iRxIntType & 0x20)  	//FIFO OverRun ERR
+			{
 				ResetChip(iobase, 0);
 				ResetChip(iobase, 1);
-			} else {	//PHY,CRC ERR
+			}
+			else  	//PHY,CRC ERR
+			{
 
 				if (iRxIntType != 0x08)
-					hwreset(self);	//F01
+				{
+					hwreset(self);    //F01
+				}
 			}
+
 			via_ircc_dma_receive(self);
 		}		//ERR
 
 	}			//Rx Event
+
 	spin_unlock(&self->lock);
 	return IRQ_RETVAL(iHostIntType);
 }
@@ -1427,8 +1662,11 @@ static int via_ircc_is_receiving(struct via_ircc_cb *self)
 	IRDA_ASSERT(self != NULL, return FALSE;);
 
 	iobase = self->io.fir_base;
+
 	if (CkRxRecv(iobase, self))
+	{
 		status = TRUE;
+	}
 
 	pr_debug("%s(): status=%x....\n", __func__, status);
 
@@ -1453,25 +1691,32 @@ static int via_ircc_net_open(struct net_device *dev)
 	dev->stats.rx_packets = 0;
 	IRDA_ASSERT(self != NULL, return 0;);
 	iobase = self->io.fir_base;
-	if (request_irq(self->io.irq, via_ircc_interrupt, 0, dev->name, dev)) {
+
+	if (request_irq(self->io.irq, via_ircc_interrupt, 0, dev->name, dev))
+	{
 		net_warn_ratelimited("%s, unable to allocate irq=%d\n",
-				     driver_name, self->io.irq);
+							 driver_name, self->io.irq);
 		return -EAGAIN;
 	}
+
 	/*
-	 * Always allocate the DMA channel after the IRQ, and clean up on 
+	 * Always allocate the DMA channel after the IRQ, and clean up on
 	 * failure.
 	 */
-	if (request_dma(self->io.dma, dev->name)) {
+	if (request_dma(self->io.dma, dev->name))
+	{
 		net_warn_ratelimited("%s, unable to allocate dma=%d\n",
-				     driver_name, self->io.dma);
+							 driver_name, self->io.dma);
 		free_irq(self->io.irq, dev);
 		return -EAGAIN;
 	}
-	if (self->io.dma2 != self->io.dma) {
-		if (request_dma(self->io.dma2, dev->name)) {
+
+	if (self->io.dma2 != self->io.dma)
+	{
+		if (request_dma(self->io.dma2, dev->name))
+		{
 			net_warn_ratelimited("%s, unable to allocate dma2=%d\n",
-					     driver_name, self->io.dma2);
+								 driver_name, self->io.dma2);
 			free_irq(self->io.irq, dev);
 			free_dma(self->io.dma);
 			return -EAGAIN;
@@ -1490,9 +1735,9 @@ static int via_ircc_net_open(struct net_device *dev)
 	/* Ready to play! */
 	netif_start_queue(dev);
 
-	/* 
+	/*
 	 * Open new IrLAP layer instance, now that everything should be
-	 * initialized properly 
+	 * initialized properly
 	 */
 	sprintf(hwname, "VIA @ 0x%x", iobase);
 	self->irlap = irlap_open(dev, &self->qos, hwname);
@@ -1519,9 +1764,13 @@ static int via_ircc_net_close(struct net_device *dev)
 
 	/* Stop device */
 	netif_stop_queue(dev);
+
 	/* Stop and remove instance of IrLAP */
 	if (self->irlap)
+	{
 		irlap_close(self->irlap);
+	}
+
 	self->irlap = NULL;
 	iobase = self->io.fir_base;
 	EnTXDMA(iobase, OFF);
@@ -1532,8 +1781,11 @@ static int via_ircc_net_close(struct net_device *dev)
 	EnAllInt(iobase, OFF);
 	free_irq(self->io.irq, dev);
 	free_dma(self->io.dma);
+
 	if (self->io.dma2 != self->io.dma)
+	{
 		free_dma(self->io.dma2);
+	}
 
 	return 0;
 }
@@ -1545,7 +1797,7 @@ static int via_ircc_net_close(struct net_device *dev)
  *
  */
 static int via_ircc_net_ioctl(struct net_device *dev, struct ifreq *rq,
-			      int cmd)
+							  int cmd)
 {
 	struct if_irda_req *irq = (struct if_irda_req *) rq;
 	struct via_ircc_cb *self;
@@ -1556,31 +1808,41 @@ static int via_ircc_net_ioctl(struct net_device *dev, struct ifreq *rq,
 	self = netdev_priv(dev);
 	IRDA_ASSERT(self != NULL, return -1;);
 	pr_debug("%s(), %s, (cmd=0x%X)\n", __func__, dev->name,
-		 cmd);
+			 cmd);
 	/* Disable interrupts & save flags */
 	spin_lock_irqsave(&self->lock, flags);
-	switch (cmd) {
-	case SIOCSBANDWIDTH:	/* Set bandwidth */
-		if (!capable(CAP_NET_ADMIN)) {
-			ret = -EPERM;
-			goto out;
-		}
-		via_ircc_change_speed(self, irq->ifr_baudrate);
-		break;
-	case SIOCSMEDIABUSY:	/* Set media busy */
-		if (!capable(CAP_NET_ADMIN)) {
-			ret = -EPERM;
-			goto out;
-		}
-		irda_device_set_media_busy(self->netdev, TRUE);
-		break;
-	case SIOCGRECEIVING:	/* Check if we are receiving right now */
-		irq->ifr_receiving = via_ircc_is_receiving(self);
-		break;
-	default:
-		ret = -EOPNOTSUPP;
+
+	switch (cmd)
+	{
+		case SIOCSBANDWIDTH:	/* Set bandwidth */
+			if (!capable(CAP_NET_ADMIN))
+			{
+				ret = -EPERM;
+				goto out;
+			}
+
+			via_ircc_change_speed(self, irq->ifr_baudrate);
+			break;
+
+		case SIOCSMEDIABUSY:	/* Set media busy */
+			if (!capable(CAP_NET_ADMIN))
+			{
+				ret = -EPERM;
+				goto out;
+			}
+
+			irda_device_set_media_busy(self->netdev, TRUE);
+			break;
+
+		case SIOCGRECEIVING:	/* Check if we are receiving right now */
+			irq->ifr_receiving = via_ircc_is_receiving(self);
+			break;
+
+		default:
+			ret = -EOPNOTSUPP;
 	}
-      out:
+
+out:
 	spin_unlock_irqrestore(&self->lock, flags);
 	return ret;
 }

@@ -89,12 +89,16 @@ static void ene_clear_reg_mask(struct ene_device *dev, u16 reg, u8 mask)
 
 /* A helper to set/clear a bit in register according to boolean variable */
 static void ene_set_clear_reg_mask(struct ene_device *dev, u16 reg, u8 mask,
-								bool set)
+								   bool set)
 {
 	if (set)
+	{
 		ene_set_reg_mask(dev, reg, mask);
+	}
 	else
+	{
 		ene_clear_reg_mask(dev, reg, mask);
+	}
 }
 
 /* detect hardware features */
@@ -113,13 +117,14 @@ static int ene_hw_detect(struct ene_device *dev)
 	old_ver = ene_read_reg(dev, ENE_HW_VER_OLD);
 
 	dev->pll_freq = (ene_read_reg(dev, ENE_PLLFRH) << 4) +
-		(ene_read_reg(dev, ENE_PLLFRL) >> 4);
+					(ene_read_reg(dev, ENE_PLLFRL) >> 4);
 
 	if (sample_period != ENE_DEFAULT_SAMPLE_PERIOD)
 		dev->rx_period_adjust =
 			dev->pll_freq == ENE_DEFAULT_PLL_FREQ ? 2 : 4;
 
-	if (hw_revision == 0xFF) {
+	if (hw_revision == 0xFF)
+	{
 		pr_warn("device seems to be disabled\n");
 		pr_warn("send a mail to lirc-list@lists.sourceforge.net\n");
 		pr_warn("please attach output of acpidump and dmidecode\n");
@@ -127,29 +132,37 @@ static int ene_hw_detect(struct ene_device *dev)
 	}
 
 	pr_notice("chip is 0x%02x%02x - kbver = 0x%02x, rev = 0x%02x\n",
-		  chip_major, chip_minor, old_ver, hw_revision);
+			  chip_major, chip_minor, old_ver, hw_revision);
 
 	pr_notice("PLL freq = %d\n", dev->pll_freq);
 
-	if (chip_major == 0x33) {
+	if (chip_major == 0x33)
+	{
 		pr_warn("chips 0x33xx aren't supported\n");
 		return -ENODEV;
 	}
 
-	if (chip_major == 0x39 && chip_minor == 0x26 && hw_revision == 0xC0) {
+	if (chip_major == 0x39 && chip_minor == 0x26 && hw_revision == 0xC0)
+	{
 		dev->hw_revision = ENE_HW_C;
 		pr_notice("KB3926C detected\n");
-	} else if (old_ver == 0x24 && hw_revision == 0xC0) {
+	}
+	else if (old_ver == 0x24 && hw_revision == 0xC0)
+	{
 		dev->hw_revision = ENE_HW_B;
 		pr_notice("KB3926B detected\n");
-	} else {
+	}
+	else
+	{
 		dev->hw_revision = ENE_HW_D;
 		pr_notice("KB3926D or higher detected\n");
 	}
 
 	/* detect features hardware supports */
 	if (dev->hw_revision < ENE_HW_C)
+	{
 		return 0;
+	}
 
 	fw_reg1 = ene_read_reg(dev, ENE_FW1);
 	fw_reg2 = ene_read_reg(dev, ENE_FW2);
@@ -161,11 +174,14 @@ static int ene_hw_detect(struct ene_device *dev)
 	dev->hw_extra_buffer = !!(fw_reg1 & ENE_FW1_HAS_EXTRA_BUF);
 
 	if (dev->hw_learning_and_tx_capable)
+	{
 		dev->hw_fan_input = !!(fw_reg2 & ENE_FW2_FAN_INPUT);
+	}
 
 	pr_notice("Hardware features:\n");
 
-	if (dev->hw_learning_and_tx_capable) {
+	if (dev->hw_learning_and_tx_capable)
+	{
 		pr_notice("* Supports transmitting & learning mode\n");
 		pr_notice("   This feature is rare and therefore,\n");
 		pr_notice("   you are welcome to test it,\n");
@@ -174,18 +190,23 @@ static int ene_hw_detect(struct ene_device *dev)
 		pr_notice("   or maximlevitsky@gmail.com\n");
 
 		pr_notice("* Uses GPIO %s for IR raw input\n",
-			  dev->hw_use_gpio_0a ? "40" : "0A");
+				  dev->hw_use_gpio_0a ? "40" : "0A");
 
 		if (dev->hw_fan_input)
+		{
 			pr_notice("* Uses unused fan feedback input as source of demodulated IR data\n");
+		}
 	}
 
 	if (!dev->hw_fan_input)
 		pr_notice("* Uses GPIO %s for IR demodulated input\n",
-			  dev->hw_use_gpio_0a ? "0A" : "40");
+				  dev->hw_use_gpio_0a ? "0A" : "40");
 
 	if (dev->hw_extra_buffer)
+	{
 		pr_notice("* Uses new style input buffer\n");
+	}
+
 	return 0;
 }
 
@@ -197,13 +218,14 @@ static void ene_rx_setup_hw_buffer(struct ene_device *dev)
 	ene_rx_read_hw_pointer(dev);
 	dev->r_pointer = dev->w_pointer;
 
-	if (!dev->hw_extra_buffer) {
+	if (!dev->hw_extra_buffer)
+	{
 		dev->buffer_len = ENE_FW_PACKET_SIZE * 2;
 		return;
 	}
 
 	tmp = ene_read_reg(dev, ENE_FW_SAMPLE_BUFFER);
-	tmp |= ene_read_reg(dev, ENE_FW_SAMPLE_BUFFER+1) << 8;
+	tmp |= ene_read_reg(dev, ENE_FW_SAMPLE_BUFFER + 1) << 8;
 	dev->extra_buf1_address = tmp;
 
 	dev->extra_buf1_len = ene_read_reg(dev, ENE_FW_SAMPLE_BUFFER + 2);
@@ -218,25 +240,33 @@ static void ene_rx_setup_hw_buffer(struct ene_device *dev)
 
 	pr_notice("Hardware uses 2 extended buffers:\n");
 	pr_notice("  0x%04x - len : %d\n",
-		  dev->extra_buf1_address, dev->extra_buf1_len);
+			  dev->extra_buf1_address, dev->extra_buf1_len);
 	pr_notice("  0x%04x - len : %d\n",
-		  dev->extra_buf2_address, dev->extra_buf2_len);
+			  dev->extra_buf2_address, dev->extra_buf2_len);
 
 	pr_notice("Total buffer len = %d\n", dev->buffer_len);
 
 	if (dev->buffer_len > 64 || dev->buffer_len < 16)
+	{
 		goto error;
+	}
 
 	if (dev->extra_buf1_address > 0xFBFC ||
-					dev->extra_buf1_address < 0xEC00)
+		dev->extra_buf1_address < 0xEC00)
+	{
 		goto error;
+	}
 
 	if (dev->extra_buf2_address > 0xFBFC ||
-					dev->extra_buf2_address < 0xEC00)
+		dev->extra_buf2_address < 0xEC00)
+	{
 		goto error;
+	}
 
 	if (dev->r_pointer > dev->buffer_len)
+	{
 		goto error;
+	}
 
 	ene_set_reg_mask(dev, ENE_FW1, ENE_FW1_EXTRA_BUF_HND);
 	return;
@@ -251,20 +281,22 @@ error:
 static void ene_rx_restore_hw_buffer(struct ene_device *dev)
 {
 	if (!dev->hw_extra_buffer)
+	{
 		return;
+	}
 
 	ene_write_reg(dev, ENE_FW_SAMPLE_BUFFER + 0,
-				dev->extra_buf1_address & 0xFF);
+				  dev->extra_buf1_address & 0xFF);
 	ene_write_reg(dev, ENE_FW_SAMPLE_BUFFER + 1,
-				dev->extra_buf1_address >> 8);
+				  dev->extra_buf1_address >> 8);
 	ene_write_reg(dev, ENE_FW_SAMPLE_BUFFER + 2, dev->extra_buf1_len);
 
 	ene_write_reg(dev, ENE_FW_SAMPLE_BUFFER + 3,
-				dev->extra_buf2_address & 0xFF);
+				  dev->extra_buf2_address & 0xFF);
 	ene_write_reg(dev, ENE_FW_SAMPLE_BUFFER + 4,
-				dev->extra_buf2_address >> 8);
+				  dev->extra_buf2_address >> 8);
 	ene_write_reg(dev, ENE_FW_SAMPLE_BUFFER + 5,
-				dev->extra_buf2_len);
+				  dev->extra_buf2_len);
 	ene_clear_reg_mask(dev, ENE_FW1, ENE_FW1_EXTRA_BUF_HND);
 }
 
@@ -272,13 +304,15 @@ static void ene_rx_restore_hw_buffer(struct ene_device *dev)
 static void ene_rx_read_hw_pointer(struct ene_device *dev)
 {
 	if (dev->hw_extra_buffer)
+	{
 		dev->w_pointer = ene_read_reg(dev, ENE_FW_RX_POINTER);
+	}
 	else
 		dev->w_pointer = ene_read_reg(dev, ENE_FW2)
-			& ENE_FW2_BUF_WPTR ? 0 : ENE_FW_PACKET_SIZE;
+						 & ENE_FW2_BUF_WPTR ? 0 : ENE_FW_PACKET_SIZE;
 
 	dbg_verbose("RB: HW write pointer: %02x, driver read pointer: %02x",
-		dev->w_pointer, dev->r_pointer);
+				dev->w_pointer, dev->r_pointer);
 }
 
 /* Gets address of next sample from HW ring buffer */
@@ -286,12 +320,14 @@ static int ene_rx_get_sample_reg(struct ene_device *dev)
 {
 	int r_pointer;
 
-	if (dev->r_pointer == dev->w_pointer) {
+	if (dev->r_pointer == dev->w_pointer)
+	{
 		dbg_verbose("RB: hit end, try update w_pointer");
 		ene_rx_read_hw_pointer(dev);
 	}
 
-	if (dev->r_pointer == dev->w_pointer) {
+	if (dev->r_pointer == dev->w_pointer)
+	{
 		dbg_verbose("RB: end of data at %d", dev->r_pointer);
 		return 0;
 	}
@@ -300,26 +336,32 @@ static int ene_rx_get_sample_reg(struct ene_device *dev)
 	r_pointer = dev->r_pointer;
 
 	dev->r_pointer++;
+
 	if (dev->r_pointer == dev->buffer_len)
+	{
 		dev->r_pointer = 0;
+	}
 
 	dbg_verbose("RB: next read will be from offset %d", dev->r_pointer);
 
-	if (r_pointer < 8) {
+	if (r_pointer < 8)
+	{
 		dbg_verbose("RB: read at main buffer at %d", r_pointer);
 		return ENE_FW_SAMPLE_BUFFER + r_pointer;
 	}
 
 	r_pointer -= 8;
 
-	if (r_pointer < dev->extra_buf1_len) {
+	if (r_pointer < dev->extra_buf1_len)
+	{
 		dbg_verbose("RB: read at 1st extra buffer at %d", r_pointer);
 		return dev->extra_buf1_address + r_pointer;
 	}
 
 	r_pointer -= dev->extra_buf1_len;
 
-	if (r_pointer < dev->extra_buf2_len) {
+	if (r_pointer < dev->extra_buf2_len)
+	{
 		dbg_verbose("RB: read at 2nd extra buffer at %d", r_pointer);
 		return dev->extra_buf2_address + r_pointer;
 	}
@@ -338,12 +380,16 @@ static void ene_rx_sense_carrier(struct ene_device *dev)
 	int hperiod = ene_read_reg(dev, ENE_CIRCAR_HPRD);
 
 	if (!(period & ENE_CIRCAR_PRD_VALID))
+	{
 		return;
+	}
 
 	period &= ~ENE_CIRCAR_PRD_VALID;
 
 	if (!period)
+	{
 		return;
+	}
 
 	dbg("RX: hardware carrier period = %02x", period);
 	dbg("RX: hardware carrier pulse period = %02x", hperiod);
@@ -351,8 +397,10 @@ static void ene_rx_sense_carrier(struct ene_device *dev)
 	carrier = 2000000 / period;
 	duty_cycle = (hperiod * 100) / period;
 	dbg("RX: sensed carrier = %d Hz, duty cycle %d%%",
-						carrier, duty_cycle);
-	if (dev->carrier_detect_enabled) {
+		carrier, duty_cycle);
+
+	if (dev->carrier_detect_enabled)
+	{
 		ev.carrier_report = true;
 		ev.carrier = carrier;
 		ev.duty_cycle = duty_cycle;
@@ -364,7 +412,7 @@ static void ene_rx_sense_carrier(struct ene_device *dev)
 static void ene_rx_enable_cir_engine(struct ene_device *dev, bool enable)
 {
 	ene_set_clear_reg_mask(dev, ENE_CIRCFG,
-			ENE_CIRCFG_RX_EN | ENE_CIRCFG_RX_IRQ, enable);
+						   ENE_CIRCFG_RX_EN | ENE_CIRCFG_RX_IRQ, enable);
 }
 
 /* this selects input for CIR engine. Ether GPIO 0A or GPIO40*/
@@ -380,11 +428,16 @@ static void ene_rx_select_input(struct ene_device *dev, bool gpio_0a)
 static void ene_rx_enable_fan_input(struct ene_device *dev, bool enable)
 {
 	if (!dev->hw_fan_input)
+	{
 		return;
+	}
 
 	if (!enable)
+	{
 		ene_write_reg(dev, ENE_FAN_AS_IN1, 0);
-	else {
+	}
+	else
+	{
 		ene_write_reg(dev, ENE_FAN_AS_IN1, ENE_FAN_AS_IN1_EN);
 		ene_write_reg(dev, ENE_FAN_AS_IN2, ENE_FAN_AS_IN2_EN);
 	}
@@ -394,7 +447,7 @@ static void ene_rx_enable_fan_input(struct ene_device *dev, bool enable)
 static void ene_rx_setup(struct ene_device *dev)
 {
 	bool learning_mode = dev->learning_mode_enabled ||
-					dev->carrier_detect_enabled;
+						 dev->carrier_detect_enabled;
 	int sample_period_adjust = 0;
 
 	dbg("RX: setup receiver, learning mode = %d", learning_mode);
@@ -409,13 +462,17 @@ static void ene_rx_setup(struct ene_device *dev)
 			dev->pll_freq == ENE_DEFAULT_PLL_FREQ ? 1 : 2;
 
 	ene_write_reg(dev, ENE_CIRRLC_CFG,
-			(sample_period + sample_period_adjust) |
-						ENE_CIRRLC_CFG_OVERFLOW);
+				  (sample_period + sample_period_adjust) |
+				  ENE_CIRRLC_CFG_OVERFLOW);
+
 	/* revB doesn't support inputs */
 	if (dev->hw_revision < ENE_HW_C)
+	{
 		goto select_timeout;
+	}
 
-	if (learning_mode) {
+	if (learning_mode)
+	{
 
 		WARN_ON(!dev->hw_learning_and_tx_capable);
 
@@ -433,12 +490,18 @@ static void ene_rx_setup(struct ene_device *dev)
 		/* Enable carrier detection */
 		ene_write_reg(dev, ENE_CIRCAR_PULS, 0x63);
 		ene_set_clear_reg_mask(dev, ENE_CIRCFG2, ENE_CIRCFG2_CARR_DETECT,
-			dev->carrier_detect_enabled || debug);
-	} else {
+							   dev->carrier_detect_enabled || debug);
+	}
+	else
+	{
 		if (dev->hw_fan_input)
+		{
 			dev->rx_fan_input_inuse = true;
+		}
 		else
+		{
 			ene_rx_select_input(dev, dev->hw_use_gpio_0a);
+		}
 
 		/* Disable carrier detection & demodulation */
 		ene_clear_reg_mask(dev, ENE_CIRCFG, ENE_CIRCFG_CARR_DEMOD);
@@ -446,15 +509,19 @@ static void ene_rx_setup(struct ene_device *dev)
 	}
 
 select_timeout:
-	if (dev->rx_fan_input_inuse) {
+
+	if (dev->rx_fan_input_inuse)
+	{
 		dev->rdev->rx_resolution = US_TO_NS(ENE_FW_SAMPLE_PERIOD_FAN);
 
 		/* Fan input doesn't support timeouts, it just ends the
 			input with a maximum sample */
 		dev->rdev->min_timeout = dev->rdev->max_timeout =
-			US_TO_NS(ENE_FW_SMPL_BUF_FAN_MSK *
-				ENE_FW_SAMPLE_PERIOD_FAN);
-	} else {
+									 US_TO_NS(ENE_FW_SMPL_BUF_FAN_MSK *
+											  ENE_FW_SAMPLE_PERIOD_FAN);
+	}
+	else
+	{
 		dev->rdev->rx_resolution = US_TO_NS(sample_period);
 
 		/* Theoreticly timeout is unlimited, but we cap it
@@ -467,12 +534,19 @@ select_timeout:
 	}
 
 	if (dev->hw_learning_and_tx_capable)
+	{
 		dev->rdev->tx_resolution = US_TO_NS(sample_period);
+	}
 
 	if (dev->rdev->timeout > dev->rdev->max_timeout)
+	{
 		dev->rdev->timeout = dev->rdev->max_timeout;
+	}
+
 	if (dev->rdev->timeout < dev->rdev->min_timeout)
+	{
 		dev->rdev->timeout = dev->rdev->min_timeout;
+	}
 }
 
 /* Enable the device for receive */
@@ -481,10 +555,13 @@ static void ene_rx_enable_hw(struct ene_device *dev)
 	u8 reg_value;
 
 	/* Enable system interrupt */
-	if (dev->hw_revision < ENE_HW_C) {
+	if (dev->hw_revision < ENE_HW_C)
+	{
 		ene_write_reg(dev, ENEB_IRQ, dev->irq << 1);
 		ene_write_reg(dev, ENEB_IRQ_UNK1, 0x01);
-	} else {
+	}
+	else
+	{
 		reg_value = ene_read_reg(dev, ENE_IRQ) & 0xF0;
 		reg_value |= ENE_IRQ_UNK_EN;
 		reg_value &= ~ENE_IRQ_STATUS;
@@ -550,17 +627,21 @@ static void ene_tx_set_carrier(struct ene_device *dev)
 	spin_lock_irqsave(&dev->hw_lock, flags);
 
 	ene_set_clear_reg_mask(dev, ENE_CIRCFG,
-		ENE_CIRCFG_TX_CARR, dev->tx_period > 0);
+						   ENE_CIRCFG_TX_CARR, dev->tx_period > 0);
 
 	if (!dev->tx_period)
+	{
 		goto unlock;
+	}
 
 	BUG_ON(dev->tx_duty_cycle >= 100 || dev->tx_duty_cycle <= 0);
 
 	tx_puls_width = dev->tx_period / (100 / dev->tx_duty_cycle);
 
 	if (!tx_puls_width)
+	{
 		tx_puls_width = 1;
+	}
 
 	dbg("TX: pulse distance = %d * 500 ns", dev->tx_period);
 	dbg("TX: pulse width = %d * 500 ns", tx_puls_width);
@@ -578,9 +659,9 @@ static void ene_tx_set_transmitters(struct ene_device *dev)
 
 	spin_lock_irqsave(&dev->hw_lock, flags);
 	ene_set_clear_reg_mask(dev, ENE_GPIOFS8, ENE_GPIOFS8_GPIO41,
-					!!(dev->transmitter_mask & 0x01));
+						   !!(dev->transmitter_mask & 0x01));
 	ene_set_clear_reg_mask(dev, ENE_GPIOFS1, ENE_GPIOFS1_GPIO0D,
-					!!(dev->transmitter_mask & 0x02));
+						   !!(dev->transmitter_mask & 0x02));
 	spin_unlock_irqrestore(&dev->hw_lock, flags);
 }
 
@@ -594,17 +675,25 @@ static void ene_tx_enable(struct ene_device *dev)
 
 	/* Show information about currently connected transmitter jacks */
 	if (fwreg2 & ENE_FW2_EMMITER1_CONN)
+	{
 		dbg("TX: Transmitter #1 is connected");
+	}
 
 	if (fwreg2 & ENE_FW2_EMMITER2_CONN)
+	{
 		dbg("TX: Transmitter #2 is connected");
+	}
 
 	if (!(fwreg2 & (ENE_FW2_EMMITER1_CONN | ENE_FW2_EMMITER2_CONN)))
+	{
 		pr_warn("TX: transmitter cable isn't connected!\n");
+	}
 
 	/* disable receive on revc */
 	if (dev->hw_revision == ENE_HW_C)
+	{
 		conf1 &= ~ENE_CIRCFG_RX_EN;
+	}
 
 	/* Enable TX engine */
 	conf1 |= ENE_CIRCFG_TX_EN | ENE_CIRCFG_TX_IRQ;
@@ -626,20 +715,26 @@ static void ene_tx_sample(struct ene_device *dev)
 	u32 sample;
 	bool pulse = dev->tx_sample_pulse;
 
-	if (!dev->tx_buffer) {
+	if (!dev->tx_buffer)
+	{
 		pr_warn("TX: BUG: attempt to transmit NULL buffer\n");
 		return;
 	}
 
 	/* Grab next TX sample */
-	if (!dev->tx_sample) {
+	if (!dev->tx_sample)
+	{
 
-		if (dev->tx_pos == dev->tx_len) {
-			if (!dev->tx_done) {
+		if (dev->tx_pos == dev->tx_len)
+		{
+			if (!dev->tx_done)
+			{
 				dbg("TX: no more data to send");
 				dev->tx_done = true;
 				goto exit;
-			} else {
+			}
+			else
+			{
 				dbg("TX: last sample sent by hardware");
 				ene_tx_disable(dev);
 				complete(&dev->tx_complete);
@@ -653,25 +748,33 @@ static void ene_tx_sample(struct ene_device *dev)
 		dev->tx_sample = DIV_ROUND_CLOSEST(sample, sample_period);
 
 		if (!dev->tx_sample)
+		{
 			dev->tx_sample = 1;
+		}
 	}
 
 	raw_tx = min(dev->tx_sample , (unsigned int)ENE_CIRRLC_OUT_MASK);
 	dev->tx_sample -= raw_tx;
 
 	dbg("TX: sample %8d (%s)", raw_tx * sample_period,
-						pulse ? "pulse" : "space");
+		pulse ? "pulse" : "space");
+
 	if (pulse)
+	{
 		raw_tx |= ENE_CIRRLC_OUT_PULSE;
+	}
 
 	ene_write_reg(dev,
-		dev->tx_reg ? ENE_CIRRLC_OUT1 : ENE_CIRRLC_OUT0, raw_tx);
+				  dev->tx_reg ? ENE_CIRRLC_OUT1 : ENE_CIRRLC_OUT0, raw_tx);
 
 	dev->tx_reg = !dev->tx_reg;
 exit:
+
 	/* simulate TX done interrupt */
 	if (txsim)
+	{
 		mod_timer(&dev->tx_sim_timer, jiffies + HZ / 500);
+	}
 }
 
 /* timer to simulate tx done interrupt */
@@ -695,33 +798,42 @@ static int ene_irq_status(struct ene_device *dev)
 
 	fw_flags2 = ene_read_reg(dev, ENE_FW2);
 
-	if (dev->hw_revision < ENE_HW_C) {
+	if (dev->hw_revision < ENE_HW_C)
+	{
 		irq_status = ene_read_reg(dev, ENEB_IRQ_STATUS);
 
 		if (!(irq_status & ENEB_IRQ_STATUS_IR))
+		{
 			return 0;
+		}
 
 		ene_clear_reg_mask(dev, ENEB_IRQ_STATUS, ENEB_IRQ_STATUS_IR);
 		return ENE_IRQ_RX;
 	}
 
 	irq_status = ene_read_reg(dev, ENE_IRQ);
+
 	if (!(irq_status & ENE_IRQ_STATUS))
+	{
 		return 0;
+	}
 
 	/* original driver does that twice - a workaround ? */
 	ene_write_reg(dev, ENE_IRQ, irq_status & ~ENE_IRQ_STATUS);
 	ene_write_reg(dev, ENE_IRQ, irq_status & ~ENE_IRQ_STATUS);
 
 	/* check RX interrupt */
-	if (fw_flags2 & ENE_FW2_RXIRQ) {
+	if (fw_flags2 & ENE_FW2_RXIRQ)
+	{
 		retval |= ENE_IRQ_RX;
 		ene_write_reg(dev, ENE_FW2, fw_flags2 & ~ENE_FW2_RXIRQ);
 	}
 
 	/* check TX interrupt */
 	fw_flags1 = ene_read_reg(dev, ENE_FW1);
-	if (fw_flags1 & ENE_FW1_TXIRQ) {
+
+	if (fw_flags1 & ENE_FW1_TXIRQ)
+	{
 		ene_write_reg(dev, ENE_FW1, fw_flags1 & ~ENE_FW1_TXIRQ);
 		retval |= ENE_IRQ_TX;
 	}
@@ -747,43 +859,60 @@ static irqreturn_t ene_isr(int irq, void *data)
 	irq_status = ene_irq_status(dev);
 
 	if (!irq_status)
+	{
 		goto unlock;
+	}
 
 	retval = IRQ_HANDLED;
 
-	if (irq_status & ENE_IRQ_TX) {
+	if (irq_status & ENE_IRQ_TX)
+	{
 		dbg_verbose("TX interrupt");
-		if (!dev->hw_learning_and_tx_capable) {
+
+		if (!dev->hw_learning_and_tx_capable)
+		{
 			dbg("TX interrupt on unsupported device!");
 			goto unlock;
 		}
+
 		ene_tx_sample(dev);
 	}
 
 	if (!(irq_status & ENE_IRQ_RX))
+	{
 		goto unlock;
+	}
 
 	dbg_verbose("RX interrupt");
 
 	if (dev->hw_learning_and_tx_capable)
+	{
 		ene_rx_sense_carrier(dev);
+	}
 
 	/* On hardware that don't support extra buffer we need to trust
 		the interrupt and not track the read pointer */
 	if (!dev->hw_extra_buffer)
+	{
 		dev->r_pointer = dev->w_pointer == 0 ? ENE_FW_PACKET_SIZE : 0;
+	}
 
-	while (1) {
+	while (1)
+	{
 
 		reg = ene_rx_get_sample_reg(dev);
 
 		dbg_verbose("next sample to read at: %04x", reg);
+
 		if (!reg)
+		{
 			break;
+		}
 
 		hw_value = ene_read_reg(dev, reg);
 
-		if (dev->rx_fan_input_inuse) {
+		if (dev->rx_fan_input_inuse)
+		{
 
 			int offset = ENE_FW_SMPL_BUF_FAN - ENE_FW_SAMPLE_BUFFER;
 
@@ -795,18 +924,22 @@ static irqreturn_t ene_isr(int irq, void *data)
 			hw_value &= ENE_FW_SMPL_BUF_FAN_MSK;
 			hw_sample = hw_value * ENE_FW_SAMPLE_PERIOD_FAN;
 
-		} else {
+		}
+		else
+		{
 			pulse = !(hw_value & ENE_FW_SAMPLE_SPACE);
 			hw_value &= ~ENE_FW_SAMPLE_SPACE;
 			hw_sample = hw_value * sample_period;
 
-			if (dev->rx_period_adjust) {
+			if (dev->rx_period_adjust)
+			{
 				hw_sample *= 100;
 				hw_sample /= (100 + dev->rx_period_adjust);
 			}
 		}
 
-		if (!dev->hw_extra_buffer && !hw_sample) {
+		if (!dev->hw_extra_buffer && !hw_sample)
+		{
 			dev->r_pointer = dev->w_pointer;
 			continue;
 		}
@@ -839,7 +972,8 @@ static void ene_setup_default_settings(struct ene_device *dev)
 /* Upload all hardware settings at once. Used at load and resume time */
 static void ene_setup_hw_settings(struct ene_device *dev)
 {
-	if (dev->hw_learning_and_tx_capable) {
+	if (dev->hw_learning_and_tx_capable)
+	{
 		ene_tx_set_carrier(dev);
 		ene_tx_set_transmitters(dev);
 	}
@@ -877,7 +1011,8 @@ static int ene_set_tx_mask(struct rc_dev *rdev, u32 tx_mask)
 	dbg("TX: attempt to set transmitter mask %02x", tx_mask);
 
 	/* invalid txmask */
-	if (!tx_mask || tx_mask & ~0x03) {
+	if (!tx_mask || tx_mask & ~0x03)
+	{
 		dbg("TX: invalid mask");
 		/* return count of transmitters */
 		return 2;
@@ -895,12 +1030,17 @@ static int ene_set_tx_carrier(struct rc_dev *rdev, u32 carrier)
 	u32 period;
 
 	dbg("TX: attempt to set tx carrier to %d kHz", carrier);
+
 	if (carrier == 0)
+	{
 		return -EINVAL;
+	}
 
 	period = 2000000 / carrier;
+
 	if (period && (period > ENE_CIRMOD_PRD_MAX ||
-			period < ENE_CIRMOD_PRD_MIN)) {
+				   period < ENE_CIRMOD_PRD_MIN))
+	{
 
 		dbg("TX: out of range %d-%d kHz carrier",
 			2000 / ENE_CIRMOD_PRD_MIN, 2000 / ENE_CIRMOD_PRD_MAX);
@@ -927,8 +1067,11 @@ static int ene_set_learning_mode(struct rc_dev *rdev, int enable)
 {
 	struct ene_device *dev = rdev->priv;
 	unsigned long flags;
+
 	if (enable == dev->learning_mode_enabled)
+	{
 		return 0;
+	}
 
 	spin_lock_irqsave(&dev->hw_lock, flags);
 	dev->learning_mode_enabled = enable;
@@ -945,7 +1088,9 @@ static int ene_set_carrier_report(struct rc_dev *rdev, int enable)
 	unsigned long flags;
 
 	if (enable == dev->carrier_detect_enabled)
+	{
 		return 0;
+	}
 
 	spin_lock_irqsave(&dev->hw_lock, flags);
 	dev->carrier_detect_enabled = enable;
@@ -961,7 +1106,8 @@ static void ene_set_idle(struct rc_dev *rdev, bool idle)
 {
 	struct ene_device *dev = rdev->priv;
 
-	if (idle) {
+	if (idle)
+	{
 		ene_rx_reset(dev);
 		dbg("RX: end of data");
 	}
@@ -993,13 +1139,18 @@ static int ene_transmit(struct rc_dev *rdev, unsigned *buf, unsigned n)
 
 	spin_unlock_irqrestore(&dev->hw_lock, flags);
 
-	if (wait_for_completion_timeout(&dev->tx_complete, 2 * HZ) == 0) {
+	if (wait_for_completion_timeout(&dev->tx_complete, 2 * HZ) == 0)
+	{
 		dbg("TX: timeout");
 		spin_lock_irqsave(&dev->hw_lock, flags);
 		ene_tx_disable(dev);
 		spin_unlock_irqrestore(&dev->hw_lock, flags);
-	} else
+	}
+	else
+	{
 		dbg("TX: done");
+	}
+
 	return n;
 }
 
@@ -1013,8 +1164,11 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
 	/* allocate memory */
 	dev = kzalloc(sizeof(struct ene_device), GFP_KERNEL);
 	rdev = rc_allocate_device();
+
 	if (!dev || !rdev)
+	{
 		goto exit_free_dev_rdev;
+	}
 
 	/* validate resources */
 	error = -ENODEV;
@@ -1024,11 +1178,15 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
 	dev->irq = -1;
 
 	if (!pnp_port_valid(pnp_dev, 0) ||
-	    pnp_port_len(pnp_dev, 0) < ENE_IO_SIZE)
+		pnp_port_len(pnp_dev, 0) < ENE_IO_SIZE)
+	{
 		goto exit_free_dev_rdev;
+	}
 
 	if (!pnp_irq_valid(pnp_dev, 0))
+	{
 		goto exit_free_dev_rdev;
+	}
 
 	spin_lock_init(&dev->hw_lock);
 
@@ -1041,22 +1199,30 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
 
 	/* don't allow too short/long sample periods */
 	if (sample_period < 5 || sample_period > 0x7F)
+	{
 		sample_period = ENE_DEFAULT_SAMPLE_PERIOD;
+	}
 
 	/* detect hardware version and features */
 	error = ene_hw_detect(dev);
-	if (error)
-		goto exit_free_dev_rdev;
 
-	if (!dev->hw_learning_and_tx_capable && txsim) {
+	if (error)
+	{
+		goto exit_free_dev_rdev;
+	}
+
+	if (!dev->hw_learning_and_tx_capable && txsim)
+	{
 		dev->hw_learning_and_tx_capable = true;
 		setup_timer(&dev->tx_sim_timer, ene_tx_irqsim,
-						(long unsigned int)dev);
+					(long unsigned int)dev);
 		pr_warn("Simulation of TX activated\n");
 	}
 
 	if (!dev->hw_learning_and_tx_capable)
+	{
 		learning_mode_force = false;
+	}
 
 	rdev->driver_type = RC_DRIVER_IR_RAW;
 	rdev->allowed_protocols = RC_BIT_ALL;
@@ -1068,7 +1234,8 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
 	rdev->map_name = RC_MAP_RC6_MCE;
 	rdev->input_name = "ENE eHome Infrared Remote Receiver";
 
-	if (dev->hw_learning_and_tx_capable) {
+	if (dev->hw_learning_and_tx_capable)
+	{
 		rdev->s_learning_mode = ene_set_learning_mode;
 		init_completion(&dev->tx_complete);
 		rdev->tx_ir = ene_transmit;
@@ -1089,17 +1256,23 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
 	device_set_wakeup_enable(&pnp_dev->dev, true);
 
 	error = rc_register_device(rdev);
+
 	if (error < 0)
+	{
 		goto exit_free_dev_rdev;
+	}
 
 	/* claim the resources */
 	error = -EBUSY;
-	if (!request_region(dev->hw_io, ENE_IO_SIZE, ENE_DRIVER_NAME)) {
+
+	if (!request_region(dev->hw_io, ENE_IO_SIZE, ENE_DRIVER_NAME))
+	{
 		goto exit_unregister_device;
 	}
 
 	if (request_irq(dev->irq, ene_isr,
-			IRQF_SHARED, ENE_DRIVER_NAME, (void *)dev)) {
+					IRQF_SHARED, ENE_DRIVER_NAME, (void *)dev))
+	{
 		goto exit_release_hw_io;
 	}
 
@@ -1148,7 +1321,9 @@ static int ene_suspend(struct pnp_dev *pnp_dev, pm_message_t state)
 	bool wake = device_may_wakeup(&dev->pnp_dev->dev);
 
 	if (!wake && dev->rx_enabled)
+	{
 		ene_rx_disable_hw(dev);
+	}
 
 	ene_enable_wake(dev, wake);
 	return 0;
@@ -1160,7 +1335,9 @@ static int ene_resume(struct pnp_dev *pnp_dev)
 	ene_setup_hw_settings(dev);
 
 	if (dev->rx_enabled)
+	{
 		ene_rx_enable(dev);
+	}
 
 	ene_enable_wake(dev, false);
 	return 0;
@@ -1173,7 +1350,8 @@ static void ene_shutdown(struct pnp_dev *pnp_dev)
 	ene_enable_wake(dev, true);
 }
 
-static const struct pnp_device_id ene_ids[] = {
+static const struct pnp_device_id ene_ids[] =
+{
 	{.id = "ENE0100",},
 	{.id = "ENE0200",},
 	{.id = "ENE0201",},
@@ -1181,7 +1359,8 @@ static const struct pnp_device_id ene_ids[] = {
 	{},
 };
 
-static struct pnp_driver ene_driver = {
+static struct pnp_driver ene_driver =
+{
 	.name = ENE_DRIVER_NAME,
 	.id_table = ene_ids,
 	.flags = PNP_DRIVER_RES_DO_NOT_CHANGE,
@@ -1206,12 +1385,12 @@ MODULE_PARM_DESC(debug, "Debug level");
 
 module_param(txsim, bool, S_IRUGO);
 MODULE_PARM_DESC(txsim,
-	"Simulate TX features on unsupported hardware (dangerous)");
+				 "Simulate TX features on unsupported hardware (dangerous)");
 
 MODULE_DEVICE_TABLE(pnp, ene_ids);
 MODULE_DESCRIPTION
-	("Infrared input driver for KB3926B/C/D/E/F "
-	"(aka ENE0100/ENE0200/ENE0201/ENE0202) CIR port");
+("Infrared input driver for KB3926B/C/D/E/F "
+ "(aka ENE0100/ENE0200/ENE0201/ENE0202) CIR port");
 
 MODULE_AUTHOR("Maxim Levitsky");
 MODULE_LICENSE("GPL");

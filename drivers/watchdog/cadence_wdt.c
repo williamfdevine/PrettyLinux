@@ -54,13 +54,13 @@ static int nowayout = WATCHDOG_NOWAYOUT;
 
 module_param(wdt_timeout, int, 0);
 MODULE_PARM_DESC(wdt_timeout,
-		 "Watchdog time in seconds. (default="
-		 __MODULE_STRING(CDNS_WDT_DEFAULT_TIMEOUT) ")");
+				 "Watchdog time in seconds. (default="
+				 __MODULE_STRING(CDNS_WDT_DEFAULT_TIMEOUT) ")");
 
 module_param(nowayout, int, 0);
 MODULE_PARM_DESC(nowayout,
-		 "Watchdog cannot be stopped once started (default="
-		 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "Watchdog cannot be stopped once started (default="
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 /**
  * struct cdns_wdt - Watchdog device structure
@@ -74,7 +74,8 @@ MODULE_PARM_DESC(nowayout,
  *
  * Structure containing parameters specific to cadence watchdog.
  */
-struct cdns_wdt {
+struct cdns_wdt
+{
 	void __iomem		*regs;
 	bool			rst;
 	struct clk		*clk;
@@ -130,7 +131,7 @@ static int cdns_wdt_stop(struct watchdog_device *wdd)
 
 	spin_lock(&wdt->io_lock);
 	cdns_wdt_writereg(wdt, CDNS_WDT_ZMR_OFFSET,
-			  CDNS_WDT_ZMR_ZKEY_VAL & (~CDNS_WDT_ZMR_WDEN_MASK));
+					  CDNS_WDT_ZMR_ZKEY_VAL & (~CDNS_WDT_ZMR_WDEN_MASK));
 	spin_unlock(&wdt->io_lock);
 
 	return 0;
@@ -151,7 +152,7 @@ static int cdns_wdt_reload(struct watchdog_device *wdd)
 
 	spin_lock(&wdt->io_lock);
 	cdns_wdt_writereg(wdt, CDNS_WDT_RESTART_OFFSET,
-			  CDNS_WDT_RESTART_KEY);
+					  CDNS_WDT_RESTART_KEY);
 	spin_unlock(&wdt->io_lock);
 
 	return 0;
@@ -187,14 +188,16 @@ static int cdns_wdt_start(struct watchdog_device *wdd)
 	 * counter reset to be written to control register.
 	 */
 	count = (wdd->timeout * (clock_f / wdt->prescaler)) /
-		 CDNS_WDT_COUNTER_VALUE_DIVISOR + 1;
+			CDNS_WDT_COUNTER_VALUE_DIVISOR + 1;
 
 	if (count > CDNS_WDT_COUNTER_MAX)
+	{
 		count = CDNS_WDT_COUNTER_MAX;
+	}
 
 	spin_lock(&wdt->io_lock);
 	cdns_wdt_writereg(wdt, CDNS_WDT_ZMR_OFFSET,
-			  CDNS_WDT_ZMR_ZKEY_VAL);
+					  CDNS_WDT_ZMR_ZKEY_VAL);
 
 	count = (count << 2) & CDNS_WDT_CCR_CRV_MASK;
 
@@ -202,19 +205,23 @@ static int cdns_wdt_start(struct watchdog_device *wdd)
 	data = count | CDNS_WDT_REGISTER_ACCESS_KEY | wdt->ctrl_clksel;
 	cdns_wdt_writereg(wdt, CDNS_WDT_CCR_OFFSET, data);
 	data = CDNS_WDT_ZMR_WDEN_MASK | CDNS_WDT_ZMR_RSTLEN_16 |
-	       CDNS_WDT_ZMR_ZKEY_VAL;
+		   CDNS_WDT_ZMR_ZKEY_VAL;
 
 	/* Reset on timeout if specified in device tree. */
-	if (wdt->rst) {
+	if (wdt->rst)
+	{
 		data |= CDNS_WDT_ZMR_RSTEN_MASK;
 		data &= ~CDNS_WDT_ZMR_IRQEN_MASK;
-	} else {
+	}
+	else
+	{
 		data &= ~CDNS_WDT_ZMR_RSTEN_MASK;
 		data |= CDNS_WDT_ZMR_IRQEN_MASK;
 	}
+
 	cdns_wdt_writereg(wdt, CDNS_WDT_ZMR_OFFSET, data);
 	cdns_wdt_writereg(wdt, CDNS_WDT_RESTART_OFFSET,
-			  CDNS_WDT_RESTART_KEY);
+					  CDNS_WDT_RESTART_KEY);
 	spin_unlock(&wdt->io_lock);
 
 	return 0;
@@ -231,7 +238,7 @@ static int cdns_wdt_start(struct watchdog_device *wdd)
  * cdns_wdt_start is called.
  */
 static int cdns_wdt_settimeout(struct watchdog_device *wdd,
-			       unsigned int new_time)
+							   unsigned int new_time)
 {
 	wdd->timeout = new_time;
 
@@ -253,7 +260,7 @@ static irqreturn_t cdns_wdt_irq_handler(int irq, void *dev_id)
 	struct platform_device *pdev = dev_id;
 
 	dev_info(&pdev->dev,
-		 "Watchdog timed out. Internal reset not enabled\n");
+			 "Watchdog timed out. Internal reset not enabled\n");
 
 	return IRQ_HANDLED;
 }
@@ -262,14 +269,16 @@ static irqreturn_t cdns_wdt_irq_handler(int irq, void *dev_id)
  * Info structure used to indicate the features supported by the device
  * to the upper layers. This is defined in watchdog.h header file.
  */
-static struct watchdog_info cdns_wdt_info = {
+static struct watchdog_info cdns_wdt_info =
+{
 	.identity	= "cdns_wdt watchdog",
 	.options	= WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING |
-			  WDIOF_MAGICCLOSE,
+	WDIOF_MAGICCLOSE,
 };
 
 /* Watchdog Core Ops */
-static const struct watchdog_ops cdns_wdt_ops = {
+static const struct watchdog_ops cdns_wdt_ops =
+{
 	.owner = THIS_MODULE,
 	.start = cdns_wdt_start,
 	.stop = cdns_wdt_stop,
@@ -295,8 +304,11 @@ static int cdns_wdt_probe(struct platform_device *pdev)
 	struct watchdog_device *cdns_wdt_device;
 
 	wdt = devm_kzalloc(&pdev->dev, sizeof(*wdt), GFP_KERNEL);
+
 	if (!wdt)
+	{
 		return -ENOMEM;
+	}
 
 	cdns_wdt_device = &wdt->cdns_wdt_device;
 	cdns_wdt_device->info = &cdns_wdt_info;
@@ -307,19 +319,26 @@ static int cdns_wdt_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	wdt->regs = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(wdt->regs))
+	{
 		return PTR_ERR(wdt->regs);
+	}
 
 	/* Register the interrupt */
 	wdt->rst = of_property_read_bool(pdev->dev.of_node, "reset-on-timeout");
 	irq = platform_get_irq(pdev, 0);
-	if (!wdt->rst && irq >= 0) {
+
+	if (!wdt->rst && irq >= 0)
+	{
 		ret = devm_request_irq(&pdev->dev, irq, cdns_wdt_irq_handler, 0,
-				       pdev->name, pdev);
-		if (ret) {
+							   pdev->name, pdev);
+
+		if (ret)
+		{
 			dev_err(&pdev->dev,
-				"cannot register interrupt handler err=%d\n",
-				ret);
+					"cannot register interrupt handler err=%d\n",
+					ret);
 			return ret;
 		}
 	}
@@ -328,7 +347,9 @@ static int cdns_wdt_probe(struct platform_device *pdev)
 	cdns_wdt_device->parent = &pdev->dev;
 
 	ret = watchdog_init_timeout(cdns_wdt_device, wdt_timeout, &pdev->dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to set timeout value\n");
 		return ret;
 	}
@@ -338,23 +359,31 @@ static int cdns_wdt_probe(struct platform_device *pdev)
 	watchdog_set_drvdata(cdns_wdt_device, wdt);
 
 	wdt->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(wdt->clk)) {
+
+	if (IS_ERR(wdt->clk))
+	{
 		dev_err(&pdev->dev, "input clock not found\n");
 		ret = PTR_ERR(wdt->clk);
 		return ret;
 	}
 
 	ret = clk_prepare_enable(wdt->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to enable clock\n");
 		return ret;
 	}
 
 	clock_f = clk_get_rate(wdt->clk);
-	if (clock_f <= CDNS_WDT_CLK_75MHZ) {
+
+	if (clock_f <= CDNS_WDT_CLK_75MHZ)
+	{
 		wdt->prescaler = CDNS_WDT_PRESCALE_512;
 		wdt->ctrl_clksel = CDNS_WDT_PRESCALE_SELECT_512;
-	} else {
+	}
+	else
+	{
 		wdt->prescaler = CDNS_WDT_PRESCALE_4096;
 		wdt->ctrl_clksel = CDNS_WDT_PRESCALE_SELECT_4096;
 	}
@@ -362,15 +391,18 @@ static int cdns_wdt_probe(struct platform_device *pdev)
 	spin_lock_init(&wdt->io_lock);
 
 	ret = watchdog_register_device(cdns_wdt_device);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to register wdt device\n");
 		goto err_clk_disable;
 	}
+
 	platform_set_drvdata(pdev, wdt);
 
 	dev_dbg(&pdev->dev, "Xilinx Watchdog Timer at %p with timeout %ds%s\n",
-		 wdt->regs, cdns_wdt_device->timeout,
-		 nowayout ? ", nowayout" : "");
+			wdt->regs, cdns_wdt_device->timeout,
+			nowayout ? ", nowayout" : "");
 
 	return 0;
 
@@ -424,7 +456,8 @@ static int __maybe_unused cdns_wdt_suspend(struct device *dev)
 	struct platform_device *pdev = to_platform_device(dev);
 	struct cdns_wdt *wdt = platform_get_drvdata(pdev);
 
-	if (watchdog_active(&wdt->cdns_wdt_device)) {
+	if (watchdog_active(&wdt->cdns_wdt_device))
+	{
 		cdns_wdt_stop(&wdt->cdns_wdt_device);
 		clk_disable_unprepare(wdt->clk);
 	}
@@ -444,12 +477,16 @@ static int __maybe_unused cdns_wdt_resume(struct device *dev)
 	struct platform_device *pdev = to_platform_device(dev);
 	struct cdns_wdt *wdt = platform_get_drvdata(pdev);
 
-	if (watchdog_active(&wdt->cdns_wdt_device)) {
+	if (watchdog_active(&wdt->cdns_wdt_device))
+	{
 		ret = clk_prepare_enable(wdt->clk);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev, "unable to enable clock\n");
 			return ret;
 		}
+
 		cdns_wdt_start(&wdt->cdns_wdt_device);
 	}
 
@@ -458,14 +495,16 @@ static int __maybe_unused cdns_wdt_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(cdns_wdt_pm_ops, cdns_wdt_suspend, cdns_wdt_resume);
 
-static struct of_device_id cdns_wdt_of_match[] = {
+static struct of_device_id cdns_wdt_of_match[] =
+{
 	{ .compatible = "cdns,wdt-r1p2", },
 	{ /* end of table */ }
 };
 MODULE_DEVICE_TABLE(of, cdns_wdt_of_match);
 
 /* Driver Structure */
-static struct platform_driver cdns_wdt_driver = {
+static struct platform_driver cdns_wdt_driver =
+{
 	.probe		= cdns_wdt_probe,
 	.remove		= cdns_wdt_remove,
 	.shutdown	= cdns_wdt_shutdown,

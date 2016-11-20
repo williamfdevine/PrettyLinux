@@ -9,12 +9,14 @@
 #include <net/net_namespace.h>
 #include <net/netns/generic.h>
 
-struct bl_dev_msg {
+struct bl_dev_msg
+{
 	int32_t status;
 	uint32_t major, minor;
 };
 
-struct nfs_net {
+struct nfs_net
+{
 	struct cache_detail *nfs_dns_resolve;
 	struct rpc_pipe *bl_device_pipe;
 	struct bl_dev_msg bl_mount_reply;

@@ -15,7 +15,8 @@
  * @virtual_x: The virtual X size.
  * @virtual_y: The virtual Y size.
  */
-struct s3c_fb_pd_win {
+struct s3c_fb_pd_win
+{
 	unsigned short		default_bpp;
 	unsigned short		max_bpp;
 	unsigned short		xres;
@@ -41,7 +42,8 @@ struct s3c_fb_pd_win {
  * the base framebuffer) that are initialised etc.
  *
  */
-struct s3c_fb_platdata {
+struct s3c_fb_platdata
+{
 	void	(*setup_gpio)(void);
 
 	struct s3c_fb_pd_win	*win[S3C_FB_MAX_WIN];

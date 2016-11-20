@@ -73,17 +73,17 @@
 
 /*********************************** Debugging ********************************/
 #ifdef CONFIG_AIC79XX_DEBUG_ENABLE
-#ifdef CONFIG_AIC79XX_DEBUG_MASK
-#define AHD_DEBUG 1
-#define AHD_DEBUG_OPTS CONFIG_AIC79XX_DEBUG_MASK
-#else
-/*
- * Compile in debugging code, but do not enable any printfs.
- */
-#define AHD_DEBUG 1
-#define AHD_DEBUG_OPTS 0
-#endif
-/* No debugging code. */
+	#ifdef CONFIG_AIC79XX_DEBUG_MASK
+		#define AHD_DEBUG 1
+		#define AHD_DEBUG_OPTS CONFIG_AIC79XX_DEBUG_MASK
+	#else
+		/*
+		* Compile in debugging code, but do not enable any printfs.
+		*/
+		#define AHD_DEBUG 1
+		#define AHD_DEBUG_OPTS 0
+	#endif
+	/* No debugging code. */
 #endif
 
 /********************************** Misc Macros *******************************/
@@ -117,12 +117,14 @@ extern struct scsi_host_template aic79xx_driver_template;
 
 typedef uint32_t bus_size_t;
 
-typedef enum {
+typedef enum
+{
 	BUS_SPACE_MEMIO,
 	BUS_SPACE_PIO
 } bus_space_tag_t;
 
-typedef union {
+typedef union
+{
 	u_long		  ioport;
 	volatile uint8_t __iomem *maddr;
 } bus_space_handle_t;
@@ -139,11 +141,11 @@ struct ahd_linux_dma_tag
 	bus_size_t	boundary;
 	bus_size_t	maxsize;
 };
-typedef struct ahd_linux_dma_tag* bus_dma_tag_t;
+typedef struct ahd_linux_dma_tag *bus_dma_tag_t;
 
 typedef dma_addr_t bus_dmamap_t;
 
-typedef int bus_dma_filter_t(void*, dma_addr_t);
+typedef int bus_dma_filter_t(void *, dma_addr_t);
 typedef void bus_dmamap_callback_t(void *, bus_dma_segment_t *, int, int);
 
 #define BUS_DMA_WAITOK		0x0
@@ -159,29 +161,29 @@ typedef void bus_dmamap_callback_t(void *, bus_dma_segment_t *, int, int);
 #define BUS_SPACE_MAXSIZE_32BIT	0xFFFFFFFF
 
 int	ahd_dma_tag_create(struct ahd_softc *, bus_dma_tag_t /*parent*/,
-			   bus_size_t /*alignment*/, bus_size_t /*boundary*/,
-			   dma_addr_t /*lowaddr*/, dma_addr_t /*highaddr*/,
-			   bus_dma_filter_t*/*filter*/, void */*filterarg*/,
-			   bus_size_t /*maxsize*/, int /*nsegments*/,
-			   bus_size_t /*maxsegsz*/, int /*flags*/,
-			   bus_dma_tag_t */*dma_tagp*/);
+					   bus_size_t /*alignment*/, bus_size_t /*boundary*/,
+					   dma_addr_t /*lowaddr*/, dma_addr_t /*highaddr*/,
+					   bus_dma_filter_t */*filter*/, void */*filterarg*/,
+					   bus_size_t /*maxsize*/, int /*nsegments*/,
+					   bus_size_t /*maxsegsz*/, int /*flags*/,
+					   bus_dma_tag_t */*dma_tagp*/);
 
 void	ahd_dma_tag_destroy(struct ahd_softc *, bus_dma_tag_t /*tag*/);
 
 int	ahd_dmamem_alloc(struct ahd_softc *, bus_dma_tag_t /*dmat*/,
-			 void** /*vaddr*/, int /*flags*/,
-			 bus_dmamap_t* /*mapp*/);
+					 void ** /*vaddr*/, int /*flags*/,
+					 bus_dmamap_t * /*mapp*/);
 
 void	ahd_dmamem_free(struct ahd_softc *, bus_dma_tag_t /*dmat*/,
-			void* /*vaddr*/, bus_dmamap_t /*map*/);
+						void * /*vaddr*/, bus_dmamap_t /*map*/);
 
 void	ahd_dmamap_destroy(struct ahd_softc *, bus_dma_tag_t /*tag*/,
-			   bus_dmamap_t /*map*/);
+						   bus_dmamap_t /*map*/);
 
 int	ahd_dmamap_load(struct ahd_softc *ahd, bus_dma_tag_t /*dmat*/,
-			bus_dmamap_t /*map*/, void * /*buf*/,
-			bus_size_t /*buflen*/, bus_dmamap_callback_t *,
-			void */*callback_arg*/, int /*flags*/);
+					bus_dmamap_t /*map*/, void * /*buf*/,
+					bus_size_t /*buflen*/, bus_dmamap_callback_t *,
+					void */*callback_arg*/, int /*flags*/);
 
 int	ahd_dmamap_unload(struct ahd_softc *, bus_dma_tag_t, bus_dmamap_t);
 
@@ -208,9 +210,9 @@ typedef struct timer_list ahd_timer_t;
 
 /********************************** Includes **********************************/
 #ifdef CONFIG_AIC79XX_REG_PRETTY_PRINT
-#define AIC_DEBUG_REGISTERS 1
+	#define AIC_DEBUG_REGISTERS 1
 #else
-#define AIC_DEBUG_REGISTERS 0
+	#define AIC_DEBUG_REGISTERS 0
 #endif
 #include "aic79xx.h"
 
@@ -232,14 +234,16 @@ typedef struct timer_list ahd_timer_t;
  * that inquiry data indicates a lun is present.
  */
 
-typedef enum {
+typedef enum
+{
 	AHD_DEV_FREEZE_TIL_EMPTY = 0x02, /* Freeze queue until active == 0 */
 	AHD_DEV_Q_BASIC		 = 0x10, /* Allow basic device queuing */
 	AHD_DEV_Q_TAGGED	 = 0x20, /* Allow full SCSI2 command queueing */
 	AHD_DEV_PERIODIC_OTAG	 = 0x40, /* Send OTAG to prevent starvation */
 } ahd_linux_dev_flags;
 
-struct ahd_linux_device {
+struct ahd_linux_device
+{
 	TAILQ_ENTRY(ahd_linux_device) links;
 
 	/*
@@ -249,7 +253,7 @@ struct ahd_linux_device {
 	int			active;
 
 	/*
-	 * The currently allowed number of 
+	 * The currently allowed number of
 	 * transactions that can be queued to
 	 * the device.  Must be signed for
 	 * conversion from tagged to untagged
@@ -263,7 +267,7 @@ struct ahd_linux_device {
 	 * device's queue is halted.
 	 */
 	u_int			qfrozen;
-	
+
 	/*
 	 * Cumulative command counter.
 	 */
@@ -330,7 +334,8 @@ struct ahd_linux_device {
 /*
  * Per-SCB OSM storage.
  */
-struct scb_platform_data {
+struct scb_platform_data
+{
 	struct ahd_linux_device	*dev;
 	dma_addr_t		 buf_busaddr;
 	uint32_t		 xfer_len;
@@ -343,11 +348,12 @@ struct scb_platform_data {
  * alignment restrictions of the various platforms supported by
  * this driver.
  */
-struct ahd_platform_data {
+struct ahd_platform_data
+{
 	/*
 	 * Fields accessed from interrupt context.
 	 */
-	struct scsi_target *starget[AHD_NUM_TARGETS]; 
+	struct scsi_target *starget[AHD_NUM_TARGETS];
 
 	spinlock_t		 spin_lock;
 	struct completion	*eh_done;
@@ -361,18 +367,18 @@ struct ahd_platform_data {
 void ahd_delay(long);
 
 /***************************** Low Level I/O **********************************/
-uint8_t ahd_inb(struct ahd_softc * ahd, long port);
-void ahd_outb(struct ahd_softc * ahd, long port, uint8_t val);
-void ahd_outw_atomic(struct ahd_softc * ahd,
-				     long port, uint16_t val);
-void ahd_outsb(struct ahd_softc * ahd, long port,
-			       uint8_t *, int count);
-void ahd_insb(struct ahd_softc * ahd, long port,
-			       uint8_t *, int count);
+uint8_t ahd_inb(struct ahd_softc *ahd, long port);
+void ahd_outb(struct ahd_softc *ahd, long port, uint8_t val);
+void ahd_outw_atomic(struct ahd_softc *ahd,
+					 long port, uint16_t val);
+void ahd_outsb(struct ahd_softc *ahd, long port,
+			   uint8_t *, int count);
+void ahd_insb(struct ahd_softc *ahd, long port,
+			  uint8_t *, int count);
 
 /**************************** Initialization **********************************/
 int		ahd_linux_register_host(struct ahd_softc *,
-					struct scsi_host_template *);
+								struct scsi_host_template *);
 
 /******************************** Locking *************************************/
 static inline void
@@ -456,7 +462,7 @@ typedef enum
 } ahd_power_state;
 
 void ahd_power_state_change(struct ahd_softc *ahd,
-			    ahd_power_state new_state);
+							ahd_power_state new_state);
 
 /******************************* PCI Routines *********************************/
 int			 ahd_linux_pci_init(void);
@@ -465,10 +471,10 @@ int			 ahd_pci_map_registers(struct ahd_softc *ahd);
 int			 ahd_pci_map_int(struct ahd_softc *ahd);
 
 uint32_t		 ahd_pci_read_config(ahd_dev_softc_t pci,
-					     int reg, int width);
+									 int reg, int width);
 void			 ahd_pci_write_config(ahd_dev_softc_t pci,
-					  int reg, uint32_t value,
-					  int width);
+									  int reg, uint32_t value,
+									  int width);
 
 static inline int ahd_get_pci_function(ahd_dev_softc_t);
 static inline int
@@ -501,7 +507,7 @@ ahd_flush_device_writes(struct ahd_softc *ahd)
 
 /**************************** Proc FS Support *********************************/
 int	ahd_proc_write_seeprom(struct Scsi_Host *, char *, int);
-int	ahd_linux_show_info(struct seq_file *,struct Scsi_Host *);
+int	ahd_linux_show_info(struct seq_file *, struct Scsi_Host *);
 
 /*********************** Transaction Access Wrappers **************************/
 static inline void ahd_cmd_set_transaction_status(struct scsi_cmnd *, uint32_t);
@@ -521,11 +527,11 @@ static inline u_long ahd_get_residual(struct scb *);
 static inline u_long ahd_get_sense_residual(struct scb *);
 static inline int ahd_perform_autosense(struct scb *);
 static inline uint32_t ahd_get_sense_bufsize(struct ahd_softc *,
-					       struct scb *);
+		struct scb *);
 static inline void ahd_notify_xfer_settings_change(struct ahd_softc *,
-						     struct ahd_devinfo *);
+		struct ahd_devinfo *);
 static inline void ahd_platform_scb_free(struct ahd_softc *ahd,
-					   struct scb *scb);
+		struct scb *scb);
 static inline void ahd_freeze_scb(struct scb *scb);
 
 static inline
@@ -538,7 +544,7 @@ void ahd_cmd_set_transaction_status(struct scsi_cmnd *cmd, uint32_t status)
 static inline
 void ahd_set_transaction_status(struct scb *scb, uint32_t status)
 {
-	ahd_cmd_set_transaction_status(scb->io_ctx,status);
+	ahd_cmd_set_transaction_status(scb->io_ctx, status);
 }
 
 static inline
@@ -642,7 +648,7 @@ ahd_get_sense_bufsize(struct ahd_softc *ahd, struct scb *scb)
 
 static inline void
 ahd_notify_xfer_settings_change(struct ahd_softc *ahd,
-				struct ahd_devinfo *devinfo)
+								struct ahd_devinfo *devinfo)
 {
 	/* Nothing to do here for linux */
 }
@@ -661,28 +667,29 @@ void	ahd_platform_freeze_devq(struct ahd_softc *ahd, struct scb *scb);
 static inline void
 ahd_freeze_scb(struct scb *scb)
 {
-	if ((scb->io_ctx->result & (CAM_DEV_QFRZN << 16)) == 0) {
-                scb->io_ctx->result |= CAM_DEV_QFRZN << 16;
-                scb->platform_data->dev->qfrozen++;
-        }
+	if ((scb->io_ctx->result & (CAM_DEV_QFRZN << 16)) == 0)
+	{
+		scb->io_ctx->result |= CAM_DEV_QFRZN << 16;
+		scb->platform_data->dev->qfrozen++;
+	}
 }
 
 void	ahd_platform_set_tags(struct ahd_softc *ahd, struct scsi_device *sdev,
-			      struct ahd_devinfo *devinfo, ahd_queue_alg);
+							  struct ahd_devinfo *devinfo, ahd_queue_alg);
 int	ahd_platform_abort_scbs(struct ahd_softc *ahd, int target,
-				char channel, int lun, u_int tag,
-				role_t role, uint32_t status);
+							char channel, int lun, u_int tag,
+							role_t role, uint32_t status);
 irqreturn_t
-	ahd_linux_isr(int irq, void *dev_id);
-void	ahd_done(struct ahd_softc*, struct scb*);
+ahd_linux_isr(int irq, void *dev_id);
+void	ahd_done(struct ahd_softc *, struct scb *);
 void	ahd_send_async(struct ahd_softc *, char channel,
-		       u_int target, u_int lun, ac_code);
+					   u_int target, u_int lun, ac_code);
 void	ahd_print_path(struct ahd_softc *, struct scb *);
 
 #ifdef CONFIG_PCI
-#define AHD_PCI_CONFIG 1
+	#define AHD_PCI_CONFIG 1
 #else
-#define AHD_PCI_CONFIG 0
+	#define AHD_PCI_CONFIG 0
 #endif
 #define bootverbose aic79xx_verbose
 extern uint32_t aic79xx_verbose;

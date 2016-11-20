@@ -151,7 +151,8 @@
 
 /* Terminal Control Selectors */
 /* 4.3.2  Class-Specific AC Interface Descriptor */
-struct uac1_ac_header_descriptor {
+struct uac1_ac_header_descriptor
+{
 	__u8  bLength;			/* 8 + n */
 	__u8  bDescriptorType;		/* USB_DT_CS_INTERFACE */
 	__u8  bDescriptorSubtype;	/* UAC_MS_HEADER */
@@ -165,18 +166,19 @@ struct uac1_ac_header_descriptor {
 
 /* As above, but more useful for defining your own descriptors: */
 #define DECLARE_UAC_AC_HEADER_DESCRIPTOR(n)			\
-struct uac1_ac_header_descriptor_##n {			\
-	__u8  bLength;						\
-	__u8  bDescriptorType;					\
-	__u8  bDescriptorSubtype;				\
-	__le16 bcdADC;						\
-	__le16 wTotalLength;					\
-	__u8  bInCollection;					\
-	__u8  baInterfaceNr[n];					\
-} __attribute__ ((packed))
+	struct uac1_ac_header_descriptor_##n {			\
+		__u8  bLength;						\
+		__u8  bDescriptorType;					\
+		__u8  bDescriptorSubtype;				\
+		__le16 bcdADC;						\
+		__le16 wTotalLength;					\
+		__u8  bInCollection;					\
+		__u8  baInterfaceNr[n];					\
+	} __attribute__ ((packed))
 
 /* 4.3.2.1 Input Terminal Descriptor */
-struct uac_input_terminal_descriptor {
+struct uac_input_terminal_descriptor
+{
 	__u8  bLength;			/* in bytes: 12 */
 	__u8  bDescriptorType;		/* CS_INTERFACE descriptor type */
 	__u8  bDescriptorSubtype;	/* INPUT_TERMINAL descriptor subtype */
@@ -205,7 +207,8 @@ struct uac_input_terminal_descriptor {
 #define UAC_TERMINAL_CS_COPY_PROTECT_CONTROL		0x01
 
 /* 4.3.2.2 Output Terminal Descriptor */
-struct uac1_output_terminal_descriptor {
+struct uac1_output_terminal_descriptor
+{
 	__u8  bLength;			/* in bytes: 9 */
 	__u8  bDescriptorType;		/* CS_INTERFACE descriptor type */
 	__u8  bDescriptorSubtype;	/* OUTPUT_TERMINAL descriptor subtype */
@@ -233,19 +236,20 @@ struct uac1_output_terminal_descriptor {
 
 /* As above, but more useful for defining your own descriptors: */
 #define DECLARE_UAC_FEATURE_UNIT_DESCRIPTOR(ch)			\
-struct uac_feature_unit_descriptor_##ch {			\
-	__u8  bLength;						\
-	__u8  bDescriptorType;					\
-	__u8  bDescriptorSubtype;				\
-	__u8  bUnitID;						\
-	__u8  bSourceID;					\
-	__u8  bControlSize;					\
-	__le16 bmaControls[ch + 1];				\
-	__u8  iFeature;						\
-} __attribute__ ((packed))
+	struct uac_feature_unit_descriptor_##ch {			\
+		__u8  bLength;						\
+		__u8  bDescriptorType;					\
+		__u8  bDescriptorSubtype;				\
+		__u8  bUnitID;						\
+		__u8  bSourceID;					\
+		__u8  bControlSize;					\
+		__le16 bmaControls[ch + 1];				\
+		__u8  iFeature;						\
+	} __attribute__ ((packed))
 
 /* 4.3.2.3 Mixer Unit Descriptor */
-struct uac_mixer_unit_descriptor {
+struct uac_mixer_unit_descriptor
+{
 	__u8 bLength;
 	__u8 bDescriptorType;
 	__u8 bDescriptorSubtype;
@@ -260,32 +264,32 @@ static inline __u8 uac_mixer_unit_bNrChannels(struct uac_mixer_unit_descriptor *
 }
 
 static inline __u32 uac_mixer_unit_wChannelConfig(struct uac_mixer_unit_descriptor *desc,
-						  int protocol)
+		int protocol)
 {
 	if (protocol == UAC_VERSION_1)
 		return (desc->baSourceID[desc->bNrInPins + 2] << 8) |
-			desc->baSourceID[desc->bNrInPins + 1];
+			   desc->baSourceID[desc->bNrInPins + 1];
 	else
 		return  (desc->baSourceID[desc->bNrInPins + 4] << 24) |
-			(desc->baSourceID[desc->bNrInPins + 3] << 16) |
-			(desc->baSourceID[desc->bNrInPins + 2] << 8)  |
-			(desc->baSourceID[desc->bNrInPins + 1]);
+				(desc->baSourceID[desc->bNrInPins + 3] << 16) |
+				(desc->baSourceID[desc->bNrInPins + 2] << 8)  |
+				(desc->baSourceID[desc->bNrInPins + 1]);
 }
 
 static inline __u8 uac_mixer_unit_iChannelNames(struct uac_mixer_unit_descriptor *desc,
-						int protocol)
+		int protocol)
 {
 	return (protocol == UAC_VERSION_1) ?
-		desc->baSourceID[desc->bNrInPins + 3] :
-		desc->baSourceID[desc->bNrInPins + 5];
+		   desc->baSourceID[desc->bNrInPins + 3] :
+		   desc->baSourceID[desc->bNrInPins + 5];
 }
 
 static inline __u8 *uac_mixer_unit_bmControls(struct uac_mixer_unit_descriptor *desc,
-					      int protocol)
+		int protocol)
 {
 	return (protocol == UAC_VERSION_1) ?
-		&desc->baSourceID[desc->bNrInPins + 4] :
-		&desc->baSourceID[desc->bNrInPins + 6];
+		   &desc->baSourceID[desc->bNrInPins + 4] :
+		   &desc->baSourceID[desc->bNrInPins + 6];
 }
 
 static inline __u8 uac_mixer_unit_iMixer(struct uac_mixer_unit_descriptor *desc)
@@ -295,7 +299,8 @@ static inline __u8 uac_mixer_unit_iMixer(struct uac_mixer_unit_descriptor *desc)
 }
 
 /* 4.3.2.4 Selector Unit Descriptor */
-struct uac_selector_unit_descriptor {
+struct uac_selector_unit_descriptor
+{
 	__u8 bLength;
 	__u8 bDescriptorType;
 	__u8 bDescriptorSubtype;
@@ -311,7 +316,8 @@ static inline __u8 uac_selector_unit_iSelector(struct uac_selector_unit_descript
 }
 
 /* 4.3.2.5 Feature Unit Descriptor */
-struct uac_feature_unit_descriptor {
+struct uac_feature_unit_descriptor
+{
 	__u8 bLength;
 	__u8 bDescriptorType;
 	__u8 bDescriptorSubtype;
@@ -328,7 +334,8 @@ static inline __u8 uac_feature_unit_iFeature(struct uac_feature_unit_descriptor 
 }
 
 /* 4.3.2.6 Processing Unit Descriptors */
-struct uac_processing_unit_descriptor {
+struct uac_processing_unit_descriptor
+{
 	__u8 bLength;
 	__u8 bDescriptorType;
 	__u8 bDescriptorSubtype;
@@ -344,60 +351,61 @@ static inline __u8 uac_processing_unit_bNrChannels(struct uac_processing_unit_de
 }
 
 static inline __u32 uac_processing_unit_wChannelConfig(struct uac_processing_unit_descriptor *desc,
-						       int protocol)
+		int protocol)
 {
 	if (protocol == UAC_VERSION_1)
 		return (desc->baSourceID[desc->bNrInPins + 2] << 8) |
-			desc->baSourceID[desc->bNrInPins + 1];
+			   desc->baSourceID[desc->bNrInPins + 1];
 	else
 		return  (desc->baSourceID[desc->bNrInPins + 4] << 24) |
-			(desc->baSourceID[desc->bNrInPins + 3] << 16) |
-			(desc->baSourceID[desc->bNrInPins + 2] << 8)  |
-			(desc->baSourceID[desc->bNrInPins + 1]);
+				(desc->baSourceID[desc->bNrInPins + 3] << 16) |
+				(desc->baSourceID[desc->bNrInPins + 2] << 8)  |
+				(desc->baSourceID[desc->bNrInPins + 1]);
 }
 
 static inline __u8 uac_processing_unit_iChannelNames(struct uac_processing_unit_descriptor *desc,
-						     int protocol)
+		int protocol)
 {
 	return (protocol == UAC_VERSION_1) ?
-		desc->baSourceID[desc->bNrInPins + 3] :
-		desc->baSourceID[desc->bNrInPins + 5];
+		   desc->baSourceID[desc->bNrInPins + 3] :
+		   desc->baSourceID[desc->bNrInPins + 5];
 }
 
 static inline __u8 uac_processing_unit_bControlSize(struct uac_processing_unit_descriptor *desc,
-						    int protocol)
+		int protocol)
 {
 	return (protocol == UAC_VERSION_1) ?
-		desc->baSourceID[desc->bNrInPins + 4] :
-		desc->baSourceID[desc->bNrInPins + 6];
+		   desc->baSourceID[desc->bNrInPins + 4] :
+		   desc->baSourceID[desc->bNrInPins + 6];
 }
 
 static inline __u8 *uac_processing_unit_bmControls(struct uac_processing_unit_descriptor *desc,
-						   int protocol)
+		int protocol)
 {
 	return (protocol == UAC_VERSION_1) ?
-		&desc->baSourceID[desc->bNrInPins + 5] :
-		&desc->baSourceID[desc->bNrInPins + 7];
+		   &desc->baSourceID[desc->bNrInPins + 5] :
+		   &desc->baSourceID[desc->bNrInPins + 7];
 }
 
 static inline __u8 uac_processing_unit_iProcessing(struct uac_processing_unit_descriptor *desc,
-						   int protocol)
+		int protocol)
 {
 	__u8 control_size = uac_processing_unit_bControlSize(desc, protocol);
 	return *(uac_processing_unit_bmControls(desc, protocol)
-			+ control_size);
+			 + control_size);
 }
 
 static inline __u8 *uac_processing_unit_specific(struct uac_processing_unit_descriptor *desc,
-						 int protocol)
+		int protocol)
 {
 	__u8 control_size = uac_processing_unit_bControlSize(desc, protocol);
 	return uac_processing_unit_bmControls(desc, protocol)
-			+ control_size + 1;
+		   + control_size + 1;
 }
 
 /* 4.5.2 Class-Specific AS Interface Descriptor */
-struct uac1_as_header_descriptor {
+struct uac1_as_header_descriptor
+{
 	__u8  bLength;			/* in bytes: 7 */
 	__u8  bDescriptorType;		/* USB_DT_CS_INTERFACE */
 	__u8  bDescriptorSubtype;	/* AS_GENERAL */
@@ -416,7 +424,8 @@ struct uac1_as_header_descriptor {
 #define UAC_FORMAT_TYPE_I_ALAW		0x4
 #define UAC_FORMAT_TYPE_I_MULAW		0x5
 
-struct uac_format_type_i_continuous_descriptor {
+struct uac_format_type_i_continuous_descriptor
+{
 	__u8  bLength;			/* in bytes: 8 + (ns * 3) */
 	__u8  bDescriptorType;		/* USB_DT_CS_INTERFACE */
 	__u8  bDescriptorSubtype;	/* FORMAT_TYPE */
@@ -431,7 +440,8 @@ struct uac_format_type_i_continuous_descriptor {
 
 #define UAC_FORMAT_TYPE_I_CONTINUOUS_DESC_SIZE	14
 
-struct uac_format_type_i_discrete_descriptor {
+struct uac_format_type_i_discrete_descriptor
+{
 	__u8  bLength;			/* in bytes: 8 + (ns * 3) */
 	__u8  bDescriptorType;		/* USB_DT_CS_INTERFACE */
 	__u8  bDescriptorSubtype;	/* FORMAT_TYPE */
@@ -444,21 +454,22 @@ struct uac_format_type_i_discrete_descriptor {
 } __attribute__ ((packed));
 
 #define DECLARE_UAC_FORMAT_TYPE_I_DISCRETE_DESC(n)		\
-struct uac_format_type_i_discrete_descriptor_##n {		\
-	__u8  bLength;						\
-	__u8  bDescriptorType;					\
-	__u8  bDescriptorSubtype;				\
-	__u8  bFormatType;					\
-	__u8  bNrChannels;					\
-	__u8  bSubframeSize;					\
-	__u8  bBitResolution;					\
-	__u8  bSamFreqType;					\
-	__u8  tSamFreq[n][3];					\
-} __attribute__ ((packed))
+	struct uac_format_type_i_discrete_descriptor_##n {		\
+		__u8  bLength;						\
+		__u8  bDescriptorType;					\
+		__u8  bDescriptorSubtype;				\
+		__u8  bFormatType;					\
+		__u8  bNrChannels;					\
+		__u8  bSubframeSize;					\
+		__u8  bBitResolution;					\
+		__u8  bSamFreqType;					\
+		__u8  tSamFreq[n][3];					\
+	} __attribute__ ((packed))
 
 #define UAC_FORMAT_TYPE_I_DISCRETE_DESC_SIZE(n)	(8 + (n * 3))
 
-struct uac_format_type_i_ext_descriptor {
+struct uac_format_type_i_ext_descriptor
+{
 	__u8 bLength;
 	__u8 bDescriptorType;
 	__u8 bDescriptorSubtype;
@@ -475,7 +486,8 @@ struct uac_format_type_i_ext_descriptor {
 #define UAC_FORMAT_TYPE_II_MPEG	0x1001
 #define UAC_FORMAT_TYPE_II_AC3	0x1002
 
-struct uac_format_type_ii_discrete_descriptor {
+struct uac_format_type_ii_discrete_descriptor
+{
 	__u8 bLength;
 	__u8 bDescriptorType;
 	__u8 bDescriptorSubtype;
@@ -486,7 +498,8 @@ struct uac_format_type_ii_discrete_descriptor {
 	__u8 tSamFreq[][3];
 } __attribute__((packed));
 
-struct uac_format_type_ii_ext_descriptor {
+struct uac_format_type_ii_ext_descriptor
+{
 	__u8 bLength;
 	__u8 bDescriptorType;
 	__u8 bDescriptorSubtype;
@@ -514,7 +527,8 @@ struct uac_format_type_ii_ext_descriptor {
 #define UAC_EXT_FORMAT_TYPE_II		0x82
 #define UAC_EXT_FORMAT_TYPE_III		0x83
 
-struct uac_iso_endpoint_descriptor {
+struct uac_iso_endpoint_descriptor
+{
 	__u8  bLength;			/* in bytes: 7 */
 	__u8  bDescriptorType;		/* USB_DT_CS_ENDPOINT */
 	__u8  bDescriptorSubtype;	/* EP_GENERAL */
@@ -538,7 +552,8 @@ struct uac_iso_endpoint_descriptor {
 #define UAC1_STATUS_TYPE_IRQ_PENDING		(1 << 7)
 #define UAC1_STATUS_TYPE_MEM_CHANGED		(1 << 6)
 
-struct uac1_status_word {
+struct uac1_status_word
+{
 	__u8 bStatusType;
 	__u8 bOriginator;
 } __attribute__((packed));

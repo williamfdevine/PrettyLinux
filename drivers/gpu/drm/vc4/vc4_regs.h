@@ -18,16 +18,16 @@
 		uint32_t fieldval = (value) << field##_SHIFT;		\
 		WARN_ON((fieldval & ~field##_MASK) != 0);		\
 		fieldval & field##_MASK;				\
-	 })
+	})
 
 #define VC4_GET_FIELD(word, field) (((word) & field##_MASK) >>		\
-				    field##_SHIFT)
+									field##_SHIFT)
 
 #define V3D_IDENT0   0x00000
 # define V3D_EXPECTED_IDENT0 \
 	((2 << 24) | \
-	('V' << 0) | \
-	('3' << 8) | \
+	 ('V' << 0) | \
+	 ('3' << 8) | \
 	 ('D' << 16))
 
 #define V3D_IDENT1   0x00004
@@ -340,15 +340,15 @@
 #define SCALER_DISPLIST2                        0x00000028
 #define SCALER_DISPLSTAT                        0x0000002c
 #define SCALER_DISPLISTX(x)			(SCALER_DISPLIST0 +	\
-						 (x) * (SCALER_DISPLIST1 - \
-							SCALER_DISPLIST0))
+									 (x) * (SCALER_DISPLIST1 - \
+											 SCALER_DISPLIST0))
 
 #define SCALER_DISPLACT0                        0x00000030
 #define SCALER_DISPLACT1                        0x00000034
 #define SCALER_DISPLACT2                        0x00000038
 #define SCALER_DISPLACTX(x)			(SCALER_DISPLACT0 +	\
-						 (x) * (SCALER_DISPLACT1 - \
-							SCALER_DISPLACT0))
+									 (x) * (SCALER_DISPLACT1 - \
+											 SCALER_DISPLACT0))
 
 #define SCALER_DISPCTRL0                        0x00000040
 # define SCALER_DISPCTRLX_ENABLE		BIT(31)
@@ -400,20 +400,20 @@
 #define SCALER_DISPCTRL1                        0x00000050
 #define SCALER_DISPBKGND1                       0x00000054
 #define SCALER_DISPBKGNDX(x)			(SCALER_DISPBKGND0 +        \
-						 (x) * (SCALER_DISPBKGND1 - \
-							SCALER_DISPBKGND0))
+		(x) * (SCALER_DISPBKGND1 - \
+			   SCALER_DISPBKGND0))
 #define SCALER_DISPSTAT1                        0x00000058
 #define SCALER_DISPSTATX(x)			(SCALER_DISPSTAT0 +        \
-						 (x) * (SCALER_DISPSTAT1 - \
-							SCALER_DISPSTAT0))
+									 (x) * (SCALER_DISPSTAT1 - \
+											 SCALER_DISPSTAT0))
 #define SCALER_DISPBASE1                        0x0000005c
 #define SCALER_DISPBASEX(x)			(SCALER_DISPBASE0 +        \
-						 (x) * (SCALER_DISPBASE1 - \
-							SCALER_DISPBASE0))
+									 (x) * (SCALER_DISPBASE1 - \
+											 SCALER_DISPBASE0))
 #define SCALER_DISPCTRL2                        0x00000060
 #define SCALER_DISPCTRLX(x)			(SCALER_DISPCTRL0 +        \
-						 (x) * (SCALER_DISPCTRL1 - \
-							SCALER_DISPCTRL0))
+									 (x) * (SCALER_DISPCTRL1 - \
+											 SCALER_DISPCTRL0))
 #define SCALER_DISPBKGND2                       0x00000064
 #define SCALER_DISPSTAT2                        0x00000068
 #define SCALER_DISPBASE2                        0x0000006c
@@ -554,7 +554,8 @@
 /* HVS display list information. */
 #define HVS_BOOTLOADER_DLIST_END                32
 
-enum hvs_pixel_format {
+enum hvs_pixel_format
+{
 	/* 8bpp */
 	HVS_PIXEL_FORMAT_RGB332 = 0,
 	/* 16bpp */

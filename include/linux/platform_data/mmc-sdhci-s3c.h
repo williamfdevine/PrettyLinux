@@ -3,7 +3,8 @@
 
 struct platform_device;
 
-enum cd_types {
+enum cd_types
+{
 	S3C_SDHCI_CD_INTERNAL,	/* use mmc internal CD line */
 	S3C_SDHCI_CD_EXTERNAL,	/* use external callback */
 	S3C_SDHCI_CD_GPIO,	/* use external gpio pin for CD line */
@@ -35,7 +36,8 @@ enum cd_types {
  * for the device driver to use or call-back when configuring gpio or
  * card speed information.
 */
-struct s3c_sdhci_platdata {
+struct s3c_sdhci_platdata
+{
 	unsigned int	max_width;
 	unsigned int	host_caps;
 	unsigned int	host_caps2;
@@ -45,9 +47,9 @@ struct s3c_sdhci_platdata {
 	int		ext_cd_gpio;
 	bool		ext_cd_gpio_invert;
 	int	(*ext_cd_init)(void (*notify_func)(struct platform_device *,
-						   int state));
+										   int state));
 	int	(*ext_cd_cleanup)(void (*notify_func)(struct platform_device *,
-						      int state));
+						  int state));
 
 	void	(*cfg_gpio)(struct platform_device *dev, int width);
 };

@@ -23,14 +23,18 @@
 
 #define GR_MAXEP	16	/* Max # endpoints for *each* direction */
 
-struct gr_epregs {
+struct gr_epregs
+{
 	u32 epctrl;
-	union {
-		struct { /* Slave mode*/
+	union
+	{
+		struct   /* Slave mode*/
+		{
 			u32 slvctrl;
 			u32 slvdata;
 		};
-		struct { /* DMA mode*/
+		struct   /* DMA mode*/
+		{
 			u32 dmactrl;
 			u32 dmaaddr;
 		};
@@ -38,7 +42,8 @@ struct gr_epregs {
 	u32 epstat;
 };
 
-struct gr_regs {
+struct gr_regs
+{
 	struct gr_epregs	epo[GR_MAXEP];	/* 0x000 - 0x0fc */
 	struct gr_epregs	epi[GR_MAXEP];	/* 0x100 - 0x1fc */
 	u32			control;	/* 0x200 */
@@ -113,7 +118,8 @@ struct gr_regs {
 
 /* Driver data structures and utilities */
 
-struct gr_dma_desc {
+struct gr_dma_desc
+{
 	u32 ctrl;
 	u32 data;
 	u32 next;
@@ -139,18 +145,19 @@ struct gr_dma_desc {
 
 #define GR_DESC_DMAADDR_MASK		0xfffffffc
 
-struct gr_ep {
+struct gr_ep
+{
 	struct usb_ep ep;
 	struct gr_udc *dev;
 	u16 bytes_per_buffer;
 	unsigned int dma_start;
 	struct gr_epregs __iomem *regs;
 
-	unsigned num:8;
-	unsigned is_in:1;
-	unsigned stopped:1;
-	unsigned wedged:1;
-	unsigned callback:1;
+	unsigned num: 8;
+	unsigned is_in: 1;
+	unsigned stopped: 1;
+	unsigned wedged: 1;
+	unsigned callback: 1;
 
 	/* analogous to a host-side qh */
 	struct list_head queue;
@@ -162,7 +169,8 @@ struct gr_ep {
 	dma_addr_t tailbuf_paddr;
 };
 
-struct gr_request {
+struct gr_request
+{
 	struct usb_request req;
 	struct list_head queue;
 
@@ -177,7 +185,8 @@ struct gr_request {
 	u8 setup; /* Setup packet */
 };
 
-enum gr_ep0state {
+enum gr_ep0state
+{
 	GR_EP0_DISCONNECT = 0,	/* No host */
 	GR_EP0_SETUP,		/* Between STATUS ack and SETUP report */
 	GR_EP0_IDATA,		/* IN data stage */
@@ -188,7 +197,8 @@ enum gr_ep0state {
 	GR_EP0_SUSPEND,		/* USB suspend */
 };
 
-struct gr_udc {
+struct gr_udc
+{
 	struct usb_gadget gadget;
 	struct gr_ep epi[GR_MAXEP];
 	struct gr_ep epo[GR_MAXEP];
@@ -205,9 +215,9 @@ struct gr_udc {
 	int irqi;
 	int irqo;
 
-	unsigned added:1;
-	unsigned irq_enabled:1;
-	unsigned remote_wakeup:1;
+	unsigned added: 1;
+	unsigned irq_enabled: 1;
+	unsigned remote_wakeup: 1;
 
 	u8 test_mode;
 

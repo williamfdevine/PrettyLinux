@@ -47,7 +47,7 @@
 #define KEY_CONTEXT_DUAL_CK_M      0x1
 #define KEY_CONTEXT_DUAL_CK_V(x)   ((x) << KEY_CONTEXT_DUAL_CK_S)
 #define KEY_CONTEXT_DUAL_CK_G(x)   \
-(((x) >> KEY_CONTEXT_DUAL_CK_S) & KEY_CONTEXT_DUAL_CK_M)
+	(((x) >> KEY_CONTEXT_DUAL_CK_S) & KEY_CONTEXT_DUAL_CK_M)
 #define KEY_CONTEXT_DUAL_CK_F      KEY_CONTEXT_DUAL_CK_V(1U)
 
 #define KEY_CONTEXT_SALT_PRESENT_S      10
@@ -121,45 +121,45 @@
 	(TRANSHDR_SIZE(alignedkctx_len) + DUMMY_BYTES)
 
 #define SEC_CPL_OFFSET (sizeof(struct fw_crypto_lookaside_wr) + \
-			sizeof(struct ulp_txpkt) + \
-			sizeof(struct ulptx_idata))
+						sizeof(struct ulp_txpkt) + \
+						sizeof(struct ulptx_idata))
 
 #define FILL_SEC_CPL_OP_IVINSR(id, len, hldr, ofst)      \
 	htonl( \
-	       CPL_TX_SEC_PDU_OPCODE_V(CPL_TX_SEC_PDU) | \
-	       CPL_TX_SEC_PDU_RXCHID_V((id)) | \
-	       CPL_TX_SEC_PDU_ACKFOLLOWS_V(0) | \
-	       CPL_TX_SEC_PDU_ULPTXLPBK_V(1) | \
-	       CPL_TX_SEC_PDU_CPLLEN_V((len)) | \
-	       CPL_TX_SEC_PDU_PLACEHOLDER_V((hldr)) | \
-	       CPL_TX_SEC_PDU_IVINSRTOFST_V((ofst)))
+		   CPL_TX_SEC_PDU_OPCODE_V(CPL_TX_SEC_PDU) | \
+		   CPL_TX_SEC_PDU_RXCHID_V((id)) | \
+		   CPL_TX_SEC_PDU_ACKFOLLOWS_V(0) | \
+		   CPL_TX_SEC_PDU_ULPTXLPBK_V(1) | \
+		   CPL_TX_SEC_PDU_CPLLEN_V((len)) | \
+		   CPL_TX_SEC_PDU_PLACEHOLDER_V((hldr)) | \
+		   CPL_TX_SEC_PDU_IVINSRTOFST_V((ofst)))
 
 #define  FILL_SEC_CPL_CIPHERSTOP_HI(a_start, a_stop, c_start, c_stop_hi) \
 	htonl( \
-	       CPL_TX_SEC_PDU_AADSTART_V((a_start)) | \
-	       CPL_TX_SEC_PDU_AADSTOP_V((a_stop)) | \
-	       CPL_TX_SEC_PDU_CIPHERSTART_V((c_start)) | \
-	       CPL_TX_SEC_PDU_CIPHERSTOP_HI_V((c_stop_hi)))
+		   CPL_TX_SEC_PDU_AADSTART_V((a_start)) | \
+		   CPL_TX_SEC_PDU_AADSTOP_V((a_stop)) | \
+		   CPL_TX_SEC_PDU_CIPHERSTART_V((c_start)) | \
+		   CPL_TX_SEC_PDU_CIPHERSTOP_HI_V((c_stop_hi)))
 
 #define  FILL_SEC_CPL_AUTHINSERT(c_stop_lo, a_start, a_stop, a_inst) \
 	htonl( \
-	       CPL_TX_SEC_PDU_CIPHERSTOP_LO_V((c_stop_lo)) | \
-		CPL_TX_SEC_PDU_AUTHSTART_V((a_start)) | \
-		CPL_TX_SEC_PDU_AUTHSTOP_V((a_stop)) | \
-		CPL_TX_SEC_PDU_AUTHINSERT_V((a_inst)))
+		   CPL_TX_SEC_PDU_CIPHERSTOP_LO_V((c_stop_lo)) | \
+		   CPL_TX_SEC_PDU_AUTHSTART_V((a_start)) | \
+		   CPL_TX_SEC_PDU_AUTHSTOP_V((a_stop)) | \
+		   CPL_TX_SEC_PDU_AUTHINSERT_V((a_inst)))
 
 #define  FILL_SEC_CPL_SCMD0_SEQNO(ctrl, seq, cmode, amode, opad, size, nivs)  \
-		htonl( \
-		SCMD_SEQ_NO_CTRL_V(0) | \
-		SCMD_STATUS_PRESENT_V(0) | \
-		SCMD_PROTO_VERSION_V(CHCR_SCMD_PROTO_VERSION_GENERIC) | \
-		SCMD_ENC_DEC_CTRL_V((ctrl)) | \
-		SCMD_CIPH_AUTH_SEQ_CTRL_V((seq)) | \
-		SCMD_CIPH_MODE_V((cmode)) | \
-		SCMD_AUTH_MODE_V((amode)) | \
-		SCMD_HMAC_CTRL_V((opad)) | \
-		SCMD_IV_SIZE_V((size)) | \
-		SCMD_NUM_IVS_V((nivs)))
+	htonl( \
+		   SCMD_SEQ_NO_CTRL_V(0) | \
+		   SCMD_STATUS_PRESENT_V(0) | \
+		   SCMD_PROTO_VERSION_V(CHCR_SCMD_PROTO_VERSION_GENERIC) | \
+		   SCMD_ENC_DEC_CTRL_V((ctrl)) | \
+		   SCMD_CIPH_AUTH_SEQ_CTRL_V((seq)) | \
+		   SCMD_CIPH_MODE_V((cmode)) | \
+		   SCMD_AUTH_MODE_V((amode)) | \
+		   SCMD_HMAC_CTRL_V((opad)) | \
+		   SCMD_IV_SIZE_V((size)) | \
+		   SCMD_NUM_IVS_V((nivs)))
 
 #define FILL_SEC_CPL_IVGEN_HDRLEN(last, more, ctx_in, mac, ivdrop, len) htonl( \
 		SCMD_ENB_DBGID_V(0) | \
@@ -174,63 +174,65 @@
 		SCMD_HDR_LEN_V((len)))
 
 #define  FILL_KEY_CTX_HDR(ck_size, mk_size, d_ck, opad, ctx_len) \
-		htonl(KEY_CONTEXT_VALID_V(1) | \
-		      KEY_CONTEXT_CK_SIZE_V((ck_size)) | \
-		      KEY_CONTEXT_MK_SIZE_V(mk_size) | \
-		      KEY_CONTEXT_DUAL_CK_V((d_ck)) | \
-		      KEY_CONTEXT_OPAD_PRESENT_V((opad)) | \
-		      KEY_CONTEXT_SALT_PRESENT_V(1) | \
-		      KEY_CONTEXT_CTX_LEN_V((ctx_len)))
+	htonl(KEY_CONTEXT_VALID_V(1) | \
+		  KEY_CONTEXT_CK_SIZE_V((ck_size)) | \
+		  KEY_CONTEXT_MK_SIZE_V(mk_size) | \
+		  KEY_CONTEXT_DUAL_CK_V((d_ck)) | \
+		  KEY_CONTEXT_OPAD_PRESENT_V((opad)) | \
+		  KEY_CONTEXT_SALT_PRESENT_V(1) | \
+		  KEY_CONTEXT_CTX_LEN_V((ctx_len)))
 
 #define FILL_WR_OP_CCTX_SIZE(len, ctx_len) \
-		htonl( \
-			FW_CRYPTO_LOOKASIDE_WR_OPCODE_V( \
-			FW_CRYPTO_LOOKASIDE_WR) | \
-			FW_CRYPTO_LOOKASIDE_WR_COMPL_V(0) | \
-			FW_CRYPTO_LOOKASIDE_WR_IMM_LEN_V((len)) | \
-			FW_CRYPTO_LOOKASIDE_WR_CCTX_LOC_V(1) | \
-			FW_CRYPTO_LOOKASIDE_WR_CCTX_SIZE_V((ctx_len)))
+	htonl( \
+		   FW_CRYPTO_LOOKASIDE_WR_OPCODE_V( \
+											FW_CRYPTO_LOOKASIDE_WR) | \
+		   FW_CRYPTO_LOOKASIDE_WR_COMPL_V(0) | \
+		   FW_CRYPTO_LOOKASIDE_WR_IMM_LEN_V((len)) | \
+		   FW_CRYPTO_LOOKASIDE_WR_CCTX_LOC_V(1) | \
+		   FW_CRYPTO_LOOKASIDE_WR_CCTX_SIZE_V((ctx_len)))
 
 #define FILL_WR_RX_Q_ID(cid, qid, wr_iv) \
-		htonl( \
-			FW_CRYPTO_LOOKASIDE_WR_RX_CHID_V((cid)) | \
-			FW_CRYPTO_LOOKASIDE_WR_RX_Q_ID_V((qid)) | \
-			FW_CRYPTO_LOOKASIDE_WR_LCB_V(0) | \
-			FW_CRYPTO_LOOKASIDE_WR_IV_V((wr_iv)))
+	htonl( \
+		   FW_CRYPTO_LOOKASIDE_WR_RX_CHID_V((cid)) | \
+		   FW_CRYPTO_LOOKASIDE_WR_RX_Q_ID_V((qid)) | \
+		   FW_CRYPTO_LOOKASIDE_WR_LCB_V(0) | \
+		   FW_CRYPTO_LOOKASIDE_WR_IV_V((wr_iv)))
 
 #define FILL_ULPTX_CMD_DEST(cid) \
 	htonl(ULPTX_CMD_V(ULP_TX_PKT) | \
-	      ULP_TXPKT_DEST_V(0) | \
-	      ULP_TXPKT_DATAMODIFY_V(0) | \
-	      ULP_TXPKT_CHANNELID_V((cid)) | \
-	      ULP_TXPKT_RO_V(1) | \
-	      ULP_TXPKT_FID_V(0))
+		  ULP_TXPKT_DEST_V(0) | \
+		  ULP_TXPKT_DATAMODIFY_V(0) | \
+		  ULP_TXPKT_CHANNELID_V((cid)) | \
+		  ULP_TXPKT_RO_V(1) | \
+		  ULP_TXPKT_FID_V(0))
 
 #define KEYCTX_ALIGN_PAD(bs) ({unsigned int _bs = (bs);\
-			      _bs == SHA1_DIGEST_SIZE ? 12 : 0; })
+		_bs == SHA1_DIGEST_SIZE ? 12 : 0; })
 
 #define FILL_PLD_SIZE_HASH_SIZE(payload_sgl_len, sgl_lengths, total_frags) \
 	htonl(FW_CRYPTO_LOOKASIDE_WR_PLD_SIZE_V(payload_sgl_len ? \
-						sgl_lengths[total_frags] : 0) |\
-	      FW_CRYPTO_LOOKASIDE_WR_HASH_SIZE_V(0))
+											sgl_lengths[total_frags] : 0) |\
+		  FW_CRYPTO_LOOKASIDE_WR_HASH_SIZE_V(0))
 
 #define FILL_LEN_PKD(calc_tx_flits_ofld, skb) \
 	htonl(FW_CRYPTO_LOOKASIDE_WR_LEN16_V(DIV_ROUND_UP((\
-					   calc_tx_flits_ofld(skb) * 8), 16)))
+										 calc_tx_flits_ofld(skb) * 8), 16)))
 
 #define FILL_CMD_MORE(immdatalen) htonl(ULPTX_CMD_V(ULP_TX_SC_IMM) |\
-					ULP_TX_SC_MORE_V((immdatalen) ? 0 : 1))
+										ULP_TX_SC_MORE_V((immdatalen) ? 0 : 1))
 
 #define MAX_NK 8
 #define CRYPTO_MAX_IMM_TX_PKT_LEN 256
 
-struct algo_param {
+struct algo_param
+{
 	unsigned int auth_mode;
 	unsigned int mk_size;
 	unsigned int result_size;
 };
 
-struct hash_wr_param {
+struct hash_wr_param
+{
 	unsigned int opad_needed;
 	unsigned int more;
 	unsigned int last;
@@ -240,20 +242,23 @@ struct hash_wr_param {
 	u64 scmd1;
 };
 
-enum {
+enum
+{
 	AES_KEYLENGTH_128BIT = 128,
 	AES_KEYLENGTH_192BIT = 192,
 	AES_KEYLENGTH_256BIT = 256
 };
 
-enum {
+enum
+{
 	KEYLENGTH_3BYTES = 3,
 	KEYLENGTH_4BYTES = 4,
 	KEYLENGTH_6BYTES = 6,
 	KEYLENGTH_8BYTES = 8
 };
 
-enum {
+enum
+{
 	NUMBER_OF_ROUNDS_10 = 10,
 	NUMBER_OF_ROUNDS_12 = 12,
 	NUMBER_OF_ROUNDS_14 = 14,
@@ -263,7 +268,8 @@ enum {
  * CCM defines values of 4, 6, 8, 10, 12, 14, and 16 octets,
  * where they indicate the size of the integrity check value (ICV)
  */
-enum {
+enum
+{
 	AES_CCM_ICV_4   = 4,
 	AES_CCM_ICV_6   = 6,
 	AES_CCM_ICV_8   = 8,
@@ -273,7 +279,8 @@ enum {
 	AES_CCM_ICV_16 = 16
 };
 
-struct hash_op_params {
+struct hash_op_params
+{
 	unsigned char mk_size;
 	unsigned char pad_align;
 	unsigned char auth_mode;
@@ -283,45 +290,53 @@ struct hash_op_params {
 	unsigned short ipad_size;
 };
 
-struct phys_sge_pairs {
+struct phys_sge_pairs
+{
 	__be16 len[8];
 	__be64 addr[8];
 };
 
-struct phys_sge_parm {
+struct phys_sge_parm
+{
 	unsigned int nents;
 	unsigned int obsize;
 	unsigned short qid;
 	unsigned char align;
 };
 
-struct crypto_result {
+struct crypto_result
+{
 	struct completion completion;
 	int err;
 };
 
-static const u32 sha1_init[SHA1_DIGEST_SIZE / 4] = {
-		SHA1_H0, SHA1_H1, SHA1_H2, SHA1_H3, SHA1_H4,
+static const u32 sha1_init[SHA1_DIGEST_SIZE / 4] =
+{
+	SHA1_H0, SHA1_H1, SHA1_H2, SHA1_H3, SHA1_H4,
 };
 
-static const u32 sha224_init[SHA256_DIGEST_SIZE / 4] = {
-		SHA224_H0, SHA224_H1, SHA224_H2, SHA224_H3,
-		SHA224_H4, SHA224_H5, SHA224_H6, SHA224_H7,
+static const u32 sha224_init[SHA256_DIGEST_SIZE / 4] =
+{
+	SHA224_H0, SHA224_H1, SHA224_H2, SHA224_H3,
+	SHA224_H4, SHA224_H5, SHA224_H6, SHA224_H7,
 };
 
-static const u32 sha256_init[SHA256_DIGEST_SIZE / 4] = {
-		SHA256_H0, SHA256_H1, SHA256_H2, SHA256_H3,
-		SHA256_H4, SHA256_H5, SHA256_H6, SHA256_H7,
+static const u32 sha256_init[SHA256_DIGEST_SIZE / 4] =
+{
+	SHA256_H0, SHA256_H1, SHA256_H2, SHA256_H3,
+	SHA256_H4, SHA256_H5, SHA256_H6, SHA256_H7,
 };
 
-static const u64 sha384_init[SHA512_DIGEST_SIZE / 8] = {
-		SHA384_H0, SHA384_H1, SHA384_H2, SHA384_H3,
-		SHA384_H4, SHA384_H5, SHA384_H6, SHA384_H7,
+static const u64 sha384_init[SHA512_DIGEST_SIZE / 8] =
+{
+	SHA384_H0, SHA384_H1, SHA384_H2, SHA384_H3,
+	SHA384_H4, SHA384_H5, SHA384_H6, SHA384_H7,
 };
 
-static const u64 sha512_init[SHA512_DIGEST_SIZE / 8] = {
-		SHA512_H0, SHA512_H1, SHA512_H2, SHA512_H3,
-		SHA512_H4, SHA512_H5, SHA512_H6, SHA512_H7,
+static const u64 sha512_init[SHA512_DIGEST_SIZE / 8] =
+{
+	SHA512_H0, SHA512_H1, SHA512_H2, SHA512_H3,
+	SHA512_H4, SHA512_H5, SHA512_H6, SHA512_H7,
 };
 
 static inline void copy_hash_init_values(char *key, int digestsize)
@@ -332,31 +347,52 @@ static inline void copy_hash_init_values(char *key, int digestsize)
 	__be64 *sha384 = (__be64 *)sha384_init;
 	__be64 *sha512 = (__be64 *)sha512_init;
 
-	switch (digestsize) {
-	case SHA1_DIGEST_SIZE:
-		for (i = 0; i < SHA1_INIT_STATE; i++)
-			dkey[i] = cpu_to_be32(sha1_init[i]);
-		break;
-	case SHA224_DIGEST_SIZE:
-		for (i = 0; i < SHA224_INIT_STATE; i++)
-			dkey[i] = cpu_to_be32(sha224_init[i]);
-		break;
-	case SHA256_DIGEST_SIZE:
-		for (i = 0; i < SHA256_INIT_STATE; i++)
-			dkey[i] = cpu_to_be32(sha256_init[i]);
-		break;
-	case SHA384_DIGEST_SIZE:
-		for (i = 0; i < SHA384_INIT_STATE; i++)
-			ldkey[i] = be64_to_cpu(sha384[i]);
-		break;
-	case SHA512_DIGEST_SIZE:
-		for (i = 0; i < SHA512_INIT_STATE; i++)
-			ldkey[i] = be64_to_cpu(sha512[i]);
-		break;
+	switch (digestsize)
+	{
+		case SHA1_DIGEST_SIZE:
+			for (i = 0; i < SHA1_INIT_STATE; i++)
+			{
+				dkey[i] = cpu_to_be32(sha1_init[i]);
+			}
+
+			break;
+
+		case SHA224_DIGEST_SIZE:
+			for (i = 0; i < SHA224_INIT_STATE; i++)
+			{
+				dkey[i] = cpu_to_be32(sha224_init[i]);
+			}
+
+			break;
+
+		case SHA256_DIGEST_SIZE:
+			for (i = 0; i < SHA256_INIT_STATE; i++)
+			{
+				dkey[i] = cpu_to_be32(sha256_init[i]);
+			}
+
+			break;
+
+		case SHA384_DIGEST_SIZE:
+			for (i = 0; i < SHA384_INIT_STATE; i++)
+			{
+				ldkey[i] = be64_to_cpu(sha384[i]);
+			}
+
+			break;
+
+		case SHA512_DIGEST_SIZE:
+			for (i = 0; i < SHA512_INIT_STATE; i++)
+			{
+				ldkey[i] = be64_to_cpu(sha512[i]);
+			}
+
+			break;
 	}
 }
 
-static const u8 sgl_lengths[20] = {
+static const u8 sgl_lengths[20] =
+{
 	0, 1, 2, 3, 4, 4, 5, 6, 7, 7, 8, 9, 10, 10, 11, 12, 13, 13, 14, 15
 };
 
@@ -367,12 +403,13 @@ static inline u16 get_space_for_phys_dsgl(unsigned int sgl_entr)
 {
 	/* len field size + addr field size */
 	return ((sgl_entr >> 3) + ((sgl_entr % 8) ?
-				   1 : 0)) * PHYSDSGL_MAX_LEN_SIZE +
-		(sgl_entr << 3) + ((sgl_entr % 2 ? 1 : 0) << 3);
+							   1 : 0)) * PHYSDSGL_MAX_LEN_SIZE +
+		   (sgl_entr << 3) + ((sgl_entr % 2 ? 1 : 0) << 3);
 }
 
 /* The AES s-transform matrix (s-box). */
-static const u8 aes_sbox[256] = {
+static const u8 aes_sbox[256] =
+{
 	99,  124, 119, 123, 242, 107, 111, 197, 48,  1,   103, 43,  254, 215,
 	171, 118, 202, 130, 201, 125, 250, 89,  71,  240, 173, 212, 162, 175,
 	156, 164, 114, 192, 183, 253, 147, 38,  54,  63,  247, 204, 52,  165,
@@ -406,7 +443,8 @@ static u32 aes_ks_subword(const u32 w)
 	return *(u32 *)(&bytes[0]);
 }
 
-static u32 round_constant[11] = {
+static u32 round_constant[11] =
+{
 	0x01000000, 0x02000000, 0x04000000, 0x08000000,
 	0x10000000, 0x20000000, 0x40000000, 0x80000000,
 	0x1B000000, 0x36000000, 0x6C000000
@@ -417,54 +455,71 @@ static u32 round_constant[11] = {
  * keylength - INPUT - length of the key in number of bits
  */
 static inline void get_aes_decrypt_key(unsigned char *dec_key,
-				       const unsigned char *key,
-				       unsigned int keylength)
+									   const unsigned char *key,
+									   unsigned int keylength)
 {
 	u32 temp;
 	u32 w_ring[MAX_NK];
 	int i, j, k = 0;
 	u8  nr, nk;
 
-	switch (keylength) {
-	case AES_KEYLENGTH_128BIT:
-		nk = KEYLENGTH_4BYTES;
-		nr = NUMBER_OF_ROUNDS_10;
-		break;
+	switch (keylength)
+	{
+		case AES_KEYLENGTH_128BIT:
+			nk = KEYLENGTH_4BYTES;
+			nr = NUMBER_OF_ROUNDS_10;
+			break;
 
-	case AES_KEYLENGTH_192BIT:
-		nk = KEYLENGTH_6BYTES;
-		nr = NUMBER_OF_ROUNDS_12;
-		break;
-	case AES_KEYLENGTH_256BIT:
-		nk = KEYLENGTH_8BYTES;
-		nr = NUMBER_OF_ROUNDS_14;
-		break;
-	default:
-		return;
+		case AES_KEYLENGTH_192BIT:
+			nk = KEYLENGTH_6BYTES;
+			nr = NUMBER_OF_ROUNDS_12;
+			break;
+
+		case AES_KEYLENGTH_256BIT:
+			nk = KEYLENGTH_8BYTES;
+			nr = NUMBER_OF_ROUNDS_14;
+			break;
+
+		default:
+			return;
 	}
+
 	for (i = 0; i < nk; i++ )
+	{
 		w_ring[i] = be32_to_cpu(*(u32 *)&key[4 * i]);
+	}
 
 	i = 0;
 	temp = w_ring[nk - 1];
-	while(i + nk < (nr + 1) * 4) {
-		if(!(i % nk)) {
+
+	while (i + nk < (nr + 1) * 4)
+	{
+		if (!(i % nk))
+		{
 			/* RotWord(temp) */
 			temp = (temp << 8) | (temp >> 24);
 			temp = aes_ks_subword(temp);
 			temp ^= round_constant[i / nk];
 		}
 		else if (nk == 8 && (i % 4 == 0))
+		{
 			temp = aes_ks_subword(temp);
+		}
+
 		w_ring[i % nk] ^= temp;
 		temp = w_ring[i % nk];
 		i++;
 	}
-	for (k = 0, j = i % nk; k < nk; k++) {
+
+	for (k = 0, j = i % nk; k < nk; k++)
+	{
 		*((u32 *)dec_key + k) = htonl(w_ring[j]);
 		j--;
-		if(j < 0)
+
+		if (j < 0)
+		{
 			j += nk;
+		}
 	}
 }
 

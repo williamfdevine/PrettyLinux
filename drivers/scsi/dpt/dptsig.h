@@ -25,7 +25,7 @@
 #ifndef __DPTSIG_H_
 #define __DPTSIG_H_
 #ifdef _SINIX_ADDON
-#include "dpt.h"
+	#include "dpt.h"
 #endif
 /* DPT SIGNATURE SPEC AND HEADER FILE                           */
 /* Signature Version 1 (sorry no 'A')                           */
@@ -48,10 +48,10 @@ typedef unsigned int sigINT;
 #if (defined(_DPT_BIG_ENDIAN))
 # define sigWORDLittleEndian(x) ((((x)&0xFF)<<8)|(((x)>>8)&0xFF))
 # define sigLONGLittleEndian(x) \
-        ((((x)&0xFF)<<24) |             \
-         (((x)&0xFF00)<<8) |    \
-         (((x)&0xFF0000L)>>8) | \
-         (((x)&0xFF000000L)>>24))
+	((((x)&0xFF)<<24) |             \
+	 (((x)&0xFF00)<<8) |    \
+	 (((x)&0xFF0000L)>>8) | \
+	 (((x)&0xFF000000L)>>24))
 #else
 # define sigWORDLittleEndian(x) (x)
 # define sigLONGLittleEndian(x) (x)
@@ -65,15 +65,15 @@ typedef unsigned int sigINT;
 /* is not checked.  If using BCC, do not use the -a option.             */
 
 #ifndef NO_PACK
-#if defined (_DPT_AIX)
-#pragma options align=packed
-#else
-#pragma pack(1)
-#endif  /* aix */
+	#if defined (_DPT_AIX)
+		#pragma options align=packed
+	#else
+		#pragma pack(1)
+	#endif  /* aix */
 #endif
 /* For the Macintosh */
 #ifdef STRUCTALIGNMENTSUPPORTED
-#pragma options align=mac68k
+	#pragma options align=mac68k
 #endif
 
 
@@ -215,7 +215,7 @@ typedef unsigned int sigINT;
 #define CAP_ABOVE16MB   0x0100  /* ISA Driver supports greater than 16MB */
 #define CAP_EXTEND      0x8000  /* Extended info appears after description */
 #ifdef SNI_MIPS
-#define CAP_CACHEMODE   0x1000  /* dpt_force_cache is set in driver */
+	#define CAP_CACHEMODE   0x1000  /* dpt_force_cache is set in driver */
 #endif
 
 /* Devices Supported - sigWORD dsDeviceSupp;    FLAG BITS */
@@ -286,31 +286,32 @@ typedef unsigned int sigINT;
  * 50 so that the structure allocates less real space.
  */
 #if (!defined(dsDescription_size))
-# define dsDescription_size 50
+	#define dsDescription_size 50
 #endif
 
-typedef struct dpt_sig {
-    char    dsSignature[6];      /* ALWAYS "dPtSiG" */
-    sigBYTE dsSigVersion;        /* signature version (currently 1) */
-    sigBYTE dsProcessorFamily;   /* what type of processor */
-    sigBYTE dsProcessor;         /* precise processor */
-    sigBYTE dsFiletype;          /* type of file */
-    sigBYTE dsFiletypeFlags;     /* flags to specify load type, etc. */
-    sigBYTE dsOEM;               /* OEM file was created for */
-    sigINT  dsOS;                /* which Operating systems */
-    sigWORD dsCapabilities;      /* RAID levels, etc. */
-    sigWORD dsDeviceSupp;        /* Types of SCSI devices supported */
-    sigWORD dsAdapterSupp;       /* DPT adapter families supported */
-    sigWORD dsApplication;       /* applications file is for */
-    sigBYTE dsRequirements;      /* Other driver dependencies */
-    sigBYTE dsVersion;           /* 1 */
-    sigBYTE dsRevision;          /* 'J' */
-    sigBYTE dsSubRevision;       /* '9'   ' ' if N/A */
-    sigBYTE dsMonth;             /* creation month */
-    sigBYTE dsDay;               /* creation day */
-    sigBYTE dsYear;              /* creation year since 1980 (1993=13) */
-    /* description (NULL terminated) */
-    char  dsDescription[dsDescription_size];
+typedef struct dpt_sig
+{
+	char    dsSignature[6];      /* ALWAYS "dPtSiG" */
+	sigBYTE dsSigVersion;        /* signature version (currently 1) */
+	sigBYTE dsProcessorFamily;   /* what type of processor */
+	sigBYTE dsProcessor;         /* precise processor */
+	sigBYTE dsFiletype;          /* type of file */
+	sigBYTE dsFiletypeFlags;     /* flags to specify load type, etc. */
+	sigBYTE dsOEM;               /* OEM file was created for */
+	sigINT  dsOS;                /* which Operating systems */
+	sigWORD dsCapabilities;      /* RAID levels, etc. */
+	sigWORD dsDeviceSupp;        /* Types of SCSI devices supported */
+	sigWORD dsAdapterSupp;       /* DPT adapter families supported */
+	sigWORD dsApplication;       /* applications file is for */
+	sigBYTE dsRequirements;      /* Other driver dependencies */
+	sigBYTE dsVersion;           /* 1 */
+	sigBYTE dsRevision;          /* 'J' */
+	sigBYTE dsSubRevision;       /* '9'   ' ' if N/A */
+	sigBYTE dsMonth;             /* creation month */
+	sigBYTE dsDay;               /* creation day */
+	sigBYTE dsYear;              /* creation year since 1980 (1993=13) */
+	/* description (NULL terminated) */
+	char  dsDescription[dsDescription_size];
 } dpt_sig_S;
 /* 32 bytes minimum - with no description.  Put NULL at description[0] */
 /* 81 bytes maximum - with 49 character description plus NULL. */
@@ -320,17 +321,17 @@ typedef struct dpt_sig {
 /* restore it. */
 
 #ifndef NO_UNPACK
-#if defined (_DPT_AIX)
-#pragma options align=reset
-#elif defined (UNPACK_FOUR)
-#pragma pack(4)
-#else
-#pragma pack()
-#endif  /* aix */
+	#if defined (_DPT_AIX)
+		#pragma options align=reset
+	#elif defined (UNPACK_FOUR)
+		#pragma pack(4)
+	#else
+		#pragma pack()
+	#endif  /* aix */
 #endif
 /* For the Macintosh */
 #ifdef STRUCTALIGNMENTSUPPORTED
-#pragma options align=reset
+	#pragma options align=reset
 #endif
 
 #endif

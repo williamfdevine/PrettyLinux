@@ -37,7 +37,7 @@ int ccp_present(void);
 #define	CCP_VSIZE 16
 #define	CCP_VMASK		((unsigned int)((1 << CCP_VSIZE) - 1))
 #define	CCP_VERSION(v, r)	((unsigned int)((v << CCP_VSIZE) \
-					       | (r & CCP_VMASK)))
+							 | (r & CCP_VMASK)))
 
 /**
  * ccp_version - get the version of the CCP
@@ -99,7 +99,8 @@ static inline int ccp_enqueue_cmd(struct ccp_cmd *cmd)
  * @CCP_AES_TYPE_192: 192-bit key
  * @CCP_AES_TYPE_256: 256-bit key
  */
-enum ccp_aes_type {
+enum ccp_aes_type
+{
 	CCP_AES_TYPE_128 = 0,
 	CCP_AES_TYPE_192,
 	CCP_AES_TYPE_256,
@@ -116,7 +117,8 @@ enum ccp_aes_type {
  * @CCP_AES_MODE_CTR: CTR mode
  * @CCP_AES_MODE_CMAC: CMAC mode
  */
-enum ccp_aes_mode {
+enum ccp_aes_mode
+{
 	CCP_AES_MODE_ECB = 0,
 	CCP_AES_MODE_CBC,
 	CCP_AES_MODE_OFB,
@@ -132,7 +134,8 @@ enum ccp_aes_mode {
  * @CCP_AES_ACTION_DECRYPT: AES decrypt operation
  * @CCP_AES_ACTION_ENCRYPT: AES encrypt operation
  */
-enum ccp_aes_action {
+enum ccp_aes_action
+{
 	CCP_AES_ACTION_DECRYPT = 0,
 	CCP_AES_ACTION_ENCRYPT,
 	CCP_AES_ACTION__LAST,
@@ -163,7 +166,8 @@ enum ccp_aes_action {
  * The iv variable is used as both input and output. On completion of the
  * AES operation the new IV overwrites the old IV.
  */
-struct ccp_aes_engine {
+struct ccp_aes_engine
+{
 	enum ccp_aes_type type;
 	enum ccp_aes_mode mode;
 	enum ccp_aes_action action;
@@ -193,7 +197,8 @@ struct ccp_aes_engine {
  * @CCP_XTS_AES_UNIT_SIZE_2048: Unit size of 2048 bytes
  * @CCP_XTS_AES_UNIT_SIZE_4096: Unit size of 4096 bytes
  */
-enum ccp_xts_aes_unit_size {
+enum ccp_xts_aes_unit_size
+{
 	CCP_XTS_AES_UNIT_SIZE_16 = 0,
 	CCP_XTS_AES_UNIT_SIZE_512,
 	CCP_XTS_AES_UNIT_SIZE_1024,
@@ -221,7 +226,8 @@ enum ccp_xts_aes_unit_size {
  * The iv variable is used as both input and output. On completion of the
  * AES operation the new IV overwrites the old IV.
  */
-struct ccp_xts_aes_engine {
+struct ccp_xts_aes_engine
+{
 	enum ccp_aes_action action;
 	enum ccp_xts_aes_unit_size unit_size;
 
@@ -245,7 +251,8 @@ struct ccp_xts_aes_engine {
  * @CCP_SHA_TYPE_224: SHA-224 operation
  * @CCP_SHA_TYPE_256: SHA-256 operation
  */
-enum ccp_sha_type {
+enum ccp_sha_type
+{
 	CCP_SHA_TYPE_1 = 1,
 	CCP_SHA_TYPE_224,
 	CCP_SHA_TYPE_256,
@@ -272,7 +279,8 @@ enum ccp_sha_type {
  * The ctx variable is used as both input and output. On completion of the
  * SHA operation the new hash value overwrites the old hash value.
  */
-struct ccp_sha_engine {
+struct ccp_sha_engine
+{
 	enum ccp_sha_type type;
 
 	struct scatterlist *ctx;
@@ -305,7 +313,8 @@ struct ccp_sha_engine {
  * Variables required to be set when calling ccp_enqueue_cmd():
  *   - key_size, exp, exp_len, mod, mod_len, src, dst, src_len
  */
-struct ccp_rsa_engine {
+struct ccp_rsa_engine
+{
 	u32 key_size;		/* In bits */
 
 	struct scatterlist *exp;
@@ -328,7 +337,8 @@ struct ccp_rsa_engine {
  * @CCP_PASSTHRU_BITWISE_XOR: perform bitwise XOR of src with mask
  * @CCP_PASSTHRU_BITWISE_MASK: overwrite with mask
  */
-enum ccp_passthru_bitwise {
+enum ccp_passthru_bitwise
+{
 	CCP_PASSTHRU_BITWISE_NOOP = 0,
 	CCP_PASSTHRU_BITWISE_AND,
 	CCP_PASSTHRU_BITWISE_OR,
@@ -344,7 +354,8 @@ enum ccp_passthru_bitwise {
  * @CCP_PASSTHRU_BYTESWAP_32BIT: swap bytes within 32-bit words
  * @CCP_PASSTHRU_BYTESWAP_256BIT: swap bytes within 256-bit words
  */
-enum ccp_passthru_byteswap {
+enum ccp_passthru_byteswap
+{
 	CCP_PASSTHRU_BYTESWAP_NOOP = 0,
 	CCP_PASSTHRU_BYTESWAP_32BIT,
 	CCP_PASSTHRU_BYTESWAP_256BIT,
@@ -366,7 +377,8 @@ enum ccp_passthru_byteswap {
  *   - bit_mod, byte_swap, src, dst, src_len
  *   - mask, mask_len if bit_mod is not CCP_PASSTHRU_BITWISE_NOOP
  */
-struct ccp_passthru_engine {
+struct ccp_passthru_engine
+{
 	enum ccp_passthru_bitwise bit_mod;
 	enum ccp_passthru_byteswap byte_swap;
 
@@ -395,7 +407,8 @@ struct ccp_passthru_engine {
  *   - bit_mod, byte_swap, src, dst, src_len
  *   - mask, mask_len if bit_mod is not CCP_PASSTHRU_BITWISE_NOOP
  */
-struct ccp_passthru_nomap_engine {
+struct ccp_passthru_nomap_engine
+{
 	enum ccp_passthru_bitwise bit_mod;
 	enum ccp_passthru_byteswap byte_swap;
 
@@ -423,7 +436,8 @@ struct ccp_passthru_nomap_engine {
  * @CCP_ECC_FUNCTION_PMUL_384BIT: 384-bit point multiplication
  * @CCP_ECC_FUNCTION_PDBL_384BIT: 384-bit point doubling
  */
-enum ccp_ecc_function {
+enum ccp_ecc_function
+{
 	CCP_ECC_FUNCTION_MMUL_384BIT = 0,
 	CCP_ECC_FUNCTION_MADD_384BIT,
 	CCP_ECC_FUNCTION_MINV_384BIT,
@@ -443,7 +457,8 @@ enum ccp_ecc_function {
  * @result: result of the modular math operation
  * @result_len: length of the supplied result buffer
  */
-struct ccp_ecc_modular_math {
+struct ccp_ecc_modular_math
+{
 	struct scatterlist *operand_1;
 	unsigned int operand_1_len;	/* In bytes */
 
@@ -461,7 +476,8 @@ struct ccp_ecc_modular_math {
  * @y: the y coordinate of the ECC point
  * @y_len: the length of the y coordinate
  */
-struct ccp_ecc_point {
+struct ccp_ecc_point
+{
 	struct scatterlist *x;
 	unsigned int x_len;	/* In bytes */
 
@@ -482,7 +498,8 @@ struct ccp_ecc_point {
  *		(only used for CCP_ECC_FUNCTION_PMUL_384BIT)
  * @result: the point resulting from the point math operation
  */
-struct ccp_ecc_point_math {
+struct ccp_ecc_point_math
+{
 	struct ccp_ecc_point point_1;
 	struct ccp_ecc_point point_2;
 
@@ -509,13 +526,15 @@ struct ccp_ecc_point_math {
  *   - operand, operand_len, operand_count, output, output_len, output_count
  *   - ecc_result
  */
-struct ccp_ecc_engine {
+struct ccp_ecc_engine
+{
 	enum ccp_ecc_function function;
 
 	struct scatterlist *mod;
 	u32 mod_len;		/* In bytes */
 
-	union {
+	union
+	{
 		struct ccp_ecc_modular_math mm;
 		struct ccp_ecc_point_math pm;
 	} u;
@@ -536,7 +555,8 @@ struct ccp_ecc_engine {
  * @CCP_ENGINE_ZLIB_DECOMPRESS: unused
  * @CCP_ENGINE_ECC: ECC operation
  */
-enum ccp_engine {
+enum ccp_engine
+{
 	CCP_ENGINE_AES = 0,
 	CCP_ENGINE_XTS_AES_128,
 	CCP_ENGINE_RSVD1,
@@ -570,7 +590,8 @@ enum ccp_engine {
  *   - See the operation structures below for what is required for each
  *     operation.
  */
-struct ccp_cmd {
+struct ccp_cmd
+{
 	/* The list_head, work_struct, ccp and ret variables are for use
 	 * by the CCP driver only.
 	 */
@@ -584,7 +605,8 @@ struct ccp_cmd {
 	enum ccp_engine engine;
 	u32 engine_error;
 
-	union {
+	union
+	{
 		struct ccp_aes_engine aes;
 		struct ccp_xts_aes_engine xts;
 		struct ccp_sha_engine sha;

@@ -53,18 +53,20 @@
 #define AZX_PCIREG_CGCTL		0x48
 #define AZX_CGCTL_MISCBDCGE_MASK	(1 << 6)
 
-struct skl_dsp_resource {
+struct skl_dsp_resource
+{
 	u32 max_mcps;
 	u32 max_mem;
 	u32 mcps;
 	u32 mem;
 };
 
-struct skl {
+struct skl
+{
 	struct hdac_ext_bus ebus;
 	struct pci_dev *pci;
 
-	unsigned int init_failed:1; /* delayed init failed */
+	unsigned int init_failed: 1; /* delayed init failed */
 	struct platform_device *dmic_dev;
 	struct platform_device *i2s_dev;
 	struct snd_soc_platform *platform;
@@ -88,23 +90,26 @@ struct skl {
 	container_of(sbus, struct skl, sbus)
 
 /* to pass dai dma data */
-struct skl_dma_params {
+struct skl_dma_params
+{
 	u32 format;
 	u8 stream_tag;
 };
 
 /* to pass dmic data */
-struct skl_machine_pdata {
+struct skl_machine_pdata
+{
 	u32 dmic_num;
 };
 
-struct skl_dsp_ops {
+struct skl_dsp_ops
+{
 	int id;
 	struct skl_dsp_loader_ops (*loader_ops)(void);
 	int (*init)(struct device *dev, void __iomem *mmio_base,
-			int irq, const char *fw_name,
-			struct skl_dsp_loader_ops loader_ops,
-			struct skl_sst **skl_sst);
+				int irq, const char *fw_name,
+				struct skl_dsp_loader_ops loader_ops,
+				struct skl_sst **skl_sst);
 	int (*init_fw)(struct device *dev, struct skl_sst *ctx);
 	void (*cleanup)(struct device *dev, struct skl_sst *ctx);
 };
@@ -115,7 +120,7 @@ int skl_platform_register(struct device *dev);
 struct nhlt_acpi_table *skl_nhlt_init(struct device *dev);
 void skl_nhlt_free(struct nhlt_acpi_table *addr);
 struct nhlt_specific_cfg *skl_get_ep_blob(struct skl *skl, u32 instance,
-			u8 link_type, u8 s_fmt, u8 no_ch, u32 s_rate, u8 dirn);
+		u8 link_type, u8 s_fmt, u8 no_ch, u32 s_rate, u8 dirn);
 
 int skl_get_dmic_geo(struct skl *skl);
 int skl_nhlt_update_topology_bin(struct skl *skl);

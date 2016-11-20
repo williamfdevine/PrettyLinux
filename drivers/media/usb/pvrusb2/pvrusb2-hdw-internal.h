@@ -61,19 +61,20 @@
 
 typedef int (*pvr2_ctlf_is_dirty)(struct pvr2_ctrl *);
 typedef void (*pvr2_ctlf_clear_dirty)(struct pvr2_ctrl *);
-typedef int (*pvr2_ctlf_check_value)(struct pvr2_ctrl *,int);
-typedef int (*pvr2_ctlf_get_value)(struct pvr2_ctrl *,int *);
-typedef int (*pvr2_ctlf_set_value)(struct pvr2_ctrl *,int msk,int val);
-typedef int (*pvr2_ctlf_val_to_sym)(struct pvr2_ctrl *,int msk,int val,
-				    char *,unsigned int,unsigned int *);
+typedef int (*pvr2_ctlf_check_value)(struct pvr2_ctrl *, int);
+typedef int (*pvr2_ctlf_get_value)(struct pvr2_ctrl *, int *);
+typedef int (*pvr2_ctlf_set_value)(struct pvr2_ctrl *, int msk, int val);
+typedef int (*pvr2_ctlf_val_to_sym)(struct pvr2_ctrl *, int msk, int val,
+									char *, unsigned int, unsigned int *);
 typedef int (*pvr2_ctlf_sym_to_val)(struct pvr2_ctrl *,
-				    const char *,unsigned int,
-				    int *mskp,int *valp);
+									const char *, unsigned int,
+									int *mskp, int *valp);
 typedef unsigned int (*pvr2_ctlf_get_v4lflags)(struct pvr2_ctrl *);
 
 /* This structure describes a specific control.  A table of these is set up
    in pvrusb2-hdw.c. */
-struct pvr2_ctl_info {
+struct pvr2_ctl_info
+{
 	/* Control's name suitable for use as an identifier */
 	const char *name;
 
@@ -109,16 +110,20 @@ struct pvr2_ctl_info {
 	int default_value;
 
 	/* Type-specific control information */
-	union {
-		struct { /* Integer control */
+	union
+	{
+		struct   /* Integer control */
+		{
 			long min_value; /* lower limit */
 			long max_value; /* upper limit */
 		} type_int;
-		struct { /* enumerated control */
+		struct   /* enumerated control */
+		{
 			unsigned int count;       /* enum value count */
-			const char * const *value_names; /* symbol names */
+			const char *const *value_names;  /* symbol names */
 		} type_enum;
-		struct { /* bitmask control */
+		struct   /* bitmask control */
+		{
 			unsigned int valid_bits; /* bits in use */
 			const char **bit_names;  /* symbol name/bit */
 		} type_bitmask;
@@ -128,12 +133,14 @@ struct pvr2_ctl_info {
 
 /* Same as pvr2_ctl_info, but includes storage for the control description */
 #define PVR2_CTLD_INFO_DESC_SIZE 32
-struct pvr2_ctld_info {
+struct pvr2_ctld_info
+{
 	struct pvr2_ctl_info info;
 	char desc[PVR2_CTLD_INFO_DESC_SIZE];
 };
 
-struct pvr2_ctrl {
+struct pvr2_ctrl
+{
 	const struct pvr2_ctl_info *info;
 	struct pvr2_hdw *hdw;
 };
@@ -152,13 +159,14 @@ struct pvr2_ctrl {
 #define PVR2_PATHWAY_ANALOG 1
 #define PVR2_PATHWAY_DIGITAL 2
 
-typedef int (*pvr2_i2c_func)(struct pvr2_hdw *,u8,u8 *,u16,u8 *, u16);
+typedef int (*pvr2_i2c_func)(struct pvr2_hdw *, u8, u8 *, u16, u8 *, u16);
 #define PVR2_I2C_FUNC_CNT 128
 
 /* This structure contains all state data directly needed to
    manipulate the hardware (as opposed to complying with a kernel
    interface) */
-struct pvr2_hdw {
+struct pvr2_hdw
+{
 	/* Underlying USB device handle */
 	struct usb_device *usb_dev;
 	struct usb_interface *usb_intf;

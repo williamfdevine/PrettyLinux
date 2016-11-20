@@ -29,25 +29,27 @@
 #define AHCI_WINDOW_SIZE(win)	(0x68 + ((win) << 4))
 
 static void ahci_mvebu_mbus_config(struct ahci_host_priv *hpriv,
-				   const struct mbus_dram_target_info *dram)
+								   const struct mbus_dram_target_info *dram)
 {
 	int i;
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 4; i++)
+	{
 		writel(0, hpriv->mmio + AHCI_WINDOW_CTRL(i));
 		writel(0, hpriv->mmio + AHCI_WINDOW_BASE(i));
 		writel(0, hpriv->mmio + AHCI_WINDOW_SIZE(i));
 	}
 
-	for (i = 0; i < dram->num_cs; i++) {
+	for (i = 0; i < dram->num_cs; i++)
+	{
 		const struct mbus_dram_window *cs = dram->cs + i;
 
 		writel((cs->mbus_attr << 8) |
-		       (dram->mbus_dram_target_id << 4) | 1,
-		       hpriv->mmio + AHCI_WINDOW_CTRL(i));
+			   (dram->mbus_dram_target_id << 4) | 1,
+			   hpriv->mmio + AHCI_WINDOW_CTRL(i));
 		writel(cs->base >> 16, hpriv->mmio + AHCI_WINDOW_BASE(i));
 		writel(((cs->size - 1) & 0xffff0000),
-		       hpriv->mmio + AHCI_WINDOW_SIZE(i));
+			   hpriv->mmio + AHCI_WINDOW_SIZE(i));
 	}
 }
 
@@ -75,8 +77,11 @@ static int ahci_mvebu_resume(struct platform_device *pdev)
 	const struct mbus_dram_target_info *dram;
 
 	dram = mv_mbus_dram_info();
+
 	if (dram)
+	{
 		ahci_mvebu_mbus_config(hpriv, dram);
+	}
 
 	ahci_mvebu_regret_option(hpriv);
 
@@ -87,14 +92,16 @@ static int ahci_mvebu_resume(struct platform_device *pdev)
 #define ahci_mvebu_resume NULL
 #endif
 
-static const struct ata_port_info ahci_mvebu_port_info = {
+static const struct ata_port_info ahci_mvebu_port_info =
+{
 	.flags	   = AHCI_FLAG_COMMON,
 	.pio_mask  = ATA_PIO4,
 	.udma_mask = ATA_UDMA6,
 	.port_ops  = &ahci_platform_ops,
 };
 
-static struct scsi_host_template ahci_platform_sht = {
+static struct scsi_host_template ahci_platform_sht =
+{
 	AHCI_SHT(DRV_NAME),
 };
 
@@ -105,27 +112,40 @@ static int ahci_mvebu_probe(struct platform_device *pdev)
 	int rc;
 
 	hpriv = ahci_platform_get_resources(pdev);
+
 	if (IS_ERR(hpriv))
+	{
 		return PTR_ERR(hpriv);
+	}
 
 	rc = ahci_platform_enable_resources(hpriv);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	if (of_device_is_compatible(pdev->dev.of_node,
-				    "marvell,armada-380-ahci")) {
+								"marvell,armada-380-ahci"))
+	{
 		dram = mv_mbus_dram_info();
+
 		if (!dram)
+		{
 			return -ENODEV;
+		}
 
 		ahci_mvebu_mbus_config(hpriv, dram);
 		ahci_mvebu_regret_option(hpriv);
 	}
 
 	rc = ahci_platform_init_host(pdev, hpriv, &ahci_mvebu_port_info,
-				     &ahci_platform_sht);
+								 &ahci_platform_sht);
+
 	if (rc)
+	{
 		goto disable_resources;
+	}
 
 	return 0;
 
@@ -134,7 +154,8 @@ disable_resources:
 	return rc;
 }
 
-static const struct of_device_id ahci_mvebu_of_match[] = {
+static const struct of_device_id ahci_mvebu_of_match[] =
+{
 	{ .compatible = "marvell,armada-380-ahci", },
 	{ .compatible = "marvell,armada-3700-ahci", },
 	{ },
@@ -146,7 +167,8 @@ MODULE_DEVICE_TABLE(of, ahci_mvebu_of_match);
  * since there is no suspend/resume support at the platform level for
  * Armada 38x for the moment.
  */
-static struct platform_driver ahci_mvebu_driver = {
+static struct platform_driver ahci_mvebu_driver =
+{
 	.probe = ahci_mvebu_probe,
 	.remove = ata_platform_remove_one,
 	.suspend = ahci_mvebu_suspend,

@@ -41,11 +41,11 @@
 #define DEVICE "/dev/ptp0"
 
 #ifndef ADJ_SETOFFSET
-#define ADJ_SETOFFSET 0x0100
+	#define ADJ_SETOFFSET 0x0100
 #endif
 
 #ifndef CLOCK_INVALID
-#define CLOCK_INVALID -1
+	#define CLOCK_INVALID -1
 #endif
 
 /* clock_adjtime is not available in GLIBC < 2.14 */
@@ -113,32 +113,32 @@ static int64_t pctns(struct ptp_clock_time *t)
 static void usage(char *progname)
 {
 	fprintf(stderr,
-		"usage: %s [options]\n"
-		" -a val     request a one-shot alarm after 'val' seconds\n"
-		" -A val     request a periodic alarm every 'val' seconds\n"
-		" -c         query the ptp clock's capabilities\n"
-		" -d name    device to open\n"
-		" -e val     read 'val' external time stamp events\n"
-		" -f val     adjust the ptp clock frequency by 'val' ppb\n"
-		" -g         get the ptp clock time\n"
-		" -h         prints this message\n"
-		" -i val     index for event/trigger\n"
-		" -k val     measure the time offset between system and phc clock\n"
-		"            for 'val' times (Maximum 25)\n"
-		" -l         list the current pin configuration\n"
-		" -L pin,val configure pin index 'pin' with function 'val'\n"
-		"            the channel index is taken from the '-i' option\n"
-		"            'val' specifies the auxiliary function:\n"
-		"            0 - none\n"
-		"            1 - external time stamp\n"
-		"            2 - periodic output\n"
-		" -p val     enable output with a period of 'val' nanoseconds\n"
-		" -P val     enable or disable (val=1|0) the system clock PPS\n"
-		" -s         set the ptp clock time from the system time\n"
-		" -S         set the system time from the ptp clock time\n"
-		" -t val     shift the ptp clock time by 'val' seconds\n"
-		" -T val     set the ptp clock time to 'val' seconds\n",
-		progname);
+			"usage: %s [options]\n"
+			" -a val     request a one-shot alarm after 'val' seconds\n"
+			" -A val     request a periodic alarm every 'val' seconds\n"
+			" -c         query the ptp clock's capabilities\n"
+			" -d name    device to open\n"
+			" -e val     read 'val' external time stamp events\n"
+			" -f val     adjust the ptp clock frequency by 'val' ppb\n"
+			" -g         get the ptp clock time\n"
+			" -h         prints this message\n"
+			" -i val     index for event/trigger\n"
+			" -k val     measure the time offset between system and phc clock\n"
+			"            for 'val' times (Maximum 25)\n"
+			" -l         list the current pin configuration\n"
+			" -L pin,val configure pin index 'pin' with function 'val'\n"
+			"            the channel index is taken from the '-i' option\n"
+			"            'val' specifies the auxiliary function:\n"
+			"            0 - none\n"
+			"            1 - external time stamp\n"
+			"            2 - periodic output\n"
+			" -p val     enable output with a period of 'val' nanoseconds\n"
+			" -P val     enable or disable (val=1|0) the system clock PPS\n"
+			" -s         set the ptp clock time from the system time\n"
+			" -S         set the system time from the ptp clock time\n"
+			" -t val     shift the ptp clock time by 'val' seconds\n"
+			" -T val     set the ptp clock time to 'val' seconds\n",
+			progname);
 }
 
 int main(int argc, char *argv[])
@@ -186,333 +186,461 @@ int main(int argc, char *argv[])
 	int64_t interval, offset;
 
 	progname = strrchr(argv[0], '/');
-	progname = progname ? 1+progname : argv[0];
-	while (EOF != (c = getopt(argc, argv, "a:A:cd:e:f:ghi:k:lL:p:P:sSt:T:v"))) {
-		switch (c) {
-		case 'a':
-			oneshot = atoi(optarg);
-			break;
-		case 'A':
-			periodic = atoi(optarg);
-			break;
-		case 'c':
-			capabilities = 1;
-			break;
-		case 'd':
-			device = optarg;
-			break;
-		case 'e':
-			extts = atoi(optarg);
-			break;
-		case 'f':
-			adjfreq = atoi(optarg);
-			break;
-		case 'g':
-			gettime = 1;
-			break;
-		case 'i':
-			index = atoi(optarg);
-			break;
-		case 'k':
-			pct_offset = 1;
-			n_samples = atoi(optarg);
-			break;
-		case 'l':
-			list_pins = 1;
-			break;
-		case 'L':
-			cnt = sscanf(optarg, "%d,%d", &pin_index, &pin_func);
-			if (cnt != 2) {
+	progname = progname ? 1 + progname : argv[0];
+
+	while (EOF != (c = getopt(argc, argv, "a:A:cd:e:f:ghi:k:lL:p:P:sSt:T:v")))
+	{
+		switch (c)
+		{
+			case 'a':
+				oneshot = atoi(optarg);
+				break;
+
+			case 'A':
+				periodic = atoi(optarg);
+				break;
+
+			case 'c':
+				capabilities = 1;
+				break;
+
+			case 'd':
+				device = optarg;
+				break;
+
+			case 'e':
+				extts = atoi(optarg);
+				break;
+
+			case 'f':
+				adjfreq = atoi(optarg);
+				break;
+
+			case 'g':
+				gettime = 1;
+				break;
+
+			case 'i':
+				index = atoi(optarg);
+				break;
+
+			case 'k':
+				pct_offset = 1;
+				n_samples = atoi(optarg);
+				break;
+
+			case 'l':
+				list_pins = 1;
+				break;
+
+			case 'L':
+				cnt = sscanf(optarg, "%d,%d", &pin_index, &pin_func);
+
+				if (cnt != 2)
+				{
+					usage(progname);
+					return -1;
+				}
+
+				break;
+
+			case 'p':
+				perout = atoi(optarg);
+				break;
+
+			case 'P':
+				pps = atoi(optarg);
+				break;
+
+			case 's':
+				settime = 1;
+				break;
+
+			case 'S':
+				settime = 2;
+				break;
+
+			case 't':
+				adjtime = atoi(optarg);
+				break;
+
+			case 'T':
+				settime = 3;
+				seconds = atoi(optarg);
+				break;
+
+			case 'h':
+				usage(progname);
+				return 0;
+
+			case '?':
+			default:
 				usage(progname);
 				return -1;
-			}
-			break;
-		case 'p':
-			perout = atoi(optarg);
-			break;
-		case 'P':
-			pps = atoi(optarg);
-			break;
-		case 's':
-			settime = 1;
-			break;
-		case 'S':
-			settime = 2;
-			break;
-		case 't':
-			adjtime = atoi(optarg);
-			break;
-		case 'T':
-			settime = 3;
-			seconds = atoi(optarg);
-			break;
-		case 'h':
-			usage(progname);
-			return 0;
-		case '?':
-		default:
-			usage(progname);
-			return -1;
 		}
 	}
 
 	fd = open(device, O_RDWR);
-	if (fd < 0) {
+
+	if (fd < 0)
+	{
 		fprintf(stderr, "opening %s: %s\n", device, strerror(errno));
 		return -1;
 	}
 
 	clkid = get_clockid(fd);
-	if (CLOCK_INVALID == clkid) {
+
+	if (CLOCK_INVALID == clkid)
+	{
 		fprintf(stderr, "failed to read clock id\n");
 		return -1;
 	}
 
-	if (capabilities) {
-		if (ioctl(fd, PTP_CLOCK_GETCAPS, &caps)) {
+	if (capabilities)
+	{
+		if (ioctl(fd, PTP_CLOCK_GETCAPS, &caps))
+		{
 			perror("PTP_CLOCK_GETCAPS");
-		} else {
+		}
+		else
+		{
 			printf("capabilities:\n"
-			       "  %d maximum frequency adjustment (ppb)\n"
-			       "  %d programmable alarms\n"
-			       "  %d external time stamp channels\n"
-			       "  %d programmable periodic signals\n"
-			       "  %d pulse per second\n"
-			       "  %d programmable pins\n"
-			       "  %d cross timestamping\n",
-			       caps.max_adj,
-			       caps.n_alarm,
-			       caps.n_ext_ts,
-			       caps.n_per_out,
-			       caps.pps,
-			       caps.n_pins,
-			       caps.cross_timestamping);
+				   "  %d maximum frequency adjustment (ppb)\n"
+				   "  %d programmable alarms\n"
+				   "  %d external time stamp channels\n"
+				   "  %d programmable periodic signals\n"
+				   "  %d pulse per second\n"
+				   "  %d programmable pins\n"
+				   "  %d cross timestamping\n",
+				   caps.max_adj,
+				   caps.n_alarm,
+				   caps.n_ext_ts,
+				   caps.n_per_out,
+				   caps.pps,
+				   caps.n_pins,
+				   caps.cross_timestamping);
 		}
 	}
 
-	if (0x7fffffff != adjfreq) {
+	if (0x7fffffff != adjfreq)
+	{
 		memset(&tx, 0, sizeof(tx));
 		tx.modes = ADJ_FREQUENCY;
 		tx.freq = ppb_to_scaled_ppm(adjfreq);
-		if (clock_adjtime(clkid, &tx)) {
+
+		if (clock_adjtime(clkid, &tx))
+		{
 			perror("clock_adjtime");
-		} else {
+		}
+		else
+		{
 			puts("frequency adjustment okay");
 		}
 	}
 
-	if (adjtime) {
+	if (adjtime)
+	{
 		memset(&tx, 0, sizeof(tx));
 		tx.modes = ADJ_SETOFFSET;
 		tx.time.tv_sec = adjtime;
 		tx.time.tv_usec = 0;
-		if (clock_adjtime(clkid, &tx) < 0) {
+
+		if (clock_adjtime(clkid, &tx) < 0)
+		{
 			perror("clock_adjtime");
-		} else {
+		}
+		else
+		{
 			puts("time shift okay");
 		}
 	}
 
-	if (gettime) {
-		if (clock_gettime(clkid, &ts)) {
+	if (gettime)
+	{
+		if (clock_gettime(clkid, &ts))
+		{
 			perror("clock_gettime");
-		} else {
+		}
+		else
+		{
 			printf("clock time: %ld.%09ld or %s",
-			       ts.tv_sec, ts.tv_nsec, ctime(&ts.tv_sec));
+				   ts.tv_sec, ts.tv_nsec, ctime(&ts.tv_sec));
 		}
 	}
 
-	if (settime == 1) {
+	if (settime == 1)
+	{
 		clock_gettime(CLOCK_REALTIME, &ts);
-		if (clock_settime(clkid, &ts)) {
+
+		if (clock_settime(clkid, &ts))
+		{
 			perror("clock_settime");
-		} else {
+		}
+		else
+		{
 			puts("set time okay");
 		}
 	}
 
-	if (settime == 2) {
+	if (settime == 2)
+	{
 		clock_gettime(clkid, &ts);
-		if (clock_settime(CLOCK_REALTIME, &ts)) {
+
+		if (clock_settime(CLOCK_REALTIME, &ts))
+		{
 			perror("clock_settime");
-		} else {
+		}
+		else
+		{
 			puts("set time okay");
 		}
 	}
 
-	if (settime == 3) {
+	if (settime == 3)
+	{
 		ts.tv_sec = seconds;
 		ts.tv_nsec = 0;
-		if (clock_settime(clkid, &ts)) {
+
+		if (clock_settime(clkid, &ts))
+		{
 			perror("clock_settime");
-		} else {
+		}
+		else
+		{
 			puts("set time okay");
 		}
 	}
 
-	if (extts) {
+	if (extts)
+	{
 		memset(&extts_request, 0, sizeof(extts_request));
 		extts_request.index = index;
 		extts_request.flags = PTP_ENABLE_FEATURE;
-		if (ioctl(fd, PTP_EXTTS_REQUEST, &extts_request)) {
+
+		if (ioctl(fd, PTP_EXTTS_REQUEST, &extts_request))
+		{
 			perror("PTP_EXTTS_REQUEST");
 			extts = 0;
-		} else {
+		}
+		else
+		{
 			puts("external time stamp request okay");
 		}
-		for (; extts; extts--) {
+
+		for (; extts; extts--)
+		{
 			cnt = read(fd, &event, sizeof(event));
-			if (cnt != sizeof(event)) {
+
+			if (cnt != sizeof(event))
+			{
 				perror("read");
 				break;
 			}
+
 			printf("event index %u at %lld.%09u\n", event.index,
-			       event.t.sec, event.t.nsec);
+				   event.t.sec, event.t.nsec);
 			fflush(stdout);
 		}
+
 		/* Disable the feature again. */
 		extts_request.flags = 0;
-		if (ioctl(fd, PTP_EXTTS_REQUEST, &extts_request)) {
+
+		if (ioctl(fd, PTP_EXTTS_REQUEST, &extts_request))
+		{
 			perror("PTP_EXTTS_REQUEST");
 		}
 	}
 
-	if (list_pins) {
+	if (list_pins)
+	{
 		int n_pins = 0;
-		if (ioctl(fd, PTP_CLOCK_GETCAPS, &caps)) {
+
+		if (ioctl(fd, PTP_CLOCK_GETCAPS, &caps))
+		{
 			perror("PTP_CLOCK_GETCAPS");
-		} else {
+		}
+		else
+		{
 			n_pins = caps.n_pins;
 		}
-		for (i = 0; i < n_pins; i++) {
+
+		for (i = 0; i < n_pins; i++)
+		{
 			desc.index = i;
-			if (ioctl(fd, PTP_PIN_GETFUNC, &desc)) {
+
+			if (ioctl(fd, PTP_PIN_GETFUNC, &desc))
+			{
 				perror("PTP_PIN_GETFUNC");
 				break;
 			}
+
 			printf("name %s index %u func %u chan %u\n",
-			       desc.name, desc.index, desc.func, desc.chan);
+				   desc.name, desc.index, desc.func, desc.chan);
 		}
 	}
 
-	if (oneshot) {
+	if (oneshot)
+	{
 		install_handler(SIGALRM, handle_alarm);
 		/* Create a timer. */
 		sigevent.sigev_notify = SIGEV_SIGNAL;
 		sigevent.sigev_signo = SIGALRM;
-		if (timer_create(clkid, &sigevent, &timerid)) {
+
+		if (timer_create(clkid, &sigevent, &timerid))
+		{
 			perror("timer_create");
 			return -1;
 		}
+
 		/* Start the timer. */
 		memset(&timeout, 0, sizeof(timeout));
 		timeout.it_value.tv_sec = oneshot;
-		if (timer_settime(timerid, 0, &timeout, NULL)) {
+
+		if (timer_settime(timerid, 0, &timeout, NULL))
+		{
 			perror("timer_settime");
 			return -1;
 		}
+
 		pause();
 		timer_delete(timerid);
 	}
 
-	if (periodic) {
+	if (periodic)
+	{
 		install_handler(SIGALRM, handle_alarm);
 		/* Create a timer. */
 		sigevent.sigev_notify = SIGEV_SIGNAL;
 		sigevent.sigev_signo = SIGALRM;
-		if (timer_create(clkid, &sigevent, &timerid)) {
+
+		if (timer_create(clkid, &sigevent, &timerid))
+		{
 			perror("timer_create");
 			return -1;
 		}
+
 		/* Start the timer. */
 		memset(&timeout, 0, sizeof(timeout));
 		timeout.it_interval.tv_sec = periodic;
 		timeout.it_value.tv_sec = periodic;
-		if (timer_settime(timerid, 0, &timeout, NULL)) {
+
+		if (timer_settime(timerid, 0, &timeout, NULL))
+		{
 			perror("timer_settime");
 			return -1;
 		}
-		while (1) {
+
+		while (1)
+		{
 			pause();
 		}
+
 		timer_delete(timerid);
 	}
 
-	if (perout >= 0) {
-		if (clock_gettime(clkid, &ts)) {
+	if (perout >= 0)
+	{
+		if (clock_gettime(clkid, &ts))
+		{
 			perror("clock_gettime");
 			return -1;
 		}
+
 		memset(&perout_request, 0, sizeof(perout_request));
 		perout_request.index = index;
 		perout_request.start.sec = ts.tv_sec + 2;
 		perout_request.start.nsec = 0;
 		perout_request.period.sec = 0;
 		perout_request.period.nsec = perout;
-		if (ioctl(fd, PTP_PEROUT_REQUEST, &perout_request)) {
+
+		if (ioctl(fd, PTP_PEROUT_REQUEST, &perout_request))
+		{
 			perror("PTP_PEROUT_REQUEST");
-		} else {
+		}
+		else
+		{
 			puts("periodic output request okay");
 		}
 	}
 
-	if (pin_index >= 0) {
+	if (pin_index >= 0)
+	{
 		memset(&desc, 0, sizeof(desc));
 		desc.index = pin_index;
 		desc.func = pin_func;
 		desc.chan = index;
-		if (ioctl(fd, PTP_PIN_SETFUNC, &desc)) {
+
+		if (ioctl(fd, PTP_PIN_SETFUNC, &desc))
+		{
 			perror("PTP_PIN_SETFUNC");
-		} else {
+		}
+		else
+		{
 			puts("set pin function okay");
 		}
 	}
 
-	if (pps != -1) {
+	if (pps != -1)
+	{
 		int enable = pps ? 1 : 0;
-		if (ioctl(fd, PTP_ENABLE_PPS, enable)) {
+
+		if (ioctl(fd, PTP_ENABLE_PPS, enable))
+		{
 			perror("PTP_ENABLE_PPS");
-		} else {
+		}
+		else
+		{
 			puts("pps for system time request okay");
 		}
 	}
 
-	if (pct_offset) {
-		if (n_samples <= 0 || n_samples > 25) {
+	if (pct_offset)
+	{
+		if (n_samples <= 0 || n_samples > 25)
+		{
 			puts("n_samples should be between 1 and 25");
 			usage(progname);
 			return -1;
 		}
 
 		sysoff = calloc(1, sizeof(*sysoff));
-		if (!sysoff) {
+
+		if (!sysoff)
+		{
 			perror("calloc");
 			return -1;
 		}
+
 		sysoff->n_samples = n_samples;
 
 		if (ioctl(fd, PTP_SYS_OFFSET, sysoff))
+		{
 			perror("PTP_SYS_OFFSET");
+		}
 		else
+		{
 			puts("system and phc clock time offset request okay");
+		}
 
 		pct = &sysoff->ts[0];
-		for (i = 0; i < sysoff->n_samples; i++) {
-			t1 = pctns(pct+2*i);
-			tp = pctns(pct+2*i+1);
-			t2 = pctns(pct+2*i+2);
+
+		for (i = 0; i < sysoff->n_samples; i++)
+		{
+			t1 = pctns(pct + 2 * i);
+			tp = pctns(pct + 2 * i + 1);
+			t2 = pctns(pct + 2 * i + 2);
 			interval = t2 - t1;
 			offset = (t2 + t1) / 2 - tp;
 
 			printf("system time: %lld.%u\n",
-				(pct+2*i)->sec, (pct+2*i)->nsec);
+				   (pct + 2 * i)->sec, (pct + 2 * i)->nsec);
 			printf("phc    time: %lld.%u\n",
-				(pct+2*i+1)->sec, (pct+2*i+1)->nsec);
+				   (pct + 2 * i + 1)->sec, (pct + 2 * i + 1)->nsec);
 			printf("system time: %lld.%u\n",
-				(pct+2*i+2)->sec, (pct+2*i+2)->nsec);
+				   (pct + 2 * i + 2)->sec, (pct + 2 * i + 2)->nsec);
 			printf("system/phc clock time offset is %" PRId64 " ns\n"
-			       "system     clock time delay  is %" PRId64 " ns\n",
-				offset, interval);
+				   "system     clock time delay  is %" PRId64 " ns\n",
+				   offset, interval);
 		}
 
 		free(sysoff);

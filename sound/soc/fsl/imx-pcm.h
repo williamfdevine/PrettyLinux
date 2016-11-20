@@ -27,14 +27,15 @@
 
 static inline void
 imx_pcm_dma_params_init_data(struct imx_dma_data *dma_data,
-	int dma, enum sdma_peripheral_type peripheral_type)
+							 int dma, enum sdma_peripheral_type peripheral_type)
 {
 	dma_data->dma_request = dma;
 	dma_data->priority = DMA_PRIO_HIGH;
 	dma_data->peripheral_type = peripheral_type;
 }
 
-struct imx_pcm_fiq_params {
+struct imx_pcm_fiq_params
+{
 	int irq;
 	void __iomem *base;
 
@@ -54,11 +55,11 @@ static inline int imx_pcm_dma_init(struct platform_device *pdev, size_t size)
 
 #if IS_ENABLED(CONFIG_SND_SOC_IMX_PCM_FIQ)
 int imx_pcm_fiq_init(struct platform_device *pdev,
-		struct imx_pcm_fiq_params *params);
+					 struct imx_pcm_fiq_params *params);
 void imx_pcm_fiq_exit(struct platform_device *pdev);
 #else
 static inline int imx_pcm_fiq_init(struct platform_device *pdev,
-		struct imx_pcm_fiq_params *params)
+								   struct imx_pcm_fiq_params *params)
 {
 	return -ENODEV;
 }

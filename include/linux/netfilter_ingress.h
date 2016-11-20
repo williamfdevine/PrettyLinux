@@ -8,8 +8,12 @@
 static inline bool nf_hook_ingress_active(const struct sk_buff *skb)
 {
 #ifdef HAVE_JUMP_LABEL
+
 	if (!static_key_false(&nf_hooks_needed[NFPROTO_NETDEV][NF_NETDEV_INGRESS]))
+	{
 		return false;
+	}
+
 #endif
 	return rcu_access_pointer(skb->dev->nf_hooks_ingress);
 }
@@ -24,11 +28,13 @@ static inline int nf_hook_ingress(struct sk_buff *skb)
 	 * after the check in nf_hook_ingress_active evaluated to true.
 	 */
 	if (unlikely(!e))
+	{
 		return 0;
+	}
 
 	nf_hook_state_init(&state, e, NF_NETDEV_INGRESS, INT_MIN,
-			   NFPROTO_NETDEV, skb->dev, NULL, NULL,
-			   dev_net(skb->dev), NULL);
+					   NFPROTO_NETDEV, skb->dev, NULL, NULL,
+					   dev_net(skb->dev), NULL);
 	return nf_hook_slow(skb, &state);
 }
 

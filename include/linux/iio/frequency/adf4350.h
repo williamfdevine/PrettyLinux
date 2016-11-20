@@ -109,7 +109,8 @@
  *			If not used - set to -1.
  */
 
-struct adf4350_platform_data {
+struct adf4350_platform_data
+{
 	char			name[32];
 	unsigned long		clkin;
 	unsigned long		channel_spacing;

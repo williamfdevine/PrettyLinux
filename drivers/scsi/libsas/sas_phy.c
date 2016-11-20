@@ -62,20 +62,24 @@ static void sas_phye_oob_error(struct work_struct *work)
 
 	sas_deform_port(phy, 1);
 
-	if (!port && phy->enabled && i->dft->lldd_control_phy) {
+	if (!port && phy->enabled && i->dft->lldd_control_phy)
+	{
 		phy->error++;
-		switch (phy->error) {
-		case 1:
-		case 2:
-			i->dft->lldd_control_phy(phy, PHY_FUNC_HARD_RESET,
-						 NULL);
-			break;
-		case 3:
-		default:
-			phy->error = 0;
-			phy->enabled = 0;
-			i->dft->lldd_control_phy(phy, PHY_FUNC_DISABLE, NULL);
-			break;
+
+		switch (phy->error)
+		{
+			case 1:
+			case 2:
+				i->dft->lldd_control_phy(phy, PHY_FUNC_HARD_RESET,
+										 NULL);
+				break;
+
+			case 3:
+			default:
+				phy->error = 0;
+				phy->enabled = 0;
+				i->dft->lldd_control_phy(phy, PHY_FUNC_DISABLE, NULL);
+				break;
 		}
 	}
 }
@@ -102,7 +106,8 @@ static void sas_phye_resume_timeout(struct work_struct *work)
 	clear_bit(PHYE_RESUME_TIMEOUT, &phy->phy_events_pending);
 
 	/* phew, lldd got the phy back in the nick of time */
-	if (!phy->suspended) {
+	if (!phy->suspended)
+	{
 		dev_info(&phy->phy->dev, "resume timeout cancelled\n");
 		return;
 	}
@@ -119,7 +124,8 @@ int sas_register_phys(struct sas_ha_struct *sas_ha)
 {
 	int i;
 
-	static const work_func_t sas_phy_event_fns[PHY_NUM_EVENTS] = {
+	static const work_func_t sas_phy_event_fns[PHY_NUM_EVENTS] =
+	{
 		[PHYE_LOSS_OF_SIGNAL] = sas_phye_loss_of_signal,
 		[PHYE_OOB_DONE] = sas_phye_oob_done,
 		[PHYE_OOB_ERROR] = sas_phye_oob_error,
@@ -128,7 +134,8 @@ int sas_register_phys(struct sas_ha_struct *sas_ha)
 
 	};
 
-	static const work_func_t sas_port_event_fns[PORT_NUM_EVENTS] = {
+	static const work_func_t sas_port_event_fns[PORT_NUM_EVENTS] =
+	{
 		[PORTE_BYTES_DMAED] = sas_porte_bytes_dmaed,
 		[PORTE_BROADCAST_RCVD] = sas_porte_broadcast_rcvd,
 		[PORTE_LINK_RESET_ERR] = sas_porte_link_reset_err,
@@ -137,18 +144,22 @@ int sas_register_phys(struct sas_ha_struct *sas_ha)
 	};
 
 	/* Now register the phys. */
-	for (i = 0; i < sas_ha->num_phys; i++) {
+	for (i = 0; i < sas_ha->num_phys; i++)
+	{
 		int k;
 		struct asd_sas_phy *phy = sas_ha->sas_phy[i];
 
 		phy->error = 0;
 		INIT_LIST_HEAD(&phy->port_phy_el);
-		for (k = 0; k < PORT_NUM_EVENTS; k++) {
+
+		for (k = 0; k < PORT_NUM_EVENTS; k++)
+		{
 			INIT_SAS_WORK(&phy->port_events[k].work, sas_port_event_fns[k]);
 			phy->port_events[k].phy = phy;
 		}
 
-		for (k = 0; k < PHY_NUM_EVENTS; k++) {
+		for (k = 0; k < PHY_NUM_EVENTS; k++)
+		{
 			INIT_SAS_WORK(&phy->phy_events[k].work, sas_phy_event_fns[k]);
 			phy->phy_events[k].phy = phy;
 		}
@@ -160,8 +171,11 @@ int sas_register_phys(struct sas_ha_struct *sas_ha)
 		phy->frame_rcvd_size = 0;
 
 		phy->phy = sas_phy_alloc(&sas_ha->core.shost->shost_gendev, i);
+
 		if (!phy->phy)
+		{
 			return -ENOMEM;
+		}
 
 		phy->phy->identify.initiator_port_protocols =
 			phy->iproto;

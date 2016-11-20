@@ -22,7 +22,8 @@
    helps to descide which keycodes to assign to the buttons.
  */
 
-static struct rc_map_table manli[] = {
+static struct rc_map_table manli[] =
+{
 
 	/*  0x1c            0x12  *
 	 * FUNCTION         POWER *
@@ -109,7 +110,8 @@ static struct rc_map_table manli[] = {
 	/* 0x1d unused ? */
 };
 
-static struct rc_map_list manli_map = {
+static struct rc_map_list manli_map =
+{
 	.map = {
 		.scan    = manli,
 		.size    = ARRAY_SIZE(manli),

@@ -40,7 +40,8 @@
 #define DRA7_ATL_PCLKMUX		BIT(0)
 struct dra7_atl_clock_info;
 
-struct dra7_atl_desc {
+struct dra7_atl_desc
+{
 	struct clk *clk;
 	struct clk_hw hw;
 	struct dra7_atl_clock_info *cinfo;
@@ -54,7 +55,8 @@ struct dra7_atl_desc {
 	u32 divider;		/* Cached divider value */
 };
 
-struct dra7_atl_clock_info {
+struct dra7_atl_clock_info
+{
 	struct device *dev;
 	void __iomem *iobase;
 
@@ -64,7 +66,7 @@ struct dra7_atl_clock_info {
 #define to_atl_desc(_hw)	container_of(_hw, struct dra7_atl_desc, hw)
 
 static inline void atl_write(struct dra7_atl_clock_info *cinfo, u32 reg,
-			     u32 val)
+							 u32 val)
 {
 	__raw_writel(val, cinfo->iobase + reg);
 }
@@ -79,15 +81,18 @@ static int atl_clk_enable(struct clk_hw *hw)
 	struct dra7_atl_desc *cdesc = to_atl_desc(hw);
 
 	if (!cdesc->probed)
+	{
 		goto out;
+	}
 
 	if (unlikely(!cdesc->valid))
 		dev_warn(cdesc->cinfo->dev, "atl%d has not been configured\n",
-			 cdesc->id);
+				 cdesc->id);
+
 	pm_runtime_get_sync(cdesc->cinfo->dev);
 
 	atl_write(cdesc->cinfo, DRA7_ATL_ATLCR_REG(cdesc->id),
-		  cdesc->divider - 1);
+			  cdesc->divider - 1);
 	atl_write(cdesc->cinfo, DRA7_ATL_SWEN_REG(cdesc->id), DRA7_ATL_SWEN);
 
 out:
@@ -101,7 +106,9 @@ static void atl_clk_disable(struct clk_hw *hw)
 	struct dra7_atl_desc *cdesc = to_atl_desc(hw);
 
 	if (!cdesc->probed)
+	{
 		goto out;
+	}
 
 	atl_write(cdesc->cinfo, DRA7_ATL_SWEN_REG(cdesc->id), 0);
 	pm_runtime_put_sync(cdesc->cinfo->dev);
@@ -118,7 +125,7 @@ static int atl_clk_is_enabled(struct clk_hw *hw)
 }
 
 static unsigned long atl_clk_recalc_rate(struct clk_hw *hw,
-					 unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct dra7_atl_desc *cdesc = to_atl_desc(hw);
 
@@ -126,37 +133,46 @@ static unsigned long atl_clk_recalc_rate(struct clk_hw *hw,
 }
 
 static long atl_clk_round_rate(struct clk_hw *hw, unsigned long rate,
-			       unsigned long *parent_rate)
+							   unsigned long *parent_rate)
 {
 	unsigned divider;
 
 	divider = (*parent_rate + rate / 2) / rate;
+
 	if (divider > DRA7_ATL_DIVIDER_MASK + 1)
+	{
 		divider = DRA7_ATL_DIVIDER_MASK + 1;
+	}
 
 	return *parent_rate / divider;
 }
 
 static int atl_clk_set_rate(struct clk_hw *hw, unsigned long rate,
-			    unsigned long parent_rate)
+							unsigned long parent_rate)
 {
 	struct dra7_atl_desc *cdesc;
 	u32 divider;
 
 	if (!hw || !rate)
+	{
 		return -EINVAL;
+	}
 
 	cdesc = to_atl_desc(hw);
 	divider = ((parent_rate + rate / 2) / rate) - 1;
+
 	if (divider > DRA7_ATL_DIVIDER_MASK)
+	{
 		divider = DRA7_ATL_DIVIDER_MASK;
+	}
 
 	cdesc->divider = divider + 1;
 
 	return 0;
 }
 
-static const struct clk_ops atl_clk_ops = {
+static const struct clk_ops atl_clk_ops =
+{
 	.enable		= atl_clk_enable,
 	.disable	= atl_clk_disable,
 	.is_enabled	= atl_clk_is_enabled,
@@ -173,7 +189,9 @@ static void __init of_dra7_atl_clock_setup(struct device_node *node)
 	struct clk *clk;
 
 	clk_hw = kzalloc(sizeof(*clk_hw), GFP_KERNEL);
-	if (!clk_hw) {
+
+	if (!clk_hw)
+	{
 		pr_err("%s: could not allocate dra7_atl_desc\n", __func__);
 		return;
 	}
@@ -185,16 +203,19 @@ static void __init of_dra7_atl_clock_setup(struct device_node *node)
 	init.flags = CLK_IGNORE_UNUSED;
 	init.num_parents = of_clk_get_parent_count(node);
 
-	if (init.num_parents != 1) {
+	if (init.num_parents != 1)
+	{
 		pr_err("%s: atl clock %s must have 1 parent\n", __func__,
-		       node->name);
+			   node->name);
 		goto cleanup;
 	}
 
 	parent_names = kzalloc(sizeof(char *), GFP_KERNEL);
 
 	if (!parent_names)
+	{
 		goto cleanup;
+	}
 
 	parent_names[0] = of_clk_get_parent_name(node, 0);
 
@@ -202,11 +223,13 @@ static void __init of_dra7_atl_clock_setup(struct device_node *node)
 
 	clk = clk_register(NULL, &clk_hw->hw);
 
-	if (!IS_ERR(clk)) {
+	if (!IS_ERR(clk))
+	{
 		of_clk_add_provider(node, of_clk_src_simple_get, clk);
 		kfree(parent_names);
 		return;
 	}
+
 cleanup:
 	kfree(parent_names);
 	kfree(clk_hw);
@@ -221,11 +244,16 @@ static int of_dra7_atl_clk_probe(struct platform_device *pdev)
 	int ret = 0;
 
 	if (!node)
+	{
 		return -ENODEV;
+	}
 
 	cinfo = devm_kzalloc(&pdev->dev, sizeof(*cinfo), GFP_KERNEL);
+
 	if (!cinfo)
+	{
 		return -ENOMEM;
+	}
 
 	cinfo->iobase = of_iomap(node, 0);
 	cinfo->dev = &pdev->dev;
@@ -235,7 +263,8 @@ static int of_dra7_atl_clk_probe(struct platform_device *pdev)
 	pm_runtime_get_sync(cinfo->dev);
 	atl_write(cinfo, DRA7_ATL_PCLKMUX_REG(0), DRA7_ATL_PCLKMUX);
 
-	for (i = 0; i < DRA7_ATL_INSTANCES; i++) {
+	for (i = 0; i < DRA7_ATL_INSTANCES; i++)
+	{
 		struct device_node *cfg_node;
 		char prop[5];
 		struct dra7_atl_desc *cdesc;
@@ -244,18 +273,21 @@ static int of_dra7_atl_clk_probe(struct platform_device *pdev)
 		int rc;
 
 		rc = of_parse_phandle_with_args(node, "ti,provided-clocks",
-						NULL, i, &clkspec);
+										NULL, i, &clkspec);
 
-		if (rc) {
+		if (rc)
+		{
 			pr_err("%s: failed to lookup atl clock %d\n", __func__,
-			       i);
+				   i);
 			return -EINVAL;
 		}
 
 		clk = of_clk_get_from_provider(&clkspec);
-		if (IS_ERR(clk)) {
+
+		if (IS_ERR(clk))
+		{
 			pr_err("%s: failed to get atl clock %d from provider\n",
-			       __func__, i);
+				   __func__, i);
 			return PTR_ERR(clk);
 		}
 
@@ -267,29 +299,38 @@ static int of_dra7_atl_clk_probe(struct platform_device *pdev)
 		snprintf(prop, sizeof(prop), "atl%u", i);
 		of_node_get(node);
 		cfg_node = of_find_node_by_name(node, prop);
-		if (cfg_node) {
+
+		if (cfg_node)
+		{
 			ret = of_property_read_u32(cfg_node, "bws",
-						   &cdesc->bws);
+									   &cdesc->bws);
 			ret |= of_property_read_u32(cfg_node, "aws",
-						    &cdesc->aws);
-			if (!ret) {
+										&cdesc->aws);
+
+			if (!ret)
+			{
 				cdesc->valid = true;
 				atl_write(cinfo, DRA7_ATL_BWSMUX_REG(i),
-					  cdesc->bws);
+						  cdesc->bws);
 				atl_write(cinfo, DRA7_ATL_AWSMUX_REG(i),
-					  cdesc->aws);
+						  cdesc->aws);
 			}
+
 			of_node_put(cfg_node);
 		}
 
 		cdesc->probed = true;
+
 		/*
 		 * Enable the clock if it has been asked prior to loading the
 		 * hw driver
 		 */
 		if (cdesc->enabled)
+		{
 			atl_clk_enable(__clk_get_hw(clk));
+		}
 	}
+
 	pm_runtime_put_sync(cinfo->dev);
 
 	return ret;
@@ -302,13 +343,15 @@ static int of_dra7_atl_clk_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id of_dra7_atl_clk_match_tbl[] = {
+static const struct of_device_id of_dra7_atl_clk_match_tbl[] =
+{
 	{ .compatible = "ti,dra7-atl", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, of_dra7_atl_clk_match_tbl);
 
-static struct platform_driver dra7_atl_clk_driver = {
+static struct platform_driver dra7_atl_clk_driver =
+{
 	.driver = {
 		.name = "dra7-atl",
 		.of_match_table = of_dra7_atl_clk_match_tbl,

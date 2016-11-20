@@ -24,20 +24,23 @@
 #include "vnic_wq.h"
 
 static inline int vnic_wq_get_ctrl(struct vnic_dev *vdev, struct vnic_wq *wq,
-	unsigned int index, enum vnic_res_type res_type)
+								   unsigned int index, enum vnic_res_type res_type)
 {
 	wq->ctrl = svnic_dev_get_res(vdev, res_type, index);
+
 	if (!wq->ctrl)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
 
 static inline int vnic_wq_alloc_ring(struct vnic_dev *vdev, struct vnic_wq *wq,
-	unsigned int index, unsigned int desc_count, unsigned int desc_size)
+									 unsigned int index, unsigned int desc_count, unsigned int desc_size)
 {
 	return svnic_dev_alloc_desc_ring(vdev, &wq->ring, desc_count,
-					 desc_size);
+									 desc_size);
 }
 
 static int vnic_wq_alloc_bufs(struct vnic_wq *wq)
@@ -46,27 +49,39 @@ static int vnic_wq_alloc_bufs(struct vnic_wq *wq)
 	unsigned int i, j, count = wq->ring.desc_count;
 	unsigned int blks = VNIC_WQ_BUF_BLKS_NEEDED(count);
 
-	for (i = 0; i < blks; i++) {
+	for (i = 0; i < blks; i++)
+	{
 		wq->bufs[i] = kzalloc(VNIC_WQ_BUF_BLK_SZ, GFP_ATOMIC);
-		if (!wq->bufs[i]) {
+
+		if (!wq->bufs[i])
+		{
 			pr_err("Failed to alloc wq_bufs\n");
 
 			return -ENOMEM;
 		}
 	}
 
-	for (i = 0; i < blks; i++) {
+	for (i = 0; i < blks; i++)
+	{
 		buf = wq->bufs[i];
-		for (j = 0; j < VNIC_WQ_BUF_DFLT_BLK_ENTRIES; j++) {
+
+		for (j = 0; j < VNIC_WQ_BUF_DFLT_BLK_ENTRIES; j++)
+		{
 			buf->index = i * VNIC_WQ_BUF_DFLT_BLK_ENTRIES + j;
 			buf->desc = (u8 *)wq->ring.descs +
-				wq->ring.desc_size * buf->index;
-			if (buf->index + 1 == count) {
+						wq->ring.desc_size * buf->index;
+
+			if (buf->index + 1 == count)
+			{
 				buf->next = wq->bufs[0];
 				break;
-			} else if (j + 1 == VNIC_WQ_BUF_DFLT_BLK_ENTRIES) {
+			}
+			else if (j + 1 == VNIC_WQ_BUF_DFLT_BLK_ENTRIES)
+			{
 				buf->next = wq->bufs[i + 1];
-			} else {
+			}
+			else
+			{
 				buf->next = buf + 1;
 				buf++;
 			}
@@ -87,7 +102,8 @@ void svnic_wq_free(struct vnic_wq *wq)
 
 	svnic_dev_free_desc_ring(vdev, &wq->ring);
 
-	for (i = 0; i < VNIC_WQ_BUF_BLKS_MAX; i++) {
+	for (i = 0; i < VNIC_WQ_BUF_BLKS_MAX; i++)
+	{
 		kfree(wq->bufs[i]);
 		wq->bufs[i] = NULL;
 	}
@@ -97,7 +113,7 @@ void svnic_wq_free(struct vnic_wq *wq)
 }
 
 int vnic_wq_devcmd2_alloc(struct vnic_dev *vdev, struct vnic_wq *wq,
-	unsigned int desc_count, unsigned int desc_size)
+						  unsigned int desc_count, unsigned int desc_size)
 {
 	int err;
 
@@ -105,7 +121,9 @@ int vnic_wq_devcmd2_alloc(struct vnic_dev *vdev, struct vnic_wq *wq,
 	wq->vdev = vdev;
 
 	err = vnic_wq_get_ctrl(vdev, wq, 0, RES_TYPE_DEVCMD2);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Failed to get devcmd2 resource\n");
 
 		return err;
@@ -114,14 +132,17 @@ int vnic_wq_devcmd2_alloc(struct vnic_dev *vdev, struct vnic_wq *wq,
 	svnic_wq_disable(wq);
 
 	err = vnic_wq_alloc_ring(vdev, wq, 0, desc_count, desc_size);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return 0;
 }
 
 int svnic_wq_alloc(struct vnic_dev *vdev, struct vnic_wq *wq,
-	unsigned int index, unsigned int desc_count, unsigned int desc_size)
+				   unsigned int index, unsigned int desc_count, unsigned int desc_size)
 {
 	int err;
 
@@ -129,7 +150,9 @@ int svnic_wq_alloc(struct vnic_dev *vdev, struct vnic_wq *wq,
 	wq->vdev = vdev;
 
 	err = vnic_wq_get_ctrl(vdev, wq, index, RES_TYPE_WQ);
-	if (err) {
+
+	if (err)
+	{
 		pr_err("Failed to hook WQ[%d] resource\n", index);
 
 		return err;
@@ -138,11 +161,16 @@ int svnic_wq_alloc(struct vnic_dev *vdev, struct vnic_wq *wq,
 	svnic_wq_disable(wq);
 
 	err = vnic_wq_alloc_ring(vdev, wq, index, desc_count, desc_size);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = vnic_wq_alloc_bufs(wq);
-	if (err) {
+
+	if (err)
+	{
 		svnic_wq_free(wq);
 
 		return err;
@@ -152,9 +180,9 @@ int svnic_wq_alloc(struct vnic_dev *vdev, struct vnic_wq *wq,
 }
 
 void vnic_wq_init_start(struct vnic_wq *wq, unsigned int cq_index,
-	unsigned int fetch_index, unsigned int posted_index,
-	unsigned int error_interrupt_enable,
-	unsigned int error_interrupt_offset)
+						unsigned int fetch_index, unsigned int posted_index,
+						unsigned int error_interrupt_enable,
+						unsigned int error_interrupt_offset)
 {
 	u64 paddr;
 	unsigned int count = wq->ring.desc_count;
@@ -170,16 +198,16 @@ void vnic_wq_init_start(struct vnic_wq *wq, unsigned int cq_index,
 	iowrite32(0, &wq->ctrl->error_status);
 
 	wq->to_use = wq->to_clean =
-		&wq->bufs[fetch_index / VNIC_WQ_BUF_BLK_ENTRIES(count)]
-			[fetch_index % VNIC_WQ_BUF_BLK_ENTRIES(count)];
+					 &wq->bufs[fetch_index / VNIC_WQ_BUF_BLK_ENTRIES(count)]
+					 [fetch_index % VNIC_WQ_BUF_BLK_ENTRIES(count)];
 }
 
 void svnic_wq_init(struct vnic_wq *wq, unsigned int cq_index,
-	unsigned int error_interrupt_enable,
-	unsigned int error_interrupt_offset)
+				   unsigned int error_interrupt_enable,
+				   unsigned int error_interrupt_offset)
 {
 	vnic_wq_init_start(wq, cq_index, 0, 0, error_interrupt_enable,
-			   error_interrupt_offset);
+					   error_interrupt_offset);
 }
 
 unsigned int svnic_wq_error_status(struct vnic_wq *wq)
@@ -199,9 +227,13 @@ int svnic_wq_disable(struct vnic_wq *wq)
 	iowrite32(0, &wq->ctrl->enable);
 
 	/* Wait for HW to ACK disable request */
-	for (wait = 0; wait < 100; wait++) {
+	for (wait = 0; wait < 100; wait++)
+	{
 		if (!(ioread32(&wq->ctrl->running)))
+		{
 			return 0;
+		}
+
 		udelay(1);
 	}
 
@@ -211,7 +243,7 @@ int svnic_wq_disable(struct vnic_wq *wq)
 }
 
 void svnic_wq_clean(struct vnic_wq *wq,
-	void (*buf_clean)(struct vnic_wq *wq, struct vnic_wq_buf *buf))
+					void (*buf_clean)(struct vnic_wq *wq, struct vnic_wq_buf *buf))
 {
 	struct vnic_wq_buf *buf;
 
@@ -219,7 +251,8 @@ void svnic_wq_clean(struct vnic_wq *wq,
 
 	buf = wq->to_clean;
 
-	while (svnic_wq_desc_used(wq) > 0) {
+	while (svnic_wq_desc_used(wq) > 0)
+	{
 
 		(*buf_clean)(wq, buf);
 

@@ -53,7 +53,8 @@
 #define QCASPI_EVENT_UPDATE 0
 #define QCASPI_EVENT_CPUON  1
 
-struct tx_ring {
+struct tx_ring
+{
 	struct sk_buff *skb[TX_RING_MAX_LEN];
 	u16 head;
 	u16 tail;
@@ -61,7 +62,8 @@ struct tx_ring {
 	u16 count;
 };
 
-struct qcaspi_stats {
+struct qcaspi_stats
+{
 	u64 trig_reset;
 	u64 device_reset;
 	u64 reset_timeout;
@@ -75,7 +77,8 @@ struct qcaspi_stats {
 	u64 spi_err;
 };
 
-struct qcaspi {
+struct qcaspi
+{
 	struct net_device *net_dev;
 	struct spi_device *spi_dev;
 	struct task_struct *spi_thread;

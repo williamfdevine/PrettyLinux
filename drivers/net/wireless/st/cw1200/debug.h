@@ -12,7 +12,8 @@
 #ifndef CW1200_DEBUG_H_INCLUDED
 #define CW1200_DEBUG_H_INCLUDED
 
-struct cw1200_debug_priv {
+struct cw1200_debug_priv
+{
 	struct dentry *debugfs_phy;
 	int tx;
 	int tx_agg;
@@ -44,7 +45,7 @@ static inline void cw1200_debug_txed_agg(struct cw1200_common *priv)
 }
 
 static inline void cw1200_debug_txed_multi(struct cw1200_common *priv,
-					   int count)
+		int count)
 {
 	++priv->debug->tx_multi;
 	priv->debug->tx_multi_frames += count;
@@ -81,8 +82,8 @@ static inline void cw1200_debug_tx_burst(struct cw1200_common *priv)
 }
 
 static inline void cw1200_debug_ba(struct cw1200_common *priv,
-				   int ba_cnt, int ba_acc,
-				   int ba_cnt_rx, int ba_acc_rx)
+								   int ba_cnt, int ba_acc,
+								   int ba_cnt_rx, int ba_acc_rx)
 {
 	priv->debug->ba_cnt = ba_cnt;
 	priv->debug->ba_acc = ba_acc;

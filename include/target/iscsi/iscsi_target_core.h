@@ -67,7 +67,8 @@
 
 #define ISCSI_IOV_DATA_BUFFER		5
 
-enum iscsit_transport_type {
+enum iscsit_transport_type
+{
 	ISCSI_TCP				= 0,
 	ISCSI_SCTP_TCP				= 1,
 	ISCSI_SCTP_UDP				= 2,
@@ -78,7 +79,8 @@ enum iscsit_transport_type {
 };
 
 /* RFC-3720 7.1.4  Standard Connection State Diagram for a Target */
-enum target_conn_state_table {
+enum target_conn_state_table
+{
 	TARG_CONN_STATE_FREE			= 0x1,
 	TARG_CONN_STATE_XPT_UP			= 0x3,
 	TARG_CONN_STATE_IN_LOGIN		= 0x4,
@@ -89,7 +91,8 @@ enum target_conn_state_table {
 };
 
 /* RFC-3720 7.3.2  Session State Diagram for a Target */
-enum target_sess_state_table {
+enum target_sess_state_table
+{
 	TARG_SESS_STATE_FREE			= 0x1,
 	TARG_SESS_STATE_ACTIVE			= 0x2,
 	TARG_SESS_STATE_LOGGED_IN		= 0x3,
@@ -98,26 +101,30 @@ enum target_sess_state_table {
 };
 
 /* struct iscsi_data_count->type */
-enum data_count_type {
+enum data_count_type
+{
 	ISCSI_RX_DATA	= 1,
 	ISCSI_TX_DATA	= 2,
 };
 
 /* struct iscsi_datain_req->dr_complete */
-enum datain_req_comp_table {
+enum datain_req_comp_table
+{
 	DATAIN_COMPLETE_NORMAL			= 1,
 	DATAIN_COMPLETE_WITHIN_COMMAND_RECOVERY = 2,
 	DATAIN_COMPLETE_CONNECTION_RECOVERY	= 3,
 };
 
 /* struct iscsi_datain_req->recovery */
-enum datain_req_rec_table {
+enum datain_req_rec_table
+{
 	DATAIN_WITHIN_COMMAND_RECOVERY		= 1,
 	DATAIN_CONNECTION_RECOVERY		= 2,
 };
 
 /* struct iscsi_portal_group->state */
-enum tpg_state_table {
+enum tpg_state_table
+{
 	TPG_STATE_FREE				= 0,
 	TPG_STATE_ACTIVE			= 1,
 	TPG_STATE_INACTIVE			= 2,
@@ -125,13 +132,15 @@ enum tpg_state_table {
 };
 
 /* struct iscsi_tiqn->tiqn_state */
-enum tiqn_state_table {
+enum tiqn_state_table
+{
 	TIQN_STATE_ACTIVE			= 1,
 	TIQN_STATE_SHUTDOWN			= 2,
 };
 
 /* struct iscsi_cmd->cmd_flags */
-enum cmd_flags_table {
+enum cmd_flags_table
+{
 	ICF_GOT_LAST_DATAOUT			= 0x00000001,
 	ICF_GOT_DATACK_SNACK			= 0x00000002,
 	ICF_NON_IMMEDIATE_UNSOLICITED_DATA	= 0x00000004,
@@ -145,7 +154,8 @@ enum cmd_flags_table {
 };
 
 /* struct iscsi_cmd->i_state */
-enum cmd_i_state_table {
+enum cmd_i_state_table
+{
 	ISTATE_NO_STATE			= 0,
 	ISTATE_NEW_CMD			= 1,
 	ISTATE_DEFERRED_CMD		= 2,
@@ -192,7 +202,8 @@ enum cmd_i_state_table {
 };
 
 /* Used for iscsi_recover_cmdsn() return values */
-enum recover_cmdsn_ret_table {
+enum recover_cmdsn_ret_table
+{
 	CMDSN_ERROR_CANNOT_RECOVER	= -1,
 	CMDSN_NORMAL_OPERATION		= 0,
 	CMDSN_LOWER_THAN_EXP		= 1,
@@ -201,14 +212,16 @@ enum recover_cmdsn_ret_table {
 };
 
 /* Used for iscsi_handle_immediate_data() return values */
-enum immedate_data_ret_table {
+enum immedate_data_ret_table
+{
 	IMMEDIATE_DATA_CANNOT_RECOVER	= -1,
 	IMMEDIATE_DATA_NORMAL_OPERATION = 0,
 	IMMEDIATE_DATA_ERL1_CRC_FAILURE = 1,
 };
 
 /* Used for iscsi_decide_dataout_action() return values */
-enum dataout_action_ret_table {
+enum dataout_action_ret_table
+{
 	DATAOUT_CANNOT_RECOVER		= -1,
 	DATAOUT_NORMAL			= 0,
 	DATAOUT_SEND_R2T		= 1,
@@ -217,7 +230,8 @@ enum dataout_action_ret_table {
 };
 
 /* Used for struct iscsi_node_auth->naf_flags */
-enum naf_flags_table {
+enum naf_flags_table
+{
 	NAF_USERID_SET			= 0x01,
 	NAF_PASSWORD_SET		= 0x02,
 	NAF_USERID_IN_SET		= 0x04,
@@ -225,19 +239,22 @@ enum naf_flags_table {
 };
 
 /* Used by various struct timer_list to manage iSCSI specific state */
-enum iscsi_timer_flags_table {
+enum iscsi_timer_flags_table
+{
 	ISCSI_TF_RUNNING		= 0x01,
 	ISCSI_TF_STOP			= 0x02,
 	ISCSI_TF_EXPIRED		= 0x04,
 };
 
 /* Used for struct iscsi_np->np_flags */
-enum np_flags_table {
+enum np_flags_table
+{
 	NPF_IP_NETWORK		= 0x00,
 };
 
 /* Used for struct iscsi_np->np_thread_state */
-enum np_thread_state_table {
+enum np_thread_state_table
+{
 	ISCSI_NP_THREAD_ACTIVE		= 1,
 	ISCSI_NP_THREAD_INACTIVE	= 2,
 	ISCSI_NP_THREAD_RESET		= 3,
@@ -245,7 +262,8 @@ enum np_thread_state_table {
 	ISCSI_NP_THREAD_EXIT		= 5,
 };
 
-struct iscsi_conn_ops {
+struct iscsi_conn_ops
+{
 	u8	HeaderDigest;			/* [0,1] == [None,CRC32C] */
 	u8	DataDigest;			/* [0,1] == [None,CRC32C] */
 	u32	MaxRecvDataSegmentLength;	/* [512..2**24-1] */
@@ -257,7 +275,8 @@ struct iscsi_conn_ops {
 	u32	TargetRecvDataSegmentLength;	/* [512..2**24-1] */
 };
 
-struct iscsi_sess_ops {
+struct iscsi_sess_ops
+{
 	char	InitiatorName[224];
 	char	InitiatorAlias[256];
 	char	TargetName[224];
@@ -282,13 +301,15 @@ struct iscsi_sess_ops {
 	u8	RDMAExtensions;			/* [0,1] == [No,Yes] */
 };
 
-struct iscsi_queue_req {
+struct iscsi_queue_req
+{
 	int			state;
 	struct iscsi_cmd	*cmd;
 	struct list_head	qr_list;
 };
 
-struct iscsi_data_count {
+struct iscsi_data_count
+{
 	int			data_length;
 	int			sync_and_steering;
 	enum data_count_type	type;
@@ -298,13 +319,15 @@ struct iscsi_data_count {
 	struct kvec		*iov;
 };
 
-struct iscsi_param_list {
+struct iscsi_param_list
+{
 	bool			iser;
 	struct list_head	param_list;
 	struct list_head	extra_response_list;
 };
 
-struct iscsi_datain_req {
+struct iscsi_datain_req
+{
 	enum datain_req_comp_table dr_complete;
 	int			generate_recovery_values;
 	enum datain_req_rec_table recovery;
@@ -319,7 +342,8 @@ struct iscsi_datain_req {
 	struct list_head	cmd_datain_node;
 } ____cacheline_aligned;
 
-struct iscsi_ooo_cmdsn {
+struct iscsi_ooo_cmdsn
+{
 	u16			cid;
 	u32			batch_count;
 	u32			cmdsn;
@@ -328,14 +352,16 @@ struct iscsi_ooo_cmdsn {
 	struct list_head	ooo_list;
 } ____cacheline_aligned;
 
-struct iscsi_datain {
+struct iscsi_datain
+{
 	u8			flags;
 	u32			data_sn;
 	u32			length;
 	u32			offset;
 } ____cacheline_aligned;
 
-struct iscsi_r2t {
+struct iscsi_r2t
+{
 	int			seq_complete;
 	int			recovery_r2t;
 	int			sent_r2t;
@@ -346,7 +372,8 @@ struct iscsi_r2t {
 	struct list_head	r2t_list;
 } ____cacheline_aligned;
 
-struct iscsi_cmd {
+struct iscsi_cmd
+{
 	enum iscsi_timer_flags_table dataout_timer_flags;
 	/* DataOUT timeout retries */
 	u8			dataout_timeout_retries;
@@ -496,15 +523,17 @@ struct iscsi_cmd {
 	sense_reason_t		sense_reason;
 }  ____cacheline_aligned;
 
-struct iscsi_tmr_req {
-	bool			task_reassign:1;
+struct iscsi_tmr_req
+{
+	bool			task_reassign: 1;
 	u32			exp_data_sn;
 	struct iscsi_cmd	*ref_cmd;
 	struct iscsi_conn_recovery *conn_recovery;
 	struct se_tmr_req	*se_tmr_req;
 };
 
-struct iscsi_conn {
+struct iscsi_conn
+{
 	wait_queue_head_t	queues_wq;
 	/* Authentication Successful for this connection */
 	u8			auth_complete;
@@ -575,8 +604,8 @@ struct iscsi_conn {
 	struct ahash_request	*conn_tx_hash;
 	/* Used for scheduling TX and RX connection kthreads */
 	cpumask_var_t		conn_cpumask;
-	unsigned int		conn_rx_reset_cpumask:1;
-	unsigned int		conn_tx_reset_cpumask:1;
+	unsigned int		conn_rx_reset_cpumask: 1;
+	unsigned int		conn_tx_reset_cpumask: 1;
 	/* list_head of struct iscsi_cmd for this connection */
 	struct list_head	conn_cmd_list;
 	struct list_head	immed_queue_list;
@@ -603,7 +632,8 @@ struct iscsi_conn {
 	struct list_head	conn_list;
 } ____cacheline_aligned;
 
-struct iscsi_conn_recovery {
+struct iscsi_conn_recovery
+{
 	u16			cid;
 	u32			cmd_count;
 	u32			maxrecvdatasegmentlength;
@@ -616,7 +646,8 @@ struct iscsi_conn_recovery {
 	struct list_head	cr_list;
 }  ____cacheline_aligned;
 
-struct iscsi_session {
+struct iscsi_session
+{
 	u8			initiator_vendor;
 	u8			isid[6];
 	enum iscsi_timer_flags_table time2retain_timer_flags;
@@ -682,7 +713,8 @@ struct iscsi_session {
 	struct iscsi_portal_group *tpg;
 } ____cacheline_aligned;
 
-struct iscsi_login {
+struct iscsi_login
+{
 	u8 auth_complete;
 	u8 checked_for_existing;
 	u8 current_stage;
@@ -708,7 +740,8 @@ struct iscsi_login {
 	struct iscsi_np *np;
 } ____cacheline_aligned;
 
-struct iscsi_node_attrib {
+struct iscsi_node_attrib
+{
 	u32			dataout_timeout;
 	u32			dataout_timeout_retries;
 	u32			default_erl;
@@ -724,7 +757,8 @@ struct iscsi_node_attrib {
 
 struct se_dev_entry_s;
 
-struct iscsi_node_auth {
+struct iscsi_node_auth
+{
 	enum naf_flags_table	naf_flags;
 	int			authenticate_target;
 	/* Used for iscsit_global->discovery_auth,
@@ -740,19 +774,22 @@ struct iscsi_node_auth {
 
 #include "iscsi_target_stat.h"
 
-struct iscsi_node_stat_grps {
+struct iscsi_node_stat_grps
+{
 	struct config_group	iscsi_sess_stats_group;
 	struct config_group	iscsi_conn_stats_group;
 };
 
-struct iscsi_node_acl {
+struct iscsi_node_acl
+{
 	struct se_node_acl	se_node_acl;
 	struct iscsi_node_attrib node_attrib;
 	struct iscsi_node_auth	node_auth;
 	struct iscsi_node_stat_grps node_stat_grps;
 };
 
-struct iscsi_tpg_attrib {
+struct iscsi_tpg_attrib
+{
 	u32			authentication;
 	u32			login_timeout;
 	u32			netif_timeout;
@@ -769,7 +806,8 @@ struct iscsi_tpg_attrib {
 	struct iscsi_portal_group *tpg;
 };
 
-struct iscsi_np {
+struct iscsi_np
+{
 	int			np_network_transport;
 	int			np_ip_proto;
 	int			np_sock_type;
@@ -789,7 +827,8 @@ struct iscsi_np {
 	struct list_head	np_list;
 } ____cacheline_aligned;
 
-struct iscsi_tpg_np {
+struct iscsi_tpg_np
+{
 	struct iscsi_np		*tpg_np;
 	struct iscsi_portal_group *tpg;
 	struct iscsi_tpg_np	*tpg_np_parent;
@@ -802,7 +841,8 @@ struct iscsi_tpg_np {
 	struct kref		tpg_np_kref;
 };
 
-struct iscsi_portal_group {
+struct iscsi_portal_group
+{
 	unsigned char		tpg_chap_id;
 	/* TPG State */
 	enum tpg_state_table	tpg_state;
@@ -831,7 +871,8 @@ struct iscsi_portal_group {
 	struct list_head	tpg_list;
 } ____cacheline_aligned;
 
-struct iscsi_wwn_stat_grps {
+struct iscsi_wwn_stat_grps
+{
 	struct config_group	iscsi_stat_group;
 	struct config_group	iscsi_instance_group;
 	struct config_group	iscsi_sess_err_group;
@@ -840,7 +881,8 @@ struct iscsi_wwn_stat_grps {
 	struct config_group	iscsi_logout_stats_group;
 };
 
-struct iscsi_tiqn {
+struct iscsi_tiqn
+{
 #define ISCSI_IQN_LEN				224
 	unsigned char		tiqn[ISCSI_IQN_LEN];
 	enum tiqn_state_table	tiqn_state;
@@ -861,7 +903,8 @@ struct iscsi_tiqn {
 	struct iscsi_logout_stats    logout_stats;
 } ____cacheline_aligned;
 
-struct iscsit_global {
+struct iscsit_global
+{
 	/* In core shutdown */
 	u32			in_shutdown;
 	u32			active_ts;
@@ -883,8 +926,12 @@ static inline u32 session_get_next_ttt(struct iscsi_session *session)
 
 	spin_lock_bh(&session->ttt_lock);
 	ttt = session->targ_xfer_tag++;
+
 	if (ttt == 0xFFFFFFFF)
+	{
 		ttt = session->targ_xfer_tag++;
+	}
+
 	spin_unlock_bh(&session->ttt_lock);
 
 	return ttt;
@@ -901,15 +948,25 @@ static inline void iscsit_thread_check_cpumask(
 	 * mode == 1 signals iscsi_target_tx_thread() usage.
 	 * mode == 0 signals iscsi_target_rx_thread() usage.
 	 */
-	if (mode == 1) {
+	if (mode == 1)
+	{
 		if (!conn->conn_tx_reset_cpumask)
+		{
 			return;
+		}
+
 		conn->conn_tx_reset_cpumask = 0;
-	} else {
+	}
+	else
+	{
 		if (!conn->conn_rx_reset_cpumask)
+		{
 			return;
+		}
+
 		conn->conn_rx_reset_cpumask = 0;
 	}
+
 	/*
 	 * Update the CPU mask for this single kthread so that
 	 * both TX and RX kthreads are scheduled to run on the

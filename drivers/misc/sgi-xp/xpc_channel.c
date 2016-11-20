@@ -31,44 +31,59 @@ xpc_process_connect(struct xpc_channel *ch, unsigned long *irq_flags)
 	DBUG_ON(!spin_is_locked(&ch->lock));
 
 	if (!(ch->flags & XPC_C_OPENREQUEST) ||
-	    !(ch->flags & XPC_C_ROPENREQUEST)) {
+		!(ch->flags & XPC_C_ROPENREQUEST))
+	{
 		/* nothing more to do for now */
 		return;
 	}
+
 	DBUG_ON(!(ch->flags & XPC_C_CONNECTING));
 
-	if (!(ch->flags & XPC_C_SETUP)) {
+	if (!(ch->flags & XPC_C_SETUP))
+	{
 		spin_unlock_irqrestore(&ch->lock, *irq_flags);
 		ret = xpc_arch_ops.setup_msg_structures(ch);
 		spin_lock_irqsave(&ch->lock, *irq_flags);
 
 		if (ret != xpSuccess)
+		{
 			XPC_DISCONNECT_CHANNEL(ch, ret, irq_flags);
+		}
 		else
+		{
 			ch->flags |= XPC_C_SETUP;
+		}
 
 		if (ch->flags & XPC_C_DISCONNECTING)
+		{
 			return;
+		}
 	}
 
-	if (!(ch->flags & XPC_C_OPENREPLY)) {
+	if (!(ch->flags & XPC_C_OPENREPLY))
+	{
 		ch->flags |= XPC_C_OPENREPLY;
 		xpc_arch_ops.send_chctl_openreply(ch, irq_flags);
 	}
 
 	if (!(ch->flags & XPC_C_ROPENREPLY))
+	{
 		return;
+	}
 
-	if (!(ch->flags & XPC_C_OPENCOMPLETE)) {
+	if (!(ch->flags & XPC_C_OPENCOMPLETE))
+	{
 		ch->flags |= (XPC_C_OPENCOMPLETE | XPC_C_CONNECTED);
 		xpc_arch_ops.send_chctl_opencomplete(ch, irq_flags);
 	}
 
 	if (!(ch->flags & XPC_C_ROPENCOMPLETE))
+	{
 		return;
+	}
 
 	dev_info(xpc_chan, "channel %d to partition %d connected\n",
-		 ch->number, ch->partid);
+			 ch->number, ch->partid);
 
 	ch->flags = (XPC_C_CONNECTED | XPC_C_SETUP);	/* clear all else */
 }
@@ -85,49 +100,65 @@ xpc_process_disconnect(struct xpc_channel *ch, unsigned long *irq_flags)
 	DBUG_ON(!spin_is_locked(&ch->lock));
 
 	if (!(ch->flags & XPC_C_DISCONNECTING))
+	{
 		return;
+	}
 
 	DBUG_ON(!(ch->flags & XPC_C_CLOSEREQUEST));
 
 	/* make sure all activity has settled down first */
 
 	if (atomic_read(&ch->kthreads_assigned) > 0 ||
-	    atomic_read(&ch->references) > 0) {
+		atomic_read(&ch->references) > 0)
+	{
 		return;
 	}
-	DBUG_ON((ch->flags & XPC_C_CONNECTEDCALLOUT_MADE) &&
-		!(ch->flags & XPC_C_DISCONNECTINGCALLOUT_MADE));
 
-	if (part->act_state == XPC_P_AS_DEACTIVATING) {
+	DBUG_ON((ch->flags & XPC_C_CONNECTEDCALLOUT_MADE) &&
+			!(ch->flags & XPC_C_DISCONNECTINGCALLOUT_MADE));
+
+	if (part->act_state == XPC_P_AS_DEACTIVATING)
+	{
 		/* can't proceed until the other side disengages from us */
 		if (xpc_arch_ops.partition_engaged(ch->partid))
+		{
 			return;
+		}
 
-	} else {
+	}
+	else
+	{
 
 		/* as long as the other side is up do the full protocol */
 
 		if (!(ch->flags & XPC_C_RCLOSEREQUEST))
+		{
 			return;
+		}
 
-		if (!(ch->flags & XPC_C_CLOSEREPLY)) {
+		if (!(ch->flags & XPC_C_CLOSEREPLY))
+		{
 			ch->flags |= XPC_C_CLOSEREPLY;
 			xpc_arch_ops.send_chctl_closereply(ch, irq_flags);
 		}
 
 		if (!(ch->flags & XPC_C_RCLOSEREPLY))
+		{
 			return;
+		}
 	}
 
 	/* wake those waiting for notify completion */
-	if (atomic_read(&ch->n_to_notify) > 0) {
+	if (atomic_read(&ch->n_to_notify) > 0)
+	{
 		/* we do callout while holding ch->lock, callout can't block */
 		xpc_arch_ops.notify_senders_of_disconnect(ch);
 	}
 
 	/* both sides are disconnected now */
 
-	if (ch->flags & XPC_C_DISCONNECTINGCALLOUT_MADE) {
+	if (ch->flags & XPC_C_DISCONNECTINGCALLOUT_MADE)
+	{
 		spin_unlock_irqrestore(&ch->lock, *irq_flags);
 		xpc_disconnect_callout(ch, xpDisconnected);
 		spin_lock_irqsave(&ch->lock, *irq_flags);
@@ -156,22 +187,28 @@ xpc_process_disconnect(struct xpc_channel *ch, unsigned long *irq_flags)
 
 	atomic_dec(&part->nchannels_active);
 
-	if (channel_was_connected) {
+	if (channel_was_connected)
+	{
 		dev_info(xpc_chan, "channel %d to partition %d disconnected, "
-			 "reason=%d\n", ch->number, ch->partid, ch->reason);
+				 "reason=%d\n", ch->number, ch->partid, ch->reason);
 	}
 
-	if (ch->flags & XPC_C_WDISCONNECT) {
+	if (ch->flags & XPC_C_WDISCONNECT)
+	{
 		/* we won't lose the CPU since we're holding ch->lock */
 		complete(&ch->wdisconnect_wait);
-	} else if (ch->delayed_chctl_flags) {
-		if (part->act_state != XPC_P_AS_DEACTIVATING) {
+	}
+	else if (ch->delayed_chctl_flags)
+	{
+		if (part->act_state != XPC_P_AS_DEACTIVATING)
+		{
 			/* time to take action on any delayed chctl flags */
 			spin_lock(&part->chctl_lock);
 			part->chctl.flags[ch->number] |=
-			    ch->delayed_chctl_flags;
+				ch->delayed_chctl_flags;
 			spin_unlock(&part->chctl_lock);
 		}
+
 		ch->delayed_chctl_flags = 0;
 	}
 }
@@ -181,11 +218,11 @@ xpc_process_disconnect(struct xpc_channel *ch, unsigned long *irq_flags)
  */
 static void
 xpc_process_openclose_chctl_flags(struct xpc_partition *part, int ch_number,
-				  u8 chctl_flags)
+								  u8 chctl_flags)
 {
 	unsigned long irq_flags;
 	struct xpc_openclose_args *args =
-	    &part->remote_openclose_args[ch_number];
+			&part->remote_openclose_args[ch_number];
 	struct xpc_channel *ch = &part->channels[ch_number];
 	enum xp_retval reason;
 	enum xp_retval ret;
@@ -196,7 +233,8 @@ xpc_process_openclose_chctl_flags(struct xpc_partition *part, int ch_number,
 again:
 
 	if ((ch->flags & XPC_C_DISCONNECTED) &&
-	    (ch->flags & XPC_C_WDISCONNECT)) {
+		(ch->flags & XPC_C_WDISCONNECT))
+	{
 		/*
 		 * Delay processing chctl flags until thread waiting disconnect
 		 * has had a chance to see that the channel is disconnected.
@@ -205,11 +243,12 @@ again:
 		goto out;
 	}
 
-	if (chctl_flags & XPC_CHCTL_CLOSEREQUEST) {
+	if (chctl_flags & XPC_CHCTL_CLOSEREQUEST)
+	{
 
 		dev_dbg(xpc_chan, "XPC_CHCTL_CLOSEREQUEST (reason=%d) received "
-			"from partid=%d, channel=%d\n", args->reason,
-			ch->partid, ch->number);
+				"from partid=%d, channel=%d\n", args->reason,
+				ch->partid, ch->number);
 
 		/*
 		 * If RCLOSEREQUEST is set, we're probably waiting for
@@ -217,7 +256,8 @@ again:
 		 * with this RCLOSEREQUEST in the chctl_flags.
 		 */
 
-		if (ch->flags & XPC_C_RCLOSEREQUEST) {
+		if (ch->flags & XPC_C_RCLOSEREQUEST)
+		{
 			DBUG_ON(!(ch->flags & XPC_C_DISCONNECTING));
 			DBUG_ON(!(ch->flags & XPC_C_CLOSEREQUEST));
 			DBUG_ON(!(ch->flags & XPC_C_CLOSEREPLY));
@@ -233,17 +273,21 @@ again:
 			goto again;
 		}
 
-		if (ch->flags & XPC_C_DISCONNECTED) {
-			if (!(chctl_flags & XPC_CHCTL_OPENREQUEST)) {
+		if (ch->flags & XPC_C_DISCONNECTED)
+		{
+			if (!(chctl_flags & XPC_CHCTL_OPENREQUEST))
+			{
 				if (part->chctl.flags[ch_number] &
-				    XPC_CHCTL_OPENREQUEST) {
+					XPC_CHCTL_OPENREQUEST)
+				{
 
 					DBUG_ON(ch->delayed_chctl_flags != 0);
 					spin_lock(&part->chctl_lock);
 					part->chctl.flags[ch_number] |=
-					    XPC_CHCTL_CLOSEREQUEST;
+						XPC_CHCTL_CLOSEREQUEST;
 					spin_unlock(&part->chctl_lock);
 				}
+
 				goto out;
 			}
 
@@ -255,7 +299,7 @@ again:
 		}
 
 		chctl_flags &= ~(XPC_CHCTL_OPENREQUEST | XPC_CHCTL_OPENREPLY |
-		    XPC_CHCTL_OPENCOMPLETE);
+						 XPC_CHCTL_OPENCOMPLETE);
 
 		/*
 		 * The meaningful CLOSEREQUEST connection state fields are:
@@ -264,12 +308,18 @@ again:
 
 		ch->flags |= XPC_C_RCLOSEREQUEST;
 
-		if (!(ch->flags & XPC_C_DISCONNECTING)) {
+		if (!(ch->flags & XPC_C_DISCONNECTING))
+		{
 			reason = args->reason;
+
 			if (reason <= xpSuccess || reason > xpUnknownReason)
+			{
 				reason = xpUnknownReason;
+			}
 			else if (reason == xpUnregistering)
+			{
 				reason = xpOtherUnregistering;
+			}
 
 			XPC_DISCONNECT_CHANNEL(ch, reason, &irq_flags);
 
@@ -280,66 +330,77 @@ again:
 		xpc_process_disconnect(ch, &irq_flags);
 	}
 
-	if (chctl_flags & XPC_CHCTL_CLOSEREPLY) {
+	if (chctl_flags & XPC_CHCTL_CLOSEREPLY)
+	{
 
 		dev_dbg(xpc_chan, "XPC_CHCTL_CLOSEREPLY received from partid="
-			"%d, channel=%d\n", ch->partid, ch->number);
+				"%d, channel=%d\n", ch->partid, ch->number);
 
-		if (ch->flags & XPC_C_DISCONNECTED) {
+		if (ch->flags & XPC_C_DISCONNECTED)
+		{
 			DBUG_ON(part->act_state != XPC_P_AS_DEACTIVATING);
 			goto out;
 		}
 
 		DBUG_ON(!(ch->flags & XPC_C_CLOSEREQUEST));
 
-		if (!(ch->flags & XPC_C_RCLOSEREQUEST)) {
+		if (!(ch->flags & XPC_C_RCLOSEREQUEST))
+		{
 			if (part->chctl.flags[ch_number] &
-			    XPC_CHCTL_CLOSEREQUEST) {
+				XPC_CHCTL_CLOSEREQUEST)
+			{
 
 				DBUG_ON(ch->delayed_chctl_flags != 0);
 				spin_lock(&part->chctl_lock);
 				part->chctl.flags[ch_number] |=
-				    XPC_CHCTL_CLOSEREPLY;
+					XPC_CHCTL_CLOSEREPLY;
 				spin_unlock(&part->chctl_lock);
 			}
+
 			goto out;
 		}
 
 		ch->flags |= XPC_C_RCLOSEREPLY;
 
-		if (ch->flags & XPC_C_CLOSEREPLY) {
+		if (ch->flags & XPC_C_CLOSEREPLY)
+		{
 			/* both sides have finished disconnecting */
 			xpc_process_disconnect(ch, &irq_flags);
 		}
 	}
 
-	if (chctl_flags & XPC_CHCTL_OPENREQUEST) {
+	if (chctl_flags & XPC_CHCTL_OPENREQUEST)
+	{
 
 		dev_dbg(xpc_chan, "XPC_CHCTL_OPENREQUEST (entry_size=%d, "
-			"local_nentries=%d) received from partid=%d, "
-			"channel=%d\n", args->entry_size, args->local_nentries,
-			ch->partid, ch->number);
+				"local_nentries=%d) received from partid=%d, "
+				"channel=%d\n", args->entry_size, args->local_nentries,
+				ch->partid, ch->number);
 
 		if (part->act_state == XPC_P_AS_DEACTIVATING ||
-		    (ch->flags & XPC_C_ROPENREQUEST)) {
+			(ch->flags & XPC_C_ROPENREQUEST))
+		{
 			goto out;
 		}
 
-		if (ch->flags & (XPC_C_DISCONNECTING | XPC_C_WDISCONNECT)) {
+		if (ch->flags & (XPC_C_DISCONNECTING | XPC_C_WDISCONNECT))
+		{
 			ch->delayed_chctl_flags |= XPC_CHCTL_OPENREQUEST;
 			goto out;
 		}
+
 		DBUG_ON(!(ch->flags & (XPC_C_DISCONNECTED |
-				       XPC_C_OPENREQUEST)));
+							   XPC_C_OPENREQUEST)));
 		DBUG_ON(ch->flags & (XPC_C_ROPENREQUEST | XPC_C_ROPENREPLY |
-				     XPC_C_OPENREPLY | XPC_C_CONNECTED));
+							 XPC_C_OPENREPLY | XPC_C_CONNECTED));
 
 		/*
 		 * The meaningful OPENREQUEST connection state fields are:
 		 *      entry_size = size of channel's messages in bytes
 		 *      local_nentries = remote partition's local_nentries
 		 */
-		if (args->entry_size == 0 || args->local_nentries == 0) {
+		if (args->entry_size == 0 || args->local_nentries == 0)
+		{
 			/* assume OPENREQUEST was delayed by mistake */
 			goto out;
 		}
@@ -347,13 +408,17 @@ again:
 		ch->flags |= (XPC_C_ROPENREQUEST | XPC_C_CONNECTING);
 		ch->remote_nentries = args->local_nentries;
 
-		if (ch->flags & XPC_C_OPENREQUEST) {
-			if (args->entry_size != ch->entry_size) {
+		if (ch->flags & XPC_C_OPENREQUEST)
+		{
+			if (args->entry_size != ch->entry_size)
+			{
 				XPC_DISCONNECT_CHANNEL(ch, xpUnequalMsgSizes,
-						       &irq_flags);
+									   &irq_flags);
 				goto out;
 			}
-		} else {
+		}
+		else
+		{
 			ch->entry_size = args->entry_size;
 
 			XPC_SET_REASON(ch, 0, 0);
@@ -365,20 +430,24 @@ again:
 		xpc_process_connect(ch, &irq_flags);
 	}
 
-	if (chctl_flags & XPC_CHCTL_OPENREPLY) {
+	if (chctl_flags & XPC_CHCTL_OPENREPLY)
+	{
 
 		dev_dbg(xpc_chan, "XPC_CHCTL_OPENREPLY (local_msgqueue_pa="
-			"0x%lx, local_nentries=%d, remote_nentries=%d) "
-			"received from partid=%d, channel=%d\n",
-			args->local_msgqueue_pa, args->local_nentries,
-			args->remote_nentries, ch->partid, ch->number);
+				"0x%lx, local_nentries=%d, remote_nentries=%d) "
+				"received from partid=%d, channel=%d\n",
+				args->local_msgqueue_pa, args->local_nentries,
+				args->remote_nentries, ch->partid, ch->number);
 
 		if (ch->flags & (XPC_C_DISCONNECTING | XPC_C_DISCONNECTED))
+		{
 			goto out;
+		}
 
-		if (!(ch->flags & XPC_C_OPENREQUEST)) {
+		if (!(ch->flags & XPC_C_OPENREQUEST))
+		{
 			XPC_DISCONNECT_CHANNEL(ch, xpOpenCloseError,
-					       &irq_flags);
+								   &irq_flags);
 			goto out;
 		}
 
@@ -397,28 +466,34 @@ again:
 		DBUG_ON(args->remote_nentries == 0);
 
 		ret = xpc_arch_ops.save_remote_msgqueue_pa(ch,
-						      args->local_msgqueue_pa);
-		if (ret != xpSuccess) {
+				args->local_msgqueue_pa);
+
+		if (ret != xpSuccess)
+		{
 			XPC_DISCONNECT_CHANNEL(ch, ret, &irq_flags);
 			goto out;
 		}
+
 		ch->flags |= XPC_C_ROPENREPLY;
 
-		if (args->local_nentries < ch->remote_nentries) {
+		if (args->local_nentries < ch->remote_nentries)
+		{
 			dev_dbg(xpc_chan, "XPC_CHCTL_OPENREPLY: new "
-				"remote_nentries=%d, old remote_nentries=%d, "
-				"partid=%d, channel=%d\n",
-				args->local_nentries, ch->remote_nentries,
-				ch->partid, ch->number);
+					"remote_nentries=%d, old remote_nentries=%d, "
+					"partid=%d, channel=%d\n",
+					args->local_nentries, ch->remote_nentries,
+					ch->partid, ch->number);
 
 			ch->remote_nentries = args->local_nentries;
 		}
-		if (args->remote_nentries < ch->local_nentries) {
+
+		if (args->remote_nentries < ch->local_nentries)
+		{
 			dev_dbg(xpc_chan, "XPC_CHCTL_OPENREPLY: new "
-				"local_nentries=%d, old local_nentries=%d, "
-				"partid=%d, channel=%d\n",
-				args->remote_nentries, ch->local_nentries,
-				ch->partid, ch->number);
+					"local_nentries=%d, old local_nentries=%d, "
+					"partid=%d, channel=%d\n",
+					args->remote_nentries, ch->local_nentries,
+					ch->partid, ch->number);
 
 			ch->local_nentries = args->remote_nentries;
 		}
@@ -426,18 +501,22 @@ again:
 		xpc_process_connect(ch, &irq_flags);
 	}
 
-	if (chctl_flags & XPC_CHCTL_OPENCOMPLETE) {
+	if (chctl_flags & XPC_CHCTL_OPENCOMPLETE)
+	{
 
 		dev_dbg(xpc_chan, "XPC_CHCTL_OPENCOMPLETE received from "
-			"partid=%d, channel=%d\n", ch->partid, ch->number);
+				"partid=%d, channel=%d\n", ch->partid, ch->number);
 
 		if (ch->flags & (XPC_C_DISCONNECTING | XPC_C_DISCONNECTED))
+		{
 			goto out;
+		}
 
 		if (!(ch->flags & XPC_C_OPENREQUEST) ||
-		    !(ch->flags & XPC_C_OPENREPLY)) {
+			!(ch->flags & XPC_C_OPENREPLY))
+		{
 			XPC_DISCONNECT_CHANNEL(ch, xpOpenCloseError,
-					       &irq_flags);
+								   &irq_flags);
 			goto out;
 		}
 
@@ -455,7 +534,9 @@ out:
 	spin_unlock_irqrestore(&ch->lock, irq_flags);
 
 	if (create_kthread)
+	{
 		xpc_create_kthreads(ch, 1, 0);
+	}
 }
 
 /*
@@ -468,9 +549,12 @@ xpc_connect_channel(struct xpc_channel *ch)
 	struct xpc_registration *registration = &xpc_registrations[ch->number];
 
 	if (mutex_trylock(&registration->mutex) == 0)
+	{
 		return xpRetry;
+	}
 
-	if (!XPC_CHANNEL_REGISTERED(ch->number)) {
+	if (!XPC_CHANNEL_REGISTERED(ch->number))
+	{
 		mutex_unlock(&registration->mutex);
 		return xpUnregistered;
 	}
@@ -480,7 +564,8 @@ xpc_connect_channel(struct xpc_channel *ch)
 	DBUG_ON(ch->flags & XPC_C_CONNECTED);
 	DBUG_ON(ch->flags & XPC_C_OPENREQUEST);
 
-	if (ch->flags & XPC_C_DISCONNECTING) {
+	if (ch->flags & XPC_C_DISCONNECTING)
+	{
 		spin_unlock_irqrestore(&ch->lock, irq_flags);
 		mutex_unlock(&registration->mutex);
 		return ch->reason;
@@ -500,8 +585,10 @@ xpc_connect_channel(struct xpc_channel *ch)
 
 	ch->local_nentries = registration->nentries;
 
-	if (ch->flags & XPC_C_ROPENREQUEST) {
-		if (registration->entry_size != ch->entry_size) {
+	if (ch->flags & XPC_C_ROPENREQUEST)
+	{
+		if (registration->entry_size != ch->entry_size)
+		{
 			/* the local and remote sides aren't the same */
 
 			/*
@@ -515,11 +602,12 @@ xpc_connect_channel(struct xpc_channel *ch)
 			 */
 			mutex_unlock(&registration->mutex);
 			XPC_DISCONNECT_CHANNEL(ch, xpUnequalMsgSizes,
-					       &irq_flags);
+			&irq_flags);
 			spin_unlock_irqrestore(&ch->lock, irq_flags);
 			return xpUnequalMsgSizes;
 		}
-	} else {
+	}
+	else {
 		ch->entry_size = registration->entry_size;
 
 		XPC_SET_REASON(ch, 0, 0);
@@ -560,7 +648,8 @@ xpc_process_sent_chctl_flags(struct xpc_partition *part)
 	 * kthreads and/or create new kthreads as needed.
 	 */
 
-	for (ch_number = 0; ch_number < part->nchannels; ch_number++) {
+	for (ch_number = 0; ch_number < part->nchannels; ch_number++)
+	{
 		ch = &part->channels[ch_number];
 
 		/*
@@ -568,14 +657,16 @@ xpc_process_sent_chctl_flags(struct xpc_partition *part)
 		 * with connecting or disconnecting the channel as required.
 		 */
 
-		if (chctl.flags[ch_number] & XPC_OPENCLOSE_CHCTL_FLAGS) {
+		if (chctl.flags[ch_number] & XPC_OPENCLOSE_CHCTL_FLAGS)
+		{
 			xpc_process_openclose_chctl_flags(part, ch_number,
-							chctl.flags[ch_number]);
+											  chctl.flags[ch_number]);
 		}
 
 		ch_flags = ch->flags;	/* need an atomic snapshot of flags */
 
-		if (ch_flags & XPC_C_DISCONNECTING) {
+		if (ch_flags & XPC_C_DISCONNECTING)
+		{
 			spin_lock_irqsave(&ch->lock, irq_flags);
 			xpc_process_disconnect(ch, &irq_flags);
 			spin_unlock_irqrestore(&ch->lock, irq_flags);
@@ -583,13 +674,18 @@ xpc_process_sent_chctl_flags(struct xpc_partition *part)
 		}
 
 		if (part->act_state == XPC_P_AS_DEACTIVATING)
+		{
 			continue;
+		}
 
-		if (!(ch_flags & XPC_C_CONNECTED)) {
-			if (!(ch_flags & XPC_C_OPENREQUEST)) {
+		if (!(ch_flags & XPC_C_CONNECTED))
+		{
+			if (!(ch_flags & XPC_C_OPENREQUEST))
+			{
 				DBUG_ON(ch_flags & XPC_C_SETUP);
 				(void)xpc_connect_channel(ch);
 			}
+
 			continue;
 		}
 
@@ -600,7 +696,9 @@ xpc_process_sent_chctl_flags(struct xpc_partition *part)
 		 */
 
 		if (chctl.flags[ch_number] & XPC_MSG_CHCTL_FLAGS)
+		{
 			xpc_arch_ops.process_msg_chctl_flags(part, ch_number);
+		}
 	}
 }
 
@@ -621,16 +719,18 @@ xpc_partition_going_down(struct xpc_partition *part, enum xp_retval reason)
 	struct xpc_channel *ch;
 
 	dev_dbg(xpc_chan, "deactivating partition %d, reason=%d\n",
-		XPC_PARTID(part), reason);
+			XPC_PARTID(part), reason);
 
-	if (!xpc_part_ref(part)) {
+	if (!xpc_part_ref(part))
+	{
 		/* infrastructure for this partition isn't currently set up */
 		return;
 	}
 
 	/* disconnect channels associated with the partition going down */
 
-	for (ch_number = 0; ch_number < part->nchannels; ch_number++) {
+	for (ch_number = 0; ch_number < part->nchannels; ch_number++)
+	{
 		ch = &part->channels[ch_number];
 
 		xpc_msgqueue_ref(ch);
@@ -660,10 +760,12 @@ xpc_initiate_connect(int ch_number)
 
 	DBUG_ON(ch_number < 0 || ch_number >= XPC_MAX_NCHANNELS);
 
-	for (partid = 0; partid < xp_max_npartitions; partid++) {
+	for (partid = 0; partid < xp_max_npartitions; partid++)
+	{
 		part = &xpc_partitions[partid];
 
-		if (xpc_part_ref(part)) {
+		if (xpc_part_ref(part))
+		{
 			ch = &part->channels[ch_number];
 
 			/*
@@ -681,15 +783,16 @@ xpc_connected_callout(struct xpc_channel *ch)
 {
 	/* let the registerer know that a connection has been established */
 
-	if (ch->func != NULL) {
+	if (ch->func != NULL)
+	{
 		dev_dbg(xpc_chan, "ch->func() called, reason=xpConnected, "
-			"partid=%d, channel=%d\n", ch->partid, ch->number);
+				"partid=%d, channel=%d\n", ch->partid, ch->number);
 
 		ch->func(xpConnected, ch->partid, ch->number,
-			 (void *)(u64)ch->local_nentries, ch->key);
+				 (void *)(u64)ch->local_nentries, ch->key);
 
 		dev_dbg(xpc_chan, "ch->func() returned, reason=xpConnected, "
-			"partid=%d, channel=%d\n", ch->partid, ch->number);
+				"partid=%d, channel=%d\n", ch->partid, ch->number);
 	}
 }
 
@@ -717,20 +820,23 @@ xpc_initiate_disconnect(int ch_number)
 	DBUG_ON(ch_number < 0 || ch_number >= XPC_MAX_NCHANNELS);
 
 	/* initiate the channel disconnect for every active partition */
-	for (partid = 0; partid < xp_max_npartitions; partid++) {
+	for (partid = 0; partid < xp_max_npartitions; partid++)
+	{
 		part = &xpc_partitions[partid];
 
-		if (xpc_part_ref(part)) {
+		if (xpc_part_ref(part))
+		{
 			ch = &part->channels[ch_number];
 			xpc_msgqueue_ref(ch);
 
 			spin_lock_irqsave(&ch->lock, irq_flags);
 
-			if (!(ch->flags & XPC_C_DISCONNECTED)) {
+			if (!(ch->flags & XPC_C_DISCONNECTED))
+			{
 				ch->flags |= XPC_C_WDISCONNECT;
 
 				XPC_DISCONNECT_CHANNEL(ch, xpUnregistering,
-						       &irq_flags);
+									   &irq_flags);
 			}
 
 			spin_unlock_irqrestore(&ch->lock, irq_flags);
@@ -754,48 +860,57 @@ xpc_initiate_disconnect(int ch_number)
  */
 void
 xpc_disconnect_channel(const int line, struct xpc_channel *ch,
-		       enum xp_retval reason, unsigned long *irq_flags)
+					   enum xp_retval reason, unsigned long *irq_flags)
 {
 	u32 channel_was_connected = (ch->flags & XPC_C_CONNECTED);
 
 	DBUG_ON(!spin_is_locked(&ch->lock));
 
 	if (ch->flags & (XPC_C_DISCONNECTING | XPC_C_DISCONNECTED))
+	{
 		return;
+	}
 
 	DBUG_ON(!(ch->flags & (XPC_C_CONNECTING | XPC_C_CONNECTED)));
 
 	dev_dbg(xpc_chan, "reason=%d, line=%d, partid=%d, channel=%d\n",
-		reason, line, ch->partid, ch->number);
+			reason, line, ch->partid, ch->number);
 
 	XPC_SET_REASON(ch, reason, line);
 
 	ch->flags |= (XPC_C_CLOSEREQUEST | XPC_C_DISCONNECTING);
 	/* some of these may not have been set */
 	ch->flags &= ~(XPC_C_OPENREQUEST | XPC_C_OPENREPLY |
-		       XPC_C_ROPENREQUEST | XPC_C_ROPENREPLY |
-		       XPC_C_CONNECTING | XPC_C_CONNECTED);
+				   XPC_C_ROPENREQUEST | XPC_C_ROPENREPLY |
+				   XPC_C_CONNECTING | XPC_C_CONNECTED);
 
 	xpc_arch_ops.send_chctl_closerequest(ch, irq_flags);
 
 	if (channel_was_connected)
+	{
 		ch->flags |= XPC_C_WASCONNECTED;
+	}
 
 	spin_unlock_irqrestore(&ch->lock, *irq_flags);
 
 	/* wake all idle kthreads so they can exit */
-	if (atomic_read(&ch->kthreads_idle) > 0) {
+	if (atomic_read(&ch->kthreads_idle) > 0)
+	{
 		wake_up_all(&ch->idle_wq);
 
-	} else if ((ch->flags & XPC_C_CONNECTEDCALLOUT_MADE) &&
-		   !(ch->flags & XPC_C_DISCONNECTINGCALLOUT)) {
+	}
+	else if ((ch->flags & XPC_C_CONNECTEDCALLOUT_MADE) &&
+			 !(ch->flags & XPC_C_DISCONNECTINGCALLOUT))
+	{
 		/* start a kthread that will do the xpDisconnecting callout */
 		xpc_create_kthreads(ch, 1, 1);
 	}
 
 	/* wake those waiting to allocate an entry from the local msg queue */
 	if (atomic_read(&ch->n_on_msg_allocate_wq) > 0)
+	{
 		wake_up(&ch->msg_allocate_wq);
+	}
 
 	spin_lock_irqsave(&ch->lock, *irq_flags);
 }
@@ -809,14 +924,15 @@ xpc_disconnect_callout(struct xpc_channel *ch, enum xp_retval reason)
 	 * informed of a connection being made.
 	 */
 
-	if (ch->func != NULL) {
+	if (ch->func != NULL)
+	{
 		dev_dbg(xpc_chan, "ch->func() called, reason=%d, partid=%d, "
-			"channel=%d\n", reason, ch->partid, ch->number);
+				"channel=%d\n", reason, ch->partid, ch->number);
 
 		ch->func(reason, ch->partid, ch->number, NULL, ch->key);
 
 		dev_dbg(xpc_chan, "ch->func() returned, reason=%d, partid=%d, "
-			"channel=%d\n", reason, ch->partid, ch->number);
+				"channel=%d\n", reason, ch->partid, ch->number);
 	}
 }
 
@@ -830,7 +946,8 @@ xpc_allocate_msg_wait(struct xpc_channel *ch)
 	enum xp_retval ret;
 	DEFINE_WAIT(wait);
 
-	if (ch->flags & XPC_C_DISCONNECTING) {
+	if (ch->flags & XPC_C_DISCONNECTING)
+	{
 		DBUG_ON(ch->reason == xpInterrupted);
 		return ch->reason;
 	}
@@ -841,12 +958,16 @@ xpc_allocate_msg_wait(struct xpc_channel *ch)
 	finish_wait(&ch->msg_allocate_wq, &wait);
 	atomic_dec(&ch->n_on_msg_allocate_wq);
 
-	if (ch->flags & XPC_C_DISCONNECTING) {
+	if (ch->flags & XPC_C_DISCONNECTING)
+	{
 		ret = ch->reason;
 		DBUG_ON(ch->reason == xpInterrupted);
-	} else if (ret == 0) {
+	}
+	else if (ret == 0)
+	{
 		ret = xpTimeout;
-	} else {
+	}
+	else {
 		ret = xpInterrupted;
 	}
 
@@ -873,21 +994,22 @@ xpc_allocate_msg_wait(struct xpc_channel *ch)
  */
 enum xp_retval
 xpc_initiate_send(short partid, int ch_number, u32 flags, void *payload,
-		  u16 payload_size)
+				  u16 payload_size)
 {
 	struct xpc_partition *part = &xpc_partitions[partid];
 	enum xp_retval ret = xpUnknownReason;
 
 	dev_dbg(xpc_chan, "payload=0x%p, partid=%d, channel=%d\n", payload,
-		partid, ch_number);
+	partid, ch_number);
 
 	DBUG_ON(partid < 0 || partid >= xp_max_npartitions);
 	DBUG_ON(ch_number < 0 || ch_number >= part->nchannels);
 	DBUG_ON(payload == NULL);
 
-	if (xpc_part_ref(part)) {
+	if (xpc_part_ref(part))
+	{
 		ret = xpc_arch_ops.send_payload(&part->channels[ch_number],
-				  flags, payload, payload_size, 0, NULL, NULL);
+		flags, payload, payload_size, 0, NULL, NULL);
 		xpc_part_deref(part);
 	}
 
@@ -924,24 +1046,26 @@ xpc_initiate_send(short partid, int ch_number, u32 flags, void *payload,
  */
 enum xp_retval
 xpc_initiate_send_notify(short partid, int ch_number, u32 flags, void *payload,
-			 u16 payload_size, xpc_notify_func func, void *key)
+						 u16 payload_size, xpc_notify_func func, void *key)
 {
 	struct xpc_partition *part = &xpc_partitions[partid];
 	enum xp_retval ret = xpUnknownReason;
 
 	dev_dbg(xpc_chan, "payload=0x%p, partid=%d, channel=%d\n", payload,
-		partid, ch_number);
+	partid, ch_number);
 
 	DBUG_ON(partid < 0 || partid >= xp_max_npartitions);
 	DBUG_ON(ch_number < 0 || ch_number >= part->nchannels);
 	DBUG_ON(payload == NULL);
 	DBUG_ON(func == NULL);
 
-	if (xpc_part_ref(part)) {
+	if (xpc_part_ref(part))
+	{
 		ret = xpc_arch_ops.send_payload(&part->channels[ch_number],
-			  flags, payload, payload_size, XPC_N_CALL, func, key);
+		flags, payload, payload_size, XPC_N_CALL, func, key);
 		xpc_part_deref(part);
 	}
+
 	return ret;
 }
 
@@ -954,7 +1078,9 @@ xpc_deliver_payload(struct xpc_channel *ch)
 	void *payload;
 
 	payload = xpc_arch_ops.get_deliverable_payload(ch);
-	if (payload != NULL) {
+
+	if (payload != NULL)
+	{
 
 		/*
 		 * This ref is taken to protect the payload itself from being
@@ -965,18 +1091,19 @@ xpc_deliver_payload(struct xpc_channel *ch)
 
 		atomic_inc(&ch->kthreads_active);
 
-		if (ch->func != NULL) {
+		if (ch->func != NULL)
+		{
 			dev_dbg(xpc_chan, "ch->func() called, payload=0x%p "
-				"partid=%d channel=%d\n", payload, ch->partid,
-				ch->number);
+					"partid=%d channel=%d\n", payload, ch->partid,
+					ch->number);
 
 			/* deliver the message to its intended recipient */
 			ch->func(xpMsgReceived, ch->partid, ch->number, payload,
-				 ch->key);
+					 ch->key);
 
 			dev_dbg(xpc_chan, "ch->func() returned, payload=0x%p "
-				"partid=%d channel=%d\n", payload, ch->partid,
-				ch->number);
+					"partid=%d channel=%d\n", payload, ch->partid,
+					ch->number);
 		}
 
 		atomic_dec(&ch->kthreads_active);

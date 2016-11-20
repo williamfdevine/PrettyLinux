@@ -30,15 +30,19 @@
  * Return: On success, a pointer to the device node, %NULL on failure.
  */
 struct device_node *usb_of_get_child_node(struct device_node *parent,
-					int portnum)
+		int portnum)
 {
 	struct device_node *node;
 	u32 port;
 
-	for_each_child_of_node(parent, node) {
-		if (!of_property_read_u32(node, "reg", &port)) {
+	for_each_child_of_node(parent, node)
+	{
+		if (!of_property_read_u32(node, "reg", &port))
+		{
 			if (port == portnum)
+			{
 				return node;
+			}
 		}
 	}
 

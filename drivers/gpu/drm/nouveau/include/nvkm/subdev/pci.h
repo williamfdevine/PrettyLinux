@@ -2,19 +2,22 @@
 #define __NVKM_PCI_H__
 #include <core/subdev.h>
 
-enum nvkm_pcie_speed {
+enum nvkm_pcie_speed
+{
 	NVKM_PCIE_SPEED_2_5,
 	NVKM_PCIE_SPEED_5_0,
 	NVKM_PCIE_SPEED_8_0,
 };
 
-struct nvkm_pci {
+struct nvkm_pci
+{
 	const struct nvkm_pci_func *func;
 	struct nvkm_subdev subdev;
 	struct pci_dev *pdev;
 	int irq;
 
-	struct {
+	struct
+	{
 		struct agp_bridge_data *bridge;
 		u32 mode;
 		u64 base;
@@ -24,7 +27,8 @@ struct nvkm_pci {
 		bool acquired;
 	} agp;
 
-	struct {
+	struct
+	{
 		enum nvkm_pcie_speed speed;
 		u8 width;
 	} pcie;

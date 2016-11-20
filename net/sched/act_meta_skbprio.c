@@ -29,7 +29,7 @@ static int skbprio_check(struct sk_buff *skb, struct tcf_meta_info *e)
 }
 
 static int skbprio_encode(struct sk_buff *skb, void *skbdata,
-			  struct tcf_meta_info *e)
+						  struct tcf_meta_info *e)
 {
 	u32 ifeprio = skb->priority; /* avoid having to cast skb->priority*/
 
@@ -44,7 +44,8 @@ static int skbprio_decode(struct sk_buff *skb, void *data, u16 len)
 	return 0;
 }
 
-static struct tcf_meta_ops ife_prio_ops = {
+static struct tcf_meta_ops ife_prio_ops =
+{
 	.metaid = IFE_META_PRIO,
 	.metatype = NLA_U32,
 	.name = "skbprio",

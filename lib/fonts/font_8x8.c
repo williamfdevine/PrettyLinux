@@ -8,7 +8,8 @@
 
 #define FONTDATAMAX 2048
 
-static const unsigned char fontdata_8x8[FONTDATAMAX] = {
+static const unsigned char fontdata_8x8[FONTDATAMAX] =
+{
 
 	/* 0 0x00 '^@' */
 	0x00, /* 00000000 */
@@ -2573,7 +2574,8 @@ static const unsigned char fontdata_8x8[FONTDATAMAX] = {
 };
 
 
-const struct font_desc font_vga_8x8 = {
+const struct font_desc font_vga_8x8 =
+{
 	.idx	= VGA8x8_IDX,
 	.name	= "VGA8x8",
 	.width	= 8,

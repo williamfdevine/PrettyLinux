@@ -44,22 +44,23 @@
 
 #define GREYBUS_DEVICE(v, p)					\
 	.match_flags	= GREYBUS_ID_MATCH_DEVICE,		\
-	.vendor		= (v),					\
-	.product	= (p),
+					  .vendor		= (v),					\
+									.product	= (p),
 
 #define GREYBUS_DEVICE_CLASS(c)					\
 	.match_flags	= GREYBUS_ID_MATCH_CLASS,		\
-	.class		= (c),
+					  .class		= (c),
 
 /* Maximum number of CPorts */
 #define CPORT_ID_MAX	4095		/* UniPro max id is 4095 */
 #define CPORT_ID_BAD	U16_MAX
 
-struct greybus_driver {
+struct greybus_driver
+{
 	const char *name;
 
 	int (*probe)(struct gb_bundle *bundle,
-		     const struct greybus_bundle_id *id);
+				 const struct greybus_bundle_id *id);
 	void (*disconnect)(struct gb_bundle *bundle);
 
 	const struct greybus_bundle_id *id_table;
@@ -80,7 +81,7 @@ static inline void *greybus_get_drvdata(struct gb_bundle *bundle)
 
 /* Don't call these directly, use the module_greybus_driver() macro instead */
 int greybus_register_driver(struct greybus_driver *driver,
-			    struct module *module, const char *mod_name);
+							struct module *module, const char *mod_name);
 void greybus_deregister_driver(struct greybus_driver *driver);
 
 /* define to get proper THIS_MODULE and KBUILD_MODNAME values */

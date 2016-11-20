@@ -59,7 +59,8 @@ struct kmem_zone;
  * These log items follow the same rules as struct xfs_efi_log_item; see the
  * comments about that structure (in xfs_extfree_item.h) for more details.
  */
-struct xfs_bui_log_item {
+struct xfs_bui_log_item
+{
 	struct xfs_log_item		bui_item;
 	atomic_t			bui_refcount;
 	atomic_t			bui_next_extent;
@@ -72,14 +73,15 @@ xfs_bui_log_item_sizeof(
 	unsigned int		nr)
 {
 	return offsetof(struct xfs_bui_log_item, bui_format) +
-			xfs_bui_log_format_sizeof(nr);
+		   xfs_bui_log_format_sizeof(nr);
 }
 
 /*
  * This is the "bmap update done" log item.  It is used to log the fact that
  * some bmbt updates mentioned in an earlier bui item have been performed.
  */
-struct xfs_bud_log_item {
+struct xfs_bud_log_item
+{
 	struct xfs_log_item		bud_item;
 	struct xfs_bui_log_item		*bud_buip;
 	struct xfs_bud_log_format	bud_format;
@@ -90,7 +92,7 @@ extern struct kmem_zone	*xfs_bud_zone;
 
 struct xfs_bui_log_item *xfs_bui_init(struct xfs_mount *);
 struct xfs_bud_log_item *xfs_bud_init(struct xfs_mount *,
-		struct xfs_bui_log_item *);
+									  struct xfs_bui_log_item *);
 void xfs_bui_item_free(struct xfs_bui_log_item *);
 void xfs_bui_release(struct xfs_bui_log_item *);
 int xfs_bui_recover(struct xfs_mount *mp, struct xfs_bui_log_item *buip);

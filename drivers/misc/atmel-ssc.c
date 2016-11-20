@@ -30,31 +30,39 @@ struct ssc_device *ssc_request(unsigned int ssc_num)
 	struct ssc_device *ssc;
 
 	spin_lock(&user_lock);
-	list_for_each_entry(ssc, &ssc_list, list) {
-		if (ssc->pdev->dev.of_node) {
+	list_for_each_entry(ssc, &ssc_list, list)
+	{
+		if (ssc->pdev->dev.of_node)
+		{
 			if (of_alias_get_id(ssc->pdev->dev.of_node, "ssc")
-				== ssc_num) {
+				== ssc_num)
+			{
 				ssc->pdev->id = ssc_num;
 				ssc_valid = 1;
 				break;
 			}
-		} else if (ssc->pdev->id == ssc_num) {
+		}
+		else if (ssc->pdev->id == ssc_num)
+		{
 			ssc_valid = 1;
 			break;
 		}
 	}
 
-	if (!ssc_valid) {
+	if (!ssc_valid)
+	{
 		spin_unlock(&user_lock);
 		pr_err("ssc: ssc%d platform device is missing\n", ssc_num);
 		return ERR_PTR(-ENODEV);
 	}
 
-	if (ssc->user) {
+	if (ssc->user)
+	{
 		spin_unlock(&user_lock);
 		dev_dbg(&ssc->pdev->dev, "module busy\n");
 		return ERR_PTR(-EBUSY);
 	}
+
 	ssc->user++;
 	spin_unlock(&user_lock);
 
@@ -69,35 +77,46 @@ void ssc_free(struct ssc_device *ssc)
 	bool disable_clk = true;
 
 	spin_lock(&user_lock);
+
 	if (ssc->user)
+	{
 		ssc->user--;
-	else {
+	}
+	else
+	{
 		disable_clk = false;
 		dev_dbg(&ssc->pdev->dev, "device already free\n");
 	}
+
 	spin_unlock(&user_lock);
 
 	if (disable_clk)
+	{
 		clk_unprepare(ssc->clk);
+	}
 }
 EXPORT_SYMBOL(ssc_free);
 
-static struct atmel_ssc_platform_data at91rm9200_config = {
+static struct atmel_ssc_platform_data at91rm9200_config =
+{
 	.use_dma = 0,
 	.has_fslen_ext = 0,
 };
 
-static struct atmel_ssc_platform_data at91sam9rl_config = {
+static struct atmel_ssc_platform_data at91sam9rl_config =
+{
 	.use_dma = 0,
 	.has_fslen_ext = 1,
 };
 
-static struct atmel_ssc_platform_data at91sam9g45_config = {
+static struct atmel_ssc_platform_data at91sam9g45_config =
+{
 	.use_dma = 1,
 	.has_fslen_ext = 1,
 };
 
-static const struct platform_device_id atmel_ssc_devtypes[] = {
+static const struct platform_device_id atmel_ssc_devtypes[] =
+{
 	{
 		.name = "at91rm9200_ssc",
 		.driver_data = (unsigned long) &at91rm9200_config,
@@ -113,7 +132,8 @@ static const struct platform_device_id atmel_ssc_devtypes[] = {
 };
 
 #ifdef CONFIG_OF
-static const struct of_device_id atmel_ssc_dt_ids[] = {
+static const struct of_device_id atmel_ssc_dt_ids[] =
+{
 	{
 		.compatible = "atmel,at91rm9200-ssc",
 		.data = &at91rm9200_config,
@@ -130,19 +150,24 @@ static const struct of_device_id atmel_ssc_dt_ids[] = {
 MODULE_DEVICE_TABLE(of, atmel_ssc_dt_ids);
 #endif
 
-static inline const struct atmel_ssc_platform_data * __init
-	atmel_ssc_get_driver_data(struct platform_device *pdev)
+static inline const struct atmel_ssc_platform_data *__init
+atmel_ssc_get_driver_data(struct platform_device *pdev)
 {
-	if (pdev->dev.of_node) {
+	if (pdev->dev.of_node)
+	{
 		const struct of_device_id *match;
 		match = of_match_node(atmel_ssc_dt_ids, pdev->dev.of_node);
+
 		if (match == NULL)
+		{
 			return NULL;
+		}
+
 		return match->data;
 	}
 
 	return (struct atmel_ssc_platform_data *)
-		platform_get_device_id(pdev)->driver_data;
+		   platform_get_device_id(pdev)->driver_data;
 }
 
 static int ssc_probe(struct platform_device *pdev)
@@ -152,7 +177,9 @@ static int ssc_probe(struct platform_device *pdev)
 	const struct atmel_ssc_platform_data *plat_dat;
 
 	ssc = devm_kzalloc(&pdev->dev, sizeof(struct ssc_device), GFP_KERNEL);
-	if (!ssc) {
+
+	if (!ssc)
+	{
 		dev_dbg(&pdev->dev, "out of memory\n");
 		return -ENOMEM;
 	}
@@ -160,11 +187,16 @@ static int ssc_probe(struct platform_device *pdev)
 	ssc->pdev = pdev;
 
 	plat_dat = atmel_ssc_get_driver_data(pdev);
+
 	if (!plat_dat)
+	{
 		return -ENODEV;
+	}
+
 	ssc->pdata = (struct atmel_ssc_platform_data *)plat_dat;
 
-	if (pdev->dev.of_node) {
+	if (pdev->dev.of_node)
+	{
 		struct device_node *np = pdev->dev.of_node;
 		ssc->clk_from_rk_pin =
 			of_property_read_bool(np, "atmel,clk-from-rk-pin");
@@ -172,13 +204,18 @@ static int ssc_probe(struct platform_device *pdev)
 
 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	ssc->regs = devm_ioremap_resource(&pdev->dev, regs);
+
 	if (IS_ERR(ssc->regs))
+	{
 		return PTR_ERR(ssc->regs);
+	}
 
 	ssc->phybase = regs->start;
 
 	ssc->clk = devm_clk_get(&pdev->dev, "pclk");
-	if (IS_ERR(ssc->clk)) {
+
+	if (IS_ERR(ssc->clk))
+	{
 		dev_dbg(&pdev->dev, "no pclk clock defined\n");
 		return -ENXIO;
 	}
@@ -190,7 +227,9 @@ static int ssc_probe(struct platform_device *pdev)
 	clk_disable_unprepare(ssc->clk);
 
 	ssc->irq = platform_get_irq(pdev, 0);
-	if (!ssc->irq) {
+
+	if (!ssc->irq)
+	{
 		dev_dbg(&pdev->dev, "could not get irq\n");
 		return -ENXIO;
 	}
@@ -202,7 +241,7 @@ static int ssc_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, ssc);
 
 	dev_info(&pdev->dev, "Atmel SSC device at 0x%p (irq %d)\n",
-			ssc->regs, ssc->irq);
+			 ssc->regs, ssc->irq);
 
 	return 0;
 }
@@ -218,7 +257,8 @@ static int ssc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver ssc_driver = {
+static struct platform_driver ssc_driver =
+{
 	.driver		= {
 		.name		= "ssc",
 		.of_match_table	= of_match_ptr(atmel_ssc_dt_ids),

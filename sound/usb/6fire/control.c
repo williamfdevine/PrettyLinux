@@ -25,19 +25,21 @@
 #include "comm.h"
 #include "chip.h"
 
-static const char * const opt_coax_texts[2] = { "Optical", "Coax" };
-static const char * const line_phono_texts[2] = { "Line", "Phono" };
+static const char *const opt_coax_texts[2] = { "Optical", "Coax" };
+static const char *const line_phono_texts[2] = { "Line", "Phono" };
 
 /*
  * data that needs to be sent to device. sets up card internal stuff.
  * values dumped from windows driver and filtered by trial'n'error.
  */
-static const struct {
+static const struct
+{
 	u8 type;
 	u8 reg;
 	u8 value;
 }
-init_data[] = {
+init_data[] =
+{
 	{ 0x22, 0x00, 0x00 }, { 0x20, 0x00, 0x08 }, { 0x22, 0x01, 0x01 },
 	{ 0x20, 0x01, 0x08 }, { 0x22, 0x02, 0x00 }, { 0x20, 0x02, 0x08 },
 	{ 0x22, 0x03, 0x00 }, { 0x20, 0x03, 0x08 }, { 0x22, 0x04, 0x00 },
@@ -57,7 +59,8 @@ static const u16 rates_6fire_vh[] = {0x11, 0x11, 0x10, 0x10, 0x00, 0x00};
 static DECLARE_TLV_DB_MINMAX(tlv_output, -9000, 0);
 static DECLARE_TLV_DB_MINMAX(tlv_input, -1500, 1500);
 
-enum {
+enum
+{
 	DIGITAL_THRU_ONLY_SAMPLERATE = 3
 };
 
@@ -68,9 +71,10 @@ static void usb6fire_control_output_vol_update(struct control_runtime *rt)
 
 	if (comm_rt)
 		for (i = 0; i < 6; i++)
-			if (!(rt->ovol_updated & (1 << i))) {
+			if (!(rt->ovol_updated & (1 << i)))
+			{
 				comm_rt->write8(comm_rt, 0x12, 0x0f + i,
-					180 - rt->output_vol[i]);
+								180 - rt->output_vol[i]);
 				rt->ovol_updated |= 1 << i;
 			}
 }
@@ -80,7 +84,9 @@ static void usb6fire_control_output_mute_update(struct control_runtime *rt)
 	struct comm_runtime *comm_rt = rt->chip->comm;
 
 	if (comm_rt)
+	{
 		comm_rt->write8(comm_rt, 0x12, 0x0e, ~rt->output_mute);
+	}
 }
 
 static void usb6fire_control_input_vol_update(struct control_runtime *rt)
@@ -90,9 +96,10 @@ static void usb6fire_control_input_vol_update(struct control_runtime *rt)
 
 	if (comm_rt)
 		for (i = 0; i < 2; i++)
-			if (!(rt->ivol_updated & (1 << i))) {
+			if (!(rt->ivol_updated & (1 << i)))
+			{
 				comm_rt->write8(comm_rt, 0x12, 0x1c + i,
-					rt->input_vol[i] & 0x3f);
+								rt->input_vol[i] & 0x3f);
 				rt->ivol_updated |= 1 << i;
 			}
 }
@@ -100,7 +107,9 @@ static void usb6fire_control_input_vol_update(struct control_runtime *rt)
 static void usb6fire_control_line_phono_update(struct control_runtime *rt)
 {
 	struct comm_runtime *comm_rt = rt->chip->comm;
-	if (comm_rt) {
+
+	if (comm_rt)
+	{
 		comm_rt->write8(comm_rt, 0x22, 0x02, rt->line_phono_switch);
 		comm_rt->write8(comm_rt, 0x21, 0x02, rt->line_phono_switch);
 	}
@@ -109,7 +118,9 @@ static void usb6fire_control_line_phono_update(struct control_runtime *rt)
 static void usb6fire_control_opt_coax_update(struct control_runtime *rt)
 {
 	struct comm_runtime *comm_rt = rt->chip->comm;
-	if (comm_rt) {
+
+	if (comm_rt)
+	{
 		comm_rt->write8(comm_rt, 0x22, 0x00, rt->opt_coax_switch);
 		comm_rt->write8(comm_rt, 0x21, 0x00, rt->opt_coax_switch);
 	}
@@ -122,17 +133,25 @@ static int usb6fire_control_set_rate(struct control_runtime *rt, int rate)
 	struct comm_runtime *comm_rt = rt->chip->comm;
 
 	if (rate < 0 || rate >= CONTROL_N_RATES)
+	{
 		return -EINVAL;
+	}
 
 	ret = usb_set_interface(device, 1, rates_altsetting[rate]);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* set soundcard clock */
 	ret = comm_rt->write16(comm_rt, 0x02, 0x01, rates_6fire_vl[rate],
-			rates_6fire_vh[rate]);
+						   rates_6fire_vh[rate]);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -147,16 +166,22 @@ static int usb6fire_control_set_channels(
 	/* enable analog inputs and outputs
 	 * (one bit per stereo-channel) */
 	ret = comm_rt->write16(comm_rt, 0x02, 0x02,
-			(1 << (n_analog_out / 2)) - 1,
-			(1 << (n_analog_in / 2)) - 1);
+						   (1 << (n_analog_out / 2)) - 1,
+						   (1 << (n_analog_in / 2)) - 1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* disable digital inputs and outputs */
 	/* TODO: use spdif_x to enable/disable digital channels */
 	ret = comm_rt->write16(comm_rt, 0x02, 0x03, 0x00, 0x00);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -165,14 +190,17 @@ static int usb6fire_control_streaming_update(struct control_runtime *rt)
 {
 	struct comm_runtime *comm_rt = rt->chip->comm;
 
-	if (comm_rt) {
+	if (comm_rt)
+	{
 		if (!rt->usb_streaming && rt->digital_thru_switch)
 			usb6fire_control_set_rate(rt,
-				DIGITAL_THRU_ONLY_SAMPLERATE);
+									  DIGITAL_THRU_ONLY_SAMPLERATE);
+
 		return comm_rt->write16(comm_rt, 0x02, 0x00, 0x00,
-			(rt->usb_streaming ? 0x01 : 0x00) |
-			(rt->digital_thru_switch ? 0x08 : 0x00));
+								(rt->usb_streaming ? 0x01 : 0x00) |
+								(rt->digital_thru_switch ? 0x08 : 0x00));
 	}
+
 	return -EINVAL;
 }
 
@@ -193,25 +221,31 @@ static int usb6fire_control_output_vol_put(struct snd_kcontrol *kcontrol,
 	unsigned int ch = kcontrol->private_value;
 	int changed = 0;
 
-	if (ch > 4) {
+	if (ch > 4)
+	{
 		dev_err(&rt->chip->dev->dev,
-			"Invalid channel in volume control.");
+				"Invalid channel in volume control.");
 		return -EINVAL;
 	}
 
-	if (rt->output_vol[ch] != ucontrol->value.integer.value[0]) {
+	if (rt->output_vol[ch] != ucontrol->value.integer.value[0])
+	{
 		rt->output_vol[ch] = ucontrol->value.integer.value[0];
 		rt->ovol_updated &= ~(1 << ch);
 		changed = 1;
 	}
-	if (rt->output_vol[ch + 1] != ucontrol->value.integer.value[1]) {
+
+	if (rt->output_vol[ch + 1] != ucontrol->value.integer.value[1])
+	{
 		rt->output_vol[ch + 1] = ucontrol->value.integer.value[1];
 		rt->ovol_updated &= ~(2 << ch);
 		changed = 1;
 	}
 
 	if (changed)
+	{
 		usb6fire_control_output_vol_update(rt);
+	}
 
 	return changed;
 }
@@ -222,9 +256,10 @@ static int usb6fire_control_output_vol_get(struct snd_kcontrol *kcontrol,
 	struct control_runtime *rt = snd_kcontrol_chip(kcontrol);
 	unsigned int ch = kcontrol->private_value;
 
-	if (ch > 4) {
+	if (ch > 4)
+	{
 		dev_err(&rt->chip->dev->dev,
-			"Invalid channel in volume control.");
+				"Invalid channel in volume control.");
 		return -EINVAL;
 	}
 
@@ -234,42 +269,53 @@ static int usb6fire_control_output_vol_get(struct snd_kcontrol *kcontrol,
 }
 
 static int usb6fire_control_output_mute_put(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
+		struct snd_ctl_elem_value *ucontrol)
 {
 	struct control_runtime *rt = snd_kcontrol_chip(kcontrol);
 	unsigned int ch = kcontrol->private_value;
 	u8 old = rt->output_mute;
 	u8 value = 0;
 
-	if (ch > 4) {
+	if (ch > 4)
+	{
 		dev_err(&rt->chip->dev->dev,
-			"Invalid channel in volume control.");
+				"Invalid channel in volume control.");
 		return -EINVAL;
 	}
 
 	rt->output_mute &= ~(3 << ch);
+
 	if (ucontrol->value.integer.value[0])
+	{
 		value |= 1;
+	}
+
 	if (ucontrol->value.integer.value[1])
+	{
 		value |= 2;
+	}
+
 	rt->output_mute |= value << ch;
 
 	if (rt->output_mute != old)
+	{
 		usb6fire_control_output_mute_update(rt);
+	}
 
 	return rt->output_mute != old;
 }
 
 static int usb6fire_control_output_mute_get(struct snd_kcontrol *kcontrol,
-	struct snd_ctl_elem_value *ucontrol)
+		struct snd_ctl_elem_value *ucontrol)
 {
 	struct control_runtime *rt = snd_kcontrol_chip(kcontrol);
 	unsigned int ch = kcontrol->private_value;
 	u8 value = rt->output_mute >> ch;
 
-	if (ch > 4) {
+	if (ch > 4)
+	{
 		dev_err(&rt->chip->dev->dev,
-			"Invalid channel in volume control.");
+				"Invalid channel in volume control.");
 		return -EINVAL;
 	}
 
@@ -296,19 +342,24 @@ static int usb6fire_control_input_vol_put(struct snd_kcontrol *kcontrol,
 	struct control_runtime *rt = snd_kcontrol_chip(kcontrol);
 	int changed = 0;
 
-	if (rt->input_vol[0] != ucontrol->value.integer.value[0]) {
+	if (rt->input_vol[0] != ucontrol->value.integer.value[0])
+	{
 		rt->input_vol[0] = ucontrol->value.integer.value[0] - 15;
 		rt->ivol_updated &= ~(1 << 0);
 		changed = 1;
 	}
-	if (rt->input_vol[1] != ucontrol->value.integer.value[1]) {
+
+	if (rt->input_vol[1] != ucontrol->value.integer.value[1])
+	{
 		rt->input_vol[1] = ucontrol->value.integer.value[1] - 15;
 		rt->ivol_updated &= ~(1 << 1);
 		changed = 1;
 	}
 
 	if (changed)
+	{
 		usb6fire_control_input_vol_update(rt);
+	}
 
 	return changed;
 }
@@ -335,11 +386,14 @@ static int usb6fire_control_line_phono_put(struct snd_kcontrol *kcontrol,
 {
 	struct control_runtime *rt = snd_kcontrol_chip(kcontrol);
 	int changed = 0;
-	if (rt->line_phono_switch != ucontrol->value.integer.value[0]) {
+
+	if (rt->line_phono_switch != ucontrol->value.integer.value[0])
+	{
 		rt->line_phono_switch = ucontrol->value.integer.value[0];
 		usb6fire_control_line_phono_update(rt);
 		changed = 1;
 	}
+
 	return changed;
 }
 
@@ -363,11 +417,13 @@ static int usb6fire_control_opt_coax_put(struct snd_kcontrol *kcontrol,
 	struct control_runtime *rt = snd_kcontrol_chip(kcontrol);
 	int changed = 0;
 
-	if (rt->opt_coax_switch != ucontrol->value.enumerated.item[0]) {
+	if (rt->opt_coax_switch != ucontrol->value.enumerated.item[0])
+	{
 		rt->opt_coax_switch = ucontrol->value.enumerated.item[0];
 		usb6fire_control_opt_coax_update(rt);
 		changed = 1;
 	}
+
 	return changed;
 }
 
@@ -385,11 +441,13 @@ static int usb6fire_control_digital_thru_put(struct snd_kcontrol *kcontrol,
 	struct control_runtime *rt = snd_kcontrol_chip(kcontrol);
 	int changed = 0;
 
-	if (rt->digital_thru_switch != ucontrol->value.integer.value[0]) {
+	if (rt->digital_thru_switch != ucontrol->value.integer.value[0])
+	{
 		rt->digital_thru_switch = ucontrol->value.integer.value[0];
 		usb6fire_control_streaming_update(rt);
 		changed = 1;
 	}
+
 	return changed;
 }
 
@@ -401,14 +459,15 @@ static int usb6fire_control_digital_thru_get(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
-static struct snd_kcontrol_new vol_elements[] = {
+static struct snd_kcontrol_new vol_elements[] =
+{
 	{
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.name = "Analog Playback Volume",
 		.index = 0,
 		.private_value = 0,
 		.access = SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			SNDRV_CTL_ELEM_ACCESS_TLV_READ,
+		SNDRV_CTL_ELEM_ACCESS_TLV_READ,
 		.info = usb6fire_control_output_vol_info,
 		.get = usb6fire_control_output_vol_get,
 		.put = usb6fire_control_output_vol_put,
@@ -420,7 +479,7 @@ static struct snd_kcontrol_new vol_elements[] = {
 		.index = 1,
 		.private_value = 2,
 		.access = SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			SNDRV_CTL_ELEM_ACCESS_TLV_READ,
+		SNDRV_CTL_ELEM_ACCESS_TLV_READ,
 		.info = usb6fire_control_output_vol_info,
 		.get = usb6fire_control_output_vol_get,
 		.put = usb6fire_control_output_vol_put,
@@ -432,7 +491,7 @@ static struct snd_kcontrol_new vol_elements[] = {
 		.index = 2,
 		.private_value = 4,
 		.access = SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			SNDRV_CTL_ELEM_ACCESS_TLV_READ,
+		SNDRV_CTL_ELEM_ACCESS_TLV_READ,
 		.info = usb6fire_control_output_vol_info,
 		.get = usb6fire_control_output_vol_get,
 		.put = usb6fire_control_output_vol_put,
@@ -441,7 +500,8 @@ static struct snd_kcontrol_new vol_elements[] = {
 	{}
 };
 
-static struct snd_kcontrol_new mute_elements[] = {
+static struct snd_kcontrol_new mute_elements[] =
+{
 	{
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.name = "Analog Playback Switch",
@@ -475,7 +535,8 @@ static struct snd_kcontrol_new mute_elements[] = {
 	{}
 };
 
-static struct snd_kcontrol_new elements[] = {
+static struct snd_kcontrol_new elements[] =
+{
 	{
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.name = "Line/Phono Capture Route",
@@ -508,7 +569,7 @@ static struct snd_kcontrol_new elements[] = {
 		.name = "Analog Capture Volume",
 		.index = 0,
 		.access = SNDRV_CTL_ELEM_ACCESS_READWRITE |
-			SNDRV_CTL_ELEM_ACCESS_TLV_READ,
+		SNDRV_CTL_ELEM_ACCESS_TLV_READ,
 		.info = usb6fire_control_input_vol_info,
 		.get = usb6fire_control_input_vol_get,
 		.put = usb6fire_control_input_vol_put,
@@ -530,24 +591,45 @@ static int usb6fire_control_add_virtual(
 	struct snd_kcontrol *control;
 
 	if (!vmaster)
+	{
 		return -ENOMEM;
+	}
+
 	ret = snd_ctl_add(card, vmaster);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	i = 0;
-	while (elems[i].name) {
+
+	while (elems[i].name)
+	{
 		control = snd_ctl_new1(&elems[i], rt);
+
 		if (!control)
+		{
 			return -ENOMEM;
+		}
+
 		ret = snd_ctl_add(card, control);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		ret = snd_ctl_add_slave(vmaster, control);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		i++;
 	}
+
 	return 0;
 }
 
@@ -556,11 +638,13 @@ int usb6fire_control_init(struct sfire_chip *chip)
 	int i;
 	int ret;
 	struct control_runtime *rt = kzalloc(sizeof(struct control_runtime),
-			GFP_KERNEL);
+										 GFP_KERNEL);
 	struct comm_runtime *comm_rt = chip->comm;
 
 	if (!rt)
+	{
 		return -ENOMEM;
+	}
 
 	rt->chip = chip;
 	rt->update_streaming = usb6fire_control_streaming_update;
@@ -568,9 +652,11 @@ int usb6fire_control_init(struct sfire_chip *chip)
 	rt->set_channels = usb6fire_control_set_channels;
 
 	i = 0;
-	while (init_data[i].type) {
+
+	while (init_data[i].type)
+	{
 		comm_rt->write8(comm_rt, init_data[i].type, init_data[i].reg,
-				init_data[i].value);
+						init_data[i].value);
 		i++;
 	}
 
@@ -582,28 +668,38 @@ int usb6fire_control_init(struct sfire_chip *chip)
 	usb6fire_control_streaming_update(rt);
 
 	ret = usb6fire_control_add_virtual(rt, chip->card,
-		"Master Playback Volume", vol_elements);
-	if (ret) {
+									   "Master Playback Volume", vol_elements);
+
+	if (ret)
+	{
 		dev_err(&chip->dev->dev, "cannot add control.\n");
 		kfree(rt);
 		return ret;
 	}
+
 	ret = usb6fire_control_add_virtual(rt, chip->card,
-		"Master Playback Switch", mute_elements);
-	if (ret) {
+									   "Master Playback Switch", mute_elements);
+
+	if (ret)
+	{
 		dev_err(&chip->dev->dev, "cannot add control.\n");
 		kfree(rt);
 		return ret;
 	}
 
 	i = 0;
-	while (elements[i].name) {
+
+	while (elements[i].name)
+	{
 		ret = snd_ctl_add(chip->card, snd_ctl_new1(&elements[i], rt));
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			kfree(rt);
 			dev_err(&chip->dev->dev, "cannot add control.\n");
 			return ret;
 		}
+
 		i++;
 	}
 

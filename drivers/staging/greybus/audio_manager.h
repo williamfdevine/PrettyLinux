@@ -16,7 +16,8 @@
 #define GB_AUDIO_MANAGER_MODULE_NAME_LEN 64
 #define GB_AUDIO_MANAGER_MODULE_NAME_LEN_SSCANF "63"
 
-struct gb_audio_manager_module_descriptor {
+struct gb_audio_manager_module_descriptor
+{
 	char name[GB_AUDIO_MANAGER_MODULE_NAME_LEN];
 	int slot;
 	int vid;
@@ -26,7 +27,8 @@ struct gb_audio_manager_module_descriptor {
 	unsigned int op_devices;
 };
 
-struct gb_audio_manager_module {
+struct gb_audio_manager_module
+{
 	struct kobject kobj;
 	struct list_head list;
 	int id;

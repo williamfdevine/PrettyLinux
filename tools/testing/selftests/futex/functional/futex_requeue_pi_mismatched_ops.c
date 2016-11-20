@@ -40,16 +40,19 @@ void usage(char *prog)
 	printf("  -c	Use color\n");
 	printf("  -h	Display this help message\n");
 	printf("  -v L	Verbosity level: %d=QUIET %d=CRITICAL %d=INFO\n",
-	       VQUIET, VCRITICAL, VINFO);
+		   VQUIET, VCRITICAL, VINFO);
 }
 
 void *blocking_child(void *arg)
 {
 	child_ret = futex_wait(&f1, f1, NULL, FUTEX_PRIVATE_FLAG);
-	if (child_ret < 0) {
+
+	if (child_ret < 0)
+	{
 		child_ret = -errno;
 		error("futex_wait\n", errno);
 	}
+
 	return (void *)&child_ret;
 }
 
@@ -59,31 +62,38 @@ int main(int argc, char *argv[])
 	pthread_t child;
 	int c;
 
-	while ((c = getopt(argc, argv, "chv:")) != -1) {
-		switch (c) {
-		case 'c':
-			log_color(1);
-			break;
-		case 'h':
-			usage(basename(argv[0]));
-			exit(0);
-		case 'v':
-			log_verbosity(atoi(optarg));
-			break;
-		default:
-			usage(basename(argv[0]));
-			exit(1);
+	while ((c = getopt(argc, argv, "chv:")) != -1)
+	{
+		switch (c)
+		{
+			case 'c':
+				log_color(1);
+				break;
+
+			case 'h':
+				usage(basename(argv[0]));
+				exit(0);
+
+			case 'v':
+				log_verbosity(atoi(optarg));
+				break;
+
+			default:
+				usage(basename(argv[0]));
+				exit(1);
 		}
 	}
 
 	printf("%s: Detect mismatched requeue_pi operations\n",
-	       basename(argv[0]));
+		   basename(argv[0]));
 
-	if (pthread_create(&child, NULL, blocking_child, NULL)) {
+	if (pthread_create(&child, NULL, blocking_child, NULL))
+	{
 		error("pthread_create\n", errno);
 		ret = RET_ERROR;
 		goto out;
 	}
+
 	/* Allow the child to block in the kernel. */
 	sleep(1);
 
@@ -94,31 +104,46 @@ int main(int argc, char *argv[])
 	 * in the kernel.
 	 */
 	ret = futex_cmp_requeue_pi(&f1, f1, &f2, 1, 0, FUTEX_PRIVATE_FLAG);
-	if (ret < 0) {
-		if (errno == EINVAL) {
+
+	if (ret < 0)
+	{
+		if (errno == EINVAL)
+		{
 			/*
 			 * The kernel correctly detected the mismatched
 			 * requeue_pi target and aborted. Wake the child with
 			 * FUTEX_WAKE.
 			 */
 			ret = futex_wake(&f1, 1, FUTEX_PRIVATE_FLAG);
-			if (ret == 1) {
+
+			if (ret == 1)
+			{
 				ret = RET_PASS;
-			} else if (ret < 0) {
+			}
+			else if (ret < 0)
+			{
 				error("futex_wake\n", errno);
 				ret = RET_ERROR;
-			} else {
+			}
+			else
+			{
 				error("futex_wake did not wake the child\n", 0);
 				ret = RET_ERROR;
 			}
-		} else {
+		}
+		else
+		{
 			error("futex_cmp_requeue_pi\n", errno);
 			ret = RET_ERROR;
 		}
-	} else if (ret > 0) {
+	}
+	else if (ret > 0)
+	{
 		fail("futex_cmp_requeue_pi failed to detect the mismatch\n");
 		ret = RET_FAIL;
-	} else {
+	}
+	else
+	{
 		error("futex_cmp_requeue_pi found no waiters\n", 0);
 		ret = RET_ERROR;
 	}
@@ -126,9 +151,11 @@ int main(int argc, char *argv[])
 	pthread_join(child, NULL);
 
 	if (!ret)
+	{
 		ret = child_ret;
+	}
 
- out:
+out:
 	/* If the kernel crashes, we shouldn't return at all. */
 	print_result(ret);
 	return ret;

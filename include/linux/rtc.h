@@ -76,7 +76,8 @@ extern struct class *rtc_class;
  * REVISIT those periodic irq calls *do* have ops_lock when they're
  * issued through ioctl() ...
  */
-struct rtc_class_ops {
+struct rtc_class_ops
+{
 	int (*open)(struct device *);
 	void (*release)(struct device *);
 	int (*ioctl)(struct device *, unsigned int, unsigned long);
@@ -94,13 +95,15 @@ struct rtc_class_ops {
 };
 
 #define RTC_DEVICE_NAME_SIZE 20
-typedef struct rtc_task {
+typedef struct rtc_task
+{
 	void (*func)(void *private_data);
 	void *private_data;
 } rtc_task_t;
 
 
-struct rtc_timer {
+struct rtc_timer
+{
 	struct rtc_task	task;
 	struct timerqueue_node node;
 	ktime_t period;
@@ -111,7 +114,8 @@ struct rtc_timer {
 /* flags */
 #define RTC_DEV_BUSY 0
 
-struct rtc_device {
+struct rtc_device
+{
 	struct device dev;
 	struct module *owner;
 
@@ -148,54 +152,54 @@ struct rtc_device {
 	struct timer_list uie_timer;
 	/* Those fields are protected by rtc->irq_lock */
 	unsigned int oldsecs;
-	unsigned int uie_irq_active:1;
-	unsigned int stop_uie_polling:1;
-	unsigned int uie_task_active:1;
-	unsigned int uie_timer_active:1;
+	unsigned int uie_irq_active: 1;
+	unsigned int stop_uie_polling: 1;
+	unsigned int uie_task_active: 1;
+	unsigned int uie_timer_active: 1;
 #endif
 };
 #define to_rtc_device(d) container_of(d, struct rtc_device, dev)
 
 extern struct rtc_device *rtc_device_register(const char *name,
-					struct device *dev,
-					const struct rtc_class_ops *ops,
-					struct module *owner);
+		struct device *dev,
+		const struct rtc_class_ops *ops,
+		struct module *owner);
 extern struct rtc_device *devm_rtc_device_register(struct device *dev,
-					const char *name,
-					const struct rtc_class_ops *ops,
-					struct module *owner);
+		const char *name,
+		const struct rtc_class_ops *ops,
+		struct module *owner);
 extern void rtc_device_unregister(struct rtc_device *rtc);
 extern void devm_rtc_device_unregister(struct device *dev,
-					struct rtc_device *rtc);
+									   struct rtc_device *rtc);
 
 extern int rtc_read_time(struct rtc_device *rtc, struct rtc_time *tm);
 extern int rtc_set_time(struct rtc_device *rtc, struct rtc_time *tm);
 extern int rtc_set_ntp_time(struct timespec64 now);
 int __rtc_read_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm);
 extern int rtc_read_alarm(struct rtc_device *rtc,
-			struct rtc_wkalrm *alrm);
+						  struct rtc_wkalrm *alrm);
 extern int rtc_set_alarm(struct rtc_device *rtc,
-				struct rtc_wkalrm *alrm);
+						 struct rtc_wkalrm *alrm);
 extern int rtc_initialize_alarm(struct rtc_device *rtc,
-				struct rtc_wkalrm *alrm);
+								struct rtc_wkalrm *alrm);
 extern void rtc_update_irq(struct rtc_device *rtc,
-			unsigned long num, unsigned long events);
+						   unsigned long num, unsigned long events);
 
 extern struct rtc_device *rtc_class_open(const char *name);
 extern void rtc_class_close(struct rtc_device *rtc);
 
 extern int rtc_irq_register(struct rtc_device *rtc,
-				struct rtc_task *task);
+							struct rtc_task *task);
 extern void rtc_irq_unregister(struct rtc_device *rtc,
-				struct rtc_task *task);
+							   struct rtc_task *task);
 extern int rtc_irq_set_state(struct rtc_device *rtc,
-				struct rtc_task *task, int enabled);
+							 struct rtc_task *task, int enabled);
 extern int rtc_irq_set_freq(struct rtc_device *rtc,
-				struct rtc_task *task, int freq);
+							struct rtc_task *task, int freq);
 extern int rtc_update_irq_enable(struct rtc_device *rtc, unsigned int enabled);
 extern int rtc_alarm_irq_enable(struct rtc_device *rtc, unsigned int enabled);
 extern int rtc_dev_update_irq_enable_emul(struct rtc_device *rtc,
-						unsigned int enabled);
+		unsigned int enabled);
 
 void rtc_handle_legacy_irq(struct rtc_device *rtc, int num, int mode);
 void rtc_aie_update_irq(void *private);
@@ -208,7 +212,7 @@ int rtc_control(rtc_task_t *t, unsigned int cmd, unsigned long arg);
 
 void rtc_timer_init(struct rtc_timer *timer, void (*f)(void *p), void *data);
 int rtc_timer_start(struct rtc_device *rtc, struct rtc_timer *timer,
-		    ktime_t expires, ktime_t period);
+					ktime_t expires, ktime_t period);
 void rtc_timer_cancel(struct rtc_device *rtc, struct rtc_timer *timer);
 int rtc_read_offset(struct rtc_device *rtc, long *offset);
 int rtc_set_offset(struct rtc_device *rtc, long offset);
@@ -220,9 +224,9 @@ static inline bool is_leap_year(unsigned int year)
 }
 
 #ifdef CONFIG_RTC_HCTOSYS_DEVICE
-extern int rtc_hctosys_ret;
+	extern int rtc_hctosys_ret;
 #else
-#define rtc_hctosys_ret -ENODEV
+	#define rtc_hctosys_ret -ENODEV
 #endif
 
 #endif /* _LINUX_RTC_H_ */

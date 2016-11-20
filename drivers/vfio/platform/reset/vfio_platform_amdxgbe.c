@@ -36,7 +36,7 @@
 #define MDIO_AN_INTMASK		0x8001
 
 static unsigned int xmdio_read(void *ioaddr, unsigned int mmd,
-			       unsigned int reg)
+							   unsigned int reg)
 {
 	unsigned int mmd_address, value;
 
@@ -47,7 +47,7 @@ static unsigned int xmdio_read(void *ioaddr, unsigned int mmd,
 }
 
 static void xmdio_write(void *ioaddr, unsigned int mmd,
-			unsigned int reg, unsigned int value)
+						unsigned int reg, unsigned int value)
 {
 	unsigned int mmd_address;
 
@@ -63,17 +63,26 @@ static int vfio_platform_amdxgbe_reset(struct vfio_platform_device *vdev)
 	u32 dma_mr_value, pcs_value, value;
 	unsigned int count;
 
-	if (!xgmac_regs->ioaddr) {
+	if (!xgmac_regs->ioaddr)
+	{
 		xgmac_regs->ioaddr =
 			ioremap_nocache(xgmac_regs->addr, xgmac_regs->size);
+
 		if (!xgmac_regs->ioaddr)
+		{
 			return -ENOMEM;
+		}
 	}
-	if (!xpcs_regs->ioaddr) {
+
+	if (!xpcs_regs->ioaddr)
+	{
 		xpcs_regs->ioaddr =
 			ioremap_nocache(xpcs_regs->addr, xpcs_regs->size);
+
 		if (!xpcs_regs->ioaddr)
+		{
 			return -ENOMEM;
+		}
 	}
 
 	/* reset the PHY through MDIO*/
@@ -82,14 +91,19 @@ static int vfio_platform_amdxgbe_reset(struct vfio_platform_device *vdev)
 	xmdio_write(xpcs_regs->ioaddr, MDIO_MMD_PCS, MDIO_CTRL1, pcs_value);
 
 	count = 50;
-	do {
+
+	do
+	{
 		msleep(20);
 		pcs_value = xmdio_read(xpcs_regs->ioaddr, MDIO_MMD_PCS,
-					MDIO_CTRL1);
-	} while ((pcs_value & MDIO_CTRL1_RESET) && --count);
+							   MDIO_CTRL1);
+	}
+	while ((pcs_value & MDIO_CTRL1_RESET) && --count);
 
 	if (pcs_value & MDIO_CTRL1_RESET)
+	{
 		pr_warn("%s XGBE PHY reset timeout\n", __func__);
+	}
 
 	/* disable auto-negotiation */
 	value = xmdio_read(xpcs_regs->ioaddr, MDIO_MMD_AN, MDIO_CTRL1);
@@ -110,11 +124,16 @@ static int vfio_platform_amdxgbe_reset(struct vfio_platform_device *vdev)
 	usleep_range(10, 15);
 
 	count = 2000;
+
 	while (--count && (ioread32(xgmac_regs->ioaddr + DMA_MR) & 1))
+	{
 		usleep_range(500, 600);
+	}
 
 	if (!count)
+	{
 		pr_warn("%s MAC SW reset failed\n", __func__);
+	}
 
 	return 0;
 }

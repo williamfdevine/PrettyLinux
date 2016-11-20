@@ -103,7 +103,8 @@ MODULE_PARM_DESC(mask, "Set adc mask function.");
 /*
  * ADC sample delay times in uS
  */
-static const int delay_table[] = {
+static const int delay_table[] =
+{
 	21,    /* 1 AC97 Link frames */
 	42,    /* 2                  */
 	84,    /* 4                  */
@@ -147,27 +148,35 @@ static void wm9705_phy_init(struct wm97xx *wm)
 	wm97xx_reg_write(wm, AC97_VIDEO, 0x8000);
 
 	/* touchpanel pressure current*/
-	if (pil == 2) {
+	if (pil == 2)
+	{
 		dig2 |= WM9705_PIL;
 		dev_dbg(wm->dev,
-			"setting pressure measurement current to 400uA.");
-	} else if (pil)
+				"setting pressure measurement current to 400uA.");
+	}
+	else if (pil)
 		dev_dbg(wm->dev,
-			"setting pressure measurement current to 200uA.");
+				"setting pressure measurement current to 200uA.");
+
 	if (!pil)
+	{
 		pressure = 0;
+	}
 
 	/* polling mode sample settling delay */
-	if (delay != 4) {
-		if (delay < 0 || delay > 15) {
+	if (delay != 4)
+	{
+		if (delay < 0 || delay > 15)
+		{
 			dev_dbg(wm->dev, "supplied delay out of range.");
 			delay = 4;
 		}
 	}
+
 	dig1 &= 0xff0f;
 	dig1 |= WM97XX_DELAY(delay);
 	dev_dbg(wm->dev, "setting adc sample delay to %d u Secs.",
-		delay_table[delay]);
+			delay_table[delay]);
 
 	/* WM9705 pdd */
 	dig2 |= (pdd & 0x000f);
@@ -182,13 +191,15 @@ static void wm9705_phy_init(struct wm97xx *wm)
 
 static void wm9705_dig_enable(struct wm97xx *wm, int enable)
 {
-	if (enable) {
+	if (enable)
+	{
 		wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER2,
-				 wm->dig[2] | WM97XX_PRP_DET_DIG);
+						 wm->dig[2] | WM97XX_PRP_DET_DIG);
 		wm97xx_reg_read(wm, AC97_WM97XX_DIGITISER_RD); /* dummy read */
-	} else
+	}
+	else
 		wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER2,
-				 wm->dig[2] & ~WM97XX_PRP_DET_DIG);
+						 wm->dig[2] & ~WM97XX_PRP_DET_DIG);
 }
 
 static void wm9705_aux_prepare(struct wm97xx *wm)
@@ -217,51 +228,71 @@ static int wm9705_poll_sample(struct wm97xx *wm, int adcsel, int *sample)
 	int timeout = 5 * delay;
 	bool wants_pen = adcsel & WM97XX_PEN_DOWN;
 
-	if (wants_pen && !wm->pen_probably_down) {
+	if (wants_pen && !wm->pen_probably_down)
+	{
 		u16 data = wm97xx_reg_read(wm, AC97_WM97XX_DIGITISER_RD);
+
 		if (!(data & WM97XX_PEN_DOWN))
+		{
 			return RC_PENUP;
+		}
+
 		wm->pen_probably_down = 1;
 	}
 
 	/* set up digitiser */
 	if (wm->mach_ops && wm->mach_ops->pre_sample)
+	{
 		wm->mach_ops->pre_sample(adcsel);
+	}
+
 	wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER1, (adcsel & WM97XX_ADCSEL_MASK)
-				| WM97XX_POLL | WM97XX_DELAY(delay));
+					 | WM97XX_POLL | WM97XX_DELAY(delay));
 
 	/* wait 3 AC97 time slots + delay for conversion */
 	poll_delay(delay);
 
 	/* wait for POLL to go low */
 	while ((wm97xx_reg_read(wm, AC97_WM97XX_DIGITISER1) & WM97XX_POLL)
-	       && timeout) {
+		   && timeout)
+	{
 		udelay(AC97_LINK_FRAME);
 		timeout--;
 	}
 
-	if (timeout == 0) {
+	if (timeout == 0)
+	{
 		/* If PDEN is set, we can get a timeout when pen goes up */
 		if (is_pden(wm))
+		{
 			wm->pen_probably_down = 0;
+		}
 		else
+		{
 			dev_dbg(wm->dev, "adc sample timeout");
+		}
+
 		return RC_PENUP;
 	}
 
 	*sample = wm97xx_reg_read(wm, AC97_WM97XX_DIGITISER_RD);
+
 	if (wm->mach_ops && wm->mach_ops->post_sample)
+	{
 		wm->mach_ops->post_sample(adcsel);
+	}
 
 	/* check we have correct sample */
-	if ((*sample ^ adcsel) & WM97XX_ADCSEL_MASK) {
+	if ((*sample ^ adcsel) & WM97XX_ADCSEL_MASK)
+	{
 		dev_dbg(wm->dev, "adc wrong sample, wanted %x got %x",
-			adcsel & WM97XX_ADCSEL_MASK,
-			*sample & WM97XX_ADCSEL_MASK);
+				adcsel & WM97XX_ADCSEL_MASK,
+				*sample & WM97XX_ADCSEL_MASK);
 		return RC_PENUP;
 	}
 
-	if (wants_pen && !(*sample & WM97XX_PEN_DOWN)) {
+	if (wants_pen && !(*sample & WM97XX_PEN_DOWN))
+	{
 		wm->pen_probably_down = 0;
 		return RC_PENUP;
 	}
@@ -277,17 +308,32 @@ static int wm9705_poll_touch(struct wm97xx *wm, struct wm97xx_data *data)
 	int rc;
 
 	rc = wm9705_poll_sample(wm, WM97XX_ADCSEL_X | WM97XX_PEN_DOWN, &data->x);
+
 	if (rc != RC_VALID)
+	{
 		return rc;
+	}
+
 	rc = wm9705_poll_sample(wm, WM97XX_ADCSEL_Y | WM97XX_PEN_DOWN, &data->y);
+
 	if (rc != RC_VALID)
+	{
 		return rc;
-	if (pil) {
+	}
+
+	if (pil)
+	{
 		rc = wm9705_poll_sample(wm, WM97XX_ADCSEL_PRES | WM97XX_PEN_DOWN, &data->p);
+
 		if (rc != RC_VALID)
+		{
 			return rc;
-	} else
+		}
+	}
+	else
+	{
 		data->p = DEFAULT_PRESSURE;
+	}
 
 	return RC_VALID;
 }
@@ -304,25 +350,38 @@ static int wm9705_acc_enable(struct wm97xx *wm, int enable)
 	dig1 = wm->dig[1];
 	dig2 = wm->dig[2];
 
-	if (enable) {
+	if (enable)
+	{
 		/* continuous mode */
 		if (wm->mach_ops->acc_startup &&
-		    (ret = wm->mach_ops->acc_startup(wm)) < 0)
+			(ret = wm->mach_ops->acc_startup(wm)) < 0)
+		{
 			return ret;
+		}
+
 		dig1 &= ~(WM97XX_CM_RATE_MASK | WM97XX_ADCSEL_MASK |
-			  WM97XX_DELAY_MASK | WM97XX_SLT_MASK);
+				  WM97XX_DELAY_MASK | WM97XX_SLT_MASK);
 		dig1 |= WM97XX_CTC | WM97XX_COO | WM97XX_SLEN |
-			WM97XX_DELAY(delay) |
-			WM97XX_SLT(wm->acc_slot) |
-			WM97XX_RATE(wm->acc_rate);
+				WM97XX_DELAY(delay) |
+				WM97XX_SLT(wm->acc_slot) |
+				WM97XX_RATE(wm->acc_rate);
+
 		if (pil)
+		{
 			dig1 |= WM97XX_ADCSEL_PRES;
+		}
+
 		dig2 |= WM9705_PDEN;
-	} else {
+	}
+	else
+	{
 		dig1 &= ~(WM97XX_CTC | WM97XX_COO | WM97XX_SLEN);
 		dig2 &= ~WM9705_PDEN;
+
 		if (wm->mach_ops->acc_shutdown)
+		{
 			wm->mach_ops->acc_shutdown(wm);
+		}
 	}
 
 	wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER1, dig1);
@@ -331,7 +390,8 @@ static int wm9705_acc_enable(struct wm97xx *wm, int enable)
 	return ret;
 }
 
-struct wm97xx_codec_drv wm9705_codec = {
+struct wm97xx_codec_drv wm9705_codec =
+{
 	.id = WM9705_ID2,
 	.name = "wm9705",
 	.poll_sample = wm9705_poll_sample,

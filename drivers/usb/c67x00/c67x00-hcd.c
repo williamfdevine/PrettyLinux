@@ -32,7 +32,8 @@
  * Root Hub Support
  */
 
-static __u8 c67x00_hub_des[] = {
+static __u8 c67x00_hub_des[] =
+{
 	0x09,			/*  __u8  bLength; */
 	USB_DT_HUB,		/*  __u8  bDescriptorType; Hub-descriptor */
 	0x02,			/*  __u8  bNbrPorts; */
@@ -67,9 +68,12 @@ static int c67x00_hub_status_data(struct usb_hcd *hcd, char *buf)
 
 	*buf = 0;
 	status = c67x00_ll_usb_get_status(sie);
+
 	for (i = 0; i < C67X00_PORTS; i++)
 		if (status & PORT_CONNECT_CHANGE(i))
+		{
 			*buf |= (1 << i);
+		}
 
 	/* bit 0 denotes hub change, b1..n port change */
 	*buf <<= 1;
@@ -78,161 +82,187 @@ static int c67x00_hub_status_data(struct usb_hcd *hcd, char *buf)
 }
 
 static int c67x00_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
-			      u16 wIndex, char *buf, u16 wLength)
+							  u16 wIndex, char *buf, u16 wLength)
 {
 	struct c67x00_hcd *c67x00 = hcd_to_c67x00_hcd(hcd);
 	struct c67x00_sie *sie = c67x00->sie;
 	u16 status, usb_status;
 	int len = 0;
-	unsigned int port = wIndex-1;
+	unsigned int port = wIndex - 1;
 	u16 wPortChange, wPortStatus;
 
-	switch (typeReq) {
+	switch (typeReq)
+	{
 
-	case GetHubStatus:
-		*(__le32 *) buf = cpu_to_le32(0);
-		len = 4;		/* hub power */
-		break;
+		case GetHubStatus:
+			*(__le32 *) buf = cpu_to_le32(0);
+			len = 4;		/* hub power */
+			break;
 
-	case GetPortStatus:
-		if (wIndex > C67X00_PORTS)
-			return -EPIPE;
+		case GetPortStatus:
+			if (wIndex > C67X00_PORTS)
+			{
+				return -EPIPE;
+			}
 
-		status = c67x00_ll_usb_get_status(sie);
-		usb_status = c67x00_ll_get_usb_ctl(sie);
+			status = c67x00_ll_usb_get_status(sie);
+			usb_status = c67x00_ll_get_usb_ctl(sie);
 
-		wPortChange = 0;
-		if (status & PORT_CONNECT_CHANGE(port))
-			wPortChange |= USB_PORT_STAT_C_CONNECTION;
+			wPortChange = 0;
 
-		wPortStatus = USB_PORT_STAT_POWER;
-		if (!(status & PORT_SE0_STATUS(port)))
-			wPortStatus |= USB_PORT_STAT_CONNECTION;
-		if (usb_status & LOW_SPEED_PORT(port)) {
-			wPortStatus |= USB_PORT_STAT_LOW_SPEED;
-			c67x00->low_speed_ports |= (1 << port);
-		} else
-			c67x00->low_speed_ports &= ~(1 << port);
+			if (status & PORT_CONNECT_CHANGE(port))
+			{
+				wPortChange |= USB_PORT_STAT_C_CONNECTION;
+			}
 
-		if (usb_status & SOF_EOP_EN(port))
-			wPortStatus |= USB_PORT_STAT_ENABLE;
+			wPortStatus = USB_PORT_STAT_POWER;
 
-		*(__le16 *) buf = cpu_to_le16(wPortStatus);
-		*(__le16 *) (buf + 2) = cpu_to_le16(wPortChange);
-		len = 4;
-		break;
+			if (!(status & PORT_SE0_STATUS(port)))
+			{
+				wPortStatus |= USB_PORT_STAT_CONNECTION;
+			}
 
-	case SetHubFeature:	/* We don't implement these */
-	case ClearHubFeature:
-		switch (wValue) {
-		case C_HUB_OVER_CURRENT:
-		case C_HUB_LOCAL_POWER:
-			len = 0;
+			if (usb_status & LOW_SPEED_PORT(port))
+			{
+				wPortStatus |= USB_PORT_STAT_LOW_SPEED;
+				c67x00->low_speed_ports |= (1 << port);
+			}
+			else
+			{
+				c67x00->low_speed_ports &= ~(1 << port);
+			}
+
+			if (usb_status & SOF_EOP_EN(port))
+			{
+				wPortStatus |= USB_PORT_STAT_ENABLE;
+			}
+
+			*(__le16 *) buf = cpu_to_le16(wPortStatus);
+			*(__le16 *) (buf + 2) = cpu_to_le16(wPortChange);
+			len = 4;
+			break;
+
+		case SetHubFeature:	/* We don't implement these */
+		case ClearHubFeature:
+			switch (wValue)
+			{
+				case C_HUB_OVER_CURRENT:
+				case C_HUB_LOCAL_POWER:
+					len = 0;
+					break;
+
+				default:
+					return -EPIPE;
+			}
+
+			break;
+
+		case SetPortFeature:
+			if (wIndex > C67X00_PORTS)
+			{
+				return -EPIPE;
+			}
+
+			switch (wValue)
+			{
+				case USB_PORT_FEAT_SUSPEND:
+					dev_dbg(c67x00_hcd_dev(c67x00),
+							"SetPortFeature %d (SUSPEND)\n", port);
+					len = 0;
+					break;
+
+				case USB_PORT_FEAT_RESET:
+					c67x00_hub_reset_host_port(sie, port);
+					len = 0;
+					break;
+
+				case USB_PORT_FEAT_POWER:
+					/* Power always enabled */
+					len = 0;
+					break;
+
+				default:
+					dev_dbg(c67x00_hcd_dev(c67x00),
+							"%s: SetPortFeature %d (0x%04x) Error!\n",
+							__func__, port, wValue);
+					return -EPIPE;
+			}
+
+			break;
+
+		case ClearPortFeature:
+			if (wIndex > C67X00_PORTS)
+			{
+				return -EPIPE;
+			}
+
+			switch (wValue)
+			{
+				case USB_PORT_FEAT_ENABLE:
+					/* Reset the port so that the c67x00 also notices the
+					 * disconnect */
+					c67x00_hub_reset_host_port(sie, port);
+					len = 0;
+					break;
+
+				case USB_PORT_FEAT_C_ENABLE:
+					dev_dbg(c67x00_hcd_dev(c67x00),
+							"ClearPortFeature (%d): C_ENABLE\n", port);
+					len = 0;
+					break;
+
+				case USB_PORT_FEAT_SUSPEND:
+					dev_dbg(c67x00_hcd_dev(c67x00),
+							"ClearPortFeature (%d): SUSPEND\n", port);
+					len = 0;
+					break;
+
+				case USB_PORT_FEAT_C_SUSPEND:
+					dev_dbg(c67x00_hcd_dev(c67x00),
+							"ClearPortFeature (%d): C_SUSPEND\n", port);
+					len = 0;
+					break;
+
+				case USB_PORT_FEAT_POWER:
+					dev_dbg(c67x00_hcd_dev(c67x00),
+							"ClearPortFeature (%d): POWER\n", port);
+					return -EPIPE;
+
+				case USB_PORT_FEAT_C_CONNECTION:
+					c67x00_ll_usb_clear_status(sie,
+											   PORT_CONNECT_CHANGE(port));
+					len = 0;
+					break;
+
+				case USB_PORT_FEAT_C_OVER_CURRENT:
+					dev_dbg(c67x00_hcd_dev(c67x00),
+							"ClearPortFeature (%d): OVER_CURRENT\n", port);
+					len = 0;
+					break;
+
+				case USB_PORT_FEAT_C_RESET:
+					dev_dbg(c67x00_hcd_dev(c67x00),
+							"ClearPortFeature (%d): C_RESET\n", port);
+					len = 0;
+					break;
+
+				default:
+					dev_dbg(c67x00_hcd_dev(c67x00),
+							"%s: ClearPortFeature %d (0x%04x) Error!\n",
+							__func__, port, wValue);
+					return -EPIPE;
+			}
+
+			break;
+
+		case GetHubDescriptor:
+			len = min_t(unsigned int, sizeof(c67x00_hub_des), wLength);
+			memcpy(buf, c67x00_hub_des, len);
 			break;
 
 		default:
+			dev_dbg(c67x00_hcd_dev(c67x00), "%s: unknown\n", __func__);
 			return -EPIPE;
-		}
-		break;
-
-	case SetPortFeature:
-		if (wIndex > C67X00_PORTS)
-			return -EPIPE;
-
-		switch (wValue) {
-		case USB_PORT_FEAT_SUSPEND:
-			dev_dbg(c67x00_hcd_dev(c67x00),
-				"SetPortFeature %d (SUSPEND)\n", port);
-			len = 0;
-			break;
-
-		case USB_PORT_FEAT_RESET:
-			c67x00_hub_reset_host_port(sie, port);
-			len = 0;
-			break;
-
-		case USB_PORT_FEAT_POWER:
-			/* Power always enabled */
-			len = 0;
-			break;
-
-		default:
-			dev_dbg(c67x00_hcd_dev(c67x00),
-				"%s: SetPortFeature %d (0x%04x) Error!\n",
-				__func__, port, wValue);
-			return -EPIPE;
-		}
-		break;
-
-	case ClearPortFeature:
-		if (wIndex > C67X00_PORTS)
-			return -EPIPE;
-
-		switch (wValue) {
-		case USB_PORT_FEAT_ENABLE:
-			/* Reset the port so that the c67x00 also notices the
-			 * disconnect */
-			c67x00_hub_reset_host_port(sie, port);
-			len = 0;
-			break;
-
-		case USB_PORT_FEAT_C_ENABLE:
-			dev_dbg(c67x00_hcd_dev(c67x00),
-				"ClearPortFeature (%d): C_ENABLE\n", port);
-			len = 0;
-			break;
-
-		case USB_PORT_FEAT_SUSPEND:
-			dev_dbg(c67x00_hcd_dev(c67x00),
-				"ClearPortFeature (%d): SUSPEND\n", port);
-			len = 0;
-			break;
-
-		case USB_PORT_FEAT_C_SUSPEND:
-			dev_dbg(c67x00_hcd_dev(c67x00),
-				"ClearPortFeature (%d): C_SUSPEND\n", port);
-			len = 0;
-			break;
-
-		case USB_PORT_FEAT_POWER:
-			dev_dbg(c67x00_hcd_dev(c67x00),
-				"ClearPortFeature (%d): POWER\n", port);
-			return -EPIPE;
-
-		case USB_PORT_FEAT_C_CONNECTION:
-			c67x00_ll_usb_clear_status(sie,
-						   PORT_CONNECT_CHANGE(port));
-			len = 0;
-			break;
-
-		case USB_PORT_FEAT_C_OVER_CURRENT:
-			dev_dbg(c67x00_hcd_dev(c67x00),
-				"ClearPortFeature (%d): OVER_CURRENT\n", port);
-			len = 0;
-			break;
-
-		case USB_PORT_FEAT_C_RESET:
-			dev_dbg(c67x00_hcd_dev(c67x00),
-				"ClearPortFeature (%d): C_RESET\n", port);
-			len = 0;
-			break;
-
-		default:
-			dev_dbg(c67x00_hcd_dev(c67x00),
-				"%s: ClearPortFeature %d (0x%04x) Error!\n",
-				__func__, port, wValue);
-			return -EPIPE;
-		}
-		break;
-
-	case GetHubDescriptor:
-		len = min_t(unsigned int, sizeof(c67x00_hub_des), wLength);
-		memcpy(buf, c67x00_hub_des, len);
-		break;
-
-	default:
-		dev_dbg(c67x00_hcd_dev(c67x00), "%s: unknown\n", __func__);
-		return -EPIPE;
 	}
 
 	return 0;
@@ -253,22 +283,30 @@ static void c67x00_hcd_irq(struct c67x00_sie *sie, u16 int_status, u16 msg)
 	struct usb_hcd *hcd = c67x00_hcd_to_hcd(c67x00);
 
 	/* Handle sie message flags */
-	if (msg) {
+	if (msg)
+	{
 		if (msg & HUSB_TDListDone)
+		{
 			c67x00_sched_kick(c67x00);
+		}
 		else
 			dev_warn(c67x00_hcd_dev(c67x00),
-				 "Unknown SIE msg flag(s): 0x%04x\n", msg);
+					 "Unknown SIE msg flag(s): 0x%04x\n", msg);
 	}
 
 	if (unlikely(hcd->state == HC_STATE_HALT))
+	{
 		return;
+	}
 
 	if (!HCD_HW_ACCESSIBLE(hcd))
+	{
 		return;
+	}
 
 	/* Handle Start of frame events */
-	if (int_status & SOFEOP_FLG(sie->sie_num)) {
+	if (int_status & SOFEOP_FLG(sie->sie_num))
+	{
 		c67x00_ll_usb_clear_status(sie, SOF_EOP_IRQ_FLG);
 		c67x00_sched_kick(c67x00);
 	}
@@ -305,7 +343,8 @@ static int c67x00_hcd_get_frame(struct usb_hcd *hcd)
 	return temp_val ? (temp_val - 1) : HOST_FRAME_MASK;
 }
 
-static struct hc_driver c67x00_hc_driver = {
+static struct hc_driver c67x00_hc_driver =
+{
 	.description	= "c67x00-hcd",
 	.product_desc	= "Cypress C67X00 Host Controller",
 	.hcd_priv_size	= sizeof(struct c67x00_hcd),
@@ -348,13 +387,18 @@ int c67x00_hcd_probe(struct c67x00_sie *sie)
 	int retval;
 
 	if (usb_disabled())
+	{
 		return -ENODEV;
+	}
 
 	hcd = usb_create_hcd(&c67x00_hc_driver, sie_dev(sie), "c67x00_sie");
-	if (!hcd) {
+
+	if (!hcd)
+	{
 		retval = -ENOMEM;
 		goto err0;
 	}
+
 	c67x00 = hcd_to_c67x00_hcd(hcd);
 
 	spin_lock_init(&c67x00->lock);
@@ -374,13 +418,18 @@ int c67x00_hcd_probe(struct c67x00_sie *sie)
 
 	init_completion(&c67x00->endpoint_disable);
 	retval = c67x00_sched_start_scheduler(c67x00);
+
 	if (retval)
+	{
 		goto err1;
+	}
 
 	retval = usb_add_hcd(hcd, 0, 0);
-	if (retval) {
+
+	if (retval)
+	{
 		dev_dbg(sie_dev(sie), "%s: usb_add_hcd returned %d\n",
-			__func__, retval);
+				__func__, retval);
 		goto err2;
 	}
 
@@ -393,11 +442,11 @@ int c67x00_hcd_probe(struct c67x00_sie *sie)
 
 	return retval;
 
- err2:
+err2:
 	c67x00_sched_stop_scheduler(c67x00);
- err1:
+err1:
 	usb_put_hcd(hcd);
- err0:
+err0:
 	return retval;
 }
 

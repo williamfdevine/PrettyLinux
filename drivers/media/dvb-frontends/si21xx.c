@@ -111,42 +111,50 @@ static int debug;
 			printk(KERN_DEBUG "si21xx: " args); \
 	} while (0)
 
-enum {
+enum
+{
 	ACTIVE_HIGH,
 	ACTIVE_LOW
 };
-enum {
+enum
+{
 	BYTE_WIDE,
 	BIT_WIDE
 };
-enum {
+enum
+{
 	CLK_GAPPED_MODE,
 	CLK_CONTINUOUS_MODE
 };
-enum {
+enum
+{
 	RISING_EDGE,
 	FALLING_EDGE
 };
-enum {
+enum
+{
 	MSB_FIRST,
 	LSB_FIRST
 };
-enum {
+enum
+{
 	SERIAL,
 	PARALLEL
 };
 
-struct si21xx_state {
+struct si21xx_state
+{
 	struct i2c_adapter *i2c;
 	const struct si21xx_config *config;
 	struct dvb_frontend frontend;
-	u8 initialised:1;
+	u8 initialised: 1;
 	int errmode;
 	int fs;			/*Sampling rate of the ADC in MHz*/
 };
 
 /*	register default initialization */
-static u8 serit_sp1511lhb_inittab[] = {
+static u8 serit_sp1511lhb_inittab[] =
+{
 	0x01, 0x28,	/* set i2c_inc_disable */
 	0x20, 0x03,
 	0x27, 0x20,
@@ -225,19 +233,22 @@ static u8 serit_sp1511lhb_inittab[] = {
 
 /*	low level read/writes */
 static int si21_writeregs(struct si21xx_state *state, u8 reg1,
-							u8 *data, int len)
+						  u8 *data, int len)
 {
 	int ret;
 	u8 buf[60];/* = { reg1, data };*/
-	struct i2c_msg msg = {
-				.addr = state->config->demod_address,
-				.flags = 0,
-				.buf = buf,
-				.len = len + 1
+	struct i2c_msg msg =
+	{
+		.addr = state->config->demod_address,
+		.flags = 0,
+		.buf = buf,
+		.len = len + 1
 	};
 
 	if (len > sizeof(buf) - 1)
+	{
 		return -EINVAL;
+	}
 
 	msg.buf[0] =  reg1;
 	memcpy(msg.buf + 1, data, len);
@@ -246,7 +257,7 @@ static int si21_writeregs(struct si21xx_state *state, u8 reg1,
 
 	if (ret != 1)
 		dprintk("%s: writereg error (reg1 == 0x%02x, data == 0x%02x, "
-			"ret == %i)\n", __func__, reg1, data[0], ret);
+				"ret == %i)\n", __func__, reg1, data[0], ret);
 
 	return (ret != 1) ? -EREMOTEIO : 0;
 }
@@ -255,18 +266,19 @@ static int si21_writereg(struct si21xx_state *state, u8 reg, u8 data)
 {
 	int ret;
 	u8 buf[] = { reg, data };
-	struct i2c_msg msg = {
-				.addr = state->config->demod_address,
-				.flags = 0,
-				.buf = buf,
-				.len = 2
+	struct i2c_msg msg =
+	{
+		.addr = state->config->demod_address,
+		.flags = 0,
+		.buf = buf,
+		.len = 2
 	};
 
 	ret = i2c_transfer(state->i2c, &msg, 1);
 
 	if (ret != 1)
 		dprintk("%s: writereg error (reg == 0x%02x, data == 0x%02x, "
-			"ret == %i)\n", __func__, reg, data, ret);
+				"ret == %i)\n", __func__, reg, data, ret);
 
 	return (ret != 1) ? -EREMOTEIO : 0;
 }
@@ -276,7 +288,9 @@ static int si21_write(struct dvb_frontend *fe, const u8 buf[], int len)
 	struct si21xx_state *state = fe->demodulator_priv;
 
 	if (len != 2)
+	{
 		return -EINVAL;
+	}
 
 	return si21_writereg(state, buf[0], buf[1]);
 }
@@ -286,7 +300,8 @@ static u8 si21_readreg(struct si21xx_state *state, u8 reg)
 	int ret;
 	u8 b0[] = { reg };
 	u8 b1[] = { 0 };
-	struct i2c_msg msg[] = {
+	struct i2c_msg msg[] =
+	{
 		{
 			.addr = state->config->demod_address,
 			.flags = 0,
@@ -304,7 +319,7 @@ static u8 si21_readreg(struct si21xx_state *state, u8 reg)
 
 	if (ret != 2)
 		dprintk("%s: readreg error (reg == 0x%02x, ret == %i)\n",
-			__func__, reg, ret);
+				__func__, reg, ret);
 
 	return b1[0];
 }
@@ -312,7 +327,8 @@ static u8 si21_readreg(struct si21xx_state *state, u8 reg)
 static int si21_readregs(struct si21xx_state *state, u8 reg1, u8 *b, u8 len)
 {
 	int ret;
-	struct i2c_msg msg[] = {
+	struct i2c_msg msg[] =
+	{
 		{
 			.addr = state->config->demod_address,
 			.flags = 0,
@@ -329,7 +345,9 @@ static int si21_readregs(struct si21xx_state *state, u8 reg1, u8 *b, u8 len)
 	ret = i2c_transfer(state->i2c, msg, 2);
 
 	if (ret != 2)
+	{
 		dprintk("%s: readreg error (ret == %i)\n", __func__, ret);
+	}
 
 	return ret == 2 ? 0 : -1;
 }
@@ -340,11 +358,14 @@ static int si21xx_wait_diseqc_idle(struct si21xx_state *state, int timeout)
 
 	dprintk("%s\n", __func__);
 
-	while ((si21_readreg(state, LNB_CTRL_REG_1) & 0x8) == 8) {
-		if (jiffies - start > timeout) {
+	while ((si21_readreg(state, LNB_CTRL_REG_1) & 0x8) == 8)
+	{
+		if (jiffies - start > timeout)
+		{
 			dprintk("%s: timeout!!\n", __func__);
 			return -ETIMEDOUT;
 		}
+
 		msleep(10);
 	}
 
@@ -361,19 +382,25 @@ static int si21xx_set_symbolrate(struct dvb_frontend *fe, u32 srate)
 	dprintk("%s : srate = %i\n", __func__ , srate);
 
 	if ((srate < 1000000) || (srate > 45000000))
+	{
 		return -EINVAL;
+	}
 
 	data_rate = srate;
 	sym_rate = 0;
 
-	for (i = 0; i < 4; ++i) {
+	for (i = 0; i < 4; ++i)
+	{
 		sym_rate /= 100;
 		sym_rate = sym_rate + ((data_rate % 100) * 0x800000) /
-								state->fs;
+				   state->fs;
 		data_rate /= 100;
 	}
+
 	for (i = 0; i < 3; ++i)
+	{
 		sym_rate_bytes[i] = (u8)((sym_rate >> (i * 8)) & 0xff);
+	}
 
 	si21_writeregs(state, SYM_RATE_REG_L, sym_rate_bytes, 0x03);
 
@@ -381,7 +408,7 @@ static int si21xx_set_symbolrate(struct dvb_frontend *fe, u32 srate)
 }
 
 static int si21xx_send_diseqc_msg(struct dvb_frontend *fe,
-					struct dvb_diseqc_master_cmd *m)
+								  struct dvb_diseqc_master_cmd *m)
 {
 	struct si21xx_state *state = fe->demodulator_priv;
 	u8 lnb_status;
@@ -410,7 +437,7 @@ static int si21xx_send_diseqc_msg(struct dvb_frontend *fe,
 }
 
 static int si21xx_send_diseqc_burst(struct dvb_frontend *fe,
-				    enum fe_sec_mini_cmd burst)
+									enum fe_sec_mini_cmd burst)
 {
 	struct si21xx_state *state = fe->demodulator_priv;
 	u8 val;
@@ -418,18 +445,27 @@ static int si21xx_send_diseqc_burst(struct dvb_frontend *fe,
 	dprintk("%s\n", __func__);
 
 	if (si21xx_wait_diseqc_idle(state, 100) < 0)
+	{
 		return -ETIMEDOUT;
+	}
 
 	val = (0x80 | si21_readreg(state, 0xc1));
+
 	if (si21_writereg(state, LNB_CTRL_REG_1,
-			burst == SEC_MINI_A ? (val & ~0x10) : (val | 0x10)))
+					  burst == SEC_MINI_A ? (val & ~0x10) : (val | 0x10)))
+	{
 		return -EREMOTEIO;
+	}
 
 	if (si21xx_wait_diseqc_idle(state, 100) < 0)
+	{
 		return -ETIMEDOUT;
+	}
 
 	if (si21_writereg(state, LNB_CTRL_REG_1, val))
+	{
 		return -EREMOTEIO;
+	}
 
 	return 0;
 }
@@ -442,15 +478,16 @@ static int si21xx_set_tone(struct dvb_frontend *fe, enum fe_sec_tone_mode tone)
 	dprintk("%s\n", __func__);
 	val = (0x80 | si21_readreg(state, LNB_CTRL_REG_1));
 
-	switch (tone) {
-	case SEC_TONE_ON:
-		return si21_writereg(state, LNB_CTRL_REG_1, val | 0x20);
+	switch (tone)
+	{
+		case SEC_TONE_ON:
+			return si21_writereg(state, LNB_CTRL_REG_1, val | 0x20);
 
-	case SEC_TONE_OFF:
-		return si21_writereg(state, LNB_CTRL_REG_1, (val & ~0x20));
+		case SEC_TONE_OFF:
+			return si21_writereg(state, LNB_CTRL_REG_1, (val & ~0x20));
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 }
 
@@ -460,21 +497,24 @@ static int si21xx_set_voltage(struct dvb_frontend *fe, enum fe_sec_voltage volt)
 
 	u8 val;
 	dprintk("%s: %s\n", __func__,
-		volt == SEC_VOLTAGE_13 ? "SEC_VOLTAGE_13" :
-		volt == SEC_VOLTAGE_18 ? "SEC_VOLTAGE_18" : "??");
+			volt == SEC_VOLTAGE_13 ? "SEC_VOLTAGE_13" :
+			volt == SEC_VOLTAGE_18 ? "SEC_VOLTAGE_18" : "??");
 
 
 	val = (0x80 | si21_readreg(state, LNB_CTRL_REG_1));
 
-	switch (volt) {
-	case SEC_VOLTAGE_18:
-		return si21_writereg(state, LNB_CTRL_REG_1, val | 0x40);
-		break;
-	case SEC_VOLTAGE_13:
-		return si21_writereg(state, LNB_CTRL_REG_1, (val & ~0x40));
-		break;
-	default:
-		return -EINVAL;
+	switch (volt)
+	{
+		case SEC_VOLTAGE_18:
+			return si21_writereg(state, LNB_CTRL_REG_1, val | 0x40);
+			break;
+
+		case SEC_VOLTAGE_13:
+			return si21_writereg(state, LNB_CTRL_REG_1, (val & ~0x40));
+			break;
+
+		default:
+			return -EINVAL;
 	}
 }
 
@@ -489,11 +529,16 @@ static int si21xx_init(struct dvb_frontend *fe)
 
 	dprintk("%s\n", __func__);
 
-	for (i = 0; ; i += 2) {
+	for (i = 0; ; i += 2)
+	{
 		reg1 = serit_sp1511lhb_inittab[i];
-		val = serit_sp1511lhb_inittab[i+1];
+		val = serit_sp1511lhb_inittab[i + 1];
+
 		if (reg1 == 0xff && val == 0xff)
+		{
 			break;
+		}
+
 		si21_writeregs(state, reg1, &val, 1);
 	}
 
@@ -529,8 +574,11 @@ static int si21xx_init(struct dvb_frontend *fe)
 		+ (pclk_smooth << 5);
 	*/
 	status |= si21_writeregs(state, TS_CTRL_REG_1, reg2, 0x02);
+
 	if (status != 0)
+	{
 		dprintk(" %s : TS Set Error\n", __func__);
+	}
 
 	return 0;
 
@@ -549,7 +597,9 @@ static int si21_read_status(struct dvb_frontend *fe, enum fe_status *status)
 	reg_read = 0;
 
 	for (i = 0; i < 7; ++i)
+	{
 		reg_read |= ((regs_read[0] >> i) & 0x01) << (6 - i);
+	}
 
 	lock = ((reg_read & 0x7f) | (regs_read[1] & 0x80));
 
@@ -557,19 +607,29 @@ static int si21_read_status(struct dvb_frontend *fe, enum fe_status *status)
 	*status = 0;
 
 	if (signal > 10)
+	{
 		*status |= FE_HAS_SIGNAL;
+	}
 
 	if (lock & 0x2)
+	{
 		*status |= FE_HAS_CARRIER;
+	}
 
 	if (lock & 0x20)
+	{
 		*status |= FE_HAS_VITERBI;
+	}
 
 	if (lock & 0x40)
+	{
 		*status |= FE_HAS_SYNC;
+	}
 
 	if ((lock & 0x7b) == 0x7b)
+	{
 		*status |= FE_HAS_LOCK;
+	}
 
 	return 0;
 }
@@ -582,11 +642,11 @@ static int si21_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
 						(u8*)agclevel, 0x01);*/
 
 	u16 signal = (3 * si21_readreg(state, 0x27) *
-					si21_readreg(state, 0x28));
+				  si21_readreg(state, 0x28));
 
 	dprintk("%s : AGCPWR: 0x%02x%02x, signal=0x%04x\n", __func__,
-		si21_readreg(state, 0x27),
-		si21_readreg(state, 0x28), (int) signal);
+			si21_readreg(state, 0x27),
+			si21_readreg(state, 0x28), (int) signal);
 
 	signal  <<= 4;
 	*strength = signal;
@@ -601,10 +661,12 @@ static int si21_read_ber(struct dvb_frontend *fe, u32 *ber)
 	dprintk("%s\n", __func__);
 
 	if (state->errmode != STATUS_BER)
+	{
 		return 0;
+	}
 
 	*ber = (si21_readreg(state, 0x1d) << 8) |
-				si21_readreg(state, 0x1e);
+		   si21_readreg(state, 0x1e);
 
 	return 0;
 }
@@ -614,7 +676,7 @@ static int si21_read_snr(struct dvb_frontend *fe, u16 *snr)
 	struct si21xx_state *state = fe->demodulator_priv;
 
 	s32 xsnr = 0xffff - ((si21_readreg(state, 0x24) << 8) |
-					si21_readreg(state, 0x25));
+						 si21_readreg(state, 0x25));
 	xsnr = 3 * (xsnr - 0xa100);
 	*snr = (xsnr > 0xffff) ? 0xffff : (xsnr < 0) ? 0 : xsnr;
 
@@ -630,7 +692,9 @@ static int si21_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
 	dprintk("%s\n", __func__);
 
 	if (state->errmode != STATUS_UCBLOCKS)
+	{
 		*ucblocks = 0;
+	}
 	else
 		*ucblocks = (si21_readreg(state, 0x1d) << 8) |
 					si21_readreg(state, 0x1e);
@@ -641,13 +705,14 @@ static int si21_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
 /*	initiates a channel acquisition sequence
 	using the specified symbol rate and code rate */
 static int si21xx_setacquire(struct dvb_frontend *fe, int symbrate,
-			     enum fe_code_rate crate)
+							 enum fe_code_rate crate)
 {
 
 	struct si21xx_state *state = fe->demodulator_priv;
-	u8 coderates[] = {
-				0x0, 0x01, 0x02, 0x04, 0x00,
-				0x8, 0x10, 0x20, 0x00, 0x3f
+	u8 coderates[] =
+	{
+		0x0, 0x01, 0x02, 0x04, 0x00,
+		0x8, 0x10, 0x20, 0x00, 0x3f
 	};
 
 	u8 coderate_ptr;
@@ -664,8 +729,8 @@ static int si21xx_setacquire(struct dvb_frontend *fe, int symbrate,
 
 	/* write code rates to use in the Viterbi search */
 	status |= si21_writeregs(state,
-				VIT_SRCH_CTRL_REG_1,
-				&coderate_ptr, 0x01);
+							 VIT_SRCH_CTRL_REG_1,
+							 &coderate_ptr, 0x01);
 
 	/* clear acq_start bit */
 	status |= si21_readregs(state, ACQ_CTRL_REG_2, &reg, 0x01);
@@ -678,17 +743,17 @@ static int si21xx_setacquire(struct dvb_frontend *fe, int symbrate,
 	regs[2] = 0xCB;
 
 	status |= si21_writeregs(state,
-				TWO_DB_BNDWDTH_THRSHLD_REG,
-				&regs[0], 0x03);
+							 TWO_DB_BNDWDTH_THRSHLD_REG,
+							 &regs[0], 0x03);
 	reg = 0x56;
 	status |= si21_writeregs(state,
-				LSA_CTRL_REG_1, &reg, 1);
+							 LSA_CTRL_REG_1, &reg, 1);
 	reg = 0x05;
 	status |= si21_writeregs(state,
-				BLIND_SCAN_CTRL_REG, &reg, 1);
+							 BLIND_SCAN_CTRL_REG, &reg, 1);
 	/* start automatic acq */
 	status |= si21_writeregs(state,
-				ACQ_CTRL_REG_2, &start_acq, 0x01);
+							 ACQ_CTRL_REG_2, &start_acq, 0x01);
 
 	return status;
 }
@@ -722,8 +787,8 @@ static int si21xx_set_frontend(struct dvb_frontend *fe)
 
 	/* allowable sample rates for ADC in MHz */
 	int afs[ALLOWABLE_FS_COUNT] = { 200, 192, 193, 194, 195,
-					196, 204, 205, 206, 207
-	};
+									196, 204, 205, 206, 207
+								  };
 	/* in MHz */
 	int if_limit_high;
 	int if_limit_low;
@@ -736,14 +801,17 @@ static int si21xx_set_frontend(struct dvb_frontend *fe)
 
 	dprintk("%s : FE_SET_FRONTEND\n", __func__);
 
-	if (c->delivery_system != SYS_DVBS) {
-			dprintk("%s: unsupported delivery system selected (%d)\n",
+	if (c->delivery_system != SYS_DVBS)
+	{
+		dprintk("%s: unsupported delivery system selected (%d)\n",
 				__func__, c->delivery_system);
-			return -EOPNOTSUPP;
+		return -EOPNOTSUPP;
 	}
 
 	for (i = 0; i < ALLOWABLE_FS_COUNT; ++i)
+	{
 		inband_interferer_div2[i] = inband_interferer_div4[i] = false;
+	}
 
 	if_limit_high = -700000;
 	if_limit_low = -100000;
@@ -757,63 +825,79 @@ static int si21xx_set_frontend(struct dvb_frontend *fe)
 	status = PASS;
 
 	band_low = (rf_freq - lnb_lo) - ((lnb_uncertanity * 200)
-					+ (data_rate * 135)) / 200;
+									 + (data_rate * 135)) / 200;
 
 	band_high = (rf_freq - lnb_lo) + ((lnb_uncertanity * 200)
-					+ (data_rate * 135)) / 200;
+									  + (data_rate * 135)) / 200;
 
 
 	icoarse_tune_freq = 100000 *
-				(((rf_freq - lnb_lo) -
-					(if_limit_low + if_limit_high) / 2)
-								/ 100000);
+						(((rf_freq - lnb_lo) -
+						  (if_limit_low + if_limit_high) / 2)
+						 / 100000);
 
 	ifine_tune_freq = (rf_freq - lnb_lo) - icoarse_tune_freq ;
 
-	for (i = 0; i < ALLOWABLE_FS_COUNT; ++i) {
+	for (i = 0; i < ALLOWABLE_FS_COUNT; ++i)
+	{
 		x1 = ((rf_freq - lnb_lo) / (afs[i] * 2500)) *
-					(afs[i] * 2500) + afs[i] * 2500;
+			 (afs[i] * 2500) + afs[i] * 2500;
 
 		x2 = ((rf_freq - lnb_lo) / (afs[i] * 2500)) *
-							(afs[i] * 2500);
+			 (afs[i] * 2500);
 
 		if (((band_low < x1) && (x1 < band_high)) ||
-					((band_low < x2) && (x2 < band_high)))
-					inband_interferer_div4[i] = true;
+			((band_low < x2) && (x2 < band_high)))
+		{
+			inband_interferer_div4[i] = true;
+		}
 
 	}
 
-	for (i = 0; i < ALLOWABLE_FS_COUNT; ++i) {
+	for (i = 0; i < ALLOWABLE_FS_COUNT; ++i)
+	{
 		x1 = ((rf_freq - lnb_lo) / (afs[i] * 5000)) *
-					(afs[i] * 5000) + afs[i] * 5000;
+			 (afs[i] * 5000) + afs[i] * 5000;
 
 		x2 = ((rf_freq - lnb_lo) / (afs[i] * 5000)) *
-					(afs[i] * 5000);
+			 (afs[i] * 5000);
 
 		if (((band_low < x1) && (x1 < band_high)) ||
-					((band_low < x2) && (x2 < band_high)))
-					inband_interferer_div2[i] = true;
+			((band_low < x2) && (x2 < band_high)))
+		{
+			inband_interferer_div2[i] = true;
+		}
 	}
 
 	inband_interferer_ind = true;
-	for (i = 0; i < ALLOWABLE_FS_COUNT; ++i) {
-		if (inband_interferer_div2[i] || inband_interferer_div4[i]) {
+
+	for (i = 0; i < ALLOWABLE_FS_COUNT; ++i)
+	{
+		if (inband_interferer_div2[i] || inband_interferer_div4[i])
+		{
 			inband_interferer_ind = false;
 			break;
 		}
 	}
 
-	if (inband_interferer_ind) {
-		for (i = 0; i < ALLOWABLE_FS_COUNT; ++i) {
-			if (!inband_interferer_div2[i]) {
+	if (inband_interferer_ind)
+	{
+		for (i = 0; i < ALLOWABLE_FS_COUNT; ++i)
+		{
+			if (!inband_interferer_div2[i])
+			{
 				sample_rate = (u8) afs[i];
 				break;
 			}
 		}
-	} else {
-		for (i = 0; i < ALLOWABLE_FS_COUNT; ++i) {
+	}
+	else
+	{
+		for (i = 0; i < ALLOWABLE_FS_COUNT; ++i)
+		{
 			if ((inband_interferer_div2[i] ||
-			     !inband_interferer_div4[i])) {
+				 !inband_interferer_div4[i]))
+			{
 				sample_rate = (u8) afs[i];
 				break;
 			}
@@ -822,10 +906,12 @@ static int si21xx_set_frontend(struct dvb_frontend *fe)
 	}
 
 	if (sample_rate > 207 || sample_rate < 192)
+	{
 		sample_rate = 200;
+	}
 
 	fine_tune_freq = ((0x4000 * (ifine_tune_freq / 10)) /
-					((sample_rate) * 1000));
+					  ((sample_rate) * 1000));
 
 	coarse_tune_freq = (u8)(icoarse_tune_freq / 100000);
 
@@ -866,7 +952,8 @@ static void si21xx_release(struct dvb_frontend *fe)
 	kfree(state);
 }
 
-static struct dvb_frontend_ops si21xx_ops = {
+static struct dvb_frontend_ops si21xx_ops =
+{
 	.delsys = { SYS_DVBS },
 	.info = {
 		.name			= "SL SI21XX DVB-S",
@@ -901,7 +988,7 @@ static struct dvb_frontend_ops si21xx_ops = {
 };
 
 struct dvb_frontend *si21xx_attach(const struct si21xx_config *config,
-						struct i2c_adapter *i2c)
+								   struct i2c_adapter *i2c)
 {
 	struct si21xx_state *state = NULL;
 	int id;
@@ -910,8 +997,11 @@ struct dvb_frontend *si21xx_attach(const struct si21xx_config *config,
 
 	/* allocate memory for the internal state */
 	state = kzalloc(sizeof(struct si21xx_state), GFP_KERNEL);
+
 	if (state == NULL)
+	{
 		goto error;
+	}
 
 	/* setup the state */
 	state->config = config;
@@ -932,11 +1022,13 @@ struct dvb_frontend *si21xx_attach(const struct si21xx_config *config,
 		0x04 for SI2110
 	*/
 	if (id != 0x04 && id != 0x14)
+	{
 		goto error;
+	}
 
 	/* create dvb_frontend */
 	memcpy(&state->frontend.ops, &si21xx_ops,
-					sizeof(struct dvb_frontend_ops));
+		   sizeof(struct dvb_frontend_ops));
 	state->frontend.demodulator_priv = state;
 	return &state->frontend;
 

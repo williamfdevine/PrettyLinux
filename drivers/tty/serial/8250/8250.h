@@ -15,7 +15,8 @@
 #include <linux/serial_reg.h>
 #include <linux/dmaengine.h>
 
-struct uart_8250_dma {
+struct uart_8250_dma
+{
 	int (*tx_dma)(struct uart_8250_port *p);
 	int (*rx_dma)(struct uart_8250_port *p);
 
@@ -52,7 +53,8 @@ struct uart_8250_dma {
 	unsigned char		rx_running;
 };
 
-struct old_serial_port {
+struct old_serial_port
+{
 	unsigned int uart;
 	unsigned int baud_base;
 	unsigned int port;
@@ -63,7 +65,8 @@ struct old_serial_port {
 	unsigned short iomem_reg_shift;
 };
 
-struct serial8250_config {
+struct serial8250_config
+{
 	const char	*name;
 	unsigned short	fifo_size;
 	unsigned short	tx_loadsz;
@@ -89,18 +92,18 @@ struct serial8250_config {
 
 
 #ifdef CONFIG_SERIAL_8250_SHARE_IRQ
-#define SERIAL8250_SHARE_IRQS 1
+	#define SERIAL8250_SHARE_IRQS 1
 #else
-#define SERIAL8250_SHARE_IRQS 0
+	#define SERIAL8250_SHARE_IRQS 0
 #endif
 
 #define SERIAL8250_PORT_FLAGS(_base, _irq, _flags)		\
 	{							\
 		.iobase		= _base,			\
-		.irq		= _irq,				\
-		.uartclk	= 1843200,			\
-		.iotype		= UPIO_PORT,			\
-		.flags		= UPF_BOOT_AUTOCONF | (_flags),	\
+					  .irq		= _irq,				\
+									.uartclk	= 1843200,			\
+											.iotype		= UPIO_PORT,			\
+													.flags		= UPF_BOOT_AUTOCONF | (_flags),	\
 	}
 
 #define SERIAL8250_PORT(_base, _irq) SERIAL8250_PORT_FLAGS(_base, _irq, 0)
@@ -145,14 +148,14 @@ static inline int serial8250_in_MCR(struct uart_8250_port *up)
 }
 
 #if defined(__alpha__) && !defined(CONFIG_PCI)
-/*
- * Digital did something really horribly wrong with the OUT1 and OUT2
- * lines on at least some ALPHA's.  The failure mode is that if either
- * is cleared, the machine locks up with endless interrupts.
- */
-#define ALPHA_KLUDGE_MCR  (UART_MCR_OUT2 | UART_MCR_OUT1)
+	/*
+	* Digital did something really horribly wrong with the OUT1 and OUT2
+	* lines on at least some ALPHA's.  The failure mode is that if either
+	* is cleared, the machine locks up with endless interrupts.
+	*/
+	#define ALPHA_KLUDGE_MCR  (UART_MCR_OUT2 | UART_MCR_OUT1)
 #else
-#define ALPHA_KLUDGE_MCR 0
+	#define ALPHA_KLUDGE_MCR 0
 #endif
 
 #ifdef CONFIG_SERIAL_8250_PNP
@@ -174,15 +177,17 @@ static inline int is_omap1_8250(struct uart_8250_port *pt)
 {
 	int res;
 
-	switch (pt->port.mapbase) {
-	case OMAP1_UART1_BASE:
-	case OMAP1_UART2_BASE:
-	case OMAP1_UART3_BASE:
-		res = 1;
-		break;
-	default:
-		res = 0;
-		break;
+	switch (pt->port.mapbase)
+	{
+		case OMAP1_UART1_BASE:
+		case OMAP1_UART2_BASE:
+		case OMAP1_UART3_BASE:
+			res = 1;
+			break;
+
+		default:
+			res = 0;
+			break;
 	}
 
 	return res;
@@ -191,7 +196,9 @@ static inline int is_omap1_8250(struct uart_8250_port *pt)
 static inline int is_omap1510_8250(struct uart_8250_port *pt)
 {
 	if (!cpu_is_omap1510())
+	{
 		return 0;
+	}
 
 	return is_omap1_8250(pt);
 }
@@ -235,14 +242,19 @@ static inline int ns16550a_goto_highspeed(struct uart_8250_port *up)
 
 	status = serial_in(up, 0x04); /* EXCR2 */
 #define PRESL(x) ((x) & 0x30)
-	if (PRESL(status) == 0x10) {
+
+	if (PRESL(status) == 0x10)
+	{
 		/* already in high speed mode */
 		return 0;
-	} else {
+	}
+	else
+	{
 		status &= ~0xB0; /* Disable LOCK, mask out PRESL[01] */
 		status |= 0x10;  /* 1.625 divisor for baud_base --> 921600 */
 		serial_out(up, 0x04, status);
 	}
+
 	return 1;
 }
 

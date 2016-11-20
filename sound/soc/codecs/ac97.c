@@ -23,45 +23,51 @@
 #include <sound/initval.h>
 #include <sound/soc.h>
 
-static const struct snd_soc_dapm_widget ac97_widgets[] = {
+static const struct snd_soc_dapm_widget ac97_widgets[] =
+{
 	SND_SOC_DAPM_INPUT("RX"),
 	SND_SOC_DAPM_OUTPUT("TX"),
 };
 
-static const struct snd_soc_dapm_route ac97_routes[] = {
+static const struct snd_soc_dapm_route ac97_routes[] =
+{
 	{ "AC97 Capture", NULL, "RX" },
 	{ "TX", NULL, "AC97 Playback" },
 };
 
 static int ac97_prepare(struct snd_pcm_substream *substream,
-			struct snd_soc_dai *dai)
+						struct snd_soc_dai *dai)
 {
 	struct snd_soc_codec *codec = dai->codec;
 	struct snd_ac97 *ac97 = snd_soc_codec_get_drvdata(codec);
 
 	int reg = (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) ?
-		  AC97_PCM_FRONT_DAC_RATE : AC97_PCM_LR_ADC_RATE;
+			  AC97_PCM_FRONT_DAC_RATE : AC97_PCM_LR_ADC_RATE;
 	return snd_ac97_set_rate(ac97, reg, substream->runtime->rate);
 }
 
-static const struct snd_soc_dai_ops ac97_dai_ops = {
+static const struct snd_soc_dai_ops ac97_dai_ops =
+{
 	.prepare	= ac97_prepare,
 };
 
-static struct snd_soc_dai_driver ac97_dai = {
+static struct snd_soc_dai_driver ac97_dai =
+{
 	.name = "ac97-hifi",
 	.playback = {
 		.stream_name = "AC97 Playback",
 		.channels_min = 1,
 		.channels_max = 2,
 		.rates = SNDRV_PCM_RATE_KNOT,
-		.formats = SND_SOC_STD_AC97_FMTS,},
+		.formats = SND_SOC_STD_AC97_FMTS,
+	},
 	.capture = {
 		.stream_name = "AC97 Capture",
 		.channels_min = 1,
 		.channels_max = 2,
 		.rates = SNDRV_PCM_RATE_KNOT,
-		.formats = SND_SOC_STD_AC97_FMTS,},
+		.formats = SND_SOC_STD_AC97_FMTS,
+	},
 	.ops = &ac97_dai_ops,
 };
 
@@ -74,14 +80,20 @@ static int ac97_soc_probe(struct snd_soc_codec *codec)
 
 	/* add codec as bus device for standard ac97 */
 	ret = snd_ac97_bus(codec->component.card->snd_card, 0, soc_ac97_ops,
-			   NULL, &ac97_bus);
+					   NULL, &ac97_bus);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	memset(&ac97_template, 0, sizeof(struct snd_ac97_template));
 	ret = snd_ac97_mixer(ac97_bus, &ac97_template, &ac97);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	snd_soc_codec_set_drvdata(codec, ac97);
 
@@ -112,7 +124,8 @@ static int ac97_soc_resume(struct snd_soc_codec *codec)
 #define ac97_soc_resume NULL
 #endif
 
-static struct snd_soc_codec_driver soc_codec_dev_ac97 = {
+static struct snd_soc_codec_driver soc_codec_dev_ac97 =
+{
 	.probe = 	ac97_soc_probe,
 	.suspend =	ac97_soc_suspend,
 	.resume =	ac97_soc_resume,
@@ -128,7 +141,7 @@ static struct snd_soc_codec_driver soc_codec_dev_ac97 = {
 static int ac97_probe(struct platform_device *pdev)
 {
 	return snd_soc_register_codec(&pdev->dev,
-			&soc_codec_dev_ac97, &ac97_dai, 1);
+								  &soc_codec_dev_ac97, &ac97_dai, 1);
 }
 
 static int ac97_remove(struct platform_device *pdev)
@@ -137,7 +150,8 @@ static int ac97_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver ac97_codec_driver = {
+static struct platform_driver ac97_codec_driver =
+{
 	.driver = {
 		.name = "ac97-codec",
 	},

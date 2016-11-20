@@ -4,11 +4,13 @@
 #include <linux/types.h>
 #include <linux/netlink.h>
 
-struct netconfmsg {
+struct netconfmsg
+{
 	__u8	ncm_family;
 };
 
-enum {
+enum
+{
 	NETCONFA_UNSPEC,
 	NETCONFA_IFINDEX,
 	NETCONFA_FORWARDING,

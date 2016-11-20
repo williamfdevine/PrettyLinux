@@ -29,7 +29,8 @@
 
 static const char hcd_name[] = "SPEAr-ehci";
 
-struct spear_ehci {
+struct spear_ehci
+{
 	struct clk *clk;
 };
 
@@ -56,7 +57,7 @@ static int ehci_spear_drv_resume(struct device *dev)
 #endif /* CONFIG_PM_SLEEP */
 
 static SIMPLE_DEV_PM_OPS(ehci_spear_pm_ops, ehci_spear_drv_suspend,
-		ehci_spear_drv_resume);
+						 ehci_spear_drv_resume);
 
 static int spear_ehci_hcd_drv_probe(struct platform_device *pdev)
 {
@@ -68,10 +69,14 @@ static int spear_ehci_hcd_drv_probe(struct platform_device *pdev)
 	int irq, retval;
 
 	if (usb_disabled())
+	{
 		return -ENODEV;
+	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		retval = irq;
 		goto fail;
 	}
@@ -82,28 +87,38 @@ static int spear_ehci_hcd_drv_probe(struct platform_device *pdev)
 	 * Once we have dma capability bindings this can go away.
 	 */
 	retval = dma_coerce_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
+
 	if (retval)
+	{
 		goto fail;
+	}
 
 	usbh_clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(usbh_clk)) {
+
+	if (IS_ERR(usbh_clk))
+	{
 		dev_err(&pdev->dev, "Error getting interface clock\n");
 		retval = PTR_ERR(usbh_clk);
 		goto fail;
 	}
 
 	hcd = usb_create_hcd(driver, &pdev->dev, dev_name(&pdev->dev));
-	if (!hcd) {
+
+	if (!hcd)
+	{
 		retval = -ENOMEM;
 		goto fail;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	hcd->regs = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(hcd->regs)) {
+
+	if (IS_ERR(hcd->regs))
+	{
 		retval = PTR_ERR(hcd->regs);
 		goto err_put_hcd;
 	}
+
 	hcd->rsrc_start = res->start;
 	hcd->rsrc_len = resource_size(res);
 
@@ -115,8 +130,11 @@ static int spear_ehci_hcd_drv_probe(struct platform_device *pdev)
 
 	clk_prepare_enable(sehci->clk);
 	retval = usb_add_hcd(hcd, irq, IRQF_SHARED);
+
 	if (retval)
+	{
 		goto err_stop_ehci;
+	}
 
 	device_wakeup_enable(hcd->self.controller);
 	return retval;
@@ -139,19 +157,24 @@ static int spear_ehci_hcd_drv_remove(struct platform_device *pdev)
 	usb_remove_hcd(hcd);
 
 	if (sehci->clk)
+	{
 		clk_disable_unprepare(sehci->clk);
+	}
+
 	usb_put_hcd(hcd);
 
 	return 0;
 }
 
-static const struct of_device_id spear_ehci_id_table[] = {
+static const struct of_device_id spear_ehci_id_table[] =
+{
 	{ .compatible = "st,spear600-ehci", },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, spear_ehci_id_table);
 
-static struct platform_driver spear_ehci_hcd_driver = {
+static struct platform_driver spear_ehci_hcd_driver =
+{
 	.probe		= spear_ehci_hcd_drv_probe,
 	.remove		= spear_ehci_hcd_drv_remove,
 	.shutdown	= usb_hcd_platform_shutdown,
@@ -163,14 +186,17 @@ static struct platform_driver spear_ehci_hcd_driver = {
 	}
 };
 
-static const struct ehci_driver_overrides spear_overrides __initconst = {
+static const struct ehci_driver_overrides spear_overrides __initconst =
+{
 	.extra_priv_size = sizeof(struct spear_ehci),
 };
 
 static int __init ehci_spear_init(void)
 {
 	if (usb_disabled())
+	{
 		return -ENODEV;
+	}
 
 	pr_info("%s: " DRIVER_DESC "\n", hcd_name);
 

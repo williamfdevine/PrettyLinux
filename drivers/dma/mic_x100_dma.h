@@ -79,12 +79,14 @@
 #define MIC_DMA_REG_DCHERRMSK		48
 
 /* HW dma desc */
-struct mic_dma_desc {
+struct mic_dma_desc
+{
 	u64 qw0;
 	u64 qw1;
 };
 
-enum mic_dma_chan_owner {
+enum mic_dma_chan_owner
+{
 	MIC_DMA_CHAN_MIC = 0,
 	MIC_DMA_CHAN_HOST
 };
@@ -109,7 +111,8 @@ enum mic_dma_chan_owner {
  * @issue_lock: lock used to synchronize writes to head
  * @cookie: mic_irq cookie used with mic irq request
  */
-struct mic_dma_chan {
+struct mic_dma_chan
+{
 	int ch_num;
 	enum mic_dma_chan_owner owner;
 	u32 last_tail;
@@ -138,7 +141,8 @@ struct mic_dma_chan {
  * @start_ch: first channel number that can be used
  * @max_xfer_size: maximum transfer size per dma descriptor
  */
-struct mic_dma_device {
+struct mic_dma_device
+{
 	struct mic_dma_chan mic_ch[MIC_DMA_MAX_NUM_CHAN];
 	struct dma_device dma_dev;
 	struct mbus_device *mbdev;
@@ -156,8 +160,8 @@ static inline struct mic_dma_chan *to_mic_dma_chan(struct dma_chan *ch)
 static inline struct mic_dma_device *to_mic_dma_dev(struct mic_dma_chan *ch)
 {
 	return
-	container_of((const typeof(((struct mic_dma_device *)0)->mic_ch)*)
-		     (ch - ch->ch_num), struct mic_dma_device, mic_ch);
+		container_of((const typeof(((struct mic_dma_device *)0)->mic_ch) *)
+					 (ch - ch->ch_num), struct mic_dma_device, mic_ch);
 }
 
 static inline struct mbus_device *to_mbus_device(struct mic_dma_chan *ch)
@@ -183,13 +187,13 @@ static inline void __iomem *mic_dma_chan_to_mmio(struct mic_dma_chan *ch)
 static inline u32 mic_dma_read_reg(struct mic_dma_chan *ch, u32 reg)
 {
 	return ioread32(mic_dma_chan_to_mmio(ch) + MIC_DMA_SBOX_CH_BASE +
-			ch->ch_num * MIC_DMA_SBOX_CHAN_OFF + reg);
+					ch->ch_num * MIC_DMA_SBOX_CHAN_OFF + reg);
 }
 
 static inline void mic_dma_write_reg(struct mic_dma_chan *ch, u32 reg, u32 val)
 {
 	iowrite32(val, mic_dma_chan_to_mmio(ch) + MIC_DMA_SBOX_CH_BASE +
-		  ch->ch_num * MIC_DMA_SBOX_CHAN_OFF + reg);
+			  ch->ch_num * MIC_DMA_SBOX_CHAN_OFF + reg);
 }
 
 static inline u32 mic_dma_mmio_read(struct mic_dma_chan *ch, u32 offset)
@@ -198,7 +202,7 @@ static inline u32 mic_dma_mmio_read(struct mic_dma_chan *ch, u32 offset)
 }
 
 static inline void mic_dma_mmio_write(struct mic_dma_chan *ch, u32 val,
-				      u32 offset)
+									  u32 offset)
 {
 	iowrite32(val, mic_dma_chan_to_mmio(ch) + offset);
 }
@@ -206,7 +210,7 @@ static inline void mic_dma_mmio_write(struct mic_dma_chan *ch, u32 val,
 static inline u32 mic_dma_read_cmp_cnt(struct mic_dma_chan *ch)
 {
 	return mic_dma_read_reg(ch, MIC_DMA_REG_DSTAT) &
-	       MIC_DMA_HW_CMP_CNT_MASK;
+		   MIC_DMA_HW_CMP_CNT_MASK;
 }
 
 static inline void mic_dma_chan_set_owner(struct mic_dma_chan *ch)
@@ -240,14 +244,19 @@ static void mic_dma_chan_set_desc_ring(struct mic_dma_chan *ch)
 	dma_addr_t desc_ring_micpa = ch->desc_ring_micpa;
 
 	drar_hi = (MIC_DMA_DESC_RX_SIZE & 0x1ffff) << 4;
-	if (MIC_DMA_CHAN_MIC == ch->owner) {
+
+	if (MIC_DMA_CHAN_MIC == ch->owner)
+	{
 		drar_hi |= (desc_ring_micpa >> 32) & 0xf;
-	} else {
+	}
+	else
+	{
 		drar_hi |= MIC_DMA_SBOX_DRARHI_SYS_MASK;
 		drar_hi |= ((desc_ring_micpa >> 34)
-			    & 0x1f) << 21;
+					& 0x1f) << 21;
 		drar_hi |= (desc_ring_micpa >> 32) & 0x3;
 	}
+
 	mic_dma_write_reg(ch, MIC_DMA_REG_DRAR_LO, (u32) desc_ring_micpa);
 	mic_dma_write_reg(ch, MIC_DMA_REG_DRAR_HI, drar_hi);
 }
@@ -257,9 +266,14 @@ static inline void mic_dma_chan_mask_intr(struct mic_dma_chan *ch)
 	u32 dcar = mic_dma_read_reg(ch, MIC_DMA_REG_DCAR);
 
 	if (MIC_DMA_CHAN_MIC == ch->owner)
+	{
 		dcar |= MIC_DMA_SBOX_DCAR_IM0;
+	}
 	else
+	{
 		dcar |= MIC_DMA_SBOX_DCAR_IM1;
+	}
+
 	mic_dma_write_reg(ch, MIC_DMA_REG_DCAR, dcar);
 }
 
@@ -268,19 +282,26 @@ static inline void mic_dma_chan_unmask_intr(struct mic_dma_chan *ch)
 	u32 dcar = mic_dma_read_reg(ch, MIC_DMA_REG_DCAR);
 
 	if (MIC_DMA_CHAN_MIC == ch->owner)
+	{
 		dcar &= ~MIC_DMA_SBOX_DCAR_IM0;
+	}
 	else
+	{
 		dcar &= ~MIC_DMA_SBOX_DCAR_IM1;
+	}
+
 	mic_dma_write_reg(ch, MIC_DMA_REG_DCAR, dcar);
 }
 
 static void mic_dma_ack_interrupt(struct mic_dma_chan *ch)
 {
-	if (MIC_DMA_CHAN_MIC == ch->owner) {
+	if (MIC_DMA_CHAN_MIC == ch->owner)
+	{
 		/* HW errata */
 		mic_dma_chan_mask_intr(ch);
 		mic_dma_chan_unmask_intr(ch);
 	}
+
 	to_mbus_hw_ops(ch)->ack_interrupt(to_mbus_device(ch), ch->ch_num);
 }
 #endif

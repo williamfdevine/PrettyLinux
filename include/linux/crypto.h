@@ -7,10 +7,10 @@
  *
  * Portions derived from Cryptoapi, by Alexander Kjeldaas <astor@fast.no>
  * and Nettle, by Niels Möller.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option) 
+ * Software Foundation; either version 2 of the License, or (at your option)
  * any later version.
  *
  */
@@ -35,8 +35,8 @@
  * alias.
  */
 #define MODULE_ALIAS_CRYPTO(name)	\
-		__MODULE_INFO(alias, alias_userspace, name);	\
-		__MODULE_INFO(alias, alias_crypto, "crypto-" name)
+	__MODULE_INFO(alias, alias_userspace, name);	\
+	__MODULE_INFO(alias, alias_crypto, "crypto-" name)
 
 /*
  * Algorithm masks and types.
@@ -151,7 +151,8 @@ typedef void (*crypto_completion_t)(struct crypto_async_request *req, int err);
  * type.
  */
 
-struct crypto_async_request {
+struct crypto_async_request
+{
 	struct list_head list;
 	crypto_completion_t complete;
 	void *data;
@@ -160,7 +161,8 @@ struct crypto_async_request {
 	u32 flags;
 };
 
-struct ablkcipher_request {
+struct ablkcipher_request
+{
 	struct crypto_async_request base;
 
 	unsigned int nbytes;
@@ -173,17 +175,19 @@ struct ablkcipher_request {
 	void *__ctx[] CRYPTO_MINALIGN_ATTR;
 };
 
-struct blkcipher_desc {
+struct blkcipher_desc
+{
 	struct crypto_blkcipher *tfm;
 	void *info;
 	u32 flags;
 };
 
-struct cipher_desc {
+struct cipher_desc
+{
 	struct crypto_tfm *tfm;
 	void (*crfn)(struct crypto_tfm *tfm, u8 *dst, const u8 *src);
 	unsigned int (*prfn)(const struct cipher_desc *desc, u8 *dst,
-			     const u8 *src, unsigned int nbytes);
+						 const u8 *src, unsigned int nbytes);
 	void *info;
 };
 
@@ -245,9 +249,10 @@ struct cipher_desc {
  * All fields except @givencrypt , @givdecrypt , @geniv and @ivsize are
  * mandatory and must be filled.
  */
-struct ablkcipher_alg {
+struct ablkcipher_alg
+{
 	int (*setkey)(struct crypto_ablkcipher *tfm, const u8 *key,
-	              unsigned int keylen);
+				  unsigned int keylen);
 	int (*encrypt)(struct ablkcipher_request *req);
 	int (*decrypt)(struct ablkcipher_request *req);
 	int (*givencrypt)(struct skcipher_givcrypt_request *req);
@@ -272,15 +277,16 @@ struct ablkcipher_alg {
  *
  * All fields except @geniv and @ivsize are mandatory and must be filled.
  */
-struct blkcipher_alg {
+struct blkcipher_alg
+{
 	int (*setkey)(struct crypto_tfm *tfm, const u8 *key,
-	              unsigned int keylen);
+				  unsigned int keylen);
 	int (*encrypt)(struct blkcipher_desc *desc,
-		       struct scatterlist *dst, struct scatterlist *src,
-		       unsigned int nbytes);
+				   struct scatterlist *dst, struct scatterlist *src,
+				   unsigned int nbytes);
 	int (*decrypt)(struct blkcipher_desc *desc,
-		       struct scatterlist *dst, struct scatterlist *src,
-		       unsigned int nbytes);
+				   struct scatterlist *dst, struct scatterlist *src,
+				   unsigned int nbytes);
 
 	const char *geniv;
 
@@ -336,20 +342,22 @@ struct blkcipher_alg {
  *
  * All fields are mandatory and must be filled.
  */
-struct cipher_alg {
+struct cipher_alg
+{
 	unsigned int cia_min_keysize;
 	unsigned int cia_max_keysize;
 	int (*cia_setkey)(struct crypto_tfm *tfm, const u8 *key,
-	                  unsigned int keylen);
+					  unsigned int keylen);
 	void (*cia_encrypt)(struct crypto_tfm *tfm, u8 *dst, const u8 *src);
 	void (*cia_decrypt)(struct crypto_tfm *tfm, u8 *dst, const u8 *src);
 };
 
-struct compress_alg {
+struct compress_alg
+{
 	int (*coa_compress)(struct crypto_tfm *tfm, const u8 *src,
-			    unsigned int slen, u8 *dst, unsigned int *dlen);
+						unsigned int slen, u8 *dst, unsigned int *dlen);
 	int (*coa_decompress)(struct crypto_tfm *tfm, const u8 *src,
-			      unsigned int slen, u8 *dst, unsigned int *dlen);
+						  unsigned int slen, u8 *dst, unsigned int *dlen);
 };
 
 
@@ -433,7 +441,8 @@ struct compress_alg {
  * for all of the transformations. Any variable not documented here shall not
  * be used by a cipher implementation as it is internal to the Crypto API.
  */
-struct crypto_alg {
+struct crypto_alg
+{
 	struct list_head cra_list;
 	struct list_head cra_users;
 
@@ -450,7 +459,8 @@ struct crypto_alg {
 
 	const struct crypto_type *cra_type;
 
-	union {
+	union
+	{
 		struct ablkcipher_alg ablkcipher;
 		struct blkcipher_alg blkcipher;
 		struct cipher_alg cipher;
@@ -460,7 +470,7 @@ struct crypto_alg {
 	int (*cra_init)(struct crypto_tfm *tfm);
 	void (*cra_exit)(struct crypto_tfm *tfm);
 	void (*cra_destroy)(struct crypto_alg *alg);
-	
+
 	struct module *cra_module;
 } CRYPTO_MINALIGN_ATTR;
 
@@ -483,9 +493,10 @@ int crypto_has_alg(const char *name, u32 type, u32 mask);
  * crypto_free_*(), as well as the various helpers below.
  */
 
-struct ablkcipher_tfm {
+struct ablkcipher_tfm
+{
 	int (*setkey)(struct crypto_ablkcipher *tfm, const u8 *key,
-	              unsigned int keylen);
+				  unsigned int keylen);
 	int (*encrypt)(struct ablkcipher_request *req);
 	int (*decrypt)(struct ablkcipher_request *req);
 
@@ -495,30 +506,33 @@ struct ablkcipher_tfm {
 	unsigned int reqsize;
 };
 
-struct blkcipher_tfm {
+struct blkcipher_tfm
+{
 	void *iv;
 	int (*setkey)(struct crypto_tfm *tfm, const u8 *key,
-		      unsigned int keylen);
+				  unsigned int keylen);
 	int (*encrypt)(struct blkcipher_desc *desc, struct scatterlist *dst,
-		       struct scatterlist *src, unsigned int nbytes);
+				   struct scatterlist *src, unsigned int nbytes);
 	int (*decrypt)(struct blkcipher_desc *desc, struct scatterlist *dst,
-		       struct scatterlist *src, unsigned int nbytes);
+				   struct scatterlist *src, unsigned int nbytes);
 };
 
-struct cipher_tfm {
+struct cipher_tfm
+{
 	int (*cit_setkey)(struct crypto_tfm *tfm,
-	                  const u8 *key, unsigned int keylen);
+					  const u8 *key, unsigned int keylen);
 	void (*cit_encrypt_one)(struct crypto_tfm *tfm, u8 *dst, const u8 *src);
 	void (*cit_decrypt_one)(struct crypto_tfm *tfm, u8 *dst, const u8 *src);
 };
 
-struct compress_tfm {
+struct compress_tfm
+{
 	int (*cot_compress)(struct crypto_tfm *tfm,
-	                    const u8 *src, unsigned int slen,
-	                    u8 *dst, unsigned int *dlen);
+						const u8 *src, unsigned int slen,
+						u8 *dst, unsigned int *dlen);
 	int (*cot_decompress)(struct crypto_tfm *tfm,
-	                      const u8 *src, unsigned int slen,
-	                      u8 *dst, unsigned int *dlen);
+						  const u8 *src, unsigned int slen,
+						  u8 *dst, unsigned int *dlen);
 };
 
 #define crt_ablkcipher	crt_u.ablkcipher
@@ -526,11 +540,13 @@ struct compress_tfm {
 #define crt_cipher	crt_u.cipher
 #define crt_compress	crt_u.compress
 
-struct crypto_tfm {
+struct crypto_tfm
+{
 
 	u32 crt_flags;
-	
-	union {
+
+	union
+	{
 		struct ablkcipher_tfm ablkcipher;
 		struct blkcipher_tfm blkcipher;
 		struct cipher_tfm cipher;
@@ -538,29 +554,34 @@ struct crypto_tfm {
 	} crt_u;
 
 	void (*exit)(struct crypto_tfm *tfm);
-	
+
 	struct crypto_alg *__crt_alg;
 
 	void *__crt_ctx[] CRYPTO_MINALIGN_ATTR;
 };
 
-struct crypto_ablkcipher {
+struct crypto_ablkcipher
+{
 	struct crypto_tfm base;
 };
 
-struct crypto_blkcipher {
+struct crypto_blkcipher
+{
 	struct crypto_tfm base;
 };
 
-struct crypto_cipher {
+struct crypto_cipher
+{
 	struct crypto_tfm base;
 };
 
-struct crypto_comp {
+struct crypto_comp
+{
 	struct crypto_tfm base;
 };
 
-enum {
+enum
+{
 	CRYPTOA_UNSPEC,
 	CRYPTOA_ALG,
 	CRYPTOA_TYPE,
@@ -573,23 +594,26 @@ enum {
 /* Maximum number of (rtattr) parameters for each template. */
 #define CRYPTO_MAX_ATTRS 32
 
-struct crypto_attr_alg {
+struct crypto_attr_alg
+{
 	char name[CRYPTO_MAX_ALG_NAME];
 };
 
-struct crypto_attr_type {
+struct crypto_attr_type
+{
 	u32 type;
 	u32 mask;
 };
 
-struct crypto_attr_u32 {
+struct crypto_attr_u32
+{
 	u32 num;
 };
 
-/* 
+/*
  * Transform user interface.
  */
- 
+
 struct crypto_tfm *crypto_alloc_base(const char *alg_name, u32 type, u32 mask);
 void crypto_destroy_tfm(void *mem, struct crypto_tfm *tfm);
 
@@ -738,10 +762,10 @@ static inline void crypto_free_ablkcipher(struct crypto_ablkcipher *tfm)
  *	   otherwise
  */
 static inline int crypto_has_ablkcipher(const char *alg_name, u32 type,
-					u32 mask)
+										u32 mask)
 {
 	return crypto_has_alg(alg_name, crypto_skcipher_type(type),
-			      crypto_skcipher_mask(mask));
+						  crypto_skcipher_mask(mask));
 }
 
 static inline struct ablkcipher_tfm *crypto_ablkcipher_crt(
@@ -793,13 +817,13 @@ static inline u32 crypto_ablkcipher_get_flags(struct crypto_ablkcipher *tfm)
 }
 
 static inline void crypto_ablkcipher_set_flags(struct crypto_ablkcipher *tfm,
-					       u32 flags)
+		u32 flags)
 {
 	crypto_tfm_set_flags(crypto_ablkcipher_tfm(tfm), flags);
 }
 
 static inline void crypto_ablkcipher_clear_flags(struct crypto_ablkcipher *tfm,
-						 u32 flags)
+		u32 flags)
 {
 	crypto_tfm_clear_flags(crypto_ablkcipher_tfm(tfm), flags);
 }
@@ -821,7 +845,7 @@ static inline void crypto_ablkcipher_clear_flags(struct crypto_ablkcipher *tfm,
  * Return: 0 if the setting of the key was successful; < 0 if an error occurred
  */
 static inline int crypto_ablkcipher_setkey(struct crypto_ablkcipher *tfm,
-					   const u8 *key, unsigned int keylen)
+		const u8 *key, unsigned int keylen)
 {
 	struct ablkcipher_tfm *crt = crypto_ablkcipher_crt(tfm);
 
@@ -939,10 +963,12 @@ static inline struct ablkcipher_request *ablkcipher_request_alloc(
 	struct ablkcipher_request *req;
 
 	req = kmalloc(sizeof(struct ablkcipher_request) +
-		      crypto_ablkcipher_reqsize(tfm), gfp);
+				  crypto_ablkcipher_reqsize(tfm), gfp);
 
 	if (likely(req))
+	{
 		ablkcipher_request_set_tfm(req, tfm);
+	}
 
 	return req;
 }
@@ -1183,13 +1209,13 @@ static inline u32 crypto_blkcipher_get_flags(struct crypto_blkcipher *tfm)
 }
 
 static inline void crypto_blkcipher_set_flags(struct crypto_blkcipher *tfm,
-					      u32 flags)
+		u32 flags)
 {
 	crypto_tfm_set_flags(crypto_blkcipher_tfm(tfm), flags);
 }
 
 static inline void crypto_blkcipher_clear_flags(struct crypto_blkcipher *tfm,
-						u32 flags)
+		u32 flags)
 {
 	crypto_tfm_clear_flags(crypto_blkcipher_tfm(tfm), flags);
 }
@@ -1211,10 +1237,10 @@ static inline void crypto_blkcipher_clear_flags(struct crypto_blkcipher *tfm,
  * Return: 0 if the setting of the key was successful; < 0 if an error occurred
  */
 static inline int crypto_blkcipher_setkey(struct crypto_blkcipher *tfm,
-					  const u8 *key, unsigned int keylen)
+		const u8 *key, unsigned int keylen)
 {
 	return crypto_blkcipher_crt(tfm)->setkey(crypto_blkcipher_tfm(tfm),
-						 key, keylen);
+			key, keylen);
 }
 
 /**
@@ -1236,9 +1262,9 @@ static inline int crypto_blkcipher_setkey(struct crypto_blkcipher *tfm,
  * Return: 0 if the cipher operation was successful; < 0 if an error occurred
  */
 static inline int crypto_blkcipher_encrypt(struct blkcipher_desc *desc,
-					   struct scatterlist *dst,
-					   struct scatterlist *src,
-					   unsigned int nbytes)
+		struct scatterlist *dst,
+		struct scatterlist *src,
+		unsigned int nbytes)
 {
 	desc->info = crypto_blkcipher_crt(desc->tfm)->iv;
 	return crypto_blkcipher_crt(desc->tfm)->encrypt(desc, dst, src, nbytes);
@@ -1264,9 +1290,9 @@ static inline int crypto_blkcipher_encrypt(struct blkcipher_desc *desc,
  * Return: 0 if the cipher operation was successful; < 0 if an error occurred
  */
 static inline int crypto_blkcipher_encrypt_iv(struct blkcipher_desc *desc,
-					      struct scatterlist *dst,
-					      struct scatterlist *src,
-					      unsigned int nbytes)
+		struct scatterlist *dst,
+		struct scatterlist *src,
+		unsigned int nbytes)
 {
 	return crypto_blkcipher_crt(desc->tfm)->encrypt(desc, dst, src, nbytes);
 }
@@ -1289,9 +1315,9 @@ static inline int crypto_blkcipher_encrypt_iv(struct blkcipher_desc *desc,
  *
  */
 static inline int crypto_blkcipher_decrypt(struct blkcipher_desc *desc,
-					   struct scatterlist *dst,
-					   struct scatterlist *src,
-					   unsigned int nbytes)
+		struct scatterlist *dst,
+		struct scatterlist *src,
+		unsigned int nbytes)
 {
 	desc->info = crypto_blkcipher_crt(desc->tfm)->iv;
 	return crypto_blkcipher_crt(desc->tfm)->decrypt(desc, dst, src, nbytes);
@@ -1314,9 +1340,9 @@ static inline int crypto_blkcipher_decrypt(struct blkcipher_desc *desc,
  * Return: 0 if the cipher operation was successful; < 0 if an error occurred
  */
 static inline int crypto_blkcipher_decrypt_iv(struct blkcipher_desc *desc,
-					      struct scatterlist *dst,
-					      struct scatterlist *src,
-					      unsigned int nbytes)
+		struct scatterlist *dst,
+		struct scatterlist *src,
+		unsigned int nbytes)
 {
 	return crypto_blkcipher_crt(desc->tfm)->decrypt(desc, dst, src, nbytes);
 }
@@ -1331,7 +1357,7 @@ static inline int crypto_blkcipher_decrypt_iv(struct blkcipher_desc *desc,
  * handle.
  */
 static inline void crypto_blkcipher_set_iv(struct crypto_blkcipher *tfm,
-					   const u8 *src, unsigned int len)
+		const u8 *src, unsigned int len)
 {
 	memcpy(crypto_blkcipher_crt(tfm)->iv, src, len);
 }
@@ -1347,7 +1373,7 @@ static inline void crypto_blkcipher_set_iv(struct crypto_blkcipher *tfm,
  * has an insufficient space, the IV is truncated to fit the buffer.
  */
 static inline void crypto_blkcipher_get_iv(struct crypto_blkcipher *tfm,
-					   u8 *dst, unsigned int len)
+		u8 *dst, unsigned int len)
 {
 	memcpy(dst, crypto_blkcipher_crt(tfm)->iv, len);
 }
@@ -1395,7 +1421,7 @@ static inline struct crypto_cipher *crypto_cipher_cast(struct crypto_tfm *tfm)
  *	   of an error, PTR_ERR() returns the error code.
  */
 static inline struct crypto_cipher *crypto_alloc_cipher(const char *alg_name,
-							u32 type, u32 mask)
+		u32 type, u32 mask)
 {
 	type &= ~CRYPTO_ALG_TYPE_MASK;
 	type |= CRYPTO_ALG_TYPE_CIPHER;
@@ -1468,13 +1494,13 @@ static inline u32 crypto_cipher_get_flags(struct crypto_cipher *tfm)
 }
 
 static inline void crypto_cipher_set_flags(struct crypto_cipher *tfm,
-					   u32 flags)
+		u32 flags)
 {
 	crypto_tfm_set_flags(crypto_cipher_tfm(tfm), flags);
 }
 
 static inline void crypto_cipher_clear_flags(struct crypto_cipher *tfm,
-					     u32 flags)
+		u32 flags)
 {
 	crypto_tfm_clear_flags(crypto_cipher_tfm(tfm), flags);
 }
@@ -1496,10 +1522,10 @@ static inline void crypto_cipher_clear_flags(struct crypto_cipher *tfm,
  * Return: 0 if the setting of the key was successful; < 0 if an error occurred
  */
 static inline int crypto_cipher_setkey(struct crypto_cipher *tfm,
-                                       const u8 *key, unsigned int keylen)
+									   const u8 *key, unsigned int keylen)
 {
 	return crypto_cipher_crt(tfm)->cit_setkey(crypto_cipher_tfm(tfm),
-						  key, keylen);
+			key, keylen);
 }
 
 /**
@@ -1512,10 +1538,10 @@ static inline int crypto_cipher_setkey(struct crypto_cipher *tfm,
  * the plaintext and ciphertext buffers are at least one block in size.
  */
 static inline void crypto_cipher_encrypt_one(struct crypto_cipher *tfm,
-					     u8 *dst, const u8 *src)
+		u8 *dst, const u8 *src)
 {
 	crypto_cipher_crt(tfm)->cit_encrypt_one(crypto_cipher_tfm(tfm),
-						dst, src);
+											dst, src);
 }
 
 /**
@@ -1528,10 +1554,10 @@ static inline void crypto_cipher_encrypt_one(struct crypto_cipher *tfm,
  * the plaintext and ciphertext buffers are at least one block in size.
  */
 static inline void crypto_cipher_decrypt_one(struct crypto_cipher *tfm,
-					     u8 *dst, const u8 *src)
+		u8 *dst, const u8 *src)
 {
 	crypto_cipher_crt(tfm)->cit_decrypt_one(crypto_cipher_tfm(tfm),
-						dst, src);
+											dst, src);
 }
 
 static inline struct crypto_comp *__crypto_comp_cast(struct crypto_tfm *tfm)
@@ -1542,12 +1568,12 @@ static inline struct crypto_comp *__crypto_comp_cast(struct crypto_tfm *tfm)
 static inline struct crypto_comp *crypto_comp_cast(struct crypto_tfm *tfm)
 {
 	BUG_ON((crypto_tfm_alg_type(tfm) ^ CRYPTO_ALG_TYPE_COMPRESS) &
-	       CRYPTO_ALG_TYPE_MASK);
+		   CRYPTO_ALG_TYPE_MASK);
 	return __crypto_comp_cast(tfm);
 }
 
 static inline struct crypto_comp *crypto_alloc_comp(const char *alg_name,
-						    u32 type, u32 mask)
+		u32 type, u32 mask)
 {
 	type &= ~CRYPTO_ALG_TYPE_MASK;
 	type |= CRYPTO_ALG_TYPE_COMPRESS;
@@ -1586,19 +1612,19 @@ static inline struct compress_tfm *crypto_comp_crt(struct crypto_comp *tfm)
 }
 
 static inline int crypto_comp_compress(struct crypto_comp *tfm,
-                                       const u8 *src, unsigned int slen,
-                                       u8 *dst, unsigned int *dlen)
+									   const u8 *src, unsigned int slen,
+									   u8 *dst, unsigned int *dlen)
 {
 	return crypto_comp_crt(tfm)->cot_compress(crypto_comp_tfm(tfm),
-						  src, slen, dst, dlen);
+			src, slen, dst, dlen);
 }
 
 static inline int crypto_comp_decompress(struct crypto_comp *tfm,
-                                         const u8 *src, unsigned int slen,
-                                         u8 *dst, unsigned int *dlen)
+		const u8 *src, unsigned int slen,
+		u8 *dst, unsigned int *dlen)
 {
 	return crypto_comp_crt(tfm)->cot_decompress(crypto_comp_tfm(tfm),
-						    src, slen, dst, dlen);
+			src, slen, dst, dlen);
 }
 
 #endif	/* _LINUX_CRYPTO_H */

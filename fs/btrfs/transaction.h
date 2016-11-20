@@ -22,7 +22,8 @@
 #include "delayed-ref.h"
 #include "ctree.h"
 
-enum btrfs_trans_state {
+enum btrfs_trans_state
+{
 	TRANS_STATE_RUNNING		= 0,
 	TRANS_STATE_BLOCKED		= 1,
 	TRANS_STATE_COMMIT_START	= 2,
@@ -36,7 +37,8 @@ enum btrfs_trans_state {
 #define BTRFS_TRANS_DIRTY_BG_RUN	1
 #define BTRFS_TRANS_CACHE_ENOSPC	2
 
-struct btrfs_transaction {
+struct btrfs_transaction
+{
 	u64 transid;
 	/*
 	 * total external writers(USERSPACE/START/ATTACH) in this
@@ -101,11 +103,12 @@ struct btrfs_transaction {
 #define TRANS_JOIN_NOLOCK	(__TRANS_JOIN_NOLOCK)
 
 #define TRANS_EXTWRITERS	(__TRANS_USERSPACE | __TRANS_START |	\
-				 __TRANS_ATTACH)
+							 __TRANS_ATTACH)
 
 #define BTRFS_SEND_TRANS_STUB	((void *)1)
 
-struct btrfs_trans_handle {
+struct btrfs_trans_handle
+{
 	u64 transid;
 	u64 bytes_reserved;
 	u64 chunk_bytes_reserved;
@@ -135,7 +138,8 @@ struct btrfs_trans_handle {
 	struct list_head new_bgs;
 };
 
-struct btrfs_pending_snapshot {
+struct btrfs_pending_snapshot
+{
 	struct dentry *dentry;
 	struct inode *dir;
 	struct btrfs_root *root;
@@ -153,7 +157,7 @@ struct btrfs_pending_snapshot {
 };
 
 static inline void btrfs_set_inode_last_trans(struct btrfs_trans_handle *trans,
-					      struct inode *inode)
+		struct inode *inode)
 {
 	spin_lock(&BTRFS_I(inode)->lock);
 	BTRFS_I(inode)->last_trans = trans->transaction->transid;
@@ -167,7 +171,7 @@ static inline void btrfs_set_inode_last_trans(struct btrfs_trans_handle *trans,
  * qgroup won't contain the qgroupid in it.
  */
 static inline void btrfs_set_skip_qgroup(struct btrfs_trans_handle *trans,
-					 u64 qgroupid)
+		u64 qgroupid)
 {
 	struct btrfs_delayed_ref_root *delayed_refs;
 
@@ -186,21 +190,21 @@ static inline void btrfs_clear_skip_qgroup(struct btrfs_trans_handle *trans)
 }
 
 int btrfs_end_transaction(struct btrfs_trans_handle *trans,
-			  struct btrfs_root *root);
+						  struct btrfs_root *root);
 struct btrfs_trans_handle *btrfs_start_transaction(struct btrfs_root *root,
-						   unsigned int num_items);
+		unsigned int num_items);
 struct btrfs_trans_handle *btrfs_start_transaction_fallback_global_rsv(
-					struct btrfs_root *root,
-					unsigned int num_items,
-					int min_factor);
+	struct btrfs_root *root,
+	unsigned int num_items,
+	int min_factor);
 struct btrfs_trans_handle *btrfs_start_transaction_lflush(
-					struct btrfs_root *root,
-					unsigned int num_items);
+	struct btrfs_root *root,
+	unsigned int num_items);
 struct btrfs_trans_handle *btrfs_join_transaction(struct btrfs_root *root);
 struct btrfs_trans_handle *btrfs_join_transaction_nolock(struct btrfs_root *root);
 struct btrfs_trans_handle *btrfs_attach_transaction(struct btrfs_root *root);
 struct btrfs_trans_handle *btrfs_attach_transaction_barrier(
-					struct btrfs_root *root);
+	struct btrfs_root *root);
 struct btrfs_trans_handle *btrfs_start_ioctl_transaction(struct btrfs_root *root);
 int btrfs_wait_for_commit(struct btrfs_root *root, u64 transid);
 
@@ -208,25 +212,25 @@ void btrfs_add_dead_root(struct btrfs_root *root);
 int btrfs_defrag_root(struct btrfs_root *root);
 int btrfs_clean_one_deleted_snapshot(struct btrfs_root *root);
 int btrfs_commit_transaction(struct btrfs_trans_handle *trans,
-			     struct btrfs_root *root);
+							 struct btrfs_root *root);
 int btrfs_commit_transaction_async(struct btrfs_trans_handle *trans,
-				   struct btrfs_root *root,
-				   int wait_for_unblock);
+								   struct btrfs_root *root,
+								   int wait_for_unblock);
 int btrfs_end_transaction_throttle(struct btrfs_trans_handle *trans,
-				   struct btrfs_root *root);
+								   struct btrfs_root *root);
 int btrfs_should_end_transaction(struct btrfs_trans_handle *trans,
-				 struct btrfs_root *root);
+								 struct btrfs_root *root);
 void btrfs_throttle(struct btrfs_root *root);
 int btrfs_record_root_in_trans(struct btrfs_trans_handle *trans,
-				struct btrfs_root *root);
+							   struct btrfs_root *root);
 int btrfs_write_marked_extents(struct btrfs_root *root,
-				struct extent_io_tree *dirty_pages, int mark);
+							   struct extent_io_tree *dirty_pages, int mark);
 int btrfs_wait_marked_extents(struct btrfs_root *root,
-				struct extent_io_tree *dirty_pages, int mark);
+							  struct extent_io_tree *dirty_pages, int mark);
 int btrfs_transaction_blocked(struct btrfs_fs_info *info);
 int btrfs_transaction_in_commit(struct btrfs_fs_info *info);
 void btrfs_put_transaction(struct btrfs_transaction *transaction);
 void btrfs_apply_pending_changes(struct btrfs_fs_info *fs_info);
 void btrfs_add_dropped_root(struct btrfs_trans_handle *trans,
-			    struct btrfs_root *root);
+							struct btrfs_root *root);
 #endif

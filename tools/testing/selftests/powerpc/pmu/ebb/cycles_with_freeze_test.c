@@ -28,7 +28,9 @@ static void ebb_callee(void)
 	mask = MMCR0_PMAO | MMCR0_FC;
 
 	val = mfspr(SPRN_BESCR);
-	if (!(val & BESCR_PMEO)) {
+
+	if (!(val & BESCR_PMEO))
+	{
 		ebb_state.stats.spurious++;
 		goto out;
 	}
@@ -39,7 +41,8 @@ static void ebb_callee(void)
 	val = mfspr(SPRN_MMCR0);
 	trace_log_reg(ebb_state.trace, SPRN_MMCR0, val);
 
-	if (counters_frozen) {
+	if (counters_frozen)
+	{
 		trace_log_string(ebb_state.trace, "frozen");
 		ebbs_while_frozen++;
 		mask &= ~MMCR0_FC;
@@ -77,7 +80,7 @@ int cycles_with_freeze(void)
 
 	/* Make sure we loop until we take at least one EBB */
 	while ((ebb_state.stats.ebb_count < 20 && !fc_cleared) ||
-		ebb_state.stats.ebb_count < 1)
+		   ebb_state.stats.ebb_count < 1)
 	{
 		counters_frozen = false;
 		mb();
@@ -90,7 +93,9 @@ int cycles_with_freeze(void)
 		mtspr(SPRN_MMCR0, mfspr(SPRN_MMCR0) |  MMCR0_FC);
 
 		val = mfspr(SPRN_MMCR0);
-		if (! (val & MMCR0_FC)) {
+
+		if (! (val & MMCR0_FC))
+		{
 			printf("Outside of loop, FC NOT set MMCR0 0x%lx\n", val);
 			fc_cleared = true;
 		}

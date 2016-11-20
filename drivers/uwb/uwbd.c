@@ -93,13 +93,15 @@ typedef int (*uwbd_evt_handler_f)(struct uwb_event *);
  * @handler:    the function that will handle this event
  * @name:       text name of event
  */
-struct uwbd_event {
+struct uwbd_event
+{
 	uwbd_evt_handler_f handler;
 	const char *name;
 };
 
 /* Table of handlers for and properties of the UWBD Radio Control Events */
-static struct uwbd_event uwbd_urc_events[] = {
+static struct uwbd_event uwbd_urc_events[] =
+{
 	[UWB_RC_EVT_IE_RCV] = {
 		.handler = uwbd_evt_handle_rc_ie_rcv,
 		.name = "IE_RECEIVED"
@@ -136,14 +138,16 @@ static struct uwbd_event uwbd_urc_events[] = {
 
 
 
-struct uwbd_evt_type_handler {
+struct uwbd_evt_type_handler
+{
 	const char *name;
 	struct uwbd_event *uwbd_events;
 	size_t size;
 };
 
 /* Table of handlers for each UWBD Event type. */
-static struct uwbd_evt_type_handler uwbd_urc_evt_type_handlers[] = {
+static struct uwbd_evt_type_handler uwbd_urc_evt_type_handlers[] =
+{
 	[UWB_RC_CET_GENERAL] = {
 		.name        = "URC",
 		.uwbd_events = uwbd_urc_events,
@@ -151,7 +155,8 @@ static struct uwbd_evt_type_handler uwbd_urc_evt_type_handlers[] = {
 	},
 };
 
-static const struct uwbd_event uwbd_message_handlers[] = {
+static const struct uwbd_event uwbd_message_handlers[] =
+{
 	[UWB_EVT_MSG_RESET] = {
 		.handler = uwbd_msg_handle_reset,
 		.name = "reset",
@@ -189,22 +194,37 @@ int uwbd_event_handle_urc(struct uwb_event *evt)
 	context = evt->notif.rceb->bEventContext;
 
 	if (type >= ARRAY_SIZE(uwbd_urc_evt_type_handlers))
+	{
 		goto out;
+	}
+
 	type_table = &uwbd_urc_evt_type_handlers[type];
+
 	if (type_table->uwbd_events == NULL)
+	{
 		goto out;
+	}
+
 	if (event >= type_table->size)
+	{
 		goto out;
+	}
+
 	handler = type_table->uwbd_events[event].handler;
+
 	if (handler == NULL)
+	{
 		goto out;
+	}
 
 	result = (*handler)(evt);
 out:
+
 	if (result < 0)
 		dev_err(&evt->rc->uwb_dev.dev,
-			"UWBD: event 0x%02x/%04x/%02x, handling failed: %d\n",
-			type, event, context, result);
+				"UWBD: event 0x%02x/%04x/%02x, handling failed: %d\n",
+				type, event, context, result);
+
 	return result;
 }
 
@@ -215,15 +235,17 @@ static void uwbd_event_handle_message(struct uwb_event *evt)
 
 	rc = evt->rc;
 
-	if (evt->message < 0 || evt->message >= ARRAY_SIZE(uwbd_message_handlers)) {
+	if (evt->message < 0 || evt->message >= ARRAY_SIZE(uwbd_message_handlers))
+	{
 		dev_err(&rc->uwb_dev.dev, "UWBD: invalid message type %d\n", evt->message);
 		return;
 	}
 
 	result = uwbd_message_handlers[evt->message].handler(evt);
+
 	if (result < 0)
 		dev_err(&rc->uwb_dev.dev, "UWBD: '%s' message failed: %d\n",
-			uwbd_message_handlers[evt->message].name, result);
+				uwbd_message_handlers[evt->message].name, result);
 }
 
 static void uwbd_event_handle(struct uwb_event *evt)
@@ -233,19 +255,27 @@ static void uwbd_event_handle(struct uwb_event *evt)
 
 	rc = evt->rc;
 
-	if (rc->ready) {
-		switch (evt->type) {
-		case UWB_EVT_TYPE_NOTIF:
-			should_keep = uwbd_event_handle_urc(evt);
-			if (should_keep <= 0)
-				kfree(evt->notif.rceb);
-			break;
-		case UWB_EVT_TYPE_MSG:
-			uwbd_event_handle_message(evt);
-			break;
-		default:
-			dev_err(&rc->uwb_dev.dev, "UWBD: invalid event type %d\n", evt->type);
-			break;
+	if (rc->ready)
+	{
+		switch (evt->type)
+		{
+			case UWB_EVT_TYPE_NOTIF:
+				should_keep = uwbd_event_handle_urc(evt);
+
+				if (should_keep <= 0)
+				{
+					kfree(evt->notif.rceb);
+				}
+
+				break;
+
+			case UWB_EVT_TYPE_MSG:
+				uwbd_event_handle_message(evt);
+				break;
+
+			default:
+				dev_err(&rc->uwb_dev.dev, "UWBD: invalid event type %d\n", evt->type);
+				break;
 		}
 	}
 
@@ -271,30 +301,42 @@ static int uwbd(void *param)
 	struct uwb_event *evt;
 	int should_stop = 0;
 
-	while (1) {
+	while (1)
+	{
 		wait_event_interruptible_timeout(
 			rc->uwbd.wq,
 			!list_empty(&rc->uwbd.event_list)
-			  || (should_stop = kthread_should_stop()),
+			|| (should_stop = kthread_should_stop()),
 			HZ);
+
 		if (should_stop)
+		{
 			break;
+		}
 
 		spin_lock_irqsave(&rc->uwbd.event_list_lock, flags);
-		if (!list_empty(&rc->uwbd.event_list)) {
+
+		if (!list_empty(&rc->uwbd.event_list))
+		{
 			evt = list_first_entry(&rc->uwbd.event_list, struct uwb_event, list_node);
 			list_del(&evt->list_node);
-		} else
+		}
+		else
+		{
 			evt = NULL;
+		}
+
 		spin_unlock_irqrestore(&rc->uwbd.event_list_lock, flags);
 
-		if (evt) {
+		if (evt)
+		{
 			uwbd_event_handle(evt);
 			kfree(evt);
 		}
 
 		uwb_beca_purge(rc);	/* Purge devices that left */
 	}
+
 	return 0;
 }
 
@@ -303,11 +345,14 @@ static int uwbd(void *param)
 void uwbd_start(struct uwb_rc *rc)
 {
 	rc->uwbd.task = kthread_run(uwbd, rc, "uwbd");
+
 	if (rc->uwbd.task == NULL)
 		printk(KERN_ERR "UWB: Cannot start management daemon; "
-		       "UWB won't work\n");
+			   "UWB won't work\n");
 	else
+	{
 		rc->uwbd.pid = rc->uwbd.task->pid;
+	}
 }
 
 /* Stop the UWB daemon and free any unprocessed events */
@@ -335,15 +380,24 @@ void uwbd_event_queue(struct uwb_event *evt)
 	unsigned long flags;
 
 	spin_lock_irqsave(&rc->uwbd.event_list_lock, flags);
-	if (rc->uwbd.pid != 0) {
+
+	if (rc->uwbd.pid != 0)
+	{
 		list_add(&evt->list_node, &rc->uwbd.event_list);
 		wake_up_all(&rc->uwbd.wq);
-	} else {
+	}
+	else
+	{
 		__uwb_rc_put(evt->rc);
+
 		if (evt->type == UWB_EVT_TYPE_NOTIF)
+		{
 			kfree(evt->notif.rceb);
+		}
+
 		kfree(evt);
 	}
+
 	spin_unlock_irqrestore(&rc->uwbd.event_list_lock, flags);
 	return;
 }
@@ -353,12 +407,18 @@ void uwbd_flush(struct uwb_rc *rc)
 	struct uwb_event *evt, *nxt;
 
 	spin_lock_irq(&rc->uwbd.event_list_lock);
-	list_for_each_entry_safe(evt, nxt, &rc->uwbd.event_list, list_node) {
-		if (evt->rc == rc) {
+	list_for_each_entry_safe(evt, nxt, &rc->uwbd.event_list, list_node)
+	{
+		if (evt->rc == rc)
+		{
 			__uwb_rc_put(rc);
 			list_del(&evt->list_node);
+
 			if (evt->type == UWB_EVT_TYPE_NOTIF)
+			{
 				kfree(evt->notif.rceb);
+			}
+
 			kfree(evt);
 		}
 	}

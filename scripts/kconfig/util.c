@@ -16,8 +16,10 @@ struct file *file_lookup(const char *name)
 	struct file *file;
 	const char *file_name = sym_expand_string_value(name);
 
-	for (file = file_list; file; file = file->next) {
-		if (!strcmp(name, file->name)) {
+	for (file = file_list; file; file = file->next)
+	{
+		if (!strcmp(name, file->name))
+		{
 			free((void *)file_name);
 			return file;
 		}
@@ -40,31 +42,54 @@ int file_write_dep(const char *name)
 	FILE *out;
 
 	if (!name)
+	{
 		name = ".kconfig.d";
-	out = fopen("..config.tmp", "w");
-	if (!out)
-		return 1;
-	fprintf(out, "deps_config := \\\n");
-	for (file = file_list; file; file = file->next) {
-		if (file->next)
-			fprintf(out, "\t%s \\\n", file->name);
-		else
-			fprintf(out, "\t%s\n", file->name);
 	}
-	fprintf(out, "\n%s: \\\n"
-		     "\t$(deps_config)\n\n", conf_get_autoconfig_name());
 
-	expr_list_for_each_sym(sym_env_list, e, sym) {
+	out = fopen("..config.tmp", "w");
+
+	if (!out)
+	{
+		return 1;
+	}
+
+	fprintf(out, "deps_config := \\\n");
+
+	for (file = file_list; file; file = file->next)
+	{
+		if (file->next)
+		{
+			fprintf(out, "\t%s \\\n", file->name);
+		}
+		else
+		{
+			fprintf(out, "\t%s\n", file->name);
+		}
+	}
+
+	fprintf(out, "\n%s: \\\n"
+			"\t$(deps_config)\n\n", conf_get_autoconfig_name());
+
+	expr_list_for_each_sym(sym_env_list, e, sym)
+	{
 		struct property *prop;
 		const char *value;
 
 		prop = sym_get_env_prop(sym);
 		env_sym = prop_get_symbol(prop);
+
 		if (!env_sym)
+		{
 			continue;
+		}
+
 		value = getenv(env_sym->name);
+
 		if (!value)
+		{
 			value = "";
+		}
+
 		fprintf(out, "ifneq \"$(%s)\" \"%s\"\n", env_sym->name, value);
 		fprintf(out, "%s: FORCE\n", conf_get_autoconfig_name());
 		fprintf(out, "endif\n");
@@ -92,7 +117,10 @@ struct gstr str_new(void)
 void str_free(struct gstr *gs)
 {
 	if (gs->s)
+	{
 		free(gs->s);
+	}
+
 	gs->s = NULL;
 	gs->len = 0;
 }
@@ -101,12 +129,17 @@ void str_free(struct gstr *gs)
 void str_append(struct gstr *gs, const char *s)
 {
 	size_t l;
-	if (s) {
+
+	if (s)
+	{
 		l = strlen(gs->s) + strlen(s) + 1;
-		if (l > gs->len) {
+
+		if (l > gs->len)
+		{
 			gs->s   = realloc(gs->s, l);
 			gs->len = l;
 		}
+
 		strcat(gs->s, s);
 	}
 }
@@ -131,8 +164,12 @@ const char *str_get(struct gstr *gs)
 void *xmalloc(size_t size)
 {
 	void *p = malloc(size);
+
 	if (p)
+	{
 		return p;
+	}
+
 	fprintf(stderr, "Out of memory.\n");
 	exit(1);
 }
@@ -140,8 +177,12 @@ void *xmalloc(size_t size)
 void *xcalloc(size_t nmemb, size_t size)
 {
 	void *p = calloc(nmemb, size);
+
 	if (p)
+	{
 		return p;
+	}
+
 	fprintf(stderr, "Out of memory.\n");
 	exit(1);
 }

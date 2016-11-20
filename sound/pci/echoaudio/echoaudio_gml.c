@@ -45,9 +45,10 @@ static int check_asic_status(struct echoaudio *chip)
 
 	/* The DSP will return a value to indicate whether or not the
 	   ASIC is currently loaded */
-	if (read_dsp(chip, &asic_status) < 0) {
+	if (read_dsp(chip, &asic_status) < 0)
+	{
 		dev_err(chip->card->dev,
-			"check_asic_status: failed on read_dsp\n");
+				"check_asic_status: failed on read_dsp\n");
 		chip->asic_loaded = false;
 		return -EIO;
 	}
@@ -65,21 +66,31 @@ static int write_control_reg(struct echoaudio *chip, u32 value, char force)
 {
 	/* Handle the digital input auto-mute */
 	if (chip->digital_in_automute)
+	{
 		value |= GML_DIGITAL_IN_AUTO_MUTE;
+	}
 	else
+	{
 		value &= ~GML_DIGITAL_IN_AUTO_MUTE;
+	}
 
 	dev_dbg(chip->card->dev, "write_control_reg: 0x%x\n", value);
 
 	/* Write the control register */
 	value = cpu_to_le32(value);
-	if (value != chip->comm_page->control_register || force) {
+
+	if (value != chip->comm_page->control_register || force)
+	{
 		if (wait_handshake(chip))
+		{
 			return -EIO;
+		}
+
 		chip->comm_page->control_register = value;
 		clear_handshake(chip);
 		return send_vector(chip, DSP_VC_WRITE_CONTROL_REG);
 	}
+
 	return 0;
 }
 
@@ -110,14 +121,20 @@ static int set_digital_mode(struct echoaudio *chip, u8 mode)
 	int err, i, o;
 
 	if (chip->bad_board)
+	{
 		return -EIO;
+	}
 
 	/* All audio channels must be closed before changing the digital mode */
 	if (snd_BUG_ON(chip->pipe_alloc_mask))
+	{
 		return -EAGAIN;
+	}
 
 	if (snd_BUG_ON(!(chip->digital_modes & (1 << mode))))
+	{
 		return -EINVAL;
+	}
 
 	previous_mode = chip->digital_mode;
 	err = dsp_set_digital_mode(chip, mode);
@@ -126,21 +143,30 @@ static int set_digital_mode(struct echoaudio *chip, u8 mode)
 	   then make sure all output, input and monitor levels are
 	   updated by the DSP comm object. */
 	if (err >= 0 && previous_mode != mode &&
-	    (previous_mode == DIGITAL_MODE_ADAT || mode == DIGITAL_MODE_ADAT)) {
+		(previous_mode == DIGITAL_MODE_ADAT || mode == DIGITAL_MODE_ADAT))
+	{
 		spin_lock_irq(&chip->lock);
+
 		for (o = 0; o < num_busses_out(chip); o++)
 			for (i = 0; i < num_busses_in(chip); i++)
 				set_monitor_gain(chip, o, i,
-						 chip->monitor_gain[o][i]);
+								 chip->monitor_gain[o][i]);
 
 #ifdef ECHOCARD_HAS_INPUT_GAIN
+
 		for (i = 0; i < num_busses_in(chip); i++)
+		{
 			set_input_gain(chip, i, chip->input_gain[i]);
+		}
+
 		update_input_line_level(chip);
 #endif
 
 		for (o = 0; o < num_busses_out(chip); o++)
+		{
 			set_output_gain(chip, o, chip->output_gain[o]);
+		}
+
 		update_output_line_level(chip);
 		spin_unlock_irq(&chip->lock);
 	}
@@ -162,40 +188,52 @@ static int set_professional_spdif(struct echoaudio *chip, char prof)
 
 	/* Set the new S/PDIF flags depending on the mode */
 	control_reg |= GML_SPDIF_TWO_CHANNEL | GML_SPDIF_24_BIT |
-		GML_SPDIF_COPY_PERMIT;
-	if (prof) {
+				   GML_SPDIF_COPY_PERMIT;
+
+	if (prof)
+	{
 		/* Professional mode */
 		control_reg |= GML_SPDIF_PRO_MODE;
 
-		switch (chip->sample_rate) {
-		case 32000:
-			control_reg |= GML_SPDIF_SAMPLE_RATE0 |
-				GML_SPDIF_SAMPLE_RATE1;
-			break;
-		case 44100:
-			control_reg |= GML_SPDIF_SAMPLE_RATE0;
-			break;
-		case 48000:
-			control_reg |= GML_SPDIF_SAMPLE_RATE1;
-			break;
+		switch (chip->sample_rate)
+		{
+			case 32000:
+				control_reg |= GML_SPDIF_SAMPLE_RATE0 |
+							   GML_SPDIF_SAMPLE_RATE1;
+				break;
+
+			case 44100:
+				control_reg |= GML_SPDIF_SAMPLE_RATE0;
+				break;
+
+			case 48000:
+				control_reg |= GML_SPDIF_SAMPLE_RATE1;
+				break;
 		}
-	} else {
+	}
+	else
+	{
 		/* Consumer mode */
-		switch (chip->sample_rate) {
-		case 32000:
-			control_reg |= GML_SPDIF_SAMPLE_RATE0 |
-				GML_SPDIF_SAMPLE_RATE1;
-			break;
-		case 48000:
-			control_reg |= GML_SPDIF_SAMPLE_RATE1;
-			break;
+		switch (chip->sample_rate)
+		{
+			case 32000:
+				control_reg |= GML_SPDIF_SAMPLE_RATE0 |
+							   GML_SPDIF_SAMPLE_RATE1;
+				break;
+
+			case 48000:
+				control_reg |= GML_SPDIF_SAMPLE_RATE1;
+				break;
 		}
 	}
 
 	if ((err = write_control_reg(chip, control_reg, false)))
+	{
 		return err;
+	}
+
 	chip->professional_spdif = prof;
 	dev_dbg(chip->card->dev, "set_professional_spdif to %s\n",
-		prof ? "Professional" : "Consumer");
+			prof ? "Professional" : "Consumer");
 	return 0;
 }

@@ -21,20 +21,24 @@ static void pci_ptm_info(struct pci_dev *dev)
 {
 	char clock_desc[8];
 
-	switch (dev->ptm_granularity) {
-	case 0:
-		snprintf(clock_desc, sizeof(clock_desc), "unknown");
-		break;
-	case 255:
-		snprintf(clock_desc, sizeof(clock_desc), ">254ns");
-		break;
-	default:
-		snprintf(clock_desc, sizeof(clock_desc), "%udns",
-			 dev->ptm_granularity);
-		break;
+	switch (dev->ptm_granularity)
+	{
+		case 0:
+			snprintf(clock_desc, sizeof(clock_desc), "unknown");
+			break;
+
+		case 255:
+			snprintf(clock_desc, sizeof(clock_desc), ">254ns");
+			break;
+
+		default:
+			snprintf(clock_desc, sizeof(clock_desc), "%udns",
+					 dev->ptm_granularity);
+			break;
 	}
+
 	dev_info(&dev->dev, "PTM enabled%s, %s granularity\n",
-		 dev->ptm_root ? " (root)" : "", clock_desc);
+			 dev->ptm_root ? " (root)" : "", clock_desc);
 }
 
 void pci_ptm_init(struct pci_dev *dev)
@@ -45,11 +49,16 @@ void pci_ptm_init(struct pci_dev *dev)
 	struct pci_dev *ups;
 
 	if (!pci_is_pcie(dev))
+	{
 		return;
+	}
 
 	pos = pci_find_ext_capability(dev, PCI_EXT_CAP_ID_PTM);
+
 	if (!pos)
+	{
 		return;
+	}
 
 	/*
 	 * Enable PTM only on interior devices (root ports, switch ports,
@@ -57,8 +66,10 @@ void pci_ptm_init(struct pci_dev *dev)
 	 * endpoint enables it.
 	 */
 	if ((pci_pcie_type(dev) == PCI_EXP_TYPE_ENDPOINT ||
-	     pci_pcie_type(dev) == PCI_EXP_TYPE_RC_END))
+		 pci_pcie_type(dev) == PCI_EXP_TYPE_RC_END))
+	{
 		return;
+	}
 
 	pci_read_config_dword(dev, pos + PCI_PTM_CAP, &cap);
 	local_clock = (cap & PCI_PTM_GRANULARITY_MASK) >> 8;
@@ -70,19 +81,32 @@ void pci_ptm_init(struct pci_dev *dev)
 	 * furthest upstream Time Source as the PTM Root.
 	 */
 	ups = pci_upstream_bridge(dev);
-	if (ups && ups->ptm_enabled) {
+
+	if (ups && ups->ptm_enabled)
+	{
 		ctrl = PCI_PTM_CTRL_ENABLE;
+
 		if (ups->ptm_granularity == 0)
+		{
 			dev->ptm_granularity = 0;
+		}
 		else if (ups->ptm_granularity > local_clock)
+		{
 			dev->ptm_granularity = ups->ptm_granularity;
-	} else {
-		if (cap & PCI_PTM_CAP_ROOT) {
+		}
+	}
+	else
+	{
+		if (cap & PCI_PTM_CAP_ROOT)
+		{
 			ctrl = PCI_PTM_CTRL_ENABLE | PCI_PTM_CTRL_ROOT;
 			dev->ptm_root = 1;
 			dev->ptm_granularity = local_clock;
-		} else
+		}
+		else
+		{
 			return;
+		}
 	}
 
 	ctrl |= dev->ptm_granularity << 8;
@@ -99,15 +123,23 @@ int pci_enable_ptm(struct pci_dev *dev, u8 *granularity)
 	struct pci_dev *ups;
 
 	if (!pci_is_pcie(dev))
+	{
 		return -EINVAL;
+	}
 
 	pos = pci_find_ext_capability(dev, PCI_EXT_CAP_ID_PTM);
+
 	if (!pos)
+	{
 		return -EINVAL;
+	}
 
 	pci_read_config_dword(dev, pos + PCI_PTM_CAP, &cap);
+
 	if (!(cap & PCI_PTM_CAP_REQ))
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * For a PCIe Endpoint, PTM is only useful if the endpoint can
@@ -117,16 +149,25 @@ int pci_enable_ptm(struct pci_dev *dev, u8 *granularity)
 	 * device, so there must be some implementation-specific way to
 	 * associate the endpoint with a time source.
 	 */
-	if (pci_pcie_type(dev) == PCI_EXP_TYPE_ENDPOINT) {
+	if (pci_pcie_type(dev) == PCI_EXP_TYPE_ENDPOINT)
+	{
 		ups = pci_upstream_bridge(dev);
+
 		if (!ups || !ups->ptm_enabled)
+		{
 			return -EINVAL;
+		}
 
 		dev->ptm_granularity = ups->ptm_granularity;
-	} else if (pci_pcie_type(dev) == PCI_EXP_TYPE_RC_END) {
+	}
+	else if (pci_pcie_type(dev) == PCI_EXP_TYPE_RC_END)
+	{
 		dev->ptm_granularity = 0;
-	} else
+	}
+	else
+	{
 		return -EINVAL;
+	}
 
 	ctrl = PCI_PTM_CTRL_ENABLE;
 	ctrl |= dev->ptm_granularity << 8;
@@ -136,7 +177,10 @@ int pci_enable_ptm(struct pci_dev *dev, u8 *granularity)
 	pci_ptm_info(dev);
 
 	if (granularity)
+	{
 		*granularity = dev->ptm_granularity;
+	}
+
 	return 0;
 }
 EXPORT_SYMBOL(pci_enable_ptm);

@@ -19,12 +19,14 @@ struct sigmadsp;
 struct snd_soc_component;
 struct snd_pcm_substream;
 
-struct sigmadsp_ops {
+struct sigmadsp_ops
+{
 	int (*safeload)(struct sigmadsp *sigmadsp, unsigned int addr,
-			const uint8_t *data, size_t len);
+					const uint8_t *data, size_t len);
 };
 
-struct sigmadsp {
+struct sigmadsp
+{
 	const struct sigmadsp_ops *ops;
 
 	struct list_head ctrl_list;
@@ -44,22 +46,22 @@ struct sigmadsp {
 };
 
 struct sigmadsp *devm_sigmadsp_init(struct device *dev,
-	const struct sigmadsp_ops *ops, const char *firmware_name);
+									const struct sigmadsp_ops *ops, const char *firmware_name);
 void sigmadsp_reset(struct sigmadsp *sigmadsp);
 
 int sigmadsp_restrict_params(struct sigmadsp *sigmadsp,
-	struct snd_pcm_substream *substream);
+							 struct snd_pcm_substream *substream);
 
 struct i2c_client;
 
 struct sigmadsp *devm_sigmadsp_init_regmap(struct device *dev,
-	struct regmap *regmap, const struct sigmadsp_ops *ops,
-	const char *firmware_name);
+		struct regmap *regmap, const struct sigmadsp_ops *ops,
+		const char *firmware_name);
 struct sigmadsp *devm_sigmadsp_init_i2c(struct i2c_client *client,
-	const struct sigmadsp_ops *ops,	const char *firmware_name);
+										const struct sigmadsp_ops *ops,	const char *firmware_name);
 
 int sigmadsp_attach(struct sigmadsp *sigmadsp,
-	struct snd_soc_component *component);
+					struct snd_soc_component *component);
 int sigmadsp_setup(struct sigmadsp *sigmadsp, unsigned int rate);
 void sigmadsp_reset(struct sigmadsp *sigmadsp);
 

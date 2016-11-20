@@ -76,16 +76,20 @@ static uint8_t rgb565_to_g16(u16 pixel)
 	u16 r = (pixel & (0x1f << (5 + 6))) >> (5 + 6);
 
 	pixel = (299 * r + 587 * g + 114 * b) / 195;
+
 	if (pixel > 255)
+	{
 		pixel = 255;
+	}
+
 	return (uint8_t)pixel / 16;
 }
 
 static void set_addr_win(struct fbtft_par *par, int xs, int ys, int xe, int ye)
 {
 	fbtft_par_dbg(DEBUG_SET_ADDR_WIN, par,
-		      "%s(xs=%d, ys=%d, xe=%d, ye=%d)\n", __func__, xs, ys, xe,
-		      ye);
+				  "%s(xs=%d, ys=%d, xe=%d, ye=%d)\n", __func__, xs, ys, xe,
+				  ye);
 
 	write_reg(par, 0x75);
 	write_reg(par, 0x00);
@@ -98,12 +102,17 @@ static void set_addr_win(struct fbtft_par *par, int xs, int ys, int xe, int ye)
 static int blank(struct fbtft_par *par, bool on)
 {
 	fbtft_par_dbg(DEBUG_BLANK, par, "%s(blank=%s)\n",
-		      __func__, on ? "true" : "false");
+				  __func__, on ? "true" : "false");
 
 	if (on)
+	{
 		write_reg(par, 0xAE);
+	}
 	else
+	{
 		write_reg(par, 0xAF);
+	}
+
 	return 0;
 }
 
@@ -122,24 +131,33 @@ static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 
 	fbtft_par_dbg(DEBUG_INIT_DISPLAY, par, "%s()\n", __func__);
 
-	for (i = 0; i < GAMMA_LEN; i++) {
-		if (i > 0 && curves[i] < 1) {
+	for (i = 0; i < GAMMA_LEN; i++)
+	{
+		if (i > 0 && curves[i] < 1)
+		{
 			dev_err(par->info->device,
-				"Illegal value in Grayscale Lookup Table at index %d.\n"
-				"Must be greater than 0\n", i);
+					"Illegal value in Grayscale Lookup Table at index %d.\n"
+					"Must be greater than 0\n", i);
 			return -EINVAL;
 		}
-		if (curves[i] > 7) {
+
+		if (curves[i] > 7)
+		{
 			dev_err(par->info->device,
-				"Illegal value(s) in Grayscale Lookup Table.\n"
-				"At index=%d, the accumulated value has exceeded 7\n",
-				i);
+					"Illegal value(s) in Grayscale Lookup Table.\n"
+					"At index=%d, the accumulated value has exceeded 7\n",
+					i);
 			return -EINVAL;
 		}
 	}
+
 	write_reg(par, 0xB8);
+
 	for (i = 0; i < 8; i++)
+	{
 		write_reg(par, (curves[i] & 0xFF));
+	}
+
 	return 0;
 }
 
@@ -152,13 +170,18 @@ static int write_vmem(struct fbtft_par *par, size_t offset, size_t len)
 	int y, x;
 	int ret;
 
-	for (x = 0; x < par->info->var.xres; x++) {
+	for (x = 0; x < par->info->var.xres; x++)
+	{
 		if (x % 2)
+		{
 			continue;
-		for (y = 0; y < par->info->var.yres; y++) {
+		}
+
+		for (y = 0; y < par->info->var.yres; y++)
+		{
 			n1 = rgb565_to_g16(vmem16[y * par->info->var.xres + x]);
 			n2 = rgb565_to_g16(vmem16
-					   [y * par->info->var.xres + x + 1]);
+							   [y * par->info->var.xres + x + 1]);
 			*buf = (n1 << 4) | n2;
 			buf++;
 		}
@@ -168,15 +191,17 @@ static int write_vmem(struct fbtft_par *par, size_t offset, size_t len)
 
 	/* Write data */
 	ret = par->fbtftops.write(par, par->txbuf.buf,
-				par->info->var.xres * par->info->var.yres / 2);
+							  par->info->var.xres * par->info->var.yres / 2);
+
 	if (ret < 0)
 		dev_err(par->info->device,
-			"%s: write failed and returned: %d\n", __func__, ret);
+				"%s: write failed and returned: %d\n", __func__, ret);
 
 	return ret;
 }
 
-static struct fbtft_display display = {
+static struct fbtft_display display =
+{
 	.regwidth = 8,
 	.width = WIDTH,
 	.height = HEIGHT,

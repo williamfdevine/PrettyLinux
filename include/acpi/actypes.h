@@ -52,7 +52,7 @@
  * 12/2006.
  */
 #ifndef ACPI_MACHINE_WIDTH
-#error ACPI_MACHINE_WIDTH not defined
+	#error ACPI_MACHINE_WIDTH not defined
 #endif
 
 /*
@@ -123,11 +123,11 @@
 
 #ifndef ACPI_USE_SYSTEM_INTTYPES
 
-typedef unsigned char u8;
-typedef unsigned short u16;
-typedef short s16;
-typedef COMPILER_DEPENDENT_UINT64 u64;
-typedef COMPILER_DEPENDENT_INT64 s64;
+	typedef unsigned char u8;
+	typedef unsigned short u16;
+	typedef short s16;
+	typedef COMPILER_DEPENDENT_UINT64 u64;
+	typedef COMPILER_DEPENDENT_INT64 s64;
 
 #endif				/* ACPI_USE_SYSTEM_INTTYPES */
 
@@ -149,86 +149,86 @@ typedef COMPILER_DEPENDENT_INT64 s64;
 
 #if ACPI_MACHINE_WIDTH == 64
 
-#ifndef ACPI_USE_SYSTEM_INTTYPES
+	#ifndef ACPI_USE_SYSTEM_INTTYPES
 
-typedef unsigned int u32;
-typedef int s32;
+		typedef unsigned int u32;
+		typedef int s32;
 
-#endif				/* ACPI_USE_SYSTEM_INTTYPES */
+	#endif				/* ACPI_USE_SYSTEM_INTTYPES */
 
-typedef s64 acpi_native_int;
+	typedef s64 acpi_native_int;
 
-typedef u64 acpi_size;
-typedef u64 acpi_io_address;
-typedef u64 acpi_physical_address;
+	typedef u64 acpi_size;
+	typedef u64 acpi_io_address;
+	typedef u64 acpi_physical_address;
 
-#define ACPI_MAX_PTR                    ACPI_UINT64_MAX
-#define ACPI_SIZE_MAX                   ACPI_UINT64_MAX
+	#define ACPI_MAX_PTR                    ACPI_UINT64_MAX
+	#define ACPI_SIZE_MAX                   ACPI_UINT64_MAX
 
-#define ACPI_USE_NATIVE_DIVIDE	/* Has native 64-bit integer support */
+	#define ACPI_USE_NATIVE_DIVIDE	/* Has native 64-bit integer support */
 
-/*
- * In the case of the Itanium Processor Family (IPF), the hardware does not
- * support misaligned memory transfers. Set the MISALIGNMENT_NOT_SUPPORTED flag
- * to indicate that special precautions must be taken to avoid alignment faults.
- * (IA64 or ia64 is currently used by existing compilers to indicate IPF.)
- *
- * Note: EM64T and other X86-64 processors support misaligned transfers,
- * so there is no need to define this flag.
- */
-#if defined (__IA64__) || defined (__ia64__)
-#define ACPI_MISALIGNMENT_NOT_SUPPORTED
-#endif
+	/*
+	* In the case of the Itanium Processor Family (IPF), the hardware does not
+	* support misaligned memory transfers. Set the MISALIGNMENT_NOT_SUPPORTED flag
+	* to indicate that special precautions must be taken to avoid alignment faults.
+	* (IA64 or ia64 is currently used by existing compilers to indicate IPF.)
+	*
+	* Note: EM64T and other X86-64 processors support misaligned transfers,
+	* so there is no need to define this flag.
+	*/
+	#if defined (__IA64__) || defined (__ia64__)
+		#define ACPI_MISALIGNMENT_NOT_SUPPORTED
+	#endif
 
-/*******************************************************************************
- *
- * Types specific to 32-bit targets
- *
- ******************************************************************************/
+	/*******************************************************************************
+	*
+	* Types specific to 32-bit targets
+	*
+	******************************************************************************/
 
 #elif ACPI_MACHINE_WIDTH == 32
 
-#ifndef ACPI_USE_SYSTEM_INTTYPES
+	#ifndef ACPI_USE_SYSTEM_INTTYPES
 
-typedef unsigned int u32;
-typedef int s32;
+		typedef unsigned int u32;
+		typedef int s32;
 
-#endif				/* ACPI_USE_SYSTEM_INTTYPES */
+	#endif				/* ACPI_USE_SYSTEM_INTTYPES */
 
-typedef s32 acpi_native_int;
+	typedef s32 acpi_native_int;
 
-typedef u32 acpi_size;
+	typedef u32 acpi_size;
 
-#ifdef ACPI_32BIT_PHYSICAL_ADDRESS
+	#ifdef ACPI_32BIT_PHYSICAL_ADDRESS
 
-/*
- * OSPMs can define this to shrink the size of the structures for 32-bit
- * none PAE environment. ASL compiler may always define this to generate
- * 32-bit OSPM compliant tables.
- */
-typedef u32 acpi_io_address;
-typedef u32 acpi_physical_address;
+		/*
+		* OSPMs can define this to shrink the size of the structures for 32-bit
+		* none PAE environment. ASL compiler may always define this to generate
+		* 32-bit OSPM compliant tables.
+		*/
+		typedef u32 acpi_io_address;
+		typedef u32 acpi_physical_address;
 
-#else				/* ACPI_32BIT_PHYSICAL_ADDRESS */
+	#else				/* ACPI_32BIT_PHYSICAL_ADDRESS */
 
-/*
- * It is reported that, after some calculations, the physical addresses can
- * wrap over the 32-bit boundary on 32-bit PAE environment.
- * https://bugzilla.kernel.org/show_bug.cgi?id=87971
- */
-typedef u64 acpi_io_address;
-typedef u64 acpi_physical_address;
+		/*
+		* It is reported that, after some calculations, the physical addresses can
+		* wrap over the 32-bit boundary on 32-bit PAE environment.
+		* https://bugzilla.kernel.org/show_bug.cgi?id=87971
+		*/
+		typedef u64 acpi_io_address;
+		typedef u64 acpi_physical_address;
 
-#endif				/* ACPI_32BIT_PHYSICAL_ADDRESS */
+	#endif				/* ACPI_32BIT_PHYSICAL_ADDRESS */
 
-#define ACPI_MAX_PTR                    ACPI_UINT32_MAX
-#define ACPI_SIZE_MAX                   ACPI_UINT32_MAX
+	#define ACPI_MAX_PTR                    ACPI_UINT32_MAX
+	#define ACPI_SIZE_MAX                   ACPI_UINT32_MAX
 
 #else
 
-/* ACPI_MACHINE_WIDTH must be either 64 or 32 */
+	/* ACPI_MACHINE_WIDTH must be either 64 or 32 */
 
-#error unknown ACPI_MACHINE_WIDTH
+	#error unknown ACPI_MACHINE_WIDTH
 #endif
 
 /*******************************************************************************
@@ -243,46 +243,46 @@ typedef u64 acpi_physical_address;
 /* Flags for acpi_os_acquire_lock/acpi_os_release_lock */
 
 #ifndef acpi_cpu_flags
-#define acpi_cpu_flags			acpi_size
+	#define acpi_cpu_flags			acpi_size
 #endif
 
 /* Object returned from acpi_os_create_cache */
 
 #ifndef acpi_cache_t
-#ifdef ACPI_USE_LOCAL_CACHE
-#define acpi_cache_t                    struct acpi_memory_list
-#else
-#define acpi_cache_t                    void *
-#endif
+	#ifdef ACPI_USE_LOCAL_CACHE
+		#define acpi_cache_t                    struct acpi_memory_list
+	#else
+		#define acpi_cache_t                    void *
+	#endif
 #endif
 
 /*
  * Synchronization objects - Mutexes, Semaphores, and spin_locks
  */
 #if (ACPI_MUTEX_TYPE == ACPI_BINARY_SEMAPHORE)
-/*
- * These macros are used if the host OS does not support a mutex object.
- * Map the OSL Mutex interfaces to binary semaphores.
- */
-#define acpi_mutex                      acpi_semaphore
-#define acpi_os_create_mutex(out_handle) acpi_os_create_semaphore (1, 1, out_handle)
-#define acpi_os_delete_mutex(handle)    (void) acpi_os_delete_semaphore (handle)
-#define acpi_os_acquire_mutex(handle,time) acpi_os_wait_semaphore (handle, 1, time)
-#define acpi_os_release_mutex(handle)   (void) acpi_os_signal_semaphore (handle, 1)
+	/*
+	* These macros are used if the host OS does not support a mutex object.
+	* Map the OSL Mutex interfaces to binary semaphores.
+	*/
+	#define acpi_mutex                      acpi_semaphore
+	#define acpi_os_create_mutex(out_handle) acpi_os_create_semaphore (1, 1, out_handle)
+	#define acpi_os_delete_mutex(handle)    (void) acpi_os_delete_semaphore (handle)
+	#define acpi_os_acquire_mutex(handle,time) acpi_os_wait_semaphore (handle, 1, time)
+	#define acpi_os_release_mutex(handle)   (void) acpi_os_signal_semaphore (handle, 1)
 #endif
 
 /* Configurable types for synchronization objects */
 
 #ifndef acpi_spinlock
-#define acpi_spinlock                   void *
+	#define acpi_spinlock                   void *
 #endif
 
 #ifndef acpi_semaphore
-#define acpi_semaphore                  void *
+	#define acpi_semaphore                  void *
 #endif
 
 #ifndef acpi_mutex
-#define acpi_mutex                      void *
+	#define acpi_mutex                      void *
 #endif
 
 /*******************************************************************************
@@ -297,7 +297,7 @@ typedef u64 acpi_physical_address;
 /* Use C99 uintptr_t for pointer casting if available, "void *" otherwise */
 
 #ifndef acpi_uintptr_t
-#define acpi_uintptr_t                  void *
+	#define acpi_uintptr_t                  void *
 #endif
 
 /*
@@ -305,7 +305,7 @@ typedef u64 acpi_physical_address;
  * some compilers can catch printf format string problems
  */
 #ifndef ACPI_PRINTF_LIKE
-#define ACPI_PRINTF_LIKE(c)
+	#define ACPI_PRINTF_LIKE(c)
 #endif
 
 /*
@@ -315,7 +315,7 @@ typedef u64 acpi_physical_address;
  * is unused
  */
 #ifndef ACPI_UNUSED_VAR
-#define ACPI_UNUSED_VAR
+	#define ACPI_UNUSED_VAR
 #endif
 
 /*
@@ -328,11 +328,11 @@ typedef u64 acpi_physical_address;
  * ACPI_EXPORT_SYMBOL is used for all other public external functions.
  */
 #ifndef ACPI_EXPORT_SYMBOL_INIT
-#define ACPI_EXPORT_SYMBOL_INIT(symbol)
+	#define ACPI_EXPORT_SYMBOL_INIT(symbol)
 #endif
 
 #ifndef ACPI_EXPORT_SYMBOL
-#define ACPI_EXPORT_SYMBOL(symbol)
+	#define ACPI_EXPORT_SYMBOL(symbol)
 #endif
 
 /*
@@ -340,7 +340,7 @@ typedef u64 acpi_physical_address;
  * utilities only.
  */
 #ifndef ACPI_DEBUG_INITIALIZE
-#define ACPI_DEBUG_INITIALIZE()
+	#define ACPI_DEBUG_INITIALIZE()
 #endif
 
 /*******************************************************************************
@@ -351,33 +351,33 @@ typedef u64 acpi_physical_address;
 
 #ifdef ACPI_NO_MEM_ALLOCATIONS
 
-#define ACPI_ALLOCATE(a)                NULL
-#define ACPI_ALLOCATE_ZEROED(a)         NULL
-#define ACPI_FREE(a)
-#define ACPI_MEM_TRACKING(a)
+	#define ACPI_ALLOCATE(a)                NULL
+	#define ACPI_ALLOCATE_ZEROED(a)         NULL
+	#define ACPI_FREE(a)
+	#define ACPI_MEM_TRACKING(a)
 
 #else				/* ACPI_NO_MEM_ALLOCATIONS */
 
-#ifdef ACPI_DBG_TRACK_ALLOCATIONS
-/*
- * Memory allocation tracking (used by acpi_exec to detect memory leaks)
- */
-#define ACPI_MEM_PARAMETERS             _COMPONENT, _acpi_module_name, __LINE__
-#define ACPI_ALLOCATE(a)                acpi_ut_allocate_and_track ((acpi_size) (a), ACPI_MEM_PARAMETERS)
-#define ACPI_ALLOCATE_ZEROED(a)         acpi_ut_allocate_zeroed_and_track ((acpi_size) (a), ACPI_MEM_PARAMETERS)
-#define ACPI_FREE(a)                    acpi_ut_free_and_track (a, ACPI_MEM_PARAMETERS)
-#define ACPI_MEM_TRACKING(a)            a
+	#ifdef ACPI_DBG_TRACK_ALLOCATIONS
+		/*
+		* Memory allocation tracking (used by acpi_exec to detect memory leaks)
+		*/
+		#define ACPI_MEM_PARAMETERS             _COMPONENT, _acpi_module_name, __LINE__
+		#define ACPI_ALLOCATE(a)                acpi_ut_allocate_and_track ((acpi_size) (a), ACPI_MEM_PARAMETERS)
+		#define ACPI_ALLOCATE_ZEROED(a)         acpi_ut_allocate_zeroed_and_track ((acpi_size) (a), ACPI_MEM_PARAMETERS)
+		#define ACPI_FREE(a)                    acpi_ut_free_and_track (a, ACPI_MEM_PARAMETERS)
+		#define ACPI_MEM_TRACKING(a)            a
 
-#else
-/*
- * Normal memory allocation directly via the OS services layer
- */
-#define ACPI_ALLOCATE(a)                acpi_os_allocate ((acpi_size) (a))
-#define ACPI_ALLOCATE_ZEROED(a)         acpi_os_allocate_zeroed ((acpi_size) (a))
-#define ACPI_FREE(a)                    acpi_os_free (a)
-#define ACPI_MEM_TRACKING(a)
+	#else
+		/*
+		* Normal memory allocation directly via the OS services layer
+		*/
+		#define ACPI_ALLOCATE(a)                acpi_os_allocate ((acpi_size) (a))
+		#define ACPI_ALLOCATE_ZEROED(a)         acpi_os_allocate_zeroed ((acpi_size) (a))
+		#define ACPI_FREE(a)                    acpi_os_free (a)
+		#define ACPI_MEM_TRACKING(a)
 
-#endif				/* ACPI_DBG_TRACK_ALLOCATIONS */
+	#endif				/* ACPI_DBG_TRACK_ALLOCATIONS */
 
 #endif				/* ACPI_NO_MEM_ALLOCATIONS */
 
@@ -428,17 +428,17 @@ typedef u64 acpi_physical_address;
 /* Logical defines and NULL */
 
 #ifdef FALSE
-#undef FALSE
+	#undef FALSE
 #endif
 #define FALSE                           (1 == 0)
 
 #ifdef TRUE
-#undef TRUE
+	#undef TRUE
 #endif
 #define TRUE                            (1 == 1)
 
 #ifndef NULL
-#define NULL                            (void *) 0
+	#define NULL                            (void *) 0
 #endif
 
 /*
@@ -539,11 +539,11 @@ typedef u64 acpi_integer;
 /* Optimizations for 4-character (32-bit) acpi_name manipulation */
 
 #ifndef ACPI_MISALIGNMENT_NOT_SUPPORTED
-#define ACPI_COMPARE_NAME(a,b)          (*ACPI_CAST_PTR (u32, (a)) == *ACPI_CAST_PTR (u32, (b)))
-#define ACPI_MOVE_NAME(dest,src)        (*ACPI_CAST_PTR (u32, (dest)) = *ACPI_CAST_PTR (u32, (src)))
+	#define ACPI_COMPARE_NAME(a,b)          (*ACPI_CAST_PTR (u32, (a)) == *ACPI_CAST_PTR (u32, (b)))
+	#define ACPI_MOVE_NAME(dest,src)        (*ACPI_CAST_PTR (u32, (dest)) = *ACPI_CAST_PTR (u32, (src)))
 #else
-#define ACPI_COMPARE_NAME(a,b)          (!strncmp (ACPI_CAST_PTR (char, (a)), ACPI_CAST_PTR (char, (b)), ACPI_NAME_SIZE))
-#define ACPI_MOVE_NAME(dest,src)        (strncpy (ACPI_CAST_PTR (char, (dest)), ACPI_CAST_PTR (char, (src)), ACPI_NAME_SIZE))
+	#define ACPI_COMPARE_NAME(a,b)          (!strncmp (ACPI_CAST_PTR (char, (a)), ACPI_CAST_PTR (char, (b)), ACPI_NAME_SIZE))
+	#define ACPI_MOVE_NAME(dest,src)        (strncpy (ACPI_CAST_PTR (char, (dest)), ACPI_CAST_PTR (char, (src)), ACPI_NAME_SIZE))
 #endif
 
 /* Support for the special RSDP signature (8 characters) */
@@ -898,7 +898,8 @@ typedef u8 acpi_adr_space_type;
 
 typedef acpi_status (*acpi_sleep_function) (u8 sleep_state);
 
-struct acpi_sleep_functions {
+struct acpi_sleep_functions
+{
 	acpi_sleep_function legacy_function;
 	acpi_sleep_function extended_function;
 };
@@ -911,45 +912,53 @@ struct acpi_sleep_functions {
  * Note: Type == ACPI_TYPE_ANY (0) is used to indicate a NULL package element
  * or an unresolved named reference.
  */
-union acpi_object {
+union acpi_object
+{
 	acpi_object_type type;	/* See definition of acpi_ns_type for values */
-	struct {
+	struct
+	{
 		acpi_object_type type;	/* ACPI_TYPE_INTEGER */
 		u64 value;	/* The actual number */
 	} integer;
 
-	struct {
+	struct
+	{
 		acpi_object_type type;	/* ACPI_TYPE_STRING */
 		u32 length;	/* # of bytes in string, excluding trailing null */
 		char *pointer;	/* points to the string value */
 	} string;
 
-	struct {
+	struct
+	{
 		acpi_object_type type;	/* ACPI_TYPE_BUFFER */
 		u32 length;	/* # of bytes in buffer */
 		u8 *pointer;	/* points to the buffer */
 	} buffer;
 
-	struct {
+	struct
+	{
 		acpi_object_type type;	/* ACPI_TYPE_PACKAGE */
 		u32 count;	/* # of elements in package */
 		union acpi_object *elements;	/* Pointer to an array of ACPI_OBJECTs */
 	} package;
 
-	struct {
+	struct
+	{
 		acpi_object_type type;	/* ACPI_TYPE_LOCAL_REFERENCE */
 		acpi_object_type actual_type;	/* Type associated with the Handle */
 		acpi_handle handle;	/* object reference */
 	} reference;
 
-	struct {
+	struct
+	{
 		acpi_object_type type;	/* ACPI_TYPE_PROCESSOR */
 		u32 proc_id;
 		acpi_io_address pblk_address;
 		u32 pblk_length;
 	} processor;
 
-	struct {
+	struct
+	{
 		acpi_object_type type;	/* ACPI_TYPE_POWER */
 		u32 system_level;
 		u32 resource_order;
@@ -959,7 +968,8 @@ union acpi_object {
 /*
  * List of objects, used as a parameter list for control method evaluation
  */
-struct acpi_object_list {
+struct acpi_object_list
+{
 	u32 count;
 	union acpi_object *pointer;
 };
@@ -971,17 +981,18 @@ struct acpi_object_list {
 
 #ifdef ACPI_NO_MEM_ALLOCATIONS
 
-#define ACPI_ALLOCATE_BUFFER        (acpi_size) (0)
-#define ACPI_ALLOCATE_LOCAL_BUFFER  (acpi_size) (0)
+	#define ACPI_ALLOCATE_BUFFER        (acpi_size) (0)
+	#define ACPI_ALLOCATE_LOCAL_BUFFER  (acpi_size) (0)
 
 #else				/* ACPI_NO_MEM_ALLOCATIONS */
 
-#define ACPI_ALLOCATE_BUFFER        (acpi_size) (-1)	/* Let ACPICA allocate buffer */
-#define ACPI_ALLOCATE_LOCAL_BUFFER  (acpi_size) (-2)	/* For internal use only (enables tracking) */
+	#define ACPI_ALLOCATE_BUFFER        (acpi_size) (-1)	/* Let ACPICA allocate buffer */
+	#define ACPI_ALLOCATE_LOCAL_BUFFER  (acpi_size) (-2)	/* For internal use only (enables tracking) */
 
 #endif				/* ACPI_NO_MEM_ALLOCATIONS */
 
-struct acpi_buffer {
+struct acpi_buffer
+{
 	acpi_size length;	/* Length in bytes of the buffer */
 	void *pointer;		/* pointer to buffer */
 };
@@ -997,7 +1008,8 @@ struct acpi_buffer {
 /*
  * Predefined Namespace items
  */
-struct acpi_predefined_names {
+struct acpi_predefined_names
+{
 	const char *name;
 	u8 type;
 	char *val;
@@ -1014,7 +1026,8 @@ struct acpi_predefined_names {
 /*
  * System info returned by acpi_get_system_info()
  */
-struct acpi_system_info {
+struct acpi_system_info
+{
 	u32 acpi_ca_version;
 	u32 flags;
 	u32 timer_resolution;
@@ -1027,7 +1040,8 @@ struct acpi_system_info {
 /*
  * System statistics returned by acpi_get_statistics()
  */
-struct acpi_statistics {
+struct acpi_statistics
+{
 	u32 sci_count;
 	u32 gpe_count;
 	u32 fixed_event_count[ACPI_NUM_FIXED_EVENTS];
@@ -1038,10 +1052,10 @@ struct acpi_statistics {
  * Types specific to the OS service interfaces
  */
 typedef u32
- (ACPI_SYSTEM_XFACE * acpi_osd_handler) (void *context);
+(ACPI_SYSTEM_XFACE *acpi_osd_handler) (void *context);
 
 typedef void
- (ACPI_SYSTEM_XFACE * acpi_osd_exec_callback) (void *context);
+(ACPI_SYSTEM_XFACE *acpi_osd_exec_callback) (void *context);
 
 /*
  * Various handlers and callback procedures
@@ -1051,8 +1065,8 @@ u32 (*acpi_sci_handler) (void *context);
 
 typedef
 void (*acpi_gbl_event_handler) (u32 event_type,
-			       acpi_handle device,
-			       u32 event_number, void *context);
+								acpi_handle device,
+								u32 event_number, void *context);
 
 #define ACPI_EVENT_TYPE_GPE         0
 #define ACPI_EVENT_TYPE_FIXED       1
@@ -1076,9 +1090,9 @@ acpi_status (*acpi_init_handler) (acpi_handle object, u32 function);
 
 typedef
 acpi_status (*acpi_exception_handler) (acpi_status aml_status,
-				       acpi_name name,
-				       u16 opcode,
-				       u32 aml_offset, void *context);
+									   acpi_name name,
+									   u16 opcode,
+									   u32 aml_offset, void *context);
 
 /* Table Event handler (Load, load_table, etc.) and types */
 
@@ -1097,17 +1111,18 @@ acpi_status (*acpi_table_handler) (u32 event, void *table, void *context);
 
 typedef
 acpi_status (*acpi_adr_space_handler) (u32 function,
-				       acpi_physical_address address,
-				       u32 bit_width,
-				       u64 *value,
-				       void *handler_context,
-				       void *region_context);
+									   acpi_physical_address address,
+									   u32 bit_width,
+									   u64 *value,
+									   void *handler_context,
+									   void *region_context);
 
 #define ACPI_DEFAULT_HANDLER            NULL
 
 /* Special Context data for generic_serial_bus/general_purpose_io (ACPI 5.0) */
 
-struct acpi_connection_info {
+struct acpi_connection_info
+{
 	u8 *connection;
 	u16 length;
 	u8 access_length;
@@ -1115,17 +1130,17 @@ struct acpi_connection_info {
 
 typedef
 acpi_status (*acpi_adr_space_setup) (acpi_handle region_handle,
-				     u32 function,
-				     void *handler_context,
-				     void **region_context);
+									 u32 function,
+									 void *handler_context,
+									 void **region_context);
 
 #define ACPI_REGION_ACTIVATE    0
 #define ACPI_REGION_DEACTIVATE  1
 
 typedef
 acpi_status (*acpi_walk_callback) (acpi_handle object,
-				   u32 nesting_level,
-				   void *context, void **return_value);
+								   u32 nesting_level,
+								   void *context, void **return_value);
 
 typedef
 u32 (*acpi_interface_handler) (acpi_string interface_name, u32 supported);
@@ -1153,12 +1168,14 @@ u32 (*acpi_interface_handler) (acpi_string interface_name, u32 supported);
 
 /* Structures used for device/processor HID, UID, CID */
 
-struct acpi_pnp_device_id {
+struct acpi_pnp_device_id
+{
 	u32 length;		/* Length of string + null */
 	char *string;
 };
 
-struct acpi_pnp_device_id_list {
+struct acpi_pnp_device_id_list
+{
 	u32 count;		/* Number of IDs in Ids array */
 	u32 list_size;		/* Size of list, including ID strings */
 	struct acpi_pnp_device_id ids[1];	/* ID array */
@@ -1168,7 +1185,8 @@ struct acpi_pnp_device_id_list {
  * Structure returned from acpi_get_object_info.
  * Optimized for both 32- and 64-bit builds
  */
-struct acpi_device_info {
+struct acpi_device_info
+{
 	u32 info_size;		/* Size of info, including ID strings */
 	u32 name;		/* ACPI object Name */
 	acpi_object_type type;	/* ACPI object Type */
@@ -1211,14 +1229,16 @@ struct acpi_device_info {
 
 /* Context structs for address space handlers */
 
-struct acpi_pci_id {
+struct acpi_pci_id
+{
 	u16 segment;
 	u16 bus;
 	u16 device;
 	u16 function;
 };
 
-struct acpi_mem_space_context {
+struct acpi_mem_space_context
+{
 	u32 length;
 	acpi_physical_address address;
 	acpi_physical_address mapped_physical_address;
@@ -1229,7 +1249,8 @@ struct acpi_mem_space_context {
 /*
  * struct acpi_memory_list is used only if the ACPICA local cache is enabled
  */
-struct acpi_memory_list {
+struct acpi_memory_list
+{
 	const char *list_name;
 	void *list_head;
 	u16 object_size;
@@ -1252,7 +1273,8 @@ struct acpi_memory_list {
 
 /* Definitions of trace event types */
 
-typedef enum {
+typedef enum
+{
 	ACPI_TRACE_AML_METHOD,
 	ACPI_TRACE_AML_OPCODE,
 	ACPI_TRACE_AML_REGION

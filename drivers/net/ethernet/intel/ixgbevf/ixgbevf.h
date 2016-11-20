@@ -38,8 +38,8 @@
 #include "vf.h"
 
 #ifdef CONFIG_NET_RX_BUSY_POLL
-#include <net/busy_poll.h>
-#define BP_EXTENDED_STATS
+	#include <net/busy_poll.h>
+	#define BP_EXTENDED_STATS
 #endif
 
 #define IXGBE_MAX_TXD_PWR	14
@@ -52,7 +52,8 @@
 /* wrapper around a pointer to a socket buffer,
  * so a DMA handle can be stored along with the buffer
  */
-struct ixgbevf_tx_buffer {
+struct ixgbevf_tx_buffer
+{
 	union ixgbe_adv_tx_desc *next_to_watch;
 	unsigned long time_stamp;
 	struct sk_buff *skb;
@@ -64,13 +65,15 @@ struct ixgbevf_tx_buffer {
 	u32 tx_flags;
 };
 
-struct ixgbevf_rx_buffer {
+struct ixgbevf_rx_buffer
+{
 	dma_addr_t dma;
 	struct page *page;
 	unsigned int page_offset;
 };
 
-struct ixgbevf_stats {
+struct ixgbevf_stats
+{
 	u64 packets;
 	u64 bytes;
 #ifdef BP_EXTENDED_STATS
@@ -80,19 +83,22 @@ struct ixgbevf_stats {
 #endif
 };
 
-struct ixgbevf_tx_queue_stats {
+struct ixgbevf_tx_queue_stats
+{
 	u64 restart_queue;
 	u64 tx_busy;
 	u64 tx_done_old;
 };
 
-struct ixgbevf_rx_queue_stats {
+struct ixgbevf_rx_queue_stats
+{
 	u64 alloc_rx_page_failed;
 	u64 alloc_rx_buff_failed;
 	u64 csum_err;
 };
 
-enum ixgbevf_ring_state_t {
+enum ixgbevf_ring_state_t
+{
 	__IXGBEVF_TX_DETECT_HANG,
 	__IXGBEVF_HANG_CHECK_ARMED,
 };
@@ -104,7 +110,8 @@ enum ixgbevf_ring_state_t {
 #define clear_check_for_tx_hang(ring) \
 	clear_bit(__IXGBEVF_TX_DETECT_HANG, &(ring)->state)
 
-struct ixgbevf_ring {
+struct ixgbevf_ring
+{
 	struct ixgbevf_ring *next;
 	struct net_device *netdev;
 	struct device *dev;
@@ -116,14 +123,16 @@ struct ixgbevf_ring {
 	u16 next_to_clean;
 	u16 next_to_alloc;
 
-	union {
+	union
+	{
 		struct ixgbevf_tx_buffer *tx_buffer_info;
 		struct ixgbevf_rx_buffer *rx_buffer_info;
 	};
 	unsigned long state;
 	struct ixgbevf_stats stats;
 	struct u64_stats_sync syncp;
-	union {
+	union
+	{
 		struct ixgbevf_tx_queue_stats tx_stats;
 		struct ixgbevf_rx_queue_stats rx_stats;
 	};
@@ -174,7 +183,8 @@ struct ixgbevf_ring {
 #define IXGBE_TX_FLAGS_VLAN_PRIO_MASK	0x0000e000
 #define IXGBE_TX_FLAGS_VLAN_SHIFT	16
 
-struct ixgbevf_ring_container {
+struct ixgbevf_ring_container
+{
 	struct ixgbevf_ring *ring;	/* pointer to linked list of rings */
 	unsigned int total_bytes;	/* total bytes processed this int */
 	unsigned int total_packets;	/* total packets processed this int */
@@ -189,7 +199,8 @@ struct ixgbevf_ring_container {
 /* MAX_MSIX_Q_VECTORS of these are allocated,
  * but we only use one per queue-specific vector.
  */
-struct ixgbevf_q_vector {
+struct ixgbevf_q_vector
+{
 	struct ixgbevf_adapter *adapter;
 	/* index of q_vector within array, also used for finding the bit in
 	 * EICR and friends that represents the vector for this ring
@@ -210,9 +221,9 @@ struct ixgbevf_q_vector {
 #define IXGBEVF_QV_STATE_NAPI_YIELD	8    /* NAPI yielded this QV */
 #define IXGBEVF_QV_STATE_POLL_YIELD	16   /* poll yielded this QV */
 #define IXGBEVF_QV_YIELD	(IXGBEVF_QV_STATE_NAPI_YIELD | \
-				 IXGBEVF_QV_STATE_POLL_YIELD)
+							 IXGBEVF_QV_STATE_POLL_YIELD)
 #define IXGBEVF_QV_USER_PEND	(IXGBEVF_QV_STATE_POLL | \
-				 IXGBEVF_QV_STATE_POLL_YIELD)
+								 IXGBEVF_QV_STATE_POLL_YIELD)
 	spinlock_t lock;
 #endif /* CONFIG_NET_RX_BUSY_POLL */
 };
@@ -230,17 +241,22 @@ static inline bool ixgbevf_qv_lock_napi(struct ixgbevf_q_vector *q_vector)
 	int rc = true;
 
 	spin_lock_bh(&q_vector->lock);
-	if (q_vector->state & IXGBEVF_QV_LOCKED) {
+
+	if (q_vector->state & IXGBEVF_QV_LOCKED)
+	{
 		WARN_ON(q_vector->state & IXGBEVF_QV_STATE_NAPI);
 		q_vector->state |= IXGBEVF_QV_STATE_NAPI_YIELD;
 		rc = false;
 #ifdef BP_EXTENDED_STATS
 		q_vector->tx.ring->stats.yields++;
 #endif
-	} else {
+	}
+	else
+	{
 		/* we don't care if someone yielded */
 		q_vector->state = IXGBEVF_QV_STATE_NAPI;
 	}
+
 	spin_unlock_bh(&q_vector->lock);
 	return rc;
 }
@@ -252,10 +268,13 @@ static inline bool ixgbevf_qv_unlock_napi(struct ixgbevf_q_vector *q_vector)
 
 	spin_lock_bh(&q_vector->lock);
 	WARN_ON(q_vector->state & (IXGBEVF_QV_STATE_POLL |
-				   IXGBEVF_QV_STATE_NAPI_YIELD));
+							   IXGBEVF_QV_STATE_NAPI_YIELD));
 
 	if (q_vector->state & IXGBEVF_QV_STATE_POLL_YIELD)
+	{
 		rc = true;
+	}
+
 	/* reset state to idle, unless QV is disabled */
 	q_vector->state &= IXGBEVF_QV_STATE_DISABLED;
 	spin_unlock_bh(&q_vector->lock);
@@ -268,16 +287,21 @@ static inline bool ixgbevf_qv_lock_poll(struct ixgbevf_q_vector *q_vector)
 	int rc = true;
 
 	spin_lock_bh(&q_vector->lock);
-	if ((q_vector->state & IXGBEVF_QV_LOCKED)) {
+
+	if ((q_vector->state & IXGBEVF_QV_LOCKED))
+	{
 		q_vector->state |= IXGBEVF_QV_STATE_POLL_YIELD;
 		rc = false;
 #ifdef BP_EXTENDED_STATS
 		q_vector->rx.ring->stats.yields++;
 #endif
-	} else {
+	}
+	else
+	{
 		/* preserve yield marks */
 		q_vector->state |= IXGBEVF_QV_STATE_POLL;
 	}
+
 	spin_unlock_bh(&q_vector->lock);
 	return rc;
 }
@@ -291,7 +315,10 @@ static inline bool ixgbevf_qv_unlock_poll(struct ixgbevf_q_vector *q_vector)
 	WARN_ON(q_vector->state & (IXGBEVF_QV_STATE_NAPI));
 
 	if (q_vector->state & IXGBEVF_QV_STATE_POLL_YIELD)
+	{
 		rc = true;
+	}
+
 	/* reset state to idle, unless QV is disabled */
 	q_vector->state &= IXGBEVF_QV_STATE_DISABLED;
 	spin_unlock_bh(&q_vector->lock);
@@ -311,8 +338,12 @@ static inline bool ixgbevf_qv_disable(struct ixgbevf_q_vector *q_vector)
 	int rc = true;
 
 	spin_lock_bh(&q_vector->lock);
+
 	if (q_vector->state & IXGBEVF_QV_OWNED)
+	{
 		rc = false;
+	}
+
 	q_vector->state |= IXGBEVF_QV_STATE_DISABLED;
 	spin_unlock_bh(&q_vector->lock);
 	return rc;
@@ -338,7 +369,7 @@ static inline bool ixgbevf_qv_disable(struct ixgbevf_q_vector *q_vector)
 
 /* ixgbevf_test_staterr - tests bits in Rx descriptor status and error fields */
 static inline __le32 ixgbevf_test_staterr(union ixgbe_adv_rx_desc *rx_desc,
-					  const u32 stat_err_bits)
+		const u32 stat_err_bits)
 {
 	return rx_desc->wb.upper.status_error & cpu_to_le32(stat_err_bits);
 }
@@ -374,7 +405,8 @@ static inline void ixgbevf_write_tail(struct ixgbevf_ring *ring, u32 value)
 #define MIN_MSIX_COUNT		(MIN_MSIX_Q_VECTORS + NON_Q_VECTORS)
 
 /* board specific private data structure */
-struct ixgbevf_adapter {
+struct ixgbevf_adapter
+{
 	/* this field must be first, see ixgbevf_process_skb_fields */
 	unsigned long active_vlans[BITS_TO_LONGS(VLAN_N_VID)];
 
@@ -436,7 +468,8 @@ struct ixgbevf_adapter {
 	u8 rss_indir_tbl[IXGBEVF_X550_VFRETA_SIZE];
 };
 
-enum ixbgevf_state_t {
+enum ixbgevf_state_t
+{
 	__IXGBEVF_TESTING,
 	__IXGBEVF_RESETTING,
 	__IXGBEVF_DOWN,
@@ -448,7 +481,8 @@ enum ixbgevf_state_t {
 	__IXGBEVF_QUEUE_RESET_REQUESTED,
 };
 
-enum ixgbevf_boards {
+enum ixgbevf_boards
+{
 	board_82599_vf,
 	board_82599_vf_hv,
 	board_X540_vf,
@@ -460,7 +494,8 @@ enum ixgbevf_boards {
 	board_x550em_a_vf,
 };
 
-enum ixgbevf_xcast_modes {
+enum ixgbevf_xcast_modes
+{
 	IXGBEVF_XCAST_MODE_NONE = 0,
 	IXGBEVF_XCAST_MODE_MULTI,
 	IXGBEVF_XCAST_MODE_ALLMULTI,

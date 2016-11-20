@@ -13,7 +13,8 @@
 #ifndef _SUN4I_LAYER_H_
 #define _SUN4I_LAYER_H_
 
-struct sun4i_layer {
+struct sun4i_layer
+{
 	struct drm_plane	plane;
 	struct sun4i_drv	*drv;
 	int			id;

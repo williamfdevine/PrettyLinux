@@ -62,7 +62,8 @@
  * @outqueue: list of connection objects for its server
  * @swork: send work item
  */
-struct tipc_conn {
+struct tipc_conn
+{
 	struct kref kref;
 	int conid;
 	struct socket *sock;
@@ -77,7 +78,8 @@ struct tipc_conn {
 };
 
 /* An entry waiting to be sent */
-struct outqueue_entry {
+struct outqueue_entry
+{
 	struct list_head list;
 	struct kvec iov;
 	struct sockaddr_tipc dest;
@@ -95,12 +97,16 @@ static void tipc_conn_kref_release(struct kref *kref)
 	struct socket *sock = con->sock;
 	struct sock *sk;
 
-	if (sock) {
+	if (sock)
+	{
 		sk = sock->sk;
-		if (test_bit(CF_SERVER, &con->flags)) {
+
+		if (test_bit(CF_SERVER, &con->flags))
+		{
 			__module_get(sock->ops->owner);
 			__module_get(sk->sk_prot_creator->owner);
 		}
+
 		saddr->scope = -TIPC_NODE_SCOPE;
 		kernel_bind(sock, (struct sockaddr *)saddr, sizeof(*saddr));
 		tipc_sock_release(con);
@@ -128,8 +134,12 @@ static struct tipc_conn *tipc_conn_lookup(struct tipc_server *s, int conid)
 
 	spin_lock_bh(&s->idr_lock);
 	con = idr_find(&s->conn_idr, conid);
+
 	if (con)
+	{
 		conn_get(con);
+	}
+
 	spin_unlock_bh(&s->idr_lock);
 	return con;
 }
@@ -140,11 +150,17 @@ static void sock_data_ready(struct sock *sk)
 
 	read_lock_bh(&sk->sk_callback_lock);
 	con = sock2con(sk);
-	if (con && test_bit(CF_CONNECTED, &con->flags)) {
+
+	if (con && test_bit(CF_CONNECTED, &con->flags))
+	{
 		conn_get(con);
+
 		if (!queue_work(con->server->rcv_wq, &con->rwork))
+		{
 			conn_put(con);
+		}
 	}
+
 	read_unlock_bh(&sk->sk_callback_lock);
 }
 
@@ -154,11 +170,17 @@ static void sock_write_space(struct sock *sk)
 
 	read_lock_bh(&sk->sk_callback_lock);
 	con = sock2con(sk);
-	if (con && test_bit(CF_CONNECTED, &con->flags)) {
+
+	if (con && test_bit(CF_CONNECTED, &con->flags))
+	{
 		conn_get(con);
+
 		if (!queue_work(con->server->send_wq, &con->swork))
+		{
 			conn_put(con);
+		}
 	}
+
 	read_unlock_bh(&sk->sk_callback_lock);
 }
 
@@ -191,7 +213,9 @@ static void tipc_sock_release(struct tipc_conn *con)
 	struct tipc_server *s = con->server;
 
 	if (con->conid)
+	{
 		s->tipc_conn_release(con->conid, con->usr_data);
+	}
 
 	tipc_unregister_callbacks(con);
 }
@@ -200,7 +224,8 @@ static void tipc_close_conn(struct tipc_conn *con)
 {
 	struct tipc_server *s = con->server;
 
-	if (test_and_clear_bit(CF_CONNECTED, &con->flags)) {
+	if (test_and_clear_bit(CF_CONNECTED, &con->flags))
+	{
 
 		spin_lock_bh(&s->idr_lock);
 		idr_remove(&s->conn_idr, con->conid);
@@ -224,8 +249,11 @@ static struct tipc_conn *tipc_alloc_conn(struct tipc_server *s)
 	int ret;
 
 	con = kzalloc(sizeof(struct tipc_conn), GFP_ATOMIC);
+
 	if (!con)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	kref_init(&con->kref);
 	INIT_LIST_HEAD(&con->outqueue);
@@ -235,11 +263,14 @@ static struct tipc_conn *tipc_alloc_conn(struct tipc_server *s)
 
 	spin_lock_bh(&s->idr_lock);
 	ret = idr_alloc(&s->conn_idr, con, 0, 0, GFP_ATOMIC);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		kfree(con);
 		spin_unlock_bh(&s->idr_lock);
 		return ERR_PTR(-ENOMEM);
 	}
+
 	con->conid = ret;
 	s->idr_in_use++;
 	spin_unlock_bh(&s->idr_lock);
@@ -260,7 +291,9 @@ static int tipc_receive_from_sock(struct tipc_conn *con)
 	int ret;
 
 	buf = kmem_cache_alloc(s->rcvbuf_cache, GFP_ATOMIC);
-	if (!buf) {
+
+	if (!buf)
+	{
 		ret = -ENOMEM;
 		goto out_close;
 	}
@@ -269,25 +302,32 @@ static int tipc_receive_from_sock(struct tipc_conn *con)
 	iov.iov_len = s->max_rcvbuf_size;
 	msg.msg_name = &addr;
 	ret = kernel_recvmsg(con->sock, &msg, &iov, 1, iov.iov_len,
-			     MSG_DONTWAIT);
-	if (ret <= 0) {
+						 MSG_DONTWAIT);
+
+	if (ret <= 0)
+	{
 		kmem_cache_free(s->rcvbuf_cache, buf);
 		goto out_close;
 	}
 
 	s->tipc_conn_recvmsg(sock_net(con->sock->sk), con->conid, &addr,
-			     con->usr_data, buf, ret);
+						 con->usr_data, buf, ret);
 
 	kmem_cache_free(s->rcvbuf_cache, buf);
 
 	return 0;
 
 out_close:
+
 	if (ret != -EWOULDBLOCK)
+	{
 		tipc_close_conn(con);
+	}
 	else if (ret == 0)
 		/* Don't return success if we really got EOF */
+	{
 		ret = -EAGAIN;
+	}
 
 	return ret;
 }
@@ -301,11 +341,16 @@ static int tipc_accept_from_sock(struct tipc_conn *con)
 	int ret;
 
 	ret = kernel_accept(sock, &newsock, O_NONBLOCK);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	newcon = tipc_alloc_conn(con->server);
-	if (IS_ERR(newcon)) {
+
+	if (IS_ERR(newcon))
+	{
 		ret = PTR_ERR(newcon);
 		sock_release(newsock);
 		return ret;
@@ -316,7 +361,9 @@ static int tipc_accept_from_sock(struct tipc_conn *con)
 
 	/* Notify that new connection is incoming */
 	newcon->usr_data = s->tipc_conn_new(newcon->conid);
-	if (!newcon->usr_data) {
+
+	if (!newcon->usr_data)
+	{
 		sock_release(newsock);
 		return -ENOMEM;
 	}
@@ -333,32 +380,50 @@ static struct socket *tipc_create_listen_sock(struct tipc_conn *con)
 	int ret;
 
 	ret = sock_create_kern(s->net, AF_TIPC, SOCK_SEQPACKET, 0, &sock);
+
 	if (ret < 0)
+	{
 		return NULL;
+	}
+
 	ret = kernel_setsockopt(sock, SOL_TIPC, TIPC_IMPORTANCE,
-				(char *)&s->imp, sizeof(s->imp));
+							(char *)&s->imp, sizeof(s->imp));
+
 	if (ret < 0)
+	{
 		goto create_err;
+	}
+
 	ret = kernel_bind(sock, (struct sockaddr *)s->saddr, sizeof(*s->saddr));
+
 	if (ret < 0)
+	{
 		goto create_err;
+	}
 
-	switch (s->type) {
-	case SOCK_STREAM:
-	case SOCK_SEQPACKET:
-		con->rx_action = tipc_accept_from_sock;
+	switch (s->type)
+	{
+		case SOCK_STREAM:
+		case SOCK_SEQPACKET:
+			con->rx_action = tipc_accept_from_sock;
 
-		ret = kernel_listen(sock, 0);
-		if (ret < 0)
+			ret = kernel_listen(sock, 0);
+
+			if (ret < 0)
+			{
+				goto create_err;
+			}
+
+			break;
+
+		case SOCK_DGRAM:
+		case SOCK_RDM:
+			con->rx_action = tipc_receive_from_sock;
+			break;
+
+		default:
+			pr_err("Unknown socket type %d\n", s->type);
 			goto create_err;
-		break;
-	case SOCK_DGRAM:
-	case SOCK_RDM:
-		con->rx_action = tipc_receive_from_sock;
-		break;
-	default:
-		pr_err("Unknown socket type %d\n", s->type);
-		goto create_err;
 	}
 
 	/* As server's listening socket owner and creator is the same module,
@@ -394,11 +459,16 @@ static int tipc_open_listening_sock(struct tipc_server *s)
 	struct tipc_conn *con;
 
 	con = tipc_alloc_conn(s);
+
 	if (IS_ERR(con))
+	{
 		return PTR_ERR(con);
+	}
 
 	sock = tipc_create_listen_sock(con);
-	if (!sock) {
+
+	if (!sock)
+	{
 		idr_remove(&s->conn_idr, con->conid);
 		s->idr_in_use--;
 		kfree(con);
@@ -415,11 +485,16 @@ static struct outqueue_entry *tipc_alloc_entry(void *data, int len)
 	void *buf;
 
 	entry = kmalloc(sizeof(struct outqueue_entry), GFP_ATOMIC);
+
 	if (!entry)
+	{
 		return NULL;
+	}
 
 	buf = kmemdup(data, len, GFP_ATOMIC);
-	if (!buf) {
+
+	if (!buf)
+	{
 		kfree(entry);
 		return NULL;
 	}
@@ -441,7 +516,8 @@ static void tipc_clean_outqueues(struct tipc_conn *con)
 	struct outqueue_entry *e, *safe;
 
 	spin_lock_bh(&con->outqueue_lock);
-	list_for_each_entry_safe(e, safe, &con->outqueue, list) {
+	list_for_each_entry_safe(e, safe, &con->outqueue, list)
+	{
 		list_del(&e->list);
 		tipc_free_entry(e);
 	}
@@ -449,34 +525,47 @@ static void tipc_clean_outqueues(struct tipc_conn *con)
 }
 
 int tipc_conn_sendmsg(struct tipc_server *s, int conid,
-		      struct sockaddr_tipc *addr, void *data, size_t len)
+					  struct sockaddr_tipc *addr, void *data, size_t len)
 {
 	struct outqueue_entry *e;
 	struct tipc_conn *con;
 
 	con = tipc_conn_lookup(s, conid);
+
 	if (!con)
+	{
 		return -EINVAL;
+	}
 
 	e = tipc_alloc_entry(data, len);
-	if (!e) {
+
+	if (!e)
+	{
 		conn_put(con);
 		return -ENOMEM;
 	}
 
 	if (addr)
+	{
 		memcpy(&e->dest, addr, sizeof(struct sockaddr_tipc));
+	}
 
 	spin_lock_bh(&con->outqueue_lock);
 	list_add_tail(&e->list, &con->outqueue);
 	spin_unlock_bh(&con->outqueue_lock);
 
-	if (test_bit(CF_CONNECTED, &con->flags)) {
+	if (test_bit(CF_CONNECTED, &con->flags))
+	{
 		if (!queue_work(s->send_wq, &con->swork))
+		{
 			conn_put(con);
-	} else {
+		}
+	}
+	else
+	{
 		conn_put(con);
 	}
+
 	return 0;
 }
 
@@ -485,7 +574,9 @@ void tipc_conn_terminate(struct tipc_server *s, int conid)
 	struct tipc_conn *con;
 
 	con = tipc_conn_lookup(s, conid);
-	if (con) {
+
+	if (con)
+	{
 		tipc_close_conn(con);
 		conn_put(con);
 	}
@@ -500,31 +591,44 @@ static void tipc_send_to_sock(struct tipc_conn *con)
 	int ret;
 
 	spin_lock_bh(&con->outqueue_lock);
-	while (1) {
+
+	while (1)
+	{
 		e = list_entry(con->outqueue.next, struct outqueue_entry,
-			       list);
+					   list);
+
 		if ((struct list_head *) e == &con->outqueue)
+		{
 			break;
+		}
+
 		spin_unlock_bh(&con->outqueue_lock);
 
 		memset(&msg, 0, sizeof(msg));
 		msg.msg_flags = MSG_DONTWAIT;
 
-		if (s->type == SOCK_DGRAM || s->type == SOCK_RDM) {
+		if (s->type == SOCK_DGRAM || s->type == SOCK_RDM)
+		{
 			msg.msg_name = &e->dest;
 			msg.msg_namelen = sizeof(struct sockaddr_tipc);
 		}
+
 		ret = kernel_sendmsg(con->sock, &msg, &e->iov, 1,
-				     e->iov.iov_len);
-		if (ret == -EWOULDBLOCK || ret == 0) {
+							 e->iov.iov_len);
+
+		if (ret == -EWOULDBLOCK || ret == 0)
+		{
 			cond_resched();
 			goto out;
-		} else if (ret < 0) {
+		}
+		else if (ret < 0)
+		{
 			goto send_err;
 		}
 
 		/* Don't starve users filling buffers */
-		if (++count >= MAX_SEND_MSG_COUNT) {
+		if (++count >= MAX_SEND_MSG_COUNT)
+		{
 			cond_resched();
 			count = 0;
 		}
@@ -533,6 +637,7 @@ static void tipc_send_to_sock(struct tipc_conn *con)
 		list_del(&e->list);
 		tipc_free_entry(e);
 	}
+
 	spin_unlock_bh(&con->outqueue_lock);
 out:
 	return;
@@ -546,16 +651,21 @@ static void tipc_recv_work(struct work_struct *work)
 	struct tipc_conn *con = container_of(work, struct tipc_conn, rwork);
 	int count = 0;
 
-	while (test_bit(CF_CONNECTED, &con->flags)) {
+	while (test_bit(CF_CONNECTED, &con->flags))
+	{
 		if (con->rx_action(con))
+		{
 			break;
+		}
 
 		/* Don't flood Rx machine */
-		if (++count >= MAX_RECV_MSG_COUNT) {
+		if (++count >= MAX_RECV_MSG_COUNT)
+		{
 			cond_resched();
 			count = 0;
 		}
 	}
+
 	conn_put(con);
 }
 
@@ -564,7 +674,9 @@ static void tipc_send_work(struct work_struct *work)
 	struct tipc_conn *con = container_of(work, struct tipc_conn, swork);
 
 	if (test_bit(CF_CONNECTED, &con->flags))
+	{
 		tipc_send_to_sock(con);
+	}
 
 	conn_put(con);
 }
@@ -578,13 +690,17 @@ static void tipc_work_stop(struct tipc_server *s)
 static int tipc_work_start(struct tipc_server *s)
 {
 	s->rcv_wq = alloc_ordered_workqueue("tipc_rcv", 0);
-	if (!s->rcv_wq) {
+
+	if (!s->rcv_wq)
+	{
 		pr_err("can't start tipc receive workqueue\n");
 		return -ENOMEM;
 	}
 
 	s->send_wq = alloc_ordered_workqueue("tipc_send", 0);
-	if (!s->send_wq) {
+
+	if (!s->send_wq)
+	{
 		pr_err("can't start tipc send workqueue\n");
 		destroy_workqueue(s->rcv_wq);
 		return -ENOMEM;
@@ -602,21 +718,30 @@ int tipc_server_start(struct tipc_server *s)
 	s->idr_in_use = 0;
 
 	s->rcvbuf_cache = kmem_cache_create(s->name, s->max_rcvbuf_size,
-					    0, SLAB_HWCACHE_ALIGN, NULL);
+										0, SLAB_HWCACHE_ALIGN, NULL);
+
 	if (!s->rcvbuf_cache)
+	{
 		return -ENOMEM;
+	}
 
 	ret = tipc_work_start(s);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		kmem_cache_destroy(s->rcvbuf_cache);
 		return ret;
 	}
+
 	ret = tipc_open_listening_sock(s);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		tipc_work_stop(s);
 		kmem_cache_destroy(s->rcvbuf_cache);
 		return ret;
 	}
+
 	return ret;
 }
 
@@ -627,15 +752,20 @@ void tipc_server_stop(struct tipc_server *s)
 	int id;
 
 	spin_lock_bh(&s->idr_lock);
-	for (id = 0; total < s->idr_in_use; id++) {
+
+	for (id = 0; total < s->idr_in_use; id++)
+	{
 		con = idr_find(&s->conn_idr, id);
-		if (con) {
+
+		if (con)
+		{
 			total++;
 			spin_unlock_bh(&s->idr_lock);
 			tipc_close_conn(con);
 			spin_lock_bh(&s->idr_lock);
 		}
 	}
+
 	spin_unlock_bh(&s->idr_lock);
 
 	tipc_work_stop(s);

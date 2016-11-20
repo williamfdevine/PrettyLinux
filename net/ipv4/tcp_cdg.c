@@ -48,7 +48,7 @@ module_param(backoff_factor, uint, 0644);
 MODULE_PARM_DESC(backoff_factor, "backoff probability scale factor");
 module_param(hystart_detect, uint, 0644);
 MODULE_PARM_DESC(hystart_detect, "use Hybrid Slow start "
-		 "(0: disabled, 1: ACK train, 2: delay threshold, 3: both)");
+				 "(0: disabled, 1: ACK train, 2: delay threshold, 3: both)");
 module_param(use_ineff, uint, 0644);
 MODULE_PARM_DESC(use_ineff, "use ineffectual backoff detection (threshold)");
 module_param(use_shadow, bool, 0644);
@@ -56,9 +56,12 @@ MODULE_PARM_DESC(use_shadow, "use shadow window heuristic");
 module_param(use_tolerance, bool, 0644);
 MODULE_PARM_DESC(use_tolerance, "use loss tolerance heuristic");
 
-struct cdg_minmax {
-	union {
-		struct {
+struct cdg_minmax
+{
+	union
+	{
+		struct
+		{
 			s32 min;
 			s32 max;
 		};
@@ -66,14 +69,16 @@ struct cdg_minmax {
 	};
 };
 
-enum cdg_state {
+enum cdg_state
+{
 	CDG_UNKNOWN = 0,
 	CDG_NONFULL = 1,
 	CDG_FULL    = 2,
 	CDG_BACKOFF = 3,
 };
 
-struct cdg {
+struct cdg
+{
 	struct cdg_minmax rtt;
 	struct cdg_minmax rtt_prev;
 	struct cdg_minmax *gradients;
@@ -100,7 +105,8 @@ struct cdg {
  */
 static u32 __pure nexp_u32(u32 ux)
 {
-	static const u16 v[] = {
+	static const u16 v[] =
+	{
 		/* exp(-x)*65536-1 for x = 0, 0.000256, 0.000512, ... */
 		65535,
 		65518, 65501, 65468, 65401, 65267, 65001, 64470, 63422,
@@ -112,13 +118,16 @@ static u32 __pure nexp_u32(u32 ux)
 
 	/* Cut off when ux >= 2^24 (actual result is <= 222/U32_MAX). */
 	if (msb > U16_MAX)
+	{
 		return 0;
+	}
 
 	/* Scale first eight bits linearly: */
 	res = U32_MAX - (ux & 0xff) * (U32_MAX / 1000000);
 
 	/* Obtain e^(x + y + ...) by computing e^x * e^y * ...: */
-	for (i = 1; msb; i++, msb >>= 1) {
+	for (i = 1; msb; i++, msb >>= 1)
+	{
 		u32 y = v[i & -(msb & 1)] + U32_C(1);
 
 		res = ((u64)res * y) >> 16;
@@ -141,44 +150,58 @@ static void tcp_cdg_hystart_update(struct sock *sk)
 	struct tcp_sock *tp = tcp_sk(sk);
 
 	ca->delay_min = min_not_zero(ca->delay_min, ca->rtt.min);
-	if (ca->delay_min == 0)
-		return;
 
-	if (hystart_detect & HYSTART_ACK_TRAIN) {
+	if (ca->delay_min == 0)
+	{
+		return;
+	}
+
+	if (hystart_detect & HYSTART_ACK_TRAIN)
+	{
 		u32 now_us = div_u64(local_clock(), NSEC_PER_USEC);
 
-		if (ca->last_ack == 0 || !tcp_is_cwnd_limited(sk)) {
+		if (ca->last_ack == 0 || !tcp_is_cwnd_limited(sk))
+		{
 			ca->last_ack = now_us;
 			ca->round_start = now_us;
-		} else if (before(now_us, ca->last_ack + 3000)) {
+		}
+		else if (before(now_us, ca->last_ack + 3000))
+		{
 			u32 base_owd = max(ca->delay_min / 2U, 125U);
 
 			ca->last_ack = now_us;
-			if (after(now_us, ca->round_start + base_owd)) {
+
+			if (after(now_us, ca->round_start + base_owd))
+			{
 				NET_INC_STATS(sock_net(sk),
-					      LINUX_MIB_TCPHYSTARTTRAINDETECT);
+							  LINUX_MIB_TCPHYSTARTTRAINDETECT);
 				NET_ADD_STATS(sock_net(sk),
-					      LINUX_MIB_TCPHYSTARTTRAINCWND,
-					      tp->snd_cwnd);
+							  LINUX_MIB_TCPHYSTARTTRAINCWND,
+							  tp->snd_cwnd);
 				tp->snd_ssthresh = tp->snd_cwnd;
 				return;
 			}
 		}
 	}
 
-	if (hystart_detect & HYSTART_DELAY) {
-		if (ca->sample_cnt < 8) {
+	if (hystart_detect & HYSTART_DELAY)
+	{
+		if (ca->sample_cnt < 8)
+		{
 			ca->sample_cnt++;
-		} else {
+		}
+		else
+		{
 			s32 thresh = max(ca->delay_min + ca->delay_min / 8U,
-					 125U);
+							 125U);
 
-			if (ca->rtt.min > thresh) {
+			if (ca->rtt.min > thresh)
+			{
 				NET_INC_STATS(sock_net(sk),
-					      LINUX_MIB_TCPHYSTARTDELAYDETECT);
+							  LINUX_MIB_TCPHYSTARTDELAYDETECT);
 				NET_ADD_STATS(sock_net(sk),
-					      LINUX_MIB_TCPHYSTARTDELAYCWND,
-					      tp->snd_cwnd);
+							  LINUX_MIB_TCPHYSTARTDELAYCWND,
+							  tp->snd_cwnd);
 				tp->snd_ssthresh = tp->snd_cwnd;
 			}
 		}
@@ -191,7 +214,8 @@ static s32 tcp_cdg_grad(struct cdg *ca)
 	s32 gmax = ca->rtt.max - ca->rtt_prev.max;
 	s32 grad;
 
-	if (ca->gradients) {
+	if (ca->gradients)
+	{
 		ca->gsum.min += gmin - ca->gradients[ca->tail].min;
 		ca->gsum.max += gmax - ca->gradients[ca->tail].max;
 		ca->gradients[ca->tail].min = gmin;
@@ -210,29 +234,44 @@ static s32 tcp_cdg_grad(struct cdg *ca)
 	grad = gmin > 0 ? gmin : gmax;
 
 	/* Extrapolate missing values in gradient window: */
-	if (!ca->gfilled) {
+	if (!ca->gfilled)
+	{
 		if (!ca->gradients && window > 1)
-			grad *= window; /* Memory allocation failed. */
+		{
+			grad *= window;    /* Memory allocation failed. */
+		}
 		else if (ca->tail == 0)
+		{
 			ca->gfilled = true;
+		}
 		else
+		{
 			grad = (grad * window) / (int)ca->tail;
+		}
 	}
 
 	/* Backoff was effectual: */
 	if (gmin <= -32 || gmax <= -32)
+	{
 		ca->backoff_cnt = 0;
+	}
 
-	if (use_tolerance) {
+	if (use_tolerance)
+	{
 		/* Reduce small variations to zero: */
 		gmin = DIV_ROUND_CLOSEST(gmin, 64);
 		gmax = DIV_ROUND_CLOSEST(gmax, 64);
 
 		if (gmin > 0 && gmax <= 0)
+		{
 			ca->state = CDG_FULL;
+		}
 		else if ((gmin > 0 && gmax > 0) || gmax < 0)
+		{
 			ca->state = CDG_NONFULL;
+		}
 	}
+
 	return grad;
 }
 
@@ -242,12 +281,18 @@ static bool tcp_cdg_backoff(struct sock *sk, u32 grad)
 	struct tcp_sock *tp = tcp_sk(sk);
 
 	if (prandom_u32() <= nexp_u32(grad * backoff_factor))
+	{
 		return false;
+	}
 
-	if (use_ineff) {
+	if (use_ineff)
+	{
 		ca->backoff_cnt++;
+
 		if (ca->backoff_cnt > use_ineff)
+		{
 			return false;
+		}
 	}
 
 	ca->shadow_wnd = max(ca->shadow_wnd, tp->snd_cwnd);
@@ -265,13 +310,19 @@ static void tcp_cdg_cong_avoid(struct sock *sk, u32 ack, u32 acked)
 	u32 incr;
 
 	if (tcp_in_slow_start(tp) && hystart_detect)
+	{
 		tcp_cdg_hystart_update(sk);
+	}
 
-	if (after(ack, ca->rtt_seq) && ca->rtt.v64) {
+	if (after(ack, ca->rtt_seq) && ca->rtt.v64)
+	{
 		s32 grad = 0;
 
 		if (ca->rtt_prev.v64)
+		{
 			grad = tcp_cdg_grad(ca);
+		}
+
 		ca->rtt_seq = tp->snd_nxt;
 		ca->rtt_prev = ca->rtt;
 		ca->rtt.v64 = 0;
@@ -279,10 +330,13 @@ static void tcp_cdg_cong_avoid(struct sock *sk, u32 ack, u32 acked)
 		ca->sample_cnt = 0;
 
 		if (grad > 0 && tcp_cdg_backoff(sk, grad))
+		{
 			return;
+		}
 	}
 
-	if (!tcp_is_cwnd_limited(sk)) {
+	if (!tcp_is_cwnd_limited(sk))
+	{
 		ca->shadow_wnd = min(ca->shadow_wnd, tp->snd_cwnd);
 		return;
 	}
@@ -300,21 +354,27 @@ static void tcp_cdg_acked(struct sock *sk, const struct ack_sample *sample)
 	struct tcp_sock *tp = tcp_sk(sk);
 
 	if (sample->rtt_us <= 0)
+	{
 		return;
+	}
 
 	/* A heuristic for filtering delayed ACKs, adapted from:
 	 * D.A. Hayes. "Timing enhancements to the FreeBSD kernel to support
 	 * delay and rate based TCP mechanisms." TR 100219A. CAIA, 2010.
 	 */
-	if (tp->sacked_out == 0) {
-		if (sample->pkts_acked == 1 && ca->delack) {
+	if (tp->sacked_out == 0)
+	{
+		if (sample->pkts_acked == 1 && ca->delack)
+		{
 			/* A delayed ACK is only used for the minimum if it is
 			 * provenly lower than an existing non-zero minimum.
 			 */
 			ca->rtt.min = min(ca->rtt.min, sample->rtt_us);
 			ca->delack--;
 			return;
-		} else if (sample->pkts_acked > 1 && ca->delack < 5) {
+		}
+		else if (sample->pkts_acked > 1 && ca->delack < 5)
+		{
 			ca->delack++;
 		}
 	}
@@ -331,14 +391,22 @@ static u32 tcp_cdg_ssthresh(struct sock *sk)
 	ca->undo_cwnd = tp->snd_cwnd;
 
 	if (ca->state == CDG_BACKOFF)
+	{
 		return max(2U, (tp->snd_cwnd * min(1024U, backoff_beta)) >> 10);
+	}
 
 	if (ca->state == CDG_NONFULL && use_tolerance)
+	{
 		return tp->snd_cwnd;
+	}
 
 	ca->shadow_wnd = min(ca->shadow_wnd >> 1, tp->snd_cwnd);
+
 	if (use_shadow)
+	{
 		return max3(2U, ca->shadow_wnd, tp->snd_cwnd >> 1);
+	}
+
 	return max(2U, tp->snd_cwnd >> 1);
 }
 
@@ -355,25 +423,32 @@ static void tcp_cdg_cwnd_event(struct sock *sk, const enum tcp_ca_event ev)
 	struct tcp_sock *tp = tcp_sk(sk);
 	struct cdg_minmax *gradients;
 
-	switch (ev) {
-	case CA_EVENT_CWND_RESTART:
-		gradients = ca->gradients;
-		if (gradients)
-			memset(gradients, 0, window * sizeof(gradients[0]));
-		memset(ca, 0, sizeof(*ca));
+	switch (ev)
+	{
+		case CA_EVENT_CWND_RESTART:
+			gradients = ca->gradients;
 
-		ca->gradients = gradients;
-		ca->rtt_seq = tp->snd_nxt;
-		ca->shadow_wnd = tp->snd_cwnd;
-		break;
-	case CA_EVENT_COMPLETE_CWR:
-		ca->state = CDG_UNKNOWN;
-		ca->rtt_seq = tp->snd_nxt;
-		ca->rtt_prev = ca->rtt;
-		ca->rtt.v64 = 0;
-		break;
-	default:
-		break;
+			if (gradients)
+			{
+				memset(gradients, 0, window * sizeof(gradients[0]));
+			}
+
+			memset(ca, 0, sizeof(*ca));
+
+			ca->gradients = gradients;
+			ca->rtt_seq = tp->snd_nxt;
+			ca->shadow_wnd = tp->snd_cwnd;
+			break;
+
+		case CA_EVENT_COMPLETE_CWR:
+			ca->state = CDG_UNKNOWN;
+			ca->rtt_seq = tp->snd_nxt;
+			ca->rtt_prev = ca->rtt;
+			ca->rtt.v64 = 0;
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -385,7 +460,8 @@ static void tcp_cdg_init(struct sock *sk)
 	/* We silently fall back to window = 1 if allocation fails. */
 	if (window > 1)
 		ca->gradients = kcalloc(window, sizeof(ca->gradients[0]),
-					GFP_NOWAIT | __GFP_NOWARN);
+								GFP_NOWAIT | __GFP_NOWARN);
+
 	ca->rtt_seq = tp->snd_nxt;
 	ca->shadow_wnd = tp->snd_cwnd;
 }
@@ -397,7 +473,8 @@ static void tcp_cdg_release(struct sock *sk)
 	kfree(ca->gradients);
 }
 
-struct tcp_congestion_ops tcp_cdg __read_mostly = {
+struct tcp_congestion_ops tcp_cdg __read_mostly =
+{
 	.cong_avoid = tcp_cdg_cong_avoid,
 	.cwnd_event = tcp_cdg_cwnd_event,
 	.pkts_acked = tcp_cdg_acked,
@@ -412,9 +489,14 @@ struct tcp_congestion_ops tcp_cdg __read_mostly = {
 static int __init tcp_cdg_register(void)
 {
 	if (backoff_beta > 1024 || window < 1 || window > 256)
+	{
 		return -ERANGE;
+	}
+
 	if (!is_power_of_2(window))
+	{
 		return -EINVAL;
+	}
 
 	BUILD_BUG_ON(sizeof(struct cdg) > ICSK_CA_PRIV_SIZE);
 	tcp_register_congestion_control(&tcp_cdg);

@@ -73,7 +73,8 @@ static int heartbeat = WATCHDOG_HEARTBEAT;	/* in seconds */
 static bool nowayout = WATCHDOG_NOWAYOUT;
 static unsigned long next_heartbeat;
 
-struct sh_wdt {
+struct sh_wdt
+{
 	void __iomem		*base;
 	struct device		*dev;
 	struct clk		*clk;
@@ -165,7 +166,9 @@ static int sh_wdt_set_heartbeat(struct watchdog_device *wdt_dev, unsigned t)
 	unsigned long flags;
 
 	if (unlikely(t < 1 || t > 3600)) /* arbitrary upper limit */
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_irqsave(&wdt->lock, flags);
 	heartbeat = t;
@@ -181,7 +184,9 @@ static void sh_wdt_ping(unsigned long data)
 	unsigned long flags;
 
 	spin_lock_irqsave(&wdt->lock, flags);
-	if (time_before(jiffies, next_heartbeat)) {
+
+	if (time_before(jiffies, next_heartbeat))
+	{
 		u8 csr;
 
 		csr = sh_wdt_read_csr();
@@ -191,20 +196,24 @@ static void sh_wdt_ping(unsigned long data)
 		sh_wdt_write_cnt(0);
 
 		mod_timer(&wdt->timer, next_ping_period(clock_division_ratio));
-	} else
+	}
+	else
 		dev_warn(wdt->dev, "Heartbeat lost! Will not ping "
-		         "the watchdog\n");
+				 "the watchdog\n");
+
 	spin_unlock_irqrestore(&wdt->lock, flags);
 }
 
-static const struct watchdog_info sh_wdt_info = {
+static const struct watchdog_info sh_wdt_info =
+{
 	.options		= WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT |
-				  WDIOF_MAGICCLOSE,
+	WDIOF_MAGICCLOSE,
 	.firmware_version	= 1,
 	.identity		= "SH WDT",
 };
 
-static const struct watchdog_ops sh_wdt_ops = {
+static const struct watchdog_ops sh_wdt_ops =
+{
 	.owner		= THIS_MODULE,
 	.start		= sh_wdt_start,
 	.stop		= sh_wdt_stop,
@@ -212,7 +221,8 @@ static const struct watchdog_ops sh_wdt_ops = {
 	.set_timeout	= sh_wdt_set_heartbeat,
 };
 
-static struct watchdog_device sh_wdt_dev = {
+static struct watchdog_device sh_wdt_dev =
+{
 	.info	= &sh_wdt_info,
 	.ops	= &sh_wdt_ops,
 };
@@ -228,16 +238,23 @@ static int sh_wdt_probe(struct platform_device *pdev)
 	 * any attempts to register per-CPU watchdogs.
 	 */
 	if (pdev->id != -1)
+	{
 		return -EINVAL;
+	}
 
 	wdt = devm_kzalloc(&pdev->dev, sizeof(struct sh_wdt), GFP_KERNEL);
+
 	if (unlikely(!wdt))
+	{
 		return -ENOMEM;
+	}
 
 	wdt->dev = &pdev->dev;
 
 	wdt->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(wdt->clk)) {
+
+	if (IS_ERR(wdt->clk))
+	{
 		/*
 		 * Clock framework support is optional, continue on
 		 * anyways if we don't find a matching clock.
@@ -247,8 +264,11 @@ static int sh_wdt_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	wdt->base = devm_ioremap_resource(wdt->dev, res);
+
 	if (IS_ERR(wdt->base))
+	{
 		return PTR_ERR(wdt->base);
+	}
 
 	watchdog_set_nowayout(&sh_wdt_dev, nowayout);
 	watchdog_set_drvdata(&sh_wdt_dev, wdt);
@@ -257,20 +277,24 @@ static int sh_wdt_probe(struct platform_device *pdev)
 	spin_lock_init(&wdt->lock);
 
 	rc = sh_wdt_set_heartbeat(&sh_wdt_dev, heartbeat);
-	if (unlikely(rc)) {
+
+	if (unlikely(rc))
+	{
 		/* Default timeout if invalid */
 		sh_wdt_set_heartbeat(&sh_wdt_dev, WATCHDOG_HEARTBEAT);
 
 		dev_warn(&pdev->dev,
-			 "heartbeat value must be 1<=x<=3600, using %d\n",
-			 sh_wdt_dev.timeout);
+				 "heartbeat value must be 1<=x<=3600, using %d\n",
+				 sh_wdt_dev.timeout);
 	}
 
 	dev_info(&pdev->dev, "configured with heartbeat=%d sec (nowayout=%d)\n",
-		 sh_wdt_dev.timeout, nowayout);
+			 sh_wdt_dev.timeout, nowayout);
 
 	rc = watchdog_register_device(&sh_wdt_dev);
-	if (unlikely(rc)) {
+
+	if (unlikely(rc))
+	{
 		dev_err(&pdev->dev, "Can't register watchdog (err=%d)\n", rc);
 		return rc;
 	}
@@ -299,7 +323,8 @@ static void sh_wdt_shutdown(struct platform_device *pdev)
 	sh_wdt_stop(&sh_wdt_dev);
 }
 
-static struct platform_driver sh_wdt_driver = {
+static struct platform_driver sh_wdt_driver =
+{
 	.driver		= {
 		.name	= DRV_NAME,
 	},
@@ -312,11 +337,12 @@ static struct platform_driver sh_wdt_driver = {
 static int __init sh_wdt_init(void)
 {
 	if (unlikely(clock_division_ratio < 0x5 ||
-		     clock_division_ratio > 0x7)) {
+				 clock_division_ratio > 0x7))
+	{
 		clock_division_ratio = WTCSR_CKS_4096;
 
 		pr_info("divisor must be 0x5<=x<=0x7, using %d\n",
-			clock_division_ratio);
+				clock_division_ratio);
 	}
 
 	return platform_driver_register(&sh_wdt_driver);
@@ -336,15 +362,15 @@ MODULE_ALIAS("platform:" DRV_NAME);
 
 module_param(clock_division_ratio, int, 0);
 MODULE_PARM_DESC(clock_division_ratio,
-	"Clock division ratio. Valid ranges are from 0x5 (1.31ms) "
-	"to 0x7 (5.25ms). (default=" __MODULE_STRING(WTCSR_CKS_4096) ")");
+				 "Clock division ratio. Valid ranges are from 0x5 (1.31ms) "
+				 "to 0x7 (5.25ms). (default=" __MODULE_STRING(WTCSR_CKS_4096) ")");
 
 module_param(heartbeat, int, 0);
 MODULE_PARM_DESC(heartbeat,
-	"Watchdog heartbeat in seconds. (1 <= heartbeat <= 3600, default="
-				__MODULE_STRING(WATCHDOG_HEARTBEAT) ")");
+				 "Watchdog heartbeat in seconds. (1 <= heartbeat <= 3600, default="
+				 __MODULE_STRING(WATCHDOG_HEARTBEAT) ")");
 
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout,
-	"Watchdog cannot be stopped once started (default="
-				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "Watchdog cannot be stopped once started (default="
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");

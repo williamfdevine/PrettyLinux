@@ -60,7 +60,7 @@ void nfp_net_filter_stats_timer(unsigned long data)
 
 	if (nn->ctrl & NFP_NET_CFG_CTRL_BPF)
 		mod_timer(&nn->rx_filter_stats_timer,
-			  jiffies + NFP_NET_STAT_POLL_IVL);
+				  jiffies + NFP_NET_STAT_POLL_IVL);
 
 	spin_unlock_bh(&nn->rx_filter_lock);
 
@@ -68,7 +68,9 @@ void nfp_net_filter_stats_timer(unsigned long data)
 	latest.bytes = nn_readq(nn, NFP_NET_CFG_STATS_APP1_BYTES);
 
 	if (latest.pkts != nn->rx_filter.pkts)
+	{
 		nn->rx_filter_change = jiffies;
+	}
 
 	nn->rx_filter = latest;
 }
@@ -98,7 +100,7 @@ nfp_net_bpf_stats_update(struct nfp_net *nn, struct tc_cls_bpf_offload *cls_bpf)
 
 	tcf_exts_to_list(cls_bpf->exts, &actions);
 	list_for_each_entry(a, &actions, list)
-		tcf_action_stats_update(a, bytes, pkts, nn->rx_filter_change);
+	tcf_action_stats_update(a, bytes, pkts, nn->rx_filter_change);
 
 	preempt_enable();
 
@@ -112,25 +114,35 @@ nfp_net_bpf_get_act(struct nfp_net *nn, struct tc_cls_bpf_offload *cls_bpf)
 	LIST_HEAD(actions);
 
 	/* TC direct action */
-	if (cls_bpf->exts_integrated) {
+	if (cls_bpf->exts_integrated)
+	{
 		if (tc_no_actions(cls_bpf->exts))
+		{
 			return NN_ACT_DIRECT;
+		}
 
 		return -ENOTSUPP;
 	}
 
 	/* TC legacy mode */
 	if (!tc_single_action(cls_bpf->exts))
+	{
 		return -ENOTSUPP;
+	}
 
 	tcf_exts_to_list(cls_bpf->exts, &actions);
-	list_for_each_entry(a, &actions, list) {
+	list_for_each_entry(a, &actions, list)
+	{
 		if (is_tcf_gact_shot(a))
+		{
 			return NN_ACT_TC_DROP;
+		}
 
 		if (is_tcf_mirred_redirect(a) &&
-		    tcf_mirred_ifindex(a) == nn->netdev->ifindex)
+			tcf_mirred_ifindex(a) == nn->netdev->ifindex)
+		{
 			return NN_ACT_TC_REDIR;
+		}
 	}
 
 	return -ENOTSUPP;
@@ -138,9 +150,9 @@ nfp_net_bpf_get_act(struct nfp_net *nn, struct tc_cls_bpf_offload *cls_bpf)
 
 static int
 nfp_net_bpf_offload_prepare(struct nfp_net *nn,
-			    struct tc_cls_bpf_offload *cls_bpf,
-			    struct nfp_bpf_result *res,
-			    void **code, dma_addr_t *dma_addr, u16 max_instr)
+							struct tc_cls_bpf_offload *cls_bpf,
+							struct nfp_bpf_result *res,
+							void **code, dma_addr_t *dma_addr, u16 max_instr)
 {
 	unsigned int code_sz = max_instr * sizeof(u64);
 	enum nfp_bpf_action_type act;
@@ -149,15 +161,23 @@ nfp_net_bpf_offload_prepare(struct nfp_net *nn,
 	int ret;
 
 	if (!IS_ENABLED(CONFIG_BPF_SYSCALL))
+	{
 		return -ENOTSUPP;
+	}
 
 	ret = nfp_net_bpf_get_act(nn, cls_bpf);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	act = ret;
 
 	max_mtu = nn_readb(nn, NFP_NET_CFG_BPF_INL_MTU) * 64 - 32;
-	if (max_mtu < nn->netdev->mtu) {
+
+	if (max_mtu < nn->netdev->mtu)
+	{
 		nn_info(nn, "BPF offload not supported with MTU larger than HW packet split boundary\n");
 		return -ENOTSUPP;
 	}
@@ -166,14 +186,20 @@ nfp_net_bpf_offload_prepare(struct nfp_net *nn,
 	done_off = nn_readw(nn, NFP_NET_CFG_BPF_DONE);
 
 	*code = dma_zalloc_coherent(&nn->pdev->dev, code_sz, dma_addr,
-				    GFP_KERNEL);
+								GFP_KERNEL);
+
 	if (!*code)
+	{
 		return -ENOMEM;
+	}
 
 	ret = nfp_bpf_jit(cls_bpf->prog, *code, act, start_off, done_off,
-			  max_instr, res);
+					  max_instr, res);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	return 0;
 
@@ -184,9 +210,9 @@ out:
 
 static void
 nfp_net_bpf_load_and_start(struct nfp_net *nn, u32 tc_flags,
-			   void *code, dma_addr_t dma_addr,
-			   unsigned int code_sz, unsigned int n_instr,
-			   bool dense_mode)
+						   void *code, dma_addr_t dma_addr,
+						   unsigned int code_sz, unsigned int n_instr,
+						   bool dense_mode)
 {
 	u64 bpf_addr = dma_addr;
 	int err;
@@ -194,22 +220,30 @@ nfp_net_bpf_load_and_start(struct nfp_net *nn, u32 tc_flags,
 	nn->bpf_offload_skip_sw = !!(tc_flags & TCA_CLS_FLAGS_SKIP_SW);
 
 	if (dense_mode)
+	{
 		bpf_addr |= NFP_NET_CFG_BPF_CFG_8CTX;
+	}
 
 	nn_writew(nn, NFP_NET_CFG_BPF_SIZE, n_instr);
 	nn_writeq(nn, NFP_NET_CFG_BPF_ADDR, bpf_addr);
 
 	/* Load up the JITed code */
 	err = nfp_net_reconfig(nn, NFP_NET_CFG_UPDATE_BPF);
+
 	if (err)
+	{
 		nn_err(nn, "FW command error while loading BPF: %d\n", err);
+	}
 
 	/* Enable passing packets through BPF function */
 	nn->ctrl |= NFP_NET_CFG_CTRL_BPF;
 	nn_writel(nn, NFP_NET_CFG_CTRL, nn->ctrl);
 	err = nfp_net_reconfig(nn, NFP_NET_CFG_UPDATE_GEN);
+
 	if (err)
+	{
 		nn_err(nn, "FW command error while enabling BPF: %d\n", err);
+	}
 
 	dma_free_coherent(&nn->pdev->dev, code_sz, code, dma_addr);
 
@@ -220,7 +254,9 @@ nfp_net_bpf_load_and_start(struct nfp_net *nn, u32 tc_flags,
 static int nfp_net_bpf_stop(struct nfp_net *nn)
 {
 	if (!(nn->ctrl & NFP_NET_CFG_CTRL_BPF))
+	{
 		return 0;
+	}
 
 	spin_lock_bh(&nn->rx_filter_lock);
 	nn->ctrl &= ~NFP_NET_CFG_CTRL_BPF;
@@ -235,7 +271,7 @@ static int nfp_net_bpf_stop(struct nfp_net *nn)
 
 int
 nfp_net_bpf_offload(struct nfp_net *nn, u32 handle, __be16 proto,
-		    struct tc_cls_bpf_offload *cls_bpf)
+					struct tc_cls_bpf_offload *cls_bpf)
 {
 	struct nfp_bpf_result res;
 	dma_addr_t dma_addr;
@@ -245,50 +281,62 @@ nfp_net_bpf_offload(struct nfp_net *nn, u32 handle, __be16 proto,
 
 	max_instr = nn_readw(nn, NFP_NET_CFG_BPF_MAX_LEN);
 
-	switch (cls_bpf->command) {
-	case TC_CLSBPF_REPLACE:
-		/* There is nothing stopping us from implementing seamless
-		 * replace but the simple method of loading I adopted in
-		 * the firmware does not handle atomic replace (i.e. we have to
-		 * stop the BPF offload and re-enable it).  Leaking-in a few
-		 * frames which didn't have BPF applied in the hardware should
-		 * be fine if software fallback is available, though.
-		 */
-		if (nn->bpf_offload_skip_sw)
-			return -EBUSY;
+	switch (cls_bpf->command)
+	{
+		case TC_CLSBPF_REPLACE:
 
-		err = nfp_net_bpf_offload_prepare(nn, cls_bpf, &res, &code,
-						  &dma_addr, max_instr);
-		if (err)
-			return err;
+			/* There is nothing stopping us from implementing seamless
+			 * replace but the simple method of loading I adopted in
+			 * the firmware does not handle atomic replace (i.e. we have to
+			 * stop the BPF offload and re-enable it).  Leaking-in a few
+			 * frames which didn't have BPF applied in the hardware should
+			 * be fine if software fallback is available, though.
+			 */
+			if (nn->bpf_offload_skip_sw)
+			{
+				return -EBUSY;
+			}
 
-		nfp_net_bpf_stop(nn);
-		nfp_net_bpf_load_and_start(nn, cls_bpf->gen_flags, code,
-					   dma_addr, max_instr * sizeof(u64),
-					   res.n_instr, res.dense_mode);
-		return 0;
+			err = nfp_net_bpf_offload_prepare(nn, cls_bpf, &res, &code,
+											  &dma_addr, max_instr);
 
-	case TC_CLSBPF_ADD:
-		if (nn->ctrl & NFP_NET_CFG_CTRL_BPF)
-			return -EBUSY;
+			if (err)
+			{
+				return err;
+			}
 
-		err = nfp_net_bpf_offload_prepare(nn, cls_bpf, &res, &code,
-						  &dma_addr, max_instr);
-		if (err)
-			return err;
+			nfp_net_bpf_stop(nn);
+			nfp_net_bpf_load_and_start(nn, cls_bpf->gen_flags, code,
+									   dma_addr, max_instr * sizeof(u64),
+									   res.n_instr, res.dense_mode);
+			return 0;
 
-		nfp_net_bpf_load_and_start(nn, cls_bpf->gen_flags, code,
-					   dma_addr, max_instr * sizeof(u64),
-					   res.n_instr, res.dense_mode);
-		return 0;
+		case TC_CLSBPF_ADD:
+			if (nn->ctrl & NFP_NET_CFG_CTRL_BPF)
+			{
+				return -EBUSY;
+			}
 
-	case TC_CLSBPF_DESTROY:
-		return nfp_net_bpf_stop(nn);
+			err = nfp_net_bpf_offload_prepare(nn, cls_bpf, &res, &code,
+											  &dma_addr, max_instr);
 
-	case TC_CLSBPF_STATS:
-		return nfp_net_bpf_stats_update(nn, cls_bpf);
+			if (err)
+			{
+				return err;
+			}
 
-	default:
-		return -ENOTSUPP;
+			nfp_net_bpf_load_and_start(nn, cls_bpf->gen_flags, code,
+									   dma_addr, max_instr * sizeof(u64),
+									   res.n_instr, res.dense_mode);
+			return 0;
+
+		case TC_CLSBPF_DESTROY:
+			return nfp_net_bpf_stop(nn);
+
+		case TC_CLSBPF_STATS:
+			return nfp_net_bpf_stats_update(nn, cls_bpf);
+
+		default:
+			return -ENOTSUPP;
 	}
 }

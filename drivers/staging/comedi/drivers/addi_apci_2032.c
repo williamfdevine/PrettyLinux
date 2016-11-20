@@ -43,21 +43,24 @@
 #define APCI2032_STATUS_IRQ		BIT(0)
 #define APCI2032_WDOG_REG		0x10
 
-struct apci2032_int_private {
+struct apci2032_int_private
+{
 	spinlock_t spinlock;		/* protects the following members */
 	bool active;			/* an async command is running */
 	unsigned char enabled_isns;	/* mask of enabled interrupt channels */
 };
 
 static int apci2032_do_insn_bits(struct comedi_device *dev,
-				 struct comedi_subdevice *s,
-				 struct comedi_insn *insn,
-				 unsigned int *data)
+								 struct comedi_subdevice *s,
+								 struct comedi_insn *insn,
+								 unsigned int *data)
 {
 	s->state = inl(dev->iobase + APCI2032_DO_REG);
 
 	if (comedi_dio_update_state(s, data))
+	{
 		outl(s->state, dev->iobase + APCI2032_DO_REG);
+	}
 
 	data[1] = s->state;
 
@@ -65,16 +68,16 @@ static int apci2032_do_insn_bits(struct comedi_device *dev,
 }
 
 static int apci2032_int_insn_bits(struct comedi_device *dev,
-				  struct comedi_subdevice *s,
-				  struct comedi_insn *insn,
-				  unsigned int *data)
+								  struct comedi_subdevice *s,
+								  struct comedi_insn *insn,
+								  unsigned int *data)
 {
 	data[1] = inl(dev->iobase + APCI2032_INT_STATUS_REG) & 3;
 	return insn->n;
 }
 
 static void apci2032_int_stop(struct comedi_device *dev,
-			      struct comedi_subdevice *s)
+							  struct comedi_subdevice *s)
 {
 	struct apci2032_int_private *subpriv = s->private;
 
@@ -84,8 +87,8 @@ static void apci2032_int_stop(struct comedi_device *dev,
 }
 
 static int apci2032_int_cmdtest(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_cmd *cmd)
+								struct comedi_subdevice *s,
+								struct comedi_cmd *cmd)
 {
 	int err = 0;
 
@@ -98,7 +101,9 @@ static int apci2032_int_cmdtest(struct comedi_device *dev,
 	err |= comedi_check_trigger_src(&cmd->stop_src, TRIG_COUNT | TRIG_NONE);
 
 	if (err)
+	{
 		return 1;
+	}
 
 	/* Step 2a : make sure trigger sources are unique */
 	err |= comedi_check_trigger_is_unique(cmd->stop_src);
@@ -106,7 +111,9 @@ static int apci2032_int_cmdtest(struct comedi_device *dev,
 	/* Step 2b : and mutually compatible */
 
 	if (err)
+	{
 		return 2;
+	}
 
 	/* Step 3: check if arguments are trivially valid */
 
@@ -114,14 +121,21 @@ static int apci2032_int_cmdtest(struct comedi_device *dev,
 	err |= comedi_check_trigger_arg_is(&cmd->scan_begin_arg, 0);
 	err |= comedi_check_trigger_arg_is(&cmd->convert_arg, 0);
 	err |= comedi_check_trigger_arg_is(&cmd->scan_end_arg,
-					   cmd->chanlist_len);
+									   cmd->chanlist_len);
+
 	if (cmd->stop_src == TRIG_COUNT)
+	{
 		err |= comedi_check_trigger_arg_min(&cmd->stop_arg, 1);
+	}
 	else	/* TRIG_NONE */
+	{
 		err |= comedi_check_trigger_arg_is(&cmd->stop_arg, 0);
+	}
 
 	if (err)
+	{
 		return 3;
+	}
 
 	/* Step 4: fix up any arguments */
 
@@ -131,7 +145,7 @@ static int apci2032_int_cmdtest(struct comedi_device *dev,
 }
 
 static int apci2032_int_cmd(struct comedi_device *dev,
-			    struct comedi_subdevice *s)
+							struct comedi_subdevice *s)
 {
 	struct comedi_cmd *cmd = &s->async->cmd;
 	struct apci2032_int_private *subpriv = s->private;
@@ -140,8 +154,11 @@ static int apci2032_int_cmd(struct comedi_device *dev,
 	unsigned long flags;
 
 	enabled_isns = 0;
+
 	for (n = 0; n < cmd->chanlist_len; n++)
+	{
 		enabled_isns |= 1 << CR_CHAN(cmd->chanlist[n]);
+	}
 
 	spin_lock_irqsave(&subpriv->spinlock, flags);
 
@@ -155,14 +172,18 @@ static int apci2032_int_cmd(struct comedi_device *dev,
 }
 
 static int apci2032_int_cancel(struct comedi_device *dev,
-			       struct comedi_subdevice *s)
+							   struct comedi_subdevice *s)
 {
 	struct apci2032_int_private *subpriv = s->private;
 	unsigned long flags;
 
 	spin_lock_irqsave(&subpriv->spinlock, flags);
+
 	if (subpriv->active)
+	{
 		apci2032_int_stop(dev, s);
+	}
+
 	spin_unlock_irqrestore(&subpriv->spinlock, flags);
 
 	return 0;
@@ -177,12 +198,17 @@ static irqreturn_t apci2032_interrupt(int irq, void *d)
 	unsigned int val;
 
 	if (!dev->attached)
+	{
 		return IRQ_NONE;
+	}
 
 	/* Check if VCC OR CC interrupt has occurred */
 	val = inl(dev->iobase + APCI2032_STATUS_REG) & APCI2032_STATUS_IRQ;
+
 	if (!val)
+	{
 		return IRQ_NONE;
+	}
 
 	subpriv = s->private;
 	spin_lock(&subpriv->spinlock);
@@ -196,23 +222,29 @@ static irqreturn_t apci2032_interrupt(int irq, void *d)
 	 * they'd keep triggering interrupts repeatedly.
 	 */
 
-	if (subpriv->active && (val & subpriv->enabled_isns) != 0) {
+	if (subpriv->active && (val & subpriv->enabled_isns) != 0)
+	{
 		unsigned short bits = 0;
 		int i;
 
 		/* Bits in scan data correspond to indices in channel list. */
-		for (i = 0; i < cmd->chanlist_len; i++) {
+		for (i = 0; i < cmd->chanlist_len; i++)
+		{
 			unsigned int chan = CR_CHAN(cmd->chanlist[i]);
 
 			if (val & (1 << chan))
+			{
 				bits |= (1 << i);
+			}
 		}
 
 		comedi_buf_write_samples(s, &bits, 1);
 
 		if (cmd->stop_src == TRIG_COUNT &&
-		    s->async->scans_done >= cmd->stop_arg)
+			s->async->scans_done >= cmd->stop_arg)
+		{
 			s->async->events |= COMEDI_CB_EOA;
+		}
 	}
 
 	spin_unlock(&subpriv->spinlock);
@@ -233,28 +265,39 @@ static int apci2032_reset(struct comedi_device *dev)
 }
 
 static int apci2032_auto_attach(struct comedi_device *dev,
-				unsigned long context_unused)
+								unsigned long context_unused)
 {
 	struct pci_dev *pcidev = comedi_to_pci_dev(dev);
 	struct comedi_subdevice *s;
 	int ret;
 
 	ret = comedi_pci_enable(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	dev->iobase = pci_resource_start(pcidev, 1);
 	apci2032_reset(dev);
 
-	if (pcidev->irq > 0) {
+	if (pcidev->irq > 0)
+	{
 		ret = request_irq(pcidev->irq, apci2032_interrupt,
-				  IRQF_SHARED, dev->board_name, dev);
+						  IRQF_SHARED, dev->board_name, dev);
+
 		if (ret == 0)
+		{
 			dev->irq = pcidev->irq;
+		}
 	}
 
 	ret = comedi_alloc_subdevices(dev, 3);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Initialize the digital output subdevice */
 	s = &dev->subdevices[0];
@@ -268,8 +311,11 @@ static int apci2032_auto_attach(struct comedi_device *dev,
 	/* Initialize the watchdog subdevice */
 	s = &dev->subdevices[1];
 	ret = addi_watchdog_init(s, dev->iobase + APCI2032_WDOG_REG);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Initialize the interrupt subdevice */
 	s = &dev->subdevices[2];
@@ -279,13 +325,19 @@ static int apci2032_auto_attach(struct comedi_device *dev,
 	s->maxdata	= 1;
 	s->range_table	= &range_digital;
 	s->insn_bits	= apci2032_int_insn_bits;
-	if (dev->irq) {
+
+	if (dev->irq)
+	{
 		struct apci2032_int_private *subpriv;
 
 		dev->read_subdev = s;
 		subpriv = kzalloc(sizeof(*subpriv), GFP_KERNEL);
+
 		if (!subpriv)
+		{
 			return -ENOMEM;
+		}
+
 		spin_lock_init(&subpriv->spinlock);
 		s->private	= subpriv;
 		s->subdev_flags	= SDF_READABLE | SDF_CMD_READ | SDF_PACKED;
@@ -301,13 +353,20 @@ static int apci2032_auto_attach(struct comedi_device *dev,
 static void apci2032_detach(struct comedi_device *dev)
 {
 	if (dev->iobase)
+	{
 		apci2032_reset(dev);
+	}
+
 	comedi_pci_detach(dev);
+
 	if (dev->read_subdev)
+	{
 		kfree(dev->read_subdev->private);
+	}
 }
 
-static struct comedi_driver apci2032_driver = {
+static struct comedi_driver apci2032_driver =
+{
 	.driver_name	= "addi_apci_2032",
 	.module		= THIS_MODULE,
 	.auto_attach	= apci2032_auto_attach,
@@ -315,18 +374,20 @@ static struct comedi_driver apci2032_driver = {
 };
 
 static int apci2032_pci_probe(struct pci_dev *dev,
-			      const struct pci_device_id *id)
+							  const struct pci_device_id *id)
 {
 	return comedi_pci_auto_config(dev, &apci2032_driver, id->driver_data);
 }
 
-static const struct pci_device_id apci2032_pci_table[] = {
+static const struct pci_device_id apci2032_pci_table[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_ADDIDATA, 0x1004) },
 	{ 0 }
 };
 MODULE_DEVICE_TABLE(pci, apci2032_pci_table);
 
-static struct pci_driver apci2032_pci_driver = {
+static struct pci_driver apci2032_pci_driver =
+{
 	.name		= "addi_apci_2032",
 	.id_table	= apci2032_pci_table,
 	.probe		= apci2032_pci_probe,

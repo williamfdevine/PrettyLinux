@@ -14,9 +14,9 @@
 #define	FLAT_VERSION			0x00000004L
 
 #ifdef CONFIG_BINFMT_SHARED_FLAT
-#define	MAX_SHARED_LIBS			(4)
+	#define	MAX_SHARED_LIBS			(4)
 #else
-#define	MAX_SHARED_LIBS			(1)
+	#define	MAX_SHARED_LIBS			(1)
 #endif
 
 /*
@@ -24,7 +24,8 @@
  * development,  all fields are in network byte order.
  */
 
-struct flat_hdr {
+struct flat_hdr
+{
 	char magic[4];
 	unsigned long rev;          /* version (as above) */
 	unsigned long entry;        /* Offset of first executable instruction
@@ -42,7 +43,7 @@ struct flat_hdr {
 	unsigned long reloc_start;  /* Offset of relocation records from
 	                               beginning of file */
 	unsigned long reloc_count;  /* Number of relocation records */
-	unsigned long flags;       
+	unsigned long flags;
 	unsigned long build_date;   /* When the program/library was built */
 	unsigned long filler[5];    /* Reservered, set to zero */
 };

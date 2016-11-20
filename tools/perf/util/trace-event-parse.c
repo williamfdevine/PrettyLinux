@@ -29,20 +29,27 @@
 #include "trace-event.h"
 
 static int get_common_field(struct scripting_context *context,
-			    int *offset, int *size, const char *type)
+							int *offset, int *size, const char *type)
 {
 	struct pevent *pevent = context->pevent;
 	struct event_format *event;
 	struct format_field *field;
 
-	if (!*size) {
+	if (!*size)
+	{
 		if (!pevent->events)
+		{
 			return 0;
+		}
 
 		event = pevent->events[0];
 		field = pevent_find_common_field(event, type);
+
 		if (!field)
+		{
 			return 0;
+		}
+
 		*offset = field->offset;
 		*size = field->size;
 	}
@@ -57,9 +64,12 @@ int common_lock_depth(struct scripting_context *context)
 	int ret;
 
 	ret = get_common_field(context, &size, &offset,
-			       "common_lock_depth");
+						   "common_lock_depth");
+
 	if (ret < 0)
+	{
 		return -1;
+	}
 
 	return ret;
 }
@@ -71,9 +81,12 @@ int common_flags(struct scripting_context *context)
 	int ret;
 
 	ret = get_common_field(context, &size, &offset,
-			       "common_flags");
+						   "common_flags");
+
 	if (ret < 0)
+	{
 		return -1;
+	}
 
 	return ret;
 }
@@ -85,9 +98,12 @@ int common_pc(struct scripting_context *context)
 	int ret;
 
 	ret = get_common_field(context, &size, &offset,
-			       "common_preempt_count");
+						   "common_preempt_count");
+
 	if (ret < 0)
+	{
 		return -1;
+	}
 
 	return ret;
 }
@@ -99,8 +115,11 @@ raw_field_value(struct event_format *event, const char *name, void *data)
 	unsigned long long val;
 
 	field = pevent_find_any_field(event, name);
+
 	if (!field)
+	{
 		return 0ULL;
+	}
 
 	pevent_read_number_field(field, data, &val);
 
@@ -113,7 +132,7 @@ unsigned long long read_size(struct event_format *event, void *ptr, int size)
 }
 
 void event_format__fprintf(struct event_format *event,
-			   int cpu, void *data, int size, FILE *fp)
+						   int cpu, void *data, int size, FILE *fp)
 {
 	struct pevent_record record;
 	struct trace_seq s;
@@ -130,13 +149,13 @@ void event_format__fprintf(struct event_format *event,
 }
 
 void event_format__print(struct event_format *event,
-			 int cpu, void *data, int size)
+						 int cpu, void *data, int size)
 {
 	return event_format__fprintf(event, cpu, data, size, stdout);
 }
 
 void parse_ftrace_printk(struct pevent *pevent,
-			 char *file, unsigned int size __maybe_unused)
+						 char *file, unsigned int size __maybe_unused)
 {
 	unsigned long long addr;
 	char *printk;
@@ -146,15 +165,20 @@ void parse_ftrace_printk(struct pevent *pevent,
 	char *fmt = NULL;
 
 	line = strtok_r(file, "\n", &next);
-	while (line) {
+
+	while (line)
+	{
 		addr_str = strtok_r(line, ":", &fmt);
-		if (!addr_str) {
+
+		if (!addr_str)
+		{
 			warning("printk format with empty entry");
 			break;
 		}
+
 		addr = strtoull(addr_str, NULL, 16);
 		/* fmt still has a space, skip it */
-		printk = strdup(fmt+1);
+		printk = strdup(fmt + 1);
 		line = strtok_r(NULL, "\n", &next);
 		pevent_register_print_string(pevent, printk, addr);
 	}
@@ -166,44 +190,58 @@ int parse_ftrace_file(struct pevent *pevent, char *buf, unsigned long size)
 }
 
 int parse_event_file(struct pevent *pevent,
-		     char *buf, unsigned long size, char *sys)
+					 char *buf, unsigned long size, char *sys)
 {
 	return pevent_parse_event(pevent, buf, size, sys);
 }
 
 struct event_format *trace_find_next_event(struct pevent *pevent,
-					   struct event_format *event)
+		struct event_format *event)
 {
 	static int idx;
 
 	if (!pevent || !pevent->events)
+	{
 		return NULL;
+	}
 
-	if (!event) {
+	if (!event)
+	{
 		idx = 0;
 		return pevent->events[0];
 	}
 
-	if (idx < pevent->nr_events && event == pevent->events[idx]) {
+	if (idx < pevent->nr_events && event == pevent->events[idx])
+	{
 		idx++;
+
 		if (idx == pevent->nr_events)
+		{
 			return NULL;
+		}
+
 		return pevent->events[idx];
 	}
 
-	for (idx = 1; idx < pevent->nr_events; idx++) {
+	for (idx = 1; idx < pevent->nr_events; idx++)
+	{
 		if (event == pevent->events[idx - 1])
+		{
 			return pevent->events[idx];
+		}
 	}
+
 	return NULL;
 }
 
-struct flag {
+struct flag
+{
 	const char *name;
 	unsigned long long value;
 };
 
-static const struct flag flags[] = {
+static const struct flag flags[] =
+{
 	{ "HI_SOFTIRQ", 0 },
 	{ "TIMER_SOFTIRQ", 1 },
 	{ "NET_TX_SOFTIRQ", 2 },
@@ -229,11 +267,15 @@ unsigned long long eval_flag(const char *flag)
 	 * we already know about.
 	 */
 	if (isdigit(flag[0]))
+	{
 		return strtoull(flag, NULL, 0);
+	}
 
-	for (i = 0; i < (int)(sizeof(flags)/sizeof(flags[0])); i++)
+	for (i = 0; i < (int)(sizeof(flags) / sizeof(flags[0])); i++)
 		if (strcmp(flags[i].name, flag) == 0)
+		{
 			return flags[i].value;
+		}
 
 	return 0;
 }

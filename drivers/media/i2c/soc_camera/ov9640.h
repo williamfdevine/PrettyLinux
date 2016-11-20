@@ -172,7 +172,8 @@
 #define	VERSION(pid, ver)	(((pid) << 8) | ((ver) & 0xFF))
 
 /* supported resolutions */
-enum {
+enum
+{
 	W_QQCIF	= 88,
 	W_QQVGA	= 160,
 	W_QCIF	= 176,
@@ -184,19 +185,22 @@ enum {
 #define	H_SXGA	960
 
 /* Misc. structures */
-struct ov9640_reg_alt {
+struct ov9640_reg_alt
+{
 	u8	com7;
 	u8	com12;
 	u8	com13;
 	u8	com15;
 };
 
-struct ov9640_reg {
+struct ov9640_reg
+{
 	u8	reg;
 	u8	val;
 };
 
-struct ov9640_priv {
+struct ov9640_priv
+{
 	struct v4l2_subdev		subdev;
 	struct v4l2_ctrl_handler	hdl;
 	struct v4l2_clk			*clk;

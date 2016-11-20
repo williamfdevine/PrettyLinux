@@ -28,7 +28,7 @@
  * to increment the sequence variables because an interrupt routine could
  * change the state of the data.
  *
- * Based on x86_64 vsyscall gettimeofday 
+ * Based on x86_64 vsyscall gettimeofday
  * by Keith Owens and Andrea Arcangeli
  */
 
@@ -44,7 +44,8 @@
  * updating starting before the write_seqcountbeqin() and ending
  * after the write_seqcount_end().
  */
-typedef struct seqcount {
+typedef struct seqcount
+{
 	unsigned sequence;
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
 	struct lockdep_map dep_map;
@@ -52,7 +53,7 @@ typedef struct seqcount {
 } seqcount_t;
 
 static inline void __seqcount_init(seqcount_t *s, const char *name,
-					  struct lock_class_key *key)
+								   struct lock_class_key *key)
 {
 	/*
 	 * Make sure we are not reinitializing a held lock:
@@ -63,7 +64,7 @@ static inline void __seqcount_init(seqcount_t *s, const char *name,
 
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
 # define SEQCOUNT_DEP_MAP_INIT(lockname) \
-		.dep_map = { .name = #lockname } \
+	.dep_map = { .name = #lockname } \
 
 # define seqcount_init(s)				\
 	do {						\
@@ -71,16 +72,16 @@ static inline void __seqcount_init(seqcount_t *s, const char *name,
 		__seqcount_init((s), #s, &__key);	\
 	} while (0)
 
-static inline void seqcount_lockdep_reader_access(const seqcount_t *s)
-{
-	seqcount_t *l = (seqcount_t *)s;
-	unsigned long flags;
+			   static inline void seqcount_lockdep_reader_access(const seqcount_t *s)
+	{
+		seqcount_t *l = (seqcount_t *)s;
+		unsigned long flags;
 
-	local_irq_save(flags);
-	seqcount_acquire_read(&l->dep_map, 0, 0, _RET_IP_);
-	seqcount_release(&l->dep_map, 1, _RET_IP_);
-	local_irq_restore(flags);
-}
+		local_irq_save(flags);
+		seqcount_acquire_read(&l->dep_map, 0, 0, _RET_IP_);
+		seqcount_release(&l->dep_map, 1, _RET_IP_);
+		local_irq_restore(flags);
+	}
 
 #else
 # define SEQCOUNT_DEP_MAP_INIT(lockname)
@@ -110,10 +111,13 @@ static inline unsigned __read_seqcount_begin(const seqcount_t *s)
 
 repeat:
 	ret = READ_ONCE(s->sequence);
-	if (unlikely(ret & 1)) {
+
+	if (unlikely(ret & 1))
+	{
 		cpu_relax();
 		goto repeat;
 	}
+
 	return ret;
 }
 
@@ -362,9 +366,9 @@ static inline int raw_read_seqcount_latch(seqcount_t *s)
  */
 static inline void raw_write_seqcount_latch(seqcount_t *s)
 {
-       smp_wmb();      /* prior stores before incrementing "sequence" */
-       s->sequence++;
-       smp_wmb();      /* increment "sequence" before following stores */
+	smp_wmb();      /* prior stores before incrementing "sequence" */
+	s->sequence++;
+	smp_wmb();      /* increment "sequence" before following stores */
 }
 
 /*
@@ -398,10 +402,11 @@ static inline void write_seqcount_end(seqcount_t *s)
 static inline void write_seqcount_invalidate(seqcount_t *s)
 {
 	smp_wmb();
-	s->sequence+=2;
+	s->sequence += 2;
 }
 
-typedef struct {
+typedef struct
+{
 	struct seqcount seqcount;
 	spinlock_t lock;
 } seqlock_t;
@@ -413,7 +418,7 @@ typedef struct {
 #define __SEQLOCK_UNLOCKED(lockname)			\
 	{						\
 		.seqcount = SEQCNT_ZERO(lockname),	\
-		.lock =	__SPIN_LOCK_UNLOCKED(lockname)	\
+					.lock =	__SPIN_LOCK_UNLOCKED(lockname)	\
 	}
 
 #define seqlock_init(x)					\
@@ -423,7 +428,7 @@ typedef struct {
 	} while (0)
 
 #define DEFINE_SEQLOCK(x) \
-		seqlock_t x = __SEQLOCK_UNLOCKED(x)
+	seqlock_t x = __SEQLOCK_UNLOCKED(x)
 
 /*
  * Read side functions for starting and finalizing a read side section.
@@ -526,9 +531,13 @@ static inline void read_sequnlock_excl(seqlock_t *sl)
 static inline void read_seqbegin_or_lock(seqlock_t *lock, int *seq)
 {
 	if (!(*seq & 1))	/* Even */
+	{
 		*seq = read_seqbegin(lock);
+	}
 	else			/* Odd */
+	{
 		read_seqlock_excl(lock);
+	}
 }
 
 static inline int need_seqretry(seqlock_t *lock, int seq)
@@ -539,7 +548,9 @@ static inline int need_seqretry(seqlock_t *lock, int seq)
 static inline void done_seqretry(seqlock_t *lock, int seq)
 {
 	if (seq & 1)
+	{
 		read_sequnlock_excl(lock);
+	}
 }
 
 static inline void read_seqlock_excl_bh(seqlock_t *sl)
@@ -585,9 +596,13 @@ read_seqbegin_or_lock_irqsave(seqlock_t *lock, int *seq)
 	unsigned long flags = 0;
 
 	if (!(*seq & 1))	/* Even */
+	{
 		*seq = read_seqbegin(lock);
+	}
 	else			/* Odd */
+	{
 		read_seqlock_excl_irqsave(lock, flags);
+	}
 
 	return flags;
 }
@@ -596,6 +611,8 @@ static inline void
 done_seqretry_irqrestore(seqlock_t *lock, int seq, unsigned long flags)
 {
 	if (seq & 1)
+	{
 		read_sequnlock_excl_irqrestore(lock, flags);
+	}
 }
 #endif /* __LINUX_SEQLOCK_H */

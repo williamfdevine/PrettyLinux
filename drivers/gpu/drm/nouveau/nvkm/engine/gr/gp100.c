@@ -58,10 +58,15 @@ gp100_gr_init(struct gf100_gr *gr)
 
 	memset(data, 0x00, sizeof(data));
 	memcpy(tpcnr, gr->tpc_nr, sizeof(gr->tpc_nr));
-	for (i = 0, gpc = -1; i < gr->tpc_total; i++) {
-		do {
+
+	for (i = 0, gpc = -1; i < gr->tpc_total; i++)
+	{
+		do
+		{
 			gpc = (gpc + 1) % gr->gpc_nr;
-		} while (!tpcnr[gpc]);
+		}
+		while (!tpcnr[gpc]);
+
 		tpc = gr->tpc_nr[gpc] - tpcnr[gpc]--;
 
 		data[i / 8] |= tpc << ((i % 8) * 4);
@@ -72,11 +77,12 @@ gp100_gr_init(struct gf100_gr *gr)
 	nvkm_wr32(device, GPC_BCAST(0x0988), data[2]);
 	nvkm_wr32(device, GPC_BCAST(0x098c), data[3]);
 
-	for (gpc = 0; gpc < gr->gpc_nr; gpc++) {
+	for (gpc = 0; gpc < gr->gpc_nr; gpc++)
+	{
 		nvkm_wr32(device, GPC_UNIT(gpc, 0x0914),
-			  gr->screen_tile_row_offset << 8 | gr->tpc_nr[gpc]);
+				  gr->screen_tile_row_offset << 8 | gr->tpc_nr[gpc]);
 		nvkm_wr32(device, GPC_UNIT(gpc, 0x0910), 0x00040000 |
-							 gr->tpc_total);
+				  gr->tpc_total);
 		nvkm_wr32(device, GPC_UNIT(gpc, 0x0918), magicgpc918);
 	}
 
@@ -108,12 +114,15 @@ gp100_gr_init(struct gf100_gr *gr)
 
 	gr->func->init_ppc_exceptions(gr);
 
-	for (gpc = 0; gpc < gr->gpc_nr; gpc++) {
+	for (gpc = 0; gpc < gr->gpc_nr; gpc++)
+	{
 		nvkm_wr32(device, GPC_UNIT(gpc, 0x0420), 0xc0000000);
 		nvkm_wr32(device, GPC_UNIT(gpc, 0x0900), 0xc0000000);
 		nvkm_wr32(device, GPC_UNIT(gpc, 0x1028), 0xc0000000);
 		nvkm_wr32(device, GPC_UNIT(gpc, 0x0824), 0xc0000000);
-		for (tpc = 0; tpc < gr->tpc_nr[gpc]; tpc++) {
+
+		for (tpc = 0; tpc < gr->tpc_nr[gpc]; tpc++)
+		{
 			nvkm_wr32(device, TPC_UNIT(gpc, tpc, 0x508), 0xffffffff);
 			nvkm_wr32(device, TPC_UNIT(gpc, tpc, 0x50c), 0xffffffff);
 			nvkm_wr32(device, TPC_UNIT(gpc, tpc, 0x224), 0xc0000000);
@@ -123,11 +132,13 @@ gp100_gr_init(struct gf100_gr *gr)
 			nvkm_wr32(device, TPC_UNIT(gpc, tpc, 0x644), 0x00dffffe);
 			nvkm_wr32(device, TPC_UNIT(gpc, tpc, 0x64c), 0x00000105);
 		}
+
 		nvkm_wr32(device, GPC_UNIT(gpc, 0x2c90), 0xffffffff);
 		nvkm_wr32(device, GPC_UNIT(gpc, 0x2c94), 0xffffffff);
 	}
 
-	for (rop = 0; rop < gr->rop_nr; rop++) {
+	for (rop = 0; rop < gr->rop_nr; rop++)
+	{
 		nvkm_wr32(device, ROP_UNIT(rop, 0x144), 0x40000000);
 		nvkm_wr32(device, ROP_UNIT(rop, 0x070), 0x40000000);
 		nvkm_wr32(device, ROP_UNIT(rop, 0x204), 0xffffffff);
@@ -147,7 +158,8 @@ gp100_gr_init(struct gf100_gr *gr)
 }
 
 static const struct gf100_gr_func
-gp100_gr = {
+	gp100_gr =
+{
 	.init = gp100_gr_init,
 	.init_gpc_mmu = gm200_gr_init_gpc_mmu,
 	.init_rop_active_fbps = gp100_gr_init_rop_active_fbps,

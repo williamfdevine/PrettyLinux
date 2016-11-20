@@ -40,7 +40,7 @@
 static inline void fintek_cr_write(struct fintek_dev *fintek, u8 val, u8 reg)
 {
 	fit_dbg("%s: reg 0x%02x, val 0x%02x  (ip/dp: %02x/%02x)",
-		__func__, reg, val, fintek->cr_ip, fintek->cr_dp);
+			__func__, reg, val, fintek->cr_ip, fintek->cr_dp);
 	outb(reg, fintek->cr_ip);
 	outb(val, fintek->cr_dp);
 }
@@ -54,7 +54,7 @@ static inline u8 fintek_cr_read(struct fintek_dev *fintek, u8 reg)
 	val = inb(fintek->cr_dp);
 
 	fit_dbg("%s: reg 0x%02x, val 0x%02x  (ip/dp: %02x/%02x)",
-		__func__, reg, val, fintek->cr_ip, fintek->cr_dp);
+			__func__, reg, val, fintek->cr_ip, fintek->cr_dp);
 	return val;
 }
 
@@ -119,24 +119,24 @@ static void cir_dump_regs(struct fintek_dev *fintek)
 
 	pr_info("%s: Dump CIR logical device registers:\n", FINTEK_DRIVER_NAME);
 	pr_info(" * CR CIR BASE ADDR: 0x%x\n",
-		(fintek_cr_read(fintek, CIR_CR_BASE_ADDR_HI) << 8) |
-		fintek_cr_read(fintek, CIR_CR_BASE_ADDR_LO));
+			(fintek_cr_read(fintek, CIR_CR_BASE_ADDR_HI) << 8) |
+			fintek_cr_read(fintek, CIR_CR_BASE_ADDR_LO));
 	pr_info(" * CR CIR IRQ NUM:   0x%x\n",
-		fintek_cr_read(fintek, CIR_CR_IRQ_SEL));
+			fintek_cr_read(fintek, CIR_CR_IRQ_SEL));
 
 	fintek_config_mode_disable(fintek);
 
 	pr_info("%s: Dump CIR registers:\n", FINTEK_DRIVER_NAME);
 	pr_info(" * STATUS:     0x%x\n",
-		fintek_cir_reg_read(fintek, CIR_STATUS));
+			fintek_cir_reg_read(fintek, CIR_STATUS));
 	pr_info(" * CONTROL:    0x%x\n",
-		fintek_cir_reg_read(fintek, CIR_CONTROL));
+			fintek_cir_reg_read(fintek, CIR_CONTROL));
 	pr_info(" * RX_DATA:    0x%x\n",
-		fintek_cir_reg_read(fintek, CIR_RX_DATA));
+			fintek_cir_reg_read(fintek, CIR_RX_DATA));
 	pr_info(" * TX_CONTROL: 0x%x\n",
-		fintek_cir_reg_read(fintek, CIR_TX_CONTROL));
+			fintek_cir_reg_read(fintek, CIR_TX_CONTROL));
 	pr_info(" * TX_DATA:    0x%x\n",
-		fintek_cir_reg_read(fintek, CIR_TX_DATA));
+			fintek_cir_reg_read(fintek, CIR_TX_DATA));
 }
 
 /* detect hardware features */
@@ -152,7 +152,9 @@ static int fintek_hw_detect(struct fintek_dev *fintek)
 
 	/* Check if we're using config port 0x4e or 0x2e */
 	portsel = fintek_cr_read(fintek, GCR_CONFIG_PORT_SEL);
-	if (portsel == 0xff) {
+
+	if (portsel == 0xff)
+	{
 		fit_pr(KERN_INFO, "first portsel read was bunk, trying alt");
 		fintek_config_mode_disable(fintek);
 		fintek->cr_ip = CR_INDEX_PORT2;
@@ -160,20 +162,23 @@ static int fintek_hw_detect(struct fintek_dev *fintek)
 		fintek_config_mode_enable(fintek);
 		portsel = fintek_cr_read(fintek, GCR_CONFIG_PORT_SEL);
 	}
+
 	fit_dbg("portsel reg: 0x%02x", portsel);
 
 	ir_class = fintek_cir_reg_read(fintek, CIR_CR_CLASS);
 	fit_dbg("ir_class reg: 0x%02x", ir_class);
 
-	switch (ir_class) {
-	case CLASS_RX_2TX:
-	case CLASS_RX_1TX:
-		fintek->hw_tx_capable = true;
-		break;
-	case CLASS_RX_ONLY:
-	default:
-		fintek->hw_tx_capable = false;
-		break;
+	switch (ir_class)
+	{
+		case CLASS_RX_2TX:
+		case CLASS_RX_1TX:
+			fintek->hw_tx_capable = true;
+			break;
+
+		case CLASS_RX_ONLY:
+		default:
+			fintek->hw_tx_capable = false;
+			break;
 	}
 
 	chip_major = fintek_cr_read(fintek, GCR_CHIP_ID_HI);
@@ -185,9 +190,13 @@ static int fintek_hw_detect(struct fintek_dev *fintek)
 	vendor = vendor_major << 8 | vendor_minor;
 
 	if (vendor != VENDOR_ID_FINTEK)
+	{
 		fit_pr(KERN_WARNING, "Unknown vendor ID: 0x%04x", vendor);
+	}
 	else
+	{
 		fit_dbg("Read Fintek vendor ID from chip");
+	}
 
 	fintek_config_mode_disable(fintek);
 
@@ -200,9 +209,13 @@ static int fintek_hw_detect(struct fintek_dev *fintek)
 	 * Newer reviews of this chipset uses port 8 instead of 5
 	 */
 	if ((chip != 0x0408) && (chip != 0x0804))
+	{
 		fintek->logical_dev_cir = LOGICAL_DEV_CIR_REV2;
+	}
 	else
+	{
 		fintek->logical_dev_cir = LOGICAL_DEV_CIR_REV1;
+	}
 
 	spin_unlock_irqrestore(&fintek->fintek_lock, flags);
 
@@ -222,7 +235,7 @@ static void fintek_cir_ldev_init(struct fintek_dev *fintek)
 	fintek_cr_write(fintek, fintek->cir_irq, CIR_CR_IRQ_SEL);
 
 	fit_dbg("CIR initialized, base io address: 0x%lx, irq: %d (len: %d)",
-		fintek->cir_addr, fintek->cir_irq, fintek->cir_port_len);
+			fintek->cir_addr, fintek->cir_irq, fintek->cir_port_len);
 }
 
 /* enable CIR interrupts */
@@ -261,28 +274,39 @@ static int fintek_cmdsize(u8 cmd, u8 subcmd)
 {
 	int datasize = 0;
 
-	switch (cmd) {
-	case BUF_COMMAND_NULL:
-		if (subcmd == BUF_HW_CMD_HEADER)
-			datasize = 1;
-		break;
-	case BUF_HW_CMD_HEADER:
-		if (subcmd == BUF_CMD_G_REVISION)
-			datasize = 2;
-		break;
-	case BUF_COMMAND_HEADER:
-		switch (subcmd) {
-		case BUF_CMD_S_CARRIER:
-		case BUF_CMD_S_TIMEOUT:
-		case BUF_RSP_PULSE_COUNT:
-			datasize = 2;
+	switch (cmd)
+	{
+		case BUF_COMMAND_NULL:
+			if (subcmd == BUF_HW_CMD_HEADER)
+			{
+				datasize = 1;
+			}
+
 			break;
-		case BUF_CMD_SIG_END:
-		case BUF_CMD_S_TXMASK:
-		case BUF_CMD_S_RXSENSOR:
-			datasize = 1;
+
+		case BUF_HW_CMD_HEADER:
+			if (subcmd == BUF_CMD_G_REVISION)
+			{
+				datasize = 2;
+			}
+
 			break;
-		}
+
+		case BUF_COMMAND_HEADER:
+			switch (subcmd)
+			{
+				case BUF_CMD_S_CARRIER:
+				case BUF_CMD_S_TIMEOUT:
+				case BUF_RSP_PULSE_COUNT:
+					datasize = 2;
+					break;
+
+				case BUF_CMD_SIG_END:
+				case BUF_CMD_S_TXMASK:
+				case BUF_CMD_S_RXSENSOR:
+					datasize = 1;
+					break;
+			}
 	}
 
 	return datasize;
@@ -296,54 +320,76 @@ static void fintek_process_rx_ir_data(struct fintek_dev *fintek)
 	bool event = false;
 	int i;
 
-	for (i = 0; i < fintek->pkts; i++) {
+	for (i = 0; i < fintek->pkts; i++)
+	{
 		sample = fintek->buf[i];
-		switch (fintek->parser_state) {
-		case CMD_HEADER:
-			fintek->cmd = sample;
-			if ((fintek->cmd == BUF_COMMAND_HEADER) ||
-			    ((fintek->cmd & BUF_COMMAND_MASK) !=
-			     BUF_PULSE_BIT)) {
-				fintek->parser_state = SUBCMD;
-				continue;
-			}
-			fintek->rem = (fintek->cmd & BUF_LEN_MASK);
-			fit_dbg("%s: rem: 0x%02x", __func__, fintek->rem);
-			if (fintek->rem)
-				fintek->parser_state = PARSE_IRDATA;
-			else
-				ir_raw_event_reset(fintek->rdev);
-			break;
-		case SUBCMD:
-			fintek->rem = fintek_cmdsize(fintek->cmd, sample);
-			fintek->parser_state = CMD_DATA;
-			break;
-		case CMD_DATA:
-			fintek->rem--;
-			break;
-		case PARSE_IRDATA:
-			fintek->rem--;
-			init_ir_raw_event(&rawir);
-			rawir.pulse = ((sample & BUF_PULSE_BIT) != 0);
-			rawir.duration = US_TO_NS((sample & BUF_SAMPLE_MASK)
-					  * CIR_SAMPLE_PERIOD);
 
-			fit_dbg("Storing %s with duration %d",
-				rawir.pulse ? "pulse" : "space",
-				rawir.duration);
-			if (ir_raw_event_store_with_filter(fintek->rdev,
-									&rawir))
-				event = true;
-			break;
+		switch (fintek->parser_state)
+		{
+			case CMD_HEADER:
+				fintek->cmd = sample;
+
+				if ((fintek->cmd == BUF_COMMAND_HEADER) ||
+					((fintek->cmd & BUF_COMMAND_MASK) !=
+					 BUF_PULSE_BIT))
+				{
+					fintek->parser_state = SUBCMD;
+					continue;
+				}
+
+				fintek->rem = (fintek->cmd & BUF_LEN_MASK);
+				fit_dbg("%s: rem: 0x%02x", __func__, fintek->rem);
+
+				if (fintek->rem)
+				{
+					fintek->parser_state = PARSE_IRDATA;
+				}
+				else
+				{
+					ir_raw_event_reset(fintek->rdev);
+				}
+
+				break;
+
+			case SUBCMD:
+				fintek->rem = fintek_cmdsize(fintek->cmd, sample);
+				fintek->parser_state = CMD_DATA;
+				break;
+
+			case CMD_DATA:
+				fintek->rem--;
+				break;
+
+			case PARSE_IRDATA:
+				fintek->rem--;
+				init_ir_raw_event(&rawir);
+				rawir.pulse = ((sample & BUF_PULSE_BIT) != 0);
+				rawir.duration = US_TO_NS((sample & BUF_SAMPLE_MASK)
+										  * CIR_SAMPLE_PERIOD);
+
+				fit_dbg("Storing %s with duration %d",
+						rawir.pulse ? "pulse" : "space",
+						rawir.duration);
+
+				if (ir_raw_event_store_with_filter(fintek->rdev,
+												   &rawir))
+				{
+					event = true;
+				}
+
+				break;
 		}
 
 		if ((fintek->parser_state != CMD_HEADER) && !fintek->rem)
+		{
 			fintek->parser_state = CMD_HEADER;
+		}
 	}
 
 	fintek->pkts = 0;
 
-	if (event) {
+	if (event)
+	{
 		fit_dbg("Calling ir_raw_event_handle");
 		ir_raw_event_handle(fintek->rdev);
 	}
@@ -362,7 +408,8 @@ static void fintek_get_rx_ir_data(struct fintek_dev *fintek, u8 rx_irqs)
 	 * is empty and clears the RX_TIMEOUT and/or RX_RECEIVE flags in
 	 * the CIR_STATUS register
 	 */
-	do {
+	do
+	{
 		sample = fintek_cir_reg_read(fintek, CIR_RX_DATA);
 		fit_dbg("%s: sample: 0x%02x", __func__, sample);
 
@@ -370,9 +417,13 @@ static void fintek_get_rx_ir_data(struct fintek_dev *fintek, u8 rx_irqs)
 		fintek->pkts++;
 
 		status = fintek_cir_reg_read(fintek, CIR_STATUS);
+
 		if (!(status & CIR_STATUS_IRQ_EN))
+		{
 			break;
-	} while (status & rx_irqs);
+		}
+	}
+	while (status & rx_irqs);
 
 	fintek_process_rx_ir_data(fintek);
 
@@ -382,11 +433,11 @@ static void fintek_get_rx_ir_data(struct fintek_dev *fintek, u8 rx_irqs)
 static void fintek_cir_log_irqs(u8 status)
 {
 	fit_pr(KERN_INFO, "IRQ 0x%02x:%s%s%s%s%s", status,
-		status & CIR_STATUS_IRQ_EN	? " IRQEN"	: "",
-		status & CIR_STATUS_TX_FINISH	? " TXF"	: "",
-		status & CIR_STATUS_TX_UNDERRUN	? " TXU"	: "",
-		status & CIR_STATUS_RX_TIMEOUT	? " RXTO"	: "",
-		status & CIR_STATUS_RX_RECEIVE	? " RXOK"	: "");
+		   status & CIR_STATUS_IRQ_EN	? " IRQEN"	: "",
+		   status & CIR_STATUS_TX_FINISH	? " TXF"	: "",
+		   status & CIR_STATUS_TX_UNDERRUN	? " TXU"	: "",
+		   status & CIR_STATUS_RX_TIMEOUT	? " RXTO"	: "",
+		   status & CIR_STATUS_RX_RECEIVE	? " RXOK"	: "");
 }
 
 /* interrupt service routine for incoming and outgoing CIR data */
@@ -411,18 +462,25 @@ static irqreturn_t fintek_cir_isr(int irq, void *data)
 	 *   0: RX_RECEIVE  - RX data received
 	 */
 	status = fintek_cir_reg_read(fintek, CIR_STATUS);
-	if (!(status & CIR_STATUS_IRQ_MASK) || status == 0xff) {
+
+	if (!(status & CIR_STATUS_IRQ_MASK) || status == 0xff)
+	{
 		fit_dbg_verbose("%s exiting, IRSTS 0x%02x", __func__, status);
 		fintek_cir_reg_write(fintek, CIR_STATUS_IRQ_MASK, CIR_STATUS);
 		return IRQ_RETVAL(IRQ_NONE);
 	}
 
 	if (debug)
+	{
 		fintek_cir_log_irqs(status);
+	}
 
 	rx_irqs = status & (CIR_STATUS_RX_RECEIVE | CIR_STATUS_RX_TIMEOUT);
+
 	if (rx_irqs)
+	{
 		fintek_get_rx_ir_data(fintek, rx_irqs);
+	}
 
 	/* ack/clear all irq flags we've got */
 	fintek_cir_reg_write(fintek, status, CIR_STATUS);
@@ -492,22 +550,31 @@ static int fintek_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id
 	int ret = -ENOMEM;
 
 	fintek = kzalloc(sizeof(struct fintek_dev), GFP_KERNEL);
+
 	if (!fintek)
+	{
 		return ret;
+	}
 
 	/* input device for IR remote (and tx) */
 	rdev = rc_allocate_device();
+
 	if (!rdev)
+	{
 		goto exit_free_dev_rdev;
+	}
 
 	ret = -ENODEV;
+
 	/* validate pnp resources */
-	if (!pnp_port_valid(pdev, 0)) {
+	if (!pnp_port_valid(pdev, 0))
+	{
 		dev_err(&pdev->dev, "IR PNP Port not valid!\n");
 		goto exit_free_dev_rdev;
 	}
 
-	if (!pnp_irq_valid(pdev, 0)) {
+	if (!pnp_irq_valid(pdev, 0))
+	{
 		dev_err(&pdev->dev, "IR PNP IRQ not valid!\n");
 		goto exit_free_dev_rdev;
 	}
@@ -525,8 +592,11 @@ static int fintek_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id
 	fintek->pdev = pdev;
 
 	ret = fintek_hw_detect(fintek);
+
 	if (ret)
+	{
 		goto exit_free_dev_rdev;
+	}
 
 	/* Initialize CIR & CIR Wake Logical Devices */
 	fintek_config_mode_enable(fintek);
@@ -558,24 +628,35 @@ static int fintek_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id
 	fintek->rdev = rdev;
 
 	ret = -EBUSY;
+
 	/* now claim resources */
 	if (!request_region(fintek->cir_addr,
-			    fintek->cir_port_len, FINTEK_DRIVER_NAME))
+						fintek->cir_port_len, FINTEK_DRIVER_NAME))
+	{
 		goto exit_free_dev_rdev;
+	}
 
 	if (request_irq(fintek->cir_irq, fintek_cir_isr, IRQF_SHARED,
-			FINTEK_DRIVER_NAME, (void *)fintek))
+					FINTEK_DRIVER_NAME, (void *)fintek))
+	{
 		goto exit_free_cir_addr;
+	}
 
 	ret = rc_register_device(rdev);
+
 	if (ret)
+	{
 		goto exit_free_irq;
+	}
 
 	device_init_wakeup(&pdev->dev, true);
 
 	fit_pr(KERN_NOTICE, "driver has been successfully loaded\n");
+
 	if (debug)
+	{
 		cir_dump_regs(fintek);
+	}
 
 	return 0;
 
@@ -667,12 +748,14 @@ static void fintek_shutdown(struct pnp_dev *pdev)
 	fintek_enable_wake(fintek);
 }
 
-static const struct pnp_device_id fintek_ids[] = {
+static const struct pnp_device_id fintek_ids[] =
+{
 	{ "FIT0002", 0 },   /* CIR */
 	{ "", 0 },
 };
 
-static struct pnp_driver fintek_driver = {
+static struct pnp_driver fintek_driver =
+{
 	.name		= FINTEK_DRIVER_NAME,
 	.id_table	= fintek_ids,
 	.flags		= PNP_DRIVER_RES_DO_NOT_CHANGE,

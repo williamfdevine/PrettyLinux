@@ -26,7 +26,8 @@ struct samsung_usb2_phy_driver;
 struct samsung_usb2_phy_instance;
 struct samsung_usb2_phy_config;
 
-struct samsung_usb2_phy_instance {
+struct samsung_usb2_phy_instance
+{
 	const struct samsung_usb2_common_phy *cfg;
 	struct phy *phy;
 	struct samsung_usb2_phy_driver *drv;
@@ -34,7 +35,8 @@ struct samsung_usb2_phy_instance {
 	int ext_cnt;
 };
 
-struct samsung_usb2_phy_driver {
+struct samsung_usb2_phy_driver
+{
 	const struct samsung_usb2_phy_config *cfg;
 	struct clk *clk;
 	struct clk *ref_clk;
@@ -49,7 +51,8 @@ struct samsung_usb2_phy_driver {
 	struct samsung_usb2_phy_instance instances[0];
 };
 
-struct samsung_usb2_common_phy {
+struct samsung_usb2_common_phy
+{
 	int (*power_on)(struct samsung_usb2_phy_instance *);
 	int (*power_off)(struct samsung_usb2_phy_instance *);
 	unsigned int id;
@@ -57,7 +60,8 @@ struct samsung_usb2_common_phy {
 };
 
 
-struct samsung_usb2_phy_config {
+struct samsung_usb2_phy_config
+{
 	const struct samsung_usb2_common_phy *phys;
 	int (*rate_to_clk)(unsigned long, u32 *);
 	unsigned int num_phys;

@@ -14,7 +14,8 @@ struct ceph_auth_client;
 /*
  * The monitor map enumerates the set of all monitors.
  */
-struct ceph_monmap {
+struct ceph_monmap
+{
 	struct ceph_fsid fsid;
 	u32 epoch;
 	u32 num_mon;
@@ -29,10 +30,11 @@ struct ceph_mon_generic_request;
  * Generic mechanism for resending monitor requests.
  */
 typedef void (*ceph_monc_request_func_t)(struct ceph_mon_client *monc,
-					 int newmon);
+		int newmon);
 
 /* a pending monitor request */
-struct ceph_mon_request {
+struct ceph_mon_request
+{
 	struct ceph_mon_client *monc;
 	struct delayed_work delayed_work;
 	unsigned long delay;
@@ -46,7 +48,8 @@ typedef void (*ceph_monc_callback_t)(struct ceph_mon_generic_request *);
  * mon_get_version requests which are being done a bit differently
  * because we need to get data back to the caller
  */
-struct ceph_mon_generic_request {
+struct ceph_mon_generic_request
+{
 	struct ceph_mon_client *monc;
 	struct kref kref;
 	u64 tid;
@@ -60,13 +63,15 @@ struct ceph_mon_generic_request {
 	struct ceph_msg *request;  /* original request */
 	struct ceph_msg *reply;    /* and reply */
 
-	union {
+	union
+	{
 		struct ceph_statfs *st;
 		u64 newest;
 	} u;
 };
 
-struct ceph_mon_client {
+struct ceph_mon_client
+{
 	struct ceph_client *client;
 	struct ceph_monmap *monmap;
 
@@ -91,7 +96,8 @@ struct ceph_mon_client {
 	u64 last_tid;
 
 	/* subs, indexed with CEPH_SUB_* */
-	struct {
+	struct
+	{
 		struct ceph_mon_subscribe_item item;
 		bool want;
 		u32 have; /* epoch */
@@ -105,12 +111,13 @@ struct ceph_mon_client {
 
 extern struct ceph_monmap *ceph_monmap_decode(void *p, void *end);
 extern int ceph_monmap_contains(struct ceph_monmap *m,
-				struct ceph_entity_addr *addr);
+								struct ceph_entity_addr *addr);
 
 extern int ceph_monc_init(struct ceph_mon_client *monc, struct ceph_client *cl);
 extern void ceph_monc_stop(struct ceph_mon_client *monc);
 
-enum {
+enum
+{
 	CEPH_SUB_MONMAP = 0,
 	CEPH_SUB_OSDMAP,
 	CEPH_SUB_FSMAP,
@@ -126,23 +133,23 @@ extern const char *ceph_sub_str[];
  * get what we want.
  */
 bool ceph_monc_want_map(struct ceph_mon_client *monc, int sub, u32 epoch,
-			bool continuous);
+						bool continuous);
 void ceph_monc_got_map(struct ceph_mon_client *monc, int sub, u32 epoch);
 void ceph_monc_renew_subs(struct ceph_mon_client *monc);
 
 extern int ceph_monc_wait_osdmap(struct ceph_mon_client *monc, u32 epoch,
-				 unsigned long timeout);
+								 unsigned long timeout);
 
 extern int ceph_monc_do_statfs(struct ceph_mon_client *monc,
-			       struct ceph_statfs *buf);
+							   struct ceph_statfs *buf);
 
 int ceph_monc_get_version(struct ceph_mon_client *monc, const char *what,
-			  u64 *newest);
+						  u64 *newest);
 int ceph_monc_get_version_async(struct ceph_mon_client *monc, const char *what,
-				ceph_monc_callback_t cb, u64 private_data);
+								ceph_monc_callback_t cb, u64 private_data);
 
 int ceph_monc_blacklist_add(struct ceph_mon_client *monc,
-			    struct ceph_entity_addr *client_addr);
+							struct ceph_entity_addr *client_addr);
 
 extern int ceph_monc_open_session(struct ceph_mon_client *monc);
 

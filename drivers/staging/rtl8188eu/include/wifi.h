@@ -39,14 +39,16 @@
  *  the CTS with large duration. */
 #define	WiFiNavUpperUs				30000	/*  30 ms */
 
-enum WIFI_FRAME_TYPE {
+enum WIFI_FRAME_TYPE
+{
 	WIFI_MGT_TYPE  =	(0),
 	WIFI_CTRL_TYPE =	(BIT(2)),
 	WIFI_DATA_TYPE =	(BIT(3)),
-	WIFI_QOS_DATA_TYPE	= (BIT(7)|BIT(3)),	/*  QoS Data */
+	WIFI_QOS_DATA_TYPE	= (BIT(7) | BIT(3)),	/*  QoS Data */
 };
 
-enum WIFI_FRAME_SUBTYPE {
+enum WIFI_FRAME_SUBTYPE
+{
 	/*  below is for mgt frame */
 	WIFI_ASSOCREQ       = (0 | WIFI_MGT_TYPE),
 	WIFI_ASSOCRSP       = (BIT(4) | WIFI_MGT_TYPE),
@@ -68,7 +70,7 @@ enum WIFI_FRAME_SUBTYPE {
 	WIFI_ACK            = (BIT(7) | BIT(6) | BIT(4) | WIFI_CTRL_TYPE),
 	WIFI_CFEND          = (BIT(7) | BIT(6) | BIT(5) | WIFI_CTRL_TYPE),
 	WIFI_CFEND_CFACK    = (BIT(7) | BIT(6) | BIT(5) | BIT(4) |
-	WIFI_CTRL_TYPE),
+						   WIFI_CTRL_TYPE),
 
 	/*  below is for data frame */
 	WIFI_DATA           = (0 | WIFI_DATA_TYPE),
@@ -82,7 +84,8 @@ enum WIFI_FRAME_SUBTYPE {
 	WIFI_QOS_DATA_NULL	= (BIT(6) | WIFI_QOS_DATA_TYPE),
 };
 
-enum WIFI_REASON_CODE	{
+enum WIFI_REASON_CODE
+{
 	_RSON_RESERVED_			= 0,
 	_RSON_UNSPECIFIED_		= 1,
 	_RSON_AUTH_NO_LONGER_VALID_	= 2,
@@ -113,7 +116,8 @@ enum WIFI_REASON_CODE	{
 	_RSON_TDLS_TEAR_UN_RSN_		= 26,
 };
 
-enum WIFI_STATUS_CODE {
+enum WIFI_STATUS_CODE
+{
 	_STATS_SUCCESSFUL_		= 0,
 	_STATS_FAILURE_			= 1,
 	_STATS_CAP_FAIL_		= 10,
@@ -127,7 +131,8 @@ enum WIFI_STATUS_CODE {
 	_STATS_RATE_FAIL_		= 18,
 };
 
-enum WIFI_REG_DOMAIN {
+enum WIFI_REG_DOMAIN
+{
 	DOMAIN_FCC	= 1,
 	DOMAIN_IC	= 2,
 	DOMAIN_ETSI	= 3,
@@ -214,12 +219,12 @@ enum WIFI_REG_DOMAIN {
 	(le16_to_cpu(*(__le16 *)(pbuf)) & (BIT(3) | BIT(2)))
 
 #define GetFrameSubType(pbuf)	(le16_to_cpu(*(__le16 *)(pbuf)) & (BIT(7) |\
-	 BIT(6) | BIT(5) | BIT(4) | BIT(3) | BIT(2)))
+								 BIT(6) | BIT(5) | BIT(4) | BIT(3) | BIT(2)))
 
 #define SetFrameSubType(pbuf, type) \
 	do {    \
 		*(__le16 *)(pbuf) &= cpu_to_le16(~(BIT(7) | BIT(6) |	\
-		 BIT(5) | BIT(4) | BIT(3) | BIT(2))); \
+										   BIT(5) | BIT(4) | BIT(3) | BIT(2))); \
 		*(__le16 *)(pbuf) |= cpu_to_le16(type); \
 	} while (0)
 
@@ -232,8 +237,8 @@ enum WIFI_REG_DOMAIN {
 #define SetSeqNum(pbuf, num) \
 	do {    \
 		*(__le16 *)((size_t)(pbuf) + 22) = \
-			((*(__le16 *)((size_t)(pbuf) + 22)) & cpu_to_le16((unsigned short)0x000f)) | \
-			cpu_to_le16((unsigned short)(0xfff0 & (num << 4))); \
+										   ((*(__le16 *)((size_t)(pbuf) + 22)) & cpu_to_le16((unsigned short)0x000f)) | \
+										   cpu_to_le16((unsigned short)(0xfff0 & (num << 4))); \
 	} while (0)
 
 #define SetDuration(pbuf, dur) \
@@ -246,7 +251,7 @@ enum WIFI_REG_DOMAIN {
 #define GetPriority(pbuf)	((le16_to_cpu(*(__le16 *)(pbuf))) & 0xf)
 
 #define SetEOSP(pbuf, eosp)	\
-		*(__le16 *)(pbuf) |= cpu_to_le16((eosp & 1) << 4)
+	*(__le16 *)(pbuf) |= cpu_to_le16((eosp & 1) << 4)
 
 #define SetAckpolicy(pbuf, ack)	\
 	*(__le16 *)(pbuf) |= cpu_to_le16((ack & 3) << 5)
@@ -267,17 +272,21 @@ enum WIFI_REG_DOMAIN {
 
 #define MacAddr_isBcst(addr) \
 	( \
-	((addr[0] == 0xff) && (addr[1] == 0xff) && \
-	(addr[2] == 0xff) && (addr[3] == 0xff) && \
-	(addr[4] == 0xff) && (addr[5] == 0xff))  ? true : false \
-)
+	  ((addr[0] == 0xff) && (addr[1] == 0xff) && \
+	   (addr[2] == 0xff) && (addr[3] == 0xff) && \
+	   (addr[4] == 0xff) && (addr[5] == 0xff))  ? true : false \
+	)
 
 static inline int IS_MCAST(unsigned char *da)
 {
 	if ((*da) & 0x01)
+	{
 		return true;
+	}
 	else
+	{
 		return false;
+	}
 }
 
 static inline unsigned char *get_da(unsigned char *pframe)
@@ -285,20 +294,25 @@ static inline unsigned char *get_da(unsigned char *pframe)
 	unsigned char	*da;
 	unsigned int to_fr_ds = (GetToDs(pframe) << 1) | GetFrDs(pframe);
 
-	switch (to_fr_ds) {
-	case 0x00:	/*  ToDs=0, FromDs=0 */
-		da = GetAddr1Ptr(pframe);
-		break;
-	case 0x01:	/*  ToDs=0, FromDs=1 */
-		da = GetAddr1Ptr(pframe);
-		break;
-	case 0x02:	/*  ToDs=1, FromDs=0 */
-		da = GetAddr3Ptr(pframe);
-		break;
-	default:	/*  ToDs=1, FromDs=1 */
-		da = GetAddr3Ptr(pframe);
-		break;
+	switch (to_fr_ds)
+	{
+		case 0x00:	/*  ToDs=0, FromDs=0 */
+			da = GetAddr1Ptr(pframe);
+			break;
+
+		case 0x01:	/*  ToDs=0, FromDs=1 */
+			da = GetAddr1Ptr(pframe);
+			break;
+
+		case 0x02:	/*  ToDs=1, FromDs=0 */
+			da = GetAddr3Ptr(pframe);
+			break;
+
+		default:	/*  ToDs=1, FromDs=1 */
+			da = GetAddr3Ptr(pframe);
+			break;
 	}
+
 	return da;
 }
 
@@ -307,20 +321,25 @@ static inline unsigned char *get_sa(unsigned char *pframe)
 	unsigned char	*sa;
 	unsigned int	to_fr_ds = (GetToDs(pframe) << 1) | GetFrDs(pframe);
 
-	switch (to_fr_ds) {
-	case 0x00:	/*  ToDs=0, FromDs=0 */
-		sa = GetAddr2Ptr(pframe);
-		break;
-	case 0x01:	/*  ToDs=0, FromDs=1 */
-		sa = GetAddr3Ptr(pframe);
-		break;
-	case 0x02:	/*  ToDs=1, FromDs=0 */
-		sa = GetAddr2Ptr(pframe);
-		break;
-	default:	/*  ToDs=1, FromDs=1 */
-		sa = GetAddr4Ptr(pframe);
-		break;
+	switch (to_fr_ds)
+	{
+		case 0x00:	/*  ToDs=0, FromDs=0 */
+			sa = GetAddr2Ptr(pframe);
+			break;
+
+		case 0x01:	/*  ToDs=0, FromDs=1 */
+			sa = GetAddr3Ptr(pframe);
+			break;
+
+		case 0x02:	/*  ToDs=1, FromDs=0 */
+			sa = GetAddr2Ptr(pframe);
+			break;
+
+		default:	/*  ToDs=1, FromDs=1 */
+			sa = GetAddr4Ptr(pframe);
+			break;
 	}
+
 	return sa;
 }
 
@@ -329,32 +348,42 @@ static inline unsigned char *get_hdr_bssid(unsigned char *pframe)
 	unsigned char	*sa;
 	unsigned int	to_fr_ds = (GetToDs(pframe) << 1) | GetFrDs(pframe);
 
-	switch (to_fr_ds) {
-	case 0x00:	/*  ToDs=0, FromDs=0 */
-		sa = GetAddr3Ptr(pframe);
-		break;
-	case 0x01:	/*  ToDs=0, FromDs=1 */
-		sa = GetAddr2Ptr(pframe);
-		break;
-	case 0x02:	/*  ToDs=1, FromDs=0 */
-		sa = GetAddr1Ptr(pframe);
-		break;
-	case 0x03:	/*  ToDs=1, FromDs=1 */
-		sa = GetAddr1Ptr(pframe);
-		break;
-	default:
-		sa = NULL; /*  */
-		break;
+	switch (to_fr_ds)
+	{
+		case 0x00:	/*  ToDs=0, FromDs=0 */
+			sa = GetAddr3Ptr(pframe);
+			break;
+
+		case 0x01:	/*  ToDs=0, FromDs=1 */
+			sa = GetAddr2Ptr(pframe);
+			break;
+
+		case 0x02:	/*  ToDs=1, FromDs=0 */
+			sa = GetAddr1Ptr(pframe);
+			break;
+
+		case 0x03:	/*  ToDs=1, FromDs=1 */
+			sa = GetAddr1Ptr(pframe);
+			break;
+
+		default:
+			sa = NULL; /*  */
+			break;
 	}
+
 	return sa;
 }
 
 static inline int IsFrameTypeCtrl(unsigned char *pframe)
 {
 	if (WIFI_CTRL_TYPE == GetFrameType(pframe))
+	{
 		return true;
+	}
 	else
+	{
 		return false;
+	}
 }
 /*-----------------------------------------------------------------------------
 			Below is for the security related definition
@@ -495,7 +524,8 @@ static inline int IsFrameTypeCtrl(unsigned char *pframe)
  * This structure refers to "HT BlockAckReq" as
  * described in 802.11n draft section 7.2.1.7.1
  */
-struct rtw_ieee80211_bar {
+struct rtw_ieee80211_bar
+{
 	unsigned short frame_control;
 	unsigned short duration;
 	unsigned char ra[6];
@@ -514,7 +544,8 @@ struct rtw_ieee80211_bar {
  * This structure refers to "HT information element" as
  * described in 802.11n draft section 7.3.2.53
  */
-struct ieee80211_ht_addt_info {
+struct ieee80211_ht_addt_info
+{
 	unsigned char	control_chan;
 	unsigned char	ht_param;
 	unsigned short	operation_mode;
@@ -522,32 +553,37 @@ struct ieee80211_ht_addt_info {
 	unsigned char	basic_set[16];
 } __packed;
 
-struct HT_info_element {
+struct HT_info_element
+{
 	unsigned char	primary_channel;
 	unsigned char	infos[5];
 	unsigned char	MCS_rate[16];
 } __packed;
 
-struct AC_param {
+struct AC_param
+{
 	unsigned char		ACI_AIFSN;
 	unsigned char		CW;
 	__le16	TXOP_limit;
 } __packed;
 
-struct WMM_para_element {
+struct WMM_para_element
+{
 	unsigned char		QoS_info;
 	unsigned char		reserved;
 	struct AC_param	ac_param[4];
 } __packed;
 
-struct ADDBA_request {
+struct ADDBA_request
+{
 	unsigned char	dialog_token;
 	__le16		BA_para_set;
 	unsigned short	BA_timeout_value;
 	unsigned short	BA_starting_seqctrl;
 } __packed;
 
-enum ht_cap_ampdu_factor {
+enum ht_cap_ampdu_factor
+{
 	MAX_AMPDU_FACTOR_8K	= 0,
 	MAX_AMPDU_FACTOR_16K	= 1,
 	MAX_AMPDU_FACTOR_32K	= 2,
@@ -616,7 +652,7 @@ enum ht_cap_ampdu_factor {
 #define HT_INFO_HT_PARAM_SRV_INTERVAL_GRANULARITY	((u8)BIT(5))
 
 #define HT_INFO_OPERATION_MODE_OP_MODE_MASK	\
-		((u16)(0x0001 | 0x0002))
+	((u16)(0x0001 | 0x0002))
 #define HT_INFO_OPERATION_MODE_OP_MODE_OFFSET		0
 #define HT_INFO_OPERATION_MODE_NON_GF_DEVS_PRESENT	((u8)BIT(2))
 #define HT_INFO_OPERATION_MODE_TRANSMIT_BURST_LIMIT	((u8)BIT(3))
@@ -761,9 +797,9 @@ enum ht_cap_ampdu_factor {
 #define	P2P_INVITATION_FLAGS_PERSISTENT			BIT(0)
 
 #define	DMP_P2P_DEVCAP_SUPPORT	(P2P_DEVCAP_SERVICE_DISCOVERY | \
-				P2P_DEVCAP_CLIENT_DISCOVERABILITY | \
-				P2P_DEVCAP_CONCURRENT_OPERATION | \
-				P2P_DEVCAP_INVITATION_PROC)
+								 P2P_DEVCAP_CLIENT_DISCOVERABILITY | \
+								 P2P_DEVCAP_CONCURRENT_OPERATION | \
+								 P2P_DEVCAP_INVITATION_PROC)
 
 #define	DMP_P2P_GRPCAP_SUPPORT	(P2P_GRPCAP_INTRABSS)
 
@@ -855,14 +891,16 @@ enum ht_cap_ampdu_factor {
 #define	WPS_CM_SW_DISPLAY_P		0x2008
 #define	WPS_CM_LCD_DISPLAY_P		0x4008
 
-enum P2P_ROLE {
+enum P2P_ROLE
+{
 	P2P_ROLE_DISABLE = 0,
 	P2P_ROLE_DEVICE = 1,
 	P2P_ROLE_CLIENT = 2,
 	P2P_ROLE_GO = 3
 };
 
-enum P2P_STATE {
+enum P2P_STATE
+{
 	P2P_STATE_NONE = 0,			/* P2P disable */
 	/* P2P had enabled and do nothing */
 	P2P_STATE_IDLE = 1,
@@ -906,7 +944,8 @@ enum P2P_STATE {
 	P2P_STATE_TX_INFOR_NOREADY = 22,
 };
 
-enum P2P_WPSINFO {
+enum P2P_WPSINFO
+{
 	P2P_NO_WPSINFO				= 0,
 	P2P_GOT_WPSINFO_PEER_DISPLAY_PIN	= 1,
 	P2P_GOT_WPSINFO_SELF_DISPLAY_PIN	= 2,
@@ -915,7 +954,8 @@ enum P2P_WPSINFO {
 
 #define	P2P_PRIVATE_IOCTL_SET_LEN		64
 
-enum P2P_PROTO_WK_ID {
+enum P2P_PROTO_WK_ID
+{
 	P2P_FIND_PHASE_WK = 0,
 	P2P_RESTORE_STATE_WK = 1,
 	P2P_PRE_TX_PROVDISC_PROCESS_WK = 2,
@@ -925,7 +965,8 @@ enum P2P_PROTO_WK_ID {
 	P2P_RO_CH_WK = 6,
 };
 
-enum P2P_PS_STATE {
+enum P2P_PS_STATE
+{
 	P2P_PS_DISABLE = 0,
 	P2P_PS_ENABLE = 1,
 	P2P_PS_SCAN = 2,
@@ -933,7 +974,8 @@ enum P2P_PS_STATE {
 	P2P_PS_ALLSTASLEEP = 4, /*  for P2P GO */
 };
 
-enum P2P_PS_MODE {
+enum P2P_PS_MODE
+{
 	P2P_PS_NONE = 0,
 	P2P_PS_CTWINDOW = 1,
 	P2P_PS_NOA	 = 2,

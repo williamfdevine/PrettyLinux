@@ -22,7 +22,7 @@
 #include "msm_gem.h"
 
 extern int msm_gem_mmap_obj(struct drm_gem_object *obj,
-					struct vm_area_struct *vma);
+							struct vm_area_struct *vma);
 static int msm_fbdev_mmap(struct fb_info *info, struct vm_area_struct *vma);
 
 /*
@@ -31,13 +31,15 @@ static int msm_fbdev_mmap(struct fb_info *info, struct vm_area_struct *vma);
 
 #define to_msm_fbdev(x) container_of(x, struct msm_fbdev, base)
 
-struct msm_fbdev {
+struct msm_fbdev
+{
 	struct drm_fb_helper base;
 	struct drm_framebuffer *fb;
 	struct drm_gem_object *bo;
 };
 
-static struct fb_ops msm_fb_ops = {
+static struct fb_ops msm_fb_ops =
+{
 	.owner = THIS_MODULE,
 
 	/* Note: to properly handle manual update displays, we wrap the
@@ -65,7 +67,9 @@ static int msm_fbdev_mmap(struct fb_info *info, struct vm_area_struct *vma)
 	int ret = 0;
 
 	ret = drm_gem_mmap_obj(drm_obj, drm_obj->size, vma);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("%s:drm_gem_mmap_obj fail\n", __func__);
 		return ret;
 	}
@@ -74,7 +78,7 @@ static int msm_fbdev_mmap(struct fb_info *info, struct vm_area_struct *vma)
 }
 
 static int msm_fbdev_create(struct drm_fb_helper *helper,
-		struct drm_fb_helper_surface_size *sizes)
+							struct drm_fb_helper_surface_size *sizes)
 {
 	struct msm_fbdev *fbdev = to_msm_fbdev(helper);
 	struct drm_device *dev = helper->dev;
@@ -85,26 +89,28 @@ static int msm_fbdev_create(struct drm_fb_helper *helper,
 	int ret, size;
 
 	DBG("create fbdev: %dx%d@%d (%dx%d)", sizes->surface_width,
-			sizes->surface_height, sizes->surface_bpp,
-			sizes->fb_width, sizes->fb_height);
+		sizes->surface_height, sizes->surface_bpp,
+		sizes->fb_width, sizes->fb_height);
 
 	mode_cmd.pixel_format = drm_mode_legacy_fb_format(sizes->surface_bpp,
-			sizes->surface_depth);
+							sizes->surface_depth);
 
 	mode_cmd.width = sizes->surface_width;
 	mode_cmd.height = sizes->surface_height;
 
 	mode_cmd.pitches[0] = align_pitch(
-			mode_cmd.width, sizes->surface_bpp);
+							  mode_cmd.width, sizes->surface_bpp);
 
 	/* allocate backing bo */
 	size = mode_cmd.pitches[0] * mode_cmd.height;
 	DBG("allocating %d bytes for fb %d", size, dev->primary->index);
 	mutex_lock(&dev->struct_mutex);
 	fbdev->bo = msm_gem_new(dev, size, MSM_BO_SCANOUT |
-			MSM_BO_WC | MSM_BO_STOLEN);
+							MSM_BO_WC | MSM_BO_STOLEN);
 	mutex_unlock(&dev->struct_mutex);
-	if (IS_ERR(fbdev->bo)) {
+
+	if (IS_ERR(fbdev->bo))
+	{
 		ret = PTR_ERR(fbdev->bo);
 		fbdev->bo = NULL;
 		dev_err(dev->dev, "failed to allocate buffer object: %d\n", ret);
@@ -112,7 +118,9 @@ static int msm_fbdev_create(struct drm_fb_helper *helper,
 	}
 
 	fb = msm_framebuffer_init(dev, &mode_cmd, &fbdev->bo);
-	if (IS_ERR(fb)) {
+
+	if (IS_ERR(fb))
+	{
 		dev_err(dev->dev, "failed to allocate fb\n");
 		/* note: if fb creation failed, we can't rely on fb destroy
 		 * to unref the bo:
@@ -130,13 +138,17 @@ static int msm_fbdev_create(struct drm_fb_helper *helper,
 	 * buffer now:
 	 */
 	ret = msm_gem_get_iova_locked(fbdev->bo, 0, &paddr);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev->dev, "failed to get buffer obj iova: %d\n", ret);
 		goto fail_unlock;
 	}
 
 	fbi = drm_fb_helper_alloc_fbi(helper);
-	if (IS_ERR(fbi)) {
+
+	if (IS_ERR(fbi))
+	{
 		dev_err(dev->dev, "failed to allocate fb info\n");
 		ret = PTR_ERR(fbi);
 		goto fail_unlock;
@@ -159,10 +171,13 @@ static int msm_fbdev_create(struct drm_fb_helper *helper,
 	dev->mode_config.fb_base = paddr;
 
 	fbi->screen_base = msm_gem_get_vaddr_locked(fbdev->bo);
-	if (IS_ERR(fbi->screen_base)) {
+
+	if (IS_ERR(fbi->screen_base))
+	{
 		ret = PTR_ERR(fbi->screen_base);
 		goto fail_unlock;
 	}
+
 	fbi->screen_size = fbdev->bo->size;
 	fbi->fix.smem_start = paddr;
 	fbi->fix.smem_len = fbdev->bo->size;
@@ -178,8 +193,10 @@ fail_unlock:
 	mutex_unlock(&dev->struct_mutex);
 fail:
 
-	if (ret) {
-		if (fb) {
+	if (ret)
+	{
+		if (fb)
+		{
 			drm_framebuffer_unregister_private(fb);
 			drm_framebuffer_remove(fb);
 		}
@@ -188,7 +205,8 @@ fail:
 	return ret;
 }
 
-static const struct drm_fb_helper_funcs msm_fb_helper_funcs = {
+static const struct drm_fb_helper_funcs msm_fb_helper_funcs =
+{
 	.fb_probe = msm_fbdev_create,
 };
 
@@ -201,27 +219,38 @@ struct drm_fb_helper *msm_fbdev_init(struct drm_device *dev)
 	int ret;
 
 	fbdev = kzalloc(sizeof(*fbdev), GFP_KERNEL);
+
 	if (!fbdev)
+	{
 		goto fail;
+	}
 
 	helper = &fbdev->base;
 
 	drm_fb_helper_prepare(dev, helper, &msm_fb_helper_funcs);
 
 	ret = drm_fb_helper_init(dev, helper,
-			priv->num_crtcs, priv->num_connectors);
-	if (ret) {
+							 priv->num_crtcs, priv->num_connectors);
+
+	if (ret)
+	{
 		dev_err(dev->dev, "could not init fbdev: ret=%d\n", ret);
 		goto fail;
 	}
 
 	ret = drm_fb_helper_single_add_all_connectors(helper);
+
 	if (ret)
+	{
 		goto fini;
+	}
 
 	ret = drm_fb_helper_initial_config(helper, 32);
+
 	if (ret)
+	{
 		goto fini;
+	}
 
 	priv->fbdev = helper;
 
@@ -250,7 +279,8 @@ void msm_fbdev_free(struct drm_device *dev)
 	fbdev = to_msm_fbdev(priv->fbdev);
 
 	/* this will free the backing object */
-	if (fbdev->fb) {
+	if (fbdev->fb)
+	{
 		msm_gem_put_vaddr(fbdev->bo);
 		drm_framebuffer_unregister_private(fbdev->fb);
 		drm_framebuffer_remove(fbdev->fb);

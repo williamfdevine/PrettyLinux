@@ -49,7 +49,9 @@ static inline bool page_is_young(struct page *page)
 	struct page_ext *page_ext = lookup_page_ext(page);
 
 	if (unlikely(!page_ext))
+	{
 		return false;
+	}
 
 	return test_bit(PAGE_EXT_YOUNG, &page_ext->flags);
 }
@@ -59,7 +61,9 @@ static inline void set_page_young(struct page *page)
 	struct page_ext *page_ext = lookup_page_ext(page);
 
 	if (unlikely(!page_ext))
+	{
 		return;
+	}
 
 	set_bit(PAGE_EXT_YOUNG, &page_ext->flags);
 }
@@ -69,7 +73,9 @@ static inline bool test_and_clear_page_young(struct page *page)
 	struct page_ext *page_ext = lookup_page_ext(page);
 
 	if (unlikely(!page_ext))
+	{
 		return false;
+	}
 
 	return test_and_clear_bit(PAGE_EXT_YOUNG, &page_ext->flags);
 }
@@ -79,7 +85,9 @@ static inline bool page_is_idle(struct page *page)
 	struct page_ext *page_ext = lookup_page_ext(page);
 
 	if (unlikely(!page_ext))
+	{
 		return false;
+	}
 
 	return test_bit(PAGE_EXT_IDLE, &page_ext->flags);
 }
@@ -89,7 +97,9 @@ static inline void set_page_idle(struct page *page)
 	struct page_ext *page_ext = lookup_page_ext(page);
 
 	if (unlikely(!page_ext))
+	{
 		return;
+	}
 
 	set_bit(PAGE_EXT_IDLE, &page_ext->flags);
 }
@@ -99,7 +109,9 @@ static inline void clear_page_idle(struct page *page)
 	struct page_ext *page_ext = lookup_page_ext(page);
 
 	if (unlikely(!page_ext))
+	{
 		return;
+	}
 
 	clear_bit(PAGE_EXT_IDLE, &page_ext->flags);
 }

@@ -25,37 +25,38 @@
 #include <asm/bfin_sdh.h>
 
 #if defined(CONFIG_BF51x) || defined(__ADSPBF60x__)
-#define bfin_read_SDH_CLK_CTL		bfin_read_RSI_CLK_CTL
-#define bfin_write_SDH_CLK_CTL		bfin_write_RSI_CLK_CTL
-#define bfin_write_SDH_ARGUMENT		bfin_write_RSI_ARGUMENT
-#define bfin_write_SDH_COMMAND		bfin_write_RSI_COMMAND
-#define bfin_write_SDH_DATA_TIMER	bfin_write_RSI_DATA_TIMER
-#define bfin_read_SDH_RESPONSE0		bfin_read_RSI_RESPONSE0
-#define bfin_read_SDH_RESPONSE1		bfin_read_RSI_RESPONSE1
-#define bfin_read_SDH_RESPONSE2		bfin_read_RSI_RESPONSE2
-#define bfin_read_SDH_RESPONSE3		bfin_read_RSI_RESPONSE3
-#define bfin_write_SDH_DATA_LGTH	bfin_write_RSI_DATA_LGTH
-#define bfin_read_SDH_DATA_CTL		bfin_read_RSI_DATA_CTL
-#define bfin_write_SDH_DATA_CTL		bfin_write_RSI_DATA_CTL
-#define bfin_read_SDH_DATA_CNT		bfin_read_RSI_DATA_CNT
-#define bfin_write_SDH_STATUS_CLR	bfin_write_RSI_STATUS_CLR
-#define bfin_read_SDH_E_STATUS		bfin_read_RSI_E_STATUS
-#define bfin_write_SDH_E_STATUS		bfin_write_RSI_E_STATUS
-#define bfin_read_SDH_STATUS		bfin_read_RSI_STATUS
-#define bfin_write_SDH_MASK0		bfin_write_RSI_MASK0
-#define bfin_write_SDH_E_MASK		bfin_write_RSI_E_MASK
-#define bfin_read_SDH_CFG		bfin_read_RSI_CFG
-#define bfin_write_SDH_CFG		bfin_write_RSI_CFG
-# if defined(__ADSPBF60x__)
-#  define bfin_read_SDH_BLK_SIZE	bfin_read_RSI_BLKSZ
-#  define bfin_write_SDH_BLK_SIZE	bfin_write_RSI_BLKSZ
-# else
-#  define bfin_read_SDH_PWR_CTL		bfin_read_RSI_PWR_CTL
-#  define bfin_write_SDH_PWR_CTL	bfin_write_RSI_PWR_CTL
-# endif
+	#define bfin_read_SDH_CLK_CTL		bfin_read_RSI_CLK_CTL
+	#define bfin_write_SDH_CLK_CTL		bfin_write_RSI_CLK_CTL
+	#define bfin_write_SDH_ARGUMENT		bfin_write_RSI_ARGUMENT
+	#define bfin_write_SDH_COMMAND		bfin_write_RSI_COMMAND
+	#define bfin_write_SDH_DATA_TIMER	bfin_write_RSI_DATA_TIMER
+	#define bfin_read_SDH_RESPONSE0		bfin_read_RSI_RESPONSE0
+	#define bfin_read_SDH_RESPONSE1		bfin_read_RSI_RESPONSE1
+	#define bfin_read_SDH_RESPONSE2		bfin_read_RSI_RESPONSE2
+	#define bfin_read_SDH_RESPONSE3		bfin_read_RSI_RESPONSE3
+	#define bfin_write_SDH_DATA_LGTH	bfin_write_RSI_DATA_LGTH
+	#define bfin_read_SDH_DATA_CTL		bfin_read_RSI_DATA_CTL
+	#define bfin_write_SDH_DATA_CTL		bfin_write_RSI_DATA_CTL
+	#define bfin_read_SDH_DATA_CNT		bfin_read_RSI_DATA_CNT
+	#define bfin_write_SDH_STATUS_CLR	bfin_write_RSI_STATUS_CLR
+	#define bfin_read_SDH_E_STATUS		bfin_read_RSI_E_STATUS
+	#define bfin_write_SDH_E_STATUS		bfin_write_RSI_E_STATUS
+	#define bfin_read_SDH_STATUS		bfin_read_RSI_STATUS
+	#define bfin_write_SDH_MASK0		bfin_write_RSI_MASK0
+	#define bfin_write_SDH_E_MASK		bfin_write_RSI_E_MASK
+	#define bfin_read_SDH_CFG		bfin_read_RSI_CFG
+	#define bfin_write_SDH_CFG		bfin_write_RSI_CFG
+	#if defined(__ADSPBF60x__)
+		#define bfin_read_SDH_BLK_SIZE	bfin_read_RSI_BLKSZ
+		#define bfin_write_SDH_BLK_SIZE	bfin_write_RSI_BLKSZ
+	#else
+		#define bfin_read_SDH_PWR_CTL		bfin_read_RSI_PWR_CTL
+		#define bfin_write_SDH_PWR_CTL	bfin_write_RSI_PWR_CTL
+	#endif
 #endif
 
-struct sdh_host {
+struct sdh_host
+{
 	struct mmc_host		*mmc;
 	spinlock_t		lock;
 	struct resource		*res;
@@ -127,14 +128,20 @@ static int sdh_setup_data(struct sdh_host *host, struct mmc_data *data)
 	bfin_write_SDH_DATA_LGTH(length);
 
 	if (data->flags & MMC_DATA_READ)
+	{
 		data_ctl |= DTX_DIR;
+	}
+
 	/* Only supports power-of-2 block size */
 	if (data->blksz & (data->blksz - 1))
+	{
 		return -EINVAL;
+	}
+
 #ifndef RSI_BLKSZ
 	data_ctl |= ((ffs(data->blksz) - 1) << 4);
 #else
-        bfin_write_SDH_BLK_SIZE(data->blksz);
+	bfin_write_SDH_BLK_SIZE(data->blksz);
 #endif
 
 	bfin_write_SDH_DATA_CTL(data_ctl);
@@ -145,11 +152,15 @@ static int sdh_setup_data(struct sdh_host *host, struct mmc_data *data)
 	bfin_write_SDH_DATA_TIMER(timeout);
 	SSYNC();
 
-	if (data->flags & MMC_DATA_READ) {
+	if (data->flags & MMC_DATA_READ)
+	{
 		host->dma_dir = DMA_FROM_DEVICE;
 		dma_cfg |= WNR;
-	} else
+	}
+	else
+	{
 		host->dma_dir = DMA_TO_DEVICE;
+	}
 
 	sdh_enable_stat_irq(host, (DAT_CRC_FAIL | DAT_TIME_OUT | DAT_END));
 	host->dma_len = dma_map_sg(mmc_dev(host->mmc), data->sg, data->sg_len, host->dma_dir);
@@ -163,21 +174,22 @@ static int sdh_setup_data(struct sdh_host *host, struct mmc_data *data)
 	{
 		struct scatterlist *sg;
 		int i;
-		for_each_sg(data->sg, sg, host->dma_len, i) {
+		for_each_sg(data->sg, sg, host->dma_len, i)
+		{
 			host->sg_cpu[i].start_addr = sg_dma_address(sg);
 			host->sg_cpu[i].cfg = dma_cfg;
 			host->sg_cpu[i].x_count = sg_dma_len(sg) / 4;
 			host->sg_cpu[i].x_modify = 4;
 			dev_dbg(mmc_dev(host->mmc), "%d: start_addr:0x%lx, "
-				"cfg:0x%lx, x_count:0x%lx, x_modify:0x%lx\n",
-				i, host->sg_cpu[i].start_addr,
-				host->sg_cpu[i].cfg, host->sg_cpu[i].x_count,
-				host->sg_cpu[i].x_modify);
+					"cfg:0x%lx, x_count:0x%lx, x_modify:0x%lx\n",
+					i, host->sg_cpu[i].start_addr,
+					host->sg_cpu[i].cfg, host->sg_cpu[i].x_count,
+					host->sg_cpu[i].x_modify);
 		}
 	}
 	flush_dcache_range((unsigned int)host->sg_cpu,
-		(unsigned int)host->sg_cpu +
-			host->dma_len * sizeof(struct dma_desc_array));
+					   (unsigned int)host->sg_cpu +
+					   host->dma_len * sizeof(struct dma_desc_array));
 	/* Set the last descriptor to stop mode */
 	host->sg_cpu[host->dma_len - 1].cfg &= ~(DMAFLOW | NDSIZE);
 	host->sg_cpu[host->dma_len - 1].cfg |= DI_EN;
@@ -218,15 +230,20 @@ static void sdh_start_cmd(struct sdh_host *host, struct mmc_command *cmd)
 
 	sdh_cmd |= cmd->opcode;
 
-	if (cmd->flags & MMC_RSP_PRESENT) {
+	if (cmd->flags & MMC_RSP_PRESENT)
+	{
 		sdh_cmd |= CMD_RSP;
 		stat_mask |= CMD_RESP_END;
-	} else {
+	}
+	else
+	{
 		stat_mask |= CMD_SENT;
 	}
 
 	if (cmd->flags & MMC_RSP_136)
+	{
 		sdh_cmd |= CMD_L_RSP;
+	}
 
 	stat_mask |= CMD_CRC_FAIL | CMD_TIME_OUT;
 
@@ -253,36 +270,55 @@ static int sdh_cmd_done(struct sdh_host *host, unsigned int stat)
 	int ret = 0;
 
 	dev_dbg(mmc_dev(host->mmc), "%s enter cmd: %p\n", __func__, cmd);
+
 	if (!cmd)
+	{
 		return 0;
+	}
 
 	host->cmd = NULL;
 
-	if (cmd->flags & MMC_RSP_PRESENT) {
+	if (cmd->flags & MMC_RSP_PRESENT)
+	{
 		cmd->resp[0] = bfin_read_SDH_RESPONSE0();
-		if (cmd->flags & MMC_RSP_136) {
+
+		if (cmd->flags & MMC_RSP_136)
+		{
 			cmd->resp[1] = bfin_read_SDH_RESPONSE1();
 			cmd->resp[2] = bfin_read_SDH_RESPONSE2();
 			cmd->resp[3] = bfin_read_SDH_RESPONSE3();
 		}
 	}
+
 	if (stat & CMD_TIME_OUT)
+	{
 		cmd->error = -ETIMEDOUT;
+	}
 	else if (stat & CMD_CRC_FAIL && cmd->flags & MMC_RSP_CRC)
+	{
 		cmd->error = -EILSEQ;
+	}
 
 	sdh_disable_stat_irq(host, (CMD_SENT | CMD_RESP_END | CMD_TIME_OUT | CMD_CRC_FAIL));
 
-	if (host->data && !cmd->error) {
-		if (host->data->flags & MMC_DATA_WRITE) {
+	if (host->data && !cmd->error)
+	{
+		if (host->data->flags & MMC_DATA_WRITE)
+		{
 			ret = sdh_setup_data(host, host->data);
+
 			if (ret)
+			{
 				return 0;
+			}
 		}
 
 		sdh_enable_stat_irq(host, DAT_END | RX_OVERRUN | TX_UNDERRUN | DAT_TIME_OUT);
-	} else
+	}
+	else
+	{
 		sdh_finish_request(host, host->mrq);
+	}
 
 	return 1;
 }
@@ -292,35 +328,52 @@ static int sdh_data_done(struct sdh_host *host, unsigned int stat)
 	struct mmc_data *data = host->data;
 
 	dev_dbg(mmc_dev(host->mmc), "%s enter stat: 0x%x\n", __func__, stat);
+
 	if (!data)
+	{
 		return 0;
+	}
 
 	disable_dma(host->dma_ch);
 	dma_unmap_sg(mmc_dev(host->mmc), data->sg, data->sg_len,
-		     host->dma_dir);
+				 host->dma_dir);
 
 	if (stat & DAT_TIME_OUT)
+	{
 		data->error = -ETIMEDOUT;
+	}
 	else if (stat & DAT_CRC_FAIL)
+	{
 		data->error = -EILSEQ;
+	}
 	else if (stat & (RX_OVERRUN | TX_UNDERRUN))
+	{
 		data->error = -EIO;
+	}
 
 	if (!data->error)
+	{
 		data->bytes_xfered = data->blocks * data->blksz;
+	}
 	else
+	{
 		data->bytes_xfered = 0;
+	}
 
 	bfin_write_SDH_STATUS_CLR(DAT_END_STAT | DAT_TIMEOUT_STAT | \
-			DAT_CRC_FAIL_STAT | DAT_BLK_END_STAT | RX_OVERRUN | TX_UNDERRUN);
+							  DAT_CRC_FAIL_STAT | DAT_BLK_END_STAT | RX_OVERRUN | TX_UNDERRUN);
 	bfin_write_SDH_DATA_CTL(0);
 	SSYNC();
 
 	host->data = NULL;
-	if (host->mrq->stop) {
+
+	if (host->mrq->stop)
+	{
 		sdh_stop_clock(host);
 		sdh_start_cmd(host, host->mrq->stop);
-	} else {
+	}
+	else
+	{
 		sdh_finish_request(host, host->mrq);
 	}
 
@@ -339,10 +392,14 @@ static void sdh_request(struct mmc_host *mmc, struct mmc_request *mrq)
 	host->mrq = mrq;
 	host->data = mrq->data;
 
-	if (mrq->data && mrq->data->flags & MMC_DATA_READ) {
+	if (mrq->data && mrq->data->flags & MMC_DATA_READ)
+	{
 		ret = sdh_setup_data(host, mrq->data);
+
 		if (ret)
+		{
 			goto data_err;
+		}
 	}
 
 	sdh_start_cmd(host, mrq->cmd);
@@ -364,35 +421,42 @@ static void sdh_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 
 	cfg = bfin_read_SDH_CFG();
 	cfg |= MWE;
-	switch (ios->bus_width) {
-	case MMC_BUS_WIDTH_4:
+
+	switch (ios->bus_width)
+	{
+		case MMC_BUS_WIDTH_4:
 #ifndef RSI_BLKSZ
-		cfg &= ~PD_SDDAT3;
+			cfg &= ~PD_SDDAT3;
 #endif
-		cfg |= PUP_SDDAT3;
-		/* Enable 4 bit SDIO */
-		cfg |= SD4E;
-		clk_ctl |= WIDE_BUS_4;
-		break;
-	case MMC_BUS_WIDTH_8:
+			cfg |= PUP_SDDAT3;
+			/* Enable 4 bit SDIO */
+			cfg |= SD4E;
+			clk_ctl |= WIDE_BUS_4;
+			break;
+
+		case MMC_BUS_WIDTH_8:
 #ifndef RSI_BLKSZ
-		cfg &= ~PD_SDDAT3;
+			cfg &= ~PD_SDDAT3;
 #endif
-		cfg |= PUP_SDDAT3;
-		/* Disable 4 bit SDIO */
-		cfg &= ~SD4E;
-		clk_ctl |= BYTE_BUS_8;
-		break;
-	default:
-		cfg &= ~PUP_SDDAT3;
-		/* Disable 4 bit SDIO */
-		cfg &= ~SD4E;
+			cfg |= PUP_SDDAT3;
+			/* Disable 4 bit SDIO */
+			cfg &= ~SD4E;
+			clk_ctl |= BYTE_BUS_8;
+			break;
+
+		default:
+			cfg &= ~PUP_SDDAT3;
+			/* Disable 4 bit SDIO */
+			cfg &= ~SD4E;
 	}
+
 	bfin_write_SDH_CFG(cfg);
 
 	host->power_mode = ios->power_mode;
 #ifndef RSI_BLKSZ
-	if (ios->bus_mode == MMC_BUSMODE_OPENDRAIN) {
+
+	if (ios->bus_mode == MMC_BUSMODE_OPENDRAIN)
+	{
 		pwr_ctl |= ROD_CTL;
 # ifndef CONFIG_SDH_BFIN_MISSING_CMD_PULLUP_WORKAROUND
 		pwr_ctl |= SD_CMD_OD;
@@ -400,29 +464,44 @@ static void sdh_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 	}
 
 	if (ios->power_mode != MMC_POWER_OFF)
+	{
 		pwr_ctl |= PWR_ON;
+	}
 	else
+	{
 		pwr_ctl &= ~PWR_ON;
+	}
 
 	bfin_write_SDH_PWR_CTL(pwr_ctl);
 #else
 # ifndef CONFIG_SDH_BFIN_MISSING_CMD_PULLUP_WORKAROUND
+
 	if (ios->bus_mode == MMC_BUSMODE_OPENDRAIN)
+	{
 		cfg |= SD_CMD_OD;
+	}
 	else
+	{
 		cfg &= ~SD_CMD_OD;
+	}
+
 # endif
 
 	if (ios->power_mode != MMC_POWER_OFF)
+	{
 		cfg |= PWR_ON;
+	}
 	else
+	{
 		cfg &= ~PWR_ON;
+	}
 
 	bfin_write_SDH_CFG(cfg);
 #endif
 	SSYNC();
 
-	if (ios->power_mode == MMC_POWER_ON && ios->clock) {
+	if (ios->power_mode == MMC_POWER_ON && ios->clock)
+	{
 		unsigned char clk_div;
 		clk_div = (get_sclk() / ios->clock - 1) / 2;
 		clk_div = min_t(unsigned char, clk_div, 0xFF);
@@ -430,27 +509,34 @@ static void sdh_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 		clk_ctl |= CLK_E;
 		host->clk_div = clk_div;
 		bfin_write_SDH_CLK_CTL(clk_ctl);
-	} else
+	}
+	else
+	{
 		sdh_stop_clock(host);
+	}
 
 	/* set up sdh interrupt mask*/
 	if (ios->power_mode == MMC_POWER_ON)
 		bfin_write_SDH_MASK0(DAT_END | DAT_TIME_OUT | DAT_CRC_FAIL |
-			RX_OVERRUN | TX_UNDERRUN | CMD_SENT | CMD_RESP_END |
-			CMD_TIME_OUT | CMD_CRC_FAIL);
+							 RX_OVERRUN | TX_UNDERRUN | CMD_SENT | CMD_RESP_END |
+							 CMD_TIME_OUT | CMD_CRC_FAIL);
 	else
+	{
 		bfin_write_SDH_MASK0(0);
+	}
+
 	SSYNC();
 
 	spin_unlock(&host->lock);
 
 	dev_dbg(mmc_dev(host->mmc), "SDH: clk_div = 0x%x actual clock:%ld expected clock:%d\n",
-		host->clk_div,
-		host->clk_div ? get_sclk() / (2 * (host->clk_div + 1)) : 0,
-		ios->clock);
+			host->clk_div,
+			host->clk_div ? get_sclk() / (2 * (host->clk_div + 1)) : 0,
+			ios->clock);
 }
 
-static const struct mmc_host_ops sdh_ops = {
+static const struct mmc_host_ops sdh_ops =
+{
 	.request	= sdh_request,
 	.set_ios	= sdh_set_ios,
 };
@@ -460,7 +546,7 @@ static irqreturn_t sdh_dma_irq(int irq, void *devid)
 	struct sdh_host *host = devid;
 
 	dev_dbg(mmc_dev(host->mmc), "%s enter, irq_stat: 0x%04lx\n", __func__,
-		get_dma_curr_irqstat(host->dma_ch));
+			get_dma_curr_irqstat(host->dma_ch));
 	clear_dma_irqstat(host->dma_ch);
 	SSYNC();
 
@@ -478,21 +564,29 @@ static irqreturn_t sdh_stat_irq(int irq, void *devid)
 	spin_lock(&host->lock);
 
 	status = bfin_read_SDH_E_STATUS();
-	if (status & SD_CARD_DET) {
+
+	if (status & SD_CARD_DET)
+	{
 		mmc_detect_change(host->mmc, 0);
 		bfin_write_SDH_E_STATUS(SD_CARD_DET);
 	}
+
 	status = bfin_read_SDH_STATUS();
-	if (status & (CMD_SENT | CMD_RESP_END | CMD_TIME_OUT | CMD_CRC_FAIL)) {
+
+	if (status & (CMD_SENT | CMD_RESP_END | CMD_TIME_OUT | CMD_CRC_FAIL))
+	{
 		handled |= sdh_cmd_done(host, status);
 		bfin_write_SDH_STATUS_CLR(CMD_SENT_STAT | CMD_RESP_END_STAT | \
-				CMD_TIMEOUT_STAT | CMD_CRC_FAIL_STAT);
+								  CMD_TIMEOUT_STAT | CMD_CRC_FAIL_STAT);
 		SSYNC();
 	}
 
 	status = bfin_read_SDH_STATUS();
+
 	if (status & (DAT_END | DAT_TIME_OUT | DAT_CRC_FAIL | RX_OVERRUN | TX_UNDERRUN))
+	{
 		handled |= sdh_data_done(host, status);
+	}
 
 	spin_unlock(&host->lock);
 
@@ -525,14 +619,17 @@ static int sdh_probe(struct platform_device *pdev)
 	struct bfin_sd_host *drv_data = get_sdh_data(pdev);
 	int ret;
 
-	if (!drv_data) {
+	if (!drv_data)
+	{
 		dev_err(&pdev->dev, "missing platform driver data\n");
 		ret = -EINVAL;
 		goto out;
 	}
 
 	mmc = mmc_alloc_host(sizeof(struct sdh_host), &pdev->dev);
-	if (!mmc) {
+
+	if (!mmc)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
@@ -564,19 +661,25 @@ static int sdh_probe(struct platform_device *pdev)
 	host->dma_ch = drv_data->dma_chan;
 
 	ret = request_dma(host->dma_ch, DRIVER_NAME "DMA");
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to request DMA channel\n");
 		goto out1;
 	}
 
 	ret = set_dma_callback(host->dma_ch, sdh_dma_irq, host);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to request DMA irq\n");
 		goto out2;
 	}
 
 	host->sg_cpu = dma_alloc_coherent(&pdev->dev, PAGE_SIZE, &host->sg_dma, GFP_KERNEL);
-	if (host->sg_cpu == NULL) {
+
+	if (host->sg_cpu == NULL)
+	{
 		ret = -ENOMEM;
 		goto out2;
 	}
@@ -584,13 +687,17 @@ static int sdh_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, mmc);
 
 	ret = request_irq(host->irq, sdh_stat_irq, 0, "SDH Status IRQ", host);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to request status irq\n");
 		goto out3;
 	}
 
 	ret = peripheral_request_list(drv_data->pin_req, DRIVER_NAME);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "unable to request peripheral pins\n");
 		goto out4;
 	}
@@ -609,7 +716,7 @@ out2:
 	free_dma(host->dma_ch);
 out1:
 	mmc_free_host(mmc);
- out:
+out:
 	return ret;
 }
 
@@ -617,7 +724,8 @@ static int sdh_remove(struct platform_device *pdev)
 {
 	struct mmc_host *mmc = platform_get_drvdata(pdev);
 
-	if (mmc) {
+	if (mmc)
+	{
 		struct sdh_host *host = mmc_priv(mmc);
 
 		mmc_remove_host(mmc);
@@ -649,7 +757,9 @@ static int sdh_resume(struct platform_device *dev)
 	int ret = 0;
 
 	ret = peripheral_request_list(drv_data->pin_req, DRIVER_NAME);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&dev->dev, "unable to request peripheral pins\n");
 		return ret;
 	}
@@ -662,7 +772,8 @@ static int sdh_resume(struct platform_device *dev)
 # define sdh_resume  NULL
 #endif
 
-static struct platform_driver sdh_driver = {
+static struct platform_driver sdh_driver =
+{
 	.probe   = sdh_probe,
 	.remove  = sdh_remove,
 	.suspend = sdh_suspend,

@@ -2,7 +2,8 @@
 #include "tests/tests.h"
 #include "arch-tests.h"
 
-struct test arch_tests[] = {
+struct test arch_tests[] =
+{
 	{
 		.desc = "x86 rdpmc test",
 		.func = test__rdpmc,

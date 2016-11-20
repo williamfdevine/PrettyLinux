@@ -23,7 +23,8 @@
 #include <asm/div64.h>
 #include <mach/hardware.h>
 
-struct puv3_pwm_chip {
+struct puv3_pwm_chip
+{
 	struct pwm_chip chip;
 	void __iomem *base;
 	struct clk *clk;
@@ -39,7 +40,7 @@ static inline struct puv3_pwm_chip *to_puv3(struct pwm_chip *chip)
  * duty_ns   = 10^9 * (PRESCALE + 1) * DC / PWM_CLK_RATE
  */
 static int puv3_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
-			   int duty_ns, int period_ns)
+						   int duty_ns, int period_ns)
 {
 	unsigned long period_cycles, prescale, pv, dc;
 	struct puv3_pwm_chip *puv3 = to_puv3(chip);
@@ -51,18 +52,26 @@ static int puv3_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
 	period_cycles = c;
 
 	if (period_cycles < 1)
+	{
 		period_cycles = 1;
+	}
 
 	prescale = (period_cycles - 1) / 1024;
 	pv = period_cycles / (prescale + 1) - 1;
 
 	if (prescale > 63)
+	{
 		return -EINVAL;
+	}
 
 	if (duty_ns == period_ns)
+	{
 		dc = OST_PWMDCCR_FDCYCLE;
+	}
 	else
+	{
 		dc = (pv + 1) * duty_ns / period_ns;
+	}
 
 	/*
 	 * NOTE: the clock to PWM has to be enabled first
@@ -93,7 +102,8 @@ static void puv3_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
 	clk_disable_unprepare(puv3->clk);
 }
 
-static const struct pwm_ops puv3_pwm_ops = {
+static const struct pwm_ops puv3_pwm_ops =
+{
 	.config = puv3_pwm_config,
 	.enable = puv3_pwm_enable,
 	.disable = puv3_pwm_disable,
@@ -107,19 +117,27 @@ static int pwm_probe(struct platform_device *pdev)
 	int ret;
 
 	puv3 = devm_kzalloc(&pdev->dev, sizeof(*puv3), GFP_KERNEL);
-	if (puv3 == NULL) {
+
+	if (puv3 == NULL)
+	{
 		dev_err(&pdev->dev, "failed to allocate memory\n");
 		return -ENOMEM;
 	}
 
 	puv3->clk = devm_clk_get(&pdev->dev, "OST_CLK");
+
 	if (IS_ERR(puv3->clk))
+	{
 		return PTR_ERR(puv3->clk);
+	}
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	puv3->base = devm_ioremap_resource(&pdev->dev, r);
+
 	if (IS_ERR(puv3->base))
+	{
 		return PTR_ERR(puv3->base);
+	}
 
 	puv3->chip.dev = &pdev->dev;
 	puv3->chip.ops = &puv3_pwm_ops;
@@ -127,7 +145,9 @@ static int pwm_probe(struct platform_device *pdev)
 	puv3->chip.npwm = 1;
 
 	ret = pwmchip_add(&puv3->chip);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "pwmchip_add() failed: %d\n", ret);
 		return ret;
 	}
@@ -143,7 +163,8 @@ static int pwm_remove(struct platform_device *pdev)
 	return pwmchip_remove(&puv3->chip);
 }
 
-static struct platform_driver puv3_pwm_driver = {
+static struct platform_driver puv3_pwm_driver =
+{
 	.driver = {
 		.name = "PKUnity-v3-PWM",
 	},

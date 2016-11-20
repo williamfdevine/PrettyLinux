@@ -55,7 +55,8 @@
 #define SIOCPNDELRESOURCE	(SIOCPROTOPRIVATE + 15)
 
 /* Phonet protocol header */
-struct phonethdr {
+struct phonethdr
+{
 	__u8	pn_rdev;
 	__u8	pn_sdev;
 	__u8	pn_res;
@@ -65,15 +66,19 @@ struct phonethdr {
 } __attribute__((packed));
 
 /* Common Phonet payload header */
-struct phonetmsg {
+struct phonetmsg
+{
 	__u8	pn_trans_id;	/* transaction ID */
 	__u8	pn_msg_id;	/* message type */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__u8	pn_submsg_id;	/* message subtype */
 			__u8	pn_data[5];
 		} base;
-		struct {
+		struct
+		{
 			__u16	pn_e_res_id;	/* extended resource ID */
 			__u8	pn_e_submsg_id;	/* message subtype */
 			__u8	pn_e_data[3];
@@ -98,7 +103,8 @@ struct phonetmsg {
 #define pn_e_status		pn_e_data[1]
 
 /* Phonet socket address structure */
-struct sockaddr_pn {
+struct sockaddr_pn
+{
 	__kernel_sa_family_t spn_family;
 	__u8 spn_obj;
 	__u8 spn_dev;
@@ -148,14 +154,14 @@ static inline void pn_sockaddr_set_port(struct sockaddr_pn *spn, __u16 port)
 }
 
 static inline void pn_sockaddr_set_object(struct sockaddr_pn *spn,
-						__u16 handle)
+		__u16 handle)
 {
 	spn->spn_dev = pn_dev(handle);
 	spn->spn_obj = pn_obj(handle);
 }
 
 static inline void pn_sockaddr_set_resource(struct sockaddr_pn *spn,
-						__u8 resource)
+		__u8 resource)
 {
 	spn->spn_resource = resource;
 }

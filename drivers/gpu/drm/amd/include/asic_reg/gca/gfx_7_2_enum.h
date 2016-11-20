@@ -24,7 +24,8 @@
 #ifndef GFX_7_2_ENUM_H
 #define GFX_7_2_ENUM_H
 
-typedef enum SurfaceNumber {
+typedef enum SurfaceNumber
+{
 	NUMBER_UNORM                                     = 0x0,
 	NUMBER_SNORM                                     = 0x1,
 	NUMBER_USCALED                                   = 0x2,
@@ -34,13 +35,15 @@ typedef enum SurfaceNumber {
 	NUMBER_SRGB                                      = 0x6,
 	NUMBER_FLOAT                                     = 0x7,
 } SurfaceNumber;
-typedef enum SurfaceSwap {
+typedef enum SurfaceSwap
+{
 	SWAP_STD                                         = 0x0,
 	SWAP_ALT                                         = 0x1,
 	SWAP_STD_REV                                     = 0x2,
 	SWAP_ALT_REV                                     = 0x3,
 } SurfaceSwap;
-typedef enum CBMode {
+typedef enum CBMode
+{
 	CB_DISABLE                                       = 0x0,
 	CB_NORMAL                                        = 0x1,
 	CB_ELIMINATE_FAST_CLEAR                          = 0x2,
@@ -48,17 +51,20 @@ typedef enum CBMode {
 	CB_DECOMPRESS                                    = 0x4,
 	CB_FMASK_DECOMPRESS                              = 0x5,
 } CBMode;
-typedef enum RoundMode {
+typedef enum RoundMode
+{
 	ROUND_BY_HALF                                    = 0x0,
 	ROUND_TRUNCATE                                   = 0x1,
 } RoundMode;
-typedef enum SourceFormat {
+typedef enum SourceFormat
+{
 	EXPORT_4C_32BPC                                  = 0x0,
 	EXPORT_4C_16BPC                                  = 0x1,
 	EXPORT_2C_32BPC_GR                               = 0x2,
 	EXPORT_2C_32BPC_AR                               = 0x3,
 } SourceFormat;
-typedef enum BlendOp {
+typedef enum BlendOp
+{
 	BLEND_ZERO                                       = 0x0,
 	BLEND_ONE                                        = 0x1,
 	BLEND_SRC_COLOR                                  = 0x2,
@@ -81,14 +87,16 @@ typedef enum BlendOp {
 	BLEND_CONSTANT_ALPHA                             = 0x13,
 	BLEND_ONE_MINUS_CONSTANT_ALPHA                   = 0x14,
 } BlendOp;
-typedef enum CombFunc {
+typedef enum CombFunc
+{
 	COMB_DST_PLUS_SRC                                = 0x0,
 	COMB_SRC_MINUS_DST                               = 0x1,
 	COMB_MIN_DST_SRC                                 = 0x2,
 	COMB_MAX_DST_SRC                                 = 0x3,
 	COMB_DST_MINUS_SRC                               = 0x4,
 } CombFunc;
-typedef enum BlendOpt {
+typedef enum BlendOpt
+{
 	FORCE_OPT_AUTO                                   = 0x0,
 	FORCE_OPT_DISABLE                                = 0x1,
 	FORCE_OPT_ENABLE_IF_SRC_A_0                      = 0x2,
@@ -98,7 +106,8 @@ typedef enum BlendOpt {
 	FORCE_OPT_ENABLE_IF_SRC_RGB_1                    = 0x6,
 	FORCE_OPT_ENABLE_IF_SRC_ARGB_1                   = 0x7,
 } BlendOpt;
-typedef enum CmaskCode {
+typedef enum CmaskCode
+{
 	CMASK_CLR00_F0                                   = 0x0,
 	CMASK_CLR00_F1                                   = 0x1,
 	CMASK_CLR00_F2                                   = 0x2,
@@ -116,7 +125,8 @@ typedef enum CmaskCode {
 	CMASK_CLR11_F2                                   = 0xe,
 	CMASK_CLR11_FX                                   = 0xf,
 } CmaskCode;
-typedef enum CBPerfSel {
+typedef enum CBPerfSel
+{
 	CB_PERF_SEL_NONE                                 = 0x0,
 	CB_PERF_SEL_BUSY                                 = 0x1,
 	CB_PERF_SEL_CORE_SCLK_VLD                        = 0x2,
@@ -147,10 +157,10 @@ typedef enum CBPerfSel {
 	CB_PERF_SEL_LQUAD_FORMAT_IS_EXPORT_32_ABGR       = 0x1b,
 	CB_PERF_SEL_LQUAD_FORMAT_IS_EXPORT_FP16_ABGR     = 0x1c,
 	CB_PERF_SEL_LQUAD_FORMAT_IS_EXPORT_SIGNED16_ABGR = 0x1d,
-	CB_PERF_SEL_LQUAD_FORMAT_IS_EXPORT_UNSIGNED16_ABGR= 0x1e,
+	CB_PERF_SEL_LQUAD_FORMAT_IS_EXPORT_UNSIGNED16_ABGR = 0x1e,
 	CB_PERF_SEL_QUAD_KILLED_BY_EXTRA_PIXEL_EXPORT    = 0x1f,
 	CB_PERF_SEL_QUAD_KILLED_BY_COLOR_INVALID         = 0x20,
-	CB_PERF_SEL_QUAD_KILLED_BY_NULL_TARGET_SHADER_MASK= 0x21,
+	CB_PERF_SEL_QUAD_KILLED_BY_NULL_TARGET_SHADER_MASK = 0x21,
 	CB_PERF_SEL_QUAD_KILLED_BY_NULL_SAMPLE_MASK      = 0x22,
 	CB_PERF_SEL_QUAD_KILLED_BY_DISCARD_PIXEL         = 0x23,
 	CB_PERF_SEL_FC_CLEAR_QUAD_VALID_READY            = 0x24,
@@ -186,9 +196,9 @@ typedef enum CBPerfSel {
 	CB_PERF_SEL_CM_CACHE_TAG_MISS                    = 0x42,
 	CB_PERF_SEL_CM_CACHE_SECTOR_MISS                 = 0x43,
 	CB_PERF_SEL_CM_CACHE_REEVICTION_STALL            = 0x44,
-	CB_PERF_SEL_CM_CACHE_EVICT_NONZERO_INFLIGHT_STALL= 0x45,
+	CB_PERF_SEL_CM_CACHE_EVICT_NONZERO_INFLIGHT_STALL = 0x45,
 	CB_PERF_SEL_CM_CACHE_REPLACE_PENDING_EVICT_STALL = 0x46,
-	CB_PERF_SEL_CM_CACHE_INFLIGHT_COUNTER_MAXIMUM_STALL= 0x47,
+	CB_PERF_SEL_CM_CACHE_INFLIGHT_COUNTER_MAXIMUM_STALL = 0x47,
 	CB_PERF_SEL_CM_CACHE_READ_OUTPUT_STALL           = 0x48,
 	CB_PERF_SEL_CM_CACHE_WRITE_OUTPUT_STALL          = 0x49,
 	CB_PERF_SEL_CM_CACHE_ACK_OUTPUT_STALL            = 0x4a,
@@ -201,9 +211,9 @@ typedef enum CBPerfSel {
 	CB_PERF_SEL_FC_CACHE_TAG_MISS                    = 0x51,
 	CB_PERF_SEL_FC_CACHE_SECTOR_MISS                 = 0x52,
 	CB_PERF_SEL_FC_CACHE_REEVICTION_STALL            = 0x53,
-	CB_PERF_SEL_FC_CACHE_EVICT_NONZERO_INFLIGHT_STALL= 0x54,
+	CB_PERF_SEL_FC_CACHE_EVICT_NONZERO_INFLIGHT_STALL = 0x54,
 	CB_PERF_SEL_FC_CACHE_REPLACE_PENDING_EVICT_STALL = 0x55,
-	CB_PERF_SEL_FC_CACHE_INFLIGHT_COUNTER_MAXIMUM_STALL= 0x56,
+	CB_PERF_SEL_FC_CACHE_INFLIGHT_COUNTER_MAXIMUM_STALL = 0x56,
 	CB_PERF_SEL_FC_CACHE_READ_OUTPUT_STALL           = 0x57,
 	CB_PERF_SEL_FC_CACHE_WRITE_OUTPUT_STALL          = 0x58,
 	CB_PERF_SEL_FC_CACHE_ACK_OUTPUT_STALL            = 0x59,
@@ -216,9 +226,9 @@ typedef enum CBPerfSel {
 	CB_PERF_SEL_CC_CACHE_TAG_MISS                    = 0x60,
 	CB_PERF_SEL_CC_CACHE_SECTOR_MISS                 = 0x61,
 	CB_PERF_SEL_CC_CACHE_REEVICTION_STALL            = 0x62,
-	CB_PERF_SEL_CC_CACHE_EVICT_NONZERO_INFLIGHT_STALL= 0x63,
+	CB_PERF_SEL_CC_CACHE_EVICT_NONZERO_INFLIGHT_STALL = 0x63,
 	CB_PERF_SEL_CC_CACHE_REPLACE_PENDING_EVICT_STALL = 0x64,
-	CB_PERF_SEL_CC_CACHE_INFLIGHT_COUNTER_MAXIMUM_STALL= 0x65,
+	CB_PERF_SEL_CC_CACHE_INFLIGHT_COUNTER_MAXIMUM_STALL = 0x65,
 	CB_PERF_SEL_CC_CACHE_READ_OUTPUT_STALL           = 0x66,
 	CB_PERF_SEL_CC_CACHE_WRITE_OUTPUT_STALL          = 0x67,
 	CB_PERF_SEL_CC_CACHE_ACK_OUTPUT_STALL            = 0x68,
@@ -329,8 +339,8 @@ typedef enum CBPerfSel {
 	CB_PERF_SEL_QUAD_BLEND_OPT_DONT_READ_DST         = 0xd1,
 	CB_PERF_SEL_QUAD_BLEND_OPT_BLEND_BYPASS          = 0xd2,
 	CB_PERF_SEL_QUAD_BLEND_OPT_DISCARD_PIXELS        = 0xd3,
-	CB_PERF_SEL_QUAD_DST_READ_COULD_HAVE_BEEN_OPTIMIZED= 0xd4,
-	CB_PERF_SEL_QUAD_BLENDING_COULD_HAVE_BEEN_BYPASSED= 0xd5,
+	CB_PERF_SEL_QUAD_DST_READ_COULD_HAVE_BEEN_OPTIMIZED = 0xd4,
+	CB_PERF_SEL_QUAD_BLENDING_COULD_HAVE_BEEN_BYPASSED = 0xd5,
 	CB_PERF_SEL_QUAD_COULD_HAVE_BEEN_DISCARDED       = 0xd6,
 	CB_PERF_SEL_BLEND_OPT_PIXELS_RESULT_EQ_DEST      = 0xd7,
 	CB_PERF_SEL_DRAWN_BUSY                           = 0xd8,
@@ -338,13 +348,14 @@ typedef enum CBPerfSel {
 	CB_PERF_SEL_CMR_TO_FCR_REGION_BUSY               = 0xda,
 	CB_PERF_SEL_FCR_TO_CCR_REGION_BUSY               = 0xdb,
 	CB_PERF_SEL_CCR_TO_CCW_REGION_BUSY               = 0xdc,
-	CB_PERF_SEL_FC_PF_SLOW_MODE_QUAD_EMPTY_HALF_DROPPED= 0xdd,
+	CB_PERF_SEL_FC_PF_SLOW_MODE_QUAD_EMPTY_HALF_DROPPED = 0xdd,
 	CB_PERF_SEL_FC_SEQUENCER_CLEAR                   = 0xde,
 	CB_PERF_SEL_FC_SEQUENCER_ELIMINATE_FAST_CLEAR    = 0xdf,
 	CB_PERF_SEL_FC_SEQUENCER_FMASK_DECOMPRESS        = 0xe0,
-	CB_PERF_SEL_FC_SEQUENCER_FMASK_COMPRESSION_DISABLE= 0xe1,
+	CB_PERF_SEL_FC_SEQUENCER_FMASK_COMPRESSION_DISABLE = 0xe1,
 } CBPerfSel;
-typedef enum CBPerfOpFilterSel {
+typedef enum CBPerfOpFilterSel
+{
 	CB_PERF_OP_FILTER_SEL_WRITE_ONLY                 = 0x0,
 	CB_PERF_OP_FILTER_SEL_NEEDS_DESTINATION          = 0x1,
 	CB_PERF_OP_FILTER_SEL_RESOLVE                    = 0x2,
@@ -352,29 +363,34 @@ typedef enum CBPerfOpFilterSel {
 	CB_PERF_OP_FILTER_SEL_FMASK_DECOMPRESS           = 0x4,
 	CB_PERF_OP_FILTER_SEL_ELIMINATE_FAST_CLEAR       = 0x5,
 } CBPerfOpFilterSel;
-typedef enum CBPerfClearFilterSel {
+typedef enum CBPerfClearFilterSel
+{
 	CB_PERF_CLEAR_FILTER_SEL_NONCLEAR                = 0x0,
 	CB_PERF_CLEAR_FILTER_SEL_CLEAR                   = 0x1,
 } CBPerfClearFilterSel;
-typedef enum CP_RING_ID {
+typedef enum CP_RING_ID
+{
 	RINGID0                                          = 0x0,
 	RINGID1                                          = 0x1,
 	RINGID2                                          = 0x2,
 	RINGID3                                          = 0x3,
 } CP_RING_ID;
-typedef enum CP_PIPE_ID {
+typedef enum CP_PIPE_ID
+{
 	PIPE_ID0                                         = 0x0,
 	PIPE_ID1                                         = 0x1,
 	PIPE_ID2                                         = 0x2,
 	PIPE_ID3                                         = 0x3,
 } CP_PIPE_ID;
-typedef enum CP_ME_ID {
+typedef enum CP_ME_ID
+{
 	ME_ID0                                           = 0x0,
 	ME_ID1                                           = 0x1,
 	ME_ID2                                           = 0x2,
 	ME_ID3                                           = 0x3,
 } CP_ME_ID;
-typedef enum SPM_PERFMON_STATE {
+typedef enum SPM_PERFMON_STATE
+{
 	STRM_PERFMON_STATE_DISABLE_AND_RESET             = 0x0,
 	STRM_PERFMON_STATE_START_COUNTING                = 0x1,
 	STRM_PERFMON_STATE_STOP_COUNTING                 = 0x2,
@@ -382,7 +398,8 @@ typedef enum SPM_PERFMON_STATE {
 	STRM_PERFMON_STATE_DISABLE_AND_RESET_PHANTOM     = 0x4,
 	STRM_PERFMON_STATE_COUNT_AND_DUMP_PHANTOM        = 0x5,
 } SPM_PERFMON_STATE;
-typedef enum CP_PERFMON_STATE {
+typedef enum CP_PERFMON_STATE
+{
 	CP_PERFMON_STATE_DISABLE_AND_RESET               = 0x0,
 	CP_PERFMON_STATE_START_COUNTING                  = 0x1,
 	CP_PERFMON_STATE_STOP_COUNTING                   = 0x2,
@@ -390,13 +407,15 @@ typedef enum CP_PERFMON_STATE {
 	CP_PERFMON_STATE_DISABLE_AND_RESET_PHANTOM       = 0x4,
 	CP_PERFMON_STATE_COUNT_AND_DUMP_PHANTOM          = 0x5,
 } CP_PERFMON_STATE;
-typedef enum CP_PERFMON_ENABLE_MODE {
+typedef enum CP_PERFMON_ENABLE_MODE
+{
 	CP_PERFMON_ENABLE_MODE_ALWAYS_COUNT              = 0x0,
 	CP_PERFMON_ENABLE_MODE_RESERVED_1                = 0x1,
 	CP_PERFMON_ENABLE_MODE_COUNT_CONTEXT_TRUE        = 0x2,
 	CP_PERFMON_ENABLE_MODE_COUNT_CONTEXT_FALSE       = 0x3,
 } CP_PERFMON_ENABLE_MODE;
-typedef enum CPG_PERFCOUNT_SEL {
+typedef enum CPG_PERFCOUNT_SEL
+{
 	CPG_PERF_SEL_ALWAYS_COUNT                        = 0x0,
 	CPG_PERF_SEL_RBIU_FIFO_FULL                      = 0x1,
 	CPG_PERF_SEL_CSF_RTS_BUT_MIU_NOT_RTR             = 0x2,
@@ -444,7 +463,8 @@ typedef enum CPG_PERFCOUNT_SEL {
 	CPG_PERF_SEL_TCIU_STALL_WAIT_ON_FREE             = 0x2c,
 	CPG_PERF_SEL_TCIU_STALL_WAIT_ON_TAGS             = 0x2d,
 } CPG_PERFCOUNT_SEL;
-typedef enum CPF_PERFCOUNT_SEL {
+typedef enum CPF_PERFCOUNT_SEL
+{
 	CPF_PERF_SEL_ALWAYS_COUNT                        = 0x0,
 	CPF_PERF_SEL_MIU_STALLED_WAITING_RDREQ_FREE      = 0x1,
 	CPF_PERF_SEL_TCIU_STALLED_WAITING_ON_FREE        = 0x2,
@@ -463,7 +483,8 @@ typedef enum CPF_PERFCOUNT_SEL {
 	CPF_PERF_SEL_MIU_WRITE_REQUEST_SEND              = 0xf,
 	CPF_PERF_SEL_MIU_READ_REQUEST_SEND               = 0x10,
 } CPF_PERFCOUNT_SEL;
-typedef enum CPC_PERFCOUNT_SEL {
+typedef enum CPC_PERFCOUNT_SEL
+{
 	CPC_PERF_SEL_ALWAYS_COUNT                        = 0x0,
 	CPC_PERF_SEL_RCIU_STALL_WAIT_ON_FREE             = 0x1,
 	CPC_PERF_SEL_RCIU_STALL_PRIV_VIOLATION           = 0x2,
@@ -487,7 +508,8 @@ typedef enum CPC_PERFCOUNT_SEL {
 	CPC_PERF_SEL_ME2_STALL_ON_DATA_FROM_ROQ_PERF     = 0x14,
 	CPC_PERF_SEL_ME2_BUSY_FOR_PACKET_DECODE          = 0x15,
 } CPC_PERFCOUNT_SEL;
-typedef enum CP_ALPHA_TAG_RAM_SEL {
+typedef enum CP_ALPHA_TAG_RAM_SEL
+{
 	CPG_TAG_RAM                                      = 0x0,
 	CPC_TAG_RAM                                      = 0x1,
 	CPF_TAG_RAM                                      = 0x2,
@@ -518,40 +540,47 @@ typedef enum CP_ALPHA_TAG_RAM_SEL {
 #define PERSISTENT_SPACE_END                      0x2fff
 #define CONTEXT_SPACE_START                       0xa000
 #define CONTEXT_SPACE_END                         0xbfff
-typedef enum ForceControl {
+typedef enum ForceControl
+{
 	FORCE_OFF                                        = 0x0,
 	FORCE_ENABLE                                     = 0x1,
 	FORCE_DISABLE                                    = 0x2,
 	FORCE_RESERVED                                   = 0x3,
 } ForceControl;
-typedef enum ZSamplePosition {
+typedef enum ZSamplePosition
+{
 	Z_SAMPLE_CENTER                                  = 0x0,
 	Z_SAMPLE_CENTROID                                = 0x1,
 } ZSamplePosition;
-typedef enum ZOrder {
+typedef enum ZOrder
+{
 	LATE_Z                                           = 0x0,
 	EARLY_Z_THEN_LATE_Z                              = 0x1,
 	RE_Z                                             = 0x2,
 	EARLY_Z_THEN_RE_Z                                = 0x3,
 } ZOrder;
-typedef enum ZpassControl {
+typedef enum ZpassControl
+{
 	ZPASS_DISABLE                                    = 0x0,
 	ZPASS_SAMPLES                                    = 0x1,
 	ZPASS_PIXELS                                     = 0x2,
 } ZpassControl;
-typedef enum ZModeForce {
+typedef enum ZModeForce
+{
 	NO_FORCE                                         = 0x0,
 	FORCE_EARLY_Z                                    = 0x1,
 	FORCE_LATE_Z                                     = 0x2,
 	FORCE_RE_Z                                       = 0x3,
 } ZModeForce;
-typedef enum ZLimitSumm {
+typedef enum ZLimitSumm
+{
 	FORCE_SUMM_OFF                                   = 0x0,
 	FORCE_SUMM_MINZ                                  = 0x1,
 	FORCE_SUMM_MAXZ                                  = 0x2,
 	FORCE_SUMM_BOTH                                  = 0x3,
 } ZLimitSumm;
-typedef enum CompareFrag {
+typedef enum CompareFrag
+{
 	FRAG_NEVER                                       = 0x0,
 	FRAG_LESS                                        = 0x1,
 	FRAG_EQUAL                                       = 0x2,
@@ -561,7 +590,8 @@ typedef enum CompareFrag {
 	FRAG_GEQUAL                                      = 0x6,
 	FRAG_ALWAYS                                      = 0x7,
 } CompareFrag;
-typedef enum StencilOp {
+typedef enum StencilOp
+{
 	STENCIL_KEEP                                     = 0x0,
 	STENCIL_ZERO                                     = 0x1,
 	STENCIL_ONES                                     = 0x2,
@@ -579,19 +609,22 @@ typedef enum StencilOp {
 	STENCIL_NOR                                      = 0xe,
 	STENCIL_XNOR                                     = 0xf,
 } StencilOp;
-typedef enum ConservativeZExport {
+typedef enum ConservativeZExport
+{
 	EXPORT_ANY_Z                                     = 0x0,
 	EXPORT_LESS_THAN_Z                               = 0x1,
 	EXPORT_GREATER_THAN_Z                            = 0x2,
 	EXPORT_RESERVED                                  = 0x3,
 } ConservativeZExport;
-typedef enum DbPSLControl {
+typedef enum DbPSLControl
+{
 	PSLC_AUTO                                        = 0x0,
 	PSLC_ON_HANG_ONLY                                = 0x1,
 	PSLC_ASAP                                        = 0x2,
 	PSLC_COUNTDOWN                                   = 0x3,
 } DbPSLControl;
-typedef enum PerfCounter_Vals {
+typedef enum PerfCounter_Vals
+{
 	DB_PERF_SEL_SC_DB_tile_sends                     = 0x0,
 	DB_PERF_SEL_SC_DB_tile_busy                      = 0x1,
 	DB_PERF_SEL_SC_DB_tile_stalls                    = 0x2,
@@ -833,7 +866,7 @@ typedef enum PerfCounter_Vals {
 	DB_PERF_SEL_esr_ps_src_in_squads_unrolled        = 0xee,
 	DB_PERF_SEL_esr_ps_src_in_tile_rate              = 0xef,
 	DB_PERF_SEL_esr_ps_src_in_tile_rate_unrolled     = 0xf0,
-	DB_PERF_SEL_esr_ps_src_in_tile_rate_unrolled_to_pixel_rate= 0xf1,
+	DB_PERF_SEL_esr_ps_src_in_tile_rate_unrolled_to_pixel_rate = 0xf1,
 	DB_PERF_SEL_esr_ps_src_out_stall                 = 0xf2,
 	DB_PERF_SEL_depth_bounds_qtiles_culled           = 0xf3,
 	DB_PERF_SEL_PreZ_Samples_failing_DB              = 0xf4,
@@ -850,12 +883,14 @@ typedef enum PerfCounter_Vals {
 	DB_PERF_SEL_Op_Pipe_Postz_Busy                   = 0xff,
 	DB_PERF_SEL_di_dt_stall                          = 0x100,
 } PerfCounter_Vals;
-typedef enum RingCounterControl {
+typedef enum RingCounterControl
+{
 	COUNTER_RING_SPLIT                               = 0x0,
 	COUNTER_RING_0                                   = 0x1,
 	COUNTER_RING_1                                   = 0x2,
 } RingCounterControl;
-typedef enum PixelPipeCounterId {
+typedef enum PixelPipeCounterId
+{
 	PIXEL_PIPE_OCCLUSION_COUNT_0                     = 0x0,
 	PIXEL_PIPE_OCCLUSION_COUNT_1                     = 0x1,
 	PIXEL_PIPE_OCCLUSION_COUNT_2                     = 0x2,
@@ -865,20 +900,23 @@ typedef enum PixelPipeCounterId {
 	PIXEL_PIPE_SCREEN_MIN_EXTENTS_1                  = 0x6,
 	PIXEL_PIPE_SCREEN_MAX_EXTENTS_1                  = 0x7,
 } PixelPipeCounterId;
-typedef enum PixelPipeStride {
+typedef enum PixelPipeStride
+{
 	PIXEL_PIPE_STRIDE_32_BITS                        = 0x0,
 	PIXEL_PIPE_STRIDE_64_BITS                        = 0x1,
 	PIXEL_PIPE_STRIDE_128_BITS                       = 0x2,
 	PIXEL_PIPE_STRIDE_256_BITS                       = 0x3,
 } PixelPipeStride;
-typedef enum GB_EDC_DED_MODE {
+typedef enum GB_EDC_DED_MODE
+{
 	GB_EDC_DED_MODE_LOG                              = 0x0,
 	GB_EDC_DED_MODE_HALT                             = 0x1,
 	GB_EDC_DED_MODE_INT_HALT                         = 0x2,
 } GB_EDC_DED_MODE;
 #define GB_TILING_CONFIG_TABLE_SIZE               0x20
 #define GB_TILING_CONFIG_MACROTABLE_SIZE          0x10
-typedef enum GRBM_PERF_SEL {
+typedef enum GRBM_PERF_SEL
+{
 	GRBM_PERF_SEL_COUNT                              = 0x0,
 	GRBM_PERF_SEL_USER_DEFINED                       = 0x1,
 	GRBM_PERF_SEL_GUI_ACTIVE                         = 0x2,
@@ -914,7 +952,8 @@ typedef enum GRBM_PERF_SEL {
 	GRBM_PERF_SEL_WD_BUSY                            = 0x20,
 	GRBM_PERF_SEL_WD_NO_DMA_BUSY                     = 0x21,
 } GRBM_PERF_SEL;
-typedef enum GRBM_SE0_PERF_SEL {
+typedef enum GRBM_SE0_PERF_SEL
+{
 	GRBM_SE0_PERF_SEL_COUNT                          = 0x0,
 	GRBM_SE0_PERF_SEL_USER_DEFINED                   = 0x1,
 	GRBM_SE0_PERF_SEL_CB_BUSY                        = 0x2,
@@ -931,7 +970,8 @@ typedef enum GRBM_SE0_PERF_SEL {
 	GRBM_SE0_PERF_SEL_VGT_BUSY                       = 0xd,
 	GRBM_SE0_PERF_SEL_BCI_BUSY                       = 0xe,
 } GRBM_SE0_PERF_SEL;
-typedef enum GRBM_SE1_PERF_SEL {
+typedef enum GRBM_SE1_PERF_SEL
+{
 	GRBM_SE1_PERF_SEL_COUNT                          = 0x0,
 	GRBM_SE1_PERF_SEL_USER_DEFINED                   = 0x1,
 	GRBM_SE1_PERF_SEL_CB_BUSY                        = 0x2,
@@ -948,7 +988,8 @@ typedef enum GRBM_SE1_PERF_SEL {
 	GRBM_SE1_PERF_SEL_VGT_BUSY                       = 0xd,
 	GRBM_SE1_PERF_SEL_BCI_BUSY                       = 0xe,
 } GRBM_SE1_PERF_SEL;
-typedef enum GRBM_SE2_PERF_SEL {
+typedef enum GRBM_SE2_PERF_SEL
+{
 	GRBM_SE2_PERF_SEL_COUNT                          = 0x0,
 	GRBM_SE2_PERF_SEL_USER_DEFINED                   = 0x1,
 	GRBM_SE2_PERF_SEL_CB_BUSY                        = 0x2,
@@ -965,7 +1006,8 @@ typedef enum GRBM_SE2_PERF_SEL {
 	GRBM_SE2_PERF_SEL_VGT_BUSY                       = 0xd,
 	GRBM_SE2_PERF_SEL_BCI_BUSY                       = 0xe,
 } GRBM_SE2_PERF_SEL;
-typedef enum GRBM_SE3_PERF_SEL {
+typedef enum GRBM_SE3_PERF_SEL
+{
 	GRBM_SE3_PERF_SEL_COUNT                          = 0x0,
 	GRBM_SE3_PERF_SEL_USER_DEFINED                   = 0x1,
 	GRBM_SE3_PERF_SEL_CB_BUSY                        = 0x2,
@@ -982,7 +1024,8 @@ typedef enum GRBM_SE3_PERF_SEL {
 	GRBM_SE3_PERF_SEL_VGT_BUSY                       = 0xd,
 	GRBM_SE3_PERF_SEL_BCI_BUSY                       = 0xe,
 } GRBM_SE3_PERF_SEL;
-typedef enum SU_PERFCNT_SEL {
+typedef enum SU_PERFCNT_SEL
+{
 	PERF_PAPC_PASX_REQ                               = 0x0,
 	PERF_PAPC_PASX_DISABLE_PIPE                      = 0x1,
 	PERF_PAPC_PASX_FIRST_VECTOR                      = 0x2,
@@ -1137,7 +1180,8 @@ typedef enum SU_PERFCNT_SEL {
 	PERF_PAPC_SU_SE2_STALLED_SC                      = 0x97,
 	PERF_PAPC_SU_SE3_STALLED_SC                      = 0x98,
 } SU_PERFCNT_SEL;
-typedef enum SC_PERFCNT_SEL {
+typedef enum SC_PERFCNT_SEL
+{
 	SC_SRPS_WINDOW_VALID                             = 0x0,
 	SC_PSSW_WINDOW_VALID                             = 0x1,
 	SC_TPQZ_WINDOW_VALID                             = 0x2,
@@ -1534,105 +1578,123 @@ typedef enum SC_PERFCNT_SEL {
 	SC_SCF_SCB_INTERFACE_BUSY                        = 0x189,
 	SC_SCB_BUSY                                      = 0x18a,
 } SC_PERFCNT_SEL;
-typedef enum SePairXsel {
+typedef enum SePairXsel
+{
 	RASTER_CONFIG_SE_PAIR_XSEL_8_WIDE_TILE           = 0x0,
 	RASTER_CONFIG_SE_PAIR_XSEL_16_WIDE_TILE          = 0x1,
 	RASTER_CONFIG_SE_PAIR_XSEL_32_WIDE_TILE          = 0x2,
 	RASTER_CONFIG_SE_PAIR_XSEL_64_WIDE_TILE          = 0x3,
 } SePairXsel;
-typedef enum SePairYsel {
+typedef enum SePairYsel
+{
 	RASTER_CONFIG_SE_PAIR_YSEL_8_WIDE_TILE           = 0x0,
 	RASTER_CONFIG_SE_PAIR_YSEL_16_WIDE_TILE          = 0x1,
 	RASTER_CONFIG_SE_PAIR_YSEL_32_WIDE_TILE          = 0x2,
 	RASTER_CONFIG_SE_PAIR_YSEL_64_WIDE_TILE          = 0x3,
 } SePairYsel;
-typedef enum SePairMap {
+typedef enum SePairMap
+{
 	RASTER_CONFIG_SE_PAIR_MAP_0                      = 0x0,
 	RASTER_CONFIG_SE_PAIR_MAP_1                      = 0x1,
 	RASTER_CONFIG_SE_PAIR_MAP_2                      = 0x2,
 	RASTER_CONFIG_SE_PAIR_MAP_3                      = 0x3,
 } SePairMap;
-typedef enum SeXsel {
+typedef enum SeXsel
+{
 	RASTER_CONFIG_SE_XSEL_8_WIDE_TILE                = 0x0,
 	RASTER_CONFIG_SE_XSEL_16_WIDE_TILE               = 0x1,
 	RASTER_CONFIG_SE_XSEL_32_WIDE_TILE               = 0x2,
 	RASTER_CONFIG_SE_XSEL_64_WIDE_TILE               = 0x3,
 } SeXsel;
-typedef enum SeYsel {
+typedef enum SeYsel
+{
 	RASTER_CONFIG_SE_YSEL_8_WIDE_TILE                = 0x0,
 	RASTER_CONFIG_SE_YSEL_16_WIDE_TILE               = 0x1,
 	RASTER_CONFIG_SE_YSEL_32_WIDE_TILE               = 0x2,
 	RASTER_CONFIG_SE_YSEL_64_WIDE_TILE               = 0x3,
 } SeYsel;
-typedef enum SeMap {
+typedef enum SeMap
+{
 	RASTER_CONFIG_SE_MAP_0                           = 0x0,
 	RASTER_CONFIG_SE_MAP_1                           = 0x1,
 	RASTER_CONFIG_SE_MAP_2                           = 0x2,
 	RASTER_CONFIG_SE_MAP_3                           = 0x3,
 } SeMap;
-typedef enum ScXsel {
+typedef enum ScXsel
+{
 	RASTER_CONFIG_SC_XSEL_8_WIDE_TILE                = 0x0,
 	RASTER_CONFIG_SC_XSEL_16_WIDE_TILE               = 0x1,
 	RASTER_CONFIG_SC_XSEL_32_WIDE_TILE               = 0x2,
 	RASTER_CONFIG_SC_XSEL_64_WIDE_TILE               = 0x3,
 } ScXsel;
-typedef enum ScYsel {
+typedef enum ScYsel
+{
 	RASTER_CONFIG_SC_YSEL_8_WIDE_TILE                = 0x0,
 	RASTER_CONFIG_SC_YSEL_16_WIDE_TILE               = 0x1,
 	RASTER_CONFIG_SC_YSEL_32_WIDE_TILE               = 0x2,
 	RASTER_CONFIG_SC_YSEL_64_WIDE_TILE               = 0x3,
 } ScYsel;
-typedef enum ScMap {
+typedef enum ScMap
+{
 	RASTER_CONFIG_SC_MAP_0                           = 0x0,
 	RASTER_CONFIG_SC_MAP_1                           = 0x1,
 	RASTER_CONFIG_SC_MAP_2                           = 0x2,
 	RASTER_CONFIG_SC_MAP_3                           = 0x3,
 } ScMap;
-typedef enum PkrXsel2 {
+typedef enum PkrXsel2
+{
 	RASTER_CONFIG_PKR_XSEL2_0                        = 0x0,
 	RASTER_CONFIG_PKR_XSEL2_1                        = 0x1,
 	RASTER_CONFIG_PKR_XSEL2_2                        = 0x2,
 	RASTER_CONFIG_PKR_XSEL2_3                        = 0x3,
 } PkrXsel2;
-typedef enum PkrXsel {
+typedef enum PkrXsel
+{
 	RASTER_CONFIG_PKR_XSEL_0                         = 0x0,
 	RASTER_CONFIG_PKR_XSEL_1                         = 0x1,
 	RASTER_CONFIG_PKR_XSEL_2                         = 0x2,
 	RASTER_CONFIG_PKR_XSEL_3                         = 0x3,
 } PkrXsel;
-typedef enum PkrYsel {
+typedef enum PkrYsel
+{
 	RASTER_CONFIG_PKR_YSEL_0                         = 0x0,
 	RASTER_CONFIG_PKR_YSEL_1                         = 0x1,
 	RASTER_CONFIG_PKR_YSEL_2                         = 0x2,
 	RASTER_CONFIG_PKR_YSEL_3                         = 0x3,
 } PkrYsel;
-typedef enum PkrMap {
+typedef enum PkrMap
+{
 	RASTER_CONFIG_PKR_MAP_0                          = 0x0,
 	RASTER_CONFIG_PKR_MAP_1                          = 0x1,
 	RASTER_CONFIG_PKR_MAP_2                          = 0x2,
 	RASTER_CONFIG_PKR_MAP_3                          = 0x3,
 } PkrMap;
-typedef enum RbXsel {
+typedef enum RbXsel
+{
 	RASTER_CONFIG_RB_XSEL_0                          = 0x0,
 	RASTER_CONFIG_RB_XSEL_1                          = 0x1,
 } RbXsel;
-typedef enum RbYsel {
+typedef enum RbYsel
+{
 	RASTER_CONFIG_RB_YSEL_0                          = 0x0,
 	RASTER_CONFIG_RB_YSEL_1                          = 0x1,
 } RbYsel;
-typedef enum RbXsel2 {
+typedef enum RbXsel2
+{
 	RASTER_CONFIG_RB_XSEL2_0                         = 0x0,
 	RASTER_CONFIG_RB_XSEL2_1                         = 0x1,
 	RASTER_CONFIG_RB_XSEL2_2                         = 0x2,
 	RASTER_CONFIG_RB_XSEL2_3                         = 0x3,
 } RbXsel2;
-typedef enum RbMap {
+typedef enum RbMap
+{
 	RASTER_CONFIG_RB_MAP_0                           = 0x0,
 	RASTER_CONFIG_RB_MAP_1                           = 0x1,
 	RASTER_CONFIG_RB_MAP_2                           = 0x2,
 	RASTER_CONFIG_RB_MAP_3                           = 0x3,
 } RbMap;
-typedef enum CSDATA_TYPE {
+typedef enum CSDATA_TYPE
+{
 	CSDATA_TYPE_TG                                   = 0x0,
 	CSDATA_TYPE_STATE                                = 0x1,
 	CSDATA_TYPE_EVENT                                = 0x2,
@@ -1641,26 +1703,30 @@ typedef enum CSDATA_TYPE {
 #define CSDATA_TYPE_WIDTH                         0x2
 #define CSDATA_ADDR_WIDTH                         0x7
 #define CSDATA_DATA_WIDTH                         0x20
-typedef enum SPI_SAMPLE_CNTL {
+typedef enum SPI_SAMPLE_CNTL
+{
 	CENTROIDS_ONLY                                   = 0x0,
 	CENTERS_ONLY                                     = 0x1,
 	CENTROIDS_AND_CENTERS                            = 0x2,
 	UNDEF                                            = 0x3,
 } SPI_SAMPLE_CNTL;
-typedef enum SPI_FOG_MODE {
+typedef enum SPI_FOG_MODE
+{
 	SPI_FOG_NONE                                     = 0x0,
 	SPI_FOG_EXP                                      = 0x1,
 	SPI_FOG_EXP2                                     = 0x2,
 	SPI_FOG_LINEAR                                   = 0x3,
 } SPI_FOG_MODE;
-typedef enum SPI_PNT_SPRITE_OVERRIDE {
+typedef enum SPI_PNT_SPRITE_OVERRIDE
+{
 	SPI_PNT_SPRITE_SEL_0                             = 0x0,
 	SPI_PNT_SPRITE_SEL_1                             = 0x1,
 	SPI_PNT_SPRITE_SEL_S                             = 0x2,
 	SPI_PNT_SPRITE_SEL_T                             = 0x3,
 	SPI_PNT_SPRITE_SEL_NONE                          = 0x4,
 } SPI_PNT_SPRITE_OVERRIDE;
-typedef enum SPI_PERFCNT_SEL {
+typedef enum SPI_PERFCNT_SEL
+{
 	SPI_PERF_VS_WINDOW_VALID                         = 0x0,
 	SPI_PERF_VS_BUSY                                 = 0x1,
 	SPI_PERF_VS_FIRST_WAVE                           = 0x2,
@@ -1848,14 +1914,16 @@ typedef enum SPI_PERFCNT_SEL {
 	SPI_PERF_CLKGATE_CGTT_DYN_ON                     = 0xb8,
 	SPI_PERF_CLKGATE_CGTT_REG_ON                     = 0xb9,
 } SPI_PERFCNT_SEL;
-typedef enum SPI_SHADER_FORMAT {
+typedef enum SPI_SHADER_FORMAT
+{
 	SPI_SHADER_NONE                                  = 0x0,
 	SPI_SHADER_1COMP                                 = 0x1,
 	SPI_SHADER_2COMP                                 = 0x2,
 	SPI_SHADER_4COMPRESS                             = 0x3,
 	SPI_SHADER_4COMP                                 = 0x4,
 } SPI_SHADER_FORMAT;
-typedef enum SPI_SHADER_EX_FORMAT {
+typedef enum SPI_SHADER_EX_FORMAT
+{
 	SPI_SHADER_ZERO                                  = 0x0,
 	SPI_SHADER_32_R                                  = 0x1,
 	SPI_SHADER_32_GR                                 = 0x2,
@@ -1867,18 +1935,21 @@ typedef enum SPI_SHADER_EX_FORMAT {
 	SPI_SHADER_SINT16_ABGR                           = 0x8,
 	SPI_SHADER_32_ABGR                               = 0x9,
 } SPI_SHADER_EX_FORMAT;
-typedef enum CLKGATE_SM_MODE {
+typedef enum CLKGATE_SM_MODE
+{
 	ON_SEQ                                           = 0x0,
 	OFF_SEQ                                          = 0x1,
 	PROG_SEQ                                         = 0x2,
 	READ_SEQ                                         = 0x3,
 	SM_MODE_RESERVED                                 = 0x4,
 } CLKGATE_SM_MODE;
-typedef enum CLKGATE_BASE_MODE {
+typedef enum CLKGATE_BASE_MODE
+{
 	MULT_8                                           = 0x0,
 	MULT_16                                          = 0x1,
 } CLKGATE_BASE_MODE;
-typedef enum SQ_TEX_CLAMP {
+typedef enum SQ_TEX_CLAMP
+{
 	SQ_TEX_WRAP                                      = 0x0,
 	SQ_TEX_MIRROR                                    = 0x1,
 	SQ_TEX_CLAMP_LAST_TEXEL                          = 0x2,
@@ -1888,30 +1959,35 @@ typedef enum SQ_TEX_CLAMP {
 	SQ_TEX_CLAMP_BORDER                              = 0x6,
 	SQ_TEX_MIRROR_ONCE_BORDER                        = 0x7,
 } SQ_TEX_CLAMP;
-typedef enum SQ_TEX_XY_FILTER {
+typedef enum SQ_TEX_XY_FILTER
+{
 	SQ_TEX_XY_FILTER_POINT                           = 0x0,
 	SQ_TEX_XY_FILTER_BILINEAR                        = 0x1,
 	SQ_TEX_XY_FILTER_ANISO_POINT                     = 0x2,
 	SQ_TEX_XY_FILTER_ANISO_BILINEAR                  = 0x3,
 } SQ_TEX_XY_FILTER;
-typedef enum SQ_TEX_Z_FILTER {
+typedef enum SQ_TEX_Z_FILTER
+{
 	SQ_TEX_Z_FILTER_NONE                             = 0x0,
 	SQ_TEX_Z_FILTER_POINT                            = 0x1,
 	SQ_TEX_Z_FILTER_LINEAR                           = 0x2,
 } SQ_TEX_Z_FILTER;
-typedef enum SQ_TEX_MIP_FILTER {
+typedef enum SQ_TEX_MIP_FILTER
+{
 	SQ_TEX_MIP_FILTER_NONE                           = 0x0,
 	SQ_TEX_MIP_FILTER_POINT                          = 0x1,
 	SQ_TEX_MIP_FILTER_LINEAR                         = 0x2,
 } SQ_TEX_MIP_FILTER;
-typedef enum SQ_TEX_ANISO_RATIO {
+typedef enum SQ_TEX_ANISO_RATIO
+{
 	SQ_TEX_ANISO_RATIO_1                             = 0x0,
 	SQ_TEX_ANISO_RATIO_2                             = 0x1,
 	SQ_TEX_ANISO_RATIO_4                             = 0x2,
 	SQ_TEX_ANISO_RATIO_8                             = 0x3,
 	SQ_TEX_ANISO_RATIO_16                            = 0x4,
 } SQ_TEX_ANISO_RATIO;
-typedef enum SQ_TEX_DEPTH_COMPARE {
+typedef enum SQ_TEX_DEPTH_COMPARE
+{
 	SQ_TEX_DEPTH_COMPARE_NEVER                       = 0x0,
 	SQ_TEX_DEPTH_COMPARE_LESS                        = 0x1,
 	SQ_TEX_DEPTH_COMPARE_EQUAL                       = 0x2,
@@ -1921,19 +1997,22 @@ typedef enum SQ_TEX_DEPTH_COMPARE {
 	SQ_TEX_DEPTH_COMPARE_GREATEREQUAL                = 0x6,
 	SQ_TEX_DEPTH_COMPARE_ALWAYS                      = 0x7,
 } SQ_TEX_DEPTH_COMPARE;
-typedef enum SQ_TEX_BORDER_COLOR {
+typedef enum SQ_TEX_BORDER_COLOR
+{
 	SQ_TEX_BORDER_COLOR_TRANS_BLACK                  = 0x0,
 	SQ_TEX_BORDER_COLOR_OPAQUE_BLACK                 = 0x1,
 	SQ_TEX_BORDER_COLOR_OPAQUE_WHITE                 = 0x2,
 	SQ_TEX_BORDER_COLOR_REGISTER                     = 0x3,
 } SQ_TEX_BORDER_COLOR;
-typedef enum SQ_RSRC_BUF_TYPE {
+typedef enum SQ_RSRC_BUF_TYPE
+{
 	SQ_RSRC_BUF                                      = 0x0,
 	SQ_RSRC_BUF_RSVD_1                               = 0x1,
 	SQ_RSRC_BUF_RSVD_2                               = 0x2,
 	SQ_RSRC_BUF_RSVD_3                               = 0x3,
 } SQ_RSRC_BUF_TYPE;
-typedef enum SQ_RSRC_IMG_TYPE {
+typedef enum SQ_RSRC_IMG_TYPE
+{
 	SQ_RSRC_IMG_RSVD_0                               = 0x0,
 	SQ_RSRC_IMG_RSVD_1                               = 0x1,
 	SQ_RSRC_IMG_RSVD_2                               = 0x2,
@@ -1951,18 +2030,21 @@ typedef enum SQ_RSRC_IMG_TYPE {
 	SQ_RSRC_IMG_2D_MSAA                              = 0xe,
 	SQ_RSRC_IMG_2D_MSAA_ARRAY                        = 0xf,
 } SQ_RSRC_IMG_TYPE;
-typedef enum SQ_RSRC_FLAT_TYPE {
+typedef enum SQ_RSRC_FLAT_TYPE
+{
 	SQ_RSRC_FLAT_RSVD_0                              = 0x0,
 	SQ_RSRC_FLAT                                     = 0x1,
 	SQ_RSRC_FLAT_RSVD_2                              = 0x2,
 	SQ_RSRC_FLAT_RSVD_3                              = 0x3,
 } SQ_RSRC_FLAT_TYPE;
-typedef enum SQ_IMG_FILTER_TYPE {
+typedef enum SQ_IMG_FILTER_TYPE
+{
 	SQ_IMG_FILTER_MODE_BLEND                         = 0x0,
 	SQ_IMG_FILTER_MODE_MIN                           = 0x1,
 	SQ_IMG_FILTER_MODE_MAX                           = 0x2,
 } SQ_IMG_FILTER_TYPE;
-typedef enum SQ_SEL_XYZW01 {
+typedef enum SQ_SEL_XYZW01
+{
 	SQ_SEL_0                                         = 0x0,
 	SQ_SEL_1                                         = 0x1,
 	SQ_SEL_RESERVED_0                                = 0x2,
@@ -1972,7 +2054,8 @@ typedef enum SQ_SEL_XYZW01 {
 	SQ_SEL_Z                                         = 0x6,
 	SQ_SEL_W                                         = 0x7,
 } SQ_SEL_XYZW01;
-typedef enum SQ_WAVE_TYPE {
+typedef enum SQ_WAVE_TYPE
+{
 	SQ_WAVE_TYPE_PS                                  = 0x0,
 	SQ_WAVE_TYPE_VS                                  = 0x1,
 	SQ_WAVE_TYPE_GS                                  = 0x2,
@@ -1982,7 +2065,8 @@ typedef enum SQ_WAVE_TYPE {
 	SQ_WAVE_TYPE_CS                                  = 0x6,
 	SQ_WAVE_TYPE_PS1                                 = 0x7,
 } SQ_WAVE_TYPE;
-typedef enum SQ_THREAD_TRACE_TOKEN_TYPE {
+typedef enum SQ_THREAD_TRACE_TOKEN_TYPE
+{
 	SQ_THREAD_TRACE_TOKEN_MISC                       = 0x0,
 	SQ_THREAD_TRACE_TOKEN_TIMESTAMP                  = 0x1,
 	SQ_THREAD_TRACE_TOKEN_REG                        = 0x2,
@@ -2000,7 +2084,8 @@ typedef enum SQ_THREAD_TRACE_TOKEN_TYPE {
 	SQ_THREAD_TRACE_TOKEN_PERF                       = 0xe,
 	SQ_THREAD_TRACE_TOKEN_REG_CS                     = 0xf,
 } SQ_THREAD_TRACE_TOKEN_TYPE;
-typedef enum SQ_THREAD_TRACE_MISC_TOKEN_TYPE {
+typedef enum SQ_THREAD_TRACE_MISC_TOKEN_TYPE
+{
 	SQ_THREAD_TRACE_MISC_TOKEN_TIME                  = 0x0,
 	SQ_THREAD_TRACE_MISC_TOKEN_TIME_RESET            = 0x1,
 	SQ_THREAD_TRACE_MISC_TOKEN_PACKET_LOST           = 0x2,
@@ -2008,7 +2093,8 @@ typedef enum SQ_THREAD_TRACE_MISC_TOKEN_TYPE {
 	SQ_THREAD_TRACE_MISC_TOKEN_TTRACE_STALL_BEGIN    = 0x4,
 	SQ_THREAD_TRACE_MISC_TOKEN_TTRACE_STALL_END      = 0x5,
 } SQ_THREAD_TRACE_MISC_TOKEN_TYPE;
-typedef enum SQ_THREAD_TRACE_INST_TYPE {
+typedef enum SQ_THREAD_TRACE_INST_TYPE
+{
 	SQ_THREAD_TRACE_INST_TYPE_SMEM                   = 0x0,
 	SQ_THREAD_TRACE_INST_TYPE_SALU                   = 0x1,
 	SQ_THREAD_TRACE_INST_TYPE_VMEM_RD                = 0x2,
@@ -2026,7 +2112,8 @@ typedef enum SQ_THREAD_TRACE_INST_TYPE {
 	SQ_THREAD_TRACE_INST_TYPE_FLAT_RD                = 0xe,
 	SQ_THREAD_TRACE_INST_TYPE_OTHER_MSG              = 0xf,
 } SQ_THREAD_TRACE_INST_TYPE;
-typedef enum SQ_THREAD_TRACE_REG_TYPE {
+typedef enum SQ_THREAD_TRACE_REG_TYPE
+{
 	SQ_THREAD_TRACE_REG_TYPE_EVENT                   = 0x0,
 	SQ_THREAD_TRACE_REG_TYPE_DRAW                    = 0x1,
 	SQ_THREAD_TRACE_REG_TYPE_DISPATCH                = 0x2,
@@ -2036,26 +2123,31 @@ typedef enum SQ_THREAD_TRACE_REG_TYPE {
 	SQ_THREAD_TRACE_REG_TYPE_SHDEC                   = 0x6,
 	SQ_THREAD_TRACE_REG_TYPE_OTHER                   = 0x7,
 } SQ_THREAD_TRACE_REG_TYPE;
-typedef enum SQ_THREAD_TRACE_REG_OP {
+typedef enum SQ_THREAD_TRACE_REG_OP
+{
 	SQ_THREAD_TRACE_REG_OP_READ                      = 0x0,
 	SQ_THREAD_TRACE_REG_OP_WRITE                     = 0x1,
 } SQ_THREAD_TRACE_REG_OP;
-typedef enum SQ_THREAD_TRACE_MODE_SEL {
+typedef enum SQ_THREAD_TRACE_MODE_SEL
+{
 	SQ_THREAD_TRACE_MODE_OFF                         = 0x0,
 	SQ_THREAD_TRACE_MODE_ON                          = 0x1,
 	SQ_THREAD_TRACE_MODE_RANDOM                      = 0x2,
 } SQ_THREAD_TRACE_MODE_SEL;
-typedef enum SQ_THREAD_TRACE_CAPTURE_MODE {
+typedef enum SQ_THREAD_TRACE_CAPTURE_MODE
+{
 	SQ_THREAD_TRACE_CAPTURE_MODE_ALL                 = 0x0,
 	SQ_THREAD_TRACE_CAPTURE_MODE_SELECT              = 0x1,
 	SQ_THREAD_TRACE_CAPTURE_MODE_SELECT_DETAIL       = 0x2,
 } SQ_THREAD_TRACE_CAPTURE_MODE;
-typedef enum SQ_THREAD_TRACE_VM_ID_MASK {
+typedef enum SQ_THREAD_TRACE_VM_ID_MASK
+{
 	SQ_THREAD_TRACE_VM_ID_MASK_SINGLE                = 0x0,
 	SQ_THREAD_TRACE_VM_ID_MASK_ALL                   = 0x1,
 	SQ_THREAD_TRACE_VM_ID_MASK_SINGLE_DETAIL         = 0x2,
 } SQ_THREAD_TRACE_VM_ID_MASK;
-typedef enum SQ_THREAD_TRACE_WAVE_MASK {
+typedef enum SQ_THREAD_TRACE_WAVE_MASK
+{
 	SQ_THREAD_TRACE_WAVE_MASK_NONE                   = 0x0,
 	SQ_THREAD_TRACE_WAVE_MASK_ALL                    = 0x1,
 	SQ_THREAD_TRACE_WAVE_MASK_1_2                    = 0x2,
@@ -2065,19 +2157,22 @@ typedef enum SQ_THREAD_TRACE_WAVE_MASK {
 	SQ_THREAD_TRACE_WAVE_MASK_1_32                   = 0x6,
 	SQ_THREAD_TRACE_WAVE_MASK_1_64                   = 0x7,
 } SQ_THREAD_TRACE_WAVE_MASK;
-typedef enum SQ_THREAD_TRACE_ISSUE {
+typedef enum SQ_THREAD_TRACE_ISSUE
+{
 	SQ_THREAD_TRACE_ISSUE_NULL                       = 0x0,
 	SQ_THREAD_TRACE_ISSUE_STALL                      = 0x1,
 	SQ_THREAD_TRACE_ISSUE_INST                       = 0x2,
 	SQ_THREAD_TRACE_ISSUE_IMMED                      = 0x3,
 } SQ_THREAD_TRACE_ISSUE;
-typedef enum SQ_THREAD_TRACE_ISSUE_MASK {
+typedef enum SQ_THREAD_TRACE_ISSUE_MASK
+{
 	SQ_THREAD_TRACE_ISSUE_MASK_ALL                   = 0x0,
 	SQ_THREAD_TRACE_ISSUE_MASK_STALLED               = 0x1,
 	SQ_THREAD_TRACE_ISSUE_MASK_STALLED_AND_IMMED     = 0x2,
 	SQ_THREAD_TRACE_ISSUE_MASK_IMMED                 = 0x3,
 } SQ_THREAD_TRACE_ISSUE_MASK;
-typedef enum SQ_PERF_SEL {
+typedef enum SQ_PERF_SEL
+{
 	SQ_PERF_SEL_NONE                                 = 0x0,
 	SQ_PERF_SEL_ACCUM_PREV                           = 0x1,
 	SQ_PERF_SEL_CYCLES                               = 0x2,
@@ -2270,7 +2365,7 @@ typedef enum SQ_PERF_SEL {
 	SQC_PERF_SEL_ICACHE_CACHE_STALLED                = 0xc0,
 	SQC_PERF_SEL_ICACHE_CACHE_STALL_INFLIGHT_NONZERO = 0xc1,
 	SQC_PERF_SEL_ICACHE_CACHE_STALL_INFLIGHT_MAX     = 0xc2,
-	SQC_PERF_SEL_ICACHE_CACHE_STALL_VOLATILE_MISMATCH= 0xc3,
+	SQC_PERF_SEL_ICACHE_CACHE_STALL_VOLATILE_MISMATCH = 0xc3,
 	SQC_PERF_SEL_ICACHE_CACHE_STALL_UNCACHED_HIT     = 0xc4,
 	SQC_PERF_SEL_ICACHE_CACHE_STALL_OUTPUT           = 0xc5,
 	SQC_PERF_SEL_ICACHE_CACHE_STALL_OUTPUT_MISS_FIFO = 0xc6,
@@ -2293,7 +2388,7 @@ typedef enum SQ_PERF_SEL {
 	SQC_PERF_SEL_DCACHE_CACHE_STALLED                = 0xd7,
 	SQC_PERF_SEL_DCACHE_CACHE_STALL_INFLIGHT_NONZERO = 0xd8,
 	SQC_PERF_SEL_DCACHE_CACHE_STALL_INFLIGHT_MAX     = 0xd9,
-	SQC_PERF_SEL_DCACHE_CACHE_STALL_VOLATILE_MISMATCH= 0xda,
+	SQC_PERF_SEL_DCACHE_CACHE_STALL_VOLATILE_MISMATCH = 0xda,
 	SQC_PERF_SEL_DCACHE_CACHE_STALL_UNCACHED_HIT     = 0xdb,
 	SQC_PERF_SEL_DCACHE_CACHE_STALL_OUTPUT           = 0xdc,
 	SQC_PERF_SEL_DCACHE_CACHE_STALL_OUTPUT_MISS_FIFO = 0xdd,
@@ -2325,14 +2420,16 @@ typedef enum SQ_PERF_SEL {
 	SQC_PERF_SEL_ERR_DCACHE_REQ_2_GPR_ADDR_UNALIGNED = 0xf7,
 	SQC_PERF_SEL_ERR_DCACHE_REQ_4_GPR_ADDR_UNALIGNED = 0xf8,
 	SQC_PERF_SEL_ERR_DCACHE_REQ_8_GPR_ADDR_UNALIGNED = 0xf9,
-	SQC_PERF_SEL_ERR_DCACHE_REQ_16_GPR_ADDR_UNALIGNED= 0xfa,
+	SQC_PERF_SEL_ERR_DCACHE_REQ_16_GPR_ADDR_UNALIGNED = 0xfa,
 	SQC_PERF_SEL_DUMMY_LAST                          = 0xfb,
 } SQ_PERF_SEL;
-typedef enum SQC_DATA_CACHE_POLICIES {
+typedef enum SQC_DATA_CACHE_POLICIES
+{
 	SQC_DATA_CACHE_POLICY_HIT_LRU                    = 0x0,
 	SQC_DATA_CACHE_POLICY_MISS_EVICT                 = 0x1,
 } SQC_DATA_CACHE_POLICIES;
-typedef enum SQ_CAC_POWER_SEL {
+typedef enum SQ_CAC_POWER_SEL
+{
 	SQ_CAC_POWER_VALU                                = 0x0,
 	SQ_CAC_POWER_VALU0                               = 0x1,
 	SQ_CAC_POWER_VALU1                               = 0x2,
@@ -2343,7 +2440,8 @@ typedef enum SQ_CAC_POWER_SEL {
 	SQ_CAC_POWER_ALU_BUSY                            = 0x7,
 	SQ_CAC_POWER_TEX_BUSY                            = 0x8,
 } SQ_CAC_POWER_SEL;
-typedef enum SQ_IND_CMD_CMD {
+typedef enum SQ_IND_CMD_CMD
+{
 	SQ_IND_CMD_CMD_NULL                              = 0x0,
 	SQ_IND_CMD_CMD_HALT                              = 0x1,
 	SQ_IND_CMD_CMD_RESUME                            = 0x2,
@@ -2351,14 +2449,16 @@ typedef enum SQ_IND_CMD_CMD {
 	SQ_IND_CMD_CMD_DEBUG                             = 0x4,
 	SQ_IND_CMD_CMD_TRAP                              = 0x5,
 } SQ_IND_CMD_CMD;
-typedef enum SQ_IND_CMD_MODE {
+typedef enum SQ_IND_CMD_MODE
+{
 	SQ_IND_CMD_MODE_SINGLE                           = 0x0,
 	SQ_IND_CMD_MODE_BROADCAST                        = 0x1,
 	SQ_IND_CMD_MODE_BROADCAST_QUEUE                  = 0x2,
 	SQ_IND_CMD_MODE_BROADCAST_PIPE                   = 0x3,
 	SQ_IND_CMD_MODE_BROADCAST_ME                     = 0x4,
 } SQ_IND_CMD_MODE;
-typedef enum SQ_DED_INFO_SOURCE {
+typedef enum SQ_DED_INFO_SOURCE
+{
 	SQ_DED_INFO_SOURCE_INVALID                       = 0x0,
 	SQ_DED_INFO_SOURCE_INST                          = 0x1,
 	SQ_DED_INFO_SOURCE_SGPR                          = 0x2,
@@ -2367,18 +2467,21 @@ typedef enum SQ_DED_INFO_SOURCE {
 	SQ_DED_INFO_SOURCE_GDS                           = 0x5,
 	SQ_DED_INFO_SOURCE_TA                            = 0x6,
 } SQ_DED_INFO_SOURCE;
-typedef enum SQ_ROUND_MODE {
+typedef enum SQ_ROUND_MODE
+{
 	SQ_ROUND_NEAREST_EVEN                            = 0x0,
 	SQ_ROUND_PLUS_INFINITY                           = 0x1,
 	SQ_ROUND_MINUS_INFINITY                          = 0x2,
 	SQ_ROUND_TO_ZERO                                 = 0x3,
 } SQ_ROUND_MODE;
-typedef enum SQ_INTERRUPT_WORD_ENCODING {
+typedef enum SQ_INTERRUPT_WORD_ENCODING
+{
 	SQ_INTERRUPT_WORD_ENCODING_AUTO                  = 0x0,
 	SQ_INTERRUPT_WORD_ENCODING_INST                  = 0x1,
 	SQ_INTERRUPT_WORD_ENCODING_ERROR                 = 0x2,
 } SQ_INTERRUPT_WORD_ENCODING;
-typedef enum ENUM_SQ_EXPORT_RAT_INST {
+typedef enum ENUM_SQ_EXPORT_RAT_INST
+{
 	SQ_EXPORT_RAT_INST_NOP                           = 0x0,
 	SQ_EXPORT_RAT_INST_STORE_TYPED                   = 0x1,
 	SQ_EXPORT_RAT_INST_STORE_RAW                     = 0x2,
@@ -2422,7 +2525,8 @@ typedef enum ENUM_SQ_EXPORT_RAT_INST {
 	SQ_EXPORT_RAT_INST_INC_UINT_RTN                  = 0x32,
 	SQ_EXPORT_RAT_INST_DEC_UINT_RTN                  = 0x33,
 } ENUM_SQ_EXPORT_RAT_INST;
-typedef enum SQ_IBUF_ST {
+typedef enum SQ_IBUF_ST
+{
 	SQ_IBUF_IB_IDLE                                  = 0x0,
 	SQ_IBUF_IB_INI_WAIT_GNT                          = 0x1,
 	SQ_IBUF_IB_INI_WAIT_DRET                         = 0x2,
@@ -2432,7 +2536,8 @@ typedef enum SQ_IBUF_ST {
 	SQ_IBUF_IB_DRET                                  = 0x6,
 	SQ_IBUF_IB_EMPTY_WAIT_GNT                        = 0x7,
 } SQ_IBUF_ST;
-typedef enum SQ_INST_STR_ST {
+typedef enum SQ_INST_STR_ST
+{
 	SQ_INST_STR_IB_WAVE_NORML                        = 0x0,
 	SQ_INST_STR_IB_WAVE2ID_NORMAL_INST_AV            = 0x1,
 	SQ_INST_STR_IB_WAVE_INTERNAL_INST_AV             = 0x2,
@@ -2442,13 +2547,15 @@ typedef enum SQ_INST_STR_ST {
 	SQ_INST_STR_IB_WAVE_NOP_SLEEP_WAIT               = 0x6,
 	SQ_INST_STR_IB_WAVE_PC_FROM_SGPR_MSG_WAIT        = 0x7,
 } SQ_INST_STR_ST;
-typedef enum SQ_WAVE_IB_ECC_ST {
+typedef enum SQ_WAVE_IB_ECC_ST
+{
 	SQ_WAVE_IB_ECC_CLEAN                             = 0x0,
 	SQ_WAVE_IB_ECC_ERR_CONTINUE                      = 0x1,
 	SQ_WAVE_IB_ECC_ERR_HALT                          = 0x2,
 	SQ_WAVE_IB_ECC_WITH_ERR_MSG                      = 0x3,
 } SQ_WAVE_IB_ECC_ST;
-typedef enum SH_MEM_ALIGNMENT_MODE {
+typedef enum SH_MEM_ALIGNMENT_MODE
+{
 	SH_MEM_ALIGNMENT_MODE_DWORD                      = 0x0,
 	SH_MEM_ALIGNMENT_MODE_DWORD_STRICT               = 0x1,
 	SH_MEM_ALIGNMENT_MODE_STRICT                     = 0x2,
@@ -3691,19 +3798,22 @@ typedef enum SH_MEM_ALIGNMENT_MODE {
 #define SQ_MSG_GS                                 0x2
 #define SQ_MSG_GS_DONE                            0x3
 #define SQ_MSG_SYSMSG                             0xf
-typedef enum TEX_BORDER_COLOR_TYPE {
+typedef enum TEX_BORDER_COLOR_TYPE
+{
 	TEX_BorderColor_TransparentBlack                 = 0x0,
 	TEX_BorderColor_OpaqueBlack                      = 0x1,
 	TEX_BorderColor_OpaqueWhite                      = 0x2,
 	TEX_BorderColor_Register                         = 0x3,
 } TEX_BORDER_COLOR_TYPE;
-typedef enum TEX_CHROMA_KEY {
+typedef enum TEX_CHROMA_KEY
+{
 	TEX_ChromaKey_Disabled                           = 0x0,
 	TEX_ChromaKey_Kill                               = 0x1,
 	TEX_ChromaKey_Blend                              = 0x2,
 	TEX_ChromaKey_RESERVED_3                         = 0x3,
 } TEX_CHROMA_KEY;
-typedef enum TEX_CLAMP {
+typedef enum TEX_CLAMP
+{
 	TEX_Clamp_Repeat                                 = 0x0,
 	TEX_Clamp_Mirror                                 = 0x1,
 	TEX_Clamp_ClampToLast                            = 0x2,
@@ -3713,11 +3823,13 @@ typedef enum TEX_CLAMP {
 	TEX_Clamp_ClampToBorder                          = 0x6,
 	TEX_Clamp_MirrorOnceToBorder                     = 0x7,
 } TEX_CLAMP;
-typedef enum TEX_COORD_TYPE {
+typedef enum TEX_COORD_TYPE
+{
 	TEX_CoordType_Unnormalized                       = 0x0,
 	TEX_CoordType_Normalized                         = 0x1,
 } TEX_COORD_TYPE;
-typedef enum TEX_DEPTH_COMPARE_FUNCTION {
+typedef enum TEX_DEPTH_COMPARE_FUNCTION
+{
 	TEX_DepthCompareFunction_Never                   = 0x0,
 	TEX_DepthCompareFunction_Less                    = 0x1,
 	TEX_DepthCompareFunction_Equal                   = 0x2,
@@ -3727,7 +3839,8 @@ typedef enum TEX_DEPTH_COMPARE_FUNCTION {
 	TEX_DepthCompareFunction_GreaterEqual            = 0x6,
 	TEX_DepthCompareFunction_Always                  = 0x7,
 } TEX_DEPTH_COMPARE_FUNCTION;
-typedef enum TEX_DIM {
+typedef enum TEX_DIM
+{
 	TEX_Dim_1D                                       = 0x0,
 	TEX_Dim_2D                                       = 0x1,
 	TEX_Dim_3D                                       = 0x2,
@@ -3737,13 +3850,15 @@ typedef enum TEX_DIM {
 	TEX_Dim_2D_MSAA                                  = 0x6,
 	TEX_Dim_2DArray_MSAA                             = 0x7,
 } TEX_DIM;
-typedef enum TEX_FORMAT_COMP {
+typedef enum TEX_FORMAT_COMP
+{
 	TEX_FormatComp_Unsigned                          = 0x0,
 	TEX_FormatComp_Signed                            = 0x1,
 	TEX_FormatComp_UnsignedBiased                    = 0x2,
 	TEX_FormatComp_RESERVED_3                        = 0x3,
 } TEX_FORMAT_COMP;
-typedef enum TEX_MAX_ANISO_RATIO {
+typedef enum TEX_MAX_ANISO_RATIO
+{
 	TEX_MaxAnisoRatio_1to1                           = 0x0,
 	TEX_MaxAnisoRatio_2to1                           = 0x1,
 	TEX_MaxAnisoRatio_4to1                           = 0x2,
@@ -3753,53 +3868,63 @@ typedef enum TEX_MAX_ANISO_RATIO {
 	TEX_MaxAnisoRatio_RESERVED_6                     = 0x6,
 	TEX_MaxAnisoRatio_RESERVED_7                     = 0x7,
 } TEX_MAX_ANISO_RATIO;
-typedef enum TEX_MIP_FILTER {
+typedef enum TEX_MIP_FILTER
+{
 	TEX_MipFilter_None                               = 0x0,
 	TEX_MipFilter_Point                              = 0x1,
 	TEX_MipFilter_Linear                             = 0x2,
 	TEX_MipFilter_RESERVED_3                         = 0x3,
 } TEX_MIP_FILTER;
-typedef enum TEX_REQUEST_SIZE {
+typedef enum TEX_REQUEST_SIZE
+{
 	TEX_RequestSize_32B                              = 0x0,
 	TEX_RequestSize_64B                              = 0x1,
 	TEX_RequestSize_128B                             = 0x2,
 	TEX_RequestSize_2X64B                            = 0x3,
 } TEX_REQUEST_SIZE;
-typedef enum TEX_SAMPLER_TYPE {
+typedef enum TEX_SAMPLER_TYPE
+{
 	TEX_SamplerType_Invalid                          = 0x0,
 	TEX_SamplerType_Valid                            = 0x1,
 } TEX_SAMPLER_TYPE;
-typedef enum TEX_XY_FILTER {
+typedef enum TEX_XY_FILTER
+{
 	TEX_XYFilter_Point                               = 0x0,
 	TEX_XYFilter_Linear                              = 0x1,
 	TEX_XYFilter_AnisoPoint                          = 0x2,
 	TEX_XYFilter_AnisoLinear                         = 0x3,
 } TEX_XY_FILTER;
-typedef enum TEX_Z_FILTER {
+typedef enum TEX_Z_FILTER
+{
 	TEX_ZFilter_None                                 = 0x0,
 	TEX_ZFilter_Point                                = 0x1,
 	TEX_ZFilter_Linear                               = 0x2,
 	TEX_ZFilter_RESERVED_3                           = 0x3,
 } TEX_Z_FILTER;
-typedef enum VTX_CLAMP {
+typedef enum VTX_CLAMP
+{
 	VTX_Clamp_ClampToZero                            = 0x0,
 	VTX_Clamp_ClampToNAN                             = 0x1,
 } VTX_CLAMP;
-typedef enum VTX_FETCH_TYPE {
+typedef enum VTX_FETCH_TYPE
+{
 	VTX_FetchType_VertexData                         = 0x0,
 	VTX_FetchType_InstanceData                       = 0x1,
 	VTX_FetchType_NoIndexOffset                      = 0x2,
 	VTX_FetchType_RESERVED_3                         = 0x3,
 } VTX_FETCH_TYPE;
-typedef enum VTX_FORMAT_COMP_ALL {
+typedef enum VTX_FORMAT_COMP_ALL
+{
 	VTX_FormatCompAll_Unsigned                       = 0x0,
 	VTX_FormatCompAll_Signed                         = 0x1,
 } VTX_FORMAT_COMP_ALL;
-typedef enum VTX_MEM_REQUEST_SIZE {
+typedef enum VTX_MEM_REQUEST_SIZE
+{
 	VTX_MemRequestSize_32B                           = 0x0,
 	VTX_MemRequestSize_64B                           = 0x1,
 } VTX_MEM_REQUEST_SIZE;
-typedef enum TVX_DATA_FORMAT {
+typedef enum TVX_DATA_FORMAT
+{
 	TVX_FMT_INVALID                                  = 0x0,
 	TVX_FMT_8                                        = 0x1,
 	TVX_FMT_4_4                                      = 0x2,
@@ -3865,7 +3990,8 @@ typedef enum TVX_DATA_FORMAT {
 	TVX_FMT_CTX1                                     = 0x3e,
 	TVX_FMT_RESERVED_63                              = 0x3f,
 } TVX_DATA_FORMAT;
-typedef enum TVX_DST_SEL {
+typedef enum TVX_DST_SEL
+{
 	TVX_DstSel_X                                     = 0x0,
 	TVX_DstSel_Y                                     = 0x1,
 	TVX_DstSel_Z                                     = 0x2,
@@ -3875,13 +4001,15 @@ typedef enum TVX_DST_SEL {
 	TVX_DstSel_RESERVED_6                            = 0x6,
 	TVX_DstSel_Mask                                  = 0x7,
 } TVX_DST_SEL;
-typedef enum TVX_ENDIAN_SWAP {
+typedef enum TVX_ENDIAN_SWAP
+{
 	TVX_EndianSwap_None                              = 0x0,
 	TVX_EndianSwap_8in16                             = 0x1,
 	TVX_EndianSwap_8in32                             = 0x2,
 	TVX_EndianSwap_8in64                             = 0x3,
 } TVX_ENDIAN_SWAP;
-typedef enum TVX_INST {
+typedef enum TVX_INST
+{
 	TVX_Inst_NormalVertexFetch                       = 0x0,
 	TVX_Inst_SemanticVertexFetch                     = 0x1,
 	TVX_Inst_RESERVED_2                              = 0x2,
@@ -3915,13 +4043,15 @@ typedef enum TVX_INST {
 	TVX_Inst_Sample_C_G_LB                           = 0x1e,
 	TVX_Inst_Gather4_C_O                             = 0x1f,
 } TVX_INST;
-typedef enum TVX_NUM_FORMAT_ALL {
+typedef enum TVX_NUM_FORMAT_ALL
+{
 	TVX_NumFormatAll_Norm                            = 0x0,
 	TVX_NumFormatAll_Int                             = 0x1,
 	TVX_NumFormatAll_Scaled                          = 0x2,
 	TVX_NumFormatAll_RESERVED_3                      = 0x3,
 } TVX_NUM_FORMAT_ALL;
-typedef enum TVX_SRC_SEL {
+typedef enum TVX_SRC_SEL
+{
 	TVX_SrcSel_X                                     = 0x0,
 	TVX_SrcSel_Y                                     = 0x1,
 	TVX_SrcSel_Z                                     = 0x2,
@@ -3929,22 +4059,26 @@ typedef enum TVX_SRC_SEL {
 	TVX_SrcSel_0f                                    = 0x4,
 	TVX_SrcSel_1f                                    = 0x5,
 } TVX_SRC_SEL;
-typedef enum TVX_SRF_MODE_ALL {
+typedef enum TVX_SRF_MODE_ALL
+{
 	TVX_SRFModeAll_ZCMO                              = 0x0,
 	TVX_SRFModeAll_NZ                                = 0x1,
 } TVX_SRF_MODE_ALL;
-typedef enum TVX_TYPE {
+typedef enum TVX_TYPE
+{
 	TVX_Type_InvalidTextureResource                  = 0x0,
 	TVX_Type_InvalidVertexBuffer                     = 0x1,
 	TVX_Type_ValidTextureResource                    = 0x2,
 	TVX_Type_ValidVertexBuffer                       = 0x3,
 } TVX_TYPE;
-typedef enum TC_OP_MASKS {
+typedef enum TC_OP_MASKS
+{
 	TC_OP_MASK_FLUSH_DENROM                          = 0x8,
 	TC_OP_MASK_64                                    = 0x20,
 	TC_OP_MASK_NO_RTN                                = 0x40,
 } TC_OP_MASKS;
-typedef enum TC_OP {
+typedef enum TC_OP
+{
 	TC_OP_READ                                       = 0x0,
 	TC_OP_ATOMIC_FCMPSWAP_RTN_32                     = 0x1,
 	TC_OP_ATOMIC_FMIN_RTN_32                         = 0x2,
@@ -4074,19 +4208,23 @@ typedef enum TC_OP {
 	TC_OP_RESERVED_NON_FLOAT_64_3                    = 0x7e,
 	TC_OP_RESERVED_NON_FLOAT_64_4                    = 0x7f,
 } TC_OP;
-typedef enum TC_CHUB_REQ_CREDITS_ENUM {
+typedef enum TC_CHUB_REQ_CREDITS_ENUM
+{
 	TC_CHUB_REQ_CREDITS                              = 0x10,
 } TC_CHUB_REQ_CREDITS_ENUM;
-typedef enum CHUB_TC_RET_CREDITS_ENUM {
+typedef enum CHUB_TC_RET_CREDITS_ENUM
+{
 	CHUB_TC_RET_CREDITS                              = 0x20,
 } CHUB_TC_RET_CREDITS_ENUM;
-typedef enum TC_NACKS {
+typedef enum TC_NACKS
+{
 	TC_NACK_NO_FAULT                                 = 0x0,
 	TC_NACK_PAGE_FAULT                               = 0x1,
 	TC_NACK_PROTECTION_FAULT                         = 0x2,
 	TC_NACK_DATA_ERROR                               = 0x3,
 } TC_NACKS;
-typedef enum TCC_PERF_SEL {
+typedef enum TCC_PERF_SEL
+{
 	TCC_PERF_SEL_NONE                                = 0x0,
 	TCC_PERF_SEL_CYCLE                               = 0x1,
 	TCC_PERF_SEL_BUSY                                = 0x2,
@@ -4229,7 +4367,8 @@ typedef enum TCC_PERF_SEL {
 	TCC_PERF_SEL_VOL_MC_RDREQ                        = 0x9e,
 	TCC_PERF_SEL_VOL_REQ                             = 0x9f,
 } TCC_PERF_SEL;
-typedef enum TCA_PERF_SEL {
+typedef enum TCA_PERF_SEL
+{
 	TCA_PERF_SEL_NONE                                = 0x0,
 	TCA_PERF_SEL_CYCLE                               = 0x1,
 	TCA_PERF_SEL_BUSY                                = 0x2,
@@ -4270,7 +4409,8 @@ typedef enum TCA_PERF_SEL {
 	TCA_PERF_SEL_CROSSBAR_DOUBLE_ARB_TCS             = 0x25,
 	TCA_PERF_SEL_CROSSBAR_STALL_TCS                  = 0x26,
 } TCA_PERF_SEL;
-typedef enum TCS_PERF_SEL {
+typedef enum TCS_PERF_SEL
+{
 	TCS_PERF_SEL_NONE                                = 0x0,
 	TCS_PERF_SEL_CYCLE                               = 0x1,
 	TCS_PERF_SEL_BUSY                                = 0x2,
@@ -4357,7 +4497,8 @@ typedef enum TCS_PERF_SEL {
 	TCS_PERF_SEL_CLIENT62_REQ                        = 0x7e,
 	TCS_PERF_SEL_CLIENT63_REQ                        = 0x7f,
 } TCS_PERF_SEL;
-typedef enum TA_TC_ADDR_MODES {
+typedef enum TA_TC_ADDR_MODES
+{
 	TA_TC_ADDR_MODE_DEFAULT                          = 0x0,
 	TA_TC_ADDR_MODE_COMP0                            = 0x1,
 	TA_TC_ADDR_MODE_COMP1                            = 0x2,
@@ -4366,7 +4507,8 @@ typedef enum TA_TC_ADDR_MODES {
 	TA_TC_ADDR_MODE_UNALIGNED                        = 0x5,
 	TA_TC_ADDR_MODE_BORDER_COLOR                     = 0x6,
 } TA_TC_ADDR_MODES;
-typedef enum TA_PERFCOUNT_SEL {
+typedef enum TA_PERFCOUNT_SEL
+{
 	TA_PERF_SEL_ta_busy                              = 0x0,
 	TA_PERF_SEL_sh_fifo_busy                         = 0x1,
 	TA_PERF_SEL_sh_fifo_cmd_busy                     = 0x2,
@@ -4389,12 +4531,12 @@ typedef enum TA_PERFCOUNT_SEL {
 	TA_PERF_SEL_ta_fa_data_state_cycles              = 0x13,
 	TA_PERF_SEL_sh_fifo_addr_waiting_on_cmd_cycles   = 0x14,
 	TA_PERF_SEL_sh_fifo_cmd_waiting_on_addr_cycles   = 0x15,
-	TA_PERF_SEL_sh_fifo_addr_starved_while_busy_cycles= 0x16,
-	TA_PERF_SEL_sh_fifo_cmd_starved_while_busy_cycles= 0x17,
-	TA_PERF_SEL_sh_fifo_data_waiting_on_data_state_cycles= 0x18,
-	TA_PERF_SEL_sh_fifo_data_state_waiting_on_data_cycles= 0x19,
-	TA_PERF_SEL_sh_fifo_data_starved_while_busy_cycles= 0x1a,
-	TA_PERF_SEL_sh_fifo_data_state_starved_while_busy_cycles= 0x1b,
+	TA_PERF_SEL_sh_fifo_addr_starved_while_busy_cycles = 0x16,
+	TA_PERF_SEL_sh_fifo_cmd_starved_while_busy_cycles = 0x17,
+	TA_PERF_SEL_sh_fifo_data_waiting_on_data_state_cycles = 0x18,
+	TA_PERF_SEL_sh_fifo_data_state_waiting_on_data_cycles = 0x19,
+	TA_PERF_SEL_sh_fifo_data_starved_while_busy_cycles = 0x1a,
+	TA_PERF_SEL_sh_fifo_data_state_starved_while_busy_cycles = 0x1b,
 	TA_PERF_SEL_RESERVED_28                          = 0x1c,
 	TA_PERF_SEL_RESERVED_29                          = 0x1d,
 	TA_PERF_SEL_sh_fifo_addr_cycles                  = 0x1e,
@@ -4417,16 +4559,16 @@ typedef enum TA_PERFCOUNT_SEL {
 	TA_PERF_SEL_buffer_atomic_wavefronts             = 0x2f,
 	TA_PERF_SEL_buffer_coalescable_wavefronts        = 0x30,
 	TA_PERF_SEL_buffer_total_cycles                  = 0x31,
-	TA_PERF_SEL_buffer_coalescable_addr_multicycled_cycles= 0x32,
-	TA_PERF_SEL_buffer_coalescable_clamp_16kdword_multicycled_cycles= 0x33,
+	TA_PERF_SEL_buffer_coalescable_addr_multicycled_cycles = 0x32,
+	TA_PERF_SEL_buffer_coalescable_clamp_16kdword_multicycled_cycles = 0x33,
 	TA_PERF_SEL_buffer_coalesced_read_cycles         = 0x34,
 	TA_PERF_SEL_buffer_coalesced_write_cycles        = 0x35,
 	TA_PERF_SEL_addr_stalled_by_tc_cycles            = 0x36,
 	TA_PERF_SEL_addr_stalled_by_td_cycles            = 0x37,
 	TA_PERF_SEL_data_stalled_by_tc_cycles            = 0x38,
-	TA_PERF_SEL_addresser_stalled_by_aligner_only_cycles= 0x39,
+	TA_PERF_SEL_addresser_stalled_by_aligner_only_cycles = 0x39,
 	TA_PERF_SEL_addresser_stalled_cycles             = 0x3a,
-	TA_PERF_SEL_aniso_stalled_by_addresser_only_cycles= 0x3b,
+	TA_PERF_SEL_aniso_stalled_by_addresser_only_cycles = 0x3b,
 	TA_PERF_SEL_aniso_stalled_cycles                 = 0x3c,
 	TA_PERF_SEL_deriv_stalled_by_aniso_only_cycles   = 0x3d,
 	TA_PERF_SEL_deriv_stalled_cycles                 = 0x3e,
@@ -4479,7 +4621,8 @@ typedef enum TA_PERFCOUNT_SEL {
 	TA_PERF_SEL_local_cg_dyn_sclk_grp4_en            = 0x6d,
 	TA_PERF_SEL_local_cg_dyn_sclk_grp5_en            = 0x6e,
 } TA_PERFCOUNT_SEL;
-typedef enum TD_PERFCOUNT_SEL {
+typedef enum TD_PERFCOUNT_SEL
+{
 	TD_PERF_SEL_td_busy                              = 0x0,
 	TD_PERF_SEL_input_busy                           = 0x1,
 	TD_PERF_SEL_output_busy                          = 0x2,
@@ -4536,7 +4679,8 @@ typedef enum TD_PERFCOUNT_SEL {
 	TD_PERF_SEL_start_cycle_3                        = 0x35,
 	TD_PERF_SEL_null_cycle_output                    = 0x36,
 } TD_PERFCOUNT_SEL;
-typedef enum TCP_PERFCOUNT_SELECT {
+typedef enum TCP_PERFCOUNT_SELECT
+{
 	TCP_PERF_SEL_TA_TCP_ADDR_STARVE_CYCLES           = 0x0,
 	TCP_PERF_SEL_TA_TCP_DATA_STARVE_CYCLES           = 0x1,
 	TCP_PERF_SEL_TCP_TA_ADDR_STALL_CYCLES            = 0x2,
@@ -4692,23 +4836,27 @@ typedef enum TCP_PERFCOUNT_SELECT {
 	TCP_PERF_SEL_ATC                                 = 0x98,
 	TCP_PERF_SEL_POWER_STALL                         = 0x99,
 } TCP_PERFCOUNT_SELECT;
-typedef enum TCP_CACHE_POLICIES {
+typedef enum TCP_CACHE_POLICIES
+{
 	TCP_CACHE_POLICY_MISS_LRU                        = 0x0,
 	TCP_CACHE_POLICY_MISS_EVICT                      = 0x1,
 	TCP_CACHE_POLICY_HIT_LRU                         = 0x2,
 	TCP_CACHE_POLICY_HIT_EVICT                       = 0x3,
 } TCP_CACHE_POLICIES;
-typedef enum TCP_CACHE_STORE_POLICIES {
+typedef enum TCP_CACHE_STORE_POLICIES
+{
 	TCP_CACHE_STORE_POLICY_MISS_LRU                  = 0x0,
 	TCP_CACHE_STORE_POLICY_MISS_EVICT                = 0x1,
 } TCP_CACHE_STORE_POLICIES;
-typedef enum TCP_WATCH_MODES {
+typedef enum TCP_WATCH_MODES
+{
 	TCP_WATCH_MODE_READ                              = 0x0,
 	TCP_WATCH_MODE_NONREAD                           = 0x1,
 	TCP_WATCH_MODE_ATOMIC                            = 0x2,
 	TCP_WATCH_MODE_ALL                               = 0x3,
 } TCP_WATCH_MODES;
-typedef enum VGT_OUT_PRIM_TYPE {
+typedef enum VGT_OUT_PRIM_TYPE
+{
 	VGT_OUT_POINT                                    = 0x0,
 	VGT_OUT_LINE                                     = 0x1,
 	VGT_OUT_TRI                                      = 0x2,
@@ -4725,7 +4873,8 @@ typedef enum VGT_OUT_PRIM_TYPE {
 	VGT_OUT_TRI_ADJ                                  = 0xd,
 	VGT_OUT_PATCH                                    = 0xe,
 } VGT_OUT_PRIM_TYPE;
-typedef enum VGT_DI_PRIM_TYPE {
+typedef enum VGT_DI_PRIM_TYPE
+{
 	DI_PT_NONE                                       = 0x0,
 	DI_PT_POINTLIST                                  = 0x1,
 	DI_PT_LINELIST                                   = 0x2,
@@ -4756,21 +4905,25 @@ typedef enum VGT_DI_PRIM_TYPE {
 	DI_PT_2D_LINE_STRIP                              = 0x1b,
 	DI_PT_2D_TRI_STRIP                               = 0x1c,
 } VGT_DI_PRIM_TYPE;
-typedef enum VGT_DI_SOURCE_SELECT {
+typedef enum VGT_DI_SOURCE_SELECT
+{
 	DI_SRC_SEL_DMA                                   = 0x0,
 	DI_SRC_SEL_IMMEDIATE                             = 0x1,
 	DI_SRC_SEL_AUTO_INDEX                            = 0x2,
 	DI_SRC_SEL_RESERVED                              = 0x3,
 } VGT_DI_SOURCE_SELECT;
-typedef enum VGT_DI_MAJOR_MODE_SELECT {
+typedef enum VGT_DI_MAJOR_MODE_SELECT
+{
 	DI_MAJOR_MODE_0                                  = 0x0,
 	DI_MAJOR_MODE_1                                  = 0x1,
 } VGT_DI_MAJOR_MODE_SELECT;
-typedef enum VGT_DI_INDEX_SIZE {
+typedef enum VGT_DI_INDEX_SIZE
+{
 	DI_INDEX_SIZE_16_BIT                             = 0x0,
 	DI_INDEX_SIZE_32_BIT                             = 0x1,
 } VGT_DI_INDEX_SIZE;
-typedef enum VGT_EVENT_TYPE {
+typedef enum VGT_EVENT_TYPE
+{
 	Reserved_0x00                                    = 0x0,
 	SAMPLE_STREAMOUTSTATS1                           = 0x1,
 	SAMPLE_STREAMOUTSTATS2                           = 0x2,
@@ -4832,29 +4985,34 @@ typedef enum VGT_EVENT_TYPE {
 	PIXEL_PIPE_STAT_RESET                            = 0x3a,
 	CONTEXT_SUSPEND                                  = 0x3b,
 } VGT_EVENT_TYPE;
-typedef enum VGT_DMA_SWAP_MODE {
+typedef enum VGT_DMA_SWAP_MODE
+{
 	VGT_DMA_SWAP_NONE                                = 0x0,
 	VGT_DMA_SWAP_16_BIT                              = 0x1,
 	VGT_DMA_SWAP_32_BIT                              = 0x2,
 	VGT_DMA_SWAP_WORD                                = 0x3,
 } VGT_DMA_SWAP_MODE;
-typedef enum VGT_INDEX_TYPE_MODE {
+typedef enum VGT_INDEX_TYPE_MODE
+{
 	VGT_INDEX_16                                     = 0x0,
 	VGT_INDEX_32                                     = 0x1,
 } VGT_INDEX_TYPE_MODE;
-typedef enum VGT_DMA_BUF_TYPE {
+typedef enum VGT_DMA_BUF_TYPE
+{
 	VGT_DMA_BUF_MEM                                  = 0x0,
 	VGT_DMA_BUF_RING                                 = 0x1,
 	VGT_DMA_BUF_SETUP                                = 0x2,
 } VGT_DMA_BUF_TYPE;
-typedef enum VGT_OUTPATH_SELECT {
+typedef enum VGT_OUTPATH_SELECT
+{
 	VGT_OUTPATH_VTX_REUSE                            = 0x0,
 	VGT_OUTPATH_TESS_EN                              = 0x1,
 	VGT_OUTPATH_PASSTHRU                             = 0x2,
 	VGT_OUTPATH_GS_BLOCK                             = 0x3,
 	VGT_OUTPATH_HS_BLOCK                             = 0x4,
 } VGT_OUTPATH_SELECT;
-typedef enum VGT_GRP_PRIM_TYPE {
+typedef enum VGT_GRP_PRIM_TYPE
+{
 	VGT_GRP_3D_POINT                                 = 0x0,
 	VGT_GRP_3D_LINE                                  = 0x1,
 	VGT_GRP_3D_TRI                                   = 0x2,
@@ -4874,14 +5032,16 @@ typedef enum VGT_GRP_PRIM_TYPE {
 	VGT_GRP_3D_TRI_ADJ                               = 0x10,
 	VGT_GRP_3D_PATCH                                 = 0x11,
 } VGT_GRP_PRIM_TYPE;
-typedef enum VGT_GRP_PRIM_ORDER {
+typedef enum VGT_GRP_PRIM_ORDER
+{
 	VGT_GRP_LIST                                     = 0x0,
 	VGT_GRP_STRIP                                    = 0x1,
 	VGT_GRP_FAN                                      = 0x2,
 	VGT_GRP_LOOP                                     = 0x3,
 	VGT_GRP_POLYGON                                  = 0x4,
 } VGT_GRP_PRIM_ORDER;
-typedef enum VGT_GROUP_CONV_SEL {
+typedef enum VGT_GROUP_CONV_SEL
+{
 	VGT_GRP_INDEX_16                                 = 0x0,
 	VGT_GRP_INDEX_32                                 = 0x1,
 	VGT_GRP_UINT_16                                  = 0x2,
@@ -4892,7 +5052,8 @@ typedef enum VGT_GROUP_CONV_SEL {
 	VGT_GRP_AUTO_PRIM                                = 0x7,
 	VGT_GRP_FIX_1_23_TO_FLOAT                        = 0x8,
 } VGT_GROUP_CONV_SEL;
-typedef enum VGT_GS_MODE_TYPE {
+typedef enum VGT_GS_MODE_TYPE
+{
 	GS_OFF                                           = 0x0,
 	GS_SCENARIO_A                                    = 0x1,
 	GS_SCENARIO_B                                    = 0x2,
@@ -4900,72 +5061,85 @@ typedef enum VGT_GS_MODE_TYPE {
 	GS_SCENARIO_C                                    = 0x4,
 	SPRITE_EN                                        = 0x5,
 } VGT_GS_MODE_TYPE;
-typedef enum VGT_GS_CUT_MODE {
+typedef enum VGT_GS_CUT_MODE
+{
 	GS_CUT_1024                                      = 0x0,
 	GS_CUT_512                                       = 0x1,
 	GS_CUT_256                                       = 0x2,
 	GS_CUT_128                                       = 0x3,
 } VGT_GS_CUT_MODE;
-typedef enum VGT_GS_OUTPRIM_TYPE {
+typedef enum VGT_GS_OUTPRIM_TYPE
+{
 	POINTLIST                                        = 0x0,
 	LINESTRIP                                        = 0x1,
 	TRISTRIP                                         = 0x2,
 } VGT_GS_OUTPRIM_TYPE;
-typedef enum VGT_CACHE_INVALID_MODE {
+typedef enum VGT_CACHE_INVALID_MODE
+{
 	VC_ONLY                                          = 0x0,
 	TC_ONLY                                          = 0x1,
 	VC_AND_TC                                        = 0x2,
 } VGT_CACHE_INVALID_MODE;
-typedef enum VGT_TESS_TYPE {
+typedef enum VGT_TESS_TYPE
+{
 	TESS_ISOLINE                                     = 0x0,
 	TESS_TRIANGLE                                    = 0x1,
 	TESS_QUAD                                        = 0x2,
 } VGT_TESS_TYPE;
-typedef enum VGT_TESS_PARTITION {
+typedef enum VGT_TESS_PARTITION
+{
 	PART_INTEGER                                     = 0x0,
 	PART_POW2                                        = 0x1,
 	PART_FRAC_ODD                                    = 0x2,
 	PART_FRAC_EVEN                                   = 0x3,
 } VGT_TESS_PARTITION;
-typedef enum VGT_TESS_TOPOLOGY {
+typedef enum VGT_TESS_TOPOLOGY
+{
 	OUTPUT_POINT                                     = 0x0,
 	OUTPUT_LINE                                      = 0x1,
 	OUTPUT_TRIANGLE_CW                               = 0x2,
 	OUTPUT_TRIANGLE_CCW                              = 0x3,
 } VGT_TESS_TOPOLOGY;
-typedef enum VGT_RDREQ_POLICY {
+typedef enum VGT_RDREQ_POLICY
+{
 	VGT_POLICY_LRU                                   = 0x0,
 	VGT_POLICY_STREAM                                = 0x1,
 	VGT_POLICY_BYPASS                                = 0x2,
 	VGT_POLICY_RESERVED                              = 0x3,
 } VGT_RDREQ_POLICY;
-typedef enum VGT_STAGES_LS_EN {
+typedef enum VGT_STAGES_LS_EN
+{
 	LS_STAGE_OFF                                     = 0x0,
 	LS_STAGE_ON                                      = 0x1,
 	CS_STAGE_ON                                      = 0x2,
 	RESERVED_LS                                      = 0x3,
 } VGT_STAGES_LS_EN;
-typedef enum VGT_STAGES_HS_EN {
+typedef enum VGT_STAGES_HS_EN
+{
 	HS_STAGE_OFF                                     = 0x0,
 	HS_STAGE_ON                                      = 0x1,
 } VGT_STAGES_HS_EN;
-typedef enum VGT_STAGES_ES_EN {
+typedef enum VGT_STAGES_ES_EN
+{
 	ES_STAGE_OFF                                     = 0x0,
 	ES_STAGE_DS                                      = 0x1,
 	ES_STAGE_REAL                                    = 0x2,
 	RESERVED_ES                                      = 0x3,
 } VGT_STAGES_ES_EN;
-typedef enum VGT_STAGES_GS_EN {
+typedef enum VGT_STAGES_GS_EN
+{
 	GS_STAGE_OFF                                     = 0x0,
 	GS_STAGE_ON                                      = 0x1,
 } VGT_STAGES_GS_EN;
-typedef enum VGT_STAGES_VS_EN {
+typedef enum VGT_STAGES_VS_EN
+{
 	VS_STAGE_REAL                                    = 0x0,
 	VS_STAGE_DS                                      = 0x1,
 	VS_STAGE_COPY_SHADER                             = 0x2,
 	RESERVED_VS                                      = 0x3,
 } VGT_STAGES_VS_EN;
-typedef enum VGT_PERFCOUNT_SELECT {
+typedef enum VGT_PERFCOUNT_SELECT
+{
 	vgt_perf_VGT_SPI_ESTHREAD_EVENT_WINDOW_ACTIVE    = 0x0,
 	vgt_perf_VGT_SPI_ESVERT_VALID                    = 0x1,
 	vgt_perf_VGT_SPI_ESVERT_EOV                      = 0x2,
@@ -5107,7 +5281,8 @@ typedef enum VGT_PERFCOUNT_SELECT {
 	vgt_perf_vs_table_high_water_mark                = 0x8a,
 	vgt_perf_hs_tgs_active_high_water_mark           = 0x8b,
 } VGT_PERFCOUNT_SELECT;
-typedef enum IA_PERFCOUNT_SELECT {
+typedef enum IA_PERFCOUNT_SELECT
+{
 	ia_perf_GRP_INPUT_EVENT_WINDOW_ACTIVE            = 0x0,
 	ia_perf_MC_LAT_BIN_0                             = 0x1,
 	ia_perf_MC_LAT_BIN_1                             = 0x2,
@@ -5127,7 +5302,8 @@ typedef enum IA_PERFCOUNT_SELECT {
 	ia_perf_shift_starved_pipe0_event                = 0x10,
 	ia_perf_ia_stalled                               = 0x11,
 } IA_PERFCOUNT_SELECT;
-typedef enum WD_PERFCOUNT_SELECT {
+typedef enum WD_PERFCOUNT_SELECT
+{
 	wd_perf_RBIU_FIFOS_EVENT_WINDOW_ACTIVE           = 0x0,
 	wd_perf_RBIU_DR_FIFO_STARVED                     = 0x1,
 	wd_perf_RBIU_DR_FIFO_STALLED                     = 0x2,
@@ -5139,7 +5315,8 @@ typedef enum WD_PERFCOUNT_SELECT {
 	wd_perf_wd_sclk_core_vld_event                   = 0x8,
 	wd_perf_wd_stalled                               = 0x9,
 } WD_PERFCOUNT_SELECT;
-typedef enum WD_IA_DRAW_TYPE {
+typedef enum WD_IA_DRAW_TYPE
+{
 	WD_IA_DRAW_TYPE_DI_MM0                           = 0x0,
 	WD_IA_DRAW_TYPE_DI_MM1                           = 0x1,
 	WD_IA_DRAW_TYPE_EVENT_INIT                       = 0x2,
@@ -5150,13 +5327,15 @@ typedef enum WD_IA_DRAW_TYPE {
 	WD_IA_DRAW_TYPE_IMM_DATA                         = 0x7,
 } WD_IA_DRAW_TYPE;
 #define GSTHREADID_SIZE                           0x2
-typedef enum SurfaceEndian {
+typedef enum SurfaceEndian
+{
 	ENDIAN_NONE                                      = 0x0,
 	ENDIAN_8IN16                                     = 0x1,
 	ENDIAN_8IN32                                     = 0x2,
 	ENDIAN_8IN64                                     = 0x3,
 } SurfaceEndian;
-typedef enum ArrayMode {
+typedef enum ArrayMode
+{
 	ARRAY_LINEAR_GENERAL                             = 0x0,
 	ARRAY_LINEAR_ALIGNED                             = 0x1,
 	ARRAY_1D_TILED_THIN1                             = 0x2,
@@ -5174,21 +5353,25 @@ typedef enum ArrayMode {
 	ARRAY_3D_TILED_XTHICK                            = 0xe,
 	ARRAY_PRT_3D_TILED_THICK                         = 0xf,
 } ArrayMode;
-typedef enum PipeTiling {
+typedef enum PipeTiling
+{
 	CONFIG_1_PIPE                                    = 0x0,
 	CONFIG_2_PIPE                                    = 0x1,
 	CONFIG_4_PIPE                                    = 0x2,
 	CONFIG_8_PIPE                                    = 0x3,
 } PipeTiling;
-typedef enum BankTiling {
+typedef enum BankTiling
+{
 	CONFIG_4_BANK                                    = 0x0,
 	CONFIG_8_BANK                                    = 0x1,
 } BankTiling;
-typedef enum GroupInterleave {
+typedef enum GroupInterleave
+{
 	CONFIG_256B_GROUP                                = 0x0,
 	CONFIG_512B_GROUP                                = 0x1,
 } GroupInterleave;
-typedef enum RowTiling {
+typedef enum RowTiling
+{
 	CONFIG_1KB_ROW                                   = 0x0,
 	CONFIG_2KB_ROW                                   = 0x1,
 	CONFIG_4KB_ROW                                   = 0x2,
@@ -5198,64 +5381,76 @@ typedef enum RowTiling {
 	CONFIG_4KB_ROW_OPT                               = 0x6,
 	CONFIG_8KB_ROW_OPT                               = 0x7,
 } RowTiling;
-typedef enum BankSwapBytes {
+typedef enum BankSwapBytes
+{
 	CONFIG_128B_SWAPS                                = 0x0,
 	CONFIG_256B_SWAPS                                = 0x1,
 	CONFIG_512B_SWAPS                                = 0x2,
 	CONFIG_1KB_SWAPS                                 = 0x3,
 } BankSwapBytes;
-typedef enum SampleSplitBytes {
+typedef enum SampleSplitBytes
+{
 	CONFIG_1KB_SPLIT                                 = 0x0,
 	CONFIG_2KB_SPLIT                                 = 0x1,
 	CONFIG_4KB_SPLIT                                 = 0x2,
 	CONFIG_8KB_SPLIT                                 = 0x3,
 } SampleSplitBytes;
-typedef enum NumPipes {
+typedef enum NumPipes
+{
 	ADDR_CONFIG_1_PIPE                               = 0x0,
 	ADDR_CONFIG_2_PIPE                               = 0x1,
 	ADDR_CONFIG_4_PIPE                               = 0x2,
 	ADDR_CONFIG_8_PIPE                               = 0x3,
 	ADDR_CONFIG_16_PIPE                              = 0x4,
 } NumPipes;
-typedef enum PipeInterleaveSize {
+typedef enum PipeInterleaveSize
+{
 	ADDR_CONFIG_PIPE_INTERLEAVE_256B                 = 0x0,
 	ADDR_CONFIG_PIPE_INTERLEAVE_512B                 = 0x1,
 } PipeInterleaveSize;
-typedef enum BankInterleaveSize {
+typedef enum BankInterleaveSize
+{
 	ADDR_CONFIG_BANK_INTERLEAVE_1                    = 0x0,
 	ADDR_CONFIG_BANK_INTERLEAVE_2                    = 0x1,
 	ADDR_CONFIG_BANK_INTERLEAVE_4                    = 0x2,
 	ADDR_CONFIG_BANK_INTERLEAVE_8                    = 0x3,
 } BankInterleaveSize;
-typedef enum NumShaderEngines {
+typedef enum NumShaderEngines
+{
 	ADDR_CONFIG_1_SHADER_ENGINE                      = 0x0,
 	ADDR_CONFIG_2_SHADER_ENGINE                      = 0x1,
 } NumShaderEngines;
-typedef enum ShaderEngineTileSize {
+typedef enum ShaderEngineTileSize
+{
 	ADDR_CONFIG_SE_TILE_16                           = 0x0,
 	ADDR_CONFIG_SE_TILE_32                           = 0x1,
 } ShaderEngineTileSize;
-typedef enum NumGPUs {
+typedef enum NumGPUs
+{
 	ADDR_CONFIG_1_GPU                                = 0x0,
 	ADDR_CONFIG_2_GPU                                = 0x1,
 	ADDR_CONFIG_4_GPU                                = 0x2,
 } NumGPUs;
-typedef enum MultiGPUTileSize {
+typedef enum MultiGPUTileSize
+{
 	ADDR_CONFIG_GPU_TILE_16                          = 0x0,
 	ADDR_CONFIG_GPU_TILE_32                          = 0x1,
 	ADDR_CONFIG_GPU_TILE_64                          = 0x2,
 	ADDR_CONFIG_GPU_TILE_128                         = 0x3,
 } MultiGPUTileSize;
-typedef enum RowSize {
+typedef enum RowSize
+{
 	ADDR_CONFIG_1KB_ROW                              = 0x0,
 	ADDR_CONFIG_2KB_ROW                              = 0x1,
 	ADDR_CONFIG_4KB_ROW                              = 0x2,
 } RowSize;
-typedef enum NumLowerPipes {
+typedef enum NumLowerPipes
+{
 	ADDR_CONFIG_1_LOWER_PIPES                        = 0x0,
 	ADDR_CONFIG_2_LOWER_PIPES                        = 0x1,
 } NumLowerPipes;
-typedef enum DebugBlockId {
+typedef enum DebugBlockId
+{
 	DBG_CLIENT_BLKID_RESERVED                        = 0x0,
 	DBG_CLIENT_BLKID_dbg                             = 0x1,
 	DBG_CLIENT_BLKID_dco0                            = 0x2,
@@ -5406,7 +5601,8 @@ typedef enum DebugBlockId {
 	DBG_CLIENT_BLKID_tmonw01                         = 0x93,
 	DBG_CLIENT_BLKID_RESERVED_LAST                   = 0x94,
 } DebugBlockId;
-typedef enum DebugBlockId_OLD {
+typedef enum DebugBlockId_OLD
+{
 	DBG_BLOCK_ID_RESERVED                            = 0x0,
 	DBG_BLOCK_ID_DBG                                 = 0x1,
 	DBG_BLOCK_ID_VMC                                 = 0x2,
@@ -5640,7 +5836,8 @@ typedef enum DebugBlockId_OLD {
 	DBG_BLOCK_ID_UNUSED51                            = 0xe6,
 	DBG_BLOCK_ID_UNUSED52                            = 0xe7,
 } DebugBlockId_OLD;
-typedef enum DebugBlockId_BY2 {
+typedef enum DebugBlockId_BY2
+{
 	DBG_BLOCK_ID_RESERVED_BY2                        = 0x0,
 	DBG_BLOCK_ID_VMC_BY2                             = 0x1,
 	DBG_BLOCK_ID_CG_BY2                              = 0x2,
@@ -5758,7 +5955,8 @@ typedef enum DebugBlockId_BY2 {
 	DBG_BLOCK_ID_MCD4_BY2                            = 0x72,
 	DBG_BLOCK_ID_UNUSED51_BY2                        = 0x73,
 } DebugBlockId_BY2;
-typedef enum DebugBlockId_BY4 {
+typedef enum DebugBlockId_BY4
+{
 	DBG_BLOCK_ID_RESERVED_BY4                        = 0x0,
 	DBG_BLOCK_ID_CG_BY4                              = 0x1,
 	DBG_BLOCK_ID_CSC_BY4                             = 0x2,
@@ -5818,7 +6016,8 @@ typedef enum DebugBlockId_BY4 {
 	DBG_BLOCK_ID_MCD0_BY4                            = 0x38,
 	DBG_BLOCK_ID_MCD4_BY4                            = 0x39,
 } DebugBlockId_BY4;
-typedef enum DebugBlockId_BY8 {
+typedef enum DebugBlockId_BY8
+{
 	DBG_BLOCK_ID_RESERVED_BY8                        = 0x0,
 	DBG_BLOCK_ID_CSC_BY8                             = 0x1,
 	DBG_BLOCK_ID_DMA0_BY8                            = 0x2,
@@ -5849,7 +6048,8 @@ typedef enum DebugBlockId_BY8 {
 	DBG_BLOCK_ID_TD18_BY8                            = 0x1b,
 	DBG_BLOCK_ID_MCD0_BY8                            = 0x1c,
 } DebugBlockId_BY8;
-typedef enum DebugBlockId_BY16 {
+typedef enum DebugBlockId_BY16
+{
 	DBG_BLOCK_ID_RESERVED_BY16                       = 0x0,
 	DBG_BLOCK_ID_DMA0_BY16                           = 0x1,
 	DBG_BLOCK_ID_VGT0_BY16                           = 0x2,
@@ -5866,7 +6066,8 @@ typedef enum DebugBlockId_BY16 {
 	DBG_BLOCK_ID_TD10_BY16                           = 0xd,
 	DBG_BLOCK_ID_MCD0_BY16                           = 0xe,
 } DebugBlockId_BY16;
-typedef enum CompareRef {
+typedef enum CompareRef
+{
 	REF_NEVER                                        = 0x0,
 	REF_LESS                                         = 0x1,
 	REF_EQUAL                                        = 0x2,
@@ -5876,11 +6077,13 @@ typedef enum CompareRef {
 	REF_GEQUAL                                       = 0x6,
 	REF_ALWAYS                                       = 0x7,
 } CompareRef;
-typedef enum ReadSize {
+typedef enum ReadSize
+{
 	READ_256_BITS                                    = 0x0,
 	READ_512_BITS                                    = 0x1,
 } ReadSize;
-typedef enum DepthFormat {
+typedef enum DepthFormat
+{
 	DEPTH_INVALID                                    = 0x0,
 	DEPTH_16                                         = 0x1,
 	DEPTH_X8_24                                      = 0x2,
@@ -5890,17 +6093,20 @@ typedef enum DepthFormat {
 	DEPTH_32_FLOAT                                   = 0x6,
 	DEPTH_X24_8_32_FLOAT                             = 0x7,
 } DepthFormat;
-typedef enum ZFormat {
+typedef enum ZFormat
+{
 	Z_INVALID                                        = 0x0,
 	Z_16                                             = 0x1,
 	Z_24                                             = 0x2,
 	Z_32_FLOAT                                       = 0x3,
 } ZFormat;
-typedef enum StencilFormat {
+typedef enum StencilFormat
+{
 	STENCIL_INVALID                                  = 0x0,
 	STENCIL_8                                        = 0x1,
 } StencilFormat;
-typedef enum CmaskMode {
+typedef enum CmaskMode
+{
 	CMASK_CLEAR_NONE                                 = 0x0,
 	CMASK_CLEAR_ONE                                  = 0x1,
 	CMASK_CLEAR_ALL                                  = 0x2,
@@ -5918,7 +6124,8 @@ typedef enum CmaskMode {
 	CMASK_ALPHAX_FRAG4                               = 0xe,
 	CMASK_ALPHAX_FRAGS                               = 0xf,
 } CmaskMode;
-typedef enum QuadExportFormat {
+typedef enum QuadExportFormat
+{
 	EXPORT_UNUSED                                    = 0x0,
 	EXPORT_32_R                                      = 0x1,
 	EXPORT_32_GR                                     = 0x2,
@@ -5928,7 +6135,8 @@ typedef enum QuadExportFormat {
 	EXPORT_SIGNED16_ABGR                             = 0x6,
 	EXPORT_32_ABGR                                   = 0x7,
 } QuadExportFormat;
-typedef enum QuadExportFormatOld {
+typedef enum QuadExportFormatOld
+{
 	EXPORT_4P_32BPC_ABGR                             = 0x0,
 	EXPORT_4P_16BPC_ABGR                             = 0x1,
 	EXPORT_4P_32BPC_GR                               = 0x2,
@@ -5936,7 +6144,8 @@ typedef enum QuadExportFormatOld {
 	EXPORT_2P_32BPC_ABGR                             = 0x4,
 	EXPORT_8P_32BPC_R                                = 0x5,
 } QuadExportFormatOld;
-typedef enum ColorFormat {
+typedef enum ColorFormat
+{
 	COLOR_INVALID                                    = 0x0,
 	COLOR_8                                          = 0x1,
 	COLOR_16                                         = 0x2,
@@ -5962,7 +6171,8 @@ typedef enum ColorFormat {
 	COLOR_X24_8_32_FLOAT                             = 0x16,
 	COLOR_RESERVED_23                                = 0x17,
 } ColorFormat;
-typedef enum SurfaceFormat {
+typedef enum SurfaceFormat
+{
 	FMT_INVALID                                      = 0x0,
 	FMT_8                                            = 0x1,
 	FMT_16                                           = 0x2,
@@ -6028,7 +6238,8 @@ typedef enum SurfaceFormat {
 	FMT_CTX1                                         = 0x3e,
 	FMT_RESERVED_63                                  = 0x3f,
 } SurfaceFormat;
-typedef enum BUF_DATA_FORMAT {
+typedef enum BUF_DATA_FORMAT
+{
 	BUF_DATA_FORMAT_INVALID                          = 0x0,
 	BUF_DATA_FORMAT_8                                = 0x1,
 	BUF_DATA_FORMAT_16                               = 0x2,
@@ -6046,7 +6257,8 @@ typedef enum BUF_DATA_FORMAT {
 	BUF_DATA_FORMAT_32_32_32_32                      = 0xe,
 	BUF_DATA_FORMAT_RESERVED_15                      = 0xf,
 } BUF_DATA_FORMAT;
-typedef enum IMG_DATA_FORMAT {
+typedef enum IMG_DATA_FORMAT
+{
 	IMG_DATA_FORMAT_INVALID                          = 0x0,
 	IMG_DATA_FORMAT_8                                = 0x1,
 	IMG_DATA_FORMAT_16                               = 0x2,
@@ -6112,7 +6324,8 @@ typedef enum IMG_DATA_FORMAT {
 	IMG_DATA_FORMAT_32_AS_8_8                        = 0x3e,
 	IMG_DATA_FORMAT_32_AS_32_32_32_32                = 0x3f,
 } IMG_DATA_FORMAT;
-typedef enum BUF_NUM_FORMAT {
+typedef enum BUF_NUM_FORMAT
+{
 	BUF_NUM_FORMAT_UNORM                             = 0x0,
 	BUF_NUM_FORMAT_SNORM                             = 0x1,
 	BUF_NUM_FORMAT_USCALED                           = 0x2,
@@ -6122,7 +6335,8 @@ typedef enum BUF_NUM_FORMAT {
 	BUF_NUM_FORMAT_SNORM_OGL                         = 0x6,
 	BUF_NUM_FORMAT_FLOAT                             = 0x7,
 } BUF_NUM_FORMAT;
-typedef enum IMG_NUM_FORMAT {
+typedef enum IMG_NUM_FORMAT
+{
 	IMG_NUM_FORMAT_UNORM                             = 0x0,
 	IMG_NUM_FORMAT_SNORM                             = 0x1,
 	IMG_NUM_FORMAT_USCALED                           = 0x2,
@@ -6140,22 +6354,26 @@ typedef enum IMG_NUM_FORMAT {
 	IMG_NUM_FORMAT_RESERVED_14                       = 0xe,
 	IMG_NUM_FORMAT_RESERVED_15                       = 0xf,
 } IMG_NUM_FORMAT;
-typedef enum TileType {
+typedef enum TileType
+{
 	ARRAY_COLOR_TILE                                 = 0x0,
 	ARRAY_DEPTH_TILE                                 = 0x1,
 } TileType;
-typedef enum NonDispTilingOrder {
+typedef enum NonDispTilingOrder
+{
 	ADDR_SURF_MICRO_TILING_DISPLAY                   = 0x0,
 	ADDR_SURF_MICRO_TILING_NON_DISPLAY               = 0x1,
 } NonDispTilingOrder;
-typedef enum MicroTileMode {
+typedef enum MicroTileMode
+{
 	ADDR_SURF_DISPLAY_MICRO_TILING                   = 0x0,
 	ADDR_SURF_THIN_MICRO_TILING                      = 0x1,
 	ADDR_SURF_DEPTH_MICRO_TILING                     = 0x2,
 	ADDR_SURF_ROTATED_MICRO_TILING                   = 0x3,
 	ADDR_SURF_THICK_MICRO_TILING                     = 0x4,
 } MicroTileMode;
-typedef enum TileSplit {
+typedef enum TileSplit
+{
 	ADDR_SURF_TILE_SPLIT_64B                         = 0x0,
 	ADDR_SURF_TILE_SPLIT_128B                        = 0x1,
 	ADDR_SURF_TILE_SPLIT_256B                        = 0x2,
@@ -6164,13 +6382,15 @@ typedef enum TileSplit {
 	ADDR_SURF_TILE_SPLIT_2KB                         = 0x5,
 	ADDR_SURF_TILE_SPLIT_4KB                         = 0x6,
 } TileSplit;
-typedef enum SampleSplit {
+typedef enum SampleSplit
+{
 	ADDR_SURF_SAMPLE_SPLIT_1                         = 0x0,
 	ADDR_SURF_SAMPLE_SPLIT_2                         = 0x1,
 	ADDR_SURF_SAMPLE_SPLIT_4                         = 0x2,
 	ADDR_SURF_SAMPLE_SPLIT_8                         = 0x3,
 } SampleSplit;
-typedef enum PipeConfig {
+typedef enum PipeConfig
+{
 	ADDR_SURF_P2                                     = 0x0,
 	ADDR_SURF_P2_RESERVED0                           = 0x1,
 	ADDR_SURF_P2_RESERVED1                           = 0x2,
@@ -6190,48 +6410,56 @@ typedef enum PipeConfig {
 	ADDR_SURF_P16_32x32_8x16                         = 0x10,
 	ADDR_SURF_P16_32x32_16x16                        = 0x11,
 } PipeConfig;
-typedef enum NumBanks {
+typedef enum NumBanks
+{
 	ADDR_SURF_2_BANK                                 = 0x0,
 	ADDR_SURF_4_BANK                                 = 0x1,
 	ADDR_SURF_8_BANK                                 = 0x2,
 	ADDR_SURF_16_BANK                                = 0x3,
 } NumBanks;
-typedef enum BankWidth {
+typedef enum BankWidth
+{
 	ADDR_SURF_BANK_WIDTH_1                           = 0x0,
 	ADDR_SURF_BANK_WIDTH_2                           = 0x1,
 	ADDR_SURF_BANK_WIDTH_4                           = 0x2,
 	ADDR_SURF_BANK_WIDTH_8                           = 0x3,
 } BankWidth;
-typedef enum BankHeight {
+typedef enum BankHeight
+{
 	ADDR_SURF_BANK_HEIGHT_1                          = 0x0,
 	ADDR_SURF_BANK_HEIGHT_2                          = 0x1,
 	ADDR_SURF_BANK_HEIGHT_4                          = 0x2,
 	ADDR_SURF_BANK_HEIGHT_8                          = 0x3,
 } BankHeight;
-typedef enum BankWidthHeight {
+typedef enum BankWidthHeight
+{
 	ADDR_SURF_BANK_WH_1                              = 0x0,
 	ADDR_SURF_BANK_WH_2                              = 0x1,
 	ADDR_SURF_BANK_WH_4                              = 0x2,
 	ADDR_SURF_BANK_WH_8                              = 0x3,
 } BankWidthHeight;
-typedef enum MacroTileAspect {
+typedef enum MacroTileAspect
+{
 	ADDR_SURF_MACRO_ASPECT_1                         = 0x0,
 	ADDR_SURF_MACRO_ASPECT_2                         = 0x1,
 	ADDR_SURF_MACRO_ASPECT_4                         = 0x2,
 	ADDR_SURF_MACRO_ASPECT_8                         = 0x3,
 } MacroTileAspect;
-typedef enum TCC_CACHE_POLICIES {
+typedef enum TCC_CACHE_POLICIES
+{
 	TCC_CACHE_POLICY_LRU                             = 0x0,
 	TCC_CACHE_POLICY_STREAM                          = 0x1,
 	TCC_CACHE_POLICY_BYPASS                          = 0x2,
 } TCC_CACHE_POLICIES;
-typedef enum MTYPE {
+typedef enum MTYPE
+{
 	MTYPE_NC_NV                                      = 0x0,
 	MTYPE_NC                                         = 0x1,
 	MTYPE_CC                                         = 0x2,
 	MTYPE_UC                                         = 0x3,
 } MTYPE;
-typedef enum PERFMON_COUNTER_MODE {
+typedef enum PERFMON_COUNTER_MODE
+{
 	PERFMON_COUNTER_MODE_ACCUM                       = 0x0,
 	PERFMON_COUNTER_MODE_ACTIVE_CYCLES               = 0x1,
 	PERFMON_COUNTER_MODE_MAX                         = 0x2,
@@ -6244,7 +6472,8 @@ typedef enum PERFMON_COUNTER_MODE {
 	PERFMON_COUNTER_MODE_INACTIVE_CYCLES             = 0x9,
 	PERFMON_COUNTER_MODE_RESERVED                    = 0xf,
 } PERFMON_COUNTER_MODE;
-typedef enum PERFMON_SPM_MODE {
+typedef enum PERFMON_SPM_MODE
+{
 	PERFMON_SPM_MODE_OFF                             = 0x0,
 	PERFMON_SPM_MODE_16BIT_CLAMP                     = 0x1,
 	PERFMON_SPM_MODE_16BIT_NO_CLAMP                  = 0x2,
@@ -6257,22 +6486,26 @@ typedef enum PERFMON_SPM_MODE {
 	PERFMON_SPM_MODE_TEST_MODE_1                     = 0x9,
 	PERFMON_SPM_MODE_TEST_MODE_2                     = 0xa,
 } PERFMON_SPM_MODE;
-typedef enum SurfaceTiling {
+typedef enum SurfaceTiling
+{
 	ARRAY_LINEAR                                     = 0x0,
 	ARRAY_TILED                                      = 0x1,
 } SurfaceTiling;
-typedef enum SurfaceArray {
+typedef enum SurfaceArray
+{
 	ARRAY_1D                                         = 0x0,
 	ARRAY_2D                                         = 0x1,
 	ARRAY_3D                                         = 0x2,
 	ARRAY_3D_SLICE                                   = 0x3,
 } SurfaceArray;
-typedef enum ColorArray {
+typedef enum ColorArray
+{
 	ARRAY_2D_ALT_COLOR                               = 0x0,
 	ARRAY_2D_COLOR                                   = 0x1,
 	ARRAY_3D_SLICE_COLOR                             = 0x3,
 } ColorArray;
-typedef enum DepthArray {
+typedef enum DepthArray
+{
 	ARRAY_2D_ALT_DEPTH                               = 0x0,
 	ARRAY_2D_DEPTH                                   = 0x1,
 } DepthArray;

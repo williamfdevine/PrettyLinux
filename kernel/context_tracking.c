@@ -35,8 +35,11 @@ static bool context_tracking_recursion_enter(void)
 	int recursion;
 
 	recursion = __this_cpu_inc_return(context_tracking.recursion);
+
 	if (recursion == 1)
+	{
 		return true;
+	}
 
 	WARN_ONCE((recursion < 1), "Invalid context tracking recursion value %d\n", recursion);
 	__this_cpu_dec(context_tracking.recursion);
@@ -64,10 +67,14 @@ void __context_tracking_enter(enum ctx_state state)
 	WARN_ON_ONCE(!current->mm);
 
 	if (!context_tracking_recursion_enter())
+	{
 		return;
+	}
 
-	if ( __this_cpu_read(context_tracking.state) != state) {
-		if (__this_cpu_read(context_tracking.active)) {
+	if ( __this_cpu_read(context_tracking.state) != state)
+	{
+		if (__this_cpu_read(context_tracking.active))
+		{
 			/*
 			 * At this stage, only low level arch entry code remains and
 			 * then we'll run in userspace. We can assume there won't be
@@ -75,12 +82,15 @@ void __context_tracking_enter(enum ctx_state state)
 			 * user_exit() or rcu_irq_enter(). Let's remove RCU's dependency
 			 * on the tick.
 			 */
-			if (state == CONTEXT_USER) {
+			if (state == CONTEXT_USER)
+			{
 				trace_user_enter(0);
 				vtime_user_enter(current);
 			}
+
 			rcu_user_enter();
 		}
+
 		/*
 		 * Even if context tracking is disabled on this CPU, because it's outside
 		 * the full dynticks mask for example, we still have to keep track of the
@@ -96,6 +106,7 @@ void __context_tracking_enter(enum ctx_state state)
 		 */
 		__this_cpu_write(context_tracking.state, state);
 	}
+
 	context_tracking_recursion_exit();
 }
 NOKPROBE_SYMBOL(__context_tracking_enter);
@@ -114,7 +125,9 @@ void context_tracking_enter(enum ctx_state state)
 	 * just return immediately if we detect we are in an IRQ.
 	 */
 	if (in_interrupt())
+	{
 		return;
+	}
 
 	local_irq_save(flags);
 	__context_tracking_enter(state);
@@ -144,22 +157,30 @@ NOKPROBE_SYMBOL(context_tracking_user_enter);
 void __context_tracking_exit(enum ctx_state state)
 {
 	if (!context_tracking_recursion_enter())
+	{
 		return;
+	}
 
-	if (__this_cpu_read(context_tracking.state) == state) {
-		if (__this_cpu_read(context_tracking.active)) {
+	if (__this_cpu_read(context_tracking.state) == state)
+	{
+		if (__this_cpu_read(context_tracking.active))
+		{
 			/*
 			 * We are going to run code that may use RCU. Inform
 			 * RCU core about that (ie: we may need the tick again).
 			 */
 			rcu_user_exit();
-			if (state == CONTEXT_USER) {
+
+			if (state == CONTEXT_USER)
+			{
 				vtime_user_exit(current);
 				trace_user_exit(0);
 			}
 		}
+
 		__this_cpu_write(context_tracking.state, CONTEXT_KERNEL);
 	}
+
 	context_tracking_recursion_exit();
 }
 NOKPROBE_SYMBOL(__context_tracking_exit);
@@ -170,7 +191,9 @@ void context_tracking_exit(enum ctx_state state)
 	unsigned long flags;
 
 	if (in_interrupt())
+	{
 		return;
+	}
 
 	local_irq_save(flags);
 	__context_tracking_exit(state);
@@ -189,13 +212,16 @@ void __init context_tracking_cpu_set(int cpu)
 {
 	static __initdata bool initialized = false;
 
-	if (!per_cpu(context_tracking.active, cpu)) {
+	if (!per_cpu(context_tracking.active, cpu))
+	{
 		per_cpu(context_tracking.active, cpu) = true;
 		static_branch_inc(&context_tracking_enabled);
 	}
 
 	if (initialized)
+	{
 		return;
+	}
 
 	/*
 	 * Set TIF_NOHZ to init/0 and let it propagate to all tasks through fork
@@ -213,6 +239,6 @@ void __init context_tracking_init(void)
 	int cpu;
 
 	for_each_possible_cpu(cpu)
-		context_tracking_cpu_set(cpu);
+	context_tracking_cpu_set(cpu);
 }
 #endif

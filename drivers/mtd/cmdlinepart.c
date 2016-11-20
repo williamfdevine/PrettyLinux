@@ -59,9 +59,9 @@
 
 /* debug macro */
 #if 0
-#define dbg(x) do { printk("DEBUG-CMDLINE-PART: "); printk x; } while(0)
+	#define dbg(x) do { printk("DEBUG-CMDLINE-PART: "); printk x; } while(0)
 #else
-#define dbg(x)
+	#define dbg(x)
 #endif
 
 
@@ -69,7 +69,8 @@
 #define SIZE_REMAINING ULLONG_MAX
 #define OFFSET_CONTINUOUS ULLONG_MAX
 
-struct cmdline_mtd_partition {
+struct cmdline_mtd_partition
+{
 	struct cmdline_mtd_partition *next;
 	char *mtd_id;
 	int num_parts;
@@ -92,12 +93,12 @@ static int cmdline_parsed;
  * is allocated upon the last definition being found. At that point the
  * syntax has been verified ok.
  */
-static struct mtd_partition * newpart(char *s,
-				      char **retptr,
-				      int *num_parts,
-				      int this_part,
-				      unsigned char **extra_mem_ptr,
-				      int extra_mem_size)
+static struct mtd_partition *newpart(char *s,
+									 char **retptr,
+									 int *num_parts,
+									 int this_part,
+									 unsigned char **extra_mem_ptr,
+									 int extra_mem_size)
 {
 	struct mtd_partition *parts;
 	unsigned long long size, offset = OFFSET_CONTINUOUS;
@@ -108,13 +109,18 @@ static struct mtd_partition * newpart(char *s,
 	unsigned int mask_flags;
 
 	/* fetch the partition size */
-	if (*s == '-') {
+	if (*s == '-')
+	{
 		/* assign all remaining space to this partition */
 		size = SIZE_REMAINING;
 		s++;
-	} else {
+	}
+	else
+	{
 		size = memparse(s, &s);
-		if (!size) {
+
+		if (!size)
+		{
 			pr_err("partition has size 0\n");
 			return ERR_PTR(-EINVAL);
 		}
@@ -125,27 +131,36 @@ static struct mtd_partition * newpart(char *s,
 	delim = 0;
 
 	/* check for offset */
-	if (*s == '@') {
+	if (*s == '@')
+	{
 		s++;
 		offset = memparse(s, &s);
 	}
 
 	/* now look for name */
 	if (*s == '(')
+	{
 		delim = ')';
+	}
 
-	if (delim) {
+	if (delim)
+	{
 		char *p;
 
 		name = ++s;
 		p = strchr(name, delim);
-		if (!p) {
+
+		if (!p)
+		{
 			pr_err("no closing %c found in partition name\n", delim);
 			return ERR_PTR(-EINVAL);
 		}
+
 		name_len = p - name;
 		s = p + 1;
-	} else {
+	}
+	else
+	{
 		name = NULL;
 		name_len = 13; /* Partition_000 */
 	}
@@ -154,39 +169,53 @@ static struct mtd_partition * newpart(char *s,
 	extra_mem_size += name_len + 1;
 
 	/* test for options */
-	if (strncmp(s, "ro", 2) == 0) {
+	if (strncmp(s, "ro", 2) == 0)
+	{
 		mask_flags |= MTD_WRITEABLE;
 		s += 2;
 	}
 
 	/* if lk is found do NOT unlock the MTD partition*/
-	if (strncmp(s, "lk", 2) == 0) {
+	if (strncmp(s, "lk", 2) == 0)
+	{
 		mask_flags |= MTD_POWERUP_LOCK;
 		s += 2;
 	}
 
 	/* test if more partitions are following */
-	if (*s == ',') {
-		if (size == SIZE_REMAINING) {
+	if (*s == ',')
+	{
+		if (size == SIZE_REMAINING)
+		{
 			pr_err("no partitions allowed after a fill-up partition\n");
 			return ERR_PTR(-EINVAL);
 		}
+
 		/* more partitions follow, parse them */
 		parts = newpart(s + 1, &s, num_parts, this_part + 1,
-				&extra_mem, extra_mem_size);
+						&extra_mem, extra_mem_size);
+
 		if (IS_ERR(parts))
+		{
 			return parts;
-	} else {
+		}
+	}
+	else
+	{
 		/* this is the last partition: allocate space for all */
 		int alloc_size;
 
 		*num_parts = this_part + 1;
 		alloc_size = *num_parts * sizeof(struct mtd_partition) +
-			     extra_mem_size;
+					 extra_mem_size;
 
 		parts = kzalloc(alloc_size, GFP_KERNEL);
+
 		if (!parts)
+		{
 			return ERR_PTR(-ENOMEM);
+		}
+
 		extra_mem = (unsigned char *)(parts + *num_parts);
 	}
 
@@ -194,20 +223,28 @@ static struct mtd_partition * newpart(char *s,
 	parts[this_part].size = size;
 	parts[this_part].offset = offset;
 	parts[this_part].mask_flags = mask_flags;
+
 	if (name)
+	{
 		strlcpy(extra_mem, name, name_len + 1);
+	}
 	else
+	{
 		sprintf(extra_mem, "Partition_%03d", this_part);
+	}
+
 	parts[this_part].name = extra_mem;
 	extra_mem += name_len + 1;
 
 	dbg(("partition %d: name <%s>, offset %llx, size %llx, mask flags %x\n",
-	     this_part, parts[this_part].name, parts[this_part].offset,
-	     parts[this_part].size, parts[this_part].mask_flags));
+		 this_part, parts[this_part].name, parts[this_part].offset,
+		 parts[this_part].size, parts[this_part].mask_flags));
 
 	/* return (updated) pointer to extra_mem memory */
 	if (extra_mem_ptr)
+	{
 		*extra_mem_ptr = extra_mem;
+	}
 
 	/* return (updated) pointer command line string */
 	*retptr = s;
@@ -223,7 +260,7 @@ static int mtdpart_setup_real(char *s)
 {
 	cmdline_parsed = 1;
 
-	for( ; s != NULL; )
+	for ( ; s != NULL; )
 	{
 		struct cmdline_mtd_partition *this_mtd;
 		struct mtd_partition *parts;
@@ -234,26 +271,31 @@ static int mtdpart_setup_real(char *s)
 
 		/* fetch <mtd-id> */
 		p = strchr(s, ':');
-		if (!p) {
+
+		if (!p)
+		{
 			pr_err("no mtd-id\n");
 			return -EINVAL;
 		}
+
 		mtd_id_len = p - mtd_id;
 
-		dbg(("parsing <%s>\n", p+1));
+		dbg(("parsing <%s>\n", p + 1));
 
 		/*
 		 * parse one mtd. have it reserve memory for the
 		 * struct cmdline_mtd_partition and the mtd-id string.
 		 */
 		parts = newpart(p + 1,		/* cmdline */
-				&s,		/* out: updated cmdline ptr */
-				&num_parts,	/* out: number of parts */
-				0,		/* first partition */
-				(unsigned char**)&this_mtd, /* out: extra mem */
-				mtd_id_len + 1 + sizeof(*this_mtd) +
-				sizeof(void*)-1 /*alignment*/);
-		if (IS_ERR(parts)) {
+						&s,		/* out: updated cmdline ptr */
+						&num_parts,	/* out: number of parts */
+						0,		/* first partition */
+						(unsigned char **)&this_mtd, /* out: extra mem */
+						mtd_id_len + 1 + sizeof(*this_mtd) +
+						sizeof(void *) - 1 /*alignment*/);
+
+		if (IS_ERR(parts))
+		{
 			/*
 			 * An error occurred. We're either:
 			 * a) out of memory, or
@@ -261,16 +303,16 @@ static int mtdpart_setup_real(char *s)
 			 * Either way, this mtd is hosed and we're
 			 * unlikely to succeed in parsing any more
 			 */
-			 return PTR_ERR(parts);
-		 }
+			return PTR_ERR(parts);
+		}
 
 		/* align this_mtd */
 		this_mtd = (struct cmdline_mtd_partition *)
-				ALIGN((unsigned long)this_mtd, sizeof(void *));
+				   ALIGN((unsigned long)this_mtd, sizeof(void *));
 		/* enter results */
 		this_mtd->parts = parts;
 		this_mtd->num_parts = num_parts;
-		this_mtd->mtd_id = (char*)(this_mtd + 1);
+		this_mtd->mtd_id = (char *)(this_mtd + 1);
 		strlcpy(this_mtd->mtd_id, mtd_id, mtd_id_len + 1);
 
 		/* link into chain */
@@ -278,18 +320,22 @@ static int mtdpart_setup_real(char *s)
 		partitions = this_mtd;
 
 		dbg(("mtdid=<%s> num_parts=<%d>\n",
-		     this_mtd->mtd_id, this_mtd->num_parts));
+			 this_mtd->mtd_id, this_mtd->num_parts));
 
 
 		/* EOS - we're done */
 		if (*s == 0)
+		{
 			break;
+		}
 
 		/* does another spec follow? */
-		if (*s != ';') {
+		if (*s != ';')
+		{
 			pr_err("bad character after partition (%c)\n", *s);
 			return -EINVAL;
 		}
+
 		s++;
 	}
 
@@ -304,8 +350,8 @@ static int mtdpart_setup_real(char *s)
  * the first one in the chain if a NULL mtd_id is passed in.
  */
 static int parse_cmdline_partitions(struct mtd_info *master,
-				    const struct mtd_partition **pparts,
-				    struct mtd_part_parser_data *data)
+									const struct mtd_partition **pparts,
+									struct mtd_part_parser_data *data)
 {
 	unsigned long long offset;
 	int i, err;
@@ -313,54 +359,76 @@ static int parse_cmdline_partitions(struct mtd_info *master,
 	const char *mtd_id = master->name;
 
 	/* parse command line */
-	if (!cmdline_parsed) {
+	if (!cmdline_parsed)
+	{
 		err = mtdpart_setup_real(cmdline);
+
 		if (err)
+		{
 			return err;
+		}
 	}
 
 	/*
 	 * Search for the partition definition matching master->name.
 	 * If master->name is not set, stop at first partition definition.
 	 */
-	for (part = partitions; part; part = part->next) {
+	for (part = partitions; part; part = part->next)
+	{
 		if ((!mtd_id) || (!strcmp(part->mtd_id, mtd_id)))
+		{
 			break;
+		}
 	}
 
 	if (!part)
+	{
 		return 0;
+	}
 
-	for (i = 0, offset = 0; i < part->num_parts; i++) {
+	for (i = 0, offset = 0; i < part->num_parts; i++)
+	{
 		if (part->parts[i].offset == OFFSET_CONTINUOUS)
+		{
 			part->parts[i].offset = offset;
+		}
 		else
+		{
 			offset = part->parts[i].offset;
+		}
 
 		if (part->parts[i].size == SIZE_REMAINING)
-			part->parts[i].size = master->size - offset;
-
-		if (offset + part->parts[i].size > master->size) {
-			pr_warn("%s: partitioning exceeds flash size, truncating\n",
-				part->mtd_id);
+		{
 			part->parts[i].size = master->size - offset;
 		}
+
+		if (offset + part->parts[i].size > master->size)
+		{
+			pr_warn("%s: partitioning exceeds flash size, truncating\n",
+					part->mtd_id);
+			part->parts[i].size = master->size - offset;
+		}
+
 		offset += part->parts[i].size;
 
-		if (part->parts[i].size == 0) {
+		if (part->parts[i].size == 0)
+		{
 			pr_warn("%s: skipping zero sized partition\n",
-				part->mtd_id);
+					part->mtd_id);
 			part->num_parts--;
 			memmove(&part->parts[i], &part->parts[i + 1],
-				sizeof(*part->parts) * (part->num_parts - i));
+					sizeof(*part->parts) * (part->num_parts - i));
 			i--;
 		}
 	}
 
 	*pparts = kmemdup(part->parts, sizeof(*part->parts) * part->num_parts,
-			  GFP_KERNEL);
+					  GFP_KERNEL);
+
 	if (!*pparts)
+	{
 		return -ENOMEM;
+	}
 
 	return part->num_parts;
 }
@@ -381,7 +449,8 @@ static int __init mtdpart_setup(char *s)
 
 __setup("mtdparts=", mtdpart_setup);
 
-static struct mtd_part_parser cmdline_parser = {
+static struct mtd_part_parser cmdline_parser =
+{
 	.parse_fn = parse_cmdline_partitions,
 	.name = "cmdlinepart",
 };
@@ -389,7 +458,10 @@ static struct mtd_part_parser cmdline_parser = {
 static int __init cmdline_parser_init(void)
 {
 	if (mtdparts)
+	{
 		mtdpart_setup(mtdparts);
+	}
+
 	register_mtd_parser(&cmdline_parser);
 	return 0;
 }

@@ -18,7 +18,8 @@
 #include <linux/key.h>
 #include <linux/rcupdate.h>
 
-struct encrypted_key_payload {
+struct encrypted_key_payload
+{
 	struct rcu_head rcu;
 	char *format;		/* datablob: format */
 	char *master_desc;	/* datablob: master key name */

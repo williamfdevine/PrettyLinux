@@ -48,9 +48,10 @@
 ACPI_MODULE_NAME("uthex")
 
 /* Hex to ASCII conversion table */
-static const char acpi_gbl_hex_to_ascii[] = {
+static const char acpi_gbl_hex_to_ascii[] =
+{
 	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D',
-	    'E', 'F'
+	'E', 'F'
 };
 
 /*******************************************************************************
@@ -93,13 +94,14 @@ acpi_status acpi_ut_ascii_to_hex_byte(char *two_ascii_chars, u8 *return_byte)
 	/* Both ASCII characters must be valid hex digits */
 
 	if (!isxdigit((int)two_ascii_chars[0]) ||
-	    !isxdigit((int)two_ascii_chars[1])) {
+		!isxdigit((int)two_ascii_chars[1]))
+	{
 		return (AE_BAD_HEX_CONSTANT);
 	}
 
 	*return_byte =
-	    acpi_ut_ascii_char_to_hex(two_ascii_chars[1]) |
-	    (acpi_ut_ascii_char_to_hex(two_ascii_chars[0]) << 4);
+		acpi_ut_ascii_char_to_hex(two_ascii_chars[1]) |
+		(acpi_ut_ascii_char_to_hex(two_ascii_chars[0]) << 4);
 
 	return (AE_OK);
 }
@@ -122,13 +124,15 @@ u8 acpi_ut_ascii_char_to_hex(int hex_char)
 
 	/* Values 0-9 */
 
-	if (hex_char <= '9') {
+	if (hex_char <= '9')
+	{
 		return ((u8)(hex_char - '0'));
 	}
 
 	/* Upper case A-F */
 
-	if (hex_char <= 'F') {
+	if (hex_char <= 'F')
+	{
 		return ((u8)(hex_char - 0x37));
 	}
 

@@ -35,20 +35,22 @@ static int  omninet_open(struct tty_struct *tty, struct usb_serial_port *port);
 static void omninet_process_read_urb(struct urb *urb);
 static void omninet_write_bulk_callback(struct urb *urb);
 static int  omninet_write(struct tty_struct *tty, struct usb_serial_port *port,
-				const unsigned char *buf, int count);
+						  const unsigned char *buf, int count);
 static int  omninet_write_room(struct tty_struct *tty);
 static void omninet_disconnect(struct usb_serial *serial);
 static int omninet_port_probe(struct usb_serial_port *port);
 static int omninet_port_remove(struct usb_serial_port *port);
 
-static const struct usb_device_id id_table[] = {
+static const struct usb_device_id id_table[] =
+{
 	{ USB_DEVICE(ZYXEL_VENDOR_ID, ZYXEL_OMNINET_ID) },
 	{ USB_DEVICE(ZYXEL_VENDOR_ID, BT_IGNITIONPRO_ID) },
 	{ }						/* Terminating entry */
 };
 MODULE_DEVICE_TABLE(usb, id_table);
 
-static struct usb_serial_driver zyxel_omninet_device = {
+static struct usb_serial_driver zyxel_omninet_device =
+{
 	.driver = {
 		.owner =	THIS_MODULE,
 		.name =		"omninet",
@@ -66,7 +68,8 @@ static struct usb_serial_driver zyxel_omninet_device = {
 	.disconnect =		omninet_disconnect,
 };
 
-static struct usb_serial_driver * const serial_drivers[] = {
+static struct usb_serial_driver *const serial_drivers[] =
+{
 	&zyxel_omninet_device, NULL
 };
 
@@ -93,14 +96,16 @@ static struct usb_serial_driver * const serial_drivers[] = {
  *
  * After the header you will find data bytes if oh_len was greater than zero.
  */
-struct omninet_header {
+struct omninet_header
+{
 	__u8	oh_seq;
 	__u8	oh_len;
 	__u8	oh_xxx;
 	__u8	oh_pad;
 };
 
-struct omninet_data {
+struct omninet_data
+{
 	__u8	od_outseq;	/* Sequence number for bulk_out URBs */
 };
 
@@ -109,8 +114,11 @@ static int omninet_port_probe(struct usb_serial_port *port)
 	struct omninet_data *od;
 
 	od = kzalloc(sizeof(*od), GFP_KERNEL);
+
 	if (!od)
+	{
 		return -ENOMEM;
+	}
 
 	usb_set_serial_port_data(port, od);
 
@@ -150,33 +158,37 @@ static void omninet_process_read_urb(struct urb *urb)
 	size_t data_len;
 
 	if (urb->actual_length <= OMNINET_HEADERLEN || !hdr->oh_len)
+	{
 		return;
+	}
 
 	data = (char *)urb->transfer_buffer + OMNINET_HEADERLEN;
 	data_len = min_t(size_t, urb->actual_length - OMNINET_HEADERLEN,
-								hdr->oh_len);
+					 hdr->oh_len);
 	tty_insert_flip_string(&port->port, data, data_len);
 	tty_flip_buffer_push(&port->port);
 }
 
 static int omninet_write(struct tty_struct *tty, struct usb_serial_port *port,
-					const unsigned char *buf, int count)
+						 const unsigned char *buf, int count)
 {
 	struct usb_serial *serial = port->serial;
 	struct usb_serial_port *wport = serial->port[1];
 
 	struct omninet_data *od = usb_get_serial_port_data(port);
 	struct omninet_header *header = (struct omninet_header *)
-					wport->write_urb->transfer_buffer;
+									wport->write_urb->transfer_buffer;
 
 	int			result;
 
-	if (count == 0) {
+	if (count == 0)
+	{
 		dev_dbg(&port->dev, "%s - write request of 0 bytes\n", __func__);
 		return 0;
 	}
 
-	if (!test_and_clear_bit(0, &port->write_urbs_free)) {
+	if (!test_and_clear_bit(0, &port->write_urbs_free))
+	{
 		dev_dbg(&port->dev, "%s - already writing\n", __func__);
 		return 0;
 	}
@@ -184,10 +196,10 @@ static int omninet_write(struct tty_struct *tty, struct usb_serial_port *port,
 	count = (count > OMNINET_PAYLOADSIZE) ? OMNINET_PAYLOADSIZE : count;
 
 	memcpy(wport->write_urb->transfer_buffer + OMNINET_HEADERLEN,
-								buf, count);
+		   buf, count);
 
 	usb_serial_debug_data(&port->dev, __func__, count,
-			      wport->write_urb->transfer_buffer);
+						  wport->write_urb->transfer_buffer);
 
 	header->oh_seq 	= od->od_outseq++;
 	header->oh_len 	= count;
@@ -198,13 +210,18 @@ static int omninet_write(struct tty_struct *tty, struct usb_serial_port *port,
 	wport->write_urb->transfer_buffer_length = OMNINET_BULKOUTSIZE;
 
 	result = usb_submit_urb(wport->write_urb, GFP_ATOMIC);
-	if (result) {
+
+	if (result)
+	{
 		set_bit(0, &wport->write_urbs_free);
 		dev_err_console(port,
-			"%s - failed submitting write urb, error %d\n",
-			__func__, result);
-	} else
+						"%s - failed submitting write urb, error %d\n",
+						__func__, result);
+	}
+	else
+	{
 		result = count;
+	}
 
 	return result;
 }
@@ -219,7 +236,9 @@ static int omninet_write_room(struct tty_struct *tty)
 	int room = 0; /* Default: no room */
 
 	if (test_bit(0, &wport->write_urbs_free))
+	{
 		room = wport->bulk_out_size - OMNINET_HEADERLEN;
+	}
 
 	dev_dbg(&port->dev, "%s - returns %d\n", __func__, room);
 
@@ -228,15 +247,17 @@ static int omninet_write_room(struct tty_struct *tty)
 
 static void omninet_write_bulk_callback(struct urb *urb)
 {
-/*	struct omninet_header	*header = (struct omninet_header  *)
-						urb->transfer_buffer; */
+	/*	struct omninet_header	*header = (struct omninet_header  *)
+							urb->transfer_buffer; */
 	struct usb_serial_port 	*port   =  urb->context;
 	int status = urb->status;
 
 	set_bit(0, &port->write_urbs_free);
-	if (status) {
+
+	if (status)
+	{
 		dev_dbg(&port->dev, "%s - nonzero write bulk status received: %d\n",
-			__func__, status);
+				__func__, status);
 		return;
 	}
 

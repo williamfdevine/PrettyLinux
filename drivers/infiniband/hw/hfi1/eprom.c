@@ -90,8 +90,12 @@ static void read_page(struct hfi1_devdata *dd, u32 offset, u32 *result)
 	int i;
 
 	write_csr(dd, ASIC_EEP_ADDR_CMD, CMD_READ_DATA(offset));
+
 	for (i = 0; i < EP_PAGE_DWORDS; i++)
+	{
 		result[i] = (u32)read_csr(dd, ASIC_EEP_DATA);
+	}
+
 	write_csr(dd, ASIC_EEP_ADDR_CMD, CMD_NOP); /* close open page */
 }
 
@@ -107,7 +111,9 @@ static int read_length(struct hfi1_devdata *dd, u32 start, u32 len, void *dest)
 	u32 bytes;
 
 	if (len == 0)
+	{
 		return 0;
+	}
 
 	end = start + len;
 
@@ -117,11 +123,15 @@ static int read_length(struct hfi1_devdata *dd, u32 start, u32 len, void *dest)
 	 * of the range is OK if it stops at the limit, but no higher.
 	 */
 	if (end > (1 << CMD_SHIFT))
+	{
 		return -EINVAL;
+	}
 
 	/* read the first partial page */
 	start_offset = start & EP_PAGE_MASK;
-	if (start_offset) {
+
+	if (start_offset)
+	{
 		/* partial starting page */
 
 		/* align and read the page that contains the start */
@@ -131,7 +141,8 @@ static int read_length(struct hfi1_devdata *dd, u32 start, u32 len, void *dest)
 		/* the rest of the page is available data */
 		bytes = EP_PAGE_SIZE - start_offset;
 
-		if (len <= bytes) {
+		if (len <= bytes)
+		{
 			/* end is within this page */
 			memcpy(dest, (u8 *)buffer + start_offset, len);
 			return 0;
@@ -143,10 +154,12 @@ static int read_length(struct hfi1_devdata *dd, u32 start, u32 len, void *dest)
 		len -= bytes;
 		dest += bytes;
 	}
+
 	/* start is now page aligned */
 
 	/* read whole pages */
-	while (len >= EP_PAGE_SIZE) {
+	while (len >= EP_PAGE_SIZE)
+	{
 		read_page(dd, start, buffer);
 		memcpy(dest, buffer, EP_PAGE_SIZE);
 
@@ -156,7 +169,8 @@ static int read_length(struct hfi1_devdata *dd, u32 start, u32 len, void *dest)
 	}
 
 	/* read the last partial page */
-	if (len) {
+	if (len)
+	{
 		read_page(dd, start, buffer);
 		memcpy(dest, buffer, len);
 	}
@@ -173,17 +187,21 @@ int eprom_init(struct hfi1_devdata *dd)
 
 	/* only the discrete chip has an EPROM */
 	if (dd->pcidev->device != PCI_DEVICE_ID_INTEL0)
+	{
 		return 0;
+	}
 
 	/*
 	 * It is OK if both HFIs reset the EPROM as long as they don't
 	 * do it at the same time.
 	 */
 	ret = acquire_chip_resource(dd, CR_EPROM, EPROM_TIMEOUT);
-	if (ret) {
+
+	if (ret)
+	{
 		dd_dev_err(dd,
-			   "%s: unable to acquire EPROM resource, no EPROM support\n",
-			   __func__);
+				   "%s: unable to acquire EPROM resource, no EPROM support\n",
+				   __func__);
 		goto done_asic;
 	}
 
@@ -193,7 +211,7 @@ int eprom_init(struct hfi1_devdata *dd)
 	write_csr(dd, ASIC_EEP_CTL_STAT, ASIC_EEP_CTL_STAT_EP_RESET_SMASK);
 	/* clear reset, set speed */
 	write_csr(dd, ASIC_EEP_CTL_STAT,
-		  EP_SPEED_FULL << ASIC_EEP_CTL_STAT_RATE_SPI_SHIFT);
+			  EP_SPEED_FULL << ASIC_EEP_CTL_STAT_RATE_SPI_SHIFT);
 
 	/* wake the device with command "release powerdown NoID" */
 	write_csr(dd, ASIC_EEP_ADDR_CMD, CMD_RELEASE_POWERDOWN_NOID);
@@ -212,7 +230,7 @@ done_asic:
  * the returned size if a trailing image magic is found.
  */
 static int read_partition_platform_config(struct hfi1_devdata *dd, void **data,
-					  u32 *size)
+		u32 *size)
 {
 	void *buffer;
 	void *p;
@@ -220,21 +238,31 @@ static int read_partition_platform_config(struct hfi1_devdata *dd, void **data,
 	int ret;
 
 	buffer = kmalloc(P1_SIZE, GFP_KERNEL);
+
 	if (!buffer)
+	{
 		return -ENOMEM;
+	}
 
 	ret = read_length(dd, P1_START, P1_SIZE, buffer);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(buffer);
 		return ret;
 	}
 
 	/* scan for image magic that may trail the actual data */
 	p = strnstr(buffer, IMAGE_TRAIL_MAGIC, P1_SIZE);
+
 	if (p)
+	{
 		length = p - buffer;
+	}
 	else
+	{
 		length = P1_SIZE;
+	}
 
 	*data = buffer;
 	*size = length;
@@ -260,19 +288,28 @@ int eprom_read_platform_config(struct hfi1_devdata *dd, void **data, u32 *size)
 	int ret;
 
 	if (!dd->eprom_available)
+	{
 		return -ENXIO;
+	}
 
 	ret = acquire_chip_resource(dd, CR_EPROM, EPROM_TIMEOUT);
+
 	if (ret)
+	{
 		return -EBUSY;
+	}
 
 	/* read the last page of P0 for the EPROM format magic */
 	ret = read_length(dd, P1_START - EP_PAGE_SIZE, EP_PAGE_SIZE, directory);
+
 	if (ret)
+	{
 		goto done;
+	}
 
 	/* last dword of P0 contains a magic indicator */
-	if (directory[EP_PAGE_DWORDS - 1] == 0) {
+	if (directory[EP_PAGE_DWORDS - 1] == 0)
+	{
 		/* partition format */
 		ret = read_partition_platform_config(dd, data, size);
 		goto done;

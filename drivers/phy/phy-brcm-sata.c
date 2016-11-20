@@ -41,21 +41,24 @@
 /* Register offset between PHYs in PHY control space */
 #define SATA_PHY_CTRL_REG_28NM_SPACE_SIZE		0x8
 
-enum brcm_sata_phy_version {
+enum brcm_sata_phy_version
+{
 	BRCM_SATA_PHY_STB_28NM,
 	BRCM_SATA_PHY_STB_40NM,
 	BRCM_SATA_PHY_IPROC_NS2,
 	BRCM_SATA_PHY_IPROC_NSP,
 };
 
-struct brcm_sata_port {
+struct brcm_sata_port
+{
 	int portnum;
 	struct phy *phy;
 	struct brcm_sata_phy *phy_priv;
 	bool ssc_en;
 };
 
-struct brcm_sata_phy {
+struct brcm_sata_phy
+{
 	struct device *dev;
 	void __iomem *phy_base;
 	void __iomem *ctrl_base;
@@ -64,7 +67,8 @@ struct brcm_sata_phy {
 	struct brcm_sata_port phys[MAX_PORTS];
 };
 
-enum sata_phy_regs {
+enum sata_phy_regs
+{
 	BLOCK0_REG_BANK				= 0x000,
 	BLOCK0_XGXSSTATUS			= 0x81,
 	BLOCK0_XGXSSTATUS_PLL_LOCK		= BIT(12),
@@ -119,7 +123,8 @@ enum sata_phy_regs {
 	TXPMD_TX_FREQ_CTRL_CONTROL3_FMAX_MASK	= 0x3ff,
 };
 
-enum sata_phy_ctrl_regs {
+enum sata_phy_ctrl_regs
+{
 	PHY_CTRL_1				= 0x0,
 	PHY_CTRL_1_RESET			= BIT(0),
 };
@@ -129,17 +134,20 @@ static inline void __iomem *brcm_sata_pcb_base(struct brcm_sata_port *port)
 	struct brcm_sata_phy *priv = port->phy_priv;
 	u32 size = 0;
 
-	switch (priv->version) {
-	case BRCM_SATA_PHY_STB_28NM:
-	case BRCM_SATA_PHY_IPROC_NS2:
-		size = SATA_PCB_REG_28NM_SPACE_SIZE;
-		break;
-	case BRCM_SATA_PHY_STB_40NM:
-		size = SATA_PCB_REG_40NM_SPACE_SIZE;
-		break;
-	default:
-		dev_err(priv->dev, "invalid phy version\n");
-		break;
+	switch (priv->version)
+	{
+		case BRCM_SATA_PHY_STB_28NM:
+		case BRCM_SATA_PHY_IPROC_NS2:
+			size = SATA_PCB_REG_28NM_SPACE_SIZE;
+			break;
+
+		case BRCM_SATA_PHY_STB_40NM:
+			size = SATA_PCB_REG_40NM_SPACE_SIZE;
+			break;
+
+		default:
+			dev_err(priv->dev, "invalid phy version\n");
+			break;
 	};
 
 	return priv->phy_base + (port->portnum * size);
@@ -150,20 +158,22 @@ static inline void __iomem *brcm_sata_ctrl_base(struct brcm_sata_port *port)
 	struct brcm_sata_phy *priv = port->phy_priv;
 	u32 size = 0;
 
-	switch (priv->version) {
-	case BRCM_SATA_PHY_IPROC_NS2:
-		size = SATA_PHY_CTRL_REG_28NM_SPACE_SIZE;
-		break;
-	default:
-		dev_err(priv->dev, "invalid phy version\n");
-		break;
+	switch (priv->version)
+	{
+		case BRCM_SATA_PHY_IPROC_NS2:
+			size = SATA_PHY_CTRL_REG_28NM_SPACE_SIZE;
+			break;
+
+		default:
+			dev_err(priv->dev, "invalid phy version\n");
+			break;
 	};
 
 	return priv->ctrl_base + (port->portnum * size);
 }
 
 static void brcm_sata_phy_wr(void __iomem *pcb_base, u32 bank,
-			     u32 ofs, u32 msk, u32 value)
+							 u32 ofs, u32 msk, u32 value)
 {
 	u32 tmp;
 
@@ -196,19 +206,22 @@ static int brcm_stb_sata_init(struct brcm_sata_port *port)
 
 	/* set fixed min freq */
 	brcm_sata_phy_wr(base, TXPMD_REG_BANK, TXPMD_TX_FREQ_CTRL_CONTROL2,
-			 ~TXPMD_TX_FREQ_CTRL_CONTROL2_FMIN_MASK,
-			 STB_FMIN_VAL_DEFAULT);
+					 ~TXPMD_TX_FREQ_CTRL_CONTROL2_FMIN_MASK,
+					 STB_FMIN_VAL_DEFAULT);
 
 	/* set fixed max freq depending on SSC config */
-	if (port->ssc_en) {
+	if (port->ssc_en)
+	{
 		dev_info(priv->dev, "enabling SSC on port%d\n", port->portnum);
 		tmp = STB_FMAX_VAL_SSC;
-	} else {
+	}
+	else
+	{
 		tmp = STB_FMAX_VAL_DEFAULT;
 	}
 
 	brcm_sata_phy_wr(base, TXPMD_REG_BANK, TXPMD_TX_FREQ_CTRL_CONTROL3,
-			  ~TXPMD_TX_FREQ_CTRL_CONTROL3_FMAX_MASK, tmp);
+					 ~TXPMD_TX_FREQ_CTRL_CONTROL3_FMAX_MASK, tmp);
 
 	return 0;
 }
@@ -220,7 +233,9 @@ static int brcm_stb_sata_init(struct brcm_sata_port *port)
 
 static int brcm_ns2_sata_init(struct brcm_sata_port *port)
 {
+
 	int try;
+
 	unsigned int val;
 	void __iomem *base = brcm_sata_pcb_base(port);
 	void __iomem *ctrl_base = brcm_sata_ctrl_base(port);
@@ -250,8 +265,8 @@ static int brcm_ns2_sata_init(struct brcm_sata_port *port)
 	/* Configure PHY BLOCK0 register bank */
 	/* Set oob_clk_sel to refclk/2 */
 	brcm_sata_phy_wr(base, BLOCK0_REG_BANK, BLOCK0_SPARE,
-			 ~BLOCK0_SPARE_OOB_CLK_SEL_MASK,
-			 BLOCK0_SPARE_OOB_CLK_SEL_REFBY2);
+					 ~BLOCK0_SPARE_OOB_CLK_SEL_MASK,
+					 BLOCK0_SPARE_OOB_CLK_SEL_REFBY2);
 
 	/* Strobe PHY reset using PHY control register */
 	writel(PHY_CTRL_1_RESET, ctrl_base + PHY_CTRL_1);
@@ -261,15 +276,24 @@ static int brcm_ns2_sata_init(struct brcm_sata_port *port)
 
 	/* Wait for PHY PLL lock by polling pll_lock bit */
 	try = 50;
-	while (try) {
+
+	while (try)
+	{
 		val = brcm_sata_phy_rd(base, BLOCK0_REG_BANK,
-					BLOCK0_XGXSSTATUS);
+							   BLOCK0_XGXSSTATUS);
+
 		if (val & BLOCK0_XGXSSTATUS_PLL_LOCK)
+		{
 			break;
+		}
+
 		msleep(20);
+
 		try--;
 	}
-	if (!try) {
+
+	if (!try)
+	{
 		/* PLL did not lock; give up */
 		dev_err(dev, "port%d PLL did not lock\n", port->portnum);
 		return -ETIMEDOUT;
@@ -286,15 +310,22 @@ static int brcm_nsp_sata_init(struct brcm_sata_port *port)
 	struct device *dev = port->phy_priv->dev;
 	void __iomem *base = priv->phy_base;
 	unsigned int oob_bank;
+
 	unsigned int val, try;
 
 	/* Configure OOB control */
 	if (port->portnum == 0)
+	{
 		oob_bank = OOB_REG_BANK;
+	}
 	else if (port->portnum == 1)
+	{
 		oob_bank = OOB1_REG_BANK;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	val = 0x0;
 	val |= (0x0f << OOB_CTRL1_BURST_MAX_SHIFT);
@@ -311,32 +342,40 @@ static int brcm_nsp_sata_init(struct brcm_sata_port *port)
 
 
 	brcm_sata_phy_wr(base, PLL_REG_BANK_0, PLL_ACTRL2,
-		~(PLL_ACTRL2_SELDIV_MASK << PLL_ACTRL2_SELDIV_SHIFT),
-		0x0c << PLL_ACTRL2_SELDIV_SHIFT);
+					 ~(PLL_ACTRL2_SELDIV_MASK << PLL_ACTRL2_SELDIV_SHIFT),
+					 0x0c << PLL_ACTRL2_SELDIV_SHIFT);
 
 	brcm_sata_phy_wr(base, PLL_REG_BANK_0, PLL_CAP_CONTROL,
-						0xff0, 0x4f0);
+					 0xff0, 0x4f0);
 
 	val = PLLCONTROL_0_FREQ_DET_RESTART | PLLCONTROL_0_FREQ_MONITOR;
 	brcm_sata_phy_wr(base, PLL_REG_BANK_0, PLL_REG_BANK_0_PLLCONTROL_0,
-								~val, val);
+					 ~val, val);
 	val = PLLCONTROL_0_SEQ_START;
 	brcm_sata_phy_wr(base, PLL_REG_BANK_0, PLL_REG_BANK_0_PLLCONTROL_0,
-								~val, 0);
+					 ~val, 0);
 	mdelay(10);
 	brcm_sata_phy_wr(base, PLL_REG_BANK_0, PLL_REG_BANK_0_PLLCONTROL_0,
-								~val, val);
+					 ~val, val);
 
 	/* Wait for pll_seq_done bit */
 	try = 50;
-	while (try--) {
-		val = brcm_sata_phy_rd(base, BLOCK0_REG_BANK,
-					BLOCK0_XGXSSTATUS);
-		if (val & BLOCK0_XGXSSTATUS_PLL_LOCK)
-			break;
-		msleep(20);
-	}
-	if (!try) {
+
+	while (try--)
+		{
+			val = brcm_sata_phy_rd(base, BLOCK0_REG_BANK,
+								   BLOCK0_XGXSSTATUS);
+
+			if (val & BLOCK0_XGXSSTATUS_PLL_LOCK)
+			{
+				break;
+			}
+
+			msleep(20);
+		}
+
+	if (!try)
+	{
 		/* PLL did not lock; give up */
 		dev_err(dev, "port%d PLL did not lock\n", port->portnum);
 		return -ETIMEDOUT;
@@ -352,38 +391,52 @@ static int brcm_sata_phy_init(struct phy *phy)
 	int rc;
 	struct brcm_sata_port *port = phy_get_drvdata(phy);
 
-	switch (port->phy_priv->version) {
-	case BRCM_SATA_PHY_STB_28NM:
-	case BRCM_SATA_PHY_STB_40NM:
-		rc = brcm_stb_sata_init(port);
-		break;
-	case BRCM_SATA_PHY_IPROC_NS2:
-		rc = brcm_ns2_sata_init(port);
-		break;
-	case BRCM_SATA_PHY_IPROC_NSP:
-		rc = brcm_nsp_sata_init(port);
-		break;
-	default:
-		rc = -ENODEV;
+	switch (port->phy_priv->version)
+	{
+		case BRCM_SATA_PHY_STB_28NM:
+		case BRCM_SATA_PHY_STB_40NM:
+			rc = brcm_stb_sata_init(port);
+			break;
+
+		case BRCM_SATA_PHY_IPROC_NS2:
+			rc = brcm_ns2_sata_init(port);
+			break;
+
+		case BRCM_SATA_PHY_IPROC_NSP:
+			rc = brcm_nsp_sata_init(port);
+			break;
+
+		default:
+			rc = -ENODEV;
 	};
 
 	return rc;
 }
 
-static const struct phy_ops phy_ops = {
+static const struct phy_ops phy_ops =
+{
 	.init		= brcm_sata_phy_init,
 	.owner		= THIS_MODULE,
 };
 
-static const struct of_device_id brcm_sata_phy_of_match[] = {
-	{ .compatible	= "brcm,bcm7445-sata-phy",
-	  .data = (void *)BRCM_SATA_PHY_STB_28NM },
-	{ .compatible	= "brcm,bcm7425-sata-phy",
-	  .data = (void *)BRCM_SATA_PHY_STB_40NM },
-	{ .compatible	= "brcm,iproc-ns2-sata-phy",
-	  .data = (void *)BRCM_SATA_PHY_IPROC_NS2 },
-	{ .compatible = "brcm,iproc-nsp-sata-phy",
-	  .data = (void *)BRCM_SATA_PHY_IPROC_NSP },
+static const struct of_device_id brcm_sata_phy_of_match[] =
+{
+	{
+		.compatible	= "brcm,bcm7445-sata-phy",
+		.data = (void *)BRCM_SATA_PHY_STB_28NM
+	},
+	{
+		.compatible	= "brcm,bcm7425-sata-phy",
+		.data = (void *)BRCM_SATA_PHY_STB_40NM
+	},
+	{
+		.compatible	= "brcm,iproc-ns2-sata-phy",
+		.data = (void *)BRCM_SATA_PHY_IPROC_NS2
+	},
+	{
+		.compatible = "brcm,iproc-nsp-sata-phy",
+		.data = (void *)BRCM_SATA_PHY_IPROC_NSP
+	},
 	{},
 };
 MODULE_DEVICE_TABLE(of, brcm_sata_phy_of_match);
@@ -399,50 +452,73 @@ static int brcm_sata_phy_probe(struct platform_device *pdev)
 	int ret, count = 0;
 
 	if (of_get_child_count(dn) == 0)
+	{
 		return -ENODEV;
+	}
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
+
 	dev_set_drvdata(dev, priv);
 	priv->dev = dev;
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "phy");
 	priv->phy_base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(priv->phy_base))
+	{
 		return PTR_ERR(priv->phy_base);
-
-	of_id = of_match_node(brcm_sata_phy_of_match, dn);
-	if (of_id)
-		priv->version = (enum brcm_sata_phy_version)of_id->data;
-	else
-		priv->version = BRCM_SATA_PHY_STB_28NM;
-
-	if (priv->version == BRCM_SATA_PHY_IPROC_NS2) {
-		res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
-						   "phy-ctrl");
-		priv->ctrl_base = devm_ioremap_resource(dev, res);
-		if (IS_ERR(priv->ctrl_base))
-			return PTR_ERR(priv->ctrl_base);
 	}
 
-	for_each_available_child_of_node(dn, child) {
+	of_id = of_match_node(brcm_sata_phy_of_match, dn);
+
+	if (of_id)
+	{
+		priv->version = (enum brcm_sata_phy_version)of_id->data;
+	}
+	else
+	{
+		priv->version = BRCM_SATA_PHY_STB_28NM;
+	}
+
+	if (priv->version == BRCM_SATA_PHY_IPROC_NS2)
+	{
+		res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
+										   "phy-ctrl");
+		priv->ctrl_base = devm_ioremap_resource(dev, res);
+
+		if (IS_ERR(priv->ctrl_base))
+		{
+			return PTR_ERR(priv->ctrl_base);
+		}
+	}
+
+	for_each_available_child_of_node(dn, child)
+	{
 		unsigned int id;
 		struct brcm_sata_port *port;
 
-		if (of_property_read_u32(child, "reg", &id)) {
+		if (of_property_read_u32(child, "reg", &id))
+		{
 			dev_err(dev, "missing reg property in node %s\n",
 					child->name);
 			ret = -EINVAL;
 			goto put_child;
 		}
 
-		if (id >= MAX_PORTS) {
+		if (id >= MAX_PORTS)
+		{
 			dev_err(dev, "invalid reg: %u\n", id);
 			ret = -EINVAL;
 			goto put_child;
 		}
-		if (priv->phys[id].phy) {
+
+		if (priv->phys[id].phy)
+		{
 			dev_err(dev, "already registered port %u\n", id);
 			ret = -EINVAL;
 			goto put_child;
@@ -453,7 +529,9 @@ static int brcm_sata_phy_probe(struct platform_device *pdev)
 		port->phy_priv = priv;
 		port->phy = devm_phy_create(dev, child, &phy_ops);
 		port->ssc_en = of_property_read_bool(child, "brcm,enable-ssc");
-		if (IS_ERR(port->phy)) {
+
+		if (IS_ERR(port->phy))
+		{
 			dev_err(dev, "failed to create PHY\n");
 			ret = PTR_ERR(port->phy);
 			goto put_child;
@@ -464,7 +542,9 @@ static int brcm_sata_phy_probe(struct platform_device *pdev)
 	}
 
 	provider = devm_of_phy_provider_register(dev, of_phy_simple_xlate);
-	if (IS_ERR(provider)) {
+
+	if (IS_ERR(provider))
+	{
 		dev_err(dev, "could not register PHY provider\n");
 		return PTR_ERR(provider);
 	}
@@ -477,7 +557,8 @@ put_child:
 	return ret;
 }
 
-static struct platform_driver brcm_sata_phy_driver = {
+static struct platform_driver brcm_sata_phy_driver =
+{
 	.probe	= brcm_sata_phy_probe,
 	.driver	= {
 		.of_match_table	= brcm_sata_phy_of_match,

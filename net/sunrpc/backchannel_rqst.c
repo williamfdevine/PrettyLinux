@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <linux/sunrpc/bc_xprt.h>
 
 #if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
-#define RPCDBG_FACILITY	RPCDBG_TRANS
+	#define RPCDBG_FACILITY	RPCDBG_TRANS
 #endif
 
 /*
@@ -74,8 +74,12 @@ static int xprt_alloc_xdr_buf(struct xdr_buf *buf, gfp_t gfp_flags)
 	struct page *page;
 	/* Preallocate one XDR receive buffer */
 	page = alloc_page(gfp_flags);
+
 	if (page == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	xdr_buf_init(buf, page_address(page), PAGE_SIZE);
 	return 0;
 }
@@ -87,25 +91,32 @@ struct rpc_rqst *xprt_alloc_bc_req(struct rpc_xprt *xprt, gfp_t gfp_flags)
 
 	/* Pre-allocate one backchannel rpc_rqst */
 	req = kzalloc(sizeof(*req), gfp_flags);
+
 	if (req == NULL)
+	{
 		return NULL;
+	}
 
 	req->rq_xprt = xprt;
 	INIT_LIST_HEAD(&req->rq_list);
 	INIT_LIST_HEAD(&req->rq_bc_list);
 
 	/* Preallocate one XDR receive buffer */
-	if (xprt_alloc_xdr_buf(&req->rq_rcv_buf, gfp_flags) < 0) {
+	if (xprt_alloc_xdr_buf(&req->rq_rcv_buf, gfp_flags) < 0)
+	{
 		printk(KERN_ERR "Failed to create bc receive xbuf\n");
 		goto out_free;
 	}
+
 	req->rq_rcv_buf.len = PAGE_SIZE;
 
 	/* Preallocate one XDR send buffer */
-	if (xprt_alloc_xdr_buf(&req->rq_snd_buf, gfp_flags) < 0) {
+	if (xprt_alloc_xdr_buf(&req->rq_snd_buf, gfp_flags) < 0)
+	{
 		printk(KERN_ERR "Failed to create bc snd xbuf\n");
 		goto out_free;
 	}
+
 	return req;
 out_free:
 	xprt_free_allocation(req);
@@ -133,7 +144,10 @@ out_free:
 int xprt_setup_backchannel(struct rpc_xprt *xprt, unsigned int min_reqs)
 {
 	if (!xprt->ops->bc_setup)
+	{
 		return 0;
+	}
+
 	return xprt->ops->bc_setup(xprt, min_reqs);
 }
 EXPORT_SYMBOL_GPL(xprt_setup_backchannel);
@@ -155,10 +169,14 @@ int xprt_setup_bc(struct rpc_xprt *xprt, unsigned int min_reqs)
 	 * easier in case of memory allocation errors.
 	 */
 	INIT_LIST_HEAD(&tmp_list);
-	for (i = 0; i < min_reqs; i++) {
+
+	for (i = 0; i < min_reqs; i++)
+	{
 		/* Pre-allocate one backchannel rpc_rqst */
 		req = xprt_alloc_bc_req(xprt, GFP_KERNEL);
-		if (req == NULL) {
+
+		if (req == NULL)
+		{
 			printk(KERN_ERR "Failed to create bc rpc_rqst\n");
 			goto out_free;
 		}
@@ -180,13 +198,15 @@ int xprt_setup_bc(struct rpc_xprt *xprt, unsigned int min_reqs)
 	return 0;
 
 out_free:
+
 	/*
 	 * Memory allocation failed, free the temporary list
 	 */
-	while (!list_empty(&tmp_list)) {
+	while (!list_empty(&tmp_list))
+	{
 		req = list_first_entry(&tmp_list,
-				struct rpc_rqst,
-				rq_bc_pa_list);
+							   struct rpc_rqst,
+							   rq_bc_pa_list);
 		list_del(&req->rq_bc_pa_list);
 		xprt_free_allocation(req);
 	}
@@ -207,7 +227,9 @@ out_free:
 void xprt_destroy_backchannel(struct rpc_xprt *xprt, unsigned int max_reqs)
 {
 	if (xprt->ops->bc_destroy)
+	{
 		xprt->ops->bc_destroy(xprt, max_reqs);
+	}
 }
 EXPORT_SYMBOL_GPL(xprt_destroy_backchannel);
 
@@ -218,22 +240,28 @@ void xprt_destroy_bc(struct rpc_xprt *xprt, unsigned int max_reqs)
 	dprintk("RPC:        destroy backchannel transport\n");
 
 	if (max_reqs == 0)
+	{
 		goto out;
+	}
 
 	spin_lock_bh(&xprt->bc_pa_lock);
 	xprt_dec_alloc_count(xprt, max_reqs);
-	list_for_each_entry_safe(req, tmp, &xprt->bc_pa_list, rq_bc_pa_list) {
+	list_for_each_entry_safe(req, tmp, &xprt->bc_pa_list, rq_bc_pa_list)
+	{
 		dprintk("RPC:        req=%p\n", req);
 		list_del(&req->rq_bc_pa_list);
 		xprt_free_allocation(req);
+
 		if (--max_reqs == 0)
+		{
 			break;
+		}
 	}
 	spin_unlock_bh(&xprt->bc_pa_lock);
 
 out:
 	dprintk("RPC:        backchannel list empty= %s\n",
-		list_empty(&xprt->bc_pa_list) ? "true" : "false");
+			list_empty(&xprt->bc_pa_list) ? "true" : "false");
 }
 
 static struct rpc_rqst *xprt_alloc_bc_request(struct rpc_xprt *xprt, __be32 xid)
@@ -241,21 +269,31 @@ static struct rpc_rqst *xprt_alloc_bc_request(struct rpc_xprt *xprt, __be32 xid)
 	struct rpc_rqst *req = NULL;
 
 	dprintk("RPC:       allocate a backchannel request\n");
+
 	if (atomic_read(&xprt->bc_free_slots) <= 0)
+	{
 		goto not_found;
-	if (list_empty(&xprt->bc_pa_list)) {
+	}
+
+	if (list_empty(&xprt->bc_pa_list))
+	{
 		req = xprt_alloc_bc_req(xprt, GFP_ATOMIC);
+
 		if (!req)
+		{
 			goto not_found;
+		}
+
 		list_add_tail(&req->rq_bc_pa_list, &xprt->bc_pa_list);
 		xprt->bc_alloc_count++;
 	}
+
 	req = list_first_entry(&xprt->bc_pa_list, struct rpc_rqst,
-				rq_bc_pa_list);
+						   rq_bc_pa_list);
 	req->rq_reply_bytes_recvd = 0;
 	req->rq_bytes_sent = 0;
 	memcpy(&req->rq_private_buf, &req->rq_rcv_buf,
-			sizeof(req->rq_private_buf));
+		   sizeof(req->rq_private_buf));
 	req->rq_xid = xid;
 	req->rq_connect_cookie = xprt->connect_cookie;
 not_found:
@@ -290,13 +328,18 @@ void xprt_free_bc_rqst(struct rpc_rqst *req)
 	 * may be reused by a new callback request.
 	 */
 	spin_lock_bh(&xprt->bc_pa_lock);
-	if (xprt_need_to_requeue(xprt)) {
+
+	if (xprt_need_to_requeue(xprt))
+	{
 		list_add_tail(&req->rq_bc_pa_list, &xprt->bc_pa_list);
 		xprt->bc_alloc_count++;
 		req = NULL;
 	}
+
 	spin_unlock_bh(&xprt->bc_pa_lock);
-	if (req != NULL) {
+
+	if (req != NULL)
+	{
 		/*
 		 * The last remaining session was destroyed while this
 		 * entry was in use.  Free the entry and don't attempt
@@ -325,11 +368,17 @@ struct rpc_rqst *xprt_lookup_bc_request(struct rpc_xprt *xprt, __be32 xid)
 	struct rpc_rqst *req;
 
 	spin_lock(&xprt->bc_pa_lock);
-	list_for_each_entry(req, &xprt->bc_pa_list, rq_bc_pa_list) {
+	list_for_each_entry(req, &xprt->bc_pa_list, rq_bc_pa_list)
+	{
 		if (req->rq_connect_cookie != xprt->connect_cookie)
+		{
 			continue;
+		}
+
 		if (req->rq_xid == xid)
+		{
 			goto found;
+		}
 	}
 	req = xprt_alloc_bc_request(xprt, xid);
 found:

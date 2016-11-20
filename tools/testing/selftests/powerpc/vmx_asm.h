@@ -68,29 +68,29 @@
  * Don't call this from C
  */
 FUNC_START(load_vmx)
-	li	r5,0
-	lvx	v20,r5,r3
-	addi	r5,r5,16
-	lvx	v21,r5,r3
-	addi	r5,r5,16
-	lvx	v22,r5,r3
-	addi	r5,r5,16
-	lvx	v23,r5,r3
-	addi	r5,r5,16
-	lvx	v24,r5,r3
-	addi	r5,r5,16
-	lvx	v25,r5,r3
-	addi	r5,r5,16
-	lvx	v26,r5,r3
-	addi	r5,r5,16
-	lvx	v27,r5,r3
-	addi	r5,r5,16
-	lvx	v28,r5,r3
-	addi	r5,r5,16
-	lvx	v29,r5,r3
-	addi	r5,r5,16
-	lvx	v30,r5,r3
-	addi	r5,r5,16
-	lvx	v31,r5,r3
-	blr
+li	r5, 0
+lvx	v20, r5, r3
+addi	r5, r5, 16
+lvx	v21, r5, r3
+addi	r5, r5, 16
+lvx	v22, r5, r3
+addi	r5, r5, 16
+lvx	v23, r5, r3
+addi	r5, r5, 16
+lvx	v24, r5, r3
+addi	r5, r5, 16
+lvx	v25, r5, r3
+addi	r5, r5, 16
+lvx	v26, r5, r3
+addi	r5, r5, 16
+lvx	v27, r5, r3
+addi	r5, r5, 16
+lvx	v28, r5, r3
+addi	r5, r5, 16
+lvx	v29, r5, r3
+addi	r5, r5, 16
+lvx	v30, r5, r3
+addi	r5, r5, 16
+lvx	v31, r5, r3
+blr
 FUNC_END(load_vmx)

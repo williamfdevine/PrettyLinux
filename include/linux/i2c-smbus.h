@@ -41,13 +41,14 @@
  * If irq is specified then it it crucial that alert_edge_triggered is
  * properly set.
  */
-struct i2c_smbus_alert_setup {
-	unsigned int		alert_edge_triggered:1;
+struct i2c_smbus_alert_setup
+{
+	unsigned int		alert_edge_triggered: 1;
 	int			irq;
 };
 
 struct i2c_client *i2c_setup_smbus_alert(struct i2c_adapter *adapter,
-					 struct i2c_smbus_alert_setup *setup);
+		struct i2c_smbus_alert_setup *setup);
 int i2c_handle_smbus_alert(struct i2c_client *ara);
 
 /**
@@ -64,7 +65,8 @@ int i2c_handle_smbus_alert(struct i2c_client *ara);
  * not need to be freed. Internally, i2c_setup_smbus_host_notify() uses a
  * managed resource to clean this up when the adapter get released.
  */
-struct smbus_host_notify {
+struct smbus_host_notify
+{
 	struct i2c_adapter	*adapter;
 	struct work_struct	work;
 	spinlock_t		lock;
@@ -75,6 +77,6 @@ struct smbus_host_notify {
 
 struct smbus_host_notify *i2c_setup_smbus_host_notify(struct i2c_adapter *adap);
 int i2c_handle_smbus_host_notify(struct smbus_host_notify *host_notify,
-				 unsigned short addr, unsigned int data);
+								 unsigned short addr, unsigned int data);
 
 #endif /* _LINUX_I2C_SMBUS_H */

@@ -23,7 +23,8 @@ struct vsp1_device;
 #define HSIT_PAD_SINK				0
 #define HSIT_PAD_SOURCE				1
 
-struct vsp1_hsit {
+struct vsp1_hsit
+{
 	struct vsp1_entity entity;
 	bool inverse;
 };

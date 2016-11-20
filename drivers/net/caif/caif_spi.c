@@ -22,9 +22,9 @@
 #include <net/caif/caif_spi.h>
 
 #ifndef CONFIG_CAIF_SPI_SYNC
-#define FLAVOR "Flavour: Vanilla.\n"
+	#define FLAVOR "Flavour: Vanilla.\n"
 #else
-#define FLAVOR "Flavour: Master CMD&LEN at start.\n"
+	#define FLAVOR "Flavour: Master CMD&LEN at start.\n"
 #endif /* CONFIG_CAIF_SPI_SYNC */
 
 MODULE_LICENSE("GPL");
@@ -59,9 +59,9 @@ module_param(spi_down_tail_align, int, S_IRUGO);
 MODULE_PARM_DESC(spi_down_tail_align, "SPI downlink tail alignment.");
 
 #ifdef CONFIG_ARM
-#define BYTE_HEX_FMT "%02X"
+	#define BYTE_HEX_FMT "%02X"
 #else
-#define BYTE_HEX_FMT "%02hhX"
+	#define BYTE_HEX_FMT "%02hhX"
 #endif
 
 #define SPI_MAX_PAYLOAD_SIZE 4096
@@ -94,7 +94,7 @@ static inline void dma_free(void *cpu_addr, dma_addr_t handle)
 static inline void *dma_alloc(dma_addr_t *daddr)
 {
 	return dma_alloc_coherent(NULL, SPI_DMA_BUF_LEN, daddr,
-				GFP_KERNEL);
+							  GFP_KERNEL);
 }
 
 static inline void dma_free(void *cpu_addr, dma_addr_t handle)
@@ -127,7 +127,7 @@ static inline void dev_debugfs_rem(struct cfspi *cfspi)
 }
 
 static ssize_t dbgfs_state(struct file *file, char __user *user_buf,
-			   size_t count, loff_t *ppos)
+						   size_t count, loff_t *ppos)
 {
 	char *buf;
 	int len = 0;
@@ -135,36 +135,41 @@ static ssize_t dbgfs_state(struct file *file, char __user *user_buf,
 	struct cfspi *cfspi = file->private_data;
 
 	buf = kzalloc(DEBUGFS_BUF_SIZE, GFP_KERNEL);
+
 	if (!buf)
+	{
 		return 0;
+	}
 
 	/* Print out debug information. */
 	len += snprintf((buf + len), (DEBUGFS_BUF_SIZE - len),
-			"CAIF SPI debug information:\n");
+					"CAIF SPI debug information:\n");
 
 	len += snprintf((buf + len), (DEBUGFS_BUF_SIZE - len), FLAVOR);
 
 	len += snprintf((buf + len), (DEBUGFS_BUF_SIZE - len),
-			"STATE: %d\n", cfspi->dbg_state);
+					"STATE: %d\n", cfspi->dbg_state);
 	len += snprintf((buf + len), (DEBUGFS_BUF_SIZE - len),
-			"Previous CMD: 0x%x\n", cfspi->pcmd);
+					"Previous CMD: 0x%x\n", cfspi->pcmd);
 	len += snprintf((buf + len), (DEBUGFS_BUF_SIZE - len),
-			"Current CMD: 0x%x\n", cfspi->cmd);
+					"Current CMD: 0x%x\n", cfspi->cmd);
 	len += snprintf((buf + len), (DEBUGFS_BUF_SIZE - len),
-			"Previous TX len: %d\n", cfspi->tx_ppck_len);
+					"Previous TX len: %d\n", cfspi->tx_ppck_len);
 	len += snprintf((buf + len), (DEBUGFS_BUF_SIZE - len),
-			"Previous RX len: %d\n", cfspi->rx_ppck_len);
+					"Previous RX len: %d\n", cfspi->rx_ppck_len);
 	len += snprintf((buf + len), (DEBUGFS_BUF_SIZE - len),
-			"Current TX len: %d\n", cfspi->tx_cpck_len);
+					"Current TX len: %d\n", cfspi->tx_cpck_len);
 	len += snprintf((buf + len), (DEBUGFS_BUF_SIZE - len),
-			"Current RX len: %d\n", cfspi->rx_cpck_len);
+					"Current RX len: %d\n", cfspi->rx_cpck_len);
 	len += snprintf((buf + len), (DEBUGFS_BUF_SIZE - len),
-			"Next TX len: %d\n", cfspi->tx_npck_len);
+					"Next TX len: %d\n", cfspi->tx_npck_len);
 	len += snprintf((buf + len), (DEBUGFS_BUF_SIZE - len),
-			"Next RX len: %d\n", cfspi->rx_npck_len);
+					"Next RX len: %d\n", cfspi->rx_npck_len);
 
 	if (len > DEBUGFS_BUF_SIZE)
+	{
 		len = DEBUGFS_BUF_SIZE;
+	}
 
 	size = simple_read_from_buffer(user_buf, count, ppos, buf, len);
 	kfree(buf);
@@ -173,33 +178,39 @@ static ssize_t dbgfs_state(struct file *file, char __user *user_buf,
 }
 
 static ssize_t print_frame(char *buf, size_t size, char *frm,
-			   size_t count, size_t cut)
+						   size_t count, size_t cut)
 {
 	int len = 0;
 	int i;
-	for (i = 0; i < count; i++) {
+
+	for (i = 0; i < count; i++)
+	{
 		len += snprintf((buf + len), (size - len),
-					"[0x" BYTE_HEX_FMT "]",
-					frm[i]);
-		if ((i == cut) && (count > (cut * 2))) {
+						"[0x" BYTE_HEX_FMT "]",
+						frm[i]);
+
+		if ((i == cut) && (count > (cut * 2)))
+		{
 			/* Fast forward. */
 			i = count - cut;
 			len += snprintf((buf + len), (size - len),
-					"--- %zu bytes skipped ---\n",
-					count - (cut * 2));
+							"--- %zu bytes skipped ---\n",
+							count - (cut * 2));
 		}
 
-		if ((!(i % 10)) && i) {
+		if ((!(i % 10)) && i)
+		{
 			len += snprintf((buf + len), (DEBUGFS_BUF_SIZE - len),
-					"\n");
+							"\n");
 		}
 	}
+
 	len += snprintf((buf + len), (DEBUGFS_BUF_SIZE - len), "\n");
 	return len;
 }
 
 static ssize_t dbgfs_frame(struct file *file, char __user *user_buf,
-			   size_t count, loff_t *ppos)
+						   size_t count, loff_t *ppos)
 {
 	char *buf;
 	int len = 0;
@@ -208,26 +219,29 @@ static ssize_t dbgfs_frame(struct file *file, char __user *user_buf,
 
 	cfspi = file->private_data;
 	buf = kzalloc(DEBUGFS_BUF_SIZE, GFP_KERNEL);
+
 	if (!buf)
+	{
 		return 0;
+	}
 
 	/* Print out debug information. */
 	len += snprintf((buf + len), (DEBUGFS_BUF_SIZE - len),
-			"Current frame:\n");
+					"Current frame:\n");
 
 	len += snprintf((buf + len), (DEBUGFS_BUF_SIZE - len),
-			"Tx data (Len: %d):\n", cfspi->tx_cpck_len);
+					"Tx data (Len: %d):\n", cfspi->tx_cpck_len);
 
 	len += print_frame((buf + len), (DEBUGFS_BUF_SIZE - len),
-			   cfspi->xfer.va_tx[0],
-			   (cfspi->tx_cpck_len + SPI_CMD_SZ), 100);
+					   cfspi->xfer.va_tx[0],
+					   (cfspi->tx_cpck_len + SPI_CMD_SZ), 100);
 
 	len += snprintf((buf + len), (DEBUGFS_BUF_SIZE - len),
-			"Rx data (Len: %d):\n", cfspi->rx_cpck_len);
+					"Rx data (Len: %d):\n", cfspi->rx_cpck_len);
 
 	len += print_frame((buf + len), (DEBUGFS_BUF_SIZE - len),
-			   cfspi->xfer.va_rx,
-			   (cfspi->rx_cpck_len + SPI_CMD_SZ), 100);
+					   cfspi->xfer.va_rx,
+					   (cfspi->rx_cpck_len + SPI_CMD_SZ), 100);
 
 	size = simple_read_from_buffer(user_buf, count, ppos, buf, len);
 	kfree(buf);
@@ -235,13 +249,15 @@ static ssize_t dbgfs_frame(struct file *file, char __user *user_buf,
 	return size;
 }
 
-static const struct file_operations dbgfs_state_fops = {
+static const struct file_operations dbgfs_state_fops =
+{
 	.open = simple_open,
 	.read = dbgfs_state,
 	.owner = THIS_MODULE
 };
 
-static const struct file_operations dbgfs_frame_fops = {
+static const struct file_operations dbgfs_frame_fops =
+{
 	.open = simple_open,
 	.read = dbgfs_frame,
 	.owner = THIS_MODULE
@@ -334,17 +350,23 @@ int cfspi_xmitfrm(struct cfspi *cfspi, u8 *buf, size_t len)
 	caif_assert(buf);
 
 	if (cfspi->slave && !cfspi->slave_talked)
+	{
 		cfspi->slave_talked = true;
+	}
 
-	do {
+	do
+	{
 		struct sk_buff *skb;
 		struct caif_payload_info *info;
 		int spad = 0;
 		int epad;
 
 		skb = skb_dequeue(&cfspi->chead);
+
 		if (!skb)
+		{
 			break;
+		}
 
 		/*
 		 * Calculate length of frame including SPI padding.
@@ -356,7 +378,8 @@ int cfspi_xmitfrm(struct cfspi *cfspi, u8 *buf, size_t len)
 		 * Compute head offset i.e. number of bytes to add to
 		 * get the start of the payload aligned.
 		 */
-		if (spi_up_head_align > 1) {
+		if (spi_up_head_align > 1)
+		{
 			spad = 1 + PAD_POW2((info->hdr_len + 1), spi_up_head_align);
 			*dst = (u8)(spad - 1);
 			dst += spad;
@@ -377,7 +400,8 @@ int cfspi_xmitfrm(struct cfspi *cfspi, u8 *buf, size_t len)
 
 		dev_kfree_skb(skb);
 
-	} while ((dst - buf) < len);
+	}
+	while ((dst - buf) < len);
 
 	return dst - buf;
 }
@@ -392,19 +416,24 @@ int cfspi_xmitlen(struct cfspi *cfspi)
 	 * Decommit previously committed frames.
 	 * skb_queue_splice_tail(&cfspi->chead,&cfspi->qhead)
 	 */
-	while (skb_peek(&cfspi->chead)) {
+	while (skb_peek(&cfspi->chead))
+	{
 		skb = skb_dequeue_tail(&cfspi->chead);
 		skb_queue_head(&cfspi->qhead, skb);
 	}
 
-	do {
+	do
+	{
 		struct caif_payload_info *info = NULL;
 		int spad = 0;
 		int epad = 0;
 
 		skb = skb_dequeue(&cfspi->qhead);
+
 		if (!skb)
+		{
 			break;
+		}
 
 		/*
 		 * Calculate length of frame including SPI padding.
@@ -417,7 +446,9 @@ int cfspi_xmitlen(struct cfspi *cfspi)
 		 * get the start of the payload aligned.
 		 */
 		if (spi_up_head_align > 1)
+		{
 			spad = 1 + PAD_POW2((info->hdr_len + 1), spi_up_head_align);
+		}
 
 		/*
 		 * Compute tail offset i.e. number of bytes to add to
@@ -425,23 +456,28 @@ int cfspi_xmitlen(struct cfspi *cfspi)
 		 */
 		epad = PAD_POW2((skb->len + spad), spi_up_tail_align);
 
-		if ((skb->len + spad + epad + frm_len) <= CAIF_MAX_SPI_FRAME) {
+		if ((skb->len + spad + epad + frm_len) <= CAIF_MAX_SPI_FRAME)
+		{
 			skb_queue_tail(&cfspi->chead, skb);
 			pkts++;
 			frm_len += skb->len + spad + epad;
-		} else {
+		}
+		else
+		{
 			/* Put back packet. */
 			skb_queue_head(&cfspi->qhead, skb);
 			break;
 		}
-	} while (pkts <= CAIF_MAX_SPI_PKTS);
+	}
+	while (pkts <= CAIF_MAX_SPI_PKTS);
 
 	/*
 	 * Send flow on if previously sent flow off
 	 * and now go below the low water mark
 	 */
 	if (cfspi->flow_off_sent && cfspi->qhead.qlen < cfspi->qd_low_mark &&
-		cfspi->cfdev.flowctrl) {
+		cfspi->cfdev.flowctrl)
+	{
 		cfspi->flow_off_sent = 0;
 		cfspi->cfdev.flowctrl(cfspi->ndev, 1);
 	}
@@ -457,25 +493,37 @@ static void cfspi_ss_cb(bool assert, struct cfspi_ifc *ifc)
 	 * The slave device is the master on the link. Interrupts before the
 	 * slave has transmitted are considered spurious.
 	 */
-	if (cfspi->slave && !cfspi->slave_talked) {
+	if (cfspi->slave && !cfspi->slave_talked)
+	{
 		printk(KERN_WARNING "CFSPI: Spurious SS interrupt.\n");
 		return;
 	}
 
 	if (!in_interrupt())
+	{
 		spin_lock(&cfspi->lock);
-	if (assert) {
+	}
+
+	if (assert)
+	{
 		set_bit(SPI_SS_ON, &cfspi->state);
 		set_bit(SPI_XFER, &cfspi->state);
-	} else {
+	}
+	else
+	{
 		set_bit(SPI_SS_OFF, &cfspi->state);
 	}
+
 	if (!in_interrupt())
+	{
 		spin_unlock(&cfspi->lock);
+	}
 
 	/* Wake up the xfer thread. */
 	if (assert)
+	{
 		wake_up_interruptible(&cfspi->wait);
+	}
 }
 
 static void cfspi_xfer_done_cb(struct cfspi_ifc *ifc)
@@ -490,24 +538,31 @@ static int cfspi_xmit(struct sk_buff *skb, struct net_device *dev)
 {
 	struct cfspi *cfspi = NULL;
 	unsigned long flags;
+
 	if (!dev)
+	{
 		return -EINVAL;
+	}
 
 	cfspi = netdev_priv(dev);
 
 	skb_queue_tail(&cfspi->qhead, skb);
 
 	spin_lock_irqsave(&cfspi->lock, flags);
-	if (!test_and_set_bit(SPI_XFER, &cfspi->state)) {
+
+	if (!test_and_set_bit(SPI_XFER, &cfspi->state))
+	{
 		/* Wake up xfer thread. */
 		wake_up_interruptible(&cfspi->wait);
 	}
+
 	spin_unlock_irqrestore(&cfspi->lock, flags);
 
 	/* Send flow off if number of bytes is above high water mark */
 	if (!cfspi->flow_off_sent &&
 		cfspi->qhead.qlen > cfspi->qd_high_mark &&
-		cfspi->cfdev.flowctrl) {
+		cfspi->cfdev.flowctrl)
+	{
 		cfspi->flow_off_sent = 1;
 		cfspi->cfdev.flowctrl(cfspi->ndev, 0);
 	}
@@ -521,7 +576,8 @@ int cfspi_rxfrm(struct cfspi *cfspi, u8 *buf, size_t len)
 
 	caif_assert(buf != NULL);
 
-	do {
+	do
+	{
 		int res;
 		struct sk_buff *skb = NULL;
 		int spad = 0;
@@ -533,14 +589,15 @@ int cfspi_rxfrm(struct cfspi *cfspi, u8 *buf, size_t len)
 		 * Compute head offset i.e. number of bytes added to
 		 * get the start of the payload aligned.
 		 */
-		if (spi_down_head_align > 1) {
+		if (spi_down_head_align > 1)
+		{
 			spad = 1 + *src;
 			src += spad;
 		}
 
 		/* Read length of CAIF frame (little endian). */
 		pkt_len = *src;
-		pkt_len |= ((*(src+1)) << 8) & 0xFF00;
+		pkt_len |= ((*(src + 1)) << 8) & 0xFF00;
 		pkt_len += 2;	/* Add FCS fields. */
 
 		/* Get a suitable caif packet and copy in data. */
@@ -559,15 +616,23 @@ int cfspi_rxfrm(struct cfspi *cfspi, u8 *buf, size_t len)
 		 * Push received packet up the stack.
 		 */
 		if (!spi_loop)
+		{
 			res = netif_rx_ni(skb);
+		}
 		else
+		{
 			res = cfspi_xmit(skb, cfspi->ndev);
+		}
 
-		if (!res) {
+		if (!res)
+		{
 			cfspi->ndev->stats.rx_packets++;
 			cfspi->ndev->stats.rx_bytes += pkt_len;
-		} else
+		}
+		else
+		{
 			cfspi->ndev->stats.rx_dropped++;
+		}
 
 		/*
 		 * Compute tail offset i.e. number of bytes added to
@@ -575,7 +640,8 @@ int cfspi_rxfrm(struct cfspi *cfspi, u8 *buf, size_t len)
 		 */
 		epad = PAD_POW2((pkt_len + spad), spi_down_tail_align);
 		src += epad;
-	} while ((src - buf) < len);
+	}
+	while ((src - buf) < len);
 
 	return src - buf;
 }
@@ -603,24 +669,30 @@ static int cfspi_init(struct net_device *dev)
 	cfspi->qd_high_mark = HIGH_WATER_MARK;
 
 	/* Set slave info. */
-	if (!strncmp(cfspi_spi_driver.driver.name, "cfspi_sspi", 10)) {
+	if (!strncmp(cfspi_spi_driver.driver.name, "cfspi_sspi", 10))
+	{
 		cfspi->slave = true;
 		cfspi->slave_talked = false;
-	} else {
+	}
+	else
+	{
 		cfspi->slave = false;
 		cfspi->slave_talked = false;
 	}
 
 	/* Allocate DMA buffers. */
 	cfspi->xfer.va_tx[0] = dma_alloc(&cfspi->xfer.pa_tx[0]);
-	if (!cfspi->xfer.va_tx[0]) {
+
+	if (!cfspi->xfer.va_tx[0])
+	{
 		res = -ENODEV;
 		goto err_dma_alloc_tx_0;
 	}
 
 	cfspi->xfer.va_rx = dma_alloc(&cfspi->xfer.pa_rx);
 
-	if (!cfspi->xfer.va_rx) {
+	if (!cfspi->xfer.va_rx)
+	{
 		res = -ENODEV;
 		goto err_dma_alloc_rx;
 	}
@@ -639,7 +711,9 @@ static int cfspi_init(struct net_device *dev)
 
 	/* Create work thread. */
 	cfspi->wq = create_singlethread_workqueue(dev->name);
-	if (!cfspi->wq) {
+
+	if (!cfspi->wq)
+	{
 		printk(KERN_WARNING "CFSPI: failed to create work queue.\n");
 		res = -ENODEV;
 		goto err_create_wq;
@@ -666,11 +740,11 @@ static int cfspi_init(struct net_device *dev)
 
 	return 0;
 
- err_create_wq:
+err_create_wq:
 	dma_free(cfspi->xfer.va_rx, cfspi->xfer.pa_rx);
- err_dma_alloc_rx:
+err_dma_alloc_rx:
 	dma_free(cfspi->xfer.va_tx[0], cfspi->xfer.pa_tx[0]);
- err_dma_alloc_tx_0:
+err_dma_alloc_tx_0:
 	return res;
 }
 
@@ -695,7 +769,8 @@ static void cfspi_uninit(struct net_device *dev)
 	return;
 }
 
-static const struct net_device_ops cfspi_ops = {
+static const struct net_device_ops cfspi_ops =
+{
 	.ndo_open = cfspi_open,
 	.ndo_stop = cfspi_close,
 	.ndo_init = cfspi_init,
@@ -731,12 +806,17 @@ int cfspi_spi_probe(struct platform_device *pdev)
 	dev = (struct cfspi_dev *)pdev->dev.platform_data;
 
 	if (!dev)
+	{
 		return -ENODEV;
+	}
 
 	ndev = alloc_netdev(sizeof(struct cfspi), "cfspi%d",
-			    NET_NAME_UNKNOWN, cfspi_setup);
+						NET_NAME_UNKNOWN, cfspi_setup);
+
 	if (!ndev)
+	{
 		return -ENOMEM;
+	}
 
 	cfspi = netdev_priv(ndev);
 	netif_stop_queue(ndev);
@@ -750,13 +830,16 @@ int cfspi_spi_probe(struct platform_device *pdev)
 
 	/* Register network device. */
 	res = register_netdev(ndev);
-	if (res) {
+
+	if (res)
+	{
 		printk(KERN_ERR "CFSPI: Reg. error: %d.\n", res);
 		goto err_net_reg;
 	}
+
 	return res;
 
- err_net_reg:
+err_net_reg:
 	free_netdev(ndev);
 
 	return res;
@@ -774,20 +857,21 @@ static void __exit cfspi_exit_module(void)
 	struct list_head *n;
 	struct cfspi *cfspi = NULL;
 
-	list_for_each_safe(list_node, n, &cfspi_list) {
+	list_for_each_safe(list_node, n, &cfspi_list)
+	{
 		cfspi = list_entry(list_node, struct cfspi, list);
 		unregister_netdev(cfspi->ndev);
 	}
 
 	/* Destroy sysfs files. */
 	driver_remove_file(&cfspi_spi_driver.driver,
-			   &driver_attr_up_head_align);
+					   &driver_attr_up_head_align);
 	driver_remove_file(&cfspi_spi_driver.driver,
-			   &driver_attr_up_tail_align);
+					   &driver_attr_up_tail_align);
 	driver_remove_file(&cfspi_spi_driver.driver,
-			   &driver_attr_down_head_align);
+					   &driver_attr_down_head_align);
 	driver_remove_file(&cfspi_spi_driver.driver,
-			   &driver_attr_down_tail_align);
+					   &driver_attr_down_tail_align);
 	driver_remove_file(&cfspi_spi_driver.driver, &driver_attr_frame_align);
 	/* Unregister platform driver. */
 	platform_driver_unregister(&cfspi_spi_driver);
@@ -804,69 +888,82 @@ static int __init cfspi_init_module(void)
 
 	/* Register platform driver. */
 	result = platform_driver_register(&cfspi_spi_driver);
-	if (result) {
+
+	if (result)
+	{
 		printk(KERN_ERR "Could not register platform SPI driver.\n");
 		goto err_dev_register;
 	}
 
 	/* Create sysfs files. */
 	result =
-	    driver_create_file(&cfspi_spi_driver.driver,
-			       &driver_attr_up_head_align);
-	if (result) {
+		driver_create_file(&cfspi_spi_driver.driver,
+						   &driver_attr_up_head_align);
+
+	if (result)
+	{
 		printk(KERN_ERR "Sysfs creation failed 1.\n");
 		goto err_create_up_head_align;
 	}
 
 	result =
-	    driver_create_file(&cfspi_spi_driver.driver,
-			       &driver_attr_up_tail_align);
-	if (result) {
+		driver_create_file(&cfspi_spi_driver.driver,
+						   &driver_attr_up_tail_align);
+
+	if (result)
+	{
 		printk(KERN_ERR "Sysfs creation failed 2.\n");
 		goto err_create_up_tail_align;
 	}
 
 	result =
-	    driver_create_file(&cfspi_spi_driver.driver,
-			       &driver_attr_down_head_align);
-	if (result) {
+		driver_create_file(&cfspi_spi_driver.driver,
+						   &driver_attr_down_head_align);
+
+	if (result)
+	{
 		printk(KERN_ERR "Sysfs creation failed 3.\n");
 		goto err_create_down_head_align;
 	}
 
 	result =
-	    driver_create_file(&cfspi_spi_driver.driver,
-			       &driver_attr_down_tail_align);
-	if (result) {
+		driver_create_file(&cfspi_spi_driver.driver,
+						   &driver_attr_down_tail_align);
+
+	if (result)
+	{
 		printk(KERN_ERR "Sysfs creation failed 4.\n");
 		goto err_create_down_tail_align;
 	}
 
 	result =
-	    driver_create_file(&cfspi_spi_driver.driver,
-			       &driver_attr_frame_align);
-	if (result) {
+		driver_create_file(&cfspi_spi_driver.driver,
+						   &driver_attr_frame_align);
+
+	if (result)
+	{
 		printk(KERN_ERR "Sysfs creation failed 5.\n");
 		goto err_create_frame_align;
 	}
+
 	driver_debugfs_create();
 	return result;
 
- err_create_frame_align:
+err_create_frame_align:
 	driver_remove_file(&cfspi_spi_driver.driver,
-			   &driver_attr_down_tail_align);
- err_create_down_tail_align:
+					   &driver_attr_down_tail_align);
+err_create_down_tail_align:
 	driver_remove_file(&cfspi_spi_driver.driver,
-			   &driver_attr_down_head_align);
- err_create_down_head_align:
+					   &driver_attr_down_head_align);
+err_create_down_head_align:
 	driver_remove_file(&cfspi_spi_driver.driver,
-			   &driver_attr_up_tail_align);
- err_create_up_tail_align:
+					   &driver_attr_up_tail_align);
+err_create_up_tail_align:
 	driver_remove_file(&cfspi_spi_driver.driver,
-			   &driver_attr_up_head_align);
- err_create_up_head_align:
+					   &driver_attr_up_head_align);
+err_create_up_head_align:
 	platform_driver_unregister(&cfspi_spi_driver);
- err_dev_register:
+err_dev_register:
 	return result;
 }
 

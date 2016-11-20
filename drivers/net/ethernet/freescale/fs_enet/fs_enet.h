@@ -12,7 +12,7 @@
 #include <asm/fs_pd.h>
 
 #ifdef CONFIG_CPM1
-#include <asm/cpm1.h>
+	#include <asm/cpm1.h>
 #endif
 
 #if defined(CONFIG_FS_ENET_HAS_FEC)
@@ -20,7 +20,8 @@
 
 #if defined(CONFIG_FS_ENET_MPC5121_FEC)
 /* MPC5121 FEC has different register layout */
-struct fec {
+struct fec
+{
 	u32 fec_reserved0;
 	u32 fec_ievent;			/* Interrupt event reg */
 	u32 fec_imask;			/* Interrupt mask reg */
@@ -61,18 +62,20 @@ struct fec {
 };
 #endif
 
-struct fec_info {
+struct fec_info
+{
 	struct fec __iomem *fecp;
 	u32 mii_speed;
 };
 #endif
 
 #ifdef CONFIG_CPM2
-#include <asm/cpm2.h>
+	#include <asm/cpm2.h>
 #endif
 
 /* hw driver ops */
-struct fs_ops {
+struct fs_ops
+{
 	int (*setup_data)(struct net_device *dev);
 	int (*allocate_bd)(struct net_device *dev);
 	void (*free_bd)(struct net_device *dev);
@@ -94,12 +97,13 @@ struct fs_ops {
 	void (*tx_restart)(struct net_device *dev);
 };
 
-struct phy_info {
+struct phy_info
+{
 	unsigned int id;
 	const char *name;
-	void (*startup) (struct net_device * dev);
-	void (*shutdown) (struct net_device * dev);
-	void (*ack_int) (struct net_device * dev);
+	void (*startup) (struct net_device *dev);
+	void (*shutdown) (struct net_device *dev);
+	void (*ack_int) (struct net_device *dev);
 };
 
 /* The FEC stores dest/src/type, data, and checksum for receive packets.
@@ -117,7 +121,8 @@ struct phy_info {
 #define ENET_RX_ALIGN  16
 #define ENET_RX_FRSIZE L1_CACHE_ALIGN(PKT_MAXBUF_SIZE + ENET_RX_ALIGN - 1)
 
-struct fs_enet_private {
+struct fs_enet_private
+{
 	struct napi_struct napi;
 	struct device *dev;	/* pointer back to the device (must be initialized first) */
 	struct net_device *ndev;
@@ -155,14 +160,17 @@ struct fs_enet_private {
 	u16 bd_rx_empty;	/* mask of BD rx empty	  */
 	u16 bd_rx_err;		/* mask of BD rx errors   */
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			int idx;		/* FEC1 = 0, FEC2 = 1  */
 			void __iomem *fecp;	/* hw registers        */
 			u32 hthi, htlo;		/* state for multicast */
 		} fec;
 
-		struct {
+		struct
+		{
 			int idx;		/* FCC1-3 = 0-2	       */
 			void __iomem *fccp;	/* hw registers	       */
 			void __iomem *ep;	/* parameter ram       */
@@ -171,7 +179,8 @@ struct fs_enet_private {
 			u32 gaddrh, gaddrl;	/* group address       */
 		} fcc;
 
-		struct {
+		struct
+		{
 			int idx;		/* FEC1 = 0, FEC2 = 1  */
 			void __iomem *sccp;	/* hw registers        */
 			void __iomem *ep;	/* parameter ram       */
@@ -203,17 +212,17 @@ void fs_enet_platform_cleanup(void);
 
 /* access macros */
 #if defined(CONFIG_CPM1)
-/* for a a CPM1 __raw_xxx's are sufficient */
-#define __cbd_out32(addr, x)	__raw_writel(x, addr)
-#define __cbd_out16(addr, x)	__raw_writew(x, addr)
-#define __cbd_in32(addr)	__raw_readl(addr)
-#define __cbd_in16(addr)	__raw_readw(addr)
+	/* for a a CPM1 __raw_xxx's are sufficient */
+	#define __cbd_out32(addr, x)	__raw_writel(x, addr)
+	#define __cbd_out16(addr, x)	__raw_writew(x, addr)
+	#define __cbd_in32(addr)	__raw_readl(addr)
+	#define __cbd_in16(addr)	__raw_readw(addr)
 #else
-/* for others play it safe */
-#define __cbd_out32(addr, x)	out_be32(addr, x)
-#define __cbd_out16(addr, x)	out_be16(addr, x)
-#define __cbd_in32(addr)	in_be32(addr)
-#define __cbd_in16(addr)	in_be16(addr)
+	/* for others play it safe */
+	#define __cbd_out32(addr, x)	out_be32(addr, x)
+	#define __cbd_out16(addr, x)	out_be16(addr, x)
+	#define __cbd_in32(addr)	in_be32(addr)
+	#define __cbd_in16(addr)	in_be16(addr)
 #endif
 
 /* write */

@@ -83,7 +83,8 @@ static const char *const sel_io[]   __initconst = { "ref_io", "ref_xtal", };
 static const char *const cpu_sels[] __initconst = { "cpu_pll", "cpu_xtal", };
 static const char *const emi_sels[] __initconst = { "emi_pll", "emi_xtal", };
 
-enum imx23_clk {
+enum imx23_clk
+{
 	ref_xtal, pll, ref_cpu, ref_emi, ref_pix, ref_io, saif_sel,
 	lcdif_sel, gpmi_sel, ssp_sel, emi_sel, cpu, etm_sel, cpu_pll,
 	cpu_xtal, hbus, xbus, lcdif_div, ssp_div, gpmi_div, emi_pll,
@@ -96,7 +97,8 @@ enum imx23_clk {
 static struct clk *clks[clk_max];
 static struct clk_onecell_data clk_data;
 
-static enum imx23_clk clks_init_on[] __initdata = {
+static enum imx23_clk clks_init_on[] __initdata =
+{
 	cpu, hbus, xbus, emi, uart,
 };
 
@@ -159,9 +161,10 @@ static void __init mx23_clocks_init(struct device_node *np)
 	clks[usb_phy] = clk_register_gate(NULL, "usb_phy", "pll", 0, PLLCTRL0, 18, 0, &mxs_lock);
 
 	for (i = 0; i < ARRAY_SIZE(clks); i++)
-		if (IS_ERR(clks[i])) {
+		if (IS_ERR(clks[i]))
+		{
 			pr_err("i.MX23 clk %d: register failed with %ld\n",
-				i, PTR_ERR(clks[i]));
+				   i, PTR_ERR(clks[i]));
 			return;
 		}
 
@@ -170,7 +173,9 @@ static void __init mx23_clocks_init(struct device_node *np)
 	of_clk_add_provider(np, of_clk_src_onecell_get, &clk_data);
 
 	for (i = 0; i < ARRAY_SIZE(clks_init_on); i++)
+	{
 		clk_prepare_enable(clks[clks_init_on[i]]);
+	}
 
 }
 CLK_OF_DECLARE(imx23_clkctrl, "fsl,imx23-clkctrl", mx23_clocks_init);

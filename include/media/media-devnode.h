@@ -56,7 +56,8 @@ struct media_device;
  * @release: pointer to the function that will release the resources allocated
  *	by the @open function.
  */
-struct media_file_operations {
+struct media_file_operations
+{
 	struct module *owner;
 	ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);
 	ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *);
@@ -84,7 +85,8 @@ struct media_file_operations {
  * The @parent is a physical device. It must be set by core or device drivers
  * before registering the node.
  */
-struct media_devnode {
+struct media_devnode
+{
 	struct media_device *media_dev;
 
 	/* device ops */
@@ -124,8 +126,8 @@ struct media_devnode {
  * freeing any data.
  */
 int __must_check media_devnode_register(struct media_device *mdev,
-					struct media_devnode *devnode,
-					struct module *owner);
+										struct media_devnode *devnode,
+										struct module *owner);
 
 /**
  * media_devnode_unregister_prepare - clear the media device node register bit
@@ -172,7 +174,9 @@ static inline struct media_devnode *media_devnode_data(struct file *filp)
 static inline int media_devnode_is_registered(struct media_devnode *devnode)
 {
 	if (!devnode)
+	{
 		return false;
+	}
 
 	return test_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
 }

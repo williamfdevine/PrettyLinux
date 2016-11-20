@@ -24,12 +24,12 @@
 
 #ifdef CONFIG_COMPAT
 
-struct file;
-long comedi_compat_ioctl(struct file *, unsigned int cmd, unsigned long arg);
+	struct file;
+	long comedi_compat_ioctl(struct file *, unsigned int cmd, unsigned long arg);
 
 #else /* CONFIG_COMPAT */
 
-#define comedi_compat_ioctl	NULL
+	#define comedi_compat_ioctl	NULL
 
 #endif /* CONFIG_COMPAT */
 

@@ -22,7 +22,8 @@
 
 #include "../dss/omapdss.h"
 
-struct panel_drv_data {
+struct panel_drv_data
+{
 	struct omap_dss_device dssdev;
 	struct omap_dss_device *in;
 
@@ -46,11 +47,16 @@ static int panel_dpi_connect(struct omap_dss_device *dssdev)
 	int r;
 
 	if (omapdss_device_is_connected(dssdev))
+	{
 		return 0;
+	}
 
 	r = in->ops.dpi->connect(in, dssdev);
+
 	if (r)
+	{
 		return r;
+	}
 
 	return 0;
 }
@@ -61,7 +67,9 @@ static void panel_dpi_disconnect(struct omap_dss_device *dssdev)
 	struct omap_dss_device *in = ddata->in;
 
 	if (!omapdss_device_is_connected(dssdev))
+	{
 		return;
+	}
 
 	in->ops.dpi->disconnect(in, dssdev);
 }
@@ -73,21 +81,33 @@ static int panel_dpi_enable(struct omap_dss_device *dssdev)
 	int r;
 
 	if (!omapdss_device_is_connected(dssdev))
+	{
 		return -ENODEV;
+	}
 
 	if (omapdss_device_is_enabled(dssdev))
+	{
 		return 0;
+	}
 
 	if (ddata->data_lines)
+	{
 		in->ops.dpi->set_data_lines(in, ddata->data_lines);
+	}
+
 	in->ops.dpi->set_timings(in, &ddata->videomode);
 
 	r = in->ops.dpi->enable(in);
+
 	if (r)
+	{
 		return r;
+	}
 
 	r = regulator_enable(ddata->vcc_supply);
-	if (r) {
+
+	if (r)
+	{
 		in->ops.dpi->disable(in);
 		return r;
 	}
@@ -95,7 +115,9 @@ static int panel_dpi_enable(struct omap_dss_device *dssdev)
 	gpiod_set_value_cansleep(ddata->enable_gpio, 1);
 
 	if (gpio_is_valid(ddata->backlight_gpio))
+	{
 		gpio_set_value_cansleep(ddata->backlight_gpio, 1);
+	}
 
 	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
 
@@ -108,10 +130,14 @@ static void panel_dpi_disable(struct omap_dss_device *dssdev)
 	struct omap_dss_device *in = ddata->in;
 
 	if (!omapdss_device_is_enabled(dssdev))
+	{
 		return;
+	}
 
 	if (gpio_is_valid(ddata->backlight_gpio))
+	{
 		gpio_set_value_cansleep(ddata->backlight_gpio, 0);
+	}
 
 	gpiod_set_value_cansleep(ddata->enable_gpio, 0);
 	regulator_disable(ddata->vcc_supply);
@@ -122,7 +148,7 @@ static void panel_dpi_disable(struct omap_dss_device *dssdev)
 }
 
 static void panel_dpi_set_timings(struct omap_dss_device *dssdev,
-		struct omap_video_timings *timings)
+								  struct omap_video_timings *timings)
 {
 	struct panel_drv_data *ddata = to_panel_data(dssdev);
 	struct omap_dss_device *in = ddata->in;
@@ -134,7 +160,7 @@ static void panel_dpi_set_timings(struct omap_dss_device *dssdev,
 }
 
 static void panel_dpi_get_timings(struct omap_dss_device *dssdev,
-		struct omap_video_timings *timings)
+								  struct omap_video_timings *timings)
 {
 	struct panel_drv_data *ddata = to_panel_data(dssdev);
 
@@ -142,7 +168,7 @@ static void panel_dpi_get_timings(struct omap_dss_device *dssdev,
 }
 
 static int panel_dpi_check_timings(struct omap_dss_device *dssdev,
-		struct omap_video_timings *timings)
+								   struct omap_video_timings *timings)
 {
 	struct panel_drv_data *ddata = to_panel_data(dssdev);
 	struct omap_dss_device *in = ddata->in;
@@ -150,7 +176,8 @@ static int panel_dpi_check_timings(struct omap_dss_device *dssdev,
 	return in->ops.dpi->check_timings(in, timings);
 }
 
-static struct omap_dss_driver panel_dpi_ops = {
+static struct omap_dss_driver panel_dpi_ops =
+{
 	.connect	= panel_dpi_connect,
 	.disconnect	= panel_dpi_disconnect,
 
@@ -175,7 +202,9 @@ static int panel_dpi_probe_pdata(struct platform_device *pdev)
 	pdata = dev_get_platdata(&pdev->dev);
 
 	in = omap_dss_find_output(pdata->source);
-	if (in == NULL) {
+
+	if (in == NULL)
+	{
 		dev_err(&pdev->dev, "failed to find video source '%s'\n",
 				pdata->source);
 		return -EPROBE_DEFER;
@@ -192,9 +221,12 @@ static int panel_dpi_probe_pdata(struct platform_device *pdev)
 	dssdev->name = pdata->name;
 
 	r = devm_gpio_request_one(&pdev->dev, pdata->enable_gpio,
-					GPIOF_OUT_INIT_LOW, "panel enable");
+							  GPIOF_OUT_INIT_LOW, "panel enable");
+
 	if (r)
+	{
 		goto err_gpio;
+	}
 
 	ddata->enable_gpio = gpio_to_desc(pdata->enable_gpio);
 
@@ -218,8 +250,11 @@ static int panel_dpi_probe_of(struct platform_device *pdev)
 	struct gpio_desc *gpio;
 
 	gpio = devm_gpiod_get_optional(&pdev->dev, "enable", GPIOD_OUT_LOW);
+
 	if (IS_ERR(gpio))
+	{
 		return PTR_ERR(gpio);
+	}
 
 	ddata->enable_gpio = gpio;
 
@@ -230,17 +265,25 @@ static int panel_dpi_probe_of(struct platform_device *pdev)
 	 * ensured that the reset line isn't active.
 	 */
 	gpio = devm_gpiod_get_optional(&pdev->dev, "reset", GPIOD_OUT_LOW);
+
 	if (IS_ERR(gpio))
+	{
 		return PTR_ERR(gpio);
+	}
 
 	ddata->vcc_supply = devm_regulator_get(&pdev->dev, "vcc");
+
 	if (IS_ERR(ddata->vcc_supply))
+	{
 		return PTR_ERR(ddata->vcc_supply);
+	}
 
 	ddata->backlight_gpio = -ENOENT;
 
 	r = of_get_display_timing(node, "panel-timing", &timing);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(&pdev->dev, "failed to get video timing\n");
 		return r;
 	}
@@ -249,7 +292,9 @@ static int panel_dpi_probe_of(struct platform_device *pdev)
 	videomode_to_omap_video_timings(&vm, &ddata->videomode);
 
 	in = omapdss_of_find_source_for_first_ep(node);
-	if (IS_ERR(in)) {
+
+	if (IS_ERR(in))
+	{
 		dev_err(&pdev->dev, "failed to find video source\n");
 		return PTR_ERR(in);
 	}
@@ -266,28 +311,46 @@ static int panel_dpi_probe(struct platform_device *pdev)
 	int r;
 
 	ddata = devm_kzalloc(&pdev->dev, sizeof(*ddata), GFP_KERNEL);
+
 	if (ddata == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, ddata);
 
-	if (dev_get_platdata(&pdev->dev)) {
+	if (dev_get_platdata(&pdev->dev))
+	{
 		r = panel_dpi_probe_pdata(pdev);
+
 		if (r)
+		{
 			return r;
-	} else if (pdev->dev.of_node) {
+		}
+	}
+	else if (pdev->dev.of_node)
+	{
 		r = panel_dpi_probe_of(pdev);
+
 		if (r)
+		{
 			return r;
-	} else {
+		}
+	}
+	else
+	{
 		return -ENODEV;
 	}
 
-	if (gpio_is_valid(ddata->backlight_gpio)) {
+	if (gpio_is_valid(ddata->backlight_gpio))
+	{
 		r = devm_gpio_request_one(&pdev->dev, ddata->backlight_gpio,
-				GPIOF_OUT_INIT_LOW, "panel backlight");
+								  GPIOF_OUT_INIT_LOW, "panel backlight");
+
 		if (r)
+		{
 			goto err_gpio;
+		}
 	}
 
 	dssdev = &ddata->dssdev;
@@ -299,7 +362,9 @@ static int panel_dpi_probe(struct platform_device *pdev)
 	dssdev->phy.dpi.data_lines = ddata->data_lines;
 
 	r = omapdss_register_display(dssdev);
-	if (r) {
+
+	if (r)
+	{
 		dev_err(&pdev->dev, "Failed to register panel\n");
 		goto err_reg;
 	}
@@ -328,14 +393,16 @@ static int __exit panel_dpi_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id panel_dpi_of_match[] = {
+static const struct of_device_id panel_dpi_of_match[] =
+{
 	{ .compatible = "omapdss,panel-dpi", },
 	{},
 };
 
 MODULE_DEVICE_TABLE(of, panel_dpi_of_match);
 
-static struct platform_driver panel_dpi_driver = {
+static struct platform_driver panel_dpi_driver =
+{
 	.probe = panel_dpi_probe,
 	.remove = __exit_p(panel_dpi_remove),
 	.driver = {

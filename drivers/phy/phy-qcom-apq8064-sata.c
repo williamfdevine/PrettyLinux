@@ -73,7 +73,8 @@
 #define TIMEOUT_MS		10000
 #define DELAY_INTERVAL_US	100
 
-struct qcom_apq8064_sata_phy {
+struct qcom_apq8064_sata_phy
+{
 	void __iomem *mmio;
 	struct clk *cfg_clk;
 	struct device *dev;
@@ -84,12 +85,16 @@ static int read_poll_timeout(void __iomem *addr, u32 mask)
 {
 	unsigned long timeout = jiffies + msecs_to_jiffies(TIMEOUT_MS);
 
-	do {
+	do
+	{
 		if (readl_relaxed(addr) & mask)
+		{
 			return 0;
+		}
 
-		 usleep_range(DELAY_INTERVAL_US, DELAY_INTERVAL_US + 50);
-	} while (!time_after(jiffies, timeout));
+		usleep_range(DELAY_INTERVAL_US, DELAY_INTERVAL_US + 50);
+	}
+	while (!time_after(jiffies, timeout));
 
 	return (readl_relaxed(addr) & mask) ? 0 : -ETIMEDOUT;
 }
@@ -146,21 +151,27 @@ static int qcom_apq8064_sata_phy_init(struct phy *generic_phy)
 
 	/* PLL Lock wait */
 	ret = read_poll_timeout(base + UNIPHY_PLL_STATUS, UNIPHY_PLL_LOCK);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(phy->dev, "poll timeout UNIPHY_PLL_STATUS\n");
 		return ret;
 	}
 
 	/* TX Calibration */
 	ret = read_poll_timeout(base + SATA_PHY_TX_IMCAL_STAT, SATA_PHY_TX_CAL);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(phy->dev, "poll timeout SATA_PHY_TX_IMCAL_STAT\n");
 		return ret;
 	}
 
 	/* RX Calibration */
 	ret = read_poll_timeout(base + SATA_PHY_RX_IMCAL_STAT, SATA_PHY_RX_CAL);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(phy->dev, "poll timeout SATA_PHY_RX_IMCAL_STAT\n");
 		return ret;
 	}
@@ -204,7 +215,8 @@ static int qcom_apq8064_sata_phy_exit(struct phy *generic_phy)
 	return 0;
 }
 
-static const struct phy_ops qcom_apq8064_sata_phy_ops = {
+static const struct phy_ops qcom_apq8064_sata_phy_ops =
+{
 	.init		= qcom_apq8064_sata_phy_init,
 	.exit		= qcom_apq8064_sata_phy_exit,
 	.owner		= THIS_MODULE,
@@ -220,16 +232,24 @@ static int qcom_apq8064_sata_phy_probe(struct platform_device *pdev)
 	int ret;
 
 	phy = devm_kzalloc(dev, sizeof(*phy), GFP_KERNEL);
+
 	if (!phy)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	phy->mmio = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(phy->mmio))
+	{
 		return PTR_ERR(phy->mmio);
+	}
 
 	generic_phy = devm_phy_create(dev, NULL, &qcom_apq8064_sata_phy_ops);
-	if (IS_ERR(generic_phy)) {
+
+	if (IS_ERR(generic_phy))
+	{
 		dev_err(dev, "%s: failed to create phy\n", __func__);
 		return PTR_ERR(generic_phy);
 	}
@@ -239,17 +259,24 @@ static int qcom_apq8064_sata_phy_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, phy);
 
 	phy->cfg_clk = devm_clk_get(dev, "cfg");
-	if (IS_ERR(phy->cfg_clk)) {
+
+	if (IS_ERR(phy->cfg_clk))
+	{
 		dev_err(dev, "Failed to get sata cfg clock\n");
 		return PTR_ERR(phy->cfg_clk);
 	}
 
 	ret = clk_prepare_enable(phy->cfg_clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	phy_provider = devm_of_phy_provider_register(dev, of_phy_simple_xlate);
-	if (IS_ERR(phy_provider)) {
+
+	if (IS_ERR(phy_provider))
+	{
 		clk_disable_unprepare(phy->cfg_clk);
 		dev_err(dev, "%s: failed to register phy\n", __func__);
 		return PTR_ERR(phy_provider);
@@ -267,13 +294,15 @@ static int qcom_apq8064_sata_phy_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id qcom_apq8064_sata_phy_of_match[] = {
+static const struct of_device_id qcom_apq8064_sata_phy_of_match[] =
+{
 	{ .compatible = "qcom,apq8064-sata-phy" },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, qcom_apq8064_sata_phy_of_match);
 
-static struct platform_driver qcom_apq8064_sata_phy_driver = {
+static struct platform_driver qcom_apq8064_sata_phy_driver =
+{
 	.probe	= qcom_apq8064_sata_phy_probe,
 	.remove	= qcom_apq8064_sata_phy_remove,
 	.driver = {

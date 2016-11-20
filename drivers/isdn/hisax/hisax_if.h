@@ -35,20 +35,23 @@
 #define L1_MODE_V32	8
 #define L1_MODE_FAX	9
 
-struct hisax_if {
+struct hisax_if
+{
 	void *priv; // private to driver
 	void (*l1l2)(struct hisax_if *, int pr, void *arg);
 	void (*l2l1)(struct hisax_if *, int pr, void *arg);
 };
 
-struct hisax_b_if {
+struct hisax_b_if
+{
 	struct hisax_if ifc;
 
 	// private to hisax
 	struct BCState *bcs;
 };
 
-struct hisax_d_if {
+struct hisax_d_if
+{
 	struct hisax_if ifc;
 
 	// private to hisax
@@ -60,7 +63,7 @@ struct hisax_d_if {
 };
 
 int hisax_register(struct hisax_d_if *hisax_if, struct hisax_b_if *b_if[],
-		   char *name, int protocol);
+				   char *name, int protocol);
 void hisax_unregister(struct hisax_d_if *hisax_if);
 
 #endif

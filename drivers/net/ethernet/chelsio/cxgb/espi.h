@@ -40,7 +40,8 @@
 
 #include "common.h"
 
-struct espi_intr_counts {
+struct espi_intr_counts
+{
 	unsigned int DIP4_err;
 	unsigned int rx_drops;
 	unsigned int tx_drops;

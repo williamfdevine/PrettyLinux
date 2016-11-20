@@ -37,17 +37,29 @@
 static inline enum ib_mtu rxe_mtu_int_to_enum(int mtu)
 {
 	if (mtu < 256)
+	{
 		return 0;
+	}
 	else if (mtu < 512)
+	{
 		return IB_MTU_256;
+	}
 	else if (mtu < 1024)
+	{
 		return IB_MTU_512;
+	}
 	else if (mtu < 2048)
+	{
 		return IB_MTU_1024;
+	}
 	else if (mtu < 4096)
+	{
 		return IB_MTU_2048;
+	}
 	else
+	{
 		return IB_MTU_4096;
+	}
 }
 
 /* Find the IB mtu for a given network MTU. */
@@ -59,7 +71,8 @@ static inline enum ib_mtu eth_mtu_int_to_enum(int mtu)
 }
 
 /* default/initial rxe device parameter settings */
-enum rxe_device_param {
+enum rxe_device_param
+{
 	RXE_FW_VER			= 0,
 	RXE_MAX_MR_SIZE			= -1ull,
 	RXE_PAGE_SIZE_CAP		= 0xfffff000,
@@ -70,15 +83,15 @@ enum rxe_device_param {
 	RXE_MAX_QP_WR			= 0x4000,
 	RXE_MAX_INLINE_DATA		= 400,
 	RXE_DEVICE_CAP_FLAGS		= IB_DEVICE_BAD_PKEY_CNTR
-					| IB_DEVICE_BAD_QKEY_CNTR
-					| IB_DEVICE_AUTO_PATH_MIG
-					| IB_DEVICE_CHANGE_PHY_PORT
-					| IB_DEVICE_UD_AV_PORT_ENFORCE
-					| IB_DEVICE_PORT_ACTIVE_EVENT
-					| IB_DEVICE_SYS_IMAGE_GUID
-					| IB_DEVICE_RC_RNR_NAK_GEN
-					| IB_DEVICE_SRQ_RESIZE
-					| IB_DEVICE_MEM_MGT_EXTENSIONS,
+								  | IB_DEVICE_BAD_QKEY_CNTR
+								  | IB_DEVICE_AUTO_PATH_MIG
+								  | IB_DEVICE_CHANGE_PHY_PORT
+								  | IB_DEVICE_UD_AV_PORT_ENFORCE
+								  | IB_DEVICE_PORT_ACTIVE_EVENT
+								  | IB_DEVICE_SYS_IMAGE_GUID
+								  | IB_DEVICE_RC_RNR_NAK_GEN
+								  | IB_DEVICE_SRQ_RESIZE
+								  | IB_DEVICE_MEM_MGT_EXTENSIONS,
 	RXE_MAX_SGE			= 32,
 	RXE_MAX_SGE_RD			= 32,
 	RXE_MAX_CQ			= 16384,
@@ -139,7 +152,8 @@ enum rxe_device_param {
 };
 
 /* default/initial rxe port parameters */
-enum rxe_port_param {
+enum rxe_port_param
+{
 	RXE_PORT_STATE			= IB_PORT_DOWN,
 	RXE_PORT_MAX_MTU		= IB_MTU_4096,
 	RXE_PORT_ACTIVE_MTU		= IB_MTU_256,
@@ -163,7 +177,8 @@ enum rxe_port_param {
 };
 
 /* default/initial port info parameters */
-enum rxe_port_info_param {
+enum rxe_port_info_param
+{
 	RXE_PORT_INFO_VL_CAP		= 4,	/* 1-8 */
 	RXE_PORT_INFO_MTU_CAP		= 5,	/* 4096 */
 	RXE_PORT_INFO_OPER_VL		= 1,	/* 1 */

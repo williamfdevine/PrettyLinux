@@ -27,73 +27,82 @@
 #include <soc/fsl/qe/ucc.h>
 #include <soc/fsl/qe/ucc_fast.h>
 
-void ucc_fast_dump_regs(struct ucc_fast_private * uccf)
+void ucc_fast_dump_regs(struct ucc_fast_private *uccf)
 {
 	printk(KERN_INFO "UCC%u Fast registers:\n", uccf->uf_info->ucc_num);
 	printk(KERN_INFO "Base address: 0x%p\n", uccf->uf_regs);
 
 	printk(KERN_INFO "gumr  : addr=0x%p, val=0x%08x\n",
-		  &uccf->uf_regs->gumr, in_be32(&uccf->uf_regs->gumr));
+		   &uccf->uf_regs->gumr, in_be32(&uccf->uf_regs->gumr));
 	printk(KERN_INFO "upsmr : addr=0x%p, val=0x%08x\n",
-		  &uccf->uf_regs->upsmr, in_be32(&uccf->uf_regs->upsmr));
+		   &uccf->uf_regs->upsmr, in_be32(&uccf->uf_regs->upsmr));
 	printk(KERN_INFO "utodr : addr=0x%p, val=0x%04x\n",
-		  &uccf->uf_regs->utodr, in_be16(&uccf->uf_regs->utodr));
+		   &uccf->uf_regs->utodr, in_be16(&uccf->uf_regs->utodr));
 	printk(KERN_INFO "udsr  : addr=0x%p, val=0x%04x\n",
-		  &uccf->uf_regs->udsr, in_be16(&uccf->uf_regs->udsr));
+		   &uccf->uf_regs->udsr, in_be16(&uccf->uf_regs->udsr));
 	printk(KERN_INFO "ucce  : addr=0x%p, val=0x%08x\n",
-		  &uccf->uf_regs->ucce, in_be32(&uccf->uf_regs->ucce));
+		   &uccf->uf_regs->ucce, in_be32(&uccf->uf_regs->ucce));
 	printk(KERN_INFO "uccm  : addr=0x%p, val=0x%08x\n",
-		  &uccf->uf_regs->uccm, in_be32(&uccf->uf_regs->uccm));
+		   &uccf->uf_regs->uccm, in_be32(&uccf->uf_regs->uccm));
 	printk(KERN_INFO "uccs  : addr=0x%p, val=0x%02x\n",
-		  &uccf->uf_regs->uccs, in_8(&uccf->uf_regs->uccs));
+		   &uccf->uf_regs->uccs, in_8(&uccf->uf_regs->uccs));
 	printk(KERN_INFO "urfb  : addr=0x%p, val=0x%08x\n",
-		  &uccf->uf_regs->urfb, in_be32(&uccf->uf_regs->urfb));
+		   &uccf->uf_regs->urfb, in_be32(&uccf->uf_regs->urfb));
 	printk(KERN_INFO "urfs  : addr=0x%p, val=0x%04x\n",
-		  &uccf->uf_regs->urfs, in_be16(&uccf->uf_regs->urfs));
+		   &uccf->uf_regs->urfs, in_be16(&uccf->uf_regs->urfs));
 	printk(KERN_INFO "urfet : addr=0x%p, val=0x%04x\n",
-		  &uccf->uf_regs->urfet, in_be16(&uccf->uf_regs->urfet));
+		   &uccf->uf_regs->urfet, in_be16(&uccf->uf_regs->urfet));
 	printk(KERN_INFO "urfset: addr=0x%p, val=0x%04x\n",
-		  &uccf->uf_regs->urfset, in_be16(&uccf->uf_regs->urfset));
+		   &uccf->uf_regs->urfset, in_be16(&uccf->uf_regs->urfset));
 	printk(KERN_INFO "utfb  : addr=0x%p, val=0x%08x\n",
-		  &uccf->uf_regs->utfb, in_be32(&uccf->uf_regs->utfb));
+		   &uccf->uf_regs->utfb, in_be32(&uccf->uf_regs->utfb));
 	printk(KERN_INFO "utfs  : addr=0x%p, val=0x%04x\n",
-		  &uccf->uf_regs->utfs, in_be16(&uccf->uf_regs->utfs));
+		   &uccf->uf_regs->utfs, in_be16(&uccf->uf_regs->utfs));
 	printk(KERN_INFO "utfet : addr=0x%p, val=0x%04x\n",
-		  &uccf->uf_regs->utfet, in_be16(&uccf->uf_regs->utfet));
+		   &uccf->uf_regs->utfet, in_be16(&uccf->uf_regs->utfet));
 	printk(KERN_INFO "utftt : addr=0x%p, val=0x%04x\n",
-		  &uccf->uf_regs->utftt, in_be16(&uccf->uf_regs->utftt));
+		   &uccf->uf_regs->utftt, in_be16(&uccf->uf_regs->utftt));
 	printk(KERN_INFO "utpt  : addr=0x%p, val=0x%04x\n",
-		  &uccf->uf_regs->utpt, in_be16(&uccf->uf_regs->utpt));
+		   &uccf->uf_regs->utpt, in_be16(&uccf->uf_regs->utpt));
 	printk(KERN_INFO "urtry : addr=0x%p, val=0x%08x\n",
-		  &uccf->uf_regs->urtry, in_be32(&uccf->uf_regs->urtry));
+		   &uccf->uf_regs->urtry, in_be32(&uccf->uf_regs->urtry));
 	printk(KERN_INFO "guemr : addr=0x%p, val=0x%02x\n",
-		  &uccf->uf_regs->guemr, in_8(&uccf->uf_regs->guemr));
+		   &uccf->uf_regs->guemr, in_8(&uccf->uf_regs->guemr));
 }
 EXPORT_SYMBOL(ucc_fast_dump_regs);
 
 u32 ucc_fast_get_qe_cr_subblock(int uccf_num)
 {
-	switch (uccf_num) {
-	case 0: return QE_CR_SUBBLOCK_UCCFAST1;
-	case 1: return QE_CR_SUBBLOCK_UCCFAST2;
-	case 2: return QE_CR_SUBBLOCK_UCCFAST3;
-	case 3: return QE_CR_SUBBLOCK_UCCFAST4;
-	case 4: return QE_CR_SUBBLOCK_UCCFAST5;
-	case 5: return QE_CR_SUBBLOCK_UCCFAST6;
-	case 6: return QE_CR_SUBBLOCK_UCCFAST7;
-	case 7: return QE_CR_SUBBLOCK_UCCFAST8;
-	default: return QE_CR_SUBBLOCK_INVALID;
+	switch (uccf_num)
+	{
+		case 0: return QE_CR_SUBBLOCK_UCCFAST1;
+
+		case 1: return QE_CR_SUBBLOCK_UCCFAST2;
+
+		case 2: return QE_CR_SUBBLOCK_UCCFAST3;
+
+		case 3: return QE_CR_SUBBLOCK_UCCFAST4;
+
+		case 4: return QE_CR_SUBBLOCK_UCCFAST5;
+
+		case 5: return QE_CR_SUBBLOCK_UCCFAST6;
+
+		case 6: return QE_CR_SUBBLOCK_UCCFAST7;
+
+		case 7: return QE_CR_SUBBLOCK_UCCFAST8;
+
+		default: return QE_CR_SUBBLOCK_INVALID;
 	}
 }
 EXPORT_SYMBOL(ucc_fast_get_qe_cr_subblock);
 
-void ucc_fast_transmit_on_demand(struct ucc_fast_private * uccf)
+void ucc_fast_transmit_on_demand(struct ucc_fast_private *uccf)
 {
 	out_be16(&uccf->uf_regs->utodr, UCC_FAST_TOD);
 }
 EXPORT_SYMBOL(ucc_fast_transmit_on_demand);
 
-void ucc_fast_enable(struct ucc_fast_private * uccf, enum comm_dir mode)
+void ucc_fast_enable(struct ucc_fast_private *uccf, enum comm_dir mode)
 {
 	struct ucc_fast __iomem *uf_regs;
 	u32 gumr;
@@ -102,19 +111,24 @@ void ucc_fast_enable(struct ucc_fast_private * uccf, enum comm_dir mode)
 
 	/* Enable reception and/or transmission on this UCC. */
 	gumr = in_be32(&uf_regs->gumr);
-	if (mode & COMM_DIR_TX) {
+
+	if (mode & COMM_DIR_TX)
+	{
 		gumr |= UCC_FAST_GUMR_ENT;
 		uccf->enabled_tx = 1;
 	}
-	if (mode & COMM_DIR_RX) {
+
+	if (mode & COMM_DIR_RX)
+	{
 		gumr |= UCC_FAST_GUMR_ENR;
 		uccf->enabled_rx = 1;
 	}
+
 	out_be32(&uf_regs->gumr, gumr);
 }
 EXPORT_SYMBOL(ucc_fast_enable);
 
-void ucc_fast_disable(struct ucc_fast_private * uccf, enum comm_dir mode)
+void ucc_fast_disable(struct ucc_fast_private *uccf, enum comm_dir mode)
 {
 	struct ucc_fast __iomem *uf_regs;
 	u32 gumr;
@@ -123,19 +137,24 @@ void ucc_fast_disable(struct ucc_fast_private * uccf, enum comm_dir mode)
 
 	/* Disable reception and/or transmission on this UCC. */
 	gumr = in_be32(&uf_regs->gumr);
-	if (mode & COMM_DIR_TX) {
+
+	if (mode & COMM_DIR_TX)
+	{
 		gumr &= ~UCC_FAST_GUMR_ENT;
 		uccf->enabled_tx = 0;
 	}
-	if (mode & COMM_DIR_RX) {
+
+	if (mode & COMM_DIR_RX)
+	{
 		gumr &= ~UCC_FAST_GUMR_ENR;
 		uccf->enabled_rx = 0;
 	}
+
 	out_be32(&uf_regs->gumr, gumr);
 }
 EXPORT_SYMBOL(ucc_fast_disable);
 
-int ucc_fast_init(struct ucc_fast_info * uf_info, struct ucc_fast_private ** uccf_ret)
+int ucc_fast_init(struct ucc_fast_info *uf_info, struct ucc_fast_private **uccf_ret)
 {
 	struct ucc_fast_private *uccf;
 	struct ucc_fast __iomem *uf_regs;
@@ -143,61 +162,74 @@ int ucc_fast_init(struct ucc_fast_info * uf_info, struct ucc_fast_private ** ucc
 	int ret;
 
 	if (!uf_info)
+	{
 		return -EINVAL;
+	}
 
 	/* check if the UCC port number is in range. */
-	if ((uf_info->ucc_num < 0) || (uf_info->ucc_num > UCC_MAX_NUM - 1)) {
+	if ((uf_info->ucc_num < 0) || (uf_info->ucc_num > UCC_MAX_NUM - 1))
+	{
 		printk(KERN_ERR "%s: illegal UCC number\n", __func__);
 		return -EINVAL;
 	}
 
 	/* Check that 'max_rx_buf_length' is properly aligned (4). */
-	if (uf_info->max_rx_buf_length & (UCC_FAST_MRBLR_ALIGNMENT - 1)) {
+	if (uf_info->max_rx_buf_length & (UCC_FAST_MRBLR_ALIGNMENT - 1))
+	{
 		printk(KERN_ERR "%s: max_rx_buf_length not aligned\n",
-			__func__);
+			   __func__);
 		return -EINVAL;
 	}
 
 	/* Validate Virtual Fifo register values */
-	if (uf_info->urfs < UCC_FAST_URFS_MIN_VAL) {
+	if (uf_info->urfs < UCC_FAST_URFS_MIN_VAL)
+	{
 		printk(KERN_ERR "%s: urfs is too small\n", __func__);
 		return -EINVAL;
 	}
 
-	if (uf_info->urfs & (UCC_FAST_VIRT_FIFO_REGS_ALIGNMENT - 1)) {
+	if (uf_info->urfs & (UCC_FAST_VIRT_FIFO_REGS_ALIGNMENT - 1))
+	{
 		printk(KERN_ERR "%s: urfs is not aligned\n", __func__);
 		return -EINVAL;
 	}
 
-	if (uf_info->urfet & (UCC_FAST_VIRT_FIFO_REGS_ALIGNMENT - 1)) {
+	if (uf_info->urfet & (UCC_FAST_VIRT_FIFO_REGS_ALIGNMENT - 1))
+	{
 		printk(KERN_ERR "%s: urfet is not aligned.\n", __func__);
 		return -EINVAL;
 	}
 
-	if (uf_info->urfset & (UCC_FAST_VIRT_FIFO_REGS_ALIGNMENT - 1)) {
+	if (uf_info->urfset & (UCC_FAST_VIRT_FIFO_REGS_ALIGNMENT - 1))
+	{
 		printk(KERN_ERR "%s: urfset is not aligned\n", __func__);
 		return -EINVAL;
 	}
 
-	if (uf_info->utfs & (UCC_FAST_VIRT_FIFO_REGS_ALIGNMENT - 1)) {
+	if (uf_info->utfs & (UCC_FAST_VIRT_FIFO_REGS_ALIGNMENT - 1))
+	{
 		printk(KERN_ERR "%s: utfs is not aligned\n", __func__);
 		return -EINVAL;
 	}
 
-	if (uf_info->utfet & (UCC_FAST_VIRT_FIFO_REGS_ALIGNMENT - 1)) {
+	if (uf_info->utfet & (UCC_FAST_VIRT_FIFO_REGS_ALIGNMENT - 1))
+	{
 		printk(KERN_ERR "%s: utfet is not aligned\n", __func__);
 		return -EINVAL;
 	}
 
-	if (uf_info->utftt & (UCC_FAST_VIRT_FIFO_REGS_ALIGNMENT - 1)) {
+	if (uf_info->utftt & (UCC_FAST_VIRT_FIFO_REGS_ALIGNMENT - 1))
+	{
 		printk(KERN_ERR "%s: utftt is not aligned\n", __func__);
 		return -EINVAL;
 	}
 
 	uccf = kzalloc(sizeof(struct ucc_fast_private), GFP_KERNEL);
-	if (!uccf) {
+
+	if (!uccf)
+	{
 		printk(KERN_ERR "%s: Cannot allocate private data\n",
-			__func__);
+			   __func__);
 		return -ENOMEM;
 	}
 
@@ -205,7 +237,9 @@ int ucc_fast_init(struct ucc_fast_info * uf_info, struct ucc_fast_private ** ucc
 	uccf->uf_info = uf_info;
 	/* Set the PHY base address */
 	uccf->uf_regs = ioremap(uf_info->regs, sizeof(struct ucc_fast));
-	if (uccf->uf_regs == NULL) {
+
+	if (uccf->uf_regs == NULL)
+	{
 		printk(KERN_ERR "%s: Cannot map UCC registers\n", __func__);
 		kfree(uccf);
 		return -ENOMEM;
@@ -229,7 +263,9 @@ int ucc_fast_init(struct ucc_fast_info * uf_info, struct ucc_fast_private ** ucc
 
 	/* Set UCC to fast type */
 	ret = ucc_set_type(uf_info->ucc_num, UCC_SPEED_TYPE_FAST);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_ERR "%s: cannot set UCC type\n", __func__);
 		ucc_fast_free(uccf);
 		return ret;
@@ -240,26 +276,56 @@ int ucc_fast_init(struct ucc_fast_info * uf_info, struct ucc_fast_private ** ucc
 	/* Set GUMR */
 	/* For more details see the hardware spec. */
 	gumr = uf_info->ttx_trx;
+
 	if (uf_info->tci)
+	{
 		gumr |= UCC_FAST_GUMR_TCI;
+	}
+
 	if (uf_info->cdp)
+	{
 		gumr |= UCC_FAST_GUMR_CDP;
+	}
+
 	if (uf_info->ctsp)
+	{
 		gumr |= UCC_FAST_GUMR_CTSP;
+	}
+
 	if (uf_info->cds)
+	{
 		gumr |= UCC_FAST_GUMR_CDS;
+	}
+
 	if (uf_info->ctss)
+	{
 		gumr |= UCC_FAST_GUMR_CTSS;
+	}
+
 	if (uf_info->txsy)
+	{
 		gumr |= UCC_FAST_GUMR_TXSY;
+	}
+
 	if (uf_info->rsyn)
+	{
 		gumr |= UCC_FAST_GUMR_RSYN;
+	}
+
 	gumr |= uf_info->synl;
+
 	if (uf_info->rtsm)
+	{
 		gumr |= UCC_FAST_GUMR_RTSM;
+	}
+
 	gumr |= uf_info->renc;
+
 	if (uf_info->revd)
+	{
 		gumr |= UCC_FAST_GUMR_REVD;
+	}
+
 	gumr |= uf_info->tenc;
 	gumr |= uf_info->tcrc;
 	gumr |= uf_info->mode;
@@ -267,10 +333,12 @@ int ucc_fast_init(struct ucc_fast_info * uf_info, struct ucc_fast_private ** ucc
 
 	/* Allocate memory for Tx Virtual Fifo */
 	uccf->ucc_fast_tx_virtual_fifo_base_offset =
-	    qe_muram_alloc(uf_info->utfs, UCC_FAST_VIRT_FIFO_REGS_ALIGNMENT);
-	if (IS_ERR_VALUE(uccf->ucc_fast_tx_virtual_fifo_base_offset)) {
+		qe_muram_alloc(uf_info->utfs, UCC_FAST_VIRT_FIFO_REGS_ALIGNMENT);
+
+	if (IS_ERR_VALUE(uccf->ucc_fast_tx_virtual_fifo_base_offset))
+	{
 		printk(KERN_ERR "%s: cannot allocate MURAM for TX FIFO\n",
-			__func__);
+			   __func__);
 		uccf->ucc_fast_tx_virtual_fifo_base_offset = 0;
 		ucc_fast_free(uccf);
 		return -ENOMEM;
@@ -279,11 +347,13 @@ int ucc_fast_init(struct ucc_fast_info * uf_info, struct ucc_fast_private ** ucc
 	/* Allocate memory for Rx Virtual Fifo */
 	uccf->ucc_fast_rx_virtual_fifo_base_offset =
 		qe_muram_alloc(uf_info->urfs +
-			   UCC_FAST_RECEIVE_VIRTUAL_FIFO_SIZE_FUDGE_FACTOR,
-			   UCC_FAST_VIRT_FIFO_REGS_ALIGNMENT);
-	if (IS_ERR_VALUE(uccf->ucc_fast_rx_virtual_fifo_base_offset)) {
+					   UCC_FAST_RECEIVE_VIRTUAL_FIFO_SIZE_FUDGE_FACTOR,
+					   UCC_FAST_VIRT_FIFO_REGS_ALIGNMENT);
+
+	if (IS_ERR_VALUE(uccf->ucc_fast_rx_virtual_fifo_base_offset))
+	{
 		printk(KERN_ERR "%s: cannot allocate MURAM for RX FIFO\n",
-			__func__);
+			   __func__);
 		uccf->ucc_fast_rx_virtual_fifo_base_offset = 0;
 		ucc_fast_free(uccf);
 		return -ENOMEM;
@@ -307,31 +377,39 @@ int ucc_fast_init(struct ucc_fast_info * uf_info, struct ucc_fast_private ** ucc
 	ucc_set_qe_mux_bkpt(uf_info->ucc_num, uf_info->brkpt_support);
 	/* Set Tsa or NMSI mode. */
 	ucc_set_qe_mux_tsa(uf_info->ucc_num, uf_info->tsa);
+
 	/* If NMSI (not Tsa), set Tx and Rx clock. */
-	if (!uf_info->tsa) {
+	if (!uf_info->tsa)
+	{
 		/* Rx clock routing */
 		if ((uf_info->rx_clock != QE_CLK_NONE) &&
-		    ucc_set_qe_mux_rxtx(uf_info->ucc_num, uf_info->rx_clock,
-					COMM_DIR_RX)) {
+			ucc_set_qe_mux_rxtx(uf_info->ucc_num, uf_info->rx_clock,
+								COMM_DIR_RX))
+		{
 			printk(KERN_ERR "%s: illegal value for RX clock\n",
-			       __func__);
+				   __func__);
 			ucc_fast_free(uccf);
 			return -EINVAL;
 		}
+
 		/* Tx clock routing */
 		if ((uf_info->tx_clock != QE_CLK_NONE) &&
-		    ucc_set_qe_mux_rxtx(uf_info->ucc_num, uf_info->tx_clock,
-					COMM_DIR_TX)) {
+			ucc_set_qe_mux_rxtx(uf_info->ucc_num, uf_info->tx_clock,
+								COMM_DIR_TX))
+		{
 			printk(KERN_ERR "%s: illegal value for TX clock\n",
-			       __func__);
+				   __func__);
 			ucc_fast_free(uccf);
 			return -EINVAL;
 		}
-	} else {
+	}
+	else
+	{
 		/* tdm Rx clock routing */
 		if ((uf_info->rx_clock != QE_CLK_NONE) &&
-		    ucc_set_tdm_rxtx_clk(uf_info->tdm_num, uf_info->rx_clock,
-					 COMM_DIR_RX)) {
+			ucc_set_tdm_rxtx_clk(uf_info->tdm_num, uf_info->rx_clock,
+								 COMM_DIR_RX))
+		{
 			pr_err("%s: illegal value for RX clock", __func__);
 			ucc_fast_free(uccf);
 			return -EINVAL;
@@ -339,8 +417,9 @@ int ucc_fast_init(struct ucc_fast_info * uf_info, struct ucc_fast_private ** ucc
 
 		/* tdm Tx clock routing */
 		if ((uf_info->tx_clock != QE_CLK_NONE) &&
-		    ucc_set_tdm_rxtx_clk(uf_info->tdm_num, uf_info->tx_clock,
-					 COMM_DIR_TX)) {
+			ucc_set_tdm_rxtx_clk(uf_info->tdm_num, uf_info->tx_clock,
+								 COMM_DIR_TX))
+		{
 			pr_err("%s: illegal value for TX clock", __func__);
 			ucc_fast_free(uccf);
 			return -EINVAL;
@@ -348,8 +427,9 @@ int ucc_fast_init(struct ucc_fast_info * uf_info, struct ucc_fast_private ** ucc
 
 		/* tdm Rx sync clock routing */
 		if ((uf_info->rx_sync != QE_CLK_NONE) &&
-		    ucc_set_tdm_rxtx_sync(uf_info->tdm_num, uf_info->rx_sync,
-					  COMM_DIR_RX)) {
+			ucc_set_tdm_rxtx_sync(uf_info->tdm_num, uf_info->rx_sync,
+								  COMM_DIR_RX))
+		{
 			pr_err("%s: illegal value for RX clock", __func__);
 			ucc_fast_free(uccf);
 			return -EINVAL;
@@ -357,8 +437,9 @@ int ucc_fast_init(struct ucc_fast_info * uf_info, struct ucc_fast_private ** ucc
 
 		/* tdm Tx sync clock routing */
 		if ((uf_info->tx_sync != QE_CLK_NONE) &&
-		    ucc_set_tdm_rxtx_sync(uf_info->tdm_num, uf_info->tx_sync,
-					  COMM_DIR_TX)) {
+			ucc_set_tdm_rxtx_sync(uf_info->tdm_num, uf_info->tx_sync,
+								  COMM_DIR_TX))
+		{
 			pr_err("%s: illegal value for TX clock", __func__);
 			ucc_fast_free(uccf);
 			return -EINVAL;
@@ -380,19 +461,27 @@ int ucc_fast_init(struct ucc_fast_info * uf_info, struct ucc_fast_private ** ucc
 }
 EXPORT_SYMBOL(ucc_fast_init);
 
-void ucc_fast_free(struct ucc_fast_private * uccf)
+void ucc_fast_free(struct ucc_fast_private *uccf)
 {
 	if (!uccf)
+	{
 		return;
+	}
 
 	if (uccf->ucc_fast_tx_virtual_fifo_base_offset)
+	{
 		qe_muram_free(uccf->ucc_fast_tx_virtual_fifo_base_offset);
+	}
 
 	if (uccf->ucc_fast_rx_virtual_fifo_base_offset)
+	{
 		qe_muram_free(uccf->ucc_fast_rx_virtual_fifo_base_offset);
+	}
 
 	if (uccf->uf_regs)
+	{
 		iounmap(uccf->uf_regs);
+	}
 
 	kfree(uccf);
 }

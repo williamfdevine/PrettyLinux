@@ -45,7 +45,8 @@ static unsigned long key_gc_flags;
  * Any key whose type gets unregistered will be re-typed to this if it can't be
  * immediately unlinked.
  */
-struct key_type key_type_dead = {
+struct key_type key_type_dead =
+{
 	.name = "dead",
 };
 
@@ -60,10 +61,13 @@ void key_schedule_gc(time_t gc_at)
 
 	kenter("%ld", gc_at - now);
 
-	if (gc_at <= now || test_bit(KEY_GC_REAP_KEYTYPE, &key_gc_flags)) {
+	if (gc_at <= now || test_bit(KEY_GC_REAP_KEYTYPE, &key_gc_flags))
+	{
 		kdebug("IMMEDIATE");
 		schedule_work(&key_gc_work);
-	} else if (gc_at < key_gc_next_run) {
+	}
+	else if (gc_at < key_gc_next_run)
+	{
 		kdebug("DEFERRED");
 		key_gc_next_run = gc_at;
 		expires = jiffies + (gc_at - now) * HZ;
@@ -115,7 +119,7 @@ void key_gc_keytype(struct key_type *ktype)
 
 	kdebug("sleep");
 	wait_on_bit(&key_gc_flags, KEY_GC_REAPING_KEYTYPE,
-		    TASK_UNINTERRUPTIBLE);
+				TASK_UNINTERRUPTIBLE);
 
 	key_gc_dead_keytype = NULL;
 	kleave("");
@@ -126,7 +130,8 @@ void key_gc_keytype(struct key_type *ktype)
  */
 static noinline void key_gc_unused_keys(struct list_head *keys)
 {
-	while (!list_empty(keys)) {
+	while (!list_empty(keys))
+	{
 		struct key *key =
 			list_entry(keys->next, struct key, graveyard_link);
 		list_del(&key->graveyard_link);
@@ -136,14 +141,17 @@ static noinline void key_gc_unused_keys(struct list_head *keys)
 
 		/* Throw away the key data if the key is instantiated */
 		if (test_bit(KEY_FLAG_INSTANTIATED, &key->flags) &&
-		    !test_bit(KEY_FLAG_NEGATIVE, &key->flags) &&
-		    key->type->destroy)
+			!test_bit(KEY_FLAG_NEGATIVE, &key->flags) &&
+			key->type->destroy)
+		{
 			key->type->destroy(key);
+		}
 
 		security_key_free(key);
 
 		/* deal with the user's key tracking and quota */
-		if (test_bit(KEY_FLAG_IN_QUOTA, &key->flags)) {
+		if (test_bit(KEY_FLAG_IN_QUOTA, &key->flags))
+		{
 			spin_lock(&key->user->lock);
 			key->user->qnkeys--;
 			key->user->qnbytes -= key->quotalen;
@@ -151,8 +159,11 @@ static noinline void key_gc_unused_keys(struct list_head *keys)
 		}
 
 		atomic_dec(&key->user->nkeys);
+
 		if (test_bit(KEY_FLAG_INSTANTIATED, &key->flags))
+		{
 			atomic_dec(&key->user->nikeys);
+		}
 
 		key_user_put(key->user);
 
@@ -191,19 +202,30 @@ static void key_garbage_collector(struct work_struct *work)
 	kenter("[%lx,%x]", key_gc_flags, gc_state);
 
 	limit = current_kernel_time().tv_sec;
+
 	if (limit > key_gc_delay)
+	{
 		limit -= key_gc_delay;
+	}
 	else
+	{
 		limit = key_gc_delay;
+	}
 
 	/* Work out what we're going to be doing in this pass */
 	gc_state &= KEY_GC_REAPING_DEAD_1 | KEY_GC_REAPING_DEAD_2;
 	gc_state <<= 1;
+
 	if (test_and_clear_bit(KEY_GC_KEY_EXPIRED, &key_gc_flags))
+	{
 		gc_state |= KEY_GC_REAPING_LINKS | KEY_GC_SET_TIMER;
+	}
 
 	if (test_and_clear_bit(KEY_GC_REAP_KEYTYPE, &key_gc_flags))
+	{
 		gc_state |= KEY_GC_REAPING_DEAD_1;
+	}
+
 	kdebug("new pass %x", gc_state);
 
 	new_timer = LONG_MAX;
@@ -216,15 +238,21 @@ static void key_garbage_collector(struct work_struct *work)
 	cursor = rb_first(&key_serial_tree);
 
 continue_scanning:
-	while (cursor) {
+
+	while (cursor)
+	{
 		key = rb_entry(cursor, struct key, serial_node);
 		cursor = rb_next(cursor);
 
 		if (atomic_read(&key->usage) == 0)
+		{
 			goto found_unreferenced_key;
+		}
 
-		if (unlikely(gc_state & KEY_GC_REAPING_DEAD_1)) {
-			if (key->type == key_gc_dead_keytype) {
+		if (unlikely(gc_state & KEY_GC_REAPING_DEAD_1))
+		{
+			if (key->type == key_gc_dead_keytype)
+			{
 				gc_state |= KEY_GC_FOUND_DEAD_KEY;
 				set_bit(KEY_FLAG_DEAD, &key->flags);
 				key->perm = 0;
@@ -232,38 +260,52 @@ continue_scanning:
 			}
 		}
 
-		if (gc_state & KEY_GC_SET_TIMER) {
-			if (key->expiry > limit && key->expiry < new_timer) {
+		if (gc_state & KEY_GC_SET_TIMER)
+		{
+			if (key->expiry > limit && key->expiry < new_timer)
+			{
 				kdebug("will expire %x in %ld",
-				       key_serial(key), key->expiry - limit);
+					   key_serial(key), key->expiry - limit);
 				new_timer = key->expiry;
 			}
 		}
 
 		if (unlikely(gc_state & KEY_GC_REAPING_DEAD_2))
 			if (key->type == key_gc_dead_keytype)
+			{
 				gc_state |= KEY_GC_FOUND_DEAD_KEY;
+			}
 
 		if ((gc_state & KEY_GC_REAPING_LINKS) ||
-		    unlikely(gc_state & KEY_GC_REAPING_DEAD_2)) {
+			unlikely(gc_state & KEY_GC_REAPING_DEAD_2))
+		{
 			if (key->type == &key_type_keyring)
+			{
 				goto found_keyring;
+			}
 		}
 
 		if (unlikely(gc_state & KEY_GC_REAPING_DEAD_3))
 			if (key->type == key_gc_dead_keytype)
+			{
 				goto destroy_dead_key;
+			}
 
-	skip_dead_key:
+skip_dead_key:
+
 		if (spin_is_contended(&key_serial_lock) || need_resched())
+		{
 			goto contended;
+		}
 	}
 
 contended:
 	spin_unlock(&key_serial_lock);
 
 maybe_resched:
-	if (cursor) {
+
+	if (cursor)
+	{
 		cond_resched();
 		spin_lock(&key_serial_lock);
 		goto continue_scanning;
@@ -275,13 +317,15 @@ maybe_resched:
 	 */
 	kdebug("pass complete");
 
-	if (gc_state & KEY_GC_SET_TIMER && new_timer != (time_t)LONG_MAX) {
+	if (gc_state & KEY_GC_SET_TIMER && new_timer != (time_t)LONG_MAX)
+	{
 		new_timer += key_gc_delay;
 		key_schedule_gc(new_timer);
 	}
 
 	if (unlikely(gc_state & KEY_GC_REAPING_DEAD_2) ||
-	    !list_empty(&graveyard)) {
+		!list_empty(&graveyard))
+	{
 		/* Make sure that all pending keyring payload destructions are
 		 * fulfilled and that people aren't now looking at dead or
 		 * dying keys that they don't have a reference upon or a link
@@ -291,26 +335,32 @@ maybe_resched:
 		synchronize_rcu();
 	}
 
-	if (!list_empty(&graveyard)) {
+	if (!list_empty(&graveyard))
+	{
 		kdebug("gc keys");
 		key_gc_unused_keys(&graveyard);
 	}
 
 	if (unlikely(gc_state & (KEY_GC_REAPING_DEAD_1 |
-				 KEY_GC_REAPING_DEAD_2))) {
-		if (!(gc_state & KEY_GC_FOUND_DEAD_KEY)) {
+							 KEY_GC_REAPING_DEAD_2)))
+	{
+		if (!(gc_state & KEY_GC_FOUND_DEAD_KEY))
+		{
 			/* No remaining dead keys: short circuit the remaining
 			 * keytype reap cycles.
 			 */
 			kdebug("dead short");
 			gc_state &= ~(KEY_GC_REAPING_DEAD_1 | KEY_GC_REAPING_DEAD_2);
 			gc_state |= KEY_GC_REAPING_DEAD_3;
-		} else {
+		}
+		else
+		{
 			gc_state |= KEY_GC_REAP_AGAIN;
 		}
 	}
 
-	if (unlikely(gc_state & KEY_GC_REAPING_DEAD_3)) {
+	if (unlikely(gc_state & KEY_GC_REAPING_DEAD_3))
+	{
 		kdebug("dead wake");
 		smp_mb();
 		clear_bit(KEY_GC_REAPING_KEYTYPE, &key_gc_flags);
@@ -318,7 +368,10 @@ maybe_resched:
 	}
 
 	if (gc_state & KEY_GC_REAP_AGAIN)
+	{
 		schedule_work(&key_gc_work);
+	}
+
 	kleave(" [end %x]", gc_state);
 	return;
 
@@ -352,8 +405,12 @@ destroy_dead_key:
 	kdebug("destroy key %d", key->serial);
 	down_write(&key->sem);
 	key->type = &key_type_dead;
+
 	if (key_gc_dead_keytype->destroy)
+	{
 		key_gc_dead_keytype->destroy(key);
+	}
+
 	memset(&key->payload, KEY_DESTROY, sizeof(key->payload));
 	up_write(&key->sem);
 	goto maybe_resched;

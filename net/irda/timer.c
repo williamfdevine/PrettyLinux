@@ -34,17 +34,17 @@
 
 extern int  sysctl_slot_timeout;
 
-static void irlap_slot_timer_expired(void* data);
-static void irlap_query_timer_expired(void* data);
-static void irlap_final_timer_expired(void* data);
-static void irlap_wd_timer_expired(void* data);
-static void irlap_backoff_timer_expired(void* data);
-static void irlap_media_busy_expired(void* data);
+static void irlap_slot_timer_expired(void *data);
+static void irlap_query_timer_expired(void *data);
+static void irlap_final_timer_expired(void *data);
+static void irlap_wd_timer_expired(void *data);
+static void irlap_backoff_timer_expired(void *data);
+static void irlap_media_busy_expired(void *data);
 
 void irlap_start_slot_timer(struct irlap_cb *self, int timeout)
 {
 	irda_start_timer(&self->slot_timer, timeout, (void *) self,
-			 irlap_slot_timer_expired);
+					 irlap_slot_timer_expired);
 }
 
 void irlap_start_query_timer(struct irlap_cb *self, int S, int s)
@@ -61,37 +61,37 @@ void irlap_start_query_timer(struct irlap_cb *self, int S, int s)
 	 * to accommodate devices that perform discovery slower than us.
 	 * Jean II */
 	timeout = msecs_to_jiffies(sysctl_slot_timeout) * (S - s)
-		   + XIDEXTRA_TIMEOUT + SMALLBUSY_TIMEOUT;
+			  + XIDEXTRA_TIMEOUT + SMALLBUSY_TIMEOUT;
 
 	/* Set or re-set the timer. We reset the timer for each received
 	 * discovery query, which allow us to automatically adjust to
 	 * the speed of the peer discovery (faster or slower). Jean II */
 	irda_start_timer( &self->query_timer, timeout, (void *) self,
-			  irlap_query_timer_expired);
+					  irlap_query_timer_expired);
 }
 
 void irlap_start_final_timer(struct irlap_cb *self, int timeout)
 {
 	irda_start_timer(&self->final_timer, timeout, (void *) self,
-			 irlap_final_timer_expired);
+					 irlap_final_timer_expired);
 }
 
 void irlap_start_wd_timer(struct irlap_cb *self, int timeout)
 {
 	irda_start_timer(&self->wd_timer, timeout, (void *) self,
-			 irlap_wd_timer_expired);
+					 irlap_wd_timer_expired);
 }
 
 void irlap_start_backoff_timer(struct irlap_cb *self, int timeout)
 {
 	irda_start_timer(&self->backoff_timer, timeout, (void *) self,
-			 irlap_backoff_timer_expired);
+					 irlap_backoff_timer_expired);
 }
 
 void irlap_start_mbusy_timer(struct irlap_cb *self, int timeout)
 {
 	irda_start_timer(&self->media_busy_timer, timeout,
-			 (void *) self, irlap_media_busy_expired);
+					 (void *) self, irlap_media_busy_expired);
 }
 
 void irlap_stop_mbusy_timer(struct irlap_cb *self)
@@ -105,25 +105,27 @@ void irlap_stop_mbusy_timer(struct irlap_cb *self)
 	 * an event, they will wait forever...
 	 * Jean II */
 	if (self->state == LAP_NDM)
+	{
 		irlap_do_event(self, MEDIA_BUSY_TIMER_EXPIRED, NULL, NULL);
+	}
 }
 
 void irlmp_start_watchdog_timer(struct lsap_cb *self, int timeout)
 {
 	irda_start_timer(&self->watchdog_timer, timeout, (void *) self,
-			 irlmp_watchdog_timer_expired);
+					 irlmp_watchdog_timer_expired);
 }
 
 void irlmp_start_discovery_timer(struct irlmp_cb *self, int timeout)
 {
 	irda_start_timer(&self->discovery_timer, timeout, (void *) self,
-			 irlmp_discovery_timer_expired);
+					 irlmp_discovery_timer_expired);
 }
 
 void irlmp_start_idle_timer(struct lap_cb *self, int timeout)
 {
 	irda_start_timer(&self->idle_timer, timeout, (void *) self,
-			 irlmp_idle_timer_expired);
+					 irlmp_idle_timer_expired);
 }
 
 void irlmp_stop_idle_timer(struct lap_cb *self)

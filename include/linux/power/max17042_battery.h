@@ -29,7 +29,8 @@
 
 #define MAX17042_CHARACTERIZATION_DATA_SIZE 48
 
-enum max17042_register {
+enum max17042_register
+{
 	MAX17042_STATUS		= 0x00,
 	MAX17042_VALRT_Th	= 0x01,
 	MAX17042_TALRT_Th	= 0x02,
@@ -117,7 +118,8 @@ enum max17042_register {
 };
 
 /* Registers specific to max17047/50 */
-enum max17047_register {
+enum max17047_register
+{
 	MAX17047_QRTbl00	= 0x12,
 	MAX17047_FullSOCThr	= 0x13,
 	MAX17047_QRTbl10	= 0x22,
@@ -126,7 +128,8 @@ enum max17047_register {
 	MAX17047_QRTbl30	= 0x42,
 };
 
-enum max170xx_chip_type {
+enum max170xx_chip_type
+{
 	MAXIM_DEVICE_TYPE_UNKNOWN	= 0,
 	MAXIM_DEVICE_TYPE_MAX17042,
 	MAXIM_DEVICE_TYPE_MAX17047,
@@ -140,12 +143,14 @@ enum max170xx_chip_type {
  * addr : address for a register
  * data : setting value for the register
  */
-struct max17042_reg_data {
+struct max17042_reg_data
+{
 	u8 addr;
 	u16 data;
 };
 
-struct max17042_config_data {
+struct max17042_config_data
+{
 	/* External current sense resistor value in milli-ohms */
 	u32	cur_sense_val;
 
@@ -202,7 +207,8 @@ struct max17042_config_data {
 	u16	cell_char_tbl[MAX17042_CHARACTERIZATION_DATA_SIZE];
 } __packed;
 
-struct max17042_platform_data {
+struct max17042_platform_data
+{
 	struct max17042_reg_data *init_data;
 	struct max17042_config_data *config_data;
 	int num_init_data; /* Number of enties in init_data array */

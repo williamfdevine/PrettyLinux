@@ -11,13 +11,14 @@
 
 #include <linux/pinctrl/pinctrl.h>
 
- /**
- * struct adi_pin_group - describes a pin group
- * @name: the name of this pin group
- * @pins: an array of pins
- * @num: the number of pins in this array
- */
-struct adi_pin_group {
+/**
+* struct adi_pin_group - describes a pin group
+* @name: the name of this pin group
+* @pins: an array of pins
+* @num: the number of pins in this array
+*/
+struct adi_pin_group
+{
 	const char *name;
 	const unsigned *pins;
 	const unsigned num;
@@ -27,29 +28,30 @@ struct adi_pin_group {
 #define ADI_PIN_GROUP(n, p, m)  \
 	{			\
 		.name = n,	\
-		.pins = p,	\
-		.num = ARRAY_SIZE(p),	\
-		.mux = m,			\
+				.pins = p,	\
+						.num = ARRAY_SIZE(p),	\
+							   .mux = m,			\
 	}
 
- /**
- * struct adi_pmx_func - describes function mux setting of pin groups
- * @name: the name of this function mux setting
- * @groups: an array of pin groups
- * @num_groups: the number of pin groups in this array
- * @mux: the function mux setting array, end by zero
- */
-struct adi_pmx_func {
+/**
+* struct adi_pmx_func - describes function mux setting of pin groups
+* @name: the name of this function mux setting
+* @groups: an array of pin groups
+* @num_groups: the number of pin groups in this array
+* @mux: the function mux setting array, end by zero
+*/
+struct adi_pmx_func
+{
 	const char *name;
-	const char * const *groups;
+	const char *const *groups;
 	const unsigned num_groups;
 };
 
 #define ADI_PMX_FUNCTION(n, g)		\
 	{					\
 		.name = n,			\
-		.groups = g,			\
-		.num_groups = ARRAY_SIZE(g),	\
+				.groups = g,			\
+						  .num_groups = ARRAY_SIZE(g),	\
 	}
 
 /**
@@ -61,7 +63,8 @@ struct adi_pmx_func {
  * @pins:       An array describing all pins the pin controller affects.
  * @npins:      The number of entries in @pins.
  */
-struct adi_pinctrl_soc_data {
+struct adi_pinctrl_soc_data
+{
 	const struct adi_pmx_func *functions;
 	int nfunctions;
 	const struct adi_pin_group *groups;

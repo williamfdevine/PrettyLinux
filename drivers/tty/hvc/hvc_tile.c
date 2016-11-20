@@ -41,18 +41,23 @@ early_param("sim_console", sim_console);
 
 int tile_console_write(const char *buf, int count)
 {
-	if (unlikely(use_sim_console)) {
+	if (unlikely(use_sim_console))
+	{
 		int i;
+
 		for (i = 0; i < count; ++i)
 			__insn_mtspr(SPR_SIM_CONTROL, SIM_CONTROL_PUTC |
-				     (buf[i] << _SIM_CONTROL_OPERATOR_BITS));
+						 (buf[i] << _SIM_CONTROL_OPERATOR_BITS));
+
 		__insn_mtspr(SPR_SIM_CONTROL, SIM_CONTROL_PUTC |
-			     (SIM_PUTC_FLUSH_BINARY <<
-			      _SIM_CONTROL_OPERATOR_BITS));
+					 (SIM_PUTC_FLUSH_BINARY <<
+					  _SIM_CONTROL_OPERATOR_BITS));
 		return 0;
-	} else {
+	}
+	else
+	{
 		/* Translate 0 bytes written to EAGAIN for hvc_console_print. */
-		return hv_console_write((HV_VirtAddr)buf, count) ?: -EAGAIN;
+		return hv_console_write((HV_VirtAddr)buf, count) ? : -EAGAIN;
 	}
 }
 
@@ -65,10 +70,15 @@ static int hvc_tile_get_chars(uint32_t vt, char *buf, int count)
 {
 	int i, c;
 
-	for (i = 0; i < count; ++i) {
+	for (i = 0; i < count; ++i)
+	{
 		c = hv_console_read_if_ready();
+
 		if (c < 0)
+		{
 			break;
+		}
+
 		buf[i] = c;
 	}
 
@@ -86,8 +96,11 @@ static int hvc_tile_notifier_add_irq(struct hvc_struct *hp, int irq)
 	HV_Coord coord = { .x = cpu_x(cpu), .y = cpu_y(cpu) };
 
 	rc = notifier_add_irq(hp, irq);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	/*
 	 * Request that the hypervisor start sending us interrupts.
@@ -95,7 +108,9 @@ static int hvc_tile_notifier_add_irq(struct hvc_struct *hp, int irq)
 	 * we can fall back to polling.
 	 */
 	if (hv_console_set_ipi(KERNEL_PL, irq, coord) < 0)
+	{
 		notifier_del_irq(hp, irq);
+	}
 
 	return 0;
 }
@@ -116,7 +131,8 @@ static void hvc_tile_notifier_hangup_irq(struct hvc_struct *hp, int irq)
 }
 #endif
 
-static const struct hv_ops hvc_tile_get_put_ops = {
+static const struct hv_ops hvc_tile_get_put_ops =
+{
 	.get_chars = hvc_tile_get_chars,
 	.put_chars = hvc_tile_put_chars,
 #ifdef __tilegx__
@@ -135,15 +151,21 @@ static int hvc_tile_probe(struct platform_device *pdev)
 
 	/* Create our IRQ and register it. */
 	tile_hvc_irq = irq_alloc_hwirq(-1);
+
 	if (!tile_hvc_irq)
+	{
 		return -ENXIO;
+	}
 
 	tile_irq_activate(tile_hvc_irq, TILE_IRQ_PERCPU);
 	hp = hvc_alloc(0, tile_hvc_irq, &hvc_tile_get_put_ops, 128);
-	if (IS_ERR(hp)) {
+
+	if (IS_ERR(hp))
+	{
 		irq_free_hwirq(tile_hvc_irq);
 		return PTR_ERR(hp);
 	}
+
 	dev_set_drvdata(&pdev->dev, hp);
 
 	return 0;
@@ -155,8 +177,11 @@ static int hvc_tile_remove(struct platform_device *pdev)
 	struct hvc_struct *hp = dev_get_drvdata(&pdev->dev);
 
 	rc = hvc_remove(hp);
+
 	if (rc == 0)
+	{
 		irq_free_hwirq(hp->data);
+	}
 
 	return rc;
 }
@@ -168,12 +193,14 @@ static void hvc_tile_shutdown(struct platform_device *pdev)
 	hvc_tile_notifier_del_irq(hp, hp->data);
 }
 
-static struct platform_device hvc_tile_pdev = {
+static struct platform_device hvc_tile_pdev =
+{
 	.name           = "hvc-tile",
 	.id             = 0,
 };
 
-static struct platform_driver hvc_tile_driver = {
+static struct platform_driver hvc_tile_driver =
+{
 	.probe          = hvc_tile_probe,
 	.remove         = hvc_tile_remove,
 	.shutdown	= hvc_tile_shutdown,

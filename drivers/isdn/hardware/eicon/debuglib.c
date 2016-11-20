@@ -40,7 +40,7 @@ DIVA_DI_PRINTF dprintf = no_printf;
 		if (myDriverDebugHandle.dbg_prt)			\
 		{ va_start(ap, format);				\
 			(myDriverDebugHandle.dbg_prt)			\
-				(myDriverDebugHandle.id, DLI_##name, format, ap); \
+			(myDriverDebugHandle.id, DLI_##name, format, ap); \
 			va_end(ap);					\
 		} }
 DBG_FUNC(LOG)
@@ -51,13 +51,17 @@ DBG_FUNC(MXLOG)
 DBG_FUNC(FTL_MXLOG)
 void
 myDbgPrint_EVL(long msgID, ...)
-{ va_list ap;
+{
+	va_list ap;
+
 	if (myDriverDebugHandle.dbg_ev)
-	{ va_start(ap, msgID);
+	{
+		va_start(ap, msgID);
 		(myDriverDebugHandle.dbg_ev)
-			(myDriverDebugHandle.id, (unsigned long)msgID, ap);
+		(myDriverDebugHandle.id, (unsigned long)msgID, ap);
 		va_end(ap);
-	} }
+	}
+}
 DBG_FUNC(REG)
 DBG_FUNC(MEM)
 DBG_FUNC(SPL)
@@ -79,39 +83,41 @@ int
 DbgRegister(char *drvName, char *drvTag, unsigned long dbgMask)
 {
 	int len;
-/*
- * deregister (if already registered) and zero out myDriverDebugHandle
- */
+	/*
+	 * deregister (if already registered) and zero out myDriverDebugHandle
+	 */
 	DbgDeregister();
-/*
- * initialize the debug handle
- */
+	/*
+	 * initialize the debug handle
+	 */
 	myDriverDebugHandle.Version = DBG_HANDLE_VERSION;
 	myDriverDebugHandle.id  = -1;
 	myDriverDebugHandle.dbgMask = dbgMask | (DL_EVL | DL_FTL | DL_LOG);
 	len = strlen(drvName);
 	memcpy(myDriverDebugHandle.drvName, drvName,
-	       (len < sizeof(myDriverDebugHandle.drvName)) ?
-	       len : sizeof(myDriverDebugHandle.drvName) - 1);
+		   (len < sizeof(myDriverDebugHandle.drvName)) ?
+		   len : sizeof(myDriverDebugHandle.drvName) - 1);
 	len = strlen(drvTag);
 	memcpy(myDriverDebugHandle.drvTag, drvTag,
-	       (len < sizeof(myDriverDebugHandle.drvTag)) ?
-	       len : sizeof(myDriverDebugHandle.drvTag) - 1);
-/*
- * Try to register debugging via old (and only) interface
- */
+		   (len < sizeof(myDriverDebugHandle.drvTag)) ?
+		   len : sizeof(myDriverDebugHandle.drvTag) - 1);
+	/*
+	 * Try to register debugging via old (and only) interface
+	 */
 	dprintf("\000\377", &myDriverDebugHandle);
+
 	if (myDriverDebugHandle.dbg_prt)
 	{
 		return (1);
 	}
-/*
- * Check if we registered with an old maint driver (see debuglib.h)
- */
+
+	/*
+	 * Check if we registered with an old maint driver (see debuglib.h)
+	 */
 	if (myDriverDebugHandle.dbg_end != NULL
-	     /* location of 'dbg_prt' in _OldDbgHandle_ struct */
-	     && (myDriverDebugHandle.regTime.LowPart ||
-		 myDriverDebugHandle.regTime.HighPart))
+		/* location of 'dbg_prt' in _OldDbgHandle_ struct */
+		&& (myDriverDebugHandle.regTime.LowPart ||
+			myDriverDebugHandle.regTime.HighPart))
 		/* same location as in _OldDbgHandle_ struct */
 	{
 		dprintf("%s: Cannot log to old maint driver !", drvName);
@@ -119,6 +125,7 @@ DbgRegister(char *drvName, char *drvTag, unsigned long dbgMask)
 			((_OldDbgHandle_ *)&myDriverDebugHandle)->dbg_end;
 		DbgDeregister();
 	}
+
 	return (0);
 }
 /*****************************************************************************/
@@ -135,21 +142,29 @@ DbgDeregister(void)
 	{
 		(myDriverDebugHandle.dbg_end)(&myDriverDebugHandle);
 	}
+
 	memset(&myDriverDebugHandle, 0, sizeof(myDriverDebugHandle));
 }
-void xdi_dbg_xlog(char *x, ...) {
+void xdi_dbg_xlog(char *x, ...)
+{
 	va_list ap;
 	va_start(ap, x);
+
 	if (myDriverDebugHandle.dbg_end &&
-	    (myDriverDebugHandle.dbg_irq || myDriverDebugHandle.dbg_old) &&
-	    (myDriverDebugHandle.dbgMask & DL_STAT)) {
-		if (myDriverDebugHandle.dbg_irq) {
+		(myDriverDebugHandle.dbg_irq || myDriverDebugHandle.dbg_old) &&
+		(myDriverDebugHandle.dbgMask & DL_STAT))
+	{
+		if (myDriverDebugHandle.dbg_irq)
+		{
 			(*(myDriverDebugHandle.dbg_irq))(myDriverDebugHandle.id,
-							 (x[0] != 0) ? DLI_TRC : DLI_XLOG, x, ap);
-		} else {
+											 (x[0] != 0) ? DLI_TRC : DLI_XLOG, x, ap);
+		}
+		else
+		{
 			(*(myDriverDebugHandle.dbg_old))(myDriverDebugHandle.id, x, ap);
 		}
 	}
+
 	va_end(ap);
 }
 /*****************************************************************************/

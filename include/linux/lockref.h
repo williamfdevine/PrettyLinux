@@ -21,12 +21,15 @@
 	(IS_ENABLED(CONFIG_ARCH_USE_CMPXCHG_LOCKREF) && \
 	 IS_ENABLED(CONFIG_SMP) && SPINLOCK_SIZE <= 4)
 
-struct lockref {
-	union {
+struct lockref
+{
+	union
+	{
 #if USE_CMPXCHG_LOCKREF
 		aligned_u64 lock_count;
 #endif
-		struct {
+		struct
+		{
 			spinlock_t lock;
 			int count;
 		};

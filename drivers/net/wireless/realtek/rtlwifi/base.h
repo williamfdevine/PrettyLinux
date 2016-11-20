@@ -26,7 +26,8 @@
 #ifndef __RTL_BASE_H__
 #define __RTL_BASE_H__
 
-enum ap_peer {
+enum ap_peer
+{
 	PEER_UNKNOWN = 0,
 	PEER_RTL = 1,
 	PEER_RTL_92SE = 2,
@@ -105,7 +106,7 @@ enum ap_peer {
 	WRITEEF2BYTE(((u8 *)(__phdr)) + 34, __val)
 #define MASK_BEACON_PROBE_RSP_CAPABILITY_INFO(__phdr, __val) \
 	SET_BEACON_PROBE_RSP_CAPABILITY_INFO(__phdr, \
-	(GET_BEACON_PROBE_RSP_CAPABILITY_INFO(__phdr) & (~(__val))))
+										 (GET_BEACON_PROBE_RSP_CAPABILITY_INFO(__phdr) & (~(__val))))
 
 int rtl_init_core(struct ieee80211_hw *hw);
 void rtl_deinit_core(struct ieee80211_hw *hw);
@@ -118,33 +119,33 @@ void rtl_deinit_deferred_work(struct ieee80211_hw *hw);
 
 bool rtl_action_proc(struct ieee80211_hw *hw, struct sk_buff *skb, u8 is_tx);
 int rtlwifi_rate_mapping(struct ieee80211_hw *hw, bool isht,
-			 bool isvht, u8 desc_rate);
+						 bool isvht, u8 desc_rate);
 bool rtl_tx_mgmt_proc(struct ieee80211_hw *hw, struct sk_buff *skb);
 u8 rtl_is_special_data(struct ieee80211_hw *hw, struct sk_buff *skb, u8 is_tx,
-		       bool is_enc);
+					   bool is_enc);
 
 void rtl_beacon_statistic(struct ieee80211_hw *hw, struct sk_buff *skb);
 int rtl_tx_agg_start(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-	struct ieee80211_sta *sta, u16 tid, u16 *ssn);
+					 struct ieee80211_sta *sta, u16 tid, u16 *ssn);
 int rtl_tx_agg_stop(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-	struct ieee80211_sta *sta, u16 tid);
+					struct ieee80211_sta *sta, u16 tid);
 int rtl_tx_agg_oper(struct ieee80211_hw *hw,
-		    struct ieee80211_sta *sta, u16 tid);
+					struct ieee80211_sta *sta, u16 tid);
 int rtl_rx_agg_start(struct ieee80211_hw *hw,
-		     struct ieee80211_sta *sta, u16 tid);
+					 struct ieee80211_sta *sta, u16 tid);
 int rtl_rx_agg_stop(struct ieee80211_hw *hw,
-		    struct ieee80211_sta *sta, u16 tid);
+					struct ieee80211_sta *sta, u16 tid);
 void rtl_watchdog_wq_callback(void *data);
 void rtl_fwevt_wq_callback(void *data);
 
 void rtl_get_tcb_desc(struct ieee80211_hw *hw,
-		      struct ieee80211_tx_info *info,
-		      struct ieee80211_sta *sta,
-		      struct sk_buff *skb, struct rtl_tcb_desc *tcb_desc);
+					  struct ieee80211_tx_info *info,
+					  struct ieee80211_sta *sta,
+					  struct sk_buff *skb, struct rtl_tcb_desc *tcb_desc);
 
 int rtl_send_smps_action(struct ieee80211_hw *hw,
-		struct ieee80211_sta *sta,
-		enum ieee80211_smps_mode smps);
+						 struct ieee80211_sta *sta,
+						 enum ieee80211_smps_mode smps);
 u8 *rtl_find_ie(u8 *data, unsigned int len, u8 ie);
 void rtl_recognize_peer(struct ieee80211_hw *hw, u8 *data, unsigned int len);
 u8 rtl_tid_to_ac(u8 tid);

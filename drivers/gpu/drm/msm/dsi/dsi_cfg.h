@@ -29,16 +29,18 @@
 
 #define DSI_6G_REG_SHIFT	4
 
-struct msm_dsi_config {
+struct msm_dsi_config
+{
 	u32 io_offset;
 	struct dsi_reg_config reg_cfg;
-	const char * const *bus_clk_names;
+	const char *const *bus_clk_names;
 	const int num_bus_clks;
 	const resource_size_t io_start[DSI_MAX];
 	const int num_dsi;
 };
 
-struct msm_dsi_cfg_handler {
+struct msm_dsi_cfg_handler
+{
 	u32 major;
 	u32 minor;
 	const struct msm_dsi_config *cfg;

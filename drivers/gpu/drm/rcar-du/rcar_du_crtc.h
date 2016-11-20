@@ -36,7 +36,8 @@ struct rcar_du_vsp;
  * @outputs: bitmask of the outputs (enum rcar_du_output) driven by this CRTC
  * @group: CRTC group this CRTC belongs to
  */
-struct rcar_du_crtc {
+struct rcar_du_crtc
+{
 	struct drm_crtc crtc;
 
 	struct clk *clock;
@@ -56,7 +57,8 @@ struct rcar_du_crtc {
 
 #define to_rcar_crtc(c)	container_of(c, struct rcar_du_crtc, crtc)
 
-enum rcar_du_output {
+enum rcar_du_output
+{
 	RCAR_DU_OUTPUT_DPAD0,
 	RCAR_DU_OUTPUT_DPAD1,
 	RCAR_DU_OUTPUT_LVDS0,
@@ -71,6 +73,6 @@ void rcar_du_crtc_suspend(struct rcar_du_crtc *rcrtc);
 void rcar_du_crtc_resume(struct rcar_du_crtc *rcrtc);
 
 void rcar_du_crtc_route_output(struct drm_crtc *crtc,
-			       enum rcar_du_output output);
+							   enum rcar_du_output output);
 
 #endif /* __RCAR_DU_CRTC_H__ */

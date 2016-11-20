@@ -3,7 +3,8 @@
 
 #include <execinfo.h>
 
-struct stack_trace {
+struct stack_trace
+{
 	unsigned int nr_entries, max_entries;
 	unsigned long *entries;
 	int skip;
@@ -16,7 +17,7 @@ static inline void print_stack_trace(struct stack_trace *trace, int spaces)
 
 #define save_stack_trace(trace)	\
 	((trace)->nr_entries =	\
-		backtrace((void **)(trace)->entries, (trace)->max_entries))
+							backtrace((void **)(trace)->entries, (trace)->max_entries))
 
 static inline int dump_stack(void)
 {

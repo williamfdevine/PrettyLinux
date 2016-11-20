@@ -69,11 +69,12 @@ static const char driver_desc[] = DRIVER_DESC;
 /* ---------------------------------------------------------------------- */
 /* Debug printout functionality */
 
-static const char * const gr_modestring[] = {"control", "iso", "bulk", "int"};
+static const char *const gr_modestring[] = {"control", "iso", "bulk", "int"};
 
 static const char *gr_ep0state_string(enum gr_ep0state state)
 {
-	static const char *const names[] = {
+	static const char *const names[] =
+	{
 		[GR_EP0_DISCONNECT] = "disconnect",
 		[GR_EP0_SETUP] = "setup",
 		[GR_EP0_IDATA] = "idata",
@@ -85,7 +86,9 @@ static const char *gr_ep0state_string(enum gr_ep0state state)
 	};
 
 	if (state < 0 || state >= ARRAY_SIZE(names))
+	{
 		return "UNKNOWN";
+	}
 
 	return names[state];
 }
@@ -93,31 +96,31 @@ static const char *gr_ep0state_string(enum gr_ep0state state)
 #ifdef VERBOSE_DEBUG
 
 static void gr_dbgprint_request(const char *str, struct gr_ep *ep,
-				struct gr_request *req)
+								struct gr_request *req)
 {
 	int buflen = ep->is_in ? req->req.length : req->req.actual;
 	int rowlen = 32;
 	int plen = min(rowlen, buflen);
 
 	dev_dbg(ep->dev->dev, "%s: 0x%p, %d bytes data%s:\n", str, req, buflen,
-		(buflen > plen ? " (truncated)" : ""));
+			(buflen > plen ? " (truncated)" : ""));
 	print_hex_dump_debug("   ", DUMP_PREFIX_NONE,
-			     rowlen, 4, req->req.buf, plen, false);
+						 rowlen, 4, req->req.buf, plen, false);
 }
 
 static void gr_dbgprint_devreq(struct gr_udc *dev, u8 type, u8 request,
-			       u16 value, u16 index, u16 length)
+							   u16 value, u16 index, u16 length)
 {
 	dev_vdbg(dev->dev, "REQ: %02x.%02x v%04x i%04x l%04x\n",
-		 type, request, value, index, length);
+			 type, request, value, index, length);
 }
 #else /* !VERBOSE_DEBUG */
 
 static void gr_dbgprint_request(const char *str, struct gr_ep *ep,
-				struct gr_request *req) {}
+								struct gr_request *req) {}
 
 static void gr_dbgprint_devreq(struct gr_udc *dev, u8 type, u8 request,
-			       u16 value, u16 index, u16 length) {}
+							   u16 value, u16 index, u16 length) {}
 
 #endif /* VERBOSE_DEBUG */
 
@@ -145,40 +148,46 @@ static void gr_seq_ep_show(struct seq_file *seq, struct gr_ep *ep)
 	seq_printf(seq, "  maxpacket = %d\n", ep->ep.maxpacket);
 	seq_printf(seq, "  maxpacket_limit = %d\n", ep->ep.maxpacket_limit);
 	seq_printf(seq, "  bytes_per_buffer = %d\n", ep->bytes_per_buffer);
+
 	if (mode == 1 || mode == 3)
 		seq_printf(seq, "  nt = %d\n",
-			   (epctrl & GR_EPCTRL_NT_MASK) >> GR_EPCTRL_NT_POS);
+				   (epctrl & GR_EPCTRL_NT_MASK) >> GR_EPCTRL_NT_POS);
 
 	seq_printf(seq, "  Buffer 0: %s %s%d\n",
-		   epstat & GR_EPSTAT_B0 ? "valid" : "invalid",
-		   epstat & GR_EPSTAT_BS ? " " : "selected ",
-		   (epstat & GR_EPSTAT_B0CNT_MASK) >> GR_EPSTAT_B0CNT_POS);
+			   epstat & GR_EPSTAT_B0 ? "valid" : "invalid",
+			   epstat & GR_EPSTAT_BS ? " " : "selected ",
+			   (epstat & GR_EPSTAT_B0CNT_MASK) >> GR_EPSTAT_B0CNT_POS);
 	seq_printf(seq, "  Buffer 1: %s %s%d\n",
-		   epstat & GR_EPSTAT_B1 ? "valid" : "invalid",
-		   epstat & GR_EPSTAT_BS ? "selected " : " ",
-		   (epstat & GR_EPSTAT_B1CNT_MASK) >> GR_EPSTAT_B1CNT_POS);
+			   epstat & GR_EPSTAT_B1 ? "valid" : "invalid",
+			   epstat & GR_EPSTAT_BS ? "selected " : " ",
+			   (epstat & GR_EPSTAT_B1CNT_MASK) >> GR_EPSTAT_B1CNT_POS);
 
-	if (list_empty(&ep->queue)) {
+	if (list_empty(&ep->queue))
+	{
 		seq_puts(seq, "  Queue: empty\n\n");
 		return;
 	}
 
 	seq_puts(seq, "  Queue:\n");
-	list_for_each_entry(req, &ep->queue, queue) {
+	list_for_each_entry(req, &ep->queue, queue)
+	{
 		struct gr_dma_desc *desc;
 		struct gr_dma_desc *next;
 
 		seq_printf(seq, "    0x%p: 0x%p %d %d\n", req,
-			   &req->req.buf, req->req.actual, req->req.length);
+				   &req->req.buf, req->req.actual, req->req.length);
 
 		next = req->first_desc;
-		do {
+
+		do
+		{
 			desc = next;
 			next = desc->next_desc;
 			seq_printf(seq, "    %c 0x%p (0x%08x): 0x%05x 0x%08x\n",
-				   desc == req->curr_desc ? 'c' : ' ',
-				   desc, desc->paddr, desc->ctrl, desc->data);
-		} while (desc != req->last_desc);
+					   desc == req->curr_desc ? 'c' : ' ',
+					   desc, desc->paddr, desc->ctrl, desc->data);
+		}
+		while (desc != req->last_desc);
 	}
 	seq_puts(seq, "\n");
 }
@@ -192,9 +201,9 @@ static int gr_seq_show(struct seq_file *seq, void *v)
 	struct gr_ep *ep;
 
 	seq_printf(seq, "usb state = %s\n",
-		   usb_state_string(dev->gadget.state));
+			   usb_state_string(dev->gadget.state));
 	seq_printf(seq, "address = %d\n",
-		   (control & GR_CONTROL_UA_MASK) >> GR_CONTROL_UA_POS);
+			   (control & GR_CONTROL_UA_MASK) >> GR_CONTROL_UA_POS);
 	seq_printf(seq, "speed = %s\n", GR_SPEED_STR(status));
 	seq_printf(seq, "ep0state = %s\n", gr_ep0state_string(dev->ep0state));
 	seq_printf(seq, "irq_enabled = %d\n", dev->irq_enabled);
@@ -203,7 +212,7 @@ static int gr_seq_show(struct seq_file *seq, void *v)
 	seq_puts(seq, "\n");
 
 	list_for_each_entry(ep, &dev->ep_list, ep_list)
-		gr_seq_ep_show(seq, ep);
+	gr_seq_ep_show(seq, ep);
 
 	return 0;
 }
@@ -213,7 +222,8 @@ static int gr_dfs_open(struct inode *inode, struct file *file)
 	return single_open(file, gr_seq_show, inode->i_private);
 }
 
-static const struct file_operations gr_dfs_fops = {
+static const struct file_operations gr_dfs_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= gr_dfs_open,
 	.read		= seq_read,
@@ -227,7 +237,7 @@ static void gr_dfs_create(struct gr_udc *dev)
 
 	dev->dfs_root = debugfs_create_dir(dev_name(dev->dev), NULL);
 	dev->dfs_state = debugfs_create_file(name, 0444, dev->dfs_root, dev,
-					     &gr_dfs_fops);
+										 &gr_dfs_fops);
 }
 
 static void gr_dfs_delete(struct gr_udc *dev)
@@ -254,7 +264,9 @@ static struct gr_dma_desc *gr_alloc_dma_desc(struct gr_ep *ep, gfp_t gfp_flags)
 	struct gr_dma_desc *dma_desc;
 
 	dma_desc = dma_pool_zalloc(ep->dev->desc_pool, gfp_flags, &paddr);
-	if (!dma_desc) {
+
+	if (!dma_desc)
+	{
 		dev_err(ep->dev->dev, "Could not allocate from DMA pool\n");
 		return NULL;
 	}
@@ -265,7 +277,7 @@ static struct gr_dma_desc *gr_alloc_dma_desc(struct gr_ep *ep, gfp_t gfp_flags)
 }
 
 static inline void gr_free_dma_desc(struct gr_udc *dev,
-				    struct gr_dma_desc *desc)
+									struct gr_dma_desc *desc)
 {
 	dma_pool_free(dev->desc_pool, desc, (dma_addr_t)desc->paddr);
 }
@@ -277,14 +289,19 @@ static void gr_free_dma_desc_chain(struct gr_udc *dev, struct gr_request *req)
 	struct gr_dma_desc *next;
 
 	next = req->first_desc;
-	if (!next)
-		return;
 
-	do {
+	if (!next)
+	{
+		return;
+	}
+
+	do
+	{
 		desc = next;
 		next = desc->next_desc;
 		gr_free_dma_desc(dev, desc);
-	} while (desc != req->last_desc);
+	}
+	while (desc != req->last_desc);
 
 	req->first_desc = NULL;
 	req->curr_desc = NULL;
@@ -300,26 +317,33 @@ static void gr_ep0_setup(struct gr_udc *dev, struct gr_request *req);
  * Must be called with dev->lock held and irqs disabled.
  */
 static void gr_finish_request(struct gr_ep *ep, struct gr_request *req,
-			      int status)
-	__releases(&dev->lock)
-	__acquires(&dev->lock)
+							  int status)
+__releases(&dev->lock)
+__acquires(&dev->lock)
 {
 	struct gr_udc *dev;
 
 	list_del_init(&req->queue);
 
 	if (likely(req->req.status == -EINPROGRESS))
+	{
 		req->req.status = status;
+	}
 	else
+	{
 		status = req->req.status;
+	}
 
 	dev = ep->dev;
 	usb_gadget_unmap_request(&dev->gadget, &req->req, ep->is_in);
 	gr_free_dma_desc_chain(dev, req);
 
-	if (ep->is_in) { /* For OUT, req->req.actual gets updated bit by bit */
+	if (ep->is_in)   /* For OUT, req->req.actual gets updated bit by bit */
+	{
 		req->req.actual = req->req.length;
-	} else if (req->oddlen && req->req.actual > req->evenlen) {
+	}
+	else if (req->oddlen && req->req.actual > req->evenlen)
+	{
 		/*
 		 * Copy to user buffer in this case where length was not evenly
 		 * divisible by ep->ep.maxpacket and the last descriptor was
@@ -329,37 +353,50 @@ static void gr_finish_request(struct gr_ep *ep, struct gr_request *req,
 
 		memcpy(buftail, ep->tailbuf, req->oddlen);
 
-		if (req->req.actual > req->req.length) {
+		if (req->req.actual > req->req.length)
+		{
 			/* We got more data than was requested */
 			dev_dbg(ep->dev->dev, "Overflow for ep %s\n",
-				ep->ep.name);
+					ep->ep.name);
 			gr_dbgprint_request("OVFL", ep, req);
 			req->req.status = -EOVERFLOW;
 		}
 	}
 
-	if (!status) {
+	if (!status)
+	{
 		if (ep->is_in)
+		{
 			gr_dbgprint_request("SENT", ep, req);
+		}
 		else
+		{
 			gr_dbgprint_request("RECV", ep, req);
+		}
 	}
 
 	/* Prevent changes to ep->queue during callback */
 	ep->callback = 1;
-	if (req == dev->ep0reqo && !status) {
+
+	if (req == dev->ep0reqo && !status)
+	{
 		if (req->setup)
+		{
 			gr_ep0_setup(dev, req);
+		}
 		else
 			dev_err(dev->dev,
-				"Unexpected non setup packet on ep0in\n");
-	} else if (req->req.complete) {
+					"Unexpected non setup packet on ep0in\n");
+	}
+	else if (req->req.complete)
+	{
 		spin_unlock(&dev->lock);
 
 		usb_gadget_giveback_request(&ep->ep, &req->req);
 
 		spin_lock(&dev->lock);
 	}
+
 	ep->callback = 0;
 }
 
@@ -368,8 +405,11 @@ static struct usb_request *gr_alloc_request(struct usb_ep *_ep, gfp_t gfp_flags)
 	struct gr_request *req;
 
 	req = kzalloc(sizeof(*req), gfp_flags);
+
 	if (!req)
+	{
 		return NULL;
+	}
 
 	INIT_LIST_HEAD(&req->queue);
 
@@ -386,7 +426,8 @@ static void gr_start_dma(struct gr_ep *ep)
 	struct gr_request *req;
 	u32 dmactrl;
 
-	if (list_empty(&ep->queue)) {
+	if (list_empty(&ep->queue))
+	{
 		ep->dma_start = 0;
 		return;
 	}
@@ -403,7 +444,9 @@ static void gr_start_dma(struct gr_ep *ep)
 	 * used when such a request gets enabled.
 	 */
 	if (!ep->is_in && req->oddlen)
+	{
 		req->last_desc->data = ep->tailbuf_paddr;
+	}
 
 	wmb(); /* Make sure all is settled before handing it over to DMA */
 
@@ -454,29 +497,39 @@ static void gr_abort_dma(struct gr_ep *ep)
  * smaller buffer than MAXPL in the OUT direction.
  */
 static int gr_add_dma_desc(struct gr_ep *ep, struct gr_request *req,
-			   dma_addr_t data, unsigned size, gfp_t gfp_flags)
+						   dma_addr_t data, unsigned size, gfp_t gfp_flags)
 {
 	struct gr_dma_desc *desc;
 
 	desc = gr_alloc_dma_desc(ep, gfp_flags);
+
 	if (!desc)
+	{
 		return -ENOMEM;
+	}
 
 	desc->data = data;
+
 	if (ep->is_in)
 		desc->ctrl =
 			(GR_DESC_IN_CTRL_LEN_MASK & size) | GR_DESC_IN_CTRL_EN;
 	else
+	{
 		desc->ctrl = GR_DESC_OUT_CTRL_IE;
+	}
 
-	if (!req->first_desc) {
+	if (!req->first_desc)
+	{
 		req->first_desc = desc;
 		req->curr_desc = desc;
-	} else {
+	}
+	else
+	{
 		req->last_desc->next_desc = desc;
 		req->last_desc->next = desc->paddr;
 		req->last_desc->ctrl |= GR_DESC_OUT_CTRL_NX;
 	}
+
 	req->last_desc = desc;
 
 	return 0;
@@ -493,7 +546,7 @@ static int gr_add_dma_desc(struct gr_ep *ep, struct gr_request *req,
  * therefore generate interrutps.
  */
 static int gr_setup_out_desc_list(struct gr_ep *ep, struct gr_request *req,
-				  gfp_t gfp_flags)
+								  gfp_t gfp_flags)
 {
 	u16 bytes_left; /* Bytes left to provide descriptors for */
 	u16 bytes_used; /* Bytes accommodated for */
@@ -502,19 +555,25 @@ static int gr_setup_out_desc_list(struct gr_ep *ep, struct gr_request *req,
 	req->first_desc = NULL; /* Signals that no allocation is done yet */
 	bytes_left = req->req.length;
 	bytes_used = 0;
-	while (bytes_left > 0) {
+
+	while (bytes_left > 0)
+	{
 		dma_addr_t start = req->req.dma + bytes_used;
 		u16 size = min(bytes_left, ep->bytes_per_buffer);
 
-		if (size < ep->bytes_per_buffer) {
+		if (size < ep->bytes_per_buffer)
+		{
 			/* Prepare using bounce buffer */
 			req->evenlen = req->req.length - bytes_left;
 			req->oddlen = size;
 		}
 
 		ret = gr_add_dma_desc(ep, req, start, size, gfp_flags);
+
 		if (ret)
+		{
 			goto alloc_err;
+		}
 
 		bytes_left -= size;
 		bytes_used += size;
@@ -546,7 +605,7 @@ alloc_err:
  * to hardware.
  */
 static int gr_setup_in_desc_list(struct gr_ep *ep, struct gr_request *req,
-				 gfp_t gfp_flags)
+								 gfp_t gfp_flags)
 {
 	u16 bytes_left; /* Bytes left in req to provide descriptors for */
 	u16 bytes_used; /* Bytes in req accommodated for */
@@ -555,27 +614,37 @@ static int gr_setup_in_desc_list(struct gr_ep *ep, struct gr_request *req,
 	req->first_desc = NULL; /* Signals that no allocation is done yet */
 	bytes_left = req->req.length;
 	bytes_used = 0;
-	do { /* Allow for zero length packets */
+
+	do   /* Allow for zero length packets */
+	{
 		dma_addr_t start = req->req.dma + bytes_used;
 		u16 size = min(bytes_left, ep->bytes_per_buffer);
 
 		ret = gr_add_dma_desc(ep, req, start, size, gfp_flags);
+
 		if (ret)
+		{
 			goto alloc_err;
+		}
 
 		bytes_left -= size;
 		bytes_used += size;
-	} while (bytes_left > 0);
+	}
+	while (bytes_left > 0);
 
 	/*
 	 * Send an extra zero length packet to indicate that no more data is
 	 * available when req->req.zero is set and the data length is even
 	 * multiples of ep->ep.maxpacket.
 	 */
-	if (req->req.zero && (req->req.length % ep->ep.maxpacket == 0)) {
+	if (req->req.zero && (req->req.length % ep->ep.maxpacket == 0))
+	{
 		ret = gr_add_dma_desc(ep, req, 0, 0, gfp_flags);
+
 		if (ret)
+		{
 			goto alloc_err;
+		}
 	}
 
 	/*
@@ -598,42 +667,55 @@ static int gr_queue(struct gr_ep *ep, struct gr_request *req, gfp_t gfp_flags)
 	struct gr_udc *dev = ep->dev;
 	int ret;
 
-	if (unlikely(!ep->ep.desc && ep->num != 0)) {
+	if (unlikely(!ep->ep.desc && ep->num != 0))
+	{
 		dev_err(dev->dev, "No ep descriptor for %s\n", ep->ep.name);
 		return -EINVAL;
 	}
 
-	if (unlikely(!req->req.buf || !list_empty(&req->queue))) {
+	if (unlikely(!req->req.buf || !list_empty(&req->queue)))
+	{
 		dev_err(dev->dev,
-			"Invalid request for %s: buf=%p list_empty=%d\n",
-			ep->ep.name, req->req.buf, list_empty(&req->queue));
+				"Invalid request for %s: buf=%p list_empty=%d\n",
+				ep->ep.name, req->req.buf, list_empty(&req->queue));
 		return -EINVAL;
 	}
 
-	if (unlikely(!dev->driver || dev->gadget.speed == USB_SPEED_UNKNOWN)) {
+	if (unlikely(!dev->driver || dev->gadget.speed == USB_SPEED_UNKNOWN))
+	{
 		dev_err(dev->dev, "-ESHUTDOWN");
 		return -ESHUTDOWN;
 	}
 
 	/* Can't touch registers when suspended */
-	if (dev->ep0state == GR_EP0_SUSPEND) {
+	if (dev->ep0state == GR_EP0_SUSPEND)
+	{
 		dev_err(dev->dev, "-EBUSY");
 		return -EBUSY;
 	}
 
 	/* Set up DMA mapping in case the caller didn't */
 	ret = usb_gadget_map_request(&dev->gadget, &req->req, ep->is_in);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev->dev, "usb_gadget_map_request");
 		return ret;
 	}
 
 	if (ep->is_in)
+	{
 		ret = gr_setup_in_desc_list(ep, req, gfp_flags);
+	}
 	else
+	{
 		ret = gr_setup_out_desc_list(ep, req, gfp_flags);
+	}
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	req->req.status = -EINPROGRESS;
 	req->req.actual = 0;
@@ -641,7 +723,9 @@ static int gr_queue(struct gr_ep *ep, struct gr_request *req, gfp_t gfp_flags)
 
 	/* Start DMA if not started, otherwise interrupt handler handles it */
 	if (!ep->dma_start && likely(!ep->stopped))
+	{
 		gr_start_dma(ep);
+	}
 
 	return 0;
 }
@@ -652,10 +736,12 @@ static int gr_queue(struct gr_ep *ep, struct gr_request *req, gfp_t gfp_flags)
  * Must be called with dev->lock held.
  */
 static inline int gr_queue_int(struct gr_ep *ep, struct gr_request *req,
-			       gfp_t gfp_flags)
+							   gfp_t gfp_flags)
 {
 	if (ep->is_in)
+	{
 		gr_dbgprint_request("RESP", ep, req);
+	}
 
 	return gr_queue(ep, req, gfp_flags);
 }
@@ -676,7 +762,8 @@ static void gr_ep_nuke(struct gr_ep *ep)
 	ep->dma_start = 0;
 	gr_abort_dma(ep);
 
-	while (!list_empty(&ep->queue)) {
+	while (!list_empty(&ep->queue))
+	{
 		req = list_first_entry(&ep->queue, struct gr_request, queue);
 		gr_finish_request(ep, req, -ESHUTDOWN);
 	}
@@ -726,40 +813,56 @@ static int gr_ep_halt_wedge(struct gr_ep *ep, int halt, int wedge, int fromhost)
 	int retval = 0;
 
 	if (ep->num && !ep->ep.desc)
+	{
 		return -EINVAL;
+	}
 
 	if (ep->num && ep->ep.desc->bmAttributes == USB_ENDPOINT_XFER_ISOC)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	/* Never actually halt ep0, and therefore never clear halt for ep0 */
-	if (!ep->num) {
-		if (halt && !fromhost) {
+	if (!ep->num)
+	{
+		if (halt && !fromhost)
+		{
 			/* ep0 halt from gadget - generate protocol stall */
 			gr_control_stall(ep->dev);
 			dev_dbg(ep->dev->dev, "EP: stall ep0\n");
 			return 0;
 		}
+
 		return -EINVAL;
 	}
 
 	dev_dbg(ep->dev->dev, "EP: %s halt %s\n",
-		(halt ? (wedge ? "wedge" : "set") : "clear"), ep->ep.name);
+			(halt ? (wedge ? "wedge" : "set") : "clear"), ep->ep.name);
 
 	epctrl = gr_read32(&ep->regs->epctrl);
-	if (halt) {
+
+	if (halt)
+	{
 		/* Set HALT */
 		gr_write32(&ep->regs->epctrl, epctrl | GR_EPCTRL_EH);
 		ep->stopped = 1;
+
 		if (wedge)
+		{
 			ep->wedged = 1;
-	} else {
+		}
+	}
+	else
+	{
 		gr_write32(&ep->regs->epctrl, epctrl & ~GR_EPCTRL_EH);
 		ep->stopped = 0;
 		ep->wedged = 0;
 
 		/* Things might have been queued up in the meantime */
 		if (!ep->dma_start)
+		{
 			gr_start_dma(ep);
+		}
 	}
 
 	return retval;
@@ -770,7 +873,8 @@ static inline void gr_set_ep0state(struct gr_udc *dev, enum gr_ep0state value)
 {
 	if (dev->ep0state != value)
 		dev_vdbg(dev->dev, "STATE:  ep0state=%s\n",
-			 gr_ep0state_string(value));
+				 gr_ep0state_string(value));
+
 	dev->ep0state = value;
 }
 
@@ -796,7 +900,7 @@ static void gr_stop_activity(struct gr_udc *dev)
 	struct gr_ep *ep;
 
 	list_for_each_entry(ep, &dev->ep_list, ep_list)
-		gr_ep_nuke(ep);
+	gr_ep_nuke(ep);
 
 	gr_disable_interrupts_and_pullup(dev);
 
@@ -808,7 +912,7 @@ static void gr_stop_activity(struct gr_udc *dev)
 /* ep0 setup packet handling */
 
 static void gr_ep0_testmode_complete(struct usb_ep *_ep,
-				     struct usb_request *_req)
+									 struct usb_request *_req)
 {
 	struct gr_ep *ep;
 	struct gr_udc *dev;
@@ -837,22 +941,26 @@ static void gr_ep0_dummy_complete(struct usb_ep *_ep, struct usb_request *_req)
  * Must be called with dev->lock held.
  */
 static int gr_ep0_respond(struct gr_udc *dev, u8 *buf, int length,
-			  void (*complete)(struct usb_ep *ep,
-					   struct usb_request *req))
+						  void (*complete)(struct usb_ep *ep,
+								  struct usb_request *req))
 {
 	u8 *reqbuf = dev->ep0reqi->req.buf;
 	int status;
 	int i;
 
 	for (i = 0; i < length; i++)
+	{
 		reqbuf[i] = buf[i];
+	}
+
 	dev->ep0reqi->req.length = length;
 	dev->ep0reqi->req.complete = complete;
 
 	status = gr_queue_int(&dev->epi[0], dev->ep0reqi, GFP_ATOMIC);
+
 	if (status < 0)
 		dev_err(dev->dev,
-			"Could not queue ep0in setup response: %d\n", status);
+				"Could not queue ep0in setup response: %d\n", status);
 
 	return status;
 }
@@ -867,7 +975,7 @@ static inline int gr_ep0_respond_u16(struct gr_udc *dev, u16 response)
 	__le16 le_response = cpu_to_le16(response);
 
 	return gr_ep0_respond(dev, (u8 *)&le_response, 2,
-			      gr_ep0_dummy_complete);
+						  gr_ep0_dummy_complete);
 }
 
 /*
@@ -904,52 +1012,65 @@ static void gr_set_address(struct gr_udc *dev, u8 address)
  * Must be called with dev->lock held.
  */
 static int gr_device_request(struct gr_udc *dev, u8 type, u8 request,
-			     u16 value, u16 index)
+							 u16 value, u16 index)
 {
 	u16 response;
 	u8 test;
 
-	switch (request) {
-	case USB_REQ_SET_ADDRESS:
-		dev_dbg(dev->dev, "STATUS: address %d\n", value & 0xff);
-		gr_set_address(dev, value & 0xff);
-		if (value)
-			usb_gadget_set_state(&dev->gadget, USB_STATE_ADDRESS);
-		else
-			usb_gadget_set_state(&dev->gadget, USB_STATE_DEFAULT);
-		return gr_ep0_respond_empty(dev);
+	switch (request)
+	{
+		case USB_REQ_SET_ADDRESS:
+			dev_dbg(dev->dev, "STATUS: address %d\n", value & 0xff);
+			gr_set_address(dev, value & 0xff);
 
-	case USB_REQ_GET_STATUS:
-		/* Self powered | remote wakeup */
-		response = 0x0001 | (dev->remote_wakeup ? 0x0002 : 0);
-		return gr_ep0_respond_u16(dev, response);
-
-	case USB_REQ_SET_FEATURE:
-		switch (value) {
-		case USB_DEVICE_REMOTE_WAKEUP:
-			/* Allow remote wakeup */
-			dev->remote_wakeup = 1;
-			return gr_ep0_respond_empty(dev);
-
-		case USB_DEVICE_TEST_MODE:
-			/* The hardware does not support TEST_FORCE_EN */
-			test = index >> 8;
-			if (test >= TEST_J && test <= TEST_PACKET) {
-				dev->test_mode = test;
-				return gr_ep0_respond(dev, NULL, 0,
-						      gr_ep0_testmode_complete);
+			if (value)
+			{
+				usb_gadget_set_state(&dev->gadget, USB_STATE_ADDRESS);
 			}
-		}
-		break;
+			else
+			{
+				usb_gadget_set_state(&dev->gadget, USB_STATE_DEFAULT);
+			}
 
-	case USB_REQ_CLEAR_FEATURE:
-		switch (value) {
-		case USB_DEVICE_REMOTE_WAKEUP:
-			/* Disallow remote wakeup */
-			dev->remote_wakeup = 0;
 			return gr_ep0_respond_empty(dev);
-		}
-		break;
+
+		case USB_REQ_GET_STATUS:
+			/* Self powered | remote wakeup */
+			response = 0x0001 | (dev->remote_wakeup ? 0x0002 : 0);
+			return gr_ep0_respond_u16(dev, response);
+
+		case USB_REQ_SET_FEATURE:
+			switch (value)
+			{
+				case USB_DEVICE_REMOTE_WAKEUP:
+					/* Allow remote wakeup */
+					dev->remote_wakeup = 1;
+					return gr_ep0_respond_empty(dev);
+
+				case USB_DEVICE_TEST_MODE:
+					/* The hardware does not support TEST_FORCE_EN */
+					test = index >> 8;
+
+					if (test >= TEST_J && test <= TEST_PACKET)
+					{
+						dev->test_mode = test;
+						return gr_ep0_respond(dev, NULL, 0,
+											  gr_ep0_testmode_complete);
+					}
+			}
+
+			break;
+
+		case USB_REQ_CLEAR_FEATURE:
+			switch (value)
+			{
+				case USB_DEVICE_REMOTE_WAKEUP:
+					/* Disallow remote wakeup */
+					dev->remote_wakeup = 0;
+					return gr_ep0_respond_empty(dev);
+			}
+
+			break;
 	}
 
 	return 1; /* Delegate the rest */
@@ -962,10 +1083,12 @@ static int gr_device_request(struct gr_udc *dev, u8 type, u8 request,
  * Must be called with dev->lock held.
  */
 static int gr_interface_request(struct gr_udc *dev, u8 type, u8 request,
-				u16 value, u16 index)
+								u16 value, u16 index)
 {
 	if (dev->gadget.state != USB_STATE_CONFIGURED)
+	{
 		return -1;
+	}
 
 	/*
 	 * Should return STALL for invalid interfaces, but udc driver does not
@@ -973,17 +1096,18 @@ static int gr_interface_request(struct gr_udc *dev, u8 type, u8 request,
 	 * GET_STATUS so we need to take care of that.
 	 */
 
-	switch (request) {
-	case USB_REQ_GET_STATUS:
-		return gr_ep0_respond_u16(dev, 0x0000);
+	switch (request)
+	{
+		case USB_REQ_GET_STATUS:
+			return gr_ep0_respond_u16(dev, 0x0000);
 
-	case USB_REQ_SET_FEATURE:
-	case USB_REQ_CLEAR_FEATURE:
-		/*
-		 * No possible valid standard requests. Still let gadget drivers
-		 * have a go at it.
-		 */
-		break;
+		case USB_REQ_SET_FEATURE:
+		case USB_REQ_CLEAR_FEATURE:
+			/*
+			 * No possible valid standard requests. Still let gadget drivers
+			 * have a go at it.
+			 */
+			break;
 	}
 
 	return 1; /* Delegate the rest */
@@ -996,7 +1120,7 @@ static int gr_interface_request(struct gr_udc *dev, u8 type, u8 request,
  * Must be called with dev->lock held.
  */
 static int gr_endpoint_request(struct gr_udc *dev, u8 type, u8 request,
-			       u16 value, u16 index)
+							   u16 value, u16 index)
 {
 	struct gr_ep *ep;
 	int status;
@@ -1005,39 +1129,59 @@ static int gr_endpoint_request(struct gr_udc *dev, u8 type, u8 request,
 	u8 is_in = index & USB_ENDPOINT_DIR_MASK;
 
 	if ((is_in && epnum >= dev->nepi) || (!is_in && epnum >= dev->nepo))
+	{
 		return -1;
+	}
 
 	if (dev->gadget.state != USB_STATE_CONFIGURED && epnum != 0)
+	{
 		return -1;
+	}
 
 	ep = (is_in ? &dev->epi[epnum] : &dev->epo[epnum]);
 
-	switch (request) {
-	case USB_REQ_GET_STATUS:
-		halted = gr_read32(&ep->regs->epctrl) & GR_EPCTRL_EH;
-		return gr_ep0_respond_u16(dev, halted ? 0x0001 : 0);
+	switch (request)
+	{
+		case USB_REQ_GET_STATUS:
+			halted = gr_read32(&ep->regs->epctrl) & GR_EPCTRL_EH;
+			return gr_ep0_respond_u16(dev, halted ? 0x0001 : 0);
 
-	case USB_REQ_SET_FEATURE:
-		switch (value) {
-		case USB_ENDPOINT_HALT:
-			status = gr_ep_halt_wedge(ep, 1, 0, 1);
-			if (status >= 0)
-				status = gr_ep0_respond_empty(dev);
-			return status;
-		}
-		break;
+		case USB_REQ_SET_FEATURE:
+			switch (value)
+			{
+				case USB_ENDPOINT_HALT:
+					status = gr_ep_halt_wedge(ep, 1, 0, 1);
 
-	case USB_REQ_CLEAR_FEATURE:
-		switch (value) {
-		case USB_ENDPOINT_HALT:
-			if (ep->wedged)
-				return -1;
-			status = gr_ep_halt_wedge(ep, 0, 0, 1);
-			if (status >= 0)
-				status = gr_ep0_respond_empty(dev);
-			return status;
-		}
-		break;
+					if (status >= 0)
+					{
+						status = gr_ep0_respond_empty(dev);
+					}
+
+					return status;
+			}
+
+			break;
+
+		case USB_REQ_CLEAR_FEATURE:
+			switch (value)
+			{
+				case USB_ENDPOINT_HALT:
+					if (ep->wedged)
+					{
+						return -1;
+					}
+
+					status = gr_ep_halt_wedge(ep, 0, 0, 1);
+
+					if (status >= 0)
+					{
+						status = gr_ep0_respond_empty(dev);
+					}
+
+					return status;
+			}
+
+			break;
 	}
 
 	return 1; /* Delegate the rest */
@@ -1050,7 +1194,7 @@ static void gr_ep0out_requeue(struct gr_udc *dev)
 
 	if (ret)
 		dev_err(dev->dev, "Could not queue ep0out setup request: %d\n",
-			ret);
+				ret);
 }
 
 /*
@@ -1059,10 +1203,11 @@ static void gr_ep0out_requeue(struct gr_udc *dev)
  * Must be called with dev->lock held and irqs disabled
  */
 static void gr_ep0_setup(struct gr_udc *dev, struct gr_request *req)
-	__releases(&dev->lock)
-	__acquires(&dev->lock)
+__releases(&dev->lock)
+__acquires(&dev->lock)
 {
-	union {
+	union
+	{
 		struct usb_ctrlrequest ctrl;
 		u8 raw[8];
 		u32 word[2];
@@ -1076,36 +1221,50 @@ static void gr_ep0_setup(struct gr_udc *dev, struct gr_request *req)
 	int status;
 
 	/* Restore from ep0 halt */
-	if (dev->ep0state == GR_EP0_STALL) {
+	if (dev->ep0state == GR_EP0_STALL)
+	{
 		gr_set_ep0state(dev, GR_EP0_SETUP);
+
 		if (!req->req.actual)
+		{
 			goto out;
+		}
 	}
 
-	if (dev->ep0state == GR_EP0_ISTATUS) {
+	if (dev->ep0state == GR_EP0_ISTATUS)
+	{
 		gr_set_ep0state(dev, GR_EP0_SETUP);
+
 		if (req->req.actual > 0)
 			dev_dbg(dev->dev,
-				"Unexpected setup packet at state %s\n",
-				gr_ep0state_string(GR_EP0_ISTATUS));
+					"Unexpected setup packet at state %s\n",
+					gr_ep0state_string(GR_EP0_ISTATUS));
 		else
-			goto out; /* Got expected ZLP */
-	} else if (dev->ep0state != GR_EP0_SETUP) {
+		{
+			goto out;    /* Got expected ZLP */
+		}
+	}
+	else if (dev->ep0state != GR_EP0_SETUP)
+	{
 		dev_info(dev->dev,
-			 "Unexpected ep0out request at state %s - stalling\n",
-			 gr_ep0state_string(dev->ep0state));
+				 "Unexpected ep0out request at state %s - stalling\n",
+				 gr_ep0state_string(dev->ep0state));
 		gr_control_stall(dev);
 		gr_set_ep0state(dev, GR_EP0_SETUP);
 		goto out;
-	} else if (!req->req.actual) {
+	}
+	else if (!req->req.actual)
+	{
 		dev_dbg(dev->dev, "Unexpected ZLP at state %s\n",
-			gr_ep0state_string(dev->ep0state));
+				gr_ep0state_string(dev->ep0state));
 		goto out;
 	}
 
 	/* Handle SETUP packet */
 	for (i = 0; i < req->req.actual; i++)
+	{
 		u.raw[i] = ((u8 *)req->req.buf)[i];
+	}
 
 	type = u.ctrl.bRequestType;
 	request = u.ctrl.bRequest;
@@ -1116,32 +1275,43 @@ static void gr_ep0_setup(struct gr_udc *dev, struct gr_request *req)
 	gr_dbgprint_devreq(dev, type, request, value, index, length);
 
 	/* Check for data stage */
-	if (length) {
+	if (length)
+	{
 		if (type & USB_DIR_IN)
+		{
 			gr_set_ep0state(dev, GR_EP0_IDATA);
+		}
 		else
+		{
 			gr_set_ep0state(dev, GR_EP0_ODATA);
-	}
-
-	status = 1; /* Positive status flags delegation */
-	if ((type & USB_TYPE_MASK) == USB_TYPE_STANDARD) {
-		switch (type & USB_RECIP_MASK) {
-		case USB_RECIP_DEVICE:
-			status = gr_device_request(dev, type, request,
-						   value, index);
-			break;
-		case USB_RECIP_ENDPOINT:
-			status =  gr_endpoint_request(dev, type, request,
-						      value, index);
-			break;
-		case USB_RECIP_INTERFACE:
-			status = gr_interface_request(dev, type, request,
-						      value, index);
-			break;
 		}
 	}
 
-	if (status > 0) {
+	status = 1; /* Positive status flags delegation */
+
+	if ((type & USB_TYPE_MASK) == USB_TYPE_STANDARD)
+	{
+		switch (type & USB_RECIP_MASK)
+		{
+			case USB_RECIP_DEVICE:
+				status = gr_device_request(dev, type, request,
+										   value, index);
+				break;
+
+			case USB_RECIP_ENDPOINT:
+				status =  gr_endpoint_request(dev, type, request,
+											  value, index);
+				break;
+
+			case USB_RECIP_INTERFACE:
+				status = gr_interface_request(dev, type, request,
+											  value, index);
+				break;
+		}
+	}
+
+	if (status > 0)
+	{
 		spin_unlock(&dev->lock);
 
 		dev_vdbg(dev->dev, "DELEGATE\n");
@@ -1151,31 +1321,42 @@ static void gr_ep0_setup(struct gr_udc *dev, struct gr_request *req)
 	}
 
 	/* Generate STALL on both ep0out and ep0in if requested */
-	if (unlikely(status < 0)) {
+	if (unlikely(status < 0))
+	{
 		dev_vdbg(dev->dev, "STALL\n");
 		gr_control_stall(dev);
 	}
 
 	if ((type & USB_TYPE_MASK) == USB_TYPE_STANDARD &&
-	    request == USB_REQ_SET_CONFIGURATION) {
-		if (!value) {
+		request == USB_REQ_SET_CONFIGURATION)
+	{
+		if (!value)
+		{
 			dev_dbg(dev->dev, "STATUS: deconfigured\n");
 			usb_gadget_set_state(&dev->gadget, USB_STATE_ADDRESS);
-		} else if (status >= 0) {
+		}
+		else if (status >= 0)
+		{
 			/* Not configured unless gadget OK:s it */
 			dev_dbg(dev->dev, "STATUS: configured: %d\n", value);
 			usb_gadget_set_state(&dev->gadget,
-					     USB_STATE_CONFIGURED);
+								 USB_STATE_CONFIGURED);
 		}
 	}
 
 	/* Get ready for next stage */
 	if (dev->ep0state == GR_EP0_ODATA)
+	{
 		gr_set_ep0state(dev, GR_EP0_OSTATUS);
+	}
 	else if (dev->ep0state == GR_EP0_IDATA)
+	{
 		gr_set_ep0state(dev, GR_EP0_ISTATUS);
+	}
 	else
+	{
 		gr_set_ep0state(dev, GR_EP0_SETUP);
+	}
 
 out:
 	gr_ep0out_requeue(dev);
@@ -1194,7 +1375,7 @@ static void gr_vbus_connected(struct gr_udc *dev, u32 status)
 
 	/* Turn on full interrupts and pullup */
 	control = (GR_CONTROL_SI | GR_CONTROL_UI | GR_CONTROL_VI |
-		   GR_CONTROL_SP | GR_CONTROL_EP);
+			   GR_CONTROL_SP | GR_CONTROL_EP);
 	gr_write32(&dev->regs->control, control);
 }
 
@@ -1209,8 +1390,11 @@ static void gr_enable_vbus_detect(struct gr_udc *dev)
 
 	/* Take care of the case we are already plugged in at this point */
 	status = gr_read32(&dev->regs->status);
+
 	if (status & GR_STATUS_VB)
+	{
 		gr_vbus_connected(dev, status);
+	}
 }
 
 /* Must be called with dev->lock held and irqs disabled */
@@ -1219,7 +1403,8 @@ static void gr_vbus_disconnected(struct gr_udc *dev)
 	gr_stop_activity(dev);
 
 	/* Report disconnect */
-	if (dev->driver && dev->driver->disconnect) {
+	if (dev->driver && dev->driver->disconnect)
+	{
 		spin_unlock(&dev->lock);
 
 		dev->driver->disconnect(&dev->gadget);
@@ -1258,14 +1443,21 @@ static int gr_handle_in_ep(struct gr_ep *ep)
 	struct gr_request *req;
 
 	req = list_first_entry(&ep->queue, struct gr_request, queue);
+
 	if (!req->last_desc)
+	{
 		return 0;
+	}
 
 	if (ACCESS_ONCE(req->last_desc->ctrl) & GR_DESC_IN_CTRL_EN)
-		return 0; /* Not put in hardware buffers yet */
+	{
+		return 0;    /* Not put in hardware buffers yet */
+	}
 
 	if (gr_read32(&ep->regs->epstat) & (GR_EPSTAT_B1 | GR_EPSTAT_B0))
-		return 0; /* Not transmitted yet, still in hardware buffers */
+	{
+		return 0;    /* Not transmitted yet, still in hardware buffers */
+	}
 
 	/* Write complete */
 	gr_dma_advance(ep, 0);
@@ -1287,23 +1479,34 @@ static int gr_handle_out_ep(struct gr_ep *ep)
 	struct gr_udc *dev = ep->dev;
 
 	req = list_first_entry(&ep->queue, struct gr_request, queue);
+
 	if (!req->curr_desc)
+	{
 		return 0;
+	}
 
 	ctrl = ACCESS_ONCE(req->curr_desc->ctrl);
+
 	if (ctrl & GR_DESC_OUT_CTRL_EN)
-		return 0; /* Not received yet */
+	{
+		return 0;    /* Not received yet */
+	}
 
 	/* Read complete */
 	len = ctrl & GR_DESC_OUT_CTRL_LEN_MASK;
 	req->req.actual += len;
-	if (ctrl & GR_DESC_OUT_CTRL_SE)
-		req->setup = 1;
 
-	if (len < ep->ep.maxpacket || req->req.actual >= req->req.length) {
+	if (ctrl & GR_DESC_OUT_CTRL_SE)
+	{
+		req->setup = 1;
+	}
+
+	if (len < ep->ep.maxpacket || req->req.actual >= req->req.length)
+	{
 		/* Short packet or >= expected size - we are done */
 
-		if ((ep == &dev->epo[0]) && (dev->ep0state == GR_EP0_OSTATUS)) {
+		if ((ep == &dev->epo[0]) && (dev->ep0state == GR_EP0_OSTATUS))
+		{
 			/*
 			 * Send a status stage ZLP to ack the DATA stage in the
 			 * OUT direction. This needs to be done before
@@ -1315,7 +1518,9 @@ static int gr_handle_out_ep(struct gr_ep *ep)
 		}
 
 		gr_dma_advance(ep, 0);
-	} else {
+	}
+	else
+	{
 		/* Not done yet. Enable the next descriptor to receive more. */
 		req->curr_desc = req->curr_desc->next_desc;
 		req->curr_desc->ctrl |= GR_DESC_OUT_CTRL_EN;
@@ -1337,74 +1542,90 @@ static int gr_handle_state_changes(struct gr_udc *dev)
 	u32 status = gr_read32(&dev->regs->status);
 	int handled = 0;
 	int powstate = !(dev->gadget.state == USB_STATE_NOTATTACHED ||
-			 dev->gadget.state == USB_STATE_ATTACHED);
+					 dev->gadget.state == USB_STATE_ATTACHED);
 
 	/* VBUS valid detected */
-	if (!powstate && (status & GR_STATUS_VB)) {
+	if (!powstate && (status & GR_STATUS_VB))
+	{
 		dev_dbg(dev->dev, "STATUS: vbus valid detected\n");
 		gr_vbus_connected(dev, status);
 		handled = 1;
 	}
 
 	/* Disconnect */
-	if (powstate && !(status & GR_STATUS_VB)) {
+	if (powstate && !(status & GR_STATUS_VB))
+	{
 		dev_dbg(dev->dev, "STATUS: vbus invalid detected\n");
 		gr_vbus_disconnected(dev);
 		handled = 1;
 	}
 
 	/* USB reset detected */
-	if (status & GR_STATUS_UR) {
+	if (status & GR_STATUS_UR)
+	{
 		dev_dbg(dev->dev, "STATUS: USB reset - speed is %s\n",
-			GR_SPEED_STR(status));
+				GR_SPEED_STR(status));
 		gr_write32(&dev->regs->status, GR_STATUS_UR);
 		gr_udc_usbreset(dev, status);
 		handled = 1;
 	}
 
 	/* Speed change */
-	if (dev->gadget.speed != GR_SPEED(status)) {
+	if (dev->gadget.speed != GR_SPEED(status))
+	{
 		dev_dbg(dev->dev, "STATUS: USB Speed change to %s\n",
-			GR_SPEED_STR(status));
+				GR_SPEED_STR(status));
 		dev->gadget.speed = GR_SPEED(status);
 		handled = 1;
 	}
 
 	/* Going into suspend */
-	if ((dev->ep0state != GR_EP0_SUSPEND) && !(status & GR_STATUS_SU)) {
+	if ((dev->ep0state != GR_EP0_SUSPEND) && !(status & GR_STATUS_SU))
+	{
 		dev_dbg(dev->dev, "STATUS: USB suspend\n");
 		gr_set_ep0state(dev, GR_EP0_SUSPEND);
 		dev->suspended_from = dev->gadget.state;
 		usb_gadget_set_state(&dev->gadget, USB_STATE_SUSPENDED);
 
 		if ((dev->gadget.speed != USB_SPEED_UNKNOWN) &&
-		    dev->driver && dev->driver->suspend) {
+			dev->driver && dev->driver->suspend)
+		{
 			spin_unlock(&dev->lock);
 
 			dev->driver->suspend(&dev->gadget);
 
 			spin_lock(&dev->lock);
 		}
+
 		handled = 1;
 	}
 
 	/* Coming out of suspend */
-	if ((dev->ep0state == GR_EP0_SUSPEND) && (status & GR_STATUS_SU)) {
+	if ((dev->ep0state == GR_EP0_SUSPEND) && (status & GR_STATUS_SU))
+	{
 		dev_dbg(dev->dev, "STATUS: USB resume\n");
+
 		if (dev->suspended_from == USB_STATE_POWERED)
+		{
 			gr_set_ep0state(dev, GR_EP0_DISCONNECT);
+		}
 		else
+		{
 			gr_set_ep0state(dev, GR_EP0_SETUP);
+		}
+
 		usb_gadget_set_state(&dev->gadget, dev->suspended_from);
 
 		if ((dev->gadget.speed != USB_SPEED_UNKNOWN) &&
-		    dev->driver && dev->driver->resume) {
+			dev->driver && dev->driver->resume)
+		{
 			spin_unlock(&dev->lock);
 
 			dev->driver->resume(&dev->gadget);
 
 			spin_lock(&dev->lock);
 		}
+
 		handled = 1;
 	}
 
@@ -1423,24 +1644,34 @@ static irqreturn_t gr_irq_handler(int irq, void *_dev)
 	spin_lock_irqsave(&dev->lock, flags);
 
 	if (!dev->irq_enabled)
+	{
 		goto out;
+	}
 
 	/*
 	 * Check IN ep interrupts. We check these before the OUT eps because
 	 * some gadgets reuse the request that might already be currently
 	 * outstanding and needs to be completed (mainly setup requests).
 	 */
-	for (i = 0; i < dev->nepi; i++) {
+	for (i = 0; i < dev->nepi; i++)
+	{
 		ep = &dev->epi[i];
+
 		if (!ep->stopped && !ep->callback && !list_empty(&ep->queue))
+		{
 			handled = gr_handle_in_ep(ep) || handled;
+		}
 	}
 
 	/* Check OUT ep interrupts */
-	for (i = 0; i < dev->nepo; i++) {
+	for (i = 0; i < dev->nepo; i++)
+	{
 		ep = &dev->epo[i];
+
 		if (!ep->stopped && !ep->callback && !list_empty(&ep->queue))
+		{
 			handled = gr_handle_out_ep(ep) || handled;
+		}
 	}
 
 	/* Check status interrupts */
@@ -1450,12 +1681,15 @@ static irqreturn_t gr_irq_handler(int irq, void *_dev)
 	 * Check AMBA DMA errors. Only check if we didn't find anything else to
 	 * handle because this shouldn't happen if we did everything right.
 	 */
-	if (!handled) {
-		list_for_each_entry(ep, &dev->ep_list, ep_list) {
-			if (gr_read32(&ep->regs->dmactrl) & GR_DMACTRL_AE) {
+	if (!handled)
+	{
+		list_for_each_entry(ep, &dev->ep_list, ep_list)
+		{
+			if (gr_read32(&ep->regs->dmactrl) & GR_DMACTRL_AE)
+			{
 				dev_err(dev->dev,
-					"AMBA Error occurred for %s\n",
-					ep->ep.name);
+						"AMBA Error occurred for %s\n",
+						ep->ep.name);
 				handled = 1;
 			}
 		}
@@ -1473,7 +1707,9 @@ static irqreturn_t gr_irq(int irq, void *_dev)
 	struct gr_udc *dev = _dev;
 
 	if (!dev->irq_enabled)
+	{
 		return IRQ_NONE;
+	}
 
 	return IRQ_WAKE_THREAD;
 }
@@ -1483,7 +1719,7 @@ static irqreturn_t gr_irq(int irq, void *_dev)
 
 /* Enable endpoint. Not for ep0in and ep0out that are handled separately. */
 static int gr_ep_enable(struct usb_ep *_ep,
-			const struct usb_endpoint_descriptor *desc)
+						const struct usb_endpoint_descriptor *desc)
 {
 	struct gr_udc *dev;
 	struct gr_ep *ep;
@@ -1494,43 +1730,66 @@ static int gr_ep_enable(struct usb_ep *_ep,
 	u32 epctrl;
 
 	ep = container_of(_ep, struct gr_ep, ep);
+
 	if (!_ep || !desc || desc->bDescriptorType != USB_DT_ENDPOINT)
+	{
 		return -EINVAL;
+	}
 
 	dev = ep->dev;
 
 	/* 'ep0' IN and OUT are reserved */
 	if (ep == &dev->epo[0] || ep == &dev->epi[0])
+	{
 		return -EINVAL;
+	}
 
 	if (!dev->driver || dev->gadget.speed == USB_SPEED_UNKNOWN)
+	{
 		return -ESHUTDOWN;
+	}
 
 	/* Make sure we are clear for enabling */
 	epctrl = gr_read32(&ep->regs->epctrl);
+
 	if (epctrl & GR_EPCTRL_EV)
+	{
 		return -EBUSY;
+	}
 
 	/* Check that directions match */
 	if (!ep->is_in != !usb_endpoint_dir_in(desc))
+	{
 		return -EINVAL;
+	}
 
 	/* Check ep num */
 	if ((!ep->is_in && ep->num >= dev->nepo) ||
-	    (ep->is_in && ep->num >= dev->nepi))
+		(ep->is_in && ep->num >= dev->nepi))
+	{
 		return -EINVAL;
+	}
 
-	if (usb_endpoint_xfer_control(desc)) {
+	if (usb_endpoint_xfer_control(desc))
+	{
 		mode = 0;
-	} else if (usb_endpoint_xfer_isoc(desc)) {
+	}
+	else if (usb_endpoint_xfer_isoc(desc))
+	{
 		mode = 1;
-	} else if (usb_endpoint_xfer_bulk(desc)) {
+	}
+	else if (usb_endpoint_xfer_bulk(desc))
+	{
 		mode = 2;
-	} else if (usb_endpoint_xfer_int(desc)) {
+	}
+	else if (usb_endpoint_xfer_int(desc))
+	{
 		mode = 3;
-	} else {
+	}
+	else
+	{
 		dev_err(dev->dev, "Unknown transfer type for %s\n",
-			ep->ep.name);
+				ep->ep.name);
 		return -EINVAL;
 	}
 
@@ -1541,31 +1800,42 @@ static int gr_ep_enable(struct usb_ep *_ep,
 	max = 0x7ff & usb_endpoint_maxp(desc);
 	nt = 0x3 & (usb_endpoint_maxp(desc) >> 11);
 	buffer_size = GR_BUFFER_SIZE(epctrl);
-	if (nt && (mode == 0 || mode == 2)) {
+
+	if (nt && (mode == 0 || mode == 2))
+	{
 		dev_err(dev->dev,
-			"%s mode: multiple trans./microframe not valid\n",
-			(mode == 2 ? "Bulk" : "Control"));
+				"%s mode: multiple trans./microframe not valid\n",
+				(mode == 2 ? "Bulk" : "Control"));
 		return -EINVAL;
-	} else if (nt == 0x3) {
+	}
+	else if (nt == 0x3)
+	{
 		dev_err(dev->dev,
-			"Invalid value 0x3 for additional trans./microframe\n");
+				"Invalid value 0x3 for additional trans./microframe\n");
 		return -EINVAL;
-	} else if ((nt + 1) * max > buffer_size) {
+	}
+	else if ((nt + 1) * max > buffer_size)
+	{
 		dev_err(dev->dev, "Hw buffer size %d < max payload %d * %d\n",
-			buffer_size, (nt + 1), max);
+				buffer_size, (nt + 1), max);
 		return -EINVAL;
-	} else if (max == 0) {
+	}
+	else if (max == 0)
+	{
 		dev_err(dev->dev, "Max payload cannot be set to 0\n");
 		return -EINVAL;
-	} else if (max > ep->ep.maxpacket_limit) {
+	}
+	else if (max > ep->ep.maxpacket_limit)
+	{
 		dev_err(dev->dev, "Requested max payload %d > limit %d\n",
-			max, ep->ep.maxpacket_limit);
+				max, ep->ep.maxpacket_limit);
 		return -EINVAL;
 	}
 
 	spin_lock(&ep->dev->lock);
 
-	if (!ep->stopped) {
+	if (!ep->stopped)
+	{
 		spin_unlock(&ep->dev->lock);
 		return -EBUSY;
 	}
@@ -1577,20 +1847,25 @@ static int gr_ep_enable(struct usb_ep *_ep,
 	ep->dma_start = 0;
 
 
-	if (nt) {
+	if (nt)
+	{
 		/*
 		 * Maximum possible size of all payloads in one microframe
 		 * regardless of direction when using high-bandwidth mode.
 		 */
 		ep->bytes_per_buffer = (nt + 1) * max;
-	} else if (ep->is_in) {
+	}
+	else if (ep->is_in)
+	{
 		/*
 		 * The biggest multiple of maximum packet size that fits into
 		 * the buffer. The hardware will split up into many packets in
 		 * the IN direction.
 		 */
 		ep->bytes_per_buffer = (buffer_size / max) * max;
-	} else {
+	}
+	else
+	{
 		/*
 		 * Only single packets will be placed the buffers in the OUT
 		 * direction.
@@ -1599,11 +1874,15 @@ static int gr_ep_enable(struct usb_ep *_ep,
 	}
 
 	epctrl = (max << GR_EPCTRL_MAXPL_POS)
-		| (nt << GR_EPCTRL_NT_POS)
-		| (mode << GR_EPCTRL_TT_POS)
-		| GR_EPCTRL_EV;
+			 | (nt << GR_EPCTRL_NT_POS)
+			 | (mode << GR_EPCTRL_TT_POS)
+			 | GR_EPCTRL_EV;
+
 	if (ep->is_in)
+	{
 		epctrl |= GR_EPCTRL_PI;
+	}
+
 	gr_write32(&ep->regs->epctrl, epctrl);
 
 	gr_write32(&ep->regs->dmactrl, GR_DMACTRL_IE | GR_DMACTRL_AI);
@@ -1611,7 +1890,7 @@ static int gr_ep_enable(struct usb_ep *_ep,
 	spin_unlock(&ep->dev->lock);
 
 	dev_dbg(ep->dev->dev, "EP: %s enabled - %s with %d bytes/buffer\n",
-		ep->ep.name, gr_modestring[mode], ep->bytes_per_buffer);
+			ep->ep.name, gr_modestring[mode], ep->bytes_per_buffer);
 	return 0;
 }
 
@@ -1623,17 +1902,24 @@ static int gr_ep_disable(struct usb_ep *_ep)
 	unsigned long flags;
 
 	ep = container_of(_ep, struct gr_ep, ep);
+
 	if (!_ep || !ep->ep.desc)
+	{
 		return -ENODEV;
+	}
 
 	dev = ep->dev;
 
 	/* 'ep0' IN and OUT are reserved */
 	if (ep == &dev->epo[0] || ep == &dev->epi[0])
+	{
 		return -EINVAL;
+	}
 
 	if (dev->ep0state == GR_EP0_SUSPEND)
+	{
 		return -EBUSY;
+	}
 
 	dev_dbg(ep->dev->dev, "EP: disable %s\n", ep->ep.name);
 
@@ -1657,19 +1943,22 @@ static void gr_free_request(struct usb_ep *_ep, struct usb_request *_req)
 	struct gr_request *req;
 
 	if (!_ep || !_req)
+	{
 		return;
+	}
+
 	req = container_of(_req, struct gr_request, req);
 
 	/* Leads to memory leak */
 	WARN(!list_empty(&req->queue),
-	     "request not dequeued properly before freeing\n");
+		 "request not dequeued properly before freeing\n");
 
 	kfree(req);
 }
 
 /* Queue a request from the gadget */
 static int gr_queue_ext(struct usb_ep *_ep, struct usb_request *_req,
-			gfp_t gfp_flags)
+						gfp_t gfp_flags)
 {
 	struct gr_ep *ep;
 	struct gr_request *req;
@@ -1677,7 +1966,9 @@ static int gr_queue_ext(struct usb_ep *_ep, struct usb_request *_req,
 	int ret;
 
 	if (unlikely(!_ep || !_req))
+	{
 		return -EINVAL;
+	}
 
 	ep = container_of(_ep, struct gr_ep, ep);
 	req = container_of(_req, struct gr_request, req);
@@ -1691,13 +1982,16 @@ static int gr_queue_ext(struct usb_ep *_ep, struct usb_request *_req,
 	 * instead of the default ep0in. Completion functions might use
 	 * driver_data, so that needs to be copied as well.
 	 */
-	if ((ep == &dev->epi[0]) && (dev->ep0state == GR_EP0_ODATA)) {
+	if ((ep == &dev->epi[0]) && (dev->ep0state == GR_EP0_ODATA))
+	{
 		ep = &dev->epo[0];
 		ep->ep.driver_data = dev->epi[0].ep.driver_data;
 	}
 
 	if (ep->is_in)
+	{
 		gr_dbgprint_request("EXTERN", ep, req);
+	}
 
 	ret = gr_queue(ep, req, GFP_ATOMIC);
 
@@ -1716,39 +2010,63 @@ static int gr_dequeue(struct usb_ep *_ep, struct usb_request *_req)
 	unsigned long flags;
 
 	ep = container_of(_ep, struct gr_ep, ep);
+
 	if (!_ep || !_req || (!ep->ep.desc && ep->num != 0))
+	{
 		return -EINVAL;
+	}
+
 	dev = ep->dev;
+
 	if (!dev->driver)
+	{
 		return -ESHUTDOWN;
+	}
 
 	/* We can't touch (DMA) registers when suspended */
 	if (dev->ep0state == GR_EP0_SUSPEND)
+	{
 		return -EBUSY;
+	}
 
 	spin_lock_irqsave(&dev->lock, flags);
 
 	/* Make sure it's actually queued on this endpoint */
-	list_for_each_entry(req, &ep->queue, queue) {
+	list_for_each_entry(req, &ep->queue, queue)
+	{
 		if (&req->req == _req)
+		{
 			break;
+		}
 	}
-	if (&req->req != _req) {
+
+	if (&req->req != _req)
+	{
 		ret = -EINVAL;
 		goto out;
 	}
 
-	if (list_first_entry(&ep->queue, struct gr_request, queue) == req) {
+	if (list_first_entry(&ep->queue, struct gr_request, queue) == req)
+	{
 		/* This request is currently being processed */
 		gr_abort_dma(ep);
+
 		if (ep->stopped)
+		{
 			gr_finish_request(ep, req, -ECONNRESET);
+		}
 		else
+		{
 			gr_dma_advance(ep, -ECONNRESET);
-	} else if (!list_empty(&req->queue)) {
+		}
+	}
+	else if (!list_empty(&req->queue))
+	{
 		/* Not being processed - gr_finish_request dequeues it */
 		gr_finish_request(ep, req, -ECONNRESET);
-	} else {
+	}
+	else
+	{
 		ret = -EOPNOTSUPP;
 	}
 
@@ -1765,13 +2083,17 @@ static int gr_set_halt_wedge(struct usb_ep *_ep, int halt, int wedge)
 	struct gr_ep *ep;
 
 	if (!_ep)
+	{
 		return -ENODEV;
+	}
+
 	ep = container_of(_ep, struct gr_ep, ep);
 
 	spin_lock(&ep->dev->lock);
 
 	/* Halting an IN endpoint should fail if queue is not empty */
-	if (halt && ep->is_in && !list_empty(&ep->queue)) {
+	if (halt && ep->is_in && !list_empty(&ep->queue))
+	{
 		ret = -EAGAIN;
 		goto out;
 	}
@@ -1807,15 +2129,23 @@ static int gr_fifo_status(struct usb_ep *_ep)
 	u32 bytes = 0;
 
 	if (!_ep)
+	{
 		return -ENODEV;
+	}
+
 	ep = container_of(_ep, struct gr_ep, ep);
 
 	epstat = gr_read32(&ep->regs->epstat);
 
 	if (epstat & GR_EPSTAT_B0)
+	{
 		bytes += (epstat & GR_EPSTAT_B0CNT_MASK) >> GR_EPSTAT_B0CNT_POS;
+	}
+
 	if (epstat & GR_EPSTAT_B1)
+	{
 		bytes += (epstat & GR_EPSTAT_B1CNT_MASK) >> GR_EPSTAT_B1CNT_POS;
+	}
 
 	return bytes;
 }
@@ -1828,7 +2158,10 @@ static void gr_fifo_flush(struct usb_ep *_ep)
 	u32 epctrl;
 
 	if (!_ep)
+	{
 		return;
+	}
+
 	ep = container_of(_ep, struct gr_ep, ep);
 	dev_vdbg(ep->dev->dev, "EP: flush fifo %s\n", ep->ep.name);
 
@@ -1841,7 +2174,8 @@ static void gr_fifo_flush(struct usb_ep *_ep)
 	spin_unlock(&ep->dev->lock);
 }
 
-static struct usb_ep_ops gr_ep_ops = {
+static struct usb_ep_ops gr_ep_ops =
+{
 	.enable		= gr_ep_enable,
 	.disable	= gr_ep_disable,
 
@@ -1865,7 +2199,10 @@ static int gr_get_frame(struct usb_gadget *_gadget)
 	struct gr_udc *dev;
 
 	if (!_gadget)
+	{
 		return -ENODEV;
+	}
+
 	dev = container_of(_gadget, struct gr_udc, gadget);
 	return gr_read32(&dev->regs->status) & GR_STATUS_FN_MASK;
 }
@@ -1875,17 +2212,22 @@ static int gr_wakeup(struct usb_gadget *_gadget)
 	struct gr_udc *dev;
 
 	if (!_gadget)
+	{
 		return -ENODEV;
+	}
+
 	dev = container_of(_gadget, struct gr_udc, gadget);
 
 	/* Remote wakeup feature not enabled by host*/
 	if (!dev->remote_wakeup)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock(&dev->lock);
 
 	gr_write32(&dev->regs->control,
-		   gr_read32(&dev->regs->control) | GR_CONTROL_RW);
+			   gr_read32(&dev->regs->control) | GR_CONTROL_RW);
 
 	spin_unlock(&dev->lock);
 
@@ -1898,16 +2240,25 @@ static int gr_pullup(struct usb_gadget *_gadget, int is_on)
 	u32 control;
 
 	if (!_gadget)
+	{
 		return -ENODEV;
+	}
+
 	dev = container_of(_gadget, struct gr_udc, gadget);
 
 	spin_lock(&dev->lock);
 
 	control = gr_read32(&dev->regs->control);
+
 	if (is_on)
+	{
 		control |= GR_CONTROL_EP;
+	}
 	else
+	{
 		control &= ~GR_CONTROL_EP;
+	}
+
 	gr_write32(&dev->regs->control, control);
 
 	spin_unlock(&dev->lock);
@@ -1916,7 +2267,7 @@ static int gr_pullup(struct usb_gadget *_gadget, int is_on)
 }
 
 static int gr_udc_start(struct usb_gadget *gadget,
-			struct usb_gadget_driver *driver)
+						struct usb_gadget_driver *driver)
 {
 	struct gr_udc *dev = to_gr_udc(gadget);
 
@@ -1949,7 +2300,8 @@ static int gr_udc_stop(struct usb_gadget *gadget)
 	return 0;
 }
 
-static const struct usb_gadget_ops gr_ops = {
+static const struct usb_gadget_ops gr_ops =
+{
 	.get_frame	= gr_get_frame,
 	.wakeup         = gr_wakeup,
 	.pullup         = gr_pullup,
@@ -1961,13 +2313,15 @@ static const struct usb_gadget_ops gr_ops = {
 /* ---------------------------------------------------------------------- */
 /* Module probe, removal and of-matching */
 
-static const char * const onames[] = {
+static const char *const onames[] =
+{
 	"ep0out", "ep1out", "ep2out", "ep3out", "ep4out", "ep5out",
 	"ep6out", "ep7out", "ep8out", "ep9out", "ep10out", "ep11out",
 	"ep12out", "ep13out", "ep14out", "ep15out"
 };
 
-static const char * const inames[] = {
+static const char *const inames[] =
+{
 	"ep0in", "ep1in", "ep2in", "ep3in", "ep4in", "ep5in",
 	"ep6in", "ep7in", "ep8in", "ep9in", "ep10in", "ep11in",
 	"ep12in", "ep13in", "ep14in", "ep15in"
@@ -1981,11 +2335,14 @@ static int gr_ep_init(struct gr_udc *dev, int num, int is_in, u32 maxplimit)
 	struct usb_request *_req;
 	void *buf;
 
-	if (is_in) {
+	if (is_in)
+	{
 		ep = &dev->epi[num];
 		ep->ep.name = inames[num];
 		ep->regs = &dev->regs->epi[num];
-	} else {
+	}
+	else
+	{
 		ep = &dev->epo[num];
 		ep->ep.name = onames[num];
 		ep->regs = &dev->regs->epo[num];
@@ -1998,10 +2355,13 @@ static int gr_ep_init(struct gr_udc *dev, int num, int is_in, u32 maxplimit)
 	ep->ep.ops = &gr_ep_ops;
 	INIT_LIST_HEAD(&ep->queue);
 
-	if (num == 0) {
+	if (num == 0)
+	{
 		_req = gr_alloc_request(&ep->ep, GFP_ATOMIC);
 		buf = devm_kzalloc(dev->dev, PAGE_SIZE, GFP_DMA | GFP_ATOMIC);
-		if (!_req || !buf) {
+
+		if (!_req || !buf)
+		{
 			/* possible _req freed by gr_probe via gr_remove */
 			return -ENOMEM;
 		}
@@ -2011,15 +2371,21 @@ static int gr_ep_init(struct gr_udc *dev, int num, int is_in, u32 maxplimit)
 		req->req.length = MAX_CTRL_PL_SIZE;
 
 		if (is_in)
-			dev->ep0reqi = req; /* Complete gets set as used */
+		{
+			dev->ep0reqi = req;    /* Complete gets set as used */
+		}
 		else
-			dev->ep0reqo = req; /* Completion treated separately */
+		{
+			dev->ep0reqo = req;    /* Completion treated separately */
+		}
 
 		usb_ep_set_maxpacket_limit(&ep->ep, MAX_CTRL_PL_SIZE);
 		ep->bytes_per_buffer = MAX_CTRL_PL_SIZE;
 
 		ep->ep.caps.type_control = true;
-	} else {
+	}
+	else
+	{
 		usb_ep_set_maxpacket_limit(&ep->ep, (u16)maxplimit);
 		list_add_tail(&ep->ep.ep_list, &dev->gadget.ep_list);
 
@@ -2027,17 +2393,25 @@ static int gr_ep_init(struct gr_udc *dev, int num, int is_in, u32 maxplimit)
 		ep->ep.caps.type_bulk = true;
 		ep->ep.caps.type_int = true;
 	}
+
 	list_add_tail(&ep->ep_list, &dev->ep_list);
 
 	if (is_in)
+	{
 		ep->ep.caps.dir_in = true;
+	}
 	else
+	{
 		ep->ep.caps.dir_out = true;
+	}
 
 	ep->tailbuf = dma_alloc_coherent(dev->dev, ep->ep.maxpacket_limit,
-					 &ep->tailbuf_paddr, GFP_ATOMIC);
+									 &ep->tailbuf_paddr, GFP_ATOMIC);
+
 	if (!ep->tailbuf)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -2061,20 +2435,34 @@ static int gr_udc_init(struct gr_udc *dev)
 	INIT_LIST_HEAD(&dev->ep_list);
 	gr_set_ep0state(dev, GR_EP0_DISCONNECT);
 
-	for (i = 0; i < dev->nepo; i++) {
+	for (i = 0; i < dev->nepo; i++)
+	{
 		if (of_property_read_u32_index(np, "epobufsizes", i, &bufsize))
+		{
 			bufsize = 1024;
+		}
+
 		ret = gr_ep_init(dev, i, 0, bufsize);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
-	for (i = 0; i < dev->nepi; i++) {
+	for (i = 0; i < dev->nepi; i++)
+	{
 		if (of_property_read_u32_index(np, "epibufsizes", i, &bufsize))
+		{
 			bufsize = 1024;
+		}
+
 		ret = gr_ep_init(dev, i, 1, bufsize);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	/* Must be disabled by default */
@@ -2096,13 +2484,17 @@ static void gr_ep_remove(struct gr_udc *dev, int num, int is_in)
 	struct gr_ep *ep;
 
 	if (is_in)
+	{
 		ep = &dev->epi[num];
+	}
 	else
+	{
 		ep = &dev->epo[num];
+	}
 
 	if (ep->tailbuf)
 		dma_free_coherent(dev->dev, ep->ep.maxpacket_limit,
-				  ep->tailbuf, ep->tailbuf_paddr);
+						  ep->tailbuf, ep->tailbuf_paddr);
 }
 
 static int gr_remove(struct platform_device *pdev)
@@ -2111,9 +2503,14 @@ static int gr_remove(struct platform_device *pdev)
 	int i;
 
 	if (dev->added)
-		usb_del_gadget_udc(&dev->gadget); /* Shuts everything down */
+	{
+		usb_del_gadget_udc(&dev->gadget);    /* Shuts everything down */
+	}
+
 	if (dev->driver)
+	{
 		return -EBUSY;
+	}
 
 	gr_dfs_delete(dev);
 	dma_pool_destroy(dev->desc_pool);
@@ -2123,16 +2520,21 @@ static int gr_remove(struct platform_device *pdev)
 	gr_free_request(&dev->epo[0].ep, &dev->ep0reqo->req);
 
 	for (i = 0; i < dev->nepo; i++)
+	{
 		gr_ep_remove(dev, i, 0);
+	}
+
 	for (i = 0; i < dev->nepi; i++)
+	{
 		gr_ep_remove(dev, i, 1);
+	}
 
 	return 0;
 }
 static int gr_request_irq(struct gr_udc *dev, int irq)
 {
 	return devm_request_threaded_irq(dev->dev, irq, gr_irq, gr_irq_handler,
-					 IRQF_SHARED, driver_name, dev);
+									 IRQF_SHARED, driver_name, dev);
 }
 
 static int gr_probe(struct platform_device *pdev)
@@ -2144,30 +2546,45 @@ static int gr_probe(struct platform_device *pdev)
 	u32 status;
 
 	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
+
 	if (!dev)
+	{
 		return -ENOMEM;
+	}
+
 	dev->dev = &pdev->dev;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	regs = devm_ioremap_resource(dev->dev, res);
+
 	if (IS_ERR(regs))
+	{
 		return PTR_ERR(regs);
+	}
 
 	dev->irq = platform_get_irq(pdev, 0);
-	if (dev->irq <= 0) {
+
+	if (dev->irq <= 0)
+	{
 		dev_err(dev->dev, "No irq found\n");
 		return -ENODEV;
 	}
 
 	/* Some core configurations has separate irqs for IN and OUT events */
 	dev->irqi = platform_get_irq(pdev, 1);
-	if (dev->irqi > 0) {
+
+	if (dev->irqi > 0)
+	{
 		dev->irqo = platform_get_irq(pdev, 2);
-		if (dev->irqo <= 0) {
+
+		if (dev->irqo <= 0)
+		{
 			dev_err(dev->dev, "Found irqi but not irqo\n");
 			return -ENODEV;
 		}
-	} else {
+	}
+	else
+	{
 		dev->irqi = 0;
 	}
 
@@ -2185,7 +2602,8 @@ static int gr_probe(struct platform_device *pdev)
 	dev->nepi = ((status & GR_STATUS_NEPI_MASK) >> GR_STATUS_NEPI_POS) + 1;
 	dev->nepo = ((status & GR_STATUS_NEPO_MASK) >> GR_STATUS_NEPO_POS) + 1;
 
-	if (!(status & GR_STATUS_DM)) {
+	if (!(status & GR_STATUS_DM))
+	{
 		dev_err(dev->dev, "Slave mode cores are not supported\n");
 		return -ENODEV;
 	}
@@ -2194,8 +2612,10 @@ static int gr_probe(struct platform_device *pdev)
 
 	/* Create DMA pool for descriptors */
 	dev->desc_pool = dma_pool_create("desc_pool", dev->dev,
-					 sizeof(struct gr_dma_desc), 4, 0);
-	if (!dev->desc_pool) {
+									 sizeof(struct gr_dma_desc), 4, 0);
+
+	if (!dev->desc_pool)
+	{
 		dev_err(dev->dev, "Could not allocate DMA pool");
 		return -ENOMEM;
 	}
@@ -2204,15 +2624,21 @@ static int gr_probe(struct platform_device *pdev)
 
 	/* Inside lock so that no gadget can use this udc until probe is done */
 	retval = usb_add_gadget_udc(dev->dev, &dev->gadget);
-	if (retval) {
+
+	if (retval)
+	{
 		dev_err(dev->dev, "Could not add gadget udc");
 		goto out;
 	}
+
 	dev->added = 1;
 
 	retval = gr_udc_init(dev);
+
 	if (retval)
+	{
 		goto out;
+	}
 
 	gr_dfs_create(dev);
 
@@ -2220,49 +2646,63 @@ static int gr_probe(struct platform_device *pdev)
 	gr_disable_interrupts_and_pullup(dev);
 
 	retval = gr_request_irq(dev, dev->irq);
-	if (retval) {
+
+	if (retval)
+	{
 		dev_err(dev->dev, "Failed to request irq %d\n", dev->irq);
 		goto out;
 	}
 
-	if (dev->irqi) {
+	if (dev->irqi)
+	{
 		retval = gr_request_irq(dev, dev->irqi);
-		if (retval) {
+
+		if (retval)
+		{
 			dev_err(dev->dev, "Failed to request irqi %d\n",
-				dev->irqi);
+					dev->irqi);
 			goto out;
 		}
+
 		retval = gr_request_irq(dev, dev->irqo);
-		if (retval) {
+
+		if (retval)
+		{
 			dev_err(dev->dev, "Failed to request irqo %d\n",
-				dev->irqo);
+					dev->irqo);
 			goto out;
 		}
 	}
 
 	if (dev->irqi)
 		dev_info(dev->dev, "regs: %p, irqs %d, %d, %d\n", dev->regs,
-			 dev->irq, dev->irqi, dev->irqo);
+				 dev->irq, dev->irqi, dev->irqo);
 	else
+	{
 		dev_info(dev->dev, "regs: %p, irq %d\n", dev->regs, dev->irq);
+	}
 
 out:
 	spin_unlock(&dev->lock);
 
 	if (retval)
+	{
 		gr_remove(pdev);
+	}
 
 	return retval;
 }
 
-static const struct of_device_id gr_match[] = {
+static const struct of_device_id gr_match[] =
+{
 	{.name = "GAISLER_USBDC"},
 	{.name = "01_021"},
 	{},
 };
 MODULE_DEVICE_TABLE(of, gr_match);
 
-static struct platform_driver gr_driver = {
+static struct platform_driver gr_driver =
+{
 	.driver = {
 		.name = DRIVER_NAME,
 		.of_match_table = gr_match,

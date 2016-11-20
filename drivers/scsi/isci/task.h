@@ -68,7 +68,8 @@ struct isci_request;
  *
  *
  */
-enum isci_tmf_function_codes {
+enum isci_tmf_function_codes
+{
 
 	isci_tmf_func_none      = 0,
 	isci_tmf_ssp_task_abort = TMF_ABORT_TASK,
@@ -81,11 +82,13 @@ enum isci_tmf_function_codes {
  *
  *
  */
-struct isci_tmf {
+struct isci_tmf
+{
 
 	struct completion *complete;
 	enum sas_protocol proto;
-	union {
+	union
+	{
 		struct ssp_response_iu resp_iu;
 		struct dev_to_host_fis d2h_fis;
 		u8 rsp_buf[SSP_RESP_IU_MAX_SIZE];
@@ -100,32 +103,32 @@ static inline void isci_print_tmf(struct isci_host *ihost, struct isci_tmf *tmf)
 {
 	if (SAS_PROTOCOL_SATA == tmf->proto)
 		dev_dbg(&ihost->pdev->dev,
-			"%s: status = %x\n"
-			"tmf->resp.d2h_fis.status = %x\n"
-			"tmf->resp.d2h_fis.error = %x\n",
-			__func__,
-			tmf->status,
-			tmf->resp.d2h_fis.status,
-			tmf->resp.d2h_fis.error);
+				"%s: status = %x\n"
+				"tmf->resp.d2h_fis.status = %x\n"
+				"tmf->resp.d2h_fis.error = %x\n",
+				__func__,
+				tmf->status,
+				tmf->resp.d2h_fis.status,
+				tmf->resp.d2h_fis.error);
 	else
 		dev_dbg(&ihost->pdev->dev,
-			"%s: status = %x\n"
-			"tmf->resp.resp_iu.data_present = %x\n"
-			"tmf->resp.resp_iu.status = %x\n"
-			"tmf->resp.resp_iu.data_length = %x\n"
-			"tmf->resp.resp_iu.data[0] = %x\n"
-			"tmf->resp.resp_iu.data[1] = %x\n"
-			"tmf->resp.resp_iu.data[2] = %x\n"
-			"tmf->resp.resp_iu.data[3] = %x\n",
-			__func__,
-			tmf->status,
-			tmf->resp.resp_iu.datapres,
-			tmf->resp.resp_iu.status,
-			be32_to_cpu(tmf->resp.resp_iu.response_data_len),
-			tmf->resp.resp_iu.resp_data[0],
-			tmf->resp.resp_iu.resp_data[1],
-			tmf->resp.resp_iu.resp_data[2],
-			tmf->resp.resp_iu.resp_data[3]);
+				"%s: status = %x\n"
+				"tmf->resp.resp_iu.data_present = %x\n"
+				"tmf->resp.resp_iu.status = %x\n"
+				"tmf->resp.resp_iu.data_length = %x\n"
+				"tmf->resp.resp_iu.data[0] = %x\n"
+				"tmf->resp.resp_iu.data[1] = %x\n"
+				"tmf->resp.resp_iu.data[2] = %x\n"
+				"tmf->resp.resp_iu.data[3] = %x\n",
+				__func__,
+				tmf->status,
+				tmf->resp.resp_iu.datapres,
+				tmf->resp.resp_iu.status,
+				be32_to_cpu(tmf->resp.resp_iu.response_data_len),
+				tmf->resp.resp_iu.resp_data[0],
+				tmf->resp.resp_iu.resp_data[1],
+				tmf->resp.resp_iu.resp_data[2],
+				tmf->resp.resp_iu.resp_data[3]);
 }
 
 

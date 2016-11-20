@@ -96,7 +96,7 @@
  */
 
 static int drm_version(struct drm_device *dev, void *data,
-		       struct drm_file *file_priv);
+					   struct drm_file *file_priv);
 
 /*
  * Get the bus id.
@@ -110,15 +110,19 @@ static int drm_version(struct drm_device *dev, void *data,
  * Copies the bus id from drm_device::unique into user space.
  */
 static int drm_getunique(struct drm_device *dev, void *data,
-		  struct drm_file *file_priv)
+						 struct drm_file *file_priv)
 {
 	struct drm_unique *u = data;
 	struct drm_master *master = file_priv->master;
 
-	if (u->unique_len >= master->unique_len) {
+	if (u->unique_len >= master->unique_len)
+	{
 		if (copy_to_user(u->unique, master->unique, master->unique_len))
+		{
 			return -EFAULT;
+		}
 	}
+
 	u->unique_len = master->unique_len;
 
 	return 0;
@@ -126,7 +130,7 @@ static int drm_getunique(struct drm_device *dev, void *data,
 
 static void
 drm_unset_busid(struct drm_device *dev,
-		struct drm_master *master)
+				struct drm_master *master)
 {
 	kfree(master->unique);
 	master->unique = NULL;
@@ -139,19 +143,29 @@ static int drm_set_busid(struct drm_device *dev, struct drm_file *file_priv)
 	int ret;
 
 	if (master->unique != NULL)
+	{
 		drm_unset_busid(dev, master);
+	}
 
-	if (dev->driver->set_busid) {
+	if (dev->driver->set_busid)
+	{
 		ret = dev->driver->set_busid(dev, master);
-		if (ret) {
+
+		if (ret)
+		{
 			drm_unset_busid(dev, master);
 			return ret;
 		}
-	} else {
+	}
+	else
+	{
 		WARN_ON(!dev->unique);
 		master->unique = kstrdup(dev->unique, GFP_KERNEL);
+
 		if (master->unique)
+		{
 			master->unique_len = strlen(dev->unique);
+		}
 	}
 
 	return 0;
@@ -171,7 +185,7 @@ static int drm_set_busid(struct drm_device *dev, struct drm_file *file_priv)
  * into userspace
  */
 static int drm_getclient(struct drm_device *dev, void *data,
-		  struct drm_file *file_priv)
+						 struct drm_file *file_priv)
 {
 	struct drm_client *client = data;
 
@@ -186,7 +200,8 @@ static int drm_getclient(struct drm_device *dev, void *data,
 	 * that's the only thing they care about, give it to the directly
 	 * instead of walking one giant list.
 	 */
-	if (client->idx == 0) {
+	if (client->idx == 0)
+	{
 		client->auth = file_priv->authenticated;
 		client->pid = task_pid_vnr(current);
 		client->uid = overflowuid;
@@ -194,7 +209,9 @@ static int drm_getclient(struct drm_device *dev, void *data,
 		client->iocs = 0;
 
 		return 0;
-	} else {
+	}
+	else
+	{
 		return -EINVAL;
 	}
 }
@@ -210,7 +227,7 @@ static int drm_getclient(struct drm_device *dev, void *data,
  * \return zero on success or a negative number on failure.
  */
 static int drm_getstats(struct drm_device *dev, void *data,
-		 struct drm_file *file_priv)
+						struct drm_file *file_priv)
 {
 	struct drm_stats *stats = data;
 
@@ -229,55 +246,85 @@ static int drm_getcap(struct drm_device *dev, void *data, struct drm_file *file_
 	struct drm_crtc *crtc;
 
 	req->value = 0;
-	switch (req->capability) {
-	case DRM_CAP_DUMB_BUFFER:
-		if (dev->driver->dumb_create)
+
+	switch (req->capability)
+	{
+		case DRM_CAP_DUMB_BUFFER:
+			if (dev->driver->dumb_create)
+			{
+				req->value = 1;
+			}
+
+			break;
+
+		case DRM_CAP_VBLANK_HIGH_CRTC:
 			req->value = 1;
-		break;
-	case DRM_CAP_VBLANK_HIGH_CRTC:
-		req->value = 1;
-		break;
-	case DRM_CAP_DUMB_PREFERRED_DEPTH:
-		req->value = dev->mode_config.preferred_depth;
-		break;
-	case DRM_CAP_DUMB_PREFER_SHADOW:
-		req->value = dev->mode_config.prefer_shadow;
-		break;
-	case DRM_CAP_PRIME:
-		req->value |= dev->driver->prime_fd_to_handle ? DRM_PRIME_CAP_IMPORT : 0;
-		req->value |= dev->driver->prime_handle_to_fd ? DRM_PRIME_CAP_EXPORT : 0;
-		break;
-	case DRM_CAP_TIMESTAMP_MONOTONIC:
-		req->value = drm_timestamp_monotonic;
-		break;
-	case DRM_CAP_ASYNC_PAGE_FLIP:
-		req->value = dev->mode_config.async_page_flip;
-		break;
-	case DRM_CAP_PAGE_FLIP_TARGET:
-		req->value = 1;
-		drm_for_each_crtc(crtc, dev) {
-			if (!crtc->funcs->page_flip_target)
-				req->value = 0;
-		}
-		break;
-	case DRM_CAP_CURSOR_WIDTH:
-		if (dev->mode_config.cursor_width)
-			req->value = dev->mode_config.cursor_width;
-		else
-			req->value = 64;
-		break;
-	case DRM_CAP_CURSOR_HEIGHT:
-		if (dev->mode_config.cursor_height)
-			req->value = dev->mode_config.cursor_height;
-		else
-			req->value = 64;
-		break;
-	case DRM_CAP_ADDFB2_MODIFIERS:
-		req->value = dev->mode_config.allow_fb_modifiers;
-		break;
-	default:
-		return -EINVAL;
+			break;
+
+		case DRM_CAP_DUMB_PREFERRED_DEPTH:
+			req->value = dev->mode_config.preferred_depth;
+			break;
+
+		case DRM_CAP_DUMB_PREFER_SHADOW:
+			req->value = dev->mode_config.prefer_shadow;
+			break;
+
+		case DRM_CAP_PRIME:
+			req->value |= dev->driver->prime_fd_to_handle ? DRM_PRIME_CAP_IMPORT : 0;
+			req->value |= dev->driver->prime_handle_to_fd ? DRM_PRIME_CAP_EXPORT : 0;
+			break;
+
+		case DRM_CAP_TIMESTAMP_MONOTONIC:
+			req->value = drm_timestamp_monotonic;
+			break;
+
+		case DRM_CAP_ASYNC_PAGE_FLIP:
+			req->value = dev->mode_config.async_page_flip;
+			break;
+
+		case DRM_CAP_PAGE_FLIP_TARGET:
+			req->value = 1;
+			drm_for_each_crtc(crtc, dev)
+			{
+				if (!crtc->funcs->page_flip_target)
+				{
+					req->value = 0;
+				}
+			}
+			break;
+
+		case DRM_CAP_CURSOR_WIDTH:
+			if (dev->mode_config.cursor_width)
+			{
+				req->value = dev->mode_config.cursor_width;
+			}
+			else
+			{
+				req->value = 64;
+			}
+
+			break;
+
+		case DRM_CAP_CURSOR_HEIGHT:
+			if (dev->mode_config.cursor_height)
+			{
+				req->value = dev->mode_config.cursor_height;
+			}
+			else
+			{
+				req->value = 64;
+			}
+
+			break;
+
+		case DRM_CAP_ADDFB2_MODIFIERS:
+			req->value = dev->mode_config.allow_fb_modifiers;
+			break;
+
+		default:
+			return -EINVAL;
 	}
+
 	return 0;
 }
 
@@ -289,27 +336,43 @@ drm_setclientcap(struct drm_device *dev, void *data, struct drm_file *file_priv)
 {
 	struct drm_set_client_cap *req = data;
 
-	switch (req->capability) {
-	case DRM_CLIENT_CAP_STEREO_3D:
-		if (req->value > 1)
+	switch (req->capability)
+	{
+		case DRM_CLIENT_CAP_STEREO_3D:
+			if (req->value > 1)
+			{
+				return -EINVAL;
+			}
+
+			file_priv->stereo_allowed = req->value;
+			break;
+
+		case DRM_CLIENT_CAP_UNIVERSAL_PLANES:
+			if (req->value > 1)
+			{
+				return -EINVAL;
+			}
+
+			file_priv->universal_planes = req->value;
+			break;
+
+		case DRM_CLIENT_CAP_ATOMIC:
+			if (!drm_core_check_feature(dev, DRIVER_ATOMIC))
+			{
+				return -EINVAL;
+			}
+
+			if (req->value > 1)
+			{
+				return -EINVAL;
+			}
+
+			file_priv->atomic = req->value;
+			file_priv->universal_planes = req->value;
+			break;
+
+		default:
 			return -EINVAL;
-		file_priv->stereo_allowed = req->value;
-		break;
-	case DRM_CLIENT_CAP_UNIVERSAL_PLANES:
-		if (req->value > 1)
-			return -EINVAL;
-		file_priv->universal_planes = req->value;
-		break;
-	case DRM_CLIENT_CAP_ATOMIC:
-		if (!drm_core_check_feature(dev, DRIVER_ATOMIC))
-			return -EINVAL;
-		if (req->value > 1)
-			return -EINVAL;
-		file_priv->atomic = req->value;
-		file_priv->universal_planes = req->value;
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	return 0;
@@ -331,30 +394,40 @@ static int drm_setversion(struct drm_device *dev, void *data, struct drm_file *f
 	struct drm_set_version *sv = data;
 	int if_version, retcode = 0;
 
-	if (sv->drm_di_major != -1) {
+	if (sv->drm_di_major != -1)
+	{
 		if (sv->drm_di_major != DRM_IF_MAJOR ||
-		    sv->drm_di_minor < 0 || sv->drm_di_minor > DRM_IF_MINOR) {
+			sv->drm_di_minor < 0 || sv->drm_di_minor > DRM_IF_MINOR)
+		{
 			retcode = -EINVAL;
 			goto done;
 		}
+
 		if_version = DRM_IF_VERSION(sv->drm_di_major,
-					    sv->drm_di_minor);
+									sv->drm_di_minor);
 		dev->if_version = max(if_version, dev->if_version);
-		if (sv->drm_di_minor >= 1) {
+
+		if (sv->drm_di_minor >= 1)
+		{
 			/*
 			 * Version 1.1 includes tying of DRM to specific device
 			 * Version 1.4 has proper PCI domain support
 			 */
 			retcode = drm_set_busid(dev, file_priv);
+
 			if (retcode)
+			{
 				goto done;
+			}
 		}
 	}
 
-	if (sv->drm_dd_major != -1) {
+	if (sv->drm_dd_major != -1)
+	{
 		if (sv->drm_dd_major != dev->driver->major ||
-		    sv->drm_dd_minor < 0 || sv->drm_dd_minor >
-		    dev->driver->minor) {
+			sv->drm_dd_minor < 0 || sv->drm_dd_minor >
+			dev->driver->minor)
+		{
 			retcode = -EINVAL;
 			goto done;
 		}
@@ -382,7 +455,7 @@ done:
  * Always returns successfully with 0.
  */
 int drm_noop(struct drm_device *dev, void *data,
-	     struct drm_file *file_priv)
+			 struct drm_file *file_priv)
 {
 	DRM_DEBUG("\n");
 	return 0;
@@ -405,7 +478,7 @@ EXPORT_SYMBOL(drm_noop);
  * Always fails with a return value of -EINVAL.
  */
 int drm_invalid_op(struct drm_device *dev, void *data,
-		   struct drm_file *file_priv)
+				   struct drm_file *file_priv)
 {
 	return -EINVAL;
 }
@@ -420,8 +493,11 @@ static int drm_copy_field(char __user *buf, size_t *buf_len, const char *value)
 
 	/* don't overflow userbuf */
 	len = strlen(value);
+
 	if (len > *buf_len)
+	{
 		len = *buf_len;
+	}
 
 	/* let userspace know exact length of driver value (which could be
 	 * larger than the userspace-supplied buffer) */
@@ -430,7 +506,10 @@ static int drm_copy_field(char __user *buf, size_t *buf_len, const char *value)
 	/* finally, try filling in the userbuf */
 	if (len && buf)
 		if (copy_to_user(buf, value, len))
+		{
 			return -EFAULT;
+		}
+
 	return 0;
 }
 
@@ -446,7 +525,7 @@ static int drm_copy_field(char __user *buf, size_t *buf_len, const char *value)
  * Fills in the version information in \p arg.
  */
 static int drm_version(struct drm_device *dev, void *data,
-		       struct drm_file *file_priv)
+					   struct drm_file *file_priv)
 {
 	struct drm_version *version = data;
 	int err;
@@ -455,13 +534,15 @@ static int drm_version(struct drm_device *dev, void *data,
 	version->version_minor = dev->driver->minor;
 	version->version_patchlevel = dev->driver->patchlevel;
 	err = drm_copy_field(version->name, &version->name_len,
-			dev->driver->name);
+						 dev->driver->name);
+
 	if (!err)
 		err = drm_copy_field(version->date, &version->date_len,
-				dev->driver->date);
+							 dev->driver->date);
+
 	if (!err)
 		err = drm_copy_field(version->desc, &version->desc_len,
-				dev->driver->desc);
+							 dev->driver->desc);
 
 	return err;
 }
@@ -480,28 +561,38 @@ int drm_ioctl_permit(u32 flags, struct drm_file *file_priv)
 {
 	/* ROOT_ONLY is only for CAP_SYS_ADMIN */
 	if (unlikely((flags & DRM_ROOT_ONLY) && !capable(CAP_SYS_ADMIN)))
+	{
 		return -EACCES;
+	}
 
 	/* AUTH is only for authenticated or render client */
 	if (unlikely((flags & DRM_AUTH) && !drm_is_render_client(file_priv) &&
-		     !file_priv->authenticated))
+				 !file_priv->authenticated))
+	{
 		return -EACCES;
+	}
 
 	/* MASTER is only for master or control clients */
-	if (unlikely((flags & DRM_MASTER) && 
-		     !drm_is_current_master(file_priv) &&
-		     !drm_is_control_client(file_priv)))
+	if (unlikely((flags & DRM_MASTER) &&
+				 !drm_is_current_master(file_priv) &&
+				 !drm_is_control_client(file_priv)))
+	{
 		return -EACCES;
+	}
 
 	/* Control clients must be explicitly allowed */
 	if (unlikely(!(flags & DRM_CONTROL_ALLOW) &&
-		     drm_is_control_client(file_priv)))
+				 drm_is_control_client(file_priv)))
+	{
 		return -EACCES;
+	}
 
 	/* Render clients must be explicitly allowed */
 	if (unlikely(!(flags & DRM_RENDER_ALLOW) &&
-		     drm_is_render_client(file_priv)))
+				 drm_is_render_client(file_priv)))
+	{
 		return -EACCES;
+	}
 
 	return 0;
 }
@@ -509,124 +600,125 @@ EXPORT_SYMBOL(drm_ioctl_permit);
 
 #define DRM_IOCTL_DEF(ioctl, _func, _flags)	\
 	[DRM_IOCTL_NR(ioctl)] = {		\
-		.cmd = ioctl,			\
-		.func = _func,			\
-		.flags = _flags,		\
-		.name = #ioctl			\
-	}
+									.cmd = ioctl,			\
+									.func = _func,			\
+									.flags = _flags,		\
+									.name = #ioctl			\
+							}
 
 /* Ioctl table */
-static const struct drm_ioctl_desc drm_ioctls[] = {
+static const struct drm_ioctl_desc drm_ioctls[] =
+{
 	DRM_IOCTL_DEF(DRM_IOCTL_VERSION, drm_version,
-		      DRM_UNLOCKED|DRM_RENDER_ALLOW|DRM_CONTROL_ALLOW),
+	DRM_UNLOCKED | DRM_RENDER_ALLOW | DRM_CONTROL_ALLOW),
 	DRM_IOCTL_DEF(DRM_IOCTL_GET_UNIQUE, drm_getunique, 0),
 	DRM_IOCTL_DEF(DRM_IOCTL_GET_MAGIC, drm_getmagic, DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_IRQ_BUSID, drm_irq_by_busid, DRM_MASTER|DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_IRQ_BUSID, drm_irq_by_busid, DRM_MASTER | DRM_ROOT_ONLY),
 	DRM_IOCTL_DEF(DRM_IOCTL_GET_MAP, drm_legacy_getmap_ioctl, DRM_UNLOCKED),
 	DRM_IOCTL_DEF(DRM_IOCTL_GET_CLIENT, drm_getclient, DRM_UNLOCKED),
 	DRM_IOCTL_DEF(DRM_IOCTL_GET_STATS, drm_getstats, DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_GET_CAP, drm_getcap, DRM_UNLOCKED|DRM_RENDER_ALLOW),
+	DRM_IOCTL_DEF(DRM_IOCTL_GET_CAP, drm_getcap, DRM_UNLOCKED | DRM_RENDER_ALLOW),
 	DRM_IOCTL_DEF(DRM_IOCTL_SET_CLIENT_CAP, drm_setclientcap, 0),
 	DRM_IOCTL_DEF(DRM_IOCTL_SET_VERSION, drm_setversion, DRM_MASTER),
 
-	DRM_IOCTL_DEF(DRM_IOCTL_SET_UNIQUE, drm_invalid_op, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF(DRM_IOCTL_BLOCK, drm_noop, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF(DRM_IOCTL_UNBLOCK, drm_noop, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF(DRM_IOCTL_AUTH_MAGIC, drm_authmagic, DRM_AUTH|DRM_UNLOCKED|DRM_MASTER),
+	DRM_IOCTL_DEF(DRM_IOCTL_SET_UNIQUE, drm_invalid_op, DRM_AUTH | DRM_MASTER | DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_BLOCK, drm_noop, DRM_AUTH | DRM_MASTER | DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_UNBLOCK, drm_noop, DRM_AUTH | DRM_MASTER | DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_AUTH_MAGIC, drm_authmagic, DRM_AUTH | DRM_UNLOCKED | DRM_MASTER),
 
-	DRM_IOCTL_DEF(DRM_IOCTL_ADD_MAP, drm_legacy_addmap_ioctl, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_ADD_MAP, drm_legacy_addmap_ioctl, DRM_AUTH | DRM_MASTER | DRM_ROOT_ONLY),
 	DRM_IOCTL_DEF(DRM_IOCTL_RM_MAP, drm_legacy_rmmap_ioctl, DRM_AUTH),
 
-	DRM_IOCTL_DEF(DRM_IOCTL_SET_SAREA_CTX, drm_legacy_setsareactx, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_SET_SAREA_CTX, drm_legacy_setsareactx, DRM_AUTH | DRM_MASTER | DRM_ROOT_ONLY),
 	DRM_IOCTL_DEF(DRM_IOCTL_GET_SAREA_CTX, drm_legacy_getsareactx, DRM_AUTH),
 
-	DRM_IOCTL_DEF(DRM_IOCTL_SET_MASTER, drm_setmaster_ioctl, DRM_UNLOCKED|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF(DRM_IOCTL_DROP_MASTER, drm_dropmaster_ioctl, DRM_UNLOCKED|DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_SET_MASTER, drm_setmaster_ioctl, DRM_UNLOCKED | DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_DROP_MASTER, drm_dropmaster_ioctl, DRM_UNLOCKED | DRM_ROOT_ONLY),
 
-	DRM_IOCTL_DEF(DRM_IOCTL_ADD_CTX, drm_legacy_addctx, DRM_AUTH|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF(DRM_IOCTL_RM_CTX, drm_legacy_rmctx, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF(DRM_IOCTL_MOD_CTX, drm_noop, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_ADD_CTX, drm_legacy_addctx, DRM_AUTH | DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_RM_CTX, drm_legacy_rmctx, DRM_AUTH | DRM_MASTER | DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_MOD_CTX, drm_noop, DRM_AUTH | DRM_MASTER | DRM_ROOT_ONLY),
 	DRM_IOCTL_DEF(DRM_IOCTL_GET_CTX, drm_legacy_getctx, DRM_AUTH),
-	DRM_IOCTL_DEF(DRM_IOCTL_SWITCH_CTX, drm_legacy_switchctx, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF(DRM_IOCTL_NEW_CTX, drm_legacy_newctx, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_SWITCH_CTX, drm_legacy_switchctx, DRM_AUTH | DRM_MASTER | DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_NEW_CTX, drm_legacy_newctx, DRM_AUTH | DRM_MASTER | DRM_ROOT_ONLY),
 	DRM_IOCTL_DEF(DRM_IOCTL_RES_CTX, drm_legacy_resctx, DRM_AUTH),
 
-	DRM_IOCTL_DEF(DRM_IOCTL_ADD_DRAW, drm_noop, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF(DRM_IOCTL_RM_DRAW, drm_noop, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_ADD_DRAW, drm_noop, DRM_AUTH | DRM_MASTER | DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_RM_DRAW, drm_noop, DRM_AUTH | DRM_MASTER | DRM_ROOT_ONLY),
 
 	DRM_IOCTL_DEF(DRM_IOCTL_LOCK, drm_legacy_lock, DRM_AUTH),
 	DRM_IOCTL_DEF(DRM_IOCTL_UNLOCK, drm_legacy_unlock, DRM_AUTH),
 
 	DRM_IOCTL_DEF(DRM_IOCTL_FINISH, drm_noop, DRM_AUTH),
 
-	DRM_IOCTL_DEF(DRM_IOCTL_ADD_BUFS, drm_legacy_addbufs, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF(DRM_IOCTL_MARK_BUFS, drm_legacy_markbufs, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_ADD_BUFS, drm_legacy_addbufs, DRM_AUTH | DRM_MASTER | DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_MARK_BUFS, drm_legacy_markbufs, DRM_AUTH | DRM_MASTER | DRM_ROOT_ONLY),
 	DRM_IOCTL_DEF(DRM_IOCTL_INFO_BUFS, drm_legacy_infobufs, DRM_AUTH),
 	DRM_IOCTL_DEF(DRM_IOCTL_MAP_BUFS, drm_legacy_mapbufs, DRM_AUTH),
 	DRM_IOCTL_DEF(DRM_IOCTL_FREE_BUFS, drm_legacy_freebufs, DRM_AUTH),
 	DRM_IOCTL_DEF(DRM_IOCTL_DMA, drm_legacy_dma_ioctl, DRM_AUTH),
 
-	DRM_IOCTL_DEF(DRM_IOCTL_CONTROL, drm_control, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_CONTROL, drm_control, DRM_AUTH | DRM_MASTER | DRM_ROOT_ONLY),
 
 #if IS_ENABLED(CONFIG_AGP)
-	DRM_IOCTL_DEF(DRM_IOCTL_AGP_ACQUIRE, drm_agp_acquire_ioctl, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF(DRM_IOCTL_AGP_RELEASE, drm_agp_release_ioctl, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF(DRM_IOCTL_AGP_ENABLE, drm_agp_enable_ioctl, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_AGP_ACQUIRE, drm_agp_acquire_ioctl, DRM_AUTH | DRM_MASTER | DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_AGP_RELEASE, drm_agp_release_ioctl, DRM_AUTH | DRM_MASTER | DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_AGP_ENABLE, drm_agp_enable_ioctl, DRM_AUTH | DRM_MASTER | DRM_ROOT_ONLY),
 	DRM_IOCTL_DEF(DRM_IOCTL_AGP_INFO, drm_agp_info_ioctl, DRM_AUTH),
-	DRM_IOCTL_DEF(DRM_IOCTL_AGP_ALLOC, drm_agp_alloc_ioctl, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF(DRM_IOCTL_AGP_FREE, drm_agp_free_ioctl, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF(DRM_IOCTL_AGP_BIND, drm_agp_bind_ioctl, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF(DRM_IOCTL_AGP_UNBIND, drm_agp_unbind_ioctl, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_AGP_ALLOC, drm_agp_alloc_ioctl, DRM_AUTH | DRM_MASTER | DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_AGP_FREE, drm_agp_free_ioctl, DRM_AUTH | DRM_MASTER | DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_AGP_BIND, drm_agp_bind_ioctl, DRM_AUTH | DRM_MASTER | DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_AGP_UNBIND, drm_agp_unbind_ioctl, DRM_AUTH | DRM_MASTER | DRM_ROOT_ONLY),
 #endif
 
-	DRM_IOCTL_DEF(DRM_IOCTL_SG_ALLOC, drm_legacy_sg_alloc, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
-	DRM_IOCTL_DEF(DRM_IOCTL_SG_FREE, drm_legacy_sg_free, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_SG_ALLOC, drm_legacy_sg_alloc, DRM_AUTH | DRM_MASTER | DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_SG_FREE, drm_legacy_sg_free, DRM_AUTH | DRM_MASTER | DRM_ROOT_ONLY),
 
 	DRM_IOCTL_DEF(DRM_IOCTL_WAIT_VBLANK, drm_wait_vblank, DRM_UNLOCKED),
 
 	DRM_IOCTL_DEF(DRM_IOCTL_MODESET_CTL, drm_modeset_ctl, 0),
 
-	DRM_IOCTL_DEF(DRM_IOCTL_UPDATE_DRAW, drm_noop, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
+	DRM_IOCTL_DEF(DRM_IOCTL_UPDATE_DRAW, drm_noop, DRM_AUTH | DRM_MASTER | DRM_ROOT_ONLY),
 
-	DRM_IOCTL_DEF(DRM_IOCTL_GEM_CLOSE, drm_gem_close_ioctl, DRM_UNLOCKED|DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF(DRM_IOCTL_GEM_FLINK, drm_gem_flink_ioctl, DRM_AUTH|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_GEM_OPEN, drm_gem_open_ioctl, DRM_AUTH|DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_GEM_CLOSE, drm_gem_close_ioctl, DRM_UNLOCKED | DRM_RENDER_ALLOW),
+	DRM_IOCTL_DEF(DRM_IOCTL_GEM_FLINK, drm_gem_flink_ioctl, DRM_AUTH | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_GEM_OPEN, drm_gem_open_ioctl, DRM_AUTH | DRM_UNLOCKED),
 
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_GETRESOURCES, drm_mode_getresources, DRM_CONTROL_ALLOW|DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_GETRESOURCES, drm_mode_getresources, DRM_CONTROL_ALLOW | DRM_UNLOCKED),
 
-	DRM_IOCTL_DEF(DRM_IOCTL_PRIME_HANDLE_TO_FD, drm_prime_handle_to_fd_ioctl, DRM_AUTH|DRM_UNLOCKED|DRM_RENDER_ALLOW),
-	DRM_IOCTL_DEF(DRM_IOCTL_PRIME_FD_TO_HANDLE, drm_prime_fd_to_handle_ioctl, DRM_AUTH|DRM_UNLOCKED|DRM_RENDER_ALLOW),
+	DRM_IOCTL_DEF(DRM_IOCTL_PRIME_HANDLE_TO_FD, drm_prime_handle_to_fd_ioctl, DRM_AUTH | DRM_UNLOCKED | DRM_RENDER_ALLOW),
+	DRM_IOCTL_DEF(DRM_IOCTL_PRIME_FD_TO_HANDLE, drm_prime_fd_to_handle_ioctl, DRM_AUTH | DRM_UNLOCKED | DRM_RENDER_ALLOW),
 
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_GETPLANERESOURCES, drm_mode_getplane_res, DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_GETCRTC, drm_mode_getcrtc, DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_SETCRTC, drm_mode_setcrtc, DRM_MASTER|DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_GETPLANE, drm_mode_getplane, DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_SETPLANE, drm_mode_setplane, DRM_MASTER|DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_CURSOR, drm_mode_cursor_ioctl, DRM_MASTER|DRM_CONTROL_ALLOW|DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_GETPLANERESOURCES, drm_mode_getplane_res, DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_GETCRTC, drm_mode_getcrtc, DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_SETCRTC, drm_mode_setcrtc, DRM_MASTER | DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_GETPLANE, drm_mode_getplane, DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_SETPLANE, drm_mode_setplane, DRM_MASTER | DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_CURSOR, drm_mode_cursor_ioctl, DRM_MASTER | DRM_CONTROL_ALLOW | DRM_UNLOCKED),
 	DRM_IOCTL_DEF(DRM_IOCTL_MODE_GETGAMMA, drm_mode_gamma_get_ioctl, DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_SETGAMMA, drm_mode_gamma_set_ioctl, DRM_MASTER|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_GETENCODER, drm_mode_getencoder, DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_GETCONNECTOR, drm_mode_getconnector, DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_ATTACHMODE, drm_noop, DRM_MASTER|DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_DETACHMODE, drm_noop, DRM_MASTER|DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_GETPROPERTY, drm_mode_getproperty_ioctl, DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_SETPROPERTY, drm_mode_connector_property_set_ioctl, DRM_MASTER|DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_GETPROPBLOB, drm_mode_getblob_ioctl, DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_GETFB, drm_mode_getfb, DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_ADDFB, drm_mode_addfb, DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_ADDFB2, drm_mode_addfb2, DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_RMFB, drm_mode_rmfb, DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_PAGE_FLIP, drm_mode_page_flip_ioctl, DRM_MASTER|DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_DIRTYFB, drm_mode_dirtyfb_ioctl, DRM_MASTER|DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_CREATE_DUMB, drm_mode_create_dumb_ioctl, DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_MAP_DUMB, drm_mode_mmap_dumb_ioctl, DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_DESTROY_DUMB, drm_mode_destroy_dumb_ioctl, DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_OBJ_GETPROPERTIES, drm_mode_obj_get_properties_ioctl, DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_OBJ_SETPROPERTY, drm_mode_obj_set_property_ioctl, DRM_MASTER|DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_CURSOR2, drm_mode_cursor2_ioctl, DRM_MASTER|DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_ATOMIC, drm_mode_atomic_ioctl, DRM_MASTER|DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_CREATEPROPBLOB, drm_mode_createblob_ioctl, DRM_CONTROL_ALLOW|DRM_UNLOCKED),
-	DRM_IOCTL_DEF(DRM_IOCTL_MODE_DESTROYPROPBLOB, drm_mode_destroyblob_ioctl, DRM_CONTROL_ALLOW|DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_SETGAMMA, drm_mode_gamma_set_ioctl, DRM_MASTER | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_GETENCODER, drm_mode_getencoder, DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_GETCONNECTOR, drm_mode_getconnector, DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_ATTACHMODE, drm_noop, DRM_MASTER | DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_DETACHMODE, drm_noop, DRM_MASTER | DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_GETPROPERTY, drm_mode_getproperty_ioctl, DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_SETPROPERTY, drm_mode_connector_property_set_ioctl, DRM_MASTER | DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_GETPROPBLOB, drm_mode_getblob_ioctl, DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_GETFB, drm_mode_getfb, DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_ADDFB, drm_mode_addfb, DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_ADDFB2, drm_mode_addfb2, DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_RMFB, drm_mode_rmfb, DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_PAGE_FLIP, drm_mode_page_flip_ioctl, DRM_MASTER | DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_DIRTYFB, drm_mode_dirtyfb_ioctl, DRM_MASTER | DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_CREATE_DUMB, drm_mode_create_dumb_ioctl, DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_MAP_DUMB, drm_mode_mmap_dumb_ioctl, DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_DESTROY_DUMB, drm_mode_destroy_dumb_ioctl, DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_OBJ_GETPROPERTIES, drm_mode_obj_get_properties_ioctl, DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_OBJ_SETPROPERTY, drm_mode_obj_set_property_ioctl, DRM_MASTER | DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_CURSOR2, drm_mode_cursor2_ioctl, DRM_MASTER | DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_ATOMIC, drm_mode_atomic_ioctl, DRM_MASTER | DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_CREATEPROPBLOB, drm_mode_createblob_ioctl, DRM_CONTROL_ALLOW | DRM_UNLOCKED),
+	DRM_IOCTL_DEF(DRM_IOCTL_MODE_DESTROYPROPBLOB, drm_mode_destroyblob_ioctl, DRM_CONTROL_ALLOW | DRM_UNLOCKED),
 };
 
 #define DRM_CORE_IOCTL_COUNT	ARRAY_SIZE( drm_ioctls )
@@ -644,7 +736,7 @@ static const struct drm_ioctl_desc drm_ioctls[] = {
  * Zero on success, negative error code on failure.
  */
 long drm_ioctl(struct file *filp,
-	      unsigned int cmd, unsigned long arg)
+			   unsigned int cmd, unsigned long arg)
 {
 	struct drm_file *file_priv = filp->private_data;
 	struct drm_device *dev;
@@ -660,91 +752,133 @@ long drm_ioctl(struct file *filp,
 	dev = file_priv->minor->dev;
 
 	if (drm_device_is_unplugged(dev))
+	{
 		return -ENODEV;
+	}
 
 	is_driver_ioctl = nr >= DRM_COMMAND_BASE && nr < DRM_COMMAND_END;
 
-	if (is_driver_ioctl) {
+	if (is_driver_ioctl)
+	{
 		/* driver ioctl */
 		if (nr - DRM_COMMAND_BASE >= dev->driver->num_ioctls)
+		{
 			goto err_i1;
+		}
+
 		ioctl = &dev->driver->ioctls[nr - DRM_COMMAND_BASE];
-	} else {
+	}
+	else
+	{
 		/* core ioctl */
 		if (nr >= DRM_CORE_IOCTL_COUNT)
+		{
 			goto err_i1;
+		}
+
 		ioctl = &drm_ioctls[nr];
 	}
 
 	drv_size = _IOC_SIZE(ioctl->cmd);
 	out_size = in_size = _IOC_SIZE(cmd);
+
 	if ((cmd & ioctl->cmd & IOC_IN) == 0)
+	{
 		in_size = 0;
+	}
+
 	if ((cmd & ioctl->cmd & IOC_OUT) == 0)
+	{
 		out_size = 0;
+	}
+
 	ksize = max(max(in_size, out_size), drv_size);
 
 	DRM_DEBUG("pid=%d, dev=0x%lx, auth=%d, %s\n",
-		  task_pid_nr(current),
-		  (long)old_encode_dev(file_priv->minor->kdev->devt),
-		  file_priv->authenticated, ioctl->name);
+			  task_pid_nr(current),
+			  (long)old_encode_dev(file_priv->minor->kdev->devt),
+			  file_priv->authenticated, ioctl->name);
 
 	/* Do not trust userspace, use our own definition */
 	func = ioctl->func;
 
-	if (unlikely(!func)) {
+	if (unlikely(!func))
+	{
 		DRM_DEBUG("no function\n");
 		retcode = -EINVAL;
 		goto err_i1;
 	}
 
 	retcode = drm_ioctl_permit(ioctl->flags, file_priv);
-	if (unlikely(retcode))
-		goto err_i1;
 
-	if (ksize <= sizeof(stack_kdata)) {
+	if (unlikely(retcode))
+	{
+		goto err_i1;
+	}
+
+	if (ksize <= sizeof(stack_kdata))
+	{
 		kdata = stack_kdata;
-	} else {
+	}
+	else
+	{
 		kdata = kmalloc(ksize, GFP_KERNEL);
-		if (!kdata) {
+
+		if (!kdata)
+		{
 			retcode = -ENOMEM;
 			goto err_i1;
 		}
 	}
 
-	if (copy_from_user(kdata, (void __user *)arg, in_size) != 0) {
+	if (copy_from_user(kdata, (void __user *)arg, in_size) != 0)
+	{
 		retcode = -EFAULT;
 		goto err_i1;
 	}
 
 	if (ksize > in_size)
+	{
 		memset(kdata + in_size, 0, ksize - in_size);
+	}
 
 	/* Enforce sane locking for modern driver ioctls. Core ioctls are
 	 * too messy still. */
 	if ((!drm_core_check_feature(dev, DRIVER_LEGACY) && is_driver_ioctl) ||
-	    (ioctl->flags & DRM_UNLOCKED))
+		(ioctl->flags & DRM_UNLOCKED))
+	{
 		retcode = func(dev, kdata, file_priv);
-	else {
+	}
+	else
+	{
 		mutex_lock(&drm_global_mutex);
 		retcode = func(dev, kdata, file_priv);
 		mutex_unlock(&drm_global_mutex);
 	}
 
 	if (copy_to_user((void __user *)arg, kdata, out_size) != 0)
+	{
 		retcode = -EFAULT;
+	}
 
-      err_i1:
+err_i1:
+
 	if (!ioctl)
 		DRM_DEBUG("invalid ioctl: pid=%d, dev=0x%lx, auth=%d, cmd=0x%02x, nr=0x%02x\n",
-			  task_pid_nr(current),
-			  (long)old_encode_dev(file_priv->minor->kdev->devt),
-			  file_priv->authenticated, cmd, nr);
+				  task_pid_nr(current),
+				  (long)old_encode_dev(file_priv->minor->kdev->devt),
+				  file_priv->authenticated, cmd, nr);
 
 	if (kdata != stack_kdata)
+	{
 		kfree(kdata);
+	}
+
 	if (retcode)
+	{
 		DRM_DEBUG("ret = %d\n", retcode);
+	}
+
 	return retcode;
 }
 EXPORT_SYMBOL(drm_ioctl);
@@ -764,10 +898,14 @@ EXPORT_SYMBOL(drm_ioctl);
 bool drm_ioctl_flags(unsigned int nr, unsigned int *flags)
 {
 	if (nr >= DRM_COMMAND_BASE && nr < DRM_COMMAND_END)
+	{
 		return false;
+	}
 
 	if (nr >= DRM_CORE_IOCTL_COUNT)
+	{
 		return false;
+	}
 
 	*flags = drm_ioctls[nr].flags;
 	return true;

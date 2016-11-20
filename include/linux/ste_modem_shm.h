@@ -18,7 +18,8 @@ struct ste_modem_device;
  *
  * This structure contains callbacks for actions triggered by the modem.
  */
-struct ste_modem_dev_cb {
+struct ste_modem_dev_cb
+{
 	void (*kick)(struct ste_modem_device *mdev, int notify_id);
 };
 
@@ -33,12 +34,13 @@ struct ste_modem_dev_cb {
  * This structure contains functions used by the ste remoteproc driver
  * to manage the modem.
  */
-struct ste_modem_dev_ops {
+struct ste_modem_dev_ops
+{
 	int (*power)(struct ste_modem_device *mdev, bool on);
 	int (*kick)(struct ste_modem_device *mdev, int notify_id);
 	int (*kick_subscribe)(struct ste_modem_device *mdev, int notify_id);
 	int (*setup)(struct ste_modem_device *mdev,
-		     struct ste_modem_dev_cb *cfg);
+				 struct ste_modem_dev_cb *cfg);
 };
 
 /**
@@ -47,7 +49,8 @@ struct ste_modem_dev_ops {
  * @ops: Operations used to manage the modem.
  * @drv_data: Driver private data.
  */
-struct ste_modem_device {
+struct ste_modem_device
+{
 	struct platform_device pdev;
 	struct ste_modem_dev_ops ops;
 	void *drv_data;

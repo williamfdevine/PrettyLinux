@@ -15,13 +15,15 @@
 
 /* Block Control Information */
 
-struct inftl_bci {
+struct inftl_bci
+{
 	__u8 ECCsig[6];
 	__u8 Status;
 	__u8 Status1;
 } __attribute__((packed));
 
-struct inftl_unithead1 {
+struct inftl_unithead1
+{
 	__u16 virtualUnitNo;
 	__u16 prevUnitNo;
 	__u8 ANAC;
@@ -30,7 +32,8 @@ struct inftl_unithead1 {
 	__u8 discarded;
 } __attribute__((packed));
 
-struct inftl_unithead2 {
+struct inftl_unithead2
+{
 	__u8 parityPerField;
 	__u8 ANAC;
 	__u16 prevUnitNo;
@@ -39,19 +42,22 @@ struct inftl_unithead2 {
 	__u8 discarded;
 } __attribute__((packed));
 
-struct inftl_unittail {
+struct inftl_unittail
+{
 	__u8 Reserved[4];
 	__u16 EraseMark;
 	__u16 EraseMark1;
 } __attribute__((packed));
 
-union inftl_uci {
+union inftl_uci
+{
 	struct inftl_unithead1 a;
 	struct inftl_unithead2 b;
 	struct inftl_unittail c;
 };
 
-struct inftl_oob {
+struct inftl_oob
+{
 	struct inftl_bci b;
 	union inftl_uci u;
 };
@@ -59,7 +65,8 @@ struct inftl_oob {
 
 /* INFTL Media Header */
 
-struct INFTLPartition {
+struct INFTLPartition
+{
 	__u32 virtualUnits;
 	__u32 firstUnit;
 	__u32 lastUnit;
@@ -69,7 +76,8 @@ struct INFTLPartition {
 	__u32 Reserved1;
 } __attribute__((packed));
 
-struct INFTLMediaHeader {
+struct INFTLMediaHeader
+{
 	char bootRecordID[8];
 	__u32 NoOfBootImageBlocks;
 	__u32 NoOfBinaryPartitions;

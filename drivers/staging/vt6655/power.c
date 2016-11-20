@@ -72,26 +72,34 @@ PSvEnablePowerSaving(
 
 	/* set period of power up before TBTT */
 	VNSvOutPortW(priv->PortOffset + MAC_REG_PWBT, C_PWBT);
-	if (priv->op_mode != NL80211_IFTYPE_ADHOC) {
+
+	if (priv->op_mode != NL80211_IFTYPE_ADHOC)
+	{
 		/* set AID */
 		VNSvOutPortW(priv->PortOffset + MAC_REG_AIDATIM, wAID);
-	} else {
+	}
+	else
+	{
 		/* set ATIM Window */
 #if 0 /* TODO atim window */
 		MACvWriteATIMW(priv->PortOffset, pMgmt->wCurrATIMWindow);
 #endif
 	}
+
 	/* Set AutoSleep */
 	MACvRegBitsOn(priv->PortOffset, MAC_REG_PSCFG, PSCFG_AUTOSLEEP);
 	/* Set HWUTSF */
 	MACvRegBitsOn(priv->PortOffset, MAC_REG_TFTCTL, TFTCTL_HWUTSF);
 
-	if (wListenInterval >= 2) {
+	if (wListenInterval >= 2)
+	{
 		/* clear always listen beacon */
 		MACvRegBitsOff(priv->PortOffset, MAC_REG_PSCTL, PSCTL_ALBCN);
 		/* first time set listen next beacon */
 		MACvRegBitsOn(priv->PortOffset, MAC_REG_PSCTL, PSCTL_LNBCN);
-	} else {
+	}
+	else
+	{
 		/* always listen beacon */
 		MACvRegBitsOn(priv->PortOffset, MAC_REG_PSCTL, PSCTL_ALBCN);
 	}
@@ -153,16 +161,20 @@ PSbIsNextTBTTWakeUp(
 	struct ieee80211_conf *conf = &hw->conf;
 	bool wake_up = false;
 
-	if (conf->listen_interval > 1) {
+	if (conf->listen_interval > 1)
+	{
 		if (!priv->wake_up_count)
+		{
 			priv->wake_up_count = conf->listen_interval;
+		}
 
 		--priv->wake_up_count;
 
-		if (priv->wake_up_count == 1) {
+		if (priv->wake_up_count == 1)
+		{
 			/* Turn on wake up to listen next beacon */
 			MACvRegBitsOn(priv->PortOffset,
-				      MAC_REG_PSCTL, PSCTL_LNBCN);
+						  MAC_REG_PSCTL, PSCTL_LNBCN);
 			wake_up = true;
 		}
 	}

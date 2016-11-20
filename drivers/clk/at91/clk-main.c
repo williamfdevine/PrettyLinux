@@ -21,20 +21,22 @@
 #define SLOW_CLOCK_FREQ		32768
 #define MAINF_DIV		16
 #define MAINFRDY_TIMEOUT	(((MAINF_DIV + 1) * USEC_PER_SEC) / \
-				 SLOW_CLOCK_FREQ)
+							 SLOW_CLOCK_FREQ)
 #define MAINF_LOOP_MIN_WAIT	(USEC_PER_SEC / SLOW_CLOCK_FREQ)
 #define MAINF_LOOP_MAX_WAIT	MAINFRDY_TIMEOUT
 
 #define MOR_KEY_MASK		(0xff << 16)
 
-struct clk_main_osc {
+struct clk_main_osc
+{
 	struct clk_hw hw;
 	struct regmap *regmap;
 };
 
 #define to_clk_main_osc(hw) container_of(hw, struct clk_main_osc, hw)
 
-struct clk_main_rc_osc {
+struct clk_main_rc_osc
+{
 	struct clk_hw hw;
 	struct regmap *regmap;
 	unsigned long frequency;
@@ -43,14 +45,16 @@ struct clk_main_rc_osc {
 
 #define to_clk_main_rc_osc(hw) container_of(hw, struct clk_main_rc_osc, hw)
 
-struct clk_rm9200_main {
+struct clk_rm9200_main
+{
 	struct clk_hw hw;
 	struct regmap *regmap;
 };
 
 #define to_clk_rm9200_main(hw) container_of(hw, struct clk_rm9200_main, hw)
 
-struct clk_sam9x5_main {
+struct clk_sam9x5_main
+{
 	struct clk_hw hw;
 	struct regmap *regmap;
 	u8 parent;
@@ -77,15 +81,20 @@ static int clk_main_osc_prepare(struct clk_hw *hw)
 	tmp &= ~MOR_KEY_MASK;
 
 	if (tmp & AT91_PMC_OSCBYPASS)
+	{
 		return 0;
+	}
 
-	if (!(tmp & AT91_PMC_MOSCEN)) {
+	if (!(tmp & AT91_PMC_MOSCEN))
+	{
 		tmp |= AT91_PMC_MOSCEN | AT91_PMC_KEY;
 		regmap_write(regmap, AT91_CKGR_MOR, tmp);
 	}
 
 	while (!clk_main_osc_ready(regmap))
+	{
 		cpu_relax();
+	}
 
 	return 0;
 }
@@ -97,11 +106,16 @@ static void clk_main_osc_unprepare(struct clk_hw *hw)
 	u32 tmp;
 
 	regmap_read(regmap, AT91_CKGR_MOR, &tmp);
+
 	if (tmp & AT91_PMC_OSCBYPASS)
+	{
 		return;
+	}
 
 	if (!(tmp & AT91_PMC_MOSCEN))
+	{
 		return;
+	}
 
 	tmp &= ~(AT91_PMC_KEY | AT91_PMC_MOSCEN);
 	regmap_write(regmap, AT91_CKGR_MOR, tmp | AT91_PMC_KEY);
@@ -114,25 +128,29 @@ static int clk_main_osc_is_prepared(struct clk_hw *hw)
 	u32 tmp, status;
 
 	regmap_read(regmap, AT91_CKGR_MOR, &tmp);
+
 	if (tmp & AT91_PMC_OSCBYPASS)
+	{
 		return 1;
+	}
 
 	regmap_read(regmap, AT91_PMC_SR, &status);
 
 	return (status & AT91_PMC_MOSCS) && (tmp & AT91_PMC_MOSCEN);
 }
 
-static const struct clk_ops main_osc_ops = {
+static const struct clk_ops main_osc_ops =
+{
 	.prepare = clk_main_osc_prepare,
 	.unprepare = clk_main_osc_unprepare,
 	.is_prepared = clk_main_osc_is_prepared,
 };
 
-static struct clk_hw * __init
+static struct clk_hw *__init
 at91_clk_register_main_osc(struct regmap *regmap,
-			   const char *name,
-			   const char *parent_name,
-			   bool bypass)
+						   const char *name,
+						   const char *parent_name,
+						   bool bypass)
 {
 	struct clk_main_osc *osc;
 	struct clk_init_data init;
@@ -140,11 +158,16 @@ at91_clk_register_main_osc(struct regmap *regmap,
 	int ret;
 
 	if (!name || !parent_name)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	osc = kzalloc(sizeof(*osc), GFP_KERNEL);
+
 	if (!osc)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init.name = name;
 	init.ops = &main_osc_ops;
@@ -157,13 +180,15 @@ at91_clk_register_main_osc(struct regmap *regmap,
 
 	if (bypass)
 		regmap_update_bits(regmap,
-				   AT91_CKGR_MOR, MOR_KEY_MASK |
-				   AT91_PMC_MOSCEN,
-				   AT91_PMC_OSCBYPASS | AT91_PMC_KEY);
+						   AT91_CKGR_MOR, MOR_KEY_MASK |
+						   AT91_PMC_MOSCEN,
+						   AT91_PMC_OSCBYPASS | AT91_PMC_KEY);
 
 	hw = &osc->hw;
 	ret = clk_hw_register(NULL, &osc->hw);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(osc);
 		hw = ERR_PTR(ret);
 	}
@@ -184,17 +209,23 @@ static void __init of_at91rm9200_clk_main_osc_setup(struct device_node *np)
 	parent_name = of_clk_get_parent_name(np, 0);
 
 	regmap = syscon_node_to_regmap(of_get_parent(np));
+
 	if (IS_ERR(regmap))
+	{
 		return;
+	}
 
 	hw = at91_clk_register_main_osc(regmap, name, parent_name, bypass);
+
 	if (IS_ERR(hw))
+	{
 		return;
+	}
 
 	of_clk_add_hw_provider(np, of_clk_hw_simple_get, hw);
 }
 CLK_OF_DECLARE(at91rm9200_clk_main_osc, "atmel,at91rm9200-clk-main-osc",
-	       of_at91rm9200_clk_main_osc_setup);
+			   of_at91rm9200_clk_main_osc_setup);
 
 static bool clk_main_rc_osc_ready(struct regmap *regmap)
 {
@@ -215,11 +246,13 @@ static int clk_main_rc_osc_prepare(struct clk_hw *hw)
 
 	if (!(mor & AT91_PMC_MOSCRCEN))
 		regmap_update_bits(regmap, AT91_CKGR_MOR,
-				   MOR_KEY_MASK | AT91_PMC_MOSCRCEN,
-				   AT91_PMC_MOSCRCEN | AT91_PMC_KEY);
+						   MOR_KEY_MASK | AT91_PMC_MOSCRCEN,
+						   AT91_PMC_MOSCRCEN | AT91_PMC_KEY);
 
 	while (!clk_main_rc_osc_ready(regmap))
+	{
 		cpu_relax();
+	}
 
 	return 0;
 }
@@ -233,10 +266,12 @@ static void clk_main_rc_osc_unprepare(struct clk_hw *hw)
 	regmap_read(regmap, AT91_CKGR_MOR, &mor);
 
 	if (!(mor & AT91_PMC_MOSCRCEN))
+	{
 		return;
+	}
 
 	regmap_update_bits(regmap, AT91_CKGR_MOR,
-			   MOR_KEY_MASK | AT91_PMC_MOSCRCEN, AT91_PMC_KEY);
+					   MOR_KEY_MASK | AT91_PMC_MOSCRCEN, AT91_PMC_KEY);
 }
 
 static int clk_main_rc_osc_is_prepared(struct clk_hw *hw)
@@ -252,7 +287,7 @@ static int clk_main_rc_osc_is_prepared(struct clk_hw *hw)
 }
 
 static unsigned long clk_main_rc_osc_recalc_rate(struct clk_hw *hw,
-						 unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct clk_main_rc_osc *osc = to_clk_main_rc_osc(hw);
 
@@ -260,14 +295,15 @@ static unsigned long clk_main_rc_osc_recalc_rate(struct clk_hw *hw,
 }
 
 static unsigned long clk_main_rc_osc_recalc_accuracy(struct clk_hw *hw,
-						     unsigned long parent_acc)
+		unsigned long parent_acc)
 {
 	struct clk_main_rc_osc *osc = to_clk_main_rc_osc(hw);
 
 	return osc->accuracy;
 }
 
-static const struct clk_ops main_rc_osc_ops = {
+static const struct clk_ops main_rc_osc_ops =
+{
 	.prepare = clk_main_rc_osc_prepare,
 	.unprepare = clk_main_rc_osc_unprepare,
 	.is_prepared = clk_main_rc_osc_is_prepared,
@@ -275,10 +311,10 @@ static const struct clk_ops main_rc_osc_ops = {
 	.recalc_accuracy = clk_main_rc_osc_recalc_accuracy,
 };
 
-static struct clk_hw * __init
+static struct clk_hw *__init
 at91_clk_register_main_rc_osc(struct regmap *regmap,
-			      const char *name,
-			      u32 frequency, u32 accuracy)
+							  const char *name,
+							  u32 frequency, u32 accuracy)
 {
 	struct clk_main_rc_osc *osc;
 	struct clk_init_data init;
@@ -286,11 +322,16 @@ at91_clk_register_main_rc_osc(struct regmap *regmap,
 	int ret;
 
 	if (!name || !frequency)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	osc = kzalloc(sizeof(*osc), GFP_KERNEL);
+
 	if (!osc)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init.name = name;
 	init.ops = &main_rc_osc_ops;
@@ -305,7 +346,9 @@ at91_clk_register_main_rc_osc(struct regmap *regmap,
 
 	hw = &osc->hw;
 	ret = clk_hw_register(NULL, hw);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(osc);
 		hw = ERR_PTR(ret);
 	}
@@ -326,17 +369,23 @@ static void __init of_at91sam9x5_clk_main_rc_osc_setup(struct device_node *np)
 	of_property_read_u32(np, "clock-accuracy", &accuracy);
 
 	regmap = syscon_node_to_regmap(of_get_parent(np));
+
 	if (IS_ERR(regmap))
+	{
 		return;
+	}
 
 	hw = at91_clk_register_main_rc_osc(regmap, name, frequency, accuracy);
+
 	if (IS_ERR(hw))
+	{
 		return;
+	}
 
 	of_clk_add_hw_provider(np, of_clk_hw_simple_get, hw);
 }
 CLK_OF_DECLARE(at91sam9x5_clk_main_rc_osc, "atmel,at91sam9x5-clk-main-rc-osc",
-	       of_at91sam9x5_clk_main_rc_osc_setup);
+			   of_at91sam9x5_clk_main_rc_osc_setup);
 
 
 static int clk_main_probe_frequency(struct regmap *regmap)
@@ -345,29 +394,41 @@ static int clk_main_probe_frequency(struct regmap *regmap)
 	unsigned int mcfr;
 
 	timeout = jiffies + usecs_to_jiffies(MAINFRDY_TIMEOUT);
-	do {
+
+	do
+	{
 		prep_time = jiffies;
 		regmap_read(regmap, AT91_CKGR_MCFR, &mcfr);
+
 		if (mcfr & AT91_PMC_MAINRDY)
+		{
 			return 0;
+		}
+
 		usleep_range(MAINF_LOOP_MIN_WAIT, MAINF_LOOP_MAX_WAIT);
-	} while (time_before(prep_time, timeout));
+	}
+	while (time_before(prep_time, timeout));
 
 	return -ETIMEDOUT;
 }
 
 static unsigned long clk_main_recalc_rate(struct regmap *regmap,
-					  unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	unsigned int mcfr;
 
 	if (parent_rate)
+	{
 		return parent_rate;
+	}
 
 	pr_warn("Main crystal frequency not set, using approximate value\n");
 	regmap_read(regmap, AT91_CKGR_MCFR, &mcfr);
+
 	if (!(mcfr & AT91_PMC_MAINRDY))
+	{
 		return 0;
+	}
 
 	return ((mcfr & AT91_PMC_MAINF) * SLOW_CLOCK_FREQ) / MAINF_DIV;
 }
@@ -390,23 +451,24 @@ static int clk_rm9200_main_is_prepared(struct clk_hw *hw)
 }
 
 static unsigned long clk_rm9200_main_recalc_rate(struct clk_hw *hw,
-						 unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct clk_rm9200_main *clkmain = to_clk_rm9200_main(hw);
 
 	return clk_main_recalc_rate(clkmain->regmap, parent_rate);
 }
 
-static const struct clk_ops rm9200_main_ops = {
+static const struct clk_ops rm9200_main_ops =
+{
 	.prepare = clk_rm9200_main_prepare,
 	.is_prepared = clk_rm9200_main_is_prepared,
 	.recalc_rate = clk_rm9200_main_recalc_rate,
 };
 
-static struct clk_hw * __init
+static struct clk_hw *__init
 at91_clk_register_rm9200_main(struct regmap *regmap,
-			      const char *name,
-			      const char *parent_name)
+							  const char *name,
+							  const char *parent_name)
 {
 	struct clk_rm9200_main *clkmain;
 	struct clk_init_data init;
@@ -414,14 +476,21 @@ at91_clk_register_rm9200_main(struct regmap *regmap,
 	int ret;
 
 	if (!name)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	if (!parent_name)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	clkmain = kzalloc(sizeof(*clkmain), GFP_KERNEL);
+
 	if (!clkmain)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init.name = name;
 	init.ops = &rm9200_main_ops;
@@ -434,7 +503,9 @@ at91_clk_register_rm9200_main(struct regmap *regmap,
 
 	hw = &clkmain->hw;
 	ret = clk_hw_register(NULL, &clkmain->hw);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(clkmain);
 		hw = ERR_PTR(ret);
 	}
@@ -453,17 +524,23 @@ static void __init of_at91rm9200_clk_main_setup(struct device_node *np)
 	of_property_read_string(np, "clock-output-names", &name);
 
 	regmap = syscon_node_to_regmap(of_get_parent(np));
+
 	if (IS_ERR(regmap))
+	{
 		return;
+	}
 
 	hw = at91_clk_register_rm9200_main(regmap, name, parent_name);
+
 	if (IS_ERR(hw))
+	{
 		return;
+	}
 
 	of_clk_add_hw_provider(np, of_clk_hw_simple_get, hw);
 }
 CLK_OF_DECLARE(at91rm9200_clk_main, "atmel,at91rm9200-clk-main",
-	       of_at91rm9200_clk_main_setup);
+			   of_at91rm9200_clk_main_setup);
 
 static inline bool clk_sam9x5_main_ready(struct regmap *regmap)
 {
@@ -480,7 +557,9 @@ static int clk_sam9x5_main_prepare(struct clk_hw *hw)
 	struct regmap *regmap = clkmain->regmap;
 
 	while (!clk_sam9x5_main_ready(regmap))
+	{
 		cpu_relax();
+	}
 
 	return clk_main_probe_frequency(regmap);
 }
@@ -493,7 +572,7 @@ static int clk_sam9x5_main_is_prepared(struct clk_hw *hw)
 }
 
 static unsigned long clk_sam9x5_main_recalc_rate(struct clk_hw *hw,
-						 unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct clk_sam9x5_main *clkmain = to_clk_sam9x5_main(hw);
 
@@ -507,18 +586,26 @@ static int clk_sam9x5_main_set_parent(struct clk_hw *hw, u8 index)
 	unsigned int tmp;
 
 	if (index > 1)
+	{
 		return -EINVAL;
+	}
 
 	regmap_read(regmap, AT91_CKGR_MOR, &tmp);
 	tmp &= ~MOR_KEY_MASK;
 
 	if (index && !(tmp & AT91_PMC_MOSCSEL))
+	{
 		regmap_write(regmap, AT91_CKGR_MOR, tmp | AT91_PMC_MOSCSEL);
+	}
 	else if (!index && (tmp & AT91_PMC_MOSCSEL))
+	{
 		regmap_write(regmap, AT91_CKGR_MOR, tmp & ~AT91_PMC_MOSCSEL);
+	}
 
 	while (!clk_sam9x5_main_ready(regmap))
+	{
 		cpu_relax();
+	}
 
 	return 0;
 }
@@ -533,7 +620,8 @@ static u8 clk_sam9x5_main_get_parent(struct clk_hw *hw)
 	return status & AT91_PMC_MOSCEN ? 1 : 0;
 }
 
-static const struct clk_ops sam9x5_main_ops = {
+static const struct clk_ops sam9x5_main_ops =
+{
 	.prepare = clk_sam9x5_main_prepare,
 	.is_prepared = clk_sam9x5_main_is_prepared,
 	.recalc_rate = clk_sam9x5_main_recalc_rate,
@@ -541,11 +629,11 @@ static const struct clk_ops sam9x5_main_ops = {
 	.get_parent = clk_sam9x5_main_get_parent,
 };
 
-static struct clk_hw * __init
+static struct clk_hw *__init
 at91_clk_register_sam9x5_main(struct regmap *regmap,
-			      const char *name,
-			      const char **parent_names,
-			      int num_parents)
+							  const char *name,
+							  const char **parent_names,
+							  int num_parents)
 {
 	struct clk_sam9x5_main *clkmain;
 	struct clk_init_data init;
@@ -554,14 +642,21 @@ at91_clk_register_sam9x5_main(struct regmap *regmap,
 	int ret;
 
 	if (!name)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	if (!parent_names || !num_parents)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	clkmain = kzalloc(sizeof(*clkmain), GFP_KERNEL);
+
 	if (!clkmain)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	init.name = name;
 	init.ops = &sam9x5_main_ops;
@@ -576,7 +671,9 @@ at91_clk_register_sam9x5_main(struct regmap *regmap,
 
 	hw = &clkmain->hw;
 	ret = clk_hw_register(NULL, &clkmain->hw);
-	if (ret) {
+
+	if (ret)
+	{
 		kfree(clkmain);
 		hw = ERR_PTR(ret);
 	}
@@ -593,22 +690,31 @@ static void __init of_at91sam9x5_clk_main_setup(struct device_node *np)
 	struct regmap *regmap;
 
 	num_parents = of_clk_get_parent_count(np);
+
 	if (num_parents == 0 || num_parents > 2)
+	{
 		return;
+	}
 
 	of_clk_parent_fill(np, parent_names, num_parents);
 	regmap = syscon_node_to_regmap(of_get_parent(np));
+
 	if (IS_ERR(regmap))
+	{
 		return;
+	}
 
 	of_property_read_string(np, "clock-output-names", &name);
 
 	hw = at91_clk_register_sam9x5_main(regmap, name, parent_names,
-					    num_parents);
+									   num_parents);
+
 	if (IS_ERR(hw))
+	{
 		return;
+	}
 
 	of_clk_add_hw_provider(np, of_clk_hw_simple_get, hw);
 }
 CLK_OF_DECLARE(at91sam9x5_clk_main, "atmel,at91sam9x5-clk-main",
-	       of_at91sam9x5_clk_main_setup);
+			   of_at91sam9x5_clk_main_setup);

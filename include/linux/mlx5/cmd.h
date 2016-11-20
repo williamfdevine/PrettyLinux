@@ -35,7 +35,8 @@
 
 #include <linux/types.h>
 
-struct manage_pages_layout {
+struct manage_pages_layout
+{
 	u64	ptr;
 	u32	reserved;
 	u16	num_entries;
@@ -43,7 +44,8 @@ struct manage_pages_layout {
 };
 
 
-struct mlx5_cmd_alloc_uar_imm_out {
+struct mlx5_cmd_alloc_uar_imm_out
+{
 	u32	rsvd[3];
 	u32	uarn;
 };

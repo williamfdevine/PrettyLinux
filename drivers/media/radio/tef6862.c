@@ -58,7 +58,8 @@
 #define MSA_MODE_END		0x7
 #define MSA_MODE_SHIFT		5
 
-struct tef6862_state {
+struct tef6862_state
+{
 	struct v4l2_subdev sd;
 	unsigned long freq;
 };
@@ -72,15 +73,21 @@ static u16 tef6862_sigstr(struct i2c_client *client)
 {
 	u8 buf[4];
 	int err = i2c_master_recv(client, buf, sizeof(buf));
+
 	if (err == sizeof(buf))
+	{
 		return buf[3] << 8;
+	}
+
 	return 0;
 }
 
 static int tef6862_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *v)
 {
 	if (v->index > 0)
+	{
 		return -EINVAL;
+	}
 
 	/* only support FM for now */
 	strlcpy(v->name, "FM", sizeof(v->name));
@@ -110,7 +117,9 @@ static int tef6862_s_frequency(struct v4l2_subdev *sd, const struct v4l2_frequen
 	int err;
 
 	if (f->tuner != 0)
+	{
 		return -EINVAL;
+	}
 
 	freq = clamp(freq, TEF6862_LO_FREQ, TEF6862_HI_FREQ);
 	pll = 1964 + ((freq - TEF6862_LO_FREQ) * 20) / FREQ_MUL;
@@ -119,8 +128,11 @@ static int tef6862_s_frequency(struct v4l2_subdev *sd, const struct v4l2_frequen
 	i2cmsg[2] = pll & 0xff;
 
 	err = i2c_master_send(client, i2cmsg, sizeof(i2cmsg));
+
 	if (err != sizeof(i2cmsg))
+	{
 		return err < 0 ? err : -EIO;
+	}
 
 	state->freq = freq;
 	return 0;
@@ -131,20 +143,25 @@ static int tef6862_g_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
 	struct tef6862_state *state = to_state(sd);
 
 	if (f->tuner != 0)
+	{
 		return -EINVAL;
+	}
+
 	f->type = V4L2_TUNER_RADIO;
 	f->frequency = state->freq;
 	return 0;
 }
 
-static const struct v4l2_subdev_tuner_ops tef6862_tuner_ops = {
+static const struct v4l2_subdev_tuner_ops tef6862_tuner_ops =
+{
 	.g_tuner = tef6862_g_tuner,
 	.s_tuner = tef6862_s_tuner,
 	.s_frequency = tef6862_s_frequency,
 	.g_frequency = tef6862_g_frequency,
 };
 
-static const struct v4l2_subdev_ops tef6862_ops = {
+static const struct v4l2_subdev_ops tef6862_ops =
+{
 	.tuner = &tef6862_tuner_ops,
 };
 
@@ -154,21 +171,27 @@ static const struct v4l2_subdev_ops tef6862_ops = {
  */
 
 static int tef6862_probe(struct i2c_client *client,
-			 const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct tef6862_state *state;
 	struct v4l2_subdev *sd;
 
 	/* Check if the adapter supports the needed features */
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		return -EIO;
+	}
 
 	v4l_info(client, "chip found @ 0x%02x (%s)\n",
-			client->addr << 1, client->adapter->name);
+			 client->addr << 1, client->adapter->name);
 
 	state = kzalloc(sizeof(struct tef6862_state), GFP_KERNEL);
+
 	if (state == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	state->freq = TEF6862_LO_FREQ;
 
 	sd = &state->sd;
@@ -186,14 +209,16 @@ static int tef6862_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id tef6862_id[] = {
+static const struct i2c_device_id tef6862_id[] =
+{
 	{DRIVER_NAME, 0},
 	{},
 };
 
 MODULE_DEVICE_TABLE(i2c, tef6862_id);
 
-static struct i2c_driver tef6862_driver = {
+static struct i2c_driver tef6862_driver =
+{
 	.driver = {
 		.name	= DRIVER_NAME,
 	},

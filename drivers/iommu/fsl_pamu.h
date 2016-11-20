@@ -38,7 +38,8 @@
 
 #define PAMU_MMAP_REGS_BASE 0
 
-struct pamu_mmap_regs {
+struct pamu_mmap_regs
+{
 	u32 ppbah;
 	u32 ppbal;
 	u32 pplah;
@@ -67,7 +68,7 @@ struct pamu_mmap_regs {
 #define PAMU_AVS1_GCV   0x2000
 #define PAMU_AVS1_PDV   0x4000
 #define PAMU_AV_MASK    (PAMU_AVS1_AV | PAMU_AVS1_OTV | PAMU_AVS1_APV | PAMU_AVS1_WAV \
-			 | PAMU_AVS1_LAV | PAMU_AVS1_GCV | PAMU_AVS1_PDV)
+						 | PAMU_AVS1_LAV | PAMU_AVS1_GCV | PAMU_AVS1_PDV)
 #define PAMU_AVS1_LIODN_SHIFT 16
 #define PAMU_LAV_LIODN_NOT_IN_PPAACT 0x400
 
@@ -268,15 +269,18 @@ struct pamu_mmap_regs {
 
 /* PAMU Data Structures */
 /* primary / secondary paact structure */
-struct paace {
+struct paace
+{
 	/* PAACE Offset 0x00 */
 	u32 wbah;				/* only valid for Primary PAACE */
 	u32 addr_bitfields;		/* See P/S PAACE_AF_* */
 
 	/* PAACE Offset 0x08 */
 	/* Interpretation of first 32 bits dependent on DD above */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			/* Destination ID, see PAACE_DID_* defines */
 			u8 did;
 			/* Partition ID */
@@ -286,7 +290,8 @@ struct paace {
 			/* coherency_required : 1 reserved : 7 */
 			u8 coherency_required; /* See PAACE_DA_* */
 		} to_host;
-		struct {
+		struct
+		{
 			/* Destination ID, see PAACE_DID_* defines */
 			u8  did;
 			u8  reserved1;
@@ -305,14 +310,17 @@ struct paace {
 	/* PAACE Offset 0x18 */
 	/* first secondary paace entry */
 	u32 fspi;				/* only valid for Primary PAACE */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u8 ioea;
 			u8 moea;
 			u8 ioeb;
 			u8 moeb;
 		} immed_ot;
-		struct {
+		struct
+		{
 			u16 reserved;
 			u16 omi;
 		} index_ot;
@@ -331,7 +339,8 @@ struct paace {
  * byte mapped operation encoding (MOE), where each byte represents an MOE.
  */
 #define NUM_MOE 128
-struct ome {
+struct ome
+{
 	u8 moe[NUM_MOE];
 } __packed;
 
@@ -396,11 +405,11 @@ int pamu_enable_liodn(int liodn);
 int pamu_disable_liodn(int liodn);
 void pamu_free_subwins(int liodn);
 int pamu_config_ppaace(int liodn, phys_addr_t win_addr, phys_addr_t win_size,
-		       u32 omi, unsigned long rpn, u32 snoopid, uint32_t stashid,
-		       u32 subwin_cnt, int prot);
+					   u32 omi, unsigned long rpn, u32 snoopid, uint32_t stashid,
+					   u32 subwin_cnt, int prot);
 int pamu_config_spaace(int liodn, u32 subwin_cnt, u32 subwin_addr,
-		       phys_addr_t subwin_size, u32 omi, unsigned long rpn,
-		       uint32_t snoopid, u32 stashid, int enable, int prot);
+					   phys_addr_t subwin_size, u32 omi, unsigned long rpn,
+					   uint32_t snoopid, u32 stashid, int enable, int prot);
 
 u32 get_stash_id(u32 stash_dest_hint, u32 vcpu);
 void get_ome_index(u32 *omi_index, struct device *dev);

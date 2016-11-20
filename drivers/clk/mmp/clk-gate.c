@@ -32,7 +32,9 @@ static int mmp_clk_gate_enable(struct clk_hw *hw)
 	u32 tmp;
 
 	if (gate->lock)
+	{
 		spin_lock_irqsave(gate->lock, flags);
+	}
 
 	tmp = readl(gate->reg);
 	tmp &= ~gate->mask;
@@ -40,12 +42,15 @@ static int mmp_clk_gate_enable(struct clk_hw *hw)
 	writel(tmp, gate->reg);
 
 	if (gate->lock)
+	{
 		spin_unlock_irqrestore(gate->lock, flags);
+	}
 
-	if (gate->flags & MMP_CLK_GATE_NEED_DELAY) {
+	if (gate->flags & MMP_CLK_GATE_NEED_DELAY)
+	{
 		rate = clk_hw_get_rate(hw);
 		/* Need delay 2 cycles. */
-		udelay(2000000/rate);
+		udelay(2000000 / rate);
 	}
 
 	return 0;
@@ -58,7 +63,9 @@ static void mmp_clk_gate_disable(struct clk_hw *hw)
 	u32 tmp;
 
 	if (gate->lock)
+	{
 		spin_lock_irqsave(gate->lock, flags);
+	}
 
 	tmp = readl(gate->reg);
 	tmp &= ~gate->mask;
@@ -66,7 +73,9 @@ static void mmp_clk_gate_disable(struct clk_hw *hw)
 	writel(tmp, gate->reg);
 
 	if (gate->lock)
+	{
 		spin_unlock_irqrestore(gate->lock, flags);
+	}
 }
 
 static int mmp_clk_gate_is_enabled(struct clk_hw *hw)
@@ -76,26 +85,31 @@ static int mmp_clk_gate_is_enabled(struct clk_hw *hw)
 	u32 tmp;
 
 	if (gate->lock)
+	{
 		spin_lock_irqsave(gate->lock, flags);
+	}
 
 	tmp = readl(gate->reg);
 
 	if (gate->lock)
+	{
 		spin_unlock_irqrestore(gate->lock, flags);
+	}
 
 	return (tmp & gate->mask) == gate->val_enable;
 }
 
-const struct clk_ops mmp_clk_gate_ops = {
+const struct clk_ops mmp_clk_gate_ops =
+{
 	.enable = mmp_clk_gate_enable,
 	.disable = mmp_clk_gate_disable,
 	.is_enabled = mmp_clk_gate_is_enabled,
 };
 
 struct clk *mmp_clk_register_gate(struct device *dev, const char *name,
-		const char *parent_name, unsigned long flags,
-		void __iomem *reg, u32 mask, u32 val_enable, u32 val_disable,
-		unsigned int gate_flags, spinlock_t *lock)
+								  const char *parent_name, unsigned long flags,
+								  void __iomem *reg, u32 mask, u32 val_enable, u32 val_disable,
+								  unsigned int gate_flags, spinlock_t *lock)
 {
 	struct mmp_clk_gate *gate;
 	struct clk *clk;
@@ -103,7 +117,9 @@ struct clk *mmp_clk_register_gate(struct device *dev, const char *name,
 
 	/* allocate the gate */
 	gate = kzalloc(sizeof(*gate), GFP_KERNEL);
-	if (!gate) {
+
+	if (!gate)
+	{
 		pr_err("%s:%s could not allocate gate clk\n", __func__, name);
 		return ERR_PTR(-ENOMEM);
 	}
@@ -126,7 +142,9 @@ struct clk *mmp_clk_register_gate(struct device *dev, const char *name,
 	clk = clk_register(dev, &gate->hw);
 
 	if (IS_ERR(clk))
+	{
 		kfree(gate);
+	}
 
 	return clk;
 }

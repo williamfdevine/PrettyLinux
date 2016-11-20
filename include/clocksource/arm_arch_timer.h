@@ -29,7 +29,8 @@
 #define CNTHCTL_EVNTDIR			(1 << 3)
 #define CNTHCTL_EVNTI			(0xF << 4)
 
-enum arch_timer_reg {
+enum arch_timer_reg
+{
 	ARCH_TIMER_REG_CTRL,
 	ARCH_TIMER_REG_TVAL,
 };
@@ -49,7 +50,8 @@ enum arch_timer_reg {
 
 #define ARCH_TIMER_EVT_STREAM_FREQ	10000	/* 100us */
 
-struct arch_timer_kvm_info {
+struct arch_timer_kvm_info
+{
 	struct timecounter timecounter;
 	int virtual_irq;
 };

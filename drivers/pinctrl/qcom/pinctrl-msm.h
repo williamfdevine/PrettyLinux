@@ -21,9 +21,10 @@ struct pinctrl_pin_desc;
  * @groups:  List of pingroups for this function.
  * @ngroups: Number of entries in @groups.
  */
-struct msm_function {
+struct msm_function
+{
 	const char *name;
-	const char * const *groups;
+	const char *const *groups;
 	unsigned ngroups;
 };
 
@@ -62,7 +63,8 @@ struct msm_function {
  *                        Should be 2 for SoCs that can detect both edges in hardware,
  *                        otherwise 1.
  */
-struct msm_pingroup {
+struct msm_pingroup
+{
 	const char *name;
 	const unsigned *pins;
 	unsigned npins;
@@ -76,25 +78,25 @@ struct msm_pingroup {
 	u32 intr_status_reg;
 	u32 intr_target_reg;
 
-	unsigned mux_bit:5;
+	unsigned mux_bit: 5;
 
-	unsigned pull_bit:5;
-	unsigned drv_bit:5;
+	unsigned pull_bit: 5;
+	unsigned drv_bit: 5;
 
-	unsigned oe_bit:5;
-	unsigned in_bit:5;
-	unsigned out_bit:5;
+	unsigned oe_bit: 5;
+	unsigned in_bit: 5;
+	unsigned out_bit: 5;
 
-	unsigned intr_enable_bit:5;
-	unsigned intr_status_bit:5;
-	unsigned intr_ack_high:1;
+	unsigned intr_enable_bit: 5;
+	unsigned intr_status_bit: 5;
+	unsigned intr_ack_high: 1;
 
-	unsigned intr_target_bit:5;
-	unsigned intr_target_kpss_val:5;
-	unsigned intr_raw_status_bit:5;
-	unsigned intr_polarity_bit:5;
-	unsigned intr_detection_bit:5;
-	unsigned intr_detection_width:5;
+	unsigned intr_target_bit: 5;
+	unsigned intr_target_kpss_val: 5;
+	unsigned intr_raw_status_bit: 5;
+	unsigned intr_polarity_bit: 5;
+	unsigned intr_detection_bit: 5;
+	unsigned intr_detection_width: 5;
 };
 
 /**
@@ -107,7 +109,8 @@ struct msm_pingroup {
  * @ngroups:    The numbmer of entries in @groups.
  * @ngpio:      The number of pingroups the driver should expose as GPIOs.
  */
-struct msm_pinctrl_soc_data {
+struct msm_pinctrl_soc_data
+{
 	const struct pinctrl_pin_desc *pins;
 	unsigned npins;
 	const struct msm_function *functions;
@@ -118,7 +121,7 @@ struct msm_pinctrl_soc_data {
 };
 
 int msm_pinctrl_probe(struct platform_device *pdev,
-		      const struct msm_pinctrl_soc_data *soc_data);
+					  const struct msm_pinctrl_soc_data *soc_data);
 int msm_pinctrl_remove(struct platform_device *pdev);
 
 #endif

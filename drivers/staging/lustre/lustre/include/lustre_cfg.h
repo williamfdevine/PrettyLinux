@@ -55,7 +55,8 @@
  */
 #define LCFG_REQUIRED	 0x0001000
 
-enum lcfg_command_type {
+enum lcfg_command_type
+{
 	LCFG_ATTACH	     = 0x00cf001, /**< create a new obd instance */
 	LCFG_DETACH	     = 0x00cf002, /**< destroy obd instance */
 	LCFG_SETUP	      = 0x00cf003, /**< call type-specific setup */
@@ -91,13 +92,15 @@ enum lcfg_command_type {
 					      */
 };
 
-struct lustre_cfg_bufs {
+struct lustre_cfg_bufs
+{
 	void    *lcfg_buf[LUSTRE_CFG_MAX_BUFCOUNT];
 	__u32    lcfg_buflen[LUSTRE_CFG_MAX_BUFCOUNT];
 	__u32    lcfg_bufcount;
 };
 
-struct lustre_cfg {
+struct lustre_cfg
+{
 	__u32 lcfg_version;
 	__u32 lcfg_command;
 
@@ -110,7 +113,8 @@ struct lustre_cfg {
 	__u32 lcfg_buflens[0];
 };
 
-enum cfg_record_type {
+enum cfg_record_type
+{
 	PORTALS_CFG_TYPE = 1,
 	LUSTRE_CFG_TYPE = 123,
 };
@@ -121,25 +125,32 @@ enum cfg_record_type {
 	 : (lcfg)->lcfg_buflens[(idx)])
 
 static inline void lustre_cfg_bufs_set(struct lustre_cfg_bufs *bufs,
-				       __u32		   index,
-				       void		   *buf,
-				       __u32		   buflen)
+									   __u32		   index,
+									   void		   *buf,
+									   __u32		   buflen)
 {
 	if (index >= LUSTRE_CFG_MAX_BUFCOUNT)
+	{
 		return;
+	}
+
 	if (!bufs)
+	{
 		return;
+	}
 
 	if (bufs->lcfg_bufcount <= index)
+	{
 		bufs->lcfg_bufcount = index + 1;
+	}
 
 	bufs->lcfg_buf[index]    = buf;
 	bufs->lcfg_buflen[index] = buflen;
 }
 
 static inline void lustre_cfg_bufs_set_string(struct lustre_cfg_bufs *bufs,
-					      __u32 index,
-					      char *str)
+		__u32 index,
+		char *str)
 {
 	lustre_cfg_bufs_set(bufs, index, str, str ? strlen(str) + 1 : 0);
 }
@@ -147,8 +158,11 @@ static inline void lustre_cfg_bufs_set_string(struct lustre_cfg_bufs *bufs,
 static inline void lustre_cfg_bufs_reset(struct lustre_cfg_bufs *bufs, char *name)
 {
 	memset((bufs), 0, sizeof(*bufs));
+
 	if (name)
+	{
 		lustre_cfg_bufs_set_string(bufs, 0, name);
+	}
 }
 
 static inline void *lustre_cfg_buf(struct lustre_cfg *lcfg, __u32 index)
@@ -158,22 +172,31 @@ static inline void *lustre_cfg_buf(struct lustre_cfg *lcfg, __u32 index)
 	__u32 bufcount;
 
 	bufcount = lcfg->lcfg_bufcount;
+
 	if (index >= bufcount)
+	{
 		return NULL;
+	}
 
 	offset = LCFG_HDR_SIZE(lcfg->lcfg_bufcount);
+
 	for (i = 0; i < index; i++)
+	{
 		offset += cfs_size_round(lcfg->lcfg_buflens[i]);
+	}
+
 	return (char *)lcfg + offset;
 }
 
 static inline void lustre_cfg_bufs_init(struct lustre_cfg_bufs *bufs,
-					struct lustre_cfg *lcfg)
+										struct lustre_cfg *lcfg)
 {
 	__u32 i;
 
 	bufs->lcfg_bufcount = lcfg->lcfg_bufcount;
-	for (i = 0; i < bufs->lcfg_bufcount; i++) {
+
+	for (i = 0; i < bufs->lcfg_bufcount; i++)
+	{
 		bufs->lcfg_buflen[i] = lcfg->lcfg_buflens[i];
 		bufs->lcfg_buf[i] = lustre_cfg_buf(lcfg, i);
 	}
@@ -184,27 +207,36 @@ static inline char *lustre_cfg_string(struct lustre_cfg *lcfg, __u32 index)
 	char *s;
 
 	if (lcfg->lcfg_buflens[index] == 0)
+	{
 		return NULL;
+	}
 
 	s = lustre_cfg_buf(lcfg, index);
+
 	if (!s)
+	{
 		return NULL;
+	}
 
 	/*
 	 * make sure it's NULL terminated, even if this kills a char
 	 * of data.  Try to use the padding first though.
 	 */
-	if (s[lcfg->lcfg_buflens[index] - 1] != '\0') {
+	if (s[lcfg->lcfg_buflens[index] - 1] != '\0')
+	{
 		size_t last = min((size_t)lcfg->lcfg_buflens[index],
-				  cfs_size_round(lcfg->lcfg_buflens[index]) - 1);
+						  cfs_size_round(lcfg->lcfg_buflens[index]) - 1);
 		char lost = s[last];
 
 		s[last] = '\0';
-		if (lost != '\0') {
+
+		if (lost != '\0')
+		{
 			CWARN("Truncated buf %d to '%s' (lost '%c'...)\n",
-			      index, s, lost);
+				  index, s, lost);
 		}
 	}
+
 	return s;
 }
 
@@ -214,8 +246,11 @@ static inline __u32 lustre_cfg_len(__u32 bufcount, __u32 *buflens)
 	__u32 len;
 
 	len = LCFG_HDR_SIZE(bufcount);
+
 	for (i = 0; i < bufcount; i++)
+	{
 		len += cfs_size_round(buflens[i]);
+	}
 
 	return cfs_size_round(len);
 }
@@ -223,26 +258,32 @@ static inline __u32 lustre_cfg_len(__u32 bufcount, __u32 *buflens)
 #include "obd_support.h"
 
 static inline struct lustre_cfg *lustre_cfg_new(int cmd,
-						struct lustre_cfg_bufs *bufs)
+		struct lustre_cfg_bufs *bufs)
 {
 	struct lustre_cfg *lcfg;
 	char *ptr;
 	int i;
 
 	lcfg = kzalloc(lustre_cfg_len(bufs->lcfg_bufcount, bufs->lcfg_buflen),
-		       GFP_NOFS);
+				   GFP_NOFS);
+
 	if (!lcfg)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	lcfg->lcfg_version = LUSTRE_CFG_VERSION;
 	lcfg->lcfg_command = cmd;
 	lcfg->lcfg_bufcount = bufs->lcfg_bufcount;
 
 	ptr = (char *)lcfg + LCFG_HDR_SIZE(lcfg->lcfg_bufcount);
-	for (i = 0; i < lcfg->lcfg_bufcount; i++) {
+
+	for (i = 0; i < lcfg->lcfg_bufcount; i++)
+	{
 		lcfg->lcfg_buflens[i] = bufs->lcfg_buflen[i];
 		LOGL((char *)bufs->lcfg_buf[i], bufs->lcfg_buflen[i], ptr);
 	}
+
 	return lcfg;
 }
 
@@ -257,25 +298,37 @@ static inline int lustre_cfg_sanity_check(void *buf, size_t len)
 	struct lustre_cfg *lcfg = (struct lustre_cfg *)buf;
 
 	if (!lcfg)
+	{
 		return -EINVAL;
+	}
 
 	/* check that the first bits of the struct are valid */
 	if (len < LCFG_HDR_SIZE(0))
+	{
 		return -EINVAL;
+	}
 
 	if (lcfg->lcfg_version != LUSTRE_CFG_VERSION)
+	{
 		return -EINVAL;
+	}
 
 	if (lcfg->lcfg_bufcount >= LUSTRE_CFG_MAX_BUFCOUNT)
+	{
 		return -EINVAL;
+	}
 
 	/* check that the buflens are valid */
 	if (len < LCFG_HDR_SIZE(lcfg->lcfg_bufcount))
+	{
 		return -EINVAL;
+	}
 
 	/* make sure all the pointers point inside the data */
 	if (len < lustre_cfg_len(lcfg->lcfg_bufcount, lcfg->lcfg_buflens))
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }

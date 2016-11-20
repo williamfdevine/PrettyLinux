@@ -9,7 +9,7 @@
 #define HWI2C_WAIT_TIMEOUT              0xF0000
 
 int sm750_hw_i2c_init(
-unsigned char bus_speed_mode
+	unsigned char bus_speed_mode
 )
 {
 	unsigned int value;
@@ -27,8 +27,12 @@ unsigned char bus_speed_mode
 
 	/* Enable the I2C Controller and set the bus speed mode */
 	value = PEEK32(I2C_CTRL) & ~(I2C_CTRL_MODE | I2C_CTRL_EN);
+
 	if (bus_speed_mode)
+	{
 		value |= I2C_CTRL_MODE;
+	}
+
 	value |= I2C_CTRL_EN;
 	POKE32(I2C_CTRL, value);
 
@@ -59,11 +63,16 @@ static long hw_i2c_wait_tx_done(void)
 
 	/* Wait until the transfer is completed. */
 	timeout = HWI2C_WAIT_TIMEOUT;
+
 	while (!(PEEK32(I2C_STATUS) & I2C_STATUS_TX) && (timeout != 0))
+	{
 		timeout--;
+	}
 
 	if (timeout == 0)
+	{
 		return -1;
+	}
 
 	return 0;
 }
@@ -96,7 +105,8 @@ static unsigned int hw_i2c_write_data(
 	 * Note:
 	 *      Only 16 byte can be accessed per i2c start instruction.
 	 */
-	do {
+	do
+	{
 		/*
 		 * Reset I2C by writing 0 to I2C_RESET register to
 		 * clear the previous status.
@@ -105,21 +115,30 @@ static unsigned int hw_i2c_write_data(
 
 		/* Set the number of bytes to be written */
 		if (length < MAX_HWI2C_FIFO)
+		{
 			count = length - 1;
+		}
 		else
+		{
 			count = MAX_HWI2C_FIFO - 1;
+		}
+
 		POKE32(I2C_BYTE_COUNT, count);
 
 		/* Move the data to the I2C data register */
 		for (i = 0; i <= count; i++)
+		{
 			POKE32(I2C_DATA0 + i, *buf++);
+		}
 
 		/* Start the I2C */
 		POKE32(I2C_CTRL, PEEK32(I2C_CTRL) | I2C_CTRL_CTRL);
 
 		/* Wait until the transfer is completed. */
 		if (hw_i2c_wait_tx_done() != 0)
+		{
 			break;
+		}
 
 		/* Subtract length */
 		length -= (count + 1);
@@ -127,7 +146,8 @@ static unsigned int hw_i2c_write_data(
 		/* Total byte written */
 		total_bytes += (count + 1);
 
-	} while (length > 0);
+	}
+	while (length > 0);
 
 	return total_bytes;
 }
@@ -162,7 +182,8 @@ static unsigned int hw_i2c_read_data(
 	 * Note:
 	 *      Only 16 byte can be accessed per i2c start instruction.
 	 */
-	do {
+	do
+	{
 		/*
 		 * Reset I2C by writing 0 to I2C_RESET register to
 		 * clear all the status.
@@ -171,9 +192,14 @@ static unsigned int hw_i2c_read_data(
 
 		/* Set the number of bytes to be read */
 		if (length <= MAX_HWI2C_FIFO)
+		{
 			count = length - 1;
+		}
 		else
+		{
 			count = MAX_HWI2C_FIFO - 1;
+		}
+
 		POKE32(I2C_BYTE_COUNT, count);
 
 		/* Start the I2C */
@@ -181,11 +207,15 @@ static unsigned int hw_i2c_read_data(
 
 		/* Wait until transaction done. */
 		if (hw_i2c_wait_tx_done() != 0)
+		{
 			break;
+		}
 
 		/* Save the data to the given buffer */
 		for (i = 0; i <= count; i++)
+		{
 			*buf++ = PEEK32(I2C_DATA0 + i);
+		}
 
 		/* Subtract length by 16 */
 		length -= (count + 1);
@@ -193,7 +223,8 @@ static unsigned int hw_i2c_read_data(
 		/* Number of bytes read. */
 		total_bytes += (count + 1);
 
-	} while (length > 0);
+	}
+	while (length > 0);
 
 	return total_bytes;
 }
@@ -217,7 +248,9 @@ unsigned char sm750_hw_i2c_read_reg(
 	unsigned char value = (0xFF);
 
 	if (hw_i2c_write_data(addr, 1, &reg) == 1)
+	{
 		hw_i2c_read_data(addr, 1, &value);
+	}
 
 	return value;
 }
@@ -245,8 +278,11 @@ int sm750_hw_i2c_write_reg(
 
 	value[0] = reg;
 	value[1] = data;
+
 	if (hw_i2c_write_data(addr, 2, value) == 2)
+	{
 		return 0;
+	}
 
 	return -1;
 }

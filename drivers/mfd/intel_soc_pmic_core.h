@@ -19,7 +19,8 @@
 #ifndef __INTEL_SOC_PMIC_CORE_H__
 #define __INTEL_SOC_PMIC_CORE_H__
 
-struct intel_soc_pmic_config {
+struct intel_soc_pmic_config
+{
 	unsigned long irq_flags;
 	struct mfd_cell *cell_dev;
 	int n_cell_devs;

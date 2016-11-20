@@ -38,10 +38,12 @@ struct pcmcia_device *comedi_to_pcmcia_dev(struct comedi_device *dev)
 EXPORT_SYMBOL_GPL(comedi_to_pcmcia_dev);
 
 static int comedi_pcmcia_conf_check(struct pcmcia_device *link,
-				    void *priv_data)
+									void *priv_data)
 {
 	if (link->config_index == 0)
+	{
 		return -EINVAL;
+	}
 
 	return pcmcia_request_io(link);
 }
@@ -78,20 +80,27 @@ static int comedi_pcmcia_conf_check(struct pcmcia_device *link,
  *	or a negative error number from pcmcia_enable_device() if it fails.
  */
 int comedi_pcmcia_enable(struct comedi_device *dev,
-			 int (*conf_check)(struct pcmcia_device *, void *))
+						 int (*conf_check)(struct pcmcia_device *, void *))
 {
 	struct pcmcia_device *link = comedi_to_pcmcia_dev(dev);
 	int ret;
 
 	if (!link)
+	{
 		return -ENODEV;
+	}
 
 	if (!conf_check)
+	{
 		conf_check = comedi_pcmcia_conf_check;
+	}
 
 	ret = pcmcia_loop_config(link, conf_check, NULL);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return pcmcia_enable_device(link);
 }
@@ -110,7 +119,9 @@ void comedi_pcmcia_disable(struct comedi_device *dev)
 	struct pcmcia_device *link = comedi_to_pcmcia_dev(dev);
 
 	if (link)
+	{
 		pcmcia_disable_device(link);
+	}
 }
 EXPORT_SYMBOL_GPL(comedi_pcmcia_disable);
 
@@ -128,7 +139,7 @@ EXPORT_SYMBOL_GPL(comedi_pcmcia_disable);
  * negative error number on failure).
  */
 int comedi_pcmcia_auto_config(struct pcmcia_device *link,
-			      struct comedi_driver *driver)
+							  struct comedi_driver *driver)
 {
 	return comedi_auto_config(&link->dev, driver, 0);
 }
@@ -166,16 +177,21 @@ EXPORT_SYMBOL_GPL(comedi_pcmcia_auto_unconfig);
  * Return: 0 on success, or a negative error number on failure.
  */
 int comedi_pcmcia_driver_register(struct comedi_driver *comedi_driver,
-				  struct pcmcia_driver *pcmcia_driver)
+								  struct pcmcia_driver *pcmcia_driver)
 {
 	int ret;
 
 	ret = comedi_driver_register(comedi_driver);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = pcmcia_register_driver(pcmcia_driver);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		comedi_driver_unregister(comedi_driver);
 		return ret;
 	}
@@ -194,7 +210,7 @@ EXPORT_SYMBOL_GPL(comedi_pcmcia_driver_register);
  * it directly, use the module_comedi_pcmcia_driver() helper macro instead.
  */
 void comedi_pcmcia_driver_unregister(struct comedi_driver *comedi_driver,
-				     struct pcmcia_driver *pcmcia_driver)
+									 struct pcmcia_driver *pcmcia_driver)
 {
 	pcmcia_unregister_driver(pcmcia_driver);
 	comedi_driver_unregister(comedi_driver);

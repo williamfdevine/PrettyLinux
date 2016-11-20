@@ -18,12 +18,13 @@
 #define DRIVER_NAME "gptimer_example"
 
 #ifdef IRQ_TIMER5
-#define SAMPLE_IRQ_TIMER IRQ_TIMER5
+	#define SAMPLE_IRQ_TIMER IRQ_TIMER5
 #else
-#define SAMPLE_IRQ_TIMER IRQ_TIMER2
+	#define SAMPLE_IRQ_TIMER IRQ_TIMER2
 #endif
 
-struct gptimer_data {
+struct gptimer_data
+{
 	uint32_t period, width;
 };
 static struct gptimer_data data;
@@ -36,7 +37,9 @@ static irqreturn_t gptimer_example_irq(int irq, void *dev_id)
 
 	/* make sure it was our timer which caused the interrupt */
 	if (!get_gptimer_intr(TIMER5_id))
+	{
 		return IRQ_NONE;
+	}
 
 	/* read the width/period values that were captured for the waveform */
 	data->width = get_gptimer_pwidth(TIMER5_id);
@@ -57,15 +60,19 @@ static int __init gptimer_example_init(void)
 
 	/* grab the peripheral pins */
 	ret = peripheral_request(P_TMR5, DRIVER_NAME);
-	if (ret) {
+
+	if (ret)
+	{
 		printk(KERN_NOTICE DRIVER_NAME ": peripheral request failed\n");
 		return ret;
 	}
 
 	/* grab the IRQ for the timer */
 	ret = request_irq(SAMPLE_IRQ_TIMER, gptimer_example_irq,
-			IRQF_SHARED, DRIVER_NAME, &data);
-	if (ret) {
+					  IRQF_SHARED, DRIVER_NAME, &data);
+
+	if (ret)
+	{
 		printk(KERN_NOTICE DRIVER_NAME ": IRQ request failed\n");
 		peripheral_free(P_TMR5);
 		return ret;
@@ -73,7 +80,7 @@ static int __init gptimer_example_init(void)
 
 	/* setup the timer and enable it */
 	set_gptimer_config(TIMER5_id,
-			WDTH_CAP | PULSE_HI | PERIOD_CNT | IRQ_ENA);
+					   WDTH_CAP | PULSE_HI | PERIOD_CNT | IRQ_ENA);
 	enable_gptimers(TIMER5bit);
 
 	return 0;

@@ -47,10 +47,10 @@
 
 struct rand_data;
 int jent_read_entropy(struct rand_data *ec, unsigned char *data,
-		      unsigned int len);
+					  unsigned int len);
 int jent_entropy_init(void);
 struct rand_data *jent_entropy_collector_alloc(unsigned int osr,
-					       unsigned int flags);
+		unsigned int flags);
 void jent_entropy_collector_free(struct rand_data *entropy_collector);
 
 /***************************************************************************
@@ -108,7 +108,9 @@ void jent_get_nstime(__u64 *out)
 	 * hoping that there are timers we can work with.
 	 */
 	if (tmp == 0)
+	{
 		tmp = ktime_get_ns();
+	}
 
 	*out = tmp;
 }
@@ -117,7 +119,8 @@ void jent_get_nstime(__u64 *out)
  * Kernel crypto API interface
  ***************************************************************************/
 
-struct jitterentropy {
+struct jitterentropy
+{
 	spinlock_t jent_lock;
 	struct rand_data *entropy_collector;
 };
@@ -128,8 +131,11 @@ static int jent_kcapi_init(struct crypto_tfm *tfm)
 	int ret = 0;
 
 	rng->entropy_collector = jent_entropy_collector_alloc(1, 0);
+
 	if (!rng->entropy_collector)
+	{
 		ret = -ENOMEM;
+	}
 
 	spin_lock_init(&rng->jent_lock);
 	return ret;
@@ -140,15 +146,19 @@ static void jent_kcapi_cleanup(struct crypto_tfm *tfm)
 	struct jitterentropy *rng = crypto_tfm_ctx(tfm);
 
 	spin_lock(&rng->jent_lock);
+
 	if (rng->entropy_collector)
+	{
 		jent_entropy_collector_free(rng->entropy_collector);
+	}
+
 	rng->entropy_collector = NULL;
 	spin_unlock(&rng->jent_lock);
 }
 
 static int jent_kcapi_random(struct crypto_rng *tfm,
-			     const u8 *src, unsigned int slen,
-			     u8 *rdata, unsigned int dlen)
+							 const u8 *src, unsigned int slen,
+							 u8 *rdata, unsigned int dlen)
 {
 	struct jitterentropy *rng = crypto_rng_ctx(tfm);
 	int ret = 0;
@@ -161,12 +171,13 @@ static int jent_kcapi_random(struct crypto_rng *tfm,
 }
 
 static int jent_kcapi_reset(struct crypto_rng *tfm,
-			    const u8 *seed, unsigned int slen)
+							const u8 *seed, unsigned int slen)
 {
 	return 0;
 }
 
-static struct rng_alg jent_alg = {
+static struct rng_alg jent_alg =
+{
 	.generate		= jent_kcapi_random,
 	.seed			= jent_kcapi_reset,
 	.seedsize		= 0,
@@ -187,10 +198,13 @@ static int __init jent_mod_init(void)
 	int ret = 0;
 
 	ret = jent_entropy_init();
-	if (ret) {
+
+	if (ret)
+	{
 		pr_info("jitterentropy: Initialization failed with host not compliant with requirements: %d\n", ret);
 		return -EFAULT;
 	}
+
 	return crypto_register_rng(&jent_alg);
 }
 

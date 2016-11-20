@@ -7,7 +7,8 @@
 
 #include <linux/types.h>
 
-struct bcm_hcs {
+struct bcm_hcs
+{
 	__u16 magic;
 	__u16 control;
 	__u16 rev_maj;

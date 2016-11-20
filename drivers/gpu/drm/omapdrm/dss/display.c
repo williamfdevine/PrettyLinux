@@ -33,7 +33,7 @@
 #include "dss_features.h"
 
 void omapdss_default_get_resolution(struct omap_dss_device *dssdev,
-			u16 *xres, u16 *yres)
+									u16 *xres, u16 *yres)
 {
 	*xres = dssdev->panel.timings.x_res;
 	*yres = dssdev->panel.timings.y_res;
@@ -42,37 +42,53 @@ EXPORT_SYMBOL(omapdss_default_get_resolution);
 
 int omapdss_default_get_recommended_bpp(struct omap_dss_device *dssdev)
 {
-	switch (dssdev->type) {
-	case OMAP_DISPLAY_TYPE_DPI:
-		if (dssdev->phy.dpi.data_lines == 24)
-			return 24;
-		else
-			return 16;
+	switch (dssdev->type)
+	{
+		case OMAP_DISPLAY_TYPE_DPI:
+			if (dssdev->phy.dpi.data_lines == 24)
+			{
+				return 24;
+			}
+			else
+			{
+				return 16;
+			}
 
-	case OMAP_DISPLAY_TYPE_DBI:
-		if (dssdev->ctrl.pixel_size == 24)
+		case OMAP_DISPLAY_TYPE_DBI:
+			if (dssdev->ctrl.pixel_size == 24)
+			{
+				return 24;
+			}
+			else
+			{
+				return 16;
+			}
+
+		case OMAP_DISPLAY_TYPE_DSI:
+			if (dsi_get_pixel_size(dssdev->panel.dsi_pix_fmt) > 16)
+			{
+				return 24;
+			}
+			else
+			{
+				return 16;
+			}
+
+		case OMAP_DISPLAY_TYPE_VENC:
+		case OMAP_DISPLAY_TYPE_SDI:
+		case OMAP_DISPLAY_TYPE_HDMI:
+		case OMAP_DISPLAY_TYPE_DVI:
 			return 24;
-		else
-			return 16;
-	case OMAP_DISPLAY_TYPE_DSI:
-		if (dsi_get_pixel_size(dssdev->panel.dsi_pix_fmt) > 16)
-			return 24;
-		else
-			return 16;
-	case OMAP_DISPLAY_TYPE_VENC:
-	case OMAP_DISPLAY_TYPE_SDI:
-	case OMAP_DISPLAY_TYPE_HDMI:
-	case OMAP_DISPLAY_TYPE_DVI:
-		return 24;
-	default:
-		BUG();
-		return 0;
+
+		default:
+			BUG();
+			return 0;
 	}
 }
 EXPORT_SYMBOL(omapdss_default_get_recommended_bpp);
 
 void omapdss_default_get_timings(struct omap_dss_device *dssdev,
-		struct omap_video_timings *timings)
+								 struct omap_video_timings *timings)
 {
 	*timings = dssdev->panel.timings;
 }
@@ -93,12 +109,17 @@ int omapdss_register_display(struct omap_dss_device *dssdev)
 	 * displays either have an DT alias, or none has.
 	 */
 
-	if (dssdev->dev->of_node) {
+	if (dssdev->dev->of_node)
+	{
 		id = of_alias_get_id(dssdev->dev->of_node, "display");
 
 		if (id < 0)
+		{
 			id = disp_num_counter++;
-	} else {
+		}
+	}
+	else
+	{
 		id = disp_num_counter++;
 	}
 
@@ -107,17 +128,27 @@ int omapdss_register_display(struct omap_dss_device *dssdev)
 	/* Use 'label' property for name, if it exists */
 	if (dssdev->dev->of_node)
 		of_property_read_string(dssdev->dev->of_node, "label",
-			&dssdev->name);
+								&dssdev->name);
 
 	if (dssdev->name == NULL)
+	{
 		dssdev->name = dssdev->alias;
+	}
 
 	if (drv && drv->get_resolution == NULL)
+	{
 		drv->get_resolution = omapdss_default_get_resolution;
+	}
+
 	if (drv && drv->get_recommended_bpp == NULL)
+	{
 		drv->get_recommended_bpp = omapdss_default_get_recommended_bpp;
+	}
+
 	if (drv && drv->get_timings == NULL)
+	{
 		drv->get_timings = omapdss_default_get_timings;
+	}
 
 	mutex_lock(&panel_list_mutex);
 	list_add_tail(&dssdev->panel_list, &panel_list);
@@ -137,9 +168,12 @@ EXPORT_SYMBOL(omapdss_unregister_display);
 struct omap_dss_device *omap_dss_get_device(struct omap_dss_device *dssdev)
 {
 	if (!try_module_get(dssdev->owner))
+	{
 		return NULL;
+	}
 
-	if (get_device(dssdev->dev) == NULL) {
+	if (get_device(dssdev->dev) == NULL)
+	{
 		module_put(dssdev->owner);
 		return NULL;
 	}
@@ -166,30 +200,36 @@ struct omap_dss_device *omap_dss_get_next_device(struct omap_dss_device *from)
 
 	mutex_lock(&panel_list_mutex);
 
-	if (list_empty(&panel_list)) {
+	if (list_empty(&panel_list))
+	{
 		dssdev = NULL;
 		goto out;
 	}
 
-	if (from == NULL) {
+	if (from == NULL)
+	{
 		dssdev = list_first_entry(&panel_list, struct omap_dss_device,
-				panel_list);
+								  panel_list);
 		omap_dss_get_device(dssdev);
 		goto out;
 	}
 
 	omap_dss_put_device(from);
 
-	list_for_each(l, &panel_list) {
+	list_for_each(l, &panel_list)
+	{
 		dssdev = list_entry(l, struct omap_dss_device, panel_list);
-		if (dssdev == from) {
-			if (list_is_last(l, &panel_list)) {
+
+		if (dssdev == from)
+		{
+			if (list_is_last(l, &panel_list))
+			{
 				dssdev = NULL;
 				goto out;
 			}
 
 			dssdev = list_entry(l->next, struct omap_dss_device,
-					panel_list);
+								panel_list);
 			omap_dss_get_device(dssdev);
 			goto out;
 		}
@@ -209,9 +249,12 @@ struct omap_dss_device *omap_dss_find_device(void *data,
 {
 	struct omap_dss_device *dssdev = NULL;
 
-	while ((dssdev = omap_dss_get_next_device(dssdev)) != NULL) {
+	while ((dssdev = omap_dss_get_next_device(dssdev)) != NULL)
+	{
 		if (match(dssdev, data))
+		{
 			return dssdev;
+		}
 	}
 
 	return NULL;
@@ -219,7 +262,7 @@ struct omap_dss_device *omap_dss_find_device(void *data,
 EXPORT_SYMBOL(omap_dss_find_device);
 
 void videomode_to_omap_video_timings(const struct videomode *vm,
-		struct omap_video_timings *ovt)
+									 struct omap_video_timings *ovt)
 {
 	memset(ovt, 0, sizeof(*ovt));
 
@@ -234,24 +277,24 @@ void videomode_to_omap_video_timings(const struct videomode *vm,
 	ovt->vsw = vm->vsync_len;
 
 	ovt->vsync_level = vm->flags & DISPLAY_FLAGS_VSYNC_HIGH ?
-		OMAPDSS_SIG_ACTIVE_HIGH :
-		OMAPDSS_SIG_ACTIVE_LOW;
+					   OMAPDSS_SIG_ACTIVE_HIGH :
+					   OMAPDSS_SIG_ACTIVE_LOW;
 	ovt->hsync_level = vm->flags & DISPLAY_FLAGS_HSYNC_HIGH ?
-		OMAPDSS_SIG_ACTIVE_HIGH :
-		OMAPDSS_SIG_ACTIVE_LOW;
+					   OMAPDSS_SIG_ACTIVE_HIGH :
+					   OMAPDSS_SIG_ACTIVE_LOW;
 	ovt->de_level = vm->flags & DISPLAY_FLAGS_DE_HIGH ?
-		OMAPDSS_SIG_ACTIVE_HIGH :
-		OMAPDSS_SIG_ACTIVE_LOW;
+					OMAPDSS_SIG_ACTIVE_HIGH :
+					OMAPDSS_SIG_ACTIVE_LOW;
 	ovt->data_pclk_edge = vm->flags & DISPLAY_FLAGS_PIXDATA_POSEDGE ?
-		OMAPDSS_DRIVE_SIG_RISING_EDGE :
-		OMAPDSS_DRIVE_SIG_FALLING_EDGE;
+						  OMAPDSS_DRIVE_SIG_RISING_EDGE :
+						  OMAPDSS_DRIVE_SIG_FALLING_EDGE;
 
 	ovt->sync_pclk_edge = ovt->data_pclk_edge;
 }
 EXPORT_SYMBOL(videomode_to_omap_video_timings);
 
 void omap_video_timings_to_videomode(const struct omap_video_timings *ovt,
-		struct videomode *vm)
+									 struct videomode *vm)
 {
 	memset(vm, 0, sizeof(*vm));
 
@@ -267,23 +310,39 @@ void omap_video_timings_to_videomode(const struct omap_video_timings *ovt,
 	vm->vsync_len = ovt->vsw;
 
 	if (ovt->hsync_level == OMAPDSS_SIG_ACTIVE_HIGH)
+	{
 		vm->flags |= DISPLAY_FLAGS_HSYNC_HIGH;
+	}
 	else
+	{
 		vm->flags |= DISPLAY_FLAGS_HSYNC_LOW;
+	}
 
 	if (ovt->vsync_level == OMAPDSS_SIG_ACTIVE_HIGH)
+	{
 		vm->flags |= DISPLAY_FLAGS_VSYNC_HIGH;
+	}
 	else
+	{
 		vm->flags |= DISPLAY_FLAGS_VSYNC_LOW;
+	}
 
 	if (ovt->de_level == OMAPDSS_SIG_ACTIVE_HIGH)
+	{
 		vm->flags |= DISPLAY_FLAGS_DE_HIGH;
+	}
 	else
+	{
 		vm->flags |= DISPLAY_FLAGS_DE_LOW;
+	}
 
 	if (ovt->data_pclk_edge == OMAPDSS_DRIVE_SIG_RISING_EDGE)
+	{
 		vm->flags |= DISPLAY_FLAGS_PIXDATA_POSEDGE;
+	}
 	else
+	{
 		vm->flags |= DISPLAY_FLAGS_PIXDATA_NEGEDGE;
+	}
 }
 EXPORT_SYMBOL(omap_video_timings_to_videomode);

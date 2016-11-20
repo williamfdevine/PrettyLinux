@@ -35,14 +35,20 @@ static struct llc_sap *llc_sap_alloc(void)
 	struct llc_sap *sap = kzalloc(sizeof(*sap), GFP_ATOMIC);
 	int i;
 
-	if (sap) {
+	if (sap)
+	{
 		/* sap->laddr.mac - leave as a null, it's filled by bind */
 		sap->state = LLC_SAP_STATE_ACTIVE;
 		spin_lock_init(&sap->sk_lock);
+
 		for (i = 0; i < LLC_SK_LADDR_HASH_ENTRIES; i++)
+		{
 			INIT_HLIST_NULLS_HEAD(&sap->sk_laddr_hash[i], i);
+		}
+
 		atomic_set(&sap->refcnt, 1);
 	}
+
 	return sap;
 }
 
@@ -51,8 +57,12 @@ static struct llc_sap *__llc_sap_find(unsigned char sap_value)
 	struct llc_sap *sap;
 
 	list_for_each_entry(sap, &llc_sap_list, node)
-		if (sap->laddr.lsap == sap_value)
-			goto out;
+
+	if (sap->laddr.lsap == sap_value)
+	{
+		goto out;
+	}
+
 	sap = NULL;
 out:
 	return sap;
@@ -73,8 +83,12 @@ struct llc_sap *llc_sap_find(unsigned char sap_value)
 
 	rcu_read_lock_bh();
 	sap = __llc_sap_find(sap_value);
+
 	if (sap)
+	{
 		llc_sap_hold(sap);
+	}
+
 	rcu_read_unlock_bh();
 	return sap;
 }
@@ -89,19 +103,27 @@ struct llc_sap *llc_sap_find(unsigned char sap_value)
  *	SAP for success, NULL for failure.
  */
 struct llc_sap *llc_sap_open(unsigned char lsap,
-			     int (*func)(struct sk_buff *skb,
-					 struct net_device *dev,
-					 struct packet_type *pt,
-					 struct net_device *orig_dev))
+							 int (*func)(struct sk_buff *skb,
+									 struct net_device *dev,
+									 struct packet_type *pt,
+									 struct net_device *orig_dev))
 {
 	struct llc_sap *sap = NULL;
 
 	spin_lock_bh(&llc_sap_list_lock);
+
 	if (__llc_sap_find(lsap)) /* SAP already exists */
+	{
 		goto out;
+	}
+
 	sap = llc_sap_alloc();
+
 	if (!sap)
+	{
 		goto out;
+	}
+
 	sap->laddr.lsap = lsap;
 	sap->rcv_func	= func;
 	list_add_tail_rcu(&sap->node, &llc_sap_list);
@@ -132,12 +154,14 @@ void llc_sap_close(struct llc_sap *sap)
 	kfree(sap);
 }
 
-static struct packet_type llc_packet_type __read_mostly = {
+static struct packet_type llc_packet_type __read_mostly =
+{
 	.type = cpu_to_be16(ETH_P_802_2),
 	.func = llc_rcv,
 };
 
-static struct packet_type llc_tr_packet_type __read_mostly = {
+static struct packet_type llc_tr_packet_type __read_mostly =
+{
 	.type = cpu_to_be16(ETH_P_TR_802_2),
 	.func = llc_rcv,
 };

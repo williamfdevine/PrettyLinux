@@ -9,9 +9,9 @@
  * that is also not mappable by user-space exploits:
  */
 #ifdef CONFIG_ILLEGAL_POINTER_VALUE
-# define POISON_POINTER_DELTA _AC(CONFIG_ILLEGAL_POINTER_VALUE, UL)
+	#define POISON_POINTER_DELTA _AC(CONFIG_ILLEGAL_POINTER_VALUE, UL)
 #else
-# define POISON_POINTER_DELTA 0
+	#define POISON_POINTER_DELTA 0
 #endif
 
 /*
@@ -31,9 +31,9 @@
 
 /********** mm/debug-pagealloc.c **********/
 #ifdef CONFIG_PAGE_POISONING_ZERO
-#define PAGE_POISON 0x00
+	#define PAGE_POISON 0x00
 #else
-#define PAGE_POISON 0xaa
+	#define PAGE_POISON 0xaa
 #endif
 
 /********** mm/page_alloc.c ************/

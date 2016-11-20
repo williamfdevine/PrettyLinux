@@ -29,7 +29,8 @@
 struct b53_device;
 struct net_device;
 
-struct b53_io_ops {
+struct b53_io_ops
+{
 	int (*read8)(struct b53_device *dev, u8 page, u8 reg, u8 *value);
 	int (*read16)(struct b53_device *dev, u8 page, u8 reg, u16 *value);
 	int (*read32)(struct b53_device *dev, u8 page, u8 reg, u32 *value);
@@ -44,7 +45,8 @@ struct b53_io_ops {
 	int (*phy_write16)(struct b53_device *dev, int addr, int reg, u16 value);
 };
 
-enum {
+enum
+{
 	BCM5325_DEVICE_ID = 0x25,
 	BCM5365_DEVICE_ID = 0x65,
 	BCM5395_DEVICE_ID = 0x95,
@@ -66,18 +68,21 @@ enum {
 #define B53_N_PORTS	9
 #define B53_N_PORTS_25	6
 
-struct b53_port {
+struct b53_port
+{
 	u16		vlan_ctl_mask;
 	struct net_device *bridge_dev;
 };
 
-struct b53_vlan {
+struct b53_vlan
+{
 	u16 members;
 	u16 untag;
 	bool valid;
 };
 
-struct b53_device {
+struct b53_device
+{
 	struct dsa_switch *ds;
 	struct b53_platform_data *pdata;
 	const char *name;
@@ -140,21 +145,21 @@ static inline int is5365(struct b53_device *dev)
 static inline int is5397_98(struct b53_device *dev)
 {
 	return dev->chip_id == BCM5397_DEVICE_ID ||
-		dev->chip_id == BCM5398_DEVICE_ID;
+		   dev->chip_id == BCM5398_DEVICE_ID;
 }
 
 static inline int is539x(struct b53_device *dev)
 {
 	return dev->chip_id == BCM5395_DEVICE_ID ||
-		dev->chip_id == BCM5397_DEVICE_ID ||
-		dev->chip_id == BCM5398_DEVICE_ID;
+		   dev->chip_id == BCM5397_DEVICE_ID ||
+		   dev->chip_id == BCM5398_DEVICE_ID;
 }
 
 static inline int is531x5(struct b53_device *dev)
 {
 	return dev->chip_id == BCM53115_DEVICE_ID ||
-		dev->chip_id == BCM53125_DEVICE_ID ||
-		dev->chip_id == BCM53128_DEVICE_ID;
+		   dev->chip_id == BCM53125_DEVICE_ID ||
+		   dev->chip_id == BCM53128_DEVICE_ID;
 }
 
 static inline int is63xx(struct b53_device *dev)
@@ -169,16 +174,16 @@ static inline int is63xx(struct b53_device *dev)
 static inline int is5301x(struct b53_device *dev)
 {
 	return dev->chip_id == BCM53010_DEVICE_ID ||
-		dev->chip_id == BCM53011_DEVICE_ID ||
-		dev->chip_id == BCM53012_DEVICE_ID ||
-		dev->chip_id == BCM53018_DEVICE_ID ||
-		dev->chip_id == BCM53019_DEVICE_ID;
+		   dev->chip_id == BCM53011_DEVICE_ID ||
+		   dev->chip_id == BCM53012_DEVICE_ID ||
+		   dev->chip_id == BCM53018_DEVICE_ID ||
+		   dev->chip_id == BCM53019_DEVICE_ID;
 }
 
 static inline int is58xx(struct b53_device *dev)
 {
 	return dev->chip_id == BCM58XX_DEVICE_ID ||
-		dev->chip_id == BCM7445_DEVICE_ID;
+		   dev->chip_id == BCM7445_DEVICE_ID;
 }
 
 #define B53_CPU_PORT_25	5
@@ -190,8 +195,8 @@ static inline int is_cpu_port(struct b53_device *dev, int port)
 }
 
 struct b53_device *b53_switch_alloc(struct device *base,
-				    const struct b53_io_ops *ops,
-				    void *priv);
+									const struct b53_io_ops *ops,
+									void *priv);
 
 int b53_switch_detect(struct b53_device *dev);
 
@@ -269,7 +274,7 @@ static inline int b53_write8(struct b53_device *dev, u8 page, u8 reg, u8 value)
 }
 
 static inline int b53_write16(struct b53_device *dev, u8 page, u8 reg,
-			      u16 value)
+							  u16 value)
 {
 	int ret;
 
@@ -281,7 +286,7 @@ static inline int b53_write16(struct b53_device *dev, u8 page, u8 reg,
 }
 
 static inline int b53_write32(struct b53_device *dev, u8 page, u8 reg,
-			      u32 value)
+							  u32 value)
 {
 	int ret;
 
@@ -293,7 +298,7 @@ static inline int b53_write32(struct b53_device *dev, u8 page, u8 reg,
 }
 
 static inline int b53_write48(struct b53_device *dev, u8 page, u8 reg,
-			      u64 value)
+							  u64 value)
 {
 	int ret;
 
@@ -305,7 +310,7 @@ static inline int b53_write48(struct b53_device *dev, u8 page, u8 reg,
 }
 
 static inline int b53_write64(struct b53_device *dev, u8 page, u8 reg,
-			       u64 value)
+							  u64 value)
 {
 	int ret;
 
@@ -316,13 +321,14 @@ static inline int b53_write64(struct b53_device *dev, u8 page, u8 reg,
 	return ret;
 }
 
-struct b53_arl_entry {
+struct b53_arl_entry
+{
 	u8 port;
 	u8 mac[ETH_ALEN];
 	u16 vid;
-	u8 is_valid:1;
-	u8 is_age:1;
-	u8 is_static:1;
+	u8 is_valid: 1;
+	u8 is_age: 1;
+	u8 is_static: 1;
 };
 
 static inline void b53_mac_from_u64(u64 src, u8 *dst)
@@ -330,7 +336,9 @@ static inline void b53_mac_from_u64(u64 src, u8 *dst)
 	unsigned int i;
 
 	for (i = 0; i < ETH_ALEN; i++)
+	{
 		dst[ETH_ALEN - 1 - i] = (src >> (8 * i)) & 0xff;
+	}
 }
 
 static inline u64 b53_mac_to_u64(const u8 *src)
@@ -339,13 +347,15 @@ static inline u64 b53_mac_to_u64(const u8 *src)
 	u64 dst = 0;
 
 	for (i = 0; i < ETH_ALEN; i++)
+	{
 		dst |= (u64)src[ETH_ALEN - 1 - i] << (8 * i);
+	}
 
 	return dst;
 }
 
 static inline void b53_arl_to_entry(struct b53_arl_entry *ent,
-				    u64 mac_vid, u32 fwd_entry)
+									u64 mac_vid, u32 fwd_entry)
 {
 	memset(ent, 0, sizeof(*ent));
 	ent->port = fwd_entry & ARLTBL_DATA_PORT_ID_MASK;
@@ -357,17 +367,26 @@ static inline void b53_arl_to_entry(struct b53_arl_entry *ent,
 }
 
 static inline void b53_arl_from_entry(u64 *mac_vid, u32 *fwd_entry,
-				      const struct b53_arl_entry *ent)
+									  const struct b53_arl_entry *ent)
 {
 	*mac_vid = b53_mac_to_u64(ent->mac);
 	*mac_vid |= (u64)(ent->vid & ARLTBL_VID_MASK) << ARLTBL_VID_S;
 	*fwd_entry = ent->port & ARLTBL_DATA_PORT_ID_MASK;
+
 	if (ent->is_valid)
+	{
 		*fwd_entry |= ARLTBL_VALID;
+	}
+
 	if (ent->is_static)
+	{
 		*fwd_entry |= ARLTBL_STATIC;
+	}
+
 	if (ent->is_age)
+	{
 		*fwd_entry |= ARLTBL_AGE;
+	}
 }
 
 #ifdef CONFIG_BCM47XX
@@ -378,12 +397,14 @@ static inline int b53_switch_get_reset_gpio(struct b53_device *dev)
 {
 	enum bcm47xx_board board = bcm47xx_board_get();
 
-	switch (board) {
-	case BCM47XX_BOARD_LINKSYS_WRT300NV11:
-	case BCM47XX_BOARD_LINKSYS_WRT310NV1:
-		return 8;
-	default:
-		return bcm47xx_nvram_gpio_pin("robo_reset");
+	switch (board)
+	{
+		case BCM47XX_BOARD_LINKSYS_WRT300NV11:
+		case BCM47XX_BOARD_LINKSYS_WRT310NV1:
+			return 8;
+
+		default:
+			return bcm47xx_nvram_gpio_pin("robo_reset");
 	}
 }
 #else

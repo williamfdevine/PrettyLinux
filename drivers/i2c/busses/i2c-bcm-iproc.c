@@ -81,12 +81,14 @@
 #define I2C_TIMEOUT_MSEC             50000
 #define M_TX_RX_FIFO_SIZE            64
 
-enum bus_speed_index {
+enum bus_speed_index
+{
 	I2C_SPD_100K = 0,
 	I2C_SPD_400K,
 };
 
-struct bcm_iproc_i2c_dev {
+struct bcm_iproc_i2c_dev
+{
 	struct device *device;
 	int irq;
 
@@ -117,10 +119,13 @@ static irqreturn_t bcm_iproc_i2c_isr(int irq, void *data)
 	status &= ISR_MASK;
 
 	if (!status)
+	{
 		return IRQ_NONE;
+	}
 
 	/* TX FIFO is empty and we have more data to send */
-	if (status & BIT(IS_M_TX_UNDERRUN_SHIFT)) {
+	if (status & BIT(IS_M_TX_UNDERRUN_SHIFT))
+	{
 		struct i2c_msg *msg = iproc_i2c->msg;
 		unsigned int tx_bytes = msg->len - iproc_i2c->tx_bytes;
 		unsigned int i;
@@ -128,14 +133,17 @@ static irqreturn_t bcm_iproc_i2c_isr(int irq, void *data)
 
 		/* can only fill up to the FIFO size */
 		tx_bytes = min_t(unsigned int, tx_bytes, M_TX_RX_FIFO_SIZE);
-		for (i = 0; i < tx_bytes; i++) {
+
+		for (i = 0; i < tx_bytes; i++)
+		{
 			/* start from where we left over */
 			unsigned int idx = iproc_i2c->tx_bytes + i;
 
 			val = msg->buf[idx];
 
 			/* mark the last byte */
-			if (idx == msg->len - 1) {
+			if (idx == msg->len - 1)
+			{
 				u32 tmp;
 
 				val |= BIT(M_TX_WR_STATUS_SHIFT);
@@ -152,11 +160,13 @@ static irqreturn_t bcm_iproc_i2c_isr(int irq, void *data)
 			/* load data into TX FIFO */
 			writel(val, iproc_i2c->base + M_TX_OFFSET);
 		}
+
 		/* update number of transferred bytes */
 		iproc_i2c->tx_bytes += tx_bytes;
 	}
 
-	if (status & BIT(IS_M_START_BUSY_SHIFT)) {
+	if (status & BIT(IS_M_START_BUSY_SHIFT))
+	{
 		iproc_i2c->xfer_is_done = 1;
 		complete(&iproc_i2c->done);
 	}
@@ -196,60 +206,67 @@ static int bcm_iproc_i2c_init(struct bcm_iproc_i2c_dev *iproc_i2c)
 }
 
 static void bcm_iproc_i2c_enable_disable(struct bcm_iproc_i2c_dev *iproc_i2c,
-					 bool enable)
+		bool enable)
 {
 	u32 val;
 
 	val = readl(iproc_i2c->base + CFG_OFFSET);
+
 	if (enable)
+	{
 		val |= BIT(CFG_EN_SHIFT);
+	}
 	else
+	{
 		val &= ~BIT(CFG_EN_SHIFT);
+	}
+
 	writel(val, iproc_i2c->base + CFG_OFFSET);
 }
 
 static int bcm_iproc_i2c_check_status(struct bcm_iproc_i2c_dev *iproc_i2c,
-				      struct i2c_msg *msg)
+									  struct i2c_msg *msg)
 {
 	u32 val;
 
 	val = readl(iproc_i2c->base + M_CMD_OFFSET);
 	val = (val >> M_CMD_STATUS_SHIFT) & M_CMD_STATUS_MASK;
 
-	switch (val) {
-	case M_CMD_STATUS_SUCCESS:
-		return 0;
+	switch (val)
+	{
+		case M_CMD_STATUS_SUCCESS:
+			return 0;
 
-	case M_CMD_STATUS_LOST_ARB:
-		dev_dbg(iproc_i2c->device, "lost bus arbitration\n");
-		return -EAGAIN;
+		case M_CMD_STATUS_LOST_ARB:
+			dev_dbg(iproc_i2c->device, "lost bus arbitration\n");
+			return -EAGAIN;
 
-	case M_CMD_STATUS_NACK_ADDR:
-		dev_dbg(iproc_i2c->device, "NAK addr:0x%02x\n", msg->addr);
-		return -ENXIO;
+		case M_CMD_STATUS_NACK_ADDR:
+			dev_dbg(iproc_i2c->device, "NAK addr:0x%02x\n", msg->addr);
+			return -ENXIO;
 
-	case M_CMD_STATUS_NACK_DATA:
-		dev_dbg(iproc_i2c->device, "NAK data\n");
-		return -ENXIO;
+		case M_CMD_STATUS_NACK_DATA:
+			dev_dbg(iproc_i2c->device, "NAK data\n");
+			return -ENXIO;
 
-	case M_CMD_STATUS_TIMEOUT:
-		dev_dbg(iproc_i2c->device, "bus timeout\n");
-		return -ETIMEDOUT;
+		case M_CMD_STATUS_TIMEOUT:
+			dev_dbg(iproc_i2c->device, "bus timeout\n");
+			return -ETIMEDOUT;
 
-	default:
-		dev_dbg(iproc_i2c->device, "unknown error code=%d\n", val);
+		default:
+			dev_dbg(iproc_i2c->device, "unknown error code=%d\n", val);
 
-		/* re-initialize i2c for recovery */
-		bcm_iproc_i2c_enable_disable(iproc_i2c, false);
-		bcm_iproc_i2c_init(iproc_i2c);
-		bcm_iproc_i2c_enable_disable(iproc_i2c, true);
+			/* re-initialize i2c for recovery */
+			bcm_iproc_i2c_enable_disable(iproc_i2c, false);
+			bcm_iproc_i2c_init(iproc_i2c);
+			bcm_iproc_i2c_enable_disable(iproc_i2c, true);
 
-		return -EIO;
+			return -EIO;
 	}
 }
 
 static int bcm_iproc_i2c_xfer_single_msg(struct bcm_iproc_i2c_dev *iproc_i2c,
-					 struct i2c_msg *msg)
+		struct i2c_msg *msg)
 {
 	int ret, i;
 	u8 addr;
@@ -259,7 +276,8 @@ static int bcm_iproc_i2c_xfer_single_msg(struct bcm_iproc_i2c_dev *iproc_i2c,
 
 	/* check if bus is busy */
 	if (!!(readl(iproc_i2c->base + M_CMD_OFFSET) &
-	       BIT(M_CMD_START_BUSY_SHIFT))) {
+		   BIT(M_CMD_START_BUSY_SHIFT)))
+	{
 		dev_warn(iproc_i2c->device, "bus is busy\n");
 		return -EBUSY;
 	}
@@ -276,16 +294,22 @@ static int bcm_iproc_i2c_xfer_single_msg(struct bcm_iproc_i2c_dev *iproc_i2c,
 	 * has been used up by the slave address
 	 */
 	tx_bytes = min_t(unsigned int, msg->len, M_TX_RX_FIFO_SIZE - 1);
-	if (!(msg->flags & I2C_M_RD)) {
-		for (i = 0; i < tx_bytes; i++) {
+
+	if (!(msg->flags & I2C_M_RD))
+	{
+		for (i = 0; i < tx_bytes; i++)
+		{
 			val = msg->buf[i];
 
 			/* mark the last byte */
 			if (i == msg->len - 1)
+			{
 				val |= 1 << M_TX_WR_STATUS_SHIFT;
+			}
 
 			writel(val, iproc_i2c->base + M_TX_OFFSET);
 		}
+
 		iproc_i2c->tx_bytes = tx_bytes;
 	}
 
@@ -306,8 +330,10 @@ static int bcm_iproc_i2c_xfer_single_msg(struct bcm_iproc_i2c_dev *iproc_i2c,
 	 * empty. When that happens we can then pump more data into the FIFO
 	 */
 	if (!(msg->flags & I2C_M_RD) &&
-	    msg->len > iproc_i2c->tx_bytes)
+		msg->len > iproc_i2c->tx_bytes)
+	{
 		val |= BIT(IE_M_TX_UNDERRUN_SHIFT);
+	}
 
 	writel(val, iproc_i2c->base + IE_OFFSET);
 
@@ -316,12 +342,17 @@ static int bcm_iproc_i2c_xfer_single_msg(struct bcm_iproc_i2c_dev *iproc_i2c,
 	 * number of bytes to read
 	 */
 	val = BIT(M_CMD_START_BUSY_SHIFT);
-	if (msg->flags & I2C_M_RD) {
+
+	if (msg->flags & I2C_M_RD)
+	{
 		val |= (M_CMD_PROTOCOL_BLK_RD << M_CMD_PROTOCOL_SHIFT) |
-		       (msg->len << M_CMD_RD_CNT_SHIFT);
-	} else {
+			   (msg->len << M_CMD_RD_CNT_SHIFT);
+	}
+	else
+	{
 		val |= (M_CMD_PROTOCOL_BLK_WR << M_CMD_PROTOCOL_SHIFT);
 	}
+
 	writel(val, iproc_i2c->base + M_CMD_OFFSET);
 
 	time_left = wait_for_completion_timeout(&iproc_i2c->done, time_left);
@@ -334,21 +365,24 @@ static int bcm_iproc_i2c_xfer_single_msg(struct bcm_iproc_i2c_dev *iproc_i2c,
 	/* make sure the interrupt handler isn't running */
 	synchronize_irq(iproc_i2c->irq);
 
-	if (!time_left && !iproc_i2c->xfer_is_done) {
+	if (!time_left && !iproc_i2c->xfer_is_done)
+	{
 		dev_err(iproc_i2c->device, "transaction timed out\n");
 
 		/* flush FIFOs */
 		val = (1 << M_FIFO_RX_FLUSH_SHIFT) |
-		      (1 << M_FIFO_TX_FLUSH_SHIFT);
+			  (1 << M_FIFO_TX_FLUSH_SHIFT);
 		writel(val, iproc_i2c->base + M_FIFO_CTRL_OFFSET);
 		return -ETIMEDOUT;
 	}
 
 	ret = bcm_iproc_i2c_check_status(iproc_i2c, msg);
-	if (ret) {
+
+	if (ret)
+	{
 		/* flush both TX/RX FIFOs */
 		val = (1 << M_FIFO_RX_FLUSH_SHIFT) |
-		      (1 << M_FIFO_TX_FLUSH_SHIFT);
+			  (1 << M_FIFO_TX_FLUSH_SHIFT);
 		writel(val, iproc_i2c->base + M_FIFO_CTRL_OFFSET);
 		return ret;
 	}
@@ -357,10 +391,12 @@ static int bcm_iproc_i2c_xfer_single_msg(struct bcm_iproc_i2c_dev *iproc_i2c,
 	 * For a read operation, we now need to load the data from FIFO
 	 * into the memory buffer
 	 */
-	if (msg->flags & I2C_M_RD) {
-		for (i = 0; i < msg->len; i++) {
+	if (msg->flags & I2C_M_RD)
+	{
+		for (i = 0; i < msg->len; i++)
+		{
 			msg->buf[i] = (readl(iproc_i2c->base + M_RX_OFFSET) >>
-				      M_RX_DATA_SHIFT) & M_RX_DATA_MASK;
+						   M_RX_DATA_SHIFT) & M_RX_DATA_MASK;
 		}
 	}
 
@@ -368,15 +404,18 @@ static int bcm_iproc_i2c_xfer_single_msg(struct bcm_iproc_i2c_dev *iproc_i2c,
 }
 
 static int bcm_iproc_i2c_xfer(struct i2c_adapter *adapter,
-			      struct i2c_msg msgs[], int num)
+							  struct i2c_msg msgs[], int num)
 {
 	struct bcm_iproc_i2c_dev *iproc_i2c = i2c_get_adapdata(adapter);
 	int ret, i;
 
 	/* go through all messages */
-	for (i = 0; i < num; i++) {
+	for (i = 0; i < num; i++)
+	{
 		ret = bcm_iproc_i2c_xfer_single_msg(iproc_i2c, &msgs[i]);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_dbg(iproc_i2c->device, "xfer failed\n");
 			return ret;
 		}
@@ -390,12 +429,14 @@ static uint32_t bcm_iproc_i2c_functionality(struct i2c_adapter *adap)
 	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
 }
 
-static const struct i2c_algorithm bcm_iproc_algo = {
+static const struct i2c_algorithm bcm_iproc_algo =
+{
 	.master_xfer = bcm_iproc_i2c_xfer,
 	.functionality = bcm_iproc_i2c_functionality,
 };
 
-static struct i2c_adapter_quirks bcm_iproc_i2c_quirks = {
+static struct i2c_adapter_quirks bcm_iproc_i2c_quirks =
+{
 	/* need to reserve one byte in the FIFO for the slave address */
 	.max_read_len = M_TX_RX_FIFO_SIZE - 1,
 };
@@ -405,22 +446,29 @@ static int bcm_iproc_i2c_cfg_speed(struct bcm_iproc_i2c_dev *iproc_i2c)
 	unsigned int bus_speed;
 	u32 val;
 	int ret = of_property_read_u32(iproc_i2c->device->of_node,
-				       "clock-frequency", &bus_speed);
-	if (ret < 0) {
+								   "clock-frequency", &bus_speed);
+
+	if (ret < 0)
+	{
 		dev_info(iproc_i2c->device,
-			"unable to interpret clock-frequency DT property\n");
+				 "unable to interpret clock-frequency DT property\n");
 		bus_speed = 100000;
 	}
 
-	if (bus_speed < 100000) {
+	if (bus_speed < 100000)
+	{
 		dev_err(iproc_i2c->device, "%d Hz bus speed not supported\n",
-			bus_speed);
+				bus_speed);
 		dev_err(iproc_i2c->device,
-			"valid speeds are 100khz and 400khz\n");
+				"valid speeds are 100khz and 400khz\n");
 		return -EINVAL;
-	} else if (bus_speed < 400000) {
+	}
+	else if (bus_speed < 400000)
+	{
 		bus_speed = 100000;
-	} else {
+	}
+	else
+	{
 		bus_speed = 400000;
 	}
 
@@ -443,9 +491,12 @@ static int bcm_iproc_i2c_probe(struct platform_device *pdev)
 	struct resource *res;
 
 	iproc_i2c = devm_kzalloc(&pdev->dev, sizeof(*iproc_i2c),
-				 GFP_KERNEL);
+							 GFP_KERNEL);
+
 	if (!iproc_i2c)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, iproc_i2c);
 	iproc_i2c->device = &pdev->dev;
@@ -453,27 +504,41 @@ static int bcm_iproc_i2c_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	iproc_i2c->base = devm_ioremap_resource(iproc_i2c->device, res);
+
 	if (IS_ERR(iproc_i2c->base))
+	{
 		return PTR_ERR(iproc_i2c->base);
+	}
 
 	ret = bcm_iproc_i2c_init(iproc_i2c);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = bcm_iproc_i2c_cfg_speed(iproc_i2c);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq <= 0) {
+
+	if (irq <= 0)
+	{
 		dev_err(iproc_i2c->device, "no irq resource\n");
 		return irq;
 	}
+
 	iproc_i2c->irq = irq;
 
 	ret = devm_request_irq(iproc_i2c->device, irq, bcm_iproc_i2c_isr, 0,
-			       pdev->name, iproc_i2c);
-	if (ret < 0) {
+						   pdev->name, iproc_i2c);
+
+	if (ret < 0)
+	{
 		dev_err(iproc_i2c->device, "unable to request irq %i\n", irq);
 		return ret;
 	}
@@ -536,8 +601,11 @@ static int bcm_iproc_i2c_resume(struct device *dev)
 	 * sleep, so re-initialize the block here
 	 */
 	ret = bcm_iproc_i2c_init(iproc_i2c);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* configure to the desired bus speed */
 	val = readl(iproc_i2c->base + TIM_CFG_OFFSET);
@@ -550,7 +618,8 @@ static int bcm_iproc_i2c_resume(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops bcm_iproc_i2c_pm_ops = {
+static const struct dev_pm_ops bcm_iproc_i2c_pm_ops =
+{
 	.suspend_late = &bcm_iproc_i2c_suspend,
 	.resume_early = &bcm_iproc_i2c_resume
 };
@@ -560,13 +629,15 @@ static const struct dev_pm_ops bcm_iproc_i2c_pm_ops = {
 #define BCM_IPROC_I2C_PM_OPS NULL
 #endif /* CONFIG_PM_SLEEP */
 
-static const struct of_device_id bcm_iproc_i2c_of_match[] = {
+static const struct of_device_id bcm_iproc_i2c_of_match[] =
+{
 	{ .compatible = "brcm,iproc-i2c" },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, bcm_iproc_i2c_of_match);
 
-static struct platform_driver bcm_iproc_i2c_driver = {
+static struct platform_driver bcm_iproc_i2c_driver =
+{
 	.driver = {
 		.name = "bcm-iproc-i2c",
 		.of_match_table = bcm_iproc_i2c_of_match,

@@ -29,7 +29,8 @@
 #include <linux/dvb/frontend.h>
 #include "dvb_frontend.h"
 
-struct stv0367_config {
+struct stv0367_config
+{
 	u8 demod_address;
 	u32 xtal;
 	u32 if_khz;/*4500*/
@@ -41,21 +42,21 @@ struct stv0367_config {
 #if IS_REACHABLE(CONFIG_DVB_STV0367)
 extern struct
 dvb_frontend *stv0367ter_attach(const struct stv0367_config *config,
-					struct i2c_adapter *i2c);
+								struct i2c_adapter *i2c);
 extern struct
 dvb_frontend *stv0367cab_attach(const struct stv0367_config *config,
-					struct i2c_adapter *i2c);
+								struct i2c_adapter *i2c);
 #else
 static inline struct
 dvb_frontend *stv0367ter_attach(const struct stv0367_config *config,
-					struct i2c_adapter *i2c)
+								struct i2c_adapter *i2c)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;
 }
 static inline struct
 dvb_frontend *stv0367cab_attach(const struct stv0367_config *config,
-					struct i2c_adapter *i2c)
+								struct i2c_adapter *i2c)
 {
 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 	return NULL;

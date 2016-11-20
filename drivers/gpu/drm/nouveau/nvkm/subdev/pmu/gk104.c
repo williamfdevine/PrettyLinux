@@ -37,12 +37,17 @@ magic_(struct nvkm_device *device, u32 ctrl, int size)
 	nvkm_wr32(device, 0x00c808, 0x00000000);
 	nvkm_wr32(device, 0x00c800, ctrl);
 	nvkm_msec(device, 2000,
-		if (nvkm_rd32(device, 0x00c800) & 0x40000000) {
-			while (size--)
-				nvkm_wr32(device, 0x00c804, 0x00000000);
-			break;
+
+			  if (nvkm_rd32(device, 0x00c800) & 0x40000000)
+{
+	while (size--)
+		{
+			nvkm_wr32(device, 0x00c804, 0x00000000);
 		}
-	);
+
+		break;
+	}
+			 );
 	nvkm_wr32(device, 0x00c800, 0x00000000);
 }
 
@@ -59,7 +64,9 @@ gk104_pmu_pgob(struct nvkm_pmu *pmu, bool enable)
 	struct nvkm_device *device = pmu->subdev.device;
 
 	if (!(nvkm_fuse_read(device->fuse, 0x31c) & 0x00000001))
+	{
 		return;
+	}
 
 	nvkm_mask(device, 0x000200, 0x00001000, 0x00000000);
 	nvkm_rd32(device, 0x000200);
@@ -81,30 +88,36 @@ gk104_pmu_pgob(struct nvkm_pmu *pmu, bool enable)
 	nvkm_mask(device, 0x000200, 0x00001000, 0x00001000);
 	nvkm_rd32(device, 0x000200);
 
-	if (nvkm_boolopt(device->cfgopt, "War00C800_0", true)) {
-		switch (device->chipset) {
-		case 0xe4:
-			magic(device, 0x04000000);
-			magic(device, 0x06000000);
-			magic(device, 0x0c000000);
-			magic(device, 0x0e000000);
-			break;
-		case 0xe6:
-			magic(device, 0x02000000);
-			magic(device, 0x04000000);
-			magic(device, 0x0a000000);
-			break;
-		case 0xe7:
-			magic(device, 0x02000000);
-			break;
-		default:
-			break;
+	if (nvkm_boolopt(device->cfgopt, "War00C800_0", true))
+	{
+		switch (device->chipset)
+		{
+			case 0xe4:
+				magic(device, 0x04000000);
+				magic(device, 0x06000000);
+				magic(device, 0x0c000000);
+				magic(device, 0x0e000000);
+				break;
+
+			case 0xe6:
+				magic(device, 0x02000000);
+				magic(device, 0x04000000);
+				magic(device, 0x0a000000);
+				break;
+
+			case 0xe7:
+				magic(device, 0x02000000);
+				break;
+
+			default:
+				break;
 		}
 	}
 }
 
 static const struct nvkm_pmu_func
-gk104_pmu = {
+	gk104_pmu =
+{
 	.code.data = gk104_pmu_code,
 	.code.size = sizeof(gk104_pmu_code),
 	.data.data = gk104_pmu_data,

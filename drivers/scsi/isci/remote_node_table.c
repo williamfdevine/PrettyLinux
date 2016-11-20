@@ -84,10 +84,14 @@ static u32 sci_remote_node_table_get_group_index(
 
 	group_table = remote_node_table->remote_node_groups[group_table_index];
 
-	for (dword_index = 0; dword_index < remote_node_table->group_array_size; dword_index++) {
-		if (group_table[dword_index] != 0) {
-			for (bit_index = 0; bit_index < 32; bit_index++) {
-				if ((group_table[dword_index] & (1 << bit_index)) != 0) {
+	for (dword_index = 0; dword_index < remote_node_table->group_array_size; dword_index++)
+	{
+		if (group_table[dword_index] != 0)
+		{
+			for (bit_index = 0; bit_index < 32; bit_index++)
+			{
+				if ((group_table[dword_index] & (1 << bit_index)) != 0)
+				{
 					return (dword_index * 32) + bit_index;
 				}
 			}
@@ -179,7 +183,7 @@ static void sci_remote_node_table_set_node_index(
 	BUG_ON(
 		(remote_node_table->available_nodes_array_size * SCIC_SDS_REMOTE_NODE_SETS_PER_DWORD)
 		<= (remote_node_index / SCU_STP_REMOTE_NODE_COUNT)
-		);
+	);
 
 	dword_location  = remote_node_index / SCIC_SDS_REMOTE_NODES_PER_DWORD;
 	dword_remainder = remote_node_index % SCIC_SDS_REMOTE_NODES_PER_DWORD;
@@ -212,7 +216,7 @@ static void sci_remote_node_table_clear_node_index(
 	BUG_ON(
 		(remote_node_table->available_nodes_array_size * SCIC_SDS_REMOTE_NODE_SETS_PER_DWORD)
 		<= (remote_node_index / SCU_STP_REMOTE_NODE_COUNT)
-		);
+	);
 
 	dword_location  = remote_node_index / SCIC_SDS_REMOTE_NODES_PER_DWORD;
 	dword_remainder = remote_node_index % SCIC_SDS_REMOTE_NODES_PER_DWORD;
@@ -242,7 +246,7 @@ static void sci_remote_node_table_clear_group(
 	BUG_ON(
 		(remote_node_table->available_nodes_array_size * SCIC_SDS_REMOTE_NODE_SETS_PER_DWORD)
 		<= (group_index / SCU_STP_REMOTE_NODE_COUNT)
-		);
+	);
 
 	dword_location  = group_index / SCIC_SDS_REMOTE_NODE_SETS_PER_DWORD;
 	dword_remainder = group_index % SCIC_SDS_REMOTE_NODE_SETS_PER_DWORD;
@@ -269,7 +273,7 @@ static void sci_remote_node_table_set_group(
 	BUG_ON(
 		(remote_node_table->available_nodes_array_size * SCIC_SDS_REMOTE_NODE_SETS_PER_DWORD)
 		<= (group_index / SCU_STP_REMOTE_NODE_COUNT)
-		);
+	);
 
 	dword_location  = group_index / SCIC_SDS_REMOTE_NODE_SETS_PER_DWORD;
 	dword_remainder = group_index % SCIC_SDS_REMOTE_NODE_SETS_PER_DWORD;
@@ -326,30 +330,32 @@ void sci_remote_node_table_initialize(
 		remote_node_table->available_remote_nodes,
 		0x00,
 		sizeof(remote_node_table->available_remote_nodes)
-		);
+	);
 
 	memset(
 		remote_node_table->remote_node_groups,
 		0x00,
 		sizeof(remote_node_table->remote_node_groups)
-		);
+	);
 
 	/* Initialize the available remote node sets */
 	remote_node_table->available_nodes_array_size = (u16)
-							(remote_node_entries / SCIC_SDS_REMOTE_NODES_PER_DWORD)
-							+ ((remote_node_entries % SCIC_SDS_REMOTE_NODES_PER_DWORD) != 0);
+			(remote_node_entries / SCIC_SDS_REMOTE_NODES_PER_DWORD)
+			+ ((remote_node_entries % SCIC_SDS_REMOTE_NODES_PER_DWORD) != 0);
 
 
 	/* Initialize each full DWORD to a FULL SET of remote nodes */
-	for (index = 0; index < remote_node_entries; index++) {
+	for (index = 0; index < remote_node_entries; index++)
+	{
 		sci_remote_node_table_set_node_index(remote_node_table, index);
 	}
 
 	remote_node_table->group_array_size = (u16)
-					      (remote_node_entries / (SCU_STP_REMOTE_NODE_COUNT * 32))
-					      + ((remote_node_entries % (SCU_STP_REMOTE_NODE_COUNT * 32)) != 0);
+										  (remote_node_entries / (SCU_STP_REMOTE_NODE_COUNT * 32))
+										  + ((remote_node_entries % (SCU_STP_REMOTE_NODE_COUNT * 32)) != 0);
 
-	for (index = 0; index < (remote_node_entries / SCU_STP_REMOTE_NODE_COUNT); index++) {
+	for (index = 0; index < (remote_node_entries / SCU_STP_REMOTE_NODE_COUNT); index++)
+	{
 		/*
 		 * These are all guaranteed to be full slot values so fill them in the
 		 * available sets of 3 remote nodes */
@@ -357,9 +363,12 @@ void sci_remote_node_table_initialize(
 	}
 
 	/* Now fill in any remainders that we may find */
-	if ((remote_node_entries % SCU_STP_REMOTE_NODE_COUNT) == 2) {
+	if ((remote_node_entries % SCU_STP_REMOTE_NODE_COUNT) == 2)
+	{
 		sci_remote_node_table_set_group_index(remote_node_table, 1, index);
-	} else if ((remote_node_entries % SCU_STP_REMOTE_NODE_COUNT) == 1) {
+	}
+	else if ((remote_node_entries % SCU_STP_REMOTE_NODE_COUNT) == 1)
+	{
 		sci_remote_node_table_set_group_index(remote_node_table, 0, index);
 	}
 }
@@ -389,31 +398,35 @@ static u16 sci_remote_node_table_allocate_single_remote_node(
 	u16 remote_node_index = SCIC_SDS_REMOTE_NODE_CONTEXT_INVALID_INDEX;
 
 	group_index = sci_remote_node_table_get_group_index(
-		remote_node_table, group_table_index);
+					  remote_node_table, group_table_index);
 
 	/* We could not find an available slot in the table selector 0 */
-	if (group_index != SCIC_SDS_REMOTE_NODE_TABLE_INVALID_INDEX) {
+	if (group_index != SCIC_SDS_REMOTE_NODE_TABLE_INVALID_INDEX)
+	{
 		group_value = sci_remote_node_table_get_group_value(
-			remote_node_table, group_index);
+						  remote_node_table, group_index);
 
-		for (index = 0; index < SCU_STP_REMOTE_NODE_COUNT; index++) {
-			if (((1 << index) & group_value) != 0) {
+		for (index = 0; index < SCU_STP_REMOTE_NODE_COUNT; index++)
+		{
+			if (((1 << index) & group_value) != 0)
+			{
 				/* We have selected a bit now clear it */
 				remote_node_index = (u16)(group_index * SCU_STP_REMOTE_NODE_COUNT
-							  + index);
+										  + index);
 
 				sci_remote_node_table_clear_group_index(
 					remote_node_table, group_table_index, group_index
-					);
+				);
 
 				sci_remote_node_table_clear_node_index(
 					remote_node_table, remote_node_index
-					);
+				);
 
-				if (group_table_index > 0) {
+				if (group_table_index > 0)
+				{
 					sci_remote_node_table_set_group_index(
 						remote_node_table, group_table_index - 1, group_index
-						);
+					);
 				}
 
 				break;
@@ -444,18 +457,19 @@ static u16 sci_remote_node_table_allocate_triple_remote_node(
 	u16 remote_node_index = SCIC_SDS_REMOTE_NODE_CONTEXT_INVALID_INDEX;
 
 	group_index = sci_remote_node_table_get_group_index(
-		remote_node_table, group_table_index);
+					  remote_node_table, group_table_index);
 
-	if (group_index != SCIC_SDS_REMOTE_NODE_TABLE_INVALID_INDEX) {
+	if (group_index != SCIC_SDS_REMOTE_NODE_TABLE_INVALID_INDEX)
+	{
 		remote_node_index = (u16)group_index * SCU_STP_REMOTE_NODE_COUNT;
 
 		sci_remote_node_table_clear_group_index(
 			remote_node_table, group_table_index, group_index
-			);
+		);
 
 		sci_remote_node_table_clear_group(
 			remote_node_table, group_index
-			);
+		);
 	}
 
 	return remote_node_index;
@@ -479,23 +493,28 @@ u16 sci_remote_node_table_allocate_remote_node(
 {
 	u16 remote_node_index = SCIC_SDS_REMOTE_NODE_CONTEXT_INVALID_INDEX;
 
-	if (remote_node_count == SCU_SSP_REMOTE_NODE_COUNT) {
+	if (remote_node_count == SCU_SSP_REMOTE_NODE_COUNT)
+	{
 		remote_node_index =
 			sci_remote_node_table_allocate_single_remote_node(
 				remote_node_table, 0);
 
-		if (remote_node_index == SCIC_SDS_REMOTE_NODE_CONTEXT_INVALID_INDEX) {
+		if (remote_node_index == SCIC_SDS_REMOTE_NODE_CONTEXT_INVALID_INDEX)
+		{
 			remote_node_index =
 				sci_remote_node_table_allocate_single_remote_node(
 					remote_node_table, 1);
 		}
 
-		if (remote_node_index == SCIC_SDS_REMOTE_NODE_CONTEXT_INVALID_INDEX) {
+		if (remote_node_index == SCIC_SDS_REMOTE_NODE_CONTEXT_INVALID_INDEX)
+		{
 			remote_node_index =
 				sci_remote_node_table_allocate_single_remote_node(
 					remote_node_table, 2);
 		}
-	} else if (remote_node_count == SCU_STP_REMOTE_NODE_COUNT) {
+	}
+	else if (remote_node_count == SCU_STP_REMOTE_NODE_COUNT)
+	{
 		remote_node_index =
 			sci_remote_node_table_allocate_triple_remote_node(
 				remote_node_table, 2);
@@ -527,18 +546,23 @@ static void sci_remote_node_table_release_single_remote_node(
 	 * full. */
 	BUG_ON(group_value == SCIC_SDS_REMOTE_NODE_TABLE_FULL_SLOT_VALUE);
 
-	if (group_value == 0x00) {
+	if (group_value == 0x00)
+	{
 		/*
 		 * There are no entries in this slot so it must be added to the single
 		 * slot table. */
 		sci_remote_node_table_set_group_index(remote_node_table, 0, group_index);
-	} else if ((group_value & (group_value - 1)) == 0) {
+	}
+	else if ((group_value & (group_value - 1)) == 0)
+	{
 		/*
 		 * There is only one entry in this slot so it must be moved from the
 		 * single slot table to the dual slot table */
 		sci_remote_node_table_clear_group_index(remote_node_table, 0, group_index);
 		sci_remote_node_table_set_group_index(remote_node_table, 1, group_index);
-	} else {
+	}
+	else
+	{
 		/*
 		 * There are two entries in the slot so it must be moved from the dual
 		 * slot table to the tripple slot table. */
@@ -567,7 +591,7 @@ static void sci_remote_node_table_release_triple_remote_node(
 
 	sci_remote_node_table_set_group_index(
 		remote_node_table, 2, group_index
-		);
+	);
 
 	sci_remote_node_table_set_group(remote_node_table, group_index);
 }
@@ -587,10 +611,13 @@ void sci_remote_node_table_release_remote_node_index(
 	u32 remote_node_count,
 	u16 remote_node_index)
 {
-	if (remote_node_count == SCU_SSP_REMOTE_NODE_COUNT) {
+	if (remote_node_count == SCU_SSP_REMOTE_NODE_COUNT)
+	{
 		sci_remote_node_table_release_single_remote_node(
 			remote_node_table, remote_node_index);
-	} else if (remote_node_count == SCU_STP_REMOTE_NODE_COUNT) {
+	}
+	else if (remote_node_count == SCU_STP_REMOTE_NODE_COUNT)
+	{
 		sci_remote_node_table_release_triple_remote_node(
 			remote_node_table, remote_node_index);
 	}

@@ -95,7 +95,8 @@ static void rvt_vma_close(struct vm_area_struct *vma)
 	kref_put(&ip->ref, rvt_release_mmap_info);
 }
 
-static const struct vm_operations_struct rvt_vm_ops = {
+static const struct vm_operations_struct rvt_vm_ops =
+{
 	.open = rvt_vma_open,
 	.close = rvt_vma_close,
 };
@@ -122,20 +123,30 @@ int rvt_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
 	 */
 	spin_lock_irq(&rdi->pending_lock);
 	list_for_each_entry_safe(ip, pp, &rdi->pending_mmaps,
-				 pending_mmaps) {
+							 pending_mmaps)
+	{
 		/* Only the creator is allowed to mmap the object */
 		if (context != ip->context || (__u64)offset != ip->offset)
+		{
 			continue;
+		}
+
 		/* Don't allow a mmap larger than the object. */
 		if (size > ip->size)
+		{
 			break;
+		}
 
 		list_del_init(&ip->pending_mmaps);
 		spin_unlock_irq(&rdi->pending_lock);
 
 		ret = remap_vmalloc_range(vma, ip->obj, 0);
+
 		if (ret)
+		{
 			goto done;
+		}
+
 		vma->vm_ops = &rvt_vm_ops;
 		vma->vm_private_data = ip;
 		rvt_vma_open(vma);
@@ -156,21 +167,28 @@ done:
  * Return: rvt_mmap struct on success
  */
 struct rvt_mmap_info *rvt_create_mmap_info(struct rvt_dev_info *rdi,
-					   u32 size,
-					   struct ib_ucontext *context,
-					   void *obj)
+		u32 size,
+		struct ib_ucontext *context,
+		void *obj)
 {
 	struct rvt_mmap_info *ip;
 
 	ip = kmalloc_node(sizeof(*ip), GFP_KERNEL, rdi->dparms.node);
+
 	if (!ip)
+	{
 		return ip;
+	}
 
 	size = PAGE_ALIGN(size);
 
 	spin_lock_irq(&rdi->mmap_offset_lock);
+
 	if (rdi->mmap_offset == 0)
+	{
 		rdi->mmap_offset = PAGE_SIZE;
+	}
+
 	ip->offset = rdi->mmap_offset;
 	rdi->mmap_offset += size;
 	spin_unlock_irq(&rdi->mmap_offset_lock);
@@ -192,13 +210,17 @@ struct rvt_mmap_info *rvt_create_mmap_info(struct rvt_dev_info *rdi,
  * @obj: opaque pointer to cq, wq, etc.
  */
 void rvt_update_mmap_info(struct rvt_dev_info *rdi, struct rvt_mmap_info *ip,
-			  u32 size, void *obj)
+						  u32 size, void *obj)
 {
 	size = PAGE_ALIGN(size);
 
 	spin_lock_irq(&rdi->mmap_offset_lock);
+
 	if (rdi->mmap_offset == 0)
+	{
 		rdi->mmap_offset = PAGE_SIZE;
+	}
+
 	ip->offset = rdi->mmap_offset;
 	rdi->mmap_offset += size;
 	spin_unlock_irq(&rdi->mmap_offset_lock);

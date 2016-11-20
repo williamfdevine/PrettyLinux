@@ -23,7 +23,8 @@
 #include "iss_regs.h"
 #include "iss_resizer.h"
 
-static const unsigned int resizer_fmts[] = {
+static const unsigned int resizer_fmts[] =
+{
 	MEDIA_BUS_FMT_UYVY8_1X16,
 	MEDIA_BUS_FMT_YUYV8_1X16,
 };
@@ -36,11 +37,11 @@ static const unsigned int resizer_fmts[] = {
  */
 #define RSZ_PRINT_REGISTER(iss, name)\
 	dev_dbg(iss->dev, "###RSZ " #name "=0x%08x\n", \
-		iss_reg_read(iss, OMAP4_ISS_MEM_ISP_RESIZER, RSZ_##name))
+			iss_reg_read(iss, OMAP4_ISS_MEM_ISP_RESIZER, RSZ_##name))
 
 #define RZA_PRINT_REGISTER(iss, name)\
 	dev_dbg(iss->dev, "###RZA " #name "=0x%08x\n", \
-		iss_reg_read(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_##name))
+			iss_reg_read(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_##name))
 
 static void resizer_print_status(struct iss_resizer_device *resizer)
 {
@@ -117,11 +118,11 @@ static void resizer_enable(struct iss_resizer_device *resizer, u8 enable)
 	struct iss_device *iss = to_iss_device(resizer);
 
 	iss_reg_update(iss, OMAP4_ISS_MEM_ISP_RESIZER, RSZ_SRC_EN,
-		       RSZ_SRC_EN_SRC_EN, enable ? RSZ_SRC_EN_SRC_EN : 0);
+				   RSZ_SRC_EN_SRC_EN, enable ? RSZ_SRC_EN_SRC_EN : 0);
 
 	/* TODO: Enable RSZB */
 	iss_reg_update(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_EN, RSZ_EN_EN,
-		       enable ? RSZ_EN_EN : 0);
+				   enable ? RSZ_EN_EN : 0);
 }
 
 /* -----------------------------------------------------------------------------
@@ -145,24 +146,26 @@ static void resizer_set_outaddr(struct iss_resizer_device *resizer, u32 addr)
 
 	/* Save address split in Base Address H & L */
 	iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_SDR_Y_BAD_H,
-		      (addr >> 16) & 0xffff);
+				  (addr >> 16) & 0xffff);
 	iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_SDR_Y_BAD_L,
-		      addr & 0xffff);
+				  addr & 0xffff);
 
 	/* SAD = BAD */
 	iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_SDR_Y_SAD_H,
-		      (addr >> 16) & 0xffff);
+				  (addr >> 16) & 0xffff);
 	iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_SDR_Y_SAD_L,
-		      addr & 0xffff);
+				  addr & 0xffff);
 
 	/* Program UV buffer address... Hardcoded to be contiguous! */
 	if ((informat->code == MEDIA_BUS_FMT_UYVY8_1X16) &&
-	    (outformat->code == MEDIA_BUS_FMT_YUYV8_1_5X8)) {
+		(outformat->code == MEDIA_BUS_FMT_YUYV8_1_5X8))
+	{
 		u32 c_addr = addr + resizer->video_out.bpl_value
-			   * outformat->height;
+					 * outformat->height;
 
 		/* Ensure Y_BAD_L[6:0] = C_BAD_L[6:0]*/
-		if ((c_addr ^ addr) & 0x7f) {
+		if ((c_addr ^ addr) & 0x7f)
+		{
 			c_addr &= ~0x7f;
 			c_addr += 0x80;
 			c_addr |= addr & 0x7f;
@@ -170,15 +173,15 @@ static void resizer_set_outaddr(struct iss_resizer_device *resizer, u32 addr)
 
 		/* Save address split in Base Address H & L */
 		iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_SDR_C_BAD_H,
-			      (c_addr >> 16) & 0xffff);
+					  (c_addr >> 16) & 0xffff);
 		iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_SDR_C_BAD_L,
-			      c_addr & 0xffff);
+					  c_addr & 0xffff);
 
 		/* SAD = BAD */
 		iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_SDR_C_SAD_H,
-			      (c_addr >> 16) & 0xffff);
+					  (c_addr >> 16) & 0xffff);
 		iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_SDR_C_SAD_L,
-			      c_addr & 0xffff);
+					  c_addr & 0xffff);
 	}
 }
 
@@ -194,41 +197,41 @@ static void resizer_configure(struct iss_resizer_device *resizer)
 	 * pass-through mode, not bypass mode.
 	 */
 	iss_reg_clr(iss, OMAP4_ISS_MEM_ISP_RESIZER, RSZ_SRC_FMT0,
-		    RSZ_SRC_FMT0_BYPASS);
+				RSZ_SRC_FMT0_BYPASS);
 
 	/* Select RSZ input */
 	iss_reg_update(iss, OMAP4_ISS_MEM_ISP_RESIZER, RSZ_SRC_FMT0,
-		       RSZ_SRC_FMT0_SEL,
-		       resizer->input == RESIZER_INPUT_IPIPEIF ?
-		       RSZ_SRC_FMT0_SEL : 0);
+				   RSZ_SRC_FMT0_SEL,
+				   resizer->input == RESIZER_INPUT_IPIPEIF ?
+				   RSZ_SRC_FMT0_SEL : 0);
 
 	/* RSZ ignores WEN signal from IPIPE/IPIPEIF */
 	iss_reg_clr(iss, OMAP4_ISS_MEM_ISP_RESIZER, RSZ_SRC_MODE,
-		    RSZ_SRC_MODE_WRT);
+				RSZ_SRC_MODE_WRT);
 
 	/* Set Resizer in free-running mode */
 	iss_reg_clr(iss, OMAP4_ISS_MEM_ISP_RESIZER, RSZ_SRC_MODE,
-		    RSZ_SRC_MODE_OST);
+				RSZ_SRC_MODE_OST);
 
 	/* Init Resizer A */
 	iss_reg_clr(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_MODE,
-		    RZA_MODE_ONE_SHOT);
+				RZA_MODE_ONE_SHOT);
 
 	/* Set size related things now */
 	iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RSZ_SRC_VPS, 0);
 	iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RSZ_SRC_HPS, 0);
 	iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RSZ_SRC_VSZ,
-		      informat->height - 2);
+				  informat->height - 2);
 	iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RSZ_SRC_HSZ,
-		      informat->width - 1);
+				  informat->width - 1);
 
 	iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_I_VPS, 0);
 	iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_I_HPS, 0);
 
 	iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_O_VSZ,
-		      outformat->height - 2);
+				  outformat->height - 2);
 	iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_O_HSZ,
-		      outformat->width - 1);
+				  outformat->width - 1);
 
 	iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_V_DIF, 0x100);
 	iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_H_DIF, 0x100);
@@ -236,26 +239,29 @@ static void resizer_configure(struct iss_resizer_device *resizer)
 	/* Buffer output settings */
 	iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_SDR_Y_PTR_S, 0);
 	iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_SDR_Y_PTR_E,
-		      outformat->height - 1);
+				  outformat->height - 1);
 
 	iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_SDR_Y_OFT,
-		      resizer->video_out.bpl_value);
+				  resizer->video_out.bpl_value);
 
 	/* UYVY -> NV12 conversion */
 	if ((informat->code == MEDIA_BUS_FMT_UYVY8_1X16) &&
-	    (outformat->code == MEDIA_BUS_FMT_YUYV8_1_5X8)) {
+		(outformat->code == MEDIA_BUS_FMT_YUYV8_1_5X8))
+	{
 		iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_420,
-			      RSZ_420_CEN | RSZ_420_YEN);
+					  RSZ_420_CEN | RSZ_420_YEN);
 
 		/* UV Buffer output settings */
 		iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_SDR_C_PTR_S,
-			      0);
+					  0);
 		iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_SDR_C_PTR_E,
-			      outformat->height - 1);
+					  outformat->height - 1);
 
 		iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_SDR_C_OFT,
-			      resizer->video_out.bpl_value);
-	} else {
+					  resizer->video_out.bpl_value);
+	}
+	else
+	{
 		iss_reg_write(iss, OMAP4_ISS_MEM_ISP_RESIZER, RZA_420, 0);
 	}
 }
@@ -274,8 +280,11 @@ static void resizer_isr_buffer(struct iss_resizer_device *resizer)
 	resizer_enable(resizer, 0);
 
 	buffer = omap4iss_video_buffer_next(&resizer->video_out);
+
 	if (!buffer)
+	{
 		return;
+	}
 
 	resizer_set_outaddr(resizer, buffer->iss_addr);
 
@@ -291,22 +300,27 @@ void omap4iss_resizer_isr(struct iss_resizer_device *resizer, u32 events)
 {
 	struct iss_device *iss = to_iss_device(resizer);
 	struct iss_pipeline *pipe =
-			     to_iss_pipeline(&resizer->subdev.entity);
+		to_iss_pipeline(&resizer->subdev.entity);
 
 	if (events & (ISP5_IRQ_RSZ_FIFO_IN_BLK_ERR |
-		      ISP5_IRQ_RSZ_FIFO_OVF)) {
+				  ISP5_IRQ_RSZ_FIFO_OVF))
+	{
 		dev_dbg(iss->dev, "RSZ Err: FIFO_IN_BLK:%d, FIFO_OVF:%d\n",
-			events & ISP5_IRQ_RSZ_FIFO_IN_BLK_ERR ? 1 : 0,
-			events & ISP5_IRQ_RSZ_FIFO_OVF ? 1 : 0);
+				events & ISP5_IRQ_RSZ_FIFO_IN_BLK_ERR ? 1 : 0,
+				events & ISP5_IRQ_RSZ_FIFO_OVF ? 1 : 0);
 		omap4iss_pipeline_cancel_stream(pipe);
 	}
 
 	if (omap4iss_module_sync_is_stopping(&resizer->wait,
-					     &resizer->stopping))
+										 &resizer->stopping))
+	{
 		return;
+	}
 
 	if (events & ISP5_IRQ_RSZ_INT_DMA)
+	{
 		resizer_isr_buffer(resizer);
+	}
 }
 
 /* -----------------------------------------------------------------------------
@@ -314,13 +328,15 @@ void omap4iss_resizer_isr(struct iss_resizer_device *resizer, u32 events)
  */
 
 static int resizer_video_queue(struct iss_video *video,
-			       struct iss_buffer *buffer)
+							   struct iss_buffer *buffer)
 {
 	struct iss_resizer_device *resizer = container_of(video,
-				struct iss_resizer_device, video_out);
+										 struct iss_resizer_device, video_out);
 
 	if (!(resizer->output & RESIZER_OUTPUT_MEMORY))
+	{
 		return -ENODEV;
+	}
 
 	resizer_set_outaddr(resizer, buffer->iss_addr);
 
@@ -330,7 +346,8 @@ static int resizer_video_queue(struct iss_video *video,
 	 * and DMA queue flag ISS_VIDEO_DMAQUEUE_UNDERRUN is still set.
 	 * Enable it now.
 	 */
-	if (video->dmaqueue_flags & ISS_VIDEO_DMAQUEUE_UNDERRUN) {
+	if (video->dmaqueue_flags & ISS_VIDEO_DMAQUEUE_UNDERRUN)
+	{
 		resizer_enable(resizer, 1);
 		iss_video_dmaqueue_flags_clr(video);
 	}
@@ -338,7 +355,8 @@ static int resizer_video_queue(struct iss_video *video,
 	return 0;
 }
 
-static const struct iss_video_operations resizer_video_ops = {
+static const struct iss_video_operations resizer_video_ops =
+{
 	.queue = resizer_video_queue,
 };
 
@@ -358,60 +376,71 @@ static int resizer_set_stream(struct v4l2_subdev *sd, int enable)
 	struct iss_video *video_out = &resizer->video_out;
 	int ret = 0;
 
-	if (resizer->state == ISS_PIPELINE_STREAM_STOPPED) {
+	if (resizer->state == ISS_PIPELINE_STREAM_STOPPED)
+	{
 		if (enable == ISS_PIPELINE_STREAM_STOPPED)
+		{
 			return 0;
+		}
 
 		omap4iss_isp_subclk_enable(iss, OMAP4_ISS_ISP_SUBCLK_RSZ);
 
 		iss_reg_set(iss, OMAP4_ISS_MEM_ISP_RESIZER, RSZ_GCK_MMR,
-			    RSZ_GCK_MMR_MMR);
+					RSZ_GCK_MMR_MMR);
 		iss_reg_set(iss, OMAP4_ISS_MEM_ISP_RESIZER, RSZ_GCK_SDR,
-			    RSZ_GCK_SDR_CORE);
+					RSZ_GCK_SDR_CORE);
 
 		/* FIXME: Enable RSZB also */
 		iss_reg_set(iss, OMAP4_ISS_MEM_ISP_RESIZER, RSZ_SYSCONFIG,
-			    RSZ_SYSCONFIG_RSZA_CLK_EN);
+					RSZ_SYSCONFIG_RSZA_CLK_EN);
 	}
 
-	switch (enable) {
-	case ISS_PIPELINE_STREAM_CONTINUOUS:
+	switch (enable)
+	{
+		case ISS_PIPELINE_STREAM_CONTINUOUS:
 
-		resizer_configure(resizer);
-		resizer_print_status(resizer);
+			resizer_configure(resizer);
+			resizer_print_status(resizer);
 
-		/*
-		 * When outputting to memory with no buffer available, let the
-		 * buffer queue handler start the hardware. A DMA queue flag
-		 * ISS_VIDEO_DMAQUEUE_QUEUED will be set as soon as there is
-		 * a buffer available.
-		 */
-		if (resizer->output & RESIZER_OUTPUT_MEMORY &&
-		    !(video_out->dmaqueue_flags & ISS_VIDEO_DMAQUEUE_QUEUED))
+			/*
+			 * When outputting to memory with no buffer available, let the
+			 * buffer queue handler start the hardware. A DMA queue flag
+			 * ISS_VIDEO_DMAQUEUE_QUEUED will be set as soon as there is
+			 * a buffer available.
+			 */
+			if (resizer->output & RESIZER_OUTPUT_MEMORY &&
+				!(video_out->dmaqueue_flags & ISS_VIDEO_DMAQUEUE_QUEUED))
+			{
+				break;
+			}
+
+			atomic_set(&resizer->stopping, 0);
+			resizer_enable(resizer, 1);
+			iss_video_dmaqueue_flags_clr(video_out);
 			break;
 
-		atomic_set(&resizer->stopping, 0);
-		resizer_enable(resizer, 1);
-		iss_video_dmaqueue_flags_clr(video_out);
-		break;
+		case ISS_PIPELINE_STREAM_STOPPED:
+			if (resizer->state == ISS_PIPELINE_STREAM_STOPPED)
+			{
+				return 0;
+			}
 
-	case ISS_PIPELINE_STREAM_STOPPED:
-		if (resizer->state == ISS_PIPELINE_STREAM_STOPPED)
-			return 0;
-		if (omap4iss_module_sync_idle(&sd->entity, &resizer->wait,
-					      &resizer->stopping))
-			ret = -ETIMEDOUT;
+			if (omap4iss_module_sync_idle(&sd->entity, &resizer->wait,
+										  &resizer->stopping))
+			{
+				ret = -ETIMEDOUT;
+			}
 
-		resizer_enable(resizer, 0);
-		iss_reg_clr(iss, OMAP4_ISS_MEM_ISP_RESIZER, RSZ_SYSCONFIG,
-			    RSZ_SYSCONFIG_RSZA_CLK_EN);
-		iss_reg_clr(iss, OMAP4_ISS_MEM_ISP_RESIZER, RSZ_GCK_SDR,
-			    RSZ_GCK_SDR_CORE);
-		iss_reg_clr(iss, OMAP4_ISS_MEM_ISP_RESIZER, RSZ_GCK_MMR,
-			    RSZ_GCK_MMR_MMR);
-		omap4iss_isp_subclk_disable(iss, OMAP4_ISS_ISP_SUBCLK_RSZ);
-		iss_video_dmaqueue_flags_clr(video_out);
-		break;
+			resizer_enable(resizer, 0);
+			iss_reg_clr(iss, OMAP4_ISS_MEM_ISP_RESIZER, RSZ_SYSCONFIG,
+						RSZ_SYSCONFIG_RSZA_CLK_EN);
+			iss_reg_clr(iss, OMAP4_ISS_MEM_ISP_RESIZER, RSZ_GCK_SDR,
+						RSZ_GCK_SDR_CORE);
+			iss_reg_clr(iss, OMAP4_ISS_MEM_ISP_RESIZER, RSZ_GCK_MMR,
+						RSZ_GCK_MMR_MMR);
+			omap4iss_isp_subclk_disable(iss, OMAP4_ISS_ISP_SUBCLK_RSZ);
+			iss_video_dmaqueue_flags_clr(video_out);
+			break;
 	}
 
 	resizer->state = enable;
@@ -420,11 +449,14 @@ static int resizer_set_stream(struct v4l2_subdev *sd, int enable)
 
 static struct v4l2_mbus_framefmt *
 __resizer_get_format(struct iss_resizer_device *resizer,
-		     struct v4l2_subdev_pad_config *cfg, unsigned int pad,
-		     enum v4l2_subdev_format_whence which)
+					 struct v4l2_subdev_pad_config *cfg, unsigned int pad,
+					 enum v4l2_subdev_format_whence which)
 {
 	if (which == V4L2_SUBDEV_FORMAT_TRY)
+	{
 		return v4l2_subdev_get_try_format(&resizer->subdev, cfg, pad);
+	}
+
 	return &resizer->formats[pad];
 }
 
@@ -437,9 +469,9 @@ __resizer_get_format(struct iss_resizer_device *resizer,
  */
 static void
 resizer_try_format(struct iss_resizer_device *resizer,
-		   struct v4l2_subdev_pad_config *cfg, unsigned int pad,
-		   struct v4l2_mbus_framefmt *fmt,
-		   enum v4l2_subdev_format_whence which)
+				   struct v4l2_subdev_pad_config *cfg, unsigned int pad,
+				   struct v4l2_mbus_framefmt *fmt,
+				   enum v4l2_subdev_format_whence which)
 {
 	u32 pixelcode;
 	struct v4l2_mbus_framefmt *format;
@@ -447,41 +479,49 @@ resizer_try_format(struct iss_resizer_device *resizer,
 	unsigned int height = fmt->height;
 	unsigned int i;
 
-	switch (pad) {
-	case RESIZER_PAD_SINK:
-		for (i = 0; i < ARRAY_SIZE(resizer_fmts); i++) {
-			if (fmt->code == resizer_fmts[i])
-				break;
-		}
+	switch (pad)
+	{
+		case RESIZER_PAD_SINK:
+			for (i = 0; i < ARRAY_SIZE(resizer_fmts); i++)
+			{
+				if (fmt->code == resizer_fmts[i])
+				{
+					break;
+				}
+			}
 
-		/* If not found, use UYVY as default */
-		if (i >= ARRAY_SIZE(resizer_fmts))
-			fmt->code = MEDIA_BUS_FMT_UYVY8_1X16;
+			/* If not found, use UYVY as default */
+			if (i >= ARRAY_SIZE(resizer_fmts))
+			{
+				fmt->code = MEDIA_BUS_FMT_UYVY8_1X16;
+			}
 
-		/* Clamp the input size. */
-		fmt->width = clamp_t(u32, width, 1, 8192);
-		fmt->height = clamp_t(u32, height, 1, 8192);
-		break;
+			/* Clamp the input size. */
+			fmt->width = clamp_t(u32, width, 1, 8192);
+			fmt->height = clamp_t(u32, height, 1, 8192);
+			break;
 
-	case RESIZER_PAD_SOURCE_MEM:
-		pixelcode = fmt->code;
-		format = __resizer_get_format(resizer, cfg, RESIZER_PAD_SINK,
-					      which);
-		memcpy(fmt, format, sizeof(*fmt));
+		case RESIZER_PAD_SOURCE_MEM:
+			pixelcode = fmt->code;
+			format = __resizer_get_format(resizer, cfg, RESIZER_PAD_SINK,
+										  which);
+			memcpy(fmt, format, sizeof(*fmt));
 
-		if ((pixelcode == MEDIA_BUS_FMT_YUYV8_1_5X8) &&
-		    (fmt->code == MEDIA_BUS_FMT_UYVY8_1X16))
-			fmt->code = pixelcode;
+			if ((pixelcode == MEDIA_BUS_FMT_YUYV8_1_5X8) &&
+				(fmt->code == MEDIA_BUS_FMT_UYVY8_1X16))
+			{
+				fmt->code = pixelcode;
+			}
 
-		/* The data formatter truncates the number of horizontal output
-		 * pixels to a multiple of 16. To avoid clipping data, allow
-		 * callers to request an output size bigger than the input size
-		 * up to the nearest multiple of 16.
-		 */
-		fmt->width = clamp_t(u32, width, 32, (fmt->width + 15) & ~15);
-		fmt->width &= ~15;
-		fmt->height = clamp_t(u32, height, 32, fmt->height);
-		break;
+			/* The data formatter truncates the number of horizontal output
+			 * pixels to a multiple of 16. To avoid clipping data, allow
+			 * callers to request an output size bigger than the input size
+			 * up to the nearest multiple of 16.
+			 */
+			fmt->width = clamp_t(u32, width, 32, (fmt->width + 15) & ~15);
+			fmt->width &= ~15;
+			fmt->height = clamp_t(u32, height, 32, fmt->height);
+			break;
 	}
 
 	fmt->colorspace = V4L2_COLORSPACE_JPEG;
@@ -496,59 +536,74 @@ resizer_try_format(struct iss_resizer_device *resizer,
  * return -EINVAL or zero on success
  */
 static int resizer_enum_mbus_code(struct v4l2_subdev *sd,
-				  struct v4l2_subdev_pad_config *cfg,
-				  struct v4l2_subdev_mbus_code_enum *code)
+								  struct v4l2_subdev_pad_config *cfg,
+								  struct v4l2_subdev_mbus_code_enum *code)
 {
 	struct iss_resizer_device *resizer = v4l2_get_subdevdata(sd);
 	struct v4l2_mbus_framefmt *format;
 
-	switch (code->pad) {
-	case RESIZER_PAD_SINK:
-		if (code->index >= ARRAY_SIZE(resizer_fmts))
-			return -EINVAL;
-
-		code->code = resizer_fmts[code->index];
-		break;
-
-	case RESIZER_PAD_SOURCE_MEM:
-		format = __resizer_get_format(resizer, cfg, RESIZER_PAD_SINK,
-					      code->which);
-
-		if (code->index == 0) {
-			code->code = format->code;
-			break;
-		}
-
-		switch (format->code) {
-		case MEDIA_BUS_FMT_UYVY8_1X16:
-			if (code->index == 1)
-				code->code = MEDIA_BUS_FMT_YUYV8_1_5X8;
-			else
+	switch (code->pad)
+	{
+		case RESIZER_PAD_SINK:
+			if (code->index >= ARRAY_SIZE(resizer_fmts))
+			{
 				return -EINVAL;
+			}
+
+			code->code = resizer_fmts[code->index];
 			break;
+
+		case RESIZER_PAD_SOURCE_MEM:
+			format = __resizer_get_format(resizer, cfg, RESIZER_PAD_SINK,
+										  code->which);
+
+			if (code->index == 0)
+			{
+				code->code = format->code;
+				break;
+			}
+
+			switch (format->code)
+			{
+				case MEDIA_BUS_FMT_UYVY8_1X16:
+					if (code->index == 1)
+					{
+						code->code = MEDIA_BUS_FMT_YUYV8_1_5X8;
+					}
+					else
+					{
+						return -EINVAL;
+					}
+
+					break;
+
+				default:
+					if (code->index != 0)
+					{
+						return -EINVAL;
+					}
+			}
+
+			break;
+
 		default:
-			if (code->index != 0)
-				return -EINVAL;
-		}
-
-		break;
-
-	default:
-		return -EINVAL;
+			return -EINVAL;
 	}
 
 	return 0;
 }
 
 static int resizer_enum_frame_size(struct v4l2_subdev *sd,
-				   struct v4l2_subdev_pad_config *cfg,
-				   struct v4l2_subdev_frame_size_enum *fse)
+								   struct v4l2_subdev_pad_config *cfg,
+								   struct v4l2_subdev_frame_size_enum *fse)
 {
 	struct iss_resizer_device *resizer = v4l2_get_subdevdata(sd);
 	struct v4l2_mbus_framefmt format;
 
 	if (fse->index != 0)
+	{
 		return -EINVAL;
+	}
 
 	format.code = fse->code;
 	format.width = 1;
@@ -558,7 +613,9 @@ static int resizer_enum_frame_size(struct v4l2_subdev *sd,
 	fse->min_height = format.height;
 
 	if (format.code != fse->code)
+	{
 		return -EINVAL;
+	}
 
 	format.code = fse->code;
 	format.width = -1;
@@ -580,15 +637,18 @@ static int resizer_enum_frame_size(struct v4l2_subdev *sd,
  * to the format type.
  */
 static int resizer_get_format(struct v4l2_subdev *sd,
-			      struct v4l2_subdev_pad_config *cfg,
-			      struct v4l2_subdev_format *fmt)
+							  struct v4l2_subdev_pad_config *cfg,
+							  struct v4l2_subdev_format *fmt)
 {
 	struct iss_resizer_device *resizer = v4l2_get_subdevdata(sd);
 	struct v4l2_mbus_framefmt *format;
 
 	format = __resizer_get_format(resizer, cfg, fmt->pad, fmt->which);
+
 	if (!format)
+	{
 		return -EINVAL;
+	}
 
 	fmt->format = *format;
 	return 0;
@@ -604,44 +664,52 @@ static int resizer_get_format(struct v4l2_subdev *sd,
  * to the format type.
  */
 static int resizer_set_format(struct v4l2_subdev *sd,
-			      struct v4l2_subdev_pad_config *cfg,
-			      struct v4l2_subdev_format *fmt)
+							  struct v4l2_subdev_pad_config *cfg,
+							  struct v4l2_subdev_format *fmt)
 {
 	struct iss_resizer_device *resizer = v4l2_get_subdevdata(sd);
 	struct v4l2_mbus_framefmt *format;
 
 	format = __resizer_get_format(resizer, cfg, fmt->pad, fmt->which);
+
 	if (!format)
+	{
 		return -EINVAL;
+	}
 
 	resizer_try_format(resizer, cfg, fmt->pad, &fmt->format, fmt->which);
 	*format = fmt->format;
 
 	/* Propagate the format from sink to source */
-	if (fmt->pad == RESIZER_PAD_SINK) {
+	if (fmt->pad == RESIZER_PAD_SINK)
+	{
 		format = __resizer_get_format(resizer, cfg,
-					      RESIZER_PAD_SOURCE_MEM,
-					      fmt->which);
+									  RESIZER_PAD_SOURCE_MEM,
+									  fmt->which);
 		*format = fmt->format;
 		resizer_try_format(resizer, cfg, RESIZER_PAD_SOURCE_MEM, format,
-				   fmt->which);
+						   fmt->which);
 	}
 
 	return 0;
 }
 
 static int resizer_link_validate(struct v4l2_subdev *sd,
-				 struct media_link *link,
-				 struct v4l2_subdev_format *source_fmt,
-				 struct v4l2_subdev_format *sink_fmt)
+								 struct media_link *link,
+								 struct v4l2_subdev_format *source_fmt,
+								 struct v4l2_subdev_format *sink_fmt)
 {
 	/* Check if the two ends match */
 	if (source_fmt->format.width != sink_fmt->format.width ||
-	    source_fmt->format.height != sink_fmt->format.height)
+		source_fmt->format.height != sink_fmt->format.height)
+	{
 		return -EPIPE;
+	}
 
 	if (source_fmt->format.code != sink_fmt->format.code)
+	{
 		return -EPIPE;
+	}
 
 	return 0;
 }
@@ -656,7 +724,7 @@ static int resizer_link_validate(struct v4l2_subdev *sd,
  * initialized on the device.
  */
 static int resizer_init_formats(struct v4l2_subdev *sd,
-				struct v4l2_subdev_fh *fh)
+								struct v4l2_subdev_fh *fh)
 {
 	struct v4l2_subdev_format format;
 
@@ -672,12 +740,14 @@ static int resizer_init_formats(struct v4l2_subdev *sd,
 }
 
 /* V4L2 subdev video operations */
-static const struct v4l2_subdev_video_ops resizer_v4l2_video_ops = {
+static const struct v4l2_subdev_video_ops resizer_v4l2_video_ops =
+{
 	.s_stream = resizer_set_stream,
 };
 
 /* V4L2 subdev pad operations */
-static const struct v4l2_subdev_pad_ops resizer_v4l2_pad_ops = {
+static const struct v4l2_subdev_pad_ops resizer_v4l2_pad_ops =
+{
 	.enum_mbus_code = resizer_enum_mbus_code,
 	.enum_frame_size = resizer_enum_frame_size,
 	.get_fmt = resizer_get_format,
@@ -686,13 +756,15 @@ static const struct v4l2_subdev_pad_ops resizer_v4l2_pad_ops = {
 };
 
 /* V4L2 subdev operations */
-static const struct v4l2_subdev_ops resizer_v4l2_ops = {
+static const struct v4l2_subdev_ops resizer_v4l2_ops =
+{
 	.video = &resizer_v4l2_video_ops,
 	.pad = &resizer_v4l2_pad_ops,
 };
 
 /* V4L2 subdev internal operations */
-static const struct v4l2_subdev_internal_ops resizer_v4l2_internal_ops = {
+static const struct v4l2_subdev_internal_ops resizer_v4l2_internal_ops =
+{
 	.open = resizer_init_formats,
 };
 
@@ -710,8 +782,8 @@ static const struct v4l2_subdev_internal_ops resizer_v4l2_internal_ops = {
  * return -EINVAL or zero on success
  */
 static int resizer_link_setup(struct media_entity *entity,
-			      const struct media_pad *local,
-			      const struct media_pad *remote, u32 flags)
+							  const struct media_pad *local,
+							  const struct media_pad *remote, u32 flags)
 {
 	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
 	struct iss_resizer_device *resizer = v4l2_get_subdevdata(sd);
@@ -720,46 +792,66 @@ static int resizer_link_setup(struct media_entity *entity,
 
 	/* FIXME: this is actually a hack! */
 	if (is_media_entity_v4l2_subdev(remote->entity))
+	{
 		index |= 2 << 16;
+	}
 
-	switch (index) {
-	case RESIZER_PAD_SINK | 2 << 16:
-		/* Read from IPIPE or IPIPEIF. */
-		if (!(flags & MEDIA_LNK_FL_ENABLED)) {
-			resizer->input = RESIZER_INPUT_NONE;
-			break;
-		}
+	switch (index)
+	{
+		case RESIZER_PAD_SINK | 2 << 16:
 
-		if (resizer->input != RESIZER_INPUT_NONE)
-			return -EBUSY;
+			/* Read from IPIPE or IPIPEIF. */
+			if (!(flags & MEDIA_LNK_FL_ENABLED))
+			{
+				resizer->input = RESIZER_INPUT_NONE;
+				break;
+			}
 
-		if (remote->entity == &iss->ipipeif.subdev.entity)
-			resizer->input = RESIZER_INPUT_IPIPEIF;
-		else if (remote->entity == &iss->ipipe.subdev.entity)
-			resizer->input = RESIZER_INPUT_IPIPE;
-
-		break;
-
-	case RESIZER_PAD_SOURCE_MEM:
-		/* Write to memory */
-		if (flags & MEDIA_LNK_FL_ENABLED) {
-			if (resizer->output & ~RESIZER_OUTPUT_MEMORY)
+			if (resizer->input != RESIZER_INPUT_NONE)
+			{
 				return -EBUSY;
-			resizer->output |= RESIZER_OUTPUT_MEMORY;
-		} else {
-			resizer->output &= ~RESIZER_OUTPUT_MEMORY;
-		}
-		break;
+			}
 
-	default:
-		return -EINVAL;
+			if (remote->entity == &iss->ipipeif.subdev.entity)
+			{
+				resizer->input = RESIZER_INPUT_IPIPEIF;
+			}
+			else if (remote->entity == &iss->ipipe.subdev.entity)
+			{
+				resizer->input = RESIZER_INPUT_IPIPE;
+			}
+
+			break;
+
+		case RESIZER_PAD_SOURCE_MEM:
+
+			/* Write to memory */
+			if (flags & MEDIA_LNK_FL_ENABLED)
+			{
+				if (resizer->output & ~RESIZER_OUTPUT_MEMORY)
+				{
+					return -EBUSY;
+				}
+
+				resizer->output |= RESIZER_OUTPUT_MEMORY;
+			}
+			else
+			{
+				resizer->output &= ~RESIZER_OUTPUT_MEMORY;
+			}
+
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
 }
 
 /* media operations */
-static const struct media_entity_operations resizer_media_ops = {
+static const struct media_entity_operations resizer_media_ops =
+{
 	.link_setup = resizer_link_setup,
 	.link_validate = v4l2_subdev_link_validate,
 };
@@ -791,8 +883,11 @@ static int resizer_init_entities(struct iss_resizer_device *resizer)
 
 	me->ops = &resizer_media_ops;
 	ret = media_entity_pads_init(me, RESIZER_PADS_NUM, pads);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	resizer_init_formats(sd, NULL);
 
@@ -814,18 +909,24 @@ void omap4iss_resizer_unregister_entities(struct iss_resizer_device *resizer)
 }
 
 int omap4iss_resizer_register_entities(struct iss_resizer_device *resizer,
-				       struct v4l2_device *vdev)
+									   struct v4l2_device *vdev)
 {
 	int ret;
 
 	/* Register the subdev and video node. */
 	ret = v4l2_device_register_subdev(vdev, &resizer->subdev);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
 
 	ret = omap4iss_video_register(&resizer->video_out, vdev);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
 
 	return 0;
 
@@ -868,8 +969,8 @@ int omap4iss_resizer_create_links(struct iss_device *iss)
 
 	/* Connect the RESIZER subdev to the video node. */
 	return media_create_pad_link(&resizer->subdev.entity,
-				     RESIZER_PAD_SOURCE_MEM,
-				     &resizer->video_out.video.entity, 0, 0);
+								 RESIZER_PAD_SOURCE_MEM,
+								 &resizer->video_out.video.entity, 0, 0);
 }
 
 /*

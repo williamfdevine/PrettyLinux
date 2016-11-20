@@ -28,17 +28,18 @@
 
 #include <linux/dvb/frontend.h>
 
-struct mt312_config {
+struct mt312_config
+{
 	/* the demodulator's i2c address */
 	u8 demod_address;
 
 	/* inverted voltage setting */
-	unsigned int voltage_inverted:1;
+	unsigned int voltage_inverted: 1;
 };
 
 #if IS_REACHABLE(CONFIG_DVB_MT312)
 struct dvb_frontend *mt312_attach(const struct mt312_config *config,
-					struct i2c_adapter *i2c);
+								  struct i2c_adapter *i2c);
 #else
 static inline struct dvb_frontend *mt312_attach(
 	const struct mt312_config *config, struct i2c_adapter *i2c)

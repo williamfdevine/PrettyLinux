@@ -18,7 +18,8 @@ struct mtd_partition;
  * Note that for DataFlash, sizes for pages, blocks, and sectors are
  * rarely powers of two; and partitions should be sector-aligned.
  */
-struct flash_platform_data {
+struct flash_platform_data
+{
 	char		*name;
 	struct mtd_partition *parts;
 	unsigned int	nr_parts;

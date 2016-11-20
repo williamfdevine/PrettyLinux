@@ -11,7 +11,8 @@
 #ifndef _LINUX_I2C_OCORES_H
 #define _LINUX_I2C_OCORES_H
 
-struct ocores_i2c_platform_data {
+struct ocores_i2c_platform_data
+{
 	u32 reg_shift; /* register offset shift value */
 	u32 reg_io_width; /* register io read/write width */
 	u32 clock_khz; /* input clock in kHz */

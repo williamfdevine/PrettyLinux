@@ -97,7 +97,8 @@
 #define AUDIO_WRITE(addr, val)	__raw_writel(val, addr)
 #define AUDIO_READ(addr)	__raw_readl(addr)
 
-struct nuc900_audio {
+struct nuc900_audio
+{
 	void __iomem *mmio;
 	spinlock_t lock;
 	unsigned long irq_num;

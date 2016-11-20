@@ -29,7 +29,8 @@
 #define SNDRV_DM_FM_MODE_OPL2	0x00
 #define SNDRV_DM_FM_MODE_OPL3	0x01
 
-struct snd_dm_fm_info {
+struct snd_dm_fm_info
+{
 	unsigned char fm_mode;		/* OPL mode, see SNDRV_DM_FM_MODE_XXX */
 	unsigned char rhythm;		/* percussion mode flag */
 };
@@ -38,7 +39,8 @@ struct snd_dm_fm_info {
  *  Data structure composing an FM "note" or sound event.
  */
 
-struct snd_dm_fm_voice {
+struct snd_dm_fm_voice
+{
 	unsigned char op;		/* operator cell (0 or 1) */
 	unsigned char voice;		/* FM voice (0 to 17) */
 
@@ -67,7 +69,8 @@ struct snd_dm_fm_voice {
  *  and key on/off.
  */
 
-struct snd_dm_fm_note {
+struct snd_dm_fm_note
+{
 	unsigned char voice;	/* 0-17 voice channel */
 	unsigned char octave;	/* 3 bits: what octave to play */
 	unsigned int fnum;	/* 10 bits: frequency number */
@@ -78,7 +81,8 @@ struct snd_dm_fm_note {
  *  FM parameters that apply globally to all voices, and thus are not "notes"
  */
 
-struct snd_dm_fm_params {
+struct snd_dm_fm_params
+{
 	unsigned char am_depth;		/* amplitude modulation depth (1=hi) */
 	unsigned char vib_depth;	/* vibrato depth (1=hi) */
 	unsigned char kbd_split;	/* keyboard split */
@@ -122,7 +126,8 @@ struct snd_dm_fm_params {
 #define FM_KEY_2OP	"2OP\032"
 #define FM_KEY_4OP	"4OP\032"
 
-struct sbi_patch {
+struct sbi_patch
+{
 	unsigned char prog;
 	unsigned char bank;
 	char key[4];

@@ -36,9 +36,9 @@
 #include "siu.h"
 
 #define GET_MAX_PERIODS(buf_bytes, period_bytes) \
-				((buf_bytes) / (period_bytes))
+	((buf_bytes) / (period_bytes))
 #define PERIOD_OFFSET(buf_addr, period_num, period_bytes) \
-				((buf_addr) + ((period_num) * (period_bytes)))
+	((buf_addr) + ((period_num) * (period_bytes)))
 
 #define RWF_STM_RD		0x01		/* Read in progress */
 #define RWF_STM_WT		0x02		/* Write in progress */
@@ -54,13 +54,15 @@ static int siu_pcm_stmwrite_stop(struct siu_port *port_info)
 	u32 stfifo;
 
 	if (!siu_stream->rw_flg)
+	{
 		return -EPERM;
+	}
 
 	/* output FIFO disable */
 	stfifo = siu_read32(base + SIU_STFIFO);
 	siu_write32(base + SIU_STFIFO, stfifo & ~0x0c180c18);
 	pr_debug("%s: STFIFO %x -> %x\n", __func__,
-		 stfifo, stfifo & ~0x0c180c18);
+			 stfifo, stfifo & ~0x0c180c18);
 
 	/* during stmwrite clear */
 	siu_stream->rw_flg = 0;
@@ -73,7 +75,9 @@ static int siu_pcm_stmwrite_start(struct siu_port *port_info)
 	struct siu_stream *siu_stream = &port_info->playback;
 
 	if (siu_stream->rw_flg)
+	{
 		return -EPERM;
+	}
 
 	/* Current period in buffer */
 	port_info->playback.cur_period = 0;
@@ -92,18 +96,22 @@ static void siu_dma_tx_complete(void *arg)
 	struct siu_stream *siu_stream = arg;
 
 	if (!siu_stream->rw_flg)
+	{
 		return;
+	}
 
 	/* Update completed period count */
 	if (++siu_stream->cur_period >=
-	    GET_MAX_PERIODS(siu_stream->buf_bytes,
-			    siu_stream->period_bytes))
+		GET_MAX_PERIODS(siu_stream->buf_bytes,
+						siu_stream->period_bytes))
+	{
 		siu_stream->cur_period = 0;
+	}
 
 	pr_debug("%s: done period #%d (%u/%u bytes), cookie %d\n",
-		__func__, siu_stream->cur_period,
-		siu_stream->cur_period * siu_stream->period_bytes,
-		siu_stream->buf_bytes, siu_stream->cookie);
+			 __func__, siu_stream->cur_period,
+			 siu_stream->cur_period * siu_stream->period_bytes,
+			 siu_stream->buf_bytes, siu_stream->cookie);
 
 	tasklet_schedule(&siu_stream->tasklet);
 
@@ -112,7 +120,7 @@ static void siu_dma_tx_complete(void *arg)
 }
 
 static int siu_pcm_wr_set(struct siu_port *port_info,
-			  dma_addr_t buff, u32 size)
+						  dma_addr_t buff, u32 size)
 {
 	struct siu_info *info = siu_i2s_data;
 	u32 __iomem *base = info->reg;
@@ -126,13 +134,15 @@ static int siu_pcm_wr_set(struct siu_port *port_info,
 
 	sg_init_table(&sg, 1);
 	sg_set_page(&sg, pfn_to_page(PFN_DOWN(buff)),
-		    size, offset_in_page(buff));
+				size, offset_in_page(buff));
 	sg_dma_len(&sg) = size;
 	sg_dma_address(&sg) = buff;
 
 	desc = dmaengine_prep_slave_sg(siu_stream->chan,
-		&sg, 1, DMA_MEM_TO_DEV, DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
-	if (!desc) {
+								   &sg, 1, DMA_MEM_TO_DEV, DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
+
+	if (!desc)
+	{
 		dev_err(dev, "Failed to allocate a dma descriptor\n");
 		return -ENOMEM;
 	}
@@ -140,7 +150,9 @@ static int siu_pcm_wr_set(struct siu_port *port_info,
 	desc->callback = siu_dma_tx_complete;
 	desc->callback_param = siu_stream;
 	cookie = dmaengine_submit(desc);
-	if (cookie < 0) {
+
+	if (cookie < 0)
+	{
 		dev_err(dev, "Failed to submit a dma transfer\n");
 		return cookie;
 	}
@@ -154,13 +166,13 @@ static int siu_pcm_wr_set(struct siu_port *port_info,
 	stfifo = siu_read32(base + SIU_STFIFO);
 	siu_write32(base + SIU_STFIFO, stfifo | (port_info->stfifo & 0x0c180c18));
 	dev_dbg(dev, "%s: STFIFO %x -> %x\n", __func__,
-		stfifo, stfifo | (port_info->stfifo & 0x0c180c18));
+			stfifo, stfifo | (port_info->stfifo & 0x0c180c18));
 
 	return 0;
 }
 
 static int siu_pcm_rd_set(struct siu_port *port_info,
-			  dma_addr_t buff, size_t size)
+						  dma_addr_t buff, size_t size)
 {
 	struct siu_info *info = siu_i2s_data;
 	u32 __iomem *base = info->reg;
@@ -176,13 +188,15 @@ static int siu_pcm_rd_set(struct siu_port *port_info,
 
 	sg_init_table(&sg, 1);
 	sg_set_page(&sg, pfn_to_page(PFN_DOWN(buff)),
-		    size, offset_in_page(buff));
+				size, offset_in_page(buff));
 	sg_dma_len(&sg) = size;
 	sg_dma_address(&sg) = buff;
 
 	desc = dmaengine_prep_slave_sg(siu_stream->chan,
-		&sg, 1, DMA_DEV_TO_MEM, DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
-	if (!desc) {
+								   &sg, 1, DMA_DEV_TO_MEM, DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
+
+	if (!desc)
+	{
 		dev_err(dev, "Failed to allocate dma descriptor\n");
 		return -ENOMEM;
 	}
@@ -190,7 +204,9 @@ static int siu_pcm_rd_set(struct siu_port *port_info,
 	desc->callback = siu_dma_tx_complete;
 	desc->callback_param = siu_stream;
 	cookie = dmaengine_submit(desc);
-	if (cookie < 0) {
+
+	if (cookie < 0)
+	{
 		dev_err(dev, "Failed to submit dma descriptor\n");
 		return cookie;
 	}
@@ -203,9 +219,9 @@ static int siu_pcm_rd_set(struct siu_port *port_info,
 	/* only input FIFO enable */
 	stfifo = siu_read32(base + SIU_STFIFO);
 	siu_write32(base + SIU_STFIFO, siu_read32(base + SIU_STFIFO) |
-		    (port_info->stfifo & 0x13071307));
+				(port_info->stfifo & 0x13071307));
 	dev_dbg(dev, "%s: STFIFO %x -> %x\n", __func__,
-		stfifo, stfifo | (port_info->stfifo & 0x13071307));
+			stfifo, stfifo | (port_info->stfifo & 0x13071307));
 
 	return 0;
 }
@@ -220,32 +236,36 @@ static void siu_io_tasklet(unsigned long data)
 
 	dev_dbg(dev, "%s: flags %x\n", __func__, siu_stream->rw_flg);
 
-	if (!siu_stream->rw_flg) {
+	if (!siu_stream->rw_flg)
+	{
 		dev_dbg(dev, "%s: stream inactive\n", __func__);
 		return;
 	}
 
-	if (substream->stream == SNDRV_PCM_STREAM_CAPTURE) {
+	if (substream->stream == SNDRV_PCM_STREAM_CAPTURE)
+	{
 		dma_addr_t buff;
 		size_t count;
 		u8 *virt;
 
 		buff = (dma_addr_t)PERIOD_OFFSET(rt->dma_addr,
-						siu_stream->cur_period,
-						siu_stream->period_bytes);
+										 siu_stream->cur_period,
+										 siu_stream->period_bytes);
 		virt = PERIOD_OFFSET(rt->dma_area,
-				     siu_stream->cur_period,
-				     siu_stream->period_bytes);
+							 siu_stream->cur_period,
+							 siu_stream->period_bytes);
 		count = siu_stream->period_bytes;
 
 		/* DMA transfer start */
 		siu_pcm_rd_set(port_info, buff, count);
-	} else {
+	}
+	else
+	{
 		siu_pcm_wr_set(port_info,
-			       (dma_addr_t)PERIOD_OFFSET(rt->dma_addr,
-						siu_stream->cur_period,
-						siu_stream->period_bytes),
-			       siu_stream->period_bytes);
+					   (dma_addr_t)PERIOD_OFFSET(rt->dma_addr,
+							   siu_stream->cur_period,
+							   siu_stream->period_bytes),
+					   siu_stream->period_bytes);
 	}
 }
 
@@ -255,9 +275,14 @@ static int siu_pcm_stmread_start(struct siu_port *port_info)
 	struct siu_stream *siu_stream = &port_info->capture;
 
 	if (siu_stream->xfer_cnt > 0x1000000)
+	{
 		return -EINVAL;
+	}
+
 	if (siu_stream->rw_flg)
+	{
 		return -EPERM;
+	}
 
 	/* Current period in buffer */
 	siu_stream->cur_period = 0;
@@ -279,13 +304,15 @@ static int siu_pcm_stmread_stop(struct siu_port *port_info)
 	u32 stfifo;
 
 	if (!siu_stream->rw_flg)
+	{
 		return -EPERM;
+	}
 
 	/* input FIFO disable */
 	stfifo = siu_read32(base + SIU_STFIFO);
 	siu_write32(base + SIU_STFIFO, stfifo & ~0x13071307);
 	dev_dbg(dev, "%s: STFIFO %x -> %x\n", __func__,
-		stfifo, stfifo & ~0x13071307);
+			stfifo, stfifo & ~0x13071307);
 
 	/* during stmread flag clear */
 	siu_stream->rw_flg = 0;
@@ -294,7 +321,7 @@ static int siu_pcm_stmread_stop(struct siu_port *port_info)
 }
 
 static int siu_pcm_hw_params(struct snd_pcm_substream *ss,
-			     struct snd_pcm_hw_params *hw_params)
+							 struct snd_pcm_hw_params *hw_params)
 {
 	struct siu_info *info = siu_i2s_data;
 	struct device *dev = ss->pcm->card->dev;
@@ -303,8 +330,11 @@ static int siu_pcm_hw_params(struct snd_pcm_substream *ss,
 	dev_dbg(dev, "%s: port=%d\n", __func__, info->port_id);
 
 	ret = snd_pcm_lib_malloc_pages(ss, params_buffer_bytes(hw_params));
+
 	if (ret < 0)
+	{
 		dev_err(dev, "snd_pcm_lib_malloc_pages() failed\n");
+	}
 
 	return ret;
 }
@@ -317,9 +347,13 @@ static int siu_pcm_hw_free(struct snd_pcm_substream *ss)
 	struct siu_stream *siu_stream;
 
 	if (ss->stream == SNDRV_PCM_STREAM_PLAYBACK)
+	{
 		siu_stream = &port_info->playback;
+	}
 	else
+	{
 		siu_stream = &port_info->capture;
+	}
 
 	dev_dbg(dev, "%s: port=%d\n", __func__, info->port_id);
 
@@ -354,21 +388,26 @@ static int siu_pcm_open(struct snd_pcm_substream *ss)
 
 	dev_dbg(dev, "%s, port=%d@%p\n", __func__, port, port_info);
 
-	if (ss->stream == SNDRV_PCM_STREAM_PLAYBACK) {
+	if (ss->stream == SNDRV_PCM_STREAM_PLAYBACK)
+	{
 		siu_stream = &port_info->playback;
 		param = &siu_stream->param;
 		param->shdma_slave.slave_id = port ? pdata->dma_slave_tx_b :
-			pdata->dma_slave_tx_a;
-	} else {
+									  pdata->dma_slave_tx_a;
+	}
+	else
+	{
 		siu_stream = &port_info->capture;
 		param = &siu_stream->param;
 		param->shdma_slave.slave_id = port ? pdata->dma_slave_rx_b :
-			pdata->dma_slave_rx_a;
+									  pdata->dma_slave_rx_a;
 	}
 
 	/* Get DMA channel */
 	siu_stream->chan = dma_request_channel(mask, filter, param);
-	if (!siu_stream->chan) {
+
+	if (!siu_stream->chan)
+	{
 		dev_err(dev, "DMA channel allocation failed!\n");
 		return -EBUSY;
 	}
@@ -388,9 +427,13 @@ static int siu_pcm_close(struct snd_pcm_substream *ss)
 	dev_dbg(dev, "%s: port=%d\n", __func__, info->port_id);
 
 	if (ss->stream == SNDRV_PCM_STREAM_PLAYBACK)
+	{
 		siu_stream = &port_info->playback;
+	}
 	else
+	{
 		siu_stream = &port_info->capture;
+	}
 
 	dma_release_channel(siu_stream->chan);
 	siu_stream->chan = NULL;
@@ -410,9 +453,13 @@ static int siu_pcm_prepare(struct snd_pcm_substream *ss)
 	snd_pcm_sframes_t xfer_cnt;
 
 	if (ss->stream == SNDRV_PCM_STREAM_PLAYBACK)
+	{
 		siu_stream = &port_info->playback;
+	}
 	else
+	{
 		siu_stream = &port_info->capture;
+	}
 
 	rt = siu_stream->substream->runtime;
 
@@ -420,28 +467,32 @@ static int siu_pcm_prepare(struct snd_pcm_substream *ss)
 	siu_stream->period_bytes = snd_pcm_lib_period_bytes(ss);
 
 	dev_dbg(dev, "%s: port=%d, %d channels, period=%u bytes\n", __func__,
-		info->port_id, rt->channels, siu_stream->period_bytes);
+			info->port_id, rt->channels, siu_stream->period_bytes);
 
 	/* We only support buffers that are multiples of the period */
-	if (siu_stream->buf_bytes % siu_stream->period_bytes) {
+	if (siu_stream->buf_bytes % siu_stream->period_bytes)
+	{
 		dev_err(dev, "%s() - buffer=%d not multiple of period=%d\n",
-		       __func__, siu_stream->buf_bytes,
-		       siu_stream->period_bytes);
+				__func__, siu_stream->buf_bytes,
+				siu_stream->period_bytes);
 		return -EINVAL;
 	}
 
 	xfer_cnt = bytes_to_frames(rt, siu_stream->period_bytes);
+
 	if (!xfer_cnt || xfer_cnt > 0x1000000)
+	{
 		return -EINVAL;
+	}
 
 	siu_stream->format = rt->format;
 	siu_stream->xfer_cnt = xfer_cnt;
 
 	dev_dbg(dev, "port=%d buf=%lx buf_bytes=%d period_bytes=%d "
-		"format=%d channels=%d xfer_cnt=%d\n", info->port_id,
-		(unsigned long)rt->dma_addr, siu_stream->buf_bytes,
-		siu_stream->period_bytes,
-		siu_stream->format, rt->channels, (int)xfer_cnt);
+			"format=%d channels=%d xfer_cnt=%d\n", info->port_id,
+			(unsigned long)rt->dma_addr, siu_stream->buf_bytes,
+			siu_stream->period_bytes,
+			siu_stream->format, rt->channels, (int)xfer_cnt);
 
 	return 0;
 }
@@ -454,31 +505,43 @@ static int siu_pcm_trigger(struct snd_pcm_substream *ss, int cmd)
 	int ret;
 
 	dev_dbg(dev, "%s: port=%d@%p, cmd=%d\n", __func__,
-		info->port_id, port_info, cmd);
+			info->port_id, port_info, cmd);
 
-	switch (cmd) {
-	case SNDRV_PCM_TRIGGER_START:
-		if (ss->stream == SNDRV_PCM_STREAM_PLAYBACK)
-			ret = siu_pcm_stmwrite_start(port_info);
-		else
-			ret = siu_pcm_stmread_start(port_info);
+	switch (cmd)
+	{
+		case SNDRV_PCM_TRIGGER_START:
+			if (ss->stream == SNDRV_PCM_STREAM_PLAYBACK)
+			{
+				ret = siu_pcm_stmwrite_start(port_info);
+			}
+			else
+			{
+				ret = siu_pcm_stmread_start(port_info);
+			}
 
-		if (ret < 0)
-			dev_warn(dev, "%s: start failed on port=%d\n",
-				 __func__, info->port_id);
+			if (ret < 0)
+				dev_warn(dev, "%s: start failed on port=%d\n",
+						 __func__, info->port_id);
 
-		break;
-	case SNDRV_PCM_TRIGGER_STOP:
-		if (ss->stream == SNDRV_PCM_STREAM_PLAYBACK)
-			siu_pcm_stmwrite_stop(port_info);
-		else
-			siu_pcm_stmread_stop(port_info);
-		ret = 0;
+			break;
 
-		break;
-	default:
-		dev_err(dev, "%s() unsupported cmd=%d\n", __func__, cmd);
-		ret = -EINVAL;
+		case SNDRV_PCM_TRIGGER_STOP:
+			if (ss->stream == SNDRV_PCM_STREAM_PLAYBACK)
+			{
+				siu_pcm_stmwrite_stop(port_info);
+			}
+			else
+			{
+				siu_pcm_stmread_stop(port_info);
+			}
+
+			ret = 0;
+
+			break;
+
+		default:
+			dev_err(dev, "%s() unsupported cmd=%d\n", __func__, cmd);
+			ret = -EINVAL;
 	}
 
 	return ret;
@@ -499,26 +562,32 @@ static snd_pcm_uframes_t siu_pcm_pointer_dma(struct snd_pcm_substream *ss)
 	struct siu_stream *siu_stream;
 
 	if (ss->stream == SNDRV_PCM_STREAM_PLAYBACK)
+	{
 		siu_stream = &port_info->playback;
+	}
 	else
+	{
 		siu_stream = &port_info->capture;
+	}
 
 	/*
 	 * ptr is the offset into the buffer where the dma is currently at. We
 	 * check if the dma buffer has just wrapped.
 	 */
 	ptr = PERIOD_OFFSET(rt->dma_addr,
-			    siu_stream->cur_period,
-			    siu_stream->period_bytes) - rt->dma_addr;
+						siu_stream->cur_period,
+						siu_stream->period_bytes) - rt->dma_addr;
 
 	dev_dbg(dev,
-		"%s: port=%d, events %x, FSTS %x, xferred %u/%u, cookie %d\n",
-		__func__, info->port_id, siu_read32(base + SIU_EVNTC),
-		siu_read32(base + SIU_SBFSTS), ptr, siu_stream->buf_bytes,
-		siu_stream->cookie);
+			"%s: port=%d, events %x, FSTS %x, xferred %u/%u, cookie %d\n",
+			__func__, info->port_id, siu_read32(base + SIU_EVNTC),
+			siu_read32(base + SIU_SBFSTS), ptr, siu_stream->buf_bytes,
+			siu_stream->cookie);
 
 	if (ptr >= siu_stream->buf_bytes)
+	{
 		ptr = 0;
+	}
 
 	return bytes_to_frames(ss->runtime, ptr);
 }
@@ -535,7 +604,9 @@ static int siu_pcm_new(struct snd_soc_pcm_runtime *rtd)
 
 	/* pdev->id selects between SIUA and SIUB */
 	if (pdev->id < 0 || pdev->id >= SIU_PORT_NUM)
+	{
 		return -EINVAL;
+	}
 
 	info->port_id = pdev->id;
 
@@ -545,20 +616,26 @@ static int siu_pcm_new(struct snd_soc_pcm_runtime *rtd)
 	 * wired to a codec. To simplify things, we only register one port with
 	 * alsa. In case both ports are needed, it should be changed here
 	 */
-	for (i = pdev->id; i < pdev->id + 1; i++) {
+	for (i = pdev->id; i < pdev->id + 1; i++)
+	{
 		struct siu_port **port_info = &siu_ports[i];
 
 		ret = siu_init_port(i, port_info, card);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		ret = snd_pcm_lib_preallocate_pages_for_all(pcm,
 				SNDRV_DMA_TYPE_DEV, NULL,
 				SIU_BUFFER_BYTES_MAX, SIU_BUFFER_BYTES_MAX);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(card->dev,
-			       "snd_pcm_lib_preallocate_pages_for_all() err=%d",
-				ret);
+					"snd_pcm_lib_preallocate_pages_for_all() err=%d",
+					ret);
 			goto fail;
 		}
 
@@ -566,9 +643,9 @@ static int siu_pcm_new(struct snd_soc_pcm_runtime *rtd)
 
 		/* IO tasklets */
 		tasklet_init(&(*port_info)->playback.tasklet, siu_io_tasklet,
-			     (unsigned long)&(*port_info)->playback);
+					 (unsigned long) & (*port_info)->playback);
 		tasklet_init(&(*port_info)->capture.tasklet, siu_io_tasklet,
-			     (unsigned long)&(*port_info)->capture);
+					 (unsigned long) & (*port_info)->capture);
 	}
 
 	dev_info(card->dev, "SuperH SIU driver initialized.\n");
@@ -593,7 +670,8 @@ static void siu_pcm_free(struct snd_pcm *pcm)
 	dev_dbg(pcm->card->dev, "%s\n", __func__);
 }
 
-static struct snd_pcm_ops siu_pcm_ops = {
+static struct snd_pcm_ops siu_pcm_ops =
+{
 	.open		= siu_pcm_open,
 	.close		= siu_pcm_close,
 	.ioctl		= snd_pcm_lib_ioctl,
@@ -604,7 +682,8 @@ static struct snd_pcm_ops siu_pcm_ops = {
 	.pointer	= siu_pcm_pointer_dma,
 };
 
-struct snd_soc_platform_driver siu_platform = {
+struct snd_soc_platform_driver siu_platform =
+{
 	.ops			= &siu_pcm_ops,
 	.pcm_new	= siu_pcm_new,
 	.pcm_free	= siu_pcm_free,

@@ -40,13 +40,15 @@
 #include <linux/hwmon-sysfs.h>
 #include <linux/thermal.h>
 
-struct ntc_compensation {
+struct ntc_compensation
+{
 	int		temp_c;
 	unsigned int	ohm;
 };
 
 /* Order matters, ntc_match references the entries by index */
-static const struct platform_device_id ntc_thermistor_id[] = {
+static const struct platform_device_id ntc_thermistor_id[] =
+{
 	{ "ncp15wb473", TYPE_NCPXXWB473 },
 	{ "ncp18wb473", TYPE_NCPXXWB473 },
 	{ "ncp21wb473", TYPE_NCPXXWB473 },
@@ -64,7 +66,8 @@ static const struct platform_device_id ntc_thermistor_id[] = {
  * The following compensation tables are from the specification of Murata NTC
  * Thermistors Datasheet
  */
-static const struct ntc_compensation ncpXXwb473[] = {
+static const struct ntc_compensation ncpXXwb473[] =
+{
 	{ .temp_c	= -40, .ohm	= 1747920 },
 	{ .temp_c	= -35, .ohm	= 1245428 },
 	{ .temp_c	= -30, .ohm	= 898485 },
@@ -100,7 +103,8 @@ static const struct ntc_compensation ncpXXwb473[] = {
 	{ .temp_c	= 120, .ohm	= 1615 },
 	{ .temp_c	= 125, .ohm	= 1406 },
 };
-static const struct ntc_compensation ncpXXwl333[] = {
+static const struct ntc_compensation ncpXXwl333[] =
+{
 	{ .temp_c	= -40, .ohm	= 1610154 },
 	{ .temp_c	= -35, .ohm	= 1130850 },
 	{ .temp_c	= -30, .ohm	= 802609 },
@@ -137,7 +141,8 @@ static const struct ntc_compensation ncpXXwl333[] = {
 	{ .temp_c	= 125, .ohm	= 707 },
 };
 
-static const struct ntc_compensation ncpXXwf104[] = {
+static const struct ntc_compensation ncpXXwf104[] =
+{
 	{ .temp_c	= -40, .ohm	= 4397119 },
 	{ .temp_c	= -35, .ohm	= 3088599 },
 	{ .temp_c	= -30, .ohm	= 2197225 },
@@ -174,7 +179,8 @@ static const struct ntc_compensation ncpXXwf104[] = {
 	{ .temp_c	= 125, .ohm	= 2522 },
 };
 
-static const struct ntc_compensation ncpXXxh103[] = {
+static const struct ntc_compensation ncpXXxh103[] =
+{
 	{ .temp_c	= -40, .ohm	= 247565 },
 	{ .temp_c	= -35, .ohm	= 181742 },
 	{ .temp_c	= -30, .ohm	= 135128 },
@@ -215,7 +221,8 @@ static const struct ntc_compensation ncpXXxh103[] = {
  * The following compensation table is from the specification of EPCOS NTC
  * Thermistors Datasheet
  */
-static const struct ntc_compensation b57330v2103[] = {
+static const struct ntc_compensation b57330v2103[] =
+{
 	{ .temp_c	= -40, .ohm	= 190030 },
 	{ .temp_c	= -35, .ohm	= 145360 },
 	{ .temp_c	= -30, .ohm	= 112060 },
@@ -252,7 +259,8 @@ static const struct ntc_compensation b57330v2103[] = {
 	{ .temp_c	= 125, .ohm	= 531 },
 };
 
-struct ntc_data {
+struct ntc_data
+{
 	struct ntc_thermistor_platform_data *pdata;
 	const struct ntc_compensation *comp;
 	int n_comp;
@@ -265,13 +273,17 @@ static int ntc_adc_iio_read(struct ntc_thermistor_platform_data *pdata)
 	int raw, uv, ret;
 
 	ret = iio_read_channel_raw(channel, &raw);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("read channel() error: %d\n", ret);
 		return ret;
 	}
 
 	ret = iio_convert_raw_to_processed(channel, raw, &uv, 1000);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		/* Assume 12 bit ADC with vref at pullup_uv */
 		uv = (pdata->pullup_uv * (s64)raw) >> 12;
 	}
@@ -279,35 +291,62 @@ static int ntc_adc_iio_read(struct ntc_thermistor_platform_data *pdata)
 	return uv;
 }
 
-static const struct of_device_id ntc_match[] = {
-	{ .compatible = "murata,ncp15wb473",
-		.data = &ntc_thermistor_id[0] },
-	{ .compatible = "murata,ncp18wb473",
-		.data = &ntc_thermistor_id[1] },
-	{ .compatible = "murata,ncp21wb473",
-		.data = &ntc_thermistor_id[2] },
-	{ .compatible = "murata,ncp03wb473",
-		.data = &ntc_thermistor_id[3] },
-	{ .compatible = "murata,ncp15wl333",
-		.data = &ntc_thermistor_id[4] },
-	{ .compatible = "epcos,b57330v2103",
-		.data = &ntc_thermistor_id[5]},
-	{ .compatible = "murata,ncp03wf104",
-		.data = &ntc_thermistor_id[6] },
-	{ .compatible = "murata,ncp15xh103",
-		.data = &ntc_thermistor_id[7] },
+static const struct of_device_id ntc_match[] =
+{
+	{
+		.compatible = "murata,ncp15wb473",
+		.data = &ntc_thermistor_id[0]
+	},
+	{
+		.compatible = "murata,ncp18wb473",
+		.data = &ntc_thermistor_id[1]
+	},
+	{
+		.compatible = "murata,ncp21wb473",
+		.data = &ntc_thermistor_id[2]
+	},
+	{
+		.compatible = "murata,ncp03wb473",
+		.data = &ntc_thermistor_id[3]
+	},
+	{
+		.compatible = "murata,ncp15wl333",
+		.data = &ntc_thermistor_id[4]
+	},
+	{
+		.compatible = "epcos,b57330v2103",
+		.data = &ntc_thermistor_id[5]
+	},
+	{
+		.compatible = "murata,ncp03wf104",
+		.data = &ntc_thermistor_id[6]
+	},
+	{
+		.compatible = "murata,ncp15xh103",
+		.data = &ntc_thermistor_id[7]
+	},
 
 	/* Usage of vendor name "ntc" is deprecated */
-	{ .compatible = "ntc,ncp15wb473",
-		.data = &ntc_thermistor_id[0] },
-	{ .compatible = "ntc,ncp18wb473",
-		.data = &ntc_thermistor_id[1] },
-	{ .compatible = "ntc,ncp21wb473",
-		.data = &ntc_thermistor_id[2] },
-	{ .compatible = "ntc,ncp03wb473",
-		.data = &ntc_thermistor_id[3] },
-	{ .compatible = "ntc,ncp15wl333",
-		.data = &ntc_thermistor_id[4] },
+	{
+		.compatible = "ntc,ncp15wb473",
+		.data = &ntc_thermistor_id[0]
+	},
+	{
+		.compatible = "ntc,ncp18wb473",
+		.data = &ntc_thermistor_id[1]
+	},
+	{
+		.compatible = "ntc,ncp21wb473",
+		.data = &ntc_thermistor_id[2]
+	},
+	{
+		.compatible = "ntc,ncp03wb473",
+		.data = &ntc_thermistor_id[3]
+	},
+	{
+		.compatible = "ntc,ncp15wl333",
+		.data = &ntc_thermistor_id[4]
+	},
 	{ },
 };
 MODULE_DEVICE_TABLE(of, ntc_match);
@@ -322,34 +361,59 @@ ntc_thermistor_parse_dt(struct device *dev)
 	int ret;
 
 	if (!np)
+	{
 		return NULL;
+	}
 
 	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
+
 	if (!pdata)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	chan = devm_iio_channel_get(dev, NULL);
+
 	if (IS_ERR(chan))
+	{
 		return ERR_CAST(chan);
+	}
 
 	ret = iio_get_channel_type(chan, &type);
+
 	if (ret < 0)
+	{
 		return ERR_PTR(ret);
+	}
 
 	if (type != IIO_VOLTAGE)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	if (of_property_read_u32(np, "pullup-uv", &pdata->pullup_uv))
+	{
 		return ERR_PTR(-ENODEV);
+	}
+
 	if (of_property_read_u32(np, "pullup-ohm", &pdata->pullup_ohm))
+	{
 		return ERR_PTR(-ENODEV);
+	}
+
 	if (of_property_read_u32(np, "pulldown-ohm", &pdata->pulldown_ohm))
+	{
 		return ERR_PTR(-ENODEV);
+	}
 
 	if (of_find_property(np, "connected-positive", NULL))
+	{
 		pdata->connect = NTC_CONNECTED_POSITIVE;
+	}
 	else /* status change should be possible if not always on. */
+	{
 		pdata->connect = NTC_CONNECTED_GROUND;
+	}
 
 	pdata->chan = chan;
 	pdata->read_uv = ntc_adc_iio_read;
@@ -370,9 +434,15 @@ ntc_thermistor_parse_dt(struct device *dev)
 static inline u64 div64_u64_safe(u64 dividend, u64 divisor)
 {
 	if (divisor == 0 && dividend == 0)
+	{
 		return 0;
+	}
+
 	if (divisor == 0)
+	{
 		return UINT_MAX;
+	}
+
 	return div64_u64(dividend, divisor);
 }
 
@@ -386,28 +456,38 @@ static int get_ohm_of_thermistor(struct ntc_data *data, unsigned int uv)
 
 	if (uv == 0)
 		return (pdata->connect == NTC_CONNECTED_POSITIVE) ?
-			INT_MAX : 0;
+			   INT_MAX : 0;
+
 	if (uv >= puv)
 		return (pdata->connect == NTC_CONNECTED_POSITIVE) ?
-			0 : INT_MAX;
+			   0 : INT_MAX;
 
 	if (pdata->connect == NTC_CONNECTED_POSITIVE && puo == 0)
+	{
 		n = div_u64(pdo * (puv - uv), uv);
+	}
 	else if (pdata->connect == NTC_CONNECTED_GROUND && pdo == 0)
+	{
 		n = div_u64(puo * uv, puv - uv);
+	}
 	else if (pdata->connect == NTC_CONNECTED_POSITIVE)
 		n = div64_u64_safe(pdo * puo * (puv - uv),
-				puo * uv - pdo * (puv - uv));
+						   puo * uv - pdo * (puv - uv));
 	else
+	{
 		n = div64_u64_safe(pdo * puo * uv, pdo * (puv - uv) - puo * uv);
+	}
 
 	if (n > INT_MAX)
+	{
 		n = INT_MAX;
+	}
+
 	return n;
 }
 
 static void lookup_comp(struct ntc_data *data, unsigned int ohm,
-			int *i_low, int *i_high)
+						int *i_low, int *i_high)
 {
 	int start, end, mid;
 
@@ -418,12 +498,15 @@ static void lookup_comp(struct ntc_data *data, unsigned int ohm,
 	 * In these cases, return i_low == i_high, either pointing to the
 	 * beginning or to the end of the table depending on the condition.
 	 */
-	if (ohm >= data->comp[0].ohm) {
+	if (ohm >= data->comp[0].ohm)
+	{
 		*i_low = 0;
 		*i_high = 0;
 		return;
 	}
-	if (ohm <= data->comp[data->n_comp - 1].ohm) {
+
+	if (ohm <= data->comp[data->n_comp - 1].ohm)
+	{
 		*i_low = data->n_comp - 1;
 		*i_high = data->n_comp - 1;
 		return;
@@ -432,8 +515,11 @@ static void lookup_comp(struct ntc_data *data, unsigned int ohm,
 	/* Do a binary search on compensation table */
 	start = 0;
 	end = data->n_comp;
-	while (start < end) {
+
+	while (start < end)
+	{
 		mid = start + (end - start) / 2;
+
 		/*
 		 * start <= mid < end
 		 * data->comp[start].ohm > ohm >= data->comp[end].ohm
@@ -443,10 +529,14 @@ static void lookup_comp(struct ntc_data *data, unsigned int ohm,
 		 * check again after updating start. Check it at the end instead
 		 * for simplicity.
 		 */
-		if (ohm >= data->comp[mid].ohm) {
+		if (ohm >= data->comp[mid].ohm)
+		{
 			end = mid;
-		} else {
+		}
+		else
+		{
 			start = mid + 1;
+
 			/*
 			 * ohm >= data->comp[start].ohm might be true here,
 			 * since we set start to mid + 1. In that case, we are
@@ -454,22 +544,31 @@ static void lookup_comp(struct ntc_data *data, unsigned int ohm,
 			 * likely to occur, so it is worth checking for it.
 			 */
 			if (ohm >= data->comp[start].ohm)
+			{
 				end = start;
+			}
 		}
+
 		/*
 		 * start <= end
 		 * data->comp[start].ohm >= ohm >= data->comp[end].ohm
 		 */
 	}
+
 	/*
 	 * start == end
 	 * ohm >= data->comp[end].ohm
 	 */
 	*i_low = end;
+
 	if (ohm == data->comp[end].ohm)
+	{
 		*i_high = end;
+	}
 	else
+	{
 		*i_high = end - 1;
+	}
 }
 
 static int get_temp_mc(struct ntc_data *data, unsigned int ohm)
@@ -478,15 +577,20 @@ static int get_temp_mc(struct ntc_data *data, unsigned int ohm)
 	int temp;
 
 	lookup_comp(data, ohm, &low, &high);
-	if (low == high) {
+
+	if (low == high)
+	{
 		/* Unable to use linear approximation */
 		temp = data->comp[low].temp_c * 1000;
-	} else {
-		temp = data->comp[low].temp_c * 1000 +
-			((data->comp[high].temp_c - data->comp[low].temp_c) *
-			 1000 * ((int)ohm - (int)data->comp[low].ohm)) /
-			((int)data->comp[high].ohm - (int)data->comp[low].ohm);
 	}
+	else
+	{
+		temp = data->comp[low].temp_c * 1000 +
+			   ((data->comp[high].temp_c - data->comp[low].temp_c) *
+				1000 * ((int)ohm - (int)data->comp[low].ohm)) /
+			   ((int)data->comp[high].ohm - (int)data->comp[low].ohm);
+	}
+
 	return temp;
 }
 
@@ -495,14 +599,22 @@ static int ntc_thermistor_get_ohm(struct ntc_data *data)
 	int read_uv;
 
 	if (data->pdata->read_ohm)
+	{
 		return data->pdata->read_ohm();
+	}
 
-	if (data->pdata->read_uv) {
+	if (data->pdata->read_uv)
+	{
 		read_uv = data->pdata->read_uv(data->pdata);
+
 		if (read_uv < 0)
+		{
 			return read_uv;
+		}
+
 		return get_ohm_of_thermistor(data, read_uv);
 	}
+
 	return -EINVAL;
 }
 
@@ -511,8 +623,11 @@ static int ntc_read_temp(void *data, int *temp)
 	int ohm;
 
 	ohm = ntc_thermistor_get_ohm(data);
+
 	if (ohm < 0)
+	{
 		return ohm;
+	}
 
 	*temp = get_temp_mc(data, ohm);
 
@@ -520,20 +635,23 @@ static int ntc_read_temp(void *data, int *temp)
 }
 
 static ssize_t ntc_show_type(struct device *dev,
-		struct device_attribute *attr, char *buf)
+							 struct device_attribute *attr, char *buf)
 {
 	return sprintf(buf, "4\n");
 }
 
 static ssize_t ntc_show_temp(struct device *dev,
-		struct device_attribute *attr, char *buf)
+							 struct device_attribute *attr, char *buf)
 {
 	struct ntc_data *data = dev_get_drvdata(dev);
 	int ohm;
 
 	ohm = ntc_thermistor_get_ohm(data);
+
 	if (ohm < 0)
+	{
 		return ohm;
+	}
 
 	return sprintf(buf, "%d\n", get_temp_mc(data, ohm));
 }
@@ -541,14 +659,16 @@ static ssize_t ntc_show_temp(struct device *dev,
 static SENSOR_DEVICE_ATTR(temp1_type, S_IRUGO, ntc_show_type, NULL, 0);
 static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, ntc_show_temp, NULL, 0);
 
-static struct attribute *ntc_attrs[] = {
+static struct attribute *ntc_attrs[] =
+{
 	&sensor_dev_attr_temp1_type.dev_attr.attr,
 	&sensor_dev_attr_temp1_input.dev_attr.attr,
 	NULL,
 };
 ATTRIBUTE_GROUPS(ntc);
 
-static const struct thermal_zone_of_device_ops ntc_of_thermal_ops = {
+static const struct thermal_zone_of_device_ops ntc_of_thermal_ops =
+{
 	.get_temp = ntc_read_temp,
 };
 
@@ -557,101 +677,125 @@ static int ntc_thermistor_probe(struct platform_device *pdev)
 	struct thermal_zone_device *tz;
 	struct device *dev = &pdev->dev;
 	const struct of_device_id *of_id =
-			of_match_device(of_match_ptr(ntc_match), dev);
+		of_match_device(of_match_ptr(ntc_match), dev);
 	const struct platform_device_id *pdev_id;
 	struct ntc_thermistor_platform_data *pdata;
 	struct device *hwmon_dev;
 	struct ntc_data *data;
 
 	pdata = ntc_thermistor_parse_dt(dev);
-	if (IS_ERR(pdata))
-		return PTR_ERR(pdata);
-	else if (pdata == NULL)
-		pdata = dev_get_platdata(dev);
 
-	if (!pdata) {
+	if (IS_ERR(pdata))
+	{
+		return PTR_ERR(pdata);
+	}
+	else if (pdata == NULL)
+	{
+		pdata = dev_get_platdata(dev);
+	}
+
+	if (!pdata)
+	{
 		dev_err(dev, "No platform init data supplied.\n");
 		return -ENODEV;
 	}
 
 	/* Either one of the two is required. */
-	if (!pdata->read_uv && !pdata->read_ohm) {
+	if (!pdata->read_uv && !pdata->read_ohm)
+	{
 		dev_err(dev,
-			"Both read_uv and read_ohm missing. Need either one of the two.\n");
+				"Both read_uv and read_ohm missing. Need either one of the two.\n");
 		return -EINVAL;
 	}
 
-	if (pdata->read_uv && pdata->read_ohm) {
+	if (pdata->read_uv && pdata->read_ohm)
+	{
 		dev_warn(dev,
-			 "Only one of read_uv and read_ohm is needed; ignoring read_uv.\n");
+				 "Only one of read_uv and read_ohm is needed; ignoring read_uv.\n");
 		pdata->read_uv = NULL;
 	}
 
 	if (pdata->read_uv && (pdata->pullup_uv == 0 ||
-				(pdata->pullup_ohm == 0 && pdata->connect ==
-				 NTC_CONNECTED_GROUND) ||
-				(pdata->pulldown_ohm == 0 && pdata->connect ==
-				 NTC_CONNECTED_POSITIVE) ||
-				(pdata->connect != NTC_CONNECTED_POSITIVE &&
-				 pdata->connect != NTC_CONNECTED_GROUND))) {
+						   (pdata->pullup_ohm == 0 && pdata->connect ==
+							NTC_CONNECTED_GROUND) ||
+						   (pdata->pulldown_ohm == 0 && pdata->connect ==
+							NTC_CONNECTED_POSITIVE) ||
+						   (pdata->connect != NTC_CONNECTED_POSITIVE &&
+							pdata->connect != NTC_CONNECTED_GROUND)))
+	{
 		dev_err(dev, "Required data to use read_uv not supplied.\n");
 		return -EINVAL;
 	}
 
 	data = devm_kzalloc(dev, sizeof(struct ntc_data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	pdev_id = of_id ? of_id->data : platform_get_device_id(pdev);
 
 	data->pdata = pdata;
 
-	switch (pdev_id->driver_data) {
-	case TYPE_NCPXXWB473:
-		data->comp = ncpXXwb473;
-		data->n_comp = ARRAY_SIZE(ncpXXwb473);
-		break;
-	case TYPE_NCPXXWL333:
-		data->comp = ncpXXwl333;
-		data->n_comp = ARRAY_SIZE(ncpXXwl333);
-		break;
-	case TYPE_B57330V2103:
-		data->comp = b57330v2103;
-		data->n_comp = ARRAY_SIZE(b57330v2103);
-		break;
-	case TYPE_NCPXXWF104:
-		data->comp = ncpXXwf104;
-		data->n_comp = ARRAY_SIZE(ncpXXwf104);
-		break;
-	case TYPE_NCPXXXH103:
-		data->comp = ncpXXxh103;
-		data->n_comp = ARRAY_SIZE(ncpXXxh103);
-		break;
-	default:
-		dev_err(dev, "Unknown device type: %lu(%s)\n",
-				pdev_id->driver_data, pdev_id->name);
-		return -EINVAL;
+	switch (pdev_id->driver_data)
+	{
+		case TYPE_NCPXXWB473:
+			data->comp = ncpXXwb473;
+			data->n_comp = ARRAY_SIZE(ncpXXwb473);
+			break;
+
+		case TYPE_NCPXXWL333:
+			data->comp = ncpXXwl333;
+			data->n_comp = ARRAY_SIZE(ncpXXwl333);
+			break;
+
+		case TYPE_B57330V2103:
+			data->comp = b57330v2103;
+			data->n_comp = ARRAY_SIZE(b57330v2103);
+			break;
+
+		case TYPE_NCPXXWF104:
+			data->comp = ncpXXwf104;
+			data->n_comp = ARRAY_SIZE(ncpXXwf104);
+			break;
+
+		case TYPE_NCPXXXH103:
+			data->comp = ncpXXxh103;
+			data->n_comp = ARRAY_SIZE(ncpXXxh103);
+			break;
+
+		default:
+			dev_err(dev, "Unknown device type: %lu(%s)\n",
+					pdev_id->driver_data, pdev_id->name);
+			return -EINVAL;
 	}
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, pdev_id->name,
-							   data, ntc_groups);
-	if (IS_ERR(hwmon_dev)) {
+				data, ntc_groups);
+
+	if (IS_ERR(hwmon_dev))
+	{
 		dev_err(dev, "unable to register as hwmon device.\n");
 		return PTR_ERR(hwmon_dev);
 	}
 
 	dev_info(dev, "Thermistor type: %s successfully probed.\n",
-		 pdev_id->name);
+			 pdev_id->name);
 
 	tz = devm_thermal_zone_of_sensor_register(dev, 0, data,
-						  &ntc_of_thermal_ops);
+			&ntc_of_thermal_ops);
+
 	if (IS_ERR(tz))
+	{
 		dev_dbg(dev, "Failed to register to thermal fw.\n");
+	}
 
 	return 0;
 }
 
-static struct platform_driver ntc_thermistor_driver = {
+static struct platform_driver ntc_thermistor_driver =
+{
 	.driver = {
 		.name = "ntc-thermistor",
 		.of_match_table = of_match_ptr(ntc_match),

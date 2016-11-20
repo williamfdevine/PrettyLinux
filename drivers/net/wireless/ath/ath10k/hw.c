@@ -18,7 +18,8 @@
 #include "core.h"
 #include "hw.h"
 
-const struct ath10k_hw_regs qca988x_regs = {
+const struct ath10k_hw_regs qca988x_regs =
+{
 	.rtc_soc_base_address		= 0x00004000,
 	.rtc_wmac_base_address		= 0x00005000,
 	.soc_core_base_address		= 0x00009000,
@@ -44,7 +45,8 @@ const struct ath10k_hw_regs qca988x_regs = {
 	.pcie_intr_clr_address		= 0x00000014,
 };
 
-const struct ath10k_hw_regs qca6174_regs = {
+const struct ath10k_hw_regs qca6174_regs =
+{
 	.rtc_soc_base_address			= 0x00000800,
 	.rtc_wmac_base_address			= 0x00001000,
 	.soc_core_base_address			= 0x0003a000,
@@ -70,7 +72,8 @@ const struct ath10k_hw_regs qca6174_regs = {
 	.pcie_intr_clr_address			= 0x00000014,
 };
 
-const struct ath10k_hw_regs qca99x0_regs = {
+const struct ath10k_hw_regs qca99x0_regs =
+{
 	.rtc_soc_base_address			= 0x00080000,
 	.rtc_wmac_base_address			= 0x00000000,
 	.soc_core_base_address			= 0x00082000,
@@ -106,7 +109,8 @@ const struct ath10k_hw_regs qca99x0_regs = {
 	.pcie_intr_clr_address			= 0x00000010,
 };
 
-const struct ath10k_hw_regs qca4019_regs = {
+const struct ath10k_hw_regs qca4019_regs =
+{
 	.rtc_soc_base_address                   = 0x00080000,
 	.soc_core_base_address                  = 0x00082000,
 	.ce_wrapper_base_address                = 0x0004d000,
@@ -138,7 +142,8 @@ const struct ath10k_hw_regs qca4019_regs = {
 	.pcie_intr_clr_address                  = 0x00000010,
 };
 
-const struct ath10k_hw_values qca988x_values = {
+const struct ath10k_hw_values qca988x_values =
+{
 	.rtc_state_val_on		= 3,
 	.ce_count			= 8,
 	.msi_assign_ce_max		= 7,
@@ -147,7 +152,8 @@ const struct ath10k_hw_values qca988x_values = {
 	.ce_desc_meta_data_lsb		= 2,
 };
 
-const struct ath10k_hw_values qca6174_values = {
+const struct ath10k_hw_values qca6174_values =
+{
 	.rtc_state_val_on		= 3,
 	.ce_count			= 8,
 	.msi_assign_ce_max		= 7,
@@ -156,7 +162,8 @@ const struct ath10k_hw_values qca6174_values = {
 	.ce_desc_meta_data_lsb		= 2,
 };
 
-const struct ath10k_hw_values qca99x0_values = {
+const struct ath10k_hw_values qca99x0_values =
+{
 	.rtc_state_val_on		= 5,
 	.ce_count			= 12,
 	.msi_assign_ce_max		= 12,
@@ -165,7 +172,8 @@ const struct ath10k_hw_values qca99x0_values = {
 	.ce_desc_meta_data_lsb		= 4,
 };
 
-const struct ath10k_hw_values qca9888_values = {
+const struct ath10k_hw_values qca9888_values =
+{
 	.rtc_state_val_on		= 3,
 	.ce_count			= 12,
 	.msi_assign_ce_max		= 12,
@@ -174,7 +182,8 @@ const struct ath10k_hw_values qca9888_values = {
 	.ce_desc_meta_data_lsb		= 4,
 };
 
-const struct ath10k_hw_values qca4019_values = {
+const struct ath10k_hw_values qca4019_values =
+{
 	.ce_count                       = 12,
 	.num_target_ce_config_wlan      = 10,
 	.ce_desc_meta_data_mask         = 0xFFF0,
@@ -182,34 +191,45 @@ const struct ath10k_hw_values qca4019_values = {
 };
 
 void ath10k_hw_fill_survey_time(struct ath10k *ar, struct survey_info *survey,
-				u32 cc, u32 rcc, u32 cc_prev, u32 rcc_prev)
+								u32 cc, u32 rcc, u32 cc_prev, u32 rcc_prev)
 {
 	u32 cc_fix = 0;
 	u32 rcc_fix = 0;
 	enum ath10k_hw_cc_wraparound_type wraparound_type;
 
 	survey->filled |= SURVEY_INFO_TIME |
-			  SURVEY_INFO_TIME_BUSY;
+					  SURVEY_INFO_TIME_BUSY;
 
 	wraparound_type = ar->hw_params.cc_wraparound_type;
 
-	if (cc < cc_prev || rcc < rcc_prev) {
-		switch (wraparound_type) {
-		case ATH10K_HW_CC_WRAP_SHIFTED_ALL:
-			if (cc < cc_prev) {
-				cc_fix = 0x7fffffff;
-				survey->filled &= ~SURVEY_INFO_TIME_BUSY;
-			}
-			break;
-		case ATH10K_HW_CC_WRAP_SHIFTED_EACH:
-			if (cc < cc_prev)
-				cc_fix = 0x7fffffff;
+	if (cc < cc_prev || rcc < rcc_prev)
+	{
+		switch (wraparound_type)
+		{
+			case ATH10K_HW_CC_WRAP_SHIFTED_ALL:
+				if (cc < cc_prev)
+				{
+					cc_fix = 0x7fffffff;
+					survey->filled &= ~SURVEY_INFO_TIME_BUSY;
+				}
 
-			if (rcc < rcc_prev)
-				rcc_fix = 0x7fffffff;
-			break;
-		case ATH10K_HW_CC_WRAP_DISABLED:
-			break;
+				break;
+
+			case ATH10K_HW_CC_WRAP_SHIFTED_EACH:
+				if (cc < cc_prev)
+				{
+					cc_fix = 0x7fffffff;
+				}
+
+				if (rcc < rcc_prev)
+				{
+					rcc_fix = 0x7fffffff;
+				}
+
+				break;
+
+			case ATH10K_HW_CC_WRAP_DISABLED:
+				break;
 		}
 	}
 
@@ -220,15 +240,17 @@ void ath10k_hw_fill_survey_time(struct ath10k *ar, struct survey_info *survey,
 	survey->time_busy = CCNT_TO_MSEC(ar, rcc);
 }
 
-const struct ath10k_hw_ops qca988x_ops = {
+const struct ath10k_hw_ops qca988x_ops =
+{
 };
 
 static int ath10k_qca99x0_rx_desc_get_l3_pad_bytes(struct htt_rx_desc *rxd)
 {
 	return MS(__le32_to_cpu(rxd->msdu_end.qca99x0.info1),
-		  RX_MSDU_END_INFO1_L3_HDR_PAD);
+			  RX_MSDU_END_INFO1_L3_HDR_PAD);
 }
 
-const struct ath10k_hw_ops qca99x0_ops = {
+const struct ath10k_hw_ops qca99x0_ops =
+{
 	.rx_desc_get_l3_pad_bytes = ath10k_qca99x0_rx_desc_get_l3_pad_bytes,
 };

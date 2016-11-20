@@ -27,7 +27,8 @@
 #include <nvif/class.h>
 
 static const struct nv50_disp_mthd_list
-gk104_disp_core_mthd_head = {
+	gk104_disp_core_mthd_head =
+{
 	.mthd = 0x0300,
 	.addr = 0x000300,
 	.data = {
@@ -106,7 +107,8 @@ gk104_disp_core_mthd_head = {
 };
 
 const struct nv50_disp_chan_mthd
-gk104_disp_core_chan_mthd = {
+	gk104_disp_core_chan_mthd =
+{
 	.name = "Core",
 	.addr = 0x000000,
 	.prev = -0x020000,
@@ -121,7 +123,8 @@ gk104_disp_core_chan_mthd = {
 };
 
 const struct nv50_disp_dmac_oclass
-gk104_disp_core_oclass = {
+	gk104_disp_core_oclass =
+{
 	.base.oclass = GK104_DISP_CORE_CHANNEL_DMA,
 	.base.minver = 0,
 	.base.maxver = 0,

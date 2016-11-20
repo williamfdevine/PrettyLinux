@@ -24,14 +24,14 @@
 
 #include <sound/pcm.h>
 
-int snd_pcm_hw_param_first(struct snd_pcm_substream *pcm, 
-			   struct snd_pcm_hw_params *params,
-			   snd_pcm_hw_param_t var, int *dir);
-int snd_pcm_hw_param_last(struct snd_pcm_substream *pcm, 
-			  struct snd_pcm_hw_params *params,
-			  snd_pcm_hw_param_t var, int *dir);
+int snd_pcm_hw_param_first(struct snd_pcm_substream *pcm,
+						   struct snd_pcm_hw_params *params,
+						   snd_pcm_hw_param_t var, int *dir);
+int snd_pcm_hw_param_last(struct snd_pcm_substream *pcm,
+						  struct snd_pcm_hw_params *params,
+						  snd_pcm_hw_param_t var, int *dir);
 int snd_pcm_hw_param_value(const struct snd_pcm_hw_params *params,
-			   snd_pcm_hw_param_t var, int *dir);
+						   snd_pcm_hw_param_t var, int *dir);
 
 #define SNDRV_MASK_BITS	64	/* we use so far 64bits only */
 #define SNDRV_MASK_SIZE	(SNDRV_MASK_BITS / 32)
@@ -56,29 +56,43 @@ static inline void snd_mask_any(struct snd_mask *mask)
 static inline int snd_mask_empty(const struct snd_mask *mask)
 {
 	int i;
+
 	for (i = 0; i < SNDRV_MASK_SIZE; i++)
 		if (mask->bits[i])
+		{
 			return 0;
+		}
+
 	return 1;
 }
 
 static inline unsigned int snd_mask_min(const struct snd_mask *mask)
 {
 	int i;
-	for (i = 0; i < SNDRV_MASK_SIZE; i++) {
+
+	for (i = 0; i < SNDRV_MASK_SIZE; i++)
+	{
 		if (mask->bits[i])
+		{
 			return __ffs(mask->bits[i]) + (i << 5);
+		}
 	}
+
 	return 0;
 }
 
 static inline unsigned int snd_mask_max(const struct snd_mask *mask)
 {
 	int i;
-	for (i = SNDRV_MASK_SIZE - 1; i >= 0; i--) {
+
+	for (i = SNDRV_MASK_SIZE - 1; i >= 0; i--)
+	{
 		if (mask->bits[i])
+		{
 			return __fls(mask->bits[i]) + (i << 5);
+		}
 	}
+
 	return 0;
 }
 
@@ -93,19 +107,25 @@ static inline void snd_mask_reset(struct snd_mask *mask, unsigned int val)
 }
 
 static inline void snd_mask_set_range(struct snd_mask *mask,
-				      unsigned int from, unsigned int to)
+									  unsigned int from, unsigned int to)
 {
 	unsigned int i;
+
 	for (i = from; i <= to; i++)
+	{
 		mask->bits[MASK_OFS(i)] |= MASK_BIT(i);
+	}
 }
 
 static inline void snd_mask_reset_range(struct snd_mask *mask,
-					unsigned int from, unsigned int to)
+										unsigned int from, unsigned int to)
 {
 	unsigned int i;
+
 	for (i = from; i <= to; i++)
+	{
 		mask->bits[MASK_OFS(i)] &= ~MASK_BIT(i);
+	}
 }
 
 static inline void snd_mask_leave(struct snd_mask *mask, unsigned int val)
@@ -117,21 +137,24 @@ static inline void snd_mask_leave(struct snd_mask *mask, unsigned int val)
 }
 
 static inline void snd_mask_intersect(struct snd_mask *mask,
-				      const struct snd_mask *v)
+									  const struct snd_mask *v)
 {
 	int i;
+
 	for (i = 0; i < SNDRV_MASK_SIZE; i++)
+	{
 		mask->bits[i] &= v->bits[i];
+	}
 }
 
 static inline int snd_mask_eq(const struct snd_mask *mask,
-			      const struct snd_mask *v)
+							  const struct snd_mask *v)
 {
 	return ! memcmp(mask, v, SNDRV_MASK_SIZE * sizeof(u_int32_t));
 }
 
 static inline void snd_mask_copy(struct snd_mask *mask,
-				 const struct snd_mask *v)
+								 const struct snd_mask *v)
 {
 	*mask = *v;
 }
@@ -144,33 +167,52 @@ static inline int snd_mask_test(const struct snd_mask *mask, unsigned int val)
 static inline int snd_mask_single(const struct snd_mask *mask)
 {
 	int i, c = 0;
-	for (i = 0; i < SNDRV_MASK_SIZE; i++) {
+
+	for (i = 0; i < SNDRV_MASK_SIZE; i++)
+	{
 		if (! mask->bits[i])
+		{
 			continue;
+		}
+
 		if (mask->bits[i] & (mask->bits[i] - 1))
+		{
 			return 0;
+		}
+
 		if (c)
+		{
 			return 0;
+		}
+
 		c++;
 	}
+
 	return 1;
 }
 
 static inline int snd_mask_refine(struct snd_mask *mask,
-				  const struct snd_mask *v)
+								  const struct snd_mask *v)
 {
 	struct snd_mask old;
 	snd_mask_copy(&old, mask);
 	snd_mask_intersect(mask, v);
+
 	if (snd_mask_empty(mask))
+	{
 		return -EINVAL;
+	}
+
 	return !snd_mask_eq(mask, &old);
 }
 
 static inline int snd_mask_refine_first(struct snd_mask *mask)
 {
 	if (snd_mask_single(mask))
+	{
 		return 0;
+	}
+
 	snd_mask_leave(mask, snd_mask_min(mask));
 	return 1;
 }
@@ -178,7 +220,10 @@ static inline int snd_mask_refine_first(struct snd_mask *mask)
 static inline int snd_mask_refine_last(struct snd_mask *mask)
 {
 	if (snd_mask_single(mask))
+	{
 		return 0;
+	}
+
 	snd_mask_leave(mask, snd_mask_max(mask));
 	return 1;
 }
@@ -186,20 +231,34 @@ static inline int snd_mask_refine_last(struct snd_mask *mask)
 static inline int snd_mask_refine_min(struct snd_mask *mask, unsigned int val)
 {
 	if (snd_mask_min(mask) >= val)
+	{
 		return 0;
+	}
+
 	snd_mask_reset_range(mask, 0, val - 1);
+
 	if (snd_mask_empty(mask))
+	{
 		return -EINVAL;
+	}
+
 	return 1;
 }
 
 static inline int snd_mask_refine_max(struct snd_mask *mask, unsigned int val)
 {
 	if (snd_mask_max(mask) <= val)
+	{
 		return 0;
+	}
+
 	snd_mask_reset_range(mask, val + 1, SNDRV_MASK_BITS);
+
 	if (snd_mask_empty(mask))
+	{
 		return -EINVAL;
+	}
+
 	return 1;
 }
 
@@ -208,8 +267,12 @@ static inline int snd_mask_refine_set(struct snd_mask *mask, unsigned int val)
 	int changed;
 	changed = !snd_mask_single(mask);
 	snd_mask_leave(mask, val);
+
 	if (snd_mask_empty(mask))
+	{
 		return -EINVAL;
+	}
+
 	return changed;
 }
 
@@ -236,7 +299,7 @@ static inline void snd_interval_none(struct snd_interval *i)
 static inline int snd_interval_checkempty(const struct snd_interval *i)
 {
 	return (i->min > i->max ||
-		(i->min == i->max && (i->openmin || i->openmax)));
+			(i->min == i->max && (i->openmin || i->openmax)));
 }
 
 static inline int snd_interval_empty(const struct snd_interval *i)
@@ -246,8 +309,8 @@ static inline int snd_interval_empty(const struct snd_interval *i)
 
 static inline int snd_interval_single(const struct snd_interval *i)
 {
-	return (i->min == i->max || 
-		(i->min + 1 == i->max && i->openmax));
+	return (i->min == i->max ||
+			(i->min + 1 == i->max && i->openmax));
 }
 
 static inline int snd_interval_value(const struct snd_interval *i)
@@ -264,15 +327,19 @@ static inline int snd_interval_max(const struct snd_interval *i)
 {
 	unsigned int v;
 	v = i->max;
+
 	if (i->openmax)
+	{
 		v--;
+	}
+
 	return v;
 }
 
 static inline int snd_interval_test(const struct snd_interval *i, unsigned int val)
 {
 	return !((i->min > val || (i->min == val && i->openmin) ||
-		  i->max < val || (i->max == val && i->openmax)));
+			  i->max < val || (i->max == val && i->openmax)));
 }
 
 static inline void snd_interval_copy(struct snd_interval *d, const struct snd_interval *s)
@@ -283,9 +350,15 @@ static inline void snd_interval_copy(struct snd_interval *d, const struct snd_in
 static inline int snd_interval_setinteger(struct snd_interval *i)
 {
 	if (i->integer)
+	{
 		return 0;
+	}
+
 	if (i->openmin && i->openmax && i->min == i->max)
+	{
 		return -EINVAL;
+	}
+
 	i->integer = 1;
 	return 1;
 }
@@ -293,11 +366,17 @@ static inline int snd_interval_setinteger(struct snd_interval *i)
 static inline int snd_interval_eq(const struct snd_interval *i1, const struct snd_interval *i2)
 {
 	if (i1->empty)
+	{
 		return i2->empty;
+	}
+
 	if (i2->empty)
+	{
 		return i1->empty;
+	}
+
 	return i1->min == i2->min && i1->openmin == i2->openmin &&
-		i1->max == i2->max && i1->openmax == i2->openmax;
+		   i1->max == i2->max && i1->openmax == i2->openmax;
 }
 
 /**
@@ -307,7 +386,7 @@ static inline int snd_interval_eq(const struct snd_interval *i1, const struct sn
 static inline snd_pcm_access_t params_access(const struct snd_pcm_hw_params *p)
 {
 	return (__force snd_pcm_access_t)snd_mask_min(hw_param_mask_c(p,
-		SNDRV_PCM_HW_PARAM_ACCESS));
+			SNDRV_PCM_HW_PARAM_ACCESS));
 }
 
 /**
@@ -317,7 +396,7 @@ static inline snd_pcm_access_t params_access(const struct snd_pcm_hw_params *p)
 static inline snd_pcm_format_t params_format(const struct snd_pcm_hw_params *p)
 {
 	return (__force snd_pcm_format_t)snd_mask_min(hw_param_mask_c(p,
-		SNDRV_PCM_HW_PARAM_FORMAT));
+			SNDRV_PCM_HW_PARAM_FORMAT));
 }
 
 /**
@@ -328,7 +407,7 @@ static inline snd_pcm_subformat_t
 params_subformat(const struct snd_pcm_hw_params *p)
 {
 	return (__force snd_pcm_subformat_t)snd_mask_min(hw_param_mask_c(p,
-		SNDRV_PCM_HW_PARAM_SUBFORMAT));
+			SNDRV_PCM_HW_PARAM_SUBFORMAT));
 }
 
 /**
@@ -370,7 +449,7 @@ static inline void
 params_set_format(struct snd_pcm_hw_params *p, snd_pcm_format_t fmt)
 {
 	snd_mask_set(hw_param_mask(p, SNDRV_PCM_HW_PARAM_FORMAT),
-		(__force int)fmt);
+				 (__force int)fmt);
 }
 
 #endif /* __SOUND_PCM_PARAMS_H */

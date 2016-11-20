@@ -18,13 +18,15 @@ struct pcmcia_device;
 struct ssb_bus;
 struct ssb_driver;
 
-struct ssb_sprom_core_pwr_info {
+struct ssb_sprom_core_pwr_info
+{
 	u8 itssi_2g, itssi_5g;
 	u8 maxpwr_2g, maxpwr_5gl, maxpwr_5g, maxpwr_5gh;
 	u16 pa_2g[4], pa_5gl[4], pa_5g[4], pa_5gh[4];
 };
 
-struct ssb_sprom {
+struct ssb_sprom
+{
 	u8 revision;
 	u8 il0mac[6] __aligned(sizeof(u16));	/* MAC address for 802.11b/g */
 	u8 et0mac[6] __aligned(sizeof(u16));	/* MAC address for Ethernet */
@@ -105,15 +107,19 @@ struct ssb_sprom {
 	/* Antenna gain values for up to 4 antennas
 	 * on each band. Values in dBm/4 (Q5.2). Negative gain means the
 	 * loss in the connectors is bigger than the gain. */
-	struct {
+	struct
+	{
 		s8 a0, a1, a2, a3;
 	} antenna_gain;
 
-	struct {
-		struct {
+	struct
+	{
+		struct
+		{
 			u8 tssipos, extpa_gain, pdet_range, tr_iso, antswlut;
 		} ghz2;
-		struct {
+		struct
+		{
 			u8 tssipos, extpa_gain, pdet_range, tr_iso, antswlut;
 		} ghz5;
 	} fem;
@@ -194,7 +200,8 @@ struct ssb_sprom {
 };
 
 /* Information about the PCB the circuitry is soldered on. */
-struct ssb_boardinfo {
+struct ssb_boardinfo
+{
 	u16 vendor;
 	u16 type;
 };
@@ -203,7 +210,8 @@ struct ssb_boardinfo {
 struct ssb_device;
 /* Lowlevel read/write operations on the device MMIO.
  * Internal, don't use that outside of ssb. */
-struct ssb_bus_ops {
+struct ssb_bus_ops
+{
 	u8 (*read8)(struct ssb_device *dev, u16 offset);
 	u16 (*read16)(struct ssb_device *dev, u16 offset);
 	u32 (*read32)(struct ssb_device *dev, u16 offset);
@@ -212,9 +220,9 @@ struct ssb_bus_ops {
 	void (*write32)(struct ssb_device *dev, u16 offset, u32 value);
 #ifdef CONFIG_SSB_BLOCKIO
 	void (*block_read)(struct ssb_device *dev, void *buffer,
-			   size_t count, u16 offset, u8 reg_width);
+					   size_t count, u16 offset, u8 reg_width);
 	void (*block_write)(struct ssb_device *dev, const void *buffer,
-			    size_t count, u16 offset, u8 reg_width);
+						size_t count, u16 offset, u8 reg_width);
 #endif
 };
 
@@ -259,12 +267,14 @@ struct ssb_bus_ops {
 
 /* Some kernel subsystems poke with dev->drvdata, so we must use the
  * following ugly workaround to get from struct device to struct ssb_device */
-struct __ssb_dev_wrapper {
+struct __ssb_dev_wrapper
+{
 	struct device dev;
 	struct ssb_device *sdev;
 };
 
-struct ssb_device {
+struct ssb_device
+{
 	/* Having a copy of the ops pointer in each dev struct
 	 * is an optimization. */
 	const struct ssb_bus_ops *ops;
@@ -284,7 +294,7 @@ struct ssb_device {
 
 /* Go from struct device to struct ssb_device. */
 static inline
-struct ssb_device * dev_to_ssb_dev(struct device *dev)
+struct ssb_device *dev_to_ssb_dev(struct device *dev)
 {
 	struct __ssb_dev_wrapper *wrap;
 	wrap = container_of(dev, struct __ssb_dev_wrapper, dev);
@@ -298,7 +308,7 @@ void ssb_set_drvdata(struct ssb_device *dev, void *data)
 	dev->drvdata = data;
 }
 static inline
-void * ssb_get_drvdata(struct ssb_device *dev)
+void *ssb_get_drvdata(struct ssb_device *dev)
 {
 	return dev->drvdata;
 }
@@ -306,13 +316,14 @@ void * ssb_get_drvdata(struct ssb_device *dev)
 /* Devicetype specific user data. This is per device-type (not per device) */
 void ssb_set_devtypedata(struct ssb_device *dev, void *data);
 static inline
-void * ssb_get_devtypedata(struct ssb_device *dev)
+void *ssb_get_devtypedata(struct ssb_device *dev)
 {
 	return dev->devtypedata;
 }
 
 
-struct ssb_driver {
+struct ssb_driver
+{
 	const char *name;
 	const struct ssb_device_id *id_table;
 
@@ -335,7 +346,8 @@ extern void ssb_driver_unregister(struct ssb_driver *drv);
 
 
 
-enum ssb_bustype {
+enum ssb_bustype
+{
 	SSB_BUSTYPE_SSB,	/* This SSB bus is the system bus */
 	SSB_BUSTYPE_PCI,	/* SSB is connected to PCI bus */
 	SSB_BUSTYPE_PCMCIA,	/* SSB is connected to PCMCIA bus */
@@ -412,7 +424,8 @@ enum ssb_bustype {
 #include <linux/ssb/ssb_driver_extif.h>
 #include <linux/ssb/ssb_driver_pci.h>
 
-struct ssb_bus {
+struct ssb_bus
+{
 	/* The MMIO area. */
 	void __iomem *mmio;
 
@@ -421,7 +434,8 @@ struct ssb_bus {
 	/* The core currently mapped into the MMIO window.
 	 * Not valid on all host-buses. So don't use outside of SSB. */
 	struct ssb_device *mapped_device;
-	union {
+	union
+	{
 		/* Currently mapped PCMCIA segment. (bustype == SSB_BUSTYPE_PCMCIA only) */
 		u8 mapped_pcmcia_seg;
 		/* Current SSB base address window for SDIO. */
@@ -434,7 +448,8 @@ struct ssb_bus {
 	/* The host-bus this backplane is running on. */
 	enum ssb_bustype bustype;
 	/* Pointers to the host-bus. Check bustype before using any of these pointers. */
-	union {
+	union
+	{
 		/* Pointer to the PCI bus (only valid if bustype == SSB_BUSTYPE_PCI). */
 		struct pci_dev *host_pci;
 		/* Pointer to the PCMCIA device (only if bustype == SSB_BUSTYPE_PCMCIA). */
@@ -505,13 +520,15 @@ struct ssb_bus {
 #endif /* DEBUG */
 };
 
-enum ssb_quirks {
+enum ssb_quirks
+{
 	/* SDIO connected card requires performing a read after writing a 32-bit value */
 	SSB_QUIRK_SDIO_READ_AFTER_WRITE32	= (1 << 0),
 };
 
 /* The initialization-invariants. */
-struct ssb_init_invariants {
+struct ssb_init_invariants
+{
 	/* Versioning information about the PCB. */
 	struct ssb_boardinfo boardinfo;
 	/* The SPROM information. That's either stored in an
@@ -522,24 +539,24 @@ struct ssb_init_invariants {
 };
 /* Type of function to fetch the invariants. */
 typedef int (*ssb_invariants_func_t)(struct ssb_bus *bus,
-				     struct ssb_init_invariants *iv);
+									 struct ssb_init_invariants *iv);
 
 /* Register SoC bus. */
 extern int ssb_bus_host_soc_register(struct ssb_bus *bus,
-				     unsigned long baseaddr);
+									 unsigned long baseaddr);
 #ifdef CONFIG_SSB_PCIHOST
 extern int ssb_bus_pcibus_register(struct ssb_bus *bus,
-				   struct pci_dev *host_pci);
+								   struct pci_dev *host_pci);
 #endif /* CONFIG_SSB_PCIHOST */
 #ifdef CONFIG_SSB_PCMCIAHOST
 extern int ssb_bus_pcmciabus_register(struct ssb_bus *bus,
-				      struct pcmcia_device *pcmcia_dev,
-				      unsigned long baseaddr);
+									  struct pcmcia_device *pcmcia_dev,
+									  unsigned long baseaddr);
 #endif /* CONFIG_SSB_PCMCIAHOST */
 #ifdef CONFIG_SSB_SDIOHOST
 extern int ssb_bus_sdiobus_register(struct ssb_bus *bus,
-				    struct sdio_func *sdio_func,
-				    unsigned int quirks);
+									struct sdio_func *sdio_func,
+									unsigned int quirks);
 #endif /* CONFIG_SSB_SDIOHOST */
 
 
@@ -551,8 +568,8 @@ extern bool ssb_is_sprom_available(struct ssb_bus *bus);
 /* Set a fallback SPROM.
  * See kdoc at the function definition for complete documentation. */
 extern int ssb_arch_register_fallback_sprom(
-		int (*sprom_callback)(struct ssb_bus *bus,
-		struct ssb_sprom *out));
+	int (*sprom_callback)(struct ssb_bus *bus,
+						  struct ssb_sprom *out));
 
 /* Suspend a SSB bus.
  * Call this from the parent bus suspend routine. */
@@ -599,13 +616,13 @@ static inline void ssb_write32(struct ssb_device *dev, u16 offset, u32 value)
 }
 #ifdef CONFIG_SSB_BLOCKIO
 static inline void ssb_block_read(struct ssb_device *dev, void *buffer,
-				  size_t count, u16 offset, u8 reg_width)
+								  size_t count, u16 offset, u8 reg_width)
 {
 	dev->ops->block_read(dev, buffer, count, offset, reg_width);
 }
 
 static inline void ssb_block_write(struct ssb_device *dev, const void *buffer,
-				   size_t count, u16 offset, u8 reg_width)
+								   size_t count, u16 offset, u8 reg_width)
 {
 	dev->ops->block_write(dev, buffer, count, offset, reg_width);
 }
@@ -626,7 +643,7 @@ static inline void __cold __ssb_dma_not_implemented(struct ssb_device *dev)
 {
 #ifdef CONFIG_SSB_DEBUG
 	printk(KERN_ERR "SSB: BUG! Calling DMA API for "
-	       "unsupported bustype %d\n", dev->bus->bustype);
+		   "unsupported bustype %d\n", dev->bus->bustype);
 #endif /* DEBUG */
 }
 
@@ -642,7 +659,9 @@ static inline
 void ssb_pcihost_set_power_state(struct ssb_device *sdev, pci_power_t state)
 {
 	if (sdev->bus->bustype == SSB_BUSTYPE_PCI)
+	{
 		pci_set_power_state(sdev->bus->host_pci, state);
+	}
 }
 #else
 static inline void ssb_pcihost_unregister(struct pci_driver *driver)
@@ -676,8 +695,8 @@ extern u32 ssb_admatch_size(u32 adm);
  * Called from the architecture pcibios init code.
  * These are only available on SSB_EMBEDDED configurations. */
 #ifdef CONFIG_SSB_EMBEDDED
-int ssb_pcibios_plat_dev_init(struct pci_dev *dev);
-int ssb_pcibios_map_irq(const struct pci_dev *dev, u8 slot, u8 pin);
+	int ssb_pcibios_plat_dev_init(struct pci_dev *dev);
+	int ssb_pcibios_map_irq(const struct pci_dev *dev, u8 slot, u8 pin);
 #endif /* CONFIG_SSB_EMBEDDED */
 
 #endif /* LINUX_SSB_H_ */

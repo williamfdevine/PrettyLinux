@@ -17,7 +17,8 @@
 #include <linux/netfilter/x_tables.h>
 #include <linux/netfilter/xt_limit.h>
 
-struct xt_limit_priv {
+struct xt_limit_priv
+{
 	unsigned long prev;
 	uint32_t credit;
 };
@@ -74,10 +75,14 @@ limit_mt(const struct sk_buff *skb, struct xt_action_param *par)
 
 	spin_lock_bh(&limit_lock);
 	priv->credit += (now - xchg(&priv->prev, now)) * CREDITS_PER_JIFFY;
-	if (priv->credit > r->credit_cap)
-		priv->credit = r->credit_cap;
 
-	if (priv->credit >= r->cost) {
+	if (priv->credit > r->credit_cap)
+	{
+		priv->credit = r->credit_cap;
+	}
+
+	if (priv->credit >= r->cost)
+	{
 		/* We're not limited. */
 		priv->credit -= r->cost;
 		spin_unlock_bh(&limit_lock);
@@ -92,9 +97,11 @@ limit_mt(const struct sk_buff *skb, struct xt_action_param *par)
 static u32 user2credits(u32 user)
 {
 	/* If multiplying would overflow... */
-	if (user > 0xFFFFFFFF / (HZ*CREDITS_PER_JIFFY))
+	if (user > 0xFFFFFFFF / (HZ * CREDITS_PER_JIFFY))
 		/* Divide first. */
+	{
 		return (user / XT_LIMIT_SCALE) * HZ * CREDITS_PER_JIFFY;
+	}
 
 	return (user * HZ * CREDITS_PER_JIFFY) / XT_LIMIT_SCALE;
 }
@@ -106,15 +113,19 @@ static int limit_mt_check(const struct xt_mtchk_param *par)
 
 	/* Check for overflow. */
 	if (r->burst == 0
-	    || user2credits(r->avg * r->burst) < user2credits(r->avg)) {
+		|| user2credits(r->avg * r->burst) < user2credits(r->avg))
+	{
 		pr_info("Overflow, try lower: %u/%u\n",
-			r->avg, r->burst);
+				r->avg, r->burst);
 		return -ERANGE;
 	}
 
 	priv = kmalloc(sizeof(*priv), GFP_KERNEL);
+
 	if (priv == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	/* For SMP, we only want to use one set of state. */
 	r->master = priv;
@@ -122,10 +133,13 @@ static int limit_mt_check(const struct xt_mtchk_param *par)
 	   128. */
 	priv->prev = jiffies;
 	priv->credit = user2credits(r->avg * r->burst); /* Credits full. */
-	if (r->cost == 0) {
+
+	if (r->cost == 0)
+	{
 		r->credit_cap = priv->credit; /* Credits full. */
 		r->cost = user2credits(r->avg);
 	}
+
 	return 0;
 }
 
@@ -137,7 +151,8 @@ static void limit_mt_destroy(const struct xt_mtdtor_param *par)
 }
 
 #ifdef CONFIG_COMPAT
-struct compat_xt_rateinfo {
+struct compat_xt_rateinfo
+{
 	u_int32_t avg;
 	u_int32_t burst;
 
@@ -153,7 +168,8 @@ struct compat_xt_rateinfo {
 static void limit_mt_compat_from_user(void *dst, const void *src)
 {
 	const struct compat_xt_rateinfo *cm = src;
-	struct xt_rateinfo m = {
+	struct xt_rateinfo m =
+	{
 		.avg		= cm->avg,
 		.burst		= cm->burst,
 		.prev		= cm->prev | (unsigned long)cm->master << 32,
@@ -167,7 +183,8 @@ static void limit_mt_compat_from_user(void *dst, const void *src)
 static int limit_mt_compat_to_user(void __user *dst, const void *src)
 {
 	const struct xt_rateinfo *m = src;
-	struct compat_xt_rateinfo cm = {
+	struct compat_xt_rateinfo cm =
+	{
 		.avg		= m->avg,
 		.burst		= m->burst,
 		.prev		= m->prev,
@@ -180,7 +197,8 @@ static int limit_mt_compat_to_user(void __user *dst, const void *src)
 }
 #endif /* CONFIG_COMPAT */
 
-static struct xt_match limit_mt_reg __read_mostly = {
+static struct xt_match limit_mt_reg __read_mostly =
+{
 	.name             = "limit",
 	.revision         = 0,
 	.family           = NFPROTO_UNSPEC,

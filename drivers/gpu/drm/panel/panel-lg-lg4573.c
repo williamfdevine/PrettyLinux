@@ -26,7 +26,8 @@
 #include <video/of_videomode.h>
 #include <video/videomode.h>
 
-struct lg4573 {
+struct lg4573
+{
 	struct drm_panel panel;
 	struct spi_device *spi;
 	struct videomode vm;
@@ -39,7 +40,8 @@ static inline struct lg4573 *panel_to_lg4573(struct drm_panel *panel)
 
 static int lg4573_spi_write_u16(struct lg4573 *ctx, u16 data)
 {
-	struct spi_transfer xfer = {
+	struct spi_transfer xfer =
+	{
 		.len = 2,
 	};
 	u16 temp = cpu_to_be16(data);
@@ -54,15 +56,19 @@ static int lg4573_spi_write_u16(struct lg4573 *ctx, u16 data)
 }
 
 static int lg4573_spi_write_u16_array(struct lg4573 *ctx, const u16 *buffer,
-				      unsigned int count)
+									  unsigned int count)
 {
 	unsigned int i;
 	int ret;
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		ret = lg4573_spi_write_u16(ctx, buffer[i]);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
@@ -78,8 +84,11 @@ static int lg4573_display_on(struct lg4573 *ctx)
 	int ret;
 
 	ret = lg4573_spi_write_dcs(ctx, MIPI_DCS_EXIT_SLEEP_MODE);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	msleep(5);
 
@@ -91,8 +100,11 @@ static int lg4573_display_off(struct lg4573 *ctx)
 	int ret;
 
 	ret = lg4573_spi_write_dcs(ctx, MIPI_DCS_SET_DISPLAY_OFF);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	msleep(120);
 
@@ -101,7 +113,8 @@ static int lg4573_display_off(struct lg4573 *ctx)
 
 static int lg4573_display_mode_settings(struct lg4573 *ctx)
 {
-	static const u16 display_mode_settings[] = {
+	static const u16 display_mode_settings[] =
+	{
 		0x703A, 0x7270, 0x70B1, 0x7208,
 		0x723B, 0x720F, 0x70B2, 0x7200,
 		0x72C8, 0x70B3, 0x7200, 0x70B4,
@@ -114,12 +127,13 @@ static int lg4573_display_mode_settings(struct lg4573 *ctx)
 
 	dev_dbg(ctx->panel.dev, "transfer display mode settings\n");
 	return lg4573_spi_write_u16_array(ctx, display_mode_settings,
-					  ARRAY_SIZE(display_mode_settings));
+									  ARRAY_SIZE(display_mode_settings));
 }
 
 static int lg4573_power_settings(struct lg4573 *ctx)
 {
-	static const u16 power_settings[] = {
+	static const u16 power_settings[] =
+	{
 		0x70C0, 0x7201, 0x7211, 0x70C3,
 		0x7207, 0x7203, 0x7204, 0x7204,
 		0x7204, 0x70C4, 0x7212, 0x7224,
@@ -130,12 +144,13 @@ static int lg4573_power_settings(struct lg4573 *ctx)
 
 	dev_dbg(ctx->panel.dev, "transfer power settings\n");
 	return lg4573_spi_write_u16_array(ctx, power_settings,
-					  ARRAY_SIZE(power_settings));
+									  ARRAY_SIZE(power_settings));
 }
 
 static int lg4573_gamma_settings(struct lg4573 *ctx)
 {
-	static const u16 gamma_settings[] = {
+	static const u16 gamma_settings[] =
+	{
 		0x70D0, 0x7203, 0x7207, 0x7273,
 		0x7235, 0x7200, 0x7201, 0x7220,
 		0x7200, 0x7203, 0x70D1, 0x7203,
@@ -155,7 +170,7 @@ static int lg4573_gamma_settings(struct lg4573 *ctx)
 
 	dev_dbg(ctx->panel.dev, "transfer gamma settings\n");
 	return lg4573_spi_write_u16_array(ctx, gamma_settings,
-					  ARRAY_SIZE(gamma_settings));
+									  ARRAY_SIZE(gamma_settings));
 }
 
 static int lg4573_init(struct lg4573 *ctx)
@@ -165,12 +180,18 @@ static int lg4573_init(struct lg4573 *ctx)
 	dev_dbg(ctx->panel.dev, "initializing LCD\n");
 
 	ret = lg4573_display_mode_settings(ctx);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = lg4573_power_settings(ctx);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return lg4573_gamma_settings(ctx);
 }
@@ -196,7 +217,8 @@ static int lg4573_enable(struct drm_panel *panel)
 	return lg4573_power_on(ctx);
 }
 
-static const struct drm_display_mode default_mode = {
+static const struct drm_display_mode default_mode =
+{
 	.clock = 27000,
 	.hdisplay = 480,
 	.hsync_start = 480 + 10,
@@ -215,10 +237,12 @@ static int lg4573_get_modes(struct drm_panel *panel)
 	struct drm_display_mode *mode;
 
 	mode = drm_mode_duplicate(panel->drm, &default_mode);
-	if (!mode) {
+
+	if (!mode)
+	{
 		dev_err(panel->drm->dev, "failed to add mode %ux%ux@%u\n",
-			default_mode.hdisplay, default_mode.vdisplay,
-			default_mode.vrefresh);
+				default_mode.hdisplay, default_mode.vdisplay,
+				default_mode.vrefresh);
 		return -ENOMEM;
 	}
 
@@ -233,7 +257,8 @@ static int lg4573_get_modes(struct drm_panel *panel)
 	return 1;
 }
 
-static const struct drm_panel_funcs lg4573_drm_funcs = {
+static const struct drm_panel_funcs lg4573_drm_funcs =
+{
 	.disable = lg4573_disable,
 	.enable = lg4573_enable,
 	.get_modes = lg4573_get_modes,
@@ -245,8 +270,11 @@ static int lg4573_probe(struct spi_device *spi)
 	int ret;
 
 	ctx = devm_kzalloc(&spi->dev, sizeof(*ctx), GFP_KERNEL);
+
 	if (!ctx)
+	{
 		return -ENOMEM;
+	}
 
 	ctx->spi = spi;
 
@@ -254,7 +282,9 @@ static int lg4573_probe(struct spi_device *spi)
 	spi->bits_per_word = 8;
 
 	ret = spi_setup(spi);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&spi->dev, "SPI setup failed: %d\n", ret);
 		return ret;
 	}
@@ -276,13 +306,15 @@ static int lg4573_remove(struct spi_device *spi)
 	return 0;
 }
 
-static const struct of_device_id lg4573_of_match[] = {
+static const struct of_device_id lg4573_of_match[] =
+{
 	{ .compatible = "lg,lg4573" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, lg4573_of_match);
 
-static struct spi_driver lg4573_driver = {
+static struct spi_driver lg4573_driver =
+{
 	.probe = lg4573_probe,
 	.remove = lg4573_remove,
 	.driver = {

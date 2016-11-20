@@ -16,7 +16,8 @@
 #ifndef __INTEL_TH_STH_H__
 #define __INTEL_TH_STH_H__
 
-enum {
+enum
+{
 	REG_PTI_CTL	= 0x1c00,
 };
 

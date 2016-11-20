@@ -123,7 +123,7 @@
 /* Bitfields in CTRLB */
 #define	ATC_SIF(i)		(0x3 & (i))	/* Src tx done via AHB-Lite Interface i */
 #define	ATC_DIF(i)		((0x3 & (i)) <<  4)	/* Dst tx done via AHB-Lite Interface i */
-				  /* Specify AHB interfaces */
+/* Specify AHB interfaces */
 #define AT_DMA_MEM_IF		0 /* interface 0 as memory interface */
 #define AT_DMA_PER_IF		1 /* interface 1 as peripheral interface */
 
@@ -166,7 +166,8 @@
 /*--  descriptors  -----------------------------------------------------*/
 
 /* LLI == Linked List Item; aka DMA buffer descriptor */
-struct at_lli {
+struct at_lli
+{
 	/* values that are not changed by hardware */
 	dma_addr_t	saddr;
 	dma_addr_t	daddr;
@@ -185,7 +186,8 @@ struct at_lli {
  * @len: descriptor byte count
  * @total_len: total transaction byte count
  */
-struct at_desc {
+struct at_desc
+{
 	/* FIRST values the hardware uses */
 	struct at_lli			lli;
 
@@ -221,7 +223,8 @@ txd_to_at_desc(struct dma_async_tx_descriptor *txd)
  *
  * Manipulated with atomic operations.
  */
-enum atc_status {
+enum atc_status
+{
 	ATC_IS_ERROR = 0,
 	ATC_IS_PAUSED = 1,
 	ATC_IS_CYCLIC = 24,
@@ -249,7 +252,8 @@ enum atc_status {
  * @free_list: list of descriptors usable by the channel
  * @descs_allocated: records the actual size of the descriptor pool
  */
-struct at_dma_chan {
+struct at_dma_chan
+{
 	struct dma_chan		chan_common;
 	struct at_dma		*device;
 	void __iomem		*ch_regs;
@@ -291,9 +295,13 @@ static inline struct at_dma_chan *to_at_dma_chan(struct dma_chan *dchan)
 static inline void convert_burst(u32 *maxburst)
 {
 	if (*maxburst > 1)
+	{
 		*maxburst = fls(*maxburst) - 2;
+	}
 	else
+	{
 		*maxburst = 0;
+	}
 }
 
 /*
@@ -302,14 +310,17 @@ static inline void convert_burst(u32 *maxburst)
  */
 static inline u8 convert_buswidth(enum dma_slave_buswidth addr_width)
 {
-	switch (addr_width) {
-	case DMA_SLAVE_BUSWIDTH_2_BYTES:
-		return 1;
-	case DMA_SLAVE_BUSWIDTH_4_BYTES:
-		return 2;
-	default:
-		/* For 1 byte width or fallback */
-		return 0;
+	switch (addr_width)
+	{
+		case DMA_SLAVE_BUSWIDTH_2_BYTES:
+			return 1;
+
+		case DMA_SLAVE_BUSWIDTH_4_BYTES:
+			return 2;
+
+		default:
+			/* For 1 byte width or fallback */
+			return 0;
 	}
 }
 
@@ -326,7 +337,8 @@ static inline u8 convert_buswidth(enum dma_slave_buswidth addr_width)
  * @dma_desc_pool: base of DMA descriptor region (DMA address)
  * @chan: channels table to store at_dma_chan structures
  */
-struct at_dma {
+struct at_dma
+{
 	struct dma_device	dma_common;
 	void __iomem		*regs;
 	struct clk		*clk;
@@ -364,19 +376,19 @@ static void vdbg_dump_regs(struct at_dma_chan *atchan)
 	struct at_dma	*atdma = to_at_dma(atchan->chan_common.device);
 
 	dev_err(chan2dev(&atchan->chan_common),
-		"  channel %d : imr = 0x%x, chsr = 0x%x\n",
-		atchan->chan_common.chan_id,
-		dma_readl(atdma, EBCIMR),
-		dma_readl(atdma, CHSR));
+			"  channel %d : imr = 0x%x, chsr = 0x%x\n",
+			atchan->chan_common.chan_id,
+			dma_readl(atdma, EBCIMR),
+			dma_readl(atdma, CHSR));
 
 	dev_err(chan2dev(&atchan->chan_common),
-		"  channel: s0x%x d0x%x ctrl0x%x:0x%x cfg0x%x l0x%x\n",
-		channel_readl(atchan, SADDR),
-		channel_readl(atchan, DADDR),
-		channel_readl(atchan, CTRLA),
-		channel_readl(atchan, CTRLB),
-		channel_readl(atchan, CFG),
-		channel_readl(atchan, DSCR));
+			"  channel: s0x%x d0x%x ctrl0x%x:0x%x cfg0x%x l0x%x\n",
+			channel_readl(atchan, SADDR),
+			channel_readl(atchan, DADDR),
+			channel_readl(atchan, CTRLA),
+			channel_readl(atchan, CTRLB),
+			channel_readl(atchan, CFG),
+			channel_readl(atchan, DSCR));
 }
 #else
 static void vdbg_dump_regs(struct at_dma_chan *atchan) {}
@@ -385,9 +397,9 @@ static void vdbg_dump_regs(struct at_dma_chan *atchan) {}
 static void atc_dump_lli(struct at_dma_chan *atchan, struct at_lli *lli)
 {
 	dev_crit(chan2dev(&atchan->chan_common),
-		 "  desc: s%pad d%pad ctrl0x%x:0x%x l0x%pad\n",
-		 &lli->saddr, &lli->daddr,
-		 lli->ctrla, lli->ctrlb, &lli->dscr);
+			 "  desc: s%pad d%pad ctrl0x%x:0x%x l0x%pad\n",
+			 &lli->saddr, &lli->daddr,
+			 lli->ctrla, lli->ctrlb, &lli->dscr);
 }
 
 
@@ -397,11 +409,16 @@ static void atc_setup_irq(struct at_dma *atdma, int chan_id, int on)
 
 	/* enable interrupts on buffer transfer completion & error */
 	ebci =    AT_DMA_BTC(chan_id)
-		| AT_DMA_ERR(chan_id);
+			  | AT_DMA_ERR(chan_id);
+
 	if (on)
+	{
 		dma_writel(atdma, EBCIER, ebci);
+	}
 	else
+	{
 		dma_writel(atdma, EBCIDR, ebci);
+	}
 }
 
 static void atc_enable_chan_irq(struct at_dma *atdma, int chan_id)

@@ -146,36 +146,42 @@
 
 static int nr_channels;
 
-struct ie31200_priv {
+struct ie31200_priv
+{
 	void __iomem *window;
 	void __iomem *c0errlog;
 	void __iomem *c1errlog;
 };
 
-enum ie31200_chips {
+enum ie31200_chips
+{
 	IE31200 = 0,
 };
 
-struct ie31200_dev_info {
+struct ie31200_dev_info
+{
 	const char *ctl_name;
 };
 
-struct ie31200_error_info {
+struct ie31200_error_info
+{
 	u16 errsts;
 	u16 errsts2;
 	u64 eccerrlog[IE31200_CHANNELS];
 };
 
-static const struct ie31200_dev_info ie31200_devs[] = {
+static const struct ie31200_dev_info ie31200_devs[] =
+{
 	[IE31200] = {
 		.ctl_name = "IE31200"
 	},
 };
 
-struct dimm_data {
+struct dimm_data
+{
 	u8 size; /* in multiples of 256MB, except Skylake is 1GB */
 	u8 dual_rank : 1,
-	   x16_width : 2; /* 0 means x8 width */
+	x16_width : 2; /* 0 means x8 width */
 };
 
 static int how_many_channels(struct pci_dev *pdev)
@@ -186,19 +192,26 @@ static int how_many_channels(struct pci_dev *pdev)
 	pci_read_config_byte(pdev, IE31200_CAPID0 + 1, &capid0_2b);
 
 	/* check PDCD: Dual Channel Disable */
-	if (capid0_2b & IE31200_CAPID0_PDCD) {
+	if (capid0_2b & IE31200_CAPID0_PDCD)
+	{
 		edac_dbg(0, "In single channel mode\n");
 		n_channels = 1;
-	} else {
+	}
+	else
+	{
 		edac_dbg(0, "In dual channel mode\n");
 		n_channels = 2;
 	}
 
 	/* check DDPCD - check if both channels are filled */
 	if (capid0_2b & IE31200_CAPID0_DDPCD)
+	{
 		edac_dbg(0, "2 DIMMS per channel disabled\n");
+	}
 	else
+	{
 		edac_dbg(0, "2 DIMMS per channel enabled\n");
+	}
 
 	return n_channels;
 }
@@ -208,15 +221,19 @@ static bool ecc_capable(struct pci_dev *pdev)
 	unsigned char capid0_4b; /* 4th byte of CAPID0 */
 
 	pci_read_config_byte(pdev, IE31200_CAPID0 + 3, &capid0_4b);
+
 	if (capid0_4b & IE31200_CAPID0_ECC)
+	{
 		return false;
+	}
+
 	return true;
 }
 
 static int eccerrlog_row(u64 log)
 {
 	return ((log & IE31200_ECCERRLOG_RANK_BITS) >>
-				IE31200_ECCERRLOG_RANK_SHIFT);
+			IE31200_ECCERRLOG_RANK_SHIFT);
 }
 
 static void ie31200_clear_error_info(struct mem_ctl_info *mci)
@@ -226,11 +243,11 @@ static void ie31200_clear_error_info(struct mem_ctl_info *mci)
 	 * (Yes, we really clear bits by writing 1 to them.)
 	 */
 	pci_write_bits16(to_pci_dev(mci->pdev), IE31200_ERRSTS,
-			 IE31200_ERRSTS_BITS, IE31200_ERRSTS_BITS);
+					 IE31200_ERRSTS_BITS, IE31200_ERRSTS_BITS);
 }
 
 static void ie31200_get_and_clear_error_info(struct mem_ctl_info *mci,
-					     struct ie31200_error_info *info)
+		struct ie31200_error_info *info)
 {
 	struct pci_dev *pdev;
 	struct ie31200_priv *priv = mci->pvt_info;
@@ -243,12 +260,18 @@ static void ie31200_get_and_clear_error_info(struct mem_ctl_info *mci,
 	 * overwritten by UE.
 	 */
 	pci_read_config_word(pdev, IE31200_ERRSTS, &info->errsts);
+
 	if (!(info->errsts & IE31200_ERRSTS_BITS))
+	{
 		return;
+	}
 
 	info->eccerrlog[0] = lo_hi_readq(priv->c0errlog);
+
 	if (nr_channels == 2)
+	{
 		info->eccerrlog[1] = lo_hi_readq(priv->c1errlog);
+	}
 
 	pci_read_config_word(pdev, IE31200_ERRSTS, &info->errsts2);
 
@@ -258,8 +281,10 @@ static void ie31200_get_and_clear_error_info(struct mem_ctl_info *mci,
 	 * with no info and the second set of reads is valid and
 	 * should be UE info.
 	 */
-	if ((info->errsts ^ info->errsts2) & IE31200_ERRSTS_BITS) {
+	if ((info->errsts ^ info->errsts2) & IE31200_ERRSTS_BITS)
+	{
 		info->eccerrlog[0] = lo_hi_readq(priv->c0errlog);
+
 		if (nr_channels == 2)
 			info->eccerrlog[1] =
 				lo_hi_readq(priv->c1errlog);
@@ -269,35 +294,43 @@ static void ie31200_get_and_clear_error_info(struct mem_ctl_info *mci,
 }
 
 static void ie31200_process_error_info(struct mem_ctl_info *mci,
-				       struct ie31200_error_info *info)
+									   struct ie31200_error_info *info)
 {
 	int channel;
 	u64 log;
 
 	if (!(info->errsts & IE31200_ERRSTS_BITS))
+	{
 		return;
+	}
 
-	if ((info->errsts ^ info->errsts2) & IE31200_ERRSTS_BITS) {
+	if ((info->errsts ^ info->errsts2) & IE31200_ERRSTS_BITS)
+	{
 		edac_mc_handle_error(HW_EVENT_ERR_UNCORRECTED, mci, 1, 0, 0, 0,
-				     -1, -1, -1, "UE overwrote CE", "");
+							 -1, -1, -1, "UE overwrote CE", "");
 		info->errsts = info->errsts2;
 	}
 
-	for (channel = 0; channel < nr_channels; channel++) {
+	for (channel = 0; channel < nr_channels; channel++)
+	{
 		log = info->eccerrlog[channel];
-		if (log & IE31200_ECCERRLOG_UE) {
+
+		if (log & IE31200_ECCERRLOG_UE)
+		{
 			edac_mc_handle_error(HW_EVENT_ERR_UNCORRECTED, mci, 1,
-					     0, 0, 0,
-					     eccerrlog_row(log),
-					     channel, -1,
-					     "ie31200 UE", "");
-		} else if (log & IE31200_ECCERRLOG_CE) {
+								 0, 0, 0,
+								 eccerrlog_row(log),
+								 channel, -1,
+								 "ie31200 UE", "");
+		}
+		else if (log & IE31200_ECCERRLOG_CE)
+		{
 			edac_mc_handle_error(HW_EVENT_ERR_CORRECTED, mci, 1,
-					     0, 0,
-					     IE31200_ECCERRLOG_SYNDROME(log),
-					     eccerrlog_row(log),
-					     channel, -1,
-					     "ie31200 CE", "");
+								 0, 0,
+								 IE31200_ECCERRLOG_SYNDROME(log),
+								 eccerrlog_row(log),
+								 channel, -1,
+								 "ie31200 CE", "");
 		}
 	}
 }
@@ -313,9 +346,11 @@ static void ie31200_check(struct mem_ctl_info *mci)
 
 static void __iomem *ie31200_map_mchbar(struct pci_dev *pdev)
 {
-	union {
+	union
+	{
 		u64 mchbar;
-		struct {
+		struct
+		{
 			u32 mchbar_low;
 			u32 mchbar_high;
 		};
@@ -326,31 +361,33 @@ static void __iomem *ie31200_map_mchbar(struct pci_dev *pdev)
 	pci_read_config_dword(pdev, IE31200_MCHBAR_HIGH, &u.mchbar_high);
 	u.mchbar &= IE31200_MCHBAR_MASK;
 
-	if (u.mchbar != (resource_size_t)u.mchbar) {
+	if (u.mchbar != (resource_size_t)u.mchbar)
+	{
 		ie31200_printk(KERN_ERR, "mmio space beyond accessible range (0x%llx)\n",
-			       (unsigned long long)u.mchbar);
+					   (unsigned long long)u.mchbar);
 		return NULL;
 	}
 
 	window = ioremap_nocache(u.mchbar, IE31200_MMR_WINDOW_SIZE);
+
 	if (!window)
 		ie31200_printk(KERN_ERR, "Cannot map mmio space at 0x%llx\n",
-			       (unsigned long long)u.mchbar);
+					   (unsigned long long)u.mchbar);
 
 	return window;
 }
 
 static void __skl_populate_dimm_info(struct dimm_data *dd, u32 addr_decode,
-				     int chan)
+									 int chan)
 {
 	dd->size = (addr_decode >> (chan << 4)) & IE31200_MAD_DIMM_SIZE;
 	dd->dual_rank = (addr_decode & (IE31200_MAD_DIMM_A_RANK_SKL << (chan << 4))) ? 1 : 0;
 	dd->x16_width = ((addr_decode & (IE31200_MAD_DIMM_A_WIDTH_SKL << (chan << 4))) >>
-				(IE31200_MAD_DIMM_A_WIDTH_SKL_SHIFT + (chan << 4)));
+					 (IE31200_MAD_DIMM_A_WIDTH_SKL_SHIFT + (chan << 4)));
 }
 
 static void __populate_dimm_info(struct dimm_data *dd, u32 addr_decode,
-				 int chan)
+								 int chan)
 {
 	dd->size = (addr_decode >> (chan << 3)) & IE31200_MAD_DIMM_SIZE;
 	dd->dual_rank = (addr_decode & (IE31200_MAD_DIMM_A_RANK << chan)) ? 1 : 0;
@@ -358,12 +395,16 @@ static void __populate_dimm_info(struct dimm_data *dd, u32 addr_decode,
 }
 
 static void populate_dimm_info(struct dimm_data *dd, u32 addr_decode, int chan,
-			       bool skl)
+							   bool skl)
 {
 	if (skl)
+	{
 		__skl_populate_dimm_info(dd, addr_decode, chan);
+	}
 	else
+	{
 		__populate_dimm_info(dd, addr_decode, chan);
+	}
 }
 
 
@@ -380,7 +421,8 @@ static int ie31200_probe1(struct pci_dev *pdev, int dev_idx)
 
 	edac_dbg(0, "MC:\n");
 
-	if (!ecc_capable(pdev)) {
+	if (!ecc_capable(pdev))
+	{
 		ie31200_printk(KERN_INFO, "No ECC support\n");
 		return -ENODEV;
 	}
@@ -393,22 +435,33 @@ static int ie31200_probe1(struct pci_dev *pdev, int dev_idx)
 	layers[1].size = nr_channels;
 	layers[1].is_virt_csrow = false;
 	mci = edac_mc_alloc(0, ARRAY_SIZE(layers), layers,
-			    sizeof(struct ie31200_priv));
+						sizeof(struct ie31200_priv));
+
 	if (!mci)
+	{
 		return -ENOMEM;
+	}
 
 	window = ie31200_map_mchbar(pdev);
-	if (!window) {
+
+	if (!window)
+	{
 		ret = -ENODEV;
 		goto fail_free;
 	}
 
 	edac_dbg(3, "MC: init mci\n");
 	mci->pdev = &pdev->dev;
+
 	if (skl)
+	{
 		mci->mtype_cap = MEM_FLAG_DDR4;
+	}
 	else
+	{
 		mci->mtype_cap = MEM_FLAG_DDR3;
+	}
+
 	mci->edac_ctl_cap = EDAC_FLAG_SECDED;
 	mci->edac_cap = EDAC_FLAG_SECDED;
 	mci->mod_name = EDAC_MOD_STR;
@@ -419,28 +472,35 @@ static int ie31200_probe1(struct pci_dev *pdev, int dev_idx)
 	mci->ctl_page_to_phys = NULL;
 	priv = mci->pvt_info;
 	priv->window = window;
-	if (skl) {
+
+	if (skl)
+	{
 		priv->c0errlog = window + IE31200_C0ECCERRLOG_SKL;
 		priv->c1errlog = window + IE31200_C1ECCERRLOG_SKL;
 		mad_offset = IE31200_MAD_DIMM_0_OFFSET_SKL;
-	} else {
+	}
+	else
+	{
 		priv->c0errlog = window + IE31200_C0ECCERRLOG;
 		priv->c1errlog = window + IE31200_C1ECCERRLOG;
 		mad_offset = IE31200_MAD_DIMM_0_OFFSET;
 	}
 
 	/* populate DIMM info */
-	for (i = 0; i < IE31200_CHANNELS; i++) {
+	for (i = 0; i < IE31200_CHANNELS; i++)
+	{
 		addr_decode = readl(window + mad_offset +
-					(i * 4));
+							(i * 4));
 		edac_dbg(0, "addr_decode: 0x%x\n", addr_decode);
-		for (j = 0; j < IE31200_DIMMS_PER_CHANNEL; j++) {
+
+		for (j = 0; j < IE31200_DIMMS_PER_CHANNEL; j++)
+		{
 			populate_dimm_info(&dimm_info[i][j], addr_decode, j,
-					   skl);
+							   skl);
 			edac_dbg(0, "size: 0x%x, rank: %d, width: %d\n",
-				 dimm_info[i][j].size,
-				 dimm_info[i][j].dual_rank,
-				 dimm_info[i][j].x16_width);
+					 dimm_info[i][j].size,
+					 dimm_info[i][j].dual_rank,
+					 dimm_info[i][j].x16_width);
 		}
 	}
 
@@ -450,39 +510,58 @@ static int ie31200_probe1(struct pci_dev *pdev, int dev_idx)
 	 * cumulative; the last one will contain the total memory
 	 * contained in all ranks.
 	 */
-	for (i = 0; i < IE31200_DIMMS_PER_CHANNEL; i++) {
-		for (j = 0; j < IE31200_CHANNELS; j++) {
+	for (i = 0; i < IE31200_DIMMS_PER_CHANNEL; i++)
+	{
+		for (j = 0; j < IE31200_CHANNELS; j++)
+		{
 			struct dimm_info *dimm;
 			unsigned long nr_pages;
 
 			nr_pages = IE31200_PAGES(dimm_info[j][i].size, skl);
-			if (nr_pages == 0)
-				continue;
 
-			if (dimm_info[j][i].dual_rank) {
+			if (nr_pages == 0)
+			{
+				continue;
+			}
+
+			if (dimm_info[j][i].dual_rank)
+			{
 				nr_pages = nr_pages / 2;
 				dimm = EDAC_DIMM_PTR(mci->layers, mci->dimms,
-						     mci->n_layers, (i * 2) + 1,
-						     j, 0);
+									 mci->n_layers, (i * 2) + 1,
+									 j, 0);
 				dimm->nr_pages = nr_pages;
 				edac_dbg(0, "set nr pages: 0x%lx\n", nr_pages);
 				dimm->grain = 8; /* just a guess */
+
 				if (skl)
+				{
 					dimm->mtype = MEM_DDR4;
+				}
 				else
+				{
 					dimm->mtype = MEM_DDR3;
+				}
+
 				dimm->dtype = DEV_UNKNOWN;
 				dimm->edac_mode = EDAC_UNKNOWN;
 			}
+
 			dimm = EDAC_DIMM_PTR(mci->layers, mci->dimms,
-					     mci->n_layers, i * 2, j, 0);
+								 mci->n_layers, i * 2, j, 0);
 			dimm->nr_pages = nr_pages;
 			edac_dbg(0, "set nr pages: 0x%lx\n", nr_pages);
 			dimm->grain = 8; /* same guess */
+
 			if (skl)
+			{
 				dimm->mtype = MEM_DDR4;
+			}
 			else
+			{
 				dimm->mtype = MEM_DDR3;
+			}
+
 			dimm->dtype = DEV_UNKNOWN;
 			dimm->edac_mode = EDAC_UNKNOWN;
 		}
@@ -490,7 +569,8 @@ static int ie31200_probe1(struct pci_dev *pdev, int dev_idx)
 
 	ie31200_clear_error_info(mci);
 
-	if (edac_mc_add_mc(mci)) {
+	if (edac_mc_add_mc(mci))
+	{
 		edac_dbg(3, "MC: failed edac_mc_add_mc()\n");
 		ret = -ENODEV;
 		goto fail_unmap;
@@ -510,12 +590,14 @@ fail_free:
 }
 
 static int ie31200_init_one(struct pci_dev *pdev,
-			    const struct pci_device_id *ent)
+							const struct pci_device_id *ent)
 {
 	edac_dbg(0, "MC:\n");
 
 	if (pci_enable_device(pdev) < 0)
+	{
 		return -EIO;
+	}
 
 	return ie31200_probe1(pdev, ent->driver_data);
 }
@@ -527,45 +609,59 @@ static void ie31200_remove_one(struct pci_dev *pdev)
 
 	edac_dbg(0, "\n");
 	mci = edac_mc_del_mc(&pdev->dev);
+
 	if (!mci)
+	{
 		return;
+	}
+
 	priv = mci->pvt_info;
 	iounmap(priv->window);
 	edac_mc_free(mci);
 }
 
-static const struct pci_device_id ie31200_pci_tbl[] = {
+static const struct pci_device_id ie31200_pci_tbl[] =
+{
 	{
 		PCI_VEND_DEV(INTEL, IE31200_HB_1), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-		IE31200},
+		IE31200
+	},
 	{
 		PCI_VEND_DEV(INTEL, IE31200_HB_2), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-		IE31200},
+		IE31200
+	},
 	{
 		PCI_VEND_DEV(INTEL, IE31200_HB_3), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-		IE31200},
+		IE31200
+	},
 	{
 		PCI_VEND_DEV(INTEL, IE31200_HB_4), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-		IE31200},
+		IE31200
+	},
 	{
 		PCI_VEND_DEV(INTEL, IE31200_HB_5), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-		IE31200},
+		IE31200
+	},
 	{
 		PCI_VEND_DEV(INTEL, IE31200_HB_6), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-		IE31200},
+		IE31200
+	},
 	{
 		PCI_VEND_DEV(INTEL, IE31200_HB_7), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-		IE31200},
+		IE31200
+	},
 	{
 		PCI_VEND_DEV(INTEL, IE31200_HB_8), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-		IE31200},
+		IE31200
+	},
 	{
 		0,
 	}            /* 0 terminated list. */
 };
 MODULE_DEVICE_TABLE(pci, ie31200_pci_tbl);
 
-static struct pci_driver ie31200_driver = {
+static struct pci_driver ie31200_driver =
+{
 	.name = EDAC_MOD_STR,
 	.probe = ie31200_init_one,
 	.remove = ie31200_remove_one,

@@ -9,12 +9,14 @@
 #include <uapi/linux/bpf.h>
 #include "bpf_helpers.h"
 
-struct pair {
+struct pair
+{
 	u64 val;
 	u64 ip;
 };
 
-struct bpf_map_def SEC("maps") my_map = {
+struct bpf_map_def SEC("maps") my_map =
+{
 	.type = BPF_MAP_TYPE_HASH,
 	.key_size = sizeof(long),
 	.value_size = sizeof(struct pair),
@@ -42,7 +44,8 @@ int bpf_prog2(struct pt_regs *ctx)
 	/* get ip address of kmem_cache_alloc_node() caller */
 	BPF_KRETPROBE_READ_RET_IP(ip, ctx);
 
-	struct pair v = {
+	struct pair v =
+	{
 		.val = bpf_ktime_get_ns(),
 		.ip = ip,
 	};

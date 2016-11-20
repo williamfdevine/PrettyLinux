@@ -29,7 +29,8 @@ static int interval_ms = 10;
 module_param(nr_devs, int, 0400);
 module_param(interval_ms, int, 0600);
 
-static struct stm_heartbeat {
+static struct stm_heartbeat
+{
 	struct stm_source_data	data;
 	struct hrtimer		hrtimer;
 	unsigned int		active;
@@ -40,11 +41,14 @@ static const char str[] = "heartbeat stm source driver is here to serve you";
 static enum hrtimer_restart stm_heartbeat_hrtimer_handler(struct hrtimer *hr)
 {
 	struct stm_heartbeat *heartbeat = container_of(hr, struct stm_heartbeat,
-						       hrtimer);
+									  hrtimer);
 
 	stm_source_write(&heartbeat->data, 0, str, sizeof str);
+
 	if (heartbeat->active)
+	{
 		hrtimer_forward_now(hr, ms_to_ktime(interval_ms));
+	}
 
 	return heartbeat->active ? HRTIMER_RESTART : HRTIMER_NORESTART;
 }
@@ -56,7 +60,7 @@ static int stm_heartbeat_link(struct stm_source_data *data)
 
 	heartbeat->active = 1;
 	hrtimer_start(&heartbeat->hrtimer, ms_to_ktime(interval_ms),
-		      HRTIMER_MODE_ABS);
+				  HRTIMER_MODE_ABS);
 
 	return 0;
 }
@@ -75,31 +79,42 @@ static int stm_heartbeat_init(void)
 	int i, ret = -ENOMEM;
 
 	if (nr_devs < 0 || nr_devs > STM_HEARTBEAT_MAX)
+	{
 		return -EINVAL;
+	}
 
-	for (i = 0; i < nr_devs; i++) {
+	for (i = 0; i < nr_devs; i++)
+	{
 		stm_heartbeat[i].data.name =
 			kasprintf(GFP_KERNEL, "heartbeat.%d", i);
+
 		if (!stm_heartbeat[i].data.name)
+		{
 			goto fail_unregister;
+		}
 
 		stm_heartbeat[i].data.nr_chans	= 1;
 		stm_heartbeat[i].data.link		= stm_heartbeat_link;
 		stm_heartbeat[i].data.unlink	= stm_heartbeat_unlink;
 		hrtimer_init(&stm_heartbeat[i].hrtimer, CLOCK_MONOTONIC,
-			     HRTIMER_MODE_ABS);
+					 HRTIMER_MODE_ABS);
 		stm_heartbeat[i].hrtimer.function =
 			stm_heartbeat_hrtimer_handler;
 
 		ret = stm_source_register_device(NULL, &stm_heartbeat[i].data);
+
 		if (ret)
+		{
 			goto fail_free;
+		}
 	}
 
 	return 0;
 
 fail_unregister:
-	for (i--; i >= 0; i--) {
+
+	for (i--; i >= 0; i--)
+	{
 		stm_source_unregister_device(&stm_heartbeat[i].data);
 fail_free:
 		kfree(stm_heartbeat[i].data.name);
@@ -112,7 +127,8 @@ static void stm_heartbeat_exit(void)
 {
 	int i;
 
-	for (i = 0; i < nr_devs; i++) {
+	for (i = 0; i < nr_devs; i++)
+	{
 		stm_source_unregister_device(&stm_heartbeat[i].data);
 		kfree(stm_heartbeat[i].data.name);
 	}

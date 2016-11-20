@@ -27,7 +27,8 @@
 
 #include <linux/hwmon.h>
 
-struct jz4740_hwmon {
+struct jz4740_hwmon
+{
 	void __iomem *base;
 	int irq;
 	const struct mfd_cell *cell;
@@ -45,7 +46,7 @@ static irqreturn_t jz4740_hwmon_irq(int irq, void *data)
 }
 
 static ssize_t jz4740_hwmon_read_adcin(struct device *dev,
-	struct device_attribute *dev_attr, char *buf)
+									   struct device_attribute *dev_attr, char *buf)
 {
 	struct jz4740_hwmon *hwmon = dev_get_drvdata(dev);
 	struct platform_device *pdev = hwmon->pdev;
@@ -63,11 +64,14 @@ static ssize_t jz4740_hwmon_read_adcin(struct device *dev,
 
 	t = wait_for_completion_interruptible_timeout(completion, HZ);
 
-	if (t > 0) {
+	if (t > 0)
+	{
 		val = readw(hwmon->base) & 0xfff;
 		val = (val * 3300) >> 12;
 		ret = sprintf(buf, "%lu\n", val);
-	} else {
+	}
+	else
+	{
 		ret = t ? t : -ETIMEDOUT;
 	}
 
@@ -81,7 +85,8 @@ static ssize_t jz4740_hwmon_read_adcin(struct device *dev,
 
 static DEVICE_ATTR(in0_input, S_IRUGO, jz4740_hwmon_read_adcin, NULL);
 
-static struct attribute *jz4740_attrs[] = {
+static struct attribute *jz4740_attrs[] =
+{
 	&dev_attr_in0_input.attr,
 	NULL
 };
@@ -97,41 +102,53 @@ static int jz4740_hwmon_probe(struct platform_device *pdev)
 	struct resource *mem;
 
 	hwmon = devm_kzalloc(dev, sizeof(*hwmon), GFP_KERNEL);
+
 	if (!hwmon)
+	{
 		return -ENOMEM;
+	}
 
 	hwmon->cell = mfd_get_cell(pdev);
 
 	hwmon->irq = platform_get_irq(pdev, 0);
-	if (hwmon->irq < 0) {
+
+	if (hwmon->irq < 0)
+	{
 		dev_err(&pdev->dev, "Failed to get platform irq: %d\n",
-			hwmon->irq);
+				hwmon->irq);
 		return hwmon->irq;
 	}
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	hwmon->base = devm_ioremap_resource(&pdev->dev, mem);
+
 	if (IS_ERR(hwmon->base))
+	{
 		return PTR_ERR(hwmon->base);
+	}
 
 	hwmon->pdev = pdev;
 	init_completion(&hwmon->read_completion);
 	mutex_init(&hwmon->lock);
 
 	ret = devm_request_irq(dev, hwmon->irq, jz4740_hwmon_irq, 0,
-			       pdev->name, hwmon);
-	if (ret) {
+						   pdev->name, hwmon);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to request irq: %d\n", ret);
 		return ret;
 	}
+
 	disable_irq(hwmon->irq);
 
 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, "jz4740", hwmon,
-							   jz4740_groups);
+				jz4740_groups);
 	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
-static struct platform_driver jz4740_hwmon_driver = {
+static struct platform_driver jz4740_hwmon_driver =
+{
 	.probe	= jz4740_hwmon_probe,
 	.driver = {
 		.name = "jz4740-hwmon",

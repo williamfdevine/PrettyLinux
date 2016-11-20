@@ -42,14 +42,16 @@
 
 #define SARADC_TIMEOUT			msecs_to_jiffies(100)
 
-struct rockchip_saradc_data {
+struct rockchip_saradc_data
+{
 	int				num_bits;
 	const struct iio_chan_spec	*channels;
 	int				num_channels;
 	unsigned long			clk_rate;
 };
 
-struct rockchip_saradc {
+struct rockchip_saradc
+{
 	void __iomem		*regs;
 	struct clk		*pclk;
 	struct clk		*clk;
@@ -61,49 +63,55 @@ struct rockchip_saradc {
 };
 
 static int rockchip_saradc_read_raw(struct iio_dev *indio_dev,
-				    struct iio_chan_spec const *chan,
-				    int *val, int *val2, long mask)
+									struct iio_chan_spec const *chan,
+									int *val, int *val2, long mask)
 {
 	struct rockchip_saradc *info = iio_priv(indio_dev);
 	int ret;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		mutex_lock(&indio_dev->mlock);
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			mutex_lock(&indio_dev->mlock);
 
-		reinit_completion(&info->completion);
+			reinit_completion(&info->completion);
 
-		/* 8 clock periods as delay between power up and start cmd */
-		writel_relaxed(8, info->regs + SARADC_DLY_PU_SOC);
+			/* 8 clock periods as delay between power up and start cmd */
+			writel_relaxed(8, info->regs + SARADC_DLY_PU_SOC);
 
-		/* Select the channel to be used and trigger conversion */
-		writel(SARADC_CTRL_POWER_CTRL
-				| (chan->channel & SARADC_CTRL_CHN_MASK)
-				| SARADC_CTRL_IRQ_ENABLE,
-		       info->regs + SARADC_CTRL);
+			/* Select the channel to be used and trigger conversion */
+			writel(SARADC_CTRL_POWER_CTRL
+				   | (chan->channel & SARADC_CTRL_CHN_MASK)
+				   | SARADC_CTRL_IRQ_ENABLE,
+				   info->regs + SARADC_CTRL);
 
-		if (!wait_for_completion_timeout(&info->completion,
-						 SARADC_TIMEOUT)) {
-			writel_relaxed(0, info->regs + SARADC_CTRL);
+			if (!wait_for_completion_timeout(&info->completion,
+											 SARADC_TIMEOUT))
+			{
+				writel_relaxed(0, info->regs + SARADC_CTRL);
+				mutex_unlock(&indio_dev->mlock);
+				return -ETIMEDOUT;
+			}
+
+			*val = info->last_val;
 			mutex_unlock(&indio_dev->mlock);
-			return -ETIMEDOUT;
-		}
+			return IIO_VAL_INT;
 
-		*val = info->last_val;
-		mutex_unlock(&indio_dev->mlock);
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_SCALE:
-		ret = regulator_get_voltage(info->vref);
-		if (ret < 0) {
-			dev_err(&indio_dev->dev, "failed to get voltage\n");
-			return ret;
-		}
+		case IIO_CHAN_INFO_SCALE:
+			ret = regulator_get_voltage(info->vref);
 
-		*val = ret / 1000;
-		*val2 = info->data->num_bits;
-		return IIO_VAL_FRACTIONAL_LOG2;
-	default:
-		return -EINVAL;
+			if (ret < 0)
+			{
+				dev_err(&indio_dev->dev, "failed to get voltage\n");
+				return ret;
+			}
+
+			*val = ret / 1000;
+			*val2 = info->data->num_bits;
+			return IIO_VAL_FRACTIONAL_LOG2;
+
+		default:
+			return -EINVAL;
 	}
 }
 
@@ -123,46 +131,52 @@ static irqreturn_t rockchip_saradc_isr(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static const struct iio_info rockchip_saradc_iio_info = {
+static const struct iio_info rockchip_saradc_iio_info =
+{
 	.read_raw = rockchip_saradc_read_raw,
 	.driver_module = THIS_MODULE,
 };
 
 #define ADC_CHANNEL(_index, _id) {				\
-	.type = IIO_VOLTAGE,					\
-	.indexed = 1,						\
-	.channel = _index,					\
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
-	.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
-	.datasheet_name = _id,					\
-}
+		.type = IIO_VOLTAGE,					\
+				.indexed = 1,						\
+						   .channel = _index,					\
+									  .info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
+											  .info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
+													  .datasheet_name = _id,					\
+	}
 
-static const struct iio_chan_spec rockchip_saradc_iio_channels[] = {
+static const struct iio_chan_spec rockchip_saradc_iio_channels[] =
+{
 	ADC_CHANNEL(0, "adc0"),
 	ADC_CHANNEL(1, "adc1"),
 	ADC_CHANNEL(2, "adc2"),
 };
 
-static const struct rockchip_saradc_data saradc_data = {
+static const struct rockchip_saradc_data saradc_data =
+{
 	.num_bits = 10,
 	.channels = rockchip_saradc_iio_channels,
 	.num_channels = ARRAY_SIZE(rockchip_saradc_iio_channels),
 	.clk_rate = 1000000,
 };
 
-static const struct iio_chan_spec rockchip_rk3066_tsadc_iio_channels[] = {
+static const struct iio_chan_spec rockchip_rk3066_tsadc_iio_channels[] =
+{
 	ADC_CHANNEL(0, "adc0"),
 	ADC_CHANNEL(1, "adc1"),
 };
 
-static const struct rockchip_saradc_data rk3066_tsadc_data = {
+static const struct rockchip_saradc_data rk3066_tsadc_data =
+{
 	.num_bits = 12,
 	.channels = rockchip_rk3066_tsadc_iio_channels,
 	.num_channels = ARRAY_SIZE(rockchip_rk3066_tsadc_iio_channels),
 	.clk_rate = 50000,
 };
 
-static const struct iio_chan_spec rockchip_rk3399_saradc_iio_channels[] = {
+static const struct iio_chan_spec rockchip_rk3399_saradc_iio_channels[] =
+{
 	ADC_CHANNEL(0, "adc0"),
 	ADC_CHANNEL(1, "adc1"),
 	ADC_CHANNEL(2, "adc2"),
@@ -171,14 +185,16 @@ static const struct iio_chan_spec rockchip_rk3399_saradc_iio_channels[] = {
 	ADC_CHANNEL(5, "adc5"),
 };
 
-static const struct rockchip_saradc_data rk3399_saradc_data = {
+static const struct rockchip_saradc_data rk3399_saradc_data =
+{
 	.num_bits = 10,
 	.channels = rockchip_rk3399_saradc_iio_channels,
 	.num_channels = ARRAY_SIZE(rockchip_rk3399_saradc_iio_channels),
 	.clk_rate = 1000000,
 };
 
-static const struct of_device_id rockchip_saradc_match[] = {
+static const struct of_device_id rockchip_saradc_match[] =
+{
 	{
 		.compatible = "rockchip,saradc",
 		.data = &saradc_data,
@@ -214,13 +230,18 @@ static int rockchip_saradc_probe(struct platform_device *pdev)
 	int irq;
 
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	indio_dev = devm_iio_device_alloc(&pdev->dev, sizeof(*info));
-	if (!indio_dev) {
+
+	if (!indio_dev)
+	{
 		dev_err(&pdev->dev, "failed allocating iio device\n");
 		return -ENOMEM;
 	}
+
 	info = iio_priv(indio_dev);
 
 	match = of_match_device(rockchip_saradc_match, &pdev->dev);
@@ -228,18 +249,26 @@ static int rockchip_saradc_probe(struct platform_device *pdev)
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	info->regs = devm_ioremap_resource(&pdev->dev, mem);
+
 	if (IS_ERR(info->regs))
+	{
 		return PTR_ERR(info->regs);
+	}
 
 	/*
 	 * The reset should be an optional property, as it should work
 	 * with old devicetrees as well
 	 */
 	info->reset = devm_reset_control_get(&pdev->dev, "saradc-apb");
-	if (IS_ERR(info->reset)) {
+
+	if (IS_ERR(info->reset))
+	{
 		ret = PTR_ERR(info->reset);
+
 		if (ret != -ENOENT)
+		{
 			return ret;
+		}
 
 		dev_dbg(&pdev->dev, "no reset control found\n");
 		info->reset = NULL;
@@ -248,64 +277,84 @@ static int rockchip_saradc_probe(struct platform_device *pdev)
 	init_completion(&info->completion);
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "no irq resource?\n");
 		return irq;
 	}
 
 	ret = devm_request_irq(&pdev->dev, irq, rockchip_saradc_isr,
-			       0, dev_name(&pdev->dev), info);
-	if (ret < 0) {
+						   0, dev_name(&pdev->dev), info);
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "failed requesting irq %d\n", irq);
 		return ret;
 	}
 
 	info->pclk = devm_clk_get(&pdev->dev, "apb_pclk");
-	if (IS_ERR(info->pclk)) {
+
+	if (IS_ERR(info->pclk))
+	{
 		dev_err(&pdev->dev, "failed to get pclk\n");
 		return PTR_ERR(info->pclk);
 	}
 
 	info->clk = devm_clk_get(&pdev->dev, "saradc");
-	if (IS_ERR(info->clk)) {
+
+	if (IS_ERR(info->clk))
+	{
 		dev_err(&pdev->dev, "failed to get adc clock\n");
 		return PTR_ERR(info->clk);
 	}
 
 	info->vref = devm_regulator_get(&pdev->dev, "vref");
-	if (IS_ERR(info->vref)) {
+
+	if (IS_ERR(info->vref))
+	{
 		dev_err(&pdev->dev, "failed to get regulator, %ld\n",
-			PTR_ERR(info->vref));
+				PTR_ERR(info->vref));
 		return PTR_ERR(info->vref);
 	}
 
 	if (info->reset)
+	{
 		rockchip_saradc_reset_controller(info->reset);
+	}
 
 	/*
 	 * Use a default value for the converter clock.
 	 * This may become user-configurable in the future.
 	 */
 	ret = clk_set_rate(info->clk, info->data->clk_rate);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "failed to set adc clk rate, %d\n", ret);
 		return ret;
 	}
 
 	ret = regulator_enable(info->vref);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "failed to enable vref regulator\n");
 		return ret;
 	}
 
 	ret = clk_prepare_enable(info->pclk);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "failed to enable pclk\n");
 		goto err_reg_voltage;
 	}
 
 	ret = clk_prepare_enable(info->clk);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "failed to enable converter clock\n");
 		goto err_pclk;
 	}
@@ -322,8 +371,11 @@ static int rockchip_saradc_probe(struct platform_device *pdev)
 	indio_dev->num_channels = info->data->num_channels;
 
 	ret = iio_device_register(indio_dev);
+
 	if (ret)
+	{
 		goto err_clk;
+	}
 
 	return 0;
 
@@ -369,25 +421,35 @@ static int rockchip_saradc_resume(struct device *dev)
 	int ret;
 
 	ret = regulator_enable(info->vref);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = clk_prepare_enable(info->pclk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = clk_prepare_enable(info->clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return ret;
 }
 #endif
 
 static SIMPLE_DEV_PM_OPS(rockchip_saradc_pm_ops,
-			 rockchip_saradc_suspend, rockchip_saradc_resume);
+						 rockchip_saradc_suspend, rockchip_saradc_resume);
 
-static struct platform_driver rockchip_saradc_driver = {
+static struct platform_driver rockchip_saradc_driver =
+{
 	.probe		= rockchip_saradc_probe,
 	.remove		= rockchip_saradc_remove,
 	.driver		= {

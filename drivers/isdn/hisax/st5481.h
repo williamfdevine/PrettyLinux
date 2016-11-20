@@ -147,7 +147,8 @@
 #define RED_LED	        0x80U
 
 // D channel out states
-enum {
+enum
+{
 	ST_DOUT_NONE,
 
 	ST_DOUT_SHORT_INIT,
@@ -166,7 +167,8 @@ enum {
 #define DOUT_STATE_COUNT (ST_DOUT_WAIT_FOR_RESET + 1)
 
 // D channel out events
-enum {
+enum
+{
 	EV_DOUT_START_XMIT,
 	EV_DOUT_COMPLETE,
 	EV_DOUT_DEN,
@@ -180,7 +182,8 @@ enum {
 
 // ----------------------------------------------------------------------
 
-enum {
+enum
+{
 	ST_L1_F3,
 	ST_L1_F4,
 	ST_L1_F6,
@@ -193,7 +196,8 @@ enum {
 // The first 16 entries match the Level 1 indications that
 // are found at offset 4 (CCIST) in the interrupt packet
 
-enum {
+enum
+{
 	EV_IND_DP,  // 0000 Deactivation Pending
 	EV_IND_1,   // 0001
 	EV_IND_2,   // 0010
@@ -236,7 +240,8 @@ enum {
  */
 
 /* Generic FIFO structure */
-struct fifo {
+struct fifo
+{
 	u_char r, w, count, size;
 	spinlock_t lock;
 };
@@ -259,19 +264,25 @@ static inline int fifo_add(struct fifo *fifo)
 	unsigned long flags;
 	int index;
 
-	if (!fifo) {
+	if (!fifo)
+	{
 		return -1;
 	}
 
 	spin_lock_irqsave(&fifo->lock, flags);
-	if (fifo->count == fifo->size) {
+
+	if (fifo->count == fifo->size)
+	{
 		// FIFO full
 		index = -1;
-	} else {
+	}
+	else
+	{
 		// Return index where to get the next data to add to the FIFO
 		index = fifo->w++ & (fifo->size - 1);
 		fifo->count++;
 	}
+
 	spin_unlock_irqrestore(&fifo->lock, flags);
 	return index;
 }
@@ -284,19 +295,25 @@ static inline int fifo_remove(struct fifo *fifo)
 	unsigned long flags;
 	int index;
 
-	if (!fifo) {
+	if (!fifo)
+	{
 		return -1;
 	}
 
 	spin_lock_irqsave(&fifo->lock, flags);
-	if (!fifo->count) {
+
+	if (!fifo->count)
+	{
 		// FIFO empty
 		index = -1;
-	} else {
+	}
+	else
+	{
 		// Return index where to get the next data from the FIFO
 		index = fifo->r++ & (fifo->size - 1);
 		fifo->count--;
 	}
+
 	spin_unlock_irqrestore(&fifo->lock, flags);
 
 	return index;
@@ -307,7 +324,8 @@ static inline int fifo_remove(struct fifo *fifo)
  */
 typedef void (*ctrl_complete_t)(void *);
 
-typedef struct ctrl_msg {
+typedef struct ctrl_msg
+{
 	struct usb_ctrlrequest dr;
 	ctrl_complete_t complete;
 	void *context;
@@ -315,7 +333,8 @@ typedef struct ctrl_msg {
 
 /* FIFO of ctrl messages waiting to be sent */
 #define MAX_EP0_MSG 16
-struct ctrl_msg_fifo {
+struct ctrl_msg_fifo
+{
 	struct fifo f;
 	struct ctrl_msg data[MAX_EP0_MSG];
 };
@@ -323,18 +342,21 @@ struct ctrl_msg_fifo {
 #define MAX_DFRAME_LEN_L1	300
 #define HSCX_BUFMAX	4096
 
-struct st5481_ctrl {
+struct st5481_ctrl
+{
 	struct ctrl_msg_fifo msg_fifo;
 	unsigned long busy;
 	struct urb *urb;
 };
 
-struct st5481_intr {
+struct st5481_intr
+{
 	//	struct evt_fifo evt_fifo;
 	struct urb *urb;
 };
 
-struct st5481_d_out {
+struct st5481_d_out
+{
 	struct isdnhdlc_vars hdlc_state;
 	struct urb *urb[2]; /* double buffering */
 	unsigned long busy;
@@ -342,7 +364,8 @@ struct st5481_d_out {
 	struct FsmInst fsm;
 };
 
-struct st5481_b_out {
+struct st5481_b_out
+{
 	struct isdnhdlc_vars hdlc_state;
 	struct urb *urb[2]; /* double buffering */
 	u_char flow_event;
@@ -350,7 +373,8 @@ struct st5481_b_out {
 	struct sk_buff *tx_skb;
 };
 
-struct st5481_in {
+struct st5481_in
+{
 	struct isdnhdlc_vars hdlc_state;
 	struct urb *urb[2]; /* double buffering */
 	int mode;
@@ -367,7 +391,8 @@ int st5481_setup_in(struct st5481_in *in);
 void st5481_release_in(struct st5481_in *in);
 void st5481_in_mode(struct st5481_in *in, int mode);
 
-struct st5481_bcs {
+struct st5481_bcs
+{
 	struct hisax_b_if b_if;
 	struct st5481_adapter *adapter;
 	struct st5481_in b_in;
@@ -376,7 +401,8 @@ struct st5481_bcs {
 	int mode;
 };
 
-struct st5481_adapter {
+struct st5481_adapter
+{
 	int number_of_leds;
 	struct usb_device *usb_dev;
 	struct hisax_d_if hisax_d_if;
@@ -443,16 +469,16 @@ void st5481_d_exit(void);
 /* USB */
 void st5481_ph_command(struct st5481_adapter *adapter, unsigned int command);
 int st5481_setup_isocpipes(struct urb *urb[2], struct usb_device *dev,
-			   unsigned int pipe, int num_packets,
-			   int packet_size, int buf_size,
-			   usb_complete_t complete, void *context);
+						   unsigned int pipe, int num_packets,
+						   int packet_size, int buf_size,
+						   usb_complete_t complete, void *context);
 void st5481_release_isocpipes(struct urb *urb[2]);
 
 void st5481_usb_pipe_reset(struct st5481_adapter *adapter,
-			   u_char pipe, ctrl_complete_t complete, void *context);
+						   u_char pipe, ctrl_complete_t complete, void *context);
 void st5481_usb_device_ctrl_msg(struct st5481_adapter *adapter,
-				u8 request, u16 value,
-				ctrl_complete_t complete, void *context);
+								u8 request, u16 value,
+								ctrl_complete_t complete, void *context);
 int  st5481_setup_usb(struct st5481_adapter *adapter);
 void st5481_release_usb(struct st5481_adapter *adapter);
 void st5481_start(struct st5481_adapter *adapter);
@@ -479,21 +505,32 @@ dump_iso_packet(const char *name, struct urb *urb)
 	u_char *data;
 
 	printk(KERN_DEBUG "%s: packets=%d,errors=%d\n",
-	       name, urb->number_of_packets, urb->error_count);
-	for (i = 0; i  < urb->number_of_packets; ++i) {
-		if (urb->pipe & USB_DIR_IN) {
+		   name, urb->number_of_packets, urb->error_count);
+
+	for (i = 0; i  < urb->number_of_packets; ++i)
+	{
+		if (urb->pipe & USB_DIR_IN)
+		{
 			len = urb->iso_frame_desc[i].actual_length;
-		} else {
+		}
+		else
+		{
 			len = urb->iso_frame_desc[i].length;
 		}
+
 		ofs = urb->iso_frame_desc[i].offset;
 		printk(KERN_DEBUG "len=%.2d,ofs=%.3d ", len, ofs);
-		if (len) {
+
+		if (len)
+		{
 			data = urb->transfer_buffer + ofs;
-			for (j = 0; j < len; j++) {
+
+			for (j = 0; j < len; j++)
+			{
 				printk("%.2x", data[j]);
 			}
 		}
+
 		printk("\n");
 	}
 }
@@ -502,16 +539,25 @@ static inline const char *ST5481_CMD_string(int evt)
 {
 	static char s[16];
 
-	switch (evt) {
-	case ST5481_CMD_DR: return "DR";
-	case ST5481_CMD_RES: return "RES";
-	case ST5481_CMD_TM1: return "TM1";
-	case ST5481_CMD_TM2: return "TM2";
-	case ST5481_CMD_PUP: return "PUP";
-	case ST5481_CMD_AR8: return "AR8";
-	case ST5481_CMD_AR10: return "AR10";
-	case ST5481_CMD_ARL: return "ARL";
-	case ST5481_CMD_PDN: return "PDN";
+	switch (evt)
+	{
+		case ST5481_CMD_DR: return "DR";
+
+		case ST5481_CMD_RES: return "RES";
+
+		case ST5481_CMD_TM1: return "TM1";
+
+		case ST5481_CMD_TM2: return "TM2";
+
+		case ST5481_CMD_PUP: return "PUP";
+
+		case ST5481_CMD_AR8: return "AR8";
+
+		case ST5481_CMD_AR10: return "AR10";
+
+		case ST5481_CMD_ARL: return "ARL";
+
+		case ST5481_CMD_PDN: return "PDN";
 	};
 
 	sprintf(s, "0x%x", evt);

@@ -20,29 +20,31 @@
 #define XEN_UNPLUG_ALL_NICS		(1<<1)
 #define XEN_UNPLUG_AUX_IDE_DISKS	(1<<2)
 #define XEN_UNPLUG_ALL			(XEN_UNPLUG_ALL_IDE_DISKS|\
-					 XEN_UNPLUG_ALL_NICS|\
-					 XEN_UNPLUG_AUX_IDE_DISKS)
+								 XEN_UNPLUG_ALL_NICS|\
+								 XEN_UNPLUG_AUX_IDE_DISKS)
 
 #define XEN_UNPLUG_UNNECESSARY 		(1<<16)
 #define XEN_UNPLUG_NEVER	 		(1<<17)
 
-static inline int xen_must_unplug_nics(void) {
+static inline int xen_must_unplug_nics(void)
+{
 #if (defined(CONFIG_XEN_NETDEV_FRONTEND) || \
 		defined(CONFIG_XEN_NETDEV_FRONTEND_MODULE)) && \
 		defined(CONFIG_XEN_PVHVM)
-        return 1;
+	return 1;
 #else
-        return 0;
+	return 0;
 #endif
 }
 
-static inline int xen_must_unplug_disks(void) {
+static inline int xen_must_unplug_disks(void)
+{
 #if (defined(CONFIG_XEN_BLKDEV_FRONTEND) || \
 		defined(CONFIG_XEN_BLKDEV_FRONTEND_MODULE)) && \
 		defined(CONFIG_XEN_PVHVM)
-        return 1;
+	return 1;
 #else
-        return 0;
+	return 0;
 #endif
 }
 

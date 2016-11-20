@@ -98,7 +98,8 @@
  *
  ******************************************************************************/
 
-struct acpi_table_header {
+struct acpi_table_header
+{
 	char signature[ACPI_NAME_SIZE];	/* ASCII table signature */
 	u32 length;		/* Length of table in bytes, including this header */
 	u8 revision;		/* ACPI Specification minor version number */
@@ -120,7 +121,8 @@ struct acpi_table_header {
  *
  ******************************************************************************/
 
-struct acpi_generic_address {
+struct acpi_generic_address
+{
 	u8 space_id;		/* Address space where struct or register exists */
 	u8 bit_width;		/* Size in bits of given register */
 	u8 bit_offset;		/* Bit offset within the register */
@@ -135,7 +137,8 @@ struct acpi_generic_address {
  *
  ******************************************************************************/
 
-struct acpi_table_rsdp {
+struct acpi_table_rsdp
+{
 	char signature[8];	/* ACPI signature, contains "RSD PTR " */
 	u8 checksum;		/* ACPI 1.0 checksum */
 	char oem_id[ACPI_OEM_ID_SIZE];	/* OEM identification */
@@ -149,7 +152,8 @@ struct acpi_table_rsdp {
 
 /* Standalone struct for the ACPI 1.0 RSDP */
 
-struct acpi_rsdp_common {
+struct acpi_rsdp_common
+{
 	char signature[8];
 	u8 checksum;
 	char oem_id[ACPI_OEM_ID_SIZE];
@@ -159,7 +163,8 @@ struct acpi_rsdp_common {
 
 /* Standalone struct for the extended part of the RSDP (ACPI 2.0+) */
 
-struct acpi_rsdp_extension {
+struct acpi_rsdp_extension
+{
 	u32 length;
 	u64 xsdt_physical_address;
 	u8 extended_checksum;
@@ -173,12 +178,14 @@ struct acpi_rsdp_extension {
  *
  ******************************************************************************/
 
-struct acpi_table_rsdt {
+struct acpi_table_rsdt
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
 	u32 table_offset_entry[1];	/* Array of pointers to ACPI tables */
 };
 
-struct acpi_table_xsdt {
+struct acpi_table_xsdt
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
 	u64 table_offset_entry[1];	/* Array of pointers to ACPI tables */
 };
@@ -192,7 +199,8 @@ struct acpi_table_xsdt {
  *
  ******************************************************************************/
 
-struct acpi_table_facs {
+struct acpi_table_facs
+{
 	char signature[4];	/* ASCII table signature */
 	u32 length;		/* Length of structure, in bytes */
 	u32 hardware_signature;	/* Hardware configuration signature */
@@ -229,7 +237,8 @@ struct acpi_table_facs {
 
 /* Fields common to all versions of the FADT */
 
-struct acpi_table_fadt {
+struct acpi_table_fadt
+{
 	struct acpi_table_header header;	/* Common ACPI table header */
 	u32 facs;		/* 32-bit physical address of FACS */
 	u32 dsdt;		/* 32-bit physical address of DSDT */
@@ -331,7 +340,8 @@ struct acpi_table_fadt {
 
 /* Values for preferred_profile (Preferred Power Management Profiles) */
 
-enum acpi_preferred_pm_profiles {
+enum acpi_preferred_pm_profiles
+{
 	PM_UNSPECIFIED = 0,
 	PM_DESKTOP = 1,
 	PM_MOBILE = 2,
@@ -357,14 +367,16 @@ enum acpi_preferred_pm_profiles {
 /*
  * Internal table-related structures
  */
-union acpi_name_union {
+union acpi_name_union
+{
 	u32 integer;
 	char ascii[4];
 };
 
 /* Internal ACPI Table Descriptor. One per ACPI table. */
 
-struct acpi_table_desc {
+struct acpi_table_desc
+{
 	acpi_physical_address address;
 	struct acpi_table_header *pointer;
 	u32 length;		/* Length fixed at 32 bits (fixed in table header) */

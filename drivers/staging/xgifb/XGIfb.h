@@ -3,7 +3,8 @@
 #include "vgatypes.h"
 #include "vb_struct.h"
 
-enum xgifb_display_type {
+enum xgifb_display_type
+{
 	XGIFB_DISP_NONE = 0,
 	XGIFB_DISP_CRT,
 	XGIFB_DISP_LCD,
@@ -18,7 +19,8 @@ enum xgifb_display_type {
 #define HASVB_302	    0x20
 #define HASVB_CHRONTEL	    0x80
 
-enum XGI_CHIP_TYPE {
+enum XGI_CHIP_TYPE
+{
 	XG40 = 32,
 	XG42,
 	XG20 = 48,
@@ -26,7 +28,8 @@ enum XGI_CHIP_TYPE {
 	XG27,
 };
 
-enum xgi_tvtype {
+enum xgi_tvtype
+{
 	TVMODE_NTSC = 0,
 	TVMODE_PAL,
 	TVMODE_HIVISION,
@@ -36,7 +39,8 @@ enum xgi_tvtype {
 	TVMODE_TOTAL
 };
 
-enum xgi_tv_plug {
+enum xgi_tv_plug
+{
 	TVPLUG_UNKNOWN = 0,
 	TVPLUG_COMPOSITE = 1,
 	TVPLUG_SVIDEO = 2,
@@ -49,7 +53,8 @@ enum xgi_tv_plug {
 	TVPLUG_TOTAL
 };
 
-struct xgifb_video_info {
+struct xgifb_video_info
+{
 	struct fb_info *fb_info;
 	struct xgi_hw_device_info hw_info;
 	struct vb_device_info dev_info;

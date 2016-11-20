@@ -73,7 +73,8 @@ static inline int drv_set_tx_power(struct ieee802154_local *local, s32 mbm)
 
 	might_sleep();
 
-	if (!local->ops->set_txpower) {
+	if (!local->ops->set_txpower)
+	{
 		WARN_ON(1);
 		return -EOPNOTSUPP;
 	}
@@ -85,13 +86,14 @@ static inline int drv_set_tx_power(struct ieee802154_local *local, s32 mbm)
 }
 
 static inline int drv_set_cca_mode(struct ieee802154_local *local,
-				   const struct wpan_phy_cca *cca)
+								   const struct wpan_phy_cca *cca)
 {
 	int ret;
 
 	might_sleep();
 
-	if (!local->ops->set_cca_mode) {
+	if (!local->ops->set_cca_mode)
+	{
 		WARN_ON(1);
 		return -EOPNOTSUPP;
 	}
@@ -108,7 +110,8 @@ static inline int drv_set_lbt_mode(struct ieee802154_local *local, bool mode)
 
 	might_sleep();
 
-	if (!local->ops->set_lbt) {
+	if (!local->ops->set_lbt)
+	{
 		WARN_ON(1);
 		return -EOPNOTSUPP;
 	}
@@ -126,7 +129,8 @@ drv_set_cca_ed_level(struct ieee802154_local *local, s32 mbm)
 
 	might_sleep();
 
-	if (!local->ops->set_cca_ed_level) {
+	if (!local->ops->set_cca_ed_level)
+	{
 		WARN_ON(1);
 		return -EOPNOTSUPP;
 	}
@@ -144,7 +148,8 @@ static inline int drv_set_pan_id(struct ieee802154_local *local, __le16 pan_id)
 
 	might_sleep();
 
-	if (!local->ops->set_hw_addr_filt) {
+	if (!local->ops->set_hw_addr_filt)
+	{
 		WARN_ON(1);
 		return -EOPNOTSUPP;
 	}
@@ -153,7 +158,7 @@ static inline int drv_set_pan_id(struct ieee802154_local *local, __le16 pan_id)
 
 	trace_802154_drv_set_pan_id(local, pan_id);
 	ret = local->ops->set_hw_addr_filt(&local->hw, &filt,
-					    IEEE802154_AFILT_PANID_CHANGED);
+									   IEEE802154_AFILT_PANID_CHANGED);
 	trace_802154_drv_return_int(local, ret);
 	return ret;
 }
@@ -166,7 +171,8 @@ drv_set_extended_addr(struct ieee802154_local *local, __le64 extended_addr)
 
 	might_sleep();
 
-	if (!local->ops->set_hw_addr_filt) {
+	if (!local->ops->set_hw_addr_filt)
+	{
 		WARN_ON(1);
 		return -EOPNOTSUPP;
 	}
@@ -175,7 +181,7 @@ drv_set_extended_addr(struct ieee802154_local *local, __le64 extended_addr)
 
 	trace_802154_drv_set_extended_addr(local, extended_addr);
 	ret = local->ops->set_hw_addr_filt(&local->hw, &filt,
-					    IEEE802154_AFILT_IEEEADDR_CHANGED);
+									   IEEE802154_AFILT_IEEEADDR_CHANGED);
 	trace_802154_drv_return_int(local, ret);
 	return ret;
 }
@@ -188,7 +194,8 @@ drv_set_short_addr(struct ieee802154_local *local, __le16 short_addr)
 
 	might_sleep();
 
-	if (!local->ops->set_hw_addr_filt) {
+	if (!local->ops->set_hw_addr_filt)
+	{
 		WARN_ON(1);
 		return -EOPNOTSUPP;
 	}
@@ -197,7 +204,7 @@ drv_set_short_addr(struct ieee802154_local *local, __le16 short_addr)
 
 	trace_802154_drv_set_short_addr(local, short_addr);
 	ret = local->ops->set_hw_addr_filt(&local->hw, &filt,
-					    IEEE802154_AFILT_SADDR_CHANGED);
+									   IEEE802154_AFILT_SADDR_CHANGED);
 	trace_802154_drv_return_int(local, ret);
 	return ret;
 }
@@ -210,7 +217,8 @@ drv_set_pan_coord(struct ieee802154_local *local, bool is_coord)
 
 	might_sleep();
 
-	if (!local->ops->set_hw_addr_filt) {
+	if (!local->ops->set_hw_addr_filt)
+	{
 		WARN_ON(1);
 		return -EOPNOTSUPP;
 	}
@@ -219,28 +227,29 @@ drv_set_pan_coord(struct ieee802154_local *local, bool is_coord)
 
 	trace_802154_drv_set_pan_coord(local, is_coord);
 	ret = local->ops->set_hw_addr_filt(&local->hw, &filt,
-					    IEEE802154_AFILT_PANC_CHANGED);
+									   IEEE802154_AFILT_PANC_CHANGED);
 	trace_802154_drv_return_int(local, ret);
 	return ret;
 }
 
 static inline int
 drv_set_csma_params(struct ieee802154_local *local, u8 min_be, u8 max_be,
-		    u8 max_csma_backoffs)
+					u8 max_csma_backoffs)
 {
 	int ret;
 
 	might_sleep();
 
-	if (!local->ops->set_csma_params) {
+	if (!local->ops->set_csma_params)
+	{
 		WARN_ON(1);
 		return -EOPNOTSUPP;
 	}
 
 	trace_802154_drv_set_csma_params(local, min_be, max_be,
-					 max_csma_backoffs);
+									 max_csma_backoffs);
 	ret = local->ops->set_csma_params(&local->hw, min_be, max_be,
-					   max_csma_backoffs);
+									  max_csma_backoffs);
 	trace_802154_drv_return_int(local, ret);
 	return ret;
 }
@@ -252,7 +261,8 @@ drv_set_max_frame_retries(struct ieee802154_local *local, s8 max_frame_retries)
 
 	might_sleep();
 
-	if (!local->ops->set_frame_retries) {
+	if (!local->ops->set_frame_retries)
+	{
 		WARN_ON(1);
 		return -EOPNOTSUPP;
 	}
@@ -270,7 +280,8 @@ drv_set_promiscuous_mode(struct ieee802154_local *local, bool on)
 
 	might_sleep();
 
-	if (!local->ops->set_promiscuous_mode) {
+	if (!local->ops->set_promiscuous_mode)
+	{
 		WARN_ON(1);
 		return -EOPNOTSUPP;
 	}

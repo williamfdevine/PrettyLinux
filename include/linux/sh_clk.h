@@ -11,14 +11,16 @@
 
 struct clk;
 
-struct clk_mapping {
+struct clk_mapping
+{
 	phys_addr_t		phys;
 	void __iomem		*base;
 	unsigned long		len;
 	struct kref		ref;
 };
 
-struct sh_clk_ops {
+struct sh_clk_ops
+{
 #ifdef CONFIG_SH_CLK_CPG_LEGACY
 	void (*init)(struct clk *clk);
 #endif
@@ -34,7 +36,8 @@ struct sh_clk_ops {
 #define SH_CLK_DIV4_MSK		SH_CLK_DIV_MSK(4)
 #define SH_CLK_DIV6_MSK		SH_CLK_DIV_MSK(6)
 
-struct clk {
+struct clk
+{
 	struct list_head	node;
 	struct clk		*parent;
 	struct clk		**parent_table;	/* list of parents to */
@@ -73,8 +76,8 @@ struct clk {
 #define CLK_MASK_DIV_ON_DISABLE	BIT(4)
 
 #define CLK_ENABLE_REG_MASK	(CLK_ENABLE_REG_32BIT | \
-				 CLK_ENABLE_REG_16BIT | \
-				 CLK_ENABLE_REG_8BIT)
+							 CLK_ENABLE_REG_16BIT | \
+							 CLK_ENABLE_REG_8BIT)
 
 /* drivers/sh/clk.c */
 unsigned long followparent_recalc(struct clk *);
@@ -85,7 +88,8 @@ int clk_register(struct clk *);
 void clk_unregister(struct clk *);
 void clk_enable_init_clocks(void);
 
-struct clk_div_mult_table {
+struct clk_div_mult_table
+{
 	unsigned int *divisors;
 	unsigned int nr_divisors;
 	unsigned int *multipliers;
@@ -94,33 +98,33 @@ struct clk_div_mult_table {
 
 struct cpufreq_frequency_table;
 void clk_rate_table_build(struct clk *clk,
-			  struct cpufreq_frequency_table *freq_table,
-			  int nr_freqs,
-			  struct clk_div_mult_table *src_table,
-			  unsigned long *bitmap);
+						  struct cpufreq_frequency_table *freq_table,
+						  int nr_freqs,
+						  struct clk_div_mult_table *src_table,
+						  unsigned long *bitmap);
 
 long clk_rate_table_round(struct clk *clk,
-			  struct cpufreq_frequency_table *freq_table,
-			  unsigned long rate);
+						  struct cpufreq_frequency_table *freq_table,
+						  unsigned long rate);
 
 int clk_rate_table_find(struct clk *clk,
-			struct cpufreq_frequency_table *freq_table,
-			unsigned long rate);
+						struct cpufreq_frequency_table *freq_table,
+						unsigned long rate);
 
 long clk_rate_div_range_round(struct clk *clk, unsigned int div_min,
-			      unsigned int div_max, unsigned long rate);
+							  unsigned int div_max, unsigned long rate);
 
 long clk_rate_mult_range_round(struct clk *clk, unsigned int mult_min,
-			       unsigned int mult_max, unsigned long rate);
+							   unsigned int mult_max, unsigned long rate);
 
 #define SH_CLK_MSTP(_parent, _enable_reg, _enable_bit, _status_reg, _flags) \
-{									\
-	.parent		= _parent,					\
-	.enable_reg	= (void __iomem *)_enable_reg,			\
-	.enable_bit	= _enable_bit,					\
-	.status_reg	= _status_reg,					\
-	.flags		= _flags,					\
-}
+	{									\
+		.parent		= _parent,					\
+					  .enable_reg	= (void __iomem *)_enable_reg,			\
+									.enable_bit	= _enable_bit,					\
+											.status_reg	= _status_reg,					\
+													.flags		= _flags,					\
+	}
 
 #define SH_CLK_MSTP32(_p, _r, _b, _f)				\
 	SH_CLK_MSTP(_p, _r, _b, 0, _f | CLK_ENABLE_REG_32BIT)
@@ -148,16 +152,17 @@ static inline int __deprecated sh_clk_mstp32_register(struct clk *clks, int nr)
 }
 
 #define SH_CLK_DIV4(_parent, _reg, _shift, _div_bitmap, _flags)	\
-{								\
-	.parent = _parent,					\
-	.enable_reg = (void __iomem *)_reg,			\
-	.enable_bit = _shift,					\
-	.arch_flags = _div_bitmap,				\
-	.div_mask = SH_CLK_DIV4_MSK,				\
-	.flags = _flags,					\
-}
+	{								\
+		.parent = _parent,					\
+				  .enable_reg = (void __iomem *)_reg,			\
+								.enable_bit = _shift,					\
+											  .arch_flags = _div_bitmap,				\
+													  .div_mask = SH_CLK_DIV4_MSK,				\
+															  .flags = _flags,					\
+	}
 
-struct clk_div_table {
+struct clk_div_table
+{
 	struct clk_div_mult_table *div_mult_table;
 	void (*kick)(struct clk *clk);
 };
@@ -165,33 +170,33 @@ struct clk_div_table {
 #define clk_div4_table clk_div_table
 
 int sh_clk_div4_register(struct clk *clks, int nr,
-			 struct clk_div4_table *table);
+						 struct clk_div4_table *table);
 int sh_clk_div4_enable_register(struct clk *clks, int nr,
-			 struct clk_div4_table *table);
+								struct clk_div4_table *table);
 int sh_clk_div4_reparent_register(struct clk *clks, int nr,
-			 struct clk_div4_table *table);
+								  struct clk_div4_table *table);
 
 #define SH_CLK_DIV6_EXT(_reg, _flags, _parents,			\
-			_num_parents, _src_shift, _src_width)	\
+						_num_parents, _src_shift, _src_width)	\
 {								\
 	.enable_reg = (void __iomem *)_reg,			\
-	.enable_bit = 0, /* unused */				\
-	.flags = _flags | CLK_MASK_DIV_ON_DISABLE,		\
-	.div_mask = SH_CLK_DIV6_MSK,				\
-	.parent_table = _parents,				\
-	.parent_num = _num_parents,				\
-	.src_shift = _src_shift,				\
-	.src_width = _src_width,				\
+				  .enable_bit = 0, /* unused */				\
+								.flags = _flags | CLK_MASK_DIV_ON_DISABLE,		\
+										 .div_mask = SH_CLK_DIV6_MSK,				\
+												 .parent_table = _parents,				\
+														 .parent_num = _num_parents,				\
+																 .src_shift = _src_shift,				\
+																		 .src_width = _src_width,				\
 }
 
 #define SH_CLK_DIV6(_parent, _reg, _flags)			\
-{								\
-	.parent		= _parent,				\
-	.enable_reg	= (void __iomem *)_reg,			\
-	.enable_bit	= 0,	/* unused */			\
-	.div_mask	= SH_CLK_DIV6_MSK,			\
-	.flags		= _flags | CLK_MASK_DIV_ON_DISABLE,	\
-}
+	{								\
+		.parent		= _parent,				\
+					  .enable_reg	= (void __iomem *)_reg,			\
+									.enable_bit	= 0,	/* unused */			\
+											.div_mask	= SH_CLK_DIV6_MSK,			\
+													.flags		= _flags | CLK_MASK_DIV_ON_DISABLE,	\
+	}
 
 int sh_clk_div6_register(struct clk *clks, int nr);
 int sh_clk_div6_reparent_register(struct clk *clks, int nr);
@@ -202,10 +207,10 @@ int sh_clk_div6_reparent_register(struct clk *clks, int nr);
 
 /* .enable_reg will be updated to .mapping on sh_clk_fsidiv_register() */
 #define SH_CLK_FSIDIV(_reg, _parent)		\
-{						\
-	.enable_reg = (void __iomem *)_reg,	\
-	.parent		= _parent,		\
-}
+	{						\
+		.enable_reg = (void __iomem *)_reg,	\
+					  .parent		= _parent,		\
+	}
 
 int sh_clk_fsidiv_register(struct clk *clks, int nr);
 

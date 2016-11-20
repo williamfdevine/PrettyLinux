@@ -31,17 +31,19 @@ static void dp_detach_port_notify(struct vport *vport)
 
 	dp = vport->dp;
 	notify = ovs_vport_cmd_build_info(vport, 0, 0,
-					  OVS_VPORT_CMD_DEL);
+									  OVS_VPORT_CMD_DEL);
 	ovs_dp_detach_port(vport);
-	if (IS_ERR(notify)) {
+
+	if (IS_ERR(notify))
+	{
 		genl_set_err(&dp_vport_genl_family, ovs_dp_get_net(dp), 0,
-			     0, PTR_ERR(notify));
+					 0, PTR_ERR(notify));
 		return;
 	}
 
 	genlmsg_multicast_netns(&dp_vport_genl_family,
-				ovs_dp_get_net(dp), notify, 0,
-				0, GFP_KERNEL);
+							ovs_dp_get_net(dp), notify, 0,
+							0, GFP_KERNEL);
 }
 
 void ovs_dp_notify_wq(struct work_struct *work)
@@ -50,19 +52,26 @@ void ovs_dp_notify_wq(struct work_struct *work)
 	struct datapath *dp;
 
 	ovs_lock();
-	list_for_each_entry(dp, &ovs_net->dps, list_node) {
+	list_for_each_entry(dp, &ovs_net->dps, list_node)
+	{
 		int i;
 
-		for (i = 0; i < DP_VPORT_HASH_BUCKETS; i++) {
+		for (i = 0; i < DP_VPORT_HASH_BUCKETS; i++)
+		{
 			struct vport *vport;
 			struct hlist_node *n;
 
-			hlist_for_each_entry_safe(vport, n, &dp->ports[i], dp_hash_node) {
+			hlist_for_each_entry_safe(vport, n, &dp->ports[i], dp_hash_node)
+			{
 				if (vport->ops->type == OVS_VPORT_TYPE_INTERNAL)
+				{
 					continue;
+				}
 
 				if (!(vport->dev->priv_flags & IFF_OVS_DATAPATH))
+				{
 					dp_detach_port_notify(vport);
+				}
 			}
 		}
 	}
@@ -70,19 +79,24 @@ void ovs_dp_notify_wq(struct work_struct *work)
 }
 
 static int dp_device_event(struct notifier_block *unused, unsigned long event,
-			   void *ptr)
+						   void *ptr)
 {
 	struct ovs_net *ovs_net;
 	struct net_device *dev = netdev_notifier_info_to_dev(ptr);
 	struct vport *vport = NULL;
 
 	if (!ovs_is_internal_dev(dev))
+	{
 		vport = ovs_netdev_get_vport(dev);
+	}
 
 	if (!vport)
+	{
 		return NOTIFY_DONE;
+	}
 
-	if (event == NETDEV_UNREGISTER) {
+	if (event == NETDEV_UNREGISTER)
+	{
 		/* upper_dev_unlink and decrement promisc immediately */
 		ovs_netdev_detach_dev(vport);
 
@@ -94,6 +108,7 @@ static int dp_device_event(struct notifier_block *unused, unsigned long event,
 	return NOTIFY_DONE;
 }
 
-struct notifier_block ovs_dp_device_notifier = {
+struct notifier_block ovs_dp_device_notifier =
+{
 	.notifier_call = dp_device_event
 };

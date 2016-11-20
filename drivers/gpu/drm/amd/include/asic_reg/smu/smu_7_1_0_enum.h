@@ -67,13 +67,15 @@
 #define SMC_VERSION_MINOR                         0x0
 #define SMC_HEADER_SIZE                           0x40
 #define ROM_SIGNATURE                             0xaa55
-typedef enum SurfaceEndian {
+typedef enum SurfaceEndian
+{
 	ENDIAN_NONE                                      = 0x0,
 	ENDIAN_8IN16                                     = 0x1,
 	ENDIAN_8IN32                                     = 0x2,
 	ENDIAN_8IN64                                     = 0x3,
 } SurfaceEndian;
-typedef enum ArrayMode {
+typedef enum ArrayMode
+{
 	ARRAY_LINEAR_GENERAL                             = 0x0,
 	ARRAY_LINEAR_ALIGNED                             = 0x1,
 	ARRAY_1D_TILED_THIN1                             = 0x2,
@@ -91,21 +93,25 @@ typedef enum ArrayMode {
 	ARRAY_3D_TILED_XTHICK                            = 0xe,
 	ARRAY_PRT_3D_TILED_THICK                         = 0xf,
 } ArrayMode;
-typedef enum PipeTiling {
+typedef enum PipeTiling
+{
 	CONFIG_1_PIPE                                    = 0x0,
 	CONFIG_2_PIPE                                    = 0x1,
 	CONFIG_4_PIPE                                    = 0x2,
 	CONFIG_8_PIPE                                    = 0x3,
 } PipeTiling;
-typedef enum BankTiling {
+typedef enum BankTiling
+{
 	CONFIG_4_BANK                                    = 0x0,
 	CONFIG_8_BANK                                    = 0x1,
 } BankTiling;
-typedef enum GroupInterleave {
+typedef enum GroupInterleave
+{
 	CONFIG_256B_GROUP                                = 0x0,
 	CONFIG_512B_GROUP                                = 0x1,
 } GroupInterleave;
-typedef enum RowTiling {
+typedef enum RowTiling
+{
 	CONFIG_1KB_ROW                                   = 0x0,
 	CONFIG_2KB_ROW                                   = 0x1,
 	CONFIG_4KB_ROW                                   = 0x2,
@@ -115,64 +121,76 @@ typedef enum RowTiling {
 	CONFIG_4KB_ROW_OPT                               = 0x6,
 	CONFIG_8KB_ROW_OPT                               = 0x7,
 } RowTiling;
-typedef enum BankSwapBytes {
+typedef enum BankSwapBytes
+{
 	CONFIG_128B_SWAPS                                = 0x0,
 	CONFIG_256B_SWAPS                                = 0x1,
 	CONFIG_512B_SWAPS                                = 0x2,
 	CONFIG_1KB_SWAPS                                 = 0x3,
 } BankSwapBytes;
-typedef enum SampleSplitBytes {
+typedef enum SampleSplitBytes
+{
 	CONFIG_1KB_SPLIT                                 = 0x0,
 	CONFIG_2KB_SPLIT                                 = 0x1,
 	CONFIG_4KB_SPLIT                                 = 0x2,
 	CONFIG_8KB_SPLIT                                 = 0x3,
 } SampleSplitBytes;
-typedef enum NumPipes {
+typedef enum NumPipes
+{
 	ADDR_CONFIG_1_PIPE                               = 0x0,
 	ADDR_CONFIG_2_PIPE                               = 0x1,
 	ADDR_CONFIG_4_PIPE                               = 0x2,
 	ADDR_CONFIG_8_PIPE                               = 0x3,
 	ADDR_CONFIG_16_PIPE                              = 0x4,
 } NumPipes;
-typedef enum PipeInterleaveSize {
+typedef enum PipeInterleaveSize
+{
 	ADDR_CONFIG_PIPE_INTERLEAVE_256B                 = 0x0,
 	ADDR_CONFIG_PIPE_INTERLEAVE_512B                 = 0x1,
 } PipeInterleaveSize;
-typedef enum BankInterleaveSize {
+typedef enum BankInterleaveSize
+{
 	ADDR_CONFIG_BANK_INTERLEAVE_1                    = 0x0,
 	ADDR_CONFIG_BANK_INTERLEAVE_2                    = 0x1,
 	ADDR_CONFIG_BANK_INTERLEAVE_4                    = 0x2,
 	ADDR_CONFIG_BANK_INTERLEAVE_8                    = 0x3,
 } BankInterleaveSize;
-typedef enum NumShaderEngines {
+typedef enum NumShaderEngines
+{
 	ADDR_CONFIG_1_SHADER_ENGINE                      = 0x0,
 	ADDR_CONFIG_2_SHADER_ENGINE                      = 0x1,
 } NumShaderEngines;
-typedef enum ShaderEngineTileSize {
+typedef enum ShaderEngineTileSize
+{
 	ADDR_CONFIG_SE_TILE_16                           = 0x0,
 	ADDR_CONFIG_SE_TILE_32                           = 0x1,
 } ShaderEngineTileSize;
-typedef enum NumGPUs {
+typedef enum NumGPUs
+{
 	ADDR_CONFIG_1_GPU                                = 0x0,
 	ADDR_CONFIG_2_GPU                                = 0x1,
 	ADDR_CONFIG_4_GPU                                = 0x2,
 } NumGPUs;
-typedef enum MultiGPUTileSize {
+typedef enum MultiGPUTileSize
+{
 	ADDR_CONFIG_GPU_TILE_16                          = 0x0,
 	ADDR_CONFIG_GPU_TILE_32                          = 0x1,
 	ADDR_CONFIG_GPU_TILE_64                          = 0x2,
 	ADDR_CONFIG_GPU_TILE_128                         = 0x3,
 } MultiGPUTileSize;
-typedef enum RowSize {
+typedef enum RowSize
+{
 	ADDR_CONFIG_1KB_ROW                              = 0x0,
 	ADDR_CONFIG_2KB_ROW                              = 0x1,
 	ADDR_CONFIG_4KB_ROW                              = 0x2,
 } RowSize;
-typedef enum NumLowerPipes {
+typedef enum NumLowerPipes
+{
 	ADDR_CONFIG_1_LOWER_PIPES                        = 0x0,
 	ADDR_CONFIG_2_LOWER_PIPES                        = 0x1,
 } NumLowerPipes;
-typedef enum DebugBlockId {
+typedef enum DebugBlockId
+{
 	DBG_CLIENT_BLKID_RESERVED                        = 0x0,
 	DBG_CLIENT_BLKID_dbg                             = 0x1,
 	DBG_CLIENT_BLKID_dco0                            = 0x2,
@@ -323,7 +341,8 @@ typedef enum DebugBlockId {
 	DBG_CLIENT_BLKID_tmonw01                         = 0x93,
 	DBG_CLIENT_BLKID_RESERVED_LAST                   = 0x94,
 } DebugBlockId;
-typedef enum DebugBlockId_OLD {
+typedef enum DebugBlockId_OLD
+{
 	DBG_BLOCK_ID_RESERVED                            = 0x0,
 	DBG_BLOCK_ID_DBG                                 = 0x1,
 	DBG_BLOCK_ID_VMC                                 = 0x2,
@@ -557,7 +576,8 @@ typedef enum DebugBlockId_OLD {
 	DBG_BLOCK_ID_UNUSED51                            = 0xe6,
 	DBG_BLOCK_ID_UNUSED52                            = 0xe7,
 } DebugBlockId_OLD;
-typedef enum DebugBlockId_BY2 {
+typedef enum DebugBlockId_BY2
+{
 	DBG_BLOCK_ID_RESERVED_BY2                        = 0x0,
 	DBG_BLOCK_ID_VMC_BY2                             = 0x1,
 	DBG_BLOCK_ID_CG_BY2                              = 0x2,
@@ -675,7 +695,8 @@ typedef enum DebugBlockId_BY2 {
 	DBG_BLOCK_ID_MCD4_BY2                            = 0x72,
 	DBG_BLOCK_ID_UNUSED51_BY2                        = 0x73,
 } DebugBlockId_BY2;
-typedef enum DebugBlockId_BY4 {
+typedef enum DebugBlockId_BY4
+{
 	DBG_BLOCK_ID_RESERVED_BY4                        = 0x0,
 	DBG_BLOCK_ID_CG_BY4                              = 0x1,
 	DBG_BLOCK_ID_CSC_BY4                             = 0x2,
@@ -735,7 +756,8 @@ typedef enum DebugBlockId_BY4 {
 	DBG_BLOCK_ID_MCD0_BY4                            = 0x38,
 	DBG_BLOCK_ID_MCD4_BY4                            = 0x39,
 } DebugBlockId_BY4;
-typedef enum DebugBlockId_BY8 {
+typedef enum DebugBlockId_BY8
+{
 	DBG_BLOCK_ID_RESERVED_BY8                        = 0x0,
 	DBG_BLOCK_ID_CSC_BY8                             = 0x1,
 	DBG_BLOCK_ID_DMA0_BY8                            = 0x2,
@@ -766,7 +788,8 @@ typedef enum DebugBlockId_BY8 {
 	DBG_BLOCK_ID_TD18_BY8                            = 0x1b,
 	DBG_BLOCK_ID_MCD0_BY8                            = 0x1c,
 } DebugBlockId_BY8;
-typedef enum DebugBlockId_BY16 {
+typedef enum DebugBlockId_BY16
+{
 	DBG_BLOCK_ID_RESERVED_BY16                       = 0x0,
 	DBG_BLOCK_ID_DMA0_BY16                           = 0x1,
 	DBG_BLOCK_ID_VGT0_BY16                           = 0x2,
@@ -783,7 +806,8 @@ typedef enum DebugBlockId_BY16 {
 	DBG_BLOCK_ID_TD10_BY16                           = 0xd,
 	DBG_BLOCK_ID_MCD0_BY16                           = 0xe,
 } DebugBlockId_BY16;
-typedef enum CompareRef {
+typedef enum CompareRef
+{
 	REF_NEVER                                        = 0x0,
 	REF_LESS                                         = 0x1,
 	REF_EQUAL                                        = 0x2,
@@ -793,11 +817,13 @@ typedef enum CompareRef {
 	REF_GEQUAL                                       = 0x6,
 	REF_ALWAYS                                       = 0x7,
 } CompareRef;
-typedef enum ReadSize {
+typedef enum ReadSize
+{
 	READ_256_BITS                                    = 0x0,
 	READ_512_BITS                                    = 0x1,
 } ReadSize;
-typedef enum DepthFormat {
+typedef enum DepthFormat
+{
 	DEPTH_INVALID                                    = 0x0,
 	DEPTH_16                                         = 0x1,
 	DEPTH_X8_24                                      = 0x2,
@@ -807,17 +833,20 @@ typedef enum DepthFormat {
 	DEPTH_32_FLOAT                                   = 0x6,
 	DEPTH_X24_8_32_FLOAT                             = 0x7,
 } DepthFormat;
-typedef enum ZFormat {
+typedef enum ZFormat
+{
 	Z_INVALID                                        = 0x0,
 	Z_16                                             = 0x1,
 	Z_24                                             = 0x2,
 	Z_32_FLOAT                                       = 0x3,
 } ZFormat;
-typedef enum StencilFormat {
+typedef enum StencilFormat
+{
 	STENCIL_INVALID                                  = 0x0,
 	STENCIL_8                                        = 0x1,
 } StencilFormat;
-typedef enum CmaskMode {
+typedef enum CmaskMode
+{
 	CMASK_CLEAR_NONE                                 = 0x0,
 	CMASK_CLEAR_ONE                                  = 0x1,
 	CMASK_CLEAR_ALL                                  = 0x2,
@@ -835,7 +864,8 @@ typedef enum CmaskMode {
 	CMASK_ALPHAX_FRAG4                               = 0xe,
 	CMASK_ALPHAX_FRAGS                               = 0xf,
 } CmaskMode;
-typedef enum QuadExportFormat {
+typedef enum QuadExportFormat
+{
 	EXPORT_UNUSED                                    = 0x0,
 	EXPORT_32_R                                      = 0x1,
 	EXPORT_32_GR                                     = 0x2,
@@ -845,7 +875,8 @@ typedef enum QuadExportFormat {
 	EXPORT_SIGNED16_ABGR                             = 0x6,
 	EXPORT_32_ABGR                                   = 0x7,
 } QuadExportFormat;
-typedef enum QuadExportFormatOld {
+typedef enum QuadExportFormatOld
+{
 	EXPORT_4P_32BPC_ABGR                             = 0x0,
 	EXPORT_4P_16BPC_ABGR                             = 0x1,
 	EXPORT_4P_32BPC_GR                               = 0x2,
@@ -853,7 +884,8 @@ typedef enum QuadExportFormatOld {
 	EXPORT_2P_32BPC_ABGR                             = 0x4,
 	EXPORT_8P_32BPC_R                                = 0x5,
 } QuadExportFormatOld;
-typedef enum ColorFormat {
+typedef enum ColorFormat
+{
 	COLOR_INVALID                                    = 0x0,
 	COLOR_8                                          = 0x1,
 	COLOR_16                                         = 0x2,
@@ -879,7 +911,8 @@ typedef enum ColorFormat {
 	COLOR_X24_8_32_FLOAT                             = 0x16,
 	COLOR_RESERVED_23                                = 0x17,
 } ColorFormat;
-typedef enum SurfaceFormat {
+typedef enum SurfaceFormat
+{
 	FMT_INVALID                                      = 0x0,
 	FMT_8                                            = 0x1,
 	FMT_16                                           = 0x2,
@@ -945,7 +978,8 @@ typedef enum SurfaceFormat {
 	FMT_CTX1                                         = 0x3e,
 	FMT_RESERVED_63                                  = 0x3f,
 } SurfaceFormat;
-typedef enum BUF_DATA_FORMAT {
+typedef enum BUF_DATA_FORMAT
+{
 	BUF_DATA_FORMAT_INVALID                          = 0x0,
 	BUF_DATA_FORMAT_8                                = 0x1,
 	BUF_DATA_FORMAT_16                               = 0x2,
@@ -963,7 +997,8 @@ typedef enum BUF_DATA_FORMAT {
 	BUF_DATA_FORMAT_32_32_32_32                      = 0xe,
 	BUF_DATA_FORMAT_RESERVED_15                      = 0xf,
 } BUF_DATA_FORMAT;
-typedef enum IMG_DATA_FORMAT {
+typedef enum IMG_DATA_FORMAT
+{
 	IMG_DATA_FORMAT_INVALID                          = 0x0,
 	IMG_DATA_FORMAT_8                                = 0x1,
 	IMG_DATA_FORMAT_16                               = 0x2,
@@ -1029,7 +1064,8 @@ typedef enum IMG_DATA_FORMAT {
 	IMG_DATA_FORMAT_32_AS_8_8                        = 0x3e,
 	IMG_DATA_FORMAT_32_AS_32_32_32_32                = 0x3f,
 } IMG_DATA_FORMAT;
-typedef enum BUF_NUM_FORMAT {
+typedef enum BUF_NUM_FORMAT
+{
 	BUF_NUM_FORMAT_UNORM                             = 0x0,
 	BUF_NUM_FORMAT_SNORM                             = 0x1,
 	BUF_NUM_FORMAT_USCALED                           = 0x2,
@@ -1039,7 +1075,8 @@ typedef enum BUF_NUM_FORMAT {
 	BUF_NUM_FORMAT_SNORM_OGL                         = 0x6,
 	BUF_NUM_FORMAT_FLOAT                             = 0x7,
 } BUF_NUM_FORMAT;
-typedef enum IMG_NUM_FORMAT {
+typedef enum IMG_NUM_FORMAT
+{
 	IMG_NUM_FORMAT_UNORM                             = 0x0,
 	IMG_NUM_FORMAT_SNORM                             = 0x1,
 	IMG_NUM_FORMAT_USCALED                           = 0x2,
@@ -1057,22 +1094,26 @@ typedef enum IMG_NUM_FORMAT {
 	IMG_NUM_FORMAT_RESERVED_14                       = 0xe,
 	IMG_NUM_FORMAT_RESERVED_15                       = 0xf,
 } IMG_NUM_FORMAT;
-typedef enum TileType {
+typedef enum TileType
+{
 	ARRAY_COLOR_TILE                                 = 0x0,
 	ARRAY_DEPTH_TILE                                 = 0x1,
 } TileType;
-typedef enum NonDispTilingOrder {
+typedef enum NonDispTilingOrder
+{
 	ADDR_SURF_MICRO_TILING_DISPLAY                   = 0x0,
 	ADDR_SURF_MICRO_TILING_NON_DISPLAY               = 0x1,
 } NonDispTilingOrder;
-typedef enum MicroTileMode {
+typedef enum MicroTileMode
+{
 	ADDR_SURF_DISPLAY_MICRO_TILING                   = 0x0,
 	ADDR_SURF_THIN_MICRO_TILING                      = 0x1,
 	ADDR_SURF_DEPTH_MICRO_TILING                     = 0x2,
 	ADDR_SURF_ROTATED_MICRO_TILING                   = 0x3,
 	ADDR_SURF_THICK_MICRO_TILING                     = 0x4,
 } MicroTileMode;
-typedef enum TileSplit {
+typedef enum TileSplit
+{
 	ADDR_SURF_TILE_SPLIT_64B                         = 0x0,
 	ADDR_SURF_TILE_SPLIT_128B                        = 0x1,
 	ADDR_SURF_TILE_SPLIT_256B                        = 0x2,
@@ -1081,13 +1122,15 @@ typedef enum TileSplit {
 	ADDR_SURF_TILE_SPLIT_2KB                         = 0x5,
 	ADDR_SURF_TILE_SPLIT_4KB                         = 0x6,
 } TileSplit;
-typedef enum SampleSplit {
+typedef enum SampleSplit
+{
 	ADDR_SURF_SAMPLE_SPLIT_1                         = 0x0,
 	ADDR_SURF_SAMPLE_SPLIT_2                         = 0x1,
 	ADDR_SURF_SAMPLE_SPLIT_4                         = 0x2,
 	ADDR_SURF_SAMPLE_SPLIT_8                         = 0x3,
 } SampleSplit;
-typedef enum PipeConfig {
+typedef enum PipeConfig
+{
 	ADDR_SURF_P2                                     = 0x0,
 	ADDR_SURF_P2_RESERVED0                           = 0x1,
 	ADDR_SURF_P2_RESERVED1                           = 0x2,
@@ -1107,42 +1150,49 @@ typedef enum PipeConfig {
 	ADDR_SURF_P16_32x32_8x16                         = 0x10,
 	ADDR_SURF_P16_32x32_16x16                        = 0x11,
 } PipeConfig;
-typedef enum NumBanks {
+typedef enum NumBanks
+{
 	ADDR_SURF_2_BANK                                 = 0x0,
 	ADDR_SURF_4_BANK                                 = 0x1,
 	ADDR_SURF_8_BANK                                 = 0x2,
 	ADDR_SURF_16_BANK                                = 0x3,
 } NumBanks;
-typedef enum BankWidth {
+typedef enum BankWidth
+{
 	ADDR_SURF_BANK_WIDTH_1                           = 0x0,
 	ADDR_SURF_BANK_WIDTH_2                           = 0x1,
 	ADDR_SURF_BANK_WIDTH_4                           = 0x2,
 	ADDR_SURF_BANK_WIDTH_8                           = 0x3,
 } BankWidth;
-typedef enum BankHeight {
+typedef enum BankHeight
+{
 	ADDR_SURF_BANK_HEIGHT_1                          = 0x0,
 	ADDR_SURF_BANK_HEIGHT_2                          = 0x1,
 	ADDR_SURF_BANK_HEIGHT_4                          = 0x2,
 	ADDR_SURF_BANK_HEIGHT_8                          = 0x3,
 } BankHeight;
-typedef enum BankWidthHeight {
+typedef enum BankWidthHeight
+{
 	ADDR_SURF_BANK_WH_1                              = 0x0,
 	ADDR_SURF_BANK_WH_2                              = 0x1,
 	ADDR_SURF_BANK_WH_4                              = 0x2,
 	ADDR_SURF_BANK_WH_8                              = 0x3,
 } BankWidthHeight;
-typedef enum MacroTileAspect {
+typedef enum MacroTileAspect
+{
 	ADDR_SURF_MACRO_ASPECT_1                         = 0x0,
 	ADDR_SURF_MACRO_ASPECT_2                         = 0x1,
 	ADDR_SURF_MACRO_ASPECT_4                         = 0x2,
 	ADDR_SURF_MACRO_ASPECT_8                         = 0x3,
 } MacroTileAspect;
-typedef enum TCC_CACHE_POLICIES {
+typedef enum TCC_CACHE_POLICIES
+{
 	TCC_CACHE_POLICY_LRU                             = 0x0,
 	TCC_CACHE_POLICY_STREAM                          = 0x1,
 	TCC_CACHE_POLICY_BYPASS                          = 0x2,
 } TCC_CACHE_POLICIES;
-typedef enum PERFMON_COUNTER_MODE {
+typedef enum PERFMON_COUNTER_MODE
+{
 	PERFMON_COUNTER_MODE_ACCUM                       = 0x0,
 	PERFMON_COUNTER_MODE_ACTIVE_CYCLES               = 0x1,
 	PERFMON_COUNTER_MODE_MAX                         = 0x2,
@@ -1155,7 +1205,8 @@ typedef enum PERFMON_COUNTER_MODE {
 	PERFMON_COUNTER_MODE_INACTIVE_CYCLES             = 0x9,
 	PERFMON_COUNTER_MODE_RESERVED                    = 0xf,
 } PERFMON_COUNTER_MODE;
-typedef enum PERFMON_SPM_MODE {
+typedef enum PERFMON_SPM_MODE
+{
 	PERFMON_SPM_MODE_OFF                             = 0x0,
 	PERFMON_SPM_MODE_16BIT_CLAMP                     = 0x1,
 	PERFMON_SPM_MODE_16BIT_NO_CLAMP                  = 0x2,
@@ -1168,22 +1219,26 @@ typedef enum PERFMON_SPM_MODE {
 	PERFMON_SPM_MODE_TEST_MODE_1                     = 0x9,
 	PERFMON_SPM_MODE_TEST_MODE_2                     = 0xa,
 } PERFMON_SPM_MODE;
-typedef enum SurfaceTiling {
+typedef enum SurfaceTiling
+{
 	ARRAY_LINEAR                                     = 0x0,
 	ARRAY_TILED                                      = 0x1,
 } SurfaceTiling;
-typedef enum SurfaceArray {
+typedef enum SurfaceArray
+{
 	ARRAY_1D                                         = 0x0,
 	ARRAY_2D                                         = 0x1,
 	ARRAY_3D                                         = 0x2,
 	ARRAY_3D_SLICE                                   = 0x3,
 } SurfaceArray;
-typedef enum ColorArray {
+typedef enum ColorArray
+{
 	ARRAY_2D_ALT_COLOR                               = 0x0,
 	ARRAY_2D_COLOR                                   = 0x1,
 	ARRAY_3D_SLICE_COLOR                             = 0x3,
 } ColorArray;
-typedef enum DepthArray {
+typedef enum DepthArray
+{
 	ARRAY_2D_ALT_DEPTH                               = 0x0,
 	ARRAY_2D_DEPTH                                   = 0x1,
 } DepthArray;

@@ -56,7 +56,8 @@ typedef __be16 hfsplus_unichr;
 #define HFSPLUS_ATTR_MAX_STRLEN 127
 
 /* A "string" as used in filenames, etc. */
-struct hfsplus_unistr {
+struct hfsplus_unistr
+{
 	__be16 length;
 	hfsplus_unichr unicode[HFSPLUS_MAX_STRLEN];
 } __packed;
@@ -65,13 +66,15 @@ struct hfsplus_unistr {
  * A "string" is used in attributes file
  * for name of extended attribute
  */
-struct hfsplus_attr_unistr {
+struct hfsplus_attr_unistr
+{
 	__be16 length;
 	hfsplus_unichr unicode[HFSPLUS_ATTR_MAX_STRLEN];
 } __packed;
 
 /* POSIX permissions */
-struct hfsplus_perm {
+struct hfsplus_perm
+{
 	__be32 owner;
 	__be32 group;
 	u8  rootflags;
@@ -85,14 +88,16 @@ struct hfsplus_perm {
 #define HFSPLUS_FLG_APPEND	0x04
 
 /* A single contiguous area of a file */
-struct hfsplus_extent {
+struct hfsplus_extent
+{
 	__be32 start_block;
 	__be32 block_count;
 } __packed;
 typedef struct hfsplus_extent hfsplus_extent_rec[8];
 
 /* Information for a "Fork" in a file */
-struct hfsplus_fork_raw {
+struct hfsplus_fork_raw
+{
 	__be64 total_size;
 	__be32 clump_size;
 	__be32 total_blocks;
@@ -100,7 +105,8 @@ struct hfsplus_fork_raw {
 } __packed;
 
 /* HFS+ Volume Header */
-struct hfsplus_vh {
+struct hfsplus_vh
+{
 	__be16 signature;
 	__be16 version;
 	__be32 attributes;
@@ -147,7 +153,8 @@ struct hfsplus_vh {
 #define HFSPLUS_VOL_UNUSED_NODE_FIX	(1 << 31)
 
 /* HFS+ BTree node descriptor */
-struct hfs_bnode_desc {
+struct hfs_bnode_desc
+{
 	__be32 next;
 	__be32 prev;
 	s8 type;
@@ -163,7 +170,8 @@ struct hfs_bnode_desc {
 #define HFS_NODE_LEAF	0xFF	/* A leaf (ndNHeight==1) node */
 
 /* HFS+ BTree header */
-struct hfs_btree_header_rec {
+struct hfs_btree_header_rec
+{
 	__be16 depth;
 	__be32 root;
 	__be32 leaf_count;
@@ -209,7 +217,8 @@ struct hfs_btree_header_rec {
 #define HFSPLUS_KEY_BINARY		0xBC	/* case-sensitive */
 
 /* HFS+ catalog entry key */
-struct hfsplus_cat_key {
+struct hfsplus_cat_key
+{
 	__be16 key_len;
 	hfsplus_cnid parent;
 	struct hfsplus_unistr name;
@@ -218,12 +227,14 @@ struct hfsplus_cat_key {
 #define HFSPLUS_CAT_KEYLEN	(sizeof(struct hfsplus_cat_key))
 
 /* Structs from hfs.h */
-struct hfsp_point {
+struct hfsp_point
+{
 	__be16 v;
 	__be16 h;
 } __packed;
 
-struct hfsp_rect {
+struct hfsp_rect
+{
 	__be16 top;
 	__be16 left;
 	__be16 bottom;
@@ -232,14 +243,16 @@ struct hfsp_rect {
 
 
 /* HFS directory info (stolen from hfs.h */
-struct DInfo {
+struct DInfo
+{
 	struct hfsp_rect frRect;
 	__be16 frFlags;
 	struct hfsp_point frLocation;
 	__be16 frView;
 } __packed;
 
-struct DXInfo {
+struct DXInfo
+{
 	struct hfsp_point frScroll;
 	__be32 frOpenChain;
 	__be16 frUnused;
@@ -248,7 +261,8 @@ struct DXInfo {
 } __packed;
 
 /* HFS+ folder data (part of an hfsplus_cat_entry) */
-struct hfsplus_cat_folder {
+struct hfsplus_cat_folder
+{
 	__be16 type;
 	__be16 flags;
 	__be32 valence;
@@ -266,7 +280,8 @@ struct hfsplus_cat_folder {
 } __packed;
 
 /* HFS file info (stolen from hfs.h) */
-struct FInfo {
+struct FInfo
+{
 	__be32 fdType;
 	__be32 fdCreator;
 	__be16 fdFlags;
@@ -274,7 +289,8 @@ struct FInfo {
 	__be16 fdFldr;
 } __packed;
 
-struct FXInfo {
+struct FXInfo
+{
 	__be16 fdIconID;
 	u8 fdUnused[8];
 	__be16 fdComment;
@@ -282,7 +298,8 @@ struct FXInfo {
 } __packed;
 
 /* HFS+ file data (part of a cat_entry) */
-struct hfsplus_cat_file {
+struct hfsplus_cat_file
+{
 	__be16 type;
 	__be16 flags;
 	u32 reserved1;
@@ -311,7 +328,8 @@ struct hfsplus_cat_file {
 						 * (HFSX only) */
 
 /* HFS+ catalog thread (part of a cat_entry) */
-struct hfsplus_cat_thread {
+struct hfsplus_cat_thread
+{
 	__be16 type;
 	s16 reserved;
 	hfsplus_cnid parentID;
@@ -321,7 +339,8 @@ struct hfsplus_cat_thread {
 #define HFSPLUS_MIN_THREAD_SZ 10
 
 /* A data record in the catalog tree */
-typedef union {
+typedef union
+{
 	__be16 type;
 	struct hfsplus_cat_folder folder;
 	struct hfsplus_cat_file file;
@@ -335,7 +354,8 @@ typedef union {
 #define HFSPLUS_FILE_THREAD    0x0004
 
 /* HFS+ extents tree key */
-struct hfsplus_ext_key {
+struct hfsplus_ext_key
+{
 	__be16 key_len;
 	u8 fork_type;
 	u8 pad;
@@ -353,7 +373,8 @@ struct hfsplus_ext_key {
 #define HFSPLUS_ATTR_EXTENTS     0x30
 
 /* HFS+ attributes tree key */
-struct hfsplus_attr_key {
+struct hfsplus_attr_key
+{
 	__be16 key_len;
 	__be16 pad;
 	hfsplus_cnid cnid;
@@ -364,14 +385,16 @@ struct hfsplus_attr_key {
 #define HFSPLUS_ATTR_KEYLEN	sizeof(struct hfsplus_attr_key)
 
 /* HFS+ fork data attribute */
-struct hfsplus_attr_fork_data {
+struct hfsplus_attr_fork_data
+{
 	__be32 record_type;
 	__be32 reserved;
 	struct hfsplus_fork_raw the_fork;
 } __packed;
 
 /* HFS+ extension attribute */
-struct hfsplus_attr_extents {
+struct hfsplus_attr_extents
+{
 	__be32 record_type;
 	__be32 reserved;
 	struct hfsplus_extent extents;
@@ -380,7 +403,8 @@ struct hfsplus_attr_extents {
 #define HFSPLUS_MAX_INLINE_DATA_SIZE 3802
 
 /* HFS+ attribute inline data */
-struct hfsplus_attr_inline_data {
+struct hfsplus_attr_inline_data
+{
 	__be32 record_type;
 	__be32 reserved1;
 	u8 reserved2[6];
@@ -389,7 +413,8 @@ struct hfsplus_attr_inline_data {
 } __packed;
 
 /* A data record in the attributes tree */
-typedef union {
+typedef union
+{
 	__be32 record_type;
 	struct hfsplus_attr_fork_data fork_data;
 	struct hfsplus_attr_extents extents;
@@ -397,7 +422,8 @@ typedef union {
 } __packed hfsplus_attr_entry;
 
 /* HFS+ generic BTree key */
-typedef union {
+typedef union
+{
 	__be16 key_len;
 	struct hfsplus_cat_key cat;
 	struct hfsplus_ext_key ext;

@@ -24,7 +24,8 @@
 /* Additional internal-use only BO flags: */
 #define MSM_BO_STOLEN        0x10000000    /* try to use stolen/splash memory */
 
-struct msm_gem_object {
+struct msm_gem_object
+{
 	struct drm_gem_object base;
 
 	uint32_t flags;
@@ -61,7 +62,8 @@ struct msm_gem_object {
 	struct sg_table *sgt;
 	void *vaddr;
 
-	struct {
+	struct
+	{
 		// XXX
 		uint32_t iova;
 	} domain[NUM_DOMAINS];
@@ -85,7 +87,7 @@ static inline bool is_active(struct msm_gem_object *msm_obj)
 static inline bool is_purgeable(struct msm_gem_object *msm_obj)
 {
 	return (msm_obj->madv == MSM_MADV_DONTNEED) && msm_obj->sgt &&
-			!msm_obj->base.dma_buf && !msm_obj->base.import_attach;
+		   !msm_obj->base.dma_buf && !msm_obj->base.import_attach;
 }
 
 static inline bool is_vunmapable(struct msm_gem_object *msm_obj)
@@ -98,7 +100,8 @@ static inline bool is_vunmapable(struct msm_gem_object *msm_obj)
  * make it easier to unwind when things go wrong, etc).  This only
  * lasts for the duration of the submit-ioctl.
  */
-struct msm_gem_submit {
+struct msm_gem_submit
+{
 	struct drm_device *dev;
 	struct msm_gpu *gpu;
 	struct list_head node;   /* node in gpu submit_list */
@@ -109,13 +112,15 @@ struct msm_gem_submit {
 	bool valid;         /* true if no cmdstream patching needed */
 	unsigned int nr_cmds;
 	unsigned int nr_bos;
-	struct {
+	struct
+	{
 		uint32_t type;
 		uint32_t size;  /* in dwords */
 		uint32_t iova;
 		uint32_t idx;   /* cmdstream buffer idx in bos[] */
 	} *cmd;  /* array of size nr_cmds */
-	struct {
+	struct
+	{
 		uint32_t flags;
 		struct msm_gem_object *obj;
 		uint32_t iova;

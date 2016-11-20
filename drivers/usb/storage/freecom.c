@@ -44,7 +44,7 @@ MODULE_AUTHOR("David Brown <usb-storage@davidb.org>");
 MODULE_LICENSE("GPL");
 
 #ifdef CONFIG_USB_STORAGE_DEBUG
-static void pdump(struct us_data *us, void *ibuffer, int length);
+	static void pdump(struct us_data *us, void *ibuffer, int length);
 #endif
 
 /* Bits of HD_STATUS */
@@ -52,33 +52,38 @@ static void pdump(struct us_data *us, void *ibuffer, int length);
 #define DRQ_STAT		0x08
 
 /* All of the outgoing packets are 64 bytes long. */
-struct freecom_cb_wrap {
+struct freecom_cb_wrap
+{
 	u8    Type;		/* Command type. */
 	u8    Timeout;		/* Timeout in seconds. */
 	u8    Atapi[12];	/* An ATAPI packet. */
 	u8    Filler[50];	/* Padding Data. */
 };
 
-struct freecom_xfer_wrap {
+struct freecom_xfer_wrap
+{
 	u8    Type;		/* Command type. */
 	u8    Timeout;		/* Timeout in seconds. */
 	__le32   Count;		/* Number of bytes to transfer. */
 	u8    Pad[58];
 } __attribute__ ((packed));
 
-struct freecom_ide_out {
+struct freecom_ide_out
+{
 	u8    Type;		/* Type + IDE register. */
 	u8    Pad;
 	__le16   Value;		/* Value to write. */
 	u8    Pad2[60];
 };
 
-struct freecom_ide_in {
+struct freecom_ide_in
+{
 	u8    Type;		/* Type | IDE register. */
 	u8    Pad[63];
 };
 
-struct freecom_status {
+struct freecom_status
+{
 	u8    Status;
 	u8    Reason;
 	__le16   Count;
@@ -126,12 +131,13 @@ static int init_freecom(struct us_data *us);
  * The table of devices
  */
 #define UNUSUAL_DEV(id_vendor, id_product, bcdDeviceMin, bcdDeviceMax, \
-		    vendorName, productName, useProtocol, useTransport, \
-		    initFunction, flags) \
+					vendorName, productName, useProtocol, useTransport, \
+					initFunction, flags) \
 { USB_DEVICE_VER(id_vendor, id_product, bcdDeviceMin, bcdDeviceMax), \
-  .driver_info = (flags) }
+	.driver_info = (flags) }
 
-static struct usb_device_id freecom_usb_ids[] = {
+static struct usb_device_id freecom_usb_ids[] =
+{
 #	include "unusual_freecom.h"
 	{ }		/* Terminating entry */
 };
@@ -143,17 +149,18 @@ MODULE_DEVICE_TABLE(usb, freecom_usb_ids);
  * The flags table
  */
 #define UNUSUAL_DEV(idVendor, idProduct, bcdDeviceMin, bcdDeviceMax, \
-		    vendor_name, product_name, use_protocol, use_transport, \
-		    init_function, Flags) \
+					vendor_name, product_name, use_protocol, use_transport, \
+					init_function, Flags) \
 { \
 	.vendorName = vendor_name,	\
-	.productName = product_name,	\
-	.useProtocol = use_protocol,	\
-	.useTransport = use_transport,	\
-	.initFunction = init_function,	\
+				  .productName = product_name,	\
+								 .useProtocol = use_protocol,	\
+										 .useTransport = use_transport,	\
+												 .initFunction = init_function,	\
 }
 
-static struct us_unusual_dev freecom_unusual_dev_list[] = {
+static struct us_unusual_dev freecom_unusual_dev_list[] =
+{
 #	include "unusual_freecom.h"
 	{ }		/* Terminating entry */
 };
@@ -162,7 +169,7 @@ static struct us_unusual_dev freecom_unusual_dev_list[] = {
 
 static int
 freecom_readdata (struct scsi_cmnd *srb, struct us_data *us,
-		unsigned int ipipe, unsigned int opipe, int count)
+				  unsigned int ipipe, unsigned int opipe, int count)
 {
 	struct freecom_xfer_wrap *fxfr =
 		(struct freecom_xfer_wrap *) us->iobuf;
@@ -177,8 +184,10 @@ freecom_readdata (struct scsi_cmnd *srb, struct us_data *us,
 
 	/* Issue the transfer command. */
 	result = usb_stor_bulk_transfer_buf (us, opipe, fxfr,
-			FCM_PACKET_LENGTH, NULL);
-	if (result != USB_STOR_XFER_GOOD) {
+										 FCM_PACKET_LENGTH, NULL);
+
+	if (result != USB_STOR_XFER_GOOD)
+	{
 		usb_stor_dbg(us, "Freecom readdata transport error\n");
 		return USB_STOR_TRANSPORT_ERROR;
 	}
@@ -189,13 +198,16 @@ freecom_readdata (struct scsi_cmnd *srb, struct us_data *us,
 	usb_stor_dbg(us, "freecom_readdata done!\n");
 
 	if (result > USB_STOR_XFER_SHORT)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
+
 	return USB_STOR_TRANSPORT_GOOD;
 }
 
 static int
 freecom_writedata (struct scsi_cmnd *srb, struct us_data *us,
-		int unsigned ipipe, unsigned int opipe, int count)
+				   int unsigned ipipe, unsigned int opipe, int count)
 {
 	struct freecom_xfer_wrap *fxfr =
 		(struct freecom_xfer_wrap *) us->iobuf;
@@ -210,8 +222,10 @@ freecom_writedata (struct scsi_cmnd *srb, struct us_data *us,
 
 	/* Issue the transfer command. */
 	result = usb_stor_bulk_transfer_buf (us, opipe, fxfr,
-			FCM_PACKET_LENGTH, NULL);
-	if (result != USB_STOR_XFER_GOOD) {
+										 FCM_PACKET_LENGTH, NULL);
+
+	if (result != USB_STOR_XFER_GOOD)
+	{
 		usb_stor_dbg(us, "Freecom writedata transport error\n");
 		return USB_STOR_TRANSPORT_ERROR;
 	}
@@ -221,8 +235,12 @@ freecom_writedata (struct scsi_cmnd *srb, struct us_data *us,
 	result = usb_stor_bulk_srb(us, opipe, srb);
 
 	usb_stor_dbg(us, "freecom_writedata done!\n");
+
 	if (result > USB_STOR_XFER_SHORT)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
+
 	return USB_STOR_TRANSPORT_GOOD;
 }
 
@@ -258,14 +276,15 @@ static int freecom_transport(struct scsi_cmnd *srb, struct us_data *us)
 
 	/* Send it out. */
 	result = usb_stor_bulk_transfer_buf (us, opipe, fcb,
-			FCM_PACKET_LENGTH, NULL);
+										 FCM_PACKET_LENGTH, NULL);
 
 	/*
 	 * The Freecom device will only fail if there is something wrong in
 	 * USB land.  It returns the status in its own registers, which
 	 * come back in the bulk pipe.
 	 */
-	if (result != USB_STOR_XFER_GOOD) {
+	if (result != USB_STOR_XFER_GOOD)
+	{
 		usb_stor_dbg(us, "freecom transport error\n");
 		return USB_STOR_TRANSPORT_ERROR;
 	}
@@ -275,10 +294,13 @@ static int freecom_transport(struct scsi_cmnd *srb, struct us_data *us)
 	 * doesn't hurt us to always do it now.
 	 */
 	result = usb_stor_bulk_transfer_buf (us, ipipe, fst,
-			FCM_STATUS_PACKET_LENGTH, &partial);
+										 FCM_STATUS_PACKET_LENGTH, &partial);
 	usb_stor_dbg(us, "foo Status result %d %u\n", result, partial);
+
 	if (result != USB_STOR_XFER_GOOD)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
+	}
 
 	US_DEBUG(pdump(us, (void *)fst, partial));
 
@@ -291,7 +313,8 @@ static int freecom_transport(struct scsi_cmnd *srb, struct us_data *us)
 	 * NOTE: There is some indication that a data transfer after a timeout
 	 * may not work, but that is a condition that should never happen.
 	 */
-	while (fst->Status & FCM_STATUS_BUSY) {
+	while (fst->Status & FCM_STATUS_BUSY)
+	{
 		usb_stor_dbg(us, "20 second USB/ATAPI bridge TIMEOUT occurred!\n");
 		usb_stor_dbg(us, "fst->Status is %x\n", fst->Status);
 
@@ -303,32 +326,40 @@ static int freecom_transport(struct scsi_cmnd *srb, struct us_data *us)
 
 		/* Send it out. */
 		result = usb_stor_bulk_transfer_buf (us, opipe, fcb,
-				FCM_PACKET_LENGTH, NULL);
+											 FCM_PACKET_LENGTH, NULL);
 
 		/*
 		 * The Freecom device will only fail if there is something
 		 * wrong in USB land.  It returns the status in its own
 		 * registers, which come back in the bulk pipe.
 		 */
-		if (result != USB_STOR_XFER_GOOD) {
+		if (result != USB_STOR_XFER_GOOD)
+		{
 			usb_stor_dbg(us, "freecom transport error\n");
 			return USB_STOR_TRANSPORT_ERROR;
 		}
 
 		/* get the data */
 		result = usb_stor_bulk_transfer_buf (us, ipipe, fst,
-				FCM_STATUS_PACKET_LENGTH, &partial);
+											 FCM_STATUS_PACKET_LENGTH, &partial);
 
 		usb_stor_dbg(us, "bar Status result %d %u\n", result, partial);
+
 		if (result != USB_STOR_XFER_GOOD)
+		{
 			return USB_STOR_TRANSPORT_ERROR;
+		}
 
 		US_DEBUG(pdump(us, (void *)fst, partial));
 	}
 
 	if (partial != 4)
+	{
 		return USB_STOR_TRANSPORT_ERROR;
-	if ((fst->Status & 1) != 0) {
+	}
+
+	if ((fst->Status & 1) != 0)
+	{
 		usb_stor_dbg(us, "operation failed\n");
 		return USB_STOR_TRANSPORT_FAILED;
 	}
@@ -339,26 +370,29 @@ static int freecom_transport(struct scsi_cmnd *srb, struct us_data *us)
 	 * and such will hang.
 	 */
 	usb_stor_dbg(us, "Device indicates that it has %d bytes available\n",
-		     le16_to_cpu(fst->Count));
+				 le16_to_cpu(fst->Count));
 	usb_stor_dbg(us, "SCSI requested %d\n", scsi_bufflen(srb));
 
 	/* Find the length we desire to read. */
-	switch (srb->cmnd[0]) {
-	case INQUIRY:
-	case REQUEST_SENSE:	/* 16 or 18 bytes? spec says 18, lots of devices only have 16 */
-	case MODE_SENSE:
-	case MODE_SENSE_10:
-		length = le16_to_cpu(fst->Count);
-		break;
-	default:
-		length = scsi_bufflen(srb);
+	switch (srb->cmnd[0])
+	{
+		case INQUIRY:
+		case REQUEST_SENSE:	/* 16 or 18 bytes? spec says 18, lots of devices only have 16 */
+		case MODE_SENSE:
+		case MODE_SENSE_10:
+			length = le16_to_cpu(fst->Count);
+			break;
+
+		default:
+			length = scsi_bufflen(srb);
 	}
 
 	/* verify that this amount is legal */
-	if (length > scsi_bufflen(srb)) {
+	if (length > scsi_bufflen(srb))
+	{
 		length = scsi_bufflen(srb);
 		usb_stor_dbg(us, "Truncating request to match buffer length: %d\n",
-			     length);
+					 length);
 	}
 
 	/*
@@ -366,84 +400,114 @@ static int freecom_transport(struct scsi_cmnd *srb, struct us_data *us)
 	 * move in.
 	 */
 
-	switch (us->srb->sc_data_direction) {
-	case DMA_FROM_DEVICE:
-		/* catch bogus "read 0 length" case */
-		if (!length)
+	switch (us->srb->sc_data_direction)
+	{
+		case DMA_FROM_DEVICE:
+
+			/* catch bogus "read 0 length" case */
+			if (!length)
+			{
+				break;
+			}
+
+			/*
+			 * Make sure that the status indicates that the device
+			 * wants data as well.
+			 */
+			if ((fst->Status & DRQ_STAT) == 0 || (fst->Reason & 3) != 2)
+			{
+				usb_stor_dbg(us, "SCSI wants data, drive doesn't have any\n");
+				return USB_STOR_TRANSPORT_FAILED;
+			}
+
+			result = freecom_readdata (srb, us, ipipe, opipe, length);
+
+			if (result != USB_STOR_TRANSPORT_GOOD)
+			{
+				return result;
+			}
+
+			usb_stor_dbg(us, "Waiting for status\n");
+			result = usb_stor_bulk_transfer_buf (us, ipipe, fst,
+												 FCM_PACKET_LENGTH, &partial);
+			US_DEBUG(pdump(us, (void *)fst, partial));
+
+			if (partial != 4 || result > USB_STOR_XFER_SHORT)
+			{
+				return USB_STOR_TRANSPORT_ERROR;
+			}
+
+			if ((fst->Status & ERR_STAT) != 0)
+			{
+				usb_stor_dbg(us, "operation failed\n");
+				return USB_STOR_TRANSPORT_FAILED;
+			}
+
+			if ((fst->Reason & 3) != 3)
+			{
+				usb_stor_dbg(us, "Drive seems still hungry\n");
+				return USB_STOR_TRANSPORT_FAILED;
+			}
+
+			usb_stor_dbg(us, "Transfer happy\n");
 			break;
-		/*
-		 * Make sure that the status indicates that the device
-		 * wants data as well.
-		 */
-		if ((fst->Status & DRQ_STAT) == 0 || (fst->Reason & 3) != 2) {
-			usb_stor_dbg(us, "SCSI wants data, drive doesn't have any\n");
-			return USB_STOR_TRANSPORT_FAILED;
-		}
-		result = freecom_readdata (srb, us, ipipe, opipe, length);
-		if (result != USB_STOR_TRANSPORT_GOOD)
-			return result;
 
-		usb_stor_dbg(us, "Waiting for status\n");
-		result = usb_stor_bulk_transfer_buf (us, ipipe, fst,
-				FCM_PACKET_LENGTH, &partial);
-		US_DEBUG(pdump(us, (void *)fst, partial));
+		case DMA_TO_DEVICE:
 
-		if (partial != 4 || result > USB_STOR_XFER_SHORT)
-			return USB_STOR_TRANSPORT_ERROR;
-		if ((fst->Status & ERR_STAT) != 0) {
-			usb_stor_dbg(us, "operation failed\n");
-			return USB_STOR_TRANSPORT_FAILED;
-		}
-		if ((fst->Reason & 3) != 3) {
-			usb_stor_dbg(us, "Drive seems still hungry\n");
-			return USB_STOR_TRANSPORT_FAILED;
-		}
-		usb_stor_dbg(us, "Transfer happy\n");
-		break;
+			/* catch bogus "write 0 length" case */
+			if (!length)
+			{
+				break;
+			}
 
-	case DMA_TO_DEVICE:
-		/* catch bogus "write 0 length" case */
-		if (!length)
+			/*
+			 * Make sure the status indicates that the device wants to
+			 * send us data.
+			 */
+			/* !!IMPLEMENT!! */
+			result = freecom_writedata (srb, us, ipipe, opipe, length);
+
+			if (result != USB_STOR_TRANSPORT_GOOD)
+			{
+				return result;
+			}
+
+			usb_stor_dbg(us, "Waiting for status\n");
+			result = usb_stor_bulk_transfer_buf (us, ipipe, fst,
+												 FCM_PACKET_LENGTH, &partial);
+
+			if (partial != 4 || result > USB_STOR_XFER_SHORT)
+			{
+				return USB_STOR_TRANSPORT_ERROR;
+			}
+
+			if ((fst->Status & ERR_STAT) != 0)
+			{
+				usb_stor_dbg(us, "operation failed\n");
+				return USB_STOR_TRANSPORT_FAILED;
+			}
+
+			if ((fst->Reason & 3) != 3)
+			{
+				usb_stor_dbg(us, "Drive seems still hungry\n");
+				return USB_STOR_TRANSPORT_FAILED;
+			}
+
+			usb_stor_dbg(us, "Transfer happy\n");
 			break;
-		/*
-		 * Make sure the status indicates that the device wants to
-		 * send us data.
-		 */
-		/* !!IMPLEMENT!! */
-		result = freecom_writedata (srb, us, ipipe, opipe, length);
-		if (result != USB_STOR_TRANSPORT_GOOD)
-			return result;
 
-		usb_stor_dbg(us, "Waiting for status\n");
-		result = usb_stor_bulk_transfer_buf (us, ipipe, fst,
-				FCM_PACKET_LENGTH, &partial);
 
-		if (partial != 4 || result > USB_STOR_XFER_SHORT)
-			return USB_STOR_TRANSPORT_ERROR;
-		if ((fst->Status & ERR_STAT) != 0) {
-			usb_stor_dbg(us, "operation failed\n");
+		case DMA_NONE:
+			/* Easy, do nothing. */
+			break;
+
+		default:
+			/* should never hit here -- filtered in usb.c */
+			usb_stor_dbg(us, "freecom unimplemented direction: %d\n",
+						 us->srb->sc_data_direction);
+			/* Return fail, SCSI seems to handle this better. */
 			return USB_STOR_TRANSPORT_FAILED;
-		}
-		if ((fst->Reason & 3) != 3) {
-			usb_stor_dbg(us, "Drive seems still hungry\n");
-			return USB_STOR_TRANSPORT_FAILED;
-		}
-
-		usb_stor_dbg(us, "Transfer happy\n");
-		break;
-
-
-	case DMA_NONE:
-		/* Easy, do nothing. */
-		break;
-
-	default:
-		/* should never hit here -- filtered in usb.c */
-		usb_stor_dbg(us, "freecom unimplemented direction: %d\n",
-			     us->srb->sc_data_direction);
-		/* Return fail, SCSI seems to handle this better. */
-		return USB_STOR_TRANSPORT_FAILED;
-		break;
+			break;
 	}
 
 	return USB_STOR_TRANSPORT_GOOD;
@@ -460,7 +524,7 @@ static int init_freecom(struct us_data *us)
 	 */
 
 	result = usb_stor_control_msg(us, us->recv_ctrl_pipe,
-			0x4c, 0xc0, 0x4346, 0x0, buffer, 0x20, 3*HZ);
+								  0x4c, 0xc0, 0x4346, 0x0, buffer, 0x20, 3 * HZ);
 	buffer[32] = '\0';
 	usb_stor_dbg(us, "String returned from FC init is: %s\n", buffer);
 
@@ -473,7 +537,7 @@ static int init_freecom(struct us_data *us)
 
 	/* send reset */
 	result = usb_stor_control_msg(us, us->send_ctrl_pipe,
-			0x4d, 0x40, 0x24d8, 0x0, NULL, 0x0, 3*HZ);
+								  0x4d, 0x40, 0x24d8, 0x0, NULL, 0x0, 3 * HZ);
 	usb_stor_dbg(us, "result from activate reset is %d\n", result);
 
 	/* wait 250ms */
@@ -481,7 +545,7 @@ static int init_freecom(struct us_data *us)
 
 	/* clear reset */
 	result = usb_stor_control_msg(us, us->send_ctrl_pipe,
-			0x4d, 0x40, 0x24f8, 0x0, NULL, 0x0, 3*HZ);
+								  0x4d, 0x40, 0x24f8, 0x0, NULL, 0x0, 3 * HZ);
 	usb_stor_dbg(us, "result from clear reset is %d\n", result);
 
 	/* wait 3 seconds */
@@ -508,25 +572,40 @@ static void pdump(struct us_data *us, void *ibuffer, int length)
 	int from, base;
 
 	offset = 0;
-	for (i = 0; i < length; i++) {
-		if ((i & 15) == 0) {
-			if (i > 0) {
-				offset += sprintf (line+offset, " - ");
-				for (j = i - 16; j < i; j++) {
+
+	for (i = 0; i < length; i++)
+	{
+		if ((i & 15) == 0)
+		{
+			if (i > 0)
+			{
+				offset += sprintf (line + offset, " - ");
+
+				for (j = i - 16; j < i; j++)
+				{
 					if (buffer[j] >= 32 && buffer[j] <= 126)
+					{
 						line[offset++] = buffer[j];
+					}
 					else
+					{
 						line[offset++] = '.';
+					}
 				}
+
 				line[offset] = 0;
 				usb_stor_dbg(us, "%s\n", line);
 				offset = 0;
 			}
-			offset += sprintf (line+offset, "%08x:", i);
-		} else if ((i & 7) == 0) {
-			offset += sprintf (line+offset, " -");
+
+			offset += sprintf (line + offset, "%08x:", i);
 		}
-		offset += sprintf (line+offset, " %02x", buffer[i] & 0xff);
+		else if ((i & 7) == 0)
+		{
+			offset += sprintf (line + offset, " -");
+		}
+
+		offset += sprintf (line + offset, " %02x", buffer[i] & 0xff);
 	}
 
 	/* Add the last "chunk" of data. */
@@ -534,17 +613,29 @@ static void pdump(struct us_data *us, void *ibuffer, int length)
 	base = ((length - 1) / 16) * 16;
 
 	for (i = from + 1; i < 16; i++)
-		offset += sprintf (line+offset, "   ");
-	if (from < 8)
-		offset += sprintf (line+offset, "  ");
-	offset += sprintf (line+offset, " - ");
-
-	for (i = 0; i <= from; i++) {
-		if (buffer[base+i] >= 32 && buffer[base+i] <= 126)
-			line[offset++] = buffer[base+i];
-		else
-			line[offset++] = '.';
+	{
+		offset += sprintf (line + offset, "   ");
 	}
+
+	if (from < 8)
+	{
+		offset += sprintf (line + offset, "  ");
+	}
+
+	offset += sprintf (line + offset, " - ");
+
+	for (i = 0; i <= from; i++)
+	{
+		if (buffer[base + i] >= 32 && buffer[base + i] <= 126)
+		{
+			line[offset++] = buffer[base + i];
+		}
+		else
+		{
+			line[offset++] = '.';
+		}
+	}
+
 	line[offset] = 0;
 	usb_stor_dbg(us, "%s\n", line);
 	offset = 0;
@@ -554,16 +645,19 @@ static void pdump(struct us_data *us, void *ibuffer, int length)
 static struct scsi_host_template freecom_host_template;
 
 static int freecom_probe(struct usb_interface *intf,
-			 const struct usb_device_id *id)
+						 const struct usb_device_id *id)
 {
 	struct us_data *us;
 	int result;
 
 	result = usb_stor_probe1(&us, intf, id,
-			(id - freecom_usb_ids) + freecom_unusual_dev_list,
-			&freecom_host_template);
+							 (id - freecom_usb_ids) + freecom_unusual_dev_list,
+							 &freecom_host_template);
+
 	if (result)
+	{
 		return result;
+	}
 
 	us->transport_name = "Freecom";
 	us->transport = freecom_transport;
@@ -574,7 +668,8 @@ static int freecom_probe(struct usb_interface *intf,
 	return result;
 }
 
-static struct usb_driver freecom_driver = {
+static struct usb_driver freecom_driver =
+{
 	.name =		DRV_NAME,
 	.probe =	freecom_probe,
 	.disconnect =	usb_stor_disconnect,

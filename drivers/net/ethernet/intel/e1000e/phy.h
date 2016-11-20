@@ -57,7 +57,7 @@ s32 e1000e_write_phy_reg_igp(struct e1000_hw *hw, u32 offset, u16 data);
 s32 e1000e_write_phy_reg_igp_locked(struct e1000_hw *hw, u32 offset, u16 data);
 s32 e1000e_write_phy_reg_m88(struct e1000_hw *hw, u32 offset, u16 data);
 s32 e1000e_phy_has_link_generic(struct e1000_hw *hw, u32 iterations,
-				u32 usec_interval, bool *success);
+								u32 usec_interval, bool *success);
 s32 e1000e_phy_init_script_igp3(struct e1000_hw *hw);
 enum e1000_phy_type e1000e_get_phy_type_from_id(u32 phy_id);
 s32 e1000e_determine_phy_address(struct e1000_hw *hw);
@@ -117,8 +117,8 @@ s32 e1000_get_cable_length_82577(struct e1000_hw *hw);
 	((u16)(((offset) >> PHY_PAGE_SHIFT) & 0xFFFF))
 #define BM_PHY_REG_NUM(offset) \
 	((u16)(((offset) & MAX_PHY_REG_ADDRESS) |\
-	 (((offset) >> (PHY_UPPER_SHIFT - PHY_PAGE_SHIFT)) &\
-		~MAX_PHY_REG_ADDRESS)))
+		   (((offset) >> (PHY_UPPER_SHIFT - PHY_PAGE_SHIFT)) &\
+			~MAX_PHY_REG_ADDRESS)))
 
 #define HV_INTC_FC_PAGE_START		768
 #define I82578_ADDR_REG			29

@@ -38,15 +38,16 @@
 #define EXOFS_DBGMSG2(M...) do {} while (0)
 
 unsigned exofs_max_io_pages(struct ore_layout *layout,
-			    unsigned expected_pages)
+							unsigned expected_pages)
 {
 	unsigned pages = min_t(unsigned, expected_pages,
-			       layout->max_io_length / PAGE_SIZE);
+						   layout->max_io_length / PAGE_SIZE);
 
 	return pages;
 }
 
-struct page_collect {
+struct page_collect
+{
 	struct exofs_sb_info *sbi;
 	struct inode *inode;
 	unsigned expected_pages;
@@ -64,7 +65,7 @@ struct page_collect {
 };
 
 static void _pcol_init(struct page_collect *pcol, unsigned expected_pages,
-		       struct inode *inode)
+					   struct inode *inode)
 {
 	struct exofs_sb_info *sbi = inode->i_sb->s_fs_info;
 
@@ -99,7 +100,7 @@ static void _pcol_reset(struct page_collect *pcol)
 	 */
 	if (!pcol->expected_pages)
 		pcol->expected_pages =
-				exofs_max_io_pages(&pcol->sbi->layout, ~0);
+			exofs_max_io_pages(&pcol->sbi->layout, ~0);
 }
 
 static int pcol_try_alloc(struct page_collect *pcol)
@@ -109,17 +110,20 @@ static int pcol_try_alloc(struct page_collect *pcol)
 	/* TODO: easily support bio chaining */
 	pages =  exofs_max_io_pages(&pcol->sbi->layout, pcol->expected_pages);
 
-	for (; pages; pages >>= 1) {
+	for (; pages; pages >>= 1)
+	{
 		pcol->pages = kmalloc(pages * sizeof(struct page *),
-				      GFP_KERNEL);
-		if (likely(pcol->pages)) {
+							  GFP_KERNEL);
+
+		if (likely(pcol->pages))
+		{
 			pcol->alloc_pages = pages;
 			return 0;
 		}
 	}
 
 	EXOFS_ERR("Failed to kmalloc expected_pages=%u\n",
-		  pcol->expected_pages);
+			  pcol->expected_pages);
 	return -ENOMEM;
 }
 
@@ -128,17 +132,20 @@ static void pcol_free(struct page_collect *pcol)
 	kfree(pcol->pages);
 	pcol->pages = NULL;
 
-	if (pcol->ios) {
+	if (pcol->ios)
+	{
 		ore_put_io_state(pcol->ios);
 		pcol->ios = NULL;
 	}
 }
 
 static int pcol_add_page(struct page_collect *pcol, struct page *page,
-			 unsigned len)
+						 unsigned len)
 {
 	if (unlikely(pcol->nr_pages >= pcol->alloc_pages))
+	{
 		return -ENOMEM;
+	}
 
 	pcol->pages[pcol->nr_pages++] = page;
 	pcol->length += len;
@@ -148,44 +155,61 @@ static int pcol_add_page(struct page_collect *pcol, struct page *page,
 enum {PAGE_WAS_NOT_IN_IO = 17};
 static int update_read_page(struct page *page, int ret)
 {
-	switch (ret) {
-	case 0:
-		/* Everything is OK */
-		SetPageUptodate(page);
-		if (PageError(page))
-			ClearPageError(page);
-		break;
-	case -EFAULT:
-		/* In this case we were trying to read something that wasn't on
-		 * disk yet - return a page full of zeroes.  This should be OK,
-		 * because the object should be empty (if there was a write
-		 * before this read, the read would be waiting with the page
-		 * locked */
-		clear_highpage(page);
+	switch (ret)
+	{
+		case 0:
+			/* Everything is OK */
+			SetPageUptodate(page);
 
-		SetPageUptodate(page);
-		if (PageError(page))
-			ClearPageError(page);
-		EXOFS_DBGMSG("recovered read error\n");
+			if (PageError(page))
+			{
+				ClearPageError(page);
+			}
+
+			break;
+
+		case -EFAULT:
+			/* In this case we were trying to read something that wasn't on
+			 * disk yet - return a page full of zeroes.  This should be OK,
+			 * because the object should be empty (if there was a write
+			 * before this read, the read would be waiting with the page
+			 * locked */
+			clear_highpage(page);
+
+			SetPageUptodate(page);
+
+			if (PageError(page))
+			{
+				ClearPageError(page);
+			}
+
+			EXOFS_DBGMSG("recovered read error\n");
+
 		/* fall through */
-	case PAGE_WAS_NOT_IN_IO:
-		ret = 0; /* recovered error */
-		break;
-	default:
-		SetPageError(page);
+		case PAGE_WAS_NOT_IN_IO:
+			ret = 0; /* recovered error */
+			break;
+
+		default:
+			SetPageError(page);
 	}
+
 	return ret;
 }
 
 static void update_write_page(struct page *page, int ret)
 {
 	if (unlikely(ret == PAGE_WAS_NOT_IN_IO))
-		return; /* don't pass start don't collect $200 */
+	{
+		return;    /* don't pass start don't collect $200 */
+	}
 
-	if (ret) {
+	if (ret)
+	{
 		mapping_set_error(page->mapping, ret);
 		SetPageError(page);
 	}
+
 	end_page_writeback(page);
 }
 
@@ -199,38 +223,52 @@ static int __readpages_done(struct page_collect *pcol)
 	u64 length = 0;
 	int ret = ore_check_io(pcol->ios, NULL);
 
-	if (likely(!ret)) {
+	if (likely(!ret))
+	{
 		good_bytes = pcol->length;
 		ret = PAGE_WAS_NOT_IN_IO;
-	} else {
+	}
+	else
+	{
 		good_bytes = 0;
 	}
 
 	EXOFS_DBGMSG2("readpages_done(0x%lx) good_bytes=0x%llx"
-		     " length=0x%lx nr_pages=%u\n",
-		     pcol->inode->i_ino, _LLU(good_bytes), pcol->length,
-		     pcol->nr_pages);
+				  " length=0x%lx nr_pages=%u\n",
+				  pcol->inode->i_ino, _LLU(good_bytes), pcol->length,
+				  pcol->nr_pages);
 
-	for (i = 0; i < pcol->nr_pages; i++) {
+	for (i = 0; i < pcol->nr_pages; i++)
+	{
 		struct page *page = pcol->pages[i];
 		struct inode *inode = page->mapping->host;
 		int page_stat;
 
 		if (inode != pcol->inode)
-			continue; /* osd might add more pages at end */
+		{
+			continue;    /* osd might add more pages at end */
+		}
 
 		if (likely(length < good_bytes))
+		{
 			page_stat = 0;
+		}
 		else
+		{
 			page_stat = ret;
+		}
 
 		EXOFS_DBGMSG2("    readpages_done(0x%lx, 0x%lx) %s\n",
-			  inode->i_ino, page->index,
-			  page_stat ? "bad_bytes" : "good_bytes");
+					  inode->i_ino, page->index,
+					  page_stat ? "bad_bytes" : "good_bytes");
 
 		ret = update_read_page(page, page_stat);
+
 		if (!pcol->read_4_write)
+		{
 			unlock_page(page);
+		}
+
 		length += PAGE_SIZE;
 	}
 
@@ -253,25 +291,31 @@ static void _unlock_pcol_pages(struct page_collect *pcol, int ret, int rw)
 {
 	int i;
 
-	for (i = 0; i < pcol->nr_pages; i++) {
+	for (i = 0; i < pcol->nr_pages; i++)
+	{
 		struct page *page = pcol->pages[i];
 
 		if (rw == READ)
+		{
 			update_read_page(page, ret);
+		}
 		else
+		{
 			update_write_page(page, ret);
+		}
 
 		unlock_page(page);
 	}
 }
 
 static int _maybe_not_all_in_one_io(struct ore_io_state *ios,
-	struct page_collect *pcol_src, struct page_collect *pcol)
+									struct page_collect *pcol_src, struct page_collect *pcol)
 {
 	/* length was wrong or offset was not page aligned */
 	BUG_ON(pcol_src->nr_pages < ios->nr_pages);
 
-	if (pcol_src->nr_pages > ios->nr_pages) {
+	if (pcol_src->nr_pages > ios->nr_pages)
+	{
 		struct page **src_page;
 		unsigned pages_less = pcol_src->nr_pages - ios->nr_pages;
 		unsigned long len_less = pcol_src->length - ios->length;
@@ -290,18 +334,24 @@ static int _maybe_not_all_in_one_io(struct ore_io_state *ios,
 		pcol->pg_first = (*src_page)->index;
 
 		ret = pcol_try_alloc(pcol);
+
 		if (unlikely(ret))
+		{
 			return ret;
+		}
 
 		for (i = 0; i < pages_less; ++i)
+		{
 			pcol->pages[i] = *src_page++;
+		}
 
 		EXOFS_DBGMSG("Length was adjusted nr_pages=0x%x "
-			"pages_less=0x%x expected_pages=0x%x "
-			"next_offset=0x%llx next_len=0x%lx\n",
-			pcol_src->nr_pages, pages_less, pcol->expected_pages,
-			pcol->pg_first * PAGE_SIZE, pcol->length);
+					 "pages_less=0x%x expected_pages=0x%x "
+					 "next_offset=0x%llx next_len=0x%lx\n",
+					 pcol_src->nr_pages, pages_less, pcol->expected_pages,
+					 pcol->pg_first * PAGE_SIZE, pcol->length);
 	}
+
 	return 0;
 }
 
@@ -313,27 +363,35 @@ static int read_exec(struct page_collect *pcol)
 	int ret;
 
 	if (!pcol->pages)
+	{
 		return 0;
+	}
 
-	if (!pcol->ios) {
+	if (!pcol->ios)
+	{
 		int ret = ore_get_rw_state(&pcol->sbi->layout, &oi->oc, true,
-					     pcol->pg_first << PAGE_SHIFT,
-					     pcol->length, &pcol->ios);
+								   pcol->pg_first << PAGE_SHIFT,
+								   pcol->length, &pcol->ios);
 
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	ios = pcol->ios;
 	ios->pages = pcol->pages;
 
-	if (pcol->read_4_write) {
+	if (pcol->read_4_write)
+	{
 		ore_read(pcol->ios);
 		return __readpages_done(pcol);
 	}
 
 	pcol_copy = kmalloc(sizeof(*pcol_copy), GFP_KERNEL);
-	if (!pcol_copy) {
+
+	if (!pcol_copy)
+	{
 		ret = -ENOMEM;
 		goto err;
 	}
@@ -346,23 +404,33 @@ static int read_exec(struct page_collect *pcol)
 	_pcol_reset(pcol);
 
 	ret = _maybe_not_all_in_one_io(ios, pcol_copy, pcol);
+
 	if (unlikely(ret))
+	{
 		goto err;
+	}
 
 	EXOFS_DBGMSG2("read_exec(0x%lx) offset=0x%llx length=0x%llx\n",
-		pcol->inode->i_ino, _LLU(ios->offset), _LLU(ios->length));
+				  pcol->inode->i_ino, _LLU(ios->offset), _LLU(ios->length));
 
 	ret = ore_read(ios);
+
 	if (unlikely(ret))
+	{
 		goto err;
+	}
 
 	atomic_inc(&pcol->sbi->s_curr_pending);
 
 	return 0;
 
 err:
+
 	if (!pcol_copy) /* Failed before ownership transfer */
+	{
 		pcol_copy = pcol;
+	}
+
 	_unlock_pcol_pages(pcol_copy, ret, READ);
 	pcol_free(pcol_copy);
 	kfree(pcol_copy);
@@ -392,72 +460,103 @@ static int readpage_strip(void *data, struct page *page)
 	/* FIXME: Just for debugging, will be removed */
 	if (PageUptodate(page))
 		EXOFS_ERR("PageUptodate(0x%lx, 0x%lx)\n", pcol->inode->i_ino,
-			  page->index);
+				  page->index);
 
 	pcol->that_locked_page = page;
 
 	if (page->index < end_index)
+	{
 		len = PAGE_SIZE;
+	}
 	else if (page->index == end_index)
+	{
 		len = i_size & ~PAGE_MASK;
+	}
 	else
+	{
 		len = 0;
+	}
 
-	if (!len || !obj_created(oi)) {
+	if (!len || !obj_created(oi))
+	{
 		/* this will be out of bounds, or doesn't exist yet.
 		 * Current page is cleared and the request is split
 		 */
 		clear_highpage(page);
 
 		SetPageUptodate(page);
+
 		if (PageError(page))
+		{
 			ClearPageError(page);
+		}
 
 		if (!pcol->read_4_write)
+		{
 			unlock_page(page);
+		}
+
 		EXOFS_DBGMSG("readpage_strip(0x%lx) empty page len=%zx "
-			     "read_4_write=%d index=0x%lx end_index=0x%lx "
-			     "splitting\n", inode->i_ino, len,
-			     pcol->read_4_write, page->index, end_index);
+					 "read_4_write=%d index=0x%lx end_index=0x%lx "
+					 "splitting\n", inode->i_ino, len,
+					 pcol->read_4_write, page->index, end_index);
 
 		return read_exec(pcol);
 	}
 
 try_again:
 
-	if (unlikely(pcol->pg_first == -1)) {
+	if (unlikely(pcol->pg_first == -1))
+	{
 		pcol->pg_first = page->index;
-	} else if (unlikely((pcol->pg_first + pcol->nr_pages) !=
-		   page->index)) {
+	}
+	else if (unlikely((pcol->pg_first + pcol->nr_pages) !=
+					  page->index))
+	{
 		/* Discontinuity detected, split the request */
 		ret = read_exec(pcol);
+
 		if (unlikely(ret))
+		{
 			goto fail;
+		}
+
 		goto try_again;
 	}
 
-	if (!pcol->pages) {
+	if (!pcol->pages)
+	{
 		ret = pcol_try_alloc(pcol);
+
 		if (unlikely(ret))
+		{
 			goto fail;
+		}
 	}
 
 	if (len != PAGE_SIZE)
+	{
 		zero_user(page, len, PAGE_SIZE - len);
+	}
 
 	EXOFS_DBGMSG2("    readpage_strip(0x%lx, 0x%lx) len=0x%zx\n",
-		     inode->i_ino, page->index, len);
+				  inode->i_ino, page->index, len);
 
 	ret = pcol_add_page(pcol, page, len);
-	if (ret) {
+
+	if (ret)
+	{
 		EXOFS_DBGMSG2("Failed pcol_add_page pages[i]=%p "
-			  "this_len=0x%zx nr_pages=%u length=0x%lx\n",
-			  page, len, pcol->nr_pages, pcol->length);
+					  "this_len=0x%zx nr_pages=%u length=0x%lx\n",
+					  page, len, pcol->nr_pages, pcol->length);
 
 		/* split the request, and start again with current page */
 		ret = read_exec(pcol);
+
 		if (unlikely(ret))
+		{
 			goto fail;
+		}
 
 		goto try_again;
 	}
@@ -471,7 +570,7 @@ fail:
 }
 
 static int exofs_readpages(struct file *file, struct address_space *mapping,
-			   struct list_head *pages, unsigned nr_pages)
+						   struct list_head *pages, unsigned nr_pages)
 {
 	struct page_collect pcol;
 	int ret;
@@ -479,14 +578,19 @@ static int exofs_readpages(struct file *file, struct address_space *mapping,
 	_pcol_init(&pcol, nr_pages, mapping->host);
 
 	ret = read_cache_pages(mapping, pages, readpage_strip, &pcol);
-	if (ret) {
+
+	if (ret)
+	{
 		EXOFS_ERR("read_cache_pages => %d\n", ret);
 		return ret;
 	}
 
 	ret = read_exec(&pcol);
+
 	if (unlikely(ret))
+	{
 		return ret;
+	}
 
 	return read_exec(&pcol);
 }
@@ -500,7 +604,9 @@ static int _readpage(struct page *page, bool read_4_write)
 
 	pcol.read_4_write = read_4_write;
 	ret = readpage_strip(&pcol, page);
-	if (ret) {
+
+	if (ret)
+	{
 		EXOFS_ERR("_readpage => %d\n", ret);
 		return ret;
 	}
@@ -527,35 +633,45 @@ static void writepages_done(struct ore_io_state *ios, void *p)
 
 	atomic_dec(&pcol->sbi->s_curr_pending);
 
-	if (likely(!ret)) {
+	if (likely(!ret))
+	{
 		good_bytes = pcol->length;
 		ret = PAGE_WAS_NOT_IN_IO;
-	} else {
+	}
+	else
+	{
 		good_bytes = 0;
 	}
 
 	EXOFS_DBGMSG2("writepages_done(0x%lx) good_bytes=0x%llx"
-		     " length=0x%lx nr_pages=%u\n",
-		     pcol->inode->i_ino, _LLU(good_bytes), pcol->length,
-		     pcol->nr_pages);
+				  " length=0x%lx nr_pages=%u\n",
+				  pcol->inode->i_ino, _LLU(good_bytes), pcol->length,
+				  pcol->nr_pages);
 
-	for (i = 0; i < pcol->nr_pages; i++) {
+	for (i = 0; i < pcol->nr_pages; i++)
+	{
 		struct page *page = pcol->pages[i];
 		struct inode *inode = page->mapping->host;
 		int page_stat;
 
 		if (inode != pcol->inode)
-			continue; /* osd might add more pages to a bio */
+		{
+			continue;    /* osd might add more pages to a bio */
+		}
 
 		if (likely(length < good_bytes))
+		{
 			page_stat = 0;
+		}
 		else
+		{
 			page_stat = ret;
+		}
 
 		update_write_page(page, page_stat);
 		unlock_page(page);
 		EXOFS_DBGMSG2("    writepages_done(0x%lx, 0x%lx) status=%d\n",
-			     inode->i_ino, page->index, page_stat);
+					  inode->i_ino, page->index, page_stat);
 
 		length += PAGE_SIZE;
 	}
@@ -571,33 +687,43 @@ static struct page *__r4w_get_page(void *priv, u64 offset, bool *uptodate)
 	pgoff_t index = offset / PAGE_SIZE;
 
 	if (!pcol->that_locked_page ||
-	    (pcol->that_locked_page->index != index)) {
+		(pcol->that_locked_page->index != index))
+	{
 		struct page *page;
 		loff_t i_size = i_size_read(pcol->inode);
 
-		if (offset >= i_size) {
+		if (offset >= i_size)
+		{
 			*uptodate = true;
 			EXOFS_DBGMSG2("offset >= i_size index=0x%lx\n", index);
 			return ZERO_PAGE(0);
 		}
 
 		page =  find_get_page(pcol->inode->i_mapping, index);
-		if (!page) {
+
+		if (!page)
+		{
 			page = find_or_create_page(pcol->inode->i_mapping,
-						   index, GFP_NOFS);
-			if (unlikely(!page)) {
+									   index, GFP_NOFS);
+
+			if (unlikely(!page))
+			{
 				EXOFS_DBGMSG("grab_cache_page Failed "
-					"index=0x%llx\n", _LLU(index));
+							 "index=0x%llx\n", _LLU(index));
 				return NULL;
 			}
+
 			unlock_page(page);
 		}
+
 		*uptodate = PageUptodate(page);
 		EXOFS_DBGMSG2("index=0x%lx uptodate=%d\n", index, *uptodate);
 		return page;
-	} else {
+	}
+	else
+	{
 		EXOFS_DBGMSG2("YES that_locked_page index=0x%lx\n",
-			     pcol->that_locked_page->index);
+					  pcol->that_locked_page->index);
 		*uptodate = true;
 		return pcol->that_locked_page;
 	}
@@ -607,16 +733,19 @@ static void __r4w_put_page(void *priv, struct page *page)
 {
 	struct page_collect *pcol = priv;
 
-	if ((pcol->that_locked_page != page) && (ZERO_PAGE(0) != page)) {
+	if ((pcol->that_locked_page != page) && (ZERO_PAGE(0) != page))
+	{
 		EXOFS_DBGMSG2("index=0x%lx\n", page->index);
 		put_page(page);
 		return;
 	}
+
 	EXOFS_DBGMSG2("that_locked_page index=0x%lx\n",
-		     ZERO_PAGE(0) == page ? -1 : page->index);
+				  ZERO_PAGE(0) == page ? -1 : page->index);
 }
 
-static const struct _ore_r4w_op _r4w_op = {
+static const struct _ore_r4w_op _r4w_op =
+{
 	.get_page = &__r4w_get_page,
 	.put_page = &__r4w_put_page,
 };
@@ -629,17 +758,24 @@ static int write_exec(struct page_collect *pcol)
 	int ret;
 
 	if (!pcol->pages)
+	{
 		return 0;
+	}
 
 	BUG_ON(pcol->ios);
 	ret = ore_get_rw_state(&pcol->sbi->layout, &oi->oc, false,
-				 pcol->pg_first << PAGE_SHIFT,
-				 pcol->length, &pcol->ios);
+						   pcol->pg_first << PAGE_SHIFT,
+						   pcol->length, &pcol->ios);
+
 	if (unlikely(ret))
+	{
 		goto err;
+	}
 
 	pcol_copy = kmalloc(sizeof(*pcol_copy), GFP_KERNEL);
-	if (!pcol_copy) {
+
+	if (!pcol_copy)
+	{
 		EXOFS_ERR("write_exec: Failed to kmalloc(pcol)\n");
 		ret = -ENOMEM;
 		goto err;
@@ -657,14 +793,19 @@ static int write_exec(struct page_collect *pcol)
 	_pcol_reset(pcol);
 
 	ret = _maybe_not_all_in_one_io(ios, pcol_copy, pcol);
+
 	if (unlikely(ret))
+	{
 		goto err;
+	}
 
 	EXOFS_DBGMSG2("write_exec(0x%lx) offset=0x%llx length=0x%llx\n",
-		pcol->inode->i_ino, _LLU(ios->offset), _LLU(ios->length));
+				  pcol->inode->i_ino, _LLU(ios->offset), _LLU(ios->length));
 
 	ret = ore_write(ios);
-	if (unlikely(ret)) {
+
+	if (unlikely(ret))
+	{
 		EXOFS_ERR("write_exec: ore_write() Failed\n");
 		goto err;
 	}
@@ -673,8 +814,12 @@ static int write_exec(struct page_collect *pcol)
 	return 0;
 
 err:
+
 	if (!pcol_copy) /* Failed before ownership transfer */
+	{
 		pcol_copy = pcol;
+	}
+
 	_unlock_pcol_pages(pcol_copy, ret, WRITE);
 	pcol_free(pcol_copy);
 	kfree(pcol_copy);
@@ -690,7 +835,7 @@ err:
  * Eventually caller must submit the last segment if present.
  */
 static int writepage_strip(struct page *page,
-			   struct writeback_control *wbc_unused, void *data)
+						   struct writeback_control *wbc_unused, void *data)
 {
 	struct page_collect *pcol = data;
 	struct inode *inode = pcol->inode;
@@ -703,66 +848,94 @@ static int writepage_strip(struct page *page,
 	BUG_ON(!PageLocked(page));
 
 	ret = wait_obj_created(oi);
+
 	if (unlikely(ret))
+	{
 		goto fail;
+	}
 
 	if (page->index < end_index)
 		/* in this case, the page is within the limits of the file */
+	{
 		len = PAGE_SIZE;
-	else {
+	}
+	else
+	{
 		len = i_size & ~PAGE_MASK;
 
-		if (page->index > end_index || !len) {
+		if (page->index > end_index || !len)
+		{
 			/* in this case, the page is outside the limits
 			 * (truncate in progress)
 			 */
 			ret = write_exec(pcol);
+
 			if (unlikely(ret))
+			{
 				goto fail;
+			}
+
 			if (PageError(page))
+			{
 				ClearPageError(page);
+			}
+
 			unlock_page(page);
 			EXOFS_DBGMSG("writepage_strip(0x%lx, 0x%lx) "
-				     "outside the limits\n",
-				     inode->i_ino, page->index);
+						 "outside the limits\n",
+						 inode->i_ino, page->index);
 			return 0;
 		}
 	}
 
 try_again:
 
-	if (unlikely(pcol->pg_first == -1)) {
+	if (unlikely(pcol->pg_first == -1))
+	{
 		pcol->pg_first = page->index;
-	} else if (unlikely((pcol->pg_first + pcol->nr_pages) !=
-		   page->index)) {
+	}
+	else if (unlikely((pcol->pg_first + pcol->nr_pages) !=
+					  page->index))
+	{
 		/* Discontinuity detected, split the request */
 		ret = write_exec(pcol);
+
 		if (unlikely(ret))
+		{
 			goto fail;
+		}
 
 		EXOFS_DBGMSG("writepage_strip(0x%lx, 0x%lx) Discontinuity\n",
-			     inode->i_ino, page->index);
+					 inode->i_ino, page->index);
 		goto try_again;
 	}
 
-	if (!pcol->pages) {
+	if (!pcol->pages)
+	{
 		ret = pcol_try_alloc(pcol);
+
 		if (unlikely(ret))
+		{
 			goto fail;
+		}
 	}
 
 	EXOFS_DBGMSG2("    writepage_strip(0x%lx, 0x%lx) len=0x%zx\n",
-		     inode->i_ino, page->index, len);
+				  inode->i_ino, page->index, len);
 
 	ret = pcol_add_page(pcol, page, len);
-	if (unlikely(ret)) {
+
+	if (unlikely(ret))
+	{
 		EXOFS_DBGMSG2("Failed pcol_add_page "
-			     "nr_pages=%u total_length=0x%lx\n",
-			     pcol->nr_pages, pcol->length);
+					  "nr_pages=%u total_length=0x%lx\n",
+					  pcol->nr_pages, pcol->length);
 
 		/* split the request, next loop will start again */
 		ret = write_exec(pcol);
-		if (unlikely(ret)) {
+
+		if (unlikely(ret))
+		{
 			EXOFS_DBGMSG("write_exec failed => %d", ret);
 			goto fail;
 		}
@@ -777,14 +950,14 @@ try_again:
 
 fail:
 	EXOFS_DBGMSG("Error: writepage_strip(0x%lx, 0x%lx)=>%d\n",
-		     inode->i_ino, page->index, ret);
+				 inode->i_ino, page->index, ret);
 	mapping_set_error(page->mapping, -EIO);
 	unlock_page(page);
 	return ret;
 }
 
 static int exofs_writepages(struct address_space *mapping,
-		       struct writeback_control *wbc)
+							struct writeback_control *wbc)
 {
 	struct page_collect pcol;
 	long start, end, expected_pages;
@@ -792,41 +965,56 @@ static int exofs_writepages(struct address_space *mapping,
 
 	start = wbc->range_start >> PAGE_SHIFT;
 	end = (wbc->range_end == LLONG_MAX) ?
-			start + mapping->nrpages :
-			wbc->range_end >> PAGE_SHIFT;
+		  start + mapping->nrpages :
+		  wbc->range_end >> PAGE_SHIFT;
 
 	if (start || end)
+	{
 		expected_pages = end - start + 1;
+	}
 	else
+	{
 		expected_pages = mapping->nrpages;
+	}
 
 	if (expected_pages < 32L)
+	{
 		expected_pages = 32L;
+	}
 
 	EXOFS_DBGMSG2("inode(0x%lx) wbc->start=0x%llx wbc->end=0x%llx "
-		     "nrpages=%lu start=0x%lx end=0x%lx expected_pages=%ld\n",
-		     mapping->host->i_ino, wbc->range_start, wbc->range_end,
-		     mapping->nrpages, start, end, expected_pages);
+				  "nrpages=%lu start=0x%lx end=0x%lx expected_pages=%ld\n",
+				  mapping->host->i_ino, wbc->range_start, wbc->range_end,
+				  mapping->nrpages, start, end, expected_pages);
 
 	_pcol_init(&pcol, expected_pages, mapping->host);
 
 	ret = write_cache_pages(mapping, wbc, writepage_strip, &pcol);
-	if (unlikely(ret)) {
+
+	if (unlikely(ret))
+	{
 		EXOFS_ERR("write_cache_pages => %d\n", ret);
 		return ret;
 	}
 
 	ret = write_exec(&pcol);
-	if (unlikely(ret))
-		return ret;
 
-	if (wbc->sync_mode == WB_SYNC_ALL) {
+	if (unlikely(ret))
+	{
+		return ret;
+	}
+
+	if (wbc->sync_mode == WB_SYNC_ALL)
+	{
 		return write_exec(&pcol); /* pump the last reminder */
-	} else if (pcol.nr_pages) {
+	}
+	else if (pcol.nr_pages)
+	{
 		/* not SYNC let the reminder join the next writeout */
 		unsigned i;
 
-		for (i = 0; i < pcol.nr_pages; i++) {
+		for (i = 0; i < pcol.nr_pages; i++)
+		{
 			struct page *page = pcol.pages[i];
 
 			end_page_writeback(page);
@@ -834,6 +1022,7 @@ static int exofs_writepages(struct address_space *mapping,
 			unlock_page(page);
 		}
 	}
+
 	return 0;
 }
 
@@ -858,21 +1047,27 @@ static int exofs_writepage(struct page *page, struct writeback_control *wbc)
 static void _write_failed(struct inode *inode, loff_t to)
 {
 	if (to > inode->i_size)
+	{
 		truncate_pagecache(inode, inode->i_size);
+	}
 }
 
 int exofs_write_begin(struct file *file, struct address_space *mapping,
-		loff_t pos, unsigned len, unsigned flags,
-		struct page **pagep, void **fsdata)
+					  loff_t pos, unsigned len, unsigned flags,
+					  struct page **pagep, void **fsdata)
 {
 	int ret = 0;
 	struct page *page;
 
 	page = *pagep;
-	if (page == NULL) {
+
+	if (page == NULL)
+	{
 		ret = simple_write_begin(file, mapping, pos, len, flags, pagep,
-					 fsdata);
-		if (ret) {
+								 fsdata);
+
+		if (ret)
+		{
 			EXOFS_DBGMSG("simple_write_begin failed\n");
 			goto out;
 		}
@@ -880,66 +1075,86 @@ int exofs_write_begin(struct file *file, struct address_space *mapping,
 		page = *pagep;
 	}
 
-	 /* read modify write */
-	if (!PageUptodate(page) && (len != PAGE_SIZE)) {
+	/* read modify write */
+	if (!PageUptodate(page) && (len != PAGE_SIZE))
+	{
 		loff_t i_size = i_size_read(mapping->host);
 		pgoff_t end_index = i_size >> PAGE_SHIFT;
 		size_t rlen;
 
 		if (page->index < end_index)
+		{
 			rlen = PAGE_SIZE;
+		}
 		else if (page->index == end_index)
+		{
 			rlen = i_size & ~PAGE_MASK;
+		}
 		else
+		{
 			rlen = 0;
+		}
 
-		if (!rlen) {
+		if (!rlen)
+		{
 			clear_highpage(page);
 			SetPageUptodate(page);
 			goto out;
 		}
 
 		ret = _readpage(page, true);
-		if (ret) {
+
+		if (ret)
+		{
 			/*SetPageError was done by _readpage. Is it ok?*/
 			unlock_page(page);
 			EXOFS_DBGMSG("__readpage failed\n");
 		}
 	}
+
 out:
+
 	if (unlikely(ret))
+	{
 		_write_failed(mapping->host, pos + len);
+	}
 
 	return ret;
 }
 
 static int exofs_write_begin_export(struct file *file,
-		struct address_space *mapping,
-		loff_t pos, unsigned len, unsigned flags,
-		struct page **pagep, void **fsdata)
+									struct address_space *mapping,
+									loff_t pos, unsigned len, unsigned flags,
+									struct page **pagep, void **fsdata)
 {
 	*pagep = NULL;
 
 	return exofs_write_begin(file, mapping, pos, len, flags, pagep,
-					fsdata);
+							 fsdata);
 }
 
 static int exofs_write_end(struct file *file, struct address_space *mapping,
-			loff_t pos, unsigned len, unsigned copied,
-			struct page *page, void *fsdata)
+						   loff_t pos, unsigned len, unsigned copied,
+						   struct page *page, void *fsdata)
 {
 	struct inode *inode = mapping->host;
 	/* According to comment in simple_write_end i_mutex is held */
 	loff_t i_size = inode->i_size;
 	int ret;
 
-	ret = simple_write_end(file, mapping,pos, len, copied, page, fsdata);
+	ret = simple_write_end(file, mapping, pos, len, copied, page, fsdata);
+
 	if (unlikely(ret))
+	{
 		_write_failed(inode, pos + len);
+	}
 
 	/* TODO: once simple_write_end marks inode dirty remove */
 	if (i_size != inode->i_size)
+	{
 		mark_inode_dirty(inode);
+	}
+
 	return ret;
 }
 
@@ -951,21 +1166,22 @@ static int exofs_releasepage(struct page *page, gfp_t gfp)
 }
 
 static void exofs_invalidatepage(struct page *page, unsigned int offset,
-				 unsigned int length)
+								 unsigned int length)
 {
 	EXOFS_DBGMSG("page 0x%lx offset 0x%x length 0x%x\n",
-		     page->index, offset, length);
+				 page->index, offset, length);
 	WARN_ON(1);
 }
 
 
- /* TODO: Should be easy enough to do proprly */
+/* TODO: Should be easy enough to do proprly */
 static ssize_t exofs_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
 {
 	return 0;
 }
 
-const struct address_space_operations exofs_aops = {
+const struct address_space_operations exofs_aops =
+{
 	.readpage	= exofs_readpage,
 	.readpages	= exofs_readpages,
 	.writepage	= NULL,
@@ -1010,11 +1226,14 @@ static int _do_truncate(struct inode *inode, loff_t newsize)
 	inode->i_mtime = inode->i_ctime = current_time(inode);
 
 	ret = ore_truncate(&sbi->layout, &oi->oc, (u64)newsize);
+
 	if (likely(!ret))
+	{
 		truncate_setsize(inode, newsize);
+	}
 
 	EXOFS_DBGMSG2("(0x%lx) size=0x%llx ret=>%d\n",
-		     inode->i_ino, newsize, ret);
+				  inode->i_ino, newsize, ret);
 	return ret;
 }
 
@@ -1031,18 +1250,28 @@ int exofs_setattr(struct dentry *dentry, struct iattr *iattr)
 	 * created yet, wait
 	 */
 	error = wait_obj_created(exofs_i(inode));
+
 	if (unlikely(error))
+	{
 		return error;
+	}
 
 	error = setattr_prepare(dentry, iattr);
+
 	if (unlikely(error))
+	{
 		return error;
+	}
 
 	if ((iattr->ia_valid & ATTR_SIZE) &&
-	    iattr->ia_size != i_size_read(inode)) {
+		iattr->ia_size != i_size_read(inode))
+	{
 		error = _do_truncate(inode, iattr->ia_size);
+
 		if (unlikely(error))
+		{
 			return error;
+		}
 	}
 
 	setattr_copy(inode, iattr);
@@ -1051,23 +1280,24 @@ int exofs_setattr(struct dentry *dentry, struct iattr *iattr)
 }
 
 static const struct osd_attr g_attr_inode_file_layout = ATTR_DEF(
-	EXOFS_APAGE_FS_DATA,
-	EXOFS_ATTR_INODE_FILE_LAYOUT,
-	0);
+			EXOFS_APAGE_FS_DATA,
+			EXOFS_ATTR_INODE_FILE_LAYOUT,
+			0);
 static const struct osd_attr g_attr_inode_dir_layout = ATTR_DEF(
-	EXOFS_APAGE_FS_DATA,
-	EXOFS_ATTR_INODE_DIR_LAYOUT,
-	0);
+			EXOFS_APAGE_FS_DATA,
+			EXOFS_ATTR_INODE_DIR_LAYOUT,
+			0);
 
 /*
  * Read the Linux inode info from the OSD, and return it as is. In exofs the
  * inode info is in an application specific page/attribute of the osd-object.
  */
 static int exofs_get_inode(struct super_block *sb, struct exofs_i_info *oi,
-		    struct exofs_fcb *inode)
+						   struct exofs_fcb *inode)
 {
 	struct exofs_sb_info *sbi = sb->s_fs_info;
-	struct osd_attr attrs[] = {
+	struct osd_attr attrs[] =
+	{
 		[0] = g_attr_inode_data,
 		[1] = g_attr_inode_file_layout,
 		[2] = g_attr_inode_dir_layout,
@@ -1077,7 +1307,9 @@ static int exofs_get_inode(struct super_block *sb, struct exofs_i_info *oi,
 	int ret;
 
 	ret = ore_get_io_state(&sbi->layout, &oi->oc, &ios);
-	if (unlikely(ret)) {
+
+	if (unlikely(ret))
+	{
 		EXOFS_ERR("%s: ore_get_io_state failed.\n", __func__);
 		return ret;
 	}
@@ -1089,9 +1321,11 @@ static int exofs_get_inode(struct super_block *sb, struct exofs_i_info *oi,
 	ios->in_attr_len = ARRAY_SIZE(attrs);
 
 	ret = ore_read(ios);
-	if (unlikely(ret)) {
+
+	if (unlikely(ret))
+	{
 		EXOFS_ERR("object(0x%llx) corrupted, return empty file=>%d\n",
-			  _LLU(oi->one_comp.obj.id), ret);
+				  _LLU(oi->one_comp.obj.id), ret);
 		memset(inode, 0, sizeof(*inode));
 		inode->i_mode = 0040000 | (0777 & ~022);
 		/* If object is lost on target we might as well enable it's
@@ -1102,38 +1336,53 @@ static int exofs_get_inode(struct super_block *sb, struct exofs_i_info *oi,
 	}
 
 	ret = extract_attr_from_ios(ios, &attrs[0]);
-	if (ret) {
+
+	if (ret)
+	{
 		EXOFS_ERR("%s: extract_attr 0 of inode failed\n", __func__);
 		goto out;
 	}
+
 	WARN_ON(attrs[0].len != EXOFS_INO_ATTR_SIZE);
 	memcpy(inode, attrs[0].val_ptr, EXOFS_INO_ATTR_SIZE);
 
 	ret = extract_attr_from_ios(ios, &attrs[1]);
-	if (ret) {
+
+	if (ret)
+	{
 		EXOFS_ERR("%s: extract_attr 1 of inode failed\n", __func__);
 		goto out;
 	}
-	if (attrs[1].len) {
+
+	if (attrs[1].len)
+	{
 		layout = attrs[1].val_ptr;
-		if (layout->gen_func != cpu_to_le16(LAYOUT_MOVING_WINDOW)) {
+
+		if (layout->gen_func != cpu_to_le16(LAYOUT_MOVING_WINDOW))
+		{
 			EXOFS_ERR("%s: unsupported files layout %d\n",
-				__func__, layout->gen_func);
+					  __func__, layout->gen_func);
 			ret = -ENOTSUPP;
 			goto out;
 		}
 	}
 
 	ret = extract_attr_from_ios(ios, &attrs[2]);
-	if (ret) {
+
+	if (ret)
+	{
 		EXOFS_ERR("%s: extract_attr 2 of inode failed\n", __func__);
 		goto out;
 	}
-	if (attrs[2].len) {
+
+	if (attrs[2].len)
+	{
 		layout = attrs[2].val_ptr;
-		if (layout->gen_func != cpu_to_le16(LAYOUT_MOVING_WINDOW)) {
+
+		if (layout->gen_func != cpu_to_le16(LAYOUT_MOVING_WINDOW))
+		{
 			EXOFS_ERR("%s: unsupported meta-data layout %d\n",
-				__func__, layout->gen_func);
+					  __func__, layout->gen_func);
 			ret = -ENOTSUPP;
 			goto out;
 		}
@@ -1160,19 +1409,29 @@ struct inode *exofs_iget(struct super_block *sb, unsigned long ino)
 	int ret;
 
 	inode = iget_locked(sb, ino);
+
 	if (!inode)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
+
 	if (!(inode->i_state & I_NEW))
+	{
 		return inode;
+	}
+
 	oi = exofs_i(inode);
 	__oi_init(oi);
 	exofs_init_comps(&oi->oc, &oi->one_comp, sb->s_fs_info,
-			 exofs_oi_objno(oi));
+					 exofs_oi_objno(oi));
 
 	/* read the inode from the osd */
 	ret = exofs_get_inode(sb, oi, &fcb);
+
 	if (ret)
+	{
 		goto bad_inode;
+	}
 
 	set_obj_created(oi);
 
@@ -1193,47 +1452,62 @@ struct inode *exofs_iget(struct super_block *sb, unsigned long ino)
 
 	oi->i_dir_start_lookup = 0;
 
-	if ((inode->i_nlink == 0) && (inode->i_mode == 0)) {
+	if ((inode->i_nlink == 0) && (inode->i_mode == 0))
+	{
 		ret = -ESTALE;
 		goto bad_inode;
 	}
 
-	if (S_ISCHR(inode->i_mode) || S_ISBLK(inode->i_mode)) {
+	if (S_ISCHR(inode->i_mode) || S_ISBLK(inode->i_mode))
+	{
 		if (fcb.i_data[0])
 			inode->i_rdev =
 				old_decode_dev(le32_to_cpu(fcb.i_data[0]));
 		else
 			inode->i_rdev =
 				new_decode_dev(le32_to_cpu(fcb.i_data[1]));
-	} else {
+	}
+	else
+	{
 		memcpy(oi->i_data, fcb.i_data, sizeof(fcb.i_data));
 	}
 
-	if (S_ISREG(inode->i_mode)) {
+	if (S_ISREG(inode->i_mode))
+	{
 		inode->i_op = &exofs_file_inode_operations;
 		inode->i_fop = &exofs_file_operations;
 		inode->i_mapping->a_ops = &exofs_aops;
-	} else if (S_ISDIR(inode->i_mode)) {
+	}
+	else if (S_ISDIR(inode->i_mode))
+	{
 		inode->i_op = &exofs_dir_inode_operations;
 		inode->i_fop = &exofs_dir_operations;
 		inode->i_mapping->a_ops = &exofs_aops;
-	} else if (S_ISLNK(inode->i_mode)) {
-		if (exofs_inode_is_fast_symlink(inode)) {
+	}
+	else if (S_ISLNK(inode->i_mode))
+	{
+		if (exofs_inode_is_fast_symlink(inode))
+		{
 			inode->i_op = &simple_symlink_inode_operations;
 			inode->i_link = (char *)oi->i_data;
-		} else {
+		}
+		else
+		{
 			inode->i_op = &page_symlink_inode_operations;
 			inode_nohighmem(inode);
 			inode->i_mapping->a_ops = &exofs_aops;
 		}
-	} else {
+	}
+	else
+	{
 		inode->i_op = &exofs_special_inode_operations;
+
 		if (fcb.i_data[0])
 			init_special_inode(inode, inode->i_mode,
-			   old_decode_dev(le32_to_cpu(fcb.i_data[0])));
+							   old_decode_dev(le32_to_cpu(fcb.i_data[0])));
 		else
 			init_special_inode(inode, inode->i_mode,
-			   new_decode_dev(le32_to_cpu(fcb.i_data[1])));
+							   new_decode_dev(le32_to_cpu(fcb.i_data[1])));
 	}
 
 	unlock_new_inode(inode);
@@ -1246,12 +1520,14 @@ bad_inode:
 
 int __exofs_wait_obj_created(struct exofs_i_info *oi)
 {
-	if (!obj_created(oi)) {
+	if (!obj_created(oi))
+	{
 		EXOFS_DBGMSG("!obj_created\n");
 		BUG_ON(!obj_2bcreated(oi));
 		wait_event(oi->i_wq, obj_created(oi));
 		EXOFS_DBGMSG("wait_event done\n");
 	}
+
 	return unlikely(is_bad_inode(&oi->vfs_inode)) ? -EIO : 0;
 }
 
@@ -1272,10 +1548,11 @@ static void create_done(struct ore_io_state *ios, void *p)
 
 	atomic_dec(&sbi->s_curr_pending);
 
-	if (unlikely(ret)) {
+	if (unlikely(ret))
+	{
 		EXOFS_ERR("object=0x%llx creation failed in pid=0x%llx",
-			  _LLU(exofs_oi_objno(oi)),
-			  _LLU(oi->one_comp.obj.partition));
+				  _LLU(exofs_oi_objno(oi)),
+				  _LLU(oi->one_comp.obj.partition));
 		/*TODO: When FS is corrupted creation can fail, object already
 		 * exist. Get rid of this asynchronous creation, if exist
 		 * increment the obj counter and try the next object. Until we
@@ -1302,8 +1579,11 @@ struct inode *exofs_new_inode(struct inode *dir, umode_t mode)
 	int ret;
 
 	inode = new_inode(sb);
+
 	if (!inode)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	oi = exofs_i(inode);
 	__oi_init(oi);
@@ -1321,13 +1601,15 @@ struct inode *exofs_new_inode(struct inode *dir, umode_t mode)
 	insert_inode_hash(inode);
 
 	exofs_init_comps(&oi->oc, &oi->one_comp, sb->s_fs_info,
-			 exofs_oi_objno(oi));
+					 exofs_oi_objno(oi));
 	exofs_sbi_write_stats(sbi); /* Make sure new sbi->s_nextid is on disk */
 
 	mark_inode_dirty(inode);
 
 	ret = ore_get_io_state(&sbi->layout, &oi->oc, &ios);
-	if (unlikely(ret)) {
+
+	if (unlikely(ret))
+	{
 		EXOFS_ERR("exofs_new_inode: ore_get_io_state failed\n");
 		return ERR_PTR(ret);
 	}
@@ -1336,10 +1618,13 @@ struct inode *exofs_new_inode(struct inode *dir, umode_t mode)
 	ios->private = inode;
 
 	ret = ore_create(ios);
-	if (ret) {
+
+	if (ret)
+	{
 		ore_put_io_state(ios);
 		return ERR_PTR(ret);
 	}
+
 	atomic_inc(&sbi->s_curr_pending);
 
 	return inode;
@@ -1348,7 +1633,8 @@ struct inode *exofs_new_inode(struct inode *dir, umode_t mode)
 /*
  * struct to pass two arguments to update_inode's callback
  */
-struct updatei_args {
+struct updatei_args
+{
 	struct exofs_sb_info	*sbi;
 	struct exofs_fcb	fcb;
 };
@@ -1383,7 +1669,9 @@ static int exofs_update_inode(struct inode *inode, int do_sync)
 	int ret;
 
 	args = kzalloc(sizeof(*args), GFP_KERNEL);
-	if (!args) {
+
+	if (!args)
+	{
 		EXOFS_DBGMSG("Failed kzalloc of args\n");
 		return -ENOMEM;
 	}
@@ -1401,22 +1689,31 @@ static int exofs_update_inode(struct inode *inode, int do_sync)
 	fcb->i_size = cpu_to_le64(oi->i_commit_size);
 	fcb->i_generation = cpu_to_le32(inode->i_generation);
 
-	if (S_ISCHR(inode->i_mode) || S_ISBLK(inode->i_mode)) {
-		if (old_valid_dev(inode->i_rdev)) {
+	if (S_ISCHR(inode->i_mode) || S_ISBLK(inode->i_mode))
+	{
+		if (old_valid_dev(inode->i_rdev))
+		{
 			fcb->i_data[0] =
 				cpu_to_le32(old_encode_dev(inode->i_rdev));
 			fcb->i_data[1] = 0;
-		} else {
+		}
+		else
+		{
 			fcb->i_data[0] = 0;
 			fcb->i_data[1] =
 				cpu_to_le32(new_encode_dev(inode->i_rdev));
 			fcb->i_data[2] = 0;
 		}
-	} else
+	}
+	else
+	{
 		memcpy(fcb->i_data, oi->i_data, sizeof(fcb->i_data));
+	}
 
 	ret = ore_get_io_state(&sbi->layout, &oi->oc, &ios);
-	if (unlikely(ret)) {
+
+	if (unlikely(ret))
+	{
 		EXOFS_ERR("%s: ore_get_io_state failed.\n", __func__);
 		goto free_args;
 	}
@@ -1428,14 +1725,17 @@ static int exofs_update_inode(struct inode *inode, int do_sync)
 
 	wait_obj_created(oi);
 
-	if (!do_sync) {
+	if (!do_sync)
+	{
 		args->sbi = sbi;
 		ios->done = updatei_done;
 		ios->private = args;
 	}
 
 	ret = ore_write(ios);
-	if (!do_sync && !ret) {
+
+	if (!do_sync && !ret)
+	{
 		atomic_inc(&sbi->s_curr_pending);
 		goto out; /* deallocation in updatei_done */
 	}
@@ -1445,7 +1745,7 @@ free_args:
 	kfree(args);
 out:
 	EXOFS_DBGMSG("(0x%lx) do_sync=%d ret=>%d\n",
-		     inode->i_ino, do_sync, ret);
+				 inode->i_ino, do_sync, ret);
 	return ret;
 }
 
@@ -1485,7 +1785,9 @@ void exofs_evict_inode(struct inode *inode)
 
 	/* TODO: should do better here */
 	if (inode->i_nlink || is_bad_inode(inode))
+	{
 		goto no_delete;
+	}
 
 	inode->i_size = 0;
 	clear_inode(inode);
@@ -1499,7 +1801,9 @@ void exofs_evict_inode(struct inode *inode)
 
 	/* Now Remove the OSD objects */
 	ret = ore_get_io_state(&sbi->layout, &oi->oc, &ios);
-	if (unlikely(ret)) {
+
+	if (unlikely(ret))
+	{
 		EXOFS_ERR("%s: ore_get_io_state failed\n", __func__);
 		return;
 	}
@@ -1508,11 +1812,14 @@ void exofs_evict_inode(struct inode *inode)
 	ios->private = sbi;
 
 	ret = ore_remove(ios);
-	if (ret) {
+
+	if (ret)
+	{
 		EXOFS_ERR("%s: ore_remove failed\n", __func__);
 		ore_put_io_state(ios);
 		return;
 	}
+
 	atomic_inc(&sbi->s_curr_pending);
 
 	return;

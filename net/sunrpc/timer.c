@@ -39,8 +39,12 @@ void rpc_init_rtt(struct rpc_rtt *rt, unsigned long timeo)
 	rt->timeo = timeo;
 
 	if (timeo > RPC_RTO_INIT)
+	{
 		init = (timeo - RPC_RTO_INIT) << 3;
-	for (i = 0; i < 5; i++) {
+	}
+
+	for (i = 0; i < 5; i++)
+	{
 		rt->srtt[i] = init;
 		rt->sdrtt[i] = RPC_RTO_INIT;
 		rt->ntimeouts[i] = 0;
@@ -62,21 +66,29 @@ void rpc_update_rtt(struct rpc_rtt *rt, unsigned int timer, long m)
 	long *srtt, *sdrtt;
 
 	if (timer-- == 0)
+	{
 		return;
+	}
 
 	/* jiffies wrapped; ignore this one */
 	if (m < 0)
+	{
 		return;
+	}
 
 	if (m == 0)
+	{
 		m = 1L;
+	}
 
 	srtt = (long *)&rt->srtt[timer];
 	m -= *srtt >> 3;
 	*srtt += m;
 
 	if (m < 0)
+	{
 		m = -m;
+	}
 
 	sdrtt = (long *)&rt->sdrtt[timer];
 	m -= *sdrtt >> 2;
@@ -84,7 +96,9 @@ void rpc_update_rtt(struct rpc_rtt *rt, unsigned int timer, long m)
 
 	/* Set lower bound on the variance */
 	if (*sdrtt < RPC_RTO_MIN)
+	{
 		*sdrtt = RPC_RTO_MIN;
+	}
 }
 EXPORT_SYMBOL_GPL(rpc_update_rtt);
 
@@ -111,11 +125,16 @@ unsigned long rpc_calc_rto(struct rpc_rtt *rt, unsigned int timer)
 	unsigned long res;
 
 	if (timer-- == 0)
+	{
 		return rt->timeo;
+	}
 
 	res = ((rt->srtt[timer] + 7) >> 3) + rt->sdrtt[timer];
+
 	if (res > RPC_RTO_MAX)
+	{
 		res = RPC_RTO_MAX;
+	}
 
 	return res;
 }

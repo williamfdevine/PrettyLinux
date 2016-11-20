@@ -53,7 +53,8 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
  * concerning the addresses: i2c wants 7 bit (without the r/w bit), so '>>1'
  */
 
-struct saa717x_state {
+struct saa717x_state
+{
 	struct v4l2_subdev sd;
 	struct v4l2_ctrl_handler hdl;
 	v4l2_std_id std;
@@ -109,13 +110,17 @@ static int saa717x_write(struct v4l2_subdev *sd, u32 reg, u32 value)
 	mm1[0] = (reg >> 8) & 0xff;
 	mm1[1] = reg & 0xff;
 
-	if (fw_addr) {
+	if (fw_addr)
+	{
 		mm1[4] = (value >> 16) & 0xff;
 		mm1[3] = (value >> 8) & 0xff;
 		mm1[2] = value & 0xff;
-	} else {
+	}
+	else
+	{
 		mm1[2] = value & 0xff;
 	}
+
 	msg.len = fw_addr ? 5 : 3; /* Long Registers have *only* three bytes! */
 	msg.buf = mm1;
 	v4l2_dbg(2, debug, sd, "wrote:  reg 0x%03x=%08x\n", reg, value);
@@ -124,7 +129,8 @@ static int saa717x_write(struct v4l2_subdev *sd, u32 reg, u32 value)
 
 static void saa717x_write_regs(struct v4l2_subdev *sd, u32 *data)
 {
-	while (data[0] || data[1]) {
+	while (data[0] || data[1])
+	{
 		saa717x_write(sd, data[0], data[1]);
 		data += 2;
 	}
@@ -152,9 +158,13 @@ static u32 saa717x_read(struct v4l2_subdev *sd, u32 reg)
 	i2c_transfer(adap, msgs, 2);
 
 	if (fw_addr)
+	{
 		value = (mm2[2] << 16)  | (mm2[1] << 8) | mm2[0];
+	}
 	else
+	{
 		value = mm2[0];
+	}
 
 	v4l2_dbg(2, debug, sd, "read:  reg 0x%03x=0x%08x\n", reg, value);
 	return value;
@@ -634,7 +644,8 @@ static u32 reg_init_initialize[] =
 };
 
 /* Tuner */
-static u32 reg_init_tuner_input[] = {
+static u32 reg_init_tuner_input[] =
+{
 	0x108, 0x0f8, /* Sync control */
 	0x111, 0x000, /* Mode/delay control */
 	0x10e, 0x00a, /* Chroma control 1 */
@@ -642,7 +653,8 @@ static u32 reg_init_tuner_input[] = {
 };
 
 /* Composite */
-static u32 reg_init_composite_input[] = {
+static u32 reg_init_composite_input[] =
+{
 	0x108, 0x0e8, /* Sync control */
 	0x111, 0x000, /* Mode/delay control */
 	0x10e, 0x04a, /* Chroma control 1 */
@@ -650,7 +662,8 @@ static u32 reg_init_composite_input[] = {
 };
 
 /* S-Video */
-static u32 reg_init_svideo_input[] = {
+static u32 reg_init_svideo_input[] =
+{
 	0x108, 0x0e8, /* Sync control */
 	0x111, 0x000, /* Mode/delay control */
 	0x10e, 0x04a, /* Chroma control 1 */
@@ -691,11 +704,12 @@ static u32 reg_set_audio_template[4][2] =
 
 /* Get detected audio flags (from saa7134 driver) */
 static void get_inf_dev_status(struct v4l2_subdev *sd,
-		int *dual_flag, int *stereo_flag)
+							   int *dual_flag, int *stereo_flag)
 {
 	u32 reg_data3;
 
-	static char *stdres[0x20] = {
+	static char *stdres[0x20] =
+	{
 		[0x00] = "no standard detected",
 		[0x01] = "B/G (in progress)",
 		[0x02] = "D/K (in progress)",
@@ -732,35 +746,37 @@ static void get_inf_dev_status(struct v4l2_subdev *sd,
 	reg_data3 = saa717x_read(sd, 0x0528);
 
 	v4l2_dbg(1, debug, sd, "tvaudio thread status: 0x%x [%s%s%s]\n",
-		reg_data3, stdres[reg_data3 & 0x1f],
-		(reg_data3 & 0x000020) ? ",stereo" : "",
-		(reg_data3 & 0x000040) ? ",dual"   : "");
+			 reg_data3, stdres[reg_data3 & 0x1f],
+			 (reg_data3 & 0x000020) ? ",stereo" : "",
+			 (reg_data3 & 0x000040) ? ",dual"   : "");
 	v4l2_dbg(1, debug, sd, "detailed status: "
-		"%s#%s#%s#%s#%s#%s#%s#%s#%s#%s#%s#%s#%s#%s\n",
-		(reg_data3 & 0x000080) ? " A2/EIAJ pilot tone "     : "",
-		(reg_data3 & 0x000100) ? " A2/EIAJ dual "           : "",
-		(reg_data3 & 0x000200) ? " A2/EIAJ stereo "         : "",
-		(reg_data3 & 0x000400) ? " A2/EIAJ noise mute "     : "",
+			 "%s#%s#%s#%s#%s#%s#%s#%s#%s#%s#%s#%s#%s#%s\n",
+			 (reg_data3 & 0x000080) ? " A2/EIAJ pilot tone "     : "",
+			 (reg_data3 & 0x000100) ? " A2/EIAJ dual "           : "",
+			 (reg_data3 & 0x000200) ? " A2/EIAJ stereo "         : "",
+			 (reg_data3 & 0x000400) ? " A2/EIAJ noise mute "     : "",
 
-		(reg_data3 & 0x000800) ? " BTSC/FM radio pilot "    : "",
-		(reg_data3 & 0x001000) ? " SAP carrier "            : "",
-		(reg_data3 & 0x002000) ? " BTSC stereo noise mute " : "",
-		(reg_data3 & 0x004000) ? " SAP noise mute "         : "",
-		(reg_data3 & 0x008000) ? " VDSP "                   : "",
+			 (reg_data3 & 0x000800) ? " BTSC/FM radio pilot "    : "",
+			 (reg_data3 & 0x001000) ? " SAP carrier "            : "",
+			 (reg_data3 & 0x002000) ? " BTSC stereo noise mute " : "",
+			 (reg_data3 & 0x004000) ? " SAP noise mute "         : "",
+			 (reg_data3 & 0x008000) ? " VDSP "                   : "",
 
-		(reg_data3 & 0x010000) ? " NICST "                  : "",
-		(reg_data3 & 0x020000) ? " NICDU "                  : "",
-		(reg_data3 & 0x040000) ? " NICAM muted "            : "",
-		(reg_data3 & 0x080000) ? " NICAM reserve sound "    : "",
+			 (reg_data3 & 0x010000) ? " NICST "                  : "",
+			 (reg_data3 & 0x020000) ? " NICDU "                  : "",
+			 (reg_data3 & 0x040000) ? " NICAM muted "            : "",
+			 (reg_data3 & 0x080000) ? " NICAM reserve sound "    : "",
 
-		(reg_data3 & 0x100000) ? " init done "              : "");
+			 (reg_data3 & 0x100000) ? " init done "              : "");
 
-	if (reg_data3 & 0x000220) {
+	if (reg_data3 & 0x000220)
+	{
 		v4l2_dbg(1, debug, sd, "ST!!!\n");
 		*stereo_flag = 1;
 	}
 
-	if (reg_data3 & 0x000140) {
+	if (reg_data3 & 0x000140)
+	{
 		v4l2_dbg(1, debug, sd, "DUAL!!!\n");
 		*dual_flag = 1;
 	}
@@ -770,7 +786,7 @@ static void get_inf_dev_status(struct v4l2_subdev *sd,
 static void set_audio_mode(struct v4l2_subdev *sd, int audio_mode)
 {
 	v4l2_dbg(1, debug, sd, "writing registers to set audio mode by set %d\n",
-			audio_mode);
+			 audio_mode);
 
 	saa717x_write(sd, 0x46c, reg_set_audio_template[audio_mode][0]);
 	saa717x_write(sd, 0x470, reg_set_audio_template[audio_mode][1]);
@@ -778,7 +794,7 @@ static void set_audio_mode(struct v4l2_subdev *sd, int audio_mode)
 
 /* write regs to set audio volume, bass and treble */
 static int set_audio_regs(struct v4l2_subdev *sd,
-		struct saa717x_state *decoder)
+						  struct saa717x_state *decoder)
 {
 	u8 mute = 0xac; /* -84 dB */
 	u32 val;
@@ -787,7 +803,7 @@ static int set_audio_regs(struct v4l2_subdev *sd,
 	/* set SIF analog I/O select */
 	saa717x_write(sd, 0x0594, decoder->audio_input);
 	v4l2_dbg(1, debug, sd, "set audio input %d\n",
-			decoder->audio_input);
+			 decoder->audio_input);
 
 	/* normalize ( 65535 to 0 -> 24 to -40 (not -84)) */
 	work_l = (min(65536 - decoder->audio_main_balance, 32768) * decoder->audio_main_volume) / 32768;
@@ -799,11 +815,14 @@ static int set_audio_regs(struct v4l2_subdev *sd,
 	/* main volume L[7-0],R[7-0],0x00  24=24dB,-83dB, -84(mute) */
 	/*    def:0dB->6dB(MPG600GR) */
 	/* if mute is on, set mute */
-	if (decoder->audio_main_mute) {
+	if (decoder->audio_main_mute)
+	{
 		val = mute | (mute << 8);
-	} else {
+	}
+	else
+	{
 		val = (u8)decoder->audio_main_vol_l |
-			((u8)decoder->audio_main_vol_r << 8);
+			  ((u8)decoder->audio_main_vol_r << 8);
 	}
 
 	saa717x_write(sd, 0x480, val);
@@ -817,15 +836,17 @@ static int set_audio_regs(struct v4l2_subdev *sd,
 
 /********** scaling staff ***********/
 static void set_h_prescale(struct v4l2_subdev *sd,
-		int task, int prescale)
+						   int task, int prescale)
 {
-	static const struct {
+	static const struct
+	{
 		int xpsc;
 		int xacl;
 		int xc2_1;
 		int xdcg;
 		int vpfy;
-	} vals[] = {
+	} vals[] =
+	{
 		/* XPSC XACL XC2_1 XDCG VPFY */
 		{    1,   0,    0,    0,   0 },
 		{    2,   2,    1,    2,   2 },
@@ -842,11 +863,17 @@ static void set_h_prescale(struct v4l2_subdev *sd,
 	int i, task_shift;
 
 	task_shift = task * 0x40;
+
 	for (i = 0; i < count; i++)
 		if (vals[i].xpsc == prescale)
+		{
 			break;
+		}
+
 	if (i == count)
+	{
 		return;
+	}
 
 	/* horizonal prescaling */
 	saa717x_write(sd, 0x60 + task_shift, vals[i].xpsc);
@@ -854,10 +881,10 @@ static void set_h_prescale(struct v4l2_subdev *sd,
 	saa717x_write(sd, 0x61 + task_shift, vals[i].xacl);
 	/* level control */
 	saa717x_write(sd, 0x62 + task_shift,
-			(vals[i].xc2_1 << 3) | vals[i].xdcg);
+				  (vals[i].xc2_1 << 3) | vals[i].xdcg);
 	/*FIR prefilter control */
 	saa717x_write(sd, 0x63 + task_shift,
-			(vals[i].vpfy << 2) | vals[i].vpfy);
+				  (vals[i].vpfy << 2) | vals[i].vpfy);
 }
 
 /********** scaling staff ***********/
@@ -877,52 +904,54 @@ static int saa717x_s_ctrl(struct v4l2_ctrl *ctrl)
 	struct v4l2_subdev *sd = to_sd(ctrl);
 	struct saa717x_state *state = to_state(sd);
 
-	switch (ctrl->id) {
-	case V4L2_CID_BRIGHTNESS:
-		saa717x_write(sd, 0x10a, ctrl->val);
-		return 0;
+	switch (ctrl->id)
+	{
+		case V4L2_CID_BRIGHTNESS:
+			saa717x_write(sd, 0x10a, ctrl->val);
+			return 0;
 
-	case V4L2_CID_CONTRAST:
-		saa717x_write(sd, 0x10b, ctrl->val);
-		return 0;
+		case V4L2_CID_CONTRAST:
+			saa717x_write(sd, 0x10b, ctrl->val);
+			return 0;
 
-	case V4L2_CID_SATURATION:
-		saa717x_write(sd, 0x10c, ctrl->val);
-		return 0;
+		case V4L2_CID_SATURATION:
+			saa717x_write(sd, 0x10c, ctrl->val);
+			return 0;
 
-	case V4L2_CID_HUE:
-		saa717x_write(sd, 0x10d, ctrl->val);
-		return 0;
+		case V4L2_CID_HUE:
+			saa717x_write(sd, 0x10d, ctrl->val);
+			return 0;
 
-	case V4L2_CID_AUDIO_MUTE:
-		state->audio_main_mute = ctrl->val;
-		break;
+		case V4L2_CID_AUDIO_MUTE:
+			state->audio_main_mute = ctrl->val;
+			break;
 
-	case V4L2_CID_AUDIO_VOLUME:
-		state->audio_main_volume = ctrl->val;
-		break;
+		case V4L2_CID_AUDIO_VOLUME:
+			state->audio_main_volume = ctrl->val;
+			break;
 
-	case V4L2_CID_AUDIO_BALANCE:
-		state->audio_main_balance = ctrl->val;
-		break;
+		case V4L2_CID_AUDIO_BALANCE:
+			state->audio_main_balance = ctrl->val;
+			break;
 
-	case V4L2_CID_AUDIO_TREBLE:
-		state->audio_main_treble = ctrl->val;
-		break;
+		case V4L2_CID_AUDIO_TREBLE:
+			state->audio_main_treble = ctrl->val;
+			break;
 
-	case V4L2_CID_AUDIO_BASS:
-		state->audio_main_bass = ctrl->val;
-		break;
+		case V4L2_CID_AUDIO_BASS:
+			state->audio_main_bass = ctrl->val;
+			break;
 
-	default:
-		return 0;
+		default:
+			return 0;
 	}
+
 	set_audio_regs(sd, state);
 	return 0;
 }
 
 static int saa717x_s_video_routing(struct v4l2_subdev *sd,
-				   u32 input, u32 output, u32 config)
+								   u32 input, u32 output, u32 config)
 {
 	struct saa717x_state *decoder = to_state(sd);
 	int is_tuner = input & 0x80;  /* tuner input flag */
@@ -930,45 +959,59 @@ static int saa717x_s_video_routing(struct v4l2_subdev *sd,
 	input &= 0x7f;
 
 	v4l2_dbg(1, debug, sd, "decoder set input (%d)\n", input);
+
 	/* inputs from 0-9 are available*/
 	/* saa717x have mode0-mode9 but mode5 is reserved. */
 	if (input > 9 || input == 5)
+	{
 		return -EINVAL;
+	}
 
-	if (decoder->input != input) {
+	if (decoder->input != input)
+	{
 		int input_line = input;
 
 		decoder->input = input_line;
 		v4l2_dbg(1, debug, sd,  "now setting %s input %d\n",
-				input_line >= 6 ? "S-Video" : "Composite",
-				input_line);
+				 input_line >= 6 ? "S-Video" : "Composite",
+				 input_line);
 
 		/* select mode */
 		saa717x_write(sd, 0x102,
-				(saa717x_read(sd, 0x102) & 0xf0) |
-				input_line);
+					  (saa717x_read(sd, 0x102) & 0xf0) |
+					  input_line);
 
 		/* bypass chrominance trap for modes 6..9 */
 		saa717x_write(sd, 0x109,
-				(saa717x_read(sd, 0x109) & 0x7f) |
-				(input_line < 6 ? 0x0 : 0x80));
+					  (saa717x_read(sd, 0x109) & 0x7f) |
+					  (input_line < 6 ? 0x0 : 0x80));
 
 		/* change audio_mode */
-		if (is_tuner) {
+		if (is_tuner)
+		{
 			/* tuner */
 			set_audio_mode(sd, decoder->tuner_audio_mode);
-		} else {
+		}
+		else
+		{
 			/* Force to STEREO mode if Composite or
 			 * S-Video were chosen */
 			set_audio_mode(sd, TUNER_AUDIO_STEREO);
 		}
+
 		/* change initialize procedure (Composite/S-Video) */
 		if (is_tuner)
+		{
 			saa717x_write_regs(sd, reg_init_tuner_input);
+		}
 		else if (input_line >= 6)
+		{
 			saa717x_write_regs(sd, reg_init_svideo_input);
+		}
 		else
+		{
 			saa717x_write_regs(sd, reg_init_composite_input);
+		}
 	}
 
 	return 0;
@@ -993,8 +1036,8 @@ static int saa717x_s_register(struct v4l2_subdev *sd, const struct v4l2_dbg_regi
 #endif
 
 static int saa717x_set_fmt(struct v4l2_subdev *sd,
-		struct v4l2_subdev_pad_config *cfg,
-		struct v4l2_subdev_format *format)
+						   struct v4l2_subdev_pad_config *cfg,
+						   struct v4l2_subdev_format *format)
 {
 	struct v4l2_mbus_framefmt *fmt = &format->format;
 	int prescale, h_scale, v_scale;
@@ -1002,25 +1045,38 @@ static int saa717x_set_fmt(struct v4l2_subdev *sd,
 	v4l2_dbg(1, debug, sd, "decoder set size\n");
 
 	if (format->pad || fmt->code != MEDIA_BUS_FMT_FIXED)
+	{
 		return -EINVAL;
+	}
 
 	/* FIXME need better bounds checking here */
 	if (fmt->width < 1 || fmt->width > 1440)
+	{
 		return -EINVAL;
+	}
+
 	if (fmt->height < 1 || fmt->height > 960)
+	{
 		return -EINVAL;
+	}
 
 	fmt->field = V4L2_FIELD_INTERLACED;
 	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
 
 	if (format->which == V4L2_SUBDEV_FORMAT_TRY)
+	{
 		return 0;
+	}
 
 	/* scaling setting */
 	/* NTSC and interlace only */
 	prescale = SAA717X_NTSC_WIDTH / fmt->width;
+
 	if (prescale == 0)
+	{
 		prescale = 1;
+	}
+
 	h_scale = 1024 * SAA717X_NTSC_WIDTH / prescale / fmt->width;
 	/* interlace */
 	v_scale = 512 * 2 * SAA717X_NTSC_HEIGHT / fmt->height;
@@ -1081,18 +1137,20 @@ static int saa717x_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
 }
 
 static int saa717x_s_audio_routing(struct v4l2_subdev *sd,
-				   u32 input, u32 output, u32 config)
+								   u32 input, u32 output, u32 config)
 {
 	struct saa717x_state *decoder = to_state(sd);
 
-	if (input < 3) { /* FIXME! --tadachi */
+	if (input < 3)   /* FIXME! --tadachi */
+	{
 		decoder->audio_input = input;
 		v4l2_dbg(1, debug, sd,
-				"set decoder audio input to %d\n",
-				decoder->audio_input);
+				 "set decoder audio input to %d\n",
+				 decoder->audio_input);
 		set_audio_regs(sd, decoder);
 		return 0;
 	}
+
 	return -ERANGE;
 }
 
@@ -1101,7 +1159,7 @@ static int saa717x_s_stream(struct v4l2_subdev *sd, int enable)
 	struct saa717x_state *decoder = to_state(sd);
 
 	v4l2_dbg(1, debug, sd, "decoder %s output\n",
-			enable ? "enable" : "disable");
+			 enable ? "enable" : "disable");
 	decoder->enable = enable;
 	saa717x_write(sd, 0x193, enable ? 0xa6 : 0x26);
 	return 0;
@@ -1112,29 +1170,34 @@ static int saa717x_s_tuner(struct v4l2_subdev *sd, const struct v4l2_tuner *vt)
 {
 	struct saa717x_state *decoder = to_state(sd);
 	int audio_mode;
-	char *mes[4] = {
+	char *mes[4] =
+	{
 		"MONO", "STEREO", "LANG1", "LANG2/SAP"
 	};
 
 	audio_mode = TUNER_AUDIO_STEREO;
 
-	switch (vt->audmode) {
+	switch (vt->audmode)
+	{
 		case V4L2_TUNER_MODE_MONO:
 			audio_mode = TUNER_AUDIO_MONO;
 			break;
+
 		case V4L2_TUNER_MODE_STEREO:
 			audio_mode = TUNER_AUDIO_STEREO;
 			break;
+
 		case V4L2_TUNER_MODE_LANG2:
 			audio_mode = TUNER_AUDIO_LANG2;
 			break;
+
 		case V4L2_TUNER_MODE_LANG1:
 			audio_mode = TUNER_AUDIO_LANG1;
 			break;
 	}
 
 	v4l2_dbg(1, debug, sd, "change audio mode to %s\n",
-			mes[audio_mode]);
+			 mes[audio_mode]);
 	decoder->tuner_audio_mode = audio_mode;
 	/* The registers are not changed here. */
 	/* See DECODER_ENABLE_OUTPUT section. */
@@ -1148,40 +1211,53 @@ static int saa717x_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
 	int dual_f, stereo_f;
 
 	if (decoder->radio)
+	{
 		return 0;
+	}
+
 	get_inf_dev_status(sd, &dual_f, &stereo_f);
 
 	v4l2_dbg(1, debug, sd, "DETECT==st:%d dual:%d\n",
-			stereo_f, dual_f);
+			 stereo_f, dual_f);
 
 	/* mono */
-	if ((dual_f == 0) && (stereo_f == 0)) {
+	if ((dual_f == 0) && (stereo_f == 0))
+	{
 		vt->rxsubchans = V4L2_TUNER_SUB_MONO;
 		v4l2_dbg(1, debug, sd, "DETECT==MONO\n");
 	}
 
 	/* stereo */
-	if (stereo_f == 1) {
+	if (stereo_f == 1)
+	{
 		if (vt->audmode == V4L2_TUNER_MODE_STEREO ||
-				vt->audmode == V4L2_TUNER_MODE_LANG1) {
+			vt->audmode == V4L2_TUNER_MODE_LANG1)
+		{
 			vt->rxsubchans = V4L2_TUNER_SUB_STEREO;
 			v4l2_dbg(1, debug, sd, "DETECT==ST(ST)\n");
-		} else {
+		}
+		else
+		{
 			vt->rxsubchans = V4L2_TUNER_SUB_MONO;
 			v4l2_dbg(1, debug, sd, "DETECT==ST(MONO)\n");
 		}
 	}
 
 	/* dual */
-	if (dual_f == 1) {
-		if (vt->audmode == V4L2_TUNER_MODE_LANG2) {
+	if (dual_f == 1)
+	{
+		if (vt->audmode == V4L2_TUNER_MODE_LANG2)
+		{
 			vt->rxsubchans = V4L2_TUNER_SUB_LANG2 | V4L2_TUNER_SUB_MONO;
 			v4l2_dbg(1, debug, sd, "DETECT==DUAL1\n");
-		} else {
+		}
+		else
+		{
 			vt->rxsubchans = V4L2_TUNER_SUB_LANG1 | V4L2_TUNER_SUB_MONO;
 			v4l2_dbg(1, debug, sd, "DETECT==DUAL2\n");
 		}
 	}
+
 	return 0;
 }
 
@@ -1195,11 +1271,13 @@ static int saa717x_log_status(struct v4l2_subdev *sd)
 
 /* ----------------------------------------------------------------------- */
 
-static const struct v4l2_ctrl_ops saa717x_ctrl_ops = {
+static const struct v4l2_ctrl_ops saa717x_ctrl_ops =
+{
 	.s_ctrl = saa717x_s_ctrl,
 };
 
-static const struct v4l2_subdev_core_ops saa717x_core_ops = {
+static const struct v4l2_subdev_core_ops saa717x_core_ops =
+{
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 	.g_register = saa717x_g_register,
 	.s_register = saa717x_s_register,
@@ -1207,27 +1285,32 @@ static const struct v4l2_subdev_core_ops saa717x_core_ops = {
 	.log_status = saa717x_log_status,
 };
 
-static const struct v4l2_subdev_tuner_ops saa717x_tuner_ops = {
+static const struct v4l2_subdev_tuner_ops saa717x_tuner_ops =
+{
 	.g_tuner = saa717x_g_tuner,
 	.s_tuner = saa717x_s_tuner,
 	.s_radio = saa717x_s_radio,
 };
 
-static const struct v4l2_subdev_video_ops saa717x_video_ops = {
+static const struct v4l2_subdev_video_ops saa717x_video_ops =
+{
 	.s_std = saa717x_s_std,
 	.s_routing = saa717x_s_video_routing,
 	.s_stream = saa717x_s_stream,
 };
 
-static const struct v4l2_subdev_audio_ops saa717x_audio_ops = {
+static const struct v4l2_subdev_audio_ops saa717x_audio_ops =
+{
 	.s_routing = saa717x_s_audio_routing,
 };
 
-static const struct v4l2_subdev_pad_ops saa717x_pad_ops = {
+static const struct v4l2_subdev_pad_ops saa717x_pad_ops =
+{
 	.set_fmt = saa717x_set_fmt,
 };
 
-static const struct v4l2_subdev_ops saa717x_ops = {
+static const struct v4l2_subdev_ops saa717x_ops =
+{
 	.core = &saa717x_core_ops,
 	.tuner = &saa717x_tuner_ops,
 	.audio = &saa717x_audio_ops,
@@ -1242,7 +1325,7 @@ static const struct v4l2_subdev_ops saa717x_ops = {
 
 /* ----------------------------------------------------------------------- */
 static int saa717x_probe(struct i2c_client *client,
-			 const struct i2c_device_id *did)
+						 const struct i2c_device_id *did)
 {
 	struct saa717x_state *decoder;
 	struct v4l2_ctrl_handler *hdl;
@@ -1252,58 +1335,79 @@ static int saa717x_probe(struct i2c_client *client,
 
 	/* Check if the adapter supports the needed features */
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		return -EIO;
+	}
 
 	decoder = devm_kzalloc(&client->dev, sizeof(*decoder), GFP_KERNEL);
+
 	if (decoder == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	sd = &decoder->sd;
 	v4l2_i2c_subdev_init(sd, client, &saa717x_ops);
 
 	if (saa717x_write(sd, 0x5a4, 0xfe) &&
-			saa717x_write(sd, 0x5a5, 0x0f) &&
-			saa717x_write(sd, 0x5a6, 0x00) &&
-			saa717x_write(sd, 0x5a7, 0x01))
+		saa717x_write(sd, 0x5a5, 0x0f) &&
+		saa717x_write(sd, 0x5a6, 0x00) &&
+		saa717x_write(sd, 0x5a7, 0x01))
+	{
 		id = saa717x_read(sd, 0x5a0);
-	if (id != 0xc2 && id != 0x32 && id != 0xf2 && id != 0x6c) {
+	}
+
+	if (id != 0xc2 && id != 0x32 && id != 0xf2 && id != 0x6c)
+	{
 		v4l2_dbg(1, debug, sd, "saa717x not found (id=%02x)\n", id);
 		return -ENODEV;
 	}
+
 	if (id == 0xc2)
+	{
 		p = "saa7173";
+	}
 	else if (id == 0x32)
+	{
 		p = "saa7174A";
+	}
 	else if (id == 0x6c)
+	{
 		p = "saa7174HL";
+	}
 	else
+	{
 		p = "saa7171";
+	}
+
 	v4l2_info(sd, "%s found @ 0x%x (%s)\n", p,
-			client->addr << 1, client->adapter->name);
+			  client->addr << 1, client->adapter->name);
 
 	hdl = &decoder->hdl;
 	v4l2_ctrl_handler_init(hdl, 9);
 	/* add in ascending ID order */
 	v4l2_ctrl_new_std(hdl, &saa717x_ctrl_ops,
-			V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
+					  V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
 	v4l2_ctrl_new_std(hdl, &saa717x_ctrl_ops,
-			V4L2_CID_CONTRAST, 0, 255, 1, 68);
+					  V4L2_CID_CONTRAST, 0, 255, 1, 68);
 	v4l2_ctrl_new_std(hdl, &saa717x_ctrl_ops,
-			V4L2_CID_SATURATION, 0, 255, 1, 64);
+					  V4L2_CID_SATURATION, 0, 255, 1, 64);
 	v4l2_ctrl_new_std(hdl, &saa717x_ctrl_ops,
-			V4L2_CID_HUE, -128, 127, 1, 0);
+					  V4L2_CID_HUE, -128, 127, 1, 0);
 	v4l2_ctrl_new_std(hdl, &saa717x_ctrl_ops,
-			V4L2_CID_AUDIO_VOLUME, 0, 65535, 65535 / 100, 42000);
+					  V4L2_CID_AUDIO_VOLUME, 0, 65535, 65535 / 100, 42000);
 	v4l2_ctrl_new_std(hdl, &saa717x_ctrl_ops,
-			V4L2_CID_AUDIO_BALANCE, 0, 65535, 65535 / 100, 32768);
+					  V4L2_CID_AUDIO_BALANCE, 0, 65535, 65535 / 100, 32768);
 	v4l2_ctrl_new_std(hdl, &saa717x_ctrl_ops,
-			V4L2_CID_AUDIO_BASS, -16, 15, 1, 0);
+					  V4L2_CID_AUDIO_BASS, -16, 15, 1, 0);
 	v4l2_ctrl_new_std(hdl, &saa717x_ctrl_ops,
-			V4L2_CID_AUDIO_TREBLE, -16, 15, 1, 0);
+					  V4L2_CID_AUDIO_TREBLE, -16, 15, 1, 0);
 	v4l2_ctrl_new_std(hdl, &saa717x_ctrl_ops,
-			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 0);
+					  V4L2_CID_AUDIO_MUTE, 0, 1, 1, 0);
 	sd->ctrl_handler = hdl;
-	if (hdl->error) {
+
+	if (hdl->error)
+	{
 		int err = hdl->error;
 
 		v4l2_ctrl_handler_free(hdl);
@@ -1333,7 +1437,7 @@ static int saa717x_probe(struct i2c_client *client,
 	v4l2_ctrl_handler_setup(hdl);
 
 	set_current_state(TASK_INTERRUPTIBLE);
-	schedule_timeout(2*HZ);
+	schedule_timeout(2 * HZ);
 	return 0;
 }
 
@@ -1348,13 +1452,15 @@ static int saa717x_remove(struct i2c_client *client)
 
 /* ----------------------------------------------------------------------- */
 
-static const struct i2c_device_id saa717x_id[] = {
+static const struct i2c_device_id saa717x_id[] =
+{
 	{ "saa717x", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, saa717x_id);
 
-static struct i2c_driver saa717x_driver = {
+static struct i2c_driver saa717x_driver =
+{
 	.driver = {
 		.name	= "saa717x",
 	},

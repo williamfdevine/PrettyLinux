@@ -60,21 +60,21 @@
 
 #ifdef REPROGRAM_PAR
 
-/* These are the addresses we want.. */
-#define WINDOW_ADDR_0	0x08800000
-#define WINDOW_ADDR_1	0x09000000
-#define WINDOW_ADDR_2	0x09800000
+	/* These are the addresses we want.. */
+	#define WINDOW_ADDR_0	0x08800000
+	#define WINDOW_ADDR_1	0x09000000
+	#define WINDOW_ADDR_2	0x09800000
 
-/* .. and these are the addresses the BIOS gives us */
-#define WINDOW_ADDR_0_BIOS	0x08400000
-#define WINDOW_ADDR_1_BIOS	0x08c00000
-#define WINDOW_ADDR_2_BIOS	0x09400000
+	/* .. and these are the addresses the BIOS gives us */
+	#define WINDOW_ADDR_0_BIOS	0x08400000
+	#define WINDOW_ADDR_1_BIOS	0x08c00000
+	#define WINDOW_ADDR_2_BIOS	0x09400000
 
 #else
 
-#define WINDOW_ADDR_0	0x08400000
-#define WINDOW_ADDR_1	0x08C00000
-#define WINDOW_ADDR_2	0x09400000
+	#define WINDOW_ADDR_0	0x08400000
+	#define WINDOW_ADDR_1	0x08C00000
+	#define WINDOW_ADDR_2	0x09400000
 
 #endif
 
@@ -83,7 +83,8 @@
 #define WINDOW_SIZE_2	0x00080000
 
 
-static struct map_info sc520cdp_map[] = {
+static struct map_info sc520cdp_map[] =
+{
 	{
 		.name = "SC520CDP Flash Bank #0",
 		.size = WINDOW_SIZE_0,
@@ -152,7 +153,7 @@ static struct mtd_info *merged_mtd;
 */
 #define SC520_PAR_ENTRY(trgdev, address, size) \
 	((trgdev) | SC520_PAR_NOCACHE | SC520_PAR_PG_SIZ64 | \
-	(address) >> 16 | (((size) >> 16) - 1) << 14)
+	 (address) >> 16 | (((size) >> 16) - 1) << 14)
 
 struct sc520_par_table
 {
@@ -189,10 +190,15 @@ static void sc520cdp_setup_par(void)
 
 	/* map in SC520's MMCR area */
 	mmcr = ioremap_nocache(SC520_MMCR_BASE, SC520_MMCR_EXTENT);
-	if(!mmcr) { /* ioremap_nocache failed: skip the PAR reprogramming */
+
+	if (!mmcr)  /* ioremap_nocache failed: skip the PAR reprogramming */
+	{
 		/* force physical address fields to BIOS defaults: */
-		for(i = 0; i < NUM_FLASH_BANKS; i++)
+		for (i = 0; i < NUM_FLASH_BANKS; i++)
+		{
 			sc520cdp_map[i].phys = par_table[i].default_address;
+		}
+
 		return;
 	}
 
@@ -201,25 +207,31 @@ static void sc520cdp_setup_par(void)
 	** ROMCS0, ROMCS1 and BOOTCS. Reprogram each of these with a
 	** new value from the table.
 	*/
-	for(i = 0; i < NUM_FLASH_BANKS; i++) {		/* for each par_table entry  */
-		for(j = 0; j < NUM_SC520_PAR; j++) {	/* for each PAR register     */
+	for (i = 0; i < NUM_FLASH_BANKS; i++)  		/* for each par_table entry  */
+	{
+		for (j = 0; j < NUM_SC520_PAR; j++)  	/* for each PAR register     */
+		{
 			mmcr_val = readl(&mmcr[SC520_PAR(j)]);
+
 			/* if target device field matches, reprogram the PAR */
-			if((mmcr_val & SC520_PAR_TRGDEV) == par_table[i].trgdev)
+			if ((mmcr_val & SC520_PAR_TRGDEV) == par_table[i].trgdev)
 			{
 				writel(par_table[i].new_par, &mmcr[SC520_PAR(j)]);
 				break;
 			}
 		}
-		if(j == NUM_SC520_PAR)
-		{	/* no matching PAR found: try default BIOS address */
+
+		if (j == NUM_SC520_PAR)
+		{
+			/* no matching PAR found: try default BIOS address */
 			printk(KERN_NOTICE "Could not find PAR responsible for %s\n",
-				sc520cdp_map[i].name);
+				   sc520cdp_map[i].name);
 			printk(KERN_NOTICE "Trying default address 0x%lx\n",
-				par_table[i].default_address);
+				   par_table[i].default_address);
 			sc520cdp_map[i].phys = par_table[i].default_address;
 		}
 	}
+
 	iounmap(mmcr);
 }
 #endif
@@ -234,14 +246,16 @@ static int __init init_sc520cdp(void)
 	sc520cdp_setup_par();
 #endif
 
-	for (i = 0; i < NUM_FLASH_BANKS; i++) {
+	for (i = 0; i < NUM_FLASH_BANKS; i++)
+	{
 		printk(KERN_NOTICE "SC520 CDP flash device: 0x%Lx at 0x%Lx\n",
-			(unsigned long long)sc520cdp_map[i].size,
-			(unsigned long long)sc520cdp_map[i].phys);
+			   (unsigned long long)sc520cdp_map[i].size,
+			   (unsigned long long)sc520cdp_map[i].phys);
 
 		sc520cdp_map[i].virt = ioremap_nocache(sc520cdp_map[i].phys, sc520cdp_map[i].size);
 
-		if (!sc520cdp_map[i].virt) {
+		if (!sc520cdp_map[i].virt)
+		{
 			printk("Failed to ioremap_nocache\n");
 			return -EIO;
 		}
@@ -249,45 +263,71 @@ static int __init init_sc520cdp(void)
 		simple_map_init(&sc520cdp_map[i]);
 
 		mymtd[i] = do_map_probe("cfi_probe", &sc520cdp_map[i]);
-		if(!mymtd[i])
-			mymtd[i] = do_map_probe("jedec_probe", &sc520cdp_map[i]);
-		if(!mymtd[i])
-			mymtd[i] = do_map_probe("map_rom", &sc520cdp_map[i]);
 
-		if (mymtd[i]) {
+		if (!mymtd[i])
+		{
+			mymtd[i] = do_map_probe("jedec_probe", &sc520cdp_map[i]);
+		}
+
+		if (!mymtd[i])
+		{
+			mymtd[i] = do_map_probe("map_rom", &sc520cdp_map[i]);
+		}
+
+		if (mymtd[i])
+		{
 			mymtd[i]->owner = THIS_MODULE;
 			++devices_found;
 		}
-		else {
+		else
+		{
 			iounmap(sc520cdp_map[i].virt);
 		}
 	}
-	if(devices_found >= 2) {
+
+	if (devices_found >= 2)
+	{
 		/* Combine the two flash banks into a single MTD device & register it: */
 		merged_mtd = mtd_concat_create(mymtd, 2, "SC520CDP Flash Banks #0 and #1");
-		if(merged_mtd)
+
+		if (merged_mtd)
+		{
 			mtd_device_register(merged_mtd, NULL, 0);
+		}
 	}
-	if(devices_found == 3) /* register the third (DIL-Flash) device */
+
+	if (devices_found == 3) /* register the third (DIL-Flash) device */
+	{
 		mtd_device_register(mymtd[2], NULL, 0);
-	return(devices_found ? 0 : -ENXIO);
+	}
+
+	return (devices_found ? 0 : -ENXIO);
 }
 
 static void __exit cleanup_sc520cdp(void)
 {
 	int i;
 
-	if (merged_mtd) {
+	if (merged_mtd)
+	{
 		mtd_device_unregister(merged_mtd);
 		mtd_concat_destroy(merged_mtd);
 	}
-	if (mymtd[2])
-		mtd_device_unregister(mymtd[2]);
 
-	for (i = 0; i < NUM_FLASH_BANKS; i++) {
+	if (mymtd[2])
+	{
+		mtd_device_unregister(mymtd[2]);
+	}
+
+	for (i = 0; i < NUM_FLASH_BANKS; i++)
+	{
 		if (mymtd[i])
+		{
 			map_destroy(mymtd[i]);
-		if (sc520cdp_map[i].virt) {
+		}
+
+		if (sc520cdp_map[i].virt)
+		{
 			iounmap(sc520cdp_map[i].virt);
 			sc520cdp_map[i].virt = NULL;
 		}

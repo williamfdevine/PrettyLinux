@@ -58,14 +58,17 @@ static void set_clock(void *data, int state_high)
 
 	/* On most chips, these bits must be preserved in software. */
 	reserved =
-		    REG_READ(chan->reg) & (GPIO_DATA_PULLUP_DISABLE |
-					   GPIO_CLOCK_PULLUP_DISABLE);
+		REG_READ(chan->reg) & (GPIO_DATA_PULLUP_DISABLE |
+							   GPIO_CLOCK_PULLUP_DISABLE);
 
 	if (state_high)
+	{
 		clock_bits = GPIO_CLOCK_DIR_IN | GPIO_CLOCK_DIR_MASK;
+	}
 	else
 		clock_bits = GPIO_CLOCK_DIR_OUT | GPIO_CLOCK_DIR_MASK |
-		    GPIO_CLOCK_VAL_MASK;
+					 GPIO_CLOCK_VAL_MASK;
+
 	REG_WRITE(chan->reg, reserved | clock_bits);
 	udelay(I2C_RISEFALL_TIME);	/* wait for the line to change state */
 }
@@ -78,15 +81,17 @@ static void set_data(void *data, int state_high)
 
 	/* On most chips, these bits must be preserved in software. */
 	reserved =
-		    REG_READ(chan->reg) & (GPIO_DATA_PULLUP_DISABLE |
-					   GPIO_CLOCK_PULLUP_DISABLE);
+		REG_READ(chan->reg) & (GPIO_DATA_PULLUP_DISABLE |
+							   GPIO_CLOCK_PULLUP_DISABLE);
 
 	if (state_high)
+	{
 		data_bits = GPIO_DATA_DIR_IN | GPIO_DATA_DIR_MASK;
+	}
 	else
 		data_bits =
-		    GPIO_DATA_DIR_OUT | GPIO_DATA_DIR_MASK |
-		    GPIO_DATA_VAL_MASK;
+			GPIO_DATA_DIR_OUT | GPIO_DATA_DIR_MASK |
+			GPIO_DATA_VAL_MASK;
 
 	REG_WRITE(chan->reg, reserved | data_bits);
 	udelay(I2C_RISEFALL_TIME);	/* wait for the line to change state */
@@ -114,13 +119,16 @@ static void set_data(void *data, int state_high)
  * see PRM for details on how these different busses are used.
  */
 struct psb_intel_i2c_chan *psb_intel_i2c_create(struct drm_device *dev,
-					const u32 reg, const char *name)
+		const u32 reg, const char *name)
 {
 	struct psb_intel_i2c_chan *chan;
 
 	chan = kzalloc(sizeof(struct psb_intel_i2c_chan), GFP_KERNEL);
+
 	if (!chan)
+	{
 		goto out_free;
+	}
 
 	chan->drm_dev = dev;
 	chan->reg = reg;
@@ -139,7 +147,9 @@ struct psb_intel_i2c_chan *psb_intel_i2c_create(struct drm_device *dev,
 	i2c_set_adapdata(&chan->adapter, chan);
 
 	if (i2c_bit_add_bus(&chan->adapter))
+	{
 		goto out_free;
+	}
 
 	/* JJJ:  raise SCL and SDA? */
 	set_data(chan, 1);
@@ -162,7 +172,9 @@ out_free:
 void psb_intel_i2c_destroy(struct psb_intel_i2c_chan *chan)
 {
 	if (!chan)
+	{
 		return;
+	}
 
 	i2c_del_adapter(&chan->adapter);
 	kfree(chan);

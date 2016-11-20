@@ -13,35 +13,42 @@
 
 struct ins;
 
-struct ins_operands {
+struct ins_operands
+{
 	char	*raw;
-	struct {
+	struct
+	{
 		char	*raw;
 		char	*name;
 		u64	addr;
 		u64	offset;
 	} target;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			char	*raw;
 			char	*name;
 			u64	addr;
 		} source;
-		struct {
+		struct
+		{
 			struct ins *ins;
 			struct ins_operands *ops;
 		} locked;
 	};
 };
 
-struct ins_ops {
+struct ins_ops
+{
 	void (*free)(struct ins_operands *ops);
 	int (*parse)(struct ins_operands *ops, struct map *map);
 	int (*scnprintf)(struct ins *ins, char *bf, size_t size,
-			 struct ins_operands *ops);
+					 struct ins_operands *ops);
 };
 
-struct ins {
+struct ins
+{
 	const char     *name;
 	struct ins_ops *ops;
 };
@@ -53,7 +60,8 @@ int ins__scnprintf(struct ins *ins, char *bf, size_t size, struct ins_operands *
 
 struct annotation;
 
-struct disasm_line {
+struct disasm_line
+{
 	struct list_head    node;
 	s64		    offset;
 	char		    *line;
@@ -75,14 +83,16 @@ struct disasm_line *disasm__get_next_ip_line(struct list_head *head, struct disa
 int disasm_line__scnprintf(struct disasm_line *dl, char *bf, size_t size, bool raw);
 size_t disasm__fprintf(struct list_head *head, FILE *fp);
 double disasm__calc_percent(struct annotation *notes, int evidx, s64 offset,
-			    s64 end, const char **path, u64 *nr_samples);
+							s64 end, const char **path, u64 *nr_samples);
 
-struct sym_hist {
+struct sym_hist
+{
 	u64		sum;
 	u64		addr[0];
 };
 
-struct cyc_hist {
+struct cyc_hist
+{
 	u64	start;
 	u64	cycles;
 	u64	cycles_aggr;
@@ -93,13 +103,15 @@ struct cyc_hist {
 	u16	reset;
 };
 
-struct source_line_samples {
+struct source_line_samples
+{
 	double		percent;
 	double		percent_sum;
 	double          nr;
 };
 
-struct source_line {
+struct source_line
+{
 	struct rb_node	node;
 	char		*path;
 	int		nr_pcnt;
@@ -119,7 +131,8 @@ struct source_line {
  * presented. It is deallocated right after symbol__{tui,tty,etc}_annotate
  * returns.
  */
-struct annotated_source {
+struct annotated_source
+{
 	struct list_head   source;
 	struct source_line *lines;
 	int    		   nr_histograms;
@@ -128,7 +141,8 @@ struct annotated_source {
 	struct sym_hist	   histograms[0];
 };
 
-struct annotation {
+struct annotation
+{
 	pthread_mutex_t		lock;
 	u64			max_coverage;
 	struct annotated_source *src;
@@ -137,7 +151,7 @@ struct annotation {
 static inline struct sym_hist *annotation__histogram(struct annotation *notes, int idx)
 {
 	return (((void *)&notes->src->histograms) +
-	 	(notes->src->sizeof_sym_hist * idx));
+			(notes->src->sizeof_sym_hist * idx));
 }
 
 static inline struct annotation *symbol__annotation(struct symbol *sym)
@@ -148,8 +162,8 @@ static inline struct annotation *symbol__annotation(struct symbol *sym)
 int addr_map_symbol__inc_samples(struct addr_map_symbol *ams, int evidx);
 
 int addr_map_symbol__account_cycles(struct addr_map_symbol *ams,
-				    struct addr_map_symbol *start,
-				    unsigned cycles);
+									struct addr_map_symbol *start,
+									unsigned cycles);
 
 int hist_entry__inc_addr_samples(struct hist_entry *he, int evidx, u64 addr);
 
@@ -158,7 +172,8 @@ void symbol__annotate_zero_histograms(struct symbol *sym);
 
 int symbol__disassemble(struct symbol *sym, struct map *map, size_t privsize);
 
-enum symbol_disassemble_errno {
+enum symbol_disassemble_errno
+{
 	SYMBOL_ANNOTATE_ERRNO__SUCCESS		= 0,
 
 	/*
@@ -176,11 +191,11 @@ enum symbol_disassemble_errno {
 };
 
 int symbol__strerror_disassemble(struct symbol *sym, struct map *map,
-				 int errnum, char *buf, size_t buflen);
+								 int errnum, char *buf, size_t buflen);
 
 int symbol__annotate_printf(struct symbol *sym, struct map *map,
-			    struct perf_evsel *evsel, bool full_paths,
-			    int min_pcnt, int max_lines, int context);
+							struct perf_evsel *evsel, bool full_paths,
+							int min_pcnt, int max_lines, int context);
 void symbol__annotate_zero_histogram(struct symbol *sym, int evidx);
 void symbol__annotate_decay_histogram(struct symbol *sym, int evidx);
 void disasm__purge(struct list_head *head);
@@ -188,19 +203,19 @@ void disasm__purge(struct list_head *head);
 bool ui__has_annotation(void);
 
 int symbol__tty_annotate(struct symbol *sym, struct map *map,
-			 struct perf_evsel *evsel, bool print_lines,
-			 bool full_paths, int min_pcnt, int max_lines);
+						 struct perf_evsel *evsel, bool print_lines,
+						 bool full_paths, int min_pcnt, int max_lines);
 
 #ifdef HAVE_SLANG_SUPPORT
 int symbol__tui_annotate(struct symbol *sym, struct map *map,
-			 struct perf_evsel *evsel,
-			 struct hist_browser_timer *hbt);
+						 struct perf_evsel *evsel,
+						 struct hist_browser_timer *hbt);
 #else
 static inline int symbol__tui_annotate(struct symbol *sym __maybe_unused,
-				struct map *map __maybe_unused,
-				struct perf_evsel *evsel  __maybe_unused,
-				struct hist_browser_timer *hbt
-				__maybe_unused)
+									   struct map *map __maybe_unused,
+									   struct perf_evsel *evsel  __maybe_unused,
+									   struct hist_browser_timer *hbt
+									   __maybe_unused)
 {
 	return 0;
 }

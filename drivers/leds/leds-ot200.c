@@ -15,7 +15,8 @@
 #include <linux/module.h>
 
 
-struct ot200_led {
+struct ot200_led
+{
 	struct led_classdev cdev;
 	const char *name;
 	unsigned long port;
@@ -27,7 +28,8 @@ struct ot200_led {
  * and can handle up to seven leds on the front panel.
  */
 
-static struct ot200_led leds[] = {
+static struct ot200_led leds[] =
+{
 	{
 		.name = "led_run",
 		.port = 0x5a,
@@ -90,7 +92,7 @@ static u8 leds_back;
 static u8 leds_front;
 
 static void ot200_led_brightness_set(struct led_classdev *led_cdev,
-		enum led_brightness value)
+									 enum led_brightness value)
 {
 	struct ot200_led *led = container_of(led_cdev, struct ot200_led, cdev);
 	u8 *val;
@@ -99,16 +101,26 @@ static void ot200_led_brightness_set(struct led_classdev *led_cdev,
 	spin_lock_irqsave(&value_lock, flags);
 
 	if (led->port == 0x49)
+	{
 		val = &leds_front;
+	}
 	else if (led->port == 0x5a)
+	{
 		val = &leds_back;
+	}
 	else
+	{
 		BUG();
+	}
 
 	if (value == LED_OFF)
+	{
 		*val &= ~led->mask;
+	}
 	else
+	{
 		*val |= led->mask;
+	}
 
 	outb(*val, led->port);
 	spin_unlock_irqrestore(&value_lock, flags);
@@ -119,14 +131,18 @@ static int ot200_led_probe(struct platform_device *pdev)
 	int i;
 	int ret;
 
-	for (i = 0; i < ARRAY_SIZE(leds); i++) {
+	for (i = 0; i < ARRAY_SIZE(leds); i++)
+	{
 
 		leds[i].cdev.name = leds[i].name;
 		leds[i].cdev.brightness_set = ot200_led_brightness_set;
 
 		ret = devm_led_classdev_register(&pdev->dev, &leds[i].cdev);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 	}
 
 	leds_front = 0;		/* turn off all front leds */
@@ -137,7 +153,8 @@ static int ot200_led_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver ot200_led_driver = {
+static struct platform_driver ot200_led_driver =
+{
 	.probe		= ot200_led_probe,
 	.driver		= {
 		.name	= "leds-ot200",

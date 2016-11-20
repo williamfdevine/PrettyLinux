@@ -39,7 +39,8 @@
 #define EMU8000_RAM_MODE_MASK	0x03
 #define EMU8000_RAM_RIGHT	0x10	/* use 'right' DMA channel */
 
-enum {
+enum
+{
 	EMU8000_CONTROL_BASS = 0,
 	EMU8000_CONTROL_TREBLE,
 	EMU8000_CONTROL_CHORUS_MODE,
@@ -56,7 +57,8 @@ enum {
  * some of the channels may be used for other things so max_channels is
  * the number in use for wave voices.
  */
-struct snd_emu8000 {
+struct snd_emu8000
+{
 
 	struct snd_emux *emu;
 
@@ -99,15 +101,15 @@ struct snd_emu8000 {
 
 /* exported functions */
 int snd_emu8000_new(struct snd_card *card, int device, long port, int seq_ports,
-		    struct snd_seq_device **ret);
+					struct snd_seq_device **ret);
 void snd_emu8000_poke(struct snd_emu8000 *emu, unsigned int port, unsigned int reg,
-		      unsigned int val);
+					  unsigned int val);
 unsigned short snd_emu8000_peek(struct snd_emu8000 *emu, unsigned int port,
-				unsigned int reg);
+								unsigned int reg);
 void snd_emu8000_poke_dw(struct snd_emu8000 *emu, unsigned int port, unsigned int reg,
-			 unsigned int val);
+						 unsigned int val);
 unsigned int snd_emu8000_peek_dw(struct snd_emu8000 *emu, unsigned int port,
-				 unsigned int reg);
+								 unsigned int reg);
 void snd_emu8000_dma_chan(struct snd_emu8000 *emu, int ch, int mode);
 
 void snd_emu8000_init_fm(struct snd_emu8000 *emu);

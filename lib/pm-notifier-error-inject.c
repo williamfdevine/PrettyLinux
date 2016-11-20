@@ -8,7 +8,8 @@ static int priority;
 module_param(priority, int, 0);
 MODULE_PARM_DESC(priority, "specify PM notifier priority");
 
-static struct notifier_err_inject pm_notifier_err_inject = {
+static struct notifier_err_inject pm_notifier_err_inject =
+{
 	.actions = {
 		{ NOTIFIER_ERR_INJECT_ACTION(PM_HIBERNATION_PREPARE) },
 		{ NOTIFIER_ERR_INJECT_ACTION(PM_SUSPEND_PREPARE) },
@@ -24,13 +25,19 @@ static int err_inject_init(void)
 	int err;
 
 	dir = notifier_err_inject_init("pm", notifier_err_inject_dir,
-					&pm_notifier_err_inject, priority);
+								   &pm_notifier_err_inject, priority);
+
 	if (IS_ERR(dir))
+	{
 		return PTR_ERR(dir);
+	}
 
 	err = register_pm_notifier(&pm_notifier_err_inject.nb);
+
 	if (err)
+	{
 		debugfs_remove_recursive(dir);
+	}
 
 	return err;
 }

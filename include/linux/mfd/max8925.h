@@ -16,7 +16,8 @@
 #include <linux/interrupt.h>
 
 /* Unified sub device IDs for MAX8925 */
-enum {
+enum
+{
 	MAX8925_ID_SD1,
 	MAX8925_ID_SD2,
 	MAX8925_ID_SD3,
@@ -43,7 +44,8 @@ enum {
 	MAX8925_ID_MAX,
 };
 
-enum {
+enum
+{
 	/*
 	 * Charging current threshold trigger going from fast charge
 	 * to TOPOFF charge. From 5% to 20% of fasting charging current.
@@ -54,7 +56,8 @@ enum {
 	MAX8925_TOPOFF_THR_20PER,
 };
 
-enum {
+enum
+{
 	/* Fast charging current */
 	MAX8925_FCHG_85MA,
 	MAX8925_FCHG_300MA,
@@ -161,7 +164,8 @@ enum {
 #define MAX8925_NAME_SIZE		(32)
 
 /* IRQ definitions */
-enum {
+enum
+{
 	MAX8925_IRQ_VCHG_DC_OVP,
 	MAX8925_IRQ_VCHG_DC_F,
 	MAX8925_IRQ_VCHG_DC_R,
@@ -192,7 +196,8 @@ enum {
 
 
 
-struct max8925_chip {
+struct max8925_chip
+{
 	struct device		*dev;
 	struct i2c_client	*i2c;
 	struct i2c_client	*adc;
@@ -206,23 +211,26 @@ struct max8925_chip {
 	unsigned int            wakeup_flag;
 };
 
-struct max8925_backlight_pdata {
+struct max8925_backlight_pdata
+{
 	int	lxw_scl;	/* 0/1 -- 0.8Ohm/0.4Ohm */
 	int	lxw_freq;	/* 700KHz ~ 1400KHz */
 	int	dual_string;	/* 0/1 -- single/dual string */
 };
 
-struct max8925_touch_pdata {
+struct max8925_touch_pdata
+{
 	unsigned int		flags;
 };
 
-struct max8925_power_pdata {
+struct max8925_power_pdata
+{
 	int		(*set_charger)(int);
-	unsigned	batt_detect:1;
-	unsigned	topoff_threshold:2;
-	unsigned	fast_charge:3;	/* charge current */
-	unsigned	no_temp_support:1; /* set if no temperature detect */
-	unsigned	no_insert_detect:1; /* set if no ac insert detect */
+	unsigned	batt_detect: 1;
+	unsigned	topoff_threshold: 2;
+	unsigned	fast_charge: 3;	/* charge current */
+	unsigned	no_temp_support: 1; /* set if no temperature detect */
+	unsigned	no_insert_detect: 1; /* set if no ac insert detect */
 	char		**supplied_to;
 	int		num_supplicants;
 };
@@ -231,7 +239,8 @@ struct max8925_power_pdata {
  * irq_base: stores IRQ base number of MAX8925 in platform
  * tsc_irq: stores IRQ number of MAX8925 TSC
  */
-struct max8925_platform_data {
+struct max8925_platform_data
+{
 	struct max8925_backlight_pdata	*backlight;
 	struct max8925_touch_pdata	*touch;
 	struct max8925_power_pdata	*power;
@@ -268,10 +277,10 @@ extern int max8925_reg_write(struct i2c_client *, int, unsigned char);
 extern int max8925_bulk_read(struct i2c_client *, int, int, unsigned char *);
 extern int max8925_bulk_write(struct i2c_client *, int, int, unsigned char *);
 extern int max8925_set_bits(struct i2c_client *, int, unsigned char,
-			unsigned char);
+							unsigned char);
 
 extern int max8925_device_init(struct max8925_chip *,
-				struct max8925_platform_data *);
+							   struct max8925_platform_data *);
 extern void max8925_device_exit(struct max8925_chip *);
 #endif /* __LINUX_MFD_MAX8925_H */
 

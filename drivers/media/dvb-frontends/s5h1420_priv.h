@@ -26,7 +26,8 @@
 
 #include <asm/types.h>
 
-enum s5h1420_register {
+enum s5h1420_register
+{
 	ID01      = 0x00,
 	CON_0     = 0x01,
 	CON_1     = 0x02,

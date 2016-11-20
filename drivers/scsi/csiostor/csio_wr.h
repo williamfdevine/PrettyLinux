@@ -101,7 +101,7 @@
 
 /* WR status is at the same position as retval in a CMD header */
 #define csio_wr_status(_wr)		\
-		(FW_CMD_RETVAL_G(ntohl(((struct fw_cmd_hdr *)(_wr))->lo)))
+	(FW_CMD_RETVAL_G(ntohl(((struct fw_cmd_hdr *)(_wr))->lo)))
 
 struct csio_hw;
 
@@ -109,11 +109,12 @@ extern int csio_intr_coalesce_cnt;
 extern int csio_intr_coalesce_time;
 
 /* Ingress queue params */
-struct csio_iq_params {
+struct csio_iq_params
+{
 
-	uint8_t		iq_start:1;
-	uint8_t		iq_stop:1;
-	uint8_t		pfn:3;
+	uint8_t		iq_start: 1;
+	uint8_t		iq_stop: 1;
+	uint8_t		pfn: 3;
 
 	uint8_t		vfn;
 
@@ -197,38 +198,40 @@ struct csio_iq_params {
 };
 
 /* Egress queue params */
-struct csio_eq_params {
+struct csio_eq_params
+{
 
 	uint8_t		pfn;
 	uint8_t		vfn;
 
-	uint8_t		eqstart:1;
-	uint8_t		eqstop:1;
+	uint8_t		eqstart: 1;
+	uint8_t		eqstop: 1;
 
 	uint16_t        physeqid;
 	uint32_t	eqid;
 
-	uint8_t		hostfcmode:2;
-	uint8_t		cprio:1;
-	uint8_t		pciechn:3;
+	uint8_t		hostfcmode: 2;
+	uint8_t		cprio: 1;
+	uint8_t		pciechn: 3;
 
 	uint16_t	iqid;
 
-	uint8_t		dcaen:1;
-	uint8_t		dcacpu:5;
+	uint8_t		dcaen: 1;
+	uint8_t		dcacpu: 5;
 
-	uint8_t		fbmin:3;
-	uint8_t		fbmax:3;
+	uint8_t		fbmin: 3;
+	uint8_t		fbmax: 3;
 
-	uint8_t		cidxfthresho:1;
-	uint8_t		cidxfthresh:3;
+	uint8_t		cidxfthresho: 1;
+	uint8_t		cidxfthresh: 3;
 
 	uint16_t	eqsize;
 
 	uint64_t	eqaddr;
 };
 
-struct csio_dma_buf {
+struct csio_dma_buf
+{
 	struct list_head	list;
 	void			*vaddr;		/* Virtual address */
 	dma_addr_t		paddr;		/* Physical address */
@@ -236,7 +239,8 @@ struct csio_dma_buf {
 };
 
 /* Generic I/O request structure */
-struct csio_ioreq {
+struct csio_ioreq
+{
 	struct csio_sm		sm;		/* SM, List
 						 * should be the first member
 						 */
@@ -251,7 +255,7 @@ struct csio_ioreq {
 	struct csio_lnode	*lnode;		/* Owner lnode */
 	struct csio_rnode	*rnode;		/* Src/destination rnode */
 	void (*io_cbfn) (struct csio_hw *, struct csio_ioreq *);
-						/* completion callback */
+	/* completion callback */
 	void			*scratch1;	/* Scratch area 1.
 						 */
 	void			*scratch2;	/* Scratch area 2. */
@@ -270,14 +274,16 @@ struct csio_ioreq {
 /*
  * Egress status page for egress cidx updates
  */
-struct csio_qstatus_page {
+struct csio_qstatus_page
+{
 	__be32 qid;
 	__be16 cidx;
 	__be16 pidx;
 };
 
 
-enum {
+enum
+{
 	CSIO_MAX_FLBUF_PER_IQWR = 4,
 	CSIO_QCREDIT_SZ  = 64,			/* pidx/cidx increments
 						 * in bytes
@@ -291,7 +297,8 @@ enum {
 };
 
 /* Defines for type */
-enum {
+enum
+{
 	CSIO_EGRESS	= 1,
 	CSIO_INGRESS	= 2,
 	CSIO_FREELIST	= 3,
@@ -300,10 +307,12 @@ enum {
 /*
  * Structure for footer (last 2 flits) of Ingress Queue Entry.
  */
-struct csio_iqwr_footer {
+struct csio_iqwr_footer
+{
 	__be32			hdrbuflen_pidx;
 	__be32			pldbuflen_qid;
-	union {
+	union
+	{
 		u8		type_gen;
 		__be64		last_flit;
 	} u;
@@ -323,7 +332,8 @@ struct csio_iqwr_footer {
  * require a pair of address/len to be passed back to the caller -
  * hence the Work request pair structure.
  */
-struct csio_wr_pair {
+struct csio_wr_pair
+{
 	void			*addr1;
 	uint32_t		size1;
 	void			*addr2;
@@ -334,9 +344,10 @@ struct csio_wr_pair {
  * The following structure is used by ingress processing to return the
  * free list buffers to consumers.
  */
-struct csio_fl_dma_buf {
+struct csio_fl_dma_buf
+{
 	struct csio_dma_buf	flbufs[CSIO_MAX_FLBUF_PER_IQWR];
-						/* Freelist DMA buffers */
+	/* Freelist DMA buffers */
 	int			offset;		/* Offset within the
 						 * first FL buf.
 						 */
@@ -348,9 +359,10 @@ struct csio_fl_dma_buf {
 
 /* Data-types */
 typedef void (*iq_handler_t)(struct csio_hw *, void *, uint32_t,
-			     struct csio_fl_dma_buf *, void *);
+							 struct csio_fl_dma_buf *, void *);
 
-struct csio_iq {
+struct csio_iq
+{
 	uint16_t		iqid;		/* Queue ID */
 	uint16_t		physiqid;	/* Physical Queue ID */
 	uint16_t		genbit;		/* Generation bit,
@@ -360,13 +372,15 @@ struct csio_iq {
 	iq_handler_t		iq_intx_handler; /* IQ INTx handler routine */
 };
 
-struct csio_eq {
+struct csio_eq
+{
 	uint16_t		eqid;		/* Qid */
 	uint16_t		physeqid;	/* Physical Queue ID */
 	uint8_t			wrap[512];	/* Temp area for q-wrap around*/
 };
 
-struct csio_fl {
+struct csio_fl
+{
 	uint16_t		flid;		/* Qid */
 	uint16_t		packen;		/* Packing enabled? */
 	int			offset;		/* Offset within FL buf */
@@ -376,7 +390,8 @@ struct csio_fl {
 						 */
 };
 
-struct csio_qstats {
+struct csio_qstats
+{
 	uint32_t	n_tot_reqs;		/* Total no. of Requests */
 	uint32_t	n_tot_rsps;		/* Total no. of responses */
 	uint32_t	n_qwrap;		/* Queue wraps */
@@ -390,7 +405,8 @@ struct csio_qstats {
 };
 
 /* Queue metadata */
-struct csio_q {
+struct csio_q
+{
 	uint16_t		type;		/* Type: Ingress/Egress/FL */
 	uint16_t		pidx;		/* producer index */
 	uint16_t		cidx;		/* consumer index */
@@ -406,7 +422,8 @@ struct csio_q {
 						 */
 	uint32_t		credits;	/* Size of queue in credits */
 	void			*owner;		/* Owner */
-	union {					/* Queue contexts */
+	union  					/* Queue contexts */
+	{
 		struct csio_iq	iq;
 		struct csio_eq	eq;
 		struct csio_fl	fl;
@@ -420,7 +437,8 @@ struct csio_q {
 	struct csio_qstats	stats;		/* Statistics */
 } ____cacheline_aligned_in_smp;
 
-struct csio_sge {
+struct csio_sge
+{
 	uint32_t	csio_fl_align;		/* Calculated and cached
 						 * for fast path
 						 */
@@ -429,13 +447,14 @@ struct csio_sge {
 						 */
 	uint32_t	sge_host_page_size;	/* Host page size */
 	uint32_t	sge_fl_buf_size[CSIO_SGE_FL_SIZE_REGS];
-						/* free list buffer sizes */
+	/* free list buffer sizes */
 	uint16_t	timer_val[CSIO_SGE_NTIMERS];
 	uint8_t		counter_val[CSIO_SGE_NCOUNTERS];
 };
 
 /* Work request module */
-struct csio_wrm {
+struct csio_wrm
+{
 	int			num_q;		/* Number of queues */
 	struct csio_q		**q_arr;	/* Array of queue pointers
 						 * allocated dynamically
@@ -444,7 +463,7 @@ struct csio_wrm {
 	uint32_t		fw_iq_start;	/* Start ID of IQ for this fn*/
 	uint32_t		fw_eq_start;	/* Start ID of EQ for this fn*/
 	struct csio_q		*intr_map[CSIO_MAX_IQ];
-						/* IQ-id to IQ map table. */
+	/* IQ-id to IQ map table. */
 	int			free_qidx;	/* queue idx of free queue */
 	struct csio_sge		sge;		/* SGE params */
 };
@@ -462,48 +481,48 @@ struct csio_wrm {
 #define	csio_q_wr_sz(__hw, __idx)	((__hw)->wrm.q_arr[(__idx)]->wr_sz)
 #define	csio_q_iqid(__hw, __idx)	((__hw)->wrm.q_arr[(__idx)]->un.iq.iqid)
 #define csio_q_physiqid(__hw, __idx)					\
-				((__hw)->wrm.q_arr[(__idx)]->un.iq.physiqid)
+	((__hw)->wrm.q_arr[(__idx)]->un.iq.physiqid)
 #define csio_q_iq_flq_idx(__hw, __idx)					\
-				((__hw)->wrm.q_arr[(__idx)]->un.iq.flq_idx)
+	((__hw)->wrm.q_arr[(__idx)]->un.iq.flq_idx)
 #define	csio_q_eqid(__hw, __idx)	((__hw)->wrm.q_arr[(__idx)]->un.eq.eqid)
 #define	csio_q_flid(__hw, __idx)	((__hw)->wrm.q_arr[(__idx)]->un.fl.flid)
 
 #define csio_q_physeqid(__hw, __idx)					\
-				((__hw)->wrm.q_arr[(__idx)]->un.eq.physeqid)
+	((__hw)->wrm.q_arr[(__idx)]->un.eq.physeqid)
 #define csio_iq_has_fl(__iq)		((__iq)->un.iq.flq_idx != -1)
 
 #define csio_q_iq_to_flid(__hw, __iq_idx)				\
 	csio_q_flid((__hw), (__hw)->wrm.q_arr[(__iq_qidx)]->un.iq.flq_idx)
 #define csio_q_set_intr_map(__hw, __iq_idx, __rel_iq_id)		\
-		(__hw)->wrm.intr_map[__rel_iq_id] = csio_get_q(__hw, __iq_idx)
+	(__hw)->wrm.intr_map[__rel_iq_id] = csio_get_q(__hw, __iq_idx)
 #define	csio_q_eq_wrap(__hw, __idx)	((__hw)->wrm.q_arr[(__idx)]->un.eq.wrap)
 
 struct csio_mb;
 
 int csio_wr_alloc_q(struct csio_hw *, uint32_t, uint32_t,
-		    uint16_t, void *, uint32_t, int, iq_handler_t);
+					uint16_t, void *, uint32_t, int, iq_handler_t);
 int csio_wr_iq_create(struct csio_hw *, void *, int,
-				uint32_t, uint8_t, bool,
-				void (*)(struct csio_hw *, struct csio_mb *));
+					  uint32_t, uint8_t, bool,
+					  void (*)(struct csio_hw *, struct csio_mb *));
 int csio_wr_eq_create(struct csio_hw *, void *, int, int, uint8_t,
-				void (*)(struct csio_hw *, struct csio_mb *));
+					  void (*)(struct csio_hw *, struct csio_mb *));
 int csio_wr_destroy_queues(struct csio_hw *, bool cmd);
 
 
 int csio_wr_get(struct csio_hw *, int, uint32_t,
-			  struct csio_wr_pair *);
+				struct csio_wr_pair *);
 void csio_wr_copy_to_wrp(void *, struct csio_wr_pair *, uint32_t, uint32_t);
 int csio_wr_issue(struct csio_hw *, int, bool);
 int csio_wr_process_iq(struct csio_hw *, struct csio_q *,
-				 void (*)(struct csio_hw *, void *,
-					  uint32_t, struct csio_fl_dma_buf *,
-					  void *),
-				 void *);
+					   void (*)(struct csio_hw *, void *,
+								uint32_t, struct csio_fl_dma_buf *,
+								void *),
+					   void *);
 int csio_wr_process_iq_idx(struct csio_hw *, int,
-				 void (*)(struct csio_hw *, void *,
-					  uint32_t, struct csio_fl_dma_buf *,
-					  void *),
-				 void *);
+						   void (*)(struct csio_hw *, void *,
+									uint32_t, struct csio_fl_dma_buf *,
+									void *),
+						   void *);
 
 void csio_wr_sge_init(struct csio_hw *);
 int csio_wrm_init(struct csio_wrm *, struct csio_hw *);

@@ -42,35 +42,35 @@
 
 void
 cxgb_get_4tuple(struct cpl_pass_accept_req *, enum chip_type,
-		int *, __u8 *, __u8 *, __be16 *, __be16 *);
+				int *, __u8 *, __u8 *, __be16 *, __be16 *);
 struct dst_entry *
 cxgb_find_route(struct cxgb4_lld_info *,
-		struct net_device *(*)(struct net_device *),
-		__be32, __be32, __be16,	__be16, u8);
+				struct net_device * (*)(struct net_device *),
+				__be32, __be32, __be16,	__be16, u8);
 struct dst_entry *
 cxgb_find_route6(struct cxgb4_lld_info *,
-		 struct net_device *(*)(struct net_device *),
-		 __u8 *, __u8 *, __be16, __be16, u8, __u32);
+				 struct net_device * (*)(struct net_device *),
+				 __u8 *, __u8 *, __be16, __be16, u8, __u32);
 
 /* Returns whether a CPL status conveys negative advice.
  */
 static inline bool cxgb_is_neg_adv(unsigned int status)
 {
 	return status == CPL_ERR_RTX_NEG_ADVICE ||
-	       status == CPL_ERR_PERSIST_NEG_ADVICE ||
-	       status == CPL_ERR_KEEPALV_NEG_ADVICE;
+		   status == CPL_ERR_PERSIST_NEG_ADVICE ||
+		   status == CPL_ERR_KEEPALV_NEG_ADVICE;
 }
 
 static inline void
 cxgb_best_mtu(const unsigned short *mtus, unsigned short mtu,
-	      unsigned int *idx, int use_ts, int ipv6)
+			  unsigned int *idx, int use_ts, int ipv6)
 {
 	unsigned short hdr_size = (ipv6 ?
-				   sizeof(struct ipv6hdr) :
-				   sizeof(struct iphdr)) +
-				  sizeof(struct tcphdr) +
-				  (use_ts ?
-				   round_up(TCPOLEN_TIMESTAMP, 4) : 0);
+							   sizeof(struct ipv6hdr) :
+							   sizeof(struct iphdr)) +
+							  sizeof(struct tcphdr) +
+							  (use_ts ?
+							   round_up(TCPOLEN_TIMESTAMP, 4) : 0);
 	unsigned short data_size = mtu - hdr_size;
 
 	cxgb4_best_aligned_mtu(mtus, hdr_size, data_size, 8, idx);
@@ -81,7 +81,10 @@ static inline u32 cxgb_compute_wscale(u32 win)
 	u32 wscale = 0;
 
 	while (wscale < 14 && (65535 << wscale) < win)
+	{
 		wscale++;
+	}
+
 	return wscale;
 }
 
@@ -100,7 +103,7 @@ cxgb_mk_tid_release(struct sk_buff *skb, u32 len, u32 tid, u16 chan)
 
 static inline void
 cxgb_mk_close_con_req(struct sk_buff *skb, u32 len, u32 tid, u16 chan,
-		      void *handle, arp_err_handler_t handler)
+					  void *handle, arp_err_handler_t handler)
 {
 	struct cpl_close_con_req *req;
 
@@ -115,7 +118,7 @@ cxgb_mk_close_con_req(struct sk_buff *skb, u32 len, u32 tid, u16 chan,
 
 static inline void
 cxgb_mk_abort_req(struct sk_buff *skb, u32 len, u32 tid, u16 chan,
-		  void *handle, arp_err_handler_t handler)
+				  void *handle, arp_err_handler_t handler)
 {
 	struct cpl_abort_req *req;
 
@@ -145,7 +148,7 @@ cxgb_mk_abort_rpl(struct sk_buff *skb, u32 len, u32 tid, u16 chan)
 
 static inline void
 cxgb_mk_rx_data_ack(struct sk_buff *skb, u32 len, u32 tid, u16 chan,
-		    u32 credit_dack)
+					u32 credit_dack)
 {
 	struct cpl_rx_data_ack *req;
 

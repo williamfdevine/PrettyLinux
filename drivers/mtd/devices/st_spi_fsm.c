@@ -243,7 +243,8 @@
 #define CFG_ERASESEC_TOGGLE_32BIT_ADDR 0x00000008
 #define CFG_S25FL_CHECK_ERROR_FLAGS    0x00000010
 
-struct stfsm_seq {
+struct stfsm_seq
+{
 	uint32_t data_size;
 	uint32_t addr1;
 	uint32_t addr2;
@@ -256,7 +257,8 @@ struct stfsm_seq {
 	uint32_t seq_cfg;
 } __packed __aligned(4);
 
-struct stfsm {
+struct stfsm
+{
 	struct device		*dev;
 	void __iomem		*base;
 	struct resource		*region;
@@ -277,7 +279,8 @@ struct stfsm {
 };
 
 /* Parameters to configure a READ or WRITE FSM sequence */
-struct seq_rw_config {
+struct seq_rw_config
+{
 	uint32_t        flags;          /* flags to support config */
 	uint8_t         cmd;            /* FLASH command */
 	int             write;          /* Write Sequence */
@@ -289,7 +292,8 @@ struct seq_rw_config {
 };
 
 /* SPI Flash Device Table */
-struct flash_info {
+struct flash_info
+{
 	char            *name;
 	/*
 	 * JEDEC id zero means "no ID" (most older chips); otherwise it has
@@ -318,7 +322,8 @@ static int stfsm_mx25_config(struct stfsm *fsm);
 static int stfsm_s25fl_config(struct stfsm *fsm);
 static int stfsm_w25q_config(struct stfsm *fsm);
 
-static struct flash_info flash_types[] = {
+static struct flash_info flash_types[] =
+{
 	/*
 	 * ST Microelectronics/Numonyx --
 	 * (newer production versions may have feature updates
@@ -333,9 +338,9 @@ static struct flash_info flash_types[] = {
 	{ "m25p128", 0x202018, 0, 256 * 1024,  64, M25P_FLAG, 50, NULL },
 
 #define M25PX_FLAG (FLASH_FLAG_READ_WRITE      |	\
-		    FLASH_FLAG_READ_FAST        |	\
-		    FLASH_FLAG_READ_1_1_2       |	\
-		    FLASH_FLAG_WRITE_1_1_2)
+	FLASH_FLAG_READ_FAST        |	\
+	FLASH_FLAG_READ_1_1_2       |	\
+	FLASH_FLAG_WRITE_1_1_2)
 	{ "m25px32", 0x207116, 0,  64 * 1024,  64, M25PX_FLAG, 75, NULL },
 	{ "m25px64", 0x207117, 0,  64 * 1024, 128, M25PX_FLAG, 75, NULL },
 
@@ -344,54 +349,70 @@ static struct flash_info flash_types[] = {
 	 *       where operating frequency must be reduced.
 	 */
 #define MX25_FLAG (FLASH_FLAG_READ_WRITE       |	\
-		   FLASH_FLAG_READ_FAST         |	\
-		   FLASH_FLAG_READ_1_1_2        |	\
-		   FLASH_FLAG_READ_1_2_2        |	\
-		   FLASH_FLAG_READ_1_1_4        |	\
-		   FLASH_FLAG_SE_4K             |	\
-		   FLASH_FLAG_SE_32K)
-	{ "mx25l3255e",  0xc29e16, 0, 64 * 1024, 64,
-	  (MX25_FLAG | FLASH_FLAG_WRITE_1_4_4), 86,
-	  stfsm_mx25_config},
-	{ "mx25l25635e", 0xc22019, 0, 64*1024, 512,
-	  (MX25_FLAG | FLASH_FLAG_32BIT_ADDR | FLASH_FLAG_RESET), 70,
-	  stfsm_mx25_config },
-	{ "mx25l25655e", 0xc22619, 0, 64*1024, 512,
-	  (MX25_FLAG | FLASH_FLAG_32BIT_ADDR | FLASH_FLAG_RESET), 70,
-	  stfsm_mx25_config},
+	FLASH_FLAG_READ_FAST         |	\
+	FLASH_FLAG_READ_1_1_2        |	\
+	FLASH_FLAG_READ_1_2_2        |	\
+	FLASH_FLAG_READ_1_1_4        |	\
+	FLASH_FLAG_SE_4K             |	\
+	FLASH_FLAG_SE_32K)
+	{
+		"mx25l3255e",  0xc29e16, 0, 64 * 1024, 64,
+		(MX25_FLAG | FLASH_FLAG_WRITE_1_4_4), 86,
+		stfsm_mx25_config
+	},
+	{
+		"mx25l25635e", 0xc22019, 0, 64 * 1024, 512,
+		(MX25_FLAG | FLASH_FLAG_32BIT_ADDR | FLASH_FLAG_RESET), 70,
+		stfsm_mx25_config
+	},
+	{
+		"mx25l25655e", 0xc22619, 0, 64 * 1024, 512,
+		(MX25_FLAG | FLASH_FLAG_32BIT_ADDR | FLASH_FLAG_RESET), 70,
+		stfsm_mx25_config
+	},
 
 #define N25Q_FLAG (FLASH_FLAG_READ_WRITE       |	\
-		   FLASH_FLAG_READ_FAST         |	\
-		   FLASH_FLAG_READ_1_1_2        |	\
-		   FLASH_FLAG_READ_1_2_2        |	\
-		   FLASH_FLAG_READ_1_1_4        |	\
-		   FLASH_FLAG_READ_1_4_4        |	\
-		   FLASH_FLAG_WRITE_1_1_2       |	\
-		   FLASH_FLAG_WRITE_1_2_2       |	\
-		   FLASH_FLAG_WRITE_1_1_4       |	\
-		   FLASH_FLAG_WRITE_1_4_4)
-	{ "n25q128", 0x20ba18, 0, 64 * 1024,  256, N25Q_FLAG, 108,
-	  stfsm_n25q_config },
-	{ "n25q256", 0x20ba19, 0, 64 * 1024,  512,
-	  N25Q_FLAG | FLASH_FLAG_32BIT_ADDR, 108, stfsm_n25q_config },
+	FLASH_FLAG_READ_FAST         |	\
+	FLASH_FLAG_READ_1_1_2        |	\
+	FLASH_FLAG_READ_1_2_2        |	\
+	FLASH_FLAG_READ_1_1_4        |	\
+	FLASH_FLAG_READ_1_4_4        |	\
+	FLASH_FLAG_WRITE_1_1_2       |	\
+	FLASH_FLAG_WRITE_1_2_2       |	\
+	FLASH_FLAG_WRITE_1_1_4       |	\
+	FLASH_FLAG_WRITE_1_4_4)
+	{
+		"n25q128", 0x20ba18, 0, 64 * 1024,  256, N25Q_FLAG, 108,
+		stfsm_n25q_config
+	},
+	{
+		"n25q256", 0x20ba19, 0, 64 * 1024,  512,
+		N25Q_FLAG | FLASH_FLAG_32BIT_ADDR, 108, stfsm_n25q_config
+	},
 
 	/*
 	 * Spansion S25FLxxxP
 	 *     - 256KiB and 64KiB sector variants (identified by ext. JEDEC)
 	 */
 #define S25FLXXXP_FLAG (FLASH_FLAG_READ_WRITE  |	\
-			FLASH_FLAG_READ_1_1_2   |	\
-			FLASH_FLAG_READ_1_2_2   |	\
-			FLASH_FLAG_READ_1_1_4   |	\
-			FLASH_FLAG_READ_1_4_4   |	\
-			FLASH_FLAG_WRITE_1_1_4  |	\
-			FLASH_FLAG_READ_FAST)
-	{ "s25fl032p",  0x010215, 0x4d00,  64 * 1024,  64, S25FLXXXP_FLAG, 80,
-	  stfsm_s25fl_config},
-	{ "s25fl129p0", 0x012018, 0x4d00, 256 * 1024,  64, S25FLXXXP_FLAG, 80,
-	  stfsm_s25fl_config },
-	{ "s25fl129p1", 0x012018, 0x4d01,  64 * 1024, 256, S25FLXXXP_FLAG, 80,
-	  stfsm_s25fl_config },
+	FLASH_FLAG_READ_1_1_2   |	\
+	FLASH_FLAG_READ_1_2_2   |	\
+	FLASH_FLAG_READ_1_1_4   |	\
+	FLASH_FLAG_READ_1_4_4   |	\
+	FLASH_FLAG_WRITE_1_1_4  |	\
+	FLASH_FLAG_READ_FAST)
+	{
+		"s25fl032p",  0x010215, 0x4d00,  64 * 1024,  64, S25FLXXXP_FLAG, 80,
+		stfsm_s25fl_config
+	},
+	{
+		"s25fl129p0", 0x012018, 0x4d00, 256 * 1024,  64, S25FLXXXP_FLAG, 80,
+		stfsm_s25fl_config
+	},
+	{
+		"s25fl129p1", 0x012018, 0x4d01,  64 * 1024, 256, S25FLXXXP_FLAG, 80,
+		stfsm_s25fl_config
+	},
 
 	/*
 	 * Spansion S25FLxxxS
@@ -403,22 +424,30 @@ static struct flash_info flash_types[] = {
 	 *       may default to locked state on power-on.
 	 */
 #define S25FLXXXS_FLAG (S25FLXXXP_FLAG         |	\
-			FLASH_FLAG_RESET        |	\
-			FLASH_FLAG_DYB_LOCKING)
-	{ "s25fl128s0", 0x012018, 0x0300,  256 * 1024, 64, S25FLXXXS_FLAG, 80,
-	  stfsm_s25fl_config },
-	{ "s25fl128s1", 0x012018, 0x0301,  64 * 1024, 256, S25FLXXXS_FLAG, 80,
-	  stfsm_s25fl_config },
-	{ "s25fl256s0", 0x010219, 0x4d00, 256 * 1024, 128,
-	  S25FLXXXS_FLAG | FLASH_FLAG_32BIT_ADDR, 80, stfsm_s25fl_config },
-	{ "s25fl256s1", 0x010219, 0x4d01,  64 * 1024, 512,
-	  S25FLXXXS_FLAG | FLASH_FLAG_32BIT_ADDR, 80, stfsm_s25fl_config },
+	FLASH_FLAG_RESET        |	\
+	FLASH_FLAG_DYB_LOCKING)
+	{
+		"s25fl128s0", 0x012018, 0x0300,  256 * 1024, 64, S25FLXXXS_FLAG, 80,
+		stfsm_s25fl_config
+	},
+	{
+		"s25fl128s1", 0x012018, 0x0301,  64 * 1024, 256, S25FLXXXS_FLAG, 80,
+		stfsm_s25fl_config
+	},
+	{
+		"s25fl256s0", 0x010219, 0x4d00, 256 * 1024, 128,
+		S25FLXXXS_FLAG | FLASH_FLAG_32BIT_ADDR, 80, stfsm_s25fl_config
+	},
+	{
+		"s25fl256s1", 0x010219, 0x4d01,  64 * 1024, 512,
+		S25FLXXXS_FLAG | FLASH_FLAG_32BIT_ADDR, 80, stfsm_s25fl_config
+	},
 
 	/* Winbond -- w25x "blocks" are 64K, "sectors" are 4KiB */
 #define W25X_FLAG (FLASH_FLAG_READ_WRITE       |	\
-		   FLASH_FLAG_READ_FAST         |	\
-		   FLASH_FLAG_READ_1_1_2        |	\
-		   FLASH_FLAG_WRITE_1_1_2)
+	FLASH_FLAG_READ_FAST         |	\
+	FLASH_FLAG_READ_1_1_2        |	\
+	FLASH_FLAG_WRITE_1_1_2)
 	{ "w25x40",  0xef3013, 0,  64 * 1024,   8, W25X_FLAG, 75, NULL },
 	{ "w25x80",  0xef3014, 0,  64 * 1024,  16, W25X_FLAG, 75, NULL },
 	{ "w25x16",  0xef3015, 0,  64 * 1024,  32, W25X_FLAG, 75, NULL },
@@ -427,20 +456,28 @@ static struct flash_info flash_types[] = {
 
 	/* Winbond -- w25q "blocks" are 64K, "sectors" are 4KiB */
 #define W25Q_FLAG (FLASH_FLAG_READ_WRITE       |	\
-		   FLASH_FLAG_READ_FAST         |	\
-		   FLASH_FLAG_READ_1_1_2        |	\
-		   FLASH_FLAG_READ_1_2_2        |	\
-		   FLASH_FLAG_READ_1_1_4        |	\
-		   FLASH_FLAG_READ_1_4_4        |	\
-		   FLASH_FLAG_WRITE_1_1_4)
-	{ "w25q80",  0xef4014, 0,  64 * 1024,  16, W25Q_FLAG, 80,
-	  stfsm_w25q_config },
-	{ "w25q16",  0xef4015, 0,  64 * 1024,  32, W25Q_FLAG, 80,
-	  stfsm_w25q_config },
-	{ "w25q32",  0xef4016, 0,  64 * 1024,  64, W25Q_FLAG, 80,
-	  stfsm_w25q_config },
-	{ "w25q64",  0xef4017, 0,  64 * 1024, 128, W25Q_FLAG, 80,
-	  stfsm_w25q_config },
+	FLASH_FLAG_READ_FAST         |	\
+	FLASH_FLAG_READ_1_1_2        |	\
+	FLASH_FLAG_READ_1_2_2        |	\
+	FLASH_FLAG_READ_1_1_4        |	\
+	FLASH_FLAG_READ_1_4_4        |	\
+	FLASH_FLAG_WRITE_1_1_4)
+	{
+		"w25q80",  0xef4014, 0,  64 * 1024,  16, W25Q_FLAG, 80,
+		stfsm_w25q_config
+	},
+	{
+		"w25q16",  0xef4015, 0,  64 * 1024,  32, W25Q_FLAG, 80,
+		stfsm_w25q_config
+	},
+	{
+		"w25q32",  0xef4016, 0,  64 * 1024,  64, W25Q_FLAG, 80,
+		stfsm_w25q_config
+	},
+	{
+		"w25q64",  0xef4017, 0,  64 * 1024, 128, W25Q_FLAG, 80,
+		stfsm_w25q_config
+	},
 
 	/* Sentinel */
 	{ NULL, 0x000000, 0, 0, 0, 0, 0, NULL },
@@ -453,7 +490,8 @@ static struct flash_info flash_types[] = {
  */
 
 /* Default READ configurations, in order of preference */
-static struct seq_rw_config default_read_configs[] = {
+static struct seq_rw_config default_read_configs[] =
+{
 	{FLASH_FLAG_READ_1_4_4, SPINOR_OP_READ_1_4_4,	0, 4, 4, 0x00, 2, 4},
 	{FLASH_FLAG_READ_1_1_4, SPINOR_OP_READ_1_1_4,	0, 1, 4, 0x00, 4, 0},
 	{FLASH_FLAG_READ_1_2_2, SPINOR_OP_READ_1_2_2,	0, 2, 2, 0x00, 4, 0},
@@ -464,7 +502,8 @@ static struct seq_rw_config default_read_configs[] = {
 };
 
 /* Default WRITE configurations */
-static struct seq_rw_config default_write_configs[] = {
+static struct seq_rw_config default_write_configs[] =
+{
 	{FLASH_FLAG_WRITE_1_4_4, SPINOR_OP_WRITE_1_4_4, 1, 4, 4, 0x00, 0, 0},
 	{FLASH_FLAG_WRITE_1_1_4, SPINOR_OP_WRITE_1_1_4, 1, 1, 4, 0x00, 0, 0},
 	{FLASH_FLAG_WRITE_1_2_2, SPINOR_OP_WRITE_1_2_2, 1, 2, 2, 0x00, 0, 0},
@@ -491,7 +530,8 @@ static struct seq_rw_config default_write_configs[] = {
  * hard-wired to use 8 dummy cycles, we must configure the device to also use 8
  * cycles.
  */
-static struct seq_rw_config n25q_read3_configs[] = {
+static struct seq_rw_config n25q_read3_configs[] =
+{
 	{FLASH_FLAG_READ_1_4_4, SPINOR_OP_READ_1_4_4,	0, 4, 4, 0x00, 0, 8},
 	{FLASH_FLAG_READ_1_1_4, SPINOR_OP_READ_1_1_4,	0, 1, 4, 0x00, 0, 8},
 	{FLASH_FLAG_READ_1_2_2, SPINOR_OP_READ_1_2_2,	0, 2, 2, 0x00, 0, 8},
@@ -506,7 +546,8 @@ static struct seq_rw_config n25q_read3_configs[] = {
  *        reduces risk of hitting watchdog reset issues).
  *	- 'FAST' variants configured for 8 dummy cycles (see note above.)
  */
-static struct seq_rw_config n25q_read4_configs[] = {
+static struct seq_rw_config n25q_read4_configs[] =
+{
 	{FLASH_FLAG_READ_1_4_4, SPINOR_OP_READ4_1_4_4,	0, 4, 4, 0x00, 0, 8},
 	{FLASH_FLAG_READ_1_1_4, SPINOR_OP_READ4_1_1_4,	0, 1, 4, 0x00, 0, 8},
 	{FLASH_FLAG_READ_1_2_2, SPINOR_OP_READ4_1_2_2,	0, 2, 2, 0x00, 0, 8},
@@ -524,19 +565,19 @@ static struct seq_rw_config n25q_read4_configs[] = {
 static int stfsm_mx25_en_32bit_addr_seq(struct stfsm_seq *seq)
 {
 	seq->seq_opc[0] = (SEQ_OPC_PADS_1 |
-			   SEQ_OPC_CYCLES(8) |
-			   SEQ_OPC_OPCODE(SPINOR_OP_EN4B) |
-			   SEQ_OPC_CSDEASSERT);
+					   SEQ_OPC_CYCLES(8) |
+					   SEQ_OPC_OPCODE(SPINOR_OP_EN4B) |
+					   SEQ_OPC_CSDEASSERT);
 
 	seq->seq[0] = STFSM_INST_CMD1;
 	seq->seq[1] = STFSM_INST_WAIT;
 	seq->seq[2] = STFSM_INST_STOP;
 
 	seq->seq_cfg = (SEQ_CFG_PADS_1 |
-			SEQ_CFG_ERASE |
-			SEQ_CFG_READNOTWRITE |
-			SEQ_CFG_CSDEASSERT |
-			SEQ_CFG_STARTSEQ);
+					SEQ_CFG_ERASE |
+					SEQ_CFG_READNOTWRITE |
+					SEQ_CFG_CSDEASSERT |
+					SEQ_CFG_STARTSEQ);
 
 	return 0;
 }
@@ -552,7 +593,8 @@ static int stfsm_mx25_en_32bit_addr_seq(struct stfsm_seq *seq)
  * 32-bit address command set is used here, since it avoids any problems with
  * entering a state that is incompatible with the SPIBoot Controller.
  */
-static struct seq_rw_config stfsm_s25fl_read4_configs[] = {
+static struct seq_rw_config stfsm_s25fl_read4_configs[] =
+{
 	{FLASH_FLAG_READ_1_4_4,  SPINOR_OP_READ4_1_4_4,  0, 4, 4, 0x00, 2, 4},
 	{FLASH_FLAG_READ_1_1_4,  SPINOR_OP_READ4_1_1_4,  0, 1, 4, 0x00, 0, 8},
 	{FLASH_FLAG_READ_1_2_2,  SPINOR_OP_READ4_1_2_2,  0, 2, 2, 0x00, 4, 0},
@@ -562,7 +604,8 @@ static struct seq_rw_config stfsm_s25fl_read4_configs[] = {
 	{0x00,                   0,                      0, 0, 0, 0x00, 0, 0},
 };
 
-static struct seq_rw_config stfsm_s25fl_write4_configs[] = {
+static struct seq_rw_config stfsm_s25fl_write4_configs[] =
+{
 	{FLASH_FLAG_WRITE_1_1_4, S25FL_CMD_WRITE4_1_1_4, 1, 1, 4, 0x00, 0, 0},
 	{FLASH_FLAG_READ_WRITE,  S25FL_CMD_WRITE4,       1, 1, 1, 0x00, 0, 0},
 	{0x00,                   0,                      0, 0, 0, 0x00, 0, 0},
@@ -573,46 +616,49 @@ static struct seq_rw_config stfsm_s25fl_write4_configs[] = {
  */
 #define W25Q_STATUS_QE			(0x1 << 1)
 
-static struct stfsm_seq stfsm_seq_read_jedec = {
+static struct stfsm_seq stfsm_seq_read_jedec =
+{
 	.data_size = TRANSFER_SIZE(8),
 	.seq_opc[0] = (SEQ_OPC_PADS_1 |
-		       SEQ_OPC_CYCLES(8) |
-		       SEQ_OPC_OPCODE(SPINOR_OP_RDID)),
+	SEQ_OPC_CYCLES(8) |
+	SEQ_OPC_OPCODE(SPINOR_OP_RDID)),
 	.seq = {
 		STFSM_INST_CMD1,
 		STFSM_INST_DATA_READ,
 		STFSM_INST_STOP,
 	},
 	.seq_cfg = (SEQ_CFG_PADS_1 |
-		    SEQ_CFG_READNOTWRITE |
-		    SEQ_CFG_CSDEASSERT |
-		    SEQ_CFG_STARTSEQ),
+	SEQ_CFG_READNOTWRITE |
+	SEQ_CFG_CSDEASSERT |
+	SEQ_CFG_STARTSEQ),
 };
 
-static struct stfsm_seq stfsm_seq_read_status_fifo = {
+static struct stfsm_seq stfsm_seq_read_status_fifo =
+{
 	.data_size = TRANSFER_SIZE(4),
 	.seq_opc[0] = (SEQ_OPC_PADS_1 |
-		       SEQ_OPC_CYCLES(8) |
-		       SEQ_OPC_OPCODE(SPINOR_OP_RDSR)),
+	SEQ_OPC_CYCLES(8) |
+	SEQ_OPC_OPCODE(SPINOR_OP_RDSR)),
 	.seq = {
 		STFSM_INST_CMD1,
 		STFSM_INST_DATA_READ,
 		STFSM_INST_STOP,
 	},
 	.seq_cfg = (SEQ_CFG_PADS_1 |
-		    SEQ_CFG_READNOTWRITE |
-		    SEQ_CFG_CSDEASSERT |
-		    SEQ_CFG_STARTSEQ),
+	SEQ_CFG_READNOTWRITE |
+	SEQ_CFG_CSDEASSERT |
+	SEQ_CFG_STARTSEQ),
 };
 
-static struct stfsm_seq stfsm_seq_erase_sector = {
+static struct stfsm_seq stfsm_seq_erase_sector =
+{
 	/* 'addr_cfg' configured during initialisation */
 	.seq_opc = {
 		(SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) |
-		 SEQ_OPC_OPCODE(SPINOR_OP_WREN) | SEQ_OPC_CSDEASSERT),
+		SEQ_OPC_OPCODE(SPINOR_OP_WREN) | SEQ_OPC_CSDEASSERT),
 
 		(SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) |
-		 SEQ_OPC_OPCODE(SPINOR_OP_SE)),
+		SEQ_OPC_OPCODE(SPINOR_OP_SE)),
 	},
 	.seq = {
 		STFSM_INST_CMD1,
@@ -622,18 +668,19 @@ static struct stfsm_seq stfsm_seq_erase_sector = {
 		STFSM_INST_STOP,
 	},
 	.seq_cfg = (SEQ_CFG_PADS_1 |
-		    SEQ_CFG_READNOTWRITE |
-		    SEQ_CFG_CSDEASSERT |
-		    SEQ_CFG_STARTSEQ),
+	SEQ_CFG_READNOTWRITE |
+	SEQ_CFG_CSDEASSERT |
+	SEQ_CFG_STARTSEQ),
 };
 
-static struct stfsm_seq stfsm_seq_erase_chip = {
+static struct stfsm_seq stfsm_seq_erase_chip =
+{
 	.seq_opc = {
 		(SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) |
-		 SEQ_OPC_OPCODE(SPINOR_OP_WREN) | SEQ_OPC_CSDEASSERT),
+		SEQ_OPC_OPCODE(SPINOR_OP_WREN) | SEQ_OPC_CSDEASSERT),
 
 		(SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) |
-		 SEQ_OPC_OPCODE(SPINOR_OP_CHIP_ERASE) | SEQ_OPC_CSDEASSERT),
+		SEQ_OPC_OPCODE(SPINOR_OP_CHIP_ERASE) | SEQ_OPC_CSDEASSERT),
 	},
 	.seq = {
 		STFSM_INST_CMD1,
@@ -642,17 +689,18 @@ static struct stfsm_seq stfsm_seq_erase_chip = {
 		STFSM_INST_STOP,
 	},
 	.seq_cfg = (SEQ_CFG_PADS_1 |
-		    SEQ_CFG_ERASE |
-		    SEQ_CFG_READNOTWRITE |
-		    SEQ_CFG_CSDEASSERT |
-		    SEQ_CFG_STARTSEQ),
+	SEQ_CFG_ERASE |
+	SEQ_CFG_READNOTWRITE |
+	SEQ_CFG_CSDEASSERT |
+	SEQ_CFG_STARTSEQ),
 };
 
-static struct stfsm_seq stfsm_seq_write_status = {
+static struct stfsm_seq stfsm_seq_write_status =
+{
 	.seq_opc[0] = (SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) |
-		       SEQ_OPC_OPCODE(SPINOR_OP_WREN) | SEQ_OPC_CSDEASSERT),
+	SEQ_OPC_OPCODE(SPINOR_OP_WREN) | SEQ_OPC_CSDEASSERT),
 	.seq_opc[1] = (SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) |
-		       SEQ_OPC_OPCODE(SPINOR_OP_WRSR)),
+	SEQ_OPC_OPCODE(SPINOR_OP_WRSR)),
 	.seq = {
 		STFSM_INST_CMD1,
 		STFSM_INST_CMD2,
@@ -660,35 +708,36 @@ static struct stfsm_seq stfsm_seq_write_status = {
 		STFSM_INST_STOP,
 	},
 	.seq_cfg = (SEQ_CFG_PADS_1 |
-		    SEQ_CFG_READNOTWRITE |
-		    SEQ_CFG_CSDEASSERT |
-		    SEQ_CFG_STARTSEQ),
+	SEQ_CFG_READNOTWRITE |
+	SEQ_CFG_CSDEASSERT |
+	SEQ_CFG_STARTSEQ),
 };
 
 /* Dummy sequence to read one byte of data from flash into the FIFO */
-static const struct stfsm_seq stfsm_seq_load_fifo_byte = {
+static const struct stfsm_seq stfsm_seq_load_fifo_byte =
+{
 	.data_size = TRANSFER_SIZE(1),
 	.seq_opc[0] = (SEQ_OPC_PADS_1 |
-		       SEQ_OPC_CYCLES(8) |
-		       SEQ_OPC_OPCODE(SPINOR_OP_RDID)),
+	SEQ_OPC_CYCLES(8) |
+	SEQ_OPC_OPCODE(SPINOR_OP_RDID)),
 	.seq = {
 		STFSM_INST_CMD1,
 		STFSM_INST_DATA_READ,
 		STFSM_INST_STOP,
 	},
 	.seq_cfg = (SEQ_CFG_PADS_1 |
-		    SEQ_CFG_READNOTWRITE |
-		    SEQ_CFG_CSDEASSERT |
-		    SEQ_CFG_STARTSEQ),
+	SEQ_CFG_READNOTWRITE |
+	SEQ_CFG_CSDEASSERT |
+	SEQ_CFG_STARTSEQ),
 };
 
 static int stfsm_n25q_en_32bit_addr_seq(struct stfsm_seq *seq)
 {
 	seq->seq_opc[0] = (SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) |
-			   SEQ_OPC_OPCODE(SPINOR_OP_EN4B));
+					   SEQ_OPC_OPCODE(SPINOR_OP_EN4B));
 	seq->seq_opc[1] = (SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) |
-			   SEQ_OPC_OPCODE(SPINOR_OP_WREN) |
-			   SEQ_OPC_CSDEASSERT);
+					   SEQ_OPC_OPCODE(SPINOR_OP_WREN) |
+					   SEQ_OPC_CSDEASSERT);
 
 	seq->seq[0] = STFSM_INST_CMD2;
 	seq->seq[1] = STFSM_INST_CMD1;
@@ -696,10 +745,10 @@ static int stfsm_n25q_en_32bit_addr_seq(struct stfsm_seq *seq)
 	seq->seq[3] = STFSM_INST_STOP;
 
 	seq->seq_cfg = (SEQ_CFG_PADS_1 |
-			SEQ_CFG_ERASE |
-			SEQ_CFG_READNOTWRITE |
-			SEQ_CFG_CSDEASSERT |
-			SEQ_CFG_STARTSEQ);
+					SEQ_CFG_ERASE |
+					SEQ_CFG_READNOTWRITE |
+					SEQ_CFG_CSDEASSERT |
+					SEQ_CFG_STARTSEQ);
 
 	return 0;
 }
@@ -715,7 +764,7 @@ static inline uint32_t stfsm_fifo_available(struct stfsm *fsm)
 }
 
 static inline void stfsm_load_seq(struct stfsm *fsm,
-				  const struct stfsm_seq *seq)
+								  const struct stfsm_seq *seq)
 {
 	void __iomem *dst = fsm->base + SPI_FAST_SEQ_TRANSFER_SIZE;
 	const uint32_t *src = (const uint32_t *)seq;
@@ -723,7 +772,8 @@ static inline void stfsm_load_seq(struct stfsm *fsm,
 
 	BUG_ON(!stfsm_is_idle(fsm));
 
-	while (words--) {
+	while (words--)
+	{
 		writel(*src, dst);
 		src++;
 		dst += 4;
@@ -737,12 +787,17 @@ static void stfsm_wait_seq(struct stfsm *fsm)
 
 	deadline = jiffies + msecs_to_jiffies(STFSM_MAX_WAIT_SEQ_MS);
 
-	while (!timeout) {
+	while (!timeout)
+	{
 		if (time_after_eq(jiffies, deadline))
+		{
 			timeout = 1;
+		}
 
 		if (stfsm_is_idle(fsm))
+		{
 			return;
+		}
 
 		cond_resched();
 	}
@@ -760,13 +815,20 @@ static void stfsm_read_fifo(struct stfsm *fsm, uint32_t *buf, uint32_t size)
 
 	BUG_ON((((uintptr_t)buf) & 0x3) || (size & 0x3));
 
-	while (remaining) {
-		for (;;) {
+	while (remaining)
+	{
+		for (;;)
+		{
 			avail = stfsm_fifo_available(fsm);
+
 			if (avail)
+			{
 				break;
+			}
+
 			udelay(1);
 		}
+
 		words = min(avail, remaining);
 		remaining -= words;
 
@@ -808,9 +870,14 @@ static void stfsm_clear_fifo(struct stfsm *fsm)
 
 	/* 1. Clear any 32-bit words */
 	words = stfsm_fifo_available(fsm);
-	if (words) {
+
+	if (words)
+	{
 		for (i = 0; i < words; i++)
+		{
 			readl(fsm->base + SPI_FAST_SEQ_DATA_REG);
+		}
+
 		dev_dbg(fsm->dev, "cleared %d words from FIFO\n", words);
 	}
 
@@ -819,14 +886,16 @@ static void stfsm_clear_fifo(struct stfsm *fsm)
 	 *    - Load the FIFO, one byte at a time, until a complete 32-bit word
 	 *      is available.
 	 */
-	for (i = 0, words = 0; i < 4 && !words; i++) {
+	for (i = 0, words = 0; i < 4 && !words; i++)
+	{
 		stfsm_load_seq(fsm, seq);
 		stfsm_wait_seq(fsm);
 		words = stfsm_fifo_available(fsm);
 	}
 
 	/*    - A single word must be available now */
-	if (words != 1) {
+	if (words != 1)
+	{
 		dev_err(fsm->dev, "failed to clear bytes from the data FIFO\n");
 		return;
 	}
@@ -838,7 +907,7 @@ static void stfsm_clear_fifo(struct stfsm *fsm)
 }
 
 static int stfsm_write_fifo(struct stfsm *fsm, const uint32_t *buf,
-			    uint32_t size)
+							uint32_t size)
 {
 	uint32_t words = size >> 2;
 
@@ -857,9 +926,9 @@ static int stfsm_enter_32bit_addr(struct stfsm *fsm, int enter)
 	uint32_t cmd = enter ? SPINOR_OP_EN4B : SPINOR_OP_EX4B;
 
 	seq->seq_opc[0] = (SEQ_OPC_PADS_1 |
-			   SEQ_OPC_CYCLES(8) |
-			   SEQ_OPC_OPCODE(cmd) |
-			   SEQ_OPC_CSDEASSERT);
+					   SEQ_OPC_CYCLES(8) |
+					   SEQ_OPC_OPCODE(cmd) |
+					   SEQ_OPC_CSDEASSERT);
 
 	stfsm_load_seq(fsm, seq);
 
@@ -877,8 +946,8 @@ static uint8_t stfsm_wait_busy(struct stfsm *fsm)
 
 	/* Use RDRS1 */
 	seq->seq_opc[0] = (SEQ_OPC_PADS_1 |
-			   SEQ_OPC_CYCLES(8) |
-			   SEQ_OPC_OPCODE(SPINOR_OP_RDSR));
+					   SEQ_OPC_CYCLES(8) |
+					   SEQ_OPC_OPCODE(SPINOR_OP_RDSR));
 
 	/* Load read_status sequence */
 	stfsm_load_seq(fsm, seq);
@@ -887,25 +956,35 @@ static uint8_t stfsm_wait_busy(struct stfsm *fsm)
 	 * Repeat until busy bit is deasserted, or timeout, or error (S25FLxxxS)
 	 */
 	deadline = jiffies + FLASH_MAX_BUSY_WAIT;
-	while (!timeout) {
+
+	while (!timeout)
+	{
 		if (time_after_eq(jiffies, deadline))
+		{
 			timeout = 1;
+		}
 
 		stfsm_wait_seq(fsm);
 
 		stfsm_read_fifo(fsm, &status, 4);
 
 		if ((status & FLASH_STATUS_BUSY) == 0)
+		{
 			return 0;
+		}
 
 		if ((fsm->configuration & CFG_S25FL_CHECK_ERROR_FLAGS) &&
-		    ((status & S25FL_STATUS_P_ERR) ||
-		     (status & S25FL_STATUS_E_ERR)))
+			((status & S25FL_STATUS_P_ERR) ||
+			 (status & S25FL_STATUS_E_ERR)))
+		{
 			return (uint8_t)(status & 0xff);
+		}
 
 		if (!timeout)
 			/* Restart */
+		{
 			writel(seq->seq_cfg, fsm->base + SPI_FAST_SEQ_CFG);
+		}
 
 		cond_resched();
 	}
@@ -916,7 +995,7 @@ static uint8_t stfsm_wait_busy(struct stfsm *fsm)
 }
 
 static int stfsm_read_status(struct stfsm *fsm, uint8_t cmd,
-			     uint8_t *data, int bytes)
+							 uint8_t *data, int bytes)
 {
 	struct stfsm_seq *seq = &stfsm_seq_read_status_fifo;
 	uint32_t tmp;
@@ -924,19 +1003,21 @@ static int stfsm_read_status(struct stfsm *fsm, uint8_t cmd,
 	int i;
 
 	dev_dbg(fsm->dev, "read 'status' register [0x%02x], %d byte(s)\n",
-		cmd, bytes);
+			cmd, bytes);
 
 	BUG_ON(bytes != 1 && bytes != 2);
 
 	seq->seq_opc[0] = (SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) |
-			   SEQ_OPC_OPCODE(cmd)),
+					   SEQ_OPC_OPCODE(cmd)),
 
-	stfsm_load_seq(fsm, seq);
+					  stfsm_load_seq(fsm, seq);
 
 	stfsm_read_fifo(fsm, &tmp, 4);
 
 	for (i = 0; i < bytes; i++)
+	{
 		data[i] = t[i];
+	}
 
 	stfsm_wait_seq(fsm);
 
@@ -944,18 +1025,18 @@ static int stfsm_read_status(struct stfsm *fsm, uint8_t cmd,
 }
 
 static int stfsm_write_status(struct stfsm *fsm, uint8_t cmd,
-			    uint16_t data, int bytes, int wait_busy)
+							  uint16_t data, int bytes, int wait_busy)
 {
 	struct stfsm_seq *seq = &stfsm_seq_write_status;
 
 	dev_dbg(fsm->dev,
-		"write 'status' register [0x%02x], %d byte(s), 0x%04x\n"
-		" %s wait-busy\n", cmd, bytes, data, wait_busy ? "with" : "no");
+			"write 'status' register [0x%02x], %d byte(s), 0x%04x\n"
+			" %s wait-busy\n", cmd, bytes, data, wait_busy ? "with" : "no");
 
 	BUG_ON(bytes != 1 && bytes != 2);
 
 	seq->seq_opc[1] = (SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) |
-			   SEQ_OPC_OPCODE(cmd));
+					   SEQ_OPC_OPCODE(cmd));
 
 	seq->status = (uint32_t)data | STA_PADS_1 | STA_CSDEASSERT;
 	seq->seq[2] = (bytes == 1) ? STFSM_INST_STA_WR1 : STFSM_INST_STA_WR1_2;
@@ -965,7 +1046,9 @@ static int stfsm_write_status(struct stfsm *fsm, uint8_t cmd,
 	stfsm_wait_seq(fsm);
 
 	if (wait_busy)
+	{
 		stfsm_wait_busy(fsm);
+	}
 
 	return 0;
 }
@@ -994,11 +1077,15 @@ static bool stfsm_can_handle_soc_reset(struct stfsm *fsm)
 {
 	/* Reset signal is available on the board and supported by the device */
 	if (fsm->reset_signal && fsm->info->flags & FLASH_FLAG_RESET)
+	{
 		return true;
+	}
 
 	/* Board-level logic forces a power-on-reset */
 	if (fsm->reset_por)
+	{
 		return true;
+	}
 
 	/* Reset is not properly handled and may result in failure to reboot */
 	return false;
@@ -1006,36 +1093,38 @@ static bool stfsm_can_handle_soc_reset(struct stfsm *fsm)
 
 /* Configure 'addr_cfg' according to addressing mode */
 static void stfsm_prepare_erasesec_seq(struct stfsm *fsm,
-				       struct stfsm_seq *seq)
+									   struct stfsm_seq *seq)
 {
 	int addr1_cycles = fsm->info->flags & FLASH_FLAG_32BIT_ADDR ? 16 : 8;
 
 	seq->addr_cfg = (ADR_CFG_CYCLES_ADD1(addr1_cycles) |
-			 ADR_CFG_PADS_1_ADD1 |
-			 ADR_CFG_CYCLES_ADD2(16) |
-			 ADR_CFG_PADS_1_ADD2 |
-			 ADR_CFG_CSDEASSERT_ADD2);
+					 ADR_CFG_PADS_1_ADD1 |
+					 ADR_CFG_CYCLES_ADD2(16) |
+					 ADR_CFG_PADS_1_ADD2 |
+					 ADR_CFG_CSDEASSERT_ADD2);
 }
 
 /* Search for preferred configuration based on available flags */
 static struct seq_rw_config *
 stfsm_search_seq_rw_configs(struct stfsm *fsm,
-			    struct seq_rw_config cfgs[])
+							struct seq_rw_config cfgs[])
 {
 	struct seq_rw_config *config;
 	int flags = fsm->info->flags;
 
 	for (config = cfgs; config->cmd != 0; config++)
 		if ((config->flags & flags) == config->flags)
+		{
 			return config;
+		}
 
 	return NULL;
 }
 
 /* Prepare a READ/WRITE sequence according to configuration parameters */
 static void stfsm_prepare_rw_seq(struct stfsm *fsm,
-				 struct stfsm_seq *seq,
-				 struct seq_rw_config *cfg)
+								 struct stfsm_seq *seq,
+								 struct seq_rw_config *cfg)
 {
 	int addr1_cycles, addr2_cycles;
 	int i = 0;
@@ -1044,46 +1133,52 @@ static void stfsm_prepare_rw_seq(struct stfsm *fsm,
 
 	/* Add READ/WRITE OPC  */
 	seq->seq_opc[i++] = (SEQ_OPC_PADS_1 |
-			     SEQ_OPC_CYCLES(8) |
-			     SEQ_OPC_OPCODE(cfg->cmd));
+						 SEQ_OPC_CYCLES(8) |
+						 SEQ_OPC_OPCODE(cfg->cmd));
 
 	/* Add WREN OPC for a WRITE sequence */
 	if (cfg->write)
 		seq->seq_opc[i++] = (SEQ_OPC_PADS_1 |
-				     SEQ_OPC_CYCLES(8) |
-				     SEQ_OPC_OPCODE(SPINOR_OP_WREN) |
-				     SEQ_OPC_CSDEASSERT);
+							 SEQ_OPC_CYCLES(8) |
+							 SEQ_OPC_OPCODE(SPINOR_OP_WREN) |
+							 SEQ_OPC_CSDEASSERT);
 
 	/* Address configuration (24 or 32-bit addresses) */
 	addr1_cycles  = (fsm->info->flags & FLASH_FLAG_32BIT_ADDR) ? 16 : 8;
 	addr1_cycles /= cfg->addr_pads;
 	addr2_cycles  = 16 / cfg->addr_pads;
 	seq->addr_cfg = ((addr1_cycles & 0x3f) << 0 |	/* ADD1 cycles */
-			 (cfg->addr_pads - 1) << 6 |	/* ADD1 pads */
-			 (addr2_cycles & 0x3f) << 16 |	/* ADD2 cycles */
-			 ((cfg->addr_pads - 1) << 22));	/* ADD2 pads */
+					 (cfg->addr_pads - 1) << 6 |	/* ADD1 pads */
+					 (addr2_cycles & 0x3f) << 16 |	/* ADD2 cycles */
+					 ((cfg->addr_pads - 1) << 22));	/* ADD2 pads */
 
 	/* Data/Sequence configuration */
 	seq->seq_cfg = ((cfg->data_pads - 1) << 16 |
-			SEQ_CFG_STARTSEQ |
-			SEQ_CFG_CSDEASSERT);
+					SEQ_CFG_STARTSEQ |
+					SEQ_CFG_CSDEASSERT);
+
 	if (!cfg->write)
+	{
 		seq->seq_cfg |= SEQ_CFG_READNOTWRITE;
+	}
 
 	/* Mode configuration (no. of pads taken from addr cfg) */
 	seq->mode = ((cfg->mode_data & 0xff) << 0 |	/* data */
-		     (cfg->mode_cycles & 0x3f) << 16 |	/* cycles */
-		     (cfg->addr_pads - 1) << 22);	/* pads */
+				 (cfg->mode_cycles & 0x3f) << 16 |	/* cycles */
+				 (cfg->addr_pads - 1) << 22);	/* pads */
 
 	/* Dummy configuration (no. of pads taken from addr cfg) */
 	seq->dummy = ((cfg->dummy_cycles & 0x3f) << 16 |	/* cycles */
-		      (cfg->addr_pads - 1) << 22);		/* pads */
+				  (cfg->addr_pads - 1) << 22);		/* pads */
 
 
 	/* Instruction sequence */
 	i = 0;
+
 	if (cfg->write)
+	{
 		seq->seq[i++] = STFSM_INST_CMD2;
+	}
 
 	seq->seq[i++] = STFSM_INST_CMD1;
 
@@ -1091,10 +1186,14 @@ static void stfsm_prepare_rw_seq(struct stfsm *fsm,
 	seq->seq[i++] = STFSM_INST_ADD2;
 
 	if (cfg->mode_cycles)
+	{
 		seq->seq[i++] = STFSM_INST_MODE;
+	}
 
 	if (cfg->dummy_cycles)
+	{
 		seq->seq[i++] = STFSM_INST_DUMMY;
+	}
 
 	seq->seq[i++] =
 		cfg->write ? STFSM_INST_DATA_WRITE : STFSM_INST_DATA_READ;
@@ -1102,13 +1201,15 @@ static void stfsm_prepare_rw_seq(struct stfsm *fsm,
 }
 
 static int stfsm_search_prepare_rw_seq(struct stfsm *fsm,
-				       struct stfsm_seq *seq,
-				       struct seq_rw_config *cfgs)
+									   struct stfsm_seq *seq,
+									   struct seq_rw_config *cfgs)
 {
 	struct seq_rw_config *config;
 
 	config = stfsm_search_seq_rw_configs(fsm, cfgs);
-	if (!config) {
+
+	if (!config)
+	{
 		dev_err(fsm->dev, "failed to find suitable config\n");
 		return -EINVAL;
 	}
@@ -1126,21 +1227,25 @@ static int stfsm_prepare_rwe_seqs_default(struct stfsm *fsm)
 
 	/* Configure 'READ' sequence */
 	ret = stfsm_search_prepare_rw_seq(fsm, &fsm->stfsm_seq_read,
-					  default_read_configs);
-	if (ret) {
+									  default_read_configs);
+
+	if (ret)
+	{
 		dev_err(fsm->dev,
-			"failed to prep READ sequence with flags [0x%08x]\n",
-			flags);
+				"failed to prep READ sequence with flags [0x%08x]\n",
+				flags);
 		return ret;
 	}
 
 	/* Configure 'WRITE' sequence */
 	ret = stfsm_search_prepare_rw_seq(fsm, &fsm->stfsm_seq_write,
-					  default_write_configs);
-	if (ret) {
+									  default_write_configs);
+
+	if (ret)
+	{
 		dev_err(fsm->dev,
-			"failed to prep WRITE sequence with flags [0x%08x]\n",
-			flags);
+				"failed to prep WRITE sequence with flags [0x%08x]\n",
+				flags);
 		return ret;
 	}
 
@@ -1162,42 +1267,55 @@ static int stfsm_mx25_config(struct stfsm *fsm)
 	 * Use default READ/WRITE sequences
 	 */
 	ret = stfsm_prepare_rwe_seqs_default(fsm);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/*
 	 * Configure 32-bit Address Support
 	 */
-	if (flags & FLASH_FLAG_32BIT_ADDR) {
+	if (flags & FLASH_FLAG_32BIT_ADDR)
+	{
 		/* Configure 'enter_32bitaddr' FSM sequence */
 		stfsm_mx25_en_32bit_addr_seq(&fsm->stfsm_seq_en_32bit_addr);
 
 		soc_reset = stfsm_can_handle_soc_reset(fsm);
+
 		if (soc_reset || !fsm->booted_from_spi)
 			/* If we can handle SoC resets, we enable 32-bit address
 			 * mode pervasively */
+		{
 			stfsm_enter_32bit_addr(fsm, 1);
+		}
 
 		else
 			/* Else, enable/disable 32-bit addressing before/after
 			 * each operation */
 			fsm->configuration = (CFG_READ_TOGGLE_32BIT_ADDR |
-					      CFG_WRITE_TOGGLE_32BIT_ADDR |
-					      CFG_ERASESEC_TOGGLE_32BIT_ADDR);
+								  CFG_WRITE_TOGGLE_32BIT_ADDR |
+								  CFG_ERASESEC_TOGGLE_32BIT_ADDR);
 	}
 
 	/* Check status of 'QE' bit, update if required. */
 	stfsm_read_status(fsm, SPINOR_OP_RDSR, &sta, 1);
 	data_pads = ((fsm->stfsm_seq_read.seq_cfg >> 16) & 0x3) + 1;
-	if (data_pads == 4) {
-		if (!(sta & MX25_STATUS_QE)) {
+
+	if (data_pads == 4)
+	{
+		if (!(sta & MX25_STATUS_QE))
+		{
 			/* Set 'QE' */
 			sta |= MX25_STATUS_QE;
 
 			stfsm_write_status(fsm, SPINOR_OP_WRSR, sta, 1, 1);
 		}
-	} else {
-		if (sta & MX25_STATUS_QE) {
+	}
+	else
+	{
+		if (sta & MX25_STATUS_QE)
+		{
 			/* Clear 'QE' */
 			sta &= ~MX25_STATUS_QE;
 
@@ -1218,24 +1336,28 @@ static int stfsm_n25q_config(struct stfsm *fsm)
 	/* Configure 'READ' sequence */
 	if (flags & FLASH_FLAG_32BIT_ADDR)
 		ret = stfsm_search_prepare_rw_seq(fsm, &fsm->stfsm_seq_read,
-						  n25q_read4_configs);
+										  n25q_read4_configs);
 	else
 		ret = stfsm_search_prepare_rw_seq(fsm, &fsm->stfsm_seq_read,
-						  n25q_read3_configs);
-	if (ret) {
+										  n25q_read3_configs);
+
+	if (ret)
+	{
 		dev_err(fsm->dev,
-			"failed to prepare READ sequence with flags [0x%08x]\n",
-			flags);
+				"failed to prepare READ sequence with flags [0x%08x]\n",
+				flags);
 		return ret;
 	}
 
 	/* Configure 'WRITE' sequence (default configs) */
 	ret = stfsm_search_prepare_rw_seq(fsm, &fsm->stfsm_seq_write,
-					  default_write_configs);
-	if (ret) {
+									  default_write_configs);
+
+	if (ret)
+	{
 		dev_err(fsm->dev,
-			"preparing WRITE sequence using flags [0x%08x] failed\n",
-			flags);
+				"preparing WRITE sequence using flags [0x%08x] failed\n",
+				flags);
 		return ret;
 	}
 
@@ -1243,23 +1365,28 @@ static int stfsm_n25q_config(struct stfsm *fsm)
 	stfsm_prepare_erasesec_seq(fsm, &stfsm_seq_erase_sector);
 
 	/* Configure 32-bit address support */
-	if (flags & FLASH_FLAG_32BIT_ADDR) {
+	if (flags & FLASH_FLAG_32BIT_ADDR)
+	{
 		stfsm_n25q_en_32bit_addr_seq(&fsm->stfsm_seq_en_32bit_addr);
 
 		soc_reset = stfsm_can_handle_soc_reset(fsm);
-		if (soc_reset || !fsm->booted_from_spi) {
+
+		if (soc_reset || !fsm->booted_from_spi)
+		{
 			/*
 			 * If we can handle SoC resets, we enable 32-bit
 			 * address mode pervasively
 			 */
 			stfsm_enter_32bit_addr(fsm, 1);
-		} else {
+		}
+		else
+		{
 			/*
 			 * If not, enable/disable for WRITE and ERASE
 			 * operations (READ uses special commands)
 			 */
 			fsm->configuration = (CFG_WRITE_TOGGLE_32BIT_ADDR |
-					      CFG_ERASESEC_TOGGLE_32BIT_ADDR);
+								  CFG_ERASESEC_TOGGLE_32BIT_ADDR);
 		}
 	}
 
@@ -1267,7 +1394,7 @@ static int stfsm_n25q_config(struct stfsm *fsm)
 	 * Configure device to use 8 dummy cycles
 	 */
 	vcr = (N25Q_VCR_DUMMY_CYCLES(8) | N25Q_VCR_XIP_DISABLED |
-	       N25Q_VCR_WRAP_CONT);
+		   N25Q_VCR_WRAP_CONT);
 	stfsm_write_status(fsm, N25Q_CMD_WRVCR, vcr, 1, 0);
 
 	return 0;
@@ -1276,28 +1403,29 @@ static int stfsm_n25q_config(struct stfsm *fsm)
 static void stfsm_s25fl_prepare_erasesec_seq_32(struct stfsm_seq *seq)
 {
 	seq->seq_opc[1] = (SEQ_OPC_PADS_1 |
-			   SEQ_OPC_CYCLES(8) |
-			   SEQ_OPC_OPCODE(S25FL_CMD_SE4));
+					   SEQ_OPC_CYCLES(8) |
+					   SEQ_OPC_OPCODE(S25FL_CMD_SE4));
 
 	seq->addr_cfg = (ADR_CFG_CYCLES_ADD1(16) |
-			 ADR_CFG_PADS_1_ADD1 |
-			 ADR_CFG_CYCLES_ADD2(16) |
-			 ADR_CFG_PADS_1_ADD2 |
-			 ADR_CFG_CSDEASSERT_ADD2);
+					 ADR_CFG_PADS_1_ADD1 |
+					 ADR_CFG_CYCLES_ADD2(16) |
+					 ADR_CFG_PADS_1_ADD2 |
+					 ADR_CFG_CSDEASSERT_ADD2);
 }
 
 static void stfsm_s25fl_read_dyb(struct stfsm *fsm, uint32_t offs, uint8_t *dby)
 {
 	uint32_t tmp;
-	struct stfsm_seq seq = {
+	struct stfsm_seq seq =
+	{
 		.data_size = TRANSFER_SIZE(4),
 		.seq_opc[0] = (SEQ_OPC_PADS_1 |
-			       SEQ_OPC_CYCLES(8) |
-			       SEQ_OPC_OPCODE(S25FL_CMD_DYBRD)),
+		SEQ_OPC_CYCLES(8) |
+		SEQ_OPC_OPCODE(S25FL_CMD_DYBRD)),
 		.addr_cfg = (ADR_CFG_CYCLES_ADD1(16) |
-			     ADR_CFG_PADS_1_ADD1 |
-			     ADR_CFG_CYCLES_ADD2(16) |
-			     ADR_CFG_PADS_1_ADD2),
+		ADR_CFG_PADS_1_ADD1 |
+		ADR_CFG_CYCLES_ADD2(16) |
+		ADR_CFG_PADS_1_ADD2),
 		.addr1 = (offs >> 16) & 0xffff,
 		.addr2 = offs & 0xffff,
 		.seq = {
@@ -1308,9 +1436,9 @@ static void stfsm_s25fl_read_dyb(struct stfsm *fsm, uint32_t offs, uint8_t *dby)
 			STFSM_INST_STOP,
 		},
 		.seq_cfg = (SEQ_CFG_PADS_1 |
-			    SEQ_CFG_READNOTWRITE |
-			    SEQ_CFG_CSDEASSERT |
-			    SEQ_CFG_STARTSEQ),
+		SEQ_CFG_READNOTWRITE |
+		SEQ_CFG_CSDEASSERT |
+		SEQ_CFG_STARTSEQ),
 	};
 
 	stfsm_load_seq(fsm, &seq);
@@ -1324,16 +1452,17 @@ static void stfsm_s25fl_read_dyb(struct stfsm *fsm, uint32_t offs, uint8_t *dby)
 
 static void stfsm_s25fl_write_dyb(struct stfsm *fsm, uint32_t offs, uint8_t dby)
 {
-	struct stfsm_seq seq = {
+	struct stfsm_seq seq =
+	{
 		.seq_opc[0] = (SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) |
-			       SEQ_OPC_OPCODE(SPINOR_OP_WREN) |
-			       SEQ_OPC_CSDEASSERT),
+		SEQ_OPC_OPCODE(SPINOR_OP_WREN) |
+		SEQ_OPC_CSDEASSERT),
 		.seq_opc[1] = (SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) |
-			       SEQ_OPC_OPCODE(S25FL_CMD_DYBWR)),
+		SEQ_OPC_OPCODE(S25FL_CMD_DYBWR)),
 		.addr_cfg = (ADR_CFG_CYCLES_ADD1(16) |
-			     ADR_CFG_PADS_1_ADD1 |
-			     ADR_CFG_CYCLES_ADD2(16) |
-			     ADR_CFG_PADS_1_ADD2),
+		ADR_CFG_PADS_1_ADD1 |
+		ADR_CFG_CYCLES_ADD2(16) |
+		ADR_CFG_PADS_1_ADD2),
 		.status = (uint32_t)dby | STA_PADS_1 | STA_CSDEASSERT,
 		.addr1 = (offs >> 16) & 0xffff,
 		.addr2 = offs & 0xffff,
@@ -1346,9 +1475,9 @@ static void stfsm_s25fl_write_dyb(struct stfsm *fsm, uint32_t offs, uint8_t dby)
 			STFSM_INST_STOP,
 		},
 		.seq_cfg = (SEQ_CFG_PADS_1 |
-			    SEQ_CFG_READNOTWRITE |
-			    SEQ_CFG_CSDEASSERT |
-			    SEQ_CFG_STARTSEQ),
+		SEQ_CFG_READNOTWRITE |
+		SEQ_CFG_CSDEASSERT |
+		SEQ_CFG_STARTSEQ),
 	};
 
 	stfsm_load_seq(fsm, &seq);
@@ -1359,15 +1488,16 @@ static void stfsm_s25fl_write_dyb(struct stfsm *fsm, uint32_t offs, uint8_t dby)
 
 static int stfsm_s25fl_clear_status_reg(struct stfsm *fsm)
 {
-	struct stfsm_seq seq = {
+	struct stfsm_seq seq =
+	{
 		.seq_opc[0] = (SEQ_OPC_PADS_1 |
-			       SEQ_OPC_CYCLES(8) |
-			       SEQ_OPC_OPCODE(S25FL_CMD_CLSR) |
-			       SEQ_OPC_CSDEASSERT),
+		SEQ_OPC_CYCLES(8) |
+		SEQ_OPC_OPCODE(S25FL_CMD_CLSR) |
+		SEQ_OPC_CSDEASSERT),
 		.seq_opc[1] = (SEQ_OPC_PADS_1 |
-			       SEQ_OPC_CYCLES(8) |
-			       SEQ_OPC_OPCODE(SPINOR_OP_WRDI) |
-			       SEQ_OPC_CSDEASSERT),
+		SEQ_OPC_CYCLES(8) |
+		SEQ_OPC_OPCODE(SPINOR_OP_WRDI) |
+		SEQ_OPC_CSDEASSERT),
 		.seq = {
 			STFSM_INST_CMD1,
 			STFSM_INST_CMD2,
@@ -1375,10 +1505,10 @@ static int stfsm_s25fl_clear_status_reg(struct stfsm *fsm)
 			STFSM_INST_STOP,
 		},
 		.seq_cfg = (SEQ_CFG_PADS_1 |
-			    SEQ_CFG_ERASE |
-			    SEQ_CFG_READNOTWRITE |
-			    SEQ_CFG_CSDEASSERT |
-			    SEQ_CFG_STARTSEQ),
+		SEQ_CFG_ERASE |
+		SEQ_CFG_READNOTWRITE |
+		SEQ_CFG_CSDEASSERT |
+		SEQ_CFG_STARTSEQ),
 	};
 
 	stfsm_load_seq(fsm, &seq);
@@ -1399,28 +1529,40 @@ static int stfsm_s25fl_config(struct stfsm *fsm)
 	int update_sr = 0;
 	int ret;
 
-	if (flags & FLASH_FLAG_32BIT_ADDR) {
+	if (flags & FLASH_FLAG_32BIT_ADDR)
+	{
 		/*
 		 * Prepare Read/Write/Erase sequences according to S25FLxxx
 		 * 32-bit address command set
 		 */
 		ret = stfsm_search_prepare_rw_seq(fsm, &fsm->stfsm_seq_read,
-						  stfsm_s25fl_read4_configs);
+										  stfsm_s25fl_read4_configs);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		ret = stfsm_search_prepare_rw_seq(fsm, &fsm->stfsm_seq_write,
-						  stfsm_s25fl_write4_configs);
+										  stfsm_s25fl_write4_configs);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		stfsm_s25fl_prepare_erasesec_seq_32(&stfsm_seq_erase_sector);
 
-	} else {
+	}
+	else
+	{
 		/* Use default configurations for 24-bit addressing */
 		ret = stfsm_prepare_rwe_seqs_default(fsm);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	/*
@@ -1428,41 +1570,59 @@ static int stfsm_s25fl_config(struct stfsm *fsm)
 	 * unlock sectors if necessary (some variants power-on with sectors
 	 * locked by default)
 	 */
-	if (flags & FLASH_FLAG_DYB_LOCKING) {
+	if (flags & FLASH_FLAG_DYB_LOCKING)
+	{
 		offs = 0;
-		for (offs = 0; offs < info->sector_size * info->n_sectors;) {
+
+		for (offs = 0; offs < info->sector_size * info->n_sectors;)
+		{
 			stfsm_s25fl_read_dyb(fsm, offs, &dyb);
+
 			if (dyb == 0x00)
+			{
 				stfsm_s25fl_write_dyb(fsm, offs, 0xff);
+			}
 
 			/* Handle bottom/top 4KiB parameter sectors */
 			if ((offs < info->sector_size * 2) ||
-			    (offs >= (info->sector_size - info->n_sectors * 4)))
+				(offs >= (info->sector_size - info->n_sectors * 4)))
+			{
 				offs += 0x1000;
+			}
 			else
+			{
 				offs += 0x10000;
+			}
 		}
 	}
 
 	/* Check status of 'QE' bit, update if required. */
 	stfsm_read_status(fsm, SPINOR_OP_RDSR2, &cr1, 1);
 	data_pads = ((fsm->stfsm_seq_read.seq_cfg >> 16) & 0x3) + 1;
-	if (data_pads == 4) {
-		if (!(cr1 & STFSM_S25FL_CONFIG_QE)) {
+
+	if (data_pads == 4)
+	{
+		if (!(cr1 & STFSM_S25FL_CONFIG_QE))
+		{
 			/* Set 'QE' */
 			cr1 |= STFSM_S25FL_CONFIG_QE;
 
 			update_sr = 1;
 		}
-	} else {
-		if (cr1 & STFSM_S25FL_CONFIG_QE) {
+	}
+	else
+	{
+		if (cr1 & STFSM_S25FL_CONFIG_QE)
+		{
 			/* Clear 'QE' */
 			cr1 &= ~STFSM_S25FL_CONFIG_QE;
 
 			update_sr = 1;
 		}
 	}
-	if (update_sr) {
+
+	if (update_sr)
+	{
 		stfsm_read_status(fsm, SPINOR_OP_RDSR, &sr1, 1);
 		sta_wr = ((uint16_t)cr1  << 8) | sr1;
 		stfsm_write_status(fsm, SPINOR_OP_WRSR, sta_wr, 2, 1);
@@ -1486,26 +1646,37 @@ static int stfsm_w25q_config(struct stfsm *fsm)
 	int ret;
 
 	ret = stfsm_prepare_rwe_seqs_default(fsm);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Check status of 'QE' bit, update if required. */
 	stfsm_read_status(fsm, SPINOR_OP_RDSR2, &sr2, 1);
 	data_pads = ((fsm->stfsm_seq_read.seq_cfg >> 16) & 0x3) + 1;
-	if (data_pads == 4) {
-		if (!(sr2 & W25Q_STATUS_QE)) {
+
+	if (data_pads == 4)
+	{
+		if (!(sr2 & W25Q_STATUS_QE))
+		{
 			/* Set 'QE' */
 			sr2 |= W25Q_STATUS_QE;
 			update_sr = 1;
 		}
-	} else {
-		if (sr2 & W25Q_STATUS_QE) {
+	}
+	else
+	{
+		if (sr2 & W25Q_STATUS_QE)
+		{
 			/* Clear 'QE' */
 			sr2 &= ~W25Q_STATUS_QE;
 			update_sr = 1;
 		}
 	}
-	if (update_sr) {
+
+	if (update_sr)
+	{
 		/* Write status register */
 		stfsm_read_status(fsm, SPINOR_OP_RDSR, &sr1, 1);
 		sr_wr = ((uint16_t)sr2 << 8) | sr1;
@@ -1516,7 +1687,7 @@ static int stfsm_w25q_config(struct stfsm *fsm)
 }
 
 static int stfsm_read(struct stfsm *fsm, uint8_t *buf, uint32_t size,
-		      uint32_t offset)
+					  uint32_t offset)
 {
 	struct stfsm_seq *seq = &fsm->stfsm_seq_read;
 	uint32_t data_pads;
@@ -1532,7 +1703,9 @@ static int stfsm_read(struct stfsm *fsm, uint8_t *buf, uint32_t size,
 
 	/* Enter 32-bit address mode, if required */
 	if (fsm->configuration & CFG_READ_TOGGLE_32BIT_ADDR)
+	{
 		stfsm_enter_32bit_addr(fsm, 1);
+	}
 
 	/* Must read in multiples of 32 cycles (or 32*pads/8 Bytes) */
 	data_pads = ((seq->seq_cfg >> 16) & 0x3) + 1;
@@ -1553,16 +1726,21 @@ static int stfsm_read(struct stfsm *fsm, uint8_t *buf, uint32_t size,
 	stfsm_load_seq(fsm, seq);
 
 	if (size_lb)
+	{
 		stfsm_read_fifo(fsm, (uint32_t *)p, size_lb);
+	}
 
-	if (size_mop) {
+	if (size_mop)
+	{
 		stfsm_read_fifo(fsm, tmp, read_mask + 1);
 		memcpy(p + size_lb, &tmp, size_mop);
 	}
 
 	/* Handle non-aligned buf */
 	if ((uintptr_t)buf & 0x3)
+	{
 		memcpy(buf, page_buf, size);
+	}
 
 	/* Wait for sequence to finish */
 	stfsm_wait_seq(fsm);
@@ -1571,13 +1749,15 @@ static int stfsm_read(struct stfsm *fsm, uint8_t *buf, uint32_t size,
 
 	/* Exit 32-bit address mode, if required */
 	if (fsm->configuration & CFG_READ_TOGGLE_32BIT_ADDR)
+	{
 		stfsm_enter_32bit_addr(fsm, 0);
+	}
 
 	return 0;
 }
 
 static int stfsm_write(struct stfsm *fsm, const uint8_t *buf,
-		       uint32_t size, uint32_t offset)
+					   uint32_t size, uint32_t offset)
 {
 	struct stfsm_seq *seq = &fsm->stfsm_seq_write;
 	uint32_t data_pads;
@@ -1596,17 +1776,22 @@ static int stfsm_write(struct stfsm *fsm, const uint8_t *buf,
 
 	/* Enter 32-bit address mode, if required */
 	if (fsm->configuration & CFG_WRITE_TOGGLE_32BIT_ADDR)
+	{
 		stfsm_enter_32bit_addr(fsm, 1);
+	}
 
 	/* Must write in multiples of 32 cycles (or 32*pads/8 bytes) */
 	data_pads = ((seq->seq_cfg >> 16) & 0x3) + 1;
 	write_mask = (data_pads << 2) - 1;
 
 	/* Handle non-aligned buf */
-	if ((uintptr_t)buf & 0x3) {
+	if ((uintptr_t)buf & 0x3)
+	{
 		memcpy(page_buf, buf, size);
 		p = (uint8_t *)page_buf;
-	} else {
+	}
+	else
+	{
 		p = buf;
 	}
 
@@ -1629,22 +1814,31 @@ static int stfsm_write(struct stfsm *fsm, const uint8_t *buf,
 	 * potential change of FIFO direction to complete.
 	 */
 	if (fsm->fifo_dir_delay == 0)
+	{
 		readl(fsm->base + SPI_FAST_SEQ_CFG);
+	}
 	else
+	{
 		udelay(fsm->fifo_dir_delay);
+	}
 
 
 	/* Write data to FIFO, before starting sequence (see GNBvd79593) */
-	if (size_lb) {
+	if (size_lb)
+	{
 		stfsm_write_fifo(fsm, (uint32_t *)p, size_lb);
 		p += size_lb;
 	}
 
 	/* Handle non-aligned size */
-	if (size_mop) {
+	if (size_mop)
+	{
 		memset(t, 0xff, write_mask + 1);	/* fill with 0xff's */
+
 		for (i = 0; i < size_mop; i++)
+		{
 			t[i] = *p++;
+		}
 
 		stfsm_write_fifo(fsm, tmp, write_mask + 1);
 	}
@@ -1657,12 +1851,17 @@ static int stfsm_write(struct stfsm *fsm, const uint8_t *buf,
 
 	/* Wait for completion */
 	ret = stfsm_wait_busy(fsm);
+
 	if (ret && fsm->configuration & CFG_S25FL_CHECK_ERROR_FLAGS)
+	{
 		stfsm_s25fl_clear_status_reg(fsm);
+	}
 
 	/* Exit 32-bit address mode, if required */
 	if (fsm->configuration & CFG_WRITE_TOGGLE_32BIT_ADDR)
+	{
 		stfsm_enter_32bit_addr(fsm, 0);
+	}
 
 	return 0;
 }
@@ -1672,17 +1871,18 @@ static int stfsm_write(struct stfsm *fsm, const uint8_t *buf,
  * may be any size provided it is within the physical boundaries.
  */
 static int stfsm_mtd_read(struct mtd_info *mtd, loff_t from, size_t len,
-			  size_t *retlen, u_char *buf)
+						  size_t *retlen, u_char *buf)
 {
 	struct stfsm *fsm = dev_get_drvdata(mtd->dev.parent);
 	uint32_t bytes;
 
 	dev_dbg(fsm->dev, "%s from 0x%08x, len %zd\n",
-		__func__, (u32)from, len);
+			__func__, (u32)from, len);
 
 	mutex_lock(&fsm->lock);
 
-	while (len > 0) {
+	while (len > 0)
+	{
 		bytes = min_t(size_t, len, FLASH_PAGESIZE);
 
 		stfsm_read(fsm, buf, bytes, from);
@@ -1708,7 +1908,9 @@ static int stfsm_erase_sector(struct stfsm *fsm, uint32_t offset)
 
 	/* Enter 32-bit address mode, if required */
 	if (fsm->configuration & CFG_ERASESEC_TOGGLE_32BIT_ADDR)
+	{
 		stfsm_enter_32bit_addr(fsm, 1);
+	}
 
 	seq->addr1 = (offset >> 16) & 0xffff;
 	seq->addr2 = offset & 0xffff;
@@ -1719,12 +1921,17 @@ static int stfsm_erase_sector(struct stfsm *fsm, uint32_t offset)
 
 	/* Wait for completion */
 	ret = stfsm_wait_busy(fsm);
+
 	if (ret && fsm->configuration & CFG_S25FL_CHECK_ERROR_FLAGS)
+	{
 		stfsm_s25fl_clear_status_reg(fsm);
+	}
 
 	/* Exit 32-bit address mode, if required */
 	if (fsm->configuration & CFG_ERASESEC_TOGGLE_32BIT_ADDR)
+	{
 		stfsm_enter_32bit_addr(fsm, 0);
+	}
 
 	return ret;
 }
@@ -1748,7 +1955,7 @@ static int stfsm_erase_chip(struct stfsm *fsm)
  * it is within the physical boundaries.
  */
 static int stfsm_mtd_write(struct mtd_info *mtd, loff_t to, size_t len,
-			   size_t *retlen, const u_char *buf)
+						   size_t *retlen, const u_char *buf)
 {
 	struct stfsm *fsm = dev_get_drvdata(mtd->dev.parent);
 
@@ -1764,13 +1971,17 @@ static int stfsm_mtd_write(struct mtd_info *mtd, loff_t to, size_t len,
 
 	mutex_lock(&fsm->lock);
 
-	while (len) {
+	while (len)
+	{
 		/* Write up to page boundary */
 		bytes = min_t(size_t, FLASH_PAGESIZE - page_offs, len);
 
 		ret = stfsm_write(fsm, b, bytes, to);
+
 		if (ret)
+		{
 			goto out1;
+		}
 
 		b += bytes;
 		len -= bytes;
@@ -1800,7 +2011,7 @@ static int stfsm_mtd_erase(struct mtd_info *mtd, struct erase_info *instr)
 	int ret;
 
 	dev_dbg(fsm->dev, "%s at 0x%llx, len %lld\n", __func__,
-		(long long)instr->addr, (long long)instr->len);
+			(long long)instr->addr, (long long)instr->len);
 
 	addr = instr->addr;
 	len = instr->len;
@@ -1808,15 +2019,25 @@ static int stfsm_mtd_erase(struct mtd_info *mtd, struct erase_info *instr)
 	mutex_lock(&fsm->lock);
 
 	/* Whole-chip erase? */
-	if (len == mtd->size) {
+	if (len == mtd->size)
+	{
 		ret = stfsm_erase_chip(fsm);
+
 		if (ret)
+		{
 			goto out1;
-	} else {
-		while (len) {
+		}
+	}
+	else
+	{
+		while (len)
+		{
 			ret = stfsm_erase_sector(fsm, addr);
+
 			if (ret)
+			{
 				goto out1;
+			}
 
 			addr += mtd->erasesize;
 			len -= mtd->erasesize;
@@ -1869,15 +2090,21 @@ static struct flash_info *stfsm_jedec_probe(struct stfsm *fsm)
 	ext_jedec = id[3] << 8  | id[4];
 
 	dev_dbg(fsm->dev, "JEDEC =  0x%08x [%02x %02x %02x %02x %02x]\n",
-		jedec, id[0], id[1], id[2], id[3], id[4]);
+			jedec, id[0], id[1], id[2], id[3], id[4]);
 
-	for (info = flash_types; info->name; info++) {
-		if (info->jedec_id == jedec) {
+	for (info = flash_types; info->name; info++)
+	{
+		if (info->jedec_id == jedec)
+		{
 			if (info->ext_id && info->ext_id != ext_jedec)
+			{
 				continue;
+			}
+
 			return info;
 		}
 	}
+
 	dev_err(fsm->dev, "Unrecognized JEDEC id %06x\n", jedec);
 
 	return NULL;
@@ -1888,15 +2115,22 @@ static int stfsm_set_mode(struct stfsm *fsm, uint32_t mode)
 	int ret, timeout = 10;
 
 	/* Wait for controller to accept mode change */
-	while (--timeout) {
+	while (--timeout)
+	{
 		ret = readl(fsm->base + SPI_STA_MODE_CHANGE);
+
 		if (ret & 0x1)
+		{
 			break;
+		}
+
 		udelay(1);
 	}
 
 	if (!timeout)
+	{
 		return -EBUSY;
+	}
 
 	writel(mode, fsm->base + SPI_MODESELECT);
 
@@ -1915,10 +2149,15 @@ static void stfsm_set_freq(struct stfsm *fsm, uint32_t spi_freq)
 	 * Multiple of 2, rounded up
 	 */
 	clk_div = 2 * DIV_ROUND_UP(emi_freq, 2 * spi_freq);
+
 	if (clk_div < 2)
+	{
 		clk_div = 2;
+	}
 	else if (clk_div > 128)
+	{
 		clk_div = 128;
+	}
 
 	/*
 	 * Determine a suitable delay for the IP to complete a change of
@@ -1927,14 +2166,20 @@ static void stfsm_set_freq(struct stfsm *fsm, uint32_t spi_freq)
 	 * using a 100MHz EMI clock.
 	 */
 	if (clk_div <= 4)
+	{
 		fsm->fifo_dir_delay = 0;
+	}
 	else if (clk_div <= 10)
+	{
 		fsm->fifo_dir_delay = 1;
+	}
 	else
+	{
 		fsm->fifo_dir_delay = DIV_ROUND_UP(clk_div, 10);
+	}
 
 	dev_dbg(fsm->dev, "emi_clk = %uHZ, spi_freq = %uHZ, clk_div = %u\n",
-		emi_freq, spi_freq, clk_div);
+			emi_freq, spi_freq, clk_div);
 
 	writel(clk_div, fsm->base + SPI_CLOCKDIV);
 }
@@ -1953,15 +2198,18 @@ static int stfsm_init(struct stfsm *fsm)
 
 	/* Switch to FSM */
 	ret = stfsm_set_mode(fsm, SPI_MODESELECT_FSM);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Set timing parameters */
 	writel(SPI_CFG_DEVICE_ST            |
-	       SPI_CFG_DEFAULT_MIN_CS_HIGH  |
-	       SPI_CFG_DEFAULT_CS_SETUPHOLD |
-	       SPI_CFG_DEFAULT_DATA_HOLD,
-	       fsm->base + SPI_CONFIGDATA);
+		   SPI_CFG_DEFAULT_MIN_CS_HIGH  |
+		   SPI_CFG_DEFAULT_CS_SETUPHOLD |
+		   SPI_CFG_DEFAULT_DATA_HOLD,
+		   fsm->base + SPI_CONFIGDATA);
 	writel(STFSM_DEFAULT_WR_TIME, fsm->base + SPI_STATUS_WR_TIME_REG);
 
 	/*
@@ -1991,8 +2239,11 @@ static void stfsm_fetch_platform_configs(struct platform_device *pdev)
 	fsm->booted_from_spi = true;
 
 	regmap = syscon_regmap_lookup_by_phandle(np, "st,syscfg");
+
 	if (IS_ERR(regmap))
+	{
 		goto boot_device_fail;
+	}
 
 	fsm->reset_signal = of_property_read_bool(np, "st,reset-signal");
 
@@ -2000,26 +2251,37 @@ static void stfsm_fetch_platform_configs(struct platform_device *pdev)
 
 	/* Where in the syscon the boot device information lives */
 	ret = of_property_read_u32(np, "st,boot-device-reg", &boot_device_reg);
+
 	if (ret)
+	{
 		goto boot_device_fail;
+	}
 
 	/* Boot device value when booted from SPI NOR */
 	ret = of_property_read_u32(np, "st,boot-device-spi", &boot_device_spi);
+
 	if (ret)
+	{
 		goto boot_device_fail;
+	}
 
 	ret = regmap_read(regmap, boot_device_reg, &boot_device);
+
 	if (ret)
+	{
 		goto boot_device_fail;
+	}
 
 	if (boot_device != boot_device_spi)
+	{
 		fsm->booted_from_spi = false;
+	}
 
 	return;
 
 boot_device_fail:
 	dev_warn(&pdev->dev,
-		 "failed to fetch boot device, assuming boot from SPI\n");
+			 "failed to fetch boot device, assuming boot from SPI\n");
 }
 
 static int stfsm_probe(struct platform_device *pdev)
@@ -2030,40 +2292,52 @@ static int stfsm_probe(struct platform_device *pdev)
 	struct stfsm *fsm;
 	int ret;
 
-	if (!np) {
+	if (!np)
+	{
 		dev_err(&pdev->dev, "No DT found\n");
 		return -EINVAL;
 	}
 
 	fsm = devm_kzalloc(&pdev->dev, sizeof(*fsm), GFP_KERNEL);
+
 	if (!fsm)
+	{
 		return -ENOMEM;
+	}
 
 	fsm->dev = &pdev->dev;
 
 	platform_set_drvdata(pdev, fsm);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "Resource not found\n");
 		return -ENODEV;
 	}
 
 	fsm->base = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(fsm->base)) {
+
+	if (IS_ERR(fsm->base))
+	{
 		dev_err(&pdev->dev,
-			"Failed to reserve memory region %pR\n", res);
+				"Failed to reserve memory region %pR\n", res);
 		return PTR_ERR(fsm->base);
 	}
 
 	fsm->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(fsm->clk)) {
+
+	if (IS_ERR(fsm->clk))
+	{
 		dev_err(fsm->dev, "Couldn't find EMI clock.\n");
 		return PTR_ERR(fsm->clk);
 	}
 
 	ret = clk_prepare_enable(fsm->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(fsm->dev, "Failed to enable EMI clock.\n");
 		return ret;
 	}
@@ -2071,7 +2345,9 @@ static int stfsm_probe(struct platform_device *pdev)
 	mutex_init(&fsm->lock);
 
 	ret = stfsm_init(fsm);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to initialise FSM Controller\n");
 		return ret;
 	}
@@ -2080,26 +2356,41 @@ static int stfsm_probe(struct platform_device *pdev)
 
 	/* Detect SPI FLASH device */
 	info = stfsm_jedec_probe(fsm);
+
 	if (!info)
+	{
 		return -ENODEV;
+	}
+
 	fsm->info = info;
 
 	/* Use device size to determine address width */
 	if (info->sector_size * info->n_sectors > 0x1000000)
+	{
 		info->flags |= FLASH_FLAG_32BIT_ADDR;
+	}
 
 	/*
 	 * Configure READ/WRITE/ERASE sequences according to platform and
 	 * device flags.
 	 */
-	if (info->config) {
+	if (info->config)
+	{
 		ret = info->config(fsm);
+
 		if (ret)
+		{
 			return ret;
-	} else {
+		}
+	}
+	else
+	{
 		ret = stfsm_prepare_rwe_seqs_default(fsm);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	fsm->mtd.name		= info->name;
@@ -2117,11 +2408,11 @@ static int stfsm_probe(struct platform_device *pdev)
 	fsm->mtd._erase = stfsm_mtd_erase;
 
 	dev_info(&pdev->dev,
-		"Found serial flash device: %s\n"
-		" size = %llx (%lldMiB) erasesize = 0x%08x (%uKiB)\n",
-		info->name,
-		(long long)fsm->mtd.size, (long long)(fsm->mtd.size >> 20),
-		fsm->mtd.erasesize, (fsm->mtd.erasesize >> 10));
+			 "Found serial flash device: %s\n"
+			 " size = %llx (%lldMiB) erasesize = 0x%08x (%uKiB)\n",
+			 info->name,
+			 (long long)fsm->mtd.size, (long long)(fsm->mtd.size >> 20),
+			 fsm->mtd.erasesize, (fsm->mtd.erasesize >> 10));
 
 	return mtd_device_register(&fsm->mtd, NULL, 0);
 }
@@ -2155,13 +2446,15 @@ static int stfsmfsm_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(stfsm_pm_ops, stfsmfsm_suspend, stfsmfsm_resume);
 
-static const struct of_device_id stfsm_match[] = {
+static const struct of_device_id stfsm_match[] =
+{
 	{ .compatible = "st,spi-fsm", },
 	{},
 };
 MODULE_DEVICE_TABLE(of, stfsm_match);
 
-static struct platform_driver stfsm_driver = {
+static struct platform_driver stfsm_driver =
+{
 	.probe		= stfsm_probe,
 	.remove		= stfsm_remove,
 	.driver		= {

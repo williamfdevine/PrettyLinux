@@ -18,7 +18,8 @@
 #define AR1021_MAX_X	4095
 #define AR1021_MAX_Y	4095
 
-struct ar1021_i2c {
+struct ar1021_i2c
+{
 	struct i2c_client *client;
 	struct input_dev *input;
 	u8 data[AR1021_TOCUH_PKG_SIZE];
@@ -33,13 +34,18 @@ static irqreturn_t ar1021_i2c_irq(int irq, void *dev_id)
 	int retval;
 
 	retval = i2c_master_recv(ar1021->client,
-				ar1021->data, sizeof(ar1021->data));
+							 ar1021->data, sizeof(ar1021->data));
+
 	if (retval != sizeof(ar1021->data))
+	{
 		goto out;
+	}
 
 	/* sync bit set ? */
 	if ((data[0] & 0x80) == 0)
+	{
 		goto out;
+	}
 
 	button = data[0] & BIT(0);
 	x = ((data[2] & 0x1f) << 7) | (data[1] & 0x7f);
@@ -73,24 +79,31 @@ static void ar1021_i2c_close(struct input_dev *dev)
 }
 
 static int ar1021_i2c_probe(struct i2c_client *client,
-				     const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	struct ar1021_i2c *ar1021;
 	struct input_dev *input;
 	int error;
 
-	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+	{
 		dev_err(&client->dev, "i2c_check_functionality error\n");
 		return -ENXIO;
 	}
 
 	ar1021 = devm_kzalloc(&client->dev, sizeof(*ar1021), GFP_KERNEL);
+
 	if (!ar1021)
+	{
 		return -ENOMEM;
+	}
 
 	input = devm_input_allocate_device(&client->dev);
+
 	if (!input)
+	{
 		return -ENOMEM;
+	}
 
 	ar1021->client = client;
 	ar1021->input = input;
@@ -108,12 +121,14 @@ static int ar1021_i2c_probe(struct i2c_client *client,
 	input_set_drvdata(input, ar1021);
 
 	error = devm_request_threaded_irq(&client->dev, client->irq,
-					  NULL, ar1021_i2c_irq,
-					  IRQF_TRIGGER_RISING | IRQF_ONESHOT,
-					  "ar1021_i2c", ar1021);
-	if (error) {
+									  NULL, ar1021_i2c_irq,
+									  IRQF_TRIGGER_RISING | IRQF_ONESHOT,
+									  "ar1021_i2c", ar1021);
+
+	if (error)
+	{
 		dev_err(&client->dev,
-			"Failed to enable IRQ, error: %d\n", error);
+				"Failed to enable IRQ, error: %d\n", error);
 		return error;
 	}
 
@@ -121,9 +136,11 @@ static int ar1021_i2c_probe(struct i2c_client *client,
 	disable_irq(client->irq);
 
 	error = input_register_device(ar1021->input);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&client->dev,
-			"Failed to register input device, error: %d\n", error);
+				"Failed to register input device, error: %d\n", error);
 		return error;
 	}
 
@@ -151,19 +168,22 @@ static int __maybe_unused ar1021_i2c_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(ar1021_i2c_pm, ar1021_i2c_suspend, ar1021_i2c_resume);
 
-static const struct i2c_device_id ar1021_i2c_id[] = {
+static const struct i2c_device_id ar1021_i2c_id[] =
+{
 	{ "MICROCHIP_AR1021_I2C", 0 },
 	{ },
 };
 MODULE_DEVICE_TABLE(i2c, ar1021_i2c_id);
 
-static const struct of_device_id ar1021_i2c_of_match[] = {
+static const struct of_device_id ar1021_i2c_of_match[] =
+{
 	{ .compatible = "microchip,ar1021-i2c", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, ar1021_i2c_of_match);
 
-static struct i2c_driver ar1021_i2c_driver = {
+static struct i2c_driver ar1021_i2c_driver =
+{
 	.driver	= {
 		.name	= "ar1021_i2c",
 		.pm	= &ar1021_i2c_pm,

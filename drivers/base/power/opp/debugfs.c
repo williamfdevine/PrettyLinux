@@ -24,9 +24,11 @@ static void opp_set_dev_name(const struct device *dev, char *name)
 {
 	if (dev->parent)
 		snprintf(name, NAME_MAX, "%s-%s", dev_name(dev->parent),
-			 dev_name(dev));
+				 dev_name(dev));
 	else
+	{
 		snprintf(name, NAME_MAX, "%s", dev_name(dev));
+	}
 }
 
 void opp_debug_remove_one(struct dev_pm_opp *opp)
@@ -45,46 +47,69 @@ int opp_debug_create_one(struct dev_pm_opp *opp, struct opp_table *opp_table)
 
 	/* Create per-opp directory */
 	d = debugfs_create_dir(name, pdentry);
+
 	if (!d)
+	{
 		return -ENOMEM;
+	}
 
 	if (!debugfs_create_bool("available", S_IRUGO, d, &opp->available))
+	{
 		return -ENOMEM;
+	}
 
 	if (!debugfs_create_bool("dynamic", S_IRUGO, d, &opp->dynamic))
+	{
 		return -ENOMEM;
+	}
 
 	if (!debugfs_create_bool("turbo", S_IRUGO, d, &opp->turbo))
+	{
 		return -ENOMEM;
+	}
 
 	if (!debugfs_create_bool("suspend", S_IRUGO, d, &opp->suspend))
+	{
 		return -ENOMEM;
+	}
 
 	if (!debugfs_create_ulong("rate_hz", S_IRUGO, d, &opp->rate))
+	{
 		return -ENOMEM;
+	}
 
 	if (!debugfs_create_ulong("u_volt_target", S_IRUGO, d, &opp->u_volt))
+	{
 		return -ENOMEM;
+	}
 
 	if (!debugfs_create_ulong("u_volt_min", S_IRUGO, d, &opp->u_volt_min))
+	{
 		return -ENOMEM;
+	}
 
 	if (!debugfs_create_ulong("u_volt_max", S_IRUGO, d, &opp->u_volt_max))
+	{
 		return -ENOMEM;
+	}
 
 	if (!debugfs_create_ulong("u_amp", S_IRUGO, d, &opp->u_amp))
+	{
 		return -ENOMEM;
+	}
 
 	if (!debugfs_create_ulong("clock_latency_ns", S_IRUGO, d,
-				  &opp->clock_latency_ns))
+							  &opp->clock_latency_ns))
+	{
 		return -ENOMEM;
+	}
 
 	opp->dentry = d;
 	return 0;
 }
 
 static int opp_list_debug_create_dir(struct opp_device *opp_dev,
-				     struct opp_table *opp_table)
+									 struct opp_table *opp_table)
 {
 	const struct device *dev = opp_dev->dev;
 	struct dentry *d;
@@ -93,7 +118,9 @@ static int opp_list_debug_create_dir(struct opp_device *opp_dev,
 
 	/* Create device specific directory */
 	d = debugfs_create_dir(opp_table->dentry_name, rootdir);
-	if (!d) {
+
+	if (!d)
+	{
 		dev_err(dev, "%s: Failed to create debugfs dir\n", __func__);
 		return -ENOMEM;
 	}
@@ -105,7 +132,7 @@ static int opp_list_debug_create_dir(struct opp_device *opp_dev,
 }
 
 static int opp_list_debug_create_link(struct opp_device *opp_dev,
-				      struct opp_table *opp_table)
+									  struct opp_table *opp_table)
 {
 	const struct device *dev = opp_dev->dev;
 	char name[NAME_MAX];
@@ -115,7 +142,9 @@ static int opp_list_debug_create_link(struct opp_device *opp_dev,
 
 	/* Create device specific directory link */
 	d = debugfs_create_symlink(name, rootdir, opp_table->dentry_name);
-	if (!d) {
+
+	if (!d)
+	{
 		dev_err(dev, "%s: Failed to create link\n", __func__);
 		return -ENOMEM;
 	}
@@ -138,19 +167,22 @@ static int opp_list_debug_create_link(struct opp_device *opp_dev,
  */
 int opp_debug_register(struct opp_device *opp_dev, struct opp_table *opp_table)
 {
-	if (!rootdir) {
+	if (!rootdir)
+	{
 		pr_debug("%s: Uninitialized rootdir\n", __func__);
 		return -EINVAL;
 	}
 
 	if (opp_table->dentry)
+	{
 		return opp_list_debug_create_link(opp_dev, opp_table);
+	}
 
 	return opp_list_debug_create_dir(opp_dev, opp_table);
 }
 
 static void opp_migrate_dentry(struct opp_device *opp_dev,
-			       struct opp_table *opp_table)
+							   struct opp_table *opp_table)
 {
 	struct opp_device *new_dev;
 	const struct device *dev;
@@ -158,8 +190,11 @@ static void opp_migrate_dentry(struct opp_device *opp_dev,
 
 	/* Look for next opp-dev */
 	list_for_each_entry(new_dev, &opp_table->dev_list, node)
-		if (new_dev != opp_dev)
-			break;
+
+	if (new_dev != opp_dev)
+	{
+		break;
+	}
 
 	/* new_dev is guaranteed to be valid here */
 	dev = new_dev->dev;
@@ -168,10 +203,12 @@ static void opp_migrate_dentry(struct opp_device *opp_dev,
 	opp_set_dev_name(dev, opp_table->dentry_name);
 
 	dentry = debugfs_rename(rootdir, opp_dev->dentry, rootdir,
-				opp_table->dentry_name);
-	if (!dentry) {
+							opp_table->dentry_name);
+
+	if (!dentry)
+	{
 		dev_err(dev, "%s: Failed to rename link from: %s to %s\n",
-			__func__, dev_name(opp_dev->dev), dev_name(dev));
+				__func__, dev_name(opp_dev->dev), dev_name(dev));
 		return;
 	}
 
@@ -187,14 +224,17 @@ static void opp_migrate_dentry(struct opp_device *opp_dev,
  * Dynamically removes device specific directory from debugfs 'opp' directory.
  */
 void opp_debug_unregister(struct opp_device *opp_dev,
-			  struct opp_table *opp_table)
+						  struct opp_table *opp_table)
 {
-	if (opp_dev->dentry == opp_table->dentry) {
+	if (opp_dev->dentry == opp_table->dentry)
+	{
 		/* Move the real dentry object under another device */
-		if (!list_is_singular(&opp_table->dev_list)) {
+		if (!list_is_singular(&opp_table->dev_list))
+		{
 			opp_migrate_dentry(opp_dev, opp_table);
 			goto out;
 		}
+
 		opp_table->dentry = NULL;
 	}
 
@@ -208,7 +248,9 @@ static int __init opp_debug_init(void)
 {
 	/* Create /sys/kernel/debug/opp directory */
 	rootdir = debugfs_create_dir("opp", NULL);
-	if (!rootdir) {
+
+	if (!rootdir)
+	{
 		pr_err("%s: Failed to create root directory\n", __func__);
 		return -ENOMEM;
 	}

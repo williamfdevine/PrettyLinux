@@ -123,7 +123,8 @@
 #define NUM_DMA_BUFFERS				4
 #define NUM_DMA_DESCRIPTORS			256
 
-struct hpdi_private {
+struct hpdi_private
+{
 	void __iomem *plx9080_mmio;
 	u32 *dio_buffer[NUM_DMA_BUFFERS];	/* dma buffers */
 	/* physical addresses of dma buffers */
@@ -162,24 +163,33 @@ static void gsc_hpdi_drain_dma(struct comedi_device *dev, unsigned int channel)
 
 	idx = devpriv->dma_desc_index;
 	start = le32_to_cpu(devpriv->dma_desc[idx].pci_start_addr);
+
 	/* loop until we have read all the full buffers */
 	for (desc = 0; (next < start || next >= start + devpriv->block_size) &&
-	     desc < devpriv->num_dma_descriptors; desc++) {
+		 desc < devpriv->num_dma_descriptors; desc++)
+	{
 		/* transfer data from dma buffer to comedi buffer */
 		size = devpriv->block_size / sizeof(u32);
-		if (cmd->stop_src == TRIG_COUNT) {
+
+		if (cmd->stop_src == TRIG_COUNT)
+		{
 			if (size > devpriv->dio_count)
+			{
 				size = devpriv->dio_count;
+			}
+
 			devpriv->dio_count -= size;
 		}
+
 		comedi_buf_write_samples(s, devpriv->desc_dio_buffer[idx],
-					 size);
+								 size);
 		idx++;
 		idx %= devpriv->num_dma_descriptors;
 		start = le32_to_cpu(devpriv->dma_desc[idx].pci_start_addr);
 
 		devpriv->dma_desc_index = idx;
 	}
+
 	/* XXX check for buffer overrun somehow */
 }
 
@@ -196,61 +206,81 @@ static irqreturn_t gsc_hpdi_interrupt(int irq, void *d)
 	unsigned long flags;
 
 	if (!dev->attached)
+	{
 		return IRQ_NONE;
+	}
 
 	plx_status = readl(devpriv->plx9080_mmio + PLX_REG_INTCSR);
+
 	if ((plx_status &
-	     (PLX_INTCSR_DMA0IA | PLX_INTCSR_DMA1IA | PLX_INTCSR_PLIA)) == 0)
+		 (PLX_INTCSR_DMA0IA | PLX_INTCSR_DMA1IA | PLX_INTCSR_PLIA)) == 0)
+	{
 		return IRQ_NONE;
+	}
 
 	hpdi_intr_status = readl(dev->mmio + INTERRUPT_STATUS_REG);
 	hpdi_board_status = readl(dev->mmio + BOARD_STATUS_REG);
 
 	if (hpdi_intr_status)
+	{
 		writel(hpdi_intr_status, dev->mmio + INTERRUPT_STATUS_REG);
+	}
 
 	/* spin lock makes sure no one else changes plx dma control reg */
 	spin_lock_irqsave(&dev->spinlock, flags);
 	dma0_status = readb(devpriv->plx9080_mmio + PLX_REG_DMACSR0);
-	if (plx_status & PLX_INTCSR_DMA0IA) {
+
+	if (plx_status & PLX_INTCSR_DMA0IA)
+	{
 		/* dma chan 0 interrupt */
 		writeb((dma0_status & PLX_DMACSR_ENABLE) | PLX_DMACSR_CLEARINTR,
-		       devpriv->plx9080_mmio + PLX_REG_DMACSR0);
+			   devpriv->plx9080_mmio + PLX_REG_DMACSR0);
 
 		if (dma0_status & PLX_DMACSR_ENABLE)
+		{
 			gsc_hpdi_drain_dma(dev, 0);
+		}
 	}
+
 	spin_unlock_irqrestore(&dev->spinlock, flags);
 
 	/* spin lock makes sure no one else changes plx dma control reg */
 	spin_lock_irqsave(&dev->spinlock, flags);
 	dma1_status = readb(devpriv->plx9080_mmio + PLX_REG_DMACSR1);
-	if (plx_status & PLX_INTCSR_DMA1IA) {
+
+	if (plx_status & PLX_INTCSR_DMA1IA)
+	{
 		/* XXX */ /* dma chan 1 interrupt */
 		writeb((dma1_status & PLX_DMACSR_ENABLE) | PLX_DMACSR_CLEARINTR,
-		       devpriv->plx9080_mmio + PLX_REG_DMACSR1);
+			   devpriv->plx9080_mmio + PLX_REG_DMACSR1);
 	}
+
 	spin_unlock_irqrestore(&dev->spinlock, flags);
 
 	/* clear possible plx9080 interrupt sources */
-	if (plx_status & PLX_INTCSR_LDBIA) {
+	if (plx_status & PLX_INTCSR_LDBIA)
+	{
 		/* clear local doorbell interrupt */
 		plx_bits = readl(devpriv->plx9080_mmio + PLX_REG_L2PDBELL);
 		writel(plx_bits, devpriv->plx9080_mmio + PLX_REG_L2PDBELL);
 	}
 
-	if (hpdi_board_status & RX_OVERRUN_BIT) {
+	if (hpdi_board_status & RX_OVERRUN_BIT)
+	{
 		dev_err(dev->class_dev, "rx fifo overrun\n");
 		async->events |= COMEDI_CB_ERROR;
 	}
 
-	if (hpdi_board_status & RX_UNDERRUN_BIT) {
+	if (hpdi_board_status & RX_UNDERRUN_BIT)
+	{
 		dev_err(dev->class_dev, "rx fifo underrun\n");
 		async->events |= COMEDI_CB_ERROR;
 	}
 
 	if (devpriv->dio_count == 0)
+	{
 		async->events |= COMEDI_CB_EOA;
+	}
 
 	comedi_handle_events(dev, s);
 
@@ -271,7 +301,7 @@ static void gsc_hpdi_abort_dma(struct comedi_device *dev, unsigned int channel)
 }
 
 static int gsc_hpdi_cancel(struct comedi_device *dev,
-			   struct comedi_subdevice *s)
+						   struct comedi_subdevice *s)
 {
 	writel(0, dev->mmio + BOARD_CONTROL_REG);
 	writel(0, dev->mmio + INTERRUPT_CONTROL_REG);
@@ -282,7 +312,7 @@ static int gsc_hpdi_cancel(struct comedi_device *dev,
 }
 
 static int gsc_hpdi_cmd(struct comedi_device *dev,
-			struct comedi_subdevice *s)
+						struct comedi_subdevice *s)
 {
 	struct hpdi_private *devpriv = dev->private;
 	struct comedi_async *async = s->async;
@@ -291,7 +321,9 @@ static int gsc_hpdi_cmd(struct comedi_device *dev,
 	u32 bits;
 
 	if (s->io_bits)
+	{
 		return -EINVAL;
+	}
 
 	writel(RX_FIFO_RESET_BIT, dev->mmio + BOARD_CONTROL_REG);
 
@@ -311,19 +343,23 @@ static int gsc_hpdi_cmd(struct comedi_device *dev,
 
 	/* give location of first dma descriptor */
 	bits = devpriv->dma_desc_phys_addr | PLX_DMADPR_DESCPCI |
-	       PLX_DMADPR_TCINTR | PLX_DMADPR_XFERL2P;
+		   PLX_DMADPR_TCINTR | PLX_DMADPR_XFERL2P;
 	writel(bits, devpriv->plx9080_mmio + PLX_REG_DMADPR0);
 
 	/* enable dma transfer */
 	spin_lock_irqsave(&dev->spinlock, flags);
 	writeb(PLX_DMACSR_ENABLE | PLX_DMACSR_START | PLX_DMACSR_CLEARINTR,
-	       devpriv->plx9080_mmio + PLX_REG_DMACSR0);
+		   devpriv->plx9080_mmio + PLX_REG_DMACSR0);
 	spin_unlock_irqrestore(&dev->spinlock, flags);
 
 	if (cmd->stop_src == TRIG_COUNT)
+	{
 		devpriv->dio_count = cmd->stop_arg;
+	}
 	else
+	{
 		devpriv->dio_count = 1;
+	}
 
 	/* clear over/under run status flags */
 	writel(RX_UNDERRUN_BIT | RX_OVERRUN_BIT, dev->mmio + BOARD_STATUS_REG);
@@ -337,17 +373,19 @@ static int gsc_hpdi_cmd(struct comedi_device *dev,
 }
 
 static int gsc_hpdi_check_chanlist(struct comedi_device *dev,
-				   struct comedi_subdevice *s,
-				   struct comedi_cmd *cmd)
+								   struct comedi_subdevice *s,
+								   struct comedi_cmd *cmd)
 {
 	int i;
 
-	for (i = 0; i < cmd->chanlist_len; i++) {
+	for (i = 0; i < cmd->chanlist_len; i++)
+	{
 		unsigned int chan = CR_CHAN(cmd->chanlist[i]);
 
-		if (chan != i) {
+		if (chan != i)
+		{
 			dev_dbg(dev->class_dev,
-				"chanlist must be ch 0 to 31 in order\n");
+					"chanlist must be ch 0 to 31 in order\n");
 			return -EINVAL;
 		}
 	}
@@ -356,13 +394,15 @@ static int gsc_hpdi_check_chanlist(struct comedi_device *dev,
 }
 
 static int gsc_hpdi_cmd_test(struct comedi_device *dev,
-			     struct comedi_subdevice *s,
-			     struct comedi_cmd *cmd)
+							 struct comedi_subdevice *s,
+							 struct comedi_cmd *cmd)
 {
 	int err = 0;
 
 	if (s->io_bits)
+	{
 		return -EINVAL;
+	}
 
 	/* Step 1 : check if triggers are trivially valid */
 
@@ -373,7 +413,9 @@ static int gsc_hpdi_cmd_test(struct comedi_device *dev,
 	err |= comedi_check_trigger_src(&cmd->stop_src, TRIG_COUNT | TRIG_NONE);
 
 	if (err)
+	{
 		return 1;
+	}
 
 	/* Step 2a : make sure trigger sources are unique */
 
@@ -382,75 +424,99 @@ static int gsc_hpdi_cmd_test(struct comedi_device *dev,
 	/* Step 2b : and mutually compatible */
 
 	if (err)
+	{
 		return 2;
+	}
 
 	/* Step 3: check if arguments are trivially valid */
 
 	err |= comedi_check_trigger_arg_is(&cmd->start_arg, 0);
 
-	if (!cmd->chanlist_len || !cmd->chanlist) {
+	if (!cmd->chanlist_len || !cmd->chanlist)
+	{
 		cmd->chanlist_len = 32;
 		err |= -EINVAL;
 	}
+
 	err |= comedi_check_trigger_arg_is(&cmd->scan_end_arg,
-					   cmd->chanlist_len);
+									   cmd->chanlist_len);
 
 	if (cmd->stop_src == TRIG_COUNT)
+	{
 		err |= comedi_check_trigger_arg_min(&cmd->stop_arg, 1);
+	}
 	else	/* TRIG_NONE */
+	{
 		err |= comedi_check_trigger_arg_is(&cmd->stop_arg, 0);
+	}
 
 	if (err)
+	{
 		return 3;
+	}
 
 	/* Step 4: fix up any arguments */
 
 	/* Step 5: check channel list if it exists */
 
 	if (cmd->chanlist && cmd->chanlist_len > 0)
+	{
 		err |= gsc_hpdi_check_chanlist(dev, s, cmd);
+	}
 
 	if (err)
+	{
 		return 5;
+	}
 
 	return 0;
 }
 
 /* setup dma descriptors so a link completes every 'len' bytes */
 static int gsc_hpdi_setup_dma_descriptors(struct comedi_device *dev,
-					  unsigned int len)
+		unsigned int len)
 {
 	struct hpdi_private *devpriv = dev->private;
 	dma_addr_t phys_addr = devpriv->dma_desc_phys_addr;
 	u32 next_bits = PLX_DMADPR_DESCPCI | PLX_DMADPR_TCINTR |
-			PLX_DMADPR_XFERL2P;
+					PLX_DMADPR_XFERL2P;
 	unsigned int offset = 0;
 	unsigned int idx = 0;
 	unsigned int i;
 
 	if (len > DMA_BUFFER_SIZE)
+	{
 		len = DMA_BUFFER_SIZE;
-	len -= len % sizeof(u32);
-	if (len == 0)
-		return -EINVAL;
+	}
 
-	for (i = 0; i < NUM_DMA_DESCRIPTORS && idx < NUM_DMA_BUFFERS; i++) {
+	len -= len % sizeof(u32);
+
+	if (len == 0)
+	{
+		return -EINVAL;
+	}
+
+	for (i = 0; i < NUM_DMA_DESCRIPTORS && idx < NUM_DMA_BUFFERS; i++)
+	{
 		devpriv->dma_desc[i].pci_start_addr =
-		    cpu_to_le32(devpriv->dio_buffer_phys_addr[idx] + offset);
+			cpu_to_le32(devpriv->dio_buffer_phys_addr[idx] + offset);
 		devpriv->dma_desc[i].local_start_addr = cpu_to_le32(FIFO_REG);
 		devpriv->dma_desc[i].transfer_size = cpu_to_le32(len);
 		devpriv->dma_desc[i].next = cpu_to_le32((phys_addr +
-			(i + 1) * sizeof(devpriv->dma_desc[0])) | next_bits);
+												(i + 1) * sizeof(devpriv->dma_desc[0])) | next_bits);
 
 		devpriv->desc_dio_buffer[i] = devpriv->dio_buffer[idx] +
-					      (offset / sizeof(u32));
+									  (offset / sizeof(u32));
 
 		offset += len;
-		if (len + offset > DMA_BUFFER_SIZE) {
+
+		if (len + offset > DMA_BUFFER_SIZE)
+		{
 			offset = 0;
 			idx++;
 		}
 	}
+
 	devpriv->num_dma_descriptors = i;
 	/* fix last descriptor to point back to first */
 	devpriv->dma_desc[i - 1].next = cpu_to_le32(phys_addr | next_bits);
@@ -461,25 +527,34 @@ static int gsc_hpdi_setup_dma_descriptors(struct comedi_device *dev,
 }
 
 static int gsc_hpdi_dio_insn_config(struct comedi_device *dev,
-				    struct comedi_subdevice *s,
-				    struct comedi_insn *insn,
-				    unsigned int *data)
+									struct comedi_subdevice *s,
+									struct comedi_insn *insn,
+									unsigned int *data)
 {
 	int ret;
 
-	switch (data[0]) {
-	case INSN_CONFIG_BLOCK_SIZE:
-		ret = gsc_hpdi_setup_dma_descriptors(dev, data[1]);
-		if (ret)
-			return ret;
+	switch (data[0])
+	{
+		case INSN_CONFIG_BLOCK_SIZE:
+			ret = gsc_hpdi_setup_dma_descriptors(dev, data[1]);
 
-		data[1] = ret;
-		break;
-	default:
-		ret = comedi_dio_insn_config(dev, s, insn, data, 0xffffffff);
-		if (ret)
-			return ret;
-		break;
+			if (ret)
+			{
+				return ret;
+			}
+
+			data[1] = ret;
+			break;
+
+		default:
+			ret = comedi_dio_insn_config(dev, s, insn, data, 0xffffffff);
+
+			if (ret)
+			{
+				return ret;
+			}
+
+			break;
 	}
 
 	return insn->n;
@@ -492,23 +567,27 @@ static void gsc_hpdi_free_dma(struct comedi_device *dev)
 	int i;
 
 	if (!devpriv)
+	{
 		return;
+	}
 
 	/* free pci dma buffers */
-	for (i = 0; i < NUM_DMA_BUFFERS; i++) {
+	for (i = 0; i < NUM_DMA_BUFFERS; i++)
+	{
 		if (devpriv->dio_buffer[i])
 			dma_free_coherent(&pcidev->dev,
-					  DMA_BUFFER_SIZE,
-					  devpriv->dio_buffer[i],
-					  devpriv->dio_buffer_phys_addr[i]);
+							  DMA_BUFFER_SIZE,
+							  devpriv->dio_buffer[i],
+							  devpriv->dio_buffer_phys_addr[i]);
 	}
+
 	/* free dma descriptors */
 	if (devpriv->dma_desc)
 		dma_free_coherent(&pcidev->dev,
-				  sizeof(struct plx_dma_desc) *
-				  NUM_DMA_DESCRIPTORS,
-				  devpriv->dma_desc,
-				  devpriv->dma_desc_phys_addr);
+						  sizeof(struct plx_dma_desc) *
+						  NUM_DMA_DESCRIPTORS,
+						  devpriv->dma_desc,
+						  devpriv->dma_desc_phys_addr);
 }
 
 static int gsc_hpdi_init(struct comedi_device *dev)
@@ -521,22 +600,22 @@ static int gsc_hpdi_init(struct comedi_device *dev)
 	usleep_range(10, 1000);
 
 	writel(ALMOST_EMPTY_BITS(32) | ALMOST_FULL_BITS(32),
-	       dev->mmio + RX_PROG_ALMOST_REG);
+		   dev->mmio + RX_PROG_ALMOST_REG);
 	writel(ALMOST_EMPTY_BITS(32) | ALMOST_FULL_BITS(32),
-	       dev->mmio + TX_PROG_ALMOST_REG);
+		   dev->mmio + TX_PROG_ALMOST_REG);
 
 	devpriv->tx_fifo_size = readl(dev->mmio + TX_FIFO_SIZE_REG) &
-				FIFO_SIZE_MASK;
+							FIFO_SIZE_MASK;
 	devpriv->rx_fifo_size = readl(dev->mmio + RX_FIFO_SIZE_REG) &
-				FIFO_SIZE_MASK;
+							FIFO_SIZE_MASK;
 
 	writel(0, dev->mmio + INTERRUPT_CONTROL_REG);
 
 	/* enable interrupts */
 	plx_intcsr_bits =
-	    PLX_INTCSR_LSEABORTEN | PLX_INTCSR_LSEPARITYEN | PLX_INTCSR_PIEN |
-	    PLX_INTCSR_PLIEN | PLX_INTCSR_PABORTIEN | PLX_INTCSR_LIOEN |
-	    PLX_INTCSR_DMA0IEN;
+		PLX_INTCSR_LSEABORTEN | PLX_INTCSR_LSEPARITYEN | PLX_INTCSR_PIEN |
+		PLX_INTCSR_PLIEN | PLX_INTCSR_PABORTIEN | PLX_INTCSR_LIOEN |
+		PLX_INTCSR_DMA0IEN;
 	writel(plx_intcsr_bits, devpriv->plx9080_mmio + PLX_REG_INTCSR);
 
 	return 0;
@@ -587,7 +666,7 @@ static void gsc_hpdi_init_plx9080(struct comedi_device *dev)
 }
 
 static int gsc_hpdi_auto_attach(struct comedi_device *dev,
-				unsigned long context_unused)
+								unsigned long context_unused)
 {
 	struct pci_dev *pcidev = comedi_to_pci_dev(dev);
 	struct hpdi_private *devpriv;
@@ -598,17 +677,26 @@ static int gsc_hpdi_auto_attach(struct comedi_device *dev,
 	dev->board_name = "pci-hpdi32";
 
 	devpriv = comedi_alloc_devpriv(dev, sizeof(*devpriv));
+
 	if (!devpriv)
+	{
 		return -ENOMEM;
+	}
 
 	retval = comedi_pci_enable(dev);
+
 	if (retval)
+	{
 		return retval;
+	}
+
 	pci_set_master(pcidev);
 
 	devpriv->plx9080_mmio = pci_ioremap_bar(pcidev, 0);
 	dev->mmio = pci_ioremap_bar(pcidev, 2);
-	if (!devpriv->plx9080_mmio || !dev->mmio) {
+
+	if (!devpriv->plx9080_mmio || !dev->mmio)
+	{
 		dev_warn(dev->class_dev, "failed to remap io memory\n");
 		return -ENOMEM;
 	}
@@ -617,48 +705,60 @@ static int gsc_hpdi_auto_attach(struct comedi_device *dev,
 
 	/* get irq */
 	if (request_irq(pcidev->irq, gsc_hpdi_interrupt, IRQF_SHARED,
-			dev->board_name, dev)) {
+					dev->board_name, dev))
+	{
 		dev_warn(dev->class_dev,
-			 "unable to allocate irq %u\n", pcidev->irq);
+				 "unable to allocate irq %u\n", pcidev->irq);
 		return -EINVAL;
 	}
+
 	dev->irq = pcidev->irq;
 
 	dev_dbg(dev->class_dev, " irq %u\n", dev->irq);
 
 	/* allocate pci dma buffers */
-	for (i = 0; i < NUM_DMA_BUFFERS; i++) {
+	for (i = 0; i < NUM_DMA_BUFFERS; i++)
+	{
 		devpriv->dio_buffer[i] =
-		    dma_alloc_coherent(&pcidev->dev, DMA_BUFFER_SIZE,
-				       &devpriv->dio_buffer_phys_addr[i],
-				       GFP_KERNEL);
+			dma_alloc_coherent(&pcidev->dev, DMA_BUFFER_SIZE,
+							   &devpriv->dio_buffer_phys_addr[i],
+							   GFP_KERNEL);
 	}
+
 	/* allocate dma descriptors */
 	devpriv->dma_desc = dma_alloc_coherent(&pcidev->dev,
-					       sizeof(struct plx_dma_desc) *
-					       NUM_DMA_DESCRIPTORS,
-					       &devpriv->dma_desc_phys_addr,
-					       GFP_KERNEL);
-	if (devpriv->dma_desc_phys_addr & 0xf) {
+										   sizeof(struct plx_dma_desc) *
+										   NUM_DMA_DESCRIPTORS,
+										   &devpriv->dma_desc_phys_addr,
+										   GFP_KERNEL);
+
+	if (devpriv->dma_desc_phys_addr & 0xf)
+	{
 		dev_warn(dev->class_dev,
-			 " dma descriptors not quad-word aligned (bug)\n");
+				 " dma descriptors not quad-word aligned (bug)\n");
 		return -EIO;
 	}
 
 	retval = gsc_hpdi_setup_dma_descriptors(dev, 0x1000);
+
 	if (retval < 0)
+	{
 		return retval;
+	}
 
 	retval = comedi_alloc_subdevices(dev, 1);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	/* Digital I/O subdevice */
 	s = &dev->subdevices[0];
 	dev->read_subdev = s;
 	s->type		= COMEDI_SUBD_DIO;
 	s->subdev_flags	= SDF_READABLE | SDF_WRITABLE | SDF_LSAMPL |
-			  SDF_CMD_READ;
+					  SDF_CMD_READ;
 	s->n_chan	= 32;
 	s->len_chanlist	= 32;
 	s->maxdata	= 1;
@@ -676,20 +776,30 @@ static void gsc_hpdi_detach(struct comedi_device *dev)
 	struct hpdi_private *devpriv = dev->private;
 
 	if (dev->irq)
+	{
 		free_irq(dev->irq, dev);
-	if (devpriv) {
-		if (devpriv->plx9080_mmio) {
+	}
+
+	if (devpriv)
+	{
+		if (devpriv->plx9080_mmio)
+		{
 			writel(0, devpriv->plx9080_mmio + PLX_REG_INTCSR);
 			iounmap(devpriv->plx9080_mmio);
 		}
+
 		if (dev->mmio)
+		{
 			iounmap(dev->mmio);
+		}
 	}
+
 	comedi_pci_disable(dev);
 	gsc_hpdi_free_dma(dev);
 }
 
-static struct comedi_driver gsc_hpdi_driver = {
+static struct comedi_driver gsc_hpdi_driver =
+{
 	.driver_name	= "gsc_hpdi",
 	.module		= THIS_MODULE,
 	.auto_attach	= gsc_hpdi_auto_attach,
@@ -697,19 +807,23 @@ static struct comedi_driver gsc_hpdi_driver = {
 };
 
 static int gsc_hpdi_pci_probe(struct pci_dev *dev,
-			      const struct pci_device_id *id)
+							  const struct pci_device_id *id)
 {
 	return comedi_pci_auto_config(dev, &gsc_hpdi_driver, id->driver_data);
 }
 
-static const struct pci_device_id gsc_hpdi_pci_table[] = {
-	{ PCI_DEVICE_SUB(PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9080,
-			 PCI_VENDOR_ID_PLX, 0x2400) },
+static const struct pci_device_id gsc_hpdi_pci_table[] =
+{
+	{
+		PCI_DEVICE_SUB(PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9080,
+		PCI_VENDOR_ID_PLX, 0x2400)
+	},
 	{ 0 }
 };
 MODULE_DEVICE_TABLE(pci, gsc_hpdi_pci_table);
 
-static struct pci_driver gsc_hpdi_pci_driver = {
+static struct pci_driver gsc_hpdi_pci_driver =
+{
 	.name		= "gsc_hpdi",
 	.id_table	= gsc_hpdi_pci_table,
 	.probe		= gsc_hpdi_pci_probe,

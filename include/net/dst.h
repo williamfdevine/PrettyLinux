@@ -30,7 +30,8 @@
 
 struct sk_buff;
 
-struct dst_entry {
+struct dst_entry
+{
 	struct rcu_head		rcu_head;
 	struct dst_entry	*child;
 	struct net_device       *dev;
@@ -99,7 +100,8 @@ struct dst_entry {
 	int			__use;
 	unsigned long		lastuse;
 	struct lwtunnel_state   *lwtstate;
-	union {
+	union
+	{
 		struct dst_entry	*next;
 		struct rtable __rcu	*rt_next;
 		struct rt6_info		*rt6_next;
@@ -126,8 +128,11 @@ void __dst_destroy_metrics_generic(struct dst_entry *dst, unsigned long old);
 static inline void dst_destroy_metrics_generic(struct dst_entry *dst)
 {
 	unsigned long val = dst->_metrics;
+
 	if (!(val & DST_METRICS_READ_ONLY))
+	{
 		__dst_destroy_metrics_generic(dst, val);
+	}
 }
 
 static inline u32 *dst_metrics_write_ptr(struct dst_entry *dst)
@@ -137,7 +142,10 @@ static inline u32 *dst_metrics_write_ptr(struct dst_entry *dst)
 	BUG_ON(!p);
 
 	if (p & DST_METRICS_READ_ONLY)
+	{
 		return dst->ops->cow_metrics(dst, p);
+	}
+
 	return __DST_METRICS_PTR(p);
 }
 
@@ -145,18 +153,19 @@ static inline u32 *dst_metrics_write_ptr(struct dst_entry *dst)
  * visibility.
  */
 static inline void dst_init_metrics(struct dst_entry *dst,
-				    const u32 *src_metrics,
-				    bool read_only)
+									const u32 *src_metrics,
+									bool read_only)
 {
 	dst->_metrics = ((unsigned long) src_metrics) |
-		(read_only ? DST_METRICS_READ_ONLY : 0);
+					(read_only ? DST_METRICS_READ_ONLY : 0);
 }
 
 static inline void dst_copy_metrics(struct dst_entry *dest, const struct dst_entry *src)
 {
 	u32 *dst_metrics = dst_metrics_write_ptr(dest);
 
-	if (dst_metrics) {
+	if (dst_metrics)
+	{
 		u32 *src_metrics = DST_METRICS_PTR(src);
 
 		memcpy(dst_metrics, src_metrics, RTAX_MAX * sizeof(u32));
@@ -173,15 +182,15 @@ dst_metric_raw(const struct dst_entry *dst, const int metric)
 {
 	u32 *p = DST_METRICS_PTR(dst);
 
-	return p[metric-1];
+	return p[metric - 1];
 }
 
 static inline u32
 dst_metric(const struct dst_entry *dst, const int metric)
 {
 	WARN_ON_ONCE(metric == RTAX_HOPLIMIT ||
-		     metric == RTAX_ADVMSS ||
-		     metric == RTAX_MTU);
+				 metric == RTAX_ADVMSS ||
+				 metric == RTAX_MTU);
 	return dst_metric_raw(dst, metric);
 }
 
@@ -191,7 +200,9 @@ dst_metric_advmss(const struct dst_entry *dst)
 	u32 advmss = dst_metric_raw(dst, RTAX_ADVMSS);
 
 	if (!advmss)
+	{
 		advmss = dst->ops->default_advmss(dst);
+	}
 
 	return advmss;
 }
@@ -201,7 +212,9 @@ static inline void dst_metric_set(struct dst_entry *dst, int metric, u32 val)
 	u32 *p = dst_metrics_write_ptr(dst);
 
 	if (p)
-		p[metric-1] = val;
+	{
+		p[metric - 1] = val;
+	}
 }
 
 /* Kernel-internal feature bits that are unallocated in user space. */
@@ -237,7 +250,7 @@ dst_allfrag(const struct dst_entry *dst)
 static inline int
 dst_metric_locked(const struct dst_entry *dst, int metric)
 {
-	return dst_metric(dst, RTAX_LOCK) & (1<<metric);
+	return dst_metric(dst, RTAX_LOCK) & (1 << metric);
 }
 
 static inline void dst_hold(struct dst_entry *dst)
@@ -266,7 +279,10 @@ static inline void dst_use_noref(struct dst_entry *dst, unsigned long time)
 static inline struct dst_entry *dst_clone(struct dst_entry *dst)
 {
 	if (dst)
+	{
 		atomic_inc(&dst->__refcnt);
+	}
+
 	return dst;
 }
 
@@ -275,7 +291,9 @@ void dst_release(struct dst_entry *dst);
 static inline void refdst_drop(unsigned long refdst)
 {
 	if (!(refdst & SKB_DST_NOREF))
+	{
 		dst_release((struct dst_entry *)(refdst & SKB_DST_PTRMASK));
+	}
 }
 
 /**
@@ -286,7 +304,8 @@ static inline void refdst_drop(unsigned long refdst)
  */
 static inline void skb_dst_drop(struct sk_buff *skb)
 {
-	if (skb->_skb_refdst) {
+	if (skb->_skb_refdst)
+	{
 		refdst_drop(skb->_skb_refdst);
 		skb->_skb_refdst = 0UL;
 	}
@@ -295,8 +314,11 @@ static inline void skb_dst_drop(struct sk_buff *skb)
 static inline void __skb_dst_copy(struct sk_buff *nskb, unsigned long refdst)
 {
 	nskb->_skb_refdst = refdst;
+
 	if (!(nskb->_skb_refdst & SKB_DST_NOREF))
+	{
 		dst_clone(skb_dst(nskb));
+	}
 }
 
 static inline void skb_dst_copy(struct sk_buff *nskb, const struct sk_buff *oskb)
@@ -312,7 +334,8 @@ static inline void skb_dst_copy(struct sk_buff *nskb, const struct sk_buff *oskb
  */
 static inline void skb_dst_force(struct sk_buff *skb)
 {
-	if (skb_dst_is_noref(skb)) {
+	if (skb_dst_is_noref(skb))
+	{
 		WARN_ON(!rcu_read_lock_held());
 		skb->_skb_refdst &= ~SKB_DST_NOREF;
 		dst_clone(skb_dst(skb));
@@ -329,7 +352,10 @@ static inline void skb_dst_force(struct sk_buff *skb)
 static inline bool dst_hold_safe(struct dst_entry *dst)
 {
 	if (dst->flags & DST_NOCACHE)
+	{
 		return atomic_inc_not_zero(&dst->__refcnt);
+	}
+
 	dst_hold(dst);
 	return true;
 }
@@ -342,11 +368,14 @@ static inline bool dst_hold_safe(struct dst_entry *dst)
  */
 static inline void skb_dst_force_safe(struct sk_buff *skb)
 {
-	if (skb_dst_is_noref(skb)) {
+	if (skb_dst_is_noref(skb))
+	{
 		struct dst_entry *dst = skb_dst(skb);
 
 		if (!dst_hold_safe(dst))
+		{
 			dst = NULL;
+		}
 
 		skb->_skb_refdst = (unsigned long)dst;
 	}
@@ -363,7 +392,7 @@ static inline void skb_dst_force_safe(struct sk_buff *skb)
  *	so make some cleanups. (no accounting done)
  */
 static inline void __skb_tunnel_rx(struct sk_buff *skb, struct net_device *dev,
-				   struct net *net)
+								   struct net *net)
 {
 	skb->dev = dev;
 
@@ -387,7 +416,7 @@ static inline void __skb_tunnel_rx(struct sk_buff *skb, struct net_device *dev,
  *	Note: this accounting is not SMP safe.
  */
 static inline void skb_tunnel_rx(struct sk_buff *skb, struct net_device *dev,
-				 struct net *net)
+								 struct net *net)
 {
 	/* TODO : stats should be SMP safe */
 	dev->stats.rx_packets++;
@@ -401,8 +430,12 @@ static inline u32 dst_tclassid(const struct sk_buff *skb)
 	const struct dst_entry *dst;
 
 	dst = skb_dst(skb);
+
 	if (dst)
+	{
 		return dst->tclassid;
+	}
+
 #endif
 	return 0;
 }
@@ -413,22 +446,30 @@ static inline int dst_discard(struct sk_buff *skb)
 	return dst_discard_out(&init_net, skb->sk, skb);
 }
 void *dst_alloc(struct dst_ops *ops, struct net_device *dev, int initial_ref,
-		int initial_obsolete, unsigned short flags);
+				int initial_obsolete, unsigned short flags);
 void dst_init(struct dst_entry *dst, struct dst_ops *ops,
-	      struct net_device *dev, int initial_ref, int initial_obsolete,
-	      unsigned short flags);
+			  struct net_device *dev, int initial_ref, int initial_obsolete,
+			  unsigned short flags);
 void __dst_free(struct dst_entry *dst);
 struct dst_entry *dst_destroy(struct dst_entry *dst);
 
 static inline void dst_free(struct dst_entry *dst)
 {
 	if (dst->obsolete > 0)
+	{
 		return;
-	if (!atomic_read(&dst->__refcnt)) {
-		dst = dst_destroy(dst);
-		if (!dst)
-			return;
 	}
+
+	if (!atomic_read(&dst->__refcnt))
+	{
+		dst = dst_destroy(dst);
+
+		if (!dst)
+		{
+			return;
+		}
+	}
+
 	__dst_free(dst);
 }
 
@@ -444,24 +485,33 @@ static inline void dst_confirm(struct dst_entry *dst)
 }
 
 static inline int dst_neigh_output(struct dst_entry *dst, struct neighbour *n,
-				   struct sk_buff *skb)
+								   struct sk_buff *skb)
 {
 	const struct hh_cache *hh;
 
-	if (dst->pending_confirm) {
+	if (dst->pending_confirm)
+	{
 		unsigned long now = jiffies;
 
 		dst->pending_confirm = 0;
+
 		/* avoid dirtying neighbour */
 		if (n->confirmed != now)
+		{
 			n->confirmed = now;
+		}
 	}
 
 	hh = &n->hh;
+
 	if ((n->nud_state & NUD_CONNECTED) && hh->hh_len)
+	{
 		return neigh_hh_output(hh, skb);
+	}
 	else
+	{
 		return n->output(n, skb);
+	}
 }
 
 static inline struct neighbour *dst_neigh_lookup(const struct dst_entry *dst, const void *daddr)
@@ -471,7 +521,7 @@ static inline struct neighbour *dst_neigh_lookup(const struct dst_entry *dst, co
 }
 
 static inline struct neighbour *dst_neigh_lookup_skb(const struct dst_entry *dst,
-						     struct sk_buff *skb)
+		struct sk_buff *skb)
 {
 	struct neighbour *n =  dst->ops->neigh_lookup(dst, skb, NULL);
 	return IS_ERR(n) ? NULL : n;
@@ -480,8 +530,11 @@ static inline struct neighbour *dst_neigh_lookup_skb(const struct dst_entry *dst
 static inline void dst_link_failure(struct sk_buff *skb)
 {
 	struct dst_entry *dst = skb_dst(skb);
+
 	if (dst && dst->ops && dst->ops->link_failure)
+	{
 		dst->ops->link_failure(skb);
+	}
 }
 
 static inline void dst_set_expires(struct dst_entry *dst, int timeout)
@@ -489,10 +542,14 @@ static inline void dst_set_expires(struct dst_entry *dst, int timeout)
 	unsigned long expires = jiffies + timeout;
 
 	if (expires == 0)
+	{
 		expires = 1;
+	}
 
 	if (dst->expires == 0 || time_before(expires, dst->expires))
+	{
 		dst->expires = expires;
+	}
 }
 
 /* Output packet to network from transport.  */
@@ -510,14 +567,18 @@ static inline int dst_input(struct sk_buff *skb)
 static inline struct dst_entry *dst_check(struct dst_entry *dst, u32 cookie)
 {
 	if (dst->obsolete)
+	{
 		dst = dst->ops->check(dst, cookie);
+	}
+
 	return dst;
 }
 
 void dst_subsys_init(void);
 
 /* Flags for xfrm_lookup flags argument. */
-enum {
+enum
+{
 	XFRM_LOOKUP_ICMP = 1 << 0,
 	XFRM_LOOKUP_QUEUE = 1 << 1,
 	XFRM_LOOKUP_KEEP_DST_REF = 1 << 2,
@@ -526,19 +587,19 @@ enum {
 struct flowi;
 #ifndef CONFIG_XFRM
 static inline struct dst_entry *xfrm_lookup(struct net *net,
-					    struct dst_entry *dst_orig,
-					    const struct flowi *fl,
-					    const struct sock *sk,
-					    int flags)
+		struct dst_entry *dst_orig,
+		const struct flowi *fl,
+		const struct sock *sk,
+		int flags)
 {
 	return dst_orig;
 }
 
 static inline struct dst_entry *xfrm_lookup_route(struct net *net,
-						  struct dst_entry *dst_orig,
-						  const struct flowi *fl,
-						  const struct sock *sk,
-						  int flags)
+		struct dst_entry *dst_orig,
+		const struct flowi *fl,
+		const struct sock *sk,
+		int flags)
 {
 	return dst_orig;
 }
@@ -550,12 +611,12 @@ static inline struct xfrm_state *dst_xfrm(const struct dst_entry *dst)
 
 #else
 struct dst_entry *xfrm_lookup(struct net *net, struct dst_entry *dst_orig,
-			      const struct flowi *fl, const struct sock *sk,
-			      int flags);
+							  const struct flowi *fl, const struct sock *sk,
+							  int flags);
 
 struct dst_entry *xfrm_lookup_route(struct net *net, struct dst_entry *dst_orig,
-				    const struct flowi *fl, const struct sock *sk,
-				    int flags);
+									const struct flowi *fl, const struct sock *sk,
+									int flags);
 
 /* skb attached with this dst needs transformation if dst->xfrm is valid */
 static inline struct xfrm_state *dst_xfrm(const struct dst_entry *dst)

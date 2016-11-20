@@ -22,7 +22,8 @@
 
 #include "ispvideo.h"
 
-enum ccdc_input_entity {
+enum ccdc_input_entity
+{
 	CCDC_INPUT_NONE,
 	CCDC_INPUT_PARALLEL,
 	CCDC_INPUT_CSI2A,
@@ -36,25 +37,29 @@ enum ccdc_input_entity {
 
 #define	OMAP3ISP_CCDC_NEVENTS	16
 
-struct ispccdc_fpc {
+struct ispccdc_fpc
+{
 	void *addr;
 	dma_addr_t dma;
 	unsigned int fpnum;
 };
 
-enum ispccdc_lsc_state {
+enum ispccdc_lsc_state
+{
 	LSC_STATE_STOPPED = 0,
 	LSC_STATE_STOPPING = 1,
 	LSC_STATE_RUNNING = 2,
 	LSC_STATE_RECONFIG = 3,
 };
 
-struct ispccdc_lsc_config_req {
+struct ispccdc_lsc_config_req
+{
 	struct list_head list;
 	struct omap3isp_ccdc_lsc_config config;
 	unsigned char enable;
 
-	struct {
+	struct
+	{
 		void *addr;
 		dma_addr_t dma;
 		struct sg_table sgt;
@@ -64,7 +69,8 @@ struct ispccdc_lsc_config_req {
 /*
  * ispccdc_lsc - CCDC LSC parameters
  */
-struct ispccdc_lsc {
+struct ispccdc_lsc
+{
 	enum ispccdc_lsc_state state;
 	struct work_struct table_work;
 
@@ -127,7 +133,8 @@ struct ispccdc_lsc {
  * @running: Is the CCDC hardware running
  * @ioctl_lock: Serializes ioctl calls and LSC requests freeing
  */
-struct isp_ccdc_device {
+struct isp_ccdc_device
+{
 	struct v4l2_subdev subdev;
 	struct media_pad pads[CCDC_PADS_NUM];
 	struct v4l2_mbus_framefmt formats[CCDC_PADS_NUM];
@@ -137,10 +144,10 @@ struct isp_ccdc_device {
 	unsigned int output;
 	struct isp_video video_out;
 
-	unsigned int alaw:1,
-		     lpf:1,
-		     obclamp:1,
-		     fpc_en:1;
+	unsigned int alaw: 1,
+			 lpf: 1,
+			 obclamp: 1,
+			 fpc_en: 1;
 	struct omap3isp_ccdc_blcomp blcomp;
 	struct omap3isp_ccdc_bclamp clamp;
 	struct ispccdc_fpc fpc;
@@ -151,7 +158,7 @@ struct isp_ccdc_device {
 	bool bt656;
 	unsigned int fields;
 
-	unsigned int underrun:1;
+	unsigned int underrun: 1;
 	enum isp_pipeline_stream_state state;
 	spinlock_t lock;
 	wait_queue_head_t wait;
@@ -165,13 +172,13 @@ struct isp_device;
 int omap3isp_ccdc_init(struct isp_device *isp);
 void omap3isp_ccdc_cleanup(struct isp_device *isp);
 int omap3isp_ccdc_register_entities(struct isp_ccdc_device *ccdc,
-	struct v4l2_device *vdev);
+									struct v4l2_device *vdev);
 void omap3isp_ccdc_unregister_entities(struct isp_ccdc_device *ccdc);
 
 int omap3isp_ccdc_busy(struct isp_ccdc_device *isp_ccdc);
 int omap3isp_ccdc_isr(struct isp_ccdc_device *isp_ccdc, u32 events);
 void omap3isp_ccdc_restore_context(struct isp_device *isp);
 void omap3isp_ccdc_max_rate(struct isp_ccdc_device *ccdc,
-	unsigned int *max_rate);
+							unsigned int *max_rate);
 
 #endif	/* OMAP3_ISP_CCDC_H */

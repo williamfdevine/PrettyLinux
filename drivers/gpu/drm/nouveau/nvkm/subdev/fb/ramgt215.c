@@ -34,7 +34,8 @@
 #include <subdev/clk/gt215.h>
 #include <subdev/gpio.h>
 
-struct gt215_ramfuc {
+struct gt215_ramfuc
+{
 	struct ramfuc base;
 	struct ramfuc_reg r_0x001610;
 	struct ramfuc_reg r_0x001700;
@@ -75,8 +76,10 @@ struct gt215_ramfuc {
 	struct ramfuc_reg r_gpio[4];
 };
 
-struct gt215_ltrain {
-	enum {
+struct gt215_ltrain
+{
+	enum
+	{
 		NVA3_TRAIN_UNKNOWN,
 		NVA3_TRAIN_UNSUPPORTED,
 		NVA3_TRAIN_ONCE,
@@ -89,7 +92,8 @@ struct gt215_ltrain {
 	struct nvkm_mem *mem;
 };
 
-struct gt215_ram {
+struct gt215_ram
+{
 	struct nvkm_ram base;
 	struct gt215_ramfuc fuc;
 	struct gt215_ltrain ltrain;
@@ -101,21 +105,35 @@ gt215_link_train_calc(u32 *vals, struct gt215_ltrain *train)
 	int i, lo, hi;
 	u8 median[8], bins[4] = {0, 0, 0, 0}, bin = 0, qty = 0;
 
-	for (i = 0; i < 8; i++) {
-		for (lo = 0; lo < 0x40; lo++) {
+	for (i = 0; i < 8; i++)
+	{
+		for (lo = 0; lo < 0x40; lo++)
+		{
 			if (!(vals[lo] & 0x80000000))
+			{
 				continue;
+			}
+
 			if (vals[lo] & (0x101 << i))
+			{
 				break;
+			}
 		}
 
 		if (lo == 0x40)
+		{
 			return;
+		}
 
-		for (hi = lo + 1; hi < 0x40; hi++) {
+		for (hi = lo + 1; hi < 0x40; hi++)
+		{
 			if (!(vals[lo] & 0x80000000))
+			{
 				continue;
-			if (!(vals[hi] & (0x101 << i))) {
+			}
+
+			if (!(vals[hi] & (0x101 << i)))
+			{
 				hi--;
 				break;
 			}
@@ -127,15 +145,19 @@ gt215_link_train_calc(u32 *vals, struct gt215_ltrain *train)
 	}
 
 	/* Find the best value for 0x1111e0 */
-	for (i = 0; i < 4; i++) {
-		if (bins[i] > qty) {
+	for (i = 0; i < 4; i++)
+	{
+		if (bins[i] > qty)
+		{
 			bin = i + 3;
 			qty = bins[i];
 		}
 	}
 
 	train->r_100720 = 0;
-	for (i = 0; i < 8; i++) {
+
+	for (i = 0; i < 8; i++)
+	{
 		median[i] = max(median[i], (u8) (bin << 4));
 		median[i] = min(median[i], (u8) ((bin << 4) | 0xf));
 
@@ -167,18 +189,25 @@ gt215_link_train(struct gt215_ram *ram)
 	unsigned long *f = &flags;
 
 	if (nvkm_boolopt(device->cfgopt, "NvMemExec", true) != true)
+	{
 		return -ENOSYS;
+	}
 
 	/* XXX: Multiple partitions? */
 	result = kmalloc(64 * sizeof(u32), GFP_KERNEL);
+
 	if (!result)
+	{
 		return -ENOMEM;
+	}
 
 	train->state = NVA3_TRAIN_EXEC;
 
 	/* Clock speeds for training and back */
 	nvbios_M0205Tp(bios, &ver, &hdr, &cnt, &len, &snr, &ssz, &M0205T);
-	if (M0205T.freq == 0) {
+
+	if (M0205T.freq == 0)
+	{
 		kfree(result);
 		return -ENOENT;
 	}
@@ -186,13 +215,19 @@ gt215_link_train(struct gt215_ram *ram)
 	clk_current = nvkm_clk_read(clk, nv_clk_src_mem);
 
 	ret = gt215_clk_pre(clk, f);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/* First: clock up/down */
 	ret = ram->base.func->calc(&ram->base, (u32) M0205T.freq * 1000);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	/* Do this *after* calc, eliminates write in script */
 	nvkm_wr32(device, 0x111400, 0x00000000);
@@ -243,12 +278,16 @@ gt215_link_train(struct gt215_ram *ram)
 	gt215_clk_post(clk, f);
 
 	ram_train_result(ram->base.fb, result, 64);
+
 	for (i = 0; i < 64; i++)
+	{
 		nvkm_debug(subdev, "Train: %08x", result[i]);
+	}
+
 	gt215_link_train_calc(result, train);
 
 	nvkm_debug(subdev, "Train: %08x %08x %08x", train->r_100720,
-		   train->r_1111e0, train->r_111400);
+			   train->r_1111e0, train->r_111400);
 
 	kfree(result);
 
@@ -257,8 +296,11 @@ gt215_link_train(struct gt215_ram *ram)
 	return ret;
 
 out:
-	if(ret == -EBUSY)
+
+	if (ret == -EBUSY)
+	{
 		f = NULL;
+	}
 
 	train->state = NVA3_TRAIN_UNSUPPORTED;
 
@@ -270,7 +312,8 @@ out:
 int
 gt215_link_train_init(struct gt215_ram *ram)
 {
-	static const u32 pattern[16] = {
+	static const u32 pattern[16] =
+	{
 		0xaaaaaaaa, 0xcccccccc, 0xdddddddd, 0xeeeeeeee,
 		0x00000000, 0x11111111, 0x44444444, 0xdddddddd,
 		0x33333333, 0x55555555, 0x77777777, 0x66666666,
@@ -290,17 +333,24 @@ gt215_link_train_init(struct gt215_ram *ram)
 	/* We support type "5"
 	 * XXX: training pattern table appears to be unused for this routine */
 	if (!nvbios_M0205Ep(bios, i, &ver, &hdr, &cnt, &len, &M0205E))
+	{
 		return -ENOENT;
+	}
 
 	if (M0205E.type != 5)
+	{
 		return 0;
+	}
 
 	train->state = NVA3_TRAIN_ONCE;
 
 	ret = ram->base.func->get(&ram->base, 0x8000, 0x10000, 0, 0x800,
-				  &ram->ltrain.mem);
+							  &ram->ltrain.mem);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	mem = ram->ltrain.mem;
 
@@ -308,12 +358,14 @@ gt215_link_train_init(struct gt215_ram *ram)
 	nvkm_wr32(device, 0x1005a8, 0x0000ffff);
 	nvkm_mask(device, 0x10f800, 0x00000001, 0x00000001);
 
-	for (i = 0; i < 0x30; i++) {
+	for (i = 0; i < 0x30; i++)
+	{
 		nvkm_wr32(device, 0x10f8c0, (i << 8) | i);
 		nvkm_wr32(device, 0x10f900, pattern[i % 16]);
 	}
 
-	for (i = 0; i < 0x30; i++) {
+	for (i = 0; i < 0x30; i++)
+	{
 		nvkm_wr32(device, 0x10f8e0, (i << 8) | i);
 		nvkm_wr32(device, 0x10f920, pattern[i % 16]);
 	}
@@ -321,10 +373,17 @@ gt215_link_train_init(struct gt215_ram *ram)
 	/* And upload the pattern */
 	r001700 = nvkm_rd32(device, 0x1700);
 	nvkm_wr32(device, 0x1700, mem->offset >> 16);
+
 	for (i = 0; i < 16; i++)
+	{
 		nvkm_wr32(device, 0x700000 + (i << 2), pattern[i]);
+	}
+
 	for (i = 0; i < 16; i++)
+	{
 		nvkm_wr32(device, 0x700100 + (i << 2), pattern[i]);
+	}
+
 	nvkm_wr32(device, 0x1700, r001700);
 
 	train->r_100720 = nvkm_rd32(device, 0x100720);
@@ -337,7 +396,9 @@ void
 gt215_link_train_fini(struct gt215_ram *ram)
 {
 	if (ram->ltrain.mem)
+	{
 		ram->base.func->put(&ram->base, &ram->ltrain.mem);
+	}
 }
 
 /*
@@ -359,13 +420,15 @@ gt215_ram_timing_calc(struct gt215_ram *ram, u32 *timing)
 	cur8 = nvkm_rd32(device, 0x100240);
 
 
-	switch ((!T(CWL)) * ram->base.type) {
-	case NVKM_RAM_TYPE_DDR2:
-		T(CWL) = T(CL) - 1;
-		break;
-	case NVKM_RAM_TYPE_GDDR3:
-		T(CWL) = ((cur2 & 0xff000000) >> 24) + 1;
-		break;
+	switch ((!T(CWL)) * ram->base.type)
+	{
+		case NVKM_RAM_TYPE_DDR2:
+			T(CWL) = T(CL) - 1;
+			break;
+
+		case NVKM_RAM_TYPE_GDDR3:
+			T(CWL) = ((cur2 & 0xff000000) >> 24) + 1;
+			break;
 	}
 
 	prevCL = (cur3 & 0x000000ff) + 1;
@@ -373,48 +436,54 @@ gt215_ram_timing_calc(struct gt215_ram *ram, u32 *timing)
 
 	timing[0] = (T(RP) << 24 | T(RAS) << 16 | T(RFC) << 8 | T(RC));
 	timing[1] = (T(WR) + 1 + T(CWL)) << 24 |
-		    max_t(u8,T(18), 1) << 16 |
-		    (T(WTR) + 1 + T(CWL)) << 8 |
-		    (5 + T(CL) - T(CWL));
+				max_t(u8, T(18), 1) << 16 |
+				(T(WTR) + 1 + T(CWL)) << 8 |
+				(5 + T(CL) - T(CWL));
 	timing[2] = (T(CWL) - 1) << 24 |
-		    (T(RRD) << 16) |
-		    (T(RCDWR) << 8) |
-		    T(RCDRD);
+				(T(RRD) << 16) |
+				(T(RCDWR) << 8) |
+				T(RCDRD);
 	timing[3] = (cur3 & 0x00ff0000) |
-		    (0x30 + T(CL)) << 24 |
-		    (0xb + T(CL)) << 8 |
-		    (T(CL) - 1);
+				(0x30 + T(CL)) << 24 |
+				(0xb + T(CL)) << 8 |
+				(T(CL) - 1);
 	timing[4] = T(20) << 24 |
-		    T(21) << 16 |
-		    T(13) << 8 |
-		    T(13);
+				T(21) << 16 |
+				T(13) << 8 |
+				T(13);
 	timing[5] = T(RFC) << 24 |
-		    max_t(u8,T(RCDRD), T(RCDWR)) << 16 |
-		    max_t(u8, (T(CWL) + 6), (T(CL) + 2)) << 8 |
-		    T(RP);
+				max_t(u8, T(RCDRD), T(RCDWR)) << 16 |
+				max_t(u8, (T(CWL) + 6), (T(CL) + 2)) << 8 |
+				T(RP);
 	timing[6] = (0x5a + T(CL)) << 16 |
-		    max_t(u8, 1, (6 - T(CL) + T(CWL))) << 8 |
-		    (0x50 + T(CL) - T(CWL));
+				max_t(u8, 1, (6 - T(CL) + T(CWL))) << 8 |
+				(0x50 + T(CL) - T(CWL));
 	timing[7] = (cur7 & 0xff000000) |
-		    ((tUNK_base + T(CL)) << 16) |
-		    0x202;
+				((tUNK_base + T(CL)) << 16) |
+				0x202;
 	timing[8] = cur8 & 0xffffff00;
 
-	switch (ram->base.type) {
-	case NVKM_RAM_TYPE_DDR2:
-	case NVKM_RAM_TYPE_GDDR3:
-		tUNK_40_0 = prevCL - (cur8 & 0xff);
-		if (tUNK_40_0 > 0)
-			timing[8] |= T(CL);
-		break;
-	default:
-		break;
+	switch (ram->base.type)
+	{
+		case NVKM_RAM_TYPE_DDR2:
+		case NVKM_RAM_TYPE_GDDR3:
+			tUNK_40_0 = prevCL - (cur8 & 0xff);
+
+			if (tUNK_40_0 > 0)
+			{
+				timing[8] |= T(CL);
+			}
+
+			break;
+
+		default:
+			break;
 	}
 
 	nvkm_debug(subdev, "Entry: 220: %08x %08x %08x %08x\n",
-		   timing[0], timing[1], timing[2], timing[3]);
+			   timing[0], timing[1], timing[2], timing[3]);
 	nvkm_debug(subdev, "  230: %08x %08x %08x %08x\n",
-		   timing[4], timing[5], timing[6], timing[7]);
+			   timing[4], timing[5], timing[6], timing[7]);
 	nvkm_debug(subdev, "  240: %08x\n", timing[8]);
 	return 0;
 }
@@ -434,7 +503,8 @@ nvkm_sddr3_dll_disable(struct gt215_ramfuc *fuc, u32 *mr)
 {
 	u32 mr1_old = ram_rd32(fuc, mr[1]);
 
-	if (!(mr1_old & 0x1)) {
+	if (!(mr1_old & 0x1))
+	{
 		ram_wr32(fuc, 0x1002d4, 0x00000001);
 		ram_wr32(fuc, mr[1], mr[1]);
 		ram_nsec(fuc, 1000);
@@ -446,7 +516,8 @@ nvkm_gddr3_dll_disable(struct gt215_ramfuc *fuc, u32 *mr)
 {
 	u32 mr1_old = ram_rd32(fuc, mr[1]);
 
-	if (!(mr1_old & 0x40)) {
+	if (!(mr1_old & 0x40))
+	{
 		ram_wr32(fuc, mr[1], mr[1]);
 		ram_nsec(fuc, 1000);
 	}
@@ -470,18 +541,28 @@ gt215_ram_gpio(struct gt215_ramfuc *fuc, u8 tag, u32 val)
 	u32 reg, sh, gpio_val;
 	int ret;
 
-	if (nvkm_gpio_get(gpio, 0, tag, DCB_GPIO_UNUSED) != val) {
+	if (nvkm_gpio_get(gpio, 0, tag, DCB_GPIO_UNUSED) != val)
+	{
 		ret = nvkm_gpio_find(gpio, 0, tag, DCB_GPIO_UNUSED, &func);
+
 		if (ret)
+		{
 			return;
+		}
 
 		reg = func.line >> 3;
 		sh = (func.line & 0x7) << 2;
 		gpio_val = ram_rd32(fuc, gpio[reg]);
+
 		if (gpio_val & (8 << sh))
+		{
 			val = !val;
+		}
+
 		if (!(func.log[1] & 1))
+		{
 			val = !val;
+		}
 
 		ram_mask(fuc, gpio[reg], (0x3 << sh), ((val | 0x2) << sh));
 		ram_nsec(fuc, 20000);
@@ -513,43 +594,56 @@ gt215_ram_calc(struct nvkm_ram *base, u32 freq)
 	ram->base.next = next;
 
 	if (ram->ltrain.state == NVA3_TRAIN_ONCE)
+	{
 		gt215_link_train(ram);
+	}
 
 	/* lookup memory config data relevant to the target frequency */
 	data = nvbios_rammapEm(bios, freq / 1000, &ver, &hdr, &cnt, &len,
-			       &next->bios);
-	if (!data || ver != 0x10 || hdr < 0x05) {
+						   &next->bios);
+
+	if (!data || ver != 0x10 || hdr < 0x05)
+	{
 		nvkm_error(subdev, "invalid/missing rammap entry\n");
 		return -EINVAL;
 	}
 
 	/* locate specific data set for the attached memory */
 	strap = nvbios_ramcfg_index(subdev);
-	if (strap >= cnt) {
+
+	if (strap >= cnt)
+	{
 		nvkm_error(subdev, "invalid ramcfg strap\n");
 		return -EINVAL;
 	}
 
 	data = nvbios_rammapSp(bios, data, ver, hdr, cnt, len, strap,
-			       &ver, &hdr, &next->bios);
-	if (!data || ver != 0x10 || hdr < 0x09) {
+						   &ver, &hdr, &next->bios);
+
+	if (!data || ver != 0x10 || hdr < 0x09)
+	{
 		nvkm_error(subdev, "invalid/missing ramcfg entry\n");
 		return -EINVAL;
 	}
 
 	/* lookup memory timings, if bios says they're present */
-	if (next->bios.ramcfg_timing != 0xff) {
+	if (next->bios.ramcfg_timing != 0xff)
+	{
 		data = nvbios_timingEp(bios, next->bios.ramcfg_timing,
-				       &ver, &hdr, &cnt, &len,
-				       &next->bios);
-		if (!data || ver != 0x10 || hdr < 0x17) {
+							   &ver, &hdr, &cnt, &len,
+							   &next->bios);
+
+		if (!data || ver != 0x10 || hdr < 0x17)
+		{
 			nvkm_error(subdev, "invalid/missing timing entry\n");
 			return -EINVAL;
 		}
 	}
 
 	ret = gt215_pll_info(device->clk, 0x12, 0x4000, freq, &mclk);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		nvkm_error(subdev, "failed mclk calculation\n");
 		return ret;
 	}
@@ -557,62 +651,81 @@ gt215_ram_calc(struct nvkm_ram *base, u32 freq)
 	gt215_ram_timing_calc(ram, timing);
 
 	ret = ram_init(fuc, ram->base.fb);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Determine ram-specific MR values */
 	ram->base.mr[0] = ram_rd32(fuc, mr[0]);
 	ram->base.mr[1] = ram_rd32(fuc, mr[1]);
 	ram->base.mr[2] = ram_rd32(fuc, mr[2]);
 
-	switch (ram->base.type) {
-	case NVKM_RAM_TYPE_DDR2:
-		ret = nvkm_sddr2_calc(&ram->base);
-		break;
-	case NVKM_RAM_TYPE_DDR3:
-		ret = nvkm_sddr3_calc(&ram->base);
-		break;
-	case NVKM_RAM_TYPE_GDDR3:
-		ret = nvkm_gddr3_calc(&ram->base);
-		break;
-	default:
-		ret = -ENOSYS;
-		break;
+	switch (ram->base.type)
+	{
+		case NVKM_RAM_TYPE_DDR2:
+			ret = nvkm_sddr2_calc(&ram->base);
+			break;
+
+		case NVKM_RAM_TYPE_DDR3:
+			ret = nvkm_sddr3_calc(&ram->base);
+			break;
+
+		case NVKM_RAM_TYPE_GDDR3:
+			ret = nvkm_gddr3_calc(&ram->base);
+			break;
+
+		default:
+			ret = -ENOSYS;
+			break;
 	}
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* XXX: 750MHz seems rather arbitrary */
-	if (freq <= 750000) {
+	if (freq <= 750000)
+	{
 		r004018 = 0x10000000;
 		r100760 = 0x22222222;
 		r100da0 = 0x00000010;
-	} else {
+	}
+	else
+	{
 		r004018 = 0x00000000;
 		r100760 = 0x00000000;
 		r100da0 = 0x00000000;
 	}
 
 	if (!next->bios.ramcfg_DLLoff)
+	{
 		r004018 |= 0x00004000;
+	}
 
 	/* pll2pll requires to switch to a safe clock first */
 	ctrl = ram_rd32(fuc, 0x004000);
 	pll2pll = (!(ctrl & 0x00000008)) && mclk.pll;
 
 	/* Pre, NVIDIA does this outside the script */
-	if (next->bios.ramcfg_10_02_10) {
+	if (next->bios.ramcfg_10_02_10)
+	{
 		ram_mask(fuc, 0x111104, 0x00000600, 0x00000000);
-	} else {
+	}
+	else
+	{
 		ram_mask(fuc, 0x111100, 0x40000000, 0x40000000);
 		ram_mask(fuc, 0x111104, 0x00000180, 0x00000000);
 	}
+
 	/* Always disable this bit during reclock */
 	ram_mask(fuc, 0x100200, 0x00000800, 0x00000000);
 
 	/* If switching from non-pll to pll, lock before disabling FB */
-	if (mclk.pll && !pll2pll) {
+	if (mclk.pll && !pll2pll)
+	{
 		ram_mask(fuc, 0x004128, 0x003f3141, mclk.clk | 0x00000101);
 		gt215_ram_lock_pll(fuc, &mclk);
 	}
@@ -626,25 +739,34 @@ gt215_ram_calc(struct nvkm_ram *base, u32 freq)
 	ram_block(fuc);
 	ram_nsec(fuc, 2000);
 
-	if (!next->bios.ramcfg_10_02_10) {
+	if (!next->bios.ramcfg_10_02_10)
+	{
 		if (ram->base.type == NVKM_RAM_TYPE_GDDR3)
+		{
 			ram_mask(fuc, 0x111100, 0x04020000, 0x00020000);
+		}
 		else
+		{
 			ram_mask(fuc, 0x111100, 0x04020000, 0x04020000);
+		}
 	}
 
 	/* If we're disabling the DLL, do it now */
-	switch (next->bios.ramcfg_DLLoff * ram->base.type) {
-	case NVKM_RAM_TYPE_DDR3:
-		nvkm_sddr3_dll_disable(fuc, ram->base.mr);
-		break;
-	case NVKM_RAM_TYPE_GDDR3:
-		nvkm_gddr3_dll_disable(fuc, ram->base.mr);
-		break;
+	switch (next->bios.ramcfg_DLLoff * ram->base.type)
+	{
+		case NVKM_RAM_TYPE_DDR3:
+			nvkm_sddr3_dll_disable(fuc, ram->base.mr);
+			break;
+
+		case NVKM_RAM_TYPE_GDDR3:
+			nvkm_gddr3_dll_disable(fuc, ram->base.mr);
+			break;
 	}
 
 	if (next->bios.timing_10_ODT)
+	{
 		gt215_ram_gpio(fuc, 0x2e, 1);
+	}
 
 	/* Brace RAM for impact */
 	ram_wr32(fuc, 0x1002d4, 0x00000001);
@@ -655,23 +777,33 @@ gt215_ram_calc(struct nvkm_ram *base, u32 freq)
 	ram_nsec(fuc, 2000);
 
 	if (device->chipset == 0xa3 && freq <= 500000)
+	{
 		ram_mask(fuc, 0x100700, 0x00000006, 0x00000006);
+	}
 
 	/* Alter FBVDD/Q, apparently must be done with PLL disabled, thus
 	 * set it to bypass */
 	if (nvkm_gpio_get(gpio, 0, 0x18, DCB_GPIO_UNUSED) ==
-			next->bios.ramcfg_FBVDDQ) {
+		next->bios.ramcfg_FBVDDQ)
+	{
 		data = ram_rd32(fuc, 0x004000) & 0x9;
 
 		if (data == 0x1)
+		{
 			ram_mask(fuc, 0x004000, 0x8, 0x8);
+		}
+
 		if (data & 0x1)
+		{
 			ram_mask(fuc, 0x004000, 0x1, 0x0);
+		}
 
 		gt215_ram_gpio(fuc, 0x18, !next->bios.ramcfg_FBVDDQ);
 
 		if (data & 0x1)
+		{
 			ram_mask(fuc, 0x004000, 0x1, 0x1);
+		}
 	}
 
 	/* Fiddle with clocks */
@@ -682,7 +814,8 @@ gt215_ram_calc(struct nvkm_ram *base, u32 freq)
 	 * clk->clk: Overwrite ctrl and other bits, switch */
 
 	/* Switch to regular clock - 324MHz */
-	if (pll2pll) {
+	if (pll2pll)
+	{
 		ram_mask(fuc, 0x004000, 0x00000004, 0x00000004);
 		ram_mask(fuc, 0x004168, 0x003f3141, 0x00083101);
 		ram_mask(fuc, 0x004000, 0x00000008, 0x00000008);
@@ -691,37 +824,46 @@ gt215_ram_calc(struct nvkm_ram *base, u32 freq)
 		gt215_ram_lock_pll(fuc, &mclk);
 	}
 
-	if (mclk.pll) {
+	if (mclk.pll)
+	{
 		ram_mask(fuc, 0x004000, 0x00000105, 0x00000105);
 		ram_wr32(fuc, 0x004018, 0x00001000 | r004018);
 		ram_wr32(fuc, 0x100da0, r100da0);
-	} else {
+	}
+	else
+	{
 		ram_mask(fuc, 0x004168, 0x003f3141, mclk.clk | 0x00000101);
 		ram_mask(fuc, 0x004000, 0x00000108, 0x00000008);
 		ram_mask(fuc, 0x1110e0, 0x00088000, 0x00088000);
 		ram_wr32(fuc, 0x004018, 0x00009000 | r004018);
 		ram_wr32(fuc, 0x100da0, r100da0);
 	}
+
 	ram_nsec(fuc, 20000);
 
-	if (next->bios.rammap_10_04_08) {
+	if (next->bios.rammap_10_04_08)
+	{
 		ram_wr32(fuc, 0x1005a0, next->bios.ramcfg_10_06 << 16 |
-					next->bios.ramcfg_10_05 << 8 |
-					next->bios.ramcfg_10_05);
+				 next->bios.ramcfg_10_05 << 8 |
+				 next->bios.ramcfg_10_05);
 		ram_wr32(fuc, 0x1005a4, next->bios.ramcfg_10_08 << 8 |
-					next->bios.ramcfg_10_07);
+				 next->bios.ramcfg_10_07);
 		ram_wr32(fuc, 0x10f804, next->bios.ramcfg_10_09_f0 << 20 |
-					next->bios.ramcfg_10_03_0f << 16 |
-					next->bios.ramcfg_10_09_0f |
-					0x80000000);
+				 next->bios.ramcfg_10_03_0f << 16 |
+				 next->bios.ramcfg_10_09_0f |
+				 0x80000000);
 		ram_mask(fuc, 0x10053c, 0x00001000, 0x00000000);
-	} else {
-		if (train->state == NVA3_TRAIN_DONE) {
+	}
+	else
+	{
+		if (train->state == NVA3_TRAIN_DONE)
+		{
 			ram_wr32(fuc, 0x100080, 0x1020);
 			ram_mask(fuc, 0x111400, 0xffffffff, train->r_111400);
 			ram_mask(fuc, 0x1111e0, 0xffffffff, train->r_1111e0);
 			ram_mask(fuc, 0x100720, 0xffffffff, train->r_100720);
 		}
+
 		ram_mask(fuc, 0x10053c, 0x00001000, 0x00001000);
 		ram_mask(fuc, 0x10f804, 0x80000000, 0x00000000);
 		ram_mask(fuc, 0x100760, 0x22222222, r100760);
@@ -729,12 +871,14 @@ gt215_ram_calc(struct nvkm_ram *base, u32 freq)
 		ram_mask(fuc, 0x1007e0, 0x22222222, r100760);
 	}
 
-	if (device->chipset == 0xa3 && freq > 500000) {
+	if (device->chipset == 0xa3 && freq > 500000)
+	{
 		ram_mask(fuc, 0x100700, 0x00000006, 0x00000000);
 	}
 
 	/* Final switch */
-	if (mclk.pll) {
+	if (mclk.pll)
+	{
 		ram_mask(fuc, 0x1110e0, 0x00088000, 0x00011000);
 		ram_mask(fuc, 0x004000, 0x00000008, 0x00000000);
 	}
@@ -745,8 +889,10 @@ gt215_ram_calc(struct nvkm_ram *base, u32 freq)
 	ram_nsec(fuc, 2000);
 
 	/* Set RAM MR parameters and timings */
-	for (i = 2; i >= 0; i--) {
-		if (ram_rd32(fuc, mr[i]) != ram->base.mr[i]) {
+	for (i = 2; i >= 0; i--)
+	{
+		if (ram_rd32(fuc, mr[i]) != ram->base.mr[i])
+		{
 			ram_wr32(fuc, mr[i], ram->base.mr[i]);
 			ram_nsec(fuc, 1000);
 		}
@@ -772,41 +918,64 @@ gt215_ram_calc(struct nvkm_ram *base, u32 freq)
 	r111100 = ram_rd32(fuc, 0x111100) & ~0x3a800000;
 
 	/* NVA8 seems to skip various bits related to ramcfg_10_02_04 */
-	if (device->chipset == 0xa8) {
+	if (device->chipset == 0xa8)
+	{
 		r111100 |= 0x08000000;
-		if (!next->bios.ramcfg_10_02_04)
-			unk714  |= 0x00000010;
-	} else {
-		if (next->bios.ramcfg_10_02_04) {
-			switch (ram->base.type) {
-			case NVKM_RAM_TYPE_DDR2:
-			case NVKM_RAM_TYPE_DDR3:
-				r111100 &= ~0x00000020;
-				if (next->bios.ramcfg_10_02_10)
-					r111100 |= 0x08000004;
-				else
-					r111100 |= 0x00000024;
-				break;
-			default:
-				break;
-			}
-		} else {
-			switch (ram->base.type) {
-			case NVKM_RAM_TYPE_DDR2:
-			case NVKM_RAM_TYPE_DDR3:
-				r111100 &= ~0x00000024;
-				r111100 |=  0x12800000;
 
-				if (next->bios.ramcfg_10_02_10)
-					r111100 |= 0x08000000;
-				unk714  |= 0x00000010;
-				break;
-			case NVKM_RAM_TYPE_GDDR3:
-				r111100 |= 0x30000000;
-				unk714  |= 0x00000020;
-				break;
-			default:
-				break;
+		if (!next->bios.ramcfg_10_02_04)
+		{
+			unk714  |= 0x00000010;
+		}
+	}
+	else
+	{
+		if (next->bios.ramcfg_10_02_04)
+		{
+			switch (ram->base.type)
+			{
+				case NVKM_RAM_TYPE_DDR2:
+				case NVKM_RAM_TYPE_DDR3:
+					r111100 &= ~0x00000020;
+
+					if (next->bios.ramcfg_10_02_10)
+					{
+						r111100 |= 0x08000004;
+					}
+					else
+					{
+						r111100 |= 0x00000024;
+					}
+
+					break;
+
+				default:
+					break;
+			}
+		}
+		else
+		{
+			switch (ram->base.type)
+			{
+				case NVKM_RAM_TYPE_DDR2:
+				case NVKM_RAM_TYPE_DDR3:
+					r111100 &= ~0x00000024;
+					r111100 |=  0x12800000;
+
+					if (next->bios.ramcfg_10_02_10)
+					{
+						r111100 |= 0x08000000;
+					}
+
+					unk714  |= 0x00000010;
+					break;
+
+				case NVKM_RAM_TYPE_GDDR3:
+					r111100 |= 0x30000000;
+					unk714  |= 0x00000020;
+					break;
+
+				default:
+					break;
 			}
 		}
 	}
@@ -814,17 +983,30 @@ gt215_ram_calc(struct nvkm_ram *base, u32 freq)
 	unk714 |= (next->bios.ramcfg_10_04_01) << 8;
 
 	if (next->bios.ramcfg_10_02_20)
+	{
 		unk714 |= 0xf0000000;
+	}
+
 	if (next->bios.ramcfg_10_02_02)
+	{
 		unk718 |= 0x00000100;
+	}
+
 	if (next->bios.ramcfg_10_02_01)
+	{
 		unk71c |= 0x00000100;
-	if (next->bios.timing_10_24 != 0xff) {
+	}
+
+	if (next->bios.timing_10_24 != 0xff)
+	{
 		unk718 &= ~0xf0000000;
 		unk718 |= next->bios.timing_10_24 << 28;
 	}
+
 	if (next->bios.ramcfg_10_02_10)
+	{
 		r111100 &= ~0x04020000;
+	}
 
 	ram_mask(fuc, 0x100714, 0xffffffff, unk714);
 	ram_mask(fuc, 0x10071c, 0xffffffff, unk71c);
@@ -832,19 +1014,27 @@ gt215_ram_calc(struct nvkm_ram *base, u32 freq)
 	ram_mask(fuc, 0x111100, 0xffffffff, r111100);
 
 	if (!next->bios.timing_10_ODT)
+	{
 		gt215_ram_gpio(fuc, 0x2e, 0);
+	}
 
 	/* Reset DLL */
 	if (!next->bios.ramcfg_DLLoff)
+	{
 		nvkm_sddr2_dll_reset(fuc);
+	}
 
-	if (ram->base.type == NVKM_RAM_TYPE_GDDR3) {
+	if (ram->base.type == NVKM_RAM_TYPE_GDDR3)
+	{
 		ram_nsec(fuc, 31000);
-	} else {
+	}
+	else
+	{
 		ram_nsec(fuc, 14000);
 	}
 
-	if (ram->base.type == NVKM_RAM_TYPE_DDR3) {
+	if (ram->base.type == NVKM_RAM_TYPE_DDR3)
+	{
 		ram_wr32(fuc, 0x100264, 0x1);
 		ram_nsec(fuc, 2000);
 	}
@@ -859,18 +1049,27 @@ gt215_ram_calc(struct nvkm_ram *base, u32 freq)
 
 	/* Post fiddlings */
 	if (next->bios.rammap_10_04_02)
+	{
 		ram_mask(fuc, 0x100200, 0x00000800, 0x00000800);
-	if (next->bios.ramcfg_10_02_10) {
+	}
+
+	if (next->bios.ramcfg_10_02_10)
+	{
 		ram_mask(fuc, 0x111104, 0x00000180, 0x00000180);
 		ram_mask(fuc, 0x111100, 0x40000000, 0x00000000);
-	} else {
+	}
+	else
+	{
 		ram_mask(fuc, 0x111104, 0x00000600, 0x00000600);
 	}
 
-	if (mclk.pll) {
+	if (mclk.pll)
+	{
 		ram_mask(fuc, 0x004168, 0x00000001, 0x00000000);
 		ram_mask(fuc, 0x004168, 0x00000100, 0x00000000);
-	} else {
+	}
+	else
+	{
 		ram_mask(fuc, 0x004000, 0x00000001, 0x00000000);
 		ram_mask(fuc, 0x004128, 0x00000001, 0x00000000);
 		ram_mask(fuc, 0x004128, 0x00000100, 0x00000000);
@@ -887,7 +1086,8 @@ gt215_ram_prog(struct nvkm_ram *base)
 	struct nvkm_device *device = ram->base.fb->subdev.device;
 	bool exec = nvkm_boolopt(device->cfgopt, "NvMemExec", true);
 
-	if (exec) {
+	if (exec)
+	{
 		nvkm_mask(device, 0x001534, 0x2, 0x2);
 
 		ram_exec(fuc, true);
@@ -898,9 +1098,12 @@ gt215_ram_prog(struct nvkm_ram *base)
 
 		nvkm_mask(device, 0x616308, 0x10, 0x10);
 		nvkm_mask(device, 0x616b08, 0x10, 0x10);
-	} else {
+	}
+	else
+	{
 		ram_exec(fuc, false);
 	}
+
 	return 0;
 }
 
@@ -928,7 +1131,8 @@ gt215_ram_dtor(struct nvkm_ram *base)
 }
 
 static const struct nvkm_ram_func
-gt215_ram_func = {
+	gt215_ram_func =
+{
 	.dtor = gt215_ram_dtor,
 	.init = gt215_ram_init,
 	.get = nv50_ram_get,
@@ -945,12 +1149,18 @@ gt215_ram_new(struct nvkm_fb *fb, struct nvkm_ram **pram)
 	int ret, i;
 
 	if (!(ram = kzalloc(sizeof(*ram), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	*pram = &ram->base;
 
 	ret = nv50_ram_ctor(&gt215_ram_func, fb, &ram->base);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ram->fuc.r_0x001610 = ramfuc_reg(0x001610);
 	ram->fuc.r_0x001700 = ramfuc_reg(0x001700);
@@ -963,8 +1173,12 @@ gt215_ram_new(struct nvkm_fb *fb, struct nvkm_ram **pram)
 	ram->fuc.r_0x100080 = ramfuc_reg(0x100080);
 	ram->fuc.r_0x100200 = ramfuc_reg(0x100200);
 	ram->fuc.r_0x100210 = ramfuc_reg(0x100210);
+
 	for (i = 0; i < 9; i++)
+	{
 		ram->fuc.r_0x100220[i] = ramfuc_reg(0x100220 + (i * 4));
+	}
+
 	ram->fuc.r_0x100264 = ramfuc_reg(0x100264);
 	ram->fuc.r_0x1002d0 = ramfuc_reg(0x1002d0);
 	ram->fuc.r_0x1002d4 = ramfuc_reg(0x1002d4);
@@ -989,17 +1203,21 @@ gt215_ram_new(struct nvkm_fb *fb, struct nvkm_ram **pram)
 	ram->fuc.r_0x111400 = ramfuc_reg(0x111400);
 	ram->fuc.r_0x611200 = ramfuc_reg(0x611200);
 
-	if (ram->base.ranks > 1) {
+	if (ram->base.ranks > 1)
+	{
 		ram->fuc.r_mr[0] = ramfuc_reg2(0x1002c0, 0x1002c8);
 		ram->fuc.r_mr[1] = ramfuc_reg2(0x1002c4, 0x1002cc);
 		ram->fuc.r_mr[2] = ramfuc_reg2(0x1002e0, 0x1002e8);
 		ram->fuc.r_mr[3] = ramfuc_reg2(0x1002e4, 0x1002ec);
-	} else {
+	}
+	else
+	{
 		ram->fuc.r_mr[0] = ramfuc_reg(0x1002c0);
 		ram->fuc.r_mr[1] = ramfuc_reg(0x1002c4);
 		ram->fuc.r_mr[2] = ramfuc_reg(0x1002e0);
 		ram->fuc.r_mr[3] = ramfuc_reg(0x1002e4);
 	}
+
 	ram->fuc.r_gpio[0] = ramfuc_reg(0x00e104);
 	ram->fuc.r_gpio[1] = ramfuc_reg(0x00e108);
 	ram->fuc.r_gpio[2] = ramfuc_reg(0x00e120);

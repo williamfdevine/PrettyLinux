@@ -21,7 +21,8 @@
 
 /* On-disk "super block" */
 
-struct romfs_super_block {
+struct romfs_super_block
+{
 	__be32 word0;
 	__be32 word1;
 	__be32 size;
@@ -31,7 +32,8 @@ struct romfs_super_block {
 
 /* On disk inode */
 
-struct romfs_inode {
+struct romfs_inode
+{
 	__be32 next;		/* low 4 bits see ROMFH_ */
 	__be32 spec;
 	__be32 size;

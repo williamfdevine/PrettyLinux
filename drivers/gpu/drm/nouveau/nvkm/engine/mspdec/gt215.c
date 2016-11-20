@@ -26,7 +26,8 @@
 #include <nvif/class.h>
 
 static const struct nvkm_falcon_func
-gt215_mspdec = {
+	gt215_mspdec =
+{
 	.init = g98_mspdec_init,
 	.sclass = {
 		{ -1, -1, GT212_MSPDEC },
@@ -36,7 +37,7 @@ gt215_mspdec = {
 
 int
 gt215_mspdec_new(struct nvkm_device *device, int index,
-	     struct nvkm_engine **pengine)
+				 struct nvkm_engine **pengine)
 {
 	return nvkm_mspdec_new_(&gt215_mspdec, device, index, pengine);
 }

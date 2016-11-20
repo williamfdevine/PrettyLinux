@@ -23,7 +23,8 @@
 #define LINUX_LOGO_GRAY256	4	/* 256 levels grayscale */
 
 
-struct linux_logo {
+struct linux_logo
+{
 	int type;			/* one of LINUX_LOGO_* */
 	unsigned int width;
 	unsigned int height;
@@ -51,10 +52,10 @@ extern const struct linux_logo logo_spe_clut224;
 extern const struct linux_logo *fb_find_logo(int depth);
 #ifdef CONFIG_FB_LOGO_EXTRA
 extern void fb_append_extra_logo(const struct linux_logo *logo,
-				 unsigned int n);
+								 unsigned int n);
 #else
 static inline void fb_append_extra_logo(const struct linux_logo *logo,
-					unsigned int n)
+										unsigned int n)
 {}
 #endif
 

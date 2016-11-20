@@ -44,11 +44,11 @@
 #define USBA_PULLD_DIS				(1 << 11)
 
 #if defined(CONFIG_AVR32)
-#define USBA_ENABLE_MASK			USBA_EN_USBA
-#define USBA_DISABLE_MASK			0
+	#define USBA_ENABLE_MASK			USBA_EN_USBA
+	#define USBA_DISABLE_MASK			0
 #elif defined(CONFIG_ARCH_AT91)
-#define USBA_ENABLE_MASK			(USBA_EN_USBA | USBA_PULLD_DIS)
-#define USBA_DISABLE_MASK			USBA_DETACH
+	#define USBA_ENABLE_MASK			(USBA_EN_USBA | USBA_PULLD_DIS)
+	#define USBA_DISABLE_MASK			USBA_DETACH
 #endif /* CONFIG_ARCH_AT91 */
 
 /* Bitfields in FNUM */
@@ -187,18 +187,18 @@
 	 & ((1 << USBA_##name##_SIZE) - 1))
 #define USBA_BFINS(name, value, old)				\
 	(((old) & ~(((1 << USBA_##name##_SIZE) - 1)		\
-		    << USBA_##name##_OFFSET))			\
+				<< USBA_##name##_OFFSET))			\
 	 | USBA_BF(name, value))
 
 /* Register access macros */
 #ifdef CONFIG_AVR32
-#define usba_io_readl	__raw_readl
-#define usba_io_writel	__raw_writel
-#define usba_io_writew	__raw_writew
+	#define usba_io_readl	__raw_readl
+	#define usba_io_writel	__raw_writel
+	#define usba_io_writew	__raw_writew
 #else
-#define usba_io_readl	readl_relaxed
-#define usba_io_writel	writel_relaxed
-#define usba_io_writew	writew_relaxed
+	#define usba_io_readl	readl_relaxed
+	#define usba_io_writel	writel_relaxed
+	#define usba_io_writew	writew_relaxed
 #endif
 
 #define usba_readl(udc, reg)					\
@@ -249,7 +249,8 @@
 			pr_debug("udc: " fmt, ## __VA_ARGS__);	\
 	} while (0)
 
-enum usba_ctrl_state {
+enum usba_ctrl_state
+{
 	WAIT_FOR_SETUP,
 	DATA_STAGE_IN,
 	DATA_STAGE_OUT,
@@ -269,13 +270,15 @@ enum usba_ctrl_state {
   EP_STATE_HALT,
 */
 
-struct usba_dma_desc {
+struct usba_dma_desc
+{
 	dma_addr_t next;
 	dma_addr_t addr;
 	u32 ctrl;
 };
 
-struct usba_ep {
+struct usba_ep
+{
 	int					state;
 	void __iomem				*ep_regs;
 	void __iomem				*dma_regs;
@@ -288,10 +291,10 @@ struct usba_ep {
 	u16					fifo_size;
 	u8					nr_banks;
 	u8					index;
-	unsigned int				can_dma:1;
-	unsigned int				can_isoc:1;
-	unsigned int				is_isoc:1;
-	unsigned int				is_in:1;
+	unsigned int				can_dma: 1;
+	unsigned int				can_isoc: 1;
+	unsigned int				is_isoc: 1;
+	unsigned int				is_in: 1;
 
 #ifdef CONFIG_USB_GADGET_DEBUG_FS
 	u32					last_dma_status;
@@ -302,24 +305,27 @@ struct usba_ep {
 #endif
 };
 
-struct usba_request {
+struct usba_request
+{
 	struct usb_request			req;
 	struct list_head			queue;
 
 	u32					ctrl;
 
-	unsigned int				submitted:1;
-	unsigned int				last_transaction:1;
-	unsigned int				using_dma:1;
-	unsigned int				mapped:1;
+	unsigned int				submitted: 1;
+	unsigned int				last_transaction: 1;
+	unsigned int				using_dma: 1;
+	unsigned int				mapped: 1;
 };
 
-struct usba_udc_errata {
+struct usba_udc_errata
+{
 	void (*toggle_bias)(struct usba_udc *udc, int is_on);
 	void (*pulse_bias)(struct usba_udc *udc);
 };
 
-struct usba_udc {
+struct usba_udc
+{
 	/* Protect hw registers from concurrent modifications */
 	spinlock_t lock;
 

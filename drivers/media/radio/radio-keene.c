@@ -49,15 +49,19 @@ MODULE_LICENSE("GPL");
 #define FREQ_MUL 16000U
 
 /* USB Device ID List */
-static struct usb_device_id usb_keene_device_table[] = {
-	{USB_DEVICE_AND_INTERFACE_INFO(USB_KEENE_VENDOR, USB_KEENE_PRODUCT,
-							USB_CLASS_HID, 0, 0) },
+static struct usb_device_id usb_keene_device_table[] =
+{
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(USB_KEENE_VENDOR, USB_KEENE_PRODUCT,
+		USB_CLASS_HID, 0, 0)
+	},
 	{ }						/* Terminating entry */
 };
 
 MODULE_DEVICE_TABLE(usb, usb_keene_device_table);
 
-struct keene_device {
+struct keene_device
+{
 	struct usb_device *usbdev;
 	struct usb_interface *intf;
 	struct video_device vdev;
@@ -96,19 +100,24 @@ static int keene_cmd_main(struct keene_device *radio, unsigned freq, bool play)
 	   then enter transmit mode.
 	 */
 	radio->buffer[5] = (radio->muted ? 4 : 8) | (play ? 1 : 2) |
-							(freq ? 0x10 : 0);
+					   (freq ? 0x10 : 0);
 	radio->buffer[6] = 0x00;
 	radio->buffer[7] = 0x00;
 
 	ret = usb_control_msg(radio->usbdev, usb_sndctrlpipe(radio->usbdev, 0),
-		9, 0x21, 0x200, 2, radio->buffer, BUFFER_LENGTH, USB_TIMEOUT);
+						  9, 0x21, 0x200, 2, radio->buffer, BUFFER_LENGTH, USB_TIMEOUT);
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		dev_warn(&radio->vdev.dev, "%s failed (%d)\n", __func__, ret);
 		return ret;
 	}
+
 	if (freq)
+	{
 		radio->curfreq = freq;
+	}
+
 	return 0;
 }
 
@@ -130,12 +139,14 @@ static int keene_cmd_set(struct keene_device *radio)
 	radio->buffer[7] = 0x00;
 
 	ret = usb_control_msg(radio->usbdev, usb_sndctrlpipe(radio->usbdev, 0),
-		9, 0x21, 0x200, 2, radio->buffer, BUFFER_LENGTH, USB_TIMEOUT);
+						  9, 0x21, 0x200, 2, radio->buffer, BUFFER_LENGTH, USB_TIMEOUT);
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		dev_warn(&radio->vdev.dev, "%s failed (%d)\n", __func__, ret);
 		return ret;
 	}
+
 	return 0;
 }
 
@@ -174,7 +185,7 @@ static int usb_keene_resume(struct usb_interface *intf)
 }
 
 static int vidioc_querycap(struct file *file, void *priv,
-					struct v4l2_capability *v)
+						   struct v4l2_capability *v)
 {
 	struct keene_device *radio = video_drvdata(file);
 
@@ -187,12 +198,14 @@ static int vidioc_querycap(struct file *file, void *priv,
 }
 
 static int vidioc_g_modulator(struct file *file, void *priv,
-				struct v4l2_modulator *v)
+							  struct v4l2_modulator *v)
 {
 	struct keene_device *radio = video_drvdata(file);
 
 	if (v->index > 0)
+	{
 		return -EINVAL;
+	}
 
 	strlcpy(v->name, "FM", sizeof(v->name));
 	v->rangelow = FREQ_MIN * FREQ_MUL;
@@ -203,36 +216,44 @@ static int vidioc_g_modulator(struct file *file, void *priv,
 }
 
 static int vidioc_s_modulator(struct file *file, void *priv,
-				const struct v4l2_modulator *v)
+							  const struct v4l2_modulator *v)
 {
 	struct keene_device *radio = video_drvdata(file);
 
 	if (v->index > 0)
+	{
 		return -EINVAL;
+	}
 
 	radio->stereo = (v->txsubchans == V4L2_TUNER_SUB_STEREO);
 	return keene_cmd_set(radio);
 }
 
 static int vidioc_s_frequency(struct file *file, void *priv,
-				const struct v4l2_frequency *f)
+							  const struct v4l2_frequency *f)
 {
 	struct keene_device *radio = video_drvdata(file);
 	unsigned freq = f->frequency;
 
 	if (f->tuner != 0 || f->type != V4L2_TUNER_RADIO)
+	{
 		return -EINVAL;
+	}
+
 	freq = clamp(freq, FREQ_MIN * FREQ_MUL, FREQ_MAX * FREQ_MUL);
 	return keene_cmd_main(radio, freq, true);
 }
 
 static int vidioc_g_frequency(struct file *file, void *priv,
-				struct v4l2_frequency *f)
+							  struct v4l2_frequency *f)
 {
 	struct keene_device *radio = video_drvdata(file);
 
 	if (f->tuner != 0)
+	{
 		return -EINVAL;
+	}
+
 	f->type = V4L2_TUNER_RADIO;
 	f->frequency = radio->curfreq;
 	return 0;
@@ -240,39 +261,43 @@ static int vidioc_g_frequency(struct file *file, void *priv,
 
 static int keene_s_ctrl(struct v4l2_ctrl *ctrl)
 {
-	static const u8 db2tx[] = {
-	     /*	 -15,  -12,   -9,   -6,   -3,    0 dB */
+	static const u8 db2tx[] =
+	{
+		/*	 -15,  -12,   -9,   -6,   -3,    0 dB */
 		0x03, 0x13, 0x02, 0x12, 0x22, 0x32,
-	     /*	   3,    6,    9,   12,   15,   18 dB */
+		/*	   3,    6,    9,   12,   15,   18 dB */
 		0x21, 0x31, 0x20, 0x30, 0x40, 0x50
 	};
 	struct keene_device *radio =
 		container_of(ctrl->handler, struct keene_device, hdl);
 
-	switch (ctrl->id) {
-	case V4L2_CID_AUDIO_MUTE:
-		radio->muted = ctrl->val;
-		return keene_cmd_main(radio, 0, true);
+	switch (ctrl->id)
+	{
+		case V4L2_CID_AUDIO_MUTE:
+			radio->muted = ctrl->val;
+			return keene_cmd_main(radio, 0, true);
 
-	case V4L2_CID_TUNE_POWER_LEVEL:
-		/* To go from dBuV to the register value we apply the
-		   following formula: */
-		radio->pa = (ctrl->val - 71) * 100 / 62;
-		return keene_cmd_main(radio, 0, true);
+		case V4L2_CID_TUNE_POWER_LEVEL:
+			/* To go from dBuV to the register value we apply the
+			   following formula: */
+			radio->pa = (ctrl->val - 71) * 100 / 62;
+			return keene_cmd_main(radio, 0, true);
 
-	case V4L2_CID_TUNE_PREEMPHASIS:
-		radio->preemph_75_us = ctrl->val == V4L2_PREEMPHASIS_75_uS;
-		return keene_cmd_set(radio);
+		case V4L2_CID_TUNE_PREEMPHASIS:
+			radio->preemph_75_us = ctrl->val == V4L2_PREEMPHASIS_75_uS;
+			return keene_cmd_set(radio);
 
-	case V4L2_CID_AUDIO_COMPRESSION_GAIN:
-		radio->tx = db2tx[(ctrl->val - (s32)ctrl->minimum) / (s32)ctrl->step];
-		return keene_cmd_set(radio);
+		case V4L2_CID_AUDIO_COMPRESSION_GAIN:
+			radio->tx = db2tx[(ctrl->val - (s32)ctrl->minimum) / (s32)ctrl->step];
+			return keene_cmd_set(radio);
 	}
+
 	return -EINVAL;
 }
 
 /* File system interface */
-static const struct v4l2_file_operations usb_keene_fops = {
+static const struct v4l2_file_operations usb_keene_fops =
+{
 	.owner		= THIS_MODULE,
 	.open           = v4l2_fh_open,
 	.release        = v4l2_fh_release,
@@ -280,11 +305,13 @@ static const struct v4l2_file_operations usb_keene_fops = {
 	.unlocked_ioctl	= video_ioctl2,
 };
 
-static const struct v4l2_ctrl_ops keene_ctrl_ops = {
+static const struct v4l2_ctrl_ops keene_ctrl_ops =
+{
 	.s_ctrl = keene_s_ctrl,
 };
 
-static const struct v4l2_ioctl_ops usb_keene_ioctl_ops = {
+static const struct v4l2_ioctl_ops usb_keene_ioctl_ops =
+{
 	.vidioc_querycap    = vidioc_querycap,
 	.vidioc_g_modulator = vidioc_g_modulator,
 	.vidioc_s_modulator = vidioc_s_modulator,
@@ -307,7 +334,7 @@ static void usb_keene_video_device_release(struct v4l2_device *v4l2_dev)
 
 /* check if the device is present and register with v4l and usb if it is */
 static int usb_keene_probe(struct usb_interface *intf,
-				const struct usb_device_id *id)
+						   const struct usb_device_id *id)
 {
 	struct usb_device *dev = interface_to_usbdev(intf);
 	struct keene_device *radio;
@@ -324,13 +351,19 @@ static int usb_keene_probe(struct usb_interface *intf,
 	 * "AudioHub Speaker".
 	 */
 	if (dev->product && strcmp(dev->product, "B-LINK USB Audio  "))
+	{
 		return -ENODEV;
+	}
 
 	radio = kzalloc(sizeof(struct keene_device), GFP_KERNEL);
-	if (radio)
-		radio->buffer = kmalloc(BUFFER_LENGTH, GFP_KERNEL);
 
-	if (!radio || !radio->buffer) {
+	if (radio)
+	{
+		radio->buffer = kmalloc(BUFFER_LENGTH, GFP_KERNEL);
+	}
+
+	if (!radio || !radio->buffer)
+	{
 		dev_err(&intf->dev, "kmalloc for keene_device failed\n");
 		kfree(radio);
 		retval = -ENOMEM;
@@ -340,24 +373,29 @@ static int usb_keene_probe(struct usb_interface *intf,
 	hdl = &radio->hdl;
 	v4l2_ctrl_handler_init(hdl, 4);
 	v4l2_ctrl_new_std(hdl, &keene_ctrl_ops, V4L2_CID_AUDIO_MUTE,
-			0, 1, 1, 0);
+					  0, 1, 1, 0);
 	v4l2_ctrl_new_std_menu(hdl, &keene_ctrl_ops, V4L2_CID_TUNE_PREEMPHASIS,
-			V4L2_PREEMPHASIS_75_uS, 1, V4L2_PREEMPHASIS_50_uS);
+						   V4L2_PREEMPHASIS_75_uS, 1, V4L2_PREEMPHASIS_50_uS);
 	v4l2_ctrl_new_std(hdl, &keene_ctrl_ops, V4L2_CID_TUNE_POWER_LEVEL,
-			84, 118, 1, 118);
+					  84, 118, 1, 118);
 	v4l2_ctrl_new_std(hdl, &keene_ctrl_ops, V4L2_CID_AUDIO_COMPRESSION_GAIN,
-			-15, 18, 3, 0);
+					  -15, 18, 3, 0);
 	radio->pa = 118;
 	radio->tx = 0x32;
 	radio->stereo = true;
-	if (hdl->error) {
+
+	if (hdl->error)
+	{
 		retval = hdl->error;
 
 		v4l2_ctrl_handler_free(hdl);
 		goto err_v4l2;
 	}
+
 	retval = v4l2_device_register(&intf->dev, &radio->v4l2_dev);
-	if (retval < 0) {
+
+	if (retval < 0)
+	{
 		dev_err(&intf->dev, "couldn't register v4l2_device\n");
 		goto err_v4l2;
 	}
@@ -367,7 +405,7 @@ static int usb_keene_probe(struct usb_interface *intf,
 	radio->v4l2_dev.ctrl_handler = hdl;
 	radio->v4l2_dev.release = usb_keene_video_device_release;
 	strlcpy(radio->vdev.name, radio->v4l2_dev.name,
-		sizeof(radio->vdev.name));
+			sizeof(radio->vdev.name));
 	radio->vdev.v4l2_dev = &radio->v4l2_dev;
 	radio->vdev.fops = &usb_keene_fops;
 	radio->vdev.ioctl_ops = &usb_keene_ioctl_ops;
@@ -386,13 +424,16 @@ static int usb_keene_probe(struct usb_interface *intf,
 	keene_cmd_main(radio, 95.16 * FREQ_MUL, false);
 
 	retval = video_register_device(&radio->vdev, VFL_TYPE_RADIO, -1);
-	if (retval < 0) {
+
+	if (retval < 0)
+	{
 		dev_err(&intf->dev, "could not register video device\n");
 		goto err_vdev;
 	}
+
 	v4l2_ctrl_handler_setup(hdl);
 	dev_info(&intf->dev, "V4L2 device registered as %s\n",
-			video_device_node_name(&radio->vdev));
+			 video_device_node_name(&radio->vdev));
 	return 0;
 
 err_vdev:
@@ -405,7 +446,8 @@ err:
 }
 
 /* USB subsystem interface */
-static struct usb_driver usb_keene_driver = {
+static struct usb_driver usb_keene_driver =
+{
 	.name			= "radio-keene",
 	.probe			= usb_keene_probe,
 	.disconnect		= usb_keene_disconnect,

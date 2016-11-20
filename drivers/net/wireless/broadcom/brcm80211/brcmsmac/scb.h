@@ -35,7 +35,8 @@
 #define SCB_MAGIC	0xbeefcafe
 
 /* structure to store per-tid state for the ampdu initiator */
-struct scb_ampdu_tid_ini {
+struct scb_ampdu_tid_ini
+{
 	u8 tid;		  /* initiator tid for easy lookup */
 	/* tx retry count; indexed by seq modulo */
 	u8 txretry[AMPDU_TX_BA_MAX_WSIZE];
@@ -43,7 +44,8 @@ struct scb_ampdu_tid_ini {
 	u8 ba_wsize;	  /* negotiated ba window size (in pdu) */
 };
 
-struct scb_ampdu {
+struct scb_ampdu
+{
 	struct scb *scb;	/* back pointer for easy reference */
 	u8 mpdu_density;	/* mpdu density */
 	u8 max_pdu;		/* max pdus allowed in ampdu */
@@ -61,7 +63,8 @@ struct scb_ampdu {
 };
 
 /* station control block - one per remote MAC address */
-struct scb {
+struct scb
+{
 	u32 magic;
 	u32 flags;	/* various bit flags as defined below */
 	u32 flags2;	/* various bit flags2 as defined below */

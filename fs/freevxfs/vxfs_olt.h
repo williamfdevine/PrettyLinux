@@ -46,7 +46,8 @@
 /*
  * VxFS OLT entry types.
  */
-enum {
+enum
+{
 	VXFS_OLT_FREE	= 1,
 	VXFS_OLT_FSHEAD	= 2,
 	VXFS_OLT_CUT	= 3,
@@ -62,7 +63,8 @@ enum {
  * OLT extent.  It is used to fing certain filesystem-wide metadata, e.g.
  * the initial inode list, the fileset header or the device configuration.
  */
-struct vxfs_olt {
+struct vxfs_olt
+{
 	__fs32		olt_magic;	/* magic number			*/
 	__fs32		olt_size;	/* size of this entry		*/
 	__fs32		olt_checksum;	/* checksum of extent		*/
@@ -80,7 +82,8 @@ struct vxfs_olt {
 /*
  * VxFS common OLT entry (on disk).
  */
-struct vxfs_oltcommon {
+struct vxfs_oltcommon
+{
 	__fs32		olt_type;	/* type of this record		*/
 	__fs32		olt_size;	/* size of this record		*/
 };
@@ -88,7 +91,8 @@ struct vxfs_oltcommon {
 /*
  * VxFS free OLT entry (on disk).
  */
-struct vxfs_oltfree {
+struct vxfs_oltfree
+{
 	__fs32		olt_type;	/* type of this record		*/
 	__fs32		olt_fsize;	/* size of this free record	*/
 };
@@ -96,16 +100,18 @@ struct vxfs_oltfree {
 /*
  * VxFS initial-inode list (on disk).
  */
-struct vxfs_oltilist {
+struct vxfs_oltilist
+{
 	__fs32	olt_type;	/* type of this record		*/
 	__fs32	olt_size;	/* size of this record		*/
 	__fs32		olt_iext[2];	/* initial inode list, replica	*/
 };
 
 /*
- * Current Usage Table 
+ * Current Usage Table
  */
-struct vxfs_oltcut {
+struct vxfs_oltcut
+{
 	__fs32		olt_type;	/* type of this record		*/
 	__fs32		olt_size;	/* size of this record		*/
 	__fs32		olt_cutino;	/* inode of current usage table	*/
@@ -113,9 +119,10 @@ struct vxfs_oltcut {
 };
 
 /*
- * Inodes containing Superblock, Intent log and OLTs 
+ * Inodes containing Superblock, Intent log and OLTs
  */
-struct vxfs_oltsb {
+struct vxfs_oltsb
+{
 	__fs32		olt_type;	/* type of this record		*/
 	__fs32		olt_size;	/* size of this record		*/
 	__fs32		olt_sbino;	/* inode of superblock file	*/
@@ -125,18 +132,20 @@ struct vxfs_oltsb {
 };
 
 /*
- * Inode containing device configuration + it's replica 
+ * Inode containing device configuration + it's replica
  */
-struct vxfs_oltdev {
+struct vxfs_oltdev
+{
 	__fs32		olt_type;	/* type of this record		*/
 	__fs32		olt_size;	/* size of this record		*/
 	__fs32		olt_devino[2];	/* inode of device config files	*/
 };
 
 /*
- * Fileset header 
+ * Fileset header
  */
-struct vxfs_oltfshead {
+struct vxfs_oltfshead
+{
 	__fs32		olt_type;	/* type number			*/
 	__fs32		olt_size;	/* size of this record		*/
 	__fs32		olt_fsino[2];   /* inodes of fileset header	*/

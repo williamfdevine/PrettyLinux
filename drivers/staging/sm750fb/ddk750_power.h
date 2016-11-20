@@ -1,7 +1,8 @@
 #ifndef DDK750_POWER_H__
 #define DDK750_POWER_H__
 
-typedef enum _DPMS_t {
+typedef enum _DPMS_t
+{
 	crtDPMS_ON = 0x0,
 	crtDPMS_STANDBY = 0x1,
 	crtDPMS_SUSPEND = 0x2,
@@ -10,9 +11,9 @@ typedef enum _DPMS_t {
 DPMS_t;
 
 #define setDAC(off) {							\
-	POKE32(MISC_CTRL,						\
-	       (PEEK32(MISC_CTRL) & ~MISC_CTRL_DAC_POWER_OFF) | (off)); \
-}
+		POKE32(MISC_CTRL,						\
+			   (PEEK32(MISC_CTRL) & ~MISC_CTRL_DAC_POWER_OFF) | (off)); \
+	}
 
 void ddk750_setDPMS(DPMS_t);
 

@@ -40,7 +40,8 @@
  * ID for MAX77843 regulators.
  * There is no need for such for MAX77693.
  */
-enum max77843_regulator_type {
+enum max77843_regulator_type
+{
 	MAX77843_SAFEOUT1 = 0,
 	MAX77843_SAFEOUT2,
 	MAX77843_CHARGER,
@@ -49,7 +50,8 @@ enum max77843_regulator_type {
 };
 
 /* Register differences between chargers: MAX77693 and MAX77843 */
-struct chg_reg_data {
+struct chg_reg_data
+{
 	unsigned int linear_reg;
 	unsigned int linear_mask;
 	unsigned int uA_step;
@@ -76,36 +78,50 @@ static int max77693_chg_get_current_limit(struct regulator_dev *rdev)
 	int ret;
 
 	ret = regmap_read(rdev->regmap, reg_data->linear_reg, &reg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	sel = reg & reg_data->linear_mask;
 
 	/* the first four codes for charger current are all 60mA */
 	if (sel <= reg_data->min_sel)
+	{
 		sel = 0;
+	}
 	else
+	{
 		sel -= reg_data->min_sel;
+	}
 
 	val = chg_min_uA + reg_data->uA_step * sel;
+
 	if (val > chg_max_uA)
+	{
 		return -EINVAL;
+	}
 
 	return val;
 }
 
 static int max77693_chg_set_current_limit(struct regulator_dev *rdev,
-						int min_uA, int max_uA)
+		int min_uA, int max_uA)
 {
 	const struct chg_reg_data *reg_data = rdev_get_drvdata(rdev);
 	unsigned int chg_min_uA = rdev->constraints->min_uA;
 	int sel = 0;
 
 	while (chg_min_uA + reg_data->uA_step * sel < min_uA)
+	{
 		sel++;
+	}
 
 	if (chg_min_uA + reg_data->uA_step * sel > max_uA)
+	{
 		return -EINVAL;
+	}
 
 	/* the first four codes for charger current are all 60mA */
 	sel += reg_data->min_sel;
@@ -116,32 +132,39 @@ static int max77693_chg_set_current_limit(struct regulator_dev *rdev,
 
 /* Returns regmap suitable for given regulator on chosen device */
 static struct regmap *max77693_get_regmap(enum max77693_types type,
-					  struct max77693_dev *max77693,
-					  int reg_id)
+		struct max77693_dev *max77693,
+		int reg_id)
 {
 	if (type == TYPE_MAX77693)
+	{
 		return max77693->regmap;
+	}
 
 	/* Else: TYPE_MAX77843 */
-	switch (reg_id) {
-	case MAX77843_SAFEOUT1:
-	case MAX77843_SAFEOUT2:
-		return max77693->regmap;
-	case MAX77843_CHARGER:
-		return max77693->regmap_chg;
-	default:
-		return max77693->regmap;
+	switch (reg_id)
+	{
+		case MAX77843_SAFEOUT1:
+		case MAX77843_SAFEOUT2:
+			return max77693->regmap;
+
+		case MAX77843_CHARGER:
+			return max77693->regmap_chg;
+
+		default:
+			return max77693->regmap;
 	}
 }
 
-static const unsigned int max77693_safeout_table[] = {
+static const unsigned int max77693_safeout_table[] =
+{
 	4850000,
 	4900000,
 	4950000,
 	3300000,
 };
 
-static struct regulator_ops max77693_safeout_ops = {
+static struct regulator_ops max77693_safeout_ops =
+{
 	.list_voltage		= regulator_list_voltage_table,
 	.is_enabled		= regulator_is_enabled_regmap,
 	.enable			= regulator_enable_regmap,
@@ -150,7 +173,8 @@ static struct regulator_ops max77693_safeout_ops = {
 	.set_voltage_sel	= regulator_set_voltage_sel_regmap,
 };
 
-static struct regulator_ops max77693_charger_ops = {
+static struct regulator_ops max77693_charger_ops =
+{
 	.is_enabled		= regulator_is_enabled_regmap,
 	.enable			= regulator_enable_regmap,
 	.disable		= regulator_disable_regmap,
@@ -159,22 +183,23 @@ static struct regulator_ops max77693_charger_ops = {
 };
 
 #define max77693_regulator_desc_esafeout(_num)	{		\
-	.name		= "ESAFEOUT"#_num,			\
-	.id		= MAX77693_ESAFEOUT##_num,		\
-	.of_match	= of_match_ptr("ESAFEOUT"#_num),	\
-	.regulators_node	= of_match_ptr("regulators"),	\
-	.n_voltages	= 4,					\
-	.ops		= &max77693_safeout_ops,		\
-	.type		= REGULATOR_VOLTAGE,			\
-	.owner		= THIS_MODULE,				\
-	.volt_table	= max77693_safeout_table,		\
-	.vsel_reg	= MAX77693_CHG_REG_SAFEOUT_CTRL,	\
-	.vsel_mask	= SAFEOUT_CTRL_SAFEOUT##_num##_MASK,	\
-	.enable_reg	= MAX77693_CHG_REG_SAFEOUT_CTRL,	\
-	.enable_mask	= SAFEOUT_CTRL_ENSAFEOUT##_num##_MASK ,	\
-}
+		.name		= "ESAFEOUT"#_num,			\
+					  .id		= MAX77693_ESAFEOUT##_num,		\
+								.of_match	= of_match_ptr("ESAFEOUT"#_num),	\
+											  .regulators_node	= of_match_ptr("regulators"),	\
+													  .n_voltages	= 4,					\
+															  .ops		= &max77693_safeout_ops,		\
+																	  .type		= REGULATOR_VOLTAGE,			\
+																			  .owner		= THIS_MODULE,				\
+																					  .volt_table	= max77693_safeout_table,		\
+																							  .vsel_reg	= MAX77693_CHG_REG_SAFEOUT_CTRL,	\
+																									  .vsel_mask	= SAFEOUT_CTRL_SAFEOUT##_num##_MASK,	\
+																											  .enable_reg	= MAX77693_CHG_REG_SAFEOUT_CTRL,	\
+																													  .enable_mask	= SAFEOUT_CTRL_ENSAFEOUT##_num##_MASK ,	\
+	}
 
-static const struct regulator_desc max77693_supported_regulators[] = {
+static const struct regulator_desc max77693_supported_regulators[] =
+{
 	max77693_regulator_desc_esafeout(1),
 	max77693_regulator_desc_esafeout(2),
 	{
@@ -187,12 +212,13 @@ static const struct regulator_desc max77693_supported_regulators[] = {
 		.owner = THIS_MODULE,
 		.enable_reg = MAX77693_CHG_REG_CHG_CNFG_00,
 		.enable_mask = CHG_CNFG_00_CHG_MASK |
-				CHG_CNFG_00_BUCK_MASK,
+		CHG_CNFG_00_BUCK_MASK,
 		.enable_val = CHG_CNFG_00_CHG_MASK | CHG_CNFG_00_BUCK_MASK,
 	},
 };
 
-static const struct chg_reg_data max77693_chg_reg_data = {
+static const struct chg_reg_data max77693_chg_reg_data =
+{
 	.linear_reg	= MAX77693_CHG_REG_CHG_CNFG_09,
 	.linear_mask	= CHG_CNFG_09_CHGIN_ILIM_MASK,
 	.uA_step	= 20000,
@@ -200,22 +226,23 @@ static const struct chg_reg_data max77693_chg_reg_data = {
 };
 
 #define	max77843_regulator_desc_esafeout(num)	{			\
-	.name		= "SAFEOUT" # num,				\
-	.id		= MAX77843_SAFEOUT ## num,			\
-	.ops		= &max77693_safeout_ops,			\
-	.of_match	= of_match_ptr("SAFEOUT" # num),		\
-	.regulators_node = of_match_ptr("regulators"),			\
-	.type		= REGULATOR_VOLTAGE,				\
-	.owner		= THIS_MODULE,					\
-	.n_voltages	= ARRAY_SIZE(max77693_safeout_table),		\
-	.volt_table	= max77693_safeout_table,			\
-	.enable_reg	= MAX77843_SYS_REG_SAFEOUTCTRL,			\
-	.enable_mask	= MAX77843_REG_SAFEOUTCTRL_ENSAFEOUT ## num,	\
-	.vsel_reg	= MAX77843_SYS_REG_SAFEOUTCTRL,			\
-	.vsel_mask	= MAX77843_REG_SAFEOUTCTRL_SAFEOUT ## num ## _MASK, \
-}
+		.name		= "SAFEOUT" # num,				\
+					  .id		= MAX77843_SAFEOUT ## num,			\
+								.ops		= &max77693_safeout_ops,			\
+											  .of_match	= of_match_ptr("SAFEOUT" # num),		\
+													  .regulators_node = of_match_ptr("regulators"),			\
+															  .type		= REGULATOR_VOLTAGE,				\
+																	  .owner		= THIS_MODULE,					\
+																			  .n_voltages	= ARRAY_SIZE(max77693_safeout_table),		\
+																					  .volt_table	= max77693_safeout_table,			\
+																							  .enable_reg	= MAX77843_SYS_REG_SAFEOUTCTRL,			\
+																									  .enable_mask	= MAX77843_REG_SAFEOUTCTRL_ENSAFEOUT ## num,	\
+																											  .vsel_reg	= MAX77843_SYS_REG_SAFEOUTCTRL,			\
+																													  .vsel_mask	= MAX77843_REG_SAFEOUTCTRL_SAFEOUT ## num ## _MASK, \
+	}
 
-static const struct regulator_desc max77843_supported_regulators[] = {
+static const struct regulator_desc max77843_supported_regulators[] =
+{
 	[MAX77843_SAFEOUT1] = max77843_regulator_desc_esafeout(1),
 	[MAX77843_SAFEOUT2] = max77843_regulator_desc_esafeout(2),
 	[MAX77843_CHARGER] = {
@@ -232,7 +259,8 @@ static const struct regulator_desc max77843_supported_regulators[] = {
 	},
 };
 
-static const struct chg_reg_data max77843_chg_reg_data = {
+static const struct chg_reg_data max77843_chg_reg_data =
+{
 	.linear_reg	= MAX77843_CHG_REG_CHG_CNFG_02,
 	.linear_mask	= MAX77843_CHG_FAST_CHG_CURRENT_MASK,
 	.uA_step	= MAX77843_CHG_FAST_CHG_CURRENT_STEP,
@@ -250,33 +278,39 @@ static int max77693_pmic_probe(struct platform_device *pdev)
 
 	config.dev = iodev->dev;
 
-	switch (type) {
-	case TYPE_MAX77693:
-		regulators = max77693_supported_regulators;
-		regulators_size = ARRAY_SIZE(max77693_supported_regulators);
-		config.driver_data = (void *)&max77693_chg_reg_data;
-		break;
-	case TYPE_MAX77843:
-		regulators = max77843_supported_regulators;
-		regulators_size = ARRAY_SIZE(max77843_supported_regulators);
-		config.driver_data = (void *)&max77843_chg_reg_data;
-		break;
-	default:
-		dev_err(&pdev->dev, "Unsupported device type: %u\n", type);
-		return -ENODEV;
+	switch (type)
+	{
+		case TYPE_MAX77693:
+			regulators = max77693_supported_regulators;
+			regulators_size = ARRAY_SIZE(max77693_supported_regulators);
+			config.driver_data = (void *)&max77693_chg_reg_data;
+			break;
+
+		case TYPE_MAX77843:
+			regulators = max77843_supported_regulators;
+			regulators_size = ARRAY_SIZE(max77843_supported_regulators);
+			config.driver_data = (void *)&max77843_chg_reg_data;
+			break;
+
+		default:
+			dev_err(&pdev->dev, "Unsupported device type: %u\n", type);
+			return -ENODEV;
 	}
 
-	for (i = 0; i < regulators_size; i++) {
+	for (i = 0; i < regulators_size; i++)
+	{
 		struct regulator_dev *rdev;
 
 		config.regmap = max77693_get_regmap(type, iodev,
-						    regulators[i].id);
+											regulators[i].id);
 
 		rdev = devm_regulator_register(&pdev->dev,
-						&regulators[i], &config);
-		if (IS_ERR(rdev)) {
+									   &regulators[i], &config);
+
+		if (IS_ERR(rdev))
+		{
 			dev_err(&pdev->dev,
-				"Failed to initialize regulator-%d\n", i);
+					"Failed to initialize regulator-%d\n", i);
 			return PTR_ERR(rdev);
 		}
 	}
@@ -284,7 +318,8 @@ static int max77693_pmic_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct platform_device_id max77693_pmic_id[] = {
+static const struct platform_device_id max77693_pmic_id[] =
+{
 	{ "max77693-pmic", TYPE_MAX77693 },
 	{ "max77843-regulator", TYPE_MAX77843 },
 	{},
@@ -292,10 +327,11 @@ static const struct platform_device_id max77693_pmic_id[] = {
 
 MODULE_DEVICE_TABLE(platform, max77693_pmic_id);
 
-static struct platform_driver max77693_pmic_driver = {
+static struct platform_driver max77693_pmic_driver =
+{
 	.driver = {
-		   .name = "max77693-pmic",
-		   },
+		.name = "max77693-pmic",
+	},
 	.probe = max77693_pmic_probe,
 	.id_table = max77693_pmic_id,
 };

@@ -27,8 +27,11 @@ ssbi_reg_read(void *context, unsigned int reg, unsigned int *val)
 	u8 v;
 
 	ret = ssbi_read(context, reg, &v, 1);
+
 	if (!ret)
+	{
 		*val = v;
+	}
 
 	return ret;
 }

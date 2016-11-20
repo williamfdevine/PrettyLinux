@@ -67,9 +67,9 @@
 #define BM_DIR2_SHIFT	8
 #define BM_DIR3_SHIFT	12
 #define BM_DIR_DEFAULT		(BM_DIR_COUNT_UP << BM_DIR0_SHIFT | \
-				 BM_DIR_COUNT_UP << BM_DIR1_SHIFT | \
-				 BM_DIR_COUNT_UP << BM_DIR2_SHIFT | \
-				 BM_DIR_COUNT_UP << BM_DIR3_SHIFT)
+							 BM_DIR_COUNT_UP << BM_DIR1_SHIFT | \
+							 BM_DIR_COUNT_UP << BM_DIR2_SHIFT | \
+							 BM_DIR_COUNT_UP << BM_DIR3_SHIFT)
 
 #define HW_TC0		0x0030 /* RO. Timer counter 0 */
 /* HW_TC*. Timer counter owerflow (0xffff.ffff to 0x0000.0000) do not generate
@@ -101,17 +101,18 @@
 #define BM_CTCR3_SHIFT	6
 #define BM_CTCR_TM	0	/* Timer mode. Every rising PCLK edge. */
 #define BM_CTCR_DEFAULT	(BM_CTCR_TM << BM_CTCR0_SHIFT | \
-			 BM_CTCR_TM << BM_CTCR1_SHIFT | \
-			 BM_CTCR_TM << BM_CTCR2_SHIFT | \
-			 BM_CTCR_TM << BM_CTCR3_SHIFT)
+						 BM_CTCR_TM << BM_CTCR1_SHIFT | \
+						 BM_CTCR_TM << BM_CTCR2_SHIFT | \
+						 BM_CTCR_TM << BM_CTCR3_SHIFT)
 
-static struct asm9260_timer_priv {
+static struct asm9260_timer_priv
+{
 	void __iomem *base;
 	unsigned long ticks_per_jiffy;
 } priv;
 
 static int asm9260_timer_set_next_event(unsigned long delta,
-					 struct clock_event_device *evt)
+										struct clock_event_device *evt)
 {
 	/* configure match count for TC0 */
 	writel_relaxed(delta, priv.base + HW_MR0);
@@ -138,7 +139,7 @@ static int asm9260_timer_set_oneshot(struct clock_event_device *evt)
 
 	/* enable reset and stop on match */
 	writel_relaxed(BM_MCR_RES_EN(0) | BM_MCR_STOP_EN(0),
-		       priv.base + HW_MCR + SET_REG);
+				   priv.base + HW_MCR + SET_REG);
 	return 0;
 }
 
@@ -148,7 +149,7 @@ static int asm9260_timer_set_periodic(struct clock_event_device *evt)
 
 	/* disable reset and stop on match */
 	writel_relaxed(BM_MCR_RES_EN(0) | BM_MCR_STOP_EN(0),
-		       priv.base + HW_MCR + CLR_REG);
+				   priv.base + HW_MCR + CLR_REG);
 	/* configure match count for TC0 */
 	writel_relaxed(priv.ticks_per_jiffy, priv.base + HW_MR0);
 	/* enable TC0 */
@@ -156,11 +157,12 @@ static int asm9260_timer_set_periodic(struct clock_event_device *evt)
 	return 0;
 }
 
-static struct clock_event_device event_dev = {
+static struct clock_event_device event_dev =
+{
 	.name			= DRIVER_NAME,
 	.rating			= 200,
 	.features		= CLOCK_EVT_FEAT_PERIODIC |
-				  CLOCK_EVT_FEAT_ONESHOT,
+	CLOCK_EVT_FEAT_ONESHOT,
 	.set_next_event		= asm9260_timer_set_next_event,
 	.set_state_shutdown	= asm9260_timer_shutdown,
 	.set_state_periodic	= asm9260_timer_set_periodic,
@@ -192,7 +194,9 @@ static int __init asm9260_timer_init(struct device_node *np)
 	unsigned long rate;
 
 	priv.base = of_io_request_and_map(np, 0, np->name);
-	if (IS_ERR(priv.base)) {
+
+	if (IS_ERR(priv.base))
+	{
 		pr_err("%s: unable to map resource", np->name);
 		return PTR_ERR(priv.base);
 	}
@@ -200,15 +204,19 @@ static int __init asm9260_timer_init(struct device_node *np)
 	clk = of_clk_get(np, 0);
 
 	ret = clk_prepare_enable(clk);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Failed to enable clk!\n");
 		return ret;
 	}
 
 	irq = irq_of_parse_and_map(np, 0);
 	ret = request_irq(irq, asm9260_timer_interrupt, IRQF_TIMER,
-			DRIVER_NAME, &event_dev);
-	if (ret) {
+					  DRIVER_NAME, &event_dev);
+
+	if (ret)
+	{
 		pr_err("Failed to setup irq!\n");
 		return ret;
 	}
@@ -224,7 +232,7 @@ static int __init asm9260_timer_init(struct device_node *np)
 
 	rate = clk_get_rate(clk);
 	clocksource_mmio_init(priv.base + HW_TC1, DRIVER_NAME, rate,
-			200, 32, clocksource_mmio_readl_up);
+						  200, 32, clocksource_mmio_readl_up);
 
 	/* Seems like we can't use counter without match register even if
 	 * actions for MR are disabled. So, set MR to max value. */
@@ -239,4 +247,4 @@ static int __init asm9260_timer_init(struct device_node *np)
 	return 0;
 }
 CLOCKSOURCE_OF_DECLARE(asm9260_timer, "alphascale,asm9260-timer",
-		asm9260_timer_init);
+					   asm9260_timer_init);

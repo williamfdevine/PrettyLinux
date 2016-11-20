@@ -10,7 +10,7 @@
 #define _LINUX_HFS_FS_H
 
 #ifdef pr_fmt
-#undef pr_fmt
+	#undef pr_fmt
 #endif
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
@@ -41,16 +41,16 @@
 #define DBG_MASK	(0)
 
 #define hfs_dbg(flg, fmt, ...)					\
-do {								\
-	if (DBG_##flg & DBG_MASK)				\
-		printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__);	\
-} while (0)
+	do {								\
+		if (DBG_##flg & DBG_MASK)				\
+			printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__);	\
+	} while (0)
 
 #define hfs_dbg_cont(flg, fmt, ...)				\
-do {								\
-	if (DBG_##flg & DBG_MASK)				\
-		pr_cont(fmt, ##__VA_ARGS__);			\
-} while (0)
+	do {								\
+		if (DBG_##flg & DBG_MASK)				\
+			pr_cont(fmt, ##__VA_ARGS__);			\
+	} while (0)
 
 
 /*
@@ -58,7 +58,8 @@ do {								\
  *
  * The HFS-specific part of a Linux (struct inode)
  */
-struct hfs_inode_info {
+struct hfs_inode_info
+{
 	atomic_t opencnt;
 
 	unsigned int flags;
@@ -97,7 +98,8 @@ struct hfs_inode_info {
  *
  * The HFS-specific part of a Linux (struct super_block)
  */
-struct hfs_sb_info {
+struct hfs_sb_info
+{
 	struct buffer_head *mdb_bh;		/* The hfs_buffer
 						   holding the real
 						   superblock (aka VIB
@@ -181,7 +183,7 @@ extern int hfs_cat_find_brec(struct super_block *, u32, struct hfs_find_data *);
 extern int hfs_cat_create(u32, struct inode *, const struct qstr *, struct inode *);
 extern int hfs_cat_delete(u32, struct inode *, const struct qstr *);
 extern int hfs_cat_move(u32, struct inode *, const struct qstr *,
-			struct inode *, const struct qstr *);
+						struct inode *, const struct qstr *);
 extern void hfs_cat_build_key(struct super_block *, btree_key *, u32, const struct qstr *);
 
 /* dir.c */
@@ -206,7 +208,7 @@ extern void hfs_inode_write_fork(struct inode *, struct hfs_extent *, __be32 *, 
 extern int hfs_write_inode(struct inode *, struct writeback_control *);
 extern int hfs_inode_setattr(struct dentry *, struct iattr *);
 extern void hfs_inode_read_fork(struct inode *inode, struct hfs_extent *ext,
-			__be32 log_size, __be32 phys_size, u32 clump_size);
+								__be32 log_size, __be32 phys_size, u32 clump_size);
 extern struct inode *hfs_iget(struct super_block *, struct hfs_cat_key *, hfs_cat_rec *);
 extern void hfs_evict_inode(struct inode *);
 extern void hfs_delete_inode(struct inode *);
@@ -228,9 +230,9 @@ extern const struct dentry_operations hfs_dentry_operations;
 
 extern int hfs_hash_dentry(const struct dentry *, struct qstr *);
 extern int hfs_strcmp(const unsigned char *, unsigned int,
-		      const unsigned char *, unsigned int);
+					  const unsigned char *, unsigned int);
 extern int hfs_compare_dentry(const struct dentry *dentry,
-		unsigned int len, const char *str, const struct qstr *name);
+							  unsigned int len, const char *str, const struct qstr *name);
 
 /* trans.c */
 extern void hfs_asc2mac(struct super_block *, struct hfs_name *, const struct qstr *);
@@ -268,20 +270,20 @@ static inline void hfs_bitmap_dirty(struct super_block *sb)
 }
 
 #define sb_bread512(sb, sec, data) ({			\
-	struct buffer_head *__bh;			\
-	sector_t __block;				\
-	loff_t __start;					\
-	int __offset;					\
-							\
-	__start = (loff_t)(sec) << HFS_SECTOR_SIZE_BITS;\
-	__block = __start >> (sb)->s_blocksize_bits;	\
-	__offset = __start & ((sb)->s_blocksize - 1);	\
-	__bh = sb_bread((sb), __block);			\
-	if (likely(__bh != NULL))			\
-		data = (void *)(__bh->b_data + __offset);\
-	else						\
-		data = NULL;				\
-	__bh;						\
-})
+		struct buffer_head *__bh;			\
+		sector_t __block;				\
+		loff_t __start;					\
+		int __offset;					\
+		\
+		__start = (loff_t)(sec) << HFS_SECTOR_SIZE_BITS;\
+		__block = __start >> (sb)->s_blocksize_bits;	\
+		__offset = __start & ((sb)->s_blocksize - 1);	\
+		__bh = sb_bread((sb), __block);			\
+		if (likely(__bh != NULL))			\
+			data = (void *)(__bh->b_data + __offset);\
+		else						\
+			data = NULL;				\
+		__bh;						\
+	})
 
 #endif

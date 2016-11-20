@@ -205,11 +205,11 @@
  * on wire could leak through as a result.  Do not count on this side effect.
  */
 #ifdef CONFIG_LUSTRE_TRANSLATE_ERRNOS
-unsigned int lustre_errno_hton(unsigned int h);
-unsigned int lustre_errno_ntoh(unsigned int n);
+	unsigned int lustre_errno_hton(unsigned int h);
+	unsigned int lustre_errno_ntoh(unsigned int n);
 #else
-#define lustre_errno_hton(h) (h)
-#define lustre_errno_ntoh(n) (n)
+	#define lustre_errno_hton(h) (h)
+	#define lustre_errno_ntoh(n) (n)
 #endif
 
 #endif /* LUSTRE_ERRNO_H */

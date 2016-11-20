@@ -74,28 +74,47 @@ mul_n_basecase(mpi_ptr_t prodp, mpi_ptr_t up, mpi_ptr_t vp, mpi_size_t size)
 	/* Multiply by the first limb in V separately, as the result can be
 	 * stored (not added) to PROD.  We also avoid a loop for zeroing.  */
 	v_limb = vp[0];
-	if (v_limb <= 1) {
+
+	if (v_limb <= 1)
+	{
 		if (v_limb == 1)
+		{
 			MPN_COPY(prodp, up, size);
+		}
 		else
+		{
 			MPN_ZERO(prodp, size);
+		}
+
 		cy = 0;
-	} else
+	}
+	else
+	{
 		cy = mpihelp_mul_1(prodp, up, size, v_limb);
+	}
 
 	prodp[size] = cy;
 	prodp++;
 
 	/* For each iteration in the outer loop, multiply one limb from
 	 * U with one limb from V, and add it to PROD.  */
-	for (i = 1; i < size; i++) {
+	for (i = 1; i < size; i++)
+	{
 		v_limb = vp[i];
-		if (v_limb <= 1) {
+
+		if (v_limb <= 1)
+		{
 			cy = 0;
+
 			if (v_limb == 1)
+			{
 				cy = mpihelp_add_n(prodp, prodp, up, size);
-		} else
+			}
+		}
+		else
+		{
 			cy = mpihelp_addmul_1(prodp, up, size, v_limb);
+		}
 
 		prodp[size] = cy;
 		prodp++;
@@ -106,9 +125,10 @@ mul_n_basecase(mpi_ptr_t prodp, mpi_ptr_t up, mpi_ptr_t vp, mpi_size_t size)
 
 static void
 mul_n(mpi_ptr_t prodp, mpi_ptr_t up, mpi_ptr_t vp,
-		mpi_size_t size, mpi_ptr_t tspace)
+	  mpi_size_t size, mpi_ptr_t tspace)
 {
-	if (size & 1) {
+	if (size & 1)
+	{
 		/* The size is odd, and the code below doesn't handle that.
 		 * Multiply the least significant (size - 1) limbs with a recursive
 		 * call, and handle the most significant limb of S1 and S2
@@ -127,7 +147,9 @@ mul_n(mpi_ptr_t prodp, mpi_ptr_t up, mpi_ptr_t vp,
 		prodp[esize + esize] = cy_limb;
 		cy_limb = mpihelp_addmul_1(prodp + esize, vp, size, up[esize]);
 		prodp[esize + size] = cy_limb;
-	} else {
+	}
+	else
+	{
 		/* Anatolij Alekseevich Karatsuba's divide-and-conquer algorithm.
 		 *
 		 * Split U in two pieces, U1 and U0, such that
@@ -153,46 +175,54 @@ mul_n(mpi_ptr_t prodp, mpi_ptr_t up, mpi_ptr_t vp,
 		 * as new TSPACE.
 		 */
 		MPN_MUL_N_RECURSE(prodp + size, up + hsize, vp + hsize, hsize,
-				  tspace);
+						  tspace);
 
 		/* Product M.      ________________
 		 *                |_(U1-U0)(V0-V1)_|
 		 */
-		if (mpihelp_cmp(up + hsize, up, hsize) >= 0) {
+		if (mpihelp_cmp(up + hsize, up, hsize) >= 0)
+		{
 			mpihelp_sub_n(prodp, up + hsize, up, hsize);
 			negflg = 0;
-		} else {
+		}
+		else
+		{
 			mpihelp_sub_n(prodp, up, up + hsize, hsize);
 			negflg = 1;
 		}
-		if (mpihelp_cmp(vp + hsize, vp, hsize) >= 0) {
+
+		if (mpihelp_cmp(vp + hsize, vp, hsize) >= 0)
+		{
 			mpihelp_sub_n(prodp + hsize, vp + hsize, vp, hsize);
 			negflg ^= 1;
-		} else {
+		}
+		else
+		{
 			mpihelp_sub_n(prodp + hsize, vp, vp + hsize, hsize);
 			/* No change of NEGFLG.  */
 		}
+
 		/* Read temporary operands from low part of PROD.
 		 * Put result in low part of TSPACE using upper part of TSPACE
 		 * as new TSPACE.
 		 */
 		MPN_MUL_N_RECURSE(tspace, prodp, prodp + hsize, hsize,
-				  tspace + size);
+						  tspace + size);
 
 		/* Add/copy product H. */
 		MPN_COPY(prodp + hsize, prodp + size, hsize);
 		cy = mpihelp_add_n(prodp + size, prodp + size,
-				   prodp + size + hsize, hsize);
+						   prodp + size + hsize, hsize);
 
 		/* Add product M (if NEGFLG M is a negative number) */
 		if (negflg)
 			cy -=
-			    mpihelp_sub_n(prodp + hsize, prodp + hsize, tspace,
-					  size);
+				mpihelp_sub_n(prodp + hsize, prodp + hsize, tspace,
+							  size);
 		else
 			cy +=
-			    mpihelp_add_n(prodp + hsize, prodp + hsize, tspace,
-					  size);
+				mpihelp_add_n(prodp + hsize, prodp + hsize, tspace,
+							  size);
 
 		/* Product L.      ________________  ________________
 		 *                |________________||____U0 x V0_____|
@@ -205,15 +235,19 @@ mul_n(mpi_ptr_t prodp, mpi_ptr_t up, mpi_ptr_t vp,
 		/* Add/copy Product L (twice) */
 
 		cy += mpihelp_add_n(prodp + hsize, prodp + hsize, tspace, size);
+
 		if (cy)
 			mpihelp_add_1(prodp + hsize + size,
-				      prodp + hsize + size, hsize, cy);
+						  prodp + hsize + size, hsize, cy);
 
 		MPN_COPY(prodp, tspace, hsize);
 		cy = mpihelp_add_n(prodp + hsize, prodp + hsize, tspace + hsize,
-				   hsize);
+						   hsize);
+
 		if (cy)
+		{
 			mpihelp_add_1(prodp + size, prodp + size, size, 1);
+		}
 	}
 }
 
@@ -226,28 +260,47 @@ void mpih_sqr_n_basecase(mpi_ptr_t prodp, mpi_ptr_t up, mpi_size_t size)
 	/* Multiply by the first limb in V separately, as the result can be
 	 * stored (not added) to PROD.  We also avoid a loop for zeroing.  */
 	v_limb = up[0];
-	if (v_limb <= 1) {
+
+	if (v_limb <= 1)
+	{
 		if (v_limb == 1)
+		{
 			MPN_COPY(prodp, up, size);
+		}
 		else
+		{
 			MPN_ZERO(prodp, size);
+		}
+
 		cy_limb = 0;
-	} else
+	}
+	else
+	{
 		cy_limb = mpihelp_mul_1(prodp, up, size, v_limb);
+	}
 
 	prodp[size] = cy_limb;
 	prodp++;
 
 	/* For each iteration in the outer loop, multiply one limb from
 	 * U with one limb from V, and add it to PROD.  */
-	for (i = 1; i < size; i++) {
+	for (i = 1; i < size; i++)
+	{
 		v_limb = up[i];
-		if (v_limb <= 1) {
+
+		if (v_limb <= 1)
+		{
 			cy_limb = 0;
+
 			if (v_limb == 1)
+			{
 				cy_limb = mpihelp_add_n(prodp, prodp, up, size);
-		} else
+			}
+		}
+		else
+		{
 			cy_limb = mpihelp_addmul_1(prodp, up, size, v_limb);
+		}
 
 		prodp[size] = cy_limb;
 		prodp++;
@@ -257,7 +310,8 @@ void mpih_sqr_n_basecase(mpi_ptr_t prodp, mpi_ptr_t up, mpi_size_t size)
 void
 mpih_sqr_n(mpi_ptr_t prodp, mpi_ptr_t up, mpi_size_t size, mpi_ptr_t tspace)
 {
-	if (size & 1) {
+	if (size & 1)
+	{
 		/* The size is odd, and the code below doesn't handle that.
 		 * Multiply the least significant (size - 1) limbs with a recursive
 		 * call, and handle the most significant limb of S1 and S2
@@ -277,7 +331,9 @@ mpih_sqr_n(mpi_ptr_t prodp, mpi_ptr_t up, mpi_size_t size, mpi_ptr_t tspace)
 		cy_limb = mpihelp_addmul_1(prodp + esize, up, size, up[esize]);
 
 		prodp[esize + size] = cy_limb;
-	} else {
+	}
+	else
+	{
 		mpi_size_t hsize = size >> 1;
 		mpi_limb_t cy;
 
@@ -292,9 +348,13 @@ mpih_sqr_n(mpi_ptr_t prodp, mpi_ptr_t up, mpi_size_t size, mpi_ptr_t tspace)
 		 *                |_(U1-U0)(U0-U1)_|
 		 */
 		if (mpihelp_cmp(up + hsize, up, hsize) >= 0)
+		{
 			mpihelp_sub_n(prodp, up + hsize, up, hsize);
+		}
 		else
+		{
 			mpihelp_sub_n(prodp, up, up + hsize, hsize);
+		}
 
 		/* Read temporary operands from low part of PROD.
 		 * Put result in low part of TSPACE using upper part of TSPACE
@@ -304,7 +364,7 @@ mpih_sqr_n(mpi_ptr_t prodp, mpi_ptr_t up, mpi_size_t size, mpi_ptr_t tspace)
 		/* Add/copy product H  */
 		MPN_COPY(prodp + hsize, prodp + size, hsize);
 		cy = mpihelp_add_n(prodp + size, prodp + size,
-				   prodp + size + hsize, hsize);
+						   prodp + size + hsize, hsize);
 
 		/* Add product M (if NEGFLG M is a negative number).  */
 		cy -= mpihelp_sub_n(prodp + hsize, prodp + hsize, tspace, size);
@@ -318,32 +378,44 @@ mpih_sqr_n(mpi_ptr_t prodp, mpi_ptr_t up, mpi_size_t size, mpi_ptr_t tspace)
 
 		/* Add/copy Product L (twice).  */
 		cy += mpihelp_add_n(prodp + hsize, prodp + hsize, tspace, size);
+
 		if (cy)
 			mpihelp_add_1(prodp + hsize + size,
-				      prodp + hsize + size, hsize, cy);
+						  prodp + hsize + size, hsize, cy);
 
 		MPN_COPY(prodp, tspace, hsize);
 		cy = mpihelp_add_n(prodp + hsize, prodp + hsize, tspace + hsize,
-				   hsize);
+						   hsize);
+
 		if (cy)
+		{
 			mpihelp_add_1(prodp + size, prodp + size, size, 1);
+		}
 	}
 }
 
 int
 mpihelp_mul_karatsuba_case(mpi_ptr_t prodp,
-			   mpi_ptr_t up, mpi_size_t usize,
-			   mpi_ptr_t vp, mpi_size_t vsize,
-			   struct karatsuba_ctx *ctx)
+						   mpi_ptr_t up, mpi_size_t usize,
+						   mpi_ptr_t vp, mpi_size_t vsize,
+						   struct karatsuba_ctx *ctx)
 {
 	mpi_limb_t cy;
 
-	if (!ctx->tspace || ctx->tspace_size < vsize) {
+	if (!ctx->tspace || ctx->tspace_size < vsize)
+	{
 		if (ctx->tspace)
+		{
 			mpi_free_limb_space(ctx->tspace);
+		}
+
 		ctx->tspace = mpi_alloc_limb_space(2 * vsize);
+
 		if (!ctx->tspace)
+		{
 			return -ENOMEM;
+		}
+
 		ctx->tspace_size = vsize;
 	}
 
@@ -352,48 +424,76 @@ mpihelp_mul_karatsuba_case(mpi_ptr_t prodp,
 	prodp += vsize;
 	up += vsize;
 	usize -= vsize;
-	if (usize >= vsize) {
-		if (!ctx->tp || ctx->tp_size < vsize) {
+
+	if (usize >= vsize)
+	{
+		if (!ctx->tp || ctx->tp_size < vsize)
+		{
 			if (ctx->tp)
+			{
 				mpi_free_limb_space(ctx->tp);
+			}
+
 			ctx->tp = mpi_alloc_limb_space(2 * vsize);
-			if (!ctx->tp) {
+
+			if (!ctx->tp)
+			{
 				if (ctx->tspace)
+				{
 					mpi_free_limb_space(ctx->tspace);
+				}
+
 				ctx->tspace = NULL;
 				return -ENOMEM;
 			}
+
 			ctx->tp_size = vsize;
 		}
 
-		do {
+		do
+		{
 			MPN_MUL_N_RECURSE(ctx->tp, up, vp, vsize, ctx->tspace);
 			cy = mpihelp_add_n(prodp, prodp, ctx->tp, vsize);
 			mpihelp_add_1(prodp + vsize, ctx->tp + vsize, vsize,
-				      cy);
+						  cy);
 			prodp += vsize;
 			up += vsize;
 			usize -= vsize;
-		} while (usize >= vsize);
+		}
+		while (usize >= vsize);
 	}
 
-	if (usize) {
-		if (usize < KARATSUBA_THRESHOLD) {
+	if (usize)
+	{
+		if (usize < KARATSUBA_THRESHOLD)
+		{
 			mpi_limb_t tmp;
+
 			if (mpihelp_mul(ctx->tspace, vp, vsize, up, usize, &tmp)
-			    < 0)
+				< 0)
+			{
 				return -ENOMEM;
-		} else {
-			if (!ctx->next) {
-				ctx->next = kzalloc(sizeof *ctx, GFP_KERNEL);
-				if (!ctx->next)
-					return -ENOMEM;
 			}
+		}
+		else
+		{
+			if (!ctx->next)
+			{
+				ctx->next = kzalloc(sizeof * ctx, GFP_KERNEL);
+
+				if (!ctx->next)
+				{
+					return -ENOMEM;
+				}
+			}
+
 			if (mpihelp_mul_karatsuba_case(ctx->tspace,
-						       vp, vsize,
-						       up, usize,
-						       ctx->next) < 0)
+										   vp, vsize,
+										   up, usize,
+										   ctx->next) < 0)
+			{
 				return -ENOMEM;
+			}
 		}
 
 		cy = mpihelp_add_n(prodp, prodp, ctx->tspace, vsize);
@@ -408,15 +508,29 @@ void mpihelp_release_karatsuba_ctx(struct karatsuba_ctx *ctx)
 	struct karatsuba_ctx *ctx2;
 
 	if (ctx->tp)
+	{
 		mpi_free_limb_space(ctx->tp);
+	}
+
 	if (ctx->tspace)
+	{
 		mpi_free_limb_space(ctx->tspace);
-	for (ctx = ctx->next; ctx; ctx = ctx2) {
+	}
+
+	for (ctx = ctx->next; ctx; ctx = ctx2)
+	{
 		ctx2 = ctx->next;
+
 		if (ctx->tp)
+		{
 			mpi_free_limb_space(ctx->tp);
+		}
+
 		if (ctx->tspace)
+		{
 			mpi_free_limb_space(ctx->tspace);
+		}
+
 		kfree(ctx);
 	}
 }
@@ -438,17 +552,19 @@ void mpihelp_release_karatsuba_ctx(struct karatsuba_ctx *ctx)
 
 int
 mpihelp_mul(mpi_ptr_t prodp, mpi_ptr_t up, mpi_size_t usize,
-	    mpi_ptr_t vp, mpi_size_t vsize, mpi_limb_t *_result)
+			mpi_ptr_t vp, mpi_size_t vsize, mpi_limb_t *_result)
 {
 	mpi_ptr_t prod_endp = prodp + usize + vsize - 1;
 	mpi_limb_t cy;
 	struct karatsuba_ctx ctx;
 
-	if (vsize < KARATSUBA_THRESHOLD) {
+	if (vsize < KARATSUBA_THRESHOLD)
+	{
 		mpi_size_t i;
 		mpi_limb_t v_limb;
 
-		if (!vsize) {
+		if (!vsize)
+		{
 			*_result = 0;
 			return 0;
 		}
@@ -456,29 +572,46 @@ mpihelp_mul(mpi_ptr_t prodp, mpi_ptr_t up, mpi_size_t usize,
 		/* Multiply by the first limb in V separately, as the result can be
 		 * stored (not added) to PROD.  We also avoid a loop for zeroing.  */
 		v_limb = vp[0];
-		if (v_limb <= 1) {
+
+		if (v_limb <= 1)
+		{
 			if (v_limb == 1)
+			{
 				MPN_COPY(prodp, up, usize);
+			}
 			else
+			{
 				MPN_ZERO(prodp, usize);
+			}
+
 			cy = 0;
-		} else
+		}
+		else
+		{
 			cy = mpihelp_mul_1(prodp, up, usize, v_limb);
+		}
 
 		prodp[usize] = cy;
 		prodp++;
 
 		/* For each iteration in the outer loop, multiply one limb from
 		 * U with one limb from V, and add it to PROD.  */
-		for (i = 1; i < vsize; i++) {
+		for (i = 1; i < vsize; i++)
+		{
 			v_limb = vp[i];
-			if (v_limb <= 1) {
+
+			if (v_limb <= 1)
+			{
 				cy = 0;
+
 				if (v_limb == 1)
 					cy = mpihelp_add_n(prodp, prodp, up,
-							   usize);
-			} else
+									   usize);
+			}
+			else
+			{
 				cy = mpihelp_addmul_1(prodp, up, usize, v_limb);
+			}
 
 			prodp[usize] = cy;
 			prodp++;
@@ -489,8 +622,12 @@ mpihelp_mul(mpi_ptr_t prodp, mpi_ptr_t up, mpi_size_t usize,
 	}
 
 	memset(&ctx, 0, sizeof ctx);
+
 	if (mpihelp_mul_karatsuba_case(prodp, up, usize, vp, vsize, &ctx) < 0)
+	{
 		return -ENOMEM;
+	}
+
 	mpihelp_release_karatsuba_ctx(&ctx);
 	*_result = *prod_endp;
 	return 0;

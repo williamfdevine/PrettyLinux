@@ -27,9 +27,9 @@
 #include "e1000.h"
 
 #ifdef CONFIG_E1000E_HWTS
-#include <linux/clocksource.h>
-#include <linux/ktime.h>
-#include <asm/tsc.h>
+	#include <linux/clocksource.h>
+	#include <linux/ktime.h>
+	#include <asm/tsc.h>
 #endif
 
 /**
@@ -43,7 +43,7 @@
 static int e1000e_phc_adjfreq(struct ptp_clock_info *ptp, s32 delta)
 {
 	struct e1000_adapter *adapter = container_of(ptp, struct e1000_adapter,
-						     ptp_clock_info);
+									ptp_clock_info);
 	struct e1000_hw *hw = &adapter->hw;
 	bool neg_adj = false;
 	unsigned long flags;
@@ -52,17 +52,23 @@ static int e1000e_phc_adjfreq(struct ptp_clock_info *ptp, s32 delta)
 	s32 ret_val;
 
 	if ((delta > ptp->max_adj) || (delta <= -1000000000))
+	{
 		return -EINVAL;
+	}
 
-	if (delta < 0) {
+	if (delta < 0)
+	{
 		neg_adj = true;
 		delta = -delta;
 	}
 
 	/* Get the System Time Register SYSTIM base frequency */
 	ret_val = e1000e_get_base_timinca(adapter, &timinca);
+
 	if (ret_val)
+	{
 		return ret_val;
+	}
 
 	spin_lock_irqsave(&adapter->systim_lock, flags);
 
@@ -96,7 +102,7 @@ static int e1000e_phc_adjfreq(struct ptp_clock_info *ptp, s32 delta)
 static int e1000e_phc_adjtime(struct ptp_clock_info *ptp, s64 delta)
 {
 	struct e1000_adapter *adapter = container_of(ptp, struct e1000_adapter,
-						     ptp_clock_info);
+									ptp_clock_info);
 	unsigned long flags;
 
 	spin_lock_irqsave(&adapter->systim_lock, flags);
@@ -119,8 +125,8 @@ static int e1000e_phc_adjtime(struct ptp_clock_info *ptp, s64 delta)
  * clock values in ns.
  **/
 static int e1000e_phc_get_syncdevicetime(ktime_t *device,
-					 struct system_counterval_t *system,
-					 void *ctx)
+		struct system_counterval_t *system,
+		void *ctx)
 {
 	struct e1000_adapter *adapter = (struct e1000_adapter *)ctx;
 	struct e1000_hw *hw = &adapter->hw;
@@ -132,17 +138,24 @@ static int e1000e_phc_get_syncdevicetime(ktime_t *device,
 
 	tsync_ctrl = er32(TSYNCTXCTL);
 	tsync_ctrl |= E1000_TSYNCTXCTL_START_SYNC |
-		E1000_TSYNCTXCTL_MAX_ALLOWED_DLY_MASK;
+				  E1000_TSYNCTXCTL_MAX_ALLOWED_DLY_MASK;
 	ew32(TSYNCTXCTL, tsync_ctrl);
-	for (i = 0; i < MAX_HW_WAIT_COUNT; ++i) {
+
+	for (i = 0; i < MAX_HW_WAIT_COUNT; ++i)
+	{
 		udelay(1);
 		tsync_ctrl = er32(TSYNCTXCTL);
+
 		if (tsync_ctrl & E1000_TSYNCTXCTL_SYNC_COMP)
+		{
 			break;
+		}
 	}
 
 	if (i == MAX_HW_WAIT_COUNT)
+	{
 		return -ETIMEDOUT;
+	}
 
 	dev_cycles = er32(SYSSTMPH);
 	dev_cycles <<= 32;
@@ -168,13 +181,13 @@ static int e1000e_phc_get_syncdevicetime(ktime_t *device,
  * clock values in ns.
  **/
 static int e1000e_phc_getcrosststamp(struct ptp_clock_info *ptp,
-				     struct system_device_crosststamp *xtstamp)
+									 struct system_device_crosststamp *xtstamp)
 {
 	struct e1000_adapter *adapter = container_of(ptp, struct e1000_adapter,
-						     ptp_clock_info);
+									ptp_clock_info);
 
 	return get_device_system_crosststamp(e1000e_phc_get_syncdevicetime,
-						adapter, NULL, xtstamp);
+										 adapter, NULL, xtstamp);
 }
 #endif/*CONFIG_E1000E_HWTS*/
 
@@ -189,7 +202,7 @@ static int e1000e_phc_getcrosststamp(struct ptp_clock_info *ptp,
 static int e1000e_phc_gettime(struct ptp_clock_info *ptp, struct timespec64 *ts)
 {
 	struct e1000_adapter *adapter = container_of(ptp, struct e1000_adapter,
-						     ptp_clock_info);
+									ptp_clock_info);
 	unsigned long flags;
 	u64 ns;
 
@@ -211,10 +224,10 @@ static int e1000e_phc_gettime(struct ptp_clock_info *ptp, struct timespec64 *ts)
  * wall timer value.
  **/
 static int e1000e_phc_settime(struct ptp_clock_info *ptp,
-			      const struct timespec64 *ts)
+							  const struct timespec64 *ts)
 {
 	struct e1000_adapter *adapter = container_of(ptp, struct e1000_adapter,
-						     ptp_clock_info);
+									ptp_clock_info);
 	unsigned long flags;
 	u64 ns;
 
@@ -238,8 +251,8 @@ static int e1000e_phc_settime(struct ptp_clock_info *ptp,
  * Currently, no ancillary features are supported.
  **/
 static int e1000e_phc_enable(struct ptp_clock_info __always_unused *ptp,
-			     struct ptp_clock_request __always_unused *request,
-			     int __always_unused on)
+							 struct ptp_clock_request __always_unused *request,
+							 int __always_unused on)
 {
 	return -EOPNOTSUPP;
 }
@@ -247,20 +260,21 @@ static int e1000e_phc_enable(struct ptp_clock_info __always_unused *ptp,
 static void e1000e_systim_overflow_work(struct work_struct *work)
 {
 	struct e1000_adapter *adapter = container_of(work, struct e1000_adapter,
-						     systim_overflow_work.work);
+									systim_overflow_work.work);
 	struct e1000_hw *hw = &adapter->hw;
 	struct timespec64 ts;
 
 	adapter->ptp_clock_info.gettime64(&adapter->ptp_clock_info, &ts);
 
 	e_dbg("SYSTIM overflow check at %lld.%09lu\n",
-	      (long long) ts.tv_sec, ts.tv_nsec);
+		  (long long) ts.tv_sec, ts.tv_nsec);
 
 	schedule_delayed_work(&adapter->systim_overflow_work,
-			      E1000_SYSTIM_OVERFLOW_PERIOD);
+						  E1000_SYSTIM_OVERFLOW_PERIOD);
 }
 
-static const struct ptp_clock_info e1000e_ptp_clock_info = {
+static const struct ptp_clock_info e1000e_ptp_clock_info =
+{
 	.owner		= THIS_MODULE,
 	.n_alarm	= 0,
 	.n_ext_ts	= 0,
@@ -289,52 +303,64 @@ void e1000e_ptp_init(struct e1000_adapter *adapter)
 	adapter->ptp_clock = NULL;
 
 	if (!(adapter->flags & FLAG_HAS_HW_TIMESTAMP))
+	{
 		return;
+	}
 
 	adapter->ptp_clock_info = e1000e_ptp_clock_info;
 
 	snprintf(adapter->ptp_clock_info.name,
-		 sizeof(adapter->ptp_clock_info.name), "%pm",
-		 adapter->netdev->perm_addr);
+			 sizeof(adapter->ptp_clock_info.name), "%pm",
+			 adapter->netdev->perm_addr);
 
-	switch (hw->mac.type) {
-	case e1000_pch2lan:
-	case e1000_pch_lpt:
-	case e1000_pch_spt:
-		if (((hw->mac.type != e1000_pch_lpt) &&
-		     (hw->mac.type != e1000_pch_spt)) ||
-		    (er32(TSYNCRXCTL) & E1000_TSYNCRXCTL_SYSCFI)) {
-			adapter->ptp_clock_info.max_adj = 24000000 - 1;
-			break;
-		}
+	switch (hw->mac.type)
+	{
+		case e1000_pch2lan:
+		case e1000_pch_lpt:
+		case e1000_pch_spt:
+			if (((hw->mac.type != e1000_pch_lpt) &&
+				 (hw->mac.type != e1000_pch_spt)) ||
+				(er32(TSYNCRXCTL) & E1000_TSYNCRXCTL_SYSCFI))
+			{
+				adapter->ptp_clock_info.max_adj = 24000000 - 1;
+				break;
+			}
+
 		/* fall-through */
-	case e1000_82574:
-	case e1000_82583:
-		adapter->ptp_clock_info.max_adj = 600000000 - 1;
-		break;
-	default:
-		break;
+		case e1000_82574:
+		case e1000_82583:
+			adapter->ptp_clock_info.max_adj = 600000000 - 1;
+			break;
+
+		default:
+			break;
 	}
 
 #ifdef CONFIG_E1000E_HWTS
+
 	/* CPU must have ART and GBe must be from Sunrise Point or greater */
 	if (hw->mac.type >= e1000_pch_spt && boot_cpu_has(X86_FEATURE_ART))
 		adapter->ptp_clock_info.getcrosststamp =
 			e1000e_phc_getcrosststamp;
+
 #endif/*CONFIG_E1000E_HWTS*/
 
 	INIT_DELAYED_WORK(&adapter->systim_overflow_work,
-			  e1000e_systim_overflow_work);
+					  e1000e_systim_overflow_work);
 
 	schedule_delayed_work(&adapter->systim_overflow_work,
-			      E1000_SYSTIM_OVERFLOW_PERIOD);
+						  E1000_SYSTIM_OVERFLOW_PERIOD);
 
 	adapter->ptp_clock = ptp_clock_register(&adapter->ptp_clock_info,
-						&adapter->pdev->dev);
-	if (IS_ERR(adapter->ptp_clock)) {
+											&adapter->pdev->dev);
+
+	if (IS_ERR(adapter->ptp_clock))
+	{
 		adapter->ptp_clock = NULL;
 		e_err("ptp_clock_register failed\n");
-	} else if (adapter->ptp_clock) {
+	}
+	else if (adapter->ptp_clock)
+	{
 		e_info("registered PHC clock\n");
 	}
 }
@@ -348,11 +374,14 @@ void e1000e_ptp_init(struct e1000_adapter *adapter)
 void e1000e_ptp_remove(struct e1000_adapter *adapter)
 {
 	if (!(adapter->flags & FLAG_HAS_HW_TIMESTAMP))
+	{
 		return;
+	}
 
 	cancel_delayed_work_sync(&adapter->systim_overflow_work);
 
-	if (adapter->ptp_clock) {
+	if (adapter->ptp_clock)
+	{
 		ptp_clock_unregister(adapter->ptp_clock);
 		adapter->ptp_clock = NULL;
 		e_info("removed PHC\n");

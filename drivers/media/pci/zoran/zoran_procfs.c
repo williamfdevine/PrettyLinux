@@ -51,14 +51,16 @@
 #include "zoran_card.h"
 
 #ifdef CONFIG_PROC_FS
-struct procfs_params_zr36067 {
+struct procfs_params_zr36067
+{
 	char *name;
 	short reg;
 	u32 mask;
 	short bit;
 };
 
-static const struct procfs_params_zr36067 zr67[] = {
+static const struct procfs_params_zr36067 zr67[] =
+{
 	{"HSPol", 0x000, 1, 30},
 	{"HStart", 0x000, 0x3ff, 10},
 	{"HEnd", 0x000, 0x3ff, 0},
@@ -89,29 +91,40 @@ static const struct procfs_params_zr36067 zr67[] = {
 
 static void
 setparam (struct zoran *zr,
-	  char         *name,
-	  char         *sval)
+		  char         *name,
+		  char         *sval)
 {
 	int i = 0, reg0, reg, val;
 
-	while (zr67[i].name != NULL) {
-		if (!strncmp(name, zr67[i].name, strlen(zr67[i].name))) {
+	while (zr67[i].name != NULL)
+	{
+		if (!strncmp(name, zr67[i].name, strlen(zr67[i].name)))
+		{
 			reg = reg0 = btread(zr67[i].reg);
 			reg &= ~(zr67[i].mask << zr67[i].bit);
+
 			if (!isdigit(sval[0]))
+			{
 				break;
+			}
+
 			val = simple_strtoul(sval, NULL, 0);
+
 			if ((val & ~zr67[i].mask))
+			{
 				break;
+			}
+
 			reg |= (val & zr67[i].mask) << zr67[i].bit;
 			dprintk(4,
-				KERN_INFO
-				"%s: setparam: setting ZR36067 register 0x%03x: 0x%08x=>0x%08x %s=%d\n",
-				ZR_DEVNAME(zr), zr67[i].reg, reg0, reg,
-				zr67[i].name, val);
+					KERN_INFO
+					"%s: setparam: setting ZR36067 register 0x%03x: 0x%08x=>0x%08x %s=%d\n",
+					ZR_DEVNAME(zr), zr67[i].reg, reg0, reg,
+					zr67[i].name, val);
 			btwrite(reg, zr67[i].reg);
 			break;
 		}
+
 		i++;
 	}
 }
@@ -122,9 +135,11 @@ static int zoran_show(struct seq_file *p, void *v)
 	int i;
 
 	seq_printf(p, "ZR36067 registers:\n");
+
 	for (i = 0; i < 0x130; i += 16)
 		seq_printf(p, "%03X %08X  %08X  %08X  %08X \n", i,
-			   btread(i), btread(i+4), btread(i+8), btread(i+12));
+				   btread(i), btread(i + 4), btread(i + 8), btread(i + 12));
+
 	return 0;
 }
 
@@ -135,51 +150,65 @@ static int zoran_open(struct inode *inode, struct file *file)
 }
 
 static ssize_t zoran_write(struct file *file, const char __user *buffer,
-			size_t count, loff_t *ppos)
+						   size_t count, loff_t *ppos)
 {
 	struct zoran *zr = PDE_DATA(file_inode(file));
 	char *string, *sp;
 	char *line, *ldelim, *varname, *svar, *tdelim;
 
 	if (count > 32768)	/* Stupidity filter */
+	{
 		return -EINVAL;
+	}
 
 	string = sp = vmalloc(count + 1);
-	if (!string) {
+
+	if (!string)
+	{
 		dprintk(1,
-			KERN_ERR
-			"%s: write_proc: can not allocate memory\n",
-			ZR_DEVNAME(zr));
+				KERN_ERR
+				"%s: write_proc: can not allocate memory\n",
+				ZR_DEVNAME(zr));
 		return -ENOMEM;
 	}
-	if (copy_from_user(string, buffer, count)) {
+
+	if (copy_from_user(string, buffer, count))
+	{
 		vfree (string);
 		return -EFAULT;
 	}
+
 	string[count] = 0;
 	dprintk(4, KERN_INFO "%s: write_proc: name=%pD count=%zu zr=%p\n",
-		ZR_DEVNAME(zr), file, count, zr);
+			ZR_DEVNAME(zr), file, count, zr);
 	ldelim = " \t\n";
 	tdelim = "=";
 	line = strpbrk(sp, ldelim);
-	while (line) {
+
+	while (line)
+	{
 		*line = 0;
 		svar = strpbrk(sp, tdelim);
-		if (svar) {
+
+		if (svar)
+		{
 			*svar = 0;
 			varname = sp;
 			svar++;
 			setparam(zr, varname, svar);
 		}
+
 		sp = line + 1;
 		line = strpbrk(sp, ldelim);
 	}
+
 	vfree(string);
 
 	return count;
 }
 
-static const struct file_operations zoran_operations = {
+static const struct file_operations zoran_operations =
+{
 	.owner		= THIS_MODULE,
 	.open		= zoran_open,
 	.read		= seq_read,
@@ -197,16 +226,21 @@ zoran_proc_init (struct zoran *zr)
 
 	snprintf(name, 7, "zoran%d", zr->id);
 	zr->zoran_proc = proc_create_data(name, 0, NULL, &zoran_operations, zr);
-	if (zr->zoran_proc != NULL) {
+
+	if (zr->zoran_proc != NULL)
+	{
 		dprintk(2,
-			KERN_INFO
-			"%s: procfs entry /proc/%s allocated. data=%p\n",
-			ZR_DEVNAME(zr), name, zr);
-	} else {
+				KERN_INFO
+				"%s: procfs entry /proc/%s allocated. data=%p\n",
+				ZR_DEVNAME(zr), name, zr);
+	}
+	else
+	{
 		dprintk(1, KERN_ERR "%s: Unable to initialise /proc/%s\n",
-			ZR_DEVNAME(zr), name);
+				ZR_DEVNAME(zr), name);
 		return 1;
 	}
+
 #endif
 	return 0;
 }
@@ -218,8 +252,12 @@ zoran_proc_cleanup (struct zoran *zr)
 	char name[8];
 
 	snprintf(name, 7, "zoran%d", zr->id);
+
 	if (zr->zoran_proc)
+	{
 		remove_proc_entry(name, NULL);
+	}
+
 	zr->zoran_proc = NULL;
 #endif
 }

@@ -43,20 +43,22 @@ struct crypto_rng;
  *		the seed size is set to zero.
  * @base:	Common crypto API algorithm data structure.
  */
-struct rng_alg {
+struct rng_alg
+{
 	int (*generate)(struct crypto_rng *tfm,
-			const u8 *src, unsigned int slen,
-			u8 *dst, unsigned int dlen);
+					const u8 *src, unsigned int slen,
+					u8 *dst, unsigned int dlen);
 	int (*seed)(struct crypto_rng *tfm, const u8 *seed, unsigned int slen);
 	void (*set_ent)(struct crypto_rng *tfm, const u8 *data,
-			unsigned int len);
+					unsigned int len);
 
 	unsigned int seedsize;
 
 	struct crypto_alg base;
 };
 
-struct crypto_rng {
+struct crypto_rng
+{
 	struct crypto_tfm base;
 };
 
@@ -110,7 +112,7 @@ static inline struct crypto_tfm *crypto_rng_tfm(struct crypto_rng *tfm)
 static inline struct rng_alg *crypto_rng_alg(struct crypto_rng *tfm)
 {
 	return container_of(crypto_rng_tfm(tfm)->__crt_alg,
-			    struct rng_alg, base);
+						struct rng_alg, base);
 }
 
 /**
@@ -137,8 +139,8 @@ static inline void crypto_free_rng(struct crypto_rng *tfm)
  * Return: 0 function was successful; < 0 if an error occurred
  */
 static inline int crypto_rng_generate(struct crypto_rng *tfm,
-				      const u8 *src, unsigned int slen,
-				      u8 *dst, unsigned int dlen)
+									  const u8 *src, unsigned int slen,
+									  u8 *dst, unsigned int dlen)
 {
 	return crypto_rng_alg(tfm)->generate(tfm, src, slen, dst, dlen);
 }
@@ -155,7 +157,7 @@ static inline int crypto_rng_generate(struct crypto_rng *tfm,
  * Return: 0 function was successful; < 0 if an error occurred
  */
 static inline int crypto_rng_get_bytes(struct crypto_rng *tfm,
-				       u8 *rdata, unsigned int dlen)
+									   u8 *rdata, unsigned int dlen)
 {
 	return crypto_rng_generate(tfm, NULL, 0, rdata, dlen);
 }
@@ -178,7 +180,7 @@ static inline int crypto_rng_get_bytes(struct crypto_rng *tfm,
  * Return: 0 if the setting of the key was successful; < 0 if an error occurred
  */
 int crypto_rng_reset(struct crypto_rng *tfm, const u8 *seed,
-		     unsigned int slen);
+					 unsigned int slen);
 
 /**
  * crypto_rng_seedsize() - obtain seed size of RNG

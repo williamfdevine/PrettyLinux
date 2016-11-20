@@ -25,7 +25,8 @@ void DisableVGA(volatile STG4000REG __iomem *pSTGReg)
 	STG_WRITE_REG(SoftwareReset, tmp);
 
 	/* Just for Delay */
-	for (i = 0; i < 1000; i++) {
+	for (i = 0; i < 1000; i++)
+	{
 		count++;
 	}
 
@@ -57,7 +58,7 @@ void StartVTG(volatile STG4000REG __iomem *pSTGReg)
 }
 
 void SetupVTG(volatile STG4000REG __iomem *pSTGReg,
-	      const struct kyrofb_info * pTiming)
+			  const struct kyrofb_info *pTiming)
 {
 	u32 tmp = 0;
 	u32 margins = 0;
@@ -68,51 +69,53 @@ void SetupVTG(volatile STG4000REG __iomem *pSTGReg,
 	/* Horizontal */
 	u32 HAddrTime, HRightBorder, HLeftBorder;
 	u32 HBackPorcStrt, HFrontPorchStrt, HTotal,
-	    HLeftBorderStrt, HRightBorderStrt, HDisplayStrt;
+		HLeftBorderStrt, HRightBorderStrt, HDisplayStrt;
 
 	/* Vertical */
 	u32 VDisplayStrt, VBottomBorder, VTopBorder;
 	u32 VBackPorchStrt, VTotal, VTopBorderStrt,
-	    VFrontPorchStrt, VBottomBorderStrt, VAddrTime;
+		VFrontPorchStrt, VBottomBorderStrt, VAddrTime;
 
 	/* Need to calculate the right border */
-	if ((xRes == 640) && (yRes == 480)) {
-		if ((pTiming->VFREQ == 60) || (pTiming->VFREQ == 72)) {
+	if ((xRes == 640) && (yRes == 480))
+	{
+		if ((pTiming->VFREQ == 60) || (pTiming->VFREQ == 72))
+		{
 			margins = 8;
 		}
 	}
 
 	/* Work out the Border */
 	ulBorder =
-	    (pTiming->HTot -
-	     (pTiming->HST + (pTiming->HBP - margins) + xRes +
-	      (pTiming->HFP - margins))) >> 1;
+		(pTiming->HTot -
+		 (pTiming->HST + (pTiming->HBP - margins) + xRes +
+		  (pTiming->HFP - margins))) >> 1;
 
 	/* Border the same for Vertical and Horizontal */
 	VBottomBorder = HLeftBorder = VTopBorder = HRightBorder = ulBorder;
 
-    /************ Get Timing values for Horizontal ******************/
+	/************ Get Timing values for Horizontal ******************/
 	HAddrTime = xRes;
 	HBackPorcStrt = pTiming->HST;
 	HTotal = pTiming->HTot;
 	HDisplayStrt =
-	    pTiming->HST + (pTiming->HBP - margins) + HLeftBorder;
+		pTiming->HST + (pTiming->HBP - margins) + HLeftBorder;
 	HLeftBorderStrt = HDisplayStrt - HLeftBorder;
 	HFrontPorchStrt =
-	    pTiming->HST + (pTiming->HBP - margins) + HLeftBorder +
-	    HAddrTime + HRightBorder;
+		pTiming->HST + (pTiming->HBP - margins) + HLeftBorder +
+		HAddrTime + HRightBorder;
 	HRightBorderStrt = HFrontPorchStrt - HRightBorder;
 
-    /************ Get Timing values for Vertical ******************/
+	/************ Get Timing values for Vertical ******************/
 	VAddrTime = yRes;
 	VBackPorchStrt = pTiming->VST;
 	VTotal = pTiming->VTot;
 	VDisplayStrt =
-	    pTiming->VST + (pTiming->VBP - margins) + VTopBorder;
+		pTiming->VST + (pTiming->VBP - margins) + VTopBorder;
 	VTopBorderStrt = VDisplayStrt - VTopBorder;
 	VFrontPorchStrt =
-	    pTiming->VST + (pTiming->VBP - margins) + VTopBorder +
-	    VAddrTime + VBottomBorder;
+		pTiming->VST + (pTiming->VBP - margins) + VTopBorder +
+		VAddrTime + VBottomBorder;
 	VBottomBorderStrt = VFrontPorchStrt - VBottomBorder;
 
 	/* Set Hor Timing 1, 2, 3 */
@@ -156,13 +159,20 @@ void SetupVTG(volatile STG4000REG __iomem *pSTGReg,
 	/* Set Verical and Horizontal Polarity */
 	tmp = STG_READ_REG(DACSyncCtrl) | SET_BIT(3) | SET_BIT(1);
 
-	if ((pTiming->HSP > 0) && (pTiming->VSP < 0)) {	/* +hsync -vsync */
+	if ((pTiming->HSP > 0) && (pTiming->VSP < 0))  	/* +hsync -vsync */
+	{
 		tmp &= ~0x8;
-	} else if ((pTiming->HSP < 0) && (pTiming->VSP > 0)) {	/* -hsync +vsync */
+	}
+	else if ((pTiming->HSP < 0) && (pTiming->VSP > 0))  	/* -hsync +vsync */
+	{
 		tmp &= ~0x2;
-	} else if ((pTiming->HSP < 0) && (pTiming->VSP < 0)) {	/* -hsync -vsync */
+	}
+	else if ((pTiming->HSP < 0) && (pTiming->VSP < 0))  	/* -hsync -vsync */
+	{
 		tmp &= ~0xA;
-	} else if ((pTiming->HSP > 0) && (pTiming->VSP > 0)) {	/* +hsync -vsync */
+	}
+	else if ((pTiming->HSP > 0) && (pTiming->VSP > 0))  	/* +hsync -vsync */
+	{
 		tmp &= ~0x0;
 	}
 

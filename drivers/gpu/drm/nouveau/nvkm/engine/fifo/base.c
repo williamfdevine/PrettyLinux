@@ -45,10 +45,12 @@ nvkm_fifo_start(struct nvkm_fifo *fifo, unsigned long *flags)
 
 void
 nvkm_fifo_chan_put(struct nvkm_fifo *fifo, unsigned long flags,
-		   struct nvkm_fifo_chan **pchan)
+				   struct nvkm_fifo_chan **pchan)
 {
 	struct nvkm_fifo_chan *chan = *pchan;
-	if (likely(chan)) {
+
+	if (likely(chan))
+	{
 		*pchan = NULL;
 		spin_unlock_irqrestore(&fifo->lock, flags);
 	}
@@ -60,8 +62,10 @@ nvkm_fifo_chan_inst(struct nvkm_fifo *fifo, u64 inst, unsigned long *rflags)
 	struct nvkm_fifo_chan *chan;
 	unsigned long flags;
 	spin_lock_irqsave(&fifo->lock, flags);
-	list_for_each_entry(chan, &fifo->chan, head) {
-		if (chan->inst->addr == inst) {
+	list_for_each_entry(chan, &fifo->chan, head)
+	{
+		if (chan->inst->addr == inst)
+		{
 			list_del(&chan->head);
 			list_add(&chan->head, &fifo->chan);
 			*rflags = flags;
@@ -78,8 +82,10 @@ nvkm_fifo_chan_chid(struct nvkm_fifo *fifo, int chid, unsigned long *rflags)
 	struct nvkm_fifo_chan *chan;
 	unsigned long flags;
 	spin_lock_irqsave(&fifo->lock, flags);
-	list_for_each_entry(chan, &fifo->chan, head) {
-		if (chan->chid == chid) {
+	list_for_each_entry(chan, &fifo->chan, head)
+	{
+		if (chan->chid == chid)
+		{
 			list_del(&chan->head);
 			list_add(&chan->head, &fifo->chan);
 			*rflags = flags;
@@ -92,19 +98,22 @@ nvkm_fifo_chan_chid(struct nvkm_fifo *fifo, int chid, unsigned long *rflags)
 
 static int
 nvkm_fifo_event_ctor(struct nvkm_object *object, void *data, u32 size,
-		     struct nvkm_notify *notify)
+					 struct nvkm_notify *notify)
 {
-	if (size == 0) {
+	if (size == 0)
+	{
 		notify->size  = 0;
 		notify->types = 1;
 		notify->index = 0;
 		return 0;
 	}
+
 	return -ENOSYS;
 }
 
 static const struct nvkm_event_func
-nvkm_fifo_event_func = {
+	nvkm_fifo_event_func =
+{
 	.ctor = nvkm_fifo_event_ctor,
 };
 
@@ -124,14 +133,16 @@ nvkm_fifo_uevent_init(struct nvkm_event *event, int type, int index)
 
 static int
 nvkm_fifo_uevent_ctor(struct nvkm_object *object, void *data, u32 size,
-		      struct nvkm_notify *notify)
+					  struct nvkm_notify *notify)
 {
-	union {
+	union
+	{
 		struct nvif_notify_uevent_req none;
 	} *req = data;
 	int ret = -ENOSYS;
 
-	if (!(ret = nvif_unvers(ret, &data, &size, req->none))) {
+	if (!(ret = nvif_unvers(ret, &data, &size, req->none)))
+	{
 		notify->size  = sizeof(struct nvif_notify_uevent_rep);
 		notify->types = 1;
 		notify->index = 0;
@@ -141,7 +152,8 @@ nvkm_fifo_uevent_ctor(struct nvkm_object *object, void *data, u32 size,
 }
 
 static const struct nvkm_event_func
-nvkm_fifo_uevent_func = {
+	nvkm_fifo_uevent_func =
+{
 	.ctor = nvkm_fifo_uevent_ctor,
 	.init = nvkm_fifo_uevent_init,
 	.fini = nvkm_fifo_uevent_fini,
@@ -150,15 +162,16 @@ nvkm_fifo_uevent_func = {
 void
 nvkm_fifo_uevent(struct nvkm_fifo *fifo)
 {
-	struct nvif_notify_uevent_rep rep = {
+	struct nvif_notify_uevent_rep rep =
+	{
 	};
 	nvkm_event_send(&fifo->uevent, 1, 0, &rep, sizeof(rep));
 }
 
 static int
 nvkm_fifo_class_new(struct nvkm_device *device,
-		    const struct nvkm_oclass *oclass, void *data, u32 size,
-		    struct nvkm_object **pobject)
+					const struct nvkm_oclass *oclass, void *data, u32 size,
+					struct nvkm_object **pobject)
 {
 	const struct nvkm_fifo_chan_oclass *sclass = oclass->engn;
 	struct nvkm_fifo *fifo = nvkm_fifo(oclass->engine);
@@ -166,31 +179,38 @@ nvkm_fifo_class_new(struct nvkm_device *device,
 }
 
 static const struct nvkm_device_oclass
-nvkm_fifo_class = {
+	nvkm_fifo_class =
+{
 	.ctor = nvkm_fifo_class_new,
 };
 
 static int
 nvkm_fifo_class_get(struct nvkm_oclass *oclass, int index,
-		    const struct nvkm_device_oclass **class)
+					const struct nvkm_device_oclass **class)
 {
 	struct nvkm_fifo *fifo = nvkm_fifo(oclass->engine);
 	const struct nvkm_fifo_chan_oclass *sclass;
 	int c = 0;
 
-	if (fifo->func->class_get) {
+	if (fifo->func->class_get)
+	{
 		int ret = fifo->func->class_get(fifo, index, &sclass);
-		if (ret == 0) {
+
+		if (ret == 0)
+		{
 			oclass->base = sclass->base;
 			oclass->engn = sclass;
 			*class = &nvkm_fifo_class;
 			return 0;
 		}
+
 		return ret;
 	}
 
-	while ((sclass = fifo->func->chan[c])) {
-		if (c++ == index) {
+	while ((sclass = fifo->func->chan[c]))
+	{
+		if (c++ == index)
+		{
 			oclass->base = sclass->base;
 			oclass->engn = sclass;
 			*class = &nvkm_fifo_class;
@@ -212,8 +232,12 @@ static int
 nvkm_fifo_fini(struct nvkm_engine *engine, bool suspend)
 {
 	struct nvkm_fifo *fifo = nvkm_fifo(engine);
+
 	if (fifo->func->fini)
+	{
 		fifo->func->fini(fifo);
+	}
+
 	return 0;
 }
 
@@ -221,8 +245,12 @@ static int
 nvkm_fifo_oneinit(struct nvkm_engine *engine)
 {
 	struct nvkm_fifo *fifo = nvkm_fifo(engine);
+
 	if (fifo->func->oneinit)
+	{
 		return fifo->func->oneinit(fifo);
+	}
+
 	return 0;
 }
 
@@ -239,15 +267,20 @@ nvkm_fifo_dtor(struct nvkm_engine *engine)
 {
 	struct nvkm_fifo *fifo = nvkm_fifo(engine);
 	void *data = fifo;
+
 	if (fifo->func->dtor)
+	{
 		data = fifo->func->dtor(fifo);
+	}
+
 	nvkm_event_fini(&fifo->cevent);
 	nvkm_event_fini(&fifo->uevent);
 	return data;
 }
 
 static const struct nvkm_engine_func
-nvkm_fifo = {
+	nvkm_fifo =
+{
 	.dtor = nvkm_fifo_dtor,
 	.oneinit = nvkm_fifo_oneinit,
 	.init = nvkm_fifo_init,
@@ -258,7 +291,7 @@ nvkm_fifo = {
 
 int
 nvkm_fifo_ctor(const struct nvkm_fifo_func *func, struct nvkm_device *device,
-	       int index, int nr, struct nvkm_fifo *fifo)
+			   int index, int nr, struct nvkm_fifo *fifo)
 {
 	int ret;
 
@@ -267,20 +300,32 @@ nvkm_fifo_ctor(const struct nvkm_fifo_func *func, struct nvkm_device *device,
 	spin_lock_init(&fifo->lock);
 
 	if (WARN_ON(fifo->nr > NVKM_FIFO_CHID_NR))
+	{
 		fifo->nr = NVKM_FIFO_CHID_NR;
+	}
 	else
+	{
 		fifo->nr = nr;
+	}
+
 	bitmap_clear(fifo->mask, 0, fifo->nr);
 
 	ret = nvkm_engine_ctor(&nvkm_fifo, device, index, true, &fifo->engine);
-	if (ret)
-		return ret;
 
-	if (func->uevent_init) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (func->uevent_init)
+	{
 		ret = nvkm_event_init(&nvkm_fifo_uevent_func, 1, 1,
-				      &fifo->uevent);
+							  &fifo->uevent);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return nvkm_event_init(&nvkm_fifo_event_func, 1, 1, &fifo->cevent);

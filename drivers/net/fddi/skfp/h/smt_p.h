@@ -112,16 +112,16 @@
 #define	SMT_P10F0	0x10f0
 #define	SMT_P10F1	0x10f1
 #ifdef	ESS
-#define	SMT_P10F2	0x10f2
-#define	SMT_P10F3	0x10f3
-#define	SMT_P10F4	0x10f4
-#define	SMT_P10F5	0x10f5
-#define	SMT_P10F6	0x10f6
-#define	SMT_P10F7	0x10f7
+	#define	SMT_P10F2	0x10f2
+	#define	SMT_P10F3	0x10f3
+	#define	SMT_P10F4	0x10f4
+	#define	SMT_P10F5	0x10f5
+	#define	SMT_P10F6	0x10f6
+	#define	SMT_P10F7	0x10f7
 #endif
 #ifdef	SBA
-#define	SMT_P10F8	0x10f8
-#define	SMT_P10F9	0x10f9
+	#define	SMT_P10F8	0x10f8
+	#define	SMT_P10F9	0x10f9
 #endif
 
 #define	SMT_P200A	0x200a

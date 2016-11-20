@@ -26,7 +26,8 @@
  *   - address bit 7 must be set to request a register read operation
  *   - address bit 6 must be set to request register address auto increment
  */
-static const struct regmap_config zpa2326_regmap_spi_config = {
+static const struct regmap_config zpa2326_regmap_spi_config =
+{
 	.reg_bits       = 8,
 	.val_bits       = 8,
 	.writeable_reg  = zpa2326_isreg_writeable,
@@ -43,7 +44,9 @@ static int zpa2326_probe_spi(struct spi_device *spi)
 	int            err;
 
 	regmap = devm_regmap_init_spi(spi, &zpa2326_regmap_spi_config);
-	if (IS_ERR(regmap)) {
+
+	if (IS_ERR(regmap))
+	{
 		dev_err(&spi->dev, "failed to init registers map");
 		return PTR_ERR(regmap);
 	}
@@ -58,11 +61,14 @@ static int zpa2326_probe_spi(struct spi_device *spi)
 	spi->max_speed_hz = min(spi->max_speed_hz, 1000000U);
 	spi->bits_per_word = 8;
 	err = spi_setup(spi);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return zpa2326_probe(&spi->dev, spi_get_device_id(spi)->name,
-			     spi->irq, ZPA2326_DEVICE_ID, regmap);
+						 spi->irq, ZPA2326_DEVICE_ID, regmap);
 }
 
 static int zpa2326_remove_spi(struct spi_device *spi)
@@ -72,21 +78,24 @@ static int zpa2326_remove_spi(struct spi_device *spi)
 	return 0;
 }
 
-static const struct spi_device_id zpa2326_spi_ids[] = {
+static const struct spi_device_id zpa2326_spi_ids[] =
+{
 	{ "zpa2326", 0 },
 	{ },
 };
 MODULE_DEVICE_TABLE(spi, zpa2326_spi_ids);
 
 #if defined(CONFIG_OF)
-static const struct of_device_id zpa2326_spi_matches[] = {
+static const struct of_device_id zpa2326_spi_matches[] =
+{
 	{ .compatible = "murata,zpa2326" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, zpa2326_spi_matches);
 #endif
 
-static struct spi_driver zpa2326_spi_driver = {
+static struct spi_driver zpa2326_spi_driver =
+{
 	.driver = {
 		.name           = "zpa2326-spi",
 		.of_match_table = of_match_ptr(zpa2326_spi_matches),

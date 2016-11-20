@@ -42,7 +42,8 @@ mark_mt(const struct sk_buff *skb, struct xt_action_param *par)
 	return ((skb->mark & info->mask) == info->mark) ^ info->invert;
 }
 
-static struct xt_target mark_tg_reg __read_mostly = {
+static struct xt_target mark_tg_reg __read_mostly =
+{
 	.name           = "MARK",
 	.revision       = 2,
 	.family         = NFPROTO_UNSPEC,
@@ -51,7 +52,8 @@ static struct xt_target mark_tg_reg __read_mostly = {
 	.me             = THIS_MODULE,
 };
 
-static struct xt_match mark_mt_reg __read_mostly = {
+static struct xt_match mark_mt_reg __read_mostly =
+{
 	.name           = "mark",
 	.revision       = 1,
 	.family         = NFPROTO_UNSPEC,
@@ -65,13 +67,20 @@ static int __init mark_mt_init(void)
 	int ret;
 
 	ret = xt_register_target(&mark_tg_reg);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	ret = xt_register_match(&mark_mt_reg);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		xt_unregister_target(&mark_tg_reg);
 		return ret;
 	}
+
 	return 0;
 }
 

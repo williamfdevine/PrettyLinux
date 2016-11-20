@@ -21,7 +21,8 @@
 
 #define SBCR_ERSB	(1 << 5)
 
-struct pxa930_rotary {
+struct pxa930_rotary
+{
 	struct input_dev	*input_dev;
 	void __iomem		*mmio_base;
 	int			last_ercr;
@@ -47,18 +48,25 @@ static irqreturn_t rotary_irq(int irq, void *dev_id)
 	clear_sbcr(r);
 
 	delta = ercr - r->last_ercr;
+
 	if (delta == 0)
+	{
 		return IRQ_HANDLED;
+	}
 
 	r->last_ercr = ercr;
 
-	if (pdata->up_key && pdata->down_key) {
+	if (pdata->up_key && pdata->down_key)
+	{
 		key = (delta > 0) ? pdata->up_key : pdata->down_key;
 		input_report_key(r->input_dev, key, 1);
 		input_sync(r->input_dev);
 		input_report_key(r->input_dev, key, 0);
-	} else
+	}
+	else
+	{
 		input_report_rel(r->input_dev, pdata->rel_code, delta);
+	}
 
 	input_sync(r->input_dev);
 
@@ -84,7 +92,7 @@ static void pxa930_rotary_close(struct input_dev *dev)
 static int pxa930_rotary_probe(struct platform_device *pdev)
 {
 	struct pxa930_rotary_platform_data *pdata =
-			dev_get_platdata(&pdev->dev);
+		dev_get_platdata(&pdev->dev);
 	struct pxa930_rotary *r;
 	struct input_dev *input_dev;
 	struct resource *res;
@@ -92,28 +100,38 @@ static int pxa930_rotary_probe(struct platform_device *pdev)
 	int err;
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "no irq for rotary controller\n");
 		return -ENXIO;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "no I/O memory defined\n");
 		return -ENXIO;
 	}
 
-	if (!pdata) {
+	if (!pdata)
+	{
 		dev_err(&pdev->dev, "no platform data defined\n");
 		return -EINVAL;
 	}
 
 	r = kzalloc(sizeof(struct pxa930_rotary), GFP_KERNEL);
+
 	if (!r)
+	{
 		return -ENOMEM;
+	}
 
 	r->mmio_base = ioremap_nocache(res->start, resource_size(res));
-	if (r->mmio_base == NULL) {
+
+	if (r->mmio_base == NULL)
+	{
 		dev_err(&pdev->dev, "failed to remap IO memory\n");
 		err = -ENXIO;
 		goto failed_free;
@@ -124,7 +142,9 @@ static int pxa930_rotary_probe(struct platform_device *pdev)
 
 	/* allocate and register the input device */
 	input_dev = input_allocate_device();
-	if (!input_dev) {
+
+	if (!input_dev)
+	{
 		dev_err(&pdev->dev, "failed to allocate input device\n");
 		err = -ENOMEM;
 		goto failed_free_io;
@@ -136,11 +156,14 @@ static int pxa930_rotary_probe(struct platform_device *pdev)
 	input_dev->close = pxa930_rotary_close;
 	input_dev->dev.parent = &pdev->dev;
 
-	if (pdata->up_key && pdata->down_key) {
+	if (pdata->up_key && pdata->down_key)
+	{
 		__set_bit(pdata->up_key, input_dev->keybit);
 		__set_bit(pdata->down_key, input_dev->keybit);
 		__set_bit(EV_KEY, input_dev->evbit);
-	} else {
+	}
+	else
+	{
 		__set_bit(pdata->rel_code, input_dev->relbit);
 		__set_bit(EV_REL, input_dev->evbit);
 	}
@@ -149,14 +172,18 @@ static int pxa930_rotary_probe(struct platform_device *pdev)
 	input_set_drvdata(input_dev, r);
 
 	err = request_irq(irq, rotary_irq, 0,
-			"enhanced rotary", r);
-	if (err) {
+					  "enhanced rotary", r);
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "failed to request IRQ\n");
 		goto failed_free_input;
 	}
 
 	err = input_register_device(input_dev);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "failed to register input device\n");
 		goto failed_free_irq;
 	}
@@ -186,7 +213,8 @@ static int pxa930_rotary_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver pxa930_rotary_driver = {
+static struct platform_driver pxa930_rotary_driver =
+{
 	.driver		= {
 		.name	= "pxa930-rotary",
 	},

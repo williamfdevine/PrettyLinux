@@ -35,12 +35,14 @@
 
 #define LP3972_NUM_REGULATORS 8
 
-struct lp3972_regulator_subdev {
+struct lp3972_regulator_subdev
+{
 	int id;
 	struct regulator_init_data *initdata;
 };
 
-struct lp3972_platform_data {
+struct lp3972_platform_data
+{
 	int num_regulators;
 	struct lp3972_regulator_subdev *regulators;
 };

@@ -94,7 +94,8 @@
 #define VDOA23_VID_MASK			GENMASK(3, 0)
 
 /* Define the TPS65086 IRQ numbers */
-enum tps65086_irqs {
+enum tps65086_irqs
+{
 	TPS65086_IRQ_DIETEMP,
 	TPS65086_IRQ_SHUTDN,
 	TPS65086_IRQ_FAULT,
@@ -105,7 +106,8 @@ enum tps65086_irqs {
  *
  * Device data may be used to access the TPS65086 chip
  */
-struct tps65086 {
+struct tps65086
+{
 	struct device *dev;
 	struct regmap *regmap;
 

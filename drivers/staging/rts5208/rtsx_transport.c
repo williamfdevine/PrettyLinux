@@ -42,39 +42,50 @@
  */
 
 unsigned int rtsx_stor_access_xfer_buf(unsigned char *buffer,
-				       unsigned int buflen,
-				       struct scsi_cmnd *srb,
-				       unsigned int *index,
-				       unsigned int *offset,
-				       enum xfer_buf_dir dir)
+									   unsigned int buflen,
+									   struct scsi_cmnd *srb,
+									   unsigned int *index,
+									   unsigned int *offset,
+									   enum xfer_buf_dir dir)
 {
 	unsigned int cnt;
 
 	/* If not using scatter-gather, just transfer the data directly. */
-	if (scsi_sg_count(srb) == 0) {
+	if (scsi_sg_count(srb) == 0)
+	{
 		unsigned char *sgbuffer;
 
 		if (*offset >= scsi_bufflen(srb))
+		{
 			return 0;
+		}
+
 		cnt = min(buflen, scsi_bufflen(srb) - *offset);
 
 		sgbuffer = (unsigned char *)scsi_sglist(srb) + *offset;
 
 		if (dir == TO_XFER_BUF)
+		{
 			memcpy(sgbuffer, buffer, cnt);
+		}
 		else
+		{
 			memcpy(buffer, sgbuffer, cnt);
+		}
+
 		*offset += cnt;
 
-	/*
-	 * Using scatter-gather.  We have to go through the list one entry
-	 * at a time.  Each s-g entry contains some number of pages, and
-	 * each page has to be kmap()'ed separately.
-	 */
-	} else {
+		/*
+		 * Using scatter-gather.  We have to go through the list one entry
+		 * at a time.  Each s-g entry contains some number of pages, and
+		 * each page has to be kmap()'ed separately.
+		 */
+	}
+	else
+	{
 		struct scatterlist *sg =
-				(struct scatterlist *)scsi_sglist(srb)
-				+ *index;
+			(struct scatterlist *)scsi_sglist(srb)
+			+ *index;
 
 		/*
 		 * This loop handles a single s-g list entry, which may
@@ -83,33 +94,44 @@ unsigned int rtsx_stor_access_xfer_buf(unsigned char *buffer,
 		 * the *offset and *index values for the next loop.
 		 */
 		cnt = 0;
-		while (cnt < buflen && *index < scsi_sg_count(srb)) {
+
+		while (cnt < buflen && *index < scsi_sg_count(srb))
+		{
 			struct page *page = sg_page(sg) +
-					((sg->offset + *offset) >> PAGE_SHIFT);
+								((sg->offset + *offset) >> PAGE_SHIFT);
 			unsigned int poff = (sg->offset + *offset) &
-					    (PAGE_SIZE - 1);
+								(PAGE_SIZE - 1);
 			unsigned int sglen = sg->length - *offset;
 
-			if (sglen > buflen - cnt) {
+			if (sglen > buflen - cnt)
+			{
 				/* Transfer ends within this s-g entry */
 				sglen = buflen - cnt;
 				*offset += sglen;
-			} else {
+			}
+			else
+			{
 				/* Transfer continues to next s-g entry */
 				*offset = 0;
 				++*index;
 				++sg;
 			}
 
-			while (sglen > 0) {
+			while (sglen > 0)
+			{
 				unsigned int plen = min(sglen, (unsigned int)
-						PAGE_SIZE - poff);
+										PAGE_SIZE - poff);
 				unsigned char *ptr = kmap(page);
 
 				if (dir == TO_XFER_BUF)
+				{
 					memcpy(ptr + poff, buffer + cnt, plen);
+				}
 				else
+				{
 					memcpy(buffer + cnt, ptr + poff, plen);
+				}
+
 				kunmap(page);
 
 				/* Start at the beginning of the next page */
@@ -130,25 +152,31 @@ unsigned int rtsx_stor_access_xfer_buf(unsigned char *buffer,
  * SCSI residue.
  */
 void rtsx_stor_set_xfer_buf(unsigned char *buffer,
-			    unsigned int buflen, struct scsi_cmnd *srb)
+							unsigned int buflen, struct scsi_cmnd *srb)
 {
 	unsigned int index = 0, offset = 0;
 
 	rtsx_stor_access_xfer_buf(buffer, buflen, srb, &index, &offset,
-				  TO_XFER_BUF);
+							  TO_XFER_BUF);
+
 	if (buflen < scsi_bufflen(srb))
+	{
 		scsi_set_resid(srb, scsi_bufflen(srb) - buflen);
+	}
 }
 
 void rtsx_stor_get_xfer_buf(unsigned char *buffer,
-			    unsigned int buflen, struct scsi_cmnd *srb)
+							unsigned int buflen, struct scsi_cmnd *srb)
 {
 	unsigned int index = 0, offset = 0;
 
 	rtsx_stor_access_xfer_buf(buffer, buflen, srb, &index, &offset,
-				  FROM_XFER_BUF);
+							  FROM_XFER_BUF);
+
 	if (buflen < scsi_bufflen(srb))
+	{
 		scsi_set_resid(srb, scsi_bufflen(srb) - buflen);
+	}
 }
 
 /***********************************************************************
@@ -170,14 +198,16 @@ void rtsx_invoke_transport(struct scsi_cmnd *srb, struct rtsx_chip *chip)
 	 * if the command gets aborted by the higher layers, we need to
 	 * short-circuit all other processing.
 	 */
-	if (rtsx_chk_stat(chip, RTSX_STAT_ABORT)) {
+	if (rtsx_chk_stat(chip, RTSX_STAT_ABORT))
+	{
 		dev_dbg(rtsx_dev(chip), "-- command was aborted\n");
 		srb->result = DID_ABORT << 16;
 		goto handle_errors;
 	}
 
 	/* if there is a transport error, reset and don't auto-sense */
-	if (result == TRANSPORT_ERROR) {
+	if (result == TRANSPORT_ERROR)
+	{
 		dev_dbg(rtsx_dev(chip), "-- transport indicates error, resetting\n");
 		srb->result = DID_ERROR << 16;
 		goto handle_errors;
@@ -190,12 +220,13 @@ void rtsx_invoke_transport(struct scsi_cmnd *srb, struct rtsx_chip *chip)
 	 * automatically.  Note that we differentiate between a command
 	 * "failure" and an "error" in the transport mechanism.
 	 */
-	if (result == TRANSPORT_FAILED) {
+	if (result == TRANSPORT_FAILED)
+	{
 		/* set the result so the higher layers expect this data */
 		srb->result = SAM_STAT_CHECK_CONDITION;
 		memcpy(srb->sense_buffer,
-		       (unsigned char *)&chip->sense_buffer[SCSI_LUN(srb)],
-		       sizeof(struct sense_data_t));
+			   (unsigned char *)&chip->sense_buffer[SCSI_LUN(srb)],
+			   sizeof(struct sense_data_t));
 	}
 
 	return;
@@ -205,7 +236,7 @@ handle_errors:
 }
 
 void rtsx_add_cmd(struct rtsx_chip *chip,
-		  u8 cmd_type, u16 reg_addr, u8 mask, u8 data)
+				  u8 cmd_type, u16 reg_addr, u8 mask, u8 data)
 {
 	u32 *cb = (u32 *)(chip->host_cmds_ptr);
 	u32 val = 0;
@@ -216,8 +247,11 @@ void rtsx_add_cmd(struct rtsx_chip *chip,
 	val |= (u32)data;
 
 	spin_lock_irq(&chip->rtsx->reg_lock);
+
 	if (chip->ci < (HOST_CMDS_BUF_LEN / 4))
+	{
 		cb[(chip->ci)++] = cpu_to_le32(val);
+	}
 
 	spin_unlock_irq(&chip->rtsx->reg_lock);
 }
@@ -243,13 +277,21 @@ int rtsx_send_cmd(struct rtsx_chip *chip, u8 card, int timeout)
 	int err = 0;
 
 	if (card == SD_CARD)
+	{
 		rtsx->check_card_cd = SD_EXIST;
+	}
 	else if (card == MS_CARD)
+	{
 		rtsx->check_card_cd = MS_EXIST;
+	}
 	else if (card == XD_CARD)
+	{
 		rtsx->check_card_cd = XD_EXIST;
+	}
 	else
+	{
 		rtsx->check_card_cd = 0;
+	}
 
 	spin_lock_irq(&rtsx->reg_lock);
 
@@ -270,20 +312,27 @@ int rtsx_send_cmd(struct rtsx_chip *chip, u8 card, int timeout)
 
 	/* Wait for TRANS_OK_INT */
 	timeleft = wait_for_completion_interruptible_timeout(
-		&trans_done, msecs_to_jiffies(timeout));
-	if (timeleft <= 0) {
+				   &trans_done, msecs_to_jiffies(timeout));
+
+	if (timeleft <= 0)
+	{
 		dev_dbg(rtsx_dev(chip), "chip->int_reg = 0x%x\n",
-			chip->int_reg);
+				chip->int_reg);
 		err = -ETIMEDOUT;
 		rtsx_trace(chip);
 		goto finish_send_cmd;
 	}
 
 	spin_lock_irq(&rtsx->reg_lock);
+
 	if (rtsx->trans_result == TRANS_RESULT_FAIL)
+	{
 		err = -EIO;
+	}
 	else if (rtsx->trans_result == TRANS_RESULT_OK)
+	{
 		err = 0;
+	}
 
 	spin_unlock_irq(&rtsx->reg_lock);
 
@@ -292,7 +341,9 @@ finish_send_cmd:
 	rtsx->trans_state = STATE_TRANS_NONE;
 
 	if (err < 0)
+	{
 		rtsx_stop_cmd(chip, card);
+	}
 
 	return err;
 }
@@ -305,30 +356,38 @@ static inline void rtsx_add_sg_tbl(
 	u32 temp_len = 0;
 	u8  temp_opt = 0;
 
-	do {
-		if (len > 0x80000) {
+	do
+	{
+		if (len > 0x80000)
+		{
 			temp_len = 0x80000;
 			temp_opt = option & (~SG_END);
-		} else {
+		}
+		else
+		{
 			temp_len = len;
 			temp_opt = option;
 		}
+
 		val = ((u64)addr << 32) | ((u64)temp_len << 12) | temp_opt;
 
 		if (chip->sgi < (HOST_SG_TBL_BUF_LEN / 8))
+		{
 			sgb[(chip->sgi)++] = cpu_to_le64(val);
+		}
 
 		len -= temp_len;
 		addr += temp_len;
-	} while (len);
+	}
+	while (len);
 }
 
 static int rtsx_transfer_sglist_adma_partial(struct rtsx_chip *chip, u8 card,
-					     struct scatterlist *sg, int num_sg,
-					     unsigned int *index,
-					     unsigned int *offset, int size,
-					     enum dma_data_direction dma_dir,
-					     int timeout)
+		struct scatterlist *sg, int num_sg,
+		unsigned int *index,
+		unsigned int *offset, int size,
+		enum dma_data_direction dma_dir,
+		int timeout)
 {
 	struct rtsx_dev *rtsx = chip->rtsx;
 	struct completion trans_done;
@@ -340,23 +399,39 @@ static int rtsx_transfer_sglist_adma_partial(struct rtsx_chip *chip, u8 card,
 	u32 val = TRIG_DMA;
 
 	if (!sg || (num_sg <= 0) || !offset || !index)
+	{
 		return -EIO;
+	}
 
 	if (dma_dir == DMA_TO_DEVICE)
+	{
 		dir = HOST_TO_DEVICE;
+	}
 	else if (dma_dir == DMA_FROM_DEVICE)
+	{
 		dir = DEVICE_TO_HOST;
+	}
 	else
+	{
 		return -ENXIO;
+	}
 
 	if (card == SD_CARD)
+	{
 		rtsx->check_card_cd = SD_EXIST;
+	}
 	else if (card == MS_CARD)
+	{
 		rtsx->check_card_cd = MS_EXIST;
+	}
 	else if (card == XD_CARD)
+	{
 		rtsx->check_card_cd = XD_EXIST;
+	}
 	else
+	{
 		rtsx->check_card_cd = 0;
+	}
 
 	spin_lock_irq(&rtsx->reg_lock);
 
@@ -373,6 +448,7 @@ static int rtsx_transfer_sglist_adma_partial(struct rtsx_chip *chip, u8 card,
 	resid = size;
 	sg_ptr = sg;
 	chip->sgi = 0;
+
 	/*
 	 * Usually the next entry will be @sg@ + 1, but if this sg element
 	 * is part of a chained scatterlist, it could jump to the start of
@@ -380,8 +456,12 @@ static int rtsx_transfer_sglist_adma_partial(struct rtsx_chip *chip, u8 card,
 	 * the proper sg.
 	 */
 	for (i = 0; i < *index; i++)
+	{
 		sg_ptr = sg_next(sg_ptr);
-	for (i = *index; i < sg_cnt; i++) {
+	}
+
+	for (i = *index; i < sg_cnt; i++)
+	{
 		dma_addr_t addr;
 		unsigned int len;
 		u8 option;
@@ -390,31 +470,41 @@ static int rtsx_transfer_sglist_adma_partial(struct rtsx_chip *chip, u8 card,
 		len = sg_dma_len(sg_ptr);
 
 		dev_dbg(rtsx_dev(chip), "DMA addr: 0x%x, Len: 0x%x\n",
-			(unsigned int)addr, len);
+				(unsigned int)addr, len);
 		dev_dbg(rtsx_dev(chip), "*index = %d, *offset = %d\n",
-			*index, *offset);
+				*index, *offset);
 
 		addr += *offset;
 
-		if ((len - *offset) > resid) {
+		if ((len - *offset) > resid)
+		{
 			*offset += resid;
 			len = resid;
 			resid = 0;
-		} else {
+		}
+		else
+		{
 			resid -= (len - *offset);
 			len -= *offset;
 			*offset = 0;
 			*index = *index + 1;
 		}
+
 		if ((i == (sg_cnt - 1)) || !resid)
+		{
 			option = SG_VALID | SG_END | SG_TRANS_DATA;
+		}
 		else
+		{
 			option = SG_VALID | SG_TRANS_DATA;
+		}
 
 		rtsx_add_sg_tbl(chip, (u32)addr, (u32)len, option);
 
 		if (!resid)
+		{
 			break;
+		}
 
 		sg_ptr = sg_next(sg_ptr);
 	}
@@ -434,48 +524,64 @@ static int rtsx_transfer_sglist_adma_partial(struct rtsx_chip *chip, u8 card,
 	spin_unlock_irq(&rtsx->reg_lock);
 
 	timeleft = wait_for_completion_interruptible_timeout(
-		&trans_done, msecs_to_jiffies(timeout));
-	if (timeleft <= 0) {
+				   &trans_done, msecs_to_jiffies(timeout));
+
+	if (timeleft <= 0)
+	{
 		dev_dbg(rtsx_dev(chip), "Timeout (%s %d)\n",
-			__func__, __LINE__);
+				__func__, __LINE__);
 		dev_dbg(rtsx_dev(chip), "chip->int_reg = 0x%x\n",
-			chip->int_reg);
+				chip->int_reg);
 		err = -ETIMEDOUT;
 		goto out;
 	}
 
 	spin_lock_irq(&rtsx->reg_lock);
-	if (rtsx->trans_result == TRANS_RESULT_FAIL) {
+
+	if (rtsx->trans_result == TRANS_RESULT_FAIL)
+	{
 		err = -EIO;
 		spin_unlock_irq(&rtsx->reg_lock);
 		goto out;
 	}
+
 	spin_unlock_irq(&rtsx->reg_lock);
 
 	/* Wait for TRANS_OK_INT */
 	spin_lock_irq(&rtsx->reg_lock);
-	if (rtsx->trans_result == TRANS_NOT_READY) {
+
+	if (rtsx->trans_result == TRANS_NOT_READY)
+	{
 		init_completion(&trans_done);
 		spin_unlock_irq(&rtsx->reg_lock);
 		timeleft = wait_for_completion_interruptible_timeout(
-			&trans_done, msecs_to_jiffies(timeout));
-		if (timeleft <= 0) {
+					   &trans_done, msecs_to_jiffies(timeout));
+
+		if (timeleft <= 0)
+		{
 			dev_dbg(rtsx_dev(chip), "Timeout (%s %d)\n",
-				__func__, __LINE__);
+					__func__, __LINE__);
 			dev_dbg(rtsx_dev(chip), "chip->int_reg = 0x%x\n",
-				chip->int_reg);
+					chip->int_reg);
 			err = -ETIMEDOUT;
 			goto out;
 		}
-	} else {
+	}
+	else
+	{
 		spin_unlock_irq(&rtsx->reg_lock);
 	}
 
 	spin_lock_irq(&rtsx->reg_lock);
+
 	if (rtsx->trans_result == TRANS_RESULT_FAIL)
+	{
 		err = -EIO;
+	}
 	else if (rtsx->trans_result == TRANS_RESULT_OK)
+	{
 		err = 0;
+	}
 
 	spin_unlock_irq(&rtsx->reg_lock);
 
@@ -485,15 +591,17 @@ out:
 	dma_unmap_sg(&rtsx->pci->dev, sg, num_sg, dma_dir);
 
 	if (err < 0)
+	{
 		rtsx_stop_cmd(chip, card);
+	}
 
 	return err;
 }
 
 static int rtsx_transfer_sglist_adma(struct rtsx_chip *chip, u8 card,
-				     struct scatterlist *sg, int num_sg,
-				     enum dma_data_direction dma_dir,
-				     int timeout)
+									 struct scatterlist *sg, int num_sg,
+									 enum dma_data_direction dma_dir,
+									 int timeout)
 {
 	struct rtsx_dev *rtsx = chip->rtsx;
 	struct completion trans_done;
@@ -504,23 +612,39 @@ static int rtsx_transfer_sglist_adma(struct rtsx_chip *chip, u8 card,
 	struct scatterlist *sg_ptr;
 
 	if (!sg || (num_sg <= 0))
+	{
 		return -EIO;
+	}
 
 	if (dma_dir == DMA_TO_DEVICE)
+	{
 		dir = HOST_TO_DEVICE;
+	}
 	else if (dma_dir == DMA_FROM_DEVICE)
+	{
 		dir = DEVICE_TO_HOST;
+	}
 	else
+	{
 		return -ENXIO;
+	}
 
 	if (card == SD_CARD)
+	{
 		rtsx->check_card_cd = SD_EXIST;
+	}
 	else if (card == MS_CARD)
+	{
 		rtsx->check_card_cd = MS_EXIST;
+	}
 	else if (card == XD_CARD)
+	{
 		rtsx->check_card_cd = XD_EXIST;
+	}
 	else
+	{
 		rtsx->check_card_cd = 0;
+	}
 
 	spin_lock_irq(&rtsx->reg_lock);
 
@@ -536,28 +660,39 @@ static int rtsx_transfer_sglist_adma(struct rtsx_chip *chip, u8 card,
 
 	sg_ptr = sg;
 
-	for (i = 0; i <= buf_cnt / (HOST_SG_TBL_BUF_LEN / 8); i++) {
+	for (i = 0; i <= buf_cnt / (HOST_SG_TBL_BUF_LEN / 8); i++)
+	{
 		u32 val = TRIG_DMA;
 		int sg_cnt, j;
 
 		if (i == buf_cnt / (HOST_SG_TBL_BUF_LEN / 8))
+		{
 			sg_cnt = buf_cnt % (HOST_SG_TBL_BUF_LEN / 8);
+		}
 		else
+		{
 			sg_cnt = HOST_SG_TBL_BUF_LEN / 8;
+		}
 
 		chip->sgi = 0;
-		for (j = 0; j < sg_cnt; j++) {
+
+		for (j = 0; j < sg_cnt; j++)
+		{
 			dma_addr_t addr = sg_dma_address(sg_ptr);
 			unsigned int len = sg_dma_len(sg_ptr);
 			u8 option;
 
 			dev_dbg(rtsx_dev(chip), "DMA addr: 0x%x, Len: 0x%x\n",
-				(unsigned int)addr, len);
+					(unsigned int)addr, len);
 
 			if (j == (sg_cnt - 1))
+			{
 				option = SG_VALID | SG_END | SG_TRANS_DATA;
+			}
 			else
+			{
 				option = SG_VALID | SG_TRANS_DATA;
+			}
 
 			rtsx_add_sg_tbl(chip, (u32)addr, (u32)len, option);
 
@@ -579,22 +714,27 @@ static int rtsx_transfer_sglist_adma(struct rtsx_chip *chip, u8 card,
 		spin_unlock_irq(&rtsx->reg_lock);
 
 		timeleft = wait_for_completion_interruptible_timeout(
-			&trans_done, msecs_to_jiffies(timeout));
-		if (timeleft <= 0) {
+					   &trans_done, msecs_to_jiffies(timeout));
+
+		if (timeleft <= 0)
+		{
 			dev_dbg(rtsx_dev(chip), "Timeout (%s %d)\n",
-				__func__, __LINE__);
+					__func__, __LINE__);
 			dev_dbg(rtsx_dev(chip), "chip->int_reg = 0x%x\n",
-				chip->int_reg);
+					chip->int_reg);
 			err = -ETIMEDOUT;
 			goto out;
 		}
 
 		spin_lock_irq(&rtsx->reg_lock);
-		if (rtsx->trans_result == TRANS_RESULT_FAIL) {
+
+		if (rtsx->trans_result == TRANS_RESULT_FAIL)
+		{
 			err = -EIO;
 			spin_unlock_irq(&rtsx->reg_lock);
 			goto out;
 		}
+
 		spin_unlock_irq(&rtsx->reg_lock);
 
 		sg_ptr += sg_cnt;
@@ -602,28 +742,39 @@ static int rtsx_transfer_sglist_adma(struct rtsx_chip *chip, u8 card,
 
 	/* Wait for TRANS_OK_INT */
 	spin_lock_irq(&rtsx->reg_lock);
-	if (rtsx->trans_result == TRANS_NOT_READY) {
+
+	if (rtsx->trans_result == TRANS_NOT_READY)
+	{
 		init_completion(&trans_done);
 		spin_unlock_irq(&rtsx->reg_lock);
 		timeleft = wait_for_completion_interruptible_timeout(
-			&trans_done, msecs_to_jiffies(timeout));
-		if (timeleft <= 0) {
+					   &trans_done, msecs_to_jiffies(timeout));
+
+		if (timeleft <= 0)
+		{
 			dev_dbg(rtsx_dev(chip), "Timeout (%s %d)\n",
-				__func__, __LINE__);
+					__func__, __LINE__);
 			dev_dbg(rtsx_dev(chip), "chip->int_reg = 0x%x\n",
-				chip->int_reg);
+					chip->int_reg);
 			err = -ETIMEDOUT;
 			goto out;
 		}
-	} else {
+	}
+	else
+	{
 		spin_unlock_irq(&rtsx->reg_lock);
 	}
 
 	spin_lock_irq(&rtsx->reg_lock);
+
 	if (rtsx->trans_result == TRANS_RESULT_FAIL)
+	{
 		err = -EIO;
+	}
 	else if (rtsx->trans_result == TRANS_RESULT_OK)
+	{
 		err = 0;
+	}
 
 	spin_unlock_irq(&rtsx->reg_lock);
 
@@ -633,14 +784,16 @@ out:
 	dma_unmap_sg(&rtsx->pci->dev, sg, num_sg, dma_dir);
 
 	if (err < 0)
+	{
 		rtsx_stop_cmd(chip, card);
+	}
 
 	return err;
 }
 
 static int rtsx_transfer_buf(struct rtsx_chip *chip, u8 card, void *buf,
-			     size_t len, enum dma_data_direction dma_dir,
-			     int timeout)
+							 size_t len, enum dma_data_direction dma_dir,
+							 int timeout)
 {
 	struct rtsx_dev *rtsx = chip->rtsx;
 	struct completion trans_done;
@@ -651,27 +804,46 @@ static int rtsx_transfer_buf(struct rtsx_chip *chip, u8 card, void *buf,
 	long timeleft;
 
 	if (!buf || (len <= 0))
+	{
 		return -EIO;
+	}
 
 	if (dma_dir == DMA_TO_DEVICE)
+	{
 		dir = HOST_TO_DEVICE;
+	}
 	else if (dma_dir == DMA_FROM_DEVICE)
+	{
 		dir = DEVICE_TO_HOST;
+	}
 	else
+	{
 		return -ENXIO;
+	}
 
 	addr = dma_map_single(&rtsx->pci->dev, buf, len, dma_dir);
+
 	if (dma_mapping_error(&rtsx->pci->dev, addr))
+	{
 		return -ENOMEM;
+	}
 
 	if (card == SD_CARD)
+	{
 		rtsx->check_card_cd = SD_EXIST;
+	}
 	else if (card == MS_CARD)
+	{
 		rtsx->check_card_cd = MS_EXIST;
+	}
 	else if (card == XD_CARD)
+	{
 		rtsx->check_card_cd = XD_EXIST;
+	}
 	else
+	{
 		rtsx->check_card_cd = 0;
+	}
 
 	val |= (u32)(dir & 0x01) << 29;
 	val |= (u32)(len & 0x00FFFFFF);
@@ -693,21 +865,28 @@ static int rtsx_transfer_buf(struct rtsx_chip *chip, u8 card, void *buf,
 
 	/* Wait for TRANS_OK_INT */
 	timeleft = wait_for_completion_interruptible_timeout(
-		&trans_done, msecs_to_jiffies(timeout));
-	if (timeleft <= 0) {
+				   &trans_done, msecs_to_jiffies(timeout));
+
+	if (timeleft <= 0)
+	{
 		dev_dbg(rtsx_dev(chip), "Timeout (%s %d)\n",
-			__func__, __LINE__);
+				__func__, __LINE__);
 		dev_dbg(rtsx_dev(chip), "chip->int_reg = 0x%x\n",
-			chip->int_reg);
+				chip->int_reg);
 		err = -ETIMEDOUT;
 		goto out;
 	}
 
 	spin_lock_irq(&rtsx->reg_lock);
+
 	if (rtsx->trans_result == TRANS_RESULT_FAIL)
+	{
 		err = -EIO;
+	}
 	else if (rtsx->trans_result == TRANS_RESULT_OK)
+	{
 		err = 0;
+	}
 
 	spin_unlock_irq(&rtsx->reg_lock);
 
@@ -717,34 +896,44 @@ out:
 	dma_unmap_single(&rtsx->pci->dev, addr, len, dma_dir);
 
 	if (err < 0)
+	{
 		rtsx_stop_cmd(chip, card);
+	}
 
 	return err;
 }
 
 int rtsx_transfer_data_partial(struct rtsx_chip *chip, u8 card,
-			       void *buf, size_t len, int use_sg,
-			       unsigned int *index, unsigned int *offset,
-			       enum dma_data_direction dma_dir, int timeout)
+							   void *buf, size_t len, int use_sg,
+							   unsigned int *index, unsigned int *offset,
+							   enum dma_data_direction dma_dir, int timeout)
 {
 	int err = 0;
 
 	/* don't transfer data during abort processing */
 	if (rtsx_chk_stat(chip, RTSX_STAT_ABORT))
+	{
 		return -EIO;
+	}
 
-	if (use_sg) {
+	if (use_sg)
+	{
 		struct scatterlist *sg = buf;
 
 		err = rtsx_transfer_sglist_adma_partial(chip, card, sg, use_sg,
-							index, offset, (int)len,
-							dma_dir, timeout);
-	} else {
-		err = rtsx_transfer_buf(chip, card,
-					buf, len, dma_dir, timeout);
+												index, offset, (int)len,
+												dma_dir, timeout);
 	}
-	if (err < 0) {
-		if (RTSX_TST_DELINK(chip)) {
+	else
+	{
+		err = rtsx_transfer_buf(chip, card,
+								buf, len, dma_dir, timeout);
+	}
+
+	if (err < 0)
+	{
+		if (RTSX_TST_DELINK(chip))
+		{
 			RTSX_CLR_DELINK(chip);
 			chip->need_reinit = SD_CARD | MS_CARD | XD_CARD;
 			rtsx_reinit_cards(chip, 1);
@@ -755,7 +944,7 @@ int rtsx_transfer_data_partial(struct rtsx_chip *chip, u8 card,
 }
 
 int rtsx_transfer_data(struct rtsx_chip *chip, u8 card, void *buf, size_t len,
-		       int use_sg, enum dma_data_direction dma_dir, int timeout)
+					   int use_sg, enum dma_data_direction dma_dir, int timeout)
 {
 	int err = 0;
 
@@ -763,18 +952,25 @@ int rtsx_transfer_data(struct rtsx_chip *chip, u8 card, void *buf, size_t len,
 
 	/* don't transfer data during abort processing */
 	if (rtsx_chk_stat(chip, RTSX_STAT_ABORT))
+	{
 		return -EIO;
+	}
 
-	if (use_sg) {
+	if (use_sg)
+	{
 		err = rtsx_transfer_sglist_adma(chip, card,
-						(struct scatterlist *)buf,
-						use_sg, dma_dir, timeout);
-	} else {
+										(struct scatterlist *)buf,
+										use_sg, dma_dir, timeout);
+	}
+	else
+	{
 		err = rtsx_transfer_buf(chip, card, buf, len, dma_dir, timeout);
 	}
 
-	if (err < 0) {
-		if (RTSX_TST_DELINK(chip)) {
+	if (err < 0)
+	{
+		if (RTSX_TST_DELINK(chip))
+		{
 			RTSX_CLR_DELINK(chip);
 			chip->need_reinit = SD_CARD | MS_CARD | XD_CARD;
 			rtsx_reinit_cards(chip, 1);

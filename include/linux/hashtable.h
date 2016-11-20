@@ -35,7 +35,9 @@ static inline void __hash_init(struct hlist_head *ht, unsigned int sz)
 	unsigned int i;
 
 	for (i = 0; i < sz; i++)
+	{
 		INIT_HLIST_HEAD(&ht[i]);
+	}
 }
 
 /**
@@ -83,7 +85,9 @@ static inline bool __hash_empty(struct hlist_head *ht, unsigned int sz)
 
 	for (i = 0; i < sz; i++)
 		if (!hlist_empty(&ht[i]))
+		{
 			return false;
+		}
 
 	return true;
 }
@@ -124,7 +128,7 @@ static inline void hash_del_rcu(struct hlist_node *node)
  */
 #define hash_for_each(name, bkt, obj, member)				\
 	for ((bkt) = 0, obj = NULL; obj == NULL && (bkt) < HASH_SIZE(name);\
-			(bkt)++)\
+		 (bkt)++)\
 		hlist_for_each_entry(obj, &name[bkt], member)
 
 /**
@@ -136,7 +140,7 @@ static inline void hash_del_rcu(struct hlist_node *node)
  */
 #define hash_for_each_rcu(name, bkt, obj, member)			\
 	for ((bkt) = 0, obj = NULL; obj == NULL && (bkt) < HASH_SIZE(name);\
-			(bkt)++)\
+		 (bkt)++)\
 		hlist_for_each_entry_rcu(obj, &name[bkt], member)
 
 /**
@@ -150,7 +154,7 @@ static inline void hash_del_rcu(struct hlist_node *node)
  */
 #define hash_for_each_safe(name, bkt, tmp, obj, member)			\
 	for ((bkt) = 0, obj = NULL; obj == NULL && (bkt) < HASH_SIZE(name);\
-			(bkt)++)\
+		 (bkt)++)\
 		hlist_for_each_entry_safe(obj, tmp, &name[bkt], member)
 
 /**
@@ -175,7 +179,7 @@ static inline void hash_del_rcu(struct hlist_node *node)
  */
 #define hash_for_each_possible_rcu(name, obj, member, key)		\
 	hlist_for_each_entry_rcu(obj, &name[hash_min(key, HASH_BITS(name))],\
-		member)
+							 member)
 
 /**
  * hash_for_each_possible_rcu_notrace - iterate over all possible objects hashing
@@ -190,7 +194,7 @@ static inline void hash_del_rcu(struct hlist_node *node)
  */
 #define hash_for_each_possible_rcu_notrace(name, obj, member, key) \
 	hlist_for_each_entry_rcu_notrace(obj, \
-		&name[hash_min(key, HASH_BITS(name))], member)
+									 &name[hash_min(key, HASH_BITS(name))], member)
 
 /**
  * hash_for_each_possible_safe - iterate over all possible objects hashing to the
@@ -203,7 +207,7 @@ static inline void hash_del_rcu(struct hlist_node *node)
  */
 #define hash_for_each_possible_safe(name, obj, tmp, member, key)	\
 	hlist_for_each_entry_safe(obj, tmp,\
-		&name[hash_min(key, HASH_BITS(name))], member)
+							  &name[hash_min(key, HASH_BITS(name))], member)
 
 
 #endif

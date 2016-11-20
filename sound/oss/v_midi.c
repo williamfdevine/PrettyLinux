@@ -28,7 +28,7 @@
 #include "v_midi.h"
 
 static vmidi_devc *v_devc[2] = { NULL, NULL};
-static int midi1,midi2;
+static int midi1, midi2;
 static void *midi_mem = NULL;
 
 /*
@@ -41,24 +41,28 @@ static void *midi_mem = NULL;
 
 
 static int v_midi_open (int dev, int mode,
-	      void            (*input) (int dev, unsigned char data),
-	      void            (*output) (int dev)
-)
+						void            (*input) (int dev, unsigned char data),
+						void            (*output) (int dev)
+					   )
 {
 	vmidi_devc *devc = midi_devs[dev]->devc;
 	unsigned long flags;
 
 	if (devc == NULL)
+	{
 		return -ENXIO;
+	}
 
-	spin_lock_irqsave(&devc->lock,flags);
+	spin_lock_irqsave(&devc->lock, flags);
+
 	if (devc->opened)
 	{
-		spin_unlock_irqrestore(&devc->lock,flags);
+		spin_unlock_irqrestore(&devc->lock, flags);
 		return -EBUSY;
 	}
+
 	devc->opened = 1;
-	spin_unlock_irqrestore(&devc->lock,flags);
+	spin_unlock_irqrestore(&devc->lock, flags);
 
 	devc->intr_active = 1;
 
@@ -77,13 +81,15 @@ static void v_midi_close (int dev)
 	unsigned long flags;
 
 	if (devc == NULL)
+	{
 		return;
+	}
 
-	spin_lock_irqsave(&devc->lock,flags);
+	spin_lock_irqsave(&devc->lock, flags);
 	devc->intr_active = 0;
 	devc->input_opened = 0;
 	devc->opened = 0;
-	spin_unlock_irqrestore(&devc->lock,flags);
+	spin_unlock_irqrestore(&devc->lock, flags);
 }
 
 static int v_midi_out (int dev, unsigned char midi_byte)
@@ -92,14 +98,22 @@ static int v_midi_out (int dev, unsigned char midi_byte)
 	vmidi_devc *pdevc;
 
 	if (devc == NULL)
+	{
 		return -ENXIO;
+	}
 
 	pdevc = midi_devs[devc->pair_mididev]->devc;
-	if (pdevc->input_opened > 0){
+
+	if (pdevc->input_opened > 0)
+	{
 		if (MIDIbuf_avail(pdevc->my_mididev) > 500)
+		{
 			return 0;
+		}
+
 		pdevc->midi_input_intr (pdevc->my_mididev, midi_byte);
 	}
+
 	return 1;
 }
 
@@ -111,8 +125,11 @@ static inline int v_midi_start_read (int dev)
 static int v_midi_end_read (int dev)
 {
 	vmidi_devc *devc = midi_devs[dev]->devc;
+
 	if (devc == NULL)
+	{
 		return -ENXIO;
+	}
 
 	devc->intr_active = 0;
 	return 0;
@@ -163,7 +180,7 @@ static struct midi_operations v_midi_operations2 =
  *	We kmalloc just one of these - it makes life simpler and the code
  *	cleaner and the memory handling far more efficient
  */
- 
+
 struct vmidi_memory
 {
 	/* Must be first */
@@ -178,26 +195,29 @@ static void __init attach_v_midi (struct address_info *hw_config)
 	/* printk("Attaching v_midi device.....\n"); */
 
 	midi1 = sound_alloc_mididev();
+
 	if (midi1 == -1)
 	{
 		printk(KERN_ERR "v_midi: Too many midi devices detected\n");
 		return;
 	}
-	
+
 	m = kmalloc(sizeof(struct vmidi_memory), GFP_KERNEL);
+
 	if (m == NULL)
 	{
 		printk(KERN_WARNING "Loopback MIDI: Failed to allocate memory\n");
 		sound_unload_mididev(midi1);
 		return;
 	}
-	
+
 	midi_mem = m;
-	
+
 	midi_devs[midi1] = &m->m_ops[0];
-	
+
 
 	midi2 = sound_alloc_mididev();
+
 	if (midi2 == -1)
 	{
 		printk (KERN_ERR "v_midi: Too many midi devices detected\n");
@@ -213,7 +233,7 @@ static void __init attach_v_midi (struct address_info *hw_config)
 	/* for MIDI-1 */
 	v_devc[0] = &m->v_ops[0];
 	memcpy ((char *) midi_devs[midi1], (char *) &v_midi_operations,
-		sizeof (struct midi_operations));
+			sizeof (struct midi_operations));
 
 	v_devc[0]->my_mididev = midi1;
 	v_devc[0]->pair_mididev = midi2;
@@ -227,14 +247,14 @@ static void __init attach_v_midi (struct address_info *hw_config)
 	midi_devs[midi1]->converter = &m->s_ops[0];
 	std_midi_synth.midi_dev = midi1;
 	memcpy ((char *) midi_devs[midi1]->converter, (char *) &std_midi_synth,
-		sizeof (struct synth_operations));
+			sizeof (struct synth_operations));
 	midi_devs[midi1]->converter->id = "V_MIDI 1";
 
 	/* for MIDI-2 */
 	v_devc[1] = &m->v_ops[1];
 
 	memcpy ((char *) midi_devs[midi2], (char *) &v_midi_operations2,
-		sizeof (struct midi_operations));
+			sizeof (struct midi_operations));
 
 	v_devc[1]->my_mididev = midi2;
 	v_devc[1]->pair_mididev = midi1;
@@ -248,7 +268,7 @@ static void __init attach_v_midi (struct address_info *hw_config)
 
 	std_midi_synth.midi_dev = midi2;
 	memcpy ((char *) midi_devs[midi2]->converter, (char *) &std_midi_synth,
-		sizeof (struct synth_operations));
+			sizeof (struct synth_operations));
 	midi_devs[midi2]->converter->id = "V_MIDI 2";
 
 	sequencer_init();
@@ -257,7 +277,7 @@ static void __init attach_v_midi (struct address_info *hw_config)
 
 static inline int __init probe_v_midi(struct address_info *hw_config)
 {
-	return(1);	/* always OK */
+	return (1);	/* always OK */
 }
 
 
@@ -273,8 +293,12 @@ static struct address_info cfg; /* dummy */
 static int __init init_vmidi(void)
 {
 	printk("MIDI Loopback device driver\n");
+
 	if (!probe_v_midi(&cfg))
+	{
 		return -ENODEV;
+	}
+
 	attach_v_midi(&cfg);
 
 	return 0;

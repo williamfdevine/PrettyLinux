@@ -19,7 +19,8 @@
 
 #include "dvb_frontend.h"
 
-struct m88rs6000t_config {
+struct m88rs6000t_config
+{
 	/*
 	 * pointer to DVB frontend
 	 */

@@ -11,12 +11,13 @@ struct blkcipher_desc;
 
 #define XTS_BLOCK_SIZE 16
 
-struct xts_crypt_req {
+struct xts_crypt_req
+{
 	be128 *tbuf;
 	unsigned int tbuflen;
 
 	void *tweak_ctx;
-	void (*tweak_fn)(void *ctx, u8* dst, const u8* src);
+	void (*tweak_fn)(void *ctx, u8 *dst, const u8 *src);
 	void *crypt_ctx;
 	void (*crypt_fn)(void *ctx, u8 *blks, unsigned int nbytes);
 };
@@ -24,11 +25,11 @@ struct xts_crypt_req {
 #define XTS_TWEAK_CAST(x) ((void (*)(void *, u8*, const u8*))(x))
 
 int xts_crypt(struct blkcipher_desc *desc, struct scatterlist *dst,
-	      struct scatterlist *src, unsigned int nbytes,
-	      struct xts_crypt_req *req);
+			  struct scatterlist *src, unsigned int nbytes,
+			  struct xts_crypt_req *req);
 
 static inline int xts_check_key(struct crypto_tfm *tfm,
-				const u8 *key, unsigned int keylen)
+								const u8 *key, unsigned int keylen)
 {
 	u32 *flags = &tfm->crt_flags;
 
@@ -36,14 +37,16 @@ static inline int xts_check_key(struct crypto_tfm *tfm,
 	 * key consists of keys of equal size concatenated, therefore
 	 * the length must be even.
 	 */
-	if (keylen % 2) {
+	if (keylen % 2)
+	{
 		*flags |= CRYPTO_TFM_RES_BAD_KEY_LEN;
 		return -EINVAL;
 	}
 
 	/* ensure that the AES and tweak key are not identical */
 	if (fips_enabled &&
-	    !crypto_memneq(key, key + (keylen / 2), keylen / 2)) {
+		!crypto_memneq(key, key + (keylen / 2), keylen / 2))
+	{
 		*flags |= CRYPTO_TFM_RES_WEAK_KEY;
 		return -EINVAL;
 	}

@@ -66,7 +66,7 @@
 #define SPI_CS0_EN				BIT(5)
 
 #define SPI_CS_MASK			(SPI_CS3_EN | SPI_CS2_EN |	\
-					SPI_CS1_EN | SPI_CS0_EN)
+							 SPI_CS1_EN | SPI_CS0_EN)
 #define SPI_BIT_LENGTH(x)		(((x) & 0x1f) << 0)
 
 #define SPI_MODES			(SPI_ACTIVE_SCLK_MASK | SPI_CK_SDA_MASK)
@@ -111,7 +111,8 @@
 #define SPI_FIFO_DEPTH			4
 #define SPI_DMA_TIMEOUT               (msecs_to_jiffies(1000))
 
-struct tegra_sflash_data {
+struct tegra_sflash_data
+{
 	struct device				*dev;
 	struct spi_master			*master;
 	spinlock_t				lock;
@@ -148,13 +149,13 @@ static int tegra_sflash_runtime_suspend(struct device *dev);
 static int tegra_sflash_runtime_resume(struct device *dev);
 
 static inline u32 tegra_sflash_readl(struct tegra_sflash_data *tsd,
-		unsigned long reg)
+									 unsigned long reg)
 {
 	return readl(tsd->base + reg);
 }
 
 static inline void tegra_sflash_writel(struct tegra_sflash_data *tsd,
-		u32 val, unsigned long reg)
+									   u32 val, unsigned long reg)
 {
 	writel(val, tsd->base + reg);
 }
@@ -174,8 +175,12 @@ static unsigned tegra_sflash_calculate_curr_xfer_param(
 
 	tsd->bytes_per_word = DIV_ROUND_UP(t->bits_per_word, 8);
 	max_word = remain_len / tsd->bytes_per_word;
+
 	if (max_word > SPI_FIFO_DEPTH)
+	{
 		max_word = SPI_FIFO_DEPTH;
+	}
+
 	tsd->curr_xfer_words = max_word;
 	return max_word;
 }
@@ -189,67 +194,94 @@ static unsigned tegra_sflash_fill_tx_fifo_from_client_txbuf(
 	u8 *tx_buf = (u8 *)t->tx_buf + tsd->cur_tx_pos;
 
 	if (max_n_32bit > SPI_FIFO_DEPTH)
+	{
 		max_n_32bit = SPI_FIFO_DEPTH;
+	}
+
 	nbytes = max_n_32bit * tsd->bytes_per_word;
 
 	status = tegra_sflash_readl(tsd, SPI_STATUS);
-	while (!(status & SPI_TXF_FULL)) {
+
+	while (!(status & SPI_TXF_FULL))
+	{
 		int i;
 		u32 x = 0;
 
 		for (i = 0; nbytes && (i < tsd->bytes_per_word);
-							i++, nbytes--)
+			 i++, nbytes--)
+		{
 			x |= (u32)(*tx_buf++) << (i * 8);
+		}
+
 		tegra_sflash_writel(tsd, x, SPI_TX_FIFO);
+
 		if (!nbytes)
+		{
 			break;
+		}
 
 		status = tegra_sflash_readl(tsd, SPI_STATUS);
 	}
+
 	tsd->cur_tx_pos += max_n_32bit * tsd->bytes_per_word;
 	return max_n_32bit;
 }
 
 static int tegra_sflash_read_rx_fifo_to_client_rxbuf(
-		struct tegra_sflash_data *tsd, struct spi_transfer *t)
+	struct tegra_sflash_data *tsd, struct spi_transfer *t)
 {
 	u32 status;
 	unsigned int read_words = 0;
 	u8 *rx_buf = (u8 *)t->rx_buf + tsd->cur_rx_pos;
 
 	status = tegra_sflash_readl(tsd, SPI_STATUS);
-	while (!(status & SPI_RXF_EMPTY)) {
+
+	while (!(status & SPI_RXF_EMPTY))
+	{
 		int i;
 		u32 x = tegra_sflash_readl(tsd, SPI_RX_FIFO);
 
 		for (i = 0; (i < tsd->bytes_per_word); i++)
-			*rx_buf++ = (x >> (i*8)) & 0xFF;
+		{
+			*rx_buf++ = (x >> (i * 8)) & 0xFF;
+		}
+
 		read_words++;
 		status = tegra_sflash_readl(tsd, SPI_STATUS);
 	}
+
 	tsd->cur_rx_pos += read_words * tsd->bytes_per_word;
 	return 0;
 }
 
 static int tegra_sflash_start_cpu_based_transfer(
-		struct tegra_sflash_data *tsd, struct spi_transfer *t)
+	struct tegra_sflash_data *tsd, struct spi_transfer *t)
 {
 	u32 val = 0;
 	unsigned cur_words;
 
 	if (tsd->cur_direction & DATA_DIR_TX)
+	{
 		val |= SPI_IE_TXC;
+	}
 
 	if (tsd->cur_direction & DATA_DIR_RX)
+	{
 		val |= SPI_IE_RXC;
+	}
 
 	tegra_sflash_writel(tsd, val, SPI_DMA_CTL);
 	tsd->dma_control_reg = val;
 
 	if (tsd->cur_direction & DATA_DIR_TX)
+	{
 		cur_words = tegra_sflash_fill_tx_fifo_from_client_txbuf(tsd, t);
+	}
 	else
+	{
 		cur_words = tsd->curr_xfer_words;
+	}
+
 	val |= SPI_DMA_BLK_COUNT(cur_words);
 	tegra_sflash_writel(tsd, val, SPI_DMA_CTL);
 	tsd->dma_control_reg = val;
@@ -267,7 +299,9 @@ static int tegra_sflash_start_transfer_one(struct spi_device *spi,
 	u32 command;
 
 	speed = t->speed_hz;
-	if (speed != tsd->cur_speed) {
+
+	if (speed != tsd->cur_speed)
+	{
 		clk_set_rate(tsd->clk, speed);
 		tsd->cur_speed = speed;
 	}
@@ -278,21 +312,33 @@ static int tegra_sflash_start_transfer_one(struct spi_device *spi,
 	tsd->cur_tx_pos = 0;
 	tsd->curr_xfer = t;
 	tegra_sflash_calculate_curr_xfer_param(spi, tsd, t);
-	if (is_first_of_msg) {
+
+	if (is_first_of_msg)
+	{
 		command = tsd->def_command_reg;
 		command |= SPI_BIT_LENGTH(t->bits_per_word - 1);
 		command |= SPI_CS_VAL_HIGH;
 
 		command &= ~SPI_MODES;
+
 		if (spi->mode & SPI_CPHA)
+		{
 			command |= SPI_CK_SDA_FALLING;
+		}
 
 		if (spi->mode & SPI_CPOL)
+		{
 			command |= SPI_ACTIVE_SCLK_DRIVE_HIGH;
+		}
 		else
+		{
 			command |= SPI_ACTIVE_SCLK_DRIVE_LOW;
+		}
+
 		command |= SPI_CS0_EN << spi->chip_select;
-	} else {
+	}
+	else
+	{
 		command = tsd->command_reg;
 		command &= ~SPI_BIT_LENGTH(~0);
 		command |= SPI_BIT_LENGTH(t->bits_per_word - 1);
@@ -300,14 +346,19 @@ static int tegra_sflash_start_transfer_one(struct spi_device *spi,
 	}
 
 	tsd->cur_direction = 0;
-	if (t->rx_buf) {
+
+	if (t->rx_buf)
+	{
 		command |= SPI_RX_EN;
 		tsd->cur_direction |= DATA_DIR_RX;
 	}
-	if (t->tx_buf) {
+
+	if (t->tx_buf)
+	{
 		command |= SPI_TX_EN;
 		tsd->cur_direction |= DATA_DIR_TX;
 	}
+
 	tegra_sflash_writel(tsd, command, SPI_COMMAND);
 	tsd->command_reg = command;
 
@@ -315,7 +366,7 @@ static int tegra_sflash_start_transfer_one(struct spi_device *spi,
 }
 
 static int tegra_sflash_transfer_one_message(struct spi_master *master,
-			struct spi_message *msg)
+		struct spi_message *msg)
 {
 	bool is_first_msg = true;
 	int single_xfer;
@@ -327,34 +378,44 @@ static int tegra_sflash_transfer_one_message(struct spi_master *master,
 	msg->status = 0;
 	msg->actual_length = 0;
 	single_xfer = list_is_singular(&msg->transfers);
-	list_for_each_entry(xfer, &msg->transfers, transfer_list) {
+	list_for_each_entry(xfer, &msg->transfers, transfer_list)
+	{
 		reinit_completion(&tsd->xfer_completion);
 		ret = tegra_sflash_start_transfer_one(spi, xfer,
-					is_first_msg, single_xfer);
-		if (ret < 0) {
+											  is_first_msg, single_xfer);
+
+		if (ret < 0)
+		{
 			dev_err(tsd->dev,
-				"spi can not start transfer, err %d\n", ret);
+					"spi can not start transfer, err %d\n", ret);
 			goto exit;
 		}
+
 		is_first_msg = false;
 		ret = wait_for_completion_timeout(&tsd->xfer_completion,
-						SPI_DMA_TIMEOUT);
-		if (WARN_ON(ret == 0)) {
+										  SPI_DMA_TIMEOUT);
+
+		if (WARN_ON(ret == 0))
+		{
 			dev_err(tsd->dev,
-				"spi trasfer timeout, err %d\n", ret);
+					"spi trasfer timeout, err %d\n", ret);
 			ret = -EIO;
 			goto exit;
 		}
 
-		if (tsd->tx_status ||  tsd->rx_status) {
+		if (tsd->tx_status ||  tsd->rx_status)
+		{
 			dev_err(tsd->dev, "Error in Transfer\n");
 			ret = -EIO;
 			goto exit;
 		}
+
 		msg->actual_length += xfer->len;
-		if (xfer->cs_change && xfer->delay_usecs) {
+
+		if (xfer->cs_change && xfer->delay_usecs)
+		{
 			tegra_sflash_writel(tsd, tsd->def_command_reg,
-					SPI_COMMAND);
+								SPI_COMMAND);
 			udelay(xfer->delay_usecs);
 		}
 	}
@@ -372,11 +433,13 @@ static irqreturn_t handle_cpu_based_xfer(struct tegra_sflash_data *tsd)
 	unsigned long flags;
 
 	spin_lock_irqsave(&tsd->lock, flags);
-	if (tsd->tx_status || tsd->rx_status || (tsd->status_reg & SPI_BSY)) {
+
+	if (tsd->tx_status || tsd->rx_status || (tsd->status_reg & SPI_BSY))
+	{
 		dev_err(tsd->dev,
-			"CpuXfer ERROR bit set 0x%x\n", tsd->status_reg);
+				"CpuXfer ERROR bit set 0x%x\n", tsd->status_reg);
 		dev_err(tsd->dev,
-			"CpuXfer 0x%08x:0x%08x\n", tsd->command_reg,
+				"CpuXfer 0x%08x:0x%08x\n", tsd->command_reg,
 				tsd->dma_control_reg);
 		reset_control_assert(tsd->rst);
 		udelay(2);
@@ -386,14 +449,21 @@ static irqreturn_t handle_cpu_based_xfer(struct tegra_sflash_data *tsd)
 	}
 
 	if (tsd->cur_direction & DATA_DIR_RX)
+	{
 		tegra_sflash_read_rx_fifo_to_client_rxbuf(tsd, t);
+	}
 
 	if (tsd->cur_direction & DATA_DIR_TX)
+	{
 		tsd->cur_pos = tsd->cur_tx_pos;
+	}
 	else
+	{
 		tsd->cur_pos = tsd->cur_rx_pos;
+	}
 
-	if (tsd->cur_pos == t->len) {
+	if (tsd->cur_pos == t->len)
+	{
 		complete(&tsd->xfer_completion);
 		goto exit;
 	}
@@ -410,17 +480,24 @@ static irqreturn_t tegra_sflash_isr(int irq, void *context_data)
 	struct tegra_sflash_data *tsd = context_data;
 
 	tsd->status_reg = tegra_sflash_readl(tsd, SPI_STATUS);
+
 	if (tsd->cur_direction & DATA_DIR_TX)
+	{
 		tsd->tx_status = tsd->status_reg & SPI_TX_OVF;
+	}
 
 	if (tsd->cur_direction & DATA_DIR_RX)
+	{
 		tsd->rx_status = tsd->status_reg & SPI_RX_UNF;
+	}
+
 	tegra_sflash_clear_status(tsd);
 
 	return handle_cpu_based_xfer(tsd);
 }
 
-static const struct of_device_id tegra_sflash_of_match[] = {
+static const struct of_device_id tegra_sflash_of_match[] =
+{
 	{ .compatible = "nvidia,tegra20-sflash", },
 	{}
 };
@@ -435,13 +512,17 @@ static int tegra_sflash_probe(struct platform_device *pdev)
 	const struct of_device_id *match;
 
 	match = of_match_device(tegra_sflash_of_match, &pdev->dev);
-	if (!match) {
+
+	if (!match)
+	{
 		dev_err(&pdev->dev, "Error: No device match found\n");
 		return -ENODEV;
 	}
 
 	master = spi_alloc_master(&pdev->dev, sizeof(*tsd));
-	if (!master) {
+
+	if (!master)
+	{
 		dev_err(&pdev->dev, "master allocation failed\n");
 		return -ENOMEM;
 	}
@@ -459,34 +540,44 @@ static int tegra_sflash_probe(struct platform_device *pdev)
 	spin_lock_init(&tsd->lock);
 
 	if (of_property_read_u32(tsd->dev->of_node, "spi-max-frequency",
-				 &master->max_speed_hz))
-		master->max_speed_hz = 25000000; /* 25MHz */
+							 &master->max_speed_hz))
+	{
+		master->max_speed_hz = 25000000;    /* 25MHz */
+	}
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	tsd->base = devm_ioremap_resource(&pdev->dev, r);
-	if (IS_ERR(tsd->base)) {
+
+	if (IS_ERR(tsd->base))
+	{
 		ret = PTR_ERR(tsd->base);
 		goto exit_free_master;
 	}
 
 	tsd->irq = platform_get_irq(pdev, 0);
 	ret = request_irq(tsd->irq, tegra_sflash_isr, 0,
-			dev_name(&pdev->dev), tsd);
-	if (ret < 0) {
+					  dev_name(&pdev->dev), tsd);
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Failed to register ISR for IRQ %d\n",
-					tsd->irq);
+				tsd->irq);
 		goto exit_free_master;
 	}
 
 	tsd->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(tsd->clk)) {
+
+	if (IS_ERR(tsd->clk))
+	{
 		dev_err(&pdev->dev, "can not get clock\n");
 		ret = PTR_ERR(tsd->clk);
 		goto exit_free_irq;
 	}
 
 	tsd->rst = devm_reset_control_get(&pdev->dev, "spi");
-	if (IS_ERR(tsd->rst)) {
+
+	if (IS_ERR(tsd->rst))
+	{
 		dev_err(&pdev->dev, "can not get reset\n");
 		ret = PTR_ERR(tsd->rst);
 		goto exit_free_irq;
@@ -494,14 +585,21 @@ static int tegra_sflash_probe(struct platform_device *pdev)
 
 	init_completion(&tsd->xfer_completion);
 	pm_runtime_enable(&pdev->dev);
-	if (!pm_runtime_enabled(&pdev->dev)) {
+
+	if (!pm_runtime_enabled(&pdev->dev))
+	{
 		ret = tegra_sflash_runtime_resume(&pdev->dev);
+
 		if (ret)
+		{
 			goto exit_pm_disable;
+		}
 	}
 
 	ret = pm_runtime_get_sync(&pdev->dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "pm runtime get failed, e = %d\n", ret);
 		goto exit_pm_disable;
 	}
@@ -517,16 +615,23 @@ static int tegra_sflash_probe(struct platform_device *pdev)
 
 	master->dev.of_node = pdev->dev.of_node;
 	ret = devm_spi_register_master(&pdev->dev, master);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "can not register to master err %d\n", ret);
 		goto exit_pm_disable;
 	}
+
 	return ret;
 
 exit_pm_disable:
 	pm_runtime_disable(&pdev->dev);
+
 	if (!pm_runtime_status_suspended(&pdev->dev))
+	{
 		tegra_sflash_runtime_suspend(&pdev->dev);
+	}
+
 exit_free_irq:
 	free_irq(tsd->irq, tsd);
 exit_free_master:
@@ -542,8 +647,11 @@ static int tegra_sflash_remove(struct platform_device *pdev)
 	free_irq(tsd->irq, tsd);
 
 	pm_runtime_disable(&pdev->dev);
+
 	if (!pm_runtime_status_suspended(&pdev->dev))
+	{
 		tegra_sflash_runtime_suspend(&pdev->dev);
+	}
 
 	return 0;
 }
@@ -563,10 +671,13 @@ static int tegra_sflash_resume(struct device *dev)
 	int ret;
 
 	ret = pm_runtime_get_sync(dev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "pm runtime failed, e = %d\n", ret);
 		return ret;
 	}
+
 	tegra_sflash_writel(tsd, tsd->command_reg, SPI_COMMAND);
 	pm_runtime_put(dev);
 
@@ -593,19 +704,24 @@ static int tegra_sflash_runtime_resume(struct device *dev)
 	int ret;
 
 	ret = clk_prepare_enable(tsd->clk);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(tsd->dev, "clk_prepare failed: %d\n", ret);
 		return ret;
 	}
+
 	return 0;
 }
 
-static const struct dev_pm_ops slink_pm_ops = {
+static const struct dev_pm_ops slink_pm_ops =
+{
 	SET_RUNTIME_PM_OPS(tegra_sflash_runtime_suspend,
-		tegra_sflash_runtime_resume, NULL)
+	tegra_sflash_runtime_resume, NULL)
 	SET_SYSTEM_SLEEP_PM_OPS(tegra_sflash_suspend, tegra_sflash_resume)
 };
-static struct platform_driver tegra_sflash_driver = {
+static struct platform_driver tegra_sflash_driver =
+{
 	.driver = {
 		.name		= "spi-tegra-sflash",
 		.pm		= &slink_pm_ops,

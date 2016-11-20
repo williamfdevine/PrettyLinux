@@ -22,7 +22,8 @@
 struct dma_chan;
 
 /* device.platform_data for SSP controller devices */
-struct pxa2xx_spi_master {
+struct pxa2xx_spi_master
+{
 	u16 num_chipselect;
 	u8 enable_dma;
 
@@ -38,7 +39,8 @@ struct pxa2xx_spi_master {
 /* spi_board_info.controller_data for SPI slave devices,
  * copied to spi_device.platform_data ... mostly for dma tuning
  */
-struct pxa2xx_spi_chip {
+struct pxa2xx_spi_chip
+{
 	u8 tx_threshold;
 	u8 tx_hi_threshold;
 	u8 rx_threshold;
@@ -51,9 +53,9 @@ struct pxa2xx_spi_chip {
 
 #if defined(CONFIG_ARCH_PXA) || defined(CONFIG_ARCH_MMP)
 
-#include <linux/clk.h>
+	#include <linux/clk.h>
 
-extern void pxa2xx_set_spi_info(unsigned id, struct pxa2xx_spi_master *info);
+	extern void pxa2xx_set_spi_info(unsigned id, struct pxa2xx_spi_master *info);
 
 #endif
 #endif

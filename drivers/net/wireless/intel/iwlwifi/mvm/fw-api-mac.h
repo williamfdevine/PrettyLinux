@@ -75,7 +75,8 @@
 #define IWL_MVM_STATION_COUNT	16
 #define IWL_MVM_TDLS_STA_COUNT	4
 
-enum iwl_ac {
+enum iwl_ac
+{
 	AC_BK,
 	AC_BE,
 	AC_VI,
@@ -92,7 +93,8 @@ enum iwl_ac {
  * @MAC_PROT_FLG_FAT_PROT: protect 40 MHz transmissions
  * @MAC_PROT_FLG_SELF_CTS_EN: allow CTS2self
  */
-enum iwl_mac_protection_flags {
+enum iwl_mac_protection_flags
+{
 	MAC_PROT_FLG_TGG_PROTECT	= BIT(3),
 	MAC_PROT_FLG_HT_PROT		= BIT(23),
 	MAC_PROT_FLG_FAT_PROT		= BIT(24),
@@ -116,7 +118,8 @@ enum iwl_mac_protection_flags {
  * @FW_MAC_TYPE_TEST: ?
  * @FW_MAC_TYPE_MAX: highest support MAC type
  */
-enum iwl_mac_types {
+enum iwl_mac_types
+{
 	FW_MAC_TYPE_FIRST = 1,
 	FW_MAC_TYPE_AUX = FW_MAC_TYPE_FIRST,
 	FW_MAC_TYPE_LISTENER,
@@ -138,7 +141,8 @@ enum iwl_mac_types {
  * @TSF_ID_D: use TSF D
  * @NUM_TSF_IDS: number of TSF timers available
  */
-enum iwl_tsf_id {
+enum iwl_tsf_id
+{
 	TSF_ID_A = 0,
 	TSF_ID_B = 1,
 	TSF_ID_C = 2,
@@ -157,7 +161,8 @@ enum iwl_tsf_id {
  * @mcast_qid: queue ID for multicast traffic
  * @beacon_template: beacon template ID
  */
-struct iwl_mac_data_ap {
+struct iwl_mac_data_ap
+{
 	__le32 beacon_time;
 	__le64 beacon_tsf;
 	__le32 bi;
@@ -176,7 +181,8 @@ struct iwl_mac_data_ap {
  * @bi_reciprocal: 2^32 / bi
  * @beacon_template: beacon template ID
  */
-struct iwl_mac_data_ibss {
+struct iwl_mac_data_ibss
+{
 	__le32 beacon_time;
 	__le64 beacon_tsf;
 	__le32 bi;
@@ -196,7 +202,8 @@ struct iwl_mac_data_ibss {
  * @listen_interval: in beacon intervals, applicable only when associated
  * @assoc_id: unique ID assigned by the AP during association
  */
-struct iwl_mac_data_sta {
+struct iwl_mac_data_sta
+{
 	__le32 is_assoc;
 	__le32 dtim_time;
 	__le64 dtim_tsf;
@@ -216,7 +223,8 @@ struct iwl_mac_data_sta {
  *	0 indicates that there is no CT window.
  * @opp_ps_enabled: indicate that opportunistic PS allowed
  */
-struct iwl_mac_data_go {
+struct iwl_mac_data_go
+{
 	struct iwl_mac_data_ap ap;
 	__le32 ctwin;
 	__le32 opp_ps_enabled;
@@ -228,7 +236,8 @@ struct iwl_mac_data_go {
  * @ctwin: client traffic window in TU (period after TBTT when GO is present).
  *	0 indicates that there is no CT window.
  */
-struct iwl_mac_data_p2p_sta {
+struct iwl_mac_data_p2p_sta
+{
 	struct iwl_mac_data_sta sta;
 	__le32 ctwin;
 } __packed; /* P2P_STA_MAC_DATA_API_S_VER_1 */
@@ -237,7 +246,8 @@ struct iwl_mac_data_p2p_sta {
  * struct iwl_mac_data_pibss - Pseudo IBSS config data
  * @stats_interval: interval in TU between statistics notifications to host.
  */
-struct iwl_mac_data_pibss {
+struct iwl_mac_data_pibss
+{
 	__le32 stats_interval;
 } __packed; /* PIBSS_MAC_DATA_API_S_VER_1 */
 
@@ -251,7 +261,8 @@ struct iwl_mac_data_pibss {
  *	effect on the platform power, as this setting opens the Rx filters on
  *	all macs.
  */
-struct iwl_mac_data_p2p_dev {
+struct iwl_mac_data_p2p_dev
+{
 	__le32 is_disc_extended;
 } __packed; /* _P2P_DEV_MAC_DATA_API_S_VER_1 */
 
@@ -269,7 +280,8 @@ struct iwl_mac_data_p2p_dev {
  * @MAC_FILTER_IN_CRC32: extract FCS and append it to frames
  * @MAC_FILTER_IN_PROBE_REQUEST: pass probe requests to host
  */
-enum iwl_mac_filter_flags {
+enum iwl_mac_filter_flags
+{
 	MAC_FILTER_IN_PROMISC		= BIT(0),
 	MAC_FILTER_IN_CONTROL_AND_MGMT	= BIT(1),
 	MAC_FILTER_ACCEPT_GRP		= BIT(2),
@@ -288,7 +300,8 @@ enum iwl_mac_filter_flags {
  * @MAC_QOS_FLG_TXOP_TYPE: ?
  *
  */
-enum iwl_mac_qos_flags {
+enum iwl_mac_qos_flags
+{
 	MAC_QOS_FLG_UPDATE_EDCA	= BIT(0),
 	MAC_QOS_FLG_TGN		= BIT(1),
 	MAC_QOS_FLG_TXOP_TYPE	= BIT(4),
@@ -312,7 +325,8 @@ enum iwl_mac_qos_flags {
  * transmission retry.  Device uses cw_max as a bit mask, ANDed with new CW
  * value, to cap the CW value.
  */
-struct iwl_ac_qos {
+struct iwl_ac_qos
+{
 	__le16 cw_min;
 	__le16 cw_max;
 	u8 aifsn;
@@ -339,7 +353,8 @@ struct iwl_ac_qos {
  * @ac: one iwl_mac_qos configuration for each AC
  * @mac_specific: one of struct iwl_mac_data_*, according to mac_type
  */
-struct iwl_mac_ctx_cmd {
+struct iwl_mac_ctx_cmd
+{
 	/* COMMON_INDEX_HDR_API_S_VER_1 */
 	__le32 id_and_color;
 	__le32 action;
@@ -358,9 +373,10 @@ struct iwl_mac_ctx_cmd {
 	__le32 filter_flags;
 	/* MAC_QOS_PARAM_API_S_VER_1 */
 	__le32 qos_flags;
-	struct iwl_ac_qos ac[AC_NUM+1];
+	struct iwl_ac_qos ac[AC_NUM + 1];
 	/* MAC_CONTEXT_COMMON_DATA_API_S */
-	union {
+	union
+	{
 		struct iwl_mac_data_ap ap;
 		struct iwl_mac_data_go go;
 		struct iwl_mac_data_sta sta;
@@ -374,13 +390,17 @@ struct iwl_mac_ctx_cmd {
 static inline u32 iwl_mvm_reciprocal(u32 v)
 {
 	if (!v)
+	{
 		return 0;
+	}
+
 	return 0xFFFFFFFF / v;
 }
 
 #define IWL_NONQOS_SEQ_GET	0x1
 #define IWL_NONQOS_SEQ_SET	0x2
-struct iwl_nonqos_seq_query_cmd {
+struct iwl_nonqos_seq_query_cmd
+{
 	__le32 get_set_flag;
 	__le32 mac_id_n_color;
 	__le16 value;

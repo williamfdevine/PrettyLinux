@@ -23,7 +23,8 @@
 
 #define DK_CXLFLASH_VERSION_0	0
 
-struct dk_cxlflash_hdr {
+struct dk_cxlflash_hdr
+{
 	__u16 version;			/* Version data */
 	__u16 rsvd[3];			/* Reserved for future use */
 	__u64 flags;			/* Input flags */
@@ -64,7 +65,8 @@ struct dk_cxlflash_hdr {
  */
 #define DK_CXLFLASH_ATTACH_REUSE_CONTEXT	0x8000000000000000ULL
 
-struct dk_cxlflash_attach {
+struct dk_cxlflash_attach
+{
 	struct dk_cxlflash_hdr hdr;	/* Common fields */
 	__u64 num_interrupts;		/* Requested number of interrupts */
 	__u64 context_id;		/* Returned context */
@@ -76,13 +78,15 @@ struct dk_cxlflash_attach {
 	__u64 reserved[8];		/* Reserved for future use */
 };
 
-struct dk_cxlflash_detach {
+struct dk_cxlflash_detach
+{
 	struct dk_cxlflash_hdr hdr;	/* Common fields */
 	__u64 context_id;		/* Context to detach */
 	__u64 reserved[8];		/* Reserved for future use */
 };
 
-struct dk_cxlflash_udirect {
+struct dk_cxlflash_udirect
+{
 	struct dk_cxlflash_hdr hdr;	/* Common fields */
 	__u64 context_id;		/* Context to own physical resources */
 	__u64 rsrc_handle;		/* Returned resource handle */
@@ -92,7 +96,8 @@ struct dk_cxlflash_udirect {
 
 #define DK_CXLFLASH_UVIRTUAL_NEED_WRITE_SAME	0x8000000000000000ULL
 
-struct dk_cxlflash_uvirtual {
+struct dk_cxlflash_uvirtual
+{
 	struct dk_cxlflash_hdr hdr;	/* Common fields */
 	__u64 context_id;		/* Context to own virtual resources */
 	__u64 lun_size;			/* Requested size, in 4K blocks */
@@ -101,14 +106,16 @@ struct dk_cxlflash_uvirtual {
 	__u64 reserved[8];		/* Reserved for future use */
 };
 
-struct dk_cxlflash_release {
+struct dk_cxlflash_release
+{
 	struct dk_cxlflash_hdr hdr;	/* Common fields */
 	__u64 context_id;		/* Context owning resources */
 	__u64 rsrc_handle;		/* Resource handle to release */
 	__u64 reserved[8];		/* Reserved for future use */
 };
 
-struct dk_cxlflash_resize {
+struct dk_cxlflash_resize
+{
 	struct dk_cxlflash_hdr hdr;	/* Common fields */
 	__u64 context_id;		/* Context owning resources */
 	__u64 rsrc_handle;		/* Resource handle of LUN to resize */
@@ -117,7 +124,8 @@ struct dk_cxlflash_resize {
 	__u64 reserved[8];		/* Reserved for future use */
 };
 
-struct dk_cxlflash_clone {
+struct dk_cxlflash_clone
+{
 	struct dk_cxlflash_hdr hdr;	/* Common fields */
 	__u64 context_id_src;		/* Context to clone from */
 	__u64 context_id_dst;		/* Context to clone to */
@@ -128,7 +136,8 @@ struct dk_cxlflash_clone {
 #define DK_CXLFLASH_VERIFY_SENSE_LEN	18
 #define DK_CXLFLASH_VERIFY_HINT_SENSE	0x8000000000000000ULL
 
-struct dk_cxlflash_verify {
+struct dk_cxlflash_verify
+{
 	struct dk_cxlflash_hdr hdr;	/* Common fields */
 	__u64 context_id;		/* Context owning resources to verify */
 	__u64 rsrc_handle;		/* Resource handle of LUN */
@@ -141,7 +150,8 @@ struct dk_cxlflash_verify {
 
 #define DK_CXLFLASH_RECOVER_AFU_CONTEXT_RESET	0x8000000000000000ULL
 
-struct dk_cxlflash_recover_afu {
+struct dk_cxlflash_recover_afu
+{
 	struct dk_cxlflash_hdr hdr;	/* Common fields */
 	__u64 reason;			/* Reason for recovery request */
 	__u64 context_id;		/* Context to recover / updated ID */
@@ -155,13 +165,15 @@ struct dk_cxlflash_recover_afu {
 #define DK_CXLFLASH_MANAGE_LUN_DISABLE_SUPERPIPE	0x4000000000000000ULL
 #define DK_CXLFLASH_MANAGE_LUN_ALL_PORTS_ACCESSIBLE	0x2000000000000000ULL
 
-struct dk_cxlflash_manage_lun {
+struct dk_cxlflash_manage_lun
+{
 	struct dk_cxlflash_hdr hdr;			/* Common fields */
 	__u8 wwid[DK_CXLFLASH_MANAGE_LUN_WWID_LEN];	/* Page83 WWID, NAA-6 */
 	__u64 reserved[8];				/* Rsvd, future use */
 };
 
-union cxlflash_ioctls {
+union cxlflash_ioctls
+{
 	struct dk_cxlflash_attach attach;
 	struct dk_cxlflash_detach detach;
 	struct dk_cxlflash_udirect udirect;

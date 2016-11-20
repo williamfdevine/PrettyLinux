@@ -10,14 +10,16 @@
 struct device;
 struct resource;
 
-struct sh_mobile_ceu_companion {
+struct sh_mobile_ceu_companion
+{
 	u32		num_resources;
 	struct resource	*resource;
 	int		id;
 	void		*platform_data;
 };
 
-struct sh_mobile_ceu_info {
+struct sh_mobile_ceu_info
+{
 	unsigned long flags;
 	int max_width;
 	int max_height;

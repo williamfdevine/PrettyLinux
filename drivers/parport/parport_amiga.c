@@ -28,15 +28,15 @@
 
 #undef DEBUG
 #ifdef DEBUG
-#define DPRINTK printk
+	#define DPRINTK printk
 #else
-#define DPRINTK(x...)	do { } while (0)
+	#define DPRINTK(x...)	do { } while (0)
 #endif
 
 
 static void amiga_write_data(struct parport *p, unsigned char data)
 {
-	DPRINTK(KERN_DEBUG "write_data %c\n",data);
+	DPRINTK(KERN_DEBUG "write_data %c\n", data);
 	/* Triggers also /STROBE. This behavior cannot be changed */
 	ciaa.prb = data;
 	mb();
@@ -51,17 +51,17 @@ static unsigned char amiga_read_data(struct parport *p)
 static unsigned char control_amiga_to_pc(unsigned char control)
 {
 	return PARPORT_CONTROL_SELECT |
-	      PARPORT_CONTROL_AUTOFD | PARPORT_CONTROL_STROBE;
+		   PARPORT_CONTROL_AUTOFD | PARPORT_CONTROL_STROBE;
 	/* fake value: interrupt enable, select in, no reset,
 	no autolf, no strobe - seems to be closest the wiring diagram */
 }
 
 static void amiga_write_control(struct parport *p, unsigned char control)
 {
-	DPRINTK(KERN_DEBUG "write_control %02x\n",control);
+	DPRINTK(KERN_DEBUG "write_control %02x\n", control);
 	/* No implementation possible */
 }
-	
+
 static unsigned char amiga_read_control( struct parport *p)
 {
 	DPRINTK(KERN_DEBUG "read_control \n");
@@ -72,7 +72,7 @@ static unsigned char amiga_frob_control( struct parport *p, unsigned char mask, 
 {
 	unsigned char old;
 
-	DPRINTK(KERN_DEBUG "frob_control mask %02x, value %02x\n",mask,val);
+	DPRINTK(KERN_DEBUG "frob_control mask %02x, value %02x\n", mask, val);
 	old = amiga_read_control(p);
 	amiga_write_control(p, (old & ~mask) ^ val);
 	return old;
@@ -83,11 +83,20 @@ static unsigned char status_amiga_to_pc(unsigned char status)
 	unsigned char ret = PARPORT_STATUS_BUSY | PARPORT_STATUS_ACK | PARPORT_STATUS_ERROR;
 
 	if (status & 1) /* Busy */
+	{
 		ret &= ~PARPORT_STATUS_BUSY;
+	}
+
 	if (status & 2) /* PaperOut */
+	{
 		ret |= PARPORT_STATUS_PAPEROUT;
+	}
+
 	if (status & 4) /* Selected */
+	{
 		ret |= PARPORT_STATUS_SELECT;
+	}
+
 	/* the rest is not connected or handled autonomously in hardware */
 
 	return ret;
@@ -154,7 +163,8 @@ static void amiga_restore_state(struct parport *p, struct parport_state *s)
 	mb();
 }
 
-static struct parport_operations pp_amiga_ops = {
+static struct parport_operations pp_amiga_ops =
+{
 	.write_data	= amiga_write_data,
 	.read_data	= amiga_read_data,
 
@@ -202,14 +212,20 @@ static int __init amiga_parallel_probe(struct platform_device *pdev)
 	mb();
 
 	p = parport_register_port((unsigned long)&ciaa.prb, IRQ_AMIGA_CIAA_FLG,
-				   PARPORT_DMA_NONE, &pp_amiga_ops);
+							  PARPORT_DMA_NONE, &pp_amiga_ops);
+
 	if (!p)
+	{
 		return -EBUSY;
+	}
 
 	err = request_irq(IRQ_AMIGA_CIAA_FLG, parport_irq_handler, 0, p->name,
-			  p);
+					  p);
+
 	if (err)
+	{
 		goto out_irq;
+	}
 
 	printk(KERN_INFO "%s: Amiga built-in port using irq\n", p->name);
 	/* XXX: set operating mode */
@@ -229,13 +245,18 @@ static int __exit amiga_parallel_remove(struct platform_device *pdev)
 	struct parport *port = platform_get_drvdata(pdev);
 
 	parport_remove_port(port);
+
 	if (port->irq != PARPORT_IRQ_NONE)
+	{
 		free_irq(IRQ_AMIGA_CIAA_FLG, port);
+	}
+
 	parport_put_port(port);
 	return 0;
 }
 
-static struct platform_driver amiga_parallel_driver = {
+static struct platform_driver amiga_parallel_driver =
+{
 	.remove = __exit_p(amiga_parallel_remove),
 	.driver   = {
 		.name	= "amiga-parallel",

@@ -49,10 +49,15 @@ void cx18_raw_writel_noretry(struct cx18 *cx, u32 val, void __iomem *addr)
 static inline void cx18_raw_writel(struct cx18 *cx, u32 val, void __iomem *addr)
 {
 	int i;
-	for (i = 0; i < CX18_MAX_MMIO_WR_RETRIES; i++) {
+
+	for (i = 0; i < CX18_MAX_MMIO_WR_RETRIES; i++)
+	{
 		cx18_raw_writel_noretry(cx, val, addr);
+
 		if (val == cx18_raw_readl(cx, addr))
+		{
 			break;
+		}
 	}
 }
 
@@ -71,27 +76,40 @@ void cx18_writel_noretry(struct cx18 *cx, u32 val, void __iomem *addr)
 static inline void cx18_writel(struct cx18 *cx, u32 val, void __iomem *addr)
 {
 	int i;
-	for (i = 0; i < CX18_MAX_MMIO_WR_RETRIES; i++) {
+
+	for (i = 0; i < CX18_MAX_MMIO_WR_RETRIES; i++)
+	{
 		cx18_writel_noretry(cx, val, addr);
+
 		if (val == cx18_readl(cx, addr))
+		{
 			break;
+		}
 	}
 }
 
 static inline
 void cx18_writel_expect(struct cx18 *cx, u32 val, void __iomem *addr,
-			u32 eval, u32 mask)
+						u32 eval, u32 mask)
 {
 	int i;
 	u32 r;
 	eval &= mask;
-	for (i = 0; i < CX18_MAX_MMIO_WR_RETRIES; i++) {
+
+	for (i = 0; i < CX18_MAX_MMIO_WR_RETRIES; i++)
+	{
 		cx18_writel_noretry(cx, val, addr);
 		r = cx18_readl(cx, addr);
+
 		if (r == 0xffffffff && eval != 0xffffffff)
+		{
 			continue;
+		}
+
 		if (eval == (r & mask))
+		{
 			break;
+		}
 	}
 }
 
@@ -109,10 +127,15 @@ void cx18_writew_noretry(struct cx18 *cx, u16 val, void __iomem *addr)
 static inline void cx18_writew(struct cx18 *cx, u16 val, void __iomem *addr)
 {
 	int i;
-	for (i = 0; i < CX18_MAX_MMIO_WR_RETRIES; i++) {
+
+	for (i = 0; i < CX18_MAX_MMIO_WR_RETRIES; i++)
+	{
 		cx18_writew_noretry(cx, val, addr);
+
 		if (val == cx18_readw(cx, addr))
+		{
 			break;
+		}
 	}
 }
 
@@ -130,16 +153,21 @@ void cx18_writeb_noretry(struct cx18 *cx, u8 val, void __iomem *addr)
 static inline void cx18_writeb(struct cx18 *cx, u8 val, void __iomem *addr)
 {
 	int i;
-	for (i = 0; i < CX18_MAX_MMIO_WR_RETRIES; i++) {
+
+	for (i = 0; i < CX18_MAX_MMIO_WR_RETRIES; i++)
+	{
 		cx18_writeb_noretry(cx, val, addr);
+
 		if (val == cx18_readb(cx, addr))
+		{
 			break;
+		}
 	}
 }
 
 static inline
 void cx18_memcpy_fromio(struct cx18 *cx, void *to,
-			const void __iomem *from, unsigned int len)
+						const void __iomem *from, unsigned int len)
 {
 	memcpy_fromio(to, from, len);
 }
@@ -159,7 +187,7 @@ static inline void cx18_write_reg(struct cx18 *cx, u32 val, u32 reg)
 }
 
 static inline void cx18_write_reg_expect(struct cx18 *cx, u32 val, u32 reg,
-					 u32 eval, u32 mask)
+		u32 eval, u32 mask)
 {
 	cx18_writel_expect(cx, val, cx->reg_mem + reg, eval, mask);
 }

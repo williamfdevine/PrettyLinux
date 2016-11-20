@@ -68,14 +68,20 @@ gp100_grctx_generate_attrib(struct gf100_grctx *info)
 	mmio_wr32(info, 0x40585c, alpha);
 	mmio_wr32(info, 0x4064c4, ((alpha / 4) << 16) | max_batches);
 
-	for (gpc = 0; gpc < gr->gpc_nr; gpc++) {
-		for (ppc = 0; ppc < gr->ppc_nr[gpc]; ppc++, n++) {
+	for (gpc = 0; gpc < gr->gpc_nr; gpc++)
+	{
+		for (ppc = 0; ppc < gr->ppc_nr[gpc]; ppc++, n++)
+		{
 			const u32 as =  alpha * gr->ppc_tpc_nr[gpc][ppc];
 			const u32 bs = attrib * gr->ppc_tpc_nr[gpc][ppc];
 			const u32 u = 0x418ea0 + (n * 0x04);
 			const u32 o = PPC_UNIT(gpc, ppc, 0);
+
 			if (!(gr->ppc_mask[gpc] & (1 << ppc)))
+			{
 				continue;
+			}
+
 			mmio_wr32(info, o + 0xc0, bs);
 			mmio_wr32(info, o + 0xf4, bo);
 			mmio_wr32(info, o + 0xf0, bs);
@@ -107,10 +113,14 @@ gp100_grctx_generate_405b60(struct gf100_gr *gr)
 	 * some of the gpcs have more tpcs than others, but this shall do
 	 * for the moment.  the code for earlier gpus has this issue too.
 	 */
-	for (gpc = -1, i = 0; i < gr->tpc_total; i++) {
-		do {
+	for (gpc = -1, i = 0; i < gr->tpc_total; i++)
+	{
+		do
+		{
 			gpc = (gpc + 1) % gr->gpc_nr;
-		} while(!tpcnr[gpc]);
+		}
+		while (!tpcnr[gpc]);
+
 		tpc = gr->tpc_nr[gpc] - tpcnr[gpc]--;
 
 		dist[i / 4] |= ((gpc << 4) | tpc) << ((i % 4) * 8);
@@ -118,9 +128,14 @@ gp100_grctx_generate_405b60(struct gf100_gr *gr)
 	}
 
 	for (i = 0; i < dist_nr; i++)
+	{
 		nvkm_wr32(device, 0x405b60 + (i * 4), dist[i]);
+	}
+
 	for (i = 0; i < gr->gpc_nr * 2; i++)
+	{
 		nvkm_wr32(device, 0x405ba0 + (i * 4), gpcs[i]);
+	}
 }
 
 static void
@@ -145,13 +160,19 @@ gp100_grctx_generate_main(struct gf100_gr *gr, struct gf100_grctx *info)
 	gk104_grctx_generate_r418bb8(gr);
 
 	for (i = 0; i < 8; i++)
+	{
 		nvkm_wr32(device, 0x4064d0 + (i * 0x04), 0x00000000);
+	}
+
 	nvkm_wr32(device, 0x406500, 0x00000000);
 
 	nvkm_wr32(device, 0x405b00, (gr->tpc_total << 8) | gr->gpc_nr);
 
 	for (tmp = 0, i = 0; i < gr->gpc_nr; i++)
+	{
 		tmp |= ((1 << gr->tpc_nr[i]) - 1) << (i * 5);
+	}
+
 	nvkm_wr32(device, 0x4041c4, tmp);
 
 	gp100_grctx_generate_405b60(gr);
@@ -162,7 +183,8 @@ gp100_grctx_generate_main(struct gf100_gr *gr, struct gf100_grctx *info)
 }
 
 const struct gf100_grctx_func
-gp100_grctx = {
+	gp100_grctx =
+{
 	.main  = gp100_grctx_generate_main,
 	.unkn  = gk104_grctx_generate_unkn,
 	.bundle = gm107_grctx_generate_bundle,

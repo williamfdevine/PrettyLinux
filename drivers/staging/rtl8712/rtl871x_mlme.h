@@ -80,14 +80,16 @@ SHALL not lock up more than one lock at a time!
 #define traffic_threshold	10
 #define	traffic_scan_period	500
 
-struct sitesurvey_ctrl {
+struct sitesurvey_ctrl
+{
 	u64	last_tx_pkts;
 	uint	last_rx_pkts;
 	sint	traffic_busy;
 	struct timer_list sitesurvey_ctrl_timer;
 };
 
-struct mlme_priv {
+struct mlme_priv
+{
 
 	spinlock_t lock;
 	spinlock_t lock2;
@@ -122,7 +124,10 @@ static inline u8 *get_bssid(struct mlme_priv *pmlmepriv)
 static inline u8 check_fwstate(struct mlme_priv *pmlmepriv, sint state)
 {
 	if (pmlmepriv->fw_state & state)
+	{
 		return true;
+	}
+
 	return false;
 }
 
@@ -157,8 +162,12 @@ static inline void clr_fwstate(struct mlme_priv *pmlmepriv, sint state)
 	unsigned long irqL;
 
 	spin_lock_irqsave(&pmlmepriv->lock, irqL);
+
 	if (check_fwstate(pmlmepriv, state))
+	{
 		pmlmepriv->fw_state ^= state;
+	}
+
 	spin_unlock_irqrestore(&pmlmepriv->lock, irqL);
 }
 
@@ -181,7 +190,7 @@ static inline void down_scanned_network(struct mlme_priv *pmlmepriv)
 }
 
 static inline void set_scanned_network_val(struct mlme_priv *pmlmepriv,
-					     sint val)
+		sint val)
 {
 	unsigned long irqL;
 
@@ -203,21 +212,21 @@ int r8712_init_mlme_priv(struct _adapter *adapter);
 void r8712_free_mlme_priv(struct mlme_priv *pmlmepriv);
 sint r8712_select_and_join_from_scan(struct mlme_priv *pmlmepriv);
 sint r8712_set_key(struct _adapter *adapter,
-		   struct security_priv *psecuritypriv, sint keyid);
+				   struct security_priv *psecuritypriv, sint keyid);
 sint r8712_set_auth(struct _adapter *adapter,
-		    struct security_priv *psecuritypriv);
+					struct security_priv *psecuritypriv);
 uint r8712_get_wlan_bssid_ex_sz(struct wlan_bssid_ex *bss);
 void r8712_generate_random_ibss(u8 *pibss);
 u8 *r8712_get_capability_from_ie(u8 *ie);
 struct wlan_network *r8712_get_oldest_wlan_network(
-				struct  __queue *scanned_queue);
+	struct  __queue *scanned_queue);
 void r8712_free_assoc_resources(struct _adapter *adapter);
 void r8712_ind_disconnect(struct _adapter *adapter);
 void r8712_indicate_connect(struct _adapter *adapter);
 int r8712_restruct_sec_ie(struct _adapter *adapter, u8 *in_ie,
-			  u8 *out_ie, uint in_len);
+						  u8 *out_ie, uint in_len);
 int r8712_restruct_wmm_ie(struct _adapter *adapter, u8 *in_ie,
-			  u8 *out_ie, uint in_len, uint initial_out_len);
+						  u8 *out_ie, uint in_len, uint initial_out_len);
 void r8712_init_registrypriv_dev_network(struct _adapter *adapter);
 void r8712_update_registrypriv_dev_network(struct _adapter *adapter);
 void _r8712_sitesurvey_ctrl_handler(struct _adapter *adapter);
@@ -229,7 +238,7 @@ struct wlan_network *_r8712_alloc_network(struct mlme_priv *pmlmepriv);
 sint r8712_if_up(struct _adapter *padapter);
 void r8712_joinbss_reset(struct _adapter *padapter);
 unsigned int r8712_restructure_ht_ie(struct _adapter *padapter, u8 *in_ie,
-				     u8 *out_ie, uint in_len, uint *pout_len);
+									 u8 *out_ie, uint in_len, uint *pout_len);
 void r8712_issue_addbareq_cmd(struct _adapter *padapter, int priority);
 int r8712_is_same_ibss(struct _adapter *adapter, struct wlan_network *pnetwork);
 

@@ -46,7 +46,8 @@ struct aa_task_cxt *aa_alloc_task_context(gfp_t flags)
  */
 void aa_free_task_context(struct aa_task_cxt *cxt)
 {
-	if (cxt) {
+	if (cxt)
+	{
 		aa_put_profile(cxt->profile);
 		aa_put_profile(cxt->previous);
 		aa_put_profile(cxt->onexec);
@@ -98,18 +99,26 @@ int aa_replace_current_profile(struct aa_profile *profile)
 	BUG_ON(!profile);
 
 	if (cxt->profile == profile)
+	{
 		return 0;
+	}
 
 	new  = prepare_creds();
+
 	if (!new)
+	{
 		return -ENOMEM;
+	}
 
 	cxt = cred_cxt(new);
+
 	if (unconfined(profile) || (cxt->profile->ns != profile->ns))
 		/* if switching to unconfined or a different profile namespace
 		 * clear out context state
 		 */
+	{
 		aa_clear_task_cxt_trans(cxt);
+	}
 
 	/* be careful switching cxt->profile, when racing replacement it
 	 * is possible that cxt->profile->replacedby->profile is the reference
@@ -133,8 +142,11 @@ int aa_set_current_onexec(struct aa_profile *profile)
 {
 	struct aa_task_cxt *cxt;
 	struct cred *new = prepare_creds();
+
 	if (!new)
+	{
 		return -ENOMEM;
+	}
 
 	cxt = cred_cxt(new);
 	aa_get_profile(profile);
@@ -159,22 +171,33 @@ int aa_set_current_hat(struct aa_profile *profile, u64 token)
 {
 	struct aa_task_cxt *cxt;
 	struct cred *new = prepare_creds();
+
 	if (!new)
+	{
 		return -ENOMEM;
+	}
+
 	BUG_ON(!profile);
 
 	cxt = cred_cxt(new);
-	if (!cxt->previous) {
+
+	if (!cxt->previous)
+	{
 		/* transfer refcount */
 		cxt->previous = cxt->profile;
 		cxt->token = token;
-	} else if (cxt->token == token) {
+	}
+	else if (cxt->token == token)
+	{
 		aa_put_profile(cxt->profile);
-	} else {
+	}
+	else
+	{
 		/* previous_profile && cxt->token != token */
 		abort_creds(new);
 		return -EACCES;
 	}
+
 	cxt->profile = aa_get_newest_profile(profile);
 	/* clear exec on switching context */
 	aa_put_profile(cxt->onexec);
@@ -197,16 +220,23 @@ int aa_restore_previous_profile(u64 token)
 {
 	struct aa_task_cxt *cxt;
 	struct cred *new = prepare_creds();
+
 	if (!new)
+	{
 		return -ENOMEM;
+	}
 
 	cxt = cred_cxt(new);
-	if (cxt->token != token) {
+
+	if (cxt->token != token)
+	{
 		abort_creds(new);
 		return -EACCES;
 	}
+
 	/* ignore restores when there is no saved profile */
-	if (!cxt->previous) {
+	if (!cxt->previous)
+	{
 		abort_creds(new);
 		return 0;
 	}

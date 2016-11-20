@@ -24,20 +24,23 @@
 #define SNDRV_USB_STREAM_IOCTL_SET_PARAMS \
 	_IOW('H', 0x90, struct usb_stream_config)
 
-struct usb_stream_packet {
+struct usb_stream_packet
+{
 	unsigned offset;
 	unsigned length;
 };
 
 
-struct usb_stream_config {
+struct usb_stream_config
+{
 	unsigned version;
 	unsigned sample_rate;
 	unsigned period_frames;
 	unsigned frame_size;
 };
 
-struct usb_stream {
+struct usb_stream
+{
 	struct usb_stream_config cfg;
 	unsigned read_size;
 	unsigned write_size;
@@ -63,7 +66,8 @@ struct usb_stream {
 	struct usb_stream_packet inpacket[0];
 };
 
-enum usb_stream_state {
+enum usb_stream_state
+{
 	usb_stream_invalid,
 	usb_stream_stopped,
 	usb_stream_sync0,

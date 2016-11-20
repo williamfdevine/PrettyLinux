@@ -35,7 +35,8 @@
 
 #include <linux/mlx5/fs.h>
 
-enum fs_node_type {
+enum fs_node_type
+{
 	FS_TYPE_NAMESPACE,
 	FS_TYPE_PRIO,
 	FS_TYPE_FLOW_TABLE,
@@ -44,7 +45,8 @@ enum fs_node_type {
 	FS_TYPE_FLOW_DEST
 };
 
-enum fs_flow_table_type {
+enum fs_flow_table_type
+{
 	FS_FT_NIC_RX          = 0x0,
 	FS_FT_ESW_EGRESS_ACL  = 0x2,
 	FS_FT_ESW_INGRESS_ACL = 0x3,
@@ -53,16 +55,19 @@ enum fs_flow_table_type {
 	FS_FT_SNIFFER_TX	= 0X6,
 };
 
-enum fs_flow_table_op_mod {
+enum fs_flow_table_op_mod
+{
 	FS_FT_OP_MOD_NORMAL,
 	FS_FT_OP_MOD_LAG_DEMUX,
 };
 
-enum fs_fte_status {
+enum fs_fte_status
+{
 	FS_FTE_STATUS_EXISTING = 1UL << 0,
 };
 
-struct mlx5_flow_steering {
+struct mlx5_flow_steering
+{
 	struct mlx5_core_dev *dev;
 	struct mlx5_flow_root_namespace *root_ns;
 	struct mlx5_flow_root_namespace *fdb_root_ns;
@@ -72,7 +77,8 @@ struct mlx5_flow_steering {
 	struct mlx5_flow_root_namespace	*sniffer_rx_root_ns;
 };
 
-struct fs_node {
+struct fs_node
+{
 	struct list_head	list;
 	struct list_head	children;
 	enum fs_node_type	type;
@@ -84,7 +90,8 @@ struct fs_node {
 	void			(*remove_func)(struct fs_node *);
 };
 
-struct mlx5_flow_rule {
+struct mlx5_flow_rule
+{
 	struct fs_node				node;
 	struct mlx5_flow_destination		dest_attr;
 	/* next_ft should be accessed under chain_lock and only of
@@ -95,7 +102,8 @@ struct mlx5_flow_rule {
 };
 
 /* Type of children is mlx5_flow_group */
-struct mlx5_flow_table {
+struct mlx5_flow_table
+{
 	struct fs_node			node;
 	u32				id;
 	u16				vport;
@@ -103,7 +111,8 @@ struct mlx5_flow_table {
 	unsigned int			level;
 	enum fs_flow_table_type		type;
 	enum fs_flow_table_op_mod	op_mod;
-	struct {
+	struct
+	{
 		bool			active;
 		unsigned int		required_groups;
 		unsigned int		num_groups;
@@ -114,13 +123,15 @@ struct mlx5_flow_table {
 	struct list_head		fwd_rules;
 };
 
-struct mlx5_fc_cache {
+struct mlx5_fc_cache
+{
 	u64 packets;
 	u64 bytes;
 	u64 lastuse;
 };
 
-struct mlx5_fc {
+struct mlx5_fc
+{
 	struct rb_node node;
 	struct list_head list;
 
@@ -138,7 +149,8 @@ struct mlx5_fc {
 };
 
 /* Type of children is mlx5_flow_rule */
-struct fs_fte {
+struct fs_fte
+{
 	struct fs_node			node;
 	u32				val[MLX5_ST_SZ_DW(fte_match_param)];
 	u32				dests_size;
@@ -150,7 +162,8 @@ struct fs_fte {
 };
 
 /* Type of children is mlx5_flow_table/namespace */
-struct fs_prio {
+struct fs_prio
+{
 	struct fs_node			node;
 	unsigned int			num_levels;
 	unsigned int			start_level;
@@ -159,18 +172,21 @@ struct fs_prio {
 };
 
 /* Type of children is fs_prio */
-struct mlx5_flow_namespace {
+struct mlx5_flow_namespace
+{
 	/* parent == NULL => root ns */
 	struct	fs_node			node;
 };
 
-struct mlx5_flow_group_mask {
+struct mlx5_flow_group_mask
+{
 	u8	match_criteria_enable;
 	u32	match_criteria[MLX5_ST_SZ_DW(fte_match_param)];
 };
 
 /* Type of children is fs_fte */
-struct mlx5_flow_group {
+struct mlx5_flow_group
+{
 	struct fs_node			node;
 	struct mlx5_flow_group_mask	mask;
 	u32				start_index;
@@ -179,7 +195,8 @@ struct mlx5_flow_group {
 	u32				id;
 };
 
-struct mlx5_flow_root_namespace {
+struct mlx5_flow_root_namespace
+{
 	struct mlx5_flow_namespace	ns;
 	enum   fs_flow_table_type	table_type;
 	struct mlx5_core_dev		*dev;

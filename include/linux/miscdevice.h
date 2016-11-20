@@ -56,7 +56,8 @@
 struct device;
 struct attribute_group;
 
-struct miscdevice  {
+struct miscdevice
+{
 	int minor;
 	const char *name;
 	const struct file_operations *fops;
@@ -80,5 +81,5 @@ extern void misc_deregister(struct miscdevice *misc);
 
 #define MODULE_ALIAS_MISCDEV(minor)				\
 	MODULE_ALIAS("char-major-" __stringify(MISC_MAJOR)	\
-	"-" __stringify(minor))
+				 "-" __stringify(minor))
 #endif

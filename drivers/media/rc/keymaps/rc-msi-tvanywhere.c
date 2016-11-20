@@ -15,7 +15,8 @@
 
 /* MSI TV@nywhere MASTER remote */
 
-static struct rc_map_table msi_tvanywhere[] = {
+static struct rc_map_table msi_tvanywhere[] =
+{
 	/* Keys 0 to 9 */
 	{ 0x00, KEY_0 },
 	{ 0x01, KEY_1 },
@@ -44,7 +45,8 @@ static struct rc_map_table msi_tvanywhere[] = {
 	{ 0x1f, KEY_VOLUMEDOWN },
 };
 
-static struct rc_map_list msi_tvanywhere_map = {
+static struct rc_map_list msi_tvanywhere_map =
+{
 	.map = {
 		.scan    = msi_tvanywhere,
 		.size    = ARRAY_SIZE(msi_tvanywhere),

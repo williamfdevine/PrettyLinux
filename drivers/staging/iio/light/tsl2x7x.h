@@ -29,7 +29,8 @@
 
 struct iio_dev;
 
-struct tsl2x7x_lux {
+struct tsl2x7x_lux
+{
 	unsigned int ratio;
 	unsigned int ch0;
 	unsigned int ch1;
@@ -61,7 +62,8 @@ struct tsl2x7x_lux {
  *  @prox_pulse_count:      Number if proximity emitter pulses
  *  @prox_max_samples_cal:  Used for prox cal.
  */
-struct tsl2x7x_settings {
+struct tsl2x7x_settings
+{
 	int als_time;
 	int als_gain;
 	int als_gain_trim;
@@ -89,7 +91,8 @@ struct tsl2x7x_settings {
  * @platform_default_settings: Device specific power on defaults
  *
  */
-struct tsl2X7X_platform_data {
+struct tsl2X7X_platform_data
+{
 	int (*platform_power)(struct device *dev, pm_message_t);
 	int (*power_on)(struct iio_dev *indio_dev);
 	int (*power_off)(struct i2c_client *dev);

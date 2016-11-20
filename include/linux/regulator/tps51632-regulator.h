@@ -36,7 +36,8 @@
  * @max_voltage_uV: Maximum possible voltage in PWM-DVFS mode.
  * @base_voltage_uV: Base voltage when PWM-DVFS enabled.
  */
-struct tps51632_regulator_platform_data {
+struct tps51632_regulator_platform_data
+{
 	struct regulator_init_data *reg_init_data;
 	bool enable_pwm_dvfs;
 	bool dvfs_step_20mV;

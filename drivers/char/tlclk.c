@@ -118,7 +118,8 @@ MODULE_LICENSE("GPL");
 #define UNLOCK_01_MASK		0x40
 #define UNLOCK_10_MASK		0x80
 
-struct tlclk_alarms {
+struct tlclk_alarms
+{
 	__u32 lost_clocks;
 	__u32 lost_primary_clock;
 	__u32 lost_secondary_clock;
@@ -207,7 +208,9 @@ static int tlclk_open(struct inode *inode, struct file *filp)
 	int result;
 
 	mutex_lock(&tlclk_mutex);
-	if (test_and_set_bit(0, &useflags)) {
+
+	if (test_and_set_bit(0, &useflags))
+	{
 		result = -EBUSY;
 		/* this legacy device is always one per system and it doesn't
 		 * know how to handle multiple concurrent clients.
@@ -222,11 +225,16 @@ static int tlclk_open(struct inode *inode, struct file *filp)
 	/* This device is wired through the FPGA IO space of the ATCA blade
 	 * we can't share this IRQ */
 	result = request_irq(telclk_interrupt, &tlclk_interrupt,
-			     0, "telco_clock", tlclk_interrupt);
+						 0, "telco_clock", tlclk_interrupt);
+
 	if (result == -EBUSY)
+	{
 		printk(KERN_ERR "tlclk: Interrupt can't be reserved.\n");
+	}
 	else
-		inb(TLCLK_REG6);	/* Clear interrupt events */
+	{
+		inb(TLCLK_REG6);    /* Clear interrupt events */
+	}
 
 out:
 	mutex_unlock(&tlclk_mutex);
@@ -242,16 +250,23 @@ static int tlclk_release(struct inode *inode, struct file *filp)
 }
 
 static ssize_t tlclk_read(struct file *filp, char __user *buf, size_t count,
-		loff_t *f_pos)
+						  loff_t *f_pos)
 {
 	if (count < sizeof(struct tlclk_alarms))
+	{
 		return -EIO;
+	}
+
 	if (mutex_lock_interruptible(&tlclk_mutex))
+	{
 		return -EINTR;
+	}
 
 
 	wait_event_interruptible(wq, got_event);
-	if (copy_to_user(buf, alarm_events, sizeof(struct tlclk_alarms))) {
+
+	if (copy_to_user(buf, alarm_events, sizeof(struct tlclk_alarms)))
+	{
 		mutex_unlock(&tlclk_mutex);
 		return -EFAULT;
 	}
@@ -263,7 +278,8 @@ static ssize_t tlclk_read(struct file *filp, char __user *buf, size_t count,
 	return  sizeof(struct tlclk_alarms);
 }
 
-static const struct file_operations tlclk_fops = {
+static const struct file_operations tlclk_fops =
+{
 	.read = tlclk_read,
 	.open = tlclk_open,
 	.release = tlclk_release,
@@ -271,14 +287,15 @@ static const struct file_operations tlclk_fops = {
 
 };
 
-static struct miscdevice tlclk_miscdev = {
+static struct miscdevice tlclk_miscdev =
+{
 	.minor = MISC_DYNAMIC_MINOR,
 	.name = "telco_clock",
 	.fops = &tlclk_fops,
 };
 
 static ssize_t show_current_ref(struct device *d,
-		struct device_attribute *attr, char *buf)
+								struct device_attribute *attr, char *buf)
 {
 	unsigned long ret_val;
 	unsigned long flags;
@@ -294,7 +311,7 @@ static DEVICE_ATTR(current_ref, S_IRUGO, show_current_ref, NULL);
 
 
 static ssize_t show_telclock_version(struct device *d,
-		struct device_attribute *attr, char *buf)
+									 struct device_attribute *attr, char *buf)
 {
 	unsigned long ret_val;
 	unsigned long flags;
@@ -307,10 +324,10 @@ static ssize_t show_telclock_version(struct device *d,
 }
 
 static DEVICE_ATTR(telclock_version, S_IRUGO,
-		show_telclock_version, NULL);
+				   show_telclock_version, NULL);
 
 static ssize_t show_alarms(struct device *d,
-		struct device_attribute *attr,  char *buf)
+						   struct device_attribute *attr,  char *buf)
 {
 	unsigned long ret_val;
 	unsigned long flags;
@@ -325,7 +342,7 @@ static ssize_t show_alarms(struct device *d,
 static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
 
 static ssize_t store_received_ref_clk3a(struct device *d,
-		 struct device_attribute *attr, const char *buf, size_t count)
+										struct device_attribute *attr, const char *buf, size_t count)
 {
 	unsigned long tmp;
 	unsigned char val;
@@ -342,12 +359,12 @@ static ssize_t store_received_ref_clk3a(struct device *d,
 	return strnlen(buf, count);
 }
 
-static DEVICE_ATTR(received_ref_clk3a, (S_IWUSR|S_IWGRP), NULL,
-		store_received_ref_clk3a);
+static DEVICE_ATTR(received_ref_clk3a, (S_IWUSR | S_IWGRP), NULL,
+				   store_received_ref_clk3a);
 
 
 static ssize_t store_received_ref_clk3b(struct device *d,
-		 struct device_attribute *attr, const char *buf, size_t count)
+										struct device_attribute *attr, const char *buf, size_t count)
 {
 	unsigned long tmp;
 	unsigned char val;
@@ -364,12 +381,12 @@ static ssize_t store_received_ref_clk3b(struct device *d,
 	return strnlen(buf, count);
 }
 
-static DEVICE_ATTR(received_ref_clk3b, (S_IWUSR|S_IWGRP), NULL,
-		store_received_ref_clk3b);
+static DEVICE_ATTR(received_ref_clk3b, (S_IWUSR | S_IWGRP), NULL,
+				   store_received_ref_clk3b);
 
 
 static ssize_t store_enable_clk3b_output(struct device *d,
-		 struct device_attribute *attr, const char *buf, size_t count)
+		struct device_attribute *attr, const char *buf, size_t count)
 {
 	unsigned long tmp;
 	unsigned char val;
@@ -386,11 +403,11 @@ static ssize_t store_enable_clk3b_output(struct device *d,
 	return strnlen(buf, count);
 }
 
-static DEVICE_ATTR(enable_clk3b_output, (S_IWUSR|S_IWGRP), NULL,
-		store_enable_clk3b_output);
+static DEVICE_ATTR(enable_clk3b_output, (S_IWUSR | S_IWGRP), NULL,
+				   store_enable_clk3b_output);
 
 static ssize_t store_enable_clk3a_output(struct device *d,
-		 struct device_attribute *attr, const char *buf, size_t count)
+		struct device_attribute *attr, const char *buf, size_t count)
 {
 	unsigned long flags;
 	unsigned long tmp;
@@ -407,11 +424,11 @@ static ssize_t store_enable_clk3a_output(struct device *d,
 	return strnlen(buf, count);
 }
 
-static DEVICE_ATTR(enable_clk3a_output, (S_IWUSR|S_IWGRP), NULL,
-		store_enable_clk3a_output);
+static DEVICE_ATTR(enable_clk3a_output, (S_IWUSR | S_IWGRP), NULL,
+				   store_enable_clk3a_output);
 
 static ssize_t store_enable_clkb1_output(struct device *d,
-		 struct device_attribute *attr, const char *buf, size_t count)
+		struct device_attribute *attr, const char *buf, size_t count)
 {
 	unsigned long flags;
 	unsigned long tmp;
@@ -428,12 +445,12 @@ static ssize_t store_enable_clkb1_output(struct device *d,
 	return strnlen(buf, count);
 }
 
-static DEVICE_ATTR(enable_clkb1_output, (S_IWUSR|S_IWGRP), NULL,
-		store_enable_clkb1_output);
+static DEVICE_ATTR(enable_clkb1_output, (S_IWUSR | S_IWGRP), NULL,
+				   store_enable_clkb1_output);
 
 
 static ssize_t store_enable_clka1_output(struct device *d,
-		 struct device_attribute *attr, const char *buf, size_t count)
+		struct device_attribute *attr, const char *buf, size_t count)
 {
 	unsigned long flags;
 	unsigned long tmp;
@@ -450,11 +467,11 @@ static ssize_t store_enable_clka1_output(struct device *d,
 	return strnlen(buf, count);
 }
 
-static DEVICE_ATTR(enable_clka1_output, (S_IWUSR|S_IWGRP), NULL,
-		store_enable_clka1_output);
+static DEVICE_ATTR(enable_clka1_output, (S_IWUSR | S_IWGRP), NULL,
+				   store_enable_clka1_output);
 
 static ssize_t store_enable_clkb0_output(struct device *d,
-		 struct device_attribute *attr, const char *buf, size_t count)
+		struct device_attribute *attr, const char *buf, size_t count)
 {
 	unsigned long flags;
 	unsigned long tmp;
@@ -471,11 +488,11 @@ static ssize_t store_enable_clkb0_output(struct device *d,
 	return strnlen(buf, count);
 }
 
-static DEVICE_ATTR(enable_clkb0_output, (S_IWUSR|S_IWGRP), NULL,
-		store_enable_clkb0_output);
+static DEVICE_ATTR(enable_clkb0_output, (S_IWUSR | S_IWGRP), NULL,
+				   store_enable_clkb0_output);
 
 static ssize_t store_enable_clka0_output(struct device *d,
-		 struct device_attribute *attr, const char *buf, size_t count)
+		struct device_attribute *attr, const char *buf, size_t count)
 {
 	unsigned long flags;
 	unsigned long tmp;
@@ -492,8 +509,8 @@ static ssize_t store_enable_clka0_output(struct device *d,
 	return strnlen(buf, count);
 }
 
-static DEVICE_ATTR(enable_clka0_output, (S_IWUSR|S_IWGRP), NULL,
-		store_enable_clka0_output);
+static DEVICE_ATTR(enable_clka0_output, (S_IWUSR | S_IWGRP), NULL,
+				   store_enable_clka0_output);
 
 static ssize_t store_select_amcb2_transmit_clock(struct device *d,
 		struct device_attribute *attr, const char *buf, size_t count)
@@ -507,38 +524,50 @@ static ssize_t store_select_amcb2_transmit_clock(struct device *d,
 
 	val = (unsigned char)tmp;
 	spin_lock_irqsave(&event_lock, flags);
-		if ((val == CLK_8kHz) || (val == CLK_16_384MHz)) {
-			SET_PORT_BITS(TLCLK_REG3, 0xc7, 0x28);
-			SET_PORT_BITS(TLCLK_REG1, 0xfb, ~val);
-		} else if (val >= CLK_8_592MHz) {
-			SET_PORT_BITS(TLCLK_REG3, 0xc7, 0x38);
-			switch (val) {
+
+	if ((val == CLK_8kHz) || (val == CLK_16_384MHz))
+	{
+		SET_PORT_BITS(TLCLK_REG3, 0xc7, 0x28);
+		SET_PORT_BITS(TLCLK_REG1, 0xfb, ~val);
+	}
+	else if (val >= CLK_8_592MHz)
+	{
+		SET_PORT_BITS(TLCLK_REG3, 0xc7, 0x38);
+
+		switch (val)
+		{
 			case CLK_8_592MHz:
 				SET_PORT_BITS(TLCLK_REG0, 0xfc, 2);
 				break;
+
 			case CLK_11_184MHz:
 				SET_PORT_BITS(TLCLK_REG0, 0xfc, 0);
 				break;
+
 			case CLK_34_368MHz:
 				SET_PORT_BITS(TLCLK_REG0, 0xfc, 3);
 				break;
+
 			case CLK_44_736MHz:
 				SET_PORT_BITS(TLCLK_REG0, 0xfc, 1);
 				break;
-			}
-		} else
-			SET_PORT_BITS(TLCLK_REG3, 0xc7, val << 3);
+		}
+	}
+	else
+	{
+		SET_PORT_BITS(TLCLK_REG3, 0xc7, val << 3);
+	}
 
 	spin_unlock_irqrestore(&event_lock, flags);
 
 	return strnlen(buf, count);
 }
 
-static DEVICE_ATTR(select_amcb2_transmit_clock, (S_IWUSR|S_IWGRP), NULL,
-	store_select_amcb2_transmit_clock);
+static DEVICE_ATTR(select_amcb2_transmit_clock, (S_IWUSR | S_IWGRP), NULL,
+				   store_select_amcb2_transmit_clock);
 
 static ssize_t store_select_amcb1_transmit_clock(struct device *d,
-		 struct device_attribute *attr, const char *buf, size_t count)
+		struct device_attribute *attr, const char *buf, size_t count)
 {
 	unsigned long tmp;
 	unsigned char val;
@@ -549,37 +578,50 @@ static ssize_t store_select_amcb1_transmit_clock(struct device *d,
 
 	val = (unsigned char)tmp;
 	spin_lock_irqsave(&event_lock, flags);
-		if ((val == CLK_8kHz) || (val == CLK_16_384MHz)) {
-			SET_PORT_BITS(TLCLK_REG3, 0xf8, 0x5);
-			SET_PORT_BITS(TLCLK_REG1, 0xfb, ~val);
-		} else if (val >= CLK_8_592MHz) {
-			SET_PORT_BITS(TLCLK_REG3, 0xf8, 0x7);
-			switch (val) {
+
+	if ((val == CLK_8kHz) || (val == CLK_16_384MHz))
+	{
+		SET_PORT_BITS(TLCLK_REG3, 0xf8, 0x5);
+		SET_PORT_BITS(TLCLK_REG1, 0xfb, ~val);
+	}
+	else if (val >= CLK_8_592MHz)
+	{
+		SET_PORT_BITS(TLCLK_REG3, 0xf8, 0x7);
+
+		switch (val)
+		{
 			case CLK_8_592MHz:
 				SET_PORT_BITS(TLCLK_REG0, 0xfc, 2);
 				break;
+
 			case CLK_11_184MHz:
 				SET_PORT_BITS(TLCLK_REG0, 0xfc, 0);
 				break;
+
 			case CLK_34_368MHz:
 				SET_PORT_BITS(TLCLK_REG0, 0xfc, 3);
 				break;
+
 			case CLK_44_736MHz:
 				SET_PORT_BITS(TLCLK_REG0, 0xfc, 1);
 				break;
-			}
-		} else
-			SET_PORT_BITS(TLCLK_REG3, 0xf8, val);
+		}
+	}
+	else
+	{
+		SET_PORT_BITS(TLCLK_REG3, 0xf8, val);
+	}
+
 	spin_unlock_irqrestore(&event_lock, flags);
 
 	return strnlen(buf, count);
 }
 
-static DEVICE_ATTR(select_amcb1_transmit_clock, (S_IWUSR|S_IWGRP), NULL,
-		store_select_amcb1_transmit_clock);
+static DEVICE_ATTR(select_amcb1_transmit_clock, (S_IWUSR | S_IWGRP), NULL,
+				   store_select_amcb1_transmit_clock);
 
 static ssize_t store_select_redundant_clock(struct device *d,
-		 struct device_attribute *attr, const char *buf, size_t count)
+		struct device_attribute *attr, const char *buf, size_t count)
 {
 	unsigned long tmp;
 	unsigned char val;
@@ -596,11 +638,11 @@ static ssize_t store_select_redundant_clock(struct device *d,
 	return strnlen(buf, count);
 }
 
-static DEVICE_ATTR(select_redundant_clock, (S_IWUSR|S_IWGRP), NULL,
-		store_select_redundant_clock);
+static DEVICE_ATTR(select_redundant_clock, (S_IWUSR | S_IWGRP), NULL,
+				   store_select_redundant_clock);
 
 static ssize_t store_select_ref_frequency(struct device *d,
-		 struct device_attribute *attr, const char *buf, size_t count)
+		struct device_attribute *attr, const char *buf, size_t count)
 {
 	unsigned long tmp;
 	unsigned char val;
@@ -617,11 +659,11 @@ static ssize_t store_select_ref_frequency(struct device *d,
 	return strnlen(buf, count);
 }
 
-static DEVICE_ATTR(select_ref_frequency, (S_IWUSR|S_IWGRP), NULL,
-		store_select_ref_frequency);
+static DEVICE_ATTR(select_ref_frequency, (S_IWUSR | S_IWGRP), NULL,
+				   store_select_ref_frequency);
 
 static ssize_t store_filter_select(struct device *d,
-		 struct device_attribute *attr, const char *buf, size_t count)
+								   struct device_attribute *attr, const char *buf, size_t count)
 {
 	unsigned long tmp;
 	unsigned char val;
@@ -638,10 +680,10 @@ static ssize_t store_filter_select(struct device *d,
 	return strnlen(buf, count);
 }
 
-static DEVICE_ATTR(filter_select, (S_IWUSR|S_IWGRP), NULL, store_filter_select);
+static DEVICE_ATTR(filter_select, (S_IWUSR | S_IWGRP), NULL, store_filter_select);
 
 static ssize_t store_hardware_switching_mode(struct device *d,
-		 struct device_attribute *attr, const char *buf, size_t count)
+		struct device_attribute *attr, const char *buf, size_t count)
 {
 	unsigned long tmp;
 	unsigned char val;
@@ -658,11 +700,11 @@ static ssize_t store_hardware_switching_mode(struct device *d,
 	return strnlen(buf, count);
 }
 
-static DEVICE_ATTR(hardware_switching_mode, (S_IWUSR|S_IWGRP), NULL,
-		store_hardware_switching_mode);
+static DEVICE_ATTR(hardware_switching_mode, (S_IWUSR | S_IWGRP), NULL,
+				   store_hardware_switching_mode);
 
 static ssize_t store_hardware_switching(struct device *d,
-		 struct device_attribute *attr, const char *buf, size_t count)
+										struct device_attribute *attr, const char *buf, size_t count)
 {
 	unsigned long tmp;
 	unsigned char val;
@@ -679,11 +721,11 @@ static ssize_t store_hardware_switching(struct device *d,
 	return strnlen(buf, count);
 }
 
-static DEVICE_ATTR(hardware_switching, (S_IWUSR|S_IWGRP), NULL,
-		store_hardware_switching);
+static DEVICE_ATTR(hardware_switching, (S_IWUSR | S_IWGRP), NULL,
+				   store_hardware_switching);
 
 static ssize_t store_refalign (struct device *d,
-		 struct device_attribute *attr, const char *buf, size_t count)
+							   struct device_attribute *attr, const char *buf, size_t count)
 {
 	unsigned long tmp;
 	unsigned long flags;
@@ -699,10 +741,10 @@ static ssize_t store_refalign (struct device *d,
 	return strnlen(buf, count);
 }
 
-static DEVICE_ATTR(refalign, (S_IWUSR|S_IWGRP), NULL, store_refalign);
+static DEVICE_ATTR(refalign, (S_IWUSR | S_IWGRP), NULL, store_refalign);
 
 static ssize_t store_mode_select (struct device *d,
-		 struct device_attribute *attr, const char *buf, size_t count)
+								  struct device_attribute *attr, const char *buf, size_t count)
 {
 	unsigned long tmp;
 	unsigned char val;
@@ -719,10 +761,10 @@ static ssize_t store_mode_select (struct device *d,
 	return strnlen(buf, count);
 }
 
-static DEVICE_ATTR(mode_select, (S_IWUSR|S_IWGRP), NULL, store_mode_select);
+static DEVICE_ATTR(mode_select, (S_IWUSR | S_IWGRP), NULL, store_mode_select);
 
 static ssize_t store_reset (struct device *d,
-		 struct device_attribute *attr, const char *buf, size_t count)
+							struct device_attribute *attr, const char *buf, size_t count)
 {
 	unsigned long tmp;
 	unsigned char val;
@@ -739,9 +781,10 @@ static ssize_t store_reset (struct device *d,
 	return strnlen(buf, count);
 }
 
-static DEVICE_ATTR(reset, (S_IWUSR|S_IWGRP), NULL, store_reset);
+static DEVICE_ATTR(reset, (S_IWUSR | S_IWGRP), NULL, store_reset);
 
-static struct attribute *tlclk_sysfs_entries[] = {
+static struct attribute *tlclk_sysfs_entries[] =
+{
 	&dev_attr_current_ref.attr,
 	&dev_attr_telclock_version.attr,
 	&dev_attr_alarms.attr,
@@ -766,7 +809,8 @@ static struct attribute *tlclk_sysfs_entries[] = {
 	NULL
 };
 
-static struct attribute_group tlclk_attribute_group = {
+static struct attribute_group tlclk_attribute_group =
+{
 	.name = NULL,		/* put in device directory */
 	.attrs = tlclk_sysfs_entries,
 };
@@ -778,29 +822,37 @@ static int __init tlclk_init(void)
 	int ret;
 
 	ret = register_chrdev(tlclk_major, "telco_clock", &tlclk_fops);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		printk(KERN_ERR "tlclk: can't get major %d.\n", tlclk_major);
 		return ret;
 	}
+
 	tlclk_major = ret;
 	alarm_events = kzalloc( sizeof(struct tlclk_alarms), GFP_KERNEL);
-	if (!alarm_events) {
+
+	if (!alarm_events)
+	{
 		ret = -ENOMEM;
 		goto out1;
 	}
 
 	/* Read telecom clock IRQ number (Set by BIOS) */
-	if (!request_region(TLCLK_BASE, 8, "telco_clock")) {
+	if (!request_region(TLCLK_BASE, 8, "telco_clock"))
+	{
 		printk(KERN_ERR "tlclk: request_region 0x%X failed.\n",
-			TLCLK_BASE);
+			   TLCLK_BASE);
 		ret = -EBUSY;
 		goto out2;
 	}
+
 	telclk_interrupt = (inb(TLCLK_REG7) & 0x0f);
 
-	if (0x0F == telclk_interrupt ) { /* not MCPBL0010 ? */
+	if (0x0F == telclk_interrupt )   /* not MCPBL0010 ? */
+	{
 		printk(KERN_ERR "telclk_interrupt = 0x%x non-mcpbl0010 hw.\n",
-			telclk_interrupt);
+			   telclk_interrupt);
 		ret = -ENXIO;
 		goto out3;
 	}
@@ -808,22 +860,28 @@ static int __init tlclk_init(void)
 	init_timer(&switchover_timer);
 
 	ret = misc_register(&tlclk_miscdev);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		printk(KERN_ERR "tlclk: misc_register returns %d.\n", ret);
 		goto out3;
 	}
 
 	tlclk_device = platform_device_register_simple("telco_clock",
-				-1, NULL, 0);
-	if (IS_ERR(tlclk_device)) {
+				   -1, NULL, 0);
+
+	if (IS_ERR(tlclk_device))
+	{
 		printk(KERN_ERR "tlclk: platform_device_register failed.\n");
 		ret = PTR_ERR(tlclk_device);
 		goto out4;
 	}
 
 	ret = sysfs_create_group(&tlclk_device->dev.kobj,
-			&tlclk_attribute_group);
-	if (ret) {
+							 &tlclk_attribute_group);
+
+	if (ret)
+	{
 		printk(KERN_ERR "tlclk: failed to create sysfs device attributes.\n");
 		goto out5;
 	}
@@ -859,12 +917,19 @@ static void switchover_timeout(unsigned long data)
 {
 	unsigned long flags = *(unsigned long *) data;
 
-	if ((flags & 1)) {
+	if ((flags & 1))
+	{
 		if ((inb(TLCLK_REG1) & 0x08) != (flags & 0x08))
+		{
 			alarm_events->switchover_primary++;
-	} else {
+		}
+	}
+	else
+	{
 		if ((inb(TLCLK_REG1) & 0x08) != (flags & 0x08))
+		{
 			alarm_events->switchover_secondary++;
+		}
 	}
 
 	/* Alarm processing is done, wake up read task */
@@ -882,41 +947,63 @@ static irqreturn_t tlclk_interrupt(int irq, void *dev_id)
 	int_events = inb(TLCLK_REG6);
 
 	/* Primary_Los changed from 0 to 1 ? */
-	if (int_events & PRI_LOS_01_MASK) {
+	if (int_events & PRI_LOS_01_MASK)
+	{
 		if (inb(TLCLK_REG2) & SEC_LOST_MASK)
+		{
 			alarm_events->lost_clocks++;
+		}
 		else
+		{
 			alarm_events->lost_primary_clock++;
+		}
 	}
 
 	/* Primary_Los changed from 1 to 0 ? */
-	if (int_events & PRI_LOS_10_MASK) {
+	if (int_events & PRI_LOS_10_MASK)
+	{
 		alarm_events->primary_clock_back++;
 		SET_PORT_BITS(TLCLK_REG1, 0xFE, 1);
 	}
+
 	/* Secondary_Los changed from 0 to 1 ? */
-	if (int_events & SEC_LOS_01_MASK) {
+	if (int_events & SEC_LOS_01_MASK)
+	{
 		if (inb(TLCLK_REG2) & PRI_LOST_MASK)
+		{
 			alarm_events->lost_clocks++;
+		}
 		else
+		{
 			alarm_events->lost_secondary_clock++;
+		}
 	}
+
 	/* Secondary_Los changed from 1 to 0 ? */
-	if (int_events & SEC_LOS_10_MASK) {
+	if (int_events & SEC_LOS_10_MASK)
+	{
 		alarm_events->secondary_clock_back++;
 		SET_PORT_BITS(TLCLK_REG1, 0xFE, 0);
 	}
+
 	if (int_events & HOLDOVER_10_MASK)
+	{
 		alarm_events->pll_end_holdover++;
+	}
 
 	if (int_events & UNLOCK_01_MASK)
+	{
 		alarm_events->pll_lost_sync++;
+	}
 
 	if (int_events & UNLOCK_10_MASK)
+	{
 		alarm_events->pll_sync++;
+	}
 
 	/* Holdover changed from 0 to 1 ? */
-	if (int_events & HOLDOVER_01_MASK) {
+	if (int_events & HOLDOVER_01_MASK)
+	{
 		alarm_events->pll_holdover++;
 
 		/* TIMEOUT in ~10ms */
@@ -924,10 +1011,13 @@ static irqreturn_t tlclk_interrupt(int irq, void *dev_id)
 		tlclk_timer_data = inb(TLCLK_REG1);
 		switchover_timer.data = (unsigned long) &tlclk_timer_data;
 		mod_timer(&switchover_timer, switchover_timer.expires);
-	} else {
+	}
+	else
+	{
 		got_event = 1;
 		wake_up(&wq);
 	}
+
 	spin_unlock_irqrestore(&event_lock, flags);
 
 	return IRQ_HANDLED;

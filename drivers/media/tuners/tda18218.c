@@ -28,7 +28,8 @@ static int tda18218_wr_regs(struct tda18218_priv *priv, u8 reg, u8 *val, u8 len)
 {
 	int ret = 0, len2, remaining;
 	u8 buf[MAX_XFER_SIZE];
-	struct i2c_msg msg[1] = {
+	struct i2c_msg msg[1] =
+	{
 		{
 			.addr = priv->cfg->i2c_address,
 			.flags = 0,
@@ -36,33 +37,44 @@ static int tda18218_wr_regs(struct tda18218_priv *priv, u8 reg, u8 *val, u8 len)
 		}
 	};
 
-	if (1 + len > sizeof(buf)) {
+	if (1 + len > sizeof(buf))
+	{
 		dev_warn(&priv->i2c->dev,
-			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
-			 KBUILD_MODNAME, reg, len);
+				 "%s: i2c wr reg=%04x: len=%d is too big!\n",
+				 KBUILD_MODNAME, reg, len);
 		return -EINVAL;
 	}
 
 	for (remaining = len; remaining > 0;
-			remaining -= (priv->cfg->i2c_wr_max - 1)) {
+		 remaining -= (priv->cfg->i2c_wr_max - 1))
+	{
 		len2 = remaining;
+
 		if (len2 > (priv->cfg->i2c_wr_max - 1))
+		{
 			len2 = (priv->cfg->i2c_wr_max - 1);
+		}
 
 		msg[0].len = 1 + len2;
 		buf[0] = reg + len - remaining;
 		memcpy(&buf[1], &val[len - remaining], len2);
 
 		ret = i2c_transfer(priv->i2c, msg, 1);
+
 		if (ret != 1)
+		{
 			break;
+		}
 	}
 
-	if (ret == 1) {
+	if (ret == 1)
+	{
 		ret = 0;
-	} else {
+	}
+	else
+	{
 		dev_warn(&priv->i2c->dev, "%s: i2c wr failed=%d reg=%02x " \
-				"len=%d\n", KBUILD_MODNAME, ret, reg, len);
+				 "len=%d\n", KBUILD_MODNAME, ret, reg, len);
 		ret = -EREMOTEIO;
 	}
 
@@ -74,7 +86,8 @@ static int tda18218_rd_regs(struct tda18218_priv *priv, u8 reg, u8 *val, u8 len)
 {
 	int ret;
 	u8 buf[MAX_XFER_SIZE]; /* we must start read always from reg 0x00 */
-	struct i2c_msg msg[2] = {
+	struct i2c_msg msg[2] =
+	{
 		{
 			.addr = priv->cfg->i2c_address,
 			.flags = 0,
@@ -88,20 +101,25 @@ static int tda18218_rd_regs(struct tda18218_priv *priv, u8 reg, u8 *val, u8 len)
 		}
 	};
 
-	if (reg + len > sizeof(buf)) {
+	if (reg + len > sizeof(buf))
+	{
 		dev_warn(&priv->i2c->dev,
-			 "%s: i2c wr reg=%04x: len=%d is too big!\n",
-			 KBUILD_MODNAME, reg, len);
+				 "%s: i2c wr reg=%04x: len=%d is too big!\n",
+				 KBUILD_MODNAME, reg, len);
 		return -EINVAL;
 	}
 
 	ret = i2c_transfer(priv->i2c, msg, 2);
-	if (ret == 2) {
+
+	if (ret == 2)
+	{
 		memcpy(val, &buf[reg], len);
 		ret = 0;
-	} else {
+	}
+	else
+	{
 		dev_warn(&priv->i2c->dev, "%s: i2c rd failed=%d reg=%02x " \
-				"len=%d\n", KBUILD_MODNAME, ret, reg, len);
+				 "len=%d\n", KBUILD_MODNAME, ret, reg, len);
 		ret = -EREMOTEIO;
 	}
 
@@ -130,7 +148,8 @@ static int tda18218_set_params(struct dvb_frontend *fe)
 	u8 buf[3], i, BP_Filter, LP_Fc;
 	u32 LO_Frac;
 	/* TODO: find out correct AGC algorithm */
-	u8 agc[][2] = {
+	u8 agc[][2] =
+	{
 		{ R20_AGC11, 0x60 },
 		{ R23_AGC21, 0x02 },
 		{ R20_AGC11, 0xa0 },
@@ -148,16 +167,23 @@ static int tda18218_set_params(struct dvb_frontend *fe)
 	};
 
 	if (fe->ops.i2c_gate_ctrl)
-		fe->ops.i2c_gate_ctrl(fe, 1); /* open I2C-gate */
+	{
+		fe->ops.i2c_gate_ctrl(fe, 1);    /* open I2C-gate */
+	}
 
 	/* low-pass filter cut-off frequency */
-	if (bw <= 6000000) {
+	if (bw <= 6000000)
+	{
 		LP_Fc = 0;
 		priv->if_frequency = 3000000;
-	} else if (bw <= 7000000) {
+	}
+	else if (bw <= 7000000)
+	{
 		LP_Fc = 1;
 		priv->if_frequency = 3500000;
-	} else {
+	}
+	else
+	{
 		LP_Fc = 2;
 		priv->if_frequency = 4000000;
 	}
@@ -166,52 +192,81 @@ static int tda18218_set_params(struct dvb_frontend *fe)
 
 	/* band-pass filter */
 	if (LO_Frac < 188000000)
+	{
 		BP_Filter = 3;
+	}
 	else if (LO_Frac < 253000000)
+	{
 		BP_Filter = 4;
+	}
 	else if (LO_Frac < 343000000)
+	{
 		BP_Filter = 5;
+	}
 	else
+	{
 		BP_Filter = 6;
+	}
 
 	buf[0] = (priv->regs[R1A_IF1] & ~7) | BP_Filter; /* BP_Filter */
 	buf[1] = (priv->regs[R1B_IF2] & ~3) | LP_Fc; /* LP_Fc */
 	buf[2] = priv->regs[R1C_AGC2B];
 	ret = tda18218_wr_regs(priv, R1A_IF1, buf, 3);
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	buf[0] = (LO_Frac / 1000) >> 12; /* LO_Frac_0 */
 	buf[1] = (LO_Frac / 1000) >> 4; /* LO_Frac_1 */
 	buf[2] = (LO_Frac / 1000) << 4 |
-		(priv->regs[R0C_MD5] & 0x0f); /* LO_Frac_2 */
+			 (priv->regs[R0C_MD5] & 0x0f); /* LO_Frac_2 */
 	ret = tda18218_wr_regs(priv, R0A_MD3, buf, 3);
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	buf[0] = priv->regs[R0F_MD8] | (1 << 6); /* Freq_prog_Start */
 	ret = tda18218_wr_regs(priv, R0F_MD8, buf, 1);
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	buf[0] = priv->regs[R0F_MD8] & ~(1 << 6); /* Freq_prog_Start */
 	ret = tda18218_wr_regs(priv, R0F_MD8, buf, 1);
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	/* trigger AGC */
-	for (i = 0; i < ARRAY_SIZE(agc); i++) {
+	for (i = 0; i < ARRAY_SIZE(agc); i++)
+	{
 		ret = tda18218_wr_reg(priv, agc[i][0], agc[i][1]);
+
 		if (ret)
+		{
 			goto error;
+		}
 	}
 
 error:
+
 	if (fe->ops.i2c_gate_ctrl)
-		fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
+	{
+		fe->ops.i2c_gate_ctrl(fe, 0);    /* close I2C-gate */
+	}
 
 	if (ret)
+	{
 		dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
+	}
 
 	return ret;
 }
@@ -230,16 +285,22 @@ static int tda18218_sleep(struct dvb_frontend *fe)
 	int ret;
 
 	if (fe->ops.i2c_gate_ctrl)
-		fe->ops.i2c_gate_ctrl(fe, 1); /* open I2C-gate */
+	{
+		fe->ops.i2c_gate_ctrl(fe, 1);    /* open I2C-gate */
+	}
 
 	/* standby */
 	ret = tda18218_wr_reg(priv, R17_PD1, priv->regs[R17_PD1] | (1 << 0));
 
 	if (fe->ops.i2c_gate_ctrl)
-		fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
+	{
+		fe->ops.i2c_gate_ctrl(fe, 0);    /* close I2C-gate */
+	}
 
 	if (ret)
+	{
 		dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
+	}
 
 	return ret;
 }
@@ -252,15 +313,21 @@ static int tda18218_init(struct dvb_frontend *fe)
 	/* TODO: calibrations */
 
 	if (fe->ops.i2c_gate_ctrl)
-		fe->ops.i2c_gate_ctrl(fe, 1); /* open I2C-gate */
+	{
+		fe->ops.i2c_gate_ctrl(fe, 1);    /* open I2C-gate */
+	}
 
 	ret = tda18218_wr_regs(priv, R00_ID, priv->regs, TDA18218_NUM_REGS);
 
 	if (fe->ops.i2c_gate_ctrl)
-		fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
+	{
+		fe->ops.i2c_gate_ctrl(fe, 0);    /* close I2C-gate */
+	}
 
 	if (ret)
+	{
 		dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
+	}
 
 	return ret;
 }
@@ -272,7 +339,8 @@ static int tda18218_release(struct dvb_frontend *fe)
 	return 0;
 }
 
-static const struct dvb_tuner_ops tda18218_tuner_ops = {
+static const struct dvb_tuner_ops tda18218_tuner_ops =
+{
 	.info = {
 		.name           = "NXP TDA18218",
 
@@ -291,13 +359,14 @@ static const struct dvb_tuner_ops tda18218_tuner_ops = {
 };
 
 struct dvb_frontend *tda18218_attach(struct dvb_frontend *fe,
-	struct i2c_adapter *i2c, struct tda18218_config *cfg)
+									 struct i2c_adapter *i2c, struct tda18218_config *cfg)
 {
 	struct tda18218_priv *priv = NULL;
 	u8 val;
 	int ret;
 	/* chip default registers values */
-	static u8 def_regs[] = {
+	static u8 def_regs[] =
+	{
 		0xc0, 0x88, 0x00, 0x8e, 0x03, 0x00, 0x00, 0xd0, 0x00, 0x40,
 		0x00, 0x00, 0x07, 0xff, 0x84, 0x09, 0x00, 0x13, 0x00, 0x00,
 		0x01, 0x84, 0x09, 0xf0, 0x19, 0x0a, 0x8e, 0x69, 0x98, 0x01,
@@ -307,46 +376,62 @@ struct dvb_frontend *tda18218_attach(struct dvb_frontend *fe,
 	};
 
 	priv = kzalloc(sizeof(struct tda18218_priv), GFP_KERNEL);
+
 	if (priv == NULL)
+	{
 		return NULL;
+	}
 
 	priv->cfg = cfg;
 	priv->i2c = i2c;
 	fe->tuner_priv = priv;
 
 	if (fe->ops.i2c_gate_ctrl)
-		fe->ops.i2c_gate_ctrl(fe, 1); /* open I2C-gate */
+	{
+		fe->ops.i2c_gate_ctrl(fe, 1);    /* open I2C-gate */
+	}
 
 	/* check if the tuner is there */
 	ret = tda18218_rd_reg(priv, R00_ID, &val);
+
 	if (!ret)
+	{
 		dev_dbg(&priv->i2c->dev, "%s: chip id=%02x\n", __func__, val);
-	if (ret || val != def_regs[R00_ID]) {
+	}
+
+	if (ret || val != def_regs[R00_ID])
+	{
 		kfree(priv);
 		return NULL;
 	}
 
 	dev_info(&priv->i2c->dev,
-			"%s: NXP TDA18218HN successfully identified\n",
-			KBUILD_MODNAME);
+			 "%s: NXP TDA18218HN successfully identified\n",
+			 KBUILD_MODNAME);
 
 	memcpy(&fe->ops.tuner_ops, &tda18218_tuner_ops,
-		sizeof(struct dvb_tuner_ops));
+		   sizeof(struct dvb_tuner_ops));
 	memcpy(priv->regs, def_regs, sizeof(def_regs));
 
 	/* loop-through enabled chip default register values */
-	if (priv->cfg->loop_through) {
+	if (priv->cfg->loop_through)
+	{
 		priv->regs[R17_PD1] = 0xb0;
 		priv->regs[R18_PD2] = 0x59;
 	}
 
 	/* standby */
 	ret = tda18218_wr_reg(priv, R17_PD1, priv->regs[R17_PD1] | (1 << 0));
+
 	if (ret)
+	{
 		dev_dbg(&priv->i2c->dev, "%s: failed=%d\n", __func__, ret);
+	}
 
 	if (fe->ops.i2c_gate_ctrl)
-		fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
+	{
+		fe->ops.i2c_gate_ctrl(fe, 0);    /* close I2C-gate */
+	}
 
 	return fe;
 }

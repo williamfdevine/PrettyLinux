@@ -15,7 +15,7 @@
  *  Rewritten for 2.6 by Cesar Eduardo Barros
  *
  *  A datasheet for this chip can be found at
- *  http://www.silan.com.cn/english/product/pdf/SC92031AY.pdf 
+ *  http://www.silan.com.cn/english/product/pdf/SC92031AY.pdf
  */
 
 /* Note about set_mac_address: I don't know how to change the hardware
@@ -45,13 +45,13 @@
 static int multicast_filter_limit = 64;
 module_param(multicast_filter_limit, int, 0);
 MODULE_PARM_DESC(multicast_filter_limit,
-	"Maximum number of filtered multicast addresses");
+				 "Maximum number of filtered multicast addresses");
 
 static int media;
 module_param(media, int, 0);
 MODULE_PARM_DESC(media, "Media type (0x00 = autodetect,"
-	" 0x01 = 10M half, 0x02 = 10M full,"
-	" 0x04 = 100M half, 0x08 = 100M full)");
+				 " 0x01 = 10M half, 0x02 = 10M full,"
+				 " 0x04 = 100M half, 0x08 = 100M full)");
 
 /* Size of the in-memory receive ring. */
 #define  RX_BUF_LEN_IDX  3 /* 0==8K, 1==16K, 2==32K, 3==64K ,4==128K*/
@@ -82,37 +82,38 @@ MODULE_PARM_DESC(media, "Media type (0x00 = autodetect,"
 #define  M100_HALF     0x04
 #define  M100_FULL     0x08
 
- /* Symbolic offsets to registers. */
-enum  silan_registers {
-   Config0    = 0x00,         // Config0
-   Config1    = 0x04,         // Config1
-   RxBufWPtr  = 0x08,         // Rx buffer writer poiter
-   IntrStatus = 0x0C,         // Interrupt status
-   IntrMask   = 0x10,         // Interrupt mask
-   RxbufAddr  = 0x14,         // Rx buffer start address
-   RxBufRPtr  = 0x18,         // Rx buffer read pointer
-   Txstatusall = 0x1C,        // Transmit status of all descriptors
-   TxStatus0  = 0x20,	      // Transmit status (Four 32bit registers).
-   TxAddr0    = 0x30,         // Tx descriptors (also four 32bit).
-   RxConfig   = 0x40,         // Rx configuration
-   MAC0	      = 0x44,	      // Ethernet hardware address.
-   MAR0	      = 0x4C,	      // Multicast filter.
-   RxStatus0  = 0x54,         // Rx status
-   TxConfig   = 0x5C,         // Tx configuration
-   PhyCtrl    = 0x60,         // physical control
-   FlowCtrlConfig = 0x64,     // flow control
-   Miicmd0    = 0x68,         // Mii command0 register
-   Miicmd1    = 0x6C,         // Mii command1 register
-   Miistatus  = 0x70,         // Mii status register
-   Timercnt   = 0x74,         // Timer counter register
-   TimerIntr  = 0x78,         // Timer interrupt register
-   PMConfig   = 0x7C,         // Power Manager configuration
-   CRC0       = 0x80,         // Power Manager CRC ( Two 32bit regisers)
-   Wakeup0    = 0x88,         // power Manager wakeup( Eight 64bit regiser)
-   LSBCRC0    = 0xC8,         // power Manager LSBCRC(Two 32bit regiser)
-   TestD0     = 0xD0,
-   TestD4     = 0xD4,
-   TestD8     = 0xD8,
+/* Symbolic offsets to registers. */
+enum  silan_registers
+{
+	Config0    = 0x00,         // Config0
+	Config1    = 0x04,         // Config1
+	RxBufWPtr  = 0x08,         // Rx buffer writer poiter
+	IntrStatus = 0x0C,         // Interrupt status
+	IntrMask   = 0x10,         // Interrupt mask
+	RxbufAddr  = 0x14,         // Rx buffer start address
+	RxBufRPtr  = 0x18,         // Rx buffer read pointer
+	Txstatusall = 0x1C,        // Transmit status of all descriptors
+	TxStatus0  = 0x20,	      // Transmit status (Four 32bit registers).
+	TxAddr0    = 0x30,         // Tx descriptors (also four 32bit).
+	RxConfig   = 0x40,         // Rx configuration
+	MAC0	      = 0x44,	      // Ethernet hardware address.
+	MAR0	      = 0x4C,	      // Multicast filter.
+	RxStatus0  = 0x54,         // Rx status
+	TxConfig   = 0x5C,         // Tx configuration
+	PhyCtrl    = 0x60,         // physical control
+	FlowCtrlConfig = 0x64,     // flow control
+	Miicmd0    = 0x68,         // Mii command0 register
+	Miicmd1    = 0x6C,         // Mii command1 register
+	Miistatus  = 0x70,         // Mii status register
+	Timercnt   = 0x74,         // Timer counter register
+	TimerIntr  = 0x78,         // Timer interrupt register
+	PMConfig   = 0x7C,         // Power Manager configuration
+	CRC0       = 0x80,         // Power Manager CRC ( Two 32bit regisers)
+	Wakeup0    = 0x88,         // power Manager wakeup( Eight 64bit regiser)
+	LSBCRC0    = 0xC8,         // power Manager LSBCRC(Two 32bit regiser)
+	TestD0     = 0xD0,
+	TestD4     = 0xD4,
+	TestD8     = 0xD8,
 };
 
 #define MII_JAB             16
@@ -121,124 +122,136 @@ enum  silan_registers {
 #define PHY_16_JAB_ENB      0x1000
 #define PHY_16_PORT_ENB     0x1
 
-enum IntrStatusBits {
-   LinkFail       = 0x80000000,
-   LinkOK         = 0x40000000,
-   TimeOut        = 0x20000000,
-   RxOverflow     = 0x0040,
-   RxOK           = 0x0020,
-   TxOK           = 0x0001,
-   IntrBits = LinkFail|LinkOK|TimeOut|RxOverflow|RxOK|TxOK,
+enum IntrStatusBits
+{
+	LinkFail       = 0x80000000,
+	LinkOK         = 0x40000000,
+	TimeOut        = 0x20000000,
+	RxOverflow     = 0x0040,
+	RxOK           = 0x0020,
+	TxOK           = 0x0001,
+	IntrBits = LinkFail | LinkOK | TimeOut | RxOverflow | RxOK | TxOK,
 };
 
-enum TxStatusBits {
-   TxCarrierLost = 0x20000000,
-   TxAborted     = 0x10000000,
-   TxOutOfWindow = 0x08000000,
-   TxNccShift    = 22,
-   EarlyTxThresShift = 16,
-   TxStatOK      = 0x8000,
-   TxUnderrun    = 0x4000,
-   TxOwn         = 0x2000,
+enum TxStatusBits
+{
+	TxCarrierLost = 0x20000000,
+	TxAborted     = 0x10000000,
+	TxOutOfWindow = 0x08000000,
+	TxNccShift    = 22,
+	EarlyTxThresShift = 16,
+	TxStatOK      = 0x8000,
+	TxUnderrun    = 0x4000,
+	TxOwn         = 0x2000,
 };
 
-enum RxStatusBits {
-   RxStatesOK   = 0x80000,
-   RxBadAlign   = 0x40000,
-   RxHugeFrame  = 0x20000,
-   RxSmallFrame = 0x10000,
-   RxCRCOK      = 0x8000,
-   RxCrlFrame   = 0x4000,
-   Rx_Broadcast = 0x2000,
-   Rx_Multicast = 0x1000,
-   RxAddrMatch  = 0x0800,
-   MiiErr       = 0x0400,
+enum RxStatusBits
+{
+	RxStatesOK   = 0x80000,
+	RxBadAlign   = 0x40000,
+	RxHugeFrame  = 0x20000,
+	RxSmallFrame = 0x10000,
+	RxCRCOK      = 0x8000,
+	RxCrlFrame   = 0x4000,
+	Rx_Broadcast = 0x2000,
+	Rx_Multicast = 0x1000,
+	RxAddrMatch  = 0x0800,
+	MiiErr       = 0x0400,
 };
 
-enum RxConfigBits {
-   RxFullDx    = 0x80000000,
-   RxEnb       = 0x40000000,
-   RxSmall     = 0x20000000,
-   RxHuge      = 0x10000000,
-   RxErr       = 0x08000000,
-   RxAllphys   = 0x04000000,
-   RxMulticast = 0x02000000,
-   RxBroadcast = 0x01000000,
-   RxLoopBack  = (1 << 23) | (1 << 22),
-   LowThresholdShift  = 12,
-   HighThresholdShift = 2,
+enum RxConfigBits
+{
+	RxFullDx    = 0x80000000,
+	RxEnb       = 0x40000000,
+	RxSmall     = 0x20000000,
+	RxHuge      = 0x10000000,
+	RxErr       = 0x08000000,
+	RxAllphys   = 0x04000000,
+	RxMulticast = 0x02000000,
+	RxBroadcast = 0x01000000,
+	RxLoopBack  = (1 << 23) | (1 << 22),
+	LowThresholdShift  = 12,
+	HighThresholdShift = 2,
 };
 
-enum TxConfigBits {
-   TxFullDx       = 0x80000000,
-   TxEnb          = 0x40000000,
-   TxEnbPad       = 0x20000000,
-   TxEnbHuge      = 0x10000000,
-   TxEnbFCS       = 0x08000000,
-   TxNoBackOff    = 0x04000000,
-   TxEnbPrem      = 0x02000000,
-   TxCareLostCrs  = 0x1000000,
-   TxExdCollNum   = 0xf00000,
-   TxDataRate     = 0x80000,
+enum TxConfigBits
+{
+	TxFullDx       = 0x80000000,
+	TxEnb          = 0x40000000,
+	TxEnbPad       = 0x20000000,
+	TxEnbHuge      = 0x10000000,
+	TxEnbFCS       = 0x08000000,
+	TxNoBackOff    = 0x04000000,
+	TxEnbPrem      = 0x02000000,
+	TxCareLostCrs  = 0x1000000,
+	TxExdCollNum   = 0xf00000,
+	TxDataRate     = 0x80000,
 };
 
-enum PhyCtrlconfigbits {
-   PhyCtrlAne         = 0x80000000,
-   PhyCtrlSpd100      = 0x40000000,
-   PhyCtrlSpd10       = 0x20000000,
-   PhyCtrlPhyBaseAddr = 0x1f000000,
-   PhyCtrlDux         = 0x800000,
-   PhyCtrlReset       = 0x400000,
+enum PhyCtrlconfigbits
+{
+	PhyCtrlAne         = 0x80000000,
+	PhyCtrlSpd100      = 0x40000000,
+	PhyCtrlSpd10       = 0x20000000,
+	PhyCtrlPhyBaseAddr = 0x1f000000,
+	PhyCtrlDux         = 0x800000,
+	PhyCtrlReset       = 0x400000,
 };
 
-enum FlowCtrlConfigBits {
-   FlowCtrlFullDX = 0x80000000,
-   FlowCtrlEnb    = 0x40000000,
+enum FlowCtrlConfigBits
+{
+	FlowCtrlFullDX = 0x80000000,
+	FlowCtrlEnb    = 0x40000000,
 };
 
-enum Config0Bits {
-   Cfg0_Reset  = 0x80000000,
-   Cfg0_Anaoff = 0x40000000,
-   Cfg0_LDPS   = 0x20000000,
+enum Config0Bits
+{
+	Cfg0_Reset  = 0x80000000,
+	Cfg0_Anaoff = 0x40000000,
+	Cfg0_LDPS   = 0x20000000,
 };
 
-enum Config1Bits {
-   Cfg1_EarlyRx = 1 << 31,
-   Cfg1_EarlyTx = 1 << 30,
+enum Config1Bits
+{
+	Cfg1_EarlyRx = 1 << 31,
+	Cfg1_EarlyTx = 1 << 30,
 
-   //rx buffer size
-   Cfg1_Rcv8K   = 0x0,
-   Cfg1_Rcv16K  = 0x1,
-   Cfg1_Rcv32K  = 0x3,
-   Cfg1_Rcv64K  = 0x7,
-   Cfg1_Rcv128K = 0xf,
+	//rx buffer size
+	Cfg1_Rcv8K   = 0x0,
+	Cfg1_Rcv16K  = 0x1,
+	Cfg1_Rcv32K  = 0x3,
+	Cfg1_Rcv64K  = 0x7,
+	Cfg1_Rcv128K = 0xf,
 };
 
-enum MiiCmd0Bits {
-   Mii_Divider = 0x20000000,
-   Mii_WRITE   = 0x400000,
-   Mii_READ    = 0x200000,
-   Mii_SCAN    = 0x100000,
-   Mii_Tamod   = 0x80000,
-   Mii_Drvmod  = 0x40000,
-   Mii_mdc     = 0x20000,
-   Mii_mdoen   = 0x10000,
-   Mii_mdo     = 0x8000,
-   Mii_mdi     = 0x4000,
+enum MiiCmd0Bits
+{
+	Mii_Divider = 0x20000000,
+	Mii_WRITE   = 0x400000,
+	Mii_READ    = 0x200000,
+	Mii_SCAN    = 0x100000,
+	Mii_Tamod   = 0x80000,
+	Mii_Drvmod  = 0x40000,
+	Mii_mdc     = 0x20000,
+	Mii_mdoen   = 0x10000,
+	Mii_mdo     = 0x8000,
+	Mii_mdi     = 0x4000,
 };
 
-enum MiiStatusBits {
-    Mii_StatusBusy = 0x80000000,
+enum MiiStatusBits
+{
+	Mii_StatusBusy = 0x80000000,
 };
 
-enum PMConfigBits {
-   PM_Enable  = 1 << 31,
-   PM_LongWF  = 1 << 30,
-   PM_Magic   = 1 << 29,
-   PM_LANWake = 1 << 28,
-   PM_LWPTN   = (1 << 27 | 1<< 26),
-   PM_LinkUp  = 1 << 25,
-   PM_WakeUp  = 1 << 24,
+enum PMConfigBits
+{
+	PM_Enable  = 1 << 31,
+	PM_LongWF  = 1 << 30,
+	PM_Magic   = 1 << 29,
+	PM_LANWake = 1 << 28,
+	PM_LWPTN   = (1 << 27 | 1 << 26),
+	PM_LinkUp  = 1 << 25,
+	PM_WakeUp  = 1 << 24,
 };
 
 /* Locking rules:
@@ -260,7 +273,8 @@ enum PMConfigBits {
  *   sc92031_enable_interrupt
  */
 
-struct sc92031_priv {
+struct sc92031_priv
+{
 	spinlock_t		lock;
 	/* iomap.h cookie */
 	void __iomem		*port_base;
@@ -314,10 +328,12 @@ static u32 _sc92031_mii_wait(void __iomem *port_base)
 {
 	u32 mii_status;
 
-	do {
+	do
+	{
 		udelay(10);
 		mii_status = ioread32(port_base + Miistatus);
-	} while (mii_status & Mii_StatusBusy);
+	}
+	while (mii_status & Mii_StatusBusy);
 
 	return mii_status;
 }
@@ -408,10 +424,12 @@ static void _sc92031_tx_clear(struct net_device *dev)
 {
 	struct sc92031_priv *priv = netdev_priv(dev);
 
-	while (priv->tx_head - priv->tx_tail > 0) {
+	while (priv->tx_head - priv->tx_tail > 0)
+	{
 		priv->tx_tail++;
 		dev->stats.tx_dropped++;
 	}
+
 	priv->tx_head = priv->tx_tail = 0;
 }
 
@@ -422,30 +440,43 @@ static void _sc92031_set_mar(struct net_device *dev)
 	u32 mar0 = 0, mar1 = 0;
 
 	if ((dev->flags & IFF_PROMISC) ||
-	    netdev_mc_count(dev) > multicast_filter_limit ||
-	    (dev->flags & IFF_ALLMULTI))
+		netdev_mc_count(dev) > multicast_filter_limit ||
+		(dev->flags & IFF_ALLMULTI))
+	{
 		mar0 = mar1 = 0xffffffff;
-	else if (dev->flags & IFF_MULTICAST) {
+	}
+	else if (dev->flags & IFF_MULTICAST)
+	{
 		struct netdev_hw_addr *ha;
 
-		netdev_for_each_mc_addr(ha, dev) {
+		netdev_for_each_mc_addr(ha, dev)
+		{
 			u32 crc;
 			unsigned bit = 0;
 
 			crc = ~ether_crc(ETH_ALEN, ha->addr);
 			crc >>= 24;
 
-			if (crc & 0x01)	bit |= 0x02;
-			if (crc & 0x02)	bit |= 0x01;
-			if (crc & 0x10)	bit |= 0x20;
-			if (crc & 0x20)	bit |= 0x10;
-			if (crc & 0x40)	bit |= 0x08;
-			if (crc & 0x80)	bit |= 0x04;
+			if (crc & 0x01)	{ bit |= 0x02; }
+
+			if (crc & 0x02)	{ bit |= 0x01; }
+
+			if (crc & 0x10)	{ bit |= 0x20; }
+
+			if (crc & 0x20)	{ bit |= 0x10; }
+
+			if (crc & 0x40)	{ bit |= 0x08; }
+
+			if (crc & 0x80)	{ bit |= 0x04; }
 
 			if (bit > 31)
+			{
 				mar0 |= 0x1 << (bit - 32);
+			}
 			else
+			{
 				mar1 |= 0x1 << bit;
+			}
 		}
 	}
 
@@ -464,23 +495,29 @@ static void _sc92031_set_rx_config(struct net_device *dev)
 
 	if (dev->flags & IFF_PROMISC)
 		rx_config_bits |= RxSmall | RxHuge | RxErr | RxBroadcast
-				| RxMulticast | RxAllphys;
+						  | RxMulticast | RxAllphys;
 
 	if (dev->flags & (IFF_ALLMULTI | IFF_MULTICAST))
+	{
 		rx_config_bits |= RxMulticast;
+	}
 
 	if (dev->flags & IFF_BROADCAST)
+	{
 		rx_config_bits |= RxBroadcast;
+	}
 
 	priv->rx_config &= ~(RxSmall | RxHuge | RxErr | RxBroadcast
-			| RxMulticast | RxAllphys);
+						 | RxMulticast | RxAllphys);
 	priv->rx_config |= rx_config_bits;
 
 	priv->mc_flags = dev->flags & (IFF_PROMISC | IFF_ALLMULTI
-			| IFF_MULTICAST | IFF_BROADCAST);
+								   | IFF_MULTICAST | IFF_BROADCAST);
 
 	if (netif_carrier_ok(dev) && priv->mc_flags != old_mc_flags)
+	{
 		iowrite32(priv->rx_config, port_base + RxConfig);
+	}
 }
 
 static bool _sc92031_check_media(struct net_device *dev)
@@ -491,11 +528,13 @@ static bool _sc92031_check_media(struct net_device *dev)
 
 	bmsr = _sc92031_mii_read(port_base, MII_BMSR);
 	rmb();
-	if (bmsr & BMSR_LSTATUS) {
+
+	if (bmsr & BMSR_LSTATUS)
+	{
 		bool speed_100, duplex_full;
 		u32 flow_ctrl_config = 0;
 		u16 output_status = _sc92031_mii_read(port_base,
-				MII_OutputStatus);
+											  MII_OutputStatus);
 		_sc92031_mii_scan(port_base);
 
 		speed_100 = output_status & 0x2;
@@ -508,16 +547,21 @@ static bool _sc92031_check_media(struct net_device *dev)
 		/* NOTE: vendor driver had dead code here to enable tx padding */
 
 		if (!speed_100)
+		{
 			priv->tx_config |= 0x80000;
+		}
 
 		// configure rx mode
 		_sc92031_set_rx_config(dev);
 
-		if (duplex_full) {
+		if (duplex_full)
+		{
 			priv->rx_config |= RxFullDx;
 			priv->tx_config |= TxFullDx;
 			flow_ctrl_config = FlowCtrlFullDX | FlowCtrlEnb;
-		} else {
+		}
+		else
+		{
 			priv->rx_config &= ~RxFullDx;
 			priv->tx_config &= ~TxFullDx;
 		}
@@ -531,11 +575,14 @@ static bool _sc92031_check_media(struct net_device *dev)
 
 		if (printk_ratelimit())
 			printk(KERN_INFO "%s: link up, %sMbps, %s-duplex\n",
-				dev->name,
-				speed_100 ? "100" : "10",
-				duplex_full ? "full" : "half");
+				   dev->name,
+				   speed_100 ? "100" : "10",
+				   duplex_full ? "full" : "half");
+
 		return true;
-	} else {
+	}
+	else
+	{
 		_sc92031_mii_scan(port_base);
 
 		netif_carrier_off(dev);
@@ -543,7 +590,10 @@ static bool _sc92031_check_media(struct net_device *dev)
 		_sc92031_disable_tx_rx(dev);
 
 		if (printk_ratelimit())
+		{
 			printk(KERN_INFO "%s: link down\n", dev->name);
+		}
+
 		return false;
 	}
 }
@@ -558,23 +608,28 @@ static void _sc92031_phy_reset(struct net_device *dev)
 	phy_ctrl &= ~(PhyCtrlDux | PhyCtrlSpd100 | PhyCtrlSpd10);
 	phy_ctrl |= PhyCtrlAne | PhyCtrlReset;
 
-	switch (media) {
-	default:
-	case AUTOSELECT:
-		phy_ctrl |= PhyCtrlDux | PhyCtrlSpd100 | PhyCtrlSpd10;
-		break;
-	case M10_HALF:
-		phy_ctrl |= PhyCtrlSpd10;
-		break;
-	case M10_FULL:
-		phy_ctrl |= PhyCtrlDux | PhyCtrlSpd10;
-		break;
-	case M100_HALF:
-		phy_ctrl |= PhyCtrlSpd100;
-		break;
-	case M100_FULL:
-		phy_ctrl |= PhyCtrlDux | PhyCtrlSpd100;
-		break;
+	switch (media)
+	{
+		default:
+		case AUTOSELECT:
+			phy_ctrl |= PhyCtrlDux | PhyCtrlSpd100 | PhyCtrlSpd10;
+			break;
+
+		case M10_HALF:
+			phy_ctrl |= PhyCtrlSpd10;
+			break;
+
+		case M10_FULL:
+			phy_ctrl |= PhyCtrlDux | PhyCtrlSpd10;
+			break;
+
+		case M100_HALF:
+			phy_ctrl |= PhyCtrlSpd100;
+			break;
+
+		case M100_FULL:
+			phy_ctrl |= PhyCtrlDux | PhyCtrlSpd100;
+			break;
 	}
 
 	iowrite32(phy_ctrl, port_base + PhyCtrl);
@@ -585,7 +640,7 @@ static void _sc92031_phy_reset(struct net_device *dev)
 	mdelay(1);
 
 	_sc92031_mii_write(port_base, MII_JAB,
-			PHY_16_JAB_ENB | PHY_16_PORT_ENB);
+					   PHY_16_JAB_ENB | PHY_16_PORT_ENB);
 	_sc92031_mii_scan(port_base);
 
 	netif_carrier_off(dev);
@@ -655,64 +710,90 @@ static void _sc92031_tx_tasklet(struct net_device *dev)
 	u32 tx_status;
 
 	old_tx_tail = priv->tx_tail;
-	while (priv->tx_head - priv->tx_tail > 0) {
+
+	while (priv->tx_head - priv->tx_tail > 0)
+	{
 		entry = priv->tx_tail % NUM_TX_DESC;
 		tx_status = ioread32(port_base + TxStatus0 + entry * 4);
 
 		if (!(tx_status & (TxStatOK | TxUnderrun | TxAborted)))
+		{
 			break;
+		}
 
 		priv->tx_tail++;
 
-		if (tx_status & TxStatOK) {
+		if (tx_status & TxStatOK)
+		{
 			dev->stats.tx_bytes += tx_status & 0x1fff;
 			dev->stats.tx_packets++;
 			/* Note: TxCarrierLost is always asserted at 100mbps. */
 			dev->stats.collisions += (tx_status >> 22) & 0xf;
 		}
 
-		if (tx_status & (TxOutOfWindow | TxAborted)) {
+		if (tx_status & (TxOutOfWindow | TxAborted))
+		{
 			dev->stats.tx_errors++;
 
 			if (tx_status & TxAborted)
+			{
 				dev->stats.tx_aborted_errors++;
+			}
 
 			if (tx_status & TxCarrierLost)
+			{
 				dev->stats.tx_carrier_errors++;
+			}
 
 			if (tx_status & TxOutOfWindow)
+			{
 				dev->stats.tx_window_errors++;
+			}
 		}
 
 		if (tx_status & TxUnderrun)
+		{
 			dev->stats.tx_fifo_errors++;
+		}
 	}
 
 	if (priv->tx_tail != old_tx_tail)
 		if (netif_queue_stopped(dev))
+		{
 			netif_wake_queue(dev);
+		}
 }
 
 static void _sc92031_rx_tasklet_error(struct net_device *dev,
-				      u32 rx_status, unsigned rx_size)
+									  u32 rx_status, unsigned rx_size)
 {
-	if(rx_size > (MAX_ETH_FRAME_SIZE + 4) || rx_size < 16) {
+	if (rx_size > (MAX_ETH_FRAME_SIZE + 4) || rx_size < 16)
+	{
 		dev->stats.rx_errors++;
 		dev->stats.rx_length_errors++;
 	}
 
-	if (!(rx_status & RxStatesOK)) {
+	if (!(rx_status & RxStatesOK))
+	{
 		dev->stats.rx_errors++;
 
 		if (rx_status & (RxHugeFrame | RxSmallFrame))
+		{
 			dev->stats.rx_length_errors++;
+		}
 
 		if (rx_status & RxBadAlign)
+		{
 			dev->stats.rx_frame_errors++;
+		}
 
 		if (!(rx_status & RxCRCOK))
+		{
 			dev->stats.rx_crc_errors++;
-	} else {
+		}
+	}
+	else
+	{
 		struct sc92031_priv *priv = netdev_priv(dev);
 		priv->rx_loss++;
 	}
@@ -736,27 +817,39 @@ static void _sc92031_rx_tasklet(struct net_device *dev)
 	 */
 	rx_ring_head &= (dma_addr_t)(RX_BUF_LEN - 1);
 	rx_ring_head |= priv->rx_ring_dma_addr & ~(dma_addr_t)(RX_BUF_LEN - 1);
+
 	if (rx_ring_head < priv->rx_ring_dma_addr)
+	{
 		rx_ring_head += RX_BUF_LEN;
+	}
 
 	if (rx_ring_head >= priv->rx_ring_tail)
+	{
 		rx_len = rx_ring_head - priv->rx_ring_tail;
+	}
 	else
+	{
 		rx_len = RX_BUF_LEN - (priv->rx_ring_tail - rx_ring_head);
+	}
 
 	if (!rx_len)
+	{
 		return;
+	}
 
-	if (unlikely(rx_len > RX_BUF_LEN)) {
+	if (unlikely(rx_len > RX_BUF_LEN))
+	{
 		if (printk_ratelimit())
 			printk(KERN_ERR "%s: rx packets length > rx buffer\n",
-					dev->name);
+				   dev->name);
+
 		return;
 	}
 
 	rx_ring_offset = (priv->rx_ring_tail - priv->rx_ring_dma_addr) % RX_BUF_LEN;
 
-	while (rx_len) {
+	while (rx_len)
+	{
 		u32 rx_status;
 		unsigned rx_size, rx_size_align, pkt_size;
 		struct sk_buff *skb;
@@ -771,35 +864,46 @@ static void _sc92031_rx_tasklet(struct net_device *dev)
 		rx_ring_offset = (rx_ring_offset + 4) % RX_BUF_LEN;
 
 		if (unlikely(rx_status == 0 ||
-			     rx_size > (MAX_ETH_FRAME_SIZE + 4) ||
-			     rx_size < 16 ||
-			     !(rx_status & RxStatesOK))) {
+					 rx_size > (MAX_ETH_FRAME_SIZE + 4) ||
+					 rx_size < 16 ||
+					 !(rx_status & RxStatesOK)))
+		{
 			_sc92031_rx_tasklet_error(dev, rx_status, rx_size);
 			break;
 		}
 
-		if (unlikely(rx_size_align + 4 > rx_len)) {
+		if (unlikely(rx_size_align + 4 > rx_len))
+		{
 			if (printk_ratelimit())
+			{
 				printk(KERN_ERR "%s: rx_len is too small\n", dev->name);
+			}
+
 			break;
 		}
 
 		rx_len -= rx_size_align + 4;
 
 		skb = netdev_alloc_skb_ip_align(dev, pkt_size);
-		if (unlikely(!skb)) {
+
+		if (unlikely(!skb))
+		{
 			if (printk_ratelimit())
 				printk(KERN_ERR "%s: Couldn't allocate a skb_buff for a packet of size %u\n",
-						dev->name, pkt_size);
+					   dev->name, pkt_size);
+
 			goto next;
 		}
 
-		if ((rx_ring_offset + pkt_size) > RX_BUF_LEN) {
+		if ((rx_ring_offset + pkt_size) > RX_BUF_LEN)
+		{
 			memcpy(skb_put(skb, RX_BUF_LEN - rx_ring_offset),
-				rx_ring + rx_ring_offset, RX_BUF_LEN - rx_ring_offset);
+				   rx_ring + rx_ring_offset, RX_BUF_LEN - rx_ring_offset);
 			memcpy(skb_put(skb, pkt_size - (RX_BUF_LEN - rx_ring_offset)),
-				rx_ring, pkt_size - (RX_BUF_LEN - rx_ring_offset));
-		} else {
+				   rx_ring, pkt_size - (RX_BUF_LEN - rx_ring_offset));
+		}
+		else
+		{
 			memcpy(skb_put(skb, pkt_size), rx_ring + rx_ring_offset, pkt_size);
 		}
 
@@ -810,11 +914,14 @@ static void _sc92031_rx_tasklet(struct net_device *dev)
 		dev->stats.rx_packets++;
 
 		if (rx_status & Rx_Multicast)
+		{
 			dev->stats.multicast++;
+		}
 
-	next:
+next:
 		rx_ring_offset = (rx_ring_offset + rx_size_align) % RX_BUF_LEN;
 	}
+
 	mb();
 
 	priv->rx_ring_tail = rx_ring_head;
@@ -824,8 +931,11 @@ static void _sc92031_rx_tasklet(struct net_device *dev)
 static void _sc92031_link_tasklet(struct net_device *dev)
 {
 	if (_sc92031_check_media(dev))
+	{
 		netif_wake_queue(dev);
-	else {
+	}
+	else
+	{
 		netif_stop_queue(dev);
 		dev->stats.tx_carrier_errors++;
 	}
@@ -843,24 +953,35 @@ static void sc92031_tasklet(unsigned long data)
 	spin_lock(&priv->lock);
 
 	if (unlikely(!netif_running(dev)))
+	{
 		goto out;
+	}
 
 	if (intr_status & TxOK)
+	{
 		_sc92031_tx_tasklet(dev);
+	}
 
 	if (intr_status & RxOK)
+	{
 		_sc92031_rx_tasklet(dev);
+	}
 
 	if (intr_status & RxOverflow)
+	{
 		dev->stats.rx_errors++;
+	}
 
-	if (intr_status & TimeOut) {
+	if (intr_status & TimeOut)
+	{
 		dev->stats.rx_errors++;
 		dev->stats.rx_length_errors++;
 	}
 
 	if (intr_status & (LinkFail | LinkOK))
+	{
 		_sc92031_link_tasklet(dev);
+	}
 
 out:
 	intr_mask = atomic_read(&priv->intr_mask);
@@ -884,12 +1005,18 @@ static irqreturn_t sc92031_interrupt(int irq, void *dev_id)
 	_sc92031_dummy_read(port_base);
 
 	intr_status = ioread32(port_base + IntrStatus);
+
 	if (unlikely(intr_status == 0xffffffff))
-		return IRQ_NONE;	// hardware has gone missing
+	{
+		return IRQ_NONE;    // hardware has gone missing
+	}
 
 	intr_status &= IntrBits;
+
 	if (!intr_status)
+	{
 		goto out_none;
+	}
 
 	priv->intr_status = intr_status;
 	tasklet_schedule(&priv->tasklet);
@@ -912,7 +1039,8 @@ static struct net_device_stats *sc92031_get_stats(struct net_device *dev)
 	void __iomem *port_base = priv->port_base;
 
 	// FIXME I do not understand what is this trying to do.
-	if (netif_running(dev)) {
+	if (netif_running(dev))
+	{
 		int temp;
 
 		spin_lock_bh(&priv->lock);
@@ -920,11 +1048,15 @@ static struct net_device_stats *sc92031_get_stats(struct net_device *dev)
 		/* Update the error count. */
 		temp = (ioread32(port_base + RxStatus0) >> 16) & 0xffff;
 
-		if (temp == 0xffff) {
+		if (temp == 0xffff)
+		{
 			priv->rx_value += temp;
 			dev->stats.rx_fifo_errors = priv->rx_value;
-		} else
+		}
+		else
+		{
 			dev->stats.rx_fifo_errors = temp + priv->rx_value;
+		}
 
 		spin_unlock_bh(&priv->lock);
 	}
@@ -933,7 +1065,7 @@ static struct net_device_stats *sc92031_get_stats(struct net_device *dev)
 }
 
 static netdev_tx_t sc92031_start_xmit(struct sk_buff *skb,
-				      struct net_device *dev)
+									  struct net_device *dev)
 {
 	struct sc92031_priv *priv = netdev_priv(dev);
 	void __iomem *port_base = priv->port_base;
@@ -941,14 +1073,16 @@ static netdev_tx_t sc92031_start_xmit(struct sk_buff *skb,
 	unsigned entry;
 	u32 tx_status;
 
-	if (unlikely(skb->len > TX_BUF_SIZE)) {
+	if (unlikely(skb->len > TX_BUF_SIZE))
+	{
 		dev->stats.tx_dropped++;
 		goto out;
 	}
 
 	spin_lock(&priv->lock);
 
-	if (unlikely(!netif_carrier_ok(dev))) {
+	if (unlikely(!netif_carrier_ok(dev)))
+	{
 		dev->stats.tx_dropped++;
 		goto out_unlock;
 	}
@@ -960,28 +1094,38 @@ static netdev_tx_t sc92031_start_xmit(struct sk_buff *skb,
 	skb_copy_and_csum_dev(skb, priv->tx_bufs + entry * TX_BUF_SIZE);
 
 	len = skb->len;
-	if (len < ETH_ZLEN) {
+
+	if (len < ETH_ZLEN)
+	{
 		memset(priv->tx_bufs + entry * TX_BUF_SIZE + len,
-				0, ETH_ZLEN - len);
+			   0, ETH_ZLEN - len);
 		len = ETH_ZLEN;
 	}
 
 	wmb();
 
 	if (len < 100)
+	{
 		tx_status = len;
+	}
 	else if (len < 300)
+	{
 		tx_status = 0x30000 | len;
+	}
 	else
+	{
 		tx_status = 0x50000 | len;
+	}
 
 	iowrite32(priv->tx_bufs_dma_addr + entry * TX_BUF_SIZE,
-			port_base + TxAddr0 + entry * 4);
+			  port_base + TxAddr0 + entry * 4);
 	iowrite32(tx_status, port_base + TxStatus0 + entry * 4);
 	mmiowb();
 
 	if (priv->tx_head - priv->tx_tail >= NUM_TX_DESC)
+	{
 		netif_stop_queue(dev);
+	}
 
 out_unlock:
 	spin_unlock(&priv->lock);
@@ -999,24 +1143,32 @@ static int sc92031_open(struct net_device *dev)
 	struct pci_dev *pdev = priv->pdev;
 
 	priv->rx_ring = pci_alloc_consistent(pdev, RX_BUF_LEN,
-			&priv->rx_ring_dma_addr);
-	if (unlikely(!priv->rx_ring)) {
+										 &priv->rx_ring_dma_addr);
+
+	if (unlikely(!priv->rx_ring))
+	{
 		err = -ENOMEM;
 		goto out_alloc_rx_ring;
 	}
 
 	priv->tx_bufs = pci_alloc_consistent(pdev, TX_BUF_TOT_LEN,
-			&priv->tx_bufs_dma_addr);
-	if (unlikely(!priv->tx_bufs)) {
+										 &priv->tx_bufs_dma_addr);
+
+	if (unlikely(!priv->tx_bufs))
+	{
 		err = -ENOMEM;
 		goto out_alloc_tx_bufs;
 	}
+
 	priv->tx_head = priv->tx_tail = 0;
 
 	err = request_irq(pdev->irq, sc92031_interrupt,
-			IRQF_SHARED, dev->name, dev);
+					  IRQF_SHARED, dev->name, dev);
+
 	if (unlikely(err < 0))
+	{
 		goto out_request_irq;
+	}
 
 	priv->pm_config = 0;
 
@@ -1030,18 +1182,22 @@ static int sc92031_open(struct net_device *dev)
 	sc92031_enable_interrupts(dev);
 
 	if (netif_carrier_ok(dev))
+	{
 		netif_start_queue(dev);
+	}
 	else
+	{
 		netif_tx_disable(dev);
+	}
 
 	return 0;
 
 out_request_irq:
 	pci_free_consistent(pdev, TX_BUF_TOT_LEN, priv->tx_bufs,
-			priv->tx_bufs_dma_addr);
+						priv->tx_bufs_dma_addr);
 out_alloc_tx_bufs:
 	pci_free_consistent(pdev, RX_BUF_LEN, priv->rx_ring,
-			priv->rx_ring_dma_addr);
+						priv->rx_ring_dma_addr);
 out_alloc_rx_ring:
 	return err;
 }
@@ -1066,9 +1222,9 @@ static int sc92031_stop(struct net_device *dev)
 
 	free_irq(pdev->irq, dev);
 	pci_free_consistent(pdev, TX_BUF_TOT_LEN, priv->tx_bufs,
-			priv->tx_bufs_dma_addr);
+						priv->tx_bufs_dma_addr);
 	pci_free_consistent(pdev, RX_BUF_LEN, priv->rx_ring,
-			priv->rx_ring_dma_addr);
+						priv->rx_ring_dma_addr);
 
 	return 0;
 }
@@ -1106,7 +1262,9 @@ static void sc92031_tx_timeout(struct net_device *dev)
 	sc92031_enable_interrupts(dev);
 
 	if (netif_carrier_ok(dev))
+	{
 		netif_wake_queue(dev);
+	}
 }
 
 #ifdef CONFIG_NET_POLL_CONTROLLER
@@ -1116,14 +1274,18 @@ static void sc92031_poll_controller(struct net_device *dev)
 	const int irq = priv->pdev->irq;
 
 	disable_irq(irq);
+
 	if (sc92031_interrupt(irq, dev) != IRQ_NONE)
+	{
 		sc92031_tasklet((unsigned long)dev);
+	}
+
 	enable_irq(irq);
 }
 #endif
 
 static int sc92031_ethtool_get_settings(struct net_device *dev,
-		struct ethtool_cmd *cmd)
+										struct ethtool_cmd *cmd)
 {
 	struct sc92031_priv *priv = netdev_priv(dev);
 	void __iomem *port_base = priv->port_base;
@@ -1143,34 +1305,46 @@ static int sc92031_ethtool_get_settings(struct net_device *dev,
 	spin_unlock_bh(&priv->lock);
 
 	cmd->supported = SUPPORTED_10baseT_Half | SUPPORTED_10baseT_Full
-			| SUPPORTED_100baseT_Half | SUPPORTED_100baseT_Full
-			| SUPPORTED_Autoneg | SUPPORTED_TP | SUPPORTED_MII;
+					 | SUPPORTED_100baseT_Half | SUPPORTED_100baseT_Full
+					 | SUPPORTED_Autoneg | SUPPORTED_TP | SUPPORTED_MII;
 
 	cmd->advertising = ADVERTISED_TP | ADVERTISED_MII;
 
 	if ((phy_ctrl & (PhyCtrlDux | PhyCtrlSpd100 | PhyCtrlSpd10))
-			== (PhyCtrlDux | PhyCtrlSpd100 | PhyCtrlSpd10))
+		== (PhyCtrlDux | PhyCtrlSpd100 | PhyCtrlSpd10))
+	{
 		cmd->advertising |= ADVERTISED_Autoneg;
+	}
 
 	if ((phy_ctrl & PhyCtrlSpd10) == PhyCtrlSpd10)
+	{
 		cmd->advertising |= ADVERTISED_10baseT_Half;
+	}
 
 	if ((phy_ctrl & (PhyCtrlSpd10 | PhyCtrlDux))
-			== (PhyCtrlSpd10 | PhyCtrlDux))
+		== (PhyCtrlSpd10 | PhyCtrlDux))
+	{
 		cmd->advertising |= ADVERTISED_10baseT_Full;
+	}
 
 	if ((phy_ctrl & PhyCtrlSpd100) == PhyCtrlSpd100)
+	{
 		cmd->advertising |= ADVERTISED_100baseT_Half;
+	}
 
 	if ((phy_ctrl & (PhyCtrlSpd100 | PhyCtrlDux))
-			== (PhyCtrlSpd100 | PhyCtrlDux))
+		== (PhyCtrlSpd100 | PhyCtrlDux))
+	{
 		cmd->advertising |= ADVERTISED_100baseT_Full;
+	}
 
 	if (phy_ctrl & PhyCtrlAne)
+	{
 		cmd->advertising |= ADVERTISED_Autoneg;
+	}
 
 	ethtool_cmd_speed_set(cmd,
-			      (output_status & 0x2) ? SPEED_100 : SPEED_10);
+						  (output_status & 0x2) ? SPEED_100 : SPEED_10);
 	cmd->duplex = (output_status & 0x4) ? DUPLEX_FULL : DUPLEX_HALF;
 	cmd->port = PORT_MII;
 	cmd->phy_address = phy_address;
@@ -1181,7 +1355,7 @@ static int sc92031_ethtool_get_settings(struct net_device *dev,
 }
 
 static int sc92031_ethtool_set_settings(struct net_device *dev,
-		struct ethtool_cmd *cmd)
+										struct ethtool_cmd *cmd)
 {
 	struct sc92031_priv *priv = netdev_priv(dev);
 	void __iomem *port_base = priv->port_base;
@@ -1190,59 +1364,104 @@ static int sc92031_ethtool_set_settings(struct net_device *dev,
 	u32 old_phy_ctrl;
 
 	if (!(speed == SPEED_10 || speed == SPEED_100))
+	{
 		return -EINVAL;
-	if (!(cmd->duplex == DUPLEX_HALF || cmd->duplex == DUPLEX_FULL))
-		return -EINVAL;
-	if (!(cmd->port == PORT_MII))
-		return -EINVAL;
-	if (!(cmd->phy_address == 0x1f))
-		return -EINVAL;
-	if (!(cmd->transceiver == XCVR_INTERNAL))
-		return -EINVAL;
-	if (!(cmd->autoneg == AUTONEG_DISABLE || cmd->autoneg == AUTONEG_ENABLE))
-		return -EINVAL;
+	}
 
-	if (cmd->autoneg == AUTONEG_ENABLE) {
+	if (!(cmd->duplex == DUPLEX_HALF || cmd->duplex == DUPLEX_FULL))
+	{
+		return -EINVAL;
+	}
+
+	if (!(cmd->port == PORT_MII))
+	{
+		return -EINVAL;
+	}
+
+	if (!(cmd->phy_address == 0x1f))
+	{
+		return -EINVAL;
+	}
+
+	if (!(cmd->transceiver == XCVR_INTERNAL))
+	{
+		return -EINVAL;
+	}
+
+	if (!(cmd->autoneg == AUTONEG_DISABLE || cmd->autoneg == AUTONEG_ENABLE))
+	{
+		return -EINVAL;
+	}
+
+	if (cmd->autoneg == AUTONEG_ENABLE)
+	{
 		if (!(cmd->advertising & (ADVERTISED_Autoneg
-				| ADVERTISED_100baseT_Full
-				| ADVERTISED_100baseT_Half
-				| ADVERTISED_10baseT_Full
-				| ADVERTISED_10baseT_Half)))
+								  | ADVERTISED_100baseT_Full
+								  | ADVERTISED_100baseT_Half
+								  | ADVERTISED_10baseT_Full
+								  | ADVERTISED_10baseT_Half)))
+		{
 			return -EINVAL;
+		}
 
 		phy_ctrl = PhyCtrlAne;
 
 		// FIXME: I'm not sure what the original code was trying to do
 		if (cmd->advertising & ADVERTISED_Autoneg)
+		{
 			phy_ctrl |= PhyCtrlDux | PhyCtrlSpd100 | PhyCtrlSpd10;
+		}
+
 		if (cmd->advertising & ADVERTISED_100baseT_Full)
+		{
 			phy_ctrl |= PhyCtrlDux | PhyCtrlSpd100;
+		}
+
 		if (cmd->advertising & ADVERTISED_100baseT_Half)
+		{
 			phy_ctrl |= PhyCtrlSpd100;
+		}
+
 		if (cmd->advertising & ADVERTISED_10baseT_Full)
+		{
 			phy_ctrl |= PhyCtrlSpd10 | PhyCtrlDux;
+		}
+
 		if (cmd->advertising & ADVERTISED_10baseT_Half)
+		{
 			phy_ctrl |= PhyCtrlSpd10;
-	} else {
+		}
+	}
+	else
+	{
 		// FIXME: Whole branch guessed
 		phy_ctrl = 0;
 
 		if (speed == SPEED_10)
+		{
 			phy_ctrl |= PhyCtrlSpd10;
+		}
 		else /* cmd->speed == SPEED_100 */
+		{
 			phy_ctrl |= PhyCtrlSpd100;
+		}
 
 		if (cmd->duplex == DUPLEX_FULL)
+		{
 			phy_ctrl |= PhyCtrlDux;
+		}
 	}
 
 	spin_lock_bh(&priv->lock);
 
 	old_phy_ctrl = ioread32(port_base + PhyCtrl);
 	phy_ctrl |= old_phy_ctrl & ~(PhyCtrlAne | PhyCtrlDux
-			| PhyCtrlSpd100 | PhyCtrlSpd10);
+								 | PhyCtrlSpd100 | PhyCtrlSpd10);
+
 	if (phy_ctrl != old_phy_ctrl)
+	{
 		iowrite32(phy_ctrl, port_base + PhyCtrl);
+	}
 
 	spin_unlock_bh(&priv->lock);
 
@@ -1250,7 +1469,7 @@ static int sc92031_ethtool_set_settings(struct net_device *dev,
 }
 
 static void sc92031_ethtool_get_wol(struct net_device *dev,
-		struct ethtool_wolinfo *wolinfo)
+									struct ethtool_wolinfo *wolinfo)
 {
 	struct sc92031_priv *priv = netdev_priv(dev);
 	void __iomem *port_base = priv->port_base;
@@ -1262,22 +1481,28 @@ static void sc92031_ethtool_get_wol(struct net_device *dev,
 
 	// FIXME: Guessed
 	wolinfo->supported = WAKE_PHY | WAKE_MAGIC
-			| WAKE_UCAST | WAKE_MCAST | WAKE_BCAST;
+						 | WAKE_UCAST | WAKE_MCAST | WAKE_BCAST;
 	wolinfo->wolopts = 0;
 
 	if (pm_config & PM_LinkUp)
+	{
 		wolinfo->wolopts |= WAKE_PHY;
+	}
 
 	if (pm_config & PM_Magic)
+	{
 		wolinfo->wolopts |= WAKE_MAGIC;
+	}
 
 	if (pm_config & PM_WakeUp)
 		// FIXME: Guessed
+	{
 		wolinfo->wolopts |= WAKE_UCAST | WAKE_MCAST | WAKE_BCAST;
+	}
 }
 
 static int sc92031_ethtool_set_wol(struct net_device *dev,
-		struct ethtool_wolinfo *wolinfo)
+								   struct ethtool_wolinfo *wolinfo)
 {
 	struct sc92031_priv *priv = netdev_priv(dev);
 	void __iomem *port_base = priv->port_base;
@@ -1286,17 +1511,23 @@ static int sc92031_ethtool_set_wol(struct net_device *dev,
 	spin_lock_bh(&priv->lock);
 
 	pm_config = ioread32(port_base + PMConfig)
-			& ~(PM_LinkUp | PM_Magic | PM_WakeUp);
+				& ~(PM_LinkUp | PM_Magic | PM_WakeUp);
 
 	if (wolinfo->wolopts & WAKE_PHY)
+	{
 		pm_config |= PM_LinkUp;
+	}
 
 	if (wolinfo->wolopts & WAKE_MAGIC)
+	{
 		pm_config |= PM_Magic;
+	}
 
 	// FIXME: Guessed
 	if (wolinfo->wolopts & (WAKE_UCAST | WAKE_MCAST | WAKE_BCAST))
+	{
 		pm_config |= PM_WakeUp;
+	}
 
 	priv->pm_config = pm_config;
 	iowrite32(pm_config, port_base + PMConfig);
@@ -1317,7 +1548,9 @@ static int sc92031_ethtool_nway_reset(struct net_device *dev)
 	spin_lock_bh(&priv->lock);
 
 	bmcr = _sc92031_mii_read(port_base, MII_BMCR);
-	if (!(bmcr & BMCR_ANENABLE)) {
+
+	if (!(bmcr & BMCR_ANENABLE))
+	{
 		err = -EINVAL;
 		goto out;
 	}
@@ -1333,26 +1566,29 @@ out:
 	return err;
 }
 
-static const char sc92031_ethtool_stats_strings[SILAN_STATS_NUM][ETH_GSTRING_LEN] = {
+static const char sc92031_ethtool_stats_strings[SILAN_STATS_NUM][ETH_GSTRING_LEN] =
+{
 	"tx_timeout",
 	"rx_loss",
 };
 
 static void sc92031_ethtool_get_strings(struct net_device *dev,
-		u32 stringset, u8 *data)
+										u32 stringset, u8 *data)
 {
 	if (stringset == ETH_SS_STATS)
 		memcpy(data, sc92031_ethtool_stats_strings,
-				SILAN_STATS_NUM * ETH_GSTRING_LEN);
+			   SILAN_STATS_NUM * ETH_GSTRING_LEN);
 }
 
 static int sc92031_ethtool_get_sset_count(struct net_device *dev, int sset)
 {
-	switch (sset) {
-	case ETH_SS_STATS:
-		return SILAN_STATS_NUM;
-	default:
-		return -EOPNOTSUPP;
+	switch (sset)
+	{
+		case ETH_SS_STATS:
+			return SILAN_STATS_NUM;
+
+		default:
+			return -EOPNOTSUPP;
 	}
 }
 
@@ -1367,7 +1603,8 @@ static void sc92031_ethtool_get_ethtool_stats(struct net_device *dev,
 	spin_unlock_bh(&priv->lock);
 }
 
-static const struct ethtool_ops sc92031_ethtool_ops = {
+static const struct ethtool_ops sc92031_ethtool_ops =
+{
 	.get_settings		= sc92031_ethtool_get_settings,
 	.set_settings		= sc92031_ethtool_set_settings,
 	.get_wol		= sc92031_ethtool_get_wol,
@@ -1380,7 +1617,8 @@ static const struct ethtool_ops sc92031_ethtool_ops = {
 };
 
 
-static const struct net_device_ops sc92031_netdev_ops = {
+static const struct net_device_ops sc92031_netdev_ops =
+{
 	.ndo_get_stats		= sc92031_get_stats,
 	.ndo_start_xmit		= sc92031_start_xmit,
 	.ndo_open		= sc92031_open,
@@ -1398,37 +1636,53 @@ static const struct net_device_ops sc92031_netdev_ops = {
 static int sc92031_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 {
 	int err;
-	void __iomem* port_base;
+	void __iomem *port_base;
 	struct net_device *dev;
 	struct sc92031_priv *priv;
 	u32 mac0, mac1;
 
 	err = pci_enable_device(pdev);
+
 	if (unlikely(err < 0))
+	{
 		goto out_enable_device;
+	}
 
 	pci_set_master(pdev);
 
 	err = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
+
 	if (unlikely(err < 0))
+	{
 		goto out_set_dma_mask;
+	}
 
 	err = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32));
+
 	if (unlikely(err < 0))
+	{
 		goto out_set_dma_mask;
+	}
 
 	err = pci_request_regions(pdev, SC92031_NAME);
+
 	if (unlikely(err < 0))
+	{
 		goto out_request_regions;
+	}
 
 	port_base = pci_iomap(pdev, SC92031_USE_PIO, 0);
-	if (unlikely(!port_base)) {
+
+	if (unlikely(!port_base))
+	{
 		err = -EIO;
 		goto out_iomap;
 	}
 
 	dev = alloc_etherdev(sizeof(struct sc92031_priv));
-	if (unlikely(!dev)) {
+
+	if (unlikely(!dev))
+	{
 		err = -ENOMEM;
 		goto out_alloc_etherdev;
 	}
@@ -1438,7 +1692,7 @@ static int sc92031_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 
 	/* faked with skb_copy_and_csum_dev */
 	dev->features = NETIF_F_SG | NETIF_F_HIGHDMA |
-		NETIF_F_IP_CSUM | NETIF_F_IPV6_CSUM;
+					NETIF_F_IP_CSUM | NETIF_F_IPV6_CSUM;
 
 	dev->netdev_ops		= &sc92031_netdev_ops;
 	dev->watchdog_timeo	= TX_TIMEOUT;
@@ -1466,12 +1720,15 @@ static int sc92031_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	dev->dev_addr[5] = mac1;
 
 	err = register_netdev(dev);
+
 	if (err < 0)
+	{
 		goto out_register_netdev;
+	}
 
 	printk(KERN_INFO "%s: SC92031 at 0x%lx, %pM, IRQ %d\n", dev->name,
-	       (long)pci_resource_start(pdev, SC92031_USE_PIO), dev->dev_addr,
-	       pdev->irq);
+		   (long)pci_resource_start(pdev, SC92031_USE_PIO), dev->dev_addr,
+		   pdev->irq);
 
 	return 0;
 
@@ -1492,7 +1749,7 @@ static void sc92031_remove(struct pci_dev *pdev)
 {
 	struct net_device *dev = pci_get_drvdata(pdev);
 	struct sc92031_priv *priv = netdev_priv(dev);
-	void __iomem* port_base = priv->port_base;
+	void __iomem *port_base = priv->port_base;
 
 	unregister_netdev(dev);
 	free_netdev(dev);
@@ -1509,7 +1766,9 @@ static int sc92031_suspend(struct pci_dev *pdev, pm_message_t state)
 	pci_save_state(pdev);
 
 	if (!netif_running(dev))
+	{
 		goto out;
+	}
 
 	netif_device_detach(dev);
 
@@ -1539,7 +1798,9 @@ static int sc92031_resume(struct pci_dev *pdev)
 	pci_set_power_state(pdev, PCI_D0);
 
 	if (!netif_running(dev))
+	{
 		goto out;
+	}
 
 	/* Interrupts already disabled by sc92031_suspend */
 	spin_lock_bh(&priv->lock);
@@ -1553,15 +1814,20 @@ static int sc92031_resume(struct pci_dev *pdev)
 	netif_device_attach(dev);
 
 	if (netif_carrier_ok(dev))
+	{
 		netif_wake_queue(dev);
+	}
 	else
+	{
 		netif_tx_disable(dev);
+	}
 
 out:
 	return 0;
 }
 
-static const struct pci_device_id sc92031_pci_device_id_table[] = {
+static const struct pci_device_id sc92031_pci_device_id_table[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_SILAN, 0x2031) },
 	{ PCI_DEVICE(PCI_VENDOR_ID_SILAN, 0x8139) },
 	{ PCI_DEVICE(0x1088, 0x2031) },
@@ -1569,7 +1835,8 @@ static const struct pci_device_id sc92031_pci_device_id_table[] = {
 };
 MODULE_DEVICE_TABLE(pci, sc92031_pci_device_id_table);
 
-static struct pci_driver sc92031_pci_driver = {
+static struct pci_driver sc92031_pci_driver =
+{
 	.name		= SC92031_NAME,
 	.id_table	= sc92031_pci_device_id_table,
 	.probe		= sc92031_probe,

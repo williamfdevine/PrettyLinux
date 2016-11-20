@@ -8,10 +8,10 @@
  *		modify it under the terms of the GNU General Public License
  *		as published by the Free Software Foundation; either version
  *		2 of the License, or (at your option) any later version.
- * 
+ *
  *              Adapted to become the Linux 2.0 Coda pseudo device
- *              Peter  Braam  <braam@maths.ox.ac.uk> 
- *              Michael Callahan <mjc@emmy.smith.edu>           
+ *              Peter  Braam  <braam@maths.ox.ac.uk>
+ *              Michael Callahan <mjc@emmy.smith.edu>
  *
  *              Changes for Linux 2.1
  *              Copyright (c) 1997 Carnegie-Mellon University
@@ -61,30 +61,36 @@ static struct class *coda_psdev_class;
  * Device operations
  */
 
-static unsigned int coda_psdev_poll(struct file *file, poll_table * wait)
+static unsigned int coda_psdev_poll(struct file *file, poll_table *wait)
 {
-        struct venus_comm *vcp = (struct venus_comm *) file->private_data;
+	struct venus_comm *vcp = (struct venus_comm *) file->private_data;
 	unsigned int mask = POLLOUT | POLLWRNORM;
 
 	poll_wait(file, &vcp->vc_waitq, wait);
 	mutex_lock(&vcp->vc_mutex);
+
 	if (!list_empty(&vcp->vc_pending))
-                mask |= POLLIN | POLLRDNORM;
+	{
+		mask |= POLLIN | POLLRDNORM;
+	}
+
 	mutex_unlock(&vcp->vc_mutex);
 
 	return mask;
 }
 
-static long coda_psdev_ioctl(struct file * filp, unsigned int cmd, unsigned long arg)
+static long coda_psdev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	unsigned int data;
 
-	switch(cmd) {
-	case CIOC_KERNEL_VERSION:
-		data = CODA_KERNEL_VERSION;
-		return put_user(data, (int __user *) arg);
-	default:
-		return -ENOTTY;
+	switch (cmd)
+	{
+		case CIOC_KERNEL_VERSION:
+			data = CODA_KERNEL_VERSION;
+			return put_user(data, (int __user *) arg);
+
+		default:
+			return -ENOTTY;
 	}
 
 	return 0;
@@ -93,39 +99,48 @@ static long coda_psdev_ioctl(struct file * filp, unsigned int cmd, unsigned long
 /*
  *	Receive a message written by Venus to the psdev
  */
- 
-static ssize_t coda_psdev_write(struct file *file, const char __user *buf, 
-				size_t nbytes, loff_t *off)
+
+static ssize_t coda_psdev_write(struct file *file, const char __user *buf,
+								size_t nbytes, loff_t *off)
 {
-        struct venus_comm *vcp = (struct venus_comm *) file->private_data;
-        struct upc_req *req = NULL;
-        struct upc_req *tmp;
+	struct venus_comm *vcp = (struct venus_comm *) file->private_data;
+	struct upc_req *req = NULL;
+	struct upc_req *tmp;
 	struct list_head *lh;
 	struct coda_in_hdr hdr;
 	ssize_t retval = 0, count = 0;
 	int error;
 
-        /* Peek at the opcode, uniquefier */
+	/* Peek at the opcode, uniquefier */
 	if (copy_from_user(&hdr, buf, 2 * sizeof(u_long)))
-	        return -EFAULT;
+	{
+		return -EFAULT;
+	}
 
-        if (DOWNCALL(hdr.opcode)) {
+	if (DOWNCALL(hdr.opcode))
+	{
 		union outputArgs *dcbuf;
 		int size = sizeof(*dcbuf);
 
-		if  ( nbytes < sizeof(struct coda_out_hdr) ) {
+		if  ( nbytes < sizeof(struct coda_out_hdr) )
+		{
 			pr_warn("coda_downcall opc %d uniq %d, not enough!\n",
-				hdr.opcode, hdr.unique);
+					hdr.opcode, hdr.unique);
 			count = nbytes;
 			goto out;
 		}
-		if ( nbytes > size ) {
+
+		if ( nbytes > size )
+		{
 			pr_warn("downcall opc %d, uniq %d, too much!",
-				hdr.opcode, hdr.unique);
-		        nbytes = size;
+					hdr.opcode, hdr.unique);
+			nbytes = size;
 		}
+
 		CODA_ALLOC(dcbuf, union outputArgs *, nbytes);
-		if (copy_from_user(dcbuf, buf, nbytes)) {
+
+		if (copy_from_user(dcbuf, buf, nbytes))
+		{
 			CODA_FREE(dcbuf, nbytes);
 			retval = -EFAULT;
 			goto out;
@@ -135,21 +150,27 @@ static ssize_t coda_psdev_write(struct file *file, const char __user *buf,
 		error = coda_downcall(vcp, hdr.opcode, dcbuf);
 
 		CODA_FREE(dcbuf, nbytes);
-		if (error) {
+
+		if (error)
+		{
 			pr_warn("%s: coda_downcall error: %d\n",
-				__func__, error);
+					__func__, error);
 			retval = error;
 			goto out;
 		}
+
 		count = nbytes;
 		goto out;
 	}
-        
+
 	/* Look for the message on the processing queue. */
 	mutex_lock(&vcp->vc_mutex);
-	list_for_each(lh, &vcp->vc_processing) {
+	list_for_each(lh, &vcp->vc_processing)
+	{
 		tmp = list_entry(lh, struct upc_req , uc_chain);
-		if (tmp->uc_unique == hdr.unique) {
+
+		if (tmp->uc_unique == hdr.unique)
+		{
 			req = tmp;
 			list_del(&req->uc_chain);
 			break;
@@ -157,21 +178,25 @@ static ssize_t coda_psdev_write(struct file *file, const char __user *buf,
 	}
 	mutex_unlock(&vcp->vc_mutex);
 
-	if (!req) {
+	if (!req)
+	{
 		pr_warn("%s: msg (%d, %d) not found\n",
-			__func__, hdr.opcode, hdr.unique);
+				__func__, hdr.opcode, hdr.unique);
 		retval = -ESRCH;
 		goto out;
 	}
 
-        /* move data into response buffer. */
-	if (req->uc_outSize < nbytes) {
+	/* move data into response buffer. */
+	if (req->uc_outSize < nbytes)
+	{
 		pr_warn("%s: too much cnt: %d, cnt: %ld, opc: %d, uniq: %d.\n",
-			__func__, req->uc_outSize, (long)nbytes,
-			hdr.opcode, hdr.unique);
+				__func__, req->uc_outSize, (long)nbytes,
+				hdr.opcode, hdr.unique);
 		nbytes = req->uc_outSize; /* don't have more space! */
 	}
-        if (copy_from_user(req->uc_data, buf, nbytes)) {
+
+	if (copy_from_user(req->uc_data, buf, nbytes))
+	{
 		req->uc_flags |= CODA_REQ_ABORT;
 		wake_up(&req->uc_sleep);
 		retval = -EFAULT;
@@ -184,47 +209,58 @@ static ssize_t coda_psdev_write(struct file *file, const char __user *buf,
 	count = nbytes;
 
 	/* Convert filedescriptor into a file handle */
-	if (req->uc_opcode == CODA_OPEN_BY_FD) {
+	if (req->uc_opcode == CODA_OPEN_BY_FD)
+	{
 		struct coda_open_by_fd_out *outp =
 			(struct coda_open_by_fd_out *)req->uc_data;
+
 		if (!outp->oh.result)
+		{
 			outp->fh = fget(outp->fd);
+		}
 	}
 
-        wake_up(&req->uc_sleep);
+	wake_up(&req->uc_sleep);
 out:
-        return(count ? count : retval);  
+	return (count ? count : retval);
 }
 
 /*
  *	Read a message from the kernel to Venus
  */
 
-static ssize_t coda_psdev_read(struct file * file, char __user * buf, 
-			       size_t nbytes, loff_t *off)
+static ssize_t coda_psdev_read(struct file *file, char __user *buf,
+							   size_t nbytes, loff_t *off)
 {
 	DECLARE_WAITQUEUE(wait, current);
-        struct venus_comm *vcp = (struct venus_comm *) file->private_data;
-        struct upc_req *req;
+	struct venus_comm *vcp = (struct venus_comm *) file->private_data;
+	struct upc_req *req;
 	ssize_t retval = 0, count = 0;
 
 	if (nbytes == 0)
+	{
 		return 0;
+	}
 
 	mutex_lock(&vcp->vc_mutex);
 
 	add_wait_queue(&vcp->vc_waitq, &wait);
 	set_current_state(TASK_INTERRUPTIBLE);
 
-	while (list_empty(&vcp->vc_pending)) {
-		if (file->f_flags & O_NONBLOCK) {
+	while (list_empty(&vcp->vc_pending))
+	{
+		if (file->f_flags & O_NONBLOCK)
+		{
 			retval = -EAGAIN;
 			break;
 		}
-		if (signal_pending(current)) {
+
+		if (signal_pending(current))
+		{
 			retval = -ERESTARTSYS;
 			break;
 		}
+
 		mutex_unlock(&vcp->vc_mutex);
 		schedule();
 		mutex_lock(&vcp->vc_mutex);
@@ -234,24 +270,31 @@ static ssize_t coda_psdev_read(struct file * file, char __user * buf,
 	remove_wait_queue(&vcp->vc_waitq, &wait);
 
 	if (retval)
+	{
 		goto out;
+	}
 
-	req = list_entry(vcp->vc_pending.next, struct upc_req,uc_chain);
+	req = list_entry(vcp->vc_pending.next, struct upc_req, uc_chain);
 	list_del(&req->uc_chain);
 
 	/* Move the input args into userspace */
 	count = req->uc_inSize;
-	if (nbytes < req->uc_inSize) {
+
+	if (nbytes < req->uc_inSize)
+	{
 		pr_warn("%s: Venus read %ld bytes of %d in message\n",
-			__func__, (long)nbytes, req->uc_inSize);
+				__func__, (long)nbytes, req->uc_inSize);
 		count = nbytes;
-        }
+	}
 
 	if (copy_to_user(buf, req->uc_data, count))
-	        retval = -EFAULT;
-        
+	{
+		retval = -EFAULT;
+	}
+
 	/* If request was not a signal, enqueue and don't free */
-	if (!(req->uc_flags & CODA_REQ_ASYNC)) {
+	if (!(req->uc_flags & CODA_REQ_ASYNC))
+	{
 		req->uc_flags |= CODA_REQ_READ;
 		list_add_tail(&(req->uc_chain), &vcp->vc_processing);
 		goto out;
@@ -264,26 +307,34 @@ out:
 	return (count ? count : retval);
 }
 
-static int coda_psdev_open(struct inode * inode, struct file * file)
+static int coda_psdev_open(struct inode *inode, struct file *file)
 {
 	struct venus_comm *vcp;
 	int idx, err;
 
 	if (task_active_pid_ns(current) != &init_pid_ns)
+	{
 		return -EINVAL;
+	}
 
 	if (current_user_ns() != &init_user_ns)
+	{
 		return -EINVAL;
+	}
 
 	idx = iminor(inode);
+
 	if (idx < 0 || idx >= MAX_CODADEVS)
+	{
 		return -ENODEV;
+	}
 
 	err = -EBUSY;
 	vcp = &coda_comms[idx];
 	mutex_lock(&vcp->vc_mutex);
 
-	if (!vcp->vc_inuse) {
+	if (!vcp->vc_inuse)
+	{
 		vcp->vc_inuse++;
 
 		INIT_LIST_HEAD(&vcp->vc_pending);
@@ -301,12 +352,13 @@ static int coda_psdev_open(struct inode * inode, struct file * file)
 }
 
 
-static int coda_psdev_release(struct inode * inode, struct file * file)
+static int coda_psdev_release(struct inode *inode, struct file *file)
 {
 	struct venus_comm *vcp = (struct venus_comm *) file->private_data;
 	struct upc_req *req, *tmp;
 
-	if (!vcp || !vcp->vc_inuse ) {
+	if (!vcp || !vcp->vc_inuse )
+	{
 		pr_warn("%s: Not open.\n", __func__);
 		return -1;
 	}
@@ -314,20 +366,24 @@ static int coda_psdev_release(struct inode * inode, struct file * file)
 	mutex_lock(&vcp->vc_mutex);
 
 	/* Wakeup clients so they can return. */
-	list_for_each_entry_safe(req, tmp, &vcp->vc_pending, uc_chain) {
+	list_for_each_entry_safe(req, tmp, &vcp->vc_pending, uc_chain)
+	{
 		list_del(&req->uc_chain);
 
 		/* Async requests need to be freed here */
-		if (req->uc_flags & CODA_REQ_ASYNC) {
+		if (req->uc_flags & CODA_REQ_ASYNC)
+		{
 			CODA_FREE(req->uc_data, sizeof(struct coda_in_hdr));
 			kfree(req);
 			continue;
 		}
+
 		req->uc_flags |= CODA_REQ_ABORT;
 		wake_up(&req->uc_sleep);
 	}
 
-	list_for_each_entry_safe(req, tmp, &vcp->vc_processing, uc_chain) {
+	list_for_each_entry_safe(req, tmp, &vcp->vc_processing, uc_chain)
+	{
 		list_del(&req->uc_chain);
 
 		req->uc_flags |= CODA_REQ_ABORT;
@@ -341,7 +397,8 @@ static int coda_psdev_release(struct inode * inode, struct file * file)
 }
 
 
-static const struct file_operations coda_psdev_fops = {
+static const struct file_operations coda_psdev_fops =
+{
 	.owner		= THIS_MODULE,
 	.read		= coda_psdev_read,
 	.write		= coda_psdev_write,
@@ -355,21 +412,29 @@ static const struct file_operations coda_psdev_fops = {
 static int init_coda_psdev(void)
 {
 	int i, err = 0;
-	if (register_chrdev(CODA_PSDEV_MAJOR, "coda", &coda_psdev_fops)) {
+
+	if (register_chrdev(CODA_PSDEV_MAJOR, "coda", &coda_psdev_fops))
+	{
 		pr_err("%s: unable to get major %d\n",
-		       __func__, CODA_PSDEV_MAJOR);
-              return -EIO;
+			   __func__, CODA_PSDEV_MAJOR);
+		return -EIO;
 	}
+
 	coda_psdev_class = class_create(THIS_MODULE, "coda");
-	if (IS_ERR(coda_psdev_class)) {
+
+	if (IS_ERR(coda_psdev_class))
+	{
 		err = PTR_ERR(coda_psdev_class);
 		goto out_chrdev;
-	}		
-	for (i = 0; i < MAX_CODADEVS; i++) {
+	}
+
+	for (i = 0; i < MAX_CODADEVS; i++)
+	{
 		mutex_init(&(&coda_comms[i])->vc_mutex);
 		device_create(coda_psdev_class, NULL,
-			      MKDEV(CODA_PSDEV_MAJOR, i), NULL, "cfs%d", i);
+					  MKDEV(CODA_PSDEV_MAJOR, i), NULL, "cfs%d", i);
 	}
+
 	coda_sysctl_init();
 	goto out;
 
@@ -391,23 +456,36 @@ static int __init init_coda(void)
 	int i;
 
 	status = coda_init_inodecache();
+
 	if (status)
+	{
 		goto out2;
+	}
+
 	status = init_coda_psdev();
-	if ( status ) {
+
+	if ( status )
+	{
 		pr_warn("Problem (%d) in init_coda_psdev\n", status);
 		goto out1;
 	}
-	
+
 	status = register_filesystem(&coda_fs_type);
-	if (status) {
+
+	if (status)
+	{
 		pr_warn("failed to register filesystem!\n");
 		goto out;
 	}
+
 	return 0;
 out:
+
 	for (i = 0; i < MAX_CODADEVS; i++)
+	{
 		device_destroy(coda_psdev_class, MKDEV(CODA_PSDEV_MAJOR, i));
+	}
+
 	class_destroy(coda_psdev_class);
 	unregister_chrdev(CODA_PSDEV_MAJOR, "coda");
 	coda_sysctl_clean();
@@ -419,13 +497,20 @@ out2:
 
 static void __exit exit_coda(void)
 {
-        int err, i;
+	int err, i;
 
 	err = unregister_filesystem(&coda_fs_type);
+
 	if (err != 0)
+	{
 		pr_warn("failed to unregister filesystem\n");
+	}
+
 	for (i = 0; i < MAX_CODADEVS; i++)
+	{
 		device_destroy(coda_psdev_class, MKDEV(CODA_PSDEV_MAJOR, i));
+	}
+
 	class_destroy(coda_psdev_class);
 	unregister_chrdev(CODA_PSDEV_MAJOR, "coda");
 	coda_sysctl_clean();

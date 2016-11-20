@@ -48,7 +48,8 @@
  * It uses the shared input device.
  */
 
-static const __u16 wiimod_keys_map[] = {
+static const __u16 wiimod_keys_map[] =
+{
 	KEY_LEFT,	/* WIIPROTO_KEY_LEFT */
 	KEY_RIGHT,	/* WIIPROTO_KEY_RIGHT */
 	KEY_UP,		/* WIIPROTO_KEY_UP */
@@ -65,43 +66,47 @@ static const __u16 wiimod_keys_map[] = {
 static void wiimod_keys_in_keys(struct wiimote_data *wdata, const __u8 *keys)
 {
 	input_report_key(wdata->input, wiimod_keys_map[WIIPROTO_KEY_LEFT],
-							!!(keys[0] & 0x01));
+					 !!(keys[0] & 0x01));
 	input_report_key(wdata->input, wiimod_keys_map[WIIPROTO_KEY_RIGHT],
-							!!(keys[0] & 0x02));
+					 !!(keys[0] & 0x02));
 	input_report_key(wdata->input, wiimod_keys_map[WIIPROTO_KEY_DOWN],
-							!!(keys[0] & 0x04));
+					 !!(keys[0] & 0x04));
 	input_report_key(wdata->input, wiimod_keys_map[WIIPROTO_KEY_UP],
-							!!(keys[0] & 0x08));
+					 !!(keys[0] & 0x08));
 	input_report_key(wdata->input, wiimod_keys_map[WIIPROTO_KEY_PLUS],
-							!!(keys[0] & 0x10));
+					 !!(keys[0] & 0x10));
 	input_report_key(wdata->input, wiimod_keys_map[WIIPROTO_KEY_TWO],
-							!!(keys[1] & 0x01));
+					 !!(keys[1] & 0x01));
 	input_report_key(wdata->input, wiimod_keys_map[WIIPROTO_KEY_ONE],
-							!!(keys[1] & 0x02));
+					 !!(keys[1] & 0x02));
 	input_report_key(wdata->input, wiimod_keys_map[WIIPROTO_KEY_B],
-							!!(keys[1] & 0x04));
+					 !!(keys[1] & 0x04));
 	input_report_key(wdata->input, wiimod_keys_map[WIIPROTO_KEY_A],
-							!!(keys[1] & 0x08));
+					 !!(keys[1] & 0x08));
 	input_report_key(wdata->input, wiimod_keys_map[WIIPROTO_KEY_MINUS],
-							!!(keys[1] & 0x10));
+					 !!(keys[1] & 0x10));
 	input_report_key(wdata->input, wiimod_keys_map[WIIPROTO_KEY_HOME],
-							!!(keys[1] & 0x80));
+					 !!(keys[1] & 0x80));
 	input_sync(wdata->input);
 }
 
 static int wiimod_keys_probe(const struct wiimod_ops *ops,
-			     struct wiimote_data *wdata)
+							 struct wiimote_data *wdata)
 {
 	unsigned int i;
 
 	set_bit(EV_KEY, wdata->input->evbit);
+
 	for (i = 0; i < WIIPROTO_KEY_COUNT; ++i)
+	{
 		set_bit(wiimod_keys_map[i], wdata->input->keybit);
+	}
 
 	return 0;
 }
 
-static const struct wiimod_ops wiimod_keys = {
+static const struct wiimod_ops wiimod_keys =
+{
 	.flags = WIIMOD_FLAG_INPUT,
 	.arg = 0,
 	.probe = wiimod_keys_probe,
@@ -123,7 +128,7 @@ static const struct wiimod_ops wiimod_keys = {
 static void wiimod_rumble_worker(struct work_struct *work)
 {
 	struct wiimote_data *wdata = container_of(work, struct wiimote_data,
-						  rumble_worker);
+								 rumble_worker);
 
 	spin_lock_irq(&wdata->state.lock);
 	wiiproto_req_rumble(wdata, wdata->state.cache_rumble);
@@ -131,7 +136,7 @@ static void wiimod_rumble_worker(struct work_struct *work)
 }
 
 static int wiimod_rumble_play(struct input_dev *dev, void *data,
-			      struct ff_effect *eff)
+							  struct ff_effect *eff)
 {
 	struct wiimote_data *wdata = input_get_drvdata(dev);
 	__u8 value;
@@ -143,9 +148,13 @@ static int wiimod_rumble_play(struct input_dev *dev, void *data,
 	 */
 
 	if (eff->u.rumble.strong_magnitude || eff->u.rumble.weak_magnitude)
+	{
 		value = 1;
+	}
 	else
+	{
 		value = 0;
+	}
 
 	/* Locking state.lock here might deadlock with input_event() calls.
 	 * schedule_work acts as barrier. Merging multiple changes is fine. */
@@ -156,19 +165,22 @@ static int wiimod_rumble_play(struct input_dev *dev, void *data,
 }
 
 static int wiimod_rumble_probe(const struct wiimod_ops *ops,
-			       struct wiimote_data *wdata)
+							   struct wiimote_data *wdata)
 {
 	INIT_WORK(&wdata->rumble_worker, wiimod_rumble_worker);
 
 	set_bit(FF_RUMBLE, wdata->input->ffbit);
+
 	if (input_ff_create_memless(wdata->input, NULL, wiimod_rumble_play))
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
 
 static void wiimod_rumble_remove(const struct wiimod_ops *ops,
-				 struct wiimote_data *wdata)
+								 struct wiimote_data *wdata)
 {
 	unsigned long flags;
 
@@ -179,7 +191,8 @@ static void wiimod_rumble_remove(const struct wiimod_ops *ops,
 	spin_unlock_irqrestore(&wdata->state.lock, flags);
 }
 
-static const struct wiimod_ops wiimod_rumble = {
+static const struct wiimod_ops wiimod_rumble =
+{
 	.flags = WIIMOD_FLAG_INPUT,
 	.arg = 0,
 	.probe = wiimod_rumble_probe,
@@ -194,29 +207,36 @@ static const struct wiimod_ops wiimod_rumble = {
  * This is supported by nearly every device so it's almost always enabled.
  */
 
-static enum power_supply_property wiimod_battery_props[] = {
+static enum power_supply_property wiimod_battery_props[] =
+{
 	POWER_SUPPLY_PROP_CAPACITY,
 	POWER_SUPPLY_PROP_SCOPE,
 };
 
 static int wiimod_battery_get_property(struct power_supply *psy,
-				       enum power_supply_property psp,
-				       union power_supply_propval *val)
+									   enum power_supply_property psp,
+									   union power_supply_propval *val)
 {
 	struct wiimote_data *wdata = power_supply_get_drvdata(psy);
 	int ret = 0, state;
 	unsigned long flags;
 
-	if (psp == POWER_SUPPLY_PROP_SCOPE) {
+	if (psp == POWER_SUPPLY_PROP_SCOPE)
+	{
 		val->intval = POWER_SUPPLY_SCOPE_DEVICE;
 		return 0;
-	} else if (psp != POWER_SUPPLY_PROP_CAPACITY) {
+	}
+	else if (psp != POWER_SUPPLY_PROP_CAPACITY)
+	{
 		return -EINVAL;
 	}
 
 	ret = wiimote_cmd_acquire(wdata);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	spin_lock_irqsave(&wdata->state.lock, flags);
 	wiimote_cmd_set(wdata, WIIPROTO_REQ_SREQ, 0);
@@ -235,7 +255,7 @@ static int wiimod_battery_get_property(struct power_supply *psy,
 }
 
 static int wiimod_battery_probe(const struct wiimod_ops *ops,
-				struct wiimote_data *wdata)
+								struct wiimote_data *wdata)
 {
 	struct power_supply_config psy_cfg = { .drv_data = wdata, };
 	int ret;
@@ -246,14 +266,19 @@ static int wiimod_battery_probe(const struct wiimod_ops *ops,
 	wdata->battery_desc.type = POWER_SUPPLY_TYPE_BATTERY;
 	wdata->battery_desc.use_for_apm = 0;
 	wdata->battery_desc.name = kasprintf(GFP_KERNEL, "wiimote_battery_%s",
-					     wdata->hdev->uniq);
+										 wdata->hdev->uniq);
+
 	if (!wdata->battery_desc.name)
+	{
 		return -ENOMEM;
+	}
 
 	wdata->battery = power_supply_register(&wdata->hdev->dev,
-					       &wdata->battery_desc,
-					       &psy_cfg);
-	if (IS_ERR(wdata->battery)) {
+										   &wdata->battery_desc,
+										   &psy_cfg);
+
+	if (IS_ERR(wdata->battery))
+	{
 		hid_err(wdata->hdev, "cannot register battery device\n");
 		ret = PTR_ERR(wdata->battery);
 		goto err_free;
@@ -269,17 +294,20 @@ err_free:
 }
 
 static void wiimod_battery_remove(const struct wiimod_ops *ops,
-				  struct wiimote_data *wdata)
+								  struct wiimote_data *wdata)
 {
 	if (!wdata->battery_desc.name)
+	{
 		return;
+	}
 
 	power_supply_unregister(wdata->battery);
 	kfree(wdata->battery_desc.name);
 	wdata->battery_desc.name = NULL;
 }
 
-static const struct wiimod_ops wiimod_battery = {
+static const struct wiimod_ops wiimod_battery =
+{
 	.flags = 0,
 	.arg = 0,
 	.probe = wiimod_battery_probe,
@@ -302,8 +330,10 @@ static enum led_brightness wiimod_led_get(struct led_classdev *led_dev)
 	unsigned long flags;
 	bool value = false;
 
-	for (i = 0; i < 4; ++i) {
-		if (wdata->leds[i] == led_dev) {
+	for (i = 0; i < 4; ++i)
+	{
+		if (wdata->leds[i] == led_dev)
+		{
 			spin_lock_irqsave(&wdata->state.lock, flags);
 			value = wdata->state.flags & WIIPROTO_FLAG_LED(i + 1);
 			spin_unlock_irqrestore(&wdata->state.lock, flags);
@@ -315,7 +345,7 @@ static enum led_brightness wiimod_led_get(struct led_classdev *led_dev)
 }
 
 static void wiimod_led_set(struct led_classdev *led_dev,
-			   enum led_brightness value)
+						   enum led_brightness value)
 {
 	struct device *dev = led_dev->dev->parent;
 	struct wiimote_data *wdata = dev_to_wii(dev);
@@ -323,15 +353,23 @@ static void wiimod_led_set(struct led_classdev *led_dev,
 	unsigned long flags;
 	__u8 state, flag;
 
-	for (i = 0; i < 4; ++i) {
-		if (wdata->leds[i] == led_dev) {
+	for (i = 0; i < 4; ++i)
+	{
+		if (wdata->leds[i] == led_dev)
+		{
 			flag = WIIPROTO_FLAG_LED(i + 1);
 			spin_lock_irqsave(&wdata->state.lock, flags);
 			state = wdata->state.flags;
+
 			if (value == LED_OFF)
+			{
 				wiiproto_req_leds(wdata, state & ~flag);
+			}
 			else
+			{
 				wiiproto_req_leds(wdata, state | flag);
+			}
+
 			spin_unlock_irqrestore(&wdata->state.lock, flags);
 			break;
 		}
@@ -339,7 +377,7 @@ static void wiimod_led_set(struct led_classdev *led_dev,
 }
 
 static int wiimod_led_probe(const struct wiimod_ops *ops,
-			    struct wiimote_data *wdata)
+							struct wiimote_data *wdata)
 {
 	struct device *dev = &wdata->hdev->dev;
 	size_t namesz = strlen(dev_name(dev)) + 9;
@@ -349,10 +387,13 @@ static int wiimod_led_probe(const struct wiimod_ops *ops,
 	int ret;
 
 	led = kzalloc(sizeof(struct led_classdev) + namesz, GFP_KERNEL);
-	if (!led)
-		return -ENOMEM;
 
-	name = (void*)&led[1];
+	if (!led)
+	{
+		return -ENOMEM;
+	}
+
+	name = (void *)&led[1];
 	snprintf(name, namesz, "%s:blue:p%lu", dev_name(dev), ops->arg);
 	led->name = name;
 	led->brightness = 0;
@@ -362,11 +403,15 @@ static int wiimod_led_probe(const struct wiimod_ops *ops,
 
 	wdata->leds[ops->arg] = led;
 	ret = led_classdev_register(dev, led);
+
 	if (ret)
+	{
 		goto err_free;
+	}
 
 	/* enable LED1 to stop initial LED-blinking */
-	if (ops->arg == 0) {
+	if (ops->arg == 0)
+	{
 		spin_lock_irqsave(&wdata->state.lock, flags);
 		wiiproto_req_leds(wdata, WIIPROTO_FLAG_LED1);
 		spin_unlock_irqrestore(&wdata->state.lock, flags);
@@ -381,17 +426,20 @@ err_free:
 }
 
 static void wiimod_led_remove(const struct wiimod_ops *ops,
-			      struct wiimote_data *wdata)
+							  struct wiimote_data *wdata)
 {
 	if (!wdata->leds[ops->arg])
+	{
 		return;
+	}
 
 	led_classdev_unregister(wdata->leds[ops->arg]);
 	kfree(wdata->leds[ops->arg]);
 	wdata->leds[ops->arg] = NULL;
 }
 
-static const struct wiimod_ops wiimod_leds[4] = {
+static const struct wiimod_ops wiimod_leds[4] =
+{
 	{
 		.flags = 0,
 		.arg = 0,
@@ -426,12 +474,14 @@ static const struct wiimod_ops wiimod_leds[4] = {
  */
 
 static void wiimod_accel_in_accel(struct wiimote_data *wdata,
-				  const __u8 *accel)
+								  const __u8 *accel)
 {
 	__u16 x, y, z;
 
 	if (!(wdata->state.flags & WIIPROTO_FLAG_ACCEL))
+	{
 		return;
+	}
 
 	/*
 	 * payload is: BB BB XX YY ZZ
@@ -482,13 +532,16 @@ static void wiimod_accel_close(struct input_dev *dev)
 }
 
 static int wiimod_accel_probe(const struct wiimod_ops *ops,
-			      struct wiimote_data *wdata)
+							  struct wiimote_data *wdata)
 {
 	int ret;
 
 	wdata->accel = input_allocate_device();
+
 	if (!wdata->accel)
+	{
 		return -ENOMEM;
+	}
 
 	input_set_drvdata(wdata->accel, wdata);
 	wdata->accel->open = wiimod_accel_open;
@@ -509,7 +562,9 @@ static int wiimod_accel_probe(const struct wiimod_ops *ops,
 	input_set_abs_params(wdata->accel, ABS_RZ, -500, 500, 2, 4);
 
 	ret = input_register_device(wdata->accel);
-	if (ret) {
+
+	if (ret)
+	{
 		hid_err(wdata->hdev, "cannot register input device\n");
 		goto err_free;
 	}
@@ -523,16 +578,19 @@ err_free:
 }
 
 static void wiimod_accel_remove(const struct wiimod_ops *ops,
-				struct wiimote_data *wdata)
+								struct wiimote_data *wdata)
 {
 	if (!wdata->accel)
+	{
 		return;
+	}
 
 	input_unregister_device(wdata->accel);
 	wdata->accel = NULL;
 }
 
-static const struct wiimod_ops wiimod_accel = {
+static const struct wiimod_ops wiimod_accel =
+{
 	.flags = 0,
 	.arg = 0,
 	.probe = wiimod_accel_probe,
@@ -551,35 +609,42 @@ static const struct wiimod_ops wiimod_accel = {
  */
 
 static void wiimod_ir_in_ir(struct wiimote_data *wdata, const __u8 *ir,
-			    bool packed, unsigned int id)
+							bool packed, unsigned int id)
 {
 	__u16 x, y;
 	__u8 xid, yid;
 	bool sync = false;
 
 	if (!(wdata->state.flags & WIIPROTO_FLAGS_IR))
+	{
 		return;
+	}
 
-	switch (id) {
-	case 0:
-		xid = ABS_HAT0X;
-		yid = ABS_HAT0Y;
-		break;
-	case 1:
-		xid = ABS_HAT1X;
-		yid = ABS_HAT1Y;
-		break;
-	case 2:
-		xid = ABS_HAT2X;
-		yid = ABS_HAT2Y;
-		break;
-	case 3:
-		xid = ABS_HAT3X;
-		yid = ABS_HAT3Y;
-		sync = true;
-		break;
-	default:
-		return;
+	switch (id)
+	{
+		case 0:
+			xid = ABS_HAT0X;
+			yid = ABS_HAT0Y;
+			break;
+
+		case 1:
+			xid = ABS_HAT1X;
+			yid = ABS_HAT1Y;
+			break;
+
+		case 2:
+			xid = ABS_HAT2X;
+			yid = ABS_HAT2Y;
+			break;
+
+		case 3:
+			xid = ABS_HAT3X;
+			yid = ABS_HAT3Y;
+			sync = true;
+			break;
+
+		default:
+			return;
 	}
 
 	/*
@@ -592,10 +657,13 @@ static void wiimod_ir_in_ir(struct wiimote_data *wdata, const __u8 *ir,
 	 * The resulting 10bit X/Y values are passed to the ABS_HAT? input dev.
 	 */
 
-	if (packed) {
+	if (packed)
+	{
 		x = ir[1] | ((ir[0] & 0x03) << 8);
 		y = ir[2] | ((ir[0] & 0x0c) << 6);
-	} else {
+	}
+	else
+	{
 		x = ir[0] | ((ir[2] & 0x30) << 4);
 		y = ir[1] | ((ir[2] & 0xc0) << 2);
 	}
@@ -604,7 +672,9 @@ static void wiimod_ir_in_ir(struct wiimote_data *wdata, const __u8 *ir,
 	input_report_abs(wdata->ir, yid, y);
 
 	if (sync)
+	{
 		input_sync(wdata->ir);
+	}
 }
 
 static int wiimod_ir_change(struct wiimote_data *wdata, __u16 mode)
@@ -614,18 +684,21 @@ static int wiimod_ir_change(struct wiimote_data *wdata, __u16 mode)
 	__u8 format = 0;
 	static const __u8 data_enable[] = { 0x01 };
 	static const __u8 data_sens1[] = { 0x02, 0x00, 0x00, 0x71, 0x01,
-						0x00, 0xaa, 0x00, 0x64 };
+									   0x00, 0xaa, 0x00, 0x64
+									 };
 	static const __u8 data_sens2[] = { 0x63, 0x03 };
 	static const __u8 data_fin[] = { 0x08 };
 
 	spin_lock_irqsave(&wdata->state.lock, flags);
 
-	if (mode == (wdata->state.flags & WIIPROTO_FLAGS_IR)) {
+	if (mode == (wdata->state.flags & WIIPROTO_FLAGS_IR))
+	{
 		spin_unlock_irqrestore(&wdata->state.lock, flags);
 		return 0;
 	}
 
-	if (mode == 0) {
+	if (mode == 0)
+	{
 		wdata->state.flags &= ~WIIPROTO_FLAGS_IR;
 		wiiproto_req_ir1(wdata, 0);
 		wiiproto_req_ir2(wdata, 0);
@@ -637,8 +710,11 @@ static int wiimod_ir_change(struct wiimote_data *wdata, __u16 mode)
 	spin_unlock_irqrestore(&wdata->state.lock, flags);
 
 	ret = wiimote_cmd_acquire(wdata);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* send PIXEL CLOCK ENABLE cmd first */
 	spin_lock_irqsave(&wdata->state.lock, flags);
@@ -647,9 +723,14 @@ static int wiimod_ir_change(struct wiimote_data *wdata, __u16 mode)
 	spin_unlock_irqrestore(&wdata->state.lock, flags);
 
 	ret = wiimote_cmd_wait(wdata);
+
 	if (ret)
+	{
 		goto unlock;
-	if (wdata->state.cmd_err) {
+	}
+
+	if (wdata->state.cmd_err)
+	{
 		ret = -EIO;
 		goto unlock;
 	}
@@ -661,9 +742,14 @@ static int wiimod_ir_change(struct wiimote_data *wdata, __u16 mode)
 	spin_unlock_irqrestore(&wdata->state.lock, flags);
 
 	ret = wiimote_cmd_wait(wdata);
+
 	if (ret)
+	{
 		goto unlock;
-	if (wdata->state.cmd_err) {
+	}
+
+	if (wdata->state.cmd_err)
+	{
 		ret = -EIO;
 		goto unlock;
 	}
@@ -671,41 +757,60 @@ static int wiimod_ir_change(struct wiimote_data *wdata, __u16 mode)
 	/* enable IR cam but do not make it send data, yet */
 	ret = wiimote_cmd_write(wdata, 0xb00030, data_enable,
 							sizeof(data_enable));
+
 	if (ret)
+	{
 		goto unlock;
+	}
 
 	/* write first sensitivity block */
 	ret = wiimote_cmd_write(wdata, 0xb00000, data_sens1,
 							sizeof(data_sens1));
+
 	if (ret)
+	{
 		goto unlock;
+	}
 
 	/* write second sensitivity block */
 	ret = wiimote_cmd_write(wdata, 0xb0001a, data_sens2,
 							sizeof(data_sens2));
+
 	if (ret)
+	{
 		goto unlock;
+	}
 
 	/* put IR cam into desired state */
-	switch (mode) {
+	switch (mode)
+	{
 		case WIIPROTO_FLAG_IR_FULL:
 			format = 5;
 			break;
+
 		case WIIPROTO_FLAG_IR_EXT:
 			format = 3;
 			break;
+
 		case WIIPROTO_FLAG_IR_BASIC:
 			format = 1;
 			break;
 	}
+
 	ret = wiimote_cmd_write(wdata, 0xb00033, &format, sizeof(format));
+
 	if (ret)
+	{
 		goto unlock;
+	}
 
 	/* make IR cam send data */
 	ret = wiimote_cmd_write(wdata, 0xb00030, data_fin, sizeof(data_fin));
+
 	if (ret)
+	{
 		goto unlock;
+	}
 
 	/* request new DRM mode compatible to IR mode */
 	spin_lock_irqsave(&wdata->state.lock, flags);
@@ -734,13 +839,16 @@ static void wiimod_ir_close(struct input_dev *dev)
 }
 
 static int wiimod_ir_probe(const struct wiimod_ops *ops,
-			   struct wiimote_data *wdata)
+						   struct wiimote_data *wdata)
 {
 	int ret;
 
 	wdata->ir = input_allocate_device();
+
 	if (!wdata->ir)
+	{
 		return -ENOMEM;
+	}
 
 	input_set_drvdata(wdata->ir, wdata);
 	wdata->ir->open = wiimod_ir_open;
@@ -771,7 +879,9 @@ static int wiimod_ir_probe(const struct wiimod_ops *ops,
 	input_set_abs_params(wdata->ir, ABS_HAT3Y, 0, 767, 2, 4);
 
 	ret = input_register_device(wdata->ir);
-	if (ret) {
+
+	if (ret)
+	{
 		hid_err(wdata->hdev, "cannot register input device\n");
 		goto err_free;
 	}
@@ -785,16 +895,19 @@ err_free:
 }
 
 static void wiimod_ir_remove(const struct wiimod_ops *ops,
-			     struct wiimote_data *wdata)
+							 struct wiimote_data *wdata)
 {
 	if (!wdata->ir)
+	{
 		return;
+	}
 
 	input_unregister_device(wdata->ir);
 	wdata->ir = NULL;
 }
 
-static const struct wiimod_ops wiimod_ir = {
+static const struct wiimod_ops wiimod_ir =
+{
 	.flags = 0,
 	.arg = 0,
 	.probe = wiimod_ir_probe,
@@ -809,13 +922,15 @@ static const struct wiimod_ops wiimod_ir = {
  * can be hotplugged to standard Wii Remotes.
  */
 
-enum wiimod_nunchuk_keys {
+enum wiimod_nunchuk_keys
+{
 	WIIMOD_NUNCHUK_KEY_C,
 	WIIMOD_NUNCHUK_KEY_Z,
 	WIIMOD_NUNCHUK_KEY_NUM,
 };
 
-static const __u16 wiimod_nunchuk_map[] = {
+static const __u16 wiimod_nunchuk_map[] =
+{
 	BTN_C,		/* WIIMOD_NUNCHUK_KEY_C */
 	BTN_Z,		/* WIIMOD_NUNCHUK_KEY_Z */
 };
@@ -863,12 +978,15 @@ static void wiimod_nunchuk_in_ext(struct wiimote_data *wdata, const __u8 *ext)
 	y = ext[3] << 2;
 	z = ext[4] << 2;
 
-	if (wdata->state.flags & WIIPROTO_FLAG_MP_ACTIVE) {
+	if (wdata->state.flags & WIIPROTO_FLAG_MP_ACTIVE)
+	{
 		x |= (ext[5] >> 3) & 0x02;
 		y |= (ext[5] >> 4) & 0x02;
 		z &= ~0x4;
 		z |= (ext[5] >> 5) & 0x06;
-	} else {
+	}
+	else
+	{
 		x |= (ext[5] >> 2) & 0x03;
 		y |= (ext[5] >> 4) & 0x03;
 		z |= (ext[5] >> 6) & 0x03;
@@ -885,20 +1003,23 @@ static void wiimod_nunchuk_in_ext(struct wiimote_data *wdata, const __u8 *ext)
 	input_report_abs(wdata->extension.input, ABS_RY, y);
 	input_report_abs(wdata->extension.input, ABS_RZ, z);
 
-	if (wdata->state.flags & WIIPROTO_FLAG_MP_ACTIVE) {
+	if (wdata->state.flags & WIIPROTO_FLAG_MP_ACTIVE)
+	{
 		input_report_key(wdata->extension.input,
-			wiimod_nunchuk_map[WIIMOD_NUNCHUK_KEY_Z],
-			!(ext[5] & 0x04));
+						 wiimod_nunchuk_map[WIIMOD_NUNCHUK_KEY_Z],
+						 !(ext[5] & 0x04));
 		input_report_key(wdata->extension.input,
-			wiimod_nunchuk_map[WIIMOD_NUNCHUK_KEY_C],
-			!(ext[5] & 0x08));
-	} else {
+						 wiimod_nunchuk_map[WIIMOD_NUNCHUK_KEY_C],
+						 !(ext[5] & 0x08));
+	}
+	else
+	{
 		input_report_key(wdata->extension.input,
-			wiimod_nunchuk_map[WIIMOD_NUNCHUK_KEY_Z],
-			!(ext[5] & 0x01));
+						 wiimod_nunchuk_map[WIIMOD_NUNCHUK_KEY_Z],
+						 !(ext[5] & 0x01));
 		input_report_key(wdata->extension.input,
-			wiimod_nunchuk_map[WIIMOD_NUNCHUK_KEY_C],
-			!(ext[5] & 0x02));
+						 wiimod_nunchuk_map[WIIMOD_NUNCHUK_KEY_C],
+						 !(ext[5] & 0x02));
 	}
 
 	input_sync(wdata->extension.input);
@@ -929,13 +1050,16 @@ static void wiimod_nunchuk_close(struct input_dev *dev)
 }
 
 static int wiimod_nunchuk_probe(const struct wiimod_ops *ops,
-				struct wiimote_data *wdata)
+								struct wiimote_data *wdata)
 {
 	int ret, i;
 
 	wdata->extension.input = input_allocate_device();
+
 	if (!wdata->extension.input)
+	{
 		return -ENOMEM;
+	}
 
 	input_set_drvdata(wdata->extension.input, wdata);
 	wdata->extension.input->open = wiimod_nunchuk_open;
@@ -948,30 +1072,34 @@ static int wiimod_nunchuk_probe(const struct wiimod_ops *ops,
 	wdata->extension.input->name = WIIMOTE_NAME " Nunchuk";
 
 	set_bit(EV_KEY, wdata->extension.input->evbit);
+
 	for (i = 0; i < WIIMOD_NUNCHUK_KEY_NUM; ++i)
 		set_bit(wiimod_nunchuk_map[i],
-			wdata->extension.input->keybit);
+				wdata->extension.input->keybit);
 
 	set_bit(EV_ABS, wdata->extension.input->evbit);
 	set_bit(ABS_HAT0X, wdata->extension.input->absbit);
 	set_bit(ABS_HAT0Y, wdata->extension.input->absbit);
 	input_set_abs_params(wdata->extension.input,
-			     ABS_HAT0X, -120, 120, 2, 4);
+						 ABS_HAT0X, -120, 120, 2, 4);
 	input_set_abs_params(wdata->extension.input,
-			     ABS_HAT0Y, -120, 120, 2, 4);
+						 ABS_HAT0Y, -120, 120, 2, 4);
 	set_bit(ABS_RX, wdata->extension.input->absbit);
 	set_bit(ABS_RY, wdata->extension.input->absbit);
 	set_bit(ABS_RZ, wdata->extension.input->absbit);
 	input_set_abs_params(wdata->extension.input,
-			     ABS_RX, -500, 500, 2, 4);
+						 ABS_RX, -500, 500, 2, 4);
 	input_set_abs_params(wdata->extension.input,
-			     ABS_RY, -500, 500, 2, 4);
+						 ABS_RY, -500, 500, 2, 4);
 	input_set_abs_params(wdata->extension.input,
-			     ABS_RZ, -500, 500, 2, 4);
+						 ABS_RZ, -500, 500, 2, 4);
 
 	ret = input_register_device(wdata->extension.input);
+
 	if (ret)
+	{
 		goto err_free;
+	}
 
 	return 0;
 
@@ -982,16 +1110,19 @@ err_free:
 }
 
 static void wiimod_nunchuk_remove(const struct wiimod_ops *ops,
-				  struct wiimote_data *wdata)
+								  struct wiimote_data *wdata)
 {
 	if (!wdata->extension.input)
+	{
 		return;
+	}
 
 	input_unregister_device(wdata->extension.input);
 	wdata->extension.input = NULL;
 }
 
-static const struct wiimod_ops wiimod_nunchuk = {
+static const struct wiimod_ops wiimod_nunchuk =
+{
 	.flags = 0,
 	.arg = 0,
 	.probe = wiimod_nunchuk_probe,
@@ -1007,7 +1138,8 @@ static const struct wiimod_ops wiimod_nunchuk = {
  * a normal extension device.
  */
 
-enum wiimod_classic_keys {
+enum wiimod_classic_keys
+{
 	WIIMOD_CLASSIC_KEY_A,
 	WIIMOD_CLASSIC_KEY_B,
 	WIIMOD_CLASSIC_KEY_X,
@@ -1026,7 +1158,8 @@ enum wiimod_classic_keys {
 	WIIMOD_CLASSIC_KEY_NUM,
 };
 
-static const __u16 wiimod_classic_map[] = {
+static const __u16 wiimod_classic_map[] =
+{
 	BTN_A,		/* WIIMOD_CLASSIC_KEY_A */
 	BTN_B,		/* WIIMOD_CLASSIC_KEY_B */
 	BTN_X,		/* WIIMOD_CLASSIC_KEY_X */
@@ -1091,10 +1224,13 @@ static void wiimod_classic_in_ext(struct wiimote_data *wdata, const __u8 *ext)
 	 * is the same as before.
 	 */
 
-	if (wdata->state.flags & WIIPROTO_FLAG_MP_ACTIVE) {
+	if (wdata->state.flags & WIIPROTO_FLAG_MP_ACTIVE)
+	{
 		lx = ext[0] & 0x3e;
 		ly = ext[1] & 0x3e;
-	} else {
+	}
+	else
+	{
 		lx = ext[0] & 0x3f;
 		ly = ext[1] & 0x3f;
 	}
@@ -1121,59 +1257,62 @@ static void wiimod_classic_in_ext(struct wiimote_data *wdata, const __u8 *ext)
 	input_report_abs(wdata->extension.input, ABS_HAT3Y, lt);
 
 	input_report_key(wdata->extension.input,
-			 wiimod_classic_map[WIIMOD_CLASSIC_KEY_RIGHT],
-			 !(ext[4] & 0x80));
+					 wiimod_classic_map[WIIMOD_CLASSIC_KEY_RIGHT],
+					 !(ext[4] & 0x80));
 	input_report_key(wdata->extension.input,
-			 wiimod_classic_map[WIIMOD_CLASSIC_KEY_DOWN],
-			 !(ext[4] & 0x40));
+					 wiimod_classic_map[WIIMOD_CLASSIC_KEY_DOWN],
+					 !(ext[4] & 0x40));
 	input_report_key(wdata->extension.input,
-			 wiimod_classic_map[WIIMOD_CLASSIC_KEY_LT],
-			 !(ext[4] & 0x20));
+					 wiimod_classic_map[WIIMOD_CLASSIC_KEY_LT],
+					 !(ext[4] & 0x20));
 	input_report_key(wdata->extension.input,
-			 wiimod_classic_map[WIIMOD_CLASSIC_KEY_MINUS],
-			 !(ext[4] & 0x10));
+					 wiimod_classic_map[WIIMOD_CLASSIC_KEY_MINUS],
+					 !(ext[4] & 0x10));
 	input_report_key(wdata->extension.input,
-			 wiimod_classic_map[WIIMOD_CLASSIC_KEY_HOME],
-			 !(ext[4] & 0x08));
+					 wiimod_classic_map[WIIMOD_CLASSIC_KEY_HOME],
+					 !(ext[4] & 0x08));
 	input_report_key(wdata->extension.input,
-			 wiimod_classic_map[WIIMOD_CLASSIC_KEY_PLUS],
-			 !(ext[4] & 0x04));
+					 wiimod_classic_map[WIIMOD_CLASSIC_KEY_PLUS],
+					 !(ext[4] & 0x04));
 	input_report_key(wdata->extension.input,
-			 wiimod_classic_map[WIIMOD_CLASSIC_KEY_RT],
-			 !(ext[4] & 0x02));
+					 wiimod_classic_map[WIIMOD_CLASSIC_KEY_RT],
+					 !(ext[4] & 0x02));
 	input_report_key(wdata->extension.input,
-			 wiimod_classic_map[WIIMOD_CLASSIC_KEY_ZL],
-			 !(ext[5] & 0x80));
+					 wiimod_classic_map[WIIMOD_CLASSIC_KEY_ZL],
+					 !(ext[5] & 0x80));
 	input_report_key(wdata->extension.input,
-			 wiimod_classic_map[WIIMOD_CLASSIC_KEY_B],
-			 !(ext[5] & 0x40));
+					 wiimod_classic_map[WIIMOD_CLASSIC_KEY_B],
+					 !(ext[5] & 0x40));
 	input_report_key(wdata->extension.input,
-			 wiimod_classic_map[WIIMOD_CLASSIC_KEY_Y],
-			 !(ext[5] & 0x20));
+					 wiimod_classic_map[WIIMOD_CLASSIC_KEY_Y],
+					 !(ext[5] & 0x20));
 	input_report_key(wdata->extension.input,
-			 wiimod_classic_map[WIIMOD_CLASSIC_KEY_A],
-			 !(ext[5] & 0x10));
+					 wiimod_classic_map[WIIMOD_CLASSIC_KEY_A],
+					 !(ext[5] & 0x10));
 	input_report_key(wdata->extension.input,
-			 wiimod_classic_map[WIIMOD_CLASSIC_KEY_X],
-			 !(ext[5] & 0x08));
+					 wiimod_classic_map[WIIMOD_CLASSIC_KEY_X],
+					 !(ext[5] & 0x08));
 	input_report_key(wdata->extension.input,
-			 wiimod_classic_map[WIIMOD_CLASSIC_KEY_ZR],
-			 !(ext[5] & 0x04));
+					 wiimod_classic_map[WIIMOD_CLASSIC_KEY_ZR],
+					 !(ext[5] & 0x04));
 
-	if (wdata->state.flags & WIIPROTO_FLAG_MP_ACTIVE) {
+	if (wdata->state.flags & WIIPROTO_FLAG_MP_ACTIVE)
+	{
 		input_report_key(wdata->extension.input,
-			 wiimod_classic_map[WIIMOD_CLASSIC_KEY_LEFT],
-			 !(ext[1] & 0x01));
+						 wiimod_classic_map[WIIMOD_CLASSIC_KEY_LEFT],
+						 !(ext[1] & 0x01));
 		input_report_key(wdata->extension.input,
-			 wiimod_classic_map[WIIMOD_CLASSIC_KEY_UP],
-			 !(ext[0] & 0x01));
-	} else {
+						 wiimod_classic_map[WIIMOD_CLASSIC_KEY_UP],
+						 !(ext[0] & 0x01));
+	}
+	else
+	{
 		input_report_key(wdata->extension.input,
-			 wiimod_classic_map[WIIMOD_CLASSIC_KEY_LEFT],
-			 !(ext[5] & 0x02));
+						 wiimod_classic_map[WIIMOD_CLASSIC_KEY_LEFT],
+						 !(ext[5] & 0x02));
 		input_report_key(wdata->extension.input,
-			 wiimod_classic_map[WIIMOD_CLASSIC_KEY_UP],
-			 !(ext[5] & 0x01));
+						 wiimod_classic_map[WIIMOD_CLASSIC_KEY_UP],
+						 !(ext[5] & 0x01));
 	}
 
 	input_sync(wdata->extension.input);
@@ -1204,13 +1343,16 @@ static void wiimod_classic_close(struct input_dev *dev)
 }
 
 static int wiimod_classic_probe(const struct wiimod_ops *ops,
-				struct wiimote_data *wdata)
+								struct wiimote_data *wdata)
 {
 	int ret, i;
 
 	wdata->extension.input = input_allocate_device();
+
 	if (!wdata->extension.input)
+	{
 		return -ENOMEM;
+	}
 
 	input_set_drvdata(wdata->extension.input, wdata);
 	wdata->extension.input->open = wiimod_classic_open;
@@ -1223,9 +1365,10 @@ static int wiimod_classic_probe(const struct wiimod_ops *ops,
 	wdata->extension.input->name = WIIMOTE_NAME " Classic Controller";
 
 	set_bit(EV_KEY, wdata->extension.input->evbit);
+
 	for (i = 0; i < WIIMOD_CLASSIC_KEY_NUM; ++i)
 		set_bit(wiimod_classic_map[i],
-			wdata->extension.input->keybit);
+				wdata->extension.input->keybit);
 
 	set_bit(EV_ABS, wdata->extension.input->evbit);
 	set_bit(ABS_HAT1X, wdata->extension.input->absbit);
@@ -1235,21 +1378,24 @@ static int wiimod_classic_probe(const struct wiimod_ops *ops,
 	set_bit(ABS_HAT3X, wdata->extension.input->absbit);
 	set_bit(ABS_HAT3Y, wdata->extension.input->absbit);
 	input_set_abs_params(wdata->extension.input,
-			     ABS_HAT1X, -30, 30, 1, 1);
+						 ABS_HAT1X, -30, 30, 1, 1);
 	input_set_abs_params(wdata->extension.input,
-			     ABS_HAT1Y, -30, 30, 1, 1);
+						 ABS_HAT1Y, -30, 30, 1, 1);
 	input_set_abs_params(wdata->extension.input,
-			     ABS_HAT2X, -30, 30, 1, 1);
+						 ABS_HAT2X, -30, 30, 1, 1);
 	input_set_abs_params(wdata->extension.input,
-			     ABS_HAT2Y, -30, 30, 1, 1);
+						 ABS_HAT2Y, -30, 30, 1, 1);
 	input_set_abs_params(wdata->extension.input,
-			     ABS_HAT3X, -30, 30, 1, 1);
+						 ABS_HAT3X, -30, 30, 1, 1);
 	input_set_abs_params(wdata->extension.input,
-			     ABS_HAT3Y, -30, 30, 1, 1);
+						 ABS_HAT3Y, -30, 30, 1, 1);
 
 	ret = input_register_device(wdata->extension.input);
+
 	if (ret)
+	{
 		goto err_free;
+	}
 
 	return 0;
 
@@ -1260,16 +1406,19 @@ err_free:
 }
 
 static void wiimod_classic_remove(const struct wiimod_ops *ops,
-				  struct wiimote_data *wdata)
+								  struct wiimote_data *wdata)
 {
 	if (!wdata->extension.input)
+	{
 		return;
+	}
 
 	input_unregister_device(wdata->extension.input);
 	wdata->extension.input = NULL;
 }
 
-static const struct wiimod_ops wiimod_classic = {
+static const struct wiimod_ops wiimod_classic =
+{
 	.flags = 0,
 	.arg = 0,
 	.probe = wiimod_classic_probe,
@@ -1293,12 +1442,12 @@ static const struct wiimod_ops wiimod_classic = {
 static void wiimod_bboard_in_keys(struct wiimote_data *wdata, const __u8 *keys)
 {
 	input_report_key(wdata->extension.input, BTN_A,
-			 !!(keys[1] & 0x08));
+					 !!(keys[1] & 0x08));
 	input_sync(wdata->extension.input);
 }
 
 static void wiimod_bboard_in_ext(struct wiimote_data *wdata,
-				 const __u8 *ext)
+								 const __u8 *ext)
 {
 	__s32 val[4], tmp, div;
 	unsigned int i;
@@ -1345,21 +1494,28 @@ static void wiimod_bboard_in_ext(struct wiimote_data *wdata,
 	val[3] |= ext[7];
 
 	/* apply calibration data */
-	for (i = 0; i < 4; i++) {
-		if (val[i] <= s->calib_bboard[i][0]) {
+	for (i = 0; i < 4; i++)
+	{
+		if (val[i] <= s->calib_bboard[i][0])
+		{
 			tmp = 0;
-		} else if (val[i] < s->calib_bboard[i][1]) {
+		}
+		else if (val[i] < s->calib_bboard[i][1])
+		{
 			tmp = val[i] - s->calib_bboard[i][0];
 			tmp *= 1700;
 			div = s->calib_bboard[i][1] - s->calib_bboard[i][0];
 			tmp /= div ? div : 1;
-		} else {
+		}
+		else
+		{
 			tmp = val[i] - s->calib_bboard[i][1];
 			tmp *= 1700;
 			div = s->calib_bboard[i][2] - s->calib_bboard[i][1];
 			tmp /= div ? div : 1;
 			tmp += 1700;
 		}
+
 		val[i] = tmp;
 	}
 
@@ -1395,8 +1551,8 @@ static void wiimod_bboard_close(struct input_dev *dev)
 }
 
 static ssize_t wiimod_bboard_calib_show(struct device *dev,
-					struct device_attribute *attr,
-					char *out)
+										struct device_attribute *attr,
+										char *out)
 {
 	struct wiimote_data *wdata = dev_to_wii(dev);
 	int i, j, ret;
@@ -1404,16 +1560,24 @@ static ssize_t wiimod_bboard_calib_show(struct device *dev,
 	__u8 buf[24], offs;
 
 	ret = wiimote_cmd_acquire(wdata);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = wiimote_cmd_read(wdata, 0xa40024, buf, 12);
-	if (ret != 12) {
+
+	if (ret != 12)
+	{
 		wiimote_cmd_release(wdata);
 		return ret < 0 ? ret : -EIO;
 	}
+
 	ret = wiimote_cmd_read(wdata, 0xa40024 + 12, buf + 12, 12);
-	if (ret != 12) {
+
+	if (ret != 12)
+	{
 		wiimote_cmd_release(wdata);
 		return ret < 0 ? ret : -EIO;
 	}
@@ -1422,24 +1586,36 @@ static ssize_t wiimod_bboard_calib_show(struct device *dev,
 
 	spin_lock_irq(&wdata->state.lock);
 	offs = 0;
-	for (i = 0; i < 3; ++i) {
-		for (j = 0; j < 4; ++j) {
+
+	for (i = 0; i < 3; ++i)
+	{
+		for (j = 0; j < 4; ++j)
+		{
 			wdata->state.calib_bboard[j][i] = buf[offs];
 			wdata->state.calib_bboard[j][i] <<= 8;
 			wdata->state.calib_bboard[j][i] |= buf[offs + 1];
 			offs += 2;
 		}
 	}
+
 	spin_unlock_irq(&wdata->state.lock);
 
 	ret = 0;
-	for (i = 0; i < 3; ++i) {
-		for (j = 0; j < 4; ++j) {
+
+	for (i = 0; i < 3; ++i)
+	{
+		for (j = 0; j < 4; ++j)
+		{
 			val = wdata->state.calib_bboard[j][i];
+
 			if (i == 2 && j == 3)
+			{
 				ret += sprintf(&out[ret], "%04x\n", val);
+			}
 			else
+			{
 				ret += sprintf(&out[ret], "%04x:", val);
+			}
 		}
 	}
 
@@ -1449,7 +1625,7 @@ static ssize_t wiimod_bboard_calib_show(struct device *dev,
 static DEVICE_ATTR(bboard_calib, S_IRUGO, wiimod_bboard_calib_show, NULL);
 
 static int wiimod_bboard_probe(const struct wiimod_ops *ops,
-			       struct wiimote_data *wdata)
+							   struct wiimote_data *wdata)
 {
 	int ret, i, j;
 	__u8 buf[24], offs;
@@ -1457,12 +1633,17 @@ static int wiimod_bboard_probe(const struct wiimod_ops *ops,
 	wiimote_cmd_acquire_noint(wdata);
 
 	ret = wiimote_cmd_read(wdata, 0xa40024, buf, 12);
-	if (ret != 12) {
+
+	if (ret != 12)
+	{
 		wiimote_cmd_release(wdata);
 		return ret < 0 ? ret : -EIO;
 	}
+
 	ret = wiimote_cmd_read(wdata, 0xa40024 + 12, buf + 12, 12);
-	if (ret != 12) {
+
+	if (ret != 12)
+	{
 		wiimote_cmd_release(wdata);
 		return ret < 0 ? ret : -EIO;
 	}
@@ -1470,8 +1651,11 @@ static int wiimod_bboard_probe(const struct wiimod_ops *ops,
 	wiimote_cmd_release(wdata);
 
 	offs = 0;
-	for (i = 0; i < 3; ++i) {
-		for (j = 0; j < 4; ++j) {
+
+	for (i = 0; i < 3; ++i)
+	{
+		for (j = 0; j < 4; ++j)
+		{
 			wdata->state.calib_bboard[j][i] = buf[offs];
 			wdata->state.calib_bboard[j][i] <<= 8;
 			wdata->state.calib_bboard[j][i] |= buf[offs + 1];
@@ -1480,12 +1664,17 @@ static int wiimod_bboard_probe(const struct wiimod_ops *ops,
 	}
 
 	wdata->extension.input = input_allocate_device();
+
 	if (!wdata->extension.input)
+	{
 		return -ENOMEM;
+	}
 
 	ret = device_create_file(&wdata->hdev->dev,
-				 &dev_attr_bboard_calib);
-	if (ret) {
+							 &dev_attr_bboard_calib);
+
+	if (ret)
+	{
 		hid_err(wdata->hdev, "cannot create sysfs attribute\n");
 		goto err_free;
 	}
@@ -1509,23 +1698,26 @@ static int wiimod_bboard_probe(const struct wiimod_ops *ops,
 	set_bit(ABS_HAT1X, wdata->extension.input->absbit);
 	set_bit(ABS_HAT1Y, wdata->extension.input->absbit);
 	input_set_abs_params(wdata->extension.input,
-			     ABS_HAT0X, 0, 65535, 2, 4);
+						 ABS_HAT0X, 0, 65535, 2, 4);
 	input_set_abs_params(wdata->extension.input,
-			     ABS_HAT0Y, 0, 65535, 2, 4);
+						 ABS_HAT0Y, 0, 65535, 2, 4);
 	input_set_abs_params(wdata->extension.input,
-			     ABS_HAT1X, 0, 65535, 2, 4);
+						 ABS_HAT1X, 0, 65535, 2, 4);
 	input_set_abs_params(wdata->extension.input,
-			     ABS_HAT1Y, 0, 65535, 2, 4);
+						 ABS_HAT1Y, 0, 65535, 2, 4);
 
 	ret = input_register_device(wdata->extension.input);
+
 	if (ret)
+	{
 		goto err_file;
+	}
 
 	return 0;
 
 err_file:
 	device_remove_file(&wdata->hdev->dev,
-			   &dev_attr_bboard_calib);
+					   &dev_attr_bboard_calib);
 err_free:
 	input_free_device(wdata->extension.input);
 	wdata->extension.input = NULL;
@@ -1533,18 +1725,21 @@ err_free:
 }
 
 static void wiimod_bboard_remove(const struct wiimod_ops *ops,
-				 struct wiimote_data *wdata)
+								 struct wiimote_data *wdata)
 {
 	if (!wdata->extension.input)
+	{
 		return;
+	}
 
 	input_unregister_device(wdata->extension.input);
 	wdata->extension.input = NULL;
 	device_remove_file(&wdata->hdev->dev,
-			   &dev_attr_bboard_calib);
+					   &dev_attr_bboard_calib);
 }
 
-static const struct wiimod_ops wiimod_bboard = {
+static const struct wiimod_ops wiimod_bboard =
+{
 	.flags = WIIMOD_FLAG_EXT8,
 	.arg = 0,
 	.probe = wiimod_bboard_probe,
@@ -1563,7 +1758,8 @@ static const struct wiimod_ops wiimod_bboard = {
  * feature an extension port.
  */
 
-enum wiimod_pro_keys {
+enum wiimod_pro_keys
+{
 	WIIMOD_PRO_KEY_A,
 	WIIMOD_PRO_KEY_B,
 	WIIMOD_PRO_KEY_X,
@@ -1584,7 +1780,8 @@ enum wiimod_pro_keys {
 	WIIMOD_PRO_KEY_NUM,
 };
 
-static const __u16 wiimod_pro_map[] = {
+static const __u16 wiimod_pro_map[] =
+{
 	BTN_EAST,	/* WIIMOD_PRO_KEY_A */
 	BTN_SOUTH,	/* WIIMOD_PRO_KEY_B */
 	BTN_NORTH,	/* WIIMOD_PRO_KEY_X */
@@ -1665,16 +1862,29 @@ static void wiimod_pro_in_ext(struct wiimote_data *wdata, const __u8 *ext)
 	 * null-position of the analog sticks. Users can retrigger calibration
 	 * via sysfs, or set it explicitly. If data is off more than abs(500),
 	 * we skip calibration as the sticks are likely to be moved already. */
-	if (!(wdata->state.flags & WIIPROTO_FLAG_PRO_CALIB_DONE)) {
+	if (!(wdata->state.flags & WIIPROTO_FLAG_PRO_CALIB_DONE))
+	{
 		wdata->state.flags |= WIIPROTO_FLAG_PRO_CALIB_DONE;
+
 		if (abs(lx) < 500)
+		{
 			wdata->state.calib_pro_sticks[0] = -lx;
+		}
+
 		if (abs(ly) < 500)
+		{
 			wdata->state.calib_pro_sticks[1] = -ly;
+		}
+
 		if (abs(rx) < 500)
+		{
 			wdata->state.calib_pro_sticks[2] = -rx;
+		}
+
 		if (abs(ry) < 500)
+		{
 			wdata->state.calib_pro_sticks[3] = -ry;
+		}
 	}
 
 	/* apply calibration data */
@@ -1689,58 +1899,58 @@ static void wiimod_pro_in_ext(struct wiimote_data *wdata, const __u8 *ext)
 	input_report_abs(wdata->extension.input, ABS_RY, ry);
 
 	input_report_key(wdata->extension.input,
-			 wiimod_pro_map[WIIMOD_PRO_KEY_RIGHT],
-			 !(ext[8] & 0x80));
+					 wiimod_pro_map[WIIMOD_PRO_KEY_RIGHT],
+					 !(ext[8] & 0x80));
 	input_report_key(wdata->extension.input,
-			 wiimod_pro_map[WIIMOD_PRO_KEY_DOWN],
-			 !(ext[8] & 0x40));
+					 wiimod_pro_map[WIIMOD_PRO_KEY_DOWN],
+					 !(ext[8] & 0x40));
 	input_report_key(wdata->extension.input,
-			 wiimod_pro_map[WIIMOD_PRO_KEY_TL],
-			 !(ext[8] & 0x20));
+					 wiimod_pro_map[WIIMOD_PRO_KEY_TL],
+					 !(ext[8] & 0x20));
 	input_report_key(wdata->extension.input,
-			 wiimod_pro_map[WIIMOD_PRO_KEY_MINUS],
-			 !(ext[8] & 0x10));
+					 wiimod_pro_map[WIIMOD_PRO_KEY_MINUS],
+					 !(ext[8] & 0x10));
 	input_report_key(wdata->extension.input,
-			 wiimod_pro_map[WIIMOD_PRO_KEY_HOME],
-			 !(ext[8] & 0x08));
+					 wiimod_pro_map[WIIMOD_PRO_KEY_HOME],
+					 !(ext[8] & 0x08));
 	input_report_key(wdata->extension.input,
-			 wiimod_pro_map[WIIMOD_PRO_KEY_PLUS],
-			 !(ext[8] & 0x04));
+					 wiimod_pro_map[WIIMOD_PRO_KEY_PLUS],
+					 !(ext[8] & 0x04));
 	input_report_key(wdata->extension.input,
-			 wiimod_pro_map[WIIMOD_PRO_KEY_TR],
-			 !(ext[8] & 0x02));
+					 wiimod_pro_map[WIIMOD_PRO_KEY_TR],
+					 !(ext[8] & 0x02));
 
 	input_report_key(wdata->extension.input,
-			 wiimod_pro_map[WIIMOD_PRO_KEY_ZL],
-			 !(ext[9] & 0x80));
+					 wiimod_pro_map[WIIMOD_PRO_KEY_ZL],
+					 !(ext[9] & 0x80));
 	input_report_key(wdata->extension.input,
-			 wiimod_pro_map[WIIMOD_PRO_KEY_B],
-			 !(ext[9] & 0x40));
+					 wiimod_pro_map[WIIMOD_PRO_KEY_B],
+					 !(ext[9] & 0x40));
 	input_report_key(wdata->extension.input,
-			 wiimod_pro_map[WIIMOD_PRO_KEY_Y],
-			 !(ext[9] & 0x20));
+					 wiimod_pro_map[WIIMOD_PRO_KEY_Y],
+					 !(ext[9] & 0x20));
 	input_report_key(wdata->extension.input,
-			 wiimod_pro_map[WIIMOD_PRO_KEY_A],
-			 !(ext[9] & 0x10));
+					 wiimod_pro_map[WIIMOD_PRO_KEY_A],
+					 !(ext[9] & 0x10));
 	input_report_key(wdata->extension.input,
-			 wiimod_pro_map[WIIMOD_PRO_KEY_X],
-			 !(ext[9] & 0x08));
+					 wiimod_pro_map[WIIMOD_PRO_KEY_X],
+					 !(ext[9] & 0x08));
 	input_report_key(wdata->extension.input,
-			 wiimod_pro_map[WIIMOD_PRO_KEY_ZR],
-			 !(ext[9] & 0x04));
+					 wiimod_pro_map[WIIMOD_PRO_KEY_ZR],
+					 !(ext[9] & 0x04));
 	input_report_key(wdata->extension.input,
-			 wiimod_pro_map[WIIMOD_PRO_KEY_LEFT],
-			 !(ext[9] & 0x02));
+					 wiimod_pro_map[WIIMOD_PRO_KEY_LEFT],
+					 !(ext[9] & 0x02));
 	input_report_key(wdata->extension.input,
-			 wiimod_pro_map[WIIMOD_PRO_KEY_UP],
-			 !(ext[9] & 0x01));
+					 wiimod_pro_map[WIIMOD_PRO_KEY_UP],
+					 !(ext[9] & 0x01));
 
 	input_report_key(wdata->extension.input,
-			 wiimod_pro_map[WIIMOD_PRO_KEY_THUMBL],
-			 !(ext[10] & 0x02));
+					 wiimod_pro_map[WIIMOD_PRO_KEY_THUMBL],
+					 !(ext[10] & 0x02));
 	input_report_key(wdata->extension.input,
-			 wiimod_pro_map[WIIMOD_PRO_KEY_THUMBR],
-			 !(ext[10] & 0x01));
+					 wiimod_pro_map[WIIMOD_PRO_KEY_THUMBR],
+					 !(ext[10] & 0x01));
 
 	input_sync(wdata->extension.input);
 }
@@ -1770,7 +1980,7 @@ static void wiimod_pro_close(struct input_dev *dev)
 }
 
 static int wiimod_pro_play(struct input_dev *dev, void *data,
-			   struct ff_effect *eff)
+						   struct ff_effect *eff)
 {
 	struct wiimote_data *wdata = input_get_drvdata(dev);
 	__u8 value;
@@ -1782,9 +1992,13 @@ static int wiimod_pro_play(struct input_dev *dev, void *data,
 	 */
 
 	if (eff->u.rumble.strong_magnitude || eff->u.rumble.weak_magnitude)
+	{
 		value = 1;
+	}
 	else
+	{
 		value = 0;
+	}
 
 	/* Locking state.lock here might deadlock with input_event() calls.
 	 * schedule_work acts as barrier. Merging multiple changes is fine. */
@@ -1795,8 +2009,8 @@ static int wiimod_pro_play(struct input_dev *dev, void *data,
 }
 
 static ssize_t wiimod_pro_calib_show(struct device *dev,
-				     struct device_attribute *attr,
-				     char *out)
+									 struct device_attribute *attr,
+									 char *out)
 {
 	struct wiimote_data *wdata = dev_to_wii(dev);
 	int r;
@@ -1811,21 +2025,27 @@ static ssize_t wiimod_pro_calib_show(struct device *dev,
 }
 
 static ssize_t wiimod_pro_calib_store(struct device *dev,
-				      struct device_attribute *attr,
-				      const char *buf, size_t count)
+									  struct device_attribute *attr,
+									  const char *buf, size_t count)
 {
 	struct wiimote_data *wdata = dev_to_wii(dev);
 	int r;
 	s16 x1, y1, x2, y2;
 
-	if (!strncmp(buf, "scan\n", 5)) {
+	if (!strncmp(buf, "scan\n", 5))
+	{
 		spin_lock_irq(&wdata->state.lock);
 		wdata->state.flags &= ~WIIPROTO_FLAG_PRO_CALIB_DONE;
 		spin_unlock_irq(&wdata->state.lock);
-	} else {
+	}
+	else
+	{
 		r = sscanf(buf, "%hd:%hd %hd:%hd", &x1, &y1, &x2, &y2);
+
 		if (r != 4)
+		{
 			return -EINVAL;
+		}
 
 		spin_lock_irq(&wdata->state.lock);
 		wdata->state.flags |= WIIPROTO_FLAG_PRO_CALIB_DONE;
@@ -1840,11 +2060,11 @@ static ssize_t wiimod_pro_calib_store(struct device *dev,
 	return strnlen(buf, PAGE_SIZE);
 }
 
-static DEVICE_ATTR(pro_calib, S_IRUGO|S_IWUSR|S_IWGRP, wiimod_pro_calib_show,
-		   wiimod_pro_calib_store);
+static DEVICE_ATTR(pro_calib, S_IRUGO | S_IWUSR | S_IWGRP, wiimod_pro_calib_show,
+				   wiimod_pro_calib_store);
 
 static int wiimod_pro_probe(const struct wiimod_ops *ops,
-			    struct wiimote_data *wdata)
+							struct wiimote_data *wdata)
 {
 	int ret, i;
 	unsigned long flags;
@@ -1860,21 +2080,27 @@ static int wiimod_pro_probe(const struct wiimod_ops *ops,
 	spin_unlock_irqrestore(&wdata->state.lock, flags);
 
 	wdata->extension.input = input_allocate_device();
+
 	if (!wdata->extension.input)
+	{
 		return -ENOMEM;
+	}
 
 	set_bit(FF_RUMBLE, wdata->extension.input->ffbit);
 	input_set_drvdata(wdata->extension.input, wdata);
 
 	if (input_ff_create_memless(wdata->extension.input, NULL,
-				    wiimod_pro_play)) {
+								wiimod_pro_play))
+	{
 		ret = -ENOMEM;
 		goto err_free;
 	}
 
 	ret = device_create_file(&wdata->hdev->dev,
-				 &dev_attr_pro_calib);
-	if (ret) {
+							 &dev_attr_pro_calib);
+
+	if (ret)
+	{
 		hid_err(wdata->hdev, "cannot create sysfs attribute\n");
 		goto err_free;
 	}
@@ -1889,9 +2115,10 @@ static int wiimod_pro_probe(const struct wiimod_ops *ops,
 	wdata->extension.input->name = WIIMOTE_NAME " Pro Controller";
 
 	set_bit(EV_KEY, wdata->extension.input->evbit);
+
 	for (i = 0; i < WIIMOD_PRO_KEY_NUM; ++i)
 		set_bit(wiimod_pro_map[i],
-			wdata->extension.input->keybit);
+				wdata->extension.input->keybit);
 
 	set_bit(EV_ABS, wdata->extension.input->evbit);
 	set_bit(ABS_X, wdata->extension.input->absbit);
@@ -1899,23 +2126,26 @@ static int wiimod_pro_probe(const struct wiimod_ops *ops,
 	set_bit(ABS_RX, wdata->extension.input->absbit);
 	set_bit(ABS_RY, wdata->extension.input->absbit);
 	input_set_abs_params(wdata->extension.input,
-			     ABS_X, -0x400, 0x400, 4, 100);
+						 ABS_X, -0x400, 0x400, 4, 100);
 	input_set_abs_params(wdata->extension.input,
-			     ABS_Y, -0x400, 0x400, 4, 100);
+						 ABS_Y, -0x400, 0x400, 4, 100);
 	input_set_abs_params(wdata->extension.input,
-			     ABS_RX, -0x400, 0x400, 4, 100);
+						 ABS_RX, -0x400, 0x400, 4, 100);
 	input_set_abs_params(wdata->extension.input,
-			     ABS_RY, -0x400, 0x400, 4, 100);
+						 ABS_RY, -0x400, 0x400, 4, 100);
 
 	ret = input_register_device(wdata->extension.input);
+
 	if (ret)
+	{
 		goto err_file;
+	}
 
 	return 0;
 
 err_file:
 	device_remove_file(&wdata->hdev->dev,
-			   &dev_attr_pro_calib);
+					   &dev_attr_pro_calib);
 err_free:
 	input_free_device(wdata->extension.input);
 	wdata->extension.input = NULL;
@@ -1923,25 +2153,28 @@ err_free:
 }
 
 static void wiimod_pro_remove(const struct wiimod_ops *ops,
-			      struct wiimote_data *wdata)
+							  struct wiimote_data *wdata)
 {
 	unsigned long flags;
 
 	if (!wdata->extension.input)
+	{
 		return;
+	}
 
 	input_unregister_device(wdata->extension.input);
 	wdata->extension.input = NULL;
 	cancel_work_sync(&wdata->rumble_worker);
 	device_remove_file(&wdata->hdev->dev,
-			   &dev_attr_pro_calib);
+					   &dev_attr_pro_calib);
 
 	spin_lock_irqsave(&wdata->state.lock, flags);
 	wiiproto_req_rumble(wdata, 0);
 	spin_unlock_irqrestore(&wdata->state.lock, flags);
 }
 
-static const struct wiimod_ops wiimod_pro = {
+static const struct wiimod_ops wiimod_pro =
+{
 	.flags = WIIMOD_FLAG_EXT16,
 	.arg = 0,
 	.probe = wiimod_pro_probe,
@@ -1957,7 +2190,7 @@ static const struct wiimod_ops wiimod_pro = {
  */
 
 static int wiimod_builtin_mp_probe(const struct wiimod_ops *ops,
-				   struct wiimote_data *wdata)
+								   struct wiimote_data *wdata)
 {
 	unsigned long flags;
 
@@ -1969,7 +2202,7 @@ static int wiimod_builtin_mp_probe(const struct wiimod_ops *ops,
 }
 
 static void wiimod_builtin_mp_remove(const struct wiimod_ops *ops,
-				     struct wiimote_data *wdata)
+									 struct wiimote_data *wdata)
 {
 	unsigned long flags;
 
@@ -1978,7 +2211,8 @@ static void wiimod_builtin_mp_remove(const struct wiimod_ops *ops,
 	spin_unlock_irqrestore(&wdata->state.lock, flags);
 }
 
-static const struct wiimod_ops wiimod_builtin_mp = {
+static const struct wiimod_ops wiimod_builtin_mp =
+{
 	.flags = 0,
 	.arg = 0,
 	.probe = wiimod_builtin_mp_probe,
@@ -1993,7 +2227,7 @@ static const struct wiimod_ops wiimod_builtin_mp = {
  */
 
 static int wiimod_no_mp_probe(const struct wiimod_ops *ops,
-			      struct wiimote_data *wdata)
+							  struct wiimote_data *wdata)
 {
 	unsigned long flags;
 
@@ -2005,7 +2239,7 @@ static int wiimod_no_mp_probe(const struct wiimod_ops *ops,
 }
 
 static void wiimod_no_mp_remove(const struct wiimod_ops *ops,
-				struct wiimote_data *wdata)
+								struct wiimote_data *wdata)
 {
 	unsigned long flags;
 
@@ -2014,7 +2248,8 @@ static void wiimod_no_mp_remove(const struct wiimod_ops *ops,
 	spin_unlock_irqrestore(&wdata->state.lock, flags);
 }
 
-static const struct wiimod_ops wiimod_no_mp = {
+static const struct wiimod_ops wiimod_no_mp =
+{
 	.flags = 0,
 	.arg = 0,
 	.probe = wiimod_no_mp_probe,
@@ -2072,17 +2307,31 @@ static void wiimod_mp_in_mp(struct wiimote_data *wdata, const __u8 *ext)
 	z -= 8192;
 
 	if (!(ext[3] & 0x02))
+	{
 		x = (x * 2000 * 9) / 440;
+	}
 	else
+	{
 		x *= 9;
+	}
+
 	if (!(ext[4] & 0x02))
+	{
 		y = (y * 2000 * 9) / 440;
+	}
 	else
+	{
 		y *= 9;
+	}
+
 	if (!(ext[3] & 0x01))
+	{
 		z = (z * 2000 * 9) / 440;
+	}
 	else
+	{
 		z *= 9;
+	}
 
 	input_report_abs(wdata->mp, ABS_RX, x);
 	input_report_abs(wdata->mp, ABS_RY, y);
@@ -2117,13 +2366,16 @@ static void wiimod_mp_close(struct input_dev *dev)
 }
 
 static int wiimod_mp_probe(const struct wiimod_ops *ops,
-			   struct wiimote_data *wdata)
+						   struct wiimote_data *wdata)
 {
 	int ret;
 
 	wdata->mp = input_allocate_device();
+
 	if (!wdata->mp)
+	{
 		return -ENOMEM;
+	}
 
 	input_set_drvdata(wdata->mp, wdata);
 	wdata->mp->open = wiimod_mp_open;
@@ -2140,15 +2392,18 @@ static int wiimod_mp_probe(const struct wiimod_ops *ops,
 	set_bit(ABS_RY, wdata->mp->absbit);
 	set_bit(ABS_RZ, wdata->mp->absbit);
 	input_set_abs_params(wdata->mp,
-			     ABS_RX, -16000, 16000, 4, 8);
+						 ABS_RX, -16000, 16000, 4, 8);
 	input_set_abs_params(wdata->mp,
-			     ABS_RY, -16000, 16000, 4, 8);
+						 ABS_RY, -16000, 16000, 4, 8);
 	input_set_abs_params(wdata->mp,
-			     ABS_RZ, -16000, 16000, 4, 8);
+						 ABS_RZ, -16000, 16000, 4, 8);
 
 	ret = input_register_device(wdata->mp);
+
 	if (ret)
+	{
 		goto err_free;
+	}
 
 	return 0;
 
@@ -2159,16 +2414,19 @@ err_free:
 }
 
 static void wiimod_mp_remove(const struct wiimod_ops *ops,
-			     struct wiimote_data *wdata)
+							 struct wiimote_data *wdata)
 {
 	if (!wdata->mp)
+	{
 		return;
+	}
 
 	input_unregister_device(wdata->mp);
 	wdata->mp = NULL;
 }
 
-const struct wiimod_ops wiimod_mp = {
+const struct wiimod_ops wiimod_mp =
+{
 	.flags = 0,
 	.arg = 0,
 	.probe = wiimod_mp_probe,
@@ -2180,7 +2438,8 @@ const struct wiimod_ops wiimod_mp = {
 
 static const struct wiimod_ops wiimod_dummy;
 
-const struct wiimod_ops *wiimod_table[WIIMOD_NUM] = {
+const struct wiimod_ops *wiimod_table[WIIMOD_NUM] =
+{
 	[WIIMOD_KEYS] = &wiimod_keys,
 	[WIIMOD_RUMBLE] = &wiimod_rumble,
 	[WIIMOD_BATTERY] = &wiimod_battery,
@@ -2194,7 +2453,8 @@ const struct wiimod_ops *wiimod_table[WIIMOD_NUM] = {
 	[WIIMOD_NO_MP] = &wiimod_no_mp,
 };
 
-const struct wiimod_ops *wiimod_ext_table[WIIMOTE_EXT_NUM] = {
+const struct wiimod_ops *wiimod_ext_table[WIIMOTE_EXT_NUM] =
+{
 	[WIIMOTE_EXT_NONE] = &wiimod_dummy,
 	[WIIMOTE_EXT_UNKNOWN] = &wiimod_dummy,
 	[WIIMOTE_EXT_NUNCHUK] = &wiimod_nunchuk,

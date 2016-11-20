@@ -75,7 +75,7 @@
  */
 
 /* types for msg_id: */
-enum {R3964_MSG_ACK=1, R3964_MSG_DATA };
+enum {R3964_MSG_ACK = 1, R3964_MSG_DATA };
 
 #define R3964_MAX_MSG_COUNT 32
 
@@ -85,10 +85,11 @@ enum {R3964_MSG_ACK=1, R3964_MSG_DATA };
 #define R3964_OVERFLOW -2 /* msg queue overflow */
 
 /* the client gets this struct when calling read(fd,...): */
-struct r3964_client_message {
-	  int     msg_id;
-	  int     arg;
-	  int     error_code;
+struct r3964_client_message
+{
+	int     msg_id;
+	int     arg;
+	int     error_code;
 };
 
 #define R3964_MTU      256

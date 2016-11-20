@@ -20,7 +20,8 @@
 static LIST_HEAD(fc_devices);
 static DEFINE_SPINLOCK(fc_lock);
 
-struct fc_instance {
+struct fc_instance
+{
 	struct list_head list;
 	struct fmc_device *fmc;
 	struct miscdevice misc;
@@ -34,13 +35,23 @@ static int fc_open(struct inode *ino, struct file *f)
 	int minor = iminor(ino);
 
 	list_for_each_entry(fc, &fc_devices, list)
-		if (fc->misc.minor == minor)
-			break;
+
+	if (fc->misc.minor == minor)
+	{
+		break;
+	}
+
 	if (fc->misc.minor != minor)
+	{
 		return -ENODEV;
+	}
+
 	fmc = fc->fmc;
+
 	if (try_module_get(fmc->owner) == 0)
+	{
 		return -ENODEV;
+	}
 
 	f->private_data = fmc;
 	return 0;
@@ -55,48 +66,70 @@ static int fc_release(struct inode *ino, struct file *f)
 
 /* read and write are simple after the default llseek has been used */
 static ssize_t fc_read(struct file *f, char __user *buf, size_t count,
-		       loff_t *offp)
+					   loff_t *offp)
 {
 	struct fmc_device *fmc = f->private_data;
 	unsigned long addr;
 	uint32_t val;
 
 	if (count < sizeof(val))
+	{
 		return -EINVAL;
+	}
+
 	count = sizeof(val);
 
 	addr = *offp;
+
 	if (addr > fmc->memlen)
-		return -ESPIPE; /* Illegal seek */
+	{
+		return -ESPIPE;    /* Illegal seek */
+	}
+
 	val = fmc_readl(fmc, addr);
+
 	if (copy_to_user(buf, &val, count))
+	{
 		return -EFAULT;
+	}
+
 	*offp += count;
 	return count;
 }
 
 static ssize_t fc_write(struct file *f, const char __user *buf, size_t count,
-			loff_t *offp)
+						loff_t *offp)
 {
 	struct fmc_device *fmc = f->private_data;
 	unsigned long addr;
 	uint32_t val;
 
 	if (count < sizeof(val))
+	{
 		return -EINVAL;
+	}
+
 	count = sizeof(val);
 
 	addr = *offp;
+
 	if (addr > fmc->memlen)
-		return -ESPIPE; /* Illegal seek */
+	{
+		return -ESPIPE;    /* Illegal seek */
+	}
+
 	if (copy_from_user(&val, buf, count))
+	{
 		return -EFAULT;
+	}
+
 	fmc_writel(fmc, val, addr);
 	*offp += count;
 	return count;
 }
 
-static const struct file_operations fc_fops = {
+static const struct file_operations fc_fops =
+{
 	.owner = THIS_MODULE,
 	.open = fc_open,
 	.release = fc_release,
@@ -110,7 +143,8 @@ static const struct file_operations fc_fops = {
 static int fc_probe(struct fmc_device *fmc);
 static int fc_remove(struct fmc_device *fmc);
 
-static struct fmc_driver fc_drv = {
+static struct fmc_driver fc_drv =
+{
 	.version = FMC_VERSION,
 	.driver.name = KBUILD_MODNAME,
 	.probe = fc_probe,
@@ -130,27 +164,40 @@ static int fc_probe(struct fmc_device *fmc)
 	struct fc_instance *fc;
 
 	if (fmc->op->validate)
+	{
 		index = fmc->op->validate(fmc, &fc_drv);
+	}
+
 	if (index < 0)
-		return -EINVAL; /* not our device: invalid */
+	{
+		return -EINVAL;    /* not our device: invalid */
+	}
 
 	/* Create a char device: we want to create it anew */
 	fc = kzalloc(sizeof(*fc), GFP_KERNEL);
+
 	if (!fc)
+	{
 		return -ENOMEM;
+	}
+
 	fc->fmc = fmc;
 	fc->misc.minor = MISC_DYNAMIC_MINOR;
 	fc->misc.fops = &fc_fops;
 	fc->misc.name = kstrdup(dev_name(&fmc->dev), GFP_KERNEL);
 
 	ret = misc_register(&fc->misc);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
+
 	spin_lock(&fc_lock);
 	list_add(&fc->list, &fc_devices);
 	spin_unlock(&fc_lock);
 	dev_info(&fc->fmc->dev, "Created misc device \"%s\"\n",
-		 fc->misc.name);
+			 fc->misc.name);
 	return 0;
 
 out:
@@ -164,9 +211,14 @@ static int fc_remove(struct fmc_device *fmc)
 	struct fc_instance *fc;
 
 	list_for_each_entry(fc, &fc_devices, list)
-		if (fc->fmc == fmc)
-			break;
-	if (fc->fmc != fmc) {
+
+	if (fc->fmc == fmc)
+	{
+		break;
+	}
+
+	if (fc->fmc != fmc)
+	{
 		dev_err(&fmc->dev, "remove called but not found\n");
 		return -ENODEV;
 	}

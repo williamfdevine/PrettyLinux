@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 static int update_vmixer_level(struct echoaudio *chip);
 static int set_vmixer_gain(struct echoaudio *chip, u16 output,
-			   u16 pipe, int gain);
+						   u16 pipe, int gain);
 
 
 static int init_hw(struct echoaudio *chip, u16 device_id, u16 subdevice_id)
@@ -36,12 +36,16 @@ static int init_hw(struct echoaudio *chip, u16 device_id, u16 subdevice_id)
 	int err;
 
 	if (snd_BUG_ON((subdevice_id & 0xfff0) != INDIGO_DJX))
+	{
 		return -ENODEV;
+	}
 
 	err = init_dsp_comm_page(chip);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(chip->card->dev,
-			"init_hw - could not initialize DSP comm page\n");
+				"init_hw - could not initialize DSP comm page\n");
 		return err;
 	}
 
@@ -55,8 +59,12 @@ static int init_hw(struct echoaudio *chip, u16 device_id, u16 subdevice_id)
 	chip->input_clock_types = ECHO_CLOCK_BIT_INTERNAL;
 
 	err = load_firmware(chip);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	chip->bad_board = false;
 
 	return err;

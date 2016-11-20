@@ -29,7 +29,7 @@
 #include <mach/hardware.h>
 
 static int edb93xx_hw_params(struct snd_pcm_substream *substream,
-			     struct snd_pcm_hw_params *params)
+							 struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
@@ -43,24 +43,33 @@ static int edb93xx_hw_params(struct snd_pcm_substream *substream,
 	 * rates below 50kHz and 128 for higher sample rates
 	 */
 	if (rate < 50000)
+	{
 		mclk_rate = rate * 64 * 4;
+	}
 	else
+	{
 		mclk_rate = rate * 64 * 2;
+	}
 
 	err = snd_soc_dai_set_sysclk(codec_dai, 0, mclk_rate,
-				     SND_SOC_CLOCK_IN);
+								 SND_SOC_CLOCK_IN);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return snd_soc_dai_set_sysclk(cpu_dai, 0, mclk_rate,
-				      SND_SOC_CLOCK_OUT);
+								  SND_SOC_CLOCK_OUT);
 }
 
-static struct snd_soc_ops edb93xx_ops = {
+static struct snd_soc_ops edb93xx_ops =
+{
 	.hw_params	= edb93xx_hw_params,
 };
 
-static struct snd_soc_dai_link edb93xx_dai = {
+static struct snd_soc_dai_link edb93xx_dai =
+{
 	.name		= "CS4271",
 	.stream_name	= "CS4271 HiFi",
 	.platform_name	= "ep93xx-i2s",
@@ -68,11 +77,12 @@ static struct snd_soc_dai_link edb93xx_dai = {
 	.codec_name	= "spi0.0",
 	.codec_dai_name	= "cs4271-hifi",
 	.dai_fmt	= SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_IF |
-			  SND_SOC_DAIFMT_CBS_CFS,
+	SND_SOC_DAIFMT_CBS_CFS,
 	.ops		= &edb93xx_ops,
 };
 
-static struct snd_soc_card snd_soc_edb93xx = {
+static struct snd_soc_card snd_soc_edb93xx =
+{
 	.name		= "EDB93XX",
 	.owner		= THIS_MODULE,
 	.dai_link	= &edb93xx_dai,
@@ -85,15 +95,20 @@ static int edb93xx_probe(struct platform_device *pdev)
 	int ret;
 
 	ret = ep93xx_i2s_acquire();
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	card->dev = &pdev->dev;
 
 	ret = snd_soc_register_card(card);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
-			ret);
+				ret);
 		ep93xx_i2s_release();
 	}
 
@@ -110,7 +125,8 @@ static int edb93xx_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver edb93xx_driver = {
+static struct platform_driver edb93xx_driver =
+{
 	.driver		= {
 		.name	= "edb93xx-audio",
 	},

@@ -30,18 +30,21 @@
 #define MOXA_UART_OFFSET 0x200
 #define MOXA_BASE_BAR 1
 
-struct moxa8250_board {
+struct moxa8250_board
+{
 	unsigned int num_ports;
 	int line[0];
 };
 
-enum {
+enum
+{
 	moxa8250_2p = 0,
 	moxa8250_4p,
 	moxa8250_8p
 };
 
-static struct moxa8250_board moxa8250_boards[] = {
+static struct moxa8250_board moxa8250_boards[] =
+{
 	[moxa8250_2p] = { .num_ports = 2},
 	[moxa8250_4p] = { .num_ports = 4},
 	[moxa8250_8p] = { .num_ports = 8},
@@ -61,13 +64,19 @@ static int moxa8250_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	nr_ports = brd->num_ports;
 
 	ret = pcim_enable_device(pdev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	brd = devm_kzalloc(&pdev->dev, sizeof(struct moxa8250_board) +
-			   sizeof(unsigned int) * nr_ports, GFP_KERNEL);
+					   sizeof(unsigned int) * nr_ports, GFP_KERNEL);
+
 	if (!brd)
+	{
 		return -ENOMEM;
+	}
 
 	memset(&uart, 0, sizeof(struct uart_8250_port));
 
@@ -78,19 +87,27 @@ static int moxa8250_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 
 	baseaddr = pci_resource_start(pdev, MOXA_BASE_BAR);
 	ioaddr = pcim_iomap(pdev, MOXA_BASE_BAR, 0);
-	if (!ioaddr)
-		return -ENOMEM;
 
-	for (i = 0; i < nr_ports; i++) {
+	if (!ioaddr)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < nr_ports; i++)
+	{
 
 		/*
 		 * MOXA Smartio MUE boards with 4 ports have
 		 * a different offset for port #3
 		 */
 		if (nr_ports == 4 && i == 3)
+		{
 			offset = 7 * MOXA_UART_OFFSET;
+		}
 		else
+		{
 			offset = i * MOXA_UART_OFFSET;
+		}
 
 		uart.port.iotype = UPIO_MEM;
 		uart.port.iobase = 0;
@@ -99,14 +116,16 @@ static int moxa8250_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 		uart.port.regshift = 0;
 
 		dev_dbg(&pdev->dev, "Setup PCI port: port %lx, irq %d, type %d\n",
-			uart.port.iobase, uart.port.irq, uart.port.iotype);
+				uart.port.iobase, uart.port.irq, uart.port.iotype);
 
 		brd->line[i] = serial8250_register_8250_port(&uart);
-		if (brd->line[i] < 0) {
+
+		if (brd->line[i] < 0)
+		{
 			dev_err(&pdev->dev,
-				"Couldn't register serial port %lx, irq %d, type %d, error %d\n",
-				uart.port.iobase, uart.port.irq,
-				uart.port.iotype, brd->line[i]);
+					"Couldn't register serial port %lx, irq %d, type %d, error %d\n",
+					uart.port.iobase, uart.port.irq,
+					uart.port.iotype, brd->line[i]);
 			break;
 		}
 	}
@@ -121,12 +140,15 @@ static void moxa8250_remove(struct pci_dev *pdev)
 	unsigned int i;
 
 	for (i = 0; i < brd->num_ports; i++)
+	{
 		serial8250_unregister_port(brd->line[i]);
+	}
 }
 
 #define MOXA_DEVICE(id, data) { PCI_VDEVICE(MOXA, id), (kernel_ulong_t)data }
 
-static const struct pci_device_id pci_ids[] = {
+static const struct pci_device_id pci_ids[] =
+{
 	MOXA_DEVICE(PCI_DEVICE_ID_MOXA_CP102E, moxa8250_2p),
 	MOXA_DEVICE(PCI_DEVICE_ID_MOXA_CP102EL, moxa8250_2p),
 	MOXA_DEVICE(PCI_DEVICE_ID_MOXA_CP104EL_A, moxa8250_4p),
@@ -143,7 +165,8 @@ static const struct pci_device_id pci_ids[] = {
 };
 MODULE_DEVICE_TABLE(pci, pci_ids);
 
-static struct pci_driver moxa8250_pci_driver = {
+static struct pci_driver moxa8250_pci_driver =
+{
 	.name           = "8250_moxa",
 	.id_table       = pci_ids,
 	.probe          = moxa8250_probe,

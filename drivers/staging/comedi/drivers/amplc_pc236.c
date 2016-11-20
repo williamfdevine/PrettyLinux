@@ -52,23 +52,31 @@ static int pc236_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	int ret;
 
 	devpriv = comedi_alloc_devpriv(dev, sizeof(*devpriv));
+
 	if (!devpriv)
+	{
 		return -ENOMEM;
+	}
 
 	ret = comedi_request_region(dev, it->options[0], 0x4);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return amplc_pc236_common_attach(dev, dev->iobase, it->options[1], 0);
 }
 
-static const struct pc236_board pc236_boards[] = {
+static const struct pc236_board pc236_boards[] =
+{
 	{
 		.name = "pc36at",
 	},
 };
 
-static struct comedi_driver amplc_pc236_driver = {
+static struct comedi_driver amplc_pc236_driver =
+{
 	.driver_name = "amplc_pc236",
 	.module = THIS_MODULE,
 	.attach = pc236_attach,

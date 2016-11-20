@@ -20,12 +20,12 @@
 
 #define XFS_CHECK_STRUCT_SIZE(structname, size) \
 	BUILD_BUG_ON_MSG(sizeof(structname) != (size), "XFS: sizeof(" \
-		#structname ") is wrong, expected " #size)
+					 #structname ") is wrong, expected " #size)
 
 #define XFS_CHECK_OFFSET(structname, member, off) \
 	BUILD_BUG_ON_MSG(offsetof(structname, member) != (off), \
-		"XFS: offsetof(" #structname ", " #member ") is wrong, " \
-		"expected " #off)
+					 "XFS: offsetof(" #structname ", " #member ") is wrong, " \
+					 "expected " #off)
 
 static inline void __init
 xfs_check_ondisk_structs(void)

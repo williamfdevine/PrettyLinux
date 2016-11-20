@@ -28,7 +28,7 @@
 		do {						\
 			unsigned long	j;			\
 			int	done = 0;			\
-								\
+			\
 			completed = (condition);		\
 			for (j = jiffies, done = 0; !done; ) {	\
 				schedule_timeout(timeinc);	\
@@ -49,7 +49,7 @@
 		do {						\
 			unsigned long	j;			\
 			int	done = 0;			\
-								\
+			\
 			for (j = jiffies, done = 0; !done; ) {	\
 				schedule_timeout(timeinc);	\
 				if (time_is_before_eq_jiffies(j + timeinc)) \

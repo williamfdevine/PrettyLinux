@@ -68,7 +68,8 @@
 #define	DDR_EDI_SBED	0x4	/* single-bit ECC error disable */
 #define	DDR_EDI_MBED	0x8	/* multi-bit ECC error disable */
 
-struct fsl_mc_pdata {
+struct fsl_mc_pdata
+{
 	char *name;
 	int edac_idx;
 	void __iomem *mc_vbase;

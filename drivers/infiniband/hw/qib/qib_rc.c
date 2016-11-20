@@ -41,7 +41,7 @@
 static void rc_timeout(unsigned long arg);
 
 static u32 restart_sge(struct rvt_sge_state *ss, struct rvt_swqe *wqe,
-		       u32 psn, u32 pmtu)
+					   u32 psn, u32 pmtu)
 {
 	u32 len;
 
@@ -75,7 +75,7 @@ static void start_timer(struct rvt_qp *qp)
  * Note the QP s_lock must be held.
  */
 static int qib_make_rc_ack(struct qib_ibdev *dev, struct rvt_qp *qp,
-			   struct ib_other_headers *ohdr, u32 pmtu)
+						   struct ib_other_headers *ohdr, u32 pmtu)
 {
 	struct rvt_ack_entry *e;
 	u32 hwords;
@@ -85,128 +85,175 @@ static int qib_make_rc_ack(struct qib_ibdev *dev, struct rvt_qp *qp,
 
 	/* Don't send an ACK if we aren't supposed to. */
 	if (!(ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK))
+	{
 		goto bail;
+	}
 
 	/* header size in 32-bit words LRH+BTH = (8+12)/4. */
 	hwords = 5;
 
-	switch (qp->s_ack_state) {
-	case OP(RDMA_READ_RESPONSE_LAST):
-	case OP(RDMA_READ_RESPONSE_ONLY):
-		e = &qp->s_ack_queue[qp->s_tail_ack_queue];
-		if (e->rdma_sge.mr) {
-			rvt_put_mr(e->rdma_sge.mr);
-			e->rdma_sge.mr = NULL;
-		}
-		/* FALLTHROUGH */
-	case OP(ATOMIC_ACKNOWLEDGE):
-		/*
-		 * We can increment the tail pointer now that the last
-		 * response has been sent instead of only being
-		 * constructed.
-		 */
-		if (++qp->s_tail_ack_queue > QIB_MAX_RDMA_ATOMIC)
-			qp->s_tail_ack_queue = 0;
-		/* FALLTHROUGH */
-	case OP(SEND_ONLY):
-	case OP(ACKNOWLEDGE):
-		/* Check for no next entry in the queue. */
-		if (qp->r_head_ack_queue == qp->s_tail_ack_queue) {
-			if (qp->s_flags & RVT_S_ACK_PENDING)
-				goto normal;
-			goto bail;
-		}
+	switch (qp->s_ack_state)
+	{
+		case OP(RDMA_READ_RESPONSE_LAST):
+		case OP(RDMA_READ_RESPONSE_ONLY):
+			e = &qp->s_ack_queue[qp->s_tail_ack_queue];
 
-		e = &qp->s_ack_queue[qp->s_tail_ack_queue];
-		if (e->opcode == OP(RDMA_READ_REQUEST)) {
+			if (e->rdma_sge.mr)
+			{
+				rvt_put_mr(e->rdma_sge.mr);
+				e->rdma_sge.mr = NULL;
+			}
+
+		/* FALLTHROUGH */
+		case OP(ATOMIC_ACKNOWLEDGE):
+
 			/*
-			 * If a RDMA read response is being resent and
-			 * we haven't seen the duplicate request yet,
-			 * then stop sending the remaining responses the
-			 * responder has seen until the requester resends it.
+			 * We can increment the tail pointer now that the last
+			 * response has been sent instead of only being
+			 * constructed.
 			 */
-			len = e->rdma_sge.sge_length;
-			if (len && !e->rdma_sge.mr) {
-				qp->s_tail_ack_queue = qp->r_head_ack_queue;
+			if (++qp->s_tail_ack_queue > QIB_MAX_RDMA_ATOMIC)
+			{
+				qp->s_tail_ack_queue = 0;
+			}
+
+		/* FALLTHROUGH */
+		case OP(SEND_ONLY):
+		case OP(ACKNOWLEDGE):
+
+			/* Check for no next entry in the queue. */
+			if (qp->r_head_ack_queue == qp->s_tail_ack_queue)
+			{
+				if (qp->s_flags & RVT_S_ACK_PENDING)
+				{
+					goto normal;
+				}
+
 				goto bail;
 			}
-			/* Copy SGE state in case we need to resend */
-			qp->s_rdma_mr = e->rdma_sge.mr;
-			if (qp->s_rdma_mr)
-				rvt_get_mr(qp->s_rdma_mr);
-			qp->s_ack_rdma_sge.sge = e->rdma_sge;
-			qp->s_ack_rdma_sge.num_sge = 1;
-			qp->s_cur_sge = &qp->s_ack_rdma_sge;
-			if (len > pmtu) {
-				len = pmtu;
-				qp->s_ack_state = OP(RDMA_READ_RESPONSE_FIRST);
-			} else {
-				qp->s_ack_state = OP(RDMA_READ_RESPONSE_ONLY);
+
+			e = &qp->s_ack_queue[qp->s_tail_ack_queue];
+
+			if (e->opcode == OP(RDMA_READ_REQUEST))
+			{
+				/*
+				 * If a RDMA read response is being resent and
+				 * we haven't seen the duplicate request yet,
+				 * then stop sending the remaining responses the
+				 * responder has seen until the requester resends it.
+				 */
+				len = e->rdma_sge.sge_length;
+
+				if (len && !e->rdma_sge.mr)
+				{
+					qp->s_tail_ack_queue = qp->r_head_ack_queue;
+					goto bail;
+				}
+
+				/* Copy SGE state in case we need to resend */
+				qp->s_rdma_mr = e->rdma_sge.mr;
+
+				if (qp->s_rdma_mr)
+				{
+					rvt_get_mr(qp->s_rdma_mr);
+				}
+
+				qp->s_ack_rdma_sge.sge = e->rdma_sge;
+				qp->s_ack_rdma_sge.num_sge = 1;
+				qp->s_cur_sge = &qp->s_ack_rdma_sge;
+
+				if (len > pmtu)
+				{
+					len = pmtu;
+					qp->s_ack_state = OP(RDMA_READ_RESPONSE_FIRST);
+				}
+				else
+				{
+					qp->s_ack_state = OP(RDMA_READ_RESPONSE_ONLY);
+					e->sent = 1;
+				}
+
+				ohdr->u.aeth = qib_compute_aeth(qp);
+				hwords++;
+				qp->s_ack_rdma_psn = e->psn;
+				bth2 = qp->s_ack_rdma_psn++ & QIB_PSN_MASK;
+			}
+			else
+			{
+				/* COMPARE_SWAP or FETCH_ADD */
+				qp->s_cur_sge = NULL;
+				len = 0;
+				qp->s_ack_state = OP(ATOMIC_ACKNOWLEDGE);
+				ohdr->u.at.aeth = qib_compute_aeth(qp);
+				ib_u64_put(e->atomic_data, &ohdr->u.at.atomic_ack_eth);
+				hwords += sizeof(ohdr->u.at) / sizeof(u32);
+				bth2 = e->psn & QIB_PSN_MASK;
 				e->sent = 1;
 			}
-			ohdr->u.aeth = qib_compute_aeth(qp);
-			hwords++;
-			qp->s_ack_rdma_psn = e->psn;
-			bth2 = qp->s_ack_rdma_psn++ & QIB_PSN_MASK;
-		} else {
-			/* COMPARE_SWAP or FETCH_ADD */
-			qp->s_cur_sge = NULL;
-			len = 0;
-			qp->s_ack_state = OP(ATOMIC_ACKNOWLEDGE);
-			ohdr->u.at.aeth = qib_compute_aeth(qp);
-			ib_u64_put(e->atomic_data, &ohdr->u.at.atomic_ack_eth);
-			hwords += sizeof(ohdr->u.at) / sizeof(u32);
-			bth2 = e->psn & QIB_PSN_MASK;
-			e->sent = 1;
-		}
-		bth0 = qp->s_ack_state << 24;
-		break;
 
-	case OP(RDMA_READ_RESPONSE_FIRST):
-		qp->s_ack_state = OP(RDMA_READ_RESPONSE_MIDDLE);
+			bth0 = qp->s_ack_state << 24;
+			break;
+
+		case OP(RDMA_READ_RESPONSE_FIRST):
+			qp->s_ack_state = OP(RDMA_READ_RESPONSE_MIDDLE);
+
 		/* FALLTHROUGH */
-	case OP(RDMA_READ_RESPONSE_MIDDLE):
-		qp->s_cur_sge = &qp->s_ack_rdma_sge;
-		qp->s_rdma_mr = qp->s_ack_rdma_sge.sge.mr;
-		if (qp->s_rdma_mr)
-			rvt_get_mr(qp->s_rdma_mr);
-		len = qp->s_ack_rdma_sge.sge.sge_length;
-		if (len > pmtu)
-			len = pmtu;
-		else {
-			ohdr->u.aeth = qib_compute_aeth(qp);
-			hwords++;
-			qp->s_ack_state = OP(RDMA_READ_RESPONSE_LAST);
-			e = &qp->s_ack_queue[qp->s_tail_ack_queue];
-			e->sent = 1;
-		}
-		bth0 = qp->s_ack_state << 24;
-		bth2 = qp->s_ack_rdma_psn++ & QIB_PSN_MASK;
-		break;
+		case OP(RDMA_READ_RESPONSE_MIDDLE):
+			qp->s_cur_sge = &qp->s_ack_rdma_sge;
+			qp->s_rdma_mr = qp->s_ack_rdma_sge.sge.mr;
 
-	default:
+			if (qp->s_rdma_mr)
+			{
+				rvt_get_mr(qp->s_rdma_mr);
+			}
+
+			len = qp->s_ack_rdma_sge.sge.sge_length;
+
+			if (len > pmtu)
+			{
+				len = pmtu;
+			}
+			else
+			{
+				ohdr->u.aeth = qib_compute_aeth(qp);
+				hwords++;
+				qp->s_ack_state = OP(RDMA_READ_RESPONSE_LAST);
+				e = &qp->s_ack_queue[qp->s_tail_ack_queue];
+				e->sent = 1;
+			}
+
+			bth0 = qp->s_ack_state << 24;
+			bth2 = qp->s_ack_rdma_psn++ & QIB_PSN_MASK;
+			break;
+
+		default:
 normal:
-		/*
-		 * Send a regular ACK.
-		 * Set the s_ack_state so we wait until after sending
-		 * the ACK before setting s_ack_state to ACKNOWLEDGE
-		 * (see above).
-		 */
-		qp->s_ack_state = OP(SEND_ONLY);
-		qp->s_flags &= ~RVT_S_ACK_PENDING;
-		qp->s_cur_sge = NULL;
-		if (qp->s_nak_state)
-			ohdr->u.aeth =
-				cpu_to_be32((qp->r_msn & QIB_MSN_MASK) |
-					    (qp->s_nak_state <<
-					     QIB_AETH_CREDIT_SHIFT));
-		else
-			ohdr->u.aeth = qib_compute_aeth(qp);
-		hwords++;
-		len = 0;
-		bth0 = OP(ACKNOWLEDGE) << 24;
-		bth2 = qp->s_ack_psn & QIB_PSN_MASK;
+			/*
+			 * Send a regular ACK.
+			 * Set the s_ack_state so we wait until after sending
+			 * the ACK before setting s_ack_state to ACKNOWLEDGE
+			 * (see above).
+			 */
+			qp->s_ack_state = OP(SEND_ONLY);
+			qp->s_flags &= ~RVT_S_ACK_PENDING;
+			qp->s_cur_sge = NULL;
+
+			if (qp->s_nak_state)
+				ohdr->u.aeth =
+					cpu_to_be32((qp->r_msn & QIB_MSN_MASK) |
+								(qp->s_nak_state <<
+								 QIB_AETH_CREDIT_SHIFT));
+			else
+			{
+				ohdr->u.aeth = qib_compute_aeth(qp);
+			}
+
+			hwords++;
+			len = 0;
+			bth0 = OP(ACKNOWLEDGE) << 24;
+			bth2 = qp->s_ack_psn & QIB_PSN_MASK;
 	}
+
 	qp->s_rdma_ack_cnt++;
 	qp->s_hdrwords = hwords;
 	qp->s_cur_size = len;
@@ -244,41 +291,61 @@ int qib_make_rc_req(struct rvt_qp *qp, unsigned long *flags)
 	int delta;
 
 	ohdr = &priv->s_hdr->u.oth;
+
 	if (qp->remote_ah_attr.ah_flags & IB_AH_GRH)
+	{
 		ohdr = &priv->s_hdr->u.l.oth;
+	}
 
 	/* Sending responses has higher priority over sending requests. */
 	if ((qp->s_flags & RVT_S_RESP_PENDING) &&
-	    qib_make_rc_ack(dev, qp, ohdr, pmtu))
+		qib_make_rc_ack(dev, qp, ohdr, pmtu))
+	{
 		goto done;
+	}
 
-	if (!(ib_rvt_state_ops[qp->state] & RVT_PROCESS_SEND_OK)) {
+	if (!(ib_rvt_state_ops[qp->state] & RVT_PROCESS_SEND_OK))
+	{
 		if (!(ib_rvt_state_ops[qp->state] & RVT_FLUSH_SEND))
+		{
 			goto bail;
+		}
+
 		/* We are in the error state, flush the work request. */
 		smp_read_barrier_depends(); /* see post_one_send() */
+
 		if (qp->s_last == ACCESS_ONCE(qp->s_head))
+		{
 			goto bail;
+		}
+
 		/* If DMAs are in progress, we can't flush immediately. */
-		if (atomic_read(&priv->s_dma_busy)) {
+		if (atomic_read(&priv->s_dma_busy))
+		{
 			qp->s_flags |= RVT_S_WAIT_DMA;
 			goto bail;
 		}
+
 		wqe = rvt_get_swqe_ptr(qp, qp->s_last);
 		qib_send_complete(qp, wqe, qp->s_last != qp->s_acked ?
-			IB_WC_SUCCESS : IB_WC_WR_FLUSH_ERR);
+						  IB_WC_SUCCESS : IB_WC_WR_FLUSH_ERR);
 		/* will get called again */
 		goto done;
 	}
 
 	if (qp->s_flags & (RVT_S_WAIT_RNR | RVT_S_WAIT_ACK))
+	{
 		goto bail;
+	}
 
-	if (qib_cmp24(qp->s_psn, qp->s_sending_hpsn) <= 0) {
-		if (qib_cmp24(qp->s_sending_psn, qp->s_sending_hpsn) <= 0) {
+	if (qib_cmp24(qp->s_psn, qp->s_sending_hpsn) <= 0)
+	{
+		if (qib_cmp24(qp->s_sending_psn, qp->s_sending_hpsn) <= 0)
+		{
 			qp->s_flags |= RVT_S_WAIT_PSN;
 			goto bail;
 		}
+
 		qp->s_sending_psn = qp->s_psn;
 		qp->s_sending_hpsn = qp->s_psn - 1;
 	}
@@ -289,313 +356,445 @@ int qib_make_rc_req(struct rvt_qp *qp, unsigned long *flags)
 
 	/* Send a request. */
 	wqe = rvt_get_swqe_ptr(qp, qp->s_cur);
-	switch (qp->s_state) {
-	default:
-		if (!(ib_rvt_state_ops[qp->state] & RVT_PROCESS_NEXT_SEND_OK))
-			goto bail;
-		/*
-		 * Resend an old request or start a new one.
-		 *
-		 * We keep track of the current SWQE so that
-		 * we don't reset the "furthest progress" state
-		 * if we need to back up.
-		 */
-		newreq = 0;
-		if (qp->s_cur == qp->s_tail) {
-			/* Check if send work queue is empty. */
-			if (qp->s_tail == qp->s_head)
+
+	switch (qp->s_state)
+	{
+		default:
+			if (!(ib_rvt_state_ops[qp->state] & RVT_PROCESS_NEXT_SEND_OK))
+			{
 				goto bail;
+			}
+
 			/*
-			 * If a fence is requested, wait for previous
-			 * RDMA read and atomic operations to finish.
+			 * Resend an old request or start a new one.
+			 *
+			 * We keep track of the current SWQE so that
+			 * we don't reset the "furthest progress" state
+			 * if we need to back up.
 			 */
-			if ((wqe->wr.send_flags & IB_SEND_FENCE) &&
-			    qp->s_num_rd_atomic) {
-				qp->s_flags |= RVT_S_WAIT_FENCE;
-				goto bail;
+			newreq = 0;
+
+			if (qp->s_cur == qp->s_tail)
+			{
+				/* Check if send work queue is empty. */
+				if (qp->s_tail == qp->s_head)
+				{
+					goto bail;
+				}
+
+				/*
+				 * If a fence is requested, wait for previous
+				 * RDMA read and atomic operations to finish.
+				 */
+				if ((wqe->wr.send_flags & IB_SEND_FENCE) &&
+					qp->s_num_rd_atomic)
+				{
+					qp->s_flags |= RVT_S_WAIT_FENCE;
+					goto bail;
+				}
+
+				newreq = 1;
+				qp->s_psn = wqe->psn;
 			}
-			newreq = 1;
-			qp->s_psn = wqe->psn;
-		}
-		/*
-		 * Note that we have to be careful not to modify the
-		 * original work request since we may need to resend
-		 * it.
-		 */
-		len = wqe->length;
-		ss = &qp->s_sge;
-		bth2 = qp->s_psn & QIB_PSN_MASK;
-		switch (wqe->wr.opcode) {
-		case IB_WR_SEND:
-		case IB_WR_SEND_WITH_IMM:
-			/* If no credit, return. */
-			if (!(qp->s_flags & RVT_S_UNLIMITED_CREDIT) &&
-			    qib_cmp24(wqe->ssn, qp->s_lsn + 1) > 0) {
-				qp->s_flags |= RVT_S_WAIT_SSN_CREDIT;
-				goto bail;
+
+			/*
+			 * Note that we have to be careful not to modify the
+			 * original work request since we may need to resend
+			 * it.
+			 */
+			len = wqe->length;
+			ss = &qp->s_sge;
+			bth2 = qp->s_psn & QIB_PSN_MASK;
+
+			switch (wqe->wr.opcode)
+			{
+				case IB_WR_SEND:
+				case IB_WR_SEND_WITH_IMM:
+
+					/* If no credit, return. */
+					if (!(qp->s_flags & RVT_S_UNLIMITED_CREDIT) &&
+						qib_cmp24(wqe->ssn, qp->s_lsn + 1) > 0)
+					{
+						qp->s_flags |= RVT_S_WAIT_SSN_CREDIT;
+						goto bail;
+					}
+
+					if (len > pmtu)
+					{
+						qp->s_state = OP(SEND_FIRST);
+						len = pmtu;
+						break;
+					}
+
+					if (wqe->wr.opcode == IB_WR_SEND)
+					{
+						qp->s_state = OP(SEND_ONLY);
+					}
+					else
+					{
+						qp->s_state = OP(SEND_ONLY_WITH_IMMEDIATE);
+						/* Immediate data comes after the BTH */
+						ohdr->u.imm_data = wqe->wr.ex.imm_data;
+						hwords += 1;
+					}
+
+					if (wqe->wr.send_flags & IB_SEND_SOLICITED)
+					{
+						bth0 |= IB_BTH_SOLICITED;
+					}
+
+					bth2 |= IB_BTH_REQ_ACK;
+
+					if (++qp->s_cur == qp->s_size)
+					{
+						qp->s_cur = 0;
+					}
+
+					break;
+
+				case IB_WR_RDMA_WRITE:
+					if (newreq && !(qp->s_flags & RVT_S_UNLIMITED_CREDIT))
+					{
+						qp->s_lsn++;
+					}
+
+				/* FALLTHROUGH */
+				case IB_WR_RDMA_WRITE_WITH_IMM:
+
+					/* If no credit, return. */
+					if (!(qp->s_flags & RVT_S_UNLIMITED_CREDIT) &&
+						qib_cmp24(wqe->ssn, qp->s_lsn + 1) > 0)
+					{
+						qp->s_flags |= RVT_S_WAIT_SSN_CREDIT;
+						goto bail;
+					}
+
+					ohdr->u.rc.reth.vaddr =
+						cpu_to_be64(wqe->rdma_wr.remote_addr);
+					ohdr->u.rc.reth.rkey =
+						cpu_to_be32(wqe->rdma_wr.rkey);
+					ohdr->u.rc.reth.length = cpu_to_be32(len);
+					hwords += sizeof(struct ib_reth) / sizeof(u32);
+
+					if (len > pmtu)
+					{
+						qp->s_state = OP(RDMA_WRITE_FIRST);
+						len = pmtu;
+						break;
+					}
+
+					if (wqe->rdma_wr.wr.opcode == IB_WR_RDMA_WRITE)
+					{
+						qp->s_state = OP(RDMA_WRITE_ONLY);
+					}
+					else
+					{
+						qp->s_state = OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE);
+						/* Immediate data comes after RETH */
+						ohdr->u.rc.imm_data =
+							wqe->rdma_wr.wr.ex.imm_data;
+						hwords += 1;
+
+						if (wqe->rdma_wr.wr.send_flags & IB_SEND_SOLICITED)
+						{
+							bth0 |= IB_BTH_SOLICITED;
+						}
+					}
+
+					bth2 |= IB_BTH_REQ_ACK;
+
+					if (++qp->s_cur == qp->s_size)
+					{
+						qp->s_cur = 0;
+					}
+
+					break;
+
+				case IB_WR_RDMA_READ:
+
+					/*
+					 * Don't allow more operations to be started
+					 * than the QP limits allow.
+					 */
+					if (newreq)
+					{
+						if (qp->s_num_rd_atomic >=
+							qp->s_max_rd_atomic)
+						{
+							qp->s_flags |= RVT_S_WAIT_RDMAR;
+							goto bail;
+						}
+
+						qp->s_num_rd_atomic++;
+
+						if (!(qp->s_flags & RVT_S_UNLIMITED_CREDIT))
+						{
+							qp->s_lsn++;
+						}
+					}
+
+					ohdr->u.rc.reth.vaddr =
+						cpu_to_be64(wqe->rdma_wr.remote_addr);
+					ohdr->u.rc.reth.rkey =
+						cpu_to_be32(wqe->rdma_wr.rkey);
+					ohdr->u.rc.reth.length = cpu_to_be32(len);
+					qp->s_state = OP(RDMA_READ_REQUEST);
+					hwords += sizeof(ohdr->u.rc.reth) / sizeof(u32);
+					ss = NULL;
+					len = 0;
+					bth2 |= IB_BTH_REQ_ACK;
+
+					if (++qp->s_cur == qp->s_size)
+					{
+						qp->s_cur = 0;
+					}
+
+					break;
+
+				case IB_WR_ATOMIC_CMP_AND_SWP:
+				case IB_WR_ATOMIC_FETCH_AND_ADD:
+
+					/*
+					 * Don't allow more operations to be started
+					 * than the QP limits allow.
+					 */
+					if (newreq)
+					{
+						if (qp->s_num_rd_atomic >=
+							qp->s_max_rd_atomic)
+						{
+							qp->s_flags |= RVT_S_WAIT_RDMAR;
+							goto bail;
+						}
+
+						qp->s_num_rd_atomic++;
+
+						if (!(qp->s_flags & RVT_S_UNLIMITED_CREDIT))
+						{
+							qp->s_lsn++;
+						}
+					}
+
+					if (wqe->atomic_wr.wr.opcode == IB_WR_ATOMIC_CMP_AND_SWP)
+					{
+						qp->s_state = OP(COMPARE_SWAP);
+						put_ib_ateth_swap(wqe->atomic_wr.swap,
+										  &ohdr->u.atomic_eth);
+						put_ib_ateth_swap(wqe->atomic_wr.compare_add,
+										  &ohdr->u.atomic_eth);
+					}
+					else
+					{
+						qp->s_state = OP(FETCH_ADD);
+						put_ib_ateth_swap(wqe->atomic_wr.compare_add,
+										  &ohdr->u.atomic_eth);
+						put_ib_ateth_swap(0, &ohdr->u.atomic_eth);
+					}
+
+					put_ib_ateth_vaddr(wqe->atomic_wr.remote_addr,
+									   &ohdr->u.atomic_eth);
+					ohdr->u.atomic_eth.rkey = cpu_to_be32(
+												  wqe->atomic_wr.rkey);
+					hwords += sizeof(struct ib_atomic_eth) / sizeof(u32);
+					ss = NULL;
+					len = 0;
+					bth2 |= IB_BTH_REQ_ACK;
+
+					if (++qp->s_cur == qp->s_size)
+					{
+						qp->s_cur = 0;
+					}
+
+					break;
+
+				default:
+					goto bail;
 			}
-			if (len > pmtu) {
-				qp->s_state = OP(SEND_FIRST);
+
+			qp->s_sge.sge = wqe->sg_list[0];
+			qp->s_sge.sg_list = wqe->sg_list + 1;
+			qp->s_sge.num_sge = wqe->wr.num_sge;
+			qp->s_sge.total_len = wqe->length;
+			qp->s_len = wqe->length;
+
+			if (newreq)
+			{
+				qp->s_tail++;
+
+				if (qp->s_tail >= qp->s_size)
+				{
+					qp->s_tail = 0;
+				}
+			}
+
+			if (wqe->wr.opcode == IB_WR_RDMA_READ)
+			{
+				qp->s_psn = wqe->lpsn + 1;
+			}
+			else
+			{
+				qp->s_psn++;
+			}
+
+			break;
+
+		case OP(RDMA_READ_RESPONSE_FIRST):
+			/*
+			 * qp->s_state is normally set to the opcode of the
+			 * last packet constructed for new requests and therefore
+			 * is never set to RDMA read response.
+			 * RDMA_READ_RESPONSE_FIRST is used by the ACK processing
+			 * thread to indicate a SEND needs to be restarted from an
+			 * earlier PSN without interferring with the sending thread.
+			 * See qib_restart_rc().
+			 */
+			qp->s_len = restart_sge(&qp->s_sge, wqe, qp->s_psn, pmtu);
+
+		/* FALLTHROUGH */
+		case OP(SEND_FIRST):
+			qp->s_state = OP(SEND_MIDDLE);
+
+		/* FALLTHROUGH */
+		case OP(SEND_MIDDLE):
+			bth2 = qp->s_psn++ & QIB_PSN_MASK;
+			ss = &qp->s_sge;
+			len = qp->s_len;
+
+			if (len > pmtu)
+			{
 				len = pmtu;
 				break;
 			}
+
 			if (wqe->wr.opcode == IB_WR_SEND)
-				qp->s_state = OP(SEND_ONLY);
-			else {
-				qp->s_state = OP(SEND_ONLY_WITH_IMMEDIATE);
+			{
+				qp->s_state = OP(SEND_LAST);
+			}
+			else
+			{
+				qp->s_state = OP(SEND_LAST_WITH_IMMEDIATE);
 				/* Immediate data comes after the BTH */
 				ohdr->u.imm_data = wqe->wr.ex.imm_data;
 				hwords += 1;
 			}
-			if (wqe->wr.send_flags & IB_SEND_SOLICITED)
-				bth0 |= IB_BTH_SOLICITED;
-			bth2 |= IB_BTH_REQ_ACK;
-			if (++qp->s_cur == qp->s_size)
-				qp->s_cur = 0;
-			break;
 
-		case IB_WR_RDMA_WRITE:
-			if (newreq && !(qp->s_flags & RVT_S_UNLIMITED_CREDIT))
-				qp->s_lsn++;
-			/* FALLTHROUGH */
-		case IB_WR_RDMA_WRITE_WITH_IMM:
-			/* If no credit, return. */
-			if (!(qp->s_flags & RVT_S_UNLIMITED_CREDIT) &&
-			    qib_cmp24(wqe->ssn, qp->s_lsn + 1) > 0) {
-				qp->s_flags |= RVT_S_WAIT_SSN_CREDIT;
-				goto bail;
+			if (wqe->wr.send_flags & IB_SEND_SOLICITED)
+			{
+				bth0 |= IB_BTH_SOLICITED;
 			}
 
-			ohdr->u.rc.reth.vaddr =
-				cpu_to_be64(wqe->rdma_wr.remote_addr);
-			ohdr->u.rc.reth.rkey =
-				cpu_to_be32(wqe->rdma_wr.rkey);
-			ohdr->u.rc.reth.length = cpu_to_be32(len);
-			hwords += sizeof(struct ib_reth) / sizeof(u32);
-			if (len > pmtu) {
-				qp->s_state = OP(RDMA_WRITE_FIRST);
+			bth2 |= IB_BTH_REQ_ACK;
+			qp->s_cur++;
+
+			if (qp->s_cur >= qp->s_size)
+			{
+				qp->s_cur = 0;
+			}
+
+			break;
+
+		case OP(RDMA_READ_RESPONSE_LAST):
+			/*
+			 * qp->s_state is normally set to the opcode of the
+			 * last packet constructed for new requests and therefore
+			 * is never set to RDMA read response.
+			 * RDMA_READ_RESPONSE_LAST is used by the ACK processing
+			 * thread to indicate a RDMA write needs to be restarted from
+			 * an earlier PSN without interferring with the sending thread.
+			 * See qib_restart_rc().
+			 */
+			qp->s_len = restart_sge(&qp->s_sge, wqe, qp->s_psn, pmtu);
+
+		/* FALLTHROUGH */
+		case OP(RDMA_WRITE_FIRST):
+			qp->s_state = OP(RDMA_WRITE_MIDDLE);
+
+		/* FALLTHROUGH */
+		case OP(RDMA_WRITE_MIDDLE):
+			bth2 = qp->s_psn++ & QIB_PSN_MASK;
+			ss = &qp->s_sge;
+			len = qp->s_len;
+
+			if (len > pmtu)
+			{
 				len = pmtu;
 				break;
 			}
-			if (wqe->rdma_wr.wr.opcode == IB_WR_RDMA_WRITE)
-				qp->s_state = OP(RDMA_WRITE_ONLY);
-			else {
-				qp->s_state = OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE);
-				/* Immediate data comes after RETH */
-				ohdr->u.rc.imm_data =
-					wqe->rdma_wr.wr.ex.imm_data;
-				hwords += 1;
-				if (wqe->rdma_wr.wr.send_flags & IB_SEND_SOLICITED)
-					bth0 |= IB_BTH_SOLICITED;
+
+			if (wqe->wr.opcode == IB_WR_RDMA_WRITE)
+			{
+				qp->s_state = OP(RDMA_WRITE_LAST);
 			}
+			else
+			{
+				qp->s_state = OP(RDMA_WRITE_LAST_WITH_IMMEDIATE);
+				/* Immediate data comes after the BTH */
+				ohdr->u.imm_data = wqe->wr.ex.imm_data;
+				hwords += 1;
+
+				if (wqe->wr.send_flags & IB_SEND_SOLICITED)
+				{
+					bth0 |= IB_BTH_SOLICITED;
+				}
+			}
+
 			bth2 |= IB_BTH_REQ_ACK;
-			if (++qp->s_cur == qp->s_size)
+			qp->s_cur++;
+
+			if (qp->s_cur >= qp->s_size)
+			{
 				qp->s_cur = 0;
+			}
+
 			break;
 
-		case IB_WR_RDMA_READ:
+		case OP(RDMA_READ_RESPONSE_MIDDLE):
 			/*
-			 * Don't allow more operations to be started
-			 * than the QP limits allow.
+			 * qp->s_state is normally set to the opcode of the
+			 * last packet constructed for new requests and therefore
+			 * is never set to RDMA read response.
+			 * RDMA_READ_RESPONSE_MIDDLE is used by the ACK processing
+			 * thread to indicate a RDMA read needs to be restarted from
+			 * an earlier PSN without interferring with the sending thread.
+			 * See qib_restart_rc().
 			 */
-			if (newreq) {
-				if (qp->s_num_rd_atomic >=
-				    qp->s_max_rd_atomic) {
-					qp->s_flags |= RVT_S_WAIT_RDMAR;
-					goto bail;
-				}
-				qp->s_num_rd_atomic++;
-				if (!(qp->s_flags & RVT_S_UNLIMITED_CREDIT))
-					qp->s_lsn++;
-			}
-
+			len = ((qp->s_psn - wqe->psn) & QIB_PSN_MASK) * pmtu;
 			ohdr->u.rc.reth.vaddr =
-				cpu_to_be64(wqe->rdma_wr.remote_addr);
+				cpu_to_be64(wqe->rdma_wr.remote_addr + len);
 			ohdr->u.rc.reth.rkey =
 				cpu_to_be32(wqe->rdma_wr.rkey);
-			ohdr->u.rc.reth.length = cpu_to_be32(len);
+			ohdr->u.rc.reth.length = cpu_to_be32(wqe->length - len);
 			qp->s_state = OP(RDMA_READ_REQUEST);
 			hwords += sizeof(ohdr->u.rc.reth) / sizeof(u32);
-			ss = NULL;
-			len = 0;
-			bth2 |= IB_BTH_REQ_ACK;
-			if (++qp->s_cur == qp->s_size)
-				qp->s_cur = 0;
-			break;
-
-		case IB_WR_ATOMIC_CMP_AND_SWP:
-		case IB_WR_ATOMIC_FETCH_AND_ADD:
-			/*
-			 * Don't allow more operations to be started
-			 * than the QP limits allow.
-			 */
-			if (newreq) {
-				if (qp->s_num_rd_atomic >=
-				    qp->s_max_rd_atomic) {
-					qp->s_flags |= RVT_S_WAIT_RDMAR;
-					goto bail;
-				}
-				qp->s_num_rd_atomic++;
-				if (!(qp->s_flags & RVT_S_UNLIMITED_CREDIT))
-					qp->s_lsn++;
-			}
-			if (wqe->atomic_wr.wr.opcode == IB_WR_ATOMIC_CMP_AND_SWP) {
-				qp->s_state = OP(COMPARE_SWAP);
-				put_ib_ateth_swap(wqe->atomic_wr.swap,
-						  &ohdr->u.atomic_eth);
-				put_ib_ateth_swap(wqe->atomic_wr.compare_add,
-						  &ohdr->u.atomic_eth);
-			} else {
-				qp->s_state = OP(FETCH_ADD);
-				put_ib_ateth_swap(wqe->atomic_wr.compare_add,
-						  &ohdr->u.atomic_eth);
-				put_ib_ateth_swap(0, &ohdr->u.atomic_eth);
-			}
-			put_ib_ateth_vaddr(wqe->atomic_wr.remote_addr,
-					   &ohdr->u.atomic_eth);
-			ohdr->u.atomic_eth.rkey = cpu_to_be32(
-				wqe->atomic_wr.rkey);
-			hwords += sizeof(struct ib_atomic_eth) / sizeof(u32);
-			ss = NULL;
-			len = 0;
-			bth2 |= IB_BTH_REQ_ACK;
-			if (++qp->s_cur == qp->s_size)
-				qp->s_cur = 0;
-			break;
-
-		default:
-			goto bail;
-		}
-		qp->s_sge.sge = wqe->sg_list[0];
-		qp->s_sge.sg_list = wqe->sg_list + 1;
-		qp->s_sge.num_sge = wqe->wr.num_sge;
-		qp->s_sge.total_len = wqe->length;
-		qp->s_len = wqe->length;
-		if (newreq) {
-			qp->s_tail++;
-			if (qp->s_tail >= qp->s_size)
-				qp->s_tail = 0;
-		}
-		if (wqe->wr.opcode == IB_WR_RDMA_READ)
+			bth2 = (qp->s_psn & QIB_PSN_MASK) | IB_BTH_REQ_ACK;
 			qp->s_psn = wqe->lpsn + 1;
-		else
-			qp->s_psn++;
-		break;
+			ss = NULL;
+			len = 0;
+			qp->s_cur++;
 
-	case OP(RDMA_READ_RESPONSE_FIRST):
-		/*
-		 * qp->s_state is normally set to the opcode of the
-		 * last packet constructed for new requests and therefore
-		 * is never set to RDMA read response.
-		 * RDMA_READ_RESPONSE_FIRST is used by the ACK processing
-		 * thread to indicate a SEND needs to be restarted from an
-		 * earlier PSN without interferring with the sending thread.
-		 * See qib_restart_rc().
-		 */
-		qp->s_len = restart_sge(&qp->s_sge, wqe, qp->s_psn, pmtu);
-		/* FALLTHROUGH */
-	case OP(SEND_FIRST):
-		qp->s_state = OP(SEND_MIDDLE);
-		/* FALLTHROUGH */
-	case OP(SEND_MIDDLE):
-		bth2 = qp->s_psn++ & QIB_PSN_MASK;
-		ss = &qp->s_sge;
-		len = qp->s_len;
-		if (len > pmtu) {
-			len = pmtu;
+			if (qp->s_cur == qp->s_size)
+			{
+				qp->s_cur = 0;
+			}
+
 			break;
-		}
-		if (wqe->wr.opcode == IB_WR_SEND)
-			qp->s_state = OP(SEND_LAST);
-		else {
-			qp->s_state = OP(SEND_LAST_WITH_IMMEDIATE);
-			/* Immediate data comes after the BTH */
-			ohdr->u.imm_data = wqe->wr.ex.imm_data;
-			hwords += 1;
-		}
-		if (wqe->wr.send_flags & IB_SEND_SOLICITED)
-			bth0 |= IB_BTH_SOLICITED;
-		bth2 |= IB_BTH_REQ_ACK;
-		qp->s_cur++;
-		if (qp->s_cur >= qp->s_size)
-			qp->s_cur = 0;
-		break;
-
-	case OP(RDMA_READ_RESPONSE_LAST):
-		/*
-		 * qp->s_state is normally set to the opcode of the
-		 * last packet constructed for new requests and therefore
-		 * is never set to RDMA read response.
-		 * RDMA_READ_RESPONSE_LAST is used by the ACK processing
-		 * thread to indicate a RDMA write needs to be restarted from
-		 * an earlier PSN without interferring with the sending thread.
-		 * See qib_restart_rc().
-		 */
-		qp->s_len = restart_sge(&qp->s_sge, wqe, qp->s_psn, pmtu);
-		/* FALLTHROUGH */
-	case OP(RDMA_WRITE_FIRST):
-		qp->s_state = OP(RDMA_WRITE_MIDDLE);
-		/* FALLTHROUGH */
-	case OP(RDMA_WRITE_MIDDLE):
-		bth2 = qp->s_psn++ & QIB_PSN_MASK;
-		ss = &qp->s_sge;
-		len = qp->s_len;
-		if (len > pmtu) {
-			len = pmtu;
-			break;
-		}
-		if (wqe->wr.opcode == IB_WR_RDMA_WRITE)
-			qp->s_state = OP(RDMA_WRITE_LAST);
-		else {
-			qp->s_state = OP(RDMA_WRITE_LAST_WITH_IMMEDIATE);
-			/* Immediate data comes after the BTH */
-			ohdr->u.imm_data = wqe->wr.ex.imm_data;
-			hwords += 1;
-			if (wqe->wr.send_flags & IB_SEND_SOLICITED)
-				bth0 |= IB_BTH_SOLICITED;
-		}
-		bth2 |= IB_BTH_REQ_ACK;
-		qp->s_cur++;
-		if (qp->s_cur >= qp->s_size)
-			qp->s_cur = 0;
-		break;
-
-	case OP(RDMA_READ_RESPONSE_MIDDLE):
-		/*
-		 * qp->s_state is normally set to the opcode of the
-		 * last packet constructed for new requests and therefore
-		 * is never set to RDMA read response.
-		 * RDMA_READ_RESPONSE_MIDDLE is used by the ACK processing
-		 * thread to indicate a RDMA read needs to be restarted from
-		 * an earlier PSN without interferring with the sending thread.
-		 * See qib_restart_rc().
-		 */
-		len = ((qp->s_psn - wqe->psn) & QIB_PSN_MASK) * pmtu;
-		ohdr->u.rc.reth.vaddr =
-			cpu_to_be64(wqe->rdma_wr.remote_addr + len);
-		ohdr->u.rc.reth.rkey =
-			cpu_to_be32(wqe->rdma_wr.rkey);
-		ohdr->u.rc.reth.length = cpu_to_be32(wqe->length - len);
-		qp->s_state = OP(RDMA_READ_REQUEST);
-		hwords += sizeof(ohdr->u.rc.reth) / sizeof(u32);
-		bth2 = (qp->s_psn & QIB_PSN_MASK) | IB_BTH_REQ_ACK;
-		qp->s_psn = wqe->lpsn + 1;
-		ss = NULL;
-		len = 0;
-		qp->s_cur++;
-		if (qp->s_cur == qp->s_size)
-			qp->s_cur = 0;
-		break;
 	}
+
 	qp->s_sending_hpsn = bth2;
 	delta = (((int) bth2 - (int) wqe->psn) << 8) >> 8;
+
 	if (delta && delta % QIB_PSN_CREDIT == 0)
+	{
 		bth2 |= IB_BTH_REQ_ACK;
-	if (qp->s_flags & RVT_S_SEND_ONE) {
+	}
+
+	if (qp->s_flags & RVT_S_SEND_ONE)
+	{
 		qp->s_flags &= ~RVT_S_SEND_ONE;
 		qp->s_flags |= RVT_S_WAIT_ACK;
 		bth2 |= IB_BTH_REQ_ACK;
 	}
+
 	qp->s_len -= len;
 	qp->s_hdrwords = hwords;
 	qp->s_cur_sge = ss;
@@ -635,35 +834,49 @@ void qib_send_rc_ack(struct rvt_qp *qp)
 	spin_lock_irqsave(&qp->s_lock, flags);
 
 	if (!(ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK))
+	{
 		goto unlock;
+	}
 
 	/* Don't send ACK or NAK if a RDMA read or atomic is pending. */
 	if ((qp->s_flags & RVT_S_RESP_PENDING) || qp->s_rdma_ack_cnt)
+	{
 		goto queue_ack;
+	}
 
 	/* Construct the header with s_lock held so APM doesn't change it. */
 	ohdr = &hdr.u.oth;
 	lrh0 = QIB_LRH_BTH;
 	/* header size in 32-bit words LRH+BTH+AETH = (8+12+4)/4. */
 	hwords = 6;
-	if (unlikely(qp->remote_ah_attr.ah_flags & IB_AH_GRH)) {
+
+	if (unlikely(qp->remote_ah_attr.ah_flags & IB_AH_GRH))
+	{
 		hwords += qib_make_grh(ibp, &hdr.u.l.grh,
-				       &qp->remote_ah_attr.grh, hwords, 0);
+							   &qp->remote_ah_attr.grh, hwords, 0);
 		ohdr = &hdr.u.l.oth;
 		lrh0 = QIB_LRH_GRH;
 	}
+
 	/* read pkey_index w/o lock (its atomic) */
 	bth0 = qib_get_pkey(ibp, qp->s_pkey_index) | (OP(ACKNOWLEDGE) << 24);
+
 	if (qp->s_mig_state == IB_MIG_MIGRATED)
+	{
 		bth0 |= IB_BTH_MIG_REQ;
+	}
+
 	if (qp->r_nak_state)
 		ohdr->u.aeth = cpu_to_be32((qp->r_msn & QIB_MSN_MASK) |
-					    (qp->r_nak_state <<
-					     QIB_AETH_CREDIT_SHIFT));
+								   (qp->r_nak_state <<
+									QIB_AETH_CREDIT_SHIFT));
 	else
+	{
 		ohdr->u.aeth = qib_compute_aeth(qp);
+	}
+
 	lrh0 |= ibp->sl_to_vl[qp->remote_ah_attr.sl] << 12 |
-		qp->remote_ah_attr.sl << 4;
+			qp->remote_ah_attr.sl << 4;
 	hdr.lrh[0] = cpu_to_be16(lrh0);
 	hdr.lrh[1] = cpu_to_be16(qp->remote_ah_attr.dlid);
 	hdr.lrh[2] = cpu_to_be16(hwords + SIZE_OF_CRC);
@@ -676,15 +889,19 @@ void qib_send_rc_ack(struct rvt_qp *qp)
 
 	/* Don't try to send ACKs if the link isn't ACTIVE */
 	if (!(ppd->lflags & QIBL_LINKACTIVE))
+	{
 		goto done;
+	}
 
 	control = dd->f_setpbc_control(ppd, hwords + SIZE_OF_CRC,
-				       qp->s_srate, lrh0 >> 12);
+								   qp->s_srate, lrh0 >> 12);
 	/* length is + 1 for the control dword */
 	pbc = ((u64) control << 32) | (hwords + 1);
 
 	piobuf = dd->f_getsendbuf(ppd, pbc, &pbufn);
-	if (!piobuf) {
+
+	if (!piobuf)
+	{
 		/*
 		 * We are out of PIO buffers at the moment.
 		 * Pass responsibility for sending the ACK to the
@@ -703,17 +920,22 @@ void qib_send_rc_ack(struct rvt_qp *qp)
 	 */
 	writeq(pbc, piobuf);
 
-	if (dd->flags & QIB_PIO_FLUSH_WC) {
+	if (dd->flags & QIB_PIO_FLUSH_WC)
+	{
 		u32 *hdrp = (u32 *) &hdr;
 
 		qib_flush_wc();
 		qib_pio_copy(piobuf + 2, hdrp, hwords - 1);
 		qib_flush_wc();
 		__raw_writel(hdrp[hwords - 1], piobuf + hwords + 1);
-	} else
+	}
+	else
+	{
 		qib_pio_copy(piobuf + 2, (u32 *) &hdr, hwords);
+	}
 
-	if (dd->flags & QIB_USE_SPCL_TRIG) {
+	if (dd->flags & QIB_USE_SPCL_TRIG)
+	{
 		u32 spcl_off = (pbufn >= dd->piobcnt2k) ? 2047 : 1023;
 
 		qib_flush_wc();
@@ -727,7 +949,9 @@ void qib_send_rc_ack(struct rvt_qp *qp)
 	goto done;
 
 queue_ack:
-	if (ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK) {
+
+	if (ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK)
+	{
 		this_cpu_inc(*ibp->rvp.rc_qacks);
 		qp->s_flags |= RVT_S_ACK_PENDING | RVT_S_RESP_PENDING;
 		qp->s_nak_state = qp->r_nak_state;
@@ -736,6 +960,7 @@ queue_ack:
 		/* Schedule the send tasklet. */
 		qib_schedule_send(qp);
 	}
+
 unlock:
 	spin_unlock_irqrestore(&qp->s_lock, flags);
 done:
@@ -763,33 +988,49 @@ static void reset_psn(struct rvt_qp *qp, u32 psn)
 	 * If we are starting the request from the beginning,
 	 * let the normal send code handle initialization.
 	 */
-	if (qib_cmp24(psn, wqe->psn) <= 0) {
+	if (qib_cmp24(psn, wqe->psn) <= 0)
+	{
 		qp->s_state = OP(SEND_LAST);
 		goto done;
 	}
 
 	/* Find the work request opcode corresponding to the given PSN. */
 	opcode = wqe->wr.opcode;
-	for (;;) {
+
+	for (;;)
+	{
 		int diff;
 
 		if (++n == qp->s_size)
+		{
 			n = 0;
+		}
+
 		if (n == qp->s_tail)
+		{
 			break;
+		}
+
 		wqe = rvt_get_swqe_ptr(qp, n);
 		diff = qib_cmp24(psn, wqe->psn);
+
 		if (diff < 0)
+		{
 			break;
+		}
+
 		qp->s_cur = n;
+
 		/*
 		 * If we are starting the request from the beginning,
 		 * let the normal send code handle initialization.
 		 */
-		if (diff == 0) {
+		if (diff == 0)
+		{
 			qp->s_state = OP(SEND_LAST);
 			goto done;
 		}
+
 		opcode = wqe->wr.opcode;
 	}
 
@@ -798,38 +1039,43 @@ static void reset_psn(struct rvt_qp *qp, u32 psn)
 	 * Don't change the s_sge, s_cur_sge, or s_cur_size.
 	 * See qib_make_rc_req().
 	 */
-	switch (opcode) {
-	case IB_WR_SEND:
-	case IB_WR_SEND_WITH_IMM:
-		qp->s_state = OP(RDMA_READ_RESPONSE_FIRST);
-		break;
+	switch (opcode)
+	{
+		case IB_WR_SEND:
+		case IB_WR_SEND_WITH_IMM:
+			qp->s_state = OP(RDMA_READ_RESPONSE_FIRST);
+			break;
 
-	case IB_WR_RDMA_WRITE:
-	case IB_WR_RDMA_WRITE_WITH_IMM:
-		qp->s_state = OP(RDMA_READ_RESPONSE_LAST);
-		break;
+		case IB_WR_RDMA_WRITE:
+		case IB_WR_RDMA_WRITE_WITH_IMM:
+			qp->s_state = OP(RDMA_READ_RESPONSE_LAST);
+			break;
 
-	case IB_WR_RDMA_READ:
-		qp->s_state = OP(RDMA_READ_RESPONSE_MIDDLE);
-		break;
+		case IB_WR_RDMA_READ:
+			qp->s_state = OP(RDMA_READ_RESPONSE_MIDDLE);
+			break;
 
-	default:
-		/*
-		 * This case shouldn't happen since its only
-		 * one PSN per req.
-		 */
-		qp->s_state = OP(SEND_LAST);
+		default:
+			/*
+			 * This case shouldn't happen since its only
+			 * one PSN per req.
+			 */
+			qp->s_state = OP(SEND_LAST);
 	}
+
 done:
 	qp->s_psn = psn;
+
 	/*
 	 * Set RVT_S_WAIT_PSN as qib_rc_complete() may start the timer
 	 * asynchronously before the send tasklet can get scheduled.
 	 * Doing it in qib_make_rc_req() is too late.
 	 */
 	if ((qib_cmp24(qp->s_psn, qp->s_sending_hpsn) <= 0) &&
-	    (qib_cmp24(qp->s_sending_psn, qp->s_sending_hpsn) <= 0))
+		(qib_cmp24(qp->s_sending_psn, qp->s_sending_hpsn) <= 0))
+	{
 		qp->s_flags |= RVT_S_WAIT_PSN;
+	}
 }
 
 /*
@@ -841,30 +1087,49 @@ static void qib_restart_rc(struct rvt_qp *qp, u32 psn, int wait)
 	struct rvt_swqe *wqe = rvt_get_swqe_ptr(qp, qp->s_acked);
 	struct qib_ibport *ibp;
 
-	if (qp->s_retry == 0) {
-		if (qp->s_mig_state == IB_MIG_ARMED) {
+	if (qp->s_retry == 0)
+	{
+		if (qp->s_mig_state == IB_MIG_ARMED)
+		{
 			qib_migrate_qp(qp);
 			qp->s_retry = qp->s_retry_cnt;
-		} else if (qp->s_last == qp->s_acked) {
+		}
+		else if (qp->s_last == qp->s_acked)
+		{
 			qib_send_complete(qp, wqe, IB_WC_RETRY_EXC_ERR);
 			rvt_error_qp(qp, IB_WC_WR_FLUSH_ERR);
 			return;
-		} else /* XXX need to handle delayed completion */
+		}
+		else   /* XXX need to handle delayed completion */
+		{
 			return;
-	} else
+		}
+	}
+	else
+	{
 		qp->s_retry--;
+	}
 
 	ibp = to_iport(qp->ibqp.device, qp->port_num);
+
 	if (wqe->wr.opcode == IB_WR_RDMA_READ)
+	{
 		ibp->rvp.n_rc_resends++;
+	}
 	else
+	{
 		ibp->rvp.n_rc_resends += (qp->s_psn - psn) & QIB_PSN_MASK;
+	}
 
 	qp->s_flags &= ~(RVT_S_WAIT_FENCE | RVT_S_WAIT_RDMAR |
-			 RVT_S_WAIT_SSN_CREDIT | RVT_S_WAIT_PSN |
-			 RVT_S_WAIT_ACK);
+					 RVT_S_WAIT_SSN_CREDIT | RVT_S_WAIT_PSN |
+					 RVT_S_WAIT_ACK);
+
 	if (wait)
+	{
 		qp->s_flags |= RVT_S_SEND_ONE;
+	}
+
 	reset_psn(qp, psn);
 }
 
@@ -879,7 +1144,9 @@ static void rc_timeout(unsigned long arg)
 
 	spin_lock_irqsave(&qp->r_lock, flags);
 	spin_lock(&qp->s_lock);
-	if (qp->s_flags & RVT_S_TIMER) {
+
+	if (qp->s_flags & RVT_S_TIMER)
+	{
 		ibp = to_iport(qp->ibqp.device, qp->port_num);
 		ibp->rvp.n_rc_timeouts++;
 		qp->s_flags &= ~RVT_S_TIMER;
@@ -887,6 +1154,7 @@ static void rc_timeout(unsigned long arg)
 		qib_restart_rc(qp, qp->s_last_psn + 1, 1);
 		qib_schedule_send(qp);
 	}
+
 	spin_unlock(&qp->s_lock);
 	spin_unlock_irqrestore(&qp->r_lock, flags);
 }
@@ -900,11 +1168,14 @@ void qib_rc_rnr_retry(unsigned long arg)
 	unsigned long flags;
 
 	spin_lock_irqsave(&qp->s_lock, flags);
-	if (qp->s_flags & RVT_S_WAIT_RNR) {
+
+	if (qp->s_flags & RVT_S_WAIT_RNR)
+	{
 		qp->s_flags &= ~RVT_S_WAIT_RNR;
 		del_timer(&qp->s_timer);
 		qib_schedule_send(qp);
 	}
+
 	spin_unlock_irqrestore(&qp->s_lock, flags);
 }
 
@@ -918,19 +1189,33 @@ static void reset_sending_psn(struct rvt_qp *qp, u32 psn)
 	u32 n = qp->s_last;
 
 	/* Find the work request corresponding to the given PSN. */
-	for (;;) {
+	for (;;)
+	{
 		wqe = rvt_get_swqe_ptr(qp, n);
-		if (qib_cmp24(psn, wqe->lpsn) <= 0) {
+
+		if (qib_cmp24(psn, wqe->lpsn) <= 0)
+		{
 			if (wqe->wr.opcode == IB_WR_RDMA_READ)
+			{
 				qp->s_sending_psn = wqe->lpsn + 1;
+			}
 			else
+			{
 				qp->s_sending_psn = psn + 1;
+			}
+
 			break;
 		}
+
 		if (++n == qp->s_size)
+		{
 			n = 0;
+		}
+
 		if (n == qp->s_tail)
+		{
 			break;
+		}
 	}
 }
 
@@ -947,17 +1232,25 @@ void qib_rc_send_complete(struct rvt_qp *qp, struct ib_header *hdr)
 	u32 psn;
 
 	if (!(ib_rvt_state_ops[qp->state] & RVT_PROCESS_OR_FLUSH_SEND))
+	{
 		return;
+	}
 
 	/* Find out where the BTH is */
 	if ((be16_to_cpu(hdr->lrh[0]) & 3) == QIB_LRH_BTH)
+	{
 		ohdr = &hdr->u.oth;
+	}
 	else
+	{
 		ohdr = &hdr->u.l.oth;
+	}
 
 	opcode = be32_to_cpu(ohdr->bth[0]) >> 24;
+
 	if (opcode >= OP(RDMA_READ_RESPONSE_FIRST) &&
-	    opcode <= OP(ATOMIC_ACKNOWLEDGE)) {
+		opcode <= OP(ATOMIC_ACKNOWLEDGE))
+	{
 		WARN_ON(!qp->s_rdma_ack_cnt);
 		qp->s_rdma_ack_cnt--;
 		return;
@@ -971,31 +1264,46 @@ void qib_rc_send_complete(struct rvt_qp *qp, struct ib_header *hdr)
 	 * there are still requests that haven't been acked.
 	 */
 	if ((psn & IB_BTH_REQ_ACK) && qp->s_acked != qp->s_tail &&
-	    !(qp->s_flags & (RVT_S_TIMER | RVT_S_WAIT_RNR | RVT_S_WAIT_PSN)) &&
-	    (ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK))
+		!(qp->s_flags & (RVT_S_TIMER | RVT_S_WAIT_RNR | RVT_S_WAIT_PSN)) &&
+		(ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK))
+	{
 		start_timer(qp);
+	}
 
-	while (qp->s_last != qp->s_acked) {
+	while (qp->s_last != qp->s_acked)
+	{
 		u32 s_last;
 
 		wqe = rvt_get_swqe_ptr(qp, qp->s_last);
+
 		if (qib_cmp24(wqe->lpsn, qp->s_sending_psn) >= 0 &&
-		    qib_cmp24(qp->s_sending_psn, qp->s_sending_hpsn) <= 0)
+			qib_cmp24(qp->s_sending_psn, qp->s_sending_hpsn) <= 0)
+		{
 			break;
+		}
+
 		s_last = qp->s_last;
+
 		if (++s_last >= qp->s_size)
+		{
 			s_last = 0;
+		}
+
 		qp->s_last = s_last;
 		/* see post_send() */
 		barrier();
-		for (i = 0; i < wqe->wr.num_sge; i++) {
+
+		for (i = 0; i < wqe->wr.num_sge; i++)
+		{
 			struct rvt_sge *sge = &wqe->sg_list[i];
 
 			rvt_put_mr(sge->mr);
 		}
+
 		/* Post a send completion queue entry if requested. */
 		if (!(qp->s_flags & RVT_S_SIGNAL_REQ_WR) ||
-		    (wqe->wr.send_flags & IB_SEND_SIGNALED)) {
+			(wqe->wr.send_flags & IB_SEND_SIGNALED))
+		{
 			memset(&wc, 0, sizeof(wc));
 			wc.wr_id = wqe->wr.wr_id;
 			wc.status = IB_WC_SUCCESS;
@@ -1005,12 +1313,14 @@ void qib_rc_send_complete(struct rvt_qp *qp, struct ib_header *hdr)
 			rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.send_cq), &wc, 0);
 		}
 	}
+
 	/*
 	 * If we were waiting for sends to complete before resending,
 	 * and they are now complete, restart sending.
 	 */
 	if (qp->s_flags & RVT_S_WAIT_PSN &&
-	    qib_cmp24(qp->s_sending_psn, qp->s_sending_hpsn) > 0) {
+		qib_cmp24(qp->s_sending_psn, qp->s_sending_hpsn) > 0)
+	{
 		qp->s_flags &= ~RVT_S_WAIT_PSN;
 		qp->s_sending_psn = qp->s_psn;
 		qp->s_sending_hpsn = qp->s_psn - 1;
@@ -1029,8 +1339,8 @@ static inline void update_last_psn(struct rvt_qp *qp, u32 psn)
  * that the SGEs are not being referenced if the SWQE is being resent.
  */
 static struct rvt_swqe *do_rc_completion(struct rvt_qp *qp,
-					 struct rvt_swqe *wqe,
-					 struct qib_ibport *ibp)
+		struct rvt_swqe *wqe,
+		struct qib_ibport *ibp)
 {
 	struct ib_wc wc;
 	unsigned i;
@@ -1041,23 +1351,32 @@ static struct rvt_swqe *do_rc_completion(struct rvt_qp *qp,
 	 * is finished.
 	 */
 	if (qib_cmp24(wqe->lpsn, qp->s_sending_psn) < 0 ||
-	    qib_cmp24(qp->s_sending_psn, qp->s_sending_hpsn) > 0) {
+		qib_cmp24(qp->s_sending_psn, qp->s_sending_hpsn) > 0)
+	{
 		u32 s_last;
 
-		for (i = 0; i < wqe->wr.num_sge; i++) {
+		for (i = 0; i < wqe->wr.num_sge; i++)
+		{
 			struct rvt_sge *sge = &wqe->sg_list[i];
 
 			rvt_put_mr(sge->mr);
 		}
+
 		s_last = qp->s_last;
+
 		if (++s_last >= qp->s_size)
+		{
 			s_last = 0;
+		}
+
 		qp->s_last = s_last;
 		/* see post_send() */
 		barrier();
+
 		/* Post a send completion queue entry if requested. */
 		if (!(qp->s_flags & RVT_S_SIGNAL_REQ_WR) ||
-		    (wqe->wr.send_flags & IB_SEND_SIGNALED)) {
+			(wqe->wr.send_flags & IB_SEND_SIGNALED))
+		{
 			memset(&wc, 0, sizeof(wc));
 			wc.wr_id = wqe->wr.wr_id;
 			wc.status = IB_WC_SUCCESS;
@@ -1066,8 +1385,11 @@ static struct rvt_swqe *do_rc_completion(struct rvt_qp *qp,
 			wc.qp = &qp->ibqp;
 			rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.send_cq), &wc, 0);
 		}
-	} else
+	}
+	else
+	{
 		this_cpu_inc(*ibp->rvp.rc_delayed_comp);
+	}
 
 	qp->s_retry = qp->s_retry_cnt;
 	update_last_psn(qp, wqe->lpsn);
@@ -1077,22 +1399,37 @@ static struct rvt_swqe *do_rc_completion(struct rvt_qp *qp,
 	 * being resent, we can stop resending it since we know the
 	 * responder has already seen it.
 	 */
-	if (qp->s_acked == qp->s_cur) {
+	if (qp->s_acked == qp->s_cur)
+	{
 		if (++qp->s_cur >= qp->s_size)
+		{
 			qp->s_cur = 0;
+		}
+
 		qp->s_acked = qp->s_cur;
 		wqe = rvt_get_swqe_ptr(qp, qp->s_cur);
-		if (qp->s_acked != qp->s_tail) {
+
+		if (qp->s_acked != qp->s_tail)
+		{
 			qp->s_state = OP(SEND_LAST);
 			qp->s_psn = wqe->psn;
 		}
-	} else {
+	}
+	else
+	{
 		if (++qp->s_acked >= qp->s_size)
+		{
 			qp->s_acked = 0;
+		}
+
 		if (qp->state == IB_QPS_SQD && qp->s_acked == qp->s_cur)
+		{
 			qp->s_draining = 0;
+		}
+
 		wqe = rvt_get_swqe_ptr(qp, qp->s_acked);
 	}
+
 	return wqe;
 }
 
@@ -1108,7 +1445,7 @@ static struct rvt_swqe *do_rc_completion(struct rvt_qp *qp,
  * Returns 1 if OK, 0 if current operation should be aborted (NAK).
  */
 static int do_rc_ack(struct rvt_qp *qp, u32 aeth, u32 psn, int opcode,
-		     u64 val, struct qib_ctxtdata *rcd)
+					 u64 val, struct qib_ctxtdata *rcd)
 {
 	struct qib_ibport *ibp;
 	enum ib_wc_status status;
@@ -1118,7 +1455,8 @@ static int do_rc_ack(struct rvt_qp *qp, u32 aeth, u32 psn, int opcode,
 	int diff;
 
 	/* Remove QP from retry timer */
-	if (qp->s_flags & (RVT_S_TIMER | RVT_S_WAIT_RNR)) {
+	if (qp->s_flags & (RVT_S_TIMER | RVT_S_WAIT_RNR))
+	{
 		qp->s_flags &= ~(RVT_S_TIMER | RVT_S_WAIT_RNR);
 		del_timer(&qp->s_timer);
 	}
@@ -1130,8 +1468,12 @@ static int do_rc_ack(struct rvt_qp *qp, u32 aeth, u32 psn, int opcode,
 	 * request but will include an ACK'ed request(s).
 	 */
 	ack_psn = psn;
+
 	if (aeth >> 29)
+	{
 		ack_psn--;
+	}
+
 	wqe = rvt_get_swqe_ptr(qp, qp->s_acked);
 	ibp = to_iport(qp->ibqp.device, qp->port_num);
 
@@ -1139,7 +1481,8 @@ static int do_rc_ack(struct rvt_qp *qp, u32 aeth, u32 psn, int opcode,
 	 * The MSN might be for a later WQE than the PSN indicates so
 	 * only complete WQEs that the PSN finishes.
 	 */
-	while ((diff = qib_cmp24(ack_psn, wqe->lpsn)) >= 0) {
+	while ((diff = qib_cmp24(ack_psn, wqe->lpsn)) >= 0)
+	{
 		/*
 		 * RDMA_READ_RESPONSE_ONLY is a special case since
 		 * we want to generate completion events for everything
@@ -1147,11 +1490,13 @@ static int do_rc_ack(struct rvt_qp *qp, u32 aeth, u32 psn, int opcode,
 		 * the completion for the read.
 		 */
 		if (wqe->wr.opcode == IB_WR_RDMA_READ &&
-		    opcode == OP(RDMA_READ_RESPONSE_ONLY) &&
-		    diff == 0) {
+			opcode == OP(RDMA_READ_RESPONSE_ONLY) &&
+			diff == 0)
+		{
 			ret = 1;
 			goto bail;
 		}
+
 		/*
 		 * If this request is a RDMA read or atomic, and the ACK is
 		 * for a later operation, this ACK NAKs the RDMA read or
@@ -1162,164 +1507,212 @@ static int do_rc_ack(struct rvt_qp *qp, u32 aeth, u32 psn, int opcode,
 		 * is sent but before the response is received.
 		 */
 		if ((wqe->wr.opcode == IB_WR_RDMA_READ &&
-		     (opcode != OP(RDMA_READ_RESPONSE_LAST) || diff != 0)) ||
-		    ((wqe->wr.opcode == IB_WR_ATOMIC_CMP_AND_SWP ||
-		      wqe->wr.opcode == IB_WR_ATOMIC_FETCH_AND_ADD) &&
-		     (opcode != OP(ATOMIC_ACKNOWLEDGE) || diff != 0))) {
+			 (opcode != OP(RDMA_READ_RESPONSE_LAST) || diff != 0)) ||
+			((wqe->wr.opcode == IB_WR_ATOMIC_CMP_AND_SWP ||
+			  wqe->wr.opcode == IB_WR_ATOMIC_FETCH_AND_ADD) &&
+			 (opcode != OP(ATOMIC_ACKNOWLEDGE) || diff != 0)))
+		{
 			/* Retry this request. */
-			if (!(qp->r_flags & RVT_R_RDMAR_SEQ)) {
+			if (!(qp->r_flags & RVT_R_RDMAR_SEQ))
+			{
 				qp->r_flags |= RVT_R_RDMAR_SEQ;
 				qib_restart_rc(qp, qp->s_last_psn + 1, 0);
-				if (list_empty(&qp->rspwait)) {
+
+				if (list_empty(&qp->rspwait))
+				{
 					qp->r_flags |= RVT_R_RSP_SEND;
 					rvt_get_qp(qp);
 					list_add_tail(&qp->rspwait,
-						      &rcd->qp_wait_list);
+								  &rcd->qp_wait_list);
 				}
 			}
+
 			/*
 			 * No need to process the ACK/NAK since we are
 			 * restarting an earlier request.
 			 */
 			goto bail;
 		}
+
 		if (wqe->wr.opcode == IB_WR_ATOMIC_CMP_AND_SWP ||
-		    wqe->wr.opcode == IB_WR_ATOMIC_FETCH_AND_ADD) {
+			wqe->wr.opcode == IB_WR_ATOMIC_FETCH_AND_ADD)
+		{
 			u64 *vaddr = wqe->sg_list[0].vaddr;
 			*vaddr = val;
 		}
+
 		if (qp->s_num_rd_atomic &&
-		    (wqe->wr.opcode == IB_WR_RDMA_READ ||
-		     wqe->wr.opcode == IB_WR_ATOMIC_CMP_AND_SWP ||
-		     wqe->wr.opcode == IB_WR_ATOMIC_FETCH_AND_ADD)) {
+			(wqe->wr.opcode == IB_WR_RDMA_READ ||
+			 wqe->wr.opcode == IB_WR_ATOMIC_CMP_AND_SWP ||
+			 wqe->wr.opcode == IB_WR_ATOMIC_FETCH_AND_ADD))
+		{
 			qp->s_num_rd_atomic--;
+
 			/* Restart sending task if fence is complete */
 			if ((qp->s_flags & RVT_S_WAIT_FENCE) &&
-			    !qp->s_num_rd_atomic) {
+				!qp->s_num_rd_atomic)
+			{
 				qp->s_flags &= ~(RVT_S_WAIT_FENCE |
-						 RVT_S_WAIT_ACK);
+								 RVT_S_WAIT_ACK);
 				qib_schedule_send(qp);
-			} else if (qp->s_flags & RVT_S_WAIT_RDMAR) {
+			}
+			else if (qp->s_flags & RVT_S_WAIT_RDMAR)
+			{
 				qp->s_flags &= ~(RVT_S_WAIT_RDMAR |
-						 RVT_S_WAIT_ACK);
+								 RVT_S_WAIT_ACK);
 				qib_schedule_send(qp);
 			}
 		}
+
 		wqe = do_rc_completion(qp, wqe, ibp);
+
 		if (qp->s_acked == qp->s_tail)
+		{
 			break;
+		}
 	}
 
-	switch (aeth >> 29) {
-	case 0:         /* ACK */
-		this_cpu_inc(*ibp->rvp.rc_acks);
-		if (qp->s_acked != qp->s_tail) {
-			/*
-			 * We are expecting more ACKs so
-			 * reset the retransmit timer.
-			 */
-			start_timer(qp);
-			/*
-			 * We can stop resending the earlier packets and
-			 * continue with the next packet the receiver wants.
-			 */
-			if (qib_cmp24(qp->s_psn, psn) <= 0)
-				reset_psn(qp, psn + 1);
-		} else if (qib_cmp24(qp->s_psn, psn) <= 0) {
-			qp->s_state = OP(SEND_LAST);
-			qp->s_psn = psn + 1;
-		}
-		if (qp->s_flags & RVT_S_WAIT_ACK) {
-			qp->s_flags &= ~RVT_S_WAIT_ACK;
-			qib_schedule_send(qp);
-		}
-		qib_get_credit(qp, aeth);
-		qp->s_rnr_retry = qp->s_rnr_retry_cnt;
-		qp->s_retry = qp->s_retry_cnt;
-		update_last_psn(qp, psn);
-		ret = 1;
-		goto bail;
+	switch (aeth >> 29)
+	{
+		case 0:         /* ACK */
+			this_cpu_inc(*ibp->rvp.rc_acks);
 
-	case 1:         /* RNR NAK */
-		ibp->rvp.n_rnr_naks++;
-		if (qp->s_acked == qp->s_tail)
-			goto bail;
-		if (qp->s_flags & RVT_S_WAIT_RNR)
-			goto bail;
-		if (qp->s_rnr_retry == 0) {
-			status = IB_WC_RNR_RETRY_EXC_ERR;
-			goto class_b;
-		}
-		if (qp->s_rnr_retry_cnt < 7)
-			qp->s_rnr_retry--;
+			if (qp->s_acked != qp->s_tail)
+			{
+				/*
+				 * We are expecting more ACKs so
+				 * reset the retransmit timer.
+				 */
+				start_timer(qp);
 
-		/* The last valid PSN is the previous PSN. */
-		update_last_psn(qp, psn - 1);
-
-		ibp->rvp.n_rc_resends += (qp->s_psn - psn) & QIB_PSN_MASK;
-
-		reset_psn(qp, psn);
-
-		qp->s_flags &= ~(RVT_S_WAIT_SSN_CREDIT | RVT_S_WAIT_ACK);
-		qp->s_flags |= RVT_S_WAIT_RNR;
-		qp->s_timer.function = qib_rc_rnr_retry;
-		qp->s_timer.expires = jiffies + usecs_to_jiffies(
-			ib_qib_rnr_table[(aeth >> QIB_AETH_CREDIT_SHIFT) &
-					   QIB_AETH_CREDIT_MASK]);
-		add_timer(&qp->s_timer);
-		goto bail;
-
-	case 3:         /* NAK */
-		if (qp->s_acked == qp->s_tail)
-			goto bail;
-		/* The last valid PSN is the previous PSN. */
-		update_last_psn(qp, psn - 1);
-		switch ((aeth >> QIB_AETH_CREDIT_SHIFT) &
-			QIB_AETH_CREDIT_MASK) {
-		case 0: /* PSN sequence error */
-			ibp->rvp.n_seq_naks++;
-			/*
-			 * Back up to the responder's expected PSN.
-			 * Note that we might get a NAK in the middle of an
-			 * RDMA READ response which terminates the RDMA
-			 * READ.
-			 */
-			qib_restart_rc(qp, psn, 0);
-			qib_schedule_send(qp);
-			break;
-
-		case 1: /* Invalid Request */
-			status = IB_WC_REM_INV_REQ_ERR;
-			ibp->rvp.n_other_naks++;
-			goto class_b;
-
-		case 2: /* Remote Access Error */
-			status = IB_WC_REM_ACCESS_ERR;
-			ibp->rvp.n_other_naks++;
-			goto class_b;
-
-		case 3: /* Remote Operation Error */
-			status = IB_WC_REM_OP_ERR;
-			ibp->rvp.n_other_naks++;
-class_b:
-			if (qp->s_last == qp->s_acked) {
-				qib_send_complete(qp, wqe, status);
-				rvt_error_qp(qp, IB_WC_WR_FLUSH_ERR);
+				/*
+				 * We can stop resending the earlier packets and
+				 * continue with the next packet the receiver wants.
+				 */
+				if (qib_cmp24(qp->s_psn, psn) <= 0)
+				{
+					reset_psn(qp, psn + 1);
+				}
 			}
-			break;
+			else if (qib_cmp24(qp->s_psn, psn) <= 0)
+			{
+				qp->s_state = OP(SEND_LAST);
+				qp->s_psn = psn + 1;
+			}
 
-		default:
-			/* Ignore other reserved NAK error codes */
-			goto reserved;
-		}
-		qp->s_retry = qp->s_retry_cnt;
-		qp->s_rnr_retry = qp->s_rnr_retry_cnt;
-		goto bail;
+			if (qp->s_flags & RVT_S_WAIT_ACK)
+			{
+				qp->s_flags &= ~RVT_S_WAIT_ACK;
+				qib_schedule_send(qp);
+			}
 
-	default:                /* 2: reserved */
+			qib_get_credit(qp, aeth);
+			qp->s_rnr_retry = qp->s_rnr_retry_cnt;
+			qp->s_retry = qp->s_retry_cnt;
+			update_last_psn(qp, psn);
+			ret = 1;
+			goto bail;
+
+		case 1:         /* RNR NAK */
+			ibp->rvp.n_rnr_naks++;
+
+			if (qp->s_acked == qp->s_tail)
+			{
+				goto bail;
+			}
+
+			if (qp->s_flags & RVT_S_WAIT_RNR)
+			{
+				goto bail;
+			}
+
+			if (qp->s_rnr_retry == 0)
+			{
+				status = IB_WC_RNR_RETRY_EXC_ERR;
+				goto class_b;
+			}
+
+			if (qp->s_rnr_retry_cnt < 7)
+			{
+				qp->s_rnr_retry--;
+			}
+
+			/* The last valid PSN is the previous PSN. */
+			update_last_psn(qp, psn - 1);
+
+			ibp->rvp.n_rc_resends += (qp->s_psn - psn) & QIB_PSN_MASK;
+
+			reset_psn(qp, psn);
+
+			qp->s_flags &= ~(RVT_S_WAIT_SSN_CREDIT | RVT_S_WAIT_ACK);
+			qp->s_flags |= RVT_S_WAIT_RNR;
+			qp->s_timer.function = qib_rc_rnr_retry;
+			qp->s_timer.expires = jiffies + usecs_to_jiffies(
+									  ib_qib_rnr_table[(aeth >> QIB_AETH_CREDIT_SHIFT) &
+											  QIB_AETH_CREDIT_MASK]);
+			add_timer(&qp->s_timer);
+			goto bail;
+
+		case 3:         /* NAK */
+			if (qp->s_acked == qp->s_tail)
+			{
+				goto bail;
+			}
+
+			/* The last valid PSN is the previous PSN. */
+			update_last_psn(qp, psn - 1);
+
+			switch ((aeth >> QIB_AETH_CREDIT_SHIFT) &
+					QIB_AETH_CREDIT_MASK)
+			{
+				case 0: /* PSN sequence error */
+					ibp->rvp.n_seq_naks++;
+					/*
+					 * Back up to the responder's expected PSN.
+					 * Note that we might get a NAK in the middle of an
+					 * RDMA READ response which terminates the RDMA
+					 * READ.
+					 */
+					qib_restart_rc(qp, psn, 0);
+					qib_schedule_send(qp);
+					break;
+
+				case 1: /* Invalid Request */
+					status = IB_WC_REM_INV_REQ_ERR;
+					ibp->rvp.n_other_naks++;
+					goto class_b;
+
+				case 2: /* Remote Access Error */
+					status = IB_WC_REM_ACCESS_ERR;
+					ibp->rvp.n_other_naks++;
+					goto class_b;
+
+				case 3: /* Remote Operation Error */
+					status = IB_WC_REM_OP_ERR;
+					ibp->rvp.n_other_naks++;
+class_b:
+
+					if (qp->s_last == qp->s_acked)
+					{
+						qib_send_complete(qp, wqe, status);
+						rvt_error_qp(qp, IB_WC_WR_FLUSH_ERR);
+					}
+
+					break;
+
+				default:
+					/* Ignore other reserved NAK error codes */
+					goto reserved;
+			}
+
+			qp->s_retry = qp->s_retry_cnt;
+			qp->s_rnr_retry = qp->s_rnr_retry_cnt;
+			goto bail;
+
+		default:                /* 2: reserved */
 reserved:
-		/* Ignore reserved NAK codes. */
-		goto bail;
+			/* Ignore reserved NAK codes. */
+			goto bail;
 	}
 
 bail:
@@ -1331,30 +1724,37 @@ bail:
  * This ACKs SENDs and RDMA writes up to the first RDMA read or atomic SWQE.
  */
 static void rdma_seq_err(struct rvt_qp *qp, struct qib_ibport *ibp, u32 psn,
-			 struct qib_ctxtdata *rcd)
+						 struct qib_ctxtdata *rcd)
 {
 	struct rvt_swqe *wqe;
 
 	/* Remove QP from retry timer */
-	if (qp->s_flags & (RVT_S_TIMER | RVT_S_WAIT_RNR)) {
+	if (qp->s_flags & (RVT_S_TIMER | RVT_S_WAIT_RNR))
+	{
 		qp->s_flags &= ~(RVT_S_TIMER | RVT_S_WAIT_RNR);
 		del_timer(&qp->s_timer);
 	}
 
 	wqe = rvt_get_swqe_ptr(qp, qp->s_acked);
 
-	while (qib_cmp24(psn, wqe->lpsn) > 0) {
+	while (qib_cmp24(psn, wqe->lpsn) > 0)
+	{
 		if (wqe->wr.opcode == IB_WR_RDMA_READ ||
-		    wqe->wr.opcode == IB_WR_ATOMIC_CMP_AND_SWP ||
-		    wqe->wr.opcode == IB_WR_ATOMIC_FETCH_AND_ADD)
+			wqe->wr.opcode == IB_WR_ATOMIC_CMP_AND_SWP ||
+			wqe->wr.opcode == IB_WR_ATOMIC_FETCH_AND_ADD)
+		{
 			break;
+		}
+
 		wqe = do_rc_completion(qp, wqe, ibp);
 	}
 
 	ibp->rvp.n_rdma_seq++;
 	qp->r_flags |= RVT_R_RDMAR_SEQ;
 	qib_restart_rc(qp, qp->s_last_psn + 1, 0);
-	if (list_empty(&qp->rspwait)) {
+
+	if (list_empty(&qp->rspwait))
+	{
 		qp->r_flags |= RVT_R_RSP_SEND;
 		rvt_get_qp(qp);
 		list_add_tail(&qp->rspwait, &rcd->qp_wait_list);
@@ -1378,12 +1778,12 @@ static void rdma_seq_err(struct rvt_qp *qp, struct qib_ibport *ibp, u32 psn,
  * Called at interrupt level.
  */
 static void qib_rc_rcv_resp(struct qib_ibport *ibp,
-			    struct ib_other_headers *ohdr,
-			    void *data, u32 tlen,
-			    struct rvt_qp *qp,
-			    u32 opcode,
-			    u32 psn, u32 hdrsize, u32 pmtu,
-			    struct qib_ctxtdata *rcd)
+							struct ib_other_headers *ohdr,
+							void *data, u32 tlen,
+							struct rvt_qp *qp,
+							u32 opcode,
+							u32 psn, u32 hdrsize, u32 pmtu,
+							struct qib_ctxtdata *rcd)
 {
 	struct rvt_swqe *wqe;
 	struct qib_pportdata *ppd = ppd_from_ibp(ibp);
@@ -1394,19 +1794,22 @@ static void qib_rc_rcv_resp(struct qib_ibport *ibp,
 	u32 aeth;
 	u64 val;
 
-	if (opcode != OP(RDMA_READ_RESPONSE_MIDDLE)) {
+	if (opcode != OP(RDMA_READ_RESPONSE_MIDDLE))
+	{
 		/*
 		 * If ACK'd PSN on SDMA busy list try to make progress to
 		 * reclaim SDMA credits.
 		 */
 		if ((qib_cmp24(psn, qp->s_sending_psn) >= 0) &&
-		    (qib_cmp24(qp->s_sending_psn, qp->s_sending_hpsn) <= 0)) {
+			(qib_cmp24(qp->s_sending_psn, qp->s_sending_hpsn) <= 0))
+		{
 
 			/*
 			 * If send tasklet not running attempt to progress
 			 * SDMA queue.
 			 */
-			if (!(qp->s_flags & RVT_S_BUSY)) {
+			if (!(qp->s_flags & RVT_S_BUSY))
+			{
 				/* Acquire SDMA Lock */
 				spin_lock_irqsave(&ppd->sdma_lock, flags);
 				/* Invoke sdma make progress */
@@ -1418,23 +1821,36 @@ static void qib_rc_rcv_resp(struct qib_ibport *ibp,
 	}
 
 	spin_lock_irqsave(&qp->s_lock, flags);
+
 	if (!(ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK))
+	{
 		goto ack_done;
+	}
 
 	/* Ignore invalid responses. */
 	smp_read_barrier_depends(); /* see post_one_send */
+
 	if (qib_cmp24(psn, ACCESS_ONCE(qp->s_next_psn)) >= 0)
+	{
 		goto ack_done;
+	}
 
 	/* Ignore duplicate responses. */
 	diff = qib_cmp24(psn, qp->s_last_psn);
-	if (unlikely(diff <= 0)) {
+
+	if (unlikely(diff <= 0))
+	{
 		/* Update credits for "ghost" ACKs */
-		if (diff == 0 && opcode == OP(ACKNOWLEDGE)) {
+		if (diff == 0 && opcode == OP(ACKNOWLEDGE))
+		{
 			aeth = be32_to_cpu(ohdr->u.aeth);
+
 			if ((aeth >> 29) == 0)
+			{
 				qib_get_credit(qp, aeth);
+			}
 		}
+
 		goto ack_done;
 	}
 
@@ -1442,126 +1858,187 @@ static void qib_rc_rcv_resp(struct qib_ibport *ibp,
 	 * Skip everything other than the PSN we expect, if we are waiting
 	 * for a reply to a restarted RDMA read or atomic op.
 	 */
-	if (qp->r_flags & RVT_R_RDMAR_SEQ) {
+	if (qp->r_flags & RVT_R_RDMAR_SEQ)
+	{
 		if (qib_cmp24(psn, qp->s_last_psn + 1) != 0)
+		{
 			goto ack_done;
+		}
+
 		qp->r_flags &= ~RVT_R_RDMAR_SEQ;
 	}
 
 	if (unlikely(qp->s_acked == qp->s_tail))
+	{
 		goto ack_done;
+	}
+
 	wqe = rvt_get_swqe_ptr(qp, qp->s_acked);
 	status = IB_WC_SUCCESS;
 
-	switch (opcode) {
-	case OP(ACKNOWLEDGE):
-	case OP(ATOMIC_ACKNOWLEDGE):
-	case OP(RDMA_READ_RESPONSE_FIRST):
-		aeth = be32_to_cpu(ohdr->u.aeth);
-		if (opcode == OP(ATOMIC_ACKNOWLEDGE))
-			val = ib_u64_get(&ohdr->u.at.atomic_ack_eth);
-		else
-			val = 0;
-		if (!do_rc_ack(qp, aeth, psn, opcode, val, rcd) ||
-		    opcode != OP(RDMA_READ_RESPONSE_FIRST))
-			goto ack_done;
-		hdrsize += 4;
-		wqe = rvt_get_swqe_ptr(qp, qp->s_acked);
-		if (unlikely(wqe->wr.opcode != IB_WR_RDMA_READ))
-			goto ack_op_err;
-		/*
-		 * If this is a response to a resent RDMA read, we
-		 * have to be careful to copy the data to the right
-		 * location.
-		 */
-		qp->s_rdma_read_len = restart_sge(&qp->s_rdma_read_sge,
-						  wqe, psn, pmtu);
-		goto read_middle;
+	switch (opcode)
+	{
+		case OP(ACKNOWLEDGE):
+		case OP(ATOMIC_ACKNOWLEDGE):
+		case OP(RDMA_READ_RESPONSE_FIRST):
+			aeth = be32_to_cpu(ohdr->u.aeth);
 
-	case OP(RDMA_READ_RESPONSE_MIDDLE):
-		/* no AETH, no ACK */
-		if (unlikely(qib_cmp24(psn, qp->s_last_psn + 1)))
-			goto ack_seq_err;
-		if (unlikely(wqe->wr.opcode != IB_WR_RDMA_READ))
-			goto ack_op_err;
+			if (opcode == OP(ATOMIC_ACKNOWLEDGE))
+			{
+				val = ib_u64_get(&ohdr->u.at.atomic_ack_eth);
+			}
+			else
+			{
+				val = 0;
+			}
+
+			if (!do_rc_ack(qp, aeth, psn, opcode, val, rcd) ||
+				opcode != OP(RDMA_READ_RESPONSE_FIRST))
+			{
+				goto ack_done;
+			}
+
+			hdrsize += 4;
+			wqe = rvt_get_swqe_ptr(qp, qp->s_acked);
+
+			if (unlikely(wqe->wr.opcode != IB_WR_RDMA_READ))
+			{
+				goto ack_op_err;
+			}
+
+			/*
+			 * If this is a response to a resent RDMA read, we
+			 * have to be careful to copy the data to the right
+			 * location.
+			 */
+			qp->s_rdma_read_len = restart_sge(&qp->s_rdma_read_sge,
+											  wqe, psn, pmtu);
+			goto read_middle;
+
+		case OP(RDMA_READ_RESPONSE_MIDDLE):
+
+			/* no AETH, no ACK */
+			if (unlikely(qib_cmp24(psn, qp->s_last_psn + 1)))
+			{
+				goto ack_seq_err;
+			}
+
+			if (unlikely(wqe->wr.opcode != IB_WR_RDMA_READ))
+			{
+				goto ack_op_err;
+			}
+
 read_middle:
-		if (unlikely(tlen != (hdrsize + pmtu + 4)))
-			goto ack_len_err;
-		if (unlikely(pmtu >= qp->s_rdma_read_len))
-			goto ack_len_err;
 
-		/*
-		 * We got a response so update the timeout.
-		 * 4.096 usec. * (1 << qp->timeout)
-		 */
-		qp->s_flags |= RVT_S_TIMER;
-		mod_timer(&qp->s_timer, jiffies + qp->timeout_jiffies);
-		if (qp->s_flags & RVT_S_WAIT_ACK) {
-			qp->s_flags &= ~RVT_S_WAIT_ACK;
-			qib_schedule_send(qp);
-		}
+			if (unlikely(tlen != (hdrsize + pmtu + 4)))
+			{
+				goto ack_len_err;
+			}
 
-		if (opcode == OP(RDMA_READ_RESPONSE_MIDDLE))
-			qp->s_retry = qp->s_retry_cnt;
+			if (unlikely(pmtu >= qp->s_rdma_read_len))
+			{
+				goto ack_len_err;
+			}
 
-		/*
-		 * Update the RDMA receive state but do the copy w/o
-		 * holding the locks and blocking interrupts.
-		 */
-		qp->s_rdma_read_len -= pmtu;
-		update_last_psn(qp, psn);
-		spin_unlock_irqrestore(&qp->s_lock, flags);
-		qib_copy_sge(&qp->s_rdma_read_sge, data, pmtu, 0);
-		goto bail;
+			/*
+			 * We got a response so update the timeout.
+			 * 4.096 usec. * (1 << qp->timeout)
+			 */
+			qp->s_flags |= RVT_S_TIMER;
+			mod_timer(&qp->s_timer, jiffies + qp->timeout_jiffies);
 
-	case OP(RDMA_READ_RESPONSE_ONLY):
-		aeth = be32_to_cpu(ohdr->u.aeth);
-		if (!do_rc_ack(qp, aeth, psn, opcode, 0, rcd))
-			goto ack_done;
-		/* Get the number of bytes the message was padded by. */
-		pad = (be32_to_cpu(ohdr->bth[0]) >> 20) & 3;
-		/*
-		 * Check that the data size is >= 0 && <= pmtu.
-		 * Remember to account for the AETH header (4) and
-		 * ICRC (4).
-		 */
-		if (unlikely(tlen < (hdrsize + pad + 8)))
-			goto ack_len_err;
-		/*
-		 * If this is a response to a resent RDMA read, we
-		 * have to be careful to copy the data to the right
-		 * location.
-		 */
-		wqe = rvt_get_swqe_ptr(qp, qp->s_acked);
-		qp->s_rdma_read_len = restart_sge(&qp->s_rdma_read_sge,
-						  wqe, psn, pmtu);
-		goto read_last;
+			if (qp->s_flags & RVT_S_WAIT_ACK)
+			{
+				qp->s_flags &= ~RVT_S_WAIT_ACK;
+				qib_schedule_send(qp);
+			}
 
-	case OP(RDMA_READ_RESPONSE_LAST):
-		/* ACKs READ req. */
-		if (unlikely(qib_cmp24(psn, qp->s_last_psn + 1)))
-			goto ack_seq_err;
-		if (unlikely(wqe->wr.opcode != IB_WR_RDMA_READ))
-			goto ack_op_err;
-		/* Get the number of bytes the message was padded by. */
-		pad = (be32_to_cpu(ohdr->bth[0]) >> 20) & 3;
-		/*
-		 * Check that the data size is >= 1 && <= pmtu.
-		 * Remember to account for the AETH header (4) and
-		 * ICRC (4).
-		 */
-		if (unlikely(tlen <= (hdrsize + pad + 8)))
-			goto ack_len_err;
+			if (opcode == OP(RDMA_READ_RESPONSE_MIDDLE))
+			{
+				qp->s_retry = qp->s_retry_cnt;
+			}
+
+			/*
+			 * Update the RDMA receive state but do the copy w/o
+			 * holding the locks and blocking interrupts.
+			 */
+			qp->s_rdma_read_len -= pmtu;
+			update_last_psn(qp, psn);
+			spin_unlock_irqrestore(&qp->s_lock, flags);
+			qib_copy_sge(&qp->s_rdma_read_sge, data, pmtu, 0);
+			goto bail;
+
+		case OP(RDMA_READ_RESPONSE_ONLY):
+			aeth = be32_to_cpu(ohdr->u.aeth);
+
+			if (!do_rc_ack(qp, aeth, psn, opcode, 0, rcd))
+			{
+				goto ack_done;
+			}
+
+			/* Get the number of bytes the message was padded by. */
+			pad = (be32_to_cpu(ohdr->bth[0]) >> 20) & 3;
+
+			/*
+			 * Check that the data size is >= 0 && <= pmtu.
+			 * Remember to account for the AETH header (4) and
+			 * ICRC (4).
+			 */
+			if (unlikely(tlen < (hdrsize + pad + 8)))
+			{
+				goto ack_len_err;
+			}
+
+			/*
+			 * If this is a response to a resent RDMA read, we
+			 * have to be careful to copy the data to the right
+			 * location.
+			 */
+			wqe = rvt_get_swqe_ptr(qp, qp->s_acked);
+			qp->s_rdma_read_len = restart_sge(&qp->s_rdma_read_sge,
+											  wqe, psn, pmtu);
+			goto read_last;
+
+		case OP(RDMA_READ_RESPONSE_LAST):
+
+			/* ACKs READ req. */
+			if (unlikely(qib_cmp24(psn, qp->s_last_psn + 1)))
+			{
+				goto ack_seq_err;
+			}
+
+			if (unlikely(wqe->wr.opcode != IB_WR_RDMA_READ))
+			{
+				goto ack_op_err;
+			}
+
+			/* Get the number of bytes the message was padded by. */
+			pad = (be32_to_cpu(ohdr->bth[0]) >> 20) & 3;
+
+			/*
+			 * Check that the data size is >= 1 && <= pmtu.
+			 * Remember to account for the AETH header (4) and
+			 * ICRC (4).
+			 */
+			if (unlikely(tlen <= (hdrsize + pad + 8)))
+			{
+				goto ack_len_err;
+			}
+
 read_last:
-		tlen -= hdrsize + pad + 8;
-		if (unlikely(tlen != qp->s_rdma_read_len))
-			goto ack_len_err;
-		aeth = be32_to_cpu(ohdr->u.aeth);
-		qib_copy_sge(&qp->s_rdma_read_sge, data, tlen, 0);
-		WARN_ON(qp->s_rdma_read_sge.num_sge);
-		(void) do_rc_ack(qp, aeth, psn,
-				 OP(RDMA_READ_RESPONSE_LAST), 0, rcd);
-		goto ack_done;
+			tlen -= hdrsize + pad + 8;
+
+			if (unlikely(tlen != qp->s_rdma_read_len))
+			{
+				goto ack_len_err;
+			}
+
+			aeth = be32_to_cpu(ohdr->u.aeth);
+			qib_copy_sge(&qp->s_rdma_read_sge, data, tlen, 0);
+			WARN_ON(qp->s_rdma_read_sge.num_sge);
+			(void) do_rc_ack(qp, aeth, psn,
+							 OP(RDMA_READ_RESPONSE_LAST), 0, rcd);
+			goto ack_done;
 	}
 
 ack_op_err:
@@ -1575,10 +2052,13 @@ ack_seq_err:
 ack_len_err:
 	status = IB_WC_LOC_LEN_ERR;
 ack_err:
-	if (qp->s_last == qp->s_acked) {
+
+	if (qp->s_last == qp->s_acked)
+	{
 		qib_send_complete(qp, wqe, status);
 		rvt_error_qp(qp, IB_WC_WR_FLUSH_ERR);
 	}
+
 ack_done:
 	spin_unlock_irqrestore(&qp->s_lock, flags);
 bail:
@@ -1601,12 +2081,12 @@ bail:
  * schedule a response to be sent.
  */
 static int qib_rc_rcv_error(struct ib_other_headers *ohdr,
-			    void *data,
-			    struct rvt_qp *qp,
-			    u32 opcode,
-			    u32 psn,
-			    int diff,
-			    struct qib_ctxtdata *rcd)
+							void *data,
+							struct rvt_qp *qp,
+							u32 opcode,
+							u32 psn,
+							int diff,
+							struct qib_ctxtdata *rcd)
 {
 	struct qib_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
 	struct rvt_ack_entry *e;
@@ -1614,28 +2094,33 @@ static int qib_rc_rcv_error(struct ib_other_headers *ohdr,
 	u8 i, prev;
 	int old_req;
 
-	if (diff > 0) {
+	if (diff > 0)
+	{
 		/*
 		 * Packet sequence error.
 		 * A NAK will ACK earlier sends and RDMA writes.
 		 * Don't queue the NAK if we already sent one.
 		 */
-		if (!qp->r_nak_state) {
+		if (!qp->r_nak_state)
+		{
 			ibp->rvp.n_rc_seqnak++;
 			qp->r_nak_state = IB_NAK_PSN_ERROR;
 			/* Use the expected PSN. */
 			qp->r_ack_psn = qp->r_psn;
+
 			/*
 			 * Wait to send the sequence NAK until all packets
 			 * in the receive queue have been processed.
 			 * Otherwise, we end up propagating congestion.
 			 */
-			if (list_empty(&qp->rspwait)) {
+			if (list_empty(&qp->rspwait))
+			{
 				qp->r_flags |= RVT_R_RSP_NAK;
 				rvt_get_qp(qp);
 				list_add_tail(&qp->rspwait, &rcd->qp_wait_list);
 			}
 		}
+
 		goto done;
 	}
 
@@ -1661,128 +2146,182 @@ static int qib_rc_rcv_error(struct ib_other_headers *ohdr,
 
 	spin_lock_irqsave(&qp->s_lock, flags);
 
-	for (i = qp->r_head_ack_queue; ; i = prev) {
+	for (i = qp->r_head_ack_queue; ; i = prev)
+	{
 		if (i == qp->s_tail_ack_queue)
+		{
 			old_req = 0;
+		}
+
 		if (i)
+		{
 			prev = i - 1;
+		}
 		else
+		{
 			prev = QIB_MAX_RDMA_ATOMIC;
-		if (prev == qp->r_head_ack_queue) {
+		}
+
+		if (prev == qp->r_head_ack_queue)
+		{
 			e = NULL;
 			break;
 		}
+
 		e = &qp->s_ack_queue[prev];
-		if (!e->opcode) {
+
+		if (!e->opcode)
+		{
 			e = NULL;
 			break;
 		}
-		if (qib_cmp24(psn, e->psn) >= 0) {
+
+		if (qib_cmp24(psn, e->psn) >= 0)
+		{
 			if (prev == qp->s_tail_ack_queue &&
-			    qib_cmp24(psn, e->lpsn) <= 0)
+				qib_cmp24(psn, e->lpsn) <= 0)
+			{
 				old_req = 0;
+			}
+
 			break;
 		}
 	}
-	switch (opcode) {
-	case OP(RDMA_READ_REQUEST): {
-		struct ib_reth *reth;
-		u32 offset;
-		u32 len;
 
-		/*
-		 * If we didn't find the RDMA read request in the ack queue,
-		 * we can ignore this request.
-		 */
-		if (!e || e->opcode != OP(RDMA_READ_REQUEST))
-			goto unlock_done;
-		/* RETH comes after BTH */
-		reth = &ohdr->u.rc.reth;
-		/*
-		 * Address range must be a subset of the original
-		 * request and start on pmtu boundaries.
-		 * We reuse the old ack_queue slot since the requester
-		 * should not back up and request an earlier PSN for the
-		 * same request.
-		 */
-		offset = ((psn - e->psn) & QIB_PSN_MASK) *
-			qp->pmtu;
-		len = be32_to_cpu(reth->length);
-		if (unlikely(offset + len != e->rdma_sge.sge_length))
-			goto unlock_done;
-		if (e->rdma_sge.mr) {
-			rvt_put_mr(e->rdma_sge.mr);
-			e->rdma_sge.mr = NULL;
-		}
-		if (len != 0) {
-			u32 rkey = be32_to_cpu(reth->rkey);
-			u64 vaddr = be64_to_cpu(reth->vaddr);
-			int ok;
+	switch (opcode)
+	{
+		case OP(RDMA_READ_REQUEST):
+			{
+				struct ib_reth *reth;
+				u32 offset;
+				u32 len;
 
-			ok = rvt_rkey_ok(qp, &e->rdma_sge, len, vaddr, rkey,
-					 IB_ACCESS_REMOTE_READ);
-			if (unlikely(!ok))
+				/*
+				 * If we didn't find the RDMA read request in the ack queue,
+				 * we can ignore this request.
+				 */
+				if (!e || e->opcode != OP(RDMA_READ_REQUEST))
+				{
+					goto unlock_done;
+				}
+
+				/* RETH comes after BTH */
+				reth = &ohdr->u.rc.reth;
+				/*
+				 * Address range must be a subset of the original
+				 * request and start on pmtu boundaries.
+				 * We reuse the old ack_queue slot since the requester
+				 * should not back up and request an earlier PSN for the
+				 * same request.
+				 */
+				offset = ((psn - e->psn) & QIB_PSN_MASK) *
+						 qp->pmtu;
+				len = be32_to_cpu(reth->length);
+
+				if (unlikely(offset + len != e->rdma_sge.sge_length))
+				{
+					goto unlock_done;
+				}
+
+				if (e->rdma_sge.mr)
+				{
+					rvt_put_mr(e->rdma_sge.mr);
+					e->rdma_sge.mr = NULL;
+				}
+
+				if (len != 0)
+				{
+					u32 rkey = be32_to_cpu(reth->rkey);
+					u64 vaddr = be64_to_cpu(reth->vaddr);
+					int ok;
+
+					ok = rvt_rkey_ok(qp, &e->rdma_sge, len, vaddr, rkey,
+									 IB_ACCESS_REMOTE_READ);
+
+					if (unlikely(!ok))
+					{
+						goto unlock_done;
+					}
+				}
+				else
+				{
+					e->rdma_sge.vaddr = NULL;
+					e->rdma_sge.length = 0;
+					e->rdma_sge.sge_length = 0;
+				}
+
+				e->psn = psn;
+
+				if (old_req)
+				{
+					goto unlock_done;
+				}
+
+				qp->s_tail_ack_queue = prev;
+				break;
+			}
+
+		case OP(COMPARE_SWAP):
+		case OP(FETCH_ADD):
+			{
+				/*
+				 * If we didn't find the atomic request in the ack queue
+				 * or the send tasklet is already backed up to send an
+				 * earlier entry, we can ignore this request.
+				 */
+				if (!e || e->opcode != (u8) opcode || old_req)
+				{
+					goto unlock_done;
+				}
+
+				qp->s_tail_ack_queue = prev;
+				break;
+			}
+
+		default:
+
+			/*
+			 * Ignore this operation if it doesn't request an ACK
+			 * or an earlier RDMA read or atomic is going to be resent.
+			 */
+			if (!(psn & IB_BTH_REQ_ACK) || old_req)
+			{
 				goto unlock_done;
-		} else {
-			e->rdma_sge.vaddr = NULL;
-			e->rdma_sge.length = 0;
-			e->rdma_sge.sge_length = 0;
-		}
-		e->psn = psn;
-		if (old_req)
-			goto unlock_done;
-		qp->s_tail_ack_queue = prev;
-		break;
+			}
+
+			/*
+			 * Resend the most recent ACK if this request is
+			 * after all the previous RDMA reads and atomics.
+			 */
+			if (i == qp->r_head_ack_queue)
+			{
+				spin_unlock_irqrestore(&qp->s_lock, flags);
+				qp->r_nak_state = 0;
+				qp->r_ack_psn = qp->r_psn - 1;
+				goto send_ack;
+			}
+
+			/*
+			 * Try to send a simple ACK to work around a Mellanox bug
+			 * which doesn't accept a RDMA read response or atomic
+			 * response as an ACK for earlier SENDs or RDMA writes.
+			 */
+			if (!(qp->s_flags & RVT_S_RESP_PENDING))
+			{
+				spin_unlock_irqrestore(&qp->s_lock, flags);
+				qp->r_nak_state = 0;
+				qp->r_ack_psn = qp->s_ack_queue[i].psn - 1;
+				goto send_ack;
+			}
+
+			/*
+			 * Resend the RDMA read or atomic op which
+			 * ACKs this duplicate request.
+			 */
+			qp->s_tail_ack_queue = i;
+			break;
 	}
 
-	case OP(COMPARE_SWAP):
-	case OP(FETCH_ADD): {
-		/*
-		 * If we didn't find the atomic request in the ack queue
-		 * or the send tasklet is already backed up to send an
-		 * earlier entry, we can ignore this request.
-		 */
-		if (!e || e->opcode != (u8) opcode || old_req)
-			goto unlock_done;
-		qp->s_tail_ack_queue = prev;
-		break;
-	}
-
-	default:
-		/*
-		 * Ignore this operation if it doesn't request an ACK
-		 * or an earlier RDMA read or atomic is going to be resent.
-		 */
-		if (!(psn & IB_BTH_REQ_ACK) || old_req)
-			goto unlock_done;
-		/*
-		 * Resend the most recent ACK if this request is
-		 * after all the previous RDMA reads and atomics.
-		 */
-		if (i == qp->r_head_ack_queue) {
-			spin_unlock_irqrestore(&qp->s_lock, flags);
-			qp->r_nak_state = 0;
-			qp->r_ack_psn = qp->r_psn - 1;
-			goto send_ack;
-		}
-		/*
-		 * Try to send a simple ACK to work around a Mellanox bug
-		 * which doesn't accept a RDMA read response or atomic
-		 * response as an ACK for earlier SENDs or RDMA writes.
-		 */
-		if (!(qp->s_flags & RVT_S_RESP_PENDING)) {
-			spin_unlock_irqrestore(&qp->s_lock, flags);
-			qp->r_nak_state = 0;
-			qp->r_ack_psn = qp->s_ack_queue[i].psn - 1;
-			goto send_ack;
-		}
-		/*
-		 * Resend the RDMA read or atomic op which
-		 * ACKs this duplicate request.
-		 */
-		qp->s_tail_ack_queue = i;
-		break;
-	}
 	qp->s_ack_state = OP(ACKNOWLEDGE);
 	qp->s_flags |= RVT_S_RESP_PENDING;
 	qp->r_nak_state = 0;
@@ -1806,7 +2345,8 @@ void qib_rc_error(struct rvt_qp *qp, enum ib_wc_status err)
 	lastwqe = rvt_error_qp(qp, err);
 	spin_unlock_irqrestore(&qp->s_lock, flags);
 
-	if (lastwqe) {
+	if (lastwqe)
+	{
 		struct ib_event ev;
 
 		ev.device = qp->ibqp.device;
@@ -1821,8 +2361,12 @@ static inline void qib_update_ack_queue(struct rvt_qp *qp, unsigned n)
 	unsigned next;
 
 	next = n + 1;
+
 	if (next > QIB_MAX_RDMA_ATOMIC)
+	{
 		next = 0;
+	}
+
 	qp->s_tail_ack_queue = next;
 	qp->s_ack_state = OP(ACKNOWLEDGE);
 }
@@ -1841,7 +2385,7 @@ static inline void qib_update_ack_queue(struct rvt_qp *qp, unsigned n)
  * Called at interrupt level.
  */
 void qib_rc_rcv(struct qib_ctxtdata *rcd, struct ib_header *hdr,
-		int has_grh, void *data, u32 tlen, struct rvt_qp *qp)
+				int has_grh, void *data, u32 tlen, struct rvt_qp *qp)
 {
 	struct qib_ibport *ibp = &rcd->ppd->ibport_data;
 	struct ib_other_headers *ohdr;
@@ -1857,17 +2401,23 @@ void qib_rc_rcv(struct qib_ctxtdata *rcd, struct ib_header *hdr,
 	int ret;
 
 	/* Check for GRH */
-	if (!has_grh) {
+	if (!has_grh)
+	{
 		ohdr = &hdr->u.oth;
 		hdrsize = 8 + 12;       /* LRH + BTH */
-	} else {
+	}
+	else
+	{
 		ohdr = &hdr->u.l.oth;
 		hdrsize = 8 + 40 + 12;  /* LRH + GRH + BTH */
 	}
 
 	opcode = be32_to_cpu(ohdr->bth[0]);
+
 	if (qib_ruc_check_hdr(ibp, hdr, has_grh, qp, opcode))
+	{
 		return;
+	}
 
 	psn = be32_to_cpu(ohdr->bth[2]);
 	opcode >>= 24;
@@ -1879,57 +2429,76 @@ void qib_rc_rcv(struct qib_ctxtdata *rcd, struct ib_header *hdr,
 	 * In other words, this QP is the requester.
 	 */
 	if (opcode >= OP(RDMA_READ_RESPONSE_FIRST) &&
-	    opcode <= OP(ATOMIC_ACKNOWLEDGE)) {
+		opcode <= OP(ATOMIC_ACKNOWLEDGE))
+	{
 		qib_rc_rcv_resp(ibp, ohdr, data, tlen, qp, opcode, psn,
-				hdrsize, pmtu, rcd);
+						hdrsize, pmtu, rcd);
 		return;
 	}
 
 	/* Compute 24 bits worth of difference. */
 	diff = qib_cmp24(psn, qp->r_psn);
-	if (unlikely(diff)) {
+
+	if (unlikely(diff))
+	{
 		if (qib_rc_rcv_error(ohdr, data, qp, opcode, psn, diff, rcd))
+		{
 			return;
+		}
+
 		goto send_ack;
 	}
 
 	/* Check for opcode sequence errors. */
-	switch (qp->r_state) {
-	case OP(SEND_FIRST):
-	case OP(SEND_MIDDLE):
-		if (opcode == OP(SEND_MIDDLE) ||
-		    opcode == OP(SEND_LAST) ||
-		    opcode == OP(SEND_LAST_WITH_IMMEDIATE))
-			break;
-		goto nack_inv;
+	switch (qp->r_state)
+	{
+		case OP(SEND_FIRST):
+		case OP(SEND_MIDDLE):
+			if (opcode == OP(SEND_MIDDLE) ||
+				opcode == OP(SEND_LAST) ||
+				opcode == OP(SEND_LAST_WITH_IMMEDIATE))
+			{
+				break;
+			}
 
-	case OP(RDMA_WRITE_FIRST):
-	case OP(RDMA_WRITE_MIDDLE):
-		if (opcode == OP(RDMA_WRITE_MIDDLE) ||
-		    opcode == OP(RDMA_WRITE_LAST) ||
-		    opcode == OP(RDMA_WRITE_LAST_WITH_IMMEDIATE))
-			break;
-		goto nack_inv;
-
-	default:
-		if (opcode == OP(SEND_MIDDLE) ||
-		    opcode == OP(SEND_LAST) ||
-		    opcode == OP(SEND_LAST_WITH_IMMEDIATE) ||
-		    opcode == OP(RDMA_WRITE_MIDDLE) ||
-		    opcode == OP(RDMA_WRITE_LAST) ||
-		    opcode == OP(RDMA_WRITE_LAST_WITH_IMMEDIATE))
 			goto nack_inv;
-		/*
-		 * Note that it is up to the requester to not send a new
-		 * RDMA read or atomic operation before receiving an ACK
-		 * for the previous operation.
-		 */
-		break;
+
+		case OP(RDMA_WRITE_FIRST):
+		case OP(RDMA_WRITE_MIDDLE):
+			if (opcode == OP(RDMA_WRITE_MIDDLE) ||
+				opcode == OP(RDMA_WRITE_LAST) ||
+				opcode == OP(RDMA_WRITE_LAST_WITH_IMMEDIATE))
+			{
+				break;
+			}
+
+			goto nack_inv;
+
+		default:
+			if (opcode == OP(SEND_MIDDLE) ||
+				opcode == OP(SEND_LAST) ||
+				opcode == OP(SEND_LAST_WITH_IMMEDIATE) ||
+				opcode == OP(RDMA_WRITE_MIDDLE) ||
+				opcode == OP(RDMA_WRITE_LAST) ||
+				opcode == OP(RDMA_WRITE_LAST_WITH_IMMEDIATE))
+			{
+				goto nack_inv;
+			}
+
+			/*
+			 * Note that it is up to the requester to not send a new
+			 * RDMA read or atomic operation before receiving an ACK
+			 * for the previous operation.
+			 */
+			break;
 	}
 
-	if (qp->state == IB_QPS_RTR && !(qp->r_flags & RVT_R_COMM_EST)) {
+	if (qp->state == IB_QPS_RTR && !(qp->r_flags & RVT_R_COMM_EST))
+	{
 		qp->r_flags |= RVT_R_COMM_EST;
-		if (qp->ibqp.event_handler) {
+
+		if (qp->ibqp.event_handler)
+		{
 			struct ib_event ev;
 
 			ev.device = qp->ibqp.device;
@@ -1940,305 +2509,447 @@ void qib_rc_rcv(struct qib_ctxtdata *rcd, struct ib_header *hdr,
 	}
 
 	/* OK, process the packet. */
-	switch (opcode) {
-	case OP(SEND_FIRST):
-		ret = qib_get_rwqe(qp, 0);
-		if (ret < 0)
-			goto nack_op_err;
-		if (!ret)
-			goto rnr_nak;
-		qp->r_rcv_len = 0;
+	switch (opcode)
+	{
+		case OP(SEND_FIRST):
+			ret = qib_get_rwqe(qp, 0);
+
+			if (ret < 0)
+			{
+				goto nack_op_err;
+			}
+
+			if (!ret)
+			{
+				goto rnr_nak;
+			}
+
+			qp->r_rcv_len = 0;
+
 		/* FALLTHROUGH */
-	case OP(SEND_MIDDLE):
-	case OP(RDMA_WRITE_MIDDLE):
+		case OP(SEND_MIDDLE):
+		case OP(RDMA_WRITE_MIDDLE):
 send_middle:
-		/* Check for invalid length PMTU or posted rwqe len. */
-		if (unlikely(tlen != (hdrsize + pmtu + 4)))
-			goto nack_inv;
-		qp->r_rcv_len += pmtu;
-		if (unlikely(qp->r_rcv_len > qp->r_len))
-			goto nack_inv;
-		qib_copy_sge(&qp->r_sge, data, pmtu, 1);
-		break;
 
-	case OP(RDMA_WRITE_LAST_WITH_IMMEDIATE):
-		/* consume RWQE */
-		ret = qib_get_rwqe(qp, 1);
-		if (ret < 0)
-			goto nack_op_err;
-		if (!ret)
-			goto rnr_nak;
-		goto send_last_imm;
+			/* Check for invalid length PMTU or posted rwqe len. */
+			if (unlikely(tlen != (hdrsize + pmtu + 4)))
+			{
+				goto nack_inv;
+			}
 
-	case OP(SEND_ONLY):
-	case OP(SEND_ONLY_WITH_IMMEDIATE):
-		ret = qib_get_rwqe(qp, 0);
-		if (ret < 0)
-			goto nack_op_err;
-		if (!ret)
-			goto rnr_nak;
-		qp->r_rcv_len = 0;
-		if (opcode == OP(SEND_ONLY))
-			goto no_immediate_data;
-		/* FALLTHROUGH for SEND_ONLY_WITH_IMMEDIATE */
-	case OP(SEND_LAST_WITH_IMMEDIATE):
-send_last_imm:
-		wc.ex.imm_data = ohdr->u.imm_data;
-		hdrsize += 4;
-		wc.wc_flags = IB_WC_WITH_IMM;
-		goto send_last;
-	case OP(SEND_LAST):
-	case OP(RDMA_WRITE_LAST):
-no_immediate_data:
-		wc.wc_flags = 0;
-		wc.ex.imm_data = 0;
-send_last:
-		/* Get the number of bytes the message was padded by. */
-		pad = (be32_to_cpu(ohdr->bth[0]) >> 20) & 3;
-		/* Check for invalid length. */
-		/* XXX LAST len should be >= 1 */
-		if (unlikely(tlen < (hdrsize + pad + 4)))
-			goto nack_inv;
-		/* Don't count the CRC. */
-		tlen -= (hdrsize + pad + 4);
-		wc.byte_len = tlen + qp->r_rcv_len;
-		if (unlikely(wc.byte_len > qp->r_len))
-			goto nack_inv;
-		qib_copy_sge(&qp->r_sge, data, tlen, 1);
-		rvt_put_ss(&qp->r_sge);
-		qp->r_msn++;
-		if (!test_and_clear_bit(RVT_R_WRID_VALID, &qp->r_aflags))
+			qp->r_rcv_len += pmtu;
+
+			if (unlikely(qp->r_rcv_len > qp->r_len))
+			{
+				goto nack_inv;
+			}
+
+			qib_copy_sge(&qp->r_sge, data, pmtu, 1);
 			break;
-		wc.wr_id = qp->r_wr_id;
-		wc.status = IB_WC_SUCCESS;
-		if (opcode == OP(RDMA_WRITE_LAST_WITH_IMMEDIATE) ||
-		    opcode == OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE))
-			wc.opcode = IB_WC_RECV_RDMA_WITH_IMM;
-		else
-			wc.opcode = IB_WC_RECV;
-		wc.qp = &qp->ibqp;
-		wc.src_qp = qp->remote_qpn;
-		wc.slid = qp->remote_ah_attr.dlid;
-		wc.sl = qp->remote_ah_attr.sl;
-		/* zero fields that are N/A */
-		wc.vendor_err = 0;
-		wc.pkey_index = 0;
-		wc.dlid_path_bits = 0;
-		wc.port_num = 0;
-		/* Signal completion event if the solicited bit is set. */
-		rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc,
-			     (ohdr->bth[0] &
-			      cpu_to_be32(IB_BTH_SOLICITED)) != 0);
-		break;
 
-	case OP(RDMA_WRITE_FIRST):
-	case OP(RDMA_WRITE_ONLY):
-	case OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE):
-		if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_WRITE)))
+		case OP(RDMA_WRITE_LAST_WITH_IMMEDIATE):
+			/* consume RWQE */
+			ret = qib_get_rwqe(qp, 1);
+
+			if (ret < 0)
+			{
+				goto nack_op_err;
+			}
+
+			if (!ret)
+			{
+				goto rnr_nak;
+			}
+
+			goto send_last_imm;
+
+		case OP(SEND_ONLY):
+		case OP(SEND_ONLY_WITH_IMMEDIATE):
+			ret = qib_get_rwqe(qp, 0);
+
+			if (ret < 0)
+			{
+				goto nack_op_err;
+			}
+
+			if (!ret)
+			{
+				goto rnr_nak;
+			}
+
+			qp->r_rcv_len = 0;
+
+			if (opcode == OP(SEND_ONLY))
+			{
+				goto no_immediate_data;
+			}
+
+		/* FALLTHROUGH for SEND_ONLY_WITH_IMMEDIATE */
+		case OP(SEND_LAST_WITH_IMMEDIATE):
+send_last_imm:
+			wc.ex.imm_data = ohdr->u.imm_data;
+			hdrsize += 4;
+			wc.wc_flags = IB_WC_WITH_IMM;
+			goto send_last;
+
+		case OP(SEND_LAST):
+		case OP(RDMA_WRITE_LAST):
+no_immediate_data:
+			wc.wc_flags = 0;
+			wc.ex.imm_data = 0;
+send_last:
+			/* Get the number of bytes the message was padded by. */
+			pad = (be32_to_cpu(ohdr->bth[0]) >> 20) & 3;
+
+			/* Check for invalid length. */
+			/* XXX LAST len should be >= 1 */
+			if (unlikely(tlen < (hdrsize + pad + 4)))
+			{
+				goto nack_inv;
+			}
+
+			/* Don't count the CRC. */
+			tlen -= (hdrsize + pad + 4);
+			wc.byte_len = tlen + qp->r_rcv_len;
+
+			if (unlikely(wc.byte_len > qp->r_len))
+			{
+				goto nack_inv;
+			}
+
+			qib_copy_sge(&qp->r_sge, data, tlen, 1);
+			rvt_put_ss(&qp->r_sge);
+			qp->r_msn++;
+
+			if (!test_and_clear_bit(RVT_R_WRID_VALID, &qp->r_aflags))
+			{
+				break;
+			}
+
+			wc.wr_id = qp->r_wr_id;
+			wc.status = IB_WC_SUCCESS;
+
+			if (opcode == OP(RDMA_WRITE_LAST_WITH_IMMEDIATE) ||
+				opcode == OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE))
+			{
+				wc.opcode = IB_WC_RECV_RDMA_WITH_IMM;
+			}
+			else
+			{
+				wc.opcode = IB_WC_RECV;
+			}
+
+			wc.qp = &qp->ibqp;
+			wc.src_qp = qp->remote_qpn;
+			wc.slid = qp->remote_ah_attr.dlid;
+			wc.sl = qp->remote_ah_attr.sl;
+			/* zero fields that are N/A */
+			wc.vendor_err = 0;
+			wc.pkey_index = 0;
+			wc.dlid_path_bits = 0;
+			wc.port_num = 0;
+			/* Signal completion event if the solicited bit is set. */
+			rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc,
+						 (ohdr->bth[0] &
+						  cpu_to_be32(IB_BTH_SOLICITED)) != 0);
+			break;
+
+		case OP(RDMA_WRITE_FIRST):
+		case OP(RDMA_WRITE_ONLY):
+		case OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE):
+			if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_WRITE)))
+			{
+				goto nack_inv;
+			}
+
+			/* consume RWQE */
+			reth = &ohdr->u.rc.reth;
+			hdrsize += sizeof(*reth);
+			qp->r_len = be32_to_cpu(reth->length);
+			qp->r_rcv_len = 0;
+			qp->r_sge.sg_list = NULL;
+
+			if (qp->r_len != 0)
+			{
+				u32 rkey = be32_to_cpu(reth->rkey);
+				u64 vaddr = be64_to_cpu(reth->vaddr);
+				int ok;
+
+				/* Check rkey & NAK */
+				ok = rvt_rkey_ok(qp, &qp->r_sge.sge, qp->r_len, vaddr,
+								 rkey, IB_ACCESS_REMOTE_WRITE);
+
+				if (unlikely(!ok))
+				{
+					goto nack_acc;
+				}
+
+				qp->r_sge.num_sge = 1;
+			}
+			else
+			{
+				qp->r_sge.num_sge = 0;
+				qp->r_sge.sge.mr = NULL;
+				qp->r_sge.sge.vaddr = NULL;
+				qp->r_sge.sge.length = 0;
+				qp->r_sge.sge.sge_length = 0;
+			}
+
+			if (opcode == OP(RDMA_WRITE_FIRST))
+			{
+				goto send_middle;
+			}
+			else if (opcode == OP(RDMA_WRITE_ONLY))
+			{
+				goto no_immediate_data;
+			}
+
+			ret = qib_get_rwqe(qp, 1);
+
+			if (ret < 0)
+			{
+				goto nack_op_err;
+			}
+
+			if (!ret)
+			{
+				goto rnr_nak;
+			}
+
+			wc.ex.imm_data = ohdr->u.rc.imm_data;
+			hdrsize += 4;
+			wc.wc_flags = IB_WC_WITH_IMM;
+			goto send_last;
+
+		case OP(RDMA_READ_REQUEST):
+			{
+				struct rvt_ack_entry *e;
+				u32 len;
+				u8 next;
+
+				if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_READ)))
+				{
+					goto nack_inv;
+				}
+
+				next = qp->r_head_ack_queue + 1;
+
+				/* s_ack_queue is size QIB_MAX_RDMA_ATOMIC+1 so use > not >= */
+				if (next > QIB_MAX_RDMA_ATOMIC)
+				{
+					next = 0;
+				}
+
+				spin_lock_irqsave(&qp->s_lock, flags);
+
+				if (unlikely(next == qp->s_tail_ack_queue))
+				{
+					if (!qp->s_ack_queue[next].sent)
+					{
+						goto nack_inv_unlck;
+					}
+
+					qib_update_ack_queue(qp, next);
+				}
+
+				e = &qp->s_ack_queue[qp->r_head_ack_queue];
+
+				if (e->opcode == OP(RDMA_READ_REQUEST) && e->rdma_sge.mr)
+				{
+					rvt_put_mr(e->rdma_sge.mr);
+					e->rdma_sge.mr = NULL;
+				}
+
+				reth = &ohdr->u.rc.reth;
+				len = be32_to_cpu(reth->length);
+
+				if (len)
+				{
+					u32 rkey = be32_to_cpu(reth->rkey);
+					u64 vaddr = be64_to_cpu(reth->vaddr);
+					int ok;
+
+					/* Check rkey & NAK */
+					ok = rvt_rkey_ok(qp, &e->rdma_sge, len, vaddr,
+									 rkey, IB_ACCESS_REMOTE_READ);
+
+					if (unlikely(!ok))
+					{
+						goto nack_acc_unlck;
+					}
+
+					/*
+					 * Update the next expected PSN.  We add 1 later
+					 * below, so only add the remainder here.
+					 */
+					if (len > pmtu)
+					{
+						qp->r_psn += (len - 1) / pmtu;
+					}
+				}
+				else
+				{
+					e->rdma_sge.mr = NULL;
+					e->rdma_sge.vaddr = NULL;
+					e->rdma_sge.length = 0;
+					e->rdma_sge.sge_length = 0;
+				}
+
+				e->opcode = opcode;
+				e->sent = 0;
+				e->psn = psn;
+				e->lpsn = qp->r_psn;
+				/*
+				 * We need to increment the MSN here instead of when we
+				 * finish sending the result since a duplicate request would
+				 * increment it more than once.
+				 */
+				qp->r_msn++;
+				qp->r_psn++;
+				qp->r_state = opcode;
+				qp->r_nak_state = 0;
+				qp->r_head_ack_queue = next;
+
+				/* Schedule the send tasklet. */
+				qp->s_flags |= RVT_S_RESP_PENDING;
+				qib_schedule_send(qp);
+
+				goto sunlock;
+			}
+
+		case OP(COMPARE_SWAP):
+		case OP(FETCH_ADD):
+			{
+				struct ib_atomic_eth *ateth;
+				struct rvt_ack_entry *e;
+				u64 vaddr;
+				atomic64_t *maddr;
+				u64 sdata;
+				u32 rkey;
+				u8 next;
+
+				if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_ATOMIC)))
+				{
+					goto nack_inv;
+				}
+
+				next = qp->r_head_ack_queue + 1;
+
+				if (next > QIB_MAX_RDMA_ATOMIC)
+				{
+					next = 0;
+				}
+
+				spin_lock_irqsave(&qp->s_lock, flags);
+
+				if (unlikely(next == qp->s_tail_ack_queue))
+				{
+					if (!qp->s_ack_queue[next].sent)
+					{
+						goto nack_inv_unlck;
+					}
+
+					qib_update_ack_queue(qp, next);
+				}
+
+				e = &qp->s_ack_queue[qp->r_head_ack_queue];
+
+				if (e->opcode == OP(RDMA_READ_REQUEST) && e->rdma_sge.mr)
+				{
+					rvt_put_mr(e->rdma_sge.mr);
+					e->rdma_sge.mr = NULL;
+				}
+
+				ateth = &ohdr->u.atomic_eth;
+				vaddr = get_ib_ateth_vaddr(ateth);
+
+				if (unlikely(vaddr & (sizeof(u64) - 1)))
+				{
+					goto nack_inv_unlck;
+				}
+
+				rkey = be32_to_cpu(ateth->rkey);
+
+				/* Check rkey & NAK */
+				if (unlikely(!rvt_rkey_ok(qp, &qp->r_sge.sge, sizeof(u64),
+										  vaddr, rkey,
+										  IB_ACCESS_REMOTE_ATOMIC)))
+				{
+					goto nack_acc_unlck;
+				}
+
+				/* Perform atomic OP and save result. */
+				maddr = (atomic64_t *) qp->r_sge.sge.vaddr;
+				sdata = get_ib_ateth_swap(ateth);
+				e->atomic_data = (opcode == OP(FETCH_ADD)) ?
+								 (u64) atomic64_add_return(sdata, maddr) - sdata :
+								 (u64) cmpxchg((u64 *) qp->r_sge.sge.vaddr,
+											   get_ib_ateth_compare(ateth),
+											   sdata);
+				rvt_put_mr(qp->r_sge.sge.mr);
+				qp->r_sge.num_sge = 0;
+				e->opcode = opcode;
+				e->sent = 0;
+				e->psn = psn;
+				e->lpsn = psn;
+				qp->r_msn++;
+				qp->r_psn++;
+				qp->r_state = opcode;
+				qp->r_nak_state = 0;
+				qp->r_head_ack_queue = next;
+
+				/* Schedule the send tasklet. */
+				qp->s_flags |= RVT_S_RESP_PENDING;
+				qib_schedule_send(qp);
+
+				goto sunlock;
+			}
+
+		default:
+			/* NAK unknown opcodes. */
 			goto nack_inv;
-		/* consume RWQE */
-		reth = &ohdr->u.rc.reth;
-		hdrsize += sizeof(*reth);
-		qp->r_len = be32_to_cpu(reth->length);
-		qp->r_rcv_len = 0;
-		qp->r_sge.sg_list = NULL;
-		if (qp->r_len != 0) {
-			u32 rkey = be32_to_cpu(reth->rkey);
-			u64 vaddr = be64_to_cpu(reth->vaddr);
-			int ok;
-
-			/* Check rkey & NAK */
-			ok = rvt_rkey_ok(qp, &qp->r_sge.sge, qp->r_len, vaddr,
-					 rkey, IB_ACCESS_REMOTE_WRITE);
-			if (unlikely(!ok))
-				goto nack_acc;
-			qp->r_sge.num_sge = 1;
-		} else {
-			qp->r_sge.num_sge = 0;
-			qp->r_sge.sge.mr = NULL;
-			qp->r_sge.sge.vaddr = NULL;
-			qp->r_sge.sge.length = 0;
-			qp->r_sge.sge.sge_length = 0;
-		}
-		if (opcode == OP(RDMA_WRITE_FIRST))
-			goto send_middle;
-		else if (opcode == OP(RDMA_WRITE_ONLY))
-			goto no_immediate_data;
-		ret = qib_get_rwqe(qp, 1);
-		if (ret < 0)
-			goto nack_op_err;
-		if (!ret)
-			goto rnr_nak;
-		wc.ex.imm_data = ohdr->u.rc.imm_data;
-		hdrsize += 4;
-		wc.wc_flags = IB_WC_WITH_IMM;
-		goto send_last;
-
-	case OP(RDMA_READ_REQUEST): {
-		struct rvt_ack_entry *e;
-		u32 len;
-		u8 next;
-
-		if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_READ)))
-			goto nack_inv;
-		next = qp->r_head_ack_queue + 1;
-		/* s_ack_queue is size QIB_MAX_RDMA_ATOMIC+1 so use > not >= */
-		if (next > QIB_MAX_RDMA_ATOMIC)
-			next = 0;
-		spin_lock_irqsave(&qp->s_lock, flags);
-		if (unlikely(next == qp->s_tail_ack_queue)) {
-			if (!qp->s_ack_queue[next].sent)
-				goto nack_inv_unlck;
-			qib_update_ack_queue(qp, next);
-		}
-		e = &qp->s_ack_queue[qp->r_head_ack_queue];
-		if (e->opcode == OP(RDMA_READ_REQUEST) && e->rdma_sge.mr) {
-			rvt_put_mr(e->rdma_sge.mr);
-			e->rdma_sge.mr = NULL;
-		}
-		reth = &ohdr->u.rc.reth;
-		len = be32_to_cpu(reth->length);
-		if (len) {
-			u32 rkey = be32_to_cpu(reth->rkey);
-			u64 vaddr = be64_to_cpu(reth->vaddr);
-			int ok;
-
-			/* Check rkey & NAK */
-			ok = rvt_rkey_ok(qp, &e->rdma_sge, len, vaddr,
-					 rkey, IB_ACCESS_REMOTE_READ);
-			if (unlikely(!ok))
-				goto nack_acc_unlck;
-			/*
-			 * Update the next expected PSN.  We add 1 later
-			 * below, so only add the remainder here.
-			 */
-			if (len > pmtu)
-				qp->r_psn += (len - 1) / pmtu;
-		} else {
-			e->rdma_sge.mr = NULL;
-			e->rdma_sge.vaddr = NULL;
-			e->rdma_sge.length = 0;
-			e->rdma_sge.sge_length = 0;
-		}
-		e->opcode = opcode;
-		e->sent = 0;
-		e->psn = psn;
-		e->lpsn = qp->r_psn;
-		/*
-		 * We need to increment the MSN here instead of when we
-		 * finish sending the result since a duplicate request would
-		 * increment it more than once.
-		 */
-		qp->r_msn++;
-		qp->r_psn++;
-		qp->r_state = opcode;
-		qp->r_nak_state = 0;
-		qp->r_head_ack_queue = next;
-
-		/* Schedule the send tasklet. */
-		qp->s_flags |= RVT_S_RESP_PENDING;
-		qib_schedule_send(qp);
-
-		goto sunlock;
 	}
 
-	case OP(COMPARE_SWAP):
-	case OP(FETCH_ADD): {
-		struct ib_atomic_eth *ateth;
-		struct rvt_ack_entry *e;
-		u64 vaddr;
-		atomic64_t *maddr;
-		u64 sdata;
-		u32 rkey;
-		u8 next;
-
-		if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_ATOMIC)))
-			goto nack_inv;
-		next = qp->r_head_ack_queue + 1;
-		if (next > QIB_MAX_RDMA_ATOMIC)
-			next = 0;
-		spin_lock_irqsave(&qp->s_lock, flags);
-		if (unlikely(next == qp->s_tail_ack_queue)) {
-			if (!qp->s_ack_queue[next].sent)
-				goto nack_inv_unlck;
-			qib_update_ack_queue(qp, next);
-		}
-		e = &qp->s_ack_queue[qp->r_head_ack_queue];
-		if (e->opcode == OP(RDMA_READ_REQUEST) && e->rdma_sge.mr) {
-			rvt_put_mr(e->rdma_sge.mr);
-			e->rdma_sge.mr = NULL;
-		}
-		ateth = &ohdr->u.atomic_eth;
-		vaddr = get_ib_ateth_vaddr(ateth);
-		if (unlikely(vaddr & (sizeof(u64) - 1)))
-			goto nack_inv_unlck;
-		rkey = be32_to_cpu(ateth->rkey);
-		/* Check rkey & NAK */
-		if (unlikely(!rvt_rkey_ok(qp, &qp->r_sge.sge, sizeof(u64),
-					  vaddr, rkey,
-					  IB_ACCESS_REMOTE_ATOMIC)))
-			goto nack_acc_unlck;
-		/* Perform atomic OP and save result. */
-		maddr = (atomic64_t *) qp->r_sge.sge.vaddr;
-		sdata = get_ib_ateth_swap(ateth);
-		e->atomic_data = (opcode == OP(FETCH_ADD)) ?
-			(u64) atomic64_add_return(sdata, maddr) - sdata :
-			(u64) cmpxchg((u64 *) qp->r_sge.sge.vaddr,
-				      get_ib_ateth_compare(ateth),
-				      sdata);
-		rvt_put_mr(qp->r_sge.sge.mr);
-		qp->r_sge.num_sge = 0;
-		e->opcode = opcode;
-		e->sent = 0;
-		e->psn = psn;
-		e->lpsn = psn;
-		qp->r_msn++;
-		qp->r_psn++;
-		qp->r_state = opcode;
-		qp->r_nak_state = 0;
-		qp->r_head_ack_queue = next;
-
-		/* Schedule the send tasklet. */
-		qp->s_flags |= RVT_S_RESP_PENDING;
-		qib_schedule_send(qp);
-
-		goto sunlock;
-	}
-
-	default:
-		/* NAK unknown opcodes. */
-		goto nack_inv;
-	}
 	qp->r_psn++;
 	qp->r_state = opcode;
 	qp->r_ack_psn = psn;
 	qp->r_nak_state = 0;
+
 	/* Send an ACK if requested or required. */
 	if (psn & (1 << 31))
+	{
 		goto send_ack;
+	}
+
 	return;
 
 rnr_nak:
 	qp->r_nak_state = IB_RNR_NAK | qp->r_min_rnr_timer;
 	qp->r_ack_psn = qp->r_psn;
+
 	/* Queue RNR NAK for later */
-	if (list_empty(&qp->rspwait)) {
+	if (list_empty(&qp->rspwait))
+	{
 		qp->r_flags |= RVT_R_RSP_NAK;
 		rvt_get_qp(qp);
 		list_add_tail(&qp->rspwait, &rcd->qp_wait_list);
 	}
+
 	return;
 
 nack_op_err:
 	qib_rc_error(qp, IB_WC_LOC_QP_OP_ERR);
 	qp->r_nak_state = IB_NAK_REMOTE_OPERATIONAL_ERROR;
 	qp->r_ack_psn = qp->r_psn;
+
 	/* Queue NAK for later */
-	if (list_empty(&qp->rspwait)) {
+	if (list_empty(&qp->rspwait))
+	{
 		qp->r_flags |= RVT_R_RSP_NAK;
 		rvt_get_qp(qp);
 		list_add_tail(&qp->rspwait, &rcd->qp_wait_list);
 	}
+
 	return;
 
 nack_inv_unlck:
@@ -2247,12 +2958,15 @@ nack_inv:
 	qib_rc_error(qp, IB_WC_LOC_QP_OP_ERR);
 	qp->r_nak_state = IB_NAK_INVALID_REQUEST;
 	qp->r_ack_psn = qp->r_psn;
+
 	/* Queue NAK for later */
-	if (list_empty(&qp->rspwait)) {
+	if (list_empty(&qp->rspwait))
+	{
 		qp->r_flags |= RVT_R_RSP_NAK;
 		rvt_get_qp(qp);
 		list_add_tail(&qp->rspwait, &rcd->qp_wait_list);
 	}
+
 	return;
 
 nack_acc_unlck:

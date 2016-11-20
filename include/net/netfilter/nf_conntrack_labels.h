@@ -9,7 +9,8 @@
 
 #define NF_CT_LABELS_MAX_SIZE ((XT_CONNLABEL_MAXBIT + 1) / BITS_PER_BYTE)
 
-struct nf_conn_labels {
+struct nf_conn_labels
+{
 	unsigned long bits[NF_CT_LABELS_MAX_SIZE / sizeof(long)];
 };
 
@@ -28,7 +29,9 @@ static inline struct nf_conn_labels *nf_ct_labels_ext_add(struct nf_conn *ct)
 	struct net *net = nf_ct_net(ct);
 
 	if (net->ct.labels_used == 0)
+	{
 		return NULL;
+	}
 
 	return nf_ct_ext_add(ct, NF_CT_EXT_LABELS, GFP_ATOMIC);
 #else
@@ -37,7 +40,7 @@ static inline struct nf_conn_labels *nf_ct_labels_ext_add(struct nf_conn *ct)
 }
 
 int nf_connlabels_replace(struct nf_conn *ct,
-			  const u32 *data, const u32 *mask, unsigned int words);
+						  const u32 *data, const u32 *mask, unsigned int words);
 
 #ifdef CONFIG_NF_CONNTRACK_LABELS
 int nf_conntrack_labels_init(void);

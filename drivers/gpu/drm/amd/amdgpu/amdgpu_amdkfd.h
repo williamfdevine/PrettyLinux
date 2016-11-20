@@ -30,7 +30,8 @@
 
 struct amdgpu_device;
 
-struct kgd_mem {
+struct kgd_mem
+{
 	struct amdgpu_bo *bo;
 	uint64_t gpu_addr;
 	void *cpu_ptr;
@@ -44,7 +45,7 @@ bool amdgpu_amdkfd_load_interface(struct amdgpu_device *rdev);
 void amdgpu_amdkfd_suspend(struct amdgpu_device *rdev);
 int amdgpu_amdkfd_resume(struct amdgpu_device *rdev);
 void amdgpu_amdkfd_interrupt(struct amdgpu_device *rdev,
-			const void *ih_ring_entry);
+							 const void *ih_ring_entry);
 void amdgpu_amdkfd_device_probe(struct amdgpu_device *rdev);
 void amdgpu_amdkfd_device_init(struct amdgpu_device *rdev);
 void amdgpu_amdkfd_device_fini(struct amdgpu_device *rdev);
@@ -54,8 +55,8 @@ struct kfd2kgd_calls *amdgpu_amdkfd_gfx_8_0_get_functions(void);
 
 /* Shared API */
 int alloc_gtt_mem(struct kgd_dev *kgd, size_t size,
-			void **mem_obj, uint64_t *gpu_addr,
-			void **cpu_ptr);
+				  void **mem_obj, uint64_t *gpu_addr,
+				  void **cpu_ptr);
 void free_gtt_mem(struct kgd_dev *kgd, void *mem_obj);
 uint64_t get_vmem_size(struct kgd_dev *kgd);
 uint64_t get_gpu_clock_counter(struct kgd_dev *kgd);

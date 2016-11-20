@@ -38,7 +38,8 @@
 #define TIPC_GENL_V2_VERSION   0x1
 
 /* Netlink commands */
-enum {
+enum
+{
 	TIPC_NL_UNSPEC,
 	TIPC_NL_LEGACY,
 	TIPC_NL_BEARER_DISABLE,
@@ -68,7 +69,8 @@ enum {
 };
 
 /* Top level netlink attributes */
-enum {
+enum
+{
 	TIPC_NLA_UNSPEC,
 	TIPC_NLA_BEARER,		/* nest */
 	TIPC_NLA_SOCK,			/* nest */
@@ -86,7 +88,8 @@ enum {
 };
 
 /* Bearer info */
-enum {
+enum
+{
 	TIPC_NLA_BEARER_UNSPEC,
 	TIPC_NLA_BEARER_NAME,		/* string */
 	TIPC_NLA_BEARER_PROP,		/* nest */
@@ -97,7 +100,8 @@ enum {
 	TIPC_NLA_BEARER_MAX = __TIPC_NLA_BEARER_MAX - 1
 };
 
-enum {
+enum
+{
 	TIPC_NLA_UDP_UNSPEC,
 	TIPC_NLA_UDP_LOCAL,		/* sockaddr_storage */
 	TIPC_NLA_UDP_REMOTE,		/* sockaddr_storage */
@@ -107,7 +111,8 @@ enum {
 	TIPC_NLA_UDP_MAX = __TIPC_NLA_UDP_MAX - 1
 };
 /* Socket info */
-enum {
+enum
+{
 	TIPC_NLA_SOCK_UNSPEC,
 	TIPC_NLA_SOCK_ADDR,		/* u32 */
 	TIPC_NLA_SOCK_REF,		/* u32 */
@@ -119,7 +124,8 @@ enum {
 };
 
 /* Link info */
-enum {
+enum
+{
 	TIPC_NLA_LINK_UNSPEC,
 	TIPC_NLA_LINK_NAME,		/* string */
 	TIPC_NLA_LINK_DEST,		/* u32 */
@@ -137,7 +143,8 @@ enum {
 };
 
 /* Media info */
-enum {
+enum
+{
 	TIPC_NLA_MEDIA_UNSPEC,
 	TIPC_NLA_MEDIA_NAME,		/* string */
 	TIPC_NLA_MEDIA_PROP,		/* nest */
@@ -147,7 +154,8 @@ enum {
 };
 
 /* Node info */
-enum {
+enum
+{
 	TIPC_NLA_NODE_UNSPEC,
 	TIPC_NLA_NODE_ADDR,		/* u32 */
 	TIPC_NLA_NODE_UP,		/* flag */
@@ -157,7 +165,8 @@ enum {
 };
 
 /* Net info */
-enum {
+enum
+{
 	TIPC_NLA_NET_UNSPEC,
 	TIPC_NLA_NET_ID,		/* u32 */
 	TIPC_NLA_NET_ADDR,		/* u32 */
@@ -167,7 +176,8 @@ enum {
 };
 
 /* Name table info */
-enum {
+enum
+{
 	TIPC_NLA_NAME_TABLE_UNSPEC,
 	TIPC_NLA_NAME_TABLE_PUBL,	/* nest */
 
@@ -176,7 +186,8 @@ enum {
 };
 
 /* Monitor info */
-enum {
+enum
+{
 	TIPC_NLA_MON_UNSPEC,
 	TIPC_NLA_MON_ACTIVATION_THRESHOLD,	/* u32 */
 	TIPC_NLA_MON_REF,			/* u32 */
@@ -190,7 +201,8 @@ enum {
 };
 
 /* Publication info */
-enum {
+enum
+{
 	TIPC_NLA_PUBL_UNSPEC,
 
 	TIPC_NLA_PUBL_TYPE,		/* u32 */
@@ -206,7 +218,8 @@ enum {
 };
 
 /* Monitor peer info */
-enum {
+enum
+{
 	TIPC_NLA_MON_PEER_UNSPEC,
 
 	TIPC_NLA_MON_PEER_ADDR,			/* u32 */
@@ -224,7 +237,8 @@ enum {
 };
 
 /* Nest, connection info */
-enum {
+enum
+{
 	TIPC_NLA_CON_UNSPEC,
 
 	TIPC_NLA_CON_FLAG,		/* flag */
@@ -238,7 +252,8 @@ enum {
 };
 
 /* Nest, link propreties. Valid for link, media and bearer */
-enum {
+enum
+{
 	TIPC_NLA_PROP_UNSPEC,
 
 	TIPC_NLA_PROP_PRIO,		/* u32 */
@@ -250,7 +265,8 @@ enum {
 };
 
 /* Nest, statistics info */
-enum {
+enum
+{
 	TIPC_NLA_STATS_UNSPEC,
 
 	TIPC_NLA_STATS_RX_INFO,		/* u32 */

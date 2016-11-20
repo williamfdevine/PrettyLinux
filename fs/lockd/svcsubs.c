@@ -34,12 +34,12 @@ static DEFINE_MUTEX(nlm_file_mutex);
 #ifdef CONFIG_SUNRPC_DEBUG
 static inline void nlm_debug_print_fh(char *msg, struct nfs_fh *f)
 {
-	u32 *fhp = (u32*)f->data;
+	u32 *fhp = (u32 *)f->data;
 
 	/* print the first 32 bytes of the fh */
 	dprintk("lockd: %s (%08x %08x %08x %08x %08x %08x %08x %08x)\n",
-		msg, fhp[0], fhp[1], fhp[2], fhp[3],
-		fhp[4], fhp[5], fhp[6], fhp[7]);
+			msg, fhp[0], fhp[1], fhp[2], fhp[3],
+			fhp[4], fhp[5], fhp[6], fhp[7]);
 }
 
 static inline void nlm_debug_print_file(char *msg, struct nlm_file *file)
@@ -47,7 +47,7 @@ static inline void nlm_debug_print_file(char *msg, struct nlm_file *file)
 	struct inode *inode = file_inode(file->f_file);
 
 	dprintk("lockd: %s %s/%ld\n",
-		msg, inode->i_sb->s_id, inode->i_ino);
+			msg, inode->i_sb->s_id, inode->i_ino);
 }
 #else
 static inline void nlm_debug_print_fh(char *msg, struct nfs_fh *f)
@@ -63,10 +63,14 @@ static inline void nlm_debug_print_file(char *msg, struct nlm_file *file)
 
 static inline unsigned int file_hash(struct nfs_fh *f)
 {
-	unsigned int tmp=0;
+	unsigned int tmp = 0;
 	int i;
-	for (i=0; i<NFS2_FHSIZE;i++)
+
+	for (i = 0; i < NFS2_FHSIZE; i++)
+	{
 		tmp += f->data[i];
+	}
+
 	return tmp & (FILE_NRHASH - 1);
 }
 
@@ -81,7 +85,7 @@ static inline unsigned int file_hash(struct nfs_fh *f)
  */
 __be32
 nlm_lookup_file(struct svc_rqst *rqstp, struct nlm_file **result,
-					struct nfs_fh *f)
+				struct nfs_fh *f)
 {
 	struct nlm_file	*file;
 	unsigned int	hash;
@@ -95,15 +99,21 @@ nlm_lookup_file(struct svc_rqst *rqstp, struct nlm_file **result,
 	mutex_lock(&nlm_file_mutex);
 
 	hlist_for_each_entry(file, &nlm_files[hash], f_list)
-		if (!nfs_compare_fh(&file->f_handle, f))
-			goto found;
+
+	if (!nfs_compare_fh(&file->f_handle, f))
+	{
+		goto found;
+	}
 
 	nlm_debug_print_fh("creating file for", f);
 
 	nfserr = nlm_lck_denied_nolocks;
 	file = kzalloc(sizeof(*file), GFP_KERNEL);
+
 	if (!file)
+	{
 		goto out_unlock;
+	}
 
 	memcpy(&file->f_handle, f, sizeof(struct nfs_fh));
 	mutex_init(&file->f_mutex);
@@ -116,7 +126,8 @@ nlm_lookup_file(struct svc_rqst *rqstp, struct nlm_file **result,
 	 * We have to make sure we have the right credential to open
 	 * the file.
 	 */
-	if ((nfserr = nlmsvc_ops->fopen(rqstp, f, &file->f_file)) != 0) {
+	if ((nfserr = nlmsvc_ops->fopen(rqstp, f, &file->f_file)) != 0)
+	{
 		dprintk("lockd: open failed (error %d)\n", nfserr);
 		goto out_free;
 	}
@@ -145,11 +156,15 @@ static inline void
 nlm_delete_file(struct nlm_file *file)
 {
 	nlm_debug_print_file("closing file", file);
-	if (!hlist_unhashed(&file->f_list)) {
+
+	if (!hlist_unhashed(&file->f_list))
+	{
 		hlist_del(&file->f_list);
 		nlmsvc_ops->fclose(file->f_file);
 		kfree(file);
-	} else {
+	}
+	else
+	{
 		printk(KERN_WARNING "lockd: attempt to release unknown file!\n");
 	}
 }
@@ -160,7 +175,7 @@ nlm_delete_file(struct nlm_file *file)
  */
 static int
 nlm_traverse_locks(struct nlm_host *host, struct nlm_file *file,
-			nlm_host_match_fn_t match)
+				   nlm_host_match_fn_t match)
 {
 	struct inode	 *inode = nlmsvc_file_inode(file);
 	struct file_lock *fl;
@@ -168,30 +183,41 @@ nlm_traverse_locks(struct nlm_host *host, struct nlm_file *file,
 	struct nlm_host	 *lockhost;
 
 	if (!flctx || list_empty_careful(&flctx->flc_posix))
+	{
 		return 0;
+	}
+
 again:
 	file->f_locks = 0;
 	spin_lock(&flctx->flc_lock);
-	list_for_each_entry(fl, &flctx->flc_posix, fl_list) {
+	list_for_each_entry(fl, &flctx->flc_posix, fl_list)
+	{
 		if (fl->fl_lmops != &nlmsvc_lock_operations)
+		{
 			continue;
+		}
 
 		/* update current lock count */
 		file->f_locks++;
 
 		lockhost = (struct nlm_host *) fl->fl_owner;
-		if (match(lockhost, host)) {
+
+		if (match(lockhost, host))
+		{
 			struct file_lock lock = *fl;
 
 			spin_unlock(&flctx->flc_lock);
 			lock.fl_type  = F_UNLCK;
 			lock.fl_start = 0;
 			lock.fl_end   = OFFSET_MAX;
-			if (vfs_lock_file(file->f_file, F_SETLK, &lock, NULL) < 0) {
+
+			if (vfs_lock_file(file->f_file, F_SETLK, &lock, NULL) < 0)
+			{
 				printk("lockd: unlock failure in %s:%d\n",
-						__FILE__, __LINE__);
+					   __FILE__, __LINE__);
 				return 1;
 			}
+
 			goto again;
 		}
 	}
@@ -229,18 +255,24 @@ nlm_file_inuse(struct nlm_file *file)
 	struct file_lock_context *flctx = inode->i_flctx;
 
 	if (file->f_count || !list_empty(&file->f_blocks) || file->f_shares)
+	{
 		return 1;
+	}
 
-	if (flctx && !list_empty_careful(&flctx->flc_posix)) {
+	if (flctx && !list_empty_careful(&flctx->flc_posix))
+	{
 		spin_lock(&flctx->flc_lock);
-		list_for_each_entry(fl, &flctx->flc_posix, fl_list) {
-			if (fl->fl_lmops == &nlmsvc_lock_operations) {
+		list_for_each_entry(fl, &flctx->flc_posix, fl_list)
+		{
+			if (fl->fl_lmops == &nlmsvc_lock_operations)
+			{
 				spin_unlock(&flctx->flc_lock);
 				return 1;
 			}
 		}
 		spin_unlock(&flctx->flc_lock);
 	}
+
 	file->f_locks = 0;
 	return 0;
 }
@@ -250,36 +282,47 @@ nlm_file_inuse(struct nlm_file *file)
  */
 static int
 nlm_traverse_files(void *data, nlm_host_match_fn_t match,
-		int (*is_failover_file)(void *data, struct nlm_file *file))
+				   int (*is_failover_file)(void *data, struct nlm_file *file))
 {
 	struct hlist_node *next;
 	struct nlm_file	*file;
 	int i, ret = 0;
 
 	mutex_lock(&nlm_file_mutex);
-	for (i = 0; i < FILE_NRHASH; i++) {
-		hlist_for_each_entry_safe(file, next, &nlm_files[i], f_list) {
+
+	for (i = 0; i < FILE_NRHASH; i++)
+	{
+		hlist_for_each_entry_safe(file, next, &nlm_files[i], f_list)
+		{
 			if (is_failover_file && !is_failover_file(data, file))
+			{
 				continue;
+			}
+
 			file->f_count++;
 			mutex_unlock(&nlm_file_mutex);
 
 			/* Traverse locks, blocks and shares of this file
 			 * and update file->f_locks count */
 			if (nlm_inspect_file(data, file, match))
+			{
 				ret = 1;
+			}
 
 			mutex_lock(&nlm_file_mutex);
 			file->f_count--;
+
 			/* No more references to this file. Let go of it. */
 			if (list_empty(&file->f_blocks) && !file->f_locks
-			 && !file->f_shares && !file->f_count) {
+				&& !file->f_shares && !file->f_count)
+			{
 				hlist_del(&file->f_list);
 				nlmsvc_ops->fclose(file->f_file);
 				kfree(file);
 			}
 		}
 	}
+
 	mutex_unlock(&nlm_file_mutex);
 	return ret;
 }
@@ -297,14 +340,16 @@ void
 nlm_release_file(struct nlm_file *file)
 {
 	dprintk("lockd: nlm_release_file(%p, ct = %d)\n",
-				file, file->f_count);
+			file, file->f_count);
 
 	/* Lock file table */
 	mutex_lock(&nlm_file_mutex);
 
 	/* If there are no more locks etc, delete the file */
 	if (--file->f_count == 0 && !nlm_file_inuse(file))
+	{
 		nlm_delete_file(file);
+	}
 
 	mutex_unlock(&nlm_file_mutex);
 }
@@ -332,8 +377,11 @@ nlmsvc_mark_host(void *data, struct nlm_host *hint)
 	struct nlm_host *host = data;
 
 	if ((hint->net == NULL) ||
-	    (host->net == hint->net))
+		(host->net == hint->net))
+	{
 		host->h_inuse = 1;
+	}
+
 	return 0;
 }
 
@@ -350,16 +398,23 @@ nlmsvc_is_client(void *data, struct nlm_host *dummy)
 {
 	struct nlm_host *host = data;
 
-	if (host->h_server) {
+	if (host->h_server)
+	{
 		/* we are destroying locks even though the client
 		 * hasn't asked us too, so don't unmonitor the
 		 * client
 		 */
 		if (host->h_nsmhandle)
+		{
 			host->h_nsmhandle->sm_sticky = 1;
+		}
+
 		return 1;
-	} else
+	}
+	else
+	{
 		return 0;
+	}
 }
 
 /*
@@ -383,10 +438,11 @@ nlmsvc_free_host_resources(struct nlm_host *host)
 {
 	dprintk("lockd: nlmsvc_free_host_resources\n");
 
-	if (nlm_traverse_files(host, nlmsvc_same_host, NULL)) {
+	if (nlm_traverse_files(host, nlmsvc_same_host, NULL))
+	{
 		printk(KERN_WARNING
-			"lockd: couldn't remove all locks held by %s\n",
-			host->h_name);
+			   "lockd: couldn't remove all locks held by %s\n",
+			   host->h_name);
 		BUG();
 	}
 }

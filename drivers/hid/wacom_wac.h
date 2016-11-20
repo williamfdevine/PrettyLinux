@@ -93,16 +93,17 @@
 #define WACOM_G11_TOUCHSCREEN		(WACOM_G11_PAGE | 0x11)
 
 #define WACOM_PEN_FIELD(f)	(((f)->logical == HID_DG_STYLUS) || \
-				 ((f)->physical == HID_DG_STYLUS) || \
-				 ((f)->physical == HID_DG_PEN) || \
-				 ((f)->application == HID_DG_PEN) || \
-				 ((f)->application == HID_DG_DIGITIZER) || \
-				 ((f)->application == WACOM_VENDORDEFINED_PEN))
+							 ((f)->physical == HID_DG_STYLUS) || \
+							 ((f)->physical == HID_DG_PEN) || \
+							 ((f)->application == HID_DG_PEN) || \
+							 ((f)->application == HID_DG_DIGITIZER) || \
+							 ((f)->application == WACOM_VENDORDEFINED_PEN))
 #define WACOM_FINGER_FIELD(f)	(((f)->logical == HID_DG_FINGER) || \
-				 ((f)->physical == HID_DG_FINGER) || \
-				 ((f)->application == HID_DG_TOUCHSCREEN))
+								 ((f)->physical == HID_DG_FINGER) || \
+								 ((f)->application == HID_DG_TOUCHSCREEN))
 
-enum {
+enum
+{
 	PENPARTNER = 0,
 	GRAPHIRE,
 	GRAPHIRE_BT,
@@ -157,7 +158,8 @@ enum {
 	MAX_TYPE
 };
 
-struct wacom_features {
+struct wacom_features
+{
 	const char *name;
 	int x_max;
 	int y_max;
@@ -188,7 +190,8 @@ struct wacom_features {
 	int hid_type;
 };
 
-struct wacom_shared {
+struct wacom_shared
+{
 	bool stylus_in_proximity;
 	bool touch_down;
 	/* for wireless device to access USB interfaces */
@@ -199,7 +202,8 @@ struct wacom_shared {
 	struct hid_device *touch;
 };
 
-struct hid_data {
+struct hid_data
+{
 	__s16 inputmode;	/* InputMode HID feature, -1 if non-existent */
 	__s16 inputmode_index;	/* InputMode HID feature index in the report */
 	bool inrange_state;
@@ -219,14 +223,17 @@ struct hid_data {
 	int num_received;
 };
 
-struct wacom_remote_data {
-	struct {
+struct wacom_remote_data
+{
+	struct
+	{
 		u32 serial;
 		bool connected;
 	} remote[WACOM_MAX_REMOTES];
 };
 
-struct wacom_wac {
+struct wacom_wac
+{
 	char name[WACOM_NAME_MAX];
 	char pen_name[WACOM_NAME_MAX];
 	char touch_name[WACOM_NAME_MAX];

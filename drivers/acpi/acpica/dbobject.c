@@ -74,13 +74,15 @@ acpi_db_dump_method_info(acpi_status status, struct acpi_walk_state *walk_state)
 
 	/* Ignore control codes, they are not errors */
 
-	if ((status & AE_CODE_MASK) == AE_CODE_CONTROL) {
+	if ((status & AE_CODE_MASK) == AE_CODE_CONTROL)
+	{
 		return;
 	}
 
 	/* We may be executing a deferred opcode */
 
-	if (walk_state->deferred_node) {
+	if (walk_state->deferred_node)
+	{
 		acpi_os_printf("Executing subtree for Buffer/Package/Region\n");
 		return;
 	}
@@ -91,7 +93,9 @@ acpi_db_dump_method_info(acpi_status status, struct acpi_walk_state *walk_state)
 	 * to perform constant folding.
 	 */
 	thread = walk_state->thread;
-	if (!thread) {
+
+	if (!thread)
+	{
 		return;
 	}
 
@@ -120,51 +124,61 @@ void acpi_db_decode_internal_object(union acpi_operand_object *obj_desc)
 {
 	u32 i;
 
-	if (!obj_desc) {
+	if (!obj_desc)
+	{
 		acpi_os_printf(" Uninitialized");
 		return;
 	}
 
-	if (ACPI_GET_DESCRIPTOR_TYPE(obj_desc) != ACPI_DESC_TYPE_OPERAND) {
+	if (ACPI_GET_DESCRIPTOR_TYPE(obj_desc) != ACPI_DESC_TYPE_OPERAND)
+	{
 		acpi_os_printf(" %p [%s]", obj_desc,
-			       acpi_ut_get_descriptor_name(obj_desc));
+					   acpi_ut_get_descriptor_name(obj_desc));
 		return;
 	}
 
 	acpi_os_printf(" %s", acpi_ut_get_object_type_name(obj_desc));
 
-	switch (obj_desc->common.type) {
-	case ACPI_TYPE_INTEGER:
+	switch (obj_desc->common.type)
+	{
+		case ACPI_TYPE_INTEGER:
 
-		acpi_os_printf(" %8.8X%8.8X",
-			       ACPI_FORMAT_UINT64(obj_desc->integer.value));
-		break;
+			acpi_os_printf(" %8.8X%8.8X",
+						   ACPI_FORMAT_UINT64(obj_desc->integer.value));
+			break;
 
-	case ACPI_TYPE_STRING:
+		case ACPI_TYPE_STRING:
 
-		acpi_os_printf("(%u) \"%.60s",
-			       obj_desc->string.length,
-			       obj_desc->string.pointer);
+			acpi_os_printf("(%u) \"%.60s",
+						   obj_desc->string.length,
+						   obj_desc->string.pointer);
 
-		if (obj_desc->string.length > 60) {
-			acpi_os_printf("...");
-		} else {
-			acpi_os_printf("\"");
-		}
-		break;
+			if (obj_desc->string.length > 60)
+			{
+				acpi_os_printf("...");
+			}
+			else
+			{
+				acpi_os_printf("\"");
+			}
 
-	case ACPI_TYPE_BUFFER:
+			break;
 
-		acpi_os_printf("(%u)", obj_desc->buffer.length);
-		for (i = 0; (i < 8) && (i < obj_desc->buffer.length); i++) {
-			acpi_os_printf(" %2.2X", obj_desc->buffer.pointer[i]);
-		}
-		break;
+		case ACPI_TYPE_BUFFER:
 
-	default:
+			acpi_os_printf("(%u)", obj_desc->buffer.length);
 
-		acpi_os_printf(" %p", obj_desc);
-		break;
+			for (i = 0; (i < 8) && (i < obj_desc->buffer.length); i++)
+			{
+				acpi_os_printf(" %2.2X", obj_desc->buffer.pointer[i]);
+			}
+
+			break;
+
+		default:
+
+			acpi_os_printf(" %p", obj_desc);
+			break;
 	}
 }
 
@@ -184,34 +198,38 @@ static void acpi_db_decode_node(struct acpi_namespace_node *node)
 {
 
 	acpi_os_printf("<Node>          Name %4.4s",
-		       acpi_ut_get_node_name(node));
+				   acpi_ut_get_node_name(node));
 
-	if (node->flags & ANOBJ_METHOD_ARG) {
+	if (node->flags & ANOBJ_METHOD_ARG)
+	{
 		acpi_os_printf(" [Method Arg]");
 	}
-	if (node->flags & ANOBJ_METHOD_LOCAL) {
+
+	if (node->flags & ANOBJ_METHOD_LOCAL)
+	{
 		acpi_os_printf(" [Method Local]");
 	}
 
-	switch (node->type) {
+	switch (node->type)
+	{
 
 		/* These types have no attached object */
 
-	case ACPI_TYPE_DEVICE:
+		case ACPI_TYPE_DEVICE:
 
-		acpi_os_printf(" Device");
-		break;
+			acpi_os_printf(" Device");
+			break;
 
-	case ACPI_TYPE_THERMAL:
+		case ACPI_TYPE_THERMAL:
 
-		acpi_os_printf(" Thermal Zone");
-		break;
+			acpi_os_printf(" Thermal Zone");
+			break;
 
-	default:
+		default:
 
-		acpi_db_decode_internal_object(acpi_ns_get_attached_object
-					       (node));
-		break;
+			acpi_db_decode_internal_object(acpi_ns_get_attached_object
+										   (node));
+			break;
 	}
 }
 
@@ -230,172 +248,196 @@ static void acpi_db_decode_node(struct acpi_namespace_node *node)
 
 void
 acpi_db_display_internal_object(union acpi_operand_object *obj_desc,
-				struct acpi_walk_state *walk_state)
+								struct acpi_walk_state *walk_state)
 {
 	u8 type;
 
 	acpi_os_printf("%p ", obj_desc);
 
-	if (!obj_desc) {
+	if (!obj_desc)
+	{
 		acpi_os_printf("<Null Object>\n");
 		return;
 	}
 
 	/* Decode the object type */
 
-	switch (ACPI_GET_DESCRIPTOR_TYPE(obj_desc)) {
-	case ACPI_DESC_TYPE_PARSER:
+	switch (ACPI_GET_DESCRIPTOR_TYPE(obj_desc))
+	{
+		case ACPI_DESC_TYPE_PARSER:
 
-		acpi_os_printf("<Parser> ");
-		break;
+			acpi_os_printf("<Parser> ");
+			break;
 
-	case ACPI_DESC_TYPE_NAMED:
+		case ACPI_DESC_TYPE_NAMED:
 
-		acpi_db_decode_node((struct acpi_namespace_node *)obj_desc);
-		break;
+			acpi_db_decode_node((struct acpi_namespace_node *)obj_desc);
+			break;
 
-	case ACPI_DESC_TYPE_OPERAND:
+		case ACPI_DESC_TYPE_OPERAND:
 
-		type = obj_desc->common.type;
-		if (type > ACPI_TYPE_LOCAL_MAX) {
-			acpi_os_printf(" Type %X [Invalid Type]", (u32)type);
-			return;
-		}
+			type = obj_desc->common.type;
 
-		/* Decode the ACPI object type */
-
-		switch (obj_desc->common.type) {
-		case ACPI_TYPE_LOCAL_REFERENCE:
-
-			acpi_os_printf("[%s] ",
-				       acpi_ut_get_reference_name(obj_desc));
-
-			/* Decode the refererence */
-
-			switch (obj_desc->reference.class) {
-			case ACPI_REFCLASS_LOCAL:
-
-				acpi_os_printf("%X ",
-					       obj_desc->reference.value);
-				if (walk_state) {
-					obj_desc = walk_state->local_variables
-					    [obj_desc->reference.value].object;
-					acpi_os_printf("%p", obj_desc);
-					acpi_db_decode_internal_object
-					    (obj_desc);
-				}
-				break;
-
-			case ACPI_REFCLASS_ARG:
-
-				acpi_os_printf("%X ",
-					       obj_desc->reference.value);
-				if (walk_state) {
-					obj_desc = walk_state->arguments
-					    [obj_desc->reference.value].object;
-					acpi_os_printf("%p", obj_desc);
-					acpi_db_decode_internal_object
-					    (obj_desc);
-				}
-				break;
-
-			case ACPI_REFCLASS_INDEX:
-
-				switch (obj_desc->reference.target_type) {
-				case ACPI_TYPE_BUFFER_FIELD:
-
-					acpi_os_printf("%p",
-						       obj_desc->reference.
-						       object);
-					acpi_db_decode_internal_object
-					    (obj_desc->reference.object);
-					break;
-
-				case ACPI_TYPE_PACKAGE:
-
-					acpi_os_printf("%p",
-						       obj_desc->reference.
-						       where);
-					if (!obj_desc->reference.where) {
-						acpi_os_printf
-						    (" Uninitialized WHERE pointer");
-					} else {
-						acpi_db_decode_internal_object(*
-									       (obj_desc->
-										reference.
-										where));
-					}
-					break;
-
-				default:
-
-					acpi_os_printf
-					    ("Unknown index target type");
-					break;
-				}
-				break;
-
-			case ACPI_REFCLASS_REFOF:
-
-				if (!obj_desc->reference.object) {
-					acpi_os_printf
-					    ("Uninitialized reference subobject pointer");
-					break;
-				}
-
-				/* Reference can be to a Node or an Operand object */
-
-				switch (ACPI_GET_DESCRIPTOR_TYPE
-					(obj_desc->reference.object)) {
-				case ACPI_DESC_TYPE_NAMED:
-
-					acpi_db_decode_node(obj_desc->reference.
-							    object);
-					break;
-
-				case ACPI_DESC_TYPE_OPERAND:
-
-					acpi_db_decode_internal_object
-					    (obj_desc->reference.object);
-					break;
-
-				default:
-					break;
-				}
-				break;
-
-			case ACPI_REFCLASS_NAME:
-
-				acpi_db_decode_node(obj_desc->reference.node);
-				break;
-
-			case ACPI_REFCLASS_DEBUG:
-			case ACPI_REFCLASS_TABLE:
-
-				acpi_os_printf("\n");
-				break;
-
-			default:	/* Unknown reference class */
-
-				acpi_os_printf("%2.2X\n",
-					       obj_desc->reference.class);
-				break;
+			if (type > ACPI_TYPE_LOCAL_MAX)
+			{
+				acpi_os_printf(" Type %X [Invalid Type]", (u32)type);
+				return;
 			}
+
+			/* Decode the ACPI object type */
+
+			switch (obj_desc->common.type)
+			{
+				case ACPI_TYPE_LOCAL_REFERENCE:
+
+					acpi_os_printf("[%s] ",
+								   acpi_ut_get_reference_name(obj_desc));
+
+					/* Decode the refererence */
+
+					switch (obj_desc->reference.class)
+					{
+						case ACPI_REFCLASS_LOCAL:
+
+							acpi_os_printf("%X ",
+										   obj_desc->reference.value);
+
+							if (walk_state)
+							{
+								obj_desc = walk_state->local_variables
+										   [obj_desc->reference.value].object;
+								acpi_os_printf("%p", obj_desc);
+								acpi_db_decode_internal_object
+								(obj_desc);
+							}
+
+							break;
+
+						case ACPI_REFCLASS_ARG:
+
+							acpi_os_printf("%X ",
+										   obj_desc->reference.value);
+
+							if (walk_state)
+							{
+								obj_desc = walk_state->arguments
+										   [obj_desc->reference.value].object;
+								acpi_os_printf("%p", obj_desc);
+								acpi_db_decode_internal_object
+								(obj_desc);
+							}
+
+							break;
+
+						case ACPI_REFCLASS_INDEX:
+
+							switch (obj_desc->reference.target_type)
+							{
+								case ACPI_TYPE_BUFFER_FIELD:
+
+									acpi_os_printf("%p",
+												   obj_desc->reference.
+												   object);
+									acpi_db_decode_internal_object
+									(obj_desc->reference.object);
+									break;
+
+								case ACPI_TYPE_PACKAGE:
+
+									acpi_os_printf("%p",
+												   obj_desc->reference.
+												   where);
+
+									if (!obj_desc->reference.where)
+									{
+										acpi_os_printf
+										(" Uninitialized WHERE pointer");
+									}
+									else
+									{
+										acpi_db_decode_internal_object(*
+																	   (obj_desc->
+																		reference.
+																		where));
+									}
+
+									break;
+
+								default:
+
+									acpi_os_printf
+									("Unknown index target type");
+									break;
+							}
+
+							break;
+
+						case ACPI_REFCLASS_REFOF:
+
+							if (!obj_desc->reference.object)
+							{
+								acpi_os_printf
+								("Uninitialized reference subobject pointer");
+								break;
+							}
+
+							/* Reference can be to a Node or an Operand object */
+
+							switch (ACPI_GET_DESCRIPTOR_TYPE
+									(obj_desc->reference.object))
+							{
+								case ACPI_DESC_TYPE_NAMED:
+
+									acpi_db_decode_node(obj_desc->reference.
+														object);
+									break;
+
+								case ACPI_DESC_TYPE_OPERAND:
+
+									acpi_db_decode_internal_object
+									(obj_desc->reference.object);
+									break;
+
+								default:
+									break;
+							}
+
+							break;
+
+						case ACPI_REFCLASS_NAME:
+
+							acpi_db_decode_node(obj_desc->reference.node);
+							break;
+
+						case ACPI_REFCLASS_DEBUG:
+						case ACPI_REFCLASS_TABLE:
+
+							acpi_os_printf("\n");
+							break;
+
+						default:	/* Unknown reference class */
+
+							acpi_os_printf("%2.2X\n",
+										   obj_desc->reference.class);
+							break;
+					}
+
+					break;
+
+				default:
+
+					acpi_os_printf("<Obj>          ");
+					acpi_db_decode_internal_object(obj_desc);
+					break;
+			}
+
 			break;
 
 		default:
 
-			acpi_os_printf("<Obj>          ");
-			acpi_db_decode_internal_object(obj_desc);
+			acpi_os_printf("<Not a valid ACPI Object Descriptor> [%s]",
+						   acpi_ut_get_descriptor_name(obj_desc));
 			break;
-		}
-		break;
-
-	default:
-
-		acpi_os_printf("<Not a valid ACPI Object Descriptor> [%s]",
-			       acpi_ut_get_descriptor_name(obj_desc));
-		break;
 	}
 
 	acpi_os_printf("\n");
@@ -423,22 +465,27 @@ void acpi_db_decode_locals(struct acpi_walk_state *walk_state)
 	obj_desc = walk_state->method_desc;
 	node = walk_state->method_node;
 
-	if (!node) {
+	if (!node)
+	{
 		acpi_os_printf
-		    ("No method node (Executing subtree for buffer or opregion)\n");
+		("No method node (Executing subtree for buffer or opregion)\n");
 		return;
 	}
 
-	if (node->type != ACPI_TYPE_METHOD) {
+	if (node->type != ACPI_TYPE_METHOD)
+	{
 		acpi_os_printf("Executing subtree for Buffer/Package/Region\n");
 		return;
 	}
 
 	/* Are any locals actually set? */
 
-	for (i = 0; i < ACPI_METHOD_NUM_LOCALS; i++) {
+	for (i = 0; i < ACPI_METHOD_NUM_LOCALS; i++)
+	{
 		obj_desc = walk_state->local_variables[i].object;
-		if (obj_desc) {
+
+		if (obj_desc)
+		{
 			display_locals = TRUE;
 			break;
 		}
@@ -446,23 +493,29 @@ void acpi_db_decode_locals(struct acpi_walk_state *walk_state)
 
 	/* If any are set, only display the ones that are set */
 
-	if (display_locals) {
+	if (display_locals)
+	{
 		acpi_os_printf
-		    ("\nInitialized Local Variables for method [%4.4s]:\n",
-		     acpi_ut_get_node_name(node));
+		("\nInitialized Local Variables for method [%4.4s]:\n",
+		 acpi_ut_get_node_name(node));
 
-		for (i = 0; i < ACPI_METHOD_NUM_LOCALS; i++) {
+		for (i = 0; i < ACPI_METHOD_NUM_LOCALS; i++)
+		{
 			obj_desc = walk_state->local_variables[i].object;
-			if (obj_desc) {
+
+			if (obj_desc)
+			{
 				acpi_os_printf("  Local%X: ", i);
 				acpi_db_display_internal_object(obj_desc,
-								walk_state);
+												walk_state);
 			}
 		}
-	} else {
+	}
+	else
+	{
 		acpi_os_printf
-		    ("No Local Variables are initialized for method [%4.4s]\n",
-		     acpi_ut_get_node_name(node));
+		("No Local Variables are initialized for method [%4.4s]\n",
+		 acpi_ut_get_node_name(node));
 	}
 }
 
@@ -488,22 +541,27 @@ void acpi_db_decode_arguments(struct acpi_walk_state *walk_state)
 	node = walk_state->method_node;
 	obj_desc = walk_state->method_desc;
 
-	if (!node) {
+	if (!node)
+	{
 		acpi_os_printf
-		    ("No method node (Executing subtree for buffer or opregion)\n");
+		("No method node (Executing subtree for buffer or opregion)\n");
 		return;
 	}
 
-	if (node->type != ACPI_TYPE_METHOD) {
+	if (node->type != ACPI_TYPE_METHOD)
+	{
 		acpi_os_printf("Executing subtree for Buffer/Package/Region\n");
 		return;
 	}
 
 	/* Are any arguments actually set? */
 
-	for (i = 0; i < ACPI_METHOD_NUM_ARGS; i++) {
+	for (i = 0; i < ACPI_METHOD_NUM_ARGS; i++)
+	{
 		obj_desc = walk_state->arguments[i].object;
-		if (obj_desc) {
+
+		if (obj_desc)
+		{
 			display_args = TRUE;
 			break;
 		}
@@ -511,23 +569,29 @@ void acpi_db_decode_arguments(struct acpi_walk_state *walk_state)
 
 	/* If any are set, only display the ones that are set */
 
-	if (display_args) {
+	if (display_args)
+	{
 		acpi_os_printf("Initialized Arguments for Method [%4.4s]:  "
-			       "(%X arguments defined for method invocation)\n",
-			       acpi_ut_get_node_name(node),
-			       obj_desc->method.param_count);
+					   "(%X arguments defined for method invocation)\n",
+					   acpi_ut_get_node_name(node),
+					   obj_desc->method.param_count);
 
-		for (i = 0; i < ACPI_METHOD_NUM_ARGS; i++) {
+		for (i = 0; i < ACPI_METHOD_NUM_ARGS; i++)
+		{
 			obj_desc = walk_state->arguments[i].object;
-			if (obj_desc) {
+
+			if (obj_desc)
+			{
 				acpi_os_printf("  Arg%u:   ", i);
 				acpi_db_display_internal_object(obj_desc,
-								walk_state);
+												walk_state);
 			}
 		}
-	} else {
+	}
+	else
+	{
 		acpi_os_printf
-		    ("No Arguments are initialized for method [%4.4s]\n",
-		     acpi_ut_get_node_name(node));
+		("No Arguments are initialized for method [%4.4s]\n",
+		 acpi_ut_get_node_name(node));
 	}
 }

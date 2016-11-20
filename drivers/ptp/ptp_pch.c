@@ -40,7 +40,8 @@
 #define TICKS_NS_SHIFT  5
 #define N_EXT_TS	2
 
-enum pch_status {
+enum pch_status
+{
 	PCH_SUCCESS,
 	PCH_INVALIDPARAM,
 	PCH_NOTIMESTAMP,
@@ -51,7 +52,8 @@ enum pch_status {
 /**
  * struct pch_ts_regs - IEEE 1588 registers
  */
-struct pch_ts_regs {
+struct pch_ts_regs
+{
 	u32 control;
 	u32 event;
 	u32 addend;
@@ -117,7 +119,8 @@ struct pch_ts_regs {
 /**
  * struct pch_dev - Driver private data
  */
-struct pch_dev {
+struct pch_dev
+{
 	struct pch_ts_regs __iomem *regs;
 	struct ptp_clock *ptp_clock;
 	struct ptp_clock_info caps;
@@ -134,12 +137,14 @@ struct pch_dev {
 /**
  * struct pch_params - 1588 module parameter
  */
-struct pch_params {
+struct pch_params
+{
 	u8 station[STATION_ADDR_LEN];
 };
 
 /* structure to hold the module parameters */
-static struct pch_params pch_param = {
+static struct pch_params pch_param =
+{
 	"00:00:00:00:00:00"
 };
 
@@ -315,34 +320,45 @@ int pch_set_station_address(u8 *addr, struct pci_dev *pdev)
 	struct pch_dev *chip = pci_get_drvdata(pdev);
 
 	/* Verify the parameter */
-	if ((chip->regs == NULL) || addr == (u8 *)NULL) {
+	if ((chip->regs == NULL) || addr == (u8 *)NULL)
+	{
 		dev_err(&pdev->dev,
-			"invalid params returning PCH_INVALIDPARAM\n");
+				"invalid params returning PCH_INVALIDPARAM\n");
 		return PCH_INVALIDPARAM;
 	}
+
 	/* For all station address bytes */
-	for (i = 0; i < PCH_STATION_BYTES; i++) {
+	for (i = 0; i < PCH_STATION_BYTES; i++)
+	{
 		u32 val;
 		s32 tmp;
 
 		tmp = hex_to_bin(addr[i * 3]);
-		if (tmp < 0) {
+
+		if (tmp < 0)
+		{
 			dev_err(&pdev->dev,
-				"invalid params returning PCH_INVALIDPARAM\n");
+					"invalid params returning PCH_INVALIDPARAM\n");
 			return PCH_INVALIDPARAM;
 		}
+
 		val = tmp * 16;
 		tmp = hex_to_bin(addr[(i * 3) + 1]);
-		if (tmp < 0) {
+
+		if (tmp < 0)
+		{
 			dev_err(&pdev->dev,
-				"invalid params returning PCH_INVALIDPARAM\n");
+					"invalid params returning PCH_INVALIDPARAM\n");
 			return PCH_INVALIDPARAM;
 		}
+
 		val += tmp;
+
 		/* Expects ':' separated addresses */
-		if ((i < 5) && (addr[(i * 3) + 2] != ':')) {
+		if ((i < 5) && (addr[(i * 3) + 2] != ':'))
+		{
 			dev_err(&pdev->dev,
-				"invalid params returning PCH_INVALIDPARAM\n");
+					"invalid params returning PCH_INVALIDPARAM\n");
 			return PCH_INVALIDPARAM;
 		}
 
@@ -351,6 +367,7 @@ int pch_set_station_address(u8 *addr, struct pci_dev *pdev)
 		dev_dbg(&pdev->dev, "invoking pch_station_set\n");
 		iowrite32(val, &chip->regs->ts_st[i]);
 	}
+
 	return 0;
 }
 EXPORT_SYMBOL(pch_set_station_address);
@@ -367,9 +384,12 @@ static irqreturn_t isr(int irq, void *priv)
 
 	val = ioread32(&regs->event);
 
-	if (val & PCH_TSE_SNS) {
+	if (val & PCH_TSE_SNS)
+	{
 		ack |= PCH_TSE_SNS;
-		if (pch_dev->exts0_enabled) {
+
+		if (pch_dev->exts0_enabled)
+		{
 			hi = ioread32(&regs->asms_hi);
 			lo = ioread32(&regs->asms_lo);
 			event.type = PTP_CLOCK_EXTTS;
@@ -381,9 +401,12 @@ static irqreturn_t isr(int irq, void *priv)
 		}
 	}
 
-	if (val & PCH_TSE_SNM) {
+	if (val & PCH_TSE_SNM)
+	{
 		ack |= PCH_TSE_SNM;
-		if (pch_dev->exts1_enabled) {
+
+		if (pch_dev->exts1_enabled)
+		{
 			hi = ioread32(&regs->amms_hi);
 			lo = ioread32(&regs->amms_lo);
 			event.type = PTP_CLOCK_EXTTS;
@@ -396,13 +419,19 @@ static irqreturn_t isr(int irq, void *priv)
 	}
 
 	if (val & PCH_TSE_TTIPEND)
-		ack |= PCH_TSE_TTIPEND; /* this bit seems to be always set */
+	{
+		ack |= PCH_TSE_TTIPEND;    /* this bit seems to be always set */
+	}
 
-	if (ack) {
+	if (ack)
+	{
 		iowrite32(ack, &regs->event);
 		return IRQ_HANDLED;
-	} else
+	}
+	else
+	{
 		return IRQ_NONE;
+	}
 }
 
 /*
@@ -417,10 +446,12 @@ static int ptp_pch_adjfreq(struct ptp_clock_info *ptp, s32 ppb)
 	struct pch_dev *pch_dev = container_of(ptp, struct pch_dev, caps);
 	struct pch_ts_regs __iomem *regs = pch_dev->regs;
 
-	if (ppb < 0) {
+	if (ppb < 0)
+	{
 		neg_adj = 1;
 		ppb = -ppb;
 	}
+
 	addend = DEFAULT_ADDEND;
 	adj = addend;
 	adj *= ppb;
@@ -467,7 +498,7 @@ static int ptp_pch_gettime(struct ptp_clock_info *ptp, struct timespec64 *ts)
 }
 
 static int ptp_pch_settime(struct ptp_clock_info *ptp,
-			   const struct timespec64 *ts)
+						   const struct timespec64 *ts)
 {
 	u64 ns;
 	unsigned long flags;
@@ -485,31 +516,38 @@ static int ptp_pch_settime(struct ptp_clock_info *ptp,
 }
 
 static int ptp_pch_enable(struct ptp_clock_info *ptp,
-			  struct ptp_clock_request *rq, int on)
+						  struct ptp_clock_request *rq, int on)
 {
 	struct pch_dev *pch_dev = container_of(ptp, struct pch_dev, caps);
 
-	switch (rq->type) {
-	case PTP_CLK_REQ_EXTTS:
-		switch (rq->extts.index) {
-		case 0:
-			pch_dev->exts0_enabled = on ? 1 : 0;
-			break;
-		case 1:
-			pch_dev->exts1_enabled = on ? 1 : 0;
-			break;
+	switch (rq->type)
+	{
+		case PTP_CLK_REQ_EXTTS:
+			switch (rq->extts.index)
+			{
+				case 0:
+					pch_dev->exts0_enabled = on ? 1 : 0;
+					break;
+
+				case 1:
+					pch_dev->exts1_enabled = on ? 1 : 0;
+					break;
+
+				default:
+					return -EINVAL;
+			}
+
+			return 0;
+
 		default:
-			return -EINVAL;
-		}
-		return 0;
-	default:
-		break;
+			break;
 	}
 
 	return -EOPNOTSUPP;
 }
 
-static struct ptp_clock_info ptp_pch_caps = {
+static struct ptp_clock_info ptp_pch_caps =
+{
 	.owner		= THIS_MODULE,
 	.name		= "PCH timer",
 	.max_adj	= 50000000,
@@ -530,10 +568,12 @@ static s32 pch_suspend(struct pci_dev *pdev, pm_message_t state)
 	pci_disable_device(pdev);
 	pci_enable_wake(pdev, PCI_D3hot, 0);
 
-	if (pci_save_state(pdev) != 0) {
+	if (pci_save_state(pdev) != 0)
+	{
 		dev_err(&pdev->dev, "could not save PCI config state\n");
 		return -ENOMEM;
 	}
+
 	pci_set_power_state(pdev, pci_choose_state(pdev, state));
 
 	return 0;
@@ -546,10 +586,13 @@ static s32 pch_resume(struct pci_dev *pdev)
 	pci_set_power_state(pdev, PCI_D0);
 	pci_restore_state(pdev);
 	ret = pci_enable_device(pdev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "pci_enable_device failed\n");
 		return ret;
 	}
+
 	pci_enable_wake(pdev, PCI_D3hot, 0);
 	return 0;
 }
@@ -563,20 +606,27 @@ static void pch_remove(struct pci_dev *pdev)
 	struct pch_dev *chip = pci_get_drvdata(pdev);
 
 	ptp_clock_unregister(chip->ptp_clock);
+
 	/* free the interrupt */
 	if (pdev->irq != 0)
+	{
 		free_irq(pdev->irq, chip);
+	}
 
 	/* unmap the virtual IO memory space */
-	if (chip->regs != NULL) {
+	if (chip->regs != NULL)
+	{
 		iounmap(chip->regs);
 		chip->regs = NULL;
 	}
+
 	/* release the reserved IO memory space */
-	if (chip->mem_base != 0) {
+	if (chip->mem_base != 0)
+	{
 		release_mem_region(chip->mem_base, chip->mem_size);
 		chip->mem_base = 0;
 	}
+
 	pci_disable_device(pdev);
 	kfree(chip);
 	dev_info(&pdev->dev, "complete\n");
@@ -590,18 +640,25 @@ pch_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	struct pch_dev *chip;
 
 	chip = kzalloc(sizeof(struct pch_dev), GFP_KERNEL);
+
 	if (chip == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	/* enable the 1588 pci device */
 	ret = pci_enable_device(pdev);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		dev_err(&pdev->dev, "could not enable the pci device\n");
 		goto err_pci_en;
 	}
 
 	chip->mem_base = pci_resource_start(pdev, IO_MEM_BAR);
-	if (!chip->mem_base) {
+
+	if (!chip->mem_base)
+	{
 		dev_err(&pdev->dev, "could not locate IO memory address\n");
 		ret = -ENODEV;
 		goto err_pci_start;
@@ -611,9 +668,10 @@ pch_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	chip->mem_size = pci_resource_len(pdev, IO_MEM_BAR);
 
 	/* allocate the memory for the device registers */
-	if (!request_mem_region(chip->mem_base, chip->mem_size, "1588_regs")) {
+	if (!request_mem_region(chip->mem_base, chip->mem_size, "1588_regs"))
+	{
 		dev_err(&pdev->dev,
-			"could not allocate register memory space\n");
+				"could not allocate register memory space\n");
 		ret = -EBUSY;
 		goto err_req_mem_region;
 	}
@@ -621,7 +679,8 @@ pch_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	/* get the virtual address to the 1588 registers */
 	chip->regs = ioremap(chip->mem_base, chip->mem_size);
 
-	if (!chip->regs) {
+	if (!chip->regs)
+	{
 		dev_err(&pdev->dev, "Could not get virtual address\n");
 		ret = -ENOMEM;
 		goto err_ioremap;
@@ -629,7 +688,9 @@ pch_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 
 	chip->caps = ptp_pch_caps;
 	chip->ptp_clock = ptp_clock_register(&chip->caps, &pdev->dev);
-	if (IS_ERR(chip->ptp_clock)) {
+
+	if (IS_ERR(chip->ptp_clock))
+	{
 		ret = PTR_ERR(chip->ptp_clock);
 		goto err_ptp_clock_reg;
 	}
@@ -637,7 +698,9 @@ pch_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	spin_lock_init(&chip->register_lock);
 
 	ret = request_irq(pdev->irq, &isr, IRQF_SHARED, KBUILD_MODNAME, chip);
-	if (ret != 0) {
+
+	if (ret != 0)
+	{
 		dev_err(&pdev->dev, "failed to get irq %d\n", pdev->irq);
 		goto err_req_irq;
 	}
@@ -658,14 +721,17 @@ pch_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 
 	pch_eth_enable_set(chip);
 
-	if (strcmp(pch_param.station, "00:00:00:00:00:00") != 0) {
-		if (pch_set_station_address(pch_param.station, pdev) != 0) {
+	if (strcmp(pch_param.station, "00:00:00:00:00:00") != 0)
+	{
+		if (pch_set_station_address(pch_param.station, pdev) != 0)
+		{
 			dev_err(&pdev->dev,
-			"Invalid station address parameter\n"
-			"Module loaded but station address not set correctly\n"
-			);
+					"Invalid station address parameter\n"
+					"Module loaded but station address not set correctly\n"
+				   );
 		}
 	}
+
 	spin_unlock_irqrestore(&chip->register_lock, flags);
 	return 0;
 
@@ -691,15 +757,17 @@ err_pci_en:
 	return ret;
 }
 
-static const struct pci_device_id pch_ieee1588_pcidev_id[] = {
+static const struct pci_device_id pch_ieee1588_pcidev_id[] =
+{
 	{
-	  .vendor = PCI_VENDOR_ID_INTEL,
-	  .device = PCI_DEVICE_ID_PCH_1588
-	 },
+		.vendor = PCI_VENDOR_ID_INTEL,
+		.device = PCI_DEVICE_ID_PCH_1588
+	},
 	{0}
 };
 
-static struct pci_driver pch_driver = {
+static struct pci_driver pch_driver =
+{
 	.name = KBUILD_MODNAME,
 	.id_table = pch_ieee1588_pcidev_id,
 	.probe = pch_probe,
@@ -727,9 +795,9 @@ module_init(ptp_pch_init);
 module_exit(ptp_pch_exit);
 
 module_param_string(station,
-		    pch_param.station, sizeof(pch_param.station), 0444);
+					pch_param.station, sizeof(pch_param.station), 0444);
 MODULE_PARM_DESC(station,
-	 "IEEE 1588 station address to use - colon separated hex values");
+				 "IEEE 1588 station address to use - colon separated hex values");
 
 MODULE_AUTHOR("LAPIS SEMICONDUCTOR, <tshimizu818@gmail.com>");
 MODULE_DESCRIPTION("PTP clock using the EG20T timer");

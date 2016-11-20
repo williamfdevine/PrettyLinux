@@ -32,12 +32,14 @@
 #define FE_TYPE_TS188	1
 
 
-struct vendorname {
+struct vendorname
+{
 	u8  *sub_vendor_name;
 	u32 sub_vendor_id;
 };
 
-struct devicetype {
+struct devicetype
+{
 	u8  *sub_device_name;
 	u32 sub_device_id;
 	u8  device_type;

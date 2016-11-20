@@ -61,7 +61,7 @@
 #define hardirq_count()	(preempt_count() & HARDIRQ_MASK)
 #define softirq_count()	(preempt_count() & SOFTIRQ_MASK)
 #define irq_count()	(preempt_count() & (HARDIRQ_MASK | SOFTIRQ_MASK \
-				 | NMI_MASK))
+										| NMI_MASK))
 
 /*
  * Are we doing bottom half or hardware interrupt processing?
@@ -83,9 +83,9 @@
  * The preempt_count offset after preempt_disable();
  */
 #if defined(CONFIG_PREEMPT_COUNT)
-# define PREEMPT_DISABLE_OFFSET	PREEMPT_OFFSET
+	#define PREEMPT_DISABLE_OFFSET	PREEMPT_OFFSET
 #else
-# define PREEMPT_DISABLE_OFFSET	0
+	#define PREEMPT_DISABLE_OFFSET	0
 #endif
 
 /*
@@ -143,16 +143,16 @@ extern void preempt_count_sub(int val);
 #ifdef CONFIG_PREEMPT_COUNT
 
 #define preempt_disable() \
-do { \
-	preempt_count_inc(); \
-	barrier(); \
-} while (0)
+	do { \
+		preempt_count_inc(); \
+		barrier(); \
+	} while (0)
 
 #define sched_preempt_enable_no_resched() \
-do { \
-	barrier(); \
-	preempt_count_dec(); \
-} while (0)
+	do { \
+		barrier(); \
+		preempt_count_dec(); \
+	} while (0)
 
 #define preempt_enable_no_resched() sched_preempt_enable_no_resched()
 
@@ -160,52 +160,52 @@ do { \
 
 #ifdef CONFIG_PREEMPT
 #define preempt_enable() \
-do { \
-	barrier(); \
-	if (unlikely(preempt_count_dec_and_test())) \
-		__preempt_schedule(); \
-} while (0)
+	do { \
+		barrier(); \
+		if (unlikely(preempt_count_dec_and_test())) \
+			__preempt_schedule(); \
+	} while (0)
 
 #define preempt_enable_notrace() \
-do { \
-	barrier(); \
-	if (unlikely(__preempt_count_dec_and_test())) \
-		__preempt_schedule_notrace(); \
-} while (0)
+	do { \
+		barrier(); \
+		if (unlikely(__preempt_count_dec_and_test())) \
+			__preempt_schedule_notrace(); \
+	} while (0)
 
 #define preempt_check_resched() \
-do { \
-	if (should_resched(0)) \
-		__preempt_schedule(); \
-} while (0)
+	do { \
+		if (should_resched(0)) \
+			__preempt_schedule(); \
+	} while (0)
 
 #else /* !CONFIG_PREEMPT */
 #define preempt_enable() \
-do { \
-	barrier(); \
-	preempt_count_dec(); \
-} while (0)
+	do { \
+		barrier(); \
+		preempt_count_dec(); \
+	} while (0)
 
 #define preempt_enable_notrace() \
-do { \
-	barrier(); \
-	__preempt_count_dec(); \
-} while (0)
+	do { \
+		barrier(); \
+		__preempt_count_dec(); \
+	} while (0)
 
 #define preempt_check_resched() do { } while (0)
 #endif /* CONFIG_PREEMPT */
 
 #define preempt_disable_notrace() \
-do { \
-	__preempt_count_inc(); \
-	barrier(); \
-} while (0)
+	do { \
+		__preempt_count_inc(); \
+		barrier(); \
+	} while (0)
 
 #define preempt_enable_no_resched_notrace() \
-do { \
-	barrier(); \
-	__preempt_count_dec(); \
-} while (0)
+	do { \
+		barrier(); \
+		__preempt_count_dec(); \
+	} while (0)
 
 #else /* !CONFIG_PREEMPT_COUNT */
 
@@ -229,24 +229,24 @@ do { \
 #endif /* CONFIG_PREEMPT_COUNT */
 
 #ifdef MODULE
-/*
- * Modules have no business playing preemption tricks.
- */
-#undef sched_preempt_enable_no_resched
-#undef preempt_enable_no_resched
-#undef preempt_enable_no_resched_notrace
-#undef preempt_check_resched
+	/*
+	* Modules have no business playing preemption tricks.
+	*/
+	#undef sched_preempt_enable_no_resched
+	#undef preempt_enable_no_resched
+	#undef preempt_enable_no_resched_notrace
+	#undef preempt_check_resched
 #endif
 
 #define preempt_set_need_resched() \
-do { \
-	set_preempt_need_resched(); \
-} while (0)
-#define preempt_fold_need_resched() \
-do { \
-	if (tif_need_resched()) \
+	do { \
 		set_preempt_need_resched(); \
-} while (0)
+	} while (0)
+#define preempt_fold_need_resched() \
+	do { \
+		if (tif_need_resched()) \
+			set_preempt_need_resched(); \
+	} while (0)
 
 #ifdef CONFIG_PREEMPT_NOTIFIERS
 
@@ -266,10 +266,11 @@ struct preempt_notifier;
  * while sched_in is called without rq lock and irq enabled.  This
  * difference is intentional and depended upon by its users.
  */
-struct preempt_ops {
+struct preempt_ops
+{
 	void (*sched_in)(struct preempt_notifier *notifier, int cpu);
 	void (*sched_out)(struct preempt_notifier *notifier,
-			  struct task_struct *next);
+					  struct task_struct *next);
 };
 
 /**
@@ -279,7 +280,8 @@ struct preempt_ops {
  *
  * Usually used in conjunction with container_of().
  */
-struct preempt_notifier {
+struct preempt_notifier
+{
 	struct hlist_node link;
 	struct preempt_ops *ops;
 };
@@ -290,7 +292,7 @@ void preempt_notifier_register(struct preempt_notifier *notifier);
 void preempt_notifier_unregister(struct preempt_notifier *notifier);
 
 static inline void preempt_notifier_init(struct preempt_notifier *notifier,
-				     struct preempt_ops *ops)
+		struct preempt_ops *ops)
 {
 	INIT_HLIST_NODE(&notifier->link);
 	notifier->ops = ops;

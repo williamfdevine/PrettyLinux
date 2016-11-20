@@ -51,7 +51,8 @@
  *   @n_mask_hit / (@n_hit + @n_missed)  will be the average masks looked
  *   up per packet.
  */
-struct dp_stats_percpu {
+struct dp_stats_percpu
+{
 	u64 n_hit;
 	u64 n_missed;
 	u64 n_lost;
@@ -74,7 +75,8 @@ struct dp_stats_percpu {
  * Context: See the comment on locking at the top of datapath.c for additional
  * locking information.
  */
-struct datapath {
+struct datapath
+{
 	struct rcu_head rcu;
 	struct list_head list_node;
 
@@ -103,7 +105,8 @@ struct datapath {
  * @cutlen: The number of bytes from the packet end to be removed.
  * fragmented.
  */
-struct ovs_skb_cb {
+struct ovs_skb_cb
+{
 	struct vport		*input_vport;
 	u16			mru;
 	u32			cutlen;
@@ -121,7 +124,8 @@ struct ovs_skb_cb {
  * @egress_tun_info: If nonnull, becomes %OVS_PACKET_ATTR_EGRESS_TUN_KEY.
  * @mru: If not zero, Maximum received IP fragment size.
  */
-struct dp_upcall_info {
+struct dp_upcall_info
+{
 	struct ip_tunnel_info *egress_tun_info;
 	const struct nlattr *userdata;
 	const struct nlattr *actions;
@@ -136,7 +140,8 @@ struct dp_upcall_info {
  * @dps: List of datapaths to enable dumping them all out.
  * Protected by genl_mutex.
  */
-struct ovs_net {
+struct ovs_net
+{
 	struct list_head dps;
 	struct work_struct dp_notify_work;
 
@@ -149,9 +154,9 @@ void ovs_lock(void);
 void ovs_unlock(void);
 
 #ifdef CONFIG_LOCKDEP
-int lockdep_ovsl_is_held(void);
+	int lockdep_ovsl_is_held(void);
 #else
-#define lockdep_ovsl_is_held()	1
+	#define lockdep_ovsl_is_held()	1
 #endif
 
 #define ASSERT_OVSL()		WARN_ON(!lockdep_ovsl_is_held())
@@ -196,15 +201,15 @@ extern struct genl_family dp_vport_genl_family;
 void ovs_dp_process_packet(struct sk_buff *skb, struct sw_flow_key *key);
 void ovs_dp_detach_port(struct vport *);
 int ovs_dp_upcall(struct datapath *, struct sk_buff *,
-		  const struct sw_flow_key *, const struct dp_upcall_info *,
-		  uint32_t cutlen);
+				  const struct sw_flow_key *, const struct dp_upcall_info *,
+				  uint32_t cutlen);
 
 const char *ovs_dp_name(const struct datapath *dp);
 struct sk_buff *ovs_vport_cmd_build_info(struct vport *, u32 pid, u32 seq,
-					 u8 cmd);
+		u8 cmd);
 
 int ovs_execute_actions(struct datapath *dp, struct sk_buff *skb,
-			const struct sw_flow_actions *, struct sw_flow_key *);
+						const struct sw_flow_actions *, struct sw_flow_key *);
 
 void ovs_dp_notify_wq(struct work_struct *work);
 
@@ -216,8 +221,8 @@ void action_fifos_exit(void);
 #define OVS_SET_MASKED(OLD, KEY, MASK) ((OLD) = OVS_MASKED(OLD, KEY, MASK))
 
 #define OVS_NLERR(logging_allowed, fmt, ...)			\
-do {								\
-	if (logging_allowed && net_ratelimit())			\
-		pr_info("netlink: " fmt "\n", ##__VA_ARGS__);	\
-} while (0)
+	do {								\
+		if (logging_allowed && net_ratelimit())			\
+			pr_info("netlink: " fmt "\n", ##__VA_ARGS__);	\
+	} while (0)
 #endif /* datapath.h */

@@ -27,7 +27,7 @@
 #define WIDTH		240
 #define HEIGHT		320
 #define DEFAULT_GAMMA	"02 03 2 5 7 7 4 2 4 2\n" \
-			"02 03 2 5 7 5 4 2 4 2"
+	"02 03 2 5 7 5 4 2 4 2"
 
 static unsigned int reg11 = 0x6040;
 module_param(reg11, uint, 0);
@@ -38,7 +38,9 @@ static int init_display(struct fbtft_par *par)
 	par->fbtftops.reset(par);
 
 	if (par->gpio.cs != -1)
-		gpio_set_value(par->gpio.cs, 0);  /* Activate chip */
+	{
+		gpio_set_value(par->gpio.cs, 0);    /* Activate chip */
+	}
 
 	write_reg(par, 0x00, 0x0001);
 	write_reg(par, 0x03, 0xA8A4);
@@ -47,7 +49,7 @@ static int init_display(struct fbtft_par *par)
 	write_reg(par, 0x0E, 0x2B00);
 	write_reg(par, 0x1E, 0x00B7);
 	write_reg(par, 0x01,
-		(1 << 13) | (par->bgr << 11) | (1 << 9) | (HEIGHT - 1));
+			  (1 << 13) | (par->bgr << 11) | (1 << 9) | (HEIGHT - 1));
 	write_reg(par, 0x02, 0x0600);
 	write_reg(par, 0x10, 0x0000);
 	write_reg(par, 0x05, 0x0000);
@@ -77,25 +79,29 @@ static int init_display(struct fbtft_par *par)
 
 static void set_addr_win(struct fbtft_par *par, int xs, int ys, int xe, int ye)
 {
-	switch (par->info->var.rotate) {
-	/* R4Eh - Set GDDRAM X address counter */
-	/* R4Fh - Set GDDRAM Y address counter */
-	case 0:
-		write_reg(par, 0x4e, xs);
-		write_reg(par, 0x4f, ys);
-		break;
-	case 180:
-		write_reg(par, 0x4e, par->info->var.xres - 1 - xs);
-		write_reg(par, 0x4f, par->info->var.yres - 1 - ys);
-		break;
-	case 270:
-		write_reg(par, 0x4e, par->info->var.yres - 1 - ys);
-		write_reg(par, 0x4f, xs);
-		break;
-	case 90:
-		write_reg(par, 0x4e, ys);
-		write_reg(par, 0x4f, par->info->var.xres - 1 - xs);
-		break;
+	switch (par->info->var.rotate)
+	{
+		/* R4Eh - Set GDDRAM X address counter */
+		/* R4Fh - Set GDDRAM Y address counter */
+		case 0:
+			write_reg(par, 0x4e, xs);
+			write_reg(par, 0x4f, ys);
+			break;
+
+		case 180:
+			write_reg(par, 0x4e, par->info->var.xres - 1 - xs);
+			write_reg(par, 0x4f, par->info->var.yres - 1 - ys);
+			break;
+
+		case 270:
+			write_reg(par, 0x4e, par->info->var.yres - 1 - ys);
+			write_reg(par, 0x4f, xs);
+			break;
+
+		case 90:
+			write_reg(par, 0x4e, ys);
+			write_reg(par, 0x4f, par->info->var.xres - 1 - xs);
+			break;
 	}
 
 	/* R22h - RAM data write */
@@ -104,27 +110,32 @@ static void set_addr_win(struct fbtft_par *par, int xs, int ys, int xe, int ye)
 
 static int set_var(struct fbtft_par *par)
 {
-	if (par->fbtftops.init_display != init_display) {
+	if (par->fbtftops.init_display != init_display)
+	{
 		/* don't risk messing up register 11h */
 		fbtft_par_dbg(DEBUG_INIT_DISPLAY, par,
-			"%s: skipping since custom init_display() is used\n",
-			__func__);
+					  "%s: skipping since custom init_display() is used\n",
+					  __func__);
 		return 0;
 	}
 
-	switch (par->info->var.rotate) {
-	case 0:
-		write_reg(par, 0x11, reg11 | 0x30);
-		break;
-	case 270:
-		write_reg(par, 0x11, reg11 | 0x28);
-		break;
-	case 180:
-		write_reg(par, 0x11, reg11 | 0x00);
-		break;
-	case 90:
-		write_reg(par, 0x11, reg11 | 0x18);
-		break;
+	switch (par->info->var.rotate)
+	{
+		case 0:
+			write_reg(par, 0x11, reg11 | 0x30);
+			break;
+
+		case 270:
+			write_reg(par, 0x11, reg11 | 0x28);
+			break;
+
+		case 180:
+			write_reg(par, 0x11, reg11 | 0x00);
+			break;
+
+		case 90:
+			write_reg(par, 0x11, reg11 | 0x18);
+			break;
 	}
 
 	return 0;
@@ -138,7 +149,8 @@ static int set_var(struct fbtft_par *par)
 #define CURVE(num, idx)  curves[num * par->gamma.num_values + idx]
 static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 {
-	unsigned long mask[] = {
+	unsigned long mask[] =
+	{
 		0x1f, 0x1f, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
 		0x1f, 0x1f, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
 	};
@@ -147,7 +159,9 @@ static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 	/* apply mask */
 	for (i = 0; i < 2; i++)
 		for (j = 0; j < 10; j++)
+		{
 			CURVE(i, j) &= mask[i * par->gamma.num_values + j];
+		}
 
 	write_reg(par, 0x0030, CURVE(0, 5) << 8 | CURVE(0, 4));
 	write_reg(par, 0x0031, CURVE(0, 7) << 8 | CURVE(0, 6));
@@ -164,7 +178,8 @@ static int set_gamma(struct fbtft_par *par, unsigned long *curves)
 }
 #undef CURVE
 
-static struct fbtft_display display = {
+static struct fbtft_display display =
+{
 	.regwidth = 16,
 	.width = WIDTH,
 	.height = HEIGHT,

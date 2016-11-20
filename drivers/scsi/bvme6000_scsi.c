@@ -25,7 +25,8 @@ MODULE_AUTHOR("Richard Hirst <richard@sleepie.demon.co.uk>");
 MODULE_DESCRIPTION("BVME6000 NCR53C710 driver");
 MODULE_LICENSE("GPL");
 
-static struct scsi_host_template bvme6000_scsi_driver_template = {
+static struct scsi_host_template bvme6000_scsi_driver_template =
+{
 	.name			= "BVME6000 NCR53c710 SCSI",
 	.proc_name		= "BVME6000",
 	.this_id		= 7,
@@ -41,12 +42,16 @@ bvme6000_probe(struct platform_device *dev)
 	struct NCR_700_Host_Parameters *hostdata;
 
 	if (!MACH_IS_BVME6000)
+	{
 		goto out;
+	}
 
 	hostdata = kzalloc(sizeof(struct NCR_700_Host_Parameters), GFP_KERNEL);
-	if (!hostdata) {
+
+	if (!hostdata)
+	{
 		printk(KERN_ERR "bvme6000-scsi: "
-				"Failed to allocate host data\n");
+			   "Failed to allocate host data\n");
 		goto out;
 	}
 
@@ -60,17 +65,22 @@ bvme6000_probe(struct platform_device *dev)
 
 	/* and register the chip */
 	host = NCR_700_detect(&bvme6000_scsi_driver_template, hostdata,
-			      &dev->dev);
-	if (!host) {
+						  &dev->dev);
+
+	if (!host)
+	{
 		printk(KERN_ERR "bvme6000-scsi: No host detected; "
-				"board configuration problem?\n");
+			   "board configuration problem?\n");
 		goto out_free;
 	}
+
 	host->base = BVME_NCR53C710_BASE;
 	host->this_id = 7;
 	host->irq = BVME_IRQ_SCSI;
+
 	if (request_irq(BVME_IRQ_SCSI, NCR_700_intr, 0, "bvme6000-scsi",
-			host)) {
+					host))
+	{
 		printk(KERN_ERR "bvme6000-scsi: request_irq failed\n");
 		goto out_put_host;
 	}
@@ -80,11 +90,11 @@ bvme6000_probe(struct platform_device *dev)
 
 	return 0;
 
- out_put_host:
+out_put_host:
 	scsi_host_put(host);
- out_free:
+out_free:
 	kfree(hostdata);
- out:
+out:
 	return -ENODEV;
 }
 
@@ -102,7 +112,8 @@ bvme6000_device_remove(struct platform_device *dev)
 	return 0;
 }
 
-static struct platform_driver bvme6000_scsi_driver = {
+static struct platform_driver bvme6000_scsi_driver =
+{
 	.driver = {
 		.name		= "bvme6000-scsi",
 	},
@@ -115,12 +126,17 @@ static int __init bvme6000_scsi_init(void)
 	int err;
 
 	err = platform_driver_register(&bvme6000_scsi_driver);
+
 	if (err)
+	{
 		return err;
+	}
 
 	bvme6000_scsi_device = platform_device_register_simple("bvme6000-scsi",
-							       -1, NULL, 0);
-	if (IS_ERR(bvme6000_scsi_device)) {
+						   -1, NULL, 0);
+
+	if (IS_ERR(bvme6000_scsi_device))
+	{
 		platform_driver_unregister(&bvme6000_scsi_driver);
 		return PTR_ERR(bvme6000_scsi_device);
 	}

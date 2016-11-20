@@ -58,7 +58,7 @@ static inline char *get_timestamp(char *buf)
 
 	ktime_get_real_ts64(&now);
 	sprintf(buf, "%llu.%.08lu", (long long)now.tv_sec,
-				now.tv_nsec / NSEC_PER_USEC);
+			now.tv_nsec / NSEC_PER_USEC);
 	return buf;
 }
 
@@ -76,9 +76,9 @@ static inline char *get_timestamp(char *buf)
 #define HEARTBEAT_BUFFER_SIZE		0x400
 
 #ifdef IA64
-#define IBMASM_DRIVER_VPD "Lin64 6.08      "
+	#define IBMASM_DRIVER_VPD "Lin64 6.08      "
 #else
-#define IBMASM_DRIVER_VPD "Lin32 6.08      "
+	#define IBMASM_DRIVER_VPD "Lin32 6.08      "
 #endif
 
 #define SYSTEM_STATE_OS_UP      5
@@ -90,7 +90,8 @@ static inline char *get_timestamp(char *buf)
 #define IBMASM_EVENT_MAX_SIZE	2048u
 
 
-struct command {
+struct command
+{
 	struct list_head	queue_node;
 	wait_queue_head_t	wait;
 	unsigned char		*buffer;
@@ -118,20 +119,23 @@ static inline void command_get(struct command *cmd)
 }
 
 
-struct ibmasm_event {
+struct ibmasm_event
+{
 	unsigned int	serial_number;
 	unsigned int	data_size;
 	unsigned char	data[IBMASM_EVENT_MAX_SIZE];
 };
 
-struct event_buffer {
+struct event_buffer
+{
 	struct ibmasm_event	events[IBMASM_NUM_EVENTS];
 	unsigned int		next_serial_number;
 	unsigned int		next_index;
 	struct list_head	readers;
 };
 
-struct event_reader {
+struct event_reader
+{
 	int			cancelled;
 	unsigned int		next_serial_number;
 	wait_queue_head_t	wait;
@@ -140,17 +144,20 @@ struct event_reader {
 	unsigned char		data[IBMASM_EVENT_MAX_SIZE];
 };
 
-struct reverse_heartbeat {
+struct reverse_heartbeat
+{
 	wait_queue_head_t	wait;
 	unsigned int		stopped;
 };
 
-struct ibmasm_remote {
+struct ibmasm_remote
+{
 	struct input_dev *keybd_dev;
 	struct input_dev *mouse_dev;
 };
 
-struct service_processor {
+struct service_processor
+{
 	struct list_head	node;
 	spinlock_t		lock;
 	void __iomem		*base_address;
@@ -201,7 +208,7 @@ int ibmasm_send_os_state(struct service_processor *sp, int os_state);
 
 /* low level message processing */
 int ibmasm_send_i2o_message(struct service_processor *sp);
-irqreturn_t ibmasm_interrupt_handler(int irq, void * dev_id);
+irqreturn_t ibmasm_interrupt_handler(int irq, void *dev_id);
 
 /* remote console */
 void ibmasm_handle_mouse_interrupt(struct service_processor *sp);
@@ -215,9 +222,9 @@ void ibmasmfs_add_sp(struct service_processor *sp);
 
 /* uart */
 #if IS_ENABLED(CONFIG_SERIAL_8250)
-void ibmasm_register_uart(struct service_processor *sp);
-void ibmasm_unregister_uart(struct service_processor *sp);
+	void ibmasm_register_uart(struct service_processor *sp);
+	void ibmasm_unregister_uart(struct service_processor *sp);
 #else
-#define ibmasm_register_uart(sp)	do { } while(0)
-#define ibmasm_unregister_uart(sp)	do { } while(0)
+	#define ibmasm_register_uart(sp)	do { } while(0)
+	#define ibmasm_unregister_uart(sp)	do { } while(0)
 #endif

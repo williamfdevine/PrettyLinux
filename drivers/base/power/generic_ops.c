@@ -64,7 +64,9 @@ int pm_generic_prepare(struct device *dev)
 	int ret = 0;
 
 	if (drv && drv->pm && drv->pm->prepare)
+	{
 		ret = drv->pm->prepare(dev);
+	}
 
 	return ret;
 }
@@ -296,7 +298,9 @@ void pm_generic_complete(struct device *dev)
 	struct device_driver *drv = dev->driver;
 
 	if (drv && drv->pm && drv->pm->complete)
+	{
 		drv->pm->complete(dev);
+	}
 }
 
 /**
@@ -311,13 +315,16 @@ void pm_generic_complete(struct device *dev)
 void pm_complete_with_resume_check(struct device *dev)
 {
 	pm_generic_complete(dev);
+
 	/*
 	 * If the device had been runtime-suspended before the system went into
 	 * the sleep state it is going out of and it has never been resumed till
 	 * now, resume it in case the firmware powered it up.
 	 */
 	if (dev->power.direct_complete && pm_resume_via_firmware())
+	{
 		pm_request_resume(dev);
+	}
 }
 EXPORT_SYMBOL_GPL(pm_complete_with_resume_check);
 #endif /* CONFIG_PM_SLEEP */

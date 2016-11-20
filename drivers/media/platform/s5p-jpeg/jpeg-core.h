@@ -74,7 +74,8 @@
 #define S5P_JPEG_MAX_MARKER	4
 
 /* Version numbers */
-enum sjpeg_version {
+enum sjpeg_version
+{
 	SJPEG_S5P,
 	SJPEG_EXYNOS3250,
 	SJPEG_EXYNOS4,
@@ -82,7 +83,8 @@ enum sjpeg_version {
 	SJPEG_EXYNOS5433,
 };
 
-enum exynos4_jpeg_result {
+enum exynos4_jpeg_result
+{
 	OK_ENC_OR_DEC,
 	ERR_PROT,
 	ERR_DEC_INVALID_FORMAT,
@@ -91,7 +93,8 @@ enum exynos4_jpeg_result {
 	ERR_UNKNOWN,
 };
 
-enum  exynos4_jpeg_img_quality_level {
+enum  exynos4_jpeg_img_quality_level
+{
 	QUALITY_LEVEL_1 = 0,	/* high */
 	QUALITY_LEVEL_2,
 	QUALITY_LEVEL_3,
@@ -115,7 +118,8 @@ enum  exynos4_jpeg_img_quality_level {
 			operation
 
  */
-struct s5p_jpeg {
+struct s5p_jpeg
+{
 	struct mutex		lock;
 	spinlock_t		slock;
 
@@ -133,12 +137,13 @@ struct s5p_jpeg {
 	u32			irq_status;
 };
 
-struct s5p_jpeg_variant {
+struct s5p_jpeg_variant
+{
 	unsigned int		version;
 	unsigned int		fmt_ver_flag;
-	unsigned int		hw3250_compat:1;
-	unsigned int		htbl_reinit:1;
-	unsigned int		hw_ex4_compat:1;
+	unsigned int		hw3250_compat: 1;
+	unsigned int		htbl_reinit: 1;
+	unsigned int		hw_ex4_compat: 1;
 	struct v4l2_m2m_ops	*m2m_ops;
 	irqreturn_t		(*jpeg_irq)(int irq, void *priv);
 	const char		*clk_names[JPEG_MAX_CLOCKS];
@@ -155,7 +160,8 @@ struct s5p_jpeg_variant {
  * @v_align:	vertical alignment order (align to 2^v_align)
  * @flags:	flags describing format applicability
  */
-struct s5p_jpeg_fmt {
+struct s5p_jpeg_fmt
+{
 	char	*name;
 	u32	fourcc;
 	int	depth;
@@ -173,7 +179,8 @@ struct s5p_jpeg_fmt {
  * @len:	markers' payload lengths (without length field)
  * @n:		number of markers in collection
  */
-struct s5p_jpeg_marker {
+struct s5p_jpeg_marker
+{
 	u32	marker[S5P_JPEG_MAX_MARKER];
 	u32	len[S5P_JPEG_MAX_MARKER];
 	u32	n;
@@ -192,7 +199,8 @@ struct s5p_jpeg_marker {
  * @components:	number of image components
  * @size:	image buffer size in bytes
  */
-struct s5p_jpeg_q_data {
+struct s5p_jpeg_q_data
+{
 	struct s5p_jpeg_fmt	*fmt;
 	u32			w;
 	u32			h;
@@ -221,7 +229,8 @@ struct s5p_jpeg_q_data {
  * @crop_altered:	set if crop rectangle has been altered by the user space
  * @ctrl_handler:	controls handler
  */
-struct s5p_jpeg_ctx {
+struct s5p_jpeg_ctx
+{
 	struct s5p_jpeg		*jpeg;
 	unsigned int		mode;
 	unsigned short		compr_quality;
@@ -243,7 +252,8 @@ struct s5p_jpeg_ctx {
  * @curr:	current position in the buffer
  * @data:	pointer to the data
  */
-struct s5p_jpeg_buffer {
+struct s5p_jpeg_buffer
+{
 	unsigned long size;
 	unsigned long curr;
 	unsigned long data;
@@ -255,7 +265,8 @@ struct s5p_jpeg_buffer {
  * @cb:  Cb plane physical address
  * @cr:  Cr plane physical address
  */
-struct s5p_jpeg_addr {
+struct s5p_jpeg_addr
+{
 	u32     y;
 	u32     cb;
 	u32     cr;

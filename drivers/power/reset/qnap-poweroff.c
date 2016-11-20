@@ -25,27 +25,33 @@
 
 #define UART1_REG(x)	(base + ((UART_##x) << 2))
 
-struct power_off_cfg {
+struct power_off_cfg
+{
 	u32 baud;
 	char cmd;
 };
 
-static const struct power_off_cfg qnap_power_off_cfg = {
+static const struct power_off_cfg qnap_power_off_cfg =
+{
 	.baud = 19200,
 	.cmd = 'A',
 };
 
-static const struct power_off_cfg synology_power_off_cfg = {
+static const struct power_off_cfg synology_power_off_cfg =
+{
 	.baud = 9600,
 	.cmd = '1',
 };
 
-static const struct of_device_id qnap_power_off_of_match_table[] = {
-	{ .compatible = "qnap,power-off",
-	  .data = &qnap_power_off_cfg,
+static const struct of_device_id qnap_power_off_of_match_table[] =
+{
+	{
+		.compatible = "qnap,power-off",
+		.data = &qnap_power_off_cfg,
 	},
-	{ .compatible = "synology,power-off",
-	  .data = &synology_power_off_cfg,
+	{
+		.compatible = "synology,power-off",
+		.data = &synology_power_off_cfg,
 	},
 	{}
 };
@@ -86,20 +92,26 @@ static int qnap_power_off_probe(struct platform_device *pdev)
 	cfg = match->data;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "Missing resource");
 		return -EINVAL;
 	}
 
 	base = devm_ioremap(&pdev->dev, res->start, resource_size(res));
-	if (!base) {
+
+	if (!base)
+	{
 		dev_err(&pdev->dev, "Unable to map resource");
 		return -EINVAL;
 	}
 
 	/* We need to know tclk in order to calculate the UART divisor */
 	clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		dev_err(&pdev->dev, "Clk missing");
 		return PTR_ERR(clk);
 	}
@@ -107,13 +119,15 @@ static int qnap_power_off_probe(struct platform_device *pdev)
 	tclk = clk_get_rate(clk);
 
 	/* Check that nothing else has already setup a handler */
-	if (pm_power_off) {
+	if (pm_power_off)
+	{
 		lookup_symbol_name((ulong)pm_power_off, symname);
 		dev_err(&pdev->dev,
-			"pm_power_off already claimed %p %s",
-			pm_power_off, symname);
+				"pm_power_off already claimed %p %s",
+				pm_power_off, symname);
 		return -EBUSY;
 	}
+
 	pm_power_off = qnap_power_off;
 
 	return 0;
@@ -125,7 +139,8 @@ static int qnap_power_off_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver qnap_power_off_driver = {
+static struct platform_driver qnap_power_off_driver =
+{
 	.probe	= qnap_power_off_probe,
 	.remove	= qnap_power_off_remove,
 	.driver	= {

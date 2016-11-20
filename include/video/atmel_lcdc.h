@@ -32,8 +32,9 @@
 #define ATMEL_LCDC_WIRING_RGB	1
 
 
- /* LCD Controller info data structure, stored in device platform_data */
-struct atmel_lcdfb_pdata {
+/* LCD Controller info data structure, stored in device platform_data */
+struct atmel_lcdfb_pdata
+{
 	unsigned int		guard_time;
 	bool			lcdcon_is_backlight;
 	bool			lcdcon_pol_negative;

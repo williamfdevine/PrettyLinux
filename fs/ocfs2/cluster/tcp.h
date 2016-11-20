@@ -29,10 +29,10 @@
 
 #include <linux/socket.h>
 #ifdef __KERNEL__
-#include <net/sock.h>
-#include <linux/tcp.h>
+	#include <net/sock.h>
+	#include <linux/tcp.h>
 #else
-#include <sys/socket.h>
+	#include <sys/socket.h>
 #endif
 #include <linux/inet.h>
 #include <linux/in.h>
@@ -51,9 +51,9 @@ struct o2net_msg
 };
 
 typedef int (o2net_msg_handler_func)(struct o2net_msg *msg, u32 len, void *data,
-				     void **ret_data);
+									 void **ret_data);
 typedef void (o2net_post_msg_handler_func)(int status, void *data,
-					   void *ret_data);
+		void *ret_data);
 
 #define O2NET_MAX_PAYLOAD_BYTES  (4096 - sizeof(struct o2net_msg))
 
@@ -68,18 +68,26 @@ typedef void (o2net_post_msg_handler_func)(int status, void *data,
 /* TODO: figure this out.... */
 static inline int o2net_link_down(int err, struct socket *sock)
 {
-	if (sock) {
+	if (sock)
+	{
 		if (sock->sk->sk_state != TCP_ESTABLISHED &&
-	    	    sock->sk->sk_state != TCP_CLOSE_WAIT)
+			sock->sk->sk_state != TCP_CLOSE_WAIT)
+		{
 			return 1;
+		}
 	}
 
 	if (err >= 0)
+	{
 		return 0;
-	switch (err) {
+	}
+
+	switch (err)
+	{
 		/* ????????????????????????? */
 		case -ERESTARTSYS:
 		case -EBADF:
+
 		/* When the server has died, an ICMP port unreachable
 		 * message prompts ECONNREFUSED. */
 		case -ECONNREFUSED:
@@ -88,23 +96,25 @@ static inline int o2net_link_down(int err, struct socket *sock)
 		case -EPIPE:
 			return 1;
 	}
+
 	return 0;
 }
 
-enum {
+enum
+{
 	O2NET_DRIVER_UNINITED,
 	O2NET_DRIVER_READY,
 };
 
 int o2net_send_message(u32 msg_type, u32 key, void *data, u32 len,
-		       u8 target_node, int *status);
+					   u8 target_node, int *status);
 int o2net_send_message_vec(u32 msg_type, u32 key, struct kvec *vec,
-			   size_t veclen, u8 target_node, int *status);
+						   size_t veclen, u8 target_node, int *status);
 
 int o2net_register_handler(u32 msg_type, u32 key, u32 max_len,
-			   o2net_msg_handler_func *func, void *data,
-			   o2net_post_msg_handler_func *post_func,
-			   struct list_head *unreg_list);
+						   o2net_msg_handler_func *func, void *data,
+						   o2net_post_msg_handler_func *post_func,
+						   struct list_head *unreg_list);
 void o2net_unregister_handler_list(struct list_head *list);
 
 void o2net_fill_node_map(unsigned long *map, unsigned bytes);

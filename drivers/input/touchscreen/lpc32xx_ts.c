@@ -70,7 +70,8 @@
 #define tsc_writel(dev, reg, val) \
 	__raw_writel((val), (dev)->tsc_base + (reg))
 
-struct lpc32xx_tsc {
+struct lpc32xx_tsc
+{
 	struct input_dev *dev;
 	void __iomem *tsc_base;
 	int irq;
@@ -80,8 +81,10 @@ struct lpc32xx_tsc {
 static void lpc32xx_fifo_clear(struct lpc32xx_tsc *tsc)
 {
 	while (!(tsc_readl(tsc, LPC32XX_TSC_STAT) &
-			LPC32XX_TSC_STAT_FIFO_EMPTY))
+			 LPC32XX_TSC_STAT_FIFO_EMPTY))
+	{
 		tsc_readl(tsc, LPC32XX_TSC_FIFO);
+	}
 }
 
 static irqreturn_t lpc32xx_ts_interrupt(int irq, void *dev_id)
@@ -93,7 +96,8 @@ static irqreturn_t lpc32xx_ts_interrupt(int irq, void *dev_id)
 
 	tmp = tsc_readl(tsc, LPC32XX_TSC_STAT);
 
-	if (tmp & LPC32XX_TSC_STAT_FIFO_OVRRN) {
+	if (tmp & LPC32XX_TSC_STAT_FIFO_OVRRN)
+	{
 		/* FIFO overflow - throw away samples */
 		lpc32xx_fifo_clear(tsc);
 		return IRQ_HANDLED;
@@ -105,25 +109,30 @@ static irqreturn_t lpc32xx_ts_interrupt(int irq, void *dev_id)
 	 * pen status check drop the samples.
 	 */
 	idx = 0;
+
 	while (idx < 4 &&
-	       !(tsc_readl(tsc, LPC32XX_TSC_STAT) &
-			LPC32XX_TSC_STAT_FIFO_EMPTY)) {
+		   !(tsc_readl(tsc, LPC32XX_TSC_STAT) &
+			 LPC32XX_TSC_STAT_FIFO_EMPTY))
+	{
 		tmp = tsc_readl(tsc, LPC32XX_TSC_FIFO);
 		xs[idx] = LPC32XX_TSC_ADCDAT_VALUE_MASK -
-			LPC32XX_TSC_FIFO_NORMALIZE_X_VAL(tmp);
+				  LPC32XX_TSC_FIFO_NORMALIZE_X_VAL(tmp);
 		ys[idx] = LPC32XX_TSC_ADCDAT_VALUE_MASK -
-			LPC32XX_TSC_FIFO_NORMALIZE_Y_VAL(tmp);
+				  LPC32XX_TSC_FIFO_NORMALIZE_Y_VAL(tmp);
 		rv[idx] = tmp;
 		idx++;
 	}
 
 	/* Data is only valid if pen is still down in last sample */
-	if (!(rv[3] & LPC32XX_TSC_FIFO_TS_P_LEVEL) && idx == 4) {
+	if (!(rv[3] & LPC32XX_TSC_FIFO_TS_P_LEVEL) && idx == 4)
+	{
 		/* Use average of 2nd and 3rd sample for position */
 		input_report_abs(input, ABS_X, (xs[1] + xs[2]) / 2);
 		input_report_abs(input, ABS_Y, (ys[1] + ys[2]) / 2);
 		input_report_key(input, BTN_TOUCH, 1);
-	} else {
+	}
+	else
+	{
 		input_report_key(input, BTN_TOUCH, 0);
 	}
 
@@ -136,8 +145,8 @@ static void lpc32xx_stop_tsc(struct lpc32xx_tsc *tsc)
 {
 	/* Disable auto mode */
 	tsc_writel(tsc, LPC32XX_TSC_CON,
-		   tsc_readl(tsc, LPC32XX_TSC_CON) &
-			     ~LPC32XX_TSC_ADCCON_AUTO_EN);
+			   tsc_readl(tsc, LPC32XX_TSC_CON) &
+			   ~LPC32XX_TSC_ADCCON_AUTO_EN);
 
 	clk_disable_unprepare(tsc->clk);
 }
@@ -152,8 +161,8 @@ static void lpc32xx_setup_tsc(struct lpc32xx_tsc *tsc)
 
 	/* Set the TSC FIFO depth to 4 samples @ 10-bits per sample (max) */
 	tmp = LPC32XX_TSC_ADCCON_IRQ_TO_FIFO_4 |
-	      LPC32XX_TSC_ADCCON_X_SAMPLE_SIZE(10) |
-	      LPC32XX_TSC_ADCCON_Y_SAMPLE_SIZE(10);
+		  LPC32XX_TSC_ADCCON_X_SAMPLE_SIZE(10) |
+		  LPC32XX_TSC_ADCCON_Y_SAMPLE_SIZE(10);
 	tsc_writel(tsc, LPC32XX_TSC_CON, tmp);
 
 	/* These values are all preset */
@@ -212,20 +221,26 @@ static int lpc32xx_ts_probe(struct platform_device *pdev)
 	int error;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "Can't get memory resource\n");
 		return -ENOENT;
 	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "Can't get interrupt resource\n");
 		return irq;
 	}
 
 	tsc = kzalloc(sizeof(*tsc), GFP_KERNEL);
 	input = input_allocate_device();
-	if (!tsc || !input) {
+
+	if (!tsc || !input)
+	{
 		dev_err(&pdev->dev, "failed allocating memory\n");
 		error = -ENOMEM;
 		goto err_free_mem;
@@ -236,21 +251,26 @@ static int lpc32xx_ts_probe(struct platform_device *pdev)
 
 	size = resource_size(res);
 
-	if (!request_mem_region(res->start, size, pdev->name)) {
+	if (!request_mem_region(res->start, size, pdev->name))
+	{
 		dev_err(&pdev->dev, "TSC registers are not free\n");
 		error = -EBUSY;
 		goto err_free_mem;
 	}
 
 	tsc->tsc_base = ioremap(res->start, size);
-	if (!tsc->tsc_base) {
+
+	if (!tsc->tsc_base)
+	{
 		dev_err(&pdev->dev, "Can't map memory\n");
 		error = -ENOMEM;
 		goto err_release_mem;
 	}
 
 	tsc->clk = clk_get(&pdev->dev, NULL);
-	if (IS_ERR(tsc->clk)) {
+
+	if (IS_ERR(tsc->clk))
+	{
 		dev_err(&pdev->dev, "failed getting clock\n");
 		error = PTR_ERR(tsc->clk);
 		goto err_unmap;
@@ -269,21 +289,25 @@ static int lpc32xx_ts_probe(struct platform_device *pdev)
 	input->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_ABS);
 	input->keybit[BIT_WORD(BTN_TOUCH)] = BIT_MASK(BTN_TOUCH);
 	input_set_abs_params(input, ABS_X, LPC32XX_TSC_MIN_XY_VAL,
-			     LPC32XX_TSC_MAX_XY_VAL, 0, 0);
+						 LPC32XX_TSC_MAX_XY_VAL, 0, 0);
 	input_set_abs_params(input, ABS_Y, LPC32XX_TSC_MIN_XY_VAL,
-			     LPC32XX_TSC_MAX_XY_VAL, 0, 0);
+						 LPC32XX_TSC_MAX_XY_VAL, 0, 0);
 
 	input_set_drvdata(input, tsc);
 
 	error = request_irq(tsc->irq, lpc32xx_ts_interrupt,
-			    0, pdev->name, tsc);
-	if (error) {
+						0, pdev->name, tsc);
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "failed requesting interrupt\n");
 		goto err_put_clock;
 	}
 
 	error = input_register_device(input);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "failed registering input device\n");
 		goto err_free_irq;
 	}
@@ -343,11 +367,16 @@ static int lpc32xx_ts_suspend(struct device *dev)
 	 */
 	mutex_lock(&input->mutex);
 
-	if (input->users) {
+	if (input->users)
+	{
 		if (device_may_wakeup(dev))
+		{
 			enable_irq_wake(tsc->irq);
+		}
 		else
+		{
 			lpc32xx_stop_tsc(tsc);
+		}
 	}
 
 	mutex_unlock(&input->mutex);
@@ -362,11 +391,16 @@ static int lpc32xx_ts_resume(struct device *dev)
 
 	mutex_lock(&input->mutex);
 
-	if (input->users) {
+	if (input->users)
+	{
 		if (device_may_wakeup(dev))
+		{
 			disable_irq_wake(tsc->irq);
+		}
 		else
+		{
 			lpc32xx_setup_tsc(tsc);
+		}
 	}
 
 	mutex_unlock(&input->mutex);
@@ -374,7 +408,8 @@ static int lpc32xx_ts_resume(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops lpc32xx_ts_pm_ops = {
+static const struct dev_pm_ops lpc32xx_ts_pm_ops =
+{
 	.suspend	= lpc32xx_ts_suspend,
 	.resume		= lpc32xx_ts_resume,
 };
@@ -384,14 +419,16 @@ static const struct dev_pm_ops lpc32xx_ts_pm_ops = {
 #endif
 
 #ifdef CONFIG_OF
-static const struct of_device_id lpc32xx_tsc_of_match[] = {
+static const struct of_device_id lpc32xx_tsc_of_match[] =
+{
 	{ .compatible = "nxp,lpc3220-tsc", },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, lpc32xx_tsc_of_match);
 #endif
 
-static struct platform_driver lpc32xx_ts_driver = {
+static struct platform_driver lpc32xx_ts_driver =
+{
 	.probe		= lpc32xx_ts_probe,
 	.remove		= lpc32xx_ts_remove,
 	.driver		= {

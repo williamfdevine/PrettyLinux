@@ -5,7 +5,8 @@
 
 #define DIVA_UM_IDI_ADAPTER_REMOVED 0x00000001
 
-typedef struct _diva_um_idi_adapter {
+typedef struct _diva_um_idi_adapter
+{
 	struct list_head link;
 	DESCRIPTOR d;
 	int adapter_nr;

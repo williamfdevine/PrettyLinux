@@ -210,11 +210,13 @@ struct device;
 
 #if IS_ENABLED(CONFIG_DEBUG_FS)
 
-struct fsl_ssi_dbg {
+struct fsl_ssi_dbg
+{
 	struct dentry *dbg_dir;
 	struct dentry *dbg_stats;
 
-	struct {
+	struct
+	{
 		unsigned int rfrc;
 		unsigned int tfrc;
 		unsigned int cmdau;
@@ -247,7 +249,8 @@ void fsl_ssi_debugfs_remove(struct fsl_ssi_dbg *ssi_dbg);
 
 #else
 
-struct fsl_ssi_dbg {
+struct fsl_ssi_dbg
+{
 };
 
 static inline void fsl_ssi_dbg_isr(struct fsl_ssi_dbg *stats, u32 sisr)

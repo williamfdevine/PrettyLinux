@@ -43,28 +43,28 @@
 #define USBVISION_DEBUG		/* Turn on debug messages */
 
 #define USBVISION_PWR_REG		0x00
-	#define USBVISION_SSPND_EN		(1 << 1)
-	#define USBVISION_RES2			(1 << 2)
-	#define USBVISION_PWR_VID		(1 << 5)
-	#define USBVISION_E2_EN			(1 << 7)
+#define USBVISION_SSPND_EN		(1 << 1)
+#define USBVISION_RES2			(1 << 2)
+#define USBVISION_PWR_VID		(1 << 5)
+#define USBVISION_E2_EN			(1 << 7)
 #define USBVISION_CONFIG_REG		0x01
 #define USBVISION_ADRS_REG		0x02
 #define USBVISION_ALTER_REG		0x03
 #define USBVISION_FORCE_ALTER_REG	0x04
 #define USBVISION_STATUS_REG		0x05
 #define USBVISION_IOPIN_REG		0x06
-	#define USBVISION_IO_1			(1 << 0)
-	#define USBVISION_IO_2			(1 << 1)
-	#define USBVISION_AUDIO_IN		0
-	#define USBVISION_AUDIO_TV		1
-	#define USBVISION_AUDIO_RADIO		2
-	#define USBVISION_AUDIO_MUTE		3
+#define USBVISION_IO_1			(1 << 0)
+#define USBVISION_IO_2			(1 << 1)
+#define USBVISION_AUDIO_IN		0
+#define USBVISION_AUDIO_TV		1
+#define USBVISION_AUDIO_RADIO		2
+#define USBVISION_AUDIO_MUTE		3
 #define USBVISION_SER_MODE		0x07
-	#define USBVISION_CLK_OUT		(1 << 0)
-	#define USBVISION_DAT_IO		(1 << 1)
-	#define USBVISION_SENS_OUT		(1 << 2)
-	#define USBVISION_SER_MODE_SOFT		(0 << 4)
-	#define USBVISION_SER_MODE_SIO		(1 << 4)
+#define USBVISION_CLK_OUT		(1 << 0)
+#define USBVISION_DAT_IO		(1 << 1)
+#define USBVISION_SENS_OUT		(1 << 2)
+#define USBVISION_SER_MODE_SOFT		(0 << 4)
+#define USBVISION_SER_MODE_SIO		(1 << 4)
 #define USBVISION_SER_ADRS		0x08
 #define USBVISION_SER_CONT		0x09
 #define USBVISION_SER_DAT1		0x0A
@@ -75,10 +75,10 @@
 #define USBVISION_EE_LSBAD		0x0F
 #define USBVISION_EE_CONT		0x10
 #define USBVISION_DRM_CONT			0x12
-	#define USBVISION_REF			(1 << 0)
-	#define USBVISION_RES_UR		(1 << 2)
-	#define USBVISION_RES_FDL		(1 << 3)
-	#define USBVISION_RES_VDW		(1 << 4)
+#define USBVISION_REF			(1 << 0)
+#define USBVISION_RES_UR		(1 << 2)
+#define USBVISION_RES_FDL		(1 << 3)
+#define USBVISION_RES_VDW		(1 << 4)
 #define USBVISION_DRM_PRM1		0x13
 #define USBVISION_DRM_PRM2		0x14
 #define USBVISION_DRM_PRM3		0x15
@@ -88,21 +88,21 @@
 #define USBVISION_DRM_PRM7		0x19
 #define USBVISION_DRM_PRM8		0x1A
 #define USBVISION_VIN_REG1		0x1B
-	#define USBVISION_8_422_SYNC		0x01
-	#define USBVISION_16_422_SYNC		0x02
-	#define USBVISION_VSNC_POL		(1 << 3)
-	#define USBVISION_HSNC_POL		(1 << 4)
-	#define USBVISION_FID_POL		(1 << 5)
-	#define USBVISION_HVALID_PO		(1 << 6)
-	#define USBVISION_VCLK_POL		(1 << 7)
+#define USBVISION_8_422_SYNC		0x01
+#define USBVISION_16_422_SYNC		0x02
+#define USBVISION_VSNC_POL		(1 << 3)
+#define USBVISION_HSNC_POL		(1 << 4)
+#define USBVISION_FID_POL		(1 << 5)
+#define USBVISION_HVALID_PO		(1 << 6)
+#define USBVISION_VCLK_POL		(1 << 7)
 #define USBVISION_VIN_REG2		0x1C
-	#define USBVISION_AUTO_FID		(1 << 0)
-	#define USBVISION_NONE_INTER		(1 << 1)
-	#define USBVISION_NOHVALID		(1 << 2)
-	#define USBVISION_UV_ID			(1 << 3)
-	#define USBVISION_FIX_2C		(1 << 4)
-	#define USBVISION_SEND_FID		(1 << 5)
-	#define USBVISION_KEEP_BLANK		(1 << 7)
+#define USBVISION_AUTO_FID		(1 << 0)
+#define USBVISION_NONE_INTER		(1 << 1)
+#define USBVISION_NOHVALID		(1 << 2)
+#define USBVISION_UV_ID			(1 << 3)
+#define USBVISION_FIX_2C		(1 << 4)
+#define USBVISION_SEND_FID		(1 << 5)
+#define USBVISION_KEEP_BLANK		(1 << 7)
 #define USBVISION_LXSIZE_I		0x1D
 #define USBVISION_MXSIZE_I		0x1E
 #define USBVISION_LYSIZE_I		0x1F
@@ -160,7 +160,8 @@
 #define FRAMERATE_MIN	0
 #define FRAMERATE_MAX	31
 
-enum {
+enum
+{
 	ISOC_MODE_YUV422 = 0x03,
 	ISOC_MODE_YUV420 = 0x14,
 	ISOC_MODE_COMPRESS = 0x60,
@@ -191,18 +192,18 @@ enum {
  */
 #define LIMIT_RGB(x) (((x) < 0) ? 0 : (((x) > 255) ? 255 : (x)))
 #define YUV_TO_RGB_BY_THE_BOOK(my, mu, mv, mr, mg, mb) { \
-	int mm_y, mm_yc, mm_u, mm_v, mm_r, mm_g, mm_b; \
-	mm_y = (my) - 16; \
-	mm_u = (mu) - 128; \
-	mm_v = (mv) - 128; \
-	mm_yc = mm_y * 76284; \
-	mm_b = (mm_yc + 132252 * mm_v) >> 16; \
-	mm_g = (mm_yc - 53281 * mm_u - 25625 * mm_v) >> 16; \
-	mm_r = (mm_yc + 104595 * mm_u) >> 16; \
-	mb = LIMIT_RGB(mm_b); \
-	mg = LIMIT_RGB(mm_g); \
-	mr = LIMIT_RGB(mm_r); \
-}
+		int mm_y, mm_yc, mm_u, mm_v, mm_r, mm_g, mm_b; \
+		mm_y = (my) - 16; \
+		mm_u = (mu) - 128; \
+		mm_v = (mv) - 128; \
+		mm_yc = mm_y * 76284; \
+		mm_b = (mm_yc + 132252 * mm_v) >> 16; \
+		mm_g = (mm_yc - 53281 * mm_u - 25625 * mm_v) >> 16; \
+		mm_r = (mm_yc + 104595 * mm_u) >> 16; \
+		mb = LIMIT_RGB(mm_b); \
+		mg = LIMIT_RGB(mm_g); \
+		mr = LIMIT_RGB(mm_r); \
+	}
 
 /*
  * This macro checks if usbvision is still operational. The 'usbvision'
@@ -210,10 +211,10 @@ enum {
  * removing the device and the device has not erred on us.
  */
 #define USBVISION_IS_OPERATIONAL(udevice) (\
-	(udevice != NULL) && \
-	((udevice)->dev != NULL) && \
-	((udevice)->last_error == 0) && \
-	(!(udevice)->remove_pending))
+		(udevice != NULL) && \
+		((udevice)->dev != NULL) && \
+		((udevice)->last_error == 0) && \
+		(!(udevice)->remove_pending))
 
 #define I2C_USB_ADAP_MAX	16
 
@@ -222,20 +223,23 @@ enum {
 /* ----------------------------------------------------------------- */
 /* usbvision video structures                                        */
 /* ----------------------------------------------------------------- */
-enum scan_state {
+enum scan_state
+{
 	scan_state_scanning,	/* Scanning for header */
 	scan_state_lines	/* Parsing lines */
 };
 
 /* Completion states of the data parser */
-enum parse_state {
+enum parse_state
+{
 	parse_state_continue,	/* Just parse next item */
 	parse_state_next_frame,	/* Frame done, send it to V4L */
 	parse_state_out,	/* Not enough data for frame */
 	parse_state_end_parse	/* End parsing */
 };
 
-enum frame_state {
+enum frame_state
+{
 	frame_state_unused,	/* Unused (no MCAPTURE) */
 	frame_state_ready,	/* Ready to start grabbing */
 	frame_state_grabbing,	/* In the process of being grabbed into */
@@ -245,21 +249,24 @@ enum frame_state {
 };
 
 /* stream states */
-enum stream_state {
+enum stream_state
+{
 	stream_off,		/* Driver streaming is completely OFF */
 	stream_idle,		/* Driver streaming is ready to be put ON by the application */
 	stream_interrupt,	/* Driver streaming must be interrupted */
 	stream_on,		/* Driver streaming is put ON by the application */
 };
 
-enum isoc_state {
+enum isoc_state
+{
 	isoc_state_in_frame,	/* Isoc packet is member of frame */
 	isoc_state_no_frame,	/* Isoc packet is not member of any frame */
 };
 
 struct usb_device;
 
-struct usbvision_sbuf {
+struct usbvision_sbuf
+{
 	char *data;
 	struct urb *urb;
 };
@@ -273,7 +280,8 @@ struct usbvision_sbuf {
 #define USBVISION_IIC_LRNACK			0x30
 #define USBVISION_FRAME_FORMAT_PARAM_INTRA	(1<<7)
 
-struct usbvision_v4l2_format_st {
+struct usbvision_v4l2_format_st
+{
 	int		supported;
 	int		bytes_per_pixel;
 	int		depth;
@@ -282,7 +290,8 @@ struct usbvision_v4l2_format_st {
 };
 #define USBVISION_SUPPORTED_PALETTES ARRAY_SIZE(usbvision_v4l2_format)
 
-struct usbvision_frame_header {
+struct usbvision_frame_header
+{
 	unsigned char magic_1;				/* 0 magic */
 	unsigned char magic_2;				/* 1  magic */
 	unsigned char header_length;			/* 2 */
@@ -299,7 +308,8 @@ struct usbvision_frame_header {
 	__u16 frame_height;				/* 10 - 11 after endian correction*/
 };
 
-struct usbvision_frame {
+struct usbvision_frame
+{
 	char *data;					/* Frame buffer */
 	struct usbvision_frame_header isoc_header;	/* Header from stream */
 
@@ -331,19 +341,20 @@ struct usbvision_frame {
 #define BRIDGE_NT1004	1004
 #define BRIDGE_NT1005   1005
 
-struct usbvision_device_data_st {
+struct usbvision_device_data_st
+{
 	__u64 video_norm;
 	const char *model_string;
 	int interface; /* to handle special interface number like BELKIN and Hauppauge WinTV-USB II */
 	__u16 codec;
-	unsigned video_channels:3;
-	unsigned audio_channels:2;
-	unsigned radio:1;
-	unsigned vbi:1;
-	unsigned tuner:1;
-	unsigned vin_reg1_override:1;	/* Override default value with */
-	unsigned vin_reg2_override:1;   /* vin_reg1, vin_reg2, etc. */
-	unsigned dvi_yuv_override:1;
+	unsigned video_channels: 3;
+	unsigned audio_channels: 2;
+	unsigned radio: 1;
+	unsigned vbi: 1;
+	unsigned tuner: 1;
+	unsigned vin_reg1_override: 1;	/* Override default value with */
+	unsigned vin_reg2_override: 1;  /* vin_reg1, vin_reg2, etc. */
+	unsigned dvi_yuv_override: 1;
 	__u8 vin_reg1;
 	__u8 vin_reg2;
 	__u8 dvi_yuv;
@@ -356,7 +367,8 @@ struct usbvision_device_data_st {
 extern struct usbvision_device_data_st usbvision_device_data[];
 extern struct usb_device_id usbvision_table[];
 
-struct usb_usbvision {
+struct usb_usbvision
+{
 	struct v4l2_device v4l2_dev;
 	struct v4l2_ctrl_handler hdl;
 	struct video_device vdev;					/* Video Device */
@@ -485,7 +497,7 @@ int usbvision_i2c_unregister(struct usb_usbvision *usbvision);
 /* defined in usbvision-core.c                                      */
 int usbvision_read_reg(struct usb_usbvision *usbvision, unsigned char reg);
 int usbvision_write_reg(struct usb_usbvision *usbvision, unsigned char reg,
-			unsigned char value);
+						unsigned char value);
 
 int usbvision_frames_alloc(struct usb_usbvision *usbvision, int number_of_frames);
 void usbvision_frames_free(struct usb_usbvision *usbvision);

@@ -30,7 +30,9 @@ static void *cache_first_page(struct squashfs_page_actor *actor)
 static void *cache_next_page(struct squashfs_page_actor *actor)
 {
 	if (actor->next_page == actor->pages)
+	{
 		return NULL;
+	}
 
 	return actor->buffer[actor->next_page++];
 }
@@ -41,12 +43,14 @@ static void cache_finish_page(struct squashfs_page_actor *actor)
 }
 
 struct squashfs_page_actor *squashfs_page_actor_init(void **buffer,
-	int pages, int length)
+		int pages, int length)
 {
 	struct squashfs_page_actor *actor = kmalloc(sizeof(*actor), GFP_KERNEL);
 
 	if (actor == NULL)
+	{
 		return NULL;
+	}
 
 	actor->length = length ? : pages * PAGE_SIZE;
 	actor->buffer = buffer;
@@ -68,25 +72,31 @@ static void *direct_first_page(struct squashfs_page_actor *actor)
 static void *direct_next_page(struct squashfs_page_actor *actor)
 {
 	if (actor->pageaddr)
+	{
 		kunmap_atomic(actor->pageaddr);
+	}
 
 	return actor->pageaddr = actor->next_page == actor->pages ? NULL :
-		kmap_atomic(actor->page[actor->next_page++]);
+							 kmap_atomic(actor->page[actor->next_page++]);
 }
 
 static void direct_finish_page(struct squashfs_page_actor *actor)
 {
 	if (actor->pageaddr)
+	{
 		kunmap_atomic(actor->pageaddr);
+	}
 }
 
 struct squashfs_page_actor *squashfs_page_actor_init_special(struct page **page,
-	int pages, int length)
+		int pages, int length)
 {
 	struct squashfs_page_actor *actor = kmalloc(sizeof(*actor), GFP_KERNEL);
 
 	if (actor == NULL)
+	{
 		return NULL;
+	}
 
 	actor->length = length ? : pages * PAGE_SIZE;
 	actor->page = page;

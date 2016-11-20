@@ -4,17 +4,19 @@
 #define QNX4_DEBUG 0
 
 #if QNX4_DEBUG
-#define QNX4DEBUG(X) printk X
+	#define QNX4DEBUG(X) printk X
 #else
-#define QNX4DEBUG(X) (void) 0
+	#define QNX4DEBUG(X) (void) 0
 #endif
 
-struct qnx4_sb_info {
+struct qnx4_sb_info
+{
 	unsigned int		Version;	/* may be useful */
 	struct qnx4_inode_entry	*BitMap;	/* useful */
 };
 
-struct qnx4_inode_info {
+struct qnx4_inode_info
+{
 	struct qnx4_inode_entry raw;
 	loff_t mmu_private;
 	struct inode vfs_inode;

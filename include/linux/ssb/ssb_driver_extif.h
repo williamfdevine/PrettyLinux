@@ -35,13 +35,13 @@
  * Use the following helper macro to get a register offset value.
  */
 #define SSB_EXTIF_GPIO_OUT(index)	({		\
-	BUILD_BUG_ON(index >= SSB_EXTIF_NR_GPIOOUT);	\
-	SSB_EXTIF_GPIO_OUT_BASE + ((index) * 8);	\
-					})
+		BUILD_BUG_ON(index >= SSB_EXTIF_NR_GPIOOUT);	\
+		SSB_EXTIF_GPIO_OUT_BASE + ((index) * 8);	\
+	})
 #define SSB_EXTIF_GPIO_OUTEN(index)	({		\
-	BUILD_BUG_ON(index >= SSB_EXTIF_NR_GPIOOUT);	\
-	SSB_EXTIF_GPIO_OUTEN_BASE + ((index) * 8);	\
-					})
+		BUILD_BUG_ON(index >= SSB_EXTIF_NR_GPIOOUT);	\
+		SSB_EXTIF_GPIO_OUTEN_BASE + ((index) * 8);	\
+	})
 
 /** EXTIF core registers **/
 
@@ -154,12 +154,13 @@
 
 #define SSB_EXTIF_WATCHDOG_MAX_TIMER	((1 << 28) - 1)
 #define SSB_EXTIF_WATCHDOG_MAX_TIMER_MS	(SSB_EXTIF_WATCHDOG_MAX_TIMER \
-					 / (SSB_EXTIF_WATCHDOG_CLK / 1000))
+		/ (SSB_EXTIF_WATCHDOG_CLK / 1000))
 
 
 #ifdef CONFIG_SSB_DRIVER_EXTIF
 
-struct ssb_extif {
+struct ssb_extif
+{
 	struct ssb_device *dev;
 	spinlock_t gpio_lock;
 };
@@ -170,10 +171,10 @@ static inline bool ssb_extif_available(struct ssb_extif *extif)
 }
 
 extern void ssb_extif_get_clockcontrol(struct ssb_extif *extif,
-			               u32 *plltype, u32 *n, u32 *m);
+									   u32 *plltype, u32 *n, u32 *m);
 
 extern void ssb_extif_timing_init(struct ssb_extif *extif,
-				  unsigned long ns);
+								  unsigned long ns);
 
 extern u32 ssb_extif_watchdog_timer_set(struct ssb_extif *extif, u32 ticks);
 
@@ -186,14 +187,15 @@ u32 ssb_extif_gpio_intmask(struct ssb_extif *extif, u32 mask, u32 value);
 
 #ifdef CONFIG_SSB_SERIAL
 extern int ssb_extif_serial_init(struct ssb_extif *extif,
-				 struct ssb_serial_port *ports);
+								 struct ssb_serial_port *ports);
 #endif /* CONFIG_SSB_SERIAL */
 
 
 #else /* CONFIG_SSB_DRIVER_EXTIF */
 /* extif disabled */
 
-struct ssb_extif {
+struct ssb_extif
+{
 };
 
 static inline bool ssb_extif_available(struct ssb_extif *extif)
@@ -203,7 +205,7 @@ static inline bool ssb_extif_available(struct ssb_extif *extif)
 
 static inline
 void ssb_extif_get_clockcontrol(struct ssb_extif *extif,
-			        u32 *plltype, u32 *n, u32 *m)
+								u32 *plltype, u32 *n, u32 *m)
 {
 }
 
@@ -224,32 +226,32 @@ static inline u32 ssb_extif_gpio_in(struct ssb_extif *extif, u32 mask)
 }
 
 static inline u32 ssb_extif_gpio_out(struct ssb_extif *extif, u32 mask,
-				     u32 value)
+									 u32 value)
 {
 	return 0;
 }
 
 static inline u32 ssb_extif_gpio_outen(struct ssb_extif *extif, u32 mask,
-				       u32 value)
+									   u32 value)
 {
 	return 0;
 }
 
 static inline u32 ssb_extif_gpio_polarity(struct ssb_extif *extif, u32 mask,
-					  u32 value)
+		u32 value)
 {
 	return 0;
 }
 
 static inline u32 ssb_extif_gpio_intmask(struct ssb_extif *extif, u32 mask,
-					 u32 value)
+		u32 value)
 {
 	return 0;
 }
 
 #ifdef CONFIG_SSB_SERIAL
 static inline int ssb_extif_serial_init(struct ssb_extif *extif,
-					struct ssb_serial_port *ports)
+										struct ssb_serial_port *ports)
 {
 	return 0;
 }

@@ -13,7 +13,8 @@
 /*
  * function group types
  */
-enum {
+enum
+{
 	AC_GRP_AUDIO_FUNCTION = 0x01,
 	AC_GRP_MODEM_FUNCTION = 0x02,
 };
@@ -21,7 +22,8 @@ enum {
 /*
  * widget types
  */
-enum {
+enum
+{
 	AC_WID_AUD_OUT,		/* Audio Out */
 	AC_WID_AUD_IN,		/* Audio In */
 	AC_WID_AUD_MIX,		/* Audio Mixer */
@@ -458,7 +460,8 @@ enum {
 #define AC_DE_IA			(1<<2)
 
 /* device device types (0x0-0xf) */
-enum {
+enum
+{
 	AC_JACK_LINE_OUT,
 	AC_JACK_SPEAKER,
 	AC_JACK_HP_OUT,
@@ -477,7 +480,8 @@ enum {
 };
 
 /* jack connection types (0x0-0xf) */
-enum {
+enum
+{
 	AC_JACK_CONN_UNKNOWN,
 	AC_JACK_CONN_1_8,
 	AC_JACK_CONN_1_4,
@@ -494,7 +498,8 @@ enum {
 };
 
 /* jack colors (0x0-0xf) */
-enum {
+enum
+{
 	AC_JACK_COLOR_UNKNOWN,
 	AC_JACK_COLOR_BLACK,
 	AC_JACK_COLOR_GREY,
@@ -511,7 +516,8 @@ enum {
 
 /* Jack location (0x0-0x3f) */
 /* common case */
-enum {
+enum
+{
 	AC_JACK_LOC_NONE,
 	AC_JACK_LOC_REAR,
 	AC_JACK_LOC_FRONT,
@@ -521,13 +527,15 @@ enum {
 	AC_JACK_LOC_BOTTOM,
 };
 /* bits 4-5 */
-enum {
+enum
+{
 	AC_JACK_LOC_EXTERNAL = 0x00,
 	AC_JACK_LOC_INTERNAL = 0x10,
 	AC_JACK_LOC_SEPARATE = 0x20,
 	AC_JACK_LOC_OTHER    = 0x30,
 };
-enum {
+enum
+{
 	/* external on primary chasis */
 	AC_JACK_LOC_REAR_PANEL = 0x07,
 	AC_JACK_LOC_DRIVE_BAY,
@@ -541,7 +549,8 @@ enum {
 };
 
 /* Port connectivity (0-3) */
-enum {
+enum
+{
 	AC_JACK_PORT_COMPLEX,
 	AC_JACK_PORT_NONE,
 	AC_JACK_PORT_FIXED,

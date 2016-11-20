@@ -22,25 +22,27 @@
  *
  */
 
-struct snd_pcm_oss_setup {
+struct snd_pcm_oss_setup
+{
 	char *task_name;
-	unsigned int disable:1,
-		     direct:1,
-		     block:1,
-		     nonblock:1,
-		     partialfrag:1,
-		     nosilence:1,
-		     buggyptr:1;
+	unsigned int disable: 1,
+			 direct: 1,
+			 block: 1,
+			 nonblock: 1,
+			 partialfrag: 1,
+			 nosilence: 1,
+			 buggyptr: 1;
 	unsigned int periods;
 	unsigned int period_size;
 	struct snd_pcm_oss_setup *next;
 };
 
-struct snd_pcm_oss_runtime {
+struct snd_pcm_oss_runtime
+{
 	unsigned params: 1,			/* format/parameter change */
-		 prepare: 1,			/* need to prepare the operation */
-		 trigger: 1,			/* trigger flag */
-		 sync_trigger: 1;		/* sync trigger flag */
+			 prepare: 1,			/* need to prepare the operation */
+			 trigger: 1,			/* trigger flag */
+			 sync_trigger: 1;		/* sync trigger flag */
 	int rate;				/* requested rate */
 	int format;				/* requested OSS format */
 	unsigned int channels;			/* requested channels */
@@ -64,16 +66,19 @@ struct snd_pcm_oss_runtime {
 	unsigned int prev_hw_ptr_period;
 };
 
-struct snd_pcm_oss_file {
+struct snd_pcm_oss_file
+{
 	struct snd_pcm_substream *streams[2];
 };
 
-struct snd_pcm_oss_substream {
+struct snd_pcm_oss_substream
+{
 	unsigned oss: 1;			/* oss mode */
 	struct snd_pcm_oss_setup setup;		/* active setup */
 };
 
-struct snd_pcm_oss_stream {
+struct snd_pcm_oss_stream
+{
 	struct snd_pcm_oss_setup *setup_list;	/* setup list */
 	struct mutex setup_mutex;
 #ifdef CONFIG_SND_VERBOSE_PROCFS
@@ -81,7 +86,8 @@ struct snd_pcm_oss_stream {
 #endif
 };
 
-struct snd_pcm_oss {
+struct snd_pcm_oss
+{
 	int reg;
 	unsigned int reg_mask;
 };

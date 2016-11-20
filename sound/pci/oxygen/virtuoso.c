@@ -41,7 +41,8 @@ MODULE_PARM_DESC(id, "ID string");
 module_param_array(enable, bool, NULL, 0444);
 MODULE_PARM_DESC(enable, "enable card");
 
-static const struct pci_device_id xonar_ids[] = {
+static const struct pci_device_id xonar_ids[] =
+{
 	{ OXYGEN_PCI_SUBID(0x1043, 0x8269) },
 	{ OXYGEN_PCI_SUBID(0x1043, 0x8275) },
 	{ OXYGEN_PCI_SUBID(0x1043, 0x82b7) },
@@ -61,37 +62,56 @@ static const struct pci_device_id xonar_ids[] = {
 MODULE_DEVICE_TABLE(pci, xonar_ids);
 
 static int get_xonar_model(struct oxygen *chip,
-			   const struct pci_device_id *id)
+						   const struct pci_device_id *id)
 {
 	if (get_xonar_pcm179x_model(chip, id) >= 0)
+	{
 		return 0;
+	}
+
 	if (get_xonar_cs43xx_model(chip, id) >= 0)
+	{
 		return 0;
+	}
+
 	if (get_xonar_wm87x6_model(chip, id) >= 0)
+	{
 		return 0;
+	}
+
 	return -EINVAL;
 }
 
 static int xonar_probe(struct pci_dev *pci,
-		       const struct pci_device_id *pci_id)
+					   const struct pci_device_id *pci_id)
 {
 	static int dev;
 	int err;
 
 	if (dev >= SNDRV_CARDS)
+	{
 		return -ENODEV;
-	if (!enable[dev]) {
+	}
+
+	if (!enable[dev])
+	{
 		++dev;
 		return -ENOENT;
 	}
+
 	err = oxygen_pci_probe(pci, index[dev], id[dev], THIS_MODULE,
-			       xonar_ids, get_xonar_model);
+						   xonar_ids, get_xonar_model);
+
 	if (err >= 0)
+	{
 		++dev;
+	}
+
 	return err;
 }
 
-static struct pci_driver xonar_driver = {
+static struct pci_driver xonar_driver =
+{
 	.name = KBUILD_MODNAME,
 	.id_table = xonar_ids,
 	.probe = xonar_probe,

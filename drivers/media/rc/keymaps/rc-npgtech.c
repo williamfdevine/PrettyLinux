@@ -13,7 +13,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table npgtech[] = {
+static struct rc_map_table npgtech[] =
+{
 	{ 0x1d, KEY_SWITCHVIDEOMODE },	/* switch inputs */
 	{ 0x2a, KEY_FRONT },
 
@@ -55,7 +56,8 @@ static struct rc_map_table npgtech[] = {
 
 };
 
-static struct rc_map_list npgtech_map = {
+static struct rc_map_list npgtech_map =
+{
 	.map = {
 		.scan    = npgtech,
 		.size    = ARRAY_SIZE(npgtech),

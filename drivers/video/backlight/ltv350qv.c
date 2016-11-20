@@ -20,7 +20,8 @@
 
 #define POWER_IS_ON(pwr)	((pwr) <= FB_BLANK_NORMAL)
 
-struct ltv350qv {
+struct ltv350qv
+{
 	struct spi_device	*spi;
 	u8			*buffer;
 	int			power;
@@ -40,11 +41,13 @@ struct ltv350qv {
 static int ltv350qv_write_reg(struct ltv350qv *lcd, u8 reg, u16 val)
 {
 	struct spi_message msg;
-	struct spi_transfer index_xfer = {
+	struct spi_transfer index_xfer =
+	{
 		.len		= 3,
 		.cs_change	= 1,
 	};
-	struct spi_transfer value_xfer = {
+	struct spi_transfer value_xfer =
+	{
 		.len		= 3,
 	};
 
@@ -74,38 +77,48 @@ static int ltv350qv_power_on(struct ltv350qv *lcd)
 
 	/* Power On Reset Display off State */
 	if (ltv350qv_write_reg(lcd, LTV_PWRCTL1, 0x0000))
+	{
 		goto err;
+	}
+
 	usleep_range(15000, 16000);
 
 	/* Power Setting Function 1 */
 	if (ltv350qv_write_reg(lcd, LTV_PWRCTL1, LTV_VCOM_DISABLE))
+	{
 		goto err;
+	}
+
 	if (ltv350qv_write_reg(lcd, LTV_PWRCTL2, LTV_VCOML_ENABLE))
+	{
 		goto err_power1;
+	}
 
 	/* Power Setting Function 2 */
 	if (ltv350qv_write_reg(lcd, LTV_PWRCTL1,
-			       LTV_VCOM_DISABLE | LTV_DRIVE_CURRENT(5)
-			       | LTV_SUPPLY_CURRENT(5)))
+						   LTV_VCOM_DISABLE | LTV_DRIVE_CURRENT(5)
+						   | LTV_SUPPLY_CURRENT(5)))
+	{
 		goto err_power2;
+	}
 
 	msleep(55);
 
 	/* Instruction Setting */
 	ret = ltv350qv_write_reg(lcd, LTV_IFCTL,
-				 LTV_NMD | LTV_REV | LTV_NL(0x1d));
+							 LTV_NMD | LTV_REV | LTV_NL(0x1d));
 	ret |= ltv350qv_write_reg(lcd, LTV_DATACTL,
-				  LTV_DS_SAME | LTV_CHS_480
-				  | LTV_DF_RGB | LTV_RGB_BGR);
+							  LTV_DS_SAME | LTV_CHS_480
+							  | LTV_DF_RGB | LTV_RGB_BGR);
 	ret |= ltv350qv_write_reg(lcd, LTV_ENTRY_MODE,
-				  LTV_VSPL_ACTIVE_LOW
-				  | LTV_HSPL_ACTIVE_LOW
-				  | LTV_DPL_SAMPLE_RISING
-				  | LTV_EPL_ACTIVE_LOW
-				  | LTV_SS_RIGHT_TO_LEFT);
+							  LTV_VSPL_ACTIVE_LOW
+							  | LTV_HSPL_ACTIVE_LOW
+							  | LTV_DPL_SAMPLE_RISING
+							  | LTV_EPL_ACTIVE_LOW
+							  | LTV_SS_RIGHT_TO_LEFT);
 	ret |= ltv350qv_write_reg(lcd, LTV_GATECTL1, LTV_CLW(3));
 	ret |= ltv350qv_write_reg(lcd, LTV_GATECTL2,
-				  LTV_NW_INV_1LINE | LTV_FWI(3));
+							  LTV_NW_INV_1LINE | LTV_FWI(3));
 	ret |= ltv350qv_write_reg(lcd, LTV_VBP, 0x000a);
 	ret |= ltv350qv_write_reg(lcd, LTV_HBP, 0x0021);
 	ret |= ltv350qv_write_reg(lcd, LTV_SOTCTL, LTV_SDT(3) | LTV_EQ(0));
@@ -119,21 +132,27 @@ static int ltv350qv_power_on(struct ltv350qv *lcd)
 	ret |= ltv350qv_write_reg(lcd, LTV_GAMMA(7), 0x0000);
 	ret |= ltv350qv_write_reg(lcd, LTV_GAMMA(8), 0x0004);
 	ret |= ltv350qv_write_reg(lcd, LTV_GAMMA(9), 0x0000);
+
 	if (ret)
+	{
 		goto err_settings;
+	}
 
 	/* Wait more than 2 frames */
 	msleep(20);
 
 	/* Display On Sequence */
 	ret = ltv350qv_write_reg(lcd, LTV_PWRCTL1,
-				 LTV_VCOM_DISABLE | LTV_VCOMOUT_ENABLE
-				 | LTV_POWER_ON | LTV_DRIVE_CURRENT(5)
-				 | LTV_SUPPLY_CURRENT(5));
+							 LTV_VCOM_DISABLE | LTV_VCOMOUT_ENABLE
+							 | LTV_POWER_ON | LTV_DRIVE_CURRENT(5)
+							 | LTV_SUPPLY_CURRENT(5));
 	ret |= ltv350qv_write_reg(lcd, LTV_GATECTL2,
-				  LTV_NW_INV_1LINE | LTV_DSC | LTV_FWI(3));
+							  LTV_NW_INV_1LINE | LTV_DSC | LTV_FWI(3));
+
 	if (ret)
+	{
 		goto err_disp_on;
+	}
 
 	/* Display should now be ON. Phew. */
 	return 0;
@@ -145,10 +164,10 @@ err_disp_on:
 	 * off.
 	 */
 	ltv350qv_write_reg(lcd, LTV_PWRCTL1,
-			   LTV_VCOM_DISABLE | LTV_DRIVE_CURRENT(5)
-			   | LTV_SUPPLY_CURRENT(5));
+					   LTV_VCOM_DISABLE | LTV_DRIVE_CURRENT(5)
+					   | LTV_SUPPLY_CURRENT(5));
 	ltv350qv_write_reg(lcd, LTV_GATECTL2,
-			   LTV_NW_INV_1LINE | LTV_FWI(3));
+					   LTV_NW_INV_1LINE | LTV_FWI(3));
 err_settings:
 err_power2:
 err_power1:
@@ -165,11 +184,11 @@ static int ltv350qv_power_off(struct ltv350qv *lcd)
 
 	/* Display Off Sequence */
 	ret = ltv350qv_write_reg(lcd, LTV_PWRCTL1,
-				 LTV_VCOM_DISABLE
-				 | LTV_DRIVE_CURRENT(5)
-				 | LTV_SUPPLY_CURRENT(5));
+							 LTV_VCOM_DISABLE
+							 | LTV_DRIVE_CURRENT(5)
+							 | LTV_SUPPLY_CURRENT(5));
 	ret |= ltv350qv_write_reg(lcd, LTV_GATECTL2,
-				  LTV_NW_INV_1LINE | LTV_FWI(3));
+							  LTV_NW_INV_1LINE | LTV_FWI(3));
 
 	/* Power down setting 1 */
 	ret |= ltv350qv_write_reg(lcd, LTV_PWRCTL2, 0x0000);
@@ -186,7 +205,9 @@ static int ltv350qv_power_off(struct ltv350qv *lcd)
 	 * user about the failure?
 	 */
 	if (ret)
+	{
 		return -EIO;
+	}
 
 	/* Display power should now be OFF */
 	return 0;
@@ -197,12 +218,18 @@ static int ltv350qv_power(struct ltv350qv *lcd, int power)
 	int ret = 0;
 
 	if (POWER_IS_ON(power) && !POWER_IS_ON(lcd->power))
+	{
 		ret = ltv350qv_power_on(lcd);
+	}
 	else if (!POWER_IS_ON(power) && POWER_IS_ON(lcd->power))
+	{
 		ret = ltv350qv_power_off(lcd);
+	}
 
 	if (!ret)
+	{
 		lcd->power = power;
+	}
 
 	return ret;
 }
@@ -221,7 +248,8 @@ static int ltv350qv_get_power(struct lcd_device *ld)
 	return lcd->power;
 }
 
-static struct lcd_ops ltv_ops = {
+static struct lcd_ops ltv_ops =
+{
 	.get_power	= ltv350qv_get_power,
 	.set_power	= ltv350qv_set_power,
 };
@@ -233,25 +261,37 @@ static int ltv350qv_probe(struct spi_device *spi)
 	int ret;
 
 	lcd = devm_kzalloc(&spi->dev, sizeof(struct ltv350qv), GFP_KERNEL);
+
 	if (!lcd)
+	{
 		return -ENOMEM;
+	}
 
 	lcd->spi = spi;
 	lcd->power = FB_BLANK_POWERDOWN;
 	lcd->buffer = devm_kzalloc(&spi->dev, 8, GFP_KERNEL);
+
 	if (!lcd->buffer)
+	{
 		return -ENOMEM;
+	}
 
 	ld = devm_lcd_device_register(&spi->dev, "ltv350qv", &spi->dev, lcd,
-					&ltv_ops);
+								  &ltv_ops);
+
 	if (IS_ERR(ld))
+	{
 		return PTR_ERR(ld);
+	}
 
 	lcd->ld = ld;
 
 	ret = ltv350qv_power(lcd, FB_BLANK_UNBLANK);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	spi_set_drvdata(spi, lcd);
 
@@ -292,7 +332,8 @@ static void ltv350qv_shutdown(struct spi_device *spi)
 	ltv350qv_power(lcd, FB_BLANK_POWERDOWN);
 }
 
-static struct spi_driver ltv350qv_driver = {
+static struct spi_driver ltv350qv_driver =
+{
 	.driver = {
 		.name		= "ltv350qv",
 		.pm		= &ltv350qv_pm_ops,

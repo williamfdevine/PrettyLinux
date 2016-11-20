@@ -26,19 +26,22 @@ static unsigned int tm6010_a_mode;
 module_param(tm6010_a_mode, int, 0644);
 MODULE_PARM_DESC(tm6010_a_mode, "set tm6010 sif audio mode");
 
-struct tm6000_reg_settings {
+struct tm6000_reg_settings
+{
 	unsigned char req;
 	unsigned char reg;
 	unsigned char value;
 };
 
 
-struct tm6000_std_settings {
+struct tm6000_std_settings
+{
 	v4l2_std_id id;
 	struct tm6000_reg_settings *common;
 };
 
-static struct tm6000_reg_settings composite_pal_m[] = {
+static struct tm6000_reg_settings composite_pal_m[] =
+{
 	{ TM6010_REQ07_R3F_RESET, 0x01 },
 	{ TM6010_REQ07_R00_VIDEO_CONTROL0, 0x04 },
 	{ TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0e },
@@ -66,7 +69,8 @@ static struct tm6000_reg_settings composite_pal_m[] = {
 	{ 0, 0, 0 }
 };
 
-static struct tm6000_reg_settings composite_pal_nc[] = {
+static struct tm6000_reg_settings composite_pal_nc[] =
+{
 	{ TM6010_REQ07_R3F_RESET, 0x01 },
 	{ TM6010_REQ07_R00_VIDEO_CONTROL0, 0x36 },
 	{ TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0e },
@@ -94,7 +98,8 @@ static struct tm6000_reg_settings composite_pal_nc[] = {
 	{ 0, 0, 0 }
 };
 
-static struct tm6000_reg_settings composite_pal[] = {
+static struct tm6000_reg_settings composite_pal[] =
+{
 	{ TM6010_REQ07_R3F_RESET, 0x01 },
 	{ TM6010_REQ07_R00_VIDEO_CONTROL0, 0x32 },
 	{ TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0e },
@@ -122,7 +127,8 @@ static struct tm6000_reg_settings composite_pal[] = {
 	{ 0, 0, 0 }
 };
 
-static struct tm6000_reg_settings composite_secam[] = {
+static struct tm6000_reg_settings composite_secam[] =
+{
 	{ TM6010_REQ07_R3F_RESET, 0x01 },
 	{ TM6010_REQ07_R00_VIDEO_CONTROL0, 0x38 },
 	{ TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0e },
@@ -149,7 +155,8 @@ static struct tm6000_reg_settings composite_secam[] = {
 	{ 0, 0, 0 }
 };
 
-static struct tm6000_reg_settings composite_ntsc[] = {
+static struct tm6000_reg_settings composite_ntsc[] =
+{
 	{ TM6010_REQ07_R3F_RESET, 0x01 },
 	{ TM6010_REQ07_R00_VIDEO_CONTROL0, 0x00 },
 	{ TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0f },
@@ -177,7 +184,8 @@ static struct tm6000_reg_settings composite_ntsc[] = {
 	{ 0, 0, 0 }
 };
 
-static struct tm6000_std_settings composite_stds[] = {
+static struct tm6000_std_settings composite_stds[] =
+{
 	{ .id = V4L2_STD_PAL_M, .common = composite_pal_m, },
 	{ .id = V4L2_STD_PAL_Nc, .common = composite_pal_nc, },
 	{ .id = V4L2_STD_PAL, .common = composite_pal, },
@@ -185,7 +193,8 @@ static struct tm6000_std_settings composite_stds[] = {
 	{ .id = V4L2_STD_NTSC, .common = composite_ntsc, },
 };
 
-static struct tm6000_reg_settings svideo_pal_m[] = {
+static struct tm6000_reg_settings svideo_pal_m[] =
+{
 	{ TM6010_REQ07_R3F_RESET, 0x01 },
 	{ TM6010_REQ07_R00_VIDEO_CONTROL0, 0x05 },
 	{ TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0e },
@@ -213,7 +222,8 @@ static struct tm6000_reg_settings svideo_pal_m[] = {
 	{ 0, 0, 0 }
 };
 
-static struct tm6000_reg_settings svideo_pal_nc[] = {
+static struct tm6000_reg_settings svideo_pal_nc[] =
+{
 	{ TM6010_REQ07_R3F_RESET, 0x01 },
 	{ TM6010_REQ07_R00_VIDEO_CONTROL0, 0x37 },
 	{ TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0e },
@@ -241,7 +251,8 @@ static struct tm6000_reg_settings svideo_pal_nc[] = {
 	{ 0, 0, 0 }
 };
 
-static struct tm6000_reg_settings svideo_pal[] = {
+static struct tm6000_reg_settings svideo_pal[] =
+{
 	{ TM6010_REQ07_R3F_RESET, 0x01 },
 	{ TM6010_REQ07_R00_VIDEO_CONTROL0, 0x33 },
 	{ TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0e },
@@ -269,7 +280,8 @@ static struct tm6000_reg_settings svideo_pal[] = {
 	{ 0, 0, 0 }
 };
 
-static struct tm6000_reg_settings svideo_secam[] = {
+static struct tm6000_reg_settings svideo_secam[] =
+{
 	{ TM6010_REQ07_R3F_RESET, 0x01 },
 	{ TM6010_REQ07_R00_VIDEO_CONTROL0, 0x39 },
 	{ TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0e },
@@ -296,7 +308,8 @@ static struct tm6000_reg_settings svideo_secam[] = {
 	{ 0, 0, 0 }
 };
 
-static struct tm6000_reg_settings svideo_ntsc[] = {
+static struct tm6000_reg_settings svideo_ntsc[] =
+{
 	{ TM6010_REQ07_R3F_RESET, 0x01 },
 	{ TM6010_REQ07_R00_VIDEO_CONTROL0, 0x01 },
 	{ TM6010_REQ07_R01_VIDEO_CONTROL1, 0x0f },
@@ -325,7 +338,8 @@ static struct tm6000_reg_settings svideo_ntsc[] = {
 	{ 0, 0, 0 }
 };
 
-static struct tm6000_std_settings svideo_stds[] = {
+static struct tm6000_std_settings svideo_stds[] =
+{
 	{ .id = V4L2_STD_PAL_M, .common = svideo_pal_m, },
 	{ .id = V4L2_STD_PAL_Nc, .common = svideo_pal_nc, },
 	{ .id = V4L2_STD_PAL, .common = svideo_pal, },
@@ -339,17 +353,24 @@ static int tm6000_set_audio_std(struct tm6000_core *dev)
 	uint8_t areg_05 = 0x01; /* Auto 4.5 = M Japan, Auto 6.5 = DK */
 	uint8_t areg_06 = 0x02; /* Auto de-emphasis, mannual channel mode */
 
-	if (dev->radio) {
+	if (dev->radio)
+	{
 		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x00);
 		tm6000_set_reg(dev, TM6010_REQ08_R02_A_FIX_GAIN_CTRL, 0x04);
 		tm6000_set_reg(dev, TM6010_REQ08_R03_A_AUTO_GAIN_CTRL, 0x00);
 		tm6000_set_reg(dev, TM6010_REQ08_R04_A_SIF_AMP_CTRL, 0x80);
 		tm6000_set_reg(dev, TM6010_REQ08_R05_A_STANDARD_MOD, 0x0c);
+
 		/* set mono or stereo */
 		if (dev->amode == V4L2_TUNER_MODE_MONO)
+		{
 			tm6000_set_reg(dev, TM6010_REQ08_R06_A_SOUND_MOD, 0x00);
+		}
 		else if (dev->amode == V4L2_TUNER_MODE_STEREO)
+		{
 			tm6000_set_reg(dev, TM6010_REQ08_R06_A_SOUND_MOD, 0x02);
+		}
+
 		tm6000_set_reg(dev, TM6010_REQ08_R09_A_MAIN_VOL, 0x18);
 		tm6000_set_reg(dev, TM6010_REQ08_R0C_A_ASD_THRES2, 0x0a);
 		tm6000_set_reg(dev, TM6010_REQ08_R0D_A_AMD_THRES, 0x40);
@@ -364,49 +385,81 @@ static int tm6000_set_audio_std(struct tm6000_core *dev)
 	 * STD/MN shouldn't be affected by tm6010_a_mode, as there's just one
 	 * audio standard for each V4L2_STD type.
 	 */
-	if ((dev->norm & V4L2_STD_NTSC) == V4L2_STD_NTSC_M_KR) {
+	if ((dev->norm & V4L2_STD_NTSC) == V4L2_STD_NTSC_M_KR)
+	{
 		areg_05 |= 0x04;
-	} else if ((dev->norm & V4L2_STD_NTSC) == V4L2_STD_NTSC_M_JP) {
-		areg_05 |= 0x43;
-	} else if (dev->norm & V4L2_STD_MN) {
-		areg_05 |= 0x22;
-	} else switch (tm6010_a_mode) {
-	/* auto */
-	case 0:
-		if ((dev->norm & V4L2_STD_SECAM) == V4L2_STD_SECAM_L)
-			areg_05 |= 0x00;
-		else	/* Other PAL/SECAM standards */
-			areg_05 |= 0x10;
-		break;
-	/* A2 */
-	case 1:
-		if (dev->norm & V4L2_STD_DK)
-			areg_05 = 0x09;
-		else
-			areg_05 = 0x05;
-		break;
-	/* NICAM */
-	case 2:
-		if (dev->norm & V4L2_STD_DK) {
-			areg_05 = 0x06;
-		} else if (dev->norm & V4L2_STD_PAL_I) {
-			areg_05 = 0x08;
-		} else if (dev->norm & V4L2_STD_SECAM_L) {
-			areg_05 = 0x0a;
-			areg_02 = 0x02;
-		} else {
-			areg_05 = 0x07;
-		}
-		break;
-	/* other */
-	case 3:
-		if (dev->norm & V4L2_STD_DK) {
-			areg_05 = 0x0b;
-		} else {
-			areg_05 = 0x02;
-		}
-		break;
 	}
+	else if ((dev->norm & V4L2_STD_NTSC) == V4L2_STD_NTSC_M_JP)
+	{
+		areg_05 |= 0x43;
+	}
+	else if (dev->norm & V4L2_STD_MN)
+	{
+		areg_05 |= 0x22;
+	}
+	else switch (tm6010_a_mode)
+		{
+			/* auto */
+			case 0:
+				if ((dev->norm & V4L2_STD_SECAM) == V4L2_STD_SECAM_L)
+				{
+					areg_05 |= 0x00;
+				}
+				else	/* Other PAL/SECAM standards */
+				{
+					areg_05 |= 0x10;
+				}
+
+				break;
+
+			/* A2 */
+			case 1:
+				if (dev->norm & V4L2_STD_DK)
+				{
+					areg_05 = 0x09;
+				}
+				else
+				{
+					areg_05 = 0x05;
+				}
+
+				break;
+
+			/* NICAM */
+			case 2:
+				if (dev->norm & V4L2_STD_DK)
+				{
+					areg_05 = 0x06;
+				}
+				else if (dev->norm & V4L2_STD_PAL_I)
+				{
+					areg_05 = 0x08;
+				}
+				else if (dev->norm & V4L2_STD_SECAM_L)
+				{
+					areg_05 = 0x0a;
+					areg_02 = 0x02;
+				}
+				else
+				{
+					areg_05 = 0x07;
+				}
+
+				break;
+
+			/* other */
+			case 3:
+				if (dev->norm & V4L2_STD_DK)
+				{
+					areg_05 = 0x0b;
+				}
+				else
+				{
+					areg_05 = 0x02;
+				}
+
+				break;
+		}
 
 	tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x00);
 	tm6000_set_reg(dev, TM6010_REQ08_R02_A_FIX_GAIN_CTRL, areg_02);
@@ -449,9 +502,13 @@ void tm6000_get_std_res(struct tm6000_core *dev)
 {
 	/* Currently, those are the only supported resoltions */
 	if (dev->norm & V4L2_STD_525_60)
+	{
 		dev->height = 480;
+	}
 	else
+	{
 		dev->height = 576;
+	}
 
 	dev->width = 720;
 }
@@ -461,12 +518,15 @@ static int tm6000_load_std(struct tm6000_core *dev, struct tm6000_reg_settings *
 	int i, rc;
 
 	/* Load board's initialization table */
-	for (i = 0; set[i].req; i++) {
+	for (i = 0; set[i].req; i++)
+	{
 		rc = tm6000_set_reg(dev, set[i].req, set[i].reg, set[i].value);
-		if (rc < 0) {
+
+		if (rc < 0)
+		{
 			printk(KERN_ERR "Error %i while setting "
-			       "req %d, reg %d to value %d\n",
-			       rc, set[i].req, set[i].reg, set[i].value);
+				   "req %d, reg %d to value %d\n",
+				   rc, set[i].req, set[i].reg, set[i].value);
 			return rc;
 		}
 	}
@@ -486,151 +546,192 @@ int tm6000_set_standard(struct tm6000_core *dev)
 	tm6000_get_std_res(dev);
 
 	if (!dev->radio)
+	{
 		input = &dev->vinput[dev->input];
+	}
 	else
+	{
 		input = &dev->rinput;
+	}
 
-	if (dev->dev_type == TM6010) {
-		switch (input->vmux) {
-		case TM6000_VMUX_VIDEO_A:
-			tm6000_set_reg(dev, TM6010_REQ08_RE3_ADC_IN1_SEL, 0xf4);
-			tm6000_set_reg(dev, TM6010_REQ08_REA_BUFF_DRV_CTRL, 0xf1);
-			tm6000_set_reg(dev, TM6010_REQ08_REB_SIF_GAIN_CTRL, 0xe0);
-			tm6000_set_reg(dev, TM6010_REQ08_REC_REVERSE_YC_CTRL, 0xc2);
-			tm6000_set_reg(dev, TM6010_REQ08_RED_GAIN_SEL, 0xe8);
-			reg_07_fe |= 0x01;
-			break;
-		case TM6000_VMUX_VIDEO_B:
-			tm6000_set_reg(dev, TM6010_REQ08_RE3_ADC_IN1_SEL, 0xf8);
-			tm6000_set_reg(dev, TM6010_REQ08_REA_BUFF_DRV_CTRL, 0xf1);
-			tm6000_set_reg(dev, TM6010_REQ08_REB_SIF_GAIN_CTRL, 0xe0);
-			tm6000_set_reg(dev, TM6010_REQ08_REC_REVERSE_YC_CTRL, 0xc2);
-			tm6000_set_reg(dev, TM6010_REQ08_RED_GAIN_SEL, 0xe8);
-			reg_07_fe |= 0x01;
-			break;
-		case TM6000_VMUX_VIDEO_AB:
-			tm6000_set_reg(dev, TM6010_REQ08_RE3_ADC_IN1_SEL, 0xfc);
-			tm6000_set_reg(dev, TM6010_REQ08_RE4_ADC_IN2_SEL, 0xf8);
-			reg_08_e6 = 0x00;
-			tm6000_set_reg(dev, TM6010_REQ08_REA_BUFF_DRV_CTRL, 0xf2);
-			tm6000_set_reg(dev, TM6010_REQ08_REB_SIF_GAIN_CTRL, 0xf0);
-			tm6000_set_reg(dev, TM6010_REQ08_REC_REVERSE_YC_CTRL, 0xc2);
-			tm6000_set_reg(dev, TM6010_REQ08_RED_GAIN_SEL, 0xe0);
-			break;
-		default:
-			break;
+	if (dev->dev_type == TM6010)
+	{
+		switch (input->vmux)
+		{
+			case TM6000_VMUX_VIDEO_A:
+				tm6000_set_reg(dev, TM6010_REQ08_RE3_ADC_IN1_SEL, 0xf4);
+				tm6000_set_reg(dev, TM6010_REQ08_REA_BUFF_DRV_CTRL, 0xf1);
+				tm6000_set_reg(dev, TM6010_REQ08_REB_SIF_GAIN_CTRL, 0xe0);
+				tm6000_set_reg(dev, TM6010_REQ08_REC_REVERSE_YC_CTRL, 0xc2);
+				tm6000_set_reg(dev, TM6010_REQ08_RED_GAIN_SEL, 0xe8);
+				reg_07_fe |= 0x01;
+				break;
+
+			case TM6000_VMUX_VIDEO_B:
+				tm6000_set_reg(dev, TM6010_REQ08_RE3_ADC_IN1_SEL, 0xf8);
+				tm6000_set_reg(dev, TM6010_REQ08_REA_BUFF_DRV_CTRL, 0xf1);
+				tm6000_set_reg(dev, TM6010_REQ08_REB_SIF_GAIN_CTRL, 0xe0);
+				tm6000_set_reg(dev, TM6010_REQ08_REC_REVERSE_YC_CTRL, 0xc2);
+				tm6000_set_reg(dev, TM6010_REQ08_RED_GAIN_SEL, 0xe8);
+				reg_07_fe |= 0x01;
+				break;
+
+			case TM6000_VMUX_VIDEO_AB:
+				tm6000_set_reg(dev, TM6010_REQ08_RE3_ADC_IN1_SEL, 0xfc);
+				tm6000_set_reg(dev, TM6010_REQ08_RE4_ADC_IN2_SEL, 0xf8);
+				reg_08_e6 = 0x00;
+				tm6000_set_reg(dev, TM6010_REQ08_REA_BUFF_DRV_CTRL, 0xf2);
+				tm6000_set_reg(dev, TM6010_REQ08_REB_SIF_GAIN_CTRL, 0xf0);
+				tm6000_set_reg(dev, TM6010_REQ08_REC_REVERSE_YC_CTRL, 0xc2);
+				tm6000_set_reg(dev, TM6010_REQ08_RED_GAIN_SEL, 0xe0);
+				break;
+
+			default:
+				break;
 		}
-		switch (input->amux) {
-		case TM6000_AMUX_ADC1:
-			tm6000_set_reg_mask(dev, TM6010_REQ08_RF0_DAUDIO_INPUT_CONFIG,
-				0x00, 0x0f);
-			/* Mux overflow workaround */
-			tm6000_set_reg_mask(dev, TM6010_REQ07_R07_OUTPUT_CONTROL,
-				0x10, 0xf0);
-			break;
-		case TM6000_AMUX_ADC2:
-			tm6000_set_reg_mask(dev, TM6010_REQ08_RF0_DAUDIO_INPUT_CONFIG,
-				0x08, 0x0f);
-			/* Mux overflow workaround */
-			tm6000_set_reg_mask(dev, TM6010_REQ07_R07_OUTPUT_CONTROL,
-				0x10, 0xf0);
-			break;
-		case TM6000_AMUX_SIF1:
-			reg_08_e2 |= 0x02;
-			reg_08_e6 = 0x08;
-			reg_07_fe |= 0x40;
-			reg_08_f1 |= 0x02;
-			tm6000_set_reg(dev, TM6010_REQ08_RE4_ADC_IN2_SEL, 0xf3);
-			tm6000_set_reg_mask(dev, TM6010_REQ08_RF0_DAUDIO_INPUT_CONFIG,
-				0x02, 0x0f);
-			/* Mux overflow workaround */
-			tm6000_set_reg_mask(dev, TM6010_REQ07_R07_OUTPUT_CONTROL,
-				0x30, 0xf0);
-			break;
-		case TM6000_AMUX_SIF2:
-			reg_08_e2 |= 0x02;
-			reg_08_e6 = 0x08;
-			reg_07_fe |= 0x40;
-			reg_08_f1 |= 0x02;
-			tm6000_set_reg(dev, TM6010_REQ08_RE4_ADC_IN2_SEL, 0xf7);
-			tm6000_set_reg_mask(dev, TM6010_REQ08_RF0_DAUDIO_INPUT_CONFIG,
-				0x02, 0x0f);
-			/* Mux overflow workaround */
-			tm6000_set_reg_mask(dev, TM6010_REQ07_R07_OUTPUT_CONTROL,
-				0x30, 0xf0);
-			break;
-		default:
-			break;
+
+		switch (input->amux)
+		{
+			case TM6000_AMUX_ADC1:
+				tm6000_set_reg_mask(dev, TM6010_REQ08_RF0_DAUDIO_INPUT_CONFIG,
+									0x00, 0x0f);
+				/* Mux overflow workaround */
+				tm6000_set_reg_mask(dev, TM6010_REQ07_R07_OUTPUT_CONTROL,
+									0x10, 0xf0);
+				break;
+
+			case TM6000_AMUX_ADC2:
+				tm6000_set_reg_mask(dev, TM6010_REQ08_RF0_DAUDIO_INPUT_CONFIG,
+									0x08, 0x0f);
+				/* Mux overflow workaround */
+				tm6000_set_reg_mask(dev, TM6010_REQ07_R07_OUTPUT_CONTROL,
+									0x10, 0xf0);
+				break;
+
+			case TM6000_AMUX_SIF1:
+				reg_08_e2 |= 0x02;
+				reg_08_e6 = 0x08;
+				reg_07_fe |= 0x40;
+				reg_08_f1 |= 0x02;
+				tm6000_set_reg(dev, TM6010_REQ08_RE4_ADC_IN2_SEL, 0xf3);
+				tm6000_set_reg_mask(dev, TM6010_REQ08_RF0_DAUDIO_INPUT_CONFIG,
+									0x02, 0x0f);
+				/* Mux overflow workaround */
+				tm6000_set_reg_mask(dev, TM6010_REQ07_R07_OUTPUT_CONTROL,
+									0x30, 0xf0);
+				break;
+
+			case TM6000_AMUX_SIF2:
+				reg_08_e2 |= 0x02;
+				reg_08_e6 = 0x08;
+				reg_07_fe |= 0x40;
+				reg_08_f1 |= 0x02;
+				tm6000_set_reg(dev, TM6010_REQ08_RE4_ADC_IN2_SEL, 0xf7);
+				tm6000_set_reg_mask(dev, TM6010_REQ08_RF0_DAUDIO_INPUT_CONFIG,
+									0x02, 0x0f);
+				/* Mux overflow workaround */
+				tm6000_set_reg_mask(dev, TM6010_REQ07_R07_OUTPUT_CONTROL,
+									0x30, 0xf0);
+				break;
+
+			default:
+				break;
 		}
+
 		tm6000_set_reg(dev, TM6010_REQ08_RE2_POWER_DOWN_CTRL1, reg_08_e2);
 		tm6000_set_reg(dev, TM6010_REQ08_RE6_POWER_DOWN_CTRL2, reg_08_e6);
 		tm6000_set_reg(dev, TM6010_REQ08_RF1_AADC_POWER_DOWN, reg_08_f1);
 		tm6000_set_reg(dev, TM6010_REQ07_RFE_POWER_DOWN, reg_07_fe);
-	} else {
-		switch (input->vmux) {
-		case TM6000_VMUX_VIDEO_A:
-			tm6000_set_reg(dev, TM6000_REQ07_RE3_VADC_INP_LPF_SEL1, 0x10);
-			tm6000_set_reg(dev, TM6000_REQ07_RE5_VADC_INP_LPF_SEL2, 0x00);
-			tm6000_set_reg(dev, TM6000_REQ07_RE8_VADC_PWDOWN_CTL, 0x0f);
-			tm6000_set_reg(dev,
-			    REQ_03_SET_GET_MCU_PIN, input->v_gpio, 0);
-			break;
-		case TM6000_VMUX_VIDEO_B:
-			tm6000_set_reg(dev, TM6000_REQ07_RE3_VADC_INP_LPF_SEL1, 0x00);
-			tm6000_set_reg(dev, TM6000_REQ07_RE5_VADC_INP_LPF_SEL2, 0x00);
-			tm6000_set_reg(dev, TM6000_REQ07_RE8_VADC_PWDOWN_CTL, 0x0f);
-			tm6000_set_reg(dev,
-			    REQ_03_SET_GET_MCU_PIN, input->v_gpio, 0);
-			break;
-		case TM6000_VMUX_VIDEO_AB:
-			tm6000_set_reg(dev, TM6000_REQ07_RE3_VADC_INP_LPF_SEL1, 0x10);
-			tm6000_set_reg(dev, TM6000_REQ07_RE5_VADC_INP_LPF_SEL2, 0x10);
-			tm6000_set_reg(dev, TM6000_REQ07_RE8_VADC_PWDOWN_CTL, 0x00);
-			tm6000_set_reg(dev,
-			    REQ_03_SET_GET_MCU_PIN, input->v_gpio, 1);
-			break;
-		default:
-			break;
+	}
+	else
+	{
+		switch (input->vmux)
+		{
+			case TM6000_VMUX_VIDEO_A:
+				tm6000_set_reg(dev, TM6000_REQ07_RE3_VADC_INP_LPF_SEL1, 0x10);
+				tm6000_set_reg(dev, TM6000_REQ07_RE5_VADC_INP_LPF_SEL2, 0x00);
+				tm6000_set_reg(dev, TM6000_REQ07_RE8_VADC_PWDOWN_CTL, 0x0f);
+				tm6000_set_reg(dev,
+							   REQ_03_SET_GET_MCU_PIN, input->v_gpio, 0);
+				break;
+
+			case TM6000_VMUX_VIDEO_B:
+				tm6000_set_reg(dev, TM6000_REQ07_RE3_VADC_INP_LPF_SEL1, 0x00);
+				tm6000_set_reg(dev, TM6000_REQ07_RE5_VADC_INP_LPF_SEL2, 0x00);
+				tm6000_set_reg(dev, TM6000_REQ07_RE8_VADC_PWDOWN_CTL, 0x0f);
+				tm6000_set_reg(dev,
+							   REQ_03_SET_GET_MCU_PIN, input->v_gpio, 0);
+				break;
+
+			case TM6000_VMUX_VIDEO_AB:
+				tm6000_set_reg(dev, TM6000_REQ07_RE3_VADC_INP_LPF_SEL1, 0x10);
+				tm6000_set_reg(dev, TM6000_REQ07_RE5_VADC_INP_LPF_SEL2, 0x10);
+				tm6000_set_reg(dev, TM6000_REQ07_RE8_VADC_PWDOWN_CTL, 0x00);
+				tm6000_set_reg(dev,
+							   REQ_03_SET_GET_MCU_PIN, input->v_gpio, 1);
+				break;
+
+			default:
+				break;
 		}
-		switch (input->amux) {
-		case TM6000_AMUX_ADC1:
-			tm6000_set_reg_mask(dev,
-				TM6000_REQ07_REB_VADC_AADC_MODE, 0x00, 0x0f);
-			break;
-		case TM6000_AMUX_ADC2:
-			tm6000_set_reg_mask(dev,
-				TM6000_REQ07_REB_VADC_AADC_MODE, 0x04, 0x0f);
-			break;
-		default:
-			break;
+
+		switch (input->amux)
+		{
+			case TM6000_AMUX_ADC1:
+				tm6000_set_reg_mask(dev,
+									TM6000_REQ07_REB_VADC_AADC_MODE, 0x00, 0x0f);
+				break;
+
+			case TM6000_AMUX_ADC2:
+				tm6000_set_reg_mask(dev,
+									TM6000_REQ07_REB_VADC_AADC_MODE, 0x04, 0x0f);
+				break;
+
+			default:
+				break;
 		}
 	}
-	if (input->type == TM6000_INPUT_SVIDEO) {
-		for (i = 0; i < ARRAY_SIZE(svideo_stds); i++) {
-			if (dev->norm & svideo_stds[i].id) {
+
+	if (input->type == TM6000_INPUT_SVIDEO)
+	{
+		for (i = 0; i < ARRAY_SIZE(svideo_stds); i++)
+		{
+			if (dev->norm & svideo_stds[i].id)
+			{
 				rc = tm6000_load_std(dev, svideo_stds[i].common);
 				goto ret;
 			}
 		}
+
 		return -EINVAL;
-	} else {
-		for (i = 0; i < ARRAY_SIZE(composite_stds); i++) {
-			if (dev->norm & composite_stds[i].id) {
+	}
+	else
+	{
+		for (i = 0; i < ARRAY_SIZE(composite_stds); i++)
+		{
+			if (dev->norm & composite_stds[i].id)
+			{
 				rc = tm6000_load_std(dev, composite_stds[i].common);
 				goto ret;
 			}
 		}
+
 		return -EINVAL;
 	}
 
 ret:
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	if ((dev->dev_type == TM6010) &&
-	    ((input->amux == TM6000_AMUX_SIF1) ||
-	    (input->amux == TM6000_AMUX_SIF2)))
+		((input->amux == TM6000_AMUX_SIF1) ||
+		 (input->amux == TM6000_AMUX_SIF2)))
+	{
 		tm6000_set_audio_std(dev);
+	}
 
 	msleep(40);
 

@@ -1,7 +1,8 @@
 #ifndef __REBOOT_MODE_H__
 #define __REBOOT_MODE_H__
 
-struct reboot_mode_driver {
+struct reboot_mode_driver
+{
 	struct device *dev;
 	struct list_head head;
 	int (*write)(struct reboot_mode_driver *reboot, unsigned int magic);
@@ -11,8 +12,8 @@ struct reboot_mode_driver {
 int reboot_mode_register(struct reboot_mode_driver *reboot);
 int reboot_mode_unregister(struct reboot_mode_driver *reboot);
 int devm_reboot_mode_register(struct device *dev,
-			      struct reboot_mode_driver *reboot);
+							  struct reboot_mode_driver *reboot);
 void devm_reboot_mode_unregister(struct device *dev,
-				 struct reboot_mode_driver *reboot);
+								 struct reboot_mode_driver *reboot);
 
 #endif

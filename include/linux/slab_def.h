@@ -7,22 +7,23 @@
  * Definitions unique to the original Linux SLAB allocator.
  */
 
-struct kmem_cache {
+struct kmem_cache
+{
 	struct array_cache __percpu *cpu_cache;
 
-/* 1) Cache tunables. Protected by slab_mutex */
+	/* 1) Cache tunables. Protected by slab_mutex */
 	unsigned int batchcount;
 	unsigned int limit;
 	unsigned int shared;
 
 	unsigned int size;
 	struct reciprocal_value reciprocal_buffer_size;
-/* 2) touched by every alloc & free from the backend */
+	/* 2) touched by every alloc & free from the backend */
 
 	unsigned int flags;		/* constant flags */
 	unsigned int num;		/* # of objs per slab */
 
-/* 3) cache_grow/shrink */
+	/* 3) cache_grow/shrink */
 	/* order of pgs per slab (2^n) */
 	unsigned int gfporder;
 
@@ -37,14 +38,14 @@ struct kmem_cache {
 	/* constructor func */
 	void (*ctor)(void *obj);
 
-/* 4) cache creation/removal */
+	/* 4) cache creation/removal */
 	const char *name;
 	struct list_head list;
 	int refcount;
 	int object_size;
 	int align;
 
-/* 5) statistics */
+	/* 5) statistics */
 #ifdef CONFIG_DEBUG_SLAB
 	unsigned long num_active;
 	unsigned long num_allocations;
@@ -88,15 +89,19 @@ struct kmem_cache {
 };
 
 static inline void *nearest_obj(struct kmem_cache *cache, struct page *page,
-				void *x)
+								void *x)
 {
 	void *object = x - (x - page->s_mem) % cache->size;
 	void *last_object = page->s_mem + (cache->num - 1) * cache->size;
 
 	if (unlikely(object > last_object))
+	{
 		return last_object;
+	}
 	else
+	{
 		return object;
+	}
 }
 
 #endif	/* _LINUX_SLAB_DEF_H */

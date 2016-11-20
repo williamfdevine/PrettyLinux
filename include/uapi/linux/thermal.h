@@ -9,7 +9,8 @@
 #define THERMAL_GENL_MCAST_GROUP_NAME           "thermal_mc_grp"
 
 /* Events supported by Thermal Netlink */
-enum events {
+enum events
+{
 	THERMAL_AUX0,
 	THERMAL_AUX1,
 	THERMAL_CRITICAL,
@@ -17,7 +18,8 @@ enum events {
 };
 
 /* attributes of thermal_genl_family */
-enum {
+enum
+{
 	THERMAL_GENL_ATTR_UNSPEC,
 	THERMAL_GENL_ATTR_EVENT,
 	__THERMAL_GENL_ATTR_MAX,
@@ -25,7 +27,8 @@ enum {
 #define THERMAL_GENL_ATTR_MAX (__THERMAL_GENL_ATTR_MAX - 1)
 
 /* commands supported by the thermal_genl_family */
-enum {
+enum
+{
 	THERMAL_GENL_CMD_UNSPEC,
 	THERMAL_GENL_CMD_EVENT,
 	__THERMAL_GENL_CMD_MAX,

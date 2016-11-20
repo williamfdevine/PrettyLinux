@@ -47,7 +47,7 @@
  * 2500 - 2999 future user space (maybe integrity labels and related events)
  *
  * Messages from 1000-1199 are bi-directional. 1200-1299 & 2100 - 2999 are
- * exclusively user space. 1300-2099 is kernel --> user space 
+ * exclusively user space. 1300-2099 is kernel --> user space
  * communication.
  */
 #define AUDIT_GET		1000	/* Get status */
@@ -77,7 +77,7 @@
 #define AUDIT_LAST_USER_MSG	1199
 #define AUDIT_FIRST_USER_MSG2	2100	/* More user space messages */
 #define AUDIT_LAST_USER_MSG2	2999
- 
+
 #define AUDIT_DAEMON_START      1200    /* Daemon startup record */
 #define AUDIT_DAEMON_END        1201    /* Daemon normal stop record */
 #define AUDIT_DAEMON_ABORT      1202    /* Daemon error stop record */
@@ -226,9 +226,9 @@
 #define AUDIT_MAX_FIELD_COMPARE		AUDIT_COMPARE_SGID_TO_FSGID
 
 /* Rule fields */
-				/* These are useful when checking the
-				 * task structure at task creation time
-				 * (AUDIT_PER_TASK).  */
+/* These are useful when checking the
+ * task structure at task creation time
+ * (AUDIT_PER_TASK).  */
 #define AUDIT_PID	0
 #define AUDIT_UID	1
 #define AUDIT_EUID	2
@@ -255,8 +255,8 @@
 #define AUDIT_OBJ_LEV_HIGH	23
 #define AUDIT_LOGINUID_SET	24
 
-				/* These are ONLY useful when checking
-				 * at syscall exit time (AUDIT_AT_EXIT). */
+/* These are ONLY useful when checking
+ * at syscall exit time (AUDIT_AT_EXIT). */
 #define AUDIT_DEVMAJOR	100
 #define AUDIT_DEVMINOR	101
 #define AUDIT_INODE	102
@@ -305,7 +305,8 @@
 #define AUDIT_GREATER_THAN_OR_EQUAL	(AUDIT_GREATER_THAN|AUDIT_EQUAL)
 #define AUDIT_OPERATORS			(AUDIT_EQUAL|AUDIT_NOT_EQUAL|AUDIT_BIT_MASK)
 
-enum {
+enum
+{
 	Audit_equal,
 	Audit_not_equal,
 	Audit_bitmask,
@@ -318,7 +319,7 @@ enum {
 };
 
 /* Status symbols */
-				/* Mask values */
+/* Mask values */
 #define AUDIT_STATUS_ENABLED		0x0001
 #define AUDIT_STATUS_FAILURE		0x0002
 #define AUDIT_STATUS_PID		0x0004
@@ -331,16 +332,16 @@ enum {
 #define AUDIT_FEATURE_BITMAP_EXECUTABLE_PATH	0x00000004
 #define AUDIT_FEATURE_BITMAP_EXCLUDE_EXTEND	0x00000008
 #define AUDIT_FEATURE_BITMAP_ALL (AUDIT_FEATURE_BITMAP_BACKLOG_LIMIT | \
-				  AUDIT_FEATURE_BITMAP_BACKLOG_WAIT_TIME | \
-				  AUDIT_FEATURE_BITMAP_EXECUTABLE_PATH | \
-				  AUDIT_FEATURE_BITMAP_EXCLUDE_EXTEND)
+								  AUDIT_FEATURE_BITMAP_BACKLOG_WAIT_TIME | \
+								  AUDIT_FEATURE_BITMAP_EXECUTABLE_PATH | \
+								  AUDIT_FEATURE_BITMAP_EXCLUDE_EXTEND)
 
 /* deprecated: AUDIT_VERSION_* */
 #define AUDIT_VERSION_LATEST 		AUDIT_FEATURE_BITMAP_ALL
 #define AUDIT_VERSION_BACKLOG_LIMIT	AUDIT_FEATURE_BITMAP_BACKLOG_LIMIT
 #define AUDIT_VERSION_BACKLOG_WAIT_TIME	AUDIT_FEATURE_BITMAP_BACKLOG_WAIT_TIME
 
-				/* Failure-to-log actions */
+/* Failure-to-log actions */
 #define AUDIT_FAIL_SILENT	0
 #define AUDIT_FAIL_PRINTK	1
 #define AUDIT_FAIL_PANIC	2
@@ -371,10 +372,10 @@ enum {
 #define AUDIT_ARCH_MIPSEL	(EM_MIPS|__AUDIT_ARCH_LE)
 #define AUDIT_ARCH_MIPS64	(EM_MIPS|__AUDIT_ARCH_64BIT)
 #define AUDIT_ARCH_MIPS64N32	(EM_MIPS|__AUDIT_ARCH_64BIT|\
-				 __AUDIT_ARCH_CONVENTION_MIPS64_N32)
+								 __AUDIT_ARCH_CONVENTION_MIPS64_N32)
 #define AUDIT_ARCH_MIPSEL64	(EM_MIPS|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
 #define AUDIT_ARCH_MIPSEL64N32	(EM_MIPS|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE|\
-				 __AUDIT_ARCH_CONVENTION_MIPS64_N32)
+								 __AUDIT_ARCH_CONVENTION_MIPS64_N32)
 #define AUDIT_ARCH_OPENRISC	(EM_OPENRISC)
 #define AUDIT_ARCH_PARISC	(EM_PARISC)
 #define AUDIT_ARCH_PARISC64	(EM_PARISC|__AUDIT_ARCH_64BIT)
@@ -407,14 +408,16 @@ enum {
 #define AUDIT_MESSAGE_TEXT_MAX	8560
 
 /* Multicast Netlink socket groups (default up to 32) */
-enum audit_nlgrps {
+enum audit_nlgrps
+{
 	AUDIT_NLGRP_NONE,	/* Group 0 not used */
 	AUDIT_NLGRP_READLOG,	/* "best effort" read only socket */
 	__AUDIT_NLGRP_MAX
 };
 #define AUDIT_NLGRP_MAX                (__AUDIT_NLGRP_MAX - 1)
 
-struct audit_status {
+struct audit_status
+{
 	__u32		mask;		/* Bit mask for valid entries */
 	__u32		enabled;	/* 1 = enabled, 0 = disabled */
 	__u32		failure;	/* Failure-to-log action */
@@ -423,14 +426,16 @@ struct audit_status {
 	__u32		backlog_limit;	/* waiting messages limit */
 	__u32		lost;		/* messages lost */
 	__u32		backlog;	/* messages waiting in queue */
-	union {
+	union
+	{
 		__u32	version;	/* deprecated: audit api version num */
 		__u32	feature_bitmap;	/* bitmap of kernel audit features */
 	};
 	__u32		backlog_wait_time;/* message queue wait timeout */
 };
 
-struct audit_features {
+struct audit_features
+{
 #define AUDIT_FEATURE_VERSION	1
 	__u32	vers;
 	__u32	mask;		/* which bits we are dealing with */
@@ -445,7 +450,8 @@ struct audit_features {
 #define audit_feature_valid(x)		((x) >= 0 && (x) <= AUDIT_LAST_FEATURE)
 #define AUDIT_FEATURE_TO_MASK(x)	(1 << ((x) & 31)) /* mask for __u32 */
 
-struct audit_tty_status {
+struct audit_tty_status
+{
 	__u32		enabled;	/* 1 = enabled, 0 = disabled */
 	__u32		log_passwd;	/* 1 = enabled, 0 = disabled */
 };
@@ -456,7 +462,8 @@ struct audit_tty_status {
  * fields.  It corresponds with AUDIT_ADD_RULE, AUDIT_DEL_RULE and
  * AUDIT_LIST_RULES requests.
  */
-struct audit_rule_data {
+struct audit_rule_data
+{
 	__u32		flags;	/* AUDIT_PER_{TASK,CALL}, AUDIT_PREPEND */
 	__u32		action;	/* AUDIT_NEVER, AUDIT_POSSIBLE, AUDIT_ALWAYS */
 	__u32		field_count;

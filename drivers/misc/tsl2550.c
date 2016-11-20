@@ -42,19 +42,21 @@
  * Structs
  */
 
-struct tsl2550_data {
+struct tsl2550_data
+{
 	struct i2c_client *client;
 	struct mutex update_lock;
 
-	unsigned int power_state:1;
-	unsigned int operating_mode:1;
+	unsigned int power_state: 1;
+	unsigned int operating_mode: 1;
 };
 
 /*
  * Global data
  */
 
-static const u8 TSL2550_MODE_RANGE[2] = {
+static const u8 TSL2550_MODE_RANGE[2] =
+{
 	TSL2550_STANDARD_RANGE, TSL2550_EXTENDED_RANGE,
 };
 
@@ -79,8 +81,11 @@ static int tsl2550_set_power_state(struct i2c_client *client, int state)
 	int ret;
 
 	if (state == 0)
+	{
 		ret = i2c_smbus_write_byte(client, TSL2550_POWER_DOWN);
-	else {
+	}
+	else
+	{
 		ret = i2c_smbus_write_byte(client, TSL2550_POWER_UP);
 
 		/* On power up we should reset operating mode also... */
@@ -97,10 +102,17 @@ static int tsl2550_get_adc_value(struct i2c_client *client, u8 cmd)
 	int ret;
 
 	ret = i2c_smbus_read_byte_data(client, cmd);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	if (!(ret & 0x80))
+	{
 		return -EAGAIN;
+	}
+
 	return ret & 0x7f;	/* remove the "valid" bit */
 }
 
@@ -110,7 +122,8 @@ static int tsl2550_get_adc_value(struct i2c_client *client, u8 cmd)
 
 #define	TSL2550_MAX_LUX		1846
 
-static const u8 ratio_lut[] = {
+static const u8 ratio_lut[] =
+{
 	100, 100, 100, 100, 100, 100, 100, 100,
 	100, 100, 100, 100, 100, 100, 99, 99,
 	99, 99, 99, 99, 99, 99, 99, 99,
@@ -130,7 +143,8 @@ static const u8 ratio_lut[] = {
 	30,
 };
 
-static const u16 count_lut[] = {
+static const u16 count_lut[] =
+{
 	0, 1, 2, 3, 4, 5, 6, 7,
 	8, 9, 10, 11, 12, 13, 14, 15,
 	16, 18, 20, 22, 24, 26, 28, 30,
@@ -169,15 +183,21 @@ static int tsl2550_calculate_lux(u8 ch0, u8 ch1)
 
 	/* Avoid division by 0 and count 1 cannot be greater than count 0 */
 	if (c1 <= c0)
-		if (c0) {
+		if (c0)
+		{
 			r = c1 * 128 / c0;
 
 			/* Calculate LUX */
 			lux = ((c0 - c1) * ratio_lut[r]) / 256;
-		} else
+		}
+		else
+		{
 			lux = 0;
+		}
 	else
+	{
 		return -EAGAIN;
+	}
 
 	/* LUX range check */
 	return lux > TSL2550_MAX_LUX ? TSL2550_MAX_LUX : lux;
@@ -188,7 +208,7 @@ static int tsl2550_calculate_lux(u8 ch0, u8 ch1)
  */
 
 static ssize_t tsl2550_show_power_state(struct device *dev,
-		struct device_attribute *attr, char *buf)
+										struct device_attribute *attr, char *buf)
 {
 	struct tsl2550_data *data = i2c_get_clientdata(to_i2c_client(dev));
 
@@ -204,20 +224,24 @@ static ssize_t tsl2550_store_power_state(struct device *dev,
 	int ret;
 
 	if (val > 1)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&data->update_lock);
 	ret = tsl2550_set_power_state(client, val);
 	mutex_unlock(&data->update_lock);
 
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return count;
 }
 
 static DEVICE_ATTR(power_state, S_IWUSR | S_IRUGO,
-		   tsl2550_show_power_state, tsl2550_store_power_state);
+				   tsl2550_show_power_state, tsl2550_store_power_state);
 
 static ssize_t tsl2550_show_operating_mode(struct device *dev,
 		struct device_attribute *attr, char *buf)
@@ -236,23 +260,29 @@ static ssize_t tsl2550_store_operating_mode(struct device *dev,
 	int ret;
 
 	if (val > 1)
+	{
 		return -EINVAL;
+	}
 
 	if (data->power_state == 0)
+	{
 		return -EBUSY;
+	}
 
 	mutex_lock(&data->update_lock);
 	ret = tsl2550_set_operating_mode(client, val);
 	mutex_unlock(&data->update_lock);
 
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return count;
 }
 
 static DEVICE_ATTR(operating_mode, S_IWUSR | S_IRUGO,
-		   tsl2550_show_operating_mode, tsl2550_store_operating_mode);
+				   tsl2550_show_operating_mode, tsl2550_store_operating_mode);
 
 static ssize_t __tsl2550_show_lux(struct i2c_client *client, char *buf)
 {
@@ -261,27 +291,41 @@ static ssize_t __tsl2550_show_lux(struct i2c_client *client, char *buf)
 	int ret;
 
 	ret = tsl2550_get_adc_value(client, TSL2550_READ_ADC0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	ch0 = ret;
 
 	ret = tsl2550_get_adc_value(client, TSL2550_READ_ADC1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	ch1 = ret;
 
 	/* Do the job */
 	ret = tsl2550_calculate_lux(ch0, ch1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	if (data->operating_mode == 1)
+	{
 		ret *= 5;
+	}
 
 	return sprintf(buf, "%d\n", ret);
 }
 
 static ssize_t tsl2550_show_lux1_input(struct device *dev,
-			struct device_attribute *attr, char *buf)
+									   struct device_attribute *attr, char *buf)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	struct tsl2550_data *data = i2c_get_clientdata(client);
@@ -289,7 +333,9 @@ static ssize_t tsl2550_show_lux1_input(struct device *dev,
 
 	/* No LUX data if not operational */
 	if (!data->power_state)
+	{
 		return -EBUSY;
+	}
 
 	mutex_lock(&data->update_lock);
 	ret = __tsl2550_show_lux(client, buf);
@@ -299,16 +345,18 @@ static ssize_t tsl2550_show_lux1_input(struct device *dev,
 }
 
 static DEVICE_ATTR(lux1_input, S_IRUGO,
-		   tsl2550_show_lux1_input, NULL);
+				   tsl2550_show_lux1_input, NULL);
 
-static struct attribute *tsl2550_attributes[] = {
+static struct attribute *tsl2550_attributes[] =
+{
 	&dev_attr_power_state.attr,
 	&dev_attr_operating_mode.attr,
 	&dev_attr_lux1_input.attr,
 	NULL
 };
 
-static const struct attribute_group tsl2550_attr_group = {
+static const struct attribute_group tsl2550_attr_group =
+{
 	.attrs = tsl2550_attributes,
 };
 
@@ -326,17 +374,27 @@ static int tsl2550_init_client(struct i2c_client *client)
 	 * read back the 0x03 code
 	 */
 	err = i2c_smbus_read_byte_data(client, TSL2550_POWER_UP);
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	if (err != TSL2550_POWER_UP)
+	{
 		return -ENODEV;
+	}
+
 	data->power_state = 1;
 
 	/* Set the default operating mode */
 	err = i2c_smbus_write_byte(client,
-				   TSL2550_MODE_RANGE[data->operating_mode]);
+							   TSL2550_MODE_RANGE[data->operating_mode]);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -347,52 +405,70 @@ static int tsl2550_init_client(struct i2c_client *client)
 
 static struct i2c_driver tsl2550_driver;
 static int tsl2550_probe(struct i2c_client *client,
-				   const struct i2c_device_id *id)
+						 const struct i2c_device_id *id)
 {
 	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
 	struct tsl2550_data *data;
 	int *opmode, err = 0;
 
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WRITE_BYTE
-					    | I2C_FUNC_SMBUS_READ_BYTE_DATA)) {
+								 | I2C_FUNC_SMBUS_READ_BYTE_DATA))
+	{
 		err = -EIO;
 		goto exit;
 	}
 
 	data = kzalloc(sizeof(struct tsl2550_data), GFP_KERNEL);
-	if (!data) {
+
+	if (!data)
+	{
 		err = -ENOMEM;
 		goto exit;
 	}
+
 	data->client = client;
 	i2c_set_clientdata(client, data);
 
 	/* Check platform data */
 	opmode = client->dev.platform_data;
-	if (opmode) {
-		if (*opmode < 0 || *opmode > 1) {
+
+	if (opmode)
+	{
+		if (*opmode < 0 || *opmode > 1)
+		{
 			dev_err(&client->dev, "invalid operating_mode (%d)\n",
 					*opmode);
 			err = -EINVAL;
 			goto exit_kfree;
 		}
+
 		data->operating_mode = *opmode;
-	} else
-		data->operating_mode = 0;	/* default mode is standard */
+	}
+	else
+	{
+		data->operating_mode = 0;    /* default mode is standard */
+	}
+
 	dev_info(&client->dev, "%s operating mode\n",
-			data->operating_mode ? "extended" : "standard");
+			 data->operating_mode ? "extended" : "standard");
 
 	mutex_init(&data->update_lock);
 
 	/* Initialize the TSL2550 chip */
 	err = tsl2550_init_client(client);
+
 	if (err)
+	{
 		goto exit_kfree;
+	}
 
 	/* Register sysfs hooks */
 	err = sysfs_create_group(&client->dev.kobj, &tsl2550_attr_group);
+
 	if (err)
+	{
 		goto exit_kfree;
+	}
 
 	dev_info(&client->dev, "support ver. %s enabled\n", DRIVER_VERSION);
 
@@ -437,13 +513,15 @@ static SIMPLE_DEV_PM_OPS(tsl2550_pm_ops, tsl2550_suspend, tsl2550_resume);
 
 #endif /* CONFIG_PM_SLEEP */
 
-static const struct i2c_device_id tsl2550_id[] = {
+static const struct i2c_device_id tsl2550_id[] =
+{
 	{ "tsl2550", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, tsl2550_id);
 
-static struct i2c_driver tsl2550_driver = {
+static struct i2c_driver tsl2550_driver =
+{
 	.driver = {
 		.name	= TSL2550_DRV_NAME,
 		.pm	= TSL2550_PM_OPS,

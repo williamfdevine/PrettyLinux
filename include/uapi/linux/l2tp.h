@@ -10,7 +10,7 @@
 #include <linux/types.h>
 #include <linux/socket.h>
 #ifndef __KERNEL__
-#include <netinet/in.h>
+	#include <netinet/in.h>
 #endif
 
 #define IPPROTO_L2TP		115
@@ -22,7 +22,8 @@
  * @l2tp_conn_id: connection id of tunnel
  */
 #define __SOCK_SIZE__	16		/* sizeof(struct sockaddr)	*/
-struct sockaddr_l2tpip {
+struct sockaddr_l2tpip
+{
 	/* The first fields must match struct sockaddr_in */
 	__kernel_sa_family_t l2tp_family; /* AF_INET */
 	__be16		l2tp_unused;	/* INET port number (unused) */
@@ -32,9 +33,9 @@ struct sockaddr_l2tpip {
 
 	/* Pad to size of `struct sockaddr'. */
 	unsigned char	__pad[sizeof(struct sockaddr) -
-			      sizeof(__kernel_sa_family_t) -
-			      sizeof(__be16) - sizeof(struct in_addr) -
-			      sizeof(__u32)];
+						  sizeof(__kernel_sa_family_t) -
+						  sizeof(__be16) - sizeof(struct in_addr) -
+						  sizeof(__u32)];
 };
 
 /**
@@ -43,7 +44,8 @@ struct sockaddr_l2tpip {
  * @l2tp_addr:    protocol specific address information
  * @l2tp_conn_id: connection id of tunnel
  */
-struct sockaddr_l2tpip6 {
+struct sockaddr_l2tpip6
+{
 	/* The first fields must match struct sockaddr_in6 */
 	__kernel_sa_family_t l2tp_family; /* AF_INET6 */
 	__be16		l2tp_unused;	/* INET port number (unused) */
@@ -72,7 +74,8 @@ struct sockaddr_l2tpip6 {
  * SESSION_GETSTATS	- SESSION_ID, (stats)
  *
  */
-enum {
+enum
+{
 	L2TP_CMD_NOOP,
 	L2TP_CMD_TUNNEL_CREATE,
 	L2TP_CMD_TUNNEL_DELETE,
@@ -90,7 +93,8 @@ enum {
 /*
  * ATTR types defined for L2TP
  */
-enum {
+enum
+{
 	L2TP_ATTR_NONE,			/* no data */
 	L2TP_ATTR_PW_TYPE,		/* u16, enum l2tp_pwtype */
 	L2TP_ATTR_ENCAP_TYPE,		/* u16, enum l2tp_encap_type */
@@ -133,7 +137,8 @@ enum {
 #define L2TP_ATTR_MAX			(__L2TP_ATTR_MAX - 1)
 
 /* Nested in L2TP_ATTR_STATS */
-enum {
+enum
+{
 	L2TP_ATTR_STATS_NONE,		/* no data */
 	L2TP_ATTR_TX_PACKETS,		/* u64 */
 	L2TP_ATTR_TX_BYTES,		/* u64 */
@@ -149,7 +154,8 @@ enum {
 
 #define L2TP_ATTR_STATS_MAX		(__L2TP_ATTR_STATS_MAX - 1)
 
-enum l2tp_pwtype {
+enum l2tp_pwtype
+{
 	L2TP_PWTYPE_NONE = 0x0000,
 	L2TP_PWTYPE_ETH_VLAN = 0x0004,
 	L2TP_PWTYPE_ETH = 0x0005,
@@ -159,17 +165,20 @@ enum l2tp_pwtype {
 	__L2TP_PWTYPE_MAX
 };
 
-enum l2tp_l2spec_type {
+enum l2tp_l2spec_type
+{
 	L2TP_L2SPECTYPE_NONE,
 	L2TP_L2SPECTYPE_DEFAULT,
 };
 
-enum l2tp_encap_type {
+enum l2tp_encap_type
+{
 	L2TP_ENCAPTYPE_UDP,
 	L2TP_ENCAPTYPE_IP,
 };
 
-enum l2tp_seqmode {
+enum l2tp_seqmode
+{
 	L2TP_SEQ_NONE = 0,
 	L2TP_SEQ_IP = 1,
 	L2TP_SEQ_ALL = 2,

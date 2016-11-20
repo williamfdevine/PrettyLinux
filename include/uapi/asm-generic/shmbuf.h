@@ -22,7 +22,8 @@
  * - 2 miscellaneous 32-bit values
  */
 
-struct shmid64_ds {
+struct shmid64_ds
+{
 	struct ipc64_perm	shm_perm;	/* operation perms */
 	size_t			shm_segsz;	/* size of segment (bytes) */
 	__kernel_time_t		shm_atime;	/* last attach time */
@@ -44,7 +45,8 @@ struct shmid64_ds {
 	__kernel_ulong_t	__unused5;
 };
 
-struct shminfo64 {
+struct shminfo64
+{
 	__kernel_ulong_t	shmmax;
 	__kernel_ulong_t	shmmin;
 	__kernel_ulong_t	shmmni;

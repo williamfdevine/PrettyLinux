@@ -90,7 +90,8 @@
 #define DATA_STATE_XMIT			(1)
 #define DATA_STATE_RECV			(2)
 
-static const char * const s3c_hsudc_supply_names[] = {
+static const char *const s3c_hsudc_supply_names[] =
+{
 	"vdda",		/* analog phy supply, 3.3V */
 	"vddi",		/* digital phy supply, 1.2V */
 	"vddosc",	/* oscillator supply, 1.8V - 3.3V */
@@ -107,7 +108,8 @@ static const char * const s3c_hsudc_supply_names[] = {
  * @bEndpointAddress: EP address (including direction bit).
  * @fifo: Base address of EP FIFO.
  */
-struct s3c_hsudc_ep {
+struct s3c_hsudc_ep
+{
 	struct usb_ep ep;
 	char name[20];
 	struct s3c_hsudc *dev;
@@ -123,7 +125,8 @@ struct s3c_hsudc_ep {
  * @req: Reference to USB gadget transfer request.
  * @queue: Used for inserting this request to the endpoint request queue.
  */
-struct s3c_hsudc_req {
+struct s3c_hsudc_req
+{
 	struct usb_request req;
 	struct list_head queue;
 };
@@ -140,7 +143,8 @@ struct s3c_hsudc_req {
  * ep0state: Current state of EP0.
  * ep: List of endpoints supported by the controller.
  */
-struct s3c_hsudc {
+struct s3c_hsudc
+{
 	struct usb_gadget gadget;
 	struct usb_gadget_driver *driver;
 	struct device *dev;
@@ -158,7 +162,7 @@ struct s3c_hsudc {
 #define ep_maxpacket(_ep)	((_ep)->ep.maxpacket)
 #define ep_is_in(_ep)		((_ep)->bEndpointAddress & USB_DIR_IN)
 #define ep_index(_ep)		((_ep)->bEndpointAddress & \
-					USB_ENDPOINT_NUMBER_MASK)
+							 USB_ENDPOINT_NUMBER_MASK)
 
 static const char driver_name[] = "s3c-udc";
 static const char ep0name[] = "ep0-control";
@@ -212,14 +216,14 @@ static void s3c_hsudc_init_phy(void)
 
 	cfg = readl(S3C2443_PHYPWR);
 	cfg &= ~(S3C2443_PHYPWR_FSUSPEND | S3C2443_PHYPWR_PLL_PWRDN |
-		S3C2443_PHYPWR_XO_ON | S3C2443_PHYPWR_PLL_REFCLK |
-		S3C2443_PHYPWR_ANALOG_PD);
+			 S3C2443_PHYPWR_XO_ON | S3C2443_PHYPWR_PLL_REFCLK |
+			 S3C2443_PHYPWR_ANALOG_PD);
 	cfg |= S3C2443_PHYPWR_COMMON_ON;
 	writel(cfg, S3C2443_PHYPWR);
 
 	cfg = readl(S3C2443_UCLKCON);
 	cfg |= (S3C2443_UCLKCON_DETECT_VBUS | S3C2443_UCLKCON_FUNC_CLKEN |
-		S3C2443_UCLKCON_TCLKEN);
+			S3C2443_UCLKCON_TCLKEN);
 	writel(cfg, S3C2443_UCLKCON);
 }
 
@@ -243,7 +247,7 @@ static void s3c_hsudc_uninit_phy(void)
  * @status: Transfer completion status for the transfer request.
  */
 static void s3c_hsudc_complete_request(struct s3c_hsudc_ep *hsep,
-				struct s3c_hsudc_req *hsreq, int status)
+									   struct s3c_hsudc_req *hsreq, int status)
 {
 	unsigned int stopped = hsep->stopped;
 	struct s3c_hsudc *hsudc = hsep->dev;
@@ -251,7 +255,8 @@ static void s3c_hsudc_complete_request(struct s3c_hsudc_ep *hsep,
 	list_del_init(&hsreq->queue);
 	hsreq->req.status = status;
 
-	if (!ep_index(hsep)) {
+	if (!ep_index(hsep))
+	{
 		hsudc->ep0state = WAIT_FOR_SETUP;
 		hsep->bEndpointAddress &= ~USB_DIR_IN;
 	}
@@ -272,9 +277,10 @@ static void s3c_hsudc_nuke_ep(struct s3c_hsudc_ep *hsep, int status)
 {
 	struct s3c_hsudc_req *hsreq;
 
-	while (!list_empty(&hsep->queue)) {
+	while (!list_empty(&hsep->queue))
+	{
 		hsreq = list_entry(hsep->queue.next,
-				struct s3c_hsudc_req, queue);
+						   struct s3c_hsudc_req, queue);
 		s3c_hsudc_complete_request(hsep, hsreq, status);
 	}
 }
@@ -293,7 +299,8 @@ static void s3c_hsudc_stop_activity(struct s3c_hsudc *hsudc)
 
 	hsudc->gadget.speed = USB_SPEED_UNKNOWN;
 
-	for (epnum = 0; epnum < hsudc->pd->epnum; epnum++) {
+	for (epnum = 0; epnum < hsudc->pd->epnum; epnum++)
+	{
 		hsep = &hsudc->ep[epnum];
 		hsep->stopped = 1;
 		s3c_hsudc_nuke_ep(hsep, -ESHUTDOWN);
@@ -314,8 +321,11 @@ static void s3c_hsudc_read_setup_pkt(struct s3c_hsudc *hsudc, u16 *buf)
 	int count;
 
 	count = readl(hsudc->regs + S3C_BRCR);
+
 	while (count--)
+	{
 		*buf++ = (u16)readl(hsudc->regs + S3C_BR(0));
+	}
 
 	writel(S3C_EP0SR_RX_SUCCESS, hsudc->regs + S3C_EP0SR);
 }
@@ -329,7 +339,7 @@ static void s3c_hsudc_read_setup_pkt(struct s3c_hsudc *hsudc, u16 *buf)
  * If the transfer request completes, 1 is returned, otherwise 0 is returned.
  */
 static int s3c_hsudc_write_fifo(struct s3c_hsudc_ep *hsep,
-				struct s3c_hsudc_req *hsreq)
+								struct s3c_hsudc_req *hsreq)
 {
 	u16 *buf;
 	u32 max = ep_maxpacket(hsep);
@@ -345,19 +355,30 @@ static int s3c_hsudc_write_fifo(struct s3c_hsudc_ep *hsep,
 	hsreq->req.actual += length;
 
 	writel(length, hsep->dev->regs + S3C_BWCR);
-	for (count = 0; count < length; count += 2)
-		writel(*buf++, fifo);
 
-	if (count != max) {
-		is_last = true;
-	} else {
-		if (hsreq->req.length != hsreq->req.actual || hsreq->req.zero)
-			is_last = false;
-		else
-			is_last = true;
+	for (count = 0; count < length; count += 2)
+	{
+		writel(*buf++, fifo);
 	}
 
-	if (is_last) {
+	if (count != max)
+	{
+		is_last = true;
+	}
+	else
+	{
+		if (hsreq->req.length != hsreq->req.actual || hsreq->req.zero)
+		{
+			is_last = false;
+		}
+		else
+		{
+			is_last = true;
+		}
+	}
+
+	if (is_last)
+	{
 		s3c_hsudc_complete_request(hsep, hsreq, 0);
 		return 1;
 	}
@@ -375,7 +396,7 @@ static int s3c_hsudc_write_fifo(struct s3c_hsudc_ep *hsep,
  * otherwise 0 is returned.
  */
 static int s3c_hsudc_read_fifo(struct s3c_hsudc_ep *hsep,
-				struct s3c_hsudc_req *hsreq)
+							   struct s3c_hsudc_req *hsreq)
 {
 	struct s3c_hsudc *hsudc = hsep->dev;
 	u32 csr, offset;
@@ -386,8 +407,11 @@ static int s3c_hsudc_read_fifo(struct s3c_hsudc_ep *hsep,
 
 	offset = (ep_index(hsep)) ? S3C_ESR : S3C_EP0SR;
 	csr = readl(hsudc->regs + offset);
+
 	if (!(csr & S3C_ESR_RX_SUCCESS))
+	{
 		return -EINVAL;
+	}
 
 	buf = hsreq->req.buf + hsreq->req.actual;
 	prefetchw(buf);
@@ -399,19 +423,25 @@ static int s3c_hsudc_read_fifo(struct s3c_hsudc_ep *hsep,
 	hsreq->req.actual += min(rlen, buflen);
 	is_short = (rlen < hsep->ep.maxpacket);
 
-	while (rcnt-- != 0) {
+	while (rcnt-- != 0)
+	{
 		word = (u16)readl(fifo);
-		if (buflen) {
+
+		if (buflen)
+		{
 			*buf++ = word;
 			buflen--;
-		} else {
+		}
+		else
+		{
 			hsreq->req.status = -EOVERFLOW;
 		}
 	}
 
 	writel(S3C_ESR_RX_SUCCESS, hsudc->regs + offset);
 
-	if (is_short || hsreq->req.actual == hsreq->req.length) {
+	if (is_short || hsreq->req.actual == hsreq->req.length)
+	{
 		s3c_hsudc_complete_request(hsep, hsreq, 0);
 		return 1;
 	}
@@ -434,21 +464,30 @@ static void s3c_hsudc_epin_intr(struct s3c_hsudc *hsudc, u32 ep_idx)
 	u32 csr;
 
 	csr = readl(hsudc->regs + S3C_ESR);
-	if (csr & S3C_ESR_STALL) {
+
+	if (csr & S3C_ESR_STALL)
+	{
 		writel(S3C_ESR_STALL, hsudc->regs + S3C_ESR);
 		return;
 	}
 
-	if (csr & S3C_ESR_TX_SUCCESS) {
+	if (csr & S3C_ESR_TX_SUCCESS)
+	{
 		writel(S3C_ESR_TX_SUCCESS, hsudc->regs + S3C_ESR);
+
 		if (list_empty(&hsep->queue))
+		{
 			return;
+		}
 
 		hsreq = list_entry(hsep->queue.next,
-				struct s3c_hsudc_req, queue);
+						   struct s3c_hsudc_req, queue);
+
 		if ((s3c_hsudc_write_fifo(hsep, hsreq) == 0) &&
-				(csr & S3C_ESR_PSIF_TWO))
+			(csr & S3C_ESR_PSIF_TWO))
+		{
 			s3c_hsudc_write_fifo(hsep, hsreq);
+		}
 	}
 }
 
@@ -467,25 +506,34 @@ static void s3c_hsudc_epout_intr(struct s3c_hsudc *hsudc, u32 ep_idx)
 	u32 csr;
 
 	csr = readl(hsudc->regs + S3C_ESR);
-	if (csr & S3C_ESR_STALL) {
+
+	if (csr & S3C_ESR_STALL)
+	{
 		writel(S3C_ESR_STALL, hsudc->regs + S3C_ESR);
 		return;
 	}
 
-	if (csr & S3C_ESR_FLUSH) {
+	if (csr & S3C_ESR_FLUSH)
+	{
 		__orr32(hsudc->regs + S3C_ECR, S3C_ECR_FLUSH);
 		return;
 	}
 
-	if (csr & S3C_ESR_RX_SUCCESS) {
+	if (csr & S3C_ESR_RX_SUCCESS)
+	{
 		if (list_empty(&hsep->queue))
+		{
 			return;
+		}
 
 		hsreq = list_entry(hsep->queue.next,
-				struct s3c_hsudc_req, queue);
+						   struct s3c_hsudc_req, queue);
+
 		if (((s3c_hsudc_read_fifo(hsep, hsreq)) == 0) &&
-				(csr & S3C_ESR_PSIF_TWO))
+			(csr & S3C_ESR_PSIF_TWO))
+		{
 			s3c_hsudc_read_fifo(hsep, hsreq);
+		}
 	}
 }
 
@@ -507,29 +555,43 @@ static int s3c_hsudc_set_halt(struct usb_ep *_ep, int value)
 	u32 offset;
 
 	if (value && ep_is_in(hsep) && !list_empty(&hsep->queue))
+	{
 		return -EAGAIN;
+	}
 
 	spin_lock_irqsave(&hsudc->lock, irqflags);
 	set_index(hsudc, ep_index(hsep));
 	offset = (ep_index(hsep)) ? S3C_ECR : S3C_EP0CR;
 	ecr = readl(hsudc->regs + offset);
 
-	if (value) {
+	if (value)
+	{
 		ecr |= S3C_ECR_STALL;
+
 		if (ep_index(hsep))
+		{
 			ecr |= S3C_ECR_FLUSH;
+		}
+
 		hsep->stopped = 1;
-	} else {
+	}
+	else
+	{
 		ecr &= ~S3C_ECR_STALL;
 		hsep->stopped = hsep->wedge = 0;
 	}
+
 	writel(ecr, hsudc->regs + offset);
 
-	if (ep_is_in(hsep) && !list_empty(&hsep->queue) && !value) {
+	if (ep_is_in(hsep) && !list_empty(&hsep->queue) && !value)
+	{
 		hsreq = list_entry(hsep->queue.next,
-			struct s3c_hsudc_req, queue);
+						   struct s3c_hsudc_req, queue);
+
 		if (hsreq)
+		{
 			s3c_hsudc_write_fifo(hsep, hsreq);
+		}
 	}
 
 	spin_unlock_irqrestore(&hsudc->lock, irqflags);
@@ -546,7 +608,9 @@ static int s3c_hsudc_set_wedge(struct usb_ep *_ep)
 	struct s3c_hsudc_ep *hsep = our_ep(_ep);
 
 	if (!hsep)
+	{
 		return -EINVAL;
+	}
 
 	hsep->wedge = 1;
 	return usb_ep_set_halt(_ep);
@@ -559,19 +623,25 @@ static int s3c_hsudc_set_wedge(struct usb_ep *_ep)
  * Handle set feature or clear feature control requests on the control endpoint.
  */
 static int s3c_hsudc_handle_reqfeat(struct s3c_hsudc *hsudc,
-					struct usb_ctrlrequest *ctrl)
+									struct usb_ctrlrequest *ctrl)
 {
 	struct s3c_hsudc_ep *hsep;
 	bool set = (ctrl->bRequest == USB_REQ_SET_FEATURE);
 	u8 ep_num = ctrl->wIndex & USB_ENDPOINT_NUMBER_MASK;
 
-	if (ctrl->bRequestType == USB_RECIP_ENDPOINT) {
+	if (ctrl->bRequestType == USB_RECIP_ENDPOINT)
+	{
 		hsep = &hsudc->ep[ep_num];
-		switch (le16_to_cpu(ctrl->wValue)) {
-		case USB_ENDPOINT_HALT:
-			if (set || !hsep->wedge)
-				s3c_hsudc_set_halt(&hsep->ep, set);
-			return 0;
+
+		switch (le16_to_cpu(ctrl->wValue))
+		{
+			case USB_ENDPOINT_HALT:
+				if (set || !hsep->wedge)
+				{
+					s3c_hsudc_set_halt(&hsep->ep, set);
+				}
+
+				return 0;
 		}
 	}
 
@@ -586,7 +656,7 @@ static int s3c_hsudc_handle_reqfeat(struct s3c_hsudc *hsudc,
  * Handle get status control request received on control endpoint.
  */
 static void s3c_hsudc_process_req_status(struct s3c_hsudc *hsudc,
-					struct usb_ctrlrequest *ctrl)
+		struct usb_ctrlrequest *ctrl)
 {
 	struct s3c_hsudc_ep *hsep0 = &hsudc->ep[0];
 	struct s3c_hsudc_req hsreq;
@@ -594,20 +664,21 @@ static void s3c_hsudc_process_req_status(struct s3c_hsudc *hsudc,
 	__le16 reply;
 	u8 epnum;
 
-	switch (ctrl->bRequestType & USB_RECIP_MASK) {
-	case USB_RECIP_DEVICE:
-		reply = cpu_to_le16(0);
-		break;
+	switch (ctrl->bRequestType & USB_RECIP_MASK)
+	{
+		case USB_RECIP_DEVICE:
+			reply = cpu_to_le16(0);
+			break;
 
-	case USB_RECIP_INTERFACE:
-		reply = cpu_to_le16(0);
-		break;
+		case USB_RECIP_INTERFACE:
+			reply = cpu_to_le16(0);
+			break;
 
-	case USB_RECIP_ENDPOINT:
-		epnum = le16_to_cpu(ctrl->wIndex) & USB_ENDPOINT_NUMBER_MASK;
-		hsep = &hsudc->ep[epnum];
-		reply = cpu_to_le16(hsep->stopped ? 1 : 0);
-		break;
+		case USB_RECIP_ENDPOINT:
+			epnum = le16_to_cpu(ctrl->wIndex) & USB_ENDPOINT_NUMBER_MASK;
+			hsep = &hsudc->ep[epnum];
+			reply = cpu_to_le16(hsep->stopped ? 1 : 0);
+			break;
 	}
 
 	INIT_LIST_HEAD(&hsreq.queue);
@@ -634,49 +705,65 @@ static void s3c_hsudc_process_setup(struct s3c_hsudc *hsudc)
 	s3c_hsudc_nuke_ep(hsep, -EPROTO);
 	s3c_hsudc_read_setup_pkt(hsudc, (u16 *)&ctrl);
 
-	if (ctrl.bRequestType & USB_DIR_IN) {
+	if (ctrl.bRequestType & USB_DIR_IN)
+	{
 		hsep->bEndpointAddress |= USB_DIR_IN;
 		hsudc->ep0state = DATA_STATE_XMIT;
-	} else {
+	}
+	else
+	{
 		hsep->bEndpointAddress &= ~USB_DIR_IN;
 		hsudc->ep0state = DATA_STATE_RECV;
 	}
 
-	switch (ctrl.bRequest) {
-	case USB_REQ_SET_ADDRESS:
-		if (ctrl.bRequestType != (USB_TYPE_STANDARD | USB_RECIP_DEVICE))
-			break;
-		hsudc->ep0state = WAIT_FOR_SETUP;
-		return;
+	switch (ctrl.bRequest)
+	{
+		case USB_REQ_SET_ADDRESS:
+			if (ctrl.bRequestType != (USB_TYPE_STANDARD | USB_RECIP_DEVICE))
+			{
+				break;
+			}
 
-	case USB_REQ_GET_STATUS:
-		if ((ctrl.bRequestType & USB_TYPE_MASK) != USB_TYPE_STANDARD)
-			break;
-		s3c_hsudc_process_req_status(hsudc, &ctrl);
-		return;
+			hsudc->ep0state = WAIT_FOR_SETUP;
+			return;
 
-	case USB_REQ_SET_FEATURE:
-	case USB_REQ_CLEAR_FEATURE:
-		if ((ctrl.bRequestType & USB_TYPE_MASK) != USB_TYPE_STANDARD)
-			break;
-		s3c_hsudc_handle_reqfeat(hsudc, &ctrl);
-		hsudc->ep0state = WAIT_FOR_SETUP;
-		return;
+		case USB_REQ_GET_STATUS:
+			if ((ctrl.bRequestType & USB_TYPE_MASK) != USB_TYPE_STANDARD)
+			{
+				break;
+			}
+
+			s3c_hsudc_process_req_status(hsudc, &ctrl);
+			return;
+
+		case USB_REQ_SET_FEATURE:
+		case USB_REQ_CLEAR_FEATURE:
+			if ((ctrl.bRequestType & USB_TYPE_MASK) != USB_TYPE_STANDARD)
+			{
+				break;
+			}
+
+			s3c_hsudc_handle_reqfeat(hsudc, &ctrl);
+			hsudc->ep0state = WAIT_FOR_SETUP;
+			return;
 	}
 
-	if (hsudc->driver) {
+	if (hsudc->driver)
+	{
 		spin_unlock(&hsudc->lock);
 		ret = hsudc->driver->setup(&hsudc->gadget, &ctrl);
 		spin_lock(&hsudc->lock);
 
-		if (ctrl.bRequest == USB_REQ_SET_CONFIGURATION) {
+		if (ctrl.bRequest == USB_REQ_SET_CONFIGURATION)
+		{
 			hsep->bEndpointAddress &= ~USB_DIR_IN;
 			hsudc->ep0state = WAIT_FOR_SETUP;
 		}
 
-		if (ret < 0) {
+		if (ret < 0)
+		{
 			dev_err(hsudc->dev, "setup failed, returned %d\n",
-						ret);
+					ret);
 			s3c_hsudc_set_halt(&hsep->ep, 1);
 			hsudc->ep0state = WAIT_FOR_SETUP;
 			hsep->bEndpointAddress &= ~USB_DIR_IN;
@@ -698,7 +785,8 @@ static void s3c_hsudc_handle_ep0_intr(struct s3c_hsudc *hsudc)
 	u32 csr = readl(hsudc->regs + S3C_EP0SR);
 	u32 ecr;
 
-	if (csr & S3C_EP0SR_STALL) {
+	if (csr & S3C_EP0SR_STALL)
+	{
 		ecr = readl(hsudc->regs + S3C_EP0CR);
 		ecr &= ~(S3C_ECR_STALL | S3C_ECR_FLUSH);
 		writel(ecr, hsudc->regs + S3C_EP0CR);
@@ -712,27 +800,40 @@ static void s3c_hsudc_handle_ep0_intr(struct s3c_hsudc *hsudc)
 		return;
 	}
 
-	if (csr & S3C_EP0SR_TX_SUCCESS) {
+	if (csr & S3C_EP0SR_TX_SUCCESS)
+	{
 		writel(S3C_EP0SR_TX_SUCCESS, hsudc->regs + S3C_EP0SR);
-		if (ep_is_in(hsep)) {
+
+		if (ep_is_in(hsep))
+		{
 			if (list_empty(&hsep->queue))
+			{
 				return;
+			}
 
 			hsreq = list_entry(hsep->queue.next,
-					struct s3c_hsudc_req, queue);
+							   struct s3c_hsudc_req, queue);
 			s3c_hsudc_write_fifo(hsep, hsreq);
 		}
 	}
 
-	if (csr & S3C_EP0SR_RX_SUCCESS) {
+	if (csr & S3C_EP0SR_RX_SUCCESS)
+	{
 		if (hsudc->ep0state == WAIT_FOR_SETUP)
+		{
 			s3c_hsudc_process_setup(hsudc);
-		else {
-			if (!ep_is_in(hsep)) {
+		}
+		else
+		{
+			if (!ep_is_in(hsep))
+			{
 				if (list_empty(&hsep->queue))
+				{
 					return;
+				}
+
 				hsreq = list_entry(hsep->queue.next,
-					struct s3c_hsudc_req, queue);
+								   struct s3c_hsudc_req, queue);
 				s3c_hsudc_read_fifo(hsep, hsreq);
 			}
 		}
@@ -749,7 +850,7 @@ static void s3c_hsudc_handle_ep0_intr(struct s3c_hsudc *hsudc)
  * enabled.
  */
 static int s3c_hsudc_ep_enable(struct usb_ep *_ep,
-				const struct usb_endpoint_descriptor *desc)
+							   const struct usb_endpoint_descriptor *desc)
 {
 	struct s3c_hsudc_ep *hsep;
 	struct s3c_hsudc *hsudc;
@@ -757,20 +858,28 @@ static int s3c_hsudc_ep_enable(struct usb_ep *_ep,
 	u32 ecr = 0;
 
 	hsep = our_ep(_ep);
+
 	if (!_ep || !desc || _ep->name == ep0name
 		|| desc->bDescriptorType != USB_DT_ENDPOINT
 		|| hsep->bEndpointAddress != desc->bEndpointAddress
 		|| ep_maxpacket(hsep) < usb_endpoint_maxp(desc))
+	{
 		return -EINVAL;
+	}
 
 	if ((desc->bmAttributes == USB_ENDPOINT_XFER_BULK
-		&& usb_endpoint_maxp(desc) != ep_maxpacket(hsep))
+		 && usb_endpoint_maxp(desc) != ep_maxpacket(hsep))
 		|| !desc->wMaxPacketSize)
+	{
 		return -ERANGE;
+	}
 
 	hsudc = hsep->dev;
+
 	if (!hsudc->driver || hsudc->gadget.speed == USB_SPEED_UNKNOWN)
+	{
 		return -ESHUTDOWN;
+	}
 
 	spin_lock_irqsave(&hsudc->lock, flags);
 
@@ -803,7 +912,9 @@ static int s3c_hsudc_ep_disable(struct usb_ep *_ep)
 	unsigned long flags;
 
 	if (!_ep || !hsep->ep.desc)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_irqsave(&hsudc->lock, flags);
 
@@ -827,13 +938,16 @@ static int s3c_hsudc_ep_disable(struct usb_ep *_ep)
  * Allocates a single transfer request structure when called from gadget driver.
  */
 static struct usb_request *s3c_hsudc_alloc_request(struct usb_ep *_ep,
-						gfp_t gfp_flags)
+		gfp_t gfp_flags)
 {
 	struct s3c_hsudc_req *hsreq;
 
 	hsreq = kzalloc(sizeof(*hsreq), gfp_flags);
+
 	if (!hsreq)
+	{
 		return NULL;
+	}
 
 	INIT_LIST_HEAD(&hsreq->queue);
 	return &hsreq->req;
@@ -864,7 +978,7 @@ static void s3c_hsudc_free_request(struct usb_ep *ep, struct usb_request *_req)
  * Start or enqueue a request for a endpoint when called from gadget driver.
  */
 static int s3c_hsudc_queue(struct usb_ep *_ep, struct usb_request *_req,
-			gfp_t gfp_flags)
+						   gfp_t gfp_flags)
 {
 	struct s3c_hsudc_req *hsreq;
 	struct s3c_hsudc_ep *hsep;
@@ -874,14 +988,20 @@ static int s3c_hsudc_queue(struct usb_ep *_ep, struct usb_request *_req,
 	u32 csr;
 
 	hsreq = our_req(_req);
+
 	if ((!_req || !_req->complete || !_req->buf ||
-		!list_empty(&hsreq->queue)))
+		 !list_empty(&hsreq->queue)))
+	{
 		return -EINVAL;
+	}
 
 	hsep = our_ep(_ep);
 	hsudc = hsep->dev;
+
 	if (!hsudc->driver || hsudc->gadget.speed == USB_SPEED_UNKNOWN)
+	{
 		return -ESHUTDOWN;
+	}
 
 	spin_lock_irqsave(&hsudc->lock, flags);
 	set_index(hsudc, hsep->bEndpointAddress);
@@ -889,30 +1009,44 @@ static int s3c_hsudc_queue(struct usb_ep *_ep, struct usb_request *_req,
 	_req->status = -EINPROGRESS;
 	_req->actual = 0;
 
-	if (!ep_index(hsep) && _req->length == 0) {
+	if (!ep_index(hsep) && _req->length == 0)
+	{
 		hsudc->ep0state = WAIT_FOR_SETUP;
 		s3c_hsudc_complete_request(hsep, hsreq, 0);
 		spin_unlock_irqrestore(&hsudc->lock, flags);
 		return 0;
 	}
 
-	if (list_empty(&hsep->queue) && !hsep->stopped) {
+	if (list_empty(&hsep->queue) && !hsep->stopped)
+	{
 		offset = (ep_index(hsep)) ? S3C_ESR : S3C_EP0SR;
-		if (ep_is_in(hsep)) {
+
+		if (ep_is_in(hsep))
+		{
 			csr = readl(hsudc->regs + offset);
+
 			if (!(csr & S3C_ESR_TX_SUCCESS) &&
 				(s3c_hsudc_write_fifo(hsep, hsreq) == 1))
+			{
 				hsreq = NULL;
-		} else {
+			}
+		}
+		else
+		{
 			csr = readl(hsudc->regs + offset);
+
 			if ((csr & S3C_ESR_RX_SUCCESS)
-				   && (s3c_hsudc_read_fifo(hsep, hsreq) == 1))
+				&& (s3c_hsudc_read_fifo(hsep, hsreq) == 1))
+			{
 				hsreq = NULL;
+			}
 		}
 	}
 
 	if (hsreq)
+	{
 		list_add_tail(&hsreq->queue, &hsep->queue);
+	}
 
 	spin_unlock_irqrestore(&hsudc->lock, flags);
 	return 0;
@@ -933,16 +1067,24 @@ static int s3c_hsudc_dequeue(struct usb_ep *_ep, struct usb_request *_req)
 	unsigned long flags;
 
 	hsep = our_ep(_ep);
+
 	if (!_ep || hsep->ep.name == ep0name)
+	{
 		return -EINVAL;
+	}
 
 	spin_lock_irqsave(&hsudc->lock, flags);
 
-	list_for_each_entry(hsreq, &hsep->queue, queue) {
+	list_for_each_entry(hsreq, &hsep->queue, queue)
+	{
 		if (&hsreq->req == _req)
+		{
 			break;
+		}
 	}
-	if (&hsreq->req != _req) {
+
+	if (&hsreq->req != _req)
+	{
 		spin_unlock_irqrestore(&hsudc->lock, flags);
 		return -EINVAL;
 	}
@@ -954,7 +1096,8 @@ static int s3c_hsudc_dequeue(struct usb_ep *_ep, struct usb_request *_req)
 	return 0;
 }
 
-static struct usb_ep_ops s3c_hsudc_ep_ops = {
+static struct usb_ep_ops s3c_hsudc_ep_ops =
+{
 	.enable = s3c_hsudc_ep_enable,
 	.disable = s3c_hsudc_ep_disable,
 	.alloc_request = s3c_hsudc_alloc_request,
@@ -974,27 +1117,38 @@ static struct usb_ep_ops s3c_hsudc_ep_ops = {
  * Initialize a endpoint with default configuration.
  */
 static void s3c_hsudc_initep(struct s3c_hsudc *hsudc,
-				struct s3c_hsudc_ep *hsep, int epnum)
+							 struct s3c_hsudc_ep *hsep, int epnum)
 {
 	char *dir;
 
-	if ((epnum % 2) == 0) {
+	if ((epnum % 2) == 0)
+	{
 		dir = "out";
-	} else {
+	}
+	else
+	{
 		dir = "in";
 		hsep->bEndpointAddress = USB_DIR_IN;
 	}
 
 	hsep->bEndpointAddress |= epnum;
+
 	if (epnum)
+	{
 		snprintf(hsep->name, sizeof(hsep->name), "ep%d%s", epnum, dir);
+	}
 	else
+	{
 		snprintf(hsep->name, sizeof(hsep->name), "%s", ep0name);
+	}
 
 	INIT_LIST_HEAD(&hsep->queue);
 	INIT_LIST_HEAD(&hsep->ep.ep_list);
+
 	if (epnum)
+	{
 		list_add_tail(&hsep->ep.ep_list, &hsudc->gadget.ep_list);
+	}
 
 	hsep->dev = hsudc;
 	hsep->ep.name = hsep->name;
@@ -1005,20 +1159,27 @@ static void s3c_hsudc_initep(struct s3c_hsudc *hsudc,
 	hsep->stopped = 0;
 	hsep->wedge = 0;
 
-	if (epnum == 0) {
+	if (epnum == 0)
+	{
 		hsep->ep.caps.type_control = true;
 		hsep->ep.caps.dir_in = true;
 		hsep->ep.caps.dir_out = true;
-	} else {
+	}
+	else
+	{
 		hsep->ep.caps.type_iso = true;
 		hsep->ep.caps.type_bulk = true;
 		hsep->ep.caps.type_int = true;
 	}
 
 	if (epnum & 1)
+	{
 		hsep->ep.caps.dir_in = true;
+	}
 	else
+	{
 		hsep->ep.caps.dir_out = true;
+	}
 
 	set_index(hsudc, epnum);
 	writel(hsep->ep.maxpacket, hsudc->regs + S3C_MPR);
@@ -1036,8 +1197,11 @@ static void s3c_hsudc_setup_ep(struct s3c_hsudc *hsudc)
 
 	hsudc->ep0state = WAIT_FOR_SETUP;
 	INIT_LIST_HEAD(&hsudc->gadget.ep_list);
+
 	for (epnum = 0; epnum < hsudc->pd->epnum; epnum++)
+	{
 		s3c_hsudc_initep(hsudc, &hsudc->ep[epnum], epnum);
+	}
 }
 
 /**
@@ -1052,7 +1216,7 @@ static void s3c_hsudc_reconfig(struct s3c_hsudc *hsudc)
 	writel(1, hsudc->regs + S3C_EIER);
 	writel(0, hsudc->regs + S3C_TR);
 	writel(S3C_SCR_DTZIEN_EN | S3C_SCR_RRD_EN | S3C_SCR_SUS_EN |
-			S3C_SCR_RST_EN, hsudc->regs + S3C_SCR);
+		   S3C_SCR_RST_EN, hsudc->regs + S3C_SCR);
 	writel(0, hsudc->regs + S3C_EP0CR);
 
 	s3c_hsudc_setup_ep(hsudc);
@@ -1079,51 +1243,71 @@ static irqreturn_t s3c_hsudc_irq(int irq, void *_dev)
 	sys_status = readl(hsudc->regs + S3C_SSR);
 	ep_intr = readl(hsudc->regs + S3C_EIR) & 0x3FF;
 
-	if (!ep_intr && !(sys_status & S3C_SSR_DTZIEN_EN)) {
+	if (!ep_intr && !(sys_status & S3C_SSR_DTZIEN_EN))
+	{
 		spin_unlock(&hsudc->lock);
 		return IRQ_HANDLED;
 	}
 
-	if (sys_status) {
+	if (sys_status)
+	{
 		if (sys_status & S3C_SSR_VBUSON)
+		{
 			writel(S3C_SSR_VBUSON, hsudc->regs + S3C_SSR);
+		}
 
 		if (sys_status & S3C_SSR_ERR)
+		{
 			writel(S3C_SSR_ERR, hsudc->regs + S3C_SSR);
+		}
 
-		if (sys_status & S3C_SSR_SDE) {
+		if (sys_status & S3C_SSR_SDE)
+		{
 			writel(S3C_SSR_SDE, hsudc->regs + S3C_SSR);
 			hsudc->gadget.speed = (sys_status & S3C_SSR_HSP) ?
-				USB_SPEED_HIGH : USB_SPEED_FULL;
+								  USB_SPEED_HIGH : USB_SPEED_FULL;
 		}
 
-		if (sys_status & S3C_SSR_SUSPEND) {
+		if (sys_status & S3C_SSR_SUSPEND)
+		{
 			writel(S3C_SSR_SUSPEND, hsudc->regs + S3C_SSR);
+
 			if (hsudc->gadget.speed != USB_SPEED_UNKNOWN
 				&& hsudc->driver && hsudc->driver->suspend)
+			{
 				hsudc->driver->suspend(&hsudc->gadget);
+			}
 		}
 
-		if (sys_status & S3C_SSR_RESUME) {
+		if (sys_status & S3C_SSR_RESUME)
+		{
 			writel(S3C_SSR_RESUME, hsudc->regs + S3C_SSR);
+
 			if (hsudc->gadget.speed != USB_SPEED_UNKNOWN
 				&& hsudc->driver && hsudc->driver->resume)
+			{
 				hsudc->driver->resume(&hsudc->gadget);
+			}
 		}
 
-		if (sys_status & S3C_SSR_RESET) {
+		if (sys_status & S3C_SSR_RESET)
+		{
 			writel(S3C_SSR_RESET, hsudc->regs + S3C_SSR);
-			for (ep_idx = 0; ep_idx < hsudc->pd->epnum; ep_idx++) {
+
+			for (ep_idx = 0; ep_idx < hsudc->pd->epnum; ep_idx++)
+			{
 				hsep = &hsudc->ep[ep_idx];
 				hsep->stopped = 1;
 				s3c_hsudc_nuke_ep(hsep, -ECONNRESET);
 			}
+
 			s3c_hsudc_reconfig(hsudc);
 			hsudc->ep0state = WAIT_FOR_SETUP;
 		}
 	}
 
-	if (ep_intr & S3C_EIR_EP0) {
+	if (ep_intr & S3C_EIR_EP0)
+	{
 		writel(S3C_EIR_EP0, hsudc->regs + S3C_EIR);
 		set_index(hsudc, 0);
 		s3c_hsudc_handle_ep0_intr(hsudc);
@@ -1131,16 +1315,25 @@ static irqreturn_t s3c_hsudc_irq(int irq, void *_dev)
 
 	ep_intr >>= 1;
 	ep_idx = 1;
-	while (ep_intr) {
-		if (ep_intr & 1)  {
+
+	while (ep_intr)
+	{
+		if (ep_intr & 1)
+		{
 			hsep = &hsudc->ep[ep_idx];
 			set_index(hsudc, ep_idx);
 			writel(1 << ep_idx, hsudc->regs + S3C_EIR);
+
 			if (ep_is_in(hsep))
+			{
 				s3c_hsudc_epin_intr(hsudc, ep_idx);
+			}
 			else
+			{
 				s3c_hsudc_epout_intr(hsudc, ep_idx);
+			}
 		}
+
 		ep_intr >>= 1;
 		ep_idx++;
 	}
@@ -1150,7 +1343,7 @@ static irqreturn_t s3c_hsudc_irq(int irq, void *_dev)
 }
 
 static int s3c_hsudc_start(struct usb_gadget *gadget,
-		struct usb_gadget_driver *driver)
+						   struct usb_gadget_driver *driver)
 {
 	struct s3c_hsudc *hsudc = to_hsudc(gadget);
 	int ret;
@@ -1158,28 +1351,39 @@ static int s3c_hsudc_start(struct usb_gadget *gadget,
 	if (!driver
 		|| driver->max_speed < USB_SPEED_FULL
 		|| !driver->setup)
+	{
 		return -EINVAL;
+	}
 
 	if (!hsudc)
+	{
 		return -ENODEV;
+	}
 
 	if (hsudc->driver)
+	{
 		return -EBUSY;
+	}
 
 	hsudc->driver = driver;
 
 	ret = regulator_bulk_enable(ARRAY_SIZE(hsudc->supplies),
-				    hsudc->supplies);
-	if (ret != 0) {
+								hsudc->supplies);
+
+	if (ret != 0)
+	{
 		dev_err(hsudc->dev, "failed to enable supplies: %d\n", ret);
 		goto err_supplies;
 	}
 
 	/* connect to bus through transceiver */
-	if (!IS_ERR_OR_NULL(hsudc->transceiver)) {
+	if (!IS_ERR_OR_NULL(hsudc->transceiver))
+	{
 		ret = otg_set_peripheral(hsudc->transceiver->otg,
-					&hsudc->gadget);
-		if (ret) {
+								 &hsudc->gadget);
+
+		if (ret)
+		{
 			dev_err(hsudc->dev, "%s: can't bind to transceiver\n",
 					hsudc->gadget.name);
 			goto err_otg;
@@ -1192,8 +1396,11 @@ static int s3c_hsudc_start(struct usb_gadget *gadget,
 	pm_runtime_get_sync(hsudc->dev);
 
 	s3c_hsudc_init_phy();
+
 	if (hsudc->pd->gpio_init)
+	{
 		hsudc->pd->gpio_init();
+	}
 
 	return 0;
 err_otg:
@@ -1209,7 +1416,9 @@ static int s3c_hsudc_stop(struct usb_gadget *gadget)
 	unsigned long flags;
 
 	if (!hsudc)
+	{
 		return -ENODEV;
+	}
 
 	spin_lock_irqsave(&hsudc->lock, flags);
 	hsudc->gadget.speed = USB_SPEED_UNKNOWN;
@@ -1218,12 +1427,17 @@ static int s3c_hsudc_stop(struct usb_gadget *gadget)
 	pm_runtime_put(hsudc->dev);
 
 	if (hsudc->pd->gpio_uninit)
+	{
 		hsudc->pd->gpio_uninit();
+	}
+
 	s3c_hsudc_stop_activity(hsudc);
 	spin_unlock_irqrestore(&hsudc->lock, flags);
 
 	if (!IS_ERR_OR_NULL(hsudc->transceiver))
+	{
 		(void) otg_set_peripheral(hsudc->transceiver->otg, NULL);
+	}
 
 	disable_irq(hsudc->irq);
 
@@ -1248,15 +1462,20 @@ static int s3c_hsudc_vbus_draw(struct usb_gadget *gadget, unsigned mA)
 	struct s3c_hsudc *hsudc = to_hsudc(gadget);
 
 	if (!hsudc)
+	{
 		return -ENODEV;
+	}
 
 	if (!IS_ERR_OR_NULL(hsudc->transceiver))
+	{
 		return usb_phy_set_power(hsudc->transceiver, mA);
+	}
 
 	return -EOPNOTSUPP;
 }
 
-static const struct usb_gadget_ops s3c_hsudc_gadget_ops = {
+static const struct usb_gadget_ops s3c_hsudc_gadget_ops =
+{
 	.get_frame	= s3c_hsudc_gadget_getframe,
 	.udc_start	= s3c_hsudc_start,
 	.udc_stop	= s3c_hsudc_stop,
@@ -1272,10 +1491,13 @@ static int s3c_hsudc_probe(struct platform_device *pdev)
 	int ret, i;
 
 	hsudc = devm_kzalloc(&pdev->dev, sizeof(struct s3c_hsudc) +
-			sizeof(struct s3c_hsudc_ep) * pd->epnum,
-			GFP_KERNEL);
+						 sizeof(struct s3c_hsudc_ep) * pd->epnum,
+						 GFP_KERNEL);
+
 	if (!hsudc)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, dev);
 	hsudc->dev = dev;
@@ -1284,11 +1506,15 @@ static int s3c_hsudc_probe(struct platform_device *pdev)
 	hsudc->transceiver = usb_get_phy(USB_PHY_TYPE_USB2);
 
 	for (i = 0; i < ARRAY_SIZE(hsudc->supplies); i++)
+	{
 		hsudc->supplies[i].supply = s3c_hsudc_supply_names[i];
+	}
 
 	ret = devm_regulator_bulk_get(dev, ARRAY_SIZE(hsudc->supplies),
-				 hsudc->supplies);
-	if (ret != 0) {
+								  hsudc->supplies);
+
+	if (ret != 0)
+	{
 		dev_err(dev, "failed to request supplies: %d\n", ret);
 		goto err_supplies;
 	}
@@ -1296,7 +1522,9 @@ static int s3c_hsudc_probe(struct platform_device *pdev)
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 
 	hsudc->regs = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(hsudc->regs)) {
+
+	if (IS_ERR(hsudc->regs))
+	{
 		ret = PTR_ERR(hsudc->regs);
 		goto err_res;
 	}
@@ -1314,25 +1542,33 @@ static int s3c_hsudc_probe(struct platform_device *pdev)
 	s3c_hsudc_setup_ep(hsudc);
 
 	ret = platform_get_irq(pdev, 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(dev, "unable to obtain IRQ number\n");
 		goto err_res;
 	}
+
 	hsudc->irq = ret;
 
 	ret = devm_request_irq(&pdev->dev, hsudc->irq, s3c_hsudc_irq, 0,
-				driver_name, hsudc);
-	if (ret < 0) {
+						   driver_name, hsudc);
+
+	if (ret < 0)
+	{
 		dev_err(dev, "irq request failed\n");
 		goto err_res;
 	}
 
 	hsudc->uclk = devm_clk_get(&pdev->dev, "usb-device");
-	if (IS_ERR(hsudc->uclk)) {
+
+	if (IS_ERR(hsudc->uclk))
+	{
 		dev_err(dev, "failed to find usb-device clock source\n");
 		ret = PTR_ERR(hsudc->uclk);
 		goto err_res;
 	}
+
 	clk_enable(hsudc->uclk);
 
 	local_irq_disable();
@@ -1341,8 +1577,11 @@ static int s3c_hsudc_probe(struct platform_device *pdev)
 	local_irq_enable();
 
 	ret = usb_add_gadget_udc(&pdev->dev, &hsudc->gadget);
+
 	if (ret)
+	{
 		goto err_add_udc;
+	}
 
 	pm_runtime_enable(dev);
 
@@ -1350,14 +1589,18 @@ static int s3c_hsudc_probe(struct platform_device *pdev)
 err_add_udc:
 	clk_disable(hsudc->uclk);
 err_res:
+
 	if (!IS_ERR_OR_NULL(hsudc->transceiver))
+	{
 		usb_put_phy(hsudc->transceiver);
+	}
 
 err_supplies:
 	return ret;
 }
 
-static struct platform_driver s3c_hsudc_driver = {
+static struct platform_driver s3c_hsudc_driver =
+{
 	.driver		= {
 		.name	= "s3c-hsudc",
 	},

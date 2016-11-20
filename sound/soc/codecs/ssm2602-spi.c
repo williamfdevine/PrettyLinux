@@ -17,7 +17,7 @@
 static int ssm2602_spi_probe(struct spi_device *spi)
 {
 	return ssm2602_probe(&spi->dev, SSM2602,
-		devm_regmap_init_spi(spi, &ssm2602_regmap_config));
+						 devm_regmap_init_spi(spi, &ssm2602_regmap_config));
 }
 
 static int ssm2602_spi_remove(struct spi_device *spi)
@@ -26,13 +26,15 @@ static int ssm2602_spi_remove(struct spi_device *spi)
 	return 0;
 }
 
-static const struct of_device_id ssm2602_of_match[] = {
+static const struct of_device_id ssm2602_of_match[] =
+{
 	{ .compatible = "adi,ssm2602", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, ssm2602_of_match);
 
-static struct spi_driver ssm2602_spi_driver = {
+static struct spi_driver ssm2602_spi_driver =
+{
 	.driver = {
 		.name	= "ssm2602",
 		.of_match_table = ssm2602_of_match,

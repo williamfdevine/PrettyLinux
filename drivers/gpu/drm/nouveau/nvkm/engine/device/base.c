@@ -36,9 +36,12 @@ static struct nvkm_device *
 nvkm_device_find_locked(u64 handle)
 {
 	struct nvkm_device *device;
-	list_for_each_entry(device, &nv_devices, head) {
+	list_for_each_entry(device, &nv_devices, head)
+	{
 		if (device->handle == handle)
+		{
 			return device;
+		}
 	}
 	return NULL;
 }
@@ -59,22 +62,27 @@ nvkm_device_list(u64 *name, int size)
 	struct nvkm_device *device;
 	int nr = 0;
 	mutex_lock(&nv_devices_mutex);
-	list_for_each_entry(device, &nv_devices, head) {
+	list_for_each_entry(device, &nv_devices, head)
+	{
 		if (nr++ < size)
+		{
 			name[nr - 1] = device->handle;
+		}
 	}
 	mutex_unlock(&nv_devices_mutex);
 	return nr;
 }
 
 static const struct nvkm_device_chip
-null_chipset = {
+	null_chipset =
+{
 	.name = "NULL",
 	.bios = nvkm_bios_new,
 };
 
 static const struct nvkm_device_chip
-nv4_chipset = {
+	nv4_chipset =
+{
 	.name = "NV04",
 	.bios = nvkm_bios_new,
 	.bus = nv04_bus_new,
@@ -95,7 +103,8 @@ nv4_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv5_chipset = {
+	nv5_chipset =
+{
 	.name = "NV05",
 	.bios = nvkm_bios_new,
 	.bus = nv04_bus_new,
@@ -116,7 +125,8 @@ nv5_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv10_chipset = {
+	nv10_chipset =
+{
 	.name = "NV10",
 	.bios = nvkm_bios_new,
 	.bus = nv04_bus_new,
@@ -136,7 +146,8 @@ nv10_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv11_chipset = {
+	nv11_chipset =
+{
 	.name = "NV11",
 	.bios = nvkm_bios_new,
 	.bus = nv04_bus_new,
@@ -158,7 +169,8 @@ nv11_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv15_chipset = {
+	nv15_chipset =
+{
 	.name = "NV15",
 	.bios = nvkm_bios_new,
 	.bus = nv04_bus_new,
@@ -180,7 +192,8 @@ nv15_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv17_chipset = {
+	nv17_chipset =
+{
 	.name = "NV17",
 	.bios = nvkm_bios_new,
 	.bus = nv04_bus_new,
@@ -202,7 +215,8 @@ nv17_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv18_chipset = {
+	nv18_chipset =
+{
 	.name = "NV18",
 	.bios = nvkm_bios_new,
 	.bus = nv04_bus_new,
@@ -224,7 +238,8 @@ nv18_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv1a_chipset = {
+	nv1a_chipset =
+{
 	.name = "nForce",
 	.bios = nvkm_bios_new,
 	.bus = nv04_bus_new,
@@ -246,7 +261,8 @@ nv1a_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv1f_chipset = {
+	nv1f_chipset =
+{
 	.name = "nForce2",
 	.bios = nvkm_bios_new,
 	.bus = nv04_bus_new,
@@ -268,7 +284,8 @@ nv1f_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv20_chipset = {
+	nv20_chipset =
+{
 	.name = "NV20",
 	.bios = nvkm_bios_new,
 	.bus = nv04_bus_new,
@@ -290,7 +307,8 @@ nv20_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv25_chipset = {
+	nv25_chipset =
+{
 	.name = "NV25",
 	.bios = nvkm_bios_new,
 	.bus = nv04_bus_new,
@@ -312,7 +330,8 @@ nv25_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv28_chipset = {
+	nv28_chipset =
+{
 	.name = "NV28",
 	.bios = nvkm_bios_new,
 	.bus = nv04_bus_new,
@@ -334,7 +353,8 @@ nv28_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv2a_chipset = {
+	nv2a_chipset =
+{
 	.name = "NV2A",
 	.bios = nvkm_bios_new,
 	.bus = nv04_bus_new,
@@ -356,7 +376,8 @@ nv2a_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv30_chipset = {
+	nv30_chipset =
+{
 	.name = "NV30",
 	.bios = nvkm_bios_new,
 	.bus = nv04_bus_new,
@@ -378,7 +399,8 @@ nv30_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv31_chipset = {
+	nv31_chipset =
+{
 	.name = "NV31",
 	.bios = nvkm_bios_new,
 	.bus = nv31_bus_new,
@@ -401,7 +423,8 @@ nv31_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv34_chipset = {
+	nv34_chipset =
+{
 	.name = "NV34",
 	.bios = nvkm_bios_new,
 	.bus = nv31_bus_new,
@@ -424,7 +447,8 @@ nv34_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv35_chipset = {
+	nv35_chipset =
+{
 	.name = "NV35",
 	.bios = nvkm_bios_new,
 	.bus = nv04_bus_new,
@@ -446,7 +470,8 @@ nv35_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv36_chipset = {
+	nv36_chipset =
+{
 	.name = "NV36",
 	.bios = nvkm_bios_new,
 	.bus = nv31_bus_new,
@@ -469,7 +494,8 @@ nv36_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv40_chipset = {
+	nv40_chipset =
+{
 	.name = "NV40",
 	.bios = nvkm_bios_new,
 	.bus = nv31_bus_new,
@@ -495,7 +521,8 @@ nv40_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv41_chipset = {
+	nv41_chipset =
+{
 	.name = "NV41",
 	.bios = nvkm_bios_new,
 	.bus = nv31_bus_new,
@@ -521,7 +548,8 @@ nv41_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv42_chipset = {
+	nv42_chipset =
+{
 	.name = "NV42",
 	.bios = nvkm_bios_new,
 	.bus = nv31_bus_new,
@@ -547,7 +575,8 @@ nv42_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv43_chipset = {
+	nv43_chipset =
+{
 	.name = "NV43",
 	.bios = nvkm_bios_new,
 	.bus = nv31_bus_new,
@@ -573,7 +602,8 @@ nv43_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv44_chipset = {
+	nv44_chipset =
+{
 	.name = "NV44",
 	.bios = nvkm_bios_new,
 	.bus = nv31_bus_new,
@@ -599,7 +629,8 @@ nv44_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv45_chipset = {
+	nv45_chipset =
+{
 	.name = "NV45",
 	.bios = nvkm_bios_new,
 	.bus = nv31_bus_new,
@@ -625,7 +656,8 @@ nv45_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv46_chipset = {
+	nv46_chipset =
+{
 	.name = "G72",
 	.bios = nvkm_bios_new,
 	.bus = nv31_bus_new,
@@ -651,7 +683,8 @@ nv46_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv47_chipset = {
+	nv47_chipset =
+{
 	.name = "G70",
 	.bios = nvkm_bios_new,
 	.bus = nv31_bus_new,
@@ -677,7 +710,8 @@ nv47_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv49_chipset = {
+	nv49_chipset =
+{
 	.name = "G71",
 	.bios = nvkm_bios_new,
 	.bus = nv31_bus_new,
@@ -703,7 +737,8 @@ nv49_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv4a_chipset = {
+	nv4a_chipset =
+{
 	.name = "NV44A",
 	.bios = nvkm_bios_new,
 	.bus = nv31_bus_new,
@@ -729,7 +764,8 @@ nv4a_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv4b_chipset = {
+	nv4b_chipset =
+{
 	.name = "G73",
 	.bios = nvkm_bios_new,
 	.bus = nv31_bus_new,
@@ -755,7 +791,8 @@ nv4b_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv4c_chipset = {
+	nv4c_chipset =
+{
 	.name = "C61",
 	.bios = nvkm_bios_new,
 	.bus = nv31_bus_new,
@@ -781,7 +818,8 @@ nv4c_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv4e_chipset = {
+	nv4e_chipset =
+{
 	.name = "C51",
 	.bios = nvkm_bios_new,
 	.bus = nv31_bus_new,
@@ -807,7 +845,8 @@ nv4e_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv50_chipset = {
+	nv50_chipset =
+{
 	.name = "G80",
 	.bar = nv50_bar_new,
 	.bios = nvkm_bios_new,
@@ -836,7 +875,8 @@ nv50_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv63_chipset = {
+	nv63_chipset =
+{
 	.name = "C73",
 	.bios = nvkm_bios_new,
 	.bus = nv31_bus_new,
@@ -862,7 +902,8 @@ nv63_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv67_chipset = {
+	nv67_chipset =
+{
 	.name = "C67",
 	.bios = nvkm_bios_new,
 	.bus = nv31_bus_new,
@@ -888,7 +929,8 @@ nv67_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv68_chipset = {
+	nv68_chipset =
+{
 	.name = "C68",
 	.bios = nvkm_bios_new,
 	.bus = nv31_bus_new,
@@ -914,7 +956,8 @@ nv68_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv84_chipset = {
+	nv84_chipset =
+{
 	.name = "G84",
 	.bar = g84_bar_new,
 	.bios = nvkm_bios_new,
@@ -946,7 +989,8 @@ nv84_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv86_chipset = {
+	nv86_chipset =
+{
 	.name = "G86",
 	.bar = g84_bar_new,
 	.bios = nvkm_bios_new,
@@ -978,7 +1022,8 @@ nv86_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv92_chipset = {
+	nv92_chipset =
+{
 	.name = "G92",
 	.bar = g84_bar_new,
 	.bios = nvkm_bios_new,
@@ -1010,7 +1055,8 @@ nv92_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv94_chipset = {
+	nv94_chipset =
+{
 	.name = "G94",
 	.bar = g84_bar_new,
 	.bios = nvkm_bios_new,
@@ -1042,7 +1088,8 @@ nv94_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv96_chipset = {
+	nv96_chipset =
+{
 	.name = "G96",
 	.bar = g84_bar_new,
 	.bios = nvkm_bios_new,
@@ -1074,7 +1121,8 @@ nv96_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv98_chipset = {
+	nv98_chipset =
+{
 	.name = "G98",
 	.bar = g84_bar_new,
 	.bios = nvkm_bios_new,
@@ -1106,7 +1154,8 @@ nv98_chipset = {
 };
 
 static const struct nvkm_device_chip
-nva0_chipset = {
+	nva0_chipset =
+{
 	.name = "GT200",
 	.bar = g84_bar_new,
 	.bios = nvkm_bios_new,
@@ -1138,7 +1187,8 @@ nva0_chipset = {
 };
 
 static const struct nvkm_device_chip
-nva3_chipset = {
+	nva3_chipset =
+{
 	.name = "GT215",
 	.bar = g84_bar_new,
 	.bios = nvkm_bios_new,
@@ -1172,7 +1222,8 @@ nva3_chipset = {
 };
 
 static const struct nvkm_device_chip
-nva5_chipset = {
+	nva5_chipset =
+{
 	.name = "GT216",
 	.bar = g84_bar_new,
 	.bios = nvkm_bios_new,
@@ -1205,7 +1256,8 @@ nva5_chipset = {
 };
 
 static const struct nvkm_device_chip
-nva8_chipset = {
+	nva8_chipset =
+{
 	.name = "GT218",
 	.bar = g84_bar_new,
 	.bios = nvkm_bios_new,
@@ -1238,7 +1290,8 @@ nva8_chipset = {
 };
 
 static const struct nvkm_device_chip
-nvaa_chipset = {
+	nvaa_chipset =
+{
 	.name = "MCP77/MCP78",
 	.bar = g84_bar_new,
 	.bios = nvkm_bios_new,
@@ -1270,7 +1323,8 @@ nvaa_chipset = {
 };
 
 static const struct nvkm_device_chip
-nvac_chipset = {
+	nvac_chipset =
+{
 	.name = "MCP79/MCP7A",
 	.bar = g84_bar_new,
 	.bios = nvkm_bios_new,
@@ -1302,7 +1356,8 @@ nvac_chipset = {
 };
 
 static const struct nvkm_device_chip
-nvaf_chipset = {
+	nvaf_chipset =
+{
 	.name = "MCP89",
 	.bar = g84_bar_new,
 	.bios = nvkm_bios_new,
@@ -1335,7 +1390,8 @@ nvaf_chipset = {
 };
 
 static const struct nvkm_device_chip
-nvc0_chipset = {
+	nvc0_chipset =
+{
 	.name = "GF100",
 	.bar = gf100_bar_new,
 	.bios = nvkm_bios_new,
@@ -1372,7 +1428,8 @@ nvc0_chipset = {
 };
 
 static const struct nvkm_device_chip
-nvc1_chipset = {
+	nvc1_chipset =
+{
 	.name = "GF108",
 	.bar = gf100_bar_new,
 	.bios = nvkm_bios_new,
@@ -1408,7 +1465,8 @@ nvc1_chipset = {
 };
 
 static const struct nvkm_device_chip
-nvc3_chipset = {
+	nvc3_chipset =
+{
 	.name = "GF106",
 	.bar = gf100_bar_new,
 	.bios = nvkm_bios_new,
@@ -1444,7 +1502,8 @@ nvc3_chipset = {
 };
 
 static const struct nvkm_device_chip
-nvc4_chipset = {
+	nvc4_chipset =
+{
 	.name = "GF104",
 	.bar = gf100_bar_new,
 	.bios = nvkm_bios_new,
@@ -1481,7 +1540,8 @@ nvc4_chipset = {
 };
 
 static const struct nvkm_device_chip
-nvc8_chipset = {
+	nvc8_chipset =
+{
 	.name = "GF110",
 	.bar = gf100_bar_new,
 	.bios = nvkm_bios_new,
@@ -1518,7 +1578,8 @@ nvc8_chipset = {
 };
 
 static const struct nvkm_device_chip
-nvce_chipset = {
+	nvce_chipset =
+{
 	.name = "GF114",
 	.bar = gf100_bar_new,
 	.bios = nvkm_bios_new,
@@ -1555,7 +1616,8 @@ nvce_chipset = {
 };
 
 static const struct nvkm_device_chip
-nvcf_chipset = {
+	nvcf_chipset =
+{
 	.name = "GF116",
 	.bar = gf100_bar_new,
 	.bios = nvkm_bios_new,
@@ -1591,7 +1653,8 @@ nvcf_chipset = {
 };
 
 static const struct nvkm_device_chip
-nvd7_chipset = {
+	nvd7_chipset =
+{
 	.name = "GF117",
 	.bar = gf100_bar_new,
 	.bios = nvkm_bios_new,
@@ -1625,7 +1688,8 @@ nvd7_chipset = {
 };
 
 static const struct nvkm_device_chip
-nvd9_chipset = {
+	nvd9_chipset =
+{
 	.name = "GF119",
 	.bar = gf100_bar_new,
 	.bios = nvkm_bios_new,
@@ -1661,7 +1725,8 @@ nvd9_chipset = {
 };
 
 static const struct nvkm_device_chip
-nve4_chipset = {
+	nve4_chipset =
+{
 	.name = "GK104",
 	.bar = gf100_bar_new,
 	.bios = nvkm_bios_new,
@@ -1700,7 +1765,8 @@ nve4_chipset = {
 };
 
 static const struct nvkm_device_chip
-nve6_chipset = {
+	nve6_chipset =
+{
 	.name = "GK106",
 	.bar = gf100_bar_new,
 	.bios = nvkm_bios_new,
@@ -1739,7 +1805,8 @@ nve6_chipset = {
 };
 
 static const struct nvkm_device_chip
-nve7_chipset = {
+	nve7_chipset =
+{
 	.name = "GK107",
 	.bar = gf100_bar_new,
 	.bios = nvkm_bios_new,
@@ -1778,7 +1845,8 @@ nve7_chipset = {
 };
 
 static const struct nvkm_device_chip
-nvea_chipset = {
+	nvea_chipset =
+{
 	.name = "GK20A",
 	.bar = gk20a_bar_new,
 	.bus = gf100_bus_new,
@@ -1803,7 +1871,8 @@ nvea_chipset = {
 };
 
 static const struct nvkm_device_chip
-nvf0_chipset = {
+	nvf0_chipset =
+{
 	.name = "GK110",
 	.bar = gf100_bar_new,
 	.bios = nvkm_bios_new,
@@ -1841,7 +1910,8 @@ nvf0_chipset = {
 };
 
 static const struct nvkm_device_chip
-nvf1_chipset = {
+	nvf1_chipset =
+{
 	.name = "GK110B",
 	.bar = gf100_bar_new,
 	.bios = nvkm_bios_new,
@@ -1879,7 +1949,8 @@ nvf1_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv106_chipset = {
+	nv106_chipset =
+{
 	.name = "GK208B",
 	.bar = gf100_bar_new,
 	.bios = nvkm_bios_new,
@@ -1917,7 +1988,8 @@ nv106_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv108_chipset = {
+	nv108_chipset =
+{
 	.name = "GK208",
 	.bar = gf100_bar_new,
 	.bios = nvkm_bios_new,
@@ -1955,7 +2027,8 @@ nv108_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv117_chipset = {
+	nv117_chipset =
+{
 	.name = "GM107",
 	.bar = gf100_bar_new,
 	.bios = nvkm_bios_new,
@@ -1989,7 +2062,8 @@ nv117_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv118_chipset = {
+	nv118_chipset =
+{
 	.name = "GM108",
 	.bar = gf100_bar_new,
 	.bios = nvkm_bios_new,
@@ -2023,7 +2097,8 @@ nv118_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv120_chipset = {
+	nv120_chipset =
+{
 	.name = "GM200",
 	.bar = gf100_bar_new,
 	.bios = nvkm_bios_new,
@@ -2057,7 +2132,8 @@ nv120_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv124_chipset = {
+	nv124_chipset =
+{
 	.name = "GM204",
 	.bar = gf100_bar_new,
 	.bios = nvkm_bios_new,
@@ -2091,7 +2167,8 @@ nv124_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv126_chipset = {
+	nv126_chipset =
+{
 	.name = "GM206",
 	.bar = gf100_bar_new,
 	.bios = nvkm_bios_new,
@@ -2125,7 +2202,8 @@ nv126_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv12b_chipset = {
+	nv12b_chipset =
+{
 	.name = "GM20B",
 	.bar = gk20a_bar_new,
 	.bus = gf100_bus_new,
@@ -2149,7 +2227,8 @@ nv12b_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv130_chipset = {
+	nv130_chipset =
+{
 	.name = "GP100",
 	.bar = gf100_bar_new,
 	.bios = nvkm_bios_new,
@@ -2182,7 +2261,8 @@ nv130_chipset = {
 };
 
 static const struct nvkm_device_chip
-nv134_chipset = {
+	nv134_chipset =
+{
 	.name = "GP104",
 	.bar = gf100_bar_new,
 	.bios = nvkm_bios_new,
@@ -2211,19 +2291,22 @@ nv134_chipset = {
 
 static int
 nvkm_device_event_ctor(struct nvkm_object *object, void *data, u32 size,
-		       struct nvkm_notify *notify)
+					   struct nvkm_notify *notify)
 {
-	if (!WARN_ON(size != 0)) {
+	if (!WARN_ON(size != 0))
+	{
 		notify->size  = 0;
 		notify->types = 1;
 		notify->index = 0;
 		return 0;
 	}
+
 	return -EINVAL;
 }
 
 static const struct nvkm_event_func
-nvkm_device_event_func = {
+	nvkm_device_event_func =
+{
 	.ctor = nvkm_device_event_ctor,
 };
 
@@ -2233,40 +2316,49 @@ nvkm_device_subdev(struct nvkm_device *device, int index)
 	struct nvkm_engine *engine;
 
 	if (device->disable_mask & (1ULL << index))
+	{
 		return NULL;
-
-	switch (index) {
-#define _(n,p,m) case NVKM_SUBDEV_##n: if (p) return (m); break
-	_(BAR     , device->bar     , &device->bar->subdev);
-	_(VBIOS   , device->bios    , &device->bios->subdev);
-	_(BUS     , device->bus     , &device->bus->subdev);
-	_(CLK     , device->clk     , &device->clk->subdev);
-	_(DEVINIT , device->devinit , &device->devinit->subdev);
-	_(FB      , device->fb      , &device->fb->subdev);
-	_(FUSE    , device->fuse    , &device->fuse->subdev);
-	_(GPIO    , device->gpio    , &device->gpio->subdev);
-	_(I2C     , device->i2c     , &device->i2c->subdev);
-	_(IBUS    , device->ibus    ,  device->ibus);
-	_(ICCSENSE, device->iccsense, &device->iccsense->subdev);
-	_(INSTMEM , device->imem    , &device->imem->subdev);
-	_(LTC     , device->ltc     , &device->ltc->subdev);
-	_(MC      , device->mc      , &device->mc->subdev);
-	_(MMU     , device->mmu     , &device->mmu->subdev);
-	_(MXM     , device->mxm     ,  device->mxm);
-	_(PCI     , device->pci     , &device->pci->subdev);
-	_(PMU     , device->pmu     , &device->pmu->subdev);
-	_(SECBOOT , device->secboot , &device->secboot->subdev);
-	_(THERM   , device->therm   , &device->therm->subdev);
-	_(TIMER   , device->timer   , &device->timer->subdev);
-	_(TOP     , device->top     , &device->top->subdev);
-	_(VOLT    , device->volt    , &device->volt->subdev);
-#undef _
-	default:
-		engine = nvkm_device_engine(device, index);
-		if (engine)
-			return &engine->subdev;
-		break;
 	}
+
+	switch (index)
+	{
+#define _(n,p,m) case NVKM_SUBDEV_##n: if (p) return (m); break
+			_(BAR     , device->bar     , &device->bar->subdev);
+			_(VBIOS   , device->bios    , &device->bios->subdev);
+			_(BUS     , device->bus     , &device->bus->subdev);
+			_(CLK     , device->clk     , &device->clk->subdev);
+			_(DEVINIT , device->devinit , &device->devinit->subdev);
+			_(FB      , device->fb      , &device->fb->subdev);
+			_(FUSE    , device->fuse    , &device->fuse->subdev);
+			_(GPIO    , device->gpio    , &device->gpio->subdev);
+			_(I2C     , device->i2c     , &device->i2c->subdev);
+			_(IBUS    , device->ibus    ,  device->ibus);
+			_(ICCSENSE, device->iccsense, &device->iccsense->subdev);
+			_(INSTMEM , device->imem    , &device->imem->subdev);
+			_(LTC     , device->ltc     , &device->ltc->subdev);
+			_(MC      , device->mc      , &device->mc->subdev);
+			_(MMU     , device->mmu     , &device->mmu->subdev);
+			_(MXM     , device->mxm     ,  device->mxm);
+			_(PCI     , device->pci     , &device->pci->subdev);
+			_(PMU     , device->pmu     , &device->pmu->subdev);
+			_(SECBOOT , device->secboot , &device->secboot->subdev);
+			_(THERM   , device->therm   , &device->therm->subdev);
+			_(TIMER   , device->timer   , &device->timer->subdev);
+			_(TOP     , device->top     , &device->top->subdev);
+			_(VOLT    , device->volt    , &device->volt->subdev);
+#undef _
+
+		default:
+			engine = nvkm_device_engine(device, index);
+
+			if (engine)
+			{
+				return &engine->subdev;
+			}
+
+			break;
+	}
+
 	return NULL;
 }
 
@@ -2274,43 +2366,48 @@ struct nvkm_engine *
 nvkm_device_engine(struct nvkm_device *device, int index)
 {
 	if (device->disable_mask & (1ULL << index))
+	{
 		return NULL;
-
-	switch (index) {
-#define _(n,p,m) case NVKM_ENGINE_##n: if (p) return (m); break
-	_(BSP    , device->bsp     ,  device->bsp);
-	_(CE0    , device->ce[0]   ,  device->ce[0]);
-	_(CE1    , device->ce[1]   ,  device->ce[1]);
-	_(CE2    , device->ce[2]   ,  device->ce[2]);
-	_(CE3    , device->ce[3]   ,  device->ce[3]);
-	_(CE4    , device->ce[4]   ,  device->ce[4]);
-	_(CE5    , device->ce[5]   ,  device->ce[5]);
-	_(CIPHER , device->cipher  ,  device->cipher);
-	_(DISP   , device->disp    , &device->disp->engine);
-	_(DMAOBJ , device->dma     , &device->dma->engine);
-	_(FIFO   , device->fifo    , &device->fifo->engine);
-	_(GR     , device->gr      , &device->gr->engine);
-	_(IFB    , device->ifb     ,  device->ifb);
-	_(ME     , device->me      ,  device->me);
-	_(MPEG   , device->mpeg    ,  device->mpeg);
-	_(MSENC  , device->msenc   ,  device->msenc);
-	_(MSPDEC , device->mspdec  ,  device->mspdec);
-	_(MSPPP  , device->msppp   ,  device->msppp);
-	_(MSVLD  , device->msvld   ,  device->msvld);
-	_(NVENC0 , device->nvenc[0],  device->nvenc[0]);
-	_(NVENC1 , device->nvenc[1],  device->nvenc[1]);
-	_(NVENC2 , device->nvenc[2],  device->nvenc[2]);
-	_(NVDEC  , device->nvdec   ,  device->nvdec);
-	_(PM     , device->pm      , &device->pm->engine);
-	_(SEC    , device->sec     ,  device->sec);
-	_(SW     , device->sw      , &device->sw->engine);
-	_(VIC    , device->vic     ,  device->vic);
-	_(VP     , device->vp      ,  device->vp);
-#undef _
-	default:
-		WARN_ON(1);
-		break;
 	}
+
+	switch (index)
+	{
+#define _(n,p,m) case NVKM_ENGINE_##n: if (p) return (m); break
+			_(BSP    , device->bsp     ,  device->bsp);
+			_(CE0    , device->ce[0]   ,  device->ce[0]);
+			_(CE1    , device->ce[1]   ,  device->ce[1]);
+			_(CE2    , device->ce[2]   ,  device->ce[2]);
+			_(CE3    , device->ce[3]   ,  device->ce[3]);
+			_(CE4    , device->ce[4]   ,  device->ce[4]);
+			_(CE5    , device->ce[5]   ,  device->ce[5]);
+			_(CIPHER , device->cipher  ,  device->cipher);
+			_(DISP   , device->disp    , &device->disp->engine);
+			_(DMAOBJ , device->dma     , &device->dma->engine);
+			_(FIFO   , device->fifo    , &device->fifo->engine);
+			_(GR     , device->gr      , &device->gr->engine);
+			_(IFB    , device->ifb     ,  device->ifb);
+			_(ME     , device->me      ,  device->me);
+			_(MPEG   , device->mpeg    ,  device->mpeg);
+			_(MSENC  , device->msenc   ,  device->msenc);
+			_(MSPDEC , device->mspdec  ,  device->mspdec);
+			_(MSPPP  , device->msppp   ,  device->msppp);
+			_(MSVLD  , device->msvld   ,  device->msvld);
+			_(NVENC0 , device->nvenc[0],  device->nvenc[0]);
+			_(NVENC1 , device->nvenc[1],  device->nvenc[1]);
+			_(NVENC2 , device->nvenc[2],  device->nvenc[2]);
+			_(NVDEC  , device->nvdec   ,  device->nvdec);
+			_(PM     , device->pm      , &device->pm->engine);
+			_(SEC    , device->sec     ,  device->sec);
+			_(SW     , device->sw      , &device->sw->engine);
+			_(VIC    , device->vic     ,  device->vic);
+			_(VP     , device->vp      ,  device->vp);
+#undef _
+
+		default:
+			WARN_ON(1);
+			break;
+	}
+
 	return NULL;
 }
 
@@ -2327,30 +2424,44 @@ nvkm_device_fini(struct nvkm_device *device, bool suspend)
 
 	nvkm_acpi_fini(device);
 
-	for (i = NVKM_SUBDEV_NR - 1; i >= 0; i--) {
-		if ((subdev = nvkm_device_subdev(device, i))) {
+	for (i = NVKM_SUBDEV_NR - 1; i >= 0; i--)
+	{
+		if ((subdev = nvkm_device_subdev(device, i)))
+		{
 			ret = nvkm_subdev_fini(subdev, suspend);
+
 			if (ret && suspend)
+			{
 				goto fail;
+			}
 		}
 	}
 
 
 	if (device->func->fini)
+	{
 		device->func->fini(device, suspend);
+	}
 
 	time = ktime_to_us(ktime_get()) - time;
 	nvdev_trace(device, "%s completed in %lldus...\n", action, time);
 	return 0;
 
 fail:
-	do {
-		if ((subdev = nvkm_device_subdev(device, i))) {
+
+	do
+	{
+		if ((subdev = nvkm_device_subdev(device, i)))
+		{
 			int rret = nvkm_subdev_init(subdev);
+
 			if (rret)
+			{
 				nvkm_fatal(subdev, "failed restart, %d\n", ret);
+			}
 		}
-	} while (++i < NVKM_SUBDEV_NR);
+	}
+	while (++i < NVKM_SUBDEV_NR);
 
 	nvdev_trace(device, "%s failed with %d\n", action, ret);
 	return ret;
@@ -2366,23 +2477,35 @@ nvkm_device_preinit(struct nvkm_device *device)
 	nvdev_trace(device, "preinit running...\n");
 	time = ktime_to_us(ktime_get());
 
-	if (device->func->preinit) {
+	if (device->func->preinit)
+	{
 		ret = device->func->preinit(device);
+
 		if (ret)
+		{
 			goto fail;
+		}
 	}
 
-	for (i = 0; i < NVKM_SUBDEV_NR; i++) {
-		if ((subdev = nvkm_device_subdev(device, i))) {
+	for (i = 0; i < NVKM_SUBDEV_NR; i++)
+	{
+		if ((subdev = nvkm_device_subdev(device, i)))
+		{
 			ret = nvkm_subdev_preinit(subdev);
+
 			if (ret)
+			{
 				goto fail;
+			}
 		}
 	}
 
 	ret = nvkm_devinit_post(device->devinit, &device->disable_mask);
+
 	if (ret)
+	{
 		goto fail;
+	}
 
 	time = ktime_to_us(ktime_get()) - time;
 	nvdev_trace(device, "preinit completed in %lldus\n", time);
@@ -2401,25 +2524,37 @@ nvkm_device_init(struct nvkm_device *device)
 	s64 time;
 
 	ret = nvkm_device_preinit(device);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	nvkm_device_fini(device, false);
 
 	nvdev_trace(device, "init running...\n");
 	time = ktime_to_us(ktime_get());
 
-	if (device->func->init) {
+	if (device->func->init)
+	{
 		ret = device->func->init(device);
+
 		if (ret)
+		{
 			goto fail;
+		}
 	}
 
-	for (i = 0; i < NVKM_SUBDEV_NR; i++) {
-		if ((subdev = nvkm_device_subdev(device, i))) {
+	for (i = 0; i < NVKM_SUBDEV_NR; i++)
+	{
+		if ((subdev = nvkm_device_subdev(device, i)))
+		{
 			ret = nvkm_subdev_init(subdev);
+
 			if (ret)
+			{
 				goto fail_subdev;
+			}
 		}
 	}
 
@@ -2430,10 +2565,15 @@ nvkm_device_init(struct nvkm_device *device)
 	return 0;
 
 fail_subdev:
-	do {
+
+	do
+	{
 		if ((subdev = nvkm_device_subdev(device, i)))
+		{
 			nvkm_subdev_fini(subdev, false);
-	} while (--i >= 0);
+		}
+	}
+	while (--i >= 0);
 
 fail:
 	nvkm_device_fini(device, false);
@@ -2447,10 +2587,14 @@ nvkm_device_del(struct nvkm_device **pdevice)
 {
 	struct nvkm_device *device = *pdevice;
 	int i;
-	if (device) {
+
+	if (device)
+	{
 		mutex_lock(&nv_devices_mutex);
 		device->disable_mask = 0;
-		for (i = NVKM_SUBDEV_NR - 1; i >= 0; i--) {
+
+		for (i = NVKM_SUBDEV_NR - 1; i >= 0; i--)
+		{
 			struct nvkm_subdev *subdev =
 				nvkm_device_subdev(device, i);
 			nvkm_subdev_del(&subdev);
@@ -2459,11 +2603,17 @@ nvkm_device_del(struct nvkm_device **pdevice)
 		nvkm_event_fini(&device->event);
 
 		if (device->pri)
+		{
 			iounmap(device->pri);
+		}
+
 		list_del(&device->head);
 
 		if (device->func->dtor)
+		{
 			*pdevice = device->func->dtor(device);
+		}
+
 		mutex_unlock(&nv_devices_mutex);
 
 		kfree(*pdevice);
@@ -2473,11 +2623,11 @@ nvkm_device_del(struct nvkm_device **pdevice)
 
 int
 nvkm_device_ctor(const struct nvkm_device_func *func,
-		 const struct nvkm_device_quirk *quirk,
-		 struct device *dev, enum nvkm_device_type type, u64 handle,
-		 const char *name, const char *cfg, const char *dbg,
-		 bool detect, bool mmio, u64 subdev_mask,
-		 struct nvkm_device *device)
+				 const struct nvkm_device_quirk *quirk,
+				 struct device *dev, enum nvkm_device_type type, u64 handle,
+				 const char *name, const char *cfg, const char *dbg,
+				 bool detect, bool mmio, u64 subdev_mask,
+				 struct nvkm_device *device)
 {
 	struct nvkm_subdev *subdev;
 	u64 mmio_base, mmio_size;
@@ -2487,8 +2637,11 @@ nvkm_device_ctor(const struct nvkm_device_func *func,
 	int i;
 
 	mutex_lock(&nv_devices_mutex);
+
 	if (nvkm_device_find_locked(handle))
+	{
 		goto done;
+	}
 
 	device->func = func;
 	device->quirk = quirk;
@@ -2502,23 +2655,34 @@ nvkm_device_ctor(const struct nvkm_device_func *func,
 	device->debug = nvkm_dbgopt(device->dbgopt, "device");
 
 	ret = nvkm_event_init(&nvkm_device_event_func, 1, 1, &device->event);
+
 	if (ret)
+	{
 		goto done;
+	}
 
 	mmio_base = device->func->resource_addr(device, 0);
 	mmio_size = device->func->resource_size(device, 0);
 
 	/* identify the chipset, and determine classes of subdev/engines */
-	if (detect) {
+	if (detect)
+	{
 		map = ioremap(mmio_base, 0x102000);
+
 		if (ret = -ENOMEM, map == NULL)
+		{
 			goto done;
+		}
 
 		/* switch mmio to cpu's native endianness */
 #ifndef __BIG_ENDIAN
-		if (ioread32_native(map + 0x000004) != 0x00000000) {
+
+		if (ioread32_native(map + 0x000004) != 0x00000000)
+		{
 #else
-		if (ioread32_native(map + 0x000004) == 0x00000000) {
+
+		if (ioread32_native(map + 0x000004) == 0x00000000)
+		{
 #endif
 			iowrite32_native(0x01000001, map + 0x000004);
 			ioread32_native(map);
@@ -2530,151 +2694,264 @@ nvkm_device_ctor(const struct nvkm_device_func *func,
 		iounmap(map);
 
 		/* determine chipset and derive architecture from it */
-		if ((boot0 & 0x1f000000) > 0) {
+		if ((boot0 & 0x1f000000) > 0)
+		{
 			device->chipset = (boot0 & 0x1ff00000) >> 20;
 			device->chiprev = (boot0 & 0x000000ff);
-			switch (device->chipset & 0x1f0) {
-			case 0x010: {
-				if (0x461 & (1 << (device->chipset & 0xf)))
-					device->card_type = NV_10;
-				else
-					device->card_type = NV_11;
-				device->chiprev = 0x00;
-				break;
+
+			switch (device->chipset & 0x1f0)
+			{
+				case 0x010:
+					{
+						if (0x461 & (1 << (device->chipset & 0xf)))
+						{
+							device->card_type = NV_10;
+						}
+						else
+						{
+							device->card_type = NV_11;
+						}
+
+						device->chiprev = 0x00;
+						break;
+					}
+
+				case 0x020: device->card_type = NV_20; break;
+
+				case 0x030: device->card_type = NV_30; break;
+
+				case 0x040:
+				case 0x060: device->card_type = NV_40; break;
+
+				case 0x050:
+				case 0x080:
+				case 0x090:
+				case 0x0a0: device->card_type = NV_50; break;
+
+				case 0x0c0:
+				case 0x0d0: device->card_type = NV_C0; break;
+
+				case 0x0e0:
+				case 0x0f0:
+				case 0x100: device->card_type = NV_E0; break;
+
+				case 0x110:
+				case 0x120: device->card_type = GM100; break;
+
+				case 0x130: device->card_type = GP100; break;
+
+				default:
+					break;
 			}
-			case 0x020: device->card_type = NV_20; break;
-			case 0x030: device->card_type = NV_30; break;
-			case 0x040:
-			case 0x060: device->card_type = NV_40; break;
-			case 0x050:
-			case 0x080:
-			case 0x090:
-			case 0x0a0: device->card_type = NV_50; break;
-			case 0x0c0:
-			case 0x0d0: device->card_type = NV_C0; break;
-			case 0x0e0:
-			case 0x0f0:
-			case 0x100: device->card_type = NV_E0; break;
-			case 0x110:
-			case 0x120: device->card_type = GM100; break;
-			case 0x130: device->card_type = GP100; break;
-			default:
-				break;
-			}
-		} else
-		if ((boot0 & 0xff00fff0) == 0x20004000) {
+		}
+		else if ((boot0 & 0xff00fff0) == 0x20004000)
+		{
 			if (boot0 & 0x00f00000)
+			{
 				device->chipset = 0x05;
+			}
 			else
+			{
 				device->chipset = 0x04;
+			}
+
 			device->card_type = NV_04;
 		}
 
-		switch (device->chipset) {
-		case 0x004: device->chip = &nv4_chipset; break;
-		case 0x005: device->chip = &nv5_chipset; break;
-		case 0x010: device->chip = &nv10_chipset; break;
-		case 0x011: device->chip = &nv11_chipset; break;
-		case 0x015: device->chip = &nv15_chipset; break;
-		case 0x017: device->chip = &nv17_chipset; break;
-		case 0x018: device->chip = &nv18_chipset; break;
-		case 0x01a: device->chip = &nv1a_chipset; break;
-		case 0x01f: device->chip = &nv1f_chipset; break;
-		case 0x020: device->chip = &nv20_chipset; break;
-		case 0x025: device->chip = &nv25_chipset; break;
-		case 0x028: device->chip = &nv28_chipset; break;
-		case 0x02a: device->chip = &nv2a_chipset; break;
-		case 0x030: device->chip = &nv30_chipset; break;
-		case 0x031: device->chip = &nv31_chipset; break;
-		case 0x034: device->chip = &nv34_chipset; break;
-		case 0x035: device->chip = &nv35_chipset; break;
-		case 0x036: device->chip = &nv36_chipset; break;
-		case 0x040: device->chip = &nv40_chipset; break;
-		case 0x041: device->chip = &nv41_chipset; break;
-		case 0x042: device->chip = &nv42_chipset; break;
-		case 0x043: device->chip = &nv43_chipset; break;
-		case 0x044: device->chip = &nv44_chipset; break;
-		case 0x045: device->chip = &nv45_chipset; break;
-		case 0x046: device->chip = &nv46_chipset; break;
-		case 0x047: device->chip = &nv47_chipset; break;
-		case 0x049: device->chip = &nv49_chipset; break;
-		case 0x04a: device->chip = &nv4a_chipset; break;
-		case 0x04b: device->chip = &nv4b_chipset; break;
-		case 0x04c: device->chip = &nv4c_chipset; break;
-		case 0x04e: device->chip = &nv4e_chipset; break;
-		case 0x050: device->chip = &nv50_chipset; break;
-		case 0x063: device->chip = &nv63_chipset; break;
-		case 0x067: device->chip = &nv67_chipset; break;
-		case 0x068: device->chip = &nv68_chipset; break;
-		case 0x084: device->chip = &nv84_chipset; break;
-		case 0x086: device->chip = &nv86_chipset; break;
-		case 0x092: device->chip = &nv92_chipset; break;
-		case 0x094: device->chip = &nv94_chipset; break;
-		case 0x096: device->chip = &nv96_chipset; break;
-		case 0x098: device->chip = &nv98_chipset; break;
-		case 0x0a0: device->chip = &nva0_chipset; break;
-		case 0x0a3: device->chip = &nva3_chipset; break;
-		case 0x0a5: device->chip = &nva5_chipset; break;
-		case 0x0a8: device->chip = &nva8_chipset; break;
-		case 0x0aa: device->chip = &nvaa_chipset; break;
-		case 0x0ac: device->chip = &nvac_chipset; break;
-		case 0x0af: device->chip = &nvaf_chipset; break;
-		case 0x0c0: device->chip = &nvc0_chipset; break;
-		case 0x0c1: device->chip = &nvc1_chipset; break;
-		case 0x0c3: device->chip = &nvc3_chipset; break;
-		case 0x0c4: device->chip = &nvc4_chipset; break;
-		case 0x0c8: device->chip = &nvc8_chipset; break;
-		case 0x0ce: device->chip = &nvce_chipset; break;
-		case 0x0cf: device->chip = &nvcf_chipset; break;
-		case 0x0d7: device->chip = &nvd7_chipset; break;
-		case 0x0d9: device->chip = &nvd9_chipset; break;
-		case 0x0e4: device->chip = &nve4_chipset; break;
-		case 0x0e6: device->chip = &nve6_chipset; break;
-		case 0x0e7: device->chip = &nve7_chipset; break;
-		case 0x0ea: device->chip = &nvea_chipset; break;
-		case 0x0f0: device->chip = &nvf0_chipset; break;
-		case 0x0f1: device->chip = &nvf1_chipset; break;
-		case 0x106: device->chip = &nv106_chipset; break;
-		case 0x108: device->chip = &nv108_chipset; break;
-		case 0x117: device->chip = &nv117_chipset; break;
-		case 0x118: device->chip = &nv118_chipset; break;
-		case 0x120: device->chip = &nv120_chipset; break;
-		case 0x124: device->chip = &nv124_chipset; break;
-		case 0x126: device->chip = &nv126_chipset; break;
-		case 0x12b: device->chip = &nv12b_chipset; break;
-		case 0x130: device->chip = &nv130_chipset; break;
-		case 0x134: device->chip = &nv134_chipset; break;
-		default:
-			nvdev_error(device, "unknown chipset (%08x)\n", boot0);
-			goto done;
+		switch (device->chipset)
+		{
+			case 0x004: device->chip = &nv4_chipset; break;
+
+			case 0x005: device->chip = &nv5_chipset; break;
+
+			case 0x010: device->chip = &nv10_chipset; break;
+
+			case 0x011: device->chip = &nv11_chipset; break;
+
+			case 0x015: device->chip = &nv15_chipset; break;
+
+			case 0x017: device->chip = &nv17_chipset; break;
+
+			case 0x018: device->chip = &nv18_chipset; break;
+
+			case 0x01a: device->chip = &nv1a_chipset; break;
+
+			case 0x01f: device->chip = &nv1f_chipset; break;
+
+			case 0x020: device->chip = &nv20_chipset; break;
+
+			case 0x025: device->chip = &nv25_chipset; break;
+
+			case 0x028: device->chip = &nv28_chipset; break;
+
+			case 0x02a: device->chip = &nv2a_chipset; break;
+
+			case 0x030: device->chip = &nv30_chipset; break;
+
+			case 0x031: device->chip = &nv31_chipset; break;
+
+			case 0x034: device->chip = &nv34_chipset; break;
+
+			case 0x035: device->chip = &nv35_chipset; break;
+
+			case 0x036: device->chip = &nv36_chipset; break;
+
+			case 0x040: device->chip = &nv40_chipset; break;
+
+			case 0x041: device->chip = &nv41_chipset; break;
+
+			case 0x042: device->chip = &nv42_chipset; break;
+
+			case 0x043: device->chip = &nv43_chipset; break;
+
+			case 0x044: device->chip = &nv44_chipset; break;
+
+			case 0x045: device->chip = &nv45_chipset; break;
+
+			case 0x046: device->chip = &nv46_chipset; break;
+
+			case 0x047: device->chip = &nv47_chipset; break;
+
+			case 0x049: device->chip = &nv49_chipset; break;
+
+			case 0x04a: device->chip = &nv4a_chipset; break;
+
+			case 0x04b: device->chip = &nv4b_chipset; break;
+
+			case 0x04c: device->chip = &nv4c_chipset; break;
+
+			case 0x04e: device->chip = &nv4e_chipset; break;
+
+			case 0x050: device->chip = &nv50_chipset; break;
+
+			case 0x063: device->chip = &nv63_chipset; break;
+
+			case 0x067: device->chip = &nv67_chipset; break;
+
+			case 0x068: device->chip = &nv68_chipset; break;
+
+			case 0x084: device->chip = &nv84_chipset; break;
+
+			case 0x086: device->chip = &nv86_chipset; break;
+
+			case 0x092: device->chip = &nv92_chipset; break;
+
+			case 0x094: device->chip = &nv94_chipset; break;
+
+			case 0x096: device->chip = &nv96_chipset; break;
+
+			case 0x098: device->chip = &nv98_chipset; break;
+
+			case 0x0a0: device->chip = &nva0_chipset; break;
+
+			case 0x0a3: device->chip = &nva3_chipset; break;
+
+			case 0x0a5: device->chip = &nva5_chipset; break;
+
+			case 0x0a8: device->chip = &nva8_chipset; break;
+
+			case 0x0aa: device->chip = &nvaa_chipset; break;
+
+			case 0x0ac: device->chip = &nvac_chipset; break;
+
+			case 0x0af: device->chip = &nvaf_chipset; break;
+
+			case 0x0c0: device->chip = &nvc0_chipset; break;
+
+			case 0x0c1: device->chip = &nvc1_chipset; break;
+
+			case 0x0c3: device->chip = &nvc3_chipset; break;
+
+			case 0x0c4: device->chip = &nvc4_chipset; break;
+
+			case 0x0c8: device->chip = &nvc8_chipset; break;
+
+			case 0x0ce: device->chip = &nvce_chipset; break;
+
+			case 0x0cf: device->chip = &nvcf_chipset; break;
+
+			case 0x0d7: device->chip = &nvd7_chipset; break;
+
+			case 0x0d9: device->chip = &nvd9_chipset; break;
+
+			case 0x0e4: device->chip = &nve4_chipset; break;
+
+			case 0x0e6: device->chip = &nve6_chipset; break;
+
+			case 0x0e7: device->chip = &nve7_chipset; break;
+
+			case 0x0ea: device->chip = &nvea_chipset; break;
+
+			case 0x0f0: device->chip = &nvf0_chipset; break;
+
+			case 0x0f1: device->chip = &nvf1_chipset; break;
+
+			case 0x106: device->chip = &nv106_chipset; break;
+
+			case 0x108: device->chip = &nv108_chipset; break;
+
+			case 0x117: device->chip = &nv117_chipset; break;
+
+			case 0x118: device->chip = &nv118_chipset; break;
+
+			case 0x120: device->chip = &nv120_chipset; break;
+
+			case 0x124: device->chip = &nv124_chipset; break;
+
+			case 0x126: device->chip = &nv126_chipset; break;
+
+			case 0x12b: device->chip = &nv12b_chipset; break;
+
+			case 0x130: device->chip = &nv130_chipset; break;
+
+			case 0x134: device->chip = &nv134_chipset; break;
+
+			default:
+				nvdev_error(device, "unknown chipset (%08x)\n", boot0);
+				goto done;
 		}
 
 		nvdev_info(device, "NVIDIA %s (%08x)\n",
-			   device->chip->name, boot0);
+				   device->chip->name, boot0);
 
 		/* determine frequency of timing crystal */
 		if ( device->card_type <= NV_10 || device->chipset < 0x17 ||
-		    (device->chipset >= 0x20 && device->chipset < 0x25))
+			 (device->chipset >= 0x20 && device->chipset < 0x25))
+		{
 			strap &= 0x00000040;
-		else
-			strap &= 0x00400040;
-
-		switch (strap) {
-		case 0x00000000: device->crystal = 13500; break;
-		case 0x00000040: device->crystal = 14318; break;
-		case 0x00400000: device->crystal = 27000; break;
-		case 0x00400040: device->crystal = 25000; break;
 		}
-	} else {
+		else
+		{
+			strap &= 0x00400040;
+		}
+
+		switch (strap)
+		{
+			case 0x00000000: device->crystal = 13500; break;
+
+			case 0x00000040: device->crystal = 14318; break;
+
+			case 0x00400000: device->crystal = 27000; break;
+
+			case 0x00400040: device->crystal = 25000; break;
+		}
+	}
+	else
+	{
 		device->chip = &null_chipset;
 	}
 
 	if (!device->name)
+	{
 		device->name = device->chip->name;
+	}
 
-	if (mmio) {
+	if (mmio)
+	{
 		device->pri = ioremap(mmio_base, mmio_size);
-		if (!device->pri) {
+
+		if (!device->pri)
+		{
 			nvdev_error(device, "unable to map PRI\n");
 			ret = -ENOMEM;
 			goto done;
@@ -2683,78 +2960,83 @@ nvkm_device_ctor(const struct nvkm_device_func *func,
 
 	mutex_init(&device->mutex);
 
-	for (i = 0; i < NVKM_SUBDEV_NR; i++) {
+	for (i = 0; i < NVKM_SUBDEV_NR; i++)
+	{
 #define _(s,m) case s:                                                         \
-	if (device->chip->m && (subdev_mask & (1ULL << (s)))) {                \
-		ret = device->chip->m(device, (s), &device->m);                \
-		if (ret) {                                                     \
-			subdev = nvkm_device_subdev(device, (s));              \
-			nvkm_subdev_del(&subdev);                              \
-			device->m = NULL;                                      \
-			if (ret != -ENODEV) {                                  \
-				nvdev_error(device, "%s ctor failed, %d\n",    \
-					    nvkm_subdev_name[s], ret);         \
-				goto done;                                     \
-			}                                                      \
-		}                                                              \
-	}                                                                      \
-	break
-		switch (i) {
-		_(NVKM_SUBDEV_BAR     ,      bar);
-		_(NVKM_SUBDEV_VBIOS   ,     bios);
-		_(NVKM_SUBDEV_BUS     ,      bus);
-		_(NVKM_SUBDEV_CLK     ,      clk);
-		_(NVKM_SUBDEV_DEVINIT ,  devinit);
-		_(NVKM_SUBDEV_FB      ,       fb);
-		_(NVKM_SUBDEV_FUSE    ,     fuse);
-		_(NVKM_SUBDEV_GPIO    ,     gpio);
-		_(NVKM_SUBDEV_I2C     ,      i2c);
-		_(NVKM_SUBDEV_IBUS    ,     ibus);
-		_(NVKM_SUBDEV_ICCSENSE, iccsense);
-		_(NVKM_SUBDEV_INSTMEM ,     imem);
-		_(NVKM_SUBDEV_LTC     ,      ltc);
-		_(NVKM_SUBDEV_MC      ,       mc);
-		_(NVKM_SUBDEV_MMU     ,      mmu);
-		_(NVKM_SUBDEV_MXM     ,      mxm);
-		_(NVKM_SUBDEV_PCI     ,      pci);
-		_(NVKM_SUBDEV_PMU     ,      pmu);
-		_(NVKM_SUBDEV_SECBOOT ,  secboot);
-		_(NVKM_SUBDEV_THERM   ,    therm);
-		_(NVKM_SUBDEV_TIMER   ,    timer);
-		_(NVKM_SUBDEV_TOP     ,      top);
-		_(NVKM_SUBDEV_VOLT    ,     volt);
-		_(NVKM_ENGINE_BSP     ,      bsp);
-		_(NVKM_ENGINE_CE0     ,    ce[0]);
-		_(NVKM_ENGINE_CE1     ,    ce[1]);
-		_(NVKM_ENGINE_CE2     ,    ce[2]);
-		_(NVKM_ENGINE_CE3     ,    ce[3]);
-		_(NVKM_ENGINE_CE4     ,    ce[4]);
-		_(NVKM_ENGINE_CE5     ,    ce[5]);
-		_(NVKM_ENGINE_CIPHER  ,   cipher);
-		_(NVKM_ENGINE_DISP    ,     disp);
-		_(NVKM_ENGINE_DMAOBJ  ,      dma);
-		_(NVKM_ENGINE_FIFO    ,     fifo);
-		_(NVKM_ENGINE_GR      ,       gr);
-		_(NVKM_ENGINE_IFB     ,      ifb);
-		_(NVKM_ENGINE_ME      ,       me);
-		_(NVKM_ENGINE_MPEG    ,     mpeg);
-		_(NVKM_ENGINE_MSENC   ,    msenc);
-		_(NVKM_ENGINE_MSPDEC  ,   mspdec);
-		_(NVKM_ENGINE_MSPPP   ,    msppp);
-		_(NVKM_ENGINE_MSVLD   ,    msvld);
-		_(NVKM_ENGINE_NVENC0  , nvenc[0]);
-		_(NVKM_ENGINE_NVENC1  , nvenc[1]);
-		_(NVKM_ENGINE_NVENC2  , nvenc[2]);
-		_(NVKM_ENGINE_NVDEC   ,    nvdec);
-		_(NVKM_ENGINE_PM      ,       pm);
-		_(NVKM_ENGINE_SEC     ,      sec);
-		_(NVKM_ENGINE_SW      ,       sw);
-		_(NVKM_ENGINE_VIC     ,      vic);
-		_(NVKM_ENGINE_VP      ,       vp);
-		default:
-			WARN_ON(1);
-			continue;
+		if (device->chip->m && (subdev_mask & (1ULL << (s)))) {                \
+			ret = device->chip->m(device, (s), &device->m);                \
+			if (ret) {                                                     \
+				subdev = nvkm_device_subdev(device, (s));              \
+				nvkm_subdev_del(&subdev);                              \
+				device->m = NULL;                                      \
+				if (ret != -ENODEV) {                                  \
+					nvdev_error(device, "%s ctor failed, %d\n",    \
+								nvkm_subdev_name[s], ret);         \
+					goto done;                                     \
+				}                                                      \
+			}                                                              \
+		}                                                                      \
+		break
+
+		switch (i)
+		{
+				_(NVKM_SUBDEV_BAR     ,      bar);
+				_(NVKM_SUBDEV_VBIOS   ,     bios);
+				_(NVKM_SUBDEV_BUS     ,      bus);
+				_(NVKM_SUBDEV_CLK     ,      clk);
+				_(NVKM_SUBDEV_DEVINIT ,  devinit);
+				_(NVKM_SUBDEV_FB      ,       fb);
+				_(NVKM_SUBDEV_FUSE    ,     fuse);
+				_(NVKM_SUBDEV_GPIO    ,     gpio);
+				_(NVKM_SUBDEV_I2C     ,      i2c);
+				_(NVKM_SUBDEV_IBUS    ,     ibus);
+				_(NVKM_SUBDEV_ICCSENSE, iccsense);
+				_(NVKM_SUBDEV_INSTMEM ,     imem);
+				_(NVKM_SUBDEV_LTC     ,      ltc);
+				_(NVKM_SUBDEV_MC      ,       mc);
+				_(NVKM_SUBDEV_MMU     ,      mmu);
+				_(NVKM_SUBDEV_MXM     ,      mxm);
+				_(NVKM_SUBDEV_PCI     ,      pci);
+				_(NVKM_SUBDEV_PMU     ,      pmu);
+				_(NVKM_SUBDEV_SECBOOT ,  secboot);
+				_(NVKM_SUBDEV_THERM   ,    therm);
+				_(NVKM_SUBDEV_TIMER   ,    timer);
+				_(NVKM_SUBDEV_TOP     ,      top);
+				_(NVKM_SUBDEV_VOLT    ,     volt);
+				_(NVKM_ENGINE_BSP     ,      bsp);
+				_(NVKM_ENGINE_CE0     ,    ce[0]);
+				_(NVKM_ENGINE_CE1     ,    ce[1]);
+				_(NVKM_ENGINE_CE2     ,    ce[2]);
+				_(NVKM_ENGINE_CE3     ,    ce[3]);
+				_(NVKM_ENGINE_CE4     ,    ce[4]);
+				_(NVKM_ENGINE_CE5     ,    ce[5]);
+				_(NVKM_ENGINE_CIPHER  ,   cipher);
+				_(NVKM_ENGINE_DISP    ,     disp);
+				_(NVKM_ENGINE_DMAOBJ  ,      dma);
+				_(NVKM_ENGINE_FIFO    ,     fifo);
+				_(NVKM_ENGINE_GR      ,       gr);
+				_(NVKM_ENGINE_IFB     ,      ifb);
+				_(NVKM_ENGINE_ME      ,       me);
+				_(NVKM_ENGINE_MPEG    ,     mpeg);
+				_(NVKM_ENGINE_MSENC   ,    msenc);
+				_(NVKM_ENGINE_MSPDEC  ,   mspdec);
+				_(NVKM_ENGINE_MSPPP   ,    msppp);
+				_(NVKM_ENGINE_MSVLD   ,    msvld);
+				_(NVKM_ENGINE_NVENC0  , nvenc[0]);
+				_(NVKM_ENGINE_NVENC1  , nvenc[1]);
+				_(NVKM_ENGINE_NVENC2  , nvenc[2]);
+				_(NVKM_ENGINE_NVDEC   ,    nvdec);
+				_(NVKM_ENGINE_PM      ,       pm);
+				_(NVKM_ENGINE_SEC     ,      sec);
+				_(NVKM_ENGINE_SW      ,       sw);
+				_(NVKM_ENGINE_VIC     ,      vic);
+				_(NVKM_ENGINE_VP      ,       vp);
+
+			default:
+				WARN_ON(1);
+				continue;
 		}
+
 #undef _
 	}
 

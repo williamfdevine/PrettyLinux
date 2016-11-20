@@ -21,7 +21,8 @@
 
 #include <linux/dcbnl.h>
 
-struct dcb_app_type {
+struct dcb_app_type
+{
 	int	ifindex;
 	struct dcb_app	  app;
 	struct list_head  list;
@@ -35,15 +36,16 @@ int dcb_ieee_delapp(struct net_device *, struct dcb_app *);
 u8 dcb_ieee_getapp_mask(struct net_device *, struct dcb_app *);
 
 int dcbnl_ieee_notify(struct net_device *dev, int event, int cmd,
-		      u32 seq, u32 pid);
+					  u32 seq, u32 pid);
 int dcbnl_cee_notify(struct net_device *dev, int event, int cmd,
-		     u32 seq, u32 pid);
+					 u32 seq, u32 pid);
 
 /*
  * Ops struct for the netlink callbacks.  Used by DCB-enabled drivers through
  * the netdevice struct.
  */
-struct dcbnl_rtnl_ops {
+struct dcbnl_rtnl_ops
+{
 	/* IEEE 802.1Qaz std */
 	int (*ieee_getets) (struct net_device *, struct ieee_ets *);
 	int (*ieee_setets) (struct net_device *, struct ieee_ets *);
@@ -95,7 +97,7 @@ struct dcbnl_rtnl_ops {
 
 	/* peer apps */
 	int (*peer_getappinfo)(struct net_device *, struct dcb_peer_app_info *,
-			       u16 *);
+						   u16 *);
 	int (*peer_getapptable)(struct net_device *, struct dcb_app *);
 
 	/* CEE peer */

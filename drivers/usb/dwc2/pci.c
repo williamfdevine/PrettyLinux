@@ -57,7 +57,8 @@
 
 static const char dwc2_driver_name[] = "dwc2-pci";
 
-struct dwc2_pci_glue {
+struct dwc2_pci_glue
+{
 	struct platform_device *dwc2;
 	struct platform_device *phy;
 };
@@ -73,7 +74,7 @@ static void dwc2_pci_remove(struct pci_dev *pci)
 }
 
 static int dwc2_pci_probe(struct pci_dev *pci,
-		const struct pci_device_id *id)
+						  const struct pci_device_id *id)
 {
 	struct resource		res[2];
 	struct platform_device	*dwc2;
@@ -83,7 +84,9 @@ static int dwc2_pci_probe(struct pci_dev *pci,
 	struct dwc2_pci_glue	*glue;
 
 	ret = pcim_enable_device(pci);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to enable pci device\n");
 		return -ENODEV;
 	}
@@ -91,7 +94,9 @@ static int dwc2_pci_probe(struct pci_dev *pci,
 	pci_set_master(pci);
 
 	dwc2 = platform_device_alloc("dwc2", PLATFORM_DEVID_AUTO);
-	if (!dwc2) {
+
+	if (!dwc2)
+	{
 		dev_err(dev, "couldn't allocate dwc2 device\n");
 		return -ENOMEM;
 	}
@@ -108,7 +113,9 @@ static int dwc2_pci_probe(struct pci_dev *pci,
 	res[1].flags	= IORESOURCE_IRQ;
 
 	ret = platform_device_add_resources(dwc2, res, ARRAY_SIZE(res));
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "couldn't add resources to dwc2 device\n");
 		return ret;
 	}
@@ -116,21 +123,28 @@ static int dwc2_pci_probe(struct pci_dev *pci,
 	dwc2->dev.parent = dev;
 
 	phy = usb_phy_generic_register();
-	if (IS_ERR(phy)) {
+
+	if (IS_ERR(phy))
+	{
 		dev_err(dev, "error registering generic PHY (%ld)\n",
-			PTR_ERR(phy));
+				PTR_ERR(phy));
 		return PTR_ERR(phy);
 	}
 
 	ret = platform_device_add(dwc2);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to register dwc2 device\n");
 		goto err;
 	}
 
 	glue = kzalloc(sizeof(*glue), GFP_KERNEL);
+
 	if (!glue)
+	{
 		return -ENOMEM;
+	}
 
 	glue->phy = phy;
 	glue->dwc2 = dwc2;
@@ -143,19 +157,21 @@ err:
 	return ret;
 }
 
-static const struct pci_device_id dwc2_pci_ids[] = {
+static const struct pci_device_id dwc2_pci_ids[] =
+{
 	{
 		PCI_DEVICE(PCI_VENDOR_ID_SYNOPSYS, PCI_PRODUCT_ID_HAPS_HSOTG),
 	},
 	{
 		PCI_DEVICE(PCI_VENDOR_ID_STMICRO,
-			   PCI_DEVICE_ID_STMICRO_USB_OTG),
+		PCI_DEVICE_ID_STMICRO_USB_OTG),
 	},
 	{ /* end: all zeroes */ }
 };
 MODULE_DEVICE_TABLE(pci, dwc2_pci_ids);
 
-static struct pci_driver dwc2_pci_driver = {
+static struct pci_driver dwc2_pci_driver =
+{
 	.name = dwc2_driver_name,
 	.id_table = dwc2_pci_ids,
 	.probe = dwc2_pci_probe,

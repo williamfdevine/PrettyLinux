@@ -34,14 +34,15 @@
  * @fb: drm framebuffer obejct.
  * @exynos_gem: array of exynos specific gem object containing a gem object.
  */
-struct exynos_drm_fb {
+struct exynos_drm_fb
+{
 	struct drm_framebuffer	fb;
 	struct exynos_drm_gem	*exynos_gem[MAX_FB_BUFFER];
 	dma_addr_t			dma_addr[MAX_FB_BUFFER];
 };
 
 static int check_fb_gem_memory_type(struct drm_device *drm_dev,
-				    struct exynos_drm_gem *exynos_gem)
+									struct exynos_drm_gem *exynos_gem)
 {
 	unsigned int flags;
 
@@ -50,7 +51,9 @@ static int check_fb_gem_memory_type(struct drm_device *drm_dev,
 	 * all the buffer types.
 	 */
 	if (is_drm_iommu_supported(drm_dev))
+	{
 		return 0;
+	}
 
 	flags = exynos_gem->flags;
 
@@ -58,7 +61,8 @@ static int check_fb_gem_memory_type(struct drm_device *drm_dev,
 	 * Physically non-contiguous memory type for framebuffer is not
 	 * supported without IOMMU.
 	 */
-	if (IS_NONCONTIG_BUFFER(flags)) {
+	if (IS_NONCONTIG_BUFFER(flags))
+	{
 		DRM_ERROR("Non-contiguous GEM memory is not supported.\n");
 		return -EINVAL;
 	}
@@ -73,11 +77,14 @@ static void exynos_drm_fb_destroy(struct drm_framebuffer *fb)
 
 	drm_framebuffer_cleanup(fb);
 
-	for (i = 0; i < ARRAY_SIZE(exynos_fb->exynos_gem); i++) {
+	for (i = 0; i < ARRAY_SIZE(exynos_fb->exynos_gem); i++)
+	{
 		struct drm_gem_object *obj;
 
 		if (exynos_fb->exynos_gem[i] == NULL)
+		{
 			continue;
+		}
 
 		obj = &exynos_fb->exynos_gem[i]->base;
 		drm_gem_object_unreference_unlocked(obj);
@@ -88,48 +95,58 @@ static void exynos_drm_fb_destroy(struct drm_framebuffer *fb)
 }
 
 static int exynos_drm_fb_create_handle(struct drm_framebuffer *fb,
-					struct drm_file *file_priv,
-					unsigned int *handle)
+									   struct drm_file *file_priv,
+									   unsigned int *handle)
 {
 	struct exynos_drm_fb *exynos_fb = to_exynos_fb(fb);
 
 	return drm_gem_handle_create(file_priv,
-				     &exynos_fb->exynos_gem[0]->base, handle);
+								 &exynos_fb->exynos_gem[0]->base, handle);
 }
 
-static const struct drm_framebuffer_funcs exynos_drm_fb_funcs = {
+static const struct drm_framebuffer_funcs exynos_drm_fb_funcs =
+{
 	.destroy	= exynos_drm_fb_destroy,
 	.create_handle	= exynos_drm_fb_create_handle,
 };
 
 struct drm_framebuffer *
 exynos_drm_framebuffer_init(struct drm_device *dev,
-			    const struct drm_mode_fb_cmd2 *mode_cmd,
-			    struct exynos_drm_gem **exynos_gem,
-			    int count)
+							const struct drm_mode_fb_cmd2 *mode_cmd,
+							struct exynos_drm_gem **exynos_gem,
+							int count)
 {
 	struct exynos_drm_fb *exynos_fb;
 	int i;
 	int ret;
 
 	exynos_fb = kzalloc(sizeof(*exynos_fb), GFP_KERNEL);
-	if (!exynos_fb)
-		return ERR_PTR(-ENOMEM);
 
-	for (i = 0; i < count; i++) {
+	if (!exynos_fb)
+	{
+		return ERR_PTR(-ENOMEM);
+	}
+
+	for (i = 0; i < count; i++)
+	{
 		ret = check_fb_gem_memory_type(dev, exynos_gem[i]);
+
 		if (ret < 0)
+		{
 			goto err;
+		}
 
 		exynos_fb->exynos_gem[i] = exynos_gem[i];
 		exynos_fb->dma_addr[i] = exynos_gem[i]->dma_addr
-						+ mode_cmd->offsets[i];
+								 + mode_cmd->offsets[i];
 	}
 
 	drm_helper_mode_fill_fb_struct(&exynos_fb->fb, mode_cmd);
 
 	ret = drm_framebuffer_init(dev, &exynos_fb->fb, &exynos_drm_fb_funcs);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		DRM_ERROR("failed to initialize framebuffer\n");
 		goto err;
 	}
@@ -143,7 +160,7 @@ err:
 
 static struct drm_framebuffer *
 exynos_user_fb_create(struct drm_device *dev, struct drm_file *file_priv,
-		      const struct drm_mode_fb_cmd2 *mode_cmd)
+					  const struct drm_mode_fb_cmd2 *mode_cmd)
 {
 	struct exynos_drm_gem *exynos_gem[MAX_FB_BUFFER];
 	struct drm_gem_object *obj;
@@ -151,9 +168,12 @@ exynos_user_fb_create(struct drm_device *dev, struct drm_file *file_priv,
 	int i;
 	int ret;
 
-	for (i = 0; i < drm_format_num_planes(mode_cmd->pixel_format); i++) {
+	for (i = 0; i < drm_format_num_planes(mode_cmd->pixel_format); i++)
+	{
 		obj = drm_gem_object_lookup(file_priv, mode_cmd->handles[i]);
-		if (!obj) {
+
+		if (!obj)
+		{
 			DRM_ERROR("failed to lookup gem object\n");
 			ret = -ENOENT;
 			goto err;
@@ -163,7 +183,9 @@ exynos_user_fb_create(struct drm_device *dev, struct drm_file *file_priv,
 	}
 
 	fb = exynos_drm_framebuffer_init(dev, mode_cmd, exynos_gem, i);
-	if (IS_ERR(fb)) {
+
+	if (IS_ERR(fb))
+	{
 		ret = PTR_ERR(fb);
 		goto err;
 	}
@@ -171,8 +193,11 @@ exynos_user_fb_create(struct drm_device *dev, struct drm_file *file_priv,
 	return fb;
 
 err:
+
 	while (i--)
+	{
 		drm_gem_object_unreference_unlocked(&exynos_gem[i]->base);
+	}
 
 	return ERR_PTR(ret);
 }
@@ -182,12 +207,15 @@ dma_addr_t exynos_drm_fb_dma_addr(struct drm_framebuffer *fb, int index)
 	struct exynos_drm_fb *exynos_fb = to_exynos_fb(fb);
 
 	if (index >= MAX_FB_BUFFER)
+	{
 		return DMA_ERROR_CODE;
+	}
 
 	return exynos_fb->dma_addr[index];
 }
 
-static const struct drm_mode_config_funcs exynos_drm_mode_config_funcs = {
+static const struct drm_mode_config_funcs exynos_drm_mode_config_funcs =
+{
 	.fb_create = exynos_user_fb_create,
 	.output_poll_changed = exynos_drm_output_poll_changed,
 	.atomic_check = exynos_atomic_check,

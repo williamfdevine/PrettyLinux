@@ -15,17 +15,19 @@
 #include <linux/slab.h>
 
 static unsigned long __get_mult(struct clk_multiplier *mult,
-				unsigned long rate,
-				unsigned long parent_rate)
+								unsigned long rate,
+								unsigned long parent_rate)
 {
 	if (mult->flags & CLK_MULTIPLIER_ROUND_CLOSEST)
+	{
 		return DIV_ROUND_CLOSEST(rate, parent_rate);
+	}
 
 	return rate / parent_rate;
 }
 
 static unsigned long clk_multiplier_recalc_rate(struct clk_hw *hw,
-						unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct clk_multiplier *mult = to_clk_multiplier(hw);
 	unsigned long val;
@@ -34,23 +36,27 @@ static unsigned long clk_multiplier_recalc_rate(struct clk_hw *hw,
 	val &= GENMASK(mult->width - 1, 0);
 
 	if (!val && mult->flags & CLK_MULTIPLIER_ZERO_BYPASS)
+	{
 		val = 1;
+	}
 
 	return parent_rate * val;
 }
 
 static bool __is_best_rate(unsigned long rate, unsigned long new,
-			   unsigned long best, unsigned long flags)
+						   unsigned long best, unsigned long flags)
 {
 	if (flags & CLK_MULTIPLIER_ROUND_CLOSEST)
+	{
 		return abs(rate - new) < abs(rate - best);
+	}
 
-	return new >= rate && new < best;
+	return new >= rate &&new < best;
 }
 
 static unsigned long __bestmult(struct clk_hw *hw, unsigned long rate,
-				unsigned long *best_parent_rate,
-				u8 width, unsigned long flags)
+								unsigned long *best_parent_rate,
+								u8 width, unsigned long flags)
 {
 	struct clk_multiplier *mult = to_clk_multiplier(hw);
 	unsigned long orig_parent_rate = *best_parent_rate;
@@ -58,23 +64,30 @@ static unsigned long __bestmult(struct clk_hw *hw, unsigned long rate,
 	unsigned int i, bestmult = 0;
 	unsigned int maxmult = (1 << width) - 1;
 
-	if (!(clk_hw_get_flags(hw) & CLK_SET_RATE_PARENT)) {
+	if (!(clk_hw_get_flags(hw) & CLK_SET_RATE_PARENT))
+	{
 		bestmult = rate / orig_parent_rate;
 
 		/* Make sure we don't end up with a 0 multiplier */
 		if ((bestmult == 0) &&
-		    !(mult->flags & CLK_MULTIPLIER_ZERO_BYPASS))
+			!(mult->flags & CLK_MULTIPLIER_ZERO_BYPASS))
+		{
 			bestmult = 1;
+		}
 
 		/* Make sure we don't overflow the multiplier */
 		if (bestmult > maxmult)
+		{
 			bestmult = maxmult;
+		}
 
 		return bestmult;
 	}
 
-	for (i = 1; i < maxmult; i++) {
-		if (rate == orig_parent_rate * i) {
+	for (i = 1; i < maxmult; i++)
+	{
+		if (rate == orig_parent_rate * i)
+		{
 			/*
 			 * This is the best case for us if we have a
 			 * perfect match without changing the parent
@@ -85,10 +98,11 @@ static unsigned long __bestmult(struct clk_hw *hw, unsigned long rate,
 		}
 
 		parent_rate = clk_hw_round_rate(clk_hw_get_parent(hw),
-						rate / i);
+										rate / i);
 		current_rate = parent_rate * i;
 
-		if (__is_best_rate(rate, current_rate, best_rate, flags)) {
+		if (__is_best_rate(rate, current_rate, best_rate, flags))
+		{
 			bestmult = i;
 			best_rate = current_rate;
 			*best_parent_rate = parent_rate;
@@ -99,17 +113,17 @@ static unsigned long __bestmult(struct clk_hw *hw, unsigned long rate,
 }
 
 static long clk_multiplier_round_rate(struct clk_hw *hw, unsigned long rate,
-				  unsigned long *parent_rate)
+									  unsigned long *parent_rate)
 {
 	struct clk_multiplier *mult = to_clk_multiplier(hw);
 	unsigned long factor = __bestmult(hw, rate, parent_rate,
-					  mult->width, mult->flags);
+									  mult->width, mult->flags);
 
 	return *parent_rate * factor;
 }
 
 static int clk_multiplier_set_rate(struct clk_hw *hw, unsigned long rate,
-			       unsigned long parent_rate)
+								   unsigned long parent_rate)
 {
 	struct clk_multiplier *mult = to_clk_multiplier(hw);
 	unsigned long factor = __get_mult(mult, rate, parent_rate);
@@ -117,9 +131,13 @@ static int clk_multiplier_set_rate(struct clk_hw *hw, unsigned long rate,
 	unsigned long val;
 
 	if (mult->lock)
+	{
 		spin_lock_irqsave(mult->lock, flags);
+	}
 	else
+	{
 		__acquire(mult->lock);
+	}
 
 	val = clk_readl(mult->reg);
 	val &= ~GENMASK(mult->width + mult->shift - 1, mult->shift);
@@ -127,14 +145,19 @@ static int clk_multiplier_set_rate(struct clk_hw *hw, unsigned long rate,
 	clk_writel(val, mult->reg);
 
 	if (mult->lock)
+	{
 		spin_unlock_irqrestore(mult->lock, flags);
+	}
 	else
+	{
 		__release(mult->lock);
+	}
 
 	return 0;
 }
 
-const struct clk_ops clk_multiplier_ops = {
+const struct clk_ops clk_multiplier_ops =
+{
 	.recalc_rate	= clk_multiplier_recalc_rate,
 	.round_rate	= clk_multiplier_round_rate,
 	.set_rate	= clk_multiplier_set_rate,

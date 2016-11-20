@@ -26,35 +26,41 @@
 #include "af9033.h"
 #include <linux/math64.h>
 
-struct reg_val {
+struct reg_val
+{
 	u32 reg;
 	u8  val;
 };
 
-struct reg_val_mask {
+struct reg_val_mask
+{
 	u32 reg;
 	u8  val;
 	u8  mask;
 };
 
-struct coeff {
+struct coeff
+{
 	u32 clock;
 	u32 bandwidth_hz;
 	u8 val[36];
 };
 
-struct clock_adc {
+struct clock_adc
+{
 	u32 clock;
 	u32 adc;
 };
 
-struct val_snr {
+struct val_snr
+{
 	u32 val;
 	u8 snr;
 };
 
 /* Xtal clock vs. ADC clock lookup table */
-static const struct clock_adc clock_adc_lut[] = {
+static const struct clock_adc clock_adc_lut[] =
+{
 	{ 16384000, 20480000 },
 	{ 20480000, 20480000 },
 	{ 36000000, 20250000 },
@@ -69,30 +75,38 @@ static const struct clock_adc clock_adc_lut[] = {
 };
 
 /* pre-calculated coeff lookup table */
-static const struct coeff coeff_lut[] = {
+static const struct coeff coeff_lut[] =
+{
 	/* 12.000 MHz */
-	{ 12000000, 8000000, {
-		0x01, 0xce, 0x55, 0xc9, 0x00, 0xe7, 0x2a, 0xe4, 0x00, 0x73,
-		0x99, 0x0f, 0x00, 0x73, 0x95, 0x72, 0x00, 0x73, 0x91, 0xd5,
-		0x00, 0x39, 0xca, 0xb9, 0x00, 0xe7, 0x2a, 0xe4, 0x00, 0x73,
-		0x95, 0x72, 0x37, 0x02, 0xce, 0x01 }
+	{
+		12000000, 8000000, {
+			0x01, 0xce, 0x55, 0xc9, 0x00, 0xe7, 0x2a, 0xe4, 0x00, 0x73,
+			0x99, 0x0f, 0x00, 0x73, 0x95, 0x72, 0x00, 0x73, 0x91, 0xd5,
+			0x00, 0x39, 0xca, 0xb9, 0x00, 0xe7, 0x2a, 0xe4, 0x00, 0x73,
+			0x95, 0x72, 0x37, 0x02, 0xce, 0x01
+		}
 	},
-	{ 12000000, 7000000, {
-		0x01, 0x94, 0x8b, 0x10, 0x00, 0xca, 0x45, 0x88, 0x00, 0x65,
-		0x25, 0xed, 0x00, 0x65, 0x22, 0xc4, 0x00, 0x65, 0x1f, 0x9b,
-		0x00, 0x32, 0x91, 0x62, 0x00, 0xca, 0x45, 0x88, 0x00, 0x65,
-		0x22, 0xc4, 0x88, 0x02, 0x95, 0x01 }
+	{
+		12000000, 7000000, {
+			0x01, 0x94, 0x8b, 0x10, 0x00, 0xca, 0x45, 0x88, 0x00, 0x65,
+			0x25, 0xed, 0x00, 0x65, 0x22, 0xc4, 0x00, 0x65, 0x1f, 0x9b,
+			0x00, 0x32, 0x91, 0x62, 0x00, 0xca, 0x45, 0x88, 0x00, 0x65,
+			0x22, 0xc4, 0x88, 0x02, 0x95, 0x01
+		}
 	},
-	{ 12000000, 6000000, {
-		0x01, 0x5a, 0xc0, 0x56, 0x00, 0xad, 0x60, 0x2b, 0x00, 0x56,
-		0xb2, 0xcb, 0x00, 0x56, 0xb0, 0x15, 0x00, 0x56, 0xad, 0x60,
-		0x00, 0x2b, 0x58, 0x0b, 0x00, 0xad, 0x60, 0x2b, 0x00, 0x56,
-		0xb0, 0x15, 0xf4, 0x02, 0x5b, 0x01 }
+	{
+		12000000, 6000000, {
+			0x01, 0x5a, 0xc0, 0x56, 0x00, 0xad, 0x60, 0x2b, 0x00, 0x56,
+			0xb2, 0xcb, 0x00, 0x56, 0xb0, 0x15, 0x00, 0x56, 0xad, 0x60,
+			0x00, 0x2b, 0x58, 0x0b, 0x00, 0xad, 0x60, 0x2b, 0x00, 0x56,
+			0xb0, 0x15, 0xf4, 0x02, 0x5b, 0x01
+		}
 	},
 };
 
 /* QPSK SNR lookup table */
-static const struct val_snr qpsk_snr_lut[] = {
+static const struct val_snr qpsk_snr_lut[] =
+{
 	{ 0x0b4771,  0 },
 	{ 0x0c1aed,  1 },
 	{ 0x0d0d27,  2 },
@@ -120,7 +134,8 @@ static const struct val_snr qpsk_snr_lut[] = {
 };
 
 /* QAM16 SNR lookup table */
-static const struct val_snr qam16_snr_lut[] = {
+static const struct val_snr qam16_snr_lut[] =
+{
 	{ 0x04f0d5,  0 },
 	{ 0x05387a,  1 },
 	{ 0x0573a4,  2 },
@@ -151,7 +166,8 @@ static const struct val_snr qam16_snr_lut[] = {
 };
 
 /* QAM64 SNR lookup table */
-static const struct val_snr qam64_snr_lut[] = {
+static const struct val_snr qam64_snr_lut[] =
+{
 	{ 0x0256d0,  0 },
 	{ 0x027a65,  1 },
 	{ 0x029873,  2 },
@@ -187,7 +203,8 @@ static const struct val_snr qam64_snr_lut[] = {
 	{ 0xffffff, 32 },
 };
 
-static const struct reg_val ofsm_init[] = {
+static const struct reg_val ofsm_init[] =
+{
 	{ 0x800051, 0x01 },
 	{ 0x800070, 0x0a },
 	{ 0x80007e, 0x04 },
@@ -300,7 +317,8 @@ static const struct reg_val ofsm_init[] = {
 
 /* Infineon TUA 9001 tuner init
    AF9033_TUNER_TUA9001    = 0x27 */
-static const struct reg_val tuner_init_tua9001[] = {
+static const struct reg_val tuner_init_tua9001[] =
+{
 	{ 0x800046, 0x27 },
 	{ 0x800057, 0x00 },
 	{ 0x800058, 0x01 },
@@ -342,7 +360,8 @@ static const struct reg_val tuner_init_tua9001[] = {
 
 /* Fitipower fc0011 tuner init
    AF9033_TUNER_FC0011    = 0x28 */
-static const struct reg_val tuner_init_fc0011[] = {
+static const struct reg_val tuner_init_fc0011[] =
+{
 	{ 0x800046, 0x28 },
 	{ 0x800057, 0x00 },
 	{ 0x800058, 0x01 },
@@ -403,7 +422,8 @@ static const struct reg_val tuner_init_fc0011[] = {
 
 /* Fitipower FC0012 tuner init
    AF9033_TUNER_FC0012    = 0x2e */
-static const struct reg_val tuner_init_fc0012[] = {
+static const struct reg_val tuner_init_fc0012[] =
+{
 	{ 0x800046, 0x2e },
 	{ 0x800057, 0x00 },
 	{ 0x800058, 0x01 },
@@ -446,7 +466,8 @@ static const struct reg_val tuner_init_fc0012[] = {
 
 /* MaxLinear MxL5007T tuner init
    AF9033_TUNER_MXL5007T    = 0xa0 */
-static const struct reg_val tuner_init_mxl5007t[] = {
+static const struct reg_val tuner_init_mxl5007t[] =
+{
 	{ 0x800046, 0x1b },
 	{ 0x800057, 0x01 },
 	{ 0x800058, 0x01 },
@@ -481,7 +502,8 @@ static const struct reg_val tuner_init_mxl5007t[] = {
 
 /* NXP TDA 18218HN tuner init
    AF9033_TUNER_TDA18218    = 0xa1 */
-static const struct reg_val tuner_init_tda18218[] = {
+static const struct reg_val tuner_init_tda18218[] =
+{
 	{0x800046, 0xa1},
 	{0x800057, 0x01},
 	{0x800058, 0x01},
@@ -514,7 +536,8 @@ static const struct reg_val tuner_init_tda18218[] = {
 };
 
 /* FCI FC2580 tuner init */
-static const struct reg_val tuner_init_fc2580[] = {
+static const struct reg_val tuner_init_fc2580[] =
+{
 	{ 0x800046, 0x32 },
 	{ 0x800057, 0x01 },
 	{ 0x800058, 0x00 },
@@ -551,7 +574,8 @@ static const struct reg_val tuner_init_fc2580[] = {
 	{ 0x80f1e6, 0x01 },
 };
 
-static const struct reg_val ofsm_init_it9135_v1[] = {
+static const struct reg_val ofsm_init_it9135_v1[] =
+{
 	{ 0x800051, 0x01 },
 	{ 0x800070, 0x0a },
 	{ 0x80007e, 0x04 },
@@ -664,7 +688,8 @@ static const struct reg_val ofsm_init_it9135_v1[] = {
 
 /* ITE Tech IT9135 Omega tuner init
    AF9033_TUNER_IT9135_38   = 0x38 */
-static const struct reg_val tuner_init_it9135_38[] = {
+static const struct reg_val tuner_init_it9135_38[] =
+{
 	{ 0x800043, 0x00 },
 	{ 0x800046, 0x38 },
 	{ 0x800051, 0x01 },
@@ -881,7 +906,8 @@ static const struct reg_val tuner_init_it9135_38[] = {
 
 /* ITE Tech IT9135 Omega LNA config 1 tuner init
    AF9033_TUNER_IT9135_51   = 0x51 */
-static const struct reg_val tuner_init_it9135_51[] = {
+static const struct reg_val tuner_init_it9135_51[] =
+{
 	{ 0x800043, 0x00 },
 	{ 0x800046, 0x51 },
 	{ 0x800051, 0x01 },
@@ -1098,7 +1124,8 @@ static const struct reg_val tuner_init_it9135_51[] = {
 
 /* ITE Tech IT9135 Omega LNA config 2 tuner init
    AF9033_TUNER_IT9135_52   = 0x52 */
-static const struct reg_val tuner_init_it9135_52[] = {
+static const struct reg_val tuner_init_it9135_52[] =
+{
 	{ 0x800043, 0x00 },
 	{ 0x800046, 0x52 },
 	{ 0x800051, 0x01 },
@@ -1313,7 +1340,8 @@ static const struct reg_val tuner_init_it9135_52[] = {
 	{ 0x80fd8b, 0x00 },
 };
 
-static const struct reg_val ofsm_init_it9135_v2[] = {
+static const struct reg_val ofsm_init_it9135_v2[] =
+{
 	{ 0x800051, 0x01 },
 	{ 0x800070, 0x0a },
 	{ 0x80007e, 0x04 },
@@ -1413,7 +1441,8 @@ static const struct reg_val ofsm_init_it9135_v2[] = {
 
 /* ITE Tech IT9135 Omega v2 tuner init
    AF9033_TUNER_IT9135_60   = 0x60 */
-static const struct reg_val tuner_init_it9135_60[] = {
+static const struct reg_val tuner_init_it9135_60[] =
+{
 	{ 0x800043, 0x00 },
 	{ 0x800046, 0x60 },
 	{ 0x800051, 0x01 },
@@ -1627,7 +1656,8 @@ static const struct reg_val tuner_init_it9135_60[] = {
 
 /* ITE Tech IT9135 Omega v2 LNA config 1 tuner init
    AF9033_TUNER_IT9135_61   = 0x61 */
-static const struct reg_val tuner_init_it9135_61[] = {
+static const struct reg_val tuner_init_it9135_61[] =
+{
 	{ 0x800043, 0x00 },
 	{ 0x800046, 0x61 },
 	{ 0x800051, 0x01 },
@@ -1841,7 +1871,8 @@ static const struct reg_val tuner_init_it9135_61[] = {
 
 /* ITE Tech IT9135 Omega v2 LNA config 2 tuner init
    AF9033_TUNER_IT9135_62   = 0x62 */
-static const struct reg_val tuner_init_it9135_62[] = {
+static const struct reg_val tuner_init_it9135_62[] =
+{
 	{ 0x800043, 0x00 },
 	{ 0x800046, 0x62 },
 	{ 0x800051, 0x01 },
@@ -2055,9 +2086,10 @@ static const struct reg_val tuner_init_it9135_62[] = {
 };
 
 /* NorDig power reference table */
-static const int power_reference[][5] = {
-	{-93, -91, -90, -89, -88}, /* QPSK 1/2 ~ 7/8 */
-	{-87, -85, -84, -83, -82}, /* 16QAM 1/2 ~ 7/8 */
-	{-82, -80, -78, -77, -76}, /* 64QAM 1/2 ~ 7/8 */
+static const int power_reference[][5] =
+{
+	{ -93, -91, -90, -89, -88}, /* QPSK 1/2 ~ 7/8 */
+	{ -87, -85, -84, -83, -82}, /* 16QAM 1/2 ~ 7/8 */
+	{ -82, -80, -78, -77, -76}, /* 64QAM 1/2 ~ 7/8 */
 };
 #endif /* AF9033_PRIV_H */

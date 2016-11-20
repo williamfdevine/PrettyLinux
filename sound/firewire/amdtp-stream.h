@@ -30,7 +30,8 @@
  *	packet is larger than IEC 61883-6 defines. Current implementation
  *	allows 5 times as large as IEC 61883-6 defines.
  */
-enum cip_flags {
+enum cip_flags
+{
 	CIP_NONBLOCKING		= 0x00,
 	CIP_BLOCKING		= 0x01,
 	CIP_EMPTY_WITH_TAG0	= 0x02,
@@ -64,7 +65,8 @@ enum cip_flags {
  *
  * Currently our implementation is compatible with IEC 61883-6:2002.
  */
-enum cip_sfc {
+enum cip_sfc
+{
 	CIP_SFC_32000  = 0,
 	CIP_SFC_44100  = 1,
 	CIP_SFC_48000  = 2,
@@ -80,18 +82,20 @@ struct fw_iso_context;
 struct snd_pcm_substream;
 struct snd_pcm_runtime;
 
-enum amdtp_stream_direction {
+enum amdtp_stream_direction
+{
 	AMDTP_OUT_STREAM = 0,
 	AMDTP_IN_STREAM
 };
 
 struct amdtp_stream;
 typedef unsigned int (*amdtp_stream_process_data_blocks_t)(
-						struct amdtp_stream *s,
-						__be32 *buffer,
-						unsigned int data_blocks,
-						unsigned int *syt);
-struct amdtp_stream {
+	struct amdtp_stream *s,
+	__be32 *buffer,
+	unsigned int data_blocks,
+	unsigned int *syt);
+struct amdtp_stream
+{
 	struct fw_unit *unit;
 	enum cip_flags flags;
 	enum amdtp_stream_direction direction;
@@ -137,14 +141,14 @@ struct amdtp_stream {
 };
 
 int amdtp_stream_init(struct amdtp_stream *s, struct fw_unit *unit,
-		      enum amdtp_stream_direction dir, enum cip_flags flags,
-		      unsigned int fmt,
-		      amdtp_stream_process_data_blocks_t process_data_blocks,
-		      unsigned int protocol_size);
+					  enum amdtp_stream_direction dir, enum cip_flags flags,
+					  unsigned int fmt,
+					  amdtp_stream_process_data_blocks_t process_data_blocks,
+					  unsigned int protocol_size);
 void amdtp_stream_destroy(struct amdtp_stream *s);
 
 int amdtp_stream_set_parameters(struct amdtp_stream *s, unsigned int rate,
-				unsigned int data_block_quadlets);
+								unsigned int data_block_quadlets);
 unsigned int amdtp_stream_get_max_payload(struct amdtp_stream *s);
 
 int amdtp_stream_start(struct amdtp_stream *s, int channel, int speed);
@@ -152,7 +156,7 @@ void amdtp_stream_update(struct amdtp_stream *s);
 void amdtp_stream_stop(struct amdtp_stream *s);
 
 int amdtp_stream_add_pcm_hw_constraints(struct amdtp_stream *s,
-					struct snd_pcm_runtime *runtime);
+										struct snd_pcm_runtime *runtime);
 
 void amdtp_stream_pcm_prepare(struct amdtp_stream *s);
 unsigned long amdtp_stream_pcm_pointer(struct amdtp_stream *s);
@@ -205,7 +209,7 @@ static inline bool amdtp_stream_pcm_running(struct amdtp_stream *s)
  * device's .trigger callback.
  */
 static inline void amdtp_stream_pcm_trigger(struct amdtp_stream *s,
-					    struct snd_pcm_substream *pcm)
+		struct snd_pcm_substream *pcm)
 {
 	ACCESS_ONCE(s->pcm) = pcm;
 }
@@ -223,11 +227,11 @@ static inline bool cip_sfc_is_base_44100(enum cip_sfc sfc)
  * If this function return false, the AMDTP stream should be stopped.
  */
 static inline bool amdtp_stream_wait_callback(struct amdtp_stream *s,
-					      unsigned int timeout)
+		unsigned int timeout)
 {
 	return wait_event_timeout(s->callback_wait,
-				  s->callbacked == true,
-				  msecs_to_jiffies(timeout)) > 0;
+							  s->callbacked == true,
+							  msecs_to_jiffies(timeout)) > 0;
 }
 
 #endif

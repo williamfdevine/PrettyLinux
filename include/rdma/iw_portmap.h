@@ -38,7 +38,8 @@
 #define IWPM_IFNAME_SIZE	16
 #define IWPM_IPADDR_SIZE	16
 
-enum {
+enum
+{
 	IWPM_INVALID_NLMSG_ERR = 10,
 	IWPM_CREATE_MAPPING_ERR,
 	IWPM_DUPLICATE_MAPPING_ERR,
@@ -48,12 +49,14 @@ enum {
 	IWPM_REMOTE_QUERY_REJECT
 };
 
-struct iwpm_dev_data {
+struct iwpm_dev_data
+{
 	char dev_name[IWPM_DEVNAME_SIZE];
 	char if_name[IWPM_IFNAME_SIZE];
 };
 
-struct iwpm_sa_data {
+struct iwpm_sa_data
+{
 	struct sockaddr_storage loc_addr;
 	struct sockaddr_storage mapped_loc_addr;
 	struct sockaddr_storage rem_addr;
@@ -196,8 +199,8 @@ int iwpm_ack_mapping_info_cb(struct sk_buff *, struct netlink_callback *);
  * the remote_addr. After that it is removed from the hash table
  */
 int iwpm_get_remote_info(struct sockaddr_storage *mapped_loc_addr,
-			struct sockaddr_storage *mapped_rem_addr,
-			struct sockaddr_storage *remote_addr, u8 nl_client);
+						 struct sockaddr_storage *mapped_rem_addr,
+						 struct sockaddr_storage *remote_addr, u8 nl_client);
 
 /**
  * iwpm_create_mapinfo - Store local and mapped IPv4/IPv6 address
@@ -207,7 +210,7 @@ int iwpm_get_remote_info(struct sockaddr_storage *mapped_loc_addr,
  * @nl_client: The index of the netlink client
  */
 int iwpm_create_mapinfo(struct sockaddr_storage *local_addr,
-			struct sockaddr_storage *mapped_addr, u8 nl_client);
+						struct sockaddr_storage *mapped_addr, u8 nl_client);
 
 /**
  * iwpm_remove_mapinfo - Remove local and mapped IPv4/IPv6 address
@@ -219,6 +222,6 @@ int iwpm_create_mapinfo(struct sockaddr_storage *local_addr,
  * otherwise returns 0
  */
 int iwpm_remove_mapinfo(struct sockaddr_storage *local_addr,
-			struct sockaddr_storage *mapped_addr);
+						struct sockaddr_storage *mapped_addr);
 
 #endif /* _IW_PORTMAP_H */

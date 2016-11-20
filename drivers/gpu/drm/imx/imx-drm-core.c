@@ -34,12 +34,14 @@
 
 #define MAX_CRTC	4
 
-struct imx_drm_component {
+struct imx_drm_component
+{
 	struct device_node *of_node;
 	struct list_head list;
 };
 
-struct imx_drm_device {
+struct imx_drm_device
+{
 	struct drm_device			*drm;
 	struct imx_drm_crtc			*crtc[MAX_CRTC];
 	unsigned int				pipes;
@@ -47,14 +49,15 @@ struct imx_drm_device {
 	struct drm_atomic_state			*state;
 };
 
-struct imx_drm_crtc {
+struct imx_drm_crtc
+{
 	struct drm_crtc				*crtc;
 	struct imx_drm_crtc_helper_funcs	imx_drm_helper_funcs;
 };
 
 #if IS_ENABLED(CONFIG_DRM_FBDEV_EMULATION)
-static int legacyfb_depth = 16;
-module_param(legacyfb_depth, int, 0444);
+	static int legacyfb_depth = 16;
+	module_param(legacyfb_depth, int, 0444);
 #endif
 
 static void imx_drm_driver_lastclose(struct drm_device *drm)
@@ -71,13 +74,17 @@ static int imx_drm_enable_vblank(struct drm_device *drm, unsigned int pipe)
 	int ret;
 
 	if (!imx_drm_crtc)
+	{
 		return -EINVAL;
+	}
 
 	if (!imx_drm_crtc->imx_drm_helper_funcs.enable_vblank)
+	{
 		return -ENOSYS;
+	}
 
 	ret = imx_drm_crtc->imx_drm_helper_funcs.enable_vblank(
-			imx_drm_crtc->crtc);
+			  imx_drm_crtc->crtc);
 
 	return ret;
 }
@@ -88,15 +95,20 @@ static void imx_drm_disable_vblank(struct drm_device *drm, unsigned int pipe)
 	struct imx_drm_crtc *imx_drm_crtc = imxdrm->crtc[pipe];
 
 	if (!imx_drm_crtc)
+	{
 		return;
+	}
 
 	if (!imx_drm_crtc->imx_drm_helper_funcs.disable_vblank)
+	{
 		return;
+	}
 
 	imx_drm_crtc->imx_drm_helper_funcs.disable_vblank(imx_drm_crtc->crtc);
 }
 
-static const struct file_operations imx_drm_driver_fops = {
+static const struct file_operations imx_drm_driver_fops =
+{
 	.owner = THIS_MODULE,
 	.open = drm_open,
 	.release = drm_release,
@@ -128,32 +140,41 @@ static void imx_drm_output_poll_changed(struct drm_device *drm)
 }
 
 static int imx_drm_atomic_check(struct drm_device *dev,
-				struct drm_atomic_state *state)
+								struct drm_atomic_state *state)
 {
 	int ret;
 
 	ret = drm_atomic_helper_check_modeset(dev, state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = drm_atomic_helper_check_planes(dev, state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/*
 	 * Check modeset again in case crtc_state->mode_changed is
 	 * updated in plane's ->atomic_check callback.
 	 */
 	ret = drm_atomic_helper_check_modeset(dev, state);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return ret;
 }
 
 static int imx_drm_atomic_commit(struct drm_device *dev,
-				 struct drm_atomic_state *state,
-				 bool nonblock)
+								 struct drm_atomic_state *state,
+								 bool nonblock)
 {
 	struct drm_plane_state *plane_state;
 	struct drm_plane *plane;
@@ -164,12 +185,18 @@ static int imx_drm_atomic_commit(struct drm_device *dev,
 	 * If the plane fb has an dma-buf attached, fish out the exclusive
 	 * fence for the atomic helper to wait on.
 	 */
-	for_each_plane_in_state(state, plane, plane_state, i) {
-		if ((plane->state->fb != plane_state->fb) && plane_state->fb) {
+	for_each_plane_in_state(state, plane, plane_state, i)
+	{
+		if ((plane->state->fb != plane_state->fb) && plane_state->fb)
+		{
 			dma_buf = drm_fb_cma_get_gem_obj(plane_state->fb,
-							 0)->base.dma_buf;
+											 0)->base.dma_buf;
+
 			if (!dma_buf)
+			{
 				continue;
+			}
+
 			plane_state->fence =
 				reservation_object_get_excl_rcu(dma_buf->resv);
 		}
@@ -178,7 +205,8 @@ static int imx_drm_atomic_commit(struct drm_device *dev,
 	return drm_atomic_helper_commit(dev, state, nonblock);
 }
 
-static const struct drm_mode_config_funcs imx_drm_mode_config_funcs = {
+static const struct drm_mode_config_funcs imx_drm_mode_config_funcs =
+{
 	.fb_create = drm_fb_cma_create,
 	.output_poll_changed = imx_drm_output_poll_changed,
 	.atomic_check = imx_drm_atomic_check,
@@ -192,8 +220,8 @@ static void imx_drm_atomic_commit_tail(struct drm_atomic_state *state)
 	drm_atomic_helper_commit_modeset_disables(dev, state);
 
 	drm_atomic_helper_commit_planes(dev, state,
-				DRM_PLANE_COMMIT_ACTIVE_ONLY |
-				DRM_PLANE_COMMIT_NO_DISABLE_AFTER_MODESET);
+									DRM_PLANE_COMMIT_ACTIVE_ONLY |
+									DRM_PLANE_COMMIT_NO_DISABLE_AFTER_MODESET);
 
 	drm_atomic_helper_commit_modeset_enables(dev, state);
 
@@ -204,7 +232,8 @@ static void imx_drm_atomic_commit_tail(struct drm_atomic_state *state)
 	drm_atomic_helper_cleanup_planes(dev, state);
 }
 
-static struct drm_mode_config_helper_funcs imx_drm_mode_config_helpers = {
+static struct drm_mode_config_helper_funcs imx_drm_mode_config_helpers =
+{
 	.atomic_commit_tail = imx_drm_atomic_commit_tail,
 };
 
@@ -212,9 +241,9 @@ static struct drm_mode_config_helper_funcs imx_drm_mode_config_helpers = {
  * imx_drm_add_crtc - add a new crtc
  */
 int imx_drm_add_crtc(struct drm_device *drm, struct drm_crtc *crtc,
-		struct imx_drm_crtc **new_crtc, struct drm_plane *primary_plane,
-		const struct imx_drm_crtc_helper_funcs *imx_drm_helper_funcs,
-		struct device_node *port)
+					 struct imx_drm_crtc **new_crtc, struct drm_plane *primary_plane,
+					 const struct imx_drm_crtc_helper_funcs *imx_drm_helper_funcs,
+					 struct device_node *port)
 {
 	struct imx_drm_device *imxdrm = drm->dev_private;
 	struct imx_drm_crtc *imx_drm_crtc;
@@ -224,14 +253,21 @@ int imx_drm_add_crtc(struct drm_device *drm, struct drm_crtc *crtc,
 	 * pass IDs greater than this to those functions.
 	 */
 	if (imxdrm->pipes >= MAX_CRTC)
+	{
 		return -EINVAL;
+	}
 
 	if (imxdrm->drm->open_count)
+	{
 		return -EBUSY;
+	}
 
 	imx_drm_crtc = kzalloc(sizeof(*imx_drm_crtc), GFP_KERNEL);
+
 	if (!imx_drm_crtc)
+	{
 		return -ENOMEM;
+	}
 
 	imx_drm_crtc->imx_drm_helper_funcs = *imx_drm_helper_funcs;
 	imx_drm_crtc->crtc = crtc;
@@ -243,10 +279,10 @@ int imx_drm_add_crtc(struct drm_device *drm, struct drm_crtc *crtc,
 	*new_crtc = imx_drm_crtc;
 
 	drm_crtc_helper_add(crtc,
-			imx_drm_crtc->imx_drm_helper_funcs.crtc_helper_funcs);
+						imx_drm_crtc->imx_drm_helper_funcs.crtc_helper_funcs);
 
 	drm_crtc_init_with_planes(drm, crtc, primary_plane, NULL,
-			imx_drm_crtc->imx_drm_helper_funcs.crtc_funcs, NULL);
+							  imx_drm_crtc->imx_drm_helper_funcs.crtc_funcs, NULL);
 
 	return 0;
 }
@@ -271,7 +307,7 @@ int imx_drm_remove_crtc(struct imx_drm_crtc *imx_drm_crtc)
 EXPORT_SYMBOL_GPL(imx_drm_remove_crtc);
 
 int imx_drm_encoder_parse_of(struct drm_device *drm,
-	struct drm_encoder *encoder, struct device_node *np)
+							 struct drm_encoder *encoder, struct device_node *np)
 {
 	uint32_t crtc_mask = drm_of_find_possible_crtcs(drm, np);
 
@@ -282,7 +318,9 @@ int imx_drm_encoder_parse_of(struct drm_device *drm,
 	 * the required CRTC is added later.
 	 */
 	if (crtc_mask == 0)
+	{
 		return -EPROBE_DEFER;
+	}
 
 	encoder->possible_crtcs = crtc_mask;
 
@@ -293,13 +331,15 @@ int imx_drm_encoder_parse_of(struct drm_device *drm,
 }
 EXPORT_SYMBOL_GPL(imx_drm_encoder_parse_of);
 
-static const struct drm_ioctl_desc imx_drm_ioctls[] = {
+static const struct drm_ioctl_desc imx_drm_ioctls[] =
+{
 	/* none so far */
 };
 
-static struct drm_driver imx_drm_driver = {
+static struct drm_driver imx_drm_driver =
+{
 	.driver_features	= DRIVER_MODESET | DRIVER_GEM | DRIVER_PRIME |
-				  DRIVER_ATOMIC,
+	DRIVER_ATOMIC,
 	.lastclose		= imx_drm_driver_lastclose,
 	.gem_free_object_unlocked = drm_gem_cma_free_object,
 	.gem_vm_ops		= &drm_gem_cma_vm_ops,
@@ -335,14 +375,16 @@ static int compare_of(struct device *dev, void *data)
 	struct device_node *np = data;
 
 	/* Special case for DI, dev->of_node may not be set yet */
-	if (strcmp(dev->driver->name, "imx-ipuv3-crtc") == 0) {
+	if (strcmp(dev->driver->name, "imx-ipuv3-crtc") == 0)
+	{
 		struct ipu_client_platformdata *pdata = dev->platform_data;
 
 		return pdata->of_node == np;
 	}
 
 	/* Special case for LDB, one device for two channels */
-	if (of_node_cmp(np->name, "lvds-channel") == 0) {
+	if (of_node_cmp(np->name, "lvds-channel") == 0)
+	{
 		np = of_get_parent(np);
 		of_node_put(np);
 	}
@@ -357,11 +399,16 @@ static int imx_drm_bind(struct device *dev)
 	int ret;
 
 	drm = drm_dev_alloc(&imx_drm_driver, dev);
+
 	if (IS_ERR(drm))
+	{
 		return PTR_ERR(drm);
+	}
 
 	imxdrm = devm_kzalloc(dev, sizeof(*imxdrm), GFP_KERNEL);
-	if (!imxdrm) {
+
+	if (!imxdrm)
+	{
 		ret = -ENOMEM;
 		goto err_unref;
 	}
@@ -395,15 +442,21 @@ static int imx_drm_bind(struct device *dev)
 	drm_mode_config_init(drm);
 
 	ret = drm_vblank_init(drm, MAX_CRTC);
+
 	if (ret)
+	{
 		goto err_kms;
+	}
 
 	dev_set_drvdata(dev, drm);
 
 	/* Now try and bind all our sub-components */
 	ret = component_bind_all(dev, drm);
+
 	if (ret)
+	{
 		goto err_vblank;
+	}
 
 	drm_mode_config_reset(drm);
 
@@ -413,32 +466,45 @@ static int imx_drm_bind(struct device *dev)
 	 * crtcs/connectors/encoders must not change after this point.
 	 */
 #if IS_ENABLED(CONFIG_DRM_FBDEV_EMULATION)
-	if (legacyfb_depth != 16 && legacyfb_depth != 32) {
+
+	if (legacyfb_depth != 16 && legacyfb_depth != 32)
+	{
 		dev_warn(dev, "Invalid legacyfb_depth.  Defaulting to 16bpp\n");
 		legacyfb_depth = 16;
 	}
+
 	imxdrm->fbhelper = drm_fbdev_cma_init(drm, legacyfb_depth,
-				drm->mode_config.num_crtc, MAX_CRTC);
-	if (IS_ERR(imxdrm->fbhelper)) {
+										  drm->mode_config.num_crtc, MAX_CRTC);
+
+	if (IS_ERR(imxdrm->fbhelper))
+	{
 		ret = PTR_ERR(imxdrm->fbhelper);
 		imxdrm->fbhelper = NULL;
 		goto err_unbind;
 	}
+
 #endif
 
 	drm_kms_helper_poll_init(drm);
 
 	ret = drm_dev_register(drm, 0);
+
 	if (ret)
+	{
 		goto err_fbhelper;
+	}
 
 	return 0;
 
 err_fbhelper:
 	drm_kms_helper_poll_fini(drm);
 #if IS_ENABLED(CONFIG_DRM_FBDEV_EMULATION)
+
 	if (imxdrm->fbhelper)
+	{
 		drm_fbdev_cma_fini(imxdrm->fbhelper);
+	}
+
 err_unbind:
 #endif
 	component_unbind_all(drm->dev, drm);
@@ -462,7 +528,9 @@ static void imx_drm_unbind(struct device *dev)
 	drm_kms_helper_poll_fini(drm);
 
 	if (imxdrm->fbhelper)
+	{
 		drm_fbdev_cma_fini(imxdrm->fbhelper);
+	}
 
 	drm_mode_config_cleanup(drm);
 
@@ -472,7 +540,8 @@ static void imx_drm_unbind(struct device *dev)
 	drm_dev_unref(drm);
 }
 
-static const struct component_master_ops imx_drm_ops = {
+static const struct component_master_ops imx_drm_ops =
+{
 	.bind = imx_drm_bind,
 	.unbind = imx_drm_unbind,
 };
@@ -482,7 +551,9 @@ static int imx_drm_platform_probe(struct platform_device *pdev)
 	int ret = drm_of_component_probe(&pdev->dev, compare_of, &imx_drm_ops);
 
 	if (!ret)
+	{
 		ret = dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(32));
+	}
 
 	return ret;
 }
@@ -501,13 +572,17 @@ static int imx_drm_suspend(struct device *dev)
 
 	/* The drm_dev is NULL before .load hook is called */
 	if (drm_dev == NULL)
+	{
 		return 0;
+	}
 
 	drm_kms_helper_poll_disable(drm_dev);
 
 	imxdrm = drm_dev->dev_private;
 	imxdrm->state = drm_atomic_helper_suspend(drm_dev);
-	if (IS_ERR(imxdrm->state)) {
+
+	if (IS_ERR(imxdrm->state))
+	{
 		drm_kms_helper_poll_enable(drm_dev);
 		return PTR_ERR(imxdrm->state);
 	}
@@ -521,7 +596,9 @@ static int imx_drm_resume(struct device *dev)
 	struct imx_drm_device *imx_drm;
 
 	if (drm_dev == NULL)
+	{
 		return 0;
+	}
 
 	imx_drm = drm_dev->dev_private;
 	drm_atomic_helper_resume(drm_dev, imx_drm->state);
@@ -533,13 +610,15 @@ static int imx_drm_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(imx_drm_pm_ops, imx_drm_suspend, imx_drm_resume);
 
-static const struct of_device_id imx_drm_dt_ids[] = {
+static const struct of_device_id imx_drm_dt_ids[] =
+{
 	{ .compatible = "fsl,imx-display-subsystem", },
 	{ /* sentinel */ },
 };
 MODULE_DEVICE_TABLE(of, imx_drm_dt_ids);
 
-static struct platform_driver imx_drm_pdrv = {
+static struct platform_driver imx_drm_pdrv =
+{
 	.probe		= imx_drm_platform_probe,
 	.remove		= imx_drm_platform_remove,
 	.driver		= {

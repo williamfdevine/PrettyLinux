@@ -10,7 +10,8 @@
 #define PVR2_DVB_BUFFER_COUNT 32
 #define PVR2_DVB_BUFFER_SIZE PAGE_ALIGN(0x4000)
 
-struct pvr2_dvb_adapter {
+struct pvr2_dvb_adapter
+{
 	struct pvr2_channel	channel;
 
 	struct dvb_adapter	dvb_adap;
@@ -25,13 +26,14 @@ struct pvr2_dvb_adapter {
 	struct task_struct	*thread;
 	struct mutex		lock;
 
-	unsigned int		stream_run:1;
+	unsigned int		stream_run: 1;
 
 	wait_queue_head_t	buffer_wait_data;
 	char			*buffer_storage[PVR2_DVB_BUFFER_COUNT];
 };
 
-struct pvr2_dvb_props {
+struct pvr2_dvb_props
+{
 	int (*frontend_attach) (struct pvr2_dvb_adapter *);
 	int (*tuner_attach) (struct pvr2_dvb_adapter *);
 };

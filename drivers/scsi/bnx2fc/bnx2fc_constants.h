@@ -86,11 +86,11 @@
 
 /* E_D_TOV timer default wraparound value (2 sec) in 20 ms resolution */
 #define FCOE_E_D_TOV_DEFAULT_WRAPAROUND_VAL			\
-			(2000 / FCOE_E_D_TOV_TIMER_RESOLUTION_MS)
+	(2000 / FCOE_E_D_TOV_TIMER_RESOLUTION_MS)
 
 /* REC_TOV timer default wraparound value (3 sec) in 20 ms resolution */
 #define FCOE_REC_TOV_DEFAULT_WRAPAROUND_VAL			\
-			(3000 / FCOE_REC_TIMER_RESOLUTION_MS)
+	(3000 / FCOE_REC_TIMER_RESOLUTION_MS)
 
 #define FCOE_NUM_OF_TIMER_TASKS  (8 * 1024)
 
@@ -180,7 +180,7 @@
 
 /* FCoE half of the elements in hash table */
 #define FCOE_HALF_ELEMENTS_IN_HASH_TABLE_ROW			\
-			(FCOE_MAX_ELEMENTS_IN_HASH_TABLE_ROW / 2)
+	(FCOE_MAX_ELEMENTS_IN_HASH_TABLE_ROW / 2)
 
 /* FcoE number of cached T2 entries */
 #define T_FCOE_NUMBER_OF_CACHED_T2_ENTRIES (4)

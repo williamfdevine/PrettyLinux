@@ -1,9 +1,9 @@
 /*
  * 	cn_test.c
- * 
+ *
  * 2004+ Copyright (c) Evgeniy Polyakov <zbr@ioremap.net>
  * All rights reserved.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -38,9 +38,9 @@ static struct timer_list cn_test_timer;
 static void cn_test_callback(struct cn_msg *msg, struct netlink_skb_parms *nsp)
 {
 	pr_info("%s: %lu: idx=%x, val=%x, seq=%u, ack=%u, len=%d: %s.\n",
-	        __func__, jiffies, msg->id.idx, msg->id.val,
-	        msg->seq, msg->ack, msg->len,
-	        msg->len ? (char *)msg->data : "");
+			__func__, jiffies, msg->id.idx, msg->id.val,
+			msg->seq, msg->ack, msg->len,
+			msg->len ? (char *)msg->data : "");
 }
 
 /*
@@ -64,13 +64,17 @@ static int cn_test_want_notify(void)
 	size = NLMSG_SPACE(size0);
 
 	skb = alloc_skb(size, GFP_ATOMIC);
-	if (!skb) {
+
+	if (!skb)
+	{
 		pr_err("failed to allocate new skb with size=%u\n", size);
 		return -ENOMEM;
 	}
 
 	nlh = nlmsg_put(skb, 0, 0x123, NLMSG_DONE, size - sizeof(*nlh), 0);
-	if (!nlh) {
+
+	if (!nlh)
+	{
 		kfree_skb(skb);
 		return -EMSGSIZE;
 	}
@@ -133,15 +137,17 @@ static void cn_test_timer_func(unsigned long __data)
 	pr_debug("%s: timer fired with data %lu\n", __func__, __data);
 
 	m = kzalloc(sizeof(*m) + sizeof(data), GFP_ATOMIC);
-	if (m) {
+
+	if (m)
+	{
 
 		memcpy(&m->id, &cn_test_id, sizeof(m->id));
 		m->seq = cn_test_timer_counter;
 		m->len = sizeof(data);
 
 		m->len =
-		    scnprintf(data, sizeof(data), "counter = %u",
-			      cn_test_timer_counter) + 1;
+			scnprintf(data, sizeof(data), "counter = %u",
+					  cn_test_timer_counter) + 1;
 
 		memcpy(m + 1, data, m->len);
 
@@ -159,11 +165,17 @@ static int cn_test_init(void)
 	int err;
 
 	err = cn_add_callback(&cn_test_id, cn_test_name, cn_test_callback);
+
 	if (err)
+	{
 		goto err_out;
+	}
+
 	cn_test_id.val++;
 	err = cn_add_callback(&cn_test_id, cn_test_name, cn_test_callback);
-	if (err) {
+
+	if (err)
+	{
 		cn_del_callback(&cn_test_id);
 		goto err_out;
 	}
@@ -172,13 +184,16 @@ static int cn_test_init(void)
 	mod_timer(&cn_test_timer, jiffies + msecs_to_jiffies(1000));
 
 	pr_info("initialized with id={%u.%u}\n",
-		cn_test_id.idx, cn_test_id.val);
+			cn_test_id.idx, cn_test_id.val);
 
 	return 0;
 
-      err_out:
+err_out:
+
 	if (nls && nls->sk_socket)
+	{
 		sock_release(nls->sk_socket);
+	}
 
 	return err;
 }
@@ -189,8 +204,11 @@ static void cn_test_fini(void)
 	cn_del_callback(&cn_test_id);
 	cn_test_id.val--;
 	cn_del_callback(&cn_test_id);
+
 	if (nls && nls->sk_socket)
+	{
 		sock_release(nls->sk_socket);
+	}
 }
 
 module_init(cn_test_init);

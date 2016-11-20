@@ -25,7 +25,8 @@
  * @defdcdc_default: Defines whether DCDC high or the low register controls
  *	output voltage by default. Valid for DCDC2 and DCDC3 outputs only.
  */
-struct tps6507x_reg_platform_data {
+struct tps6507x_reg_platform_data
+{
 	bool defdcdc_default;
 };
 

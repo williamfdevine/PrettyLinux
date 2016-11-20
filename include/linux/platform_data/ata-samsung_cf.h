@@ -17,7 +17,8 @@
  * @setup_gpio: Setup the external GPIO pins to the right state for data
  * transfer in true-ide mode.
  */
-struct s3c_ide_platdata {
+struct s3c_ide_platdata
+{
 	void (*setup_gpio)(void);
 };
 

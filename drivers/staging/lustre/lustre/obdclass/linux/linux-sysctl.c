@@ -47,20 +47,22 @@
 #include "../../include/lprocfs_status.h"
 #include "../../include/obd_class.h"
 
-struct static_lustre_uintvalue_attr {
-	struct {
+struct static_lustre_uintvalue_attr
+{
+	struct
+	{
 		struct attribute attr;
 		ssize_t (*show)(struct kobject *kobj, struct attribute *attr,
-				char *buf);
+						char *buf);
 		ssize_t (*store)(struct kobject *kobj, struct attribute *attr,
-				 const char *buf, size_t len);
+						 const char *buf, size_t len);
 	} u;
 	int *value;
 };
 
 static ssize_t static_uintvalue_show(struct kobject *kobj,
-				     struct attribute *attr,
-				     char *buf)
+									 struct attribute *attr,
+									 char *buf)
 {
 	struct static_lustre_uintvalue_attr *lattr = (void *)attr;
 
@@ -68,16 +70,19 @@ static ssize_t static_uintvalue_show(struct kobject *kobj,
 }
 
 static ssize_t static_uintvalue_store(struct kobject *kobj,
-				      struct attribute *attr,
-				      const char *buffer, size_t count)
+									  struct attribute *attr,
+									  const char *buffer, size_t count)
 {
 	struct static_lustre_uintvalue_attr *lattr  = (void *)attr;
 	int rc;
 	unsigned int val;
 
 	rc = kstrtouint(buffer, 10, &val);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	*lattr->value = val;
 
@@ -85,39 +90,44 @@ static ssize_t static_uintvalue_store(struct kobject *kobj,
 }
 
 #define LUSTRE_STATIC_UINT_ATTR(name, value) \
-static struct static_lustre_uintvalue_attr lustre_sattr_##name =	\
-					{__ATTR(name, 0644,		\
-						static_uintvalue_show,	\
-						static_uintvalue_store),\
-					  value }
+	static struct static_lustre_uintvalue_attr lustre_sattr_##name =	\
+	{__ATTR(name, 0644,		\
+			static_uintvalue_show,	\
+			static_uintvalue_store),\
+		value }
 
 LUSTRE_STATIC_UINT_ATTR(timeout, &obd_timeout);
 
 static ssize_t max_dirty_mb_show(struct kobject *kobj, struct attribute *attr,
-				 char *buf)
+								 char *buf)
 {
 	return sprintf(buf, "%lu\n",
-		       obd_max_dirty_pages / (1 << (20 - PAGE_SHIFT)));
+				   obd_max_dirty_pages / (1 << (20 - PAGE_SHIFT)));
 }
 
 static ssize_t max_dirty_mb_store(struct kobject *kobj, struct attribute *attr,
-				  const char *buffer, size_t count)
+								  const char *buffer, size_t count)
 {
 	int rc;
 	unsigned long val;
 
 	rc = kstrtoul(buffer, 10, &val);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	val *= 1 << (20 - PAGE_SHIFT); /* convert to pages */
 
-	if (val > ((totalram_pages / 10) * 9)) {
+	if (val > ((totalram_pages / 10) * 9))
+	{
 		/* Somebody wants to assign too much memory to dirty pages */
 		return -EINVAL;
 	}
 
-	if (val < 4 << (20 - PAGE_SHIFT)) {
+	if (val < 4 << (20 - PAGE_SHIFT))
+	{
 		/* Less than 4 Mb for dirty cache is also bad */
 		return -EINVAL;
 	}
@@ -137,7 +147,8 @@ LUSTRE_STATIC_UINT_ATTR(at_extra, &at_extra);
 LUSTRE_STATIC_UINT_ATTR(at_early_margin, &at_early_margin);
 LUSTRE_STATIC_UINT_ATTR(at_history, &at_history);
 
-static struct attribute *lustre_attrs[] = {
+static struct attribute *lustre_attrs[] =
+{
 	&lustre_sattr_timeout.u.attr,
 	&lustre_attr_max_dirty_mb.attr,
 	&lustre_sattr_debug_peer_on_timeout.u.attr,
@@ -151,7 +162,8 @@ static struct attribute *lustre_attrs[] = {
 	NULL,
 };
 
-static struct attribute_group lustre_attr_group = {
+static struct attribute_group lustre_attr_group =
+{
 	.attrs = lustre_attrs,
 };
 

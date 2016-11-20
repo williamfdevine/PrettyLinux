@@ -6,7 +6,8 @@
 /*
  * Trace categories
  */
-enum blktrace_cat {
+enum blktrace_cat
+{
 	BLK_TC_READ	= 1 << 0,	/* reads */
 	BLK_TC_WRITE	= 1 << 1,	/* writes */
 	BLK_TC_FLUSH	= 1 << 2,	/* flush */
@@ -34,7 +35,8 @@ enum blktrace_cat {
 /*
  * Basic trace actions
  */
-enum blktrace_act {
+enum blktrace_act
+{
 	__BLK_TA_QUEUE = 1,		/* queued */
 	__BLK_TA_BACKMERGE,		/* back merged to existing rq */
 	__BLK_TA_FRONTMERGE,		/* front merge to existing rq */
@@ -57,7 +59,8 @@ enum blktrace_act {
 /*
  * Notify events.
  */
-enum blktrace_notify {
+enum blktrace_notify
+{
 	__BLK_TN_PROCESS = 0,		/* establish pid/name mapping */
 	__BLK_TN_TIMESTAMP,		/* include system clock */
 	__BLK_TN_MESSAGE,		/* Character string message */
@@ -95,7 +98,8 @@ enum blktrace_notify {
 /*
  * The trace itself
  */
-struct blk_io_trace {
+struct blk_io_trace
+{
 	__u32 magic;		/* MAGIC << 8 | version */
 	__u32 sequence;		/* event number */
 	__u64 time;		/* in microseconds */
@@ -112,13 +116,15 @@ struct blk_io_trace {
 /*
  * The remap event
  */
-struct blk_io_trace_remap {
+struct blk_io_trace_remap
+{
 	__be32 device_from;
 	__be32 device_to;
 	__be64 sector_from;
 };
 
-enum {
+enum
+{
 	Blktrace_setup = 1,
 	Blktrace_running,
 	Blktrace_stopped,
@@ -129,7 +135,8 @@ enum {
 /*
  * User setup structure passed with BLKTRACESTART
  */
-struct blk_user_trace_setup {
+struct blk_user_trace_setup
+{
 	char name[BLKTRACE_BDEV_SIZE];	/* output */
 	__u16 act_mask;			/* input */
 	__u32 buf_size;			/* input */

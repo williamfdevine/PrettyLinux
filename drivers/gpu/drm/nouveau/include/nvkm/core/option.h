@@ -12,7 +12,10 @@ static inline int
 strncasecmpz(const char *str, const char *cmp, size_t len)
 {
 	if (strlen(cmp) != len)
+	{
 		return len;
+	}
+
 	return strncasecmp(str, cmp, len);
 }
 #endif

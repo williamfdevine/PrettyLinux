@@ -32,13 +32,16 @@ static int pnp_reserve_mem[16] = {[0 ... 15] = -1 };	/* reserve (don't use) some
  */
 
 static struct pnp_option *pnp_build_option(struct pnp_dev *dev, unsigned long type,
-				    unsigned int option_flags)
+		unsigned int option_flags)
 {
 	struct pnp_option *option;
 
 	option = kzalloc(sizeof(struct pnp_option), GFP_KERNEL);
+
 	if (!option)
+	{
 		return NULL;
+	}
 
 	option->flags = option_flags;
 	option->type = type;
@@ -48,14 +51,17 @@ static struct pnp_option *pnp_build_option(struct pnp_dev *dev, unsigned long ty
 }
 
 int pnp_register_irq_resource(struct pnp_dev *dev, unsigned int option_flags,
-			      pnp_irq_mask_t *map, unsigned char flags)
+							  pnp_irq_mask_t *map, unsigned char flags)
 {
 	struct pnp_option *option;
 	struct pnp_irq *irq;
 
 	option = pnp_build_option(dev, IORESOURCE_IRQ, option_flags);
+
 	if (!option)
+	{
 		return -ENOMEM;
+	}
 
 	irq = &option->u.irq;
 	irq->map = *map;
@@ -67,7 +73,9 @@ int pnp_register_irq_resource(struct pnp_dev *dev, unsigned int option_flags,
 
 		for (i = 0; i < 16; i++)
 			if (test_bit(i, irq->map.bits))
+			{
 				pcibios_penalize_isa_irq(i, 0);
+			}
 	}
 #endif
 
@@ -76,14 +84,17 @@ int pnp_register_irq_resource(struct pnp_dev *dev, unsigned int option_flags,
 }
 
 int pnp_register_dma_resource(struct pnp_dev *dev, unsigned int option_flags,
-			      unsigned char map, unsigned char flags)
+							  unsigned char map, unsigned char flags)
 {
 	struct pnp_option *option;
 	struct pnp_dma *dma;
 
 	option = pnp_build_option(dev, IORESOURCE_DMA, option_flags);
+
 	if (!option)
+	{
 		return -ENOMEM;
+	}
 
 	dma = &option->u.dma;
 	dma->map = map;
@@ -94,16 +105,19 @@ int pnp_register_dma_resource(struct pnp_dev *dev, unsigned int option_flags,
 }
 
 int pnp_register_port_resource(struct pnp_dev *dev, unsigned int option_flags,
-			       resource_size_t min, resource_size_t max,
-			       resource_size_t align, resource_size_t size,
-			       unsigned char flags)
+							   resource_size_t min, resource_size_t max,
+							   resource_size_t align, resource_size_t size,
+							   unsigned char flags)
 {
 	struct pnp_option *option;
 	struct pnp_port *port;
 
 	option = pnp_build_option(dev, IORESOURCE_IO, option_flags);
+
 	if (!option)
+	{
 		return -ENOMEM;
+	}
 
 	port = &option->u.port;
 	port->min = min;
@@ -117,16 +131,19 @@ int pnp_register_port_resource(struct pnp_dev *dev, unsigned int option_flags,
 }
 
 int pnp_register_mem_resource(struct pnp_dev *dev, unsigned int option_flags,
-			      resource_size_t min, resource_size_t max,
-			      resource_size_t align, resource_size_t size,
-			      unsigned char flags)
+							  resource_size_t min, resource_size_t max,
+							  resource_size_t align, resource_size_t size,
+							  unsigned char flags)
 {
 	struct pnp_option *option;
 	struct pnp_mem *mem;
 
 	option = pnp_build_option(dev, IORESOURCE_MEM, option_flags);
+
 	if (!option)
+	{
 		return -ENOMEM;
+	}
 
 	mem = &option->u.mem;
 	mem->min = min;
@@ -143,7 +160,8 @@ void pnp_free_options(struct pnp_dev *dev)
 {
 	struct pnp_option *option, *tmp;
 
-	list_for_each_entry_safe(option, tmp, &dev->options, list) {
+	list_for_each_entry_safe(option, tmp, &dev->options, list)
+	{
 		list_del(&option->list);
 		kfree(option);
 	}
@@ -160,7 +178,7 @@ void pnp_free_options(struct pnp_dev *dev)
 	!((*(enda) < *(startb)) || (*(endb) < *(starta)))
 
 #define cannot_compare(flags) \
-((flags) & IORESOURCE_DISABLED)
+	((flags) & IORESOURCE_DISABLED)
 
 int pnp_check_port(struct pnp_dev *dev, struct resource *res)
 {
@@ -174,50 +192,80 @@ int pnp_check_port(struct pnp_dev *dev, struct resource *res)
 
 	/* if the resource doesn't exist, don't complain about it */
 	if (cannot_compare(res->flags))
+	{
 		return 1;
+	}
 
 	/* check if the resource is already in use, skip if the
 	 * device is active because it itself may be in use */
-	if (!dev->active) {
+	if (!dev->active)
+	{
 		if (!request_region(*port, length(port, end), "pnp"))
+		{
 			return 0;
+		}
+
 		release_region(*port, length(port, end));
 	}
 
 	/* check if the resource is reserved */
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		int rport = pnp_reserve_io[i << 1];
 		int rend = pnp_reserve_io[(i << 1) + 1] + rport - 1;
+
 		if (ranged_conflict(port, end, &rport, &rend))
+		{
 			return 0;
+		}
 	}
 
 	/* check for internal conflicts */
-	for (i = 0; (tres = pnp_get_resource(dev, IORESOURCE_IO, i)); i++) {
-		if (tres != res && tres->flags & IORESOURCE_IO) {
+	for (i = 0; (tres = pnp_get_resource(dev, IORESOURCE_IO, i)); i++)
+	{
+		if (tres != res && tres->flags & IORESOURCE_IO)
+		{
 			tport = &tres->start;
 			tend = &tres->end;
+
 			if (ranged_conflict(port, end, tport, tend))
+			{
 				return 0;
+			}
 		}
 	}
 
 	/* check for conflicts with other pnp devices */
-	pnp_for_each_dev(tdev) {
+	pnp_for_each_dev(tdev)
+	{
 		if (tdev == dev)
+		{
 			continue;
+		}
+
 		for (i = 0;
-		     (tres = pnp_get_resource(tdev, IORESOURCE_IO, i));
-		     i++) {
-			if (tres->flags & IORESOURCE_IO) {
+			 (tres = pnp_get_resource(tdev, IORESOURCE_IO, i));
+			 i++)
+		{
+			if (tres->flags & IORESOURCE_IO)
+			{
 				if (cannot_compare(tres->flags))
+				{
 					continue;
+				}
+
 				if (tres->flags & IORESOURCE_WINDOW)
+				{
 					continue;
+				}
+
 				tport = &tres->start;
 				tend = &tres->end;
+
 				if (ranged_conflict(port, end, tport, tend))
+				{
 					return 0;
+				}
 			}
 		}
 	}
@@ -237,50 +285,80 @@ int pnp_check_mem(struct pnp_dev *dev, struct resource *res)
 
 	/* if the resource doesn't exist, don't complain about it */
 	if (cannot_compare(res->flags))
+	{
 		return 1;
+	}
 
 	/* check if the resource is already in use, skip if the
 	 * device is active because it itself may be in use */
-	if (!dev->active) {
+	if (!dev->active)
+	{
 		if (!request_mem_region(*addr, length(addr, end), "pnp"))
+		{
 			return 0;
+		}
+
 		release_mem_region(*addr, length(addr, end));
 	}
 
 	/* check if the resource is reserved */
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		int raddr = pnp_reserve_mem[i << 1];
 		int rend = pnp_reserve_mem[(i << 1) + 1] + raddr - 1;
+
 		if (ranged_conflict(addr, end, &raddr, &rend))
+		{
 			return 0;
+		}
 	}
 
 	/* check for internal conflicts */
-	for (i = 0; (tres = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++) {
-		if (tres != res && tres->flags & IORESOURCE_MEM) {
+	for (i = 0; (tres = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++)
+	{
+		if (tres != res && tres->flags & IORESOURCE_MEM)
+		{
 			taddr = &tres->start;
 			tend = &tres->end;
+
 			if (ranged_conflict(addr, end, taddr, tend))
+			{
 				return 0;
+			}
 		}
 	}
 
 	/* check for conflicts with other pnp devices */
-	pnp_for_each_dev(tdev) {
+	pnp_for_each_dev(tdev)
+	{
 		if (tdev == dev)
+		{
 			continue;
+		}
+
 		for (i = 0;
-		     (tres = pnp_get_resource(tdev, IORESOURCE_MEM, i));
-		     i++) {
-			if (tres->flags & IORESOURCE_MEM) {
+			 (tres = pnp_get_resource(tdev, IORESOURCE_MEM, i));
+			 i++)
+		{
+			if (tres->flags & IORESOURCE_MEM)
+			{
 				if (cannot_compare(tres->flags))
+				{
 					continue;
+				}
+
 				if (tres->flags & IORESOURCE_WINDOW)
+				{
 					continue;
+				}
+
 				taddr = &tres->start;
 				tend = &tres->end;
+
 				if (ranged_conflict(addr, end, taddr, tend))
+				{
 					return 0;
+				}
 			}
 		}
 	}
@@ -295,14 +373,15 @@ static irqreturn_t pnp_test_handler(int irq, void *dev_id)
 
 #ifdef CONFIG_PCI
 static int pci_dev_uses_irq(struct pnp_dev *pnp, struct pci_dev *pci,
-			    unsigned int irq)
+							unsigned int irq)
 {
 	u32 class;
 	u8 progif;
 
-	if (pci->irq == irq) {
+	if (pci->irq == irq)
+	{
 		pnp_dbg(&pnp->dev, "  device %s using irq %d\n",
-			pci_name(pci), irq);
+				pci_name(pci), irq);
 		return 1;
 	}
 
@@ -315,16 +394,18 @@ static int pci_dev_uses_irq(struct pnp_dev *pnp, struct pci_dev *pci,
 	progif = class & 0xff;
 	class >>= 8;
 
-	if (class == PCI_CLASS_STORAGE_IDE) {
+	if (class == PCI_CLASS_STORAGE_IDE)
+	{
 		/*
 		 * Unless both channels are native-PCI mode only,
 		 * treat the compatibility IRQs as busy.
 		 */
 		if ((progif & 0x5) != 0x5)
 			if (pci_get_legacy_ide_irq(pci, 0) == irq ||
-			    pci_get_legacy_ide_irq(pci, 1) == irq) {
+				pci_get_legacy_ide_irq(pci, 1) == irq)
+			{
 				pnp_dbg(&pnp->dev, "  legacy IDE device %s "
-					"using irq %d\n", pci_name(pci), irq);
+						"using irq %d\n", pci_name(pci), irq);
 				return 1;
 			}
 	}
@@ -338,8 +419,10 @@ static int pci_uses_irq(struct pnp_dev *pnp, unsigned int irq)
 #ifdef CONFIG_PCI
 	struct pci_dev *pci = NULL;
 
-	for_each_pci_dev(pci) {
-		if (pci_dev_uses_irq(pnp, pci, irq)) {
+	for_each_pci_dev(pci)
+	{
+		if (pci_dev_uses_irq(pnp, pci, irq))
+		{
 			pci_dev_put(pci);
 			return 1;
 		}
@@ -359,51 +442,79 @@ int pnp_check_irq(struct pnp_dev *dev, struct resource *res)
 
 	/* if the resource doesn't exist, don't complain about it */
 	if (cannot_compare(res->flags))
+	{
 		return 1;
+	}
 
 	/* check if the resource is valid */
 	if (*irq > 15)
+	{
 		return 0;
+	}
 
 	/* check if the resource is reserved */
-	for (i = 0; i < 16; i++) {
+	for (i = 0; i < 16; i++)
+	{
 		if (pnp_reserve_irq[i] == *irq)
+		{
 			return 0;
+		}
 	}
 
 	/* check for internal conflicts */
-	for (i = 0; (tres = pnp_get_resource(dev, IORESOURCE_IRQ, i)); i++) {
-		if (tres != res && tres->flags & IORESOURCE_IRQ) {
+	for (i = 0; (tres = pnp_get_resource(dev, IORESOURCE_IRQ, i)); i++)
+	{
+		if (tres != res && tres->flags & IORESOURCE_IRQ)
+		{
 			if (tres->start == *irq)
+			{
 				return 0;
+			}
 		}
 	}
 
 	/* check if the resource is being used by a pci device */
 	if (pci_uses_irq(dev, *irq))
+	{
 		return 0;
+	}
 
 	/* check if the resource is already in use, skip if the
 	 * device is active because it itself may be in use */
-	if (!dev->active) {
+	if (!dev->active)
+	{
 		if (request_irq(*irq, pnp_test_handler,
-				IRQF_PROBE_SHARED, "pnp", NULL))
+						IRQF_PROBE_SHARED, "pnp", NULL))
+		{
 			return 0;
+		}
+
 		free_irq(*irq, NULL);
 	}
 
 	/* check for conflicts with other pnp devices */
-	pnp_for_each_dev(tdev) {
+	pnp_for_each_dev(tdev)
+	{
 		if (tdev == dev)
+		{
 			continue;
+		}
+
 		for (i = 0;
-		     (tres = pnp_get_resource(tdev, IORESOURCE_IRQ, i));
-		     i++) {
-			if (tres->flags & IORESOURCE_IRQ) {
+			 (tres = pnp_get_resource(tdev, IORESOURCE_IRQ, i));
+			 i++)
+		{
+			if (tres->flags & IORESOURCE_IRQ)
+			{
 				if (cannot_compare(tres->flags))
+				{
 					continue;
+				}
+
 				if (tres->start == *irq)
+				{
 					return 0;
+				}
 			}
 		}
 	}
@@ -423,46 +534,72 @@ int pnp_check_dma(struct pnp_dev *dev, struct resource *res)
 
 	/* if the resource doesn't exist, don't complain about it */
 	if (cannot_compare(res->flags))
+	{
 		return 1;
+	}
 
 	/* check if the resource is valid */
 	if (*dma == 4 || *dma > 7)
+	{
 		return 0;
+	}
 
 	/* check if the resource is reserved */
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		if (pnp_reserve_dma[i] == *dma)
+		{
 			return 0;
+		}
 	}
 
 	/* check for internal conflicts */
-	for (i = 0; (tres = pnp_get_resource(dev, IORESOURCE_DMA, i)); i++) {
-		if (tres != res && tres->flags & IORESOURCE_DMA) {
+	for (i = 0; (tres = pnp_get_resource(dev, IORESOURCE_DMA, i)); i++)
+	{
+		if (tres != res && tres->flags & IORESOURCE_DMA)
+		{
 			if (tres->start == *dma)
+			{
 				return 0;
+			}
 		}
 	}
 
 	/* check if the resource is already in use, skip if the
 	 * device is active because it itself may be in use */
-	if (!dev->active) {
+	if (!dev->active)
+	{
 		if (request_dma(*dma, "pnp"))
+		{
 			return 0;
+		}
+
 		free_dma(*dma);
 	}
 
 	/* check for conflicts with other pnp devices */
-	pnp_for_each_dev(tdev) {
+	pnp_for_each_dev(tdev)
+	{
 		if (tdev == dev)
+		{
 			continue;
+		}
+
 		for (i = 0;
-		     (tres = pnp_get_resource(tdev, IORESOURCE_DMA, i));
-		     i++) {
-			if (tres->flags & IORESOURCE_DMA) {
+			 (tres = pnp_get_resource(tdev, IORESOURCE_DMA, i));
+			 i++)
+		{
+			if (tres->flags & IORESOURCE_DMA)
+			{
 				if (cannot_compare(tres->flags))
+				{
 					continue;
+				}
+
 				if (tres->start == *dma)
+				{
 					return 0;
+				}
 			}
 		}
 	}
@@ -474,20 +611,24 @@ int pnp_check_dma(struct pnp_dev *dev, struct resource *res)
 unsigned long pnp_resource_type(struct resource *res)
 {
 	return res->flags & (IORESOURCE_IO  | IORESOURCE_MEM |
-			     IORESOURCE_IRQ | IORESOURCE_DMA |
-			     IORESOURCE_BUS);
+						 IORESOURCE_IRQ | IORESOURCE_DMA |
+						 IORESOURCE_BUS);
 }
 
 struct resource *pnp_get_resource(struct pnp_dev *dev,
-				  unsigned long type, unsigned int num)
+								  unsigned long type, unsigned int num)
 {
 	struct pnp_resource *pnp_res;
 	struct resource *res;
 
-	list_for_each_entry(pnp_res, &dev->resources, list) {
+	list_for_each_entry(pnp_res, &dev->resources, list)
+	{
 		res = &pnp_res->res;
+
 		if (pnp_resource_type(res) == type && num-- == 0)
+		{
 			return res;
+		}
 	}
 	return NULL;
 }
@@ -498,20 +639,25 @@ static struct pnp_resource *pnp_new_resource(struct pnp_dev *dev)
 	struct pnp_resource *pnp_res;
 
 	pnp_res = kzalloc(sizeof(struct pnp_resource), GFP_KERNEL);
+
 	if (!pnp_res)
+	{
 		return NULL;
+	}
 
 	list_add_tail(&pnp_res->list, &dev->resources);
 	return pnp_res;
 }
 
 struct pnp_resource *pnp_add_resource(struct pnp_dev *dev,
-				      struct resource *res)
+									  struct resource *res)
 {
 	struct pnp_resource *pnp_res;
 
 	pnp_res = pnp_new_resource(dev);
-	if (!pnp_res) {
+
+	if (!pnp_res)
+	{
 		dev_err(&dev->dev, "can't add resource %pR\n", res);
 		return NULL;
 	}
@@ -523,13 +669,15 @@ struct pnp_resource *pnp_add_resource(struct pnp_dev *dev,
 }
 
 struct pnp_resource *pnp_add_irq_resource(struct pnp_dev *dev, int irq,
-					  int flags)
+		int flags)
 {
 	struct pnp_resource *pnp_res;
 	struct resource *res;
 
 	pnp_res = pnp_new_resource(dev);
-	if (!pnp_res) {
+
+	if (!pnp_res)
+	{
 		dev_err(&dev->dev, "can't add resource for IRQ %d\n", irq);
 		return NULL;
 	}
@@ -544,13 +692,15 @@ struct pnp_resource *pnp_add_irq_resource(struct pnp_dev *dev, int irq,
 }
 
 struct pnp_resource *pnp_add_dma_resource(struct pnp_dev *dev, int dma,
-					  int flags)
+		int flags)
 {
 	struct pnp_resource *pnp_res;
 	struct resource *res;
 
 	pnp_res = pnp_new_resource(dev);
-	if (!pnp_res) {
+
+	if (!pnp_res)
+	{
 		dev_err(&dev->dev, "can't add resource for DMA %d\n", dma);
 		return NULL;
 	}
@@ -565,17 +715,19 @@ struct pnp_resource *pnp_add_dma_resource(struct pnp_dev *dev, int dma,
 }
 
 struct pnp_resource *pnp_add_io_resource(struct pnp_dev *dev,
-					 resource_size_t start,
-					 resource_size_t end, int flags)
+		resource_size_t start,
+		resource_size_t end, int flags)
 {
 	struct pnp_resource *pnp_res;
 	struct resource *res;
 
 	pnp_res = pnp_new_resource(dev);
-	if (!pnp_res) {
+
+	if (!pnp_res)
+	{
 		dev_err(&dev->dev, "can't add resource for IO %#llx-%#llx\n",
-			(unsigned long long) start,
-			(unsigned long long) end);
+				(unsigned long long) start,
+				(unsigned long long) end);
 		return NULL;
 	}
 
@@ -589,17 +741,19 @@ struct pnp_resource *pnp_add_io_resource(struct pnp_dev *dev,
 }
 
 struct pnp_resource *pnp_add_mem_resource(struct pnp_dev *dev,
-					  resource_size_t start,
-					  resource_size_t end, int flags)
+		resource_size_t start,
+		resource_size_t end, int flags)
 {
 	struct pnp_resource *pnp_res;
 	struct resource *res;
 
 	pnp_res = pnp_new_resource(dev);
-	if (!pnp_res) {
+
+	if (!pnp_res)
+	{
 		dev_err(&dev->dev, "can't add resource for MEM %#llx-%#llx\n",
-			(unsigned long long) start,
-			(unsigned long long) end);
+				(unsigned long long) start,
+				(unsigned long long) end);
 		return NULL;
 	}
 
@@ -613,17 +767,19 @@ struct pnp_resource *pnp_add_mem_resource(struct pnp_dev *dev,
 }
 
 struct pnp_resource *pnp_add_bus_resource(struct pnp_dev *dev,
-					  resource_size_t start,
-					  resource_size_t end)
+		resource_size_t start,
+		resource_size_t end)
 {
 	struct pnp_resource *pnp_res;
 	struct resource *res;
 
 	pnp_res = pnp_new_resource(dev);
-	if (!pnp_res) {
+
+	if (!pnp_res)
+	{
 		dev_err(&dev->dev, "can't add resource for BUS %#llx-%#llx\n",
-			(unsigned long long) start,
-			(unsigned long long) end);
+				(unsigned long long) start,
+				(unsigned long long) end);
 		return NULL;
 	}
 
@@ -641,7 +797,7 @@ struct pnp_resource *pnp_add_bus_resource(struct pnp_dev *dev,
  * for this device.
  */
 int pnp_possible_config(struct pnp_dev *dev, int type, resource_size_t start,
-			resource_size_t size)
+						resource_size_t size)
 {
 	struct pnp_option *option;
 	struct pnp_port *port;
@@ -649,32 +805,55 @@ int pnp_possible_config(struct pnp_dev *dev, int type, resource_size_t start,
 	struct pnp_irq *irq;
 	struct pnp_dma *dma;
 
-	list_for_each_entry(option, &dev->options, list) {
+	list_for_each_entry(option, &dev->options, list)
+	{
 		if (option->type != type)
+		{
 			continue;
+		}
 
-		switch (option->type) {
-		case IORESOURCE_IO:
-			port = &option->u.port;
-			if (port->min == start && port->size == size)
-				return 1;
-			break;
-		case IORESOURCE_MEM:
-			mem = &option->u.mem;
-			if (mem->min == start && mem->size == size)
-				return 1;
-			break;
-		case IORESOURCE_IRQ:
-			irq = &option->u.irq;
-			if (start < PNP_IRQ_NR &&
-			    test_bit(start, irq->map.bits))
-				return 1;
-			break;
-		case IORESOURCE_DMA:
-			dma = &option->u.dma;
-			if (dma->map & (1 << start))
-				return 1;
-			break;
+		switch (option->type)
+		{
+			case IORESOURCE_IO:
+				port = &option->u.port;
+
+				if (port->min == start && port->size == size)
+				{
+					return 1;
+				}
+
+				break;
+
+			case IORESOURCE_MEM:
+				mem = &option->u.mem;
+
+				if (mem->min == start && mem->size == size)
+				{
+					return 1;
+				}
+
+				break;
+
+			case IORESOURCE_IRQ:
+				irq = &option->u.irq;
+
+				if (start < PNP_IRQ_NR &&
+					test_bit(start, irq->map.bits))
+				{
+					return 1;
+				}
+
+				break;
+
+			case IORESOURCE_DMA:
+				dma = &option->u.dma;
+
+				if (dma->map & (1 << start))
+				{
+					return 1;
+				}
+
+				break;
 		}
 	}
 
@@ -688,12 +867,17 @@ int pnp_range_reserved(resource_size_t start, resource_size_t end)
 	struct pnp_resource *pnp_res;
 	resource_size_t *dev_start, *dev_end;
 
-	pnp_for_each_dev(dev) {
-		list_for_each_entry(pnp_res, &dev->resources, list) {
+	pnp_for_each_dev(dev)
+	{
+		list_for_each_entry(pnp_res, &dev->resources, list)
+		{
 			dev_start = &pnp_res->res.start;
 			dev_end   = &pnp_res->res.end;
+
 			if (ranged_conflict(&start, &end, dev_start, dev_end))
+			{
 				return 1;
+			}
 		}
 	}
 	return 0;
@@ -707,7 +891,10 @@ static int __init pnp_setup_reserve_irq(char *str)
 
 	for (i = 0; i < 16; i++)
 		if (get_option(&str, &pnp_reserve_irq[i]) != 2)
+		{
 			break;
+		}
+
 	return 1;
 }
 
@@ -720,7 +907,10 @@ static int __init pnp_setup_reserve_dma(char *str)
 
 	for (i = 0; i < 8; i++)
 		if (get_option(&str, &pnp_reserve_dma[i]) != 2)
+		{
 			break;
+		}
+
 	return 1;
 }
 
@@ -733,7 +923,10 @@ static int __init pnp_setup_reserve_io(char *str)
 
 	for (i = 0; i < 16; i++)
 		if (get_option(&str, &pnp_reserve_io[i]) != 2)
+		{
 			break;
+		}
+
 	return 1;
 }
 
@@ -746,7 +939,10 @@ static int __init pnp_setup_reserve_mem(char *str)
 
 	for (i = 0; i < 16; i++)
 		if (get_option(&str, &pnp_reserve_mem[i]) != 2)
+		{
 			break;
+		}
+
 	return 1;
 }
 

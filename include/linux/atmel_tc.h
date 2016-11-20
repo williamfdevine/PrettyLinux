@@ -37,7 +37,8 @@ struct clk;
  * struct atmel_tcb_config - SoC data for a Timer/Counter Block
  * @counter_width: size in bits of a timer counter register
  */
-struct atmel_tcb_config {
+struct atmel_tcb_config
+{
 	size_t	counter_width;
 };
 
@@ -60,7 +61,8 @@ struct atmel_tcb_config {
  * channel, but they must use IRQF_SHARED in case some of the entries
  * in @irq are actually the same IRQ.
  */
-struct atmel_tc {
+struct atmel_tc
+{
 	struct platform_device	*pdev;
 	void __iomem		*regs;
 	int                     id;
@@ -262,9 +264,9 @@ extern const u8 atmel_tc_divisors[5];
 #define     ATMEL_TC_LDRBS	(1 <<  6)	/* RB loading */
 #define     ATMEL_TC_ETRGS	(1 <<  7)	/* external trigger */
 #define     ATMEL_TC_ALL_IRQ	(ATMEL_TC_COVFS	| ATMEL_TC_LOVRS | \
-				 ATMEL_TC_CPAS | ATMEL_TC_CPBS | \
-				 ATMEL_TC_CPCS | ATMEL_TC_LDRAS | \
-				 ATMEL_TC_LDRBS | ATMEL_TC_ETRGS) \
-				 /* all IRQs */
+								 ATMEL_TC_CPAS | ATMEL_TC_CPBS | \
+								 ATMEL_TC_CPCS | ATMEL_TC_LDRAS | \
+								 ATMEL_TC_LDRBS | ATMEL_TC_ETRGS) \
+/* all IRQs */
 
 #endif

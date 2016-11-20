@@ -39,7 +39,7 @@ static int ieee802154_deliver_skb(struct sk_buff *skb)
 
 static int
 ieee802154_subif_frame(struct ieee802154_sub_if_data *sdata,
-		       struct sk_buff *skb, const struct ieee802154_hdr *hdr)
+					   struct sk_buff *skb, const struct ieee802154_hdr *hdr)
 {
 	struct wpan_dev *wpan_dev = &sdata->wpan_dev;
 	__le16 span, sshort;
@@ -50,39 +50,64 @@ ieee802154_subif_frame(struct ieee802154_sub_if_data *sdata,
 	span = wpan_dev->pan_id;
 	sshort = wpan_dev->short_addr;
 
-	switch (mac_cb(skb)->dest.mode) {
-	case IEEE802154_ADDR_NONE:
-		if (mac_cb(skb)->dest.mode != IEEE802154_ADDR_NONE)
-			/* FIXME: check if we are PAN coordinator */
-			skb->pkt_type = PACKET_OTHERHOST;
-		else
-			/* ACK comes with both addresses empty */
-			skb->pkt_type = PACKET_HOST;
-		break;
-	case IEEE802154_ADDR_LONG:
-		if (mac_cb(skb)->dest.pan_id != span &&
-		    mac_cb(skb)->dest.pan_id != cpu_to_le16(IEEE802154_PANID_BROADCAST))
-			skb->pkt_type = PACKET_OTHERHOST;
-		else if (mac_cb(skb)->dest.extended_addr == wpan_dev->extended_addr)
-			skb->pkt_type = PACKET_HOST;
-		else
-			skb->pkt_type = PACKET_OTHERHOST;
-		break;
-	case IEEE802154_ADDR_SHORT:
-		if (mac_cb(skb)->dest.pan_id != span &&
-		    mac_cb(skb)->dest.pan_id != cpu_to_le16(IEEE802154_PANID_BROADCAST))
-			skb->pkt_type = PACKET_OTHERHOST;
-		else if (mac_cb(skb)->dest.short_addr == sshort)
-			skb->pkt_type = PACKET_HOST;
-		else if (mac_cb(skb)->dest.short_addr ==
-			  cpu_to_le16(IEEE802154_ADDR_BROADCAST))
-			skb->pkt_type = PACKET_BROADCAST;
-		else
-			skb->pkt_type = PACKET_OTHERHOST;
-		break;
-	default:
-		pr_debug("invalid dest mode\n");
-		goto fail;
+	switch (mac_cb(skb)->dest.mode)
+	{
+		case IEEE802154_ADDR_NONE:
+			if (mac_cb(skb)->dest.mode != IEEE802154_ADDR_NONE)
+				/* FIXME: check if we are PAN coordinator */
+			{
+				skb->pkt_type = PACKET_OTHERHOST;
+			}
+			else
+				/* ACK comes with both addresses empty */
+			{
+				skb->pkt_type = PACKET_HOST;
+			}
+
+			break;
+
+		case IEEE802154_ADDR_LONG:
+			if (mac_cb(skb)->dest.pan_id != span &&
+				mac_cb(skb)->dest.pan_id != cpu_to_le16(IEEE802154_PANID_BROADCAST))
+			{
+				skb->pkt_type = PACKET_OTHERHOST;
+			}
+			else if (mac_cb(skb)->dest.extended_addr == wpan_dev->extended_addr)
+			{
+				skb->pkt_type = PACKET_HOST;
+			}
+			else
+			{
+				skb->pkt_type = PACKET_OTHERHOST;
+			}
+
+			break;
+
+		case IEEE802154_ADDR_SHORT:
+			if (mac_cb(skb)->dest.pan_id != span &&
+				mac_cb(skb)->dest.pan_id != cpu_to_le16(IEEE802154_PANID_BROADCAST))
+			{
+				skb->pkt_type = PACKET_OTHERHOST;
+			}
+			else if (mac_cb(skb)->dest.short_addr == sshort)
+			{
+				skb->pkt_type = PACKET_HOST;
+			}
+			else if (mac_cb(skb)->dest.short_addr ==
+					 cpu_to_le16(IEEE802154_ADDR_BROADCAST))
+			{
+				skb->pkt_type = PACKET_BROADCAST;
+			}
+			else
+			{
+				skb->pkt_type = PACKET_OTHERHOST;
+			}
+
+			break;
+
+		default:
+			pr_debug("invalid dest mode\n");
+			goto fail;
 	}
 
 	skb->dev = sdata->dev;
@@ -92,7 +117,9 @@ ieee802154_subif_frame(struct ieee802154_sub_if_data *sdata,
 	 * payload is already decrypted.
 	 */
 	rc = mac802154_llsec_decrypt(&sdata->sec, skb);
-	if (rc) {
+
+	if (rc)
+	{
 		pr_debug("decryption failed: %i\n", rc);
 		goto fail;
 	}
@@ -100,18 +127,20 @@ ieee802154_subif_frame(struct ieee802154_sub_if_data *sdata,
 	sdata->dev->stats.rx_packets++;
 	sdata->dev->stats.rx_bytes += skb->len;
 
-	switch (mac_cb(skb)->type) {
-	case IEEE802154_FC_TYPE_BEACON:
-	case IEEE802154_FC_TYPE_ACK:
-	case IEEE802154_FC_TYPE_MAC_CMD:
-		goto fail;
+	switch (mac_cb(skb)->type)
+	{
+		case IEEE802154_FC_TYPE_BEACON:
+		case IEEE802154_FC_TYPE_ACK:
+		case IEEE802154_FC_TYPE_MAC_CMD:
+			goto fail;
 
-	case IEEE802154_FC_TYPE_DATA:
-		return ieee802154_deliver_skb(skb);
-	default:
-		pr_warn_ratelimited("ieee802154: bad frame received "
-				    "(type = %d)\n", mac_cb(skb)->type);
-		goto fail;
+		case IEEE802154_FC_TYPE_DATA:
+			return ieee802154_deliver_skb(skb);
+
+		default:
+			pr_warn_ratelimited("ieee802154: bad frame received "
+								"(type = %d)\n", mac_cb(skb)->type);
+			goto fail;
 	}
 
 fail:
@@ -123,13 +152,19 @@ static void
 ieee802154_print_addr(const char *name, const struct ieee802154_addr *addr)
 {
 	if (addr->mode == IEEE802154_ADDR_NONE)
+	{
 		pr_debug("%s not present\n", name);
+	}
 
 	pr_debug("%s PAN ID: %04x\n", name, le16_to_cpu(addr->pan_id));
-	if (addr->mode == IEEE802154_ADDR_SHORT) {
+
+	if (addr->mode == IEEE802154_ADDR_SHORT)
+	{
 		pr_debug("%s is short: %04x\n", name,
-			 le16_to_cpu(addr->short_addr));
-	} else {
+				 le16_to_cpu(addr->short_addr));
+	}
+	else
+	{
 		u64 hw = swab64((__force u64)addr->extended_addr);
 
 		pr_debug("%s is hardware: %8phC\n", name, &hw);
@@ -145,13 +180,16 @@ ieee802154_parse_frame_start(struct sk_buff *skb, struct ieee802154_hdr *hdr)
 	skb_reset_mac_header(skb);
 
 	hlen = ieee802154_hdr_pull(skb, hdr);
+
 	if (hlen < 0)
+	{
 		return -EINVAL;
+	}
 
 	skb->mac_len = hlen;
 
 	pr_debug("fc: %04x dsn: %02x\n", le16_to_cpup((__le16 *)&hdr->fc),
-		 hdr->seq);
+			 hdr->seq);
 
 	cb->type = hdr->fc.type;
 	cb->ackreq = hdr->fc.ack_request;
@@ -163,32 +201,34 @@ ieee802154_parse_frame_start(struct sk_buff *skb, struct ieee802154_hdr *hdr)
 	cb->source = hdr->source;
 	cb->dest = hdr->dest;
 
-	if (hdr->fc.security_enabled) {
+	if (hdr->fc.security_enabled)
+	{
 		u64 key;
 
 		pr_debug("seclevel %i\n", hdr->sec.level);
 
-		switch (hdr->sec.key_id_mode) {
-		case IEEE802154_SCF_KEY_IMPLICIT:
-			pr_debug("implicit key\n");
-			break;
+		switch (hdr->sec.key_id_mode)
+		{
+			case IEEE802154_SCF_KEY_IMPLICIT:
+				pr_debug("implicit key\n");
+				break;
 
-		case IEEE802154_SCF_KEY_INDEX:
-			pr_debug("key %02x\n", hdr->sec.key_id);
-			break;
+			case IEEE802154_SCF_KEY_INDEX:
+				pr_debug("key %02x\n", hdr->sec.key_id);
+				break;
 
-		case IEEE802154_SCF_KEY_SHORT_INDEX:
-			pr_debug("key %04x:%04x %02x\n",
-				 le32_to_cpu(hdr->sec.short_src) >> 16,
-				 le32_to_cpu(hdr->sec.short_src) & 0xffff,
-				 hdr->sec.key_id);
-			break;
+			case IEEE802154_SCF_KEY_SHORT_INDEX:
+				pr_debug("key %04x:%04x %02x\n",
+						 le32_to_cpu(hdr->sec.short_src) >> 16,
+						 le32_to_cpu(hdr->sec.short_src) & 0xffff,
+						 hdr->sec.key_id);
+				break;
 
-		case IEEE802154_SCF_KEY_HW_INDEX:
-			key = swab64((__force u64)hdr->sec.extended_src);
-			pr_debug("key source %8phC %02x\n", &key,
-				 hdr->sec.key_id);
-			break;
+			case IEEE802154_SCF_KEY_HW_INDEX:
+				key = swab64((__force u64)hdr->sec.extended_src);
+				pr_debug("key source %8phC %02x\n", &key,
+						 hdr->sec.key_id);
+				break;
 		}
 	}
 
@@ -197,25 +237,32 @@ ieee802154_parse_frame_start(struct sk_buff *skb, struct ieee802154_hdr *hdr)
 
 static void
 __ieee802154_rx_handle_packet(struct ieee802154_local *local,
-			      struct sk_buff *skb)
+							  struct sk_buff *skb)
 {
 	int ret;
 	struct ieee802154_sub_if_data *sdata;
 	struct ieee802154_hdr hdr;
 
 	ret = ieee802154_parse_frame_start(skb, &hdr);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_debug("got invalid frame\n");
 		kfree_skb(skb);
 		return;
 	}
 
-	list_for_each_entry_rcu(sdata, &local->interfaces, list) {
+	list_for_each_entry_rcu(sdata, &local->interfaces, list)
+	{
 		if (sdata->wpan_dev.iftype != NL802154_IFTYPE_NODE)
+		{
 			continue;
+		}
 
 		if (!ieee802154_sdata_running(sdata))
+		{
 			continue;
+		}
 
 		ieee802154_subif_frame(sdata, skb, &hdr);
 		skb = NULL;
@@ -236,15 +283,22 @@ ieee802154_monitors_rx(struct ieee802154_local *local, struct sk_buff *skb)
 	skb->pkt_type = PACKET_OTHERHOST;
 	skb->protocol = htons(ETH_P_IEEE802154);
 
-	list_for_each_entry_rcu(sdata, &local->interfaces, list) {
+	list_for_each_entry_rcu(sdata, &local->interfaces, list)
+	{
 		if (sdata->wpan_dev.iftype != NL802154_IFTYPE_MONITOR)
+		{
 			continue;
+		}
 
 		if (!ieee802154_sdata_running(sdata))
+		{
 			continue;
+		}
 
 		skb2 = skb_clone(skb, GFP_ATOMIC);
-		if (skb2) {
+
+		if (skb2)
+		{
 			skb2->dev = sdata->dev;
 			ieee802154_deliver_skb(skb2);
 
@@ -261,13 +315,16 @@ void ieee802154_rx(struct ieee802154_local *local, struct sk_buff *skb)
 	WARN_ON_ONCE(softirq_count() == 0);
 
 	if (local->suspended)
+	{
 		goto drop;
+	}
 
 	/* TODO: When a transceiver omits the checksum here, we
 	 * add an own calculated one. This is currently an ugly
 	 * solution because the monitor needs a crc here.
 	 */
-	if (local->hw.flags & IEEE802154_HW_RX_OMIT_CKSUM) {
+	if (local->hw.flags & IEEE802154_HW_RX_OMIT_CKSUM)
+	{
 		crc = crc_ccitt(0, skb->data, skb->len);
 		put_unaligned_le16(crc, skb_put(skb, 2));
 	}
@@ -279,13 +336,17 @@ void ieee802154_rx(struct ieee802154_local *local, struct sk_buff *skb)
 	/* Check if transceiver doesn't validate the checksum.
 	 * If not we validate the checksum here.
 	 */
-	if (local->hw.flags & IEEE802154_HW_RX_DROP_BAD_CKSUM) {
+	if (local->hw.flags & IEEE802154_HW_RX_DROP_BAD_CKSUM)
+	{
 		crc = crc_ccitt(0, skb->data, skb->len);
-		if (crc) {
+
+		if (crc)
+		{
 			rcu_read_unlock();
 			goto drop;
 		}
 	}
+
 	/* remove crc */
 	skb_trim(skb, skb->len - 2);
 

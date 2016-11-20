@@ -7,14 +7,14 @@
 #include <asm/unaligned.h>
 
 #ifndef DEBUG
-#undef VERBOSE_DEBUG
-#undef DUMP_MSGS
+	#undef VERBOSE_DEBUG
+	#undef DUMP_MSGS
 #endif /* !DEBUG */
 
 #ifdef VERBOSE_DEBUG
-#define VLDBG	LDBG
+	#define VLDBG	LDBG
 #else
-#define VLDBG(lun, fmt, args...) do { } while (0)
+	#define VLDBG(lun, fmt, args...) do { } while (0)
 #endif /* VERBOSE_DEBUG */
 
 #define _LMSG(func, lun, fmt, args...)					\
@@ -35,12 +35,12 @@
 #ifdef DUMP_MSGS
 
 #  define dump_msg(fsg, /* const char * */ label,			\
-		   /* const u8 * */ buf, /* unsigned */ length)		\
+				   /* const u8 * */ buf, /* unsigned */ length)		\
 do {									\
 	if (length < 512) {						\
 		DBG(fsg, "%s, length %u:\n", label, length);		\
 		print_hex_dump(KERN_DEBUG, "", DUMP_PREFIX_OFFSET,	\
-			       16, 1, buf, length, 0);			\
+					   16, 1, buf, length, 0);			\
 	}								\
 } while (0)
 
@@ -49,13 +49,13 @@ do {									\
 #else
 
 #  define dump_msg(fsg, /* const char * */ label, \
-		   /* const u8 * */ buf, /* unsigned */ length) do { } while (0)
+				   /* const u8 * */ buf, /* unsigned */ length) do { } while (0)
 
 #  ifdef VERBOSE_DEBUG
 
 #    define dump_cdb(fsg)						\
 	print_hex_dump(KERN_DEBUG, "SCSI CDB: ", DUMP_PREFIX_NONE,	\
-		       16, 1, (fsg)->cmnd, (fsg)->cmnd_size, 0)		\
+				   16, 1, (fsg)->cmnd, (fsg)->cmnd_size, 0)		\
 
 #  else
 
@@ -94,19 +94,20 @@ do {									\
  */
 #define INQUIRY_STRING_LEN ((size_t) (8 + 16 + 4 + 1))
 
-struct fsg_lun {
+struct fsg_lun
+{
 	struct file	*filp;
 	loff_t		file_length;
 	loff_t		num_sectors;
 
-	unsigned int	initially_ro:1;
-	unsigned int	ro:1;
-	unsigned int	removable:1;
-	unsigned int	cdrom:1;
-	unsigned int	prevent_medium_removal:1;
-	unsigned int	registered:1;
-	unsigned int	info_valid:1;
-	unsigned int	nofua:1;
+	unsigned int	initially_ro: 1;
+	unsigned int	ro: 1;
+	unsigned int	removable: 1;
+	unsigned int	cdrom: 1;
+	unsigned int	prevent_medium_removal: 1;
+	unsigned int	registered: 1;
+	unsigned int	info_valid: 1;
+	unsigned int	nofua: 1;
 
 	u32		sense_data;
 	u32		sense_data_info;
@@ -132,13 +133,15 @@ static inline bool fsg_lun_is_open(struct fsg_lun *curlun)
 /* Maximal number of LUNs supported in mass storage function */
 #define FSG_MAX_LUNS	16
 
-enum fsg_buffer_state {
+enum fsg_buffer_state
+{
 	BUF_STATE_EMPTY = 0,
 	BUF_STATE_FULL,
 	BUF_STATE_BUSY
 };
 
-struct fsg_buffhd {
+struct fsg_buffhd
+{
 	void				*buf;
 	enum fsg_buffer_state		state;
 	struct fsg_buffhd		*next;
@@ -156,7 +159,8 @@ struct fsg_buffhd {
 	int				outreq_busy;
 };
 
-enum fsg_state {
+enum fsg_state
+{
 	/* This one isn't used anywhere */
 	FSG_STATE_COMMAND_PHASE = -10,
 	FSG_STATE_DATA_PHASE,
@@ -172,7 +176,8 @@ enum fsg_state {
 	FSG_STATE_TERMINATED
 };
 
-enum data_direction {
+enum data_direction
+{
 	DATA_DIR_UNKNOWN = 0,
 	DATA_DIR_FROM_HOST,
 	DATA_DIR_TO_HOST,
@@ -189,7 +194,8 @@ static inline struct fsg_lun *fsg_lun_from_dev(struct device *dev)
 	return container_of(dev, struct fsg_lun, dev);
 }
 
-enum {
+enum
+{
 	FSG_STRING_INTERFACE
 };
 
@@ -216,20 +222,20 @@ void store_cdrom_address(u8 *dest, int msf, u32 addr);
 ssize_t fsg_show_ro(struct fsg_lun *curlun, char *buf);
 ssize_t fsg_show_nofua(struct fsg_lun *curlun, char *buf);
 ssize_t fsg_show_file(struct fsg_lun *curlun, struct rw_semaphore *filesem,
-		      char *buf);
+					  char *buf);
 ssize_t fsg_show_inquiry_string(struct fsg_lun *curlun, char *buf);
 ssize_t fsg_show_cdrom(struct fsg_lun *curlun, char *buf);
 ssize_t fsg_show_removable(struct fsg_lun *curlun, char *buf);
 ssize_t fsg_store_ro(struct fsg_lun *curlun, struct rw_semaphore *filesem,
-		     const char *buf, size_t count);
+					 const char *buf, size_t count);
 ssize_t fsg_store_nofua(struct fsg_lun *curlun, const char *buf, size_t count);
 ssize_t fsg_store_file(struct fsg_lun *curlun, struct rw_semaphore *filesem,
-		       const char *buf, size_t count);
+					   const char *buf, size_t count);
 ssize_t fsg_store_cdrom(struct fsg_lun *curlun, struct rw_semaphore *filesem,
-			const char *buf, size_t count);
+						const char *buf, size_t count);
 ssize_t fsg_store_removable(struct fsg_lun *curlun, const char *buf,
-			    size_t count);
+							size_t count);
 ssize_t fsg_store_inquiry_string(struct fsg_lun *curlun, const char *buf,
-				 size_t count);
+								 size_t count);
 
 #endif /* USB_STORAGE_COMMON_H */

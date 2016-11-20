@@ -19,7 +19,8 @@ static void test_bpf_perf_event(void)
 	int *pmu_fd = malloc(nr_cpus * sizeof(int));
 	int status, i;
 
-	struct perf_event_attr attr_insn_pmu = {
+	struct perf_event_attr attr_insn_pmu =
+	{
 		.freq = 0,
 		.sample_period = SAMPLE_PERIOD,
 		.inherit = 0,
@@ -29,9 +30,12 @@ static void test_bpf_perf_event(void)
 		.config = 0,/* PMU: cycles */
 	};
 
-	for (i = 0; i < nr_cpus; i++) {
+	for (i = 0; i < nr_cpus; i++)
+	{
 		pmu_fd[i] = perf_event_open(&attr_insn_pmu, -1/*pid*/, i/*cpu*/, -1/*group_fd*/, 0);
-		if (pmu_fd[i] < 0) {
+
+		if (pmu_fd[i] < 0)
+		{
 			printf("event syscall failed\n");
 			goto exit;
 		}
@@ -41,15 +45,26 @@ static void test_bpf_perf_event(void)
 	}
 
 	status = system("ls > /dev/null");
+
 	if (status)
+	{
 		goto exit;
+	}
+
 	status = system("sleep 2");
+
 	if (status)
+	{
 		goto exit;
+	}
 
 exit:
+
 	for (i = 0; i < nr_cpus; i++)
+	{
 		close(pmu_fd[i]);
+	}
+
 	close(map_fd[0]);
 	free(pmu_fd);
 }
@@ -60,7 +75,8 @@ int main(int argc, char **argv)
 
 	snprintf(filename, sizeof(filename), "%s_kern.o", argv[0]);
 
-	if (load_bpf_file(filename)) {
+	if (load_bpf_file(filename))
+	{
 		printf("%s", bpf_log_buf);
 		return 1;
 	}

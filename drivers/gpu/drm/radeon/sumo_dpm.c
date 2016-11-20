@@ -89,8 +89,11 @@ struct sumo_power_info *sumo_get_pi(struct radeon_device *rdev)
 static void sumo_gfx_clockgating_enable(struct radeon_device *rdev, bool enable)
 {
 	if (enable)
+	{
 		WREG32_P(SCLK_PWRMGT_CNTL, DYN_GFX_CLK_OFF_EN, ~DYN_GFX_CLK_OFF_EN);
-	else {
+	}
+	else
+	{
 		WREG32_P(SCLK_PWRMGT_CNTL, 0, ~DYN_GFX_CLK_OFF_EN);
 		WREG32_P(SCLK_PWRMGT_CNTL, GFX_CLK_FORCE_ON, ~GFX_CLK_FORCE_ON);
 		WREG32_P(SCLK_PWRMGT_CNTL, 0, ~GFX_CLK_FORCE_ON);
@@ -109,10 +112,13 @@ static void sumo_mg_clockgating_enable(struct radeon_device *rdev, bool enable)
 	local0 = RREG32(CG_CGTT_LOCAL_0);
 	local1 = RREG32(CG_CGTT_LOCAL_1);
 
-	if (enable) {
+	if (enable)
+	{
 		WREG32(CG_CGTT_LOCAL_0, (0 & CGCG_CGTT_LOCAL0_MASK) | (local0 & ~CGCG_CGTT_LOCAL0_MASK) );
 		WREG32(CG_CGTT_LOCAL_1, (0 & CGCG_CGTT_LOCAL1_MASK) | (local1 & ~CGCG_CGTT_LOCAL1_MASK) );
-	} else {
+	}
+	else
+	{
 		WREG32(CG_CGTT_LOCAL_0, (0xFFFFFFFF & CGCG_CGTT_LOCAL0_MASK) | (local0 & ~CGCG_CGTT_LOCAL0_MASK) );
 		WREG32(CG_CGTT_LOCAL_1, (0xFFFFCFFF & CGCG_CGTT_LOCAL1_MASK) | (local1 & ~CGCG_CGTT_LOCAL1_MASK) );
 	}
@@ -124,7 +130,7 @@ static void sumo_program_git(struct radeon_device *rdev)
 	u32 xclk = radeon_get_xclk(rdev);
 
 	r600_calculate_u_and_p(SUMO_GICST_DFLT,
-			       xclk, 16, &p, &u);
+						   xclk, 16, &p, &u);
 
 	WREG32_P(CG_GIT, CG_GICST(p), ~CG_GICST_MASK);
 }
@@ -154,13 +160,16 @@ static void sumo_gfx_powergating_initialize(struct radeon_device *rdev)
 	u32 r_t, i_t;
 	u32 xclk = radeon_get_xclk(rdev);
 
-	if (rdev->family == CHIP_PALM) {
+	if (rdev->family == CHIP_PALM)
+	{
 		p_c = 4;
 		d_p = 10;
 		r_t = 10;
 		i_t = 4;
-		p_p = 50 + 1000/200 + 6 * 32;
-	} else {
+		p_p = 50 + 1000 / 200 + 6 * 32;
+	}
+	else
+	{
 		p_c = 16;
 		d_p = 50;
 		r_t = 50;
@@ -171,21 +180,24 @@ static void sumo_gfx_powergating_initialize(struct radeon_device *rdev)
 	WREG32(CG_SCRATCH2, 0x01B60A17);
 
 	r600_calculate_u_and_p(SUMO_GFXPOWERGATINGT_DFLT,
-			       xclk, 16, &p, &u);
+						   xclk, 16, &p, &u);
 
 	WREG32_P(CG_PWR_GATING_CNTL, PGP(p) | PGU(u),
-		 ~(PGP_MASK | PGU_MASK));
+			 ~(PGP_MASK | PGU_MASK));
 
 	r600_calculate_u_and_p(SUMO_VOLTAGEDROPT_DFLT,
-			       xclk, 16, &p, &u);
+						   xclk, 16, &p, &u);
 
 	WREG32_P(CG_CG_VOLTAGE_CNTL, PGP(p) | PGU(u),
-		 ~(PGP_MASK | PGU_MASK));
+			 ~(PGP_MASK | PGU_MASK));
 
-	if (rdev->family == CHIP_PALM) {
+	if (rdev->family == CHIP_PALM)
+	{
 		WREG32_RCU(RCU_PWR_GATING_SEQ0, 0x10103210);
 		WREG32_RCU(RCU_PWR_GATING_SEQ1, 0x10101010);
-	} else {
+	}
+	else
+	{
 		WREG32_RCU(RCU_PWR_GATING_SEQ0, 0x76543210);
 		WREG32_RCU(RCU_PWR_GATING_SEQ1, 0xFEDCBA98);
 	}
@@ -194,10 +206,13 @@ static void sumo_gfx_powergating_initialize(struct radeon_device *rdev)
 	rcu_pwr_gating_cntl &=
 		~(RSVD_MASK | PCV_MASK | PGS_MASK);
 	rcu_pwr_gating_cntl |= PCV(p_c) | PGS(1) | PWR_GATING_EN;
-	if (rdev->family == CHIP_PALM) {
+
+	if (rdev->family == CHIP_PALM)
+	{
 		rcu_pwr_gating_cntl &= ~PCP_MASK;
 		rcu_pwr_gating_cntl |= PCP(0x77);
 	}
+
 	WREG32_RCU(RCU_PWR_GATING_CNTL, rcu_pwr_gating_cntl);
 
 	rcu_pwr_gating_cntl = RREG32_RCU(RCU_PWR_GATING_CNTL_2);
@@ -216,7 +231,9 @@ static void sumo_gfx_powergating_initialize(struct radeon_device *rdev)
 	WREG32_RCU(RCU_PWR_GATING_CNTL_4, rcu_pwr_gating_cntl);
 
 	if (rdev->family == CHIP_PALM)
+	{
 		WREG32_RCU(RCU_PWR_GATING_CNTL_5, 0xA02);
+	}
 
 	sumo_smu_pg_init(rdev);
 
@@ -224,13 +241,17 @@ static void sumo_gfx_powergating_initialize(struct radeon_device *rdev)
 	rcu_pwr_gating_cntl &=
 		~(RSVD_MASK | PCV_MASK | PGS_MASK);
 	rcu_pwr_gating_cntl |= PCV(p_c) | PGS(4) | PWR_GATING_EN;
-	if (rdev->family == CHIP_PALM) {
+
+	if (rdev->family == CHIP_PALM)
+	{
 		rcu_pwr_gating_cntl &= ~PCP_MASK;
 		rcu_pwr_gating_cntl |= PCP(0x77);
 	}
+
 	WREG32_RCU(RCU_PWR_GATING_CNTL, rcu_pwr_gating_cntl);
 
-	if (rdev->family == CHIP_PALM) {
+	if (rdev->family == CHIP_PALM)
+	{
 		rcu_pwr_gating_cntl = RREG32_RCU(RCU_PWR_GATING_CNTL_2);
 		rcu_pwr_gating_cntl &= ~(MPPU_MASK | MPPD_MASK);
 		rcu_pwr_gating_cntl |= MPPU(113) | MPPD(50);
@@ -249,15 +270,21 @@ static void sumo_gfx_powergating_initialize(struct radeon_device *rdev)
 		~(RSVD_MASK | PCV_MASK | PGS_MASK);
 	rcu_pwr_gating_cntl |= PGS(5) | PWR_GATING_EN;
 
-	if (rdev->family == CHIP_PALM) {
+	if (rdev->family == CHIP_PALM)
+	{
 		rcu_pwr_gating_cntl |= PCV(4);
 		rcu_pwr_gating_cntl &= ~PCP_MASK;
 		rcu_pwr_gating_cntl |= PCP(0x77);
-	} else
+	}
+	else
+	{
 		rcu_pwr_gating_cntl |= PCV(11);
+	}
+
 	WREG32_RCU(RCU_PWR_GATING_CNTL, rcu_pwr_gating_cntl);
 
-	if (rdev->family == CHIP_PALM) {
+	if (rdev->family == CHIP_PALM)
+	{
 		rcu_pwr_gating_cntl = RREG32_RCU(RCU_PWR_GATING_CNTL_2);
 		rcu_pwr_gating_cntl &= ~(MPPU_MASK | MPPD_MASK);
 		rcu_pwr_gating_cntl |= MPPU(113) | MPPD(50);
@@ -275,8 +302,11 @@ static void sumo_gfx_powergating_initialize(struct radeon_device *rdev)
 static void sumo_gfx_powergating_enable(struct radeon_device *rdev, bool enable)
 {
 	if (enable)
+	{
 		WREG32_P(CG_PWR_GATING_CNTL, DYN_PWR_DOWN_EN, ~DYN_PWR_DOWN_EN);
-	else {
+	}
+	else
+	{
 		WREG32_P(CG_PWR_GATING_CNTL, 0, ~DYN_PWR_DOWN_EN);
 		RREG32(GB_ADDR_CONFIG);
 	}
@@ -287,15 +317,29 @@ static int sumo_enable_clock_power_gating(struct radeon_device *rdev)
 	struct sumo_power_info *pi = sumo_get_pi(rdev);
 
 	if (pi->enable_gfx_clock_gating)
+	{
 		sumo_gfx_clockgating_initialize(rdev);
+	}
+
 	if (pi->enable_gfx_power_gating)
+	{
 		sumo_gfx_powergating_initialize(rdev);
+	}
+
 	if (pi->enable_mg_clock_gating)
+	{
 		sumo_mg_clockgating_enable(rdev, true);
+	}
+
 	if (pi->enable_gfx_clock_gating)
+	{
 		sumo_gfx_clockgating_enable(rdev, true);
+	}
+
 	if (pi->enable_gfx_power_gating)
+	{
 		sumo_gfx_powergating_enable(rdev, true);
+	}
 
 	return 0;
 }
@@ -305,15 +349,23 @@ static void sumo_disable_clock_power_gating(struct radeon_device *rdev)
 	struct sumo_power_info *pi = sumo_get_pi(rdev);
 
 	if (pi->enable_gfx_clock_gating)
+	{
 		sumo_gfx_clockgating_enable(rdev, false);
+	}
+
 	if (pi->enable_gfx_power_gating)
+	{
 		sumo_gfx_powergating_enable(rdev, false);
+	}
+
 	if (pi->enable_mg_clock_gating)
+	{
 		sumo_mg_clockgating_enable(rdev, false);
+	}
 }
 
 static void sumo_calculate_bsp(struct radeon_device *rdev,
-			       u32 high_clk)
+							   u32 high_clk)
 {
 	struct sumo_power_info *pi = sumo_get_pi(rdev);
 	u32 xclk = radeon_get_xclk(rdev);
@@ -322,10 +374,10 @@ static void sumo_calculate_bsp(struct radeon_device *rdev,
 	pi->asi = 65535 * 100 / high_clk;
 
 	r600_calculate_u_and_p(pi->asi,
-			       xclk, 16, &pi->bsp, &pi->bsu);
+						   xclk, 16, &pi->bsp, &pi->bsu);
 
 	r600_calculate_u_and_p(pi->pasi,
-			       xclk, 16, &pi->pbsp, &pi->pbsu);
+						   xclk, 16, &pi->pbsp, &pi->pbsu);
 
 	pi->dsp = BSP(pi->bsp) | BSU(pi->bsu);
 	pi->psp = BSP(pi->pbsp) | BSU(pi->pbsu);
@@ -340,7 +392,7 @@ static void sumo_init_bsp(struct radeon_device *rdev)
 
 
 static void sumo_program_bsp(struct radeon_device *rdev,
-			     struct radeon_ps *rps)
+							 struct radeon_ps *rps)
 {
 	struct sumo_power_info *pi = sumo_get_pi(rdev);
 	struct sumo_ps *ps = sumo_get_ps(rps);
@@ -348,42 +400,64 @@ static void sumo_program_bsp(struct radeon_device *rdev,
 	u32 highest_engine_clock = ps->levels[ps->num_levels - 1].sclk;
 
 	if (ps->flags & SUMO_POWERSTATE_FLAGS_BOOST_STATE)
+	{
 		highest_engine_clock = pi->boost_pl.sclk;
+	}
 
 	sumo_calculate_bsp(rdev, highest_engine_clock);
 
 	for (i = 0; i < ps->num_levels - 1; i++)
+	{
 		WREG32(CG_BSP_0 + (i * 4), pi->dsp);
+	}
 
 	WREG32(CG_BSP_0 + (i * 4), pi->psp);
 
 	if (ps->flags & SUMO_POWERSTATE_FLAGS_BOOST_STATE)
+	{
 		WREG32(CG_BSP_0 + (BOOST_DPM_LEVEL * 4), pi->psp);
+	}
 }
 
 static void sumo_write_at(struct radeon_device *rdev,
-			  u32 index, u32 value)
+						  u32 index, u32 value)
 {
 	if (index == 0)
+	{
 		WREG32(CG_AT_0, value);
+	}
 	else if (index == 1)
+	{
 		WREG32(CG_AT_1, value);
+	}
 	else if (index == 2)
+	{
 		WREG32(CG_AT_2, value);
+	}
 	else if (index == 3)
+	{
 		WREG32(CG_AT_3, value);
+	}
 	else if (index == 4)
+	{
 		WREG32(CG_AT_4, value);
+	}
 	else if (index == 5)
+	{
 		WREG32(CG_AT_5, value);
+	}
 	else if (index == 6)
+	{
 		WREG32(CG_AT_6, value);
+	}
 	else if (index == 7)
+	{
 		WREG32(CG_AT_7, value);
+	}
 }
 
 static void sumo_program_at(struct radeon_device *rdev,
-			    struct radeon_ps *rps)
+							struct radeon_ps *rps)
 {
 	struct sumo_power_info *pi = sumo_get_pi(rdev);
 	struct sumo_ps *ps = sumo_get_ps(rps);
@@ -406,7 +480,8 @@ static void sumo_program_at(struct radeon_device *rdev,
 	l[3] = SUMO_L_DFLT3;
 	l[4] = SUMO_L_DFLT4;
 
-	for (i = 0; i < ps->num_levels; i++) {
+	for (i = 0; i < ps->num_levels; i++)
+	{
 		asi = (i == ps->num_levels - 1) ? pi->pasi : pi->asi;
 
 		m_a = asi * ps->levels[i].sclk / 100;
@@ -416,13 +491,14 @@ static void sumo_program_at(struct radeon_device *rdev,
 		sumo_write_at(rdev, i, a_t);
 	}
 
-	if (ps->flags & SUMO_POWERSTATE_FLAGS_BOOST_STATE) {
+	if (ps->flags & SUMO_POWERSTATE_FLAGS_BOOST_STATE)
+	{
 		asi = pi->pasi;
 
 		m_a = asi * pi->boost_pl.sclk / 100;
 
 		a_t = CG_R(m_a * r[ps->num_levels - 1] / 100) |
-			CG_L(m_a * l[ps->num_levels - 1] / 100);
+			  CG_L(m_a * l[ps->num_levels - 1] / 100);
 
 		sumo_write_at(rdev, BOOST_DPM_LEVEL, a_t);
 	}
@@ -433,21 +509,30 @@ static void sumo_program_tp(struct radeon_device *rdev)
 	int i;
 	enum r600_td td = R600_TD_DFLT;
 
-	for (i = 0; i < SUMO_PM_NUMBER_OF_TC; i++) {
+	for (i = 0; i < SUMO_PM_NUMBER_OF_TC; i++)
+	{
 		WREG32_P(CG_FFCT_0 + (i * 4), UTC_0(sumo_utc[i]), ~UTC_0_MASK);
 		WREG32_P(CG_FFCT_0 + (i * 4), DTC_0(sumo_dtc[i]), ~DTC_0_MASK);
 	}
 
 	if (td == R600_TD_AUTO)
+	{
 		WREG32_P(SCLK_PWRMGT_CNTL, 0, ~FIR_FORCE_TREND_SEL);
+	}
 	else
+	{
 		WREG32_P(SCLK_PWRMGT_CNTL, FIR_FORCE_TREND_SEL, ~FIR_FORCE_TREND_SEL);
+	}
 
 	if (td == R600_TD_UP)
+	{
 		WREG32_P(SCLK_PWRMGT_CNTL, 0, ~FIR_TREND_MODE);
+	}
 
 	if (td == R600_TD_DOWN)
+	{
 		WREG32_P(SCLK_PWRMGT_CNTL, FIR_TREND_MODE, ~FIR_TREND_MODE);
+	}
 }
 
 void sumo_program_vc(struct radeon_device *rdev, u32 vrc)
@@ -466,37 +551,38 @@ void sumo_program_sstp(struct radeon_device *rdev)
 	u32 xclk = radeon_get_xclk(rdev);
 
 	r600_calculate_u_and_p(SUMO_SST_DFLT,
-			       xclk, 16, &p, &u);
+						   xclk, 16, &p, &u);
 
 	WREG32(CG_SSP, SSTU(u) | SST(p));
 }
 
 static void sumo_set_divider_value(struct radeon_device *rdev,
-				   u32 index, u32 divider)
+								   u32 index, u32 divider)
 {
 	u32 reg_index = index / 4;
 	u32 field_index = index % 4;
 
 	if (field_index == 0)
 		WREG32_P(CG_SCLK_DPM_CTRL + (reg_index * 4),
-			 SCLK_FSTATE_0_DIV(divider), ~SCLK_FSTATE_0_DIV_MASK);
+				 SCLK_FSTATE_0_DIV(divider), ~SCLK_FSTATE_0_DIV_MASK);
 	else if (field_index == 1)
 		WREG32_P(CG_SCLK_DPM_CTRL + (reg_index * 4),
-			 SCLK_FSTATE_1_DIV(divider), ~SCLK_FSTATE_1_DIV_MASK);
+				 SCLK_FSTATE_1_DIV(divider), ~SCLK_FSTATE_1_DIV_MASK);
 	else if (field_index == 2)
 		WREG32_P(CG_SCLK_DPM_CTRL + (reg_index * 4),
-			 SCLK_FSTATE_2_DIV(divider), ~SCLK_FSTATE_2_DIV_MASK);
+				 SCLK_FSTATE_2_DIV(divider), ~SCLK_FSTATE_2_DIV_MASK);
 	else if (field_index == 3)
 		WREG32_P(CG_SCLK_DPM_CTRL + (reg_index * 4),
-			 SCLK_FSTATE_3_DIV(divider), ~SCLK_FSTATE_3_DIV_MASK);
+				 SCLK_FSTATE_3_DIV(divider), ~SCLK_FSTATE_3_DIV_MASK);
 }
 
 static void sumo_set_ds_dividers(struct radeon_device *rdev,
-				 u32 index, u32 divider)
+								 u32 index, u32 divider)
 {
 	struct sumo_power_info *pi = sumo_get_pi(rdev);
 
-	if (pi->enable_sclk_ds) {
+	if (pi->enable_sclk_ds)
+	{
 		u32 dpm_ctrl = RREG32(CG_SCLK_DPM_CTRL_6);
 
 		dpm_ctrl &= ~(0x7 << (index * 3));
@@ -506,11 +592,12 @@ static void sumo_set_ds_dividers(struct radeon_device *rdev,
 }
 
 static void sumo_set_ss_dividers(struct radeon_device *rdev,
-				 u32 index, u32 divider)
+								 u32 index, u32 divider)
 {
 	struct sumo_power_info *pi = sumo_get_pi(rdev);
 
-	if (pi->enable_sclk_ds) {
+	if (pi->enable_sclk_ds)
+	{
 		u32 dpm_ctrl = RREG32(CG_SCLK_DPM_CTRL_11);
 
 		dpm_ctrl &= ~(0x7 << (index * 3));
@@ -535,7 +622,9 @@ static void sumo_set_allos_gnb_slow(struct radeon_device *rdev, u32 index, u32 g
 	u32 cg_sclk_dpm_ctrl_3;
 
 	if (pi->driver_nbps_policy_disable)
+	{
 		temp = 1;
+	}
 
 	cg_sclk_dpm_ctrl_3 = RREG32(CG_SCLK_DPM_CTRL_3);
 	cg_sclk_dpm_ctrl_3 &= ~(GNB_SLOW_FSTATE_0_MASK << index);
@@ -545,7 +634,7 @@ static void sumo_set_allos_gnb_slow(struct radeon_device *rdev, u32 index, u32 g
 }
 
 static void sumo_program_power_level(struct radeon_device *rdev,
-				     struct sumo_pl *pl, u32 index)
+									 struct sumo_pl *pl, u32 index)
 {
 	struct sumo_power_info *pi = sumo_get_pi(rdev);
 	int ret;
@@ -553,29 +642,41 @@ static void sumo_program_power_level(struct radeon_device *rdev,
 	u32 ds_en = RREG32(DEEP_SLEEP_CNTL) & ENABLE_DS;
 
 	ret = radeon_atom_get_clock_dividers(rdev, COMPUTE_ENGINE_PLL_PARAM,
-					     pl->sclk, false, &dividers);
+										 pl->sclk, false, &dividers);
+
 	if (ret)
+	{
 		return;
+	}
 
 	sumo_set_divider_value(rdev, index, dividers.post_div);
 
 	sumo_set_vid(rdev, index, pl->vddc_index);
 
-	if (pl->ss_divider_index == 0 || pl->ds_divider_index == 0) {
+	if (pl->ss_divider_index == 0 || pl->ds_divider_index == 0)
+	{
 		if (ds_en)
+		{
 			WREG32_P(DEEP_SLEEP_CNTL, 0, ~ENABLE_DS);
-	} else {
+		}
+	}
+	else
+	{
 		sumo_set_ss_dividers(rdev, index, pl->ss_divider_index);
 		sumo_set_ds_dividers(rdev, index, pl->ds_divider_index);
 
 		if (!ds_en)
+		{
 			WREG32_P(DEEP_SLEEP_CNTL, ENABLE_DS, ~ENABLE_DS);
+		}
 	}
 
 	sumo_set_allos_gnb_slow(rdev, index, pl->allow_gnb_slow);
 
 	if (pi->enable_boost)
+	{
 		sumo_set_tdp_limit(rdev, index, pl->sclk_dpm_tdp_limit);
+	}
 }
 
 static void sumo_power_level_enable(struct radeon_device *rdev, u32 index, bool enable)
@@ -585,24 +686,28 @@ static void sumo_power_level_enable(struct radeon_device *rdev, u32 index, bool 
 
 	if (field_index == 0)
 		WREG32_P(CG_SCLK_DPM_CTRL + (reg_index * 4),
-			 enable ? SCLK_FSTATE_0_VLD : 0, ~SCLK_FSTATE_0_VLD);
+				 enable ? SCLK_FSTATE_0_VLD : 0, ~SCLK_FSTATE_0_VLD);
 	else if (field_index == 1)
 		WREG32_P(CG_SCLK_DPM_CTRL + (reg_index * 4),
-			 enable ? SCLK_FSTATE_1_VLD : 0, ~SCLK_FSTATE_1_VLD);
+				 enable ? SCLK_FSTATE_1_VLD : 0, ~SCLK_FSTATE_1_VLD);
 	else if (field_index == 2)
 		WREG32_P(CG_SCLK_DPM_CTRL + (reg_index * 4),
-			 enable ? SCLK_FSTATE_2_VLD : 0, ~SCLK_FSTATE_2_VLD);
+				 enable ? SCLK_FSTATE_2_VLD : 0, ~SCLK_FSTATE_2_VLD);
 	else if (field_index == 3)
 		WREG32_P(CG_SCLK_DPM_CTRL + (reg_index * 4),
-			 enable ? SCLK_FSTATE_3_VLD : 0, ~SCLK_FSTATE_3_VLD);
+				 enable ? SCLK_FSTATE_3_VLD : 0, ~SCLK_FSTATE_3_VLD);
 }
 
 static bool sumo_dpm_enabled(struct radeon_device *rdev)
 {
 	if (RREG32(CG_SCLK_DPM_CTRL_3) & DPM_SCLK_ENABLE)
+	{
 		return true;
+	}
 	else
+	{
 		return false;
+	}
 }
 
 static void sumo_start_dpm(struct radeon_device *rdev)
@@ -618,9 +723,13 @@ static void sumo_stop_dpm(struct radeon_device *rdev)
 static void sumo_set_forced_mode(struct radeon_device *rdev, bool enable)
 {
 	if (enable)
+	{
 		WREG32_P(CG_SCLK_DPM_CTRL_3, FORCE_SCLK_STATE_EN, ~FORCE_SCLK_STATE_EN);
+	}
 	else
+	{
 		WREG32_P(CG_SCLK_DPM_CTRL_3, 0, ~FORCE_SCLK_STATE_EN);
+	}
 }
 
 static void sumo_set_forced_mode_enabled(struct radeon_device *rdev)
@@ -628,9 +737,14 @@ static void sumo_set_forced_mode_enabled(struct radeon_device *rdev)
 	int i;
 
 	sumo_set_forced_mode(rdev, true);
-	for (i = 0; i < rdev->usec_timeout; i++) {
+
+	for (i = 0; i < rdev->usec_timeout; i++)
+	{
 		if (RREG32(CG_SCLK_STATUS) & SCLK_OVERCLK_DETECT)
+		{
 			break;
+		}
+
 		udelay(1);
 	}
 }
@@ -639,14 +753,23 @@ static void sumo_wait_for_level_0(struct radeon_device *rdev)
 {
 	int i;
 
-	for (i = 0; i < rdev->usec_timeout; i++) {
+	for (i = 0; i < rdev->usec_timeout; i++)
+	{
 		if ((RREG32(TARGET_AND_CURRENT_PROFILE_INDEX) & CURR_SCLK_INDEX_MASK) == 0)
+		{
 			break;
+		}
+
 		udelay(1);
 	}
-	for (i = 0; i < rdev->usec_timeout; i++) {
+
+	for (i = 0; i < rdev->usec_timeout; i++)
+	{
 		if ((RREG32(TARGET_AND_CURRENT_PROFILE_INDEX) & CURR_INDEX_MASK) == 0)
+		{
 			break;
+		}
+
 		udelay(1);
 	}
 }
@@ -662,12 +785,13 @@ static void sumo_enable_power_level_0(struct radeon_device *rdev)
 }
 
 static void sumo_patch_boost_state(struct radeon_device *rdev,
-				   struct radeon_ps *rps)
+								   struct radeon_ps *rps)
 {
 	struct sumo_power_info *pi = sumo_get_pi(rdev);
 	struct sumo_ps *new_ps = sumo_get_ps(rps);
 
-	if (new_ps->flags & SUMO_POWERSTATE_FLAGS_BOOST_STATE) {
+	if (new_ps->flags & SUMO_POWERSTATE_FLAGS_BOOST_STATE)
+	{
 		pi->boost_pl = new_ps->levels[new_ps->num_levels - 1];
 		pi->boost_pl.sclk = pi->sys_info.boost_sclk;
 		pi->boost_pl.vddc_index = pi->sys_info.boost_vid_2bit;
@@ -676,8 +800,8 @@ static void sumo_patch_boost_state(struct radeon_device *rdev,
 }
 
 static void sumo_pre_notify_alt_vddnb_change(struct radeon_device *rdev,
-					     struct radeon_ps *new_rps,
-					     struct radeon_ps *old_rps)
+		struct radeon_ps *new_rps,
+		struct radeon_ps *old_rps)
 {
 	struct sumo_ps *new_ps = sumo_get_ps(new_rps);
 	struct sumo_ps *old_ps = sumo_get_ps(old_rps);
@@ -685,17 +809,21 @@ static void sumo_pre_notify_alt_vddnb_change(struct radeon_device *rdev,
 	u32 nbps1_new = 0;
 
 	if (old_ps != NULL)
+	{
 		nbps1_old = (old_ps->flags & SUMO_POWERSTATE_FLAGS_FORCE_NBPS1_STATE) ? 1 : 0;
+	}
 
 	nbps1_new = (new_ps->flags & SUMO_POWERSTATE_FLAGS_FORCE_NBPS1_STATE) ? 1 : 0;
 
 	if (nbps1_old == 1 && nbps1_new == 0)
+	{
 		sumo_smu_notify_alt_vddnb_change(rdev, 0, 0);
+	}
 }
 
 static void sumo_post_notify_alt_vddnb_change(struct radeon_device *rdev,
-					      struct radeon_ps *new_rps,
-					      struct radeon_ps *old_rps)
+		struct radeon_ps *new_rps,
+		struct radeon_ps *old_rps)
 {
 	struct sumo_ps *new_ps = sumo_get_ps(new_rps);
 	struct sumo_ps *old_ps = sumo_get_ps(old_rps);
@@ -703,25 +831,35 @@ static void sumo_post_notify_alt_vddnb_change(struct radeon_device *rdev,
 	u32 nbps1_new = 0;
 
 	if (old_ps != NULL)
-		nbps1_old = (old_ps->flags & SUMO_POWERSTATE_FLAGS_FORCE_NBPS1_STATE)? 1 : 0;
+	{
+		nbps1_old = (old_ps->flags & SUMO_POWERSTATE_FLAGS_FORCE_NBPS1_STATE) ? 1 : 0;
+	}
 
-	nbps1_new = (new_ps->flags & SUMO_POWERSTATE_FLAGS_FORCE_NBPS1_STATE)? 1 : 0;
+	nbps1_new = (new_ps->flags & SUMO_POWERSTATE_FLAGS_FORCE_NBPS1_STATE) ? 1 : 0;
 
 	if (nbps1_old == 0 && nbps1_new == 1)
+	{
 		sumo_smu_notify_alt_vddnb_change(rdev, 1, 1);
+	}
 }
 
 static void sumo_enable_boost(struct radeon_device *rdev,
-			      struct radeon_ps *rps,
-			      bool enable)
+							  struct radeon_ps *rps,
+							  bool enable)
 {
 	struct sumo_ps *new_ps = sumo_get_ps(rps);
 
-	if (enable) {
+	if (enable)
+	{
 		if (new_ps->flags & SUMO_POWERSTATE_FLAGS_BOOST_STATE)
+		{
 			sumo_boost_state_enable(rdev, true);
-	} else
+		}
+	}
+	else
+	{
 		sumo_boost_state_enable(rdev, false);
+	}
 }
 
 static void sumo_set_forced_level(struct radeon_device *rdev, u32 index)
@@ -735,7 +873,7 @@ static void sumo_set_forced_level_0(struct radeon_device *rdev)
 }
 
 static void sumo_program_wl(struct radeon_device *rdev,
-			    struct radeon_ps *rps)
+							struct radeon_ps *rps)
 {
 	struct sumo_ps *new_ps = sumo_get_ps(rps);
 	u32 dpm_ctrl4 = RREG32(CG_SCLK_DPM_CTRL_4);
@@ -744,14 +882,16 @@ static void sumo_program_wl(struct radeon_device *rdev,
 	dpm_ctrl4 |= (1 << (new_ps->num_levels - 1));
 
 	if (new_ps->flags & SUMO_POWERSTATE_FLAGS_BOOST_STATE)
+	{
 		dpm_ctrl4 |= (1 << BOOST_DPM_LEVEL);
+	}
 
 	WREG32(CG_SCLK_DPM_CTRL_4, dpm_ctrl4);
 }
 
 static void sumo_program_power_levels_0_to_n(struct radeon_device *rdev,
-					     struct radeon_ps *new_rps,
-					     struct radeon_ps *old_rps)
+		struct radeon_ps *new_rps,
+		struct radeon_ps *old_rps)
 {
 	struct sumo_power_info *pi = sumo_get_pi(rdev);
 	struct sumo_ps *new_ps = sumo_get_ps(new_rps);
@@ -759,16 +899,21 @@ static void sumo_program_power_levels_0_to_n(struct radeon_device *rdev,
 	u32 i;
 	u32 n_current_state_levels = (old_ps == NULL) ? 1 : old_ps->num_levels;
 
-	for (i = 0; i < new_ps->num_levels; i++) {
+	for (i = 0; i < new_ps->num_levels; i++)
+	{
 		sumo_program_power_level(rdev, &new_ps->levels[i], i);
 		sumo_power_level_enable(rdev, i, true);
 	}
 
 	for (i = new_ps->num_levels; i < n_current_state_levels; i++)
+	{
 		sumo_power_level_enable(rdev, i, false);
+	}
 
 	if (new_ps->flags & SUMO_POWERSTATE_FLAGS_BOOST_STATE)
+	{
 		sumo_program_power_level(rdev, &pi->boost_pl, BOOST_DPM_LEVEL);
+	}
 }
 
 static void sumo_enable_acpi_pm(struct radeon_device *rdev)
@@ -788,10 +933,13 @@ static void sumo_program_acpi_power_level(struct radeon_device *rdev)
 	int ret;
 
 	ret = radeon_atom_get_clock_dividers(rdev, COMPUTE_ENGINE_PLL_PARAM,
-					     pi->acpi_pl.sclk,
-					     false, &dividers);
+										 pi->acpi_pl.sclk,
+										 false, &dividers);
+
 	if (ret)
+	{
 		return;
+	}
 
 	WREG32_P(CG_ACPI_CNTL, SCLK_ACPI_DIV(dividers.post_div), ~SCLK_ACPI_DIV_MASK);
 	WREG32_P(CG_ACPI_VOLTAGE_CNTL, 0, ~ACPI_VOLTAGE_EN);
@@ -809,78 +957,96 @@ static void sumo_program_bootup_state(struct radeon_device *rdev)
 	WREG32(CG_SCLK_DPM_CTRL_4, dpm_ctrl4);
 
 	for (i = 1; i < 8; i++)
+	{
 		sumo_power_level_enable(rdev, i, false);
+	}
 }
 
 static void sumo_setup_uvd_clocks(struct radeon_device *rdev,
-				  struct radeon_ps *new_rps,
-				  struct radeon_ps *old_rps)
+								  struct radeon_ps *new_rps,
+								  struct radeon_ps *old_rps)
 {
 	struct sumo_power_info *pi = sumo_get_pi(rdev);
 
-	if (pi->enable_gfx_power_gating) {
+	if (pi->enable_gfx_power_gating)
+	{
 		sumo_gfx_powergating_enable(rdev, false);
 	}
 
 	radeon_set_uvd_clocks(rdev, new_rps->vclk, new_rps->dclk);
 
-	if (pi->enable_gfx_power_gating) {
+	if (pi->enable_gfx_power_gating)
+	{
 		if (!pi->disable_gfx_power_gating_in_uvd ||
-		    !r600_is_uvd_state(new_rps->class, new_rps->class2))
+			!r600_is_uvd_state(new_rps->class, new_rps->class2))
+		{
 			sumo_gfx_powergating_enable(rdev, true);
+		}
 	}
 }
 
 static void sumo_set_uvd_clock_before_set_eng_clock(struct radeon_device *rdev,
-						    struct radeon_ps *new_rps,
-						    struct radeon_ps *old_rps)
+		struct radeon_ps *new_rps,
+		struct radeon_ps *old_rps)
 {
 	struct sumo_ps *new_ps = sumo_get_ps(new_rps);
 	struct sumo_ps *current_ps = sumo_get_ps(old_rps);
 
 	if ((new_rps->vclk == old_rps->vclk) &&
-	    (new_rps->dclk == old_rps->dclk))
+		(new_rps->dclk == old_rps->dclk))
+	{
 		return;
+	}
 
 	if (new_ps->levels[new_ps->num_levels - 1].sclk >=
-	    current_ps->levels[current_ps->num_levels - 1].sclk)
+		current_ps->levels[current_ps->num_levels - 1].sclk)
+	{
 		return;
+	}
 
 	sumo_setup_uvd_clocks(rdev, new_rps, old_rps);
 }
 
 static void sumo_set_uvd_clock_after_set_eng_clock(struct radeon_device *rdev,
-						   struct radeon_ps *new_rps,
-						   struct radeon_ps *old_rps)
+		struct radeon_ps *new_rps,
+		struct radeon_ps *old_rps)
 {
 	struct sumo_ps *new_ps = sumo_get_ps(new_rps);
 	struct sumo_ps *current_ps = sumo_get_ps(old_rps);
 
 	if ((new_rps->vclk == old_rps->vclk) &&
-	    (new_rps->dclk == old_rps->dclk))
+		(new_rps->dclk == old_rps->dclk))
+	{
 		return;
+	}
 
 	if (new_ps->levels[new_ps->num_levels - 1].sclk <
-	    current_ps->levels[current_ps->num_levels - 1].sclk)
+		current_ps->levels[current_ps->num_levels - 1].sclk)
+	{
 		return;
+	}
 
 	sumo_setup_uvd_clocks(rdev, new_rps, old_rps);
 }
 
 void sumo_take_smu_control(struct radeon_device *rdev, bool enable)
 {
-/* This bit selects who handles display phy powergating.
- * Clear the bit to let atom handle it.
- * Set it to let the driver handle it.
- * For now we just let atom handle it.
- */
+	/* This bit selects who handles display phy powergating.
+	 * Clear the bit to let atom handle it.
+	 * Set it to let the driver handle it.
+	 * For now we just let atom handle it.
+	 */
 #if 0
 	u32 v = RREG32(DOUT_SCRATCH3);
 
 	if (enable)
+	{
 		v |= 0x4;
+	}
 	else
+	{
 		v &= 0xFFFFFFFB;
+	}
 
 	WREG32(DOUT_SCRATCH3, v);
 #endif
@@ -888,7 +1054,8 @@ void sumo_take_smu_control(struct radeon_device *rdev, bool enable)
 
 static void sumo_enable_sclk_ds(struct radeon_device *rdev, bool enable)
 {
-	if (enable) {
+	if (enable)
+	{
 		u32 deep_sleep_cntl = RREG32(DEEP_SLEEP_CNTL);
 		u32 deep_sleep_cntl2 = RREG32(DEEP_SLEEP_CNTL2);
 		u32 t = 1;
@@ -903,8 +1070,11 @@ static void sumo_enable_sclk_ds(struct radeon_device *rdev, bool enable)
 
 		WREG32(DEEP_SLEEP_CNTL2, deep_sleep_cntl2);
 		WREG32(DEEP_SLEEP_CNTL, deep_sleep_cntl);
-	} else
+	}
+	else
+	{
 		WREG32_P(DEEP_SLEEP_CNTL, 0, ~ENABLE_DS);
+	}
 }
 
 static void sumo_program_bootup_at(struct radeon_device *rdev)
@@ -930,7 +1100,7 @@ static void sumo_program_ttp(struct radeon_device *rdev)
 	u32 cg_sclk_dpm_ctrl_5 = RREG32(CG_SCLK_DPM_CTRL_5);
 
 	r600_calculate_u_and_p(1000,
-			       xclk, 16, &p, &u);
+						   xclk, 16, &p, &u);
 
 	cg_sclk_dpm_ctrl_5 &= ~(TT_TP_MASK | TT_TU_MASK);
 	cg_sclk_dpm_ctrl_5 |= TT_TP(p) | TT_TU(u);
@@ -952,10 +1122,13 @@ static void sumo_program_ttt(struct radeon_device *rdev)
 
 static void sumo_enable_voltage_scaling(struct radeon_device *rdev, bool enable)
 {
-	if (enable) {
+	if (enable)
+	{
 		WREG32_P(CG_DPM_VOLTAGE_CNTL, DPM_VOLTAGE_EN, ~DPM_VOLTAGE_EN);
 		WREG32_P(CG_CG_VOLTAGE_CNTL, 0, ~CG_VOLTAGE_EN);
-	} else {
+	}
+	else
+	{
 		WREG32_P(CG_CG_VOLTAGE_CNTL, CG_VOLTAGE_EN, ~CG_VOLTAGE_EN);
 		WREG32_P(CG_DPM_VOLTAGE_CNTL, 0, ~DPM_VOLTAGE_EN);
 	}
@@ -964,7 +1137,7 @@ static void sumo_enable_voltage_scaling(struct radeon_device *rdev, bool enable)
 static void sumo_override_cnb_thermal_events(struct radeon_device *rdev)
 {
 	WREG32_P(CG_SCLK_DPM_CTRL_3, CNB_THERMTHRO_MASK_SCLK,
-		 ~CNB_THERMTHRO_MASK_SCLK);
+			 ~CNB_THERMTHRO_MASK_SCLK);
 }
 
 static void sumo_program_dc_hto(struct radeon_device *rdev)
@@ -974,7 +1147,7 @@ static void sumo_program_dc_hto(struct radeon_device *rdev)
 	u32 xclk = radeon_get_xclk(rdev);
 
 	r600_calculate_u_and_p(100000,
-			       xclk, 14, &p, &u);
+						   xclk, 14, &p, &u);
 
 	cg_sclk_dpm_ctrl_4 &= ~(DC_HDC_MASK | DC_HU_MASK);
 	cg_sclk_dpm_ctrl_4 |= DC_HDC(p) | DC_HU(u);
@@ -983,16 +1156,21 @@ static void sumo_program_dc_hto(struct radeon_device *rdev)
 }
 
 static void sumo_force_nbp_state(struct radeon_device *rdev,
-				 struct radeon_ps *rps)
+								 struct radeon_ps *rps)
 {
 	struct sumo_power_info *pi = sumo_get_pi(rdev);
 	struct sumo_ps *new_ps = sumo_get_ps(rps);
 
-	if (!pi->driver_nbps_policy_disable) {
+	if (!pi->driver_nbps_policy_disable)
+	{
 		if (new_ps->flags & SUMO_POWERSTATE_FLAGS_FORCE_NBPS1_STATE)
+		{
 			WREG32_P(CG_SCLK_DPM_CTRL_3, FORCE_NB_PSTATE_1, ~FORCE_NB_PSTATE_1);
+		}
 		else
+		{
 			WREG32_P(CG_SCLK_DPM_CTRL_3, 0, ~FORCE_NB_PSTATE_1);
+		}
 	}
 }
 
@@ -1002,47 +1180,59 @@ u32 sumo_get_sleep_divider_from_id(u32 id)
 }
 
 u32 sumo_get_sleep_divider_id_from_clock(struct radeon_device *rdev,
-					 u32 sclk,
-					 u32 min_sclk_in_sr)
+		u32 sclk,
+		u32 min_sclk_in_sr)
 {
 	struct sumo_power_info *pi = sumo_get_pi(rdev);
 	u32 i;
 	u32 temp;
 	u32 min = (min_sclk_in_sr > SUMO_MINIMUM_ENGINE_CLOCK) ?
-		min_sclk_in_sr : SUMO_MINIMUM_ENGINE_CLOCK;
+			  min_sclk_in_sr : SUMO_MINIMUM_ENGINE_CLOCK;
 
 	if (sclk < min)
+	{
 		return 0;
+	}
 
 	if (!pi->enable_sclk_ds)
+	{
 		return 0;
+	}
 
-	for (i = SUMO_MAX_DEEPSLEEP_DIVIDER_ID;  ; i--) {
+	for (i = SUMO_MAX_DEEPSLEEP_DIVIDER_ID;  ; i--)
+	{
 		temp = sclk / sumo_get_sleep_divider_from_id(i);
 
 		if (temp >= min || i == 0)
+		{
 			break;
+		}
 	}
+
 	return i;
 }
 
 static u32 sumo_get_valid_engine_clock(struct radeon_device *rdev,
-				       u32 lower_limit)
+									   u32 lower_limit)
 {
 	struct sumo_power_info *pi = sumo_get_pi(rdev);
 	u32 i;
 
-	for (i = 0; i < pi->sys_info.sclk_voltage_mapping_table.num_max_dpm_entries; i++) {
+	for (i = 0; i < pi->sys_info.sclk_voltage_mapping_table.num_max_dpm_entries; i++)
+	{
 		if (pi->sys_info.sclk_voltage_mapping_table.entries[i].sclk_frequency >= lower_limit)
+		{
 			return pi->sys_info.sclk_voltage_mapping_table.entries[i].sclk_frequency;
+		}
 	}
 
-	return pi->sys_info.sclk_voltage_mapping_table.entries[pi->sys_info.sclk_voltage_mapping_table.num_max_dpm_entries - 1].sclk_frequency;
+	return pi->sys_info.sclk_voltage_mapping_table.entries[pi->sys_info.sclk_voltage_mapping_table.num_max_dpm_entries -
+			1].sclk_frequency;
 }
 
 static void sumo_patch_thermal_state(struct radeon_device *rdev,
-				     struct sumo_ps *ps,
-				     struct sumo_ps *current_ps)
+									 struct sumo_ps *ps,
+									 struct sumo_ps *current_ps)
 {
 	struct sumo_power_info *pi = sumo_get_pi(rdev);
 	u32 sclk_in_sr = pi->sys_info.min_sclk; /* ??? */
@@ -1050,10 +1240,13 @@ static void sumo_patch_thermal_state(struct radeon_device *rdev,
 	u32 current_sclk;
 	u32 current_index = 0;
 
-	if (current_ps) {
+	if (current_ps)
+	{
 		current_vddc = current_ps->levels[current_index].vddc_index;
 		current_sclk = current_ps->levels[current_index].sclk;
-	} else {
+	}
+	else
+	{
 		current_vddc = pi->boot_pl.vddc_index;
 		current_sclk = pi->boot_pl.sclk;
 	}
@@ -1061,7 +1254,9 @@ static void sumo_patch_thermal_state(struct radeon_device *rdev,
 	ps->levels[0].vddc_index = current_vddc;
 
 	if (ps->levels[0].sclk > current_sclk)
+	{
 		ps->levels[0].sclk = current_sclk;
+	}
 
 	ps->levels[0].ss_divider_index =
 		sumo_get_sleep_divider_id_from_clock(rdev, ps->levels[0].sclk, sclk_in_sr);
@@ -1070,23 +1265,32 @@ static void sumo_patch_thermal_state(struct radeon_device *rdev,
 		sumo_get_sleep_divider_id_from_clock(rdev, ps->levels[0].sclk, SUMO_MINIMUM_ENGINE_CLOCK);
 
 	if (ps->levels[0].ds_divider_index > ps->levels[0].ss_divider_index + 1)
+	{
 		ps->levels[0].ds_divider_index = ps->levels[0].ss_divider_index + 1;
+	}
 
-	if (ps->levels[0].ss_divider_index == ps->levels[0].ds_divider_index) {
+	if (ps->levels[0].ss_divider_index == ps->levels[0].ds_divider_index)
+	{
 		if (ps->levels[0].ss_divider_index > 1)
+		{
 			ps->levels[0].ss_divider_index = ps->levels[0].ss_divider_index - 1;
+		}
 	}
 
 	if (ps->levels[0].ss_divider_index == 0)
+	{
 		ps->levels[0].ds_divider_index = 0;
+	}
 
 	if (ps->levels[0].ds_divider_index == 0)
+	{
 		ps->levels[0].ss_divider_index = 0;
+	}
 }
 
 static void sumo_apply_state_adjust_rules(struct radeon_device *rdev,
-					  struct radeon_ps *new_rps,
-					  struct radeon_ps *old_rps)
+		struct radeon_ps *new_rps,
+		struct radeon_ps *old_rps)
 {
 	struct sumo_ps *ps = sumo_get_ps(new_rps);
 	struct sumo_ps *current_ps = sumo_get_ps(old_rps);
@@ -1097,21 +1301,31 @@ static void sumo_apply_state_adjust_rules(struct radeon_device *rdev,
 	u32 i;
 
 	if (new_rps->class & ATOM_PPLIB_CLASSIFICATION_THERMAL)
+	{
 		return sumo_patch_thermal_state(rdev, ps, current_ps);
+	}
 
-	if (pi->enable_boost) {
+	if (pi->enable_boost)
+	{
 		if (new_rps->class & ATOM_PPLIB_CLASSIFICATION_UI_PERFORMANCE)
+		{
 			ps->flags |= SUMO_POWERSTATE_FLAGS_BOOST_STATE;
+		}
 	}
 
 	if ((new_rps->class & ATOM_PPLIB_CLASSIFICATION_UI_BATTERY) ||
-	    (new_rps->class & ATOM_PPLIB_CLASSIFICATION_SDSTATE) ||
-	    (new_rps->class & ATOM_PPLIB_CLASSIFICATION_HDSTATE))
+		(new_rps->class & ATOM_PPLIB_CLASSIFICATION_SDSTATE) ||
+		(new_rps->class & ATOM_PPLIB_CLASSIFICATION_HDSTATE))
+	{
 		ps->flags |= SUMO_POWERSTATE_FLAGS_FORCE_NBPS1_STATE;
+	}
 
-	for (i = 0; i < ps->num_levels; i++) {
+	for (i = 0; i < ps->num_levels; i++)
+	{
 		if (ps->levels[i].vddc_index < min_voltage)
+		{
 			ps->levels[i].vddc_index = min_voltage;
+		}
 
 		if (ps->levels[i].sclk < min_sclk)
 			ps->levels[i].sclk =
@@ -1124,28 +1338,45 @@ static void sumo_apply_state_adjust_rules(struct radeon_device *rdev,
 			sumo_get_sleep_divider_id_from_clock(rdev, ps->levels[i].sclk, SUMO_MINIMUM_ENGINE_CLOCK);
 
 		if (ps->levels[i].ds_divider_index > ps->levels[i].ss_divider_index + 1)
+		{
 			ps->levels[i].ds_divider_index = ps->levels[i].ss_divider_index + 1;
+		}
 
-		if (ps->levels[i].ss_divider_index == ps->levels[i].ds_divider_index) {
+		if (ps->levels[i].ss_divider_index == ps->levels[i].ds_divider_index)
+		{
 			if (ps->levels[i].ss_divider_index > 1)
+			{
 				ps->levels[i].ss_divider_index = ps->levels[i].ss_divider_index - 1;
+			}
 		}
 
 		if (ps->levels[i].ss_divider_index == 0)
+		{
 			ps->levels[i].ds_divider_index = 0;
+		}
 
 		if (ps->levels[i].ds_divider_index == 0)
+		{
 			ps->levels[i].ss_divider_index = 0;
+		}
 
 		if (ps->flags & SUMO_POWERSTATE_FLAGS_FORCE_NBPS1_STATE)
+		{
 			ps->levels[i].allow_gnb_slow = 1;
+		}
 		else if ((new_rps->class & ATOM_PPLIB_CLASSIFICATION_UVDSTATE) ||
-			 (new_rps->class2 & ATOM_PPLIB_CLASSIFICATION2_MVC))
+				 (new_rps->class2 & ATOM_PPLIB_CLASSIFICATION2_MVC))
+		{
 			ps->levels[i].allow_gnb_slow = 0;
+		}
 		else if (i == ps->num_levels - 1)
+		{
 			ps->levels[i].allow_gnb_slow = 0;
+		}
 		else
+		{
 			ps->levels[i].allow_gnb_slow = 1;
+		}
 	}
 }
 
@@ -1155,16 +1386,23 @@ static void sumo_cleanup_asic(struct radeon_device *rdev)
 }
 
 static int sumo_set_thermal_temperature_range(struct radeon_device *rdev,
-					      int min_temp, int max_temp)
+		int min_temp, int max_temp)
 {
 	int low_temp = 0 * 1000;
 	int high_temp = 255 * 1000;
 
 	if (low_temp < min_temp)
+	{
 		low_temp = min_temp;
+	}
+
 	if (high_temp > max_temp)
+	{
 		high_temp = max_temp;
-	if (high_temp < low_temp) {
+	}
+
+	if (high_temp < low_temp)
+	{
 		DRM_ERROR("invalid thermal range: %d - %d\n", low_temp, high_temp);
 		return -EINVAL;
 	}
@@ -1179,7 +1417,7 @@ static int sumo_set_thermal_temperature_range(struct radeon_device *rdev,
 }
 
 static void sumo_update_current_ps(struct radeon_device *rdev,
-				   struct radeon_ps *rps)
+								   struct radeon_ps *rps)
 {
 	struct sumo_ps *new_ps = sumo_get_ps(rps);
 	struct sumo_power_info *pi = sumo_get_pi(rdev);
@@ -1190,7 +1428,7 @@ static void sumo_update_current_ps(struct radeon_device *rdev,
 }
 
 static void sumo_update_requested_ps(struct radeon_device *rdev,
-				     struct radeon_ps *rps)
+									 struct radeon_ps *rps)
 {
 	struct sumo_ps *new_ps = sumo_get_ps(rps);
 	struct sumo_power_info *pi = sumo_get_pi(rdev);
@@ -1205,7 +1443,9 @@ int sumo_dpm_enable(struct radeon_device *rdev)
 	struct sumo_power_info *pi = sumo_get_pi(rdev);
 
 	if (sumo_dpm_enabled(rdev))
+	{
 		return -EINVAL;
+	}
 
 	sumo_program_bootup_state(rdev);
 	sumo_init_bsp(rdev);
@@ -1213,10 +1453,13 @@ int sumo_dpm_enable(struct radeon_device *rdev)
 	sumo_program_tp(rdev);
 	sumo_program_bootup_at(rdev);
 	sumo_start_am(rdev);
-	if (pi->enable_auto_thermal_throttling) {
+
+	if (pi->enable_auto_thermal_throttling)
+	{
 		sumo_program_ttp(rdev);
 		sumo_program_ttt(rdev);
 	}
+
 	sumo_program_dc_hto(rdev);
 	sumo_program_power_level_enter_state(rdev);
 	sumo_enable_voltage_scaling(rdev, true);
@@ -1225,10 +1468,16 @@ int sumo_dpm_enable(struct radeon_device *rdev)
 	sumo_override_cnb_thermal_events(rdev);
 	sumo_start_dpm(rdev);
 	sumo_wait_for_level_0(rdev);
+
 	if (pi->enable_sclk_ds)
+	{
 		sumo_enable_sclk_ds(rdev, true);
+	}
+
 	if (pi->enable_boost)
+	{
 		sumo_enable_boost_timer(rdev);
+	}
 
 	sumo_update_current_ps(rdev, rdev->pm.dpm.boot_ps);
 
@@ -1240,14 +1489,22 @@ int sumo_dpm_late_enable(struct radeon_device *rdev)
 	int ret;
 
 	ret = sumo_enable_clock_power_gating(rdev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (rdev->irq.installed &&
-	    r600_is_internal_thermal_sensor(rdev->pm.int_thermal_type)) {
+		r600_is_internal_thermal_sensor(rdev->pm.int_thermal_type))
+	{
 		ret = sumo_set_thermal_temperature_range(rdev, R600_TEMP_RANGE_MIN, R600_TEMP_RANGE_MAX);
+
 		if (ret)
+		{
 			return ret;
+		}
+
 		rdev->irq.dpm_thermal = true;
 		radeon_irq_set(rdev);
 	}
@@ -1260,17 +1517,25 @@ void sumo_dpm_disable(struct radeon_device *rdev)
 	struct sumo_power_info *pi = sumo_get_pi(rdev);
 
 	if (!sumo_dpm_enabled(rdev))
+	{
 		return;
+	}
+
 	sumo_disable_clock_power_gating(rdev);
+
 	if (pi->enable_sclk_ds)
+	{
 		sumo_enable_sclk_ds(rdev, false);
+	}
+
 	sumo_clear_vc(rdev);
 	sumo_wait_for_level_0(rdev);
 	sumo_stop_dpm(rdev);
 	sumo_enable_voltage_scaling(rdev, false);
 
 	if (rdev->irq.installed &&
-	    r600_is_internal_thermal_sensor(rdev->pm.int_thermal_type)) {
+		r600_is_internal_thermal_sensor(rdev->pm.int_thermal_type))
+	{
 		rdev->irq.dpm_thermal = false;
 		radeon_irq_set(rdev);
 	}
@@ -1288,8 +1553,8 @@ int sumo_dpm_pre_set_power_state(struct radeon_device *rdev)
 
 	if (pi->enable_dynamic_patch_ps)
 		sumo_apply_state_adjust_rules(rdev,
-					      &pi->requested_rps,
-					      &pi->current_rps);
+									  &pi->requested_rps,
+									  &pi->current_rps);
 
 	return 0;
 }
@@ -1301,12 +1566,18 @@ int sumo_dpm_set_power_state(struct radeon_device *rdev)
 	struct radeon_ps *old_ps = &pi->current_rps;
 
 	if (pi->enable_dpm)
+	{
 		sumo_set_uvd_clock_before_set_eng_clock(rdev, new_ps, old_ps);
-	if (pi->enable_boost) {
+	}
+
+	if (pi->enable_boost)
+	{
 		sumo_enable_boost(rdev, new_ps, false);
 		sumo_patch_boost_state(rdev, new_ps);
 	}
-	if (pi->enable_dpm) {
+
+	if (pi->enable_dpm)
+	{
 		sumo_pre_notify_alt_vddnb_change(rdev, new_ps, old_ps);
 		sumo_enable_power_level_0(rdev);
 		sumo_set_forced_level_0(rdev);
@@ -1322,10 +1593,16 @@ int sumo_dpm_set_power_state(struct radeon_device *rdev)
 		sumo_set_forced_mode_disabled(rdev);
 		sumo_post_notify_alt_vddnb_change(rdev, new_ps, old_ps);
 	}
+
 	if (pi->enable_boost)
+	{
 		sumo_enable_boost(rdev, new_ps, true);
+	}
+
 	if (pi->enable_dpm)
+	{
 		sumo_set_uvd_clock_after_set_eng_clock(rdev, new_ps, old_ps);
+	}
 
 	return 0;
 }
@@ -1369,7 +1646,8 @@ void sumo_dpm_display_configuration_changed(struct radeon_device *rdev)
 
 }
 
-union power_info {
+union power_info
+{
 	struct _ATOM_POWERPLAY_INFO info;
 	struct _ATOM_POWERPLAY_INFO_V2 info_2;
 	struct _ATOM_POWERPLAY_INFO_V3 info_3;
@@ -1378,20 +1656,22 @@ union power_info {
 	struct _ATOM_PPLIB_POWERPLAYTABLE3 pplib3;
 };
 
-union pplib_clock_info {
+union pplib_clock_info
+{
 	struct _ATOM_PPLIB_R600_CLOCK_INFO r600;
 	struct _ATOM_PPLIB_RS780_CLOCK_INFO rs780;
 	struct _ATOM_PPLIB_EVERGREEN_CLOCK_INFO evergreen;
 	struct _ATOM_PPLIB_SUMO_CLOCK_INFO sumo;
 };
 
-union pplib_power_state {
+union pplib_power_state
+{
 	struct _ATOM_PPLIB_STATE v1;
 	struct _ATOM_PPLIB_STATE_V2 v2;
 };
 
 static void sumo_patch_boot_state(struct radeon_device *rdev,
-				  struct sumo_ps *ps)
+								  struct sumo_ps *ps)
 {
 	struct sumo_power_info *pi = sumo_get_pi(rdev);
 
@@ -1401,9 +1681,9 @@ static void sumo_patch_boot_state(struct radeon_device *rdev,
 }
 
 static void sumo_parse_pplib_non_clock_info(struct radeon_device *rdev,
-					    struct radeon_ps *rps,
-					    struct _ATOM_PPLIB_NONCLOCK_INFO *non_clock_info,
-					    u8 table_rev)
+		struct radeon_ps *rps,
+		struct _ATOM_PPLIB_NONCLOCK_INFO *non_clock_info,
+		u8 table_rev)
 {
 	struct sumo_ps *ps = sumo_get_ps(rps);
 
@@ -1411,25 +1691,32 @@ static void sumo_parse_pplib_non_clock_info(struct radeon_device *rdev,
 	rps->class = le16_to_cpu(non_clock_info->usClassification);
 	rps->class2 = le16_to_cpu(non_clock_info->usClassification2);
 
-	if (ATOM_PPLIB_NONCLOCKINFO_VER1 < table_rev) {
+	if (ATOM_PPLIB_NONCLOCKINFO_VER1 < table_rev)
+	{
 		rps->vclk = le32_to_cpu(non_clock_info->ulVCLK);
 		rps->dclk = le32_to_cpu(non_clock_info->ulDCLK);
-	} else {
+	}
+	else
+	{
 		rps->vclk = 0;
 		rps->dclk = 0;
 	}
 
-	if (rps->class & ATOM_PPLIB_CLASSIFICATION_BOOT) {
+	if (rps->class & ATOM_PPLIB_CLASSIFICATION_BOOT)
+	{
 		rdev->pm.dpm.boot_ps = rps;
 		sumo_patch_boot_state(rdev, ps);
 	}
+
 	if (rps->class & ATOM_PPLIB_CLASSIFICATION_UVDSTATE)
+	{
 		rdev->pm.dpm.uvd_ps = rps;
+	}
 }
 
 static void sumo_parse_pplib_clock_info(struct radeon_device *rdev,
-					struct radeon_ps *rps, int index,
-					union pplib_clock_info *clock_info)
+										struct radeon_ps *rps, int index,
+										union pplib_clock_info *clock_info)
 {
 	struct sumo_power_info *pi = sumo_get_pi(rdev);
 	struct sumo_ps *ps = sumo_get_ps(rps);
@@ -1444,7 +1731,8 @@ static void sumo_parse_pplib_clock_info(struct radeon_device *rdev,
 
 	ps->num_levels = index + 1;
 
-	if (pi->enable_sclk_ds) {
+	if (pi->enable_sclk_ds)
+	{
 		pl->ds_divider_index = 5;
 		pl->ss_divider_index = 4;
 	}
@@ -1468,72 +1756,98 @@ static int sumo_parse_power_table(struct radeon_device *rdev)
 	struct sumo_ps *ps;
 
 	if (!atom_parse_data_header(mode_info->atom_context, index, NULL,
-				   &frev, &crev, &data_offset))
+								&frev, &crev, &data_offset))
+	{
 		return -EINVAL;
+	}
+
 	power_info = (union power_info *)(mode_info->atom_context->bios + data_offset);
 
 	state_array = (struct _StateArray *)
-		(mode_info->atom_context->bios + data_offset +
-		 le16_to_cpu(power_info->pplib.usStateArrayOffset));
+				  (mode_info->atom_context->bios + data_offset +
+				   le16_to_cpu(power_info->pplib.usStateArrayOffset));
 	clock_info_array = (struct _ClockInfoArray *)
-		(mode_info->atom_context->bios + data_offset +
-		 le16_to_cpu(power_info->pplib.usClockInfoArrayOffset));
+					   (mode_info->atom_context->bios + data_offset +
+						le16_to_cpu(power_info->pplib.usClockInfoArrayOffset));
 	non_clock_info_array = (struct _NonClockInfoArray *)
-		(mode_info->atom_context->bios + data_offset +
-		 le16_to_cpu(power_info->pplib.usNonClockInfoArrayOffset));
+						   (mode_info->atom_context->bios + data_offset +
+							le16_to_cpu(power_info->pplib.usNonClockInfoArrayOffset));
 
 	rdev->pm.dpm.ps = kzalloc(sizeof(struct radeon_ps) *
-				  state_array->ucNumEntries, GFP_KERNEL);
+							  state_array->ucNumEntries, GFP_KERNEL);
+
 	if (!rdev->pm.dpm.ps)
+	{
 		return -ENOMEM;
+	}
+
 	power_state_offset = (u8 *)state_array->states;
-	for (i = 0; i < state_array->ucNumEntries; i++) {
+
+	for (i = 0; i < state_array->ucNumEntries; i++)
+	{
 		u8 *idx;
 		power_state = (union pplib_power_state *)power_state_offset;
 		non_clock_array_index = power_state->v2.nonClockInfoIndex;
 		non_clock_info = (struct _ATOM_PPLIB_NONCLOCK_INFO *)
-			&non_clock_info_array->nonClockInfo[non_clock_array_index];
+						 &non_clock_info_array->nonClockInfo[non_clock_array_index];
+
 		if (!rdev->pm.power_state[i].clock_info)
+		{
 			return -EINVAL;
+		}
+
 		ps = kzalloc(sizeof(struct sumo_ps), GFP_KERNEL);
-		if (ps == NULL) {
+
+		if (ps == NULL)
+		{
 			kfree(rdev->pm.dpm.ps);
 			return -ENOMEM;
 		}
+
 		rdev->pm.dpm.ps[i].ps_priv = ps;
 		k = 0;
 		idx = (u8 *)&power_state->v2.clockInfoIndex[0];
-		for (j = 0; j < power_state->v2.ucNumDPMLevels; j++) {
+
+		for (j = 0; j < power_state->v2.ucNumDPMLevels; j++)
+		{
 			clock_array_index = idx[j];
+
 			if (k >= SUMO_MAX_HARDWARE_POWERLEVELS)
+			{
 				break;
+			}
 
 			clock_info = (union pplib_clock_info *)
-				((u8 *)&clock_info_array->clockInfo[0] +
-				 (clock_array_index * clock_info_array->ucEntrySize));
+						 ((u8 *)&clock_info_array->clockInfo[0] +
+						  (clock_array_index * clock_info_array->ucEntrySize));
 			sumo_parse_pplib_clock_info(rdev,
-						    &rdev->pm.dpm.ps[i], k,
-						    clock_info);
+										&rdev->pm.dpm.ps[i], k,
+										clock_info);
 			k++;
 		}
+
 		sumo_parse_pplib_non_clock_info(rdev, &rdev->pm.dpm.ps[i],
-						non_clock_info,
-						non_clock_info_array->ucEntrySize);
+										non_clock_info,
+										non_clock_info_array->ucEntrySize);
 		power_state_offset += 2 + power_state->v2.ucNumDPMLevels;
 	}
+
 	rdev->pm.dpm.num_ps = state_array->ucNumEntries;
 	return 0;
 }
 
 u32 sumo_convert_vid2_to_vid7(struct radeon_device *rdev,
-			      struct sumo_vid_mapping_table *vid_mapping_table,
-			      u32 vid_2bit)
+							  struct sumo_vid_mapping_table *vid_mapping_table,
+							  u32 vid_2bit)
 {
 	u32 i;
 
-	for (i = 0; i < vid_mapping_table->num_entries; i++) {
+	for (i = 0; i < vid_mapping_table->num_entries; i++)
+	{
 		if (vid_mapping_table->entries[i].vid_2bit == vid_2bit)
+		{
 			return vid_mapping_table->entries[i].vid_7bit;
+		}
 	}
 
 	return vid_mapping_table->entries[vid_mapping_table->num_entries - 1].vid_7bit;
@@ -1541,14 +1855,17 @@ u32 sumo_convert_vid2_to_vid7(struct radeon_device *rdev,
 
 #if 0
 u32 sumo_convert_vid7_to_vid2(struct radeon_device *rdev,
-			      struct sumo_vid_mapping_table *vid_mapping_table,
-			      u32 vid_7bit)
+							  struct sumo_vid_mapping_table *vid_mapping_table,
+							  u32 vid_7bit)
 {
 	u32 i;
 
-	for (i = 0; i < vid_mapping_table->num_entries; i++) {
+	for (i = 0; i < vid_mapping_table->num_entries; i++)
+	{
 		if (vid_mapping_table->entries[i].vid_7bit == vid_7bit)
+		{
 			return vid_mapping_table->entries[i].vid_2bit;
+		}
 	}
 
 	return vid_mapping_table->entries[vid_mapping_table->num_entries - 1].vid_2bit;
@@ -1556,26 +1873,31 @@ u32 sumo_convert_vid7_to_vid2(struct radeon_device *rdev,
 #endif
 
 static u16 sumo_convert_voltage_index_to_value(struct radeon_device *rdev,
-					       u32 vid_2bit)
+		u32 vid_2bit)
 {
 	struct sumo_power_info *pi = sumo_get_pi(rdev);
 	u32 vid_7bit = sumo_convert_vid2_to_vid7(rdev, &pi->sys_info.vid_mapping_table, vid_2bit);
 
 	if (vid_7bit > 0x7C)
+	{
 		return 0;
+	}
 
 	return (15500 - vid_7bit * 125 + 5) / 10;
 }
 
 static void sumo_construct_display_voltage_mapping_table(struct radeon_device *rdev,
-							 struct sumo_disp_clock_voltage_mapping_table *disp_clk_voltage_mapping_table,
-							 ATOM_CLK_VOLT_CAPABILITY *table)
+		struct sumo_disp_clock_voltage_mapping_table *disp_clk_voltage_mapping_table,
+		ATOM_CLK_VOLT_CAPABILITY *table)
 {
 	u32 i;
 
-	for (i = 0; i < SUMO_MAX_NUMBER_VOLTAGES; i++) {
+	for (i = 0; i < SUMO_MAX_NUMBER_VOLTAGES; i++)
+	{
 		if (table[i].ulMaximumSupportedCLK == 0)
+		{
 			break;
+		}
 
 		disp_clk_voltage_mapping_table->display_clock_frequency[i] =
 			table[i].ulMaximumSupportedCLK;
@@ -1583,22 +1905,25 @@ static void sumo_construct_display_voltage_mapping_table(struct radeon_device *r
 
 	disp_clk_voltage_mapping_table->num_max_voltage_levels = i;
 
-	if (disp_clk_voltage_mapping_table->num_max_voltage_levels == 0) {
+	if (disp_clk_voltage_mapping_table->num_max_voltage_levels == 0)
+	{
 		disp_clk_voltage_mapping_table->display_clock_frequency[0] = 80000;
 		disp_clk_voltage_mapping_table->num_max_voltage_levels = 1;
 	}
 }
 
 void sumo_construct_sclk_voltage_mapping_table(struct radeon_device *rdev,
-					       struct sumo_sclk_voltage_mapping_table *sclk_voltage_mapping_table,
-					       ATOM_AVAILABLE_SCLK_LIST *table)
+		struct sumo_sclk_voltage_mapping_table *sclk_voltage_mapping_table,
+		ATOM_AVAILABLE_SCLK_LIST *table)
 {
 	u32 i;
 	u32 n = 0;
 	u32 prev_sclk = 0;
 
-	for (i = 0; i < SUMO_MAX_HARDWARE_POWERLEVELS; i++) {
-		if (table[i].ulSupportedSCLK > prev_sclk) {
+	for (i = 0; i < SUMO_MAX_HARDWARE_POWERLEVELS; i++)
+	{
+		if (table[i].ulSupportedSCLK > prev_sclk)
+		{
 			sclk_voltage_mapping_table->entries[n].sclk_frequency =
 				table[i].ulSupportedSCLK;
 			sclk_voltage_mapping_table->entries[n].vid_2bit =
@@ -1612,13 +1937,15 @@ void sumo_construct_sclk_voltage_mapping_table(struct radeon_device *rdev,
 }
 
 void sumo_construct_vid_mapping_table(struct radeon_device *rdev,
-				      struct sumo_vid_mapping_table *vid_mapping_table,
-				      ATOM_AVAILABLE_SCLK_LIST *table)
+									  struct sumo_vid_mapping_table *vid_mapping_table,
+									  ATOM_AVAILABLE_SCLK_LIST *table)
 {
 	u32 i, j;
 
-	for (i = 0; i < SUMO_MAX_HARDWARE_POWERLEVELS; i++) {
-		if (table[i].ulSupportedSCLK != 0) {
+	for (i = 0; i < SUMO_MAX_HARDWARE_POWERLEVELS; i++)
+	{
+		if (table[i].ulSupportedSCLK != 0)
+		{
 			vid_mapping_table->entries[table[i].usVoltageIndex].vid_7bit =
 				table[i].usVoltageID;
 			vid_mapping_table->entries[table[i].usVoltageIndex].vid_2bit =
@@ -1626,10 +1953,14 @@ void sumo_construct_vid_mapping_table(struct radeon_device *rdev,
 		}
 	}
 
-	for (i = 0; i < SUMO_MAX_NUMBER_VOLTAGES; i++) {
-		if (vid_mapping_table->entries[i].vid_7bit == 0) {
-			for (j = i + 1; j < SUMO_MAX_NUMBER_VOLTAGES; j++) {
-				if (vid_mapping_table->entries[j].vid_7bit != 0) {
+	for (i = 0; i < SUMO_MAX_NUMBER_VOLTAGES; i++)
+	{
+		if (vid_mapping_table->entries[i].vid_7bit == 0)
+		{
+			for (j = i + 1; j < SUMO_MAX_NUMBER_VOLTAGES; j++)
+			{
+				if (vid_mapping_table->entries[j].vid_7bit != 0)
+				{
 					vid_mapping_table->entries[i] =
 						vid_mapping_table->entries[j];
 					vid_mapping_table->entries[j].vid_7bit = 0;
@@ -1638,14 +1969,17 @@ void sumo_construct_vid_mapping_table(struct radeon_device *rdev,
 			}
 
 			if (j == SUMO_MAX_NUMBER_VOLTAGES)
+			{
 				break;
+			}
 		}
 	}
 
 	vid_mapping_table->num_entries = i;
 }
 
-union igp_info {
+union igp_info
+{
 	struct _ATOM_INTEGRATED_SYSTEM_INFO info;
 	struct _ATOM_INTEGRATED_SYSTEM_INFO_V2 info_2;
 	struct _ATOM_INTEGRATED_SYSTEM_INFO_V5 info_5;
@@ -1663,31 +1997,48 @@ static int sumo_parse_sys_info_table(struct radeon_device *rdev)
 	int i;
 
 	if (atom_parse_data_header(mode_info->atom_context, index, NULL,
-				   &frev, &crev, &data_offset)) {
+							   &frev, &crev, &data_offset))
+	{
 		igp_info = (union igp_info *)(mode_info->atom_context->bios +
-					      data_offset);
+									  data_offset);
 
-		if (crev != 6) {
+		if (crev != 6)
+		{
 			DRM_ERROR("Unsupported IGP table: %d %d\n", frev, crev);
 			return -EINVAL;
 		}
+
 		pi->sys_info.bootup_sclk = le32_to_cpu(igp_info->info_6.ulBootUpEngineClock);
 		pi->sys_info.min_sclk = le32_to_cpu(igp_info->info_6.ulMinEngineClock);
 		pi->sys_info.bootup_uma_clk = le32_to_cpu(igp_info->info_6.ulBootUpUMAClock);
 		pi->sys_info.bootup_nb_voltage_index =
 			le16_to_cpu(igp_info->info_6.usBootUpNBVoltage);
+
 		if (igp_info->info_6.ucHtcTmpLmt == 0)
+		{
 			pi->sys_info.htc_tmp_lmt = 203;
+		}
 		else
+		{
 			pi->sys_info.htc_tmp_lmt = igp_info->info_6.ucHtcTmpLmt;
+		}
+
 		if (igp_info->info_6.ucHtcHystLmt == 0)
+		{
 			pi->sys_info.htc_hyst_lmt = 5;
+		}
 		else
+		{
 			pi->sys_info.htc_hyst_lmt = igp_info->info_6.ucHtcHystLmt;
-		if (pi->sys_info.htc_tmp_lmt <= pi->sys_info.htc_hyst_lmt) {
+		}
+
+		if (pi->sys_info.htc_tmp_lmt <= pi->sys_info.htc_hyst_lmt)
+		{
 			DRM_ERROR("The htcTmpLmt should be larger than htcHystLmt.\n");
 		}
-		for (i = 0; i < NUMBER_OF_M3ARB_PARAM_SETS; i++) {
+
+		for (i = 0; i < NUMBER_OF_M3ARB_PARAM_SETS; i++)
+		{
 			pi->sys_info.csr_m3_arb_cntl_default[i] =
 				le32_to_cpu(igp_info->info_6.ulCSR_M3_ARB_CNTL_DEFAULT[i]);
 			pi->sys_info.csr_m3_arb_cntl_uvd[i] =
@@ -1695,6 +2046,7 @@ static int sumo_parse_sys_info_table(struct radeon_device *rdev)
 			pi->sys_info.csr_m3_arb_cntl_fs3d[i] =
 				le32_to_cpu(igp_info->info_6.ulCSR_M3_ARB_CNTL_FS3D[i]);
 		}
+
 		pi->sys_info.sclk_dpm_boost_margin =
 			le32_to_cpu(igp_info->info_6.SclkDpmBoostMargin);
 		pi->sys_info.sclk_dpm_throttle_margin =
@@ -1706,20 +2058,27 @@ static int sumo_parse_sys_info_table(struct radeon_device *rdev)
 			le16_to_cpu(igp_info->info_6.SclkDpmTdpLimitBoost);
 		pi->sys_info.boost_sclk = le32_to_cpu(igp_info->info_6.ulBoostEngineCLock);
 		pi->sys_info.boost_vid_2bit = igp_info->info_6.ulBoostVid_2bit;
+
 		if (igp_info->info_6.EnableBoost)
+		{
 			pi->sys_info.enable_boost = true;
+		}
 		else
+		{
 			pi->sys_info.enable_boost = false;
+		}
+
 		sumo_construct_display_voltage_mapping_table(rdev,
-							     &pi->sys_info.disp_clk_voltage_mapping_table,
-							     igp_info->info_6.sDISPCLK_Voltage);
+				&pi->sys_info.disp_clk_voltage_mapping_table,
+				igp_info->info_6.sDISPCLK_Voltage);
 		sumo_construct_sclk_voltage_mapping_table(rdev,
-							  &pi->sys_info.sclk_voltage_mapping_table,
-							  igp_info->info_6.sAvail_SCLK);
+				&pi->sys_info.sclk_voltage_mapping_table,
+				igp_info->info_6.sAvail_SCLK);
 		sumo_construct_vid_mapping_table(rdev, &pi->sys_info.vid_mapping_table,
-						 igp_info->info_6.sAvail_SCLK);
+										 igp_info->info_6.sAvail_SCLK);
 
 	}
+
 	return 0;
 }
 
@@ -1744,43 +2103,68 @@ int sumo_dpm_init(struct radeon_device *rdev)
 	int ret;
 
 	pi = kzalloc(sizeof(struct sumo_power_info), GFP_KERNEL);
+
 	if (pi == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	rdev->pm.dpm.priv = pi;
 
 	pi->driver_nbps_policy_disable = false;
+
 	if ((rdev->family == CHIP_PALM) && (hw_rev < 3))
+	{
 		pi->disable_gfx_power_gating_in_uvd = true;
+	}
 	else
+	{
 		pi->disable_gfx_power_gating_in_uvd = false;
+	}
+
 	pi->enable_alt_vddnb = true;
 	pi->enable_sclk_ds = true;
 	pi->enable_dynamic_m3_arbiter = false;
 	pi->enable_dynamic_patch_ps = true;
+
 	/* Some PALM chips don't seem to properly ungate gfx when UVD is in use;
 	 * for now just disable gfx PG.
 	 */
 	if (rdev->family == CHIP_PALM)
+	{
 		pi->enable_gfx_power_gating = false;
+	}
 	else
+	{
 		pi->enable_gfx_power_gating = true;
+	}
+
 	pi->enable_gfx_clock_gating = true;
 	pi->enable_mg_clock_gating = true;
 	pi->enable_auto_thermal_throttling = true;
 
 	ret = sumo_parse_sys_info_table(rdev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	sumo_construct_boot_and_acpi_state(rdev);
 
 	ret = r600_get_platform_caps(rdev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = sumo_parse_power_table(rdev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	pi->pasi = CYPRESS_HASI_DFLT;
 	pi->asi = RV770_ASI_DFLT;
@@ -1792,7 +2176,7 @@ int sumo_dpm_init(struct radeon_device *rdev)
 }
 
 void sumo_dpm_print_power_state(struct radeon_device *rdev,
-				struct radeon_ps *rps)
+								struct radeon_ps *rps)
 {
 	int i;
 	struct sumo_ps *ps = sumo_get_ps(rps);
@@ -1800,17 +2184,20 @@ void sumo_dpm_print_power_state(struct radeon_device *rdev,
 	r600_dpm_print_class_info(rps->class, rps->class2);
 	r600_dpm_print_cap_info(rps->caps);
 	printk("\tuvd    vclk: %d dclk: %d\n", rps->vclk, rps->dclk);
-	for (i = 0; i < ps->num_levels; i++) {
+
+	for (i = 0; i < ps->num_levels; i++)
+	{
 		struct sumo_pl *pl = &ps->levels[i];
 		printk("\t\tpower level %d    sclk: %u vddc: %u\n",
-		       i, pl->sclk,
-		       sumo_convert_voltage_index_to_value(rdev, pl->vddc_index));
+			   i, pl->sclk,
+			   sumo_convert_voltage_index_to_value(rdev, pl->vddc_index));
 	}
+
 	r600_dpm_print_ps_status(rdev, rps);
 }
 
 void sumo_dpm_debugfs_print_current_performance_level(struct radeon_device *rdev,
-						      struct seq_file *m)
+		struct seq_file *m)
 {
 	struct sumo_power_info *pi = sumo_get_pi(rdev);
 	struct radeon_ps *rps = &pi->current_rps;
@@ -1820,20 +2207,25 @@ void sumo_dpm_debugfs_print_current_performance_level(struct radeon_device *rdev
 		(RREG32(TARGET_AND_CURRENT_PROFILE_INDEX) & CURR_INDEX_MASK) >>
 		CURR_INDEX_SHIFT;
 
-	if (current_index == BOOST_DPM_LEVEL) {
+	if (current_index == BOOST_DPM_LEVEL)
+	{
 		pl = &pi->boost_pl;
 		seq_printf(m, "uvd    vclk: %d dclk: %d\n", rps->vclk, rps->dclk);
 		seq_printf(m, "power level %d    sclk: %u vddc: %u\n",
-			   current_index, pl->sclk,
-			   sumo_convert_voltage_index_to_value(rdev, pl->vddc_index));
-	} else if (current_index >= ps->num_levels) {
+				   current_index, pl->sclk,
+				   sumo_convert_voltage_index_to_value(rdev, pl->vddc_index));
+	}
+	else if (current_index >= ps->num_levels)
+	{
 		seq_printf(m, "invalid dpm profile %d\n", current_index);
-	} else {
+	}
+	else
+	{
 		pl = &ps->levels[current_index];
 		seq_printf(m, "uvd    vclk: %d dclk: %d\n", rps->vclk, rps->dclk);
 		seq_printf(m, "power level %d    sclk: %u vddc: %u\n",
-			   current_index, pl->sclk,
-			   sumo_convert_voltage_index_to_value(rdev, pl->vddc_index));
+				   current_index, pl->sclk,
+				   sumo_convert_voltage_index_to_value(rdev, pl->vddc_index));
 	}
 }
 
@@ -1847,12 +2239,17 @@ u32 sumo_dpm_get_current_sclk(struct radeon_device *rdev)
 		(RREG32(TARGET_AND_CURRENT_PROFILE_INDEX) & CURR_INDEX_MASK) >>
 		CURR_INDEX_SHIFT;
 
-	if (current_index == BOOST_DPM_LEVEL) {
+	if (current_index == BOOST_DPM_LEVEL)
+	{
 		pl = &pi->boost_pl;
 		return pl->sclk;
-	} else if (current_index >= ps->num_levels) {
+	}
+	else if (current_index >= ps->num_levels)
+	{
 		return 0;
-	} else {
+	}
+	else
+	{
 		pl = &ps->levels[current_index];
 		return pl->sclk;
 	}
@@ -1871,9 +2268,11 @@ void sumo_dpm_fini(struct radeon_device *rdev)
 
 	sumo_cleanup_asic(rdev); /* ??? */
 
-	for (i = 0; i < rdev->pm.dpm.num_ps; i++) {
+	for (i = 0; i < rdev->pm.dpm.num_ps; i++)
+	{
 		kfree(rdev->pm.dpm.ps[i].ps_priv);
 	}
+
 	kfree(rdev->pm.dpm.ps);
 	kfree(rdev->pm.dpm.priv);
 }
@@ -1884,9 +2283,13 @@ u32 sumo_dpm_get_sclk(struct radeon_device *rdev, bool low)
 	struct sumo_ps *requested_state = sumo_get_ps(&pi->requested_rps);
 
 	if (low)
+	{
 		return requested_state->levels[0].sclk;
+	}
 	else
+	{
 		return requested_state->levels[requested_state->num_levels - 1].sclk;
+	}
 }
 
 u32 sumo_dpm_get_mclk(struct radeon_device *rdev, bool low)
@@ -1897,7 +2300,7 @@ u32 sumo_dpm_get_mclk(struct radeon_device *rdev, bool low)
 }
 
 int sumo_dpm_force_performance_level(struct radeon_device *rdev,
-				     enum radeon_dpm_forced_level level)
+									 enum radeon_dpm_forced_level level)
 {
 	struct sumo_power_info *pi = sumo_get_pi(rdev);
 	struct radeon_ps *rps = &pi->current_rps;
@@ -1905,38 +2308,61 @@ int sumo_dpm_force_performance_level(struct radeon_device *rdev,
 	int i;
 
 	if (ps->num_levels <= 1)
+	{
 		return 0;
+	}
 
-	if (level == RADEON_DPM_FORCED_LEVEL_HIGH) {
+	if (level == RADEON_DPM_FORCED_LEVEL_HIGH)
+	{
 		if (pi->enable_boost)
+		{
 			sumo_enable_boost(rdev, rps, false);
+		}
+
 		sumo_power_level_enable(rdev, ps->num_levels - 1, true);
 		sumo_set_forced_level(rdev, ps->num_levels - 1);
 		sumo_set_forced_mode_enabled(rdev);
-		for (i = 0; i < ps->num_levels - 1; i++) {
+
+		for (i = 0; i < ps->num_levels - 1; i++)
+		{
 			sumo_power_level_enable(rdev, i, false);
 		}
+
 		sumo_set_forced_mode(rdev, false);
 		sumo_set_forced_mode_enabled(rdev);
 		sumo_set_forced_mode(rdev, false);
-	} else if (level == RADEON_DPM_FORCED_LEVEL_LOW) {
+	}
+	else if (level == RADEON_DPM_FORCED_LEVEL_LOW)
+	{
 		if (pi->enable_boost)
+		{
 			sumo_enable_boost(rdev, rps, false);
+		}
+
 		sumo_power_level_enable(rdev, 0, true);
 		sumo_set_forced_level(rdev, 0);
 		sumo_set_forced_mode_enabled(rdev);
-		for (i = 1; i < ps->num_levels; i++) {
+
+		for (i = 1; i < ps->num_levels; i++)
+		{
 			sumo_power_level_enable(rdev, i, false);
 		}
+
 		sumo_set_forced_mode(rdev, false);
 		sumo_set_forced_mode_enabled(rdev);
 		sumo_set_forced_mode(rdev, false);
-	} else {
-		for (i = 0; i < ps->num_levels; i++) {
+	}
+	else
+	{
+		for (i = 0; i < ps->num_levels; i++)
+		{
 			sumo_power_level_enable(rdev, i, true);
 		}
+
 		if (pi->enable_boost)
+		{
 			sumo_enable_boost(rdev, rps, true);
+		}
 	}
 
 	rdev->pm.dpm.forced_level = level;

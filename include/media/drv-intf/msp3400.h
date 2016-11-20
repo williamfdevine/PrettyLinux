@@ -146,13 +146,13 @@
 	 MSP_DSP_TO_SCART2(sc_i2s_src) | \
 	 MSP_DSP_TO_I2S(sc_i2s_src))
 #define MSP_INPUT_DEFAULT MSP_INPUT(MSP_IN_SCART1, MSP_IN_TUNER1, \
-				    MSP_DSP_IN_TUNER, MSP_DSP_IN_TUNER)
+									MSP_DSP_IN_TUNER, MSP_DSP_IN_TUNER)
 #define MSP_OUTPUT(sc) \
 	(MSP_SC_TO_SCART1(sc) | \
 	 MSP_SC_TO_SCART2(sc))
 /* This equals the RESET position of the msp3400 ACB register */
 #define MSP_OUTPUT_DEFAULT (MSP_SC_TO_SCART1(MSP_SC_IN_SCART3) | \
-			    MSP_SC_TO_SCART2(MSP_SC_IN_DSP_SCART1))
+							MSP_SC_TO_SCART2(MSP_SC_IN_DSP_SCART1))
 
 /* Tuner inputs vs. msp version */
 /* Chip      TUNER_1   TUNER_2

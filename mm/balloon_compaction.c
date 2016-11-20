@@ -24,9 +24,12 @@ struct page *balloon_page_enqueue(struct balloon_dev_info *b_dev_info)
 {
 	unsigned long flags;
 	struct page *page = alloc_page(balloon_mapping_gfp_mask() |
-					__GFP_NOMEMALLOC | __GFP_NORETRY);
+								   __GFP_NOMEMALLOC | __GFP_NORETRY);
+
 	if (!page)
+	{
 		return NULL;
+	}
 
 	/*
 	 * Block others from accessing the 'page' when we get around to
@@ -62,19 +65,24 @@ struct page *balloon_page_dequeue(struct balloon_dev_info *b_dev_info)
 
 	dequeued_page = false;
 	spin_lock_irqsave(&b_dev_info->pages_lock, flags);
-	list_for_each_entry_safe(page, tmp, &b_dev_info->pages, lru) {
+	list_for_each_entry_safe(page, tmp, &b_dev_info->pages, lru)
+	{
 		/*
 		 * Block others from accessing the 'page' while we get around
 		 * establishing additional references and preparing the 'page'
 		 * to be released by the balloon driver.
 		 */
-		if (trylock_page(page)) {
+		if (trylock_page(page))
+		{
 #ifdef CONFIG_BALLOON_COMPACTION
-			if (PageIsolated(page)) {
+
+			if (PageIsolated(page))
+			{
 				/* raced with isolation */
 				unlock_page(page);
 				continue;
 			}
+
 #endif
 			balloon_page_delete(page);
 			__count_vm_event(BALLOON_DEFLATE);
@@ -85,7 +93,8 @@ struct page *balloon_page_dequeue(struct balloon_dev_info *b_dev_info)
 	}
 	spin_unlock_irqrestore(&b_dev_info->pages_lock, flags);
 
-	if (!dequeued_page) {
+	if (!dequeued_page)
+	{
 		/*
 		 * If we are unable to dequeue a balloon page because the page
 		 * list is empty and there is no isolated pages, then something
@@ -94,12 +103,17 @@ struct page *balloon_page_dequeue(struct balloon_dev_info *b_dev_info)
 		 * an infinite loop while attempting to release all its pages.
 		 */
 		spin_lock_irqsave(&b_dev_info->pages_lock, flags);
+
 		if (unlikely(list_empty(&b_dev_info->pages) &&
-			     !b_dev_info->isolated_pages))
+					 !b_dev_info->isolated_pages))
+		{
 			BUG();
+		}
+
 		spin_unlock_irqrestore(&b_dev_info->pages_lock, flags);
 		page = NULL;
 	}
+
 	return page;
 }
 EXPORT_SYMBOL_GPL(balloon_page_dequeue);
@@ -134,8 +148,8 @@ void balloon_page_putback(struct page *page)
 
 /* move_to_new_page() counterpart for a ballooned page */
 int balloon_page_migrate(struct address_space *mapping,
-		struct page *newpage, struct page *page,
-		enum migrate_mode mode)
+						 struct page *newpage, struct page *page,
+						 enum migrate_mode mode)
 {
 	struct balloon_dev_info *balloon = balloon_page_device(page);
 
@@ -145,7 +159,8 @@ int balloon_page_migrate(struct address_space *mapping,
 	return balloon->migratepage(balloon, newpage, page, mode);
 }
 
-const struct address_space_operations balloon_aops = {
+const struct address_space_operations balloon_aops =
+{
 	.migratepage = balloon_page_migrate,
 	.isolate_page = balloon_page_isolate,
 	.putback_page = balloon_page_putback,

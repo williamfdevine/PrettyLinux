@@ -11,7 +11,8 @@
 #ifndef __CS42L52_H
 #define __CS42L52_H
 
-struct cs42l52_platform_data {
+struct cs42l52_platform_data
+{
 
 	/* MICBIAS Level. Check datasheet Pg48 */
 	unsigned int micbias_lvl;

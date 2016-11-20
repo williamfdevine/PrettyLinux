@@ -35,29 +35,34 @@
 #define	REVISION_ID_CHT_B0	0xB0
 #define	REVISION_ID_SI_MASK	0x70
 
-struct ipc_rst_payload_type {
+struct ipc_rst_payload_type
+{
 	uint16_t	reset_id;
 	uint16_t	reserved;
 };
 
-struct time_sync_format {
+struct time_sync_format
+{
 	uint8_t ts1_source;
 	uint8_t ts2_source;
 	uint16_t reserved;
 } __packed;
 
-struct ipc_time_update_msg {
+struct ipc_time_update_msg
+{
 	uint64_t primary_host_time;
 	struct time_sync_format sync_info;
 	uint64_t secondary_host_time;
 } __packed;
 
-enum {
+enum
+{
 	HOST_UTC_TIME_USEC = 0,
 	HOST_SYSTEM_TIME_USEC = 1
 };
 
-struct ish_hw {
+struct ish_hw
+{
 	void __iomem *mem_addr;
 };
 

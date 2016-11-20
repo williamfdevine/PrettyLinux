@@ -16,7 +16,7 @@
 #include <linux/gpio/consumer.h>
 
 #ifndef UINT64_MAX
-#define UINT64_MAX		(u64)(~((u64)0))
+	#define UINT64_MAX		(u64)(~((u64)0))
 #endif
 
 #define SMI_CMD			0x00
@@ -333,11 +333,11 @@
 #define GLOBAL2_SMI_PHY_CMD_BUSY		BIT(15)
 #define GLOBAL2_SMI_PHY_CMD_MODE_22		BIT(12)
 #define GLOBAL2_SMI_PHY_CMD_OP_22_WRITE_DATA	((0x1 << 10) | \
-						 GLOBAL2_SMI_PHY_CMD_MODE_22 | \
-						 GLOBAL2_SMI_PHY_CMD_BUSY)
+		GLOBAL2_SMI_PHY_CMD_MODE_22 | \
+		GLOBAL2_SMI_PHY_CMD_BUSY)
 #define GLOBAL2_SMI_PHY_CMD_OP_22_READ_DATA	((0x2 << 10) | \
-						 GLOBAL2_SMI_PHY_CMD_MODE_22 | \
-						 GLOBAL2_SMI_PHY_CMD_BUSY)
+		GLOBAL2_SMI_PHY_CMD_MODE_22 | \
+		GLOBAL2_SMI_PHY_CMD_BUSY)
 #define GLOBAL2_SMI_PHY_DATA			0x19
 #define GLOBAL2_SCRATCH_MISC	0x1a
 #define GLOBAL2_SCRATCH_BUSY		BIT(15)
@@ -350,7 +350,8 @@
 #define MV88E6XXX_N_FID		4096
 
 /* List of supported models */
-enum mv88e6xxx_model {
+enum mv88e6xxx_model
+{
 	MV88E6085,
 	MV88E6095,
 	MV88E6123,
@@ -370,7 +371,8 @@ enum mv88e6xxx_model {
 	MV88E6352,
 };
 
-enum mv88e6xxx_family {
+enum mv88e6xxx_family
+{
 	MV88E6XXX_FAMILY_NONE,
 	MV88E6XXX_FAMILY_6065,	/* 6031 6035 6061 6065 */
 	MV88E6XXX_FAMILY_6095,	/* 6092 6095 */
@@ -382,7 +384,8 @@ enum mv88e6xxx_family {
 	MV88E6XXX_FAMILY_6352,	/* 6172 6176 6240 6352 */
 };
 
-enum mv88e6xxx_cap {
+enum mv88e6xxx_cap
+{
 	/* Two different tag protocols can be used by the driver. All
 	 * switches support DSA, but only later generations support
 	 * EDSA.
@@ -593,7 +596,8 @@ enum mv88e6xxx_cap {
 
 struct mv88e6xxx_ops;
 
-struct mv88e6xxx_info {
+struct mv88e6xxx_info
+{
 	enum mv88e6xxx_family family;
 	u16 prod_num;
 	const char *name;
@@ -606,7 +610,8 @@ struct mv88e6xxx_info {
 	const struct mv88e6xxx_ops *ops;
 };
 
-struct mv88e6xxx_atu_entry {
+struct mv88e6xxx_atu_entry
+{
 	u16	fid;
 	u8	state;
 	bool	trunk;
@@ -614,7 +619,8 @@ struct mv88e6xxx_atu_entry {
 	u8	mac[ETH_ALEN];
 };
 
-struct mv88e6xxx_vtu_entry {
+struct mv88e6xxx_vtu_entry
+{
 	u16	vid;
 	u16	fid;
 	u8	sid;
@@ -624,11 +630,13 @@ struct mv88e6xxx_vtu_entry {
 
 struct mv88e6xxx_bus_ops;
 
-struct mv88e6xxx_priv_port {
+struct mv88e6xxx_priv_port
+{
 	struct net_device *bridge_dev;
 };
 
-struct mv88e6xxx_chip {
+struct mv88e6xxx_chip
+{
 	const struct mv88e6xxx_info *info;
 
 	/* The dsa_switch this private structure is related to */
@@ -679,32 +687,36 @@ struct mv88e6xxx_chip {
 	struct mii_bus *mdio_bus;
 };
 
-struct mv88e6xxx_bus_ops {
+struct mv88e6xxx_bus_ops
+{
 	int (*read)(struct mv88e6xxx_chip *chip, int addr, int reg, u16 *val);
 	int (*write)(struct mv88e6xxx_chip *chip, int addr, int reg, u16 val);
 };
 
-struct mv88e6xxx_ops {
+struct mv88e6xxx_ops
+{
 	int (*get_eeprom)(struct mv88e6xxx_chip *chip,
-			  struct ethtool_eeprom *eeprom, u8 *data);
+					  struct ethtool_eeprom *eeprom, u8 *data);
 	int (*set_eeprom)(struct mv88e6xxx_chip *chip,
-			  struct ethtool_eeprom *eeprom, u8 *data);
+					  struct ethtool_eeprom *eeprom, u8 *data);
 
 	int (*set_switch_mac)(struct mv88e6xxx_chip *chip, u8 *addr);
 
 	int (*phy_read)(struct mv88e6xxx_chip *chip, int addr, int reg,
-			u16 *val);
+					u16 *val);
 	int (*phy_write)(struct mv88e6xxx_chip *chip, int addr, int reg,
-			 u16 val);
+					 u16 val);
 };
 
-enum stat_type {
+enum stat_type
+{
 	BANK0,
 	BANK1,
 	PORT,
 };
 
-struct mv88e6xxx_hw_stat {
+struct mv88e6xxx_hw_stat
+{
 	char string[ETH_GSTRING_LEN];
 	int sizeof_stat;
 	int reg;
@@ -712,7 +724,7 @@ struct mv88e6xxx_hw_stat {
 };
 
 static inline bool mv88e6xxx_has(struct mv88e6xxx_chip *chip,
-				 unsigned long flags)
+								 unsigned long flags)
 {
 	return (chip->info->flags & flags) == flags;
 }
@@ -730,7 +742,7 @@ static inline unsigned int mv88e6xxx_num_ports(struct mv88e6xxx_chip *chip)
 int mv88e6xxx_read(struct mv88e6xxx_chip *chip, int addr, int reg, u16 *val);
 int mv88e6xxx_write(struct mv88e6xxx_chip *chip, int addr, int reg, u16 val);
 int mv88e6xxx_update(struct mv88e6xxx_chip *chip, int addr, int reg,
-		     u16 update);
+					 u16 update);
 int mv88e6xxx_wait(struct mv88e6xxx_chip *chip, int addr, int reg, u16 mask);
 
 #endif

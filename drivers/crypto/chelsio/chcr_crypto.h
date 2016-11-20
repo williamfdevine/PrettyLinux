@@ -109,7 +109,7 @@
 #define CRYPTO_ALG_SUB_TYPE_MASK            0x0f000000
 #define CRYPTO_ALG_SUB_TYPE_HASH_HMAC       0x01000000
 #define CRYPTO_ALG_TYPE_HMAC (CRYPTO_ALG_TYPE_AHASH |\
-			      CRYPTO_ALG_SUB_TYPE_HASH_HMAC)
+							  CRYPTO_ALG_SUB_TYPE_HASH_HMAC)
 
 #define MAX_SALT                4
 #define MAX_SCRATCH_PAD_SIZE    32
@@ -118,14 +118,16 @@
 #define CHCR_HASH_MAX_BLOCK_SIZE_128 128
 
 /* Aligned to 128 bit boundary */
-struct _key_ctx {
+struct _key_ctx
+{
 	__be32 ctx_hdr;
 	u8 salt[MAX_SALT];
 	__be64 reserverd;
 	unsigned char key[0];
 };
 
-struct ablk_ctx {
+struct ablk_ctx
+{
 	u8 enc;
 	unsigned int processed_len;
 	__be32 key_ctx_hdr;
@@ -137,24 +139,28 @@ struct ablk_ctx {
 	unsigned char ciph_mode;
 };
 
-struct hmac_ctx {
+struct hmac_ctx
+{
 	struct shash_desc *desc;
 	u8 ipad[CHCR_HASH_MAX_BLOCK_SIZE_128];
 	u8 opad[CHCR_HASH_MAX_BLOCK_SIZE_128];
 };
 
-struct __crypto_ctx {
+struct __crypto_ctx
+{
 	struct hmac_ctx hmacctx[0];
 	struct ablk_ctx ablkctx[0];
 };
 
-struct chcr_context {
+struct chcr_context
+{
 	struct chcr_dev *dev;
 	unsigned char tx_channel_id;
 	struct __crypto_ctx crypto_ctx[0];
 };
 
-struct chcr_ahash_req_ctx {
+struct chcr_ahash_req_ctx
+{
 	u32 result;
 	char bfr[CHCR_HASH_MAX_BLOCK_SIZE_128];
 	u8 bfr_len;
@@ -166,38 +172,45 @@ struct chcr_ahash_req_ctx {
 	struct sk_buff *skb;
 };
 
-struct chcr_blkcipher_req_ctx {
+struct chcr_blkcipher_req_ctx
+{
 	struct sk_buff *skb;
 };
 
-struct chcr_alg_template {
+struct chcr_alg_template
+{
 	u32 type;
 	u32 is_registered;
-	union {
+	union
+	{
 		struct crypto_alg crypto;
 		struct ahash_alg hash;
 	} alg;
 };
 
-struct chcr_req_ctx {
-	union {
+struct chcr_req_ctx
+{
+	union
+	{
 		struct ahash_request *ahash_req;
 		struct ablkcipher_request *ablk_req;
 	} req;
-	union {
+	union
+	{
 		struct chcr_ahash_req_ctx *ahash_ctx;
 		struct chcr_blkcipher_req_ctx *ablk_ctx;
 	} ctx;
 };
 
-struct sge_opaque_hdr {
+struct sge_opaque_hdr
+{
 	void *dev;
 	dma_addr_t addr[MAX_SKB_FRAGS + 1];
 };
 
 typedef struct sk_buff *(*create_wr_t)(struct crypto_async_request *req,
-				       struct chcr_context *ctx,
-				       unsigned short qid,
-				       unsigned short op_type);
+									   struct chcr_context *ctx,
+									   unsigned short qid,
+									   unsigned short op_type);
 
 #endif /* __CHCR_CRYPTO_H__ */

@@ -31,7 +31,8 @@
  * in a standard format - search for RST_SRC_ID_SHIFT in
  * arch/arm/mach-omap2
  */
-struct omap_wd_timer_platform_data {
+struct omap_wd_timer_platform_data
+{
 	u32 (*read_reset_sources)(void);
 };
 

@@ -18,19 +18,22 @@
 struct wm831x;
 struct regulator_init_data;
 
-struct wm831x_backlight_pdata {
+struct wm831x_backlight_pdata
+{
 	int isink;     /** ISINK to use, 1 or 2 */
 	int max_uA;    /** Maximum current to allow */
 };
 
-struct wm831x_backup_pdata {
+struct wm831x_backup_pdata
+{
 	int charger_enable;
 	int no_constant_voltage;  /** Disable constant voltage charging */
 	int vlim;   /** Voltage limit in millivolts */
 	int ilim;   /** Current limit in microamps */
 };
 
-struct wm831x_battery_pdata {
+struct wm831x_battery_pdata
+{
 	int enable;         /** Enable charging */
 	int fast_enable;    /** Enable fast charging */
 	int off_mask;       /** Mask OFF while charging */
@@ -51,7 +54,8 @@ struct wm831x_battery_pdata {
  * allowing voltage transitions without the expense of an access over
  * I2C or SPI buses.
  */
-struct wm831x_buckv_pdata {
+struct wm831x_buckv_pdata
+{
 	int dvs_gpio;        /** CPU GPIO to use for DVS switching */
 	int dvs_control_src; /** Hardware DVS source to use (1 or 2) */
 	int dvs_init_state;  /** DVS state to expect on startup */
@@ -61,7 +65,8 @@ struct wm831x_buckv_pdata {
 /* Sources for status LED configuration.  Values are register values
  * plus 1 to allow for a zero default for preserve.
  */
-enum wm831x_status_src {
+enum wm831x_status_src
+{
 	WM831X_STATUS_PRESERVE = 0,  /* Keep the current hardware setting */
 	WM831X_STATUS_OTP = 1,
 	WM831X_STATUS_POWER = 2,
@@ -69,13 +74,15 @@ enum wm831x_status_src {
 	WM831X_STATUS_MANUAL = 4,
 };
 
-struct wm831x_status_pdata {
+struct wm831x_status_pdata
+{
 	enum wm831x_status_src default_src;
 	const char *name;
 	const char *default_trigger;
 };
 
-struct wm831x_touch_pdata {
+struct wm831x_touch_pdata
+{
 	int fivewire;          /** 1 for five wire mode, 0 for 4 wire */
 	int isel;              /** Current for pen down (uA) */
 	int rpu;               /** Pen down sensitivity resistor divider */
@@ -86,17 +93,19 @@ struct wm831x_touch_pdata {
 	int pd_irqf;           /** IRQ flags for pen down IRQ */
 };
 
-enum wm831x_watchdog_action {
+enum wm831x_watchdog_action
+{
 	WM831X_WDOG_NONE = 0,
 	WM831X_WDOG_INTERRUPT = 1,
 	WM831X_WDOG_RESET = 2,
 	WM831X_WDOG_WAKE = 3,
 };
 
-struct wm831x_watchdog_pdata {
+struct wm831x_watchdog_pdata
+{
 	enum wm831x_watchdog_action primary, secondary;
 	int update_gpio;
-	unsigned int software:1;
+	unsigned int software: 1;
 };
 
 #define WM831X_MAX_STATUS 2
@@ -108,7 +117,8 @@ struct wm831x_watchdog_pdata {
 #define WM831X_GPIO_CONFIGURE 0x10000
 #define WM831X_GPIO_NUM 16
 
-struct wm831x_pdata {
+struct wm831x_pdata
+{
 	/** Used to distinguish multiple WM831x chips */
 	int wm831x_num;
 

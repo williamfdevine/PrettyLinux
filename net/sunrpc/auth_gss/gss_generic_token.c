@@ -39,7 +39,7 @@
 
 
 #if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
-# define RPCDBG_FACILITY        RPCDBG_AUTH
+	#define RPCDBG_FACILITY        RPCDBG_AUTH
 #endif
 
 
@@ -75,39 +75,68 @@ first two inner bytes, which indicate the token type.  The token
 static int
 der_length_size( int length)
 {
-	if (length < (1<<7))
+	if (length < (1 << 7))
+	{
 		return 1;
-	else if (length < (1<<8))
+	}
+	else if (length < (1 << 8))
+	{
 		return 2;
+	}
+
 #if (SIZEOF_INT == 2)
 	else
+	{
 		return 3;
+	}
+
 #else
-	else if (length < (1<<16))
+	else if (length < (1 << 16))
+	{
 		return 3;
-	else if (length < (1<<24))
+	}
+	else if (length < (1 << 24))
+	{
 		return 4;
+	}
 	else
+	{
 		return 5;
+	}
+
 #endif
 }
 
 static void
 der_write_length(unsigned char **buf, int length)
 {
-	if (length < (1<<7)) {
+	if (length < (1 << 7))
+	{
 		*(*buf)++ = (unsigned char) length;
-	} else {
-		*(*buf)++ = (unsigned char) (der_length_size(length)+127);
+	}
+	else
+	{
+		*(*buf)++ = (unsigned char) (der_length_size(length) + 127);
 #if (SIZEOF_INT > 2)
-		if (length >= (1<<24))
-			*(*buf)++ = (unsigned char) (length>>24);
-		if (length >= (1<<16))
-			*(*buf)++ = (unsigned char) ((length>>16)&0xff);
+
+		if (length >= (1 << 24))
+		{
+			*(*buf)++ = (unsigned char) (length >> 24);
+		}
+
+		if (length >= (1 << 16))
+		{
+			*(*buf)++ = (unsigned char) ((length >> 16) & 0xff);
+		}
+
 #endif
-		if (length >= (1<<8))
-			*(*buf)++ = (unsigned char) ((length>>8)&0xff);
-		*(*buf)++ = (unsigned char) (length&0xff);
+
+		if (length >= (1 << 8))
+		{
+			*(*buf)++ = (unsigned char) ((length >> 8) & 0xff);
+		}
+
+		*(*buf)++ = (unsigned char) (length & 0xff);
 	}
 }
 
@@ -121,20 +150,35 @@ der_read_length(unsigned char **buf, int *bufsize)
 	int ret;
 
 	if (*bufsize < 1)
+	{
 		return -1;
+	}
+
 	sf = *(*buf)++;
 	(*bufsize)--;
-	if (sf & 0x80) {
-		if ((sf &= 0x7f) > ((*bufsize)-1))
+
+	if (sf & 0x80)
+	{
+		if ((sf &= 0x7f) > ((*bufsize) - 1))
+		{
 			return -1;
+		}
+
 		if (sf > SIZEOF_INT)
+		{
 			return -1;
+		}
+
 		ret = 0;
-		for (; sf; sf--) {
-			ret = (ret<<8) + (*(*buf)++);
+
+		for (; sf; sf--)
+		{
+			ret = (ret << 8) + (*(*buf)++);
 			(*bufsize)--;
 		}
-	} else {
+	}
+	else
+	{
 		ret = sf;
 	}
 
@@ -178,51 +222,78 @@ EXPORT_SYMBOL_GPL(g_make_token_header);
  */
 u32
 g_verify_token_header(struct xdr_netobj *mech, int *body_size,
-		      unsigned char **buf_in, int toksize)
+					  unsigned char **buf_in, int toksize)
 {
 	unsigned char *buf = *buf_in;
 	int seqsize;
 	struct xdr_netobj toid;
 	int ret = 0;
 
-	if ((toksize-=1) < 0)
+	if ((toksize -= 1) < 0)
+	{
 		return G_BAD_TOK_HEADER;
+	}
+
 	if (*buf++ != 0x60)
+	{
 		return G_BAD_TOK_HEADER;
+	}
 
 	if ((seqsize = der_read_length(&buf, &toksize)) < 0)
+	{
 		return G_BAD_TOK_HEADER;
+	}
 
 	if (seqsize != toksize)
+	{
 		return G_BAD_TOK_HEADER;
+	}
 
-	if ((toksize-=1) < 0)
+	if ((toksize -= 1) < 0)
+	{
 		return G_BAD_TOK_HEADER;
+	}
+
 	if (*buf++ != 0x06)
+	{
 		return G_BAD_TOK_HEADER;
+	}
 
-	if ((toksize-=1) < 0)
+	if ((toksize -= 1) < 0)
+	{
 		return G_BAD_TOK_HEADER;
+	}
+
 	toid.len = *buf++;
 
-	if ((toksize-=toid.len) < 0)
+	if ((toksize -= toid.len) < 0)
+	{
 		return G_BAD_TOK_HEADER;
+	}
+
 	toid.data = buf;
-	buf+=toid.len;
+	buf += toid.len;
 
 	if (! g_OID_equal(&toid, mech))
+	{
 		ret = G_WRONG_MECH;
+	}
 
-   /* G_WRONG_MECH is not returned immediately because it's more important
-      to return G_BAD_TOK_HEADER if the token header is in fact bad */
+	/* G_WRONG_MECH is not returned immediately because it's more important
+	   to return G_BAD_TOK_HEADER if the token header is in fact bad */
 
-	if ((toksize-=2) < 0)
+	if ((toksize -= 2) < 0)
+	{
 		return G_BAD_TOK_HEADER;
+	}
 
 	if (ret)
+	{
 		return ret;
+	}
 
-	if (!ret) {
+	if (!ret)
+	{
 		*buf_in = buf;
 		*body_size = toksize;
 	}

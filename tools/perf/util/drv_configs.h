@@ -21,6 +21,6 @@
 #include "evsel.h"
 
 int perf_evlist__apply_drv_configs(struct perf_evlist *evlist,
-				   struct perf_evsel **err_evsel,
-				   struct perf_evsel_config_term **term);
+								   struct perf_evsel **err_evsel,
+								   struct perf_evsel_config_term **term);
 #endif

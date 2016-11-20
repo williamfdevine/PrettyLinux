@@ -4,7 +4,8 @@
 #ifndef _TEGRA_CLK_ID_H
 #define _TEGRA_CLK_ID_H
 
-enum clk_id {
+enum clk_id
+{
 	tegra_clk_actmon,
 	tegra_clk_adx,
 	tegra_clk_adx1,

@@ -29,7 +29,8 @@ MODULE_DESCRIPTION("GSPCA/SPCA508 USB Camera Driver");
 MODULE_LICENSE("GPL");
 
 /* specific webcam descriptor */
-struct sd {
+struct sd
+{
 	struct gspca_dev gspca_dev;		/* !! must be the first item */
 
 	u8 subtype;
@@ -41,27 +42,36 @@ struct sd {
 #define ViewQuestVQ110 5
 };
 
-static const struct v4l2_pix_format sif_mode[] = {
-	{160, 120, V4L2_PIX_FMT_SPCA508, V4L2_FIELD_NONE,
+static const struct v4l2_pix_format sif_mode[] =
+{
+	{
+		160, 120, V4L2_PIX_FMT_SPCA508, V4L2_FIELD_NONE,
 		.bytesperline = 160,
 		.sizeimage = 160 * 120 * 3 / 2,
 		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 3},
-	{176, 144, V4L2_PIX_FMT_SPCA508, V4L2_FIELD_NONE,
+		.priv = 3
+	},
+	{
+		176, 144, V4L2_PIX_FMT_SPCA508, V4L2_FIELD_NONE,
 		.bytesperline = 176,
 		.sizeimage = 176 * 144 * 3 / 2,
 		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 2},
-	{320, 240, V4L2_PIX_FMT_SPCA508, V4L2_FIELD_NONE,
+		.priv = 2
+	},
+	{
+		320, 240, V4L2_PIX_FMT_SPCA508, V4L2_FIELD_NONE,
 		.bytesperline = 320,
 		.sizeimage = 320 * 240 * 3 / 2,
 		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 1},
-	{352, 288, V4L2_PIX_FMT_SPCA508, V4L2_FIELD_NONE,
+		.priv = 1
+	},
+	{
+		352, 288, V4L2_PIX_FMT_SPCA508, V4L2_FIELD_NONE,
 		.bytesperline = 352,
 		.sizeimage = 352 * 288 * 3 / 2,
 		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 0},
+		.priv = 0
+	},
 };
 
 /* Frame packet header offsets for the spca508 */
@@ -71,7 +81,8 @@ static const struct v4l2_pix_format sif_mode[] = {
  * Initialization data: this is the first set-up data written to the
  * device (before the open data).
  */
-static const u16 spca508_init_data[][2] = {
+static const u16 spca508_init_data[][2] =
+{
 	{0x0000, 0x870b},
 
 	{0x0020, 0x8112},	/* Video drop enable, ISO streaming disable */
@@ -85,20 +96,20 @@ static const u16 spca508_init_data[][2] = {
 	{0x0003, 0x8111},	/* Reset compression & memory */
 	{0x0000, 0x8111},	/* Normal mode (not reset) */
 	{0x0098, 0x8110},
-		/* Enable charge pump output, sync.serial,external 2x clock */
+	/* Enable charge pump output, sync.serial,external 2x clock */
 	{0x000d, 0x8114},	/* SW GPIO data */
 	{0x0002, 0x8116},	/* 200 kHz pump clock */
 	{0x0020, 0x8112},	/* Video drop enable, ISO streaming disable */
-/* --------------------------------------- */
+	/* --------------------------------------- */
 	{0x000f, 0x8402},	/* memory bank */
 	{0x0000, 0x8403},	/* ... address */
-/* --------------------------------------- */
-/* 0x88__ is Synchronous Serial Interface. */
-/* TBD: This table could be expressed more compactly */
-/* using spca508_write_i2c_vector(). */
-/* TBD: Should see if the values in spca50x_i2c_data */
-/* would work with the VQ110 instead of the values */
-/* below. */
+	/* --------------------------------------- */
+	/* 0x88__ is Synchronous Serial Interface. */
+	/* TBD: This table could be expressed more compactly */
+	/* using spca508_write_i2c_vector(). */
+	/* TBD: Should see if the values in spca50x_i2c_data */
+	/* would work with the VQ110 instead of the values */
+	/* below. */
 	{0x00c0, 0x8804},	/* SSI slave addr */
 	{0x0008, 0x8802},	/* 375 Khz SSI clock */
 	/* READ { 0x0001, 0x8803 } -> 0000: 00  */
@@ -335,9 +346,9 @@ static const u16 spca508_init_data[][2] = {
 	{0x00df, 0x865b},	/* Horiz offset for valid pixels (L)=0xdf */
 	{0x0012, 0x865c},	/* Vert offset for valid lines (L)=0x12 */
 
-/* The following two lines seem to be the "wrong" resolution. */
-/* But perhaps these indicate the actual size of the sensor */
-/* rather than the size of the current video mode. */
+	/* The following two lines seem to be the "wrong" resolution. */
+	/* But perhaps these indicate the actual size of the sensor */
+	/* rather than the size of the current video mode. */
 	{0x0058, 0x865d},	/* Horiz valid pixels (*4) (L) = 352 */
 	{0x0048, 0x865e},	/* Vert valid lines (*4) (L) = 288 */
 
@@ -384,7 +395,7 @@ static const u16 spca508_init_data[][2] = {
 	{0x0080, 0x8800},
 	/* READ { 0x0001, 0x8803 } -> 0000: 00  */
 
-/* ----- Read back coefs we wrote earlier. */
+	/* ----- Read back coefs we wrote earlier. */
 	/* READ { 0x0000, 0x8608 } -> 0000: 15  */
 	/* READ { 0x0000, 0x8609 } -> 0000: 30  */
 	/* READ { 0x0000, 0x860a } -> 0000: fb  */
@@ -483,12 +494,13 @@ static const u16 spca508_init_data[][2] = {
 /*
  * Initialization data for Intel EasyPC Camera CS110
  */
-static const u16 spca508cs110_init_data[][2] = {
+static const u16 spca508cs110_init_data[][2] =
+{
 	{0x0000, 0x870b},	/* Reset CTL3 */
 	{0x0003, 0x8111},	/* Soft Reset compression, memory, TG & CDSP */
 	{0x0000, 0x8111},	/* Normal operation on reset */
 	{0x0090, 0x8110},
-		 /* External Clock 2x & Synchronous Serial Interface Output */
+	/* External Clock 2x & Synchronous Serial Interface Output */
 	{0x0020, 0x8112},	/* Video Drop packet enable */
 	{0x0000, 0x8114},	/* Software GPIO output data */
 	{0x0001, 0x8114},
@@ -550,28 +562,29 @@ static const u16 spca508cs110_init_data[][2] = {
 	{0x000a, 0x8602},	/* Optical black level set to 0x0a */
 	{0x0000, 0x8603},	/* Optical black level Offset */
 
-/*	{0x0000, 0x8611},	 * 0 R  Offset for white Balance */
-/*	{0x0000, 0x8612},	 * 1 Gr Offset for white Balance */
-/*	{0x0000, 0x8613},	 * 1f B  Offset for white Balance */
-/*	{0x0000, 0x8614},	 * f0 Gb Offset for white Balance */
+	/*	{0x0000, 0x8611},	 * 0 R  Offset for white Balance */
+	/*	{0x0000, 0x8612},	 * 1 Gr Offset for white Balance */
+	/*	{0x0000, 0x8613},	 * 1f B  Offset for white Balance */
+	/*	{0x0000, 0x8614},	 * f0 Gb Offset for white Balance */
 
 	{0x0040, 0x8651},   /* 2b BLUE gain for white balance  good at all 60 */
 	{0x0030, 0x8652},	/* 41 Gr Gain for white Balance (L) */
 	{0x0035, 0x8653},	/* 26 RED gain for white balance */
 	{0x0035, 0x8654},	/* 40Gb Gain for white Balance (L) */
 	{0x0041, 0x863f},
-	      /* Fixed Gamma correction enabled (makes colours look better) */
+	/* Fixed Gamma correction enabled (makes colours look better) */
 
 	{0x0000, 0x8655},
-		/* High bits for white balance*****brightness control*** */
+	/* High bits for white balance*****brightness control*** */
 	{}
 };
 
-static const u16 spca508_sightcam_init_data[][2] = {
-/* This line seems to setup the frame/canvas */
+static const u16 spca508_sightcam_init_data[][2] =
+{
+	/* This line seems to setup the frame/canvas */
 	{0x000f, 0x8402},
 
-/* These 6 lines are needed to startup the webcam */
+	/* These 6 lines are needed to startup the webcam */
 	{0x0090, 0x8110},
 	{0x0001, 0x8114},
 	{0x0001, 0x8114},
@@ -579,7 +592,7 @@ static const u16 spca508_sightcam_init_data[][2] = {
 	{0x0003, 0x8114},
 	{0x0080, 0x8804},
 
-/* This part seems to make the pictures darker? (autobrightness?) */
+	/* This part seems to make the pictures darker? (autobrightness?) */
 	{0x0001, 0x8801},
 	{0x0004, 0x8800},
 	{0x0003, 0x8801},
@@ -594,10 +607,10 @@ static const u16 spca508_sightcam_init_data[][2] = {
 	{0x0007, 0x8801},
 	{0x000c, 0x8800},
 
-/* This section is just needed, it probably
- * does something like the previous section,
- * but the cam won't start if it's not included.
- */
+	/* This section is just needed, it probably
+	 * does something like the previous section,
+	 * but the cam won't start if it's not included.
+	 */
 	{0x0014, 0x8801},
 	{0x0008, 0x8800},
 	{0x0015, 0x8801},
@@ -609,9 +622,9 @@ static const u16 spca508_sightcam_init_data[][2] = {
 	{0x0018, 0x8801},
 	{0x0044, 0x8800},
 
-/* Makes the picture darker - and the
- * cam won't start if not included
- */
+	/* Makes the picture darker - and the
+	 * cam won't start if not included
+	 */
 	{0x001e, 0x8801},
 	{0x00ea, 0x8800},
 	{0x001f, 0x8801},
@@ -619,30 +632,30 @@ static const u16 spca508_sightcam_init_data[][2] = {
 	{0x0003, 0x8801},
 	{0x00e0, 0x8800},
 
-/* seems to place the colors ontop of each other #1 */
+	/* seems to place the colors ontop of each other #1 */
 	{0x0006, 0x8704},
 	{0x0001, 0x870c},
 	{0x0016, 0x8600},
 	{0x0002, 0x8606},
 
-/* if not included the pictures becomes _very_ dark */
+	/* if not included the pictures becomes _very_ dark */
 	{0x0064, 0x8607},
 	{0x003a, 0x8601},
 	{0x0000, 0x8602},
 
-/* seems to place the colors ontop of each other #2 */
+	/* seems to place the colors ontop of each other #2 */
 	{0x0016, 0x8600},
 	{0x0018, 0x8617},
 	{0x0008, 0x8618},
 	{0x00a1, 0x8656},
 
-/* webcam won't start if not included */
+	/* webcam won't start if not included */
 	{0x0007, 0x865b},
 	{0x0001, 0x865c},
 	{0x0058, 0x865d},
 	{0x0048, 0x865e},
 
-/* adjusts the colors */
+	/* adjusts the colors */
 	{0x0049, 0x8651},
 	{0x0040, 0x8652},
 	{0x004c, 0x8653},
@@ -650,7 +663,8 @@ static const u16 spca508_sightcam_init_data[][2] = {
 	{}
 };
 
-static const u16 spca508_sightcam2_init_data[][2] = {
+static const u16 spca508_sightcam2_init_data[][2] =
+{
 	{0x0020, 0x8112},
 
 	{0x000f, 0x8402},
@@ -987,17 +1001,18 @@ static const u16 spca508_sightcam2_init_data[][2] = {
 	{0x0012, 0x8657},
 	{0x0064, 0x8619},
 
-/* This line starts it all, it is not needed here */
-/* since it has been build into the driver */
-/* jfm: don't start now */
-/*	{0x0030, 0x8112}, */
+	/* This line starts it all, it is not needed here */
+	/* since it has been build into the driver */
+	/* jfm: don't start now */
+	/*	{0x0030, 0x8112}, */
 	{}
 };
 
 /*
  * Initialization data for Creative Webcam Vista
  */
-static const u16 spca508_vista_init_data[][2] = {
+static const u16 spca508_vista_init_data[][2] =
+{
 	{0x0008, 0x8200},	/* Clear register */
 	{0x0000, 0x870b},	/* Reset CTL3 */
 	{0x0020, 0x8112},	/* Video Drop packet enable */
@@ -1165,11 +1180,11 @@ static const u16 spca508_vista_init_data[][2] = {
 	{0x0000, 0x865f},
 
 	{0x0006, 0x8660},
-		    /* Enable nibble data input, select nibble input order */
+	/* Enable nibble data input, select nibble input order */
 
 	{0x0013, 0x8608},	/* A11 Coeficients for color correction */
 	{0x0028, 0x8609},
-		    /* Note: these values are confirmed at the end of array */
+	/* Note: these values are confirmed at the end of array */
 	{0x0005, 0x860a},	/* ... */
 	{0x0025, 0x860b},
 	{0x00e1, 0x860c},
@@ -1247,76 +1262,111 @@ static int reg_write(struct gspca_dev *gspca_dev, u16 index, u16 value)
 	struct usb_device *dev = gspca_dev->dev;
 
 	ret = usb_control_msg(dev,
-			usb_sndctrlpipe(dev, 0),
-			0,		/* request */
-			USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-			value, index, NULL, 0, 500);
+						  usb_sndctrlpipe(dev, 0),
+						  0,		/* request */
+						  USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+						  value, index, NULL, 0, 500);
 	PDEBUG(D_USBO, "reg write i:0x%04x = 0x%02x",
-		index, value);
+		   index, value);
+
 	if (ret < 0)
+	{
 		pr_err("reg write: error %d\n", ret);
+	}
+
 	return ret;
 }
 
 /* read 1 byte */
 /* returns: negative is error, pos or zero is data */
 static int reg_read(struct gspca_dev *gspca_dev,
-			u16 index)	/* wIndex */
+					u16 index)	/* wIndex */
 {
 	int ret;
 
 	ret = usb_control_msg(gspca_dev->dev,
-			usb_rcvctrlpipe(gspca_dev->dev, 0),
-			0,			/* register */
-			USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-			0,		/* value */
-			index,
-			gspca_dev->usb_buf, 1,
-			500);			/* timeout */
+						  usb_rcvctrlpipe(gspca_dev->dev, 0),
+						  0,			/* register */
+						  USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+						  0,		/* value */
+						  index,
+						  gspca_dev->usb_buf, 1,
+						  500);			/* timeout */
 	PDEBUG(D_USBI, "reg read i:%04x --> %02x",
-		index, gspca_dev->usb_buf[0]);
-	if (ret < 0) {
+		   index, gspca_dev->usb_buf[0]);
+
+	if (ret < 0)
+	{
 		pr_err("reg_read err %d\n", ret);
 		return ret;
 	}
+
 	return gspca_dev->usb_buf[0];
 }
 
 /* send 1 or 2 bytes to the sensor via the Synchronous Serial Interface */
 static int ssi_w(struct gspca_dev *gspca_dev,
-		u16 reg, u16 val)
+				 u16 reg, u16 val)
 {
 	int ret, retry;
 
 	ret = reg_write(gspca_dev, 0x8802, reg >> 8);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
+
 	ret = reg_write(gspca_dev, 0x8801, reg & 0x00ff);
+
 	if (ret < 0)
+	{
 		goto out;
-	if ((reg & 0xff00) == 0x1000) {		/* if 2 bytes */
+	}
+
+	if ((reg & 0xff00) == 0x1000)  		/* if 2 bytes */
+	{
 		ret = reg_write(gspca_dev, 0x8805, val & 0x00ff);
+
 		if (ret < 0)
+		{
 			goto out;
+		}
+
 		val >>= 8;
 	}
+
 	ret = reg_write(gspca_dev, 0x8800, val);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	/* poll until not busy */
 	retry = 10;
-	for (;;) {
+
+	for (;;)
+	{
 		ret = reg_read(gspca_dev, 0x8803);
+
 		if (ret < 0)
+		{
 			break;
+		}
+
 		if (gspca_dev->usb_buf[0] == 0)
+		{
 			break;
-		if (--retry <= 0) {
+		}
+
+		if (--retry <= 0)
+		{
 			PERR("ssi_w busy %02x", gspca_dev->usb_buf[0]);
 			ret = -1;
 			break;
 		}
+
 		msleep(8);
 	}
 
@@ -1325,35 +1375,47 @@ out:
 }
 
 static int write_vector(struct gspca_dev *gspca_dev,
-			const u16 (*data)[2])
+						const u16 (*data)[2])
 {
 	int ret = 0;
 
-	while ((*data)[1] != 0) {
-		if ((*data)[1] & 0x8000) {
+	while ((*data)[1] != 0)
+	{
+		if ((*data)[1] & 0x8000)
+		{
 			if ((*data)[1] == 0xdd00)	/* delay */
+			{
 				msleep((*data)[0]);
+			}
 			else
 				ret = reg_write(gspca_dev, (*data)[1],
 								(*data)[0]);
-		} else {
+		}
+		else
+		{
 			ret = ssi_w(gspca_dev, (*data)[1], (*data)[0]);
 		}
+
 		if (ret < 0)
+		{
 			break;
+		}
+
 		data++;
 	}
+
 	return ret;
 }
 
 /* this function is called at probe time */
 static int sd_config(struct gspca_dev *gspca_dev,
-			const struct usb_device_id *id)
+					 const struct usb_device_id *id)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 	struct cam *cam;
 	const u16 (*init_data)[2];
-	static const u16 (*(init_data_tb[]))[2] = {
+	static const u16 (*(init_data_tb[]))[2] =
+	{
 		spca508_vista_init_data,	/* CreativeVista 0 */
 		spca508_sightcam_init_data,	/* HamaUSBSightcam 1 */
 		spca508_sightcam2_init_data,	/* HamaUSBSightcam2 2 */
@@ -1400,17 +1462,21 @@ static int sd_start(struct gspca_dev *gspca_dev)
 
 	mode = gspca_dev->cam.cam_mode[gspca_dev->curr_mode].priv;
 	reg_write(gspca_dev, 0x8500, mode);
-	switch (mode) {
-	case 0:
-	case 1:
-		reg_write(gspca_dev, 0x8700, 0x28); /* clock */
-		break;
-	default:
-/*	case 2: */
-/*	case 3: */
-		reg_write(gspca_dev, 0x8700, 0x23); /* clock */
-		break;
+
+	switch (mode)
+	{
+		case 0:
+		case 1:
+			reg_write(gspca_dev, 0x8700, 0x28); /* clock */
+			break;
+
+		default:
+			/*	case 2: */
+			/*	case 3: */
+			reg_write(gspca_dev, 0x8700, 0x23); /* clock */
+			break;
 	}
+
 	reg_write(gspca_dev, 0x8112, 0x10 | 0x20);
 	return 0;
 }
@@ -1422,23 +1488,26 @@ static void sd_stopN(struct gspca_dev *gspca_dev)
 }
 
 static void sd_pkt_scan(struct gspca_dev *gspca_dev,
-			u8 *data,			/* isoc packet */
-			int len)			/* iso packet length */
+						u8 *data,			/* isoc packet */
+						int len)			/* iso packet length */
 {
-	switch (data[0]) {
-	case 0:				/* start of frame */
-		gspca_frame_add(gspca_dev, LAST_PACKET, NULL, 0);
-		data += SPCA508_OFFSET_DATA;
-		len -= SPCA508_OFFSET_DATA;
-		gspca_frame_add(gspca_dev, FIRST_PACKET, data, len);
-		break;
-	case 0xff:			/* drop */
-		break;
-	default:
-		data += 1;
-		len -= 1;
-		gspca_frame_add(gspca_dev, INTER_PACKET, data, len);
-		break;
+	switch (data[0])
+	{
+		case 0:				/* start of frame */
+			gspca_frame_add(gspca_dev, LAST_PACKET, NULL, 0);
+			data += SPCA508_OFFSET_DATA;
+			len -= SPCA508_OFFSET_DATA;
+			gspca_frame_add(gspca_dev, FIRST_PACKET, data, len);
+			break;
+
+		case 0xff:			/* drop */
+			break;
+
+		default:
+			data += 1;
+			len -= 1;
+			gspca_frame_add(gspca_dev, INTER_PACKET, data, len);
+			break;
 	}
 }
 
@@ -1459,17 +1528,22 @@ static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
 	gspca_dev->usb_err = 0;
 
 	if (!gspca_dev->streaming)
+	{
 		return 0;
-
-	switch (ctrl->id) {
-	case V4L2_CID_BRIGHTNESS:
-		setbrightness(gspca_dev, ctrl->val);
-		break;
 	}
+
+	switch (ctrl->id)
+	{
+		case V4L2_CID_BRIGHTNESS:
+			setbrightness(gspca_dev, ctrl->val);
+			break;
+	}
+
 	return gspca_dev->usb_err;
 }
 
-static const struct v4l2_ctrl_ops sd_ctrl_ops = {
+static const struct v4l2_ctrl_ops sd_ctrl_ops =
+{
 	.s_ctrl = sd_s_ctrl,
 };
 
@@ -1480,17 +1554,20 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
 	gspca_dev->vdev.ctrl_handler = hdl;
 	v4l2_ctrl_handler_init(hdl, 5);
 	v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-			V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
+					  V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
 
-	if (hdl->error) {
+	if (hdl->error)
+	{
 		pr_err("Could not initialize controls\n");
 		return hdl->error;
 	}
+
 	return 0;
 }
 
 /* sub-driver description */
-static const struct sd_desc sd_desc = {
+static const struct sd_desc sd_desc =
+{
 	.name = MODULE_NAME,
 	.config = sd_config,
 	.init = sd_init,
@@ -1501,7 +1578,8 @@ static const struct sd_desc sd_desc = {
 };
 
 /* -- module initialisation -- */
-static const struct usb_device_id device_table[] = {
+static const struct usb_device_id device_table[] =
+{
 	{USB_DEVICE(0x0130, 0x0130), .driver_info = HamaUSBSightcam},
 	{USB_DEVICE(0x041e, 0x4018), .driver_info = CreativeVista},
 	{USB_DEVICE(0x0733, 0x0110), .driver_info = ViewQuestVQ110},
@@ -1514,13 +1592,14 @@ MODULE_DEVICE_TABLE(usb, device_table);
 
 /* -- device connect -- */
 static int sd_probe(struct usb_interface *intf,
-			const struct usb_device_id *id)
+					const struct usb_device_id *id)
 {
 	return gspca_dev_probe(intf, id, &sd_desc, sizeof(struct sd),
-				THIS_MODULE);
+						   THIS_MODULE);
 }
 
-static struct usb_driver sd_driver = {
+static struct usb_driver sd_driver =
+{
 	.name = MODULE_NAME,
 	.id_table = device_table,
 	.probe = sd_probe,

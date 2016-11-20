@@ -37,7 +37,8 @@
 #define JZ_RTC_CTRL_AE		BIT(2)
 #define JZ_RTC_CTRL_ENABLE	BIT(0)
 
-struct jz4740_rtc {
+struct jz4740_rtc
+{
 	void __iomem *base;
 
 	struct rtc_device *rtc;
@@ -57,26 +58,31 @@ static int jz4740_rtc_wait_write_ready(struct jz4740_rtc *rtc)
 	uint32_t ctrl;
 	int timeout = 1000;
 
-	do {
+	do
+	{
 		ctrl = jz4740_rtc_reg_read(rtc, JZ_REG_RTC_CTRL);
-	} while (!(ctrl & JZ_RTC_CTRL_WRDY) && --timeout);
+	}
+	while (!(ctrl & JZ_RTC_CTRL_WRDY) && --timeout);
 
 	return timeout ? 0 : -EIO;
 }
 
 static inline int jz4740_rtc_reg_write(struct jz4740_rtc *rtc, size_t reg,
-	uint32_t val)
+									   uint32_t val)
 {
 	int ret;
 	ret = jz4740_rtc_wait_write_ready(rtc);
+
 	if (ret == 0)
+	{
 		writel(val, rtc->base + reg);
+	}
 
 	return ret;
 }
 
 static int jz4740_rtc_ctrl_set_bits(struct jz4740_rtc *rtc, uint32_t mask,
-	bool set)
+									bool set)
 {
 	int ret;
 	unsigned long flags;
@@ -90,9 +96,13 @@ static int jz4740_rtc_ctrl_set_bits(struct jz4740_rtc *rtc, uint32_t mask,
 	ctrl |= JZ_RTC_CTRL_1HZ | JZ_RTC_CTRL_AF;
 
 	if (set)
+	{
 		ctrl |= mask;
+	}
 	else
+	{
 		ctrl &= ~mask;
+	}
 
 	ret = jz4740_rtc_reg_write(rtc, JZ_REG_RTC_CTRL, ctrl);
 
@@ -114,13 +124,16 @@ static int jz4740_rtc_read_time(struct device *dev, struct rtc_time *time)
 	secs = jz4740_rtc_reg_read(rtc, JZ_REG_RTC_SEC);
 	secs2 = jz4740_rtc_reg_read(rtc, JZ_REG_RTC_SEC);
 
-	while (secs != secs2 && --timeout) {
+	while (secs != secs2 && --timeout)
+	{
 		secs = secs2;
 		secs2 = jz4740_rtc_reg_read(rtc, JZ_REG_RTC_SEC);
 	}
 
 	if (timeout == 0)
+	{
 		return -EIO;
+	}
 
 	rtc_time_to_tm(secs, time);
 
@@ -161,9 +174,10 @@ static int jz4740_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 	rtc_tm_to_time(&alrm->time, &secs);
 
 	ret = jz4740_rtc_reg_write(rtc, JZ_REG_RTC_SEC_ALARM, secs);
+
 	if (!ret)
 		ret = jz4740_rtc_ctrl_set_bits(rtc,
-			JZ_RTC_CTRL_AE | JZ_RTC_CTRL_AF_IRQ, alrm->enabled);
+									   JZ_RTC_CTRL_AE | JZ_RTC_CTRL_AF_IRQ, alrm->enabled);
 
 	return ret;
 }
@@ -174,7 +188,8 @@ static int jz4740_rtc_alarm_irq_enable(struct device *dev, unsigned int enable)
 	return jz4740_rtc_ctrl_set_bits(rtc, JZ_RTC_CTRL_AF_IRQ, enable);
 }
 
-static const struct rtc_class_ops jz4740_rtc_ops = {
+static const struct rtc_class_ops jz4740_rtc_ops =
+{
 	.read_time	= jz4740_rtc_read_time,
 	.set_mmss	= jz4740_rtc_set_mmss,
 	.read_alarm	= jz4740_rtc_read_alarm,
@@ -191,10 +206,14 @@ static irqreturn_t jz4740_rtc_irq(int irq, void *data)
 	ctrl = jz4740_rtc_reg_read(rtc, JZ_REG_RTC_CTRL);
 
 	if (ctrl & JZ_RTC_CTRL_1HZ)
+	{
 		events |= (RTC_UF | RTC_IRQF);
+	}
 
 	if (ctrl & JZ_RTC_CTRL_AF)
+	{
 		events |= (RTC_AF | RTC_IRQF);
+	}
 
 	rtc_update_irq(rtc->rtc, 1, events);
 
@@ -218,19 +237,27 @@ static int jz4740_rtc_probe(struct platform_device *pdev)
 	struct resource *mem;
 
 	rtc = devm_kzalloc(&pdev->dev, sizeof(*rtc), GFP_KERNEL);
+
 	if (!rtc)
+	{
 		return -ENOMEM;
+	}
 
 	rtc->irq = platform_get_irq(pdev, 0);
-	if (rtc->irq < 0) {
+
+	if (rtc->irq < 0)
+	{
 		dev_err(&pdev->dev, "Failed to get platform irq\n");
 		return -ENOENT;
 	}
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	rtc->base = devm_ioremap_resource(&pdev->dev, mem);
+
 	if (IS_ERR(rtc->base))
+	{
 		return PTR_ERR(rtc->base);
+	}
 
 	spin_lock_init(&rtc->lock);
 
@@ -239,25 +266,33 @@ static int jz4740_rtc_probe(struct platform_device *pdev)
 	device_init_wakeup(&pdev->dev, 1);
 
 	rtc->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
-					&jz4740_rtc_ops, THIS_MODULE);
-	if (IS_ERR(rtc->rtc)) {
+										&jz4740_rtc_ops, THIS_MODULE);
+
+	if (IS_ERR(rtc->rtc))
+	{
 		ret = PTR_ERR(rtc->rtc);
 		dev_err(&pdev->dev, "Failed to register rtc device: %d\n", ret);
 		return ret;
 	}
 
 	ret = devm_request_irq(&pdev->dev, rtc->irq, jz4740_rtc_irq, 0,
-				pdev->name, rtc);
-	if (ret) {
+						   pdev->name, rtc);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to request rtc irq: %d\n", ret);
 		return ret;
 	}
 
 	scratchpad = jz4740_rtc_reg_read(rtc, JZ_REG_RTC_SCRATCHPAD);
-	if (scratchpad != 0x12345678) {
+
+	if (scratchpad != 0x12345678)
+	{
 		ret = jz4740_rtc_reg_write(rtc, JZ_REG_RTC_SCRATCHPAD, 0x12345678);
 		ret = jz4740_rtc_reg_write(rtc, JZ_REG_RTC_SEC, 0);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(&pdev->dev, "Could not write write to RTC registers\n");
 			return ret;
 		}
@@ -272,7 +307,10 @@ static int jz4740_rtc_suspend(struct device *dev)
 	struct jz4740_rtc *rtc = dev_get_drvdata(dev);
 
 	if (device_may_wakeup(dev))
+	{
 		enable_irq_wake(rtc->irq);
+	}
+
 	return 0;
 }
 
@@ -281,11 +319,15 @@ static int jz4740_rtc_resume(struct device *dev)
 	struct jz4740_rtc *rtc = dev_get_drvdata(dev);
 
 	if (device_may_wakeup(dev))
+	{
 		disable_irq_wake(rtc->irq);
+	}
+
 	return 0;
 }
 
-static const struct dev_pm_ops jz4740_pm_ops = {
+static const struct dev_pm_ops jz4740_pm_ops =
+{
 	.suspend = jz4740_rtc_suspend,
 	.resume  = jz4740_rtc_resume,
 };
@@ -295,7 +337,8 @@ static const struct dev_pm_ops jz4740_pm_ops = {
 #define JZ4740_RTC_PM_OPS NULL
 #endif  /* CONFIG_PM */
 
-static struct platform_driver jz4740_rtc_driver = {
+static struct platform_driver jz4740_rtc_driver =
+{
 	.probe	 = jz4740_rtc_probe,
 	.driver	 = {
 		.name  = "jz4740-rtc",

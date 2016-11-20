@@ -61,7 +61,8 @@
  * Note that this may be derived from if more info needs to be passed between
  * helper caller and helper callbacks.
  */
-struct vmw_kms_dirty {
+struct vmw_kms_dirty
+{
 	void (*fifo_commit)(struct vmw_kms_dirty *);
 	void (*clip)(struct vmw_kms_dirty *);
 	size_t fifo_reserve_size;
@@ -93,7 +94,8 @@ struct vmw_kms_dirty {
  * @pin is called the when ever a crtc uses this framebuffer
  * @unpin is called
  */
-struct vmw_framebuffer {
+struct vmw_framebuffer
+{
 	struct drm_framebuffer base;
 	int (*pin)(struct vmw_framebuffer *fb);
 	int (*unpin)(struct vmw_framebuffer *fb);
@@ -105,11 +107,13 @@ struct vmw_framebuffer {
 /*
  * Clip rectangle
  */
-struct vmw_clip_rect {
+struct vmw_clip_rect
+{
 	int x1, x2, y1, y2;
 };
 
-struct vmw_framebuffer_surface {
+struct vmw_framebuffer_surface
+{
 	struct vmw_framebuffer base;
 	struct vmw_surface *surface;
 	struct vmw_dma_buffer *buffer;
@@ -118,7 +122,8 @@ struct vmw_framebuffer_surface {
 };
 
 
-struct vmw_framebuffer_dmabuf {
+struct vmw_framebuffer_dmabuf
+{
 	struct vmw_framebuffer base;
 	struct vmw_dma_buffer *buffer;
 };
@@ -128,14 +133,14 @@ struct vmw_framebuffer_dmabuf {
  * Basic cursor manipulation
  */
 int vmw_cursor_update_image(struct vmw_private *dev_priv,
-			    u32 *image, u32 width, u32 height,
-			    u32 hotspotX, u32 hotspotY);
+							u32 *image, u32 width, u32 height,
+							u32 hotspotX, u32 hotspotY);
 int vmw_cursor_update_dmabuf(struct vmw_private *dev_priv,
-			     struct vmw_dma_buffer *dmabuf,
-			     u32 width, u32 height,
-			     u32 hotspotX, u32 hotspotY);
+							 struct vmw_dma_buffer *dmabuf,
+							 u32 width, u32 height,
+							 u32 hotspotX, u32 hotspotY);
 void vmw_cursor_update_position(struct vmw_private *dev_priv,
-				bool show, int x, int y);
+								bool show, int x, int y);
 
 
 /**
@@ -145,7 +150,8 @@ void vmw_cursor_update_position(struct vmw_private *dev_priv,
  * so the display unit is all of them at the same time. This is true for both
  * legacy multimon and screen objects.
  */
-struct vmw_display_unit {
+struct vmw_display_unit
+{
 	struct drm_crtc crtc;
 	struct drm_encoder encoder;
 	struct drm_connector connector;
@@ -196,11 +202,11 @@ void vmw_du_cleanup(struct vmw_display_unit *du);
 void vmw_du_crtc_save(struct drm_crtc *crtc);
 void vmw_du_crtc_restore(struct drm_crtc *crtc);
 int vmw_du_crtc_gamma_set(struct drm_crtc *crtc,
-			   u16 *r, u16 *g, u16 *b,
-			   uint32_t size);
+						  u16 *r, u16 *g, u16 *b,
+						  uint32_t size);
 int vmw_du_crtc_cursor_set2(struct drm_crtc *crtc, struct drm_file *file_priv,
-			    uint32_t handle, uint32_t width, uint32_t height,
-			    int32_t hot_x, int32_t hot_y);
+							uint32_t handle, uint32_t width, uint32_t height,
+							int32_t hot_x, int32_t hot_y);
 int vmw_du_crtc_cursor_move(struct drm_crtc *crtc, int x, int y);
 int vmw_du_connector_dpms(struct drm_connector *connector, int mode);
 void vmw_du_connector_save(struct drm_connector *connector);
@@ -208,66 +214,66 @@ void vmw_du_connector_restore(struct drm_connector *connector);
 enum drm_connector_status
 vmw_du_connector_detect(struct drm_connector *connector, bool force);
 int vmw_du_connector_fill_modes(struct drm_connector *connector,
-				uint32_t max_width, uint32_t max_height);
+								uint32_t max_width, uint32_t max_height);
 int vmw_du_connector_set_property(struct drm_connector *connector,
-				  struct drm_property *property,
-				  uint64_t val);
+								  struct drm_property *property,
+								  uint64_t val);
 int vmw_kms_helper_dirty(struct vmw_private *dev_priv,
-			 struct vmw_framebuffer *framebuffer,
-			 const struct drm_clip_rect *clips,
-			 const struct drm_vmw_rect *vclips,
-			 s32 dest_x, s32 dest_y,
-			 int num_clips,
-			 int increment,
-			 struct vmw_kms_dirty *dirty);
+						 struct vmw_framebuffer *framebuffer,
+						 const struct drm_clip_rect *clips,
+						 const struct drm_vmw_rect *vclips,
+						 s32 dest_x, s32 dest_y,
+						 int num_clips,
+						 int increment,
+						 struct vmw_kms_dirty *dirty);
 
 int vmw_kms_helper_buffer_prepare(struct vmw_private *dev_priv,
-				  struct vmw_dma_buffer *buf,
-				  bool interruptible,
-				  bool validate_as_mob);
+								  struct vmw_dma_buffer *buf,
+								  bool interruptible,
+								  bool validate_as_mob);
 void vmw_kms_helper_buffer_revert(struct vmw_dma_buffer *buf);
 void vmw_kms_helper_buffer_finish(struct vmw_private *dev_priv,
-				  struct drm_file *file_priv,
-				  struct vmw_dma_buffer *buf,
-				  struct vmw_fence_obj **out_fence,
-				  struct drm_vmw_fence_rep __user *
-				  user_fence_rep);
+								  struct drm_file *file_priv,
+								  struct vmw_dma_buffer *buf,
+								  struct vmw_fence_obj **out_fence,
+								  struct drm_vmw_fence_rep __user *
+								  user_fence_rep);
 int vmw_kms_helper_resource_prepare(struct vmw_resource *res,
-				    bool interruptible);
+									bool interruptible);
 void vmw_kms_helper_resource_revert(struct vmw_resource *res);
 void vmw_kms_helper_resource_finish(struct vmw_resource *res,
-				    struct vmw_fence_obj **out_fence);
+									struct vmw_fence_obj **out_fence);
 int vmw_kms_readback(struct vmw_private *dev_priv,
-		     struct drm_file *file_priv,
-		     struct vmw_framebuffer *vfb,
-		     struct drm_vmw_fence_rep __user *user_fence_rep,
-		     struct drm_vmw_rect *vclips,
-		     uint32_t num_clips);
+					 struct drm_file *file_priv,
+					 struct vmw_framebuffer *vfb,
+					 struct drm_vmw_fence_rep __user *user_fence_rep,
+					 struct drm_vmw_rect *vclips,
+					 uint32_t num_clips);
 struct vmw_framebuffer *
 vmw_kms_new_framebuffer(struct vmw_private *dev_priv,
-			struct vmw_dma_buffer *dmabuf,
-			struct vmw_surface *surface,
-			bool only_2d,
-			const struct drm_mode_fb_cmd *mode_cmd);
+						struct vmw_dma_buffer *dmabuf,
+						struct vmw_surface *surface,
+						bool only_2d,
+						const struct drm_mode_fb_cmd *mode_cmd);
 int vmw_kms_fbdev_init_data(struct vmw_private *dev_priv,
-			    unsigned unit,
-			    u32 max_width,
-			    u32 max_height,
-			    struct drm_connector **p_con,
-			    struct drm_crtc **p_crtc,
-			    struct drm_display_mode **p_mode);
+							unsigned unit,
+							u32 max_width,
+							u32 max_height,
+							struct drm_connector **p_con,
+							struct drm_crtc **p_crtc,
+							struct drm_display_mode **p_mode);
 void vmw_guess_mode_timing(struct drm_display_mode *mode);
 void vmw_kms_del_active(struct vmw_private *dev_priv,
-			struct vmw_display_unit *du);
+						struct vmw_display_unit *du);
 void vmw_kms_add_active(struct vmw_private *dev_priv,
-			struct vmw_display_unit *du,
-			struct vmw_framebuffer *vfb);
+						struct vmw_display_unit *du,
+						struct vmw_framebuffer *vfb);
 bool vmw_kms_crtc_flippable(struct vmw_private *dev_priv,
-			    struct drm_crtc *crtc);
+							struct drm_crtc *crtc);
 void vmw_kms_update_implicit_fb(struct vmw_private *dev_priv,
-				struct drm_crtc *crtc);
+								struct drm_crtc *crtc);
 void vmw_kms_create_implicit_placement_property(struct vmw_private *dev_priv,
-						bool immutable);
+		bool immutable);
 
 
 /*
@@ -276,14 +282,14 @@ void vmw_kms_create_implicit_placement_property(struct vmw_private *dev_priv,
 int vmw_kms_ldu_init_display(struct vmw_private *dev_priv);
 int vmw_kms_ldu_close_display(struct vmw_private *dev_priv);
 int vmw_kms_ldu_do_dmabuf_dirty(struct vmw_private *dev_priv,
-				struct vmw_framebuffer *framebuffer,
-				unsigned flags, unsigned color,
-				struct drm_clip_rect *clips,
-				unsigned num_clips, int increment);
+								struct vmw_framebuffer *framebuffer,
+								unsigned flags, unsigned color,
+								struct drm_clip_rect *clips,
+								unsigned num_clips, int increment);
 int vmw_kms_update_proxy(struct vmw_resource *res,
-			 const struct drm_clip_rect *clips,
-			 unsigned num_clips,
-			 int increment);
+						 const struct drm_clip_rect *clips,
+						 unsigned num_clips,
+						 int increment);
 
 /*
  * Screen Objects display functions - vmwgfx_scrn.c
@@ -291,27 +297,27 @@ int vmw_kms_update_proxy(struct vmw_resource *res,
 int vmw_kms_sou_init_display(struct vmw_private *dev_priv);
 int vmw_kms_sou_close_display(struct vmw_private *dev_priv);
 int vmw_kms_sou_do_surface_dirty(struct vmw_private *dev_priv,
-				 struct vmw_framebuffer *framebuffer,
-				 struct drm_clip_rect *clips,
-				 struct drm_vmw_rect *vclips,
-				 struct vmw_resource *srf,
-				 s32 dest_x,
-				 s32 dest_y,
-				 unsigned num_clips, int inc,
-				 struct vmw_fence_obj **out_fence);
+								 struct vmw_framebuffer *framebuffer,
+								 struct drm_clip_rect *clips,
+								 struct drm_vmw_rect *vclips,
+								 struct vmw_resource *srf,
+								 s32 dest_x,
+								 s32 dest_y,
+								 unsigned num_clips, int inc,
+								 struct vmw_fence_obj **out_fence);
 int vmw_kms_sou_do_dmabuf_dirty(struct vmw_private *dev_priv,
-				struct vmw_framebuffer *framebuffer,
-				struct drm_clip_rect *clips,
-				struct drm_vmw_rect *vclips,
-				unsigned num_clips, int increment,
-				bool interruptible,
-				struct vmw_fence_obj **out_fence);
+								struct vmw_framebuffer *framebuffer,
+								struct drm_clip_rect *clips,
+								struct drm_vmw_rect *vclips,
+								unsigned num_clips, int increment,
+								bool interruptible,
+								struct vmw_fence_obj **out_fence);
 int vmw_kms_sou_readback(struct vmw_private *dev_priv,
-			 struct drm_file *file_priv,
-			 struct vmw_framebuffer *vfb,
-			 struct drm_vmw_fence_rep __user *user_fence_rep,
-			 struct drm_vmw_rect *vclips,
-			 uint32_t num_clips);
+						 struct drm_file *file_priv,
+						 struct vmw_framebuffer *vfb,
+						 struct drm_vmw_fence_rep __user *user_fence_rep,
+						 struct drm_vmw_rect *vclips,
+						 uint32_t num_clips);
 
 /*
  * Screen Target Display Unit functions - vmwgfx_stdu.c
@@ -319,24 +325,24 @@ int vmw_kms_sou_readback(struct vmw_private *dev_priv,
 int vmw_kms_stdu_init_display(struct vmw_private *dev_priv);
 int vmw_kms_stdu_close_display(struct vmw_private *dev_priv);
 int vmw_kms_stdu_surface_dirty(struct vmw_private *dev_priv,
-			       struct vmw_framebuffer *framebuffer,
-			       struct drm_clip_rect *clips,
-			       struct drm_vmw_rect *vclips,
-			       struct vmw_resource *srf,
-			       s32 dest_x,
-			       s32 dest_y,
-			       unsigned num_clips, int inc,
-			       struct vmw_fence_obj **out_fence);
+							   struct vmw_framebuffer *framebuffer,
+							   struct drm_clip_rect *clips,
+							   struct drm_vmw_rect *vclips,
+							   struct vmw_resource *srf,
+							   s32 dest_x,
+							   s32 dest_y,
+							   unsigned num_clips, int inc,
+							   struct vmw_fence_obj **out_fence);
 int vmw_kms_stdu_dma(struct vmw_private *dev_priv,
-		     struct drm_file *file_priv,
-		     struct vmw_framebuffer *vfb,
-		     struct drm_vmw_fence_rep __user *user_fence_rep,
-		     struct drm_clip_rect *clips,
-		     struct drm_vmw_rect *vclips,
-		     uint32_t num_clips,
-		     int increment,
-		     bool to_surface,
-		     bool interruptible);
+					 struct drm_file *file_priv,
+					 struct vmw_framebuffer *vfb,
+					 struct drm_vmw_fence_rep __user *user_fence_rep,
+					 struct drm_clip_rect *clips,
+					 struct drm_vmw_rect *vclips,
+					 uint32_t num_clips,
+					 int increment,
+					 bool to_surface,
+					 bool interruptible);
 
 
 #endif

@@ -24,7 +24,8 @@
 
 #define AIRPORT_IO_LEN	(0x1000)	/* one page */
 
-struct airport {
+struct airport
+{
 	struct macio_dev *mdev;
 	void __iomem *vaddr;
 	unsigned int irq;
@@ -44,9 +45,11 @@ airport_suspend(struct macio_dev *mdev, pm_message_t state)
 	printk(KERN_DEBUG "%s: Airport entering sleep mode\n", dev->name);
 
 	err = orinoco_lock(priv, &flags);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR "%s: hw_unavailable on PBOOK_SLEEP_NOW\n",
-		       dev->name);
+			   dev->name);
 		return 0;
 	}
 
@@ -55,7 +58,7 @@ airport_suspend(struct macio_dev *mdev, pm_message_t state)
 
 	disable_irq(card->irq);
 	pmac_call_feature(PMAC_FTR_AIRPORT_ENABLE,
-			  macio_get_of_node(mdev), 0, 0);
+					  macio_get_of_node(mdev), 0, 0);
 
 	return 0;
 }
@@ -72,7 +75,7 @@ airport_resume(struct macio_dev *mdev)
 	printk(KERN_DEBUG "%s: Airport waking up\n", dev->name);
 
 	pmac_call_feature(PMAC_FTR_AIRPORT_ENABLE,
-			  macio_get_of_node(mdev), 0, 1);
+					  macio_get_of_node(mdev), 0, 1);
 	msleep(200);
 
 	enable_irq(card->irq);
@@ -91,21 +94,30 @@ airport_detach(struct macio_dev *mdev)
 	struct airport *card = priv->card;
 
 	if (card->ndev_registered)
+	{
 		orinoco_if_del(priv);
+	}
+
 	card->ndev_registered = 0;
 
 	if (card->irq_requested)
+	{
 		free_irq(card->irq, priv);
+	}
+
 	card->irq_requested = 0;
 
 	if (card->vaddr)
+	{
 		iounmap(card->vaddr);
+	}
+
 	card->vaddr = NULL;
 
 	macio_release_resource(mdev, 0);
 
 	pmac_call_feature(PMAC_FTR_AIRPORT_ENABLE,
-			  macio_get_of_node(mdev), 0, 0);
+					  macio_get_of_node(mdev), 0, 0);
 	ssleep(1);
 
 	macio_set_drvdata(mdev, NULL);
@@ -131,10 +143,10 @@ static int airport_hard_reset(struct orinoco_private *priv)
 	disable_irq(card->irq);
 
 	pmac_call_feature(PMAC_FTR_AIRPORT_ENABLE,
-			  macio_get_of_node(card->mdev), 0, 0);
+					  macio_get_of_node(card->mdev), 0, 0);
 	ssleep(1);
 	pmac_call_feature(PMAC_FTR_AIRPORT_ENABLE,
-			  macio_get_of_node(card->mdev), 0, 1);
+					  macio_get_of_node(card->mdev), 0, 1);
 	ssleep(1);
 
 	enable_irq(card->irq);
@@ -152,24 +164,29 @@ airport_attach(struct macio_dev *mdev, const struct of_device_id *match)
 	unsigned long phys_addr;
 	struct hermes *hw;
 
-	if (macio_resource_count(mdev) < 1 || macio_irq_count(mdev) < 1) {
+	if (macio_resource_count(mdev) < 1 || macio_irq_count(mdev) < 1)
+	{
 		printk(KERN_ERR PFX "Wrong interrupt/addresses in OF tree\n");
 		return -ENODEV;
 	}
 
 	/* Allocate space for private device-specific data */
 	priv = alloc_orinocodev(sizeof(*card), &mdev->ofdev.dev,
-				airport_hard_reset, NULL);
-	if (!priv) {
+							airport_hard_reset, NULL);
+
+	if (!priv)
+	{
 		printk(KERN_ERR PFX "Cannot allocate network device\n");
 		return -ENODEV;
 	}
+
 	card = priv->card;
 
 	hw = &priv->hw;
 	card->mdev = mdev;
 
-	if (macio_request_resource(mdev, 0, DRIVER_NAME)) {
+	if (macio_request_resource(mdev, 0, DRIVER_NAME))
+	{
 		printk(KERN_ERR PFX "can't request IO resource !\n");
 		free_orinocodev(priv);
 		return -EBUSY;
@@ -182,7 +199,9 @@ airport_attach(struct macio_dev *mdev, const struct of_device_id *match)
 	phys_addr = macio_resource_start(mdev, 0);  /* Physical address */
 	printk(KERN_DEBUG PFX "Physical address %lx\n", phys_addr);
 	card->vaddr = ioremap(phys_addr, AIRPORT_IO_LEN);
-	if (!card->vaddr) {
+
+	if (!card->vaddr)
+	{
 		printk(KERN_ERR PFX "ioremap() failed\n");
 		goto failed;
 	}
@@ -191,53 +210,60 @@ airport_attach(struct macio_dev *mdev, const struct of_device_id *match)
 
 	/* Power up card */
 	pmac_call_feature(PMAC_FTR_AIRPORT_ENABLE,
-			  macio_get_of_node(mdev), 0, 1);
+					  macio_get_of_node(mdev), 0, 1);
 	ssleep(1);
 
 	/* Reset it before we get the interrupt */
 	hw->ops->init(hw);
 
-	if (request_irq(card->irq, orinoco_interrupt, 0, DRIVER_NAME, priv)) {
+	if (request_irq(card->irq, orinoco_interrupt, 0, DRIVER_NAME, priv))
+	{
 		printk(KERN_ERR PFX "Couldn't get IRQ %d\n", card->irq);
 		goto failed;
 	}
+
 	card->irq_requested = 1;
 
 	/* Initialise the main driver */
-	if (orinoco_init(priv) != 0) {
+	if (orinoco_init(priv) != 0)
+	{
 		printk(KERN_ERR PFX "orinoco_init() failed\n");
 		goto failed;
 	}
 
 	/* Register an interface with the stack */
-	if (orinoco_if_add(priv, phys_addr, card->irq, NULL) != 0) {
+	if (orinoco_if_add(priv, phys_addr, card->irq, NULL) != 0)
+	{
 		printk(KERN_ERR PFX "orinoco_if_add() failed\n");
 		goto failed;
 	}
+
 	card->ndev_registered = 1;
 	return 0;
- failed:
+failed:
 	airport_detach(mdev);
 	return -ENODEV;
 }				/* airport_attach */
 
 
 static char version[] __initdata = DRIVER_NAME " " DRIVER_VERSION
-	" (Benjamin Herrenschmidt <benh@kernel.crashing.org>)";
+								   " (Benjamin Herrenschmidt <benh@kernel.crashing.org>)";
 MODULE_AUTHOR("Benjamin Herrenschmidt <benh@kernel.crashing.org>");
 MODULE_DESCRIPTION("Driver for the Apple Airport wireless card.");
 MODULE_LICENSE("Dual MPL/GPL");
 
-static const struct of_device_id airport_match[] = {
+static const struct of_device_id airport_match[] =
+{
 	{
-	.name		= "radio",
+		.name		= "radio",
 	},
 	{},
 };
 
 MODULE_DEVICE_TABLE(of, airport_match);
 
-static struct macio_driver airport_driver = {
+static struct macio_driver airport_driver =
+{
 	.driver = {
 		.name		= DRIVER_NAME,
 		.owner		= THIS_MODULE,

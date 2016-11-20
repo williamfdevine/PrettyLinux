@@ -4,7 +4,8 @@
 
 struct dn_dev;
 
-struct dn_ifaddr {
+struct dn_ifaddr
+{
 	struct dn_ifaddr __rcu *ifa_next;
 	struct dn_dev    *ifa_dev;
 	__le16            ifa_local;
@@ -60,11 +61,12 @@ struct dn_ifaddr {
  *        device with DECnet.
  * down() - Called to turn device off when it goes down
  * timer3() - Called once for each ifaddr when timer 3 goes off
- * 
+ *
  * sysctl - Hook for sysctl things
  *
  */
-struct dn_dev_parms {
+struct dn_dev_parms
+{
 	int type;	          /* ARPHRD_xxx                         */
 	int mode;	          /* Broadcast, Unicast, Mulitpoint     */
 #define DN_DEV_BCAST  1
@@ -83,7 +85,8 @@ struct dn_dev_parms {
 };
 
 
-struct dn_dev {
+struct dn_dev
+{
 	struct dn_ifaddr __rcu *ifa_list;
 	struct net_device *dev;
 	struct dn_dev_parms parms;
@@ -97,14 +100,16 @@ struct dn_dev {
 	unsigned long uptime;     /* Time device went up in jiffies */
 };
 
-struct dn_short_packet {
+struct dn_short_packet
+{
 	__u8    msgflg;
 	__le16 dstnode;
 	__le16 srcnode;
 	__u8   forward;
 } __packed;
 
-struct dn_long_packet {
+struct dn_long_packet
+{
 	__u8   msgflg;
 	__u8   d_area;
 	__u8   d_subarea;
@@ -120,7 +125,8 @@ struct dn_long_packet {
 
 /*------------------------- DRP - Routing messages ---------------------*/
 
-struct endnode_hello_message {
+struct endnode_hello_message
+{
 	__u8   msgflg;
 	__u8   tiver[3];
 	__u8   id[6];
@@ -135,7 +141,8 @@ struct endnode_hello_message {
 	__u8   data[2];
 } __packed;
 
-struct rtnode_hello_message {
+struct rtnode_hello_message
+{
 	__u8   msgflg;
 	__u8   tiver[3];
 	__u8   id[6];
@@ -178,18 +185,22 @@ static inline int dn_dev_islocal(struct net_device *dev, __le16 addr)
 
 	rcu_read_lock();
 	dn_db = rcu_dereference(dev->dn_ptr);
-	if (dn_db == NULL) {
+
+	if (dn_db == NULL)
+	{
 		printk(KERN_DEBUG "dn_dev_islocal: Called for non DECnet device\n");
 		goto out;
 	}
 
 	for (ifa = rcu_dereference(dn_db->ifa_list);
-	     ifa != NULL;
-	     ifa = rcu_dereference(ifa->ifa_next))
-		if ((addr ^ ifa->ifa_local) == 0) {
+		 ifa != NULL;
+		 ifa = rcu_dereference(ifa->ifa_next))
+		if ((addr ^ ifa->ifa_local) == 0)
+		{
 			res = 1;
 			break;
 		}
+
 out:
 	rcu_read_unlock();
 	return res;

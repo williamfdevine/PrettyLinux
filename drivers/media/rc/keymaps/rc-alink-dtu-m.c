@@ -22,7 +22,8 @@
 #include <linux/module.h>
 
 /* A-Link DTU(m) slim remote, 6 rows, 3 columns. */
-static struct rc_map_table alink_dtu_m[] = {
+static struct rc_map_table alink_dtu_m[] =
+{
 	{ 0x0800, KEY_VOLUMEUP },
 	{ 0x0801, KEY_1 },
 	{ 0x0802, KEY_3 },
@@ -43,7 +44,8 @@ static struct rc_map_table alink_dtu_m[] = {
 	{ 0x081d, KEY_CHANNELDOWN },
 };
 
-static struct rc_map_list alink_dtu_m_map = {
+static struct rc_map_list alink_dtu_m_map =
+{
 	.map = {
 		.scan    = alink_dtu_m,
 		.size    = ARRAY_SIZE(alink_dtu_m),

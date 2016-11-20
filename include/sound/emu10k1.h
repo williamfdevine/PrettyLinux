@@ -65,20 +65,20 @@
 /************************************************************************************************/
 
 #define PTR			0x00		/* Indexed register set pointer register	*/
-						/* NOTE: The CHANNELNUM and ADDRESS words can	*/
-						/* be modified independently of each other.	*/
+/* NOTE: The CHANNELNUM and ADDRESS words can	*/
+/* be modified independently of each other.	*/
 #define PTR_CHANNELNUM_MASK	0x0000003f	/* For each per-channel register, indicates the	*/
-						/* channel number of the register to be		*/
-						/* accessed.  For non per-channel registers the	*/
-						/* value should be set to zero.			*/
+/* channel number of the register to be		*/
+/* accessed.  For non per-channel registers the	*/
+/* value should be set to zero.			*/
 #define PTR_ADDRESS_MASK	0x07ff0000	/* Register index				*/
 #define A_PTR_ADDRESS_MASK	0x0fff0000
 
 #define DATA			0x04		/* Indexed register set data register		*/
 
 #define IPR			0x08		/* Global interrupt pending register		*/
-						/* Clear pending interrupts by writing a 1 to	*/
-						/* the relevant bits and zero to the other bits	*/
+/* Clear pending interrupts by writing a 1 to	*/
+/* the relevant bits and zero to the other bits	*/
 #define IPR_P16V		0x80000000	/* Bit set when the CA0151 P16V chip wishes
 						   to interrupt */
 #define IPR_GPIOMSG		0x20000000	/* GPIO message interrupt (RE'd, still not sure 
@@ -111,10 +111,10 @@
 #define IPR_MIDIRECVBUFEMPTY	0x00000080	/* MIDI UART receive buffer empty		*/
 #define IPR_CHANNELLOOP		0x00000040	/* Channel (half) loop interrupt(s) pending	*/
 #define IPR_CHANNELNUMBERMASK	0x0000003f	/* When IPR_CHANNELLOOP is set, indicates the	*/
-						/* highest set channel in CLIPL, CLIPH, HLIPL,  */
-						/* or HLIPH.  When IP is written with CL set,	*/
-						/* the bit in H/CLIPL or H/CLIPH corresponding	*/
-						/* to the CIN value written will be cleared.	*/
+/* highest set channel in CLIPL, CLIPH, HLIPL,  */
+/* or HLIPH.  When IP is written with CL set,	*/
+/* the bit in H/CLIPL or H/CLIPH corresponding	*/
+/* to the CIN value written will be cleared.	*/
 
 #define INTE			0x0c		/* Interrupt enable register			*/
 #define INTE_VIRTUALSB_MASK	0xc0000000	/* Virtual Soundblaster I/O port capture	*/
@@ -137,10 +137,10 @@
 #define INTE_FORCEINT		0x00100000	/* Continuously assert INTAN			*/
 
 #define INTE_MRHANDENABLE	0x00080000	/* Enable the "Mr. Hand" logic			*/
-						/* NOTE: There is no reason to use this under	*/
-						/* Linux, and it will cause odd hardware 	*/
-						/* behavior and possibly random segfaults and	*/
-						/* lockups if enabled.				*/
+/* NOTE: There is no reason to use this under	*/
+/* Linux, and it will cause odd hardware 	*/
+/* behavior and possibly random segfaults and	*/
+/* lockups if enabled.				*/
 
 /* The next two interrupts are for the midi port on the Audigy Drive (A_MPU1)			*/
 #define INTE_A_MIDITXENABLE2	0x00020000	/* Enable MIDI transmit-buffer-empty interrupts	*/
@@ -148,7 +148,7 @@
 
 
 #define INTE_SAMPLERATETRACKER	0x00002000	/* Enable sample rate tracker interrupts	*/
-						/* NOTE: This bit must always be enabled       	*/
+/* NOTE: This bit must always be enabled       	*/
 #define INTE_FXDSPENABLE	0x00001000	/* Enable FX DSP interrupts			*/
 #define INTE_PCIERRORENABLE	0x00000800	/* Enable PCI bus error interrupts		*/
 #define INTE_VOLINCRENABLE	0x00000400	/* Enable volume increment button interrupts	*/
@@ -167,14 +167,14 @@
 #define WC_SAMPLECOUNTER_MASK	0x03FFFFC0	/* Sample periods elapsed since reset		*/
 #define WC_SAMPLECOUNTER	0x14060010
 #define WC_CURRENTCHANNEL	0x0000003F	/* Channel [0..63] currently being serviced	*/
-						/* NOTE: Each channel takes 1/64th of a sample	*/
-						/* period to be serviced.			*/
+/* NOTE: Each channel takes 1/64th of a sample	*/
+/* period to be serviced.			*/
 
 #define HCFG			0x14		/* Hardware config register			*/
-						/* NOTE: There is no reason to use the legacy	*/
-						/* SoundBlaster emulation stuff described below	*/
-						/* under Linux, and all kinds of weird hardware	*/
-						/* behavior can result if you try.  Don't.	*/
+/* NOTE: There is no reason to use the legacy	*/
+/* SoundBlaster emulation stuff described below	*/
+/* under Linux, and all kinds of weird hardware	*/
+/* behavior can result if you try.  Don't.	*/
 #define HCFG_LEGACYFUNC_MASK	0xe0000000	/* Legacy function number 			*/
 #define HCFG_LEGACYFUNC_MPU	0x00000000	/* Legacy MPU	 				*/
 #define HCFG_LEGACYFUNC_SB	0x40000000	/* Legacy SB					*/
@@ -187,8 +187,8 @@
 #define HCFG_LEGACYWRITE	0x00800000	/* 1 = write, 0 = read 				*/
 #define HCFG_LEGACYWORD		0x00400000	/* 1 = word, 0 = byte 				*/
 #define HCFG_LEGACYINT		0x00200000	/* 1 = legacy event captured. Write 1 to clear.	*/
-						/* NOTE: The rest of the bits in this register	*/
-						/* _are_ relevant under Linux.			*/
+/* NOTE: The rest of the bits in this register	*/
+/* _are_ relevant under Linux.			*/
 #define HCFG_PUSH_BUTTON_ENABLE 0x00100000	/* Enables Volume Inc/Dec and Mute functions    */
 #define HCFG_BAUD_RATE		0x00080000	/* 0 = 48kHz, 1 = 44.1kHz			*/
 #define HCFG_EXPANDED_MEM	0x00040000	/* 1 = any 16M of 4G addr, 0 = 32M of 2G addr	*/
@@ -198,21 +198,21 @@
 #define HCFG_CODECFORMAT_AC97_1	0x00000000	/* AC97 CODEC format -- Ver 1.03		*/
 #define HCFG_CODECFORMAT_AC97_2	0x00010000	/* AC97 CODEC format -- Ver 2.1			*/
 #define HCFG_AUTOMUTE_ASYNC	0x00008000	/* When set, the async sample rate convertors	*/
-						/* will automatically mute their output when	*/
-						/* they are not rate-locked to the external	*/
-						/* async audio source  				*/
+/* will automatically mute their output when	*/
+/* they are not rate-locked to the external	*/
+/* async audio source  				*/
 #define HCFG_AUTOMUTE_SPDIF	0x00004000	/* When set, the async sample rate convertors	*/
-						/* will automatically mute their output when	*/
-						/* the SPDIF V-bit indicates invalid audio	*/
+/* will automatically mute their output when	*/
+/* the SPDIF V-bit indicates invalid audio	*/
 #define HCFG_EMU32_SLAVE	0x00002000	/* 0 = Master, 1 = Slave. Slave for EMU1010	*/
 #define HCFG_SLOW_RAMP		0x00001000	/* Increases Send Smoothing time constant	*/
 /* 0x00000800 not used on Alice2 */
 #define HCFG_PHASE_TRACK_MASK	0x00000700	/* When set, forces corresponding input to	*/
-						/* phase track the previous input.		*/
-						/* I2S0 can phase track the last S/PDIF input	*/
+/* phase track the previous input.		*/
+/* I2S0 can phase track the last S/PDIF input	*/
 #define HCFG_I2S_ASRC_ENABLE	0x00000070	/* When set, enables asynchronous sample rate   */
-						/* conversion for the corresponding		*/
- 						/* I2S format input				*/
+/* conversion for the corresponding		*/
+/* I2S format input				*/
 /* Rest of HCFG 0x0000000f same as below. LOCKSOUNDCACHE etc.  */
 
 
@@ -228,30 +228,30 @@
 #define HCFG_GPOUT2		0x00000400	/* External pin? (IR)				*/
 #define HCFG_JOYENABLE      	0x00000200	/* Internal joystick enable    			*/
 #define HCFG_PHASETRACKENABLE	0x00000100	/* Phase tracking enable			*/
-						/* 1 = Force all 3 async digital inputs to use	*/
-						/* the same async sample rate tracker (ZVIDEO)	*/
+/* 1 = Force all 3 async digital inputs to use	*/
+/* the same async sample rate tracker (ZVIDEO)	*/
 #define HCFG_AC3ENABLE_MASK	0x000000e0	/* AC3 async input control - Not implemented	*/
 #define HCFG_AC3ENABLE_ZVIDEO	0x00000080	/* Channels 0 and 1 replace ZVIDEO		*/
 #define HCFG_AC3ENABLE_CDSPDIF	0x00000040	/* Channels 0 and 1 replace CDSPDIF		*/
 #define HCFG_AC3ENABLE_GPSPDIF  0x00000020      /* Channels 0 and 1 replace GPSPDIF             */
 #define HCFG_AUTOMUTE		0x00000010	/* When set, the async sample rate convertors	*/
-						/* will automatically mute their output when	*/
-						/* they are not rate-locked to the external	*/
-						/* async audio source  				*/
+/* will automatically mute their output when	*/
+/* they are not rate-locked to the external	*/
+/* async audio source  				*/
 #define HCFG_LOCKSOUNDCACHE	0x00000008	/* 1 = Cancel bustmaster accesses to soundcache */
-						/* NOTE: This should generally never be used.  	*/
+/* NOTE: This should generally never be used.  	*/
 #define HCFG_LOCKTANKCACHE_MASK	0x00000004	/* 1 = Cancel bustmaster accesses to tankcache	*/
-						/* NOTE: This should generally never be used.  	*/
+/* NOTE: This should generally never be used.  	*/
 #define HCFG_LOCKTANKCACHE	0x01020014
 #define HCFG_MUTEBUTTONENABLE	0x00000002	/* 1 = Master mute button sets AUDIOENABLE = 0.	*/
-						/* NOTE: This is a 'cheap' way to implement a	*/
-						/* master mute function on the mute button, and	*/
-						/* in general should not be used unless a more	*/
-						/* sophisticated master mute function has not	*/
-						/* been written.       				*/
+/* NOTE: This is a 'cheap' way to implement a	*/
+/* master mute function on the mute button, and	*/
+/* in general should not be used unless a more	*/
+/* sophisticated master mute function has not	*/
+/* been written.       				*/
 #define HCFG_AUDIOENABLE	0x00000001	/* 0 = CODECs transmit zero-valued samples	*/
-						/* Should be set to 1 when the EMU10K1 is	*/
-						/* completely initialized.			*/
+/* Should be set to 1 when the EMU10K1 is	*/
+/* completely initialized.			*/
 
 //For Audigy, MPU port move to 0x70-0x74 ptr register
 
@@ -260,7 +260,7 @@
 #define MUCMD			0x19		/* MPU401 command register (8 bits)    		*/
 #define MUCMD_RESET		0xff		/* RESET command				*/
 #define MUCMD_ENTERUARTMODE	0x3f		/* Enter_UART_mode command			*/
-						/* NOTE: All other commands are ignored		*/
+/* NOTE: All other commands are ignored		*/
 
 #define MUSTAT			MUCMD		/* MPU401 status register (8 bits)     		*/
 #define MUSTAT_IRDYN		0x80		/* 0 = MIDI data or command ACK			*/
@@ -280,7 +280,7 @@
 #define A_IOCFG_GPOUT1		0x0002		/* IR? drive's internal bypass (?)		*/
 #define A_IOCFG_GPOUT2		0x0001		/* IR */
 #define A_IOCFG_MULTIPURPOSE_JACK	0x2000  /* center+lfe+rear_center (a2/a2ex)		*/
-                                                /* + digital for generic 10k2			*/
+/* + digital for generic 10k2			*/
 #define A_IOCFG_DIGITAL_JACK    0x1000          /* digital for a2 platinum			*/
 #define A_IOCFG_FRONT_JACK      0x4000
 #define A_IOCFG_REAR_JACK       0x8000
@@ -293,11 +293,11 @@
  */
 
 #define TIMER			0x1a		/* Timer terminal count register		*/
-						/* NOTE: After the rate is changed, a maximum	*/
-						/* of 1024 sample periods should be allowed	*/
-						/* before the new rate is guaranteed accurate.	*/
+/* NOTE: After the rate is changed, a maximum	*/
+/* of 1024 sample periods should be allowed	*/
+/* before the new rate is guaranteed accurate.	*/
 #define TIMER_RATE_MASK		0x000003ff	/* Timer interrupt rate in sample periods	*/
-						/* 0 == 1024 periods, [1..4] are not useful	*/
+/* 0 == 1024 periods, [1..4] are not useful	*/
 #define TIMER_RATE		0x0a00001a
 
 #define AC97DATA		0x1c		/* AC97 register set data register (16 bit)	*/
@@ -314,9 +314,9 @@
 #define IPR2_PLAYBACK_CH_0_HALF_LOOP 0x00000100 /* Playback Channel 0 half loop                          */
 #define IPR2_CAPTURE_CH_0_LOOP       0x00100000 /* Capture Channel 0 loop                               */
 #define IPR2_CAPTURE_CH_0_HALF_LOOP  0x00010000 /* Capture Channel 0 half loop                          */
-						/* 0x00000100 Playback. Only in once per period.
-						 * 0x00110000 Capture. Int on half buffer.
-						 */
+/* 0x00000100 Playback. Only in once per period.
+ * 0x00110000 Capture. Int on half buffer.
+ */
 #define INTE2			0x2c		/* P16V Interrupt enable register. 	*/
 #define INTE2_PLAYBACK_CH_0_LOOP      0x00001000 /* Playback Channel 0 loop                               */
 #define INTE2_PLAYBACK_CH_0_HALF_LOOP 0x00000100 /* Playback Channel 0 half loop                          */
@@ -329,21 +329,21 @@
 #define INTE2_CAPTURE_CH_0_LOOP       0x00100000 /* Capture Channel 0 loop                               */
 #define INTE2_CAPTURE_CH_0_HALF_LOOP  0x00010000 /* Caputre Channel 0 half loop                          */
 #define HCFG2			0x34		/* Defaults: 0, win2000 sets it to 00004201 */
-						/* 0x00000000 2-channel output. */
-						/* 0x00000200 8-channel output. */
-						/* 0x00000004 pauses stream/irq fail. */
-						/* Rest of bits no nothing to sound output */
-						/* bit 0: Enable P16V audio.
-						 * bit 1: Lock P16V record memory cache.
-						 * bit 2: Lock P16V playback memory cache.
-						 * bit 3: Dummy record insert zero samples.
-						 * bit 8: Record 8-channel in phase.
-						 * bit 9: Playback 8-channel in phase.
-						 * bit 11-12: Playback mixer attenuation: 0=0dB, 1=-6dB, 2=-12dB, 3=Mute.
-						 * bit 13: Playback mixer enable.
-						 * bit 14: Route SRC48 mixer output to fx engine.
-						 * bit 15: Enable IEEE 1394 chip.
-						 */
+/* 0x00000000 2-channel output. */
+/* 0x00000200 8-channel output. */
+/* 0x00000004 pauses stream/irq fail. */
+/* Rest of bits no nothing to sound output */
+/* bit 0: Enable P16V audio.
+ * bit 1: Lock P16V record memory cache.
+ * bit 2: Lock P16V playback memory cache.
+ * bit 3: Dummy record insert zero samples.
+ * bit 8: Record 8-channel in phase.
+ * bit 9: Playback 8-channel in phase.
+ * bit 11-12: Playback mixer attenuation: 0=0dB, 1=-6dB, 2=-12dB, 3=Mute.
+ * bit 13: Playback mixer enable.
+ * bit 14: Route SRC48 mixer output to fx engine.
+ * bit 15: Enable IEEE 1394 chip.
+ */
 #define IPR3			0x38		/* Cdif interrupt pending register		*/
 #define INTE3			0x3c		/* Cdif interrupt enable register. 	*/
 /************************************************************************************************/
@@ -419,11 +419,11 @@
 #define CCCA			0x08		/* Filter Q, interp. ROM, byte size, cur. addr register */
 #define CCCA_RESONANCE		0xf0000000	/* Lowpass filter resonance (Q) height			*/
 #define CCCA_INTERPROMMASK	0x0e000000	/* Selects passband of interpolation ROM		*/
-						/* 1 == full band, 7 == lowpass				*/
-						/* ROM 0 is used when pitch shifting downward or less	*/
-						/* then 3 semitones upward.  Increasingly higher ROM	*/
-						/* numbers are used, typically in steps of 3 semitones,	*/
-						/* as upward pitch shifting is performed.		*/
+/* 1 == full band, 7 == lowpass				*/
+/* ROM 0 is used when pitch shifting downward or less	*/
+/* then 3 semitones upward.  Increasingly higher ROM	*/
+/* numbers are used, typically in steps of 3 semitones,	*/
+/* as upward pitch shifting is performed.		*/
 #define CCCA_INTERPROM_0	0x00000000	/* Select interpolation ROM 0				*/
 #define CCCA_INTERPROM_1	0x02000000	/* Select interpolation ROM 1				*/
 #define CCCA_INTERPROM_2	0x04000000	/* Select interpolation ROM 2				*/
@@ -445,17 +445,17 @@
 #define CCR_READADDRESS		0x06100009
 #define CCR_READADDRESS_MASK	0x003f0000	/* Location of cache just beyond current cache service	*/
 #define CCR_LOOPINVALSIZE	0x0000fe00	/* Number of invalid samples in cache prior to loop	*/
-						/* NOTE: This is valid only if CACHELOOPFLAG is set	*/
+/* NOTE: This is valid only if CACHELOOPFLAG is set	*/
 #define CCR_LOOPFLAG		0x00000100	/* Set for a single sample period when a loop occurs	*/
 #define CCR_CACHELOOPADDRHI	0x000000ff	/* DSL_LOOPSTARTADDR's hi byte if CACHELOOPFLAG is set	*/
 
 #define CLP			0x0a		/* Cache loop register (valid if CCR_CACHELOOPFLAG = 1) */
-						/* NOTE: This register is normally not used		*/
+/* NOTE: This register is normally not used		*/
 #define CLP_CACHELOOPADDR	0x0000ffff	/* Cache loop address (DSL_LOOPSTARTADDR [0..15])	*/
 
 #define FXRT			0x0b		/* Effects send routing register			*/
-						/* NOTE: It is illegal to assign the same routing to	*/
-						/* two effects sends.					*/
+/* NOTE: It is illegal to assign the same routing to	*/
+/* two effects sends.					*/
 #define FXRT_CHANNELA		0x000f0000	/* Effects send bus number for channel's effects send A	*/
 #define FXRT_CHANNELB		0x00f00000	/* Effects send bus number for channel's effects send B	*/
 #define FXRT_CHANNELC		0x0f000000	/* Effects send bus number for channel's effects send C	*/
@@ -475,57 +475,57 @@
 /* 0x0e, 0x0f: Not used */
 
 #define ENVVOL			0x10		/* Volume envelope register				*/
-#define ENVVOL_MASK		0x0000ffff	/* Current value of volume envelope state variable	*/  
-						/* 0x8000-n == 666*n usec delay	       			*/
+#define ENVVOL_MASK		0x0000ffff	/* Current value of volume envelope state variable	*/
+/* 0x8000-n == 666*n usec delay	       			*/
 
 #define ATKHLDV 		0x11		/* Volume envelope hold and attack register		*/
 #define ATKHLDV_PHASE0		0x00008000	/* 0 = Begin attack phase				*/
 #define ATKHLDV_HOLDTIME_MASK	0x00007f00	/* Envelope hold time (127-n == n*88.2msec)		*/
 #define ATKHLDV_ATTACKTIME_MASK	0x0000007f	/* Envelope attack time, log encoded			*/
-						/* 0 = infinite, 1 = 10.9msec, ... 0x7f = 5.5msec	*/
+/* 0 = infinite, 1 = 10.9msec, ... 0x7f = 5.5msec	*/
 
 #define DCYSUSV 		0x12		/* Volume envelope sustain and decay register		*/
 #define DCYSUSV_PHASE1_MASK	0x00008000	/* 0 = Begin attack phase, 1 = begin release phase	*/
 #define DCYSUSV_SUSTAINLEVEL_MASK 0x00007f00	/* 127 = full, 0 = off, 0.75dB increments		*/
 #define DCYSUSV_CHANNELENABLE_MASK 0x00000080	/* 1 = Inhibit envelope engine from writing values in	*/
-						/* this channel and from writing to pitch, filter and	*/
-						/* volume targets.					*/
+/* this channel and from writing to pitch, filter and	*/
+/* volume targets.					*/
 #define DCYSUSV_DECAYTIME_MASK	0x0000007f	/* Volume envelope decay time, log encoded     		*/
-						/* 0 = 43.7msec, 1 = 21.8msec, 0x7f = 22msec		*/
+/* 0 = 43.7msec, 1 = 21.8msec, 0x7f = 22msec		*/
 
 #define LFOVAL1 		0x13		/* Modulation LFO value					*/
 #define LFOVAL_MASK		0x0000ffff	/* Current value of modulation LFO state variable	*/
-						/* 0x8000-n == 666*n usec delay				*/
+/* 0x8000-n == 666*n usec delay				*/
 
 #define ENVVAL			0x14		/* Modulation envelope register				*/
 #define ENVVAL_MASK		0x0000ffff	/* Current value of modulation envelope state variable 	*/
-						/* 0x8000-n == 666*n usec delay				*/
+/* 0x8000-n == 666*n usec delay				*/
 
 #define ATKHLDM			0x15		/* Modulation envelope hold and attack register		*/
 #define ATKHLDM_PHASE0		0x00008000	/* 0 = Begin attack phase				*/
 #define ATKHLDM_HOLDTIME	0x00007f00	/* Envelope hold time (127-n == n*42msec)		*/
 #define ATKHLDM_ATTACKTIME	0x0000007f	/* Envelope attack time, log encoded			*/
-						/* 0 = infinite, 1 = 11msec, ... 0x7f = 5.5msec		*/
+/* 0 = infinite, 1 = 11msec, ... 0x7f = 5.5msec		*/
 
 #define DCYSUSM			0x16		/* Modulation envelope decay and sustain register	*/
 #define DCYSUSM_PHASE1_MASK	0x00008000	/* 0 = Begin attack phase, 1 = begin release phase	*/
 #define DCYSUSM_SUSTAINLEVEL_MASK 0x00007f00	/* 127 = full, 0 = off, 0.75dB increments		*/
 #define DCYSUSM_DECAYTIME_MASK	0x0000007f	/* Envelope decay time, log encoded			*/
-						/* 0 = 43.7msec, 1 = 21.8msec, 0x7f = 22msec		*/
+/* 0 = 43.7msec, 1 = 21.8msec, 0x7f = 22msec		*/
 
 #define LFOVAL2 		0x17		/* Vibrato LFO register					*/
 #define LFOVAL2_MASK		0x0000ffff	/* Current value of vibrato LFO state variable 		*/
-						/* 0x8000-n == 666*n usec delay				*/
+/* 0x8000-n == 666*n usec delay				*/
 
 #define IP			0x18		/* Initial pitch register				*/
 #define IP_MASK			0x0000ffff	/* Exponential initial pitch shift			*/
-						/* 4 bits of octave, 12 bits of fractional octave	*/
+/* 4 bits of octave, 12 bits of fractional octave	*/
 #define IP_UNITY		0x0000e000	/* Unity pitch shift					*/
 
 #define IFATN			0x19		/* Initial filter cutoff and attenuation register	*/
 #define IFATN_FILTERCUTOFF_MASK	0x0000ff00	/* Initial filter cutoff frequency in exponential units	*/
-						/* 6 most significant bits are semitones		*/
-						/* 2 least significant bits are fractions		*/
+/* 6 most significant bits are semitones		*/
+/* 2 least significant bits are fractions		*/
 #define IFATN_FILTERCUTOFF	0x08080019
 #define IFATN_ATTENUATION_MASK	0x000000ff	/* Initial attenuation in 0.375dB steps			*/
 #define IFATN_ATTENUATION	0x08000019
@@ -533,34 +533,34 @@
 
 #define PEFE			0x1a		/* Pitch envelope and filter envelope amount register	*/
 #define PEFE_PITCHAMOUNT_MASK	0x0000ff00	/* Pitch envlope amount					*/
-						/* Signed 2's complement, +/- one octave peak extremes	*/
+/* Signed 2's complement, +/- one octave peak extremes	*/
 #define PEFE_PITCHAMOUNT	0x0808001a
 #define PEFE_FILTERAMOUNT_MASK	0x000000ff	/* Filter envlope amount				*/
-						/* Signed 2's complement, +/- six octaves peak extremes */
+/* Signed 2's complement, +/- six octaves peak extremes */
 #define PEFE_FILTERAMOUNT	0x0800001a
 #define FMMOD			0x1b		/* Vibrato/filter modulation from LFO register		*/
 #define FMMOD_MODVIBRATO	0x0000ff00	/* Vibrato LFO modulation depth				*/
-						/* Signed 2's complement, +/- one octave extremes	*/
+/* Signed 2's complement, +/- one octave extremes	*/
 #define FMMOD_MOFILTER		0x000000ff	/* Filter LFO modulation depth				*/
-						/* Signed 2's complement, +/- three octave extremes	*/
+/* Signed 2's complement, +/- three octave extremes	*/
 
 
 #define TREMFRQ 		0x1c		/* Tremolo amount and modulation LFO frequency register	*/
 #define TREMFRQ_DEPTH		0x0000ff00	/* Tremolo depth					*/
-						/* Signed 2's complement, with +/- 12dB extremes	*/
+/* Signed 2's complement, with +/- 12dB extremes	*/
 
 #define TREMFRQ_FREQUENCY	0x000000ff	/* Tremolo LFO frequency				*/
-						/* ??Hz steps, maximum of ?? Hz.			*/
+/* ??Hz steps, maximum of ?? Hz.			*/
 #define FM2FRQ2 		0x1d		/* Vibrato amount and vibrato LFO frequency register	*/
 #define FM2FRQ2_DEPTH		0x0000ff00	/* Vibrato LFO vibrato depth				*/
-						/* Signed 2's complement, +/- one octave extremes	*/
+/* Signed 2's complement, +/- one octave extremes	*/
 #define FM2FRQ2_FREQUENCY	0x000000ff	/* Vibrato LFO frequency				*/
-						/* 0.039Hz steps, maximum of 9.85 Hz.			*/
+/* 0.039Hz steps, maximum of 9.85 Hz.			*/
 
 #define TEMPENV 		0x1e		/* Tempory envelope register				*/
 #define TEMPENV_MASK		0x0000ffff	/* 16-bit value						*/
-						/* NOTE: All channels contain internal variables; do	*/
-						/* not write to these locations.			*/
+/* NOTE: All channels contain internal variables; do	*/
+/* not write to these locations.			*/
 
 /* 0x1f: not used */
 
@@ -592,8 +592,8 @@
 #define ADCCR			0x42		/* ADC sample rate/stereo control register		*/
 #define ADCCR_RCHANENABLE	0x00000010	/* Enables right channel for writing to the host       	*/
 #define ADCCR_LCHANENABLE	0x00000008	/* Enables left channel for writing to the host		*/
-						/* NOTE: To guarantee phase coherency, both channels	*/
-						/* must be disabled prior to enabling both channels.	*/
+/* NOTE: To guarantee phase coherency, both channels	*/
+/* must be disabled prior to enabling both channels.	*/
 #define A_ADCCR_RCHANENABLE	0x00000020
 #define A_ADCCR_LCHANENABLE	0x00000010
 
@@ -612,11 +612,11 @@
 #define A_ADCCR_SAMPLERATE_8	0x00000008	/* 8kHz sample rate					*/
 
 #define FXWC			0x43		/* FX output write channels register			*/
-						/* When set, each bit enables the writing of the	*/
-						/* corresponding FX output channel (internal registers  */
-						/* 0x20-0x3f) to host memory.  This mode of recording   */
-						/* is 16bit, 48KHz only. All 32 channels can be enabled */
-						/* simultaneously.					*/
+/* When set, each bit enables the writing of the	*/
+/* corresponding FX output channel (internal registers  */
+/* 0x20-0x3f) to host memory.  This mode of recording   */
+/* is 16bit, 48KHz only. All 32 channels can be enabled */
+/* simultaneously.					*/
 
 #define FXWC_DEFAULTROUTE_C     (1<<0)		/* left emu out? */
 #define FXWC_DEFAULTROUTE_B     (1<<1)		/* right emu out? */
@@ -796,8 +796,8 @@
 #define GPSRCS			0x61		/* General Purpose SPDIF sample rate cvt status */
 
 #define ZVSRCS			0x62		/* ZVideo sample rate converter status		*/
-						/* NOTE: This one has no SPDIFLOCKED field	*/
-						/* Assumes sample lock				*/
+/* NOTE: This one has no SPDIFLOCKED field	*/
+/* Assumes sample lock				*/
 
 /* These three bitfields apply to CDSRCS, GPSRCS, and (except as noted) ZVSRCS.			*/
 #define SRCS_SPDIFVALID		0x04000000	/* SPDIF stream valid				*/
@@ -858,7 +858,7 @@
 /* This is the MPU port on the Audigy Drive 							*/
 #define A_MUDATA2		0x72
 #define A_MUCMD2		0x73
-#define A_MUSTAT2		A_MUCMD2	
+#define A_MUSTAT2		A_MUCMD2
 
 /* The next two are the Audigy equivalent of FXWC						*/
 /* the Audigy can record any output (16bit, 48kHz, up to 64 channel simultaneously) 		*/
@@ -916,7 +916,7 @@
 #define A_FXSENDAMOUNT_G_MASK	0x0000FF00
 #define A_FXSENDAMOUNT_H_MASK	0x000000FF
 /* 0x7c, 0x7e "high bit is used for filtering" */
- 
+
 /* The send amounts for this one are the same as used with the emu10k1 */
 #define A_FXRT1			0x7e
 #define A_FXRT_CHANNELA		0x0000003f
@@ -975,8 +975,8 @@
 #define EMU_HANA_DOCK_PWR	0x04	/* 000000x  1 bits Audio Dock power */
 #define EMU_HANA_DOCK_PWR_ON		0x01 /* Audio Dock power on */
 #define EMU_HANA_WCLOCK		0x05	/* 0000xxx  3 bits Word Clock source select  */
-					/* Must be written after power on to reset DLL */
-					/* One is unable to detect the Audio dock without this */
+/* Must be written after power on to reset DLL */
+/* One is unable to detect the Audio dock without this */
 #define EMU_HANA_WCLOCK_SRC_MASK	0x07
 #define EMU_HANA_WCLOCK_INT_48K		0x00
 #define EMU_HANA_WCLOCK_INT_44_1K	0x01
@@ -1084,10 +1084,10 @@
 /* 0x14 - 0x1f Unused R/W registers */
 #define EMU_HANA_IRQ_STATUS	0x20	/* 000xxxx  4 bits IRQ Status  */
 #if 0  /* Already defined for reg 0x09 IRQ_ENABLE */
-#define EMU_HANA_IRQ_WCLK_CHANGED	0x01
-#define EMU_HANA_IRQ_ADAT		0x02
-#define EMU_HANA_IRQ_DOCK		0x04
-#define EMU_HANA_IRQ_DOCK_LOST		0x08
+	#define EMU_HANA_IRQ_WCLK_CHANGED	0x01
+	#define EMU_HANA_IRQ_ADAT		0x02
+	#define EMU_HANA_IRQ_DOCK		0x04
+	#define EMU_HANA_IRQ_DOCK_LOST		0x08
 #endif
 
 #define EMU_HANA_OPTION_CARDS	0x21	/* 000xxxx  4 bits Presence of option cards */
@@ -1490,7 +1490,8 @@
 
 /* ------------------- STRUCTURES -------------------- */
 
-enum {
+enum
+{
 	EMU10K1_EFX,
 	EMU10K1_PCM,
 	EMU10K1_SYNTH,
@@ -1499,20 +1500,22 @@ enum {
 
 struct snd_emu10k1;
 
-struct snd_emu10k1_voice {
+struct snd_emu10k1_voice
+{
 	struct snd_emu10k1 *emu;
 	int number;
 	unsigned int use: 1,
-	    pcm: 1,
-	    efx: 1,
-	    synth: 1,
-	    midi: 1;
+			 pcm: 1,
+			 efx: 1,
+			 synth: 1,
+			 midi: 1;
 	void (*interrupt)(struct snd_emu10k1 *emu, struct snd_emu10k1_voice *pvoice);
 
 	struct snd_emu10k1_pcm *epcm;
 };
 
-enum {
+enum
+{
 	PLAYBACK_EMUVOICE,
 	PLAYBACK_EFX,
 	CAPTURE_AC97ADC,
@@ -1520,7 +1523,8 @@ enum {
 	CAPTURE_EFX
 };
 
-struct snd_emu10k1_pcm {
+struct snd_emu10k1_pcm
+{
 	struct snd_emu10k1 *emu;
 	int type;
 	struct snd_pcm_substream *substream;
@@ -1542,7 +1546,8 @@ struct snd_emu10k1_pcm {
 	unsigned int capture_bufsize;	/* buffer size in bytes */
 };
 
-struct snd_emu10k1_pcm_mixer {
+struct snd_emu10k1_pcm_mixer
+{
 	/* mono, left, right x 8 sends (4 on emu10k1) */
 	unsigned char send_routing[3][8];
 	unsigned char send_volume[3][8];
@@ -1551,15 +1556,16 @@ struct snd_emu10k1_pcm_mixer {
 };
 
 #define snd_emu10k1_compose_send_routing(route) \
-((route[0] | (route[1] << 4) | (route[2] << 8) | (route[3] << 12)) << 16)
+	((route[0] | (route[1] << 4) | (route[2] << 8) | (route[3] << 12)) << 16)
 
 #define snd_emu10k1_compose_audigy_fxrt1(route) \
-((unsigned int)route[0] | ((unsigned int)route[1] << 8) | ((unsigned int)route[2] << 16) | ((unsigned int)route[3] << 24))
+	((unsigned int)route[0] | ((unsigned int)route[1] << 8) | ((unsigned int)route[2] << 16) | ((unsigned int)route[3] << 24))
 
 #define snd_emu10k1_compose_audigy_fxrt2(route) \
-((unsigned int)route[4] | ((unsigned int)route[5] << 8) | ((unsigned int)route[6] << 16) | ((unsigned int)route[7] << 24))
+	((unsigned int)route[4] | ((unsigned int)route[5] << 8) | ((unsigned int)route[6] << 16) | ((unsigned int)route[7] << 24))
 
-struct snd_emu10k1_memblk {
+struct snd_emu10k1_memblk
+{
 	struct snd_util_memblk mem;
 	/* private part */
 	int first_page, last_page, pages, mapped_page;
@@ -1572,7 +1578,8 @@ struct snd_emu10k1_memblk {
 
 #define EMU10K1_MAX_TRAM_BLOCKS_PER_CODE	16
 
-struct snd_emu10k1_fx8010_ctl {
+struct snd_emu10k1_fx8010_ctl
+{
 	struct list_head list;		/* list link container */
 	unsigned int vcount;
 	unsigned int count;		/* count of GPR (1..16) */
@@ -1586,17 +1593,19 @@ struct snd_emu10k1_fx8010_ctl {
 
 typedef void (snd_fx8010_irq_handler_t)(struct snd_emu10k1 *emu, void *private_data);
 
-struct snd_emu10k1_fx8010_irq {
+struct snd_emu10k1_fx8010_irq
+{
 	struct snd_emu10k1_fx8010_irq *next;
 	snd_fx8010_irq_handler_t *handler;
 	unsigned short gpr_running;
 	void *private_data;
 };
 
-struct snd_emu10k1_fx8010_pcm {
+struct snd_emu10k1_fx8010_pcm
+{
 	unsigned int valid: 1,
-		     opened: 1,
-		     active: 1;
+			 opened: 1,
+			 active: 1;
 	unsigned int channels;		/* 16-bit channels count */
 	unsigned int tram_start;	/* initial ring buffer position in TRAM (in samples) */
 	unsigned int buffer_size;	/* count of buffered samples */
@@ -1613,7 +1622,8 @@ struct snd_emu10k1_fx8010_pcm {
 	struct snd_emu10k1_fx8010_irq *irq;
 };
 
-struct snd_emu10k1_fx8010 {
+struct snd_emu10k1_fx8010
+{
 	unsigned short fxbus_mask;	/* used FX buses (bitmask) */
 	unsigned short extin_mask;	/* used external inputs (bitmask) */
 	unsigned short extout_mask;	/* used external outputs (bitmask) */
@@ -1631,7 +1641,8 @@ struct snd_emu10k1_fx8010 {
 	struct snd_emu10k1_fx8010_irq *irq_handlers;
 };
 
-struct snd_emu10k1_midi {
+struct snd_emu10k1_midi
+{
 	struct snd_emu10k1 *emu;
 	struct snd_rawmidi *rmidi;
 	struct snd_rawmidi_substream *substream_input;
@@ -1646,7 +1657,8 @@ struct snd_emu10k1_midi {
 	void (*interrupt)(struct snd_emu10k1 *emu, unsigned int status);
 };
 
-enum {
+enum
+{
 	EMU_MODEL_SB,
 	EMU_MODEL_EMU1010,
 	EMU_MODEL_EMU1010B,
@@ -1654,7 +1666,8 @@ enum {
 	EMU_MODEL_EMU0404,
 };
 
-struct snd_emu_chip_details {
+struct snd_emu_chip_details
+{
 	u32 vendor;
 	u32 device;
 	u32 subsystem;
@@ -1680,7 +1693,8 @@ struct snd_emu_chip_details {
 	const char *id;		/* for backward compatibility - can be NULL if not needed */
 };
 
-struct snd_emu1010 {
+struct snd_emu1010
+{
 	unsigned int output_source[64];
 	unsigned int input_source[64];
 	unsigned int adc_pads; /* bit mask */
@@ -1691,14 +1705,15 @@ struct snd_emu1010 {
 	struct task_struct *firmware_thread;
 };
 
-struct snd_emu10k1 {
+struct snd_emu10k1
+{
 	int irq;
 
 	unsigned long port;			/* I/O port number */
 	unsigned int tos_link: 1,		/* tos link detected */
-		rear_ac97: 1,			/* rear channels are on AC'97 */
-		enable_ir: 1;
-	unsigned int support_tlv :1;
+			 rear_ac97: 1,			/* rear channels are on AC'97 */
+			 enable_ir: 1;
+	unsigned int support_tlv : 1;
 	/* Contains profile of card capabilities */
 	const struct snd_emu_chip_details *card_capabilities;
 	unsigned int audigy;			/* is Audigy? */
@@ -1731,7 +1746,7 @@ struct snd_emu10k1 {
 
 	struct snd_emu10k1_fx8010 fx8010;		/* FX8010 info */
 	int gpr_base;
-	
+
 	struct snd_ac97 *ac97;
 
 	struct pci_dev *pci;
@@ -1758,7 +1773,7 @@ struct snd_emu10k1 {
 	int p16v_device_offset;
 	u32 p16v_capture_source;
 	u32 p16v_capture_channel;
-        struct snd_emu1010 emu1010;
+	struct snd_emu1010 emu1010;
 	struct snd_emu10k1_pcm_mixer pcm_mixer[32];
 	struct snd_emu10k1_pcm_mixer efx_pcm_mixer[NUM_EFX_PLAYBACK];
 	struct snd_kcontrol *ctl_send_routing;
@@ -1805,44 +1820,44 @@ struct snd_emu10k1 {
 };
 
 int snd_emu10k1_create(struct snd_card *card,
-		       struct pci_dev *pci,
-		       unsigned short extin_mask,
-		       unsigned short extout_mask,
-		       long max_cache_bytes,
-		       int enable_ir,
-		       uint subsystem,
-		       struct snd_emu10k1 ** remu);
+					   struct pci_dev *pci,
+					   unsigned short extin_mask,
+					   unsigned short extout_mask,
+					   long max_cache_bytes,
+					   int enable_ir,
+					   uint subsystem,
+					   struct snd_emu10k1 **remu);
 
 int snd_emu10k1_pcm(struct snd_emu10k1 *emu, int device);
 int snd_emu10k1_pcm_mic(struct snd_emu10k1 *emu, int device);
 int snd_emu10k1_pcm_efx(struct snd_emu10k1 *emu, int device);
 int snd_p16v_pcm(struct snd_emu10k1 *emu, int device);
-int snd_p16v_free(struct snd_emu10k1 * emu);
-int snd_p16v_mixer(struct snd_emu10k1 * emu);
+int snd_p16v_free(struct snd_emu10k1 *emu);
+int snd_p16v_mixer(struct snd_emu10k1 *emu);
 int snd_emu10k1_pcm_multi(struct snd_emu10k1 *emu, int device);
 int snd_emu10k1_fx8010_pcm(struct snd_emu10k1 *emu, int device);
-int snd_emu10k1_mixer(struct snd_emu10k1 * emu, int pcm_device, int multi_device);
-int snd_emu10k1_timer(struct snd_emu10k1 * emu, int device);
+int snd_emu10k1_mixer(struct snd_emu10k1 *emu, int pcm_device, int multi_device);
+int snd_emu10k1_timer(struct snd_emu10k1 *emu, int device);
 int snd_emu10k1_fx8010_new(struct snd_emu10k1 *emu, int device);
 
 irqreturn_t snd_emu10k1_interrupt(int irq, void *dev_id);
 
-void snd_emu10k1_voice_init(struct snd_emu10k1 * emu, int voice);
+void snd_emu10k1_voice_init(struct snd_emu10k1 *emu, int voice);
 int snd_emu10k1_init_efx(struct snd_emu10k1 *emu);
 void snd_emu10k1_free_efx(struct snd_emu10k1 *emu);
 int snd_emu10k1_fx8010_tram_setup(struct snd_emu10k1 *emu, u32 size);
-int snd_emu10k1_done(struct snd_emu10k1 * emu);
+int snd_emu10k1_done(struct snd_emu10k1 *emu);
 
 /* I/O functions */
-unsigned int snd_emu10k1_ptr_read(struct snd_emu10k1 * emu, unsigned int reg, unsigned int chn);
+unsigned int snd_emu10k1_ptr_read(struct snd_emu10k1 *emu, unsigned int reg, unsigned int chn);
 void snd_emu10k1_ptr_write(struct snd_emu10k1 *emu, unsigned int reg, unsigned int chn, unsigned int data);
-unsigned int snd_emu10k1_ptr20_read(struct snd_emu10k1 * emu, unsigned int reg, unsigned int chn);
+unsigned int snd_emu10k1_ptr20_read(struct snd_emu10k1 *emu, unsigned int reg, unsigned int chn);
 void snd_emu10k1_ptr20_write(struct snd_emu10k1 *emu, unsigned int reg, unsigned int chn, unsigned int data);
-int snd_emu10k1_spi_write(struct snd_emu10k1 * emu, unsigned int data);
+int snd_emu10k1_spi_write(struct snd_emu10k1 *emu, unsigned int data);
 int snd_emu10k1_i2c_write(struct snd_emu10k1 *emu, u32 reg, u32 value);
-int snd_emu1010_fpga_write(struct snd_emu10k1 * emu, u32 reg, u32 value);
-int snd_emu1010_fpga_read(struct snd_emu10k1 * emu, u32 reg, u32 *value);
-int snd_emu1010_fpga_link_dst_src_write(struct snd_emu10k1 * emu, u32 dst, u32 src);
+int snd_emu1010_fpga_write(struct snd_emu10k1 *emu, u32 reg, u32 value);
+int snd_emu1010_fpga_read(struct snd_emu10k1 *emu, u32 reg, u32 *value);
+int snd_emu1010_fpga_link_dst_src_write(struct snd_emu10k1 *emu, u32 dst, u32 src);
 unsigned int snd_emu10k1_efx_read(struct snd_emu10k1 *emu, unsigned int pc);
 void snd_emu10k1_intr_enable(struct snd_emu10k1 *emu, unsigned int intrenb);
 void snd_emu10k1_intr_disable(struct snd_emu10k1 *emu, unsigned int intrenb);
@@ -1861,17 +1876,17 @@ void snd_emu10k1_ac97_write(struct snd_ac97 *ac97, unsigned short reg, unsigned 
 unsigned int snd_emu10k1_rate_to_pitch(unsigned int rate);
 
 #ifdef CONFIG_PM_SLEEP
-void snd_emu10k1_suspend_regs(struct snd_emu10k1 *emu);
-void snd_emu10k1_resume_init(struct snd_emu10k1 *emu);
-void snd_emu10k1_resume_regs(struct snd_emu10k1 *emu);
-int snd_emu10k1_efx_alloc_pm_buffer(struct snd_emu10k1 *emu);
-void snd_emu10k1_efx_free_pm_buffer(struct snd_emu10k1 *emu);
-void snd_emu10k1_efx_suspend(struct snd_emu10k1 *emu);
-void snd_emu10k1_efx_resume(struct snd_emu10k1 *emu);
-int snd_p16v_alloc_pm_buffer(struct snd_emu10k1 *emu);
-void snd_p16v_free_pm_buffer(struct snd_emu10k1 *emu);
-void snd_p16v_suspend(struct snd_emu10k1 *emu);
-void snd_p16v_resume(struct snd_emu10k1 *emu);
+	void snd_emu10k1_suspend_regs(struct snd_emu10k1 *emu);
+	void snd_emu10k1_resume_init(struct snd_emu10k1 *emu);
+	void snd_emu10k1_resume_regs(struct snd_emu10k1 *emu);
+	int snd_emu10k1_efx_alloc_pm_buffer(struct snd_emu10k1 *emu);
+	void snd_emu10k1_efx_free_pm_buffer(struct snd_emu10k1 *emu);
+	void snd_emu10k1_efx_suspend(struct snd_emu10k1 *emu);
+	void snd_emu10k1_efx_resume(struct snd_emu10k1 *emu);
+	int snd_p16v_alloc_pm_buffer(struct snd_emu10k1 *emu);
+	void snd_p16v_free_pm_buffer(struct snd_emu10k1 *emu);
+	void snd_p16v_suspend(struct snd_emu10k1 *emu);
+	void snd_p16v_resume(struct snd_emu10k1 *emu);
 #endif
 
 /* memory allocation */
@@ -1880,7 +1895,8 @@ int snd_emu10k1_free_pages(struct snd_emu10k1 *emu, struct snd_util_memblk *blk)
 struct snd_util_memblk *snd_emu10k1_synth_alloc(struct snd_emu10k1 *emu, unsigned int size);
 int snd_emu10k1_synth_free(struct snd_emu10k1 *emu, struct snd_util_memblk *blk);
 int snd_emu10k1_synth_bzero(struct snd_emu10k1 *emu, struct snd_util_memblk *blk, int offset, int size);
-int snd_emu10k1_synth_copy_from_user(struct snd_emu10k1 *emu, struct snd_util_memblk *blk, int offset, const char __user *data, int size);
+int snd_emu10k1_synth_copy_from_user(struct snd_emu10k1 *emu, struct snd_util_memblk *blk, int offset,
+									 const char __user *data, int size);
 int snd_emu10k1_memblk_map(struct snd_emu10k1 *emu, struct snd_emu10k1_memblk *blk);
 
 /* voice allocation */
@@ -1888,19 +1904,19 @@ int snd_emu10k1_voice_alloc(struct snd_emu10k1 *emu, int type, int pair, struct 
 int snd_emu10k1_voice_free(struct snd_emu10k1 *emu, struct snd_emu10k1_voice *pvoice);
 
 /* MIDI uart */
-int snd_emu10k1_midi(struct snd_emu10k1 * emu);
-int snd_emu10k1_audigy_midi(struct snd_emu10k1 * emu);
+int snd_emu10k1_midi(struct snd_emu10k1 *emu);
+int snd_emu10k1_audigy_midi(struct snd_emu10k1 *emu);
 
 /* proc interface */
-int snd_emu10k1_proc_init(struct snd_emu10k1 * emu);
+int snd_emu10k1_proc_init(struct snd_emu10k1 *emu);
 
 /* fx8010 irq handler */
 int snd_emu10k1_fx8010_register_irq_handler(struct snd_emu10k1 *emu,
-					    snd_fx8010_irq_handler_t *handler,
-					    unsigned char gpr_running,
-					    void *private_data,
-					    struct snd_emu10k1_fx8010_irq **r_irq);
+		snd_fx8010_irq_handler_t *handler,
+		unsigned char gpr_running,
+		void *private_data,
+		struct snd_emu10k1_fx8010_irq **r_irq);
 int snd_emu10k1_fx8010_unregister_irq_handler(struct snd_emu10k1 *emu,
-					      struct snd_emu10k1_fx8010_irq *irq);
+		struct snd_emu10k1_fx8010_irq *irq);
 
 #endif	/* __SOUND_EMU10K1_H */

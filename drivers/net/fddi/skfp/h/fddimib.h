@@ -29,7 +29,8 @@ typedef	u_short	ResId ;
 typedef u_short	SMTEnum ;
 typedef	u_char	SMTFlag ;
 
-typedef struct {
+typedef struct
+{
 	Counter		count ;
 	TimeStamp	timestamp ;
 } SetCountType ;
@@ -83,7 +84,8 @@ typedef struct {
 #define MIB_SMT_STASTA_THRU	2
 
 
-struct fddi_mib {
+struct fddi_mib
+{
 	/*
 	 * private
 	 */
@@ -155,7 +157,8 @@ struct fddi_mib {
 	SetCountType		fddiSMTSetCount ;
 	struct smt_sid		fddiSMTLastSetStationId ;
 
-	struct fddi_mib_m {
+	struct fddi_mib_m
+	{
 		u_short		fddiMACFrameStatusFunctions ;
 		Timer_2		fddiMACT_MaxCapabilitiy ;
 		Timer_2		fddiMACTVXCapabilitiy ;
@@ -237,7 +240,8 @@ struct fddi_mib {
 	} m[NUMMACS] ;
 #define MAC0	0
 
-	struct fddi_mib_a {
+	struct fddi_mib_a
+	{
 		ResId		fddiPATHIndex ;
 		u_long		fddiPATHSbaPayload ;
 		u_long		fddiPATHSbaOverhead ;
@@ -251,12 +255,14 @@ struct fddi_mib {
 	} a[NUMPATHS] ;
 #define PATH0	0
 
-	struct fddi_mib_p {
+	struct fddi_mib_p
+	{
 		/* ConfigGrp */
 		SMTEnum		fddiPORTMy_Type ;
 		SMTEnum		fddiPORTNeighborType ;
 		u_char		fddiPORTConnectionPolicies ;
-		struct {
+		struct
+		{
 			u_char	T_val ;
 			u_char	R_val ;
 		} fddiPORTMacIndicated ;
@@ -303,7 +309,8 @@ struct fddi_mib {
 		u_char		fddiPORTMultiple_P ;	/* private */
 		u_char		fddiPORTEB_Condition ;	/* private */
 	} p[NUMPHYS] ;
-	struct {
+	struct
+	{
 		Counter		fddiPRIVECF_Req_Rx ;	/* ECF req received */
 		Counter		fddiPRIVECF_Reply_Rx ;	/* ECF repl received */
 		Counter		fddiPRIVECF_Req_Tx ;	/* ECF req transm */

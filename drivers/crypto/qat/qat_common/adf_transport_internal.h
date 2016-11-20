@@ -51,12 +51,14 @@
 #include <linux/spinlock_types.h>
 #include "adf_transport.h"
 
-struct adf_etr_ring_debug_entry {
+struct adf_etr_ring_debug_entry
+{
 	char ring_name[ADF_CFG_MAX_KEY_LEN_IN_BYTES];
 	struct dentry *debug;
 };
 
-struct adf_etr_ring_data {
+struct adf_etr_ring_data
+{
 	void *base_addr;
 	atomic_t *inflights;
 	spinlock_t lock;	/* protects ring data struct */
@@ -72,7 +74,8 @@ struct adf_etr_ring_data {
 	struct adf_etr_ring_debug_entry *ring_debug;
 } __packed;
 
-struct adf_etr_bank_data {
+struct adf_etr_bank_data
+{
 	struct adf_etr_ring_data rings[ADF_ETR_MAX_RINGS_PER_BANK];
 	struct tasklet_struct resp_handler;
 	void __iomem *csr_addr;
@@ -86,7 +89,8 @@ struct adf_etr_bank_data {
 	uint32_t bank_number;
 } __packed;
 
-struct adf_etr_data {
+struct adf_etr_data
+{
 	struct adf_etr_bank_data *banks;
 	struct dentry *debug;
 };
@@ -107,7 +111,7 @@ static inline int adf_bank_debugfs_add(struct adf_etr_bank_data *bank)
 #define adf_bank_debugfs_rm(bank) do {} while (0)
 
 static inline int adf_ring_debugfs_add(struct adf_etr_ring_data *ring,
-				       const char *name)
+									   const char *name)
 {
 	return 0;
 }

@@ -50,7 +50,8 @@ static int pci_clock_freq = 33000000;
  *      PLX PCI9052 local configuration and shared runtime registers.
  *      This structure can be used to access 9052 registers (memory mapped).
  */
-typedef struct {
+typedef struct
+{
 	u32 loc_addr_range[4];	/* 00-0Ch : Local Address Ranges */
 	u32 loc_rom_range;	/* 10h : Local ROM Range */
 	u32 loc_addr_base[4];	/* 14-20h : Local Address Base Addrs */
@@ -60,11 +61,12 @@ typedef struct {
 	u32 cs_base[4];		/* 3C-48h : Chip Select Base Addrs */
 	u32 intr_ctrl_stat;	/* 4Ch : Interrupt Control/Status */
 	u32 init_ctrl;		/* 50h : EEPROM ctrl, Init Ctrl, etc */
-}plx9052;
+} plx9052;
 
 
 
-typedef struct port_s {
+typedef struct port_s
+{
 	struct napi_struct napi;
 	struct net_device *netdev;
 	struct card_s *card;
@@ -78,11 +80,12 @@ typedef struct port_s {
 	u16 txlast;
 	u8 rxs, txs, tmc;	/* SCA registers */
 	u8 chan;		/* physical port # - 0 or 1 */
-}port_t;
+} port_t;
 
 
 
-typedef struct card_s {
+typedef struct card_s
+{
 	u8 __iomem *rambase;	/* buffer memory base (virtual) */
 	u8 __iomem *scabase;	/* SCA memory base (virtual) */
 	plx9052 __iomem *plxbase;/* PLX registers memory base (virtual) */
@@ -92,7 +95,7 @@ typedef struct card_s {
 	u8 irq;			/* interrupt request level */
 
 	port_t ports[2];
-}card_t;
+} card_t;
 
 
 #define get_port(card, port)	     (&card->ports[port])
@@ -101,14 +104,17 @@ typedef struct card_s {
 static inline void new_memcpy_toio(char __iomem *dest, char *src, int length)
 {
 	int len;
-	do {
+
+	do
+	{
 		len = length > 256 ? 256 : length;
 		memcpy_toio(dest, src, len);
 		dest += len;
 		src += len;
 		length -= len;
 		readb(dest);
-	} while (len);
+	}
+	while (len);
 }
 
 #undef memcpy_toio
@@ -125,27 +131,29 @@ static void pci200_set_iface(port_t *port)
 	u8 txs = port->txs & CLK_BRG_MASK;
 
 	sca_out(EXS_TES1, (port->chan ? MSCI1_OFFSET : MSCI0_OFFSET) + EXS,
-		port->card);
-	switch(port->settings.clock_type) {
-	case CLOCK_INT:
-		rxs |= CLK_BRG; /* BRG output */
-		txs |= CLK_PIN_OUT | CLK_TX_RXCLK; /* RX clock */
-		break;
+			port->card);
 
-	case CLOCK_TXINT:
-		rxs |= CLK_LINE; /* RXC input */
-		txs |= CLK_PIN_OUT | CLK_BRG; /* BRG output */
-		break;
+	switch (port->settings.clock_type)
+	{
+		case CLOCK_INT:
+			rxs |= CLK_BRG; /* BRG output */
+			txs |= CLK_PIN_OUT | CLK_TX_RXCLK; /* RX clock */
+			break;
 
-	case CLOCK_TXFROMRX:
-		rxs |= CLK_LINE; /* RXC input */
-		txs |= CLK_PIN_OUT | CLK_TX_RXCLK; /* RX clock */
-		break;
+		case CLOCK_TXINT:
+			rxs |= CLK_LINE; /* RXC input */
+			txs |= CLK_PIN_OUT | CLK_BRG; /* BRG output */
+			break;
 
-	default:		/* EXTernal clock */
-		rxs |= CLK_LINE; /* RXC input */
-		txs |= CLK_PIN_OUT | CLK_LINE; /* TXC input */
-		break;
+		case CLOCK_TXFROMRX:
+			rxs |= CLK_LINE; /* RXC input */
+			txs |= CLK_PIN_OUT | CLK_TX_RXCLK; /* RX clock */
+			break;
+
+		default:		/* EXTernal clock */
+			rxs |= CLK_LINE; /* RXC input */
+			txs |= CLK_PIN_OUT | CLK_LINE; /* TXC input */
+			break;
 	}
 
 	port->rxs = rxs;
@@ -162,8 +170,11 @@ static int pci200_open(struct net_device *dev)
 	port_t *port = dev_to_port(dev);
 
 	int result = hdlc_open(dev);
+
 	if (result)
+	{
 		return result;
+	}
 
 	sca_open(dev);
 	pci200_set_iface(port);
@@ -191,49 +202,70 @@ static int pci200_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 	port_t *port = dev_to_port(dev);
 
 #ifdef DEBUG_RINGS
-	if (cmd == SIOCDEVPRIVATE) {
+
+	if (cmd == SIOCDEVPRIVATE)
+	{
 		sca_dump_rings(dev);
 		return 0;
 	}
+
 #endif
+
 	if (cmd != SIOCWANDEV)
+	{
 		return hdlc_ioctl(dev, ifr, cmd);
+	}
 
-	switch(ifr->ifr_settings.type) {
-	case IF_GET_IFACE:
-		ifr->ifr_settings.type = IF_IFACE_V35;
-		if (ifr->ifr_settings.size < size) {
-			ifr->ifr_settings.size = size; /* data size wanted */
-			return -ENOBUFS;
-		}
-		if (copy_to_user(line, &port->settings, size))
-			return -EFAULT;
-		return 0;
+	switch (ifr->ifr_settings.type)
+	{
+		case IF_GET_IFACE:
+			ifr->ifr_settings.type = IF_IFACE_V35;
 
-	case IF_IFACE_V35:
-	case IF_IFACE_SYNC_SERIAL:
-		if (!capable(CAP_NET_ADMIN))
-			return -EPERM;
+			if (ifr->ifr_settings.size < size)
+			{
+				ifr->ifr_settings.size = size; /* data size wanted */
+				return -ENOBUFS;
+			}
 
-		if (copy_from_user(&new_line, line, size))
-			return -EFAULT;
+			if (copy_to_user(line, &port->settings, size))
+			{
+				return -EFAULT;
+			}
 
-		if (new_line.clock_type != CLOCK_EXT &&
-		    new_line.clock_type != CLOCK_TXFROMRX &&
-		    new_line.clock_type != CLOCK_INT &&
-		    new_line.clock_type != CLOCK_TXINT)
-			return -EINVAL;	/* No such clock setting */
+			return 0;
 
-		if (new_line.loopback != 0 && new_line.loopback != 1)
-			return -EINVAL;
+		case IF_IFACE_V35:
+		case IF_IFACE_SYNC_SERIAL:
+			if (!capable(CAP_NET_ADMIN))
+			{
+				return -EPERM;
+			}
 
-		memcpy(&port->settings, &new_line, size); /* Update settings */
-		pci200_set_iface(port);
-		sca_flush(port->card);
-		return 0;
+			if (copy_from_user(&new_line, line, size))
+			{
+				return -EFAULT;
+			}
 
-	default:
-		return hdlc_ioctl(dev, ifr, cmd);
+			if (new_line.clock_type != CLOCK_EXT &&
+				new_line.clock_type != CLOCK_TXFROMRX &&
+				new_line.clock_type != CLOCK_INT &&
+				new_line.clock_type != CLOCK_TXINT)
+			{
+				return -EINVAL;    /* No such clock setting */
+			}
+
+			if (new_line.loopback != 0 && new_line.loopback != 1)
+			{
+				return -EINVAL;
+			}
+
+			memcpy(&port->settings, &new_line, size); /* Update settings */
+			pci200_set_iface(port);
+			sca_flush(port->card);
+			return 0;
+
+		default:
+			return hdlc_ioctl(dev, ifr, cmd);
 	}
 }
 
@@ -246,28 +278,48 @@ static void pci200_pci_remove_one(struct pci_dev *pdev)
 
 	for (i = 0; i < 2; i++)
 		if (card->ports[i].card)
+		{
 			unregister_hdlc_device(card->ports[i].netdev);
+		}
 
 	if (card->irq)
+	{
 		free_irq(card->irq, card);
+	}
 
 	if (card->rambase)
+	{
 		iounmap(card->rambase);
+	}
+
 	if (card->scabase)
+	{
 		iounmap(card->scabase);
+	}
+
 	if (card->plxbase)
+	{
 		iounmap(card->plxbase);
+	}
 
 	pci_release_regions(pdev);
 	pci_disable_device(pdev);
+
 	if (card->ports[0].netdev)
+	{
 		free_netdev(card->ports[0].netdev);
+	}
+
 	if (card->ports[1].netdev)
+	{
 		free_netdev(card->ports[1].netdev);
+	}
+
 	kfree(card);
 }
 
-static const struct net_device_ops pci200_ops = {
+static const struct net_device_ops pci200_ops =
+{
 	.ndo_open       = pci200_open,
 	.ndo_stop       = pci200_close,
 	.ndo_change_mtu = hdlc_change_mtu,
@@ -276,7 +328,7 @@ static const struct net_device_ops pci200_ops = {
 };
 
 static int pci200_pci_init_one(struct pci_dev *pdev,
-			       const struct pci_device_id *ent)
+							   const struct pci_device_id *ent)
 {
 	card_t *card;
 	u32 __iomem *p;
@@ -287,50 +339,62 @@ static int pci200_pci_init_one(struct pci_dev *pdev,
 	u32 plxphys;		/* PLX registers memory base */
 
 	i = pci_enable_device(pdev);
+
 	if (i)
+	{
 		return i;
+	}
 
 	i = pci_request_regions(pdev, "PCI200SYN");
-	if (i) {
+
+	if (i)
+	{
 		pci_disable_device(pdev);
 		return i;
 	}
 
 	card = kzalloc(sizeof(card_t), GFP_KERNEL);
-	if (card == NULL) {
+
+	if (card == NULL)
+	{
 		pci_release_regions(pdev);
 		pci_disable_device(pdev);
 		return -ENOBUFS;
 	}
+
 	pci_set_drvdata(pdev, card);
 	card->ports[0].netdev = alloc_hdlcdev(&card->ports[0]);
 	card->ports[1].netdev = alloc_hdlcdev(&card->ports[1]);
-	if (!card->ports[0].netdev || !card->ports[1].netdev) {
+
+	if (!card->ports[0].netdev || !card->ports[1].netdev)
+	{
 		pr_err("unable to allocate memory\n");
 		pci200_pci_remove_one(pdev);
 		return -ENOMEM;
 	}
 
 	if (pci_resource_len(pdev, 0) != PCI200SYN_PLX_SIZE ||
-	    pci_resource_len(pdev, 2) != PCI200SYN_SCA_SIZE ||
-	    pci_resource_len(pdev, 3) < 16384) {
+		pci_resource_len(pdev, 2) != PCI200SYN_SCA_SIZE ||
+		pci_resource_len(pdev, 3) < 16384)
+	{
 		pr_err("invalid card EEPROM parameters\n");
 		pci200_pci_remove_one(pdev);
 		return -EFAULT;
 	}
 
-	plxphys = pci_resource_start(pdev,0) & PCI_BASE_ADDRESS_MEM_MASK;
+	plxphys = pci_resource_start(pdev, 0) & PCI_BASE_ADDRESS_MEM_MASK;
 	card->plxbase = ioremap(plxphys, PCI200SYN_PLX_SIZE);
 
-	scaphys = pci_resource_start(pdev,2) & PCI_BASE_ADDRESS_MEM_MASK;
+	scaphys = pci_resource_start(pdev, 2) & PCI_BASE_ADDRESS_MEM_MASK;
 	card->scabase = ioremap(scaphys, PCI200SYN_SCA_SIZE);
 
-	ramphys = pci_resource_start(pdev,3) & PCI_BASE_ADDRESS_MEM_MASK;
+	ramphys = pci_resource_start(pdev, 3) & PCI_BASE_ADDRESS_MEM_MASK;
 	card->rambase = pci_ioremap_bar(pdev, 3);
 
 	if (card->plxbase == NULL ||
-	    card->scabase == NULL ||
-	    card->rambase == NULL) {
+		card->scabase == NULL ||
+		card->rambase == NULL)
+	{
 		pr_err("ioremap() failed\n");
 		pci200_pci_remove_one(pdev);
 		return -EFAULT;
@@ -347,7 +411,7 @@ static int pci200_pci_init_one(struct pci_dev *pdev,
 	udelay(1);
 
 	ramsize = sca_detect_ram(card, card->rambase,
-				 pci_resource_len(pdev, 3));
+							 pci_resource_len(pdev, 3));
 
 	/* number of TX + RX buffers for one port - this is dual port card */
 	i = ramsize / (2 * (sizeof(pkt_desc) + HDLC_MAX_MRU));
@@ -355,13 +419,14 @@ static int pci200_pci_init_one(struct pci_dev *pdev,
 	card->rx_ring_buffers = i - card->tx_ring_buffers;
 
 	card->buff_offset = 2 * sizeof(pkt_desc) * (card->tx_ring_buffers +
-						    card->rx_ring_buffers);
+						card->rx_ring_buffers);
 
 	pr_info("%u KB RAM at 0x%x, IRQ%u, using %u TX + %u RX packets rings\n",
-		ramsize / 1024, ramphys,
-		pdev->irq, card->tx_ring_buffers, card->rx_ring_buffers);
+			ramsize / 1024, ramphys,
+			pdev->irq, card->tx_ring_buffers, card->rx_ring_buffers);
 
-	if (card->tx_ring_buffers < 1) {
+	if (card->tx_ring_buffers < 1)
+	{
 		pr_err("RAM test failed\n");
 		pci200_pci_remove_one(pdev);
 		return -EFAULT;
@@ -372,16 +437,19 @@ static int pci200_pci_init_one(struct pci_dev *pdev,
 	writew(readw(p) | 0x0040, p);
 
 	/* Allocate IRQ */
-	if (request_irq(pdev->irq, sca_intr, IRQF_SHARED, "pci200syn", card)) {
+	if (request_irq(pdev->irq, sca_intr, IRQF_SHARED, "pci200syn", card))
+	{
 		pr_warn("could not allocate IRQ%d\n", pdev->irq);
 		pci200_pci_remove_one(pdev);
 		return -EBUSY;
 	}
+
 	card->irq = pdev->irq;
 
 	sca_init(card, 0);
 
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		port_t *port = &card->ports[i];
 		struct net_device *dev = port->netdev;
 		hdlc_device *hdlc = dev_to_hdlc(dev);
@@ -398,7 +466,9 @@ static int pci200_pci_init_one(struct pci_dev *pdev,
 		port->settings.clock_type = CLOCK_EXT;
 		port->card = card;
 		sca_init_port(port);
-		if (register_hdlc_device(dev)) {
+
+		if (register_hdlc_device(dev))
+		{
 			pr_err("unable to register hdlc device\n");
 			port->card = NULL;
 			pci200_pci_remove_one(pdev);
@@ -414,14 +484,18 @@ static int pci200_pci_init_one(struct pci_dev *pdev,
 
 
 
-static const struct pci_device_id pci200_pci_tbl[] = {
-	{ PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050, PCI_VENDOR_ID_PLX,
-	  PCI_DEVICE_ID_PLX_PCI200SYN, 0, 0, 0 },
+static const struct pci_device_id pci200_pci_tbl[] =
+{
+	{
+		PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9050, PCI_VENDOR_ID_PLX,
+		PCI_DEVICE_ID_PLX_PCI200SYN, 0, 0, 0
+	},
 	{ 0, }
 };
 
 
-static struct pci_driver pci200_pci_driver = {
+static struct pci_driver pci200_pci_driver =
+{
 	.name		= "PCI200SYN",
 	.id_table	= pci200_pci_tbl,
 	.probe		= pci200_pci_init_one,
@@ -431,10 +505,12 @@ static struct pci_driver pci200_pci_driver = {
 
 static int __init pci200_init_module(void)
 {
-	if (pci_clock_freq < 1000000 || pci_clock_freq > 80000000) {
+	if (pci_clock_freq < 1000000 || pci_clock_freq > 80000000)
+	{
 		pr_err("Invalid PCI clock frequency\n");
 		return -EINVAL;
 	}
+
 	return pci_register_driver(&pci200_pci_driver);
 }
 

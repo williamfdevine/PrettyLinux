@@ -26,7 +26,8 @@
 
 #define ATH10K_TM_DATA_MAX_LEN		5000
 
-enum ath10k_tm_attr {
+enum ath10k_tm_attr
+{
 	__ATH10K_TM_ATTR_INVALID	= 0,
 	ATH10K_TM_ATTR_CMD		= 1,
 	ATH10K_TM_ATTR_DATA		= 2,
@@ -42,7 +43,8 @@ enum ath10k_tm_attr {
 /* All ath10k testmode interface commands specified in
  * ATH10K_TM_ATTR_CMD
  */
-enum ath10k_tm_cmd {
+enum ath10k_tm_cmd
+{
 	/* Returns the supported ath10k testmode interface version in
 	 * ATH10K_TM_ATTR_VERSION. Always guaranteed to work. User space
 	 * uses this to verify it's using the correct version of the

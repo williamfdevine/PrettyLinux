@@ -52,7 +52,8 @@
 #define	MASK_ALE		0x08
 #define	MASK_CLE		0x10
 
-struct davinci_nand_pdata {		/* platform_data */
+struct davinci_nand_pdata  		/* platform_data */
+{
 	uint32_t		mask_ale;
 	uint32_t		mask_cle;
 

@@ -14,7 +14,8 @@
 
 #include <linux/types.h>
 
-enum {
+enum
+{
 	KONEPLUS_SIZE_ACTUAL_PROFILE = 0x03,
 	KONEPLUS_SIZE_CONTROL = 0x03,
 	KONEPLUS_SIZE_FIRMWARE_WRITE = 0x0402,
@@ -28,25 +29,29 @@ enum {
 	KONEPLUS_SIZE_TCU_IMAGE = 0x0404,
 };
 
-enum koneplus_control_requests {
+enum koneplus_control_requests
+{
 	KONEPLUS_CONTROL_REQUEST_PROFILE_SETTINGS = 0x80,
 	KONEPLUS_CONTROL_REQUEST_PROFILE_BUTTONS = 0x90,
 };
 
-struct koneplus_actual_profile {
+struct koneplus_actual_profile
+{
 	uint8_t command; /* KONEPLUS_COMMAND_ACTUAL_PROFILE */
 	uint8_t size; /* always 3 */
 	uint8_t actual_profile; /* Range 0-4! */
 } __attribute__ ((__packed__));
 
-struct koneplus_info {
+struct koneplus_info
+{
 	uint8_t command; /* KONEPLUS_COMMAND_INFO */
 	uint8_t size; /* always 6 */
 	uint8_t firmware_version;
 	uint8_t unknown[3];
 } __attribute__ ((__packed__));
 
-enum koneplus_commands {
+enum koneplus_commands
+{
 	KONEPLUS_COMMAND_ACTUAL_PROFILE = 0x5,
 	KONEPLUS_COMMAND_CONTROL = 0x4,
 	KONEPLUS_COMMAND_PROFILE_SETTINGS = 0x6,
@@ -62,13 +67,15 @@ enum koneplus_commands {
 	KONEPLUS_COMMAND_FIRMWARE_WRITE_CONTROL = 0x1c,
 };
 
-enum koneplus_mouse_report_numbers {
+enum koneplus_mouse_report_numbers
+{
 	KONEPLUS_MOUSE_REPORT_NUMBER_HID = 1,
 	KONEPLUS_MOUSE_REPORT_NUMBER_AUDIO = 2,
 	KONEPLUS_MOUSE_REPORT_NUMBER_BUTTON = 3,
 };
 
-struct koneplus_mouse_report_button {
+struct koneplus_mouse_report_button
+{
 	uint8_t report_number; /* always KONEPLUS_MOUSE_REPORT_NUMBER_BUTTON */
 	uint8_t zero1;
 	uint8_t type;
@@ -78,7 +85,8 @@ struct koneplus_mouse_report_button {
 	uint8_t unknown[2];
 } __attribute__ ((__packed__));
 
-enum koneplus_mouse_report_button_types {
+enum koneplus_mouse_report_button_types
+{
 	/* data1 = new profile range 1-5 */
 	KONEPLUS_MOUSE_REPORT_BUTTON_TYPE_PROFILE = 0x20,
 
@@ -101,19 +109,22 @@ enum koneplus_mouse_report_button_types {
 	KONEPLUS_MOUSE_REPORT_TALK = 0xff,
 };
 
-enum koneplus_mouse_report_button_action {
+enum koneplus_mouse_report_button_action
+{
 	KONEPLUS_MOUSE_REPORT_BUTTON_ACTION_PRESS = 0,
 	KONEPLUS_MOUSE_REPORT_BUTTON_ACTION_RELEASE = 1,
 };
 
-struct koneplus_roccat_report {
+struct koneplus_roccat_report
+{
 	uint8_t type;
 	uint8_t data1;
 	uint8_t data2;
 	uint8_t profile;
 } __attribute__ ((__packed__));
 
-struct koneplus_device {
+struct koneplus_device
+{
 	int actual_profile;
 
 	int roccat_claimed;

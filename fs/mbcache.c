@@ -23,7 +23,8 @@
  * size hash table is used for fast key lookups.
  */
 
-struct mb_cache {
+struct mb_cache
+{
 	/* Hash table of entries */
 	struct hlist_bl_head	*c_hash;
 	/* log2 of hash table size */
@@ -43,10 +44,10 @@ struct mb_cache {
 static struct kmem_cache *mb_entry_cache;
 
 static unsigned long mb_cache_shrink(struct mb_cache *cache,
-				     unsigned int nr_to_scan);
+									 unsigned int nr_to_scan);
 
 static inline struct hlist_bl_head *mb_cache_entry_head(struct mb_cache *cache,
-							u32 key)
+		u32 key)
 {
 	return &cache->c_hash[hash_32(key, cache->c_bucket_bits)];
 }
@@ -70,7 +71,7 @@ static inline struct hlist_bl_head *mb_cache_entry_head(struct mb_cache *cache,
  * and for the same block already exists in cache. Otherwise 0 is returned.
  */
 int mb_cache_entry_create(struct mb_cache *cache, gfp_t mask, u32 key,
-			  sector_t block, bool reusable)
+						  sector_t block, bool reusable)
 {
 	struct mb_cache_entry *entry, *dup;
 	struct hlist_bl_node *dup_node;
@@ -78,14 +79,22 @@ int mb_cache_entry_create(struct mb_cache *cache, gfp_t mask, u32 key,
 
 	/* Schedule background reclaim if there are too many entries */
 	if (cache->c_entry_count >= cache->c_max_entries)
+	{
 		schedule_work(&cache->c_shrink_work);
+	}
+
 	/* Do some sync reclaim if background reclaim cannot keep up */
-	if (cache->c_entry_count >= 2*cache->c_max_entries)
+	if (cache->c_entry_count >= 2 * cache->c_max_entries)
+	{
 		mb_cache_shrink(cache, SYNC_SHRINK_BATCH);
+	}
 
 	entry = kmem_cache_alloc(mb_entry_cache, mask);
+
 	if (!entry)
+	{
 		return -ENOMEM;
+	}
 
 	INIT_LIST_HEAD(&entry->e_list);
 	/* One ref for hash, one ref returned */
@@ -95,8 +104,10 @@ int mb_cache_entry_create(struct mb_cache *cache, gfp_t mask, u32 key,
 	entry->e_reusable = reusable;
 	head = mb_cache_entry_head(cache, key);
 	hlist_bl_lock(head);
-	hlist_bl_for_each_entry(dup, dup_node, head, e_hash_list) {
-		if (dup->e_key == key && dup->e_block == block) {
+	hlist_bl_for_each_entry(dup, dup_node, head, e_hash_list)
+	{
+		if (dup->e_key == key && dup->e_block == block)
+		{
 			hlist_bl_unlock(head);
 			kmem_cache_free(mb_entry_cache, entry);
 			return -EBUSY;
@@ -123,8 +134,8 @@ void __mb_cache_entry_free(struct mb_cache_entry *entry)
 EXPORT_SYMBOL(__mb_cache_entry_free);
 
 static struct mb_cache_entry *__entry_find(struct mb_cache *cache,
-					   struct mb_cache_entry *entry,
-					   u32 key)
+		struct mb_cache_entry *entry,
+		u32 key)
 {
 	struct mb_cache_entry *old_entry = entry;
 	struct hlist_bl_node *node;
@@ -132,24 +143,38 @@ static struct mb_cache_entry *__entry_find(struct mb_cache *cache,
 
 	head = mb_cache_entry_head(cache, key);
 	hlist_bl_lock(head);
+
 	if (entry && !hlist_bl_unhashed(&entry->e_hash_list))
+	{
 		node = entry->e_hash_list.next;
+	}
 	else
+	{
 		node = hlist_bl_first(head);
-	while (node) {
+	}
+
+	while (node)
+	{
 		entry = hlist_bl_entry(node, struct mb_cache_entry,
-				       e_hash_list);
-		if (entry->e_key == key && entry->e_reusable) {
+							   e_hash_list);
+
+		if (entry->e_key == key && entry->e_reusable)
+		{
 			atomic_inc(&entry->e_refcnt);
 			goto out;
 		}
+
 		node = node->next;
 	}
+
 	entry = NULL;
 out:
 	hlist_bl_unlock(head);
+
 	if (old_entry)
+	{
 		mb_cache_entry_put(cache, old_entry);
+	}
 
 	return entry;
 }
@@ -163,7 +188,7 @@ out:
  * entry found and returns the entry.
  */
 struct mb_cache_entry *mb_cache_entry_find_first(struct mb_cache *cache,
-						 u32 key)
+		u32 key)
 {
 	return __entry_find(cache, NULL, key);
 }
@@ -180,7 +205,7 @@ EXPORT_SYMBOL(mb_cache_entry_find_first);
  * drops reference to @entry and returns with a reference to the found entry.
  */
 struct mb_cache_entry *mb_cache_entry_find_next(struct mb_cache *cache,
-						struct mb_cache_entry *entry)
+		struct mb_cache_entry *entry)
 {
 	return __entry_find(cache, entry, entry->e_key);
 }
@@ -193,7 +218,7 @@ EXPORT_SYMBOL(mb_cache_entry_find_next);
  * @block - block number
  */
 struct mb_cache_entry *mb_cache_entry_get(struct mb_cache *cache, u32 key,
-					  sector_t block)
+		sector_t block)
 {
 	struct hlist_bl_node *node;
 	struct hlist_bl_head *head;
@@ -201,8 +226,10 @@ struct mb_cache_entry *mb_cache_entry_get(struct mb_cache *cache, u32 key,
 
 	head = mb_cache_entry_head(cache, key);
 	hlist_bl_lock(head);
-	hlist_bl_for_each_entry(entry, node, head, e_hash_list) {
-		if (entry->e_key == key && entry->e_block == block) {
+	hlist_bl_for_each_entry(entry, node, head, e_hash_list)
+	{
+		if (entry->e_key == key && entry->e_block == block)
+		{
 			atomic_inc(&entry->e_refcnt);
 			goto out;
 		}
@@ -222,7 +249,7 @@ EXPORT_SYMBOL(mb_cache_entry_get);
  * Remove entry from cache @cache with key @key with data stored in @block.
  */
 void mb_cache_entry_delete_block(struct mb_cache *cache, u32 key,
-				 sector_t block)
+								 sector_t block)
 {
 	struct hlist_bl_node *node;
 	struct hlist_bl_head *head;
@@ -230,17 +257,22 @@ void mb_cache_entry_delete_block(struct mb_cache *cache, u32 key,
 
 	head = mb_cache_entry_head(cache, key);
 	hlist_bl_lock(head);
-	hlist_bl_for_each_entry(entry, node, head, e_hash_list) {
-		if (entry->e_key == key && entry->e_block == block) {
+	hlist_bl_for_each_entry(entry, node, head, e_hash_list)
+	{
+		if (entry->e_key == key && entry->e_block == block)
+		{
 			/* We keep hash list reference to keep entry alive */
 			hlist_bl_del_init(&entry->e_hash_list);
 			hlist_bl_unlock(head);
 			spin_lock(&cache->c_list_lock);
-			if (!list_empty(&entry->e_list)) {
+
+			if (!list_empty(&entry->e_list))
+			{
 				list_del_init(&entry->e_list);
 				cache->c_entry_count--;
 				atomic_dec(&entry->e_refcnt);
 			}
+
 			spin_unlock(&cache->c_list_lock);
 			mb_cache_entry_put(cache, entry);
 			return;
@@ -257,38 +289,43 @@ EXPORT_SYMBOL(mb_cache_entry_delete_block);
  * Marks entry as used to give hit higher chances of surviving in cache.
  */
 void mb_cache_entry_touch(struct mb_cache *cache,
-			  struct mb_cache_entry *entry)
+						  struct mb_cache_entry *entry)
 {
 	entry->e_referenced = 1;
 }
 EXPORT_SYMBOL(mb_cache_entry_touch);
 
 static unsigned long mb_cache_count(struct shrinker *shrink,
-				    struct shrink_control *sc)
+									struct shrink_control *sc)
 {
 	struct mb_cache *cache = container_of(shrink, struct mb_cache,
-					      c_shrink);
+										  c_shrink);
 
 	return cache->c_entry_count;
 }
 
 /* Shrink number of entries in cache */
 static unsigned long mb_cache_shrink(struct mb_cache *cache,
-				     unsigned int nr_to_scan)
+									 unsigned int nr_to_scan)
 {
 	struct mb_cache_entry *entry;
 	struct hlist_bl_head *head;
 	unsigned int shrunk = 0;
 
 	spin_lock(&cache->c_list_lock);
-	while (nr_to_scan-- && !list_empty(&cache->c_list)) {
+
+	while (nr_to_scan-- && !list_empty(&cache->c_list))
+	{
 		entry = list_first_entry(&cache->c_list,
-					 struct mb_cache_entry, e_list);
-		if (entry->e_referenced) {
+								 struct mb_cache_entry, e_list);
+
+		if (entry->e_referenced)
+		{
 			entry->e_referenced = 0;
 			list_move_tail(&cache->c_list, &entry->e_list);
 			continue;
 		}
+
 		list_del_init(&entry->e_list);
 		cache->c_entry_count--;
 		/*
@@ -298,27 +335,35 @@ static unsigned long mb_cache_shrink(struct mb_cache *cache,
 		spin_unlock(&cache->c_list_lock);
 		head = mb_cache_entry_head(cache, entry->e_key);
 		hlist_bl_lock(head);
-		if (!hlist_bl_unhashed(&entry->e_hash_list)) {
+
+		if (!hlist_bl_unhashed(&entry->e_hash_list))
+		{
 			hlist_bl_del_init(&entry->e_hash_list);
 			atomic_dec(&entry->e_refcnt);
 		}
+
 		hlist_bl_unlock(head);
+
 		if (mb_cache_entry_put(cache, entry))
+		{
 			shrunk++;
+		}
+
 		cond_resched();
 		spin_lock(&cache->c_list_lock);
 	}
+
 	spin_unlock(&cache->c_list_lock);
 
 	return shrunk;
 }
 
 static unsigned long mb_cache_scan(struct shrinker *shrink,
-				   struct shrink_control *sc)
+								   struct shrink_control *sc)
 {
 	int nr_to_scan = sc->nr_to_scan;
 	struct mb_cache *cache = container_of(shrink, struct mb_cache,
-					      c_shrink);
+										  c_shrink);
 	return mb_cache_shrink(cache, nr_to_scan);
 }
 
@@ -328,7 +373,7 @@ static unsigned long mb_cache_scan(struct shrinker *shrink,
 static void mb_cache_shrink_worker(struct work_struct *work)
 {
 	struct mb_cache *cache = container_of(work, struct mb_cache,
-					      c_shrink_work);
+										  c_shrink_work);
 	mb_cache_shrink(cache, cache->c_max_entries / SHRINK_DIVISOR);
 }
 
@@ -345,28 +390,41 @@ struct mb_cache *mb_cache_create(int bucket_bits)
 	int i;
 
 	if (!try_module_get(THIS_MODULE))
+	{
 		return NULL;
+	}
 
 	cache = kzalloc(sizeof(struct mb_cache), GFP_KERNEL);
+
 	if (!cache)
+	{
 		goto err_out;
+	}
+
 	cache->c_bucket_bits = bucket_bits;
 	cache->c_max_entries = bucket_count << 4;
 	INIT_LIST_HEAD(&cache->c_list);
 	spin_lock_init(&cache->c_list_lock);
 	cache->c_hash = kmalloc(bucket_count * sizeof(struct hlist_bl_head),
-				GFP_KERNEL);
-	if (!cache->c_hash) {
+							GFP_KERNEL);
+
+	if (!cache->c_hash)
+	{
 		kfree(cache);
 		goto err_out;
 	}
+
 	for (i = 0; i < bucket_count; i++)
+	{
 		INIT_HLIST_BL_HEAD(&cache->c_hash[i]);
+	}
 
 	cache->c_shrink.count_objects = mb_cache_count;
 	cache->c_shrink.scan_objects = mb_cache_scan;
 	cache->c_shrink.seeks = DEFAULT_SEEKS;
-	if (register_shrinker(&cache->c_shrink)) {
+
+	if (register_shrinker(&cache->c_shrink))
+	{
 		kfree(cache->c_hash);
 		kfree(cache);
 		goto err_out;
@@ -399,12 +457,18 @@ void mb_cache_destroy(struct mb_cache *cache)
 	 * We don't bother with any locking. Cache must not be used at this
 	 * point.
 	 */
-	list_for_each_entry_safe(entry, next, &cache->c_list, e_list) {
-		if (!hlist_bl_unhashed(&entry->e_hash_list)) {
+	list_for_each_entry_safe(entry, next, &cache->c_list, e_list)
+	{
+		if (!hlist_bl_unhashed(&entry->e_hash_list))
+		{
 			hlist_bl_del_init(&entry->e_hash_list);
 			atomic_dec(&entry->e_refcnt);
-		} else
+		}
+		else
+		{
 			WARN_ON(1);
+		}
+
 		list_del(&entry->e_list);
 		WARN_ON(atomic_read(&entry->e_refcnt) != 1);
 		mb_cache_entry_put(cache, entry);
@@ -418,8 +482,8 @@ EXPORT_SYMBOL(mb_cache_destroy);
 static int __init mbcache_init(void)
 {
 	mb_entry_cache = kmem_cache_create("mbcache",
-				sizeof(struct mb_cache_entry), 0,
-				SLAB_RECLAIM_ACCOUNT|SLAB_MEM_SPREAD, NULL);
+									   sizeof(struct mb_cache_entry), 0,
+									   SLAB_RECLAIM_ACCOUNT | SLAB_MEM_SPREAD, NULL);
 	BUG_ON(!mb_entry_cache);
 	return 0;
 }

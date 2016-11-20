@@ -15,26 +15,38 @@
 static void
 bl_free_device(struct pnfs_block_dev *dev)
 {
-	if (dev->nr_children) {
+	if (dev->nr_children)
+	{
 		int i;
 
 		for (i = 0; i < dev->nr_children; i++)
+		{
 			bl_free_device(&dev->children[i]);
+		}
+
 		kfree(dev->children);
-	} else {
-		if (dev->pr_registered) {
+	}
+	else
+	{
+		if (dev->pr_registered)
+		{
 			const struct pr_ops *ops =
-				dev->bdev->bd_disk->fops->pr_ops;
+					dev->bdev->bd_disk->fops->pr_ops;
 			int error;
 
 			error = ops->pr_register(dev->bdev, dev->pr_key, 0,
-				false);
+									 false);
+
 			if (error)
+			{
 				pr_err("failed to unregister PR key.\n");
+			}
 		}
 
 		if (dev->bdev)
+		{
 			blkdev_put(dev->bdev, FMODE_READ | FMODE_WRITE);
+		}
 	}
 }
 
@@ -55,115 +67,187 @@ nfs4_block_decode_volume(struct xdr_stream *xdr, struct pnfs_block_volume *b)
 	int i;
 
 	p = xdr_inline_decode(xdr, 4);
+
 	if (!p)
+	{
 		return -EIO;
+	}
+
 	b->type = be32_to_cpup(p++);
 
-	switch (b->type) {
-	case PNFS_BLOCK_VOLUME_SIMPLE:
-		p = xdr_inline_decode(xdr, 4);
-		if (!p)
-			return -EIO;
-		b->simple.nr_sigs = be32_to_cpup(p++);
-		if (!b->simple.nr_sigs || b->simple.nr_sigs > PNFS_BLOCK_MAX_UUIDS) {
-			dprintk("Bad signature count: %d\n", b->simple.nr_sigs);
-			return -EIO;
-		}
+	switch (b->type)
+	{
+		case PNFS_BLOCK_VOLUME_SIMPLE:
+			p = xdr_inline_decode(xdr, 4);
 
-		b->simple.len = 4 + 4;
-		for (i = 0; i < b->simple.nr_sigs; i++) {
-			p = xdr_inline_decode(xdr, 8 + 4);
 			if (!p)
-				return -EIO;
-			p = xdr_decode_hyper(p, &b->simple.sigs[i].offset);
-			b->simple.sigs[i].sig_len = be32_to_cpup(p++);
-			if (b->simple.sigs[i].sig_len > PNFS_BLOCK_UUID_LEN) {
-				pr_info("signature too long: %d\n",
-					b->simple.sigs[i].sig_len);
+			{
 				return -EIO;
 			}
 
-			p = xdr_inline_decode(xdr, b->simple.sigs[i].sig_len);
-			if (!p)
+			b->simple.nr_sigs = be32_to_cpup(p++);
+
+			if (!b->simple.nr_sigs || b->simple.nr_sigs > PNFS_BLOCK_MAX_UUIDS)
+			{
+				dprintk("Bad signature count: %d\n", b->simple.nr_sigs);
 				return -EIO;
-			memcpy(&b->simple.sigs[i].sig, p,
-				b->simple.sigs[i].sig_len);
+			}
 
-			b->simple.len += 8 + 4 + \
-				(XDR_QUADLEN(b->simple.sigs[i].sig_len) << 2);
-		}
-		break;
-	case PNFS_BLOCK_VOLUME_SLICE:
-		p = xdr_inline_decode(xdr, 8 + 8 + 4);
-		if (!p)
-			return -EIO;
-		p = xdr_decode_hyper(p, &b->slice.start);
-		p = xdr_decode_hyper(p, &b->slice.len);
-		b->slice.volume = be32_to_cpup(p++);
-		break;
-	case PNFS_BLOCK_VOLUME_CONCAT:
-		p = xdr_inline_decode(xdr, 4);
-		if (!p)
-			return -EIO;
+			b->simple.len = 4 + 4;
 
-		b->concat.volumes_count = be32_to_cpup(p++);
-		if (b->concat.volumes_count > PNFS_BLOCK_MAX_DEVICES) {
-			dprintk("Too many volumes: %d\n", b->concat.volumes_count);
-			return -EIO;
-		}
+			for (i = 0; i < b->simple.nr_sigs; i++)
+			{
+				p = xdr_inline_decode(xdr, 8 + 4);
 
-		p = xdr_inline_decode(xdr, b->concat.volumes_count * 4);
-		if (!p)
-			return -EIO;
-		for (i = 0; i < b->concat.volumes_count; i++)
-			b->concat.volumes[i] = be32_to_cpup(p++);
-		break;
-	case PNFS_BLOCK_VOLUME_STRIPE:
-		p = xdr_inline_decode(xdr, 8 + 4);
-		if (!p)
-			return -EIO;
+				if (!p)
+				{
+					return -EIO;
+				}
 
-		p = xdr_decode_hyper(p, &b->stripe.chunk_size);
-		b->stripe.volumes_count = be32_to_cpup(p++);
-		if (b->stripe.volumes_count > PNFS_BLOCK_MAX_DEVICES) {
-			dprintk("Too many volumes: %d\n", b->stripe.volumes_count);
-			return -EIO;
-		}
+				p = xdr_decode_hyper(p, &b->simple.sigs[i].offset);
+				b->simple.sigs[i].sig_len = be32_to_cpup(p++);
 
-		p = xdr_inline_decode(xdr, b->stripe.volumes_count * 4);
-		if (!p)
+				if (b->simple.sigs[i].sig_len > PNFS_BLOCK_UUID_LEN)
+				{
+					pr_info("signature too long: %d\n",
+							b->simple.sigs[i].sig_len);
+					return -EIO;
+				}
+
+				p = xdr_inline_decode(xdr, b->simple.sigs[i].sig_len);
+
+				if (!p)
+				{
+					return -EIO;
+				}
+
+				memcpy(&b->simple.sigs[i].sig, p,
+					   b->simple.sigs[i].sig_len);
+
+				b->simple.len += 8 + 4 + \
+								 (XDR_QUADLEN(b->simple.sigs[i].sig_len) << 2);
+			}
+
+			break;
+
+		case PNFS_BLOCK_VOLUME_SLICE:
+			p = xdr_inline_decode(xdr, 8 + 8 + 4);
+
+			if (!p)
+			{
+				return -EIO;
+			}
+
+			p = xdr_decode_hyper(p, &b->slice.start);
+			p = xdr_decode_hyper(p, &b->slice.len);
+			b->slice.volume = be32_to_cpup(p++);
+			break;
+
+		case PNFS_BLOCK_VOLUME_CONCAT:
+			p = xdr_inline_decode(xdr, 4);
+
+			if (!p)
+			{
+				return -EIO;
+			}
+
+			b->concat.volumes_count = be32_to_cpup(p++);
+
+			if (b->concat.volumes_count > PNFS_BLOCK_MAX_DEVICES)
+			{
+				dprintk("Too many volumes: %d\n", b->concat.volumes_count);
+				return -EIO;
+			}
+
+			p = xdr_inline_decode(xdr, b->concat.volumes_count * 4);
+
+			if (!p)
+			{
+				return -EIO;
+			}
+
+			for (i = 0; i < b->concat.volumes_count; i++)
+			{
+				b->concat.volumes[i] = be32_to_cpup(p++);
+			}
+
+			break;
+
+		case PNFS_BLOCK_VOLUME_STRIPE:
+			p = xdr_inline_decode(xdr, 8 + 4);
+
+			if (!p)
+			{
+				return -EIO;
+			}
+
+			p = xdr_decode_hyper(p, &b->stripe.chunk_size);
+			b->stripe.volumes_count = be32_to_cpup(p++);
+
+			if (b->stripe.volumes_count > PNFS_BLOCK_MAX_DEVICES)
+			{
+				dprintk("Too many volumes: %d\n", b->stripe.volumes_count);
+				return -EIO;
+			}
+
+			p = xdr_inline_decode(xdr, b->stripe.volumes_count * 4);
+
+			if (!p)
+			{
+				return -EIO;
+			}
+
+			for (i = 0; i < b->stripe.volumes_count; i++)
+			{
+				b->stripe.volumes[i] = be32_to_cpup(p++);
+			}
+
+			break;
+
+		case PNFS_BLOCK_VOLUME_SCSI:
+			p = xdr_inline_decode(xdr, 4 + 4 + 4);
+
+			if (!p)
+			{
+				return -EIO;
+			}
+
+			b->scsi.code_set = be32_to_cpup(p++);
+			b->scsi.designator_type = be32_to_cpup(p++);
+			b->scsi.designator_len = be32_to_cpup(p++);
+			p = xdr_inline_decode(xdr, b->scsi.designator_len);
+
+			if (!p)
+			{
+				return -EIO;
+			}
+
+			if (b->scsi.designator_len > 256)
+			{
+				return -EIO;
+			}
+
+			memcpy(&b->scsi.designator, p, b->scsi.designator_len);
+			p = xdr_inline_decode(xdr, 8);
+
+			if (!p)
+			{
+				return -EIO;
+			}
+
+			p = xdr_decode_hyper(p, &b->scsi.pr_key);
+			break;
+
+		default:
+			dprintk("unknown volume type!\n");
 			return -EIO;
-		for (i = 0; i < b->stripe.volumes_count; i++)
-			b->stripe.volumes[i] = be32_to_cpup(p++);
-		break;
-	case PNFS_BLOCK_VOLUME_SCSI:
-		p = xdr_inline_decode(xdr, 4 + 4 + 4);
-		if (!p)
-			return -EIO;
-		b->scsi.code_set = be32_to_cpup(p++);
-		b->scsi.designator_type = be32_to_cpup(p++);
-		b->scsi.designator_len = be32_to_cpup(p++);
-		p = xdr_inline_decode(xdr, b->scsi.designator_len);
-		if (!p)
-			return -EIO;
-		if (b->scsi.designator_len > 256)
-			return -EIO;
-		memcpy(&b->scsi.designator, p, b->scsi.designator_len);
-		p = xdr_inline_decode(xdr, 8);
-		if (!p)
-			return -EIO;
-		p = xdr_decode_hyper(p, &b->scsi.pr_key);
-		break;
-	default:
-		dprintk("unknown volume type!\n");
-		return -EIO;
 	}
 
 	return 0;
 }
 
 static bool bl_map_simple(struct pnfs_block_dev *dev, u64 offset,
-		struct pnfs_block_dev_map *map)
+						  struct pnfs_block_dev_map *map)
 {
 	map->start = dev->start;
 	map->len = dev->len;
@@ -173,16 +257,19 @@ static bool bl_map_simple(struct pnfs_block_dev *dev, u64 offset,
 }
 
 static bool bl_map_concat(struct pnfs_block_dev *dev, u64 offset,
-		struct pnfs_block_dev_map *map)
+						  struct pnfs_block_dev_map *map)
 {
 	int i;
 
-	for (i = 0; i < dev->nr_children; i++) {
+	for (i = 0; i < dev->nr_children; i++)
+	{
 		struct pnfs_block_dev *child = &dev->children[i];
 
 		if (child->start > offset ||
-		    child->start + child->len <= offset)
+			child->start + child->len <= offset)
+		{
 			continue;
+		}
 
 		child->map(child, offset - child->start, map);
 		return true;
@@ -193,7 +280,7 @@ static bool bl_map_concat(struct pnfs_block_dev *dev, u64 offset,
 }
 
 static bool bl_map_stripe(struct pnfs_block_dev *dev, u64 offset,
-		struct pnfs_block_dev_map *map)
+						  struct pnfs_block_dev_map *map)
 {
 	struct pnfs_block_dev *child;
 	u64 chunk;
@@ -203,9 +290,10 @@ static bool bl_map_stripe(struct pnfs_block_dev *dev, u64 offset,
 	chunk = div_u64(offset, dev->chunk_size);
 	div_u64_rem(chunk, dev->nr_children, &chunk_idx);
 
-	if (chunk_idx > dev->nr_children) {
+	if (chunk_idx > dev->nr_children)
+	{
 		dprintk("%s: invalid chunk idx %d (%lld/%lld)\n",
-			__func__, chunk_idx, offset, dev->chunk_size);
+				__func__, chunk_idx, offset, dev->chunk_size);
 		/* error, should not happen */
 		return false;
 	}
@@ -227,27 +315,33 @@ static bool bl_map_stripe(struct pnfs_block_dev *dev, u64 offset,
 
 static int
 bl_parse_deviceid(struct nfs_server *server, struct pnfs_block_dev *d,
-		struct pnfs_block_volume *volumes, int idx, gfp_t gfp_mask);
+				  struct pnfs_block_volume *volumes, int idx, gfp_t gfp_mask);
 
 
 static int
 bl_parse_simple(struct nfs_server *server, struct pnfs_block_dev *d,
-		struct pnfs_block_volume *volumes, int idx, gfp_t gfp_mask)
+				struct pnfs_block_volume *volumes, int idx, gfp_t gfp_mask)
 {
 	struct pnfs_block_volume *v = &volumes[idx];
 	struct block_device *bdev;
 	dev_t dev;
 
 	dev = bl_resolve_deviceid(server, v, gfp_mask);
+
 	if (!dev)
+	{
 		return -EIO;
+	}
 
 	bdev = blkdev_get_by_dev(dev, FMODE_READ | FMODE_WRITE, NULL);
-	if (IS_ERR(bdev)) {
+
+	if (IS_ERR(bdev))
+	{
 		printk(KERN_WARNING "pNFS: failed to open device %d:%d (%ld)\n",
-			MAJOR(dev), MINOR(dev), PTR_ERR(bdev));
+			   MAJOR(dev), MINOR(dev), PTR_ERR(bdev));
 		return PTR_ERR(bdev);
 	}
+
 	d->bdev = bdev;
 
 
@@ -255,48 +349,60 @@ bl_parse_simple(struct nfs_server *server, struct pnfs_block_dev *d,
 	d->map = bl_map_simple;
 
 	printk(KERN_INFO "pNFS: using block device %s\n",
-		d->bdev->bd_disk->disk_name);
+		   d->bdev->bd_disk->disk_name);
 	return 0;
 }
 
 static bool
 bl_validate_designator(struct pnfs_block_volume *v)
 {
-	switch (v->scsi.designator_type) {
-	case PS_DESIGNATOR_EUI64:
-		if (v->scsi.code_set != PS_CODE_SET_BINARY)
+	switch (v->scsi.designator_type)
+	{
+		case PS_DESIGNATOR_EUI64:
+			if (v->scsi.code_set != PS_CODE_SET_BINARY)
+			{
+				return false;
+			}
+
+			if (v->scsi.designator_len != 8 &&
+				v->scsi.designator_len != 10 &&
+				v->scsi.designator_len != 16)
+			{
+				return false;
+			}
+
+			return true;
+
+		case PS_DESIGNATOR_NAA:
+			if (v->scsi.code_set != PS_CODE_SET_BINARY)
+			{
+				return false;
+			}
+
+			if (v->scsi.designator_len != 8 &&
+				v->scsi.designator_len != 16)
+			{
+				return false;
+			}
+
+			return true;
+
+		case PS_DESIGNATOR_T10:
+		case PS_DESIGNATOR_NAME:
+			pr_err("pNFS: unsupported designator "
+				   "(code set %d, type %d, len %d.\n",
+				   v->scsi.code_set,
+				   v->scsi.designator_type,
+				   v->scsi.designator_len);
 			return false;
 
-		if (v->scsi.designator_len != 8 &&
-		    v->scsi.designator_len != 10 &&
-		    v->scsi.designator_len != 16)
+		default:
+			pr_err("pNFS: invalid designator "
+				   "(code set %d, type %d, len %d.\n",
+				   v->scsi.code_set,
+				   v->scsi.designator_type,
+				   v->scsi.designator_len);
 			return false;
-
-		return true;
-	case PS_DESIGNATOR_NAA:
-		if (v->scsi.code_set != PS_CODE_SET_BINARY)
-			return false;
-
-		if (v->scsi.designator_len != 8 &&
-		    v->scsi.designator_len != 16)
-			return false;
-
-		return true;
-	case PS_DESIGNATOR_T10:
-	case PS_DESIGNATOR_NAME:
-		pr_err("pNFS: unsupported designator "
-			"(code set %d, type %d, len %d.\n",
-			v->scsi.code_set,
-			v->scsi.designator_type,
-			v->scsi.designator_len);
-		return false;
-	default:
-		pr_err("pNFS: invalid designator "
-			"(code set %d, type %d, len %d.\n",
-			v->scsi.code_set,
-			v->scsi.designator_type,
-			v->scsi.designator_len);
-		return false;
 	}
 }
 
@@ -311,14 +417,19 @@ bl_open_udev_path(struct pnfs_block_volume *v)
 	const char *devname;
 
 	devname = kasprintf(GFP_KERNEL, "/dev/disk/by-id/wwn-0x%*phN",
-				v->scsi.designator_len, v->scsi.designator);
+						v->scsi.designator_len, v->scsi.designator);
+
 	if (!devname)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	bdev = blkdev_get_by_path(devname, FMODE_READ | FMODE_WRITE, NULL);
-	if (IS_ERR(bdev)) {
+
+	if (IS_ERR(bdev))
+	{
 		pr_warn("pNFS: failed to open device %s (%ld)\n",
-			devname, PTR_ERR(bdev));
+				devname, PTR_ERR(bdev));
 	}
 
 	kfree(devname);
@@ -336,11 +447,14 @@ bl_open_dm_mpath_udev_path(struct pnfs_block_volume *v)
 	const char *devname;
 
 	devname = kasprintf(GFP_KERNEL,
-			"/dev/disk/by-id/dm-uuid-mpath-%d%*phN",
-			v->scsi.designator_type,
-			v->scsi.designator_len, v->scsi.designator);
+						"/dev/disk/by-id/dm-uuid-mpath-%d%*phN",
+						v->scsi.designator_type,
+						v->scsi.designator_len, v->scsi.designator);
+
 	if (!devname)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	bdev = blkdev_get_by_path(devname, FMODE_READ | FMODE_WRITE, NULL);
 	kfree(devname);
@@ -349,7 +463,7 @@ bl_open_dm_mpath_udev_path(struct pnfs_block_volume *v)
 
 static int
 bl_parse_scsi(struct nfs_server *server, struct pnfs_block_dev *d,
-		struct pnfs_block_volume *volumes, int idx, gfp_t gfp_mask)
+			  struct pnfs_block_volume *volumes, int idx, gfp_t gfp_mask)
 {
 	struct pnfs_block_volume *v = &volumes[idx];
 	struct block_device *bdev;
@@ -357,13 +471,22 @@ bl_parse_scsi(struct nfs_server *server, struct pnfs_block_dev *d,
 	int error;
 
 	if (!bl_validate_designator(v))
+	{
 		return -EINVAL;
+	}
 
 	bdev = bl_open_dm_mpath_udev_path(v);
+
 	if (IS_ERR(bdev))
+	{
 		bdev = bl_open_udev_path(v);
+	}
+
 	if (IS_ERR(bdev))
+	{
 		return PTR_ERR(bdev);
+	}
+
 	d->bdev = bdev;
 
 	d->len = i_size_read(d->bdev->bd_inode);
@@ -371,20 +494,24 @@ bl_parse_scsi(struct nfs_server *server, struct pnfs_block_dev *d,
 	d->pr_key = v->scsi.pr_key;
 
 	pr_info("pNFS: using block device %s (reservation key 0x%llx)\n",
-		d->bdev->bd_disk->disk_name, d->pr_key);
+			d->bdev->bd_disk->disk_name, d->pr_key);
 
 	ops = d->bdev->bd_disk->fops->pr_ops;
-	if (!ops) {
+
+	if (!ops)
+	{
 		pr_err("pNFS: block device %s does not support reservations.",
-				d->bdev->bd_disk->disk_name);
+			   d->bdev->bd_disk->disk_name);
 		error = -EINVAL;
 		goto out_blkdev_put;
 	}
 
 	error = ops->pr_register(d->bdev, 0, d->pr_key, true);
-	if (error) {
+
+	if (error)
+	{
 		pr_err("pNFS: failed to register key for block device %s.",
-				d->bdev->bd_disk->disk_name);
+			   d->bdev->bd_disk->disk_name);
 		goto out_blkdev_put;
 	}
 
@@ -398,14 +525,17 @@ out_blkdev_put:
 
 static int
 bl_parse_slice(struct nfs_server *server, struct pnfs_block_dev *d,
-		struct pnfs_block_volume *volumes, int idx, gfp_t gfp_mask)
+			   struct pnfs_block_volume *volumes, int idx, gfp_t gfp_mask)
 {
 	struct pnfs_block_volume *v = &volumes[idx];
 	int ret;
 
 	ret = bl_parse_deviceid(server, d, volumes, v->slice.volume, gfp_mask);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	d->disk_offset = v->slice.start;
 	d->len = v->slice.len;
@@ -414,22 +544,29 @@ bl_parse_slice(struct nfs_server *server, struct pnfs_block_dev *d,
 
 static int
 bl_parse_concat(struct nfs_server *server, struct pnfs_block_dev *d,
-		struct pnfs_block_volume *volumes, int idx, gfp_t gfp_mask)
+				struct pnfs_block_volume *volumes, int idx, gfp_t gfp_mask)
 {
 	struct pnfs_block_volume *v = &volumes[idx];
 	u64 len = 0;
 	int ret, i;
 
 	d->children = kcalloc(v->concat.volumes_count,
-			sizeof(struct pnfs_block_dev), GFP_KERNEL);
-	if (!d->children)
-		return -ENOMEM;
+						  sizeof(struct pnfs_block_dev), GFP_KERNEL);
 
-	for (i = 0; i < v->concat.volumes_count; i++) {
+	if (!d->children)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < v->concat.volumes_count; i++)
+	{
 		ret = bl_parse_deviceid(server, &d->children[i],
-				volumes, v->concat.volumes[i], gfp_mask);
+								volumes, v->concat.volumes[i], gfp_mask);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		d->nr_children++;
 		d->children[i].start += len;
@@ -443,22 +580,29 @@ bl_parse_concat(struct nfs_server *server, struct pnfs_block_dev *d,
 
 static int
 bl_parse_stripe(struct nfs_server *server, struct pnfs_block_dev *d,
-		struct pnfs_block_volume *volumes, int idx, gfp_t gfp_mask)
+				struct pnfs_block_volume *volumes, int idx, gfp_t gfp_mask)
 {
 	struct pnfs_block_volume *v = &volumes[idx];
 	u64 len = 0;
 	int ret, i;
 
 	d->children = kcalloc(v->stripe.volumes_count,
-			sizeof(struct pnfs_block_dev), GFP_KERNEL);
-	if (!d->children)
-		return -ENOMEM;
+						  sizeof(struct pnfs_block_dev), GFP_KERNEL);
 
-	for (i = 0; i < v->stripe.volumes_count; i++) {
+	if (!d->children)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < v->stripe.volumes_count; i++)
+	{
 		ret = bl_parse_deviceid(server, &d->children[i],
-				volumes, v->stripe.volumes[i], gfp_mask);
+								volumes, v->stripe.volumes[i], gfp_mask);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		d->nr_children++;
 		len += d->children[i].len;
@@ -472,28 +616,34 @@ bl_parse_stripe(struct nfs_server *server, struct pnfs_block_dev *d,
 
 static int
 bl_parse_deviceid(struct nfs_server *server, struct pnfs_block_dev *d,
-		struct pnfs_block_volume *volumes, int idx, gfp_t gfp_mask)
+				  struct pnfs_block_volume *volumes, int idx, gfp_t gfp_mask)
 {
-	switch (volumes[idx].type) {
-	case PNFS_BLOCK_VOLUME_SIMPLE:
-		return bl_parse_simple(server, d, volumes, idx, gfp_mask);
-	case PNFS_BLOCK_VOLUME_SLICE:
-		return bl_parse_slice(server, d, volumes, idx, gfp_mask);
-	case PNFS_BLOCK_VOLUME_CONCAT:
-		return bl_parse_concat(server, d, volumes, idx, gfp_mask);
-	case PNFS_BLOCK_VOLUME_STRIPE:
-		return bl_parse_stripe(server, d, volumes, idx, gfp_mask);
-	case PNFS_BLOCK_VOLUME_SCSI:
-		return bl_parse_scsi(server, d, volumes, idx, gfp_mask);
-	default:
-		dprintk("unsupported volume type: %d\n", volumes[idx].type);
-		return -EIO;
+	switch (volumes[idx].type)
+	{
+		case PNFS_BLOCK_VOLUME_SIMPLE:
+			return bl_parse_simple(server, d, volumes, idx, gfp_mask);
+
+		case PNFS_BLOCK_VOLUME_SLICE:
+			return bl_parse_slice(server, d, volumes, idx, gfp_mask);
+
+		case PNFS_BLOCK_VOLUME_CONCAT:
+			return bl_parse_concat(server, d, volumes, idx, gfp_mask);
+
+		case PNFS_BLOCK_VOLUME_STRIPE:
+			return bl_parse_stripe(server, d, volumes, idx, gfp_mask);
+
+		case PNFS_BLOCK_VOLUME_SCSI:
+			return bl_parse_scsi(server, d, volumes, idx, gfp_mask);
+
+		default:
+			dprintk("unsupported volume type: %d\n", volumes[idx].type);
+			return -EIO;
 	}
 }
 
 struct nfs4_deviceid_node *
 bl_alloc_deviceid_node(struct nfs_server *server, struct pnfs_device *pdev,
-		gfp_t gfp_mask)
+					   gfp_t gfp_mask)
 {
 	struct nfs4_deviceid_node *node = NULL;
 	struct pnfs_block_volume *volumes;
@@ -505,34 +655,53 @@ bl_alloc_deviceid_node(struct nfs_server *server, struct pnfs_device *pdev,
 	__be32 *p;
 
 	scratch = alloc_page(gfp_mask);
+
 	if (!scratch)
+	{
 		goto out;
+	}
 
 	xdr_init_decode_pages(&xdr, &buf, pdev->pages, pdev->pglen);
 	xdr_set_scratch_buffer(&xdr, page_address(scratch), PAGE_SIZE);
 
 	p = xdr_inline_decode(&xdr, sizeof(__be32));
+
 	if (!p)
+	{
 		goto out_free_scratch;
+	}
+
 	nr_volumes = be32_to_cpup(p++);
 
 	volumes = kcalloc(nr_volumes, sizeof(struct pnfs_block_volume),
-			  gfp_mask);
-	if (!volumes)
-		goto out_free_scratch;
+					  gfp_mask);
 
-	for (i = 0; i < nr_volumes; i++) {
+	if (!volumes)
+	{
+		goto out_free_scratch;
+	}
+
+	for (i = 0; i < nr_volumes; i++)
+	{
 		ret = nfs4_block_decode_volume(&xdr, &volumes[i]);
+
 		if (ret < 0)
+		{
 			goto out_free_volumes;
+		}
 	}
 
 	top = kzalloc(sizeof(*top), gfp_mask);
+
 	if (!top)
+	{
 		goto out_free_volumes;
+	}
 
 	ret = bl_parse_deviceid(server, top, volumes, nr_volumes - 1, gfp_mask);
-	if (ret) {
+
+	if (ret)
+	{
 		bl_free_device(top);
 		kfree(top);
 		goto out_free_volumes;

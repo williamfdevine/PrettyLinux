@@ -41,7 +41,8 @@
 
 #include "mlx5_core.h"
 
-struct mlx5_db_pgdir {
+struct mlx5_db_pgdir
+{
 	struct list_head	list;
 	unsigned long	       *bitmap;
 	__be32		       *db_page;
@@ -53,8 +54,8 @@ struct mlx5_db_pgdir {
  */
 
 static void *mlx5_dma_zalloc_coherent_node(struct mlx5_core_dev *dev,
-					   size_t size, dma_addr_t *dma_handle,
-					   int node)
+		size_t size, dma_addr_t *dma_handle,
+		int node)
 {
 	struct mlx5_priv *priv = &dev->priv;
 	int original_node;
@@ -64,14 +65,14 @@ static void *mlx5_dma_zalloc_coherent_node(struct mlx5_core_dev *dev,
 	original_node = dev_to_node(&dev->pdev->dev);
 	set_dev_node(&dev->pdev->dev, node);
 	cpu_handle = dma_zalloc_coherent(&dev->pdev->dev, size,
-					 dma_handle, GFP_KERNEL);
+									 dma_handle, GFP_KERNEL);
 	set_dev_node(&dev->pdev->dev, original_node);
 	mutex_unlock(&priv->alloc_mutex);
 	return cpu_handle;
 }
 
 int mlx5_buf_alloc_node(struct mlx5_core_dev *dev, int size,
-			struct mlx5_buf *buf, int node)
+						struct mlx5_buf *buf, int node)
 {
 	dma_addr_t t;
 
@@ -79,13 +80,17 @@ int mlx5_buf_alloc_node(struct mlx5_core_dev *dev, int size,
 	buf->npages       = 1;
 	buf->page_shift   = (u8)get_order(size) + PAGE_SHIFT;
 	buf->direct.buf   = mlx5_dma_zalloc_coherent_node(dev, size,
-							  &t, node);
+						&t, node);
+
 	if (!buf->direct.buf)
+	{
 		return -ENOMEM;
+	}
 
 	buf->direct.map = t;
 
-	while (t & ((1 << buf->page_shift) - 1)) {
+	while (t & ((1 << buf->page_shift) - 1))
+	{
 		--buf->page_shift;
 		buf->npages *= 2;
 	}
@@ -102,25 +107,29 @@ EXPORT_SYMBOL_GPL(mlx5_buf_alloc);
 void mlx5_buf_free(struct mlx5_core_dev *dev, struct mlx5_buf *buf)
 {
 	dma_free_coherent(&dev->pdev->dev, buf->size, buf->direct.buf,
-			  buf->direct.map);
+					  buf->direct.map);
 }
 EXPORT_SYMBOL_GPL(mlx5_buf_free);
 
 static struct mlx5_db_pgdir *mlx5_alloc_db_pgdir(struct mlx5_core_dev *dev,
-						 int node)
+		int node)
 {
 	u32 db_per_page = PAGE_SIZE / cache_line_size();
 	struct mlx5_db_pgdir *pgdir;
 
 	pgdir = kzalloc(sizeof(*pgdir), GFP_KERNEL);
+
 	if (!pgdir)
+	{
 		return NULL;
+	}
 
 	pgdir->bitmap = kcalloc(BITS_TO_LONGS(db_per_page),
-				sizeof(unsigned long),
-				GFP_KERNEL);
+							sizeof(unsigned long),
+							GFP_KERNEL);
 
-	if (!pgdir->bitmap) {
+	if (!pgdir->bitmap)
+	{
 		kfree(pgdir);
 		return NULL;
 	}
@@ -128,8 +137,10 @@ static struct mlx5_db_pgdir *mlx5_alloc_db_pgdir(struct mlx5_core_dev *dev,
 	bitmap_fill(pgdir->bitmap, db_per_page);
 
 	pgdir->db_page = mlx5_dma_zalloc_coherent_node(dev, PAGE_SIZE,
-						       &pgdir->db_dma, node);
-	if (!pgdir->db_page) {
+					 &pgdir->db_dma, node);
+
+	if (!pgdir->db_page)
+	{
 		kfree(pgdir->bitmap);
 		kfree(pgdir);
 		return NULL;
@@ -139,15 +150,18 @@ static struct mlx5_db_pgdir *mlx5_alloc_db_pgdir(struct mlx5_core_dev *dev,
 }
 
 static int mlx5_alloc_db_from_pgdir(struct mlx5_db_pgdir *pgdir,
-				    struct mlx5_db *db)
+									struct mlx5_db *db)
 {
 	u32 db_per_page = PAGE_SIZE / cache_line_size();
 	int offset;
 	int i;
 
 	i = find_first_bit(pgdir->bitmap, db_per_page);
+
 	if (i >= db_per_page)
+	{
 		return -ENOMEM;
+	}
 
 	__clear_bit(i, pgdir->bitmap);
 
@@ -171,11 +185,16 @@ int mlx5_db_alloc_node(struct mlx5_core_dev *dev, struct mlx5_db *db, int node)
 	mutex_lock(&dev->priv.pgdir_mutex);
 
 	list_for_each_entry(pgdir, &dev->priv.pgdir_list, list)
-		if (!mlx5_alloc_db_from_pgdir(pgdir, db))
-			goto out;
+
+	if (!mlx5_alloc_db_from_pgdir(pgdir, db))
+	{
+		goto out;
+	}
 
 	pgdir = mlx5_alloc_db_pgdir(dev, node);
-	if (!pgdir) {
+
+	if (!pgdir)
+	{
 		ret = -ENOMEM;
 		goto out;
 	}
@@ -205,9 +224,10 @@ void mlx5_db_free(struct mlx5_core_dev *dev, struct mlx5_db *db)
 
 	__set_bit(db->index, db->u.pgdir->bitmap);
 
-	if (bitmap_full(db->u.pgdir->bitmap, db_per_page)) {
+	if (bitmap_full(db->u.pgdir->bitmap, db_per_page))
+	{
 		dma_free_coherent(&(dev->pdev->dev), PAGE_SIZE,
-				  db->u.pgdir->db_page, db->u.pgdir->db_dma);
+						  db->u.pgdir->db_page, db->u.pgdir->db_dma);
 		list_del(&db->u.pgdir->list);
 		kfree(db->u.pgdir->bitmap);
 		kfree(db->u.pgdir);
@@ -223,7 +243,8 @@ void mlx5_fill_page_array(struct mlx5_buf *buf, __be64 *pas)
 	u64 addr;
 	int i;
 
-	for (i = 0; i < buf->npages; i++) {
+	for (i = 0; i < buf->npages; i++)
+	{
 		addr = buf->direct.map + (i << buf->page_shift);
 
 		pas[i] = cpu_to_be64(addr);

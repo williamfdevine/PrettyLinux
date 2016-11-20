@@ -65,7 +65,7 @@
 #define DRIVER_DESC "LCD controller driver for AU1100 processors"
 
 #define to_au1100fb_device(_info) \
-	  (_info ? container_of(_info, struct au1100fb_device, info) : NULL);
+	(_info ? container_of(_info, struct au1100fb_device, info) : NULL);
 
 /* Bitfields format supported by the controller. Note that the order of formats
  * SHOULD be the same as in the LCD_CONTROL_SBPPF field, so we can retrieve the
@@ -73,7 +73,7 @@
  */
 struct fb_bitfield rgb_bitfields[][4] =
 {
-  	/*     Red, 	   Green, 	 Blue, 	     Transp   */
+	/*     Red, 	   Green, 	 Blue, 	     Transp   */
 	{ { 10, 6, 0 }, { 5, 5, 0 }, { 0, 5, 0 }, { 0, 0, 0 } },
 	{ { 11, 5, 0 }, { 5, 6, 0 }, { 0, 5, 0 }, { 0, 0, 0 } },
 	{ { 11, 5, 0 }, { 6, 5, 0 }, { 0, 6, 0 }, { 0, 0, 0 } },
@@ -84,7 +84,8 @@ struct fb_bitfield rgb_bitfields[][4] =
 	{ { 8, 4, 0 },  { 4, 4, 0 }, { 0, 4, 0 }, { 0, 0, 0 } },
 };
 
-static struct fb_fix_screeninfo au1100fb_fix = {
+static struct fb_fix_screeninfo au1100fb_fix =
+{
 	.id		= "AU1100 FB",
 	.xpanstep 	= 1,
 	.ypanstep 	= 1,
@@ -92,7 +93,8 @@ static struct fb_fix_screeninfo au1100fb_fix = {
 	.accel		= FB_ACCEL_NONE,
 };
 
-static struct fb_var_screeninfo au1100fb_var = {
+static struct fb_var_screeninfo au1100fb_var =
+{
 	.activate	= FB_ACTIVATE_NOW,
 	.height		= -1,
 	.width		= -1,
@@ -109,25 +111,28 @@ static int au1100fb_fb_blank(int blank_mode, struct fb_info *fbi)
 
 	print_dbg("fb_blank %d %p", blank_mode, fbi);
 
-	switch (blank_mode) {
+	switch (blank_mode)
+	{
 
-	case VESA_NO_BLANKING:
-		/* Turn on panel */
-		fbdev->regs->lcd_control |= LCD_CONTROL_GO;
-		wmb(); /* drain writebuffer */
-		break;
+		case VESA_NO_BLANKING:
+			/* Turn on panel */
+			fbdev->regs->lcd_control |= LCD_CONTROL_GO;
+			wmb(); /* drain writebuffer */
+			break;
 
-	case VESA_VSYNC_SUSPEND:
-	case VESA_HSYNC_SUSPEND:
-	case VESA_POWERDOWN:
-		/* Turn off panel */
-		fbdev->regs->lcd_control &= ~LCD_CONTROL_GO;
-		wmb(); /* drain writebuffer */
-		break;
-	default:
-		break;
+		case VESA_VSYNC_SUSPEND:
+		case VESA_HSYNC_SUSPEND:
+		case VESA_POWERDOWN:
+			/* Turn off panel */
+			fbdev->regs->lcd_control &= ~LCD_CONTROL_GO;
+			wmb(); /* drain writebuffer */
+			break;
+
+		default:
+			break;
 
 	}
+
 	return 0;
 }
 
@@ -142,11 +147,15 @@ int au1100fb_setmode(struct au1100fb_device *fbdev)
 	int index;
 
 	if (!fbdev)
+	{
 		return -EINVAL;
+	}
 
 	/* Update var-dependent FB info */
-	if (panel_is_active(fbdev->panel) || panel_is_color(fbdev->panel)) {
-		if (info->var.bits_per_pixel <= 8) {
+	if (panel_is_active(fbdev->panel) || panel_is_color(fbdev->panel))
+	{
+		if (info->var.bits_per_pixel <= 8)
+		{
 			/* palettized */
 			info->var.red.offset    = 0;
 			info->var.red.length    = info->var.bits_per_pixel;
@@ -166,8 +175,10 @@ int au1100fb_setmode(struct au1100fb_device *fbdev)
 
 			info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
 			info->fix.line_length = info->var.xres_virtual /
-							(8/info->var.bits_per_pixel);
-		} else {
+									(8 / info->var.bits_per_pixel);
+		}
+		else
+		{
 			/* non-palettized */
 			index = (fbdev->panel->control_base & LCD_CONTROL_SBPPF_MASK) >> LCD_CONTROL_SBPPF_BIT;
 			info->var.red = rgb_bitfields[index][0];
@@ -178,15 +189,17 @@ int au1100fb_setmode(struct au1100fb_device *fbdev)
 			info->fix.visual = FB_VISUAL_TRUECOLOR;
 			info->fix.line_length = info->var.xres_virtual << 1; /* depth=16 */
 		}
-	} else {
+	}
+	else
+	{
 		/* mono */
 		info->fix.visual = FB_VISUAL_MONO10;
 		info->fix.line_length = info->var.xres_virtual / 8;
 	}
 
 	info->screen_size = info->fix.line_length * info->var.yres_virtual;
-	info->var.rotate = ((fbdev->panel->control_base&LCD_CONTROL_SM_MASK) \
-				>> LCD_CONTROL_SM_BIT) * 90;
+	info->var.rotate = ((fbdev->panel->control_base & LCD_CONTROL_SM_MASK) \
+						>> LCD_CONTROL_SM_BIT) * 90;
 
 	/* Determine BPP mode and format */
 	fbdev->regs->lcd_control = fbdev->panel->control_base;
@@ -197,25 +210,34 @@ int au1100fb_setmode(struct au1100fb_device *fbdev)
 	fbdev->regs->lcd_intstatus = 0;
 	fbdev->regs->lcd_dmaaddr0 = LCD_DMA_SA_N(fbdev->fb_phys);
 
-	if (panel_is_dual(fbdev->panel)) {
+	if (panel_is_dual(fbdev->panel))
+	{
 		/* Second panel display seconf half of screen if possible,
 		 * otherwise display the same as the first panel */
-		if (info->var.yres_virtual >= (info->var.yres << 1)) {
+		if (info->var.yres_virtual >= (info->var.yres << 1))
+		{
 			fbdev->regs->lcd_dmaaddr1 = LCD_DMA_SA_N(fbdev->fb_phys +
-							  (info->fix.line_length *
-						          (info->var.yres_virtual >> 1)));
-		} else {
+										(info->fix.line_length *
+										 (info->var.yres_virtual >> 1)));
+		}
+		else
+		{
 			fbdev->regs->lcd_dmaaddr1 = LCD_DMA_SA_N(fbdev->fb_phys);
 		}
 	}
 
 	words = info->fix.line_length / sizeof(u32);
-	if (!info->var.rotate || (info->var.rotate == 180)) {
+
+	if (!info->var.rotate || (info->var.rotate == 180))
+	{
 		words *= info->var.yres_virtual;
-		if (info->var.rotate /* 180 */) {
+
+		if (info->var.rotate /* 180 */)
+		{
 			words -= (words % 8); /* should be divisable by 8 */
 		}
 	}
+
 	fbdev->regs->lcd_words = LCD_WRD_WRDS_N(words);
 
 	fbdev->regs->lcd_pwmdiv = 0;
@@ -232,7 +254,8 @@ int au1100fb_setmode(struct au1100fb_device *fbdev)
 /* fb_setcolreg
  * Set color in LCD palette.
  */
-int au1100fb_fb_setcolreg(unsigned regno, unsigned red, unsigned green, unsigned blue, unsigned transp, struct fb_info *fbi)
+int au1100fb_fb_setcolreg(unsigned regno, unsigned red, unsigned green, unsigned blue, unsigned transp,
+						  struct fb_info *fbi)
 {
 	struct au1100fb_device *fbdev;
 	u32 *palette;
@@ -242,42 +265,54 @@ int au1100fb_fb_setcolreg(unsigned regno, unsigned red, unsigned green, unsigned
 	palette = fbdev->regs->lcd_pallettebase;
 
 	if (regno > (AU1100_LCD_NBR_PALETTE_ENTRIES - 1))
+	{
 		return -EINVAL;
-
-	if (fbi->var.grayscale) {
-		/* Convert color to grayscale */
-		red = green = blue =
-			(19595 * red + 38470 * green + 7471 * blue) >> 16;
 	}
 
-	if (fbi->fix.visual == FB_VISUAL_TRUECOLOR) {
+	if (fbi->var.grayscale)
+	{
+		/* Convert color to grayscale */
+		red = green = blue =
+						  (19595 * red + 38470 * green + 7471 * blue) >> 16;
+	}
+
+	if (fbi->fix.visual == FB_VISUAL_TRUECOLOR)
+	{
 		/* Place color in the pseudopalette */
 		if (regno > 16)
+		{
 			return -EINVAL;
+		}
 
-		palette = (u32*)fbi->pseudo_palette;
+		palette = (u32 *)fbi->pseudo_palette;
 
 		red   >>= (16 - fbi->var.red.length);
 		green >>= (16 - fbi->var.green.length);
 		blue  >>= (16 - fbi->var.blue.length);
 
 		value = (red   << fbi->var.red.offset) 	|
-			(green << fbi->var.green.offset)|
-			(blue  << fbi->var.blue.offset);
+				(green << fbi->var.green.offset) |
+				(blue  << fbi->var.blue.offset);
 		value &= 0xFFFF;
 
-	} else if (panel_is_active(fbdev->panel)) {
+	}
+	else if (panel_is_active(fbdev->panel))
+	{
 		/* COLOR TFT PALLETTIZED (use RGB 565) */
-		value = (red & 0xF800)|((green >> 5) & 0x07E0)|((blue >> 11) & 0x001F);
+		value = (red & 0xF800) | ((green >> 5) & 0x07E0) | ((blue >> 11) & 0x001F);
 		value &= 0xFFFF;
 
-	} else if (panel_is_color(fbdev->panel)) {
+	}
+	else if (panel_is_color(fbdev->panel))
+	{
 		/* COLOR STN MODE */
 		value = (((panel_swap_rgb(fbdev->panel) ? blue : red) >> 12) & 0x000F) |
-			((green >> 8) & 0x00F0) |
-			(((panel_swap_rgb(fbdev->panel) ? red : blue) >> 4) & 0x0F00);
+				((green >> 8) & 0x00F0) |
+				(((panel_swap_rgb(fbdev->panel) ? red : blue) >> 4) & 0x0F00);
 		value &= 0xFFF;
-	} else {
+	}
+	else
+	{
 		/* MONOCHROME MODE */
 		value = (green >> 12) & 0x000F;
 		value &= 0xF;
@@ -300,18 +335,22 @@ int au1100fb_fb_pan_display(struct fb_var_screeninfo *var, struct fb_info *fbi)
 
 	print_dbg("fb_pan_display %p %p", var, fbi);
 
-	if (!var || !fbdev) {
+	if (!var || !fbdev)
+	{
 		return -EINVAL;
 	}
 
-	if (var->xoffset - fbi->var.xoffset) {
+	if (var->xoffset - fbi->var.xoffset)
+	{
 		/* No support for X panning for now! */
 		return -EINVAL;
 	}
 
 	print_dbg("fb_pan_display 2 %p %p", var, fbi);
 	dy = var->yoffset - fbi->var.yoffset;
-	if (dy) {
+
+	if (dy)
+	{
 
 		u32 dmaaddr;
 
@@ -323,12 +362,14 @@ int au1100fb_fb_pan_display(struct fb_var_screeninfo *var, struct fb_info *fbi)
 		/* TODO: Wait for current frame to finished */
 		fbdev->regs->lcd_dmaaddr0 = LCD_DMA_SA_N(dmaaddr);
 
-		if (panel_is_dual(fbdev->panel)) {
+		if (panel_is_dual(fbdev->panel))
+		{
 			dmaaddr = fbdev->regs->lcd_dmaaddr1;
 			dmaaddr += (fbi->fix.line_length * dy);
 			fbdev->regs->lcd_dmaaddr0 = LCD_DMA_SA_N(dmaaddr);
+		}
 	}
-	}
+
 	print_dbg("fb_pan_display 3 %p %p", var, fbi);
 
 	return 0;
@@ -370,37 +411,52 @@ static int au1100fb_setup(struct au1100fb_device *fbdev)
 	char *this_opt, *options;
 	int num_panels = ARRAY_SIZE(known_lcd_panels);
 
-	if (num_panels <= 0) {
+	if (num_panels <= 0)
+	{
 		print_err("No LCD panels supported by driver!");
 		return -ENODEV;
 	}
 
 	if (fb_get_options(DRIVER_NAME, &options))
+	{
 		return -ENODEV;
-	if (!options)
-		return -ENODEV;
+	}
 
-	while ((this_opt = strsep(&options, ",")) != NULL) {
+	if (!options)
+	{
+		return -ENODEV;
+	}
+
+	while ((this_opt = strsep(&options, ",")) != NULL)
+	{
 		/* Panel option */
-		if (!strncmp(this_opt, "panel:", 6)) {
+		if (!strncmp(this_opt, "panel:", 6))
+		{
 			int i;
 			this_opt += 6;
-			for (i = 0; i < num_panels; i++) {
+
+			for (i = 0; i < num_panels; i++)
+			{
 				if (!strncmp(this_opt, known_lcd_panels[i].name,
-					     strlen(this_opt))) {
+							 strlen(this_opt)))
+				{
 					fbdev->panel = &known_lcd_panels[i];
 					fbdev->panel_idx = i;
 					break;
 				}
 			}
-			if (i >= num_panels) {
+
+			if (i >= num_panels)
+			{
 				print_warn("Panel '%s' not supported!", this_opt);
 				return -ENODEV;
 			}
 		}
 		/* Unsupported option */
 		else
+		{
 			print_warn("Unsupported option \"%s\"", this_opt);
+		}
 	}
 
 	print_info("Panel=%s", fbdev->panel->name);
@@ -417,20 +473,26 @@ static int au1100fb_drv_probe(struct platform_device *dev)
 
 	/* Allocate new device private */
 	fbdev = devm_kzalloc(&dev->dev, sizeof(struct au1100fb_device),
-			     GFP_KERNEL);
-	if (!fbdev) {
+						 GFP_KERNEL);
+
+	if (!fbdev)
+	{
 		print_err("fail to allocate device private record");
 		return -ENOMEM;
 	}
 
 	if (au1100fb_setup(fbdev))
+	{
 		goto failed;
+	}
 
 	platform_set_drvdata(dev, (void *)fbdev);
 
 	/* Allocate region for our registers and map them */
 	regs_res = platform_get_resource(dev, IORESOURCE_MEM, 0);
-	if (!regs_res) {
+
+	if (!regs_res)
+	{
 		print_err("fail to retrieve registers resource");
 		return -EFAULT;
 	}
@@ -439,21 +501,24 @@ static int au1100fb_drv_probe(struct platform_device *dev)
 	au1100fb_fix.mmio_len = resource_size(regs_res);
 
 	if (!devm_request_mem_region(&dev->dev,
-				     au1100fb_fix.mmio_start,
-				     au1100fb_fix.mmio_len,
-				     DRIVER_NAME)) {
+								 au1100fb_fix.mmio_start,
+								 au1100fb_fix.mmio_len,
+								 DRIVER_NAME))
+	{
 		print_err("fail to lock memory region at 0x%08lx",
-				au1100fb_fix.mmio_start);
+				  au1100fb_fix.mmio_start);
 		return -EBUSY;
 	}
 
-	fbdev->regs = (struct au1100fb_regs*)KSEG1ADDR(au1100fb_fix.mmio_start);
+	fbdev->regs = (struct au1100fb_regs *)KSEG1ADDR(au1100fb_fix.mmio_start);
 
 	print_dbg("Register memory map at %p", fbdev->regs);
 	print_dbg("phys=0x%08x, size=%d", fbdev->regs_phys, fbdev->regs_len);
 
 	c = clk_get(NULL, "lcd_intclk");
-	if (!IS_ERR(c)) {
+
+	if (!IS_ERR(c))
+	{
 		fbdev->lcdclk = c;
 		clk_set_rate(c, 48000000);
 		clk_prepare_enable(c);
@@ -461,14 +526,16 @@ static int au1100fb_drv_probe(struct platform_device *dev)
 
 	/* Allocate the framebuffer to the maximum screen size * nbr of video buffers */
 	fbdev->fb_len = fbdev->panel->xres * fbdev->panel->yres *
-		  	(fbdev->panel->bpp >> 3) * AU1100FB_NBR_VIDEO_BUFFERS;
+					(fbdev->panel->bpp >> 3) * AU1100FB_NBR_VIDEO_BUFFERS;
 
 	fbdev->fb_mem = dmam_alloc_coherent(&dev->dev,
-					    PAGE_ALIGN(fbdev->fb_len),
-					    &fbdev->fb_phys, GFP_KERNEL);
-	if (!fbdev->fb_mem) {
+										PAGE_ALIGN(fbdev->fb_len),
+										&fbdev->fb_phys, GFP_KERNEL);
+
+	if (!fbdev->fb_mem)
+	{
 		print_err("fail to allocate frambuffer (size: %dK))",
-			  fbdev->fb_len / 1024);
+				  fbdev->fb_len / 1024);
 		return -ENOMEM;
 	}
 
@@ -480,8 +547,9 @@ static int au1100fb_drv_probe(struct platform_device *dev)
 	 * since we'll be remapping normal memory.
 	 */
 	for (page = (unsigned long)fbdev->fb_mem;
-	     page < PAGE_ALIGN((unsigned long)fbdev->fb_mem + fbdev->fb_len);
-	     page += PAGE_SIZE) {
+		 page < PAGE_ALIGN((unsigned long)fbdev->fb_mem + fbdev->fb_len);
+		 page += PAGE_SIZE)
+	{
 #ifdef CONFIG_DMA_NONCOHERENT
 		SetPageReserved(virt_to_page(CAC_ADDR((void *)page)));
 #else
@@ -505,12 +573,16 @@ static int au1100fb_drv_probe(struct platform_device *dev)
 
 	fbdev->info.pseudo_palette =
 		devm_kzalloc(&dev->dev, sizeof(u32) * 16, GFP_KERNEL);
-	if (!fbdev->info.pseudo_palette)
-		return -ENOMEM;
 
-	if (fb_alloc_cmap(&fbdev->info.cmap, AU1100_LCD_NBR_PALETTE_ENTRIES, 0) < 0) {
+	if (!fbdev->info.pseudo_palette)
+	{
+		return -ENOMEM;
+	}
+
+	if (fb_alloc_cmap(&fbdev->info.cmap, AU1100_LCD_NBR_PALETTE_ENTRIES, 0) < 0)
+	{
 		print_err("Fail to allocate colormap (%d entries)",
-			   AU1100_LCD_NBR_PALETTE_ENTRIES);
+				  AU1100_LCD_NBR_PALETTE_ENTRIES);
 		return -EFAULT;
 	}
 
@@ -520,7 +592,8 @@ static int au1100fb_drv_probe(struct platform_device *dev)
 	au1100fb_setmode(fbdev);
 
 	/* Register new framebuffer */
-	if (register_framebuffer(&fbdev->info) < 0) {
+	if (register_framebuffer(&fbdev->info) < 0)
+	{
 		print_err("cannot register new framebuffer");
 		goto failed;
 	}
@@ -528,15 +601,21 @@ static int au1100fb_drv_probe(struct platform_device *dev)
 	return 0;
 
 failed:
-	if (fbdev->lcdclk) {
+
+	if (fbdev->lcdclk)
+	{
 		clk_disable_unprepare(fbdev->lcdclk);
 		clk_put(fbdev->lcdclk);
 	}
-	if (fbdev->fb_mem) {
+
+	if (fbdev->fb_mem)
+	{
 		dma_free_noncoherent(&dev->dev, fbdev->fb_len, fbdev->fb_mem,
-				     fbdev->fb_phys);
+							 fbdev->fb_phys);
 	}
-	if (fbdev->info.cmap.len != 0) {
+
+	if (fbdev->info.cmap.len != 0)
+	{
 		fb_dealloc_cmap(&fbdev->info.cmap);
 	}
 
@@ -548,7 +627,9 @@ int au1100fb_drv_remove(struct platform_device *dev)
 	struct au1100fb_device *fbdev = NULL;
 
 	if (!dev)
+	{
 		return -ENODEV;
+	}
 
 	fbdev = platform_get_drvdata(dev);
 
@@ -562,7 +643,8 @@ int au1100fb_drv_remove(struct platform_device *dev)
 
 	fb_dealloc_cmap(&fbdev->info.cmap);
 
-	if (fbdev->lcdclk) {
+	if (fbdev->lcdclk)
+	{
 		clk_disable_unprepare(fbdev->lcdclk);
 		clk_put(fbdev->lcdclk);
 	}
@@ -578,13 +660,17 @@ int au1100fb_drv_suspend(struct platform_device *dev, pm_message_t state)
 	struct au1100fb_device *fbdev = platform_get_drvdata(dev);
 
 	if (!fbdev)
+	{
 		return 0;
+	}
 
 	/* Blank the LCD */
 	au1100fb_fb_blank(VESA_POWERDOWN, &fbdev->info);
 
 	if (fbdev->lcdclk)
+	{
 		clk_disable(fbdev->lcdclk);
+	}
 
 	memcpy(&fbregs, fbdev->regs, sizeof(struct au1100fb_regs));
 
@@ -596,12 +682,16 @@ int au1100fb_drv_resume(struct platform_device *dev)
 	struct au1100fb_device *fbdev = platform_get_drvdata(dev);
 
 	if (!fbdev)
+	{
 		return 0;
+	}
 
 	memcpy(fbdev->regs, &fbregs, sizeof(struct au1100fb_regs));
 
 	if (fbdev->lcdclk)
+	{
 		clk_enable(fbdev->lcdclk);
+	}
 
 	/* Unblank the LCD */
 	au1100fb_fb_blank(VESA_NO_BLANKING, &fbdev->info);
@@ -613,14 +703,15 @@ int au1100fb_drv_resume(struct platform_device *dev)
 #define au1100fb_drv_resume NULL
 #endif
 
-static struct platform_driver au1100fb_driver = {
+static struct platform_driver au1100fb_driver =
+{
 	.driver = {
 		.name		= "au1100-lcd",
 	},
 	.probe		= au1100fb_drv_probe,
-        .remove		= au1100fb_drv_remove,
+	.remove		= au1100fb_drv_remove,
 	.suspend	= au1100fb_drv_suspend,
-        .resume		= au1100fb_drv_resume,
+	.resume		= au1100fb_drv_resume,
 };
 module_platform_driver(au1100fb_driver);
 

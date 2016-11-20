@@ -30,7 +30,8 @@ void flush_cpu_work(void);
 /* CPU buffer is composed of such entries (which are
  * also used for context switch notes)
  */
-struct op_sample {
+struct op_sample
+{
 	unsigned long eip;
 	unsigned long event;
 	unsigned long data[0];
@@ -38,7 +39,8 @@ struct op_sample {
 
 struct op_entry;
 
-struct oprofile_cpu_buffer {
+struct oprofile_cpu_buffer
+{
 	unsigned long buffer_size;
 	struct task_struct *last_task;
 	int last_is_kernel;
@@ -85,7 +87,10 @@ static inline
 int op_cpu_buffer_add_data(struct op_entry *entry, unsigned long val)
 {
 	if (!entry->size)
+	{
 		return 0;
+	}
+
 	*entry->data = val;
 	entry->size--;
 	entry->data++;
@@ -104,8 +109,12 @@ static inline
 int op_cpu_buffer_get_data(struct op_entry *entry, unsigned long *val)
 {
 	int size = entry->size;
+
 	if (!size)
+	{
 		return 0;
+	}
+
 	*val = *entry->data;
 	entry->size--;
 	entry->data++;

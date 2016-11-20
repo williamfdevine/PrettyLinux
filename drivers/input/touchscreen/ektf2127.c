@@ -44,20 +44,22 @@
 #define EKTF2127_TOUCH_REPORT_SIZE	21
 #define EKTF2127_MAX_TOUCHES		5
 
-struct ektf2127_ts {
+struct ektf2127_ts
+{
 	struct i2c_client *client;
 	struct input_dev *input;
 	struct gpio_desc *power_gpios;
 	struct touchscreen_properties prop;
 };
 
-static void ektf2127_parse_coordinates(const u8* buf, unsigned int touch_count,
-				       struct input_mt_pos *touches)
+static void ektf2127_parse_coordinates(const u8 *buf, unsigned int touch_count,
+									   struct input_mt_pos *touches)
 {
 	int index = 0;
 	int i;
 
-	for (i = 0; i < touch_count; i++) {
+	for (i = 0; i < touch_count; i++)
+	{
 		index = 2 + i * 3;
 
 		touches[i].x = (buf[index] & 0x0f);
@@ -77,22 +79,25 @@ static void ektf2127_report_event(struct ektf2127_ts *ts, const u8 *buf)
 	unsigned int touch_count, i;
 
 	touch_count = buf[1] & 0x07;
-	if (touch_count > EKTF2127_MAX_TOUCHES) {
+
+	if (touch_count > EKTF2127_MAX_TOUCHES)
+	{
 		dev_err(&ts->client->dev,
-			"Too many touches %d > %d\n",
-			touch_count, EKTF2127_MAX_TOUCHES);
+				"Too many touches %d > %d\n",
+				touch_count, EKTF2127_MAX_TOUCHES);
 		touch_count = EKTF2127_MAX_TOUCHES;
 	}
 
 	ektf2127_parse_coordinates(buf, touch_count, touches);
 	input_mt_assign_slots(ts->input, slots, touches,
-			      touch_count, 0);
+						  touch_count, 0);
 
-	for (i = 0; i < touch_count; i++) {
+	for (i = 0; i < touch_count; i++)
+	{
 		input_mt_slot(ts->input, slots[i]);
 		input_mt_report_slot_state(ts->input, MT_TOOL_FINGER, true);
 		touchscreen_report_pos(ts->input, &ts->prop,
-				       touches[i].x, touches[i].y, true);
+							   touches[i].x, touches[i].y, true);
 	}
 
 	input_mt_sync_frame(ts->input);
@@ -107,28 +112,34 @@ static irqreturn_t ektf2127_irq(int irq, void *dev_id)
 	int ret;
 
 	ret = i2c_master_recv(ts->client, buf, EKTF2127_TOUCH_REPORT_SIZE);
-	if (ret != EKTF2127_TOUCH_REPORT_SIZE) {
+
+	if (ret != EKTF2127_TOUCH_REPORT_SIZE)
+	{
 		dev_err(dev, "Error reading touch data: %d\n", ret);
 		goto out;
 	}
 
-	switch (buf[0]) {
-	case EKTF2127_REPORT:
-		ektf2127_report_event(ts, buf);
-		break;
+	switch (buf[0])
+	{
+		case EKTF2127_REPORT:
+			ektf2127_report_event(ts, buf);
+			break;
 
-	case EKTF2127_NOISE:
-		if (buf[1] == EKTF2127_ENV_NOISY)
-			dev_dbg(dev, "Environment is electrically noisy\n");
-		break;
+		case EKTF2127_NOISE:
+			if (buf[1] == EKTF2127_ENV_NOISY)
+			{
+				dev_dbg(dev, "Environment is electrically noisy\n");
+			}
 
-	case EKTF2127_HELLO:
-	case EKTF2127_CALIB_DONE:
-		break;
+			break;
 
-	default:
-		dev_err(dev, "Unexpected packet header byte %#02x\n", buf[0]);
-		break;
+		case EKTF2127_HELLO:
+		case EKTF2127_CALIB_DONE:
+			break;
+
+		default:
+			dev_err(dev, "Unexpected packet header byte %#02x\n", buf[0]);
+			break;
 	}
 
 out:
@@ -158,8 +169,12 @@ static int __maybe_unused ektf2127_suspend(struct device *dev)
 	struct ektf2127_ts *ts = i2c_get_clientdata(to_i2c_client(dev));
 
 	mutex_lock(&ts->input->mutex);
+
 	if (ts->input->users)
+	{
 		ektf2127_stop(ts->input);
+	}
+
 	mutex_unlock(&ts->input->mutex);
 
 	return 0;
@@ -170,15 +185,19 @@ static int __maybe_unused ektf2127_resume(struct device *dev)
 	struct ektf2127_ts *ts = i2c_get_clientdata(to_i2c_client(dev));
 
 	mutex_lock(&ts->input->mutex);
+
 	if (ts->input->users)
+	{
 		ektf2127_start(ts->input);
+	}
+
 	mutex_unlock(&ts->input->mutex);
 
 	return 0;
 }
 
 static SIMPLE_DEV_PM_OPS(ektf2127_pm_ops, ektf2127_suspend,
-			 ektf2127_resume);
+						 ektf2127_resume);
 
 static int ektf2127_query_dimension(struct i2c_client *client, bool width)
 {
@@ -195,7 +214,9 @@ static int ektf2127_query_dimension(struct i2c_client *client, bool width)
 	buf[2] = 0x00;
 	buf[3] = 0x00;
 	ret = i2c_master_send(client, buf, sizeof(buf));
-	if (ret != sizeof(buf)) {
+
+	if (ret != sizeof(buf))
+	{
 		error = ret < 0 ? ret : -EIO;
 		dev_err(dev, "Failed to request %s: %d\n", what, error);
 		return error;
@@ -205,15 +226,18 @@ static int ektf2127_query_dimension(struct i2c_client *client, bool width)
 
 	/* Read response */
 	ret = i2c_master_recv(client, buf, sizeof(buf));
-	if (ret != sizeof(buf)) {
+
+	if (ret != sizeof(buf))
+	{
 		error = ret < 0 ? ret : -EIO;
 		dev_err(dev, "Failed to receive %s data: %d\n", what, error);
 		return error;
 	}
 
-	if (buf[0] != EKTF2127_RESPONSE || buf[1] != what_code) {
+	if (buf[0] != EKTF2127_RESPONSE || buf[1] != what_code)
+	{
 		dev_err(dev, "Unexpected %s data: %#02x %#02x\n",
-			what, buf[0], buf[1]);
+				what, buf[0], buf[1]);
 		return -EIO;
 	}
 
@@ -221,7 +245,7 @@ static int ektf2127_query_dimension(struct i2c_client *client, bool width)
 }
 
 static int ektf2127_probe(struct i2c_client *client,
-			  const struct i2c_device_id *id)
+						  const struct i2c_device_id *id)
 {
 	struct device *dev = &client->dev;
 	struct ektf2127_ts *ts;
@@ -230,27 +254,40 @@ static int ektf2127_probe(struct i2c_client *client,
 	int max_x, max_y;
 	int error;
 
-	if (!client->irq) {
+	if (!client->irq)
+	{
 		dev_err(dev, "Error no irq specified\n");
 		return -EINVAL;
 	}
 
 	ts = devm_kzalloc(dev, sizeof(*ts), GFP_KERNEL);
+
 	if (!ts)
+	{
 		return -ENOMEM;
+	}
 
 	/* This requests the gpio *and* turns on the touchscreen controller */
 	ts->power_gpios = devm_gpiod_get(dev, "power", GPIOD_OUT_HIGH);
-	if (IS_ERR(ts->power_gpios)) {
+
+	if (IS_ERR(ts->power_gpios))
+	{
 		error = PTR_ERR(ts->power_gpios);
+
 		if (error != -EPROBE_DEFER)
+		{
 			dev_err(dev, "Error getting power gpio: %d\n", error);
+		}
+
 		return error;
 	}
 
 	input = devm_input_allocate_device(dev);
+
 	if (!input)
+	{
 		return -ENOMEM;
+	}
 
 	input->name = client->name;
 	input->id.bustype = BUS_I2C;
@@ -265,31 +302,42 @@ static int ektf2127_probe(struct i2c_client *client,
 
 	/* Read resolution from chip */
 	max_x = ektf2127_query_dimension(client, true);
+
 	if (max_x < 0)
+	{
 		return max_x;
+	}
 
 	max_y = ektf2127_query_dimension(client, false);
+
 	if (max_y < 0)
+	{
 		return max_y;
+	}
 
 	input_set_abs_params(input, ABS_MT_POSITION_X, 0, max_x, 0, 0);
 	input_set_abs_params(input, ABS_MT_POSITION_Y, 0, max_y, 0, 0);
 	touchscreen_parse_properties(input, true, &ts->prop);
 
 	error = input_mt_init_slots(input, EKTF2127_MAX_TOUCHES,
-				    INPUT_MT_DIRECT |
-					INPUT_MT_DROP_UNUSED |
-					INPUT_MT_TRACK);
+								INPUT_MT_DIRECT |
+								INPUT_MT_DROP_UNUSED |
+								INPUT_MT_TRACK);
+
 	if (error)
+	{
 		return error;
+	}
 
 	ts->input = input;
 	input_set_drvdata(input, ts);
 
 	error = devm_request_threaded_irq(dev, client->irq,
-					  NULL, ektf2127_irq,
-					  IRQF_ONESHOT, client->name, ts);
-	if (error) {
+									  NULL, ektf2127_irq,
+									  IRQF_ONESHOT, client->name, ts);
+
+	if (error)
+	{
 		dev_err(dev, "Error requesting irq: %d\n", error);
 		return error;
 	}
@@ -298,8 +346,11 @@ static int ektf2127_probe(struct i2c_client *client,
 	ektf2127_stop(ts->input);
 
 	error = input_register_device(input);
+
 	if (error)
+	{
 		return error;
+	}
 
 	i2c_set_clientdata(client, ts);
 
@@ -307,20 +358,23 @@ static int ektf2127_probe(struct i2c_client *client,
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id ektf2127_of_match[] = {
+static const struct of_device_id ektf2127_of_match[] =
+{
 	{ .compatible = "elan,ektf2127" },
 	{}
 };
 MODULE_DEVICE_TABLE(of, ektf2127_of_match);
 #endif
 
-static const struct i2c_device_id ektf2127_i2c_id[] = {
+static const struct i2c_device_id ektf2127_i2c_id[] =
+{
 	{ "ektf2127", 0 },
 	{}
 };
 MODULE_DEVICE_TABLE(i2c, ektf2127_i2c_id);
 
-static struct i2c_driver ektf2127_driver = {
+static struct i2c_driver ektf2127_driver =
+{
 	.driver = {
 		.name	= "elan_ektf2127",
 		.pm	= &ektf2127_pm_ops,

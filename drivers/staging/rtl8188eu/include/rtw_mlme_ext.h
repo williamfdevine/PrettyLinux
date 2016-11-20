@@ -105,7 +105,8 @@ extern unsigned char WMM_PARA_OUI[];
 /*	If you just want to customize the actions(scan period or join actions)
  *      about one of the channel plan, */
 /*	customize them in struct rt_channel_info in the RT_CHANNEL_LIST. */
-enum RT_CHANNEL_DOMAIN {
+enum RT_CHANNEL_DOMAIN
+{
 	/*  old channel plan mapping =====  */
 	RT_CHANNEL_DOMAIN_FCC = 0x00,
 	RT_CHANNEL_DOMAIN_IC = 0x01,
@@ -157,7 +158,8 @@ enum RT_CHANNEL_DOMAIN {
 	RT_CHANNEL_DOMAIN_REALTEK_DEFINE = 0x7F,
 };
 
-enum RT_CHANNEL_DOMAIN_2G {
+enum RT_CHANNEL_DOMAIN_2G
+{
 	RT_CHANNEL_DOMAIN_2G_WORLD = 0x00,		/* Worldwide 13 */
 	RT_CHANNEL_DOMAIN_2G_ETSI1 = 0x01,		/* Europe */
 	RT_CHANNEL_DOMAIN_2G_FCC1 = 0x02,		/* US */
@@ -172,29 +174,35 @@ enum RT_CHANNEL_DOMAIN_2G {
 	(chplan < RT_CHANNEL_DOMAIN_MAX ||			\
 	 chplan == RT_CHANNEL_DOMAIN_REALTEK_DEFINE)
 
-struct rt_channel_plan {
+struct rt_channel_plan
+{
 	unsigned char	Channel[MAX_CHANNEL_NUM];
 	unsigned char	Len;
 };
 
-struct rt_channel_plan_2g {
+struct rt_channel_plan_2g
+{
 	unsigned char	Channel[MAX_CHANNEL_NUM_2G];
 	unsigned char	Len;
 };
 
-struct rt_channel_plan_map {
+struct rt_channel_plan_map
+{
 	unsigned char	Index2G;
 };
 
-static const struct {
+static const struct
+{
 	int channel_plan;
 	char *name;
 } channel_table[] = { { RT_CHANNEL_DOMAIN_FCC, "US" },
 	{ RT_CHANNEL_DOMAIN_ETSI, "EU" },
 	{ RT_CHANNEL_DOMAIN_MKK, "JP" },
-	{ RT_CHANNEL_DOMAIN_CHINA, "CN"} };
+	{ RT_CHANNEL_DOMAIN_CHINA, "CN"}
+};
 
-enum Associated_AP {
+enum Associated_AP
+{
 	atherosAP	= 0,
 	broadcomAP	= 1,
 	ciscoAP		= 2,
@@ -206,7 +214,8 @@ enum Associated_AP {
 	maxAP,
 };
 
-enum HT_IOT_PEER {
+enum HT_IOT_PEER
+{
 	HT_IOT_PEER_UNKNOWN		= 0,
 	HT_IOT_PEER_REALTEK		= 1,
 	HT_IOT_PEER_REALTEK_92SE	= 2,
@@ -227,7 +236,8 @@ enum HT_IOT_PEER {
 	HT_IOT_PEER_MAX			= 17
 };
 
-enum SCAN_STATE {
+enum SCAN_STATE
+{
 	SCAN_DISABLE = 0,
 	SCAN_START = 1,
 	SCAN_TXNULL = 2,
@@ -236,19 +246,22 @@ enum SCAN_STATE {
 	SCAN_STATE_MAX,
 };
 
-struct mlme_handler {
+struct mlme_handler
+{
 	unsigned int   num;
 	char *str;
 	unsigned int (*func)(struct adapter *adapt, struct recv_frame *frame);
 };
 
-struct action_handler {
+struct action_handler
+{
 	unsigned int   num;
 	char *str;
 	unsigned int (*func)(struct adapter *adapt, struct recv_frame *frame);
 };
 
-struct	ss_res {
+struct	ss_res
+{
 	int	state;
 	int	bss_cnt;
 	int	channel_idx;
@@ -277,11 +290,12 @@ struct	ss_res {
 #define	WIFI_FW_ASSOC_SUCCESS		0x00004000
 
 #define	WIFI_FW_LINKING_STATE		(WIFI_FW_AUTH_NULL |		\
-					WIFI_FW_AUTH_STATE |		\
-					WIFI_FW_AUTH_SUCCESS |		\
-					WIFI_FW_ASSOC_STATE)
+									 WIFI_FW_AUTH_STATE |		\
+									 WIFI_FW_AUTH_SUCCESS |		\
+									 WIFI_FW_ASSOC_STATE)
 
-struct FW_Sta_Info {
+struct FW_Sta_Info
+{
 	struct sta_info	*psta;
 	u32	status;
 	u32	rx_pkt;
@@ -309,7 +323,8 @@ struct FW_Sta_Info {
  * 5. ... and so on, till survey done.
  */
 
-struct mlme_ext_info {
+struct mlme_ext_info
+{
 	u32	state;
 	u32	reauth_count;
 	u32	reassoc_count;
@@ -359,7 +374,8 @@ struct mlme_ext_info {
 
 /*  The channel information about this channel including joining,
  *  scanning, and power constraints. */
-struct rt_channel_info {
+struct rt_channel_info
+{
 	u8	ChannelNum;	/*  The channel number. */
 	enum rt_scan_type ScanType;	/*  Scan type such as passive
 					 *  or active scan. */
@@ -375,9 +391,11 @@ int rtw_ch_set_search_ch(struct rt_channel_info *ch_set, const u32 ch);
 #define P2P_MAX_REG_CLASS_CHANNELS 20
 
 /*   struct p2p_channels - List of supported channels */
-struct p2p_channels {
+struct p2p_channels
+{
 	/*  struct p2p_reg_class - Supported regulatory class */
-	struct p2p_reg_class {
+	struct p2p_reg_class
+	{
 		/*  reg_class - Regulatory class (IEEE 802.11-2007, Annex J) */
 		u8 reg_class;
 
@@ -392,7 +410,8 @@ struct p2p_channels {
 	size_t reg_classes;
 };
 
-struct p2p_oper_class_map {
+struct p2p_oper_class_map
+{
 	enum hw_mode {IEEE80211G} mode;
 	u8 op_class;
 	u8 min_chan;
@@ -401,7 +420,8 @@ struct p2p_oper_class_map {
 	enum {BW20, BW40PLUS, BW40MINUS} bw;
 };
 
-struct mlme_ext_priv {
+struct mlme_ext_priv
+{
 	struct adapter	*padapter;
 	u8	mlmeext_init;
 	atomic_t	event_seq;
@@ -476,10 +496,10 @@ u8 rtw_get_oper_choffset(struct adapter *adapter);
 void rtw_set_oper_choffset(struct adapter *adapter, u8 offset);
 
 void set_channel_bwmode(struct adapter *padapter, unsigned char channel,
-			unsigned char channel_offset, unsigned short bwmode);
+						unsigned char channel_offset, unsigned short bwmode);
 void SelectChannel(struct adapter *padapter, unsigned char channel);
 void SetBWMode(struct adapter *padapter, unsigned short bwmode,
-	       unsigned char channel_offset);
+			   unsigned char channel_offset);
 
 unsigned int decide_wait_for_beacon_timeout(unsigned int bcn_interval);
 
@@ -493,7 +513,7 @@ int allocate_fw_sta_entry(struct adapter *padapter);
 void flush_all_cam_entry(struct adapter *padapter);
 
 void update_network(struct wlan_bssid_ex *dst, struct wlan_bssid_ex *src,
-		    struct adapter *adapter, bool update_ie);
+					struct adapter *adapter, bool update_ie);
 
 int get_bsstype(unsigned short capability);
 u16 get_beacon_interval(struct wlan_bssid_ex *bss);
@@ -515,7 +535,7 @@ void ERP_IE_handler(struct adapter *padapter, struct ndis_802_11_var_ie *pIE);
 void VCS_update(struct adapter *padapter, struct sta_info *psta);
 
 void update_beacon_info(struct adapter *padapter, u8 *pframe, uint len,
-			struct sta_info *psta);
+						struct sta_info *psta);
 int rtw_check_bcn_info(struct adapter  *Adapter, u8 *pframe, u32 packet_len);
 void update_IOT_info(struct adapter *padapter);
 void update_capinfo(struct adapter *adapter, u16 updatecap);
@@ -523,7 +543,7 @@ void update_wireless_mode(struct adapter *padapter);
 void update_tx_basic_rate(struct adapter *padapter, u8 modulation);
 void update_bmc_sta_support_rate(struct adapter *padapter, u32 mac_id);
 int update_sta_support_rate(struct adapter *padapter, u8 *pvar_ie,
-			    uint var_ie_len, int cam_idx);
+							uint var_ie_len, int cam_idx);
 
 /* for sta/adhoc mode */
 void update_sta_info(struct adapter *padapter, struct sta_info *psta);
@@ -541,34 +561,34 @@ unsigned int should_forbid_n_rate(struct adapter *padapter);
 
 void report_join_res(struct adapter *padapter, int res);
 void report_survey_event(struct adapter *padapter,
-			 struct recv_frame *precv_frame);
+						 struct recv_frame *precv_frame);
 void report_surveydone_event(struct adapter *padapter);
 void report_del_sta_event(struct adapter *padapter,
-			  unsigned char *addr, unsigned short reason);
+						  unsigned char *addr, unsigned short reason);
 void report_add_sta_event(struct adapter *padapter, unsigned char *addr,
-			  int cam_idx);
+						  int cam_idx);
 
 void beacon_timing_control(struct adapter *padapter);
 u8 set_tx_beacon_cmd(struct adapter *padapter);
 unsigned int setup_beacon_frame(struct adapter *padapter,
-				unsigned char *beacon_frame);
+								unsigned char *beacon_frame);
 void update_mgnt_tx_rate(struct adapter *padapter, u8 rate);
 void update_mgntframe_attrib(struct adapter *padapter,
-			     struct pkt_attrib *pattrib);
+							 struct pkt_attrib *pattrib);
 
 int issue_nulldata(struct adapter *padapter, unsigned char *da,
-		   unsigned int power_mode, int try_cnt, int wait_ms);
+				   unsigned int power_mode, int try_cnt, int wait_ms);
 int issue_qos_nulldata(struct adapter *padapter, unsigned char *da,
-		       u16 tid, int try_cnt, int wait_ms);
+					   u16 tid, int try_cnt, int wait_ms);
 int issue_deauth(struct adapter *padapter, unsigned char *da,
-		 unsigned short reason);
+				 unsigned short reason);
 unsigned int send_delba(struct adapter *padapter, u8 initiator, u8 *addr);
 unsigned int send_beacon(struct adapter *padapter);
 
 void mlmeext_joinbss_event_callback(struct adapter *padapter, int join_res);
 void mlmeext_sta_del_event_callback(struct adapter *padapter);
 void mlmeext_sta_add_event_callback(struct adapter *padapter,
-				    struct sta_info *psta);
+									struct sta_info *psta);
 
 void linked_status_chk(struct adapter *padapter);
 
@@ -578,11 +598,11 @@ void addba_timer_hdl(unsigned long data);
 
 #define set_survey_timer(mlmeext, ms) \
 	mod_timer(&mlmeext->survey_timer, jiffies +	\
-		  msecs_to_jiffies(ms))
+			  msecs_to_jiffies(ms))
 
 #define set_link_timer(mlmeext, ms) \
 	mod_timer(&mlmeext->link_timer, jiffies +	\
-		  msecs_to_jiffies(ms))
+			  msecs_to_jiffies(ms))
 
 int cckrates_included(unsigned char *rate, int ratelen);
 int cckratesonly_included(unsigned char *rate, int ratelen);
@@ -592,7 +612,8 @@ void process_addba_req(struct adapter *padapter, u8 *paddba_req, u8 *addr);
 void update_TSF(struct mlme_ext_priv *pmlmeext, u8 *pframe, uint len);
 void correct_TSF(struct adapter *padapter, struct mlme_ext_priv *pmlmeext);
 
-struct cmd_hdl {
+struct cmd_hdl
+{
 	uint	parmsize;
 	u8 (*h2cfuns)(struct adapter  *padapter, u8 *pbuf);
 };
@@ -627,7 +648,8 @@ u8 tdls_hdl(struct adapter *padapter, unsigned char *pbuf);
 
 #ifdef _RTW_CMD_C_
 
-static struct cmd_hdl wlancmds[] = {
+static struct cmd_hdl wlancmds[] =
+{
 	{sizeof(struct wlan_bssid_ex), join_cmd_hdl},
 	{sizeof(struct disconnect_parm), disconnect_hdl},
 	{sizeof(struct wlan_bssid_ex), createbss_hdl},
@@ -647,15 +669,16 @@ static struct cmd_hdl wlancmds[] = {
 
 #endif
 
-struct C2HEvent_Header {
+struct C2HEvent_Header
+{
 #ifdef __LITTLE_ENDIAN
-	unsigned int len:16;
-	unsigned int ID:8;
-	unsigned int seq:8;
+	unsigned int len: 16;
+	unsigned int ID: 8;
+	unsigned int seq: 8;
 #elif defined(__BIG_ENDIAN)
-	unsigned int seq:8;
-	unsigned int ID:8;
-	unsigned int len:16;
+	unsigned int seq: 8;
+	unsigned int ID: 8;
+	unsigned int len: 16;
 #endif
 	unsigned int rsvd;
 };
@@ -663,7 +686,8 @@ struct C2HEvent_Header {
 void rtw_dummy_event_callback(struct adapter *adapter, u8 *pbuf);
 void rtw_fwdbg_event_callback(struct adapter *adapter, u8 *pbuf);
 
-enum rtw_c2h_event {
+enum rtw_c2h_event
+{
 	_Read_MACREG_EVT_ = 0, /*0*/
 	_Read_BBREG_EVT_,
 	_Read_RFREG_EVT_,
@@ -697,7 +721,8 @@ enum rtw_c2h_event {
 
 #ifdef _RTW_MLME_EXT_C_
 
-static struct fwevent wlanevents[] = {
+static struct fwevent wlanevents[] =
+{
 	{0, rtw_dummy_event_callback},	/*0*/
 	{0, NULL},
 	{0, NULL},

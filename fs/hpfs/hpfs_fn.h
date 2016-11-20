@@ -9,7 +9,7 @@
 //#define DBG
 //#define DEBUG_LOCKS
 #ifdef pr_fmt
-#undef pr_fmt
+	#undef pr_fmt
 #endif
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
@@ -43,7 +43,8 @@
 
 #define CHKCOND(x,y) if (!(x)) printk y
 
-struct hpfs_inode_info {
+struct hpfs_inode_info
+{
 	loff_t mmu_private;
 	ino_t i_parent_dir;	/* (directories) gives fnode of parent dir */
 	unsigned i_dno;		/* (directories) root dnode */
@@ -61,7 +62,8 @@ struct hpfs_inode_info {
 	struct inode vfs_inode;
 };
 
-struct hpfs_sb_info {
+struct hpfs_sb_info
+{
 	struct mutex hpfs_mutex;	/* global hpfs lock */
 	ino_t sb_root;			/* inode number of root dir */
 	unsigned sb_fs_size;		/* file system size, sectors */
@@ -81,8 +83,8 @@ struct hpfs_sb_info {
 	unsigned sb_was_error : 1;	/* there was an error, set dirty flag */
 	unsigned sb_chkdsk : 2;		/* chkdsk: 0-no, 1-on errs, 2-allways */
 	unsigned char *sb_cp_table;	/* code page tables: */
-					/* 	128 bytes uppercasing table & */
-					/*	128 bytes lowercasing table */
+	/* 	128 bytes uppercasing table & */
+	/*	128 bytes lowercasing table */
 	__le32 *sb_bmp_dir;		/* main bitmap directory */
 	unsigned sb_c_bitmap;		/* current bitmap */
 	unsigned sb_max_fwd_alloc;	/* max forwad allocation */
@@ -96,7 +98,8 @@ struct hpfs_sb_info {
 
 /* Four 512-byte buffers and the 2k block obtained by concatenating them */
 
-struct quad_buffer_head {
+struct quad_buffer_head
+{
 	struct buffer_head *bh[4];
 	void *data;
 };
@@ -105,31 +108,34 @@ struct quad_buffer_head {
 
 static inline dnode_secno de_down_pointer (struct hpfs_dirent *de)
 {
-  CHKCOND(de->down,("HPFS: de_down_pointer: !de->down\n"));
-  return le32_to_cpu(*(__le32 *) ((void *) de + le16_to_cpu(de->length) - 4));
+	CHKCOND(de->down, ("HPFS: de_down_pointer: !de->down\n"));
+	return le32_to_cpu(*(__le32 *) ((void *) de + le16_to_cpu(de->length) - 4));
 }
 
 /* The first dir entry in a dnode */
 
 static inline struct hpfs_dirent *dnode_first_de (struct dnode *dnode)
 {
-  return (void *) dnode->dirent;
+	return (void *) dnode->dirent;
 }
 
 /* The end+1 of the dir entries */
 
 static inline struct hpfs_dirent *dnode_end_de (struct dnode *dnode)
 {
-  CHKCOND(le32_to_cpu(dnode->first_free)>=0x14 && le32_to_cpu(dnode->first_free)<=0xa00,("HPFS: dnode_end_de: dnode->first_free = %x\n",(unsigned)le32_to_cpu(dnode->first_free)));
-  return (void *) dnode + le32_to_cpu(dnode->first_free);
+	CHKCOND(le32_to_cpu(dnode->first_free) >= 0x14 &&
+			le32_to_cpu(dnode->first_free) <= 0xa00, ("HPFS: dnode_end_de: dnode->first_free = %x\n",
+					(unsigned)le32_to_cpu(dnode->first_free)));
+	return (void *) dnode + le32_to_cpu(dnode->first_free);
 }
 
 /* The dir entry after dir entry de */
 
 static inline struct hpfs_dirent *de_next_de (struct hpfs_dirent *de)
 {
-  CHKCOND(le16_to_cpu(de->length)>=0x20 && le16_to_cpu(de->length)<0x800,("HPFS: de_next_de: de->length = %x\n",(unsigned)le16_to_cpu(de->length)));
-  return (void *) de + le16_to_cpu(de->length);
+	CHKCOND(le16_to_cpu(de->length) >= 0x20 &&
+			le16_to_cpu(de->length) < 0x800, ("HPFS: de_next_de: de->length = %x\n", (unsigned)le16_to_cpu(de->length)));
+	return (void *) de + le16_to_cpu(de->length);
 }
 
 static inline struct extended_attribute *fnode_ea(struct fnode *fnode)
@@ -139,7 +145,8 @@ static inline struct extended_attribute *fnode_ea(struct fnode *fnode)
 
 static inline struct extended_attribute *fnode_end_ea(struct fnode *fnode)
 {
-	return (struct extended_attribute *)((char *)fnode + le16_to_cpu(fnode->ea_offs) + le16_to_cpu(fnode->acl_size_s) + le16_to_cpu(fnode->ea_size_s));
+	return (struct extended_attribute *)((char *)fnode + le16_to_cpu(fnode->ea_offs) + le16_to_cpu(
+			fnode->acl_size_s) + le16_to_cpu(fnode->ea_size_s));
 }
 
 static unsigned ea_valuelen(struct extended_attribute *ea)
@@ -176,7 +183,9 @@ static inline void copy_de(struct hpfs_dirent *dst, struct hpfs_dirent *src)
 {
 	int a;
 	int n;
-	if (!dst || !src) return;
+
+	if (!dst || !src) { return; }
+
 	a = dst->down;
 	n = dst->not_8x3;
 	memcpy((char *)dst + 2, (char *)src + 2, 28);
@@ -187,11 +196,17 @@ static inline void copy_de(struct hpfs_dirent *dst, struct hpfs_dirent *src)
 static inline unsigned tstbits(__le32 *bmp, unsigned b, unsigned n)
 {
 	int i;
-	if ((b >= 0x4000) || (b + n - 1 >= 0x4000)) return n;
-	if (!((le32_to_cpu(bmp[(b & 0x3fff) >> 5]) >> (b & 0x1f)) & 1)) return 1;
+
+	if ((b >= 0x4000) || (b + n - 1 >= 0x4000)) { return n; }
+
+	if (!((le32_to_cpu(bmp[(b & 0x3fff) >> 5]) >> (b & 0x1f)) & 1)) { return 1; }
+
 	for (i = 1; i < n; i++)
-		if (!((le32_to_cpu(bmp[((b+i) & 0x3fff) >> 5]) >> ((b+i) & 0x1f)) & 1))
+		if (!((le32_to_cpu(bmp[((b + i) & 0x3fff) >> 5]) >> ((b + i) & 0x1f)) & 1))
+		{
 			return i + 1;
+		}
+
 	return 0;
 }
 
@@ -245,16 +260,16 @@ extern const struct file_operations hpfs_dir_ops;
 int hpfs_add_pos(struct inode *, loff_t *);
 void hpfs_del_pos(struct inode *, loff_t *);
 struct hpfs_dirent *hpfs_add_de(struct super_block *, struct dnode *,
-				const unsigned char *, unsigned, secno);
+								const unsigned char *, unsigned, secno);
 int hpfs_add_dirent(struct inode *, const unsigned char *, unsigned,
-		    struct hpfs_dirent *);
+					struct hpfs_dirent *);
 int hpfs_remove_dirent(struct inode *, dnode_secno, struct hpfs_dirent *, struct quad_buffer_head *, int);
 void hpfs_count_dnodes(struct super_block *, dnode_secno, int *, int *, int *);
 dnode_secno hpfs_de_as_down_as_possible(struct super_block *, dnode_secno dno);
 struct hpfs_dirent *map_pos_dirent(struct inode *, loff_t *, struct quad_buffer_head *);
 struct hpfs_dirent *map_dirent(struct inode *, dnode_secno,
-			       const unsigned char *, unsigned, dnode_secno *,
-			       struct quad_buffer_head *);
+							   const unsigned char *, unsigned, dnode_secno *,
+							   struct quad_buffer_head *);
 void hpfs_remove_dtree(struct super_block *, dnode_secno);
 struct hpfs_dirent *map_fnode_dirent(struct super_block *, fnode_secno, struct fnode *, struct quad_buffer_head *);
 
@@ -264,7 +279,7 @@ void hpfs_ea_ext_remove(struct super_block *, secno, int, unsigned);
 int hpfs_read_ea(struct super_block *, struct fnode *, char *, char *, int);
 char *hpfs_get_ea(struct super_block *, struct fnode *, char *, int *);
 void hpfs_set_ea(struct inode *, struct fnode *, const char *,
-		 const char *, int);
+				 const char *, int);
 
 /* file.c */
 
@@ -303,7 +318,7 @@ unsigned char hpfs_upcase(unsigned char *, unsigned char);
 int hpfs_chk_name(const unsigned char *, unsigned *);
 unsigned char *hpfs_translate_name(struct super_block *, unsigned char *, unsigned, int, int);
 int hpfs_compare_names(struct super_block *, const unsigned char *, unsigned,
-		       const unsigned char *, unsigned, int);
+					   const unsigned char *, unsigned, int);
 int hpfs_is_name_long(const unsigned char *, unsigned);
 void hpfs_adjust_length(const unsigned char *, unsigned *);
 

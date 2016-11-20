@@ -18,7 +18,8 @@
  * trace_preempt_[on|off] tracepoints hooks is not supported.
  */
 
-struct bpf_map_def SEC("maps") my_map = {
+struct bpf_map_def SEC("maps") my_map =
+{
 	.type = BPF_MAP_TYPE_ARRAY,
 	.key_size = sizeof(int),
 	.value_size = sizeof(u64),
@@ -32,7 +33,9 @@ int bpf_prog1(struct pt_regs *ctx)
 	u64 *ts = bpf_map_lookup_elem(&my_map, &cpu);
 
 	if (ts)
+	{
 		*ts = bpf_ktime_get_ns();
+	}
 
 	return 0;
 }
@@ -56,12 +59,17 @@ static unsigned int log2l(unsigned long v)
 	unsigned int hi = v >> 32;
 
 	if (hi)
+	{
 		return log2(hi) + 32;
+	}
 	else
+	{
 		return log2(v);
+	}
 }
 
-struct bpf_map_def SEC("maps") my_lat = {
+struct bpf_map_def SEC("maps") my_lat =
+{
 	.type = BPF_MAP_TYPE_ARRAY,
 	.key_size = sizeof(int),
 	.value_size = sizeof(long),
@@ -77,19 +85,27 @@ int bpf_prog2(struct pt_regs *ctx)
 
 	cpu = bpf_get_smp_processor_id();
 	ts = bpf_map_lookup_elem(&my_map, &cpu);
+
 	if (!ts)
+	{
 		return 0;
+	}
 
 	cur_ts = bpf_ktime_get_ns();
 	delta = log2l(cur_ts - *ts);
 
 	if (delta > MAX_ENTRIES - 1)
+	{
 		delta = MAX_ENTRIES - 1;
+	}
 
 	key = cpu * MAX_ENTRIES + delta;
 	val = bpf_map_lookup_elem(&my_lat, &key);
+
 	if (val)
+	{
 		__sync_fetch_and_add((long *)val, 1);
+	}
 
 	return 0;
 

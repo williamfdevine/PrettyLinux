@@ -46,7 +46,8 @@
    Eventually all this should be replaced with a proper V4L2 API,
    but for now we have to do it this way. */
 
-struct ivtv_dma_frame {
+struct ivtv_dma_frame
+{
 	enum v4l2_buf_type type; /* V4L2_BUF_TYPE_VIDEO_OUTPUT */
 	__u32 pixelformat;	 /* 0 == same as destination */
 	void __user *y_source;   /* if NULL and type == V4L2_BUF_TYPE_VIDEO_OUTPUT,

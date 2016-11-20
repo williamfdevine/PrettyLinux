@@ -63,12 +63,14 @@
 #define	CHAN0_KEYDOWN_IRQ	BIT(1)
 #define CHAN0_DATA_IRQ		BIT(0)
 
-struct sun4i_lradc_keymap {
+struct sun4i_lradc_keymap
+{
 	u32 voltage;
 	u32 keycode;
 };
 
-struct sun4i_lradc_data {
+struct sun4i_lradc_data
+{
 	struct device *dev;
 	struct input_dev *input;
 	void __iomem *base;
@@ -91,18 +93,23 @@ static irqreturn_t sun4i_lradc_irq(int irq, void *dev_id)
 	 * any info as to which key was released, so we cache the keycode.
 	 */
 
-	if (ints & CHAN0_KEYUP_IRQ) {
+	if (ints & CHAN0_KEYUP_IRQ)
+	{
 		input_report_key(lradc->input, lradc->chan0_keycode, 0);
 		lradc->chan0_keycode = 0;
 	}
 
-	if ((ints & CHAN0_KEYDOWN_IRQ) && lradc->chan0_keycode == 0) {
+	if ((ints & CHAN0_KEYDOWN_IRQ) && lradc->chan0_keycode == 0)
+	{
 		val = readl(lradc->base + LRADC_DATA0) & 0x3f;
 		voltage = val * lradc->vref / 63;
 
-		for (i = 0; i < lradc->chan0_map_count; i++) {
+		for (i = 0; i < lradc->chan0_map_count; i++)
+		{
 			diff = abs(lradc->chan0_map[i].voltage - voltage);
-			if (diff < closest) {
+
+			if (diff < closest)
+			{
 				closest = diff;
 				keycode = lradc->chan0_map[i].keycode;
 			}
@@ -125,8 +132,11 @@ static int sun4i_lradc_open(struct input_dev *dev)
 	int error;
 
 	error = regulator_enable(lradc->vref_supply);
+
 	if (error)
+	{
 		return error;
+	}
 
 	/* lradc Vref internally is divided by 2/3 */
 	lradc->vref = regulator_get_voltage(lradc->vref_supply) * 2 / 3;
@@ -136,7 +146,7 @@ static int sun4i_lradc_open(struct input_dev *dev)
 	 * stabilize on press, wait (1 + 1) * 4 ms for key release
 	 */
 	writel(FIRST_CONVERT_DLY(2) | LEVELA_B_CNT(1) | HOLD_EN(1) |
-		SAMPLE_RATE(0) | ENABLE(1), lradc->base + LRADC_CTRL);
+		   SAMPLE_RATE(0) | ENABLE(1), lradc->base + LRADC_CTRL);
 
 	writel(CHAN0_KEYUP_IRQ | CHAN0_KEYDOWN_IRQ, lradc->base + LRADC_INTC);
 
@@ -149,54 +159,69 @@ static void sun4i_lradc_close(struct input_dev *dev)
 
 	/* Disable lradc, leave other settings unchanged */
 	writel(FIRST_CONVERT_DLY(2) | LEVELA_B_CNT(1) | HOLD_EN(1) |
-		SAMPLE_RATE(2), lradc->base + LRADC_CTRL);
+		   SAMPLE_RATE(2), lradc->base + LRADC_CTRL);
 	writel(0, lradc->base + LRADC_INTC);
 
 	regulator_disable(lradc->vref_supply);
 }
 
 static int sun4i_lradc_load_dt_keymap(struct device *dev,
-				      struct sun4i_lradc_data *lradc)
+									  struct sun4i_lradc_data *lradc)
 {
 	struct device_node *np, *pp;
 	int i;
 	int error;
 
 	np = dev->of_node;
+
 	if (!np)
+	{
 		return -EINVAL;
+	}
 
 	lradc->chan0_map_count = of_get_child_count(np);
-	if (lradc->chan0_map_count == 0) {
+
+	if (lradc->chan0_map_count == 0)
+	{
 		dev_err(dev, "keymap is missing in device tree\n");
 		return -EINVAL;
 	}
 
 	lradc->chan0_map = devm_kmalloc_array(dev, lradc->chan0_map_count,
-					      sizeof(struct sun4i_lradc_keymap),
-					      GFP_KERNEL);
+										  sizeof(struct sun4i_lradc_keymap),
+										  GFP_KERNEL);
+
 	if (!lradc->chan0_map)
+	{
 		return -ENOMEM;
+	}
 
 	i = 0;
-	for_each_child_of_node(np, pp) {
+	for_each_child_of_node(np, pp)
+	{
 		struct sun4i_lradc_keymap *map = &lradc->chan0_map[i];
 		u32 channel;
 
 		error = of_property_read_u32(pp, "channel", &channel);
-		if (error || channel != 0) {
+
+		if (error || channel != 0)
+		{
 			dev_err(dev, "%s: Inval channel prop\n", pp->name);
 			return -EINVAL;
 		}
 
 		error = of_property_read_u32(pp, "voltage", &map->voltage);
-		if (error) {
+
+		if (error)
+		{
 			dev_err(dev, "%s: Inval voltage prop\n", pp->name);
 			return -EINVAL;
 		}
 
 		error = of_property_read_u32(pp, "linux,code", &map->keycode);
-		if (error) {
+
+		if (error)
+		{
 			dev_err(dev, "%s: Inval linux,code prop\n", pp->name);
 			return -EINVAL;
 		}
@@ -215,21 +240,33 @@ static int sun4i_lradc_probe(struct platform_device *pdev)
 	int error;
 
 	lradc = devm_kzalloc(dev, sizeof(struct sun4i_lradc_data), GFP_KERNEL);
+
 	if (!lradc)
+	{
 		return -ENOMEM;
+	}
 
 	error = sun4i_lradc_load_dt_keymap(dev, lradc);
+
 	if (error)
+	{
 		return error;
+	}
 
 	lradc->vref_supply = devm_regulator_get(dev, "vref");
+
 	if (IS_ERR(lradc->vref_supply))
+	{
 		return PTR_ERR(lradc->vref_supply);
+	}
 
 	lradc->dev = dev;
 	lradc->input = devm_input_allocate_device(dev);
+
 	if (!lradc->input)
+	{
 		return -ENOMEM;
+	}
 
 	lradc->input->name = pdev->name;
 	lradc->input->phys = "sun4i_lradc/input0";
@@ -241,37 +278,51 @@ static int sun4i_lradc_probe(struct platform_device *pdev)
 	lradc->input->id.version = 0x0100;
 
 	__set_bit(EV_KEY, lradc->input->evbit);
+
 	for (i = 0; i < lradc->chan0_map_count; i++)
+	{
 		__set_bit(lradc->chan0_map[i].keycode, lradc->input->keybit);
+	}
 
 	input_set_drvdata(lradc->input, lradc);
 
 	lradc->base = devm_ioremap_resource(dev,
-			      platform_get_resource(pdev, IORESOURCE_MEM, 0));
+										platform_get_resource(pdev, IORESOURCE_MEM, 0));
+
 	if (IS_ERR(lradc->base))
+	{
 		return PTR_ERR(lradc->base);
+	}
 
 	error = devm_request_irq(dev, platform_get_irq(pdev, 0),
-				 sun4i_lradc_irq, 0,
-				 "sun4i-a10-lradc-keys", lradc);
+							 sun4i_lradc_irq, 0,
+							 "sun4i-a10-lradc-keys", lradc);
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = input_register_device(lradc->input);
+
 	if (error)
+	{
 		return error;
+	}
 
 	platform_set_drvdata(pdev, lradc);
 	return 0;
 }
 
-static const struct of_device_id sun4i_lradc_of_match[] = {
+static const struct of_device_id sun4i_lradc_of_match[] =
+{
 	{ .compatible = "allwinner,sun4i-a10-lradc-keys", },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, sun4i_lradc_of_match);
 
-static struct platform_driver sun4i_lradc_driver = {
+static struct platform_driver sun4i_lradc_driver =
+{
 	.driver = {
 		.name	= "sun4i-a10-lradc-keys",
 		.of_match_table = of_match_ptr(sun4i_lradc_of_match),

@@ -29,10 +29,15 @@ void flite_hw_reset(struct fimc_lite *dev)
 	cfg |= FLITE_REG_CIGCTRL_SWRST_REQ;
 	writel(cfg, dev->regs + FLITE_REG_CIGCTRL);
 
-	while (time_is_after_jiffies(end)) {
+	while (time_is_after_jiffies(end))
+	{
 		cfg = readl(dev->regs + FLITE_REG_CIGCTRL);
+
 		if (cfg & FLITE_REG_CIGCTRL_SWRST_RDY)
+		{
 			break;
+		}
+
 		usleep_range(1000, 5000);
 	}
 
@@ -66,15 +71,18 @@ void flite_hw_set_interrupt_mask(struct fimc_lite *dev)
 	u32 cfg, intsrc;
 
 	/* Select interrupts to be enabled for each output mode */
-	if (atomic_read(&dev->out_path) == FIMC_IO_DMA) {
+	if (atomic_read(&dev->out_path) == FIMC_IO_DMA)
+	{
 		intsrc = FLITE_REG_CIGCTRL_IRQ_OVFEN |
-			 FLITE_REG_CIGCTRL_IRQ_LASTEN |
-			 FLITE_REG_CIGCTRL_IRQ_STARTEN |
-			 FLITE_REG_CIGCTRL_IRQ_ENDEN;
-	} else {
+				 FLITE_REG_CIGCTRL_IRQ_LASTEN |
+				 FLITE_REG_CIGCTRL_IRQ_STARTEN |
+				 FLITE_REG_CIGCTRL_IRQ_ENDEN;
+	}
+	else
+	{
 		/* An output to the FIMC-IS */
 		intsrc = FLITE_REG_CIGCTRL_IRQ_OVFEN |
-			 FLITE_REG_CIGCTRL_IRQ_LASTEN;
+				 FLITE_REG_CIGCTRL_IRQ_LASTEN;
 	}
 
 	cfg = readl(dev->regs + FLITE_REG_CIGCTRL);
@@ -104,22 +112,37 @@ void flite_hw_capture_stop(struct fimc_lite *dev)
 void flite_hw_set_test_pattern(struct fimc_lite *dev, bool on)
 {
 	u32 cfg = readl(dev->regs + FLITE_REG_CIGCTRL);
+
 	if (on)
+	{
 		cfg |= FLITE_REG_CIGCTRL_TEST_PATTERN_COLORBAR;
+	}
 	else
+	{
 		cfg &= ~FLITE_REG_CIGCTRL_TEST_PATTERN_COLORBAR;
+	}
+
 	writel(cfg, dev->regs + FLITE_REG_CIGCTRL);
 }
 
-static const u32 src_pixfmt_map[8][3] = {
-	{ MEDIA_BUS_FMT_YUYV8_2X8, FLITE_REG_CISRCSIZE_ORDER422_IN_YCBYCR,
-	  FLITE_REG_CIGCTRL_YUV422_1P },
-	{ MEDIA_BUS_FMT_YVYU8_2X8, FLITE_REG_CISRCSIZE_ORDER422_IN_YCRYCB,
-	  FLITE_REG_CIGCTRL_YUV422_1P },
-	{ MEDIA_BUS_FMT_UYVY8_2X8, FLITE_REG_CISRCSIZE_ORDER422_IN_CBYCRY,
-	  FLITE_REG_CIGCTRL_YUV422_1P },
-	{ MEDIA_BUS_FMT_VYUY8_2X8, FLITE_REG_CISRCSIZE_ORDER422_IN_CRYCBY,
-	  FLITE_REG_CIGCTRL_YUV422_1P },
+static const u32 src_pixfmt_map[8][3] =
+{
+	{
+		MEDIA_BUS_FMT_YUYV8_2X8, FLITE_REG_CISRCSIZE_ORDER422_IN_YCBYCR,
+		FLITE_REG_CIGCTRL_YUV422_1P
+	},
+	{
+		MEDIA_BUS_FMT_YVYU8_2X8, FLITE_REG_CISRCSIZE_ORDER422_IN_YCRYCB,
+		FLITE_REG_CIGCTRL_YUV422_1P
+	},
+	{
+		MEDIA_BUS_FMT_UYVY8_2X8, FLITE_REG_CISRCSIZE_ORDER422_IN_CBYCRY,
+		FLITE_REG_CIGCTRL_YUV422_1P
+	},
+	{
+		MEDIA_BUS_FMT_VYUY8_2X8, FLITE_REG_CISRCSIZE_ORDER422_IN_CRYCBY,
+		FLITE_REG_CIGCTRL_YUV422_1P
+	},
 	{ MEDIA_BUS_FMT_SGRBG8_1X8, 0, FLITE_REG_CIGCTRL_RAW8 },
 	{ MEDIA_BUS_FMT_SGRBG10_1X10, 0, FLITE_REG_CIGCTRL_RAW10 },
 	{ MEDIA_BUS_FMT_SGRBG12_1X12, 0, FLITE_REG_CIGCTRL_RAW12 },
@@ -133,15 +156,19 @@ void flite_hw_set_source_format(struct fimc_lite *dev, struct flite_frame *f)
 	int i = ARRAY_SIZE(src_pixfmt_map);
 	u32 cfg;
 
-	while (--i) {
+	while (--i)
+	{
 		if (src_pixfmt_map[i][0] == pixelcode)
+		{
 			break;
+		}
 	}
 
-	if (i == 0 && src_pixfmt_map[i][0] != pixelcode) {
+	if (i == 0 && src_pixfmt_map[i][0] != pixelcode)
+	{
 		v4l2_err(&dev->ve.vdev,
-			 "Unsupported pixel code, falling back to %#08x\n",
-			 src_pixfmt_map[i][0]);
+				 "Unsupported pixel code, falling back to %#08x\n",
+				 src_pixfmt_map[i][0]);
 	}
 
 	cfg = readl(dev->regs + FLITE_REG_CIGCTRL);
@@ -151,7 +178,7 @@ void flite_hw_set_source_format(struct fimc_lite *dev, struct flite_frame *f)
 
 	cfg = readl(dev->regs + FLITE_REG_CISRCSIZE);
 	cfg &= ~(FLITE_REG_CISRCSIZE_ORDER422_MASK |
-		 FLITE_REG_CISRCSIZE_SIZE_CAM_MASK);
+			 FLITE_REG_CISRCSIZE_SIZE_CAM_MASK);
 	cfg |= (f->f_width << 16) | f->f_height;
 	cfg |= src_pixfmt_map[i][1];
 	writel(cfg, dev->regs + FLITE_REG_CISRCSIZE);
@@ -180,35 +207,50 @@ void flite_hw_set_window_offset(struct fimc_lite *dev, struct flite_frame *f)
 static void flite_hw_set_camera_port(struct fimc_lite *dev, int id)
 {
 	u32 cfg = readl(dev->regs + FLITE_REG_CIGENERAL);
+
 	if (id == 0)
+	{
 		cfg &= ~FLITE_REG_CIGENERAL_CAM_B;
+	}
 	else
+	{
 		cfg |= FLITE_REG_CIGENERAL_CAM_B;
+	}
+
 	writel(cfg, dev->regs + FLITE_REG_CIGENERAL);
 }
 
 /* Select serial or parallel bus, camera port (A,B) and set signals polarity */
 void flite_hw_set_camera_bus(struct fimc_lite *dev,
-			     struct fimc_source_info *si)
+							 struct fimc_source_info *si)
 {
 	u32 cfg = readl(dev->regs + FLITE_REG_CIGCTRL);
 	unsigned int flags = si->flags;
 
-	if (si->sensor_bus_type != FIMC_BUS_TYPE_MIPI_CSI2) {
+	if (si->sensor_bus_type != FIMC_BUS_TYPE_MIPI_CSI2)
+	{
 		cfg &= ~(FLITE_REG_CIGCTRL_SELCAM_MIPI |
-			 FLITE_REG_CIGCTRL_INVPOLPCLK |
-			 FLITE_REG_CIGCTRL_INVPOLVSYNC |
-			 FLITE_REG_CIGCTRL_INVPOLHREF);
+				 FLITE_REG_CIGCTRL_INVPOLPCLK |
+				 FLITE_REG_CIGCTRL_INVPOLVSYNC |
+				 FLITE_REG_CIGCTRL_INVPOLHREF);
 
 		if (flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
+		{
 			cfg |= FLITE_REG_CIGCTRL_INVPOLPCLK;
+		}
 
 		if (flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
+		{
 			cfg |= FLITE_REG_CIGCTRL_INVPOLVSYNC;
+		}
 
 		if (flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
+		{
 			cfg |= FLITE_REG_CIGCTRL_INVPOLHREF;
-	} else {
+		}
+	}
+	else
+	{
 		cfg |= FLITE_REG_CIGCTRL_SELCAM_MIPI;
 	}
 
@@ -224,14 +266,17 @@ static void flite_hw_set_pack12(struct fimc_lite *dev, int on)
 	cfg &= ~FLITE_REG_CIODMAFMT_PACK12;
 
 	if (on)
+	{
 		cfg |= FLITE_REG_CIODMAFMT_PACK12;
+	}
 
 	writel(cfg, dev->regs + FLITE_REG_CIODMAFMT);
 }
 
 static void flite_hw_set_out_order(struct fimc_lite *dev, struct flite_frame *f)
 {
-	static const u32 pixcode[4][2] = {
+	static const u32 pixcode[4][2] =
+	{
 		{ MEDIA_BUS_FMT_YUYV8_2X8, FLITE_REG_CIODMAFMT_YCBYCR },
 		{ MEDIA_BUS_FMT_YVYU8_2X8, FLITE_REG_CIODMAFMT_YCRYCB },
 		{ MEDIA_BUS_FMT_UYVY8_2X8, FLITE_REG_CIODMAFMT_CBYCRY },
@@ -242,7 +287,10 @@ static void flite_hw_set_out_order(struct fimc_lite *dev, struct flite_frame *f)
 
 	while (--i)
 		if (pixcode[i][0] == f->fmt->mbus_code)
+		{
 			break;
+		}
+
 	cfg &= ~FLITE_REG_CIODMAFMT_YCBCR_ORDER_MASK;
 	writel(cfg | pixcode[i][1], dev->regs + FLITE_REG_CIODMAFMT);
 }
@@ -270,14 +318,22 @@ void flite_hw_set_dma_buffer(struct fimc_lite *dev, struct flite_buffer *buf)
 	u32 cfg;
 
 	if (dev->dd->max_dma_bufs == 1)
+	{
 		index = 0;
+	}
 	else
+	{
 		index = buf->index;
+	}
 
 	if (index == 0)
+	{
 		writel(buf->paddr, dev->regs + FLITE_REG_CIOSA);
+	}
 	else
+	{
 		writel(buf->paddr, dev->regs + FLITE_REG_CIOSAN(index - 1));
+	}
 
 	cfg = readl(dev->regs + FLITE_REG_CIFCNTSEQ);
 	cfg |= BIT(index);
@@ -289,7 +345,9 @@ void flite_hw_mask_dma_buffer(struct fimc_lite *dev, u32 index)
 	u32 cfg;
 
 	if (dev->dd->max_dma_bufs == 1)
+	{
 		index = 0;
+	}
 
 	cfg = readl(dev->regs + FLITE_REG_CIFCNTSEQ);
 	cfg &= ~BIT(index);
@@ -298,11 +356,12 @@ void flite_hw_mask_dma_buffer(struct fimc_lite *dev, u32 index)
 
 /* Enable/disable output DMA, set output pixel size and offsets (composition) */
 void flite_hw_set_output_dma(struct fimc_lite *dev, struct flite_frame *f,
-			     bool enable)
+							 bool enable)
 {
 	u32 cfg = readl(dev->regs + FLITE_REG_CIGCTRL);
 
-	if (!enable) {
+	if (!enable)
+	{
 		cfg |= FLITE_REG_CIGCTRL_ODMA_DISABLE;
 		writel(cfg, dev->regs + FLITE_REG_CIGCTRL);
 		return;
@@ -318,10 +377,12 @@ void flite_hw_set_output_dma(struct fimc_lite *dev, struct flite_frame *f,
 
 void flite_hw_dump_regs(struct fimc_lite *dev, const char *label)
 {
-	struct {
+	struct
+	{
 		u32 offset;
-		const char * const name;
-	} registers[] = {
+		const char *const name;
+	} registers[] =
+	{
 		{ 0x00, "CISRCSIZE" },
 		{ 0x04, "CIGCTRL" },
 		{ 0x08, "CIIMGCPT" },
@@ -341,9 +402,10 @@ void flite_hw_dump_regs(struct fimc_lite *dev, const char *label)
 
 	v4l2_info(&dev->subdev, "--- %s ---\n", label);
 
-	for (i = 0; i < ARRAY_SIZE(registers); i++) {
+	for (i = 0; i < ARRAY_SIZE(registers); i++)
+	{
 		u32 cfg = readl(dev->regs + registers[i].offset);
 		v4l2_info(&dev->subdev, "%9s: 0x%08x\n",
-			  registers[i].name, cfg);
+				  registers[i].name, cfg);
 	}
 }

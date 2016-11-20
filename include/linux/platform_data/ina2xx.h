@@ -14,6 +14,7 @@
  * struct ina2xx_platform_data - ina2xx info
  * @shunt_uohms		shunt resistance in microohms
  */
-struct ina2xx_platform_data {
+struct ina2xx_platform_data
+{
 	long shunt_uohms;
 };

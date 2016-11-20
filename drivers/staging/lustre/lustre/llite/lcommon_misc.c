@@ -54,16 +54,19 @@ int cl_init_ea_size(struct obd_export *md_exp, struct obd_export *dt_exp)
 	__u16 stripes, def_stripes;
 
 	rc = obd_get_info(NULL, dt_exp, sizeof(KEY_LOVDESC), KEY_LOVDESC,
-			  &valsize, &desc, NULL);
+					  &valsize, &desc, NULL);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	stripes = min_t(__u32, desc.ld_tgt_count, LOV_MAX_STRIPE_COUNT);
 	lsm.lsm_stripe_count = stripes;
 	easize = obd_size_diskmd(dt_exp, &lsm);
 
 	def_stripes = min_t(__u32, desc.ld_default_stripe_count,
-			    LOV_MAX_STRIPE_COUNT);
+						LOV_MAX_STRIPE_COUNT);
 	lsm.lsm_stripe_count = def_stripes;
 	def_easize = obd_size_diskmd(dt_exp, &lsm);
 
@@ -73,8 +76,8 @@ int cl_init_ea_size(struct obd_export *md_exp, struct obd_export *dt_exp)
 	 * llog cookies to client.
 	 */
 	CDEBUG(D_HA,
-	       "updating def/max_easize: %d/%d def/max_cookiesize: 0/%d\n",
-	       def_easize, easize, cookiesize);
+		   "updating def/max_easize: %d/%d def/max_cookiesize: 0/%d\n",
+		   def_easize, easize, cookiesize);
 
 	rc = md_init_ea_size(md_exp, easize, def_easize, cookiesize, 0);
 	return rc;
@@ -87,8 +90,8 @@ int cl_init_ea_size(struct obd_export *md_exp, struct obd_export *dt_exp)
  * lustre_common_fill_super().
  */
 int cl_ocd_update(struct obd_device *host,
-		  struct obd_device *watched,
-		  enum obd_notify_event ev, void *owner, void *data)
+				  struct obd_device *watched,
+				  enum obd_notify_event ev, void *owner, void *data)
 {
 	struct lustre_client_ocd *lco;
 	struct client_obd	*cli;
@@ -96,34 +99,41 @@ int cl_ocd_update(struct obd_device *host,
 	int   result;
 
 	if (!strcmp(watched->obd_type->typ_name, LUSTRE_OSC_NAME) &&
-	    watched->obd_set_up && !watched->obd_stopping) {
+		watched->obd_set_up && !watched->obd_stopping)
+	{
 		cli = &watched->u.cli;
 		lco = owner;
 		flags = cli->cl_import->imp_connect_data.ocd_connect_flags;
 		CDEBUG(D_SUPER, "Changing connect_flags: %#llx -> %#llx\n",
-		       lco->lco_flags, flags);
+			   lco->lco_flags, flags);
 		mutex_lock(&lco->lco_lock);
 		lco->lco_flags &= flags;
+
 		/* for each osc event update ea size */
 		if (lco->lco_dt_exp)
+		{
 			cl_init_ea_size(lco->lco_md_exp, lco->lco_dt_exp);
+		}
 
 		mutex_unlock(&lco->lco_lock);
 		result = 0;
-	} else {
+	}
+	else
+	{
 		CERROR("unexpected notification from %s %s (setup:%d,stopping:%d)!\n",
-		       watched->obd_type->typ_name,
-		       watched->obd_name, watched->obd_set_up,
-		       watched->obd_stopping);
+			   watched->obd_type->typ_name,
+			   watched->obd_name, watched->obd_set_up,
+			   watched->obd_stopping);
 		result = -EINVAL;
 	}
+
 	return result;
 }
 
 #define GROUPLOCK_SCOPE "grouplock"
 
 int cl_get_grouplock(struct cl_object *obj, unsigned long gid, int nonblock,
-		     struct ll_grouplock *cg)
+					 struct ll_grouplock *cg)
 {
 	struct lu_env	  *env;
 	struct cl_io	   *io;
@@ -134,20 +144,29 @@ int cl_get_grouplock(struct cl_object *obj, unsigned long gid, int nonblock,
 	int		     rc;
 
 	env = cl_env_get(&refcheck);
+
 	if (IS_ERR(env))
+	{
 		return PTR_ERR(env);
+	}
 
 	io = vvp_env_thread_io(env);
 	io->ci_obj = obj;
 	io->ci_ignore_layout = 1;
 
 	rc = cl_io_init(env, io, CIT_MISC, io->ci_obj);
-	if (rc != 0) {
+
+	if (rc != 0)
+	{
 		cl_io_fini(env, io);
 		cl_env_put(env, &refcheck);
+
 		/* Does not make sense to take GL for released layout */
 		if (rc > 0)
+		{
 			rc = -ENOTSUPP;
+		}
+
 		return rc;
 	}
 
@@ -163,7 +182,9 @@ int cl_get_grouplock(struct cl_object *obj, unsigned long gid, int nonblock,
 	descr->cld_enq_flags = enqflags;
 
 	rc = cl_lock_request(env, io, lock);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		cl_io_fini(env, io);
 		cl_env_put(env, &refcheck);
 		return rc;

@@ -86,7 +86,8 @@
 
 struct ipu_dc_priv;
 
-enum ipu_dc_map {
+enum ipu_dc_map
+{
 	IPU_DC_MAP_RGB24,
 	IPU_DC_MAP_RGB565,
 	IPU_DC_MAP_GBR24, /* TVEv2 */
@@ -95,7 +96,8 @@ enum ipu_dc_map {
 	IPU_DC_MAP_BGR24,
 };
 
-struct ipu_dc {
+struct ipu_dc
+{
 	/* The display interface number assigned to this dc channel */
 	unsigned int		di;
 	void __iomem		*base;
@@ -104,7 +106,8 @@ struct ipu_dc {
 	bool			in_use;
 };
 
-struct ipu_dc_priv {
+struct ipu_dc_priv
+{
 	void __iomem		*dc_reg;
 	void __iomem		*dc_tmpl_reg;
 	struct ipu_soc		*ipu;
@@ -128,48 +131,61 @@ static void dc_link_event(struct ipu_dc *dc, int event, int addr, int priority)
 }
 
 static void dc_write_tmpl(struct ipu_dc *dc, int word, u32 opcode, u32 operand,
-		int map, int wave, int glue, int sync, int stop)
+						  int map, int wave, int glue, int sync, int stop)
 {
 	struct ipu_dc_priv *priv = dc->priv;
 	u32 reg1, reg2;
 
-	if (opcode == WCLK) {
+	if (opcode == WCLK)
+	{
 		reg1 = (operand << 20) & 0xfff00000;
 		reg2 = operand >> 12 | opcode << 1 | stop << 9;
-	} else if (opcode == WRG) {
+	}
+	else if (opcode == WRG)
+	{
 		reg1 = sync | glue << 4 | ++wave << 11 | ((operand << 15) & 0xffff8000);
 		reg2 = operand >> 17 | opcode << 7 | stop << 9;
-	} else {
+	}
+	else
+	{
 		reg1 = sync | glue << 4 | ++wave << 11 | ++map << 15 | ((operand << 20) & 0xfff00000);
 		reg2 = operand >> 12 | opcode << 4 | stop << 9;
 	}
+
 	writel(reg1, priv->dc_tmpl_reg + word * 8);
 	writel(reg2, priv->dc_tmpl_reg + word * 8 + 4);
 }
 
 static int ipu_bus_format_to_map(u32 fmt)
 {
-	switch (fmt) {
-	default:
-		WARN_ON(1);
+	switch (fmt)
+	{
+		default:
+			WARN_ON(1);
+
 		/* fall-through */
-	case MEDIA_BUS_FMT_RGB888_1X24:
-		return IPU_DC_MAP_RGB24;
-	case MEDIA_BUS_FMT_RGB565_1X16:
-		return IPU_DC_MAP_RGB565;
-	case MEDIA_BUS_FMT_GBR888_1X24:
-		return IPU_DC_MAP_GBR24;
-	case MEDIA_BUS_FMT_RGB666_1X18:
-		return IPU_DC_MAP_BGR666;
-	case MEDIA_BUS_FMT_RGB666_1X24_CPADHI:
-		return IPU_DC_MAP_LVDS666;
-	case MEDIA_BUS_FMT_BGR888_1X24:
-		return IPU_DC_MAP_BGR24;
+		case MEDIA_BUS_FMT_RGB888_1X24:
+			return IPU_DC_MAP_RGB24;
+
+		case MEDIA_BUS_FMT_RGB565_1X16:
+			return IPU_DC_MAP_RGB565;
+
+		case MEDIA_BUS_FMT_GBR888_1X24:
+			return IPU_DC_MAP_GBR24;
+
+		case MEDIA_BUS_FMT_RGB666_1X18:
+			return IPU_DC_MAP_BGR666;
+
+		case MEDIA_BUS_FMT_RGB666_1X24_CPADHI:
+			return IPU_DC_MAP_LVDS666;
+
+		case MEDIA_BUS_FMT_BGR888_1X24:
+			return IPU_DC_MAP_BGR24;
 	}
 }
 
 int ipu_dc_init_sync(struct ipu_dc *dc, struct ipu_di *di, bool interlaced,
-		u32 bus_format, u32 width)
+					 u32 bus_format, u32 width)
 {
 	struct ipu_dc_priv *priv = dc->priv;
 	int addr, sync;
@@ -190,18 +206,25 @@ int ipu_dc_init_sync(struct ipu_dc *dc, struct ipu_di *di, bool interlaced,
 
 	/* Reserve 5 microcode template words for each DI */
 	if (dc->di)
+	{
 		addr = 5;
+	}
 	else
+	{
 		addr = 0;
+	}
 
-	if (interlaced) {
+	if (interlaced)
+	{
 		dc_link_event(dc, DC_EVT_NL, addr, 3);
 		dc_link_event(dc, DC_EVT_EOL, addr, 2);
 		dc_link_event(dc, DC_EVT_NEW_DATA, addr, 1);
 
 		/* Init template microcode */
 		dc_write_tmpl(dc, addr, WROD(0), 0, map, SYNC_WAVE, 0, sync, 1);
-	} else {
+	}
+	else
+	{
 		dc_link_event(dc, DC_EVT_NL, addr + 2, 3);
 		dc_link_event(dc, DC_EVT_EOL, addr + 3, 2);
 		dc_link_event(dc, DC_EVT_NEW_DATA, addr + 1, 1);
@@ -221,10 +244,16 @@ int ipu_dc_init_sync(struct ipu_dc *dc, struct ipu_di *di, bool interlaced,
 	dc_link_event(dc, DC_EVT_NEW_ADDR, 0, 0);
 
 	reg = readl(dc->base + DC_WR_CH_CONF);
+
 	if (interlaced)
+	{
 		reg |= DC_WR_CH_CONF_FIELD_MODE;
+	}
 	else
+	{
 		reg &= ~DC_WR_CH_CONF_FIELD_MODE;
+	}
+
 	writel(reg, dc->base + DC_WR_CH_CONF);
 
 	writel(0x0, dc->base + DC_WR_CH_ADDR);
@@ -241,7 +270,9 @@ void ipu_dc_enable(struct ipu_soc *ipu)
 	mutex_lock(&priv->mutex);
 
 	if (!priv->use_count)
+	{
 		ipu_module_enable(priv->ipu, IPU_CONF_DC_EN);
+	}
 
 	priv->use_count++;
 
@@ -286,17 +317,25 @@ void ipu_dc_disable_channel(struct ipu_dc *dc)
 
 	/* TODO: Handle MEM_FG_SYNC differently from MEM_BG_SYNC */
 	if (dc->chno == 1)
+	{
 		irq = priv->dc_irq;
+	}
 	else if (dc->chno == 5)
+	{
 		irq = priv->dp_irq;
+	}
 	else
+	{
 		return;
+	}
 
 	init_completion(&priv->comp);
 	enable_irq(irq);
 	ret = wait_for_completion_timeout(&priv->comp, msecs_to_jiffies(50));
 	disable_irq(irq);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		dev_warn(priv->dev, "DC stop timeout after 50 ms\n");
 
 		val = readl(dc->base + DC_WR_CH_CONF);
@@ -313,18 +352,23 @@ void ipu_dc_disable(struct ipu_soc *ipu)
 	mutex_lock(&priv->mutex);
 
 	priv->use_count--;
+
 	if (!priv->use_count)
+	{
 		ipu_module_disable(priv->ipu, IPU_CONF_DC_EN);
+	}
 
 	if (priv->use_count < 0)
+	{
 		priv->use_count = 0;
+	}
 
 	mutex_unlock(&priv->mutex);
 }
 EXPORT_SYMBOL_GPL(ipu_dc_disable);
 
 static void ipu_dc_map_config(struct ipu_dc_priv *priv, enum ipu_dc_map map,
-		int byte_num, int offset, int mask)
+							  int byte_num, int offset, int mask)
 {
 	int ptr = map * 3 + byte_num;
 	u32 reg;
@@ -345,7 +389,7 @@ static void ipu_dc_map_clear(struct ipu_dc_priv *priv, int map)
 	u32 reg = readl(priv->dc_reg + DC_MAP_CONF_PTR(map));
 
 	writel(reg & ~(0xffff << (16 * (map & 0x1))),
-		     priv->dc_reg + DC_MAP_CONF_PTR(map));
+		   priv->dc_reg + DC_MAP_CONF_PTR(map));
 }
 
 struct ipu_dc *ipu_dc_get(struct ipu_soc *ipu, int channel)
@@ -354,13 +398,16 @@ struct ipu_dc *ipu_dc_get(struct ipu_soc *ipu, int channel)
 	struct ipu_dc *dc;
 
 	if (channel >= IPU_DC_NUM_CHANNELS)
+	{
 		return ERR_PTR(-ENODEV);
+	}
 
 	dc = &priv->channels[channel];
 
 	mutex_lock(&priv->mutex);
 
-	if (dc->in_use) {
+	if (dc->in_use)
+	{
 		mutex_unlock(&priv->mutex);
 		return ERR_PTR(-EBUSY);
 	}
@@ -384,16 +431,20 @@ void ipu_dc_put(struct ipu_dc *dc)
 EXPORT_SYMBOL_GPL(ipu_dc_put);
 
 int ipu_dc_init(struct ipu_soc *ipu, struct device *dev,
-		unsigned long base, unsigned long template_base)
+				unsigned long base, unsigned long template_base)
 {
 	struct ipu_dc_priv *priv;
 	static int channel_offsets[] = { 0, 0x1c, 0x38, 0x54, 0x58, 0x5c,
-		0x78, 0, 0x94, 0xb4};
+									 0x78, 0, 0x94, 0xb4
+								   };
 	int i, ret;
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&priv->mutex);
 
@@ -401,40 +452,60 @@ int ipu_dc_init(struct ipu_soc *ipu, struct device *dev,
 	priv->ipu = ipu;
 	priv->dc_reg = devm_ioremap(dev, base, PAGE_SIZE);
 	priv->dc_tmpl_reg = devm_ioremap(dev, template_base, PAGE_SIZE);
-	if (!priv->dc_reg || !priv->dc_tmpl_reg)
-		return -ENOMEM;
 
-	for (i = 0; i < IPU_DC_NUM_CHANNELS; i++) {
+	if (!priv->dc_reg || !priv->dc_tmpl_reg)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < IPU_DC_NUM_CHANNELS; i++)
+	{
 		priv->channels[i].chno = i;
 		priv->channels[i].priv = priv;
 		priv->channels[i].base = priv->dc_reg + channel_offsets[i];
 	}
 
 	priv->dc_irq = ipu_map_irq(ipu, IPU_IRQ_DC_FC_1);
+
 	if (!priv->dc_irq)
+	{
 		return -EINVAL;
+	}
+
 	ret = devm_request_irq(dev, priv->dc_irq, dc_irq_handler, 0, NULL,
-			       &priv->channels[1]);
+						   &priv->channels[1]);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	disable_irq(priv->dc_irq);
 	priv->dp_irq = ipu_map_irq(ipu, IPU_IRQ_DP_SF_END);
+
 	if (!priv->dp_irq)
+	{
 		return -EINVAL;
+	}
+
 	ret = devm_request_irq(dev, priv->dp_irq, dc_irq_handler, 0, NULL,
-			       &priv->channels[5]);
+						   &priv->channels[5]);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	disable_irq(priv->dp_irq);
 
 	writel(DC_WR_CH_CONF_WORD_SIZE_24 | DC_WR_CH_CONF_DISP_ID_PARALLEL(1) |
-			DC_WR_CH_CONF_PROG_DI_ID,
-			priv->channels[1].base + DC_WR_CH_CONF);
+		   DC_WR_CH_CONF_PROG_DI_ID,
+		   priv->channels[1].base + DC_WR_CH_CONF);
 	writel(DC_WR_CH_CONF_WORD_SIZE_24 | DC_WR_CH_CONF_DISP_ID_PARALLEL(0),
-			priv->channels[5].base + DC_WR_CH_CONF);
+		   priv->channels[5].base + DC_WR_CH_CONF);
 
 	writel(DC_GEN_SYNC_1_6_SYNC | DC_GEN_SYNC_PRIORITY_1,
-		priv->dc_reg + DC_GEN);
+		   priv->dc_reg + DC_GEN);
 
 	ipu->dc_priv = priv;
 

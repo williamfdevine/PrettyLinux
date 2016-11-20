@@ -36,7 +36,8 @@
 #define PIC32_INT_PRI(pri, subpri)				\
 	((((pri) & MAJPRI_MASK) << 2) | ((subpri) & SUBPRI_MASK))
 
-struct evic_chip_data {
+struct evic_chip_data
+{
 	u32 irq_types[NR_IRQS];
 	u32 ext_irqs[8];
 };
@@ -64,36 +65,46 @@ static int pic32_set_ext_polarity(int bit, u32 type)
 	 * External interrupts can be either edge rising or edge falling,
 	 * but not both.
 	 */
-	switch (type) {
-	case IRQ_TYPE_EDGE_RISING:
-		writel(BIT(bit), evic_base + PIC32_SET(REG_INTCON));
-		break;
-	case IRQ_TYPE_EDGE_FALLING:
-		writel(BIT(bit), evic_base + PIC32_CLR(REG_INTCON));
-		break;
-	default:
-		return -EINVAL;
+	switch (type)
+	{
+		case IRQ_TYPE_EDGE_RISING:
+			writel(BIT(bit), evic_base + PIC32_SET(REG_INTCON));
+			break;
+
+		case IRQ_TYPE_EDGE_FALLING:
+			writel(BIT(bit), evic_base + PIC32_CLR(REG_INTCON));
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
 }
 
 static int pic32_set_type_edge(struct irq_data *data,
-			       unsigned int flow_type)
+							   unsigned int flow_type)
 {
 	struct evic_chip_data *priv = irqd_to_priv(data);
 	int ret;
 	int i;
 
 	if (!(flow_type & IRQ_TYPE_EDGE_BOTH))
+	{
 		return -EBADR;
+	}
 
 	/* set polarity for external interrupts only */
-	for (i = 0; i < ARRAY_SIZE(priv->ext_irqs); i++) {
-		if (priv->ext_irqs[i] == data->hwirq) {
+	for (i = 0; i < ARRAY_SIZE(priv->ext_irqs); i++)
+	{
+		if (priv->ext_irqs[i] == data->hwirq)
+		{
 			ret = pic32_set_ext_polarity(i, flow_type);
+
 			if (ret)
+			{
 				return ret;
+			}
 		}
 	}
 
@@ -115,9 +126,9 @@ static void pic32_set_irq_priority(int irq, int priority)
 	shift = (irq % 4) * 8;
 
 	writel(PRIORITY_MASK << shift,
-		evic_base + PIC32_CLR(REG_IPC_OFFSET + reg * 0x10));
+		   evic_base + PIC32_CLR(REG_IPC_OFFSET + reg * 0x10));
 	writel(priority << shift,
-		evic_base + PIC32_SET(REG_IPC_OFFSET + reg * 0x10));
+		   evic_base + PIC32_SET(REG_IPC_OFFSET + reg * 0x10));
 }
 
 #define IRQ_REG_MASK(_hwirq, _reg, _mask)		       \
@@ -127,7 +138,7 @@ static void pic32_set_irq_priority(int irq, int priority)
 	} while (0)
 
 static int pic32_irq_domain_map(struct irq_domain *d, unsigned int virq,
-				irq_hw_number_t hw)
+								irq_hw_number_t hw)
 {
 	struct evic_chip_data *priv = d->host_data;
 	struct irq_data *data;
@@ -136,8 +147,11 @@ static int pic32_irq_domain_map(struct irq_domain *d, unsigned int virq,
 	u32 reg, mask;
 
 	ret = irq_map_generic_chip(d, virq, hw);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/*
 	 * Piggyback on xlate function to move to an alternate chip as necessary
@@ -145,7 +159,8 @@ static int pic32_irq_domain_map(struct irq_domain *d, unsigned int virq,
 	 * changed later. This requires all interrupts to be configured through
 	 * DT.
 	 */
-	if (priv->irq_types[hw] & IRQ_TYPE_SENSE_MASK) {
+	if (priv->irq_types[hw] & IRQ_TYPE_SENSE_MASK)
+	{
 		data = irq_domain_get_irq_data(d, virq);
 		irqd_set_trigger_type(data, priv->irq_types[hw]);
 		irq_setup_alt_chip(data, priv->irq_types[hw]);
@@ -167,16 +182,20 @@ static int pic32_irq_domain_map(struct irq_domain *d, unsigned int virq,
 }
 
 int pic32_irq_domain_xlate(struct irq_domain *d, struct device_node *ctrlr,
-			   const u32 *intspec, unsigned int intsize,
-			   irq_hw_number_t *out_hwirq, unsigned int *out_type)
+						   const u32 *intspec, unsigned int intsize,
+						   irq_hw_number_t *out_hwirq, unsigned int *out_type)
 {
 	struct evic_chip_data *priv = d->host_data;
 
 	if (WARN_ON(intsize < 2))
+	{
 		return -EINVAL;
+	}
 
 	if (WARN_ON(intspec[0] >= NR_IRQS))
+	{
 		return -EINVAL;
+	}
 
 	*out_hwirq = intspec[0];
 	*out_type = intspec[1] & IRQ_TYPE_SENSE_MASK;
@@ -186,7 +205,8 @@ int pic32_irq_domain_xlate(struct irq_domain *d, struct device_node *ctrlr,
 	return 0;
 }
 
-static const struct irq_domain_ops pic32_irq_domain_ops = {
+static const struct irq_domain_ops pic32_irq_domain_ops =
+{
 	.map	= pic32_irq_domain_map,
 	.xlate	= pic32_irq_domain_xlate,
 };
@@ -201,10 +221,12 @@ static void __init pic32_ext_irq_of_init(struct irq_domain *domain)
 	int i = 0;
 	const char *pname = "microchip,external-irqs";
 
-	of_property_for_each_u32(node, pname, prop, p, hwirq) {
-		if (i >= ARRAY_SIZE(priv->ext_irqs)) {
+	of_property_for_each_u32(node, pname, prop, p, hwirq)
+	{
+		if (i >= ARRAY_SIZE(priv->ext_irqs))
+		{
 			pr_warn("More than %d external irq, skip rest\n",
-				ARRAY_SIZE(priv->ext_irqs));
+					ARRAY_SIZE(priv->ext_irqs));
 			break;
 		}
 
@@ -214,7 +236,7 @@ static void __init pic32_ext_irq_of_init(struct irq_domain *domain)
 }
 
 static int __init pic32_of_init(struct device_node *node,
-				struct device_node *parent)
+								struct device_node *parent)
 {
 	struct irq_chip_generic *gc;
 	struct evic_chip_data *priv;
@@ -225,19 +247,26 @@ static int __init pic32_of_init(struct device_node *node,
 	nchips = DIV_ROUND_UP(NR_IRQS, 32);
 
 	evic_base = of_iomap(node, 0);
+
 	if (!evic_base)
+	{
 		return -ENOMEM;
+	}
 
 	priv = kcalloc(nchips, sizeof(*priv), GFP_KERNEL);
-	if (!priv) {
+
+	if (!priv)
+	{
 		ret = -ENOMEM;
 		goto err_iounmap;
 	}
 
 	evic_irq_domain = irq_domain_add_linear(node, nchips * 32,
-						&pic32_irq_domain_ops,
-						priv);
-	if (!evic_irq_domain) {
+											&pic32_irq_domain_ops,
+											priv);
+
+	if (!evic_irq_domain)
+	{
 		ret = -ENOMEM;
 		goto err_free_priv;
 	}
@@ -251,14 +280,18 @@ static int __init pic32_of_init(struct device_node *node,
 	 * each irq type, different chip_types are used.
 	 */
 	ret = irq_alloc_domain_generic_chips(evic_irq_domain, 32, 2,
-					     "evic-level", handle_level_irq,
-					     clr, 0, 0);
+										 "evic-level", handle_level_irq,
+										 clr, 0, 0);
+
 	if (ret)
+	{
 		goto err_domain_remove;
+	}
 
 	board_bind_eic_interrupt = &pic32_bind_evic_interrupt;
 
-	for (i = 0; i < nchips; i++) {
+	for (i = 0; i < nchips; i++)
+	{
 		u32 ifsclr = PIC32_CLR(REG_IFS_OFFSET + (i * 0x10));
 		u32 iec = REG_IEC_OFFSET + (i * 0x10);
 

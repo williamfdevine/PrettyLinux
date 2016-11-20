@@ -13,19 +13,19 @@
 static inline void copy(void *i)
 {
 	asm volatile(str(COPY(0, %0, 0))";"
-			:
-			: "b" (i)
-			: "memory"
-		    );
+				 :
+				 : "b" (i)
+				 : "memory"
+				);
 }
 
 static inline void copy_first(void *i)
 {
 	asm volatile(str(COPY(0, %0, 1))";"
-			:
-			: "b" (i)
-			: "memory"
-		    );
+				 :
+				 : "b" (i)
+				 : "memory"
+				);
 }
 
 /* This defines the "paste" instruction from Power ISA 3.0 Book II, section 4.4. */
@@ -39,11 +39,11 @@ static inline int paste(void *i)
 	int cr;
 
 	asm volatile(str(PASTE(0, %1, 0, 0))";"
-			"mfcr %0;"
-			: "=r" (cr)
-			: "b" (i)
-			: "memory"
-		    );
+				 "mfcr %0;"
+				 : "=r" (cr)
+				 : "b" (i)
+				 : "memory"
+				);
 	return cr;
 }
 
@@ -52,11 +52,11 @@ static inline int paste_last(void *i)
 	int cr;
 
 	asm volatile(str(PASTE(0, %1, 1, 1))";"
-			"mfcr %0;"
-			: "=r" (cr)
-			: "b" (i)
-			: "memory"
-		    );
+				 "mfcr %0;"
+				 : "=r" (cr)
+				 : "b" (i)
+				 : "memory"
+				);
 	return cr;
 }
 

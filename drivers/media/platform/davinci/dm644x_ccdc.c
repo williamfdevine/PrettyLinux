@@ -51,7 +51,8 @@ MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("CCDC Driver for DM6446");
 MODULE_AUTHOR("Texas Instruments");
 
-static struct ccdc_oper_config {
+static struct ccdc_oper_config
+{
 	struct device *dev;
 	/* CCDC interface type */
 	enum vpfe_hw_if_type if_type;
@@ -61,7 +62,8 @@ static struct ccdc_oper_config {
 	struct ccdc_params_ycbcr ycbcr;
 	/* ccdc base address */
 	void __iomem *base_addr;
-} ccdc_cfg = {
+} ccdc_cfg =
+{
 	/* Raw configurations */
 	.bayer = {
 		.pix_fmt = CCDC_PIXFMT_RAW,
@@ -91,11 +93,11 @@ static struct ccdc_oper_config {
 
 /* Raw Bayer formats */
 static u32 ccdc_raw_bayer_pix_formats[] =
-	{V4L2_PIX_FMT_SBGGR8, V4L2_PIX_FMT_SBGGR16};
+{V4L2_PIX_FMT_SBGGR8, V4L2_PIX_FMT_SBGGR16};
 
 /* Raw YUV formats */
 static u32 ccdc_raw_yuv_pix_formats[] =
-	{V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_YUYV};
+{V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_YUYV};
 
 /* CCDC Save/Restore context */
 static u32 ccdc_ctx[CCDC_REG_END / sizeof(u32)];
@@ -120,9 +122,13 @@ static void ccdc_enable_vport(int flag)
 {
 	if (flag)
 		/* enable video port */
+	{
 		regw(CCDC_ENABLE_VIDEO_PORT, CCDC_FMTCFG);
+	}
 	else
+	{
 		regw(CCDC_DISABLE_VIDEO_PORT, CCDC_FMTCFG);
+	}
 }
 
 /*
@@ -131,8 +137,8 @@ static void ccdc_enable_vport(int flag)
  * to be capture in CCDC reg
  */
 static void ccdc_setwin(struct v4l2_rect *image_win,
-			enum ccdc_frmfmt frm_fmt,
-			int ppc)
+						enum ccdc_frmfmt frm_fmt,
+						int ppc)
 {
 	int horz_start, horz_nr_pixels;
 	int vert_start, vert_nr_lines;
@@ -147,11 +153,12 @@ static void ccdc_setwin(struct v4l2_rect *image_win,
 	horz_start = image_win->left << (ppc - 1);
 	horz_nr_pixels = (image_win->width << (ppc - 1)) - 1;
 	regw((horz_start << CCDC_HORZ_INFO_SPH_SHIFT) | horz_nr_pixels,
-	     CCDC_HORZ_INFO);
+		 CCDC_HORZ_INFO);
 
 	vert_start = image_win->top;
 
-	if (frm_fmt == CCDC_FRMFMT_INTERLACED) {
+	if (frm_fmt == CCDC_FRMFMT_INTERLACED)
+	{
 		vert_nr_lines = (image_win->height >> 1) - 1;
 		vert_start >>= 1;
 		/* Since first line doesn't have any data */
@@ -160,7 +167,9 @@ static void ccdc_setwin(struct v4l2_rect *image_win,
 		val = (vert_start << CCDC_VDINT_VDINT0_SHIFT);
 		regw(val, CCDC_VDINT);
 
-	} else {
+	}
+	else
+	{
 		/* Since first line doesn't have any data */
 		vert_start += 1;
 		vert_nr_lines = image_win->height - 1;
@@ -170,12 +179,13 @@ static void ccdc_setwin(struct v4l2_rect *image_win,
 		 */
 		mid_img = vert_start + (image_win->height / 2);
 		val = (vert_start << CCDC_VDINT_VDINT0_SHIFT) |
-		    (mid_img & CCDC_VDINT_VDINT1_MASK);
+			  (mid_img & CCDC_VDINT_VDINT1_MASK);
 		regw(val, CCDC_VDINT);
 
 	}
+
 	regw((vert_start << CCDC_VERT_START_SLV0_SHIFT) | vert_start,
-	     CCDC_VERT_START);
+		 CCDC_VERT_START);
 	regw(vert_nr_lines, CCDC_VERT_LINES);
 	dev_dbg(ccdc_cfg.dev, "\nEnd of ccdc_setwin...");
 }
@@ -222,75 +232,89 @@ static void ccdc_readregs(void)
 
 static int validate_ccdc_param(struct ccdc_config_params_raw *ccdcparam)
 {
-	if (ccdcparam->alaw.enable) {
+	if (ccdcparam->alaw.enable)
+	{
 		u8 max_gamma = ccdc_gamma_width_max_bit(ccdcparam->alaw.gamma_wd);
 		u8 max_data = ccdc_data_size_max_bit(ccdcparam->data_sz);
 
 		if ((ccdcparam->alaw.gamma_wd > CCDC_GAMMA_BITS_09_0) ||
-		    (ccdcparam->alaw.gamma_wd < CCDC_GAMMA_BITS_15_6) ||
-		    (max_gamma > max_data)) {
+			(ccdcparam->alaw.gamma_wd < CCDC_GAMMA_BITS_15_6) ||
+			(max_gamma > max_data))
+		{
 			dev_dbg(ccdc_cfg.dev, "\nInvalid data line select");
 			return -1;
 		}
 	}
+
 	return 0;
 }
 
 static int ccdc_update_raw_params(struct ccdc_config_params_raw *raw_params)
 {
 	struct ccdc_config_params_raw *config_params =
-				&ccdc_cfg.bayer.config_params;
+			&ccdc_cfg.bayer.config_params;
 	unsigned int *fpc_virtaddr = NULL;
 	unsigned int *fpc_physaddr = NULL;
 
 	memcpy(config_params, raw_params, sizeof(*raw_params));
+
 	/*
 	 * allocate memory for fault pixel table and copy the user
 	 * values to the table
 	 */
 	if (!config_params->fault_pxl.enable)
+	{
 		return 0;
+	}
 
 	fpc_physaddr = (unsigned int *)config_params->fault_pxl.fpc_table_addr;
 	fpc_virtaddr = (unsigned int *)phys_to_virt(
-				(unsigned long)fpc_physaddr);
+					   (unsigned long)fpc_physaddr);
+
 	/*
 	 * Allocate memory for FPC table if current
 	 * FPC table buffer is not big enough to
 	 * accommodate FPC Number requested
 	 */
-	if (raw_params->fault_pxl.fp_num != config_params->fault_pxl.fp_num) {
-		if (fpc_physaddr != NULL) {
+	if (raw_params->fault_pxl.fp_num != config_params->fault_pxl.fp_num)
+	{
+		if (fpc_physaddr != NULL)
+		{
 			free_pages((unsigned long)fpc_virtaddr,
-				   get_order
-				   (config_params->fault_pxl.fp_num *
-				   FP_NUM_BYTES));
+					   get_order
+					   (config_params->fault_pxl.fp_num *
+						FP_NUM_BYTES));
 		}
 
 		/* Allocate memory for FPC table */
 		fpc_virtaddr =
 			(unsigned int *)__get_free_pages(GFP_KERNEL | GFP_DMA,
-							 get_order(raw_params->
-							 fault_pxl.fp_num *
-							 FP_NUM_BYTES));
+											 get_order(raw_params->
+													 fault_pxl.fp_num *
+													 FP_NUM_BYTES));
 
-		if (fpc_virtaddr == NULL) {
+		if (fpc_virtaddr == NULL)
+		{
 			dev_dbg(ccdc_cfg.dev,
-				"\nUnable to allocate memory for FPC");
+					"\nUnable to allocate memory for FPC");
 			return -EFAULT;
 		}
+
 		fpc_physaddr =
-		    (unsigned int *)virt_to_phys((void *)fpc_virtaddr);
+			(unsigned int *)virt_to_phys((void *)fpc_virtaddr);
 	}
 
 	/* Copy number of fault pixels and FPC table */
 	config_params->fault_pxl.fp_num = raw_params->fault_pxl.fp_num;
+
 	if (copy_from_user(fpc_virtaddr,
-			(void __user *)raw_params->fault_pxl.fpc_table_addr,
-			config_params->fault_pxl.fp_num * FP_NUM_BYTES)) {
+					   (void __user *)raw_params->fault_pxl.fpc_table_addr,
+					   config_params->fault_pxl.fp_num * FP_NUM_BYTES))
+	{
 		dev_dbg(ccdc_cfg.dev, "\n copy_from_user failed");
 		return -EFAULT;
 	}
+
 	config_params->fault_pxl.fpc_table_addr = (unsigned long)fpc_physaddr;
 	return 0;
 }
@@ -298,18 +322,20 @@ static int ccdc_update_raw_params(struct ccdc_config_params_raw *raw_params)
 static int ccdc_close(struct device *dev)
 {
 	struct ccdc_config_params_raw *config_params =
-				&ccdc_cfg.bayer.config_params;
+			&ccdc_cfg.bayer.config_params;
 	unsigned int *fpc_physaddr = NULL, *fpc_virtaddr = NULL;
 
 	fpc_physaddr = (unsigned int *)config_params->fault_pxl.fpc_table_addr;
 
-	if (fpc_physaddr != NULL) {
+	if (fpc_physaddr != NULL)
+	{
 		fpc_virtaddr = (unsigned int *)
-		    phys_to_virt((unsigned long)fpc_physaddr);
+					   phys_to_virt((unsigned long)fpc_physaddr);
 		free_pages((unsigned long)fpc_virtaddr,
-			   get_order(config_params->fault_pxl.fp_num *
-			   FP_NUM_BYTES));
+				   get_order(config_params->fault_pxl.fp_num *
+							 FP_NUM_BYTES));
 	}
+
 	return 0;
 }
 
@@ -323,9 +349,13 @@ static void ccdc_restore_defaults(void)
 
 	/* disable CCDC */
 	ccdc_enable(0);
+
 	/* set all registers to default value */
 	for (i = 4; i <= 0x94; i += 4)
+	{
 		regw(0,  i);
+	}
+
 	regw(CCDC_NO_CULLING, CCDC_CULLING);
 	regw(CCDC_GAMMA_BITS_11_2, CCDC_ALAW);
 }
@@ -333,8 +363,12 @@ static void ccdc_restore_defaults(void)
 static int ccdc_open(struct device *device)
 {
 	ccdc_restore_defaults();
+
 	if (ccdc_cfg.if_type == VPFE_RAW_BAYER)
+	{
 		ccdc_enable_vport(1);
+	}
+
 	return 0;
 }
 
@@ -350,19 +384,27 @@ static int ccdc_set_params(void __user *params)
 	int x;
 
 	if (ccdc_cfg.if_type != VPFE_RAW_BAYER)
+	{
 		return -EINVAL;
+	}
 
 	x = copy_from_user(&ccdc_raw_params, params, sizeof(ccdc_raw_params));
-	if (x) {
+
+	if (x)
+	{
 		dev_dbg(ccdc_cfg.dev, "ccdc_set_params: error in copying"
-			   "ccdc params, %d\n", x);
+				"ccdc params, %d\n", x);
 		return -EFAULT;
 	}
 
-	if (!validate_ccdc_param(&ccdc_raw_params)) {
+	if (!validate_ccdc_param(&ccdc_raw_params))
+	{
 		if (!ccdc_update_raw_params(&ccdc_raw_params))
+		{
 			return 0;
+		}
 	}
+
 	return -EINVAL;
 }
 
@@ -389,13 +431,14 @@ static void ccdc_config_ycbcr(void)
 	 * and 8bit pack mode
 	 */
 	syn_mode = (((params->pix_fmt & CCDC_SYN_MODE_INPMOD_MASK) <<
-		    CCDC_SYN_MODE_INPMOD_SHIFT) |
-		    ((params->frm_fmt & CCDC_SYN_FLDMODE_MASK) <<
-		    CCDC_SYN_FLDMODE_SHIFT) | CCDC_VDHDEN_ENABLE |
-		    CCDC_WEN_ENABLE | CCDC_DATA_PACK_ENABLE);
+				 CCDC_SYN_MODE_INPMOD_SHIFT) |
+				((params->frm_fmt & CCDC_SYN_FLDMODE_MASK) <<
+				 CCDC_SYN_FLDMODE_SHIFT) | CCDC_VDHDEN_ENABLE |
+				CCDC_WEN_ENABLE | CCDC_DATA_PACK_ENABLE);
 
 	/* setup BT.656 sync mode */
-	if (params->bt656_enable) {
+	if (params->bt656_enable)
+	{
 		regw(CCDC_REC656IF_BT656_EN, CCDC_REC656IF);
 
 		/*
@@ -403,19 +446,27 @@ static void ccdc_config_ycbcr(void)
 		 * fld,hd pol positive, vd negative, 8-bit data
 		 */
 		syn_mode |= CCDC_SYN_MODE_VD_POL_NEGATIVE;
+
 		if (ccdc_cfg.if_type == VPFE_BT656_10BIT)
+		{
 			syn_mode |= CCDC_SYN_MODE_10BITS;
+		}
 		else
+		{
 			syn_mode |= CCDC_SYN_MODE_8BITS;
-	} else {
+		}
+	}
+	else
+	{
 		/* y/c external sync mode */
 		syn_mode |= (((params->fid_pol & CCDC_FID_POL_MASK) <<
-			     CCDC_FID_POL_SHIFT) |
-			     ((params->hd_pol & CCDC_HD_POL_MASK) <<
-			     CCDC_HD_POL_SHIFT) |
-			     ((params->vd_pol & CCDC_VD_POL_MASK) <<
-			     CCDC_VD_POL_SHIFT));
+					  CCDC_FID_POL_SHIFT) |
+					 ((params->hd_pol & CCDC_HD_POL_MASK) <<
+					  CCDC_HD_POL_SHIFT) |
+					 ((params->vd_pol & CCDC_VD_POL_MASK) <<
+					  CCDC_VD_POL_SHIFT));
 	}
+
 	regw(syn_mode, CCDC_SYN_MODE);
 
 	/* configure video window */
@@ -427,11 +478,11 @@ static void ccdc_config_ycbcr(void)
 	 */
 	if (ccdc_cfg.if_type == VPFE_BT656_10BIT)
 		regw((params->pix_order << CCDC_CCDCFG_Y8POS_SHIFT) |
-			CCDC_LATCH_ON_VSYNC_DISABLE | CCDC_CCDCFG_BW656_10BIT,
-			CCDC_CCDCFG);
+			 CCDC_LATCH_ON_VSYNC_DISABLE | CCDC_CCDCFG_BW656_10BIT,
+			 CCDC_CCDCFG);
 	else
 		regw((params->pix_order << CCDC_CCDCFG_Y8POS_SHIFT) |
-			CCDC_LATCH_ON_VSYNC_DISABLE, CCDC_CCDCFG);
+			 CCDC_LATCH_ON_VSYNC_DISABLE, CCDC_CCDCFG);
 
 	/*
 	 * configure the horizontal line offset. This should be a
@@ -442,7 +493,9 @@ static void ccdc_config_ycbcr(void)
 	/* configure the memory line offset */
 	if (params->buf_type == CCDC_BUFTYPE_FLD_INTERLEAVED)
 		/* two fields are interleaved in memory */
+	{
 		regw(CCDC_SDOFST_FIELD_INTERLEAVED, CCDC_SDOFST);
+	}
 
 	ccdc_sbl_reset();
 	dev_dbg(ccdc_cfg.dev, "\nEnd of ccdc_config_ycbcr...\n");
@@ -452,7 +505,8 @@ static void ccdc_config_black_clamp(struct ccdc_black_clamp *bclamp)
 {
 	u32 val;
 
-	if (!bclamp->enable) {
+	if (!bclamp->enable)
+	{
 		/* configure DCSub */
 		val = (bclamp->dc_sub) & CCDC_BLK_DC_SUB_MASK;
 		regw(val, CCDC_DCSUB);
@@ -461,17 +515,18 @@ static void ccdc_config_black_clamp(struct ccdc_black_clamp *bclamp)
 		dev_dbg(ccdc_cfg.dev, "\nWriting 0x0000 to CLAMP...\n");
 		return;
 	}
+
 	/*
 	 * Configure gain,  Start pixel, No of line to be avg,
 	 * No of pixel/line to be avg, & Enable the Black clamping
 	 */
 	val = ((bclamp->sgain & CCDC_BLK_SGAIN_MASK) |
-	       ((bclamp->start_pixel & CCDC_BLK_ST_PXL_MASK) <<
-		CCDC_BLK_ST_PXL_SHIFT) |
-	       ((bclamp->sample_ln & CCDC_BLK_SAMPLE_LINE_MASK) <<
-		CCDC_BLK_SAMPLE_LINE_SHIFT) |
-	       ((bclamp->sample_pixel & CCDC_BLK_SAMPLE_LN_MASK) <<
-		CCDC_BLK_SAMPLE_LN_SHIFT) | CCDC_BLK_CLAMP_ENABLE);
+		   ((bclamp->start_pixel & CCDC_BLK_ST_PXL_MASK) <<
+			CCDC_BLK_ST_PXL_SHIFT) |
+		   ((bclamp->sample_ln & CCDC_BLK_SAMPLE_LINE_MASK) <<
+			CCDC_BLK_SAMPLE_LINE_SHIFT) |
+		   ((bclamp->sample_pixel & CCDC_BLK_SAMPLE_LN_MASK) <<
+			CCDC_BLK_SAMPLE_LN_SHIFT) | CCDC_BLK_CLAMP_ENABLE);
 	regw(val, CCDC_CLAMP);
 	dev_dbg(ccdc_cfg.dev, "\nWriting 0x%x to CLAMP...\n", val);
 	/* If Black clamping is enable then make dcsub 0 */
@@ -484,12 +539,12 @@ static void ccdc_config_black_compense(struct ccdc_black_compensation *bcomp)
 	u32 val;
 
 	val = ((bcomp->b & CCDC_BLK_COMP_MASK) |
-	      ((bcomp->gb & CCDC_BLK_COMP_MASK) <<
-	       CCDC_BLK_COMP_GB_COMP_SHIFT) |
-	      ((bcomp->gr & CCDC_BLK_COMP_MASK) <<
-	       CCDC_BLK_COMP_GR_COMP_SHIFT) |
-	      ((bcomp->r & CCDC_BLK_COMP_MASK) <<
-	       CCDC_BLK_COMP_R_COMP_SHIFT));
+		   ((bcomp->gb & CCDC_BLK_COMP_MASK) <<
+			CCDC_BLK_COMP_GB_COMP_SHIFT) |
+		   ((bcomp->gr & CCDC_BLK_COMP_MASK) <<
+			CCDC_BLK_COMP_GR_COMP_SHIFT) |
+		   ((bcomp->r & CCDC_BLK_COMP_MASK) <<
+			CCDC_BLK_COMP_R_COMP_SHIFT));
 	regw(val, CCDC_BLKCMP);
 }
 
@@ -502,12 +557,14 @@ static void ccdc_config_fpc(struct ccdc_fault_pixel *fpc)
 	regw(val, CCDC_FPC);
 
 	if (!fpc->enable)
+	{
 		return;
+	}
 
 	/* Configure Fault pixel if needed */
 	regw(fpc->fpc_table_addr, CCDC_FPC_ADDR);
 	dev_dbg(ccdc_cfg.dev, "\nWriting 0x%lx to FPC_ADDR...\n",
-		       (fpc->fpc_table_addr));
+			(fpc->fpc_table_addr));
 	/* Write the FPC params with FPC disable */
 	val = fpc->fp_num & CCDC_FPC_FPC_NUM_MASK;
 	regw(val, CCDC_FPC);
@@ -527,7 +584,7 @@ static void ccdc_config_raw(void)
 {
 	struct ccdc_params_raw *params = &ccdc_cfg.bayer;
 	struct ccdc_config_params_raw *config_params =
-				&ccdc_cfg.bayer.config_params;
+			&ccdc_cfg.bayer.config_params;
 	unsigned int syn_mode = 0;
 	unsigned int val;
 
@@ -548,18 +605,19 @@ static void ccdc_config_raw(void)
 	 */
 	syn_mode =
 		(((params->vd_pol & CCDC_VD_POL_MASK) << CCDC_VD_POL_SHIFT) |
-		((params->hd_pol & CCDC_HD_POL_MASK) << CCDC_HD_POL_SHIFT) |
-		((params->fid_pol & CCDC_FID_POL_MASK) << CCDC_FID_POL_SHIFT) |
-		((params->frm_fmt & CCDC_FRM_FMT_MASK) << CCDC_FRM_FMT_SHIFT) |
-		((config_params->data_sz & CCDC_DATA_SZ_MASK) <<
-		CCDC_DATA_SZ_SHIFT) |
-		((params->pix_fmt & CCDC_PIX_FMT_MASK) << CCDC_PIX_FMT_SHIFT) |
-		CCDC_WEN_ENABLE | CCDC_VDHDEN_ENABLE);
+		 ((params->hd_pol & CCDC_HD_POL_MASK) << CCDC_HD_POL_SHIFT) |
+		 ((params->fid_pol & CCDC_FID_POL_MASK) << CCDC_FID_POL_SHIFT) |
+		 ((params->frm_fmt & CCDC_FRM_FMT_MASK) << CCDC_FRM_FMT_SHIFT) |
+		 ((config_params->data_sz & CCDC_DATA_SZ_MASK) <<
+		  CCDC_DATA_SZ_SHIFT) |
+		 ((params->pix_fmt & CCDC_PIX_FMT_MASK) << CCDC_PIX_FMT_SHIFT) |
+		 CCDC_WEN_ENABLE | CCDC_VDHDEN_ENABLE);
 
 	/* Enable and configure aLaw register if needed */
-	if (config_params->alaw.enable) {
+	if (config_params->alaw.enable)
+	{
 		val = ((config_params->alaw.gamma_wd &
-		      CCDC_ALAW_GAMMA_WD_MASK) | CCDC_ALAW_ENABLE);
+				CCDC_ALAW_GAMMA_WD_MASK) | CCDC_ALAW_ENABLE);
 		regw(val, CCDC_ALAW);
 		dev_dbg(ccdc_cfg.dev, "\nWriting 0x%x to ALAW...\n", val);
 	}
@@ -578,18 +636,21 @@ static void ccdc_config_raw(void)
 
 	/* If data size is 8 bit then pack the data */
 	if ((config_params->data_sz == CCDC_DATA_8BITS) ||
-	     config_params->alaw.enable)
+		config_params->alaw.enable)
+	{
 		syn_mode |= CCDC_DATA_PACK_ENABLE;
+	}
 
 	/* disable video port */
 	val = CCDC_DISABLE_VIDEO_PORT;
 
 	if (config_params->data_sz == CCDC_DATA_8BITS)
 		val |= (CCDC_DATA_10BITS & CCDC_FMTCFG_VPIN_MASK)
-		    << CCDC_FMTCFG_VPIN_SHIFT;
+			   << CCDC_FMTCFG_VPIN_SHIFT;
 	else
 		val |= (config_params->data_sz & CCDC_FMTCFG_VPIN_MASK)
-		    << CCDC_FMTCFG_VPIN_SHIFT;
+			   << CCDC_FMTCFG_VPIN_SHIFT;
+
 	/* Write value in FMTCFG */
 	regw(val, CCDC_FMTCFG);
 
@@ -603,20 +664,25 @@ static void ccdc_config_raw(void)
 	 * (FMT_HORZ, FMT_VERT)
 	 */
 	val = ((params->win.left & CCDC_FMT_HORZ_FMTSPH_MASK) <<
-	      CCDC_FMT_HORZ_FMTSPH_SHIFT) |
-	      (params->win.width & CCDC_FMT_HORZ_FMTLNH_MASK);
+		   CCDC_FMT_HORZ_FMTSPH_SHIFT) |
+		  (params->win.width & CCDC_FMT_HORZ_FMTLNH_MASK);
 	regw(val, CCDC_FMT_HORZ);
 
 	dev_dbg(ccdc_cfg.dev, "\nWriting 0x%x to FMT_HORZ...\n", val);
 	val = (params->win.top & CCDC_FMT_VERT_FMTSLV_MASK)
-	    << CCDC_FMT_VERT_FMTSLV_SHIFT;
+		  << CCDC_FMT_VERT_FMTSLV_SHIFT;
+
 	if (params->frm_fmt == CCDC_FRMFMT_PROGRESSIVE)
+	{
 		val |= (params->win.height) & CCDC_FMT_VERT_FMTLNV_MASK;
+	}
 	else
+	{
 		val |= (params->win.height >> 1) & CCDC_FMT_VERT_FMTLNV_MASK;
+	}
 
 	dev_dbg(ccdc_cfg.dev, "\nparams->win.height  0x%x ...\n",
-	       params->win.height);
+			params->win.height);
 	regw(val, CCDC_FMT_VERT);
 
 	dev_dbg(ccdc_cfg.dev, "\nWriting 0x%x to FMT_VERT...\n", val);
@@ -628,29 +694,34 @@ static void ccdc_config_raw(void)
 	 * 1 pixel will take 1 byte
 	 */
 	if ((config_params->data_sz == CCDC_DATA_8BITS) ||
-	    config_params->alaw.enable)
+		config_params->alaw.enable)
 		regw((params->win.width + CCDC_32BYTE_ALIGN_VAL) &
-		    CCDC_HSIZE_OFF_MASK, CCDC_HSIZE_OFF);
+			 CCDC_HSIZE_OFF_MASK, CCDC_HSIZE_OFF);
 	else
 		/* else one pixel will take 2 byte */
 		regw(((params->win.width * CCDC_TWO_BYTES_PER_PIXEL) +
-		    CCDC_32BYTE_ALIGN_VAL) & CCDC_HSIZE_OFF_MASK,
-		    CCDC_HSIZE_OFF);
+			  CCDC_32BYTE_ALIGN_VAL) & CCDC_HSIZE_OFF_MASK,
+			 CCDC_HSIZE_OFF);
 
 	/* Set value for SDOFST */
-	if (params->frm_fmt == CCDC_FRMFMT_INTERLACED) {
-		if (params->image_invert_enable) {
+	if (params->frm_fmt == CCDC_FRMFMT_INTERLACED)
+	{
+		if (params->image_invert_enable)
+		{
 			/* For intelace inverse mode */
 			regw(CCDC_INTERLACED_IMAGE_INVERT, CCDC_SDOFST);
 			dev_dbg(ccdc_cfg.dev, "\nWriting 0x4B6D to SDOFST..\n");
 		}
 
-		else {
+		else
+		{
 			/* For intelace non inverse mode */
 			regw(CCDC_INTERLACED_NO_IMAGE_INVERT, CCDC_SDOFST);
 			dev_dbg(ccdc_cfg.dev, "\nWriting 0x0249 to SDOFST..\n");
 		}
-	} else if (params->frm_fmt == CCDC_FRMFMT_PROGRESSIVE) {
+	}
+	else if (params->frm_fmt == CCDC_FRMFMT_PROGRESSIVE)
+	{
 		regw(CCDC_PROGRESSIVE_NO_IMAGE_INVERT, CCDC_SDOFST);
 		dev_dbg(ccdc_cfg.dev, "\nWriting 0x0000 to SDOFST...\n");
 	}
@@ -661,15 +732,15 @@ static void ccdc_config_raw(void)
 	 */
 	if (params->frm_fmt == CCDC_FRMFMT_PROGRESSIVE)
 		val = (((params->win.height - 1) & CCDC_VP_OUT_VERT_NUM_MASK))
-		    << CCDC_VP_OUT_VERT_NUM_SHIFT;
+			  << CCDC_VP_OUT_VERT_NUM_SHIFT;
 	else
 		val =
-		    ((((params->win.height >> CCDC_INTERLACED_HEIGHT_SHIFT) -
-		     1) & CCDC_VP_OUT_VERT_NUM_MASK)) <<
-		    CCDC_VP_OUT_VERT_NUM_SHIFT;
+			((((params->win.height >> CCDC_INTERLACED_HEIGHT_SHIFT) -
+			   1) & CCDC_VP_OUT_VERT_NUM_MASK)) <<
+			CCDC_VP_OUT_VERT_NUM_SHIFT;
 
 	val |= ((((params->win.width))) & CCDC_VP_OUT_HORZ_NUM_MASK)
-	    << CCDC_VP_OUT_HORZ_NUM_SHIFT;
+		   << CCDC_VP_OUT_HORZ_NUM_SHIFT;
 	val |= (params->win.left) & CCDC_VP_OUT_HORZ_ST_MASK;
 	regw(val, CCDC_VP_OUT);
 
@@ -685,61 +756,96 @@ static void ccdc_config_raw(void)
 static int ccdc_configure(void)
 {
 	if (ccdc_cfg.if_type == VPFE_RAW_BAYER)
+	{
 		ccdc_config_raw();
+	}
 	else
+	{
 		ccdc_config_ycbcr();
+	}
+
 	return 0;
 }
 
 static int ccdc_set_buftype(enum ccdc_buftype buf_type)
 {
 	if (ccdc_cfg.if_type == VPFE_RAW_BAYER)
+	{
 		ccdc_cfg.bayer.buf_type = buf_type;
+	}
 	else
+	{
 		ccdc_cfg.ycbcr.buf_type = buf_type;
+	}
+
 	return 0;
 }
 
 static enum ccdc_buftype ccdc_get_buftype(void)
 {
 	if (ccdc_cfg.if_type == VPFE_RAW_BAYER)
+	{
 		return ccdc_cfg.bayer.buf_type;
+	}
+
 	return ccdc_cfg.ycbcr.buf_type;
 }
 
 static int ccdc_enum_pix(u32 *pix, int i)
 {
 	int ret = -EINVAL;
-	if (ccdc_cfg.if_type == VPFE_RAW_BAYER) {
-		if (i < ARRAY_SIZE(ccdc_raw_bayer_pix_formats)) {
+
+	if (ccdc_cfg.if_type == VPFE_RAW_BAYER)
+	{
+		if (i < ARRAY_SIZE(ccdc_raw_bayer_pix_formats))
+		{
 			*pix = ccdc_raw_bayer_pix_formats[i];
 			ret = 0;
 		}
-	} else {
-		if (i < ARRAY_SIZE(ccdc_raw_yuv_pix_formats)) {
+	}
+	else
+	{
+		if (i < ARRAY_SIZE(ccdc_raw_yuv_pix_formats))
+		{
 			*pix = ccdc_raw_yuv_pix_formats[i];
 			ret = 0;
 		}
 	}
+
 	return ret;
 }
 
 static int ccdc_set_pixel_format(u32 pixfmt)
 {
-	if (ccdc_cfg.if_type == VPFE_RAW_BAYER) {
+	if (ccdc_cfg.if_type == VPFE_RAW_BAYER)
+	{
 		ccdc_cfg.bayer.pix_fmt = CCDC_PIXFMT_RAW;
+
 		if (pixfmt == V4L2_PIX_FMT_SBGGR8)
+		{
 			ccdc_cfg.bayer.config_params.alaw.enable = 1;
+		}
 		else if (pixfmt != V4L2_PIX_FMT_SBGGR16)
+		{
 			return -EINVAL;
-	} else {
-		if (pixfmt == V4L2_PIX_FMT_YUYV)
-			ccdc_cfg.ycbcr.pix_order = CCDC_PIXORDER_YCBYCR;
-		else if (pixfmt == V4L2_PIX_FMT_UYVY)
-			ccdc_cfg.ycbcr.pix_order = CCDC_PIXORDER_CBYCRY;
-		else
-			return -EINVAL;
+		}
 	}
+	else
+	{
+		if (pixfmt == V4L2_PIX_FMT_YUYV)
+		{
+			ccdc_cfg.ycbcr.pix_order = CCDC_PIXORDER_YCBYCR;
+		}
+		else if (pixfmt == V4L2_PIX_FMT_UYVY)
+		{
+			ccdc_cfg.ycbcr.pix_order = CCDC_PIXORDER_CBYCRY;
+		}
+		else
+		{
+			return -EINVAL;
+		}
+	}
+
 	return 0;
 }
 
@@ -750,67 +856,104 @@ static u32 ccdc_get_pixel_format(void)
 
 	if (ccdc_cfg.if_type == VPFE_RAW_BAYER)
 		if (alaw->enable)
+		{
 			pixfmt = V4L2_PIX_FMT_SBGGR8;
+		}
 		else
+		{
 			pixfmt = V4L2_PIX_FMT_SBGGR16;
-	else {
+		}
+	else
+	{
 		if (ccdc_cfg.ycbcr.pix_order == CCDC_PIXORDER_YCBYCR)
+		{
 			pixfmt = V4L2_PIX_FMT_YUYV;
+		}
 		else
+		{
 			pixfmt = V4L2_PIX_FMT_UYVY;
+		}
 	}
+
 	return pixfmt;
 }
 
 static int ccdc_set_image_window(struct v4l2_rect *win)
 {
 	if (ccdc_cfg.if_type == VPFE_RAW_BAYER)
+	{
 		ccdc_cfg.bayer.win = *win;
+	}
 	else
+	{
 		ccdc_cfg.ycbcr.win = *win;
+	}
+
 	return 0;
 }
 
 static void ccdc_get_image_window(struct v4l2_rect *win)
 {
 	if (ccdc_cfg.if_type == VPFE_RAW_BAYER)
+	{
 		*win = ccdc_cfg.bayer.win;
+	}
 	else
+	{
 		*win = ccdc_cfg.ycbcr.win;
+	}
 }
 
 static unsigned int ccdc_get_line_length(void)
 {
 	struct ccdc_config_params_raw *config_params =
-				&ccdc_cfg.bayer.config_params;
+			&ccdc_cfg.bayer.config_params;
 	unsigned int len;
 
-	if (ccdc_cfg.if_type == VPFE_RAW_BAYER) {
+	if (ccdc_cfg.if_type == VPFE_RAW_BAYER)
+	{
 		if ((config_params->alaw.enable) ||
-		    (config_params->data_sz == CCDC_DATA_8BITS))
+			(config_params->data_sz == CCDC_DATA_8BITS))
+		{
 			len = ccdc_cfg.bayer.win.width;
+		}
 		else
+		{
 			len = ccdc_cfg.bayer.win.width * 2;
-	} else
+		}
+	}
+	else
+	{
 		len = ccdc_cfg.ycbcr.win.width * 2;
+	}
+
 	return ALIGN(len, 32);
 }
 
 static int ccdc_set_frame_format(enum ccdc_frmfmt frm_fmt)
 {
 	if (ccdc_cfg.if_type == VPFE_RAW_BAYER)
+	{
 		ccdc_cfg.bayer.frm_fmt = frm_fmt;
+	}
 	else
+	{
 		ccdc_cfg.ycbcr.frm_fmt = frm_fmt;
+	}
+
 	return 0;
 }
 
 static enum ccdc_frmfmt ccdc_get_frame_format(void)
 {
 	if (ccdc_cfg.if_type == VPFE_RAW_BAYER)
+	{
 		return ccdc_cfg.bayer.frm_fmt;
+	}
 	else
+	{
 		return ccdc_cfg.ycbcr.frm_fmt;
+	}
 }
 
 static int ccdc_getfid(void)
@@ -828,18 +971,21 @@ static int ccdc_set_hw_if_params(struct vpfe_hw_if_param *params)
 {
 	ccdc_cfg.if_type = params->if_type;
 
-	switch (params->if_type) {
-	case VPFE_BT656:
-	case VPFE_YCBCR_SYNC_16:
-	case VPFE_YCBCR_SYNC_8:
-	case VPFE_BT656_10BIT:
-		ccdc_cfg.ycbcr.vd_pol = params->vdpol;
-		ccdc_cfg.ycbcr.hd_pol = params->hdpol;
-		break;
-	default:
-		/* TODO add support for raw bayer here */
-		return -EINVAL;
+	switch (params->if_type)
+	{
+		case VPFE_BT656:
+		case VPFE_YCBCR_SYNC_16:
+		case VPFE_YCBCR_SYNC_8:
+		case VPFE_BT656_10BIT:
+			ccdc_cfg.ycbcr.vd_pol = params->vdpol;
+			ccdc_cfg.ycbcr.hd_pol = params->hdpol;
+			break;
+
+		default:
+			/* TODO add support for raw bayer here */
+			return -EINVAL;
 	}
+
 	return 0;
 }
 
@@ -924,7 +1070,8 @@ static void ccdc_restore_context(void)
 	regw(ccdc_ctx[CCDC_VP_OUT >> 2], CCDC_VP_OUT);
 	regw(ccdc_ctx[CCDC_PCR >> 2], CCDC_PCR);
 }
-static struct ccdc_hw_device ccdc_hw_dev = {
+static struct ccdc_hw_device ccdc_hw_dev =
+{
 	.name = "DM6446 CCDC",
 	.owner = THIS_MODULE,
 	.hw_ops = {
@@ -960,23 +1107,32 @@ static int dm644x_ccdc_probe(struct platform_device *pdev)
 	 * don't have to iomap
 	 */
 	status = vpfe_register_ccdc_device(&ccdc_hw_dev);
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		status = -ENODEV;
 		goto fail_nores;
 	}
 
 	res = request_mem_region(res->start, resource_size(res), res->name);
-	if (!res) {
+
+	if (!res)
+	{
 		status = -EBUSY;
 		goto fail_nores;
 	}
 
 	ccdc_cfg.base_addr = ioremap_nocache(res->start, resource_size(res));
-	if (!ccdc_cfg.base_addr) {
+
+	if (!ccdc_cfg.base_addr)
+	{
 		status = -ENOMEM;
 		goto fail_nomem;
 	}
@@ -997,8 +1153,12 @@ static int dm644x_ccdc_remove(struct platform_device *pdev)
 
 	iounmap(ccdc_cfg.base_addr);
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (res)
+	{
 		release_mem_region(res->start, resource_size(res));
+	}
+
 	vpfe_unregister_ccdc_device(&ccdc_hw_dev);
 	return 0;
 }
@@ -1021,12 +1181,14 @@ static int dm644x_ccdc_resume(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops dm644x_ccdc_pm_ops = {
+static const struct dev_pm_ops dm644x_ccdc_pm_ops =
+{
 	.suspend = dm644x_ccdc_suspend,
 	.resume = dm644x_ccdc_resume,
 };
 
-static struct platform_driver dm644x_ccdc_driver = {
+static struct platform_driver dm644x_ccdc_driver =
+{
 	.driver = {
 		.name	= "dm644x_ccdc",
 		.pm = &dm644x_ccdc_pm_ops,

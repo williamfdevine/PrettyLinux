@@ -64,11 +64,11 @@
 
 static char wimax_debug_params[128];
 module_param_string(debug, wimax_debug_params, sizeof(wimax_debug_params),
-		    0644);
+					0644);
 MODULE_PARM_DESC(debug,
-		 "String of space-separated NAME:VALUE pairs, where NAMEs "
-		 "are the different debug submodules and VALUE are the "
-		 "initial debug value to set.");
+				 "String of space-separated NAME:VALUE pairs, where NAMEs "
+				 "are the different debug submodules and VALUE are the "
+				 "initial debug value to set.");
 
 /*
  * Authoritative source for the RE_STATE_CHANGE attribute policy
@@ -109,47 +109,62 @@ struct sk_buff *wimax_gnl_re_state_change_alloc(
 	struct sk_buff *report_skb;
 
 	d_fnstart(3, dev, "(wimax_dev %p new_state %u old_state %u)\n",
-		  wimax_dev, new_state, old_state);
+			  wimax_dev, new_state, old_state);
 	result = -ENOMEM;
 	report_skb = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
-	if (report_skb == NULL) {
+
+	if (report_skb == NULL)
+	{
 		dev_err(dev, "RE_STCH: can't create message\n");
 		goto error_new;
 	}
+
 	/* FIXME: sending a group ID as the seq is wrong */
 	data = genlmsg_put(report_skb, 0, wimax_gnl_family.mcgrp_offset,
-			   &wimax_gnl_family, 0, WIMAX_GNL_RE_STATE_CHANGE);
-	if (data == NULL) {
+					   &wimax_gnl_family, 0, WIMAX_GNL_RE_STATE_CHANGE);
+
+	if (data == NULL)
+	{
 		dev_err(dev, "RE_STCH: can't put data into message\n");
 		goto error_put;
 	}
+
 	*header = data;
 
 	result = nla_put_u8(report_skb, WIMAX_GNL_STCH_STATE_OLD, old_state);
-	if (result < 0) {
+
+	if (result < 0)
+	{
 		dev_err(dev, "RE_STCH: Error adding OLD attr: %d\n", result);
 		goto error_put;
 	}
+
 	result = nla_put_u8(report_skb, WIMAX_GNL_STCH_STATE_NEW, new_state);
-	if (result < 0) {
+
+	if (result < 0)
+	{
 		dev_err(dev, "RE_STCH: Error adding NEW attr: %d\n", result);
 		goto error_put;
 	}
+
 	result = nla_put_u32(report_skb, WIMAX_GNL_STCH_IFIDX,
-			     wimax_dev->net_dev->ifindex);
-	if (result < 0) {
+						 wimax_dev->net_dev->ifindex);
+
+	if (result < 0)
+	{
 		dev_err(dev, "RE_STCH: Error adding IFINDEX attribute\n");
 		goto error_put;
 	}
+
 	d_fnend(3, dev, "(wimax_dev %p new_state %u old_state %u) = %p\n",
-		wimax_dev, new_state, old_state, report_skb);
+			wimax_dev, new_state, old_state, report_skb);
 	return report_skb;
 
 error_put:
 	nlmsg_free(report_skb);
 error_new:
 	d_fnend(3, dev, "(wimax_dev %p new_state %u old_state %u) = %d\n",
-		wimax_dev, new_state, old_state, result);
+			wimax_dev, new_state, old_state, result);
 	return ERR_PTR(result);
 }
 
@@ -172,27 +187,31 @@ int wimax_gnl_re_state_change_send(
 	int result = 0;
 	struct device *dev = wimax_dev_to_dev(wimax_dev);
 	d_fnstart(3, dev, "(wimax_dev %p report_skb %p)\n",
-		  wimax_dev, report_skb);
-	if (report_skb == NULL) {
+			  wimax_dev, report_skb);
+
+	if (report_skb == NULL)
+	{
 		result = -ENOMEM;
 		goto out;
 	}
+
 	genlmsg_end(report_skb, header);
 	genlmsg_multicast(&wimax_gnl_family, report_skb, 0, 0, GFP_KERNEL);
 out:
 	d_fnend(3, dev, "(wimax_dev %p report_skb %p) = %d\n",
-		wimax_dev, report_skb, result);
+			wimax_dev, report_skb, result);
 	return result;
 }
 
 
 static
 void __check_new_state(enum wimax_st old_state, enum wimax_st new_state,
-		       unsigned int allowed_states_bm)
+					   unsigned int allowed_states_bm)
 {
-	if (WARN_ON(((1 << new_state) & allowed_states_bm) == 0)) {
+	if (WARN_ON(((1 << new_state) & allowed_states_bm) == 0))
+	{
 		pr_err("SW BUG! Forbidden state change %u -> %u\n",
-		       old_state, new_state);
+			   old_state, new_state);
 	}
 }
 
@@ -209,119 +228,149 @@ void __wimax_state_change(struct wimax_dev *wimax_dev, enum wimax_st new_state)
 	void *header;
 
 	d_fnstart(3, dev, "(wimax_dev %p new_state %u [old %u])\n",
-		  wimax_dev, new_state, old_state);
+			  wimax_dev, new_state, old_state);
 
-	if (WARN_ON(new_state >= __WIMAX_ST_INVALID)) {
+	if (WARN_ON(new_state >= __WIMAX_ST_INVALID))
+	{
 		dev_err(dev, "SW BUG: requesting invalid state %u\n",
-			new_state);
+				new_state);
 		goto out;
 	}
+
 	if (old_state == new_state)
+	{
 		goto out;
+	}
+
 	header = NULL;	/* gcc complains? can't grok why */
 	stch_skb = wimax_gnl_re_state_change_alloc(
-		wimax_dev, new_state, old_state, &header);
+				   wimax_dev, new_state, old_state, &header);
 
 	/* Verify the state transition and do exit-from-state actions */
-	switch (old_state) {
-	case __WIMAX_ST_NULL:
-		__check_new_state(old_state, new_state,
-				  1 << WIMAX_ST_DOWN);
-		break;
-	case WIMAX_ST_DOWN:
-		__check_new_state(old_state, new_state,
-				  1 << __WIMAX_ST_QUIESCING
-				  | 1 << WIMAX_ST_UNINITIALIZED
-				  | 1 << WIMAX_ST_RADIO_OFF);
-		break;
-	case __WIMAX_ST_QUIESCING:
-		__check_new_state(old_state, new_state, 1 << WIMAX_ST_DOWN);
-		break;
-	case WIMAX_ST_UNINITIALIZED:
-		__check_new_state(old_state, new_state,
-				  1 << __WIMAX_ST_QUIESCING
-				  | 1 << WIMAX_ST_RADIO_OFF);
-		break;
-	case WIMAX_ST_RADIO_OFF:
-		__check_new_state(old_state, new_state,
-				  1 << __WIMAX_ST_QUIESCING
-				  | 1 << WIMAX_ST_READY);
-		break;
-	case WIMAX_ST_READY:
-		__check_new_state(old_state, new_state,
-				  1 << __WIMAX_ST_QUIESCING
-				  | 1 << WIMAX_ST_RADIO_OFF
-				  | 1 << WIMAX_ST_SCANNING
-				  | 1 << WIMAX_ST_CONNECTING
-				  | 1 << WIMAX_ST_CONNECTED);
-		break;
-	case WIMAX_ST_SCANNING:
-		__check_new_state(old_state, new_state,
-				  1 << __WIMAX_ST_QUIESCING
-				  | 1 << WIMAX_ST_RADIO_OFF
-				  | 1 << WIMAX_ST_READY
-				  | 1 << WIMAX_ST_CONNECTING
-				  | 1 << WIMAX_ST_CONNECTED);
-		break;
-	case WIMAX_ST_CONNECTING:
-		__check_new_state(old_state, new_state,
-				  1 << __WIMAX_ST_QUIESCING
-				  | 1 << WIMAX_ST_RADIO_OFF
-				  | 1 << WIMAX_ST_READY
-				  | 1 << WIMAX_ST_SCANNING
-				  | 1 << WIMAX_ST_CONNECTED);
-		break;
-	case WIMAX_ST_CONNECTED:
-		__check_new_state(old_state, new_state,
-				  1 << __WIMAX_ST_QUIESCING
-				  | 1 << WIMAX_ST_RADIO_OFF
-				  | 1 << WIMAX_ST_READY);
-		netif_tx_disable(wimax_dev->net_dev);
-		netif_carrier_off(wimax_dev->net_dev);
-		break;
-	case __WIMAX_ST_INVALID:
-	default:
-		dev_err(dev, "SW BUG: wimax_dev %p is in unknown state %u\n",
-			wimax_dev, wimax_dev->state);
-		WARN_ON(1);
-		goto out;
+	switch (old_state)
+	{
+		case __WIMAX_ST_NULL:
+			__check_new_state(old_state, new_state,
+							  1 << WIMAX_ST_DOWN);
+			break;
+
+		case WIMAX_ST_DOWN:
+			__check_new_state(old_state, new_state,
+							  1 << __WIMAX_ST_QUIESCING
+							  | 1 << WIMAX_ST_UNINITIALIZED
+							  | 1 << WIMAX_ST_RADIO_OFF);
+			break;
+
+		case __WIMAX_ST_QUIESCING:
+			__check_new_state(old_state, new_state, 1 << WIMAX_ST_DOWN);
+			break;
+
+		case WIMAX_ST_UNINITIALIZED:
+			__check_new_state(old_state, new_state,
+							  1 << __WIMAX_ST_QUIESCING
+							  | 1 << WIMAX_ST_RADIO_OFF);
+			break;
+
+		case WIMAX_ST_RADIO_OFF:
+			__check_new_state(old_state, new_state,
+							  1 << __WIMAX_ST_QUIESCING
+							  | 1 << WIMAX_ST_READY);
+			break;
+
+		case WIMAX_ST_READY:
+			__check_new_state(old_state, new_state,
+							  1 << __WIMAX_ST_QUIESCING
+							  | 1 << WIMAX_ST_RADIO_OFF
+							  | 1 << WIMAX_ST_SCANNING
+							  | 1 << WIMAX_ST_CONNECTING
+							  | 1 << WIMAX_ST_CONNECTED);
+			break;
+
+		case WIMAX_ST_SCANNING:
+			__check_new_state(old_state, new_state,
+							  1 << __WIMAX_ST_QUIESCING
+							  | 1 << WIMAX_ST_RADIO_OFF
+							  | 1 << WIMAX_ST_READY
+							  | 1 << WIMAX_ST_CONNECTING
+							  | 1 << WIMAX_ST_CONNECTED);
+			break;
+
+		case WIMAX_ST_CONNECTING:
+			__check_new_state(old_state, new_state,
+							  1 << __WIMAX_ST_QUIESCING
+							  | 1 << WIMAX_ST_RADIO_OFF
+							  | 1 << WIMAX_ST_READY
+							  | 1 << WIMAX_ST_SCANNING
+							  | 1 << WIMAX_ST_CONNECTED);
+			break;
+
+		case WIMAX_ST_CONNECTED:
+			__check_new_state(old_state, new_state,
+							  1 << __WIMAX_ST_QUIESCING
+							  | 1 << WIMAX_ST_RADIO_OFF
+							  | 1 << WIMAX_ST_READY);
+			netif_tx_disable(wimax_dev->net_dev);
+			netif_carrier_off(wimax_dev->net_dev);
+			break;
+
+		case __WIMAX_ST_INVALID:
+		default:
+			dev_err(dev, "SW BUG: wimax_dev %p is in unknown state %u\n",
+					wimax_dev, wimax_dev->state);
+			WARN_ON(1);
+			goto out;
 	}
 
 	/* Execute the actions of entry to the new state */
-	switch (new_state) {
-	case __WIMAX_ST_NULL:
-		dev_err(dev, "SW BUG: wimax_dev %p entering NULL state "
-			"from %u\n", wimax_dev, wimax_dev->state);
-		WARN_ON(1);		/* Nobody can enter this state */
-		break;
-	case WIMAX_ST_DOWN:
-		break;
-	case __WIMAX_ST_QUIESCING:
-		break;
-	case WIMAX_ST_UNINITIALIZED:
-		break;
-	case WIMAX_ST_RADIO_OFF:
-		break;
-	case WIMAX_ST_READY:
-		break;
-	case WIMAX_ST_SCANNING:
-		break;
-	case WIMAX_ST_CONNECTING:
-		break;
-	case WIMAX_ST_CONNECTED:
-		netif_carrier_on(wimax_dev->net_dev);
-		netif_wake_queue(wimax_dev->net_dev);
-		break;
-	case __WIMAX_ST_INVALID:
-	default:
-		BUG();
+	switch (new_state)
+	{
+		case __WIMAX_ST_NULL:
+			dev_err(dev, "SW BUG: wimax_dev %p entering NULL state "
+					"from %u\n", wimax_dev, wimax_dev->state);
+			WARN_ON(1);		/* Nobody can enter this state */
+			break;
+
+		case WIMAX_ST_DOWN:
+			break;
+
+		case __WIMAX_ST_QUIESCING:
+			break;
+
+		case WIMAX_ST_UNINITIALIZED:
+			break;
+
+		case WIMAX_ST_RADIO_OFF:
+			break;
+
+		case WIMAX_ST_READY:
+			break;
+
+		case WIMAX_ST_SCANNING:
+			break;
+
+		case WIMAX_ST_CONNECTING:
+			break;
+
+		case WIMAX_ST_CONNECTED:
+			netif_carrier_on(wimax_dev->net_dev);
+			netif_wake_queue(wimax_dev->net_dev);
+			break;
+
+		case __WIMAX_ST_INVALID:
+		default:
+			BUG();
 	}
+
 	__wimax_state_set(wimax_dev, new_state);
+
 	if (!IS_ERR(stch_skb))
+	{
 		wimax_gnl_re_state_change_send(wimax_dev, stch_skb, header);
+	}
+
 out:
 	d_fnend(3, dev, "(wimax_dev %p new_state %u [old %u]) = void\n",
-		wimax_dev, new_state, old_state);
+			wimax_dev, new_state, old_state);
 }
 
 
@@ -360,8 +409,12 @@ void wimax_state_change(struct wimax_dev *wimax_dev, enum wimax_st new_state)
 	 * job.
 	 */
 	mutex_lock(&wimax_dev->mutex);
+
 	if (wimax_dev->state > __WIMAX_ST_NULL)
+	{
 		__wimax_state_change(wimax_dev, new_state);
+	}
+
 	mutex_unlock(&wimax_dev->mutex);
 }
 EXPORT_SYMBOL_GPL(wimax_state_change);
@@ -403,7 +456,8 @@ void wimax_dev_init(struct wimax_dev *wimax_dev)
 }
 EXPORT_SYMBOL_GPL(wimax_dev_init);
 
-static const struct nla_policy wimax_gnl_policy[WIMAX_GNL_ATTR_MAX + 1] = {
+static const struct nla_policy wimax_gnl_policy[WIMAX_GNL_ATTR_MAX + 1] =
+{
 	[WIMAX_GNL_RESET_IFIDX] = { .type = NLA_U32, },
 	[WIMAX_GNL_RFKILL_IFIDX] = { .type = NLA_U32, },
 	[WIMAX_GNL_RFKILL_STATE] = {
@@ -416,7 +470,8 @@ static const struct nla_policy wimax_gnl_policy[WIMAX_GNL_ATTR_MAX + 1] = {
 	},
 };
 
-static const struct genl_ops wimax_gnl_ops[] = {
+static const struct genl_ops wimax_gnl_ops[] =
+{
 	{
 		.cmd = WIMAX_GNL_OP_MSG_FROM_USER,
 		.flags = GENL_ADMIN_PERM,
@@ -446,14 +501,15 @@ static const struct genl_ops wimax_gnl_ops[] = {
 
 static
 size_t wimax_addr_scnprint(char *addr_str, size_t addr_str_size,
-			   unsigned char *addr, size_t addr_len)
+						   unsigned char *addr, size_t addr_len)
 {
 	unsigned int cnt, total;
 
 	for (total = cnt = 0; cnt < addr_len; cnt++)
 		total += scnprintf(addr_str + total, addr_str_size - total,
-				   "%02x%c", addr[cnt],
-				   cnt == addr_len - 1 ? '\0' : ':');
+						   "%02x%c", addr[cnt],
+						   cnt == addr_len - 1 ? '\0' : ':');
+
 	return total;
 }
 
@@ -489,16 +545,21 @@ int wimax_dev_add(struct wimax_dev *wimax_dev, struct net_device *net_dev)
 	 * into our functions. */
 	wimax_dev->net_dev = net_dev;
 	result = wimax_rfkill_add(wimax_dev);
+
 	if (result < 0)
+	{
 		goto error_rfkill_add;
+	}
 
 	/* Set up user-space interaction */
 	mutex_lock(&wimax_dev->mutex);
 	wimax_id_table_add(wimax_dev);
 	result = wimax_debugfs_add(wimax_dev);
-	if (result < 0) {
+
+	if (result < 0)
+	{
 		dev_err(dev, "cannot initialize debugfs: %d\n",
-			result);
+				result);
 		goto error_debugfs_add;
 	}
 
@@ -506,9 +567,9 @@ int wimax_dev_add(struct wimax_dev *wimax_dev, struct net_device *net_dev)
 	mutex_unlock(&wimax_dev->mutex);
 
 	wimax_addr_scnprint(addr_str, sizeof(addr_str),
-			    net_dev->dev_addr, net_dev->addr_len);
+						net_dev->dev_addr, net_dev->addr_len);
 	dev_err(dev, "WiMAX interface %s (%s) ready\n",
-		net_dev->name, addr_str);
+			net_dev->name, addr_str);
 	d_fnend(3, dev, "(wimax_dev %p net_dev %p) = 0\n", wimax_dev, net_dev);
 	return 0;
 
@@ -518,7 +579,7 @@ error_debugfs_add:
 	wimax_rfkill_rm(wimax_dev);
 error_rfkill_add:
 	d_fnend(3, dev, "(wimax_dev %p net_dev %p) = %d\n",
-		wimax_dev, net_dev, result);
+			wimax_dev, net_dev, result);
 	return result;
 }
 EXPORT_SYMBOL_GPL(wimax_dev_add);
@@ -560,7 +621,8 @@ EXPORT_SYMBOL_GPL(wimax_dev_rm);
 
 
 /* Debug framework control of debug levels */
-struct d_level D_LEVEL[] = {
+struct d_level D_LEVEL[] =
+{
 	D_SUBMODULE_DEFINE(debugfs),
 	D_SUBMODULE_DEFINE(id_table),
 	D_SUBMODULE_DEFINE(op_msg),
@@ -572,7 +634,8 @@ struct d_level D_LEVEL[] = {
 size_t D_LEVEL_SIZE = ARRAY_SIZE(D_LEVEL);
 
 
-struct genl_family wimax_gnl_family = {
+struct genl_family wimax_gnl_family =
+{
 	.id = GENL_ID_GENERATE,
 	.name = "WiMAX",
 	.version = WIMAX_GNL_VERSION,
@@ -580,7 +643,8 @@ struct genl_family wimax_gnl_family = {
 	.maxattr = WIMAX_GNL_ATTR_MAX,
 };
 
-static const struct genl_multicast_group wimax_gnl_mcgrps[] = {
+static const struct genl_multicast_group wimax_gnl_mcgrps[] =
+{
 	{ .name = "msg", },
 };
 
@@ -594,14 +658,16 @@ int __init wimax_subsys_init(void)
 
 	d_fnstart(4, NULL, "()\n");
 	d_parse_params(D_LEVEL, D_LEVEL_SIZE, wimax_debug_params,
-		       "wimax.debug");
+				   "wimax.debug");
 
 	snprintf(wimax_gnl_family.name, sizeof(wimax_gnl_family.name),
-		 "WiMAX");
+			 "WiMAX");
 	result = genl_register_family_with_ops_groups(&wimax_gnl_family,
-						      wimax_gnl_ops,
-						      wimax_gnl_mcgrps);
-	if (unlikely(result < 0)) {
+			 wimax_gnl_ops,
+			 wimax_gnl_mcgrps);
+
+	if (unlikely(result < 0))
+	{
 		pr_err("cannot register generic netlink family: %d\n", result);
 		goto error_register_family;
 	}

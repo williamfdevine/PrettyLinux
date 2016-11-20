@@ -3,14 +3,16 @@
 
 #include <linux/types.h>
 
-struct dove_pmu_domain_initdata {
+struct dove_pmu_domain_initdata
+{
 	u32 pwr_mask;
 	u32 rst_mask;
 	u32 iso_mask;
 	const char *name;
 };
 
-struct dove_pmu_initdata {
+struct dove_pmu_initdata
+{
 	void __iomem *pmc_base;
 	void __iomem *pmu_base;
 	int irq;

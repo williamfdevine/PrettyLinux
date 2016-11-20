@@ -62,7 +62,8 @@
 struct ipack_bus_ops;
 struct ipack_driver;
 
-enum ipack_space {
+enum ipack_space
+{
 	IPACK_IO_SPACE    = 0,
 	IPACK_ID_SPACE,
 	IPACK_INT_SPACE,
@@ -75,7 +76,8 @@ enum ipack_space {
 
 /**
  */
-struct ipack_region {
+struct ipack_region
+{
 	phys_addr_t start;
 	size_t      size;
 };
@@ -94,7 +96,8 @@ struct ipack_region {
  * is not the same with PCI carrier or VME carrier. The endianness is managed
  * by the carrier board throught bus->ops.
  */
-struct ipack_device {
+struct ipack_device
+{
 	unsigned int slot;
 	struct ipack_bus_device *bus;
 	struct device dev;
@@ -105,9 +108,9 @@ struct ipack_device {
 	u32			 id_vendor;
 	u32			 id_device;
 	u8			 id_format;
-	unsigned int		 id_crc_correct:1;
-	unsigned int		 speed_8mhz:1;
-	unsigned int		 speed_32mhz:1;
+	unsigned int		 id_crc_correct: 1;
+	unsigned int		 speed_8mhz: 1;
+	unsigned int		 speed_32mhz: 1;
 };
 
 /**
@@ -118,7 +121,8 @@ struct ipack_device {
  *          device should be revoked.
  */
 
-struct ipack_driver_ops {
+struct ipack_driver_ops
+{
 	int (*probe) (struct ipack_device *dev);
 	void (*remove) (struct ipack_device *dev);
 };
@@ -129,7 +133,8 @@ struct ipack_driver_ops {
  * @driver: Device driver kernel representation
  * @ops:    Callbacks provided by the IPack device driver
  */
-struct ipack_driver {
+struct ipack_driver
+{
 	struct device_driver driver;
 	const struct ipack_device_id *id_table;
 	const struct ipack_driver_ops *ops;
@@ -152,9 +157,10 @@ struct ipack_driver {
  *		previously timed out.
  *	@reset_timeout: Resets the state returned by get_timeout.
  */
-struct ipack_bus_ops {
+struct ipack_bus_ops
+{
 	int (*request_irq) (struct ipack_device *dev,
-			    irqreturn_t (*handler)(void *), void *arg);
+						irqreturn_t (*handler)(void *), void *arg);
 	int (*free_irq) (struct ipack_device *dev);
 	int (*get_clockrate) (struct ipack_device *dev);
 	int (*set_clockrate) (struct ipack_device *dev, int mherz);
@@ -171,7 +177,8 @@ struct ipack_bus_ops {
  *	@bus_nr: ipack bus number
  *	@ops: bus operations for the mezzanine drivers
  */
-struct ipack_bus_device {
+struct ipack_bus_device
+{
 	struct module *owner;
 	struct device *parent;
 	int slots;
@@ -190,8 +197,8 @@ struct ipack_bus_device {
  * available bus device in ipack.
  */
 struct ipack_bus_device *ipack_bus_register(struct device *parent, int slots,
-					    const struct ipack_bus_ops *ops,
-					    struct module *owner);
+		const struct ipack_bus_ops *ops,
+		struct module *owner);
 
 /**
  *	ipack_bus_unregister -- unregister an ipack bus
@@ -205,7 +212,7 @@ int ipack_bus_unregister(struct ipack_bus_device *bus);
  * that can manage ipack devices.
  */
 int ipack_driver_register(struct ipack_driver *edrv, struct module *owner,
-			  const char *name);
+						  const char *name);
 void ipack_driver_unregister(struct ipack_driver *edrv);
 
 /**
@@ -264,9 +271,9 @@ void ipack_put_device(struct ipack_device *dev);
  * device.
  */
 #define IPACK_DEVICE(_format, vend, dev) \
-	 .format = (_format), \
-	 .vendor = (vend), \
-	 .device = (dev)
+	.format = (_format), \
+			  .vendor = (vend), \
+						.device = (dev)
 
 /**
  * ipack_get_carrier - it increase the carrier ref. counter of

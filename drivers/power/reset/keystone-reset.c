@@ -49,28 +49,30 @@ static struct regmap *pllctrl_regs;
 static inline int rsctrl_enable_rspll_write(void)
 {
 	return regmap_update_bits(pllctrl_regs, rspll_offset + RSCTRL_RG,
-				  RSCTRL_KEY_MASK, RSCTRL_KEY);
+							  RSCTRL_KEY_MASK, RSCTRL_KEY);
 }
 
 static int rsctrl_restart_handler(struct notifier_block *this,
-				  unsigned long mode, void *cmd)
+								  unsigned long mode, void *cmd)
 {
 	/* enable write access to RSTCTRL */
 	rsctrl_enable_rspll_write();
 
 	/* reset the SOC */
 	regmap_update_bits(pllctrl_regs, rspll_offset + RSCTRL_RG,
-			   RSCTRL_RESET_MASK, 0);
+					   RSCTRL_RESET_MASK, 0);
 
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block rsctrl_restart_nb = {
+static struct notifier_block rsctrl_restart_nb =
+{
 	.notifier_call = rsctrl_restart_handler,
 	.priority = 128,
 };
 
-static const struct of_device_id rsctrl_of_match[] = {
+static const struct of_device_id rsctrl_of_match[] =
+{
 	{.compatible = "ti,keystone-reset", },
 	{},
 };
@@ -87,25 +89,37 @@ static int rsctrl_probe(struct platform_device *pdev)
 	struct device_node *np = dev->of_node;
 
 	if (!np)
+	{
 		return -ENODEV;
+	}
 
 	/* get regmaps */
 	pllctrl_regs = syscon_regmap_lookup_by_phandle(np, "ti,syscon-pll");
+
 	if (IS_ERR(pllctrl_regs))
+	{
 		return PTR_ERR(pllctrl_regs);
+	}
 
 	devctrl_regs = syscon_regmap_lookup_by_phandle(np, "ti,syscon-dev");
+
 	if (IS_ERR(devctrl_regs))
+	{
 		return PTR_ERR(devctrl_regs);
+	}
 
 	ret = of_property_read_u32_index(np, "ti,syscon-pll", 1, &rspll_offset);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "couldn't read the reset pll offset!\n");
 		return -EINVAL;
 	}
 
 	ret = of_property_read_u32_index(np, "ti,syscon-dev", 1, &rsmux_offset);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "couldn't read the rsmux offset!\n");
 		return -EINVAL;
 	}
@@ -115,52 +129,74 @@ static int rsctrl_probe(struct platform_device *pdev)
 	val = val ? RSCFG_RSTYPE_SOFT : RSCFG_RSTYPE_HARD;
 
 	ret = rsctrl_enable_rspll_write();
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = regmap_write(pllctrl_regs, rspll_offset + RSCFG_RG, val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* disable a reset isolation for all module clocks */
 	ret = regmap_write(pllctrl_regs, rspll_offset + RSISO_RG, 0);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* enable a reset for watchdogs from wdt-list */
-	for (i = 0; i < WDT_MUX_NUMBER; i++) {
+	for (i = 0; i < WDT_MUX_NUMBER; i++)
+	{
 		ret = of_property_read_u32_index(np, "ti,wdt-list", i, &val);
-		if (ret == -EOVERFLOW && !i) {
+
+		if (ret == -EOVERFLOW && !i)
+		{
 			dev_err(dev, "ti,wdt-list property has to contain at"
-				"least one entry\n");
+					"least one entry\n");
 			return -EINVAL;
-		} else if (ret) {
+		}
+		else if (ret)
+		{
 			break;
 		}
 
-		if (val >= WDT_MUX_NUMBER) {
+		if (val >= WDT_MUX_NUMBER)
+		{
 			dev_err(dev, "ti,wdt-list property can contain "
-				"only numbers < 4\n");
+					"only numbers < 4\n");
 			return -EINVAL;
 		}
 
 		rg = rsmux_offset + val * 4;
 
 		ret = regmap_update_bits(devctrl_regs, rg, RSMUX_OMODE_MASK,
-					 RSMUX_OMODE_RESET_ON |
-					 RSMUX_LOCK_SET);
+								 RSMUX_OMODE_RESET_ON |
+								 RSMUX_LOCK_SET);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	ret = register_restart_handler(&rsctrl_restart_nb);
+
 	if (ret)
+	{
 		dev_err(dev, "cannot register restart handler (err=%d)\n", ret);
+	}
 
 	return ret;
 }
 
-static struct platform_driver rsctrl_driver = {
+static struct platform_driver rsctrl_driver =
+{
 	.probe = rsctrl_probe,
 	.driver = {
 		.name = KBUILD_MODNAME,

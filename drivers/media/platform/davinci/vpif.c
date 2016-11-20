@@ -47,7 +47,8 @@ EXPORT_SYMBOL_GPL(vpif_base);
  * vpif_ch_params: video standard configuration parameters for vpif
  * The table must include all presets from supported subdevices.
  */
-const struct vpif_channel_config_params vpif_ch_params[] = {
+const struct vpif_channel_config_params vpif_ch_params[] =
+{
 	/* HDTV formats */
 	{
 		.name = "480p59_94",
@@ -55,7 +56,7 @@ const struct vpif_channel_config_params vpif_ch_params[] = {
 		.height = 480,
 		.frm_fmt = 1,
 		.ycmux_mode = 0,
-		.eav2sav = 138-8,
+		.eav2sav = 138 - 8,
 		.sav2eav = 720,
 		.l1 = 1,
 		.l3 = 43,
@@ -72,7 +73,7 @@ const struct vpif_channel_config_params vpif_ch_params[] = {
 		.height = 576,
 		.frm_fmt = 1,
 		.ycmux_mode = 0,
-		.eav2sav = 144-8,
+		.eav2sav = 144 - 8,
 		.sav2eav = 720,
 		.l1 = 1,
 		.l3 = 45,
@@ -89,7 +90,7 @@ const struct vpif_channel_config_params vpif_ch_params[] = {
 		.height = 720,
 		.frm_fmt = 1,
 		.ycmux_mode = 0,
-		.eav2sav = 700-8,
+		.eav2sav = 700 - 8,
 		.sav2eav = 1280,
 		.l1 = 1,
 		.l3 = 26,
@@ -225,20 +226,26 @@ EXPORT_SYMBOL_GPL(vpif_ch_params_count);
 static inline void vpif_wr_bit(u32 reg, u32 bit, u32 val)
 {
 	if (val)
+	{
 		vpif_set_bit(reg, bit);
+	}
 	else
+	{
 		vpif_clr_bit(reg, bit);
+	}
 }
 
 /* This structure is used to keep track of VPIF size register's offsets */
-struct vpif_registers {
+struct vpif_registers
+{
 	u32 h_cfg, v_cfg_00, v_cfg_01, v_cfg_02, v_cfg, ch_ctrl;
 	u32 line_offset, vanc0_strt, vanc0_size, vanc1_strt;
 	u32 vanc1_size, width_mask, len_mask;
 	u8 max_modes;
 };
 
-static const struct vpif_registers vpifregs[VPIF_NUM_CHANNELS] = {
+static const struct vpif_registers vpifregs[VPIF_NUM_CHANNELS] =
+{
 	/* Channel0 */
 	{
 		VPIF_CH0_H_CFG, VPIF_CH0_V_CFG_00, VPIF_CH0_V_CFG_01,
@@ -277,7 +284,7 @@ static const struct vpif_registers vpifregs[VPIF_NUM_CHANNELS] = {
  * L5, L7  L9, L11 in VPIF Register , also write width and height
  */
 static void vpif_set_mode_info(const struct vpif_channel_config_params *config,
-				u8 channel_id, u8 config_channel_id)
+							   u8 channel_id, u8 config_channel_id)
 {
 	u32 value;
 
@@ -311,7 +318,7 @@ static void vpif_set_mode_info(const struct vpif_channel_config_params *config,
  * It sets frame format, yc mux mode
  */
 static void config_vpif_params(struct vpif_params *vpifparams,
-				u8 channel_id, u8 found)
+							   u8 channel_id, u8 found)
 {
 	const struct vpif_channel_config_params *config = &vpifparams->std_info;
 	u32 value, ch_nip, reg;
@@ -321,12 +328,18 @@ static void config_vpif_params(struct vpif_params *vpifparams,
 	start = channel_id;
 	end = channel_id + found;
 
-	for (i = start; i < end; i++) {
+	for (i = start; i < end; i++)
+	{
 		reg = vpifregs[i].ch_ctrl;
+
 		if (channel_id < 2)
+		{
 			ch_nip = VPIF_CAPTURE_CH_NIP;
+		}
 		else
+		{
 			ch_nip = VPIF_DISPLAY_CH_NIP;
+		}
 
 		vpif_wr_bit(reg, ch_nip, config->frm_fmt);
 		vpif_wr_bit(reg, VPIF_CH_YC_MUX_BIT, config->ycmux_mode);
@@ -338,28 +351,31 @@ static void config_vpif_params(struct vpif_params *vpifparams,
 		vpif_wr_bit(reg, VPIF_CH_DATA_MODE_BIT, config->capture_format);
 
 		if (channel_id > 1)	/* Set the Pixel enable bit */
+		{
 			vpif_set_bit(reg, VPIF_DISPLAY_PIX_EN_BIT);
-		else if (config->capture_format) {
+		}
+		else if (config->capture_format)
+		{
 			/* Set the polarity of various pins */
 			vpif_wr_bit(reg, VPIF_CH_FID_POLARITY_BIT,
-					vpifparams->iface.fid_pol);
+						vpifparams->iface.fid_pol);
 			vpif_wr_bit(reg, VPIF_CH_V_VALID_POLARITY_BIT,
-					vpifparams->iface.vd_pol);
+						vpifparams->iface.vd_pol);
 			vpif_wr_bit(reg, VPIF_CH_H_VALID_POLARITY_BIT,
-					vpifparams->iface.hd_pol);
+						vpifparams->iface.hd_pol);
 
 			value = regr(reg);
 			/* Set data width */
 			value &= ~(0x3u <<
-					VPIF_CH_DATA_WIDTH_BIT);
+					   VPIF_CH_DATA_WIDTH_BIT);
 			value |= ((vpifparams->params.data_sz) <<
-						     VPIF_CH_DATA_WIDTH_BIT);
+					  VPIF_CH_DATA_WIDTH_BIT);
 			regw(value, reg);
 		}
 
 		/* Write the pitch in the driver */
 		regw((vpifparams->video_params.hpitch),
-						vpifregs[i].line_offset);
+			 vpifregs[i].line_offset);
 	}
 }
 
@@ -372,7 +388,9 @@ int vpif_set_video_params(struct vpif_params *vpifparams, u8 channel_id)
 	int found = 1;
 
 	vpif_set_mode_info(config, channel_id, channel_id);
-	if (!config->ycmux_mode) {
+
+	if (!config->ycmux_mode)
+	{
 		/* YC are on separate channels (HDTV formats) */
 		vpif_set_mode_info(config, channel_id + 1, channel_id);
 		found = 2;
@@ -388,7 +406,7 @@ int vpif_set_video_params(struct vpif_params *vpifparams, u8 channel_id)
 EXPORT_SYMBOL(vpif_set_video_params);
 
 void vpif_set_vbi_display_params(struct vpif_vbi_params *vbiparams,
-				u8 channel_id)
+								 u8 channel_id)
 {
 	u32 value;
 
@@ -414,7 +432,7 @@ EXPORT_SYMBOL(vpif_set_vbi_display_params);
 int vpif_channel_getfid(u8 channel_id)
 {
 	return (regr(vpifregs[channel_id].ch_ctrl) & VPIF_CH_FID_MASK)
-					>> VPIF_CH_FID_SHIFT;
+		   >> VPIF_CH_FID_SHIFT;
 }
 EXPORT_SYMBOL(vpif_channel_getfid);
 
@@ -424,8 +442,11 @@ static int vpif_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	vpif_base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(vpif_base))
+	{
 		return PTR_ERR(vpif_base);
+	}
 
 	pm_runtime_enable(&pdev->dev);
 	pm_runtime_get(&pdev->dev);
@@ -454,7 +475,8 @@ static int vpif_resume(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops vpif_pm = {
+static const struct dev_pm_ops vpif_pm =
+{
 	.suspend        = vpif_suspend,
 	.resume         = vpif_resume,
 };
@@ -464,7 +486,8 @@ static const struct dev_pm_ops vpif_pm = {
 #define vpif_pm_ops NULL
 #endif
 
-static struct platform_driver vpif_driver = {
+static struct platform_driver vpif_driver =
+{
 	.driver = {
 		.name	= "vpif",
 		.pm	= vpif_pm_ops,

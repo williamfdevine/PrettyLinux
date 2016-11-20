@@ -29,7 +29,8 @@ extern spinlock_t rtc_lock;		/* serialize CMOS RAM access */
  * handling of wake alarms, e.g. activating ACPI BIOS hooks or setting up
  * a separate wakeup alarm used by some almost-clone chips.
  */
-struct cmos_rtc_board_info {
+struct cmos_rtc_board_info
+{
 	void	(*wake_on)(struct device *dev);
 	void	(*wake_off)(struct device *dev);
 
@@ -78,14 +79,14 @@ struct cmos_rtc_board_info {
  */
 # define RTC_UIP		0x80
 # define RTC_DIV_CTL		0x70
-   /* divider control: refclock values 4.194 / 1.049 MHz / 32.768 kHz */
+/* divider control: refclock values 4.194 / 1.049 MHz / 32.768 kHz */
 #  define RTC_REF_CLCK_4MHZ	0x00
 #  define RTC_REF_CLCK_1MHZ	0x10
 #  define RTC_REF_CLCK_32KHZ	0x20
-   /* 2 values for divider stage reset, others for "testing purposes only" */
+/* 2 values for divider stage reset, others for "testing purposes only" */
 #  define RTC_DIV_RESET1	0x60
 #  define RTC_DIV_RESET2	0x70
-  /* Periodic intr. / Square wave rate select. 0=none, 1=32.8kHz,... 15=2Hz */
+/* Periodic intr. / Square wave rate select. 0=none, 1=32.8kHz,... 15=2Hz */
 # define RTC_RATE_SELECT 	0x0F
 
 /**********************************************************************/
@@ -114,12 +115,12 @@ struct cmos_rtc_board_info {
 
 #ifndef ARCH_RTC_LOCATION	/* Override by <asm/mc146818rtc.h>? */
 
-#define RTC_IO_EXTENT	0x8
-#define RTC_IO_EXTENT_USED	0x2
-#define RTC_IOMAPPED	1	/* Default to I/O mapping. */
+	#define RTC_IO_EXTENT	0x8
+	#define RTC_IO_EXTENT_USED	0x2
+	#define RTC_IOMAPPED	1	/* Default to I/O mapping. */
 
 #else
-#define RTC_IO_EXTENT_USED      RTC_IO_EXTENT
+	#define RTC_IO_EXTENT_USED      RTC_IO_EXTENT
 #endif /* ARCH_RTC_LOCATION */
 
 unsigned int mc146818_get_time(struct rtc_time *time);

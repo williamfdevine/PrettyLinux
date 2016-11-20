@@ -21,13 +21,15 @@
 
 #include "psc.h"
 
-struct pcm_period {
+struct pcm_period
+{
 	u32 start;
 	u32 relative_end;	/* relative to start of buffer */
 	struct pcm_period *next;
 };
 
-struct audio_stream {
+struct audio_stream
+{
 	struct snd_pcm_substream *substream;
 	int dma;
 	struct pcm_period *buffer;
@@ -35,7 +37,8 @@ struct audio_stream {
 	unsigned int periods;
 };
 
-struct alchemy_pcm_ctx {
+struct alchemy_pcm_ctx
+{
 	struct audio_stream stream[2];	/* playback & capture */
 };
 
@@ -47,19 +50,26 @@ static void au1000_release_dma_link(struct audio_stream *stream)
 	stream->period_size = 0;
 	stream->periods = 0;
 	pointer = stream->buffer;
+
 	if (!pointer)
+	{
 		return;
-	do {
+	}
+
+	do
+	{
 		pointer_next = pointer->next;
 		kfree(pointer);
 		pointer = pointer_next;
-	} while (pointer != stream->buffer);
+	}
+	while (pointer != stream->buffer);
+
 	stream->buffer = NULL;
 }
 
 static int au1000_setup_dma_link(struct audio_stream *stream,
-				 unsigned int period_bytes,
-				 unsigned int periods)
+								 unsigned int period_bytes,
+								 unsigned int periods)
 {
 	struct snd_pcm_substream *substream = stream->substream;
 	struct snd_pcm_runtime *runtime = substream->runtime;
@@ -70,8 +80,10 @@ static int au1000_setup_dma_link(struct audio_stream *stream,
 	dma_start = virt_to_phys(runtime->dma_area);
 
 	if (stream->period_size == period_bytes &&
-	    stream->periods == periods)
-		return 0; /* not changed */
+		stream->periods == periods)
+	{
+		return 0;    /* not changed */
+	}
 
 	au1000_release_dma_link(stream);
 
@@ -79,22 +91,34 @@ static int au1000_setup_dma_link(struct audio_stream *stream,
 	stream->periods = periods;
 
 	stream->buffer = kmalloc(sizeof(struct pcm_period), GFP_KERNEL);
+
 	if (!stream->buffer)
+	{
 		return -ENOMEM;
+	}
+
 	pointer = stream->buffer;
-	for (i = 0; i < periods; i++) {
+
+	for (i = 0; i < periods; i++)
+	{
 		pointer->start = (u32)(dma_start + (i * period_bytes));
-		pointer->relative_end = (u32) (((i+1) * period_bytes) - 0x1);
-		if (i < periods - 1) {
+		pointer->relative_end = (u32) (((i + 1) * period_bytes) - 0x1);
+
+		if (i < periods - 1)
+		{
 			pointer->next = kmalloc(sizeof(struct pcm_period),
-						GFP_KERNEL);
-			if (!pointer->next) {
+									GFP_KERNEL);
+
+			if (!pointer->next)
+			{
 				au1000_release_dma_link(stream);
 				return -ENOMEM;
 			}
+
 			pointer = pointer->next;
 		}
 	}
+
 	pointer->next = stream->buffer;
 	return 0;
 }
@@ -102,28 +126,37 @@ static int au1000_setup_dma_link(struct audio_stream *stream,
 static void au1000_dma_stop(struct audio_stream *stream)
 {
 	if (stream->buffer)
+	{
 		disable_dma(stream->dma);
+	}
 }
 
 static void au1000_dma_start(struct audio_stream *stream)
 {
 	if (!stream->buffer)
+	{
 		return;
+	}
 
 	init_dma(stream->dma);
-	if (get_dma_active_buffer(stream->dma) == 0) {
+
+	if (get_dma_active_buffer(stream->dma) == 0)
+	{
 		clear_dma_done0(stream->dma);
 		set_dma_addr0(stream->dma, stream->buffer->start);
 		set_dma_count0(stream->dma, stream->period_size >> 1);
 		set_dma_addr1(stream->dma, stream->buffer->next->start);
 		set_dma_count1(stream->dma, stream->period_size >> 1);
-	} else {
+	}
+	else
+	{
 		clear_dma_done1(stream->dma);
 		set_dma_addr1(stream->dma, stream->buffer->start);
 		set_dma_count1(stream->dma, stream->period_size >> 1);
 		set_dma_addr0(stream->dma, stream->buffer->next->start);
 		set_dma_count0(stream->dma, stream->period_size >> 1);
 	}
+
 	enable_dma_buffers(stream->dma);
 	start_dma(stream->dma);
 }
@@ -133,36 +166,42 @@ static irqreturn_t au1000_dma_interrupt(int irq, void *ptr)
 	struct audio_stream *stream = (struct audio_stream *)ptr;
 	struct snd_pcm_substream *substream = stream->substream;
 
-	switch (get_dma_buffer_done(stream->dma)) {
-	case DMA_D0:
-		stream->buffer = stream->buffer->next;
-		clear_dma_done0(stream->dma);
-		set_dma_addr0(stream->dma, stream->buffer->next->start);
-		set_dma_count0(stream->dma, stream->period_size >> 1);
-		enable_dma_buffer0(stream->dma);
-		break;
-	case DMA_D1:
-		stream->buffer = stream->buffer->next;
-		clear_dma_done1(stream->dma);
-		set_dma_addr1(stream->dma, stream->buffer->next->start);
-		set_dma_count1(stream->dma, stream->period_size >> 1);
-		enable_dma_buffer1(stream->dma);
-		break;
-	case (DMA_D0 | DMA_D1):
-		pr_debug("DMA %d missed interrupt.\n", stream->dma);
-		au1000_dma_stop(stream);
-		au1000_dma_start(stream);
-		break;
-	case (~DMA_D0 & ~DMA_D1):
-		pr_debug("DMA %d empty irq.\n", stream->dma);
+	switch (get_dma_buffer_done(stream->dma))
+	{
+		case DMA_D0:
+			stream->buffer = stream->buffer->next;
+			clear_dma_done0(stream->dma);
+			set_dma_addr0(stream->dma, stream->buffer->next->start);
+			set_dma_count0(stream->dma, stream->period_size >> 1);
+			enable_dma_buffer0(stream->dma);
+			break;
+
+		case DMA_D1:
+			stream->buffer = stream->buffer->next;
+			clear_dma_done1(stream->dma);
+			set_dma_addr1(stream->dma, stream->buffer->next->start);
+			set_dma_count1(stream->dma, stream->period_size >> 1);
+			enable_dma_buffer1(stream->dma);
+			break;
+
+		case (DMA_D0 | DMA_D1):
+			pr_debug("DMA %d missed interrupt.\n", stream->dma);
+			au1000_dma_stop(stream);
+			au1000_dma_start(stream);
+			break;
+
+		case (~DMA_D0 & ~DMA_D1):
+			pr_debug("DMA %d empty irq.\n", stream->dma);
 	}
+
 	snd_pcm_period_elapsed(substream);
 	return IRQ_HANDLED;
 }
 
-static const struct snd_pcm_hardware alchemy_pcm_hardware = {
+static const struct snd_pcm_hardware alchemy_pcm_hardware =
+{
 	.info		  = SNDRV_PCM_INFO_MMAP | SNDRV_PCM_INFO_MMAP_VALID |
-			    SNDRV_PCM_INFO_INTERLEAVED | SNDRV_PCM_INFO_BATCH,
+	SNDRV_PCM_INFO_INTERLEAVED | SNDRV_PCM_INFO_BATCH,
 	.period_bytes_min = 1024,
 	.period_bytes_max = 16 * 1024 - 1,
 	.periods_min	  = 4,
@@ -191,16 +230,19 @@ static int alchemy_pcm_open(struct snd_pcm_substream *substream)
 	char *name;
 
 	dmaids = snd_soc_dai_get_dma_data(rtd->cpu_dai, substream);
+
 	if (!dmaids)
-		return -ENODEV;	/* whoa, has ordering changed? */
+	{
+		return -ENODEV;    /* whoa, has ordering changed? */
+	}
 
 	/* DMA setup */
 	name = (s == SNDRV_PCM_STREAM_PLAYBACK) ? "audio-tx" : "audio-rx";
 	ctx->stream[s].dma = request_au1000_dma(dmaids[s], name,
-					au1000_dma_interrupt, 0,
-					&ctx->stream[s]);
+											au1000_dma_interrupt, 0,
+											&ctx->stream[s]);
 	set_dma_mode(ctx->stream[s].dma,
-		     get_dma_mode(ctx->stream[s].dma) & ~DMA_NC);
+				 get_dma_mode(ctx->stream[s].dma) & ~DMA_NC);
 
 	ctx->stream[s].substream = substream;
 	ctx->stream[s].buffer = NULL;
@@ -221,20 +263,27 @@ static int alchemy_pcm_close(struct snd_pcm_substream *substream)
 }
 
 static int alchemy_pcm_hw_params(struct snd_pcm_substream *substream,
-				 struct snd_pcm_hw_params *hw_params)
+								 struct snd_pcm_hw_params *hw_params)
 {
 	struct audio_stream *stream = ss_to_as(substream);
 	int err;
 
 	err = snd_pcm_lib_malloc_pages(substream,
-				       params_buffer_bytes(hw_params));
+								   params_buffer_bytes(hw_params));
+
 	if (err < 0)
+	{
 		return err;
+	}
+
 	err = au1000_setup_dma_link(stream,
-				    params_period_bytes(hw_params),
-				    params_periods(hw_params));
+								params_period_bytes(hw_params),
+								params_periods(hw_params));
+
 	if (err)
+	{
 		snd_pcm_lib_free_pages(substream);
+	}
 
 	return err;
 }
@@ -251,17 +300,21 @@ static int alchemy_pcm_trigger(struct snd_pcm_substream *substream, int cmd)
 	struct audio_stream *stream = ss_to_as(substream);
 	int err = 0;
 
-	switch (cmd) {
-	case SNDRV_PCM_TRIGGER_START:
-		au1000_dma_start(stream);
-		break;
-	case SNDRV_PCM_TRIGGER_STOP:
-		au1000_dma_stop(stream);
-		break;
-	default:
-		err = -EINVAL;
-		break;
+	switch (cmd)
+	{
+		case SNDRV_PCM_TRIGGER_START:
+			au1000_dma_start(stream);
+			break;
+
+		case SNDRV_PCM_TRIGGER_STOP:
+			au1000_dma_stop(stream);
+			break;
+
+		default:
+			err = -EINVAL;
+			break;
 	}
+
 	return err;
 }
 
@@ -272,12 +325,17 @@ static snd_pcm_uframes_t alchemy_pcm_pointer(struct snd_pcm_substream *ss)
 
 	location = get_dma_residue(stream->dma);
 	location = stream->buffer->relative_end - location;
+
 	if (location == -1)
+	{
 		location = 0;
+	}
+
 	return bytes_to_frames(ss->runtime, location);
 }
 
-static struct snd_pcm_ops alchemy_pcm_ops = {
+static struct snd_pcm_ops alchemy_pcm_ops =
+{
 	.open			= alchemy_pcm_open,
 	.close			= alchemy_pcm_close,
 	.ioctl			= snd_pcm_lib_ioctl,
@@ -292,12 +350,13 @@ static int alchemy_pcm_new(struct snd_soc_pcm_runtime *rtd)
 	struct snd_pcm *pcm = rtd->pcm;
 
 	snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_CONTINUOUS,
-		snd_dma_continuous_data(GFP_KERNEL), 65536, (4096 * 1024) - 1);
+										  snd_dma_continuous_data(GFP_KERNEL), 65536, (4096 * 1024) - 1);
 
 	return 0;
 }
 
-static struct snd_soc_platform_driver alchemy_pcm_soc_platform = {
+static struct snd_soc_platform_driver alchemy_pcm_soc_platform =
+{
 	.ops		= &alchemy_pcm_ops,
 	.pcm_new	= alchemy_pcm_new,
 };
@@ -307,16 +366,20 @@ static int alchemy_pcm_drvprobe(struct platform_device *pdev)
 	struct alchemy_pcm_ctx *ctx;
 
 	ctx = devm_kzalloc(&pdev->dev, sizeof(*ctx), GFP_KERNEL);
+
 	if (!ctx)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, ctx);
 
 	return devm_snd_soc_register_platform(&pdev->dev,
-					      &alchemy_pcm_soc_platform);
+										  &alchemy_pcm_soc_platform);
 }
 
-static struct platform_driver alchemy_pcmdma_driver = {
+static struct platform_driver alchemy_pcmdma_driver =
+{
 	.driver	= {
 		.name	= "alchemy-pcm-dma",
 	},

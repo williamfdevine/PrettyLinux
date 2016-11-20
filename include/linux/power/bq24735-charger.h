@@ -21,7 +21,8 @@
 #include <linux/types.h>
 #include <linux/power_supply.h>
 
-struct bq24735_platform {
+struct bq24735_platform
+{
 	uint32_t charge_current;
 	uint32_t charge_voltage;
 	uint32_t input_current;

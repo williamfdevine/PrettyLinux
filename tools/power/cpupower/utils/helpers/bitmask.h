@@ -7,7 +7,8 @@
  * pasted here.
  */
 
-struct bitmask {
+struct bitmask
+{
 	unsigned int size;
 	unsigned long *maskp;
 };

@@ -11,7 +11,8 @@
 
 #include <linux/sysfs.h>
 
-struct blk_trace {
+struct blk_trace
+{
 	int trace_state;
 	struct rchan *rchan;
 	unsigned long __percpu *sequence;
@@ -31,8 +32,8 @@ struct blk_trace {
 extern int blk_trace_ioctl(struct block_device *, unsigned, char __user *);
 extern void blk_trace_shutdown(struct request_queue *);
 extern int do_blk_trace_setup(struct request_queue *q, char *name,
-			      dev_t dev, struct block_device *bdev,
-			      struct blk_user_trace_setup *buts);
+							  dev_t dev, struct block_device *bdev,
+							  struct blk_user_trace_setup *buts);
 extern __printf(2, 3)
 void __trace_note_message(struct blk_trace *, const char *fmt, ...);
 
@@ -60,16 +61,20 @@ void __trace_note_message(struct blk_trace *, const char *fmt, ...);
 static inline bool blk_trace_note_message_enabled(struct request_queue *q)
 {
 	struct blk_trace *bt = q->blk_trace;
+
 	if (likely(!bt))
+	{
 		return false;
+	}
+
 	return bt->act_mask & BLK_TC_NOTIFY;
 }
 
 extern void blk_add_driver_data(struct request_queue *q, struct request *rq,
-				void *data, size_t len);
+								void *data, size_t len);
 extern int blk_trace_setup(struct request_queue *q, char *name, dev_t dev,
-			   struct block_device *bdev,
-			   char __user *arg);
+						   struct block_device *bdev,
+						   char __user *arg);
 extern int blk_trace_startstop(struct request_queue *q, int start);
 extern int blk_trace_remove(struct request_queue *q);
 extern void blk_trace_remove_sysfs(struct device *dev);
@@ -97,7 +102,8 @@ static inline int blk_trace_init_sysfs(struct device *dev)
 
 #ifdef CONFIG_COMPAT
 
-struct compat_blk_user_trace_setup {
+struct compat_blk_user_trace_setup
+{
 	char name[BLKTRACE_BDEV_SIZE];
 	u16 act_mask;
 	u32 buf_size;

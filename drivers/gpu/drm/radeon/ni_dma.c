@@ -51,17 +51,24 @@ u32 cayman_gpu_check_soft_reset(struct radeon_device *rdev);
  * Get the current rptr from the hardware (cayman+).
  */
 uint32_t cayman_dma_get_rptr(struct radeon_device *rdev,
-			     struct radeon_ring *ring)
+							 struct radeon_ring *ring)
 {
 	u32 rptr, reg;
 
-	if (rdev->wb.enabled) {
-		rptr = rdev->wb.wb[ring->rptr_offs/4];
-	} else {
+	if (rdev->wb.enabled)
+	{
+		rptr = rdev->wb.wb[ring->rptr_offs / 4];
+	}
+	else
+	{
 		if (ring->idx == R600_RING_TYPE_DMA_INDEX)
+		{
 			reg = DMA_RB_RPTR + DMA0_REGISTER_OFFSET;
+		}
 		else
+		{
 			reg = DMA_RB_RPTR + DMA1_REGISTER_OFFSET;
+		}
 
 		rptr = RREG32(reg);
 	}
@@ -78,14 +85,18 @@ uint32_t cayman_dma_get_rptr(struct radeon_device *rdev,
  * Get the current wptr from the hardware (cayman+).
  */
 uint32_t cayman_dma_get_wptr(struct radeon_device *rdev,
-			   struct radeon_ring *ring)
+							 struct radeon_ring *ring)
 {
 	u32 reg;
 
 	if (ring->idx == R600_RING_TYPE_DMA_INDEX)
+	{
 		reg = DMA_RB_WPTR + DMA0_REGISTER_OFFSET;
+	}
 	else
+	{
 		reg = DMA_RB_WPTR + DMA1_REGISTER_OFFSET;
+	}
 
 	return (RREG32(reg) & 0x3fffc) >> 2;
 }
@@ -99,14 +110,18 @@ uint32_t cayman_dma_get_wptr(struct radeon_device *rdev,
  * Write the wptr back to the hardware (cayman+).
  */
 void cayman_dma_set_wptr(struct radeon_device *rdev,
-			 struct radeon_ring *ring)
+						 struct radeon_ring *ring)
 {
 	u32 reg;
 
 	if (ring->idx == R600_RING_TYPE_DMA_INDEX)
+	{
 		reg = DMA_RB_WPTR + DMA0_REGISTER_OFFSET;
+	}
 	else
+	{
 		reg = DMA_RB_WPTR + DMA1_REGISTER_OFFSET;
+	}
 
 	WREG32(reg, (ring->wptr << 2) & 0x3fffc);
 }
@@ -120,15 +135,20 @@ void cayman_dma_set_wptr(struct radeon_device *rdev,
  * Schedule an IB in the DMA ring (cayman-SI).
  */
 void cayman_dma_ring_ib_execute(struct radeon_device *rdev,
-				struct radeon_ib *ib)
+								struct radeon_ib *ib)
 {
 	struct radeon_ring *ring = &rdev->ring[ib->ring];
 	unsigned vm_id = ib->vm ? ib->vm->ids[ib->ring].id : 0;
 
-	if (rdev->wb.enabled) {
+	if (rdev->wb.enabled)
+	{
 		u32 next_rptr = ring->wptr + 4;
+
 		while ((next_rptr & 7) != 5)
+		{
 			next_rptr++;
+		}
+
 		next_rptr += 3;
 		radeon_ring_write(ring, DMA_PACKET(DMA_PACKET_WRITE, 0, 0, 1));
 		radeon_ring_write(ring, ring->next_rptr_gpu_addr & 0xfffffffc);
@@ -140,7 +160,10 @@ void cayman_dma_ring_ib_execute(struct radeon_device *rdev,
 	 * Pad as necessary with NOPs.
 	 */
 	while ((ring->wptr & 7) != 5)
+	{
 		radeon_ring_write(ring, DMA_PACKET(DMA_PACKET_NOP, 0, 0, 0));
+	}
+
 	radeon_ring_write(ring, DMA_IB_PACKET(DMA_PACKET_INDIRECT_BUFFER, vm_id, 0));
 	radeon_ring_write(ring, (ib->gpu_addr & 0xFFFFFFE0));
 	radeon_ring_write(ring, (ib->length_dw << 12) | (upper_32_bits(ib->gpu_addr) & 0xFF));
@@ -159,8 +182,10 @@ void cayman_dma_stop(struct radeon_device *rdev)
 	u32 rb_cntl;
 
 	if ((rdev->asic->copy.copy_ring_index == R600_RING_TYPE_DMA_INDEX) ||
-	    (rdev->asic->copy.copy_ring_index == CAYMAN_RING_TYPE_DMA1_INDEX))
+		(rdev->asic->copy.copy_ring_index == CAYMAN_RING_TYPE_DMA1_INDEX))
+	{
 		radeon_ttm_set_active_vram_size(rdev, rdev->mc.visible_vram_size);
+	}
 
 	/* dma0 */
 	rb_cntl = RREG32(DMA_RB_CNTL + DMA0_REGISTER_OFFSET);
@@ -192,12 +217,16 @@ int cayman_dma_resume(struct radeon_device *rdev)
 	u32 reg_offset, wb_offset;
 	int i, r;
 
-	for (i = 0; i < 2; i++) {
-		if (i == 0) {
+	for (i = 0; i < 2; i++)
+	{
+		if (i == 0)
+		{
 			ring = &rdev->ring[R600_RING_TYPE_DMA_INDEX];
 			reg_offset = DMA0_REGISTER_OFFSET;
 			wb_offset = R600_WB_DMA_RPTR_OFFSET;
-		} else {
+		}
+		else
+		{
 			ring = &rdev->ring[CAYMAN_RING_TYPE_DMA1_INDEX];
 			reg_offset = DMA1_REGISTER_OFFSET;
 			wb_offset = CAYMAN_WB_DMA1_RPTR_OFFSET;
@@ -220,12 +249,14 @@ int cayman_dma_resume(struct radeon_device *rdev)
 
 		/* set the wb address whether it's enabled or not */
 		WREG32(DMA_RB_RPTR_ADDR_HI + reg_offset,
-		       upper_32_bits(rdev->wb.gpu_addr + wb_offset) & 0xFF);
+			   upper_32_bits(rdev->wb.gpu_addr + wb_offset) & 0xFF);
 		WREG32(DMA_RB_RPTR_ADDR_LO + reg_offset,
-		       ((rdev->wb.gpu_addr + wb_offset) & 0xFFFFFFFC));
+			   ((rdev->wb.gpu_addr + wb_offset) & 0xFFFFFFFC));
 
 		if (rdev->wb.enabled)
+		{
 			rb_cntl |= DMA_RPTR_WRITEBACK_ENABLE;
+		}
 
 		WREG32(DMA_RB_BASE + reg_offset, ring->gpu_addr >> 8);
 
@@ -248,15 +279,19 @@ int cayman_dma_resume(struct radeon_device *rdev)
 		ring->ready = true;
 
 		r = radeon_ring_test(rdev, ring->idx, ring);
-		if (r) {
+
+		if (r)
+		{
 			ring->ready = false;
 			return r;
 		}
 	}
 
 	if ((rdev->asic->copy.copy_ring_index == R600_RING_TYPE_DMA_INDEX) ||
-	    (rdev->asic->copy.copy_ring_index == CAYMAN_RING_TYPE_DMA1_INDEX))
+		(rdev->asic->copy.copy_ring_index == CAYMAN_RING_TYPE_DMA1_INDEX))
+	{
 		radeon_ttm_set_active_vram_size(rdev, rdev->mc.real_vram_size);
+	}
 
 	return 0;
 }
@@ -290,14 +325,20 @@ bool cayman_dma_is_lockup(struct radeon_device *rdev, struct radeon_ring *ring)
 	u32 mask;
 
 	if (ring->idx == R600_RING_TYPE_DMA_INDEX)
+	{
 		mask = RADEON_RESET_DMA;
+	}
 	else
+	{
 		mask = RADEON_RESET_DMA1;
+	}
 
-	if (!(reset_mask & mask)) {
+	if (!(reset_mask & mask))
+	{
 		radeon_ring_lockup_update(rdev, ring);
 		return false;
 	}
+
 	return radeon_ring_test_lockup(rdev, ring);
 }
 
@@ -313,19 +354,23 @@ bool cayman_dma_is_lockup(struct radeon_device *rdev, struct radeon_ring *ring)
  * Update PTEs by copying them from the GART using the DMA (cayman/TN).
  */
 void cayman_dma_vm_copy_pages(struct radeon_device *rdev,
-			      struct radeon_ib *ib,
-			      uint64_t pe, uint64_t src,
-			      unsigned count)
+							  struct radeon_ib *ib,
+							  uint64_t pe, uint64_t src,
+							  unsigned count)
 {
 	unsigned ndw;
 
-	while (count) {
+	while (count)
+	{
 		ndw = count * 2;
+
 		if (ndw > 0xFFFFE)
+		{
 			ndw = 0xFFFFE;
+		}
 
 		ib->ptr[ib->length_dw++] = DMA_PACKET(DMA_PACKET_COPY,
-						      0, 0, ndw);
+											  0, 0, ndw);
 		ib->ptr[ib->length_dw++] = lower_32_bits(pe);
 		ib->ptr[ib->length_dw++] = lower_32_bits(src);
 		ib->ptr[ib->length_dw++] = upper_32_bits(pe) & 0xff;
@@ -351,32 +396,44 @@ void cayman_dma_vm_copy_pages(struct radeon_device *rdev,
  * Update PTEs by writing them manually using the DMA (cayman/TN).
  */
 void cayman_dma_vm_write_pages(struct radeon_device *rdev,
-			       struct radeon_ib *ib,
-			       uint64_t pe,
-			       uint64_t addr, unsigned count,
-			       uint32_t incr, uint32_t flags)
+							   struct radeon_ib *ib,
+							   uint64_t pe,
+							   uint64_t addr, unsigned count,
+							   uint32_t incr, uint32_t flags)
 {
 	uint64_t value;
 	unsigned ndw;
 
-	while (count) {
+	while (count)
+	{
 		ndw = count * 2;
+
 		if (ndw > 0xFFFFE)
+		{
 			ndw = 0xFFFFE;
+		}
 
 		/* for non-physically contiguous pages (system) */
 		ib->ptr[ib->length_dw++] = DMA_PACKET(DMA_PACKET_WRITE,
-						      0, 0, ndw);
+											  0, 0, ndw);
 		ib->ptr[ib->length_dw++] = pe;
 		ib->ptr[ib->length_dw++] = upper_32_bits(pe) & 0xff;
-		for (; ndw > 0; ndw -= 2, --count, pe += 8) {
-			if (flags & R600_PTE_SYSTEM) {
+
+		for (; ndw > 0; ndw -= 2, --count, pe += 8)
+		{
+			if (flags & R600_PTE_SYSTEM)
+			{
 				value = radeon_vm_map_gart(rdev, addr);
-			} else if (flags & R600_PTE_VALID) {
+			}
+			else if (flags & R600_PTE_VALID)
+			{
 				value = addr;
-			} else {
+			}
+			else
+			{
 				value = 0;
 			}
+
 			addr += incr;
 			value |= flags;
 			ib->ptr[ib->length_dw++] = value;
@@ -399,23 +456,31 @@ void cayman_dma_vm_write_pages(struct radeon_device *rdev,
  * Update the page tables using the DMA (cayman/TN).
  */
 void cayman_dma_vm_set_pages(struct radeon_device *rdev,
-			     struct radeon_ib *ib,
-			     uint64_t pe,
-			     uint64_t addr, unsigned count,
-			     uint32_t incr, uint32_t flags)
+							 struct radeon_ib *ib,
+							 uint64_t pe,
+							 uint64_t addr, unsigned count,
+							 uint32_t incr, uint32_t flags)
 {
 	uint64_t value;
 	unsigned ndw;
 
-	while (count) {
+	while (count)
+	{
 		ndw = count * 2;
+
 		if (ndw > 0xFFFFE)
+		{
 			ndw = 0xFFFFE;
+		}
 
 		if (flags & R600_PTE_VALID)
+		{
 			value = addr;
+		}
 		else
+		{
 			value = 0;
+		}
 
 		/* for physically contiguous pages (vram) */
 		ib->ptr[ib->length_dw++] = DMA_PTE_PDE_PACKET(ndw);
@@ -443,11 +508,13 @@ void cayman_dma_vm_set_pages(struct radeon_device *rdev,
 void cayman_dma_vm_pad_ib(struct radeon_ib *ib)
 {
 	while (ib->length_dw & 0x7)
+	{
 		ib->ptr[ib->length_dw++] = DMA_PACKET(DMA_PACKET_NOP, 0, 0, 0);
+	}
 }
 
 void cayman_dma_vm_flush(struct radeon_device *rdev, struct radeon_ring *ring,
-			 unsigned vm_id, uint64_t pd_addr)
+						 unsigned vm_id, uint64_t pd_addr)
 {
 	radeon_ring_write(ring, DMA_PACKET(DMA_PACKET_SRBM_WRITE, 0, 0, 0));
 	radeon_ring_write(ring, (0xf << 16) | ((VM_CONTEXT0_PAGE_TABLE_BASE_ADDR + (vm_id << 2)) >> 2));

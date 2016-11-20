@@ -31,7 +31,7 @@ struct xfs_mount;
  */
 #define XFS_ALLOC_BLOCK_LEN(mp) \
 	(xfs_sb_version_hascrc(&((mp)->m_sb)) ? \
-		XFS_BTREE_SBLOCK_CRC_LEN : XFS_BTREE_SBLOCK_LEN)
+	 XFS_BTREE_SBLOCK_CRC_LEN : XFS_BTREE_SBLOCK_LEN)
 
 /*
  * Record, key, and pointer address macros for btree blocks.
@@ -40,22 +40,22 @@ struct xfs_mount;
  */
 #define XFS_ALLOC_REC_ADDR(mp, block, index) \
 	((xfs_alloc_rec_t *) \
-		((char *)(block) + \
-		 XFS_ALLOC_BLOCK_LEN(mp) + \
-		 (((index) - 1) * sizeof(xfs_alloc_rec_t))))
+	 ((char *)(block) + \
+	  XFS_ALLOC_BLOCK_LEN(mp) + \
+	  (((index) - 1) * sizeof(xfs_alloc_rec_t))))
 
 #define XFS_ALLOC_KEY_ADDR(mp, block, index) \
 	((xfs_alloc_key_t *) \
-		((char *)(block) + \
-		 XFS_ALLOC_BLOCK_LEN(mp) + \
-		 ((index) - 1) * sizeof(xfs_alloc_key_t)))
+	 ((char *)(block) + \
+	  XFS_ALLOC_BLOCK_LEN(mp) + \
+	  ((index) - 1) * sizeof(xfs_alloc_key_t)))
 
 #define XFS_ALLOC_PTR_ADDR(mp, block, index, maxrecs) \
 	((xfs_alloc_ptr_t *) \
-		((char *)(block) + \
-		 XFS_ALLOC_BLOCK_LEN(mp) + \
-		 (maxrecs) * sizeof(xfs_alloc_key_t) + \
-		 ((index) - 1) * sizeof(xfs_alloc_ptr_t)))
+	 ((char *)(block) + \
+	  XFS_ALLOC_BLOCK_LEN(mp) + \
+	  (maxrecs) * sizeof(xfs_alloc_key_t) + \
+	  ((index) - 1) * sizeof(xfs_alloc_ptr_t)))
 
 extern struct xfs_btree_cur *xfs_allocbt_init_cursor(struct xfs_mount *,
 		struct xfs_trans *, struct xfs_buf *,

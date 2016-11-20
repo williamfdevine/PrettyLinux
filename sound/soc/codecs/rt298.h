@@ -204,7 +204,8 @@
 #define RT298_SCLK_S_MCLK	0
 #define RT298_SCLK_S_PLL	1
 
-enum {
+enum
+{
 	RT298_AIF1,
 	RT298_AIF2,
 	RT298_AIFS,

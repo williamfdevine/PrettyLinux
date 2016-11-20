@@ -42,20 +42,25 @@ void iscsit_create_conn_recovery_datain_values(
 	cmd->next_burst_len = 0;
 	cmd->read_data_done = 0;
 
-	while (be32_to_cpu(exp_data_sn) > data_sn) {
+	while (be32_to_cpu(exp_data_sn) > data_sn)
+	{
 		if ((cmd->next_burst_len +
-		     conn->conn_ops->MaxRecvDataSegmentLength) <
-		     conn->sess->sess_ops->MaxBurstLength) {
+			 conn->conn_ops->MaxRecvDataSegmentLength) <
+			conn->sess->sess_ops->MaxBurstLength)
+		{
 			cmd->read_data_done +=
-			       conn->conn_ops->MaxRecvDataSegmentLength;
+				conn->conn_ops->MaxRecvDataSegmentLength;
 			cmd->next_burst_len +=
-			       conn->conn_ops->MaxRecvDataSegmentLength;
-		} else {
+				conn->conn_ops->MaxRecvDataSegmentLength;
+		}
+		else
+		{
 			cmd->read_data_done +=
 				(conn->sess->sess_ops->MaxBurstLength -
-				cmd->next_burst_len);
+				 cmd->next_burst_len);
 			cmd->next_burst_len = 0;
 		}
+
 		data_sn++;
 	}
 }
@@ -69,12 +74,17 @@ void iscsit_create_conn_recovery_dataout_values(
 	cmd->data_sn = 0;
 	cmd->next_burst_len = 0;
 
-	while (cmd->write_data_done > write_data_done) {
+	while (cmd->write_data_done > write_data_done)
+	{
 		if ((write_data_done + conn->sess->sess_ops->MaxBurstLength) <=
-		     cmd->write_data_done)
+			cmd->write_data_done)
+		{
 			write_data_done += conn->sess->sess_ops->MaxBurstLength;
+		}
 		else
+		{
 			break;
+		}
 	}
 
 	cmd->write_data_done = write_data_done;
@@ -100,7 +110,7 @@ static int iscsit_attach_inactive_connection_recovery_entry(
 
 	sess->conn_recovery_count++;
 	pr_debug("Incremented connection recovery count to %u for"
-		" SID: %u\n", sess->conn_recovery_count, sess->sid);
+			 " SID: %u\n", sess->conn_recovery_count, sess->sid);
 	spin_unlock(&sess->cr_i_lock);
 
 	return 0;
@@ -113,8 +123,10 @@ struct iscsi_conn_recovery *iscsit_get_inactive_connection_recovery_entry(
 	struct iscsi_conn_recovery *cr;
 
 	spin_lock(&sess->cr_i_lock);
-	list_for_each_entry(cr, &sess->cr_inactive_list, cr_list) {
-		if (cr->cid == cid) {
+	list_for_each_entry(cr, &sess->cr_inactive_list, cr_list)
+	{
+		if (cr->cid == cid)
+		{
 			spin_unlock(&sess->cr_i_lock);
 			return cr;
 		}
@@ -130,13 +142,15 @@ void iscsit_free_connection_recovery_entires(struct iscsi_session *sess)
 	struct iscsi_conn_recovery *cr, *cr_tmp;
 
 	spin_lock(&sess->cr_a_lock);
-	list_for_each_entry_safe(cr, cr_tmp, &sess->cr_active_list, cr_list) {
+	list_for_each_entry_safe(cr, cr_tmp, &sess->cr_active_list, cr_list)
+	{
 		list_del(&cr->cr_list);
 		spin_unlock(&sess->cr_a_lock);
 
 		spin_lock(&cr->conn_recovery_cmd_lock);
 		list_for_each_entry_safe(cmd, cmd_tmp,
-				&cr->conn_recovery_cmd_list, i_conn_node) {
+								 &cr->conn_recovery_cmd_list, i_conn_node)
+		{
 
 			list_del_init(&cmd->i_conn_node);
 			cmd->conn = NULL;
@@ -152,13 +166,15 @@ void iscsit_free_connection_recovery_entires(struct iscsi_session *sess)
 	spin_unlock(&sess->cr_a_lock);
 
 	spin_lock(&sess->cr_i_lock);
-	list_for_each_entry_safe(cr, cr_tmp, &sess->cr_inactive_list, cr_list) {
+	list_for_each_entry_safe(cr, cr_tmp, &sess->cr_inactive_list, cr_list)
+	{
 		list_del(&cr->cr_list);
 		spin_unlock(&sess->cr_i_lock);
 
 		spin_lock(&cr->conn_recovery_cmd_lock);
 		list_for_each_entry_safe(cmd, cmd_tmp,
-				&cr->conn_recovery_cmd_list, i_conn_node) {
+								 &cr->conn_recovery_cmd_list, i_conn_node)
+		{
 
 			list_del_init(&cmd->i_conn_node);
 			cmd->conn = NULL;
@@ -183,7 +199,7 @@ int iscsit_remove_active_connection_recovery_entry(
 
 	sess->conn_recovery_count--;
 	pr_debug("Decremented connection recovery count to %u for"
-		" SID: %u\n", sess->conn_recovery_count, sess->sid);
+			 " SID: %u\n", sess->conn_recovery_count, sess->sid);
 	spin_unlock(&sess->cr_a_lock);
 
 	kfree(cr);
@@ -209,11 +225,13 @@ int iscsit_remove_cmd_from_connection_recovery(
 {
 	struct iscsi_conn_recovery *cr;
 
-	if (!cmd->cr) {
+	if (!cmd->cr)
+	{
 		pr_err("struct iscsi_conn_recovery pointer for ITT: 0x%08x"
-			" is NULL!\n", cmd->init_task_tag);
+			   " is NULL!\n", cmd->init_task_tag);
 		BUG();
 	}
+
 	cr = cmd->cr;
 
 	list_del_init(&cmd->i_conn_node);
@@ -230,18 +248,20 @@ void iscsit_discard_cr_cmds_by_expstatsn(
 
 	spin_lock(&cr->conn_recovery_cmd_lock);
 	list_for_each_entry_safe(cmd, cmd_tmp,
-			&cr->conn_recovery_cmd_list, i_conn_node) {
+							 &cr->conn_recovery_cmd_list, i_conn_node)
+	{
 
 		if (((cmd->deferred_i_state != ISTATE_SENT_STATUS) &&
-		     (cmd->deferred_i_state != ISTATE_REMOVE)) ||
-		     (cmd->stat_sn >= exp_statsn)) {
+			 (cmd->deferred_i_state != ISTATE_REMOVE)) ||
+			(cmd->stat_sn >= exp_statsn))
+		{
 			continue;
 		}
 
 		dropped_count++;
 		pr_debug("Dropping Acknowledged ITT: 0x%08x, StatSN:"
-			" 0x%08x, CID: %hu.\n", cmd->init_task_tag,
-				cmd->stat_sn, cr->cid);
+				 " 0x%08x, CID: %hu.\n", cmd->init_task_tag,
+				 cmd->stat_sn, cr->cid);
 
 		iscsit_remove_cmd_from_connection_recovery(cmd, sess);
 
@@ -252,19 +272,22 @@ void iscsit_discard_cr_cmds_by_expstatsn(
 	spin_unlock(&cr->conn_recovery_cmd_lock);
 
 	pr_debug("Dropped %u total acknowledged commands on"
-		" CID: %hu less than old ExpStatSN: 0x%08x\n",
-			dropped_count, cr->cid, exp_statsn);
+			 " CID: %hu less than old ExpStatSN: 0x%08x\n",
+			 dropped_count, cr->cid, exp_statsn);
 
-	if (!cr->cmd_count) {
+	if (!cr->cmd_count)
+	{
 		pr_debug("No commands to be reassigned for failed"
-			" connection CID: %hu on SID: %u\n",
-			cr->cid, sess->sid);
+				 " connection CID: %hu on SID: %u\n",
+				 cr->cid, sess->sid);
 		iscsit_remove_inactive_connection_recovery_entry(cr, sess);
 		iscsit_attach_active_connection_recovery_entry(sess, cr);
 		pr_debug("iSCSI connection recovery successful for CID:"
-			" %hu on SID: %u\n", cr->cid, sess->sid);
+				 " %hu on SID: %u\n", cr->cid, sess->sid);
 		iscsit_remove_active_connection_recovery_entry(cr, sess);
-	} else {
+	}
+	else
+	{
 		iscsit_remove_inactive_connection_recovery_entry(cr, sess);
 		iscsit_attach_active_connection_recovery_entry(sess, cr);
 	}
@@ -279,23 +302,29 @@ int iscsit_discard_unacknowledged_ooo_cmdsns_for_conn(struct iscsi_conn *conn)
 
 	mutex_lock(&sess->cmdsn_mutex);
 	list_for_each_entry_safe(ooo_cmdsn, ooo_cmdsn_tmp,
-			&sess->sess_ooo_cmdsn_list, ooo_list) {
+							 &sess->sess_ooo_cmdsn_list, ooo_list)
+	{
 
 		if (ooo_cmdsn->cid != conn->cid)
+		{
 			continue;
+		}
 
 		dropped_count++;
 		pr_debug("Dropping unacknowledged CmdSN:"
-		" 0x%08x during connection recovery on CID: %hu\n",
-			ooo_cmdsn->cmdsn, conn->cid);
+				 " 0x%08x during connection recovery on CID: %hu\n",
+				 ooo_cmdsn->cmdsn, conn->cid);
 		iscsit_remove_ooo_cmdsn(sess, ooo_cmdsn);
 	}
 	mutex_unlock(&sess->cmdsn_mutex);
 
 	spin_lock_bh(&conn->cmd_lock);
-	list_for_each_entry_safe(cmd, cmd_tmp, &conn->conn_cmd_list, i_conn_node) {
+	list_for_each_entry_safe(cmd, cmd_tmp, &conn->conn_cmd_list, i_conn_node)
+	{
 		if (!(cmd->cmd_flags & ICF_OOO_CMDSN))
+		{
 			continue;
+		}
 
 		list_del_init(&cmd->i_conn_node);
 
@@ -306,8 +335,8 @@ int iscsit_discard_unacknowledged_ooo_cmdsns_for_conn(struct iscsi_conn *conn)
 	spin_unlock_bh(&conn->cmd_lock);
 
 	pr_debug("Dropped %u total unacknowledged commands on CID:"
-		" %hu for ExpCmdSN: 0x%08x.\n", dropped_count, conn->cid,
-				sess->exp_cmd_sn);
+			 " %hu for ExpCmdSN: 0x%08x.\n", dropped_count, conn->cid,
+			 sess->exp_cmd_sn);
 	return 0;
 }
 
@@ -324,11 +353,14 @@ int iscsit_prepare_cmds_for_realligance(struct iscsi_conn *conn)
 	 * connection's command list for connection recovery.
 	 */
 	cr = kzalloc(sizeof(struct iscsi_conn_recovery), GFP_KERNEL);
-	if (!cr) {
+
+	if (!cr)
+	{
 		pr_err("Unable to allocate memory for"
-			" struct iscsi_conn_recovery.\n");
+			   " struct iscsi_conn_recovery.\n");
 		return -1;
 	}
+
 	INIT_LIST_HEAD(&cr->cr_list);
 	INIT_LIST_HEAD(&cr->conn_recovery_cmd_list);
 	spin_lock_init(&cr->conn_recovery_cmd_lock);
@@ -342,14 +374,16 @@ int iscsit_prepare_cmds_for_realligance(struct iscsi_conn *conn)
 	 * sending the TMR response.
 	 */
 	spin_lock_bh(&conn->cmd_lock);
-	list_for_each_entry_safe(cmd, cmd_tmp, &conn->conn_cmd_list, i_conn_node) {
+	list_for_each_entry_safe(cmd, cmd_tmp, &conn->conn_cmd_list, i_conn_node)
+	{
 
 		if ((cmd->iscsi_opcode != ISCSI_OP_SCSI_CMD) &&
-		    (cmd->iscsi_opcode != ISCSI_OP_NOOP_OUT)) {
+			(cmd->iscsi_opcode != ISCSI_OP_NOOP_OUT))
+		{
 			pr_debug("Not performing realligence on"
-				" Opcode: 0x%02x, ITT: 0x%08x, CmdSN: 0x%08x,"
-				" CID: %hu\n", cmd->iscsi_opcode,
-				cmd->init_task_tag, cmd->cmd_sn, conn->cid);
+					 " Opcode: 0x%02x, ITT: 0x%08x, CmdSN: 0x%08x,"
+					 " CID: %hu\n", cmd->iscsi_opcode,
+					 cmd->init_task_tag, cmd->cmd_sn, conn->cid);
 
 			list_del_init(&cmd->i_conn_node);
 			spin_unlock_bh(&conn->cmd_lock);
@@ -370,7 +404,8 @@ int iscsit_prepare_cmds_for_realligance(struct iscsi_conn *conn)
 		 * made generic here.
 		 */
 		if (!(cmd->cmd_flags & ICF_OOO_CMDSN) && !cmd->immediate_cmd &&
-		     iscsi_sna_gte(cmd->cmd_sn, conn->sess->exp_cmd_sn)) {
+			iscsi_sna_gte(cmd->cmd_sn, conn->sess->exp_cmd_sn))
+		{
 			list_del_init(&cmd->i_conn_node);
 			spin_unlock_bh(&conn->cmd_lock);
 			iscsit_free_cmd(cmd, true);
@@ -380,16 +415,18 @@ int iscsit_prepare_cmds_for_realligance(struct iscsi_conn *conn)
 
 		cmd_count++;
 		pr_debug("Preparing Opcode: 0x%02x, ITT: 0x%08x,"
-			" CmdSN: 0x%08x, StatSN: 0x%08x, CID: %hu for"
-			" realligence.\n", cmd->iscsi_opcode,
-			cmd->init_task_tag, cmd->cmd_sn, cmd->stat_sn,
-			conn->cid);
+				 " CmdSN: 0x%08x, StatSN: 0x%08x, CID: %hu for"
+				 " realligence.\n", cmd->iscsi_opcode,
+				 cmd->init_task_tag, cmd->cmd_sn, cmd->stat_sn,
+				 conn->cid);
 
 		cmd->deferred_i_state = cmd->i_state;
 		cmd->i_state = ISTATE_IN_CONNECTION_RECOVERY;
 
 		if (cmd->data_direction == DMA_TO_DEVICE)
+		{
 			iscsit_stop_dataout_timer(cmd);
+		}
 
 		cmd->sess = conn->sess;
 
@@ -430,7 +467,9 @@ int iscsit_connection_recovery_transport_reset(struct iscsi_conn *conn)
 	atomic_set(&conn->connection_recovery, 1);
 
 	if (iscsit_close_connection(conn) < 0)
+	{
 		return -1;
+	}
 
 	return 0;
 }

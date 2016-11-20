@@ -79,25 +79,33 @@ __setup("ether=", netdev_boot_setup);
  * in here instead.
  */
 int eth_header(struct sk_buff *skb, struct net_device *dev,
-	       unsigned short type,
-	       const void *daddr, const void *saddr, unsigned int len)
+			   unsigned short type,
+			   const void *daddr, const void *saddr, unsigned int len)
 {
 	struct ethhdr *eth = (struct ethhdr *)skb_push(skb, ETH_HLEN);
 
 	if (type != ETH_P_802_3 && type != ETH_P_802_2)
+	{
 		eth->h_proto = htons(type);
+	}
 	else
+	{
 		eth->h_proto = htons(len);
+	}
 
 	/*
 	 *      Set the source hardware address.
 	 */
 
 	if (!saddr)
+	{
 		saddr = dev->dev_addr;
+	}
+
 	memcpy(eth->h_source, saddr, ETH_ALEN);
 
-	if (daddr) {
+	if (daddr)
+	{
 		memcpy(eth->h_dest, daddr, ETH_ALEN);
 		return ETH_HLEN;
 	}
@@ -106,7 +114,8 @@ int eth_header(struct sk_buff *skb, struct net_device *dev,
 	 *      Anyway, the loopback-device should never use this function...
 	 */
 
-	if (dev->flags & (IFF_LOOPBACK | IFF_NOARP)) {
+	if (dev->flags & (IFF_LOOPBACK | IFF_NOARP))
+	{
 		eth_zero_addr(eth->h_dest);
 		return ETH_HLEN;
 	}
@@ -131,12 +140,16 @@ u32 eth_get_headlen(void *data, unsigned int len)
 
 	/* this should never happen, but better safe than sorry */
 	if (unlikely(len < sizeof(*eth)))
+	{
 		return len;
+	}
 
 	/* parse any remaining L2/L3 headers, check for L4 */
 	if (!skb_flow_dissect_flow_keys_buf(&keys, data, eth->h_proto,
-					    sizeof(*eth), len, flags))
+										sizeof(*eth), len, flags))
+	{
 		return max_t(u32, keys.control.thoff, sizeof(*eth));
+	}
 
 	/* parse for any L4 headers */
 	return min_t(u32, __skb_get_poff(NULL, data, &keys, len), len);
@@ -164,15 +177,22 @@ __be16 eth_type_trans(struct sk_buff *skb, struct net_device *dev)
 	eth = (struct ethhdr *)skb->data;
 	skb_pull_inline(skb, ETH_HLEN);
 
-	if (unlikely(is_multicast_ether_addr_64bits(eth->h_dest))) {
+	if (unlikely(is_multicast_ether_addr_64bits(eth->h_dest)))
+	{
 		if (ether_addr_equal_64bits(eth->h_dest, dev->broadcast))
+		{
 			skb->pkt_type = PACKET_BROADCAST;
+		}
 		else
+		{
 			skb->pkt_type = PACKET_MULTICAST;
+		}
 	}
 	else if (unlikely(!ether_addr_equal_64bits(eth->h_dest,
-						   dev->dev_addr)))
+					  dev->dev_addr)))
+	{
 		skb->pkt_type = PACKET_OTHERHOST;
+	}
 
 	/*
 	 * Some variants of DSA tagging don't have an ethertype field
@@ -181,10 +201,14 @@ __be16 eth_type_trans(struct sk_buff *skb, struct net_device *dev)
 	 * and if so, set skb->protocol without looking at the packet.
 	 */
 	if (unlikely(netdev_uses_dsa(dev)))
+	{
 		return htons(ETH_P_XDSA);
+	}
 
 	if (likely(eth_proto_is_802_3(eth->h_proto)))
+	{
 		return eth->h_proto;
+	}
 
 	/*
 	 *      This is a magic hack to spot IPX packets. Older Novell breaks
@@ -193,8 +217,11 @@ __be16 eth_type_trans(struct sk_buff *skb, struct net_device *dev)
 	 *      won't work for fault tolerant netware but does for the rest.
 	 */
 	sap = skb_header_pointer(skb, 0, sizeof(*sap), &_service_access_point);
+
 	if (sap && *sap == 0xFFFF)
+	{
 		return htons(ETH_P_802_3);
+	}
 
 	/*
 	 *      Real 802.2 LLC
@@ -230,10 +257,12 @@ int eth_header_cache(const struct neighbour *neigh, struct hh_cache *hh, __be16 
 	const struct net_device *dev = neigh->dev;
 
 	eth = (struct ethhdr *)
-	    (((u8 *) hh->hh_data) + (HH_DATA_OFF(sizeof(*eth))));
+		  (((u8 *) hh->hh_data) + (HH_DATA_OFF(sizeof(*eth))));
 
 	if (type == htons(ETH_P_802_3))
+	{
 		return -1;
+	}
 
 	eth->h_proto = type;
 	memcpy(eth->h_source, dev->dev_addr, ETH_ALEN);
@@ -252,11 +281,11 @@ EXPORT_SYMBOL(eth_header_cache);
  * Called by Address Resolution module to notify changes in address.
  */
 void eth_header_cache_update(struct hh_cache *hh,
-			     const struct net_device *dev,
-			     const unsigned char *haddr)
+							 const struct net_device *dev,
+							 const unsigned char *haddr)
 {
 	memcpy(((u8 *) hh->hh_data) + HH_DATA_OFF(sizeof(struct ethhdr)),
-	       haddr, ETH_ALEN);
+		   haddr, ETH_ALEN);
 }
 EXPORT_SYMBOL(eth_header_cache_update);
 
@@ -270,9 +299,15 @@ int eth_prepare_mac_addr_change(struct net_device *dev, void *p)
 	struct sockaddr *addr = p;
 
 	if (!(dev->priv_flags & IFF_LIVE_ADDR_CHANGE) && netif_running(dev))
+	{
 		return -EBUSY;
+	}
+
 	if (!is_valid_ether_addr(addr->sa_data))
+	{
 		return -EADDRNOTAVAIL;
+	}
+
 	return 0;
 }
 EXPORT_SYMBOL(eth_prepare_mac_addr_change);
@@ -305,8 +340,12 @@ int eth_mac_addr(struct net_device *dev, void *p)
 	int ret;
 
 	ret = eth_prepare_mac_addr_change(dev, p);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	eth_commit_mac_addr_change(dev, p);
 	return 0;
 }
@@ -323,7 +362,10 @@ EXPORT_SYMBOL(eth_mac_addr);
 int eth_change_mtu(struct net_device *dev, int new_mtu)
 {
 	if (new_mtu < 68 || new_mtu > ETH_DATA_LEN)
+	{
 		return -EINVAL;
+	}
+
 	dev->mtu = new_mtu;
 	return 0;
 }
@@ -332,13 +374,16 @@ EXPORT_SYMBOL(eth_change_mtu);
 int eth_validate_addr(struct net_device *dev)
 {
 	if (!is_valid_ether_addr(dev->dev_addr))
+	{
 		return -EADDRNOTAVAIL;
+	}
 
 	return 0;
 }
 EXPORT_SYMBOL(eth_validate_addr);
 
-const struct header_ops eth_header_ops ____cacheline_aligned = {
+const struct header_ops eth_header_ops ____cacheline_aligned =
+{
 	.create		= eth_header,
 	.parse		= eth_header_parse,
 	.cache		= eth_header_cache,
@@ -359,7 +404,7 @@ void ether_setup(struct net_device *dev)
 	dev->mtu		= ETH_DATA_LEN;
 	dev->addr_len		= ETH_ALEN;
 	dev->tx_queue_len	= 1000;	/* Ethernet wants good queues */
-	dev->flags		= IFF_BROADCAST|IFF_MULTICAST;
+	dev->flags		= IFF_BROADCAST | IFF_MULTICAST;
 	dev->priv_flags		|= IFF_TX_SKB_SHARING;
 
 	eth_broadcast_addr(dev->broadcast);
@@ -383,10 +428,10 @@ EXPORT_SYMBOL(ether_setup);
  */
 
 struct net_device *alloc_etherdev_mqs(int sizeof_priv, unsigned int txqs,
-				      unsigned int rxqs)
+									  unsigned int rxqs)
 {
 	return alloc_netdev_mqs(sizeof_priv, "eth%d", NET_NAME_UNKNOWN,
-				ether_setup, txqs, rxqs);
+							ether_setup, txqs, rxqs);
 }
 EXPORT_SYMBOL(alloc_etherdev_mqs);
 
@@ -397,7 +442,7 @@ ssize_t sysfs_format_mac(char *buf, const unsigned char *addr, int len)
 EXPORT_SYMBOL(sysfs_format_mac);
 
 struct sk_buff **eth_gro_receive(struct sk_buff **head,
-				 struct sk_buff *skb)
+								 struct sk_buff *skb)
 {
 	struct sk_buff *p, **pp = NULL;
 	struct ethhdr *eh, *eh2;
@@ -409,20 +454,30 @@ struct sk_buff **eth_gro_receive(struct sk_buff **head,
 	off_eth = skb_gro_offset(skb);
 	hlen = off_eth + sizeof(*eh);
 	eh = skb_gro_header_fast(skb, off_eth);
-	if (skb_gro_header_hard(skb, hlen)) {
+
+	if (skb_gro_header_hard(skb, hlen))
+	{
 		eh = skb_gro_header_slow(skb, hlen, off_eth);
+
 		if (unlikely(!eh))
+		{
 			goto out;
+		}
 	}
 
 	flush = 0;
 
-	for (p = *head; p; p = p->next) {
+	for (p = *head; p; p = p->next)
+	{
 		if (!NAPI_GRO_CB(p)->same_flow)
+		{
 			continue;
+		}
 
 		eh2 = (struct ethhdr *)(p->data + off_eth);
-		if (compare_ether_header(eh, eh2)) {
+
+		if (compare_ether_header(eh, eh2))
+		{
 			NAPI_GRO_CB(p)->same_flow = 0;
 			continue;
 		}
@@ -432,7 +487,9 @@ struct sk_buff **eth_gro_receive(struct sk_buff **head,
 
 	rcu_read_lock();
 	ptype = gro_find_receive_by_type(type);
-	if (ptype == NULL) {
+
+	if (ptype == NULL)
+	{
 		flush = 1;
 		goto out_unlock;
 	}
@@ -458,20 +515,24 @@ int eth_gro_complete(struct sk_buff *skb, int nhoff)
 	int err = -ENOSYS;
 
 	if (skb->encapsulation)
+	{
 		skb_set_inner_mac_header(skb, nhoff);
+	}
 
 	rcu_read_lock();
 	ptype = gro_find_complete_by_type(type);
+
 	if (ptype != NULL)
 		err = ptype->callbacks.gro_complete(skb, nhoff +
-						    sizeof(struct ethhdr));
+											sizeof(struct ethhdr));
 
 	rcu_read_unlock();
 	return err;
 }
 EXPORT_SYMBOL(eth_gro_complete);
 
-static struct packet_offload eth_packet_offload __read_mostly = {
+static struct packet_offload eth_packet_offload __read_mostly =
+{
 	.type = cpu_to_be16(ETH_P_TEB),
 	.priority = 10,
 	.callbacks = {
@@ -489,7 +550,7 @@ static int __init eth_offload_init(void)
 
 fs_initcall(eth_offload_init);
 
-unsigned char * __weak arch_get_platform_mac_address(void)
+unsigned char *__weak arch_get_platform_mac_address(void)
 {
 	return NULL;
 }
@@ -500,18 +561,30 @@ int eth_platform_get_mac_address(struct device *dev, u8 *mac_addr)
 	struct device_node *dp;
 
 	if (dev_is_pci(dev))
+	{
 		dp = pci_device_to_OF_node(to_pci_dev(dev));
+	}
 	else
+	{
 		dp = dev->of_node;
+	}
 
 	addr = NULL;
+
 	if (dp)
+	{
 		addr = of_get_mac_address(dp);
-	if (!addr)
-		addr = arch_get_platform_mac_address();
+	}
 
 	if (!addr)
+	{
+		addr = arch_get_platform_mac_address();
+	}
+
+	if (!addr)
+	{
 		return -ENODEV;
+	}
 
 	ether_addr_copy(mac_addr, addr);
 	return 0;

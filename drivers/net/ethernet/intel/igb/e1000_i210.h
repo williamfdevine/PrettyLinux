@@ -28,7 +28,7 @@ s32 igb_acquire_swfw_sync_i210(struct e1000_hw *hw, u16 mask);
 void igb_release_swfw_sync_i210(struct e1000_hw *hw, u16 mask);
 s32 igb_valid_led_default_i210(struct e1000_hw *hw, u16 *data);
 s32 igb_read_invm_version(struct e1000_hw *hw,
-			  struct e1000_fw_version *invm_ver);
+						  struct e1000_fw_version *invm_ver);
 s32 igb_read_xmdio_reg(struct e1000_hw *hw, u16 addr, u8 dev_addr, u16 *data);
 s32 igb_write_xmdio_reg(struct e1000_hw *hw, u16 addr, u8 dev_addr, u16 data);
 s32 igb_init_nvm_params_i210(struct e1000_hw *hw);
@@ -46,7 +46,8 @@ s32 igb_get_cfg_done_i210(struct e1000_hw *hw);
 #define INVM_DWORD_TO_WORD_DATA(invm_dword) \
 	(u16)(((invm_dword) & 0xFFFF0000) >> 16)
 
-enum E1000_INVM_STRUCTURE_TYPE {
+enum E1000_INVM_STRUCTURE_TYPE
+{
 	E1000_INVM_UNINITIALIZED_STRUCTURE		= 0x00,
 	E1000_INVM_WORD_AUTOLOAD_STRUCTURE		= 0x01,
 	E1000_INVM_CSR_AUTOLOAD_STRUCTURE		= 0x02,
@@ -68,11 +69,11 @@ enum E1000_INVM_STRUCTURE_TYPE {
 #define E1000_INVM_MAJOR_SHIFT		4
 
 #define ID_LED_DEFAULT_I210		((ID_LED_OFF1_ON2  << 8) | \
-					 (ID_LED_DEF1_DEF2 <<  4) | \
-					 (ID_LED_OFF1_OFF2))
+								 (ID_LED_DEF1_DEF2 <<  4) | \
+								 (ID_LED_OFF1_OFF2))
 #define ID_LED_DEFAULT_I210_SERDES	((ID_LED_DEF1_DEF2 << 8) | \
-					 (ID_LED_DEF1_DEF2 <<  4) | \
-					 (ID_LED_OFF1_ON2))
+									 (ID_LED_DEF1_DEF2 <<  4) | \
+									 (ID_LED_OFF1_ON2))
 
 /* NVM offset defaults for i211 device */
 #define NVM_INIT_CTRL_2_DEFAULT_I211	0X7243

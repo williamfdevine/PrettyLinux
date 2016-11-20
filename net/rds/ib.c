@@ -74,7 +74,7 @@ static void rds_ib_nodev_connect(void)
 
 	spin_lock(&ib_nodev_conns_lock);
 	list_for_each_entry(ic, &ib_nodev_conns, ib_node)
-		rds_conn_connect_if_down(ic->conn);
+	rds_conn_connect_if_down(ic->conn);
 	spin_unlock(&ib_nodev_conns_lock);
 }
 
@@ -85,7 +85,7 @@ static void rds_ib_dev_shutdown(struct rds_ib_device *rds_ibdev)
 
 	spin_lock_irqsave(&rds_ibdev->spinlock, flags);
 	list_for_each_entry(ic, &rds_ibdev->conn_list, ib_node)
-		rds_conn_drop(ic->conn);
+	rds_conn_drop(ic->conn);
 	spin_unlock_irqrestore(&rds_ibdev->spinlock, flags);
 }
 
@@ -97,16 +97,25 @@ static void rds_ib_dev_free(struct work_struct *work)
 {
 	struct rds_ib_ipaddr *i_ipaddr, *i_next;
 	struct rds_ib_device *rds_ibdev = container_of(work,
-					struct rds_ib_device, free_work);
+									  struct rds_ib_device, free_work);
 
 	if (rds_ibdev->mr_8k_pool)
+	{
 		rds_ib_destroy_mr_pool(rds_ibdev->mr_8k_pool);
-	if (rds_ibdev->mr_1m_pool)
-		rds_ib_destroy_mr_pool(rds_ibdev->mr_1m_pool);
-	if (rds_ibdev->pd)
-		ib_dealloc_pd(rds_ibdev->pd);
+	}
 
-	list_for_each_entry_safe(i_ipaddr, i_next, &rds_ibdev->ipaddr_list, list) {
+	if (rds_ibdev->mr_1m_pool)
+	{
+		rds_ib_destroy_mr_pool(rds_ibdev->mr_1m_pool);
+	}
+
+	if (rds_ibdev->pd)
+	{
+		ib_dealloc_pd(rds_ibdev->pd);
+	}
+
+	list_for_each_entry_safe(i_ipaddr, i_next, &rds_ibdev->ipaddr_list, list)
+	{
 		list_del(&i_ipaddr->list);
 		kfree(i_ipaddr);
 	}
@@ -117,8 +126,11 @@ static void rds_ib_dev_free(struct work_struct *work)
 void rds_ib_dev_put(struct rds_ib_device *rds_ibdev)
 {
 	BUG_ON(atomic_read(&rds_ibdev->refcount) <= 0);
+
 	if (atomic_dec_and_test(&rds_ibdev->refcount))
+	{
 		queue_work(rds_wq, &rds_ibdev->free_work);
+	}
 }
 
 static void rds_ib_add_one(struct ib_device *device)
@@ -127,12 +139,17 @@ static void rds_ib_add_one(struct ib_device *device)
 
 	/* Only handle IB (no iWARP) devices */
 	if (device->node_type != RDMA_NODE_IB_CA)
+	{
 		return;
+	}
 
 	rds_ibdev = kzalloc_node(sizeof(struct rds_ib_device), GFP_KERNEL,
-				 ibdev_to_node(device));
+							 ibdev_to_node(device));
+
 	if (!rds_ibdev)
+	{
 		return;
+	}
 
 	spin_lock_init(&rds_ibdev->spinlock);
 	atomic_set(&rds_ibdev->refcount, 1);
@@ -142,52 +159,58 @@ static void rds_ib_add_one(struct ib_device *device)
 	rds_ibdev->max_sge = min(device->attrs.max_sge, RDS_IB_MAX_SGE);
 
 	rds_ibdev->has_fr = (device->attrs.device_cap_flags &
-				  IB_DEVICE_MEM_MGT_EXTENSIONS);
+						 IB_DEVICE_MEM_MGT_EXTENSIONS);
 	rds_ibdev->has_fmr = (device->alloc_fmr && device->dealloc_fmr &&
-			    device->map_phys_fmr && device->unmap_fmr);
+						  device->map_phys_fmr && device->unmap_fmr);
 	rds_ibdev->use_fastreg = (rds_ibdev->has_fr && !rds_ibdev->has_fmr);
 
-	rds_ibdev->fmr_max_remaps = device->attrs.max_map_per_fmr?: 32;
+	rds_ibdev->fmr_max_remaps = device->attrs.max_map_per_fmr ? : 32;
 	rds_ibdev->max_1m_mrs = device->attrs.max_mr ?
-		min_t(unsigned int, (device->attrs.max_mr / 2),
-		      rds_ib_mr_1m_pool_size) : rds_ib_mr_1m_pool_size;
+							min_t(unsigned int, (device->attrs.max_mr / 2),
+								  rds_ib_mr_1m_pool_size) : rds_ib_mr_1m_pool_size;
 
 	rds_ibdev->max_8k_mrs = device->attrs.max_mr ?
-		min_t(unsigned int, ((device->attrs.max_mr / 2) * RDS_MR_8K_SCALE),
-		      rds_ib_mr_8k_pool_size) : rds_ib_mr_8k_pool_size;
+							min_t(unsigned int, ((device->attrs.max_mr / 2) * RDS_MR_8K_SCALE),
+								  rds_ib_mr_8k_pool_size) : rds_ib_mr_8k_pool_size;
 
 	rds_ibdev->max_initiator_depth = device->attrs.max_qp_init_rd_atom;
 	rds_ibdev->max_responder_resources = device->attrs.max_qp_rd_atom;
 
 	rds_ibdev->dev = device;
 	rds_ibdev->pd = ib_alloc_pd(device, 0);
-	if (IS_ERR(rds_ibdev->pd)) {
+
+	if (IS_ERR(rds_ibdev->pd))
+	{
 		rds_ibdev->pd = NULL;
 		goto put_dev;
 	}
 
 	rds_ibdev->mr_1m_pool =
 		rds_ib_create_mr_pool(rds_ibdev, RDS_IB_MR_1M_POOL);
-	if (IS_ERR(rds_ibdev->mr_1m_pool)) {
+
+	if (IS_ERR(rds_ibdev->mr_1m_pool))
+	{
 		rds_ibdev->mr_1m_pool = NULL;
 		goto put_dev;
 	}
 
 	rds_ibdev->mr_8k_pool =
 		rds_ib_create_mr_pool(rds_ibdev, RDS_IB_MR_8K_POOL);
-	if (IS_ERR(rds_ibdev->mr_8k_pool)) {
+
+	if (IS_ERR(rds_ibdev->mr_8k_pool))
+	{
 		rds_ibdev->mr_8k_pool = NULL;
 		goto put_dev;
 	}
 
 	rdsdebug("RDS/IB: max_mr = %d, max_wrs = %d, max_sge = %d, fmr_max_remaps = %d, max_1m_mrs = %d, max_8k_mrs = %d\n",
-		 device->attrs.max_fmr, rds_ibdev->max_wrs, rds_ibdev->max_sge,
-		 rds_ibdev->fmr_max_remaps, rds_ibdev->max_1m_mrs,
-		 rds_ibdev->max_8k_mrs);
+			 device->attrs.max_fmr, rds_ibdev->max_wrs, rds_ibdev->max_sge,
+			 rds_ibdev->fmr_max_remaps, rds_ibdev->max_1m_mrs,
+			 rds_ibdev->max_8k_mrs);
 
 	pr_info("RDS/IB: %s: %s supported and preferred\n",
-		device->name,
-		rds_ibdev->use_fastreg ? "FRMR" : "FMR");
+			device->name,
+			rds_ibdev->use_fastreg ? "FRMR" : "FMR");
 
 	INIT_LIST_HEAD(&rds_ibdev->ipaddr_list);
 	INIT_LIST_HEAD(&rds_ibdev->conn_list);
@@ -228,8 +251,12 @@ struct rds_ib_device *rds_ib_get_client_data(struct ib_device *device)
 
 	rcu_read_lock();
 	rds_ibdev = ib_get_client_data(device, &rds_ib_client);
+
 	if (rds_ibdev)
+	{
 		atomic_inc(&rds_ibdev->refcount);
+	}
+
 	rcu_read_unlock();
 	return rds_ibdev;
 }
@@ -246,7 +273,9 @@ static void rds_ib_remove_one(struct ib_device *device, void *client_data)
 	struct rds_ib_device *rds_ibdev = client_data;
 
 	if (!rds_ibdev)
+	{
 		return;
+	}
 
 	rds_ib_dev_shutdown(rds_ibdev);
 
@@ -267,28 +296,33 @@ static void rds_ib_remove_one(struct ib_device *device, void *client_data)
 	rds_ib_dev_put(rds_ibdev);
 }
 
-struct ib_client rds_ib_client = {
+struct ib_client rds_ib_client =
+{
 	.name   = "rds_ib",
 	.add    = rds_ib_add_one,
 	.remove = rds_ib_remove_one
 };
 
 static int rds_ib_conn_info_visitor(struct rds_connection *conn,
-				    void *buffer)
+									void *buffer)
 {
 	struct rds_info_rdma_connection *iinfo = buffer;
 	struct rds_ib_connection *ic;
 
 	/* We will only ever look at IB transports */
 	if (conn->c_trans != &rds_ib_transport)
+	{
 		return 0;
+	}
 
 	iinfo->src_addr = conn->c_laddr;
 	iinfo->dst_addr = conn->c_faddr;
 
 	memset(&iinfo->src_gid, 0, sizeof(iinfo->src_gid));
 	memset(&iinfo->dst_gid, 0, sizeof(iinfo->dst_gid));
-	if (rds_conn_state(conn) == RDS_CONN_UP) {
+
+	if (rds_conn_state(conn) == RDS_CONN_UP)
+	{
 		struct rds_ib_device *rds_ibdev;
 		struct rdma_dev_addr *dev_addr;
 
@@ -304,16 +338,17 @@ static int rds_ib_conn_info_visitor(struct rds_connection *conn,
 		iinfo->max_send_sge = rds_ibdev->max_sge;
 		rds_ib_get_mr_info(rds_ibdev, iinfo);
 	}
+
 	return 1;
 }
 
 static void rds_ib_ic_info(struct socket *sock, unsigned int len,
-			   struct rds_info_iterator *iter,
-			   struct rds_info_lengths *lens)
+						   struct rds_info_iterator *iter,
+						   struct rds_info_lengths *lens)
 {
 	rds_for_each_conn_info(sock, len, iter, lens,
-				rds_ib_conn_info_visitor,
-				sizeof(struct rds_info_rdma_connection));
+						   rds_ib_conn_info_visitor,
+						   sizeof(struct rds_info_rdma_connection));
 }
 
 
@@ -337,8 +372,11 @@ static int rds_ib_laddr_check(struct net *net, __be32 addr)
 	 * IB and iWARP capable NICs.
 	 */
 	cm_id = rdma_create_id(&init_net, NULL, NULL, RDMA_PS_TCP, IB_QPT_RC);
+
 	if (IS_ERR(cm_id))
+	{
 		return PTR_ERR(cm_id);
+	}
 
 	memset(&sin, 0, sizeof(sin));
 	sin.sin_family = AF_INET;
@@ -346,15 +384,18 @@ static int rds_ib_laddr_check(struct net *net, __be32 addr)
 
 	/* rdma_bind_addr will only succeed for IB & iWARP devices */
 	ret = rdma_bind_addr(cm_id, (struct sockaddr *)&sin);
+
 	/* due to this, we will claim to support iWARP devices unless we
 	   check node_type. */
 	if (ret || !cm_id->device ||
-	    cm_id->device->node_type != RDMA_NODE_IB_CA)
+		cm_id->device->node_type != RDMA_NODE_IB_CA)
+	{
 		ret = -EADDRNOTAVAIL;
+	}
 
 	rdsdebug("addr %pI4 ret %d node type %d\n",
-		&addr, ret,
-		cm_id->device ? cm_id->device->node_type : -1);
+			 &addr, ret,
+			 cm_id->device ? cm_id->device->node_type : -1);
 
 	rdma_destroy_id(cm_id);
 
@@ -379,7 +420,8 @@ void rds_ib_exit(void)
 	rds_ib_mr_exit();
 }
 
-struct rds_transport rds_ib_transport = {
+struct rds_transport rds_ib_transport =
+{
 	.laddr_check		= rds_ib_laddr_check,
 	.xmit_path_complete	= rds_ib_xmit_path_complete,
 	.xmit			= rds_ib_xmit,
@@ -413,24 +455,39 @@ int rds_ib_init(void)
 	INIT_LIST_HEAD(&rds_ib_devices);
 
 	ret = rds_ib_mr_init();
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	ret = ib_register_client(&rds_ib_client);
+
 	if (ret)
+	{
 		goto out_mr_exit;
+	}
 
 	ret = rds_ib_sysctl_init();
+
 	if (ret)
+	{
 		goto out_ibreg;
+	}
 
 	ret = rds_ib_recv_init();
+
 	if (ret)
+	{
 		goto out_sysctl;
+	}
 
 	ret = rds_trans_register(&rds_ib_transport);
+
 	if (ret)
+	{
 		goto out_recv;
+	}
 
 	rds_info_register_func(RDS_INFO_IB_CONNECTIONS, rds_ib_ic_info);
 

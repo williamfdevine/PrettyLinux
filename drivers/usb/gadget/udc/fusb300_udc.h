@@ -622,7 +622,8 @@
 #define HS_INT_MAX_PACKET_SIZE		0x400
 #define HS_ISO_MAX_PACKET_SIZE		0x400
 
-struct fusb300_ep_info {
+struct fusb300_ep_info
+{
 	u8	epnum;
 	u8	type;
 	u8	interval;
@@ -632,27 +633,30 @@ struct fusb300_ep_info {
 	u16	bw_num;
 };
 
-struct fusb300_request {
+struct fusb300_request
+{
 
 	struct usb_request	req;
 	struct list_head	queue;
 };
 
 
-struct fusb300_ep {
+struct fusb300_ep
+{
 	struct usb_ep		ep;
 	struct fusb300		*fusb300;
 
 	struct list_head	queue;
-	unsigned		stall:1;
-	unsigned		wedged:1;
-	unsigned		use_dma:1;
+	unsigned		stall: 1;
+	unsigned		wedged: 1;
+	unsigned		use_dma: 1;
 
 	unsigned char		epnum;
 	unsigned char		type;
 };
 
-struct fusb300 {
+struct fusb300
+{
 	spinlock_t		lock;
 	void __iomem		*reg;
 

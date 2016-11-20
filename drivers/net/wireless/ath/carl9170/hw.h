@@ -796,7 +796,8 @@
 #define AR9170_PRAM_OFFSET		0x200000
 #define AR9170_PRAM_SIZE		0x8000
 
-enum cpu_clock {
+enum cpu_clock
+{
 	AHB_STATIC_40MHZ = 0,
 	AHB_GMODE_22MHZ = 1,
 	AHB_AMODE_20MHZ = 1,
@@ -807,7 +808,8 @@ enum cpu_clock {
 };
 
 /* USB endpoints */
-enum ar9170_usb_ep {
+enum ar9170_usb_ep
+{
 	/*
 	 * Control EP is always EP 0 (USB SPEC)
 	 *
@@ -828,11 +830,13 @@ enum ar9170_usb_ep {
 	__AR9170_USB_NUM_MAX_EP		= 10
 };
 
-enum ar9170_usb_fifo {
+enum ar9170_usb_fifo
+{
 	__AR9170_USB_NUM_MAX_FIFO	= 10
 };
 
-enum ar9170_tx_queues {
+enum ar9170_tx_queues
+{
 	AR9170_TXQ0	= 0,
 	AR9170_TXQ1,
 	AR9170_TXQ2,
@@ -847,7 +851,8 @@ enum ar9170_tx_queues {
 #define	AR9170_RX_STREAM_TAG		0x4e00
 #define	AR9170_RX_STREAM_MAX_SIZE	0xffff
 
-struct ar9170_stream {
+struct ar9170_stream
+{
 	__le16 length;
 	__le16 tag;
 

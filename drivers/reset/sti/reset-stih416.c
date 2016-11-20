@@ -47,21 +47,22 @@ static const char stih416_cpu[] = "st,stih416-cpu-syscfg";
 #define SYSCFG_7564	0x8d0 /* MPE softresets 1 */
 
 #define STIH416_SRST_CPU(_reg, _bit) \
-	 _SYSCFG_RST_CH_NO_ACK(stih416_cpu, _reg, _bit)
+	_SYSCFG_RST_CH_NO_ACK(stih416_cpu, _reg, _bit)
 
 #define STIH416_SRST_FRONT(_reg, _bit) \
-	 _SYSCFG_RST_CH_NO_ACK(stih416_front, _reg, _bit)
+	_SYSCFG_RST_CH_NO_ACK(stih416_front, _reg, _bit)
 
 #define STIH416_SRST_REAR(_reg, _bit) \
-	 _SYSCFG_RST_CH_NO_ACK(stih416_rear, _reg, _bit)
+	_SYSCFG_RST_CH_NO_ACK(stih416_rear, _reg, _bit)
 
 #define STIH416_SRST_LPM(_reg, _bit) \
-	 _SYSCFG_RST_CH_NO_ACK(stih416_lpm, _reg, _bit)
+	_SYSCFG_RST_CH_NO_ACK(stih416_lpm, _reg, _bit)
 
 #define STIH416_SRST_SBC(_reg, _bit) \
-	 _SYSCFG_RST_CH_NO_ACK(stih416_sbc, _reg, _bit)
+	_SYSCFG_RST_CH_NO_ACK(stih416_sbc, _reg, _bit)
 
-static const struct syscfg_reset_channel_data stih416_powerdowns[] = {
+static const struct syscfg_reset_channel_data stih416_powerdowns[] =
+{
 	[STIH416_EMISS_POWERDOWN]	= STIH416_PDN_FRONT(0),
 	[STIH416_NAND_POWERDOWN]	= STIH416_PDN_FRONT(1),
 	[STIH416_KEYSCAN_POWERDOWN]	= STIH416_PDN_FRONT(2),
@@ -75,7 +76,8 @@ static const struct syscfg_reset_channel_data stih416_powerdowns[] = {
 	[STIH416_PCIE1_POWERDOWN]	= STIH416_PDN_REAR(5, 8),
 };
 
-static const struct syscfg_reset_channel_data stih416_softresets[] = {
+static const struct syscfg_reset_channel_data stih416_softresets[] =
+{
 	[STIH416_ETH0_SOFTRESET] = STIH416_SRST_FRONT(SYSCFG_1539, 0),
 	[STIH416_ETH1_SOFTRESET] = STIH416_SRST_SBC(SYSCFG_510, 0),
 	[STIH416_IRB_SOFTRESET]	 = STIH416_SRST_LPM(LPM_SYSCFG_1, 6),
@@ -107,28 +109,36 @@ static const struct syscfg_reset_channel_data stih416_softresets[] = {
 	[STIH416_KEYSCAN_SOFTRESET] = STIH416_SRST_LPM(LPM_SYSCFG_1, 8),
 };
 
-static struct syscfg_reset_controller_data stih416_powerdown_controller = {
+static struct syscfg_reset_controller_data stih416_powerdown_controller =
+{
 	.wait_for_ack	= true,
 	.nr_channels	= ARRAY_SIZE(stih416_powerdowns),
 	.channels	= stih416_powerdowns,
 };
 
-static struct syscfg_reset_controller_data stih416_softreset_controller = {
+static struct syscfg_reset_controller_data stih416_softreset_controller =
+{
 	.wait_for_ack = false,
 	.active_low = true,
 	.nr_channels = ARRAY_SIZE(stih416_softresets),
 	.channels = stih416_softresets,
 };
 
-static const struct of_device_id stih416_reset_match[] = {
-	{ .compatible = "st,stih416-powerdown",
-	  .data = &stih416_powerdown_controller, },
-	{ .compatible = "st,stih416-softreset",
-	  .data = &stih416_softreset_controller, },
+static const struct of_device_id stih416_reset_match[] =
+{
+	{
+		.compatible = "st,stih416-powerdown",
+		.data = &stih416_powerdown_controller,
+	},
+	{
+		.compatible = "st,stih416-softreset",
+		.data = &stih416_softreset_controller,
+	},
 	{},
 };
 
-static struct platform_driver stih416_reset_driver = {
+static struct platform_driver stih416_reset_driver =
+{
 	.probe = syscfg_reset_probe,
 	.driver = {
 		.name = "reset-stih416",

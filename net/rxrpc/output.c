@@ -19,7 +19,8 @@
 #include <net/af_rxrpc.h>
 #include "ar-internal.h"
 
-struct rxrpc_ack_buffer {
+struct rxrpc_ack_buffer
+{
 	struct rxrpc_wire_header whdr;
 	struct rxrpc_ackpacket ack;
 	u8 acks[255];
@@ -27,7 +28,8 @@ struct rxrpc_ack_buffer {
 	struct rxrpc_ackinfo ackinfo;
 };
 
-struct rxrpc_abort_buffer {
+struct rxrpc_abort_buffer
+{
 	struct rxrpc_wire_header whdr;
 	__be32 abort_code;
 };
@@ -36,10 +38,10 @@ struct rxrpc_abort_buffer {
  * Fill out an ACK packet.
  */
 static size_t rxrpc_fill_out_ack(struct rxrpc_call *call,
-				 struct rxrpc_ack_buffer *pkt,
-				 rxrpc_seq_t *_hard_ack,
-				 rxrpc_seq_t *_top,
-				 u8 reason)
+								 struct rxrpc_ack_buffer *pkt,
+								 rxrpc_seq_t *_hard_ack,
+								 rxrpc_seq_t *_top,
+								 u8 reason)
 {
 	rxrpc_serial_t serial;
 	rxrpc_seq_t hard_ack, top, seq;
@@ -63,18 +65,30 @@ static size_t rxrpc_fill_out_ack(struct rxrpc_call *call,
 	pkt->ack.nAcks		= top - hard_ack;
 
 	if (reason == RXRPC_ACK_PING)
+	{
 		pkt->whdr.flags |= RXRPC_REQUEST_ACK;
+	}
 
-	if (after(top, hard_ack)) {
+	if (after(top, hard_ack))
+	{
 		seq = hard_ack + 1;
-		do {
+
+		do
+		{
 			ix = seq & RXRPC_RXTX_BUFF_MASK;
+
 			if (call->rxtx_buffer[ix])
+			{
 				*ackp++ = RXRPC_ACK_TYPE_ACK;
+			}
 			else
+			{
 				*ackp++ = RXRPC_ACK_TYPE_NACK;
+			}
+
 			seq++;
-		} while (before_eq(seq, top));
+		}
+		while (before_eq(seq, top));
 	}
 
 	mtu = call->conn->params.peer->if_mtu;
@@ -107,14 +121,23 @@ int rxrpc_send_ack_packet(struct rxrpc_call *call, bool ping)
 	u8 reason;
 
 	spin_lock_bh(&call->lock);
+
 	if (call->conn)
+	{
 		conn = rxrpc_get_connection_maybe(call->conn);
+	}
+
 	spin_unlock_bh(&call->lock);
+
 	if (!conn)
+	{
 		return -ECONNRESET;
+	}
 
 	pkt = kzalloc(sizeof(*pkt), GFP_KERNEL);
-	if (!pkt) {
+
+	if (!pkt)
+	{
 		rxrpc_put_connection(conn);
 		return -ENOMEM;
 	}
@@ -137,17 +160,25 @@ int rxrpc_send_ack_packet(struct rxrpc_call *call, bool ping)
 	pkt->whdr.serviceId	= htons(call->service_id);
 
 	spin_lock_bh(&call->lock);
-	if (ping) {
+
+	if (ping)
+	{
 		reason = RXRPC_ACK_PING;
-	} else {
+	}
+	else
+	{
 		reason = call->ackr_reason;
-		if (!call->ackr_reason) {
+
+		if (!call->ackr_reason)
+		{
 			spin_unlock_bh(&call->lock);
 			ret = 0;
 			goto out;
 		}
+
 		call->ackr_reason = 0;
 	}
+
 	n = rxrpc_fill_out_ack(call, pkt, &hard_ack, &top, reason);
 
 	spin_unlock_bh(&call->lock);
@@ -161,11 +192,12 @@ int rxrpc_send_ack_packet(struct rxrpc_call *call, bool ping)
 	serial = atomic_inc_return(&conn->serial);
 	pkt->whdr.serial = htonl(serial);
 	trace_rxrpc_tx_ack(call, serial,
-			   ntohl(pkt->ack.firstPacket),
-			   ntohl(pkt->ack.serial),
-			   pkt->ack.reason, pkt->ack.nAcks);
+					   ntohl(pkt->ack.firstPacket),
+					   ntohl(pkt->ack.serial),
+					   pkt->ack.reason, pkt->ack.nAcks);
 
-	if (ping) {
+	if (ping)
+	{
 		call->ping_serial = serial;
 		smp_wmb();
 		/* We need to stick a time in before we send the packet in case
@@ -181,24 +213,41 @@ int rxrpc_send_ack_packet(struct rxrpc_call *call, bool ping)
 	}
 
 	ret = kernel_sendmsg(conn->params.local->socket, &msg, iov, 2, len);
-	if (ping)
-		call->ping_time = ktime_get_real();
 
-	if (call->state < RXRPC_CALL_COMPLETE) {
-		if (ret < 0) {
+	if (ping)
+	{
+		call->ping_time = ktime_get_real();
+	}
+
+	if (call->state < RXRPC_CALL_COMPLETE)
+	{
+		if (ret < 0)
+		{
 			if (ping)
+			{
 				clear_bit(RXRPC_CALL_PINGING, &call->flags);
+			}
+
 			rxrpc_propose_ACK(call, pkt->ack.reason,
-					  ntohs(pkt->ack.maxSkew),
-					  ntohl(pkt->ack.serial),
-					  true, true,
-					  rxrpc_propose_ack_retry_tx);
-		} else {
+							  ntohs(pkt->ack.maxSkew),
+							  ntohl(pkt->ack.serial),
+							  true, true,
+							  rxrpc_propose_ack_retry_tx);
+		}
+		else
+		{
 			spin_lock_bh(&call->lock);
+
 			if (after(hard_ack, call->ackr_consumed))
+			{
 				call->ackr_consumed = hard_ack;
+			}
+
 			if (after(top, call->ackr_seen))
+			{
 				call->ackr_seen = top;
+			}
+
 			spin_unlock_bh(&call->lock);
 		}
 	}
@@ -222,11 +271,18 @@ int rxrpc_send_abort_packet(struct rxrpc_call *call)
 	int ret;
 
 	spin_lock_bh(&call->lock);
+
 	if (call->conn)
+	{
 		conn = rxrpc_get_connection_maybe(call->conn);
+	}
+
 	spin_unlock_bh(&call->lock);
+
 	if (!conn)
+	{
 		return -ECONNRESET;
+	}
 
 	msg.msg_name	= &call->peer->srx.transport;
 	msg.msg_namelen	= call->peer->srx.transport_len;
@@ -253,7 +309,7 @@ int rxrpc_send_abort_packet(struct rxrpc_call *call)
 	pkt.whdr.serial = htonl(serial);
 
 	ret = kernel_sendmsg(conn->params.local->socket,
-			     &msg, iov, 1, sizeof(pkt));
+						 &msg, iov, 1, sizeof(pkt));
 
 	rxrpc_put_connection(conn);
 	return ret;
@@ -263,7 +319,7 @@ int rxrpc_send_abort_packet(struct rxrpc_call *call)
  * send a packet through the transport endpoint
  */
 int rxrpc_send_data_packet(struct rxrpc_call *call, struct sk_buff *skb,
-			   bool retrans)
+						   bool retrans)
 {
 	struct rxrpc_connection *conn = call->conn;
 	struct rxrpc_wire_header whdr;
@@ -308,16 +364,21 @@ int rxrpc_send_data_packet(struct rxrpc_call *call, struct sk_buff *skb,
 	 * ACKs if a DATA packet appears to have been lost.
 	 */
 	if (!(sp->hdr.flags & RXRPC_LAST_PACKET) &&
-	    (retrans ||
-	     call->cong_mode == RXRPC_CALL_SLOW_START ||
-	     (call->peer->rtt_usage < 3 && sp->hdr.seq & 1) ||
-	     ktime_before(ktime_add_ms(call->peer->rtt_last_req, 1000),
-			  ktime_get_real())))
+		(retrans ||
+		 call->cong_mode == RXRPC_CALL_SLOW_START ||
+		 (call->peer->rtt_usage < 3 && sp->hdr.seq & 1) ||
+		 ktime_before(ktime_add_ms(call->peer->rtt_last_req, 1000),
+					  ktime_get_real())))
+	{
 		whdr.flags |= RXRPC_REQUEST_ACK;
+	}
 
-	if (IS_ENABLED(CONFIG_AF_RXRPC_INJECT_LOSS)) {
+	if (IS_ENABLED(CONFIG_AF_RXRPC_INJECT_LOSS))
+	{
 		static int lose;
-		if ((lose++ & 7) == 7) {
+
+		if ((lose++ & 7) == 7)
+		{
 			ret = 0;
 			lost = true;
 			goto done;
@@ -329,7 +390,9 @@ int rxrpc_send_data_packet(struct rxrpc_call *call, struct sk_buff *skb,
 	/* send the packet with the don't fragment bit set if we currently
 	 * think it's small enough */
 	if (iov[1].iov_len >= call->peer->maxdata)
+	{
 		goto send_fragmentable;
+	}
 
 	down_read(&conn->params.local->defrag_sem);
 	/* send the packet by UDP
@@ -341,22 +404,30 @@ int rxrpc_send_data_packet(struct rxrpc_call *call, struct sk_buff *skb,
 	ret = kernel_sendmsg(conn->params.local->socket, &msg, iov, 2, len);
 
 	up_read(&conn->params.local->defrag_sem);
+
 	if (ret == -EMSGSIZE)
+	{
 		goto send_fragmentable;
+	}
 
 done:
 	trace_rxrpc_tx_data(call, sp->hdr.seq, serial, whdr.flags,
-			    retrans, lost);
-	if (ret >= 0) {
+						retrans, lost);
+
+	if (ret >= 0)
+	{
 		ktime_t now = ktime_get_real();
 		skb->tstamp = now;
 		smp_wmb();
 		sp->hdr.serial = serial;
-		if (whdr.flags & RXRPC_REQUEST_ACK) {
+
+		if (whdr.flags & RXRPC_REQUEST_ACK)
+		{
 			call->peer->rtt_last_req = now;
 			trace_rxrpc_rtt_tx(call, rxrpc_rtt_tx_data, serial);
 		}
 	}
+
 	_leave(" = %d [%u]", ret, call->peer->maxdata);
 	return ret;
 
@@ -366,39 +437,47 @@ send_fragmentable:
 
 	down_write(&conn->params.local->defrag_sem);
 
-	switch (conn->params.local->srx.transport.family) {
-	case AF_INET:
-		opt = IP_PMTUDISC_DONT;
-		ret = kernel_setsockopt(conn->params.local->socket,
-					SOL_IP, IP_MTU_DISCOVER,
-					(char *)&opt, sizeof(opt));
-		if (ret == 0) {
-			ret = kernel_sendmsg(conn->params.local->socket, &msg,
-					     iov, 2, len);
+	switch (conn->params.local->srx.transport.family)
+	{
+		case AF_INET:
+			opt = IP_PMTUDISC_DONT;
+			ret = kernel_setsockopt(conn->params.local->socket,
+									SOL_IP, IP_MTU_DISCOVER,
+									(char *)&opt, sizeof(opt));
 
-			opt = IP_PMTUDISC_DO;
-			kernel_setsockopt(conn->params.local->socket, SOL_IP,
-					  IP_MTU_DISCOVER,
-					  (char *)&opt, sizeof(opt));
-		}
-		break;
+			if (ret == 0)
+			{
+				ret = kernel_sendmsg(conn->params.local->socket, &msg,
+									 iov, 2, len);
+
+				opt = IP_PMTUDISC_DO;
+				kernel_setsockopt(conn->params.local->socket, SOL_IP,
+								  IP_MTU_DISCOVER,
+								  (char *)&opt, sizeof(opt));
+			}
+
+			break;
 
 #ifdef CONFIG_AF_RXRPC_IPV6
-	case AF_INET6:
-		opt = IPV6_PMTUDISC_DONT;
-		ret = kernel_setsockopt(conn->params.local->socket,
-					SOL_IPV6, IPV6_MTU_DISCOVER,
-					(char *)&opt, sizeof(opt));
-		if (ret == 0) {
-			ret = kernel_sendmsg(conn->params.local->socket, &msg,
-					     iov, 1, iov[0].iov_len);
 
-			opt = IPV6_PMTUDISC_DO;
-			kernel_setsockopt(conn->params.local->socket,
-					  SOL_IPV6, IPV6_MTU_DISCOVER,
-					  (char *)&opt, sizeof(opt));
-		}
-		break;
+		case AF_INET6:
+			opt = IPV6_PMTUDISC_DONT;
+			ret = kernel_setsockopt(conn->params.local->socket,
+									SOL_IPV6, IPV6_MTU_DISCOVER,
+									(char *)&opt, sizeof(opt));
+
+			if (ret == 0)
+			{
+				ret = kernel_sendmsg(conn->params.local->socket, &msg,
+									 iov, 1, iov[0].iov_len);
+
+				opt = IPV6_PMTUDISC_DO;
+				kernel_setsockopt(conn->params.local->socket,
+								  SOL_IPV6, IPV6_MTU_DISCOVER,
+								  (char *)&opt, sizeof(opt));
+			}
+
+			break;
 #endif
 	}
 
@@ -436,11 +515,13 @@ void rxrpc_reject_packets(struct rxrpc_local *local)
 	memset(&whdr, 0, sizeof(whdr));
 	whdr.type = RXRPC_PACKET_TYPE_ABORT;
 
-	while ((skb = skb_dequeue(&local->reject_queue))) {
+	while ((skb = skb_dequeue(&local->reject_queue)))
+	{
 		rxrpc_see_skb(skb, rxrpc_skb_rx_seen);
 		sp = rxrpc_skb(skb);
 
-		if (rxrpc_extract_addr_from_skb(&srx, skb) == 0) {
+		if (rxrpc_extract_addr_from_skb(&srx, skb) == 0)
+		{
 			msg.msg_namelen = srx.transport_len;
 
 			code = htonl(skb->priority);

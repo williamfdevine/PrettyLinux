@@ -17,7 +17,8 @@
 #define STRP_STATS_ADD(stat, count) ((stat) += (count))
 #define STRP_STATS_INCR(stat) ((stat)++)
 
-struct strp_stats {
+struct strp_stats
+{
 	unsigned long long rx_msgs;
 	unsigned long long rx_bytes;
 	unsigned int rx_mem_fail;
@@ -27,7 +28,8 @@ struct strp_stats {
 	unsigned int rx_bad_hdr_len;
 };
 
-struct strp_aggr_stats {
+struct strp_aggr_stats
+{
 	unsigned long long rx_msgs;
 	unsigned long long rx_bytes;
 	unsigned int rx_mem_fail;
@@ -43,14 +45,16 @@ struct strp_aggr_stats {
 struct strparser;
 
 /* Callbacks are called with lock held for the attached socket */
-struct strp_callbacks {
+struct strp_callbacks
+{
 	int (*parse_msg)(struct strparser *strp, struct sk_buff *skb);
 	void (*rcv_msg)(struct strparser *strp, struct sk_buff *skb);
 	int (*read_sock_done)(struct strparser *strp, int err);
 	void (*abort_parser)(struct strparser *strp, int err);
 };
 
-struct strp_rx_msg {
+struct strp_rx_msg
+{
 	int full_len;
 	int offset;
 };
@@ -58,11 +62,12 @@ struct strp_rx_msg {
 static inline struct strp_rx_msg *strp_rx_msg(struct sk_buff *skb)
 {
 	return (struct strp_rx_msg *)((void *)skb->cb +
-		offsetof(struct qdisc_skb_cb, data));
+								  offsetof(struct qdisc_skb_cb, data));
 }
 
 /* Structure for an attached lower socket */
-struct strparser {
+struct strparser
+{
 	struct sock *sk;
 
 	u32 rx_stopped : 1;
@@ -91,12 +96,12 @@ static inline void strp_pause(struct strparser *strp)
 void strp_unpause(struct strparser *strp);
 
 static inline void save_strp_stats(struct strparser *strp,
-				   struct strp_aggr_stats *agg_stats)
+								   struct strp_aggr_stats *agg_stats)
 {
 	/* Save psock statistics in the mux when psock is being unattached. */
 
 #define SAVE_PSOCK_STATS(_stat) (agg_stats->_stat +=		\
-				 strp->stats._stat)
+								 strp->stats._stat)
 	SAVE_PSOCK_STATS(rx_msgs);
 	SAVE_PSOCK_STATS(rx_bytes);
 	SAVE_PSOCK_STATS(rx_mem_fail);
@@ -107,15 +112,23 @@ static inline void save_strp_stats(struct strparser *strp,
 #undef SAVE_PSOCK_STATS
 
 	if (strp->rx_aborted)
+	{
 		agg_stats->rx_aborts++;
+	}
+
 	if (strp->rx_interrupted)
+	{
 		agg_stats->rx_interrupted++;
+	}
+
 	if (strp->rx_unrecov_intr)
+	{
 		agg_stats->rx_unrecov_intr++;
+	}
 }
 
 static inline void aggregate_strp_stats(struct strp_aggr_stats *stats,
-					struct strp_aggr_stats *agg_stats)
+										struct strp_aggr_stats *agg_stats)
 {
 #define SAVE_PSOCK_STATS(_stat) (agg_stats->_stat += stats->_stat)
 	SAVE_PSOCK_STATS(rx_msgs);
@@ -136,7 +149,7 @@ void strp_done(struct strparser *strp);
 void strp_stop(struct strparser *strp);
 void strp_check_rcv(struct strparser *strp);
 int strp_init(struct strparser *strp, struct sock *csk,
-	      struct strp_callbacks *cb);
+			  struct strp_callbacks *cb);
 void strp_data_ready(struct strparser *strp);
 
 #endif /* __NET_STRPARSER_H_ */

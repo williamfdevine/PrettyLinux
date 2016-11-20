@@ -59,26 +59,38 @@ static int get_e_machine(struct jitheader *hdr)
 	ssize_t sret;
 	char id[16];
 	int fd, ret = -1;
-	struct {
+	struct
+	{
 		uint16_t e_type;
 		uint16_t e_machine;
 	} info;
 
 	fd = open("/proc/self/exe", O_RDONLY);
+
 	if (fd == -1)
+	{
 		return -1;
+	}
 
 	sret = read(fd, id, sizeof(id));
+
 	if (sret != sizeof(id))
+	{
 		goto error;
+	}
 
 	/* check ELF signature */
 	if (id[0] != 0x7f || id[1] != 'E' || id[2] != 'L' || id[3] != 'F')
+	{
 		goto error;
+	}
 
 	sret = read(fd, &info, sizeof(info));
+
 	if (sret != sizeof(info))
+	{
 		goto error;
+	}
 
 	hdr->elf_mach = info.e_machine;
 	ret = 0;
@@ -109,7 +121,7 @@ static int perf_clk_id = CLOCK_MONOTONIC;
 static inline uint64_t
 timespec_to_ns(const struct timespec *ts)
 {
-        return ((uint64_t) ts->tv_sec * NSEC_PER_SEC) + ts->tv_nsec;
+	return ((uint64_t) ts->tv_sec * NSEC_PER_SEC) + ts->tv_nsec;
 }
 
 static inline uint64_t
@@ -119,11 +131,16 @@ perf_get_timestamp(void)
 	int ret;
 
 	if (use_arch_timestamp)
+	{
 		return get_arch_timestamp();
+	}
 
 	ret = clock_gettime(perf_clk_id, &ts);
+
 	if (ret)
+	{
 		return 0;
+	}
 
 	return timespec_to_ns(&ts);
 }
@@ -141,18 +158,27 @@ debug_cache_init(void)
 	localtime_r(&t, &tm);
 
 	base = getenv("JITDUMPDIR");
+
 	if (!base)
+	{
 		base = getenv("HOME");
+	}
+
 	if (!base)
+	{
 		base = ".";
+	}
 
 	strftime(str, sizeof(str), JIT_LANG"-jit-%Y%m%d", &tm);
 
 	snprintf(jit_path, PATH_MAX - 1, "%s/.debug/", base);
 
 	ret = mkdir(jit_path, 0755);
-	if (ret == -1) {
-		if (errno != EEXIST) {
+
+	if (ret == -1)
+	{
+		if (errno != EEXIST)
+		{
 			warn("jvmti: cannot create jit cache dir %s", jit_path);
 			return -1;
 		}
@@ -160,8 +186,11 @@ debug_cache_init(void)
 
 	snprintf(jit_path, PATH_MAX - 1, "%s/.debug/jit", base);
 	ret = mkdir(jit_path, 0755);
-	if (ret == -1) {
-		if (errno != EEXIST) {
+
+	if (ret == -1)
+	{
+		if (errno != EEXIST)
+		{
 			warn("cannot create jit cache dir %s", jit_path);
 			return -1;
 		}
@@ -170,7 +199,9 @@ debug_cache_init(void)
 	snprintf(jit_path, PATH_MAX - 1, "%s/.debug/jit/%s.XXXXXXXX", base, str);
 
 	p = mkdtemp(jit_path);
-	if (p != jit_path) {
+
+	if (p != jit_path)
+	{
 		warn("cannot create jit cache dir %s", jit_path);
 		return -1;
 	}
@@ -184,8 +215,11 @@ perf_open_marker_file(int fd)
 	long pgsz;
 
 	pgsz = sysconf(_SC_PAGESIZE);
+
 	if (pgsz == -1)
+	{
 		return -1;
+	}
 
 	/*
 	 * we mmap the jitdump to create an MMAP RECORD in perf.data file.
@@ -198,7 +232,7 @@ perf_open_marker_file(int fd)
 	 * mapping must be PROT_EXEC to ensure it is captured by perf record
 	 * even when not using -d option
 	 */
-	marker_addr = mmap(NULL, pgsz, PROT_READ|PROT_EXEC, MAP_PRIVATE, fd, 0);
+	marker_addr = mmap(NULL, pgsz, PROT_READ | PROT_EXEC, MAP_PRIVATE, fd, 0);
 	return (marker_addr == MAP_FAILED) ? -1 : 0;
 }
 
@@ -208,11 +242,16 @@ perf_close_marker_file(void)
 	long pgsz;
 
 	if (!marker_addr)
+	{
 		return;
+	}
 
 	pgsz = sysconf(_SC_PAGESIZE);
+
 	if (pgsz == -1)
+	{
 		return;
+	}
 
 	munmap(marker_addr, pgsz);
 }
@@ -223,7 +262,9 @@ init_arch_timestamp(void)
 	char *str = getenv("JITDUMP_USE_ARCH_TIMESTAMP");
 
 	if (!str || !*str || !strcmp(str, "0"))
+	{
 		return;
+	}
 
 	use_arch_timestamp = 1;
 }
@@ -241,11 +282,16 @@ void *jvmti_open(void)
 	/*
 	 * check if clockid is supported
 	 */
-	if (!perf_get_timestamp()) {
+	if (!perf_get_timestamp())
+	{
 		if (use_arch_timestamp)
+		{
 			warnx("jvmti: arch timestamp not supported");
+		}
 		else
+		{
 			warnx("jvmti: kernel does not support %d clock id", perf_clk_id);
+		}
 	}
 
 	memset(&header, 0, sizeof(header));
@@ -257,20 +303,26 @@ void *jvmti_open(void)
 	 */
 	snprintf(dump_path, PATH_MAX, "%s/jit-%i.dump", jit_path, getpid());
 
-	fd = open(dump_path, O_CREAT|O_TRUNC|O_RDWR, 0666);
+	fd = open(dump_path, O_CREAT | O_TRUNC | O_RDWR, 0666);
+
 	if (fd == -1)
+	{
 		return NULL;
+	}
 
 	/*
 	 * create perf.data maker for the jitdump file
 	 */
-	if (perf_open_marker_file(fd)) {
+	if (perf_open_marker_file(fd))
+	{
 		warnx("jvmti: failed to create marker file");
 		return NULL;
 	}
 
 	fp = fdopen(fd, "w+");
-	if (!fp) {
+
+	if (!fp)
+	{
 		warn("jvmti: cannot create %s", dump_path);
 		close(fd);
 		goto error;
@@ -278,7 +330,8 @@ void *jvmti_open(void)
 
 	warnx("jvmti: jitdump in %s", dump_path);
 
-	if (get_e_machine(&header)) {
+	if (get_e_machine(&header))
+	{
 		warn("get_e_machine failed\n");
 		goto error;
 	}
@@ -295,15 +348,19 @@ void *jvmti_open(void)
 	header.timestamp = perf_get_timestamp();
 
 	if (use_arch_timestamp)
+	{
 		header.flags |= JITDUMP_FLAGS_ARCH_TIMESTAMP;
+	}
 
-	if (!fwrite(&header, sizeof(header), 1, fp)) {
+	if (!fwrite(&header, sizeof(header), 1, fp))
+	{
 		warn("jvmti: cannot write dumpfile header");
 		goto error;
 	}
 
 	/* write padding '\0' if necessary */
-	if (pad_cnt && !fwrite(pad_bytes, pad_cnt, 1, fp)) {
+	if (pad_cnt && !fwrite(pad_bytes, pad_cnt, 1, fp))
+	{
 		warn("jvmti: cannot write dumpfile header padding");
 		goto error;
 	}
@@ -320,7 +377,8 @@ jvmti_close(void *agent)
 	struct jr_code_close rec;
 	FILE *fp = agent;
 
-	if (!fp) {
+	if (!fp)
+	{
 		warnx("jvmti: incalid fd in close_agent");
 		return -1;
 	}
@@ -331,7 +389,9 @@ jvmti_close(void *agent)
 	rec.p.timestamp = perf_get_timestamp();
 
 	if (!fwrite(&rec, sizeof(rec), 1, fp))
+	{
 		return -1;
+	}
 
 	fclose(fp);
 
@@ -344,7 +404,7 @@ jvmti_close(void *agent)
 
 int
 jvmti_write_code(void *agent, char const *sym,
-	uint64_t vma, void const *code, unsigned int const size)
+				 uint64_t vma, void const *code, unsigned int const size)
 {
 	static int code_generation = 1;
 	struct jr_code_load rec;
@@ -355,9 +415,12 @@ jvmti_write_code(void *agent, char const *sym,
 
 	/* don't care about 0 length function, no samples */
 	if (size == 0)
+	{
 		return 0;
+	}
 
-	if (!fp) {
+	if (!fp)
+	{
 		warnx("jvmti: invalid fd in write_native_code");
 		return -1;
 	}
@@ -377,7 +440,9 @@ jvmti_write_code(void *agent, char const *sym,
 	rec.tid	       = gettid();
 
 	if (code)
+	{
 		rec.p.total_size += size;
+	}
 
 	/*
 	 * If JVM is multi-threaded, nultiple concurrent calls to agent
@@ -394,10 +459,14 @@ jvmti_write_code(void *agent, char const *sym,
 	fwrite_unlocked(sym, sym_len, 1, fp);
 
 	if (padding_count)
+	{
 		fwrite_unlocked(pad_bytes, padding_count, 1, fp);
+	}
 
 	if (code)
+	{
 		fwrite_unlocked(code, size, 1, fp);
+	}
 
 	funlockfile(fp);
 
@@ -408,7 +477,7 @@ jvmti_write_code(void *agent, char const *sym,
 
 int
 jvmti_write_debug_info(void *agent, uint64_t code, const char *file,
-		       jvmti_line_info_t *li, int nr_lines)
+					   jvmti_line_info_t *li, int nr_lines)
 {
 	struct jr_code_debug_info rec;
 	size_t sret, len, size, flen;
@@ -422,9 +491,12 @@ jvmti_write_debug_info(void *agent, uint64_t code, const char *file,
 	 * no entry to write
 	 */
 	if (!nr_lines)
+	{
 		return 0;
+	}
 
-	if (!fp) {
+	if (!fp)
+	{
 		warnx("jvmti: invalid fd in write_debug_info");
 		return -1;
 	}
@@ -461,35 +533,56 @@ jvmti_write_debug_info(void *agent, uint64_t code, const char *file,
 	flockfile(fp);
 
 	sret = fwrite_unlocked(&rec, sizeof(rec), 1, fp);
-	if (sret != 1)
-		goto error;
 
-	for (i = 0; i < nr_lines; i++) {
+	if (sret != 1)
+	{
+		goto error;
+	}
+
+	for (i = 0; i < nr_lines; i++)
+	{
 
 		addr = (uint64_t)li[i].pc;
 		len  = sizeof(addr);
 		sret = fwrite_unlocked(&addr, len, 1, fp);
+
 		if (sret != 1)
+		{
 			goto error;
+		}
 
 		len  = sizeof(li[0].line_number);
 		sret = fwrite_unlocked(&li[i].line_number, len, 1, fp);
+
 		if (sret != 1)
+		{
 			goto error;
+		}
 
 		len  = sizeof(li[0].discrim);
 		sret = fwrite_unlocked(&li[i].discrim, len, 1, fp);
+
 		if (sret != 1)
+		{
 			goto error;
+		}
 
 		sret = fwrite_unlocked(fn, flen, 1, fp);
+
 		if (sret != 1)
+		{
 			goto error;
+		}
 	}
-	if (padding_count) {
+
+	if (padding_count)
+	{
 		sret = fwrite_unlocked(pad_bytes, padding_count, 1, fp);
+
 		if (sret != 1)
+		{
 			goto error;
+		}
 	}
 
 	funlockfile(fp);

@@ -49,7 +49,7 @@
 
 #define TMP103_CONFIG		(TMP103_CONF_CR1 | TMP103_CONF_M1)
 #define TMP103_CONFIG_MASK	(TMP103_CONF_CR0 | TMP103_CONF_CR1 | \
-				 TMP103_CONF_M0 | TMP103_CONF_M1)
+							 TMP103_CONF_M0 | TMP103_CONF_M1)
 
 static inline int tmp103_reg_to_mc(s8 val)
 {
@@ -62,8 +62,8 @@ static inline u8 tmp103_mc_to_reg(int val)
 }
 
 static ssize_t tmp103_show_temp(struct device *dev,
-				struct device_attribute *attr,
-				char *buf)
+								struct device_attribute *attr,
+								char *buf)
 {
 	struct sensor_device_attribute *sda = to_sensor_dev_attr(attr);
 	struct regmap *regmap = dev_get_drvdata(dev);
@@ -71,15 +71,18 @@ static ssize_t tmp103_show_temp(struct device *dev,
 	int ret;
 
 	ret = regmap_read(regmap, sda->index, &regval);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return sprintf(buf, "%d\n", tmp103_reg_to_mc(regval));
 }
 
 static ssize_t tmp103_set_temp(struct device *dev,
-			       struct device_attribute *attr,
-			       const char *buf, size_t count)
+							   struct device_attribute *attr,
+							   const char *buf, size_t count)
 {
 	struct sensor_device_attribute *sda = to_sensor_dev_attr(attr);
 	struct regmap *regmap = dev_get_drvdata(dev);
@@ -87,7 +90,9 @@ static ssize_t tmp103_set_temp(struct device *dev,
 	int ret;
 
 	if (kstrtol(buf, 10, &val) < 0)
+	{
 		return -EINVAL;
+	}
 
 	val = clamp_val(val, -55000, 127000);
 	ret = regmap_write(regmap, sda->index, tmp103_mc_to_reg(val));
@@ -95,15 +100,16 @@ static ssize_t tmp103_set_temp(struct device *dev,
 }
 
 static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, tmp103_show_temp, NULL ,
-			  TMP103_TEMP_REG);
+						  TMP103_TEMP_REG);
 
 static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO, tmp103_show_temp,
-			  tmp103_set_temp, TMP103_TLOW_REG);
+						  tmp103_set_temp, TMP103_TLOW_REG);
 
 static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, tmp103_show_temp,
-			  tmp103_set_temp, TMP103_THIGH_REG);
+						  tmp103_set_temp, TMP103_THIGH_REG);
 
-static struct attribute *tmp103_attrs[] = {
+static struct attribute *tmp103_attrs[] =
+{
 	&sensor_dev_attr_temp1_input.dev_attr.attr,
 	&sensor_dev_attr_temp1_min.dev_attr.attr,
 	&sensor_dev_attr_temp1_max.dev_attr.attr,
@@ -116,7 +122,8 @@ static bool tmp103_regmap_is_volatile(struct device *dev, unsigned int reg)
 	return reg == TMP103_TEMP_REG;
 }
 
-static const struct regmap_config tmp103_regmap_config = {
+static const struct regmap_config tmp103_regmap_config =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 	.max_register = TMP103_THIGH_REG,
@@ -124,7 +131,7 @@ static const struct regmap_config tmp103_regmap_config = {
 };
 
 static int tmp103_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	struct device *dev = &client->dev;
 	struct device *hwmon_dev;
@@ -132,21 +139,25 @@ static int tmp103_probe(struct i2c_client *client,
 	int ret;
 
 	regmap = devm_regmap_init_i2c(client, &tmp103_regmap_config);
-	if (IS_ERR(regmap)) {
+
+	if (IS_ERR(regmap))
+	{
 		dev_err(dev, "failed to allocate register map\n");
 		return PTR_ERR(regmap);
 	}
 
 	ret = regmap_update_bits(regmap, TMP103_CONF_REG, TMP103_CONFIG_MASK,
-				 TMP103_CONFIG);
-	if (ret < 0) {
+							 TMP103_CONFIG);
+
+	if (ret < 0)
+	{
 		dev_err(&client->dev, "error writing config register\n");
 		return ret;
 	}
 
 	i2c_set_clientdata(client, regmap);
 	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
-						      regmap, tmp103_groups);
+				regmap, tmp103_groups);
 	return PTR_ERR_OR_ZERO(hwmon_dev);
 }
 
@@ -156,7 +167,7 @@ static int tmp103_suspend(struct device *dev)
 	struct regmap *regmap = dev_get_drvdata(dev);
 
 	return regmap_update_bits(regmap, TMP103_CONF_REG,
-				  TMP103_CONF_SD_MASK, 0);
+							  TMP103_CONF_SD_MASK, 0);
 }
 
 static int tmp103_resume(struct device *dev)
@@ -164,10 +175,11 @@ static int tmp103_resume(struct device *dev)
 	struct regmap *regmap = dev_get_drvdata(dev);
 
 	return regmap_update_bits(regmap, TMP103_CONF_REG,
-				  TMP103_CONF_SD_MASK, TMP103_CONF_SD);
+							  TMP103_CONF_SD_MASK, TMP103_CONF_SD);
 }
 
-static const struct dev_pm_ops tmp103_dev_pm_ops = {
+static const struct dev_pm_ops tmp103_dev_pm_ops =
+{
 	.suspend	= tmp103_suspend,
 	.resume		= tmp103_resume,
 };
@@ -177,13 +189,15 @@ static const struct dev_pm_ops tmp103_dev_pm_ops = {
 #define	TMP103_DEV_PM_OPS NULL
 #endif /* CONFIG_PM */
 
-static const struct i2c_device_id tmp103_id[] = {
+static const struct i2c_device_id tmp103_id[] =
+{
 	{ "tmp103", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, tmp103_id);
 
-static struct i2c_driver tmp103_driver = {
+static struct i2c_driver tmp103_driver =
+{
 	.driver = {
 		.name	= "tmp103",
 		.pm	= TMP103_DEV_PM_OPS,

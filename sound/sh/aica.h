@@ -57,7 +57,8 @@
 
 #define SND_AICA_DRIVER "AICA"
 
-struct aica_channel {
+struct aica_channel
+{
 	uint32_t cmd;		/* Command ID           */
 	uint32_t pos;		/* Sample position      */
 	uint32_t length;	/* Sample length        */
@@ -68,7 +69,8 @@ struct aica_channel {
 	uint32_t flags;		/* Bit flags            */
 };
 
-struct snd_card_aica {
+struct snd_card_aica
+{
 	struct work_struct spu_dma_work;
 	struct snd_card *card;
 	struct aica_channel *channel;

@@ -50,7 +50,8 @@
 #define VPRBRD_USB_REQUEST_GPIOA    0xed
 #define VPRBRD_USB_REQUEST_GPIOB    0xdd
 
-struct vprbrd_i2c_write_hdr {
+struct vprbrd_i2c_write_hdr
+{
 	u8 cmd;
 	u16 addr;
 	u8 len1;
@@ -60,7 +61,8 @@ struct vprbrd_i2c_write_hdr {
 	u16 spi;
 } __packed;
 
-struct vprbrd_i2c_read_hdr {
+struct vprbrd_i2c_read_hdr
+{
 	u8 cmd;
 	u16 addr;
 	u8 len0;
@@ -73,24 +75,28 @@ struct vprbrd_i2c_read_hdr {
 	u16 tf2;                        /* transfer 2 length */
 } __packed;
 
-struct vprbrd_i2c_status {
+struct vprbrd_i2c_status
+{
 	u8 unknown[11];
 	u8 status;
 } __packed;
 
-struct vprbrd_i2c_write_msg {
+struct vprbrd_i2c_write_msg
+{
 	struct vprbrd_i2c_write_hdr header;
 	u8 data[VPRBRD_I2C_MSG_LEN
-		- sizeof(struct vprbrd_i2c_write_hdr)];
+			- sizeof(struct vprbrd_i2c_write_hdr)];
 } __packed;
 
-struct vprbrd_i2c_read_msg {
+struct vprbrd_i2c_read_msg
+{
 	struct vprbrd_i2c_read_hdr header;
 	u8 data[VPRBRD_I2C_MSG_LEN
-		- sizeof(struct vprbrd_i2c_read_hdr)];
+			- sizeof(struct vprbrd_i2c_read_hdr)];
 } __packed;
 
-struct vprbrd_i2c_addr_msg {
+struct vprbrd_i2c_addr_msg
+{
 	u8 cmd;
 	u8 addr;
 	u8 unknown1;
@@ -100,7 +106,8 @@ struct vprbrd_i2c_addr_msg {
 } __packed;
 
 /* Structure to hold all device specific stuff */
-struct vprbrd {
+struct vprbrd
+{
 	struct usb_device *usb_dev; /* the usb device for this device */
 	struct mutex lock;
 	u8 buf[sizeof(struct vprbrd_i2c_write_msg)];

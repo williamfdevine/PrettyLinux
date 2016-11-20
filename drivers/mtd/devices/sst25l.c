@@ -47,13 +47,15 @@
 #define SST25L_STATUS_BP0	(1 << 2)	/* Block protection 0 */
 #define SST25L_STATUS_BP1	(1 << 3)	/* Block protection 1 */
 
-struct sst25l_flash {
+struct sst25l_flash
+{
 	struct spi_device	*spi;
 	struct mutex		lock;
 	struct mtd_info		mtd;
 };
 
-struct flash_info {
+struct flash_info
+{
 	const char		*name;
 	uint16_t		device_id;
 	unsigned		page_size;
@@ -63,7 +65,8 @@ struct flash_info {
 
 #define to_sst25l_flash(x) container_of(x, struct sst25l_flash, mtd)
 
-static struct flash_info sst25l_flash_info[] = {
+static struct flash_info sst25l_flash_info[] =
+{
 	{"sst25lf020a", 0xbf43, 256, 1024, 4096},
 	{"sst25lf040a",	0xbf44,	256, 2048, 4096},
 };
@@ -85,8 +88,11 @@ static int sst25l_status(struct sst25l_flash *flash, int *status)
 	t.len = sizeof(cmd_resp);
 	spi_message_add_tail(&t, &m);
 	err = spi_sync(flash->spi, &m);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	*status = cmd_resp[1];
 	return 0;
@@ -99,26 +105,42 @@ static int sst25l_write_enable(struct sst25l_flash *flash, int enable)
 
 	command[0] = enable ? SST25L_CMD_WREN : SST25L_CMD_WRDI;
 	err = spi_write(flash->spi, command, 1);
+
 	if (err)
+	{
 		return err;
+	}
 
 	command[0] = SST25L_CMD_EWSR;
 	err = spi_write(flash->spi, command, 1);
+
 	if (err)
+	{
 		return err;
+	}
 
 	command[0] = SST25L_CMD_WRSR;
 	command[1] = enable ? 0 : SST25L_STATUS_BP0 | SST25L_STATUS_BP1;
 	err = spi_write(flash->spi, command, 2);
-	if (err)
-		return err;
 
-	if (enable) {
+	if (err)
+	{
+		return err;
+	}
+
+	if (enable)
+	{
 		err = sst25l_status(flash, &status);
+
 		if (err)
+		{
 			return err;
+		}
+
 		if (!(status & SST25L_STATUS_WREN))
+		{
 			return -EROFS;
+		}
 	}
 
 	return 0;
@@ -130,15 +152,24 @@ static int sst25l_wait_till_ready(struct sst25l_flash *flash)
 	int status, err;
 
 	deadline = jiffies + MAX_READY_WAIT_JIFFIES;
-	do {
+
+	do
+	{
 		err = sst25l_status(flash, &status);
+
 		if (err)
+		{
 			return err;
+		}
+
 		if (!(status & SST25L_STATUS_BUSY))
+		{
 			return 0;
+		}
 
 		cond_resched();
-	} while (!time_after_eq(jiffies, deadline));
+	}
+	while (!time_after_eq(jiffies, deadline));
 
 	return -ETIMEDOUT;
 }
@@ -149,20 +180,29 @@ static int sst25l_erase_sector(struct sst25l_flash *flash, uint32_t offset)
 	int err;
 
 	err = sst25l_write_enable(flash, 1);
+
 	if (err)
+	{
 		return err;
+	}
 
 	command[0] = SST25L_CMD_SECTOR_ERASE;
 	command[1] = offset >> 16;
 	command[2] = offset >> 8;
 	command[3] = offset;
 	err = spi_write(flash->spi, command, 4);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = sst25l_wait_till_ready(flash);
+
 	if (err)
+	{
 		return err;
+	}
 
 	return sst25l_write_enable(flash, 0);
 }
@@ -175,10 +215,14 @@ static int sst25l_erase(struct mtd_info *mtd, struct erase_info *instr)
 
 	/* Sanity checks */
 	if ((uint32_t)instr->len % mtd->erasesize)
+	{
 		return -EINVAL;
+	}
 
 	if ((uint32_t)instr->addr % mtd->erasesize)
+	{
 		return -EINVAL;
+	}
 
 	addr = instr->addr;
 	end = addr + instr->len;
@@ -186,14 +230,19 @@ static int sst25l_erase(struct mtd_info *mtd, struct erase_info *instr)
 	mutex_lock(&flash->lock);
 
 	err = sst25l_wait_till_ready(flash);
-	if (err) {
+
+	if (err)
+	{
 		mutex_unlock(&flash->lock);
 		return err;
 	}
 
-	while (addr < end) {
+	while (addr < end)
+	{
 		err = sst25l_erase_sector(flash, addr);
-		if (err) {
+
+		if (err)
+		{
 			mutex_unlock(&flash->lock);
 			instr->state = MTD_ERASE_FAILED;
 			dev_err(&flash->spi->dev, "Erase failed\n");
@@ -211,7 +260,7 @@ static int sst25l_erase(struct mtd_info *mtd, struct erase_info *instr)
 }
 
 static int sst25l_read(struct mtd_info *mtd, loff_t from, size_t len,
-		       size_t *retlen, unsigned char *buf)
+					   size_t *retlen, unsigned char *buf)
 {
 	struct sst25l_flash *flash = to_sst25l_flash(mtd);
 	struct spi_transfer transfer[2];
@@ -239,7 +288,9 @@ static int sst25l_read(struct mtd_info *mtd, loff_t from, size_t len,
 
 	/* Wait for previous write/erase to complete */
 	ret = sst25l_wait_till_ready(flash);
-	if (ret) {
+
+	if (ret)
+	{
 		mutex_unlock(&flash->lock);
 		return ret;
 	}
@@ -247,32 +298,43 @@ static int sst25l_read(struct mtd_info *mtd, loff_t from, size_t len,
 	spi_sync(flash->spi, &message);
 
 	if (retlen && message.actual_length > sizeof(command))
+	{
 		*retlen += message.actual_length - sizeof(command);
+	}
 
 	mutex_unlock(&flash->lock);
 	return 0;
 }
 
 static int sst25l_write(struct mtd_info *mtd, loff_t to, size_t len,
-			size_t *retlen, const unsigned char *buf)
+						size_t *retlen, const unsigned char *buf)
 {
 	struct sst25l_flash *flash = to_sst25l_flash(mtd);
 	int i, j, ret, bytes, copied = 0;
 	unsigned char command[5];
 
 	if ((uint32_t)to % mtd->writesize)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&flash->lock);
 
 	ret = sst25l_write_enable(flash, 1);
-	if (ret)
-		goto out;
 
-	for (i = 0; i < len; i += mtd->writesize) {
+	if (ret)
+	{
+		goto out;
+	}
+
+	for (i = 0; i < len; i += mtd->writesize)
+	{
 		ret = sst25l_wait_till_ready(flash);
+
 		if (ret)
+		{
 			goto out;
+		}
 
 		/* Write the first byte of the page */
 		command[0] = SST25L_CMD_AAI_PROGRAM;
@@ -281,8 +343,12 @@ static int sst25l_write(struct mtd_info *mtd, loff_t to, size_t len,
 		command[3] = (to + i);
 		command[4] = buf[i];
 		ret = spi_write(flash->spi, command, 5);
+
 		if (ret < 0)
+		{
 			goto out;
+		}
+
 		copied++;
 
 		/*
@@ -290,15 +356,23 @@ static int sst25l_write(struct mtd_info *mtd, loff_t to, size_t len,
 		 * increment mode
 		 */
 		bytes = min_t(uint32_t, mtd->writesize, len - i);
-		for (j = 1; j < bytes; j++, copied++) {
+
+		for (j = 1; j < bytes; j++, copied++)
+		{
 			ret = sst25l_wait_till_ready(flash);
+
 			if (ret)
+			{
 				goto out;
+			}
 
 			command[1] = buf[i + j];
 			ret = spi_write(flash->spi, command, 2);
+
 			if (ret)
+			{
 				goto out;
+			}
 		}
 	}
 
@@ -306,7 +380,9 @@ out:
 	ret = sst25l_write_enable(flash, 0);
 
 	if (retlen)
+	{
 		*retlen = copied;
+	}
 
 	mutex_unlock(&flash->lock);
 	return ret;
@@ -335,7 +411,9 @@ static struct flash_info *sst25l_match_device(struct spi_device *spi)
 	t.len = sizeof(cmd_resp);
 	spi_message_add_tail(&t, &m);
 	err = spi_sync(spi, &m);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		dev_err(&spi->dev, "error reading device id\n");
 		return NULL;
 	}
@@ -344,10 +422,14 @@ static struct flash_info *sst25l_match_device(struct spi_device *spi)
 
 	for (i = 0; i < ARRAY_SIZE(sst25l_flash_info); i++)
 		if (sst25l_flash_info[i].device_id == id)
+		{
 			flash_info = &sst25l_flash_info[i];
+		}
 
 	if (!flash_info)
+	{
 		dev_err(&spi->dev, "unknown id %.4x\n", id);
+	}
 
 	return flash_info;
 }
@@ -360,20 +442,29 @@ static int sst25l_probe(struct spi_device *spi)
 	int ret;
 
 	flash_info = sst25l_match_device(spi);
+
 	if (!flash_info)
+	{
 		return -ENODEV;
+	}
 
 	flash = devm_kzalloc(&spi->dev, sizeof(*flash), GFP_KERNEL);
+
 	if (!flash)
+	{
 		return -ENOMEM;
+	}
 
 	flash->spi = spi;
 	mutex_init(&flash->lock);
 	spi_set_drvdata(spi, flash);
 
 	data = dev_get_platdata(&spi->dev);
+
 	if (data && data->name)
+	{
 		flash->mtd.name = data->name;
+	}
 
 	flash->mtd.dev.parent   = &spi->dev;
 	flash->mtd.type		= MTD_NORFLASH;
@@ -387,21 +478,24 @@ static int sst25l_probe(struct spi_device *spi)
 	flash->mtd._write 	= sst25l_write;
 
 	dev_info(&spi->dev, "%s (%lld KiB)\n", flash_info->name,
-		 (long long)flash->mtd.size >> 10);
+			 (long long)flash->mtd.size >> 10);
 
 	pr_debug("mtd .name = %s, .size = 0x%llx (%lldMiB) "
-	      ".erasesize = 0x%.8x (%uKiB) .numeraseregions = %d\n",
-	      flash->mtd.name,
-	      (long long)flash->mtd.size, (long long)(flash->mtd.size >> 20),
-	      flash->mtd.erasesize, flash->mtd.erasesize / 1024,
-	      flash->mtd.numeraseregions);
+			 ".erasesize = 0x%.8x (%uKiB) .numeraseregions = %d\n",
+			 flash->mtd.name,
+			 (long long)flash->mtd.size, (long long)(flash->mtd.size >> 20),
+			 flash->mtd.erasesize, flash->mtd.erasesize / 1024,
+			 flash->mtd.numeraseregions);
 
 
 	ret = mtd_device_parse_register(&flash->mtd, NULL, NULL,
-					data ? data->parts : NULL,
-					data ? data->nr_parts : 0);
+									data ? data->parts : NULL,
+									data ? data->nr_parts : 0);
+
 	if (ret)
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 }
@@ -413,7 +507,8 @@ static int sst25l_remove(struct spi_device *spi)
 	return mtd_device_unregister(&flash->mtd);
 }
 
-static struct spi_driver sst25l_driver = {
+static struct spi_driver sst25l_driver =
+{
 	.driver = {
 		.name	= "sst25l",
 	},
@@ -425,5 +520,5 @@ module_spi_driver(sst25l_driver);
 
 MODULE_DESCRIPTION("MTD SPI driver for SST25L Flash chips");
 MODULE_AUTHOR("Andre Renaud <andre@bluewatersys.com>, "
-	      "Ryan Mallon");
+			  "Ryan Mallon");
 MODULE_LICENSE("GPL");

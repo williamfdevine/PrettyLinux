@@ -14,12 +14,14 @@
 #include <net/netfilter/nf_conntrack.h>
 #include <net/netfilter/nf_conntrack_extend.h>
 
-struct nf_conn_counter {
+struct nf_conn_counter
+{
 	atomic64_t packets;
 	atomic64_t bytes;
 };
 
-struct nf_conn_acct {
+struct nf_conn_acct
+{
 	struct nf_conn_counter counter[IP_CT_DIR_MAX];
 };
 
@@ -36,18 +38,23 @@ struct nf_conn_acct *nf_ct_acct_ext_add(struct nf_conn *ct, gfp_t gfp)
 	struct nf_conn_acct *acct;
 
 	if (!net->ct.sysctl_acct)
+	{
 		return NULL;
+	}
 
 	acct = nf_ct_ext_add(ct, NF_CT_EXT_ACCT, gfp);
+
 	if (!acct)
+	{
 		pr_debug("failed to add accounting extension area");
+	}
 
 
 	return acct;
 };
 
 unsigned int seq_print_acct(struct seq_file *s, const struct nf_conn *ct,
-			    int dir);
+							int dir);
 
 /* Check if connection tracking accounting is enabled */
 static inline bool nf_ct_acct_enabled(struct net *net)

@@ -68,7 +68,8 @@
  * @DUMP_FRAME_BEACON: This beacon frame is queued for transmission to the
  *	hardware.
  */
-enum rt2x00_dump_type {
+enum rt2x00_dump_type
+{
 	DUMP_FRAME_RXDONE = 1,
 	DUMP_FRAME_TX = 2,
 	DUMP_FRAME_TXDONE = 3,
@@ -104,7 +105,8 @@ enum rt2x00_dump_type {
  * @timestamp_sec: Timestamp - seconds
  * @timestamp_usec: Timestamp - microseconds
  */
-struct rt2x00dump_hdr {
+struct rt2x00dump_hdr
+{
 	__le32 version;
 #define DUMP_HEADER_VERSION	2
 

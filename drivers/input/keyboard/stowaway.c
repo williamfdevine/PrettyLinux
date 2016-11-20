@@ -43,7 +43,8 @@ MODULE_LICENSE("GPL");
 #define SKBD_KEY_MASK	0x7f
 #define SKBD_RELEASE	0x80
 
-static unsigned char skbd_keycode[128] = {
+static unsigned char skbd_keycode[128] =
+{
 	KEY_1, KEY_2, KEY_3, KEY_Z, KEY_4, KEY_5, KEY_6, KEY_7,
 	0, KEY_Q, KEY_W, KEY_E, KEY_R, KEY_T, KEY_Y, KEY_GRAVE,
 	KEY_X, KEY_A, KEY_S, KEY_D, KEY_F, KEY_G, KEY_H, KEY_SPACE,
@@ -52,8 +53,8 @@ static unsigned char skbd_keycode[128] = {
 	0, 0, 0, 0, KEY_C, KEY_V, KEY_B, KEY_N,
 	KEY_MINUS, KEY_EQUAL, KEY_BACKSPACE, KEY_HOME, KEY_8, KEY_9, KEY_0, KEY_ESC,
 	KEY_LEFTBRACE, KEY_RIGHTBRACE, KEY_BACKSLASH, KEY_END, KEY_U, KEY_I, KEY_O, KEY_P,
-	KEY_APOSTROPHE, KEY_ENTER, KEY_PAGEUP,0, KEY_J, KEY_K, KEY_L, KEY_SEMICOLON,
-	KEY_SLASH, KEY_UP, KEY_PAGEDOWN, 0,KEY_M, KEY_COMMA, KEY_DOT, KEY_INSERT,
+	KEY_APOSTROPHE, KEY_ENTER, KEY_PAGEUP, 0, KEY_J, KEY_K, KEY_L, KEY_SEMICOLON,
+	KEY_SLASH, KEY_UP, KEY_PAGEDOWN, 0, KEY_M, KEY_COMMA, KEY_DOT, KEY_INSERT,
 	KEY_DELETE, KEY_LEFT, KEY_DOWN, KEY_RIGHT,  0, 0, 0,
 	KEY_LEFTSHIFT, KEY_RIGHTSHIFT, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
@@ -62,7 +63,8 @@ static unsigned char skbd_keycode[128] = {
 	KEY_F8, KEY_F9, KEY_F10, KEY_F11, KEY_F12, 0, 0, 0
 };
 
-struct skbd {
+struct skbd
+{
 	unsigned char keycode[128];
 	struct input_dev *dev;
 	struct serio *serio;
@@ -70,14 +72,15 @@ struct skbd {
 };
 
 static irqreturn_t skbd_interrupt(struct serio *serio, unsigned char data,
-				  unsigned int flags)
+								  unsigned int flags)
 {
 	struct skbd *skbd = serio_get_drvdata(serio);
 	struct input_dev *dev = skbd->dev;
 
-	if (skbd->keycode[data & SKBD_KEY_MASK]) {
+	if (skbd->keycode[data & SKBD_KEY_MASK])
+	{
 		input_report_key(dev, skbd->keycode[data & SKBD_KEY_MASK],
-				 !(data & SKBD_RELEASE));
+						 !(data & SKBD_RELEASE));
 		input_sync(dev);
 	}
 
@@ -93,8 +96,11 @@ static int skbd_connect(struct serio *serio, struct serio_driver *drv)
 
 	skbd = kzalloc(sizeof(struct skbd), GFP_KERNEL);
 	input_dev = input_allocate_device();
+
 	if (!skbd || !input_dev)
+	{
 		goto fail1;
+	}
 
 	skbd->serio = serio;
 	skbd->dev = input_dev;
@@ -113,25 +119,35 @@ static int skbd_connect(struct serio *serio, struct serio_driver *drv)
 	input_dev->keycode = skbd->keycode;
 	input_dev->keycodesize = sizeof(unsigned char);
 	input_dev->keycodemax = ARRAY_SIZE(skbd_keycode);
+
 	for (i = 0; i < ARRAY_SIZE(skbd_keycode); i++)
+	{
 		set_bit(skbd_keycode[i], input_dev->keybit);
+	}
+
 	clear_bit(0, input_dev->keybit);
 
 	serio_set_drvdata(serio, skbd);
 
 	err = serio_open(serio, drv);
+
 	if (err)
+	{
 		goto fail2;
+	}
 
 	err = input_register_device(skbd->dev);
+
 	if (err)
+	{
 		goto fail3;
+	}
 
 	return 0;
 
- fail3: serio_close(serio);
- fail2:	serio_set_drvdata(serio, NULL);
- fail1:	input_free_device(input_dev);
+fail3: serio_close(serio);
+fail2:	serio_set_drvdata(serio, NULL);
+fail1:	input_free_device(input_dev);
 	kfree(skbd);
 	return err;
 }
@@ -146,7 +162,8 @@ static void skbd_disconnect(struct serio *serio)
 	kfree(skbd);
 }
 
-static struct serio_device_id skbd_serio_ids[] = {
+static struct serio_device_id skbd_serio_ids[] =
+{
 	{
 		.type	= SERIO_RS232,
 		.proto	= SERIO_STOWAWAY,
@@ -158,7 +175,8 @@ static struct serio_device_id skbd_serio_ids[] = {
 
 MODULE_DEVICE_TABLE(serio, skbd_serio_ids);
 
-static struct serio_driver skbd_drv = {
+static struct serio_driver skbd_drv =
+{
 	.driver		= {
 		.name	= "stowaway",
 	},

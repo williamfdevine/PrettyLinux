@@ -40,7 +40,8 @@
  *
  * XXX: *REPLY == *REQST + 1
  */
-enum srpc_msg_type {
+enum srpc_msg_type
+{
 	SRPC_MSG_MKSN_REQST	= 0,
 	SRPC_MSG_MKSN_REPLY	= 1,
 	SRPC_MSG_RMSN_REQST	= 2,
@@ -68,48 +69,56 @@ enum srpc_msg_type {
  * All srpc_*_reply_t's 1st field must be a __u32 status, and 2nd field
  * session id if needed.
  */
-struct srpc_generic_reqst {
+struct srpc_generic_reqst
+{
 	__u64			rpyid;		/* reply buffer matchbits */
 	__u64			bulkid;		/* bulk buffer matchbits */
 } WIRE_ATTR;
 
-struct srpc_generic_reply {
+struct srpc_generic_reply
+{
 	__u32			status;
 	lst_sid_t		sid;
 } WIRE_ATTR;
 
 /* FRAMEWORK RPCs */
-struct srpc_mksn_reqst {
+struct srpc_mksn_reqst
+{
 	__u64			mksn_rpyid;	/* reply buffer matchbits */
 	lst_sid_t		mksn_sid;	/* session id */
 	__u32			mksn_force;	/* use brute force */
 	char			mksn_name[LST_NAME_SIZE];
 } WIRE_ATTR; /* make session request */
 
-struct srpc_mksn_reply {
+struct srpc_mksn_reply
+{
 	__u32			mksn_status;	/* session status */
 	lst_sid_t		mksn_sid;	/* session id */
 	__u32			mksn_timeout;	/* session timeout */
 	char			mksn_name[LST_NAME_SIZE];
 } WIRE_ATTR; /* make session reply */
 
-struct srpc_rmsn_reqst {
+struct srpc_rmsn_reqst
+{
 	__u64			rmsn_rpyid;	/* reply buffer matchbits */
 	lst_sid_t		rmsn_sid;	/* session id */
 } WIRE_ATTR; /* remove session request */
 
-struct srpc_rmsn_reply {
+struct srpc_rmsn_reply
+{
 	__u32			rmsn_status;
 	lst_sid_t		rmsn_sid;	/* session id */
 } WIRE_ATTR; /* remove session reply */
 
-struct srpc_join_reqst {
+struct srpc_join_reqst
+{
 	__u64			join_rpyid;	/* reply buffer matchbits */
 	lst_sid_t		join_sid;	/* session id to join */
 	char			join_group[LST_NAME_SIZE]; /* group name */
 } WIRE_ATTR;
 
-struct srpc_join_reply {
+struct srpc_join_reply
+{
 	__u32			join_status;	/* returned status */
 	lst_sid_t		join_sid;	/* session id */
 	__u32			join_timeout;	/* # seconds' inactivity to
@@ -117,13 +126,15 @@ struct srpc_join_reply {
 	char			join_session[LST_NAME_SIZE]; /* session name */
 } WIRE_ATTR;
 
-struct srpc_debug_reqst {
+struct srpc_debug_reqst
+{
 	__u64			dbg_rpyid;	/* reply buffer matchbits */
 	lst_sid_t		dbg_sid;	/* session id */
 	__u32			dbg_flags;	/* bitmap of debug */
 } WIRE_ATTR;
 
-struct srpc_debug_reply {
+struct srpc_debug_reply
+{
 	__u32			dbg_status;	/* returned code */
 	lst_sid_t		dbg_sid;	/* session id */
 	__u32			dbg_timeout;	/* session timeout */
@@ -135,7 +146,8 @@ struct srpc_debug_reply {
 #define SRPC_BATCH_OPC_STOP	2
 #define SRPC_BATCH_OPC_QUERY	3
 
-struct srpc_batch_reqst {
+struct srpc_batch_reqst
+{
 	__u64		   bar_rpyid;	   /* reply buffer matchbits */
 	lst_sid_t	   bar_sid;	   /* session id */
 	lst_bid_t	   bar_bid;	   /* batch id */
@@ -144,20 +156,23 @@ struct srpc_batch_reqst {
 	__u32		   bar_arg;	   /* parameters */
 } WIRE_ATTR;
 
-struct srpc_batch_reply {
+struct srpc_batch_reply
+{
 	__u32		   bar_status;	   /* status of request */
 	lst_sid_t	   bar_sid;	   /* session id */
 	__u32		   bar_active;	   /* # of active tests in batch/test */
 	__u32		   bar_time;	   /* remained time */
 } WIRE_ATTR;
 
-struct srpc_stat_reqst {
+struct srpc_stat_reqst
+{
 	__u64		   str_rpyid;	   /* reply buffer matchbits */
 	lst_sid_t	   str_sid;	   /* session id */
 	__u32		   str_type;	   /* type of stat */
 } WIRE_ATTR;
 
-struct srpc_stat_reply {
+struct srpc_stat_reply
+{
 	__u32		   str_status;
 	lst_sid_t	   str_sid;
 	sfw_counters_t	   str_fw;
@@ -165,25 +180,29 @@ struct srpc_stat_reply {
 	lnet_counters_t    str_lnet;
 } WIRE_ATTR;
 
-struct test_bulk_req {
+struct test_bulk_req
+{
 	__u32		   blk_opc;	   /* bulk operation code */
 	__u32		   blk_npg;	   /* # of pages */
 	__u32		   blk_flags;	   /* reserved flags */
 } WIRE_ATTR;
 
-struct test_bulk_req_v1 {
+struct test_bulk_req_v1
+{
 	__u16		   blk_opc;	   /* bulk operation code */
 	__u16		   blk_flags;	   /* data check flags */
 	__u32		   blk_len;	   /* data length */
 	__u32		   blk_offset;	   /* reserved: offset */
 } WIRE_ATTR;
 
-struct test_ping_req {
+struct test_ping_req
+{
 	__u32		   png_size;	   /* size of ping message */
 	__u32		   png_flags;	   /* reserved flags */
 } WIRE_ATTR;
 
-struct srpc_test_reqst {
+struct srpc_test_reqst
+{
 	__u64			tsr_rpyid;	/* reply buffer matchbits */
 	__u64			tsr_bulkid;	/* bulk buffer matchbits */
 	lst_sid_t		tsr_sid;	/* session id */
@@ -196,20 +215,23 @@ struct srpc_test_reqst {
 	__u8			tsr_stop_onerr; /* stop on error */
 	__u32			tsr_ndest;	/* # of dest nodes */
 
-	union {
+	union
+	{
 		struct test_ping_req	ping;
 		struct test_bulk_req	bulk_v0;
 		struct test_bulk_req_v1	bulk_v1;
 	} tsr_u;
 } WIRE_ATTR;
 
-struct srpc_test_reply {
+struct srpc_test_reply
+{
 	__u32			tsr_status;	/* returned code */
 	lst_sid_t		tsr_sid;
 } WIRE_ATTR;
 
 /* TEST RPCs */
-struct srpc_ping_reqst {
+struct srpc_ping_reqst
+{
 	__u64		   pnr_rpyid;
 	__u32		   pnr_magic;
 	__u32		   pnr_seq;
@@ -217,13 +239,15 @@ struct srpc_ping_reqst {
 	__u64		   pnr_time_usec;
 } WIRE_ATTR;
 
-struct srpc_ping_reply {
+struct srpc_ping_reply
+{
 	__u32		   pnr_status;
 	__u32		   pnr_magic;
 	__u32		   pnr_seq;
 } WIRE_ATTR;
 
-struct srpc_brw_reqst {
+struct srpc_brw_reqst
+{
 	__u64		   brw_rpyid;	   /* reply buffer matchbits */
 	__u64		   brw_bulkid;	   /* bulk buffer matchbits */
 	__u32		   brw_rw;	   /* read or write */
@@ -231,21 +255,24 @@ struct srpc_brw_reqst {
 	__u32		   brw_flags;	   /* bulk data patterns */
 } WIRE_ATTR; /* bulk r/w request */
 
-struct srpc_brw_reply {
+struct srpc_brw_reply
+{
 	__u32		   brw_status;
 } WIRE_ATTR; /* bulk r/w reply */
 
 #define SRPC_MSG_MAGIC		0xeeb0f00d
 #define SRPC_MSG_VERSION	1
 
-struct srpc_msg {
+struct srpc_msg
+{
 	__u32	msg_magic;     /* magic number */
 	__u32	msg_version;   /* message version number */
 	__u32	msg_type;      /* type of message body: srpc_msg_type */
 	__u32	msg_reserved0;
 	__u32	msg_reserved1;
 	__u32	msg_ses_feats; /* test session features */
-	union {
+	union
+	{
 		struct srpc_generic_reqst	reqst;
 		struct srpc_generic_reply	reply;
 
@@ -275,7 +302,9 @@ static inline void
 srpc_unpack_msg_hdr(struct srpc_msg *msg)
 {
 	if (msg->msg_magic == SRPC_MSG_MAGIC)
-		return; /* no flipping needed */
+	{
+		return;    /* no flipping needed */
+	}
 
 	/*
 	 * We do not swap the magic number here as it is needed to

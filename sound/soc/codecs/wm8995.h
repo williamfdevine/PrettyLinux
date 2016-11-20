@@ -4238,16 +4238,18 @@
 
 #define WM8995_CLASS_W_SWITCH(xname, reg, shift, max, invert) \
 	SOC_SINGLE_EXT(xname, reg, shift, max, invert, \
-		snd_soc_dapm_get_volsw, wm8995_put_class_w)
+				   snd_soc_dapm_get_volsw, wm8995_put_class_w)
 
-struct wm8995_reg_access {
+struct wm8995_reg_access
+{
 	u16 read;
 	u16 write;
 	u16 vol;
 };
 
 /* Sources for AIF1/2 SYSCLK - use with set_dai_sysclk() */
-enum clk_src {
+enum clk_src
+{
 	WM8995_SYSCLK_MCLK1 = 1,
 	WM8995_SYSCLK_MCLK2,
 	WM8995_SYSCLK_FLL1,

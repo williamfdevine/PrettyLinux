@@ -30,17 +30,21 @@ static inline unsigned int cxgb3i_get_private_ipv4addr(struct net_device *ndev)
 }
 
 static inline void cxgb3i_set_private_ipv4addr(struct net_device *ndev,
-						unsigned int addr)
+		unsigned int addr)
 {
 	struct port_info *pi =  (struct port_info *)netdev_priv(ndev);
 
 	pi->iscsic.flags = addr ? 1 : 0;
 	pi->iscsi_ipv4addr = addr;
+
 	if (addr)
+	{
 		memcpy(pi->iscsic.mac_addr, ndev->dev_addr, ETH_ALEN);
+	}
 }
 
-struct cpl_iscsi_hdr_norss {
+struct cpl_iscsi_hdr_norss
+{
 	union opcode_tid ot;
 	u16 pdu_len_ddp;
 	u16 len;
@@ -50,7 +54,8 @@ struct cpl_iscsi_hdr_norss {
 	u8 status;
 };
 
-struct cpl_rx_data_ddp_norss {
+struct cpl_rx_data_ddp_norss
+{
 	union opcode_tid ot;
 	u16 urg;
 	u16 len;

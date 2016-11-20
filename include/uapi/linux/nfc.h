@@ -90,7 +90,8 @@
  * @NFC_CMD_VENDOR: Vendor specific command, to be implemented directly
  *	from the driver in order to support hardware specific operations.
  */
-enum nfc_commands {
+enum nfc_commands
+{
 	NFC_CMD_UNSPEC,
 	NFC_CMD_GET_DEVICE,
 	NFC_CMD_DEV_UP,
@@ -121,7 +122,7 @@ enum nfc_commands {
 	NFC_CMD_SE_IO,
 	NFC_CMD_ACTIVATE_TARGET,
 	NFC_CMD_VENDOR,
-/* private: internal use only */
+	/* private: internal use only */
 	__NFC_CMD_AFTER_LAST
 };
 #define NFC_CMD_MAX (__NFC_CMD_AFTER_LAST - 1)
@@ -163,7 +164,8 @@ enum nfc_commands {
  * @NFC_ATTR_VENDOR_DATA: Vendor specific data, to be optionally passed
  *	to a vendor specific command implementation
  */
-enum nfc_attrs {
+enum nfc_attrs
+{
 	NFC_ATTR_UNSPEC,
 	NFC_ATTR_DEVICE_INDEX,
 	NFC_ATTR_DEVICE_NAME,
@@ -196,16 +198,17 @@ enum nfc_attrs {
 	NFC_ATTR_VENDOR_ID,
 	NFC_ATTR_VENDOR_SUBCMD,
 	NFC_ATTR_VENDOR_DATA,
-/* private: internal use only */
+	/* private: internal use only */
 	__NFC_ATTR_AFTER_LAST
 };
 #define NFC_ATTR_MAX (__NFC_ATTR_AFTER_LAST - 1)
 
-enum nfc_sdp_attr {
+enum nfc_sdp_attr
+{
 	NFC_SDP_ATTR_UNSPEC,
 	NFC_SDP_ATTR_URI,
 	NFC_SDP_ATTR_SAP,
-/* private: internal use only */
+	/* private: internal use only */
 	__NFC_SDP_ATTR_AFTER_LAST
 };
 #define NFC_SDP_ATTR_MAX (__NFC_SDP_ATTR_AFTER_LAST - 1)
@@ -260,7 +263,8 @@ enum nfc_sdp_attr {
 #define NFC_SE_DISABLED 0x0
 #define NFC_SE_ENABLED  0x1
 
-struct sockaddr_nfc {
+struct sockaddr_nfc
+{
 	sa_family_t sa_family;
 	__u32 dev_idx;
 	__u32 target_idx;
@@ -268,7 +272,8 @@ struct sockaddr_nfc {
 };
 
 #define NFC_LLCP_MAX_SERVICE_NAME 63
-struct sockaddr_nfc_llcp {
+struct sockaddr_nfc_llcp
+{
 	sa_family_t sa_family;
 	__u32 dev_idx;
 	__u32 target_idx;

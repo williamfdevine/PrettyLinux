@@ -8,7 +8,8 @@
  * published by the Free Software Foundation.
  */
 
-struct timeriomem_rng_data {
+struct timeriomem_rng_data
+{
 	void __iomem		*address;
 
 	/* measures in usecs */

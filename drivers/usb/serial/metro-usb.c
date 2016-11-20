@@ -35,14 +35,16 @@
 #define WDR_TIMEOUT			5000	/* default urb timeout. */
 
 /* Private data structure. */
-struct metrousb_private {
+struct metrousb_private
+{
 	spinlock_t lock;
 	int throttled;
 	unsigned long control_state;
 };
 
 /* Device table list. */
-static const struct usb_device_id id_table[] = {
+static const struct usb_device_id id_table[] =
+{
 	{ USB_DEVICE(FOCUS_VENDOR_ID, FOCUS_PRODUCT_ID_BI) },
 	{ USB_DEVICE(FOCUS_VENDOR_ID, FOCUS_PRODUCT_ID_UNI) },
 	{ }, /* Terminating entry. */
@@ -56,7 +58,7 @@ MODULE_DEVICE_TABLE(usb, id_table);
 static inline int metrousb_is_unidirectional_mode(struct usb_serial_port *port)
 {
 	__u16 product_id = le16_to_cpu(
-		port->serial->dev->descriptor.idProduct);
+						   port->serial->dev->descriptor.idProduct);
 
 	return product_id == FOCUS_PRODUCT_ID_UNI;
 }
@@ -68,25 +70,35 @@ static int metrousb_send_unidirectional_cmd(u8 cmd, struct usb_serial_port *port
 	u8 *buffer_cmd = NULL;
 
 	if (!metrousb_is_unidirectional_mode(port))
+	{
 		return 0;
+	}
 
 	buffer_cmd = kzalloc(sizeof(cmd), GFP_KERNEL);
+
 	if (!buffer_cmd)
+	{
 		return -ENOMEM;
+	}
 
 	*buffer_cmd = cmd;
 
 	ret = usb_interrupt_msg(port->serial->dev,
-		usb_sndintpipe(port->serial->dev, port->interrupt_out_endpointAddress),
-		buffer_cmd, sizeof(cmd),
-		&actual_len, USB_CTRL_SET_TIMEOUT);
+							usb_sndintpipe(port->serial->dev, port->interrupt_out_endpointAddress),
+							buffer_cmd, sizeof(cmd),
+							&actual_len, USB_CTRL_SET_TIMEOUT);
 
 	kfree(buffer_cmd);
 
 	if (ret < 0)
+	{
 		return ret;
+	}
 	else if (actual_len != sizeof(cmd))
+	{
 		return -EIO;
+	}
+
 	return 0;
 }
 
@@ -101,28 +113,32 @@ static void metrousb_read_int_callback(struct urb *urb)
 
 	dev_dbg(&port->dev, "%s\n", __func__);
 
-	switch (urb->status) {
-	case 0:
-		/* Success status, read from the port. */
-		break;
-	case -ECONNRESET:
-	case -ENOENT:
-	case -ESHUTDOWN:
-		/* urb has been terminated. */
-		dev_dbg(&port->dev,
-			"%s - urb shutting down, error code=%d\n",
-			__func__, urb->status);
-		return;
-	default:
-		dev_dbg(&port->dev,
-			"%s - non-zero urb received, error code=%d\n",
-			__func__, urb->status);
-		goto exit;
+	switch (urb->status)
+	{
+		case 0:
+			/* Success status, read from the port. */
+			break;
+
+		case -ECONNRESET:
+		case -ENOENT:
+		case -ESHUTDOWN:
+			/* urb has been terminated. */
+			dev_dbg(&port->dev,
+					"%s - urb shutting down, error code=%d\n",
+					__func__, urb->status);
+			return;
+
+		default:
+			dev_dbg(&port->dev,
+					"%s - non-zero urb received, error code=%d\n",
+					__func__, urb->status);
+			goto exit;
 	}
 
 
 	/* Set the data read from the usb port into the serial port buffer. */
-	if (urb->actual_length) {
+	if (urb->actual_length)
+	{
 		/* Loop through the data copying each byte to the tty layer. */
 		tty_insert_flip_string(&port->port, data, urb->actual_length);
 
@@ -136,29 +152,32 @@ static void metrousb_read_int_callback(struct urb *urb)
 	spin_unlock_irqrestore(&metro_priv->lock, flags);
 
 	/* Continue trying to read if set. */
-	if (!throttled) {
+	if (!throttled)
+	{
 		usb_fill_int_urb(port->interrupt_in_urb, port->serial->dev,
-				 usb_rcvintpipe(port->serial->dev, port->interrupt_in_endpointAddress),
-				 port->interrupt_in_urb->transfer_buffer,
-				 port->interrupt_in_urb->transfer_buffer_length,
-				 metrousb_read_int_callback, port, 1);
+						 usb_rcvintpipe(port->serial->dev, port->interrupt_in_endpointAddress),
+						 port->interrupt_in_urb->transfer_buffer,
+						 port->interrupt_in_urb->transfer_buffer_length,
+						 metrousb_read_int_callback, port, 1);
 
 		result = usb_submit_urb(port->interrupt_in_urb, GFP_ATOMIC);
 
 		if (result)
 			dev_err(&port->dev,
-				"%s - failed submitting interrupt in urb, error code=%d\n",
-				__func__, result);
+					"%s - failed submitting interrupt in urb, error code=%d\n",
+					__func__, result);
 	}
+
 	return;
 
 exit:
 	/* Try to resubmit the urb. */
 	result = usb_submit_urb(urb, GFP_ATOMIC);
+
 	if (result)
 		dev_err(&port->dev,
-			"%s - failed submitting interrupt in urb, error code=%d\n",
-			__func__, result);
+				"%s - failed submitting interrupt in urb, error code=%d\n",
+				__func__, result);
 }
 
 static void metrousb_write_int_callback(struct urb *urb)
@@ -166,7 +185,7 @@ static void metrousb_write_int_callback(struct urb *urb)
 	struct usb_serial_port *port = urb->context;
 
 	dev_warn(&port->dev, "%s not implemented yet.\n",
-		__func__);
+			 __func__);
 }
 
 static void metrousb_cleanup(struct usb_serial_port *port)
@@ -189,9 +208,10 @@ static int metrousb_open(struct tty_struct *tty, struct usb_serial_port *port)
 	dev_dbg(&port->dev, "%s\n", __func__);
 
 	/* Make sure the urb is initialized. */
-	if (!port->interrupt_in_urb) {
+	if (!port->interrupt_in_urb)
+	{
 		dev_err(&port->dev, "%s - interrupt urb not initialized\n",
-			__func__);
+				__func__);
 		return -ENODEV;
 	}
 
@@ -206,25 +226,28 @@ static int metrousb_open(struct tty_struct *tty, struct usb_serial_port *port)
 
 	/* Start reading from the device */
 	usb_fill_int_urb(port->interrupt_in_urb, serial->dev,
-			  usb_rcvintpipe(serial->dev, port->interrupt_in_endpointAddress),
-			   port->interrupt_in_urb->transfer_buffer,
-			   port->interrupt_in_urb->transfer_buffer_length,
-			   metrousb_read_int_callback, port, 1);
+					 usb_rcvintpipe(serial->dev, port->interrupt_in_endpointAddress),
+					 port->interrupt_in_urb->transfer_buffer,
+					 port->interrupt_in_urb->transfer_buffer_length,
+					 metrousb_read_int_callback, port, 1);
 	result = usb_submit_urb(port->interrupt_in_urb, GFP_KERNEL);
 
-	if (result) {
+	if (result)
+	{
 		dev_err(&port->dev,
-			"%s - failed submitting interrupt in urb, error code=%d\n",
-			__func__, result);
+				"%s - failed submitting interrupt in urb, error code=%d\n",
+				__func__, result);
 		goto exit;
 	}
 
 	/* Send activate cmd to device */
 	result = metrousb_send_unidirectional_cmd(UNI_CMD_OPEN, port);
-	if (result) {
+
+	if (result)
+	{
 		dev_err(&port->dev,
-			"%s - failed to configure device, error code=%d\n",
-			__func__, result);
+				"%s - failed to configure device, error code=%d\n",
+				__func__, result);
 		goto exit;
 	}
 
@@ -239,22 +262,28 @@ static int metrousb_set_modem_ctrl(struct usb_serial *serial, unsigned int contr
 	unsigned char mcr = METROUSB_MCR_NONE;
 
 	dev_dbg(&serial->dev->dev, "%s - control state = %d\n",
-		__func__, control_state);
+			__func__, control_state);
 
 	/* Set the modem control value. */
 	if (control_state & TIOCM_DTR)
+	{
 		mcr |= METROUSB_MCR_DTR;
+	}
+
 	if (control_state & TIOCM_RTS)
+	{
 		mcr |= METROUSB_MCR_RTS;
+	}
 
 	/* Send the command to the usb port. */
 	retval = usb_control_msg(serial->dev, usb_sndctrlpipe(serial->dev, 0),
-				METROUSB_SET_REQUEST_TYPE, METROUSB_SET_MODEM_CTRL_REQUEST,
-				control_state, 0, NULL, 0, WDR_TIMEOUT);
+							 METROUSB_SET_REQUEST_TYPE, METROUSB_SET_MODEM_CTRL_REQUEST,
+							 control_state, 0, NULL, 0, WDR_TIMEOUT);
+
 	if (retval < 0)
 		dev_err(&serial->dev->dev,
-			"%s - set modem ctrl=0x%x failed, error code=%d\n",
-			__func__, mcr, retval);
+				"%s - set modem ctrl=0x%x failed, error code=%d\n",
+				__func__, mcr, retval);
 
 	return retval;
 }
@@ -264,8 +293,11 @@ static int metrousb_port_probe(struct usb_serial_port *port)
 	struct metrousb_private *metro_priv;
 
 	metro_priv = kzalloc(sizeof(*metro_priv), GFP_KERNEL);
+
 	if (!metro_priv)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&metro_priv->lock);
 
@@ -315,7 +347,7 @@ static int metrousb_tiocmget(struct tty_struct *tty)
 }
 
 static int metrousb_tiocmset(struct tty_struct *tty,
-			     unsigned int set, unsigned int clear)
+							 unsigned int set, unsigned int clear)
 {
 	struct usb_serial_port *port = tty->driver_data;
 	struct usb_serial *serial = port->serial;
@@ -330,13 +362,24 @@ static int metrousb_tiocmset(struct tty_struct *tty,
 
 	/* Set the RTS and DTR values. */
 	if (set & TIOCM_RTS)
+	{
 		control_state |= TIOCM_RTS;
+	}
+
 	if (set & TIOCM_DTR)
+	{
 		control_state |= TIOCM_DTR;
+	}
+
 	if (clear & TIOCM_RTS)
+	{
 		control_state &= ~TIOCM_RTS;
+	}
+
 	if (clear & TIOCM_DTR)
+	{
 		control_state &= ~TIOCM_DTR;
+	}
 
 	metro_priv->control_state = control_state;
 	spin_unlock_irqrestore(&metro_priv->lock, flags);
@@ -360,13 +403,15 @@ static void metrousb_unthrottle(struct tty_struct *tty)
 	/* Submit the urb to read from the port. */
 	port->interrupt_in_urb->dev = port->serial->dev;
 	result = usb_submit_urb(port->interrupt_in_urb, GFP_ATOMIC);
+
 	if (result)
 		dev_err(tty->dev,
-			"failed submitting interrupt in urb error code=%d\n",
-			result);
+				"failed submitting interrupt in urb error code=%d\n",
+				result);
 }
 
-static struct usb_serial_driver metrousb_device = {
+static struct usb_serial_driver metrousb_device =
+{
 	.driver = {
 		.owner =	THIS_MODULE,
 		.name =		"metro-usb",
@@ -386,7 +431,8 @@ static struct usb_serial_driver metrousb_device = {
 	.tiocmset		= metrousb_tiocmset,
 };
 
-static struct usb_serial_driver * const serial_drivers[] = {
+static struct usb_serial_driver *const serial_drivers[] =
+{
 	&metrousb_device,
 	NULL,
 };

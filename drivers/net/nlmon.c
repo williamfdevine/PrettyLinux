@@ -6,7 +6,8 @@
 #include <linux/if_arp.h>
 #include <net/rtnetlink.h>
 
-struct pcpu_lstats {
+struct pcpu_lstats
+{
 	u64 packets;
 	u64 bytes;
 	struct u64_stats_sync syncp;
@@ -39,7 +40,9 @@ static int nlmon_is_valid_mtu(int new_mtu)
 static int nlmon_change_mtu(struct net_device *dev, int new_mtu)
 {
 	if (!nlmon_is_valid_mtu(new_mtu))
+	{
 		return -EINVAL;
+	}
 
 	dev->mtu = new_mtu;
 	return 0;
@@ -56,7 +59,8 @@ static void nlmon_dev_uninit(struct net_device *dev)
 	free_percpu(dev->lstats);
 }
 
-struct nlmon {
+struct nlmon
+{
 	struct netlink_tap nt;
 };
 
@@ -82,18 +86,21 @@ nlmon_get_stats64(struct net_device *dev, struct rtnl_link_stats64 *stats)
 	int i;
 	u64 bytes = 0, packets = 0;
 
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu(i)
+	{
 		const struct pcpu_lstats *nl_stats;
 		u64 tbytes, tpackets;
 		unsigned int start;
 
 		nl_stats = per_cpu_ptr(dev->lstats, i);
 
-		do {
+		do
+		{
 			start = u64_stats_fetch_begin_irq(&nl_stats->syncp);
 			tbytes = nl_stats->bytes;
 			tpackets = nl_stats->packets;
-		} while (u64_stats_fetch_retry_irq(&nl_stats->syncp, start));
+		}
+		while (u64_stats_fetch_retry_irq(&nl_stats->syncp, start));
 
 		packets += tpackets;
 		bytes += tbytes;
@@ -113,11 +120,13 @@ static u32 always_on(struct net_device *dev)
 	return 1;
 }
 
-static const struct ethtool_ops nlmon_ethtool_ops = {
+static const struct ethtool_ops nlmon_ethtool_ops =
+{
 	.get_link = always_on,
 };
 
-static const struct net_device_ops nlmon_ops = {
+static const struct net_device_ops nlmon_ops =
+{
 	.ndo_init = nlmon_dev_init,
 	.ndo_uninit = nlmon_dev_uninit,
 	.ndo_open = nlmon_open,
@@ -137,7 +146,7 @@ static void nlmon_setup(struct net_device *dev)
 	dev->destructor	= free_netdev;
 
 	dev->features = NETIF_F_SG | NETIF_F_FRAGLIST |
-			NETIF_F_HIGHDMA | NETIF_F_LLTX;
+					NETIF_F_HIGHDMA | NETIF_F_LLTX;
 	dev->flags = IFF_NOARP;
 
 	/* That's rather a softlimit here, which, of course,
@@ -150,11 +159,15 @@ static void nlmon_setup(struct net_device *dev)
 static int nlmon_validate(struct nlattr *tb[], struct nlattr *data[])
 {
 	if (tb[IFLA_ADDRESS])
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
-static struct rtnl_link_ops nlmon_link_ops __read_mostly = {
+static struct rtnl_link_ops nlmon_link_ops __read_mostly =
+{
 	.kind			= "nlmon",
 	.priv_size		= sizeof(struct nlmon),
 	.setup			= nlmon_setup,

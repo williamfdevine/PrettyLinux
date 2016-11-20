@@ -26,7 +26,8 @@ static cycles_t numachip2_timer_read(struct clocksource *cs)
 	return numachip2_read64_lcsr(NUMACHIP2_TIMER_NOW);
 }
 
-static struct clocksource numachip2_clocksource = {
+static struct clocksource numachip2_clocksource =
+{
 	.name            = "numachip2",
 	.rating          = 295,
 	.read            = numachip2_timer_read,
@@ -39,11 +40,12 @@ static struct clocksource numachip2_clocksource = {
 static int numachip2_set_next_event(unsigned long delta, struct clock_event_device *ced)
 {
 	numachip2_write64_lcsr(NUMACHIP2_TIMER_DEADLINE + numachip2_timer(),
-		delta);
+						   delta);
 	return 0;
 }
 
-static struct clock_event_device numachip2_clockevent = {
+static struct clock_event_device numachip2_clockevent =
+{
 	.name            = "numachip2",
 	.rating          = 400,
 	.set_next_event  = numachip2_set_next_event,
@@ -68,8 +70,8 @@ static __init void numachip_timer_each(struct work_struct *work)
 
 	/* Setup IPI vector to local core and relative timing mode */
 	numachip2_write64_lcsr(NUMACHIP2_TIMER_INT + numachip2_timer(),
-		(3 << 22) | (X86_PLATFORM_IPI_VECTOR << 14) |
-		(local_apicid << 6));
+						   (3 << 22) | (X86_PLATFORM_IPI_VECTOR << 14) |
+						   (local_apicid << 6));
 
 	*ced = numachip2_clockevent;
 	ced->cpumask = cpumask_of(smp_processor_id());
@@ -79,7 +81,9 @@ static __init void numachip_timer_each(struct work_struct *work)
 static int __init numachip_timer_init(void)
 {
 	if (numachip_system != 2)
+	{
 		return -ENODEV;
+	}
 
 	/* Reset timer */
 	numachip2_write64_lcsr(NUMACHIP2_TIMER_RESET, 0);

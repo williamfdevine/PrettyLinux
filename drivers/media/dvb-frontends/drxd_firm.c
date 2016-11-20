@@ -46,7 +46,8 @@
 #define HI_TR_FUNC_ADDR HI_IF_RAM_USR_BEGIN__A
 #define HI_TR_FUNC_SIZE 9	/* size of this function in instruction words */
 
-u8 DRXD_InitAtomicRead[] = {
+u8 DRXD_InitAtomicRead[] =
+{
 	WRBLOCK(HI_TR_FUNC_ADDR, HI_TR_FUNC_SIZE),
 	0x26, 0x00,		/* 0         -> ring.rdy;           */
 	0x60, 0x04,		/* r0rami.dt -> ring.xba;           */
@@ -67,7 +68,8 @@ u8 DRXD_InitAtomicRead[] = {
 #define HI_RST_FUNC_SIZE 54	/* size of this function in instruction words */
 
 /* D0 Version */
-u8 DRXD_HiI2cPatch_1[] = {
+u8 DRXD_HiI2cPatch_1[] =
+{
 	WRBLOCK(HI_RST_FUNC_ADDR, HI_RST_FUNC_SIZE),
 	0xC8, 0x07, 0x01, 0x00,	/* MASK      -> reg0.dt;                        */
 	0xE0, 0x07, 0x15, 0x02,	/* (EC__BLK << 6) + EC_OC_REG__BNK -> ring.xba; */
@@ -114,13 +116,13 @@ u8 DRXD_HiI2cPatch_1[] = {
 	0xF8, 0x07, 0x2F, 0x00,	/* 0x2F      -> jumps.ad;                       */
 
 	WR16((B_HI_IF_RAM_TRP_BPT0__AX + ((2 * 0) + 1)),
-	     (u16) (HI_RST_FUNC_ADDR & 0x3FF)),
+	(u16) (HI_RST_FUNC_ADDR & 0x3FF)),
 	WR16((B_HI_IF_RAM_TRP_BPT0__AX + ((2 * 1) + 1)),
-	     (u16) (HI_RST_FUNC_ADDR & 0x3FF)),
+	(u16) (HI_RST_FUNC_ADDR & 0x3FF)),
 	WR16((B_HI_IF_RAM_TRP_BPT0__AX + ((2 * 2) + 1)),
-	     (u16) (HI_RST_FUNC_ADDR & 0x3FF)),
+	(u16) (HI_RST_FUNC_ADDR & 0x3FF)),
 	WR16((B_HI_IF_RAM_TRP_BPT0__AX + ((2 * 3) + 1)),
-	     (u16) (HI_RST_FUNC_ADDR & 0x3FF)),
+	(u16) (HI_RST_FUNC_ADDR & 0x3FF)),
 
 	/* Force quick and dirty reset */
 	WR16(B_HI_CT_REG_COMM_STATE__A, 0),
@@ -128,7 +130,8 @@ u8 DRXD_HiI2cPatch_1[] = {
 };
 
 /* D0,D1 Version */
-u8 DRXD_HiI2cPatch_3[] = {
+u8 DRXD_HiI2cPatch_3[] =
+{
 	WRBLOCK(HI_RST_FUNC_ADDR, HI_RST_FUNC_SIZE),
 	0xC8, 0x07, 0x03, 0x00,	/* MASK      -> reg0.dt;                        */
 	0xE0, 0x07, 0x15, 0x02,	/* (EC__BLK << 6) + EC_OC_REG__BNK -> ring.xba; */
@@ -175,20 +178,21 @@ u8 DRXD_HiI2cPatch_3[] = {
 	0xF8, 0x07, 0x2F, 0x00,	/* 0x2F      -> jumps.ad;                       */
 
 	WR16((B_HI_IF_RAM_TRP_BPT0__AX + ((2 * 0) + 1)),
-	     (u16) (HI_RST_FUNC_ADDR & 0x3FF)),
+	(u16) (HI_RST_FUNC_ADDR & 0x3FF)),
 	WR16((B_HI_IF_RAM_TRP_BPT0__AX + ((2 * 1) + 1)),
-	     (u16) (HI_RST_FUNC_ADDR & 0x3FF)),
+	(u16) (HI_RST_FUNC_ADDR & 0x3FF)),
 	WR16((B_HI_IF_RAM_TRP_BPT0__AX + ((2 * 2) + 1)),
-	     (u16) (HI_RST_FUNC_ADDR & 0x3FF)),
+	(u16) (HI_RST_FUNC_ADDR & 0x3FF)),
 	WR16((B_HI_IF_RAM_TRP_BPT0__AX + ((2 * 3) + 1)),
-	     (u16) (HI_RST_FUNC_ADDR & 0x3FF)),
+	(u16) (HI_RST_FUNC_ADDR & 0x3FF)),
 
 	/* Force quick and dirty reset */
 	WR16(B_HI_CT_REG_COMM_STATE__A, 0),
 	END_OF_TABLE
 };
 
-u8 DRXD_ResetCEFR[] = {
+u8 DRXD_ResetCEFR[] =
+{
 	WRBLOCK(CE_REG_FR_TREAL00__A, 57),
 	0x52, 0x00,		/* CE_REG_FR_TREAL00__A */
 	0x00, 0x00,		/* CE_REG_FR_TIMAG00__A */
@@ -255,7 +259,8 @@ u8 DRXD_ResetCEFR[] = {
 	END_OF_TABLE
 };
 
-u8 DRXD_InitFEA2_1[] = {
+u8 DRXD_InitFEA2_1[] =
+{
 	WRBLOCK(FE_AD_REG_PD__A, 3),
 	0x00, 0x00,		/* FE_AD_REG_PD__A          */
 	0x01, 0x00,		/* FE_AD_REG_INVEXT__A      */
@@ -334,14 +339,15 @@ u8 DRXD_InitFEA2_1[] = {
 	END_OF_TABLE
 };
 
-   /* with PGA */
+/* with PGA */
 /*   WR16COND( DRXD_WITH_PGA, FE_AG_REG_AG_PGA_MODE__A   , 0x0004), */
-   /* without PGA */
+/* without PGA */
 /*   WR16COND( DRXD_WITHOUT_PGA, FE_AG_REG_AG_PGA_MODE__A   , 0x0001), */
 /*   WR16(FE_AG_REG_AG_AGC_SIO__A,  (extAttr -> FeAgRegAgAgcSio), 0x0000 );*/
 /*   WR16(FE_AG_REG_AG_PWD__A        ,(extAttr -> FeAgRegAgPwd), 0x0000 );*/
 
-u8 DRXD_InitFEA2_2[] = {
+u8 DRXD_InitFEA2_2[] =
+{
 	WR16(FE_AG_REG_CDR_RUR_CNT__A, 0x0010),
 	WR16(FE_AG_REG_FGM_WRI__A, 48),
 	/* Activate measurement, activate scale */
@@ -359,7 +365,8 @@ u8 DRXD_InitFEA2_2[] = {
 	END_OF_TABLE
 };
 
-u8 DRXD_InitFEB1_1[] = {
+u8 DRXD_InitFEB1_1[] =
+{
 	WR16(B_FE_AD_REG_PD__A, 0x0000),
 	WR16(B_FE_AD_REG_CLKNEG__A, 0x0000),
 	WR16(B_FE_AG_REG_BGC_FGC_WRI__A, 0x0000),
@@ -374,15 +381,16 @@ u8 DRXD_InitFEB1_1[] = {
 	END_OF_TABLE
 };
 
-	/* with PGA */
+/* with PGA */
 /*      WR16(B_FE_AG_REG_AG_PGA_MODE__A   , 0x0000, 0x0000); */
-       /* without PGA */
+/* without PGA */
 /*      WR16(B_FE_AG_REG_AG_PGA_MODE__A   ,
 	     B_FE_AG_REG_AG_PGA_MODE_PFN_PCN_AFY_REN, 0x0000);*/
-									     /*   WR16(B_FE_AG_REG_AG_AGC_SIO__A,(extAttr -> FeAgRegAgAgcSio), 0x0000 );*//*added HS 23-05-2005 */
+/*   WR16(B_FE_AG_REG_AG_AGC_SIO__A,(extAttr -> FeAgRegAgAgcSio), 0x0000 );*//*added HS 23-05-2005 */
 /*   WR16(B_FE_AG_REG_AG_PWD__A    ,(extAttr -> FeAgRegAgPwd), 0x0000 );*/
 
-u8 DRXD_InitFEB1_2[] = {
+u8 DRXD_InitFEB1_2[] =
+{
 	WR16(B_FE_COMM_EXEC__A, 0x0001),
 
 	/* RF-AGC setup */
@@ -404,7 +412,8 @@ u8 DRXD_InitFEB1_2[] = {
 	END_OF_TABLE
 };
 
-u8 DRXD_InitCPA2[] = {
+u8 DRXD_InitCPA2[] =
+{
 	WRBLOCK(CP_REG_BR_SPL_OFFSET__A, 2),
 	0x07, 0x00,		/* CP_REG_BR_SPL_OFFSET__A  */
 	0x0A, 0x00,		/* CP_REG_BR_STR_DEL__A     */
@@ -434,13 +443,15 @@ u8 DRXD_InitCPA2[] = {
 	END_OF_TABLE
 };
 
-u8 DRXD_InitCPB1[] = {
+u8 DRXD_InitCPB1[] =
+{
 	WR16(B_CP_REG_BR_SPL_OFFSET__A, 0x0008),
 	WR16(B_CP_COMM_EXEC__A, 0x0001),
 	END_OF_TABLE
 };
 
-u8 DRXD_InitCEA2[] = {
+u8 DRXD_InitCEA2[] =
+{
 	WRBLOCK(CE_REG_AVG_POW__A, 4),
 	0x62, 0x00,		/* CE_REG_AVG_POW__A        */
 	0x78, 0x00,		/* CE_REG_MAX_POW__A        */
@@ -483,14 +494,16 @@ u8 DRXD_InitCEA2[] = {
 	END_OF_TABLE
 };
 
-u8 DRXD_InitCEB1[] = {
+u8 DRXD_InitCEB1[] =
+{
 	WR16(B_CE_REG_TI_PHN_ENABLE__A, 0x0001),
 	WR16(B_CE_REG_FR_PM_SET__A, 0x000D),
 
 	END_OF_TABLE
 };
 
-u8 DRXD_InitEQA2[] = {
+u8 DRXD_InitEQA2[] =
+{
 	WRBLOCK(EQ_REG_OT_QNT_THRES0__A, 4),
 	0x1E, 0x00,		/* EQ_REG_OT_QNT_THRES0__A        */
 	0x1F, 0x00,		/* EQ_REG_OT_QNT_THRES1__A        */
@@ -505,12 +518,14 @@ u8 DRXD_InitEQA2[] = {
 	END_OF_TABLE
 };
 
-u8 DRXD_InitEQB1[] = {
+u8 DRXD_InitEQB1[] =
+{
 	WR16(B_EQ_REG_COMM_EXEC__A, 0x0001),
 	END_OF_TABLE
 };
 
-u8 DRXD_ResetECRAM[] = {
+u8 DRXD_ResetECRAM[] =
+{
 	/* Reset packet sync bytes in EC_VD ram */
 	WR16(EC_OD_DEINT_RAM__A + 0x3b7 + (0 * 17), 0x0000),
 	WR16(EC_OD_DEINT_RAM__A + 0x3b7 + (1 * 17), 0x0000),
@@ -530,7 +545,8 @@ u8 DRXD_ResetECRAM[] = {
 	END_OF_TABLE
 };
 
-u8 DRXD_InitECA2[] = {
+u8 DRXD_InitECA2[] =
+{
 	WRBLOCK(EC_SB_REG_CSI_HI__A, 6),
 	0x1F, 0x00,		/* EC_SB_REG_CSI_HI__A            */
 	0x1E, 0x00,		/* EC_SB_REG_CSI_LO__A            */
@@ -576,22 +592,22 @@ u8 DRXD_InitECA2[] = {
 	WR16(EC_OC_REG_SNC_ISC_LVL__A, 0x0D0C),
 	/* Output zero on monitorbus pads, power saving */
 	WR16(EC_OC_REG_OCR_MON_UOS__A,
-	     (EC_OC_REG_OCR_MON_UOS_DAT_0_ENABLE |
-	      EC_OC_REG_OCR_MON_UOS_DAT_1_ENABLE |
-	      EC_OC_REG_OCR_MON_UOS_DAT_2_ENABLE |
-	      EC_OC_REG_OCR_MON_UOS_DAT_3_ENABLE |
-	      EC_OC_REG_OCR_MON_UOS_DAT_4_ENABLE |
-	      EC_OC_REG_OCR_MON_UOS_DAT_5_ENABLE |
-	      EC_OC_REG_OCR_MON_UOS_DAT_6_ENABLE |
-	      EC_OC_REG_OCR_MON_UOS_DAT_7_ENABLE |
-	      EC_OC_REG_OCR_MON_UOS_DAT_8_ENABLE |
-	      EC_OC_REG_OCR_MON_UOS_DAT_9_ENABLE |
-	      EC_OC_REG_OCR_MON_UOS_VAL_ENABLE |
-	      EC_OC_REG_OCR_MON_UOS_CLK_ENABLE)),
+	(EC_OC_REG_OCR_MON_UOS_DAT_0_ENABLE |
+	EC_OC_REG_OCR_MON_UOS_DAT_1_ENABLE |
+	EC_OC_REG_OCR_MON_UOS_DAT_2_ENABLE |
+	EC_OC_REG_OCR_MON_UOS_DAT_3_ENABLE |
+	EC_OC_REG_OCR_MON_UOS_DAT_4_ENABLE |
+	EC_OC_REG_OCR_MON_UOS_DAT_5_ENABLE |
+	EC_OC_REG_OCR_MON_UOS_DAT_6_ENABLE |
+	EC_OC_REG_OCR_MON_UOS_DAT_7_ENABLE |
+	EC_OC_REG_OCR_MON_UOS_DAT_8_ENABLE |
+	EC_OC_REG_OCR_MON_UOS_DAT_9_ENABLE |
+	EC_OC_REG_OCR_MON_UOS_VAL_ENABLE |
+	EC_OC_REG_OCR_MON_UOS_CLK_ENABLE)),
 	WR16(EC_OC_REG_OCR_MON_WRI__A,
-	     EC_OC_REG_OCR_MON_WRI_INIT),
+	EC_OC_REG_OCR_MON_WRI_INIT),
 
-/*   CHK_ERROR(ResetECRAM(demod)); */
+	/*   CHK_ERROR(ResetECRAM(demod)); */
 	/* Reset packet sync bytes in EC_VD ram */
 	WR16(EC_OD_DEINT_RAM__A + 0x3b7 + (0 * 17), 0x0000),
 	WR16(EC_OD_DEINT_RAM__A + 0x3b7 + (1 * 17), 0x0000),
@@ -616,7 +632,8 @@ u8 DRXD_InitECA2[] = {
 	END_OF_TABLE
 };
 
-u8 DRXD_InitECB1[] = {
+u8 DRXD_InitECB1[] =
+{
 	WR16(B_EC_SB_REG_CSI_OFS0__A, 0x0001),
 	WR16(B_EC_SB_REG_CSI_OFS1__A, 0x0001),
 	WR16(B_EC_SB_REG_CSI_OFS2__A, 0x0001),
@@ -646,7 +663,7 @@ u8 DRXD_InitECB1[] = {
 	WR16(B_EC_OD_REG_SYNC__A, 0x0664),
 	WR16(B_EC_RS_REG_REQ_PCK_CNT__A, 0x1000),
 
-/*   CHK_ERROR(ResetECRAM(demod)); */
+	/*   CHK_ERROR(ResetECRAM(demod)); */
 	/* Reset packet sync bytes in EC_VD ram */
 	WR16(EC_OD_DEINT_RAM__A + 0x3b7 + (0 * 17), 0x0000),
 	WR16(EC_OD_DEINT_RAM__A + 0x3b7 + (1 * 17), 0x0000),
@@ -671,7 +688,8 @@ u8 DRXD_InitECB1[] = {
 	END_OF_TABLE
 };
 
-u8 DRXD_ResetECA2[] = {
+u8 DRXD_ResetECA2[] =
+{
 
 	WR16(EC_OC_REG_COMM_EXEC__A, 0x0000),
 	WR16(EC_OD_REG_COMM_EXEC__A, 0x0000),
@@ -705,22 +723,22 @@ u8 DRXD_ResetECA2[] = {
 	WR16(EC_OC_REG_SNC_ISC_LVL__A, 0x0D0C),
 	/* Output zero on monitorbus pads, power saving */
 	WR16(EC_OC_REG_OCR_MON_UOS__A,
-	     (EC_OC_REG_OCR_MON_UOS_DAT_0_ENABLE |
-	      EC_OC_REG_OCR_MON_UOS_DAT_1_ENABLE |
-	      EC_OC_REG_OCR_MON_UOS_DAT_2_ENABLE |
-	      EC_OC_REG_OCR_MON_UOS_DAT_3_ENABLE |
-	      EC_OC_REG_OCR_MON_UOS_DAT_4_ENABLE |
-	      EC_OC_REG_OCR_MON_UOS_DAT_5_ENABLE |
-	      EC_OC_REG_OCR_MON_UOS_DAT_6_ENABLE |
-	      EC_OC_REG_OCR_MON_UOS_DAT_7_ENABLE |
-	      EC_OC_REG_OCR_MON_UOS_DAT_8_ENABLE |
-	      EC_OC_REG_OCR_MON_UOS_DAT_9_ENABLE |
-	      EC_OC_REG_OCR_MON_UOS_VAL_ENABLE |
-	      EC_OC_REG_OCR_MON_UOS_CLK_ENABLE)),
+	(EC_OC_REG_OCR_MON_UOS_DAT_0_ENABLE |
+	EC_OC_REG_OCR_MON_UOS_DAT_1_ENABLE |
+	EC_OC_REG_OCR_MON_UOS_DAT_2_ENABLE |
+	EC_OC_REG_OCR_MON_UOS_DAT_3_ENABLE |
+	EC_OC_REG_OCR_MON_UOS_DAT_4_ENABLE |
+	EC_OC_REG_OCR_MON_UOS_DAT_5_ENABLE |
+	EC_OC_REG_OCR_MON_UOS_DAT_6_ENABLE |
+	EC_OC_REG_OCR_MON_UOS_DAT_7_ENABLE |
+	EC_OC_REG_OCR_MON_UOS_DAT_8_ENABLE |
+	EC_OC_REG_OCR_MON_UOS_DAT_9_ENABLE |
+	EC_OC_REG_OCR_MON_UOS_VAL_ENABLE |
+	EC_OC_REG_OCR_MON_UOS_CLK_ENABLE)),
 	WR16(EC_OC_REG_OCR_MON_WRI__A,
-	     EC_OC_REG_OCR_MON_WRI_INIT),
+	EC_OC_REG_OCR_MON_WRI_INIT),
 
-/*   CHK_ERROR(ResetECRAM(demod)); */
+	/*   CHK_ERROR(ResetECRAM(demod)); */
 	/* Reset packet sync bytes in EC_VD ram */
 	WR16(EC_OD_DEINT_RAM__A + 0x3b7 + (0 * 17), 0x0000),
 	WR16(EC_OD_DEINT_RAM__A + 0x3b7 + (1 * 17), 0x0000),
@@ -742,7 +760,8 @@ u8 DRXD_ResetECA2[] = {
 	END_OF_TABLE
 };
 
-u8 DRXD_InitSC[] = {
+u8 DRXD_InitSC[] =
+{
 	WR16(SC_COMM_EXEC__A, 0),
 	WR16(SC_COMM_STATE__A, 0),
 
@@ -756,10 +775,11 @@ u8 DRXD_InitSC[] = {
 
 /* Diversity settings */
 
-u8 DRXD_InitDiversityFront[] = {
+u8 DRXD_InitDiversityFront[] =
+{
 	/* Start demod ********* RF in , diversity out **************************** */
 	WR16(B_SC_RA_RAM_CONFIG__A, B_SC_RA_RAM_CONFIG_FR_ENABLE__M |
-	     B_SC_RA_RAM_CONFIG_FREQSCAN__M),
+	B_SC_RA_RAM_CONFIG_FREQSCAN__M),
 
 	WR16(B_SC_RA_RAM_LC_ABS_2K__A, 0x7),
 	WR16(B_SC_RA_RAM_LC_ABS_8K__A, 0x7),
@@ -786,23 +806,24 @@ u8 DRXD_InitDiversityFront[] = {
 	WR16(B_CC_REG_DIVERSITY__A, 0x0001),
 	WR16(B_EC_OC_REG_OC_MODE_HIP__A, 0x0010),
 	WR16(B_EQ_REG_RC_SEL_CAR__A, B_EQ_REG_RC_SEL_CAR_PASS_B_CE |
-	     B_EQ_REG_RC_SEL_CAR_LOCAL_B_CE | B_EQ_REG_RC_SEL_CAR_MEAS_B_CE),
+	B_EQ_REG_RC_SEL_CAR_LOCAL_B_CE | B_EQ_REG_RC_SEL_CAR_MEAS_B_CE),
 
 	/*    0x2a ), *//* CE to PASS mux */
 
 	END_OF_TABLE
 };
 
-u8 DRXD_InitDiversityEnd[] = {
+u8 DRXD_InitDiversityEnd[] =
+{
 	/* End demod *********** combining RF in and diversity in, MPEG TS out **** */
 	/* disable near/far; switch on timing slave mode */
 	WR16(B_SC_RA_RAM_CONFIG__A, B_SC_RA_RAM_CONFIG_FR_ENABLE__M |
-	     B_SC_RA_RAM_CONFIG_FREQSCAN__M |
-	     B_SC_RA_RAM_CONFIG_DIV_ECHO_ENABLE__M |
-	     B_SC_RA_RAM_CONFIG_SLAVE__M |
-	     B_SC_RA_RAM_CONFIG_DIV_BLANK_ENABLE__M
-/* MV from CtrlDiversity */
-	    ),
+	B_SC_RA_RAM_CONFIG_FREQSCAN__M |
+	B_SC_RA_RAM_CONFIG_DIV_ECHO_ENABLE__M |
+	B_SC_RA_RAM_CONFIG_SLAVE__M |
+	B_SC_RA_RAM_CONFIG_DIV_BLANK_ENABLE__M
+	/* MV from CtrlDiversity */
+		),
 #ifdef DRXDDIV_SRMM_SLAVING
 	WR16(SC_RA_RAM_LC_ABS_2K__A, 0x3c7),
 	WR16(SC_RA_RAM_LC_ABS_8K__A, 0x3c7),
@@ -835,34 +856,35 @@ u8 DRXD_InitDiversityEnd[] = {
 	END_OF_TABLE
 };
 
-u8 DRXD_DisableDiversity[] = {
+u8 DRXD_DisableDiversity[] =
+{
 	WR16(B_SC_RA_RAM_LC_ABS_2K__A, B_SC_RA_RAM_LC_ABS_2K__PRE),
 	WR16(B_SC_RA_RAM_LC_ABS_8K__A, B_SC_RA_RAM_LC_ABS_8K__PRE),
 	WR16(B_SC_RA_RAM_IR_COARSE_8K_LENGTH__A,
-	     B_SC_RA_RAM_IR_COARSE_8K_LENGTH__PRE),
+	B_SC_RA_RAM_IR_COARSE_8K_LENGTH__PRE),
 	WR16(B_SC_RA_RAM_IR_COARSE_8K_FREQINC__A,
-	     B_SC_RA_RAM_IR_COARSE_8K_FREQINC__PRE),
+	B_SC_RA_RAM_IR_COARSE_8K_FREQINC__PRE),
 	WR16(B_SC_RA_RAM_IR_COARSE_8K_KAISINC__A,
-	     B_SC_RA_RAM_IR_COARSE_8K_KAISINC__PRE),
+	B_SC_RA_RAM_IR_COARSE_8K_KAISINC__PRE),
 	WR16(B_SC_RA_RAM_IR_FINE_8K_LENGTH__A,
-	     B_SC_RA_RAM_IR_FINE_8K_LENGTH__PRE),
+	B_SC_RA_RAM_IR_FINE_8K_LENGTH__PRE),
 	WR16(B_SC_RA_RAM_IR_FINE_8K_FREQINC__A,
-	     B_SC_RA_RAM_IR_FINE_8K_FREQINC__PRE),
+	B_SC_RA_RAM_IR_FINE_8K_FREQINC__PRE),
 	WR16(B_SC_RA_RAM_IR_FINE_8K_KAISINC__A,
-	     B_SC_RA_RAM_IR_FINE_8K_KAISINC__PRE),
+	B_SC_RA_RAM_IR_FINE_8K_KAISINC__PRE),
 
 	WR16(B_SC_RA_RAM_IR_COARSE_2K_LENGTH__A,
-	     B_SC_RA_RAM_IR_COARSE_2K_LENGTH__PRE),
+	B_SC_RA_RAM_IR_COARSE_2K_LENGTH__PRE),
 	WR16(B_SC_RA_RAM_IR_COARSE_2K_FREQINC__A,
-	     B_SC_RA_RAM_IR_COARSE_2K_FREQINC__PRE),
+	B_SC_RA_RAM_IR_COARSE_2K_FREQINC__PRE),
 	WR16(B_SC_RA_RAM_IR_COARSE_2K_KAISINC__A,
-	     B_SC_RA_RAM_IR_COARSE_2K_KAISINC__PRE),
+	B_SC_RA_RAM_IR_COARSE_2K_KAISINC__PRE),
 	WR16(B_SC_RA_RAM_IR_FINE_2K_LENGTH__A,
-	     B_SC_RA_RAM_IR_FINE_2K_LENGTH__PRE),
+	B_SC_RA_RAM_IR_FINE_2K_LENGTH__PRE),
 	WR16(B_SC_RA_RAM_IR_FINE_2K_FREQINC__A,
-	     B_SC_RA_RAM_IR_FINE_2K_FREQINC__PRE),
+	B_SC_RA_RAM_IR_FINE_2K_FREQINC__PRE),
 	WR16(B_SC_RA_RAM_IR_FINE_2K_KAISINC__A,
-	     B_SC_RA_RAM_IR_FINE_2K_KAISINC__PRE),
+	B_SC_RA_RAM_IR_FINE_2K_KAISINC__PRE),
 
 	WR16(B_LC_RA_RAM_FILTER_CRMM_A__A, B_LC_RA_RAM_FILTER_CRMM_A__PRE),
 	WR16(B_LC_RA_RAM_FILTER_CRMM_B__A, B_LC_RA_RAM_FILTER_CRMM_B__PRE),
@@ -876,34 +898,37 @@ u8 DRXD_DisableDiversity[] = {
 	END_OF_TABLE
 };
 
-u8 DRXD_StartDiversityFront[] = {
+u8 DRXD_StartDiversityFront[] =
+{
 	/* Start demod, RF in and diversity out, no combining */
 	WR16(B_FE_CF_REG_IMP_VAL__A, 0x0),
 	WR16(B_FE_AD_REG_FDB_IN__A, 0x0),
 	WR16(B_FE_AD_REG_INVEXT__A, 0x0),
 	WR16(B_EQ_REG_COMM_MB__A, 0x12),	/* EQ to MB out */
 	WR16(B_EQ_REG_RC_SEL_CAR__A, B_EQ_REG_RC_SEL_CAR_PASS_B_CE |	/* CE to PASS mux */
-	     B_EQ_REG_RC_SEL_CAR_LOCAL_B_CE | B_EQ_REG_RC_SEL_CAR_MEAS_B_CE),
+	B_EQ_REG_RC_SEL_CAR_LOCAL_B_CE | B_EQ_REG_RC_SEL_CAR_MEAS_B_CE),
 
 	WR16(SC_RA_RAM_ECHO_SHIFT_LIM__A, 2),
 
 	END_OF_TABLE
 };
 
-u8 DRXD_StartDiversityEnd[] = {
+u8 DRXD_StartDiversityEnd[] =
+{
 	/* End demod, combining RF in and diversity in, MPEG TS out */
 	WR16(B_FE_CF_REG_IMP_VAL__A, 0x0),	/* disable impulse noise cruncher */
 	WR16(B_FE_AD_REG_INVEXT__A, 0x0),	/* clock inversion (for sohard board) */
 	WR16(B_CP_REG_BR_STR_DEL__A, 10),	/* apperently no mb delay matching is best */
 
 	WR16(B_EQ_REG_RC_SEL_CAR__A, B_EQ_REG_RC_SEL_CAR_DIV_ON |	/* org = 0x81 combining enabled */
-	     B_EQ_REG_RC_SEL_CAR_MEAS_A_CC |
-	     B_EQ_REG_RC_SEL_CAR_PASS_A_CC | B_EQ_REG_RC_SEL_CAR_LOCAL_A_CC),
+	B_EQ_REG_RC_SEL_CAR_MEAS_A_CC |
+	B_EQ_REG_RC_SEL_CAR_PASS_A_CC | B_EQ_REG_RC_SEL_CAR_LOCAL_A_CC),
 
 	END_OF_TABLE
 };
 
-u8 DRXD_DiversityDelay8MHZ[] = {
+u8 DRXD_DiversityDelay8MHZ[] =
+{
 	WR16(B_SC_RA_RAM_DIVERSITY_DELAY_2K_32__A, 1150 - 50),
 	WR16(B_SC_RA_RAM_DIVERSITY_DELAY_2K_16__A, 1100 - 50),
 	WR16(B_SC_RA_RAM_DIVERSITY_DELAY_2K_8__A, 1000 - 50),

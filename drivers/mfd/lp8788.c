@@ -21,24 +21,25 @@
 #define MAX_LP8788_REGISTERS		0xA2
 
 #define MFD_DEV_SIMPLE(_name)					\
-{								\
-	.name = LP8788_DEV_##_name,				\
-}
+	{								\
+		.name = LP8788_DEV_##_name,				\
+	}
 
 #define MFD_DEV_WITH_ID(_name, _id)				\
-{								\
-	.name = LP8788_DEV_##_name,				\
-	.id = _id,						\
-}
+	{								\
+		.name = LP8788_DEV_##_name,				\
+				.id = _id,						\
+	}
 
 #define MFD_DEV_WITH_RESOURCE(_name, _resource, num_resource)	\
-{								\
-	.name = LP8788_DEV_##_name,				\
-	.resources = _resource,					\
-	.num_resources = num_resource,				\
-}
+	{								\
+		.name = LP8788_DEV_##_name,				\
+				.resources = _resource,					\
+							 .num_resources = num_resource,				\
+	}
 
-static struct resource chg_irqs[] = {
+static struct resource chg_irqs[] =
+{
 	/* Charger Interrupts */
 	{
 		.start = LP8788_INT_CHG_INPUT_STATE,
@@ -62,7 +63,8 @@ static struct resource chg_irqs[] = {
 	},
 };
 
-static struct resource rtc_irqs[] = {
+static struct resource rtc_irqs[] =
+{
 	{
 		.start = LP8788_INT_RTC_ALARM1,
 		.end   = LP8788_INT_RTC_ALARM2,
@@ -71,7 +73,8 @@ static struct resource rtc_irqs[] = {
 	},
 };
 
-static const struct mfd_cell lp8788_devs[] = {
+static const struct mfd_cell lp8788_devs[] =
+{
 	/* 4 bucks */
 	MFD_DEV_WITH_ID(BUCK, 1),
 	MFD_DEV_WITH_ID(BUCK, 2),
@@ -129,7 +132,9 @@ int lp8788_read_byte(struct lp8788 *lp, u8 reg, u8 *data)
 	unsigned int val;
 
 	ret = regmap_read(lp->regmap, reg, &val);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(lp->dev, "failed to read 0x%.2x\n", reg);
 		return ret;
 	}
@@ -164,7 +169,8 @@ static int lp8788_platform_init(struct lp8788 *lp)
 	return (pdata && pdata->init_func) ? pdata->init_func(lp) : 0;
 }
 
-static const struct regmap_config lp8788_regmap_config = {
+static const struct regmap_config lp8788_regmap_config =
+{
 	.reg_bits = 8,
 	.val_bits = 8,
 	.max_register = MAX_LP8788_REGISTERS,
@@ -177,11 +183,16 @@ static int lp8788_probe(struct i2c_client *cl, const struct i2c_device_id *id)
 	int ret;
 
 	lp = devm_kzalloc(&cl->dev, sizeof(struct lp8788), GFP_KERNEL);
+
 	if (!lp)
+	{
 		return -ENOMEM;
+	}
 
 	lp->regmap = devm_regmap_init_i2c(cl, &lp8788_regmap_config);
-	if (IS_ERR(lp->regmap)) {
+
+	if (IS_ERR(lp->regmap))
+	{
 		ret = PTR_ERR(lp->regmap);
 		dev_err(&cl->dev, "regmap init i2c err: %d\n", ret);
 		return ret;
@@ -192,15 +203,21 @@ static int lp8788_probe(struct i2c_client *cl, const struct i2c_device_id *id)
 	i2c_set_clientdata(cl, lp);
 
 	ret = lp8788_platform_init(lp);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = lp8788_irq_init(lp, cl->irq);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return mfd_add_devices(lp->dev, -1, lp8788_devs,
-			       ARRAY_SIZE(lp8788_devs), NULL, 0, NULL);
+						   ARRAY_SIZE(lp8788_devs), NULL, 0, NULL);
 }
 
 static int lp8788_remove(struct i2c_client *cl)
@@ -212,13 +229,15 @@ static int lp8788_remove(struct i2c_client *cl)
 	return 0;
 }
 
-static const struct i2c_device_id lp8788_ids[] = {
+static const struct i2c_device_id lp8788_ids[] =
+{
 	{"lp8788", 0},
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, lp8788_ids);
 
-static struct i2c_driver lp8788_driver = {
+static struct i2c_driver lp8788_driver =
+{
 	.driver = {
 		.name = "lp8788",
 	},

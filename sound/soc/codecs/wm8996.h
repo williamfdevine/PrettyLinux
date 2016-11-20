@@ -25,7 +25,7 @@
 typedef void (*wm8996_polarity_fn)(struct snd_soc_codec *codec, int polarity);
 
 int wm8996_detect(struct snd_soc_codec *codec, struct snd_soc_jack *jack,
-		  wm8996_polarity_fn polarity_cb);
+				  wm8996_polarity_fn polarity_cb);
 
 /*
  * Register values.

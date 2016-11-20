@@ -51,13 +51,15 @@
 #define MCP4131_CMDERR(r)	((r[0]) & 0x02)
 #define MCP4131_RAW(r)		((r[0]) == 0xff ? 0x100 : (r[1]))
 
-struct mcp4131_cfg {
+struct mcp4131_cfg
+{
 	int wipers;
 	int max_pos;
 	int kohms;
 };
 
-enum mcp4131_type {
+enum mcp4131_type
+{
 	MCP413x_502 = 0,
 	MCP413x_103,
 	MCP413x_503,
@@ -92,7 +94,8 @@ enum mcp4131_type {
 	MCP426x_104,
 };
 
-static const struct mcp4131_cfg mcp4131_cfg[] = {
+static const struct mcp4131_cfg mcp4131_cfg[] =
+{
 	[MCP413x_502] = { .wipers = 1, .max_pos = 128, .kohms =   5, },
 	[MCP413x_103] = { .wipers = 1, .max_pos = 128, .kohms =  10, },
 	[MCP413x_503] = { .wipers = 1, .max_pos = 128, .kohms =  50, },
@@ -127,7 +130,8 @@ static const struct mcp4131_cfg mcp4131_cfg[] = {
 	[MCP426x_104] = { .wipers = 2, .max_pos = 256, .kohms = 100, },
 };
 
-struct mcp4131_data {
+struct mcp4131_data
+{
 	struct spi_device *spi;
 	const struct mcp4131_cfg *cfg;
 	struct mutex lock;
@@ -135,22 +139,24 @@ struct mcp4131_data {
 };
 
 #define MCP4131_CHANNEL(ch) {					\
-	.type = IIO_RESISTANCE,					\
-	.indexed = 1,						\
-	.output = 1,						\
-	.channel = (ch),					\
-	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
-	.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
-}
+		.type = IIO_RESISTANCE,					\
+				.indexed = 1,						\
+						   .output = 1,						\
+									 .channel = (ch),					\
+												.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
+														.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),	\
+	}
 
-static const struct iio_chan_spec mcp4131_channels[] = {
+static const struct iio_chan_spec mcp4131_channels[] =
+{
 	MCP4131_CHANNEL(0),
 	MCP4131_CHANNEL(1),
 };
 
 static int mcp4131_read(struct spi_device *spi, void *buf, size_t len)
 {
-	struct spi_transfer t = {
+	struct spi_transfer t =
+	{
 		.tx_buf = buf, /* We need to send addr, cmd and 12 bits */
 		.rx_buf	= buf,
 		.len = len,
@@ -164,62 +170,70 @@ static int mcp4131_read(struct spi_device *spi, void *buf, size_t len)
 }
 
 static int mcp4131_read_raw(struct iio_dev *indio_dev,
-			    struct iio_chan_spec const *chan,
-			    int *val, int *val2, long mask)
+							struct iio_chan_spec const *chan,
+							int *val, int *val2, long mask)
 {
 	int err;
 	struct mcp4131_data *data = iio_priv(indio_dev);
 	int address = chan->channel;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		mutex_lock(&data->lock);
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			mutex_lock(&data->lock);
 
-		data->buf[0] = (address << MCP4131_WIPER_SHIFT) | MCP4131_READ;
-		data->buf[1] = 0;
+			data->buf[0] = (address << MCP4131_WIPER_SHIFT) | MCP4131_READ;
+			data->buf[1] = 0;
 
-		err = mcp4131_read(data->spi, data->buf, 2);
-		if (err) {
+			err = mcp4131_read(data->spi, data->buf, 2);
+
+			if (err)
+			{
+				mutex_unlock(&data->lock);
+				return err;
+			}
+
+			/* Error, bad address/command combination */
+			if (!MCP4131_CMDERR(data->buf))
+			{
+				mutex_unlock(&data->lock);
+				return -EIO;
+			}
+
+			*val = MCP4131_RAW(data->buf);
 			mutex_unlock(&data->lock);
-			return err;
-		}
 
-		/* Error, bad address/command combination */
-		if (!MCP4131_CMDERR(data->buf)) {
-			mutex_unlock(&data->lock);
-			return -EIO;
-		}
+			return IIO_VAL_INT;
 
-		*val = MCP4131_RAW(data->buf);
-		mutex_unlock(&data->lock);
-
-		return IIO_VAL_INT;
-
-	case IIO_CHAN_INFO_SCALE:
-		*val = 1000 * data->cfg->kohms;
-		*val2 = data->cfg->max_pos;
-		return IIO_VAL_FRACTIONAL;
+		case IIO_CHAN_INFO_SCALE:
+			*val = 1000 * data->cfg->kohms;
+			*val2 = data->cfg->max_pos;
+			return IIO_VAL_FRACTIONAL;
 	}
 
 	return -EINVAL;
 }
 
 static int mcp4131_write_raw(struct iio_dev *indio_dev,
-			     struct iio_chan_spec const *chan,
-			     int val, int val2, long mask)
+							 struct iio_chan_spec const *chan,
+							 int val, int val2, long mask)
 {
 	int err;
 	struct mcp4131_data *data = iio_priv(indio_dev);
 	int address = chan->channel << MCP4131_WIPER_SHIFT;
 
-	switch (mask) {
-	case IIO_CHAN_INFO_RAW:
-		if (val > data->cfg->max_pos || val < 0)
-			return -EINVAL;
-		break;
+	switch (mask)
+	{
+		case IIO_CHAN_INFO_RAW:
+			if (val > data->cfg->max_pos || val < 0)
+			{
+				return -EINVAL;
+			}
 
-	default:
-		return -EINVAL;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	mutex_lock(&data->lock);
@@ -234,7 +248,8 @@ static int mcp4131_write_raw(struct iio_dev *indio_dev,
 	return err;
 }
 
-static const struct iio_info mcp4131_info = {
+static const struct iio_info mcp4131_info =
+{
 	.read_raw = mcp4131_read_raw,
 	.write_raw = mcp4131_write_raw,
 	.driver_module = THIS_MODULE,
@@ -249,8 +264,11 @@ static int mcp4131_probe(struct spi_device *spi)
 	struct iio_dev *indio_dev;
 
 	indio_dev = devm_iio_device_alloc(dev, sizeof(*data));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	data = iio_priv(indio_dev);
 	spi_set_drvdata(spi, indio_dev);
@@ -266,7 +284,9 @@ static int mcp4131_probe(struct spi_device *spi)
 	indio_dev->name = spi_get_device_id(spi)->name;
 
 	err = devm_iio_device_register(dev, indio_dev);
-	if (err) {
+
+	if (err)
+	{
 		dev_info(&spi->dev, "Unable to register %s\n", indio_dev->name);
 		return err;
 	}
@@ -275,141 +295,271 @@ static int mcp4131_probe(struct spi_device *spi)
 }
 
 #if defined(CONFIG_OF)
-static const struct of_device_id mcp4131_dt_ids[] = {
-	{ .compatible = "microchip,mcp4131-502",
-		.data = &mcp4131_cfg[MCP413x_502] },
-	{ .compatible = "microchip,mcp4131-103",
-		.data = &mcp4131_cfg[MCP413x_103] },
-	{ .compatible = "microchip,mcp4131-503",
-		.data = &mcp4131_cfg[MCP413x_503] },
-	{ .compatible = "microchip,mcp4131-104",
-		.data = &mcp4131_cfg[MCP413x_104] },
-	{ .compatible = "microchip,mcp4132-502",
-		.data = &mcp4131_cfg[MCP413x_502] },
-	{ .compatible = "microchip,mcp4132-103",
-		.data = &mcp4131_cfg[MCP413x_103] },
-	{ .compatible = "microchip,mcp4132-503",
-		.data = &mcp4131_cfg[MCP413x_503] },
-	{ .compatible = "microchip,mcp4132-104",
-		.data = &mcp4131_cfg[MCP413x_104] },
-	{ .compatible = "microchip,mcp4141-502",
-		.data = &mcp4131_cfg[MCP414x_502] },
-	{ .compatible = "microchip,mcp4141-103",
-		.data = &mcp4131_cfg[MCP414x_103] },
-	{ .compatible = "microchip,mcp4141-503",
-		.data = &mcp4131_cfg[MCP414x_503] },
-	{ .compatible = "microchip,mcp4141-104",
-		.data = &mcp4131_cfg[MCP414x_104] },
-	{ .compatible = "microchip,mcp4142-502",
-		.data = &mcp4131_cfg[MCP414x_502] },
-	{ .compatible = "microchip,mcp4142-103",
-		.data = &mcp4131_cfg[MCP414x_103] },
-	{ .compatible = "microchip,mcp4142-503",
-		.data = &mcp4131_cfg[MCP414x_503] },
-	{ .compatible = "microchip,mcp4142-104",
-		.data = &mcp4131_cfg[MCP414x_104] },
-	{ .compatible = "microchip,mcp4151-502",
-		.data = &mcp4131_cfg[MCP415x_502] },
-	{ .compatible = "microchip,mcp4151-103",
-		.data = &mcp4131_cfg[MCP415x_103] },
-	{ .compatible = "microchip,mcp4151-503",
-		.data = &mcp4131_cfg[MCP415x_503] },
-	{ .compatible = "microchip,mcp4151-104",
-		.data = &mcp4131_cfg[MCP415x_104] },
-	{ .compatible = "microchip,mcp4152-502",
-		.data = &mcp4131_cfg[MCP415x_502] },
-	{ .compatible = "microchip,mcp4152-103",
-		.data = &mcp4131_cfg[MCP415x_103] },
-	{ .compatible = "microchip,mcp4152-503",
-		.data = &mcp4131_cfg[MCP415x_503] },
-	{ .compatible = "microchip,mcp4152-104",
-		.data = &mcp4131_cfg[MCP415x_104] },
-	{ .compatible = "microchip,mcp4161-502",
-		.data = &mcp4131_cfg[MCP416x_502] },
-	{ .compatible = "microchip,mcp4161-103",
-		.data = &mcp4131_cfg[MCP416x_103] },
-	{ .compatible = "microchip,mcp4161-503",
-		.data = &mcp4131_cfg[MCP416x_503] },
-	{ .compatible = "microchip,mcp4161-104",
-		.data = &mcp4131_cfg[MCP416x_104] },
-	{ .compatible = "microchip,mcp4162-502",
-		.data = &mcp4131_cfg[MCP416x_502] },
-	{ .compatible = "microchip,mcp4162-103",
-		.data = &mcp4131_cfg[MCP416x_103] },
-	{ .compatible = "microchip,mcp4162-503",
-		.data = &mcp4131_cfg[MCP416x_503] },
-	{ .compatible = "microchip,mcp4162-104",
-		.data = &mcp4131_cfg[MCP416x_104] },
-	{ .compatible = "microchip,mcp4231-502",
-		.data = &mcp4131_cfg[MCP423x_502] },
-	{ .compatible = "microchip,mcp4231-103",
-		.data = &mcp4131_cfg[MCP423x_103] },
-	{ .compatible = "microchip,mcp4231-503",
-		.data = &mcp4131_cfg[MCP423x_503] },
-	{ .compatible = "microchip,mcp4231-104",
-		.data = &mcp4131_cfg[MCP423x_104] },
-	{ .compatible = "microchip,mcp4232-502",
-		.data = &mcp4131_cfg[MCP423x_502] },
-	{ .compatible = "microchip,mcp4232-103",
-		.data = &mcp4131_cfg[MCP423x_103] },
-	{ .compatible = "microchip,mcp4232-503",
-		.data = &mcp4131_cfg[MCP423x_503] },
-	{ .compatible = "microchip,mcp4232-104",
-		.data = &mcp4131_cfg[MCP423x_104] },
-	{ .compatible = "microchip,mcp4241-502",
-		.data = &mcp4131_cfg[MCP424x_502] },
-	{ .compatible = "microchip,mcp4241-103",
-		.data = &mcp4131_cfg[MCP424x_103] },
-	{ .compatible = "microchip,mcp4241-503",
-		.data = &mcp4131_cfg[MCP424x_503] },
-	{ .compatible = "microchip,mcp4241-104",
-		.data = &mcp4131_cfg[MCP424x_104] },
-	{ .compatible = "microchip,mcp4242-502",
-		.data = &mcp4131_cfg[MCP424x_502] },
-	{ .compatible = "microchip,mcp4242-103",
-		.data = &mcp4131_cfg[MCP424x_103] },
-	{ .compatible = "microchip,mcp4242-503",
-		.data = &mcp4131_cfg[MCP424x_503] },
-	{ .compatible = "microchip,mcp4242-104",
-		.data = &mcp4131_cfg[MCP424x_104] },
-	{ .compatible = "microchip,mcp4251-502",
-		.data = &mcp4131_cfg[MCP425x_502] },
-	{ .compatible = "microchip,mcp4251-103",
-		.data = &mcp4131_cfg[MCP425x_103] },
-	{ .compatible = "microchip,mcp4251-503",
-		.data = &mcp4131_cfg[MCP425x_503] },
-	{ .compatible = "microchip,mcp4251-104",
-		.data = &mcp4131_cfg[MCP425x_104] },
-	{ .compatible = "microchip,mcp4252-502",
-		.data = &mcp4131_cfg[MCP425x_502] },
-	{ .compatible = "microchip,mcp4252-103",
-		.data = &mcp4131_cfg[MCP425x_103] },
-	{ .compatible = "microchip,mcp4252-503",
-		.data = &mcp4131_cfg[MCP425x_503] },
-	{ .compatible = "microchip,mcp4252-104",
-		.data = &mcp4131_cfg[MCP425x_104] },
-	{ .compatible = "microchip,mcp4261-502",
-		.data = &mcp4131_cfg[MCP426x_502] },
-	{ .compatible = "microchip,mcp4261-103",
-		.data = &mcp4131_cfg[MCP426x_103] },
-	{ .compatible = "microchip,mcp4261-503",
-		.data = &mcp4131_cfg[MCP426x_503] },
-	{ .compatible = "microchip,mcp4261-104",
-		.data = &mcp4131_cfg[MCP426x_104] },
-	{ .compatible = "microchip,mcp4262-502",
-		.data = &mcp4131_cfg[MCP426x_502] },
-	{ .compatible = "microchip,mcp4262-103",
-		.data = &mcp4131_cfg[MCP426x_103] },
-	{ .compatible = "microchip,mcp4262-503",
-		.data = &mcp4131_cfg[MCP426x_503] },
-	{ .compatible = "microchip,mcp4262-104",
-		.data = &mcp4131_cfg[MCP426x_104] },
+static const struct of_device_id mcp4131_dt_ids[] =
+{
+	{
+		.compatible = "microchip,mcp4131-502",
+		.data = &mcp4131_cfg[MCP413x_502]
+	},
+	{
+		.compatible = "microchip,mcp4131-103",
+		.data = &mcp4131_cfg[MCP413x_103]
+	},
+	{
+		.compatible = "microchip,mcp4131-503",
+		.data = &mcp4131_cfg[MCP413x_503]
+	},
+	{
+		.compatible = "microchip,mcp4131-104",
+		.data = &mcp4131_cfg[MCP413x_104]
+	},
+	{
+		.compatible = "microchip,mcp4132-502",
+		.data = &mcp4131_cfg[MCP413x_502]
+	},
+	{
+		.compatible = "microchip,mcp4132-103",
+		.data = &mcp4131_cfg[MCP413x_103]
+	},
+	{
+		.compatible = "microchip,mcp4132-503",
+		.data = &mcp4131_cfg[MCP413x_503]
+	},
+	{
+		.compatible = "microchip,mcp4132-104",
+		.data = &mcp4131_cfg[MCP413x_104]
+	},
+	{
+		.compatible = "microchip,mcp4141-502",
+		.data = &mcp4131_cfg[MCP414x_502]
+	},
+	{
+		.compatible = "microchip,mcp4141-103",
+		.data = &mcp4131_cfg[MCP414x_103]
+	},
+	{
+		.compatible = "microchip,mcp4141-503",
+		.data = &mcp4131_cfg[MCP414x_503]
+	},
+	{
+		.compatible = "microchip,mcp4141-104",
+		.data = &mcp4131_cfg[MCP414x_104]
+	},
+	{
+		.compatible = "microchip,mcp4142-502",
+		.data = &mcp4131_cfg[MCP414x_502]
+	},
+	{
+		.compatible = "microchip,mcp4142-103",
+		.data = &mcp4131_cfg[MCP414x_103]
+	},
+	{
+		.compatible = "microchip,mcp4142-503",
+		.data = &mcp4131_cfg[MCP414x_503]
+	},
+	{
+		.compatible = "microchip,mcp4142-104",
+		.data = &mcp4131_cfg[MCP414x_104]
+	},
+	{
+		.compatible = "microchip,mcp4151-502",
+		.data = &mcp4131_cfg[MCP415x_502]
+	},
+	{
+		.compatible = "microchip,mcp4151-103",
+		.data = &mcp4131_cfg[MCP415x_103]
+	},
+	{
+		.compatible = "microchip,mcp4151-503",
+		.data = &mcp4131_cfg[MCP415x_503]
+	},
+	{
+		.compatible = "microchip,mcp4151-104",
+		.data = &mcp4131_cfg[MCP415x_104]
+	},
+	{
+		.compatible = "microchip,mcp4152-502",
+		.data = &mcp4131_cfg[MCP415x_502]
+	},
+	{
+		.compatible = "microchip,mcp4152-103",
+		.data = &mcp4131_cfg[MCP415x_103]
+	},
+	{
+		.compatible = "microchip,mcp4152-503",
+		.data = &mcp4131_cfg[MCP415x_503]
+	},
+	{
+		.compatible = "microchip,mcp4152-104",
+		.data = &mcp4131_cfg[MCP415x_104]
+	},
+	{
+		.compatible = "microchip,mcp4161-502",
+		.data = &mcp4131_cfg[MCP416x_502]
+	},
+	{
+		.compatible = "microchip,mcp4161-103",
+		.data = &mcp4131_cfg[MCP416x_103]
+	},
+	{
+		.compatible = "microchip,mcp4161-503",
+		.data = &mcp4131_cfg[MCP416x_503]
+	},
+	{
+		.compatible = "microchip,mcp4161-104",
+		.data = &mcp4131_cfg[MCP416x_104]
+	},
+	{
+		.compatible = "microchip,mcp4162-502",
+		.data = &mcp4131_cfg[MCP416x_502]
+	},
+	{
+		.compatible = "microchip,mcp4162-103",
+		.data = &mcp4131_cfg[MCP416x_103]
+	},
+	{
+		.compatible = "microchip,mcp4162-503",
+		.data = &mcp4131_cfg[MCP416x_503]
+	},
+	{
+		.compatible = "microchip,mcp4162-104",
+		.data = &mcp4131_cfg[MCP416x_104]
+	},
+	{
+		.compatible = "microchip,mcp4231-502",
+		.data = &mcp4131_cfg[MCP423x_502]
+	},
+	{
+		.compatible = "microchip,mcp4231-103",
+		.data = &mcp4131_cfg[MCP423x_103]
+	},
+	{
+		.compatible = "microchip,mcp4231-503",
+		.data = &mcp4131_cfg[MCP423x_503]
+	},
+	{
+		.compatible = "microchip,mcp4231-104",
+		.data = &mcp4131_cfg[MCP423x_104]
+	},
+	{
+		.compatible = "microchip,mcp4232-502",
+		.data = &mcp4131_cfg[MCP423x_502]
+	},
+	{
+		.compatible = "microchip,mcp4232-103",
+		.data = &mcp4131_cfg[MCP423x_103]
+	},
+	{
+		.compatible = "microchip,mcp4232-503",
+		.data = &mcp4131_cfg[MCP423x_503]
+	},
+	{
+		.compatible = "microchip,mcp4232-104",
+		.data = &mcp4131_cfg[MCP423x_104]
+	},
+	{
+		.compatible = "microchip,mcp4241-502",
+		.data = &mcp4131_cfg[MCP424x_502]
+	},
+	{
+		.compatible = "microchip,mcp4241-103",
+		.data = &mcp4131_cfg[MCP424x_103]
+	},
+	{
+		.compatible = "microchip,mcp4241-503",
+		.data = &mcp4131_cfg[MCP424x_503]
+	},
+	{
+		.compatible = "microchip,mcp4241-104",
+		.data = &mcp4131_cfg[MCP424x_104]
+	},
+	{
+		.compatible = "microchip,mcp4242-502",
+		.data = &mcp4131_cfg[MCP424x_502]
+	},
+	{
+		.compatible = "microchip,mcp4242-103",
+		.data = &mcp4131_cfg[MCP424x_103]
+	},
+	{
+		.compatible = "microchip,mcp4242-503",
+		.data = &mcp4131_cfg[MCP424x_503]
+	},
+	{
+		.compatible = "microchip,mcp4242-104",
+		.data = &mcp4131_cfg[MCP424x_104]
+	},
+	{
+		.compatible = "microchip,mcp4251-502",
+		.data = &mcp4131_cfg[MCP425x_502]
+	},
+	{
+		.compatible = "microchip,mcp4251-103",
+		.data = &mcp4131_cfg[MCP425x_103]
+	},
+	{
+		.compatible = "microchip,mcp4251-503",
+		.data = &mcp4131_cfg[MCP425x_503]
+	},
+	{
+		.compatible = "microchip,mcp4251-104",
+		.data = &mcp4131_cfg[MCP425x_104]
+	},
+	{
+		.compatible = "microchip,mcp4252-502",
+		.data = &mcp4131_cfg[MCP425x_502]
+	},
+	{
+		.compatible = "microchip,mcp4252-103",
+		.data = &mcp4131_cfg[MCP425x_103]
+	},
+	{
+		.compatible = "microchip,mcp4252-503",
+		.data = &mcp4131_cfg[MCP425x_503]
+	},
+	{
+		.compatible = "microchip,mcp4252-104",
+		.data = &mcp4131_cfg[MCP425x_104]
+	},
+	{
+		.compatible = "microchip,mcp4261-502",
+		.data = &mcp4131_cfg[MCP426x_502]
+	},
+	{
+		.compatible = "microchip,mcp4261-103",
+		.data = &mcp4131_cfg[MCP426x_103]
+	},
+	{
+		.compatible = "microchip,mcp4261-503",
+		.data = &mcp4131_cfg[MCP426x_503]
+	},
+	{
+		.compatible = "microchip,mcp4261-104",
+		.data = &mcp4131_cfg[MCP426x_104]
+	},
+	{
+		.compatible = "microchip,mcp4262-502",
+		.data = &mcp4131_cfg[MCP426x_502]
+	},
+	{
+		.compatible = "microchip,mcp4262-103",
+		.data = &mcp4131_cfg[MCP426x_103]
+	},
+	{
+		.compatible = "microchip,mcp4262-503",
+		.data = &mcp4131_cfg[MCP426x_503]
+	},
+	{
+		.compatible = "microchip,mcp4262-104",
+		.data = &mcp4131_cfg[MCP426x_104]
+	},
 	{}
 };
 MODULE_DEVICE_TABLE(of, mcp4131_dt_ids);
 #endif /* CONFIG_OF */
 
-static const struct spi_device_id mcp4131_id[] = {
+static const struct spi_device_id mcp4131_id[] =
+{
 	{ "mcp4131-502", MCP413x_502 },
 	{ "mcp4131-103", MCP413x_103 },
 	{ "mcp4131-503", MCP413x_503 },
@@ -478,7 +628,8 @@ static const struct spi_device_id mcp4131_id[] = {
 };
 MODULE_DEVICE_TABLE(spi, mcp4131_id);
 
-static struct spi_driver mcp4131_driver = {
+static struct spi_driver mcp4131_driver =
+{
 	.driver = {
 		.name	= "mcp4131",
 		.of_match_table = of_match_ptr(mcp4131_dt_ids),

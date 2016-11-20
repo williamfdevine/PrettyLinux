@@ -45,7 +45,8 @@ nvkm_bus_dtor(struct nvkm_subdev *subdev)
 }
 
 static const struct nvkm_subdev_func
-nvkm_bus = {
+	nvkm_bus =
+{
 	.dtor = nvkm_bus_dtor,
 	.init = nvkm_bus_init,
 	.intr = nvkm_bus_intr,
@@ -53,11 +54,15 @@ nvkm_bus = {
 
 int
 nvkm_bus_new_(const struct nvkm_bus_func *func, struct nvkm_device *device,
-	      int index, struct nvkm_bus **pbus)
+			  int index, struct nvkm_bus **pbus)
 {
 	struct nvkm_bus *bus;
+
 	if (!(bus = *pbus = kzalloc(sizeof(*bus), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	nvkm_subdev_ctor(&nvkm_bus, device, index, &bus->subdev);
 	bus->func = func;
 	return 0;

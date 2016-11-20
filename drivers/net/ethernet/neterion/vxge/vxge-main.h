@@ -127,10 +127,11 @@
 
 #define is_sriov(function_mode) \
 	((function_mode == VXGE_HW_FUNCTION_MODE_SRIOV) || \
-	(function_mode == VXGE_HW_FUNCTION_MODE_SRIOV_8) || \
-	(function_mode == VXGE_HW_FUNCTION_MODE_SRIOV_4))
+	 (function_mode == VXGE_HW_FUNCTION_MODE_SRIOV_8) || \
+	 (function_mode == VXGE_HW_FUNCTION_MODE_SRIOV_4))
 
-enum vxge_reset_event {
+enum vxge_reset_event
+{
 	/* reset events */
 	VXGE_LL_VPATH_RESET	= 0,
 	VXGE_LL_DEVICE_RESET	= 1,
@@ -139,32 +140,37 @@ enum vxge_reset_event {
 	VXGE_LL_COMPL_RESET	= 4
 };
 /* These flags represent the devices temporary state */
-enum vxge_device_state_t {
-__VXGE_STATE_RESET_CARD = 0,
-__VXGE_STATE_CARD_UP
+enum vxge_device_state_t
+{
+	__VXGE_STATE_RESET_CARD = 0,
+	__VXGE_STATE_CARD_UP
 };
 
-enum vxge_mac_addr_state {
+enum vxge_mac_addr_state
+{
 	/* mac address states */
 	VXGE_LL_MAC_ADDR_IN_LIST        = 0,
 	VXGE_LL_MAC_ADDR_IN_DA_TABLE    = 1
 };
 
-struct vxge_drv_config {
+struct vxge_drv_config
+{
 	int config_dev_cnt;
 	int total_dev_cnt;
 	int g_no_cpus;
 	unsigned int vpath_per_dev;
 };
 
-struct macInfo {
+struct macInfo
+{
 	unsigned char macaddr[ETH_ALEN];
 	unsigned char macmask[ETH_ALEN];
 	unsigned int vpath_no;
 	enum vxge_mac_addr_state state;
 };
 
-struct vxge_config {
+struct vxge_config
+{
 	int		tx_pause_enable;
 	int		rx_pause_enable;
 
@@ -177,22 +183,23 @@ struct vxge_config {
 
 	int		addr_learn_en;
 
-	u32		rth_steering:2,
-			rth_algorithm:2,
-			rth_hash_type_tcpipv4:1,
-			rth_hash_type_ipv4:1,
-			rth_hash_type_tcpipv6:1,
-			rth_hash_type_ipv6:1,
-			rth_hash_type_tcpipv6ex:1,
-			rth_hash_type_ipv6ex:1,
-			rth_bkt_sz:8;
+	u32		rth_steering: 2,
+			rth_algorithm: 2,
+			rth_hash_type_tcpipv4: 1,
+			rth_hash_type_ipv4: 1,
+			rth_hash_type_tcpipv6: 1,
+			rth_hash_type_ipv6: 1,
+			rth_hash_type_tcpipv6ex: 1,
+			rth_hash_type_ipv6ex: 1,
+			rth_bkt_sz: 8;
 	int		rth_jhash_golden_ratio;
 	int		tx_steering_type;
 	int 	fifo_indicate_max_pkts;
 	struct vxge_hw_device_hw_info device_hw_info;
 };
 
-struct vxge_msix_entry {
+struct vxge_msix_entry
+{
 	/* Mimicing the msix_entry struct of Kernel. */
 	u16 vector;
 	u16 entry;
@@ -202,7 +209,8 @@ struct vxge_msix_entry {
 
 /* Software Statistics */
 
-struct vxge_sw_stats {
+struct vxge_sw_stats
+{
 
 	/* Virtual Path */
 	unsigned long vpaths_open;
@@ -213,7 +221,8 @@ struct vxge_sw_stats {
 	unsigned long link_down;
 };
 
-struct vxge_mac_addrs {
+struct vxge_mac_addrs
+{
 	struct list_head item;
 	u64 macaddr;
 	u64 macmask;
@@ -222,7 +231,8 @@ struct vxge_mac_addrs {
 
 struct vxgedev;
 
-struct vxge_fifo_stats {
+struct vxge_fifo_stats
+{
 	struct u64_stats_sync	syncp;
 	u64 tx_frms;
 	u64 tx_bytes;
@@ -233,7 +243,8 @@ struct vxge_fifo_stats {
 	unsigned long pci_map_fail;
 };
 
-struct vxge_fifo {
+struct vxge_fifo
+{
 	struct net_device *ndev;
 	struct pci_dev *pdev;
 	struct __vxge_hw_fifo *handle;
@@ -251,7 +262,8 @@ struct vxge_fifo {
 	struct vxge_fifo_stats stats;
 } ____cacheline_aligned;
 
-struct vxge_ring_stats {
+struct vxge_ring_stats
+{
 	struct u64_stats_sync syncp;
 	u64 rx_frms;
 	u64 rx_mcast;
@@ -264,7 +276,8 @@ struct vxge_ring_stats {
 	unsigned long skb_alloc_fail;
 };
 
-struct vxge_ring {
+struct vxge_ring
+{
 	struct net_device	*ndev;
 	struct pci_dev		*pdev;
 	struct __vxge_hw_ring	*handle;
@@ -278,7 +291,7 @@ struct vxge_ring {
 	unsigned long jiffies;
 
 	/* copy of the flag indicating whether rx_hwts is to be used */
-	u32 rx_hwts:1;
+	u32 rx_hwts: 1;
 
 	int pkts_processed;
 	int budget;
@@ -296,7 +309,8 @@ struct vxge_ring {
 	struct vxge_ring_stats stats;
 } ____cacheline_aligned;
 
-struct vxge_vpath {
+struct vxge_vpath
+{
 	struct vxge_fifo fifo;
 	struct vxge_ring ring;
 
@@ -321,15 +335,16 @@ struct vxge_vpath {
 	u32 level_trace;
 };
 #define VXGE_COPY_DEBUG_INFO_TO_LL(vdev, err, trace) {	\
-	for (i = 0; i < vdev->no_of_vpath; i++) {		\
-		vdev->vpaths[i].level_err = err;		\
-		vdev->vpaths[i].level_trace = trace;		\
-	}							\
-	vdev->level_err = err;					\
-	vdev->level_trace = trace;				\
-}
+		for (i = 0; i < vdev->no_of_vpath; i++) {		\
+			vdev->vpaths[i].level_err = err;		\
+			vdev->vpaths[i].level_trace = trace;		\
+		}							\
+		vdev->level_err = err;					\
+		vdev->level_trace = trace;				\
+	}
 
-struct vxgedev {
+struct vxgedev
+{
 	struct net_device	*ndev;
 	struct pci_dev		*pdev;
 	struct __vxge_hw_device *devh;
@@ -354,8 +369,8 @@ struct vxgedev {
 	u16		all_multi_flg;
 
 	/* A flag indicating whether rx_hwts is to be used or not. */
-	u32	rx_hwts:1,
-		titan1:1;
+	u32	rx_hwts: 1,
+		titan1: 1;
 
 	struct vxge_msix_entry *vxge_entries;
 	struct msix_entry *entries;
@@ -400,16 +415,18 @@ struct vxgedev {
 	struct work_struct reset_task;
 };
 
-struct vxge_rx_priv {
+struct vxge_rx_priv
+{
 	struct sk_buff		*skb;
 	unsigned char		*skb_data;
 	dma_addr_t		data_dma;
 	dma_addr_t		data_size;
 };
 
-struct vxge_tx_priv {
+struct vxge_tx_priv
+{
 	struct sk_buff		*skb;
-	dma_addr_t		dma_buffers[MAX_SKB_FRAGS+1];
+	dma_addr_t		dma_buffers[MAX_SKB_FRAGS + 1];
 };
 
 #define VXGE_MODULE_PARAM_INT(p, val) \
@@ -418,7 +435,7 @@ struct vxge_tx_priv {
 
 static inline
 void vxge_os_timer(struct timer_list *timer, void (*func)(unsigned long data),
-		   struct vxgedev *vdev, unsigned long timeout)
+				   struct vxgedev *vdev, unsigned long timeout)
 {
 	init_timer(timer);
 	timer->function = func;
@@ -449,7 +466,7 @@ int vxge_fw_upgrade(struct vxgedev *vdev, char *fw_name, int override);
 
 /* Debug tracing for VXGE driver */
 #ifndef VXGE_DEBUG_MASK
-#define VXGE_DEBUG_MASK	0x0
+	#define VXGE_DEBUG_MASK	0x0
 #endif
 
 #if (VXGE_DEBUG_LL_CONFIG & VXGE_DEBUG_MASK)
@@ -502,19 +519,19 @@ int vxge_fw_upgrade(struct vxgedev *vdev, char *fw_name, int override);
 #endif
 
 #define VXGE_DEVICE_DEBUG_LEVEL_SET(level, mask, vdev) {\
-	vxge_hw_device_debug_set((struct __vxge_hw_device  *)vdev->devh, \
-		level, mask);\
-	VXGE_COPY_DEBUG_INFO_TO_LL(vdev, \
-		vxge_hw_device_error_level_get((struct __vxge_hw_device  *) \
-			vdev->devh), \
-		vxge_hw_device_trace_level_get((struct __vxge_hw_device  *) \
-			vdev->devh));\
-}
+		vxge_hw_device_debug_set((struct __vxge_hw_device  *)vdev->devh, \
+								 level, mask);\
+		VXGE_COPY_DEBUG_INFO_TO_LL(vdev, \
+								   vxge_hw_device_error_level_get((struct __vxge_hw_device  *) \
+										   vdev->devh), \
+								   vxge_hw_device_trace_level_get((struct __vxge_hw_device  *) \
+										   vdev->devh));\
+	}
 
 #ifdef NETIF_F_GSO
-#define vxge_tcp_mss(skb) (skb_shinfo(skb)->gso_size)
-#define vxge_udp_mss(skb) (skb_shinfo(skb)->gso_size)
-#define vxge_offload_type(skb) (skb_shinfo(skb)->gso_type)
+	#define vxge_tcp_mss(skb) (skb_shinfo(skb)->gso_size)
+	#define vxge_udp_mss(skb) (skb_shinfo(skb)->gso_size)
+	#define vxge_offload_type(skb) (skb_shinfo(skb)->gso_type)
 #endif
 
 #endif

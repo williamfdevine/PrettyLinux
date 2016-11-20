@@ -7,15 +7,16 @@
 
 #include "mcb-internal.h"
 
-struct mcb_parse_priv {
+struct mcb_parse_priv
+{
 	phys_addr_t mapbase;
 	void __iomem *base;
 };
 
 #define for_each_chameleon_cell(dtype, p)	\
 	for ((dtype) = get_next_dtype((p));	\
-	     (dtype) != CHAMELEON_DTYPE_END;	\
-	     (dtype) = get_next_dtype((p)))
+		 (dtype) != CHAMELEON_DTYPE_END;	\
+		 (dtype) = get_next_dtype((p)))
 
 static inline uint32_t get_next_dtype(void __iomem *p)
 {
@@ -26,15 +27,15 @@ static inline uint32_t get_next_dtype(void __iomem *p)
 }
 
 static int chameleon_parse_bdd(struct mcb_bus *bus,
-			struct chameleon_bar *cb,
-			void __iomem *base)
+							   struct chameleon_bar *cb,
+							   void __iomem *base)
 {
 	return 0;
 }
 
 static int chameleon_parse_gdd(struct mcb_bus *bus,
-			struct chameleon_bar *cb,
-			void __iomem *base, int bar_count)
+							   struct chameleon_bar *cb,
+							   void __iomem *base, int bar_count)
 {
 	struct chameleon_gdd __iomem *gdd =
 		(struct chameleon_gdd __iomem *) base;
@@ -47,8 +48,11 @@ static int chameleon_parse_gdd(struct mcb_bus *bus,
 	__le32 reg2;
 
 	mdev = mcb_alloc_dev(bus);
+
 	if (!mdev)
+	{
 		return -ENOMEM;
+	}
 
 	reg1 = readl(&gdd->reg1);
 	reg2 = readl(&gdd->reg2);
@@ -67,22 +71,26 @@ static int chameleon_parse_gdd(struct mcb_bus *bus,
 	 * device is IO mapped we just print a warning and go on with the
 	 * next device, instead of completely stop the gdd parser
 	 */
-	if (mdev->bar > bar_count - 1) {
+	if (mdev->bar > bar_count - 1)
+	{
 		pr_info("No BAR for 16z%03d\n", mdev->id);
 		ret = 0;
 		goto err;
 	}
 
 	dev_mapbase = cb[mdev->bar].addr;
-	if (!dev_mapbase) {
+
+	if (!dev_mapbase)
+	{
 		pr_info("BAR not assigned for 16z%03d\n", mdev->id);
 		ret = 0;
 		goto err;
 	}
 
-	if (dev_mapbase & 0x01) {
+	if (dev_mapbase & 0x01)
+	{
 		pr_info("IO mapped Device (16z%03d) not yet supported\n",
-			mdev->id);
+				mdev->id);
 		ret = 0;
 		goto err;
 	}
@@ -101,8 +109,11 @@ static int chameleon_parse_gdd(struct mcb_bus *bus,
 	mdev->is_added = false;
 
 	ret = mcb_device_register(bus, mdev);
+
 	if (ret < 0)
+	{
 		goto err;
+	}
 
 	return 0;
 
@@ -113,7 +124,7 @@ err:
 }
 
 static void chameleon_parse_bar(void __iomem *base,
-				struct chameleon_bar *cb, int bar_count)
+								struct chameleon_bar *cb, int bar_count)
 {
 	char __iomem *p = base;
 	int i;
@@ -121,7 +132,8 @@ static void chameleon_parse_bar(void __iomem *base,
 	/* skip reg1 */
 	p += sizeof(__le32);
 
-	for (i = 0; i < bar_count; i++) {
+	for (i = 0; i < bar_count; i++)
+	{
 		cb[i].addr = readl(p);
 		cb[i].size = readl(p + 4);
 
@@ -130,7 +142,7 @@ static void chameleon_parse_bar(void __iomem *base,
 }
 
 static int chameleon_get_bar(char __iomem **base, phys_addr_t mapbase,
-			     struct chameleon_bar **cb)
+							 struct chameleon_bar **cb)
 {
 	struct chameleon_bar *c;
 	int bar_count;
@@ -145,24 +157,37 @@ static int chameleon_get_bar(char __iomem **base, phys_addr_t mapbase,
 	 * to a PCI header.
 	 */
 	dtype = get_next_dtype(*base);
-	if (dtype == CHAMELEON_DTYPE_BAR) {
+
+	if (dtype == CHAMELEON_DTYPE_BAR)
+	{
 		reg = readl(*base);
 
 		bar_count = BAR_CNT(reg);
+
 		if (bar_count <= 0 && bar_count > CHAMELEON_BAR_MAX)
+		{
 			return -ENODEV;
+		}
 
 		c = kcalloc(bar_count, sizeof(struct chameleon_bar),
-			    GFP_KERNEL);
+					GFP_KERNEL);
+
 		if (!c)
+		{
 			return -ENOMEM;
+		}
 
 		chameleon_parse_bar(*base, c, bar_count);
 		*base += BAR_DESC_SIZE(bar_count);
-	} else {
+	}
+	else
+	{
 		c = kzalloc(sizeof(struct chameleon_bar), GFP_KERNEL);
+
 		if (!c)
+		{
 			return -ENOMEM;
+		}
 
 		bar_count = 1;
 		c->addr = mapbase;
@@ -174,7 +199,7 @@ static int chameleon_get_bar(char __iomem **base, phys_addr_t mapbase,
 }
 
 int chameleon_parse_cells(struct mcb_bus *bus, phys_addr_t mapbase,
-			void __iomem *base)
+						  void __iomem *base)
 {
 	struct chameleon_fpga_header *header;
 	struct chameleon_bar *cb;
@@ -188,56 +213,77 @@ int chameleon_parse_cells(struct mcb_bus *bus, phys_addr_t mapbase,
 	hsize = sizeof(struct chameleon_fpga_header);
 
 	header = kzalloc(hsize, GFP_KERNEL);
+
 	if (!header)
+	{
 		return -ENOMEM;
+	}
 
 	/* Extract header information */
 	memcpy_fromio(header, p, hsize);
 	/* We only support chameleon v2 at the moment */
 	header->magic = le16_to_cpu(header->magic);
-	if (header->magic != CHAMELEONV2_MAGIC) {
+
+	if (header->magic != CHAMELEONV2_MAGIC)
+	{
 		pr_err("Unsupported chameleon version 0x%x\n",
-				header->magic);
+			   header->magic);
 		ret = -ENODEV;
 		goto free_header;
 	}
+
 	p += hsize;
 
 	bus->revision = header->revision;
 	bus->model = header->model;
 	bus->minor = header->minor;
 	snprintf(bus->name, CHAMELEON_FILENAME_LEN + 1, "%s",
-		 header->filename);
+			 header->filename);
 
 	bar_count = chameleon_get_bar(&p, mapbase, &cb);
-	if (bar_count < 0)
-		goto free_header;
 
-	for_each_chameleon_cell(dtype, p) {
-		switch (dtype) {
-		case CHAMELEON_DTYPE_GENERAL:
-			ret = chameleon_parse_gdd(bus, cb, p, bar_count);
-			if (ret < 0)
+	if (bar_count < 0)
+	{
+		goto free_header;
+	}
+
+	for_each_chameleon_cell(dtype, p)
+	{
+		switch (dtype)
+		{
+			case CHAMELEON_DTYPE_GENERAL:
+				ret = chameleon_parse_gdd(bus, cb, p, bar_count);
+
+				if (ret < 0)
+				{
+					goto free_bar;
+				}
+
+				p += sizeof(struct chameleon_gdd);
+				break;
+
+			case CHAMELEON_DTYPE_BRIDGE:
+				chameleon_parse_bdd(bus, cb, p);
+				p += sizeof(struct chameleon_bdd);
+				break;
+
+			case CHAMELEON_DTYPE_END:
+				break;
+
+			default:
+				pr_err("Invalid chameleon descriptor type 0x%x\n",
+					   dtype);
+				ret = -EINVAL;
 				goto free_bar;
-			p += sizeof(struct chameleon_gdd);
-			break;
-		case CHAMELEON_DTYPE_BRIDGE:
-			chameleon_parse_bdd(bus, cb, p);
-			p += sizeof(struct chameleon_bdd);
-			break;
-		case CHAMELEON_DTYPE_END:
-			break;
-		default:
-			pr_err("Invalid chameleon descriptor type 0x%x\n",
-				dtype);
-			ret = -EINVAL;
-			goto free_bar;
 		}
+
 		num_cells++;
 	}
 
 	if (num_cells == 0)
+	{
 		num_cells = -EINVAL;
+	}
 
 	kfree(cb);
 	kfree(header);

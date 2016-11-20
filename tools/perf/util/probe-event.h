@@ -7,7 +7,8 @@
 #include "strfilter.h"
 
 /* Probe related configurations */
-struct probe_conf {
+struct probe_conf
+{
 	bool	show_ext_vars;
 	bool	show_location_range;
 	bool	force_add;
@@ -19,7 +20,8 @@ extern struct probe_conf probe_conf;
 extern bool probe_event_dry_run;
 
 /* kprobe-tracer and uprobe-tracer tracing point */
-struct probe_trace_point {
+struct probe_trace_point
+{
 	char		*realname;	/* function real name (if needed) */
 	char		*symbol;	/* Base symbol */
 	char		*module;	/* Module name */
@@ -29,13 +31,15 @@ struct probe_trace_point {
 };
 
 /* probe-tracer tracing argument referencing offset */
-struct probe_trace_arg_ref {
+struct probe_trace_arg_ref
+{
 	struct probe_trace_arg_ref	*next;	/* Next reference */
 	long				offset;	/* Offset value */
 };
 
 /* kprobe-tracer and uprobe-tracer tracing argument */
-struct probe_trace_arg {
+struct probe_trace_arg
+{
 	char				*name;	/* Argument name */
 	char				*value;	/* Base value */
 	char				*type;	/* Type name */
@@ -43,7 +47,8 @@ struct probe_trace_arg {
 };
 
 /* kprobe-tracer and uprobe-tracer tracing event (point + arg) */
-struct probe_trace_event {
+struct probe_trace_event
+{
 	char				*event;	/* Event name */
 	char				*group;	/* Group name */
 	struct probe_trace_point	point;	/* Trace point */
@@ -53,7 +58,8 @@ struct probe_trace_event {
 };
 
 /* Perf probe probing point */
-struct perf_probe_point {
+struct perf_probe_point
+{
 	char		*file;		/* File path */
 	char		*function;	/* Function name */
 	int		line;		/* Line number */
@@ -64,7 +70,8 @@ struct perf_probe_point {
 };
 
 /* Perf probe probing argument field chain */
-struct perf_probe_arg_field {
+struct perf_probe_arg_field
+{
 	struct perf_probe_arg_field	*next;	/* Next field */
 	char				*name;	/* Name of the field */
 	long				index;	/* Array index number */
@@ -72,7 +79,8 @@ struct perf_probe_arg_field {
 };
 
 /* Perf probe probing argument */
-struct perf_probe_arg {
+struct perf_probe_arg
+{
 	char				*name;	/* Argument name */
 	char				*var;	/* Variable name */
 	char				*type;	/* Type name */
@@ -80,7 +88,8 @@ struct perf_probe_arg {
 };
 
 /* Perf probe probing event (point + arg) */
-struct perf_probe_event {
+struct perf_probe_event
+{
 	char			*event;	/* Event name */
 	char			*group;	/* Group name */
 	struct perf_probe_point	point;	/* Probe point */
@@ -94,7 +103,8 @@ struct perf_probe_event {
 };
 
 /* Line range */
-struct line_range {
+struct line_range
+{
 	char			*file;		/* File name */
 	char			*function;	/* Function name */
 	int			start;		/* Start line number */
@@ -106,7 +116,8 @@ struct line_range {
 };
 
 /* List of variables */
-struct variable_list {
+struct variable_list
+{
 	struct probe_trace_point	point;	/* Actual probepoint */
 	struct strlist			*vars;	/* Available variables */
 };
@@ -126,7 +137,7 @@ char *synthesize_perf_probe_arg(struct perf_probe_arg *pa);
 char *synthesize_perf_probe_point(struct perf_probe_point *pp);
 
 int perf_probe_event__copy(struct perf_probe_event *dst,
-			   struct perf_probe_event *src);
+						   struct perf_probe_event *src);
 
 bool perf_probe_with_var(struct perf_probe_event *pev);
 
@@ -154,30 +165,30 @@ void cleanup_perf_probe_events(struct perf_probe_event *pevs, int npevs);
 int del_perf_probe_events(struct strfilter *filter);
 
 int show_perf_probe_event(const char *group, const char *event,
-			  struct perf_probe_event *pev,
-			  const char *module, bool use_stdout);
+						  struct perf_probe_event *pev,
+						  const char *module, bool use_stdout);
 int show_perf_probe_events(struct strfilter *filter);
 int show_line_range(struct line_range *lr, const char *module, bool user);
 int show_available_vars(struct perf_probe_event *pevs, int npevs,
-			struct strfilter *filter);
+						struct strfilter *filter);
 int show_available_funcs(const char *module, struct strfilter *filter, bool user);
 void arch__fix_tev_from_maps(struct perf_probe_event *pev,
-			     struct probe_trace_event *tev, struct map *map,
-			     struct symbol *sym);
+							 struct probe_trace_event *tev, struct map *map,
+							 struct symbol *sym);
 
 /* If there is no space to write, returns -E2BIG. */
 int e_snprintf(char *str, size_t size, const char *format, ...)
-	__attribute__((format(printf, 3, 4)));
+__attribute__((format(printf, 3, 4)));
 
 /* Maximum index number of event-name postfix */
 #define MAX_EVENT_INDEX	1024
 
 int copy_to_probe_trace_arg(struct probe_trace_arg *tvar,
-			    struct perf_probe_arg *pvar);
+							struct perf_probe_arg *pvar);
 
 struct map *get_target_map(const char *target, bool user);
 
 void arch__post_process_probe_trace_events(struct perf_probe_event *pev,
-					   int ntevs);
+		int ntevs);
 
 #endif /*_PROBE_EVENT_H */

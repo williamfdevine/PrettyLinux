@@ -26,36 +26,49 @@ static int tda18271_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
 	enum tda18271_i2c_gate gate;
 	int ret = 0;
 
-	switch (priv->gate) {
-	case TDA18271_GATE_DIGITAL:
-	case TDA18271_GATE_ANALOG:
-		gate = priv->gate;
-		break;
-	case TDA18271_GATE_AUTO:
-	default:
-		switch (priv->mode) {
-		case TDA18271_DIGITAL:
-			gate = TDA18271_GATE_DIGITAL;
+	switch (priv->gate)
+	{
+		case TDA18271_GATE_DIGITAL:
+		case TDA18271_GATE_ANALOG:
+			gate = priv->gate;
 			break;
-		case TDA18271_ANALOG:
+
+		case TDA18271_GATE_AUTO:
 		default:
-			gate = TDA18271_GATE_ANALOG;
-			break;
-		}
+			switch (priv->mode)
+			{
+				case TDA18271_DIGITAL:
+					gate = TDA18271_GATE_DIGITAL;
+					break;
+
+				case TDA18271_ANALOG:
+				default:
+					gate = TDA18271_GATE_ANALOG;
+					break;
+			}
 	}
 
-	switch (gate) {
-	case TDA18271_GATE_ANALOG:
-		if (fe->ops.analog_ops.i2c_gate_ctrl)
-			ret = fe->ops.analog_ops.i2c_gate_ctrl(fe, enable);
-		break;
-	case TDA18271_GATE_DIGITAL:
-		if (fe->ops.i2c_gate_ctrl)
-			ret = fe->ops.i2c_gate_ctrl(fe, enable);
-		break;
-	default:
-		ret = -EINVAL;
-		break;
+	switch (gate)
+	{
+		case TDA18271_GATE_ANALOG:
+			if (fe->ops.analog_ops.i2c_gate_ctrl)
+			{
+				ret = fe->ops.analog_ops.i2c_gate_ctrl(fe, enable);
+			}
+
+			break;
+
+		case TDA18271_GATE_DIGITAL:
+			if (fe->ops.i2c_gate_ctrl)
+			{
+				ret = fe->ops.i2c_gate_ctrl(fe, enable);
+			}
+
+			break;
+
+		default:
+			ret = -EINVAL;
+			break;
 	}
 
 	return ret;
@@ -88,7 +101,9 @@ static void tda18271_dump_regs(struct dvb_frontend *fe, int extended)
 
 	/* only dump extended regs if DBG_ADV is set */
 	if (!(tda18271_debug & DBG_ADV))
+	{
 		return;
+	}
 
 	/* W indicates write-only registers.
 	 * Register dump for write-only registers shows last value written. */
@@ -124,11 +139,16 @@ int tda18271_read_regs(struct dvb_frontend *fe)
 	unsigned char *regs = priv->tda18271_regs;
 	unsigned char buf = 0x00;
 	int ret;
-	struct i2c_msg msg[] = {
-		{ .addr = priv->i2c_props.addr, .flags = 0,
-		  .buf = &buf, .len = 1 },
-		{ .addr = priv->i2c_props.addr, .flags = I2C_M_RD,
-		  .buf = regs, .len = 16 }
+	struct i2c_msg msg[] =
+	{
+		{
+			.addr = priv->i2c_props.addr, .flags = 0,
+			.buf = &buf, .len = 1
+		},
+		{
+			.addr = priv->i2c_props.addr, .flags = I2C_M_RD,
+			.buf = regs, .len = 16
+		}
 	};
 
 	tda18271_i2c_gate_ctrl(fe, 1);
@@ -139,10 +159,14 @@ int tda18271_read_regs(struct dvb_frontend *fe)
 	tda18271_i2c_gate_ctrl(fe, 0);
 
 	if (ret != 2)
+	{
 		tda_err("ERROR: i2c_transfer returned: %d\n", ret);
+	}
 
 	if (tda18271_debug & DBG_REG)
+	{
 		tda18271_dump_regs(fe, 0);
+	}
 
 	return (ret == 2 ? 0 : ret);
 }
@@ -154,11 +178,16 @@ int tda18271_read_extended(struct dvb_frontend *fe)
 	unsigned char regdump[TDA18271_NUM_REGS];
 	unsigned char buf = 0x00;
 	int ret, i;
-	struct i2c_msg msg[] = {
-		{ .addr = priv->i2c_props.addr, .flags = 0,
-		  .buf = &buf, .len = 1 },
-		{ .addr = priv->i2c_props.addr, .flags = I2C_M_RD,
-		  .buf = regdump, .len = TDA18271_NUM_REGS }
+	struct i2c_msg msg[] =
+	{
+		{
+			.addr = priv->i2c_props.addr, .flags = 0,
+			.buf = &buf, .len = 1
+		},
+		{
+			.addr = priv->i2c_props.addr, .flags = I2C_M_RD,
+			.buf = regdump, .len = TDA18271_NUM_REGS
+		}
 	};
 
 	tda18271_i2c_gate_ctrl(fe, 1);
@@ -169,49 +198,61 @@ int tda18271_read_extended(struct dvb_frontend *fe)
 	tda18271_i2c_gate_ctrl(fe, 0);
 
 	if (ret != 2)
+	{
 		tda_err("ERROR: i2c_transfer returned: %d\n", ret);
+	}
 
-	for (i = 0; i < TDA18271_NUM_REGS; i++) {
+	for (i = 0; i < TDA18271_NUM_REGS; i++)
+	{
 		/* don't update write-only registers */
 		if ((i != R_EB9)  &&
-		    (i != R_EB16) &&
-		    (i != R_EB17) &&
-		    (i != R_EB19) &&
-		    (i != R_EB20))
+			(i != R_EB16) &&
+			(i != R_EB17) &&
+			(i != R_EB19) &&
+			(i != R_EB20))
+		{
 			regs[i] = regdump[i];
+		}
 	}
 
 	if (tda18271_debug & DBG_REG)
+	{
 		tda18271_dump_regs(fe, 1);
+	}
 
 	return (ret == 2 ? 0 : ret);
 }
 
 static int __tda18271_write_regs(struct dvb_frontend *fe, int idx, int len,
-			bool lock_i2c)
+								 bool lock_i2c)
 {
 	struct tda18271_priv *priv = fe->tuner_priv;
 	unsigned char *regs = priv->tda18271_regs;
 	unsigned char buf[TDA18271_NUM_REGS + 1];
 	struct i2c_msg msg = { .addr = priv->i2c_props.addr, .flags = 0,
-			       .buf = buf };
+			   .buf = buf
+	};
 	int i, ret = 1, max;
 
 	BUG_ON((len == 0) || (idx + len > sizeof(buf)));
 
-	switch (priv->small_i2c) {
-	case TDA18271_03_BYTE_CHUNK_INIT:
-		max = 3;
-		break;
-	case TDA18271_08_BYTE_CHUNK_INIT:
-		max = 8;
-		break;
-	case TDA18271_16_BYTE_CHUNK_INIT:
-		max = 16;
-		break;
-	case TDA18271_39_BYTE_CHUNK_INIT:
-	default:
-		max = 39;
+	switch (priv->small_i2c)
+	{
+		case TDA18271_03_BYTE_CHUNK_INIT:
+			max = 3;
+			break;
+
+		case TDA18271_08_BYTE_CHUNK_INIT:
+			max = 8;
+			break;
+
+		case TDA18271_16_BYTE_CHUNK_INIT:
+			max = 16;
+			break;
+
+		case TDA18271_39_BYTE_CHUNK_INIT:
+		default:
+			max = 39;
 	}
 
 
@@ -223,36 +264,49 @@ static int __tda18271_write_regs(struct dvb_frontend *fe, int idx, int len,
 	 * tda18271_init_regs controls the I2C lock directly,
 	 * disabling lock_i2c here.
 	 */
-	if (lock_i2c) {
+	if (lock_i2c)
+	{
 		tda18271_i2c_gate_ctrl(fe, 1);
 		i2c_lock_adapter(priv->i2c_props.adap);
 	}
-	while (len) {
+
+	while (len)
+	{
 		if (max > len)
+		{
 			max = len;
+		}
 
 		buf[0] = idx;
+
 		for (i = 1; i <= max; i++)
+		{
 			buf[i] = regs[idx - 1 + i];
+		}
 
 		msg.len = max + 1;
 
 		/* write registers */
 		ret = __i2c_transfer(priv->i2c_props.adap, &msg, 1);
+
 		if (ret != 1)
+		{
 			break;
+		}
 
 		idx += max;
 		len -= max;
 	}
-	if (lock_i2c) {
+
+	if (lock_i2c)
+	{
 		i2c_unlock_adapter(priv->i2c_props.adap);
 		tda18271_i2c_gate_ctrl(fe, 0);
 	}
 
 	if (ret != 1)
 		tda_err("ERROR: idx = 0x%x, len = %d, "
-			"i2c_transfer returned: %d\n", idx, max, ret);
+				"i2c_transfer returned: %d\n", idx, max, ret);
 
 	return (ret == 1 ? 0 : ret);
 }
@@ -265,8 +319,8 @@ int tda18271_write_regs(struct dvb_frontend *fe, int idx, int len)
 /*---------------------------------------------------------------------*/
 
 static int __tda18271_charge_pump_source(struct dvb_frontend *fe,
-					 enum tda18271_pll pll, int force,
-					 bool lock_i2c)
+		enum tda18271_pll pll, int force,
+		bool lock_i2c)
 {
 	struct tda18271_priv *priv = fe->tuner_priv;
 	unsigned char *regs = priv->tda18271_regs;
@@ -280,7 +334,7 @@ static int __tda18271_charge_pump_source(struct dvb_frontend *fe,
 }
 
 int tda18271_charge_pump_source(struct dvb_frontend *fe,
-				enum tda18271_pll pll, int force)
+								enum tda18271_pll pll, int force)
 {
 	return __tda18271_charge_pump_source(fe, pll, force, true);
 }
@@ -292,8 +346,8 @@ int tda18271_init_regs(struct dvb_frontend *fe)
 	unsigned char *regs = priv->tda18271_regs;
 
 	tda_dbg("initializing registers for device @ %d-%04x\n",
-		i2c_adapter_id(priv->i2c_props.adap),
-		priv->i2c_props.addr);
+			i2c_adapter_id(priv->i2c_props.adap),
+			priv->i2c_props.addr);
 
 	/*
 	 * Don't let any other I2C transfer to happen at adapter during init,
@@ -303,13 +357,15 @@ int tda18271_init_regs(struct dvb_frontend *fe)
 	i2c_lock_adapter(priv->i2c_props.adap);
 
 	/* initialize registers */
-	switch (priv->id) {
-	case TDA18271HDC1:
-		regs[R_ID]   = 0x83;
-		break;
-	case TDA18271HDC2:
-		regs[R_ID]   = 0x84;
-		break;
+	switch (priv->id)
+	{
+		case TDA18271HDC1:
+			regs[R_ID]   = 0x83;
+			break;
+
+		case TDA18271HDC2:
+			regs[R_ID]   = 0x84;
+			break;
 	}
 
 	regs[R_TM]   = 0x08;
@@ -328,13 +384,15 @@ int tda18271_init_regs(struct dvb_frontend *fe)
 	regs[R_MD2]  = 0x00;
 	regs[R_MD3]  = 0x00;
 
-	switch (priv->id) {
-	case TDA18271HDC1:
-		regs[R_EB1]  = 0xff;
-		break;
-	case TDA18271HDC2:
-		regs[R_EB1]  = 0xfc;
-		break;
+	switch (priv->id)
+	{
+		case TDA18271HDC1:
+			regs[R_EB1]  = 0xff;
+			break;
+
+		case TDA18271HDC2:
+			regs[R_EB1]  = 0xfc;
+			break;
 	}
 
 	regs[R_EB2]  = 0x01;
@@ -348,13 +406,15 @@ int tda18271_init_regs(struct dvb_frontend *fe)
 	regs[R_EB10] = 0x00;
 	regs[R_EB11] = 0x96;
 
-	switch (priv->id) {
-	case TDA18271HDC1:
-		regs[R_EB12] = 0x0f;
-		break;
-	case TDA18271HDC2:
-		regs[R_EB12] = 0x33;
-		break;
+	switch (priv->id)
+	{
+		case TDA18271HDC1:
+			regs[R_EB12] = 0x0f;
+			break;
+
+		case TDA18271HDC2:
+			regs[R_EB12] = 0x33;
+			break;
 	}
 
 	regs[R_EB13] = 0xc1;
@@ -363,25 +423,29 @@ int tda18271_init_regs(struct dvb_frontend *fe)
 	regs[R_EB16] = 0x00;
 	regs[R_EB17] = 0x00;
 
-	switch (priv->id) {
-	case TDA18271HDC1:
-		regs[R_EB18] = 0x00;
-		break;
-	case TDA18271HDC2:
-		regs[R_EB18] = 0x8c;
-		break;
+	switch (priv->id)
+	{
+		case TDA18271HDC1:
+			regs[R_EB18] = 0x00;
+			break;
+
+		case TDA18271HDC2:
+			regs[R_EB18] = 0x8c;
+			break;
 	}
 
 	regs[R_EB19] = 0x00;
 	regs[R_EB20] = 0x20;
 
-	switch (priv->id) {
-	case TDA18271HDC1:
-		regs[R_EB21] = 0x33;
-		break;
-	case TDA18271HDC2:
-		regs[R_EB21] = 0xb3;
-		break;
+	switch (priv->id)
+	{
+		case TDA18271HDC1:
+			regs[R_EB21] = 0x33;
+			break;
+
+		case TDA18271HDC2:
+			regs[R_EB21] = 0xb3;
+			break;
 	}
 
 	regs[R_EB22] = 0x48;
@@ -400,7 +464,8 @@ int tda18271_init_regs(struct dvb_frontend *fe)
 	__tda18271_write_regs(fe, R_EB17, 1, false);
 
 	/* setup agc2 gain */
-	if ((priv->id) == TDA18271HDC1) {
+	if ((priv->id) == TDA18271HDC1)
+	{
 		regs[R_EB20] = 0xa0;
 		__tda18271_write_regs(fe, R_EB20, 1, false);
 		regs[R_EB20] = 0xa7;
@@ -428,7 +493,8 @@ int tda18271_init_regs(struct dvb_frontend *fe)
 
 	__tda18271_write_regs(fe, R_EP3, 11, false);
 
-	if ((priv->id) == TDA18271HDC2) {
+	if ((priv->id) == TDA18271HDC2)
+	{
 		/* main pll cp source on */
 		__tda18271_charge_pump_source(fe, TDA18271_MAIN_PLL, 1, false);
 		msleep(1);
@@ -541,18 +607,20 @@ int tda18271_init_regs(struct dvb_frontend *fe)
  */
 
 int tda18271_set_standby_mode(struct dvb_frontend *fe,
-			      int sm, int sm_lt, int sm_xt)
+							  int sm, int sm_lt, int sm_xt)
 {
 	struct tda18271_priv *priv = fe->tuner_priv;
 	unsigned char *regs = priv->tda18271_regs;
 
 	if (tda18271_debug & DBG_ADV)
+	{
 		tda_dbg("sm = %d, sm_lt = %d, sm_xt = %d\n", sm, sm_lt, sm_xt);
+	}
 
 	regs[R_EP3]  &= ~0xe0; /* clear sm, sm_lt, sm_xt */
 	regs[R_EP3]  |= (sm    ? (1 << 7) : 0) |
-			(sm_lt ? (1 << 6) : 0) |
-			(sm_xt ? (1 << 5) : 0);
+					(sm_lt ? (1 << 6) : 0) |
+					(sm_xt ? (1 << 5) : 0);
 
 	return tda18271_write_regs(fe, R_EP3, 1);
 }
@@ -568,8 +636,11 @@ int tda18271_calc_main_pll(struct dvb_frontend *fe, u32 freq)
 	u32 div;
 
 	int ret = tda18271_lookup_pll_map(fe, MAIN_PLL, &freq, &pd, &d);
+
 	if (tda_fail(ret))
+	{
 		goto fail;
+	}
 
 	regs[R_MPD]   = (0x7f & pd);
 
@@ -591,8 +662,11 @@ int tda18271_calc_cal_pll(struct dvb_frontend *fe, u32 freq)
 	u32 div;
 
 	int ret = tda18271_lookup_pll_map(fe, CAL_PLL, &freq, &pd, &d);
+
 	if (tda_fail(ret))
+	{
 		goto fail;
+	}
 
 	regs[R_CPD]   = pd;
 
@@ -615,8 +689,11 @@ int tda18271_calc_bp_filter(struct dvb_frontend *fe, u32 *freq)
 	u8 val;
 
 	int ret = tda18271_lookup_map(fe, BP_FILTER, freq, &val);
+
 	if (tda_fail(ret))
+	{
 		goto fail;
+	}
 
 	regs[R_EP1]  &= ~0x07; /* clear bp filter bits */
 	regs[R_EP1]  |= (0x07 & val);
@@ -632,8 +709,11 @@ int tda18271_calc_km(struct dvb_frontend *fe, u32 *freq)
 	u8 val;
 
 	int ret = tda18271_lookup_map(fe, RF_CAL_KMCO, freq, &val);
+
 	if (tda_fail(ret))
+	{
 		goto fail;
+	}
 
 	regs[R_EB13] &= ~0x7c; /* clear k & m bits */
 	regs[R_EB13] |= (0x7c & val);
@@ -649,8 +729,11 @@ int tda18271_calc_rf_band(struct dvb_frontend *fe, u32 *freq)
 	u8 val;
 
 	int ret = tda18271_lookup_map(fe, RF_BAND, freq, &val);
+
 	if (tda_fail(ret))
+	{
 		goto fail;
+	}
 
 	regs[R_EP2]  &= ~0xe0; /* clear rf band bits */
 	regs[R_EP2]  |= (0xe0 & (val << 5));
@@ -666,8 +749,11 @@ int tda18271_calc_gain_taper(struct dvb_frontend *fe, u32 *freq)
 	u8 val;
 
 	int ret = tda18271_lookup_map(fe, GAIN_TAPER, freq, &val);
+
 	if (tda_fail(ret))
+	{
 		goto fail;
+	}
 
 	regs[R_EP2]  &= ~0x1f; /* clear gain taper bits */
 	regs[R_EP2]  |= (0x1f & val);
@@ -683,8 +769,11 @@ int tda18271_calc_ir_measure(struct dvb_frontend *fe, u32 *freq)
 	u8 val;
 
 	int ret = tda18271_lookup_map(fe, IR_MEASURE, freq, &val);
+
 	if (tda_fail(ret))
+	{
 		goto fail;
+	}
 
 	regs[R_EP5] &= ~0x07;
 	regs[R_EP5] |= (0x07 & val);
@@ -700,6 +789,7 @@ int tda18271_calc_rf_cal(struct dvb_frontend *fe, u32 *freq)
 	u8 val;
 
 	int ret = tda18271_lookup_map(fe, RF_CAL, freq, &val);
+
 	/* The TDA18271HD/C1 rf_cal map lookup is expected to go out of range
 	 * for frequencies above 61.1 MHz.  In these cases, the internal RF
 	 * tracking filters calibration mechanism is used.
@@ -707,7 +797,9 @@ int tda18271_calc_rf_cal(struct dvb_frontend *fe, u32 *freq)
 	 * There is no need to warn the user about this.
 	 */
 	if (ret < 0)
+	{
 		goto fail;
+	}
 
 	regs[R_EB14] = val;
 fail:
@@ -715,7 +807,7 @@ fail:
 }
 
 void _tda_printk(struct tda18271_priv *state, const char *level,
-		 const char *func, const char *fmt, ...)
+				 const char *func, const char *fmt, ...)
 {
 	struct va_format vaf;
 	va_list args;
@@ -727,12 +819,14 @@ void _tda_printk(struct tda18271_priv *state, const char *level,
 
 	if (state)
 		printk("%s%s: [%d-%04x|%c] %pV",
-		       level, func, i2c_adapter_id(state->i2c_props.adap),
-		       state->i2c_props.addr,
-		       (state->role == TDA18271_MASTER) ? 'M' : 'S',
-		       &vaf);
+			   level, func, i2c_adapter_id(state->i2c_props.adap),
+			   state->i2c_props.addr,
+			   (state->role == TDA18271_MASTER) ? 'M' : 'S',
+			   &vaf);
 	else
+	{
 		printk("%s%s: %pV", level, func, &vaf);
+	}
 
 	va_end(args);
 }

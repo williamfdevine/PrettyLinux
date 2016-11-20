@@ -30,16 +30,19 @@
 
 static struct snd_soc_jack hs_jack, mic_jack;
 
-static struct snd_soc_jack_pin hs_jack_pins[] = {
+static struct snd_soc_jack_pin hs_jack_pins[] =
+{
 	{ .pin = "Headset Stereophone",	.mask = SND_JACK_HEADPHONE, },
 };
 
-static struct snd_soc_jack_pin mic_jack_pins[] = {
+static struct snd_soc_jack_pin mic_jack_pins[] =
+{
 	{ .pin = "Headset Mic 2",	.mask = SND_JACK_MICROPHONE, },
 };
 
 /* ttc machine dapm widgets */
-static const struct snd_soc_dapm_widget ttc_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget ttc_dapm_widgets[] =
+{
 	SND_SOC_DAPM_HP("Headset Stereophone", NULL),
 	SND_SOC_DAPM_LINE("Lineout Out 1", NULL),
 	SND_SOC_DAPM_LINE("Lineout Out 2", NULL),
@@ -50,7 +53,8 @@ static const struct snd_soc_dapm_widget ttc_dapm_widgets[] = {
 };
 
 /* ttc machine audio map */
-static const struct snd_soc_dapm_route ttc_audio_map[] = {
+static const struct snd_soc_dapm_route ttc_audio_map[] =
+{
 	{"Headset Stereophone", NULL, "HS1"},
 	{"Headset Stereophone", NULL, "HS2"},
 
@@ -79,37 +83,39 @@ static int ttc_pm860x_init(struct snd_soc_pcm_runtime *rtd)
 
 	/* Headset jack detection */
 	snd_soc_card_jack_new(rtd->card, "Headphone Jack", SND_JACK_HEADPHONE |
-			      SND_JACK_BTN_0 | SND_JACK_BTN_1 | SND_JACK_BTN_2,
-			      &hs_jack, hs_jack_pins, ARRAY_SIZE(hs_jack_pins));
+						  SND_JACK_BTN_0 | SND_JACK_BTN_1 | SND_JACK_BTN_2,
+						  &hs_jack, hs_jack_pins, ARRAY_SIZE(hs_jack_pins));
 	snd_soc_card_jack_new(rtd->card, "Microphone Jack", SND_JACK_MICROPHONE,
-			      &mic_jack, mic_jack_pins,
-			      ARRAY_SIZE(mic_jack_pins));
+						  &mic_jack, mic_jack_pins,
+						  ARRAY_SIZE(mic_jack_pins));
 
 	/* headphone, microphone detection & headset short detection */
 	pm860x_hs_jack_detect(codec, &hs_jack, SND_JACK_HEADPHONE,
-			      SND_JACK_BTN_0, SND_JACK_BTN_1, SND_JACK_BTN_2);
+						  SND_JACK_BTN_0, SND_JACK_BTN_1, SND_JACK_BTN_2);
 	pm860x_mic_jack_detect(codec, &hs_jack, SND_JACK_MICROPHONE);
 
 	return 0;
 }
 
 /* ttc/td-dkb digital audio interface glue - connects codec <--> CPU */
-static struct snd_soc_dai_link ttc_pm860x_hifi_dai[] = {
+static struct snd_soc_dai_link ttc_pm860x_hifi_dai[] =
 {
-	 .name = "88pm860x i2s",
-	 .stream_name = "audio playback",
-	 .codec_name = "88pm860x-codec",
-	 .platform_name = "mmp-pcm-audio",
-	 .cpu_dai_name = "pxa-ssp-dai.1",
-	 .codec_dai_name = "88pm860x-i2s",
-	 .dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
-			SND_SOC_DAIFMT_CBM_CFM,
-	 .init = ttc_pm860x_init,
-},
+	{
+		.name = "88pm860x i2s",
+		.stream_name = "audio playback",
+		.codec_name = "88pm860x-codec",
+		.platform_name = "mmp-pcm-audio",
+		.cpu_dai_name = "pxa-ssp-dai.1",
+		.codec_dai_name = "88pm860x-i2s",
+		.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
+		SND_SOC_DAIFMT_CBM_CFM,
+		.init = ttc_pm860x_init,
+	},
 };
 
 /* ttc/td audio machine driver */
-static struct snd_soc_card ttc_dkb_card = {
+static struct snd_soc_card ttc_dkb_card =
+{
 	.name = "ttc-dkb-hifi",
 	.owner = THIS_MODULE,
 	.dai_link = ttc_pm860x_hifi_dai,
@@ -129,14 +135,16 @@ static int ttc_dkb_probe(struct platform_device *pdev)
 	card->dev = &pdev->dev;
 
 	ret = devm_snd_soc_register_card(&pdev->dev, card);
+
 	if (ret)
 		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
-			ret);
+				ret);
 
 	return ret;
 }
 
-static struct platform_driver ttc_dkb_driver = {
+static struct platform_driver ttc_dkb_driver =
+{
 	.driver		= {
 		.name	= "ttc-dkb-audio",
 		.pm     = &snd_soc_pm_ops,

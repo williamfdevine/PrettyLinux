@@ -22,7 +22,8 @@ static void defon_trig_activate(struct led_classdev *led_cdev)
 	led_set_brightness_nosleep(led_cdev, led_cdev->max_brightness);
 }
 
-static struct led_trigger defon_led_trigger = {
+static struct led_trigger defon_led_trigger =
+{
 	.name     = "default-on",
 	.activate = defon_trig_activate,
 };

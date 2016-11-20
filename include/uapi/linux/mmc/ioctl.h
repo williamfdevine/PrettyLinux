@@ -3,7 +3,8 @@
 
 #include <linux/types.h>
 
-struct mmc_ioc_cmd {
+struct mmc_ioc_cmd
+{
 	/* Implies direction of data.  true = write, false = read */
 	int write_flag;
 
@@ -51,7 +52,8 @@ struct mmc_ioc_cmd {
  *	MMC_IOC_MAX_CMDS.
  * @cmds: Array of commands with length equal to 'num_of_cmds'
  */
-struct mmc_ioc_multi_cmd {
+struct mmc_ioc_multi_cmd
+{
 	__u64 num_of_cmds;
 	struct mmc_ioc_cmd cmds[0];
 };

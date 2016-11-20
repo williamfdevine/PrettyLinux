@@ -17,13 +17,15 @@
 
 #include "../codecs/adau1701.h"
 
-static const struct snd_soc_dapm_widget bfin_eval_adau1701_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget bfin_eval_adau1701_dapm_widgets[] =
+{
 	SND_SOC_DAPM_SPK("Speaker", NULL),
 	SND_SOC_DAPM_LINE("Line Out", NULL),
 	SND_SOC_DAPM_LINE("Line In", NULL),
 };
 
-static const struct snd_soc_dapm_route bfin_eval_adau1701_dapm_routes[] = {
+static const struct snd_soc_dapm_route bfin_eval_adau1701_dapm_routes[] =
+{
 	{ "Speaker", NULL, "OUT0" },
 	{ "Speaker", NULL, "OUT1" },
 	{ "Line Out", NULL, "OUT2" },
@@ -34,26 +36,28 @@ static const struct snd_soc_dapm_route bfin_eval_adau1701_dapm_routes[] = {
 };
 
 static int bfin_eval_adau1701_hw_params(struct snd_pcm_substream *substream,
-	struct snd_pcm_hw_params *params)
+										struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
 	int ret;
 
 	ret = snd_soc_dai_set_sysclk(codec_dai, ADAU1701_CLK_SRC_OSC, 12288000,
-			SND_SOC_CLOCK_IN);
+								 SND_SOC_CLOCK_IN);
 
 	return ret;
 }
 
-static struct snd_soc_ops bfin_eval_adau1701_ops = {
+static struct snd_soc_ops bfin_eval_adau1701_ops =
+{
 	.hw_params = bfin_eval_adau1701_hw_params,
 };
 
 #define BFIN_EVAL_ADAU1701_DAI_FMT (SND_SOC_DAIFMT_I2S | \
-				SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_CBM_CFM)
+									SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_CBM_CFM)
 
-static struct snd_soc_dai_link bfin_eval_adau1701_dai[] = {
+static struct snd_soc_dai_link bfin_eval_adau1701_dai[] =
+{
 	{
 		.name = "adau1701",
 		.stream_name = "adau1701",
@@ -76,7 +80,8 @@ static struct snd_soc_dai_link bfin_eval_adau1701_dai[] = {
 	},
 };
 
-static struct snd_soc_card bfin_eval_adau1701 = {
+static struct snd_soc_card bfin_eval_adau1701 =
+{
 	.name = "bfin-eval-adau1701",
 	.owner = THIS_MODULE,
 	.dai_link = &bfin_eval_adau1701_dai[CONFIG_SND_BF5XX_SPORT_NUM],
@@ -97,7 +102,8 @@ static int bfin_eval_adau1701_probe(struct platform_device *pdev)
 	return devm_snd_soc_register_card(&pdev->dev, &bfin_eval_adau1701);
 }
 
-static struct platform_driver bfin_eval_adau1701_driver = {
+static struct platform_driver bfin_eval_adau1701_driver =
+{
 	.driver = {
 		.name = "bfin-eval-adau1701",
 		.pm = &snd_soc_pm_ops,

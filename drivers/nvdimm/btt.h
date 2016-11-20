@@ -38,13 +38,15 @@
 #define IB_FLAG_ERROR 0x00000001
 #define IB_FLAG_ERROR_MASK 0x00000001
 
-enum btt_init_state {
+enum btt_init_state
+{
 	INIT_UNCHECKED = 0,
 	INIT_NOTFOUND,
 	INIT_READY
 };
 
-struct log_entry {
+struct log_entry
+{
 	__le32 lba;
 	__le32 old_map;
 	__le32 new_map;
@@ -52,7 +54,8 @@ struct log_entry {
 	__le64 padding[2];
 };
 
-struct btt_sb {
+struct btt_sb
+{
 	u8 signature[BTT_SIG_LEN];
 	u8 uuid[16];
 	u8 parent_uuid[16];
@@ -74,14 +77,17 @@ struct btt_sb {
 	__le64 checksum;
 };
 
-struct free_entry {
+struct free_entry
+{
 	u32 block;
 	u8 sub;
 	u8 seq;
 };
 
-struct aligned_lock {
-	union {
+struct aligned_lock
+{
+	union
+	{
 		spinlock_t lock;
 		u8 cacheline_padding[L1_CACHE_BYTES];
 	};
@@ -121,7 +127,8 @@ struct aligned_lock {
  * arena_info is a per-arena handle. Once an arena is narrowed down for an
  * IO, this struct is passed around for the duration of the IO.
  */
-struct arena_info {
+struct arena_info
+{
 	u64 size;			/* Total bytes for this arena */
 	u64 external_lba_start;
 	u32 internal_nlba;
@@ -167,7 +174,8 @@ struct arena_info {
  * @init_state:		Flag describing the initialization state for the BTT
  * @num_arenas:		Number of arenas in the BTT instance
  */
-struct btt {
+struct btt
+{
 	struct gendisk *btt_disk;
 	struct request_queue *btt_queue;
 	struct list_head arena_list;

@@ -19,24 +19,29 @@ int pm860x_reg_read(struct i2c_client *i2c, int reg)
 {
 	struct pm860x_chip *chip = i2c_get_clientdata(i2c);
 	struct regmap *map = (i2c == chip->client) ? chip->regmap
-				: chip->regmap_companion;
+						 : chip->regmap_companion;
 	unsigned int data;
 	int ret;
 
 	ret = regmap_read(map, reg, &data);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 	else
+	{
 		return (int)data;
+	}
 }
 EXPORT_SYMBOL(pm860x_reg_read);
 
 int pm860x_reg_write(struct i2c_client *i2c, int reg,
-		     unsigned char data)
+					 unsigned char data)
 {
 	struct pm860x_chip *chip = i2c_get_clientdata(i2c);
 	struct regmap *map = (i2c == chip->client) ? chip->regmap
-				: chip->regmap_companion;
+						 : chip->regmap_companion;
 	int ret;
 
 	ret = regmap_write(map, reg, data);
@@ -45,11 +50,11 @@ int pm860x_reg_write(struct i2c_client *i2c, int reg,
 EXPORT_SYMBOL(pm860x_reg_write);
 
 int pm860x_bulk_read(struct i2c_client *i2c, int reg,
-		     int count, unsigned char *buf)
+					 int count, unsigned char *buf)
 {
 	struct pm860x_chip *chip = i2c_get_clientdata(i2c);
 	struct regmap *map = (i2c == chip->client) ? chip->regmap
-				: chip->regmap_companion;
+						 : chip->regmap_companion;
 	int ret;
 
 	ret = regmap_raw_read(map, reg, buf, count);
@@ -58,11 +63,11 @@ int pm860x_bulk_read(struct i2c_client *i2c, int reg,
 EXPORT_SYMBOL(pm860x_bulk_read);
 
 int pm860x_bulk_write(struct i2c_client *i2c, int reg,
-		      int count, unsigned char *buf)
+					  int count, unsigned char *buf)
 {
 	struct pm860x_chip *chip = i2c_get_clientdata(i2c);
 	struct regmap *map = (i2c == chip->client) ? chip->regmap
-				: chip->regmap_companion;
+						 : chip->regmap_companion;
 	int ret;
 
 	ret = regmap_raw_write(map, reg, buf, count);
@@ -71,11 +76,11 @@ int pm860x_bulk_write(struct i2c_client *i2c, int reg,
 EXPORT_SYMBOL(pm860x_bulk_write);
 
 int pm860x_set_bits(struct i2c_client *i2c, int reg,
-		    unsigned char mask, unsigned char data)
+					unsigned char mask, unsigned char data)
 {
 	struct pm860x_chip *chip = i2c_get_clientdata(i2c);
 	struct regmap *map = (i2c == chip->client) ? chip->regmap
-				: chip->regmap_companion;
+						 : chip->regmap_companion;
 	int ret;
 
 	ret = regmap_update_bits(map, reg, mask, data);
@@ -84,43 +89,55 @@ int pm860x_set_bits(struct i2c_client *i2c, int reg,
 EXPORT_SYMBOL(pm860x_set_bits);
 
 static int read_device(struct i2c_client *i2c, int reg,
-		       int bytes, void *dest)
+					   int bytes, void *dest)
 {
 	unsigned char msgbuf0[I2C_SMBUS_BLOCK_MAX + 3];
 	unsigned char msgbuf1[I2C_SMBUS_BLOCK_MAX + 2];
 	struct i2c_adapter *adap = i2c->adapter;
-	struct i2c_msg msg[2] = {
-					{
-						.addr = i2c->addr,
-						.flags = 0,
-						.len = 1,
-						.buf = msgbuf0
-					},
-					{	.addr = i2c->addr,
-						.flags = I2C_M_RD,
-						.len = 0,
-						.buf = msgbuf1
-					},
-				};
+	struct i2c_msg msg[2] =
+	{
+		{
+			.addr = i2c->addr,
+			.flags = 0,
+			.len = 1,
+			.buf = msgbuf0
+		},
+		{
+			.addr = i2c->addr,
+			.flags = I2C_M_RD,
+			.len = 0,
+			.buf = msgbuf1
+		},
+	};
 	int num = 1, ret = 0;
 
 	if (dest == NULL)
+	{
 		return -EINVAL;
+	}
+
 	msgbuf0[0] = (unsigned char)reg;	/* command */
 	msg[1].len = bytes;
 
 	/* if data needs to read back, num should be 2 */
 	if (bytes > 0)
+	{
 		num = 2;
+	}
+
 	ret = adap->algo->master_xfer(adap, msg, num);
 	memcpy(dest, msgbuf1, bytes);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return 0;
 }
 
 static int write_device(struct i2c_client *i2c, int reg,
-			int bytes, void *src)
+						int bytes, void *src)
 {
 	unsigned char buf[2];
 	struct i2c_adapter *adap = i2c->adapter;
@@ -135,13 +152,17 @@ static int write_device(struct i2c_client *i2c, int reg,
 	msg.buf = buf;
 
 	ret = adap->algo->master_xfer(adap, &msg, 1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return 0;
 }
 
 int pm860x_page_reg_write(struct i2c_client *i2c, int reg,
-			  unsigned char data)
+						  unsigned char data)
 {
 	unsigned char zero;
 	int ret;
@@ -159,7 +180,7 @@ int pm860x_page_reg_write(struct i2c_client *i2c, int reg,
 EXPORT_SYMBOL(pm860x_page_reg_write);
 
 int pm860x_page_bulk_read(struct i2c_client *i2c, int reg,
-			  int count, unsigned char *buf)
+						  int count, unsigned char *buf)
 {
 	unsigned char zero = 0;
 	int ret;

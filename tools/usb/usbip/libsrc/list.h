@@ -15,7 +15,8 @@
  * using the generic single-entry routines.
  */
 
-struct list_head {
+struct list_head
+{
 	struct list_head *next, *prev;
 };
 
@@ -37,8 +38,8 @@ static inline void INIT_LIST_HEAD(struct list_head *list)
  * the prev/next entries already!
  */
 static inline void __list_add(struct list_head *new,
-			      struct list_head *prev,
-			      struct list_head *next)
+							  struct list_head *prev,
+							  struct list_head *next)
 {
 	next->prev = new;
 	new->next = next;
@@ -66,7 +67,7 @@ static inline void list_add(struct list_head *new, struct list_head *head)
  * This is only for internal list manipulation where we know
  * the prev/next entries already!
  */
-static inline void __list_del(struct list_head * prev, struct list_head * next)
+static inline void __list_del(struct list_head *prev, struct list_head *next)
 {
 	next->prev = prev;
 	prev->next = next;
@@ -118,7 +119,7 @@ static inline void list_del(struct list_head *entry)
  */
 #define list_for_each_safe(pos, n, head) \
 	for (pos = (head)->next, n = pos->next; pos != (head); \
-		pos = n, n = pos->next)
+		 pos = n, n = pos->next)
 
 #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
 
@@ -130,7 +131,7 @@ static inline void list_del(struct list_head *entry)
  *
  */
 #define container_of(ptr, type, member) ({			\
-	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
-	(type *)( (char *)__mptr - offsetof(type,member) );})
+		const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
+		(type *)( (char *)__mptr - offsetof(type,member) );})
 
 #endif

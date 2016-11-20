@@ -14,15 +14,15 @@
 int snd_hdac_regmap_init(struct hdac_device *codec);
 void snd_hdac_regmap_exit(struct hdac_device *codec);
 int snd_hdac_regmap_add_vendor_verb(struct hdac_device *codec,
-				    unsigned int verb);
+									unsigned int verb);
 int snd_hdac_regmap_read_raw(struct hdac_device *codec, unsigned int reg,
-			     unsigned int *val);
+							 unsigned int *val);
 int snd_hdac_regmap_read_raw_uncached(struct hdac_device *codec,
-				      unsigned int reg, unsigned int *val);
+									  unsigned int reg, unsigned int *val);
 int snd_hdac_regmap_write_raw(struct hdac_device *codec, unsigned int reg,
-			      unsigned int val);
+							  unsigned int val);
 int snd_hdac_regmap_update_raw(struct hdac_device *codec, unsigned int reg,
-			       unsigned int mask, unsigned int val);
+							   unsigned int mask, unsigned int val);
 
 /**
  * snd_hdac_regmap_encode_verb - encode the verb to a pseudo register
@@ -73,7 +73,7 @@ int snd_hdac_regmap_update_raw(struct hdac_device *codec, unsigned int reg,
  */
 static inline int
 snd_hdac_regmap_write(struct hdac_device *codec, hda_nid_t nid,
-		      unsigned int verb, unsigned int val)
+					  unsigned int verb, unsigned int val)
 {
 	unsigned int cmd = snd_hdac_regmap_encode_verb(nid, verb);
 
@@ -91,8 +91,8 @@ snd_hdac_regmap_write(struct hdac_device *codec, hda_nid_t nid,
  */
 static inline int
 snd_hdac_regmap_update(struct hdac_device *codec, hda_nid_t nid,
-		       unsigned int verb, unsigned int mask,
-		       unsigned int val)
+					   unsigned int verb, unsigned int mask,
+					   unsigned int val)
 {
 	unsigned int cmd = snd_hdac_regmap_encode_verb(nid, verb);
 
@@ -109,7 +109,7 @@ snd_hdac_regmap_update(struct hdac_device *codec, hda_nid_t nid,
  */
 static inline int
 snd_hdac_regmap_read(struct hdac_device *codec, hda_nid_t nid,
-		     unsigned int verb, unsigned int *val)
+					 unsigned int verb, unsigned int *val)
 {
 	unsigned int cmd = snd_hdac_regmap_encode_verb(nid, verb);
 
@@ -130,7 +130,7 @@ snd_hdac_regmap_read(struct hdac_device *codec, hda_nid_t nid,
  */
 static inline int
 snd_hdac_regmap_get_amp(struct hdac_device *codec, hda_nid_t nid,
-			int ch, int dir, int idx)
+						int ch, int dir, int idx)
 {
 	unsigned int cmd = snd_hdac_regmap_encode_amp(nid, ch, dir, idx);
 	int err, val;
@@ -154,7 +154,7 @@ snd_hdac_regmap_get_amp(struct hdac_device *codec, hda_nid_t nid,
  */
 static inline int
 snd_hdac_regmap_update_amp(struct hdac_device *codec, hda_nid_t nid,
-			   int ch, int dir, int idx, int mask, int val)
+						   int ch, int dir, int idx, int mask, int val)
 {
 	unsigned int cmd = snd_hdac_regmap_encode_amp(nid, ch, dir, idx);
 
@@ -175,7 +175,7 @@ snd_hdac_regmap_update_amp(struct hdac_device *codec, hda_nid_t nid,
  */
 static inline int
 snd_hdac_regmap_get_amp_stereo(struct hdac_device *codec, hda_nid_t nid,
-			       int dir, int idx)
+							   int dir, int idx)
 {
 	unsigned int cmd = snd_hdac_regmap_encode_amp_stereo(nid, dir, idx);
 	int err, val;
@@ -199,7 +199,7 @@ snd_hdac_regmap_get_amp_stereo(struct hdac_device *codec, hda_nid_t nid,
  */
 static inline int
 snd_hdac_regmap_update_amp_stereo(struct hdac_device *codec, hda_nid_t nid,
-				  int dir, int idx, int mask, int val)
+								  int dir, int idx, int mask, int val)
 {
 	unsigned int cmd = snd_hdac_regmap_encode_amp_stereo(nid, dir, idx);
 

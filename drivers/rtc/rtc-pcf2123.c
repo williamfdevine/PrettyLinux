@@ -107,12 +107,14 @@
 
 static struct spi_driver pcf2123_driver;
 
-struct pcf2123_sysfs_reg {
+struct pcf2123_sysfs_reg
+{
 	struct device_attribute attr;
 	char name[2];
 };
 
-struct pcf2123_plat_data {
+struct pcf2123_plat_data
+{
 	struct rtc_device *rtc;
 	struct pcf2123_sysfs_reg regs[16];
 };
@@ -161,7 +163,7 @@ static int pcf2123_write_reg(struct device *dev, u8 reg, u8 val)
 }
 
 static ssize_t pcf2123_show(struct device *dev, struct device_attribute *attr,
-			    char *buffer)
+							char *buffer)
 {
 	struct pcf2123_sysfs_reg *r;
 	u8 rxbuf[1];
@@ -171,18 +173,24 @@ static ssize_t pcf2123_show(struct device *dev, struct device_attribute *attr,
 	r = container_of(attr, struct pcf2123_sysfs_reg, attr);
 
 	ret = kstrtoul(r->name, 16, &reg);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = pcf2123_read(dev, reg, rxbuf, 1);
+
 	if (ret < 0)
+	{
 		return -EIO;
+	}
 
 	return sprintf(buffer, "0x%x\n", rxbuf[0]);
 }
 
 static ssize_t pcf2123_store(struct device *dev, struct device_attribute *attr,
-			     const char *buffer, size_t count)
+							 const char *buffer, size_t count)
 {
 	struct pcf2123_sysfs_reg *r;
 	unsigned long reg;
@@ -193,16 +201,26 @@ static ssize_t pcf2123_store(struct device *dev, struct device_attribute *attr,
 	r = container_of(attr, struct pcf2123_sysfs_reg, attr);
 
 	ret = kstrtoul(r->name, 16, &reg);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = kstrtoul(buffer, 10, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = pcf2123_write_reg(dev, reg, val);
+
 	if (ret < 0)
+	{
 		return -EIO;
+	}
+
 	return count;
 }
 
@@ -212,13 +230,20 @@ static int pcf2123_read_offset(struct device *dev, long *offset)
 	s8 reg;
 
 	ret = pcf2123_read(dev, PCF2123_REG_OFFSET, &reg, 1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	if (reg & OFFSET_COARSE)
-		reg <<= 1; /* multiply by 2 and sign extend */
+	{
+		reg <<= 1;    /* multiply by 2 and sign extend */
+	}
 	else
+	{
 		reg = sign_extend32(reg, OFFSET_SIGN_BIT);
+	}
 
 	*offset = ((long)reg) * OFFSET_STEP;
 
@@ -240,17 +265,26 @@ static int pcf2123_set_offset(struct device *dev, long offset)
 	s8 reg;
 
 	if (offset > OFFSET_STEP * 127)
+	{
 		reg = 127;
+	}
 	else if (offset < OFFSET_STEP * -128)
+	{
 		reg = -128;
+	}
 	else
+	{
 		reg = (s8)((offset + (OFFSET_STEP >> 1)) / OFFSET_STEP);
+	}
 
 	/* choose fine offset only for odd values in the normal range */
-	if (reg & 1 && reg <= 63 && reg >= -64) {
+	if (reg & 1 && reg <= 63 && reg >= -64)
+	{
 		/* Normal offset. Clear the coarse bit */
 		reg &= ~OFFSET_COARSE;
-	} else {
+	}
+	else
+	{
 		/* Coarse offset. Divide by 2 and set the coarse bit */
 		reg >>= 1;
 		reg |= OFFSET_COARSE;
@@ -265,10 +299,14 @@ static int pcf2123_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	int ret;
 
 	ret = pcf2123_read(dev, PCF2123_REG_SC, rxbuf, sizeof(rxbuf));
-	if (ret < 0)
-		return ret;
 
-	if (rxbuf[0] & OSC_HAS_STOPPED) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	if (rxbuf[0] & OSC_HAS_STOPPED)
+	{
 		dev_info(dev, "clock was stopped. Time is not valid\n");
 		return -EINVAL;
 	}
@@ -280,8 +318,11 @@ static int pcf2123_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	tm->tm_wday = rxbuf[4] & 0x07;
 	tm->tm_mon = bcd2bin(rxbuf[5] & 0x1F) - 1; /* rtc mn 1-12 */
 	tm->tm_year = bcd2bin(rxbuf[6]);
+
 	if (tm->tm_year < 70)
-		tm->tm_year += 100;	/* assume we are in 1970...2069 */
+	{
+		tm->tm_year += 100;    /* assume we are in 1970...2069 */
+	}
 
 	dev_dbg(dev, "%s: tm is secs=%d, mins=%d, hours=%d, "
 			"mday=%d, mon=%d, year=%d, wday=%d\n",
@@ -305,8 +346,11 @@ static int pcf2123_rtc_set_time(struct device *dev, struct rtc_time *tm)
 
 	/* Stop the counter first */
 	ret = pcf2123_write_reg(dev, PCF2123_REG_CTRL1, CTRL1_STOP);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Set the new time */
 	txbuf[0] = PCF2123_REG_SC;
@@ -319,13 +363,19 @@ static int pcf2123_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	txbuf[7] = bin2bcd(tm->tm_year < 100 ? tm->tm_year : tm->tm_year - 100);
 
 	ret = pcf2123_write(dev, txbuf, sizeof(txbuf));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Start the counter */
 	ret = pcf2123_write_reg(dev, PCF2123_REG_CTRL1, CTRL1_CLEAR);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -336,35 +386,51 @@ static int pcf2123_reset(struct device *dev)
 	u8  rxbuf[2];
 
 	ret = pcf2123_write_reg(dev, PCF2123_REG_CTRL1, CTRL1_SW_RESET);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Stop the counter */
 	dev_dbg(dev, "stopping RTC\n");
 	ret = pcf2123_write_reg(dev, PCF2123_REG_CTRL1, CTRL1_STOP);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* See if the counter was actually stopped */
 	dev_dbg(dev, "checking for presence of RTC\n");
 	ret = pcf2123_read(dev, PCF2123_REG_CTRL1, rxbuf, sizeof(rxbuf));
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	dev_dbg(dev, "received data from RTC (0x%02X 0x%02X)\n",
-		rxbuf[0], rxbuf[1]);
+			rxbuf[0], rxbuf[1]);
+
 	if (!(rxbuf[0] & CTRL1_STOP))
+	{
 		return -ENODEV;
+	}
 
 	/* Start the counter */
 	ret = pcf2123_write_reg(dev, PCF2123_REG_CTRL1, CTRL1_CLEAR);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
 
-static const struct rtc_class_ops pcf2123_rtc_ops = {
+static const struct rtc_class_ops pcf2123_rtc_ops =
+{
 	.read_time	= pcf2123_rtc_read_time,
 	.set_time	= pcf2123_rtc_set_time,
 	.read_offset	= pcf2123_read_offset,
@@ -380,28 +446,37 @@ static int pcf2123_probe(struct spi_device *spi)
 	int ret, i;
 
 	pdata = devm_kzalloc(&spi->dev, sizeof(struct pcf2123_plat_data),
-				GFP_KERNEL);
+						 GFP_KERNEL);
+
 	if (!pdata)
+	{
 		return -ENOMEM;
+	}
+
 	spi->dev.platform_data = pdata;
 
 	ret = pcf2123_rtc_read_time(&spi->dev, &tm);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		ret = pcf2123_reset(&spi->dev);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(&spi->dev, "chip not found\n");
 			goto kfree_exit;
 		}
 	}
 
 	dev_info(&spi->dev, "spiclk %u KHz.\n",
-			(spi->max_speed_hz + 500) / 1000);
+			 (spi->max_speed_hz + 500) / 1000);
 
 	/* Finalize the initialization */
 	rtc = devm_rtc_device_register(&spi->dev, pcf2123_driver.driver.name,
-			&pcf2123_rtc_ops, THIS_MODULE);
+								   &pcf2123_rtc_ops, THIS_MODULE);
 
-	if (IS_ERR(rtc)) {
+	if (IS_ERR(rtc))
+	{
 		dev_err(&spi->dev, "failed to register.\n");
 		ret = PTR_ERR(rtc);
 		goto kfree_exit;
@@ -409,7 +484,8 @@ static int pcf2123_probe(struct spi_device *spi)
 
 	pdata->rtc = rtc;
 
-	for (i = 0; i < 16; i++) {
+	for (i = 0; i < 16; i++)
+	{
 		sysfs_attr_init(&pdata->regs[i].attr.attr);
 		sprintf(pdata->regs[i].name, "%1x", i);
 		pdata->regs[i].attr.attr.mode = S_IRUGO | S_IWUSR;
@@ -417,9 +493,11 @@ static int pcf2123_probe(struct spi_device *spi)
 		pdata->regs[i].attr.show = pcf2123_show;
 		pdata->regs[i].attr.store = pcf2123_store;
 		ret = device_create_file(&spi->dev, &pdata->regs[i].attr);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(&spi->dev, "Unable to create sysfs %s\n",
-				pdata->regs[i].name);
+					pdata->regs[i].name);
 			goto sysfs_exit;
 		}
 	}
@@ -427,8 +505,11 @@ static int pcf2123_probe(struct spi_device *spi)
 	return 0;
 
 sysfs_exit:
+
 	for (i--; i >= 0; i--)
+	{
 		device_remove_file(&spi->dev, &pdata->regs[i].attr);
+	}
 
 kfree_exit:
 	spi->dev.platform_data = NULL;
@@ -440,28 +521,31 @@ static int pcf2123_remove(struct spi_device *spi)
 	struct pcf2123_plat_data *pdata = dev_get_platdata(&spi->dev);
 	int i;
 
-	if (pdata) {
+	if (pdata)
+	{
 		for (i = 0; i < 16; i++)
 			if (pdata->regs[i].name[0])
 				device_remove_file(&spi->dev,
-						   &pdata->regs[i].attr);
+								   &pdata->regs[i].attr);
 	}
 
 	return 0;
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id pcf2123_dt_ids[] = {
+static const struct of_device_id pcf2123_dt_ids[] =
+{
 	{ .compatible = "nxp,rtc-pcf2123", },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, pcf2123_dt_ids);
 #endif
 
-static struct spi_driver pcf2123_driver = {
+static struct spi_driver pcf2123_driver =
+{
 	.driver	= {
-			.name	= "rtc-pcf2123",
-			.of_match_table = of_match_ptr(pcf2123_dt_ids),
+		.name	= "rtc-pcf2123",
+		.of_match_table = of_match_ptr(pcf2123_dt_ids),
 	},
 	.probe	= pcf2123_probe,
 	.remove	= pcf2123_remove,

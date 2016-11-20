@@ -10,7 +10,8 @@
  *
  * freq and baudwidth are used only if the divider is programmable.
  */
-struct tiny_spi_platform_data {
+struct tiny_spi_platform_data
+{
 	unsigned int freq;
 	unsigned int baudwidth;
 	unsigned int gpio_cs_count;

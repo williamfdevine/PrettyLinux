@@ -23,7 +23,8 @@
 
 /* TerraTec slim remote, 7 rows, 4 columns. */
 /* Uses NEC extended 0x02bd. */
-static struct rc_map_table terratec_slim[] = {
+static struct rc_map_table terratec_slim[] =
+{
 	{ 0x02bd00, KEY_1 },
 	{ 0x02bd01, KEY_2 },
 	{ 0x02bd02, KEY_3 },
@@ -54,7 +55,8 @@ static struct rc_map_table terratec_slim[] = {
 	{ 0x02bd45, KEY_POWER2 },          /* [red power button] */
 };
 
-static struct rc_map_list terratec_slim_map = {
+static struct rc_map_list terratec_slim_map =
+{
 	.map = {
 		.scan    = terratec_slim,
 		.size    = ARRAY_SIZE(terratec_slim),

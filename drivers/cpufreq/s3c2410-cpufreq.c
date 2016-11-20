@@ -35,10 +35,14 @@ static void s3c2410_cpufreq_setdivs(struct s3c_cpufreq_config *cfg)
 	u32 clkdiv = 0;
 
 	if (cfg->divs.h_divisor == 2)
+	{
 		clkdiv |= S3C2410_CLKDIVN_HDIVN;
+	}
 
 	if (cfg->divs.p_divisor != cfg->divs.h_divisor)
+	{
 		clkdiv |= S3C2410_CLKDIVN_PDIVN;
+	}
 
 	__raw_writel(clkdiv, S3C2410_CLKDIVN);
 }
@@ -55,12 +59,13 @@ static int s3c2410_cpufreq_calcdivs(struct s3c_cpufreq_config *cfg)
 	cfg->freq.armclk = fclk;
 
 	s3c_freq_dbg("%s: fclk is %lu, max hclk %lu\n",
-		      __func__, fclk, hclk_max);
+				 __func__, fclk, hclk_max);
 
 	hdiv = (fclk > cfg->max.hclk) ? 2 : 1;
 	hclk = fclk / hdiv;
 
-	if (hclk > cfg->max.hclk) {
+	if (hclk > cfg->max.hclk)
+	{
 		s3c_freq_dbg("%s: hclk too big\n", __func__);
 		return -EINVAL;
 	}
@@ -68,7 +73,8 @@ static int s3c2410_cpufreq_calcdivs(struct s3c_cpufreq_config *cfg)
 	pdiv = (hclk > cfg->max.pclk) ? 2 : 1;
 	pclk = hclk / pdiv;
 
-	if (pclk > cfg->max.pclk) {
+	if (pclk > cfg->max.pclk)
+	{
 		s3c_freq_dbg("%s: pclk too big\n", __func__);
 		return -EINVAL;
 	}
@@ -82,7 +88,8 @@ static int s3c2410_cpufreq_calcdivs(struct s3c_cpufreq_config *cfg)
 	return 0;
 }
 
-static struct s3c_cpufreq_info s3c2410_cpufreq_info = {
+static struct s3c_cpufreq_info s3c2410_cpufreq_info =
+{
 	.max		= {
 		.fclk	= 200000000,
 		.hclk	= 100000000,
@@ -113,12 +120,13 @@ static struct s3c_cpufreq_info s3c2410_cpufreq_info = {
 };
 
 static int s3c2410_cpufreq_add(struct device *dev,
-			       struct subsys_interface *sif)
+							   struct subsys_interface *sif)
 {
 	return s3c_cpufreq_register(&s3c2410_cpufreq_info);
 }
 
-static struct subsys_interface s3c2410_cpufreq_interface = {
+static struct subsys_interface s3c2410_cpufreq_interface =
+{
 	.name		= "s3c2410_cpufreq",
 	.subsys		= &s3c2410_subsys,
 	.add_dev	= s3c2410_cpufreq_add,
@@ -131,7 +139,7 @@ static int __init s3c2410_cpufreq_init(void)
 arch_initcall(s3c2410_cpufreq_init);
 
 static int s3c2410a_cpufreq_add(struct device *dev,
-				struct subsys_interface *sif)
+								struct subsys_interface *sif)
 {
 	/* alter the maximum freq settings for S3C2410A. If a board knows
 	 * it only has a maximum of 200, then it should register its own
@@ -145,7 +153,8 @@ static int s3c2410a_cpufreq_add(struct device *dev,
 	return s3c2410_cpufreq_add(dev, sif);
 }
 
-static struct subsys_interface s3c2410a_cpufreq_interface = {
+static struct subsys_interface s3c2410a_cpufreq_interface =
+{
 	.name		= "s3c2410a_cpufreq",
 	.subsys		= &s3c2410a_subsys,
 	.add_dev	= s3c2410a_cpufreq_add,

@@ -2,10 +2,12 @@
 #define __NVKM_CLK_NVA3_H__
 #include "priv.h"
 
-struct gt215_clk_info {
+struct gt215_clk_info
+{
 	u32 clk;
 	u32 pll;
-	enum {
+	enum
+	{
 		NVA3_HOST_277,
 		NVA3_HOST_CLK,
 	} host_out;

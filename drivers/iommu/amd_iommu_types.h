@@ -260,18 +260,18 @@
 
 #define PM_LEVEL_SHIFT(x)	(12 + ((x) * 9))
 #define PM_LEVEL_SIZE(x)	(((x) < 6) ? \
-				  ((1ULL << PM_LEVEL_SHIFT((x))) - 1): \
-				   (0xffffffffffffffffULL))
+							 ((1ULL << PM_LEVEL_SHIFT((x))) - 1): \
+							 (0xffffffffffffffffULL))
 #define PM_LEVEL_INDEX(x, a)	(((a) >> PM_LEVEL_SHIFT((x))) & 0x1ffULL)
 #define PM_LEVEL_ENC(x)		(((x) << 9) & 0xe00ULL)
 #define PM_LEVEL_PDE(x, a)	((a) | PM_LEVEL_ENC((x)) | \
-				 IOMMU_PTE_P | IOMMU_PTE_IR | IOMMU_PTE_IW)
+							 IOMMU_PTE_P | IOMMU_PTE_IR | IOMMU_PTE_IW)
 #define PM_PTE_LEVEL(pte)	(((pte) >> 9) & 0x7ULL)
 
 #define PM_MAP_4k		0
 #define PM_ADDR_MASK		0x000ffffffffff000ULL
 #define PM_MAP_MASK(lvl)	(PM_ADDR_MASK & \
-				(~((1ULL << (12 + ((lvl) * 9))) - 1)))
+							 (~((1ULL << (12 + ((lvl) * 9))) - 1)))
 #define PM_ALIGNED(lvl, addr)	((PM_MAP_MASK(lvl) & (addr)) == (addr))
 
 /*
@@ -279,28 +279,28 @@
  * Pagesize is expected to be a power-of-two
  */
 #define PAGE_SIZE_LEVEL(pagesize) \
-		((__ffs(pagesize) - 12) / 9)
+	((__ffs(pagesize) - 12) / 9)
 /*
  * Returns the number of ptes to use for a given page size
  * Pagesize is expected to be a power-of-two
  */
 #define PAGE_SIZE_PTE_COUNT(pagesize) \
-		(1ULL << ((__ffs(pagesize) - 12) % 9))
+	(1ULL << ((__ffs(pagesize) - 12) % 9))
 
 /*
  * Aligns a given io-virtual address to a given page size
  * Pagesize is expected to be a power-of-two
  */
 #define PAGE_SIZE_ALIGN(address, pagesize) \
-		((address) & ~((pagesize) - 1))
+	((address) & ~((pagesize) - 1))
 /*
  * Creates an IOMMU PTE for an address and a given pagesize
  * The PTE has no permission bits set
  * Pagesize is expected to be a power-of-two larger than 4096
  */
 #define PAGE_SIZE_PTE(address, pagesize)		\
-		(((address) | ((pagesize) - 1)) &	\
-		 (~(pagesize >> 1)) & PM_ADDR_MASK)
+	(((address) | ((pagesize) - 1)) &	\
+	 (~(pagesize >> 1)) & PM_ADDR_MASK)
 
 /*
  * Takes a PTE value with mode=0x07 and returns the page size it maps
@@ -386,7 +386,8 @@ extern bool amd_iommu_iotlb_sup;
 #define MAX_IRQS_PER_TABLE	256
 #define IRQ_TABLE_ALIGNMENT	128
 
-struct irq_remap_table {
+struct irq_remap_table
+{
 	spinlock_t lock;
 	unsigned min_index;
 	u32 *table;
@@ -420,7 +421,8 @@ extern struct kmem_cache *amd_iommu_irq_cache;
  * This struct is used to pass information about
  * incoming PPR faults around.
  */
-struct amd_iommu_fault {
+struct amd_iommu_fault
+{
 	u64 address;    /* IO virtual address of the fault*/
 	u32 pasid;      /* Address space identifier */
 	u16 device_id;  /* Originating PCI device id */
@@ -438,7 +440,8 @@ struct amd_irte_ops;
  * This structure contains generic data for  IOMMU protection domains
  * independent of their use.
  */
-struct protection_domain {
+struct protection_domain
+{
 	struct list_head list;  /* for list of all protection domains */
 	struct list_head dev_list; /* List of all devices in this domain */
 	struct iommu_domain domain; /* generic domain handle used by
@@ -460,7 +463,8 @@ struct protection_domain {
  * Structure where we save information about one hardware AMD IOMMU in the
  * system.
  */
-struct amd_iommu {
+struct amd_iommu
+{
 	struct list_head list;
 
 	/* Index within the IOMMU array */
@@ -572,7 +576,8 @@ struct amd_iommu {
 #define ACPIHID_UID_LEN 256
 #define ACPIHID_HID_LEN 9
 
-struct acpihid_map_entry {
+struct acpihid_map_entry
+{
 	struct list_head list;
 	u8 uid[ACPIHID_UID_LEN];
 	u8 hid[ACPIHID_HID_LEN];
@@ -582,7 +587,8 @@ struct acpihid_map_entry {
 	struct iommu_group *group;
 };
 
-struct devid_map {
+struct devid_map
+{
 	struct list_head list;
 	u8 id;
 	u16 devid;
@@ -618,14 +624,16 @@ extern struct list_head amd_iommu_pd_list;
 /*
  * Structure defining one entry in the device table
  */
-struct dev_table_entry {
+struct dev_table_entry
+{
 	u64 data[4];
 };
 
 /*
  * One entry for unity mappings parsed out of the ACPI table.
  */
-struct unity_map_entry {
+struct unity_map_entry
+{
 	struct list_head list;
 
 	/* starting device id this entry is used for (including) */
@@ -704,9 +712,12 @@ static inline int get_ioapic_devid(int id)
 {
 	struct devid_map *entry;
 
-	list_for_each_entry(entry, &ioapic_map, list) {
+	list_for_each_entry(entry, &ioapic_map, list)
+	{
 		if (entry->id == id)
+		{
 			return entry->devid;
+		}
 	}
 
 	return -EINVAL;
@@ -716,15 +727,19 @@ static inline int get_hpet_devid(int id)
 {
 	struct devid_map *entry;
 
-	list_for_each_entry(entry, &hpet_map, list) {
+	list_for_each_entry(entry, &hpet_map, list)
+	{
 		if (entry->id == id)
+		{
 			return entry->devid;
+		}
 	}
 
 	return -EINVAL;
 }
 
-enum amd_iommu_intr_mode_type {
+enum amd_iommu_intr_mode_type
+{
 	AMD_IOMMU_GUEST_IR_LEGACY,
 
 	/* This mode is not visible to users. It is used when
@@ -736,79 +751,89 @@ enum amd_iommu_intr_mode_type {
 };
 
 #define AMD_IOMMU_GUEST_IR_GA(x)	(x == AMD_IOMMU_GUEST_IR_VAPIC || \
-					 x == AMD_IOMMU_GUEST_IR_LEGACY_GA)
+									 x == AMD_IOMMU_GUEST_IR_LEGACY_GA)
 
 #define AMD_IOMMU_GUEST_IR_VAPIC(x)	(x == AMD_IOMMU_GUEST_IR_VAPIC)
 
-union irte {
+union irte
+{
 	u32 val;
-	struct {
+	struct
+	{
 		u32 valid	: 1,
-		    no_fault	: 1,
-		    int_type	: 3,
-		    rq_eoi	: 1,
-		    dm		: 1,
-		    rsvd_1	: 1,
-		    destination	: 8,
-		    vector	: 8,
-		    rsvd_2	: 8;
+			  no_fault	: 1,
+			  int_type	: 3,
+			  rq_eoi	: 1,
+			  dm		: 1,
+			  rsvd_1	: 1,
+			  destination	: 8,
+			  vector	: 8,
+			  rsvd_2	: 8;
 	} fields;
 };
 
-union irte_ga_lo {
+union irte_ga_lo
+{
 	u64 val;
 
 	/* For int remapping */
-	struct {
+	struct
+	{
 		u64 valid	: 1,
-		    no_fault	: 1,
-		    /* ------ */
-		    int_type	: 3,
-		    rq_eoi	: 1,
-		    dm		: 1,
-		    /* ------ */
-		    guest_mode	: 1,
-		    destination	: 8,
-		    rsvd	: 48;
+			  no_fault	: 1,
+			  /* ------ */
+			  int_type	: 3,
+			  rq_eoi	: 1,
+			  dm		: 1,
+			  /* ------ */
+			  guest_mode	: 1,
+			  destination	: 8,
+			  rsvd	: 48;
 	} fields_remap;
 
 	/* For guest vAPIC */
-	struct {
+	struct
+	{
 		u64 valid	: 1,
-		    no_fault	: 1,
-		    /* ------ */
-		    ga_log_intr	: 1,
-		    rsvd1	: 3,
-		    is_run	: 1,
-		    /* ------ */
-		    guest_mode	: 1,
-		    destination	: 8,
-		    rsvd2	: 16,
-		    ga_tag	: 32;
+			  no_fault	: 1,
+			  /* ------ */
+			  ga_log_intr	: 1,
+			  rsvd1	: 3,
+			  is_run	: 1,
+			  /* ------ */
+			  guest_mode	: 1,
+			  destination	: 8,
+			  rsvd2	: 16,
+			  ga_tag	: 32;
 	} fields_vapic;
 };
 
-union irte_ga_hi {
+union irte_ga_hi
+{
 	u64 val;
-	struct {
+	struct
+	{
 		u64 vector	: 8,
-		    rsvd_1	: 4,
-		    ga_root_ptr	: 40,
-		    rsvd_2	: 12;
+			 rsvd_1	: 4,
+			 ga_root_ptr	: 40,
+			 rsvd_2	: 12;
 	} fields;
 };
 
-struct irte_ga {
+struct irte_ga
+{
 	union irte_ga_lo lo;
 	union irte_ga_hi hi;
 };
 
-struct irq_2_irte {
+struct irq_2_irte
+{
 	u16 devid; /* Device ID for IRTE table */
 	u16 index; /* Index into IRTE table*/
 };
 
-struct amd_ir_data {
+struct amd_ir_data
+{
 	u32 cached_ga_tag;
 	struct irq_2_irte irq_2_irte;
 	struct msi_msg msi_entry;
@@ -816,7 +841,8 @@ struct amd_ir_data {
 	void *ref;      /* Pointer to the actual irte */
 };
 
-struct amd_irte_ops {
+struct amd_irte_ops
+{
 	void (*prepare)(void *, u32, u32, u8, u32, int);
 	void (*activate)(void *, u16, u16);
 	void (*deactivate)(void *, u16, u16);
@@ -828,8 +854,8 @@ struct amd_irte_ops {
 };
 
 #ifdef CONFIG_IRQ_REMAP
-extern struct amd_irte_ops irte_32_ops;
-extern struct amd_irte_ops irte_128_ops;
+	extern struct amd_irte_ops irte_32_ops;
+	extern struct amd_irte_ops irte_128_ops;
 #endif
 
 #endif /* _ASM_X86_AMD_IOMMU_TYPES_H */

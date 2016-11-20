@@ -35,12 +35,12 @@
 #include <asm/topology.h>
 
 #ifndef nr_cpus_node
-#define nr_cpus_node(node) cpumask_weight(cpumask_of_node(node))
+	#define nr_cpus_node(node) cpumask_weight(cpumask_of_node(node))
 #endif
 
 #define for_each_node_with_cpus(node)			\
 	for_each_online_node(node)			\
-		if (nr_cpus_node(node))
+	if (nr_cpus_node(node))
 
 int arch_update_cpu_topology(void);
 
@@ -48,19 +48,19 @@ int arch_update_cpu_topology(void);
 #define LOCAL_DISTANCE		10
 #define REMOTE_DISTANCE		20
 #ifndef node_distance
-#define node_distance(from,to)	((from) == (to) ? LOCAL_DISTANCE : REMOTE_DISTANCE)
+	#define node_distance(from,to)	((from) == (to) ? LOCAL_DISTANCE : REMOTE_DISTANCE)
 #endif
 #ifndef RECLAIM_DISTANCE
-/*
- * If the distance between nodes in a system is larger than RECLAIM_DISTANCE
- * (in whatever arch specific measurement units returned by node_distance())
- * and node_reclaim_mode is enabled then the VM will only call node_reclaim()
- * on nodes within this distance.
- */
-#define RECLAIM_DISTANCE 30
+	/*
+	* If the distance between nodes in a system is larger than RECLAIM_DISTANCE
+	* (in whatever arch specific measurement units returned by node_distance())
+	* and node_reclaim_mode is enabled then the VM will only call node_reclaim()
+	* on nodes within this distance.
+	*/
+	#define RECLAIM_DISTANCE 30
 #endif
 #ifndef PENALTY_FOR_NODE_WITH_CPUS
-#define PENALTY_FOR_NODE_WITH_CPUS	(1)
+	#define PENALTY_FOR_NODE_WITH_CPUS	(1)
 #endif
 
 #ifdef CONFIG_USE_PERCPU_NUMA_NODE_ID
@@ -182,16 +182,16 @@ static inline int cpu_to_mem(int cpu)
 #endif	/* [!]CONFIG_HAVE_MEMORYLESS_NODES */
 
 #ifndef topology_physical_package_id
-#define topology_physical_package_id(cpu)	((void)(cpu), -1)
+	#define topology_physical_package_id(cpu)	((void)(cpu), -1)
 #endif
 #ifndef topology_core_id
-#define topology_core_id(cpu)			((void)(cpu), 0)
+	#define topology_core_id(cpu)			((void)(cpu), 0)
 #endif
 #ifndef topology_sibling_cpumask
-#define topology_sibling_cpumask(cpu)		cpumask_of(cpu)
+	#define topology_sibling_cpumask(cpu)		cpumask_of(cpu)
 #endif
 #ifndef topology_core_cpumask
-#define topology_core_cpumask(cpu)		cpumask_of(cpu)
+	#define topology_core_cpumask(cpu)		cpumask_of(cpu)
 #endif
 
 #ifdef CONFIG_SCHED_SMT

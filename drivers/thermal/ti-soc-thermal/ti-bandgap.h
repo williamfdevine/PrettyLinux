@@ -117,7 +117,8 @@
  * features. Please read TRMs for descriptive explanation on each bitfield.
  */
 
-struct temp_sensor_registers {
+struct temp_sensor_registers
+{
 	u32	temp_sensor_ctrl;
 	u32	bgap_tempsoff_mask;
 	u32	bgap_soc_mask;
@@ -182,7 +183,8 @@ struct temp_sensor_registers {
  * for a specific temperature sensor, like shutdown temperature, alert
  * temperature, clock / rate used, ADC conversion limits and update intervals
  */
-struct temp_sensor_data {
+struct temp_sensor_data
+{
 	u32	tshut_hot;
 	u32	tshut_cold;
 	u32	t_hot;
@@ -210,7 +212,8 @@ struct ti_bandgap_data;
  * Data structure to save and restore bandgap register set context. Only
  * required registers are shadowed, when needed.
  */
-struct temp_sensor_regval {
+struct temp_sensor_regval
+{
 	u32			bg_mode_ctrl;
 	u32			bg_ctrl;
 	u32			bg_counter;
@@ -236,7 +239,8 @@ struct temp_sensor_regval {
  * It holds most of the dynamic stuff. Configurations and sensor specific
  * entries are inside the @conf structure.
  */
-struct ti_bandgap {
+struct ti_bandgap
+{
 	struct device			*dev;
 	void __iomem			*base;
 	const struct ti_bandgap_data	*conf;
@@ -269,7 +273,8 @@ struct ti_bandgap {
  * assess the gradient from hotspot, how to cooldown the domain when sensor
  * reports too hot temperature.
  */
-struct ti_temp_sensor {
+struct ti_temp_sensor
+{
 	struct temp_sensor_data		*ts_data;
 	struct temp_sensor_registers	*registers;
 	char				*domain;
@@ -341,7 +346,7 @@ struct ti_temp_sensor {
 #define TI_BANDGAP_FEATURE_ERRATA_813		BIT(11)
 #define TI_BANDGAP_FEATURE_UNRELIABLE		BIT(12)
 #define TI_BANDGAP_HAS(b, f)			\
-			((b)->conf->features & TI_BANDGAP_FEATURE_ ## f)
+	((b)->conf->features & TI_BANDGAP_FEATURE_ ## f)
 
 /**
  * struct ti_bandgap_data - ti bandgap data configuration structure
@@ -363,7 +368,8 @@ struct ti_temp_sensor {
  * their configuration representation, and how to export and unexport them to
  * a thermal API.
  */
-struct ti_bandgap_data {
+struct ti_bandgap_data
+{
 	unsigned int			features;
 	const int			*conv_table;
 	u32				adc_start_val;
@@ -384,42 +390,42 @@ int ti_bandgap_write_thot(struct ti_bandgap *bgp, int id, int val);
 int ti_bandgap_read_tcold(struct ti_bandgap *bgp, int id, int *tcold);
 int ti_bandgap_write_tcold(struct ti_bandgap *bgp, int id, int val);
 int ti_bandgap_read_update_interval(struct ti_bandgap *bgp, int id,
-				    int *interval);
+									int *interval);
 int ti_bandgap_write_update_interval(struct ti_bandgap *bgp, int id,
-				     u32 interval);
+									 u32 interval);
 int ti_bandgap_read_temperature(struct ti_bandgap *bgp, int id,
-				  int *temperature);
+								int *temperature);
 int ti_bandgap_set_sensor_data(struct ti_bandgap *bgp, int id, void *data);
 void *ti_bandgap_get_sensor_data(struct ti_bandgap *bgp, int id);
 int ti_bandgap_get_trend(struct ti_bandgap *bgp, int id, int *trend);
 
 #ifdef CONFIG_OMAP3_THERMAL
-extern const struct ti_bandgap_data omap34xx_data;
-extern const struct ti_bandgap_data omap36xx_data;
+	extern const struct ti_bandgap_data omap34xx_data;
+	extern const struct ti_bandgap_data omap36xx_data;
 #else
-#define omap34xx_data					NULL
-#define omap36xx_data					NULL
+	#define omap34xx_data					NULL
+	#define omap36xx_data					NULL
 #endif
 
 #ifdef CONFIG_OMAP4_THERMAL
-extern const struct ti_bandgap_data omap4430_data;
-extern const struct ti_bandgap_data omap4460_data;
-extern const struct ti_bandgap_data omap4470_data;
+	extern const struct ti_bandgap_data omap4430_data;
+	extern const struct ti_bandgap_data omap4460_data;
+	extern const struct ti_bandgap_data omap4470_data;
 #else
-#define omap4430_data					NULL
-#define omap4460_data					NULL
-#define omap4470_data					NULL
+	#define omap4430_data					NULL
+	#define omap4460_data					NULL
+	#define omap4470_data					NULL
 #endif
 
 #ifdef CONFIG_OMAP5_THERMAL
-extern const struct ti_bandgap_data omap5430_data;
+	extern const struct ti_bandgap_data omap5430_data;
 #else
-#define omap5430_data					NULL
+	#define omap5430_data					NULL
 #endif
 
 #ifdef CONFIG_DRA752_THERMAL
-extern const struct ti_bandgap_data dra752_data;
+	extern const struct ti_bandgap_data dra752_data;
 #else
-#define dra752_data					NULL
+	#define dra752_data					NULL
 #endif
 #endif

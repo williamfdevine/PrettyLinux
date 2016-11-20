@@ -3,7 +3,7 @@
  *
  *----------------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by 
+ *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2 of the License, or
  *  (at your option) any later version.
  *
@@ -44,7 +44,7 @@
 
 /* Must be enough for EISA */
 #define MAX_SLOTS 8
-static __u8 __initdata id_array[MAX_SLOTS] = { [0 ... MAX_SLOTS-1] = 7 };
+static __u8 __initdata id_array[MAX_SLOTS] = { [0 ... MAX_SLOTS - 1] = 7 };
 
 static char *sim710;		/* command line passed by insmod */
 
@@ -55,9 +55,9 @@ MODULE_LICENSE("GPL");
 module_param(sim710, charp, 0);
 
 #ifdef MODULE
-#define ARG_SEP ' '
+	#define ARG_SEP ' '
 #else
-#define ARG_SEP ','
+	#define ARG_SEP ','
 #endif
 
 static __init int
@@ -66,28 +66,42 @@ param_setup(char *str)
 	char *pos = str, *next;
 	int slot = -1;
 
-	while(pos != NULL && (next = strchr(pos, ':')) != NULL) {
+	while (pos != NULL && (next = strchr(pos, ':')) != NULL)
+	{
 		int val = (int)simple_strtoul(++next, NULL, 0);
 
-		if(!strncmp(pos, "slot:", 5))
+		if (!strncmp(pos, "slot:", 5))
+		{
 			slot = val;
-		else if(!strncmp(pos, "id:", 3)) {
-			if(slot == -1) {
+		}
+		else if (!strncmp(pos, "id:", 3))
+		{
+			if (slot == -1)
+			{
 				printk(KERN_WARNING "sim710: Must specify slot for id parameter\n");
-			} else if(slot >= MAX_SLOTS) {
+			}
+			else if (slot >= MAX_SLOTS)
+			{
 				printk(KERN_WARNING "sim710: Illegal slot %d for id %d\n", slot, val);
-			} else {
+			}
+			else
+			{
 				id_array[slot] = val;
 			}
 		}
-		if((pos = strchr(pos, ARG_SEP)) != NULL)
+
+		if ((pos = strchr(pos, ARG_SEP)) != NULL)
+		{
 			pos++;
+		}
 	}
+
 	return 1;
 }
 __setup("sim710=", param_setup);
 
-static struct scsi_host_template sim710_driver_template = {
+static struct scsi_host_template sim710_driver_template =
+{
 	.name			= "LSI (Symbios) 710 EISA",
 	.proc_name		= "sim710",
 	.this_id		= 7,
@@ -95,25 +109,27 @@ static struct scsi_host_template sim710_driver_template = {
 };
 
 static int sim710_probe_common(struct device *dev, unsigned long base_addr,
-			       int irq, int clock, int differential,
-			       int scsi_id)
+							   int irq, int clock, int differential,
+							   int scsi_id)
 {
-	struct Scsi_Host * host = NULL;
+	struct Scsi_Host *host = NULL;
 	struct NCR_700_Host_Parameters *hostdata =
 		kzalloc(sizeof(struct NCR_700_Host_Parameters),	GFP_KERNEL);
 
 	printk(KERN_NOTICE "sim710: %s\n", dev_name(dev));
 	printk(KERN_NOTICE "sim710: irq = %d, clock = %d, base = 0x%lx, scsi_id = %d\n",
-	       irq, clock, base_addr, scsi_id);
+		   irq, clock, base_addr, scsi_id);
 
-	if(hostdata == NULL) {
+	if (hostdata == NULL)
+	{
 		printk(KERN_ERR "sim710: Failed to allocate host data\n");
 		goto out;
 	}
 
-	if(request_region(base_addr, 64, "sim710") == NULL) {
+	if (request_region(base_addr, 64, "sim710") == NULL)
+	{
 		printk(KERN_ERR "sim710: Failed to reserve IO region 0x%lx\n",
-		       base_addr);
+			   base_addr);
 		goto out_free;
 	}
 
@@ -125,15 +141,19 @@ static int sim710_probe_common(struct device *dev, unsigned long base_addr,
 	hostdata->burst_length = 8;
 
 	/* and register the chip */
-	if((host = NCR_700_detect(&sim710_driver_template, hostdata, dev))
-	   == NULL) {
+	if ((host = NCR_700_detect(&sim710_driver_template, hostdata, dev))
+		== NULL)
+	{
 		printk(KERN_ERR "sim710: No host detected; card configuration problem?\n");
 		goto out_release;
 	}
+
 	host->this_id = scsi_id;
 	host->base = base_addr;
 	host->irq = irq;
-	if (request_irq(irq, NCR_700_intr, IRQF_SHARED, "sim710", host)) {
+
+	if (request_irq(irq, NCR_700_intr, IRQF_SHARED, "sim710", host))
+	{
 		printk(KERN_ERR "sim710: request_irq failed\n");
 		goto out_put_host;
 	}
@@ -143,13 +163,13 @@ static int sim710_probe_common(struct device *dev, unsigned long base_addr,
 
 	return 0;
 
- out_put_host:
+out_put_host:
 	scsi_host_put(host);
- out_release:
+out_release:
 	release_region(base_addr, 64);
- out_free:
+out_free:
 	kfree(hostdata);
- out:
+out:
 	return -ENODEV;
 }
 
@@ -168,7 +188,8 @@ static int sim710_device_remove(struct device *dev)
 }
 
 #ifdef CONFIG_EISA
-static struct eisa_device_id sim710_eisa_ids[] = {
+static struct eisa_device_id sim710_eisa_ids[] =
+{
 	{ "CPQ4410" },
 	{ "CPQ4411" },
 	{ "HWP0C80" },
@@ -186,7 +207,8 @@ static int sim710_eisa_probe(struct device *dev)
 	unsigned char irq_index;
 	unsigned char irq, differential = 0, scsi_id = 7;
 
-	if(strcmp(edev->id.sig, "HWP0C80") == 0) {
+	if (strcmp(edev->id.sig, "HWP0C80") == 0)
+	{
 		__u8 val;
 		eisa_irqs =  eisa_hwp_irqs;
 		irq_index = (inb(io_addr + 0xc85) & 0x7) - 1;
@@ -194,27 +216,32 @@ static int sim710_eisa_probe(struct device *dev)
 		val = inb(io_addr + 0x4);
 		scsi_id = ffs(val) - 1;
 
-		if(scsi_id > 7 || (val & ~(1<<scsi_id)) != 0) {
+		if (scsi_id > 7 || (val & ~(1 << scsi_id)) != 0)
+		{
 			printk(KERN_ERR "sim710.c, EISA card %s has incorrect scsi_id, setting to 7\n", dev_name(dev));
 			scsi_id = 7;
 		}
-	} else {
+	}
+	else
+	{
 		eisa_irqs = eisa_cpq_irqs;
 		irq_index = inb(io_addr + 0xc88) & 0x07;
 	}
 
-	if(irq_index >= strlen(eisa_irqs)) {
+	if (irq_index >= strlen(eisa_irqs))
+	{
 		printk("sim710.c: irq nasty\n");
 		return -ENODEV;
 	}
 
 	irq = eisa_irqs[irq_index];
-		
+
 	return sim710_probe_common(dev, io_addr, irq, 50,
-				   differential, scsi_id);
+							   differential, scsi_id);
 }
 
-static struct eisa_driver sim710_eisa_driver = {
+static struct eisa_driver sim710_eisa_driver =
+{
 	.id_table		= sim710_eisa_ids,
 	.driver = {
 		.name		= "sim710",
@@ -229,8 +256,12 @@ static int __init sim710_init(void)
 	int err = -ENODEV;
 
 #ifdef MODULE
+
 	if (sim710)
+	{
 		param_setup(sim710);
+	}
+
 #endif
 
 #ifdef CONFIG_EISA

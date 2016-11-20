@@ -33,7 +33,8 @@
 
 #define HDMI_NUM_TX_CHANNEL			4
 
-struct hdmi_pll_8996 {
+struct hdmi_pll_8996
+{
 	struct platform_device *pdev;
 	struct clk_hw clk_hw;
 
@@ -45,7 +46,8 @@ struct hdmi_pll_8996 {
 
 #define hw_clk_to_pll(x) container_of(x, struct hdmi_pll_8996, clk_hw)
 
-struct hdmi_8996_phy_pll_reg_cfg {
+struct hdmi_8996_phy_pll_reg_cfg
+{
 	u32 tx_lx_lane_mode[HDMI_NUM_TX_CHANNEL];
 	u32 tx_lx_tx_band[HDMI_NUM_TX_CHANNEL];
 	u32 com_svs_mode_clk_sel;
@@ -77,7 +79,8 @@ struct hdmi_8996_phy_pll_reg_cfg {
 	u32 phy_mode;
 };
 
-struct hdmi_8996_post_divider {
+struct hdmi_8996_post_divider
+{
 	u64 vco_freq;
 	int hsclk_divsel;
 	int vco_ratio;
@@ -91,7 +94,7 @@ static inline struct hdmi_phy *pll_get_phy(struct hdmi_pll_8996 *pll)
 }
 
 static inline void hdmi_pll_write(struct hdmi_pll_8996 *pll, int offset,
-				  u32 data)
+								  u32 data)
 {
 	msm_writel(data, pll->mmio_qserdes_com + offset);
 }
@@ -102,16 +105,18 @@ static inline u32 hdmi_pll_read(struct hdmi_pll_8996 *pll, int offset)
 }
 
 static inline void hdmi_tx_chan_write(struct hdmi_pll_8996 *pll, int channel,
-				      int offset, int data)
+									  int offset, int data)
 {
-	 msm_writel(data, pll->mmio_qserdes_tx[channel] + offset);
+	msm_writel(data, pll->mmio_qserdes_tx[channel] + offset);
 }
 
 static inline u32 pll_get_cpctrl(u64 frac_start, unsigned long ref_clk,
-				 bool gen_ssc)
+								 bool gen_ssc)
 {
 	if ((frac_start != 0) || gen_ssc)
+	{
 		return (11000000 / (ref_clk / 20));
+	}
 
 	return 0x23;
 }
@@ -119,7 +124,9 @@ static inline u32 pll_get_cpctrl(u64 frac_start, unsigned long ref_clk,
 static inline u32 pll_get_rctrl(u64 frac_start, bool gen_ssc)
 {
 	if ((frac_start != 0) || gen_ssc)
+	{
 		return 0x16;
+	}
 
 	return 0x10;
 }
@@ -127,21 +134,27 @@ static inline u32 pll_get_rctrl(u64 frac_start, bool gen_ssc)
 static inline u32 pll_get_cctrl(u64 frac_start, bool gen_ssc)
 {
 	if ((frac_start != 0) || gen_ssc)
+	{
 		return 0x28;
+	}
 
 	return 0x1;
 }
 
 static inline u32 pll_get_integloop_gain(u64 frac_start, u64 bclk, u32 ref_clk,
-					 bool gen_ssc)
+		bool gen_ssc)
 {
 	int digclk_divsel = bclk >= HDMI_DIG_FREQ_BIT_CLK_THRESHOLD ? 1 : 2;
 	u64 base;
 
 	if ((frac_start != 0) || gen_ssc)
+	{
 		base = (64 * ref_clk) / HDMI_DEFAULT_REF_CLOCK;
+	}
 	else
+	{
 		base = (1022 * ref_clk) / 100;
+	}
 
 	base <<= digclk_divsel;
 
@@ -155,8 +168,11 @@ static inline u32 pll_get_pll_cmp(u64 fdata, unsigned long ref_clk)
 	u32 rem;
 
 	rem = do_div(dividend, divisor);
+
 	if (rem > (divisor >> 1))
+	{
 		dividend++;
+	}
 
 	return dividend - 1;
 }
@@ -185,8 +201,11 @@ retry:
 	vco_optimal = HDMI_VCO_MAX_FREQ;
 	vco_optimal_index = -1;
 	vco_freq_index = 0;
-	for (i = 0; i < 15; i++) {
-		for (j = 0; j < 4; j++) {
+
+	for (i = 0; i < 15; i++)
+	{
+		for (j = 0; j < 4; j++)
+		{
 			u32 ratio_mult = ratio[i] << tx_band_sel[j];
 
 			vco = bclk >> half_rate_mode;
@@ -195,22 +214,28 @@ retry:
 		}
 	}
 
-	for (i = 0; i < 60; i++) {
+	for (i = 0; i < 60; i++)
+	{
 		u64 vco_tmp = vco_freq[i];
 
 		if ((vco_tmp >= HDMI_VCO_MIN_FREQ) &&
-		    (vco_tmp <= vco_optimal)) {
+			(vco_tmp <= vco_optimal))
+		{
 			vco_optimal = vco_tmp;
 			vco_optimal_index = i;
 		}
 	}
 
-	if (vco_optimal_index == -1) {
-		if (!half_rate_mode) {
+	if (vco_optimal_index == -1)
+	{
+		if (!half_rate_mode)
+		{
 			half_rate_mode = 1;
 			goto retry;
 		}
-	} else {
+	}
+	else
+	{
 		pd->vco_freq = vco_optimal;
 		pd->tx_band_sel = tx_band_sel[vco_optimal_index % 4];
 		pd->vco_ratio = ratio[vco_optimal_index / 4];
@@ -223,7 +248,7 @@ retry:
 }
 
 static int pll_calculate(unsigned long pix_clk, unsigned long ref_clk,
-			 struct hdmi_8996_phy_pll_reg_cfg *cfg)
+						 struct hdmi_8996_phy_pll_reg_cfg *cfg)
 {
 	struct hdmi_8996_post_divider pd;
 	u64 bclk;
@@ -244,13 +269,20 @@ static int pll_calculate(unsigned long pix_clk, unsigned long ref_clk,
 	bclk = ((u64)pix_clk) * 10;
 
 	if (bclk > HDMI_HIGH_FREQ_BIT_CLK_THRESHOLD)
+	{
 		tmds_clk = pix_clk >> 2;
+	}
 	else
+	{
 		tmds_clk = pix_clk;
+	}
 
 	ret = pll_get_post_div(&pd, bclk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	dec_start = pd.vco_freq;
 	pll_divisor = 4 * ref_clk;
@@ -260,14 +292,17 @@ static int pll_calculate(unsigned long pix_clk, unsigned long ref_clk,
 
 	rem = do_div(frac_start, pll_divisor);
 	frac_start -= dec_start * (1 << 20);
+
 	if (rem > (pll_divisor >> 1))
+	{
 		frac_start++;
+	}
 
 	cpctrl = pll_get_cpctrl(frac_start, ref_clk, false);
 	rctrl = pll_get_rctrl(frac_start, false);
 	cctrl = pll_get_cctrl(frac_start, false);
 	integloop_gain = pll_get_integloop_gain(frac_start, bclk,
-						ref_clk, false);
+											ref_clk, false);
 
 	fdata = pd.vco_freq;
 	do_div(fdata, pd.vco_ratio);
@@ -290,9 +325,13 @@ static int pll_calculate(unsigned long pix_clk, unsigned long ref_clk,
 
 	/* Convert these values to register specific values */
 	if (bclk > HDMI_DIG_FREQ_BIT_CLK_THRESHOLD)
+	{
 		cfg->com_svs_mode_clk_sel = 1;
+	}
 	else
+	{
 		cfg->com_svs_mode_clk_sel = 2;
+	}
 
 	cfg->com_hsclk_sel = (0x20 | pd.hsclk_divsel);
 	cfg->com_pll_cctrl_mode0 = cctrl;
@@ -318,35 +357,41 @@ static int pll_calculate(unsigned long pix_clk, unsigned long ref_clk,
 
 	cfg->tx_lx_hp_pd_enables[0] =
 		cfg->tx_lx_hp_pd_enables[1] =
-		cfg->tx_lx_hp_pd_enables[2] = 0x0c;
+			cfg->tx_lx_hp_pd_enables[2] = 0x0c;
 	cfg->tx_lx_hp_pd_enables[3] = 0x3;
 
 	for (i = 0; i < HDMI_NUM_TX_CHANNEL; i++)
+	{
 		cfg->tx_lx_tx_band[i] = pd.tx_band_sel + 4;
+	}
 
-	if (bclk > HDMI_HIGH_FREQ_BIT_CLK_THRESHOLD) {
+	if (bclk > HDMI_HIGH_FREQ_BIT_CLK_THRESHOLD)
+	{
 		cfg->tx_lx_tx_drv_lvl[0] =
 			cfg->tx_lx_tx_drv_lvl[1] =
-			cfg->tx_lx_tx_drv_lvl[2] = 0x25;
+				cfg->tx_lx_tx_drv_lvl[2] = 0x25;
 		cfg->tx_lx_tx_drv_lvl[3] = 0x22;
 
 		cfg->tx_lx_tx_emp_post1_lvl[0] =
 			cfg->tx_lx_tx_emp_post1_lvl[1] =
-			cfg->tx_lx_tx_emp_post1_lvl[2] = 0x23;
+				cfg->tx_lx_tx_emp_post1_lvl[2] = 0x23;
 		cfg->tx_lx_tx_emp_post1_lvl[3] = 0x27;
 
 		cfg->tx_lx_vmode_ctrl1[0] =
 			cfg->tx_lx_vmode_ctrl1[1] =
-			cfg->tx_lx_vmode_ctrl1[2] =
-			cfg->tx_lx_vmode_ctrl1[3] = 0x00;
+				cfg->tx_lx_vmode_ctrl1[2] =
+					cfg->tx_lx_vmode_ctrl1[3] = 0x00;
 
 		cfg->tx_lx_vmode_ctrl2[0] =
 			cfg->tx_lx_vmode_ctrl2[1] =
-			cfg->tx_lx_vmode_ctrl2[2] = 0x0D;
+				cfg->tx_lx_vmode_ctrl2[2] = 0x0D;
 
 		cfg->tx_lx_vmode_ctrl2[3] = 0x00;
-	} else if (bclk > HDMI_MID_FREQ_BIT_CLK_THRESHOLD) {
-		for (i = 0; i < HDMI_NUM_TX_CHANNEL; i++) {
+	}
+	else if (bclk > HDMI_MID_FREQ_BIT_CLK_THRESHOLD)
+	{
+		for (i = 0; i < HDMI_NUM_TX_CHANNEL; i++)
+		{
 			cfg->tx_lx_tx_drv_lvl[i] = 0x25;
 			cfg->tx_lx_tx_emp_post1_lvl[i] = 0x23;
 			cfg->tx_lx_vmode_ctrl1[i] = 0x00;
@@ -354,10 +399,13 @@ static int pll_calculate(unsigned long pix_clk, unsigned long ref_clk,
 
 		cfg->tx_lx_vmode_ctrl2[0] =
 			cfg->tx_lx_vmode_ctrl2[1] =
-			cfg->tx_lx_vmode_ctrl2[2] = 0x0D;
+				cfg->tx_lx_vmode_ctrl2[2] = 0x0D;
 		cfg->tx_lx_vmode_ctrl2[3] = 0x00;
-	} else {
-		for (i = 0; i < HDMI_NUM_TX_CHANNEL; i++) {
+	}
+	else
+	{
+		for (i = 0; i < HDMI_NUM_TX_CHANNEL; i++)
+		{
 			cfg->tx_lx_tx_drv_lvl[i] = 0x20;
 			cfg->tx_lx_tx_emp_post1_lvl[i] = 0x20;
 			cfg->tx_lx_vmode_ctrl1[i] = 0x00;
@@ -387,11 +435,12 @@ static int pll_calculate(unsigned long pix_clk, unsigned long ref_clk,
 	DBG("tx_l0_lane_mode = 0x%x", cfg->tx_lx_lane_mode[0]);
 	DBG("tx_l2_lane_mode = 0x%x", cfg->tx_lx_lane_mode[2]);
 
-	for (i = 0; i < HDMI_NUM_TX_CHANNEL; i++) {
+	for (i = 0; i < HDMI_NUM_TX_CHANNEL; i++)
+	{
 		DBG("tx_l%d_tx_band = 0x%x", i, cfg->tx_lx_tx_band[i]);
 		DBG("tx_l%d_tx_drv_lvl = 0x%x", i, cfg->tx_lx_tx_drv_lvl[i]);
 		DBG("tx_l%d_tx_emp_post1_lvl = 0x%x", i,
-		    cfg->tx_lx_tx_emp_post1_lvl[i]);
+			cfg->tx_lx_tx_emp_post1_lvl[i]);
 		DBG("tx_l%d_vmode_ctrl1 = 0x%x", i, cfg->tx_lx_vmode_ctrl1[i]);
 		DBG("tx_l%d_vmode_ctrl2 = 0x%x", i, cfg->tx_lx_vmode_ctrl2[i]);
 	}
@@ -400,7 +449,7 @@ static int pll_calculate(unsigned long pix_clk, unsigned long ref_clk,
 }
 
 static int hdmi_8996_pll_set_clk_rate(struct clk_hw *hw, unsigned long rate,
-				      unsigned long parent_rate)
+									  unsigned long parent_rate)
 {
 	struct hdmi_pll_8996 *pll = hw_clk_to_pll(hw);
 	struct hdmi_phy *phy = pll_get_phy(pll);
@@ -410,7 +459,9 @@ static int hdmi_8996_pll_set_clk_rate(struct clk_hw *hw, unsigned long rate,
 	memset(&cfg, 0x00, sizeof(cfg));
 
 	ret = pll_calculate(rate, parent_rate, &cfg);
-	if (ret) {
+
+	if (ret)
+	{
 		DRM_ERROR("PLL calculation failed\n");
 		return ret;
 	}
@@ -428,22 +479,23 @@ static int hdmi_8996_pll_set_clk_rate(struct clk_hw *hw, unsigned long rate,
 	hdmi_phy_write(phy, REG_HDMI_8996_PHY_TX0_TX1_LANE_CTL, 0x0F);
 	hdmi_phy_write(phy, REG_HDMI_8996_PHY_TX2_TX3_LANE_CTL, 0x0F);
 
-	for (i = 0; i < HDMI_NUM_TX_CHANNEL; i++) {
+	for (i = 0; i < HDMI_NUM_TX_CHANNEL; i++)
+	{
 		hdmi_tx_chan_write(pll, i,
-				   REG_HDMI_PHY_QSERDES_TX_LX_CLKBUF_ENABLE,
-				   0x03);
+						   REG_HDMI_PHY_QSERDES_TX_LX_CLKBUF_ENABLE,
+						   0x03);
 		hdmi_tx_chan_write(pll, i,
-				   REG_HDMI_PHY_QSERDES_TX_LX_TX_BAND,
-				   cfg.tx_lx_tx_band[i]);
+						   REG_HDMI_PHY_QSERDES_TX_LX_TX_BAND,
+						   cfg.tx_lx_tx_band[i]);
 		hdmi_tx_chan_write(pll, i,
-				   REG_HDMI_PHY_QSERDES_TX_LX_RESET_TSYNC_EN,
-				   0x03);
+						   REG_HDMI_PHY_QSERDES_TX_LX_RESET_TSYNC_EN,
+						   0x03);
 	}
 
 	hdmi_tx_chan_write(pll, 0, REG_HDMI_PHY_QSERDES_TX_LX_LANE_MODE,
-			   cfg.tx_lx_lane_mode[0]);
+					   cfg.tx_lx_lane_mode[0]);
 	hdmi_tx_chan_write(pll, 2, REG_HDMI_PHY_QSERDES_TX_LX_LANE_MODE,
-			   cfg.tx_lx_lane_mode[2]);
+					   cfg.tx_lx_lane_mode[2]);
 
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_SYSCLK_BUF_ENABLE, 0x1E);
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_BIAS_EN_CLKBUFLR_EN, 0x07);
@@ -453,86 +505,87 @@ static int hdmi_8996_pll_set_clk_rate(struct clk_hw *hw, unsigned long rate,
 
 	/* Bypass VCO calibration */
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_SVS_MODE_CLK_SEL,
-		       cfg.com_svs_mode_clk_sel);
+				   cfg.com_svs_mode_clk_sel);
 
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_BG_TRIM, 0x0F);
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_PLL_IVCO, 0x0F);
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_VCO_TUNE_CTRL,
-		       cfg.com_vco_tune_ctrl);
+				   cfg.com_vco_tune_ctrl);
 
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_BG_CTRL, 0x06);
 
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_CLK_SELECT, 0x30);
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_HSCLK_SEL,
-		       cfg.com_hsclk_sel);
+				   cfg.com_hsclk_sel);
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_LOCK_CMP_EN,
-		       cfg.com_lock_cmp_en);
+				   cfg.com_lock_cmp_en);
 
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_PLL_CCTRL_MODE0,
-		       cfg.com_pll_cctrl_mode0);
+				   cfg.com_pll_cctrl_mode0);
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_PLL_RCTRL_MODE0,
-		       cfg.com_pll_rctrl_mode0);
+				   cfg.com_pll_rctrl_mode0);
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_CP_CTRL_MODE0,
-		       cfg.com_cp_ctrl_mode0);
+				   cfg.com_cp_ctrl_mode0);
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_DEC_START_MODE0,
-		       cfg.com_dec_start_mode0);
+				   cfg.com_dec_start_mode0);
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_DIV_FRAC_START1_MODE0,
-		       cfg.com_div_frac_start1_mode0);
+				   cfg.com_div_frac_start1_mode0);
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_DIV_FRAC_START2_MODE0,
-		       cfg.com_div_frac_start2_mode0);
+				   cfg.com_div_frac_start2_mode0);
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_DIV_FRAC_START3_MODE0,
-		       cfg.com_div_frac_start3_mode0);
+				   cfg.com_div_frac_start3_mode0);
 
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_INTEGLOOP_GAIN0_MODE0,
-		       cfg.com_integloop_gain0_mode0);
+				   cfg.com_integloop_gain0_mode0);
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_INTEGLOOP_GAIN1_MODE0,
-		       cfg.com_integloop_gain1_mode0);
+				   cfg.com_integloop_gain1_mode0);
 
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_LOCK_CMP1_MODE0,
-		       cfg.com_lock_cmp1_mode0);
+				   cfg.com_lock_cmp1_mode0);
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_LOCK_CMP2_MODE0,
-		       cfg.com_lock_cmp2_mode0);
+				   cfg.com_lock_cmp2_mode0);
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_LOCK_CMP3_MODE0,
-		       cfg.com_lock_cmp3_mode0);
+				   cfg.com_lock_cmp3_mode0);
 
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_VCO_TUNE_MAP, 0x00);
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_CORE_CLK_EN,
-		       cfg.com_core_clk_en);
+				   cfg.com_core_clk_en);
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_CORECLK_DIV,
-		       cfg.com_coreclk_div);
+				   cfg.com_coreclk_div);
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_CMN_CONFIG, 0x02);
 
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_RESCODE_DIV_NUM, 0x15);
 
 	/* TX lanes setup (TX 0/1/2/3) */
-	for (i = 0; i < HDMI_NUM_TX_CHANNEL; i++) {
+	for (i = 0; i < HDMI_NUM_TX_CHANNEL; i++)
+	{
 		hdmi_tx_chan_write(pll, i,
-				   REG_HDMI_PHY_QSERDES_TX_LX_TX_DRV_LVL,
-				   cfg.tx_lx_tx_drv_lvl[i]);
+						   REG_HDMI_PHY_QSERDES_TX_LX_TX_DRV_LVL,
+						   cfg.tx_lx_tx_drv_lvl[i]);
 		hdmi_tx_chan_write(pll, i,
-				   REG_HDMI_PHY_QSERDES_TX_LX_TX_EMP_POST1_LVL,
-				   cfg.tx_lx_tx_emp_post1_lvl[i]);
+						   REG_HDMI_PHY_QSERDES_TX_LX_TX_EMP_POST1_LVL,
+						   cfg.tx_lx_tx_emp_post1_lvl[i]);
 		hdmi_tx_chan_write(pll, i,
-				   REG_HDMI_PHY_QSERDES_TX_LX_VMODE_CTRL1,
-				   cfg.tx_lx_vmode_ctrl1[i]);
+						   REG_HDMI_PHY_QSERDES_TX_LX_VMODE_CTRL1,
+						   cfg.tx_lx_vmode_ctrl1[i]);
 		hdmi_tx_chan_write(pll, i,
-				   REG_HDMI_PHY_QSERDES_TX_LX_VMODE_CTRL2,
-				   cfg.tx_lx_vmode_ctrl2[i]);
+						   REG_HDMI_PHY_QSERDES_TX_LX_VMODE_CTRL2,
+						   cfg.tx_lx_vmode_ctrl2[i]);
 		hdmi_tx_chan_write(pll, i,
-				   REG_HDMI_PHY_QSERDES_TX_LX_TX_DRV_LVL_OFFSET,
-				   0x00);
+						   REG_HDMI_PHY_QSERDES_TX_LX_TX_DRV_LVL_OFFSET,
+						   0x00);
 		hdmi_tx_chan_write(pll, i,
-			REG_HDMI_PHY_QSERDES_TX_LX_RES_CODE_LANE_OFFSET,
-			0x00);
+						   REG_HDMI_PHY_QSERDES_TX_LX_RES_CODE_LANE_OFFSET,
+						   0x00);
 		hdmi_tx_chan_write(pll, i,
-			REG_HDMI_PHY_QSERDES_TX_LX_TRAN_DRVR_EMP_EN,
-			0x03);
+						   REG_HDMI_PHY_QSERDES_TX_LX_TRAN_DRVR_EMP_EN,
+						   0x03);
 		hdmi_tx_chan_write(pll, i,
-			REG_HDMI_PHY_QSERDES_TX_LX_PARRATE_REC_DETECT_IDLE_EN,
-			0x40);
+						   REG_HDMI_PHY_QSERDES_TX_LX_PARRATE_REC_DETECT_IDLE_EN,
+						   0x40);
 		hdmi_tx_chan_write(pll, i,
-				   REG_HDMI_PHY_QSERDES_TX_LX_HP_PD_ENABLES,
-				   cfg.tx_lx_hp_pd_enables[i]);
+						   REG_HDMI_PHY_QSERDES_TX_LX_HP_PD_ENABLES,
+						   cfg.tx_lx_hp_pd_enables[i]);
 	}
 
 	hdmi_phy_write(phy, REG_HDMI_8996_PHY_MODE, cfg.phy_mode);
@@ -556,12 +609,15 @@ static int hdmi_8996_phy_ready_status(struct hdmi_phy *phy)
 
 	DBG("Waiting for PHY ready");
 
-	while (nb_tries--) {
+	while (nb_tries--)
+	{
 		status = hdmi_phy_read(phy, REG_HDMI_8996_PHY_STATUS);
 		phy_ready = status & BIT(0);
 
 		if (phy_ready)
+		{
 			break;
+		}
 
 		udelay(timeout);
 	}
@@ -580,13 +636,16 @@ static int hdmi_8996_pll_lock_status(struct hdmi_pll_8996 *pll)
 
 	DBG("Waiting for PLL lock");
 
-	while (nb_tries--) {
+	while (nb_tries--)
+	{
 		status = hdmi_pll_read(pll,
-				       REG_HDMI_PHY_QSERDES_COM_C_READY_STATUS);
+							   REG_HDMI_PHY_QSERDES_COM_C_READY_STATUS);
 		pll_locked = status & BIT(0);
 
 		if (pll_locked)
+		{
 			break;
+		}
 
 		udelay(timeout);
 	}
@@ -609,13 +668,16 @@ static int hdmi_8996_pll_prepare(struct clk_hw *hw)
 	udelay(100);
 
 	ret = hdmi_8996_pll_lock_status(pll);
+
 	if (!ret)
+	{
 		return ret;
+	}
 
 	for (i = 0; i < HDMI_NUM_TX_CHANNEL; i++)
 		hdmi_tx_chan_write(pll, i,
-			REG_HDMI_PHY_QSERDES_TX_LX_HIGHZ_TRANSCEIVEREN_BIAS_DRVR_EN,
-			0x6F);
+						   REG_HDMI_PHY_QSERDES_TX_LX_HIGHZ_TRANSCEIVEREN_BIAS_DRVR_EN,
+						   0x6F);
 
 	/* Disable SSC */
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_SSC_PER1, 0x0);
@@ -625,8 +687,11 @@ static int hdmi_8996_pll_prepare(struct clk_hw *hw)
 	hdmi_pll_write(pll, REG_HDMI_PHY_QSERDES_COM_SSC_EN_CENTER, 0x2);
 
 	ret = hdmi_8996_phy_ready_status(phy);
+
 	if (!ret)
+	{
 		return ret;
+	}
 
 	/* Restart the retiming buffer */
 	hdmi_phy_write(phy, REG_HDMI_8996_PHY_CFG, 0x18);
@@ -637,19 +702,25 @@ static int hdmi_8996_pll_prepare(struct clk_hw *hw)
 }
 
 static long hdmi_8996_pll_round_rate(struct clk_hw *hw,
-				     unsigned long rate,
-				     unsigned long *parent_rate)
+									 unsigned long rate,
+									 unsigned long *parent_rate)
 {
 	if (rate < HDMI_PCLK_MIN_FREQ)
+	{
 		return HDMI_PCLK_MIN_FREQ;
+	}
 	else if (rate > HDMI_PCLK_MAX_FREQ)
+	{
 		return HDMI_PCLK_MAX_FREQ;
+	}
 	else
+	{
 		return rate;
+	}
 }
 
 static unsigned long hdmi_8996_pll_recalc_rate(struct clk_hw *hw,
-					       unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct hdmi_pll_8996 *pll = hw_clk_to_pll(hw);
 	u64 fdata;
@@ -684,7 +755,8 @@ static int hdmi_8996_pll_is_enabled(struct clk_hw *hw)
 	return pll_locked;
 }
 
-static struct clk_ops hdmi_8996_pll_ops = {
+static struct clk_ops hdmi_8996_pll_ops =
+{
 	.set_rate = hdmi_8996_pll_set_clk_rate,
 	.round_rate = hdmi_8996_pll_round_rate,
 	.recalc_rate = hdmi_8996_pll_recalc_rate,
@@ -693,11 +765,13 @@ static struct clk_ops hdmi_8996_pll_ops = {
 	.is_enabled = hdmi_8996_pll_is_enabled,
 };
 
-static const char * const hdmi_pll_parents[] = {
+static const char *const hdmi_pll_parents[] =
+{
 	"xo",
 };
 
-static struct clk_init_data pll_init = {
+static struct clk_init_data pll_init =
+{
 	.name = "hdmipll",
 	.ops = &hdmi_8996_pll_ops,
 	.parent_names = hdmi_pll_parents,
@@ -713,33 +787,44 @@ int msm_hdmi_pll_8996_init(struct platform_device *pdev)
 	int i;
 
 	pll = devm_kzalloc(dev, sizeof(*pll), GFP_KERNEL);
+
 	if (!pll)
+	{
 		return -ENOMEM;
+	}
 
 	pll->pdev = pdev;
 
 	pll->mmio_qserdes_com = msm_ioremap(pdev, "hdmi_pll", "HDMI_PLL");
-	if (IS_ERR(pll->mmio_qserdes_com)) {
+
+	if (IS_ERR(pll->mmio_qserdes_com))
+	{
 		dev_err(dev, "failed to map pll base\n");
 		return -ENOMEM;
 	}
 
-	for (i = 0; i < HDMI_NUM_TX_CHANNEL; i++) {
+	for (i = 0; i < HDMI_NUM_TX_CHANNEL; i++)
+	{
 		char name[32], label[32];
 
 		snprintf(name, sizeof(name), "hdmi_tx_l%d", i);
 		snprintf(label, sizeof(label), "HDMI_TX_L%d", i);
 
 		pll->mmio_qserdes_tx[i] = msm_ioremap(pdev, name, label);
-		if (IS_ERR(pll->mmio_qserdes_tx[i])) {
+
+		if (IS_ERR(pll->mmio_qserdes_tx[i]))
+		{
 			dev_err(dev, "failed to map pll base\n");
 			return -ENOMEM;
 		}
 	}
+
 	pll->clk_hw.init = &pll_init;
 
 	clk = devm_clk_register(dev, &pll->clk_hw);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		dev_err(dev, "failed to register pll clock\n");
 		return -EINVAL;
 	}
@@ -747,18 +832,21 @@ int msm_hdmi_pll_8996_init(struct platform_device *pdev)
 	return 0;
 }
 
-static const char * const hdmi_phy_8996_reg_names[] = {
+static const char *const hdmi_phy_8996_reg_names[] =
+{
 	"vddio",
 	"vcca",
 };
 
-static const char * const hdmi_phy_8996_clk_names[] = {
+static const char *const hdmi_phy_8996_clk_names[] =
+{
 	"mmagic_iface_clk",
 	"iface_clk",
 	"ref_clk",
 };
 
-const struct hdmi_phy_cfg msm_hdmi_phy_8996_cfg = {
+const struct hdmi_phy_cfg msm_hdmi_phy_8996_cfg =
+{
 	.type = MSM_HDMI_PHY_8996,
 	.reg_names = hdmi_phy_8996_reg_names,
 	.num_regs = ARRAY_SIZE(hdmi_phy_8996_reg_names),

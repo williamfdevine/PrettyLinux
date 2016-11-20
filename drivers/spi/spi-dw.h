@@ -81,24 +81,27 @@
 /* TX RX interrupt level threshold, max can be 256 */
 #define SPI_INT_THRESHOLD		32
 
-enum dw_ssi_type {
+enum dw_ssi_type
+{
 	SSI_MOTO_SPI = 0,
 	SSI_TI_SSP,
 	SSI_NS_MICROWIRE,
 };
 
 struct dw_spi;
-struct dw_spi_dma_ops {
+struct dw_spi_dma_ops
+{
 	int (*dma_init)(struct dw_spi *dws);
 	void (*dma_exit)(struct dw_spi *dws);
 	int (*dma_setup)(struct dw_spi *dws, struct spi_transfer *xfer);
 	bool (*can_dma)(struct spi_master *master, struct spi_device *spi,
-			struct spi_transfer *xfer);
+					struct spi_transfer *xfer);
 	int (*dma_transfer)(struct dw_spi *dws, struct spi_transfer *xfer);
 	void (*dma_stop)(struct dw_spi *dws);
 };
 
-struct dw_spi {
+struct dw_spi
+{
 	struct spi_master	*master;
 	enum dw_ssi_type	type;
 	char			name[16];
@@ -164,25 +167,29 @@ static inline void dw_writew(struct dw_spi *dws, u32 offset, u16 val)
 
 static inline u32 dw_read_io_reg(struct dw_spi *dws, u32 offset)
 {
-	switch (dws->reg_io_width) {
-	case 2:
-		return dw_readw(dws, offset);
-	case 4:
-	default:
-		return dw_readl(dws, offset);
+	switch (dws->reg_io_width)
+	{
+		case 2:
+			return dw_readw(dws, offset);
+
+		case 4:
+		default:
+			return dw_readl(dws, offset);
 	}
 }
 
 static inline void dw_write_io_reg(struct dw_spi *dws, u32 offset, u32 val)
 {
-	switch (dws->reg_io_width) {
-	case 2:
-		dw_writew(dws, offset, val);
-		break;
-	case 4:
-	default:
-		dw_writel(dws, offset, val);
-		break;
+	switch (dws->reg_io_width)
+	{
+		case 2:
+			dw_writew(dws, offset, val);
+			break;
+
+		case 4:
+		default:
+			dw_writel(dws, offset, val);
+			break;
 	}
 }
 
@@ -238,7 +245,8 @@ static inline void spi_shutdown_chip(struct dw_spi *dws)
  * which can be save in the "controller_data" member of the
  * struct spi_device.
  */
-struct dw_spi_chip {
+struct dw_spi_chip
+{
 	u8 poll_mode;	/* 1 for controller polling mode */
 	u8 type;	/* SPI/SSP/MicroWire */
 	void (*cs_control)(u32 command);

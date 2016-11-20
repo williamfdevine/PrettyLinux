@@ -32,13 +32,15 @@
 #include "xfs_trace.h"
 #include "xfs_ag_resv.h"
 
-struct xfs_fstrm_item {
+struct xfs_fstrm_item
+{
 	struct xfs_mru_cache_elem	mru;
 	struct xfs_inode		*ip;
 	xfs_agnumber_t			ag; /* AG in use for this directory */
 };
 
-enum xfs_fstrm_alloc {
+enum xfs_fstrm_alloc
+{
 	XFS_PICK_USERDATA = 1,
 	XFS_PICK_LOWSPACE = 2,
 };
@@ -164,14 +166,18 @@ xfs_filestream_pick_ag(
 	/* For the first pass, don't sleep trying to init the per-AG. */
 	trylock = XFS_ALLOC_FLAG_TRYLOCK;
 
-	for (nscan = 0; 1; nscan++) {
+	for (nscan = 0; 1; nscan++)
+	{
 		trace_xfs_filestream_scan(ip, ag);
 
 		pag = xfs_perag_get(mp, ag);
 
-		if (!pag->pagf_init) {
+		if (!pag->pagf_init)
+		{
 			err = xfs_alloc_pagf_init(mp, NULL, ag, trylock);
-			if (err && !trylock) {
+
+			if (err && !trylock)
+			{
 				xfs_perag_put(pag);
 				return err;
 			}
@@ -179,10 +185,13 @@ xfs_filestream_pick_ag(
 
 		/* Might fail sometimes during the 1st pass with trylock set. */
 		if (!pag->pagf_init)
+		{
 			goto next_ag;
+		}
 
 		/* Keep track of the AG with the most free blocks. */
-		if (pag->pagf_freeblks > maxfree) {
+		if (pag->pagf_freeblks > maxfree)
+		{
 			maxfree = pag->pagf_freeblks;
 			max_ag = ag;
 		}
@@ -193,18 +202,21 @@ xfs_filestream_pick_ag(
 		 * loop, and it guards against two filestreams being established
 		 * in the same AG as each other.
 		 */
-		if (xfs_filestream_get_ag(mp, ag) > 1) {
+		if (xfs_filestream_get_ag(mp, ag) > 1)
+		{
 			xfs_filestream_put_ag(mp, ag);
 			goto next_ag;
 		}
 
 		longest = xfs_alloc_longest_free_extent(mp, pag,
-				xfs_alloc_min_freelist(mp, pag),
-				xfs_ag_resv_needed(pag, XFS_AG_RESV_NONE));
+												xfs_alloc_min_freelist(mp, pag),
+												xfs_ag_resv_needed(pag, XFS_AG_RESV_NONE));
+
 		if (((minlen && longest >= minlen) ||
-		     (!minlen && pag->pagf_freeblks >= minfree)) &&
-		    (!pag->pagf_metadata || !(flags & XFS_PICK_USERDATA) ||
-		     (flags & XFS_PICK_LOWSPACE))) {
+			 (!minlen && pag->pagf_freeblks >= minfree)) &&
+			(!pag->pagf_metadata || !(flags & XFS_PICK_USERDATA) ||
+			 (flags & XFS_PICK_LOWSPACE)))
+		{
 
 			/* Break out, retaining the reference on the AG. */
 			free = pag->pagf_freeblks;
@@ -217,22 +229,29 @@ xfs_filestream_pick_ag(
 		xfs_filestream_put_ag(mp, ag);
 next_ag:
 		xfs_perag_put(pag);
+
 		/* Move to the next AG, wrapping to AG 0 if necessary. */
 		if (++ag >= mp->m_sb.sb_agcount)
+		{
 			ag = 0;
+		}
 
 		/* If a full pass of the AGs hasn't been done yet, continue. */
 		if (ag != startag)
+		{
 			continue;
+		}
 
 		/* Allow sleeping in xfs_alloc_pagf_init() on the 2nd pass. */
-		if (trylock != 0) {
+		if (trylock != 0)
+		{
 			trylock = 0;
 			continue;
 		}
 
 		/* Finally, if lowspace wasn't set, set it for the 3rd pass. */
-		if (!(flags & XFS_PICK_LOWSPACE)) {
+		if (!(flags & XFS_PICK_LOWSPACE))
+		{
 			flags |= XFS_PICK_LOWSPACE;
 			continue;
 		}
@@ -241,7 +260,8 @@ next_ag:
 		 * Take the AG with the most free space, regardless of whether
 		 * it's already in use by another filestream.
 		 */
-		if (max_ag != NULLAGNUMBER) {
+		if (max_ag != NULLAGNUMBER)
+		{
 			xfs_filestream_get_ag(mp, max_ag);
 			free = maxfree;
 			*agp = max_ag;
@@ -257,20 +277,30 @@ next_ag:
 	trace_xfs_filestream_pick(ip, *agp, free, nscan);
 
 	if (*agp == NULLAGNUMBER)
+	{
 		return 0;
+	}
 
 	err = -ENOMEM;
 	item = kmem_alloc(sizeof(*item), KM_MAYFAIL);
+
 	if (!item)
+	{
 		goto out_put_ag;
+	}
 
 	item->ag = *agp;
 	item->ip = ip;
 
 	err = xfs_mru_cache_insert(mp->m_filestream, ip->i_ino, &item->mru);
-	if (err) {
+
+	if (err)
+	{
 		if (err == -EEXIST)
+		{
 			err = 0;
+		}
+
 		goto out_free_item;
 	}
 
@@ -291,12 +321,18 @@ xfs_filestream_get_parent(
 	struct dentry		*dentry, *parent;
 
 	dentry = d_find_alias(inode);
+
 	if (!dentry)
+	{
 		goto out;
+	}
 
 	parent = dget_parent(dentry);
+
 	if (!parent)
+	{
 		goto out_dput;
+	}
 
 	dir = igrab(d_inode(parent));
 	dput(parent);
@@ -325,11 +361,16 @@ xfs_filestream_lookup_ag(
 	ASSERT(S_ISREG(VFS_I(ip)->i_mode));
 
 	pip = xfs_filestream_get_parent(ip);
+
 	if (!pip)
+	{
 		return NULLAGNUMBER;
+	}
 
 	mru = xfs_mru_cache_lookup(mp->m_filestream, pip->i_ino);
-	if (mru) {
+
+	if (mru)
+	{
 		ag = container_of(mru, struct xfs_fstrm_item, mru)->ag;
 		xfs_mru_cache_done(mp->m_filestream);
 
@@ -341,16 +382,23 @@ xfs_filestream_lookup_ag(
 	 * Set the starting AG using the rotor for inode32, otherwise
 	 * use the directory inode's AG.
 	 */
-	if (mp->m_flags & XFS_MOUNT_32BITINODES) {
+	if (mp->m_flags & XFS_MOUNT_32BITINODES)
+	{
 		xfs_agnumber_t	 rotorstep = xfs_rotorstep;
 		startag = (mp->m_agfrotor / rotorstep) % mp->m_sb.sb_agcount;
 		mp->m_agfrotor = (mp->m_agfrotor + 1) %
-		                 (mp->m_sb.sb_agcount * rotorstep);
-	} else
+						 (mp->m_sb.sb_agcount * rotorstep);
+	}
+	else
+	{
 		startag = XFS_INO_TO_AGNO(mp, pip->i_ino);
+	}
 
 	if (xfs_filestream_pick_ag(pip, startag, &ag, 0, 0))
+	{
 		ag = NULLAGNUMBER;
+	}
+
 out:
 	IRELE(pip);
 	return ag;
@@ -378,20 +426,30 @@ xfs_filestream_new_ag(
 	*agp = NULLAGNUMBER;
 
 	pip = xfs_filestream_get_parent(ip);
+
 	if (!pip)
+	{
 		goto exit;
+	}
 
 	mru = xfs_mru_cache_remove(mp->m_filestream, pip->i_ino);
-	if (mru) {
+
+	if (mru)
+	{
 		struct xfs_fstrm_item *item =
 			container_of(mru, struct xfs_fstrm_item, mru);
 		startag = (item->ag + 1) % mp->m_sb.sb_agcount;
 	}
 
 	if (xfs_alloc_is_userdata(ap->datatype))
+	{
 		flags |= XFS_PICK_USERDATA;
+	}
+
 	if (ap->dfops->dop_low)
+	{
 		flags |= XFS_PICK_LOWSPACE;
+	}
 
 	err = xfs_filestream_pick_ag(pip, startag, agp, flags, minlen);
 
@@ -399,12 +457,18 @@ xfs_filestream_new_ag(
 	 * Only free the item here so we skip over the old AG earlier.
 	 */
 	if (mru)
+	{
 		xfs_fstrm_free_func(mru);
+	}
 
 	IRELE(pip);
 exit:
+
 	if (*agp == NULLAGNUMBER)
+	{
 		*agp = 0;
+	}
+
 	return err;
 }
 
@@ -427,7 +491,7 @@ xfs_filestream_mount(
 	 * groups.
 	 */
 	return xfs_mru_cache_create(&mp->m_filestream, xfs_fstrm_centisecs * 10,
-				    10, xfs_fstrm_free_func);
+								10, xfs_fstrm_free_func);
 }
 
 void

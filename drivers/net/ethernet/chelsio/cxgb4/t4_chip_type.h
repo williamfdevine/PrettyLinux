@@ -51,7 +51,8 @@
 #define CHELSIO_CHIP_VERSION(code) (((code) >> 4) & 0xf)
 #define CHELSIO_CHIP_RELEASE(code) ((code) & 0xf)
 
-enum chip_type {
+enum chip_type
+{
 	T4_A1 = CHELSIO_CHIP_CODE(CHELSIO_T4, 1),
 	T4_A2 = CHELSIO_CHIP_CODE(CHELSIO_T4, 2),
 	T4_FIRST_REV	= T4_A1,

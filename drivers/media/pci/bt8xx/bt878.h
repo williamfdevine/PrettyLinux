@@ -103,7 +103,8 @@
 
 extern int bt878_num;
 
-struct bt878 {
+struct bt878
+{
 	struct mutex gpio_lock;
 	unsigned int nr;
 	unsigned int bttv_nr;
@@ -139,7 +140,7 @@ struct bt878 {
 extern struct bt878 bt878[BT878_MAX];
 
 void bt878_start(struct bt878 *bt, u32 controlreg, u32 op_sync_orin,
-		u32 irq_err_ignore);
+				 u32 irq_err_ignore);
 void bt878_stop(struct bt878 *bt);
 
 #define bmtwrite(dat,adr)  writel((dat), (adr))

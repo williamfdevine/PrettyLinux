@@ -33,43 +33,67 @@
  * cause UNIGFX don not have EDID
  * all the modes are organized as follow
  */
-static const struct fb_videomode unifb_modes[] = {
+static const struct fb_videomode unifb_modes[] =
+{
 	/* 0 640x480-60 VESA */
-	{ "640x480@60",  60,  640, 480,  25175000,  48, 16, 34, 10,  96, 1,
-	  0, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA },
+	{
+		"640x480@60",  60,  640, 480,  25175000,  48, 16, 34, 10,  96, 1,
+		0, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA
+	},
 	/* 1 640x480-75 VESA */
-	{ "640x480@75",  75,  640, 480,  31500000, 120, 16, 18,  1,  64, 1,
-	  0, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA },
+	{
+		"640x480@75",  75,  640, 480,  31500000, 120, 16, 18,  1,  64, 1,
+		0, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA
+	},
 	/* 2 800x600-60 VESA */
-	{ "800x600@60",  60,  800, 600,  40000000,  88, 40, 26,  1, 128, 1,
-	  0, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA },
+	{
+		"800x600@60",  60,  800, 600,  40000000,  88, 40, 26,  1, 128, 1,
+		0, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA
+	},
 	/* 3 800x600-75 VESA */
-	{ "800x600@75",  75,  800, 600,  49500000, 160, 16, 23,  1,  80, 1,
-	  0, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA },
+	{
+		"800x600@75",  75,  800, 600,  49500000, 160, 16, 23,  1,  80, 1,
+		0, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA
+	},
 	/* 4 1024x768-60 VESA */
-	{ "1024x768@60", 60, 1024, 768,  65000000, 160, 24, 34,  3, 136, 1,
-	  0, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA },
+	{
+		"1024x768@60", 60, 1024, 768,  65000000, 160, 24, 34,  3, 136, 1,
+		0, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA
+	},
 	/* 5 1024x768-75 VESA */
-	{ "1024x768@75", 75, 1024, 768,  78750000, 176, 16, 30,  1,  96, 1,
-	  0, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA },
+	{
+		"1024x768@75", 75, 1024, 768,  78750000, 176, 16, 30,  1,  96, 1,
+		0, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA
+	},
 	/* 6 1280x960-60 VESA */
-	{ "1280x960@60", 60, 1280, 960, 108000000, 312, 96, 38,  1, 112, 1,
-	  0, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA },
+	{
+		"1280x960@60", 60, 1280, 960, 108000000, 312, 96, 38,  1, 112, 1,
+		0, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA
+	},
 	/* 7 1440x900-60 VESA */
-	{ "1440x900@60", 60, 1440, 900, 106500000, 232, 80, 30,  3, 152, 1,
-	  0, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA },
+	{
+		"1440x900@60", 60, 1440, 900, 106500000, 232, 80, 30,  3, 152, 1,
+		0, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA
+	},
 	/* 8 FIXME 9 1024x600-60 VESA UNTESTED */
-	{ "1024x600@60", 60, 1024, 600,  50650000, 160, 24, 26,  1, 136, 1,
-	  0, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA },
+	{
+		"1024x600@60", 60, 1024, 600,  50650000, 160, 24, 26,  1, 136, 1,
+		0, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA
+	},
 	/* 9 FIXME 10 1024x600-75 VESA UNTESTED */
-	{ "1024x600@75", 75, 1024, 600,  61500000, 176, 16, 23,  1,  96, 1,
-	  0, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA },
+	{
+		"1024x600@75", 75, 1024, 600,  61500000, 176, 16, 23,  1,  96, 1,
+		0, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA
+	},
 	/* 10 FIXME 11 1366x768-60 VESA UNTESTED */
-	{ "1366x768@60", 60, 1366, 768,  85500000, 256, 58, 18,  1,  112, 3,
-	  0, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA },
+	{
+		"1366x768@60", 60, 1366, 768,  85500000, 256, 58, 18,  1,  112, 3,
+		0, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA
+	},
 };
 
-static struct fb_var_screeninfo unifb_default = {
+static struct fb_var_screeninfo unifb_default =
+{
 	.xres =		640,
 	.yres =		480,
 	.xres_virtual =	640,
@@ -91,7 +115,8 @@ static struct fb_var_screeninfo unifb_default = {
 	.vmode =	FB_VMODE_NONINTERLACED,
 };
 
-static struct fb_fix_screeninfo unifb_fix = {
+static struct fb_fix_screeninfo unifb_fix =
+{
 	.id =		"UNIGFX FB",
 	.type =		FB_TYPE_PACKED_PIXELS,
 	.visual =	FB_VISUAL_TRUECOLOR,
@@ -106,17 +131,22 @@ static void unifb_sync(struct fb_info *info)
 	/* TODO: may, this can be replaced by interrupt */
 	int cnt;
 
-	for (cnt = 0; cnt < 0x10000000; cnt++) {
+	for (cnt = 0; cnt < 0x10000000; cnt++)
+	{
 		if (readl(UGE_COMMAND) & 0x1000000)
+		{
 			return;
+		}
 	}
 
 	if (cnt > 0x8000000)
+	{
 		dev_warn(info->device, "Warning: UniGFX GE time out ...\n");
+	}
 }
 
 static void unifb_prim_fillrect(struct fb_info *info,
-				const struct fb_fillrect *region)
+								const struct fb_fillrect *region)
 {
 	int awidth = region->width;
 	int aheight = region->height;
@@ -149,12 +179,12 @@ static void unifb_prim_fillrect(struct fb_info *info,
 
 	bottom = (bottom << 16) | right;
 	command = (rop_alpha_sel << 26) | (pat_sel << 18) | (src_sel << 16)
-		| (x_dir << 20) | (y_dir << 21) | (command << 24)
-		| (clip_region << 23) | (clip_en << 22) | (tp_en << 27);
+			  | (x_dir << 20) | (y_dir << 21) | (command << 24)
+			  | (clip_region << 23) | (clip_en << 22) | (tp_en << 27);
 	src_pitch = (dst_pitch << 16) | src_pitch;
 	awidth = awidth | (aheight << 16);
 	alpha_r = ((rop_alpha_code & 0xff) << 8) | (alpha_r & 0xff)
-		| (alpha_sel << 16);
+			  | (alpha_sel << 16);
 	src_x0 = (src_x0 & 0x1fff) | ((src_y0 & 0x1fff) << 16);
 	dst_x0 = (dst_x0 & 0x1fff) | ((dst_y0 & 0x1fff) << 16);
 	fg_color = region->color;
@@ -176,12 +206,13 @@ static void unifb_prim_fillrect(struct fb_info *info,
 }
 
 static void unifb_fillrect(struct fb_info *info,
-		const struct fb_fillrect *region)
+						   const struct fb_fillrect *region)
 {
 	struct fb_fillrect modded;
 	int vxres, vyres;
 
-	if (info->flags & FBINFO_HWACCEL_DISABLED) {
+	if (info->flags & FBINFO_HWACCEL_DISABLED)
+	{
 		sys_fillrect(info, region);
 		return;
 	}
@@ -192,19 +223,26 @@ static void unifb_fillrect(struct fb_info *info,
 	memcpy(&modded, region, sizeof(struct fb_fillrect));
 
 	if (!modded.width || !modded.height ||
-	    modded.dx >= vxres || modded.dy >= vyres)
+		modded.dx >= vxres || modded.dy >= vyres)
+	{
 		return;
+	}
 
 	if (modded.dx + modded.width > vxres)
+	{
 		modded.width = vxres - modded.dx;
+	}
+
 	if (modded.dy + modded.height > vyres)
+	{
 		modded.height = vyres - modded.dy;
+	}
 
 	unifb_prim_fillrect(info, &modded);
 }
 
 static void unifb_prim_copyarea(struct fb_info *info,
-				const struct fb_copyarea *area)
+								const struct fb_copyarea *area)
 {
 	int awidth = area->width;
 	int aheight = area->height;
@@ -239,29 +277,37 @@ static void unifb_prim_copyarea(struct fb_info *info,
 	int bg_color = 0;
 
 	if (src_x0 < 0)
+	{
 		src_x0 = 0;
-	if (src_y0 < 0)
-		src_y0 = 0;
+	}
 
-	if (src_y0 - dst_y0 > 0) {
+	if (src_y0 < 0)
+	{
+		src_y0 = 0;
+	}
+
+	if (src_y0 - dst_y0 > 0)
+	{
 		y_dir = 1;
-	} else {
+	}
+	else
+	{
 		y_dir = 0;
 		src_offset = (src_y0 + aheight) * src_pitch +
-				src_x0 * (m_iBpp / 8);
+					 src_x0 * (m_iBpp / 8);
 		dst_offset = (dst_y0 + aheight) * dst_pitch +
-				dst_x0 * (m_iBpp / 8);
+					 dst_x0 * (m_iBpp / 8);
 		src_y0 += aheight;
 		dst_y0 += aheight;
 	}
 
 	command = (rop_alpha_sel << 26) | (pat_sel << 18) | (src_sel << 16) |
-		(x_dir << 20) | (y_dir << 21) | (command << 24) |
-		(clip_region << 23) | (clip_en << 22) | (tp_en << 27);
+			  (x_dir << 20) | (y_dir << 21) | (command << 24) |
+			  (clip_region << 23) | (clip_en << 22) | (tp_en << 27);
 	src_pitch = (dst_pitch << 16) | src_pitch;
 	awidth = awidth | (aheight << 16);
 	alpha_r = ((rop_alpha_code & 0xff) << 8) | (alpha_r & 0xff) |
-		(alpha_sel << 16);
+			  (alpha_sel << 16);
 	src_x0 = (src_x0 & 0x1fff) | ((src_y0 & 0x1fff) << 16);
 	dst_x0 = (dst_x0 & 0x1fff) | ((dst_y0 & 0x1fff) << 16);
 	bottom = (bottom << 16) | right;
@@ -293,7 +339,8 @@ static void unifb_copyarea(struct fb_info *info, const struct fb_copyarea *area)
 	modded.width = area->width;
 	modded.height = area->height;
 
-	if (info->flags & FBINFO_HWACCEL_DISABLED) {
+	if (info->flags & FBINFO_HWACCEL_DISABLED)
+	{
 		sys_copyarea(info, area);
 		return;
 	}
@@ -302,18 +349,31 @@ static void unifb_copyarea(struct fb_info *info, const struct fb_copyarea *area)
 	vyres = info->var.yres_virtual;
 
 	if (!modded.width || !modded.height ||
-	    modded.sx >= vxres || modded.sy >= vyres ||
-	    modded.dx >= vxres || modded.dy >= vyres)
+		modded.sx >= vxres || modded.sy >= vyres ||
+		modded.dx >= vxres || modded.dy >= vyres)
+	{
 		return;
+	}
 
 	if (modded.sx + modded.width > vxres)
+	{
 		modded.width = vxres - modded.sx;
+	}
+
 	if (modded.dx + modded.width > vxres)
+	{
 		modded.width = vxres - modded.dx;
+	}
+
 	if (modded.sy + modded.height > vyres)
+	{
 		modded.height = vyres - modded.sy;
+	}
+
 	if (modded.dy + modded.height > vyres)
+	{
 		modded.height = vyres - modded.dy;
+	}
 
 	unifb_prim_copyarea(info, &modded);
 }
@@ -341,7 +401,7 @@ static u_long get_line_length(int xres_virtual, int bpp)
  *  data from it to check this var.
  */
 static int unifb_check_var(struct fb_var_screeninfo *var,
-			 struct fb_info *info)
+						   struct fb_info *info)
 {
 	u_long line_length;
 
@@ -350,7 +410,8 @@ static int unifb_check_var(struct fb_var_screeninfo *var,
 	 *  as FB_VMODE_SMOOTH_XPAN is only used internally
 	 */
 
-	if (var->vmode & FB_VMODE_CONUPDATE) {
+	if (var->vmode & FB_VMODE_CONUPDATE)
+	{
 		var->vmode |= FB_VMODE_YWRAP;
 		var->xoffset = info->var.xoffset;
 		var->yoffset = info->var.yoffset;
@@ -360,98 +421,139 @@ static int unifb_check_var(struct fb_var_screeninfo *var,
 	 *  Some very basic checks
 	 */
 	if (!var->xres)
+	{
 		var->xres = 1;
+	}
+
 	if (!var->yres)
+	{
 		var->yres = 1;
+	}
+
 	if (var->xres > var->xres_virtual)
+	{
 		var->xres_virtual = var->xres;
+	}
+
 	if (var->yres > var->yres_virtual)
+	{
 		var->yres_virtual = var->yres;
+	}
+
 	if (var->bits_per_pixel <= 1)
+	{
 		var->bits_per_pixel = 1;
+	}
 	else if (var->bits_per_pixel <= 8)
+	{
 		var->bits_per_pixel = 8;
+	}
 	else if (var->bits_per_pixel <= 16)
+	{
 		var->bits_per_pixel = 16;
+	}
 	else if (var->bits_per_pixel <= 24)
+	{
 		var->bits_per_pixel = 24;
+	}
 	else if (var->bits_per_pixel <= 32)
+	{
 		var->bits_per_pixel = 32;
+	}
 	else
+	{
 		return -EINVAL;
+	}
 
 	if (var->xres_virtual < var->xoffset + var->xres)
+	{
 		var->xres_virtual = var->xoffset + var->xres;
+	}
+
 	if (var->yres_virtual < var->yoffset + var->yres)
+	{
 		var->yres_virtual = var->yoffset + var->yres;
+	}
 
 	/*
 	 *  Memory limit
 	 */
 	line_length =
-	    get_line_length(var->xres_virtual, var->bits_per_pixel);
+		get_line_length(var->xres_virtual, var->bits_per_pixel);
+
 	if (line_length * var->yres_virtual > UNIFB_MEMSIZE)
+	{
 		return -ENOMEM;
+	}
 
 	/*
 	 * Now that we checked it we alter var. The reason being is that the
 	 * video mode passed in might not work but slight changes to it might
 	 * make it work. This way we let the user know what is acceptable.
 	 */
-	switch (var->bits_per_pixel) {
-	case 1:
-	case 8:
-		var->red.offset = 0;
-		var->red.length = 8;
-		var->green.offset = 0;
-		var->green.length = 8;
-		var->blue.offset = 0;
-		var->blue.length = 8;
-		var->transp.offset = 0;
-		var->transp.length = 0;
-		break;
-	case 16:		/* RGBA 5551 */
-		if (var->transp.length) {
+	switch (var->bits_per_pixel)
+	{
+		case 1:
+		case 8:
 			var->red.offset = 0;
-			var->red.length = 5;
-			var->green.offset = 5;
-			var->green.length = 5;
-			var->blue.offset = 10;
-			var->blue.length = 5;
-			var->transp.offset = 15;
-			var->transp.length = 1;
-		} else {	/* RGB 565 */
-			var->red.offset = 11;
-			var->red.length = 5;
-			var->green.offset = 5;
-			var->green.length = 6;
+			var->red.length = 8;
+			var->green.offset = 0;
+			var->green.length = 8;
 			var->blue.offset = 0;
-			var->blue.length = 5;
+			var->blue.length = 8;
 			var->transp.offset = 0;
 			var->transp.length = 0;
-		}
-		break;
-	case 24:		/* RGB 888 */
-		var->red.offset = 0;
-		var->red.length = 8;
-		var->green.offset = 8;
-		var->green.length = 8;
-		var->blue.offset = 16;
-		var->blue.length = 8;
-		var->transp.offset = 0;
-		var->transp.length = 0;
-		break;
-	case 32:		/* RGBA 8888 */
-		var->red.offset = 16;
-		var->red.length = 8;
-		var->green.offset = 8;
-		var->green.length = 8;
-		var->blue.offset = 0;
-		var->blue.length = 8;
-		var->transp.offset = 24;
-		var->transp.length = 8;
-		break;
+			break;
+
+		case 16:		/* RGBA 5551 */
+			if (var->transp.length)
+			{
+				var->red.offset = 0;
+				var->red.length = 5;
+				var->green.offset = 5;
+				var->green.length = 5;
+				var->blue.offset = 10;
+				var->blue.length = 5;
+				var->transp.offset = 15;
+				var->transp.length = 1;
+			}
+			else  	/* RGB 565 */
+			{
+				var->red.offset = 11;
+				var->red.length = 5;
+				var->green.offset = 5;
+				var->green.length = 6;
+				var->blue.offset = 0;
+				var->blue.length = 5;
+				var->transp.offset = 0;
+				var->transp.length = 0;
+			}
+
+			break;
+
+		case 24:		/* RGB 888 */
+			var->red.offset = 0;
+			var->red.length = 8;
+			var->green.offset = 8;
+			var->green.length = 8;
+			var->blue.offset = 16;
+			var->blue.length = 8;
+			var->transp.offset = 0;
+			var->transp.length = 0;
+			break;
+
+		case 32:		/* RGBA 8888 */
+			var->red.offset = 16;
+			var->red.length = 8;
+			var->green.offset = 8;
+			var->green.length = 8;
+			var->blue.offset = 0;
+			var->blue.length = 8;
+			var->transp.offset = 24;
+			var->transp.length = 8;
+			break;
 	}
+
 	var->red.msb_right = 0;
 	var->green.msb_right = 0;
 	var->blue.msb_right = 0;
@@ -475,15 +577,17 @@ static int unifb_set_par(struct fb_info *info)
 	u32 pixclk = 0;
 	int i;
 
-	for (i = 0; i <= 10; i++) {
+	for (i = 0; i <= 10; i++)
+	{
 		if    (info->var.xres         == unifb_modes[i].xres
-		    && info->var.yres         == unifb_modes[i].yres
-		    && info->var.upper_margin == unifb_modes[i].upper_margin
-		    && info->var.lower_margin == unifb_modes[i].lower_margin
-		    && info->var.left_margin  == unifb_modes[i].left_margin
-		    && info->var.right_margin == unifb_modes[i].right_margin
-		    && info->var.hsync_len    == unifb_modes[i].hsync_len
-		    && info->var.vsync_len    == unifb_modes[i].vsync_len) {
+			   && info->var.yres         == unifb_modes[i].yres
+			   && info->var.upper_margin == unifb_modes[i].upper_margin
+			   && info->var.lower_margin == unifb_modes[i].lower_margin
+			   && info->var.left_margin  == unifb_modes[i].left_margin
+			   && info->var.right_margin == unifb_modes[i].right_margin
+			   && info->var.hsync_len    == unifb_modes[i].hsync_len
+			   && info->var.vsync_len    == unifb_modes[i].vsync_len)
+		{
 			pixclk = unifb_modes[i].pixclock;
 			break;
 		}
@@ -491,21 +595,30 @@ static int unifb_set_par(struct fb_info *info)
 
 	/* set clock rate */
 	clk_vga = clk_get(info->device, "VGA_CLK");
-	if (clk_vga == ERR_PTR(-ENOENT))
-		return -ENOENT;
 
-	if (pixclk != 0) {
-		if (clk_set_rate(clk_vga, pixclk)) { /* set clock failed */
+	if (clk_vga == ERR_PTR(-ENOENT))
+	{
+		return -ENOENT;
+	}
+
+	if (pixclk != 0)
+	{
+		if (clk_set_rate(clk_vga, pixclk))   /* set clock failed */
+		{
 			info->fix = unifb_fix;
 			info->var = unifb_default;
+
 			if (clk_set_rate(clk_vga, unifb_default.pixclock))
+			{
 				return -EINVAL;
+			}
 		}
 	}
+
 #endif
 
 	info->fix.line_length = get_line_length(info->var.xres_virtual,
-						info->var.bits_per_pixel);
+											info->var.bits_per_pixel);
 
 	hSyncStart = info->var.xres + info->var.right_margin;
 	hSyncEnd = hSyncStart + info->var.hsync_len;
@@ -515,28 +628,33 @@ static int unifb_set_par(struct fb_info *info)
 	vSyncEnd = vSyncStart + info->var.vsync_len;
 	vTotal = vSyncEnd + info->var.upper_margin;
 
-	switch (info->var.bits_per_pixel) {
-	case 8:
-		format = UDE_CFG_DST8;
-		break;
-	case 16:
-		format = UDE_CFG_DST16;
-		break;
-	case 24:
-		format = UDE_CFG_DST24;
-		break;
-	case 32:
-		format = UDE_CFG_DST32;
-		break;
-	default:
-		return -EINVAL;
+	switch (info->var.bits_per_pixel)
+	{
+		case 8:
+			format = UDE_CFG_DST8;
+			break;
+
+		case 16:
+			format = UDE_CFG_DST16;
+			break;
+
+		case 24:
+			format = UDE_CFG_DST24;
+			break;
+
+		case 32:
+			format = UDE_CFG_DST32;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	writel(info->fix.smem_start, UDE_FSA);
 	writel(info->var.yres, UDE_LS);
 	writel(get_line_length(info->var.xres,
-			info->var.bits_per_pixel) >> 3, UDE_PS);
-			/* >> 3 for hardware required. */
+						   info->var.bits_per_pixel) >> 3, UDE_PS);
+	/* >> 3 for hardware required. */
 	writel((hTotal << 16) | (info->var.xres), UDE_HAT);
 	writel(((hTotal - 1) << 16) | (info->var.xres - 1), UDE_HBT);
 	writel(((hSyncEnd - 1) << 16) | (hSyncStart - 1), UDE_HST);
@@ -544,7 +662,7 @@ static int unifb_set_par(struct fb_info *info)
 	writel(((vTotal - 1) << 16) | (info->var.yres - 1), UDE_VBT);
 	writel(((vSyncEnd - 1) << 16) | (vSyncStart - 1), UDE_VST);
 	writel(UDE_CFG_GDEN_ENABLE | UDE_CFG_TIMEUP_ENABLE
-			| format | 0xC0000001, UDE_CFG);
+		   | format | 0xC0000001, UDE_CFG);
 
 	return 0;
 }
@@ -555,60 +673,77 @@ static int unifb_set_par(struct fb_info *info)
  *  entries in the var structure). Return != 0 for invalid regno.
  */
 static int unifb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
-			 u_int transp, struct fb_info *info)
+						   u_int transp, struct fb_info *info)
 {
 	if (regno >= 256)	/* no. of hw registers */
+	{
 		return 1;
+	}
 
 	/* grayscale works only partially under directcolor */
-	if (info->var.grayscale) {
+	if (info->var.grayscale)
+	{
 		/* grayscale = 0.30*R + 0.59*G + 0.11*B */
 		red = green = blue =
-		    (red * 77 + green * 151 + blue * 28) >> 8;
+						  (red * 77 + green * 151 + blue * 28) >> 8;
 	}
 
 #define CNVT_TOHW(val, width) ((((val)<<(width))+0x7FFF-(val))>>16)
-	switch (info->fix.visual) {
-	case FB_VISUAL_TRUECOLOR:
-	case FB_VISUAL_PSEUDOCOLOR:
-		red = CNVT_TOHW(red, info->var.red.length);
-		green = CNVT_TOHW(green, info->var.green.length);
-		blue = CNVT_TOHW(blue, info->var.blue.length);
-		transp = CNVT_TOHW(transp, info->var.transp.length);
-		break;
-	case FB_VISUAL_DIRECTCOLOR:
-		red = CNVT_TOHW(red, 8);	/* expect 8 bit DAC */
-		green = CNVT_TOHW(green, 8);
-		blue = CNVT_TOHW(blue, 8);
-		/* hey, there is bug in transp handling... */
-		transp = CNVT_TOHW(transp, 8);
-		break;
+
+	switch (info->fix.visual)
+	{
+		case FB_VISUAL_TRUECOLOR:
+		case FB_VISUAL_PSEUDOCOLOR:
+			red = CNVT_TOHW(red, info->var.red.length);
+			green = CNVT_TOHW(green, info->var.green.length);
+			blue = CNVT_TOHW(blue, info->var.blue.length);
+			transp = CNVT_TOHW(transp, info->var.transp.length);
+			break;
+
+		case FB_VISUAL_DIRECTCOLOR:
+			red = CNVT_TOHW(red, 8);	/* expect 8 bit DAC */
+			green = CNVT_TOHW(green, 8);
+			blue = CNVT_TOHW(blue, 8);
+			/* hey, there is bug in transp handling... */
+			transp = CNVT_TOHW(transp, 8);
+			break;
 	}
+
 #undef CNVT_TOHW
+
 	/* Truecolor has hardware independent palette */
-	if (info->fix.visual == FB_VISUAL_TRUECOLOR) {
+	if (info->fix.visual == FB_VISUAL_TRUECOLOR)
+	{
 		u32 v;
 
 		if (regno >= 16)
-			return 1;
-
-		v = (red << info->var.red.offset) |
-		    (green << info->var.green.offset) |
-		    (blue << info->var.blue.offset) |
-		    (transp << info->var.transp.offset);
-		switch (info->var.bits_per_pixel) {
-		case 8:
-			break;
-		case 16:
-		case 24:
-		case 32:
-			((u32 *) (info->pseudo_palette))[regno] = v;
-			break;
-		default:
+		{
 			return 1;
 		}
+
+		v = (red << info->var.red.offset) |
+			(green << info->var.green.offset) |
+			(blue << info->var.blue.offset) |
+			(transp << info->var.transp.offset);
+
+		switch (info->var.bits_per_pixel)
+		{
+			case 8:
+				break;
+
+			case 16:
+			case 24:
+			case 32:
+				((u32 *) (info->pseudo_palette))[regno] = v;
+				break;
+
+			default:
+				return 1;
+		}
+
 		return 0;
 	}
+
 	return 0;
 }
 
@@ -618,36 +753,51 @@ static int unifb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
  *  This call looks only at xoffset, yoffset and the FB_VMODE_YWRAP flag
  */
 static int unifb_pan_display(struct fb_var_screeninfo *var,
-			   struct fb_info *info)
+							 struct fb_info *info)
 {
-	if (var->vmode & FB_VMODE_YWRAP) {
+	if (var->vmode & FB_VMODE_YWRAP)
+	{
 		if (var->yoffset < 0
-		    || var->yoffset >= info->var.yres_virtual
-		    || var->xoffset)
+			|| var->yoffset >= info->var.yres_virtual
+			|| var->xoffset)
+		{
 			return -EINVAL;
-	} else {
-		if (var->xoffset + info->var.xres > info->var.xres_virtual ||
-		    var->yoffset + info->var.yres > info->var.yres_virtual)
-			return -EINVAL;
+		}
 	}
+	else
+	{
+		if (var->xoffset + info->var.xres > info->var.xres_virtual ||
+			var->yoffset + info->var.yres > info->var.yres_virtual)
+		{
+			return -EINVAL;
+		}
+	}
+
 	info->var.xoffset = var->xoffset;
 	info->var.yoffset = var->yoffset;
+
 	if (var->vmode & FB_VMODE_YWRAP)
+	{
 		info->var.vmode |= FB_VMODE_YWRAP;
+	}
 	else
+	{
 		info->var.vmode &= ~FB_VMODE_YWRAP;
+	}
+
 	return 0;
 }
 
 int unifb_mmap(struct fb_info *info,
-		    struct vm_area_struct *vma)
+			   struct vm_area_struct *vma)
 {
 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
 
 	return vm_iomap_memory(vma, info->fix.smem_start, info->fix.smem_len);
 }
 
-static struct fb_ops unifb_ops = {
+static struct fb_ops unifb_ops =
+{
 	.fb_read        = fb_sys_read,
 	.fb_write       = fb_sys_write,
 	.fb_check_var	= unifb_check_var,
@@ -672,9 +822,12 @@ static int unifb_probe(struct platform_device *dev)
 	void *videomemory;
 
 	videomemory = (void *)__get_free_pages(GFP_KERNEL | __GFP_COMP,
-				get_order(UNIFB_MEMSIZE));
+										   get_order(UNIFB_MEMSIZE));
+
 	if (!videomemory)
+	{
 		goto err;
+	}
 
 	memset(videomemory, 0, UNIFB_MEMSIZE);
 
@@ -684,18 +837,23 @@ static int unifb_probe(struct platform_device *dev)
 	iomem = platform_get_resource(dev, IORESOURCE_MEM, 0);
 	unifb_fix.mmio_start = iomem->start;
 
-	info = framebuffer_alloc(sizeof(u32)*256, &dev->dev);
+	info = framebuffer_alloc(sizeof(u32) * 256, &dev->dev);
+
 	if (!info)
+	{
 		goto err;
+	}
 
 	info->screen_base = (char __iomem *)videomemory;
 	info->fbops = &unifb_ops;
 
 	retval = fb_find_mode(&info->var, info, NULL,
-			      unifb_modes, 10, &unifb_modes[0], 16);
+						  unifb_modes, 10, &unifb_modes[0], 16);
 
 	if (!retval || (retval == 4))
+	{
 		info->var = unifb_default;
+	}
 
 	info->fix = unifb_fix;
 	info->pseudo_palette = info->par;
@@ -706,17 +864,24 @@ static int unifb_probe(struct platform_device *dev)
 #endif
 
 	retval = fb_alloc_cmap(&info->cmap, 256, 0);
+
 	if (retval < 0)
+	{
 		goto err1;
+	}
 
 	retval = register_framebuffer(info);
+
 	if (retval < 0)
+	{
 		goto err2;
+	}
+
 	platform_set_drvdata(dev, info);
 	platform_device_add_data(dev, unifb_regs, sizeof(u32) * UNIFB_REGS_NUM);
 
 	fb_info(info, "Virtual frame buffer device, using %dM of video memory\n",
-		UNIFB_MEMSIZE >> 20);
+			UNIFB_MEMSIZE >> 20);
 	return 0;
 err2:
 	fb_dealloc_cmap(&info->cmap);
@@ -730,11 +895,13 @@ static int unifb_remove(struct platform_device *dev)
 {
 	struct fb_info *info = platform_get_drvdata(dev);
 
-	if (info) {
+	if (info)
+	{
 		unregister_framebuffer(info);
 		fb_dealloc_cmap(&info->cmap);
 		framebuffer_release(info);
 	}
+
 	return 0;
 }
 
@@ -745,11 +912,14 @@ static int unifb_resume(struct platform_device *dev)
 	u32 *unifb_regs = dev->dev.platform_data;
 
 	if (dev->dev.power.power_state.event == PM_EVENT_ON)
+	{
 		return 0;
+	}
 
 	console_lock();
 
-	if (dev->dev.power.power_state.event == PM_EVENT_SUSPEND) {
+	if (dev->dev.power.power_state.event == PM_EVENT_SUSPEND)
+	{
 		writel(unifb_regs[0], UDE_FSA);
 		writel(unifb_regs[1], UDE_LS);
 		writel(unifb_regs[2], UDE_PS);
@@ -761,6 +931,7 @@ static int unifb_resume(struct platform_device *dev)
 		writel(unifb_regs[8], UDE_VST);
 		writel(unifb_regs[9], UDE_CFG);
 	}
+
 	dev->dev.power.power_state = PMSG_ON;
 
 	console_unlock();
@@ -784,12 +955,15 @@ static int unifb_suspend(struct platform_device *dev, pm_message_t mesg)
 	unifb_regs[9] = readl(UDE_CFG);
 
 	if (mesg.event == dev->dev.power.power_state.event)
+	{
 		return 0;
+	}
 
-	switch (mesg.event) {
-	case PM_EVENT_FREEZE:		/* about to take snapshot */
-	case PM_EVENT_PRETHAW:		/* before restoring snapshot */
-		goto done;
+	switch (mesg.event)
+	{
+		case PM_EVENT_FREEZE:		/* about to take snapshot */
+		case PM_EVENT_PRETHAW:		/* before restoring snapshot */
+			goto done;
 	}
 
 	console_lock();
@@ -808,7 +982,8 @@ done:
 #define unifb_suspend	NULL
 #endif
 
-static struct platform_driver unifb_driver = {
+static struct platform_driver unifb_driver =
+{
 	.probe	 = unifb_probe,
 	.remove  = unifb_remove,
 	.resume  = unifb_resume,
@@ -821,8 +996,12 @@ static struct platform_driver unifb_driver = {
 static int __init unifb_init(void)
 {
 #ifndef MODULE
+
 	if (fb_get_options("unifb", NULL))
+	{
 		return -ENODEV;
+	}
+
 #endif
 
 	return platform_driver_register(&unifb_driver);

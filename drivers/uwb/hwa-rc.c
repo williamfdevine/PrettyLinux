@@ -78,7 +78,8 @@
  * the data (synchronously), submits another URB, and so on. There is
  * no concurrent access to the buffer.
  */
-struct hwarc {
+struct hwarc
+{
 	struct usb_device *usb_dev;
 	struct usb_interface *usb_iface;
 	struct uwb_rc *uwb_rc;		/* UWB host controller */
@@ -89,7 +90,8 @@ struct hwarc {
 
 
 /* Beacon received notification (WUSB 1.0 [8.6.3.2]) */
-struct uwb_rc_evt_beacon_WUSB_0100 {
+struct uwb_rc_evt_beacon_WUSB_0100
+{
 	struct uwb_rceb rceb;
 	u8	bChannelNumber;
 	__le16	wBPSTOffset;
@@ -115,9 +117,9 @@ struct uwb_rc_evt_beacon_WUSB_0100 {
  */
 static
 int hwarc_filter_evt_beacon_WUSB_0100(struct uwb_rc *rc,
-				      struct uwb_rceb **header,
-				      const size_t buf_size,
-				      size_t *new_size)
+									  struct uwb_rceb **header,
+									  const size_t buf_size,
+									  size_t *new_size)
 {
 	struct uwb_rc_evt_beacon_WUSB_0100 *be;
 	struct uwb_rc_evt_beacon *newbe;
@@ -126,23 +128,33 @@ int hwarc_filter_evt_beacon_WUSB_0100(struct uwb_rc *rc,
 
 	be = container_of(*header, struct uwb_rc_evt_beacon_WUSB_0100, rceb);
 	bytes_left = buf_size;
-	if (bytes_left < sizeof(*be)) {
+
+	if (bytes_left < sizeof(*be))
+	{
 		dev_err(dev, "Beacon Received Notification: Not enough data "
-			"to decode for filtering (%zu vs %zu bytes needed)\n",
-			bytes_left, sizeof(*be));
+				"to decode for filtering (%zu vs %zu bytes needed)\n",
+				bytes_left, sizeof(*be));
 		return -EINVAL;
 	}
+
 	bytes_left -= sizeof(*be);
 	ielength = le16_to_cpu(be->wBeaconInfoLength);
-	if (bytes_left < ielength) {
+
+	if (bytes_left < ielength)
+	{
 		dev_err(dev, "Beacon Received Notification: Not enough data "
-			"to decode IEs (%zu vs %zu bytes needed)\n",
-			bytes_left, ielength);
+				"to decode IEs (%zu vs %zu bytes needed)\n",
+				bytes_left, ielength);
 		return -EINVAL;
 	}
+
 	newbe = kzalloc(sizeof(*newbe) + ielength, GFP_ATOMIC);
+
 	if (newbe == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	newbe->rceb = be->rceb;
 	newbe->bChannelNumber = be->bChannelNumber;
 	newbe->bBeaconType = UWB_RC_BEACON_TYPE_NEIGHBOR;
@@ -158,7 +170,8 @@ int hwarc_filter_evt_beacon_WUSB_0100(struct uwb_rc *rc,
 
 
 /* DRP Availability change notification (WUSB 1.0 [8.6.3.8]) */
-struct uwb_rc_evt_drp_avail_WUSB_0100 {
+struct uwb_rc_evt_drp_avail_WUSB_0100
+{
 	struct uwb_rceb rceb;
 	__le16 wIELength;
 	u8 IEData[];
@@ -173,9 +186,9 @@ struct uwb_rc_evt_drp_avail_WUSB_0100 {
  */
 static
 int hwarc_filter_evt_drp_avail_WUSB_0100(struct uwb_rc *rc,
-					 struct uwb_rceb **header,
-					 const size_t buf_size,
-					 size_t *new_size)
+		struct uwb_rceb **header,
+		const size_t buf_size,
+		size_t *new_size)
 {
 	struct uwb_rc_evt_drp_avail_WUSB_0100 *da;
 	struct uwb_rc_evt_drp_avail *newda;
@@ -186,36 +199,51 @@ int hwarc_filter_evt_drp_avail_WUSB_0100(struct uwb_rc *rc,
 
 	da = container_of(*header, struct uwb_rc_evt_drp_avail_WUSB_0100, rceb);
 	bytes_left = buf_size;
-	if (bytes_left < sizeof(*da)) {
+
+	if (bytes_left < sizeof(*da))
+	{
 		dev_err(dev, "Not enough data to decode DRP Avail "
-			"Notification for filtering. Expected %zu, "
-			"received %zu.\n", (size_t)sizeof(*da), bytes_left);
+				"Notification for filtering. Expected %zu, "
+				"received %zu.\n", (size_t)sizeof(*da), bytes_left);
 		return -EINVAL;
 	}
+
 	bytes_left -= sizeof(*da);
 	ielength = le16_to_cpu(da->wIELength);
-	if (bytes_left < ielength) {
+
+	if (bytes_left < ielength)
+	{
 		dev_err(dev, "DRP Avail Notification filter: IE length "
-			"[%zu bytes] does not match actual length "
-			"[%zu bytes].\n", ielength, bytes_left);
+				"[%zu bytes] does not match actual length "
+				"[%zu bytes].\n", ielength, bytes_left);
 		return -EINVAL;
 	}
-	if (ielength < sizeof(*ie_hdr)) {
+
+	if (ielength < sizeof(*ie_hdr))
+	{
 		dev_err(dev, "DRP Avail Notification filter: Not enough "
-			"data to decode IE [%zu bytes, %zu needed]\n",
-			ielength, sizeof(*ie_hdr));
+				"data to decode IE [%zu bytes, %zu needed]\n",
+				ielength, sizeof(*ie_hdr));
 		return -EINVAL;
 	}
+
 	ie_hdr = (void *) da->IEData;
-	if (ie_hdr->length > 32) {
+
+	if (ie_hdr->length > 32)
+	{
 		dev_err(dev, "DRP Availability Change event has unexpected "
-			"length for filtering. Expected < 32 bytes, "
-			"got %zu bytes.\n", (size_t)ie_hdr->length);
+				"length for filtering. Expected < 32 bytes, "
+				"got %zu bytes.\n", (size_t)ie_hdr->length);
 		return -EINVAL;
 	}
+
 	newda = kzalloc(sizeof(*newda), GFP_ATOMIC);
+
 	if (newda == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	newda->rceb = da->rceb;
 	memcpy(newda->bmp, (u8 *) ie_hdr + sizeof(*ie_hdr), ie_hdr->length);
 	*header = &newda->rceb;
@@ -225,7 +253,8 @@ int hwarc_filter_evt_drp_avail_WUSB_0100(struct uwb_rc *rc,
 
 
 /* DRP notification (WUSB 1.0 [8.6.3.9]) */
-struct uwb_rc_evt_drp_WUSB_0100 {
+struct uwb_rc_evt_drp_WUSB_0100
+{
 	struct uwb_rceb rceb;
 	struct uwb_dev_addr wSrcAddr;
 	u8 bExplicit;
@@ -248,9 +277,9 @@ struct uwb_rc_evt_drp_WUSB_0100 {
  */
 static
 int hwarc_filter_evt_drp_WUSB_0100(struct uwb_rc *rc,
-				   struct uwb_rceb **header,
-				   const size_t buf_size,
-				   size_t *new_size)
+								   struct uwb_rceb **header,
+								   const size_t buf_size,
+								   size_t *new_size)
 {
 	struct uwb_rc_evt_drp_WUSB_0100 *drpev;
 	struct uwb_rc_evt_drp *newdrpev;
@@ -259,23 +288,33 @@ int hwarc_filter_evt_drp_WUSB_0100(struct uwb_rc *rc,
 
 	drpev = container_of(*header, struct uwb_rc_evt_drp_WUSB_0100, rceb);
 	bytes_left = buf_size;
-	if (bytes_left < sizeof(*drpev)) {
+
+	if (bytes_left < sizeof(*drpev))
+	{
 		dev_err(dev, "Not enough data to decode DRP Notification "
-			"for filtering. Expected %zu, received %zu.\n",
-			(size_t)sizeof(*drpev), bytes_left);
+				"for filtering. Expected %zu, received %zu.\n",
+				(size_t)sizeof(*drpev), bytes_left);
 		return -EINVAL;
 	}
+
 	ielength = le16_to_cpu(drpev->wIELength);
 	bytes_left -= sizeof(*drpev);
-	if (bytes_left < ielength) {
+
+	if (bytes_left < ielength)
+	{
 		dev_err(dev, "DRP Notification filter: header length [%zu "
-			"bytes] does not match actual length [%zu "
-			"bytes].\n", ielength, bytes_left);
+				"bytes] does not match actual length [%zu "
+				"bytes].\n", ielength, bytes_left);
 		return -EINVAL;
 	}
+
 	newdrpev = kzalloc(sizeof(*newdrpev) + ielength, GFP_ATOMIC);
+
 	if (newdrpev == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	newdrpev->rceb = drpev->rceb;
 	newdrpev->src_addr = drpev->wSrcAddr;
 	newdrpev->reason = UWB_DRP_NOTIF_DRP_IE_RCVD;
@@ -289,7 +328,8 @@ int hwarc_filter_evt_drp_WUSB_0100(struct uwb_rc *rc,
 
 
 /* Scan Command (WUSB 1.0 [8.6.2.5]) */
-struct uwb_rc_cmd_scan_WUSB_0100 {
+struct uwb_rc_cmd_scan_WUSB_0100
+{
 	struct uwb_rccb rccb;
 	u8 bChannelNumber;
 	u8 bScanState;
@@ -307,15 +347,18 @@ struct uwb_rc_cmd_scan_WUSB_0100 {
  */
 static
 int hwarc_filter_cmd_scan_WUSB_0100(struct uwb_rc *rc,
-				    struct uwb_rccb **header,
-				    size_t *size)
+									struct uwb_rccb **header,
+									size_t *size)
 {
 	struct uwb_rc_cmd_scan *sc;
 
 	sc = container_of(*header, struct uwb_rc_cmd_scan, rccb);
 
 	if (sc->bScanState == UWB_SCAN_ONLY_STARTTIME)
+	{
 		sc->bScanState = UWB_SCAN_ONLY;
+	}
+
 	/* Don't send the last two bytes. */
 	*size -= 2;
 	return 0;
@@ -323,7 +366,8 @@ int hwarc_filter_cmd_scan_WUSB_0100(struct uwb_rc *rc,
 
 
 /* SET DRP IE command (WUSB 1.0 [8.6.2.7]) */
-struct uwb_rc_cmd_set_drp_ie_WUSB_0100 {
+struct uwb_rc_cmd_set_drp_ie_WUSB_0100
+{
 	struct uwb_rccb rccb;
 	u8 bExplicit;
 	__le16 wIELength;
@@ -345,8 +389,8 @@ struct uwb_rc_cmd_set_drp_ie_WUSB_0100 {
  */
 static
 int hwarc_filter_cmd_set_drp_ie_WUSB_0100(struct uwb_rc *rc,
-					  struct uwb_rccb **header,
-					  size_t *size)
+		struct uwb_rccb **header,
+		size_t *size)
 {
 	struct uwb_rc_cmd_set_drp_ie *orgcmd;
 	struct uwb_rc_cmd_set_drp_ie_WUSB_0100 *cmd;
@@ -355,8 +399,12 @@ int hwarc_filter_cmd_set_drp_ie_WUSB_0100(struct uwb_rc *rc,
 	orgcmd = container_of(*header, struct uwb_rc_cmd_set_drp_ie, rccb);
 	ielength = le16_to_cpu(orgcmd->wIELength);
 	cmd = kzalloc(sizeof(*cmd) + ielength, GFP_KERNEL);
+
 	if (cmd == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	cmd->rccb = orgcmd->rccb;
 	cmd->bExplicit = 0;
 	cmd->wIELength = orgcmd->wIELength;
@@ -390,22 +438,27 @@ int hwarc_filter_cmd_set_drp_ie_WUSB_0100(struct uwb_rc *rc,
  */
 static
 int hwarc_filter_cmd_WUSB_0100(struct uwb_rc *rc, struct uwb_rccb **header,
-			       size_t *size)
+							   size_t *size)
 {
 	int result;
 	struct uwb_rccb *rccb = *header;
 	int cmd = le16_to_cpu(rccb->wCommand);
-	switch (cmd) {
-	case UWB_RC_CMD_SCAN:
-		result = hwarc_filter_cmd_scan_WUSB_0100(rc, header, size);
-		break;
-	case UWB_RC_CMD_SET_DRP_IE:
-		result = hwarc_filter_cmd_set_drp_ie_WUSB_0100(rc, header, size);
-		break;
-	default:
-		result = -ENOANO;
-		break;
+
+	switch (cmd)
+	{
+		case UWB_RC_CMD_SCAN:
+			result = hwarc_filter_cmd_scan_WUSB_0100(rc, header, size);
+			break;
+
+		case UWB_RC_CMD_SET_DRP_IE:
+			result = hwarc_filter_cmd_set_drp_ie_WUSB_0100(rc, header, size);
+			break;
+
+		default:
+			result = -ENOANO;
+			break;
 	}
+
 	return result;
 }
 
@@ -422,11 +475,15 @@ int hwarc_filter_cmd_WUSB_0100(struct uwb_rc *rc, struct uwb_rccb **header,
  */
 static
 int hwarc_filter_cmd(struct uwb_rc *rc, struct uwb_rccb **header,
-		     size_t *size)
+					 size_t *size)
 {
 	int result = -ENOANO;
+
 	if (rc->version == 0x0100)
+	{
 		result = hwarc_filter_cmd_WUSB_0100(rc, header, size);
+	}
+
 	return result;
 }
 
@@ -443,21 +500,23 @@ int hwarc_filter_cmd(struct uwb_rc *rc, struct uwb_rccb **header,
  */
 static
 ssize_t hwarc_get_event_size(struct uwb_rc *rc, const struct uwb_rceb *rceb,
-			     size_t core_size, size_t offset,
-			     const size_t buf_size)
+							 size_t core_size, size_t offset,
+							 const size_t buf_size)
 {
 	ssize_t size = -ENOSPC;
 	const void *ptr = rceb;
 	size_t type_size = sizeof(__le16);
 	struct device *dev = &rc->uwb_dev.dev;
 
-	if (offset + type_size >= buf_size) {
+	if (offset + type_size >= buf_size)
+	{
 		dev_err(dev, "Not enough data to read extra size of event "
-			"0x%02x/%04x/%02x, only got %zu bytes.\n",
-			rceb->bEventType, le16_to_cpu(rceb->wEvent),
-			rceb->bEventContext, buf_size);
+				"0x%02x/%04x/%02x, only got %zu bytes.\n",
+				rceb->bEventType, le16_to_cpu(rceb->wEvent),
+				rceb->bEventContext, buf_size);
 		goto out;
 	}
+
 	ptr += offset;
 	size = core_size + le16_to_cpu(*(__le16 *)ptr);
 out:
@@ -466,7 +525,8 @@ out:
 
 
 /* Beacon slot change notification (WUSB 1.0 [8.6.3.5]) */
-struct uwb_rc_evt_bp_slot_change_WUSB_0100 {
+struct uwb_rc_evt_bp_slot_change_WUSB_0100
+{
 	struct uwb_rceb rceb;
 	u8 bSlotNumber;
 } __attribute__((packed));
@@ -496,8 +556,8 @@ struct uwb_rc_evt_bp_slot_change_WUSB_0100 {
  */
 static
 int hwarc_filter_event_WUSB_0100(struct uwb_rc *rc, struct uwb_rceb **header,
-				 const size_t buf_size, size_t *_real_size,
-				 size_t *_new_size)
+								 const size_t buf_size, size_t *_real_size,
+								 size_t *_new_size)
 {
 	int result = -ENOANO;
 	struct uwb_rceb *rceb = *header;
@@ -506,54 +566,72 @@ int hwarc_filter_event_WUSB_0100(struct uwb_rc *rc, struct uwb_rceb **header,
 	size_t core_size, offset;
 
 	if (rceb->bEventType != UWB_RC_CET_GENERAL)
+	{
 		goto out;
-	switch (event) {
-	case UWB_RC_EVT_BEACON:
-		core_size = sizeof(struct uwb_rc_evt_beacon_WUSB_0100);
-		offset = offsetof(struct uwb_rc_evt_beacon_WUSB_0100,
-				  wBeaconInfoLength);
-		event_size = hwarc_get_event_size(rc, rceb, core_size,
-						  offset, buf_size);
-		if (event_size < 0)
-			goto out;
-		*_real_size = event_size;
-		result = hwarc_filter_evt_beacon_WUSB_0100(rc, header,
-							   buf_size, _new_size);
-		break;
-	case UWB_RC_EVT_BP_SLOT_CHANGE:
-		*_new_size = *_real_size =
-			sizeof(struct uwb_rc_evt_bp_slot_change_WUSB_0100);
-		result = 0;
-		break;
-
-	case UWB_RC_EVT_DRP_AVAIL:
-		core_size = sizeof(struct uwb_rc_evt_drp_avail_WUSB_0100);
-		offset = offsetof(struct uwb_rc_evt_drp_avail_WUSB_0100,
-				  wIELength);
-		event_size = hwarc_get_event_size(rc, rceb, core_size,
-						  offset, buf_size);
-		if (event_size < 0)
-			goto out;
-		*_real_size = event_size;
-		result = hwarc_filter_evt_drp_avail_WUSB_0100(
-			rc, header, buf_size, _new_size);
-		break;
-
-	case UWB_RC_EVT_DRP:
-		core_size = sizeof(struct uwb_rc_evt_drp_WUSB_0100);
-		offset = offsetof(struct uwb_rc_evt_drp_WUSB_0100, wIELength);
-		event_size = hwarc_get_event_size(rc, rceb, core_size,
-						  offset, buf_size);
-		if (event_size < 0)
-			goto out;
-		*_real_size = event_size;
-		result = hwarc_filter_evt_drp_WUSB_0100(rc, header,
-							buf_size, _new_size);
-		break;
-
-	default:
-		break;
 	}
+
+	switch (event)
+	{
+		case UWB_RC_EVT_BEACON:
+			core_size = sizeof(struct uwb_rc_evt_beacon_WUSB_0100);
+			offset = offsetof(struct uwb_rc_evt_beacon_WUSB_0100,
+							  wBeaconInfoLength);
+			event_size = hwarc_get_event_size(rc, rceb, core_size,
+											  offset, buf_size);
+
+			if (event_size < 0)
+			{
+				goto out;
+			}
+
+			*_real_size = event_size;
+			result = hwarc_filter_evt_beacon_WUSB_0100(rc, header,
+					 buf_size, _new_size);
+			break;
+
+		case UWB_RC_EVT_BP_SLOT_CHANGE:
+			*_new_size = *_real_size =
+							 sizeof(struct uwb_rc_evt_bp_slot_change_WUSB_0100);
+			result = 0;
+			break;
+
+		case UWB_RC_EVT_DRP_AVAIL:
+			core_size = sizeof(struct uwb_rc_evt_drp_avail_WUSB_0100);
+			offset = offsetof(struct uwb_rc_evt_drp_avail_WUSB_0100,
+							  wIELength);
+			event_size = hwarc_get_event_size(rc, rceb, core_size,
+											  offset, buf_size);
+
+			if (event_size < 0)
+			{
+				goto out;
+			}
+
+			*_real_size = event_size;
+			result = hwarc_filter_evt_drp_avail_WUSB_0100(
+						 rc, header, buf_size, _new_size);
+			break;
+
+		case UWB_RC_EVT_DRP:
+			core_size = sizeof(struct uwb_rc_evt_drp_WUSB_0100);
+			offset = offsetof(struct uwb_rc_evt_drp_WUSB_0100, wIELength);
+			event_size = hwarc_get_event_size(rc, rceb, core_size,
+											  offset, buf_size);
+
+			if (event_size < 0)
+			{
+				goto out;
+			}
+
+			*_real_size = event_size;
+			result = hwarc_filter_evt_drp_WUSB_0100(rc, header,
+													buf_size, _new_size);
+			break;
+
+		default:
+			break;
+	}
+
 out:
 	return result;
 }
@@ -576,13 +654,15 @@ out:
  */
 static
 int hwarc_filter_event(struct uwb_rc *rc, struct uwb_rceb **header,
-		       const size_t buf_size, size_t *_real_size,
-		       size_t *_new_size)
+					   const size_t buf_size, size_t *_real_size,
+					   size_t *_new_size)
 {
 	int result = -ENOANO;
+
 	if (rc->version == 0x0100)
 		result =  hwarc_filter_event_WUSB_0100(
-			rc, header, buf_size, _real_size, _new_size);
+					  rc, header, buf_size, _real_size, _new_size);
+
 	return result;
 }
 
@@ -601,10 +681,10 @@ int hwarc_cmd(struct uwb_rc *uwb_rc, const struct uwb_rccb *cmd, size_t cmd_size
 {
 	struct hwarc *hwarc = uwb_rc->priv;
 	return usb_control_msg(
-		hwarc->usb_dev, usb_sndctrlpipe(hwarc->usb_dev, 0),
-		WA_EXEC_RC_CMD, USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
-		0, hwarc->usb_iface->cur_altsetting->desc.bInterfaceNumber,
-		(void *) cmd, cmd_size, 100 /* FIXME: this is totally arbitrary */);
+			   hwarc->usb_dev, usb_sndctrlpipe(hwarc->usb_dev, 0),
+			   WA_EXEC_RC_CMD, USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE,
+			   0, hwarc->usb_iface->cur_altsetting->desc.bInterfaceNumber,
+			   (void *) cmd, cmd_size, 100 /* FIXME: this is totally arbitrary */);
 }
 
 static
@@ -615,7 +695,9 @@ int hwarc_reset(struct uwb_rc *uwb_rc)
 
 	/* device lock must be held when calling usb_reset_device. */
 	result = usb_lock_device_for_reset(hwarc->usb_dev, NULL);
-	if (result >= 0) {
+
+	if (result >= 0)
+	{
 		result = usb_reset_device(hwarc->usb_dev);
 		usb_unlock_device(hwarc->usb_dev);
 	}
@@ -637,35 +719,46 @@ void hwarc_neep_cb(struct urb *urb)
 	struct device *dev = &usb_iface->dev;
 	int result;
 
-	switch (result = urb->status) {
-	case 0:
-		uwb_rc_neh_grok(hwarc->uwb_rc, urb->transfer_buffer,
-				urb->actual_length);
-		break;
-	case -ECONNRESET:	/* Not an error, but a controlled situation; */
-	case -ENOENT:		/* (we killed the URB)...so, no broadcast */
-		goto out;
-	case -ESHUTDOWN:	/* going away! */
-		goto out;
-	default:		/* On general errors, retry unless it gets ugly */
-		if (edc_inc(&hwarc->neep_edc, EDC_MAX_ERRORS,
-			    EDC_ERROR_TIMEFRAME))
-			goto error_exceeded;
-		dev_err(dev, "NEEP: URB error %d\n", urb->status);
+	switch (result = urb->status)
+	{
+		case 0:
+			uwb_rc_neh_grok(hwarc->uwb_rc, urb->transfer_buffer,
+							urb->actual_length);
+			break;
+
+		case -ECONNRESET:	/* Not an error, but a controlled situation; */
+		case -ENOENT:		/* (we killed the URB)...so, no broadcast */
+			goto out;
+
+		case -ESHUTDOWN:	/* going away! */
+			goto out;
+
+		default:		/* On general errors, retry unless it gets ugly */
+			if (edc_inc(&hwarc->neep_edc, EDC_MAX_ERRORS,
+						EDC_ERROR_TIMEFRAME))
+			{
+				goto error_exceeded;
+			}
+
+			dev_err(dev, "NEEP: URB error %d\n", urb->status);
 	}
+
 	result = usb_submit_urb(urb, GFP_ATOMIC);
-	if (result < 0 && result != -ENODEV && result != -EPERM) {
+
+	if (result < 0 && result != -ENODEV && result != -EPERM)
+	{
 		/* ignoring unrecoverable errors */
 		dev_err(dev, "NEEP: Can't resubmit URB (%d) resetting device\n",
-			result);
+				result);
 		goto error;
 	}
+
 out:
 	return;
 
 error_exceeded:
 	dev_err(dev, "NEEP: URB max acceptable errors "
-		"exceeded, resetting device\n");
+			"exceeded, resetting device\n");
 error:
 	uwb_rc_neh_error(hwarc->uwb_rc, result);
 	uwb_rc_reset_all(hwarc->uwb_rc);
@@ -696,22 +789,32 @@ static int hwarc_neep_init(struct uwb_rc *rc)
 
 	epd = &iface->cur_altsetting->endpoint[0].desc;
 	hwarc->rd_buffer = (void *) __get_free_page(GFP_KERNEL);
-	if (hwarc->rd_buffer == NULL) {
+
+	if (hwarc->rd_buffer == NULL)
+	{
 		dev_err(dev, "Unable to allocate notification's read buffer\n");
 		goto error_rd_buffer;
 	}
+
 	hwarc->neep_urb = usb_alloc_urb(0, GFP_KERNEL);
+
 	if (hwarc->neep_urb == NULL)
+	{
 		goto error_urb_alloc;
+	}
+
 	usb_fill_int_urb(hwarc->neep_urb, usb_dev,
-			 usb_rcvintpipe(usb_dev, epd->bEndpointAddress),
-			 hwarc->rd_buffer, PAGE_SIZE,
-			 hwarc_neep_cb, hwarc, epd->bInterval);
+					 usb_rcvintpipe(usb_dev, epd->bEndpointAddress),
+					 hwarc->rd_buffer, PAGE_SIZE,
+					 hwarc_neep_cb, hwarc, epd->bInterval);
 	result = usb_submit_urb(hwarc->neep_urb, GFP_ATOMIC);
-	if (result < 0) {
+
+	if (result < 0)
+	{
 		dev_err(dev, "Cannot submit notification URB: %d\n", result);
 		goto error_neep_submit;
 	}
+
 	return 0;
 
 error_neep_submit:
@@ -761,46 +864,61 @@ static int hwarc_get_version(struct uwb_rc *rc)
 	u16 version;
 
 	actconfig_idx = (usb_dev->actconfig - usb_dev->config) /
-		sizeof(usb_dev->config[0]);
+					sizeof(usb_dev->config[0]);
 	itr = usb_dev->rawdescriptors[actconfig_idx];
 	itr_size = le16_to_cpu(usb_dev->actconfig->desc.wTotalLength);
-	while (itr_size >= sizeof(*hdr)) {
+
+	while (itr_size >= sizeof(*hdr))
+	{
 		hdr = (struct usb_descriptor_header *) itr;
 		dev_dbg(dev, "Extra device descriptor: "
-			"type %02x/%u bytes @ %zu (%zu left)\n",
-			hdr->bDescriptorType, hdr->bLength,
-			(itr - usb_dev->rawdescriptors[actconfig_idx]),
-			itr_size);
+				"type %02x/%u bytes @ %zu (%zu left)\n",
+				hdr->bDescriptorType, hdr->bLength,
+				(itr - usb_dev->rawdescriptors[actconfig_idx]),
+				itr_size);
+
 		if (hdr->bDescriptorType == USB_DT_CS_RADIO_CONTROL)
+		{
 			goto found;
+		}
+
 		itr += hdr->bLength;
 		itr_size -= hdr->bLength;
 	}
+
 	dev_err(dev, "cannot find Radio Control Interface Class descriptor\n");
 	return -ENODEV;
 
 found:
 	result = -EINVAL;
-	if (hdr->bLength > itr_size) {	/* is it available? */
+
+	if (hdr->bLength > itr_size)  	/* is it available? */
+	{
 		dev_err(dev, "incomplete Radio Control Interface Class "
-			"descriptor (%zu bytes left, %u needed)\n",
-			itr_size, hdr->bLength);
+				"descriptor (%zu bytes left, %u needed)\n",
+				itr_size, hdr->bLength);
 		goto error;
 	}
-	if (hdr->bLength < sizeof(*descr)) {
+
+	if (hdr->bLength < sizeof(*descr))
+	{
 		dev_err(dev, "short Radio Control Interface Class "
-			"descriptor\n");
+				"descriptor\n");
 		goto error;
 	}
+
 	descr = (struct uwb_rc_control_intf_class_desc *) hdr;
 	/* Make LE fields CPU order */
 	version = __le16_to_cpu(descr->bcdRCIVersion);
-	if (version != 0x0100) {
+
+	if (version != 0x0100)
+	{
 		dev_err(dev, "Device reports protocol version 0x%04x. We "
-			"do not support that. \n", version);
+				"do not support that. \n", version);
 		result = -EINVAL;
 		goto error;
 	}
+
 	rc->version = version;
 	dev_dbg(dev, "Device supports WUSB protocol version 0x%04x \n",	rc->version);
 	result = 0;
@@ -816,7 +934,7 @@ error:
  * is only one altsetting allowed.
  */
 static int hwarc_probe(struct usb_interface *iface,
-		       const struct usb_device_id *id)
+					   const struct usb_device_id *id)
 {
 	int result;
 	struct uwb_rc *uwb_rc;
@@ -825,15 +943,21 @@ static int hwarc_probe(struct usb_interface *iface,
 
 	result = -ENOMEM;
 	uwb_rc = uwb_rc_alloc();
-	if (uwb_rc == NULL) {
+
+	if (uwb_rc == NULL)
+	{
 		dev_err(dev, "unable to allocate RC instance\n");
 		goto error_rc_alloc;
 	}
+
 	hwarc = kzalloc(sizeof(*hwarc), GFP_KERNEL);
-	if (hwarc == NULL) {
+
+	if (hwarc == NULL)
+	{
 		dev_err(dev, "unable to allocate HWA RC instance\n");
 		goto error_alloc;
 	}
+
 	hwarc_init(hwarc);
 	hwarc->usb_dev = usb_get_dev(interface_to_usbdev(iface));
 	hwarc->usb_iface = usb_get_intf(iface);
@@ -844,22 +968,33 @@ static int hwarc_probe(struct usb_interface *iface,
 	uwb_rc->stop  = hwarc_neep_release;
 	uwb_rc->cmd   = hwarc_cmd;
 	uwb_rc->reset = hwarc_reset;
-	if (id->driver_info & WUSB_QUIRK_WHCI_CMD_EVT) {
+
+	if (id->driver_info & WUSB_QUIRK_WHCI_CMD_EVT)
+	{
 		uwb_rc->filter_cmd   = NULL;
 		uwb_rc->filter_event = NULL;
-	} else {
+	}
+	else
+	{
 		uwb_rc->filter_cmd   = hwarc_filter_cmd;
 		uwb_rc->filter_event = hwarc_filter_event;
 	}
 
 	result = uwb_rc_add(uwb_rc, dev, hwarc);
+
 	if (result < 0)
+	{
 		goto error_rc_add;
+	}
+
 	result = hwarc_get_version(uwb_rc);
-	if (result < 0) {
+
+	if (result < 0)
+	{
 		dev_err(dev, "cannot retrieve version of RC \n");
 		goto error_get_version;
 	}
+
 	usb_set_intfdata(iface, hwarc);
 	return 0;
 
@@ -905,26 +1040,36 @@ static int hwarc_post_reset(struct usb_interface *iface)
 }
 
 /** USB device ID's that we handle */
-static const struct usb_device_id hwarc_id_table[] = {
+static const struct usb_device_id hwarc_id_table[] =
+{
 	/* D-Link DUB-1210 */
-	{ USB_DEVICE_AND_INTERFACE_INFO(0x07d1, 0x3d02, 0xe0, 0x01, 0x02),
-	  .driver_info = WUSB_QUIRK_WHCI_CMD_EVT },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x07d1, 0x3d02, 0xe0, 0x01, 0x02),
+		.driver_info = WUSB_QUIRK_WHCI_CMD_EVT
+	},
 	/* Intel i1480 (using firmware 1.3PA2-20070828) */
-	{ USB_DEVICE_AND_INTERFACE_INFO(0x8086, 0x0c3b, 0xe0, 0x01, 0x02),
-	  .driver_info = WUSB_QUIRK_WHCI_CMD_EVT },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x8086, 0x0c3b, 0xe0, 0x01, 0x02),
+		.driver_info = WUSB_QUIRK_WHCI_CMD_EVT
+	},
 	/* Alereon 5310 */
-	{ USB_DEVICE_AND_INTERFACE_INFO(0x13dc, 0x5310, 0xe0, 0x01, 0x02),
-	  .driver_info = WUSB_QUIRK_WHCI_CMD_EVT },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x13dc, 0x5310, 0xe0, 0x01, 0x02),
+		.driver_info = WUSB_QUIRK_WHCI_CMD_EVT
+	},
 	/* Alereon 5611 */
-	{ USB_DEVICE_AND_INTERFACE_INFO(0x13dc, 0x5611, 0xe0, 0x01, 0x02),
-	  .driver_info = WUSB_QUIRK_WHCI_CMD_EVT },
+	{
+		USB_DEVICE_AND_INTERFACE_INFO(0x13dc, 0x5611, 0xe0, 0x01, 0x02),
+		.driver_info = WUSB_QUIRK_WHCI_CMD_EVT
+	},
 	/* Generic match for the Radio Control interface */
 	{ USB_INTERFACE_INFO(0xe0, 0x01, 0x02), },
 	{ },
 };
 MODULE_DEVICE_TABLE(usb, hwarc_id_table);
 
-static struct usb_driver hwarc_driver = {
+static struct usb_driver hwarc_driver =
+{
 	.name =		"hwa-rc",
 	.id_table =	hwarc_id_table,
 	.probe =	hwarc_probe,

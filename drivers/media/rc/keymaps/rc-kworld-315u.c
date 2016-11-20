@@ -16,7 +16,8 @@
 /* Kworld 315U
  */
 
-static struct rc_map_table kworld_315u[] = {
+static struct rc_map_table kworld_315u[] =
+{
 	{ 0x6143, KEY_POWER },
 	{ 0x6101, KEY_VIDEO },		/* source */
 	{ 0x610b, KEY_ZOOM },
@@ -58,7 +59,8 @@ static struct rc_map_table kworld_315u[] = {
 	{ 0x611f, KEY_BLUE },
 };
 
-static struct rc_map_list kworld_315u_map = {
+static struct rc_map_list kworld_315u_map =
+{
 	.map = {
 		.scan    = kworld_315u,
 		.size    = ARRAY_SIZE(kworld_315u),

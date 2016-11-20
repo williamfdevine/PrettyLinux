@@ -50,31 +50,31 @@
 
 /* hcall macros */
 #define h_register_logical_lan(ua, buflst, rxq, fltlst, mac) \
-  plpar_hcall_norets(H_REGISTER_LOGICAL_LAN, ua, buflst, rxq, fltlst, mac)
+	plpar_hcall_norets(H_REGISTER_LOGICAL_LAN, ua, buflst, rxq, fltlst, mac)
 
 #define h_free_logical_lan(ua) \
-  plpar_hcall_norets(H_FREE_LOGICAL_LAN, ua)
+	plpar_hcall_norets(H_FREE_LOGICAL_LAN, ua)
 
 #define h_add_logical_lan_buffer(ua, buf) \
-  plpar_hcall_norets(H_ADD_LOGICAL_LAN_BUFFER, ua, buf)
+	plpar_hcall_norets(H_ADD_LOGICAL_LAN_BUFFER, ua, buf)
 
 static inline long h_send_logical_lan(unsigned long unit_address,
-		unsigned long desc1, unsigned long desc2, unsigned long desc3,
-		unsigned long desc4, unsigned long desc5, unsigned long desc6,
-		unsigned long corellator_in, unsigned long *corellator_out,
-		unsigned long mss, unsigned long large_send_support)
+									  unsigned long desc1, unsigned long desc2, unsigned long desc3,
+									  unsigned long desc4, unsigned long desc5, unsigned long desc6,
+									  unsigned long corellator_in, unsigned long *corellator_out,
+									  unsigned long mss, unsigned long large_send_support)
 {
 	long rc;
 	unsigned long retbuf[PLPAR_HCALL9_BUFSIZE];
 
 	if (large_send_support)
 		rc = plpar_hcall9(H_SEND_LOGICAL_LAN, retbuf, unit_address,
-				  desc1, desc2, desc3, desc4, desc5, desc6,
-				  corellator_in, mss);
+						  desc1, desc2, desc3, desc4, desc5, desc6,
+						  corellator_in, mss);
 	else
 		rc = plpar_hcall9(H_SEND_LOGICAL_LAN, retbuf, unit_address,
-				  desc1, desc2, desc3, desc4, desc5, desc6,
-				  corellator_in);
+						  desc1, desc2, desc3, desc4, desc5, desc6,
+						  corellator_in);
 
 	*corellator_out = retbuf[0];
 
@@ -82,14 +82,14 @@ static inline long h_send_logical_lan(unsigned long unit_address,
 }
 
 static inline long h_illan_attributes(unsigned long unit_address,
-				      unsigned long reset_mask, unsigned long set_mask,
-				      unsigned long *ret_attributes)
+									  unsigned long reset_mask, unsigned long set_mask,
+									  unsigned long *ret_attributes)
 {
 	long rc;
 	unsigned long retbuf[PLPAR_HCALL_BUFSIZE];
 
 	rc = plpar_hcall(H_ILLAN_ATTRIBUTES, retbuf, unit_address,
-			 reset_mask, set_mask);
+					 reset_mask, set_mask);
 
 	*ret_attributes = retbuf[0];
 
@@ -97,10 +97,10 @@ static inline long h_illan_attributes(unsigned long unit_address,
 }
 
 #define h_multicast_ctrl(ua, cmd, mac) \
-  plpar_hcall_norets(H_MULTICAST_CTRL, ua, cmd, mac)
+	plpar_hcall_norets(H_MULTICAST_CTRL, ua, cmd, mac)
 
 #define h_change_logical_lan_mac(ua, mac) \
-  plpar_hcall_norets(H_CHANGE_LOGICAL_LAN_MAC, ua, mac)
+	plpar_hcall_norets(H_CHANGE_LOGICAL_LAN_MAC, ua, mac)
 
 #define IBMVETH_NUM_BUFF_POOLS 5
 #define IBMVETH_IO_ENTITLEMENT_DEFAULT 4243456 /* MTU of 1500 needs 4.2Mb */
@@ -118,62 +118,65 @@ static int pool_active[] = { 1, 1, 0, 0, 1};
 
 #define IBM_VETH_INVALID_MAP ((u16)0xffff)
 
-struct ibmveth_buff_pool {
-    u32 size;
-    u32 index;
-    u32 buff_size;
-    u32 threshold;
-    atomic_t available;
-    u32 consumer_index;
-    u32 producer_index;
-    u16 *free_map;
-    dma_addr_t *dma_addr;
-    struct sk_buff **skbuff;
-    int active;
-    struct kobject kobj;
+struct ibmveth_buff_pool
+{
+	u32 size;
+	u32 index;
+	u32 buff_size;
+	u32 threshold;
+	atomic_t available;
+	u32 consumer_index;
+	u32 producer_index;
+	u16 *free_map;
+	dma_addr_t *dma_addr;
+	struct sk_buff **skbuff;
+	int active;
+	struct kobject kobj;
 };
 
-struct ibmveth_rx_q {
-    u64        index;
-    u64        num_slots;
-    u64        toggle;
-    dma_addr_t queue_dma;
-    u32        queue_len;
-    struct ibmveth_rx_q_entry *queue_addr;
+struct ibmveth_rx_q
+{
+	u64        index;
+	u64        num_slots;
+	u64        toggle;
+	dma_addr_t queue_dma;
+	u32        queue_len;
+	struct ibmveth_rx_q_entry *queue_addr;
 };
 
-struct ibmveth_adapter {
-    struct vio_dev *vdev;
-    struct net_device *netdev;
-    struct napi_struct napi;
-    struct net_device_stats stats;
-    unsigned int mcastFilterSize;
-    void * buffer_list_addr;
-    void * filter_list_addr;
-    dma_addr_t buffer_list_dma;
-    dma_addr_t filter_list_dma;
-    struct ibmveth_buff_pool rx_buff_pool[IBMVETH_NUM_BUFF_POOLS];
-    struct ibmveth_rx_q rx_queue;
-    int pool_config;
-    int rx_csum;
-    int large_send;
-    void *bounce_buffer;
-    dma_addr_t bounce_buffer_dma;
+struct ibmveth_adapter
+{
+	struct vio_dev *vdev;
+	struct net_device *netdev;
+	struct napi_struct napi;
+	struct net_device_stats stats;
+	unsigned int mcastFilterSize;
+	void *buffer_list_addr;
+	void *filter_list_addr;
+	dma_addr_t buffer_list_dma;
+	dma_addr_t filter_list_dma;
+	struct ibmveth_buff_pool rx_buff_pool[IBMVETH_NUM_BUFF_POOLS];
+	struct ibmveth_rx_q rx_queue;
+	int pool_config;
+	int rx_csum;
+	int large_send;
+	void *bounce_buffer;
+	dma_addr_t bounce_buffer_dma;
 
-    u64 fw_ipv6_csum_support;
-    u64 fw_ipv4_csum_support;
-    u64 fw_large_send_support;
-    /* adapter specific stats */
-    u64 replenish_task_cycles;
-    u64 replenish_no_mem;
-    u64 replenish_add_buff_failure;
-    u64 replenish_add_buff_success;
-    u64 rx_invalid_buffer;
-    u64 rx_no_buffer;
-    u64 tx_map_failed;
-    u64 tx_send_failed;
-    u64 tx_large_packets;
-    u64 rx_large_packets;
+	u64 fw_ipv6_csum_support;
+	u64 fw_ipv4_csum_support;
+	u64 fw_large_send_support;
+	/* adapter specific stats */
+	u64 replenish_task_cycles;
+	u64 replenish_no_mem;
+	u64 replenish_add_buff_failure;
+	u64 replenish_add_buff_success;
+	u64 rx_invalid_buffer;
+	u64 rx_no_buffer;
+	u64 tx_map_failed;
+	u64 tx_send_failed;
+	u64 tx_large_packets;
+	u64 rx_large_packets;
 };
 
 /*
@@ -183,7 +186,8 @@ struct ibmveth_adapter {
  * do end up with endian specific ordering of the elements and that
  * needs correcting.
  */
-struct ibmveth_buf_desc_fields {
+struct ibmveth_buf_desc_fields
+{
 #ifdef __BIG_ENDIAN
 	u32 flags_len;
 	u32 address;
@@ -199,12 +203,14 @@ struct ibmveth_buf_desc_fields {
 #define IBMVETH_BUF_LEN_MASK	0x00FFFFFF
 };
 
-union ibmveth_buf_desc {
-    u64 desc;
-    struct ibmveth_buf_desc_fields fields;
+union ibmveth_buf_desc
+{
+	u64 desc;
+	struct ibmveth_buf_desc_fields fields;
 };
 
-struct ibmveth_rx_q_entry {
+struct ibmveth_rx_q_entry
+{
 	__be32 flags_off;
 #define IBMVETH_RXQ_TOGGLE		0x80000000
 #define IBMVETH_RXQ_TOGGLE_SHIFT	31

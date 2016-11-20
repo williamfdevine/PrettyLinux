@@ -95,7 +95,8 @@ struct clk;
  * @clk: video core clock
  * @saved_ctrl: saved control register for resume / suspend
  */
-struct xvip_device {
+struct xvip_device
+{
 	struct v4l2_subdev subdev;
 	struct device *dev;
 	void __iomem *iomem;
@@ -113,7 +114,8 @@ struct xvip_device {
  * @fourcc: V4L2 pixel format FCC identifier
  * @description: format description, suitable for userspace
  */
-struct xvip_video_format {
+struct xvip_video_format
+{
 	unsigned int vf_code;
 	unsigned int width;
 	const char *pattern;
@@ -127,13 +129,13 @@ const struct xvip_video_format *xvip_get_format_by_code(unsigned int code);
 const struct xvip_video_format *xvip_get_format_by_fourcc(u32 fourcc);
 const struct xvip_video_format *xvip_of_get_format(struct device_node *node);
 void xvip_set_format_size(struct v4l2_mbus_framefmt *format,
-			  const struct v4l2_subdev_format *fmt);
+						  const struct v4l2_subdev_format *fmt);
 int xvip_enum_mbus_code(struct v4l2_subdev *subdev,
-			struct v4l2_subdev_pad_config *cfg,
-			struct v4l2_subdev_mbus_code_enum *code);
+						struct v4l2_subdev_pad_config *cfg,
+						struct v4l2_subdev_mbus_code_enum *code);
 int xvip_enum_frame_size(struct v4l2_subdev *subdev,
-			 struct v4l2_subdev_pad_config *cfg,
-			 struct v4l2_subdev_frame_size_enum *fse);
+						 struct v4l2_subdev_pad_config *cfg,
+						 struct v4l2_subdev_frame_size_enum *fse);
 
 static inline u32 xvip_read(struct xvip_device *xvip, u32 addr)
 {
@@ -169,7 +171,7 @@ static inline void xvip_reset(struct xvip_device *xvip)
 static inline void xvip_start(struct xvip_device *xvip)
 {
 	xvip_set(xvip, XVIP_CTRL_CONTROL,
-		 XVIP_CTRL_CONTROL_SW_ENABLE | XVIP_CTRL_CONTROL_REG_UPDATE);
+			 XVIP_CTRL_CONTROL_SW_ENABLE | XVIP_CTRL_CONTROL_REG_UPDATE);
 }
 
 static inline void xvip_stop(struct xvip_device *xvip)
@@ -180,34 +182,34 @@ static inline void xvip_stop(struct xvip_device *xvip)
 static inline void xvip_resume(struct xvip_device *xvip)
 {
 	xvip_write(xvip, XVIP_CTRL_CONTROL,
-		   xvip->saved_ctrl | XVIP_CTRL_CONTROL_SW_ENABLE);
+			   xvip->saved_ctrl | XVIP_CTRL_CONTROL_SW_ENABLE);
 }
 
 static inline void xvip_suspend(struct xvip_device *xvip)
 {
 	xvip->saved_ctrl = xvip_read(xvip, XVIP_CTRL_CONTROL);
 	xvip_write(xvip, XVIP_CTRL_CONTROL,
-		   xvip->saved_ctrl & ~XVIP_CTRL_CONTROL_SW_ENABLE);
+			   xvip->saved_ctrl & ~XVIP_CTRL_CONTROL_SW_ENABLE);
 }
 
 static inline void xvip_set_frame_size(struct xvip_device *xvip,
-				       const struct v4l2_mbus_framefmt *format)
+									   const struct v4l2_mbus_framefmt *format)
 {
 	xvip_write(xvip, XVIP_ACTIVE_SIZE,
-		   (format->height << XVIP_ACTIVE_VSIZE_SHIFT) |
-		   (format->width << XVIP_ACTIVE_HSIZE_SHIFT));
+			   (format->height << XVIP_ACTIVE_VSIZE_SHIFT) |
+			   (format->width << XVIP_ACTIVE_HSIZE_SHIFT));
 }
 
 static inline void xvip_get_frame_size(struct xvip_device *xvip,
-				       struct v4l2_mbus_framefmt *format)
+									   struct v4l2_mbus_framefmt *format)
 {
 	u32 reg;
 
 	reg = xvip_read(xvip, XVIP_ACTIVE_SIZE);
 	format->width = (reg & XVIP_ACTIVE_HSIZE_MASK) >>
-			XVIP_ACTIVE_HSIZE_SHIFT;
+					XVIP_ACTIVE_HSIZE_SHIFT;
 	format->height = (reg & XVIP_ACTIVE_VSIZE_MASK) >>
-			 XVIP_ACTIVE_VSIZE_SHIFT;
+					 XVIP_ACTIVE_VSIZE_SHIFT;
 }
 
 static inline void xvip_enable_reg_update(struct xvip_device *xvip)
@@ -227,12 +229,12 @@ static inline void xvip_print_version(struct xvip_device *xvip)
 	version = xvip_read(xvip, XVIP_CTRL_VERSION);
 
 	dev_info(xvip->dev, "device found, version %u.%02x%x\n",
-		 ((version & XVIP_CTRL_VERSION_MAJOR_MASK) >>
-		  XVIP_CTRL_VERSION_MAJOR_SHIFT),
-		 ((version & XVIP_CTRL_VERSION_MINOR_MASK) >>
-		  XVIP_CTRL_VERSION_MINOR_SHIFT),
-		 ((version & XVIP_CTRL_VERSION_REVISION_MASK) >>
-		  XVIP_CTRL_VERSION_REVISION_SHIFT));
+			 ((version & XVIP_CTRL_VERSION_MAJOR_MASK) >>
+			  XVIP_CTRL_VERSION_MAJOR_SHIFT),
+			 ((version & XVIP_CTRL_VERSION_MINOR_MASK) >>
+			  XVIP_CTRL_VERSION_MINOR_SHIFT),
+			 ((version & XVIP_CTRL_VERSION_REVISION_MASK) >>
+			  XVIP_CTRL_VERSION_REVISION_SHIFT));
 }
 
 #endif /* __XILINX_VIP_H__ */

@@ -3,7 +3,8 @@
 #define nvkm_bus(p) container_of((p), struct nvkm_bus, subdev)
 #include <subdev/bus.h>
 
-struct nvkm_bus_func {
+struct nvkm_bus_func
+{
 	void (*init)(struct nvkm_bus *);
 	void (*intr)(struct nvkm_bus *);
 	int (*hwsq_exec)(struct nvkm_bus *, u32 *, u32);
@@ -11,7 +12,7 @@ struct nvkm_bus_func {
 };
 
 int nvkm_bus_new_(const struct nvkm_bus_func *, struct nvkm_device *, int,
-		  struct nvkm_bus **);
+				  struct nvkm_bus **);
 
 void nv50_bus_init(struct nvkm_bus *);
 void nv50_bus_intr(struct nvkm_bus *);

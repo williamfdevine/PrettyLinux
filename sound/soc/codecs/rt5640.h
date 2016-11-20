@@ -2015,7 +2015,8 @@
 #define RT5640_WND_WIND_SFT			13
 #define RT5640_WND_STRONG_MASK			(0x1 << 12) /* Read-Only */
 #define RT5640_WND_STRONG_SFT			12
-enum {
+enum
+{
 	RT5640_NO_WIND,
 	RT5640_BREEZE,
 	RT5640_STORM,
@@ -2054,20 +2055,23 @@ enum {
 #define RT5640_PLL1_S_BCLK3	3
 
 
-enum {
+enum
+{
 	RT5640_AIF1,
 	RT5640_AIF2,
 	RT5640_AIF3,
 	RT5640_AIFS,
 };
 
-enum {
+enum
+{
 	RT5640_U_IF1 = 0x1,
 	RT5640_U_IF2 = 0x2,
 	RT5640_U_IF3 = 0x4,
 };
 
-enum {
+enum
+{
 	RT5640_IF_123,
 	RT5640_IF_132,
 	RT5640_IF_312,
@@ -2079,14 +2083,16 @@ enum {
 	RT5640_IF_ALL,
 };
 
-enum {
+enum
+{
 	RT5640_DMIC_DIS,
 	RT5640_DMIC1,
 	RT5640_DMIC2,
 };
 
 /* filter mask */
-enum {
+enum
+{
 	RT5640_DA_STEREO_FILTER = 0x1,
 	RT5640_DA_MONO_L_FILTER = (0x1 << 1),
 	RT5640_DA_MONO_R_FILTER = (0x1 << 2),
@@ -2095,7 +2101,8 @@ enum {
 	RT5640_AD_MONO_R_FILTER = (0x1 << 5),
 };
 
-struct rt5640_priv {
+struct rt5640_priv
+{
 	struct snd_soc_codec *codec;
 	struct rt5640_platform_data pdata;
 	struct regmap *regmap;
@@ -2116,8 +2123,8 @@ struct rt5640_priv {
 };
 
 int rt5640_dmic_enable(struct snd_soc_codec *codec,
-		       bool dmic1_data_pin, bool dmic2_data_pin);
+					   bool dmic1_data_pin, bool dmic2_data_pin);
 int rt5640_sel_asrc_clk_src(struct snd_soc_codec *codec,
-		unsigned int filter_mask, unsigned int clk_src);
+							unsigned int filter_mask, unsigned int clk_src);
 
 #endif

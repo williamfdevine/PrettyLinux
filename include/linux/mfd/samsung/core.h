@@ -39,7 +39,8 @@
 #define STEP_12_5_MV		12500
 #define STEP_6_25_MV		6250
 
-enum sec_device_type {
+enum sec_device_type
+{
 	S5M8751X,
 	S5M8763X,
 	S5M8767X,
@@ -64,7 +65,8 @@ enum sec_device_type {
  * @irq_data:		Runtime data structure for IRQ controller
  * @wakeup:		Whether or not this is a wakeup device
  */
-struct sec_pmic_dev {
+struct sec_pmic_dev
+{
 	struct device *dev;
 	struct sec_platform_data *pdata;
 	struct regmap *regmap_pmic;
@@ -82,7 +84,8 @@ int sec_irq_init(struct sec_pmic_dev *sec_pmic);
 void sec_irq_exit(struct sec_pmic_dev *sec_pmic);
 int sec_irq_resume(struct sec_pmic_dev *sec_pmic);
 
-struct sec_platform_data {
+struct sec_platform_data
+{
 	struct sec_regulator_data	*regulators;
 	struct sec_opmode_data		*opmode;
 	int				device_type;
@@ -147,7 +150,8 @@ struct sec_platform_data {
  * @id: regulator id
  * @initdata: regulator init data (contraints, supplies, ...)
  */
-struct sec_regulator_data {
+struct sec_regulator_data
+{
 	int				id;
 	struct regulator_init_data	*initdata;
 	struct device_node		*reg_node;
@@ -159,7 +163,8 @@ struct sec_regulator_data {
  * @id: regulator id
  * @mode: regulator operation mode
  */
-struct sec_opmode_data {
+struct sec_opmode_data
+{
 	int id;
 	unsigned int mode;
 };
@@ -174,7 +179,8 @@ struct sec_opmode_data {
  *			If PWREN is low, regulator is off
  */
 
-enum sec_opmode {
+enum sec_opmode
+{
 	SEC_OPMODE_OFF,
 	SEC_OPMODE_ON,
 	SEC_OPMODE_LOWPOWER,

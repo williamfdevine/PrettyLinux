@@ -33,11 +33,13 @@
 #ifndef _HNS_ROCE_USER_H
 #define _HNS_ROCE_USER_H
 
-struct hns_roce_ib_create_cq {
+struct hns_roce_ib_create_cq
+{
 	__u64   buf_addr;
 };
 
-struct hns_roce_ib_create_qp {
+struct hns_roce_ib_create_qp
+{
 	__u64	buf_addr;
 	__u64   db_addr;
 	__u8    log_sq_bb_count;
@@ -46,7 +48,8 @@ struct hns_roce_ib_create_qp {
 	__u8    reserved[5];
 };
 
-struct hns_roce_ib_alloc_ucontext_resp {
+struct hns_roce_ib_alloc_ucontext_resp
+{
 	__u32	qp_tab_size;
 };
 

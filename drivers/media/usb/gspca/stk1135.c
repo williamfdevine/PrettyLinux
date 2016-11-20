@@ -34,7 +34,8 @@ MODULE_LICENSE("GPL");
 
 
 /* specific webcam descriptor */
-struct sd {
+struct sd
+{
 	struct gspca_dev gspca_dev;	/* !! must be the first item */
 
 	u8 pkt_seq;
@@ -47,12 +48,15 @@ struct sd {
 	struct v4l2_ctrl *vflip;
 };
 
-static const struct v4l2_pix_format stk1135_modes[] = {
+static const struct v4l2_pix_format stk1135_modes[] =
+{
 	/* default mode (this driver supports variable resolution) */
-	{640, 480, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
+	{
+		640, 480, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
 		.bytesperline = 640,
 		.sizeimage = 640 * 480,
-		.colorspace = V4L2_COLORSPACE_SRGB},
+		.colorspace = V4L2_COLORSPACE_SRGB
+	},
 };
 
 /* -- read a register -- */
@@ -62,17 +66,22 @@ static u8 reg_r(struct gspca_dev *gspca_dev, u16 index)
 	int ret;
 
 	if (gspca_dev->usb_err < 0)
+	{
 		return 0;
+	}
+
 	ret = usb_control_msg(dev, usb_rcvctrlpipe(dev, 0),
-			0x00,
-			USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-			0x00,
-			index,
-			gspca_dev->usb_buf, 1,
-			500);
+						  0x00,
+						  USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+						  0x00,
+						  index,
+						  gspca_dev->usb_buf, 1,
+						  500);
 
 	PDEBUG(D_USBI, "reg_r 0x%x=0x%02x", index, gspca_dev->usb_buf[0]);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("reg_r 0x%x err %d\n", index, ret);
 		gspca_dev->usb_err = ret;
 		return 0;
@@ -88,17 +97,22 @@ static void reg_w(struct gspca_dev *gspca_dev, u16 index, u8 val)
 	struct usb_device *dev = gspca_dev->dev;
 
 	if (gspca_dev->usb_err < 0)
+	{
 		return;
+	}
+
 	ret = usb_control_msg(dev, usb_sndctrlpipe(dev, 0),
-			0x01,
-			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-			val,
-			index,
-			NULL,
-			0,
-			500);
+						  0x01,
+						  USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+						  val,
+						  index,
+						  NULL,
+						  0,
+						  500);
 	PDEBUG(D_USBO, "reg_w 0x%x:=0x%02x", index, val);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("reg_w 0x%x err %d\n", index, ret);
 		gspca_dev->usb_err = ret;
 	}
@@ -112,7 +126,7 @@ static void reg_w_mask(struct gspca_dev *gspca_dev, u16 index, u8 val, u8 mask)
 
 /* this function is called at probe time */
 static int sd_config(struct gspca_dev *gspca_dev,
-			const struct usb_device_id *id)
+					 const struct usb_device_id *id)
 {
 	gspca_dev->cam.cam_mode = stk1135_modes;
 	gspca_dev->cam.nmodes = ARRAY_SIZE(stk1135_modes);
@@ -124,14 +138,19 @@ static int stk1135_serial_wait_ready(struct gspca_dev *gspca_dev)
 	int i = 0;
 	u8 val;
 
-	do {
+	do
+	{
 		val = reg_r(gspca_dev, STK1135_REG_SICTL + 1);
-		if (i++ > 500) { /* maximum retry count */
+
+		if (i++ > 500)   /* maximum retry count */
+		{
 			pr_err("serial bus timeout: status=0x%02x\n", val);
 			return -1;
 		}
-	/* repeat if BUSY or WRITE/READ not finished */
-	} while ((val & 0x10) || !(val & 0x05));
+
+		/* repeat if BUSY or WRITE/READ not finished */
+	}
+	while ((val & 0x10) || !(val & 0x05));
 
 	return 0;
 }
@@ -141,8 +160,10 @@ static u8 sensor_read_8(struct gspca_dev *gspca_dev, u8 addr)
 	reg_w(gspca_dev, STK1135_REG_SBUSR, addr);
 	/* begin read */
 	reg_w(gspca_dev, STK1135_REG_SICTL, 0x20);
+
 	/* wait until finished */
-	if (stk1135_serial_wait_ready(gspca_dev)) {
+	if (stk1135_serial_wait_ready(gspca_dev))
+	{
 		pr_err("Sensor read failed\n");
 		return 0;
 	}
@@ -153,7 +174,7 @@ static u8 sensor_read_8(struct gspca_dev *gspca_dev, u8 addr)
 static u16 sensor_read_16(struct gspca_dev *gspca_dev, u8 addr)
 {
 	return (sensor_read_8(gspca_dev, addr) << 8) |
-		sensor_read_8(gspca_dev, 0xf1);
+		   sensor_read_8(gspca_dev, 0xf1);
 }
 
 static void sensor_write_8(struct gspca_dev *gspca_dev, u8 addr, u8 data)
@@ -163,8 +184,10 @@ static void sensor_write_8(struct gspca_dev *gspca_dev, u8 addr, u8 data)
 	reg_w(gspca_dev, STK1135_REG_SBUSW + 1, data);
 	/* begin write */
 	reg_w(gspca_dev, STK1135_REG_SICTL, 0x01);
+
 	/* wait until finished */
-	if (stk1135_serial_wait_ready(gspca_dev)) {
+	if (stk1135_serial_wait_ready(gspca_dev))
+	{
 		pr_err("Sensor write failed\n");
 		return;
 	}
@@ -180,7 +203,8 @@ static void sensor_set_page(struct gspca_dev *gspca_dev, u8 page)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 
-	if (page != sd->sensor_page) {
+	if (page != sd->sensor_page)
+	{
 		sensor_write_16(gspca_dev, 0xf0, page);
 		sd->sensor_page = page;
 	}
@@ -199,13 +223,14 @@ static void sensor_write(struct gspca_dev *gspca_dev, u16 reg, u16 val)
 }
 
 static void sensor_write_mask(struct gspca_dev *gspca_dev,
-			u16 reg, u16 val, u16 mask)
+							  u16 reg, u16 val, u16 mask)
 {
 	val = (sensor_read(gspca_dev, reg) & ~mask) | (val & mask);
 	sensor_write(gspca_dev, reg, val);
 }
 
-struct sensor_val {
+struct sensor_val
+{
 	u16 reg;
 	u16 val;
 };
@@ -213,7 +238,8 @@ struct sensor_val {
 /* configure MT9M112 sensor */
 static void stk1135_configure_mt9m112(struct gspca_dev *gspca_dev)
 {
-	static const struct sensor_val cfg[] = {
+	static const struct sensor_val cfg[] =
+	{
 		/* restart&reset, chip enable, reserved */
 		{ 0x00d, 0x000b }, { 0x00d, 0x0008 }, { 0x035, 0x0022 },
 		/* mode ctl: AWB on, AE both, clip aper corr, defect corr, AE */
@@ -313,19 +339,25 @@ static void stk1135_configure_mt9m112(struct gspca_dev *gspca_dev)
 	u16 width, height;
 
 	for (i = 0; i < ARRAY_SIZE(cfg); i++)
+	{
 		sensor_write(gspca_dev, cfg[i].reg, cfg[i].val);
+	}
 
 	/* set output size */
 	width = gspca_dev->pixfmt.width;
 	height = gspca_dev->pixfmt.height;
-	if (width <= 640 && height <= 512) { /* context A (half readout speed)*/
+
+	if (width <= 640 && height <= 512)   /* context A (half readout speed)*/
+	{
 		sensor_write(gspca_dev, 0x1a7, width);
 		sensor_write(gspca_dev, 0x1aa, height);
 		/* set read mode context A */
 		sensor_write(gspca_dev, 0x0c8, 0x0000);
 		/* set resize, read mode, vblank, hblank context A */
 		sensor_write(gspca_dev, 0x2c8, 0x0000);
-	} else { /* context B (full readout speed) */
+	}
+	else     /* context B (full readout speed) */
+	{
 		sensor_write(gspca_dev, 0x1a1, width);
 		sensor_write(gspca_dev, 0x1a4, height);
 		/* set read mode context B */
@@ -424,13 +456,16 @@ static int sd_init(struct gspca_dev *gspca_dev)
 	sd->sensor_page = 0xff;
 	sensor_id = sensor_read(gspca_dev, 0x000);
 
-	switch (sensor_id) {
-	case 0x148c:
-		sensor_name = "MT9M112";
-		break;
-	default:
-		sensor_name = "unknown";
+	switch (sensor_id)
+	{
+		case 0x148c:
+			sensor_name = "MT9M112";
+			break;
+
+		default:
+			sensor_name = "unknown";
 	}
+
 	pr_info("Detected sensor type %s (0x%x)\n", sensor_name, sensor_id);
 
 	stk1135_camera_disable(gspca_dev);
@@ -473,7 +508,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
 
 	if (gspca_dev->usb_err >= 0)
 		PDEBUG(D_STREAM, "camera started alt: 0x%02x",
-				gspca_dev->alt);
+			   gspca_dev->alt);
 
 	sd->pkt_seq = 0;
 
@@ -492,8 +527,8 @@ static void sd_stopN(struct gspca_dev *gspca_dev)
 }
 
 static void sd_pkt_scan(struct gspca_dev *gspca_dev,
-			u8 *data,			/* isoc packet */
-			int len)			/* iso packet length */
+						u8 *data,			/* isoc packet */
+						int len)			/* iso packet length */
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 	int skip = sizeof(struct stk1135_pkt_header);
@@ -502,23 +537,32 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
 	struct stk1135_pkt_header *hdr = (void *)data;
 	u8 seq;
 
-	if (len < 4) {
+	if (len < 4)
+	{
 		PDEBUG(D_PACK, "received short packet (less than 4 bytes)");
 		return;
 	}
 
 	/* GPIO 8 is flip sensor (1 = normal position, 0 = flipped to back) */
 	flip = !(le16_to_cpu(hdr->gpio) & (1 << 8));
+
 	/* it's a switch, needs software debounce */
 	if (sd->flip_status != flip)
+	{
 		sd->flip_debounce++;
+	}
 	else
+	{
 		sd->flip_debounce = 0;
+	}
 
 	/* check sequence number (not present in new frame packets) */
-	if (!(hdr->flags & STK1135_HDR_FRAME_START)) {
+	if (!(hdr->flags & STK1135_HDR_FRAME_START))
+	{
 		seq = hdr->seq & STK1135_HDR_SEQ_MASK;
-		if (seq != sd->pkt_seq) {
+
+		if (seq != sd->pkt_seq)
+		{
 			PDEBUG(D_PACK, "received out-of-sequence packet");
 			/* resync sequence and discard packet */
 			sd->pkt_seq = seq;
@@ -526,18 +570,26 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
 			return;
 		}
 	}
+
 	sd->pkt_seq++;
+
 	if (sd->pkt_seq > STK1135_HDR_SEQ_MASK)
+	{
 		sd->pkt_seq = 0;
+	}
 
 	if (len == sizeof(struct stk1135_pkt_header))
+	{
 		return;
+	}
 
-	if (hdr->flags & STK1135_HDR_FRAME_START) { /* new frame */
+	if (hdr->flags & STK1135_HDR_FRAME_START)   /* new frame */
+	{
 		skip = 8;	/* the header is longer */
 		gspca_frame_add(gspca_dev, LAST_PACKET, data, 0);
 		pkt_type = FIRST_PACKET;
 	}
+
 	gspca_frame_add(gspca_dev, pkt_type, data + skip, len - skip);
 }
 
@@ -546,7 +598,10 @@ static void sethflip(struct gspca_dev *gspca_dev, s32 val)
 	struct sd *sd = (struct sd *) gspca_dev;
 
 	if (sd->flip_status)
+	{
 		val = !val;
+	}
+
 	sensor_write_mask(gspca_dev, 0x020, val ? 0x0002 : 0x0000 , 0x0002);
 }
 
@@ -555,7 +610,10 @@ static void setvflip(struct gspca_dev *gspca_dev, s32 val)
 	struct sd *sd = (struct sd *) gspca_dev;
 
 	if (sd->flip_status)
+	{
 		val = !val;
+	}
+
 	sensor_write_mask(gspca_dev, 0x020, val ? 0x0001 : 0x0000 , 0x0001);
 }
 
@@ -563,7 +621,8 @@ static void stk1135_dq_callback(struct gspca_dev *gspca_dev)
 {
 	struct sd *sd = (struct sd *) gspca_dev;
 
-	if (sd->flip_debounce > 100) {
+	if (sd->flip_debounce > 100)
+	{
 		sd->flip_status = !sd->flip_status;
 		sethflip(gspca_dev, v4l2_ctrl_g_ctrl(sd->hflip));
 		setvflip(gspca_dev, v4l2_ctrl_g_ctrl(sd->vflip));
@@ -578,21 +637,26 @@ static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
 	gspca_dev->usb_err = 0;
 
 	if (!gspca_dev->streaming)
+	{
 		return 0;
+	}
 
-	switch (ctrl->id) {
-	case V4L2_CID_HFLIP:
-		sethflip(gspca_dev, ctrl->val);
-		break;
-	case V4L2_CID_VFLIP:
-		setvflip(gspca_dev, ctrl->val);
-		break;
+	switch (ctrl->id)
+	{
+		case V4L2_CID_HFLIP:
+			sethflip(gspca_dev, ctrl->val);
+			break;
+
+		case V4L2_CID_VFLIP:
+			setvflip(gspca_dev, ctrl->val);
+			break;
 	}
 
 	return gspca_dev->usb_err;
 }
 
-static const struct v4l2_ctrl_ops sd_ctrl_ops = {
+static const struct v4l2_ctrl_ops sd_ctrl_ops =
+{
 	.s_ctrl = sd_s_ctrl,
 };
 
@@ -604,14 +668,16 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
 	gspca_dev->vdev.ctrl_handler = hdl;
 	v4l2_ctrl_handler_init(hdl, 2);
 	sd->hflip = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-			V4L2_CID_HFLIP, 0, 1, 1, 0);
+								  V4L2_CID_HFLIP, 0, 1, 1, 0);
 	sd->vflip = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
-			V4L2_CID_VFLIP, 0, 1, 1, 0);
+								  V4L2_CID_VFLIP, 0, 1, 1, 0);
 
-	if (hdl->error) {
+	if (hdl->error)
+	{
 		pr_err("Could not initialize controls\n");
 		return hdl->error;
 	}
+
 	return 0;
 }
 
@@ -628,10 +694,12 @@ static void stk1135_try_fmt(struct gspca_dev *gspca_dev, struct v4l2_format *fmt
 }
 
 static int stk1135_enum_framesizes(struct gspca_dev *gspca_dev,
-			struct v4l2_frmsizeenum *fsize)
+								   struct v4l2_frmsizeenum *fsize)
 {
 	if (fsize->index != 0 || fsize->pixel_format != V4L2_PIX_FMT_SBGGR8)
+	{
 		return -EINVAL;
+	}
 
 	fsize->type = V4L2_FRMSIZE_TYPE_STEPWISE;
 	fsize->stepwise.min_width = 32;
@@ -645,7 +713,8 @@ static int stk1135_enum_framesizes(struct gspca_dev *gspca_dev,
 }
 
 /* sub-driver description */
-static const struct sd_desc sd_desc = {
+static const struct sd_desc sd_desc =
+{
 	.name = MODULE_NAME,
 	.config = sd_config,
 	.init = sd_init,
@@ -659,7 +728,8 @@ static const struct sd_desc sd_desc = {
 };
 
 /* -- module initialisation -- */
-static const struct usb_device_id device_table[] = {
+static const struct usb_device_id device_table[] =
+{
 	{USB_DEVICE(0x174f, 0x6a31)},	/* ASUS laptop, MT9M112 sensor */
 	{}
 };
@@ -667,13 +737,14 @@ MODULE_DEVICE_TABLE(usb, device_table);
 
 /* -- device connect -- */
 static int sd_probe(struct usb_interface *intf,
-			const struct usb_device_id *id)
+					const struct usb_device_id *id)
 {
 	return gspca_dev_probe(intf, id, &sd_desc, sizeof(struct sd),
-				THIS_MODULE);
+						   THIS_MODULE);
 }
 
-static struct usb_driver sd_driver = {
+static struct usb_driver sd_driver =
+{
 	.name = MODULE_NAME,
 	.id_table = device_table,
 	.probe = sd_probe,

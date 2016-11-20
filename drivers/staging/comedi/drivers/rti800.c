@@ -80,7 +80,8 @@
 #define RTI800_9513A_CNTRL	0x0d
 #define RTI800_9513A_STATUS	0x0d
 
-static const struct comedi_lrange range_rti800_ai_10_bipolar = {
+static const struct comedi_lrange range_rti800_ai_10_bipolar =
+{
 	4, {
 		BIP_RANGE(10),
 		BIP_RANGE(1),
@@ -89,7 +90,8 @@ static const struct comedi_lrange range_rti800_ai_10_bipolar = {
 	}
 };
 
-static const struct comedi_lrange range_rti800_ai_5_bipolar = {
+static const struct comedi_lrange range_rti800_ai_5_bipolar =
+{
 	4, {
 		BIP_RANGE(5),
 		BIP_RANGE(0.5),
@@ -98,7 +100,8 @@ static const struct comedi_lrange range_rti800_ai_5_bipolar = {
 	}
 };
 
-static const struct comedi_lrange range_rti800_ai_unipolar = {
+static const struct comedi_lrange range_rti800_ai_unipolar =
+{
 	4, {
 		UNI_RANGE(10),
 		UNI_RANGE(1),
@@ -107,23 +110,27 @@ static const struct comedi_lrange range_rti800_ai_unipolar = {
 	}
 };
 
-static const struct comedi_lrange *const rti800_ai_ranges[] = {
+static const struct comedi_lrange *const rti800_ai_ranges[] =
+{
 	&range_rti800_ai_10_bipolar,
 	&range_rti800_ai_5_bipolar,
 	&range_rti800_ai_unipolar,
 };
 
-static const struct comedi_lrange *const rti800_ao_ranges[] = {
+static const struct comedi_lrange *const rti800_ao_ranges[] =
+{
 	&range_bipolar10,
 	&range_unipolar10,
 };
 
-struct rti800_board {
+struct rti800_board
+{
 	const char *name;
 	int has_ao;
 };
 
-static const struct rti800_board rti800_boardtypes[] = {
+static const struct rti800_board rti800_boardtypes[] =
+{
 	{
 		.name		= "rti800",
 	}, {
@@ -132,7 +139,8 @@ static const struct rti800_board rti800_boardtypes[] = {
 	},
 };
 
-struct rti800_private {
+struct rti800_private
+{
 	bool adc_2comp;
 	bool dac_2comp[2];
 	const struct comedi_lrange *ao_range_type_list[2];
@@ -140,26 +148,32 @@ struct rti800_private {
 };
 
 static int rti800_ai_eoc(struct comedi_device *dev,
-			 struct comedi_subdevice *s,
-			 struct comedi_insn *insn,
-			 unsigned long context)
+						 struct comedi_subdevice *s,
+						 struct comedi_insn *insn,
+						 unsigned long context)
 {
 	unsigned char status;
 
 	status = inb(dev->iobase + RTI800_CSR);
-	if (status & RTI800_CSR_OVERRUN) {
+
+	if (status & RTI800_CSR_OVERRUN)
+	{
 		outb(0, dev->iobase + RTI800_CLRFLAGS);
 		return -EOVERFLOW;
 	}
+
 	if (status & RTI800_CSR_DONE)
+	{
 		return 0;
+	}
+
 	return -EBUSY;
 }
 
 static int rti800_ai_insn_read(struct comedi_device *dev,
-			       struct comedi_subdevice *s,
-			       struct comedi_insn *insn,
-			       unsigned int *data)
+							   struct comedi_subdevice *s,
+							   struct comedi_insn *insn,
+							   unsigned int *data)
 {
 	struct rti800_private *devpriv = dev->private;
 	unsigned int chan = CR_CHAN(insn->chanspec);
@@ -172,36 +186,46 @@ static int rti800_ai_insn_read(struct comedi_device *dev,
 	outb(0, dev->iobase + RTI800_CLRFLAGS);
 
 	muxgain_bits = chan | (gain << 5);
-	if (muxgain_bits != devpriv->muxgain_bits) {
+
+	if (muxgain_bits != devpriv->muxgain_bits)
+	{
 		devpriv->muxgain_bits = muxgain_bits;
 		outb(devpriv->muxgain_bits, dev->iobase + RTI800_MUXGAIN);
+
 		/*
 		 * Without a delay here, the RTI_CSR_OVERRUN bit
 		 * gets set, and you will have an error.
 		 */
-		if (insn->n > 0) {
+		if (insn->n > 0)
+		{
 			int delay = (gain == 0) ? 10 :
-				    (gain == 1) ? 20 :
-				    (gain == 2) ? 40 : 80;
+						(gain == 1) ? 20 :
+						(gain == 2) ? 40 : 80;
 
 			udelay(delay);
 		}
 	}
 
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		unsigned int val;
 
 		outb(0, dev->iobase + RTI800_CONVERT);
 
 		ret = comedi_timeout(dev, s, insn, rti800_ai_eoc, 0);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		val = inb(dev->iobase + RTI800_ADCLO);
 		val |= (inb(dev->iobase + RTI800_ADCHI) & 0xf) << 8;
 
 		if (devpriv->adc_2comp)
+		{
 			val = comedi_offset_munge(s, val);
+		}
 
 		data[i] = val;
 	}
@@ -210,9 +234,9 @@ static int rti800_ai_insn_read(struct comedi_device *dev,
 }
 
 static int rti800_ao_insn_write(struct comedi_device *dev,
-				struct comedi_subdevice *s,
-				struct comedi_insn *insn,
-				unsigned int *data)
+								struct comedi_subdevice *s,
+								struct comedi_insn *insn,
+								unsigned int *data)
 {
 	struct rti800_private *devpriv = dev->private;
 	unsigned int chan = CR_CHAN(insn->chanspec);
@@ -220,13 +244,16 @@ static int rti800_ao_insn_write(struct comedi_device *dev,
 	int reg_hi = chan ? RTI800_DAC1HI : RTI800_DAC0HI;
 	int i;
 
-	for (i = 0; i < insn->n; i++) {
+	for (i = 0; i < insn->n; i++)
+	{
 		unsigned int val = data[i];
 
 		s->readback[chan] = val;
 
 		if (devpriv->dac_2comp[chan])
+		{
 			val = comedi_offset_munge(s, val);
+		}
 
 		outb(val & 0xff, dev->iobase + reg_lo);
 		outb((val >> 8) & 0xff, dev->iobase + reg_hi);
@@ -236,20 +263,21 @@ static int rti800_ao_insn_write(struct comedi_device *dev,
 }
 
 static int rti800_di_insn_bits(struct comedi_device *dev,
-			       struct comedi_subdevice *s,
-			       struct comedi_insn *insn,
-			       unsigned int *data)
+							   struct comedi_subdevice *s,
+							   struct comedi_insn *insn,
+							   unsigned int *data)
 {
 	data[1] = inb(dev->iobase + RTI800_DI);
 	return insn->n;
 }
 
 static int rti800_do_insn_bits(struct comedi_device *dev,
-			       struct comedi_subdevice *s,
-			       struct comedi_insn *insn,
-			       unsigned int *data)
+							   struct comedi_subdevice *s,
+							   struct comedi_insn *insn,
+							   unsigned int *data)
 {
-	if (comedi_dio_update_state(s, data)) {
+	if (comedi_dio_update_state(s, data))
+	{
 		/* Outputs are inverted... */
 		outb(s->state ^ 0xff, dev->iobase + RTI800_DO);
 	}
@@ -267,16 +295,22 @@ static int rti800_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	int ret;
 
 	ret = comedi_request_region(dev, it->options[0], 0x10);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	outb(0, dev->iobase + RTI800_CSR);
 	inb(dev->iobase + RTI800_ADCHI);
 	outb(0, dev->iobase + RTI800_CLRFLAGS);
 
 	devpriv = comedi_alloc_devpriv(dev, sizeof(*devpriv));
+
 	if (!devpriv)
+	{
 		return -ENOMEM;
+	}
 
 	devpriv->adc_2comp = (it->options[4] == 0);
 	devpriv->dac_2comp[0] = (it->options[6] == 0);
@@ -285,8 +319,11 @@ static int rti800_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	devpriv->muxgain_bits = 0xff;
 
 	ret = comedi_alloc_subdevices(dev, 4);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	s = &dev->subdevices[0];
 	/* ai subdevice */
@@ -296,11 +333,13 @@ static int rti800_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	s->insn_read	= rti800_ai_insn_read;
 	s->maxdata	= 0x0fff;
 	s->range_table	= (it->options[3] < ARRAY_SIZE(rti800_ai_ranges))
-				? rti800_ai_ranges[it->options[3]]
-				: &range_unknown;
+					  ? rti800_ai_ranges[it->options[3]]
+					  : &range_unknown;
 
 	s = &dev->subdevices[1];
-	if (board->has_ao) {
+
+	if (board->has_ao)
+	{
 		/* ao subdevice (only on rti815) */
 		s->type		= COMEDI_SUBD_AO;
 		s->subdev_flags	= SDF_WRITABLE;
@@ -309,18 +348,23 @@ static int rti800_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 		s->range_table_list = devpriv->ao_range_type_list;
 		devpriv->ao_range_type_list[0] =
 			(it->options[5] < ARRAY_SIZE(rti800_ao_ranges))
-				? rti800_ao_ranges[it->options[5]]
-				: &range_unknown;
+			? rti800_ao_ranges[it->options[5]]
+			: &range_unknown;
 		devpriv->ao_range_type_list[1] =
 			(it->options[7] < ARRAY_SIZE(rti800_ao_ranges))
-				? rti800_ao_ranges[it->options[7]]
-				: &range_unknown;
+			? rti800_ao_ranges[it->options[7]]
+			: &range_unknown;
 		s->insn_write	= rti800_ao_insn_write;
 
 		ret = comedi_alloc_subdev_readback(s);
+
 		if (ret)
+		{
 			return ret;
-	} else {
+		}
+	}
+	else
+	{
 		s->type		= COMEDI_SUBD_UNUSED;
 	}
 
@@ -350,7 +394,8 @@ static int rti800_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	return 0;
 }
 
-static struct comedi_driver rti800_driver = {
+static struct comedi_driver rti800_driver =
+{
 	.driver_name	= "rti800",
 	.module		= THIS_MODULE,
 	.attach		= rti800_attach,

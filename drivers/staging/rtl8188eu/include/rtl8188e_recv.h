@@ -29,7 +29,8 @@
 
 #define MAX_RECVBUF_SZ (15360) /*  15k < 16k */
 
-struct phy_stat {
+struct phy_stat
+{
 	unsigned int phydw0;
 	unsigned int phydw1;
 	unsigned int phydw2;
@@ -43,7 +44,8 @@ struct phy_stat {
 /*  Rx smooth factor */
 #define	Rx_Smooth_Factor (20)
 
-enum rx_packet_type {
+enum rx_packet_type
+{
 	NORMAL_RX,/* Normal rx packet */
 	TX_REPORT1,/* CCX */
 	TX_REPORT2,/* TX RPT */
@@ -55,9 +57,9 @@ void rtl8188eu_recv_hdl(struct adapter *padapter, struct recv_buf *precvbuf);
 void rtl8188eu_recv_tasklet(void *priv);
 void rtl8188e_query_rx_phy_status(struct recv_frame *fr, struct phy_stat *phy);
 void rtl8188e_process_phy_info(struct adapter *padapter,
-			       struct recv_frame *prframe);
+							   struct recv_frame *prframe);
 void update_recvframe_phyinfo_88e(struct recv_frame *fra, struct phy_stat *phy);
 void update_recvframe_attrib_88e(struct recv_frame *fra,
-				 struct recv_stat *stat);
+								 struct recv_stat *stat);
 
 #endif

@@ -33,7 +33,8 @@
  * @dmas: list of DMA channels at the pipeline output and input
  * @v4l2_caps: V4L2 capabilities of the whole device (see VIDIOC_QUERYCAP)
  */
-struct xvip_composite_device {
+struct xvip_composite_device
+{
 	struct v4l2_device v4l2_dev;
 	struct media_device media_dev;
 	struct device *dev;

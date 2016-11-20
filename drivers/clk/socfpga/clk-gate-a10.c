@@ -30,14 +30,17 @@
 #define SYSMGR_SDMMCGRP_CTRL_OFFSET	0x28
 
 static unsigned long socfpga_gate_clk_recalc_rate(struct clk_hw *hwclk,
-	unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct socfpga_gate_clk *socfpgaclk = to_socfpga_gate_clk(hwclk);
 	u32 div = 1, val;
 
 	if (socfpgaclk->fixed_div)
+	{
 		div = socfpgaclk->fixed_div;
-	else if (socfpgaclk->div_reg) {
+	}
+	else if (socfpgaclk->div_reg)
+	{
 		val = readl(socfpgaclk->div_reg) >> socfpgaclk->shift;
 		val &= GENMASK(socfpgaclk->width - 1, 0);
 		div = (1 << val);
@@ -53,57 +56,71 @@ static int socfpga_clk_prepare(struct clk_hw *hwclk)
 	u32 hs_timing;
 	u32 clk_phase[2];
 
-	if (socfpgaclk->clk_phase[0] || socfpgaclk->clk_phase[1]) {
-		for (i = 0; i < ARRAY_SIZE(clk_phase); i++) {
-			switch (socfpgaclk->clk_phase[i]) {
-			case 0:
-				clk_phase[i] = 0;
-				break;
-			case 45:
-				clk_phase[i] = 1;
-				break;
-			case 90:
-				clk_phase[i] = 2;
-				break;
-			case 135:
-				clk_phase[i] = 3;
-				break;
-			case 180:
-				clk_phase[i] = 4;
-				break;
-			case 225:
-				clk_phase[i] = 5;
-				break;
-			case 270:
-				clk_phase[i] = 6;
-				break;
-			case 315:
-				clk_phase[i] = 7;
-				break;
-			default:
-				clk_phase[i] = 0;
-				break;
+	if (socfpgaclk->clk_phase[0] || socfpgaclk->clk_phase[1])
+	{
+		for (i = 0; i < ARRAY_SIZE(clk_phase); i++)
+		{
+			switch (socfpgaclk->clk_phase[i])
+			{
+				case 0:
+					clk_phase[i] = 0;
+					break;
+
+				case 45:
+					clk_phase[i] = 1;
+					break;
+
+				case 90:
+					clk_phase[i] = 2;
+					break;
+
+				case 135:
+					clk_phase[i] = 3;
+					break;
+
+				case 180:
+					clk_phase[i] = 4;
+					break;
+
+				case 225:
+					clk_phase[i] = 5;
+					break;
+
+				case 270:
+					clk_phase[i] = 6;
+					break;
+
+				case 315:
+					clk_phase[i] = 7;
+					break;
+
+				default:
+					clk_phase[i] = 0;
+					break;
 			}
 		}
 
 		hs_timing = SYSMGR_SDMMC_CTRL_SET(clk_phase[0], clk_phase[1]);
+
 		if (!IS_ERR(socfpgaclk->sys_mgr_base_addr))
 			regmap_write(socfpgaclk->sys_mgr_base_addr,
-				     SYSMGR_SDMMCGRP_CTRL_OFFSET, hs_timing);
+						 SYSMGR_SDMMCGRP_CTRL_OFFSET, hs_timing);
 		else
 			pr_err("%s: cannot set clk_phase because sys_mgr_base_addr is not available!\n",
-					__func__);
+				   __func__);
 	}
+
 	return 0;
 }
 
-static struct clk_ops gateclk_ops = {
+static struct clk_ops gateclk_ops =
+{
 	.prepare = socfpga_clk_prepare,
 	.recalc_rate = socfpga_gate_clk_recalc_rate,
 };
 
 static void __init __socfpga_gate_init(struct device_node *node,
-	const struct clk_ops *ops)
+									   const struct clk_ops *ops)
 {
 	u32 clk_gate[2];
 	u32 div_reg[3];
@@ -117,14 +134,21 @@ static void __init __socfpga_gate_init(struct device_node *node,
 	int rc;
 
 	socfpga_clk = kzalloc(sizeof(*socfpga_clk), GFP_KERNEL);
+
 	if (WARN_ON(!socfpga_clk))
+	{
 		return;
+	}
 
 	rc = of_property_read_u32_array(node, "clk-gate", clk_gate, 2);
-	if (rc)
-		clk_gate[0] = 0;
 
-	if (clk_gate[0]) {
+	if (rc)
+	{
+		clk_gate[0] = 0;
+	}
+
+	if (clk_gate[0])
+	{
 		socfpga_clk->hw.reg = clk_mgr_a10_base_addr + clk_gate[0];
 		socfpga_clk->hw.bit_idx = clk_gate[1];
 
@@ -133,30 +157,43 @@ static void __init __socfpga_gate_init(struct device_node *node,
 	}
 
 	rc = of_property_read_u32(node, "fixed-divider", &fixed_div);
+
 	if (rc)
+	{
 		socfpga_clk->fixed_div = 0;
+	}
 	else
+	{
 		socfpga_clk->fixed_div = fixed_div;
+	}
 
 	rc = of_property_read_u32_array(node, "div-reg", div_reg, 3);
-	if (!rc) {
+
+	if (!rc)
+	{
 		socfpga_clk->div_reg = clk_mgr_a10_base_addr + div_reg[0];
 		socfpga_clk->shift = div_reg[1];
 		socfpga_clk->width = div_reg[2];
-	} else {
+	}
+	else
+	{
 		socfpga_clk->div_reg = NULL;
 	}
 
 	rc = of_property_read_u32_array(node, "clk-phase", clk_phase, 2);
-	if (!rc) {
+
+	if (!rc)
+	{
 		socfpga_clk->clk_phase[0] = clk_phase[0];
 		socfpga_clk->clk_phase[1] = clk_phase[1];
 
 		socfpga_clk->sys_mgr_base_addr =
 			syscon_regmap_lookup_by_compatible("altr,sys-mgr");
-		if (IS_ERR(socfpga_clk->sys_mgr_base_addr)) {
+
+		if (IS_ERR(socfpga_clk->sys_mgr_base_addr))
+		{
 			pr_err("%s: failed to find altr,sys-mgr regmap!\n",
-					__func__);
+				   __func__);
 			return;
 		}
 	}
@@ -172,13 +209,19 @@ static void __init __socfpga_gate_init(struct device_node *node,
 	socfpga_clk->hw.hw.init = &init;
 
 	clk = clk_register(NULL, &socfpga_clk->hw.hw);
-	if (WARN_ON(IS_ERR(clk))) {
+
+	if (WARN_ON(IS_ERR(clk)))
+	{
 		kfree(socfpga_clk);
 		return;
 	}
+
 	rc = of_clk_add_provider(node, of_clk_src_simple_get, clk);
+
 	if (WARN_ON(rc))
+	{
 		return;
+	}
 }
 
 void __init socfpga_a10_gate_init(struct device_node *node)

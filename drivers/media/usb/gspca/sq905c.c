@@ -59,7 +59,8 @@ MODULE_LICENSE("GPL");
 #define SQ905C_CAPTURE_INDEX 0x110f
 
 /* Structure to hold all of our device specific stuff */
-struct sd {
+struct sd
+{
 	struct gspca_dev gspca_dev;	/* !! must be the first item */
 	const struct v4l2_pix_format *cap_mode;
 	/* Driver stuff */
@@ -72,17 +73,22 @@ struct sd {
  * in theory but gives very poor output. Therefore, not supported.
  * The 0x2770:0x9050 cameras have max resolution of 320x240.
  */
-static struct v4l2_pix_format sq905c_mode[] = {
-	{ 320, 240, V4L2_PIX_FMT_SQ905C, V4L2_FIELD_NONE,
+static struct v4l2_pix_format sq905c_mode[] =
+{
+	{
+		320, 240, V4L2_PIX_FMT_SQ905C, V4L2_FIELD_NONE,
 		.bytesperline = 320,
 		.sizeimage = 320 * 240,
 		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 0},
-	{ 640, 480, V4L2_PIX_FMT_SQ905C, V4L2_FIELD_NONE,
+		.priv = 0
+	},
+	{
+		640, 480, V4L2_PIX_FMT_SQ905C, V4L2_FIELD_NONE,
 		.bytesperline = 640,
 		.sizeimage = 640 * 480,
 		.colorspace = V4L2_COLORSPACE_SRGB,
-		.priv = 0}
+		.priv = 0
+	}
 };
 
 /* Send a command to the camera. */
@@ -91,12 +97,14 @@ static int sq905c_command(struct gspca_dev *gspca_dev, u16 command, u16 index)
 	int ret;
 
 	ret = usb_control_msg(gspca_dev->dev,
-			      usb_sndctrlpipe(gspca_dev->dev, 0),
-			      USB_REQ_SYNCH_FRAME,                /* request */
-			      USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-			      command, index, NULL, 0,
-			      SQ905C_CMD_TIMEOUT);
-	if (ret < 0) {
+						  usb_sndctrlpipe(gspca_dev->dev, 0),
+						  USB_REQ_SYNCH_FRAME,                /* request */
+						  USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+						  command, index, NULL, 0,
+						  SQ905C_CMD_TIMEOUT);
+
+	if (ret < 0)
+	{
 		pr_err("%s: usb_control_msg failed (%d)\n", __func__, ret);
 		return ret;
 	}
@@ -105,17 +113,19 @@ static int sq905c_command(struct gspca_dev *gspca_dev, u16 command, u16 index)
 }
 
 static int sq905c_read(struct gspca_dev *gspca_dev, u16 command, u16 index,
-		       int size)
+					   int size)
 {
 	int ret;
 
 	ret = usb_control_msg(gspca_dev->dev,
-			      usb_rcvctrlpipe(gspca_dev->dev, 0),
-			      USB_REQ_SYNCH_FRAME,		/* request */
-			      USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-			      command, index, gspca_dev->usb_buf, size,
-			      SQ905C_CMD_TIMEOUT);
-	if (ret < 0) {
+						  usb_rcvctrlpipe(gspca_dev->dev, 0),
+						  USB_REQ_SYNCH_FRAME,		/* request */
+						  USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+						  command, index, gspca_dev->usb_buf, size,
+						  SQ905C_CMD_TIMEOUT);
+
+	if (ret < 0)
+	{
 		pr_err("%s: usb_control_msg failed (%d)\n", __func__, ret);
 		return ret;
 	}
@@ -143,96 +153,132 @@ static void sq905c_dostream(struct work_struct *work)
 	u8 *buffer;
 
 	buffer = kmalloc(SQ905C_MAX_TRANSFER, GFP_KERNEL | GFP_DMA);
-	if (!buffer) {
+
+	if (!buffer)
+	{
 		pr_err("Couldn't allocate USB buffer\n");
 		goto quit_stream;
 	}
 
-	while (gspca_dev->present && gspca_dev->streaming) {
+	while (gspca_dev->present && gspca_dev->streaming)
+	{
 #ifdef CONFIG_PM
+
 		if (gspca_dev->frozen)
+		{
 			break;
+		}
+
 #endif
 		/* Request the header, which tells the size to download */
 		ret = usb_bulk_msg(gspca_dev->dev,
-				usb_rcvbulkpipe(gspca_dev->dev, 0x81),
-				buffer, FRAME_HEADER_LEN, &act_len,
-				SQ905C_DATA_TIMEOUT);
+						   usb_rcvbulkpipe(gspca_dev->dev, 0x81),
+						   buffer, FRAME_HEADER_LEN, &act_len,
+						   SQ905C_DATA_TIMEOUT);
 		PDEBUG(D_STREAM,
-			"Got %d bytes out of %d for header",
-			act_len, FRAME_HEADER_LEN);
+			   "Got %d bytes out of %d for header",
+			   act_len, FRAME_HEADER_LEN);
+
 		if (ret < 0 || act_len < FRAME_HEADER_LEN)
+		{
 			goto quit_stream;
+		}
+
 		/* size is read from 4 bytes starting 0x40, little endian */
-		bytes_left = buffer[0x40]|(buffer[0x41]<<8)|(buffer[0x42]<<16)
-					|(buffer[0x43]<<24);
+		bytes_left = buffer[0x40] | (buffer[0x41] << 8) | (buffer[0x42] << 16)
+					 | (buffer[0x43] << 24);
 		PDEBUG(D_STREAM, "bytes_left = 0x%x", bytes_left);
 		/* We keep the header. It has other information, too. */
 		packet_type = FIRST_PACKET;
 		gspca_frame_add(gspca_dev, packet_type,
-				buffer, FRAME_HEADER_LEN);
-		while (bytes_left > 0 && gspca_dev->present) {
+						buffer, FRAME_HEADER_LEN);
+
+		while (bytes_left > 0 && gspca_dev->present)
+		{
 			data_len = bytes_left > SQ905C_MAX_TRANSFER ?
-				SQ905C_MAX_TRANSFER : bytes_left;
+					   SQ905C_MAX_TRANSFER : bytes_left;
 			ret = usb_bulk_msg(gspca_dev->dev,
-				usb_rcvbulkpipe(gspca_dev->dev, 0x81),
-				buffer, data_len, &act_len,
-				SQ905C_DATA_TIMEOUT);
+							   usb_rcvbulkpipe(gspca_dev->dev, 0x81),
+							   buffer, data_len, &act_len,
+							   SQ905C_DATA_TIMEOUT);
+
 			if (ret < 0 || act_len < data_len)
+			{
 				goto quit_stream;
+			}
+
 			PDEBUG(D_STREAM,
-				"Got %d bytes out of %d for frame",
-				data_len, bytes_left);
+				   "Got %d bytes out of %d for frame",
+				   data_len, bytes_left);
 			bytes_left -= data_len;
+
 			if (bytes_left == 0)
+			{
 				packet_type = LAST_PACKET;
+			}
 			else
+			{
 				packet_type = INTER_PACKET;
+			}
+
 			gspca_frame_add(gspca_dev, packet_type,
-					buffer, data_len);
+							buffer, data_len);
 		}
 	}
+
 quit_stream:
-	if (gspca_dev->present) {
+
+	if (gspca_dev->present)
+	{
 		mutex_lock(&gspca_dev->usb_lock);
 		sq905c_command(gspca_dev, SQ905C_CLEAR, 0);
 		mutex_unlock(&gspca_dev->usb_lock);
 	}
+
 	kfree(buffer);
 }
 
 /* This function is called at probe time just before sd_init */
 static int sd_config(struct gspca_dev *gspca_dev,
-		const struct usb_device_id *id)
+					 const struct usb_device_id *id)
 {
 	struct cam *cam = &gspca_dev->cam;
 	struct sd *dev = (struct sd *) gspca_dev;
 	int ret;
 
 	PDEBUG(D_PROBE,
-		"SQ9050 camera detected"
-		" (vid/pid 0x%04X:0x%04X)", id->idVendor, id->idProduct);
+		   "SQ9050 camera detected"
+		   " (vid/pid 0x%04X:0x%04X)", id->idVendor, id->idProduct);
 
 	ret = sq905c_command(gspca_dev, SQ905C_GET_ID, 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		PERR("Get version command failed");
 		return ret;
 	}
 
 	ret = sq905c_read(gspca_dev, 0xf5, 0, 20);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		PERR("Reading version command failed");
 		return ret;
 	}
+
 	/* Note we leave out the usb id and the manufacturing date */
 	PDEBUG(D_PROBE,
-	       "SQ9050 ID string: %02x - %*ph",
-		gspca_dev->usb_buf[3], 6, gspca_dev->usb_buf + 14);
+		   "SQ9050 ID string: %02x - %*ph",
+		   gspca_dev->usb_buf[3], 6, gspca_dev->usb_buf + 14);
 
 	cam->cam_mode = sq905c_mode;
 	cam->nmodes = 2;
+
 	if (gspca_dev->usb_buf[15] == 0)
+	{
 		cam->nmodes = 1;
+	}
+
 	/* We don't use the buffer gspca allocates so make it small. */
 	cam->bulk_size = 32;
 	cam->bulk = 1;
@@ -271,24 +317,29 @@ static int sd_start(struct gspca_dev *gspca_dev)
 	int ret;
 
 	dev->cap_mode = gspca_dev->cam.cam_mode;
+
 	/* "Open the shutter" and set size, to start capture */
-	switch (gspca_dev->pixfmt.width) {
-	case 640:
-		PDEBUG(D_STREAM, "Start streaming at high resolution");
-		dev->cap_mode++;
-		ret = sq905c_command(gspca_dev, SQ905C_CAPTURE_HI,
-						SQ905C_CAPTURE_INDEX);
-		break;
-	default: /* 320 */
-	PDEBUG(D_STREAM, "Start streaming at medium resolution");
-		ret = sq905c_command(gspca_dev, SQ905C_CAPTURE_MED,
-						SQ905C_CAPTURE_INDEX);
+	switch (gspca_dev->pixfmt.width)
+	{
+		case 640:
+			PDEBUG(D_STREAM, "Start streaming at high resolution");
+			dev->cap_mode++;
+			ret = sq905c_command(gspca_dev, SQ905C_CAPTURE_HI,
+								 SQ905C_CAPTURE_INDEX);
+			break;
+
+		default: /* 320 */
+			PDEBUG(D_STREAM, "Start streaming at medium resolution");
+			ret = sq905c_command(gspca_dev, SQ905C_CAPTURE_MED,
+								 SQ905C_CAPTURE_INDEX);
 	}
 
-	if (ret < 0) {
+	if (ret < 0)
+	{
 		PERR("Start streaming command failed");
 		return ret;
 	}
+
 	/* Start the workqueue function to do the streaming */
 	dev->work_thread = create_singlethread_workqueue(MODULE_NAME);
 	queue_work(dev->work_thread, &dev->work_struct);
@@ -297,7 +348,8 @@ static int sd_start(struct gspca_dev *gspca_dev)
 }
 
 /* Table of supported USB devices */
-static const struct usb_device_id device_table[] = {
+static const struct usb_device_id device_table[] =
+{
 	{USB_DEVICE(0x2770, 0x905c)},
 	{USB_DEVICE(0x2770, 0x9050)},
 	{USB_DEVICE(0x2770, 0x9051)},
@@ -309,7 +361,8 @@ static const struct usb_device_id device_table[] = {
 MODULE_DEVICE_TABLE(usb, device_table);
 
 /* sub-driver description */
-static const struct sd_desc sd_desc = {
+static const struct sd_desc sd_desc =
+{
 	.name   = MODULE_NAME,
 	.config = sd_config,
 	.init   = sd_init,
@@ -319,15 +372,16 @@ static const struct sd_desc sd_desc = {
 
 /* -- device connect -- */
 static int sd_probe(struct usb_interface *intf,
-		const struct usb_device_id *id)
+					const struct usb_device_id *id)
 {
 	return gspca_dev_probe(intf, id,
-			&sd_desc,
-			sizeof(struct sd),
-			THIS_MODULE);
+						   &sd_desc,
+						   sizeof(struct sd),
+						   THIS_MODULE);
 }
 
-static struct usb_driver sd_driver = {
+static struct usb_driver sd_driver =
+{
 	.name       = MODULE_NAME,
 	.id_table   = device_table,
 	.probe      = sd_probe,

@@ -15,14 +15,16 @@
 
 #define OMAP1_CAMERA_IOSIZE		0x1c
 
-enum omap1_cam_vb_mode {
+enum omap1_cam_vb_mode
+{
 	OMAP1_CAM_DMA_CONTIG = 0,
 	OMAP1_CAM_DMA_SG,
 };
 
 #define OMAP1_CAMERA_MIN_BUF_COUNT(x)	((x) == OMAP1_CAM_DMA_CONTIG ? 3 : 2)
 
-struct omap1_cam_platform_data {
+struct omap1_cam_platform_data
+{
 	unsigned long	camexclk_khz;
 	unsigned long	lclk_khz_max;
 	unsigned long	flags;

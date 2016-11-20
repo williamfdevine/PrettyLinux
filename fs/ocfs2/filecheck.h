@@ -26,7 +26,8 @@
 
 
 /* File check errno */
-enum {
+enum
+{
 	OCFS2_FILECHECK_ERR_SUCCESS = 0,	/* Success */
 	OCFS2_FILECHECK_ERR_FAILED = 1000,	/* Other failure */
 	OCFS2_FILECHECK_ERR_INPROGRESS,		/* In progress */

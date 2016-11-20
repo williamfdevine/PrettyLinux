@@ -67,15 +67,22 @@ static inline int cfs_memory_pressure_get_and_set(void)
 	int old = memory_pressure_get();
 
 	if (!old)
+	{
 		memory_pressure_set();
+	}
+
 	return old;
 }
 
 static inline void cfs_memory_pressure_restore(int old)
 {
 	if (old)
+	{
 		memory_pressure_set();
+	}
 	else
+	{
 		memory_pressure_clr();
+	}
 }
 #endif

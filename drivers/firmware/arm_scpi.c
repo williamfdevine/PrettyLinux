@@ -52,7 +52,7 @@
 #define CMD_DATA_SIZE_MASK	0x1ff
 #define PACK_SCPI_CMD(cmd_id, tx_sz)			\
 	((((cmd_id) & CMD_ID_MASK) << CMD_ID_SHIFT) |	\
-	(((tx_sz) & CMD_DATA_SIZE_MASK) << CMD_DATA_SIZE_SHIFT))
+	 (((tx_sz) & CMD_DATA_SIZE_MASK) << CMD_DATA_SIZE_SHIFT))
 #define ADD_SCPI_TOKEN(cmd, token)			\
 	((cmd) |= (((token) & CMD_TOKEN_ID_MASK) << CMD_TOKEN_ID_SHIFT))
 
@@ -82,7 +82,8 @@
 
 #define MAX_RX_TIMEOUT		(msecs_to_jiffies(30))
 
-enum scpi_error_codes {
+enum scpi_error_codes
+{
 	SCPI_SUCCESS = 0, /* Success */
 	SCPI_ERR_PARAM = 1, /* Invalid parameter(s) */
 	SCPI_ERR_ALIGN = 2, /* Invalid alignment */
@@ -99,7 +100,8 @@ enum scpi_error_codes {
 	SCPI_ERR_MAX
 };
 
-enum scpi_std_cmd {
+enum scpi_std_cmd
+{
 	SCPI_CMD_INVALID		= 0x00,
 	SCPI_CMD_SCPI_READY		= 0x01,
 	SCPI_CMD_SCPI_CAPABILITIES	= 0x02,
@@ -132,7 +134,8 @@ enum scpi_std_cmd {
 	SCPI_CMD_COUNT
 };
 
-struct scpi_xfer {
+struct scpi_xfer
+{
 	u32 slot; /* has to be first element */
 	u32 cmd;
 	u32 status;
@@ -144,7 +147,8 @@ struct scpi_xfer {
 	struct completion done;
 };
 
-struct scpi_chan {
+struct scpi_chan
+{
 	struct mbox_client cl;
 	struct mbox_chan *chan;
 	void __iomem *tx_payload;
@@ -157,7 +161,8 @@ struct scpi_chan {
 	u8 token;
 };
 
-struct scpi_drvinfo {
+struct scpi_drvinfo
+{
 	u32 protocol_version;
 	u32 firmware_version;
 	int num_chans;
@@ -171,20 +176,23 @@ struct scpi_drvinfo {
  * The SCP firmware only executes in little-endian mode, so any buffers
  * shared through SCPI should have their contents converted to little-endian
  */
-struct scpi_shared_mem {
+struct scpi_shared_mem
+{
 	__le32 command;
 	__le32 status;
 	u8 payload[0];
 } __packed;
 
-struct scp_capabilities {
+struct scp_capabilities
+{
 	__le32 protocol_version;
 	__le32 event_version;
 	__le32 platform_version;
 	__le32 commands[4];
 } __packed;
 
-struct clk_get_info {
+struct clk_get_info
+{
 	__le16 id;
 	__le16 flags;
 	__le32 min_rate;
@@ -192,53 +200,63 @@ struct clk_get_info {
 	u8 name[20];
 } __packed;
 
-struct clk_get_value {
+struct clk_get_value
+{
 	__le32 rate;
 } __packed;
 
-struct clk_set_value {
+struct clk_set_value
+{
 	__le16 id;
 	__le16 reserved;
 	__le32 rate;
 } __packed;
 
-struct dvfs_info {
+struct dvfs_info
+{
 	__le32 header;
-	struct {
+	struct
+	{
 		__le32 freq;
 		__le32 m_volt;
 	} opps[MAX_DVFS_OPPS];
 } __packed;
 
-struct dvfs_set {
+struct dvfs_set
+{
 	u8 domain;
 	u8 index;
 } __packed;
 
-struct sensor_capabilities {
+struct sensor_capabilities
+{
 	__le16 sensors;
 } __packed;
 
-struct _scpi_sensor_info {
+struct _scpi_sensor_info
+{
 	__le16 sensor_id;
 	u8 class;
 	u8 trigger_type;
 	char name[20];
 };
 
-struct sensor_value {
+struct sensor_value
+{
 	__le32 lo_val;
 	__le32 hi_val;
 } __packed;
 
-struct dev_pstate_set {
+struct dev_pstate_set
+{
 	u16 dev_id;
 	u8 pstate;
 } __packed;
 
 static struct scpi_drvinfo *scpi_info;
 
-static int scpi_linux_errmap[SCPI_ERR_MAX] = {
+static int scpi_linux_errmap[SCPI_ERR_MAX] =
+{
 	/* better than switch case as long as return value is continuous */
 	0, /* SCPI_SUCCESS */
 	-EINVAL, /* SCPI_ERR_PARAM */
@@ -258,7 +276,10 @@ static int scpi_linux_errmap[SCPI_ERR_MAX] = {
 static inline int scpi_to_linux_errno(int errno)
 {
 	if (errno >= SCPI_SUCCESS && errno < SCPI_ERR_MAX)
+	{
 		return scpi_linux_errmap[errno];
+	}
+
 	return -EIO;
 }
 
@@ -268,28 +289,39 @@ static void scpi_process_cmd(struct scpi_chan *ch, u32 cmd)
 	struct scpi_xfer *t, *match = NULL;
 
 	spin_lock_irqsave(&ch->rx_lock, flags);
-	if (list_empty(&ch->rx_pending)) {
+
+	if (list_empty(&ch->rx_pending))
+	{
 		spin_unlock_irqrestore(&ch->rx_lock, flags);
 		return;
 	}
 
 	list_for_each_entry(t, &ch->rx_pending, node)
-		if (CMD_XTRACT_UNIQ(t->cmd) == CMD_XTRACT_UNIQ(cmd)) {
-			list_del(&t->node);
-			match = t;
-			break;
-		}
+
+	if (CMD_XTRACT_UNIQ(t->cmd) == CMD_XTRACT_UNIQ(cmd))
+	{
+		list_del(&t->node);
+		match = t;
+		break;
+	}
+
 	/* check if wait_for_completion is in progress or timed-out */
-	if (match && !completion_done(&match->done)) {
+	if (match && !completion_done(&match->done))
+	{
 		struct scpi_shared_mem *mem = ch->rx_payload;
 		unsigned int len = min(match->rx_len, CMD_SIZE(cmd));
 
 		match->status = le32_to_cpu(mem->status);
 		memcpy_fromio(match->rx_buf, mem->payload, len);
+
 		if (match->rx_len > len)
+		{
 			memset(match->rx_buf + len, 0, match->rx_len - len);
+		}
+
 		complete(&match->done);
 	}
+
 	spin_unlock_irqrestore(&ch->rx_lock, flags);
 }
 
@@ -310,15 +342,23 @@ static void scpi_tx_prepare(struct mbox_client *c, void *msg)
 	struct scpi_shared_mem *mem = (struct scpi_shared_mem *)ch->tx_payload;
 
 	if (t->tx_buf)
+	{
 		memcpy_toio(mem->payload, t->tx_buf, t->tx_len);
-	if (t->rx_buf) {
+	}
+
+	if (t->rx_buf)
+	{
 		if (!(++ch->token))
+		{
 			++ch->token;
+		}
+
 		ADD_SCPI_TOKEN(t->cmd, ch->token);
 		spin_lock_irqsave(&ch->rx_lock, flags);
 		list_add_tail(&t->node, &ch->rx_pending);
 		spin_unlock_irqrestore(&ch->rx_lock, flags);
 	}
+
 	mem->command = cpu_to_le32(t->cmd);
 }
 
@@ -327,10 +367,13 @@ static struct scpi_xfer *get_scpi_xfer(struct scpi_chan *ch)
 	struct scpi_xfer *t;
 
 	mutex_lock(&ch->xfers_lock);
-	if (list_empty(&ch->xfers_list)) {
+
+	if (list_empty(&ch->xfers_list))
+	{
 		mutex_unlock(&ch->xfers_lock);
 		return NULL;
 	}
+
 	t = list_first_entry(&ch->xfers_list, struct scpi_xfer, node);
 	list_del(&t->node);
 	mutex_unlock(&ch->xfers_lock);
@@ -345,7 +388,7 @@ static void put_scpi_xfer(struct scpi_xfer *t, struct scpi_chan *ch)
 }
 
 static int scpi_send_message(u8 cmd, void *tx_buf, unsigned int tx_len,
-			     void *rx_buf, unsigned int rx_len)
+							 void *rx_buf, unsigned int rx_len)
 {
 	int ret;
 	u8 chan;
@@ -356,8 +399,11 @@ static int scpi_send_message(u8 cmd, void *tx_buf, unsigned int tx_len,
 	scpi_chan = scpi_info->channels + chan;
 
 	msg = get_scpi_xfer(scpi_chan);
+
 	if (!msg)
+	{
 		return -ENOMEM;
+	}
 
 	msg->slot = BIT(SCPI_SLOT);
 	msg->cmd = PACK_SCPI_CMD(cmd, tx_len);
@@ -368,17 +414,28 @@ static int scpi_send_message(u8 cmd, void *tx_buf, unsigned int tx_len,
 	init_completion(&msg->done);
 
 	ret = mbox_send_message(scpi_chan->chan, msg);
+
 	if (ret < 0 || !rx_buf)
+	{
 		goto out;
+	}
 
 	if (!wait_for_completion_timeout(&msg->done, MAX_RX_TIMEOUT))
+	{
 		ret = -ETIMEDOUT;
+	}
 	else
 		/* first status word */
+	{
 		ret = msg->status;
+	}
+
 out:
+
 	if (ret < 0 && rx_buf) /* remove entry from the list if timed-out */
+	{
 		scpi_process_cmd(scpi_chan, msg->cmd);
+	}
 
 	put_scpi_xfer(msg, scpi_chan);
 	/* SCPI error codes > 0, translate them to Linux scale*/
@@ -398,11 +455,14 @@ scpi_clk_get_range(u16 clk_id, unsigned long *min, unsigned long *max)
 	__le16 le_clk_id = cpu_to_le16(clk_id);
 
 	ret = scpi_send_message(SCPI_CMD_GET_CLOCK_INFO, &le_clk_id,
-				sizeof(le_clk_id), &clk, sizeof(clk));
-	if (!ret) {
+							sizeof(le_clk_id), &clk, sizeof(clk));
+
+	if (!ret)
+	{
 		*min = le32_to_cpu(clk.min_rate);
 		*max = le32_to_cpu(clk.max_rate);
 	}
+
 	return ret;
 }
 
@@ -413,20 +473,21 @@ static unsigned long scpi_clk_get_val(u16 clk_id)
 	__le16 le_clk_id = cpu_to_le16(clk_id);
 
 	ret = scpi_send_message(SCPI_CMD_GET_CLOCK_VALUE, &le_clk_id,
-				sizeof(le_clk_id), &clk, sizeof(clk));
+							sizeof(le_clk_id), &clk, sizeof(clk));
 	return ret ? ret : le32_to_cpu(clk.rate);
 }
 
 static int scpi_clk_set_val(u16 clk_id, unsigned long rate)
 {
 	int stat;
-	struct clk_set_value clk = {
+	struct clk_set_value clk =
+	{
 		.id = cpu_to_le16(clk_id),
 		.rate = cpu_to_le32(rate)
 	};
 
 	return scpi_send_message(SCPI_CMD_SET_CLOCK_VALUE, &clk, sizeof(clk),
-				 &stat, sizeof(stat));
+							 &stat, sizeof(stat));
 }
 
 static int scpi_dvfs_get_idx(u8 domain)
@@ -435,7 +496,7 @@ static int scpi_dvfs_get_idx(u8 domain)
 	u8 dvfs_idx;
 
 	ret = scpi_send_message(SCPI_CMD_GET_DVFS, &domain, sizeof(domain),
-				&dvfs_idx, sizeof(dvfs_idx));
+							&dvfs_idx, sizeof(dvfs_idx));
 	return ret ? ret : dvfs_idx;
 }
 
@@ -445,7 +506,7 @@ static int scpi_dvfs_set_idx(u8 domain, u8 index)
 	struct dvfs_set dvfs = {domain, index};
 
 	return scpi_send_message(SCPI_CMD_SET_DVFS, &dvfs, sizeof(dvfs),
-				 &stat, sizeof(stat));
+							 &stat, sizeof(stat));
 }
 
 static int opp_cmp_func(const void *opp1, const void *opp2)
@@ -463,31 +524,43 @@ static struct scpi_dvfs_info *scpi_dvfs_get_info(u8 domain)
 	int ret, i;
 
 	if (domain >= MAX_DVFS_DOMAINS)
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	if (scpi_info->dvfs[domain])	/* data already populated */
+	{
 		return scpi_info->dvfs[domain];
+	}
 
 	ret = scpi_send_message(SCPI_CMD_GET_DVFS_INFO, &domain, sizeof(domain),
-				&buf, sizeof(buf));
+							&buf, sizeof(buf));
 
 	if (ret)
+	{
 		return ERR_PTR(ret);
+	}
 
 	info = kmalloc(sizeof(*info), GFP_KERNEL);
+
 	if (!info)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	info->count = DVFS_OPP_COUNT(buf.header);
 	info->latency = DVFS_LATENCY(buf.header) * 1000; /* uS to nS */
 
 	info->opps = kcalloc(info->count, sizeof(*opp), GFP_KERNEL);
-	if (!info->opps) {
+
+	if (!info->opps)
+	{
 		kfree(info);
 		return ERR_PTR(-ENOMEM);
 	}
 
-	for (i = 0, opp = info->opps; i < info->count; i++, opp++) {
+	for (i = 0, opp = info->opps; i < info->count; i++, opp++)
+	{
 		opp->freq = le32_to_cpu(buf.opps[i].freq);
 		opp->m_volt = le32_to_cpu(buf.opps[i].m_volt);
 	}
@@ -504,9 +577,12 @@ static int scpi_sensor_get_capability(u16 *sensors)
 	int ret;
 
 	ret = scpi_send_message(SCPI_CMD_SENSOR_CAPABILITIES, NULL, 0, &cap_buf,
-				sizeof(cap_buf));
+							sizeof(cap_buf));
+
 	if (!ret)
+	{
 		*sensors = le16_to_cpu(cap_buf.sensors);
+	}
 
 	return ret;
 }
@@ -518,8 +594,10 @@ static int scpi_sensor_get_info(u16 sensor_id, struct scpi_sensor_info *info)
 	int ret;
 
 	ret = scpi_send_message(SCPI_CMD_SENSOR_INFO, &id, sizeof(id),
-				&_info, sizeof(_info));
-	if (!ret) {
+							&_info, sizeof(_info));
+
+	if (!ret)
+	{
 		memcpy(info, &_info, sizeof(*info));
 		info->sensor_id = le16_to_cpu(_info.sensor_id);
 	}
@@ -534,10 +612,11 @@ static int scpi_sensor_get_value(u16 sensor, u64 *val)
 	int ret;
 
 	ret = scpi_send_message(SCPI_CMD_SENSOR_VALUE, &id, sizeof(id),
-				&buf, sizeof(buf));
+							&buf, sizeof(buf));
+
 	if (!ret)
 		*val = (u64)le32_to_cpu(buf.hi_val) << 32 |
-			le32_to_cpu(buf.lo_val);
+			   le32_to_cpu(buf.lo_val);
 
 	return ret;
 }
@@ -549,23 +628,25 @@ static int scpi_device_get_power_state(u16 dev_id)
 	__le16 id = cpu_to_le16(dev_id);
 
 	ret = scpi_send_message(SCPI_CMD_GET_DEVICE_PWR_STATE, &id,
-				sizeof(id), &pstate, sizeof(pstate));
+							sizeof(id), &pstate, sizeof(pstate));
 	return ret ? ret : pstate;
 }
 
 static int scpi_device_set_power_state(u16 dev_id, u8 pstate)
 {
 	int stat;
-	struct dev_pstate_set dev_set = {
+	struct dev_pstate_set dev_set =
+	{
 		.dev_id = cpu_to_le16(dev_id),
 		.pstate = pstate,
 	};
 
 	return scpi_send_message(SCPI_CMD_SET_DEVICE_PWR_STATE, &dev_set,
-				 sizeof(dev_set), &stat, sizeof(stat));
+							 sizeof(dev_set), &stat, sizeof(stat));
 }
 
-static struct scpi_ops scpi_ops = {
+static struct scpi_ops scpi_ops =
+{
 	.get_version = scpi_get_version,
 	.clk_get_range = scpi_clk_get_range,
 	.clk_get_val = scpi_clk_get_val,
@@ -592,38 +673,42 @@ static int scpi_init_versions(struct scpi_drvinfo *info)
 	struct scp_capabilities caps;
 
 	ret = scpi_send_message(SCPI_CMD_SCPI_CAPABILITIES, NULL, 0,
-				&caps, sizeof(caps));
-	if (!ret) {
+							&caps, sizeof(caps));
+
+	if (!ret)
+	{
 		info->protocol_version = le32_to_cpu(caps.protocol_version);
 		info->firmware_version = le32_to_cpu(caps.platform_version);
 	}
+
 	return ret;
 }
 
 static ssize_t protocol_version_show(struct device *dev,
-				     struct device_attribute *attr, char *buf)
+									 struct device_attribute *attr, char *buf)
 {
 	struct scpi_drvinfo *scpi_info = dev_get_drvdata(dev);
 
 	return sprintf(buf, "%d.%d\n",
-		       PROTOCOL_REV_MAJOR(scpi_info->protocol_version),
-		       PROTOCOL_REV_MINOR(scpi_info->protocol_version));
+				   PROTOCOL_REV_MAJOR(scpi_info->protocol_version),
+				   PROTOCOL_REV_MINOR(scpi_info->protocol_version));
 }
 static DEVICE_ATTR_RO(protocol_version);
 
 static ssize_t firmware_version_show(struct device *dev,
-				     struct device_attribute *attr, char *buf)
+									 struct device_attribute *attr, char *buf)
 {
 	struct scpi_drvinfo *scpi_info = dev_get_drvdata(dev);
 
 	return sprintf(buf, "%d.%d.%d\n",
-		       FW_REV_MAJOR(scpi_info->firmware_version),
-		       FW_REV_MINOR(scpi_info->firmware_version),
-		       FW_REV_PATCH(scpi_info->firmware_version));
+				   FW_REV_MAJOR(scpi_info->firmware_version),
+				   FW_REV_MINOR(scpi_info->firmware_version),
+				   FW_REV_PATCH(scpi_info->firmware_version));
 }
 static DEVICE_ATTR_RO(firmware_version);
 
-static struct attribute *versions_attrs[] = {
+static struct attribute *versions_attrs[] =
+{
 	&dev_attr_firmware_version.attr,
 	&dev_attr_protocol_version.attr,
 	NULL,
@@ -635,7 +720,8 @@ scpi_free_channels(struct device *dev, struct scpi_chan *pchan, int count)
 {
 	int i;
 
-	for (i = 0; i < count && pchan->chan; i++, pchan++) {
+	for (i = 0; i < count && pchan->chan; i++, pchan++)
+	{
 		mbox_free_channel(pchan->chan);
 		devm_kfree(dev, pchan->xfers);
 		devm_iounmap(dev, pchan->rx_payload);
@@ -655,10 +741,12 @@ static int scpi_remove(struct platform_device *pdev)
 	scpi_free_channels(dev, info->channels, info->num_chans);
 	platform_set_drvdata(pdev, NULL);
 
-	for (i = 0; i < MAX_DVFS_DOMAINS && info->dvfs[i]; i++) {
+	for (i = 0; i < MAX_DVFS_DOMAINS && info->dvfs[i]; i++)
+	{
 		kfree(info->dvfs[i]->opps);
 		kfree(info->dvfs[i]);
 	}
+
 	devm_kfree(dev, info->channels);
 	devm_kfree(dev, info);
 
@@ -672,12 +760,19 @@ static int scpi_alloc_xfer_list(struct device *dev, struct scpi_chan *ch)
 	struct scpi_xfer *xfers;
 
 	xfers = devm_kzalloc(dev, MAX_SCPI_XFERS * sizeof(*xfers), GFP_KERNEL);
+
 	if (!xfers)
+	{
 		return -ENOMEM;
+	}
 
 	ch->xfers = xfers;
+
 	for (i = 0; i < MAX_SCPI_XFERS; i++, xfers++)
+	{
 		list_add_tail(&xfers->node, &ch->xfers_list);
+	}
+
 	return 0;
 }
 
@@ -690,20 +785,29 @@ static int scpi_probe(struct platform_device *pdev)
 	struct device_node *np = dev->of_node;
 
 	scpi_info = devm_kzalloc(dev, sizeof(*scpi_info), GFP_KERNEL);
+
 	if (!scpi_info)
+	{
 		return -ENOMEM;
+	}
 
 	count = of_count_phandle_with_args(np, "mboxes", "#mbox-cells");
-	if (count < 0) {
+
+	if (count < 0)
+	{
 		dev_err(dev, "no mboxes property in '%s'\n", np->full_name);
 		return -ENODEV;
 	}
 
 	scpi_chan = devm_kcalloc(dev, count, sizeof(*scpi_chan), GFP_KERNEL);
-	if (!scpi_chan)
-		return -ENOMEM;
 
-	for (idx = 0; idx < count; idx++) {
+	if (!scpi_chan)
+	{
+		return -ENOMEM;
+	}
+
+	for (idx = 0; idx < count; idx++)
+	{
 		resource_size_t size;
 		struct scpi_chan *pchan = scpi_chan + idx;
 		struct mbox_client *cl = &pchan->cl;
@@ -711,18 +815,23 @@ static int scpi_probe(struct platform_device *pdev)
 
 		ret = of_address_to_resource(shmem, 0, &res);
 		of_node_put(shmem);
-		if (ret) {
+
+		if (ret)
+		{
 			dev_err(dev, "failed to get SCPI payload mem resource\n");
 			goto err;
 		}
 
 		size = resource_size(&res);
 		pchan->rx_payload = devm_ioremap(dev, res.start, size);
-		if (!pchan->rx_payload) {
+
+		if (!pchan->rx_payload)
+		{
 			dev_err(dev, "failed to ioremap SCPI payload\n");
 			ret = -EADDRNOTAVAIL;
 			goto err;
 		}
+
 		pchan->tx_payload = pchan->rx_payload + (size >> 1);
 
 		cl->dev = dev;
@@ -738,15 +847,23 @@ static int scpi_probe(struct platform_device *pdev)
 		mutex_init(&pchan->xfers_lock);
 
 		ret = scpi_alloc_xfer_list(dev, pchan);
-		if (!ret) {
+
+		if (!ret)
+		{
 			pchan->chan = mbox_request_channel(cl, idx);
+
 			if (!IS_ERR(pchan->chan))
+			{
 				continue;
+			}
+
 			ret = PTR_ERR(pchan->chan);
+
 			if (ret != -EPROBE_DEFER)
 				dev_err(dev, "failed to get channel%d err %d\n",
-					idx, ret);
+						idx, ret);
 		}
+
 err:
 		scpi_free_channels(dev, scpi_chan, idx);
 		scpi_info = NULL;
@@ -758,35 +875,42 @@ err:
 	platform_set_drvdata(pdev, scpi_info);
 
 	ret = scpi_init_versions(scpi_info);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "incorrect or no SCP firmware found\n");
 		scpi_remove(pdev);
 		return ret;
 	}
 
 	_dev_info(dev, "SCP Protocol %d.%d Firmware %d.%d.%d version\n",
-		  PROTOCOL_REV_MAJOR(scpi_info->protocol_version),
-		  PROTOCOL_REV_MINOR(scpi_info->protocol_version),
-		  FW_REV_MAJOR(scpi_info->firmware_version),
-		  FW_REV_MINOR(scpi_info->firmware_version),
-		  FW_REV_PATCH(scpi_info->firmware_version));
+			  PROTOCOL_REV_MAJOR(scpi_info->protocol_version),
+			  PROTOCOL_REV_MINOR(scpi_info->protocol_version),
+			  FW_REV_MAJOR(scpi_info->firmware_version),
+			  FW_REV_MINOR(scpi_info->firmware_version),
+			  FW_REV_PATCH(scpi_info->firmware_version));
 	scpi_info->scpi_ops = &scpi_ops;
 
 	ret = sysfs_create_groups(&dev->kobj, versions_groups);
+
 	if (ret)
+	{
 		dev_err(dev, "unable to create sysfs version group\n");
+	}
 
 	return of_platform_populate(dev->of_node, NULL, NULL, dev);
 }
 
-static const struct of_device_id scpi_of_match[] = {
+static const struct of_device_id scpi_of_match[] =
+{
 	{.compatible = "arm,scpi"},
 	{},
 };
 
 MODULE_DEVICE_TABLE(of, scpi_of_match);
 
-static struct platform_driver scpi_driver = {
+static struct platform_driver scpi_driver =
+{
 	.driver = {
 		.name = "scpi_protocol",
 		.of_match_table = scpi_of_match,

@@ -33,7 +33,7 @@ static int temac_mdio_read(struct mii_bus *bus, int phy_id, int reg)
 	mutex_unlock(&lp->indirect_mutex);
 
 	dev_dbg(lp->dev, "temac_mdio_read(phy_id=%i, reg=%x) == %x\n",
-		phy_id, reg, rc);
+			phy_id, reg, rc);
 
 	return rc;
 }
@@ -43,7 +43,7 @@ static int temac_mdio_write(struct mii_bus *bus, int phy_id, int reg, u16 val)
 	struct temac_local *lp = bus->priv;
 
 	dev_dbg(lp->dev, "temac_mdio_write(phy_id=%i, reg=%x, val=%x)\n",
-		phy_id, reg, val);
+			phy_id, reg, val);
 
 	/* First write the desired value into the write data register
 	 * and then write the address into the access initiator register
@@ -66,12 +66,20 @@ int temac_mdio_setup(struct temac_local *lp, struct device_node *np)
 
 	/* Calculate a reasonable divisor for the clock rate */
 	clk_div = 0x3f; /* worst-case default setting */
-	if (of_property_read_u32(np, "clock-frequency", &bus_hz) == 0) {
+
+	if (of_property_read_u32(np, "clock-frequency", &bus_hz) == 0)
+	{
 		clk_div = bus_hz / (2500 * 1000 * 2) - 1;
+
 		if (clk_div < 1)
+		{
 			clk_div = 1;
+		}
+
 		if (clk_div > 0x3f)
+		{
 			clk_div = 0x3f;
+		}
 	}
 
 	/* Enable the MDIO bus by asserting the enable bit and writing
@@ -81,12 +89,15 @@ int temac_mdio_setup(struct temac_local *lp, struct device_node *np)
 	mutex_unlock(&lp->indirect_mutex);
 
 	bus = mdiobus_alloc();
+
 	if (!bus)
+	{
 		return -ENOMEM;
+	}
 
 	of_address_to_resource(np, 0, &res);
 	snprintf(bus->id, MII_BUS_ID_SIZE, "%.8llx",
-		 (unsigned long long)res.start);
+			 (unsigned long long)res.start);
 	bus->priv = lp;
 	bus->name = "Xilinx TEMAC MDIO";
 	bus->read = temac_mdio_read;
@@ -96,16 +107,19 @@ int temac_mdio_setup(struct temac_local *lp, struct device_node *np)
 	lp->mii_bus = bus;
 
 	rc = of_mdiobus_register(bus, np);
+
 	if (rc)
+	{
 		goto err_register;
+	}
 
 	mutex_lock(&lp->indirect_mutex);
 	dev_dbg(lp->dev, "MDIO bus registered;  MC:%x\n",
-		temac_indirect_in32(lp, XTE_MC_OFFSET));
+			temac_indirect_in32(lp, XTE_MC_OFFSET));
 	mutex_unlock(&lp->indirect_mutex);
 	return 0;
 
- err_register:
+err_register:
 	mdiobus_free(bus);
 	return rc;
 }

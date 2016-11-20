@@ -36,7 +36,8 @@
  *
  * Note that all reserved fields must be zeroes.
  */
-struct type50_hdr {
+struct type50_hdr
+{
 	unsigned char	reserved1;
 	unsigned char	msg_type_code;	/* 0x50 */
 	unsigned short	msg_len;
@@ -55,7 +56,8 @@ struct type50_hdr {
 #define TYPE50_CRB3_FMT		0x0013
 
 /* Mod-Exp, with a small modulus */
-struct type50_meb1_msg {
+struct type50_meb1_msg
+{
 	struct type50_hdr header;
 	unsigned short	keyblock_type;	/* 0x0001 */
 	unsigned char	reserved[6];
@@ -65,7 +67,8 @@ struct type50_meb1_msg {
 } __attribute__((packed));
 
 /* Mod-Exp, with a large modulus */
-struct type50_meb2_msg {
+struct type50_meb2_msg
+{
 	struct type50_hdr header;
 	unsigned short	keyblock_type;	/* 0x0002 */
 	unsigned char	reserved[6];
@@ -75,7 +78,8 @@ struct type50_meb2_msg {
 } __attribute__((packed));
 
 /* Mod-Exp, with a larger modulus */
-struct type50_meb3_msg {
+struct type50_meb3_msg
+{
 	struct type50_hdr header;
 	unsigned short	keyblock_type;	/* 0x0003 */
 	unsigned char	reserved[6];
@@ -85,7 +89,8 @@ struct type50_meb3_msg {
 } __attribute__((packed));
 
 /* CRT, with a small modulus */
-struct type50_crb1_msg {
+struct type50_crb1_msg
+{
 	struct type50_hdr header;
 	unsigned short	keyblock_type;	/* 0x0011 */
 	unsigned char	reserved[6];
@@ -98,7 +103,8 @@ struct type50_crb1_msg {
 } __attribute__((packed));
 
 /* CRT, with a large modulus */
-struct type50_crb2_msg {
+struct type50_crb2_msg
+{
 	struct type50_hdr header;
 	unsigned short	keyblock_type;	/* 0x0012 */
 	unsigned char	reserved[6];
@@ -111,7 +117,8 @@ struct type50_crb2_msg {
 } __attribute__((packed));
 
 /* CRT, with a larger modulus */
-struct type50_crb3_msg {
+struct type50_crb3_msg
+{
 	struct type50_hdr header;
 	unsigned short	keyblock_type;	/* 0x0013 */
 	unsigned char	reserved[6];
@@ -134,7 +141,8 @@ struct type50_crb3_msg {
 
 #define TYPE80_RSP_CODE 0x80
 
-struct type80_hdr {
+struct type80_hdr
+{
 	unsigned char	reserved1;
 	unsigned char	type;		/* 0x80 */
 	unsigned short	len;

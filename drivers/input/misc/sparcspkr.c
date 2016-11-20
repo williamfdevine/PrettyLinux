@@ -17,22 +17,26 @@ MODULE_AUTHOR("David S. Miller <davem@davemloft.net>");
 MODULE_DESCRIPTION("Sparc Speaker beeper driver");
 MODULE_LICENSE("GPL");
 
-struct grover_beep_info {
+struct grover_beep_info
+{
 	void __iomem	*freq_regs;
 	void __iomem	*enable_reg;
 };
 
-struct bbc_beep_info {
+struct bbc_beep_info
+{
 	u32		clock_freq;
 	void __iomem	*regs;
 };
 
-struct sparcspkr_state {
+struct sparcspkr_state
+{
 	const char		*name;
 	int (*event)(struct input_dev *dev, unsigned int type, unsigned int code, int value);
 	spinlock_t		lock;
 	struct input_dev	*input_dev;
-	union {
+	union
+	{
 		struct grover_beep_info grover;
 		struct bbc_beep_info bbc;
 	} u;
@@ -44,19 +48,30 @@ static u32 bbc_count_to_reg(struct bbc_beep_info *info, unsigned int count)
 	int i;
 
 	if (!count)
+	{
 		return 0;
+	}
 
 	if (count <= clock_freq >> 20)
+	{
 		return 1 << 18;
+	}
 
 	if (count >= clock_freq >> 12)
+	{
 		return 1 << 10;
+	}
 
 	val = 1 << 18;
-	for (i = 19; i >= 11; i--) {
+
+	for (i = 19; i >= 11; i--)
+	{
 		val >>= 1;
+
 		if (count <= clock_freq >> i)
+		{
 			break;
+		}
 	}
 
 	return val;
@@ -70,28 +85,37 @@ static int bbc_spkr_event(struct input_dev *dev, unsigned int type, unsigned int
 	unsigned long flags;
 
 	if (type != EV_SND)
+	{
 		return -1;
+	}
 
-	switch (code) {
-		case SND_BELL: if (value) value = 1000;
+	switch (code)
+	{
+		case SND_BELL: if (value) { value = 1000; }
 		case SND_TONE: break;
+
 		default: return -1;
 	}
 
 	if (value > 20 && value < 32767)
+	{
 		count = 1193182 / value;
+	}
 
 	count = bbc_count_to_reg(info, count);
 
 	spin_lock_irqsave(&state->lock, flags);
 
-	if (count) {
+	if (count)
+	{
 		sbus_writeb(0x01,                 info->regs + 0);
 		sbus_writeb(0x00,                 info->regs + 2);
 		sbus_writeb((count >> 16) & 0xff, info->regs + 3);
 		sbus_writeb((count >>  8) & 0xff, info->regs + 4);
 		sbus_writeb(0x00,                 info->regs + 5);
-	} else {
+	}
+	else
+	{
 		sbus_writeb(0x00,                 info->regs + 0);
 	}
 
@@ -108,20 +132,27 @@ static int grover_spkr_event(struct input_dev *dev, unsigned int type, unsigned 
 	unsigned long flags;
 
 	if (type != EV_SND)
+	{
 		return -1;
+	}
 
-	switch (code) {
-		case SND_BELL: if (value) value = 1000;
+	switch (code)
+	{
+		case SND_BELL: if (value) { value = 1000; }
 		case SND_TONE: break;
+
 		default: return -1;
 	}
 
 	if (value > 20 && value < 32767)
+	{
 		count = 1193182 / value;
+	}
 
 	spin_lock_irqsave(&state->lock, flags);
 
-	if (count) {
+	if (count)
+	{
 		/* enable counter 2 */
 		sbus_writeb(sbus_readb(info->enable_reg) | 3, info->enable_reg);
 		/* set command for counter 2, 2 byte write */
@@ -129,7 +160,9 @@ static int grover_spkr_event(struct input_dev *dev, unsigned int type, unsigned 
 		/* select desired HZ */
 		sbus_writeb(count & 0xff, info->freq_regs + 0);
 		sbus_writeb((count >> 8) & 0xff, info->freq_regs + 0);
-	} else {
+	}
+	else
+	{
 		/* disable counter 2 */
 		sbus_writeb(sbus_readb(info->enable_reg) & 0xFC, info->enable_reg);
 	}
@@ -146,8 +179,11 @@ static int sparcspkr_probe(struct device *dev)
 	int error;
 
 	input_dev = input_allocate_device();
+
 	if (!input_dev)
+	{
 		return -ENOMEM;
+	}
 
 	input_dev->name = state->name;
 	input_dev->phys = "sparc/input0";
@@ -163,7 +199,9 @@ static int sparcspkr_probe(struct device *dev)
 	input_dev->event = state->event;
 
 	error = input_register_device(input_dev);
-	if (error) {
+
+	if (error)
+	{
 		input_free_device(input_dev);
 		return error;
 	}
@@ -190,8 +228,11 @@ static int bbc_beep_probe(struct platform_device *op)
 	int err = -ENOMEM;
 
 	state = kzalloc(sizeof(*state), GFP_KERNEL);
+
 	if (!state)
+	{
 		goto out_err;
+	}
 
 	state->name = "Sparc BBC Speaker";
 	state->event = bbc_spkr_event;
@@ -199,23 +240,35 @@ static int bbc_beep_probe(struct platform_device *op)
 
 	dp = of_find_node_by_path("/");
 	err = -ENODEV;
+
 	if (!dp)
+	{
 		goto out_free;
+	}
 
 	info = &state->u.bbc;
 	info->clock_freq = of_getintprop_default(dp, "clock-frequency", 0);
+
 	if (!info->clock_freq)
+	{
 		goto out_free;
+	}
 
 	info->regs = of_ioremap(&op->resource[0], 0, 6, "bbc beep");
+
 	if (!info->regs)
+	{
 		goto out_free;
+	}
 
 	platform_set_drvdata(op, state);
 
 	err = sparcspkr_probe(&op->dev);
+
 	if (err)
+	{
 		goto out_clear_drvdata;
+	}
 
 	return 0;
 
@@ -246,7 +299,8 @@ static int bbc_remove(struct platform_device *op)
 	return 0;
 }
 
-static const struct of_device_id bbc_beep_match[] = {
+static const struct of_device_id bbc_beep_match[] =
+{
 	{
 		.name = "beep",
 		.compatible = "SUNW,bbc-beep",
@@ -255,7 +309,8 @@ static const struct of_device_id bbc_beep_match[] = {
 };
 MODULE_DEVICE_TABLE(of, bbc_beep_match);
 
-static struct platform_driver bbc_beep_driver = {
+static struct platform_driver bbc_beep_driver =
+{
 	.driver = {
 		.name = "bbcbeep",
 		.of_match_table = bbc_beep_match,
@@ -272,8 +327,11 @@ static int grover_beep_probe(struct platform_device *op)
 	int err = -ENOMEM;
 
 	state = kzalloc(sizeof(*state), GFP_KERNEL);
+
 	if (!state)
+	{
 		goto out_err;
+	}
 
 	state->name = "Sparc Grover Speaker";
 	state->event = grover_spkr_event;
@@ -281,18 +339,27 @@ static int grover_beep_probe(struct platform_device *op)
 
 	info = &state->u.grover;
 	info->freq_regs = of_ioremap(&op->resource[2], 0, 2, "grover beep freq");
+
 	if (!info->freq_regs)
+	{
 		goto out_free;
+	}
 
 	info->enable_reg = of_ioremap(&op->resource[3], 0, 1, "grover beep enable");
+
 	if (!info->enable_reg)
+	{
 		goto out_unmap_freq_regs;
+	}
 
 	platform_set_drvdata(op, state);
 
 	err = sparcspkr_probe(&op->dev);
+
 	if (err)
+	{
 		goto out_clear_drvdata;
+	}
 
 	return 0;
 
@@ -326,7 +393,8 @@ static int grover_remove(struct platform_device *op)
 	return 0;
 }
 
-static const struct of_device_id grover_beep_match[] = {
+static const struct of_device_id grover_beep_match[] =
+{
 	{
 		.name = "beep",
 		.compatible = "SUNW,smbus-beep",
@@ -335,7 +403,8 @@ static const struct of_device_id grover_beep_match[] = {
 };
 MODULE_DEVICE_TABLE(of, grover_beep_match);
 
-static struct platform_driver grover_beep_driver = {
+static struct platform_driver grover_beep_driver =
+{
 	.driver = {
 		.name = "groverbeep",
 		.of_match_table = grover_beep_match,
@@ -345,7 +414,8 @@ static struct platform_driver grover_beep_driver = {
 	.shutdown	= sparcspkr_shutdown,
 };
 
-static struct platform_driver * const drivers[] = {
+static struct platform_driver *const drivers[] =
+{
 	&bbc_beep_driver,
 	&grover_beep_driver,
 };

@@ -24,7 +24,8 @@
 #include "priv.h"
 
 static const struct nvkm_mc_map
-nv11_mc_intr[] = {
+	nv11_mc_intr[] =
+{
 	{ 0x03010000, NVKM_ENGINE_DISP },
 	{ 0x00001000, NVKM_ENGINE_GR },
 	{ 0x00000100, NVKM_ENGINE_FIFO },
@@ -34,7 +35,8 @@ nv11_mc_intr[] = {
 };
 
 static const struct nvkm_mc_func
-nv11_mc = {
+	nv11_mc =
+{
 	.init = nv04_mc_init,
 	.intr = nv11_mc_intr,
 	.intr_unarm = nv04_mc_intr_unarm,

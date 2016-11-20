@@ -130,7 +130,7 @@
 #include <linux/input/sparse-keymap.h>
 
 #ifndef ACPI_HOTKEY_COMPONENT
-#define ACPI_HOTKEY_COMPONENT	0x10000000
+	#define ACPI_HOTKEY_COMPONENT	0x10000000
 #endif
 
 #define _COMPONENT		ACPI_HOTKEY_COMPONENT
@@ -159,25 +159,26 @@ MODULE_LICENSE("GPL");
    ENV_STATEs: Normal temp=0x01, High temp=0x81, N/A=0x00
 */
 enum SINF_BITS { SINF_NUM_BATTERIES = 0,
-		 SINF_LCD_TYPE,
-		 SINF_AC_MAX_BRIGHT,
-		 SINF_AC_MIN_BRIGHT,
-		 SINF_AC_CUR_BRIGHT,
-		 SINF_DC_MAX_BRIGHT,
-		 SINF_DC_MIN_BRIGHT,
-		 SINF_DC_CUR_BRIGHT,
-		 SINF_MUTE,
-		 SINF_RESERVED,
-		 SINF_ENV_STATE,
-		 SINF_STICKY_KEY = 0x80,
-	};
+				 SINF_LCD_TYPE,
+				 SINF_AC_MAX_BRIGHT,
+				 SINF_AC_MIN_BRIGHT,
+				 SINF_AC_CUR_BRIGHT,
+				 SINF_DC_MAX_BRIGHT,
+				 SINF_DC_MIN_BRIGHT,
+				 SINF_DC_CUR_BRIGHT,
+				 SINF_MUTE,
+				 SINF_RESERVED,
+				 SINF_ENV_STATE,
+				 SINF_STICKY_KEY = 0x80,
+			   };
 /* R1 handles SINF_AC_CUR_BRIGHT as SINF_CUR_BRIGHT, doesn't know AC state */
 
 static int acpi_pcc_hotkey_add(struct acpi_device *device);
 static int acpi_pcc_hotkey_remove(struct acpi_device *device);
 static void acpi_pcc_hotkey_notify(struct acpi_device *device, u32 event);
 
-static const struct acpi_device_id pcc_device_ids[] = {
+static const struct acpi_device_id pcc_device_ids[] =
+{
 	{ "MAT0012", 0},
 	{ "MAT0013", 0},
 	{ "MAT0018", 0},
@@ -187,23 +188,25 @@ static const struct acpi_device_id pcc_device_ids[] = {
 MODULE_DEVICE_TABLE(acpi, pcc_device_ids);
 
 #ifdef CONFIG_PM_SLEEP
-static int acpi_pcc_hotkey_resume(struct device *dev);
+	static int acpi_pcc_hotkey_resume(struct device *dev);
 #endif
 static SIMPLE_DEV_PM_OPS(acpi_pcc_hotkey_pm, NULL, acpi_pcc_hotkey_resume);
 
-static struct acpi_driver acpi_pcc_driver = {
+static struct acpi_driver acpi_pcc_driver =
+{
 	.name =		ACPI_PCC_DRIVER_NAME,
 	.class =	ACPI_PCC_CLASS,
 	.ids =		pcc_device_ids,
 	.ops =		{
-				.add =		acpi_pcc_hotkey_add,
-				.remove =	acpi_pcc_hotkey_remove,
-				.notify =	acpi_pcc_hotkey_notify,
-			},
+		.add =		acpi_pcc_hotkey_add,
+		.remove =	acpi_pcc_hotkey_remove,
+		.notify =	acpi_pcc_hotkey_notify,
+	},
 	.drv.pm =	&acpi_pcc_hotkey_pm,
 };
 
-static const struct key_entry panasonic_keymap[] = {
+static const struct key_entry panasonic_keymap[] =
+{
 	{ KE_KEY, 0, { KEY_RESERVED } },
 	{ KE_KEY, 1, { KEY_BRIGHTNESSDOWN } },
 	{ KE_KEY, 2, { KEY_BRIGHTNESSUP } },
@@ -218,7 +221,8 @@ static const struct key_entry panasonic_keymap[] = {
 	{ KE_END, 0 }
 };
 
-struct pcc_acpi {
+struct pcc_acpi
+{
 	acpi_handle		handle;
 	unsigned long		num_sifr;
 	int			sticky_mode;
@@ -228,27 +232,34 @@ struct pcc_acpi {
 	struct backlight_device	*backlight;
 };
 
-struct pcc_keyinput {
+struct pcc_keyinput
+{
 	struct acpi_hotkey      *hotkey;
 };
 
 /* method access functions */
 static int acpi_pcc_write_sset(struct pcc_acpi *pcc, int func, int val)
 {
-	union acpi_object in_objs[] = {
-		{ .integer.type  = ACPI_TYPE_INTEGER,
-		  .integer.value = func, },
-		{ .integer.type  = ACPI_TYPE_INTEGER,
-		  .integer.value = val, },
+	union acpi_object in_objs[] =
+	{
+		{
+			.integer.type  = ACPI_TYPE_INTEGER,
+			.integer.value = func,
+		},
+		{
+			.integer.type  = ACPI_TYPE_INTEGER,
+			.integer.value = val,
+		},
 	};
-	struct acpi_object_list params = {
+	struct acpi_object_list params =
+	{
 		.count   = ARRAY_SIZE(in_objs),
 		.pointer = in_objs,
 	};
 	acpi_status status = AE_OK;
 
 	status = acpi_evaluate_object(pcc->handle, METHOD_HKEY_SSET,
-				      &params, NULL);
+								  &params, NULL);
 
 	return (status == AE_OK) ? 0 : -EIO;
 }
@@ -259,12 +270,16 @@ static inline int acpi_pcc_get_sqty(struct acpi_device *device)
 	acpi_status status;
 
 	status = acpi_evaluate_integer(device->handle, METHOD_HKEY_SQTY,
-				       NULL, &s);
+								   NULL, &s);
+
 	if (ACPI_SUCCESS(status))
+	{
 		return s;
-	else {
+	}
+	else
+	{
 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-				  "evaluation error HKEY.SQTY\n"));
+						  "evaluation error HKEY.SQTY\n"));
 		return -EINVAL;
 	}
 }
@@ -277,35 +292,45 @@ static int acpi_pcc_retrieve_biosdata(struct pcc_acpi *pcc)
 	int i;
 
 	status = acpi_evaluate_object(pcc->handle, METHOD_HKEY_SINF, NULL,
-				      &buffer);
-	if (ACPI_FAILURE(status)) {
+								  &buffer);
+
+	if (ACPI_FAILURE(status))
+	{
 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-				  "evaluation error HKEY.SINF\n"));
+						  "evaluation error HKEY.SINF\n"));
 		return 0;
 	}
 
 	hkey = buffer.pointer;
-	if (!hkey || (hkey->type != ACPI_TYPE_PACKAGE)) {
+
+	if (!hkey || (hkey->type != ACPI_TYPE_PACKAGE))
+	{
 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid HKEY.SINF\n"));
 		status = AE_ERROR;
 		goto end;
 	}
 
-	if (pcc->num_sifr < hkey->package.count) {
+	if (pcc->num_sifr < hkey->package.count)
+	{
 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-				 "SQTY reports bad SINF length\n"));
+						  "SQTY reports bad SINF length\n"));
 		status = AE_ERROR;
 		goto end;
 	}
 
-	for (i = 0; i < hkey->package.count; i++) {
+	for (i = 0; i < hkey->package.count; i++)
+	{
 		union acpi_object *element = &(hkey->package.elements[i]);
-		if (likely(element->type == ACPI_TYPE_INTEGER)) {
+
+		if (likely(element->type == ACPI_TYPE_INTEGER))
+		{
 			pcc->sinf[i] = element->integer.value;
-		} else
+		}
+		else
 			ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-					 "Invalid HKEY.SINF data\n"));
+							  "Invalid HKEY.SINF data\n"));
 	}
+
 	pcc->sinf[hkey->package.count] = -1;
 
 end:
@@ -325,7 +350,9 @@ static int bl_get(struct backlight_device *bd)
 	struct pcc_acpi *pcc = bl_get_data(bd);
 
 	if (!acpi_pcc_retrieve_biosdata(pcc))
+	{
 		return -EIO;
+	}
 
 	return pcc->sinf[SINF_AC_CUR_BRIGHT];
 }
@@ -337,26 +364,38 @@ static int bl_set_status(struct backlight_device *bd)
 	int rc;
 
 	if (!acpi_pcc_retrieve_biosdata(pcc))
+	{
 		return -EIO;
+	}
 
 	if (bright < pcc->sinf[SINF_AC_MIN_BRIGHT])
+	{
 		bright = pcc->sinf[SINF_AC_MIN_BRIGHT];
+	}
 
 	if (bright < pcc->sinf[SINF_DC_MIN_BRIGHT])
+	{
 		bright = pcc->sinf[SINF_DC_MIN_BRIGHT];
+	}
 
 	if (bright < pcc->sinf[SINF_AC_MIN_BRIGHT] ||
-	    bright > pcc->sinf[SINF_AC_MAX_BRIGHT])
+		bright > pcc->sinf[SINF_AC_MAX_BRIGHT])
+	{
 		return -EINVAL;
+	}
 
 	rc = acpi_pcc_write_sset(pcc, SINF_AC_CUR_BRIGHT, bright);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	return acpi_pcc_write_sset(pcc, SINF_DC_CUR_BRIGHT, bright);
 }
 
-static const struct backlight_ops pcc_backlight_ops = {
+static const struct backlight_ops pcc_backlight_ops =
+{
 	.get_brightness	= bl_get,
 	.update_status	= bl_set_status,
 };
@@ -365,62 +404,71 @@ static const struct backlight_ops pcc_backlight_ops = {
 /* sysfs user interface functions */
 
 static ssize_t show_numbatt(struct device *dev, struct device_attribute *attr,
-			    char *buf)
+							char *buf)
 {
 	struct acpi_device *acpi = to_acpi_device(dev);
 	struct pcc_acpi *pcc = acpi_driver_data(acpi);
 
 	if (!acpi_pcc_retrieve_biosdata(pcc))
+	{
 		return -EIO;
+	}
 
 	return snprintf(buf, PAGE_SIZE, "%u\n", pcc->sinf[SINF_NUM_BATTERIES]);
 }
 
 static ssize_t show_lcdtype(struct device *dev, struct device_attribute *attr,
-			    char *buf)
+							char *buf)
 {
 	struct acpi_device *acpi = to_acpi_device(dev);
 	struct pcc_acpi *pcc = acpi_driver_data(acpi);
 
 	if (!acpi_pcc_retrieve_biosdata(pcc))
+	{
 		return -EIO;
+	}
 
 	return snprintf(buf, PAGE_SIZE, "%u\n", pcc->sinf[SINF_LCD_TYPE]);
 }
 
 static ssize_t show_mute(struct device *dev, struct device_attribute *attr,
-			 char *buf)
+						 char *buf)
 {
 	struct acpi_device *acpi = to_acpi_device(dev);
 	struct pcc_acpi *pcc = acpi_driver_data(acpi);
 
 	if (!acpi_pcc_retrieve_biosdata(pcc))
+	{
 		return -EIO;
+	}
 
 	return snprintf(buf, PAGE_SIZE, "%u\n", pcc->sinf[SINF_MUTE]);
 }
 
 static ssize_t show_sticky(struct device *dev, struct device_attribute *attr,
-			   char *buf)
+						   char *buf)
 {
 	struct acpi_device *acpi = to_acpi_device(dev);
 	struct pcc_acpi *pcc = acpi_driver_data(acpi);
 
 	if (!acpi_pcc_retrieve_biosdata(pcc))
+	{
 		return -EIO;
+	}
 
 	return snprintf(buf, PAGE_SIZE, "%u\n", pcc->sinf[SINF_STICKY_KEY]);
 }
 
 static ssize_t set_sticky(struct device *dev, struct device_attribute *attr,
-			  const char *buf, size_t count)
+						  const char *buf, size_t count)
 {
 	struct acpi_device *acpi = to_acpi_device(dev);
 	struct pcc_acpi *pcc = acpi_driver_data(acpi);
 	int val;
 
 	if (count && sscanf(buf, "%i", &val) == 1 &&
-	    (val == 0 || val == 1)) {
+		(val == 0 || val == 1))
+	{
 		acpi_pcc_write_sset(pcc, SINF_STICKY_KEY, val);
 		pcc->sticky_mode = val;
 	}
@@ -433,7 +481,8 @@ static DEVICE_ATTR(lcdtype, S_IRUGO, show_lcdtype, NULL);
 static DEVICE_ATTR(mute, S_IRUGO, show_mute, NULL);
 static DEVICE_ATTR(sticky_key, S_IRUGO | S_IWUSR, show_sticky, set_sticky);
 
-static struct attribute *pcc_sysfs_entries[] = {
+static struct attribute *pcc_sysfs_entries[] =
+{
 	&dev_attr_numbatt.attr,
 	&dev_attr_lcdtype.attr,
 	&dev_attr_mute.attr,
@@ -441,7 +490,8 @@ static struct attribute *pcc_sysfs_entries[] = {
 	NULL,
 };
 
-static struct attribute_group pcc_attr_group = {
+static struct attribute_group pcc_attr_group =
+{
 	.name	= NULL,		/* put in device directory */
 	.attrs	= pcc_sysfs_entries,
 };
@@ -457,39 +507,47 @@ static void acpi_pcc_generate_keyinput(struct pcc_acpi *pcc)
 	unsigned long long result;
 
 	rc = acpi_evaluate_integer(pcc->handle, METHOD_HKEY_QUERY,
-				   NULL, &result);
-	if (!ACPI_SUCCESS(rc)) {
+							   NULL, &result);
+
+	if (!ACPI_SUCCESS(rc))
+	{
 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-				 "error getting hotkey status\n"));
+						  "error getting hotkey status\n"));
 		return;
 	}
 
 	/* hack: some firmware sends no key down for sleep / hibernate */
-	if ((result & 0xf) == 0x7 || (result & 0xf) == 0xa) {
+	if ((result & 0xf) == 0x7 || (result & 0xf) == 0xa)
+	{
 		if (result & 0x80)
+		{
 			sleep_keydown_seen = 1;
+		}
+
 		if (!sleep_keydown_seen)
 			sparse_keymap_report_event(hotk_input_dev,
-					result & 0xf, 0x80, false);
+									   result & 0xf, 0x80, false);
 	}
 
 	if (!sparse_keymap_report_event(hotk_input_dev,
-					result & 0xf, result & 0x80, false))
+									result & 0xf, result & 0x80, false))
 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-				  "Unknown hotkey event: %d\n", result));
+						  "Unknown hotkey event: %d\n", result));
 }
 
 static void acpi_pcc_hotkey_notify(struct acpi_device *device, u32 event)
 {
 	struct pcc_acpi *pcc = acpi_driver_data(device);
 
-	switch (event) {
-	case HKEY_NOTIFY:
-		acpi_pcc_generate_keyinput(pcc);
-		break;
-	default:
-		/* nothing to do */
-		break;
+	switch (event)
+	{
+		case HKEY_NOTIFY:
+			acpi_pcc_generate_keyinput(pcc);
+			break;
+
+		default:
+			/* nothing to do */
+			break;
 	}
 }
 
@@ -499,8 +557,11 @@ static int acpi_pcc_init_input(struct pcc_acpi *pcc)
 	int error;
 
 	input_dev = input_allocate_device();
+
 	if (!input_dev)
+	{
 		return -ENOMEM;
+	}
 
 	input_dev->name = ACPI_PCC_DRIVER_NAME;
 	input_dev->phys = ACPI_PCC_INPUT_PHYS;
@@ -510,25 +571,29 @@ static int acpi_pcc_init_input(struct pcc_acpi *pcc)
 	input_dev->id.version = 0x0100;
 
 	error = sparse_keymap_setup(input_dev, panasonic_keymap, NULL);
-	if (error) {
+
+	if (error)
+	{
 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-				  "Unable to setup input device keymap\n"));
+						  "Unable to setup input device keymap\n"));
 		goto err_free_dev;
 	}
 
 	error = input_register_device(input_dev);
-	if (error) {
+
+	if (error)
+	{
 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-				  "Unable to register input device\n"));
+						  "Unable to register input device\n"));
 		goto err_free_keymap;
 	}
 
 	pcc->input_dev = input_dev;
 	return 0;
 
- err_free_keymap:
+err_free_keymap:
 	sparse_keymap_free(input_dev);
- err_free_dev:
+err_free_dev:
 	input_free_device(input_dev);
 	return error;
 }
@@ -551,14 +616,19 @@ static int acpi_pcc_hotkey_resume(struct device *dev)
 	struct pcc_acpi *pcc;
 
 	if (!dev)
+	{
 		return -EINVAL;
+	}
 
 	pcc = acpi_driver_data(to_acpi_device(dev));
+
 	if (!pcc)
+	{
 		return -EINVAL;
+	}
 
 	ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Sticky mode restore: %d\n",
-			  pcc->sticky_mode));
+					  pcc->sticky_mode));
 
 	return acpi_pcc_write_sset(pcc, SINF_STICKY_KEY, pcc->sticky_mode);
 }
@@ -571,24 +641,31 @@ static int acpi_pcc_hotkey_add(struct acpi_device *device)
 	int num_sifr, result;
 
 	if (!device)
+	{
 		return -EINVAL;
+	}
 
 	num_sifr = acpi_pcc_get_sqty(device);
 
-	if (num_sifr < 0 || num_sifr > 255) {
+	if (num_sifr < 0 || num_sifr > 255)
+	{
 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "num_sifr out of range"));
 		return -ENODEV;
 	}
 
 	pcc = kzalloc(sizeof(struct pcc_acpi), GFP_KERNEL);
-	if (!pcc) {
+
+	if (!pcc)
+	{
 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-				  "Couldn't allocate mem for pcc"));
+						  "Couldn't allocate mem for pcc"));
 		return -ENOMEM;
 	}
 
 	pcc->sinf = kzalloc(sizeof(u32) * (num_sifr + 1), GFP_KERNEL);
-	if (!pcc->sinf) {
+
+	if (!pcc->sinf)
+	{
 		result = -ENOMEM;
 		goto out_hotkey;
 	}
@@ -601,25 +678,31 @@ static int acpi_pcc_hotkey_add(struct acpi_device *device)
 	strcpy(acpi_device_class(device), ACPI_PCC_CLASS);
 
 	result = acpi_pcc_init_input(pcc);
-	if (result) {
+
+	if (result)
+	{
 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-				  "Error installing keyinput handler\n"));
+						  "Error installing keyinput handler\n"));
 		goto out_sinf;
 	}
 
-	if (!acpi_pcc_retrieve_biosdata(pcc)) {
+	if (!acpi_pcc_retrieve_biosdata(pcc))
+	{
 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-				 "Couldn't retrieve BIOS data\n"));
+						  "Couldn't retrieve BIOS data\n"));
 		result = -EIO;
 		goto out_input;
 	}
+
 	/* initialize backlight */
 	memset(&props, 0, sizeof(struct backlight_properties));
 	props.type = BACKLIGHT_PLATFORM;
 	props.max_brightness = pcc->sinf[SINF_AC_MAX_BRIGHT];
 	pcc->backlight = backlight_device_register("panasonic", NULL, pcc,
-						   &pcc_backlight_ops, &props);
-	if (IS_ERR(pcc->backlight)) {
+					 &pcc_backlight_ops, &props);
+
+	if (IS_ERR(pcc->backlight))
+	{
 		result = PTR_ERR(pcc->backlight);
 		goto out_input;
 	}
@@ -632,8 +715,11 @@ static int acpi_pcc_hotkey_add(struct acpi_device *device)
 
 	/* add sysfs attributes */
 	result = sysfs_create_group(&device->dev.kobj, &pcc_attr_group);
+
 	if (result)
+	{
 		goto out_backlight;
+	}
 
 	return 0;
 
@@ -654,7 +740,9 @@ static int acpi_pcc_hotkey_remove(struct acpi_device *device)
 	struct pcc_acpi *pcc = acpi_driver_data(device);
 
 	if (!device || !pcc)
+	{
 		return -EINVAL;
+	}
 
 	sysfs_remove_group(&device->dev.kobj, &pcc_attr_group);
 

@@ -29,14 +29,16 @@
  *
  * This driver was tested with firmware revision A4.
  */
-struct dm355evm_keys {
+struct dm355evm_keys
+{
 	struct input_dev	*input;
 	struct device		*dev;
 	int			irq;
 };
 
 /* These initial keycodes can be remapped */
-static const struct key_entry dm355evm_keys[] = {
+static const struct key_entry dm355evm_keys[] =
+{
 	/*
 	 * Pushbuttons on the EVM board ... note that the labels for these
 	 * are SW10/SW11/etc on the PC board.  The left/right orientation
@@ -114,24 +116,34 @@ static irqreturn_t dm355evm_keys_irq(int irq, void *_keys)
 	 * events until we get the "queue empty" indicator.
 	 * Reading INPUT_LOW decrements the count.
 	 */
-	for (;;) {
+	for (;;)
+	{
 		status = dm355evm_msp_read(DM355EVM_MSP_INPUT_HIGH);
-		if (status < 0) {
+
+		if (status < 0)
+		{
 			dev_dbg(keys->dev, "input high err %d\n",
 					status);
 			break;
 		}
+
 		event = status << 8;
 
 		status = dm355evm_msp_read(DM355EVM_MSP_INPUT_LOW);
-		if (status < 0) {
+
+		if (status < 0)
+		{
 			dev_dbg(keys->dev, "input low err %d\n",
 					status);
 			break;
 		}
+
 		event |= status;
+
 		if (event == 0xdead)
+		{
 			break;
+		}
 
 		/* Press and release a button:  two events, same code.
 		 * Press and hold (autorepeat), then release: N events
@@ -144,10 +156,12 @@ static irqreturn_t dm355evm_keys_irq(int irq, void *_keys)
 		 * to avoid adding extra events, skip the second event
 		 * of each pair.
 		 */
-		if (event == last_event) {
+		if (event == last_event)
+		{
 			last_event = 0;
 			continue;
 		}
+
 		last_event = event;
 
 		/* ignore the RC5 toggle bit */
@@ -157,8 +171,8 @@ static irqreturn_t dm355evm_keys_irq(int irq, void *_keys)
 		ke = sparse_keymap_entry_from_scancode(keys->input, event);
 		keycode = ke ? ke->keycode : KEY_UNKNOWN;
 		dev_dbg(keys->dev,
-			"input event 0x%04x--> keycode %d\n",
-			event, keycode);
+				"input event 0x%04x--> keycode %d\n",
+				event, keycode);
 
 		/* report press + release */
 		input_report_key(keys->input, keycode, 1);
@@ -179,9 +193,11 @@ static int dm355evm_keys_probe(struct platform_device *pdev)
 	int			status;
 
 	/* allocate instance struct and input dev */
-	keys = kzalloc(sizeof *keys, GFP_KERNEL);
+	keys = kzalloc(sizeof * keys, GFP_KERNEL);
 	input = input_allocate_device();
-	if (!keys || !input) {
+
+	if (!keys || !input)
+	{
 		status = -ENOMEM;
 		goto fail1;
 	}
@@ -191,8 +207,12 @@ static int dm355evm_keys_probe(struct platform_device *pdev)
 
 	/* set up "threaded IRQ handler" */
 	status = platform_get_irq(pdev, 0);
+
 	if (status < 0)
+	{
 		goto fail1;
+	}
+
 	keys->irq = status;
 
 	input_set_drvdata(input, keys);
@@ -206,21 +226,30 @@ static int dm355evm_keys_probe(struct platform_device *pdev)
 	input->id.version = dm355evm_msp_read(DM355EVM_MSP_FIRMREV);
 
 	status = sparse_keymap_setup(input, dm355evm_keys, NULL);
+
 	if (status)
+	{
 		goto fail1;
+	}
 
 	/* REVISIT:  flush the event queue? */
 
 	status = request_threaded_irq(keys->irq, NULL, dm355evm_keys_irq,
-				      IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
-				      dev_name(&pdev->dev), keys);
+								  IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+								  dev_name(&pdev->dev), keys);
+
 	if (status < 0)
+	{
 		goto fail2;
+	}
 
 	/* register */
 	status = input_register_device(input);
+
 	if (status < 0)
+	{
 		goto fail3;
+	}
 
 	platform_set_drvdata(pdev, keys);
 
@@ -259,7 +288,8 @@ static int dm355evm_keys_remove(struct platform_device *pdev)
  * I2C is used to talk to the MSP430, but this platform device is
  * exposed by an MFD driver that manages I2C communications.
  */
-static struct platform_driver dm355evm_keys_driver = {
+static struct platform_driver dm355evm_keys_driver =
+{
 	.probe		= dm355evm_keys_probe,
 	.remove		= dm355evm_keys_remove,
 	.driver		= {

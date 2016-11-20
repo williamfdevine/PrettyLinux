@@ -186,7 +186,7 @@
 
 /* Control Opcode manipulation */
 #define nci_opcode_pack(gid, oid)	(__u16)((((__u16)((gid)&0x0f))<<8)|\
-					((__u16)((oid)&0x3f)))
+		((__u16)((oid)&0x3f)))
 #define nci_opcode(hdr)			nci_opcode_pack(hdr[0], hdr[1])
 #define nci_opcode_gid(op)		(__u8)(((op)&0x0f00)>>8)
 #define nci_opcode_oid(op)		(__u8)((op)&0x003f)
@@ -211,13 +211,15 @@
 #define NCI_CTRL_HDR_SIZE					3
 #define NCI_DATA_HDR_SIZE					3
 
-struct nci_ctrl_hdr {
+struct nci_ctrl_hdr
+{
 	__u8	gid;		/* MT & PBF & GID */
 	__u8	oid;
 	__u8	plen;
 } __packed;
 
-struct nci_data_hdr {
+struct nci_data_hdr
+{
 	__u8	conn_id;	/* MT & PBF & ConnID */
 	__u8	rfu;
 	__u8	plen;
@@ -227,20 +229,23 @@ struct nci_data_hdr {
 /* -----  NCI Commands ---- */
 /* ------------------------ */
 #define NCI_OP_CORE_RESET_CMD		nci_opcode_pack(NCI_GID_CORE, 0x00)
-struct nci_core_reset_cmd {
+struct nci_core_reset_cmd
+{
 	__u8	reset_type;
 } __packed;
 
 #define NCI_OP_CORE_INIT_CMD		nci_opcode_pack(NCI_GID_CORE, 0x01)
 
 #define NCI_OP_CORE_SET_CONFIG_CMD	nci_opcode_pack(NCI_GID_CORE, 0x02)
-struct set_config_param {
+struct set_config_param
+{
 	__u8	id;
 	__u8	len;
 	__u8	val[NCI_MAX_PARAM_LEN];
 } __packed;
 
-struct nci_core_set_config_cmd {
+struct nci_core_set_config_cmd
+{
 	__u8	num_params;
 	struct	set_config_param param; /* support 1 param per cmd is enough */
 } __packed;
@@ -248,18 +253,21 @@ struct nci_core_set_config_cmd {
 #define NCI_OP_CORE_CONN_CREATE_CMD	nci_opcode_pack(NCI_GID_CORE, 0x04)
 #define DEST_SPEC_PARAMS_ID_INDEX	0
 #define DEST_SPEC_PARAMS_PROTOCOL_INDEX	1
-struct dest_spec_params {
+struct dest_spec_params
+{
 	__u8    id;
 	__u8    protocol;
 } __packed;
 
-struct core_conn_create_dest_spec_params {
+struct core_conn_create_dest_spec_params
+{
 	__u8    type;
 	__u8    length;
 	__u8    value[0];
 } __packed;
 
-struct nci_core_conn_create_cmd {
+struct nci_core_conn_create_cmd
+{
 	__u8    destination_type;
 	__u8    number_destination_params;
 	struct core_conn_create_dest_spec_params params[0];
@@ -268,50 +276,58 @@ struct nci_core_conn_create_cmd {
 #define NCI_OP_CORE_CONN_CLOSE_CMD	nci_opcode_pack(NCI_GID_CORE, 0x05)
 
 #define NCI_OP_RF_DISCOVER_MAP_CMD	nci_opcode_pack(NCI_GID_RF_MGMT, 0x00)
-struct disc_map_config {
+struct disc_map_config
+{
 	__u8	rf_protocol;
 	__u8	mode;
 	__u8	rf_interface;
 } __packed;
 
-struct nci_rf_disc_map_cmd {
+struct nci_rf_disc_map_cmd
+{
 	__u8				num_mapping_configs;
 	struct disc_map_config		mapping_configs
-					[NCI_MAX_NUM_MAPPING_CONFIGS];
+		[NCI_MAX_NUM_MAPPING_CONFIGS];
 } __packed;
 
 #define NCI_OP_RF_DISCOVER_CMD		nci_opcode_pack(NCI_GID_RF_MGMT, 0x03)
-struct disc_config {
+struct disc_config
+{
 	__u8	rf_tech_and_mode;
 	__u8	frequency;
 } __packed;
 
-struct nci_rf_disc_cmd {
+struct nci_rf_disc_cmd
+{
 	__u8				num_disc_configs;
 	struct disc_config		disc_configs[NCI_MAX_NUM_RF_CONFIGS];
 } __packed;
 
 #define NCI_OP_RF_DISCOVER_SELECT_CMD	nci_opcode_pack(NCI_GID_RF_MGMT, 0x04)
-struct nci_rf_discover_select_cmd {
+struct nci_rf_discover_select_cmd
+{
 	__u8	rf_discovery_id;
 	__u8	rf_protocol;
 	__u8	rf_interface;
 } __packed;
 
 #define NCI_OP_RF_DEACTIVATE_CMD	nci_opcode_pack(NCI_GID_RF_MGMT, 0x06)
-struct nci_rf_deactivate_cmd {
+struct nci_rf_deactivate_cmd
+{
 	__u8	type;
 } __packed;
 
 #define NCI_OP_NFCEE_DISCOVER_CMD nci_opcode_pack(NCI_GID_NFCEE_MGMT, 0x00)
-struct nci_nfcee_discover_cmd {
+struct nci_nfcee_discover_cmd
+{
 	__u8	discovery_action;
 } __packed;
 
 #define NCI_OP_NFCEE_MODE_SET_CMD nci_opcode_pack(NCI_GID_NFCEE_MGMT, 0x01)
 #define NCI_NFCEE_DISABLE	0x00
 #define NCI_NFCEE_ENABLE	0x01
-struct nci_nfcee_mode_set_cmd {
+struct nci_nfcee_mode_set_cmd
+{
 	__u8	nfcee_id;
 	__u8	nfcee_mode;
 } __packed;
@@ -322,14 +338,16 @@ struct nci_nfcee_mode_set_cmd {
 /* ---- NCI Responses ---- */
 /* ----------------------- */
 #define NCI_OP_CORE_RESET_RSP		nci_opcode_pack(NCI_GID_CORE, 0x00)
-struct nci_core_reset_rsp {
+struct nci_core_reset_rsp
+{
 	__u8	status;
 	__u8	nci_ver;
 	__u8	config_status;
 } __packed;
 
 #define NCI_OP_CORE_INIT_RSP		nci_opcode_pack(NCI_GID_CORE, 0x01)
-struct nci_core_init_rsp_1 {
+struct nci_core_init_rsp_1
+{
 	__u8	status;
 	__le32	nfcc_features;
 	__u8	num_supported_rf_interfaces;
@@ -337,7 +355,8 @@ struct nci_core_init_rsp_1 {
 	/* continuted in nci_core_init_rsp_2 */
 } __packed;
 
-struct nci_core_init_rsp_2 {
+struct nci_core_init_rsp_2
+{
 	__u8	max_logical_connections;
 	__le16	max_routing_table_size;
 	__u8	max_ctrl_pkt_payload_len;
@@ -347,14 +366,16 @@ struct nci_core_init_rsp_2 {
 } __packed;
 
 #define NCI_OP_CORE_SET_CONFIG_RSP	nci_opcode_pack(NCI_GID_CORE, 0x02)
-struct nci_core_set_config_rsp {
+struct nci_core_set_config_rsp
+{
 	__u8	status;
 	__u8	num_params;
 	__u8	params_id[0];	/* variable size array */
 } __packed;
 
 #define NCI_OP_CORE_CONN_CREATE_RSP	nci_opcode_pack(NCI_GID_CORE, 0x04)
-struct nci_core_conn_create_rsp {
+struct nci_core_conn_create_rsp
+{
 	__u8	status;
 	__u8	max_ctrl_pkt_payload_len;
 	__u8    credits_cnt;
@@ -372,7 +393,8 @@ struct nci_core_conn_create_rsp {
 #define NCI_OP_RF_DEACTIVATE_RSP	nci_opcode_pack(NCI_GID_RF_MGMT, 0x06)
 
 #define NCI_OP_NFCEE_DISCOVER_RSP nci_opcode_pack(NCI_GID_NFCEE_MGMT, 0x00)
-struct nci_nfcee_discover_rsp {
+struct nci_nfcee_discover_rsp
+{
 	__u8	status;
 	__u8	num_nfcee;
 } __packed;
@@ -385,12 +407,14 @@ struct nci_nfcee_discover_rsp {
 /* ---- NCI Notifications ---- */
 /* --------------------------- */
 #define NCI_OP_CORE_CONN_CREDITS_NTF	nci_opcode_pack(NCI_GID_CORE, 0x06)
-struct conn_credit_entry {
+struct conn_credit_entry
+{
 	__u8	conn_id;
 	__u8	credits;
 } __packed;
 
-struct nci_core_conn_credit_ntf {
+struct nci_core_conn_credit_ntf
+{
 	__u8				num_entries;
 	struct conn_credit_entry	conn_entries[NCI_MAX_NUM_CONN];
 } __packed;
@@ -398,13 +422,15 @@ struct nci_core_conn_credit_ntf {
 #define NCI_OP_CORE_GENERIC_ERROR_NTF	nci_opcode_pack(NCI_GID_CORE, 0x07)
 
 #define NCI_OP_CORE_INTF_ERROR_NTF	nci_opcode_pack(NCI_GID_CORE, 0x08)
-struct nci_core_intf_error_ntf {
+struct nci_core_intf_error_ntf
+{
 	__u8	status;
 	__u8	conn_id;
 } __packed;
 
 #define NCI_OP_RF_DISCOVER_NTF		nci_opcode_pack(NCI_GID_RF_MGMT, 0x03)
-struct rf_tech_specific_params_nfca_poll {
+struct rf_tech_specific_params_nfca_poll
+{
 	__u16	sens_res;
 	__u8	nfcid1_len;	/* 0, 4, 7, or 10 Bytes */
 	__u8	nfcid1[NFC_NFCID1_MAXSIZE];
@@ -412,35 +438,41 @@ struct rf_tech_specific_params_nfca_poll {
 	__u8	sel_res;
 } __packed;
 
-struct rf_tech_specific_params_nfcb_poll {
+struct rf_tech_specific_params_nfcb_poll
+{
 	__u8	sensb_res_len;
 	__u8	sensb_res[NFC_SENSB_RES_MAXSIZE];	/* 11 or 12 Bytes */
 } __packed;
 
-struct rf_tech_specific_params_nfcf_poll {
+struct rf_tech_specific_params_nfcf_poll
+{
 	__u8	bit_rate;
 	__u8	sensf_res_len;
 	__u8	sensf_res[NFC_SENSF_RES_MAXSIZE];	/* 16 or 18 Bytes */
 } __packed;
 
-struct rf_tech_specific_params_nfcv_poll {
+struct rf_tech_specific_params_nfcv_poll
+{
 	__u8	res_flags;
 	__u8	dsfid;
 	__u8	uid[NFC_ISO15693_UID_MAXSIZE];	/* 8 Bytes */
 } __packed;
 
-struct rf_tech_specific_params_nfcf_listen {
+struct rf_tech_specific_params_nfcf_listen
+{
 	__u8	local_nfcid2_len;
 	__u8	local_nfcid2[NFC_NFCID2_MAXSIZE];	/* 0 or 8 Bytes */
 } __packed;
 
-struct nci_rf_discover_ntf {
+struct nci_rf_discover_ntf
+{
 	__u8	rf_discovery_id;
 	__u8	rf_protocol;
 	__u8	rf_tech_and_mode;
 	__u8	rf_tech_specific_params_len;
 
-	union {
+	union
+	{
 		struct rf_tech_specific_params_nfca_poll nfca_poll;
 		struct rf_tech_specific_params_nfcb_poll nfcb_poll;
 		struct rf_tech_specific_params_nfcf_poll nfcf_poll;
@@ -451,27 +483,32 @@ struct nci_rf_discover_ntf {
 } __packed;
 
 #define NCI_OP_RF_INTF_ACTIVATED_NTF	nci_opcode_pack(NCI_GID_RF_MGMT, 0x05)
-struct activation_params_nfca_poll_iso_dep {
+struct activation_params_nfca_poll_iso_dep
+{
 	__u8	rats_res_len;
 	__u8	rats_res[20];
 };
 
-struct activation_params_nfcb_poll_iso_dep {
+struct activation_params_nfcb_poll_iso_dep
+{
 	__u8	attrib_res_len;
 	__u8	attrib_res[50];
 };
 
-struct activation_params_poll_nfc_dep {
+struct activation_params_poll_nfc_dep
+{
 	__u8	atr_res_len;
 	__u8	atr_res[NFC_ATR_RES_MAXSIZE - 2]; /* ATR_RES from byte 3 */
 };
 
-struct activation_params_listen_nfc_dep {
+struct activation_params_listen_nfc_dep
+{
 	__u8	atr_req_len;
 	__u8	atr_req[NFC_ATR_REQ_MAXSIZE - 2]; /* ATR_REQ from byte 3 */
 };
 
-struct nci_rf_intf_activated_ntf {
+struct nci_rf_intf_activated_ntf
+{
 	__u8	rf_discovery_id;
 	__u8	rf_interface;
 	__u8	rf_protocol;
@@ -480,7 +517,8 @@ struct nci_rf_intf_activated_ntf {
 	__u8	initial_num_credits;
 	__u8	rf_tech_specific_params_len;
 
-	union {
+	union
+	{
 		struct rf_tech_specific_params_nfca_poll nfca_poll;
 		struct rf_tech_specific_params_nfcb_poll nfcb_poll;
 		struct rf_tech_specific_params_nfcf_poll nfcf_poll;
@@ -493,7 +531,8 @@ struct nci_rf_intf_activated_ntf {
 	__u8	data_exch_rx_bit_rate;
 	__u8	activation_params_len;
 
-	union {
+	union
+	{
 		struct activation_params_nfca_poll_iso_dep nfca_poll_iso_dep;
 		struct activation_params_nfcb_poll_iso_dep nfcb_poll_iso_dep;
 		struct activation_params_poll_nfc_dep poll_nfc_dep;
@@ -503,13 +542,15 @@ struct nci_rf_intf_activated_ntf {
 } __packed;
 
 #define NCI_OP_RF_DEACTIVATE_NTF	nci_opcode_pack(NCI_GID_RF_MGMT, 0x06)
-struct nci_rf_deactivate_ntf {
+struct nci_rf_deactivate_ntf
+{
 	__u8	type;
 	__u8	reason;
 } __packed;
 
 #define NCI_OP_RF_NFCEE_ACTION_NTF	nci_opcode_pack(NCI_GID_RF_MGMT, 0x09)
-struct nci_rf_nfcee_action_ntf {
+struct nci_rf_nfcee_action_ntf
+{
 	__u8 nfcee_id;
 	__u8 trigger;
 	__u8 supported_data_length;
@@ -517,17 +558,20 @@ struct nci_rf_nfcee_action_ntf {
 } __packed;
 
 #define NCI_OP_NFCEE_DISCOVER_NTF nci_opcode_pack(NCI_GID_NFCEE_MGMT, 0x00)
-struct nci_nfcee_supported_protocol {
+struct nci_nfcee_supported_protocol
+{
 	__u8	num_protocol;
 	__u8	supported_protocol[0];
 } __packed;
 
-struct nci_nfcee_information_tlv {
+struct nci_nfcee_information_tlv
+{
 	__u8	num_tlv;
 	__u8	information_tlv[0];
 } __packed;
 
-struct nci_nfcee_discover_ntf {
+struct nci_nfcee_discover_ntf
+{
 	__u8	nfcee_id;
 	__u8	nfcee_status;
 	struct nci_nfcee_supported_protocol supported_protocols;

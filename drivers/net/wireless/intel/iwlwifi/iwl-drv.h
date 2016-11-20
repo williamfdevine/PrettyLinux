@@ -126,7 +126,7 @@ struct iwl_cfg;
  * function. It returns the driver object or %NULL if an error occurred.
  */
 struct iwl_drv *iwl_drv_start(struct iwl_trans *trans,
-			      const struct iwl_cfg *cfg);
+							  const struct iwl_cfg *cfg);
 
 /**
  * iwl_drv_stop - stop the drv
@@ -147,9 +147,9 @@ void iwl_drv_stop(struct iwl_drv *drv);
  * everything is built-in, then we can avoid that.
  */
 #ifdef CONFIG_IWLWIFI_OPMODE_MODULAR
-#define IWL_EXPORT_SYMBOL(sym)	EXPORT_SYMBOL_GPL(sym)
+	#define IWL_EXPORT_SYMBOL(sym)	EXPORT_SYMBOL_GPL(sym)
 #else
-#define IWL_EXPORT_SYMBOL(sym)
+	#define IWL_EXPORT_SYMBOL(sym)
 #endif
 
 #endif /* __iwl_drv_h__ */

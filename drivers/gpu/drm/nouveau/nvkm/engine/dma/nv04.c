@@ -25,7 +25,8 @@
 #include "user.h"
 
 static const struct nvkm_dma_func
-nv04_dma = {
+	nv04_dma =
+{
 	.class_new = nv04_dmaobj_new,
 };
 

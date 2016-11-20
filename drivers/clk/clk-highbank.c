@@ -46,15 +46,16 @@
 #define HB_A9_BCLK_DIV_SHIFT	1
 #define HB_A9_PCLK_DIV		0x00000001
 
-struct hb_clk {
-        struct clk_hw	hw;
+struct hb_clk
+{
+	struct clk_hw	hw;
 	void __iomem	*reg;
 	char *parent_name;
 };
 #define to_hb_clk(p) container_of(p, struct hb_clk, hw)
 
 static int clk_pll_prepare(struct clk_hw *hwclk)
-	{
+{
 	struct hb_clk *hbclk = to_hb_clk(hwclk);
 	u32 reg;
 
@@ -64,6 +65,7 @@ static int clk_pll_prepare(struct clk_hw *hwclk)
 
 	while ((readl(hbclk->reg) & HB_PLL_LOCK) == 0)
 		;
+
 	while ((readl(hbclk->reg) & HB_PLL_LOCK_500) == 0)
 		;
 
@@ -103,14 +105,17 @@ static void clk_pll_disable(struct clk_hw *hwclk)
 }
 
 static unsigned long clk_pll_recalc_rate(struct clk_hw *hwclk,
-					 unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct hb_clk *hbclk = to_hb_clk(hwclk);
 	unsigned long divf, divq, vco_freq, reg;
 
 	reg = readl(hbclk->reg);
+
 	if (reg & HB_PLL_EXT_BYPASS)
+	{
 		return parent_rate;
+	}
 
 	divf = (reg & HB_PLL_DIVF_MASK) >> HB_PLL_DIVF_SHIFT;
 	divq = (reg & HB_PLL_DIVQ_MASK) >> HB_PLL_DIVQ_SHIFT;
@@ -120,19 +125,27 @@ static unsigned long clk_pll_recalc_rate(struct clk_hw *hwclk,
 }
 
 static void clk_pll_calc(unsigned long rate, unsigned long ref_freq,
-			u32 *pdivq, u32 *pdivf)
+						 u32 *pdivq, u32 *pdivf)
 {
 	u32 divq, divf;
 	unsigned long vco_freq;
 
 	if (rate < HB_PLL_MIN_FREQ)
+	{
 		rate = HB_PLL_MIN_FREQ;
-	if (rate > HB_PLL_MAX_FREQ)
-		rate = HB_PLL_MAX_FREQ;
+	}
 
-	for (divq = 1; divq <= 6; divq++) {
+	if (rate > HB_PLL_MAX_FREQ)
+	{
+		rate = HB_PLL_MAX_FREQ;
+	}
+
+	for (divq = 1; divq <= 6; divq++)
+	{
 		if ((rate * (1 << divq)) >= HB_PLL_VCO_MIN_FREQ)
+		{
 			break;
+		}
 	}
 
 	vco_freq = rate * (1 << divq);
@@ -144,7 +157,7 @@ static void clk_pll_calc(unsigned long rate, unsigned long ref_freq,
 }
 
 static long clk_pll_round_rate(struct clk_hw *hwclk, unsigned long rate,
-			       unsigned long *parent_rate)
+							   unsigned long *parent_rate)
 {
 	u32 divq, divf;
 	unsigned long ref_freq = *parent_rate;
@@ -155,7 +168,7 @@ static long clk_pll_round_rate(struct clk_hw *hwclk, unsigned long rate,
 }
 
 static int clk_pll_set_rate(struct clk_hw *hwclk, unsigned long rate,
-			    unsigned long parent_rate)
+							unsigned long parent_rate)
 {
 	struct hb_clk *hbclk = to_hb_clk(hwclk);
 	u32 divq, divf;
@@ -164,7 +177,9 @@ static int clk_pll_set_rate(struct clk_hw *hwclk, unsigned long rate,
 	clk_pll_calc(rate, parent_rate, &divq, &divf);
 
 	reg = readl(hbclk->reg);
-	if (divf != ((reg & HB_PLL_DIVF_MASK) >> HB_PLL_DIVF_SHIFT)) {
+
+	if (divf != ((reg & HB_PLL_DIVF_MASK) >> HB_PLL_DIVF_SHIFT))
+	{
 		/* Need to re-lock PLL, so put it into bypass mode */
 		reg |= HB_PLL_EXT_BYPASS;
 		writel(reg | HB_PLL_EXT_BYPASS, hbclk->reg);
@@ -177,22 +192,28 @@ static int clk_pll_set_rate(struct clk_hw *hwclk, unsigned long rate,
 
 		while ((readl(hbclk->reg) & HB_PLL_LOCK) == 0)
 			;
+
 		while ((readl(hbclk->reg) & HB_PLL_LOCK_500) == 0)
 			;
+
 		reg |= HB_PLL_EXT_ENA;
 		reg &= ~HB_PLL_EXT_BYPASS;
-	} else {
+	}
+	else
+	{
 		writel(reg | HB_PLL_EXT_BYPASS, hbclk->reg);
 		reg &= ~HB_PLL_DIVQ_MASK;
 		reg |= divq << HB_PLL_DIVQ_SHIFT;
 		writel(reg | HB_PLL_EXT_BYPASS, hbclk->reg);
 	}
+
 	writel(reg, hbclk->reg);
 
 	return 0;
 }
 
-static const struct clk_ops clk_pll_ops = {
+static const struct clk_ops clk_pll_ops =
+{
 	.prepare = clk_pll_prepare,
 	.unprepare = clk_pll_unprepare,
 	.enable = clk_pll_enable,
@@ -203,19 +224,20 @@ static const struct clk_ops clk_pll_ops = {
 };
 
 static unsigned long clk_cpu_periphclk_recalc_rate(struct clk_hw *hwclk,
-						   unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct hb_clk *hbclk = to_hb_clk(hwclk);
 	u32 div = (readl(hbclk->reg) & HB_A9_PCLK_DIV) ? 8 : 4;
 	return parent_rate / div;
 }
 
-static const struct clk_ops a9periphclk_ops = {
+static const struct clk_ops a9periphclk_ops =
+{
 	.recalc_rate = clk_cpu_periphclk_recalc_rate,
 };
 
 static unsigned long clk_cpu_a9bclk_recalc_rate(struct clk_hw *hwclk,
-						unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct hb_clk *hbclk = to_hb_clk(hwclk);
 	u32 div = (readl(hbclk->reg) & HB_A9_BCLK_DIV_MASK) >> HB_A9_BCLK_DIV_SHIFT;
@@ -223,12 +245,13 @@ static unsigned long clk_cpu_a9bclk_recalc_rate(struct clk_hw *hwclk,
 	return parent_rate / (div + 2);
 }
 
-static const struct clk_ops a9bclk_ops = {
+static const struct clk_ops a9bclk_ops =
+{
 	.recalc_rate = clk_cpu_a9bclk_recalc_rate,
 };
 
 static unsigned long clk_periclk_recalc_rate(struct clk_hw *hwclk,
-					     unsigned long parent_rate)
+		unsigned long parent_rate)
 {
 	struct hb_clk *hbclk = to_hb_clk(hwclk);
 	u32 div;
@@ -241,7 +264,7 @@ static unsigned long clk_periclk_recalc_rate(struct clk_hw *hwclk,
 }
 
 static long clk_periclk_round_rate(struct clk_hw *hwclk, unsigned long rate,
-				   unsigned long *parent_rate)
+								   unsigned long *parent_rate)
 {
 	u32 div;
 
@@ -253,20 +276,24 @@ static long clk_periclk_round_rate(struct clk_hw *hwclk, unsigned long rate,
 }
 
 static int clk_periclk_set_rate(struct clk_hw *hwclk, unsigned long rate,
-				unsigned long parent_rate)
+								unsigned long parent_rate)
 {
 	struct hb_clk *hbclk = to_hb_clk(hwclk);
 	u32 div;
 
 	div = parent_rate / rate;
+
 	if (div & 0x1)
+	{
 		return -EINVAL;
+	}
 
 	writel(div >> 1, hbclk->reg);
 	return 0;
 }
 
-static const struct clk_ops periclk_ops = {
+static const struct clk_ops periclk_ops =
+{
 	.recalc_rate = clk_periclk_recalc_rate,
 	.round_rate = clk_periclk_round_rate,
 	.set_rate = clk_periclk_set_rate,
@@ -283,12 +310,18 @@ static __init struct clk *hb_clk_init(struct device_node *node, const struct clk
 	int rc;
 
 	rc = of_property_read_u32(node, "reg", &reg);
+
 	if (WARN_ON(rc))
+	{
 		return NULL;
+	}
 
 	hb_clk = kzalloc(sizeof(*hb_clk), GFP_KERNEL);
+
 	if (WARN_ON(!hb_clk))
+	{
 		return NULL;
+	}
 
 	/* Map system registers */
 	srnp = of_find_compatible_node(NULL, NULL, "calxeda,hb-sregs");
@@ -308,10 +341,13 @@ static __init struct clk *hb_clk_init(struct device_node *node, const struct clk
 	hb_clk->hw.init = &init;
 
 	rc = clk_hw_register(NULL, &hb_clk->hw);
-	if (WARN_ON(rc)) {
+
+	if (WARN_ON(rc))
+	{
 		kfree(hb_clk);
 		return NULL;
 	}
+
 	rc = of_clk_add_hw_provider(node, of_clk_hw_simple_get, &hb_clk->hw);
 	return hb_clk->hw.clk;
 }

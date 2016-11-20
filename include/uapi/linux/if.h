@@ -25,7 +25,7 @@
 #include <linux/compiler.h>		/* for "__user" et al           */
 
 #if __UAPI_DEF_IF_IFNAMSIZ
-#define	IFNAMSIZ	16
+	#define	IFNAMSIZ	16
 #endif /* __UAPI_DEF_IF_IFNAMSIZ */
 #define	IFALIASZ	256
 #include <linux/hdlc/ioctl.h>
@@ -73,62 +73,63 @@
  * @IFF_DORMANT: driver signals dormant. Volatile.
  * @IFF_ECHO: echo sent packets. Volatile.
  */
-enum net_device_flags {
-/* for compatibility with glibc net/if.h */
+enum net_device_flags
+{
+	/* for compatibility with glibc net/if.h */
 #if __UAPI_DEF_IF_NET_DEVICE_FLAGS
-	IFF_UP				= 1<<0,  /* sysfs */
-	IFF_BROADCAST			= 1<<1,  /* volatile */
-	IFF_DEBUG			= 1<<2,  /* sysfs */
-	IFF_LOOPBACK			= 1<<3,  /* volatile */
-	IFF_POINTOPOINT			= 1<<4,  /* volatile */
-	IFF_NOTRAILERS			= 1<<5,  /* sysfs */
-	IFF_RUNNING			= 1<<6,  /* volatile */
-	IFF_NOARP			= 1<<7,  /* sysfs */
-	IFF_PROMISC			= 1<<8,  /* sysfs */
-	IFF_ALLMULTI			= 1<<9,  /* sysfs */
-	IFF_MASTER			= 1<<10, /* volatile */
-	IFF_SLAVE			= 1<<11, /* volatile */
-	IFF_MULTICAST			= 1<<12, /* sysfs */
-	IFF_PORTSEL			= 1<<13, /* sysfs */
-	IFF_AUTOMEDIA			= 1<<14, /* sysfs */
-	IFF_DYNAMIC			= 1<<15, /* sysfs */
+	IFF_UP				= 1 << 0, /* sysfs */
+	IFF_BROADCAST			= 1 << 1, /* volatile */
+	IFF_DEBUG			= 1 << 2, /* sysfs */
+	IFF_LOOPBACK			= 1 << 3, /* volatile */
+	IFF_POINTOPOINT			= 1 << 4, /* volatile */
+	IFF_NOTRAILERS			= 1 << 5, /* sysfs */
+	IFF_RUNNING			= 1 << 6, /* volatile */
+	IFF_NOARP			= 1 << 7, /* sysfs */
+	IFF_PROMISC			= 1 << 8, /* sysfs */
+	IFF_ALLMULTI			= 1 << 9, /* sysfs */
+	IFF_MASTER			= 1 << 10, /* volatile */
+	IFF_SLAVE			= 1 << 11, /* volatile */
+	IFF_MULTICAST			= 1 << 12, /* sysfs */
+	IFF_PORTSEL			= 1 << 13, /* sysfs */
+	IFF_AUTOMEDIA			= 1 << 14, /* sysfs */
+	IFF_DYNAMIC			= 1 << 15, /* sysfs */
 #endif /* __UAPI_DEF_IF_NET_DEVICE_FLAGS */
 #if __UAPI_DEF_IF_NET_DEVICE_FLAGS_LOWER_UP_DORMANT_ECHO
-	IFF_LOWER_UP			= 1<<16, /* volatile */
-	IFF_DORMANT			= 1<<17, /* volatile */
-	IFF_ECHO			= 1<<18, /* volatile */
+	IFF_LOWER_UP			= 1 << 16, /* volatile */
+	IFF_DORMANT			= 1 << 17, /* volatile */
+	IFF_ECHO			= 1 << 18, /* volatile */
 #endif /* __UAPI_DEF_IF_NET_DEVICE_FLAGS_LOWER_UP_DORMANT_ECHO */
 };
 #endif /* __UAPI_DEF_IF_NET_DEVICE_FLAGS_LOWER_UP_DORMANT_ECHO != 0 && __UAPI_DEF_IF_NET_DEVICE_FLAGS != 0 */
 
 /* for compatibility with glibc net/if.h */
 #if __UAPI_DEF_IF_NET_DEVICE_FLAGS
-#define IFF_UP				IFF_UP
-#define IFF_BROADCAST			IFF_BROADCAST
-#define IFF_DEBUG			IFF_DEBUG
-#define IFF_LOOPBACK			IFF_LOOPBACK
-#define IFF_POINTOPOINT			IFF_POINTOPOINT
-#define IFF_NOTRAILERS			IFF_NOTRAILERS
-#define IFF_RUNNING			IFF_RUNNING
-#define IFF_NOARP			IFF_NOARP
-#define IFF_PROMISC			IFF_PROMISC
-#define IFF_ALLMULTI			IFF_ALLMULTI
-#define IFF_MASTER			IFF_MASTER
-#define IFF_SLAVE			IFF_SLAVE
-#define IFF_MULTICAST			IFF_MULTICAST
-#define IFF_PORTSEL			IFF_PORTSEL
-#define IFF_AUTOMEDIA			IFF_AUTOMEDIA
-#define IFF_DYNAMIC			IFF_DYNAMIC
+	#define IFF_UP				IFF_UP
+	#define IFF_BROADCAST			IFF_BROADCAST
+	#define IFF_DEBUG			IFF_DEBUG
+	#define IFF_LOOPBACK			IFF_LOOPBACK
+	#define IFF_POINTOPOINT			IFF_POINTOPOINT
+	#define IFF_NOTRAILERS			IFF_NOTRAILERS
+	#define IFF_RUNNING			IFF_RUNNING
+	#define IFF_NOARP			IFF_NOARP
+	#define IFF_PROMISC			IFF_PROMISC
+	#define IFF_ALLMULTI			IFF_ALLMULTI
+	#define IFF_MASTER			IFF_MASTER
+	#define IFF_SLAVE			IFF_SLAVE
+	#define IFF_MULTICAST			IFF_MULTICAST
+	#define IFF_PORTSEL			IFF_PORTSEL
+	#define IFF_AUTOMEDIA			IFF_AUTOMEDIA
+	#define IFF_DYNAMIC			IFF_DYNAMIC
 #endif /* __UAPI_DEF_IF_NET_DEVICE_FLAGS */
 
 #if __UAPI_DEF_IF_NET_DEVICE_FLAGS_LOWER_UP_DORMANT_ECHO
-#define IFF_LOWER_UP			IFF_LOWER_UP
-#define IFF_DORMANT			IFF_DORMANT
-#define IFF_ECHO			IFF_ECHO
+	#define IFF_LOWER_UP			IFF_LOWER_UP
+	#define IFF_DORMANT			IFF_DORMANT
+	#define IFF_ECHO			IFF_ECHO
 #endif /* __UAPI_DEF_IF_NET_DEVICE_FLAGS_LOWER_UP_DORMANT_ECHO */
 
 #define IFF_VOLATILE	(IFF_LOOPBACK|IFF_POINTOPOINT|IFF_BROADCAST|IFF_ECHO|\
-		IFF_MASTER|IFF_SLAVE|IFF_RUNNING|IFF_LOWER_UP|IFF_DORMANT)
+						 IFF_MASTER|IFF_SLAVE|IFF_RUNNING|IFF_LOWER_UP|IFF_DORMANT)
 
 #define IF_GET_IFACE	0x0001		/* for querying only */
 #define IF_GET_PROTO	0x0002
@@ -158,7 +159,8 @@ enum net_device_flags {
 #define IF_PROTO_RAW    0x200C          /* RAW Socket                   */
 
 /* RFC 2863 operational status */
-enum {
+enum
+{
 	IF_OPER_UNKNOWN,
 	IF_OPER_NOTPRESENT,
 	IF_OPER_DOWN,
@@ -169,13 +171,14 @@ enum {
 };
 
 /* link modes */
-enum {
+enum
+{
 	IF_LINK_MODE_DEFAULT,
 	IF_LINK_MODE_DORMANT,	/* limit upward transition to dormant */
 };
 
 /*
- *	Device mapping structure. I'd just gone off and designed a 
+ *	Device mapping structure. I'd just gone off and designed a
  *	beautiful scheme using only loadable modules with arguments
  *	for driver options and along come the PCMCIA people 8)
  *
@@ -186,10 +189,11 @@ enum {
 
 /* for compatibility with glibc net/if.h */
 #if __UAPI_DEF_IF_IFMAP
-struct ifmap {
+struct ifmap
+{
 	unsigned long mem_start;
 	unsigned long mem_end;
-	unsigned short base_addr; 
+	unsigned short base_addr;
 	unsigned char irq;
 	unsigned char dma;
 	unsigned char port;
@@ -197,10 +201,12 @@ struct ifmap {
 };
 #endif /* __UAPI_DEF_IF_IFMAP */
 
-struct if_settings {
+struct if_settings
+{
 	unsigned int type;	/* Type of physical device or protocol */
 	unsigned int size;	/* Size of the data allocated by the caller */
-	union {
+	union
+	{
 		/* {atm/eth/dsl}_settings anyone ? */
 		raw_hdlc_proto		__user *raw_hdlc;
 		cisco_proto		__user *cisco;
@@ -223,14 +229,16 @@ struct if_settings {
 
 /* for compatibility with glibc net/if.h */
 #if __UAPI_DEF_IF_IFREQ
-struct ifreq {
+struct ifreq
+{
 #define IFHWADDRLEN	6
 	union
 	{
 		char	ifrn_name[IFNAMSIZ];		/* if name, e.g. "en0" */
 	} ifr_ifrn;
-	
-	union {
+
+	union
+	{
 		struct	sockaddr ifru_addr;
 		struct	sockaddr ifru_dstaddr;
 		struct	sockaddr ifru_broadaddr;
@@ -242,7 +250,7 @@ struct ifreq {
 		struct  ifmap ifru_map;
 		char	ifru_slave[IFNAMSIZ];	/* Just fits the size */
 		char	ifru_newname[IFNAMSIZ];
-		void __user *	ifru_data;
+		void __user 	*ifru_data;
 		struct	if_settings ifru_settings;
 	} ifr_ifru;
 };
@@ -275,9 +283,11 @@ struct ifreq {
 
 /* for compatibility with glibc net/if.h */
 #if __UAPI_DEF_IF_IFCONF
-struct ifconf  {
+struct ifconf
+{
 	int	ifc_len;			/* size of buffer	*/
-	union {
+	union
+	{
 		char __user *ifcu_buf;
 		struct ifreq __user *ifcu_req;
 	} ifc_ifcu;

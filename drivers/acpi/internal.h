@@ -46,12 +46,12 @@ static inline int acpi_ioapic_remove(struct acpi_pci_root *root) { return 0; }
 #endif
 #ifdef CONFIG_ACPI_DOCK
 void register_dock_dependent_device(struct acpi_device *adev,
-				    acpi_handle dshandle);
+									acpi_handle dshandle);
 int dock_notify(struct acpi_device *adev, u32 event);
 void acpi_dock_add(struct acpi_device *adev);
 #else
 static inline void register_dock_dependent_device(struct acpi_device *adev,
-						  acpi_handle dshandle) {}
+		acpi_handle dshandle) {}
 static inline int dock_notify(struct acpi_device *adev, u32 event) { return -ENODEV; }
 static inline void acpi_dock_add(struct acpi_device *adev) {}
 #endif
@@ -65,9 +65,9 @@ int acpi_rev_override_setup(char *str);
 extern bool acpi_force_hot_remove;
 
 void acpi_sysfs_add_hotplug_profile(struct acpi_hotplug_profile *hotplug,
-				    const char *name);
+									const char *name);
 int acpi_scan_add_handler_with_hotplug(struct acpi_scan_handler *handler,
-				       const char *hotplug_profile_name);
+									   const char *hotplug_profile_name);
 void acpi_scan_hotplug_enabled(struct acpi_hotplug_profile *hotplug, bool val);
 
 #ifdef CONFIG_DEBUG_FS
@@ -92,20 +92,21 @@ void acpi_scan_table_handler(u32 event, void *table, void *context);
                      Device Node Initialization / Removal
    -------------------------------------------------------------------------- */
 #define ACPI_STA_DEFAULT (ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED | \
-			  ACPI_STA_DEVICE_UI | ACPI_STA_DEVICE_FUNCTIONING)
+						  ACPI_STA_DEVICE_UI | ACPI_STA_DEVICE_FUNCTIONING)
 
 extern struct list_head acpi_bus_id_list;
 
-struct acpi_device_bus_id {
+struct acpi_device_bus_id
+{
 	char bus_id[15];
 	unsigned int instance_no;
 	struct list_head node;
 };
 
 int acpi_device_add(struct acpi_device *device,
-		    void (*release)(struct device *));
+					void (*release)(struct device *));
 void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
-			     int type, unsigned long long sta);
+							 int type, unsigned long long sta);
 int acpi_device_setup_files(struct acpi_device *dev);
 void acpi_device_remove_files(struct acpi_device *dev);
 void acpi_device_add_finalize(struct acpi_device *device);
@@ -113,14 +114,14 @@ void acpi_free_pnp_ids(struct acpi_device_pnp *pnp);
 bool acpi_device_is_present(struct acpi_device *adev);
 bool acpi_device_is_battery(struct acpi_device *adev);
 bool acpi_device_is_first_physical_node(struct acpi_device *adev,
-					const struct device *dev);
+										const struct device *dev);
 
 /* --------------------------------------------------------------------------
                      Device Matching and Notification
    -------------------------------------------------------------------------- */
 struct acpi_device *acpi_companion_match(const struct device *dev);
 int __acpi_device_uevent_modalias(struct acpi_device *adev,
-				  struct kobj_uevent_env *env);
+								  struct kobj_uevent_env *env);
 
 /* --------------------------------------------------------------------------
                                   Power Resource
@@ -128,12 +129,12 @@ int __acpi_device_uevent_modalias(struct acpi_device *adev,
 int acpi_power_init(void);
 void acpi_power_resources_list_free(struct list_head *list);
 int acpi_extract_power_resources(union acpi_object *package, unsigned int start,
-				 struct list_head *list);
+								 struct list_head *list);
 int acpi_add_power_resource(acpi_handle handle);
 void acpi_power_add_remove_device(struct acpi_device *adev, bool add);
 int acpi_power_wakeup_list_init(struct list_head *list, int *system_level);
 int acpi_device_sleep_wake(struct acpi_device *dev,
-                           int enable, int sleep_state, int dev_state);
+						   int enable, int sleep_state, int dev_state);
 int acpi_power_get_inferred_state(struct acpi_device *device, int *state);
 int acpi_power_on_resources(struct acpi_device *device, int state);
 int acpi_power_transition(struct acpi_device *device, int state);
@@ -155,7 +156,8 @@ static inline void acpi_early_processor_osc(void) {}
 /* --------------------------------------------------------------------------
                                   Embedded Controller
    -------------------------------------------------------------------------- */
-struct acpi_ec {
+struct acpi_ec
+{
 	acpi_handle handle;
 	unsigned long gpe;
 	unsigned long command_addr;
@@ -188,8 +190,8 @@ int acpi_ec_ecdt_start(void);
 void acpi_ec_block_transactions(void);
 void acpi_ec_unblock_transactions(void);
 int acpi_ec_add_query_handler(struct acpi_ec *ec, u8 query_bit,
-			      acpi_handle handle, acpi_ec_query_func func,
-			      void *data);
+							  acpi_handle handle, acpi_ec_query_func func,
+							  void *data);
 void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit);
 
 

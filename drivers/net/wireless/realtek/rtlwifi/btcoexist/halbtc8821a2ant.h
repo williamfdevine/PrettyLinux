@@ -38,21 +38,24 @@
 
 #define	BTC_RSSI_COEX_THRESH_TOL_8821A_2ANT	2
 
-enum _BT_INFO_SRC_8821A_2ANT {
+enum _BT_INFO_SRC_8821A_2ANT
+{
 	BT_INFO_SRC_8821A_2ANT_WIFI_FW		= 0x0,
 	BT_INFO_SRC_8821A_2ANT_BT_RSP		= 0x1,
 	BT_INFO_SRC_8821A_2ANT_BT_ACTIVE_SEND	= 0x2,
 	BT_INFO_SRC_8821A_2ANT_MAX
 };
 
-enum _BT_8821A_2ANT_BT_STATUS {
+enum _BT_8821A_2ANT_BT_STATUS
+{
 	BT_8821A_2ANT_BT_STATUS_IDLE		= 0x0,
 	BT_8821A_2ANT_BT_STATUS_CON_IDLE	= 0x1,
 	BT_8821A_2ANT_BT_STATUS_NON_IDLE	= 0x2,
 	BT_8821A_2ANT_BT_STATUS_MAX
 };
 
-enum _BT_8821A_2ANT_COEX_ALGO {
+enum _BT_8821A_2ANT_COEX_ALGO
+{
 	BT_8821A_2ANT_COEX_ALGO_UNDEFINED		= 0x0,
 	BT_8821A_2ANT_COEX_ALGO_SCO			= 0x1,
 	BT_8821A_2ANT_COEX_ALGO_HID			= 0x2,
@@ -67,7 +70,8 @@ enum _BT_8821A_2ANT_COEX_ALGO {
 	BT_8821A_2ANT_COEX_ALGO_MAX			= 0xb,
 };
 
-struct coex_dm_8821a_2ant {
+struct coex_dm_8821a_2ant
+{
 	/* fw mechanism */
 	bool		pre_dec_bt_pwr;
 	bool		cur_dec_bt_pwr;
@@ -120,7 +124,8 @@ struct coex_dm_8821a_2ant {
 	u8		wifi_chnl_info[3];
 };
 
-struct coex_sta_8821a_2ant {
+struct coex_sta_8821a_2ant
+{
 	bool	bt_link_exist;
 	bool	sco_exist;
 	bool	a2dp_exist;
@@ -150,56 +155,56 @@ struct coex_sta_8821a_2ant {
 void
 ex_halbtc8821a2ant_init_hwconfig(
 	struct btc_coexist *btcoexist
-	);
+);
 void
 ex_halbtc8821a2ant_init_coex_dm(
 	struct btc_coexist *btcoexist
-	);
+);
 void
 ex_halbtc8821a2ant_ips_notify(
 	struct btc_coexist *btcoexist,
 	u8 type
-	);
+);
 void
 ex_halbtc8821a2ant_lps_notify(
 	struct btc_coexist *btcoexist,
 	u8 type
-	);
+);
 void
 ex_halbtc8821a2ant_scan_notify(
 	struct btc_coexist *btcoexist,
 	u8 type
-	);
+);
 void
 ex_halbtc8821a2ant_connect_notify(
 	struct btc_coexist *btcoexist,
 	u8 type
-	);
+);
 void
 ex_halbtc8821a2ant_media_status_notify(
 	struct btc_coexist *btcoexist,
 	u8 type
-	);
+);
 void
 ex_halbtc8821a2ant_special_packet_notify(
 	struct btc_coexist *btcoexist,
 	u8 type
-	);
+);
 void
 ex_halbtc8821a2ant_bt_info_notify(
 	struct btc_coexist *btcoexist,
 	u8 *tmp_buf,
 	u8 length
-	);
+);
 void
 ex_halbtc8821a2ant_halt_notify(
 	struct btc_coexist *btcoexist
-	);
+);
 void
 ex_halbtc8821a2ant_periodical(
 	struct btc_coexist *btcoexist
-	);
+);
 void
 ex_halbtc8821a2ant_display_coex_info(
 	struct btc_coexist *btcoexist
-	);
+);

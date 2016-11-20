@@ -177,8 +177,8 @@
 #define ETM_MODE_TRACE_ERR		BIT(26)
 #define ETM_MODE_VIEWINST_STARTSTOP	BIT(27)
 #define ETMv4_MODE_ALL			(GENMASK(27, 0) | \
-					 ETM_MODE_EXCL_KERN | \
-					 ETM_MODE_EXCL_USER)
+								 ETM_MODE_EXCL_KERN | \
+								 ETM_MODE_EXCL_USER)
 
 #define TRCSTATR_IDLE_BIT		0
 #define ETM_DEFAULT_ADDR_COMP		0
@@ -246,7 +246,8 @@
  * @vmid_mask1:	VM ID comparator mask for comparator 4-7.
  * @ext_inp:	External input selection.
  */
-struct etmv4_config {
+struct etmv4_config
+{
 	u32				mode;
 	u32				pe_sel;
 	u32				cfg;
@@ -347,7 +348,8 @@ struct etmv4_config {
  * @lpoverride:	If the implementation can support low-power state over.
  * @config:	structure holding configuration parameters.
  */
-struct etmv4_drvdata {
+struct etmv4_drvdata
+{
 	void __iomem			*base;
 	struct device			*dev;
 	struct coresight_device		*csdev;
@@ -395,7 +397,8 @@ struct etmv4_drvdata {
 };
 
 /* Address comparator access types */
-enum etm_addr_acctype {
+enum etm_addr_acctype
+{
 	ETM_INSTR_ADDR,
 	ETM_DATA_LOAD_ADDR,
 	ETM_DATA_STORE_ADDR,
@@ -403,7 +406,8 @@ enum etm_addr_acctype {
 };
 
 /* Address comparator context types */
-enum etm_addr_ctxtype {
+enum etm_addr_ctxtype
+{
 	ETM_CTX_NONE,
 	ETM_CTX_CTXID,
 	ETM_CTX_VMID,

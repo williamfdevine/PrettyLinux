@@ -35,7 +35,8 @@
    demod#2-gpio#1 - xtal setting (?)
 */
 
-struct af9013_config {
+struct af9013_config
+{
 	/*
 	 * I2C address
 	 */
@@ -76,7 +77,7 @@ struct af9013_config {
 #define AF9013_TS_USB       0
 #define AF9013_TS_PARALLEL  1
 #define AF9013_TS_SERIAL    2
-	u8 ts_mode:2;
+	u8 ts_mode: 2;
 
 	/*
 	 * input spectrum inversion
@@ -104,10 +105,10 @@ struct af9013_config {
 
 #if IS_REACHABLE(CONFIG_DVB_AF9013)
 extern struct dvb_frontend *af9013_attach(const struct af9013_config *config,
-	struct i2c_adapter *i2c);
+		struct i2c_adapter *i2c);
 #else
 static inline struct dvb_frontend *af9013_attach(
-const struct af9013_config *config, struct i2c_adapter *i2c)
+	const struct af9013_config *config, struct i2c_adapter *i2c)
 {
 	pr_warn("%s: driver disabled by Kconfig\n", __func__);
 	return NULL;

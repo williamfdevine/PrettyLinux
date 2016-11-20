@@ -69,65 +69,71 @@
 #define JZ4740_CODEC_2_MIC_BOOST_GAIN_OFFSET	 4
 #define JZ4740_CODEC_2_HEADPHONE_VOLUME_OFFSET	 0
 
-static const struct reg_default jz4740_codec_reg_defaults[] = {
+static const struct reg_default jz4740_codec_reg_defaults[] =
+{
 	{ JZ4740_REG_CODEC_1, 0x021b2302 },
 	{ JZ4740_REG_CODEC_2, 0x00170803 },
 };
 
-struct jz4740_codec {
+struct jz4740_codec
+{
 	struct regmap *regmap;
 };
 
 static const DECLARE_TLV_DB_RANGE(jz4740_mic_tlv,
-	0, 2, TLV_DB_SCALE_ITEM(0, 600, 0),
-	3, 3, TLV_DB_SCALE_ITEM(2000, 0, 0)
-);
+								  0, 2, TLV_DB_SCALE_ITEM(0, 600, 0),
+								  3, 3, TLV_DB_SCALE_ITEM(2000, 0, 0)
+								 );
 
 static const DECLARE_TLV_DB_SCALE(jz4740_out_tlv, 0, 200, 0);
 static const DECLARE_TLV_DB_SCALE(jz4740_in_tlv, -3450, 150, 0);
 
-static const struct snd_kcontrol_new jz4740_codec_controls[] = {
+static const struct snd_kcontrol_new jz4740_codec_controls[] =
+{
 	SOC_SINGLE_TLV("Master Playback Volume", JZ4740_REG_CODEC_2,
-			JZ4740_CODEC_2_HEADPHONE_VOLUME_OFFSET, 3, 0,
-			jz4740_out_tlv),
+	JZ4740_CODEC_2_HEADPHONE_VOLUME_OFFSET, 3, 0,
+	jz4740_out_tlv),
 	SOC_SINGLE_TLV("Master Capture Volume", JZ4740_REG_CODEC_2,
-			JZ4740_CODEC_2_INPUT_VOLUME_OFFSET, 31, 0,
-			jz4740_in_tlv),
+	JZ4740_CODEC_2_INPUT_VOLUME_OFFSET, 31, 0,
+	jz4740_in_tlv),
 	SOC_SINGLE("Master Playback Switch", JZ4740_REG_CODEC_1,
-			JZ4740_CODEC_1_HEADPHONE_DISABLE_OFFSET, 1, 1),
+	JZ4740_CODEC_1_HEADPHONE_DISABLE_OFFSET, 1, 1),
 	SOC_SINGLE_TLV("Mic Capture Volume", JZ4740_REG_CODEC_2,
-			JZ4740_CODEC_2_MIC_BOOST_GAIN_OFFSET, 3, 0,
-			jz4740_mic_tlv),
+	JZ4740_CODEC_2_MIC_BOOST_GAIN_OFFSET, 3, 0,
+	jz4740_mic_tlv),
 };
 
-static const struct snd_kcontrol_new jz4740_codec_output_controls[] = {
+static const struct snd_kcontrol_new jz4740_codec_output_controls[] =
+{
 	SOC_DAPM_SINGLE("Bypass Switch", JZ4740_REG_CODEC_1,
-			JZ4740_CODEC_1_SW1_ENABLE_OFFSET, 1, 0),
+	JZ4740_CODEC_1_SW1_ENABLE_OFFSET, 1, 0),
 	SOC_DAPM_SINGLE("DAC Switch", JZ4740_REG_CODEC_1,
-			JZ4740_CODEC_1_SW2_ENABLE_OFFSET, 1, 0),
+	JZ4740_CODEC_1_SW2_ENABLE_OFFSET, 1, 0),
 };
 
-static const struct snd_kcontrol_new jz4740_codec_input_controls[] = {
+static const struct snd_kcontrol_new jz4740_codec_input_controls[] =
+{
 	SOC_DAPM_SINGLE("Line Capture Switch", JZ4740_REG_CODEC_1,
-			JZ4740_CODEC_1_LINE_ENABLE_OFFSET, 1, 0),
+	JZ4740_CODEC_1_LINE_ENABLE_OFFSET, 1, 0),
 	SOC_DAPM_SINGLE("Mic Capture Switch", JZ4740_REG_CODEC_1,
-			JZ4740_CODEC_1_MIC_ENABLE_OFFSET, 1, 0),
+	JZ4740_CODEC_1_MIC_ENABLE_OFFSET, 1, 0),
 };
 
-static const struct snd_soc_dapm_widget jz4740_codec_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget jz4740_codec_dapm_widgets[] =
+{
 	SND_SOC_DAPM_ADC("ADC", "Capture", JZ4740_REG_CODEC_1,
-			JZ4740_CODEC_1_ADC_ENABLE_OFFSET, 0),
+	JZ4740_CODEC_1_ADC_ENABLE_OFFSET, 0),
 	SND_SOC_DAPM_DAC("DAC", "Playback", JZ4740_REG_CODEC_1,
-			JZ4740_CODEC_1_DAC_ENABLE_OFFSET, 0),
+	JZ4740_CODEC_1_DAC_ENABLE_OFFSET, 0),
 
 	SND_SOC_DAPM_MIXER("Output Mixer", JZ4740_REG_CODEC_1,
-			JZ4740_CODEC_1_HEADPHONE_POWERDOWN_OFFSET, 1,
-			jz4740_codec_output_controls,
-			ARRAY_SIZE(jz4740_codec_output_controls)),
+	JZ4740_CODEC_1_HEADPHONE_POWERDOWN_OFFSET, 1,
+	jz4740_codec_output_controls,
+	ARRAY_SIZE(jz4740_codec_output_controls)),
 
 	SND_SOC_DAPM_MIXER_NAMED_CTL("Input Mixer", SND_SOC_NOPM, 0, 0,
-			jz4740_codec_input_controls,
-			ARRAY_SIZE(jz4740_codec_input_controls)),
+	jz4740_codec_input_controls,
+	ARRAY_SIZE(jz4740_codec_input_controls)),
 	SND_SOC_DAPM_MIXER("Line Input", SND_SOC_NOPM, 0, 0, NULL, 0),
 
 	SND_SOC_DAPM_OUTPUT("LOUT"),
@@ -138,7 +144,8 @@ static const struct snd_soc_dapm_widget jz4740_codec_dapm_widgets[] = {
 	SND_SOC_DAPM_INPUT("RIN"),
 };
 
-static const struct snd_soc_dapm_route jz4740_codec_dapm_routes[] = {
+static const struct snd_soc_dapm_route jz4740_codec_dapm_routes[] =
+{
 	{"Line Input", NULL, "LIN"},
 	{"Line Input", NULL, "RIN"},
 
@@ -155,56 +162,68 @@ static const struct snd_soc_dapm_route jz4740_codec_dapm_routes[] = {
 };
 
 static int jz4740_codec_hw_params(struct snd_pcm_substream *substream,
-	struct snd_pcm_hw_params *params, struct snd_soc_dai *dai)
+								  struct snd_pcm_hw_params *params, struct snd_soc_dai *dai)
 {
 	struct jz4740_codec *jz4740_codec = snd_soc_codec_get_drvdata(dai->codec);
 	uint32_t val;
 
-	switch (params_rate(params)) {
-	case 8000:
-		val = 0;
-		break;
-	case 11025:
-		val = 1;
-		break;
-	case 12000:
-		val = 2;
-		break;
-	case 16000:
-		val = 3;
-		break;
-	case 22050:
-		val = 4;
-		break;
-	case 24000:
-		val = 5;
-		break;
-	case 32000:
-		val = 6;
-		break;
-	case 44100:
-		val = 7;
-		break;
-	case 48000:
-		val = 8;
-		break;
-	default:
-		return -EINVAL;
+	switch (params_rate(params))
+	{
+		case 8000:
+			val = 0;
+			break;
+
+		case 11025:
+			val = 1;
+			break;
+
+		case 12000:
+			val = 2;
+			break;
+
+		case 16000:
+			val = 3;
+			break;
+
+		case 22050:
+			val = 4;
+			break;
+
+		case 24000:
+			val = 5;
+			break;
+
+		case 32000:
+			val = 6;
+			break;
+
+		case 44100:
+			val = 7;
+			break;
+
+		case 48000:
+			val = 8;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	val <<= JZ4740_CODEC_2_SAMPLE_RATE_OFFSET;
 
 	regmap_update_bits(jz4740_codec->regmap, JZ4740_REG_CODEC_2,
-				JZ4740_CODEC_2_SAMPLE_RATE_MASK, val);
+					   JZ4740_CODEC_2_SAMPLE_RATE_MASK, val);
 
 	return 0;
 }
 
-static const struct snd_soc_dai_ops jz4740_codec_dai_ops = {
+static const struct snd_soc_dai_ops jz4740_codec_dai_ops =
+{
 	.hw_params = jz4740_codec_hw_params,
 };
 
-static struct snd_soc_dai_driver jz4740_codec_dai = {
+static struct snd_soc_dai_driver jz4740_codec_dai =
+{
 	.name = "jz4740-hifi",
 	.playback = {
 		.stream_name = "Playback",
@@ -227,57 +246,65 @@ static struct snd_soc_dai_driver jz4740_codec_dai = {
 static void jz4740_codec_wakeup(struct regmap *regmap)
 {
 	regmap_update_bits(regmap, JZ4740_REG_CODEC_1,
-		JZ4740_CODEC_1_RESET, JZ4740_CODEC_1_RESET);
+					   JZ4740_CODEC_1_RESET, JZ4740_CODEC_1_RESET);
 	udelay(2);
 
 	regmap_update_bits(regmap, JZ4740_REG_CODEC_1,
-		JZ4740_CODEC_1_SUSPEND | JZ4740_CODEC_1_RESET, 0);
+					   JZ4740_CODEC_1_SUSPEND | JZ4740_CODEC_1_RESET, 0);
 
 	regcache_sync(regmap);
 }
 
 static int jz4740_codec_set_bias_level(struct snd_soc_codec *codec,
-	enum snd_soc_bias_level level)
+									   enum snd_soc_bias_level level)
 {
 	struct jz4740_codec *jz4740_codec = snd_soc_codec_get_drvdata(codec);
 	struct regmap *regmap = jz4740_codec->regmap;
 	unsigned int mask;
 	unsigned int value;
 
-	switch (level) {
-	case SND_SOC_BIAS_ON:
-		break;
-	case SND_SOC_BIAS_PREPARE:
-		mask = JZ4740_CODEC_1_VREF_DISABLE |
-				JZ4740_CODEC_1_VREF_AMP_DISABLE |
-				JZ4740_CODEC_1_HEADPHONE_POWERDOWN_M;
-		value = 0;
+	switch (level)
+	{
+		case SND_SOC_BIAS_ON:
+			break;
 
-		regmap_update_bits(regmap, JZ4740_REG_CODEC_1, mask, value);
-		break;
-	case SND_SOC_BIAS_STANDBY:
-		/* The only way to clear the suspend flag is to reset the codec */
-		if (snd_soc_codec_get_bias_level(codec) == SND_SOC_BIAS_OFF)
-			jz4740_codec_wakeup(regmap);
+		case SND_SOC_BIAS_PREPARE:
+			mask = JZ4740_CODEC_1_VREF_DISABLE |
+				   JZ4740_CODEC_1_VREF_AMP_DISABLE |
+				   JZ4740_CODEC_1_HEADPHONE_POWERDOWN_M;
+			value = 0;
 
-		mask = JZ4740_CODEC_1_VREF_DISABLE |
-			JZ4740_CODEC_1_VREF_AMP_DISABLE |
-			JZ4740_CODEC_1_HEADPHONE_POWERDOWN_M;
-		value = JZ4740_CODEC_1_VREF_DISABLE |
-			JZ4740_CODEC_1_VREF_AMP_DISABLE |
-			JZ4740_CODEC_1_HEADPHONE_POWERDOWN_M;
+			regmap_update_bits(regmap, JZ4740_REG_CODEC_1, mask, value);
+			break;
 
-		regmap_update_bits(regmap, JZ4740_REG_CODEC_1, mask, value);
-		break;
-	case SND_SOC_BIAS_OFF:
-		mask = JZ4740_CODEC_1_SUSPEND;
-		value = JZ4740_CODEC_1_SUSPEND;
+		case SND_SOC_BIAS_STANDBY:
 
-		regmap_update_bits(regmap, JZ4740_REG_CODEC_1, mask, value);
-		regcache_mark_dirty(regmap);
-		break;
-	default:
-		break;
+			/* The only way to clear the suspend flag is to reset the codec */
+			if (snd_soc_codec_get_bias_level(codec) == SND_SOC_BIAS_OFF)
+			{
+				jz4740_codec_wakeup(regmap);
+			}
+
+			mask = JZ4740_CODEC_1_VREF_DISABLE |
+				   JZ4740_CODEC_1_VREF_AMP_DISABLE |
+				   JZ4740_CODEC_1_HEADPHONE_POWERDOWN_M;
+			value = JZ4740_CODEC_1_VREF_DISABLE |
+					JZ4740_CODEC_1_VREF_AMP_DISABLE |
+					JZ4740_CODEC_1_HEADPHONE_POWERDOWN_M;
+
+			regmap_update_bits(regmap, JZ4740_REG_CODEC_1, mask, value);
+			break;
+
+		case SND_SOC_BIAS_OFF:
+			mask = JZ4740_CODEC_1_SUSPEND;
+			value = JZ4740_CODEC_1_SUSPEND;
+
+			regmap_update_bits(regmap, JZ4740_REG_CODEC_1, mask, value);
+			regcache_mark_dirty(regmap);
+			break;
+
+		default:
+			break;
 	}
 
 	return 0;
@@ -288,12 +315,13 @@ static int jz4740_codec_dev_probe(struct snd_soc_codec *codec)
 	struct jz4740_codec *jz4740_codec = snd_soc_codec_get_drvdata(codec);
 
 	regmap_update_bits(jz4740_codec->regmap, JZ4740_REG_CODEC_1,
-			JZ4740_CODEC_1_SW2_ENABLE, JZ4740_CODEC_1_SW2_ENABLE);
+					   JZ4740_CODEC_1_SW2_ENABLE, JZ4740_CODEC_1_SW2_ENABLE);
 
 	return 0;
 }
 
-static struct snd_soc_codec_driver soc_codec_dev_jz4740_codec = {
+static struct snd_soc_codec_driver soc_codec_dev_jz4740_codec =
+{
 	.probe = jz4740_codec_dev_probe,
 	.set_bias_level = jz4740_codec_set_bias_level,
 	.suspend_bias_off = true,
@@ -308,7 +336,8 @@ static struct snd_soc_codec_driver soc_codec_dev_jz4740_codec = {
 	},
 };
 
-static const struct regmap_config jz4740_codec_regmap_config = {
+static const struct regmap_config jz4740_codec_regmap_config =
+{
 	.reg_bits = 32,
 	.reg_stride = 4,
 	.val_bits = 32,
@@ -327,26 +356,38 @@ static int jz4740_codec_probe(struct platform_device *pdev)
 	void __iomem *base;
 
 	jz4740_codec = devm_kzalloc(&pdev->dev, sizeof(*jz4740_codec),
-				    GFP_KERNEL);
+								GFP_KERNEL);
+
 	if (!jz4740_codec)
+	{
 		return -ENOMEM;
+	}
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	base = devm_ioremap_resource(&pdev->dev, mem);
+
 	if (IS_ERR(base))
+	{
 		return PTR_ERR(base);
+	}
 
 	jz4740_codec->regmap = devm_regmap_init_mmio(&pdev->dev, base,
-					    &jz4740_codec_regmap_config);
+						   &jz4740_codec_regmap_config);
+
 	if (IS_ERR(jz4740_codec->regmap))
+	{
 		return PTR_ERR(jz4740_codec->regmap);
+	}
 
 	platform_set_drvdata(pdev, jz4740_codec);
 
 	ret = snd_soc_register_codec(&pdev->dev,
-			&soc_codec_dev_jz4740_codec, &jz4740_codec_dai, 1);
+								 &soc_codec_dev_jz4740_codec, &jz4740_codec_dai, 1);
+
 	if (ret)
+	{
 		dev_err(&pdev->dev, "Failed to register codec\n");
+	}
 
 	return ret;
 }
@@ -358,7 +399,8 @@ static int jz4740_codec_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver jz4740_codec_driver = {
+static struct platform_driver jz4740_codec_driver =
+{
 	.probe = jz4740_codec_probe,
 	.remove = jz4740_codec_remove,
 	.driver = {

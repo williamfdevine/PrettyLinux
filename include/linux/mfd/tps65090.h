@@ -26,7 +26,8 @@
 #include <linux/regmap.h>
 
 /* TPS65090 IRQs */
-enum {
+enum
+{
 	TPS65090_IRQ_INTERRUPT,
 	TPS65090_IRQ_VAC_STATUS_CHANGE,
 	TPS65090_IRQ_VSYS_STATUS_CHANGE,
@@ -46,7 +47,8 @@ enum {
 };
 
 /* TPS65090 Regulator ID */
-enum {
+enum
+{
 	TPS65090_REGULATOR_DCDC1,
 	TPS65090_REGULATOR_DCDC2,
 	TPS65090_REGULATOR_DCDC3,
@@ -83,7 +85,8 @@ enum {
 #define TPS65090_MAX_REG	TPS65090_REG_AD_OUT2
 #define TPS65090_NUM_REGS	(TPS65090_MAX_REG + 1)
 
-struct tps65090 {
+struct tps65090
+{
 	struct device		*dev;
 	struct regmap		*rmap;
 	struct regmap_irq_chip_data *irq_data;
@@ -101,7 +104,8 @@ struct tps65090 {
  * @overcurrent_wait: Value to set as the overcurrent wait time.  This is the
  *     actual bitfield value, not a time in ms (valid value are 0 - 3).
  */
-struct tps65090_regulator_plat_data {
+struct tps65090_regulator_plat_data
+{
 	struct regulator_init_data *reg_init_data;
 	bool enable_ext_control;
 	int gpio;
@@ -109,7 +113,8 @@ struct tps65090_regulator_plat_data {
 	int overcurrent_wait;
 };
 
-struct tps65090_platform_data {
+struct tps65090_platform_data
+{
 	int irq_base;
 
 	char **supplied_to;
@@ -137,13 +142,17 @@ static inline int tps65090_read(struct device *dev, int reg, uint8_t *val)
 	int ret;
 
 	ret = regmap_read(tps->rmap, reg, &temp_val);
+
 	if (!ret)
+	{
 		*val = temp_val;
+	}
+
 	return ret;
 }
 
 static inline int tps65090_set_bits(struct device *dev, int reg,
-		uint8_t bit_num)
+									uint8_t bit_num)
 {
 	struct tps65090 *tps = dev_get_drvdata(dev);
 
@@ -151,7 +160,7 @@ static inline int tps65090_set_bits(struct device *dev, int reg,
 }
 
 static inline int tps65090_clr_bits(struct device *dev, int reg,
-		uint8_t bit_num)
+									uint8_t bit_num)
 {
 	struct tps65090 *tps = dev_get_drvdata(dev);
 

@@ -47,12 +47,14 @@ rproc_elf_sanity_check(struct rproc *rproc, const struct firmware *fw)
 	struct elf32_hdr *ehdr;
 	char class;
 
-	if (!fw) {
+	if (!fw)
+	{
 		dev_err(dev, "failed to load %s\n", name);
 		return -EINVAL;
 	}
 
-	if (fw->size < sizeof(struct elf32_hdr)) {
+	if (fw->size < sizeof(struct elf32_hdr))
+	{
 		dev_err(dev, "Image is too small\n");
 		return -EINVAL;
 	}
@@ -61,37 +63,47 @@ rproc_elf_sanity_check(struct rproc *rproc, const struct firmware *fw)
 
 	/* We only support ELF32 at this point */
 	class = ehdr->e_ident[EI_CLASS];
-	if (class != ELFCLASS32) {
+
+	if (class != ELFCLASS32)
+	{
 		dev_err(dev, "Unsupported class: %d\n", class);
 		return -EINVAL;
 	}
 
 	/* We assume the firmware has the same endianness as the host */
 # ifdef __LITTLE_ENDIAN
-	if (ehdr->e_ident[EI_DATA] != ELFDATA2LSB) {
+
+	if (ehdr->e_ident[EI_DATA] != ELFDATA2LSB)
+	{
 # else /* BIG ENDIAN */
-	if (ehdr->e_ident[EI_DATA] != ELFDATA2MSB) {
+
+	if (ehdr->e_ident[EI_DATA] != ELFDATA2MSB)
+	{
 # endif
 		dev_err(dev, "Unsupported firmware endianness\n");
 		return -EINVAL;
 	}
 
-	if (fw->size < ehdr->e_shoff + sizeof(struct elf32_shdr)) {
+	if (fw->size < ehdr->e_shoff + sizeof(struct elf32_shdr))
+	{
 		dev_err(dev, "Image is too small\n");
 		return -EINVAL;
 	}
 
-	if (memcmp(ehdr->e_ident, ELFMAG, SELFMAG)) {
+	if (memcmp(ehdr->e_ident, ELFMAG, SELFMAG))
+	{
 		dev_err(dev, "Image is corrupted (bad magic)\n");
 		return -EINVAL;
 	}
 
-	if (ehdr->e_phnum == 0) {
+	if (ehdr->e_phnum == 0)
+	{
 		dev_err(dev, "No loadable segments\n");
 		return -EINVAL;
 	}
 
-	if (ehdr->e_phoff > fw->size) {
+	if (ehdr->e_phoff > fw->size)
+	{
 		dev_err(dev, "Firmware size is too small\n");
 		return -EINVAL;
 	}
@@ -155,7 +167,8 @@ rproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw)
 	phdr = (struct elf32_phdr *)(elf_data + ehdr->e_phoff);
 
 	/* go through the available ELF segments */
-	for (i = 0; i < ehdr->e_phnum; i++, phdr++) {
+	for (i = 0; i < ehdr->e_phnum; i++, phdr++)
+	{
 		u32 da = phdr->p_paddr;
 		u32 memsz = phdr->p_memsz;
 		u32 filesz = phdr->p_filesz;
@@ -163,28 +176,34 @@ rproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw)
 		void *ptr;
 
 		if (phdr->p_type != PT_LOAD)
+		{
 			continue;
+		}
 
 		dev_dbg(dev, "phdr: type %d da 0x%x memsz 0x%x filesz 0x%x\n",
-			phdr->p_type, da, memsz, filesz);
+				phdr->p_type, da, memsz, filesz);
 
-		if (filesz > memsz) {
+		if (filesz > memsz)
+		{
 			dev_err(dev, "bad phdr filesz 0x%x memsz 0x%x\n",
-				filesz, memsz);
+					filesz, memsz);
 			ret = -EINVAL;
 			break;
 		}
 
-		if (offset + filesz > fw->size) {
+		if (offset + filesz > fw->size)
+		{
 			dev_err(dev, "truncated fw: need 0x%x avail 0x%zx\n",
-				offset + filesz, fw->size);
+					offset + filesz, fw->size);
 			ret = -EINVAL;
 			break;
 		}
 
 		/* grab the kernel address for this device address */
 		ptr = rproc_da_to_va(rproc, da, memsz);
-		if (!ptr) {
+
+		if (!ptr)
+		{
 			dev_err(dev, "bad phdr da 0x%x mem 0x%x\n", da, memsz);
 			ret = -EINVAL;
 			break;
@@ -192,7 +211,9 @@ rproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw)
 
 		/* put the segment where the remote processor expects it */
 		if (phdr->p_filesz)
+		{
 			memcpy(ptr, elf_data + phdr->p_offset, filesz);
+		}
 
 		/*
 		 * Zero out remaining memory for this segment.
@@ -202,7 +223,9 @@ rproc_elf_load_segments(struct rproc *rproc, const struct firmware *fw)
 		 * this.
 		 */
 		if (memsz > filesz)
+		{
 			memset(ptr + filesz, 0, memsz - filesz);
+		}
 	}
 
 	return ret;
@@ -221,42 +244,50 @@ find_table(struct device *dev, struct elf32_hdr *ehdr, size_t fw_size)
 	shdr = (struct elf32_shdr *)(elf_data + ehdr->e_shoff);
 	name_table = elf_data + shdr[ehdr->e_shstrndx].sh_offset;
 
-	for (i = 0; i < ehdr->e_shnum; i++, shdr++) {
+	for (i = 0; i < ehdr->e_shnum; i++, shdr++)
+	{
 		u32 size = shdr->sh_size;
 		u32 offset = shdr->sh_offset;
 
 		if (strcmp(name_table + shdr->sh_name, ".resource_table"))
+		{
 			continue;
+		}
 
 		table = (struct resource_table *)(elf_data + offset);
 
 		/* make sure we have the entire table */
-		if (offset + size > fw_size || offset + size < size) {
+		if (offset + size > fw_size || offset + size < size)
+		{
 			dev_err(dev, "resource table truncated\n");
 			return NULL;
 		}
 
 		/* make sure table has at least the header */
-		if (sizeof(struct resource_table) > size) {
+		if (sizeof(struct resource_table) > size)
+		{
 			dev_err(dev, "header-less resource table\n");
 			return NULL;
 		}
 
 		/* we don't support any version beyond the first */
-		if (table->ver != 1) {
+		if (table->ver != 1)
+		{
 			dev_err(dev, "unsupported fw ver: %d\n", table->ver);
 			return NULL;
 		}
 
 		/* make sure reserved bytes are zeroes */
-		if (table->reserved[0] || table->reserved[1]) {
+		if (table->reserved[0] || table->reserved[1])
+		{
 			dev_err(dev, "non zero reserved bytes\n");
 			return NULL;
 		}
 
 		/* make sure the offsets array isn't truncated */
 		if (table->num * sizeof(table->offset[0]) +
-				sizeof(struct resource_table) > size) {
+			sizeof(struct resource_table) > size)
+		{
 			dev_err(dev, "resource table incomplete\n");
 			return NULL;
 		}
@@ -284,7 +315,7 @@ find_table(struct device *dev, struct elf32_hdr *ehdr, size_t fw_size)
  */
 static struct resource_table *
 rproc_elf_find_rsc_table(struct rproc *rproc, const struct firmware *fw,
-			 int *tablesz)
+						 int *tablesz)
 {
 	struct elf32_hdr *ehdr;
 	struct elf32_shdr *shdr;
@@ -295,8 +326,11 @@ rproc_elf_find_rsc_table(struct rproc *rproc, const struct firmware *fw,
 	ehdr = (struct elf32_hdr *)elf_data;
 
 	shdr = find_table(dev, ehdr, fw->size);
+
 	if (!shdr)
+	{
 		return NULL;
+	}
 
 	table = (struct resource_table *)(elf_data + shdr->sh_offset);
 	*tablesz = shdr->sh_size;
@@ -322,13 +356,17 @@ rproc_elf_find_loaded_rsc_table(struct rproc *rproc, const struct firmware *fw)
 	struct elf32_shdr *shdr;
 
 	shdr = find_table(&rproc->dev, ehdr, fw->size);
+
 	if (!shdr)
+	{
 		return NULL;
+	}
 
 	return rproc_da_to_va(rproc, shdr->sh_addr, shdr->sh_size);
 }
 
-const struct rproc_fw_ops rproc_elf_fw_ops = {
+const struct rproc_fw_ops rproc_elf_fw_ops =
+{
 	.load = rproc_elf_load_segments,
 	.find_rsc_table = rproc_elf_find_rsc_table,
 	.find_loaded_rsc_table = rproc_elf_find_loaded_rsc_table,

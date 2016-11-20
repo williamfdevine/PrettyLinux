@@ -11,7 +11,7 @@
  */
 
 #ifndef CMSPAR
-#define CMSPAR			0
+	#define CMSPAR			0
 #endif
 
 /*
@@ -62,7 +62,8 @@
 #define ACM_NW  16
 #define ACM_NR  16
 
-struct acm_wb {
+struct acm_wb
+{
 	unsigned char *buf;
 	dma_addr_t dmah;
 	int len;
@@ -71,7 +72,8 @@ struct acm_wb {
 	struct acm		*instance;
 };
 
-struct acm_rb {
+struct acm_rb
+{
 	int			size;
 	unsigned char		*base;
 	dma_addr_t		dma;
@@ -79,7 +81,8 @@ struct acm_rb {
 	struct acm		*instance;
 };
 
-struct acm {
+struct acm
+{
 	struct usb_device *dev;				/* the corresponding usb device */
 	struct usb_interface *control;			/* control interface */
 	struct usb_interface *data;			/* data interface */
@@ -110,15 +113,15 @@ struct acm {
 	struct async_icount oldcount;			/* for comparison of counter */
 	wait_queue_head_t wioctl;			/* for ioctl */
 	unsigned int writesize;				/* max packet size for the output bulk endpoint */
-	unsigned int readsize,ctrlsize;			/* buffer sizes for freeing */
+	unsigned int readsize, ctrlsize;			/* buffer sizes for freeing */
 	unsigned int minor;				/* acm minor number */
 	unsigned char clocal;				/* termios CLOCAL */
 	unsigned int ctrl_caps;				/* control capabilities from the class specific header */
 	unsigned int susp_count;			/* number of suspended interfaces */
-	unsigned int combined_interfaces:1;		/* control and data collapsed */
-	unsigned int is_int_ep:1;			/* interrupt endpoints contrary to spec used */
-	unsigned int throttled:1;			/* actually throttled */
-	unsigned int throttle_req:1;			/* throttle requested */
+	unsigned int combined_interfaces: 1;		/* control and data collapsed */
+	unsigned int is_int_ep: 1;			/* interrupt endpoints contrary to spec used */
+	unsigned int throttled: 1;			/* actually throttled */
+	unsigned int throttle_req: 1;			/* throttle requested */
 	u8 bInterval;
 	struct usb_anchor delayed;			/* writes queued for a device about to be woken */
 	unsigned long quirks;

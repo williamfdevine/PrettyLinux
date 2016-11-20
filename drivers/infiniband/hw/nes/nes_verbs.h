@@ -44,7 +44,8 @@ struct nes_device;
 #define NES_TERM_RCVD            0x02
 #define NES_TERM_DONE            0x04
 
-struct nes_ucontext {
+struct nes_ucontext
+{
 	struct ib_ucontext ibucontext;
 	struct nes_device  *nesdev;
 	unsigned long      mmap_wq_offset;
@@ -62,15 +63,18 @@ struct nes_ucontext {
 	atomic_t	   usecnt;
 };
 
-struct nes_pd {
+struct nes_pd
+{
 	struct ib_pd ibpd;
 	u16          pd_id;
 	atomic_t     sqp_count;
 	u16          mmap_db_index;
 };
 
-struct nes_mr {
-	union {
+struct nes_mr
+{
+	union
+	{
 		struct ib_mr  ibmr;
 		struct ib_mw  ibmw;
 		struct ib_fmr ibfmr;
@@ -85,23 +89,27 @@ struct nes_mr {
 	u32		  npages;
 };
 
-struct nes_hw_pb {
+struct nes_hw_pb
+{
 	__le32 pa_low;
 	__le32 pa_high;
 };
 
-struct nes_vpbl {
+struct nes_vpbl
+{
 	dma_addr_t       pbl_pbase;
 	struct nes_hw_pb *pbl_vbase;
 };
 
-struct nes_root_vpbl {
+struct nes_root_vpbl
+{
 	dma_addr_t       pbl_pbase;
 	struct nes_hw_pb *pbl_vbase;
 	struct nes_vpbl  *leaf_vpbl;
 };
 
-struct nes_fmr {
+struct nes_fmr
+{
 	struct nes_mr        nesmr;
 	u32                  leaf_pbl_cnt;
 	struct nes_root_vpbl root_vpbl;
@@ -112,7 +120,8 @@ struct nes_fmr {
 
 struct nes_av;
 
-struct nes_cq {
+struct nes_cq
+{
 	struct ib_cq     ibcq;
 	struct nes_hw_cq hw_cq;
 	u32              polled_completions;
@@ -123,11 +132,13 @@ struct nes_cq {
 	u32		 mcrqf;
 };
 
-struct nes_wq {
+struct nes_wq
+{
 	spinlock_t lock;
 };
 
-struct disconn_work {
+struct disconn_work
+{
 	struct work_struct    work;
 	struct nes_qp         *nesqp;
 };
@@ -135,7 +146,8 @@ struct disconn_work {
 struct iw_cm_id;
 struct ietf_mpa_frame;
 
-struct nes_qp {
+struct nes_qp
+{
 	struct ib_qp          ibqp;
 	void                  *allocated_buffer;
 	struct iw_cm_id       *cm_id;
@@ -169,15 +181,15 @@ struct nes_qp {
 	enum ib_event_type    terminate_eventtype;
 	struct sk_buff_head   pau_list;
 	u32                   pau_rcv_nxt;
-	u16                   active_conn:1;
-	u16                   skip_lsmm:1;
-	u16                   user_mode:1;
-	u16                   hte_added:1;
-	u16                   flush_issued:1;
-	u16                   destroyed:1;
-	u16                   sig_all:1;
-	u16                   pau_mode:1;
-	u16                   rsvd:8;
+	u16                   active_conn: 1;
+	u16                   skip_lsmm: 1;
+	u16                   user_mode: 1;
+	u16                   hte_added: 1;
+	u16                   flush_issued: 1;
+	u16                   destroyed: 1;
+	u16                   sig_all: 1;
+	u16                   pau_mode: 1;
+	u16                   rsvd: 8;
 	u16                   private_data_len;
 	u16                   term_sq_flush_code;
 	u16                   term_rq_flush_code;
@@ -194,6 +206,6 @@ struct nes_qp {
 };
 
 struct ib_mr *nes_reg_phys_mr(struct ib_pd *ib_pd,
-		u64 addr, u64 size, int acc, u64 *iova_start);
+							  u64 addr, u64 size, int acc, u64 *iova_start);
 
 #endif			/* NES_VERBS_H */

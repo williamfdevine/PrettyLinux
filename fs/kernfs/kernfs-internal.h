@@ -18,7 +18,8 @@
 
 #include <linux/kernfs.h>
 
-struct kernfs_iattrs {
+struct kernfs_iattrs
+{
 	struct iattr		ia_iattr;
 	void			*ia_secdata;
 	u32			ia_secdata_len;
@@ -41,14 +42,18 @@ static inline struct kernfs_root *kernfs_root(struct kernfs_node *kn)
 {
 	/* if parent exists, it's always a dir; otherwise, @sd is a dir */
 	if (kn->parent)
+	{
 		kn = kn->parent;
+	}
+
 	return kn->dir.root;
 }
 
 /*
  * mount.c
  */
-struct kernfs_super_info {
+struct kernfs_super_info
+{
 	struct super_block	*sb;
 
 	/*
@@ -81,7 +86,7 @@ void kernfs_evict_inode(struct inode *inode);
 int kernfs_iop_permission(struct inode *inode, int mask);
 int kernfs_iop_setattr(struct dentry *dentry, struct iattr *iattr);
 int kernfs_iop_getattr(struct vfsmount *mnt, struct dentry *dentry,
-		       struct kstat *stat);
+					   struct kstat *stat);
 ssize_t kernfs_iop_listxattr(struct dentry *dentry, char *buf, size_t size);
 
 /*
@@ -96,8 +101,8 @@ struct kernfs_node *kernfs_get_active(struct kernfs_node *kn);
 void kernfs_put_active(struct kernfs_node *kn);
 int kernfs_add_one(struct kernfs_node *kn);
 struct kernfs_node *kernfs_new_node(struct kernfs_node *parent,
-				    const char *name, umode_t mode,
-				    unsigned flags);
+									const char *name, umode_t mode,
+									unsigned flags);
 
 /*
  * file.c

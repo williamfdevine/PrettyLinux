@@ -34,7 +34,8 @@
 #include <scsi/scsi_ioctl.h>
 #include <scsi/scsi_cmnd.h>
 
-struct blk_cmd_filter {
+struct blk_cmd_filter
+{
 	unsigned long read_ok[BLK_SCSI_CMD_PER_LONG];
 	unsigned long write_ok[BLK_SCSI_CMD_PER_LONG];
 };
@@ -77,7 +78,9 @@ static int sg_set_timeout(struct request_queue *q, int __user *p)
 	int timeout, err = get_user(timeout, p);
 
 	if (!err)
+	{
 		q->sg_timeout = clock_t_to_jiffies(timeout);
+	}
 
 	return err;
 }
@@ -103,10 +106,14 @@ static int sg_set_reserved_size(struct request_queue *q, int __user *p)
 	int size, err = get_user(size, p);
 
 	if (err)
+	{
 		return err;
+	}
 
 	if (size < 0)
+	{
 		return -EINVAL;
+	}
 
 	q->sg_reserved_size = min(size, max_sectors_bytes(q));
 	return 0;
@@ -210,27 +217,38 @@ int blk_verify_command(unsigned char *cmd, fmode_t has_write_perm)
 
 	/* root can do any command. */
 	if (capable(CAP_SYS_RAWIO))
+	{
 		return 0;
+	}
 
 	/* Anybody who can open the device can do a read-safe command */
 	if (test_bit(cmd[0], filter->read_ok))
+	{
 		return 0;
+	}
 
 	/* Write-safe commands require a writable open */
 	if (test_bit(cmd[0], filter->write_ok) && has_write_perm)
+	{
 		return 0;
+	}
 
 	return -EPERM;
 }
 EXPORT_SYMBOL(blk_verify_command);
 
 static int blk_fill_sghdr_rq(struct request_queue *q, struct request *rq,
-			     struct sg_io_hdr *hdr, fmode_t mode)
+							 struct sg_io_hdr *hdr, fmode_t mode)
 {
 	if (copy_from_user(rq->cmd, hdr->cmdp, hdr->cmd_len))
+	{
 		return -EFAULT;
+	}
+
 	if (blk_verify_command(rq->cmd, mode & FMODE_WRITE))
+	{
 		return -EPERM;
+	}
 
 	/*
 	 * fill in request structure
@@ -238,18 +256,27 @@ static int blk_fill_sghdr_rq(struct request_queue *q, struct request *rq,
 	rq->cmd_len = hdr->cmd_len;
 
 	rq->timeout = msecs_to_jiffies(hdr->timeout);
+
 	if (!rq->timeout)
+	{
 		rq->timeout = q->sg_timeout;
+	}
+
 	if (!rq->timeout)
+	{
 		rq->timeout = BLK_DEFAULT_SG_TIMEOUT;
+	}
+
 	if (rq->timeout < BLK_MIN_SG_TIMEOUT)
+	{
 		rq->timeout = BLK_MIN_SG_TIMEOUT;
+	}
 
 	return 0;
 }
 
 static int blk_complete_sghdr_rq(struct request *rq, struct sg_io_hdr *hdr,
-				 struct bio *bio)
+								 struct bio *bio)
 {
 	int r, ret = 0;
 
@@ -262,29 +289,41 @@ static int blk_complete_sghdr_rq(struct request *rq, struct sg_io_hdr *hdr,
 	hdr->host_status = host_byte(rq->errors);
 	hdr->driver_status = driver_byte(rq->errors);
 	hdr->info = 0;
+
 	if (hdr->masked_status || hdr->host_status || hdr->driver_status)
+	{
 		hdr->info |= SG_INFO_CHECK;
+	}
+
 	hdr->resid = rq->resid_len;
 	hdr->sb_len_wr = 0;
 
-	if (rq->sense_len && hdr->sbp) {
+	if (rq->sense_len && hdr->sbp)
+	{
 		int len = min((unsigned int) hdr->mx_sb_len, rq->sense_len);
 
 		if (!copy_to_user(hdr->sbp, rq->sense, len))
+		{
 			hdr->sb_len_wr = len;
+		}
 		else
+		{
 			ret = -EFAULT;
+		}
 	}
 
 	r = blk_rq_unmap_user(bio);
+
 	if (!ret)
+	{
 		ret = r;
+	}
 
 	return ret;
 }
 
 static int sg_io(struct request_queue *q, struct gendisk *bd_disk,
-		struct sg_io_hdr *hdr, fmode_t mode)
+				 struct sg_io_hdr *hdr, fmode_t mode)
 {
 	unsigned long start_time;
 	ssize_t ret = 0;
@@ -295,63 +334,92 @@ static int sg_io(struct request_queue *q, struct gendisk *bd_disk,
 	struct bio *bio;
 
 	if (hdr->interface_id != 'S')
+	{
 		return -EINVAL;
+	}
 
 	if (hdr->dxfer_len > (queue_max_hw_sectors(q) << 9))
+	{
 		return -EIO;
+	}
 
 	if (hdr->dxfer_len)
-		switch (hdr->dxfer_direction) {
-		default:
-			return -EINVAL;
-		case SG_DXFER_TO_DEV:
-			writing = 1;
-			break;
-		case SG_DXFER_TO_FROM_DEV:
-		case SG_DXFER_FROM_DEV:
-			break;
+		switch (hdr->dxfer_direction)
+		{
+			default:
+				return -EINVAL;
+
+			case SG_DXFER_TO_DEV:
+				writing = 1;
+				break;
+
+			case SG_DXFER_TO_FROM_DEV:
+			case SG_DXFER_FROM_DEV:
+				break;
 		}
+
 	if (hdr->flags & SG_FLAG_Q_AT_HEAD)
+	{
 		at_head = 1;
+	}
 
 	ret = -ENOMEM;
 	rq = blk_get_request(q, writing ? WRITE : READ, GFP_KERNEL);
+
 	if (IS_ERR(rq))
+	{
 		return PTR_ERR(rq);
+	}
+
 	blk_rq_set_block_pc(rq);
 
-	if (hdr->cmd_len > BLK_MAX_CDB) {
+	if (hdr->cmd_len > BLK_MAX_CDB)
+	{
 		rq->cmd = kzalloc(hdr->cmd_len, GFP_KERNEL);
+
 		if (!rq->cmd)
+		{
 			goto out_put_request;
+		}
 	}
 
 	ret = blk_fill_sghdr_rq(q, rq, hdr, mode);
+
 	if (ret < 0)
+	{
 		goto out_free_cdb;
+	}
 
 	ret = 0;
-	if (hdr->iovec_count) {
+
+	if (hdr->iovec_count)
+	{
 		struct iov_iter i;
 		struct iovec *iov = NULL;
 
 		ret = import_iovec(rq_data_dir(rq),
-				   hdr->dxferp, hdr->iovec_count,
-				   0, &iov, &i);
+						   hdr->dxferp, hdr->iovec_count,
+						   0, &iov, &i);
+
 		if (ret < 0)
+		{
 			goto out_free_cdb;
+		}
 
 		/* SG_IO howto says that the shorter of the two wins */
 		iov_iter_truncate(&i, hdr->dxfer_len);
 
 		ret = blk_rq_map_user_iov(q, rq, NULL, &i, GFP_KERNEL);
 		kfree(iov);
-	} else if (hdr->dxfer_len)
+	}
+	else if (hdr->dxfer_len)
 		ret = blk_rq_map_user(q, rq, NULL, hdr->dxferp, hdr->dxfer_len,
-				      GFP_KERNEL);
+							  GFP_KERNEL);
 
 	if (ret)
+	{
 		goto out_free_cdb;
+	}
 
 	bio = rq->bio;
 	memset(sense, 0, sizeof(sense));
@@ -372,8 +440,12 @@ static int sg_io(struct request_queue *q, struct gendisk *bd_disk,
 	ret = blk_complete_sghdr_rq(rq, hdr, bio);
 
 out_free_cdb:
+
 	if (rq->cmd != rq->__cmd)
+	{
 		kfree(rq->cmd);
+	}
+
 out_put_request:
 	blk_put_request(rq);
 	return ret;
@@ -414,7 +486,7 @@ out_put_request:
  */
 #define OMAX_SB_LEN 16          /* For backward compatibility */
 int sg_scsi_ioctl(struct request_queue *q, struct gendisk *disk, fmode_t mode,
-		struct scsi_ioctl_command __user *sic)
+				  struct scsi_ioctl_command __user *sic)
 {
 	struct request *rq;
 	int err;
@@ -422,33 +494,54 @@ int sg_scsi_ioctl(struct request_queue *q, struct gendisk *disk, fmode_t mode,
 	char *buffer = NULL, sense[SCSI_SENSE_BUFFERSIZE];
 
 	if (!sic)
+	{
 		return -EINVAL;
+	}
 
 	/*
 	 * get in an out lengths, verify they don't exceed a page worth of data
 	 */
 	if (get_user(in_len, &sic->inlen))
+	{
 		return -EFAULT;
+	}
+
 	if (get_user(out_len, &sic->outlen))
+	{
 		return -EFAULT;
+	}
+
 	if (in_len > PAGE_SIZE || out_len > PAGE_SIZE)
+	{
 		return -EINVAL;
+	}
+
 	if (get_user(opcode, sic->data))
+	{
 		return -EFAULT;
+	}
 
 	bytes = max(in_len, out_len);
-	if (bytes) {
-		buffer = kzalloc(bytes, q->bounce_gfp | GFP_USER| __GFP_NOWARN);
+
+	if (bytes)
+	{
+		buffer = kzalloc(bytes, q->bounce_gfp | GFP_USER | __GFP_NOWARN);
+
 		if (!buffer)
+		{
 			return -ENOMEM;
+		}
 
 	}
 
 	rq = blk_get_request(q, in_len ? WRITE : READ, __GFP_RECLAIM);
-	if (IS_ERR(rq)) {
+
+	if (IS_ERR(rq))
+	{
 		err = PTR_ERR(rq);
 		goto error_free_buffer;
 	}
+
 	blk_rq_set_block_pc(rq);
 
 	cmdlen = COMMAND_SIZE(opcode);
@@ -458,44 +551,59 @@ int sg_scsi_ioctl(struct request_queue *q, struct gendisk *disk, fmode_t mode,
 	 */
 	err = -EFAULT;
 	rq->cmd_len = cmdlen;
+
 	if (copy_from_user(rq->cmd, sic->data, cmdlen))
+	{
 		goto error;
+	}
 
 	if (in_len && copy_from_user(buffer, sic->data + cmdlen, in_len))
+	{
 		goto error;
+	}
 
 	err = blk_verify_command(rq->cmd, mode & FMODE_WRITE);
+
 	if (err)
+	{
 		goto error;
+	}
 
 	/* default.  possible overriden later */
 	rq->retries = 5;
 
-	switch (opcode) {
-	case SEND_DIAGNOSTIC:
-	case FORMAT_UNIT:
-		rq->timeout = FORMAT_UNIT_TIMEOUT;
-		rq->retries = 1;
-		break;
-	case START_STOP:
-		rq->timeout = START_STOP_TIMEOUT;
-		break;
-	case MOVE_MEDIUM:
-		rq->timeout = MOVE_MEDIUM_TIMEOUT;
-		break;
-	case READ_ELEMENT_STATUS:
-		rq->timeout = READ_ELEMENT_STATUS_TIMEOUT;
-		break;
-	case READ_DEFECT_DATA:
-		rq->timeout = READ_DEFECT_DATA_TIMEOUT;
-		rq->retries = 1;
-		break;
-	default:
-		rq->timeout = BLK_DEFAULT_SG_TIMEOUT;
-		break;
+	switch (opcode)
+	{
+		case SEND_DIAGNOSTIC:
+		case FORMAT_UNIT:
+			rq->timeout = FORMAT_UNIT_TIMEOUT;
+			rq->retries = 1;
+			break;
+
+		case START_STOP:
+			rq->timeout = START_STOP_TIMEOUT;
+			break;
+
+		case MOVE_MEDIUM:
+			rq->timeout = MOVE_MEDIUM_TIMEOUT;
+			break;
+
+		case READ_ELEMENT_STATUS:
+			rq->timeout = READ_ELEMENT_STATUS_TIMEOUT;
+			break;
+
+		case READ_DEFECT_DATA:
+			rq->timeout = READ_DEFECT_DATA_TIMEOUT;
+			rq->retries = 1;
+			break;
+
+		default:
+			rq->timeout = BLK_DEFAULT_SG_TIMEOUT;
+			break;
 	}
 
-	if (bytes && blk_rq_map_kern(q, rq, buffer, bytes, __GFP_RECLAIM)) {
+	if (bytes && blk_rq_map_kern(q, rq, buffer, bytes, __GFP_RECLAIM))
+	{
 		err = DRIVER_ERROR << 24;
 		goto error;
 	}
@@ -507,18 +615,28 @@ int sg_scsi_ioctl(struct request_queue *q, struct gendisk *disk, fmode_t mode,
 	blk_execute_rq(q, disk, rq, 0);
 
 	err = rq->errors & 0xff;	/* only 8 bit SCSI status */
-	if (err) {
-		if (rq->sense_len && rq->sense) {
+
+	if (err)
+	{
+		if (rq->sense_len && rq->sense)
+		{
 			bytes = (OMAX_SB_LEN > rq->sense_len) ?
-				rq->sense_len : OMAX_SB_LEN;
+					rq->sense_len : OMAX_SB_LEN;
+
 			if (copy_to_user(sic->data, rq->sense, bytes))
+			{
 				err = -EFAULT;
+			}
 		}
-	} else {
-		if (copy_to_user(sic->data, buffer, out_len))
-			err = -EFAULT;
 	}
-	
+	else
+	{
+		if (copy_to_user(sic->data, buffer, out_len))
+		{
+			err = -EFAULT;
+		}
+	}
+
 error:
 	blk_put_request(rq);
 
@@ -531,14 +649,18 @@ EXPORT_SYMBOL_GPL(sg_scsi_ioctl);
 
 /* Send basic block requests */
 static int __blk_send_generic(struct request_queue *q, struct gendisk *bd_disk,
-			      int cmd, int data)
+							  int cmd, int data)
 {
 	struct request *rq;
 	int err;
 
 	rq = blk_get_request(q, WRITE, __GFP_RECLAIM);
+
 	if (IS_ERR(rq))
+	{
 		return PTR_ERR(rq);
+	}
+
 	blk_rq_set_block_pc(rq);
 	rq->timeout = BLK_DEFAULT_SG_TIMEOUT;
 	rq->cmd[0] = cmd;
@@ -551,115 +673,164 @@ static int __blk_send_generic(struct request_queue *q, struct gendisk *bd_disk,
 }
 
 static inline int blk_send_start_stop(struct request_queue *q,
-				      struct gendisk *bd_disk, int data)
+									  struct gendisk *bd_disk, int data)
 {
 	return __blk_send_generic(q, bd_disk, GPCMD_START_STOP_UNIT, data);
 }
 
 int scsi_cmd_ioctl(struct request_queue *q, struct gendisk *bd_disk, fmode_t mode,
-		   unsigned int cmd, void __user *arg)
+				   unsigned int cmd, void __user *arg)
 {
 	int err;
 
 	if (!q)
+	{
 		return -ENXIO;
+	}
 
-	switch (cmd) {
+	switch (cmd)
+	{
 		/*
 		 * new sgv3 interface
 		 */
 		case SG_GET_VERSION_NUM:
 			err = sg_get_version(arg);
 			break;
+
 		case SCSI_IOCTL_GET_IDLUN:
 			err = scsi_get_idlun(q, arg);
 			break;
+
 		case SCSI_IOCTL_GET_BUS_NUMBER:
 			err = scsi_get_bus(q, arg);
 			break;
+
 		case SG_SET_TIMEOUT:
 			err = sg_set_timeout(q, arg);
 			break;
+
 		case SG_GET_TIMEOUT:
 			err = sg_get_timeout(q);
 			break;
+
 		case SG_GET_RESERVED_SIZE:
 			err = sg_get_reserved_size(q, arg);
 			break;
+
 		case SG_SET_RESERVED_SIZE:
 			err = sg_set_reserved_size(q, arg);
 			break;
+
 		case SG_EMULATED_HOST:
 			err = sg_emulated_host(q, arg);
 			break;
-		case SG_IO: {
-			struct sg_io_hdr hdr;
 
-			err = -EFAULT;
-			if (copy_from_user(&hdr, arg, sizeof(hdr)))
-				break;
-			err = sg_io(q, bd_disk, &hdr, mode);
-			if (err == -EFAULT)
-				break;
+		case SG_IO:
+			{
+				struct sg_io_hdr hdr;
 
-			if (copy_to_user(arg, &hdr, sizeof(hdr)))
 				err = -EFAULT;
-			break;
-		}
-		case CDROM_SEND_PACKET: {
-			struct cdrom_generic_command cgc;
-			struct sg_io_hdr hdr;
 
-			err = -EFAULT;
-			if (copy_from_user(&cgc, arg, sizeof(cgc)))
+				if (copy_from_user(&hdr, arg, sizeof(hdr)))
+				{
+					break;
+				}
+
+				err = sg_io(q, bd_disk, &hdr, mode);
+
+				if (err == -EFAULT)
+				{
+					break;
+				}
+
+				if (copy_to_user(arg, &hdr, sizeof(hdr)))
+				{
+					err = -EFAULT;
+				}
+
 				break;
-			cgc.timeout = clock_t_to_jiffies(cgc.timeout);
-			memset(&hdr, 0, sizeof(hdr));
-			hdr.interface_id = 'S';
-			hdr.cmd_len = sizeof(cgc.cmd);
-			hdr.dxfer_len = cgc.buflen;
-			err = 0;
-			switch (cgc.data_direction) {
-				case CGC_DATA_UNKNOWN:
-					hdr.dxfer_direction = SG_DXFER_UNKNOWN;
-					break;
-				case CGC_DATA_WRITE:
-					hdr.dxfer_direction = SG_DXFER_TO_DEV;
-					break;
-				case CGC_DATA_READ:
-					hdr.dxfer_direction = SG_DXFER_FROM_DEV;
-					break;
-				case CGC_DATA_NONE:
-					hdr.dxfer_direction = SG_DXFER_NONE;
-					break;
-				default:
-					err = -EINVAL;
 			}
-			if (err)
-				break;
 
-			hdr.dxferp = cgc.buffer;
-			hdr.sbp = cgc.sense;
-			if (hdr.sbp)
-				hdr.mx_sb_len = sizeof(struct request_sense);
-			hdr.timeout = jiffies_to_msecs(cgc.timeout);
-			hdr.cmdp = ((struct cdrom_generic_command __user*) arg)->cmd;
-			hdr.cmd_len = sizeof(cgc.cmd);
+		case CDROM_SEND_PACKET:
+			{
+				struct cdrom_generic_command cgc;
+				struct sg_io_hdr hdr;
 
-			err = sg_io(q, bd_disk, &hdr, mode);
-			if (err == -EFAULT)
-				break;
-
-			if (hdr.status)
-				err = -EIO;
-
-			cgc.stat = err;
-			cgc.buflen = hdr.resid;
-			if (copy_to_user(arg, &cgc, sizeof(cgc)))
 				err = -EFAULT;
 
-			break;
-		}
+				if (copy_from_user(&cgc, arg, sizeof(cgc)))
+				{
+					break;
+				}
+
+				cgc.timeout = clock_t_to_jiffies(cgc.timeout);
+				memset(&hdr, 0, sizeof(hdr));
+				hdr.interface_id = 'S';
+				hdr.cmd_len = sizeof(cgc.cmd);
+				hdr.dxfer_len = cgc.buflen;
+				err = 0;
+
+				switch (cgc.data_direction)
+				{
+					case CGC_DATA_UNKNOWN:
+						hdr.dxfer_direction = SG_DXFER_UNKNOWN;
+						break;
+
+					case CGC_DATA_WRITE:
+						hdr.dxfer_direction = SG_DXFER_TO_DEV;
+						break;
+
+					case CGC_DATA_READ:
+						hdr.dxfer_direction = SG_DXFER_FROM_DEV;
+						break;
+
+					case CGC_DATA_NONE:
+						hdr.dxfer_direction = SG_DXFER_NONE;
+						break;
+
+					default:
+						err = -EINVAL;
+				}
+
+				if (err)
+				{
+					break;
+				}
+
+				hdr.dxferp = cgc.buffer;
+				hdr.sbp = cgc.sense;
+
+				if (hdr.sbp)
+				{
+					hdr.mx_sb_len = sizeof(struct request_sense);
+				}
+
+				hdr.timeout = jiffies_to_msecs(cgc.timeout);
+				hdr.cmdp = ((struct cdrom_generic_command __user *) arg)->cmd;
+				hdr.cmd_len = sizeof(cgc.cmd);
+
+				err = sg_io(q, bd_disk, &hdr, mode);
+
+				if (err == -EFAULT)
+				{
+					break;
+				}
+
+				if (hdr.status)
+				{
+					err = -EIO;
+				}
+
+				cgc.stat = err;
+				cgc.buflen = hdr.resid;
+
+				if (copy_to_user(arg, &cgc, sizeof(cgc)))
+				{
+					err = -EFAULT;
+				}
+
+				break;
+			}
 
 		/*
 		 * old junk scsi send command ioctl
@@ -667,17 +838,23 @@ int scsi_cmd_ioctl(struct request_queue *q, struct gendisk *bd_disk, fmode_t mod
 		case SCSI_IOCTL_SEND_COMMAND:
 			printk(KERN_WARNING "program %s is using a deprecated SCSI ioctl, please convert it to SG_IO\n", current->comm);
 			err = -EINVAL;
+
 			if (!arg)
+			{
 				break;
+			}
 
 			err = sg_scsi_ioctl(q, bd_disk, mode, arg);
 			break;
+
 		case CDROMCLOSETRAY:
 			err = blk_send_start_stop(q, bd_disk, 0x03);
 			break;
+
 		case CDROMEJECT:
 			err = blk_send_start_stop(q, bd_disk, 0x02);
 			break;
+
 		default:
 			err = -ENOTTY;
 	}
@@ -689,52 +866,62 @@ EXPORT_SYMBOL(scsi_cmd_ioctl);
 int scsi_verify_blk_ioctl(struct block_device *bd, unsigned int cmd)
 {
 	if (bd && bd == bd->bd_contains)
+	{
 		return 0;
+	}
 
 	/* Actually none of these is particularly useful on a partition,
 	 * but they are safe.
 	 */
-	switch (cmd) {
-	case SCSI_IOCTL_GET_IDLUN:
-	case SCSI_IOCTL_GET_BUS_NUMBER:
-	case SCSI_IOCTL_GET_PCI:
-	case SCSI_IOCTL_PROBE_HOST:
-	case SG_GET_VERSION_NUM:
-	case SG_SET_TIMEOUT:
-	case SG_GET_TIMEOUT:
-	case SG_GET_RESERVED_SIZE:
-	case SG_SET_RESERVED_SIZE:
-	case SG_EMULATED_HOST:
-		return 0;
-	case CDROM_GET_CAPABILITY:
-		/* Keep this until we remove the printk below.  udev sends it
-		 * and we do not want to spam dmesg about it.   CD-ROMs do
-		 * not have partitions, so we get here only for disks.
-		 */
-		return -ENOIOCTLCMD;
-	default:
-		break;
+	switch (cmd)
+	{
+		case SCSI_IOCTL_GET_IDLUN:
+		case SCSI_IOCTL_GET_BUS_NUMBER:
+		case SCSI_IOCTL_GET_PCI:
+		case SCSI_IOCTL_PROBE_HOST:
+		case SG_GET_VERSION_NUM:
+		case SG_SET_TIMEOUT:
+		case SG_GET_TIMEOUT:
+		case SG_GET_RESERVED_SIZE:
+		case SG_SET_RESERVED_SIZE:
+		case SG_EMULATED_HOST:
+			return 0;
+
+		case CDROM_GET_CAPABILITY:
+			/* Keep this until we remove the printk below.  udev sends it
+			 * and we do not want to spam dmesg about it.   CD-ROMs do
+			 * not have partitions, so we get here only for disks.
+			 */
+			return -ENOIOCTLCMD;
+
+		default:
+			break;
 	}
 
 	if (capable(CAP_SYS_RAWIO))
+	{
 		return 0;
+	}
 
 	/* In particular, rule out all resets and host-specific ioctls.  */
 	printk_ratelimited(KERN_WARNING
-			   "%s: sending ioctl %x to a partition!\n", current->comm, cmd);
+					   "%s: sending ioctl %x to a partition!\n", current->comm, cmd);
 
 	return -ENOIOCTLCMD;
 }
 EXPORT_SYMBOL(scsi_verify_blk_ioctl);
 
 int scsi_cmd_blk_ioctl(struct block_device *bd, fmode_t mode,
-		       unsigned int cmd, void __user *arg)
+					   unsigned int cmd, void __user *arg)
 {
 	int ret;
 
 	ret = scsi_verify_blk_ioctl(bd, cmd);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return scsi_cmd_ioctl(bd->bd_disk->queue, bd->bd_disk, mode, cmd, arg);
 }

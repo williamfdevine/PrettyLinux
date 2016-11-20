@@ -26,13 +26,16 @@
 #include <linux/ptp_clock.h>
 
 
-struct ptp_clock_request {
-	enum {
+struct ptp_clock_request
+{
+	enum
+	{
 		PTP_CLK_REQ_EXTTS,
 		PTP_CLK_REQ_PEROUT,
 		PTP_CLK_REQ_PPS,
 	} type;
-	union {
+	union
+	{
 		struct ptp_extts_request extts;
 		struct ptp_perout_request perout;
 	};
@@ -98,7 +101,8 @@ struct system_device_crosststamp;
  * The callbacks must all return zero on success, non-zero otherwise.
  */
 
-struct ptp_clock_info {
+struct ptp_clock_info
+{
 	struct module *owner;
 	char name[16];
 	s32 max_adj;
@@ -112,12 +116,12 @@ struct ptp_clock_info {
 	int (*adjtime)(struct ptp_clock_info *ptp, s64 delta);
 	int (*gettime64)(struct ptp_clock_info *ptp, struct timespec64 *ts);
 	int (*getcrosststamp)(struct ptp_clock_info *ptp,
-			      struct system_device_crosststamp *cts);
+						  struct system_device_crosststamp *cts);
 	int (*settime64)(struct ptp_clock_info *p, const struct timespec64 *ts);
 	int (*enable)(struct ptp_clock_info *ptp,
-		      struct ptp_clock_request *request, int on);
+				  struct ptp_clock_request *request, int on);
 	int (*verify)(struct ptp_clock_info *ptp, unsigned int pin,
-		      enum ptp_pin_function func, unsigned int chan);
+				  enum ptp_pin_function func, unsigned int chan);
 };
 
 struct ptp_clock;
@@ -135,7 +139,7 @@ struct ptp_clock;
  */
 
 extern struct ptp_clock *ptp_clock_register(struct ptp_clock_info *info,
-					    struct device *parent);
+		struct device *parent);
 
 /**
  * ptp_clock_unregister() - unregister a PTP hardware clock driver
@@ -146,7 +150,8 @@ extern struct ptp_clock *ptp_clock_register(struct ptp_clock_info *info,
 extern int ptp_clock_unregister(struct ptp_clock *ptp);
 
 
-enum ptp_clock_events {
+enum ptp_clock_events
+{
 	PTP_CLOCK_ALARM,
 	PTP_CLOCK_EXTTS,
 	PTP_CLOCK_PPS,
@@ -162,10 +167,12 @@ enum ptp_clock_events {
  * @pps_times: When the event occurred (%PTP_CLOCK_PPSUSR only).
  */
 
-struct ptp_clock_event {
+struct ptp_clock_event
+{
 	int type;
 	int index;
-	union {
+	union
+	{
 		u64 timestamp;
 		struct pps_event_time pps_times;
 	};
@@ -179,7 +186,7 @@ struct ptp_clock_event {
  */
 
 extern void ptp_clock_event(struct ptp_clock *ptp,
-			    struct ptp_clock_event *event);
+							struct ptp_clock_event *event);
 
 /**
  * ptp_clock_index() - obtain the device index of a PTP clock
@@ -200,6 +207,6 @@ extern int ptp_clock_index(struct ptp_clock *ptp);
  */
 
 int ptp_find_pin(struct ptp_clock *ptp,
-		 enum ptp_pin_function func, unsigned int chan);
+				 enum ptp_pin_function func, unsigned int chan);
 
 #endif

@@ -20,7 +20,8 @@ struct gpio_desc;
  * @irq:		Irq number in case of interrupt keys
  * @gpiod:		GPIO descriptor
  */
-struct gpio_keys_button {
+struct gpio_keys_button
+{
 	unsigned int code;
 	int gpio;
 	int active_low;
@@ -45,11 +46,12 @@ struct gpio_keys_button {
  * @disable:		platform hook for disabling the device
  * @name:		input device name
  */
-struct gpio_keys_platform_data {
+struct gpio_keys_platform_data
+{
 	struct gpio_keys_button *buttons;
 	int nbuttons;
 	unsigned int poll_interval;
-	unsigned int rep:1;
+	unsigned int rep: 1;
 	int (*enable)(struct device *dev);
 	void (*disable)(struct device *dev);
 	const char *name;

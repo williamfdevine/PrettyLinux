@@ -73,13 +73,15 @@
 #define	I40IW_HW_IRD_SETTING_32	32
 #define	I40IW_HW_IRD_SETTING_64	64
 
-enum ietf_mpa_flags {
+enum ietf_mpa_flags
+{
 	IETF_MPA_FLAGS_MARKERS = 0x80,	/* receive Markers */
 	IETF_MPA_FLAGS_CRC = 0x40,	/* receive Markers */
 	IETF_MPA_FLAGS_REJECT = 0x20,	/* Reject */
 };
 
-struct ietf_mpa_v1 {
+struct ietf_mpa_v1
+{
 	u8 key[IETF_MPA_KEY_SIZE];
 	u8 flags;
 	u8 rev;
@@ -89,12 +91,14 @@ struct ietf_mpa_v1 {
 
 #define ietf_mpa_req_resp_frame ietf_mpa_frame
 
-struct ietf_rtr_msg {
+struct ietf_rtr_msg
+{
 	__be16 ctrl_ird;
 	__be16 ctrl_ord;
 };
 
-struct ietf_mpa_v2 {
+struct ietf_mpa_v2
+{
 	u8 key[IETF_MPA_KEY_SIZE];
 	u8 flags;
 	u8 rev;
@@ -104,7 +108,8 @@ struct ietf_mpa_v2 {
 };
 
 struct i40iw_cm_node;
-enum i40iw_timer_type {
+enum i40iw_timer_type
+{
 	I40IW_TIMER_TYPE_SEND,
 	I40IW_TIMER_TYPE_RECV,
 	I40IW_TIMER_NODE_CLEANUP,
@@ -124,12 +129,14 @@ enum i40iw_timer_type {
 
 #define TCP_OPTIONS_PADDING     3
 
-struct option_base {
+struct option_base
+{
 	u8 optionnum;
 	u8 length;
 };
 
-enum option_numbers {
+enum option_numbers
+{
 	OPTION_NUMBER_END,
 	OPTION_NUMBER_NONE,
 	OPTION_NUMBER_MSS,
@@ -139,26 +146,30 @@ enum option_numbers {
 	OPTION_NUMBER_WRITE0 = 0xbc
 };
 
-struct option_mss {
+struct option_mss
+{
 	u8 optionnum;
 	u8 length;
 	__be16 mss;
 };
 
-struct option_windowscale {
+struct option_windowscale
+{
 	u8 optionnum;
 	u8 length;
 	u8 shiftcount;
 };
 
-union all_known_options {
+union all_known_options
+{
 	char as_end;
 	struct option_base as_base;
 	struct option_mss as_mss;
 	struct option_windowscale as_windowscale;
 };
 
-struct i40iw_timer_entry {
+struct i40iw_timer_entry
+{
 	struct list_head list;
 	unsigned long timetosend;	/* jiffies */
 	struct i40iw_puda_buf *sqbuf;
@@ -209,7 +220,8 @@ typedef u32 i40iw_addr_t;
 struct i40iw_qp;
 
 /* cm node transition states */
-enum i40iw_cm_node_state {
+enum i40iw_cm_node_state
+{
 	I40IW_CM_STATE_UNKNOWN,
 	I40IW_CM_STATE_INITED,
 	I40IW_CM_STATE_LISTENING,
@@ -232,22 +244,26 @@ enum i40iw_cm_node_state {
 	I40IW_CM_STATE_CLOSED
 };
 
-enum mpa_frame_version {
+enum mpa_frame_version
+{
 	IETF_MPA_V1 = 1,
 	IETF_MPA_V2 = 2
 };
 
-enum mpa_frame_key {
+enum mpa_frame_key
+{
 	MPA_KEY_REQUEST,
 	MPA_KEY_REPLY
 };
 
-enum send_rdma0 {
+enum send_rdma0
+{
 	SEND_RDMA_READ_ZERO = 1,
 	SEND_RDMA_WRITE_ZERO = 2
 };
 
-enum i40iw_tcpip_pkt_type {
+enum i40iw_tcpip_pkt_type
+{
 	I40IW_PKT_TYPE_UNKNOWN,
 	I40IW_PKT_TYPE_SYN,
 	I40IW_PKT_TYPE_SYNACK,
@@ -257,7 +273,8 @@ enum i40iw_tcpip_pkt_type {
 };
 
 /* CM context params */
-struct i40iw_cm_tcp_context {
+struct i40iw_cm_tcp_context
+{
 	u8 client;
 
 	u32 loc_seq_num;
@@ -279,13 +296,15 @@ struct i40iw_cm_tcp_context {
 	struct timeval sent_ts;
 };
 
-enum i40iw_cm_listener_state {
+enum i40iw_cm_listener_state
+{
 	I40IW_CM_LISTENER_PASSIVE_STATE = 1,
 	I40IW_CM_LISTENER_ACTIVE_STATE = 2,
 	I40IW_CM_LISTENER_EITHER_STATE = 3
 };
 
-struct i40iw_cm_listener {
+struct i40iw_cm_listener
+{
 	struct list_head list;
 	struct i40iw_cm_core *cm_core;
 	u8 loc_mac[ETH_ALEN];
@@ -306,13 +325,15 @@ struct i40iw_cm_listener {
 
 };
 
-struct i40iw_kmem_info {
+struct i40iw_kmem_info
+{
 	void *addr;
 	u32 size;
 };
 
 /* per connection node and node state information */
-struct i40iw_cm_node {
+struct i40iw_cm_node
+{
 	u32 loc_addr[4], rem_addr[4];
 	u16 loc_port, rem_port;
 	u16 vlan_id;
@@ -349,7 +370,8 @@ struct i40iw_cm_node {
 	u16 lsmm_size;
 	enum mpa_frame_version mpa_frame_rev;
 	struct i40iw_kmem_info pdata;
-	union {
+	union
+	{
 		struct ietf_mpa_v1 mpa_frame;
 		struct ietf_mpa_v2 mpa_v2_frame;
 	};
@@ -360,7 +382,8 @@ struct i40iw_cm_node {
 
 /* structure for client or CM to fill when making CM api calls. */
 /*	- only need to set relevant data, based on op. */
-struct i40iw_cm_info {
+struct i40iw_cm_info
+{
 	struct iw_cm_id *cm_id;
 	u16 loc_port;
 	u16 rem_port;
@@ -373,7 +396,8 @@ struct i40iw_cm_info {
 };
 
 /* CM event codes */
-enum i40iw_cm_event_type {
+enum i40iw_cm_event_type
+{
 	I40IW_CM_EVENT_UNKNOWN,
 	I40IW_CM_EVENT_ESTABLISHED,
 	I40IW_CM_EVENT_MPA_REQ,
@@ -387,14 +411,16 @@ enum i40iw_cm_event_type {
 };
 
 /* event to post to CM event handler */
-struct i40iw_cm_event {
+struct i40iw_cm_event
+{
 	enum i40iw_cm_event_type type;
 	struct i40iw_cm_info cm_info;
 	struct work_struct event_work;
 	struct i40iw_cm_node *cm_node;
 };
 
-struct i40iw_cm_core {
+struct i40iw_cm_core
+{
 	struct i40iw_device *iwdev;
 	struct i40iw_sc_dev *dev;
 
@@ -425,10 +451,10 @@ struct i40iw_cm_core {
 };
 
 int i40iw_schedule_cm_timer(struct i40iw_cm_node *cm_node,
-			    struct i40iw_puda_buf *sqbuf,
-			    enum i40iw_timer_type type,
-			    int send_retrans,
-			    int close_when_complete);
+							struct i40iw_puda_buf *sqbuf,
+							enum i40iw_timer_type type,
+							int send_retrans,
+							int close_when_complete);
 
 int i40iw_accept(struct iw_cm_id *, struct iw_cm_conn_param *);
 int i40iw_reject(struct iw_cm_id *, const void *, u8);
@@ -440,9 +466,9 @@ int i40iw_cm_start(struct i40iw_device *);
 int i40iw_cm_stop(struct i40iw_device *);
 
 int i40iw_arp_table(struct i40iw_device *iwdev,
-		    u32 *ip_addr,
-		    bool ipv4,
-		    u8 *mac_addr,
-		    u32 action);
+					u32 *ip_addr,
+					bool ipv4,
+					u8 *mac_addr,
+					u32 action);
 
 #endif /* I40IW_CM_H */

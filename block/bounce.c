@@ -32,8 +32,12 @@ static mempool_t *page_pool, *isa_page_pool;
 static __init int init_emergency_pool(void)
 {
 #if defined(CONFIG_HIGHMEM) && !defined(CONFIG_MEMORY_HOTPLUG)
+
 	if (max_pfn <= max_low_pfn)
+	{
 		return 0;
+	}
+
 #endif
 
 	page_pool = mempool_create_page_pool(POOL_SIZE, 0);
@@ -84,10 +88,12 @@ static void *mempool_alloc_pages_isa(gfp_t gfp_mask, void *data)
 int init_emergency_isa_pool(void)
 {
 	if (isa_page_pool)
+	{
 		return 0;
+	}
 
 	isa_page_pool = mempool_create(ISA_POOL_SIZE, mempool_alloc_pages_isa,
-				       mempool_free_pages, (void *) 0);
+								   mempool_free_pages, (void *) 0);
 	BUG_ON(!isa_page_pool);
 
 	pr_info("isa pool size: %d pages\n", ISA_POOL_SIZE);
@@ -105,15 +111,17 @@ static void copy_to_high_bio_irq(struct bio *to, struct bio *from)
 	struct bio_vec tovec, *fromvec = from->bi_io_vec;
 	struct bvec_iter iter;
 
-	bio_for_each_segment(tovec, to, iter) {
-		if (tovec.bv_page != fromvec->bv_page) {
+	bio_for_each_segment(tovec, to, iter)
+	{
+		if (tovec.bv_page != fromvec->bv_page)
+		{
 			/*
 			 * fromvec->bv_offset and fromvec->bv_len might have
 			 * been modified by the block layer, so use the original
 			 * copy, bounce_copy_vec already uses tovec->bv_len
 			 */
 			vfrom = page_address(fromvec->bv_page) +
-				tovec.bv_offset;
+					tovec.bv_offset;
 
 			bounce_copy_vec(&tovec, vfrom);
 			flush_dcache_page(tovec.bv_page);
@@ -133,11 +141,14 @@ static void bounce_end_io(struct bio *bio, mempool_t *pool)
 	/*
 	 * free up bounce indirect pages used
 	 */
-	bio_for_each_segment_all(bvec, bio, i) {
+	bio_for_each_segment_all(bvec, bio, i)
+	{
 		org_vec = bio_orig->bi_io_vec + i + start;
 
 		if (bvec->bv_page == org_vec->bv_page)
+		{
 			continue;
+		}
 
 		dec_zone_page_state(bvec->bv_page, NR_BOUNCE);
 		mempool_free(bvec->bv_page, pool);
@@ -164,7 +175,9 @@ static void __bounce_end_io_read(struct bio *bio, mempool_t *pool)
 	struct bio *bio_orig = bio->bi_private;
 
 	if (!bio->bi_error)
+	{
 		copy_to_high_bio_irq(bio_orig, bio);
+	}
 
 	bounce_end_io(bio, pool);
 }
@@ -180,7 +193,7 @@ static void bounce_end_io_read_isa(struct bio *bio)
 }
 
 static void __blk_queue_bounce(struct request_queue *q, struct bio **bio_orig,
-			       mempool_t *pool)
+							   mempool_t *pool)
 {
 	struct bio *bio;
 	int rw = bio_data_dir(*bio_orig);
@@ -189,23 +202,30 @@ static void __blk_queue_bounce(struct request_queue *q, struct bio **bio_orig,
 	unsigned i;
 
 	bio_for_each_segment(from, *bio_orig, iter)
-		if (page_to_pfn(from.bv_page) > queue_bounce_pfn(q))
-			goto bounce;
+
+	if (page_to_pfn(from.bv_page) > queue_bounce_pfn(q))
+	{
+		goto bounce;
+	}
 
 	return;
 bounce:
 	bio = bio_clone_bioset(*bio_orig, GFP_NOIO, fs_bio_set);
 
-	bio_for_each_segment_all(to, bio, i) {
+	bio_for_each_segment_all(to, bio, i)
+	{
 		struct page *page = to->bv_page;
 
 		if (page_to_pfn(page) <= queue_bounce_pfn(q))
+		{
 			continue;
+		}
 
 		to->bv_page = mempool_alloc(pool, q->bounce_gfp);
 		inc_zone_page_state(to->bv_page, NR_BOUNCE);
 
-		if (rw == WRITE) {
+		if (rw == WRITE)
+		{
 			char *vto, *vfrom;
 
 			flush_dcache_page(page);
@@ -221,14 +241,23 @@ bounce:
 
 	bio->bi_flags |= (1 << BIO_BOUNCED);
 
-	if (pool == page_pool) {
+	if (pool == page_pool)
+	{
 		bio->bi_end_io = bounce_end_io_write;
+
 		if (rw == READ)
+		{
 			bio->bi_end_io = bounce_end_io_read;
-	} else {
+		}
+	}
+	else
+	{
 		bio->bi_end_io = bounce_end_io_write_isa;
+
 		if (rw == READ)
+		{
 			bio->bi_end_io = bounce_end_io_read_isa;
+		}
 	}
 
 	bio->bi_private = *bio_orig;
@@ -243,18 +272,26 @@ void blk_queue_bounce(struct request_queue *q, struct bio **bio_orig)
 	 * Data-less bio, nothing to bounce
 	 */
 	if (!bio_has_data(*bio_orig))
+	{
 		return;
+	}
 
 	/*
 	 * for non-isa bounce case, just check if the bounce pfn is equal
 	 * to or bigger than the highest pfn in the system -- in that case,
 	 * don't waste time iterating over bio segments
 	 */
-	if (!(q->bounce_gfp & GFP_DMA)) {
+	if (!(q->bounce_gfp & GFP_DMA))
+	{
 		if (queue_bounce_pfn(q) >= blk_max_pfn)
+		{
 			return;
+		}
+
 		pool = page_pool;
-	} else {
+	}
+	else
+	{
 		BUG_ON(!isa_page_pool);
 		pool = isa_page_pool;
 	}

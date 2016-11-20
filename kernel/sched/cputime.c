@@ -6,7 +6,7 @@
 #include <linux/context_tracking.h>
 #include "sched.h"
 #ifdef CONFIG_PARAVIRT
-#include <asm/paravirt.h>
+	#include <asm/paravirt.h>
 #endif
 
 
@@ -48,13 +48,16 @@ void irqtime_account_irq(struct task_struct *curr)
 	int cpu;
 
 	if (!sched_clock_irqtime)
+	{
 		return;
+	}
 
 	cpu = smp_processor_id();
 	delta = sched_clock_cpu(cpu) - irqtime->irq_start_time;
 	irqtime->irq_start_time += delta;
 
 	u64_stats_update_begin(&irqtime->sync);
+
 	/*
 	 * We do not account for softirq time from ksoftirqd here.
 	 * We want to continue accounting softirq time to ksoftirqd thread
@@ -62,9 +65,13 @@ void irqtime_account_irq(struct task_struct *curr)
 	 * that do not consume any time, but still wants to run.
 	 */
 	if (hardirq_count())
+	{
 		irqtime->hardirq_time += delta;
+	}
 	else if (in_serving_softirq() && curr != this_cpu_ksoftirqd())
+	{
 		irqtime->softirq_time += delta;
+	}
 
 	u64_stats_update_end(&irqtime->sync);
 }
@@ -85,13 +92,13 @@ static cputime_t irqtime_account_update(u64 irqtime, int idx, cputime_t maxtime)
 static cputime_t irqtime_account_hi_update(cputime_t maxtime)
 {
 	return irqtime_account_update(__this_cpu_read(cpu_irqtime.hardirq_time),
-				      CPUTIME_IRQ, maxtime);
+								  CPUTIME_IRQ, maxtime);
 }
 
 static cputime_t irqtime_account_si_update(cputime_t maxtime)
 {
 	return irqtime_account_update(__this_cpu_read(cpu_irqtime.softirq_time),
-				      CPUTIME_SOFTIRQ, maxtime);
+								  CPUTIME_SOFTIRQ, maxtime);
 }
 
 #else /* CONFIG_IRQ_TIME_ACCOUNTING */
@@ -111,7 +118,7 @@ static cputime_t irqtime_account_si_update(cputime_t dummy)
 #endif /* !CONFIG_IRQ_TIME_ACCOUNTING */
 
 static inline void task_group_account_field(struct task_struct *p, int index,
-					    u64 tmp)
+		u64 tmp)
 {
 	/*
 	 * Since all updates are sure to touch the root cgroup, we
@@ -131,7 +138,7 @@ static inline void task_group_account_field(struct task_struct *p, int index,
  * @cputime_scaled: cputime scaled by cpu frequency
  */
 void account_user_time(struct task_struct *p, cputime_t cputime,
-		       cputime_t cputime_scaled)
+					   cputime_t cputime_scaled)
 {
 	int index;
 
@@ -156,7 +163,7 @@ void account_user_time(struct task_struct *p, cputime_t cputime,
  * @cputime_scaled: cputime scaled by cpu frequency
  */
 static void account_guest_time(struct task_struct *p, cputime_t cputime,
-			       cputime_t cputime_scaled)
+							   cputime_t cputime_scaled)
 {
 	u64 *cpustat = kcpustat_this_cpu->cpustat;
 
@@ -167,10 +174,13 @@ static void account_guest_time(struct task_struct *p, cputime_t cputime,
 	p->gtime += cputime;
 
 	/* Add guest time to cpustat. */
-	if (task_nice(p) > 0) {
+	if (task_nice(p) > 0)
+	{
 		cpustat[CPUTIME_NICE] += (__force u64) cputime;
 		cpustat[CPUTIME_GUEST_NICE] += (__force u64) cputime;
-	} else {
+	}
+	else
+	{
 		cpustat[CPUTIME_USER] += (__force u64) cputime;
 		cpustat[CPUTIME_GUEST] += (__force u64) cputime;
 	}
@@ -185,7 +195,7 @@ static void account_guest_time(struct task_struct *p, cputime_t cputime,
  */
 static inline
 void __account_system_time(struct task_struct *p, cputime_t cputime,
-			cputime_t cputime_scaled, int index)
+						   cputime_t cputime_scaled, int index)
 {
 	/* Add system time to process. */
 	p->stime += cputime;
@@ -207,21 +217,28 @@ void __account_system_time(struct task_struct *p, cputime_t cputime,
  * @cputime_scaled: cputime scaled by cpu frequency
  */
 void account_system_time(struct task_struct *p, int hardirq_offset,
-			 cputime_t cputime, cputime_t cputime_scaled)
+						 cputime_t cputime, cputime_t cputime_scaled)
 {
 	int index;
 
-	if ((p->flags & PF_VCPU) && (irq_count() - hardirq_offset == 0)) {
+	if ((p->flags & PF_VCPU) && (irq_count() - hardirq_offset == 0))
+	{
 		account_guest_time(p, cputime, cputime_scaled);
 		return;
 	}
 
 	if (hardirq_count() - hardirq_offset)
+	{
 		index = CPUTIME_IRQ;
+	}
 	else if (in_serving_softirq())
+	{
 		index = CPUTIME_SOFTIRQ;
+	}
 	else
+	{
 		index = CPUTIME_SYSTEM;
+	}
 
 	__account_system_time(p, cputime, cputime_scaled, index);
 }
@@ -247,9 +264,13 @@ void account_idle_time(cputime_t cputime)
 	struct rq *rq = this_rq();
 
 	if (atomic_read(&rq->nr_iowait) > 0)
+	{
 		cpustat[CPUTIME_IOWAIT] += (__force u64) cputime;
+	}
 	else
+	{
 		cpustat[CPUTIME_IDLE] += (__force u64) cputime;
+	}
 }
 
 /*
@@ -260,7 +281,9 @@ void account_idle_time(cputime_t cputime)
 static __always_inline cputime_t steal_account_process_time(cputime_t maxtime)
 {
 #ifdef CONFIG_PARAVIRT
-	if (static_key_false(&paravirt_steal_enabled)) {
+
+	if (static_key_false(&paravirt_steal_enabled))
+	{
 		cputime_t steal_cputime;
 		u64 steal;
 
@@ -273,6 +296,7 @@ static __always_inline cputime_t steal_account_process_time(cputime_t maxtime)
 
 		return steal_cputime;
 	}
+
 #endif
 	return 0;
 }
@@ -290,10 +314,14 @@ static inline cputime_t account_other_time(cputime_t max)
 	accounted = steal_account_process_time(max);
 
 	if (accounted < max)
+	{
 		accounted += irqtime_account_hi_update(max - accounted);
+	}
 
 	if (accounted < max)
+	{
 		accounted += irqtime_account_si_update(max - accounted);
+	}
 
 	return accounted;
 }
@@ -339,19 +367,24 @@ void thread_group_cputime(struct task_struct *tsk, struct task_cputime *times)
 	 * other scheduler action.
 	 */
 	if (same_thread_group(current, tsk))
+	{
 		(void) task_sched_runtime(current);
+	}
 
 	rcu_read_lock();
 	/* Attempt a lockless read on the first round. */
 	nextseq = 0;
-	do {
+
+	do
+	{
 		seq = nextseq;
 		flags = read_seqbegin_or_lock_irqsave(&sig->stats_lock, &seq);
 		times->utime = sig->utime;
 		times->stime = sig->stime;
 		times->sum_exec_runtime = sig->sum_sched_runtime;
 
-		for_each_thread(tsk, t) {
+		for_each_thread(tsk, t)
+		{
 			task_cputime(t, &utime, &stime);
 			times->utime += utime;
 			times->stime += stime;
@@ -359,7 +392,9 @@ void thread_group_cputime(struct task_struct *tsk, struct task_cputime *times)
 		}
 		/* If lockless access failed, take the lock. */
 		nextseq = 1;
-	} while (need_seqretry(&sig->stats_lock, seq));
+	}
+	while (need_seqretry(&sig->stats_lock, seq));
+
 	done_seqretry_irqrestore(&sig->stats_lock, seq, flags);
 	rcu_read_unlock();
 }
@@ -387,7 +422,7 @@ void thread_group_cputime(struct task_struct *tsk, struct task_cputime *times)
  * softirq as those do not count in task exec_runtime any more.
  */
 static void irqtime_account_process_tick(struct task_struct *p, int user_tick,
-					 struct rq *rq, int ticks)
+		struct rq *rq, int ticks)
 {
 	u64 cputime = (__force u64) cputime_one_jiffy * ticks;
 	cputime_t scaled, other;
@@ -400,25 +435,38 @@ static void irqtime_account_process_tick(struct task_struct *p, int user_tick,
 	 * other time can exceed ticks occasionally.
 	 */
 	other = account_other_time(ULONG_MAX);
+
 	if (other >= cputime)
+	{
 		return;
+	}
+
 	cputime -= other;
 	scaled = cputime_to_scaled(cputime);
 
-	if (this_cpu_ksoftirqd() == p) {
+	if (this_cpu_ksoftirqd() == p)
+	{
 		/*
 		 * ksoftirqd time do not get accounted in cpu_softirq_time.
 		 * So, we have to handle it separately here.
 		 * Also, p->stime needs to be updated for ksoftirqd.
 		 */
 		__account_system_time(p, cputime, scaled, CPUTIME_SOFTIRQ);
-	} else if (user_tick) {
+	}
+	else if (user_tick)
+	{
 		account_user_time(p, cputime, scaled);
-	} else if (p == rq->idle) {
+	}
+	else if (p == rq->idle)
+	{
 		account_idle_time(cputime);
-	} else if (p->flags & PF_VCPU) { /* System time or guest time */
+	}
+	else if (p->flags & PF_VCPU)     /* System time or guest time */
+	{
 		account_guest_time(p, cputime, scaled);
-	} else {
+	}
+	else
+	{
 		__account_system_time(p, cputime, scaled,	CPUTIME_SYSTEM);
 	}
 }
@@ -432,7 +480,7 @@ static void irqtime_account_idle_ticks(int ticks)
 #else /* CONFIG_IRQ_TIME_ACCOUNTING */
 static inline void irqtime_account_idle_ticks(int ticks) {}
 static inline void irqtime_account_process_tick(struct task_struct *p, int user_tick,
-						struct rq *rq, int nr_ticks) {}
+		struct rq *rq, int nr_ticks) {}
 #endif /* CONFIG_IRQ_TIME_ACCOUNTING */
 
 /*
@@ -444,9 +492,13 @@ static inline void irqtime_account_process_tick(struct task_struct *p, int user_
 void vtime_common_task_switch(struct task_struct *prev)
 {
 	if (is_idle_task(prev))
+	{
 		vtime_account_idle(prev);
+	}
 	else
+	{
 		vtime_account_system(prev);
+	}
 
 #ifdef CONFIG_VIRT_CPU_ACCOUNTING_NATIVE
 	vtime_account_user(prev);
@@ -471,9 +523,13 @@ void vtime_common_task_switch(struct task_struct *prev)
 void vtime_account_irq_enter(struct task_struct *tsk)
 {
 	if (!in_interrupt() && is_idle_task(tsk))
+	{
 		vtime_account_idle(tsk);
+	}
 	else
+	{
 		vtime_account_system(tsk);
+	}
 }
 EXPORT_SYMBOL_GPL(vtime_account_irq_enter);
 #endif /* __ARCH_HAS_VTIME_ACCOUNT */
@@ -506,9 +562,12 @@ void account_process_tick(struct task_struct *p, int user_tick)
 	struct rq *rq = this_rq();
 
 	if (vtime_accounting_cpu_enabled())
+	{
 		return;
+	}
 
-	if (sched_clock_irqtime) {
+	if (sched_clock_irqtime)
+	{
 		irqtime_account_process_tick(p, user_tick, rq, 1);
 		return;
 	}
@@ -517,17 +576,25 @@ void account_process_tick(struct task_struct *p, int user_tick)
 	steal = steal_account_process_time(ULONG_MAX);
 
 	if (steal >= cputime)
+	{
 		return;
+	}
 
 	cputime -= steal;
 	scaled = cputime_to_scaled(cputime);
 
 	if (user_tick)
+	{
 		account_user_time(p, cputime, scaled);
+	}
 	else if ((p != rq->idle) || (irq_count() != HARDIRQ_OFFSET))
+	{
 		account_system_time(p, HARDIRQ_OFFSET, cputime, scaled);
+	}
 	else
+	{
 		account_idle_time(cputime);
+	}
 }
 
 /*
@@ -538,7 +605,8 @@ void account_idle_ticks(unsigned long ticks)
 {
 	cputime_t cputime, steal;
 
-	if (sched_clock_irqtime) {
+	if (sched_clock_irqtime)
+	{
 		irqtime_account_idle_ticks(ticks);
 		return;
 	}
@@ -547,7 +615,9 @@ void account_idle_ticks(unsigned long ticks)
 	steal = steal_account_process_time(ULONG_MAX);
 
 	if (steal >= cputime)
+	{
 		return;
+	}
 
 	cputime -= steal;
 	account_idle_time(cputime);
@@ -561,22 +631,31 @@ static cputime_t scale_stime(u64 stime, u64 rtime, u64 total)
 {
 	u64 scaled;
 
-	for (;;) {
+	for (;;)
+	{
 		/* Make sure "rtime" is the bigger of stime/rtime */
 		if (stime > rtime)
+		{
 			swap(rtime, stime);
+		}
 
 		/* Make sure 'total' fits in 32 bits */
 		if (total >> 32)
+		{
 			goto drop_precision;
+		}
 
 		/* Does rtime (and thus stime) fit in 32 bits? */
 		if (!(rtime >> 32))
+		{
 			break;
+		}
 
 		/* Can we just balance rtime/stime rather than dropping bits? */
 		if (stime >> 31)
+		{
 			goto drop_precision;
+		}
 
 		/* We can grow stime and shrink rtime and try to make them both fit */
 		stime <<= 1;
@@ -618,8 +697,8 @@ drop_precision:
  * Assuming that rtime_i+1 >= rtime_i.
  */
 static void cputime_adjust(struct task_cputime *curr,
-			   struct prev_cputime *prev,
-			   cputime_t *ut, cputime_t *st)
+						   struct prev_cputime *prev,
+						   cputime_t *ut, cputime_t *st)
 {
 	cputime_t rtime, stime, utime;
 	unsigned long flags;
@@ -637,7 +716,9 @@ static void cputime_adjust(struct task_cputime *curr,
 	 * can assume it is monotonic regardless of anything else.
 	 */
 	if (prev->stime + prev->utime >= rtime)
+	{
 		goto out;
+	}
 
 	stime = curr->stime;
 	utime = curr->utime;
@@ -647,20 +728,23 @@ static void cputime_adjust(struct task_cputime *curr,
 	 * userspace. Once a task gets some ticks, the monotonicy code at
 	 * 'update' will ensure things converge to the observed ratio.
 	 */
-	if (stime == 0) {
+	if (stime == 0)
+	{
 		utime = rtime;
 		goto update;
 	}
 
-	if (utime == 0) {
+	if (utime == 0)
+	{
 		stime = rtime;
 		goto update;
 	}
 
 	stime = scale_stime((__force u64)stime, (__force u64)rtime,
-			    (__force u64)(stime + utime));
+						(__force u64)(stime + utime));
 
 update:
+
 	/*
 	 * Make sure stime doesn't go backwards; this preserves monotonicity
 	 * for utime because rtime is monotonic.
@@ -671,14 +755,18 @@ update:
 	 *            >= utime_i
 	 */
 	if (stime < prev->stime)
+	{
 		stime = prev->stime;
+	}
+
 	utime = rtime - stime;
 
 	/*
 	 * Make sure utime doesn't go backwards; this still preserves
 	 * monotonicity for stime, analogous argument to above.
 	 */
-	if (utime < prev->utime) {
+	if (utime < prev->utime)
+	{
 		utime = prev->utime;
 		stime = rtime - utime;
 	}
@@ -693,7 +781,8 @@ out:
 
 void task_cputime_adjusted(struct task_struct *p, cputime_t *ut, cputime_t *st)
 {
-	struct task_cputime cputime = {
+	struct task_cputime cputime =
+	{
 		.sum_exec_runtime = p->se.sum_exec_runtime,
 	};
 
@@ -717,7 +806,9 @@ static cputime_t vtime_delta(struct task_struct *tsk)
 	unsigned long now = READ_ONCE(jiffies);
 
 	if (time_before(now, (unsigned long)tsk->vtime_snap))
+	{
 		return 0;
+	}
 
 	return jiffies_to_cputime(now - tsk->vtime_snap);
 }
@@ -752,7 +843,9 @@ static void __vtime_account_system(struct task_struct *tsk)
 void vtime_account_system(struct task_struct *tsk)
 {
 	if (!vtime_delta(tsk))
+	{
 		return;
+	}
 
 	write_seqcount_begin(&tsk->vtime_seqcount);
 	__vtime_account_system(tsk);
@@ -765,18 +858,25 @@ void vtime_account_user(struct task_struct *tsk)
 
 	write_seqcount_begin(&tsk->vtime_seqcount);
 	tsk->vtime_snap_whence = VTIME_SYS;
-	if (vtime_delta(tsk)) {
+
+	if (vtime_delta(tsk))
+	{
 		delta_cpu = get_vtime_delta(tsk);
 		account_user_time(tsk, delta_cpu, cputime_to_scaled(delta_cpu));
 	}
+
 	write_seqcount_end(&tsk->vtime_seqcount);
 }
 
 void vtime_user_enter(struct task_struct *tsk)
 {
 	write_seqcount_begin(&tsk->vtime_seqcount);
+
 	if (vtime_delta(tsk))
+	{
 		__vtime_account_system(tsk);
+	}
+
 	tsk->vtime_snap_whence = VTIME_USER;
 	write_seqcount_end(&tsk->vtime_seqcount);
 }
@@ -791,8 +891,12 @@ void vtime_guest_enter(struct task_struct *tsk)
 	 * that can thus safely catch up with a tickless delta.
 	 */
 	write_seqcount_begin(&tsk->vtime_seqcount);
+
 	if (vtime_delta(tsk))
+	{
 		__vtime_account_system(tsk);
+	}
+
 	current->flags |= PF_VCPU;
 	write_seqcount_end(&tsk->vtime_seqcount);
 }
@@ -844,16 +948,23 @@ cputime_t task_gtime(struct task_struct *t)
 	cputime_t gtime;
 
 	if (!vtime_accounting_enabled())
+	{
 		return t->gtime;
+	}
 
-	do {
+	do
+	{
 		seq = read_seqcount_begin(&t->vtime_seqcount);
 
 		gtime = t->gtime;
-		if (t->vtime_snap_whence == VTIME_SYS && t->flags & PF_VCPU)
-			gtime += vtime_delta(t);
 
-	} while (read_seqcount_retry(&t->vtime_seqcount, seq));
+		if (t->vtime_snap_whence == VTIME_SYS && t->flags & PF_VCPU)
+		{
+			gtime += vtime_delta(t);
+		}
+
+	}
+	while (read_seqcount_retry(&t->vtime_seqcount, seq));
 
 	return gtime;
 }
@@ -865,28 +976,36 @@ cputime_t task_gtime(struct task_struct *t)
  */
 static void
 fetch_task_cputime(struct task_struct *t,
-		   cputime_t *u_dst, cputime_t *s_dst,
-		   cputime_t *u_src, cputime_t *s_src,
-		   cputime_t *udelta, cputime_t *sdelta)
+				   cputime_t *u_dst, cputime_t *s_dst,
+				   cputime_t *u_src, cputime_t *s_src,
+				   cputime_t *udelta, cputime_t *sdelta)
 {
 	unsigned int seq;
 	unsigned long long delta;
 
-	do {
+	do
+	{
 		*udelta = 0;
 		*sdelta = 0;
 
 		seq = read_seqcount_begin(&t->vtime_seqcount);
 
 		if (u_dst)
+		{
 			*u_dst = *u_src;
+		}
+
 		if (s_dst)
+		{
 			*s_dst = *s_src;
+		}
 
 		/* Task is sleeping, nothing to add */
 		if (t->vtime_snap_whence == VTIME_INACTIVE ||
-		    is_idle_task(t))
+			is_idle_task(t))
+		{
 			continue;
+		}
 
 		delta = vtime_delta(t);
 
@@ -894,13 +1013,19 @@ fetch_task_cputime(struct task_struct *t,
 		 * Task runs either in user or kernel space, add pending nohz time to
 		 * the right place.
 		 */
-		if (t->vtime_snap_whence == VTIME_USER || t->flags & PF_VCPU) {
+		if (t->vtime_snap_whence == VTIME_USER || t->flags & PF_VCPU)
+		{
 			*udelta = delta;
-		} else {
-			if (t->vtime_snap_whence == VTIME_SYS)
-				*sdelta = delta;
 		}
-	} while (read_seqcount_retry(&t->vtime_seqcount, seq));
+		else
+		{
+			if (t->vtime_snap_whence == VTIME_SYS)
+			{
+				*sdelta = delta;
+			}
+		}
+	}
+	while (read_seqcount_retry(&t->vtime_seqcount, seq));
 }
 
 
@@ -908,40 +1033,66 @@ void task_cputime(struct task_struct *t, cputime_t *utime, cputime_t *stime)
 {
 	cputime_t udelta, sdelta;
 
-	if (!vtime_accounting_enabled()) {
+	if (!vtime_accounting_enabled())
+	{
 		if (utime)
+		{
 			*utime = t->utime;
+		}
+
 		if (stime)
+		{
 			*stime = t->stime;
+		}
+
 		return;
 	}
 
 	fetch_task_cputime(t, utime, stime, &t->utime,
-			   &t->stime, &udelta, &sdelta);
+					   &t->stime, &udelta, &sdelta);
+
 	if (utime)
+	{
 		*utime += udelta;
+	}
+
 	if (stime)
+	{
 		*stime += sdelta;
+	}
 }
 
 void task_cputime_scaled(struct task_struct *t,
-			 cputime_t *utimescaled, cputime_t *stimescaled)
+						 cputime_t *utimescaled, cputime_t *stimescaled)
 {
 	cputime_t udelta, sdelta;
 
-	if (!vtime_accounting_enabled()) {
+	if (!vtime_accounting_enabled())
+	{
 		if (utimescaled)
+		{
 			*utimescaled = t->utimescaled;
+		}
+
 		if (stimescaled)
+		{
 			*stimescaled = t->stimescaled;
+		}
+
 		return;
 	}
 
 	fetch_task_cputime(t, utimescaled, stimescaled,
-			   &t->utimescaled, &t->stimescaled, &udelta, &sdelta);
+					   &t->utimescaled, &t->stimescaled, &udelta, &sdelta);
+
 	if (utimescaled)
+	{
 		*utimescaled += cputime_to_scaled(udelta);
+	}
+
 	if (stimescaled)
+	{
 		*stimescaled += cputime_to_scaled(sdelta);
+	}
 }
 #endif /* CONFIG_VIRT_CPU_ACCOUNTING_GEN */

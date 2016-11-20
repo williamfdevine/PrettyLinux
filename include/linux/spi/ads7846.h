@@ -5,13 +5,15 @@
  *
  * It's OK if the min/max values are zero.
  */
-enum ads7846_filter {
+enum ads7846_filter
+{
 	ADS7846_FILTER_OK,
 	ADS7846_FILTER_REPEAT,
 	ADS7846_FILTER_IGNORE,
 };
 
-struct ads7846_platform_data {
+struct ads7846_platform_data
+{
 	u16	model;			/* 7843, 7845, 7846, 7873. */
 	u16	vref_delay_usecs;	/* 0 for external vref; etc */
 	u16	vref_mv;		/* external vref value, milliVolts
@@ -51,7 +53,7 @@ struct ads7846_platform_data {
 					 * the gpio_pendown */
 	int	(*get_pendown_state)(void);
 	int	(*filter_init)	(const struct ads7846_platform_data *pdata,
-				 void **filter_data);
+						 void **filter_data);
 	int	(*filter)	(void *filter_data, int data_idx, int *val);
 	void	(*filter_cleanup)(void *filter_data);
 	void	(*wait_for_sync)(void);

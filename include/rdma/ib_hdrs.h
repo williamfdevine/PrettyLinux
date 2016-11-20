@@ -75,29 +75,35 @@
 #define IB_GRH_FLOW_SHIFT	0
 #define IB_GRH_NEXT_HDR		0x1B
 
-struct ib_reth {
+struct ib_reth
+{
 	__be64 vaddr;        /* potentially unaligned */
 	__be32 rkey;
 	__be32 length;
 } __packed;
 
-struct ib_atomic_eth {
+struct ib_atomic_eth
+{
 	__be64 vaddr;        /* potentially unaligned */
 	__be32 rkey;
 	__be64 swap_data;    /* potentially unaligned */
 	__be64 compare_data; /* potentially unaligned */
 } __packed;
 
-union ib_ehdrs {
-	struct {
+union ib_ehdrs
+{
+	struct
+	{
 		__be32 deth[2];
 		__be32 imm_data;
 	} ud;
-	struct {
+	struct
+	{
 		struct ib_reth reth;
 		__be32 imm_data;
 	} rc;
-	struct {
+	struct
+	{
 		__be32 aeth;
 		__be64 atomic_ack_eth; /* potentially unaligned */
 	} __packed at;
@@ -107,15 +113,19 @@ union ib_ehdrs {
 	struct ib_atomic_eth atomic_eth;
 }  __packed;
 
-struct ib_other_headers {
+struct ib_other_headers
+{
 	__be32 bth[3];
 	union ib_ehdrs u;
 } __packed;
 
-struct ib_header {
+struct ib_header
+{
 	__be16 lrh[4];
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			struct ib_grh grh;
 			struct ib_other_headers oth;
 		} l;

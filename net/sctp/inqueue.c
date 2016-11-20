@@ -59,7 +59,8 @@ void sctp_inq_free(struct sctp_inq *queue)
 	struct sctp_chunk *chunk, *tmp;
 
 	/* Empty the queue.  */
-	list_for_each_entry_safe(chunk, tmp, &queue->in_chunk_list, list) {
+	list_for_each_entry_safe(chunk, tmp, &queue->in_chunk_list, list)
+	{
 		list_del_init(&chunk->list);
 		sctp_chunk_free(chunk);
 	}
@@ -67,7 +68,8 @@ void sctp_inq_free(struct sctp_inq *queue)
 	/* If there is a packet which is currently being worked on,
 	 * free it as well.
 	 */
-	if (queue->in_progress) {
+	if (queue->in_progress)
+	{
 		sctp_chunk_free(queue->in_progress);
 		queue->in_progress = NULL;
 	}
@@ -79,7 +81,8 @@ void sctp_inq_free(struct sctp_inq *queue)
 void sctp_inq_push(struct sctp_inq *q, struct sctp_chunk *chunk)
 {
 	/* Directly call the packet handling routine. */
-	if (chunk->rcvr->dead) {
+	if (chunk->rcvr->dead)
+	{
 		sctp_chunk_free(chunk);
 		return;
 	}
@@ -90,8 +93,12 @@ void sctp_inq_push(struct sctp_inq *q, struct sctp_chunk *chunk)
 	 * on the BH related data structures.
 	 */
 	list_add_tail(&chunk->list, &q->in_chunk_list);
+
 	if (chunk->asoc)
+	{
 		chunk->asoc->stats.ipackets++;
+	}
+
 	q->immediate.func(&q->immediate);
 }
 
@@ -102,11 +109,14 @@ struct sctp_chunkhdr *sctp_inq_peek(struct sctp_inq *queue)
 	sctp_chunkhdr_t *ch = NULL;
 
 	chunk = queue->in_progress;
+
 	/* If there is no more chunks in this packet, say so */
 	if (chunk->singleton ||
-	    chunk->end_of_packet ||
-	    chunk->pdiscard)
-		    return NULL;
+		chunk->end_of_packet ||
+		chunk->pdiscard)
+	{
+		return NULL;
+	}
 
 	ch = (sctp_chunkhdr_t *)chunk->chunk_end;
 
@@ -129,27 +139,38 @@ struct sctp_chunk *sctp_inq_pop(struct sctp_inq *queue)
 	 */
 
 	chunk = queue->in_progress;
-	if (chunk) {
+
+	if (chunk)
+	{
 		/* There is a packet that we have been working on.
 		 * Any post processing work to do before we move on?
 		 */
 		if (chunk->singleton ||
-		    chunk->end_of_packet ||
-		    chunk->pdiscard) {
-			if (chunk->head_skb == chunk->skb) {
+			chunk->end_of_packet ||
+			chunk->pdiscard)
+		{
+			if (chunk->head_skb == chunk->skb)
+			{
 				chunk->skb = skb_shinfo(chunk->skb)->frag_list;
 				goto new_skb;
 			}
-			if (chunk->skb->next) {
+
+			if (chunk->skb->next)
+			{
 				chunk->skb = chunk->skb->next;
 				goto new_skb;
 			}
 
 			if (chunk->head_skb)
+			{
 				chunk->skb = chunk->head_skb;
+			}
+
 			sctp_chunk_free(chunk);
 			chunk = queue->in_progress = NULL;
-		} else {
+		}
+		else
+		{
 			/* Nothing to do. Next chunk in the packet, please. */
 			ch = (sctp_chunkhdr_t *) chunk->chunk_end;
 			/* Force chunk->skb->data to chunk->chunk_end.  */
@@ -159,29 +180,39 @@ struct sctp_chunk *sctp_inq_pop(struct sctp_inq *queue)
 	}
 
 	/* Do we need to take the next packet out of the queue to process? */
-	if (!chunk) {
+	if (!chunk)
+	{
 		struct list_head *entry;
 
 next_chunk:
 		/* Is the queue empty?  */
 		entry = sctp_list_dequeue(&queue->in_chunk_list);
+
 		if (!entry)
+		{
 			return NULL;
+		}
 
 		chunk = list_entry(entry, struct sctp_chunk, list);
 
-		if ((skb_shinfo(chunk->skb)->gso_type & SKB_GSO_SCTP) == SKB_GSO_SCTP) {
+		if ((skb_shinfo(chunk->skb)->gso_type & SKB_GSO_SCTP) == SKB_GSO_SCTP)
+		{
 			/* GSO-marked skbs but without frags, handle
 			 * them normally
 			 */
 			if (skb_shinfo(chunk->skb)->frag_list)
+			{
 				chunk->head_skb = chunk->skb;
+			}
 
 			/* skbs with "cover letter" */
 			if (chunk->head_skb && chunk->skb->data_len == chunk->skb->len)
+			{
 				chunk->skb = skb_shinfo(chunk->skb)->frag_list;
+			}
 
-			if (WARN_ON(!chunk->skb)) {
+			if (WARN_ON(!chunk->skb))
+			{
 				__SCTP_INC_STATS(dev_net(chunk->skb->dev), SCTP_MIB_IN_PKT_DISCARDS);
 				sctp_chunk_free(chunk);
 				goto next_chunk;
@@ -189,7 +220,9 @@ next_chunk:
 		}
 
 		if (chunk->asoc)
+		{
 			sock_rps_save_rxhash(chunk->asoc->base.sk, chunk->skb);
+		}
 
 		queue->in_progress = chunk;
 
@@ -202,10 +235,12 @@ new_skb:
 		chunk->auth = 0;
 		chunk->has_asconf = 0;
 		chunk->end_of_packet = 0;
-		if (chunk->head_skb) {
+
+		if (chunk->head_skb)
+		{
 			struct sctp_input_cb
-				*cb = SCTP_INPUT_CB(chunk->skb),
-				*head_cb = SCTP_INPUT_CB(chunk->head_skb);
+			*cb = SCTP_INPUT_CB(chunk->skb),
+			 *head_cb = SCTP_INPUT_CB(chunk->head_skb);
 
 			cb->chunk = head_cb->chunk;
 			cb->af = head_cb->af;
@@ -218,14 +253,19 @@ new_skb:
 	chunk->subh.v = NULL; /* Subheader is no longer valid.  */
 
 	if (chunk->chunk_end + sizeof(sctp_chunkhdr_t) <
-	    skb_tail_pointer(chunk->skb)) {
+		skb_tail_pointer(chunk->skb))
+	{
 		/* This is not a singleton */
 		chunk->singleton = 0;
-	} else if (chunk->chunk_end > skb_tail_pointer(chunk->skb)) {
+	}
+	else if (chunk->chunk_end > skb_tail_pointer(chunk->skb))
+	{
 		/* Discard inside state machine. */
 		chunk->pdiscard = 1;
 		chunk->chunk_end = skb_tail_pointer(chunk->skb);
-	} else {
+	}
+	else
+	{
 		/* We are at the end of the packet, so mark the chunk
 		 * in case we need to send a SACK.
 		 */
@@ -233,8 +273,8 @@ new_skb:
 	}
 
 	pr_debug("+++sctp_inq_pop+++ chunk:%p[%s], length:%d, skb->len:%d\n",
-		 chunk, sctp_cname(SCTP_ST_CHUNK(chunk->chunk_hdr->type)),
-		 ntohs(chunk->chunk_hdr->length), chunk->skb->len);
+			 chunk, sctp_cname(SCTP_ST_CHUNK(chunk->chunk_hdr->type)),
+			 ntohs(chunk->chunk_hdr->length), chunk->skb->len);
 
 	return chunk;
 }

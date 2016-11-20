@@ -18,7 +18,8 @@
 #include <linux/vexpress.h>
 
 
-struct vexpress_config_bridge {
+struct vexpress_config_bridge
+{
 	struct vexpress_config_bridge_ops *ops;
 	void *context;
 };
@@ -51,29 +52,40 @@ void vexpress_config_unlock(void *arg)
 
 
 static void vexpress_config_find_prop(struct device_node *node,
-		const char *name, u32 *val)
+									  const char *name, u32 *val)
 {
 	/* Default value */
 	*val = 0;
 
 	of_node_get(node);
-	while (node) {
-		if (of_property_read_u32(node, name, val) == 0) {
+
+	while (node)
+	{
+		if (of_property_read_u32(node, name, val) == 0)
+		{
 			of_node_put(node);
 			return;
 		}
+
 		node = of_get_next_parent(node);
 	}
 }
 
 int vexpress_config_get_topo(struct device_node *node, u32 *site,
-		u32 *position, u32 *dcc)
+							 u32 *position, u32 *dcc)
 {
 	vexpress_config_find_prop(node, "arm,vexpress,site", site);
+
 	if (*site == VEXPRESS_SITE_MASTER)
+	{
 		*site = vexpress_config_site_master;
+	}
+
 	if (WARN_ON(vexpress_config_site_master == VEXPRESS_SITE_MASTER))
+	{
 		return -EINVAL;
+	}
+
 	vexpress_config_find_prop(node, "arm,vexpress,position", position);
 	vexpress_config_find_prop(node, "arm,vexpress,dcc", dcc);
 
@@ -96,19 +108,29 @@ struct regmap *devm_regmap_init_vexpress_config(struct device *dev)
 	struct regmap **res;
 
 	if (WARN_ON(dev->parent->class != vexpress_config_class))
+	{
 		return ERR_PTR(-ENODEV);
+	}
 
 	bridge = dev_get_drvdata(dev->parent);
+
 	if (WARN_ON(!bridge))
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	res = devres_alloc(vexpress_config_devres_release, sizeof(*res),
-			GFP_KERNEL);
+					   GFP_KERNEL);
+
 	if (!res)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	regmap = (bridge->ops->regmap_init)(dev, bridge->context);
-	if (IS_ERR(regmap)) {
+
+	if (IS_ERR(regmap))
+	{
 		devres_free(res);
 		return regmap;
 	}
@@ -126,25 +148,34 @@ struct device *vexpress_config_bridge_register(struct device *parent,
 	struct device *dev;
 	struct vexpress_config_bridge *bridge;
 
-	if (!vexpress_config_class) {
+	if (!vexpress_config_class)
+	{
 		vexpress_config_class = class_create(THIS_MODULE,
-				"vexpress-config");
+											 "vexpress-config");
+
 		if (IS_ERR(vexpress_config_class))
+		{
 			return (void *)vexpress_config_class;
+		}
 	}
 
 	dev = device_create(vexpress_config_class, parent, 0,
-			NULL, "%s.bridge", dev_name(parent));
+						NULL, "%s.bridge", dev_name(parent));
 
 	if (IS_ERR(dev))
+	{
 		return dev;
+	}
 
 	bridge = devm_kmalloc(dev, sizeof(*bridge), GFP_KERNEL);
-	if (!bridge) {
+
+	if (!bridge)
+	{
 		put_device(dev);
 		device_unregister(dev);
 		return ERR_PTR(-ENOMEM);
 	}
+
 	bridge->ops = ops;
 	bridge->context = context;
 
@@ -173,14 +204,20 @@ static int vexpress_config_populate(struct device_node *node)
 	struct device *parent;
 
 	bridge = of_parse_phandle(node, "arm,vexpress,config-bridge", 0);
+
 	if (!bridge)
+	{
 		return -EINVAL;
+	}
 
 	parent = class_find_device(vexpress_config_class, NULL, bridge,
-			vexpress_config_node_match);
+							   vexpress_config_node_match);
 	of_node_put(bridge);
+
 	if (WARN_ON(!parent))
+	{
 		return -ENODEV;
+	}
 
 	return of_platform_populate(node, NULL, NULL, parent);
 }
@@ -191,9 +228,12 @@ static int __init vexpress_config_init(void)
 	struct device_node *node;
 
 	/* Need the config devices early, before the "normal" devices... */
-	for_each_compatible_node(node, NULL, "arm,vexpress,config-bus") {
+	for_each_compatible_node(node, NULL, "arm,vexpress,config-bus")
+	{
 		err = vexpress_config_populate(node);
-		if (err) {
+
+		if (err)
+		{
 			of_node_put(node);
 			break;
 		}

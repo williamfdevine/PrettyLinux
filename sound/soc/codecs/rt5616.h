@@ -1776,7 +1776,8 @@
 #define RT5616_WND_WIND_SFT			13
 #define RT5616_WND_STRONG_MASK			(0x1 << 12) /* Read-Only */
 #define RT5616_WND_STRONG_SFT			12
-enum {
+enum
+{
 	RT5616_NO_WIND,
 	RT5616_BREEZE,
 	RT5616_STORM,
@@ -1799,19 +1800,22 @@ enum {
 #define RT5616_EQ_PST_VOL_SFT			0
 
 /* System Clock Source */
-enum {
+enum
+{
 	RT5616_SCLK_S_MCLK,
 	RT5616_SCLK_S_PLL1,
 };
 
 /* PLL1 Source */
-enum {
+enum
+{
 	RT5616_PLL1_S_MCLK,
 	RT5616_PLL1_S_BCLK1,
 	RT5616_PLL1_S_BCLK2,
 };
 
-enum {
+enum
+{
 	RT5616_AIF1,
 	RT5616_AIFS,
 };

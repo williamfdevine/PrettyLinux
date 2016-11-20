@@ -76,8 +76,11 @@ int uwb_drp_avail_reserve_pending(struct uwb_rc *rc, struct uwb_mas_bm *mas)
 	struct uwb_mas_bm avail;
 
 	uwb_drp_available(rc, &avail);
+
 	if (!bitmap_subset(mas->bm, avail.bm, UWB_NUM_MAS))
+	{
 		return -EBUSY;
+	}
 
 	bitmap_andnot(rc->drp_avail.pending, rc->drp_avail.pending, mas->bm, UWB_NUM_MAS);
 	return 0;
@@ -145,11 +148,13 @@ unsigned long get_val(u8 *array, size_t itr, size_t len)
 
 	BUG_ON(len > sizeof(val));
 
-	while (itr < top) {
+	while (itr < top)
+	{
 		val <<= 8;
 		val |= array[top - 1];
 		top--;
 	}
+
 	val <<= 8 * (sizeof(val) - len); /* padding */
 	return val;
 }
@@ -200,16 +205,18 @@ unsigned long get_val(u8 *array, size_t itr, size_t len)
  */
 static
 void buffer_to_bmp(unsigned long *bmp_itr, void *_buffer,
-		   size_t buffer_size)
+				   size_t buffer_size)
 {
 	u8 *buffer = _buffer;
 	size_t itr, len;
 	unsigned long val;
 
 	itr = 0;
-	while (itr < buffer_size) {
+
+	while (itr < buffer_size)
+	{
 		len = buffer_size - itr >= sizeof(val) ?
-			sizeof(val) : buffer_size - itr;
+			  sizeof(val) : buffer_size - itr;
 		val = get_val(buffer, itr, len);
 		bmp_itr[itr / sizeof(val)] = val;
 		itr += sizeof(val);
@@ -231,14 +238,16 @@ int uwbd_evt_get_drp_avail(struct uwb_event *evt, unsigned long *bmp)
 	int result = -EINVAL;
 
 	/* Is there enough data to decode the event? */
-	if (evt->notif.size < sizeof(*drp_evt)) {
+	if (evt->notif.size < sizeof(*drp_evt))
+	{
 		dev_err(dev, "DRP Availability Change: Not enough "
-			"data to decode event [%zu bytes, %zu "
-			"needed]\n", evt->notif.size, sizeof(*drp_evt));
+				"data to decode event [%zu bytes, %zu "
+				"needed]\n", evt->notif.size, sizeof(*drp_evt));
 		goto error;
 	}
+
 	drp_evt = container_of(evt->notif.rceb, struct uwb_rc_evt_drp_avail, rceb);
-	buffer_to_bmp(bmp, drp_evt->bmp, UWB_NUM_MAS/8);
+	buffer_to_bmp(bmp, drp_evt->bmp, UWB_NUM_MAS / 8);
 	result = 0;
 error:
 	return result;
@@ -275,8 +284,11 @@ int uwbd_evt_handle_rc_drp_avail(struct uwb_event *evt)
 	DECLARE_BITMAP(bmp, UWB_NUM_MAS);
 
 	result = uwbd_evt_get_drp_avail(evt, bmp);
+
 	if (result < 0)
+	{
 		return result;
+	}
 
 	mutex_lock(&rc->rsvs_mutex);
 	bitmap_copy(rc->drp_avail.global, bmp, UWB_NUM_MAS);

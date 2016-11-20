@@ -34,7 +34,7 @@ static const char hcd_name[] = "ehci-w90x900 ";
 static struct hc_driver __read_mostly ehci_w90x900_hc_driver;
 
 static int usb_w90x900_probe(const struct hc_driver *driver,
-		      struct platform_device *pdev)
+							 struct platform_device *pdev)
 {
 	struct usb_hcd *hcd;
 	struct ehci_hcd *ehci;
@@ -43,46 +43,56 @@ static int usb_w90x900_probe(const struct hc_driver *driver,
 	unsigned long val;
 
 	hcd = usb_create_hcd(driver, &pdev->dev, "w90x900 EHCI");
-	if (!hcd) {
+
+	if (!hcd)
+	{
 		retval = -ENOMEM;
 		goto err1;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	hcd->regs = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(hcd->regs)) {
+
+	if (IS_ERR(hcd->regs))
+	{
 		retval = PTR_ERR(hcd->regs);
 		goto err2;
 	}
+
 	hcd->rsrc_start = res->start;
 	hcd->rsrc_len = resource_size(res);
 
 	ehci = hcd_to_ehci(hcd);
 	ehci->caps = hcd->regs;
 	ehci->regs = hcd->regs +
-		HC_LENGTH(ehci, ehci_readl(ehci, &ehci->caps->hc_capbase));
+				 HC_LENGTH(ehci, ehci_readl(ehci, &ehci->caps->hc_capbase));
 
 	/* enable PHY 0,1,the regs only apply to w90p910
 	*  0xA4,0xA8 were offsets of PHY0 and PHY1 controller of
 	*  w90p910 IC relative to ehci->regs.
 	*/
-	val = __raw_readl(ehci->regs+PHY0_CTR);
+	val = __raw_readl(ehci->regs + PHY0_CTR);
 	val |= ENPHY;
-	__raw_writel(val, ehci->regs+PHY0_CTR);
+	__raw_writel(val, ehci->regs + PHY0_CTR);
 
-	val = __raw_readl(ehci->regs+PHY1_CTR);
+	val = __raw_readl(ehci->regs + PHY1_CTR);
 	val |= ENPHY;
-	__raw_writel(val, ehci->regs+PHY1_CTR);
+	__raw_writel(val, ehci->regs + PHY1_CTR);
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		retval = irq;
 		goto err2;
 	}
 
 	retval = usb_add_hcd(hcd, irq, IRQF_SHARED);
+
 	if (retval != 0)
+	{
 		goto err2;
+	}
 
 	device_wakeup_enable(hcd->self.controller);
 	return retval;
@@ -93,7 +103,7 @@ err1:
 }
 
 static void usb_w90x900_remove(struct usb_hcd *hcd,
-			struct platform_device *pdev)
+							   struct platform_device *pdev)
 {
 	usb_remove_hcd(hcd);
 	usb_put_hcd(hcd);
@@ -102,7 +112,9 @@ static void usb_w90x900_remove(struct usb_hcd *hcd,
 static int ehci_w90x900_probe(struct platform_device *pdev)
 {
 	if (usb_disabled())
+	{
 		return -ENODEV;
+	}
 
 	return usb_w90x900_probe(&ehci_w90x900_hc_driver, pdev);
 }
@@ -116,7 +128,8 @@ static int ehci_w90x900_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver ehci_hcd_w90x900_driver = {
+static struct platform_driver ehci_hcd_w90x900_driver =
+{
 	.probe  = ehci_w90x900_probe,
 	.remove = ehci_w90x900_remove,
 	.driver = {
@@ -127,7 +140,9 @@ static struct platform_driver ehci_hcd_w90x900_driver = {
 static int __init ehci_w90X900_init(void)
 {
 	if (usb_disabled())
+	{
 		return -ENODEV;
+	}
 
 	pr_info("%s: " DRIVER_DESC "\n", hcd_name);
 

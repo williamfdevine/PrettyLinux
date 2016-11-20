@@ -46,7 +46,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 
-enum edp_color_depth {
+enum edp_color_depth
+{
 	EDP_6BIT = 0,
 	EDP_8BIT = 1,
 	EDP_10BIT = 2,
@@ -54,7 +55,8 @@ enum edp_color_depth {
 	EDP_16BIT = 4,
 };
 
-enum edp_component_format {
+enum edp_component_format
+{
 	EDP_RGB = 0,
 	EDP_YUV422 = 1,
 	EDP_YUV444 = 2,
@@ -273,9 +275,9 @@ static inline uint32_t EDP_AUX_DATA_INDEX(uint32_t val)
 
 #define REG_EDP_AUX_STATUS					0x00000324
 
-static inline uint32_t REG_EDP_PHY_LN(uint32_t i0) { return 0x00000400 + 0x40*i0; }
+static inline uint32_t REG_EDP_PHY_LN(uint32_t i0) { return 0x00000400 + 0x40 * i0; }
 
-static inline uint32_t REG_EDP_PHY_LN_PD_CTL(uint32_t i0) { return 0x00000404 + 0x40*i0; }
+static inline uint32_t REG_EDP_PHY_LN_PD_CTL(uint32_t i0) { return 0x00000404 + 0x40 * i0; }
 
 #define REG_EDP_PHY_GLB_VM_CFG0					0x00000510
 

@@ -40,7 +40,8 @@
 #define COMEDI32_INSNLIST _IOR(CIO, 11, struct comedi32_insnlist_struct)
 #define COMEDI32_INSN _IOR(CIO, 12, struct comedi32_insn_struct)
 
-struct comedi32_chaninfo_struct {
+struct comedi32_chaninfo_struct
+{
 	unsigned int subdev;
 	compat_uptr_t maxdata_list;	/* 32-bit 'unsigned int *' */
 	compat_uptr_t flaglist;		/* 32-bit 'unsigned int *' */
@@ -48,12 +49,14 @@ struct comedi32_chaninfo_struct {
 	unsigned int unused[4];
 };
 
-struct comedi32_rangeinfo_struct {
+struct comedi32_rangeinfo_struct
+{
 	unsigned int range_type;
 	compat_uptr_t range_ptr;	/* 32-bit 'void *' */
 };
 
-struct comedi32_cmd_struct {
+struct comedi32_cmd_struct
+{
 	unsigned int subdev;
 	unsigned int flags;
 	unsigned int start_src;
@@ -72,7 +75,8 @@ struct comedi32_cmd_struct {
 	unsigned int data_len;
 };
 
-struct comedi32_insn_struct {
+struct comedi32_insn_struct
+{
 	unsigned int insn;
 	unsigned int n;
 	compat_uptr_t data;		/* 32-bit 'unsigned int *' */
@@ -81,17 +85,20 @@ struct comedi32_insn_struct {
 	unsigned int unused[3];
 };
 
-struct comedi32_insnlist_struct {
+struct comedi32_insnlist_struct
+{
 	unsigned int n_insns;
 	compat_uptr_t insns;		/* 32-bit 'struct comedi_insn *' */
 };
 
 /* Handle translated ioctl. */
 static int translated_ioctl(struct file *file, unsigned int cmd,
-			    unsigned long arg)
+							unsigned long arg)
 {
 	if (file->f_op->unlocked_ioctl)
+	{
 		return file->f_op->unlocked_ioctl(file, cmd, arg);
+	}
 
 	return -ENOTTY;
 }
@@ -102,7 +109,8 @@ static int compat_chaninfo(struct file *file, unsigned long arg)
 	struct comedi_chaninfo __user *chaninfo;
 	struct comedi32_chaninfo_struct __user *chaninfo32;
 	int err;
-	union {
+	union
+	{
 		unsigned int uint;
 		compat_uptr_t uptr;
 	} temp;
@@ -112,8 +120,10 @@ static int compat_chaninfo(struct file *file, unsigned long arg)
 
 	/* Copy chaninfo structure.  Ignore unused members. */
 	if (!access_ok(VERIFY_READ, chaninfo32, sizeof(*chaninfo32)) ||
-	    !access_ok(VERIFY_WRITE, chaninfo, sizeof(*chaninfo)))
+		!access_ok(VERIFY_WRITE, chaninfo, sizeof(*chaninfo)))
+	{
 		return -EFAULT;
+	}
 
 	err = 0;
 	err |= __get_user(temp.uint, &chaninfo32->subdev);
@@ -124,8 +134,11 @@ static int compat_chaninfo(struct file *file, unsigned long arg)
 	err |= __put_user(compat_ptr(temp.uptr), &chaninfo->flaglist);
 	err |= __get_user(temp.uptr, &chaninfo32->rangelist);
 	err |= __put_user(compat_ptr(temp.uptr), &chaninfo->rangelist);
+
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	return translated_ioctl(file, COMEDI_CHANINFO, (unsigned long)chaninfo);
 }
@@ -136,7 +149,8 @@ static int compat_rangeinfo(struct file *file, unsigned long arg)
 	struct comedi_rangeinfo __user *rangeinfo;
 	struct comedi32_rangeinfo_struct __user *rangeinfo32;
 	int err;
-	union {
+	union
+	{
 		unsigned int uint;
 		compat_uptr_t uptr;
 	} temp;
@@ -146,35 +160,43 @@ static int compat_rangeinfo(struct file *file, unsigned long arg)
 
 	/* Copy rangeinfo structure. */
 	if (!access_ok(VERIFY_READ, rangeinfo32, sizeof(*rangeinfo32)) ||
-	    !access_ok(VERIFY_WRITE, rangeinfo, sizeof(*rangeinfo)))
+		!access_ok(VERIFY_WRITE, rangeinfo, sizeof(*rangeinfo)))
+	{
 		return -EFAULT;
+	}
 
 	err = 0;
 	err |= __get_user(temp.uint, &rangeinfo32->range_type);
 	err |= __put_user(temp.uint, &rangeinfo->range_type);
 	err |= __get_user(temp.uptr, &rangeinfo32->range_ptr);
 	err |= __put_user(compat_ptr(temp.uptr), &rangeinfo->range_ptr);
+
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	return translated_ioctl(file, COMEDI_RANGEINFO,
-				(unsigned long)rangeinfo);
+							(unsigned long)rangeinfo);
 }
 
 /* Copy 32-bit cmd structure to native cmd structure. */
 static int get_compat_cmd(struct comedi_cmd __user *cmd,
-			  struct comedi32_cmd_struct __user *cmd32)
+						  struct comedi32_cmd_struct __user *cmd32)
 {
 	int err;
-	union {
+	union
+	{
 		unsigned int uint;
 		compat_uptr_t uptr;
 	} temp;
 
 	/* Copy cmd structure. */
 	if (!access_ok(VERIFY_READ, cmd32, sizeof(*cmd32)) ||
-	    !access_ok(VERIFY_WRITE, cmd, sizeof(*cmd)))
+		!access_ok(VERIFY_WRITE, cmd, sizeof(*cmd)))
+	{
 		return -EFAULT;
+	}
 
 	err = 0;
 	err |= __get_user(temp.uint, &cmd32->subdev);
@@ -203,7 +225,7 @@ static int get_compat_cmd(struct comedi_cmd __user *cmd,
 	err |= __put_user(temp.uint, &cmd->stop_arg);
 	err |= __get_user(temp.uptr, &cmd32->chanlist);
 	err |= __put_user((unsigned int __force *)compat_ptr(temp.uptr),
-			&cmd->chanlist);
+					  &cmd->chanlist);
 	err |= __get_user(temp.uint, &cmd32->chanlist_len);
 	err |= __put_user(temp.uint, &cmd->chanlist_len);
 	err |= __get_user(temp.uptr, &cmd32->data);
@@ -215,7 +237,7 @@ static int get_compat_cmd(struct comedi_cmd __user *cmd,
 
 /* Copy native cmd structure to 32-bit cmd structure. */
 static int put_compat_cmd(struct comedi32_cmd_struct __user *cmd32,
-			  struct comedi_cmd __user *cmd)
+						  struct comedi_cmd __user *cmd)
 {
 	int err;
 	unsigned int temp;
@@ -227,8 +249,10 @@ static int put_compat_cmd(struct comedi32_cmd_struct __user *cmd32,
 	 * (Could use ptr_to_compat() to set them.)
 	 */
 	if (!access_ok(VERIFY_READ, cmd, sizeof(*cmd)) ||
-	    !access_ok(VERIFY_WRITE, cmd32, sizeof(*cmd32)))
+		!access_ok(VERIFY_WRITE, cmd32, sizeof(*cmd32)))
+	{
 		return -EFAULT;
+	}
 
 	err = 0;
 	err |= __get_user(temp, &cmd->subdev);
@@ -275,15 +299,23 @@ static int compat_cmd(struct file *file, unsigned long arg)
 	cmd = compat_alloc_user_space(sizeof(*cmd));
 
 	rc = get_compat_cmd(cmd, cmd32);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = translated_ioctl(file, COMEDI_CMD, (unsigned long)cmd);
-	if (rc == -EAGAIN) {
+
+	if (rc == -EAGAIN)
+	{
 		/* Special case: copy cmd back to user. */
 		err = put_compat_cmd(cmd32, cmd);
+
 		if (err)
+		{
 			rc = err;
+		}
 	}
 
 	return rc;
@@ -300,35 +332,48 @@ static int compat_cmdtest(struct file *file, unsigned long arg)
 	cmd = compat_alloc_user_space(sizeof(*cmd));
 
 	rc = get_compat_cmd(cmd, cmd32);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = translated_ioctl(file, COMEDI_CMDTEST, (unsigned long)cmd);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	err = put_compat_cmd(cmd32, cmd);
+
 	if (err)
+	{
 		rc = err;
+	}
 
 	return rc;
 }
 
 /* Copy 32-bit insn structure to native insn structure. */
 static int get_compat_insn(struct comedi_insn __user *insn,
-			   struct comedi32_insn_struct __user *insn32)
+						   struct comedi32_insn_struct __user *insn32)
 {
 	int err;
-	union {
+	union
+	{
 		unsigned int uint;
 		compat_uptr_t uptr;
 	} temp;
 
 	/* Copy insn structure.  Ignore the unused members. */
 	err = 0;
+
 	if (!access_ok(VERIFY_READ, insn32, sizeof(*insn32)) ||
-	    !access_ok(VERIFY_WRITE, insn, sizeof(*insn)))
+		!access_ok(VERIFY_WRITE, insn, sizeof(*insn)))
+	{
 		return -EFAULT;
+	}
 
 	err |= __get_user(temp.uint, &insn32->insn);
 	err |= __put_user(temp.uint, &insn->insn);
@@ -346,7 +391,8 @@ static int get_compat_insn(struct comedi_insn __user *insn,
 /* Handle 32-bit COMEDI_INSNLIST ioctl. */
 static int compat_insnlist(struct file *file, unsigned long arg)
 {
-	struct combined_insnlist {
+	struct combined_insnlist
+	{
 		struct comedi_insnlist insnlist;
 		struct comedi_insn insn[1];
 	} __user *s;
@@ -360,37 +406,51 @@ static int compat_insnlist(struct file *file, unsigned long arg)
 
 	/* Get 32-bit insnlist structure.  */
 	if (!access_ok(VERIFY_READ, insnlist32, sizeof(*insnlist32)))
+	{
 		return -EFAULT;
+	}
 
 	err = 0;
 	err |= __get_user(n_insns, &insnlist32->n_insns);
 	err |= __get_user(uptr, &insnlist32->insns);
 	insn32 = compat_ptr(uptr);
+
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	/* Allocate user memory to copy insnlist and insns into. */
 	s = compat_alloc_user_space(offsetof(struct combined_insnlist,
-					     insn[n_insns]));
+										 insn[n_insns]));
 
 	/* Set native insnlist structure. */
 	if (!access_ok(VERIFY_WRITE, &s->insnlist, sizeof(s->insnlist)))
+	{
 		return -EFAULT;
+	}
 
 	err |= __put_user(n_insns, &s->insnlist.n_insns);
 	err |= __put_user(&s->insn[0], &s->insnlist.insns);
+
 	if (err)
+	{
 		return -EFAULT;
+	}
 
 	/* Copy insn structures. */
-	for (n = 0; n < n_insns; n++) {
+	for (n = 0; n < n_insns; n++)
+	{
 		rc = get_compat_insn(&s->insn[n], &insn32[n]);
+
 		if (rc)
+		{
 			return rc;
+		}
 	}
 
 	return translated_ioctl(file, COMEDI_INSNLIST,
-				(unsigned long)&s->insnlist);
+							(unsigned long)&s->insnlist);
 }
 
 /* Handle 32-bit COMEDI_INSN ioctl. */
@@ -404,8 +464,11 @@ static int compat_insn(struct file *file, unsigned long arg)
 	insn = compat_alloc_user_space(sizeof(*insn));
 
 	rc = get_compat_insn(insn, insn32);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	return translated_ioctl(file, COMEDI_INSN, (unsigned long)insn);
 }
@@ -419,46 +482,56 @@ long comedi_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	int rc;
 
-	switch (cmd) {
-	case COMEDI_DEVCONFIG:
-	case COMEDI_DEVINFO:
-	case COMEDI_SUBDINFO:
-	case COMEDI_BUFCONFIG:
-	case COMEDI_BUFINFO:
-		/* Just need to translate the pointer argument. */
-		arg = (unsigned long)compat_ptr(arg);
-		rc = translated_ioctl(file, cmd, arg);
-		break;
-	case COMEDI_LOCK:
-	case COMEDI_UNLOCK:
-	case COMEDI_CANCEL:
-	case COMEDI_POLL:
-	case COMEDI_SETRSUBD:
-	case COMEDI_SETWSUBD:
-		/* No translation needed. */
-		rc = translated_ioctl(file, cmd, arg);
-		break;
-	case COMEDI32_CHANINFO:
-		rc = compat_chaninfo(file, arg);
-		break;
-	case COMEDI32_RANGEINFO:
-		rc = compat_rangeinfo(file, arg);
-		break;
-	case COMEDI32_CMD:
-		rc = compat_cmd(file, arg);
-		break;
-	case COMEDI32_CMDTEST:
-		rc = compat_cmdtest(file, arg);
-		break;
-	case COMEDI32_INSNLIST:
-		rc = compat_insnlist(file, arg);
-		break;
-	case COMEDI32_INSN:
-		rc = compat_insn(file, arg);
-		break;
-	default:
-		rc = -ENOIOCTLCMD;
-		break;
+	switch (cmd)
+	{
+		case COMEDI_DEVCONFIG:
+		case COMEDI_DEVINFO:
+		case COMEDI_SUBDINFO:
+		case COMEDI_BUFCONFIG:
+		case COMEDI_BUFINFO:
+			/* Just need to translate the pointer argument. */
+			arg = (unsigned long)compat_ptr(arg);
+			rc = translated_ioctl(file, cmd, arg);
+			break;
+
+		case COMEDI_LOCK:
+		case COMEDI_UNLOCK:
+		case COMEDI_CANCEL:
+		case COMEDI_POLL:
+		case COMEDI_SETRSUBD:
+		case COMEDI_SETWSUBD:
+			/* No translation needed. */
+			rc = translated_ioctl(file, cmd, arg);
+			break;
+
+		case COMEDI32_CHANINFO:
+			rc = compat_chaninfo(file, arg);
+			break;
+
+		case COMEDI32_RANGEINFO:
+			rc = compat_rangeinfo(file, arg);
+			break;
+
+		case COMEDI32_CMD:
+			rc = compat_cmd(file, arg);
+			break;
+
+		case COMEDI32_CMDTEST:
+			rc = compat_cmdtest(file, arg);
+			break;
+
+		case COMEDI32_INSNLIST:
+			rc = compat_insnlist(file, arg);
+			break;
+
+		case COMEDI32_INSN:
+			rc = compat_insn(file, arg);
+			break;
+
+		default:
+			rc = -ENOIOCTLCMD;
+			break;
 	}
+
 	return rc;
 }

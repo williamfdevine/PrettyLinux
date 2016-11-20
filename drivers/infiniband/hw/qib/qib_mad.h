@@ -37,16 +37,16 @@
 #include <rdma/ib_pma.h>
 
 #define IB_SMP_UNSUP_VERSION \
-cpu_to_be16(IB_MGMT_MAD_STATUS_BAD_VERSION)
+	cpu_to_be16(IB_MGMT_MAD_STATUS_BAD_VERSION)
 
 #define IB_SMP_UNSUP_METHOD \
-cpu_to_be16(IB_MGMT_MAD_STATUS_UNSUPPORTED_METHOD)
+	cpu_to_be16(IB_MGMT_MAD_STATUS_UNSUPPORTED_METHOD)
 
 #define IB_SMP_UNSUP_METH_ATTR \
-cpu_to_be16(IB_MGMT_MAD_STATUS_UNSUPPORTED_METHOD_ATTRIB)
+	cpu_to_be16(IB_MGMT_MAD_STATUS_UNSUPPORTED_METHOD_ATTRIB)
 
 #define IB_SMP_INVALID_FIELD \
-cpu_to_be16(IB_MGMT_MAD_STATUS_INVALID_ATTRIB_VALUE)
+	cpu_to_be16(IB_MGMT_MAD_STATUS_INVALID_ATTRIB_VALUE)
 
 #define IB_VLARB_LOWPRI_0_31    1
 #define IB_VLARB_LOWPRI_32_63   2
@@ -55,7 +55,8 @@ cpu_to_be16(IB_MGMT_MAD_STATUS_INVALID_ATTRIB_VALUE)
 
 #define IB_PMA_PORT_COUNTERS_CONG       cpu_to_be16(0xFF00)
 
-struct ib_pma_portcounters_cong {
+struct ib_pma_portcounters_cong
+{
 	u8 reserved;
 	u8 reserved1;
 	__be16 port_check_rate;
@@ -116,7 +117,8 @@ struct ib_pma_portcounters_cong {
 #define IB_CC_MAD_LOGDATA_LEN 32
 #define IB_CC_MAD_MGMTDATA_LEN 192
 
-struct ib_cc_mad {
+struct ib_cc_mad
+{
 	u8	base_version;
 	u8	mgmt_class;
 	u8	class_version;
@@ -143,7 +145,8 @@ struct ib_cc_mad {
 #define IB_CC_CPI_CM_CAP2		cpu_to_be16(1 << 2)
 #define IB_CC_CPI_CM_ENHANCEDPORT0_CC	cpu_to_be16(1 << 8)
 
-struct ib_cc_classportinfo_attr {
+struct ib_cc_classportinfo_attr
+{
 	u8 base_version;
 	u8 class_version;
 	__be16 cap_mask;
@@ -166,7 +169,8 @@ struct ib_cc_classportinfo_attr {
 /* Congestion control traps */
 #define IB_CC_TRAP_KEY_VIOLATION 0x0000
 
-struct ib_cc_trap_key_violation_attr {
+struct ib_cc_trap_key_violation_attr
+{
 	__be16 source_lid;
 	u8 method;
 	u8 reserved1;
@@ -182,12 +186,14 @@ struct ib_cc_trap_key_violation_attr {
 #define IB_CC_CI_FLAGS_CREDIT_STARVATION 0x1
 #define IB_CC_TABLE_CAP_DEFAULT 31
 
-struct ib_cc_info_attr {
+struct ib_cc_info_attr
+{
 	__be16 congestion_info;
 	u8  control_table_cap; /* Multiple of 64 entry unit CCTs */
 } __packed;
 
-struct ib_cc_key_info_attr {
+struct ib_cc_key_info_attr
+{
 	__be64 cckey;
 	u8  protect;
 	__be16 lease_period;
@@ -196,7 +202,8 @@ struct ib_cc_key_info_attr {
 
 #define IB_CC_CL_CA_LOGEVENTS_LEN 208
 
-struct ib_cc_log_attr {
+struct ib_cc_log_attr
+{
 	u8 log_type;
 	u8 congestion_flags;
 	__be16 threshold_event_counter;
@@ -210,11 +217,12 @@ struct ib_cc_log_attr {
 #define IB_CC_CLEC_SERVICETYPE_RD 0x2
 #define IB_CC_CLEC_SERVICETYPE_UD 0x3
 
-struct ib_cc_log_event {
+struct ib_cc_log_event
+{
 	u8 local_qp_cn_entry;
 	u8 remote_qp_number_cn_entry[3];
-	u8  sl_cn_entry:4;
-	u8  service_type_cn_entry:4;
+	u8  sl_cn_entry: 4;
+	u8  service_type_cn_entry: 4;
 	__be32 remote_lid_cn_entry;
 	__be32 timestamp_cn_entry;
 } __packed;
@@ -225,27 +233,31 @@ struct ib_cc_log_event {
 /* Port control flags */
 #define IB_CC_CCS_PC_SL_BASED 0x01
 
-struct ib_cc_congestion_entry {
+struct ib_cc_congestion_entry
+{
 	u8 ccti_increase;
 	__be16 ccti_timer;
 	u8 trigger_threshold;
 	u8 ccti_min; /* min CCTI for cc table */
 } __packed;
 
-struct ib_cc_congestion_entry_shadow {
+struct ib_cc_congestion_entry_shadow
+{
 	u8 ccti_increase;
 	u16 ccti_timer;
 	u8 trigger_threshold;
 	u8 ccti_min; /* min CCTI for cc table */
 } __packed;
 
-struct ib_cc_congestion_setting_attr {
+struct ib_cc_congestion_setting_attr
+{
 	__be16 port_control;
 	__be16 control_map;
 	struct ib_cc_congestion_entry entries[IB_CC_CCS_ENTRIES];
 } __packed;
 
-struct ib_cc_congestion_setting_attr_shadow {
+struct ib_cc_congestion_setting_attr_shadow
+{
 	u16 port_control;
 	u16 control_map;
 	struct ib_cc_congestion_entry_shadow entries[IB_CC_CCS_ENTRIES];
@@ -258,20 +270,24 @@ struct ib_cc_congestion_setting_attr_shadow {
 #define IB_CCT_ENTRIES 64
 #define IB_CCT_MIN_ENTRIES (IB_CCT_ENTRIES * 2)
 
-struct ib_cc_table_entry {
+struct ib_cc_table_entry
+{
 	__be16 entry; /* shift:2, multiplier:14 */
 };
 
-struct ib_cc_table_entry_shadow {
+struct ib_cc_table_entry_shadow
+{
 	u16 entry; /* shift:2, multiplier:14 */
 };
 
-struct ib_cc_table_attr {
+struct ib_cc_table_attr
+{
 	__be16 ccti_limit; /* max CCTI for cc table */
 	struct ib_cc_table_entry ccti_entries[IB_CCT_ENTRIES];
 } __packed;
 
-struct ib_cc_table_attr_shadow {
+struct ib_cc_table_attr_shadow
+{
 	u16 ccti_limit; /* max CCTI for cc table */
 	struct ib_cc_table_entry_shadow ccti_entries[IB_CCT_ENTRIES];
 } __packed;
@@ -279,7 +295,8 @@ struct ib_cc_table_attr_shadow {
 #define CC_TABLE_SHADOW_MAX \
 	(IB_CC_TABLE_CAP_DEFAULT * IB_CCT_ENTRIES)
 
-struct cc_table_shadow {
+struct cc_table_shadow
+{
 	u16 ccti_last_entry;
 	struct ib_cc_table_entry_shadow entries[CC_TABLE_SHADOW_MAX];
 } __packed;
@@ -292,9 +309,9 @@ struct cc_table_shadow {
 #define COUNTER_MASK(q, n) (q << ((9 - n) * 3))
 #define COUNTER_MASK0_9 \
 	cpu_to_be32(COUNTER_MASK(1, 0) | \
-		    COUNTER_MASK(1, 1) | \
-		    COUNTER_MASK(1, 2) | \
-		    COUNTER_MASK(1, 3) | \
-		    COUNTER_MASK(1, 4))
+				COUNTER_MASK(1, 1) | \
+				COUNTER_MASK(1, 2) | \
+				COUNTER_MASK(1, 3) | \
+				COUNTER_MASK(1, 4))
 
 #endif				/* _QIB_MAD_H */

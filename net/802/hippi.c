@@ -44,13 +44,14 @@
  */
 
 static int hippi_header(struct sk_buff *skb, struct net_device *dev,
-			unsigned short type,
-			const void *daddr, const void *saddr, unsigned int len)
+						unsigned short type,
+						const void *daddr, const void *saddr, unsigned int len)
 {
 	struct hippi_hdr *hip = (struct hippi_hdr *)skb_push(skb, HIPPI_HLEN);
 	struct hippi_cb *hcb = (struct hippi_cb *) skb->cb;
 
-	if (!len){
+	if (!len)
+	{
 		len = skb->len - HIPPI_HLEN;
 		printk("hippi_header(): length not supplied\n");
 	}
@@ -85,6 +86,7 @@ static int hippi_header(struct sk_buff *skb, struct net_device *dev,
 		memcpy(&hcb->ifield, daddr + 2, 4);
 		return HIPPI_HLEN;
 	}
+
 	hcb->ifield = 0;
 	return -((int)HIPPI_HLEN);
 }
@@ -122,7 +124,10 @@ int hippi_change_mtu(struct net_device *dev, int new_mtu)
 	 * HIPPI's got these nice large MTUs.
 	 */
 	if ((new_mtu < 68) || (new_mtu > 65280))
+	{
 		return -EINVAL;
+	}
+
 	dev->mtu = new_mtu;
 	return 0;
 }
@@ -135,8 +140,12 @@ EXPORT_SYMBOL(hippi_change_mtu);
 int hippi_mac_addr(struct net_device *dev, void *p)
 {
 	struct sockaddr *addr = p;
+
 	if (netif_running(dev))
+	{
 		return -EBUSY;
+	}
+
 	memcpy(dev->dev_addr, addr->sa_data, dev->addr_len);
 	return 0;
 }
@@ -152,12 +161,16 @@ int hippi_neigh_setup_dev(struct net_device *dev, struct neigh_parms *p)
 	* Should be a generic flag.
 	*/
 	if (p->tbl->family != AF_INET6)
+	{
 		NEIGH_VAR_INIT(p, UCAST_PROBES, 0);
+	}
+
 	return 0;
 }
 EXPORT_SYMBOL(hippi_neigh_setup_dev);
 
-static const struct header_ops hippi_header_ops = {
+static const struct header_ops hippi_header_ops =
+{
 	.create		= hippi_header,
 };
 
@@ -201,7 +214,7 @@ static void hippi_setup(struct net_device *dev)
 struct net_device *alloc_hippi_dev(int sizeof_priv)
 {
 	return alloc_netdev(sizeof_priv, "hip%d", NET_NAME_UNKNOWN,
-			    hippi_setup);
+						hippi_setup);
 }
 
 EXPORT_SYMBOL(alloc_hippi_dev);

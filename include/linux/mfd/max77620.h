@@ -284,7 +284,8 @@
 #define MAX77620_FPS_COUNT			3
 
 /* Interrupts */
-enum {
+enum
+{
 	MAX77620_IRQ_TOP_GLBL,		/* Low-Battery */
 	MAX77620_IRQ_TOP_SD,		/* SD power fail */
 	MAX77620_IRQ_TOP_LDO,		/* LDO power fail */
@@ -298,7 +299,8 @@ enum {
 };
 
 /* GPIOs */
-enum {
+enum
+{
 	MAX77620_GPIO0,
 	MAX77620_GPIO1,
 	MAX77620_GPIO2,
@@ -311,7 +313,8 @@ enum {
 };
 
 /* FPS Source */
-enum max77620_fps_src {
+enum max77620_fps_src
+{
 	MAX77620_FPS_SRC_0,
 	MAX77620_FPS_SRC_1,
 	MAX77620_FPS_SRC_2,
@@ -319,12 +322,14 @@ enum max77620_fps_src {
 	MAX77620_FPS_SRC_DEF,
 };
 
-enum max77620_chip_id {
+enum max77620_chip_id
+{
 	MAX77620,
 	MAX20024,
 };
 
-struct max77620_chip {
+struct max77620_chip
+{
 	struct device *dev;
 	struct regmap *rmap;
 

@@ -14,18 +14,18 @@
 #include <linux/types.h>
 
 
-    /*
-     *  Each Zorro board has a 32-bit ID of the form
-     *
-     *      mmmmmmmmmmmmmmmmppppppppeeeeeeee
-     *
-     *  with
-     *
-     *      mmmmmmmmmmmmmmmm	16-bit Manufacturer ID (assigned by CBM (sigh))
-     *      pppppppp		8-bit Product ID (assigned by manufacturer)
-     *      eeeeeeee		8-bit Extended Product ID (currently only used
-     *				for some GVP boards)
-     */
+/*
+ *  Each Zorro board has a 32-bit ID of the form
+ *
+ *      mmmmmmmmmmmmmmmmppppppppeeeeeeee
+ *
+ *  with
+ *
+ *      mmmmmmmmmmmmmmmm	16-bit Manufacturer ID (assigned by CBM (sigh))
+ *      pppppppp		8-bit Product ID (assigned by manufacturer)
+ *      eeeeeeee		8-bit Extended Product ID (currently only used
+ *				for some GVP boards)
+ */
 
 
 #define ZORRO_MANUF(id)		((id) >> 16)
@@ -42,16 +42,17 @@ typedef __u32 zorro_id;
 #include <linux/zorro_ids.h>
 
 
-    /*
-     *  GVP identifies most of its products through the 'extended product code'
-     *  (epc). The epc has to be ANDed with the GVP_PRODMASK before the
-     *  identification.
-     */
+/*
+ *  GVP identifies most of its products through the 'extended product code'
+ *  (epc). The epc has to be ANDed with the GVP_PRODMASK before the
+ *  identification.
+ */
 
 #define GVP_PRODMASK		(0xf8)
 #define GVP_SCSICLKMASK		(0x01)
 
-enum GVP_flags {
+enum GVP_flags
+{
 	GVP_IO			= 0x01,
 	GVP_ACCEL		= 0x02,
 	GVP_SCSI		= 0x04,
@@ -62,7 +63,8 @@ enum GVP_flags {
 };
 
 
-struct Node {
+struct Node
+{
 	__be32 ln_Succ;		/* Pointer to next (successor) */
 	__be32 ln_Pred;		/* Pointer to previous (predecessor) */
 	__u8   ln_Type;
@@ -70,7 +72,8 @@ struct Node {
 	__be32 ln_Name;		/* ID string, null terminated */
 } __packed;
 
-struct ExpansionRom {
+struct ExpansionRom
+{
 	/* -First 16 bytes of the expansion ROM */
 	__u8   er_Type;		/* Board type, size and flags */
 	__u8   er_Product;	/* Product number, assigned by manufacturer */
@@ -94,7 +97,8 @@ struct ExpansionRom {
 #define ERTB_MEMLIST	5		/* Link RAM into free memory list */
 #define ERTF_MEMLIST	(1<<5)
 
-struct ConfigDev {
+struct ConfigDev
+{
 	struct Node	cd_Node;
 	__u8		cd_Flags;	/* (read/write) */
 	__u8		cd_Pad;		/* reserved */

@@ -34,7 +34,8 @@
  * operations.
  *
  */
-union ktime {
+union ktime
+{
 	s64	tv64;
 };
 
@@ -50,39 +51,39 @@ typedef union ktime ktime_t;		/* Kill this */
 static inline ktime_t ktime_set(const s64 secs, const unsigned long nsecs)
 {
 	if (unlikely(secs >= KTIME_SEC_MAX))
-		return (ktime_t){ .tv64 = KTIME_MAX };
+		return (ktime_t) { .tv64 = KTIME_MAX };
 
 	return (ktime_t) { .tv64 = secs * NSEC_PER_SEC + (s64)nsecs };
 }
 
 /* Subtract two ktime_t variables. rem = lhs -rhs: */
 #define ktime_sub(lhs, rhs) \
-		({ (ktime_t){ .tv64 = (lhs).tv64 - (rhs).tv64 }; })
+	({ (ktime_t){ .tv64 = (lhs).tv64 - (rhs).tv64 }; })
 
 /* Add two ktime_t variables. res = lhs + rhs: */
 #define ktime_add(lhs, rhs) \
-		({ (ktime_t){ .tv64 = (lhs).tv64 + (rhs).tv64 }; })
+	({ (ktime_t){ .tv64 = (lhs).tv64 + (rhs).tv64 }; })
 
 /*
  * Same as ktime_add(), but avoids undefined behaviour on overflow; however,
  * this means that you must check the result for overflow yourself.
  */
 #define ktime_add_unsafe(lhs, rhs) \
-		({ (ktime_t){ .tv64 = (u64) (lhs).tv64 + (rhs).tv64 }; })
+	({ (ktime_t){ .tv64 = (u64) (lhs).tv64 + (rhs).tv64 }; })
 
 /*
  * Add a ktime_t variable and a scalar nanosecond value.
  * res = kt + nsval:
  */
 #define ktime_add_ns(kt, nsval) \
-		({ (ktime_t){ .tv64 = (kt).tv64 + (nsval) }; })
+	({ (ktime_t){ .tv64 = (kt).tv64 + (nsval) }; })
 
 /*
  * Subtract a scalar nanosecod from a ktime_t variable
  * res = kt - nsval:
  */
 #define ktime_sub_ns(kt, nsval) \
-		({ (ktime_t){ .tv64 = (kt).tv64 - (nsval) }; })
+	({ (ktime_t){ .tv64 = (kt).tv64 - (nsval) }; })
 
 /* convert a timespec to ktime_t format: */
 static inline ktime_t timespec_to_ktime(struct timespec ts)
@@ -142,9 +143,15 @@ static inline int ktime_equal(const ktime_t cmp1, const ktime_t cmp2)
 static inline int ktime_compare(const ktime_t cmp1, const ktime_t cmp2)
 {
 	if (cmp1.tv64 < cmp2.tv64)
+	{
 		return -1;
+	}
+
 	if (cmp1.tv64 > cmp2.tv64)
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -181,13 +188,17 @@ static inline s64 ktime_divns(const ktime_t kt, s64 div)
 	 * so bug out here.
 	 */
 	BUG_ON(div < 0);
-	if (__builtin_constant_p(div) && !(div >> 32)) {
+
+	if (__builtin_constant_p(div) && !(div >> 32))
+	{
 		s64 ns = kt.tv64;
 		u64 tmp = ns < 0 ? -ns : ns;
 
 		do_div(tmp, div);
 		return ns < 0 ? -tmp : tmp;
-	} else {
+	}
+	else
+	{
 		return __ktime_divns(kt, div);
 	}
 }
@@ -215,7 +226,7 @@ static inline s64 ktime_to_ms(const ktime_t kt)
 
 static inline s64 ktime_us_delta(const ktime_t later, const ktime_t earlier)
 {
-       return ktime_to_us(ktime_sub(later, earlier));
+	return ktime_to_us(ktime_sub(later, earlier));
 }
 
 static inline s64 ktime_ms_delta(const ktime_t later, const ktime_t earlier)
@@ -254,12 +265,15 @@ extern ktime_t ktime_add_safe(const ktime_t lhs, const ktime_t rhs);
  * Return: %true if there was a successful conversion, %false if kt was 0.
  */
 static inline __must_check bool ktime_to_timespec_cond(const ktime_t kt,
-						       struct timespec *ts)
+		struct timespec *ts)
 {
-	if (kt.tv64) {
+	if (kt.tv64)
+	{
 		*ts = ktime_to_timespec(kt);
 		return true;
-	} else {
+	}
+	else
+	{
 		return false;
 	}
 }
@@ -273,12 +287,15 @@ static inline __must_check bool ktime_to_timespec_cond(const ktime_t kt,
  * Return: %true if there was a successful conversion, %false if kt was 0.
  */
 static inline __must_check bool ktime_to_timespec64_cond(const ktime_t kt,
-						       struct timespec64 *ts)
+		struct timespec64 *ts)
 {
-	if (kt.tv64) {
+	if (kt.tv64)
+	{
 		*ts = ktime_to_timespec64(kt);
 		return true;
-	} else {
+	}
+	else
+	{
 		return false;
 	}
 }

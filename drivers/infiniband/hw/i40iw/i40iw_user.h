@@ -35,7 +35,8 @@
 #ifndef I40IW_USER_H
 #define I40IW_USER_H
 
-enum i40iw_device_capabilities_const {
+enum i40iw_device_capabilities_const
+{
 	I40IW_WQE_SIZE =			4,
 	I40IW_CQP_WQE_SIZE =			8,
 	I40IW_CQE_SIZE =			4,
@@ -111,7 +112,8 @@ struct i40iw_qp_uk_init_info;
 struct i40iw_cq_uk_init_info;
 struct i40iw_srq_uk_init_info;
 
-struct i40iw_sge {
+struct i40iw_sge
+{
 	i40iw_tagged_offset tag_off;
 	u32 len;
 	i40iw_stag stag;
@@ -119,27 +121,32 @@ struct i40iw_sge {
 
 #define i40iw_sgl struct i40iw_sge *
 
-struct i40iw_ring {
+struct i40iw_ring
+{
 	u32 head;
 	u32 tail;
 	u32 size;
 };
 
-struct i40iw_cqe {
+struct i40iw_cqe
+{
 	u64 buf[I40IW_CQE_SIZE];
 };
 
-struct i40iw_extended_cqe {
+struct i40iw_extended_cqe
+{
 	u64 buf[I40IW_EXTENDED_CQE_SIZE];
 };
 
-struct i40iw_wqe {
+struct i40iw_wqe
+{
 	u64 buf[I40IW_WQE_SIZE];
 };
 
 struct i40iw_qp_uk_ops;
 
-enum i40iw_addressing_type {
+enum i40iw_addressing_type
+{
 	I40IW_ADDR_TYPE_ZERO_BASED = 0,
 	I40IW_ADDR_TYPE_VA_BASED = 1,
 };
@@ -166,7 +173,8 @@ enum i40iw_addressing_type {
 #define I40IW_OP_TYPE_RDMA_READ_INV_STAG 11
 #define I40IW_OP_TYPE_NOP		12
 
-enum i40iw_completion_status {
+enum i40iw_completion_status
+{
 	I40IW_COMPL_STATUS_SUCCESS = 0,
 	I40IW_COMPL_STATUS_FLUSHED,
 	I40IW_COMPL_STATUS_INVALID_WQE,
@@ -193,51 +201,60 @@ enum i40iw_completion_status {
 	I40IW_COMPL_STATUS_INVALID_TOTAL_LENGTH
 };
 
-enum i40iw_completion_notify {
+enum i40iw_completion_notify
+{
 	IW_CQ_COMPL_EVENT = 0,
 	IW_CQ_COMPL_SOLICITED = 1
 };
 
-struct i40iw_post_send {
+struct i40iw_post_send
+{
 	i40iw_sgl sg_list;
 	u32 num_sges;
 };
 
-struct i40iw_post_inline_send {
+struct i40iw_post_inline_send
+{
 	void *data;
 	u32 len;
 };
 
-struct i40iw_post_send_w_inv {
+struct i40iw_post_send_w_inv
+{
 	i40iw_sgl sg_list;
 	u32 num_sges;
 	i40iw_stag remote_stag_to_inv;
 };
 
-struct i40iw_post_inline_send_w_inv {
+struct i40iw_post_inline_send_w_inv
+{
 	void *data;
 	u32 len;
 	i40iw_stag remote_stag_to_inv;
 };
 
-struct i40iw_rdma_write {
+struct i40iw_rdma_write
+{
 	i40iw_sgl lo_sg_list;
 	u32 num_lo_sges;
 	struct i40iw_sge rem_addr;
 };
 
-struct i40iw_inline_rdma_write {
+struct i40iw_inline_rdma_write
+{
 	void *data;
 	u32 len;
 	struct i40iw_sge rem_addr;
 };
 
-struct i40iw_rdma_read {
+struct i40iw_rdma_read
+{
 	struct i40iw_sge lo_addr;
 	struct i40iw_sge rem_addr;
 };
 
-struct i40iw_bind_window {
+struct i40iw_bind_window
+{
 	i40iw_stag mr_stag;
 	u64 bind_length;
 	void *va;
@@ -247,11 +264,13 @@ struct i40iw_bind_window {
 	i40iw_stag mw_stag;
 };
 
-struct i40iw_inv_local_stag {
+struct i40iw_inv_local_stag
+{
 	i40iw_stag target_stag;
 };
 
-struct i40iw_post_sq_info {
+struct i40iw_post_sq_info
+{
 	u64 wr_id;
 	u8 op_type;
 	bool signaled;
@@ -259,7 +278,8 @@ struct i40iw_post_sq_info {
 	bool local_fence;
 	bool inline_data;
 	bool defer_flag;
-	union {
+	union
+	{
 		struct i40iw_post_send send;
 		struct i40iw_post_send send_w_sol;
 		struct i40iw_post_send_w_inv send_w_inv;
@@ -277,13 +297,15 @@ struct i40iw_post_sq_info {
 	} op;
 };
 
-struct i40iw_post_rq_info {
+struct i40iw_post_rq_info
+{
 	u64 wr_id;
 	i40iw_sgl sg_list;
 	u32 num_sges;
 };
 
-struct i40iw_cq_poll_info {
+struct i40iw_cq_poll_info
+{
 	u64 wr_id;
 	i40iw_qp_handle qp_handle;
 	u32 bytes_xfered;
@@ -301,62 +323,69 @@ struct i40iw_cq_poll_info {
 	bool solicited_event;
 };
 
-struct i40iw_qp_uk_ops {
+struct i40iw_qp_uk_ops
+{
 	void (*iw_qp_post_wr)(struct i40iw_qp_uk *);
 	void (*iw_qp_ring_push_db)(struct i40iw_qp_uk *, u32);
 	enum i40iw_status_code (*iw_rdma_write)(struct i40iw_qp_uk *,
-						struct i40iw_post_sq_info *, bool);
+											struct i40iw_post_sq_info *, bool);
 	enum i40iw_status_code (*iw_rdma_read)(struct i40iw_qp_uk *,
-					       struct i40iw_post_sq_info *, bool, bool);
+										   struct i40iw_post_sq_info *, bool, bool);
 	enum i40iw_status_code (*iw_send)(struct i40iw_qp_uk *,
-					  struct i40iw_post_sq_info *, u32, bool);
+									  struct i40iw_post_sq_info *, u32, bool);
 	enum i40iw_status_code (*iw_inline_rdma_write)(struct i40iw_qp_uk *,
-						       struct i40iw_post_sq_info *, bool);
+			struct i40iw_post_sq_info *, bool);
 	enum i40iw_status_code (*iw_inline_send)(struct i40iw_qp_uk *,
-						 struct i40iw_post_sq_info *, u32, bool);
+			struct i40iw_post_sq_info *, u32, bool);
 	enum i40iw_status_code (*iw_stag_local_invalidate)(struct i40iw_qp_uk *,
-							   struct i40iw_post_sq_info *, bool);
+			struct i40iw_post_sq_info *, bool);
 	enum i40iw_status_code (*iw_mw_bind)(struct i40iw_qp_uk *,
-					     struct i40iw_post_sq_info *, bool);
+										 struct i40iw_post_sq_info *, bool);
 	enum i40iw_status_code (*iw_post_receive)(struct i40iw_qp_uk *,
-						  struct i40iw_post_rq_info *);
+			struct i40iw_post_rq_info *);
 	enum i40iw_status_code (*iw_post_nop)(struct i40iw_qp_uk *, u64, bool, bool);
 };
 
-struct i40iw_cq_ops {
+struct i40iw_cq_ops
+{
 	void (*iw_cq_request_notification)(struct i40iw_cq_uk *,
-					   enum i40iw_completion_notify);
+									   enum i40iw_completion_notify);
 	enum i40iw_status_code (*iw_cq_poll_completion)(struct i40iw_cq_uk *,
-							struct i40iw_cq_poll_info *);
+			struct i40iw_cq_poll_info *);
 	enum i40iw_status_code (*iw_cq_post_entries)(struct i40iw_cq_uk *, u8 count);
 	void (*iw_cq_clean)(void *, struct i40iw_cq_uk *);
 };
 
 struct i40iw_dev_uk;
 
-struct i40iw_device_uk_ops {
+struct i40iw_device_uk_ops
+{
 	enum i40iw_status_code (*iwarp_cq_uk_init)(struct i40iw_cq_uk *,
-						   struct i40iw_cq_uk_init_info *);
+			struct i40iw_cq_uk_init_info *);
 	enum i40iw_status_code (*iwarp_qp_uk_init)(struct i40iw_qp_uk *,
-						   struct i40iw_qp_uk_init_info *);
+			struct i40iw_qp_uk_init_info *);
 };
 
-struct i40iw_dev_uk {
+struct i40iw_dev_uk
+{
 	struct i40iw_device_uk_ops ops_uk;
 };
 
-struct i40iw_sq_uk_wr_trk_info {
+struct i40iw_sq_uk_wr_trk_info
+{
 	u64 wrid;
 	u32 wr_len;
 	u8 wqe_size;
 	u8 reserved[3];
 };
 
-struct i40iw_qp_quanta {
+struct i40iw_qp_quanta
+{
 	u64 elem[I40IW_WQE_SIZE];
 };
 
-struct i40iw_qp_uk {
+struct i40iw_qp_uk
+{
 	struct i40iw_qp_quanta *sq_base;
 	struct i40iw_qp_quanta *rq_base;
 	u32 __iomem *wqe_alloc_reg;
@@ -383,7 +412,8 @@ struct i40iw_qp_uk {
 	bool deferred_flag;
 };
 
-struct i40iw_cq_uk {
+struct i40iw_cq_uk
+{
 	struct i40iw_cqe *cq_base;
 	u32 __iomem *cqe_alloc_reg;
 	u64 *shadow_area;
@@ -396,7 +426,8 @@ struct i40iw_cq_uk {
 	struct i40iw_cq_ops ops;
 };
 
-struct i40iw_qp_uk_init_info {
+struct i40iw_qp_uk_init_info
+{
 	struct i40iw_qp_quanta *sq;
 	struct i40iw_qp_quanta *rq;
 	u32 __iomem *wqe_alloc_reg;
@@ -414,7 +445,8 @@ struct i40iw_qp_uk_init_info {
 
 };
 
-struct i40iw_cq_uk_init_info {
+struct i40iw_cq_uk_init_info
+{
 	u32 __iomem *cqe_alloc_reg;
 	struct i40iw_cqe *cq_base;
 	u64 *shadow_area;
@@ -427,24 +459,24 @@ void i40iw_device_init_uk(struct i40iw_dev_uk *dev);
 
 void i40iw_qp_post_wr(struct i40iw_qp_uk *qp);
 u64 *i40iw_qp_get_next_send_wqe(struct i40iw_qp_uk *qp, u32 *wqe_idx,
-				u8 wqe_size,
-				u32 total_size,
-				u64 wr_id
-				);
+								u8 wqe_size,
+								u32 total_size,
+								u64 wr_id
+							   );
 u64 *i40iw_qp_get_next_recv_wqe(struct i40iw_qp_uk *qp, u32 *wqe_idx);
 u64 *i40iw_qp_get_next_srq_wqe(struct i40iw_srq_uk *srq, u32 *wqe_idx);
 
 enum i40iw_status_code i40iw_cq_uk_init(struct i40iw_cq_uk *cq,
-					struct i40iw_cq_uk_init_info *info);
+										struct i40iw_cq_uk_init_info *info);
 enum i40iw_status_code i40iw_qp_uk_init(struct i40iw_qp_uk *qp,
-					struct i40iw_qp_uk_init_info *info);
+										struct i40iw_qp_uk_init_info *info);
 
 void i40iw_clean_cq(void *queue, struct i40iw_cq_uk *cq);
 enum i40iw_status_code i40iw_nop(struct i40iw_qp_uk *qp, u64 wr_id,
-				 bool signaled, bool post_sq);
+								 bool signaled, bool post_sq);
 enum i40iw_status_code i40iw_fragcnt_to_wqesize_sq(u32 frag_cnt, u8 *wqe_size);
 enum i40iw_status_code i40iw_fragcnt_to_wqesize_rq(u32 frag_cnt, u8 *wqe_size);
 enum i40iw_status_code i40iw_inline_data_size_to_wqesize(u32 data_size,
-							 u8 *wqe_size);
+		u8 *wqe_size);
 enum i40iw_status_code i40iw_get_wqe_shift(u32 wqdepth, u32 sge, u32 inline_data, u8 *shift);
 #endif

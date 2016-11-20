@@ -25,7 +25,8 @@
 #include "../wlcore/wlcore.h"
 #include "../wlcore/acx.h"
 
-enum {
+enum
+{
 	ACX_NS_IPV6_FILTER		 = 0x0050,
 	ACX_PEER_HT_OPERATION_MODE_CFG	 = 0x0051,
 	ACX_CSUM_CONFIG			 = 0x0052,
@@ -44,22 +45,23 @@ enum {
 #define WL18XX_HOST_IF_LEN_SIZE_FIELD 15
 
 #define WL18XX_ACX_EVENTS_VECTOR	(WL1271_ACX_INTR_WATCHDOG	| \
-					 WL1271_ACX_INTR_INIT_COMPLETE	| \
-					 WL1271_ACX_INTR_EVENT_A	| \
-					 WL1271_ACX_INTR_EVENT_B	| \
-					 WL1271_ACX_INTR_CMD_COMPLETE	| \
-					 WL1271_ACX_INTR_HW_AVAILABLE	| \
-					 WL1271_ACX_INTR_DATA		| \
-					 WL1271_ACX_SW_INTR_WATCHDOG)
+									 WL1271_ACX_INTR_INIT_COMPLETE	| \
+									 WL1271_ACX_INTR_EVENT_A	| \
+									 WL1271_ACX_INTR_EVENT_B	| \
+									 WL1271_ACX_INTR_CMD_COMPLETE	| \
+									 WL1271_ACX_INTR_HW_AVAILABLE	| \
+									 WL1271_ACX_INTR_DATA		| \
+									 WL1271_ACX_SW_INTR_WATCHDOG)
 
 #define WL18XX_INTR_MASK		(WL1271_ACX_INTR_WATCHDOG	| \
-					 WL1271_ACX_INTR_EVENT_A	| \
-					 WL1271_ACX_INTR_EVENT_B	| \
-					 WL1271_ACX_INTR_HW_AVAILABLE	| \
-					 WL1271_ACX_INTR_DATA		| \
-					 WL1271_ACX_SW_INTR_WATCHDOG)
+								 WL1271_ACX_INTR_EVENT_A	| \
+								 WL1271_ACX_INTR_EVENT_B	| \
+								 WL1271_ACX_INTR_HW_AVAILABLE	| \
+								 WL1271_ACX_INTR_DATA		| \
+								 WL1271_ACX_SW_INTR_WATCHDOG)
 
-struct wl18xx_acx_host_config_bitmap {
+struct wl18xx_acx_host_config_bitmap
+{
 	struct acx_header header;
 
 	__le32 host_cfg_bitmap;
@@ -77,23 +79,26 @@ struct wl18xx_acx_host_config_bitmap {
 
 } __packed;
 
-enum {
+enum
+{
 	CHECKSUM_OFFLOAD_DISABLED = 0,
 	CHECKSUM_OFFLOAD_ENABLED  = 1,
 	CHECKSUM_OFFLOAD_FAKE_RX  = 2,
 	CHECKSUM_OFFLOAD_INVALID  = 0xFF
 };
 
-struct wl18xx_acx_checksum_state {
+struct wl18xx_acx_checksum_state
+{
 	struct acx_header header;
 
-	 /* enum acx_checksum_state */
+	/* enum acx_checksum_state */
 	u8 checksum_state;
 	u8 pad[3];
 } __packed;
 
 
-struct wl18xx_acx_error_stats {
+struct wl18xx_acx_error_stats
+{
 	u32 error_frame_non_ctrl;
 	u32 error_frame_ctrl;
 	u32 error_frame_during_protection;
@@ -114,7 +119,8 @@ struct wl18xx_acx_error_stats {
 } __packed;
 
 #define NUM_OF_RATES_INDEXES 30
-struct wl18xx_acx_tx_stats {
+struct wl18xx_acx_tx_stats
+{
 	u32 tx_prepared_descs;
 	u32 tx_cmplt;
 	u32 tx_template_prepared;
@@ -153,7 +159,8 @@ struct wl18xx_acx_tx_stats {
 	u32 frag_cache_miss;
 } __packed;
 
-struct wl18xx_acx_rx_stats {
+struct wl18xx_acx_rx_stats
+{
 	u32 rx_beacon_early_term;
 	u32 rx_out_of_mpdu_nodes;
 	u32 rx_hdr_overflow;
@@ -181,13 +188,15 @@ struct wl18xx_acx_rx_stats {
 	u32 rx_xfr;
 } __packed;
 
-struct wl18xx_acx_isr_stats {
+struct wl18xx_acx_isr_stats
+{
 	u32 irqs;
 } __packed;
 
 #define PWR_STAT_MAX_CONT_MISSED_BCNS_SPREAD 10
 
-struct wl18xx_acx_pwr_stats {
+struct wl18xx_acx_pwr_stats
+{
 	u32 missing_bcns_cnt;
 	u32 rcvd_bcns_cnt;
 	u32 connection_out_of_sync;
@@ -202,7 +211,8 @@ struct wl18xx_acx_pwr_stats {
 	u32 ap_sleep_counter;
 } __packed;
 
-struct wl18xx_acx_rx_filter_stats {
+struct wl18xx_acx_rx_filter_stats
+{
 	u32 beacon_filter;
 	u32 arp_filter;
 	u32 mc_filter;
@@ -214,14 +224,16 @@ struct wl18xx_acx_rx_filter_stats {
 	u32 max_arp_queue_dep;
 } __packed;
 
-struct wl18xx_acx_rx_rate_stats {
+struct wl18xx_acx_rx_rate_stats
+{
 	u32 rx_frames_per_rates[50];
 } __packed;
 
 #define AGGR_STATS_TX_AGG	16
 #define AGGR_STATS_RX_SIZE_LEN	16
 
-struct wl18xx_acx_aggr_stats {
+struct wl18xx_acx_aggr_stats
+{
 	u32 tx_agg_rate[AGGR_STATS_TX_AGG];
 	u32 tx_agg_len[AGGR_STATS_TX_AGG];
 	u32 rx_size[AGGR_STATS_RX_SIZE_LEN];
@@ -229,7 +241,8 @@ struct wl18xx_acx_aggr_stats {
 
 #define PIPE_STATS_HW_FIFO	11
 
-struct wl18xx_acx_pipeline_stats {
+struct wl18xx_acx_pipeline_stats
+{
 	u32 hs_tx_stat_fifo_int;
 	u32 hs_rx_stat_fifo_int;
 	u32 enc_tx_stat_fifo_int;
@@ -249,12 +262,14 @@ struct wl18xx_acx_pipeline_stats {
 
 #define DIVERSITY_STATS_NUM_OF_ANT	2
 
-struct wl18xx_acx_diversity_stats {
+struct wl18xx_acx_diversity_stats
+{
 	u32 num_of_packets_per_ant[DIVERSITY_STATS_NUM_OF_ANT];
 	u32 total_num_of_toggles;
 } __packed;
 
-struct wl18xx_acx_thermal_stats {
+struct wl18xx_acx_thermal_stats
+{
 	u16 irq_thr_low;
 	u16 irq_thr_high;
 	u16 tx_stop;
@@ -264,20 +279,24 @@ struct wl18xx_acx_thermal_stats {
 } __packed;
 
 #define WL18XX_NUM_OF_CALIBRATIONS_ERRORS 18
-struct wl18xx_acx_calib_failure_stats {
+struct wl18xx_acx_calib_failure_stats
+{
 	u16 fail_count[WL18XX_NUM_OF_CALIBRATIONS_ERRORS];
 	u32 calib_count;
 } __packed;
 
-struct wl18xx_roaming_stats {
+struct wl18xx_roaming_stats
+{
 	s32 rssi_level;
 } __packed;
 
-struct wl18xx_dfs_stats {
+struct wl18xx_dfs_stats
+{
 	u32 num_of_radar_detections;
 } __packed;
 
-struct wl18xx_acx_statistics {
+struct wl18xx_acx_statistics
+{
 	struct acx_header header;
 
 	struct wl18xx_acx_error_stats		error;
@@ -296,16 +315,19 @@ struct wl18xx_acx_statistics {
 	struct wl18xx_dfs_stats			dfs;
 } __packed;
 
-struct wl18xx_acx_clear_statistics {
+struct wl18xx_acx_clear_statistics
+{
 	struct acx_header header;
 };
 
-enum wlcore_bandwidth {
+enum wlcore_bandwidth
+{
 	WLCORE_BANDWIDTH_20MHZ,
 	WLCORE_BANDWIDTH_40MHZ,
 };
 
-struct wlcore_peer_ht_operation_mode {
+struct wlcore_peer_ht_operation_mode
+{
 	struct acx_header header;
 
 	u8 hlid;
@@ -318,7 +340,8 @@ struct wlcore_peer_ht_operation_mode {
  * this struct is very similar to wl1271_acx_ht_capabilities, with the
  * addition of supported rates
  */
-struct wlcore_acx_peer_cap {
+struct wlcore_acx_peer_cap
+{
 	struct acx_header header;
 
 	/* bitmask of capability bits supported by the peer */
@@ -346,7 +369,8 @@ struct wlcore_acx_peer_cap {
  * ACX_INTERRUPT_NOTIFY
  * enable/disable fast-link/PSM notification from FW
  */
-struct wl18xx_acx_interrupt_notify {
+struct wl18xx_acx_interrupt_notify
+{
 	struct acx_header header;
 	u32 enable;
 };
@@ -355,12 +379,14 @@ struct wl18xx_acx_interrupt_notify {
  * ACX_RX_BA_FILTER
  * enable/disable RX BA filtering in FW
  */
-struct wl18xx_acx_rx_ba_filter {
+struct wl18xx_acx_rx_ba_filter
+{
 	struct acx_header header;
 	u32 enable;
 };
 
-struct acx_ap_sleep_cfg {
+struct acx_ap_sleep_cfg
+{
 	struct acx_header header;
 	/* Duty Cycle (20-80% of staying Awake) for IDLE AP
 	 * (0: disable)
@@ -384,7 +410,8 @@ struct acx_ap_sleep_cfg {
  * ACX_DYNAMIC_TRACES_CFG
  * configure the FW dynamic traces
  */
-struct acx_dynamic_fw_traces_cfg {
+struct acx_dynamic_fw_traces_cfg
+{
 	struct acx_header header;
 	__le32 dynamic_fw_traces;
 } __packed;
@@ -393,7 +420,8 @@ struct acx_dynamic_fw_traces_cfg {
  * ACX_TIME_SYNC_CFG
  * configure the time sync parameters
  */
-struct acx_time_sync_cfg {
+struct acx_time_sync_cfg
+{
 	struct acx_header header;
 	u8 sync_mode;
 	u8 zone_mac_addr[ETH_ALEN];
@@ -401,15 +429,15 @@ struct acx_time_sync_cfg {
 } __packed;
 
 int wl18xx_acx_host_if_cfg_bitmap(struct wl1271 *wl, u32 host_cfg_bitmap,
-				  u32 sdio_blk_size, u32 extra_mem_blks,
-				  u32 len_field_size);
+								  u32 sdio_blk_size, u32 extra_mem_blks,
+								  u32 len_field_size);
 int wl18xx_acx_set_checksum_state(struct wl1271 *wl);
 int wl18xx_acx_clear_statistics(struct wl1271 *wl);
 int wl18xx_acx_peer_ht_operation_mode(struct wl1271 *wl, u8 hlid, bool wide);
 int wl18xx_acx_set_peer_cap(struct wl1271 *wl,
-			    struct ieee80211_sta_ht_cap *ht_cap,
-			    bool allow_ht_operation,
-			    u32 rate_set, u8 hlid);
+							struct ieee80211_sta_ht_cap *ht_cap,
+							bool allow_ht_operation,
+							u32 rate_set, u8 hlid);
 int wl18xx_acx_interrupt_notify_config(struct wl1271 *wl, bool action);
 int wl18xx_acx_rx_ba_filter(struct wl1271 *wl, bool action);
 int wl18xx_acx_ap_sleep(struct wl1271 *wl);

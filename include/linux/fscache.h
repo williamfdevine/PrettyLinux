@@ -24,11 +24,11 @@
 #include <linux/pagevec.h>
 
 #if defined(CONFIG_FSCACHE) || defined(CONFIG_FSCACHE_MODULE)
-#define fscache_available() (1)
-#define fscache_cookie_valid(cookie) (cookie)
+	#define fscache_available() (1)
+	#define fscache_cookie_valid(cookie) (cookie)
 #else
-#define fscache_available() (0)
-#define fscache_cookie_valid(cookie) (0)
+	#define fscache_available() (0)
+	#define fscache_cookie_valid(cookie) (0)
 #endif
 
 
@@ -51,11 +51,12 @@ struct fscache_cookie;
 struct fscache_netfs;
 
 typedef void (*fscache_rw_complete_t)(struct page *page,
-				      void *context,
-				      int error);
+									  void *context,
+									  int error);
 
 /* result of index entry consultation */
-enum fscache_checkaux {
+enum fscache_checkaux
+{
 	FSCACHE_CHECKAUX_OKAY,		/* entry okay as is */
 	FSCACHE_CHECKAUX_NEEDS_UPDATE,	/* entry requires update */
 	FSCACHE_CHECKAUX_OBSOLETE,	/* entry requires deletion */
@@ -64,7 +65,8 @@ enum fscache_checkaux {
 /*
  * fscache cookie definition
  */
-struct fscache_cookie_def {
+struct fscache_cookie_def
+{
 	/* name of cookie type */
 	char name[16];
 
@@ -91,8 +93,8 @@ struct fscache_cookie_def {
 	 *   presented
 	 */
 	uint16_t (*get_key)(const void *cookie_netfs_data,
-			    void *buffer,
-			    uint16_t bufmax);
+						void *buffer,
+						uint16_t bufmax);
 
 	/* get certain file attributes from the netfs data
 	 * - this function can be absent for an index
@@ -111,8 +113,8 @@ struct fscache_cookie_def {
 	 *   presented
 	 */
 	uint16_t (*get_aux)(const void *cookie_netfs_data,
-			    void *buffer,
-			    uint16_t bufmax);
+						void *buffer,
+						uint16_t bufmax);
 
 	/* consult the netfs about the state of an object
 	 * - this function can be absent if the index carries no state data
@@ -120,8 +122,8 @@ struct fscache_cookie_def {
 	 *   presented, as is the auxiliary data
 	 */
 	enum fscache_checkaux (*check_aux)(void *cookie_netfs_data,
-					   const void *data,
-					   uint16_t datalen);
+									   const void *data,
+									   uint16_t datalen);
 
 	/* get an extra reference on a read context
 	 * - this function can be absent if the completion function doesn't
@@ -141,8 +143,8 @@ struct fscache_cookie_def {
 	 *   called, so this is optional
 	 */
 	void (*mark_page_cached)(void *cookie_netfs_data,
-				 struct address_space *mapping,
-				 struct page *page);
+							 struct address_space *mapping,
+							 struct page *page);
 
 	/* indicate the cookie is no longer cached
 	 * - this function is called when the backing store currently caching
@@ -159,7 +161,8 @@ struct fscache_cookie_def {
  * - name, version and ops must be filled in before registration
  * - all other fields will be set during registration
  */
-struct fscache_netfs {
+struct fscache_netfs
+{
 	uint32_t			version;	/* indexing version */
 	const char			*name;		/* filesystem name */
 	struct fscache_cookie		*primary_index;
@@ -173,7 +176,8 @@ struct fscache_netfs {
  *   constraints such as disk space
  * - indices are created on disk just-in-time
  */
-struct fscache_cookie {
+struct fscache_cookie
+{
 	atomic_t			usage;		/* number of users of this cookie */
 	atomic_t			n_children;	/* number of children of this cookie */
 	atomic_t			n_active;	/* number of active users of netfs ptrs */
@@ -225,31 +229,31 @@ extern int __fscache_attr_changed(struct fscache_cookie *);
 extern void __fscache_invalidate(struct fscache_cookie *);
 extern void __fscache_wait_on_invalidate(struct fscache_cookie *);
 extern int __fscache_read_or_alloc_page(struct fscache_cookie *,
-					struct page *,
-					fscache_rw_complete_t,
-					void *,
-					gfp_t);
+										struct page *,
+										fscache_rw_complete_t,
+										void *,
+										gfp_t);
 extern int __fscache_read_or_alloc_pages(struct fscache_cookie *,
-					 struct address_space *,
-					 struct list_head *,
-					 unsigned *,
-					 fscache_rw_complete_t,
-					 void *,
-					 gfp_t);
+		struct address_space *,
+		struct list_head *,
+		unsigned *,
+		fscache_rw_complete_t,
+		void *,
+		gfp_t);
 extern int __fscache_alloc_page(struct fscache_cookie *, struct page *, gfp_t);
 extern int __fscache_write_page(struct fscache_cookie *, struct page *, gfp_t);
 extern void __fscache_uncache_page(struct fscache_cookie *, struct page *);
 extern bool __fscache_check_page_write(struct fscache_cookie *, struct page *);
 extern void __fscache_wait_on_page_write(struct fscache_cookie *, struct page *);
 extern bool __fscache_maybe_release_page(struct fscache_cookie *, struct page *,
-					 gfp_t);
+		gfp_t);
 extern void __fscache_uncache_all_inode_pages(struct fscache_cookie *,
-					      struct inode *);
+		struct inode *);
 extern void __fscache_readpages_cancel(struct fscache_cookie *cookie,
-				       struct list_head *pages);
+									   struct list_head *pages);
 extern void __fscache_disable_cookie(struct fscache_cookie *, bool);
 extern void __fscache_enable_cookie(struct fscache_cookie *,
-				    bool (*)(void *), void *);
+									bool (*)(void *), void *);
 
 /**
  * fscache_register_netfs - Register a filesystem as desiring caching services
@@ -264,9 +268,13 @@ static inline
 int fscache_register_netfs(struct fscache_netfs *netfs)
 {
 	if (fscache_available())
+	{
 		return __fscache_register_netfs(netfs);
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 /**
@@ -284,7 +292,9 @@ static inline
 void fscache_unregister_netfs(struct fscache_netfs *netfs)
 {
 	if (fscache_available())
+	{
 		__fscache_unregister_netfs(netfs);
+	}
 }
 
 /**
@@ -301,9 +311,13 @@ static inline
 struct fscache_cache_tag *fscache_lookup_cache_tag(const char *name)
 {
 	if (fscache_available())
+	{
 		return __fscache_lookup_cache_tag(name);
+	}
 	else
+	{
 		return NULL;
+	}
 }
 
 /**
@@ -319,7 +333,9 @@ static inline
 void fscache_release_cache_tag(struct fscache_cache_tag *tag)
 {
 	if (fscache_available())
+	{
 		__fscache_release_cache_tag(tag);
+	}
 }
 
 /**
@@ -346,9 +362,11 @@ struct fscache_cookie *fscache_acquire_cookie(
 {
 	if (fscache_cookie_valid(parent) && fscache_cookie_enabled(parent))
 		return __fscache_acquire_cookie(parent, def, netfs_data,
-						enable);
+										enable);
 	else
+	{
 		return NULL;
+	}
 }
 
 /**
@@ -367,7 +385,9 @@ static inline
 void fscache_relinquish_cookie(struct fscache_cookie *cookie, bool retire)
 {
 	if (fscache_cookie_valid(cookie))
+	{
 		__fscache_relinquish_cookie(cookie, retire);
+	}
 }
 
 /**
@@ -384,9 +404,13 @@ static inline
 int fscache_check_consistency(struct fscache_cookie *cookie)
 {
 	if (fscache_cookie_valid(cookie) && fscache_cookie_enabled(cookie))
+	{
 		return __fscache_check_consistency(cookie);
+	}
 	else
+	{
 		return 0;
+	}
 }
 
 /**
@@ -403,7 +427,9 @@ static inline
 void fscache_update_cookie(struct fscache_cookie *cookie)
 {
 	if (fscache_cookie_valid(cookie) && fscache_cookie_enabled(cookie))
+	{
 		__fscache_update_cookie(cookie);
+	}
 }
 
 /**
@@ -450,9 +476,13 @@ static inline
 int fscache_attr_changed(struct fscache_cookie *cookie)
 {
 	if (fscache_cookie_valid(cookie) && fscache_cookie_enabled(cookie))
+	{
 		return __fscache_attr_changed(cookie);
+	}
 	else
+	{
 		return -ENOBUFS;
+	}
 }
 
 /**
@@ -472,7 +502,9 @@ static inline
 void fscache_invalidate(struct fscache_cookie *cookie)
 {
 	if (fscache_cookie_valid(cookie) && fscache_cookie_enabled(cookie))
+	{
 		__fscache_invalidate(cookie);
+	}
 }
 
 /**
@@ -488,7 +520,9 @@ static inline
 void fscache_wait_on_invalidate(struct fscache_cookie *cookie)
 {
 	if (fscache_cookie_valid(cookie))
+	{
 		__fscache_wait_on_invalidate(cookie);
+	}
 }
 
 /**
@@ -540,16 +574,18 @@ int fscache_reserve_space(struct fscache_cookie *cookie, loff_t size)
  */
 static inline
 int fscache_read_or_alloc_page(struct fscache_cookie *cookie,
-			       struct page *page,
-			       fscache_rw_complete_t end_io_func,
-			       void *context,
-			       gfp_t gfp)
+							   struct page *page,
+							   fscache_rw_complete_t end_io_func,
+							   void *context,
+							   gfp_t gfp)
 {
 	if (fscache_cookie_valid(cookie) && fscache_cookie_enabled(cookie))
 		return __fscache_read_or_alloc_page(cookie, page, end_io_func,
-						    context, gfp);
+											context, gfp);
 	else
+	{
 		return -ENOBUFS;
+	}
 }
 
 /**
@@ -589,19 +625,21 @@ int fscache_read_or_alloc_page(struct fscache_cookie *cookie,
  */
 static inline
 int fscache_read_or_alloc_pages(struct fscache_cookie *cookie,
-				struct address_space *mapping,
-				struct list_head *pages,
-				unsigned *nr_pages,
-				fscache_rw_complete_t end_io_func,
-				void *context,
-				gfp_t gfp)
+								struct address_space *mapping,
+								struct list_head *pages,
+								unsigned *nr_pages,
+								fscache_rw_complete_t end_io_func,
+								void *context,
+								gfp_t gfp)
 {
 	if (fscache_cookie_valid(cookie) && fscache_cookie_enabled(cookie))
 		return __fscache_read_or_alloc_pages(cookie, mapping, pages,
-						     nr_pages, end_io_func,
-						     context, gfp);
+											 nr_pages, end_io_func,
+											 context, gfp);
 	else
+	{
 		return -ENOBUFS;
+	}
 }
 
 /**
@@ -624,13 +662,17 @@ int fscache_read_or_alloc_pages(struct fscache_cookie *cookie,
  */
 static inline
 int fscache_alloc_page(struct fscache_cookie *cookie,
-		       struct page *page,
-		       gfp_t gfp)
+					   struct page *page,
+					   gfp_t gfp)
 {
 	if (fscache_cookie_valid(cookie) && fscache_cookie_enabled(cookie))
+	{
 		return __fscache_alloc_page(cookie, page, gfp);
+	}
 	else
+	{
 		return -ENOBUFS;
+	}
 }
 
 /**
@@ -647,10 +689,12 @@ int fscache_alloc_page(struct fscache_cookie *cookie,
  */
 static inline
 void fscache_readpages_cancel(struct fscache_cookie *cookie,
-			      struct list_head *pages)
+							  struct list_head *pages)
 {
 	if (fscache_cookie_valid(cookie))
+	{
 		__fscache_readpages_cancel(cookie, pages);
+	}
 }
 
 /**
@@ -673,13 +717,17 @@ void fscache_readpages_cancel(struct fscache_cookie *cookie,
  */
 static inline
 int fscache_write_page(struct fscache_cookie *cookie,
-		       struct page *page,
-		       gfp_t gfp)
+					   struct page *page,
+					   gfp_t gfp)
 {
 	if (fscache_cookie_valid(cookie) && fscache_cookie_enabled(cookie))
+	{
 		return __fscache_write_page(cookie, page, gfp);
+	}
 	else
+	{
 		return -ENOBUFS;
+	}
 }
 
 /**
@@ -698,10 +746,12 @@ int fscache_write_page(struct fscache_cookie *cookie,
  */
 static inline
 void fscache_uncache_page(struct fscache_cookie *cookie,
-			  struct page *page)
+						  struct page *page)
 {
 	if (fscache_cookie_valid(cookie))
+	{
 		__fscache_uncache_page(cookie, page);
+	}
 }
 
 /**
@@ -716,10 +766,13 @@ void fscache_uncache_page(struct fscache_cookie *cookie,
  */
 static inline
 bool fscache_check_page_write(struct fscache_cookie *cookie,
-			      struct page *page)
+							  struct page *page)
 {
 	if (fscache_cookie_valid(cookie))
+	{
 		return __fscache_check_page_write(cookie, page);
+	}
+
 	return false;
 }
 
@@ -736,10 +789,12 @@ bool fscache_check_page_write(struct fscache_cookie *cookie,
  */
 static inline
 void fscache_wait_on_page_write(struct fscache_cookie *cookie,
-				struct page *page)
+								struct page *page)
 {
 	if (fscache_cookie_valid(cookie))
+	{
 		__fscache_wait_on_page_write(cookie, page);
+	}
 }
 
 /**
@@ -759,11 +814,14 @@ void fscache_wait_on_page_write(struct fscache_cookie *cookie,
  */
 static inline
 bool fscache_maybe_release_page(struct fscache_cookie *cookie,
-				struct page *page,
-				gfp_t gfp)
+								struct page *page,
+								gfp_t gfp)
 {
 	if (fscache_cookie_valid(cookie) && PageFsCache(page))
+	{
 		return __fscache_maybe_release_page(cookie, page, gfp);
+	}
+
 	return false;
 }
 
@@ -780,10 +838,12 @@ bool fscache_maybe_release_page(struct fscache_cookie *cookie,
  */
 static inline
 void fscache_uncache_all_inode_pages(struct fscache_cookie *cookie,
-				     struct inode *inode)
+									 struct inode *inode)
 {
 	if (fscache_cookie_valid(cookie))
+	{
 		__fscache_uncache_all_inode_pages(cookie, inode);
+	}
 }
 
 /**
@@ -804,7 +864,9 @@ static inline
 void fscache_disable_cookie(struct fscache_cookie *cookie, bool invalidate)
 {
 	if (fscache_cookie_valid(cookie) && fscache_cookie_enabled(cookie))
+	{
 		__fscache_disable_cookie(cookie, invalidate);
+	}
 }
 
 /**
@@ -822,11 +884,13 @@ void fscache_disable_cookie(struct fscache_cookie *cookie, bool invalidate)
  */
 static inline
 void fscache_enable_cookie(struct fscache_cookie *cookie,
-			   bool (*can_enable)(void *data),
-			   void *data)
+						   bool (*can_enable)(void *data),
+						   void *data)
 {
 	if (fscache_cookie_valid(cookie) && !fscache_cookie_enabled(cookie))
+	{
 		__fscache_enable_cookie(cookie, can_enable, data);
+	}
 }
 
 #endif /* _LINUX_FSCACHE_H */

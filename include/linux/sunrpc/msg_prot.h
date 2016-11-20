@@ -17,7 +17,8 @@
 /* spec defines authentication flavor as an unsigned 32 bit integer */
 typedef u32	rpc_authflavor_t;
 
-enum rpc_auth_flavors {
+enum rpc_auth_flavors
+{
 	RPC_AUTH_NULL  = 0,
 	RPC_AUTH_UNIX  = 1,
 	RPC_AUTH_SHORT = 2,
@@ -40,17 +41,20 @@ enum rpc_auth_flavors {
 /* Maximum size (in bytes) of an rpc credential or verifier */
 #define RPC_MAX_AUTH_SIZE (400)
 
-enum rpc_msg_type {
+enum rpc_msg_type
+{
 	RPC_CALL = 0,
 	RPC_REPLY = 1
 };
 
-enum rpc_reply_stat {
+enum rpc_reply_stat
+{
 	RPC_MSG_ACCEPTED = 0,
 	RPC_MSG_DENIED = 1
 };
 
-enum rpc_accept_stat {
+enum rpc_accept_stat
+{
 	RPC_SUCCESS = 0,
 	RPC_PROG_UNAVAIL = 1,
 	RPC_PROG_MISMATCH = 2,
@@ -61,12 +65,14 @@ enum rpc_accept_stat {
 	RPC_DROP_REPLY = 60000,
 };
 
-enum rpc_reject_stat {
+enum rpc_reject_stat
+{
 	RPC_MISMATCH = 0,
 	RPC_AUTH_ERROR = 1
 };
 
-enum rpc_auth_stat {
+enum rpc_auth_stat
+{
 	RPC_AUTH_OK = 0,
 	RPC_AUTH_BADCRED = 1,
 	RPC_AUTH_REJECTEDCRED = 2,
@@ -207,11 +213,11 @@ typedef __be32	rpc_fraghdr;
 
 /* Maximum size of an IPv4 universal address */
 #define RPCBIND_MAXUADDR4LEN	\
-		(INET_ADDRSTRLEN + RPCBIND_MAXUADDRPLEN)
+	(INET_ADDRSTRLEN + RPCBIND_MAXUADDRPLEN)
 
 /* Maximum size of an IPv6 universal address */
 #define RPCBIND_MAXUADDR6LEN	\
-		(INET6_ADDRSTRLEN + RPCBIND_MAXUADDRPLEN)
+	(INET6_ADDRSTRLEN + RPCBIND_MAXUADDRPLEN)
 
 /* Assume INET6_ADDRSTRLEN will always be larger than INET_ADDRSTRLEN... */
 #define RPCBIND_MAXUADDRLEN	RPCBIND_MAXUADDR6LEN

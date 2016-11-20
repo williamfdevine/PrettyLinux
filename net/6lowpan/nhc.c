@@ -26,29 +26,44 @@ static int lowpan_nhc_insert(struct lowpan_nhc *nhc)
 	struct rb_node **new = &rb_root.rb_node, *parent = NULL;
 
 	/* Figure out where to put new node */
-	while (*new) {
+	while (*new)
+	{
 		struct lowpan_nhc *this = container_of(*new, struct lowpan_nhc,
-						       node);
+											   node);
 		int result, len_dif, len;
 
 		len_dif = nhc->idlen - this->idlen;
 
 		if (nhc->idlen < this->idlen)
+		{
 			len = nhc->idlen;
+		}
 		else
+		{
 			len = this->idlen;
+		}
 
 		result = memcmp(nhc->id, this->id, len);
+
 		if (!result)
+		{
 			result = len_dif;
+		}
 
 		parent = *new;
+
 		if (result < 0)
+		{
 			new = &((*new)->rb_left);
+		}
 		else if (result > 0)
+		{
 			new = &((*new)->rb_right);
+		}
 		else
+		{
 			return -EEXIST;
+		}
 	}
 
 	/* Add new node and rebalance tree. */
@@ -68,34 +83,47 @@ static struct lowpan_nhc *lowpan_nhc_by_nhcid(const struct sk_buff *skb)
 	struct rb_node *node = rb_root.rb_node;
 	const u8 *nhcid_skb_ptr = skb->data;
 
-	while (node) {
+	while (node)
+	{
 		struct lowpan_nhc *nhc = container_of(node, struct lowpan_nhc,
-						      node);
+											  node);
 		u8 nhcid_skb_ptr_masked[LOWPAN_NHC_MAX_ID_LEN];
 		int result, i;
 
 		if (nhcid_skb_ptr + nhc->idlen > skb->data + skb->len)
+		{
 			return NULL;
+		}
 
 		/* copy and mask afterwards the nhid value from skb */
 		memcpy(nhcid_skb_ptr_masked, nhcid_skb_ptr, nhc->idlen);
+
 		for (i = 0; i < nhc->idlen; i++)
+		{
 			nhcid_skb_ptr_masked[i] &= nhc->idmask[i];
+		}
 
 		result = memcmp(nhcid_skb_ptr_masked, nhc->id, nhc->idlen);
+
 		if (result < 0)
+		{
 			node = node->rb_left;
+		}
 		else if (result > 0)
+		{
 			node = node->rb_right;
+		}
 		else
+		{
 			return nhc;
+		}
 	}
 
 	return NULL;
 }
 
 int lowpan_nhc_check_compression(struct sk_buff *skb,
-				 const struct ipv6hdr *hdr, u8 **hc_ptr)
+								 const struct ipv6hdr *hdr, u8 **hc_ptr)
 {
 	struct lowpan_nhc *nhc;
 	int ret = 0;
@@ -103,8 +131,11 @@ int lowpan_nhc_check_compression(struct sk_buff *skb,
 	spin_lock_bh(&lowpan_nhc_lock);
 
 	nhc = lowpan_nexthdr_nhcs[hdr->nexthdr];
+
 	if (!(nhc && nhc->compress))
+	{
 		ret = -ENOENT;
+	}
 
 	spin_unlock_bh(&lowpan_nhc_lock);
 
@@ -112,7 +143,7 @@ int lowpan_nhc_check_compression(struct sk_buff *skb,
 }
 
 int lowpan_nhc_do_compression(struct sk_buff *skb, const struct ipv6hdr *hdr,
-			      u8 **hc_ptr)
+							  u8 **hc_ptr)
 {
 	int ret;
 	struct lowpan_nhc *nhc;
@@ -120,6 +151,7 @@ int lowpan_nhc_do_compression(struct sk_buff *skb, const struct ipv6hdr *hdr,
 	spin_lock_bh(&lowpan_nhc_lock);
 
 	nhc = lowpan_nexthdr_nhcs[hdr->nexthdr];
+
 	/* check if the nhc module was removed in unlocked part.
 	 * TODO: this is a workaround we should prevent unloading
 	 * of nhc modules while unlocked part, this will always drop
@@ -130,7 +162,8 @@ int lowpan_nhc_do_compression(struct sk_buff *skb, const struct ipv6hdr *hdr,
 	 * Because the inline data which is added to skb, we can't move this
 	 * handling.
 	 */
-	if (unlikely(!nhc || !nhc->compress)) {
+	if (unlikely(!nhc || !nhc->compress))
+	{
 		ret = -EINVAL;
 		goto out;
 	}
@@ -139,11 +172,16 @@ int lowpan_nhc_do_compression(struct sk_buff *skb, const struct ipv6hdr *hdr,
 	 * the ip6 stack so we must set it ourselves
 	 */
 	if (skb->transport_header == skb->network_header)
+	{
 		skb_set_transport_header(skb, sizeof(struct ipv6hdr));
+	}
 
 	ret = nhc->compress(skb, hc_ptr);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	/* skip the transport header */
 	skb_pull(skb, nhc->nexthdrlen);
@@ -155,8 +193,8 @@ out:
 }
 
 int lowpan_nhc_do_uncompression(struct sk_buff *skb,
-				const struct net_device *dev,
-				struct ipv6hdr *hdr)
+								const struct net_device *dev,
+								struct ipv6hdr *hdr)
 {
 	struct lowpan_nhc *nhc;
 	int ret;
@@ -164,21 +202,30 @@ int lowpan_nhc_do_uncompression(struct sk_buff *skb,
 	spin_lock_bh(&lowpan_nhc_lock);
 
 	nhc = lowpan_nhc_by_nhcid(skb);
-	if (nhc) {
-		if (nhc->uncompress) {
+
+	if (nhc)
+	{
+		if (nhc->uncompress)
+		{
 			ret = nhc->uncompress(skb, sizeof(struct ipv6hdr) +
-					      nhc->nexthdrlen);
-			if (ret < 0) {
+								  nhc->nexthdrlen);
+
+			if (ret < 0)
+			{
 				spin_unlock_bh(&lowpan_nhc_lock);
 				return ret;
 			}
-		} else {
+		}
+		else
+		{
 			spin_unlock_bh(&lowpan_nhc_lock);
 			netdev_warn(dev, "received nhc id for %s which is not implemented.\n",
-				    nhc->name);
+						nhc->name);
 			return -ENOTSUPP;
 		}
-	} else {
+	}
+	else
+	{
 		spin_unlock_bh(&lowpan_nhc_lock);
 		netdev_warn(dev, "received unknown nhc id which was not found.\n");
 		return -ENOENT;
@@ -187,7 +234,7 @@ int lowpan_nhc_do_uncompression(struct sk_buff *skb,
 	hdr->nexthdr = nhc->nexthdr;
 	skb_reset_transport_header(skb);
 	raw_dump_table(__func__, "raw transport header dump",
-		       skb_transport_header(skb), nhc->nexthdrlen);
+				   skb_transport_header(skb), nhc->nexthdrlen);
 
 	spin_unlock_bh(&lowpan_nhc_lock);
 
@@ -199,24 +246,30 @@ int lowpan_nhc_add(struct lowpan_nhc *nhc)
 	int ret;
 
 	if (!nhc->idlen || !nhc->idsetup)
+	{
 		return -EINVAL;
+	}
 
 	WARN_ONCE(nhc->idlen > LOWPAN_NHC_MAX_ID_LEN,
-		  "LOWPAN_NHC_MAX_ID_LEN should be updated to %zd.\n",
-		  nhc->idlen);
+			  "LOWPAN_NHC_MAX_ID_LEN should be updated to %zd.\n",
+			  nhc->idlen);
 
 	nhc->idsetup(nhc);
 
 	spin_lock_bh(&lowpan_nhc_lock);
 
-	if (lowpan_nexthdr_nhcs[nhc->nexthdr]) {
+	if (lowpan_nexthdr_nhcs[nhc->nexthdr])
+	{
 		ret = -EEXIST;
 		goto out;
 	}
 
 	ret = lowpan_nhc_insert(nhc);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	lowpan_nexthdr_nhcs[nhc->nexthdr] = nhc;
 out:

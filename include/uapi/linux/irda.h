@@ -1,23 +1,23 @@
 /*********************************************************************
- *                
+ *
  * Filename:      irda.h
- * Version:       
- * Description:   
+ * Version:
+ * Description:
  * Status:        Experimental.
  * Author:        Dag Brattli <dagb@cs.uit.no>
  * Created at:    Mon Mar  8 14:06:12 1999
  * Modified at:   Sat Dec 25 16:06:42 1999
  * Modified by:   Dag Brattli <dagb@cs.uit.no>
- * 
+ *
  *     Copyright (c) 1999 Dag Brattli, All Rights Reserved.
- *      
- *     This program is free software; you can redistribute it and/or 
- *     modify it under the terms of the GNU General Public License as 
- *     published by the Free Software Foundation; either version 2 of 
+ *
+ *     This program is free software; you can redistribute it and/or
+ *     modify it under the terms of the GNU General Public License as
+ *     published by the Free Software Foundation; either version 2 of
  *     the License, or (at your option) any later version.
- *  
+ *
  *     Neither Dag Brattli nor University of Tromsø admit liability nor
- *     provide warranty for any of this software. This material is 
+ *     provide warranty for any of this software. This material is
  *     provided "AS-IS" and at no charge.
  *
  ********************************************************************/
@@ -62,7 +62,8 @@
 #define CS_UNICODE       0xff
 
 /* These are the currently known dongles */
-typedef enum {
+typedef enum
+{
 	IRDA_TEKRAM_DONGLE       = 0,
 	IRDA_ESI_DONGLE          = 1,
 	IRDA_ACTISYS_DONGLE      = 2,
@@ -80,7 +81,8 @@ typedef enum {
 } IRDA_DONGLE;
 
 /* Protocol types to be used for SOCK_DGRAM */
-enum {
+enum
+{
 	IRDAPROTO_UNITDATA = 0,
 	IRDAPROTO_ULTRA    = 1,
 	IRDAPROTO_MAX
@@ -121,14 +123,16 @@ enum {
 
 #define LSAP_ANY              0xff
 
-struct sockaddr_irda {
+struct sockaddr_irda
+{
 	__kernel_sa_family_t sir_family; /* AF_IRDA */
 	__u8        sir_lsap_sel; /* LSAP selector */
 	__u32       sir_addr;     /* Device address */
 	char        sir_name[25]; /* Usually <service>:IrDA:TinyTP */
 };
 
-struct irda_device_info {
+struct irda_device_info
+{
 	__u32       saddr;    /* Address of local interface */
 	__u32       daddr;    /* Address of remote device */
 	char        info[22]; /* Description */
@@ -136,22 +140,27 @@ struct irda_device_info {
 	__u8        hints[2]; /* Hint bits */
 };
 
-struct irda_device_list {
-       __u32 len;
-       struct irda_device_info dev[1];
+struct irda_device_list
+{
+	__u32 len;
+	struct irda_device_info dev[1];
 };
 
-struct irda_ias_set {
+struct irda_ias_set
+{
 	char irda_class_name[IAS_EXPORT_CLASSNAME];
 	char irda_attrib_name[IAS_EXPORT_ATTRIBNAME];
 	unsigned int irda_attrib_type;
-	union {
+	union
+	{
 		unsigned int irda_attrib_int;
-		struct {
+		struct
+		{
 			unsigned short len;
 			__u8 octet_seq[IAS_MAX_OCTET_STRING];
 		} irda_attrib_octet_seq;
-		struct {
+		struct
+		{
 			__u8 len;
 			__u8 charset;
 			__u8 string[IAS_MAX_STRING];
@@ -173,10 +182,11 @@ struct irda_ias_set {
 #define SIOCGQOS       (SIOCDEVPRIVATE + 9)
 
 /* No reason to include <linux/if.h> just because of this one ;-) */
-#define IRNAMSIZ 16 
+#define IRNAMSIZ 16
 
 /* IrDA quality of service information (must not exceed 16 bytes) */
-struct if_irda_qos {
+struct if_irda_qos
+{
 	unsigned long  baudrate;
 	unsigned short data_size;
 	unsigned short window_size;
@@ -187,19 +197,23 @@ struct if_irda_qos {
 };
 
 /* For setting RTS and DTR lines of a dongle */
-struct if_irda_line {
+struct if_irda_line
+{
 	__u8 dtr;
 	__u8 rts;
 };
 
 /* IrDA interface configuration (data part must not exceed 16 bytes) */
-struct if_irda_req {
-	union {
+struct if_irda_req
+{
+	union
+	{
 		char ifrn_name[IRNAMSIZ];  /* if name, e.g. "irda0" */
 	} ifr_ifrn;
-	
+
 	/* Data part */
-	union {
+	union
+	{
 		struct if_irda_line ifru_line;
 		struct if_irda_qos  ifru_qos;
 		unsigned short      ifru_flags;
@@ -210,7 +224,7 @@ struct if_irda_req {
 };
 
 #define ifr_baudrate  ifr_ifru.ifru_qos.baudrate
-#define ifr_receiving ifr_ifru.ifru_receiving 
+#define ifr_receiving ifr_ifru.ifru_receiving
 #define ifr_dongle    ifr_ifru.ifru_dongle
 #define ifr_mode      ifr_ifru.ifru_mode
 #define ifr_dtr       ifr_ifru.ifru_line.dtr
@@ -221,7 +235,8 @@ struct if_irda_req {
 #define IRDA_NL_NAME "irda"
 #define IRDA_NL_VERSION 1
 
-enum irda_nl_commands {
+enum irda_nl_commands
+{
 	IRDA_NL_CMD_UNSPEC,
 	IRDA_NL_CMD_SET_MODE,
 	IRDA_NL_CMD_GET_MODE,
@@ -230,7 +245,8 @@ enum irda_nl_commands {
 };
 #define IRDA_NL_CMD_MAX (__IRDA_NL_CMD_AFTER_LAST - 1)
 
-enum nl80211_attrs {
+enum nl80211_attrs
+{
 	IRDA_NL_ATTR_UNSPEC,
 	IRDA_NL_ATTR_IFNAME,
 	IRDA_NL_ATTR_MODE,

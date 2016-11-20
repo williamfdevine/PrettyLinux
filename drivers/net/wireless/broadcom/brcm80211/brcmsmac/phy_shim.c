@@ -29,20 +29,25 @@
 #include "phy_shim.h"
 
 /* PHY SHIM module specific state */
-struct phy_shim_info {
+struct phy_shim_info
+{
 	struct brcms_hardware *wlc_hw;	/* pointer to main wlc_hw structure */
 	struct brcms_c_info *wlc;	/* pointer to main wlc structure */
 	struct brcms_info *wl; /* pointer to os-specific private state */
 };
 
 struct phy_shim_info *wlc_phy_shim_attach(struct brcms_hardware *wlc_hw,
-					  struct brcms_info *wl,
-					  struct brcms_c_info *wlc) {
+		struct brcms_info *wl,
+		struct brcms_c_info *wlc)
+{
 	struct phy_shim_info *physhim = NULL;
 
 	physhim = kzalloc(sizeof(struct phy_shim_info), GFP_ATOMIC);
+
 	if (!physhim)
+	{
 		return NULL;
+	}
 
 	physhim->wlc_hw = wlc_hw;
 	physhim->wlc = wlc;
@@ -57,12 +62,12 @@ void wlc_phy_shim_detach(struct phy_shim_info *physhim)
 }
 
 struct wlapi_timer *wlapi_init_timer(struct phy_shim_info *physhim,
-				     void (*fn)(struct brcms_phy *pi),
-				     void *arg, const char *name)
+									 void (*fn)(struct brcms_phy *pi),
+									 void *arg, const char *name)
 {
 	return (struct wlapi_timer *)
-			brcms_init_timer(physhim->wl, (void (*)(void *))fn,
-					 arg, name);
+		   brcms_init_timer(physhim->wl, (void (*)(void *))fn,
+							arg, name);
 }
 
 void wlapi_free_timer(struct wlapi_timer *t)
@@ -108,7 +113,7 @@ u16 wlapi_bmac_read_shm(struct phy_shim_info *physhim, uint offset)
 
 void
 wlapi_bmac_mhf(struct phy_shim_info *physhim, u8 idx, u16 mask,
-	       u16 val, int bands)
+			   u16 val, int bands)
 {
 	brcms_b_mhf(physhim->wlc_hw, idx, mask, val, bands);
 }
@@ -176,18 +181,18 @@ void wlapi_bmac_core_phypll_reset(struct phy_shim_info *physhim)
 void wlapi_bmac_ucode_wake_override_phyreg_set(struct phy_shim_info *physhim)
 {
 	brcms_c_ucode_wake_override_set(physhim->wlc_hw,
-					BRCMS_WAKE_OVERRIDE_PHYREG);
+									BRCMS_WAKE_OVERRIDE_PHYREG);
 }
 
 void wlapi_bmac_ucode_wake_override_phyreg_clear(struct phy_shim_info *physhim)
 {
 	brcms_c_ucode_wake_override_clear(physhim->wlc_hw,
-					  BRCMS_WAKE_OVERRIDE_PHYREG);
+									  BRCMS_WAKE_OVERRIDE_PHYREG);
 }
 
 void
 wlapi_bmac_write_template_ram(struct phy_shim_info *physhim, int offset,
-			      int len, void *buf)
+							  int len, void *buf)
 {
 	brcms_b_write_template_ram(physhim->wlc_hw, offset, len, buf);
 }
@@ -203,14 +208,14 @@ void wlapi_ucode_sample_init(struct phy_shim_info *physhim)
 
 void
 wlapi_copyfrom_objmem(struct phy_shim_info *physhim, uint offset, void *buf,
-		      int len, u32 sel)
+					  int len, u32 sel)
 {
 	brcms_b_copyfrom_objmem(physhim->wlc_hw, offset, buf, len, sel);
 }
 
 void
 wlapi_copyto_objmem(struct phy_shim_info *physhim, uint offset, const void *buf,
-		    int l, u32 sel)
+					int l, u32 sel)
 {
 	brcms_b_copyto_objmem(physhim->wlc_hw, offset, buf, l, sel);
 }

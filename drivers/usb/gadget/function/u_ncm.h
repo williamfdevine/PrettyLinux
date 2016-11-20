@@ -18,7 +18,8 @@
 
 #include <linux/usb/composite.h>
 
-struct f_ncm_opts {
+struct f_ncm_opts
+{
 	struct usb_function_instance	func_inst;
 	struct net_device		*net;
 	bool				bound;

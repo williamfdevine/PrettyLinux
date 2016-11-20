@@ -115,7 +115,8 @@
 #define SPI_SSOFFTIME_SHIFT		3
 #define SPI_BYTE_SWAP			0x80
 
-enum bcm63xx_regs_spi {
+enum bcm63xx_regs_spi
+{
 	SPI_CMD,
 	SPI_INT_STATUS,
 	SPI_INT_MASK_ST,
@@ -138,7 +139,8 @@ enum bcm63xx_regs_spi {
 #define BCM63XX_SPI_MAX_CS		8
 #define BCM63XX_SPI_BUS_NUM		0
 
-struct bcm63xx_spi {
+struct bcm63xx_spi
+{
 	struct completion	done;
 
 	void __iomem		*regs;
@@ -159,13 +161,13 @@ struct bcm63xx_spi {
 };
 
 static inline u8 bcm_spi_readb(struct bcm63xx_spi *bs,
-			       unsigned int offset)
+							   unsigned int offset)
 {
 	return readb(bs->regs + bs->reg_offsets[offset]);
 }
 
 static inline u16 bcm_spi_readw(struct bcm63xx_spi *bs,
-				unsigned int offset)
+								unsigned int offset)
 {
 #ifdef CONFIG_CPU_BIG_ENDIAN
 	return ioread16be(bs->regs + bs->reg_offsets[offset]);
@@ -175,13 +177,13 @@ static inline u16 bcm_spi_readw(struct bcm63xx_spi *bs,
 }
 
 static inline void bcm_spi_writeb(struct bcm63xx_spi *bs,
-				  u8 value, unsigned int offset)
+								  u8 value, unsigned int offset)
 {
 	writeb(value, bs->regs + bs->reg_offsets[offset]);
 }
 
 static inline void bcm_spi_writew(struct bcm63xx_spi *bs,
-				  u16 value, unsigned int offset)
+								  u16 value, unsigned int offset)
 {
 #ifdef CONFIG_CPU_BIG_ENDIAN
 	iowrite16be(value, bs->regs + bs->reg_offsets[offset]);
@@ -190,7 +192,8 @@ static inline void bcm_spi_writew(struct bcm63xx_spi *bs,
 #endif
 }
 
-static const unsigned bcm63xx_spi_freq_table[SPI_CLK_MASK][2] = {
+static const unsigned bcm63xx_spi_freq_table[SPI_CLK_MASK][2] =
+{
 	{ 20000000, SPI_CLK_20MHZ },
 	{ 12500000, SPI_CLK_12_50MHZ },
 	{  6250000, SPI_CLK_6_250MHZ },
@@ -201,7 +204,7 @@ static const unsigned bcm63xx_spi_freq_table[SPI_CLK_MASK][2] = {
 };
 
 static void bcm63xx_spi_setup_transfer(struct spi_device *spi,
-				      struct spi_transfer *t)
+									   struct spi_transfer *t)
 {
 	struct bcm63xx_spi *bs = spi_master_get_devdata(spi->master);
 	u8 clk_cfg, reg;
@@ -211,8 +214,10 @@ static void bcm63xx_spi_setup_transfer(struct spi_device *spi,
 	clk_cfg = SPI_CLK_0_391MHZ;
 
 	/* Find the closest clock configuration */
-	for (i = 0; i < SPI_CLK_MASK; i++) {
-		if (t->speed_hz >= bcm63xx_spi_freq_table[i][0]) {
+	for (i = 0; i < SPI_CLK_MASK; i++)
+	{
+		if (t->speed_hz >= bcm63xx_spi_freq_table[i][0])
+		{
 			clk_cfg = bcm63xx_spi_freq_table[i][1];
 			break;
 		}
@@ -225,14 +230,14 @@ static void bcm63xx_spi_setup_transfer(struct spi_device *spi,
 
 	bcm_spi_writeb(bs, reg, SPI_CLK_CFG);
 	dev_dbg(&spi->dev, "Setting clock register to %02x (hz %d)\n",
-		clk_cfg, t->speed_hz);
+			clk_cfg, t->speed_hz);
 }
 
 /* the spi->mode bits understood by this driver: */
 #define MODEBITS (SPI_CPOL | SPI_CPHA)
 
 static int bcm63xx_txrx_bufs(struct spi_device *spi, struct spi_transfer *first,
-				unsigned int num_transfers)
+							 unsigned int num_transfers)
 {
 	struct bcm63xx_spi *bs = spi_master_get_devdata(spi->master);
 	u16 msg_ctl;
@@ -246,33 +251,43 @@ static int bcm63xx_txrx_bufs(struct spi_device *spi, struct spi_transfer *first,
 	bcm_spi_writeb(bs, 0, SPI_INT_MASK);
 
 	dev_dbg(&spi->dev, "txrx: tx %p, rx %p, len %d\n",
-		t->tx_buf, t->rx_buf, t->len);
+			t->tx_buf, t->rx_buf, t->len);
 
 	if (num_transfers > 1 && t->tx_buf && t->len <= BCM63XX_SPI_MAX_PREPEND)
+	{
 		prepend_len = t->len;
+	}
 
 	/* prepare the buffer */
-	for (i = 0; i < num_transfers; i++) {
-		if (t->tx_buf) {
+	for (i = 0; i < num_transfers; i++)
+	{
+		if (t->tx_buf)
+		{
 			do_tx = true;
 			memcpy_toio(bs->tx_io + len, t->tx_buf, t->len);
 
 			/* don't prepend more than one tx */
 			if (t != first)
+			{
 				prepend_len = 0;
+			}
 		}
 
-		if (t->rx_buf) {
+		if (t->rx_buf)
+		{
 			do_rx = true;
+
 			/* prepend is half-duplex write only */
 			if (t == first)
+			{
 				prepend_len = 0;
+			}
 		}
 
 		len += t->len;
 
 		t = list_entry(t->transfer_list.next, struct spi_transfer,
-			       transfer_list);
+					   transfer_list);
 	}
 
 	reinit_completion(&bs->done);
@@ -281,19 +296,27 @@ static int bcm63xx_txrx_bufs(struct spi_device *spi, struct spi_transfer *first,
 	msg_ctl = (len << SPI_BYTE_CNT_SHIFT);
 
 	if (do_rx && do_tx && prepend_len == 0)
+	{
 		msg_ctl |= (SPI_FD_RW << bs->msg_type_shift);
+	}
 	else if (do_rx)
+	{
 		msg_ctl |= (SPI_HD_R << bs->msg_type_shift);
+	}
 	else if (do_tx)
+	{
 		msg_ctl |= (SPI_HD_W << bs->msg_type_shift);
+	}
 
-	switch (bs->msg_ctl_width) {
-	case 8:
-		bcm_spi_writeb(bs, msg_ctl, SPI_MSG_CTL);
-		break;
-	case 16:
-		bcm_spi_writew(bs, msg_ctl, SPI_MSG_CTL);
-		break;
+	switch (bs->msg_ctl_width)
+	{
+		case 8:
+			bcm_spi_writeb(bs, msg_ctl, SPI_MSG_CTL);
+			break;
+
+		case 16:
+			bcm_spi_writew(bs, msg_ctl, SPI_MSG_CTL);
+			break;
 	}
 
 	/* Issue the transfer */
@@ -306,31 +329,42 @@ static int bcm63xx_txrx_bufs(struct spi_device *spi, struct spi_transfer *first,
 	bcm_spi_writeb(bs, SPI_INTR_CMD_DONE, SPI_INT_MASK);
 
 	timeout = wait_for_completion_timeout(&bs->done, HZ);
+
 	if (!timeout)
+	{
 		return -ETIMEDOUT;
+	}
 
 	if (!do_rx)
+	{
 		return 0;
+	}
 
 	len = 0;
 	t = first;
+
 	/* Read out all the data */
-	for (i = 0; i < num_transfers; i++) {
+	for (i = 0; i < num_transfers; i++)
+	{
 		if (t->rx_buf)
+		{
 			memcpy_fromio(t->rx_buf, bs->rx_io + len, t->len);
+		}
 
 		if (t != first || prepend_len == 0)
+		{
 			len += t->len;
+		}
 
 		t = list_entry(t->transfer_list.next, struct spi_transfer,
-			       transfer_list);
+					   transfer_list);
 	}
 
 	return 0;
 }
 
 static int bcm63xx_spi_transfer_one(struct spi_master *master,
-					struct spi_message *m)
+									struct spi_message *m)
 {
 	struct bcm63xx_spi *bs = spi_master_get_devdata(master);
 	struct spi_transfer *t, *first = NULL;
@@ -345,52 +379,66 @@ static int bcm63xx_spi_transfer_one(struct spi_master *master,
 	 * Work around this by merging as many transfers we can into one big
 	 * full-duplex transfers.
 	 */
-	list_for_each_entry(t, &m->transfers, transfer_list) {
+	list_for_each_entry(t, &m->transfers, transfer_list)
+	{
 		if (!first)
+		{
 			first = t;
+		}
 
 		n_transfers++;
 		total_len += t->len;
 
 		if (n_transfers == 2 && !first->rx_buf && !t->tx_buf &&
-		    first->len <= BCM63XX_SPI_MAX_PREPEND)
+			first->len <= BCM63XX_SPI_MAX_PREPEND)
+		{
 			can_use_prepend = true;
+		}
 		else if (can_use_prepend && t->tx_buf)
+		{
 			can_use_prepend = false;
+		}
 
 		/* we can only transfer one fifo worth of data */
 		if ((can_use_prepend &&
-		     total_len > (bs->fifo_size + BCM63XX_SPI_MAX_PREPEND)) ||
-		    (!can_use_prepend && total_len > bs->fifo_size)) {
+			 total_len > (bs->fifo_size + BCM63XX_SPI_MAX_PREPEND)) ||
+			(!can_use_prepend && total_len > bs->fifo_size))
+		{
 			dev_err(&spi->dev, "unable to do transfers larger than FIFO size (%i > %i)\n",
-				total_len, bs->fifo_size);
+					total_len, bs->fifo_size);
 			status = -EINVAL;
 			goto exit;
 		}
 
 		/* all combined transfers have to have the same speed */
-		if (t->speed_hz != first->speed_hz) {
+		if (t->speed_hz != first->speed_hz)
+		{
 			dev_err(&spi->dev, "unable to change speed between transfers\n");
 			status = -EINVAL;
 			goto exit;
 		}
 
 		/* CS will be deasserted directly after transfer */
-		if (t->delay_usecs) {
+		if (t->delay_usecs)
+		{
 			dev_err(&spi->dev, "unable to keep CS asserted after transfer\n");
 			status = -EINVAL;
 			goto exit;
 		}
 
 		if (t->cs_change ||
-		    list_is_last(&t->transfer_list, &m->transfers)) {
+			list_is_last(&t->transfer_list, &m->transfers))
+		{
 			/* configure adapter for a new transfer */
 			bcm63xx_spi_setup_transfer(spi, first);
 
 			/* send the data */
 			status = bcm63xx_txrx_bufs(spi, first, n_transfers);
+
 			if (status)
+			{
 				goto exit;
+			}
 
 			m->actual_length += total_len;
 
@@ -423,12 +471,15 @@ static irqreturn_t bcm63xx_spi_interrupt(int irq, void *dev_id)
 
 	/* A transfer completed */
 	if (intr & SPI_INTR_CMD_DONE)
+	{
 		complete(&bs->done);
+	}
 
 	return IRQ_HANDLED;
 }
 
-static const unsigned long bcm6348_spi_reg_offsets[] = {
+static const unsigned long bcm6348_spi_reg_offsets[] =
+{
 	[SPI_CMD]		= SPI_6348_CMD,
 	[SPI_INT_STATUS]	= SPI_6348_INT_STATUS,
 	[SPI_INT_MASK_ST]	= SPI_6348_INT_MASK_ST,
@@ -446,7 +497,8 @@ static const unsigned long bcm6348_spi_reg_offsets[] = {
 	[SPI_MSG_DATA_SIZE]	= SPI_6348_MSG_DATA_SIZE,
 };
 
-static const unsigned long bcm6358_spi_reg_offsets[] = {
+static const unsigned long bcm6358_spi_reg_offsets[] =
+{
 	[SPI_CMD]		= SPI_6358_CMD,
 	[SPI_INT_STATUS]	= SPI_6358_INT_STATUS,
 	[SPI_INT_MASK_ST]	= SPI_6358_INT_MASK_ST,
@@ -464,7 +516,8 @@ static const unsigned long bcm6358_spi_reg_offsets[] = {
 	[SPI_MSG_DATA_SIZE]	= SPI_6358_MSG_DATA_SIZE,
 };
 
-static const struct platform_device_id bcm63xx_spi_dev_match[] = {
+static const struct platform_device_id bcm63xx_spi_dev_match[] =
+{
 	{
 		.name = "bcm6348-spi",
 		.driver_data = (unsigned long)bcm6348_spi_reg_offsets,
@@ -489,24 +542,32 @@ static int bcm63xx_spi_probe(struct platform_device *pdev)
 	int ret;
 
 	if (!pdev->id_entry->driver_data)
+	{
 		return -EINVAL;
+	}
 
 	bcm63xx_spireg = (const unsigned long *)pdev->id_entry->driver_data;
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(dev, "no irq\n");
 		return -ENXIO;
 	}
 
 	clk = devm_clk_get(dev, "spi");
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		dev_err(dev, "no clock for device\n");
 		return PTR_ERR(clk);
 	}
 
 	master = spi_alloc_master(dev, sizeof(*bs));
-	if (!master) {
+
+	if (!master)
+	{
 		dev_err(dev, "out of memory\n");
 		return -ENOMEM;
 	}
@@ -519,7 +580,9 @@ static int bcm63xx_spi_probe(struct platform_device *pdev)
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	bs->regs = devm_ioremap_resource(&pdev->dev, r);
-	if (IS_ERR(bs->regs)) {
+
+	if (IS_ERR(bs->regs))
+	{
 		ret = PTR_ERR(bs->regs);
 		goto out_err;
 	}
@@ -530,8 +593,10 @@ static int bcm63xx_spi_probe(struct platform_device *pdev)
 	bs->fifo_size = bs->reg_offsets[SPI_MSG_DATA_SIZE];
 
 	ret = devm_request_irq(&pdev->dev, irq, bcm63xx_spi_interrupt, 0,
-							pdev->name, master);
-	if (ret) {
+						   pdev->name, master);
+
+	if (ret)
+	{
 		dev_err(dev, "unable to request irq\n");
 		goto out_err;
 	}
@@ -549,20 +614,25 @@ static int bcm63xx_spi_probe(struct platform_device *pdev)
 
 	/* Initialize hardware */
 	ret = clk_prepare_enable(bs->clk);
+
 	if (ret)
+	{
 		goto out_err;
+	}
 
 	bcm_spi_writeb(bs, SPI_INTR_CLEAR_ALL, SPI_INT_STATUS);
 
 	/* register and we are done */
 	ret = devm_spi_register_master(dev, master);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "spi register failed\n");
 		goto out_clk_disable;
 	}
 
 	dev_info(dev, "at %pr (irq %d, FIFOs size %d)\n",
-		 r, irq, bs->fifo_size);
+			 r, irq, bs->fifo_size);
 
 	return 0;
 
@@ -607,8 +677,11 @@ static int bcm63xx_spi_resume(struct device *dev)
 	int ret;
 
 	ret = clk_prepare_enable(bs->clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	spi_master_resume(master);
 
@@ -616,11 +689,13 @@ static int bcm63xx_spi_resume(struct device *dev)
 }
 #endif
 
-static const struct dev_pm_ops bcm63xx_spi_pm_ops = {
+static const struct dev_pm_ops bcm63xx_spi_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(bcm63xx_spi_suspend, bcm63xx_spi_resume)
 };
 
-static struct platform_driver bcm63xx_spi_driver = {
+static struct platform_driver bcm63xx_spi_driver =
+{
 	.driver = {
 		.name	= "bcm63xx-spi",
 		.pm	= &bcm63xx_spi_pm_ops,

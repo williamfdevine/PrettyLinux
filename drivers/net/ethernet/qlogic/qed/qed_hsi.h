@@ -28,7 +28,8 @@ struct qed_hwfn;
 struct qed_ptt;
 
 /* opcodes for the event ring */
-enum common_event_opcode {
+enum common_event_opcode
+{
 	COMMON_EVENT_PF_START,
 	COMMON_EVENT_PF_STOP,
 	COMMON_EVENT_VF_START,
@@ -43,7 +44,8 @@ enum common_event_opcode {
 };
 
 /* Common Ramrod Command IDs */
-enum common_ramrod_cmd_id {
+enum common_ramrod_cmd_id
+{
 	COMMON_RAMROD_UNUSED,
 	COMMON_RAMROD_PF_START,
 	COMMON_RAMROD_PF_STOP,
@@ -56,17 +58,20 @@ enum common_ramrod_cmd_id {
 };
 
 /* The core storm context for the Ystorm */
-struct ystorm_core_conn_st_ctx {
+struct ystorm_core_conn_st_ctx
+{
 	__le32 reserved[4];
 };
 
 /* The core storm context for the Pstorm */
-struct pstorm_core_conn_st_ctx {
+struct pstorm_core_conn_st_ctx
+{
 	__le32 reserved[4];
 };
 
 /* Core Slowpath Connection storm context of Xstorm */
-struct xstorm_core_conn_st_ctx {
+struct xstorm_core_conn_st_ctx
+{
 	__le32 spq_base_lo;
 	__le32 spq_base_hi;
 	struct regpair consolid_base_addr;
@@ -75,7 +80,8 @@ struct xstorm_core_conn_st_ctx {
 	__le32 reserved0[55];
 };
 
-struct xstorm_core_conn_ag_ctx {
+struct xstorm_core_conn_ag_ctx
+{
 	u8 reserved0;
 	u8 core_state;
 	u8 flags0;
@@ -338,7 +344,8 @@ struct xstorm_core_conn_ag_ctx {
 	__le16 word15;
 };
 
-struct tstorm_core_conn_ag_ctx {
+struct tstorm_core_conn_ag_ctx
+{
 	u8 byte0;
 	u8 byte1;
 	u8 flags0;
@@ -442,7 +449,8 @@ struct tstorm_core_conn_ag_ctx {
 	__le32 reg10;
 };
 
-struct ustorm_core_conn_ag_ctx {
+struct ustorm_core_conn_ag_ctx
+{
 	u8 reserved;
 	u8 byte1;
 	u8 flags0;
@@ -512,17 +520,20 @@ struct ustorm_core_conn_ag_ctx {
 };
 
 /* The core storm context for the Mstorm */
-struct mstorm_core_conn_st_ctx {
+struct mstorm_core_conn_st_ctx
+{
 	__le32 reserved[24];
 };
 
 /* The core storm context for the Ustorm */
-struct ustorm_core_conn_st_ctx {
+struct ustorm_core_conn_st_ctx
+{
 	__le32 reserved[4];
 };
 
 /* core connection context */
-struct core_conn_context {
+struct core_conn_context
+{
 	struct ystorm_core_conn_st_ctx ystorm_st_context;
 	struct regpair ystorm_st_padding[2];
 	struct pstorm_core_conn_st_ctx pstorm_st_context;
@@ -536,14 +547,16 @@ struct core_conn_context {
 	struct regpair ustorm_st_padding[2];
 };
 
-enum core_error_handle {
+enum core_error_handle
+{
 	LL2_DROP_PACKET,
 	LL2_DO_NOTHING,
 	LL2_ASSERT,
 	MAX_CORE_ERROR_HANDLE
 };
 
-enum core_event_opcode {
+enum core_event_opcode
+{
 	CORE_EVENT_TX_QUEUE_START,
 	CORE_EVENT_TX_QUEUE_STOP,
 	CORE_EVENT_RX_QUEUE_START,
@@ -551,20 +564,23 @@ enum core_event_opcode {
 	MAX_CORE_EVENT_OPCODE
 };
 
-enum core_l4_pseudo_checksum_mode {
+enum core_l4_pseudo_checksum_mode
+{
 	CORE_L4_PSEUDO_CSUM_CORRECT_LENGTH,
 	CORE_L4_PSEUDO_CSUM_ZERO_LENGTH,
 	MAX_CORE_L4_PSEUDO_CHECKSUM_MODE
 };
 
-struct core_ll2_port_stats {
+struct core_ll2_port_stats
+{
 	struct regpair gsi_invalid_hdr;
 	struct regpair gsi_invalid_pkt_length;
 	struct regpair gsi_unsupported_pkt_typ;
 	struct regpair gsi_crcchksm_error;
 };
 
-struct core_ll2_pstorm_per_queue_stat {
+struct core_ll2_pstorm_per_queue_stat
+{
 	struct regpair sent_ucast_bytes;
 	struct regpair sent_mcast_bytes;
 	struct regpair sent_bcast_bytes;
@@ -573,18 +589,21 @@ struct core_ll2_pstorm_per_queue_stat {
 	struct regpair sent_bcast_pkts;
 };
 
-struct core_ll2_rx_prod {
+struct core_ll2_rx_prod
+{
 	__le16 bd_prod;
 	__le16 cqe_prod;
 	__le32 reserved;
 };
 
-struct core_ll2_tstorm_per_queue_stat {
+struct core_ll2_tstorm_per_queue_stat
+{
 	struct regpair packet_too_big_discard;
 	struct regpair no_buff_discard;
 };
 
-struct core_ll2_ustorm_per_queue_stat {
+struct core_ll2_ustorm_per_queue_stat
+{
 	struct regpair rcv_ucast_bytes;
 	struct regpair rcv_mcast_bytes;
 	struct regpair rcv_bcast_bytes;
@@ -593,7 +612,8 @@ struct core_ll2_ustorm_per_queue_stat {
 	struct regpair rcv_bcast_pkts;
 };
 
-enum core_ramrod_cmd_id {
+enum core_ramrod_cmd_id
+{
 	CORE_RAMROD_UNUSED,
 	CORE_RAMROD_RX_QUEUE_START,
 	CORE_RAMROD_TX_QUEUE_START,
@@ -602,13 +622,15 @@ enum core_ramrod_cmd_id {
 	MAX_CORE_RAMROD_CMD_ID
 };
 
-enum core_roce_flavor_type {
+enum core_roce_flavor_type
+{
 	CORE_ROCE,
 	CORE_RROCE,
 	MAX_CORE_ROCE_FLAVOR_TYPE
 };
 
-struct core_rx_action_on_error {
+struct core_rx_action_on_error
+{
 	u8 error_type;
 #define CORE_RX_ACTION_ON_ERROR_PACKET_TOO_BIG_MASK	0x3
 #define CORE_RX_ACTION_ON_ERROR_PACKET_TOO_BIG_SHIFT 0
@@ -618,27 +640,32 @@ struct core_rx_action_on_error {
 #define CORE_RX_ACTION_ON_ERROR_RESERVED_SHIFT	4
 };
 
-struct core_rx_bd {
+struct core_rx_bd
+{
 	struct regpair addr;
 	__le16 reserved[4];
 };
 
-struct core_rx_bd_with_buff_len {
+struct core_rx_bd_with_buff_len
+{
 	struct regpair addr;
 	__le16 buff_length;
 	__le16 reserved[3];
 };
 
-union core_rx_bd_union {
+union core_rx_bd_union
+{
 	struct core_rx_bd rx_bd;
 	struct core_rx_bd_with_buff_len rx_bd_with_len;
 };
 
-struct core_rx_cqe_opaque_data {
+struct core_rx_cqe_opaque_data
+{
 	__le32 data[2];
 };
 
-enum core_rx_cqe_type {
+enum core_rx_cqe_type
+{
 	CORE_RX_CQE_ILLIGAL_TYPE,
 	CORE_RX_CQE_TYPE_REGULAR,
 	CORE_RX_CQE_TYPE_GSI_OFFLOAD,
@@ -646,7 +673,8 @@ enum core_rx_cqe_type {
 	MAX_CORE_RX_CQE_TYPE
 };
 
-struct core_rx_fast_path_cqe {
+struct core_rx_fast_path_cqe
+{
 	u8 type;
 	u8 placement_offset;
 	struct parsing_and_err_flags parse_flags;
@@ -656,7 +684,8 @@ struct core_rx_fast_path_cqe {
 	__le32 reserved[4];
 };
 
-struct core_rx_gsi_offload_cqe {
+struct core_rx_gsi_offload_cqe
+{
 	u8 type;
 	u8 data_length_error;
 	struct parsing_and_err_flags parse_flags;
@@ -668,20 +697,23 @@ struct core_rx_gsi_offload_cqe {
 	__le32 gid_dst[4];
 };
 
-struct core_rx_slow_path_cqe {
+struct core_rx_slow_path_cqe
+{
 	u8 type;
 	u8 ramrod_cmd_id;
 	__le16 echo;
 	__le32 reserved1[7];
 };
 
-union core_rx_cqe_union {
+union core_rx_cqe_union
+{
 	struct core_rx_fast_path_cqe rx_cqe_fp;
 	struct core_rx_gsi_offload_cqe rx_cqe_gsi;
 	struct core_rx_slow_path_cqe rx_cqe_sp;
 };
 
-struct core_rx_start_ramrod_data {
+struct core_rx_start_ramrod_data
+{
 	struct regpair bd_base;
 	struct regpair cqe_pbl_addr;
 	__le16 mtu;
@@ -701,7 +733,8 @@ struct core_rx_start_ramrod_data {
 	u8 reserved[7];
 };
 
-struct core_rx_stop_ramrod_data {
+struct core_rx_stop_ramrod_data
+{
 	u8 complete_cqe_flg;
 	u8 complete_event_flg;
 	u8 queue_id;
@@ -709,7 +742,8 @@ struct core_rx_stop_ramrod_data {
 	__le16 reserved2[2];
 };
 
-struct core_tx_bd_flags {
+struct core_tx_bd_flags
+{
 	u8 as_bitfield;
 #define CORE_TX_BD_FLAGS_FORCE_VLAN_MODE_MASK	0x1
 #define CORE_TX_BD_FLAGS_FORCE_VLAN_MODE_SHIFT	0
@@ -729,7 +763,8 @@ struct core_tx_bd_flags {
 #define CORE_TX_BD_FLAGS_L4_PSEUDO_CSUM_MODE_SHIFT 7
 };
 
-struct core_tx_bd {
+struct core_tx_bd
+{
 	struct regpair addr;
 	__le16 nbytes;
 	__le16 nw_vlan_or_lb_echo;
@@ -750,13 +785,15 @@ struct core_tx_bd {
 #define CORE_TX_BD_RESERVED1_SHIFT	15
 };
 
-enum core_tx_dest {
+enum core_tx_dest
+{
 	CORE_TX_DEST_NW,
 	CORE_TX_DEST_LB,
 	MAX_CORE_TX_DEST
 };
 
-struct core_tx_start_ramrod_data {
+struct core_tx_start_ramrod_data
+{
 	struct regpair pbl_base_addr;
 	__le16 mtu;
 	__le16 sb_id;
@@ -770,18 +807,21 @@ struct core_tx_start_ramrod_data {
 	u8 resrved[3];
 };
 
-struct core_tx_stop_ramrod_data {
+struct core_tx_stop_ramrod_data
+{
 	__le32 reserved0[2];
 };
 
-struct eth_mstorm_per_pf_stat {
+struct eth_mstorm_per_pf_stat
+{
 	struct regpair gre_discard_pkts;
 	struct regpair vxlan_discard_pkts;
 	struct regpair geneve_discard_pkts;
 	struct regpair lb_discard_pkts;
 };
 
-struct eth_mstorm_per_queue_stat {
+struct eth_mstorm_per_queue_stat
+{
 	struct regpair ttl0_discard;
 	struct regpair packet_too_big_discard;
 	struct regpair no_buff_discard;
@@ -793,7 +833,8 @@ struct eth_mstorm_per_queue_stat {
 };
 
 /* Ethernet TX Per PF */
-struct eth_pstorm_per_pf_stat {
+struct eth_pstorm_per_pf_stat
+{
 	struct regpair sent_lb_ucast_bytes;
 	struct regpair sent_lb_mcast_bytes;
 	struct regpair sent_lb_bcast_bytes;
@@ -812,7 +853,8 @@ struct eth_pstorm_per_pf_stat {
 };
 
 /* Ethernet TX Per Queue Stats */
-struct eth_pstorm_per_queue_stat {
+struct eth_pstorm_per_queue_stat
+{
 	struct regpair sent_ucast_bytes;
 	struct regpair sent_mcast_bytes;
 	struct regpair sent_bcast_bytes;
@@ -823,7 +865,8 @@ struct eth_pstorm_per_queue_stat {
 };
 
 /* ETH Rx producers data */
-struct eth_rx_rate_limit {
+struct eth_rx_rate_limit
+{
 	__le16 mult;
 	__le16 cnst;
 	u8 add_sub_cnst;
@@ -831,7 +874,8 @@ struct eth_rx_rate_limit {
 	__le16 reserved1;
 };
 
-struct eth_ustorm_per_pf_stat {
+struct eth_ustorm_per_pf_stat
+{
 	struct regpair rcv_lb_ucast_bytes;
 	struct regpair rcv_lb_mcast_bytes;
 	struct regpair rcv_lb_bcast_bytes;
@@ -846,7 +890,8 @@ struct eth_ustorm_per_pf_stat {
 	struct regpair rcv_geneve_pkts;
 };
 
-struct eth_ustorm_per_queue_stat {
+struct eth_ustorm_per_queue_stat
+{
 	struct regpair rcv_ucast_bytes;
 	struct regpair rcv_mcast_bytes;
 	struct regpair rcv_bcast_bytes;
@@ -856,25 +901,29 @@ struct eth_ustorm_per_queue_stat {
 };
 
 /* Event Ring Next Page Address */
-struct event_ring_next_addr {
+struct event_ring_next_addr
+{
 	struct regpair addr;
 	__le32 reserved[2];
 };
 
 /* Event Ring Element */
-union event_ring_element {
+union event_ring_element
+{
 	struct event_ring_entry entry;
 	struct event_ring_next_addr next_addr;
 };
 
 /* Major and Minor hsi Versions */
-struct hsi_fp_ver_struct {
+struct hsi_fp_ver_struct
+{
 	u8 minor_ver_arr[2];
 	u8 major_ver_arr[2];
 };
 
 /* Mstorm non-triggering VF zone */
-enum malicious_vf_error_id {
+enum malicious_vf_error_id
+{
 	MALICIOUS_VF_NO_ERROR,
 	VF_PF_CHANNEL_NOT_READY,
 	VF_ZONE_MSG_NOT_VALID,
@@ -898,19 +947,22 @@ enum malicious_vf_error_id {
 	MAX_MALICIOUS_VF_ERROR_ID
 };
 
-struct mstorm_non_trigger_vf_zone {
+struct mstorm_non_trigger_vf_zone
+{
 	struct eth_mstorm_per_queue_stat eth_queue_stat;
 	struct eth_rx_prod_data eth_rx_queue_producers[ETH_MAX_NUM_RX_QUEUES_PER_VF_QUAD];
 };
 
 /* Mstorm VF zone */
-struct mstorm_vf_zone {
+struct mstorm_vf_zone
+{
 	struct mstorm_non_trigger_vf_zone non_trigger;
 
 };
 
 /* personality per PF */
-enum personality_type {
+enum personality_type
+{
 	BAD_PERSONALITY_TYP,
 	PERSONALITY_ISCSI,
 	PERSONALITY_RESERVED2,
@@ -923,7 +975,8 @@ enum personality_type {
 };
 
 /* tunnel configuration */
-struct pf_start_tunnel_config {
+struct pf_start_tunnel_config
+{
 	u8 set_vxlan_udp_port_flg;
 	u8 set_geneve_udp_port_flg;
 	u8 tx_enable_vxlan;
@@ -941,7 +994,8 @@ struct pf_start_tunnel_config {
 };
 
 /* Ramrod data for PF start ramrod */
-struct pf_start_ramrod_data {
+struct pf_start_ramrod_data
+{
 	struct regpair event_ring_pbl_addr;
 	struct regpair consolid_q_pbl_addr;
 	struct pf_start_tunnel_config tunnel_config;
@@ -965,7 +1019,8 @@ struct pf_start_ramrod_data {
 
 };
 
-struct protocol_dcb_data {
+struct protocol_dcb_data
+{
 	u8 dcb_enable_flag;
 	u8 reserved_a;
 	u8 dcb_priority;
@@ -974,7 +1029,8 @@ struct protocol_dcb_data {
 	u8 reserved0;
 };
 
-struct pf_update_tunnel_config {
+struct pf_update_tunnel_config
+{
 	u8 update_rx_pf_clss;
 	u8 update_rx_def_ucast_clss;
 	u8 update_rx_def_non_ucast_clss;
@@ -996,7 +1052,8 @@ struct pf_update_tunnel_config {
 	__le16 reserved[2];
 };
 
-struct pf_update_ramrod_data {
+struct pf_update_ramrod_data
+{
 	u8 pf_id;
 	u8 update_eth_dcb_data_flag;
 	u8 update_fcoe_dcb_data_flag;
@@ -1017,7 +1074,8 @@ struct pf_update_ramrod_data {
 };
 
 /* Ports mode */
-enum ports_mode {
+enum ports_mode
+{
 	ENGX2_PORTX1,
 	ENGX2_PORTX2,
 	ENGX1_PORTX1,
@@ -1027,52 +1085,61 @@ enum ports_mode {
 };
 
 /* use to index in hsi_fp_[major|minor]_ver_arr per protocol */
-enum protocol_version_array_key {
+enum protocol_version_array_key
+{
 	ETH_VER_KEY = 0,
 	ROCE_VER_KEY,
 	MAX_PROTOCOL_VERSION_ARRAY_KEY
 };
 
-struct rdma_sent_stats {
+struct rdma_sent_stats
+{
 	struct regpair sent_bytes;
 	struct regpair sent_pkts;
 };
 
-struct pstorm_non_trigger_vf_zone {
+struct pstorm_non_trigger_vf_zone
+{
 	struct eth_pstorm_per_queue_stat eth_queue_stat;
 	struct rdma_sent_stats rdma_stats;
 };
 
 /* Pstorm VF zone */
-struct pstorm_vf_zone {
+struct pstorm_vf_zone
+{
 	struct pstorm_non_trigger_vf_zone non_trigger;
 	struct regpair reserved[7];
 };
 
 /* Ramrod Header of SPQE */
-struct ramrod_header {
+struct ramrod_header
+{
 	__le32 cid;
 	u8 cmd_id;
 	u8 protocol_id;
 	__le16 echo;
 };
 
-struct rdma_rcv_stats {
+struct rdma_rcv_stats
+{
 	struct regpair rcv_bytes;
 	struct regpair rcv_pkts;
 };
 
-struct slow_path_element {
+struct slow_path_element
+{
 	struct ramrod_header hdr;
 	struct regpair data_ptr;
 };
 
 /* Tstorm non-triggering VF zone */
-struct tstorm_non_trigger_vf_zone {
+struct tstorm_non_trigger_vf_zone
+{
 	struct rdma_rcv_stats rdma_stats;
 };
 
-struct tstorm_per_port_stat {
+struct tstorm_per_port_stat
+{
 	struct regpair trunc_error_discard;
 	struct regpair mac_error_discard;
 	struct regpair mftag_filter_discard;
@@ -1091,12 +1158,14 @@ struct tstorm_per_port_stat {
 };
 
 /* Tstorm VF zone */
-struct tstorm_vf_zone {
+struct tstorm_vf_zone
+{
 	struct tstorm_non_trigger_vf_zone non_trigger;
 };
 
 /* Tunnel classification scheme */
-enum tunnel_clss {
+enum tunnel_clss
+{
 	TUNNEL_CLSS_MAC_VLAN = 0,
 	TUNNEL_CLSS_MAC_VNI,
 	TUNNEL_CLSS_INNER_MAC_VLAN,
@@ -1106,25 +1175,29 @@ enum tunnel_clss {
 };
 
 /* Ustorm non-triggering VF zone */
-struct ustorm_non_trigger_vf_zone {
+struct ustorm_non_trigger_vf_zone
+{
 	struct eth_ustorm_per_queue_stat eth_queue_stat;
 	struct regpair vf_pf_msg_addr;
 };
 
 /* Ustorm triggering VF zone */
-struct ustorm_trigger_vf_zone {
+struct ustorm_trigger_vf_zone
+{
 	u8 vf_pf_msg_valid;
 	u8 reserved[7];
 };
 
 /* Ustorm VF zone */
-struct ustorm_vf_zone {
+struct ustorm_vf_zone
+{
 	struct ustorm_non_trigger_vf_zone non_trigger;
 	struct ustorm_trigger_vf_zone trigger;
 };
 
 /* VF-PF channel data */
-struct vf_pf_channel_data {
+struct vf_pf_channel_data
+{
 	__le32 ready;
 	u8 valid;
 	u8 reserved0;
@@ -1132,7 +1205,8 @@ struct vf_pf_channel_data {
 };
 
 /* Ramrod data for VF start ramrod */
-struct vf_start_ramrod_data {
+struct vf_start_ramrod_data
+{
 	u8 vf_id;
 	u8 enable_flr_ack;
 	__le16 opaque_fid;
@@ -1143,21 +1217,24 @@ struct vf_start_ramrod_data {
 };
 
 /* Ramrod data for VF start ramrod */
-struct vf_stop_ramrod_data {
+struct vf_stop_ramrod_data
+{
 	u8 vf_id;
 	u8 reserved0;
 	__le16 reserved1;
 	__le32 reserved2;
 };
 
-enum vf_zone_size_mode {
+enum vf_zone_size_mode
+{
 	VF_ZONE_SIZE_MODE_DEFAULT,
 	VF_ZONE_SIZE_MODE_DOUBLE,
 	VF_ZONE_SIZE_MODE_QUAD,
 	MAX_VF_ZONE_SIZE_MODE
 };
 
-struct atten_status_block {
+struct atten_status_block
+{
 	__le32 atten_bits;
 	__le32 atten_ack;
 	__le16 reserved0;
@@ -1165,14 +1242,16 @@ struct atten_status_block {
 	__le32 reserved1;
 };
 
-enum command_type_bit {
+enum command_type_bit
+{
 	IGU_COMMAND_TYPE_NOP = 0,
 	IGU_COMMAND_TYPE_SET = 1,
 	MAX_COMMAND_TYPE_BIT
 };
 
 /* DMAE command */
-struct dmae_cmd {
+struct dmae_cmd
+{
 	__le32 opcode;
 #define DMAE_CMD_SRC_MASK		0x1
 #define DMAE_CMD_SRC_SHIFT		0
@@ -1235,31 +1314,36 @@ struct dmae_cmd {
 	__le16 xsum8;
 };
 
-enum dmae_cmd_comp_crc_en_enum {
+enum dmae_cmd_comp_crc_en_enum
+{
 	dmae_cmd_comp_crc_disabled,
 	dmae_cmd_comp_crc_enabled,
 	MAX_DMAE_CMD_COMP_CRC_EN_ENUM
 };
 
-enum dmae_cmd_comp_func_enum {
+enum dmae_cmd_comp_func_enum
+{
 	dmae_cmd_comp_func_to_src,
 	dmae_cmd_comp_func_to_dst,
 	MAX_DMAE_CMD_COMP_FUNC_ENUM
 };
 
-enum dmae_cmd_comp_word_en_enum {
+enum dmae_cmd_comp_word_en_enum
+{
 	dmae_cmd_comp_word_disabled,
 	dmae_cmd_comp_word_enabled,
 	MAX_DMAE_CMD_COMP_WORD_EN_ENUM
 };
 
-enum dmae_cmd_c_dst_enum {
+enum dmae_cmd_c_dst_enum
+{
 	dmae_cmd_c_dst_pcie,
 	dmae_cmd_c_dst_grc,
 	MAX_DMAE_CMD_C_DST_ENUM
 };
 
-enum dmae_cmd_dst_enum {
+enum dmae_cmd_dst_enum
+{
 	dmae_cmd_dst_none_0,
 	dmae_cmd_dst_pcie,
 	dmae_cmd_dst_grc,
@@ -1267,21 +1351,24 @@ enum dmae_cmd_dst_enum {
 	MAX_DMAE_CMD_DST_ENUM
 };
 
-enum dmae_cmd_error_handling_enum {
+enum dmae_cmd_error_handling_enum
+{
 	dmae_cmd_error_handling_send_regular_comp,
 	dmae_cmd_error_handling_send_comp_with_err,
 	dmae_cmd_error_handling_dont_send_comp,
 	MAX_DMAE_CMD_ERROR_HANDLING_ENUM
 };
 
-enum dmae_cmd_src_enum {
+enum dmae_cmd_src_enum
+{
 	dmae_cmd_src_pcie,
 	dmae_cmd_src_grc,
 	MAX_DMAE_CMD_SRC_ENUM
 };
 
 /* IGU cleanup command */
-struct igu_cleanup {
+struct igu_cleanup
+{
 	__le32 sb_id_and_flags;
 #define IGU_CLEANUP_RESERVED0_MASK	0x7FFFFFF
 #define IGU_CLEANUP_RESERVED0_SHIFT	0
@@ -1295,13 +1382,15 @@ struct igu_cleanup {
 };
 
 /* IGU firmware driver command */
-union igu_command {
+union igu_command
+{
 	struct igu_prod_cons_update prod_cons_update;
 	struct igu_cleanup cleanup;
 };
 
 /* IGU firmware driver command */
-struct igu_command_reg_ctrl {
+struct igu_command_reg_ctrl
+{
 	__le16 opaque_fid;
 	__le16 igu_command_reg_ctrl_fields;
 #define IGU_COMMAND_REG_CTRL_PXP_BAR_ADDR_MASK	0xFFF
@@ -1313,7 +1402,8 @@ struct igu_command_reg_ctrl {
 };
 
 /* IGU mapping line structure */
-struct igu_mapping_line {
+struct igu_mapping_line
+{
 	__le32 igu_mapping_line_fields;
 #define IGU_MAPPING_LINE_VALID_MASK		0x1
 #define IGU_MAPPING_LINE_VALID_SHIFT		0
@@ -1330,7 +1420,8 @@ struct igu_mapping_line {
 };
 
 /* IGU MSIX line structure */
-struct igu_msix_vector {
+struct igu_msix_vector
+{
 	struct regpair address;
 	__le32 data;
 	__le32 msix_vector_fields;
@@ -1344,7 +1435,8 @@ struct igu_msix_vector {
 #define IGU_MSIX_VECTOR_RESERVED1_SHIFT		24
 };
 
-struct mstorm_core_conn_ag_ctx {
+struct mstorm_core_conn_ag_ctx
+{
 	u8 byte0;
 	u8 byte1;
 	u8 flags0;
@@ -1382,7 +1474,8 @@ struct mstorm_core_conn_ag_ctx {
 };
 
 /* per encapsulation type enabling flags */
-struct prs_reg_encapsulation_type_en {
+struct prs_reg_encapsulation_type_en
+{
 	u8 flags;
 #define PRS_REG_ENCAPSULATION_TYPE_EN_ETH_OVER_GRE_ENABLE_MASK		0x1
 #define PRS_REG_ENCAPSULATION_TYPE_EN_ETH_OVER_GRE_ENABLE_SHIFT		0
@@ -1400,7 +1493,8 @@ struct prs_reg_encapsulation_type_en {
 #define PRS_REG_ENCAPSULATION_TYPE_EN_RESERVED_SHIFT			6
 };
 
-enum pxp_tph_st_hint {
+enum pxp_tph_st_hint
+{
 	TPH_ST_HINT_BIDIR,
 	TPH_ST_HINT_REQUESTER,
 	TPH_ST_HINT_TARGET,
@@ -1409,7 +1503,8 @@ enum pxp_tph_st_hint {
 };
 
 /* QM hardware structure of enable bypass credit mask */
-struct qm_rf_bypass_mask {
+struct qm_rf_bypass_mask
+{
 	u8 flags;
 #define QM_RF_BYPASS_MASK_LINEVOQ_MASK		0x1
 #define QM_RF_BYPASS_MASK_LINEVOQ_SHIFT		0
@@ -1430,7 +1525,8 @@ struct qm_rf_bypass_mask {
 };
 
 /* QM hardware structure of opportunistic credit mask */
-struct qm_rf_opportunistic_mask {
+struct qm_rf_opportunistic_mask
+{
 	__le16 flags;
 #define QM_RF_OPPORTUNISTIC_MASK_LINEVOQ_MASK		0x1
 #define QM_RF_OPPORTUNISTIC_MASK_LINEVOQ_SHIFT		0
@@ -1455,7 +1551,8 @@ struct qm_rf_opportunistic_mask {
 };
 
 /* QM hardware structure of QM map memory */
-struct qm_rf_pq_map {
+struct qm_rf_pq_map
+{
 	__le32 reg;
 #define QM_RF_PQ_MAP_PQ_VALID_MASK		0x1
 #define QM_RF_PQ_MAP_PQ_VALID_SHIFT		0
@@ -1474,7 +1571,8 @@ struct qm_rf_pq_map {
 };
 
 /* Completion params for aggregated interrupt completion */
-struct sdm_agg_int_comp_params {
+struct sdm_agg_int_comp_params
+{
 	__le16 params;
 #define SDM_AGG_INT_COMP_PARAMS_AGG_INT_INDEX_MASK	0x3F
 #define SDM_AGG_INT_COMP_PARAMS_AGG_INT_INDEX_SHIFT	0
@@ -1485,7 +1583,8 @@ struct sdm_agg_int_comp_params {
 };
 
 /* SDM operation gen command (generate aggregative interrupt) */
-struct sdm_op_gen {
+struct sdm_op_gen
+{
 	__le32 command;
 #define SDM_OP_GEN_COMP_PARAM_MASK	0xFFFF
 #define SDM_OP_GEN_COMP_PARAM_SHIFT	0
@@ -1495,7 +1594,8 @@ struct sdm_op_gen {
 #define SDM_OP_GEN_RESERVED_SHIFT	20
 };
 
-struct ystorm_core_conn_ag_ctx {
+struct ystorm_core_conn_ag_ctx
+{
 	u8 byte0;
 	u8 byte1;
 	u8 flags0;
@@ -1543,7 +1643,8 @@ struct ystorm_core_conn_ag_ctx {
 /* Debug Tools HSI constants and macros */
 /****************************************/
 
-enum block_addr {
+enum block_addr
+{
 	GRCBASE_GRC = 0x50000,
 	GRCBASE_MISCS = 0x9000,
 	GRCBASE_MISC = 0x8000,
@@ -1627,7 +1728,8 @@ enum block_addr {
 	MAX_BLOCK_ADDR
 };
 
-enum block_id {
+enum block_id
+{
 	BLOCK_GRC,
 	BLOCK_MISCS,
 	BLOCK_MISC,
@@ -1712,7 +1814,8 @@ enum block_id {
 };
 
 /* binary debug buffer types */
-enum bin_dbg_buffer_type {
+enum bin_dbg_buffer_type
+{
 	BIN_BUF_DBG_MODE_TREE,
 	BIN_BUF_DBG_DUMP_REG,
 	BIN_BUF_DBG_DUMP_MEM,
@@ -1730,7 +1833,8 @@ enum bin_dbg_buffer_type {
 
 
 /* Attention bit mapping */
-struct dbg_attn_bit_mapping {
+struct dbg_attn_bit_mapping
+{
 	__le16 data;
 #define DBG_ATTN_BIT_MAPPING_VAL_MASK			0x7FFF
 #define DBG_ATTN_BIT_MAPPING_VAL_SHIFT			0
@@ -1739,7 +1843,8 @@ struct dbg_attn_bit_mapping {
 };
 
 /* Attention block per-type data */
-struct dbg_attn_block_type_data {
+struct dbg_attn_block_type_data
+{
 	__le16 names_offset;
 	__le16 reserved1;
 	u8 num_regs;
@@ -1748,12 +1853,14 @@ struct dbg_attn_block_type_data {
 };
 
 /* Block attentions */
-struct dbg_attn_block {
+struct dbg_attn_block
+{
 	struct dbg_attn_block_type_data per_type_data[2];
 };
 
 /* Attention register result */
-struct dbg_attn_reg_result {
+struct dbg_attn_reg_result
+{
 	__le32 data;
 #define DBG_ATTN_REG_RESULT_STS_ADDRESS_MASK	0xFFFFFF
 #define DBG_ATTN_REG_RESULT_STS_ADDRESS_SHIFT	0
@@ -1766,7 +1873,8 @@ struct dbg_attn_reg_result {
 };
 
 /* Attention block result */
-struct dbg_attn_block_result {
+struct dbg_attn_block_result
+{
 	u8 block_id;
 	u8 data;
 #define DBG_ATTN_BLOCK_RESULT_ATTN_TYPE_MASK	0x3
@@ -1778,7 +1886,8 @@ struct dbg_attn_block_result {
 };
 
 /* mode header */
-struct dbg_mode_hdr {
+struct dbg_mode_hdr
+{
 	__le16 data;
 #define DBG_MODE_HDR_EVAL_MODE_MASK		0x1
 #define DBG_MODE_HDR_EVAL_MODE_SHIFT		0
@@ -1787,7 +1896,8 @@ struct dbg_mode_hdr {
 };
 
 /* Attention register */
-struct dbg_attn_reg {
+struct dbg_attn_reg
+{
 	struct dbg_mode_hdr mode;
 	__le16 attn_idx_offset;
 	__le32 data;
@@ -1800,21 +1910,24 @@ struct dbg_attn_reg {
 };
 
 /* attention types */
-enum dbg_attn_type {
+enum dbg_attn_type
+{
 	ATTN_TYPE_INTERRUPT,
 	ATTN_TYPE_PARITY,
 	MAX_DBG_ATTN_TYPE
 };
 
 /* condition header for registers dump */
-struct dbg_dump_cond_hdr {
+struct dbg_dump_cond_hdr
+{
 	struct dbg_mode_hdr mode; /* Mode header */
 	u8 block_id; /* block ID */
 	u8 data_size; /* size in dwords of the data following this header */
 };
 
 /* memory data for registers dump */
-struct dbg_dump_mem {
+struct dbg_dump_mem
+{
 	__le32 dword0;
 #define DBG_DUMP_MEM_ADDRESS_MASK       0xFFFFFF
 #define DBG_DUMP_MEM_ADDRESS_SHIFT      0
@@ -1828,7 +1941,8 @@ struct dbg_dump_mem {
 };
 
 /* register data for registers dump */
-struct dbg_dump_reg {
+struct dbg_dump_reg
+{
 	__le32 data;
 #define DBG_DUMP_REG_ADDRESS_MASK  0xFFFFFF /* register address (in dwords) */
 #define DBG_DUMP_REG_ADDRESS_SHIFT 0
@@ -1837,7 +1951,8 @@ struct dbg_dump_reg {
 };
 
 /* split header for registers dump */
-struct dbg_dump_split_hdr {
+struct dbg_dump_split_hdr
+{
 	__le32 hdr;
 #define DBG_DUMP_SPLIT_HDR_DATA_SIZE_MASK      0xFFFFFF
 #define DBG_DUMP_SPLIT_HDR_DATA_SIZE_SHIFT     0
@@ -1846,13 +1961,15 @@ struct dbg_dump_split_hdr {
 };
 
 /* condition header for idle check */
-struct dbg_idle_chk_cond_hdr {
+struct dbg_idle_chk_cond_hdr
+{
 	struct dbg_mode_hdr mode; /* Mode header */
 	__le16 data_size; /* size in dwords of the data following this header */
 };
 
 /* Idle Check condition register */
-struct dbg_idle_chk_cond_reg {
+struct dbg_idle_chk_cond_reg
+{
 	__le32 data;
 #define DBG_IDLE_CHK_COND_REG_ADDRESS_MASK   0xFFFFFF
 #define DBG_IDLE_CHK_COND_REG_ADDRESS_SHIFT  0
@@ -1864,7 +1981,8 @@ struct dbg_idle_chk_cond_reg {
 };
 
 /* Idle Check info register */
-struct dbg_idle_chk_info_reg {
+struct dbg_idle_chk_info_reg
+{
 	__le32 data;
 #define DBG_IDLE_CHK_INFO_REG_ADDRESS_MASK   0xFFFFFF
 #define DBG_IDLE_CHK_INFO_REG_ADDRESS_SHIFT  0
@@ -1875,13 +1993,15 @@ struct dbg_idle_chk_info_reg {
 };
 
 /* Idle Check register */
-union dbg_idle_chk_reg {
+union dbg_idle_chk_reg
+{
 	struct dbg_idle_chk_cond_reg cond_reg; /* condition register */
 	struct dbg_idle_chk_info_reg info_reg; /* info register */
 };
 
 /* Idle Check result header */
-struct dbg_idle_chk_result_hdr {
+struct dbg_idle_chk_result_hdr
+{
 	__le16 rule_id; /* Failing rule index */
 	__le16 mem_entry_id; /* Failing memory entry index */
 	u8 num_dumped_cond_regs; /* number of dumped condition registers */
@@ -1891,7 +2011,8 @@ struct dbg_idle_chk_result_hdr {
 };
 
 /* Idle Check result register header */
-struct dbg_idle_chk_result_reg_hdr {
+struct dbg_idle_chk_result_reg_hdr
+{
 	u8 data;
 #define DBG_IDLE_CHK_RESULT_REG_HDR_IS_MEM_MASK  0x1
 #define DBG_IDLE_CHK_RESULT_REG_HDR_IS_MEM_SHIFT 0
@@ -1902,7 +2023,8 @@ struct dbg_idle_chk_result_reg_hdr {
 };
 
 /* Idle Check rule */
-struct dbg_idle_chk_rule {
+struct dbg_idle_chk_rule
+{
 	__le16 rule_id; /* Idle Check rule ID */
 	u8 severity; /* value from dbg_idle_chk_severity_types enum */
 	u8 cond_id; /* Condition ID */
@@ -1919,7 +2041,8 @@ struct dbg_idle_chk_rule {
 };
 
 /* Idle Check rule parsing data */
-struct dbg_idle_chk_rule_parsing_data {
+struct dbg_idle_chk_rule_parsing_data
+{
 	__le32 data;
 #define DBG_IDLE_CHK_RULE_PARSING_DATA_HAS_FW_MSG_MASK  0x1
 #define DBG_IDLE_CHK_RULE_PARSING_DATA_HAS_FW_MSG_SHIFT 0
@@ -1928,7 +2051,8 @@ struct dbg_idle_chk_rule_parsing_data {
 };
 
 /* idle check severity types */
-enum dbg_idle_chk_severity_types {
+enum dbg_idle_chk_severity_types
+{
 	/* idle check failure should cause an error */
 	IDLE_CHK_SEVERITY_ERROR,
 	/* idle check failure should cause an error only if theres no traffic */
@@ -1939,7 +2063,8 @@ enum dbg_idle_chk_severity_types {
 };
 
 /* Debug Bus block data */
-struct dbg_bus_block_data {
+struct dbg_bus_block_data
+{
 	u8 enabled; /* Indicates if the block is enabled for recording (0/1) */
 	u8 hw_id; /* HW ID associated with the block */
 	u8 line_num; /* Debug line number to select */
@@ -1952,7 +2077,8 @@ struct dbg_bus_block_data {
 };
 
 /* Debug Bus Clients */
-enum dbg_bus_clients {
+enum dbg_bus_clients
+{
 	DBG_BUS_CLIENT_RBCN,
 	DBG_BUS_CLIENT_RBCP,
 	DBG_BUS_CLIENT_RBCR,
@@ -1976,38 +2102,44 @@ enum dbg_bus_clients {
 };
 
 /* Debug Bus memory address */
-struct dbg_bus_mem_addr {
+struct dbg_bus_mem_addr
+{
 	__le32 lo;
 	__le32 hi;
 };
 
 /* Debug Bus PCI buffer data */
-struct dbg_bus_pci_buf_data {
+struct dbg_bus_pci_buf_data
+{
 	struct dbg_bus_mem_addr phys_addr; /* PCI buffer physical address */
 	struct dbg_bus_mem_addr virt_addr; /* PCI buffer virtual address */
 	__le32 size; /* PCI buffer size in bytes */
 };
 
 /* Debug Bus Storm EID range filter params */
-struct dbg_bus_storm_eid_range_params {
+struct dbg_bus_storm_eid_range_params
+{
 	u8 min; /* Minimal event ID to filter on */
 	u8 max; /* Maximal event ID to filter on */
 };
 
 /* Debug Bus Storm EID mask filter params */
-struct dbg_bus_storm_eid_mask_params {
+struct dbg_bus_storm_eid_mask_params
+{
 	u8 val; /* Event ID value */
 	u8 mask; /* Event ID mask. 1s in the mask = dont care bits. */
 };
 
 /* Debug Bus Storm EID filter params */
-union dbg_bus_storm_eid_params {
+union dbg_bus_storm_eid_params
+{
 	struct dbg_bus_storm_eid_range_params range;
 	struct dbg_bus_storm_eid_mask_params mask;
 };
 
 /* Debug Bus Storm data */
-struct dbg_bus_storm_data {
+struct dbg_bus_storm_data
+{
 	u8 fast_enabled;
 	u8 fast_mode;
 	u8 slow_enabled;
@@ -2022,7 +2154,8 @@ struct dbg_bus_storm_data {
 };
 
 /* Debug Bus data */
-struct dbg_bus_data {
+struct dbg_bus_data
+{
 	__le32 app_version; /* The tools version number of the application */
 	u8 state; /* The current debug bus state */
 	u8 hw_dwords; /* HW dwords per cycle */
@@ -2071,7 +2204,8 @@ struct dbg_bus_data {
 };
 
 /* Debug bus frame modes */
-enum dbg_bus_frame_modes {
+enum dbg_bus_frame_modes
+{
 	DBG_BUS_FRAME_MODE_0HW_4ST = 0, /* 0 HW dwords, 4 Storm dwords */
 	DBG_BUS_FRAME_MODE_4HW_0ST = 3, /* 4 HW dwords, 0 Storm dwords */
 	DBG_BUS_FRAME_MODE_8HW_0ST = 4, /* 8 HW dwords, 0 Storm dwords */
@@ -2079,7 +2213,8 @@ enum dbg_bus_frame_modes {
 };
 
 /* Debug bus states */
-enum dbg_bus_states {
+enum dbg_bus_states
+{
 	DBG_BUS_STATE_IDLE, /* debug bus idle state (not recording) */
 	DBG_BUS_STATE_READY, /* debug bus is ready for configuration and
 			      * recording.
@@ -2090,7 +2225,8 @@ enum dbg_bus_states {
 };
 
 /* Debug bus target IDs */
-enum dbg_bus_targets {
+enum dbg_bus_targets
+{
 	/* records debug bus to DBG block internal buffer */
 	DBG_BUS_TARGET_ID_INT_BUF,
 	/* records debug bus to the NW */
@@ -2101,7 +2237,8 @@ enum dbg_bus_targets {
 };
 
 /* GRC Dump data */
-struct dbg_grc_data {
+struct dbg_grc_data
+{
 	__le32 param_val[40]; /* Value of each GRC parameter. Array size must
 			       * match the enum dbg_grc_params.
 			       */
@@ -2112,7 +2249,8 @@ struct dbg_grc_data {
 };
 
 /* Debug GRC params */
-enum dbg_grc_params {
+enum dbg_grc_params
+{
 	DBG_GRC_PARAM_DUMP_TSTORM, /* dump Tstorm memories (0/1) */
 	DBG_GRC_PARAM_DUMP_MSTORM, /* dump Mstorm memories (0/1) */
 	DBG_GRC_PARAM_DUMP_USTORM, /* dump Ustorm memories (0/1) */
@@ -2159,7 +2297,8 @@ enum dbg_grc_params {
 };
 
 /* Debug reset registers */
-enum dbg_reset_regs {
+enum dbg_reset_regs
+{
 	DBG_RESET_REG_MISCS_PL_UA,
 	DBG_RESET_REG_MISCS_PL_HV,
 	DBG_RESET_REG_MISCS_PL_HV_2,
@@ -2172,7 +2311,8 @@ enum dbg_reset_regs {
 };
 
 /* Debug status codes */
-enum dbg_status {
+enum dbg_status
+{
 	DBG_STATUS_OK,
 	DBG_STATUS_APP_VERSION_NOT_SET,
 	DBG_STATUS_UNSUPPORTED_APP_VERSION,
@@ -2228,7 +2368,8 @@ enum dbg_status {
 };
 
 /* Debug Storms IDs */
-enum dbg_storms {
+enum dbg_storms
+{
 	DBG_TSTORM_ID,
 	DBG_MSTORM_ID,
 	DBG_USTORM_ID,
@@ -2239,7 +2380,8 @@ enum dbg_storms {
 };
 
 /* Idle Check data */
-struct idle_chk_data {
+struct idle_chk_data
+{
 	__le32 buf_size; /* Idle check buffer size in dwords */
 	u8 buf_size_set; /* Indicates if the idle check buffer size was set
 			  * (0/1).
@@ -2249,7 +2391,8 @@ struct idle_chk_data {
 };
 
 /* Debug Tools data (per HW function) */
-struct dbg_tools_data {
+struct dbg_tools_data
+{
 	struct dbg_grc_data grc; /* GRC Dump data */
 	struct dbg_bus_data bus; /* Debug Bus data */
 	struct idle_chk_data idle_chk; /* Idle Check data */
@@ -2269,7 +2412,8 @@ struct dbg_tools_data {
 /* Number of VLAN priorities */
 #define NUM_OF_VLAN_PRIORITIES	8
 
-struct init_brb_ram_req {
+struct init_brb_ram_req
+{
 	__le32 guranteed_per_tc;
 	__le32 headroom_per_tc;
 	__le32 min_pkt_size;
@@ -2277,34 +2421,40 @@ struct init_brb_ram_req {
 	u8 num_active_tcs[MAX_NUM_PORTS];
 };
 
-struct init_ets_tc_req {
+struct init_ets_tc_req
+{
 	u8 use_sp;
 	u8 use_wfq;
 	__le16 weight;
 };
 
-struct init_ets_req {
+struct init_ets_req
+{
 	__le32 mtu;
 	struct init_ets_tc_req tc_req[NUM_OF_TCS];
 };
 
-struct init_nig_lb_rl_req {
+struct init_nig_lb_rl_req
+{
 	__le16 lb_mac_rate;
 	__le16 lb_rate;
 	__le32 mtu;
 	__le16 tc_rate[NUM_OF_PHYS_TCS];
 };
 
-struct init_nig_pri_tc_map_entry {
+struct init_nig_pri_tc_map_entry
+{
 	u8 tc_id;
 	u8 valid;
 };
 
-struct init_nig_pri_tc_map_req {
+struct init_nig_pri_tc_map_req
+{
 	struct init_nig_pri_tc_map_entry pri[NUM_OF_VLAN_PRIORITIES];
 };
 
-struct init_qm_port_params {
+struct init_qm_port_params
+{
 	u8 active;
 	u8 active_phys_tcs;
 	__le16 num_pbf_cmd_lines;
@@ -2313,7 +2463,8 @@ struct init_qm_port_params {
 };
 
 /* QM per-PQ init parameters */
-struct init_qm_pq_params {
+struct init_qm_pq_params
+{
 	u8 vport_id;
 	u8 tc_id;
 	u8 wrr_group;
@@ -2321,7 +2472,8 @@ struct init_qm_pq_params {
 };
 
 /* QM per-vport init parameters */
-struct init_qm_vport_params {
+struct init_qm_vport_params
+{
 	__le32 vport_rl;
 	__le16 vport_wfq;
 	__le16 first_tx_pq_id[NUM_OF_TCS];
@@ -2341,7 +2493,8 @@ struct init_qm_vport_params {
 /* Max size in dwords of a zipped array */
 #define MAX_ZIPPED_SIZE	8192
 
-struct fw_asserts_ram_section {
+struct fw_asserts_ram_section
+{
 	__le16 section_ram_line_offset;
 	__le16 section_ram_line_size;
 	u8 list_dword_offset;
@@ -2350,14 +2503,16 @@ struct fw_asserts_ram_section {
 	u8 list_next_index_dword_offset;
 };
 
-struct fw_ver_num {
+struct fw_ver_num
+{
 	u8 major; /* Firmware major version number */
 	u8 minor; /* Firmware minor version number */
 	u8 rev; /* Firmware revision version number */
 	u8 eng; /* Firmware engineering version number (for bootleg versions) */
 };
 
-struct fw_ver_info {
+struct fw_ver_info
+{
 	__le16 tools_ver; /* Tools version number */
 	u8 image_id; /* FW image ID (e.g. main) */
 	u8 reserved1;
@@ -2366,17 +2521,20 @@ struct fw_ver_info {
 	__le32 reserved2;
 };
 
-struct fw_info {
+struct fw_info
+{
 	struct fw_ver_info ver;
 	struct fw_asserts_ram_section fw_asserts_section;
 };
 
-struct fw_info_location {
+struct fw_info_location
+{
 	__le32 grc_addr;
 	__le32 size;
 };
 
-enum init_modes {
+enum init_modes
+{
 	MODE_RESERVED,
 	MODE_BB_B0,
 	MODE_K2,
@@ -2397,7 +2555,8 @@ enum init_modes {
 	MAX_INIT_MODES
 };
 
-enum init_phases {
+enum init_phases
+{
 	PHASE_ENGINE,
 	PHASE_PORT,
 	PHASE_PF,
@@ -2406,7 +2565,8 @@ enum init_phases {
 	MAX_INIT_PHASES
 };
 
-enum init_split_types {
+enum init_split_types
+{
 	SPLIT_TYPE_NONE,
 	SPLIT_TYPE_PORT,
 	SPLIT_TYPE_PF,
@@ -2416,13 +2576,15 @@ enum init_split_types {
 };
 
 /* Binary buffer header */
-struct bin_buffer_hdr {
+struct bin_buffer_hdr
+{
 	__le32 offset;
 	__le32 length;
 };
 
 /* binary init buffer types */
-enum bin_init_buffer_type {
+enum bin_init_buffer_type
+{
 	BIN_BUF_INIT_FW_VER_INFO,
 	BIN_BUF_INIT_CMD,
 	BIN_BUF_INIT_VAL,
@@ -2432,7 +2594,8 @@ enum bin_init_buffer_type {
 };
 
 /* init array header: raw */
-struct init_array_raw_hdr {
+struct init_array_raw_hdr
+{
 	__le32 data;
 #define INIT_ARRAY_RAW_HDR_TYPE_MASK	0xF
 #define INIT_ARRAY_RAW_HDR_TYPE_SHIFT	0
@@ -2441,7 +2604,8 @@ struct init_array_raw_hdr {
 };
 
 /* init array header: standard */
-struct init_array_standard_hdr {
+struct init_array_standard_hdr
+{
 	__le32 data;
 #define INIT_ARRAY_STANDARD_HDR_TYPE_MASK	0xF
 #define INIT_ARRAY_STANDARD_HDR_TYPE_SHIFT	0
@@ -2450,7 +2614,8 @@ struct init_array_standard_hdr {
 };
 
 /* init array header: zipped */
-struct init_array_zipped_hdr {
+struct init_array_zipped_hdr
+{
 	__le32 data;
 #define INIT_ARRAY_ZIPPED_HDR_TYPE_MASK		0xF
 #define INIT_ARRAY_ZIPPED_HDR_TYPE_SHIFT	0
@@ -2459,7 +2624,8 @@ struct init_array_zipped_hdr {
 };
 
 /* init array header: pattern */
-struct init_array_pattern_hdr {
+struct init_array_pattern_hdr
+{
 	__le32 data;
 #define INIT_ARRAY_PATTERN_HDR_TYPE_MASK		0xF
 #define INIT_ARRAY_PATTERN_HDR_TYPE_SHIFT		0
@@ -2470,7 +2636,8 @@ struct init_array_pattern_hdr {
 };
 
 /* init array header union */
-union init_array_hdr {
+union init_array_hdr
+{
 	struct init_array_raw_hdr raw;
 	struct init_array_standard_hdr standard;
 	struct init_array_zipped_hdr zipped;
@@ -2478,7 +2645,8 @@ union init_array_hdr {
 };
 
 /* init array types */
-enum init_array_types {
+enum init_array_types
+{
 	INIT_ARR_STANDARD,
 	INIT_ARR_ZIPPED,
 	INIT_ARR_PATTERN,
@@ -2486,7 +2654,8 @@ enum init_array_types {
 };
 
 /* init operation: callback */
-struct init_callback_op {
+struct init_callback_op
+{
 	__le32 op_data;
 #define INIT_CALLBACK_OP_OP_MASK	0xF
 #define INIT_CALLBACK_OP_OP_SHIFT	0
@@ -2497,7 +2666,8 @@ struct init_callback_op {
 };
 
 /* init operation: delay */
-struct init_delay_op {
+struct init_delay_op
+{
 	__le32 op_data;
 #define INIT_DELAY_OP_OP_MASK		0xF
 #define INIT_DELAY_OP_OP_SHIFT		0
@@ -2507,7 +2677,8 @@ struct init_delay_op {
 };
 
 /* init operation: if_mode */
-struct init_if_mode_op {
+struct init_if_mode_op
+{
 	__le32 op_data;
 #define INIT_IF_MODE_OP_OP_MASK			0xF
 #define INIT_IF_MODE_OP_OP_SHIFT		0
@@ -2520,7 +2691,8 @@ struct init_if_mode_op {
 };
 
 /* init operation: if_phase */
-struct init_if_phase_op {
+struct init_if_phase_op
+{
 	__le32 op_data;
 #define INIT_IF_PHASE_OP_OP_MASK		0xF
 #define INIT_IF_PHASE_OP_OP_SHIFT		0
@@ -2540,7 +2712,8 @@ struct init_if_phase_op {
 };
 
 /* init mode operators */
-enum init_mode_ops {
+enum init_mode_ops
+{
 	INIT_MODE_OP_NOT,
 	INIT_MODE_OP_OR,
 	INIT_MODE_OP_AND,
@@ -2548,7 +2721,8 @@ enum init_mode_ops {
 };
 
 /* init operation: raw */
-struct init_raw_op {
+struct init_raw_op
+{
 	__le32 op_data;
 #define INIT_RAW_OP_OP_MASK		0xF
 #define INIT_RAW_OP_OP_SHIFT		0
@@ -2558,13 +2732,15 @@ struct init_raw_op {
 };
 
 /* init array params */
-struct init_op_array_params {
+struct init_op_array_params
+{
 	__le16 size;
 	__le16 offset;
 };
 
 /* Write init operation arguments */
-union init_write_args {
+union init_write_args
+{
 	__le32 inline_val;
 	__le32 zeros_count;
 	__le32 array_offset;
@@ -2572,7 +2748,8 @@ union init_write_args {
 };
 
 /* init operation: write */
-struct init_write_op {
+struct init_write_op
+{
 	__le32 data;
 #define INIT_WRITE_OP_OP_MASK		0xF
 #define INIT_WRITE_OP_OP_SHIFT		0
@@ -2588,7 +2765,8 @@ struct init_write_op {
 };
 
 /* init operation: read */
-struct init_read_op {
+struct init_read_op
+{
 	__le32 op_data;
 #define INIT_READ_OP_OP_MASK		0xF
 #define INIT_READ_OP_OP_SHIFT		0
@@ -2603,7 +2781,8 @@ struct init_read_op {
 };
 
 /* Init operations union */
-union init_op {
+union init_op
+{
 	struct init_raw_op raw;
 	struct init_write_op write;
 	struct init_read_op read;
@@ -2614,7 +2793,8 @@ union init_op {
 };
 
 /* Init command operation types */
-enum init_op_types {
+enum init_op_types
+{
 	INIT_OP_READ,
 	INIT_OP_WRITE,
 	INIT_OP_IF_MODE,
@@ -2625,7 +2805,8 @@ enum init_op_types {
 };
 
 /* init polling types */
-enum init_poll_types {
+enum init_poll_types
+{
 	INIT_POLL_NONE,
 	INIT_POLL_EQ,
 	INIT_POLL_OR,
@@ -2634,7 +2815,8 @@ enum init_poll_types {
 };
 
 /* init source types */
-enum init_source_types {
+enum init_source_types
+{
 	INIT_SRC_INLINE,
 	INIT_SRC_ZEROS,
 	INIT_SRC_ARRAY,
@@ -2643,7 +2825,8 @@ enum init_source_types {
 };
 
 /* Internal RAM Offsets macro data */
-struct iro {
+struct iro
+{
 	__le32 base;
 	__le16 m1;
 	__le16 m2;
@@ -2658,7 +2841,7 @@ struct iro {
  *
  * @param bin_ptr - a pointer to the binary data with debug arrays.
  */
-enum dbg_status qed_dbg_set_bin_ptr(const u8 * const bin_ptr);
+enum dbg_status qed_dbg_set_bin_ptr(const u8 *const bin_ptr);
 /**
  * @brief qed_dbg_grc_get_dump_buf_size - Returns the required buffer size for
  *	GRC Dump.
@@ -2673,8 +2856,8 @@ enum dbg_status qed_dbg_set_bin_ptr(const u8 * const bin_ptr);
  * Otherwise, returns ok.
  */
 enum dbg_status qed_dbg_grc_get_dump_buf_size(struct qed_hwfn *p_hwfn,
-					      struct qed_ptt *p_ptt,
-					      u32 *buf_size);
+		struct qed_ptt *p_ptt,
+		u32 *buf_size);
 /**
  * @brief qed_dbg_grc_dump - Dumps GRC data into the specified buffer.
  *
@@ -2690,10 +2873,10 @@ enum dbg_status qed_dbg_grc_get_dump_buf_size(struct qed_hwfn *p_hwfn,
  * Otherwise, returns ok.
  */
 enum dbg_status qed_dbg_grc_dump(struct qed_hwfn *p_hwfn,
-				 struct qed_ptt *p_ptt,
-				 u32 *dump_buf,
-				 u32 buf_size_in_dwords,
-				 u32 *num_dumped_dwords);
+								 struct qed_ptt *p_ptt,
+								 u32 *dump_buf,
+								 u32 buf_size_in_dwords,
+								 u32 *num_dumped_dwords);
 /**
  * @brief qed_dbg_idle_chk_get_dump_buf_size - Returns the required buffer size
  *	for idle check results.
@@ -2708,8 +2891,8 @@ enum dbg_status qed_dbg_grc_dump(struct qed_hwfn *p_hwfn,
  * Otherwise, returns ok.
  */
 enum dbg_status qed_dbg_idle_chk_get_dump_buf_size(struct qed_hwfn *p_hwfn,
-						   struct qed_ptt *p_ptt,
-						   u32 *buf_size);
+		struct qed_ptt *p_ptt,
+		u32 *buf_size);
 /**
  * @brief qed_dbg_idle_chk_dump - Performs idle check and writes the results
  *	into the specified buffer.
@@ -2726,10 +2909,10 @@ enum dbg_status qed_dbg_idle_chk_get_dump_buf_size(struct qed_hwfn *p_hwfn,
  * Otherwise, returns ok.
  */
 enum dbg_status qed_dbg_idle_chk_dump(struct qed_hwfn *p_hwfn,
-				      struct qed_ptt *p_ptt,
-				      u32 *dump_buf,
-				      u32 buf_size_in_dwords,
-				      u32 *num_dumped_dwords);
+									  struct qed_ptt *p_ptt,
+									  u32 *dump_buf,
+									  u32 buf_size_in_dwords,
+									  u32 *num_dumped_dwords);
 /**
  * @brief qed_dbg_mcp_trace_get_dump_buf_size - Returns the required buffer size
  *	for mcp trace results.
@@ -2746,8 +2929,8 @@ enum dbg_status qed_dbg_idle_chk_dump(struct qed_hwfn *p_hwfn,
  * Otherwise, returns ok.
  */
 enum dbg_status qed_dbg_mcp_trace_get_dump_buf_size(struct qed_hwfn *p_hwfn,
-						    struct qed_ptt *p_ptt,
-						    u32 *buf_size);
+		struct qed_ptt *p_ptt,
+		u32 *buf_size);
 /**
  * @brief qed_dbg_mcp_trace_dump - Performs mcp trace and writes the results
  *	into the specified buffer.
@@ -2768,10 +2951,10 @@ enum dbg_status qed_dbg_mcp_trace_get_dump_buf_size(struct qed_hwfn *p_hwfn,
  * Otherwise, returns ok.
  */
 enum dbg_status qed_dbg_mcp_trace_dump(struct qed_hwfn *p_hwfn,
-				       struct qed_ptt *p_ptt,
-				       u32 *dump_buf,
-				       u32 buf_size_in_dwords,
-				       u32 *num_dumped_dwords);
+									   struct qed_ptt *p_ptt,
+									   u32 *dump_buf,
+									   u32 buf_size_in_dwords,
+									   u32 *num_dumped_dwords);
 /**
  * @brief qed_dbg_reg_fifo_get_dump_buf_size - Returns the required buffer size
  *	for grc trace fifo results.
@@ -2785,8 +2968,8 @@ enum dbg_status qed_dbg_mcp_trace_dump(struct qed_hwfn *p_hwfn,
  * Otherwise, returns ok.
  */
 enum dbg_status qed_dbg_reg_fifo_get_dump_buf_size(struct qed_hwfn *p_hwfn,
-						   struct qed_ptt *p_ptt,
-						   u32 *buf_size);
+		struct qed_ptt *p_ptt,
+		u32 *buf_size);
 /**
  * @brief qed_dbg_reg_fifo_dump - Reads the reg fifo and writes the results into
  *	the specified buffer.
@@ -2804,10 +2987,10 @@ enum dbg_status qed_dbg_reg_fifo_get_dump_buf_size(struct qed_hwfn *p_hwfn,
  * Otherwise, returns ok.
  */
 enum dbg_status qed_dbg_reg_fifo_dump(struct qed_hwfn *p_hwfn,
-				      struct qed_ptt *p_ptt,
-				      u32 *dump_buf,
-				      u32 buf_size_in_dwords,
-				      u32 *num_dumped_dwords);
+									  struct qed_ptt *p_ptt,
+									  u32 *dump_buf,
+									  u32 buf_size_in_dwords,
+									  u32 *num_dumped_dwords);
 /**
  * @brief qed_dbg_igu_fifo_get_dump_buf_size - Returns the required buffer size
  *	for the IGU fifo results.
@@ -2822,8 +3005,8 @@ enum dbg_status qed_dbg_reg_fifo_dump(struct qed_hwfn *p_hwfn,
  * Otherwise, returns ok.
  */
 enum dbg_status qed_dbg_igu_fifo_get_dump_buf_size(struct qed_hwfn *p_hwfn,
-						   struct qed_ptt *p_ptt,
-						   u32 *buf_size);
+		struct qed_ptt *p_ptt,
+		u32 *buf_size);
 /**
  * @brief qed_dbg_igu_fifo_dump - Reads the IGU fifo and writes the results into
  *	the specified buffer.
@@ -2841,10 +3024,10 @@ enum dbg_status qed_dbg_igu_fifo_get_dump_buf_size(struct qed_hwfn *p_hwfn,
  * Otherwise, returns ok.
  */
 enum dbg_status qed_dbg_igu_fifo_dump(struct qed_hwfn *p_hwfn,
-				      struct qed_ptt *p_ptt,
-				      u32 *dump_buf,
-				      u32 buf_size_in_dwords,
-				      u32 *num_dumped_dwords);
+									  struct qed_ptt *p_ptt,
+									  u32 *dump_buf,
+									  u32 buf_size_in_dwords,
+									  u32 *num_dumped_dwords);
 /**
  * @brief qed_dbg_protection_override_get_dump_buf_size - Returns the required
  *	buffer size for protection override window results.
@@ -2860,8 +3043,8 @@ enum dbg_status qed_dbg_igu_fifo_dump(struct qed_hwfn *p_hwfn,
  */
 enum dbg_status
 qed_dbg_protection_override_get_dump_buf_size(struct qed_hwfn *p_hwfn,
-					      struct qed_ptt *p_ptt,
-					      u32 *buf_size);
+		struct qed_ptt *p_ptt,
+		u32 *buf_size);
 /**
  * @brief qed_dbg_protection_override_dump - Reads protection override window
  *	entries and writes the results into the specified buffer.
@@ -2879,10 +3062,10 @@ qed_dbg_protection_override_get_dump_buf_size(struct qed_hwfn *p_hwfn,
  * Otherwise, returns ok.
  */
 enum dbg_status qed_dbg_protection_override_dump(struct qed_hwfn *p_hwfn,
-						 struct qed_ptt *p_ptt,
-						 u32 *dump_buf,
-						 u32 buf_size_in_dwords,
-						 u32 *num_dumped_dwords);
+		struct qed_ptt *p_ptt,
+		u32 *dump_buf,
+		u32 buf_size_in_dwords,
+		u32 *num_dumped_dwords);
 /**
  * @brief qed_dbg_fw_asserts_get_dump_buf_size - Returns the required buffer
  *	size for FW Asserts results.
@@ -2896,8 +3079,8 @@ enum dbg_status qed_dbg_protection_override_dump(struct qed_hwfn *p_hwfn,
  * Otherwise, returns ok.
  */
 enum dbg_status qed_dbg_fw_asserts_get_dump_buf_size(struct qed_hwfn *p_hwfn,
-						     struct qed_ptt *p_ptt,
-						     u32 *buf_size);
+		struct qed_ptt *p_ptt,
+		u32 *buf_size);
 /**
  * @brief qed_dbg_fw_asserts_dump - Reads the FW Asserts and writes the results
  *	into the specified buffer.
@@ -2914,10 +3097,10 @@ enum dbg_status qed_dbg_fw_asserts_get_dump_buf_size(struct qed_hwfn *p_hwfn,
  * Otherwise, returns ok.
  */
 enum dbg_status qed_dbg_fw_asserts_dump(struct qed_hwfn *p_hwfn,
-					struct qed_ptt *p_ptt,
-					u32 *dump_buf,
-					u32 buf_size_in_dwords,
-					u32 *num_dumped_dwords);
+										struct qed_ptt *p_ptt,
+										u32 *dump_buf,
+										u32 buf_size_in_dwords,
+										u32 *num_dumped_dwords);
 /**
  * @brief qed_dbg_print_attn - Prints attention registers values in the
  *	specified results struct.
@@ -2930,7 +3113,7 @@ enum dbg_status qed_dbg_fw_asserts_dump(struct qed_hwfn *p_hwfn,
  * Otherwise, returns ok.
  */
 enum dbg_status qed_dbg_print_attn(struct qed_hwfn *p_hwfn,
-				   struct dbg_attn_block_result *results);
+								   struct dbg_attn_block_result *results);
 
 /******************************** Constants **********************************/
 
@@ -2943,7 +3126,7 @@ enum dbg_status qed_dbg_print_attn(struct qed_hwfn *p_hwfn,
  *
  * @param bin_ptr - a pointer to the binary data with debug arrays.
  */
-enum dbg_status qed_dbg_user_set_bin_ptr(const u8 * const bin_ptr);
+enum dbg_status qed_dbg_user_set_bin_ptr(const u8 *const bin_ptr);
 /**
  * @brief qed_dbg_get_status_str - Returns a string for the specified status.
  *
@@ -2965,9 +3148,9 @@ const char *qed_dbg_get_status_str(enum dbg_status status);
  * @return error if the parsing fails, ok otherwise.
  */
 enum dbg_status qed_get_idle_chk_results_buf_size(struct qed_hwfn *p_hwfn,
-						  u32 *dump_buf,
-						  u32  num_dumped_dwords,
-						  u32 *results_buf_size);
+		u32 *dump_buf,
+		u32  num_dumped_dwords,
+		u32 *results_buf_size);
 /**
  * @brief qed_print_idle_chk_results - Prints idle check results
  *
@@ -2981,11 +3164,11 @@ enum dbg_status qed_get_idle_chk_results_buf_size(struct qed_hwfn *p_hwfn,
  * @return error if the parsing fails, ok otherwise.
  */
 enum dbg_status qed_print_idle_chk_results(struct qed_hwfn *p_hwfn,
-					   u32 *dump_buf,
-					   u32 num_dumped_dwords,
-					   char *results_buf,
-					   u32 *num_errors,
-					   u32 *num_warnings);
+		u32 *dump_buf,
+		u32 num_dumped_dwords,
+		char *results_buf,
+		u32 *num_errors,
+		u32 *num_warnings);
 /**
  * @brief qed_get_mcp_trace_results_buf_size - Returns the required buffer size
  *	for MCP Trace results (in bytes).
@@ -2999,9 +3182,9 @@ enum dbg_status qed_print_idle_chk_results(struct qed_hwfn *p_hwfn,
  * @return error if the parsing fails, ok otherwise.
  */
 enum dbg_status qed_get_mcp_trace_results_buf_size(struct qed_hwfn *p_hwfn,
-						   u32 *dump_buf,
-						   u32 num_dumped_dwords,
-						   u32 *results_buf_size);
+		u32 *dump_buf,
+		u32 num_dumped_dwords,
+		u32 *results_buf_size);
 /**
  * @brief qed_print_mcp_trace_results - Prints MCP Trace results
  *
@@ -3013,9 +3196,9 @@ enum dbg_status qed_get_mcp_trace_results_buf_size(struct qed_hwfn *p_hwfn,
  * @return error if the parsing fails, ok otherwise.
  */
 enum dbg_status qed_print_mcp_trace_results(struct qed_hwfn *p_hwfn,
-					    u32 *dump_buf,
-					    u32 num_dumped_dwords,
-					    char *results_buf);
+		u32 *dump_buf,
+		u32 num_dumped_dwords,
+		char *results_buf);
 /**
  * @brief qed_get_reg_fifo_results_buf_size - Returns the required buffer size
  *	for reg_fifo results (in bytes).
@@ -3029,9 +3212,9 @@ enum dbg_status qed_print_mcp_trace_results(struct qed_hwfn *p_hwfn,
  * @return error if the parsing fails, ok otherwise.
  */
 enum dbg_status qed_get_reg_fifo_results_buf_size(struct qed_hwfn *p_hwfn,
-						  u32 *dump_buf,
-						  u32 num_dumped_dwords,
-						  u32 *results_buf_size);
+		u32 *dump_buf,
+		u32 num_dumped_dwords,
+		u32 *results_buf_size);
 /**
  * @brief qed_print_reg_fifo_results - Prints reg fifo results
  *
@@ -3043,9 +3226,9 @@ enum dbg_status qed_get_reg_fifo_results_buf_size(struct qed_hwfn *p_hwfn,
  * @return error if the parsing fails, ok otherwise.
  */
 enum dbg_status qed_print_reg_fifo_results(struct qed_hwfn *p_hwfn,
-					   u32 *dump_buf,
-					   u32 num_dumped_dwords,
-					   char *results_buf);
+		u32 *dump_buf,
+		u32 num_dumped_dwords,
+		char *results_buf);
 /**
  * @brief qed_get_igu_fifo_results_buf_size - Returns the required buffer size
  *	for igu_fifo results (in bytes).
@@ -3059,9 +3242,9 @@ enum dbg_status qed_print_reg_fifo_results(struct qed_hwfn *p_hwfn,
  * @return error if the parsing fails, ok otherwise.
  */
 enum dbg_status qed_get_igu_fifo_results_buf_size(struct qed_hwfn *p_hwfn,
-						  u32 *dump_buf,
-						  u32 num_dumped_dwords,
-						  u32 *results_buf_size);
+		u32 *dump_buf,
+		u32 num_dumped_dwords,
+		u32 *results_buf_size);
 /**
  * @brief qed_print_igu_fifo_results - Prints IGU fifo results
  *
@@ -3073,9 +3256,9 @@ enum dbg_status qed_get_igu_fifo_results_buf_size(struct qed_hwfn *p_hwfn,
  * @return error if the parsing fails, ok otherwise.
  */
 enum dbg_status qed_print_igu_fifo_results(struct qed_hwfn *p_hwfn,
-					   u32 *dump_buf,
-					   u32 num_dumped_dwords,
-					   char *results_buf);
+		u32 *dump_buf,
+		u32 num_dumped_dwords,
+		char *results_buf);
 /**
  * @brief qed_get_protection_override_results_buf_size - Returns the required
  *	buffer size for protection override results (in bytes).
@@ -3090,9 +3273,9 @@ enum dbg_status qed_print_igu_fifo_results(struct qed_hwfn *p_hwfn,
  */
 enum dbg_status
 qed_get_protection_override_results_buf_size(struct qed_hwfn *p_hwfn,
-					     u32 *dump_buf,
-					     u32 num_dumped_dwords,
-					     u32 *results_buf_size);
+		u32 *dump_buf,
+		u32 num_dumped_dwords,
+		u32 *results_buf_size);
 /**
  * @brief qed_print_protection_override_results - Prints protection override
  *	results.
@@ -3105,9 +3288,9 @@ qed_get_protection_override_results_buf_size(struct qed_hwfn *p_hwfn,
  * @return error if the parsing fails, ok otherwise.
  */
 enum dbg_status qed_print_protection_override_results(struct qed_hwfn *p_hwfn,
-						      u32 *dump_buf,
-						      u32 num_dumped_dwords,
-						      char *results_buf);
+		u32 *dump_buf,
+		u32 num_dumped_dwords,
+		char *results_buf);
 /**
  * @brief qed_get_fw_asserts_results_buf_size - Returns the required buffer size
  *	for FW Asserts results (in bytes).
@@ -3121,9 +3304,9 @@ enum dbg_status qed_print_protection_override_results(struct qed_hwfn *p_hwfn,
  * @return error if the parsing fails, ok otherwise.
  */
 enum dbg_status qed_get_fw_asserts_results_buf_size(struct qed_hwfn *p_hwfn,
-						    u32 *dump_buf,
-						    u32 num_dumped_dwords,
-						    u32 *results_buf_size);
+		u32 *dump_buf,
+		u32 num_dumped_dwords,
+		u32 *results_buf_size);
 /**
  * @brief qed_print_fw_asserts_results - Prints FW Asserts results
  *
@@ -3135,9 +3318,9 @@ enum dbg_status qed_get_fw_asserts_results_buf_size(struct qed_hwfn *p_hwfn,
  * @return error if the parsing fails, ok otherwise.
  */
 enum dbg_status qed_print_fw_asserts_results(struct qed_hwfn *p_hwfn,
-					     u32 *dump_buf,
-					     u32 num_dumped_dwords,
-					     char *results_buf);
+		u32 *dump_buf,
+		u32 num_dumped_dwords,
+		char *results_buf);
 /* Win 2 */
 #define GTT_BAR0_MAP_REG_IGU_CMD	0x00f000UL
 
@@ -3184,11 +3367,12 @@ enum dbg_status qed_print_fw_asserts_results(struct qed_hwfn *p_hwfn,
  * @return The required host memory size in 4KB units.
  */
 u32 qed_qm_pf_mem_size(u8 pf_id,
-		       u32 num_pf_cids,
-		       u32 num_vf_cids,
-		       u32 num_tids, u16 num_pf_pqs, u16 num_vf_pqs);
+					   u32 num_pf_cids,
+					   u32 num_vf_cids,
+					   u32 num_tids, u16 num_pf_pqs, u16 num_vf_pqs);
 
-struct qed_qm_common_rt_init_params {
+struct qed_qm_common_rt_init_params
+{
 	u8 max_ports_per_engine;
 	u8 max_phys_tcs_per_port;
 	bool pf_rl_en;
@@ -3199,9 +3383,10 @@ struct qed_qm_common_rt_init_params {
 };
 
 int qed_qm_common_rt_init(struct qed_hwfn *p_hwfn,
-			  struct qed_qm_common_rt_init_params *p_params);
+						  struct qed_qm_common_rt_init_params *p_params);
 
-struct qed_qm_pf_rt_init_params {
+struct qed_qm_pf_rt_init_params
+{
 	u8 port_id;
 	u8 pf_id;
 	u8 max_phys_tcs_per_port;
@@ -3221,8 +3406,8 @@ struct qed_qm_pf_rt_init_params {
 };
 
 int qed_qm_pf_rt_init(struct qed_hwfn *p_hwfn,
-	struct qed_ptt *p_ptt,
-	struct qed_qm_pf_rt_init_params *p_params);
+					  struct qed_ptt *p_ptt,
+					  struct qed_qm_pf_rt_init_params *p_params);
 
 /**
  * @brief qed_init_pf_wfq - Initializes the WFQ weight of the specified PF
@@ -3235,7 +3420,7 @@ int qed_qm_pf_rt_init(struct qed_hwfn *p_hwfn,
  * @return 0 on success, -1 on error.
  */
 int qed_init_pf_wfq(struct qed_hwfn *p_hwfn,
-		    struct qed_ptt *p_ptt, u8 pf_id, u16 pf_wfq);
+					struct qed_ptt *p_ptt, u8 pf_id, u16 pf_wfq);
 
 /**
  * @brief qed_init_pf_rl - Initializes the rate limit of the specified PF
@@ -3248,7 +3433,7 @@ int qed_init_pf_wfq(struct qed_hwfn *p_hwfn,
  * @return 0 on success, -1 on error.
  */
 int qed_init_pf_rl(struct qed_hwfn *p_hwfn,
-		   struct qed_ptt *p_ptt, u8 pf_id, u32 pf_rl);
+				   struct qed_ptt *p_ptt, u8 pf_id, u32 pf_rl);
 
 /**
  * @brief qed_init_vport_wfq Initializes the WFQ weight of the specified VPORT
@@ -3263,8 +3448,8 @@ int qed_init_pf_rl(struct qed_hwfn *p_hwfn,
  * @return 0 on success, -1 on error.
  */
 int qed_init_vport_wfq(struct qed_hwfn *p_hwfn,
-		       struct qed_ptt *p_ptt,
-		       u16 first_tx_pq_id[NUM_OF_TCS], u16 vport_wfq);
+					   struct qed_ptt *p_ptt,
+					   u16 first_tx_pq_id[NUM_OF_TCS], u16 vport_wfq);
 
 /**
  * @brief qed_init_vport_rl - Initializes the rate limit of the specified VPORT
@@ -3277,7 +3462,7 @@ int qed_init_vport_wfq(struct qed_hwfn *p_hwfn,
  * @return 0 on success, -1 on error.
  */
 int qed_init_vport_rl(struct qed_hwfn *p_hwfn,
-		      struct qed_ptt *p_ptt, u8 vport_id, u32 vport_rl);
+					  struct qed_ptt *p_ptt, u8 vport_id, u32 vport_rl);
 /**
  * @brief qed_send_qm_stop_cmd  Sends a stop command to the QM
  *
@@ -3291,9 +3476,9 @@ int qed_init_vport_rl(struct qed_hwfn *p_hwfn,
  * @return bool, true if successful, false if timeout occured while waiting for QM command done.
  */
 bool qed_send_qm_stop_cmd(struct qed_hwfn *p_hwfn,
-			  struct qed_ptt *p_ptt,
-			  bool is_release_cmd,
-			  bool is_tx_pq, u16 start_pq, u16 num_pqs);
+						  struct qed_ptt *p_ptt,
+						  bool is_release_cmd,
+						  bool is_tx_pq, u16 start_pq, u16 num_pqs);
 
 /**
  * @brief qed_set_vxlan_dest_port - initializes vxlan tunnel destination udp port
@@ -3302,7 +3487,7 @@ bool qed_send_qm_stop_cmd(struct qed_hwfn *p_hwfn,
  * @param dest_port - vxlan destination udp port.
  */
 void qed_set_vxlan_dest_port(struct qed_hwfn *p_hwfn,
-			     struct qed_ptt *p_ptt, u16 dest_port);
+							 struct qed_ptt *p_ptt, u16 dest_port);
 
 /**
  * @brief qed_set_vxlan_enable - enable or disable VXLAN tunnel in HW
@@ -3311,7 +3496,7 @@ void qed_set_vxlan_dest_port(struct qed_hwfn *p_hwfn,
  * @param vxlan_enable - vxlan enable flag.
  */
 void qed_set_vxlan_enable(struct qed_hwfn *p_hwfn,
-			  struct qed_ptt *p_ptt, bool vxlan_enable);
+						  struct qed_ptt *p_ptt, bool vxlan_enable);
 
 /**
  * @brief qed_set_gre_enable - enable or disable GRE tunnel in HW
@@ -3321,8 +3506,8 @@ void qed_set_vxlan_enable(struct qed_hwfn *p_hwfn,
  * @param ip_gre_enable - IP GRE enable enable flag.
  */
 void qed_set_gre_enable(struct qed_hwfn *p_hwfn,
-			struct qed_ptt *p_ptt,
-			bool eth_gre_enable, bool ip_gre_enable);
+						struct qed_ptt *p_ptt,
+						bool eth_gre_enable, bool ip_gre_enable);
 
 /**
  * @brief qed_set_geneve_dest_port - initializes geneve tunnel destination udp port
@@ -3331,7 +3516,7 @@ void qed_set_gre_enable(struct qed_hwfn *p_hwfn,
  * @param dest_port - geneve destination udp port.
  */
 void qed_set_geneve_dest_port(struct qed_hwfn *p_hwfn,
-			      struct qed_ptt *p_ptt, u16 dest_port);
+							  struct qed_ptt *p_ptt, u16 dest_port);
 
 /**
  * @brief qed_set_gre_enable - enable or disable GRE tunnel in HW
@@ -3341,8 +3526,8 @@ void qed_set_geneve_dest_port(struct qed_hwfn *p_hwfn,
  * @param ip_geneve_enable - IP GENEVE enable enable flag.
  */
 void qed_set_geneve_enable(struct qed_hwfn *p_hwfn,
-			   struct qed_ptt *p_ptt,
-			   bool eth_geneve_enable, bool ip_geneve_enable);
+						   struct qed_ptt *p_ptt,
+						   bool eth_geneve_enable, bool ip_geneve_enable);
 
 #define	YSTORM_FLOW_CONTROL_MODE_OFFSET			(IRO[0].base)
 #define	YSTORM_FLOW_CONTROL_MODE_SIZE			(IRO[0].size)
@@ -3450,7 +3635,8 @@ void qed_set_geneve_enable(struct qed_hwfn *p_hwfn,
 	(IRO[46].base +	((rdma_stat_counter_id) * IRO[46].m1))
 #define TSTORM_RDMA_QUEUE_STAT_SIZE				(IRO[46].size)
 
-static const struct iro iro_arr[47] = {
+static const struct iro iro_arr[47] =
+{
 	{0x0, 0x0, 0x0, 0x0, 0x8},
 	{0x4cb0, 0x78, 0x0, 0x0, 0x78},
 	{0x6318, 0x20, 0x0, 0x0, 0x20},
@@ -3942,21 +4128,25 @@ static const struct iro iro_arr[47] = {
 #define RUNTIME_ARRAY_SIZE 33927
 
 /* The eth storm context for the Tstorm */
-struct tstorm_eth_conn_st_ctx {
+struct tstorm_eth_conn_st_ctx
+{
 	__le32 reserved[4];
 };
 
 /* The eth storm context for the Pstorm */
-struct pstorm_eth_conn_st_ctx {
+struct pstorm_eth_conn_st_ctx
+{
 	__le32 reserved[8];
 };
 
 /* The eth storm context for the Xstorm */
-struct xstorm_eth_conn_st_ctx {
+struct xstorm_eth_conn_st_ctx
+{
 	__le32 reserved[60];
 };
 
-struct xstorm_eth_conn_ag_ctx {
+struct xstorm_eth_conn_ag_ctx
+{
 	u8 reserved0;
 	u8 eth_state;
 	u8 flags0;
@@ -3976,7 +4166,7 @@ struct xstorm_eth_conn_ag_ctx {
 #define XSTORM_ETH_CONN_AG_CTX_RESERVED5_SHIFT		6
 #define XSTORM_ETH_CONN_AG_CTX_RESERVED6_MASK		0x1
 #define XSTORM_ETH_CONN_AG_CTX_RESERVED6_SHIFT		7
-		u8 flags1;
+	u8 flags1;
 #define XSTORM_ETH_CONN_AG_CTX_RESERVED7_MASK		0x1
 #define XSTORM_ETH_CONN_AG_CTX_RESERVED7_SHIFT		0
 #define XSTORM_ETH_CONN_AG_CTX_RESERVED8_MASK		0x1
@@ -4011,7 +4201,7 @@ struct xstorm_eth_conn_ag_ctx {
 #define XSTORM_ETH_CONN_AG_CTX_CF6_SHIFT		4
 #define XSTORM_ETH_CONN_AG_CTX_CF7_MASK		0x3
 #define XSTORM_ETH_CONN_AG_CTX_CF7_SHIFT		6
-		u8 flags4;
+	u8 flags4;
 #define XSTORM_ETH_CONN_AG_CTX_CF8_MASK		0x3
 #define XSTORM_ETH_CONN_AG_CTX_CF8_SHIFT		0
 #define XSTORM_ETH_CONN_AG_CTX_CF9_MASK		0x3
@@ -4220,11 +4410,13 @@ struct xstorm_eth_conn_ag_ctx {
 };
 
 /* The eth storm context for the Ystorm */
-struct ystorm_eth_conn_st_ctx {
+struct ystorm_eth_conn_st_ctx
+{
 	__le32 reserved[8];
 };
 
-struct ystorm_eth_conn_ag_ctx {
+struct ystorm_eth_conn_ag_ctx
+{
 	u8 byte0;
 	u8 state;
 	u8 flags0;
@@ -4268,7 +4460,8 @@ struct ystorm_eth_conn_ag_ctx {
 	__le32 reg3;
 };
 
-struct tstorm_eth_conn_ag_ctx {
+struct tstorm_eth_conn_ag_ctx
+{
 	u8 byte0;
 	u8 byte1;
 	u8 flags0;
@@ -4372,7 +4565,8 @@ struct tstorm_eth_conn_ag_ctx {
 	__le32 reg10;
 };
 
-struct ustorm_eth_conn_ag_ctx {
+struct ustorm_eth_conn_ag_ctx
+{
 	u8 byte0;
 	u8 byte1;
 	u8 flags0;
@@ -4442,17 +4636,20 @@ struct ustorm_eth_conn_ag_ctx {
 };
 
 /* The eth storm context for the Ustorm */
-struct ustorm_eth_conn_st_ctx {
+struct ustorm_eth_conn_st_ctx
+{
 	__le32 reserved[40];
 };
 
 /* The eth storm context for the Mstorm */
-struct mstorm_eth_conn_st_ctx {
+struct mstorm_eth_conn_st_ctx
+{
 	__le32 reserved[8];
 };
 
 /* eth connection context */
-struct eth_conn_context {
+struct eth_conn_context
+{
 	struct tstorm_eth_conn_st_ctx tstorm_st_context;
 	struct regpair tstorm_st_padding[2];
 	struct pstorm_eth_conn_st_ctx pstorm_st_context;
@@ -4466,7 +4663,8 @@ struct eth_conn_context {
 	struct mstorm_eth_conn_st_ctx mstorm_st_context;
 };
 
-enum eth_error_code {
+enum eth_error_code
+{
 	ETH_OK = 0x00,
 	ETH_FILTERS_MAC_ADD_FAIL_FULL,
 	ETH_FILTERS_MAC_ADD_FAIL_FULL_MTT2,
@@ -4491,7 +4689,8 @@ enum eth_error_code {
 	MAX_ETH_ERROR_CODE
 };
 
-enum eth_event_opcode {
+enum eth_event_opcode
+{
 	ETH_EVENT_UNUSED,
 	ETH_EVENT_VPORT_START,
 	ETH_EVENT_VPORT_UPDATE,
@@ -4513,7 +4712,8 @@ enum eth_event_opcode {
 };
 
 /* Classify rule types in E2/E3 */
-enum eth_filter_action {
+enum eth_filter_action
+{
 	ETH_FILTER_ACTION_UNUSED,
 	ETH_FILTER_ACTION_REMOVE,
 	ETH_FILTER_ACTION_ADD,
@@ -4522,7 +4722,8 @@ enum eth_filter_action {
 };
 
 /* Command for adding/removing a classification rule $$KEEP_ENDIANNESS$$ */
-struct eth_filter_cmd {
+struct eth_filter_cmd
+{
 	u8 type;
 	u8 vport_id;
 	u8 action;
@@ -4535,7 +4736,8 @@ struct eth_filter_cmd {
 };
 
 /*	$$KEEP_ENDIANNESS$$ */
-struct eth_filter_cmd_header {
+struct eth_filter_cmd_header
+{
 	u8 rx;
 	u8 tx;
 	u8 cmd_cnt;
@@ -4544,7 +4746,8 @@ struct eth_filter_cmd_header {
 };
 
 /* Ethernet filter types: mac/vlan/pair */
-enum eth_filter_type {
+enum eth_filter_type
+{
 	ETH_FILTER_TYPE_UNUSED,
 	ETH_FILTER_TYPE_MAC,
 	ETH_FILTER_TYPE_VLAN,
@@ -4558,14 +4761,16 @@ enum eth_filter_type {
 	MAX_ETH_FILTER_TYPE
 };
 
-enum eth_ipv4_frag_type {
+enum eth_ipv4_frag_type
+{
 	ETH_IPV4_NOT_FRAG,
 	ETH_IPV4_FIRST_FRAG,
 	ETH_IPV4_NON_FIRST_FRAG,
 	MAX_ETH_IPV4_FRAG_TYPE
 };
 
-enum eth_ramrod_cmd_id {
+enum eth_ramrod_cmd_id
+{
 	ETH_RAMROD_UNUSED,
 	ETH_RAMROD_VPORT_START,
 	ETH_RAMROD_VPORT_UPDATE,
@@ -4587,7 +4792,8 @@ enum eth_ramrod_cmd_id {
 };
 
 /* return code from eth sp ramrods */
-struct eth_return_code {
+struct eth_return_code
+{
 	u8 value;
 #define ETH_RETURN_CODE_ERR_CODE_MASK	0x1F
 #define ETH_RETURN_CODE_ERR_CODE_SHIFT	0
@@ -4598,14 +4804,16 @@ struct eth_return_code {
 };
 
 /* What to do in case an error occurs */
-enum eth_tx_err {
+enum eth_tx_err
+{
 	ETH_TX_ERR_DROP,
 	ETH_TX_ERR_ASSERT_MALICIOUS,
 	MAX_ETH_TX_ERR
 };
 
 /* Array of the different error type behaviors */
-struct eth_tx_err_vals {
+struct eth_tx_err_vals
+{
 	__le16 values;
 #define ETH_TX_ERR_VALS_ILLEGAL_VLAN_MODE_MASK			0x1
 #define ETH_TX_ERR_VALS_ILLEGAL_VLAN_MODE_SHIFT			0
@@ -4626,7 +4834,8 @@ struct eth_tx_err_vals {
 };
 
 /* vport rss configuration data */
-struct eth_vport_rss_config {
+struct eth_vport_rss_config
+{
 	__le16 capabilities;
 #define ETH_VPORT_RSS_CONFIG_IPV4_CAPABILITY_MASK		0x1
 #define ETH_VPORT_RSS_CONFIG_IPV4_CAPABILITY_SHIFT		0
@@ -4658,14 +4867,16 @@ struct eth_vport_rss_config {
 };
 
 /* eth vport RSS mode */
-enum eth_vport_rss_mode {
+enum eth_vport_rss_mode
+{
 	ETH_VPORT_RSS_MODE_DISABLED,
 	ETH_VPORT_RSS_MODE_REGULAR,
 	MAX_ETH_VPORT_RSS_MODE
 };
 
 /* Command for setting classification flags for a vport $$KEEP_ENDIANNESS$$ */
-struct eth_vport_rx_mode {
+struct eth_vport_rx_mode
+{
 	__le16 state;
 #define ETH_VPORT_RX_MODE_UCAST_DROP_ALL_MASK		0x1
 #define ETH_VPORT_RX_MODE_UCAST_DROP_ALL_SHIFT		0
@@ -4685,7 +4896,8 @@ struct eth_vport_rx_mode {
 };
 
 /* Command for setting tpa parameters */
-struct eth_vport_tpa_param {
+struct eth_vport_tpa_param
+{
 	u8 tpa_ipv4_en_flg;
 	u8 tpa_ipv6_en_flg;
 	u8 tpa_ipv4_tunn_en_flg;
@@ -4705,7 +4917,8 @@ struct eth_vport_tpa_param {
 };
 
 /* Command for setting classification flags for a vport $$KEEP_ENDIANNESS$$ */
-struct eth_vport_tx_mode {
+struct eth_vport_tx_mode
+{
 	__le16 state;
 #define ETH_VPORT_TX_MODE_UCAST_DROP_ALL_MASK		0x1
 #define ETH_VPORT_TX_MODE_UCAST_DROP_ALL_SHIFT		0
@@ -4723,7 +4936,8 @@ struct eth_vport_tx_mode {
 };
 
 /* Ramrod data for rx queue start ramrod */
-struct rx_queue_start_ramrod_data {
+struct rx_queue_start_ramrod_data
+{
 	__le16 rx_queue_id;
 	__le16 num_of_pbl_pages;
 	__le16 bd_max_bytes;
@@ -4755,7 +4969,8 @@ struct rx_queue_start_ramrod_data {
 };
 
 /* Ramrod data for rx queue start ramrod */
-struct rx_queue_stop_ramrod_data {
+struct rx_queue_stop_ramrod_data
+{
 	__le16 rx_queue_id;
 	u8 complete_cqe_flg;
 	u8 complete_event_flg;
@@ -4764,7 +4979,8 @@ struct rx_queue_stop_ramrod_data {
 };
 
 /* Ramrod data for rx queue update ramrod */
-struct rx_queue_update_ramrod_data {
+struct rx_queue_update_ramrod_data
+{
 	__le16 rx_queue_id;
 	u8 complete_cqe_flg;
 	u8 complete_event_flg;
@@ -4779,7 +4995,8 @@ struct rx_queue_update_ramrod_data {
 };
 
 /* Ramrod data for rx Add UDP Filter */
-struct rx_udp_filter_data {
+struct rx_udp_filter_data
+{
 	__le16 action_icid;
 	__le16 vlan_id;
 	u8 ip_type;
@@ -4793,7 +5010,8 @@ struct rx_udp_filter_data {
 };
 
 /* Ramrod data for rx queue start ramrod */
-struct tx_queue_start_ramrod_data {
+struct tx_queue_start_ramrod_data
+{
 	__le16 sb_id;
 	u8 sb_index;
 	u8 vport_id;
@@ -4831,18 +5049,21 @@ struct tx_queue_start_ramrod_data {
 };
 
 /* Ramrod data for tx queue stop ramrod */
-struct tx_queue_stop_ramrod_data {
+struct tx_queue_stop_ramrod_data
+{
 	__le16 reserved[4];
 };
 
 /* Ramrod data for vport update ramrod */
-struct vport_filter_update_ramrod_data {
+struct vport_filter_update_ramrod_data
+{
 	struct eth_filter_cmd_header filter_cmd_hdr;
 	struct eth_filter_cmd filter_cmds[ETH_FILTER_RULES_COUNT];
 };
 
 /* Ramrod data for vport start ramrod */
-struct vport_start_ramrod_data {
+struct vport_start_ramrod_data
+{
 	u8 vport_id;
 	u8 sw_fid;
 	__le16 mtu;
@@ -4869,13 +5090,15 @@ struct vport_start_ramrod_data {
 };
 
 /* Ramrod data for vport stop ramrod */
-struct vport_stop_ramrod_data {
+struct vport_stop_ramrod_data
+{
 	u8 vport_id;
 	u8 reserved[7];
 };
 
 /* Ramrod data for vport update ramrod */
-struct vport_update_ramrod_data_cmn {
+struct vport_update_ramrod_data_cmn
+{
 	u8 vport_id;
 	u8 update_rx_active_flg;
 	u8 rx_active_flg;
@@ -4917,12 +5140,14 @@ struct vport_update_ramrod_data_cmn {
 	u8 reserved[2];
 };
 
-struct vport_update_ramrod_mcast {
+struct vport_update_ramrod_mcast
+{
 	__le32 bins[ETH_MULTICAST_MAC_BINS_IN_REGS];
 };
 
 /* Ramrod data for vport update ramrod */
-struct vport_update_ramrod_data {
+struct vport_update_ramrod_data
+{
 	struct vport_update_ramrod_data_cmn common;
 
 	struct eth_vport_rx_mode rx_mode;
@@ -4932,11 +5157,13 @@ struct vport_update_ramrod_data {
 	struct eth_vport_rss_config rss_config;
 };
 
-struct mstorm_rdma_task_st_ctx {
+struct mstorm_rdma_task_st_ctx
+{
 	struct regpair temp[4];
 };
 
-struct rdma_close_func_ramrod_data {
+struct rdma_close_func_ramrod_data
+{
 	u8 cnq_start_offset;
 	u8 num_cnqs;
 	u8 vf_id;
@@ -4944,7 +5171,8 @@ struct rdma_close_func_ramrod_data {
 	u8 reserved[4];
 };
 
-struct rdma_cnq_params {
+struct rdma_cnq_params
+{
 	__le16 sb_num;
 	u8 sb_index;
 	u8 num_pbl_pages;
@@ -4954,7 +5182,8 @@ struct rdma_cnq_params {
 	u8 reserved1[6];
 };
 
-struct rdma_create_cq_ramrod_data {
+struct rdma_create_cq_ramrod_data
+{
 	struct regpair cq_handle;
 	struct regpair pbl_addr;
 	__le32 max_cqes;
@@ -4968,22 +5197,26 @@ struct rdma_create_cq_ramrod_data {
 	__le16 reserved1;
 };
 
-struct rdma_deregister_tid_ramrod_data {
+struct rdma_deregister_tid_ramrod_data
+{
 	__le32 itid;
 	__le32 reserved;
 };
 
-struct rdma_destroy_cq_output_params {
+struct rdma_destroy_cq_output_params
+{
 	__le16 cnq_num;
 	__le16 reserved0;
 	__le32 reserved1;
 };
 
-struct rdma_destroy_cq_ramrod_data {
+struct rdma_destroy_cq_ramrod_data
+{
 	struct regpair output_params_addr;
 };
 
-enum rdma_event_opcode {
+enum rdma_event_opcode
+{
 	RDMA_EVENT_UNUSED,
 	RDMA_EVENT_FUNC_INIT,
 	RDMA_EVENT_FUNC_CLOSE,
@@ -4998,7 +5231,8 @@ enum rdma_event_opcode {
 	MAX_RDMA_EVENT_OPCODE
 };
 
-enum rdma_fw_return_code {
+enum rdma_fw_return_code
+{
 	RDMA_RETURN_OK = 0,
 	RDMA_RETURN_REGISTER_MR_BAD_STATE_ERR,
 	RDMA_RETURN_DEREGISTER_MR_BAD_STATE_ERR,
@@ -5007,7 +5241,8 @@ enum rdma_fw_return_code {
 	MAX_RDMA_FW_RETURN_CODE
 };
 
-struct rdma_init_func_hdr {
+struct rdma_init_func_hdr
+{
 	u8 cnq_start_offset;
 	u8 num_cnqs;
 	u8 cq_ring_mode;
@@ -5019,12 +5254,14 @@ struct rdma_init_func_hdr {
 	u8 reserved[5];
 };
 
-struct rdma_init_func_ramrod_data {
+struct rdma_init_func_ramrod_data
+{
 	struct rdma_init_func_hdr params_header;
 	struct rdma_cnq_params cnq_params[NUM_OF_GLOBAL_QUEUES];
 };
 
-enum rdma_ramrod_cmd_id {
+enum rdma_ramrod_cmd_id
+{
 	RDMA_RAMROD_UNUSED,
 	RDMA_RAMROD_FUNC_INIT,
 	RDMA_RAMROD_FUNC_CLOSE,
@@ -5039,7 +5276,8 @@ enum rdma_ramrod_cmd_id {
 	MAX_RDMA_RAMROD_CMD_ID
 };
 
-struct rdma_register_tid_ramrod_data {
+struct rdma_register_tid_ramrod_data
+{
 	__le32 flags;
 #define RDMA_REGISTER_TID_RAMROD_DATA_MAX_ID_MASK             0x3FFFF
 #define RDMA_REGISTER_TID_RAMROD_DATA_MAX_ID_SHIFT            0
@@ -5090,12 +5328,14 @@ struct rdma_register_tid_ramrod_data {
 	__le32 reserved3[2];
 };
 
-struct rdma_resize_cq_output_params {
+struct rdma_resize_cq_output_params
+{
 	__le32 old_cq_cons;
 	__le32 old_cq_prod;
 };
 
-struct rdma_resize_cq_ramrod_data {
+struct rdma_resize_cq_ramrod_data
+{
 	u8 flags;
 #define RDMA_RESIZE_CQ_RAMROD_DATA_TOGGLE_BIT_MASK        0x1
 #define RDMA_RESIZE_CQ_RAMROD_DATA_TOGGLE_BIT_SHIFT       0
@@ -5110,11 +5350,13 @@ struct rdma_resize_cq_ramrod_data {
 	struct regpair output_params_addr;
 };
 
-struct rdma_srq_context {
+struct rdma_srq_context
+{
 	struct regpair temp[8];
 };
 
-struct rdma_srq_create_ramrod_data {
+struct rdma_srq_create_ramrod_data
+{
 	struct regpair pbl_base_addr;
 	__le16 pages_in_srq_pbl;
 	__le16 pd_id;
@@ -5125,21 +5367,25 @@ struct rdma_srq_create_ramrod_data {
 	struct regpair producers_addr;
 };
 
-struct rdma_srq_destroy_ramrod_data {
+struct rdma_srq_destroy_ramrod_data
+{
 	struct rdma_srq_id srq_id;
 	__le32 reserved;
 };
 
-struct rdma_srq_modify_ramrod_data {
+struct rdma_srq_modify_ramrod_data
+{
 	struct rdma_srq_id srq_id;
 	__le32 wqe_limit;
 };
 
-struct ystorm_rdma_task_st_ctx {
+struct ystorm_rdma_task_st_ctx
+{
 	struct regpair temp[4];
 };
 
-struct ystorm_rdma_task_ag_ctx {
+struct ystorm_rdma_task_ag_ctx
+{
 	u8 reserved;
 	u8 byte1;
 	__le16 msem_ctx_upd_seq;
@@ -5195,7 +5441,8 @@ struct ystorm_rdma_task_ag_ctx {
 	__le32 fbo_hi;
 };
 
-struct mstorm_rdma_task_ag_ctx {
+struct mstorm_rdma_task_ag_ctx
+{
 	u8 reserved;
 	u8 byte1;
 	__le16 icid;
@@ -5251,11 +5498,13 @@ struct mstorm_rdma_task_ag_ctx {
 	__le32 fbo_hi;
 };
 
-struct ustorm_rdma_task_st_ctx {
+struct ustorm_rdma_task_st_ctx
+{
 	struct regpair temp[2];
 };
 
-struct ustorm_rdma_task_ag_ctx {
+struct ustorm_rdma_task_ag_ctx
+{
 	u8 reserved;
 	u8 byte1;
 	__le16 icid;
@@ -5313,7 +5562,8 @@ struct ustorm_rdma_task_ag_ctx {
 	__le32 reg5;
 };
 
-struct rdma_task_context {
+struct rdma_task_context
+{
 	struct ystorm_rdma_task_st_ctx ystorm_st_context;
 	struct ystorm_rdma_task_ag_ctx ystorm_ag_context;
 	struct tdif_task_context tdif_context;
@@ -5325,7 +5575,8 @@ struct rdma_task_context {
 	struct ustorm_rdma_task_ag_ctx ustorm_ag_context;
 };
 
-enum rdma_tid_type {
+enum rdma_tid_type
+{
 	RDMA_TID_REGISTERED_MR,
 	RDMA_TID_FMR,
 	RDMA_TID_MW_TYPE1,
@@ -5333,7 +5584,8 @@ enum rdma_tid_type {
 	MAX_RDMA_TID_TYPE
 };
 
-struct mstorm_rdma_conn_ag_ctx {
+struct mstorm_rdma_conn_ag_ctx
+{
 	u8 byte0;
 	u8 byte1;
 	u8 flags0;
@@ -5370,7 +5622,8 @@ struct mstorm_rdma_conn_ag_ctx {
 	__le32 reg1;
 };
 
-struct tstorm_rdma_conn_ag_ctx {
+struct tstorm_rdma_conn_ag_ctx
+{
 	u8 reserved0;
 	u8 byte1;
 	u8 flags0;
@@ -5474,7 +5727,8 @@ struct tstorm_rdma_conn_ag_ctx {
 	__le32 reg10;
 };
 
-struct tstorm_rdma_task_ag_ctx {
+struct tstorm_rdma_task_ag_ctx
+{
 	u8 byte0;
 	u8 byte1;
 	__le16 word0;
@@ -5553,7 +5807,8 @@ struct tstorm_rdma_task_ag_ctx {
 	__le32 reg2;
 };
 
-struct ustorm_rdma_conn_ag_ctx {
+struct ustorm_rdma_conn_ag_ctx
+{
 	u8 reserved;
 	u8 byte1;
 	u8 flags0;
@@ -5622,7 +5877,8 @@ struct ustorm_rdma_conn_ag_ctx {
 	__le16 word3;
 };
 
-struct xstorm_roce_conn_ag_ctx_dq_ext_ld_part {
+struct xstorm_roce_conn_ag_ctx_dq_ext_ld_part
+{
 	u8 reserved0;
 	u8 state;
 	u8 flags0;
@@ -5849,7 +6105,8 @@ struct xstorm_roce_conn_ag_ctx_dq_ext_ld_part {
 	__le32 reg4;
 };
 
-struct xstorm_rdma_conn_ag_ctx {
+struct xstorm_rdma_conn_ag_ctx
+{
 	u8 reserved0;
 	u8 state;
 	u8 flags0;
@@ -6078,7 +6335,8 @@ struct xstorm_rdma_conn_ag_ctx {
 	__le32 reg6;
 };
 
-struct ystorm_rdma_conn_ag_ctx {
+struct ystorm_rdma_conn_ag_ctx
+{
 	u8 byte0;
 	u8 byte1;
 	u8 flags0;
@@ -6122,31 +6380,38 @@ struct ystorm_rdma_conn_ag_ctx {
 	__le32 reg3;
 };
 
-struct mstorm_roce_conn_st_ctx {
+struct mstorm_roce_conn_st_ctx
+{
 	struct regpair temp[6];
 };
 
-struct pstorm_roce_conn_st_ctx {
+struct pstorm_roce_conn_st_ctx
+{
 	struct regpair temp[16];
 };
 
-struct ystorm_roce_conn_st_ctx {
+struct ystorm_roce_conn_st_ctx
+{
 	struct regpair temp[2];
 };
 
-struct xstorm_roce_conn_st_ctx {
+struct xstorm_roce_conn_st_ctx
+{
 	struct regpair temp[22];
 };
 
-struct tstorm_roce_conn_st_ctx {
+struct tstorm_roce_conn_st_ctx
+{
 	struct regpair temp[30];
 };
 
-struct ustorm_roce_conn_st_ctx {
+struct ustorm_roce_conn_st_ctx
+{
 	struct regpair temp[12];
 };
 
-struct roce_conn_context {
+struct roce_conn_context
+{
 	struct ystorm_roce_conn_st_ctx ystorm_st_context;
 	struct regpair ystorm_st_padding[2];
 	struct pstorm_roce_conn_st_ctx pstorm_st_context;
@@ -6162,7 +6427,8 @@ struct roce_conn_context {
 	struct regpair ustorm_st_padding[2];
 };
 
-struct roce_create_qp_req_ramrod_data {
+struct roce_create_qp_req_ramrod_data
+{
 	__le16 flags;
 #define ROCE_CREATE_QP_REQ_RAMROD_DATA_ROCE_FLAVOR_MASK          0x3
 #define ROCE_CREATE_QP_REQ_RAMROD_DATA_ROCE_FLAVOR_SHIFT         0
@@ -6208,7 +6474,8 @@ struct roce_create_qp_req_ramrod_data {
 	__le16 dpi;
 };
 
-struct roce_create_qp_resp_ramrod_data {
+struct roce_create_qp_resp_ramrod_data
+{
 	__le16 flags;
 #define ROCE_CREATE_QP_RESP_RAMROD_DATA_ROCE_FLAVOR_MASK          0x3
 #define ROCE_CREATE_QP_RESP_RAMROD_DATA_ROCE_FLAVOR_SHIFT         0
@@ -6258,25 +6525,30 @@ struct roce_create_qp_resp_ramrod_data {
 	__le16 dpi;
 };
 
-struct roce_destroy_qp_req_output_params {
+struct roce_destroy_qp_req_output_params
+{
 	__le32 num_bound_mw;
 	__le32 reserved;
 };
 
-struct roce_destroy_qp_req_ramrod_data {
+struct roce_destroy_qp_req_ramrod_data
+{
 	struct regpair output_params_addr;
 };
 
-struct roce_destroy_qp_resp_output_params {
+struct roce_destroy_qp_resp_output_params
+{
 	__le32 num_invalidated_mw;
 	__le32 reserved;
 };
 
-struct roce_destroy_qp_resp_ramrod_data {
+struct roce_destroy_qp_resp_ramrod_data
+{
 	struct regpair output_params_addr;
 };
 
-enum roce_event_opcode {
+enum roce_event_opcode
+{
 	ROCE_EVENT_CREATE_QP = 11,
 	ROCE_EVENT_MODIFY_QP,
 	ROCE_EVENT_QUERY_QP,
@@ -6284,11 +6556,13 @@ enum roce_event_opcode {
 	MAX_ROCE_EVENT_OPCODE
 };
 
-struct roce_init_func_ramrod_data {
+struct roce_init_func_ramrod_data
+{
 	struct rdma_init_func_ramrod_data rdma;
 };
 
-struct roce_modify_qp_req_ramrod_data {
+struct roce_modify_qp_req_ramrod_data
+{
 	__le16 flags;
 #define ROCE_MODIFY_QP_REQ_RAMROD_DATA_MOVE_TO_ERR_FLG_MASK      0x1
 #define ROCE_MODIFY_QP_REQ_RAMROD_DATA_MOVE_TO_ERR_FLG_SHIFT     0
@@ -6332,7 +6606,8 @@ struct roce_modify_qp_req_ramrod_data {
 	__le32 dst_gid[4];
 };
 
-struct roce_modify_qp_resp_ramrod_data {
+struct roce_modify_qp_resp_ramrod_data
+{
 	__le16 flags;
 #define ROCE_MODIFY_QP_RESP_RAMROD_DATA_MOVE_TO_ERR_FLG_MASK        0x1
 #define ROCE_MODIFY_QP_RESP_RAMROD_DATA_MOVE_TO_ERR_FLG_SHIFT       0
@@ -6372,7 +6647,8 @@ struct roce_modify_qp_resp_ramrod_data {
 	__le32 dst_gid[4];
 };
 
-struct roce_query_qp_req_output_params {
+struct roce_query_qp_req_output_params
+{
 	__le32 psn;
 	__le32 flags;
 #define ROCE_QUERY_QP_REQ_OUTPUT_PARAMS_ERR_FLG_MASK          0x1
@@ -6383,11 +6659,13 @@ struct roce_query_qp_req_output_params {
 #define ROCE_QUERY_QP_REQ_OUTPUT_PARAMS_RESERVED0_SHIFT       2
 };
 
-struct roce_query_qp_req_ramrod_data {
+struct roce_query_qp_req_ramrod_data
+{
 	struct regpair output_params_addr;
 };
 
-struct roce_query_qp_resp_output_params {
+struct roce_query_qp_resp_output_params
+{
 	__le32 psn;
 	__le32 err_flag;
 #define ROCE_QUERY_QP_RESP_OUTPUT_PARAMS_ERROR_FLG_MASK  0x1
@@ -6396,11 +6674,13 @@ struct roce_query_qp_resp_output_params {
 #define ROCE_QUERY_QP_RESP_OUTPUT_PARAMS_RESERVED0_SHIFT 1
 };
 
-struct roce_query_qp_resp_ramrod_data {
+struct roce_query_qp_resp_ramrod_data
+{
 	struct regpair output_params_addr;
 };
 
-enum roce_ramrod_cmd_id {
+enum roce_ramrod_cmd_id
+{
 	ROCE_RAMROD_CREATE_QP = 11,
 	ROCE_RAMROD_MODIFY_QP,
 	ROCE_RAMROD_QUERY_QP,
@@ -6408,7 +6688,8 @@ enum roce_ramrod_cmd_id {
 	MAX_ROCE_RAMROD_CMD_ID
 };
 
-struct mstorm_roce_req_conn_ag_ctx {
+struct mstorm_roce_req_conn_ag_ctx
+{
 	u8 byte0;
 	u8 byte1;
 	u8 flags0;
@@ -6445,7 +6726,8 @@ struct mstorm_roce_req_conn_ag_ctx {
 	__le32 reg1;
 };
 
-struct mstorm_roce_resp_conn_ag_ctx {
+struct mstorm_roce_resp_conn_ag_ctx
+{
 	u8 byte0;
 	u8 byte1;
 	u8 flags0;
@@ -6482,14 +6764,16 @@ struct mstorm_roce_resp_conn_ag_ctx {
 	__le32 reg1;
 };
 
-enum roce_flavor {
+enum roce_flavor
+{
 	PLAIN_ROCE /* RoCE v1 */ ,
 	RROCE_IPV4 /* RoCE v2 (Routable RoCE) over ipv4 */ ,
 	RROCE_IPV6 /* RoCE v2 (Routable RoCE) over ipv6 */ ,
 	MAX_ROCE_FLAVOR
 };
 
-struct tstorm_roce_req_conn_ag_ctx {
+struct tstorm_roce_req_conn_ag_ctx
+{
 	u8 reserved0;
 	u8 state;
 	u8 flags0;
@@ -6593,7 +6877,8 @@ struct tstorm_roce_req_conn_ag_ctx {
 	__le32 reg10;
 };
 
-struct tstorm_roce_resp_conn_ag_ctx {
+struct tstorm_roce_resp_conn_ag_ctx
+{
 	u8 byte0;
 	u8 state;
 	u8 flags0;
@@ -6697,7 +6982,8 @@ struct tstorm_roce_resp_conn_ag_ctx {
 	__le32 reg10;
 };
 
-struct ustorm_roce_req_conn_ag_ctx {
+struct ustorm_roce_req_conn_ag_ctx
+{
 	u8 byte0;
 	u8 byte1;
 	u8 flags0;
@@ -6766,7 +7052,8 @@ struct ustorm_roce_req_conn_ag_ctx {
 	__le16 word3;
 };
 
-struct ustorm_roce_resp_conn_ag_ctx {
+struct ustorm_roce_resp_conn_ag_ctx
+{
 	u8 byte0;
 	u8 byte1;
 	u8 flags0;
@@ -6835,7 +7122,8 @@ struct ustorm_roce_resp_conn_ag_ctx {
 	__le16 word3;
 };
 
-struct xstorm_roce_req_conn_ag_ctx {
+struct xstorm_roce_req_conn_ag_ctx
+{
 	u8 reserved0;
 	u8 state;
 	u8 flags0;
@@ -7064,7 +7352,8 @@ struct xstorm_roce_req_conn_ag_ctx {
 	__le32 orq_cons;
 };
 
-struct xstorm_roce_resp_conn_ag_ctx {
+struct xstorm_roce_resp_conn_ag_ctx
+{
 	u8 reserved0;
 	u8 state;
 	u8 flags0;
@@ -7295,7 +7584,8 @@ struct xstorm_roce_resp_conn_ag_ctx {
 	__le32 msn_and_syndrome;
 };
 
-struct ystorm_roce_req_conn_ag_ctx {
+struct ystorm_roce_req_conn_ag_ctx
+{
 	u8 byte0;
 	u8 byte1;
 	u8 flags0;
@@ -7339,7 +7629,8 @@ struct ystorm_roce_req_conn_ag_ctx {
 	__le32 reg3;
 };
 
-struct ystorm_roce_resp_conn_ag_ctx {
+struct ystorm_roce_resp_conn_ag_ctx
+{
 	u8 byte0;
 	u8 byte1;
 	u8 flags0;
@@ -7383,21 +7674,25 @@ struct ystorm_roce_resp_conn_ag_ctx {
 	__le32 reg3;
 };
 
-struct ystorm_iscsi_conn_st_ctx {
+struct ystorm_iscsi_conn_st_ctx
+{
 	__le32 reserved[4];
 };
 
-struct pstorm_iscsi_tcp_conn_st_ctx {
+struct pstorm_iscsi_tcp_conn_st_ctx
+{
 	__le32 tcp[32];
 	__le32 iscsi[4];
 };
 
-struct xstorm_iscsi_tcp_conn_st_ctx {
+struct xstorm_iscsi_tcp_conn_st_ctx
+{
 	__le32 reserved_iscsi[40];
 	__le32 reserved_tcp[4];
 };
 
-struct xstorm_iscsi_conn_ag_ctx {
+struct xstorm_iscsi_conn_ag_ctx
+{
 	u8 cdu_validation;
 	u8 state;
 	u8 flags0;
@@ -7654,7 +7949,8 @@ struct xstorm_iscsi_conn_ag_ctx {
 	__le32 reg17;
 };
 
-struct tstorm_iscsi_conn_ag_ctx {
+struct tstorm_iscsi_conn_ag_ctx
+{
 	u8 reserved0;
 	u8 state;
 	u8 flags0;
@@ -7751,7 +8047,8 @@ struct tstorm_iscsi_conn_ag_ctx {
 	__le16 word0;
 };
 
-struct ustorm_iscsi_conn_ag_ctx {
+struct ustorm_iscsi_conn_ag_ctx
+{
 	u8 byte0;
 	u8 byte1;
 	u8 flags0;
@@ -7820,11 +8117,13 @@ struct ustorm_iscsi_conn_ag_ctx {
 	__le16 word3;
 };
 
-struct tstorm_iscsi_conn_st_ctx {
+struct tstorm_iscsi_conn_st_ctx
+{
 	__le32 reserved[40];
 };
 
-struct mstorm_iscsi_conn_ag_ctx {
+struct mstorm_iscsi_conn_ag_ctx
+{
 	u8 reserved;
 	u8 state;
 	u8 flags0;
@@ -7861,16 +8160,19 @@ struct mstorm_iscsi_conn_ag_ctx {
 	__le32 reg1;
 };
 
-struct mstorm_iscsi_tcp_conn_st_ctx {
+struct mstorm_iscsi_tcp_conn_st_ctx
+{
 	__le32 reserved_tcp[20];
 	__le32 reserved_iscsi[8];
 };
 
-struct ustorm_iscsi_conn_st_ctx {
+struct ustorm_iscsi_conn_st_ctx
+{
 	__le32 reserved[52];
 };
 
-struct iscsi_conn_context {
+struct iscsi_conn_context
+{
 	struct ystorm_iscsi_conn_st_ctx ystorm_st_context;
 	struct regpair ystorm_st_padding[2];
 	struct pstorm_iscsi_tcp_conn_st_ctx pstorm_st_context;
@@ -7891,12 +8193,14 @@ struct iscsi_conn_context {
 	struct ustorm_iscsi_conn_st_ctx ustorm_st_context;
 };
 
-struct iscsi_init_ramrod_params {
+struct iscsi_init_ramrod_params
+{
 	struct iscsi_spe_func_init iscsi_init_spe;
 	struct tcp_init_params tcp_init;
 };
 
-struct ystorm_iscsi_conn_ag_ctx {
+struct ystorm_iscsi_conn_ag_ctx
+{
 	u8 byte0;
 	u8 byte1;
 	u8 flags0;
@@ -7948,7 +8252,8 @@ struct ystorm_iscsi_conn_ag_ctx {
 #define MFW_TRACE_PRM_SIZE_SHIFT        16
 #define MFW_TRACE_ENTRY_SIZE            3
 
-struct mcp_trace {
+struct mcp_trace
+{
 	u32 signature;		/* Help to identify that the trace is valid */
 	u32 size;		/* the size of the trace buffer in bytes */
 	u32 curr_level;		/* 2 - all will be written to the buffer
@@ -7984,22 +8289,23 @@ typedef u32 offsize_t;		/* In DWORDS !!! */
 #define OFFSIZE_SIZE_MASK	0xffff0000
 
 #define SECTION_OFFSET(_offsize) ((((_offsize &			\
-				     OFFSIZE_OFFSET_MASK) >>	\
-				    OFFSIZE_OFFSET_SHIFT) << 2))
+									 OFFSIZE_OFFSET_MASK) >>	\
+									OFFSIZE_OFFSET_SHIFT) << 2))
 
 #define QED_SECTION_SIZE(_offsize) (((_offsize &		\
-				      OFFSIZE_SIZE_MASK) >>	\
-				     OFFSIZE_SIZE_SHIFT) << 2)
+									  OFFSIZE_SIZE_MASK) >>	\
+									 OFFSIZE_SIZE_SHIFT) << 2)
 
 #define SECTION_ADDR(_offsize, idx) (MCP_REG_SCRATCH +			\
-				     SECTION_OFFSET(_offsize) +		\
-				     (QED_SECTION_SIZE(_offsize) * idx))
+									 SECTION_OFFSET(_offsize) +		\
+									 (QED_SECTION_SIZE(_offsize) * idx))
 
 #define SECTION_OFFSIZE_ADDR(_pub_base, _section)	\
 	(_pub_base + offsetof(struct mcp_public_data, sections[_section]))
 
 /* PHY configuration */
-struct eth_phy_cfg {
+struct eth_phy_cfg
+{
 	u32 speed;
 #define ETH_SPEED_AUTONEG	0
 #define ETH_SPEED_SMARTLINQ	0x8
@@ -8022,7 +8328,8 @@ struct eth_phy_cfg {
 #define ETH_EEE_MODE_ADV_LPI		(1 << 0)
 };
 
-struct port_mf_cfg {
+struct port_mf_cfg
+{
 	u32 dynamic_cfg;
 #define PORT_MF_CFG_OV_TAG_MASK		0x0000ffff
 #define PORT_MF_CFG_OV_TAG_SHIFT	0
@@ -8031,7 +8338,8 @@ struct port_mf_cfg {
 	u32 reserved[1];
 };
 
-struct eth_stats {
+struct eth_stats
+{
 	u64 r64;
 	u64 r127;
 	u64 r255;
@@ -8079,17 +8387,20 @@ struct eth_stats {
 	u64 txcf;
 };
 
-struct brb_stats {
+struct brb_stats
+{
 	u64 brb_truncate[8];
 	u64 brb_discard[8];
 };
 
-struct port_stats {
+struct port_stats
+{
 	struct brb_stats brb;
 	struct eth_stats eth;
 };
 
-struct couple_mode_teaming {
+struct couple_mode_teaming
+{
 	u8 port_cmt[MCP_GLOB_PORT_MAX];
 #define PORT_CMT_IN_TEAM	(1 << 0)
 
@@ -8107,14 +8418,16 @@ struct couple_mode_teaming {
 #define DCBX_MAX_APP_PROTOCOL		32
 #define MAX_SYSTEM_LLDP_TLV_DATA	32
 
-enum _lldp_agent {
+enum _lldp_agent
+{
 	LLDP_NEAREST_BRIDGE = 0,
 	LLDP_NEAREST_NON_TPMR_BRIDGE,
 	LLDP_NEAREST_CUSTOMER_BRIDGE,
 	LLDP_MAX_LLDP_AGENTS
 };
 
-struct lldp_config_params_s {
+struct lldp_config_params_s
+{
 	u32 config;
 #define LLDP_CONFIG_TX_INTERVAL_MASK	0x000000ff
 #define LLDP_CONFIG_TX_INTERVAL_SHIFT	0
@@ -8130,7 +8443,8 @@ struct lldp_config_params_s {
 	u32 local_port_id[LLDP_PORT_ID_STAT_LEN];
 };
 
-struct lldp_status_params_s {
+struct lldp_status_params_s
+{
 	u32 prefix_seq_num;
 	u32 status;
 	u32 peer_chassis_id[LLDP_CHASSIS_ID_STAT_LEN];
@@ -8138,7 +8452,8 @@ struct lldp_status_params_s {
 	u32 suffix_seq_num;
 };
 
-struct dcbx_ets_feature {
+struct dcbx_ets_feature
+{
 	u32 flags;
 #define DCBX_ETS_ENABLED_MASK	0x00000001
 #define DCBX_ETS_ENABLED_SHIFT	0
@@ -8164,7 +8479,8 @@ struct dcbx_ets_feature {
 #define DCBX_ETS_TSA_ETS	2
 };
 
-struct dcbx_app_priority_entry {
+struct dcbx_app_priority_entry
+{
 	u32 entry;
 #define DCBX_APP_PRI_MAP_MASK		0x000000ff
 #define DCBX_APP_PRI_MAP_SHIFT		0
@@ -8192,7 +8508,8 @@ struct dcbx_app_priority_entry {
 #define DCBX_APP_PROTOCOL_ID_SHIFT	16
 };
 
-struct dcbx_app_priority_feature {
+struct dcbx_app_priority_feature
+{
 	u32 flags;
 #define DCBX_APP_ENABLED_MASK		0x00000001
 #define DCBX_APP_ENABLED_SHIFT		0
@@ -8207,7 +8524,8 @@ struct dcbx_app_priority_feature {
 	struct dcbx_app_priority_entry app_pri_tbl[DCBX_MAX_APP_PROTOCOL];
 };
 
-struct dcbx_features {
+struct dcbx_features
+{
 	struct dcbx_ets_feature ets;
 	u32 pfc;
 #define DCBX_PFC_PRI_EN_BITMAP_MASK	0x000000ff
@@ -8237,7 +8555,8 @@ struct dcbx_features {
 	struct dcbx_app_priority_feature app;
 };
 
-struct dcbx_local_params {
+struct dcbx_local_params
+{
 	u32 config;
 #define DCBX_CONFIG_VERSION_MASK	0x00000007
 #define DCBX_CONFIG_VERSION_SHIFT	0
@@ -8250,20 +8569,23 @@ struct dcbx_local_params {
 	struct dcbx_features features;
 };
 
-struct dcbx_mib {
+struct dcbx_mib
+{
 	u32 prefix_seq_num;
 	u32 flags;
 	struct dcbx_features features;
 	u32 suffix_seq_num;
 };
 
-struct lldp_system_tlvs_buffer_s {
+struct lldp_system_tlvs_buffer_s
+{
 	u16 valid;
 	u16 length;
 	u32 data[MAX_SYSTEM_LLDP_TLV_DATA];
 };
 
-struct dcb_dscp_map {
+struct dcb_dscp_map
+{
 	u32 flags;
 #define DCB_DSCP_ENABLE_MASK	0x1
 #define DCB_DSCP_ENABLE_SHIFT	0
@@ -8271,7 +8593,8 @@ struct dcb_dscp_map {
 	u32 dscp_pri_map[8];
 };
 
-struct public_global {
+struct public_global
+{
 	u32 max_path;
 	u32 max_ports;
 	u32 debug_mb_offset;
@@ -8284,13 +8607,15 @@ struct public_global {
 	u32 mdump_reason;
 };
 
-struct fw_flr_mb {
+struct fw_flr_mb
+{
 	u32 aggint;
 	u32 opgen_addr;
 	u32 accum_ack;
 };
 
-struct public_path {
+struct public_path
+{
 	struct fw_flr_mb flr_mb;
 	u32 mcp_vf_disabled[VF_MAX_STATIC / 32];
 
@@ -8302,7 +8627,8 @@ struct public_path {
 #define GLOBAL_AEU_BIT(aeu_reg_id, aeu_bit) (aeu_reg_id * 32 + aeu_bit)
 };
 
-struct public_port {
+struct public_port
+{
 	u32 validity_map;
 
 	u32 link_status;
@@ -8395,7 +8721,8 @@ struct public_port {
 	struct dcb_dscp_map dcb_dscp_map;
 };
 
-struct public_func {
+struct public_func
+{
 	u32 reserved0[2];
 
 	u32 mtu_size;
@@ -8468,22 +8795,26 @@ struct public_func {
 #define DRV_ID_DRV_INIT_HW_FLAG		(1 << DRV_ID_DRV_INIT_HW_SHIFT)
 };
 
-struct mcp_mac {
+struct mcp_mac
+{
 	u32 mac_upper;
 	u32 mac_lower;
 };
 
-struct mcp_val64 {
+struct mcp_val64
+{
 	u32 lo;
 	u32 hi;
 };
 
-struct mcp_file_att {
+struct mcp_file_att
+{
 	u32 nvm_start_addr;
 	u32 len;
 };
 
-struct bist_nvm_image_att {
+struct bist_nvm_image_att
+{
 	u32 return_code;
 	u32 image_type;
 	u32 nvm_start_addr;
@@ -8493,32 +8824,37 @@ struct bist_nvm_image_att {
 #define MCP_DRV_VER_STR_SIZE 16
 #define MCP_DRV_VER_STR_SIZE_DWORD (MCP_DRV_VER_STR_SIZE / sizeof(u32))
 #define MCP_DRV_NVM_BUF_LEN 32
-struct drv_version_stc {
+struct drv_version_stc
+{
 	u32 version;
 	u8 name[MCP_DRV_VER_STR_SIZE - 4];
 };
 
-struct lan_stats_stc {
+struct lan_stats_stc
+{
 	u64 ucast_rx_pkts;
 	u64 ucast_tx_pkts;
 	u32 fcs_err;
 	u32 rserved;
 };
 
-struct ocbb_data_stc {
+struct ocbb_data_stc
+{
 	u32 ocbb_host_addr;
 	u32 ocsd_host_addr;
 	u32 ocsd_req_update_interval;
 };
 
 #define MAX_NUM_OF_SENSORS 7
-struct temperature_status_stc {
+struct temperature_status_stc
+{
 	u32 num_of_sensors;
 	u32 sensor[MAX_NUM_OF_SENSORS];
 };
 
 /* crash dump configuration header */
-struct mdump_config_stc {
+struct mdump_config_stc
+{
 	u32 version;
 	u32 config;
 	u32 epoc;
@@ -8526,7 +8862,8 @@ struct mdump_config_stc {
 	u32 valid_logs;
 };
 
-union drv_union_data {
+union drv_union_data
+{
 	u32 ver_str[MCP_DRV_VER_STR_SIZE_DWORD];
 	struct mcp_mac wol_mac;
 
@@ -8550,7 +8887,8 @@ union drv_union_data {
 	struct mdump_config_stc mdump_config;
 };
 
-struct public_drv_mb {
+struct public_drv_mb
+{
 	u32 drv_mb_header;
 #define DRV_MSG_CODE_MASK			0xffff0000
 #define DRV_MSG_CODE_LOAD_REQ			0x10000000
@@ -8651,7 +8989,8 @@ struct public_drv_mb {
 	union drv_union_data union_data;
 };
 
-enum MFW_DRV_MSG_TYPE {
+enum MFW_DRV_MSG_TYPE
+{
 	MFW_DRV_MSG_LINK_CHANGE,
 	MFW_DRV_MSG_FLR_FW_ACK_FAILED,
 	MFW_DRV_MSG_VF_DISABLED,
@@ -8676,13 +9015,15 @@ enum MFW_DRV_MSG_TYPE {
 #define MFW_DRV_MSG_OFFSET(msg_id)	((msg_id & 0x3) << 3)
 #define MFW_DRV_MSG_MASK(msg_id)	(0xff << MFW_DRV_MSG_OFFSET(msg_id))
 
-struct public_mfw_mb {
+struct public_mfw_mb
+{
 	u32 sup_msgs;
 	u32 msg[MFW_DRV_MSG_MAX_DWORDS(MFW_DRV_MSG_MAX)];
 	u32 ack[MFW_DRV_MSG_MAX_DWORDS(MFW_DRV_MSG_MAX)];
 };
 
-enum public_sections {
+enum public_sections
+{
 	PUBLIC_DRV_MB,
 	PUBLIC_MFW_MB,
 	PUBLIC_GLOBAL,
@@ -8692,7 +9033,8 @@ enum public_sections {
 	PUBLIC_MAX_SECTIONS
 };
 
-struct mcp_public_data {
+struct mcp_public_data
+{
 	u32 num_sections;
 	u32 sections[PUBLIC_MAX_SECTIONS];
 	struct public_drv_mb drv_mb[MCP_GLOB_FUNC_MAX];
@@ -8703,14 +9045,16 @@ struct mcp_public_data {
 	struct public_func func[MCP_GLOB_FUNC_MAX];
 };
 
-struct nvm_cfg_mac_address {
+struct nvm_cfg_mac_address
+{
 	u32 mac_addr_hi;
 #define NVM_CFG_MAC_ADDRESS_HI_MASK	0x0000FFFF
 #define NVM_CFG_MAC_ADDRESS_HI_OFFSET	0
 	u32 mac_addr_lo;
 };
 
-struct nvm_cfg1_glob {
+struct nvm_cfg1_glob
+{
 	u32 generic_cont0;
 #define NVM_CFG1_GLOB_MF_MODE_MASK		0x00000FF0
 #define NVM_CFG1_GLOB_MF_MODE_OFFSET		4
@@ -8773,11 +9117,13 @@ struct nvm_cfg1_glob {
 	u32 reserved[41];
 };
 
-struct nvm_cfg1_path {
+struct nvm_cfg1_path
+{
 	u32 reserved[30];
 };
 
-struct nvm_cfg1_port {
+struct nvm_cfg1_port
+{
 	u32 reserved__m_relocated_to_option_123;
 	u32 reserved__m_relocated_to_option_124;
 	u32 generic_cont0;
@@ -8848,7 +9194,8 @@ struct nvm_cfg1_port {
 	u32 reserved[116];
 };
 
-struct nvm_cfg1_func {
+struct nvm_cfg1_func
+{
 	struct nvm_cfg_mac_address mac_address;
 	u32 rsrv1;
 	u32 rsrv2;
@@ -8861,14 +9208,16 @@ struct nvm_cfg1_func {
 	u32 reserved[8];
 };
 
-struct nvm_cfg1 {
+struct nvm_cfg1
+{
 	struct nvm_cfg1_glob glob;
 	struct nvm_cfg1_path path[MCP_GLOB_PATH_MAX];
 	struct nvm_cfg1_port port[MCP_GLOB_PORT_MAX];
 	struct nvm_cfg1_func func[MCP_GLOB_FUNC_MAX];
 };
 
-enum spad_sections {
+enum spad_sections
+{
 	SPAD_SECTION_TRACE,
 	SPAD_SECTION_NVM_CFG,
 	SPAD_SECTION_PUBLIC,
@@ -8885,7 +9234,8 @@ enum spad_sections {
  * Moreover, the spad_layout section is part of the MFW firmware, and is loaded
  * with it from nvram in order to clear this portion.
  */
-struct static_init {
+struct static_init
+{
 	u32 num_sections;
 	offsize_t sections[SPAD_SECTION_MAX];
 #define SECTION(_sec_) (*((offsize_t *)(STRUCT_OFFSET(sections[_sec_]))))
@@ -8926,7 +9276,8 @@ struct static_init {
 	u32 rsrv_persist[5];	/* Persist reserved for MFW upgrades */
 };
 
-enum nvm_image_type {
+enum nvm_image_type
+{
 	NVM_TYPE_TIM1 = 0x01,
 	NVM_TYPE_TIM2 = 0x02,
 	NVM_TYPE_MIM1 = 0x03,

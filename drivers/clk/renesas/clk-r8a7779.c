@@ -23,7 +23,8 @@
 
 #define CPG_NUM_CLOCKS			(R8A7779_CLK_OUT + 1)
 
-struct r8a7779_cpg {
+struct r8a7779_cpg
+{
 	struct clk_onecell_data data;
 	spinlock_t lock;
 	void __iomem *reg;
@@ -54,7 +55,8 @@ struct r8a7779_cpg {
 
 #define CPG_CLK_CONFIG_INDEX(md)	(((md) & (BIT(2)|BIT(1))) >> 1)
 
-struct cpg_clk_config {
+struct cpg_clk_config
+{
 	unsigned int z_mult;
 	unsigned int z_div;
 	unsigned int zs_and_s_div;
@@ -63,7 +65,8 @@ struct cpg_clk_config {
 	unsigned int b_and_out_div;
 };
 
-static const struct cpg_clk_config cpg_clk_configs[4] __initconst = {
+static const struct cpg_clk_config cpg_clk_configs[4] __initconst =
+{
 	{ 1, 2, 8, 16, 32, 24 },
 	{ 2, 3, 6, 12, 24, 24 },
 	{ 1, 2, 8, 16, 32, 32 },
@@ -90,30 +93,43 @@ static const unsigned int cpg_plla_mult[4] __initconst = { 42, 48, 56, 64 };
 
 static u32 cpg_mode __initdata;
 
-static struct clk * __init
+static struct clk *__init
 r8a7779_cpg_register_clock(struct device_node *np, struct r8a7779_cpg *cpg,
-			   const struct cpg_clk_config *config,
-			   unsigned int plla_mult, const char *name)
+						   const struct cpg_clk_config *config,
+						   unsigned int plla_mult, const char *name)
 {
 	const char *parent_name = "plla";
 	unsigned int mult = 1;
 	unsigned int div = 1;
 
-	if (!strcmp(name, "plla")) {
+	if (!strcmp(name, "plla"))
+	{
 		parent_name = of_clk_get_parent_name(np, 0);
 		mult = plla_mult;
-	} else if (!strcmp(name, "z")) {
+	}
+	else if (!strcmp(name, "z"))
+	{
 		div = config->z_div;
 		mult = config->z_mult;
-	} else if (!strcmp(name, "zs") || !strcmp(name, "s")) {
+	}
+	else if (!strcmp(name, "zs") || !strcmp(name, "s"))
+	{
 		div = config->zs_and_s_div;
-	} else if (!strcmp(name, "s1")) {
+	}
+	else if (!strcmp(name, "s1"))
+	{
 		div = config->s1_div;
-	} else if (!strcmp(name, "p")) {
+	}
+	else if (!strcmp(name, "p"))
+	{
 		div = config->p_div;
-	} else if (!strcmp(name, "b") || !strcmp(name, "out")) {
+	}
+	else if (!strcmp(name, "b") || !strcmp(name, "out"))
+	{
 		div = config->b_and_out_div;
-	} else {
+	}
+	else
+	{
 		return ERR_PTR(-EINVAL);
 	}
 
@@ -129,14 +145,18 @@ static void __init r8a7779_cpg_clocks_init(struct device_node *np)
 	int num_clks;
 
 	num_clks = of_property_count_strings(np, "clock-output-names");
-	if (num_clks < 0) {
+
+	if (num_clks < 0)
+	{
 		pr_err("%s: failed to count clocks\n", __func__);
 		return;
 	}
 
 	cpg = kzalloc(sizeof(*cpg), GFP_KERNEL);
 	clks = kzalloc(CPG_NUM_CLOCKS * sizeof(*clks), GFP_KERNEL);
-	if (cpg == NULL || clks == NULL) {
+
+	if (cpg == NULL || clks == NULL)
+	{
 		/* We're leaking memory on purpose, there's no point in cleaning
 		 * up as the system won't boot anyway.
 		 */
@@ -151,20 +171,24 @@ static void __init r8a7779_cpg_clocks_init(struct device_node *np)
 	config = &cpg_clk_configs[CPG_CLK_CONFIG_INDEX(cpg_mode)];
 	plla_mult = cpg_plla_mult[CPG_PLLA_MULT_INDEX(cpg_mode)];
 
-	for (i = 0; i < num_clks; ++i) {
+	for (i = 0; i < num_clks; ++i)
+	{
 		const char *name;
 		struct clk *clk;
 
 		of_property_read_string_index(np, "clock-output-names", i,
-					      &name);
+									  &name);
 
 		clk = r8a7779_cpg_register_clock(np, cpg, config,
-						 plla_mult, name);
+										 plla_mult, name);
+
 		if (IS_ERR(clk))
 			pr_err("%s: failed to register %s %s clock (%ld)\n",
-			       __func__, np->name, name, PTR_ERR(clk));
+				   __func__, np->name, name, PTR_ERR(clk));
 		else
+		{
 			cpg->data.clks[i] = clk;
+		}
 	}
 
 	of_clk_add_provider(np, of_clk_src_onecell_get, &cpg->data);
@@ -172,7 +196,7 @@ static void __init r8a7779_cpg_clocks_init(struct device_node *np)
 	cpg_mstp_add_clk_domain(np);
 }
 CLK_OF_DECLARE(r8a7779_cpg_clks, "renesas,r8a7779-cpg-clocks",
-	       r8a7779_cpg_clocks_init);
+			   r8a7779_cpg_clocks_init);
 
 void __init r8a7779_clocks_init(u32 mode)
 {

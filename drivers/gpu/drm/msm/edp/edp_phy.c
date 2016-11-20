@@ -16,7 +16,8 @@
 
 #define EDP_MAX_LANE	4
 
-struct edp_phy {
+struct edp_phy
+{
 	void __iomem *base;
 };
 
@@ -25,18 +26,26 @@ bool msm_edp_phy_ready(struct edp_phy *phy)
 	u32 status;
 	int cnt = 100;
 
-	while (--cnt) {
+	while (--cnt)
+	{
 		status = edp_read(phy->base +
-				REG_EDP_PHY_GLB_PHY_STATUS);
+						  REG_EDP_PHY_GLB_PHY_STATUS);
+
 		if (status & 0x01)
+		{
 			break;
+		}
+
 		usleep_range(500, 1000);
 	}
 
-	if (cnt == 0) {
+	if (cnt == 0)
+	{
 		pr_err("%s: PHY NOT ready\n", __func__);
 		return false;
-	} else {
+	}
+	else
+	{
 		return true;
 	}
 }
@@ -44,17 +53,21 @@ bool msm_edp_phy_ready(struct edp_phy *phy)
 void msm_edp_phy_ctrl(struct edp_phy *phy, int enable)
 {
 	DBG("enable=%d", enable);
-	if (enable) {
+
+	if (enable)
+	{
 		/* Reset */
 		edp_write(phy->base + REG_EDP_PHY_CTRL,
-			EDP_PHY_CTRL_SW_RESET | EDP_PHY_CTRL_SW_RESET_PLL);
+				  EDP_PHY_CTRL_SW_RESET | EDP_PHY_CTRL_SW_RESET_PLL);
 		/* Make sure fully reset */
 		wmb();
 		usleep_range(500, 1000);
 		edp_write(phy->base + REG_EDP_PHY_CTRL, 0x000);
 		edp_write(phy->base + REG_EDP_PHY_GLB_PD_CTL, 0x3f);
 		edp_write(phy->base + REG_EDP_PHY_GLB_CFG, 0x1);
-	} else {
+	}
+	else
+	{
 		edp_write(phy->base + REG_EDP_PHY_GLB_PD_CTL, 0xc0);
 	}
 }
@@ -79,17 +92,26 @@ void msm_edp_phy_lane_power_ctrl(struct edp_phy *phy, bool up, u32 max_lane)
 	u32 data;
 
 	if (up)
-		data = 0;	/* power up */
+	{
+		data = 0;    /* power up */
+	}
 	else
-		data = 0x7;	/* power down */
+	{
+		data = 0x7;    /* power down */
+	}
 
 	for (i = 0; i < max_lane; i++)
+	{
 		edp_write(phy->base + REG_EDP_PHY_LN_PD_CTL(i) , data);
+	}
 
 	/* power down unused lane */
 	data = 0x7;	/* power down */
+
 	for (i = max_lane; i < EDP_MAX_LANE; i++)
+	{
 		edp_write(phy->base + REG_EDP_PHY_LN_PD_CTL(i) , data);
+	}
 }
 
 void *msm_edp_phy_init(struct device *dev, void __iomem *regbase)
@@ -97,8 +119,11 @@ void *msm_edp_phy_init(struct device *dev, void __iomem *regbase)
 	struct edp_phy *phy = NULL;
 
 	phy = devm_kzalloc(dev, sizeof(*phy), GFP_KERNEL);
+
 	if (!phy)
+	{
 		return NULL;
+	}
 
 	phy->base = regbase;
 	return phy;

@@ -127,7 +127,8 @@
 
 static volatile unsigned char *fm2fb_reg;
 
-static struct fb_fix_screeninfo fb_fix = {
+static struct fb_fix_screeninfo fb_fix =
+{
 	.smem_len =	FRAMEMASTER_REG,
 	.type =		FB_TYPE_PACKED_PIXELS,
 	.visual =	FB_VISUAL_TRUECOLOR,
@@ -141,31 +142,33 @@ static int fm2fb_mode = -1;
 #define FM2FB_MODE_PAL	0
 #define FM2FB_MODE_NTSC	1
 
-static struct fb_var_screeninfo fb_var_modes[] = {
-    {
-	/* 768 x 576, 32 bpp (PAL) */
-	768, 576, 768, 576, 0, 0, 32, 0,
-	{ 16, 8, 0 }, { 8, 8, 0 }, { 0, 8, 0 }, { 24, 8, 0 },
-	0, FB_ACTIVATE_NOW, -1, -1, FB_ACCEL_NONE,
-	33333, 10, 102, 10, 5, 80, 34, FB_SYNC_COMP_HIGH_ACT, 0
-    }, {
-	/* 768 x 480, 32 bpp (NTSC - not supported yet */
-	768, 480, 768, 480, 0, 0, 32, 0,
-	{ 16, 8, 0 }, { 8, 8, 0 }, { 0, 8, 0 }, { 24, 8, 0 },
-	0, FB_ACTIVATE_NOW, -1, -1, FB_ACCEL_NONE,
-	33333, 10, 102, 10, 5, 80, 34, FB_SYNC_COMP_HIGH_ACT, 0
-    }
+static struct fb_var_screeninfo fb_var_modes[] =
+{
+	{
+		/* 768 x 576, 32 bpp (PAL) */
+		768, 576, 768, 576, 0, 0, 32, 0,
+		{ 16, 8, 0 }, { 8, 8, 0 }, { 0, 8, 0 }, { 24, 8, 0 },
+		0, FB_ACTIVATE_NOW, -1, -1, FB_ACCEL_NONE,
+		33333, 10, 102, 10, 5, 80, 34, FB_SYNC_COMP_HIGH_ACT, 0
+	}, {
+		/* 768 x 480, 32 bpp (NTSC - not supported yet */
+		768, 480, 768, 480, 0, 0, 32, 0,
+		{ 16, 8, 0 }, { 8, 8, 0 }, { 0, 8, 0 }, { 24, 8, 0 },
+		0, FB_ACTIVATE_NOW, -1, -1, FB_ACCEL_NONE,
+		33333, 10, 102, 10, 5, 80, 34, FB_SYNC_COMP_HIGH_ACT, 0
+	}
 };
 
-    /*
-     *  Interface used by the world
-     */
+/*
+ *  Interface used by the world
+ */
 
 static int fm2fb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
-                           u_int transp, struct fb_info *info);
+						   u_int transp, struct fb_info *info);
 static int fm2fb_blank(int blank, struct fb_info *info);
 
-static struct fb_ops fm2fb_ops = {
+static struct fb_ops fm2fb_ops =
+{
 	.owner		= THIS_MODULE,
 	.fb_setcolreg	= fm2fb_setcolreg,
 	.fb_blank	= fm2fb_blank,
@@ -174,53 +177,59 @@ static struct fb_ops fm2fb_ops = {
 	.fb_imageblit	= cfb_imageblit,
 };
 
-    /*
-     *  Blank the display.
-     */
+/*
+ *  Blank the display.
+ */
 static int fm2fb_blank(int blank, struct fb_info *info)
 {
 	unsigned char t = FRAMEMASTER_ROM;
 
 	if (!blank)
+	{
 		t |= FRAMEMASTER_ENABLE | FRAMEMASTER_NOLACE;
+	}
+
 	fm2fb_reg[0] = t;
 	return 0;
 }
 
-    /*
-     *  Set a single color register. The values supplied are already
-     *  rounded down to the hardware's capabilities (according to the
-     *  entries in the var structure). Return != 0 for invalid regno.
-     */
+/*
+ *  Set a single color register. The values supplied are already
+ *  rounded down to the hardware's capabilities (according to the
+ *  entries in the var structure). Return != 0 for invalid regno.
+ */
 static int fm2fb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
-                         u_int transp, struct fb_info *info)
+						   u_int transp, struct fb_info *info)
 {
-	if (regno < 16) {
+	if (regno < 16)
+	{
 		red >>= 8;
 		green >>= 8;
 		blue >>= 8;
 
-		((u32*)(info->pseudo_palette))[regno] = (red << 16) |
-			(green << 8) | blue;
+		((u32 *)(info->pseudo_palette))[regno] = (red << 16) |
+				(green << 8) | blue;
 	}
 
 	return 0;
 }
 
-    /*
-     *  Initialisation
-     */
+/*
+ *  Initialisation
+ */
 
 static int fm2fb_probe(struct zorro_dev *z, const struct zorro_device_id *id);
 
-static struct zorro_device_id fm2fb_devices[] = {
+static struct zorro_device_id fm2fb_devices[] =
+{
 	{ ZORRO_PROD_BSC_FRAMEMASTER_II },
 	{ ZORRO_PROD_HELFRICH_RAINBOW_II },
 	{ 0 }
 };
 MODULE_DEVICE_TABLE(zorro, fm2fb_devices);
 
-static struct zorro_driver fm2fb_driver = {
+static struct zorro_driver fm2fb_driver =
+{
 	.name		= "fm2fb",
 	.id_table	= fm2fb_devices,
 	.probe		= fm2fb_probe,
@@ -235,16 +244,21 @@ static int fm2fb_probe(struct zorro_dev *z, const struct zorro_device_id *id)
 
 	is_fm = z->id == ZORRO_PROD_BSC_FRAMEMASTER_II;
 
-	if (!zorro_request_device(z,"fm2fb"))
+	if (!zorro_request_device(z, "fm2fb"))
+	{
 		return -ENXIO;
+	}
 
 	info = framebuffer_alloc(16 * sizeof(u32), &z->dev);
-	if (!info) {
+
+	if (!info)
+	{
 		zorro_release_device(z);
 		return -ENOMEM;
 	}
 
-	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0) {
+	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0)
+	{
 		framebuffer_release(info);
 		zorro_release_device(z);
 		return -ENOMEM;
@@ -254,26 +268,38 @@ static int fm2fb_probe(struct zorro_dev *z, const struct zorro_device_id *id)
 	fb_fix.smem_start = zorro_resource_start(z);
 	info->screen_base = ioremap(fb_fix.smem_start, FRAMEMASTER_SIZE);
 	fb_fix.mmio_start = fb_fix.smem_start + FRAMEMASTER_REG;
-	fm2fb_reg  = (unsigned char *)(info->screen_base+FRAMEMASTER_REG);
+	fm2fb_reg  = (unsigned char *)(info->screen_base + FRAMEMASTER_REG);
 
 	strcpy(fb_fix.id, is_fm ? "FrameMaster II" : "Rainbow II");
 
 	/* make EBU color bars on display */
 	ptr = (unsigned long *)fb_fix.smem_start;
-	for (y = 0; y < 576; y++) {
-		for (x = 0; x < 96; x++) *ptr++ = 0xffffff;/* white */
-		for (x = 0; x < 96; x++) *ptr++ = 0xffff00;/* yellow */
-		for (x = 0; x < 96; x++) *ptr++ = 0x00ffff;/* cyan */
-		for (x = 0; x < 96; x++) *ptr++ = 0x00ff00;/* green */
-		for (x = 0; x < 96; x++) *ptr++ = 0xff00ff;/* magenta */
-		for (x = 0; x < 96; x++) *ptr++ = 0xff0000;/* red */
-		for (x = 0; x < 96; x++) *ptr++ = 0x0000ff;/* blue */
-		for (x = 0; x < 96; x++) *ptr++ = 0x000000;/* black */
+
+	for (y = 0; y < 576; y++)
+	{
+		for (x = 0; x < 96; x++) { *ptr++ = 0xffffff; }/* white */
+
+		for (x = 0; x < 96; x++) { *ptr++ = 0xffff00; }/* yellow */
+
+		for (x = 0; x < 96; x++) { *ptr++ = 0x00ffff; }/* cyan */
+
+		for (x = 0; x < 96; x++) { *ptr++ = 0x00ff00; }/* green */
+
+		for (x = 0; x < 96; x++) { *ptr++ = 0xff00ff; }/* magenta */
+
+		for (x = 0; x < 96; x++) { *ptr++ = 0xff0000; }/* red */
+
+		for (x = 0; x < 96; x++) { *ptr++ = 0x0000ff; }/* blue */
+
+		for (x = 0; x < 96; x++) { *ptr++ = 0x000000; }/* black */
 	}
+
 	fm2fb_blank(0, info);
 
 	if (fm2fb_mode == -1)
+	{
 		fm2fb_mode = FM2FB_MODE_PAL;
+	}
 
 	info->fbops = &fm2fb_ops;
 	info->var = fb_var_modes[fm2fb_mode];
@@ -282,13 +308,15 @@ static int fm2fb_probe(struct zorro_dev *z, const struct zorro_device_id *id)
 	info->fix = fb_fix;
 	info->flags = FBINFO_DEFAULT;
 
-	if (register_framebuffer(info) < 0) {
+	if (register_framebuffer(info) < 0)
+	{
 		fb_dealloc_cmap(&info->cmap);
 		iounmap(info->screen_base);
 		framebuffer_release(info);
 		zorro_release_device(z);
 		return -EINVAL;
 	}
+
 	fb_info(info, "%s frame buffer device\n", fb_fix.id);
 	return 0;
 }
@@ -298,14 +326,22 @@ int __init fm2fb_setup(char *options)
 	char *this_opt;
 
 	if (!options || !*options)
+	{
 		return 0;
-
-	while ((this_opt = strsep(&options, ",")) != NULL) {
-		if (!strncmp(this_opt, "pal", 3))
-			fm2fb_mode = FM2FB_MODE_PAL;
-		else if (!strncmp(this_opt, "ntsc", 4))
-			fm2fb_mode = FM2FB_MODE_NTSC;
 	}
+
+	while ((this_opt = strsep(&options, ",")) != NULL)
+	{
+		if (!strncmp(this_opt, "pal", 3))
+		{
+			fm2fb_mode = FM2FB_MODE_PAL;
+		}
+		else if (!strncmp(this_opt, "ntsc", 4))
+		{
+			fm2fb_mode = FM2FB_MODE_NTSC;
+		}
+	}
+
 	return 0;
 }
 
@@ -314,7 +350,10 @@ int __init fm2fb_init(void)
 	char *option = NULL;
 
 	if (fb_get_options("fm2fb", &option))
+	{
 		return -ENODEV;
+	}
+
 	fm2fb_setup(option);
 	return zorro_register_driver(&fm2fb_driver);
 }

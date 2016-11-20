@@ -20,7 +20,8 @@
 #include <linux/slab.h>
 #include <linux/qed/qed_if.h>
 
-struct qed_ll2_stats {
+struct qed_ll2_stats
+{
 	u64 gsi_invalid_hdr;
 	u64 gsi_invalid_pkt_length;
 	u64 gsi_unsupported_pkt_typ;
@@ -46,12 +47,14 @@ struct qed_ll2_stats {
 
 #define QED_LL2_UNUSED_HANDLE   (0xff)
 
-struct qed_ll2_cb_ops {
+struct qed_ll2_cb_ops
+{
 	int (*rx_cb)(void *, struct sk_buff *, u32, u32);
 	int (*tx_cb)(void *, struct sk_buff *, bool);
 };
 
-struct qed_ll2_params {
+struct qed_ll2_params
+{
 	u16 mtu;
 	bool drop_ttl0_packets;
 	bool rx_vlan_stripping;
@@ -60,58 +63,59 @@ struct qed_ll2_params {
 	u8 ll2_mac_address[ETH_ALEN];
 };
 
-struct qed_ll2_ops {
-/**
- * @brief start - initializes ll2
- *
- * @param cdev
- * @param params - protocol driver configuration for the ll2.
- *
- * @return 0 on success, otherwise error value.
- */
+struct qed_ll2_ops
+{
+	/**
+	 * @brief start - initializes ll2
+	 *
+	 * @param cdev
+	 * @param params - protocol driver configuration for the ll2.
+	 *
+	 * @return 0 on success, otherwise error value.
+	 */
 	int (*start)(struct qed_dev *cdev, struct qed_ll2_params *params);
 
-/**
- * @brief stop - stops the ll2
- *
- * @param cdev
- *
- * @return 0 on success, otherwise error value.
- */
+	/**
+	 * @brief stop - stops the ll2
+	 *
+	 * @param cdev
+	 *
+	 * @return 0 on success, otherwise error value.
+	 */
 	int (*stop)(struct qed_dev *cdev);
 
-/**
- * @brief start_xmit - transmits an skb over the ll2 interface
- *
- * @param cdev
- * @param skb
- *
- * @return 0 on success, otherwise error value.
- */
+	/**
+	 * @brief start_xmit - transmits an skb over the ll2 interface
+	 *
+	 * @param cdev
+	 * @param skb
+	 *
+	 * @return 0 on success, otherwise error value.
+	 */
 	int (*start_xmit)(struct qed_dev *cdev, struct sk_buff *skb);
 
-/**
- * @brief register_cb_ops - protocol driver register the callback for Rx/Tx
- * packets. Should be called before `start'.
- *
- * @param cdev
- * @param cookie - to be passed to the callback functions.
- * @param ops - the callback functions to register for Rx / Tx.
- *
- * @return 0 on success, otherwise error value.
- */
+	/**
+	 * @brief register_cb_ops - protocol driver register the callback for Rx/Tx
+	 * packets. Should be called before `start'.
+	 *
+	 * @param cdev
+	 * @param cookie - to be passed to the callback functions.
+	 * @param ops - the callback functions to register for Rx / Tx.
+	 *
+	 * @return 0 on success, otherwise error value.
+	 */
 	void (*register_cb_ops)(struct qed_dev *cdev,
-				const struct qed_ll2_cb_ops *ops,
-				void *cookie);
+							const struct qed_ll2_cb_ops *ops,
+							void *cookie);
 
-/**
- * @brief get LL2 related statistics
- *
- * @param cdev
- * @param stats - pointer to struct that would be filled with stats
- *
- * @return 0 on success, error otherwise.
- */
+	/**
+	 * @brief get LL2 related statistics
+	 *
+	 * @param cdev
+	 * @param stats - pointer to struct that would be filled with stats
+	 *
+	 * @return 0 on success, error otherwise.
+	 */
 	int (*get_stats)(struct qed_dev *cdev, struct qed_ll2_stats *stats);
 };
 
@@ -119,7 +123,8 @@ struct qed_ll2_ops {
 int qed_ll2_alloc_if(struct qed_dev *);
 void qed_ll2_dealloc_if(struct qed_dev *);
 #else
-static const struct qed_ll2_ops qed_ll2_ops_pass = {
+static const struct qed_ll2_ops qed_ll2_ops_pass =
+{
 	.start = NULL,
 	.stop = NULL,
 	.start_xmit = NULL,

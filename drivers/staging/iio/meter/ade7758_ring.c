@@ -27,8 +27,11 @@ static int ade7758_spi_read_burst(struct iio_dev *indio_dev)
 	int ret;
 
 	ret = spi_sync(st->us, &st->ring_msg);
+
 	if (ret)
+	{
 		dev_err(&st->us->dev, "problem when reading WFORM value\n");
+	}
 
 	return ret;
 }
@@ -39,8 +42,11 @@ static int ade7758_write_waveform_type(struct device *dev, unsigned int type)
 	u8 reg;
 
 	ret = ade7758_spi_read_reg_8(dev, ADE7758_WAVMODE, &reg);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	reg &= ~0x1F;
 	reg |= type & 0x1F;
@@ -63,7 +69,9 @@ static irqreturn_t ade7758_trigger_handler(int irq, void *p)
 
 	if (!bitmap_empty(indio_dev->active_scan_mask, indio_dev->masklength))
 		if (ade7758_spi_read_burst(indio_dev) >= 0)
+		{
 			*dat32 = get_unaligned_be32(&st->rx_buf[5]) & 0xFFFFFF;
+		}
 
 	iio_push_to_buffers_with_timestamp(indio_dev, dat64, pf->timestamp);
 
@@ -84,18 +92,21 @@ static int ade7758_ring_preenable(struct iio_dev *indio_dev)
 	unsigned int channel;
 
 	if (bitmap_empty(indio_dev->active_scan_mask, indio_dev->masklength))
+	{
 		return -EINVAL;
+	}
 
 	channel = find_first_bit(indio_dev->active_scan_mask,
-				 indio_dev->masklength);
+							 indio_dev->masklength);
 
 	ade7758_write_waveform_type(&indio_dev->dev,
-				    indio_dev->channels[channel].address);
+								indio_dev->channels[channel].address);
 
 	return 0;
 }
 
-static const struct iio_buffer_setup_ops ade7758_ring_setup_ops = {
+static const struct iio_buffer_setup_ops ade7758_ring_setup_ops =
+{
 	.preenable = &ade7758_ring_preenable,
 	.postenable = &iio_triggered_buffer_postenable,
 	.predisable = &iio_triggered_buffer_predisable,
@@ -115,20 +126,25 @@ int ade7758_configure_ring(struct iio_dev *indio_dev)
 	int ret = 0;
 
 	buffer = iio_kfifo_allocate();
+
 	if (!buffer)
+	{
 		return -ENOMEM;
+	}
 
 	iio_device_attach_buffer(indio_dev, buffer);
 
 	indio_dev->setup_ops = &ade7758_ring_setup_ops;
 
 	indio_dev->pollfunc = iio_alloc_pollfunc(&iio_pollfunc_store_time,
-						 &ade7758_trigger_handler,
-						 0,
-						 indio_dev,
-						 "ade7759_consumer%d",
-						 indio_dev->id);
-	if (!indio_dev->pollfunc) {
+						  &ade7758_trigger_handler,
+						  0,
+						  indio_dev,
+						  "ade7759_consumer%d",
+						  indio_dev->id);
+
+	if (!indio_dev->pollfunc)
+	{
 		ret = -ENOMEM;
 		goto error_iio_kfifo_free;
 	}

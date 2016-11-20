@@ -34,7 +34,7 @@
  * specified target state selected by the governor.
  */
 static int arm_enter_idle_state(struct cpuidle_device *dev,
-				struct cpuidle_driver *drv, int idx)
+								struct cpuidle_driver *drv, int idx)
 {
 	/*
 	 * Pass idle state index to arm_cpuidle_suspend which in turn
@@ -44,7 +44,8 @@ static int arm_enter_idle_state(struct cpuidle_device *dev,
 	return CPU_PM_CPU_IDLE_ENTER(arm_cpuidle_suspend, idx);
 }
 
-static struct cpuidle_driver arm_idle_driver = {
+static struct cpuidle_driver arm_idle_driver =
+{
 	.name = "arm_idle",
 	.owner = THIS_MODULE,
 	/*
@@ -64,9 +65,12 @@ static struct cpuidle_driver arm_idle_driver = {
 	}
 };
 
-static const struct of_device_id arm_idle_state_match[] __initconst = {
-	{ .compatible = "arm,idle-state",
-	  .data = arm_enter_idle_state },
+static const struct of_device_id arm_idle_state_match[] __initconst =
+{
+	{
+		.compatible = "arm,idle-state",
+		.data = arm_enter_idle_state
+	},
 	{ },
 };
 
@@ -90,11 +94,16 @@ static int __init arm_idle_init(void)
 	 * reason to initialize the idle driver if only wfi is supported.
 	 */
 	ret = dt_init_idle_driver(drv, arm_idle_state_match, 1);
+
 	if (ret <= 0)
+	{
 		return ret ? : -ENODEV;
+	}
 
 	ret = cpuidle_register_driver(drv);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Failed to register cpuidle driver\n");
 		return ret;
 	}
@@ -103,7 +112,8 @@ static int __init arm_idle_init(void)
 	 * Call arch CPU operations in order to initialize
 	 * idle states suspend back-end specific data
 	 */
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu(cpu)
+	{
 		ret = arm_cpuidle_init(cpu);
 
 		/*
@@ -111,25 +121,33 @@ static int __init arm_idle_init(void)
 		 * failure is a HW misconfiguration/breakage (-ENXIO).
 		 */
 		if (ret == -ENXIO)
+		{
 			continue;
+		}
 
-		if (ret) {
+		if (ret)
+		{
 			pr_err("CPU %d failed to init idle CPU ops\n", cpu);
 			goto out_fail;
 		}
 
 		dev = kzalloc(sizeof(*dev), GFP_KERNEL);
-		if (!dev) {
+
+		if (!dev)
+		{
 			pr_err("Failed to allocate cpuidle device\n");
 			ret = -ENOMEM;
 			goto out_fail;
 		}
+
 		dev->cpu = cpu;
 
 		ret = cpuidle_register_device(dev);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_err("Failed to register cpuidle device for CPU %d\n",
-			       cpu);
+				   cpu);
 			kfree(dev);
 			goto out_fail;
 		}
@@ -137,7 +155,9 @@ static int __init arm_idle_init(void)
 
 	return 0;
 out_fail:
-	while (--cpu >= 0) {
+
+	while (--cpu >= 0)
+	{
 		dev = per_cpu(cpuidle_devices, cpu);
 		cpuidle_unregister_device(dev);
 		kfree(dev);

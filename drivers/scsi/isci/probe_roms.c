@@ -34,7 +34,8 @@
 #include "task.h"
 #include "probe_roms.h"
 
-static efi_char16_t isci_efivar_name[] = {
+static efi_char16_t isci_efivar_name[] =
+{
 	'R', 's', 't', 'S', 'c', 'u', 'O'
 };
 
@@ -49,63 +50,80 @@ struct isci_orom *isci_request_oprom(struct pci_dev *pdev)
 	u8 *tmp, sum;
 
 	if (!oprom)
-		return NULL;
-
-	len = pci_biosrom_size(pdev);
-	rom = devm_kzalloc(&pdev->dev, sizeof(*rom), GFP_KERNEL);
-	if (!rom) {
-		dev_warn(&pdev->dev,
-			 "Unable to allocate memory for orom\n");
+	{
 		return NULL;
 	}
 
-	for (i = 0; i < len && rom; i += ISCI_OEM_SIG_SIZE) {
+	len = pci_biosrom_size(pdev);
+	rom = devm_kzalloc(&pdev->dev, sizeof(*rom), GFP_KERNEL);
+
+	if (!rom)
+	{
+		dev_warn(&pdev->dev,
+				 "Unable to allocate memory for orom\n");
+		return NULL;
+	}
+
+	for (i = 0; i < len && rom; i += ISCI_OEM_SIG_SIZE)
+	{
 		memcpy_fromio(oem_sig, oprom + i, ISCI_OEM_SIG_SIZE);
 
 		/* we think we found the OEM table */
-		if (memcmp(oem_sig, ISCI_OEM_SIG, ISCI_OEM_SIG_SIZE) == 0) {
+		if (memcmp(oem_sig, ISCI_OEM_SIG, ISCI_OEM_SIG_SIZE) == 0)
+		{
 			size_t copy_len;
 
 			memcpy_fromio(&oem_hdr, oprom + i, sizeof(oem_hdr));
 
 			copy_len = min(oem_hdr.len - sizeof(oem_hdr),
-				       sizeof(*rom));
+						   sizeof(*rom));
 
 			memcpy_fromio(rom,
-				      oprom + i + sizeof(oem_hdr),
-				      copy_len);
+						  oprom + i + sizeof(oem_hdr),
+						  copy_len);
 
 			/* calculate checksum */
 			tmp = (u8 *)&oem_hdr;
+
 			for (j = 0, sum = 0; j < sizeof(oem_hdr); j++, tmp++)
+			{
 				sum += *tmp;
+			}
 
 			tmp = (u8 *)rom;
-			for (j = 0; j < sizeof(*rom); j++, tmp++)
-				sum += *tmp;
 
-			if (sum != 0) {
+			for (j = 0; j < sizeof(*rom); j++, tmp++)
+			{
+				sum += *tmp;
+			}
+
+			if (sum != 0)
+			{
 				dev_warn(&pdev->dev,
-					 "OEM table checksum failed\n");
+						 "OEM table checksum failed\n");
 				continue;
 			}
 
 			/* keep going if that's not the oem param table */
 			if (memcmp(rom->hdr.signature,
-				   ISCI_ROM_SIG,
-				   ISCI_ROM_SIG_SIZE) != 0)
+					   ISCI_ROM_SIG,
+					   ISCI_ROM_SIG_SIZE) != 0)
+			{
 				continue;
+			}
 
 			dev_info(&pdev->dev,
-				 "OEM parameter table found in OROM\n");
+					 "OEM parameter table found in OROM\n");
 			break;
 		}
 	}
 
-	if (i >= len) {
+	if (i >= len)
+	{
 		dev_err(&pdev->dev, "oprom parse error\n");
 		rom = NULL;
 	}
+
 	pci_unmap_biosrom(oprom);
 
 	return rom;
@@ -117,38 +135,51 @@ struct isci_orom *isci_request_firmware(struct pci_dev *pdev, const struct firmw
 	int i, j;
 
 	if (request_firmware(&fw, ISCI_FW_NAME, &pdev->dev) != 0)
+	{
 		return NULL;
+	}
 
 	if (fw->size < sizeof(*orom))
+	{
 		goto out;
+	}
 
 	data = (struct isci_orom *)fw->data;
 
 	if (strncmp(ISCI_ROM_SIG, data->hdr.signature,
-		    strlen(ISCI_ROM_SIG)) != 0)
+				strlen(ISCI_ROM_SIG)) != 0)
+	{
 		goto out;
+	}
 
 	orom = devm_kzalloc(&pdev->dev, fw->size, GFP_KERNEL);
+
 	if (!orom)
+	{
 		goto out;
+	}
 
 	memcpy(orom, fw->data, fw->size);
 
 	if (is_c0(pdev) || is_c1(pdev))
+	{
 		goto out;
+	}
 
 	/*
 	 * deprecated: override default amp_control for pre-preproduction
 	 * silicon revisions
 	 */
 	for (i = 0; i < ARRAY_SIZE(orom->ctrl); i++)
-		for (j = 0; j < ARRAY_SIZE(orom->ctrl[i].phys); j++) {
+		for (j = 0; j < ARRAY_SIZE(orom->ctrl[i].phys); j++)
+		{
 			orom->ctrl[i].phys[j].afe_tx_amp_control0 = 0xe7c03;
 			orom->ctrl[i].phys[j].afe_tx_amp_control1 = 0xe7c03;
 			orom->ctrl[i].phys[j].afe_tx_amp_control2 = 0xe7c03;
 			orom->ctrl[i].phys[j].afe_tx_amp_control3 = 0xe7c03;
 		}
- out:
+
+out:
 	release_firmware(fw);
 
 	return orom;
@@ -176,9 +207,11 @@ struct isci_orom *isci_get_efi_var(struct pci_dev *pdev)
 
 	data_len = 1024;
 	efi_data = devm_kzalloc(&pdev->dev, data_len, GFP_KERNEL);
-	if (!efi_data) {
+
+	if (!efi_data)
+	{
 		dev_warn(&pdev->dev,
-			 "Unable to allocate memory for EFI data\n");
+				 "Unable to allocate memory for EFI data\n");
 		return NULL;
 	}
 
@@ -186,43 +219,52 @@ struct isci_orom *isci_get_efi_var(struct pci_dev *pdev)
 
 	if (get_efi())
 		status = get_efi()->get_variable(isci_efivar_name,
-						 &ISCI_EFI_VENDOR_GUID,
-						 &efi_attrib,
-						 &data_len,
-						 efi_data);
+										 &ISCI_EFI_VENDOR_GUID,
+										 &efi_attrib,
+										 &data_len,
+										 efi_data);
 	else
+	{
 		status = EFI_NOT_FOUND;
+	}
 
-	if (status != EFI_SUCCESS) {
+	if (status != EFI_SUCCESS)
+	{
 		dev_warn(&pdev->dev,
-			 "Unable to obtain EFI var data for OEM parms\n");
+				 "Unable to obtain EFI var data for OEM parms\n");
 		return NULL;
 	}
 
 	oem_hdr = (struct isci_oem_hdr *)efi_data;
 
-	if (memcmp(oem_hdr->sig, ISCI_OEM_SIG, ISCI_OEM_SIG_SIZE) != 0) {
+	if (memcmp(oem_hdr->sig, ISCI_OEM_SIG, ISCI_OEM_SIG_SIZE) != 0)
+	{
 		dev_warn(&pdev->dev,
-			 "Invalid OEM header signature\n");
+				 "Invalid OEM header signature\n");
 		return NULL;
 	}
 
 	/* calculate checksum */
 	tmp = (u8 *)efi_data;
-	for (j = 0, sum = 0; j < (sizeof(*oem_hdr) + sizeof(*rom)); j++, tmp++)
-		sum += *tmp;
 
-	if (sum != 0) {
+	for (j = 0, sum = 0; j < (sizeof(*oem_hdr) + sizeof(*rom)); j++, tmp++)
+	{
+		sum += *tmp;
+	}
+
+	if (sum != 0)
+	{
 		dev_warn(&pdev->dev,
-			 "OEM table checksum failed\n");
+				 "OEM table checksum failed\n");
 		return NULL;
 	}
 
 	if (memcmp(rom->hdr.signature,
-		   ISCI_ROM_SIG,
-		   ISCI_ROM_SIG_SIZE) != 0) {
+			   ISCI_ROM_SIG,
+			   ISCI_ROM_SIG_SIZE) != 0)
+	{
 		dev_warn(&pdev->dev,
-			 "Invalid OEM table signature\n");
+				 "Invalid OEM table signature\n");
 		return NULL;
 	}
 

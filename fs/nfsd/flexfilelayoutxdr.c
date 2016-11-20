@@ -9,14 +9,15 @@
 
 #define NFSDDBG_FACILITY	NFSDDBG_PNFS
 
-struct ff_idmap {
+struct ff_idmap
+{
 	char buf[11];
 	int len;
 };
 
 __be32
 nfsd4_ff_encode_layoutget(struct xdr_stream *xdr,
-		struct nfsd4_layoutget *lgp)
+						  struct nfsd4_layoutget *lgp)
 {
 	struct pnfs_ff_layout *fl = lgp->lg_content;
 	int len, mirror_len, ds_len, fh_len;
@@ -36,7 +37,7 @@ nfsd4_ff_encode_layoutget(struct xdr_stream *xdr,
 
 	/* 8 + len for recording the length, name, and padding */
 	ds_len = 20 + sizeof(stateid_opaque_t) + 4 + fh_len +
-		 8 + uid.len + 8 + gid.len;
+			 8 + uid.len + 8 + gid.len;
 
 	mirror_len = 4 + ds_len;
 
@@ -44,8 +45,11 @@ nfsd4_ff_encode_layoutget(struct xdr_stream *xdr,
 	len = 20 + mirror_len;
 
 	p = xdr_reserve_space(xdr, sizeof(__be32) + len);
+
 	if (!p)
+	{
 		return nfserr_toosmall;
+	}
 
 	*p++ = cpu_to_be32(len);
 	p = xdr_encode_hyper(p, 0);		/* stripe unit of 1 */
@@ -54,13 +58,13 @@ nfsd4_ff_encode_layoutget(struct xdr_stream *xdr,
 	*p++ = cpu_to_be32(1);			/* single data server */
 
 	p = xdr_encode_opaque_fixed(p, &fl->deviceid,
-			sizeof(struct nfsd4_deviceid));
+								sizeof(struct nfsd4_deviceid));
 
 	*p++ = cpu_to_be32(1);			/* efficiency */
 
 	*p++ = cpu_to_be32(fl->stateid.si_generation);
 	p = xdr_encode_opaque_fixed(p, &fl->stateid.si_opaque,
-				    sizeof(stateid_opaque_t));
+								sizeof(stateid_opaque_t));
 
 	*p++ = cpu_to_be32(1);			/* single file handle */
 	p = xdr_encode_opaque(p, fl->fh.data, fl->fh.size);
@@ -76,7 +80,7 @@ nfsd4_ff_encode_layoutget(struct xdr_stream *xdr,
 
 __be32
 nfsd4_ff_encode_getdeviceinfo(struct xdr_stream *xdr,
-		struct nfsd4_getdeviceinfo *gdp)
+							  struct nfsd4_getdeviceinfo *gdp)
 {
 	struct pnfs_ff_device_addr *da = gdp->gd_device;
 	int len;
@@ -91,8 +95,11 @@ nfsd4_ff_encode_getdeviceinfo(struct xdr_stream *xdr,
 	len = 4 + ver_len + 4 + addr_len;
 
 	p = xdr_reserve_space(xdr, len + sizeof(__be32));
+
 	if (!p)
+	{
 		return nfserr_resource;
+	}
 
 	/*
 	 * Fill in the overall length and number of volumes at the beginning

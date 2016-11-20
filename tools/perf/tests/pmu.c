@@ -4,10 +4,12 @@
 #include "tests.h"
 
 /* Simulated format definitions. */
-static struct test_format {
+static struct test_format
+{
 	const char *name;
 	const char *value;
-} test_formats[] = {
+} test_formats[] =
+{
 	{ "krava01", "config:0-1,62-63\n", },
 	{ "krava02", "config:10-17\n", },
 	{ "krava03", "config:5\n", },
@@ -20,7 +22,8 @@ static struct test_format {
 };
 
 /* Simulated users input. */
-static struct parse_events_term test_terms[] = {
+static struct parse_events_term test_terms[] =
+{
 	{
 		.config    = (char *) "krava01",
 		.val.num   = 15,
@@ -87,10 +90,14 @@ static char *test_format_dir_get(void)
 	unsigned int i;
 
 	snprintf(dir, PATH_MAX, "/tmp/perf-pmu-test-format-XXXXXX");
-	if (!mkdtemp(dir))
-		return NULL;
 
-	for (i = 0; i < ARRAY_SIZE(test_formats); i++) {
+	if (!mkdtemp(dir))
+	{
+		return NULL;
+	}
+
+	for (i = 0; i < ARRAY_SIZE(test_formats); i++)
+	{
 		static char name[PATH_MAX];
 		struct test_format *format = &test_formats[i];
 		FILE *file;
@@ -98,11 +105,16 @@ static char *test_format_dir_get(void)
 		snprintf(name, PATH_MAX, "%s/%s", dir, format->name);
 
 		file = fopen(name, "w");
+
 		if (!file)
+		{
 			return NULL;
+		}
 
 		if (1 != fwrite(format->value, strlen(format->value), 1, file))
+		{
 			break;
+		}
 
 		fclose(file);
 	}
@@ -115,8 +127,11 @@ static int test_format_dir_put(char *dir)
 {
 	char buf[PATH_MAX];
 	snprintf(buf, PATH_MAX, "rm -f %s/*\n", dir);
+
 	if (system(buf))
+	{
 		return -1;
+	}
 
 	snprintf(buf, PATH_MAX, "rmdir %s\n", dir);
 	return system(buf);
@@ -128,7 +143,9 @@ static struct list_head *test_terms_list(void)
 	unsigned int i;
 
 	for (i = 0; i < ARRAY_SIZE(test_terms); i++)
+	{
 		list_add_tail(&test_terms[i].list, &terms);
+	}
 
 	return &terms;
 }
@@ -141,33 +158,51 @@ int test__pmu(int subtest __maybe_unused)
 	int ret;
 
 	if (!format)
+	{
 		return -EINVAL;
+	}
 
-	do {
+	do
+	{
 		struct perf_event_attr attr;
 
 		memset(&attr, 0, sizeof(attr));
 
 		ret = perf_pmu__format_parse(format, &formats);
+
 		if (ret)
+		{
 			break;
+		}
 
 		ret = perf_pmu__config_terms(&formats, &attr, terms,
-					     false, NULL);
+									 false, NULL);
+
 		if (ret)
+		{
 			break;
+		}
 
 		ret = -EINVAL;
 
 		if (attr.config  != 0xc00000000002a823)
+		{
 			break;
+		}
+
 		if (attr.config1 != 0x8000400000000145)
+		{
 			break;
+		}
+
 		if (attr.config2 != 0x0400000020041d07)
+		{
 			break;
+		}
 
 		ret = 0;
-	} while (0);
+	}
+	while (0);
 
 	test_format_dir_put(format);
 	return ret;

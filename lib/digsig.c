@@ -31,9 +31,9 @@
 static struct crypto_shash *shash;
 
 static const char *pkcs_1_v1_5_decode_emsa(const unsigned char *msg,
-						unsigned long  msglen,
-						unsigned long  modulus_bitlen,
-						unsigned long *outlen)
+		unsigned long  msglen,
+		unsigned long  modulus_bitlen,
+		unsigned long *outlen)
 {
 	unsigned long modulus_len, ps_len, i;
 
@@ -41,21 +41,29 @@ static const char *pkcs_1_v1_5_decode_emsa(const unsigned char *msg,
 
 	/* test message size */
 	if ((msglen > modulus_len) || (modulus_len < 11))
+	{
 		return NULL;
+	}
 
 	/* separate encoded message */
 	if (msg[0] != 0x00 || msg[1] != 0x01)
+	{
 		return NULL;
+	}
 
 	for (i = 2; i < modulus_len - 1; i++)
 		if (msg[i] != 0xFF)
+		{
 			break;
+		}
 
 	/* separator check */
 	if (msg[i] != 0)
 		/* There was no octet with hexadecimal value 0x00
 		to separate ps from m. */
+	{
 		return NULL;
+	}
 
 	ps_len = i - 2;
 
@@ -68,8 +76,8 @@ static const char *pkcs_1_v1_5_decode_emsa(const unsigned char *msg,
  * RSA Signature verification with public key
  */
 static int digsig_verify_rsa(struct key *key,
-		    const char *sig, int siglen,
-		       const char *h, int hlen)
+							 const char *sig, int siglen,
+							 const char *h, int hlen)
 {
 	int err = -EINVAL;
 	unsigned long len;
@@ -88,36 +96,49 @@ static int digsig_verify_rsa(struct key *key,
 	ukp = user_key_payload(key);
 
 	if (ukp->datalen < sizeof(*pkh))
+	{
 		goto err1;
+	}
 
 	pkh = (struct pubkey_hdr *)ukp->data;
 
 	if (pkh->version != 1)
+	{
 		goto err1;
+	}
 
 	if (pkh->algo != PUBKEY_ALGO_RSA)
+	{
 		goto err1;
+	}
 
 	if (pkh->nmpi != 2)
+	{
 		goto err1;
+	}
 
 	datap = pkh->mpi;
 	endp = ukp->data + ukp->datalen;
 
-	for (i = 0; i < pkh->nmpi; i++) {
+	for (i = 0; i < pkh->nmpi; i++)
+	{
 		unsigned int remaining = endp - datap;
 		pkey[i] = mpi_read_from_buffer(datap, &remaining);
-		if (IS_ERR(pkey[i])) {
+
+		if (IS_ERR(pkey[i]))
+		{
 			err = PTR_ERR(pkey[i]);
 			goto err;
 		}
+
 		datap += remaining;
 	}
 
 	mblen = mpi_get_nbits(pkey[0]);
 	mlen = DIV_ROUND_UP(mblen, 8);
 
-	if (mlen == 0) {
+	if (mlen == 0)
+	{
 		err = -EINVAL;
 		goto err;
 	}
@@ -125,31 +146,45 @@ static int digsig_verify_rsa(struct key *key,
 	err = -ENOMEM;
 
 	out1 = kzalloc(mlen, GFP_KERNEL);
+
 	if (!out1)
+	{
 		goto err;
+	}
 
 	nret = siglen;
 	in = mpi_read_from_buffer(sig, &nret);
-	if (IS_ERR(in)) {
+
+	if (IS_ERR(in))
+	{
 		err = PTR_ERR(in);
 		goto err;
 	}
 
 	res = mpi_alloc(mpi_get_nlimbs(in) * 2);
+
 	if (!res)
+	{
 		goto err;
+	}
 
 	err = mpi_powm(res, in, pkey[1], pkey[0]);
-	if (err)
-		goto err;
 
-	if (mpi_get_nlimbs(res) * BYTES_PER_MPI_LIMB > mlen) {
+	if (err)
+	{
+		goto err;
+	}
+
+	if (mpi_get_nlimbs(res) * BYTES_PER_MPI_LIMB > mlen)
+	{
 		err = -EINVAL;
 		goto err;
 	}
 
 	p = mpi_get_buffer(res, &l, NULL);
-	if (!p) {
+
+	if (!p)
+	{
 		err = -EINVAL;
 		goto err;
 	}
@@ -164,14 +199,20 @@ static int digsig_verify_rsa(struct key *key,
 	m = pkcs_1_v1_5_decode_emsa(out1, len, mblen, &len);
 
 	if (!m || len != hlen || memcmp(m, h, hlen))
+	{
 		err = -EINVAL;
+	}
 
 err:
 	mpi_free(in);
 	mpi_free(res);
 	kfree(out1);
+
 	while (--i >= 0)
+	{
 		mpi_free(pkey[i]);
+	}
+
 err1:
 	up_read(&key->sem);
 
@@ -194,7 +235,7 @@ err1:
  *
  */
 int digsig_verify(struct key *keyring, const char *sig, int siglen,
-						const char *data, int datalen)
+				  const char *data, int datalen)
 {
 	int err = -ENOMEM;
 	struct signature_hdr *sh = (struct signature_hdr *)sig;
@@ -204,34 +245,51 @@ int digsig_verify(struct key *keyring, const char *sig, int siglen,
 	char name[20];
 
 	if (siglen < sizeof(*sh) + 2)
+	{
 		return -EINVAL;
+	}
 
 	if (sh->algo != PUBKEY_ALGO_RSA)
+	{
 		return -ENOTSUPP;
+	}
 
 	sprintf(name, "%llX", __be64_to_cpup((uint64_t *)sh->keyid));
 
-	if (keyring) {
+	if (keyring)
+	{
 		/* search in specific keyring */
 		key_ref_t kref;
 		kref = keyring_search(make_key_ref(keyring, 1UL),
-						&key_type_user, name);
+							  &key_type_user, name);
+
 		if (IS_ERR(kref))
+		{
 			key = ERR_CAST(kref);
+		}
 		else
+		{
 			key = key_ref_to_ptr(kref);
-	} else {
+		}
+	}
+	else
+	{
 		key = request_key(&key_type_user, name, NULL);
 	}
-	if (IS_ERR(key)) {
+
+	if (IS_ERR(key))
+	{
 		pr_err("key not found, id: %s\n", name);
 		return PTR_ERR(key);
 	}
 
 	desc = kzalloc(sizeof(*desc) + crypto_shash_descsize(shash),
-		       GFP_KERNEL);
+				   GFP_KERNEL);
+
 	if (!desc)
+	{
 		goto err;
+	}
 
 	desc->tfm = shash;
 	desc->flags = CRYPTO_TFM_REQ_MAY_SLEEP;
@@ -245,7 +303,7 @@ int digsig_verify(struct key *keyring, const char *sig, int siglen,
 
 	/* pass signature mpis address */
 	err = digsig_verify_rsa(key, sig + sizeof(*sh), siglen - sizeof(*sh),
-			     hash, sizeof(hash));
+							hash, sizeof(hash));
 
 err:
 	key_put(key);
@@ -257,7 +315,9 @@ EXPORT_SYMBOL_GPL(digsig_verify);
 static int __init digsig_init(void)
 {
 	shash = crypto_alloc_shash("sha1", 0, 0);
-	if (IS_ERR(shash)) {
+
+	if (IS_ERR(shash))
+	{
 		pr_err("shash allocation failed\n");
 		return  PTR_ERR(shash);
 	}

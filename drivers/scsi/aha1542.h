@@ -50,13 +50,15 @@
 #define CMD_MBENABLE    0x29    /* Set Mailbox Interface enable only 1542C */
 
 /* Mailbox Definition 5.2.1 and 5.2.2 */
-struct mailbox {
+struct mailbox
+{
 	u8 status;	/* Command/Status */
 	u8 ccbptr[3];	/* msb, .., lsb */
 };
 
 /* This is used with scatter-gather */
-struct chain {
+struct chain
+{
 	u8 datalen[3];	/* Size of this part of chain */
 	u8 dataptr[3];	/* Location of data */
 };
@@ -72,17 +74,18 @@ static inline void any2scsi(u8 *p, u32 v)
 #define scsi2int(up) ( (((long)*(up)) << 16) + (((long)(up)[1]) << 8) + ((long)(up)[2]) )
 
 #define xscsi2int(up) ( (((long)(up)[0]) << 24) + (((long)(up)[1]) << 16) \
-		      + (((long)(up)[2]) <<  8) +  ((long)(up)[3]) )
+						+ (((long)(up)[2]) <<  8) +  ((long)(up)[3]) )
 
 #define MAX_CDB 12
 #define MAX_SENSE 14
 
-struct ccb {		/* Command Control Block 5.3 */
+struct ccb  		/* Command Control Block 5.3 */
+{
 	u8 op;		/* Command Control Block Operation Code */
 	u8 idlun;	/* op=0,2:Target Id, op=1:Initiator Id */
-			/* Outbound data transfer, length is checked*/
-			/* Inbound data transfer, length is checked */
-			/* Logical Unit Number */
+	/* Outbound data transfer, length is checked*/
+	/* Inbound data transfer, length is checked */
+	/* Logical Unit Number */
 	u8 cdblen;	/* SCSI Command Length */
 	u8 rsalen;	/* Request Sense Allocation Length/Disable */
 	u8 datalen[3];	/* Data Length (msb, .., lsb) */
@@ -92,8 +95,8 @@ struct ccb {		/* Command Control Block 5.3 */
 	u8 hastat;	/* Host Adapter Status (HASTAT) */
 	u8 tarstat;	/* Target Device Status */
 	u8 reserved[2];
-	u8 cdb[MAX_CDB+MAX_SENSE];	/* SCSI Command Descriptor Block */
-					/* REQUEST SENSE */
+	u8 cdb[MAX_CDB + MAX_SENSE];	/* SCSI Command Descriptor Block */
+	/* REQUEST SENSE */
 };
 
 #define AHA1542_REGION_SIZE 4

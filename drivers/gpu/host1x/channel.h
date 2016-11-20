@@ -25,7 +25,8 @@
 
 struct host1x;
 
-struct host1x_channel {
+struct host1x_channel
+{
 	struct list_head list;
 
 	unsigned int refcount;

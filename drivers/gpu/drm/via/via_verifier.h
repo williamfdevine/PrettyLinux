@@ -26,14 +26,16 @@
 #ifndef _VIA_VERIFIER_H_
 #define _VIA_VERIFIER_H_
 
-typedef enum {
+typedef enum
+{
 	no_sequence = 0,
 	z_address,
 	dest_address,
 	tex_address
 } drm_via_sequence_t;
 
-typedef struct {
+typedef struct
+{
 	unsigned texture;
 	uint32_t z_addr;
 	uint32_t d_addr;
@@ -55,8 +57,8 @@ typedef struct {
 } drm_via_state_t;
 
 extern int via_verify_command_stream(const uint32_t *buf, unsigned int size,
-				     struct drm_device *dev, int agp);
+									 struct drm_device *dev, int agp);
 extern int via_parse_command_stream(struct drm_device *dev, const uint32_t *buf,
-				    unsigned int size);
+									unsigned int size);
 
 #endif

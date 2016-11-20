@@ -4,11 +4,11 @@
 #include <uapi/asm-generic/signal.h>
 
 #ifndef __ASSEMBLY__
-#ifdef SA_RESTORER
-#endif
+	#ifdef SA_RESTORER
+	#endif
 
-#include <asm/sigcontext.h>
-#undef __HAVE_ARCH_SIG_BITOPS
+	#include <asm/sigcontext.h>
+	#undef __HAVE_ARCH_SIG_BITOPS
 
 #endif /* __ASSEMBLY__ */
 #endif /* _ASM_GENERIC_SIGNAL_H */

@@ -29,7 +29,8 @@
 #define OMAP_TWL4030_LEFT	(1 << 0)
 #define OMAP_TWL4030_RIGHT	(1 << 1)
 
-struct omap_tw4030_pdata {
+struct omap_tw4030_pdata
+{
 	const char *card_name;
 	/* Voice port is connected to McBSP3 */
 	bool voice_connected;

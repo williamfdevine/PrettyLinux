@@ -23,7 +23,8 @@
 #include <linux/acpi.h>
 #include <acpi/hed.h>
 
-static const struct acpi_device_id acpi_hed_ids[] = {
+static const struct acpi_device_id acpi_hed_ids[] =
+{
 	{"PNP0C33", 0},
 	{"", 0},
 };
@@ -59,7 +60,10 @@ static int acpi_hed_add(struct acpi_device *device)
 {
 	/* Only one hardware error device */
 	if (hed_handle)
+	{
 		return -EINVAL;
+	}
+
 	hed_handle = device->handle;
 	return 0;
 }
@@ -70,7 +74,8 @@ static int acpi_hed_remove(struct acpi_device *device)
 	return 0;
 }
 
-static struct acpi_driver acpi_hed_driver = {
+static struct acpi_driver acpi_hed_driver =
+{
 	.name = "hardware_error_device",
 	.class = "hardware_error",
 	.ids = acpi_hed_ids,

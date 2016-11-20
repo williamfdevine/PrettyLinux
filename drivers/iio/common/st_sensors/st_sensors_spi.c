@@ -27,11 +27,12 @@ static unsigned int st_sensors_spi_get_irq(struct iio_dev *indio_dev)
 }
 
 static int st_sensors_spi_read(struct st_sensor_transfer_buffer *tb,
-	struct device *dev, u8 reg_addr, int len, u8 *data, bool multiread_bit)
+							   struct device *dev, u8 reg_addr, int len, u8 *data, bool multiread_bit)
 {
 	int err;
 
-	struct spi_transfer xfers[] = {
+	struct spi_transfer xfers[] =
+	{
 		{
 			.tx_buf = tb->tx_buf,
 			.bits_per_word = 8,
@@ -45,14 +46,22 @@ static int st_sensors_spi_read(struct st_sensor_transfer_buffer *tb,
 	};
 
 	mutex_lock(&tb->buf_lock);
+
 	if ((multiread_bit) && (len > 1))
+	{
 		tb->tx_buf[0] = reg_addr | ST_SENSORS_SPI_MULTIREAD;
+	}
 	else
+	{
 		tb->tx_buf[0] = reg_addr | ST_SENSORS_SPI_READ;
+	}
 
 	err = spi_sync_transfer(to_spi_device(dev), xfers, ARRAY_SIZE(xfers));
+
 	if (err)
+	{
 		goto acc_spi_read_error;
+	}
 
 	memcpy(data, tb->rx_buf, len);
 	mutex_unlock(&tb->buf_lock);
@@ -64,24 +73,25 @@ acc_spi_read_error:
 }
 
 static int st_sensors_spi_read_byte(struct st_sensor_transfer_buffer *tb,
-				struct device *dev, u8 reg_addr, u8 *res_byte)
+									struct device *dev, u8 reg_addr, u8 *res_byte)
 {
 	return st_sensors_spi_read(tb, dev, reg_addr, 1, res_byte, false);
 }
 
 static int st_sensors_spi_read_multiple_byte(
 	struct st_sensor_transfer_buffer *tb, struct device *dev,
-			u8 reg_addr, int len, u8 *data, bool multiread_bit)
+	u8 reg_addr, int len, u8 *data, bool multiread_bit)
 {
 	return st_sensors_spi_read(tb, dev, reg_addr, len, data, multiread_bit);
 }
 
 static int st_sensors_spi_write_byte(struct st_sensor_transfer_buffer *tb,
-				struct device *dev, u8 reg_addr, u8 data)
+									 struct device *dev, u8 reg_addr, u8 data)
 {
 	int err;
 
-	struct spi_transfer xfers = {
+	struct spi_transfer xfers =
+	{
 		.tx_buf = tb->tx_buf,
 		.bits_per_word = 8,
 		.len = 2,
@@ -97,14 +107,15 @@ static int st_sensors_spi_write_byte(struct st_sensor_transfer_buffer *tb,
 	return err;
 }
 
-static const struct st_sensor_transfer_function st_sensors_tf_spi = {
+static const struct st_sensor_transfer_function st_sensors_tf_spi =
+{
 	.read_byte = st_sensors_spi_read_byte,
 	.write_byte = st_sensors_spi_write_byte,
 	.read_multiple_byte = st_sensors_spi_read_multiple_byte,
 };
 
 void st_sensors_spi_configure(struct iio_dev *indio_dev,
-			struct spi_device *spi, struct st_sensor_data *sdata)
+							  struct spi_device *spi, struct st_sensor_data *sdata)
 {
 	spi_set_drvdata(spi, indio_dev);
 

@@ -47,7 +47,7 @@
 #define MLX5_GET_DOORBELL_LOCK(ptr)      (NULL)
 
 static inline void mlx5_write64(__be32 val[2], void __iomem *dest,
-				spinlock_t *doorbell_lock)
+								spinlock_t *doorbell_lock)
 {
 	__raw_writeq(*(u64 *)val, dest);
 }
@@ -64,7 +64,7 @@ static inline void mlx5_write64(__be32 val[2], void __iomem *dest,
 #define MLX5_GET_DOORBELL_LOCK(ptr)      (ptr)
 
 static inline void mlx5_write64(__be32 val[2], void __iomem *dest,
-				spinlock_t *doorbell_lock)
+								spinlock_t *doorbell_lock)
 {
 	unsigned long flags;
 

@@ -14,7 +14,8 @@
 
 struct rpi_firmware;
 
-enum rpi_firmware_property_status {
+enum rpi_firmware_property_status
+{
 	RPI_FIRMWARE_STATUS_REQUEST = 0,
 	RPI_FIRMWARE_STATUS_SUCCESS = 0x80000000,
 	RPI_FIRMWARE_STATUS_ERROR =   0x80000001,
@@ -30,13 +31,15 @@ enum rpi_firmware_property_status {
  *			the length of the response (always 4 byte aligned), with
  *			the low bit set.
  */
-struct rpi_firmware_property_tag_header {
+struct rpi_firmware_property_tag_header
+{
 	u32 tag;
 	u32 buf_size;
 	u32 req_resp_size;
 };
 
-enum rpi_firmware_property_tag {
+enum rpi_firmware_property_tag
+{
 	RPI_FIRMWARE_PROPERTY_END =                           0,
 	RPI_FIRMWARE_GET_FIRMWARE_REVISION =                  0x00000001,
 
@@ -114,9 +117,9 @@ enum rpi_firmware_property_tag {
 };
 
 int rpi_firmware_property(struct rpi_firmware *fw,
-			  u32 tag, void *data, size_t len);
+						  u32 tag, void *data, size_t len);
 int rpi_firmware_property_list(struct rpi_firmware *fw,
-			       void *data, size_t tag_size);
+							   void *data, size_t tag_size);
 struct rpi_firmware *rpi_firmware_get(struct device_node *firmware_node);
 
 #endif /* __SOC_RASPBERRY_FIRMWARE_H__ */

@@ -50,7 +50,8 @@ MODULE_LICENSE("GPL");
 #define INTERACT_TYPE_HHFX	0	/* HammerHead/FX */
 #define INTERACT_TYPE_PP8D	1	/* ProPad 8 */
 
-struct interact {
+struct interact
+{
 	struct gameport *gameport;
 	struct input_dev *dev;
 	int bads;
@@ -61,16 +62,17 @@ struct interact {
 };
 
 static short interact_abs_hhfx[] =
-	{ ABS_RX, ABS_RY, ABS_X, ABS_Y, ABS_HAT0X, ABS_HAT0Y, -1 };
+{ ABS_RX, ABS_RY, ABS_X, ABS_Y, ABS_HAT0X, ABS_HAT0Y, -1 };
 static short interact_abs_pp8d[] =
-	{ ABS_X, ABS_Y, -1 };
+{ ABS_X, ABS_Y, -1 };
 
 static short interact_btn_hhfx[] =
-	{ BTN_TR, BTN_X, BTN_Y, BTN_Z, BTN_A, BTN_B, BTN_C, BTN_TL, BTN_TL2, BTN_TR2, BTN_MODE, BTN_SELECT, -1 };
+{ BTN_TR, BTN_X, BTN_Y, BTN_Z, BTN_A, BTN_B, BTN_C, BTN_TL, BTN_TL2, BTN_TR2, BTN_MODE, BTN_SELECT, -1 };
 static short interact_btn_pp8d[] =
-	{ BTN_C, BTN_TL, BTN_TR, BTN_A, BTN_B, BTN_Y, BTN_Z, BTN_X, -1 };
+{ BTN_C, BTN_TL, BTN_TR, BTN_A, BTN_B, BTN_Y, BTN_Z, BTN_X, -1 };
 
-struct interact_type {
+struct interact_type
+{
 	int id;
 	short *abs;
 	short *btn;
@@ -79,10 +81,12 @@ struct interact_type {
 	unsigned char b8;
 };
 
-static struct interact_type interact_type[] = {
+static struct interact_type interact_type[] =
+{
 	{ 0x6202, interact_abs_hhfx, interact_btn_hhfx, "InterAct HammerHead/FX",    32, 4 },
 	{ 0x53f8, interact_abs_pp8d, interact_btn_pp8d, "InterAct ProPad 8 Digital", 16, 0 },
-	{ 0 }};
+	{ 0 }
+};
 
 /*
  * interact_read_packet() reads and InterAct joystick data.
@@ -104,10 +108,13 @@ static int interact_read_packet(struct gameport *gameport, int length, u32 *data
 	gameport_trigger(gameport);
 	v = gameport_read(gameport);
 
-	while (t > 0 && i < length) {
+	while (t > 0 && i < length)
+	{
 		t--;
 		u = v; v = gameport_read(gameport);
-		if (v & ~u & 0x40) {
+
+		if (v & ~u & 0x40)
+		{
 			data[0] = (data[0] << 1) | ((v >> 4) & 1);
 			data[1] = (data[1] << 1) | ((v >> 5) & 1);
 			data[2] = (data[2] << 1) | ((v >> 7) & 1);
@@ -134,29 +141,41 @@ static void interact_poll(struct gameport *gameport)
 
 	interact->reads++;
 
-	if (interact_read_packet(interact->gameport, interact->length, data) < interact->length) {
+	if (interact_read_packet(interact->gameport, interact->length, data) < interact->length)
+	{
 		interact->bads++;
-	} else {
+	}
+	else
+	{
 
 		for (i = 0; i < 3; i++)
+		{
 			data[i] <<= INTERACT_MAX_LENGTH - interact->length;
+		}
 
-		switch (interact->type) {
+		switch (interact->type)
+		{
 
 			case INTERACT_TYPE_HHFX:
 
 				for (i = 0; i < 4; i++)
+				{
 					input_report_abs(dev, interact_abs_hhfx[i], (data[i & 1] >> ((i >> 1) << 3)) & 0xff);
+				}
 
 				for (i = 0; i < 2; i++)
 					input_report_abs(dev, ABS_HAT0Y - i,
-						((data[1] >> ((i << 1) + 17)) & 1)  - ((data[1] >> ((i << 1) + 16)) & 1));
+									 ((data[1] >> ((i << 1) + 17)) & 1)  - ((data[1] >> ((i << 1) + 16)) & 1));
 
 				for (i = 0; i < 8; i++)
+				{
 					input_report_key(dev, interact_btn_hhfx[i], (data[0] >> (i + 16)) & 1);
+				}
 
 				for (i = 0; i < 4; i++)
+				{
 					input_report_key(dev, interact_btn_hhfx[i + 8], (data[1] >> (i + 20)) & 1);
+				}
 
 				break;
 
@@ -164,10 +183,12 @@ static void interact_poll(struct gameport *gameport)
 
 				for (i = 0; i < 2; i++)
 					input_report_abs(dev, interact_abs_pp8d[i],
-						((data[0] >> ((i << 1) + 20)) & 1)  - ((data[0] >> ((i << 1) + 21)) & 1));
+									 ((data[0] >> ((i << 1) + 20)) & 1)  - ((data[0] >> ((i << 1) + 21)) & 1));
 
 				for (i = 0; i < 8; i++)
+				{
 					input_report_key(dev, interact_btn_pp8d[i], (data[1] >> (i + 16)) & 1);
+				}
 
 				break;
 		}
@@ -213,7 +234,9 @@ static int interact_connect(struct gameport *gameport, struct gameport_driver *d
 
 	interact = kzalloc(sizeof(struct interact), GFP_KERNEL);
 	input_dev = input_allocate_device();
-	if (!interact || !input_dev) {
+
+	if (!interact || !input_dev)
+	{
 		err = -ENOMEM;
 		goto fail1;
 	}
@@ -224,23 +247,30 @@ static int interact_connect(struct gameport *gameport, struct gameport_driver *d
 	gameport_set_drvdata(gameport, interact);
 
 	err = gameport_open(gameport, drv, GAMEPORT_MODE_RAW);
+
 	if (err)
+	{
 		goto fail1;
+	}
 
 	i = interact_read_packet(gameport, INTERACT_MAX_LENGTH * 2, data);
 
-	if (i != 32 || (data[0] >> 24) != 0x0c || (data[1] >> 24) != 0x02) {
+	if (i != 32 || (data[0] >> 24) != 0x0c || (data[1] >> 24) != 0x02)
+	{
 		err = -ENODEV;
 		goto fail2;
 	}
 
 	for (i = 0; interact_type[i].length; i++)
 		if (interact_type[i].id == (data[2] >> 16))
+		{
 			break;
+		}
 
-	if (!interact_type[i].length) {
+	if (!interact_type[i].length)
+	{
 		printk(KERN_WARNING "interact.c: Unknown joystick on %s. [len %d d0 %08x d1 %08x i2 %08x]\n",
-			gameport->phys, i, data[0], data[1], data[2]);
+			   gameport->phys, i, data[0], data[1], data[2]);
 		err = -ENODEV;
 		goto fail2;
 	}
@@ -268,19 +298,29 @@ static int interact_connect(struct gameport *gameport, struct gameport_driver *d
 
 	input_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_ABS);
 
-	for (i = 0; (t = interact_type[interact->type].abs[i]) >= 0; i++) {
+	for (i = 0; (t = interact_type[interact->type].abs[i]) >= 0; i++)
+	{
 		if (i < interact_type[interact->type].b8)
+		{
 			input_set_abs_params(input_dev, t, 0, 255, 0, 0);
+		}
 		else
+		{
 			input_set_abs_params(input_dev, t, -1, 1, 0, 0);
+		}
 	}
 
 	for (i = 0; (t = interact_type[interact->type].btn[i]) >= 0; i++)
+	{
 		__set_bit(t, input_dev->keybit);
+	}
 
 	err = input_register_device(interact->dev);
+
 	if (err)
+	{
 		goto fail2;
+	}
 
 	return 0;
 
@@ -301,7 +341,8 @@ static void interact_disconnect(struct gameport *gameport)
 	kfree(interact);
 }
 
-static struct gameport_driver interact_drv = {
+static struct gameport_driver interact_drv =
+{
 	.driver		= {
 		.name	= "interact",
 	},

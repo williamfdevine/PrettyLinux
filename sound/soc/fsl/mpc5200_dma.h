@@ -18,7 +18,8 @@
  * @period_bytes:	size of DMA period in bytes
  * @ac97_slot_bits:	Enable bits for turning on the correct AC97 slot
  */
-struct psc_dma_stream {
+struct psc_dma_stream
+{
 	struct snd_pcm_runtime *runtime;
 	int active;
 	struct psc_dma *psc_dma;
@@ -47,7 +48,8 @@ struct psc_dma_stream {
  * @playback: Playback stream context data
  * @capture: Capture stream context data
  */
-struct psc_dma {
+struct psc_dma
+{
 	char name[32];
 	struct mpc52xx_psc __iomem *psc_regs;
 	struct mpc52xx_psc_fifo __iomem *fifo_regs;
@@ -66,7 +68,8 @@ struct psc_dma {
 	struct psc_dma_stream capture;
 
 	/* Statistics */
-	struct {
+	struct
+	{
 		unsigned long overrun_count;
 		unsigned long underrun_count;
 	} stats;
@@ -77,7 +80,10 @@ static inline struct psc_dma_stream *
 to_psc_dma_stream(struct snd_pcm_substream *substream, struct psc_dma *psc_dma)
 {
 	if (substream->pstr->stream == SNDRV_PCM_STREAM_CAPTURE)
+	{
 		return &psc_dma->capture;
+	}
+
 	return &psc_dma->playback;
 }
 

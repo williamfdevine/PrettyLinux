@@ -24,39 +24,54 @@ static int nd_region_probe(struct device *dev)
 	struct nd_region *nd_region = to_nd_region(dev);
 
 	if (nd_region->num_lanes > num_online_cpus()
-			&& nd_region->num_lanes < num_possible_cpus()
-			&& !test_and_set_bit(0, &once)) {
+		&& nd_region->num_lanes < num_possible_cpus()
+		&& !test_and_set_bit(0, &once))
+	{
 		dev_info(dev, "online cpus (%d) < concurrent i/o lanes (%d) < possible cpus (%d)\n",
-				num_online_cpus(), nd_region->num_lanes,
-				num_possible_cpus());
+				 num_online_cpus(), nd_region->num_lanes,
+				 num_possible_cpus());
 		dev_info(dev, "setting nr_cpus=%d may yield better libnvdimm device performance\n",
-				nd_region->num_lanes);
+				 nd_region->num_lanes);
 	}
 
 	rc = nd_region_activate(nd_region);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = nd_blk_region_init(nd_region);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	rc = nd_region_register_namespaces(nd_region, &err);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	ndrd = dev_get_drvdata(dev);
 	ndrd->ns_active = rc;
 	ndrd->ns_count = rc + err;
 
 	if (rc && err && rc == err)
+	{
 		return -ENODEV;
+	}
 
 	nd_region->btt_seed = nd_btt_create(nd_region);
 	nd_region->pfn_seed = nd_pfn_create(nd_region);
 	nd_region->dax_seed = nd_dax_create(nd_region);
+
 	if (err == 0)
+	{
 		return 0;
+	}
 
 	/*
 	 * Given multiple namespaces per region, we do not want to
@@ -107,7 +122,8 @@ static void nd_region_notify(struct device *dev, enum nvdimm_event event)
 	device_for_each_child(dev, &event, child_notify);
 }
 
-static struct nd_device_driver nd_region_driver = {
+static struct nd_device_driver nd_region_driver =
+{
 	.probe = nd_region_probe,
 	.remove = nd_region_remove,
 	.notify = nd_region_notify,

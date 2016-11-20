@@ -101,7 +101,8 @@
 #define OWNED_BY_HOST	0
 #define	OWNED_BY_NIC	1
 
-struct vnt_options {
+struct vnt_options
+{
 	int rx_descs0;		/* Number of RX descriptors0 */
 	int rx_descs1;		/* Number of RX descriptors1 */
 	int tx_descs[2];	/* Number of TX descriptors 0, 1 */
@@ -112,7 +113,8 @@ struct vnt_options {
 	u32 flags;
 };
 
-struct vnt_private {
+struct vnt_private
+{
 	struct pci_dev *pcid;
 	/* mac80211 */
 	struct ieee80211_hw *hw;
@@ -123,7 +125,7 @@ struct vnt_private {
 	int mc_list_count;
 	u8 mac_hw;
 
-/* dma addr, rx/tx pool */
+	/* dma addr, rx/tx pool */
 	dma_addr_t                  pool_dma;
 	dma_addr_t                  rd0_pool_dma;
 	dma_addr_t                  rd1_pool_dma;
@@ -283,12 +285,12 @@ struct vnt_private {
 	unsigned char byOFDMPwrG;
 	unsigned char byCurPwr;
 	char	 byCurPwrdBm;
-	unsigned char abyCCKPwrTbl[CB_MAX_CHANNEL_24G+1];
-	unsigned char abyOFDMPwrTbl[CB_MAX_CHANNEL+1];
-	char	abyCCKDefaultPwr[CB_MAX_CHANNEL_24G+1];
-	char	abyOFDMDefaultPwr[CB_MAX_CHANNEL+1];
-	char	abyRegPwr[CB_MAX_CHANNEL+1];
-	char	abyLocalPwr[CB_MAX_CHANNEL+1];
+	unsigned char abyCCKPwrTbl[CB_MAX_CHANNEL_24G + 1];
+	unsigned char abyOFDMPwrTbl[CB_MAX_CHANNEL + 1];
+	char	abyCCKDefaultPwr[CB_MAX_CHANNEL_24G + 1];
+	char	abyOFDMDefaultPwr[CB_MAX_CHANNEL + 1];
+	char	abyRegPwr[CB_MAX_CHANNEL + 1];
+	char	abyLocalPwr[CB_MAX_CHANNEL + 1];
 
 	/* BaseBand Loopback Use */
 	unsigned char byBBCR4d;

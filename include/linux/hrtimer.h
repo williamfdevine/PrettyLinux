@@ -30,7 +30,8 @@ struct hrtimer_cpu_base;
 /*
  * Mode arguments of xxx_hrtimer functions:
  */
-enum hrtimer_mode {
+enum hrtimer_mode
+{
 	HRTIMER_MODE_ABS = 0x0,		/* Time value is absolute */
 	HRTIMER_MODE_REL = 0x1,		/* Time value is relative to now */
 	HRTIMER_MODE_PINNED = 0x02,	/* Timer is bound to CPU */
@@ -41,7 +42,8 @@ enum hrtimer_mode {
 /*
  * Return values for the callback function
  */
-enum hrtimer_restart {
+enum hrtimer_restart
+{
 	HRTIMER_NORESTART,	/* Timer is not restarted */
 	HRTIMER_RESTART,	/* Timer must be restarted */
 };
@@ -97,7 +99,8 @@ enum hrtimer_restart {
  *
  * The hrtimer structure must be initialized by hrtimer_init()
  */
-struct hrtimer {
+struct hrtimer
+{
 	struct timerqueue_node		node;
 	ktime_t				_softexpires;
 	enum hrtimer_restart		(*function)(struct hrtimer *);
@@ -118,15 +121,16 @@ struct hrtimer {
  *
  * task is set to NULL, when the timer expires.
  */
-struct hrtimer_sleeper {
+struct hrtimer_sleeper
+{
 	struct hrtimer timer;
 	struct task_struct *task;
 };
 
 #ifdef CONFIG_64BIT
-# define HRTIMER_CLOCK_BASE_ALIGN	64
+	#define HRTIMER_CLOCK_BASE_ALIGN	64
 #else
-# define HRTIMER_CLOCK_BASE_ALIGN	32
+	#define HRTIMER_CLOCK_BASE_ALIGN	32
 #endif
 
 /**
@@ -139,7 +143,8 @@ struct hrtimer_sleeper {
  * @get_time:		function to retrieve the current time of the clock
  * @offset:		offset of this clock to the monotonic base
  */
-struct hrtimer_clock_base {
+struct hrtimer_clock_base
+{
 	struct hrtimer_cpu_base	*cpu_base;
 	int			index;
 	clockid_t		clockid;
@@ -148,7 +153,8 @@ struct hrtimer_clock_base {
 	ktime_t			offset;
 } __attribute__((__aligned__(HRTIMER_CLOCK_BASE_ALIGN)));
 
-enum  hrtimer_base_type {
+enum  hrtimer_base_type
+{
 	HRTIMER_BASE_MONOTONIC,
 	HRTIMER_BASE_REALTIME,
 	HRTIMER_BASE_BOOTTIME,
@@ -183,7 +189,8 @@ enum  hrtimer_base_type {
  *	 Do not dereference the pointer because it is not reliable on
  *	 cross cpu removals.
  */
-struct hrtimer_cpu_base {
+struct hrtimer_cpu_base
+{
 	raw_spinlock_t			lock;
 	seqcount_t			seq;
 	struct hrtimer			*running;
@@ -194,8 +201,8 @@ struct hrtimer_cpu_base {
 	bool				nohz_active;
 #ifdef CONFIG_HIGH_RES_TIMERS
 	unsigned int			in_hrtirq	: 1,
-					hres_active	: 1,
-					hang_detected	: 1;
+						hres_active	: 1,
+						hang_detected	: 1;
 	ktime_t				expires_next;
 	struct hrtimer			*next_timer;
 	unsigned int			nr_events;
@@ -333,7 +340,10 @@ __hrtimer_expires_remaining_adjusted(const struct hrtimer *timer, ktime_t now)
 	 * hrtimer_start_range_ns() to prevent short timeouts.
 	 */
 	if (IS_ENABLED(CONFIG_TIME_LOW_RES) && timer->is_rel)
+	{
 		rem.tv64 -= hrtimer_resolution;
+	}
+
 	return rem;
 }
 
@@ -341,7 +351,7 @@ static inline ktime_t
 hrtimer_expires_remaining_adjusted(const struct hrtimer *timer)
 {
 	return __hrtimer_expires_remaining_adjusted(timer,
-						    timer->base->get_time());
+			timer->base->get_time());
 }
 
 extern void clock_was_set(void);
@@ -359,17 +369,17 @@ DECLARE_PER_CPU(struct tick_device, tick_cpu_device);
 
 /* Initialize timers: */
 extern void hrtimer_init(struct hrtimer *timer, clockid_t which_clock,
-			 enum hrtimer_mode mode);
+						 enum hrtimer_mode mode);
 
 #ifdef CONFIG_DEBUG_OBJECTS_TIMERS
 extern void hrtimer_init_on_stack(struct hrtimer *timer, clockid_t which_clock,
-				  enum hrtimer_mode mode);
+								  enum hrtimer_mode mode);
 
 extern void destroy_hrtimer_on_stack(struct hrtimer *timer);
 #else
 static inline void hrtimer_init_on_stack(struct hrtimer *timer,
-					 clockid_t which_clock,
-					 enum hrtimer_mode mode)
+		clockid_t which_clock,
+		enum hrtimer_mode mode)
 {
 	hrtimer_init(timer, which_clock, mode);
 }
@@ -378,7 +388,7 @@ static inline void destroy_hrtimer_on_stack(struct hrtimer *timer) { }
 
 /* Basic timer operations: */
 extern void hrtimer_start_range_ns(struct hrtimer *timer, ktime_t tim,
-				   u64 range_ns, const enum hrtimer_mode mode);
+								   u64 range_ns, const enum hrtimer_mode mode);
 
 /**
  * hrtimer_start - (re)start an hrtimer on the current CPU
@@ -388,7 +398,7 @@ extern void hrtimer_start_range_ns(struct hrtimer *timer, ktime_t tim,
  *		relative (HRTIMER_MODE_REL)
  */
 static inline void hrtimer_start(struct hrtimer *timer, ktime_t tim,
-				 const enum hrtimer_mode mode)
+								 const enum hrtimer_mode mode)
 {
 	hrtimer_start_range_ns(timer, tim, 0, mode);
 }
@@ -397,7 +407,7 @@ extern int hrtimer_cancel(struct hrtimer *timer);
 extern int hrtimer_try_to_cancel(struct hrtimer *timer);
 
 static inline void hrtimer_start_expires(struct hrtimer *timer,
-					 enum hrtimer_mode mode)
+		enum hrtimer_mode mode)
 {
 	u64 delta;
 	ktime_t soft, hard;
@@ -462,27 +472,27 @@ hrtimer_forward(struct hrtimer *timer, ktime_t now, ktime_t interval);
  * the timer.
  */
 static inline u64 hrtimer_forward_now(struct hrtimer *timer,
-				      ktime_t interval)
+									  ktime_t interval)
 {
 	return hrtimer_forward(timer, timer->base->get_time(), interval);
 }
 
 /* Precise sleep: */
 extern long hrtimer_nanosleep(struct timespec *rqtp,
-			      struct timespec __user *rmtp,
-			      const enum hrtimer_mode mode,
-			      const clockid_t clockid);
+							  struct timespec __user *rmtp,
+							  const enum hrtimer_mode mode,
+							  const clockid_t clockid);
 extern long hrtimer_nanosleep_restart(struct restart_block *restart_block);
 
 extern void hrtimer_init_sleeper(struct hrtimer_sleeper *sl,
-				 struct task_struct *tsk);
+								 struct task_struct *tsk);
 
 extern int schedule_hrtimeout_range(ktime_t *expires, u64 delta,
-						const enum hrtimer_mode mode);
+									const enum hrtimer_mode mode);
 extern int schedule_hrtimeout_range_clock(ktime_t *expires,
-					  u64 delta,
-					  const enum hrtimer_mode mode,
-					  int clock);
+		u64 delta,
+		const enum hrtimer_mode mode,
+		int clock);
 extern int schedule_hrtimeout(ktime_t *expires, const enum hrtimer_mode mode);
 
 /* Soft interrupt function to run the hrtimer queues: */
@@ -496,9 +506,9 @@ extern void sysrq_timer_list_show(void);
 
 int hrtimers_prepare_cpu(unsigned int cpu);
 #ifdef CONFIG_HOTPLUG_CPU
-int hrtimers_dead_cpu(unsigned int cpu);
+	int hrtimers_dead_cpu(unsigned int cpu);
 #else
-#define hrtimers_dead_cpu	NULL
+	#define hrtimers_dead_cpu	NULL
 #endif
 
 #endif

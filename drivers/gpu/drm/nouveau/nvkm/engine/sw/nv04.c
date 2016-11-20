@@ -31,7 +31,8 @@
 #include <nvif/ioctl.h>
 #include <nvif/unpack.h>
 
-struct nv04_sw_chan {
+struct nv04_sw_chan
+{
 	struct nvkm_sw_chan base;
 	atomic_t ref;
 };
@@ -44,12 +45,14 @@ static int
 nv04_nvsw_mthd_get_ref(struct nvkm_nvsw *nvsw, void *data, u32 size)
 {
 	struct nv04_sw_chan *chan = nv04_sw_chan(nvsw->chan);
-	union {
+	union
+	{
 		struct nv04_nvsw_get_ref_v0 v0;
 	} *args = data;
 	int ret = -ENOSYS;
 
-	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false))) {
+	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false)))
+	{
 		args->v0.ref = atomic_read(&chan->ref);
 	}
 
@@ -59,23 +62,27 @@ nv04_nvsw_mthd_get_ref(struct nvkm_nvsw *nvsw, void *data, u32 size)
 static int
 nv04_nvsw_mthd(struct nvkm_nvsw *nvsw, u32 mthd, void *data, u32 size)
 {
-	switch (mthd) {
-	case NV04_NVSW_GET_REF:
-		return nv04_nvsw_mthd_get_ref(nvsw, data, size);
-	default:
-		break;
+	switch (mthd)
+	{
+		case NV04_NVSW_GET_REF:
+			return nv04_nvsw_mthd_get_ref(nvsw, data, size);
+
+		default:
+			break;
 	}
+
 	return -EINVAL;
 }
 
 static const struct nvkm_nvsw_func
-nv04_nvsw = {
+	nv04_nvsw =
+{
 	.mthd = nv04_nvsw_mthd,
 };
 
 static int
 nv04_nvsw_new(struct nvkm_sw_chan *chan, const struct nvkm_oclass *oclass,
-	      void *data, u32 size, struct nvkm_object **pobject)
+			  void *data, u32 size, struct nvkm_object **pobject)
 {
 	return nvkm_nvsw_new_(&nv04_nvsw, chan, oclass, data, size, pobject);
 }
@@ -89,30 +96,36 @@ nv04_sw_chan_mthd(struct nvkm_sw_chan *base, int subc, u32 mthd, u32 data)
 {
 	struct nv04_sw_chan *chan = nv04_sw_chan(base);
 
-	switch (mthd) {
-	case 0x0150:
-		atomic_set(&chan->ref, data);
-		return true;
-	default:
-		break;
+	switch (mthd)
+	{
+		case 0x0150:
+			atomic_set(&chan->ref, data);
+			return true;
+
+		default:
+			break;
 	}
 
 	return false;
 }
 
 static const struct nvkm_sw_chan_func
-nv04_sw_chan = {
+	nv04_sw_chan =
+{
 	.mthd = nv04_sw_chan_mthd,
 };
 
 static int
 nv04_sw_chan_new(struct nvkm_sw *sw, struct nvkm_fifo_chan *fifo,
-		 const struct nvkm_oclass *oclass, struct nvkm_object **pobject)
+				 const struct nvkm_oclass *oclass, struct nvkm_object **pobject)
 {
 	struct nv04_sw_chan *chan;
 
 	if (!(chan = kzalloc(sizeof(*chan), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	atomic_set(&chan->ref, 0);
 	*pobject = &chan->base.object;
 
@@ -124,7 +137,8 @@ nv04_sw_chan_new(struct nvkm_sw *sw, struct nvkm_fifo_chan *fifo,
  ******************************************************************************/
 
 static const struct nvkm_sw_func
-nv04_sw = {
+	nv04_sw =
+{
 	.chan_new = nv04_sw_chan_new,
 	.sclass = {
 		{ nv04_nvsw_new, { -1, -1, NVIF_CLASS_SW_NV04 } },

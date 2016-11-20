@@ -44,12 +44,12 @@ static void *threadproc(void *ctx)
 extern unsigned long call32_from_64(void *stack, void (*function)(void));
 
 asm (".pushsection .text\n\t"
-     ".code32\n\t"
-     "test_ss:\n\t"
-     "pushl $0\n\t"
-     "popl %eax\n\t"
-     "ret\n\t"
-     ".code64");
+	 ".code32\n\t"
+	 "test_ss:\n\t"
+	 "pushl $0\n\t"
+	 "popl %eax\n\t"
+	 "ret\n\t"
+	 ".code64");
 extern void test_ss(void);
 #endif
 
@@ -63,24 +63,35 @@ int main()
 	cpu_set_t cpuset;
 	CPU_ZERO(&cpuset);
 	CPU_SET(0, &cpuset);
+
 	if (sched_setaffinity(0, sizeof(cpuset), &cpuset) != 0)
+	{
 		printf("[WARN]\tsched_setaffinity failed\n");
+	}
 
 	pthread_t thread;
+
 	if (pthread_create(&thread, 0, threadproc, 0) != 0)
+	{
 		err(1, "pthread_create");
+	}
 
 #ifdef __x86_64__
 	unsigned char *stack32 = mmap(NULL, 4096, PROT_READ | PROT_WRITE,
-				      MAP_32BIT | MAP_ANONYMOUS | MAP_PRIVATE,
-				      -1, 0);
+								  MAP_32BIT | MAP_ANONYMOUS | MAP_PRIVATE,
+								  -1, 0);
+
 	if (stack32 == MAP_FAILED)
+	{
 		err(1, "mmap");
+	}
+
 #endif
 
 	printf("[RUN]\tSyscalls followed by SS validation\n");
 
-	for (int i = 0; i < 1000; i++) {
+	for (int i = 0; i < 1000; i++)
+	{
 		/*
 		 * Go to sleep and return using sysret (if we're 64-bit
 		 * or we're 32-bit on AMD on a 64-bit kernel).  On AMD CPUs,

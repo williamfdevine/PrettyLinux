@@ -50,7 +50,7 @@ extern u16 qm_channel_pool1;
  * ie. that if present should trigger slow-path processing.
  */
 #define QM_PIRQ_SLOW	(QM_PIRQ_CSCI | QM_PIRQ_EQCI | QM_PIRQ_EQRI | \
-			 QM_PIRQ_MRI)
+						 QM_PIRQ_MRI)
 
 /* For qman_static_dequeue_*** APIs */
 #define QM_SDQCR_CHANNELS_POOL_MASK	0x00007fff
@@ -65,9 +65,12 @@ static inline u32 QM_SDQCR_CHANNELS_POOL_CONV(u16 channel)
 /* --- QMan data structures (and associated constants) --- */
 
 /* "Frame Descriptor (FD)" */
-struct qm_fd {
-	union {
-		struct {
+struct qm_fd
+{
+	union
+	{
+		struct
+		{
 			u8 cfg8b_w1;
 			u8 bpid;	/* Buffer Pool ID */
 			u8 cfg8b_w3;
@@ -77,7 +80,8 @@ struct qm_fd {
 		__be64 data;
 	};
 	__be32 cfg;	/* format, offset, length / congestion */
-	union {
+	union
+	{
 		__be32 cmd;
 		__be32 status;
 	};
@@ -92,7 +96,8 @@ struct qm_fd {
 #define QM_FD_LEN_MASK		GENMASK(19, 0)
 #define QM_FD_LEN_BIG_MASK	GENMASK(28, 0)
 
-enum qm_fd_format {
+enum qm_fd_format
+{
 	/*
 	 * 'contig' implies a contiguous buffer, whereas 'sg' implies a
 	 * scatter-gather table. 'big' implies a 29-bit length with no offset
@@ -153,10 +158,10 @@ static inline int qm_fd_get_len_big(const struct qm_fd *fd)
 }
 
 static inline void qm_fd_set_param(struct qm_fd *fd, enum qm_fd_format fmt,
-				   int off, int len)
+								   int off, int len)
 {
 	fd->cfg = cpu_to_be32(fmt | (len & QM_FD_LEN_BIG_MASK) |
-			      ((off << QM_FD_OFF_SHIFT) & QM_FD_OFF_MASK));
+						  ((off << QM_FD_OFF_SHIFT) & QM_FD_OFF_MASK));
 }
 
 #define qm_fd_set_contig(fd, off, len) \
@@ -174,9 +179,12 @@ static inline void qm_fd_clear_fd(struct qm_fd *fd)
 }
 
 /* Scatter/Gather table entry */
-struct qm_sg_entry {
-	union {
-		struct {
+struct qm_sg_entry
+{
+	union
+	{
+		struct
+		{
 			u8 __reserved1[3];
 			u8 addr_hi;	/* high 8-bits of 40-bit address */
 			__be32 addr_lo;	/* low 32-bits of 40-bit address */
@@ -241,7 +249,8 @@ static inline int qm_sg_entry_get_off(const struct qm_sg_entry *sg)
 }
 
 /* "Frame Dequeue Response" */
-struct qm_dqrr_entry {
+struct qm_dqrr_entry
+{
 	u8 verb;
 	u8 stat;
 	u16 seqnum;	/* 15-bit */
@@ -264,12 +273,15 @@ struct qm_dqrr_entry {
 
 /* "ERN Message Response" */
 /* "FQ State Change Notification" */
-union qm_mr_entry {
-	struct {
+union qm_mr_entry
+{
+	struct
+	{
 		u8 verb;
 		u8 __reserved[63];
 	};
-	struct {
+	struct
+	{
 		u8 verb;
 		u8 dca;
 		u16 seqnum;
@@ -281,7 +293,8 @@ union qm_mr_entry {
 		struct qm_fd fd;
 		u8 __reserved1[32];
 	} __packed ern;
-	struct {
+	struct
+	{
 		u8 verb;
 		u8 fqs;		/* Frame Queue Status */
 		u8 __reserved1[6];
@@ -321,21 +334,24 @@ union qm_mr_entry {
  * latter has two inlines to assist with converting to/from the mant+exp
  * representation.
  */
-struct qm_fqd_stashing {
+struct qm_fqd_stashing
+{
 	/* See QM_STASHING_EXCL_<...> */
 	u8 exclusive;
 	/* Numbers of cachelines */
 	u8 cl; /* _res[6-7], as[4-5], ds[2-3], cs[0-1] */
 };
 
-struct qm_fqd_oac {
+struct qm_fqd_oac
+{
 	/* "Overhead Accounting Control", see QM_OAC_<...> */
 	u8 oac; /* oac[6-7], _res[0-5] */
 	/* Two's-complement value (-128 to +127) */
 	s8 oal; /* "Overhead Accounting Length" */
 };
 
-struct qm_fqd {
+struct qm_fqd
+{
 	/* _res[6-7], orprws[3-5], oa[2], olws[0-1] */
 	u8 orpc;
 	u8 cgid;
@@ -348,21 +364,25 @@ struct qm_fqd {
 	 * commands, this field is always 'td', and 'oac_query' (below) reflects
 	 * the Overhead ACcounting values.
 	 */
-	union {
+	union
+	{
 		__be16 td; /* "Taildrop": _res[13-15], mant[5-12], exp[0-4] */
 		struct qm_fqd_oac oac_init;
 	};
 	__be32 context_b;
-	union {
+	union
+	{
 		/* Treat it as 64-bit opaque */
 		__be64 opaque;
-		struct {
+		struct
+		{
 			__be32 hi;
 			__be32 lo;
 		};
 		/* Treat it as s/w portal stashing config */
 		/* see "FQD Context_A field used for [...]" */
-		struct {
+		struct
+		{
 			struct qm_fqd_stashing stashing;
 			/*
 			 * 48-bit address of FQ context to
@@ -417,20 +437,26 @@ static inline void qm_fqd_context_a_set64(struct qm_fqd *fqd, u64 addr)
 
 /* convert a threshold value into mant+exp representation */
 static inline int qm_fqd_set_taildrop(struct qm_fqd *fqd, u32 val,
-				      int roundup)
+									  int roundup)
 {
 	u32 e = 0;
 	int td, oddbit = 0;
 
 	if (val > QM_FQD_TD_MAX)
+	{
 		return -ERANGE;
+	}
 
-	while (val > QM_FQD_TD_MANT_MAX) {
+	while (val > QM_FQD_TD_MANT_MAX)
+	{
 		oddbit = val & 1;
 		val >>= 1;
 		e++;
+
 		if (roundup && oddbit)
+		{
 			val++;
+		}
 	}
 
 	td = (val << QM_FQD_TD_MANT_OFF) & QM_FQD_TD_MANT_MASK;
@@ -444,7 +470,7 @@ static inline int qm_fqd_get_taildrop(const struct qm_fqd *fqd)
 	int td = be16_to_cpu(fqd->td);
 
 	return ((td & QM_FQD_TD_MANT_MASK) >> QM_FQD_TD_MANT_OFF)
-		<< (td & QM_FQD_TD_EXP_MASK);
+		   << (td & QM_FQD_TD_EXP_MASK);
 }
 
 static inline void qm_fqd_set_stashing(struct qm_fqd *fqd, u8 as, u8 ds, u8 cs)
@@ -452,8 +478,8 @@ static inline void qm_fqd_set_stashing(struct qm_fqd *fqd, u8 as, u8 ds, u8 cs)
 	struct qm_fqd_stashing *st = &fqd->context_a.stashing;
 
 	st->cl = ((as & QM_FQD_XS_MASK) << QM_FQD_AS_OFF) |
-		 ((ds & QM_FQD_XS_MASK) << QM_FQD_DS_OFF) |
-		 (cs & QM_FQD_XS_MASK);
+			 ((ds & QM_FQD_XS_MASK) << QM_FQD_DS_OFF) |
+			 (cs & QM_FQD_XS_MASK);
 }
 
 static inline u8 qm_fqd_get_stashing(const struct qm_fqd *fqd)
@@ -474,7 +500,7 @@ static inline void qm_fqd_set_oal(struct qm_fqd *fqd, s8 val)
 static inline void qm_fqd_set_destwq(struct qm_fqd *fqd, int ch, int wq)
 {
 	fqd->dest_wq = cpu_to_be16((ch << QM_FQD_CHAN_OFF) |
-				   (wq & QM_FQD_WQ_MASK));
+							   (wq & QM_FQD_WQ_MASK));
 }
 
 static inline int qm_fqd_get_chan(const struct qm_fqd *fqd)
@@ -519,7 +545,8 @@ static inline int qm_fqd_get_wq(const struct qm_fqd *fqd)
  *   Slope = SA / (2 ^ Sn)
  *    MaxP = 4 * (Pn + 1)
  */
-struct qm_cgr_wr_parm {
+struct qm_cgr_wr_parm
+{
 	/* MA[24-31], Mn[19-23], SA[12-18], Sn[6-11], Pn[0-5] */
 	u32 word;
 };
@@ -530,7 +557,8 @@ struct qm_cgr_wr_parm {
  * these fields as follows;
  *   CS threshold = TA * (2 ^ Tn)
  */
-struct qm_cgr_cs_thres {
+struct qm_cgr_cs_thres
+{
 	/* _res[13-15], TA[5-12], Tn[0-4] */
 	u16 word;
 };
@@ -539,7 +567,8 @@ struct qm_cgr_cs_thres {
  * commands and the "Query CGR" result. It's suctioned out here into its own
  * struct.
  */
-struct __qm_mc_cgr {
+struct __qm_mc_cgr
+{
 	struct qm_cgr_wr_parm wr_parm_g;
 	struct qm_cgr_wr_parm wr_parm_y;
 	struct qm_cgr_wr_parm wr_parm_r;
@@ -547,8 +576,10 @@ struct __qm_mc_cgr {
 	u8 wr_en_y;	/* boolean, use QM_CGR_EN */
 	u8 wr_en_r;	/* boolean, use QM_CGR_EN */
 	u8 cscn_en;	/* boolean, use QM_CGR_EN */
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			u16 cscn_targ_upd_ctrl; /* use QM_CSCN_TARG_UDP_ */
 			u16 cscn_targ_dcp_low;	/* CSCN_TARG_DCP low-16bits */
 		};
@@ -572,24 +603,30 @@ static inline u64 qm_cgr_cs_thres_get64(const struct qm_cgr_cs_thres *th)
 }
 
 static inline int qm_cgr_cs_thres_set64(struct qm_cgr_cs_thres *th, u64 val,
-					int roundup)
+										int roundup)
 {
 	u32 e = 0;
 	int oddbit = 0;
 
-	while (val > 0xff) {
+	while (val > 0xff)
+	{
 		oddbit = val & 1;
 		val >>= 1;
 		e++;
+
 		if (roundup && oddbit)
+		{
 			val++;
+		}
 	}
+
 	th->word = ((val & 0xff) << 5) | (e & 0x1f);
 	return 0;
 }
 
 /* "Initialize FQ" */
-struct qm_mcc_initfq {
+struct qm_mcc_initfq
+{
 	u8 __reserved1[2];
 	u16 we_mask;	/* Write Enable Mask */
 	u32 fqid;	/* 24-bit */
@@ -598,7 +635,8 @@ struct qm_mcc_initfq {
 	u8 __reserved2[30];
 } __packed;
 /* "Initialize/Modify CGR" */
-struct qm_mcc_initcgr {
+struct qm_mcc_initcgr
+{
 	u8 __reserve1[2];
 	u16 we_mask;	/* Write Enable Mask */
 	struct __qm_mc_cgr cgr;	/* CGR fields */
@@ -634,7 +672,7 @@ struct qm_mcc_initcgr {
 
 #define QMAN_CGR_FLAG_USE_INIT	     0x00000001
 
-	/* Portal and Frame Queues */
+/* Portal and Frame Queues */
 /* Represents a managed portal */
 struct qman_portal;
 
@@ -657,7 +695,8 @@ struct qman_cgr;
  * portal object (for handling dequeues that do not demux because contextB is
  * NULL), the return value *MUST* be qman_cb_dqrr_consume.
  */
-enum qman_cb_dqrr_result {
+enum qman_cb_dqrr_result
+{
 	/* DQRR entry can be consumed */
 	qman_cb_dqrr_consume,
 	/* Like _consume, but requests parking - FQ must be held-active */
@@ -676,15 +715,15 @@ enum qman_cb_dqrr_result {
 	qman_cb_dqrr_consume_stop
 };
 typedef enum qman_cb_dqrr_result (*qman_cb_dqrr)(struct qman_portal *qm,
-					struct qman_fq *fq,
-					const struct qm_dqrr_entry *dqrr);
+		struct qman_fq *fq,
+		const struct qm_dqrr_entry *dqrr);
 
 /*
  * This callback type is used when handling ERNs, FQRNs and FQRLs via MR. They
  * are always consumed after the callback returns.
  */
 typedef void (*qman_cb_mr)(struct qman_portal *qm, struct qman_fq *fq,
-			   const union qm_mr_entry *msg);
+						   const union qm_mr_entry *msg);
 
 /*
  * s/w-visible states. Ie. tentatively scheduled + truly scheduled + active +
@@ -698,7 +737,8 @@ typedef void (*qman_cb_mr)(struct qman_portal *qm, struct qman_fq *fq,
  * state, and the resulting park notifications move FQs from "sched" to
  * "parked".
  */
-enum qman_fq_state {
+enum qman_fq_state
+{
 	qman_fq_state_oos,
 	qman_fq_state_parked,
 	qman_fq_state_sched,
@@ -739,13 +779,15 @@ enum qman_fq_state {
  *     only the QMan driver but the callback as well.
  */
 
-struct qman_fq_cb {
+struct qman_fq_cb
+{
 	qman_cb_dqrr dqrr;	/* for dequeued frames */
 	qman_cb_mr ern;		/* for s/w ERNs */
 	qman_cb_mr fqs;		/* frame-queue state changes*/
 };
 
-struct qman_fq {
+struct qman_fq
+{
 	/* Caller of qman_create_fq() provides these demux callbacks */
 	struct qman_fq_cb cb;
 	/*
@@ -764,9 +806,10 @@ struct qman_fq {
  * 'congested' is non-zero on congestion-entry, and zero on congestion-exit.
  */
 typedef void (*qman_cb_cgr)(struct qman_portal *qm,
-			    struct qman_cgr *cgr, int congested);
+							struct qman_cgr *cgr, int congested);
 
-struct qman_cgr {
+struct qman_cgr
+{
 	/* Set these prior to qman_create_cgr() */
 	u32 cgrid; /* 0..255, but u32 to allow specials like -1, 256, etc.*/
 	qman_cb_cgr cb;
@@ -785,7 +828,7 @@ struct qman_cgr {
 #define QMAN_INITFQ_FLAG_SCHED	     0x00000001 /* schedule rather than park */
 #define QMAN_INITFQ_FLAG_LOCAL	     0x00000004 /* set dest portal */
 
-	/* Portal Management */
+/* Portal Management */
 /**
  * qman_p_irqsource_add - add processing sources to be interrupt-driven
  * @bits: bitmask of QM_PIRQ_**I processing sources
@@ -844,7 +887,7 @@ int qman_p_poll_dqrr(struct qman_portal *p, unsigned int limit);
  */
 void qman_p_static_dequeue_add(struct qman_portal *p, u32 pools);
 
-	/* FQ management */
+/* FQ management */
 /**
  * qman_create_fq - Allocates a FQ
  * @fqid: the index of the FQD to encapsulate, must be "Out of Service"
@@ -988,7 +1031,7 @@ int qman_alloc_fqid_range(u32 *result, u32 count);
  */
 int qman_release_fqid(u32 fqid);
 
-	/* Pool-channel management */
+/* Pool-channel management */
 /**
  * qman_alloc_pool_range - Allocate a contiguous range of pool-channel IDs
  * @result: is set by the API to the base pool-channel ID of the allocated range
@@ -1009,7 +1052,7 @@ int qman_alloc_pool_range(u32 *result, u32 count);
  */
 int qman_release_pool(u32 id);
 
-	/* CGR management */
+/* CGR management */
 /**
  * qman_create_cgr - Register a congestion group object
  * @cgr: the 'cgr' object, with fields filled in
@@ -1024,7 +1067,7 @@ int qman_release_pool(u32 id);
  * (which only modifies the specified parameters).
  */
 int qman_create_cgr(struct qman_cgr *cgr, u32 flags,
-		    struct qm_mcc_initcgr *opts);
+					struct qm_mcc_initcgr *opts);
 
 /**
  * qman_delete_cgr - Deregisters a congestion group object

@@ -47,14 +47,16 @@ static int adler32_cra_init(struct crypto_tfm *tfm)
 }
 
 static int adler32_setkey(struct crypto_shash *hash, const u8 *key,
-			  unsigned int keylen)
+						  unsigned int keylen)
 {
 	u32 *mctx = crypto_shash_ctx(hash);
 
-	if (keylen != sizeof(u32)) {
+	if (keylen != sizeof(u32))
+	{
 		crypto_shash_set_flags(hash, CRYPTO_TFM_RES_BAD_KEY_LEN);
 		return -EINVAL;
 	}
+
 	*mctx = *(u32 *)key;
 	return 0;
 }
@@ -70,7 +72,7 @@ static int adler32_init(struct shash_desc *desc)
 }
 
 static int adler32_update(struct shash_desc *desc, const u8 *data,
-			  unsigned int len)
+						  unsigned int len)
 {
 	u32 *cksump = shash_desc_ctx(desc);
 
@@ -79,14 +81,14 @@ static int adler32_update(struct shash_desc *desc, const u8 *data,
 }
 
 static int __adler32_finup(u32 *cksump, const u8 *data, unsigned int len,
-			   u8 *out)
+						   u8 *out)
 {
 	*(u32 *)out = zlib_adler32(*cksump, data, len);
 	return 0;
 }
 
 static int adler32_finup(struct shash_desc *desc, const u8 *data,
-			 unsigned int len, u8 *out)
+						 unsigned int len, u8 *out)
 {
 	return __adler32_finup(shash_desc_ctx(desc), data, len, out);
 }
@@ -100,13 +102,14 @@ static int adler32_final(struct shash_desc *desc, u8 *out)
 }
 
 static int adler32_digest(struct shash_desc *desc, const u8 *data,
-			  unsigned int len, u8 *out)
+						  unsigned int len, u8 *out)
 {
 	return __adler32_finup(crypto_shash_ctx(desc->tfm), data, len,
-				    out);
+						   out);
 }
 
-static struct shash_alg alg = {
+static struct shash_alg alg =
+{
 	.setkey		= adler32_setkey,
 	.init		= adler32_init,
 	.update		= adler32_update,

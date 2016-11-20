@@ -152,7 +152,8 @@
 
 #ifdef __KERNEL__
 
-struct banshee_reg {
+struct banshee_reg
+{
 	/* VGA rubbish */
 	unsigned char att[21];
 	unsigned char crt[25];
@@ -185,13 +186,15 @@ struct banshee_reg {
 
 struct tdfx_par;
 
-struct tdfxfb_i2c_chan {
+struct tdfxfb_i2c_chan
+{
 	struct tdfx_par *par;
 	struct i2c_adapter adapter;
 	struct i2c_algo_bit_data algo;
 };
 
-struct tdfx_par {
+struct tdfx_par
+{
 	u32 max_pixclock;
 	u32 palette[16];
 	void __iomem *regbase_virt;

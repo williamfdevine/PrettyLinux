@@ -10,7 +10,8 @@
 #include <linux/init.h>
 #include <linux/slab.h>
 
-struct clocksource_mmio {
+struct clocksource_mmio
+{
 	void __iomem *reg;
 	struct clocksource clksrc;
 };
@@ -50,17 +51,22 @@ cycle_t clocksource_mmio_readw_down(struct clocksource *c)
  * @read:	One of clocksource_mmio_read*() above
  */
 int __init clocksource_mmio_init(void __iomem *base, const char *name,
-	unsigned long hz, int rating, unsigned bits,
-	cycle_t (*read)(struct clocksource *))
+								 unsigned long hz, int rating, unsigned bits,
+								 cycle_t (*read)(struct clocksource *))
 {
 	struct clocksource_mmio *cs;
 
 	if (bits > 64 || bits < 16)
+	{
 		return -EINVAL;
+	}
 
 	cs = kzalloc(sizeof(struct clocksource_mmio), GFP_KERNEL);
+
 	if (!cs)
+	{
 		return -ENOMEM;
+	}
 
 	cs->reg = base;
 	cs->clksrc.name = name;

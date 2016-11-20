@@ -66,33 +66,34 @@
 #define AD7791_MODE_SEL(x)		((x) << 6)
 
 #define DECLARE_AD7787_CHANNELS(name, bits, storagebits) \
-const struct iio_chan_spec name[] = { \
-	AD_SD_DIFF_CHANNEL(0, 0, 0, AD7791_CH_AIN1P_AIN1N, \
-		(bits), (storagebits), 0), \
-	AD_SD_CHANNEL(1, 1, AD7791_CH_AIN2, (bits), (storagebits), 0), \
-	AD_SD_SHORTED_CHANNEL(2, 0, AD7791_CH_AIN1N_AIN1N, \
-		(bits), (storagebits), 0), \
-	AD_SD_SUPPLY_CHANNEL(3, 2, AD7791_CH_AVDD_MONITOR,  \
-		(bits), (storagebits), 0), \
-	IIO_CHAN_SOFT_TIMESTAMP(4), \
-}
+	const struct iio_chan_spec name[] = { \
+		AD_SD_DIFF_CHANNEL(0, 0, 0, AD7791_CH_AIN1P_AIN1N, \
+						   (bits), (storagebits), 0), \
+		AD_SD_CHANNEL(1, 1, AD7791_CH_AIN2, (bits), (storagebits), 0), \
+		AD_SD_SHORTED_CHANNEL(2, 0, AD7791_CH_AIN1N_AIN1N, \
+							  (bits), (storagebits), 0), \
+		AD_SD_SUPPLY_CHANNEL(3, 2, AD7791_CH_AVDD_MONITOR,  \
+							 (bits), (storagebits), 0), \
+		IIO_CHAN_SOFT_TIMESTAMP(4), \
+	}
 
 #define DECLARE_AD7791_CHANNELS(name, bits, storagebits) \
-const struct iio_chan_spec name[] = { \
-	AD_SD_DIFF_CHANNEL(0, 0, 0, AD7791_CH_AIN1P_AIN1N, \
-		(bits), (storagebits), 0), \
-	AD_SD_SHORTED_CHANNEL(1, 0, AD7791_CH_AIN1N_AIN1N, \
-		(bits), (storagebits), 0), \
-	AD_SD_SUPPLY_CHANNEL(2, 1, AD7791_CH_AVDD_MONITOR, \
-		(bits), (storagebits), 0), \
-	IIO_CHAN_SOFT_TIMESTAMP(3), \
-}
+	const struct iio_chan_spec name[] = { \
+		AD_SD_DIFF_CHANNEL(0, 0, 0, AD7791_CH_AIN1P_AIN1N, \
+						   (bits), (storagebits), 0), \
+		AD_SD_SHORTED_CHANNEL(1, 0, AD7791_CH_AIN1N_AIN1N, \
+							  (bits), (storagebits), 0), \
+		AD_SD_SUPPLY_CHANNEL(2, 1, AD7791_CH_AVDD_MONITOR, \
+							 (bits), (storagebits), 0), \
+		IIO_CHAN_SOFT_TIMESTAMP(3), \
+	}
 
 static DECLARE_AD7787_CHANNELS(ad7787_channels, 24, 32);
 static DECLARE_AD7791_CHANNELS(ad7790_channels, 16, 16);
 static DECLARE_AD7791_CHANNELS(ad7791_channels, 24, 32);
 
-enum {
+enum
+{
 	AD7787,
 	AD7788,
 	AD7789,
@@ -100,25 +101,28 @@ enum {
 	AD7791,
 };
 
-enum ad7791_chip_info_flags {
+enum ad7791_chip_info_flags
+{
 	AD7791_FLAG_HAS_FILTER		= (1 << 0),
 	AD7791_FLAG_HAS_BUFFER		= (1 << 1),
 	AD7791_FLAG_HAS_UNIPOLAR	= (1 << 2),
 	AD7791_FLAG_HAS_BURNOUT		= (1 << 3),
 };
 
-struct ad7791_chip_info {
+struct ad7791_chip_info
+{
 	const struct iio_chan_spec *channels;
 	unsigned int num_channels;
 	enum ad7791_chip_info_flags flags;
 };
 
-static const struct ad7791_chip_info ad7791_chip_infos[] = {
+static const struct ad7791_chip_info ad7791_chip_infos[] =
+{
 	[AD7787] = {
 		.channels = ad7787_channels,
 		.num_channels = ARRAY_SIZE(ad7787_channels),
 		.flags = AD7791_FLAG_HAS_FILTER | AD7791_FLAG_HAS_BUFFER |
-			AD7791_FLAG_HAS_UNIPOLAR | AD7791_FLAG_HAS_BURNOUT,
+		AD7791_FLAG_HAS_UNIPOLAR | AD7791_FLAG_HAS_BURNOUT,
 	},
 	[AD7788] = {
 		.channels = ad7790_channels,
@@ -134,17 +138,18 @@ static const struct ad7791_chip_info ad7791_chip_infos[] = {
 		.channels = ad7790_channels,
 		.num_channels = ARRAY_SIZE(ad7790_channels),
 		.flags = AD7791_FLAG_HAS_FILTER | AD7791_FLAG_HAS_BUFFER |
-			AD7791_FLAG_HAS_BURNOUT,
+		AD7791_FLAG_HAS_BURNOUT,
 	},
 	[AD7791] = {
 		.channels = ad7791_channels,
 		.num_channels = ARRAY_SIZE(ad7791_channels),
 		.flags = AD7791_FLAG_HAS_FILTER | AD7791_FLAG_HAS_BUFFER |
-			AD7791_FLAG_HAS_UNIPOLAR | AD7791_FLAG_HAS_BURNOUT,
+		AD7791_FLAG_HAS_UNIPOLAR | AD7791_FLAG_HAS_BURNOUT,
 	},
 };
 
-struct ad7791_state {
+struct ad7791_state
+{
 	struct ad_sigma_delta sd;
 	uint8_t mode;
 	uint8_t filter;
@@ -166,21 +171,24 @@ static int ad7791_set_channel(struct ad_sigma_delta *sd, unsigned int channel)
 }
 
 static int ad7791_set_mode(struct ad_sigma_delta *sd,
-	enum ad_sigma_delta_mode mode)
+						   enum ad_sigma_delta_mode mode)
 {
 	struct ad7791_state *st = ad_sigma_delta_to_ad7791(sd);
 
-	switch (mode) {
-	case AD_SD_MODE_CONTINUOUS:
-		mode = AD7791_MODE_CONTINUOUS;
-		break;
-	case AD_SD_MODE_SINGLE:
-		mode = AD7791_MODE_SINGLE;
-		break;
-	case AD_SD_MODE_IDLE:
-	case AD_SD_MODE_POWERDOWN:
-		mode = AD7791_MODE_POWERDOWN;
-		break;
+	switch (mode)
+	{
+		case AD_SD_MODE_CONTINUOUS:
+			mode = AD7791_MODE_CONTINUOUS;
+			break;
+
+		case AD_SD_MODE_SINGLE:
+			mode = AD7791_MODE_SINGLE;
+			break;
+
+		case AD_SD_MODE_IDLE:
+		case AD_SD_MODE_POWERDOWN:
+			mode = AD7791_MODE_POWERDOWN;
+			break;
 	}
 
 	st->mode &= ~AD7791_MODE_SEL_MASK;
@@ -189,7 +197,8 @@ static int ad7791_set_mode(struct ad_sigma_delta *sd,
 	return ad_sd_write_reg(sd, AD7791_REG_MODE, sizeof(st->mode), st->mode);
 }
 
-static const struct ad_sigma_delta_info ad7791_sigma_delta_info = {
+static const struct ad_sigma_delta_info ad7791_sigma_delta_info =
+{
 	.set_channel = ad7791_set_channel,
 	.set_mode = ad7791_set_mode,
 	.has_registers = true,
@@ -198,53 +207,75 @@ static const struct ad_sigma_delta_info ad7791_sigma_delta_info = {
 };
 
 static int ad7791_read_raw(struct iio_dev *indio_dev,
-	const struct iio_chan_spec *chan, int *val, int *val2, long info)
+						   const struct iio_chan_spec *chan, int *val, int *val2, long info)
 {
 	struct ad7791_state *st = iio_priv(indio_dev);
 	bool unipolar = !!(st->mode & AD7791_MODE_UNIPOLAR);
 
-	switch (info) {
-	case IIO_CHAN_INFO_RAW:
-		return ad_sigma_delta_single_conversion(indio_dev, chan, val);
-	case IIO_CHAN_INFO_OFFSET:
-		/**
-		 * Unipolar: 0 to VREF
-		 * Bipolar -VREF to VREF
-		 **/
-		if (unipolar)
-			*val = 0;
-		else
-			*val = -(1 << (chan->scan_type.realbits - 1));
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_SCALE:
-		/* The monitor channel uses an internal reference. */
-		if (chan->address == AD7791_CH_AVDD_MONITOR) {
-			/*
-			 * The signal is attenuated by a factor of 5 and
-			 * compared against a 1.17V internal reference.
-			 */
-			*val = 1170 * 5;
-		} else {
-			int voltage_uv;
+	switch (info)
+	{
+		case IIO_CHAN_INFO_RAW:
+			return ad_sigma_delta_single_conversion(indio_dev, chan, val);
 
-			voltage_uv = regulator_get_voltage(st->reg);
-			if (voltage_uv < 0)
-				return voltage_uv;
+		case IIO_CHAN_INFO_OFFSET:
 
-			*val = voltage_uv / 1000;
-		}
-		if (unipolar)
-			*val2 = chan->scan_type.realbits;
-		else
-			*val2 = chan->scan_type.realbits - 1;
+			/**
+			 * Unipolar: 0 to VREF
+			 * Bipolar -VREF to VREF
+			 **/
+			if (unipolar)
+			{
+				*val = 0;
+			}
+			else
+			{
+				*val = -(1 << (chan->scan_type.realbits - 1));
+			}
 
-		return IIO_VAL_FRACTIONAL_LOG2;
+			return IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_SCALE:
+
+			/* The monitor channel uses an internal reference. */
+			if (chan->address == AD7791_CH_AVDD_MONITOR)
+			{
+				/*
+				 * The signal is attenuated by a factor of 5 and
+				 * compared against a 1.17V internal reference.
+				 */
+				*val = 1170 * 5;
+			}
+			else
+			{
+				int voltage_uv;
+
+				voltage_uv = regulator_get_voltage(st->reg);
+
+				if (voltage_uv < 0)
+				{
+					return voltage_uv;
+				}
+
+				*val = voltage_uv / 1000;
+			}
+
+			if (unipolar)
+			{
+				*val2 = chan->scan_type.realbits;
+			}
+			else
+			{
+				*val2 = chan->scan_type.realbits - 1;
+			}
+
+			return IIO_VAL_FRACTIONAL_LOG2;
 	}
 
 	return -EINVAL;
 }
 
-static const char * const ad7791_sample_freq_avail[] = {
+static const char *const ad7791_sample_freq_avail[] =
+{
 	[AD7791_FILTER_RATE_120] = "120",
 	[AD7791_FILTER_RATE_100] = "100",
 	[AD7791_FILTER_RATE_33_3] = "33.3",
@@ -256,7 +287,7 @@ static const char * const ad7791_sample_freq_avail[] = {
 };
 
 static ssize_t ad7791_read_frequency(struct device *dev,
-	struct device_attribute *attr, char *buf)
+									 struct device_attribute *attr, char *buf)
 {
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
 	struct ad7791_state *st = iio_priv(indio_dev);
@@ -266,7 +297,7 @@ static ssize_t ad7791_read_frequency(struct device *dev,
 }
 
 static ssize_t ad7791_write_frequency(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t len)
+									  struct device_attribute *attr, const char *buf, size_t len)
 {
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
 	struct ad7791_state *st = iio_priv(indio_dev);
@@ -274,73 +305,94 @@ static ssize_t ad7791_write_frequency(struct device *dev,
 
 	for (i = 0; i < ARRAY_SIZE(ad7791_sample_freq_avail); i++)
 		if (sysfs_streq(ad7791_sample_freq_avail[i], buf))
+		{
 			break;
+		}
+
 	if (i == ARRAY_SIZE(ad7791_sample_freq_avail))
+	{
 		return -EINVAL;
+	}
 
 	ret = iio_device_claim_direct_mode(indio_dev);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	st->filter &= ~AD7791_FILTER_RATE_MASK;
 	st->filter |= i;
 	ad_sd_write_reg(&st->sd, AD7791_REG_FILTER, sizeof(st->filter),
-			st->filter);
+					st->filter);
 	iio_device_release_direct_mode(indio_dev);
 
 	return len;
 }
 
 static IIO_DEV_ATTR_SAMP_FREQ(S_IWUSR | S_IRUGO,
-		ad7791_read_frequency,
-		ad7791_write_frequency);
+							  ad7791_read_frequency,
+							  ad7791_write_frequency);
 
 static IIO_CONST_ATTR_SAMP_FREQ_AVAIL("120 100 33.3 20 16.7 16.6 13.3 9.5");
 
-static struct attribute *ad7791_attributes[] = {
+static struct attribute *ad7791_attributes[] =
+{
 	&iio_dev_attr_sampling_frequency.dev_attr.attr,
 	&iio_const_attr_sampling_frequency_available.dev_attr.attr,
 	NULL
 };
 
-static const struct attribute_group ad7791_attribute_group = {
+static const struct attribute_group ad7791_attribute_group =
+{
 	.attrs = ad7791_attributes,
 };
 
-static const struct iio_info ad7791_info = {
+static const struct iio_info ad7791_info =
+{
 	.read_raw = &ad7791_read_raw,
 	.attrs = &ad7791_attribute_group,
 	.validate_trigger = ad_sd_validate_trigger,
 	.driver_module = THIS_MODULE,
 };
 
-static const struct iio_info ad7791_no_filter_info = {
+static const struct iio_info ad7791_no_filter_info =
+{
 	.read_raw = &ad7791_read_raw,
 	.validate_trigger = ad_sd_validate_trigger,
 	.driver_module = THIS_MODULE,
 };
 
 static int ad7791_setup(struct ad7791_state *st,
-			struct ad7791_platform_data *pdata)
+						struct ad7791_platform_data *pdata)
 {
 	/* Set to poweron-reset default values */
 	st->mode = AD7791_MODE_BUFFER;
 	st->filter = AD7791_FILTER_RATE_16_6;
 
 	if (!pdata)
+	{
 		return 0;
+	}
 
 	if ((st->info->flags & AD7791_FLAG_HAS_BUFFER) && !pdata->buffered)
+	{
 		st->mode &= ~AD7791_MODE_BUFFER;
+	}
 
 	if ((st->info->flags & AD7791_FLAG_HAS_BURNOUT) &&
 		pdata->burnout_current)
+	{
 		st->mode |= AD7791_MODE_BURNOUT;
+	}
 
 	if ((st->info->flags & AD7791_FLAG_HAS_UNIPOLAR) && pdata->unipolar)
+	{
 		st->mode |= AD7791_MODE_UNIPOLAR;
+	}
 
 	return ad_sd_write_reg(&st->sd, AD7791_REG_MODE, sizeof(st->mode),
-		st->mode);
+						   st->mode);
 }
 
 static int ad7791_probe(struct spi_device *spi)
@@ -350,24 +402,34 @@ static int ad7791_probe(struct spi_device *spi)
 	struct ad7791_state *st;
 	int ret;
 
-	if (!spi->irq) {
+	if (!spi->irq)
+	{
 		dev_err(&spi->dev, "Missing IRQ.\n");
 		return -ENXIO;
 	}
 
 	indio_dev = devm_iio_device_alloc(&spi->dev, sizeof(*st));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	st = iio_priv(indio_dev);
 
 	st->reg = devm_regulator_get(&spi->dev, "refin");
+
 	if (IS_ERR(st->reg))
+	{
 		return PTR_ERR(st->reg);
+	}
 
 	ret = regulator_enable(st->reg);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	st->info = &ad7791_chip_infos[spi_get_device_id(spi)->driver_data];
 	ad_sd_init(&st->sd, indio_dev, spi, &ad7791_sigma_delta_info);
@@ -380,22 +442,36 @@ static int ad7791_probe(struct spi_device *spi)
 	indio_dev->modes = INDIO_DIRECT_MODE;
 	indio_dev->channels = st->info->channels;
 	indio_dev->num_channels = st->info->num_channels;
+
 	if (st->info->flags & AD7791_FLAG_HAS_FILTER)
+	{
 		indio_dev->info = &ad7791_info;
+	}
 	else
+	{
 		indio_dev->info = &ad7791_no_filter_info;
+	}
 
 	ret = ad_sd_setup_buffer_and_trigger(indio_dev);
+
 	if (ret)
+	{
 		goto error_disable_reg;
+	}
 
 	ret = ad7791_setup(st, pdata);
+
 	if (ret)
+	{
 		goto error_remove_trigger;
+	}
 
 	ret = iio_device_register(indio_dev);
+
 	if (ret)
+	{
 		goto error_remove_trigger;
+	}
 
 	return 0;
 
@@ -420,7 +496,8 @@ static int ad7791_remove(struct spi_device *spi)
 	return 0;
 }
 
-static const struct spi_device_id ad7791_spi_ids[] = {
+static const struct spi_device_id ad7791_spi_ids[] =
+{
 	{ "ad7787", AD7787 },
 	{ "ad7788", AD7788 },
 	{ "ad7789", AD7789 },
@@ -430,7 +507,8 @@ static const struct spi_device_id ad7791_spi_ids[] = {
 };
 MODULE_DEVICE_TABLE(spi, ad7791_spi_ids);
 
-static struct spi_driver ad7791_driver = {
+static struct spi_driver ad7791_driver =
+{
 	.driver = {
 		.name	= "ad7791",
 	},

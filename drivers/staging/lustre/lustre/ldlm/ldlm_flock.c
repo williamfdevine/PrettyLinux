@@ -73,31 +73,33 @@
 static inline int
 ldlm_same_flock_owner(struct ldlm_lock *lock, struct ldlm_lock *new)
 {
-	return((new->l_policy_data.l_flock.owner ==
-		lock->l_policy_data.l_flock.owner) &&
-	       (new->l_export == lock->l_export));
+	return ((new->l_policy_data.l_flock.owner ==
+			 lock->l_policy_data.l_flock.owner) &&
+			(new->l_export == lock->l_export));
 }
 
 static inline int
 ldlm_flocks_overlap(struct ldlm_lock *lock, struct ldlm_lock *new)
 {
-	return((new->l_policy_data.l_flock.start <=
-		lock->l_policy_data.l_flock.end) &&
-	       (new->l_policy_data.l_flock.end >=
-		lock->l_policy_data.l_flock.start));
+	return ((new->l_policy_data.l_flock.start <=
+			 lock->l_policy_data.l_flock.end) &&
+			(new->l_policy_data.l_flock.end >=
+			 lock->l_policy_data.l_flock.start));
 }
 
 static inline void
 ldlm_flock_destroy(struct ldlm_lock *lock, enum ldlm_mode mode, __u64 flags)
 {
 	LDLM_DEBUG(lock, "ldlm_flock_destroy(mode: %d, flags: 0x%llx)",
-		   mode, flags);
+			   mode, flags);
 
 	/* Safe to not lock here, since it should be empty anyway */
 	LASSERT(hlist_unhashed(&lock->l_exp_flock_hash));
 
 	list_del_init(&lock->l_res_link);
-	if (flags == LDLM_FL_WAIT_NOREPROC) {
+
+	if (flags == LDLM_FL_WAIT_NOREPROC)
+	{
 		/* client side - set a flag to prevent sending a CANCEL */
 		lock->l_flags |= LDLM_FL_LOCAL_ONLY | LDLM_FL_CBPENDING;
 
@@ -129,8 +131,8 @@ ldlm_flock_destroy(struct ldlm_lock *lock, enum ldlm_mode mode, __u64 flags)
  *     would be collected and ASTs sent.
  */
 static int ldlm_process_flock_lock(struct ldlm_lock *req, __u64 *flags,
-				   int first_enq, enum ldlm_error *err,
-				   struct list_head *work_list)
+								   int first_enq, enum ldlm_error *err,
+								   struct list_head *work_list)
 {
 	struct ldlm_resource *res = req->l_resource;
 	struct ldlm_namespace *ns = ldlm_res_to_ns(res);
@@ -146,11 +148,11 @@ static int ldlm_process_flock_lock(struct ldlm_lock *req, __u64 *flags,
 	const struct ldlm_callback_suite null_cbs = { NULL };
 
 	CDEBUG(D_DLMTRACE,
-	       "flags %#llx owner %llu pid %u mode %u start %llu end %llu\n",
-	       *flags, new->l_policy_data.l_flock.owner,
-	       new->l_policy_data.l_flock.pid, mode,
-	       req->l_policy_data.l_flock.start,
-	       req->l_policy_data.l_flock.end);
+		   "flags %#llx owner %llu pid %u mode %u start %llu end %llu\n",
+		   *flags, new->l_policy_data.l_flock.owner,
+		   new->l_policy_data.l_flock.pid, mode,
+		   req->l_policy_data.l_flock.start,
+		   req->l_policy_data.l_flock.end);
 
 	*err = ELDLM_OK;
 
@@ -160,19 +162,26 @@ static int ldlm_process_flock_lock(struct ldlm_lock *req, __u64 *flags,
 	req->l_blocking_ast = NULL;
 
 reprocess:
-	if ((*flags == LDLM_FL_WAIT_NOREPROC) || (mode == LCK_NL)) {
+
+	if ((*flags == LDLM_FL_WAIT_NOREPROC) || (mode == LCK_NL))
+	{
 		/* This loop determines where this processes locks start
 		 * in the resource lr_granted list.
 		 */
-		list_for_each(tmp, &res->lr_granted) {
+		list_for_each(tmp, &res->lr_granted)
+		{
 			lock = list_entry(tmp, struct ldlm_lock,
-					  l_res_link);
-			if (ldlm_same_flock_owner(lock, req)) {
+							  l_res_link);
+
+			if (ldlm_same_flock_owner(lock, req))
+			{
 				ownlocks = tmp;
 				break;
 			}
 		}
-	} else {
+	}
+	else
+	{
 		int reprocess_failed = 0;
 
 		lockmode_verify(mode);
@@ -180,35 +189,47 @@ reprocess:
 		/* This loop determines if there are existing locks
 		 * that conflict with the new lock request.
 		 */
-		list_for_each(tmp, &res->lr_granted) {
+		list_for_each(tmp, &res->lr_granted)
+		{
 			lock = list_entry(tmp, struct ldlm_lock,
-					  l_res_link);
+							  l_res_link);
 
-			if (ldlm_same_flock_owner(lock, req)) {
+			if (ldlm_same_flock_owner(lock, req))
+			{
 				if (!ownlocks)
+				{
 					ownlocks = tmp;
+				}
+
 				continue;
 			}
 
 			/* locks are compatible, overlap doesn't matter */
 			if (lockmode_compat(lock->l_granted_mode, mode))
+			{
 				continue;
+			}
 
 			if (!ldlm_flocks_overlap(lock, req))
+			{
 				continue;
+			}
 
-			if (!first_enq) {
+			if (!first_enq)
+			{
 				reprocess_failed = 1;
 				continue;
 			}
 
-			if (*flags & LDLM_FL_BLOCK_NOWAIT) {
+			if (*flags & LDLM_FL_BLOCK_NOWAIT)
+			{
 				ldlm_flock_destroy(req, mode, *flags);
 				*err = -EAGAIN;
 				return LDLM_ITER_STOP;
 			}
 
-			if (*flags & LDLM_FL_TEST_LOCK) {
+			if (*flags & LDLM_FL_TEST_LOCK)
+			{
 				ldlm_flock_destroy(req, mode, *flags);
 				req->l_req_mode = lock->l_granted_mode;
 				req->l_policy_data.l_flock.pid =
@@ -225,11 +246,15 @@ reprocess:
 			*flags |= LDLM_FL_BLOCK_GRANTED;
 			return LDLM_ITER_STOP;
 		}
+
 		if (reprocess_failed)
+		{
 			return LDLM_ITER_CONTINUE;
+		}
 	}
 
-	if (*flags & LDLM_FL_TEST_LOCK) {
+	if (*flags & LDLM_FL_TEST_LOCK)
+	{
 		ldlm_flock_destroy(req, mode, *flags);
 		req->l_req_mode = LCK_NL;
 		*flags |= LDLM_FL_LOCK_CHANGED;
@@ -240,80 +265,109 @@ reprocess:
 	 * We may have to merge or split existing locks.
 	 */
 	if (!ownlocks)
+	{
 		ownlocks = &res->lr_granted;
+	}
 
-	list_for_remaining_safe(ownlocks, tmp, &res->lr_granted) {
+	list_for_remaining_safe(ownlocks, tmp, &res->lr_granted)
+	{
 		lock = list_entry(ownlocks, struct ldlm_lock, l_res_link);
 
 		if (!ldlm_same_flock_owner(lock, new))
+		{
 			break;
+		}
 
-		if (lock->l_granted_mode == mode) {
+		if (lock->l_granted_mode == mode)
+		{
 			/* If the modes are the same then we need to process
 			 * locks that overlap OR adjoin the new lock. The extra
 			 * logic condition is necessary to deal with arithmetic
 			 * overflow and underflow.
 			 */
 			if ((new->l_policy_data.l_flock.start >
-			     (lock->l_policy_data.l_flock.end + 1)) &&
-			    (lock->l_policy_data.l_flock.end != OBD_OBJECT_EOF))
+				 (lock->l_policy_data.l_flock.end + 1)) &&
+				(lock->l_policy_data.l_flock.end != OBD_OBJECT_EOF))
+			{
 				continue;
+			}
 
 			if ((new->l_policy_data.l_flock.end <
-			     (lock->l_policy_data.l_flock.start - 1)) &&
-			    (lock->l_policy_data.l_flock.start != 0))
+				 (lock->l_policy_data.l_flock.start - 1)) &&
+				(lock->l_policy_data.l_flock.start != 0))
+			{
 				break;
+			}
 
 			if (new->l_policy_data.l_flock.start <
-			    lock->l_policy_data.l_flock.start) {
+				lock->l_policy_data.l_flock.start)
+			{
 				lock->l_policy_data.l_flock.start =
 					new->l_policy_data.l_flock.start;
-			} else {
+			}
+			else
+			{
 				new->l_policy_data.l_flock.start =
 					lock->l_policy_data.l_flock.start;
 			}
 
 			if (new->l_policy_data.l_flock.end >
-			    lock->l_policy_data.l_flock.end) {
+				lock->l_policy_data.l_flock.end)
+			{
 				lock->l_policy_data.l_flock.end =
 					new->l_policy_data.l_flock.end;
-			} else {
+			}
+			else
+			{
 				new->l_policy_data.l_flock.end =
 					lock->l_policy_data.l_flock.end;
 			}
 
-			if (added) {
+			if (added)
+			{
 				ldlm_flock_destroy(lock, mode, *flags);
-			} else {
+			}
+			else
+			{
 				new = lock;
 				added = 1;
 			}
+
 			continue;
 		}
 
 		if (new->l_policy_data.l_flock.start >
-		    lock->l_policy_data.l_flock.end)
+			lock->l_policy_data.l_flock.end)
+		{
 			continue;
+		}
 
 		if (new->l_policy_data.l_flock.end <
-		    lock->l_policy_data.l_flock.start)
+			lock->l_policy_data.l_flock.start)
+		{
 			break;
+		}
 
 		++overlaps;
 
 		if (new->l_policy_data.l_flock.start <=
-		    lock->l_policy_data.l_flock.start) {
+			lock->l_policy_data.l_flock.start)
+		{
 			if (new->l_policy_data.l_flock.end <
-			    lock->l_policy_data.l_flock.end) {
+				lock->l_policy_data.l_flock.end)
+			{
 				lock->l_policy_data.l_flock.start =
 					new->l_policy_data.l_flock.end + 1;
 				break;
 			}
+
 			ldlm_flock_destroy(lock, lock->l_req_mode, *flags);
 			continue;
 		}
+
 		if (new->l_policy_data.l_flock.end >=
-		    lock->l_policy_data.l_flock.end) {
+			lock->l_policy_data.l_flock.end)
+		{
 			lock->l_policy_data.l_flock.end =
 				new->l_policy_data.l_flock.start - 1;
 			continue;
@@ -333,18 +387,22 @@ reprocess:
 		 * release the lr_lock, allocate the new lock,
 		 * and restart processing this lock.
 		 */
-		if (!new2) {
+		if (!new2)
+		{
 			unlock_res_and_lock(req);
 			new2 = ldlm_lock_create(ns, &res->lr_name, LDLM_FLOCK,
-						lock->l_granted_mode, &null_cbs,
-						NULL, 0, LVB_T_NONE);
+									lock->l_granted_mode, &null_cbs,
+									NULL, 0, LVB_T_NONE);
 			lock_res_and_lock(req);
-			if (IS_ERR(new2)) {
+
+			if (IS_ERR(new2))
+			{
 				ldlm_flock_destroy(req, lock->l_granted_mode,
-						   *flags);
+								   *flags);
 				*err = PTR_ERR(new2);
 				return LDLM_ITER_STOP;
 			}
+
 			goto reprocess;
 		}
 
@@ -362,18 +420,22 @@ reprocess:
 		lock->l_policy_data.l_flock.start =
 			new->l_policy_data.l_flock.end + 1;
 		new2->l_conn_export = lock->l_conn_export;
-		if (lock->l_export) {
+
+		if (lock->l_export)
+		{
 			new2->l_export = class_export_lock_get(lock->l_export,
-							       new2);
+												   new2);
+
 			if (new2->l_export->exp_lock_hash &&
-			    hlist_unhashed(&new2->l_exp_hash))
+				hlist_unhashed(&new2->l_exp_hash))
 				cfs_hash_add(new2->l_export->exp_lock_hash,
-					     &new2->l_remote_handle,
-					     &new2->l_exp_hash);
+							 &new2->l_remote_handle,
+							 &new2->l_exp_hash);
 		}
+
 		if (*flags == LDLM_FL_WAIT_NOREPROC)
 			ldlm_lock_addref_internal_nolock(new2,
-							 lock->l_granted_mode);
+											 lock->l_granted_mode);
 
 		/* insert new2 at lock */
 		ldlm_resource_add_lock(res, ownlocks, new2);
@@ -383,18 +445,22 @@ reprocess:
 
 	/* if new2 is created but never used, destroy it*/
 	if (splitted == 0 && new2)
+	{
 		ldlm_lock_destroy_nolock(new2);
+	}
 
 	/* At this point we're granting the lock request. */
 	req->l_granted_mode = req->l_req_mode;
 
-	if (!added) {
+	if (!added)
+	{
 		list_del_init(&req->l_res_link);
 		/* insert new lock before ownlocks in list. */
 		ldlm_resource_add_lock(res, ownlocks, req);
 	}
 
-	if (*flags != LDLM_FL_WAIT_NOREPROC) {
+	if (*flags != LDLM_FL_WAIT_NOREPROC)
+	{
 		/* The only one possible case for client-side calls flock
 		 * policy function is ldlm_flock_completion_ast inside which
 		 * carries LDLM_FL_WAIT_NOREPROC flag.
@@ -409,13 +475,16 @@ reprocess:
 	 * could be freed before the completion AST can be sent.
 	 */
 	if (added)
+	{
 		ldlm_flock_destroy(req, mode, *flags);
+	}
 
 	ldlm_resource_dump(D_INFO, res);
 	return LDLM_ITER_CONTINUE;
 }
 
-struct ldlm_flock_wait_data {
+struct ldlm_flock_wait_data
+{
 	struct ldlm_lock *fwd_lock;
 	int	       fwd_generation;
 };
@@ -456,24 +525,33 @@ ldlm_flock_completion_ast(struct ldlm_lock *lock, __u64 flags, void *data)
 	int			     rc = 0;
 
 	OBD_FAIL_TIMEOUT(OBD_FAIL_LDLM_CP_CB_WAIT2, 4);
-	if (OBD_FAIL_PRECHECK(OBD_FAIL_LDLM_CP_CB_WAIT3)) {
+
+	if (OBD_FAIL_PRECHECK(OBD_FAIL_LDLM_CP_CB_WAIT3))
+	{
 		lock_res_and_lock(lock);
 		lock->l_flags |= LDLM_FL_FAIL_LOC;
 		unlock_res_and_lock(lock);
 		OBD_FAIL_TIMEOUT(OBD_FAIL_LDLM_CP_CB_WAIT3, 4);
 	}
+
 	CDEBUG(D_DLMTRACE, "flags: 0x%llx data: %p getlk: %p\n",
-	       flags, data, getlk);
+		   flags, data, getlk);
 
 	LASSERT(flags != LDLM_FL_WAIT_NOREPROC);
 
 	if (flags & LDLM_FL_FAILED)
+	{
 		goto granted;
+	}
 
-	if (!(flags & LDLM_FL_BLOCKED_MASK)) {
+	if (!(flags & LDLM_FL_BLOCKED_MASK))
+	{
 		if (!data)
 			/* mds granted the lock in the reply */
+		{
 			goto granted;
+		}
+
 		/* CP AST RPC: lock get granted, wake it up */
 		wake_up(&lock->l_waitq);
 		return 0;
@@ -485,9 +563,12 @@ ldlm_flock_completion_ast(struct ldlm_lock *lock, __u64 flags, void *data)
 
 	/* if this is a local lock, there is no import */
 	if (obd)
+	{
 		imp = obd->u.cli.cl_import;
+	}
 
-	if (imp) {
+	if (imp)
+	{
 		spin_lock(&imp->imp_lock);
 		fwd.fwd_generation = imp->imp_generation;
 		spin_unlock(&imp->imp_lock);
@@ -498,27 +579,31 @@ ldlm_flock_completion_ast(struct ldlm_lock *lock, __u64 flags, void *data)
 	/* Go to sleep until the lock is granted. */
 	rc = l_wait_event(lock->l_waitq, is_granted_or_cancelled(lock), &lwi);
 
-	if (rc) {
+	if (rc)
+	{
 		LDLM_DEBUG(lock, "client-side enqueue waking up: failed (%d)",
-			   rc);
+				   rc);
 		return rc;
 	}
 
 granted:
 	OBD_FAIL_TIMEOUT(OBD_FAIL_LDLM_CP_CB_WAIT, 10);
 
-	if (OBD_FAIL_PRECHECK(OBD_FAIL_LDLM_CP_CB_WAIT4)) {
+	if (OBD_FAIL_PRECHECK(OBD_FAIL_LDLM_CP_CB_WAIT4))
+	{
 		lock_res_and_lock(lock);
 		/* DEADLOCK is always set with CBPENDING */
 		lock->l_flags |= LDLM_FL_FLOCK_DEADLOCK | LDLM_FL_CBPENDING;
 		unlock_res_and_lock(lock);
 		OBD_FAIL_TIMEOUT(OBD_FAIL_LDLM_CP_CB_WAIT4, 4);
 	}
-	if (OBD_FAIL_PRECHECK(OBD_FAIL_LDLM_CP_CB_WAIT5)) {
+
+	if (OBD_FAIL_PRECHECK(OBD_FAIL_LDLM_CP_CB_WAIT5))
+	{
 		lock_res_and_lock(lock);
 		/* DEADLOCK is always set with CBPENDING */
 		lock->l_flags |= LDLM_FL_FAIL_LOC |
-				 LDLM_FL_FLOCK_DEADLOCK | LDLM_FL_CBPENDING;
+						 LDLM_FL_FLOCK_DEADLOCK | LDLM_FL_CBPENDING;
 		unlock_res_and_lock(lock);
 		OBD_FAIL_TIMEOUT(OBD_FAIL_LDLM_CP_CB_WAIT5, 4);
 	}
@@ -529,7 +614,8 @@ granted:
 	 * Protect against race where lock could have been just destroyed
 	 * due to overlap in ldlm_process_flock_lock().
 	 */
-	if (ldlm_is_destroyed(lock)) {
+	if (ldlm_is_destroyed(lock))
+	{
 		unlock_res_and_lock(lock);
 		LDLM_DEBUG(lock, "client-side enqueue waking up: destroyed");
 		/*
@@ -549,21 +635,30 @@ granted:
 	 * server already dropped it anyway. Only for granted locks too.
 	 */
 	/* Do the same for DEADLOCK'ed locks. */
-	if (ldlm_is_failed(lock) || ldlm_is_flock_deadlock(lock)) {
+	if (ldlm_is_failed(lock) || ldlm_is_flock_deadlock(lock))
+	{
 		int mode;
 
 		if (flags & LDLM_FL_TEST_LOCK)
+		{
 			LASSERT(ldlm_is_test_lock(lock));
+		}
 
 		if (ldlm_is_test_lock(lock) || ldlm_is_flock_deadlock(lock))
+		{
 			mode = getlk->fl_type;
+		}
 		else
+		{
 			mode = lock->l_granted_mode;
+		}
 
-		if (ldlm_is_flock_deadlock(lock)) {
+		if (ldlm_is_flock_deadlock(lock))
+		{
 			LDLM_DEBUG(lock, "client-side enqueue deadlock received");
 			rc = -EDEADLK;
 		}
+
 		ldlm_flock_destroy(lock, mode, LDLM_FL_WAIT_NOREPROC);
 		unlock_res_and_lock(lock);
 
@@ -579,27 +674,35 @@ granted:
 
 	LDLM_DEBUG(lock, "client-side enqueue granted");
 
-	if (flags & LDLM_FL_TEST_LOCK) {
+	if (flags & LDLM_FL_TEST_LOCK)
+	{
 		/* fcntl(F_GETLK) request */
 		/* The old mode was saved in getlk->fl_type so that if the mode
 		 * in the lock changes we can decref the appropriate refcount.
 		 */
 		LASSERT(ldlm_is_test_lock(lock));
 		ldlm_flock_destroy(lock, getlk->fl_type, LDLM_FL_WAIT_NOREPROC);
-		switch (lock->l_granted_mode) {
-		case LCK_PR:
-			getlk->fl_type = F_RDLCK;
-			break;
-		case LCK_PW:
-			getlk->fl_type = F_WRLCK;
-			break;
-		default:
-			getlk->fl_type = F_UNLCK;
+
+		switch (lock->l_granted_mode)
+		{
+			case LCK_PR:
+				getlk->fl_type = F_RDLCK;
+				break;
+
+			case LCK_PW:
+				getlk->fl_type = F_WRLCK;
+				break;
+
+			default:
+				getlk->fl_type = F_UNLCK;
 		}
+
 		getlk->fl_pid = (pid_t)lock->l_policy_data.l_flock.pid;
 		getlk->fl_start = (loff_t)lock->l_policy_data.l_flock.start;
 		getlk->fl_end = (loff_t)lock->l_policy_data.l_flock.end;
-	} else {
+	}
+	else
+	{
 		__u64 noreproc = LDLM_FL_WAIT_NOREPROC;
 
 		/* We need to reprocess the lock to do merges or splits
@@ -607,13 +710,14 @@ granted:
 		 */
 		ldlm_process_flock_lock(lock, &noreproc, 1, &err, NULL);
 	}
+
 	unlock_res_and_lock(lock);
 	return rc;
 }
 EXPORT_SYMBOL(ldlm_flock_completion_ast);
 
 void ldlm_flock_policy_wire18_to_local(const ldlm_wire_policy_data_t *wpolicy,
-				       ldlm_policy_data_t *lpolicy)
+									   ldlm_policy_data_t *lpolicy)
 {
 	memset(lpolicy, 0, sizeof(*lpolicy));
 	lpolicy->l_flock.start = wpolicy->l_flock.lfw_start;
@@ -627,7 +731,7 @@ void ldlm_flock_policy_wire18_to_local(const ldlm_wire_policy_data_t *wpolicy,
 }
 
 void ldlm_flock_policy_wire21_to_local(const ldlm_wire_policy_data_t *wpolicy,
-				       ldlm_policy_data_t *lpolicy)
+									   ldlm_policy_data_t *lpolicy)
 {
 	memset(lpolicy, 0, sizeof(*lpolicy));
 	lpolicy->l_flock.start = wpolicy->l_flock.lfw_start;
@@ -637,7 +741,7 @@ void ldlm_flock_policy_wire21_to_local(const ldlm_wire_policy_data_t *wpolicy,
 }
 
 void ldlm_flock_policy_local_to_wire(const ldlm_policy_data_t *lpolicy,
-				     ldlm_wire_policy_data_t *wpolicy)
+									 ldlm_wire_policy_data_t *wpolicy)
 {
 	memset(wpolicy, 0, sizeof(*wpolicy));
 	wpolicy->l_flock.lfw_start = lpolicy->l_flock.start;

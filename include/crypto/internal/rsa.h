@@ -33,7 +33,8 @@
  * @dq_sz       : length in bytes of dq field
  * @qinv_sz     : length in bytes of qinv field
  */
-struct rsa_key {
+struct rsa_key
+{
 	const u8 *n;
 	const u8 *e;
 	const u8 *d;
@@ -53,10 +54,10 @@ struct rsa_key {
 };
 
 int rsa_parse_pub_key(struct rsa_key *rsa_key, const void *key,
-		      unsigned int key_len);
+					  unsigned int key_len);
 
 int rsa_parse_priv_key(struct rsa_key *rsa_key, const void *key,
-		       unsigned int key_len);
+					   unsigned int key_len);
 
 extern struct crypto_template rsa_pkcs1pad_tmpl;
 #endif

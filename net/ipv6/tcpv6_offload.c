@@ -16,12 +16,13 @@
 #include "ip6_offload.h"
 
 static struct sk_buff **tcp6_gro_receive(struct sk_buff **head,
-					 struct sk_buff *skb)
+		struct sk_buff *skb)
 {
 	/* Don't bother verifying checksum if we're going to flush anyway. */
 	if (!NAPI_GRO_CB(skb)->flush &&
-	    skb_gro_checksum_validate(skb, IPPROTO_TCP,
-				      ip6_gro_compute_pseudo)) {
+		skb_gro_checksum_validate(skb, IPPROTO_TCP,
+								  ip6_gro_compute_pseudo))
+	{
 		NAPI_GRO_CB(skb)->flush = 1;
 		return NULL;
 	}
@@ -35,21 +36,24 @@ static int tcp6_gro_complete(struct sk_buff *skb, int thoff)
 	struct tcphdr *th = tcp_hdr(skb);
 
 	th->check = ~tcp_v6_check(skb->len - thoff, &iph->saddr,
-				  &iph->daddr, 0);
+							  &iph->daddr, 0);
 	skb_shinfo(skb)->gso_type |= SKB_GSO_TCPV6;
 
 	return tcp_gro_complete(skb);
 }
 
 static struct sk_buff *tcp6_gso_segment(struct sk_buff *skb,
-					netdev_features_t features)
+										netdev_features_t features)
 {
 	struct tcphdr *th;
 
 	if (!pskb_may_pull(skb, sizeof(*th)))
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
-	if (unlikely(skb->ip_summed != CHECKSUM_PARTIAL)) {
+	if (unlikely(skb->ip_summed != CHECKSUM_PARTIAL))
+	{
 		const struct ipv6hdr *ipv6h = ipv6_hdr(skb);
 		struct tcphdr *th = tcp_hdr(skb);
 
@@ -64,7 +68,8 @@ static struct sk_buff *tcp6_gso_segment(struct sk_buff *skb,
 
 	return tcp_gso_segment(skb, features);
 }
-static const struct net_offload tcpv6_offload = {
+static const struct net_offload tcpv6_offload =
+{
 	.callbacks = {
 		.gso_segment	=	tcp6_gso_segment,
 		.gro_receive	=	tcp6_gro_receive,

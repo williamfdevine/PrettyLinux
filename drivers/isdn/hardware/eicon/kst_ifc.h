@@ -29,7 +29,8 @@
 #define DIVA_TRACE_IE_LEN        64
 #define DIVA_TRACE_FAX_PRMS_LEN  128
 
-typedef struct _diva_trace_ie {
+typedef struct _diva_trace_ie
+{
 	byte length;
 	byte data[DIVA_TRACE_IE_LEN];
 } diva_trace_ie_t;
@@ -38,7 +39,8 @@ typedef struct _diva_trace_ie {
   Structure used to represent "State\\BX\\Modem" directory
   to user.
 */
-typedef struct _diva_trace_modem_state {
+typedef struct _diva_trace_modem_state
+{
 	dword	ChannelNumber;
 
 	dword	Event;
@@ -72,7 +74,8 @@ typedef struct _diva_trace_modem_state {
 /*
   Representation of "State\\BX\\FAX" directory
 */
-typedef struct _diva_trace_fax_state {
+typedef struct _diva_trace_fax_state
+{
 	dword	ChannelNumber;
 	dword Event;
 	dword Page_Counter;
@@ -93,12 +96,14 @@ typedef struct _diva_trace_fax_state {
   Structure used to represent Interface State in the abstract
   and interface/D-channel protocol independent form.
 */
-typedef struct _diva_trace_interface_state {
+typedef struct _diva_trace_interface_state
+{
 	char Layer1[DIVA_TRACE_LINE_TYPE_LEN];
 	char Layer2[DIVA_TRACE_LINE_TYPE_LEN];
 } diva_trace_interface_state_t;
 
-typedef struct _diva_incoming_call_statistics {
+typedef struct _diva_incoming_call_statistics
+{
 	dword Calls;
 	dword Connected;
 	dword User_Busy;
@@ -109,7 +114,8 @@ typedef struct _diva_incoming_call_statistics {
 	dword Ignored;
 } diva_incoming_call_statistics_t;
 
-typedef struct _diva_outgoing_call_statistics {
+typedef struct _diva_outgoing_call_statistics
+{
 	dword Calls;
 	dword Connected;
 	dword User_Busy;
@@ -119,7 +125,8 @@ typedef struct _diva_outgoing_call_statistics {
 	dword Other_Failures;
 } diva_outgoing_call_statistics_t;
 
-typedef struct _diva_modem_call_statistics {
+typedef struct _diva_modem_call_statistics
+{
 	dword Disc_Normal;
 	dword Disc_Unspecified;
 	dword Disc_Busy_Tone;
@@ -131,7 +138,8 @@ typedef struct _diva_modem_call_statistics {
 	dword Disc_V42bis;
 } diva_modem_call_statistics_t;
 
-typedef struct _diva_fax_call_statistics {
+typedef struct _diva_fax_call_statistics
+{
 	dword Disc_Normal;
 	dword Disc_Not_Ident;
 	dword Disc_No_Response;
@@ -152,7 +160,8 @@ typedef struct _diva_fax_call_statistics {
 	dword Disc_Unspecified;
 } diva_fax_call_statistics_t;
 
-typedef struct _diva_prot_statistics {
+typedef struct _diva_prot_statistics
+{
 	dword X_Frames;
 	dword X_Bytes;
 	dword X_Errors;
@@ -161,7 +170,8 @@ typedef struct _diva_prot_statistics {
 	dword R_Errors;
 } diva_prot_statistics_t;
 
-typedef struct _diva_ifc_statistics {
+typedef struct _diva_ifc_statistics
+{
 	diva_incoming_call_statistics_t	inc;
 	diva_outgoing_call_statistics_t outg;
 	diva_modem_call_statistics_t mdm;
@@ -176,7 +186,8 @@ typedef struct _diva_ifc_statistics {
   Structure used to represent "State\\BX" directory
   to user.
 */
-typedef struct _diva_trace_line_state {
+typedef struct _diva_trace_line_state
+{
 	dword	ChannelNumber;
 
 	char Line[DIVA_TRACE_LINE_TYPE_LEN];
@@ -223,21 +234,22 @@ typedef struct _diva_trace_line_state {
 
 struct _diva_strace_library_interface;
 typedef void (*diva_trace_channel_state_change_proc_t)(void *user_context,
-						       struct _diva_strace_library_interface *hLib,
-						       int Adapter,
-						       diva_trace_line_state_t *channel, int notify_subject);
+		struct _diva_strace_library_interface *hLib,
+		int Adapter,
+		diva_trace_line_state_t *channel, int notify_subject);
 typedef void (*diva_trace_channel_trace_proc_t)(void *user_context,
-						struct _diva_strace_library_interface *hLib,
-						int Adapter, void *xlog_buffer, int length);
+		struct _diva_strace_library_interface *hLib,
+		int Adapter, void *xlog_buffer, int length);
 typedef void (*diva_trace_error_proc_t)(void *user_context,
-					struct _diva_strace_library_interface *hLib,
-					int Adapter,
-					int error, const char *file, int line);
+										struct _diva_strace_library_interface *hLib,
+										int Adapter,
+										int error, const char *file, int line);
 
 /*
   This structure creates interface from user to library
 */
-typedef struct _diva_trace_library_user_interface {
+typedef struct _diva_trace_library_user_interface
+{
 	void *user_context;
 	diva_trace_channel_state_change_proc_t notify_proc;
 	diva_trace_channel_trace_proc_t trace_proc;
@@ -250,7 +262,7 @@ typedef struct _diva_trace_library_user_interface {
 typedef int (*DivaSTraceLibraryStart_proc_t)(void *hLib);
 typedef int (*DivaSTraceLibraryFinit_proc_t)(void *hLib);
 typedef int (*DivaSTraceMessageInput_proc_t)(void *hLib);
-typedef void* (*DivaSTraceGetHandle_proc_t)(void *hLib);
+typedef void *(*DivaSTraceGetHandle_proc_t)(void *hLib);
 
 /*
   Turn Audio Tap trace on/off
@@ -291,7 +303,8 @@ typedef int (*DivaSTraceGetDLayer2Statistics_proc_t)(void *hLib);
 */
 typedef int (*DivaSTraceClearCall_proc_t)(void *hLib, int Channel);
 
-typedef struct _diva_strace_library_interface {
+typedef struct _diva_strace_library_interface
+{
 	void *hLib;
 	DivaSTraceLibraryStart_proc_t DivaSTraceLibraryStart;
 	DivaSTraceLibraryStart_proc_t DivaSTraceLibraryStop;
@@ -325,8 +338,8 @@ typedef struct _diva_strace_library_interface {
   Create and return Library interface
 */
 diva_strace_library_interface_t *DivaSTraceLibraryCreateInstance(int Adapter,
-								 const diva_trace_library_user_interface_t *user_proc,
-								 byte *pmem);
+		const diva_trace_library_user_interface_t *user_proc,
+		byte *pmem);
 dword DivaSTraceGetMemotyRequirement(int channels);
 
 #define DIVA_MAX_ADAPTERS  64

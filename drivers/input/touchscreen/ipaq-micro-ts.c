@@ -22,7 +22,8 @@
 #include <linux/slab.h>
 #include <linux/mfd/ipaq-micro.h>
 
-struct touchscreen_data {
+struct touchscreen_data
+{
 	struct input_dev *input;
 	struct ipaq_micro *micro;
 };
@@ -31,14 +32,17 @@ static void micro_ts_receive(void *data, int len, unsigned char *msg)
 {
 	struct touchscreen_data *ts = data;
 
-	if (len == 4) {
+	if (len == 4)
+	{
 		input_report_abs(ts->input, ABS_X,
-				 be16_to_cpup((__be16 *) &msg[2]));
+						 be16_to_cpup((__be16 *) &msg[2]));
 		input_report_abs(ts->input, ABS_Y,
-				 be16_to_cpup((__be16 *) &msg[0]));
+						 be16_to_cpup((__be16 *) &msg[0]));
 		input_report_key(ts->input, BTN_TOUCH, 1);
 		input_sync(ts->input);
-	} else if (len == 0) {
+	}
+	else if (len == 0)
+	{
 		input_report_abs(ts->input, ABS_X, 0);
 		input_report_abs(ts->input, ABS_Y, 0);
 		input_report_key(ts->input, BTN_TOUCH, 0);
@@ -52,10 +56,13 @@ static void micro_ts_toggle_receive(struct touchscreen_data *ts, bool enable)
 
 	spin_lock_irq(&micro->lock);
 
-	if (enable) {
+	if (enable)
+	{
 		micro->ts = micro_ts_receive;
 		micro->ts_data = ts;
-	} else {
+	}
+	else
+	{
 		micro->ts = NULL;
 		micro->ts_data = NULL;
 	}
@@ -86,13 +93,18 @@ static int micro_ts_probe(struct platform_device *pdev)
 	int error;
 
 	ts = devm_kzalloc(&pdev->dev, sizeof(*ts), GFP_KERNEL);
+
 	if (!ts)
+	{
 		return -ENOMEM;
+	}
 
 	ts->micro = micro;
 
 	ts->input = devm_input_allocate_device(&pdev->dev);
-	if (!ts->input) {
+
+	if (!ts->input)
+	{
 		dev_err(&pdev->dev, "failed to allocate input device\n");
 		return -ENOMEM;
 	}
@@ -110,7 +122,9 @@ static int micro_ts_probe(struct platform_device *pdev)
 	input_set_abs_params(ts->input, ABS_Y, 0, 1023, 0, 0);
 
 	error = input_register_device(ts->input);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "error registering touch input\n");
 		return error;
 	}
@@ -139,18 +153,22 @@ static int __maybe_unused micro_ts_resume(struct device *dev)
 	mutex_lock(&input->mutex);
 
 	if (input->users)
+	{
 		micro_ts_toggle_receive(ts, true);
+	}
 
 	mutex_unlock(&input->mutex);
 
 	return 0;
 }
 
-static const struct dev_pm_ops micro_ts_dev_pm_ops = {
+static const struct dev_pm_ops micro_ts_dev_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(micro_ts_suspend, micro_ts_resume)
 };
 
-static struct platform_driver micro_ts_device_driver = {
+static struct platform_driver micro_ts_device_driver =
+{
 	.driver	= {
 		.name	= "ipaq-micro-ts",
 		.pm	= &micro_ts_dev_pm_ops,

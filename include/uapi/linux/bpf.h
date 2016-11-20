@@ -37,7 +37,8 @@
 #define BPF_EXIT	0x90	/* function return */
 
 /* Register numbers */
-enum {
+enum
+{
 	BPF_REG_0 = 0,
 	BPF_REG_1,
 	BPF_REG_2,
@@ -55,16 +56,18 @@ enum {
 /* BPF has 10 general purpose 64-bit registers and stack frame. */
 #define MAX_BPF_REG	__MAX_BPF_REG
 
-struct bpf_insn {
+struct bpf_insn
+{
 	__u8	code;		/* opcode */
-	__u8	dst_reg:4;	/* dest register */
-	__u8	src_reg:4;	/* source register */
+	__u8	dst_reg: 4;	/* dest register */
+	__u8	src_reg: 4;	/* source register */
 	__s16	off;		/* signed offset */
 	__s32	imm;		/* signed immediate constant */
 };
 
 /* BPF syscall commands, see bpf(2) man-page for details. */
-enum bpf_cmd {
+enum bpf_cmd
+{
 	BPF_MAP_CREATE,
 	BPF_MAP_LOOKUP_ELEM,
 	BPF_MAP_UPDATE_ELEM,
@@ -75,7 +78,8 @@ enum bpf_cmd {
 	BPF_OBJ_GET,
 };
 
-enum bpf_map_type {
+enum bpf_map_type
+{
 	BPF_MAP_TYPE_UNSPEC,
 	BPF_MAP_TYPE_HASH,
 	BPF_MAP_TYPE_ARRAY,
@@ -87,7 +91,8 @@ enum bpf_map_type {
 	BPF_MAP_TYPE_CGROUP_ARRAY,
 };
 
-enum bpf_prog_type {
+enum bpf_prog_type
+{
 	BPF_PROG_TYPE_UNSPEC,
 	BPF_PROG_TYPE_SOCKET_FILTER,
 	BPF_PROG_TYPE_KPROBE,
@@ -107,8 +112,10 @@ enum bpf_prog_type {
 
 #define BPF_F_NO_PREALLOC	(1U << 0)
 
-union bpf_attr {
-	struct { /* anonymous struct used by BPF_MAP_CREATE command */
+union bpf_attr
+{
+	struct   /* anonymous struct used by BPF_MAP_CREATE command */
+	{
 		__u32	map_type;	/* one of enum bpf_map_type */
 		__u32	key_size;	/* size of key in bytes */
 		__u32	value_size;	/* size of value in bytes */
@@ -116,17 +123,20 @@ union bpf_attr {
 		__u32	map_flags;	/* prealloc or not */
 	};
 
-	struct { /* anonymous struct used by BPF_MAP_*_ELEM commands */
+	struct   /* anonymous struct used by BPF_MAP_*_ELEM commands */
+	{
 		__u32		map_fd;
 		__aligned_u64	key;
-		union {
+		union
+		{
 			__aligned_u64 value;
 			__aligned_u64 next_key;
 		};
 		__u64		flags;
 	};
 
-	struct { /* anonymous struct used by BPF_PROG_LOAD command */
+	struct   /* anonymous struct used by BPF_PROG_LOAD command */
+	{
 		__u32		prog_type;	/* one of enum bpf_prog_type */
 		__u32		insn_cnt;
 		__aligned_u64	insns;
@@ -137,7 +147,8 @@ union bpf_attr {
 		__u32		kern_version;	/* checked when prog_type=kprobe */
 	};
 
-	struct { /* anonymous struct used by BPF_OBJ_* commands */
+	struct   /* anonymous struct used by BPF_OBJ_* commands */
+	{
 		__aligned_u64	pathname;
 		__u32		bpf_fd;
 	};
@@ -146,7 +157,8 @@ union bpf_attr {
 /* integer value in 'imm' field of BPF_CALL instruction selects which helper
  * function eBPF program intends to call
  */
-enum bpf_func_id {
+enum bpf_func_id
+{
 	BPF_FUNC_unspec,
 	BPF_FUNC_map_lookup_elem, /* void *map_lookup_elem(&map, &key) */
 	BPF_FUNC_map_update_elem, /* int map_update_elem(&map, &key, &value, flags) */
@@ -469,7 +481,8 @@ enum bpf_func_id {
 /* user accessible mirror of in-kernel sk_buff.
  * new fields can only be added to the end of this structure
  */
-struct __sk_buff {
+struct __sk_buff
+{
 	__u32 len;
 	__u32 pkt_type;
 	__u32 mark;
@@ -489,9 +502,11 @@ struct __sk_buff {
 	__u32 data_end;
 };
 
-struct bpf_tunnel_key {
+struct bpf_tunnel_key
+{
 	__u32 tunnel_id;
-	union {
+	union
+	{
 		__u32 remote_ipv4;
 		__u32 remote_ipv6[4];
 	};
@@ -506,7 +521,8 @@ struct bpf_tunnel_key {
  * return codes are reserved for future use. Unknown return codes will result
  * in packet drop.
  */
-enum xdp_action {
+enum xdp_action
+{
 	XDP_ABORTED = 0,
 	XDP_DROP,
 	XDP_PASS,
@@ -516,7 +532,8 @@ enum xdp_action {
 /* user accessible metadata for XDP packet hook
  * new fields must be added to the end of this structure
  */
-struct xdp_md {
+struct xdp_md
+{
 	__u32 data;
 	__u32 data_end;
 };

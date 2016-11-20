@@ -22,16 +22,16 @@ nv04_cursor_set_pos(struct nouveau_crtc *nv_crtc, int x, int y)
 {
 	nv_crtc->cursor_saved_x = x; nv_crtc->cursor_saved_y = y;
 	NVWriteRAMDAC(nv_crtc->base.dev, nv_crtc->index,
-		      NV_PRAMDAC_CU_START_POS,
-		      XLATE(y, 0, NV_PRAMDAC_CU_START_POS_Y) |
-		      XLATE(x, 0, NV_PRAMDAC_CU_START_POS_X));
+				  NV_PRAMDAC_CU_START_POS,
+				  XLATE(y, 0, NV_PRAMDAC_CU_START_POS_Y) |
+				  XLATE(x, 0, NV_PRAMDAC_CU_START_POS_X));
 }
 
 static void
 crtc_wr_cio_state(struct drm_crtc *crtc, struct nv04_crtc_reg *crtcstate, int index)
 {
 	NVWriteVgaCrtc(crtc->dev, nouveau_crtc(crtc)->index, index,
-		       crtcstate->CRTC[index]);
+				   crtcstate->CRTC[index]);
 }
 
 static void
@@ -47,16 +47,21 @@ nv04_cursor_set_offset(struct nouveau_crtc *nv_crtc, uint32_t offset)
 		XLATE(offset, 17, NV_CIO_CRE_HCUR_ADDR0_ADR);
 	regp->CRTC[NV_CIO_CRE_HCUR_ADDR1_INDEX] =
 		XLATE(offset, 11, NV_CIO_CRE_HCUR_ADDR1_ADR);
+
 	if (crtc->mode.flags & DRM_MODE_FLAG_DBLSCAN)
 		regp->CRTC[NV_CIO_CRE_HCUR_ADDR1_INDEX] |=
 			MASK(NV_CIO_CRE_HCUR_ADDR1_CUR_DBL);
+
 	regp->CRTC[NV_CIO_CRE_HCUR_ADDR2_INDEX] = offset >> 24;
 
 	crtc_wr_cio_state(crtc, regp, NV_CIO_CRE_HCUR_ADDR0_INDEX);
 	crtc_wr_cio_state(crtc, regp, NV_CIO_CRE_HCUR_ADDR1_INDEX);
 	crtc_wr_cio_state(crtc, regp, NV_CIO_CRE_HCUR_ADDR2_INDEX);
+
 	if (drm->device.info.family == NV_DEVICE_INFO_V0_CURIE)
+	{
 		nv_fix_nv40_hw_cursor(dev, nv_crtc->index);
+	}
 }
 
 int

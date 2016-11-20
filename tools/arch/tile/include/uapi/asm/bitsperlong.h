@@ -16,9 +16,9 @@
 #define _ASM_TILE_BITSPERLONG_H
 
 #ifdef __LP64__
-# define __BITS_PER_LONG 64
+	#define __BITS_PER_LONG 64
 #else
-# define __BITS_PER_LONG 32
+	#define __BITS_PER_LONG 32
 #endif
 
 #include <asm-generic/bitsperlong.h>

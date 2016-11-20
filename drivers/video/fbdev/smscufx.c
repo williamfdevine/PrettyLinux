@@ -71,19 +71,22 @@
 #define UFX_DEFIO_WRITE_DELAY	5 /* fb_deferred_io.delay in jiffies */
 #define UFX_DEFIO_WRITE_DISABLE	(HZ*60) /* "disable" with long delay */
 
-struct dloarea {
+struct dloarea
+{
 	int x, y;
 	int w, h;
 };
 
-struct urb_node {
+struct urb_node
+{
 	struct list_head entry;
 	struct ufx_data *dev;
 	struct delayed_work release_urb_work;
 	struct urb *urb;
 };
 
-struct urb_list {
+struct urb_list
+{
 	struct list_head list;
 	spinlock_t lock;
 	struct semaphore limit_sem;
@@ -92,7 +95,8 @@ struct urb_list {
 	size_t size;
 };
 
-struct ufx_data {
+struct ufx_data
+{
 	struct usb_device *udev;
 	struct device *gdev; /* &udev->dev */
 	struct fb_info *info;
@@ -108,7 +112,8 @@ struct ufx_data {
 	u32 pseudo_palette[256];
 };
 
-static struct fb_fix_screeninfo ufx_fix = {
+static struct fb_fix_screeninfo ufx_fix =
+{
 	.id =           "smscufx",
 	.type =         FB_TYPE_PACKED_PIXELS,
 	.visual =       FB_VISUAL_TRUECOLOR,
@@ -119,10 +124,11 @@ static struct fb_fix_screeninfo ufx_fix = {
 };
 
 static const u32 smscufx_info_flags = FBINFO_DEFAULT | FBINFO_READS_FAST |
-	FBINFO_VIRTFB |	FBINFO_HWACCEL_IMAGEBLIT | FBINFO_HWACCEL_FILLRECT |
-	FBINFO_HWACCEL_COPYAREA | FBINFO_MISC_ALWAYS_SETPAR;
+									  FBINFO_VIRTFB |	FBINFO_HWACCEL_IMAGEBLIT | FBINFO_HWACCEL_FILLRECT |
+									  FBINFO_HWACCEL_COPYAREA | FBINFO_MISC_ALWAYS_SETPAR;
 
-static struct usb_device_id id_table[] = {
+static struct usb_device_id id_table[] =
+{
 	{USB_DEVICE(0x0424, 0x9d00),},
 	{USB_DEVICE(0x0424, 0x9d01),},
 	{},
@@ -136,7 +142,7 @@ static bool fb_defio = true;  /* Optionally enable fb_defio mmap support */
 /* ufx keeps a list of urbs for efficient bulk transfers */
 static void ufx_urb_completion(struct urb *urb);
 static struct urb *ufx_get_urb(struct ufx_data *dev);
-static int ufx_submit_urb(struct ufx_data *dev, struct urb * urb, size_t len);
+static int ufx_submit_urb(struct ufx_data *dev, struct urb *urb, size_t len);
 static int ufx_alloc_urb_list(struct ufx_data *dev, int count, size_t size);
 static void ufx_free_urb_list(struct ufx_data *dev);
 
@@ -149,19 +155,23 @@ static int ufx_reg_read(struct ufx_data *dev, u32 index, u32 *data)
 	BUG_ON(!dev);
 
 	if (!buf)
+	{
 		return -ENOMEM;
+	}
 
 	ret = usb_control_msg(dev->udev, usb_rcvctrlpipe(dev->udev, 0),
-		USB_VENDOR_REQUEST_READ_REGISTER,
-		USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-		00, index, buf, 4, USB_CTRL_GET_TIMEOUT);
+						  USB_VENDOR_REQUEST_READ_REGISTER,
+						  USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+						  00, index, buf, 4, USB_CTRL_GET_TIMEOUT);
 
 	le32_to_cpus(buf);
 	*data = *buf;
 	kfree(buf);
 
 	if (unlikely(ret < 0))
+	{
 		pr_warn("Failed to read register index 0x%08x\n", index);
+	}
 
 	return ret;
 }
@@ -175,39 +185,41 @@ static int ufx_reg_write(struct ufx_data *dev, u32 index, u32 data)
 	BUG_ON(!dev);
 
 	if (!buf)
+	{
 		return -ENOMEM;
+	}
 
 	*buf = data;
 	cpu_to_le32s(buf);
 
 	ret = usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, 0),
-		USB_VENDOR_REQUEST_WRITE_REGISTER,
-		USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-		00, index, buf, 4, USB_CTRL_SET_TIMEOUT);
+						  USB_VENDOR_REQUEST_WRITE_REGISTER,
+						  USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+						  00, index, buf, 4, USB_CTRL_SET_TIMEOUT);
 
 	kfree(buf);
 
 	if (unlikely(ret < 0))
 		pr_warn("Failed to write register index 0x%08x with value "
-			"0x%08x\n", index, data);
+				"0x%08x\n", index, data);
 
 	return ret;
 }
 
 static int ufx_reg_clear_and_set_bits(struct ufx_data *dev, u32 index,
-	u32 bits_to_clear, u32 bits_to_set)
+									  u32 bits_to_clear, u32 bits_to_set)
 {
 	u32 data;
 	int status = ufx_reg_read(dev, index, &data);
 	check_warn_return(status, "ufx_reg_clear_and_set_bits error reading "
-		"0x%x", index);
+					  "0x%x", index);
 
 	data &= (~bits_to_clear);
 	data |= bits_to_set;
 
 	status = ufx_reg_write(dev, index, data);
 	check_warn_return(status, "ufx_reg_clear_and_set_bits error writing "
-		"0x%x", index);
+					  "0x%x", index);
 
 	return 0;
 }
@@ -250,7 +262,9 @@ static int ufx_blank(struct ufx_data *dev, bool wait)
 
 	/* return success if display is already blanked */
 	if ((dc_sts & 0x00000100) || (dc_ctrl & 0x00000100))
+	{
 		return 0;
+	}
 
 	/* request the DC to blank the display */
 	dc_ctrl |= 0x00000100;
@@ -259,14 +273,19 @@ static int ufx_blank(struct ufx_data *dev, bool wait)
 
 	/* return success immediately if we don't have to wait */
 	if (!wait)
+	{
 		return 0;
+	}
 
-	for (i = 0; i < 250; i++) {
+	for (i = 0; i < 250; i++)
+	{
 		status = ufx_reg_read(dev, 0x2004, &dc_sts);
 		check_warn_return(status, "ufx_blank error reading 0x2004");
 
 		if (dc_sts & 0x00000100)
+		{
 			return 0;
+		}
 	}
 
 	/* timed out waiting for display to blank */
@@ -287,7 +306,9 @@ static int ufx_unblank(struct ufx_data *dev, bool wait)
 
 	/* return success if display is already unblanked */
 	if (((dc_sts & 0x00000100) == 0) || ((dc_ctrl & 0x00000100) == 0))
+	{
 		return 0;
+	}
 
 	/* request the DC to unblank the display */
 	dc_ctrl &= ~0x00000100;
@@ -296,14 +317,19 @@ static int ufx_unblank(struct ufx_data *dev, bool wait)
 
 	/* return success immediately if we don't have to wait */
 	if (!wait)
+	{
 		return 0;
+	}
 
-	for (i = 0; i < 250; i++) {
+	for (i = 0; i < 250; i++)
+	{
 		status = ufx_reg_read(dev, 0x2004, &dc_sts);
 		check_warn_return(status, "ufx_unblank error reading 0x2004");
 
 		if ((dc_sts & 0x00000100) == 0)
+		{
 			return 0;
+		}
 	}
 
 	/* timed out waiting for display to unblank */
@@ -324,7 +350,9 @@ static int ufx_disable(struct ufx_data *dev, bool wait)
 
 	/* return success if display is already disabled */
 	if (((dc_sts & 0x00000001) == 0) || ((dc_ctrl & 0x00000001) == 0))
+	{
 		return 0;
+	}
 
 	/* request the DC to disable the display */
 	dc_ctrl &= ~(0x00000001);
@@ -333,14 +361,19 @@ static int ufx_disable(struct ufx_data *dev, bool wait)
 
 	/* return success immediately if we don't have to wait */
 	if (!wait)
+	{
 		return 0;
+	}
 
-	for (i = 0; i < 250; i++) {
+	for (i = 0; i < 250; i++)
+	{
 		status = ufx_reg_read(dev, 0x2004, &dc_sts);
 		check_warn_return(status, "ufx_disable error reading 0x2004");
 
 		if ((dc_sts & 0x00000001) == 0)
+		{
 			return 0;
+		}
 	}
 
 	/* timed out waiting for display to disable */
@@ -361,7 +394,9 @@ static int ufx_enable(struct ufx_data *dev, bool wait)
 
 	/* return success if display is already enabled */
 	if ((dc_sts & 0x00000001) || (dc_ctrl & 0x00000001))
+	{
 		return 0;
+	}
 
 	/* request the DC to enable the display */
 	dc_ctrl |= 0x00000001;
@@ -370,14 +405,19 @@ static int ufx_enable(struct ufx_data *dev, bool wait)
 
 	/* return success immediately if we don't have to wait */
 	if (!wait)
+	{
 		return 0;
+	}
 
-	for (i = 0; i < 250; i++) {
+	for (i = 0; i < 250; i++)
+	{
 		status = ufx_reg_read(dev, 0x2004, &dc_sts);
 		check_warn_return(status, "ufx_enable error reading 0x2004");
 
 		if (dc_sts & 0x00000001)
+		{
 			return 0;
+		}
 	}
 
 	/* timed out waiting for display to enable */
@@ -482,19 +522,23 @@ static int ufx_config_ddr2(struct ufx_data *dev)
 	status = ufx_reg_write(dev, 0x0000, 0x00000001);
 	check_warn_return(status, "error writing 0x0000");
 
-	while (i++ < 500) {
+	while (i++ < 500)
+	{
 		status = ufx_reg_read(dev, 0x0000, &tmp);
 		check_warn_return(status, "error reading 0x0000");
 
 		if (all_bits_set(tmp, 0xC0000000))
+		{
 			return 0;
+		}
 	}
 
 	pr_err("DDR2 initialisation timed out, reg 0x0000=0x%08x", tmp);
 	return -ETIMEDOUT;
 }
 
-struct pll_values {
+struct pll_values
+{
 	u32 div_r0;
 	u32 div_f0;
 	u32 div_q0;
@@ -508,22 +552,34 @@ struct pll_values {
 static u32 ufx_calc_range(u32 ref_freq)
 {
 	if (ref_freq >= 88000000)
+	{
 		return 7;
+	}
 
 	if (ref_freq >= 54000000)
+	{
 		return 6;
+	}
 
 	if (ref_freq >= 34000000)
+	{
 		return 5;
+	}
 
 	if (ref_freq >= 21000000)
+	{
 		return 4;
+	}
 
 	if (ref_freq >= 13000000)
+	{
 		return 3;
+	}
 
 	if (ref_freq >= 8000000)
+	{
 		return 2;
+	}
 
 	return 1;
 }
@@ -535,58 +591,88 @@ static void ufx_calc_pll_values(const u32 clk_pixel_pll, struct pll_values *asic
 	u32 div_r0, div_f0, div_q0, div_r1, div_f1, div_q1;
 	u32 min_error = clk_pixel_pll;
 
-	for (div_r0 = 1; div_r0 <= 32; div_r0++) {
+	for (div_r0 = 1; div_r0 <= 32; div_r0++)
+	{
 		u32 ref_freq0 = ref_clk / div_r0;
+
 		if (ref_freq0 < 5000000)
+		{
 			break;
+		}
 
 		if (ref_freq0 > 200000000)
+		{
 			continue;
+		}
 
-		for (div_f0 = 1; div_f0 <= 256; div_f0++) {
+		for (div_f0 = 1; div_f0 <= 256; div_f0++)
+		{
 			u32 vco_freq0 = ref_freq0 * div_f0;
 
 			if (vco_freq0 < 350000000)
+			{
 				continue;
+			}
 
 			if (vco_freq0 > 700000000)
+			{
 				break;
+			}
 
-			for (div_q0 = 0; div_q0 < 7; div_q0++) {
+			for (div_q0 = 0; div_q0 < 7; div_q0++)
+			{
 				u32 pllout_freq0 = vco_freq0 / (1 << div_q0);
 
 				if (pllout_freq0 < 5000000)
+				{
 					break;
+				}
 
 				if (pllout_freq0 > 200000000)
+				{
 					continue;
+				}
 
-				for (div_r1 = 1; div_r1 <= 32; div_r1++) {
+				for (div_r1 = 1; div_r1 <= 32; div_r1++)
+				{
 					u32 ref_freq1 = pllout_freq0 / div_r1;
 
 					if (ref_freq1 < 5000000)
+					{
 						break;
+					}
 
-					for (div_f1 = 1; div_f1 <= 256; div_f1++) {
+					for (div_f1 = 1; div_f1 <= 256; div_f1++)
+					{
 						u32 vco_freq1 = ref_freq1 * div_f1;
 
 						if (vco_freq1 < 350000000)
+						{
 							continue;
+						}
 
 						if (vco_freq1 > 700000000)
+						{
 							break;
+						}
 
-						for (div_q1 = 0; div_q1 < 7; div_q1++) {
+						for (div_q1 = 0; div_q1 < 7; div_q1++)
+						{
 							u32 pllout_freq1 = vco_freq1 / (1 << div_q1);
 							int error = abs(pllout_freq1 - clk_pixel_pll);
 
 							if (pllout_freq1 < 5000000)
+							{
 								break;
+							}
 
 							if (pllout_freq1 > 700000000)
+							{
 								continue;
+							}
 
-							if (error < min_error) {
+							if (error < min_error)
+							{
 								min_error = error;
 
 								/* final returned value is equal to calculated value - 1
@@ -602,7 +688,9 @@ static void ufx_calc_pll_values(const u32 clk_pixel_pll, struct pll_values *asic
 								asic_pll->range1 = ufx_calc_range(ref_freq1);
 
 								if (min_error == 0)
+								{
 									return;
+								}
 							}
 						}
 					}
@@ -633,23 +721,23 @@ static int ufx_config_pix_clk(struct ufx_data *dev, u32 pixclock)
 	check_warn_return(status, "error writing 0x7000");
 
 	value = (asic_pll.div_f1 | (asic_pll.div_r1 << 8) |
-		(asic_pll.div_q1 << 16) | (asic_pll.range1 << 20));
+			 (asic_pll.div_q1 << 16) | (asic_pll.range1 << 20));
 	status = ufx_reg_write(dev, 0x7008, value);
 	check_warn_return(status, "error writing 0x7008");
 
 	value = (asic_pll.div_f0 | (asic_pll.div_r0 << 8) |
-		(asic_pll.div_q0 << 16) | (asic_pll.range0 << 20));
+			 (asic_pll.div_q0 << 16) | (asic_pll.range0 << 20));
 	status = ufx_reg_write(dev, 0x7004, value);
 	check_warn_return(status, "error writing 0x7004");
 
 	status = ufx_reg_clear_bits(dev, 0x7000, 0x00000005);
 	check_warn_return(status,
-		"error clearing PLL0 bypass bits in 0x7000");
+					  "error clearing PLL0 bypass bits in 0x7000");
 	msleep(1);
 
 	status = ufx_reg_clear_bits(dev, 0x7000, 0x0000000A);
 	check_warn_return(status,
-		"error clearing PLL1 bypass bits in 0x7000");
+					  "error clearing PLL1 bypass bits in 0x7000");
 	msleep(1);
 
 	status = ufx_reg_clear_bits(dev, 0x7000, 0x80000000);
@@ -747,11 +835,16 @@ static int ufx_set_vid_mode(struct ufx_data *dev, struct fb_var_screeninfo *var)
 
 	/* set the sync polarities & enable bit */
 	temp = 0x00000001;
+
 	if (var->sync & FB_SYNC_HOR_HIGH_ACT)
+	{
 		temp |= 0x00000010;
+	}
 
 	if (var->sync & FB_SYNC_VERT_HIGH_ACT)
+	{
 		temp |= 0x00000008;
+	}
 
 	status = ufx_reg_write(dev, 0x2040, temp);
 	check_warn_return(status, "ufx_set_vid_mode error writing 0x2040");
@@ -783,35 +876,52 @@ static int ufx_ops_mmap(struct fb_info *info, struct vm_area_struct *vma)
 	unsigned long page, pos;
 
 	if (vma->vm_pgoff > (~0UL >> PAGE_SHIFT))
+	{
 		return -EINVAL;
+	}
+
 	if (size > info->fix.smem_len)
+	{
 		return -EINVAL;
+	}
+
 	if (offset > info->fix.smem_len - size)
+	{
 		return -EINVAL;
+	}
 
 	pos = (unsigned long)info->fix.smem_start + offset;
 
 	pr_debug("mmap() framebuffer addr:%lu size:%lu\n",
-		  pos, size);
+			 pos, size);
 
-	while (size > 0) {
+	while (size > 0)
+	{
 		page = vmalloc_to_pfn((void *)pos);
+
 		if (remap_pfn_range(vma, start, page, PAGE_SIZE, PAGE_SHARED))
+		{
 			return -EAGAIN;
+		}
 
 		start += PAGE_SIZE;
 		pos += PAGE_SIZE;
+
 		if (size > PAGE_SIZE)
+		{
 			size -= PAGE_SIZE;
+		}
 		else
+		{
 			size = 0;
+		}
 	}
 
 	return 0;
 }
 
 static void ufx_raw_rect(struct ufx_data *dev, u16 *cmd, int x, int y,
-	int width, int height)
+						 int width, int height)
 {
 	size_t packed_line_len = ALIGN((width * 2), 4);
 	size_t packed_rect_len = packed_line_len * height;
@@ -841,31 +951,39 @@ static void ufx_raw_rect(struct ufx_data *dev, u16 *cmd, int x, int y,
 	cmd[11] = cpu_to_le16(dev->info->var.yres);
 
 	/* packed data */
-	for (line = 0; line < height; line++) {
+	for (line = 0; line < height; line++)
+	{
 		const int line_offset = dev->info->fix.line_length * (y + line);
 		const int byte_offset = line_offset + (x * BPP);
 		memcpy(&cmd[(24 + (packed_line_len * line)) / 2],
-			(char *)dev->info->fix.smem_start + byte_offset, width * BPP);
+			   (char *)dev->info->fix.smem_start + byte_offset, width * BPP);
 	}
 }
 
 static int ufx_handle_damage(struct ufx_data *dev, int x, int y,
-	int width, int height)
+							 int width, int height)
 {
 	size_t packed_line_len = ALIGN((width * 2), 4);
 	int len, status, urb_lines, start_line = 0;
 
 	if ((width <= 0) || (height <= 0) ||
-	    (x + width > dev->info->var.xres) ||
-	    (y + height > dev->info->var.yres))
+		(x + width > dev->info->var.xres) ||
+		(y + height > dev->info->var.yres))
+	{
 		return -EINVAL;
+	}
 
 	if (!atomic_read(&dev->usb_active))
+	{
 		return 0;
+	}
 
-	while (start_line < height) {
+	while (start_line < height)
+	{
 		struct urb *urb = ufx_get_urb(dev);
-		if (!urb) {
+
+		if (!urb)
+		{
 			pr_warn("ufx_handle_damage unable to get urb");
 			return 0;
 		}
@@ -898,18 +1016,19 @@ static int ufx_handle_damage(struct ufx_data *dev, int x, int y,
  * Not used by X Windows or text-mode console. But useful for testing.
  * Slow because of extra copy and we must assume all pixels dirty. */
 static ssize_t ufx_ops_write(struct fb_info *info, const char __user *buf,
-			  size_t count, loff_t *ppos)
+							 size_t count, loff_t *ppos)
 {
 	ssize_t result;
 	struct ufx_data *dev = info->par;
-	u32 offset = (u32) *ppos;
+	u32 offset = (u32) * ppos;
 
 	result = fb_sys_write(info, buf, count, ppos);
 
-	if (result > 0) {
+	if (result > 0)
+	{
 		int start = max((int)(offset / info->fix.line_length), 0);
 		int lines = min((u32)((result / info->fix.line_length) + 1),
-				(u32)info->var.yres);
+						(u32)info->var.yres);
 
 		ufx_handle_damage(dev, 0, start, info->var.xres, lines);
 	}
@@ -918,7 +1037,7 @@ static ssize_t ufx_ops_write(struct fb_info *info, const char __user *buf,
 }
 
 static void ufx_ops_copyarea(struct fb_info *info,
-				const struct fb_copyarea *area)
+							 const struct fb_copyarea *area)
 {
 
 	struct ufx_data *dev = info->par;
@@ -926,29 +1045,29 @@ static void ufx_ops_copyarea(struct fb_info *info,
 	sys_copyarea(info, area);
 
 	ufx_handle_damage(dev, area->dx, area->dy,
-			area->width, area->height);
+					  area->width, area->height);
 }
 
 static void ufx_ops_imageblit(struct fb_info *info,
-				const struct fb_image *image)
+							  const struct fb_image *image)
 {
 	struct ufx_data *dev = info->par;
 
 	sys_imageblit(info, image);
 
 	ufx_handle_damage(dev, image->dx, image->dy,
-			image->width, image->height);
+					  image->width, image->height);
 }
 
 static void ufx_ops_fillrect(struct fb_info *info,
-			  const struct fb_fillrect *rect)
+							 const struct fb_fillrect *rect)
 {
 	struct ufx_data *dev = info->par;
 
 	sys_fillrect(info, rect);
 
 	ufx_handle_damage(dev, rect->dx, rect->dy, rect->width,
-			      rect->height);
+					  rect->height);
 }
 
 /* NOTE: fb_defio.c is holding info->fbdefio.mutex
@@ -956,20 +1075,25 @@ static void ufx_ops_fillrect(struct fb_info *info,
  *   in fb_defio will cause a deadlock, when it also tries to
  *   grab the same mutex. */
 static void ufx_dpy_deferred_io(struct fb_info *info,
-				struct list_head *pagelist)
+								struct list_head *pagelist)
 {
 	struct page *cur;
 	struct fb_deferred_io *fbdefio = info->fbdefio;
 	struct ufx_data *dev = info->par;
 
 	if (!fb_defio)
+	{
 		return;
+	}
 
 	if (!atomic_read(&dev->usb_active))
+	{
 		return;
+	}
 
 	/* walk the written page list and render each to device */
-	list_for_each_entry(cur, &fbdefio->pagelist, lru) {
+	list_for_each_entry(cur, &fbdefio->pagelist, lru)
+	{
 		/* create a rectangle of full screen width that encloses the
 		 * entire dirty framebuffer page */
 		const int x = 0;
@@ -986,24 +1110,32 @@ static void ufx_dpy_deferred_io(struct fb_info *info,
 }
 
 static int ufx_ops_ioctl(struct fb_info *info, unsigned int cmd,
-			 unsigned long arg)
+						 unsigned long arg)
 {
 	struct ufx_data *dev = info->par;
 	struct dloarea *area = NULL;
 
 	if (!atomic_read(&dev->usb_active))
+	{
 		return 0;
+	}
 
 	/* TODO: Update X server to get this from sysfs instead */
-	if (cmd == UFX_IOCTL_RETURN_EDID) {
+	if (cmd == UFX_IOCTL_RETURN_EDID)
+	{
 		u8 __user *edid = (u8 __user *)arg;
+
 		if (copy_to_user(edid, dev->edid, dev->edid_size))
+		{
 			return -EFAULT;
+		}
+
 		return 0;
 	}
 
 	/* TODO: Help propose a standard fb.h ioctl to report mmap damage */
-	if (cmd == UFX_IOCTL_REPORT_DAMAGE) {
+	if (cmd == UFX_IOCTL_REPORT_DAMAGE)
+	{
 		/* If we have a damage-aware client, turn fb_defio "off"
 		 * To avoid perf imact of unnecessary page fault handling.
 		 * Done by resetting the delay for this fb_info to a very
@@ -1011,21 +1143,31 @@ static int ufx_ops_ioctl(struct fb_info *info, unsigned int cmd,
 		 * Reset to normal value when all clients have closed this fb.
 		 */
 		if (info->fbdefio)
+		{
 			info->fbdefio->delay = UFX_DEFIO_WRITE_DISABLE;
+		}
 
 		area = (struct dloarea *)arg;
 
 		if (area->x < 0)
+		{
 			area->x = 0;
+		}
 
 		if (area->x > info->var.xres)
+		{
 			area->x = info->var.xres;
+		}
 
 		if (area->y < 0)
+		{
 			area->y = 0;
+		}
 
 		if (area->y > info->var.yres)
+		{
 			area->y = info->var.yres;
+		}
 
 		ufx_handle_damage(dev, area->x, area->y, area->w, area->h);
 	}
@@ -1036,24 +1178,30 @@ static int ufx_ops_ioctl(struct fb_info *info, unsigned int cmd,
 /* taken from vesafb */
 static int
 ufx_ops_setcolreg(unsigned regno, unsigned red, unsigned green,
-	       unsigned blue, unsigned transp, struct fb_info *info)
+				  unsigned blue, unsigned transp, struct fb_info *info)
 {
 	int err = 0;
 
 	if (regno >= info->cmap.len)
+	{
 		return 1;
+	}
 
-	if (regno < 16) {
-		if (info->var.red.offset == 10) {
+	if (regno < 16)
+	{
+		if (info->var.red.offset == 10)
+		{
 			/* 1:5:5:5 */
 			((u32 *) (info->pseudo_palette))[regno] =
-			    ((red & 0xf800) >> 1) |
-			    ((green & 0xf800) >> 6) | ((blue & 0xf800) >> 11);
-		} else {
+				((red & 0xf800) >> 1) |
+				((green & 0xf800) >> 6) | ((blue & 0xf800) >> 11);
+		}
+		else
+		{
 			/* 0:5:6:5 */
 			((u32 *) (info->pseudo_palette))[regno] =
-			    ((red & 0xf800)) |
-			    ((green & 0xfc00) >> 5) | ((blue & 0xf800) >> 11);
+				((red & 0xf800)) |
+				((green & 0xfc00) >> 5) | ((blue & 0xf800) >> 11);
 		}
 	}
 
@@ -1071,24 +1219,30 @@ static int ufx_ops_open(struct fb_info *info, int user)
 	 * preventing other clients (X) from working properly. Usually
 	 * not what the user wants. Fail by default with option to enable. */
 	if (user == 0 && !console)
+	{
 		return -EBUSY;
+	}
 
 	/* If the USB device is gone, we don't accept new opens */
 	if (dev->virtualized)
+	{
 		return -ENODEV;
+	}
 
 	dev->fb_count++;
 
 	kref_get(&dev->kref);
 
-	if (fb_defio && (info->fbdefio == NULL)) {
+	if (fb_defio && (info->fbdefio == NULL))
+	{
 		/* enable defio at last moment if not disabled by client */
 
 		struct fb_deferred_io *fbdefio;
 
 		fbdefio = kzalloc(sizeof(struct fb_deferred_io), GFP_KERNEL);
 
-		if (fbdefio) {
+		if (fbdefio)
+		{
 			fbdefio->delay = UFX_DEFIO_WRITE_DELAY;
 			fbdefio->deferred_io = ufx_dpy_deferred_io;
 		}
@@ -1098,7 +1252,7 @@ static int ufx_ops_open(struct fb_info *info, int user)
 	}
 
 	pr_debug("open /dev/fb%d user=%d fb_info=%p count=%d",
-		info->node, user, info, dev->fb_count);
+			 info->node, user, info, dev->fb_count);
 
 	return 0;
 }
@@ -1114,7 +1268,9 @@ static void ufx_free(struct kref *kref)
 
 	/* this function will wait for all in-flight urbs to complete */
 	if (dev->urbs.count > 0)
+	{
 		ufx_free_urb_list(dev);
+	}
 
 	pr_debug("freeing ufx_data %p", dev);
 
@@ -1124,7 +1280,7 @@ static void ufx_free(struct kref *kref)
 static void ufx_release_urb_work(struct work_struct *work)
 {
 	struct urb_node *unode = container_of(work, struct urb_node,
-					      release_urb_work.work);
+										  release_urb_work.work);
 
 	up(&unode->dev->urbs.limit_sem);
 }
@@ -1132,16 +1288,22 @@ static void ufx_release_urb_work(struct work_struct *work)
 static void ufx_free_framebuffer_work(struct work_struct *work)
 {
 	struct ufx_data *dev = container_of(work, struct ufx_data,
-					    free_framebuffer_work.work);
+										free_framebuffer_work.work);
 	struct fb_info *info = dev->info;
 	int node = info->node;
 
 	unregister_framebuffer(info);
 
 	if (info->cmap.len != 0)
+	{
 		fb_dealloc_cmap(&info->cmap);
+	}
+
 	if (info->monspecs.modedb)
+	{
 		fb_destroy_modedb(info->monspecs.modedb);
+	}
+
 	vfree(info->screen_base);
 
 	fb_destroy_modelist(&info->modelist);
@@ -1168,9 +1330,12 @@ static int ufx_ops_release(struct fb_info *info, int user)
 
 	/* We can't free fb_info here - fbmem will touch it when we return */
 	if (dev->virtualized && (dev->fb_count == 0))
+	{
 		schedule_delayed_work(&dev->free_framebuffer_work, HZ);
+	}
 
-	if ((dev->fb_count == 0) && (info->fbdefio)) {
+	if ((dev->fb_count == 0) && (info->fbdefio))
+	{
 		fb_deferred_io_cleanup(info);
 		kfree(info->fbdefio);
 		info->fbdefio = NULL;
@@ -1178,7 +1343,7 @@ static int ufx_ops_release(struct fb_info *info, int user)
 	}
 
 	pr_debug("released /dev/fb%d user=%d count=%d",
-		  info->node, user, dev->fb_count);
+			 info->node, user, dev->fb_count);
 
 	kref_put(&dev->kref, ufx_free);
 
@@ -1188,22 +1353,24 @@ static int ufx_ops_release(struct fb_info *info, int user)
 /* Check whether a video mode is supported by the chip
  * We start from monitor's modes, so don't need to filter that here */
 static int ufx_is_valid_mode(struct fb_videomode *mode,
-		struct fb_info *info)
+							 struct fb_info *info)
 {
-	if ((mode->xres * mode->yres) > (2048 * 1152)) {
+	if ((mode->xres * mode->yres) > (2048 * 1152))
+	{
 		pr_debug("%dx%d too many pixels",
-		       mode->xres, mode->yres);
+				 mode->xres, mode->yres);
 		return 0;
 	}
 
-	if (mode->pixclock < 5000) {
+	if (mode->pixclock < 5000)
+	{
 		pr_debug("%dx%d %dps pixel clock too fast",
-		       mode->xres, mode->yres, mode->pixclock);
+				 mode->xres, mode->yres, mode->pixclock);
 		return 0;
 	}
 
 	pr_debug("%dx%d (pixclk %dps %dMHz) valid mode", mode->xres, mode->yres,
-		mode->pixclock, (1000000 / mode->pixclock));
+			 mode->pixclock, (1000000 / mode->pixclock));
 	return 1;
 }
 
@@ -1220,13 +1387,15 @@ static void ufx_var_color_format(struct fb_var_screeninfo *var)
 }
 
 static int ufx_ops_check_var(struct fb_var_screeninfo *var,
-				struct fb_info *info)
+							 struct fb_info *info)
 {
 	struct fb_videomode mode;
 
 	/* TODO: support dynamically changing framebuffer size */
 	if ((var->xres * var->yres * 2) > info->fix.smem_len)
+	{
 		return -EINVAL;
+	}
 
 	/* set device-specific elements of var unrelated to mode */
 	ufx_var_color_format(var);
@@ -1234,7 +1403,9 @@ static int ufx_ops_check_var(struct fb_var_screeninfo *var,
 	fb_var_to_videomode(&mode, var);
 
 	if (!ufx_is_valid_mode(&mode, info))
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -1249,18 +1420,24 @@ static int ufx_ops_set_par(struct fb_info *info)
 	pr_debug("set_par mode %dx%d", info->var.xres, info->var.yres);
 	result = ufx_set_vid_mode(dev, &info->var);
 
-	if ((result == 0) && (dev->fb_count == 0)) {
+	if ((result == 0) && (dev->fb_count == 0))
+	{
 		/* paint greenscreen */
 		pix_framebuffer = (u16 *) info->screen_base;
+
 		for (i = 0; i < info->fix.smem_len / 2; i++)
+		{
 			pix_framebuffer[i] = 0x37e6;
+		}
 
 		ufx_handle_damage(dev, 0, 0, info->var.xres, info->var.yres);
 	}
 
 	/* re-enable defio if previously disabled by damage tracking */
 	if (info->fbdefio)
+	{
 		info->fbdefio->delay = UFX_DEFIO_WRITE_DELAY;
+	}
 
 	return result;
 }
@@ -1273,7 +1450,8 @@ static int ufx_ops_blank(int blank_mode, struct fb_info *info)
 	return 0;
 }
 
-static struct fb_ops ufx_ops = {
+static struct fb_ops ufx_ops =
+{
 	.owner = THIS_MODULE,
 	.fb_read = fb_sys_read,
 	.fb_write = ufx_ops_write,
@@ -1304,17 +1482,21 @@ static int ufx_realloc_framebuffer(struct ufx_data *dev, struct fb_info *info)
 
 	new_len = info->fix.line_length * info->var.yres;
 
-	if (PAGE_ALIGN(new_len) > old_len) {
+	if (PAGE_ALIGN(new_len) > old_len)
+	{
 		/*
 		 * Alloc system memory for virtual framebuffer
 		 */
 		new_fb = vmalloc(new_len);
-		if (!new_fb) {
+
+		if (!new_fb)
+		{
 			pr_err("Virtual framebuffer alloc failed");
 			goto error;
 		}
 
-		if (info->screen_base) {
+		if (info->screen_base)
+		{
 			memcpy(new_fb, old_fb, old_len);
 			vfree(info->screen_base);
 		}
@@ -1403,13 +1585,16 @@ static int ufx_i2c_wait_busy(struct ufx_data *dev)
 	u32 tmp;
 	int i, status;
 
-	for (i = 0; i < 15; i++) {
+	for (i = 0; i < 15; i++)
+	{
 		status = ufx_reg_read(dev, 0x1100, &tmp);
 		check_warn_return(status, "0x1100 read failed");
 
 		/* if BUSY is clear, check for error */
-		if ((tmp & 0x80000000) == 0) {
-			if (tmp & 0x20000000) {
+		if ((tmp & 0x80000000) == 0)
+		{
+			if (tmp & 0x20000000)
+			{
 				pr_warn("I2C read failed, 0x1100=0x%08x", tmp);
 				return -EIO;
 			}
@@ -1419,7 +1604,9 @@ static int ufx_i2c_wait_busy(struct ufx_data *dev)
 
 		/* perform the first 10 retries without delay */
 		if (i >= 10)
+		{
 			msleep(10);
+		}
 	}
 
 	pr_warn("I2C access timed out, resetting I2C hardware");
@@ -1438,7 +1625,9 @@ static int ufx_read_edid(struct ufx_data *dev, u8 *edid, int edid_len)
 	BUG_ON(edid_len != EDID_LENGTH);
 
 	status = ufx_i2c_configure(dev);
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		pr_err("ufx_i2c_configure failed");
 		return status;
 	}
@@ -1446,7 +1635,8 @@ static int ufx_read_edid(struct ufx_data *dev, u8 *edid, int edid_len)
 	memset(edid, 0xff, EDID_LENGTH);
 
 	/* Read the 128-byte EDID as 2 bursts of 64 bytes */
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		u32 temp = 0x28070000 | (63 << 20) | (((u32)(i * 64)) << 8);
 		status = ufx_reg_write(dev, 0x1100, temp);
 		check_warn_return(status, "Failed to write 0x1100");
@@ -1458,7 +1648,8 @@ static int ufx_read_edid(struct ufx_data *dev, u8 *edid, int edid_len)
 		status = ufx_i2c_wait_busy(dev);
 		check_warn_return(status, "Timeout waiting for I2C BUSY to clear");
 
-		for (j = 0; j < 16; j++) {
+		for (j = 0; j < 16; j++)
+		{
 			u32 data_reg_addr = 0x1110 + (j * 4);
 			status = ufx_reg_read(dev, data_reg_addr, edid_u32++);
 			check_warn_return(status, "Error reading i2c data");
@@ -1466,8 +1657,10 @@ static int ufx_read_edid(struct ufx_data *dev, u8 *edid, int edid_len)
 	}
 
 	/* all FF's in the first 16 bytes indicates nothing is connected */
-	for (i = 0; i < 16; i++) {
-		if (edid[i] != 0xFF) {
+	for (i = 0; i < 16; i++)
+	{
+		if (edid[i] != 0xFF)
+		{
 			pr_debug("edid data read successfully");
 			return EDID_LENGTH;
 		}
@@ -1490,17 +1683,21 @@ static int ufx_read_edid(struct ufx_data *dev, u8 *edid, int edid_len)
  * monspecs is NULL, and fb_var_screeninfo is set to safe VESA mode
  * Returns 0 if successful */
 static int ufx_setup_modes(struct ufx_data *dev, struct fb_info *info,
-	char *default_edid, size_t default_edid_size)
+						   char *default_edid, size_t default_edid_size)
 {
 	const struct fb_videomode *default_vmode = NULL;
 	u8 *edid;
 	int i, result = 0, tries = 3;
 
 	if (info->dev) /* only use mutex if info has been registered */
+	{
 		mutex_lock(&info->lock);
+	}
 
 	edid = kmalloc(EDID_LENGTH, GFP_KERNEL);
-	if (!edid) {
+
+	if (!edid)
+	{
 		result = -ENOMEM;
 		goto error;
 	}
@@ -1511,13 +1708,17 @@ static int ufx_setup_modes(struct ufx_data *dev, struct fb_info *info,
 	/* Try to (re)read EDID from hardware first
 	 * EDID data may return, but not parse as valid
 	 * Try again a few times, in case of e.g. analog cable noise */
-	while (tries--) {
+	while (tries--)
+	{
 		i = ufx_read_edid(dev, edid, EDID_LENGTH);
 
 		if (i >= EDID_LENGTH)
+		{
 			fb_edid_to_monspecs(edid, &info->monspecs);
+		}
 
-		if (info->monspecs.modedb_len > 0) {
+		if (info->monspecs.modedb_len > 0)
+		{
 			dev->edid = edid;
 			dev->edid_size = i;
 			break;
@@ -1525,21 +1726,30 @@ static int ufx_setup_modes(struct ufx_data *dev, struct fb_info *info,
 	}
 
 	/* If that fails, use a previously returned EDID if available */
-	if (info->monspecs.modedb_len == 0) {
+	if (info->monspecs.modedb_len == 0)
+	{
 		pr_err("Unable to get valid EDID from device/display\n");
 
-		if (dev->edid) {
+		if (dev->edid)
+		{
 			fb_edid_to_monspecs(dev->edid, &info->monspecs);
+
 			if (info->monspecs.modedb_len > 0)
+			{
 				pr_err("Using previously queried EDID\n");
+			}
 		}
 	}
 
 	/* If that fails, use the default EDID we were handed */
-	if (info->monspecs.modedb_len == 0) {
-		if (default_edid_size >= EDID_LENGTH) {
+	if (info->monspecs.modedb_len == 0)
+	{
+		if (default_edid_size >= EDID_LENGTH)
+		{
 			fb_edid_to_monspecs(default_edid, &info->monspecs);
-			if (info->monspecs.modedb_len > 0) {
+
+			if (info->monspecs.modedb_len > 0)
+			{
 				memcpy(edid, default_edid, default_edid_size);
 				dev->edid = edid;
 				dev->edid_size = default_edid_size;
@@ -1549,22 +1759,27 @@ static int ufx_setup_modes(struct ufx_data *dev, struct fb_info *info,
 	}
 
 	/* If we've got modes, let's pick a best default mode */
-	if (info->monspecs.modedb_len > 0) {
+	if (info->monspecs.modedb_len > 0)
+	{
 
-		for (i = 0; i < info->monspecs.modedb_len; i++) {
+		for (i = 0; i < info->monspecs.modedb_len; i++)
+		{
 			if (ufx_is_valid_mode(&info->monspecs.modedb[i], info))
 				fb_add_videomode(&info->monspecs.modedb[i],
-					&info->modelist);
+								 &info->modelist);
 			else /* if we've removed top/best mode */
+			{
 				info->monspecs.misc &= ~FB_MISC_1ST_DETAIL;
+			}
 		}
 
 		default_vmode = fb_find_best_display(&info->monspecs,
-						     &info->modelist);
+											 &info->modelist);
 	}
 
 	/* If everything else has failed, fall back to safe default mode */
-	if (default_vmode == NULL) {
+	if (default_vmode == NULL)
+	{
 
 		struct fb_videomode fb_vmode = {0};
 
@@ -1573,11 +1788,12 @@ static int ufx_setup_modes(struct ufx_data *dev, struct fb_info *info,
 		 * overspec monitor and/or are incorrect aspect ratio, etc.
 		 * But at least the user has a chance to choose
 		 */
-		for (i = 0; i < VESA_MODEDB_SIZE; i++) {
+		for (i = 0; i < VESA_MODEDB_SIZE; i++)
+		{
 			if (ufx_is_valid_mode((struct fb_videomode *)
-						&vesa_modes[i], info))
+								  &vesa_modes[i], info))
 				fb_add_videomode(&vesa_modes[i],
-						 &info->modelist);
+								 &info->modelist);
 		}
 
 		/* default to resolution safe for projectors
@@ -1587,11 +1803,12 @@ static int ufx_setup_modes(struct ufx_data *dev, struct fb_info *info,
 		fb_vmode.yres = 600;
 		fb_vmode.refresh = 60;
 		default_vmode = fb_find_nearest_mode(&fb_vmode,
-						     &info->modelist);
+											 &info->modelist);
 	}
 
 	/* If we have good mode and no active clients */
-	if ((default_vmode != NULL) && (dev->fb_count == 0)) {
+	if ((default_vmode != NULL) && (dev->fb_count == 0))
+	{
 
 		fb_videomode_to_var(&info->var, default_vmode);
 		ufx_var_color_format(&info->var);
@@ -1599,25 +1816,33 @@ static int ufx_setup_modes(struct ufx_data *dev, struct fb_info *info,
 		/* with mode size info, we can now alloc our framebuffer */
 		memcpy(&info->fix, &ufx_fix, sizeof(ufx_fix));
 		info->fix.line_length = info->var.xres *
-			(info->var.bits_per_pixel / 8);
+								(info->var.bits_per_pixel / 8);
 
 		result = ufx_realloc_framebuffer(dev, info);
 
-	} else
+	}
+	else
+	{
 		result = -EINVAL;
+	}
 
 error:
+
 	if (edid && (dev->edid != edid))
+	{
 		kfree(edid);
+	}
 
 	if (info->dev)
+	{
 		mutex_unlock(&info->lock);
+	}
 
 	return result;
 }
 
 static int ufx_usb_probe(struct usb_interface *interface,
-			const struct usb_device_id *id)
+						 const struct usb_device_id *id)
 {
 	struct usb_device *usbdev;
 	struct ufx_data *dev;
@@ -1630,7 +1855,9 @@ static int ufx_usb_probe(struct usb_interface *interface,
 	BUG_ON(!usbdev);
 
 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
-	if (dev == NULL) {
+
+	if (dev == NULL)
+	{
 		dev_err(&usbdev->dev, "ufx_usb_probe: failed alloc of dev struct\n");
 		goto error;
 	}
@@ -1644,14 +1871,15 @@ static int ufx_usb_probe(struct usb_interface *interface,
 	usb_set_intfdata(interface, dev);
 
 	dev_dbg(dev->gdev, "%s %s - serial #%s\n",
-		usbdev->manufacturer, usbdev->product, usbdev->serial);
+			usbdev->manufacturer, usbdev->product, usbdev->serial);
 	dev_dbg(dev->gdev, "vid_%04x&pid_%04x&rev_%04x driver's ufx_data struct at %p\n",
-		usbdev->descriptor.idVendor, usbdev->descriptor.idProduct,
-		usbdev->descriptor.bcdDevice, dev);
+			usbdev->descriptor.idVendor, usbdev->descriptor.idProduct,
+			usbdev->descriptor.bcdDevice, dev);
 	dev_dbg(dev->gdev, "console enable=%d\n", console);
 	dev_dbg(dev->gdev, "fb_defio enable=%d\n", fb_defio);
 
-	if (!ufx_alloc_urb_list(dev, WRITES_IN_FLIGHT, MAX_TRANSFER)) {
+	if (!ufx_alloc_urb_list(dev, WRITES_IN_FLIGHT, MAX_TRANSFER))
+	{
 		retval = -ENOMEM;
 		dev_err(dev->gdev, "ufx_alloc_urb_list failed\n");
 		goto error;
@@ -1661,7 +1889,9 @@ static int ufx_usb_probe(struct usb_interface *interface,
 
 	/* allocates framebuffer driver structure, not framebuffer memory */
 	info = framebuffer_alloc(0, &usbdev->dev);
-	if (!info) {
+
+	if (!info)
+	{
 		retval = -ENOMEM;
 		dev_err(dev->gdev, "framebuffer_alloc failed\n");
 		goto error;
@@ -1673,13 +1903,15 @@ static int ufx_usb_probe(struct usb_interface *interface,
 	info->fbops = &ufx_ops;
 
 	retval = fb_alloc_cmap(&info->cmap, 256, 0);
-	if (retval < 0) {
+
+	if (retval < 0)
+	{
 		dev_err(dev->gdev, "fb_alloc_cmap failed %x\n", retval);
 		goto error;
 	}
 
 	INIT_DELAYED_WORK(&dev->free_framebuffer_work,
-			  ufx_free_framebuffer_work);
+					  ufx_free_framebuffer_work);
 
 	INIT_LIST_HEAD(&info->modelist);
 
@@ -1730,18 +1962,27 @@ static int ufx_usb_probe(struct usb_interface *interface,
 	check_warn_goto_error(retval, "error %d register_framebuffer", retval);
 
 	dev_info(dev->gdev, "SMSC UDX USB device /dev/fb%d attached. %dx%d resolution."
-		" Using %dK framebuffer memory\n", info->node,
-		info->var.xres, info->var.yres, info->fix.smem_len >> 10);
+			 " Using %dK framebuffer memory\n", info->node,
+			 info->var.xres, info->var.yres, info->fix.smem_len >> 10);
 
 	return 0;
 
 error:
-	if (dev) {
-		if (info) {
+
+	if (dev)
+	{
+		if (info)
+		{
 			if (info->cmap.len != 0)
+			{
 				fb_dealloc_cmap(&info->cmap);
+			}
+
 			if (info->monspecs.modedb)
+			{
 				fb_destroy_modedb(info->monspecs.modedb);
+			}
+
 			vfree(info->screen_base);
 
 			fb_destroy_modelist(&info->modelist);
@@ -1776,7 +2017,9 @@ static void ufx_usb_disconnect(struct usb_interface *interface)
 
 	/* if clients still have us open, will be freed on last close */
 	if (dev->fb_count == 0)
+	{
 		schedule_delayed_work(&dev->free_framebuffer_work, 0);
+	}
 
 	/* release reference taken by kref_init in probe() */
 	kref_put(&dev->kref, ufx_free);
@@ -1784,7 +2027,8 @@ static void ufx_usb_disconnect(struct usb_interface *interface)
 	/* consider ufx_data freed */
 }
 
-static struct usb_driver ufx_driver = {
+static struct usb_driver ufx_driver =
+{
 	.name = "smscufx",
 	.probe = ufx_usb_probe,
 	.disconnect = ufx_usb_disconnect,
@@ -1800,12 +2044,14 @@ static void ufx_urb_completion(struct urb *urb)
 	unsigned long flags;
 
 	/* sync/async unlink faults aren't errors */
-	if (urb->status) {
+	if (urb->status)
+	{
 		if (!(urb->status == -ENOENT ||
-		    urb->status == -ECONNRESET ||
-		    urb->status == -ESHUTDOWN)) {
+			  urb->status == -ECONNRESET ||
+			  urb->status == -ESHUTDOWN))
+		{
 			pr_err("%s - nonzero write bulk status received: %d\n",
-				__func__, urb->status);
+				   __func__, urb->status);
 			atomic_set(&dev->lost_pixels, 1);
 		}
 	}
@@ -1820,9 +2066,13 @@ static void ufx_urb_completion(struct urb *urb)
 	/* When using fb_defio, we deadlock if up() is called
 	 * while another is waiting. So queue to another process */
 	if (fb_defio)
+	{
 		schedule_delayed_work(&unode->release_urb_work, 0);
+	}
 	else
+	{
 		up(&dev->urbs.limit_sem);
+	}
 }
 
 static void ufx_free_urb_list(struct ufx_data *dev)
@@ -1837,11 +2087,15 @@ static void ufx_free_urb_list(struct ufx_data *dev)
 	pr_debug("Waiting for completes and freeing all render urbs\n");
 
 	/* keep waiting and freeing, until we've got 'em all */
-	while (count--) {
+	while (count--)
+	{
 		/* Getting interrupted means a leak, but ok at shutdown*/
 		ret = down_interruptible(&dev->urbs.limit_sem);
+
 		if (ret)
+		{
 			break;
+		}
 
 		spin_lock_irqsave(&dev->urbs.lock, flags);
 
@@ -1855,7 +2109,7 @@ static void ufx_free_urb_list(struct ufx_data *dev)
 
 		/* Free each separately allocated piece */
 		usb_free_coherent(urb->dev, dev->urbs.size,
-				  urb->transfer_buffer, urb->transfer_dma);
+						  urb->transfer_buffer, urb->transfer_dma);
 		usb_free_urb(urb);
 		kfree(node);
 	}
@@ -1873,25 +2127,35 @@ static int ufx_alloc_urb_list(struct ufx_data *dev, int count, size_t size)
 	dev->urbs.size = size;
 	INIT_LIST_HEAD(&dev->urbs.list);
 
-	while (i < count) {
+	while (i < count)
+	{
 		unode = kzalloc(sizeof(struct urb_node), GFP_KERNEL);
+
 		if (!unode)
+		{
 			break;
+		}
+
 		unode->dev = dev;
 
 		INIT_DELAYED_WORK(&unode->release_urb_work,
-			  ufx_release_urb_work);
+						  ufx_release_urb_work);
 
 		urb = usb_alloc_urb(0, GFP_KERNEL);
-		if (!urb) {
+
+		if (!urb)
+		{
 			kfree(unode);
 			break;
 		}
+
 		unode->urb = urb;
 
 		buf = usb_alloc_coherent(dev->udev, size, GFP_KERNEL,
-					 &urb->transfer_dma);
-		if (!buf) {
+								 &urb->transfer_dma);
+
+		if (!buf)
+		{
 			kfree(unode);
 			usb_free_urb(urb);
 			break;
@@ -1899,7 +2163,7 @@ static int ufx_alloc_urb_list(struct ufx_data *dev, int count, size_t size)
 
 		/* urb->transfer_buffer_length set to actual before submit */
 		usb_fill_bulk_urb(urb, dev->udev, usb_sndbulkpipe(dev->udev, 1),
-			buf, size, ufx_urb_completion, unode);
+						  buf, size, ufx_urb_completion, unode);
 		urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
 
 		list_add_tail(&unode->entry, &dev->urbs.list);
@@ -1926,10 +2190,12 @@ static struct urb *ufx_get_urb(struct ufx_data *dev)
 
 	/* Wait for an in-flight buffer to complete and get re-queued */
 	ret = down_timeout(&dev->urbs.limit_sem, GET_URB_TIMEOUT);
-	if (ret) {
+
+	if (ret)
+	{
 		atomic_set(&dev->lost_pixels, 1);
 		pr_warn("wait for urb interrupted: %x available: %d\n",
-		       ret, dev->urbs.available);
+				ret, dev->urbs.available);
 		goto error;
 	}
 
@@ -1957,11 +2223,14 @@ static int ufx_submit_urb(struct ufx_data *dev, struct urb *urb, size_t len)
 
 	urb->transfer_buffer_length = len; /* set to actual payload len */
 	ret = usb_submit_urb(urb, GFP_KERNEL);
-	if (ret) {
+
+	if (ret)
+	{
 		ufx_urb_completion(urb); /* because no one else will */
 		atomic_set(&dev->lost_pixels, 1);
 		pr_err("usb_submit_urb error %x\n", ret);
 	}
+
 	return ret;
 }
 

@@ -4,7 +4,8 @@
 #include <linux/types.h>
 
 /* MH matching stuff */
-struct ip6t_mh {
+struct ip6t_mh
+{
 	__u8 types[2];	/* MH type range */
 	__u8 invflags;	/* Inverse flags */
 };

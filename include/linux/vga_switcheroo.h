@@ -50,7 +50,8 @@ struct pci_dev;
  * Handler flags bitmask. Used by handlers to declare their capabilities upon
  * registering with vga_switcheroo.
  */
-enum vga_switcheroo_handler_flags_t {
+enum vga_switcheroo_handler_flags_t
+{
 	VGA_SWITCHEROO_CAN_SWITCH_DDC	= (1 << 0),
 	VGA_SWITCHEROO_NEEDS_EDP_CONFIG	= (1 << 1),
 };
@@ -65,7 +66,8 @@ enum vga_switcheroo_handler_flags_t {
  *
  * Client power state.
  */
-enum vga_switcheroo_state {
+enum vga_switcheroo_state
+{
 	VGA_SWITCHEROO_OFF,
 	VGA_SWITCHEROO_ON,
 	/* below are referred only from vga_switcheroo_get_client_state() */
@@ -83,7 +85,8 @@ enum vga_switcheroo_state {
  *
  * Client identifier. Audio clients use the same identifier & 0x100.
  */
-enum vga_switcheroo_client_id {
+enum vga_switcheroo_client_id
+{
 	VGA_SWITCHEROO_UNKNOWN_ID = -1,
 	VGA_SWITCHEROO_IGD,
 	VGA_SWITCHEROO_DIS,
@@ -113,12 +116,13 @@ enum vga_switcheroo_client_id {
  * Handler callbacks. The multiplexer itself. The @switchto and @get_client_id
  * methods are mandatory, all others may be set to NULL.
  */
-struct vga_switcheroo_handler {
+struct vga_switcheroo_handler
+{
 	int (*init)(void);
 	int (*switchto)(enum vga_switcheroo_client_id id);
 	int (*switch_ddc)(enum vga_switcheroo_client_id id);
 	int (*power_state)(enum vga_switcheroo_client_id id,
-			   enum vga_switcheroo_state state);
+					   enum vga_switcheroo_state state);
 	enum vga_switcheroo_client_id (*get_client_id)(struct pci_dev *pdev);
 };
 
@@ -138,7 +142,8 @@ struct vga_switcheroo_handler {
  * The @set_gpu_state and @can_switch methods are mandatory, @reprobe may be
  * set to NULL. For audio clients, the @reprobe member is bogus.
  */
-struct vga_switcheroo_client_ops {
+struct vga_switcheroo_client_ops
+{
 	void (*set_gpu_state)(struct pci_dev *dev, enum vga_switcheroo_state);
 	void (*reprobe)(struct pci_dev *dev);
 	bool (*can_switch)(struct pci_dev *dev);
@@ -147,17 +152,17 @@ struct vga_switcheroo_client_ops {
 #if defined(CONFIG_VGA_SWITCHEROO)
 void vga_switcheroo_unregister_client(struct pci_dev *dev);
 int vga_switcheroo_register_client(struct pci_dev *dev,
-				   const struct vga_switcheroo_client_ops *ops,
-				   bool driver_power_control);
+								   const struct vga_switcheroo_client_ops *ops,
+								   bool driver_power_control);
 int vga_switcheroo_register_audio_client(struct pci_dev *pdev,
-					 const struct vga_switcheroo_client_ops *ops,
-					 enum vga_switcheroo_client_id id);
+		const struct vga_switcheroo_client_ops *ops,
+		enum vga_switcheroo_client_id id);
 
 void vga_switcheroo_client_fb_set(struct pci_dev *dev,
-				  struct fb_info *info);
+								  struct fb_info *info);
 
 int vga_switcheroo_register_handler(const struct vga_switcheroo_handler *handler,
-				    enum vga_switcheroo_handler_flags_t handler_flags);
+									enum vga_switcheroo_handler_flags_t handler_flags);
 void vga_switcheroo_unregister_handler(void);
 enum vga_switcheroo_handler_flags_t vga_switcheroo_handler_flags(void);
 int vga_switcheroo_lock_ddc(struct pci_dev *pdev);
@@ -182,8 +187,8 @@ static inline void vga_switcheroo_client_fb_set(struct pci_dev *dev, struct fb_i
 static inline int vga_switcheroo_register_handler(const struct vga_switcheroo_handler *handler,
 		enum vga_switcheroo_handler_flags_t handler_flags) { return 0; }
 static inline int vga_switcheroo_register_audio_client(struct pci_dev *pdev,
-	const struct vga_switcheroo_client_ops *ops,
-	enum vga_switcheroo_client_id id) { return 0; }
+		const struct vga_switcheroo_client_ops *ops,
+		enum vga_switcheroo_client_id id) { return 0; }
 static inline void vga_switcheroo_unregister_handler(void) {}
 static inline enum vga_switcheroo_handler_flags_t vga_switcheroo_handler_flags(void) { return 0; }
 static inline int vga_switcheroo_lock_ddc(struct pci_dev *pdev) { return -ENODEV; }

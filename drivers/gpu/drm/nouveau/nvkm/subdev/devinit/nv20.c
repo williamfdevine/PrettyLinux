@@ -40,7 +40,9 @@ nv20_devinit_meminit(struct nvkm_devinit *init)
 
 	/* Map the framebuffer aperture */
 	fb = fbmem_init(device);
-	if (!fb) {
+
+	if (!fb)
+	{
 		nvkm_error(subdev, "failed to map fb\n");
 		return;
 	}
@@ -51,19 +53,26 @@ nv20_devinit_meminit(struct nvkm_devinit *init)
 	nvkm_mask(device, NV04_PFB_CFG0, 0, mask);
 
 	amount = nvkm_rd32(device, 0x10020c);
+
 	for (off = amount; off > 0x2000000; off -= 0x2000000)
+	{
 		fbmem_poke(fb, off - 4, off);
+	}
 
 	amount = nvkm_rd32(device, 0x10020c);
+
 	if (amount != fbmem_peek(fb, amount - 4))
 		/* IC missing - disable the upper half memory space. */
+	{
 		nvkm_mask(device, NV04_PFB_CFG0, mask, 0);
+	}
 
 	fbmem_fini(fb);
 }
 
 static const struct nvkm_devinit_func
-nv20_devinit = {
+	nv20_devinit =
+{
 	.dtor = nv04_devinit_dtor,
 	.preinit = nv04_devinit_preinit,
 	.post = nv04_devinit_post,
@@ -73,7 +82,7 @@ nv20_devinit = {
 
 int
 nv20_devinit_new(struct nvkm_device *device, int index,
-		 struct nvkm_devinit **pinit)
+				 struct nvkm_devinit **pinit)
 {
 	return nv04_devinit_new_(&nv20_devinit, device, index, pinit);
 }

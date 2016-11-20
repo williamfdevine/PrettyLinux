@@ -14,14 +14,16 @@
 
 typedef void (*notify_func_t)(void *data);
 
-enum notify_type {
+enum notify_type
+{
 	AOA_NOTIFY_HEADPHONE,
 	AOA_NOTIFY_LINE_IN,
 	AOA_NOTIFY_LINE_OUT,
 };
 
 struct gpio_runtime;
-struct gpio_methods {
+struct gpio_methods
+{
 	/* for initialisation/de-initialisation of the GPIO layer */
 	void (*init)(struct gpio_runtime *rt);
 	void (*exit)(struct gpio_runtime *rt);
@@ -51,16 +53,17 @@ struct gpio_methods {
 	 * and -EBUSY if the notification is already assigned by
 	 * someone else. */
 	int (*set_notify)(struct gpio_runtime *rt,
-			  enum notify_type type,
-			  notify_func_t notify,
-			  void *data);
+					  enum notify_type type,
+					  notify_func_t notify,
+					  void *data);
 	/* returns 0 if not plugged in, 1 if plugged in
 	 * or a negative error code */
 	int (*get_detect)(struct gpio_runtime *rt,
-			  enum notify_type type);
+					  enum notify_type type);
 };
 
-struct gpio_notification {
+struct gpio_notification
+{
 	struct delayed_work work;
 	notify_func_t notify;
 	void *data;
@@ -68,7 +71,8 @@ struct gpio_notification {
 	struct mutex mutex;
 };
 
-struct gpio_runtime {
+struct gpio_runtime
+{
 	/* to be assigned by fabric */
 	struct device_node *node;
 	/* since everyone needs this pointer anyway... */

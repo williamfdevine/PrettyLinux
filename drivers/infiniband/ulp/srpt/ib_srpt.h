@@ -54,7 +54,8 @@
  */
 #define SRP_SERVICE_NAME_PREFIX		"SRP.T10:"
 
-enum {
+enum
+{
 	/*
 	 * SRP IOControllerProfile attributes for SRP target ports that have
 	 * not been defined in <scsi/srp.h>. Source: section B.7, table B.7
@@ -124,8 +125,8 @@ enum {
 	MIN_MAX_REQ_SIZE = 996,
 	DEFAULT_MAX_REQ_SIZE
 		= sizeof(struct srp_cmd)/*48*/
-		+ sizeof(struct srp_indirect_buf)/*20*/
-		+ 128 * sizeof(struct srp_direct_buf)/*16*/,
+		  + sizeof(struct srp_indirect_buf)/*20*/
+		  + 128 * sizeof(struct srp_direct_buf)/*16*/,
 
 	MIN_MAX_RSP_SIZE = sizeof(struct srp_rsp)/*36*/ + 4,
 	DEFAULT_MAX_RSP_SIZE = 256, /* leaves 220 bytes for sense data */
@@ -147,7 +148,8 @@ enum {
  *                            processing has been aborted or command processing
  *                            failed.
  */
-enum srpt_command_state {
+enum srpt_command_state
+{
 	SRPT_STATE_NEW		 = 0,
 	SRPT_STATE_NEED_DATA	 = 1,
 	SRPT_STATE_DATA_IN	 = 2,
@@ -163,7 +165,8 @@ enum srpt_command_state {
  * @dma:   DMA address of the buffer.
  * @index: Index of the I/O context in its ioctx_ring array.
  */
-struct srpt_ioctx {
+struct srpt_ioctx
+{
 	struct ib_cqe		cqe;
 	void			*buf;
 	dma_addr_t		dma;
@@ -175,12 +178,14 @@ struct srpt_ioctx {
  * @ioctx:     See above.
  * @wait_list: Node for insertion in srpt_rdma_ch.cmd_wait_list.
  */
-struct srpt_recv_ioctx {
+struct srpt_recv_ioctx
+{
 	struct srpt_ioctx	ioctx;
 	struct list_head	wait_list;
 };
-	
-struct srpt_rw_ctx {
+
+struct srpt_rw_ctx
+{
 	struct rdma_rw_ctx	rw;
 	struct scatterlist	*sg;
 	unsigned int		nents;
@@ -195,7 +200,8 @@ struct srpt_rw_ctx {
  * @cmd:         Target core command data structure.
  * @sense_data:  SCSI sense data.
  */
-struct srpt_send_ioctx {
+struct srpt_send_ioctx
+{
 	struct srpt_ioctx	ioctx;
 	struct srpt_rdma_ch	*ch;
 
@@ -224,7 +230,8 @@ struct srpt_send_ioctx {
  *                    and last work request has been queued.
  * @CH_DISCONNECTED:  Last completion has been received.
  */
-enum rdma_ch_state {
+enum rdma_ch_state
+{
 	CH_CONNECTING,
 	CH_LIVE,
 	CH_DISCONNECTING,
@@ -261,7 +268,8 @@ enum rdma_ch_state {
  * @release_work:  Allows scheduling of srpt_release_channel().
  * @release_done:  Enables waiting for srpt_release_channel() completion.
  */
-struct srpt_rdma_ch {
+struct srpt_rdma_ch
+{
 	struct ib_cm_id		*cm_id;
 	struct ib_qp		*qp;
 	struct ib_cq		*cq;
@@ -294,7 +302,8 @@ struct srpt_rdma_ch {
  * @srp_max_rsp_size: Maximum size of SRP response messages in bytes.
  * @srp_sq_size: Shared receive queue (SRQ) size.
  */
-struct srpt_port_attrib {
+struct srpt_port_attrib
+{
 	u32			srp_max_rdma_size;
 	u32			srp_max_rsp_size;
 	u32			srp_sq_size;
@@ -316,7 +325,8 @@ struct srpt_port_attrib {
  * @port_wwn:  Target core WWN data.
  * @port_acl_list: Head of the list with all node ACLs for this port.
  */
-struct srpt_port {
+struct srpt_port
+{
 	struct srpt_device	*sdev;
 	struct ib_mad_agent	*mad_agent;
 	bool			enabled;
@@ -347,7 +357,8 @@ struct srpt_port {
  * @event_handler: Per-HCA asynchronous IB event handler.
  * @list:          Node in srpt_dev_list.
  */
-struct srpt_device {
+struct srpt_device
+{
 	struct ib_device	*device;
 	struct ib_pd		*pd;
 	struct ib_srq		*srq;

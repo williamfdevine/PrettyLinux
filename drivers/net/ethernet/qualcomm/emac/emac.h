@@ -146,7 +146,8 @@
 #define SGMII_PHY_LN_BIST_GEN3       0x0098
 #define SGMII_PHY_LN_CDR_CTRL1       0x005C
 
-enum emac_clk_id {
+enum emac_clk_id
+{
 	EMAC_CLK_AXI,
 	EMAC_CLK_CFG_AHB,
 	EMAC_CLK_HIGH_SPEED,
@@ -170,7 +171,8 @@ enum emac_clk_id {
 #define EMAC_WOL_PHY                     0x00000001 /* PHY Status Change */
 #define EMAC_WOL_MAGIC                   0x00000002 /* Magic Packet */
 
-struct emac_stats {
+struct emac_stats
+{
 	/* rx */
 	u64 rx_ok;              /* good packets */
 	u64 rx_bcast;           /* good broadcast packets */
@@ -235,16 +237,16 @@ struct emac_stats {
 #define EMAC_RSS_HSTYP_IPV6_EN				    0x00000004
 #define EMAC_RSS_HSTYP_TCP6_EN				    0x00000008
 #define EMAC_RSS_HSTYP_ALL_EN (\
-		EMAC_RSS_HSTYP_IPV4_EN   |\
-		EMAC_RSS_HSTYP_TCP4_EN   |\
-		EMAC_RSS_HSTYP_IPV6_EN   |\
-		EMAC_RSS_HSTYP_TCP6_EN)
+							   EMAC_RSS_HSTYP_IPV4_EN   |\
+							   EMAC_RSS_HSTYP_TCP4_EN   |\
+							   EMAC_RSS_HSTYP_IPV6_EN   |\
+							   EMAC_RSS_HSTYP_TCP6_EN)
 
 #define EMAC_VLAN_TO_TAG(_vlan, _tag) \
-		(_tag =  ((((_vlan) >> 8) & 0xFF) | (((_vlan) & 0xFF) << 8)))
+	(_tag =  ((((_vlan) >> 8) & 0xFF) | (((_vlan) & 0xFF) << 8)))
 
 #define EMAC_TAG_TO_VLAN(_tag, _vlan) \
-		(_vlan = ((((_tag) >> 8) & 0xFF) | (((_tag) & 0xFF) << 8)))
+	(_vlan = ((((_tag) >> 8) & 0xFF) | (((_tag) & 0xFF) << 8)))
 
 #define EMAC_DEF_RX_BUF_SIZE					  1536
 #define EMAC_MAX_JUMBO_PKT_SIZE				    (9 * 1024)
@@ -277,13 +279,15 @@ struct emac_stats {
  * @irq:	irq number.
  * @mask	mask to use over status register.
  */
-struct emac_irq {
+struct emac_irq
+{
 	unsigned int	irq;
 	u32		mask;
 };
 
 /* The device's main data structure */
-struct emac_adapter {
+struct emac_adapter
+{
 	struct net_device		*netdev;
 	struct mii_bus			*mii_bus;
 	struct phy_device		*phydev;

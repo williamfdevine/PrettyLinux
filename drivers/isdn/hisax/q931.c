@@ -28,8 +28,12 @@ iecpy(u_char *dest, u_char *iestart, int ieoffset)
 
 	p = iestart + ieoffset + 2;
 	l = iestart[1] - ieoffset;
+
 	while (l--)
+	{
 		*dest++ = *p++;
+	}
+
 	*dest++ = '\0';
 }
 
@@ -37,10 +41,12 @@ iecpy(u_char *dest, u_char *iestart, int ieoffset)
  * According to Table 4-2/Q.931
  */
 static
-struct MessageType {
+struct MessageType
+{
 	u_char nr;
 	char *descr;
-} mtlist[] = {
+} mtlist[] =
+{
 
 	{
 		0x1, "ALERTING"
@@ -203,13 +209,21 @@ prbits(char *dest, u_char b, int start, int len)
 	char *dp = dest;
 
 	b = b << (8 - start);
-	while (len--) {
+
+	while (len--)
+	{
 		if (b & 0x80)
+		{
 			*dp++ = '1';
+		}
 		else
+		{
 			*dp++ = '0';
+		}
+
 		b = b << 1;
 	}
+
 	return (dp - dest);
 }
 
@@ -218,6 +232,7 @@ u_char *
 skipext(u_char *p)
 {
 	while (!(*p++ & 0x80));
+
 	return (p);
 }
 
@@ -229,11 +244,13 @@ skipext(u_char *p)
  */
 
 static
-struct CauseValue {
+struct CauseValue
+{
 	u_char nr;
 	char *edescr;
 	char *ddescr;
-} cvlist[] = {
+} cvlist[] =
+{
 
 	{
 		0x01, "Unallocated (unassigned) number", "Nummer nicht zugeteilt"
@@ -462,25 +479,41 @@ prcause(char *dest, u_char *p)
 	/* locate cause value */
 	for (i = 0; i < CVSIZE; i++)
 		if (cvlist[i].nr == cause)
+		{
 			break;
+		}
 
 	/* display cause value if it exists */
 	if (i == CVSIZE)
+	{
 		dp += sprintf(dp, "Unknown cause type %x!\n", cause);
+	}
 	else
+	{
 		dp += sprintf(dp, "  cause value %x : %s \n", cause, cvlist[i].edescr);
+	}
 
-	while (!0) {
+	while (!0)
+	{
 		if (p > end)
+		{
 			break;
+		}
+
 		dp += sprintf(dp, "    diag attribute %d ", *p++ & 0x7f);
 		dp += sprintf(dp, " rej %d ", *p & 0x7f);
-		if (*p & 0x80) {
+
+		if (*p & 0x80)
+		{
 			*dp++ = '\n';
 			break;
-		} else
+		}
+		else
+		{
 			dp += sprintf(dp, " av %d\n", (*++p) & 0x7f);
+		}
 	}
+
 	return (dp - dest);
 
 }
@@ -525,29 +558,40 @@ prcause_1tr6(char *dest, u_char *p)
 	int i, cause;
 
 	p++;
-	if (0 == *p) {
+
+	if (0 == *p)
+	{
 		dp += sprintf(dp, "   OK (cause length=0)\n");
 		return (dp - dest);
-	} else if (*p > 1) {
+	}
+	else if (*p > 1)
+	{
 		dp += sprintf(dp, "    coding ");
 		dp += prbits(dp, p[2], 7, 2);
 		dp += sprintf(dp, " location ");
 		dp += prbits(dp, p[2], 4, 4);
 		*dp++ = '\n';
 	}
+
 	p++;
 	cause = 0x7f & *p;
 
 	/* locate cause value */
 	for (i = 0; i < cause_1tr6_len; i++)
 		if (cause_1tr6[i].nr == cause)
+		{
 			break;
+		}
 
 	/* display cause value if it exists */
 	if (i == cause_1tr6_len)
+	{
 		dp += sprintf(dp, "Unknown cause type %x!\n", cause);
+	}
 	else
+	{
 		dp += sprintf(dp, "  cause value %x : %s \n", cause, cause_1tr6[i].descr);
+	}
 
 	return (dp - dest);
 
@@ -577,8 +621,12 @@ prcalled(char *dest, u_char *p)
 	dp += prbits(dp, *p++, 8, 8);
 	*dp++ = '\n';
 	dp += sprintf(dp, "    number digits ");
+
 	while (l--)
+	{
 		*dp++ = *p++;
+	}
+
 	*dp++ = '\n';
 	return (dp - dest);
 }
@@ -593,17 +641,24 @@ prcalling(char *dest, u_char *p)
 	dp += sprintf(dp, "    octet 3 ");
 	dp += prbits(dp, *p, 8, 8);
 	*dp++ = '\n';
-	if (!(*p & 0x80)) {
+
+	if (!(*p & 0x80))
+	{
 		dp += sprintf(dp, "    octet 3a ");
 		dp += prbits(dp, *++p, 8, 8);
 		*dp++ = '\n';
 		l--;
 	};
+
 	p++;
 
 	dp += sprintf(dp, "    number digits ");
+
 	while (l--)
+	{
 		*dp++ = *p++;
+	}
+
 	*dp++ = '\n';
 	return (dp - dest);
 }
@@ -621,37 +676,53 @@ prbearer(char *dest, u_char *p)
 	dp += sprintf(dp, "    octet 4  ");
 	dp += prbits(dp, *p, 8, 8);
 	*dp++ = '\n';
-	if ((*p++ & 0x1f) == 0x18) {
+
+	if ((*p++ & 0x1f) == 0x18)
+	{
 		dp += sprintf(dp, "    octet 4.1 ");
 		dp += prbits(dp, *p++, 8, 8);
 		*dp++ = '\n';
 	}
+
 	/* check for user information layer 1 */
-	if ((*p & 0x60) == 0x20) {
+	if ((*p & 0x60) == 0x20)
+	{
 		ch = ' ';
-		do {
+
+		do
+		{
 			dp += sprintf(dp, "    octet 5%c ", ch);
 			dp += prbits(dp, *p, 8, 8);
 			*dp++ = '\n';
+
 			if (ch == ' ')
+			{
 				ch = 'a';
+			}
 			else
+			{
 				ch++;
+			}
 		}
 		while (!(*p++ & 0x80));
 	}
+
 	/* check for user information layer 2 */
-	if ((*p & 0x60) == 0x40) {
+	if ((*p & 0x60) == 0x40)
+	{
 		dp += sprintf(dp, "    octet 6  ");
 		dp += prbits(dp, *p++, 8, 8);
 		*dp++ = '\n';
 	}
+
 	/* check for user information layer 3 */
-	if ((*p & 0x60) == 0x60) {
+	if ((*p & 0x60) == 0x60)
+	{
 		dp += sprintf(dp, "    octet 7  ");
 		dp += prbits(dp, *p++, 8, 8);
 		*dp++ = '\n';
 	}
+
 	return (dp - dest);
 }
 
@@ -667,50 +738,69 @@ prbearer_ni1(char *dest, u_char *p)
 	len = *p++;
 	dp += sprintf(dp, "    octet 3  ");
 	dp += prbits(dp, *p, 8, 8);
-	switch (*p++) {
-	case 0x80:
-		dp += sprintf(dp, " Speech");
-		break;
-	case 0x88:
-		dp += sprintf(dp, " Unrestricted digital information");
-		break;
-	case 0x90:
-		dp += sprintf(dp, " 3.1 kHz audio");
-		break;
-	default:
-		dp += sprintf(dp, " Unknown information-transfer capability");
+
+	switch (*p++)
+	{
+		case 0x80:
+			dp += sprintf(dp, " Speech");
+			break;
+
+		case 0x88:
+			dp += sprintf(dp, " Unrestricted digital information");
+			break;
+
+		case 0x90:
+			dp += sprintf(dp, " 3.1 kHz audio");
+			break;
+
+		default:
+			dp += sprintf(dp, " Unknown information-transfer capability");
 	}
+
 	*dp++ = '\n';
 	dp += sprintf(dp, "    octet 4  ");
 	dp += prbits(dp, *p, 8, 8);
-	switch (*p++) {
-	case 0x90:
-		dp += sprintf(dp, " 64 kbps, circuit mode");
-		break;
-	case 0xc0:
-		dp += sprintf(dp, " Packet mode");
-		break;
-	default:
-		dp += sprintf(dp, " Unknown transfer mode");
+
+	switch (*p++)
+	{
+		case 0x90:
+			dp += sprintf(dp, " 64 kbps, circuit mode");
+			break;
+
+		case 0xc0:
+			dp += sprintf(dp, " Packet mode");
+			break;
+
+		default:
+			dp += sprintf(dp, " Unknown transfer mode");
 	}
+
 	*dp++ = '\n';
-	if (len > 2) {
+
+	if (len > 2)
+	{
 		dp += sprintf(dp, "    octet 5  ");
 		dp += prbits(dp, *p, 8, 8);
-		switch (*p++) {
-		case 0x21:
-			dp += sprintf(dp, " Rate adaption\n");
-			dp += sprintf(dp, "    octet 5a ");
-			dp += prbits(dp, *p, 8, 8);
-			break;
-		case 0xa2:
-			dp += sprintf(dp, " u-law");
-			break;
-		default:
-			dp += sprintf(dp, " Unknown UI layer 1 protocol");
+
+		switch (*p++)
+		{
+			case 0x21:
+				dp += sprintf(dp, " Rate adaption\n");
+				dp += sprintf(dp, "    octet 5a ");
+				dp += prbits(dp, *p, 8, 8);
+				break;
+
+			case 0xa2:
+				dp += sprintf(dp, " u-law");
+				break;
+
+			default:
+				dp += sprintf(dp, " Unknown UI layer 1 protocol");
 		}
+
 		*dp++ = '\n';
 	}
+
 	return (dp - dest);
 }
 
@@ -723,21 +813,30 @@ general(char *dest, u_char *p)
 
 	p++;
 	l = *p++;
+
 	/* Iterate over all octets in the information element */
-	while (l--) {
+	while (l--)
+	{
 		dp += sprintf(dp, "    octet %d%c ", octet, ch);
 		dp += prbits(dp, *p++, 8, 8);
 		*dp++ = '\n';
 
 		/* last octet in group? */
-		if (*p & 0x80) {
+		if (*p & 0x80)
+		{
 			octet++;
 			ch = ' ';
-		} else if (ch == ' ')
+		}
+		else if (ch == ' ')
+		{
 			ch = 'a';
+		}
 		else
+		{
 			ch++;
+		}
 	}
+
 	return (dp - dest);
 }
 
@@ -750,21 +849,30 @@ general_ni1(char *dest, u_char *p)
 
 	p++;
 	l = *p++;
+
 	/* Iterate over all octets in the information element */
-	while (l--) {
+	while (l--)
+	{
 		dp += sprintf(dp, "    octet %d%c ", octet, ch);
 		dp += prbits(dp, *p, 8, 8);
 		*dp++ = '\n';
 
 		/* last octet in group? */
-		if (*p++ & 0x80) {
+		if (*p++ & 0x80)
+		{
 			octet++;
 			ch = ' ';
-		} else if (ch == ' ')
+		}
+		else if (ch == ' ')
+		{
 			ch = 'a';
+		}
 		else
+		{
 			ch++;
+		}
 	}
+
 	return (dp - dest);
 }
 
@@ -779,9 +887,13 @@ prcharge(char *dest, u_char *p)
 	dp += sprintf(dp, "    GEA ");
 	dp += prbits(dp, *p++, 8, 8);
 	dp += sprintf(dp, "  Anzahl: ");
+
 	/* Iterate over all octets in the * information element */
 	while (l--)
+	{
 		*dp++ = *p++;
+	}
+
 	*dp++ = '\n';
 	return (dp - dest);
 }
@@ -794,9 +906,13 @@ prtext(char *dest, u_char *p)
 	p++;
 	l = *p++;
 	dp += sprintf(dp, "    ");
+
 	/* Iterate over all octets in the * information element */
 	while (l--)
+	{
 		*dp++ = *p++;
+	}
+
 	*dp++ = '\n';
 	return (dp - dest);
 }
@@ -810,38 +926,50 @@ prfeatureind(char *dest, u_char *p)
 	dp += sprintf(dp, "    octet 3  ");
 	dp += prbits(dp, *p, 8, 8);
 	*dp++ = '\n';
-	if (!(*p++ & 0x80)) {
+
+	if (!(*p++ & 0x80))
+	{
 		dp += sprintf(dp, "    octet 4  ");
 		dp += prbits(dp, *p++, 8, 8);
 		*dp++ = '\n';
 	}
+
 	dp += sprintf(dp, "    Status:  ");
-	switch (*p) {
-	case 0:
-		dp += sprintf(dp, "Idle");
-		break;
-	case 1:
-		dp += sprintf(dp, "Active");
-		break;
-	case 2:
-		dp += sprintf(dp, "Prompt");
-		break;
-	case 3:
-		dp += sprintf(dp, "Pending");
-		break;
-	default:
-		dp += sprintf(dp, "(Reserved)");
-		break;
+
+	switch (*p)
+	{
+		case 0:
+			dp += sprintf(dp, "Idle");
+			break;
+
+		case 1:
+			dp += sprintf(dp, "Active");
+			break;
+
+		case 2:
+			dp += sprintf(dp, "Prompt");
+			break;
+
+		case 3:
+			dp += sprintf(dp, "Pending");
+			break;
+
+		default:
+			dp += sprintf(dp, "(Reserved)");
+			break;
 	}
+
 	*dp++ = '\n';
 	return (dp - dest);
 }
 
 static
-struct DTag { /* Display tags */
+struct DTag   /* Display tags */
+{
 	u_char nr;
 	char *descr;
-} dtaglist[] = {
+} dtaglist[] =
+{
 	{ 0x82, "Continuation" },
 	{ 0x83, "Called address" },
 	{ 0x84, "Cause" },
@@ -875,35 +1003,54 @@ disptext_ni1(char *dest, u_char *p)
 
 	p++;
 	l = *p++ - 1;
-	if (*p++ != 0x80) {
+
+	if (*p++ != 0x80)
+	{
 		dp += sprintf(dp, "    Unknown display type\n");
 		return (dp - dest);
 	}
+
 	/* Iterate over all tag,length,text fields */
-	while (l > 0) {
+	while (l > 0)
+	{
 		tag = *p++;
 		len = *p++;
 		l -= len + 2;
+
 		/* Don't space or skip */
-		if ((tag == 0x80) || (tag == 0x81)) p++;
-		else {
+		if ((tag == 0x80) || (tag == 0x81)) { p++; }
+		else
+		{
 			for (i = 0; i < DTAGSIZE; i++)
 				if (tag == dtaglist[i].nr)
+				{
 					break;
+				}
 
 			/* When not found, give appropriate msg */
-			if (i != DTAGSIZE) {
+			if (i != DTAGSIZE)
+			{
 				dp += sprintf(dp, "    %s: ", dtaglist[i].descr);
+
 				while (len--)
+				{
 					*dp++ = *p++;
-			} else {
-				dp += sprintf(dp, "    (unknown display tag %2x): ", tag);
-				while (len--)
-					*dp++ = *p++;
+				}
 			}
+			else
+			{
+				dp += sprintf(dp, "    (unknown display tag %2x): ", tag);
+
+				while (len--)
+				{
+					*dp++ = *p++;
+				}
+			}
+
 			dp += sprintf(dp, "\n");
 		}
 	}
+
 	return (dp - dest);
 }
 static int
@@ -917,19 +1064,28 @@ display(char *dest, u_char *p)
 	l = *p++;
 	/* Iterate over all octets in the * display-information element */
 	dp += sprintf(dp, "   \"");
-	while (l--) {
+
+	while (l--)
+	{
 		dp += sprintf(dp, "%c", *p++);
 
 		/* last octet in group? */
-		if (*p & 0x80) {
+		if (*p & 0x80)
+		{
 			octet++;
 			ch = ' ';
-		} else if (ch == ' ')
+		}
+		else if (ch == ' ')
+		{
 			ch = 'a';
+		}
 
 		else
+		{
 			ch++;
+		}
 	}
+
 	*dp++ = '\"';
 	*dp++ = '\n';
 	return (dp - dest);
@@ -948,17 +1104,21 @@ prfacility(char *dest, u_char *p)
 	dp += sprintf(dp, "\n");
 	l -= 1;
 
-	while (l > 0) {
+	while (l > 0)
+	{
 		dp += sprintf(dp, "   octet 4 ");
 		dp += prbits(dp, *p++, 8, 8);
 		dp += sprintf(dp, "\n");
 		dp += sprintf(dp, "   octet 5 %d\n", l2 = *p++ & 0x7f);
 		l -= 2;
 		dp += sprintf(dp, "   contents ");
-		while (l2--) {
+
+		while (l2--)
+		{
 			dp += sprintf(dp, "%2x ", *p++);
 			l--;
 		}
+
 		dp += sprintf(dp, "\n");
 	}
 
@@ -966,11 +1126,13 @@ prfacility(char *dest, u_char *p)
 }
 
 static
-struct InformationElement {
+struct InformationElement
+{
 	u_char nr;
 	char *descr;
 	int (*f) (char *, u_char *);
-} ielist[] = {
+} ielist[] =
+{
 
 	{
 		0x00, "Segmented message", general
@@ -1077,7 +1239,8 @@ struct InformationElement {
 #define IESIZE ARRAY_SIZE(ielist)
 
 static
-struct InformationElement ielist_ni1[] = {
+struct InformationElement ielist_ni1[] =
+{
 	{ 0x04, "Bearer Capability", prbearer_ni1 },
 	{ 0x08, "Cause", prcause },
 	{ 0x14, "Call State", general_ni1 },
@@ -1105,7 +1268,8 @@ struct InformationElement ielist_ni1[] = {
 #define IESIZE_NI1 ARRAY_SIZE(ielist_ni1)
 
 static
-struct InformationElement ielist_ni1_cs5[] = {
+struct InformationElement ielist_ni1_cs5[] =
+{
 	{ 0x1d, "Operator system access", general_ni1 },
 	{ 0x2a, "Display text", disptext_ni1 },
 };
@@ -1113,7 +1277,8 @@ struct InformationElement ielist_ni1_cs5[] = {
 #define IESIZE_NI1_CS5 ARRAY_SIZE(ielist_ni1_cs5)
 
 static
-struct InformationElement ielist_ni1_cs6[] = {
+struct InformationElement ielist_ni1_cs6[] =
+{
 	{ 0x7b, "Call appearance", general_ni1 },
 };
 
@@ -1153,11 +1318,13 @@ QuickHex(char *txt, u_char *p, int cnt)
 	register int i;
 	register char *t = txt;
 
-	for (i = 0; i < cnt; i++) {
+	for (i = 0; i < cnt; i++)
+	{
 		*t++ = ' ';
 		*t++ = hex_asc_hi(p[i]);
 		*t++ = hex_asc_lo(p[i]);
 	}
+
 	*t++ = 0;
 	return (t - txt);
 }
@@ -1168,9 +1335,14 @@ LogFrame(struct IsdnCardState *cs, u_char *buf, int size)
 	char *dp;
 
 	if (size < 1)
+	{
 		return;
+	}
+
 	dp = cs->dlog;
-	if (size < MAX_DLOG_SPACE / 3 - 10) {
+
+	if (size < MAX_DLOG_SPACE / 3 - 10)
+	{
 		*dp++ = 'H';
 		*dp++ = 'E';
 		*dp++ = 'X';
@@ -1180,8 +1352,11 @@ LogFrame(struct IsdnCardState *cs, u_char *buf, int size)
 		*dp++ = '\n';
 		*dp = 0;
 		HiSax_putstatus(cs, NULL, cs->dlog);
-	} else
+	}
+	else
+	{
 		HiSax_putstatus(cs, "LogFrame: ", "warning Frame too big (%d)", size);
+	}
 }
 
 void
@@ -1195,7 +1370,10 @@ dlogframe(struct IsdnCardState *cs, struct sk_buff *skb, int dir)
 	int size, finish = 0;
 
 	if (skb->len < 3)
+	{
 		return;
+	}
+
 	/* display header */
 	dp = cs->dlog;
 	dp += jiftime(dp, jiffies);
@@ -1207,307 +1385,458 @@ dlogframe(struct IsdnCardState *cs, struct sk_buff *skb, int dir)
 	dp += sprintf(dp, "frame %s ", dir ? "network->user" : "user->network");
 	size = skb->len;
 
-	if (tei == GROUP_TEI) {
-		if (sapi == CTRL_SAPI) { /* sapi 0 */
-			if (ftyp == 3) {
+	if (tei == GROUP_TEI)
+	{
+		if (sapi == CTRL_SAPI)   /* sapi 0 */
+		{
+			if (ftyp == 3)
+			{
 				dp += sprintf(dp, "broadcast\n");
 				buf += 3;
 				size -= 3;
-			} else {
+			}
+			else
+			{
 				dp += sprintf(dp, "no UI broadcast\n");
 				finish = 1;
 			}
-		} else if (sapi == TEI_SAPI) {
+		}
+		else if (sapi == TEI_SAPI)
+		{
 			dp += sprintf(dp, "tei management\n");
 			finish = 1;
-		} else {
+		}
+		else
+		{
 			dp += sprintf(dp, "unknown sapi %d broadcast\n", sapi);
 			finish = 1;
 		}
-	} else {
-		if (sapi == CTRL_SAPI) {
-			if (!(ftyp & 1)) { /* IFrame */
+	}
+	else
+	{
+		if (sapi == CTRL_SAPI)
+		{
+			if (!(ftyp & 1))   /* IFrame */
+			{
 				dp += sprintf(dp, "with tei %d\n", tei);
 				buf += 4;
 				size -= 4;
-			} else {
+			}
+			else
+			{
 				dp += sprintf(dp, "SFrame with tei %d\n", tei);
 				finish = 1;
 			}
-		} else {
+		}
+		else
+		{
 			dp += sprintf(dp, "unknown sapi %d tei %d\n", sapi, tei);
 			finish = 1;
 		}
 	}
+
 	bend = skb->data + skb->len;
-	if (buf >= bend) {
+
+	if (buf >= bend)
+	{
 		dp += sprintf(dp, "frame too short\n");
 		finish = 1;
 	}
-	if (finish) {
+
+	if (finish)
+	{
 		*dp = 0;
 		HiSax_putstatus(cs, NULL, cs->dlog);
 		return;
 	}
-	if ((0xfe & buf[0]) == PROTO_DIS_N0) {	/* 1TR6 */
+
+	if ((0xfe & buf[0]) == PROTO_DIS_N0)  	/* 1TR6 */
+	{
 		/* locate message type */
 		pd = *buf++;
 		cr_l = *buf++;
+
 		if (cr_l)
+		{
 			cr = *buf++;
+		}
 		else
+		{
 			cr = 0;
+		}
+
 		mt = *buf++;
-		if (pd == PROTO_DIS_N0) {	/* N0 */
+
+		if (pd == PROTO_DIS_N0)  	/* N0 */
+		{
 			for (i = 0; i < MT_N0_LEN; i++)
 				if (mt_n0[i].nr == mt)
+				{
 					break;
+				}
+
 			/* display message type if it exists */
 			if (i == MT_N0_LEN)
 				dp += sprintf(dp, "callref %d %s size %d unknown message type N0 %x!\n",
-					      cr & 0x7f, (cr & 0x80) ? "called" : "caller",
-					      size, mt);
+							  cr & 0x7f, (cr & 0x80) ? "called" : "caller",
+							  size, mt);
 			else
 				dp += sprintf(dp, "callref %d %s size %d message type %s\n",
-					      cr & 0x7f, (cr & 0x80) ? "called" : "caller",
-					      size, mt_n0[i].descr);
-		} else {	/* N1 */
+							  cr & 0x7f, (cr & 0x80) ? "called" : "caller",
+							  size, mt_n0[i].descr);
+		}
+		else  	/* N1 */
+		{
 			for (i = 0; i < MT_N1_LEN; i++)
 				if (mt_n1[i].nr == mt)
+				{
 					break;
+				}
+
 			/* display message type if it exists */
 			if (i == MT_N1_LEN)
 				dp += sprintf(dp, "callref %d %s size %d unknown message type N1 %x!\n",
-					      cr & 0x7f, (cr & 0x80) ? "called" : "caller",
-					      size, mt);
+							  cr & 0x7f, (cr & 0x80) ? "called" : "caller",
+							  size, mt);
 			else
 				dp += sprintf(dp, "callref %d %s size %d message type %s\n",
-					      cr & 0x7f, (cr & 0x80) ? "called" : "caller",
-					      size, mt_n1[i].descr);
+							  cr & 0x7f, (cr & 0x80) ? "called" : "caller",
+							  size, mt_n1[i].descr);
 		}
 
 		/* display each information element */
-		while (buf < bend) {
+		while (buf < bend)
+		{
 			/* Is it a single octet information element? */
-			if (*buf & 0x80) {
-				switch ((*buf >> 4) & 7) {
-				case 1:
-					dp += sprintf(dp, "  Shift %x\n", *buf & 0xf);
-					cs_old = cset;
-					cset = *buf & 7;
-					cs_fest = *buf & 8;
-					break;
-				case 3:
-					dp += sprintf(dp, "  Congestion level %x\n", *buf & 0xf);
-					break;
-				case 2:
-					if (*buf == 0xa0) {
-						dp += sprintf(dp, "  More data\n");
+			if (*buf & 0x80)
+			{
+				switch ((*buf >> 4) & 7)
+				{
+					case 1:
+						dp += sprintf(dp, "  Shift %x\n", *buf & 0xf);
+						cs_old = cset;
+						cset = *buf & 7;
+						cs_fest = *buf & 8;
 						break;
-					}
-					if (*buf == 0xa1) {
-						dp += sprintf(dp, "  Sending complete\n");
-					}
-					break;
+
+					case 3:
+						dp += sprintf(dp, "  Congestion level %x\n", *buf & 0xf);
+						break;
+
+					case 2:
+						if (*buf == 0xa0)
+						{
+							dp += sprintf(dp, "  More data\n");
+							break;
+						}
+
+						if (*buf == 0xa1)
+						{
+							dp += sprintf(dp, "  Sending complete\n");
+						}
+
+						break;
+
 					/* fall through */
-				default:
-					dp += sprintf(dp, "  Reserved %x\n", *buf);
-					break;
+					default:
+						dp += sprintf(dp, "  Reserved %x\n", *buf);
+						break;
 				}
+
 				buf++;
 				continue;
 			}
+
 			/* No, locate it in the table */
-			if (cset == 0) {
+			if (cset == 0)
+			{
 				for (i = 0; i < WE_0_LEN; i++)
 					if (*buf == we_0[i].nr)
+					{
 						break;
+					}
 
 				/* When found, give appropriate msg */
-				if (i != WE_0_LEN) {
+				if (i != WE_0_LEN)
+				{
 					dp += sprintf(dp, "  %s\n", we_0[i].descr);
 					dp += we_0[i].f(dp, buf);
-				} else
+				}
+				else
+				{
 					dp += sprintf(dp, "  Codeset %d attribute %x attribute size %d\n", cset, *buf, buf[1]);
-			} else if (cset == 6) {
+				}
+			}
+			else if (cset == 6)
+			{
 				for (i = 0; i < WE_6_LEN; i++)
 					if (*buf == we_6[i].nr)
+					{
 						break;
+					}
 
 				/* When found, give appropriate msg */
-				if (i != WE_6_LEN) {
+				if (i != WE_6_LEN)
+				{
 					dp += sprintf(dp, "  %s\n", we_6[i].descr);
 					dp += we_6[i].f(dp, buf);
-				} else
+				}
+				else
+				{
 					dp += sprintf(dp, "  Codeset %d attribute %x attribute size %d\n", cset, *buf, buf[1]);
-			} else
+				}
+			}
+			else
+			{
 				dp += sprintf(dp, "  Unknown Codeset %d attribute %x attribute size %d\n", cset, *buf, buf[1]);
+			}
+
 			/* Skip to next element */
-			if (cs_fest == 8) {
+			if (cs_fest == 8)
+			{
 				cset = cs_old;
 				cs_old = 0;
 				cs_fest = 0;
 			}
+
 			buf += buf[1] + 2;
 		}
-	} else if ((buf[0] == 8) && (cs->protocol == ISDN_PTYPE_NI1)) {	/* NI-1 */
+	}
+	else if ((buf[0] == 8) && (cs->protocol == ISDN_PTYPE_NI1))  	/* NI-1 */
+	{
 		/* locate message type */
 		buf++;
 		cr_l = *buf++;
+
 		if (cr_l)
+		{
 			cr = *buf++;
+		}
 		else
+		{
 			cr = 0;
+		}
+
 		mt = *buf++;
+
 		for (i = 0; i < MTSIZE; i++)
 			if (mtlist[i].nr == mt)
+			{
 				break;
+			}
 
 		/* display message type if it exists */
 		if (i == MTSIZE)
 			dp += sprintf(dp, "callref %d %s size %d unknown message type %x!\n",
-				      cr & 0x7f, (cr & 0x80) ? "called" : "caller",
-				      size, mt);
+						  cr & 0x7f, (cr & 0x80) ? "called" : "caller",
+						  size, mt);
 		else
 			dp += sprintf(dp, "callref %d %s size %d message type %s\n",
-				      cr & 0x7f, (cr & 0x80) ? "called" : "caller",
-				      size, mtlist[i].descr);
+						  cr & 0x7f, (cr & 0x80) ? "called" : "caller",
+						  size, mtlist[i].descr);
 
 		/* display each information element */
-		while (buf < bend) {
+		while (buf < bend)
+		{
 			/* Is it a single octet information element? */
-			if (*buf & 0x80) {
-				switch ((*buf >> 4) & 7) {
-				case 1:
-					dp += sprintf(dp, "  Shift %x\n", *buf & 0xf);
-					cs_old = cset;
-					cset = *buf & 7;
-					cs_fest = *buf & 8;
-					break;
-				default:
-					dp += sprintf(dp, "  Unknown single-octet IE %x\n", *buf);
-					break;
+			if (*buf & 0x80)
+			{
+				switch ((*buf >> 4) & 7)
+				{
+					case 1:
+						dp += sprintf(dp, "  Shift %x\n", *buf & 0xf);
+						cs_old = cset;
+						cset = *buf & 7;
+						cs_fest = *buf & 8;
+						break;
+
+					default:
+						dp += sprintf(dp, "  Unknown single-octet IE %x\n", *buf);
+						break;
 				}
+
 				buf++;
 				continue;
 			}
+
 			/* No, locate it in the table */
-			if (cset == 0) {
+			if (cset == 0)
+			{
 				for (i = 0; i < IESIZE_NI1; i++)
 					if (*buf == ielist_ni1[i].nr)
+					{
 						break;
+					}
 
 				/* When not found, give appropriate msg */
-				if (i != IESIZE_NI1) {
+				if (i != IESIZE_NI1)
+				{
 					dp += sprintf(dp, "  %s\n", ielist_ni1[i].descr);
 					dp += ielist_ni1[i].f(dp, buf);
-				} else
+				}
+				else
+				{
 					dp += sprintf(dp, "  attribute %x attribute size %d\n", *buf, buf[1]);
-			} else if (cset == 5) {
+				}
+			}
+			else if (cset == 5)
+			{
 				for (i = 0; i < IESIZE_NI1_CS5; i++)
 					if (*buf == ielist_ni1_cs5[i].nr)
+					{
 						break;
+					}
 
 				/* When not found, give appropriate msg */
-				if (i != IESIZE_NI1_CS5) {
+				if (i != IESIZE_NI1_CS5)
+				{
 					dp += sprintf(dp, "  %s\n", ielist_ni1_cs5[i].descr);
 					dp += ielist_ni1_cs5[i].f(dp, buf);
-				} else
+				}
+				else
+				{
 					dp += sprintf(dp, "  attribute %x attribute size %d\n", *buf, buf[1]);
-			} else if (cset == 6) {
+				}
+			}
+			else if (cset == 6)
+			{
 				for (i = 0; i < IESIZE_NI1_CS6; i++)
 					if (*buf == ielist_ni1_cs6[i].nr)
+					{
 						break;
+					}
 
 				/* When not found, give appropriate msg */
-				if (i != IESIZE_NI1_CS6) {
+				if (i != IESIZE_NI1_CS6)
+				{
 					dp += sprintf(dp, "  %s\n", ielist_ni1_cs6[i].descr);
 					dp += ielist_ni1_cs6[i].f(dp, buf);
-				} else
+				}
+				else
+				{
 					dp += sprintf(dp, "  attribute %x attribute size %d\n", *buf, buf[1]);
-			} else
+				}
+			}
+			else
+			{
 				dp += sprintf(dp, "  Unknown Codeset %d attribute %x attribute size %d\n", cset, *buf, buf[1]);
+			}
 
 			/* Skip to next element */
-			if (cs_fest == 8) {
+			if (cs_fest == 8)
+			{
 				cset = cs_old;
 				cs_old = 0;
 				cs_fest = 0;
 			}
+
 			buf += buf[1] + 2;
 		}
-	} else if ((buf[0] == 8) && (cs->protocol == ISDN_PTYPE_EURO)) { /* EURO */
+	}
+	else if ((buf[0] == 8) && (cs->protocol == ISDN_PTYPE_EURO))     /* EURO */
+	{
 		/* locate message type */
 		buf++;
 		cr_l = *buf++;
+
 		if (cr_l)
+		{
 			cr = *buf++;
+		}
 		else
+		{
 			cr = 0;
+		}
+
 		mt = *buf++;
+
 		for (i = 0; i < MTSIZE; i++)
 			if (mtlist[i].nr == mt)
+			{
 				break;
+			}
 
 		/* display message type if it exists */
 		if (i == MTSIZE)
 			dp += sprintf(dp, "callref %d %s size %d unknown message type %x!\n",
-				      cr & 0x7f, (cr & 0x80) ? "called" : "caller",
-				      size, mt);
+						  cr & 0x7f, (cr & 0x80) ? "called" : "caller",
+						  size, mt);
 		else
 			dp += sprintf(dp, "callref %d %s size %d message type %s\n",
-				      cr & 0x7f, (cr & 0x80) ? "called" : "caller",
-				      size, mtlist[i].descr);
+						  cr & 0x7f, (cr & 0x80) ? "called" : "caller",
+						  size, mtlist[i].descr);
 
 		/* display each information element */
-		while (buf < bend) {
+		while (buf < bend)
+		{
 			/* Is it a single octet information element? */
-			if (*buf & 0x80) {
-				switch ((*buf >> 4) & 7) {
-				case 1:
-					dp += sprintf(dp, "  Shift %x\n", *buf & 0xf);
-					break;
-				case 3:
-					dp += sprintf(dp, "  Congestion level %x\n", *buf & 0xf);
-					break;
-				case 5:
-					dp += sprintf(dp, "  Repeat indicator %x\n", *buf & 0xf);
-					break;
-				case 2:
-					if (*buf == 0xa0) {
-						dp += sprintf(dp, "  More data\n");
+			if (*buf & 0x80)
+			{
+				switch ((*buf >> 4) & 7)
+				{
+					case 1:
+						dp += sprintf(dp, "  Shift %x\n", *buf & 0xf);
 						break;
-					}
-					if (*buf == 0xa1) {
-						dp += sprintf(dp, "  Sending complete\n");
-					}
-					break;
+
+					case 3:
+						dp += sprintf(dp, "  Congestion level %x\n", *buf & 0xf);
+						break;
+
+					case 5:
+						dp += sprintf(dp, "  Repeat indicator %x\n", *buf & 0xf);
+						break;
+
+					case 2:
+						if (*buf == 0xa0)
+						{
+							dp += sprintf(dp, "  More data\n");
+							break;
+						}
+
+						if (*buf == 0xa1)
+						{
+							dp += sprintf(dp, "  Sending complete\n");
+						}
+
+						break;
+
 					/* fall through */
-				default:
-					dp += sprintf(dp, "  Reserved %x\n", *buf);
-					break;
+					default:
+						dp += sprintf(dp, "  Reserved %x\n", *buf);
+						break;
 				}
+
 				buf++;
 				continue;
 			}
+
 			/* No, locate it in the table */
 			for (i = 0; i < IESIZE; i++)
 				if (*buf == ielist[i].nr)
+				{
 					break;
+				}
 
 			/* When not found, give appropriate msg */
-			if (i != IESIZE) {
+			if (i != IESIZE)
+			{
 				dp += sprintf(dp, "  %s\n", ielist[i].descr);
 				dp += ielist[i].f(dp, buf);
-			} else
+			}
+			else
+			{
 				dp += sprintf(dp, "  attribute %x attribute size %d\n", *buf, buf[1]);
+			}
 
 			/* Skip to next element */
 			buf += buf[1] + 2;
 		}
-	} else {
+	}
+	else
+	{
 		dp += sprintf(dp, "Unknown protocol %x!", buf[0]);
 	}
+
 	*dp = 0;
 	HiSax_putstatus(cs, NULL, cs->dlog);
 }

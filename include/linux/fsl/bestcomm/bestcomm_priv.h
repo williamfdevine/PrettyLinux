@@ -49,7 +49,8 @@
  * struct bcom_tdt - Task Descriptor Table Entry
  *
  */
-struct bcom_tdt {
+struct bcom_tdt
+{
 	u32 start;
 	u32 stop;
 	u32 var;
@@ -65,7 +66,8 @@ struct bcom_tdt {
  *
  * This holds all info needed globaly to handle the engine
  */
-struct bcom_engine {
+struct bcom_engine
+{
 	struct device_node		*ofnode;
 	struct mpc52xx_sdma __iomem     *regs;
 	phys_addr_t                      regs_base;
@@ -88,7 +90,8 @@ extern struct bcom_engine *bcom_eng;
 /* Tasks image header */
 #define BCOM_TASK_MAGIC		0x4243544B	/* 'BCTK' */
 
-struct bcom_task_header {
+struct bcom_task_header
+{
 	u32	magic;
 	u8	desc_size;	/* the size fields     */
 	u8	var_size;	/* are given in number */
@@ -106,38 +109,38 @@ struct bcom_task_header {
 /* Tasks pragma */
 #define BCOM_PRAGMA_BIT_RSV		7	/* reserved pragma bit */
 #define BCOM_PRAGMA_BIT_PRECISE_INC	6	/* increment 0=when possible, */
-						/*           1=iter end */
+/*           1=iter end */
 #define BCOM_PRAGMA_BIT_RST_ERROR_NO	5	/* don't reset errors on */
-						/* task enable */
+/* task enable */
 #define BCOM_PRAGMA_BIT_PACK		4	/* pack data enable */
 #define BCOM_PRAGMA_BIT_INTEGER		3	/* data alignment */
-						/* 0=frac(msb), 1=int(lsb) */
+/* 0=frac(msb), 1=int(lsb) */
 #define BCOM_PRAGMA_BIT_SPECREAD	2	/* XLB speculative read */
 #define BCOM_PRAGMA_BIT_CW		1	/* write line buffer enable */
 #define BCOM_PRAGMA_BIT_RL		0	/* read line buffer enable */
 
-	/* Looks like XLB speculative read generates XLB errors when a buffer
-	 * is at the end of the physical memory. i.e. when accessing the
-	 * lasts words, the engine tries to prefetch the next but there is no
-	 * next ...
-	 */
+/* Looks like XLB speculative read generates XLB errors when a buffer
+ * is at the end of the physical memory. i.e. when accessing the
+ * lasts words, the engine tries to prefetch the next but there is no
+ * next ...
+ */
 #define BCOM_STD_PRAGMA		((0 << BCOM_PRAGMA_BIT_RSV)		| \
-				 (0 << BCOM_PRAGMA_BIT_PRECISE_INC)	| \
-				 (0 << BCOM_PRAGMA_BIT_RST_ERROR_NO)	| \
-				 (0 << BCOM_PRAGMA_BIT_PACK)		| \
-				 (0 << BCOM_PRAGMA_BIT_INTEGER)		| \
-				 (0 << BCOM_PRAGMA_BIT_SPECREAD)	| \
-				 (1 << BCOM_PRAGMA_BIT_CW)		| \
-				 (1 << BCOM_PRAGMA_BIT_RL))
+							 (0 << BCOM_PRAGMA_BIT_PRECISE_INC)	| \
+							 (0 << BCOM_PRAGMA_BIT_RST_ERROR_NO)	| \
+							 (0 << BCOM_PRAGMA_BIT_PACK)		| \
+							 (0 << BCOM_PRAGMA_BIT_INTEGER)		| \
+							 (0 << BCOM_PRAGMA_BIT_SPECREAD)	| \
+							 (1 << BCOM_PRAGMA_BIT_CW)		| \
+							 (1 << BCOM_PRAGMA_BIT_RL))
 
 #define BCOM_PCI_PRAGMA		((0 << BCOM_PRAGMA_BIT_RSV)		| \
-				 (0 << BCOM_PRAGMA_BIT_PRECISE_INC)	| \
-				 (0 << BCOM_PRAGMA_BIT_RST_ERROR_NO)	| \
-				 (0 << BCOM_PRAGMA_BIT_PACK)		| \
-				 (1 << BCOM_PRAGMA_BIT_INTEGER)		| \
-				 (0 << BCOM_PRAGMA_BIT_SPECREAD)	| \
-				 (1 << BCOM_PRAGMA_BIT_CW)		| \
-				 (1 << BCOM_PRAGMA_BIT_RL))
+							 (0 << BCOM_PRAGMA_BIT_PRECISE_INC)	| \
+							 (0 << BCOM_PRAGMA_BIT_RST_ERROR_NO)	| \
+							 (0 << BCOM_PRAGMA_BIT_PACK)		| \
+							 (1 << BCOM_PRAGMA_BIT_INTEGER)		| \
+							 (0 << BCOM_PRAGMA_BIT_SPECREAD)	| \
+							 (1 << BCOM_PRAGMA_BIT_CW)		| \
+							 (1 << BCOM_PRAGMA_BIT_RL))
 
 #define BCOM_ATA_PRAGMA		BCOM_STD_PRAGMA
 #define BCOM_CRC16_DP_0_PRAGMA	BCOM_STD_PRAGMA
@@ -260,16 +263,16 @@ static inline void bcom_disable_prefetch(void)
 static inline void
 bcom_enable_task(int task)
 {
-        u16 reg;
-        reg = in_be16(&bcom_eng->regs->tcr[task]);
-        out_be16(&bcom_eng->regs->tcr[task],  reg | TASK_ENABLE);
+	u16 reg;
+	reg = in_be16(&bcom_eng->regs->tcr[task]);
+	out_be16(&bcom_eng->regs->tcr[task],  reg | TASK_ENABLE);
 }
 
 static inline void
 bcom_disable_task(int task)
 {
-        u16 reg = in_be16(&bcom_eng->regs->tcr[task]);
-        out_be16(&bcom_eng->regs->tcr[task], reg & ~TASK_ENABLE);
+	u16 reg = in_be16(&bcom_eng->regs->tcr[task]);
+	out_be16(&bcom_eng->regs->tcr[task], reg & ~TASK_ENABLE);
 }
 
 
@@ -282,7 +285,7 @@ bcom_task_desc(int task)
 static inline int
 bcom_task_num_descs(int task)
 {
-	return (bcom_eng->tdt[task].stop - bcom_eng->tdt[task].start)/sizeof(u32) + 1;
+	return (bcom_eng->tdt[task].stop - bcom_eng->tdt[task].start) / sizeof(u32) + 1;
 }
 
 static inline u32 *

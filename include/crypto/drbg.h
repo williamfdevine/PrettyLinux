@@ -64,14 +64,15 @@
  * of individual buffers. The order of memory block referenced in that
  * linked list determines the order of concatenation.
  */
-struct drbg_string {
+struct drbg_string
+{
 	const unsigned char *buf;
 	size_t len;
 	struct list_head list;
 };
 
 static inline void drbg_string_fill(struct drbg_string *string,
-				    const unsigned char *buf, size_t len)
+									const unsigned char *buf, size_t len)
 {
 	string->buf = buf;
 	string->len = len;
@@ -81,31 +82,35 @@ static inline void drbg_string_fill(struct drbg_string *string,
 struct drbg_state;
 typedef uint32_t drbg_flag_t;
 
-struct drbg_core {
+struct drbg_core
+{
 	drbg_flag_t flags;	/* flags for the cipher */
 	__u8 statelen;		/* maximum state length */
 	__u8 blocklen_bytes;	/* block size of output in bytes */
 	char cra_name[CRYPTO_MAX_ALG_NAME]; /* mapping to kernel crypto API */
-	 /* kernel crypto API backend cipher name */
+	/* kernel crypto API backend cipher name */
 	char backend_cra_name[CRYPTO_MAX_ALG_NAME];
 };
 
-struct drbg_state_ops {
+struct drbg_state_ops
+{
 	int (*update)(struct drbg_state *drbg, struct list_head *seed,
-		      int reseed);
+				  int reseed);
 	int (*generate)(struct drbg_state *drbg,
-			unsigned char *buf, unsigned int buflen,
-			struct list_head *addtl);
+					unsigned char *buf, unsigned int buflen,
+					struct list_head *addtl);
 	int (*crypto_init)(struct drbg_state *drbg);
 	int (*crypto_fini)(struct drbg_state *drbg);
 
 };
 
-struct drbg_test_data {
+struct drbg_test_data
+{
 	struct drbg_string *testentropy; /* TEST PARAMETER: test entropy */
 };
 
-struct drbg_state {
+struct drbg_state
+{
 	struct mutex drbg_mutex;	/* lock around DRBG */
 	unsigned char *V;	/* internal state 10.1.1.1 1a) */
 	unsigned char *Vbuf;
@@ -115,7 +120,7 @@ struct drbg_state {
 	/* Number of RNG requests since last reseed -- 10.1.1.1 1c) */
 	size_t reseed_ctr;
 	size_t reseed_threshold;
-	 /* some memory the DRBG can use for its operation */
+	/* some memory the DRBG can use for its operation */
 	unsigned char *scratchpad;
 	unsigned char *scratchpadbuf;
 	void *priv_data;	/* Cipher handle */
@@ -140,21 +145,30 @@ struct drbg_state {
 static inline __u8 drbg_statelen(struct drbg_state *drbg)
 {
 	if (drbg && drbg->core)
+	{
 		return drbg->core->statelen;
+	}
+
 	return 0;
 }
 
 static inline __u8 drbg_blocklen(struct drbg_state *drbg)
 {
 	if (drbg && drbg->core)
+	{
 		return drbg->core->blocklen_bytes;
+	}
+
 	return 0;
 }
 
 static inline __u8 drbg_keylen(struct drbg_state *drbg)
 {
 	if (drbg && drbg->core)
+	{
 		return (drbg->core->statelen - drbg->core->blocklen_bytes);
+	}
+
 	return 0;
 }
 
@@ -175,7 +189,7 @@ static inline size_t drbg_max_addtl(struct drbg_state *drbg)
 	 */
 	return (SIZE_MAX - 1);
 #else
-	return (1UL<<35);
+	return (1UL << 35);
 #endif
 }
 
@@ -185,7 +199,7 @@ static inline size_t drbg_max_requests(struct drbg_state *drbg)
 #if (__BITS_PER_LONG == 32)
 	return SIZE_MAX;
 #else
-	return (1UL<<48);
+	return (1UL << 48);
 #endif
 }
 
@@ -203,11 +217,11 @@ static inline size_t drbg_max_requests(struct drbg_state *drbg)
  *	see crypto_rng_get_bytes
  */
 static inline int crypto_drbg_get_bytes_addtl(struct crypto_rng *drng,
-			unsigned char *outbuf, unsigned int outlen,
-			struct drbg_string *addtl)
+		unsigned char *outbuf, unsigned int outlen,
+		struct drbg_string *addtl)
 {
 	return crypto_rng_generate(drng, addtl->buf, addtl->len,
-				   outbuf, outlen);
+							   outbuf, outlen);
 }
 
 /*
@@ -228,14 +242,14 @@ static inline int crypto_drbg_get_bytes_addtl(struct crypto_rng *drng,
  *	see crypto_rng_get_bytes
  */
 static inline int crypto_drbg_get_bytes_addtl_test(struct crypto_rng *drng,
-			unsigned char *outbuf, unsigned int outlen,
-			struct drbg_string *addtl,
-			struct drbg_test_data *test_data)
+		unsigned char *outbuf, unsigned int outlen,
+		struct drbg_string *addtl,
+		struct drbg_test_data *test_data)
 {
 	crypto_rng_set_entropy(drng, test_data->testentropy->buf,
-			       test_data->testentropy->len);
+						   test_data->testentropy->len);
 	return crypto_rng_generate(drng, addtl->buf, addtl->len,
-				   outbuf, outlen);
+							   outbuf, outlen);
 }
 
 /*
@@ -253,11 +267,11 @@ static inline int crypto_drbg_get_bytes_addtl_test(struct crypto_rng *drng,
  *	see crypto_rng_reset
  */
 static inline int crypto_drbg_reset_test(struct crypto_rng *drng,
-					 struct drbg_string *pers,
-					 struct drbg_test_data *test_data)
+		struct drbg_string *pers,
+		struct drbg_test_data *test_data)
 {
 	crypto_rng_set_entropy(drng, test_data->testentropy->buf,
-			       test_data->testentropy->len);
+						   test_data->testentropy->len);
 	return crypto_rng_reset(drng, pers->buf, pers->len);
 }
 
@@ -271,9 +285,10 @@ static inline int crypto_drbg_reset_test(struct crypto_rng *drng,
 #define DRBG_STRENGTH192	((drbg_flag_t)1<<4)
 #define DRBG_STRENGTH256	((drbg_flag_t)1<<5)
 #define DRBG_STRENGTH_MASK	(DRBG_STRENGTH128 | DRBG_STRENGTH192 | \
-				 DRBG_STRENGTH256)
+							 DRBG_STRENGTH256)
 
-enum drbg_prefixes {
+enum drbg_prefixes
+{
 	DRBG_PREFIX0 = 0x00,
 	DRBG_PREFIX1,
 	DRBG_PREFIX2,

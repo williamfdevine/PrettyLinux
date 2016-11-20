@@ -50,12 +50,12 @@ static u64 notrace orion_read_sched_clock(void)
 static u32 ticks_per_jiffy;
 
 static int orion_clkevt_next_event(unsigned long delta,
-				   struct clock_event_device *dev)
+								   struct clock_event_device *dev)
 {
 	/* setup and enable one-shot timer */
 	writel(delta, timer_base + TIMER1_VAL);
 	atomic_io_modify(timer_base + TIMER_CTRL,
-		TIMER1_RELOAD_EN | TIMER1_EN, TIMER1_EN);
+					 TIMER1_RELOAD_EN | TIMER1_EN, TIMER1_EN);
 
 	return 0;
 }
@@ -64,7 +64,7 @@ static int orion_clkevt_shutdown(struct clock_event_device *dev)
 {
 	/* disable timer */
 	atomic_io_modify(timer_base + TIMER_CTRL,
-			 TIMER1_RELOAD_EN | TIMER1_EN, 0);
+					 TIMER1_RELOAD_EN | TIMER1_EN, 0);
 	return 0;
 }
 
@@ -74,15 +74,16 @@ static int orion_clkevt_set_periodic(struct clock_event_device *dev)
 	writel(ticks_per_jiffy - 1, timer_base + TIMER1_RELOAD);
 	writel(ticks_per_jiffy - 1, timer_base + TIMER1_VAL);
 	atomic_io_modify(timer_base + TIMER_CTRL,
-			 TIMER1_RELOAD_EN | TIMER1_EN,
-			 TIMER1_RELOAD_EN | TIMER1_EN);
+					 TIMER1_RELOAD_EN | TIMER1_EN,
+					 TIMER1_RELOAD_EN | TIMER1_EN);
 	return 0;
 }
 
-static struct clock_event_device orion_clkevt = {
+static struct clock_event_device orion_clkevt =
+{
 	.name			= "orion_event",
 	.features		= CLOCK_EVT_FEAT_ONESHOT |
-				  CLOCK_EVT_FEAT_PERIODIC,
+	CLOCK_EVT_FEAT_PERIODIC,
 	.shift			= 32,
 	.rating			= 300,
 	.set_next_event		= orion_clkevt_next_event,
@@ -98,7 +99,8 @@ static irqreturn_t orion_clkevt_irq_handler(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static struct irqaction orion_clkevt_irq = {
+static struct irqaction orion_clkevt_irq =
+{
 	.name		= "orion_event",
 	.flags		= IRQF_TIMER,
 	.handler	= orion_clkevt_irq_handler,
@@ -111,26 +113,34 @@ static int __init orion_timer_init(struct device_node *np)
 
 	/* timer registers are shared with watchdog timer */
 	timer_base = of_iomap(np, 0);
-	if (!timer_base) {
+
+	if (!timer_base)
+	{
 		pr_err("%s: unable to map resource\n", np->name);
 		return -ENXIO;
 	}
 
 	clk = of_clk_get(np, 0);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		pr_err("%s: unable to get clk\n", np->name);
 		return PTR_ERR(clk);
 	}
 
 	ret = clk_prepare_enable(clk);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Failed to prepare clock");
 		return ret;
 	}
 
 	/* we are only interested in timer1 irq */
 	irq = irq_of_parse_and_map(np, 1);
-	if (irq <= 0) {
+
+	if (irq <= 0)
+	{
 		pr_err("%s: unable to parse timer1 irq\n", np->name);
 		return -EINVAL;
 	}
@@ -139,13 +149,15 @@ static int __init orion_timer_init(struct device_node *np)
 	writel(~0, timer_base + TIMER0_VAL);
 	writel(~0, timer_base + TIMER0_RELOAD);
 	atomic_io_modify(timer_base + TIMER_CTRL,
-		TIMER0_RELOAD_EN | TIMER0_EN,
-		TIMER0_RELOAD_EN | TIMER0_EN);
+					 TIMER0_RELOAD_EN | TIMER0_EN,
+					 TIMER0_RELOAD_EN | TIMER0_EN);
 
 	ret = clocksource_mmio_init(timer_base + TIMER0_VAL, "orion_clocksource",
-				    clk_get_rate(clk), 300, 32,
-				    clocksource_mmio_readl_down);
-	if (ret) {
+								clk_get_rate(clk), 300, 32,
+								clocksource_mmio_readl_down);
+
+	if (ret)
+	{
 		pr_err("Failed to initialize mmio timer");
 		return ret;
 	}
@@ -154,16 +166,18 @@ static int __init orion_timer_init(struct device_node *np)
 
 	/* setup timer1 as clockevent timer */
 	ret = setup_irq(irq, &orion_clkevt_irq);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("%s: unable to setup irq\n", np->name);
 		return ret;
 	}
 
-	ticks_per_jiffy = (clk_get_rate(clk) + HZ/2) / HZ;
+	ticks_per_jiffy = (clk_get_rate(clk) + HZ / 2) / HZ;
 	orion_clkevt.cpumask = cpumask_of(0);
 	orion_clkevt.irq = irq;
 	clockevents_config_and_register(&orion_clkevt, clk_get_rate(clk),
-					ORION_ONESHOT_MIN, ORION_ONESHOT_MAX);
+									ORION_ONESHOT_MIN, ORION_ONESHOT_MAX);
 
 	return 0;
 }

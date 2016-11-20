@@ -11,7 +11,7 @@
  * This will set up the counters within the descriptor. You can call
  * trace_seq_init() more than once to reset the trace_seq to start
  * from scratch.
- * 
+ *
  * The buffer size is currently PAGE_SIZE, although it may become dynamic
  * in the future.
  *
@@ -38,7 +38,9 @@
 static inline void __trace_seq_init(struct trace_seq *s)
 {
 	if (unlikely(!s->seq.size))
+	{
 		trace_seq_init(s);
+	}
 }
 
 /**
@@ -64,7 +66,9 @@ int trace_print_seq(struct seq_file *m, struct trace_seq *s)
 	 * do something else with the contents.
 	 */
 	if (!ret)
+	{
 		trace_seq_init(s);
+	}
 
 	return ret;
 }
@@ -86,7 +90,9 @@ void trace_seq_printf(struct trace_seq *s, const char *fmt, ...)
 	va_list ap;
 
 	if (s->full)
+	{
 		return;
+	}
 
 	__trace_seq_init(s);
 
@@ -95,7 +101,8 @@ void trace_seq_printf(struct trace_seq *s, const char *fmt, ...)
 	va_end(ap);
 
 	/* If we can't write it all, don't bother writing anything */
-	if (unlikely(seq_buf_has_overflowed(&s->seq))) {
+	if (unlikely(seq_buf_has_overflowed(&s->seq)))
+	{
 		s->seq.len = save_len;
 		s->full = 1;
 	}
@@ -111,18 +118,21 @@ EXPORT_SYMBOL_GPL(trace_seq_printf);
  * Writes a ASCII representation of a bitmask string into @s.
  */
 void trace_seq_bitmask(struct trace_seq *s, const unsigned long *maskp,
-		      int nmaskbits)
+					   int nmaskbits)
 {
 	unsigned int save_len = s->seq.len;
 
 	if (s->full)
+	{
 		return;
+	}
 
 	__trace_seq_init(s);
 
 	seq_buf_printf(&s->seq, "%*pb", nmaskbits, maskp);
 
-	if (unlikely(seq_buf_has_overflowed(&s->seq))) {
+	if (unlikely(seq_buf_has_overflowed(&s->seq)))
+	{
 		s->seq.len = save_len;
 		s->full = 1;
 	}
@@ -145,14 +155,17 @@ void trace_seq_vprintf(struct trace_seq *s, const char *fmt, va_list args)
 	unsigned int save_len = s->seq.len;
 
 	if (s->full)
+	{
 		return;
+	}
 
 	__trace_seq_init(s);
 
 	seq_buf_vprintf(&s->seq, fmt, args);
 
 	/* If we can't write it all, don't bother writing anything */
-	if (unlikely(seq_buf_has_overflowed(&s->seq))) {
+	if (unlikely(seq_buf_has_overflowed(&s->seq)))
+	{
 		s->seq.len = save_len;
 		s->full = 1;
 	}
@@ -179,14 +192,17 @@ void trace_seq_bprintf(struct trace_seq *s, const char *fmt, const u32 *binary)
 	unsigned int save_len = s->seq.len;
 
 	if (s->full)
+	{
 		return;
+	}
 
 	__trace_seq_init(s);
 
 	seq_buf_bprintf(&s->seq, fmt, binary);
 
 	/* If we can't write it all, don't bother writing anything */
-	if (unlikely(seq_buf_has_overflowed(&s->seq))) {
+	if (unlikely(seq_buf_has_overflowed(&s->seq)))
+	{
 		s->seq.len = save_len;
 		s->full = 1;
 		return;
@@ -209,11 +225,14 @@ void trace_seq_puts(struct trace_seq *s, const char *str)
 	unsigned int len = strlen(str);
 
 	if (s->full)
+	{
 		return;
+	}
 
 	__trace_seq_init(s);
 
-	if (len > TRACE_SEQ_BUF_LEFT(s)) {
+	if (len > TRACE_SEQ_BUF_LEFT(s))
+	{
 		s->full = 1;
 		return;
 	}
@@ -235,11 +254,14 @@ EXPORT_SYMBOL_GPL(trace_seq_puts);
 void trace_seq_putc(struct trace_seq *s, unsigned char c)
 {
 	if (s->full)
+	{
 		return;
+	}
 
 	__trace_seq_init(s);
 
-	if (TRACE_SEQ_BUF_LEFT(s) < 1) {
+	if (TRACE_SEQ_BUF_LEFT(s) < 1)
+	{
 		s->full = 1;
 		return;
 	}
@@ -261,11 +283,14 @@ EXPORT_SYMBOL_GPL(trace_seq_putc);
 void trace_seq_putmem(struct trace_seq *s, const void *mem, unsigned int len)
 {
 	if (s->full)
+	{
 		return;
+	}
 
 	__trace_seq_init(s);
 
-	if (len > TRACE_SEQ_BUF_LEFT(s)) {
+	if (len > TRACE_SEQ_BUF_LEFT(s))
+	{
 		s->full = 1;
 		return;
 	}
@@ -285,17 +310,20 @@ EXPORT_SYMBOL_GPL(trace_seq_putmem);
  * in hex characters.
  */
 void trace_seq_putmem_hex(struct trace_seq *s, const void *mem,
-			 unsigned int len)
+						  unsigned int len)
 {
 	unsigned int save_len = s->seq.len;
 
 	if (s->full)
+	{
 		return;
+	}
 
 	__trace_seq_init(s);
 
 	/* Each byte is represented by two chars */
-	if (len * 2 > TRACE_SEQ_BUF_LEFT(s)) {
+	if (len * 2 > TRACE_SEQ_BUF_LEFT(s))
+	{
 		s->full = 1;
 		return;
 	}
@@ -303,7 +331,8 @@ void trace_seq_putmem_hex(struct trace_seq *s, const void *mem,
 	/* The added spaces can still cause an overflow */
 	seq_buf_putmem_hex(&s->seq, mem, len);
 
-	if (unlikely(seq_buf_has_overflowed(&s->seq))) {
+	if (unlikely(seq_buf_has_overflowed(&s->seq)))
+	{
 		s->seq.len = save_len;
 		s->full = 1;
 		return;
@@ -328,18 +357,22 @@ int trace_seq_path(struct trace_seq *s, const struct path *path)
 	unsigned int save_len = s->seq.len;
 
 	if (s->full)
+	{
 		return 0;
+	}
 
 	__trace_seq_init(s);
 
-	if (TRACE_SEQ_BUF_LEFT(s) < 1) {
+	if (TRACE_SEQ_BUF_LEFT(s) < 1)
+	{
 		s->full = 1;
 		return 0;
 	}
 
 	seq_buf_path(&s->seq, path, "\n");
 
-	if (unlikely(seq_buf_has_overflowed(&s->seq))) {
+	if (unlikely(seq_buf_has_overflowed(&s->seq)))
+	{
 		s->seq.len = save_len;
 		s->full = 1;
 		return 0;

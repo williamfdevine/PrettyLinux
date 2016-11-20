@@ -78,16 +78,19 @@ static struct sockaddr_in6 daddr6;
 static struct timespec ts_prev;
 
 static void __print_timestamp(const char *name, struct timespec *cur,
-			      uint32_t key, int payload_len)
+							  uint32_t key, int payload_len)
 {
 	if (!(cur->tv_sec | cur->tv_nsec))
+	{
 		return;
+	}
 
 	fprintf(stderr, "  %s: %lu s %lu us (seq=%u, len=%u)",
 			name, cur->tv_sec, cur->tv_nsec / 1000,
 			key, payload_len);
 
-	if ((ts_prev.tv_sec | ts_prev.tv_nsec)) {
+	if ((ts_prev.tv_sec | ts_prev.tv_nsec))
+	{
 		int64_t cur_ms, prev_ms;
 
 		cur_ms = (long) cur->tv_sec * 1000 * 1000;
@@ -116,24 +119,29 @@ static void print_timestamp_usr(void)
 }
 
 static void print_timestamp(struct scm_timestamping *tss, int tstype,
-			    int tskey, int payload_len)
+							int tskey, int payload_len)
 {
 	const char *tsname;
 
-	switch (tstype) {
-	case SCM_TSTAMP_SCHED:
-		tsname = "  ENQ";
-		break;
-	case SCM_TSTAMP_SND:
-		tsname = "  SND";
-		break;
-	case SCM_TSTAMP_ACK:
-		tsname = "  ACK";
-		break;
-	default:
-		error(1, 0, "unknown timestamp type: %u",
-		tstype);
+	switch (tstype)
+	{
+		case SCM_TSTAMP_SCHED:
+			tsname = "  ENQ";
+			break;
+
+		case SCM_TSTAMP_SND:
+			tsname = "  SND";
+			break;
+
+		case SCM_TSTAMP_ACK:
+			tsname = "  ACK";
+			break;
+
+		default:
+			error(1, 0, "unknown timestamp type: %u",
+				  tstype);
 	}
+
 	__print_timestamp(tsname, &tss->ts[0], tskey, payload_len);
 }
 
@@ -143,14 +151,22 @@ static void print_payload(char *data, int len)
 	int i;
 
 	if (!len)
+	{
 		return;
+	}
 
 	if (len > 70)
+	{
 		len = 70;
+	}
 
 	fprintf(stderr, "payload: ");
+
 	for (i = 0; i < len; i++)
+	{
 		fprintf(stderr, "%02hhx ", data[i]);
+	}
+
 	fprintf(stderr, "\n");
 }
 
@@ -159,9 +175,9 @@ static void print_pktinfo(int family, int ifindex, void *saddr, void *daddr)
 	char sa[INET6_ADDRSTRLEN], da[INET6_ADDRSTRLEN];
 
 	fprintf(stderr, "         pktinfo: ifindex=%u src=%s dst=%s\n",
-		ifindex,
-		saddr ? inet_ntop(family, saddr, sa, sizeof(sa)) : "unknown",
-		daddr ? inet_ntop(family, daddr, da, sizeof(da)) : "unknown");
+			ifindex,
+			saddr ? inet_ntop(family, saddr, sa, sizeof(sa)) : "unknown",
+			daddr ? inet_ntop(family, daddr, da, sizeof(da)) : "unknown");
 }
 
 static void __poll(int fd)
@@ -172,8 +188,11 @@ static void __poll(int fd)
 	memset(&pollfd, 0, sizeof(pollfd));
 	pollfd.fd = fd;
 	ret = poll(&pollfd, 1, 100);
+
 	if (ret != 1)
+	{
 		error(1, errno, "poll");
+	}
 }
 
 static void __recv_errmsg_cmsg(struct msghdr *msg, int payload_len)
@@ -184,40 +203,52 @@ static void __recv_errmsg_cmsg(struct msghdr *msg, int payload_len)
 	int batch = 0;
 
 	for (cm = CMSG_FIRSTHDR(msg);
-	     cm && cm->cmsg_len;
-	     cm = CMSG_NXTHDR(msg, cm)) {
+		 cm && cm->cmsg_len;
+		 cm = CMSG_NXTHDR(msg, cm))
+	{
 		if (cm->cmsg_level == SOL_SOCKET &&
-		    cm->cmsg_type == SCM_TIMESTAMPING) {
+			cm->cmsg_type == SCM_TIMESTAMPING)
+		{
 			tss = (void *) CMSG_DATA(cm);
-		} else if ((cm->cmsg_level == SOL_IP &&
-			    cm->cmsg_type == IP_RECVERR) ||
-			   (cm->cmsg_level == SOL_IPV6 &&
-			    cm->cmsg_type == IPV6_RECVERR)) {
+		}
+		else if ((cm->cmsg_level == SOL_IP &&
+				  cm->cmsg_type == IP_RECVERR) ||
+				 (cm->cmsg_level == SOL_IPV6 &&
+				  cm->cmsg_type == IPV6_RECVERR))
+		{
 			serr = (void *) CMSG_DATA(cm);
+
 			if (serr->ee_errno != ENOMSG ||
-			    serr->ee_origin != SO_EE_ORIGIN_TIMESTAMPING) {
+				serr->ee_origin != SO_EE_ORIGIN_TIMESTAMPING)
+			{
 				fprintf(stderr, "unknown ip error %d %d\n",
 						serr->ee_errno,
 						serr->ee_origin);
 				serr = NULL;
 			}
-		} else if (cm->cmsg_level == SOL_IP &&
-			   cm->cmsg_type == IP_PKTINFO) {
+		}
+		else if (cm->cmsg_level == SOL_IP &&
+				 cm->cmsg_type == IP_PKTINFO)
+		{
 			struct in_pktinfo *info = (void *) CMSG_DATA(cm);
 			print_pktinfo(AF_INET, info->ipi_ifindex,
-				      &info->ipi_spec_dst, &info->ipi_addr);
-		} else if (cm->cmsg_level == SOL_IPV6 &&
-			   cm->cmsg_type == IPV6_PKTINFO) {
+						  &info->ipi_spec_dst, &info->ipi_addr);
+		}
+		else if (cm->cmsg_level == SOL_IPV6 &&
+				 cm->cmsg_type == IPV6_PKTINFO)
+		{
 			struct in6_pktinfo *info6 = (void *) CMSG_DATA(cm);
 			print_pktinfo(AF_INET6, info6->ipi6_ifindex,
-				      NULL, &info6->ipi6_addr);
-		} else
+						  NULL, &info6->ipi6_addr);
+		}
+		else
 			fprintf(stderr, "unknown cmsg %d,%d\n",
 					cm->cmsg_level, cm->cmsg_type);
 
-		if (serr && tss) {
+		if (serr && tss)
+		{
 			print_timestamp(tss, serr->ee_info, serr->ee_data,
-					payload_len);
+							payload_len);
 			serr = NULL;
 			tss = NULL;
 			batch++;
@@ -225,7 +256,9 @@ static void __recv_errmsg_cmsg(struct msghdr *msg, int payload_len)
 	}
 
 	if (batch > 1)
+	{
 		fprintf(stderr, "batched %d timestamps\n", batch);
+	}
 }
 
 static int recv_errmsg(int fd)
@@ -237,8 +270,11 @@ static int recv_errmsg(int fd)
 	int ret = 0;
 
 	data = malloc(cfg_payload_len);
+
 	if (!data)
+	{
 		error(1, 0, "malloc");
+	}
 
 	memset(&msg, 0, sizeof(msg));
 	memset(&entry, 0, sizeof(entry));
@@ -254,13 +290,20 @@ static int recv_errmsg(int fd)
 	msg.msg_controllen = sizeof(ctrl);
 
 	ret = recvmsg(fd, &msg, MSG_ERRQUEUE);
-	if (ret == -1 && errno != EAGAIN)
-		error(1, errno, "recvmsg");
 
-	if (ret >= 0) {
+	if (ret == -1 && errno != EAGAIN)
+	{
+		error(1, errno, "recvmsg");
+	}
+
+	if (ret >= 0)
+	{
 		__recv_errmsg_cmsg(&msg, ret);
+
 		if (cfg_show_payload)
+		{
 			print_payload(data, cfg_payload_len);
+		}
 	}
 
 	free(data);
@@ -272,72 +315,110 @@ static void do_test(int family, unsigned int opt)
 	char *buf;
 	int fd, i, val = 1, total_len;
 
-	if (family == AF_INET6 && cfg_proto != SOCK_STREAM) {
+	if (family == AF_INET6 && cfg_proto != SOCK_STREAM)
+	{
 		/* due to lack of checksum generation code */
 		fprintf(stderr, "test: skipping datagram over IPv6\n");
 		return;
 	}
 
 	total_len = cfg_payload_len;
-	if (cfg_proto == SOCK_RAW) {
+
+	if (cfg_proto == SOCK_RAW)
+	{
 		total_len += sizeof(struct udphdr);
+
 		if (cfg_ipproto == IPPROTO_RAW)
+		{
 			total_len += sizeof(struct iphdr);
-	}
-
-	buf = malloc(total_len);
-	if (!buf)
-		error(1, 0, "malloc");
-
-	fd = socket(family, cfg_proto, cfg_ipproto);
-	if (fd < 0)
-		error(1, errno, "socket");
-
-	if (cfg_proto == SOCK_STREAM) {
-		if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY,
-			       (char*) &val, sizeof(val)))
-			error(1, 0, "setsockopt no nagle");
-
-		if (family == PF_INET) {
-			if (connect(fd, (void *) &daddr, sizeof(daddr)))
-				error(1, errno, "connect ipv4");
-		} else {
-			if (connect(fd, (void *) &daddr6, sizeof(daddr6)))
-				error(1, errno, "connect ipv6");
 		}
 	}
 
-	if (cfg_do_pktinfo) {
-		if (family == AF_INET6) {
+	buf = malloc(total_len);
+
+	if (!buf)
+	{
+		error(1, 0, "malloc");
+	}
+
+	fd = socket(family, cfg_proto, cfg_ipproto);
+
+	if (fd < 0)
+	{
+		error(1, errno, "socket");
+	}
+
+	if (cfg_proto == SOCK_STREAM)
+	{
+		if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY,
+					   (char *) &val, sizeof(val)))
+		{
+			error(1, 0, "setsockopt no nagle");
+		}
+
+		if (family == PF_INET)
+		{
+			if (connect(fd, (void *) &daddr, sizeof(daddr)))
+			{
+				error(1, errno, "connect ipv4");
+			}
+		}
+		else
+		{
+			if (connect(fd, (void *) &daddr6, sizeof(daddr6)))
+			{
+				error(1, errno, "connect ipv6");
+			}
+		}
+	}
+
+	if (cfg_do_pktinfo)
+	{
+		if (family == AF_INET6)
+		{
 			if (setsockopt(fd, SOL_IPV6, IPV6_RECVPKTINFO,
-				       &val, sizeof(val)))
+						   &val, sizeof(val)))
+			{
 				error(1, errno, "setsockopt pktinfo ipv6");
-		} else {
+			}
+		}
+		else
+		{
 			if (setsockopt(fd, SOL_IP, IP_PKTINFO,
-				       &val, sizeof(val)))
+						   &val, sizeof(val)))
+			{
 				error(1, errno, "setsockopt pktinfo ipv4");
+			}
 		}
 	}
 
 	opt |= SOF_TIMESTAMPING_SOFTWARE |
-	       SOF_TIMESTAMPING_OPT_CMSG |
-	       SOF_TIMESTAMPING_OPT_ID;
+		   SOF_TIMESTAMPING_OPT_CMSG |
+		   SOF_TIMESTAMPING_OPT_ID;
+
 	if (cfg_loop_nodata)
+	{
 		opt |= SOF_TIMESTAMPING_OPT_TSONLY;
+	}
 
 	if (setsockopt(fd, SOL_SOCKET, SO_TIMESTAMPING,
-		       (char *) &opt, sizeof(opt)))
+				   (char *) &opt, sizeof(opt)))
+	{
 		error(1, 0, "setsockopt timestamping");
+	}
 
-	for (i = 0; i < cfg_num_pkts; i++) {
+	for (i = 0; i < cfg_num_pkts; i++)
+	{
 		memset(&ts_prev, 0, sizeof(ts_prev));
 		memset(buf, 'a' + i, total_len);
 
-		if (cfg_proto == SOCK_RAW) {
+		if (cfg_proto == SOCK_RAW)
+		{
 			struct udphdr *udph;
 			int off = 0;
 
-			if (cfg_ipproto == IPPROTO_RAW) {
+			if (cfg_ipproto == IPPROTO_RAW)
+			{
 				struct iphdr *iph = (void *) buf;
 
 				memset(iph, 0, sizeof(*iph));
@@ -359,16 +440,27 @@ static void do_test(int family, unsigned int opt)
 		}
 
 		print_timestamp_usr();
-		if (cfg_proto != SOCK_STREAM) {
+
+		if (cfg_proto != SOCK_STREAM)
+		{
 			if (family == PF_INET)
+			{
 				val = sendto(fd, buf, total_len, 0, (void *) &daddr, sizeof(daddr));
+			}
 			else
+			{
 				val = sendto(fd, buf, total_len, 0, (void *) &daddr6, sizeof(daddr6));
-		} else {
+			}
+		}
+		else
+		{
 			val = send(fd, buf, cfg_payload_len, 0);
 		}
+
 		if (val != total_len)
+		{
 			error(1, errno, "send");
+		}
 
 		/* wait for all errors to be queued, else ACKs arrive OOO */
 		usleep(50 * 1000);
@@ -379,7 +471,9 @@ static void do_test(int family, unsigned int opt)
 	}
 
 	if (close(fd))
+	{
 		error(1, errno, "close");
+	}
 
 	free(buf);
 	usleep(400 * 1000);
@@ -409,61 +503,86 @@ static void parse_opt(int argc, char **argv)
 	int proto_count = 0;
 	char c;
 
-	while ((c = getopt(argc, argv, "46hIl:np:rRux")) != -1) {
-		switch (c) {
-		case '4':
-			do_ipv6 = 0;
-			break;
-		case '6':
-			do_ipv4 = 0;
-			break;
-		case 'I':
-			cfg_do_pktinfo = true;
-			break;
-		case 'n':
-			cfg_loop_nodata = true;
-			break;
-		case 'r':
-			proto_count++;
-			cfg_proto = SOCK_RAW;
-			cfg_ipproto = IPPROTO_UDP;
-			break;
-		case 'R':
-			proto_count++;
-			cfg_proto = SOCK_RAW;
-			cfg_ipproto = IPPROTO_RAW;
-			break;
-		case 'u':
-			proto_count++;
-			cfg_proto = SOCK_DGRAM;
-			cfg_ipproto = IPPROTO_UDP;
-			break;
-		case 'l':
-			cfg_payload_len = strtoul(optarg, NULL, 10);
-			break;
-		case 'p':
-			dest_port = strtoul(optarg, NULL, 10);
-			break;
-		case 'x':
-			cfg_show_payload = true;
-			break;
-		case 'h':
-		default:
-			usage(argv[0]);
+	while ((c = getopt(argc, argv, "46hIl:np:rRux")) != -1)
+	{
+		switch (c)
+		{
+			case '4':
+				do_ipv6 = 0;
+				break;
+
+			case '6':
+				do_ipv4 = 0;
+				break;
+
+			case 'I':
+				cfg_do_pktinfo = true;
+				break;
+
+			case 'n':
+				cfg_loop_nodata = true;
+				break;
+
+			case 'r':
+				proto_count++;
+				cfg_proto = SOCK_RAW;
+				cfg_ipproto = IPPROTO_UDP;
+				break;
+
+			case 'R':
+				proto_count++;
+				cfg_proto = SOCK_RAW;
+				cfg_ipproto = IPPROTO_RAW;
+				break;
+
+			case 'u':
+				proto_count++;
+				cfg_proto = SOCK_DGRAM;
+				cfg_ipproto = IPPROTO_UDP;
+				break;
+
+			case 'l':
+				cfg_payload_len = strtoul(optarg, NULL, 10);
+				break;
+
+			case 'p':
+				dest_port = strtoul(optarg, NULL, 10);
+				break;
+
+			case 'x':
+				cfg_show_payload = true;
+				break;
+
+			case 'h':
+			default:
+				usage(argv[0]);
 		}
 	}
 
 	if (!cfg_payload_len)
+	{
 		error(1, 0, "payload may not be nonzero");
+	}
+
 	if (cfg_proto != SOCK_STREAM && cfg_payload_len > 1472)
+	{
 		error(1, 0, "udp packet might exceed expected MTU");
+	}
+
 	if (!do_ipv4 && !do_ipv6)
+	{
 		error(1, 0, "pass -4 or -6, not both");
+	}
+
 	if (proto_count > 1)
+	{
 		error(1, 0, "pass -r, -R or -u, not multiple");
+	}
 
 	if (optind != argc - 1)
+	{
 		error(1, 0, "missing required hostname argument");
+	}
 }
 
 static void resolve_hostname(const char *hostname)
@@ -472,24 +591,34 @@ static void resolve_hostname(const char *hostname)
 	int have_ipv4 = 0, have_ipv6 = 0;
 
 	if (getaddrinfo(hostname, NULL, NULL, &addrs))
+	{
 		error(1, errno, "getaddrinfo");
+	}
 
 	cur = addrs;
-	while (cur && !have_ipv4 && !have_ipv6) {
-		if (!have_ipv4 && cur->ai_family == AF_INET) {
+
+	while (cur && !have_ipv4 && !have_ipv6)
+	{
+		if (!have_ipv4 && cur->ai_family == AF_INET)
+		{
 			memcpy(&daddr, cur->ai_addr, sizeof(daddr));
 			daddr.sin_port = htons(dest_port);
 			have_ipv4 = 1;
 		}
-		else if (!have_ipv6 && cur->ai_family == AF_INET6) {
+		else if (!have_ipv6 && cur->ai_family == AF_INET6)
+		{
 			memcpy(&daddr6, cur->ai_addr, sizeof(daddr6));
 			daddr6.sin6_port = htons(dest_port);
 			have_ipv6 = 1;
 		}
+
 		cur = cur->ai_next;
 	}
+
 	if (addrs)
+	{
 		freeaddrinfo(addrs);
+	}
 
 	do_ipv4 &= have_ipv4;
 	do_ipv6 &= have_ipv6;
@@ -510,7 +639,8 @@ static void do_main(int family)
 	do_test(family, SOF_TIMESTAMPING_TX_SCHED |
 			SOF_TIMESTAMPING_TX_SOFTWARE);
 
-	if (cfg_proto == SOCK_STREAM) {
+	if (cfg_proto == SOCK_STREAM)
+	{
 		fprintf(stderr, "\ntest ACK\n");
 		do_test(family, SOF_TIMESTAMPING_TX_ACK);
 
@@ -530,7 +660,9 @@ const char *sock_names[] = { NULL, "TCP", "UDP", "RAW" };
 int main(int argc, char **argv)
 {
 	if (argc == 1)
+	{
 		usage(argv[0]);
+	}
 
 	parse_opt(argc, argv);
 	resolve_hostname(argv[argc - 1]);
@@ -541,9 +673,14 @@ int main(int argc, char **argv)
 	fprintf(stderr, "\n");
 
 	if (do_ipv4)
+	{
 		do_main(PF_INET);
+	}
+
 	if (do_ipv6)
+	{
 		do_main(PF_INET6);
+	}
 
 	return 0;
 }

@@ -47,7 +47,8 @@
 
 #include "hci_uart.h"
 
-struct h4_struct {
+struct h4_struct
+{
 	struct sk_buff *rx_skb;
 	struct sk_buff_head txq;
 };
@@ -60,8 +61,11 @@ static int h4_open(struct hci_uart *hu)
 	BT_DBG("hu %p", hu);
 
 	h4 = kzalloc(sizeof(*h4), GFP_KERNEL);
+
 	if (!h4)
+	{
 		return -ENOMEM;
+	}
 
 	skb_queue_head_init(&h4->txq);
 
@@ -114,7 +118,8 @@ static int h4_enqueue(struct hci_uart *hu, struct sk_buff *skb)
 	return 0;
 }
 
-static const struct h4_recv_pkt h4_recv_pkts[] = {
+static const struct h4_recv_pkt h4_recv_pkts[] =
+{
 	{ H4_RECV_ACL,   .recv = hci_recv_frame },
 	{ H4_RECV_SCO,   .recv = hci_recv_frame },
 	{ H4_RECV_EVENT, .recv = hci_recv_frame },
@@ -126,11 +131,15 @@ static int h4_recv(struct hci_uart *hu, const void *data, int count)
 	struct h4_struct *h4 = hu->priv;
 
 	if (!test_bit(HCI_UART_REGISTERED, &hu->flags))
+	{
 		return -EUNATCH;
+	}
 
 	h4->rx_skb = h4_recv_buf(hu->hdev, h4->rx_skb, data, count,
-				 h4_recv_pkts, ARRAY_SIZE(h4_recv_pkts));
-	if (IS_ERR(h4->rx_skb)) {
+							 h4_recv_pkts, ARRAY_SIZE(h4_recv_pkts));
+
+	if (IS_ERR(h4->rx_skb))
+	{
 		int err = PTR_ERR(h4->rx_skb);
 		BT_ERR("%s: Frame reassembly failed (%d)", hu->hdev->name, err);
 		h4->rx_skb = NULL;
@@ -146,7 +155,8 @@ static struct sk_buff *h4_dequeue(struct hci_uart *hu)
 	return skb_dequeue(&h4->txq);
 }
 
-static const struct hci_uart_proto h4p = {
+static const struct hci_uart_proto h4p =
+{
 	.id		= HCI_UART_H4,
 	.name		= "H4",
 	.open		= h4_open,
@@ -168,21 +178,29 @@ int __exit h4_deinit(void)
 }
 
 struct sk_buff *h4_recv_buf(struct hci_dev *hdev, struct sk_buff *skb,
-			    const unsigned char *buffer, int count,
-			    const struct h4_recv_pkt *pkts, int pkts_count)
+							const unsigned char *buffer, int count,
+							const struct h4_recv_pkt *pkts, int pkts_count)
 {
-	while (count) {
+	while (count)
+	{
 		int i, len;
 
-		if (!skb) {
-			for (i = 0; i < pkts_count; i++) {
+		if (!skb)
+		{
+			for (i = 0; i < pkts_count; i++)
+			{
 				if (buffer[0] != (&pkts[i])->type)
+				{
 					continue;
+				}
 
 				skb = bt_skb_alloc((&pkts[i])->maxlen,
-						   GFP_ATOMIC);
+								   GFP_ATOMIC);
+
 				if (!skb)
+				{
 					return ERR_PTR(-ENOMEM);
+				}
 
 				hci_skb_pkt_type(skb) = (&pkts[i])->type;
 				hci_skb_expect(skb) = (&pkts[i])->hlen;
@@ -191,7 +209,9 @@ struct sk_buff *h4_recv_buf(struct hci_dev *hdev, struct sk_buff *skb,
 
 			/* Check for invalid packet type */
 			if (!skb)
+			{
 				return ERR_PTR(-EILSEQ);
+			}
 
 			count -= 1;
 			buffer += 1;
@@ -205,59 +225,77 @@ struct sk_buff *h4_recv_buf(struct hci_dev *hdev, struct sk_buff *skb,
 
 		/* Check for partial packet */
 		if (skb->len < hci_skb_expect(skb))
+		{
 			continue;
-
-		for (i = 0; i < pkts_count; i++) {
-			if (hci_skb_pkt_type(skb) == (&pkts[i])->type)
-				break;
 		}
 
-		if (i >= pkts_count) {
+		for (i = 0; i < pkts_count; i++)
+		{
+			if (hci_skb_pkt_type(skb) == (&pkts[i])->type)
+			{
+				break;
+			}
+		}
+
+		if (i >= pkts_count)
+		{
 			kfree_skb(skb);
 			return ERR_PTR(-EILSEQ);
 		}
 
-		if (skb->len == (&pkts[i])->hlen) {
+		if (skb->len == (&pkts[i])->hlen)
+		{
 			u16 dlen;
 
-			switch ((&pkts[i])->lsize) {
-			case 0:
-				/* No variable data length */
-				dlen = 0;
-				break;
-			case 1:
-				/* Single octet variable length */
-				dlen = skb->data[(&pkts[i])->loff];
-				hci_skb_expect(skb) += dlen;
+			switch ((&pkts[i])->lsize)
+			{
+				case 0:
+					/* No variable data length */
+					dlen = 0;
+					break;
 
-				if (skb_tailroom(skb) < dlen) {
-					kfree_skb(skb);
-					return ERR_PTR(-EMSGSIZE);
-				}
-				break;
-			case 2:
-				/* Double octet variable length */
-				dlen = get_unaligned_le16(skb->data +
-							  (&pkts[i])->loff);
-				hci_skb_expect(skb) += dlen;
+				case 1:
+					/* Single octet variable length */
+					dlen = skb->data[(&pkts[i])->loff];
+					hci_skb_expect(skb) += dlen;
 
-				if (skb_tailroom(skb) < dlen) {
+					if (skb_tailroom(skb) < dlen)
+					{
+						kfree_skb(skb);
+						return ERR_PTR(-EMSGSIZE);
+					}
+
+					break;
+
+				case 2:
+					/* Double octet variable length */
+					dlen = get_unaligned_le16(skb->data +
+											  (&pkts[i])->loff);
+					hci_skb_expect(skb) += dlen;
+
+					if (skb_tailroom(skb) < dlen)
+					{
+						kfree_skb(skb);
+						return ERR_PTR(-EMSGSIZE);
+					}
+
+					break;
+
+				default:
+					/* Unsupported variable length */
 					kfree_skb(skb);
-					return ERR_PTR(-EMSGSIZE);
-				}
-				break;
-			default:
-				/* Unsupported variable length */
-				kfree_skb(skb);
-				return ERR_PTR(-EILSEQ);
+					return ERR_PTR(-EILSEQ);
 			}
 
-			if (!dlen) {
+			if (!dlen)
+			{
 				/* No more data, complete frame */
 				(&pkts[i])->recv(hdev, skb);
 				skb = NULL;
 			}
-		} else {
+		}
+		else
+		{
 			/* Complete frame */
 			(&pkts[i])->recv(hdev, skb);
 			skb = NULL;

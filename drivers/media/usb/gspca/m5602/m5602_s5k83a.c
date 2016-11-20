@@ -23,25 +23,28 @@
 
 static int s5k83a_s_ctrl(struct v4l2_ctrl *ctrl);
 
-static const struct v4l2_ctrl_ops s5k83a_ctrl_ops = {
+static const struct v4l2_ctrl_ops s5k83a_ctrl_ops =
+{
 	.s_ctrl = s5k83a_s_ctrl,
 };
 
-static struct v4l2_pix_format s5k83a_modes[] = {
+static struct v4l2_pix_format s5k83a_modes[] =
+{
 	{
 		640,
 		480,
 		V4L2_PIX_FMT_SBGGR8,
 		V4L2_FIELD_NONE,
 		.sizeimage =
-			640 * 480,
+		640 * 480,
 		.bytesperline = 640,
 		.colorspace = V4L2_COLORSPACE_SRGB,
 		.priv = 0
 	}
 };
 
-static const unsigned char preinit_s5k83a[][4] = {
+static const unsigned char preinit_s5k83a[][4] =
+{
 	{BRIDGE, M5602_XB_MCU_CLK_DIV, 0x02, 0x00},
 	{BRIDGE, M5602_XB_MCU_CLK_CTRL, 0xb0, 0x00},
 	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x00, 0x00},
@@ -81,7 +84,8 @@ static const unsigned char preinit_s5k83a[][4] = {
 /* This could probably be considerably shortened.
    I don't have the hardware to experiment with it, patches welcome
 */
-static const unsigned char init_s5k83a[][4] = {
+static const unsigned char init_s5k83a[][4] =
+{
 	/* The following sequence is useless after a clean boot
 	   but is necessary after resume from suspend */
 	{BRIDGE, M5602_XB_GPIO_DIR, 0x1d, 0x00},
@@ -138,7 +142,8 @@ static const unsigned char init_s5k83a[][4] = {
 	{SENSOR, 0x00, 0x06, 0x00},
 };
 
-static const unsigned char start_s5k83a[][4] = {
+static const unsigned char start_s5k83a[][4] =
+{
 	{BRIDGE, M5602_XB_SEN_CLK_DIV, 0x06, 0x00},
 	{BRIDGE, M5602_XB_SEN_CLK_CTRL, 0xb0, 0x00},
 	{BRIDGE, M5602_XB_ADC_CTRL, 0xc0, 0x00},
@@ -169,7 +174,7 @@ static void s5k83a_dump_registers(struct sd *sd);
 static int s5k83a_get_rotation(struct sd *sd, u8 *reg_data);
 static int s5k83a_set_led_indication(struct sd *sd, u8 val);
 static int s5k83a_set_flip_real(struct gspca_dev *gspca_dev,
-				__s32 vflip, __s32 hflip);
+								__s32 vflip, __s32 hflip);
 
 int s5k83a_probe(struct sd *sd)
 {
@@ -177,11 +182,14 @@ int s5k83a_probe(struct sd *sd)
 	int i, err = 0;
 	struct gspca_dev *gspca_dev = (struct gspca_dev *)sd;
 
-	if (force_sensor) {
-		if (force_sensor == S5K83A_SENSOR) {
+	if (force_sensor)
+	{
+		if (force_sensor == S5K83A_SENSOR)
+		{
 			pr_info("Forcing a %s sensor\n", s5k83a.name);
 			goto sensor_found;
 		}
+
 		/* If we want to force another sensor, don't try to probe this
 		 * one */
 		return -ENODEV;
@@ -190,29 +198,39 @@ int s5k83a_probe(struct sd *sd)
 	PDEBUG(D_PROBE, "Probing for a s5k83a sensor");
 
 	/* Preinit the sensor */
-	for (i = 0; i < ARRAY_SIZE(preinit_s5k83a) && !err; i++) {
+	for (i = 0; i < ARRAY_SIZE(preinit_s5k83a) && !err; i++)
+	{
 		u8 data[2] = {preinit_s5k83a[i][2], preinit_s5k83a[i][3]};
+
 		if (preinit_s5k83a[i][0] == SENSOR)
 			err = m5602_write_sensor(sd, preinit_s5k83a[i][1],
-				data, 2);
+									 data, 2);
 		else
 			err = m5602_write_bridge(sd, preinit_s5k83a[i][1],
-				data[0]);
+									 data[0]);
 	}
 
 	/* We don't know what register (if any) that contain the product id
 	 * Just pick the first addresses that seem to produce the same results
 	 * on multiple machines */
 	if (m5602_read_sensor(sd, 0x00, &prod_id, 1))
+	{
 		return -ENODEV;
+	}
 
 	if (m5602_read_sensor(sd, 0x01, &ver_id, 1))
+	{
 		return -ENODEV;
+	}
 
 	if ((prod_id == 0xff) || (ver_id == 0xff))
+	{
 		return -ENODEV;
+	}
 	else
+	{
 		pr_info("Detected a s5k83a sensor\n");
+	}
 
 sensor_found:
 	sd->gspca_dev.cam.cam_mode = s5k83a_modes;
@@ -228,36 +246,41 @@ int s5k83a_init(struct sd *sd)
 {
 	int i, err = 0;
 
-	for (i = 0; i < ARRAY_SIZE(init_s5k83a) && !err; i++) {
+	for (i = 0; i < ARRAY_SIZE(init_s5k83a) && !err; i++)
+	{
 		u8 data[2] = {0x00, 0x00};
 
-		switch (init_s5k83a[i][0]) {
-		case BRIDGE:
-			err = m5602_write_bridge(sd,
-					init_s5k83a[i][1],
-					init_s5k83a[i][2]);
-			break;
+		switch (init_s5k83a[i][0])
+		{
+			case BRIDGE:
+				err = m5602_write_bridge(sd,
+										 init_s5k83a[i][1],
+										 init_s5k83a[i][2]);
+				break;
 
-		case SENSOR:
-			data[0] = init_s5k83a[i][2];
-			err = m5602_write_sensor(sd,
-				init_s5k83a[i][1], data, 1);
-			break;
+			case SENSOR:
+				data[0] = init_s5k83a[i][2];
+				err = m5602_write_sensor(sd,
+										 init_s5k83a[i][1], data, 1);
+				break;
 
-		case SENSOR_LONG:
-			data[0] = init_s5k83a[i][2];
-			data[1] = init_s5k83a[i][3];
-			err = m5602_write_sensor(sd,
-				init_s5k83a[i][1], data, 2);
-			break;
-		default:
-			pr_info("Invalid stream command, exiting init\n");
-			return -EINVAL;
+			case SENSOR_LONG:
+				data[0] = init_s5k83a[i][2];
+				data[1] = init_s5k83a[i][3];
+				err = m5602_write_sensor(sd,
+										 init_s5k83a[i][1], data, 2);
+				break;
+
+			default:
+				pr_info("Invalid stream command, exiting init\n");
+				return -EINVAL;
 		}
 	}
 
 	if (dump_sensor)
+	{
 		s5k83a_dump_registers(sd);
+	}
 
 	return err;
 }
@@ -270,21 +293,22 @@ int s5k83a_init_controls(struct sd *sd)
 	v4l2_ctrl_handler_init(hdl, 6);
 
 	v4l2_ctrl_new_std(hdl, &s5k83a_ctrl_ops, V4L2_CID_BRIGHTNESS,
-			  0, 255, 1, S5K83A_DEFAULT_BRIGHTNESS);
+					  0, 255, 1, S5K83A_DEFAULT_BRIGHTNESS);
 
 	v4l2_ctrl_new_std(hdl, &s5k83a_ctrl_ops, V4L2_CID_EXPOSURE,
-			  0, S5K83A_MAXIMUM_EXPOSURE, 1,
-			  S5K83A_DEFAULT_EXPOSURE);
+					  0, S5K83A_MAXIMUM_EXPOSURE, 1,
+					  S5K83A_DEFAULT_EXPOSURE);
 
 	v4l2_ctrl_new_std(hdl, &s5k83a_ctrl_ops, V4L2_CID_GAIN,
-			  0, 255, 1, S5K83A_DEFAULT_GAIN);
+					  0, 255, 1, S5K83A_DEFAULT_GAIN);
 
 	sd->hflip = v4l2_ctrl_new_std(hdl, &s5k83a_ctrl_ops, V4L2_CID_HFLIP,
-				      0, 1, 1, 0);
+								  0, 1, 1, 0);
 	sd->vflip = v4l2_ctrl_new_std(hdl, &s5k83a_ctrl_ops, V4L2_CID_VFLIP,
-				      0, 1, 1, 0);
+								  0, 1, 1, 0);
 
-	if (hdl->error) {
+	if (hdl->error)
+	{
 		pr_err("Could not initialize controls\n");
 		return hdl->error;
 	}
@@ -301,24 +325,32 @@ static int rotation_thread_function(void *data)
 	__s32 vflip, hflip;
 
 	set_current_state(TASK_INTERRUPTIBLE);
-	while (!schedule_timeout(msecs_to_jiffies(100))) {
+
+	while (!schedule_timeout(msecs_to_jiffies(100)))
+	{
 		if (mutex_lock_interruptible(&sd->gspca_dev.usb_lock))
+		{
 			break;
+		}
 
 		s5k83a_get_rotation(sd, &reg);
-		if (previous_rotation != reg) {
+
+		if (previous_rotation != reg)
+		{
 			previous_rotation = reg;
 			pr_info("Camera was flipped\n");
 
 			hflip = sd->hflip->val;
 			vflip = sd->vflip->val;
 
-			if (reg) {
+			if (reg)
+			{
 				vflip = !vflip;
 				hflip = !hflip;
 			}
+
 			s5k83a_set_flip_real((struct gspca_dev *) sd,
-					      vflip, hflip);
+								 vflip, hflip);
 		}
 
 		mutex_unlock(&sd->gspca_dev.usb_lock);
@@ -326,7 +358,8 @@ static int rotation_thread_function(void *data)
 	}
 
 	/* return to "front" flip */
-	if (previous_rotation) {
+	if (previous_rotation)
+	{
 		hflip = sd->hflip->val;
 		vflip = sd->vflip->val;
 		s5k83a_set_flip_real((struct gspca_dev *) sd, vflip, hflip);
@@ -344,21 +377,26 @@ int s5k83a_start(struct sd *sd)
 	   if it got rotated. This is how the windows driver does it so we have
 	   to assume that there is no better way of accomplishing this */
 	sd->rotation_thread = kthread_create(rotation_thread_function,
-					     sd, "rotation thread");
+										 sd, "rotation thread");
 	wake_up_process(sd->rotation_thread);
 
 	/* Preinit the sensor */
-	for (i = 0; i < ARRAY_SIZE(start_s5k83a) && !err; i++) {
+	for (i = 0; i < ARRAY_SIZE(start_s5k83a) && !err; i++)
+	{
 		u8 data[2] = {start_s5k83a[i][2], start_s5k83a[i][3]};
+
 		if (start_s5k83a[i][0] == SENSOR)
 			err = m5602_write_sensor(sd, start_s5k83a[i][1],
-				data, 2);
+									 data, 2);
 		else
 			err = m5602_write_bridge(sd, start_s5k83a[i][1],
-				data[0]);
+									 data[0]);
 	}
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	return s5k83a_set_led_indication(sd, 1);
 }
@@ -366,7 +404,9 @@ int s5k83a_start(struct sd *sd)
 int s5k83a_stop(struct sd *sd)
 {
 	if (sd->rotation_thread)
+	{
 		kthread_stop(sd->rotation_thread);
+	}
 
 	return s5k83a_set_led_indication(sd, 0);
 }
@@ -387,14 +427,20 @@ static int s5k83a_set_gain(struct gspca_dev *gspca_dev, __s32 val)
 	data[0] = 0x00;
 	data[1] = 0x20;
 	err = m5602_write_sensor(sd, 0x14, data, 2);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	data[0] = 0x01;
 	data[1] = 0x00;
 	err = m5602_write_sensor(sd, 0x0d, data, 2);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* FIXME: This is not sane, we need to figure out the composition
 		  of these registers */
@@ -429,7 +475,7 @@ static int s5k83a_set_exposure(struct gspca_dev *gspca_dev, __s32 val)
 }
 
 static int s5k83a_set_flip_real(struct gspca_dev *gspca_dev,
-				__s32 vflip, __s32 hflip)
+								__s32 vflip, __s32 hflip)
 {
 	int err;
 	u8 data[1];
@@ -437,8 +483,11 @@ static int s5k83a_set_flip_real(struct gspca_dev *gspca_dev,
 
 	data[0] = 0x05;
 	err = m5602_write_sensor(sd, S5K83A_PAGE_MAP, data, 1);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* six bit is vflip, seven is hflip */
 	data[0] = S5K83A_FLIP_MASK;
@@ -446,13 +495,19 @@ static int s5k83a_set_flip_real(struct gspca_dev *gspca_dev,
 	data[0] = (hflip) ? data[0] | 0x80 : data[0];
 
 	err = m5602_write_sensor(sd, S5K83A_FLIP, data, 1);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	data[0] = (vflip) ? 0x0b : 0x0a;
 	err = m5602_write_sensor(sd, S5K83A_VFLIP_TUNE, data, 1);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	data[0] = (hflip) ? 0x0a : 0x0b;
 	err = m5602_write_sensor(sd, S5K83A_HFLIP_TUNE, data, 1);
@@ -468,9 +523,14 @@ static int s5k83a_set_hvflip(struct gspca_dev *gspca_dev)
 	int vflip = sd->vflip->val;
 
 	err = s5k83a_get_rotation(sd, &reg);
+
 	if (err < 0)
+	{
 		return err;
-	if (reg) {
+	}
+
+	if (reg)
+	{
 		hflip = !hflip;
 		vflip = !vflip;
 	}
@@ -486,23 +546,30 @@ static int s5k83a_s_ctrl(struct v4l2_ctrl *ctrl)
 	int err;
 
 	if (!gspca_dev->streaming)
+	{
 		return 0;
+	}
 
-	switch (ctrl->id) {
-	case V4L2_CID_BRIGHTNESS:
-		err = s5k83a_set_brightness(gspca_dev, ctrl->val);
-		break;
-	case V4L2_CID_EXPOSURE:
-		err = s5k83a_set_exposure(gspca_dev, ctrl->val);
-		break;
-	case V4L2_CID_GAIN:
-		err = s5k83a_set_gain(gspca_dev, ctrl->val);
-		break;
-	case V4L2_CID_HFLIP:
-		err = s5k83a_set_hvflip(gspca_dev);
-		break;
-	default:
-		return -EINVAL;
+	switch (ctrl->id)
+	{
+		case V4L2_CID_BRIGHTNESS:
+			err = s5k83a_set_brightness(gspca_dev, ctrl->val);
+			break;
+
+		case V4L2_CID_EXPOSURE:
+			err = s5k83a_set_exposure(gspca_dev, ctrl->val);
+			break;
+
+		case V4L2_CID_GAIN:
+			err = s5k83a_set_gain(gspca_dev, ctrl->val);
+			break;
+
+		case V4L2_CID_HFLIP:
+			err = s5k83a_set_hvflip(gspca_dev);
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return err;
@@ -514,13 +581,20 @@ static int s5k83a_set_led_indication(struct sd *sd, u8 val)
 	u8 data[1];
 
 	err = m5602_read_bridge(sd, M5602_XB_GPIO_DAT, data);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	if (val)
+	{
 		data[0] = data[0] | S5K83A_GPIO_LED_MASK;
+	}
 	else
+	{
 		data[0] = data[0] & ~S5K83A_GPIO_LED_MASK;
+	}
 
 	err = m5602_write_bridge(sd, M5602_XB_GPIO_DAT, data[0]);
 
@@ -541,23 +615,30 @@ static void s5k83a_dump_registers(struct sd *sd)
 	u8 page, old_page;
 	m5602_read_sensor(sd, S5K83A_PAGE_MAP, &old_page, 1);
 
-	for (page = 0; page < 16; page++) {
+	for (page = 0; page < 16; page++)
+	{
 		m5602_write_sensor(sd, S5K83A_PAGE_MAP, &page, 1);
 		pr_info("Dumping the s5k83a register state for page 0x%x\n",
-			page);
-		for (address = 0; address <= 0xff; address++) {
+				page);
+
+		for (address = 0; address <= 0xff; address++)
+		{
 			u8 val = 0;
 			m5602_read_sensor(sd, address, &val, 1);
 			pr_info("register 0x%x contains 0x%x\n", address, val);
 		}
 	}
+
 	pr_info("s5k83a register state dump complete\n");
 
-	for (page = 0; page < 16; page++) {
+	for (page = 0; page < 16; page++)
+	{
 		m5602_write_sensor(sd, S5K83A_PAGE_MAP, &page, 1);
 		pr_info("Probing for which registers that are read/write for page 0x%x\n",
-			page);
-		for (address = 0; address <= 0xff; address++) {
+				page);
+
+		for (address = 0; address <= 0xff; address++)
+		{
 			u8 old_val, ctrl_val, test_val = 0xff;
 
 			m5602_read_sensor(sd, address, &old_val, 1);
@@ -566,15 +647,16 @@ static void s5k83a_dump_registers(struct sd *sd)
 
 			if (ctrl_val == test_val)
 				pr_info("register 0x%x is writeable\n",
-					address);
+						address);
 			else
 				pr_info("register 0x%x is read only\n",
-					address);
+						address);
 
 			/* Restore original val */
 			m5602_write_sensor(sd, address, &old_val, 1);
 		}
 	}
+
 	pr_info("Read/write register probing complete\n");
 	m5602_write_sensor(sd, S5K83A_PAGE_MAP, &old_page, 1);
 }

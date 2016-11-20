@@ -11,14 +11,16 @@
 #include "bpf_helpers.h"
 #include <uapi/linux/utsname.h>
 
-struct bpf_map_def SEC("maps") cgroup_map = {
+struct bpf_map_def SEC("maps") cgroup_map =
+{
 	.type			= BPF_MAP_TYPE_CGROUP_ARRAY,
 	.key_size		= sizeof(u32),
 	.value_size		= sizeof(u32),
 	.max_entries	= 1,
 };
 
-struct bpf_map_def SEC("maps") perf_map = {
+struct bpf_map_def SEC("maps") perf_map =
+{
 	.type			= BPF_MAP_TYPE_ARRAY,
 	.key_size		= sizeof(u32),
 	.value_size		= sizeof(u64),
@@ -33,7 +35,9 @@ int bpf_prog1(struct pt_regs *ctx)
 	int idx = 0;
 
 	if (!bpf_current_task_under_cgroup(&cgroup_map, 0))
+	{
 		return 0;
+	}
 
 	bpf_map_update_elem(&perf_map, &idx, &pid, BPF_ANY);
 	return 0;

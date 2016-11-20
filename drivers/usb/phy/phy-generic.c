@@ -42,12 +42,12 @@
 
 #define VBUS_IRQ_FLAGS \
 	(IRQF_SHARED | IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING | \
-		IRQF_ONESHOT)
+	 IRQF_ONESHOT)
 
 struct platform_device *usb_phy_generic_register(void)
 {
 	return platform_device_register_simple("usb_phy_generic",
-			PLATFORM_DEVID_AUTO, NULL, 0);
+										   PLATFORM_DEVID_AUTO, NULL, 0);
 }
 EXPORT_SYMBOL_GPL(usb_phy_generic_register);
 
@@ -65,7 +65,9 @@ static int nop_set_suspend(struct usb_phy *x, int suspend)
 static void nop_reset(struct usb_phy_generic *nop)
 {
 	if (!nop->gpiod_reset)
+	{
 		return;
+	}
 
 	gpiod_set_value(nop->gpiod_reset, 1);
 	usleep_range(10000, 20000);
@@ -80,25 +82,43 @@ static void nop_set_vbus_draw(struct usb_phy_generic *nop, unsigned mA)
 	int ret;
 
 	if (!vbus_draw)
+	{
 		return;
+	}
 
 	enabled = nop->vbus_draw_enabled;
-	if (mA) {
+
+	if (mA)
+	{
 		regulator_set_current_limit(vbus_draw, 0, 1000 * mA);
-		if (!enabled) {
+
+		if (!enabled)
+		{
 			ret = regulator_enable(vbus_draw);
+
 			if (ret < 0)
+			{
 				return;
+			}
+
 			nop->vbus_draw_enabled = 1;
 		}
-	} else {
-		if (enabled) {
+	}
+	else
+	{
+		if (enabled)
+		{
 			ret = regulator_disable(vbus_draw);
+
 			if (ret < 0)
+			{
 				return;
+			}
+
 			nop->vbus_draw_enabled = 0;
 		}
 	}
+
 	nop->mA = mA;
 }
 
@@ -110,11 +130,16 @@ static irqreturn_t nop_gpio_vbus_thread(int irq, void *data)
 	int vbus, status;
 
 	vbus = gpiod_get_value(nop->gpiod_vbus);
+
 	if ((vbus ^ nop->vbus) == 0)
+	{
 		return IRQ_HANDLED;
+	}
+
 	nop->vbus = vbus;
 
-	if (vbus) {
+	if (vbus)
+	{
 		status = USB_EVENT_VBUS;
 		otg->state = OTG_STATE_B_PERIPHERAL;
 		nop->phy.last_event = status;
@@ -123,8 +148,10 @@ static irqreturn_t nop_gpio_vbus_thread(int irq, void *data)
 		nop_set_vbus_draw(nop, 100);
 
 		atomic_notifier_call_chain(&nop->phy.notifier, status,
-					   otg->gadget);
-	} else {
+								   otg->gadget);
+	}
+	else
+	{
 		nop_set_vbus_draw(nop, 0);
 
 		status = USB_EVENT_NONE;
@@ -132,8 +159,9 @@ static irqreturn_t nop_gpio_vbus_thread(int irq, void *data)
 		nop->phy.last_event = status;
 
 		atomic_notifier_call_chain(&nop->phy.notifier, status,
-					   otg->gadget);
+								   otg->gadget);
 	}
+
 	return IRQ_HANDLED;
 }
 
@@ -142,15 +170,22 @@ int usb_gen_phy_init(struct usb_phy *phy)
 	struct usb_phy_generic *nop = dev_get_drvdata(phy->dev);
 	int ret;
 
-	if (!IS_ERR(nop->vcc)) {
+	if (!IS_ERR(nop->vcc))
+	{
 		if (regulator_enable(nop->vcc))
+		{
 			dev_err(phy->dev, "Failed to enable power\n");
+		}
 	}
 
-	if (!IS_ERR(nop->clk)) {
+	if (!IS_ERR(nop->clk))
+	{
 		ret = clk_prepare_enable(nop->clk);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	nop_reset(nop);
@@ -166,11 +201,16 @@ void usb_gen_phy_shutdown(struct usb_phy *phy)
 	gpiod_set_value(nop->gpiod_reset, 1);
 
 	if (!IS_ERR(nop->clk))
+	{
 		clk_disable_unprepare(nop->clk);
+	}
 
-	if (!IS_ERR(nop->vcc)) {
+	if (!IS_ERR(nop->vcc))
+	{
 		if (regulator_disable(nop->vcc))
+		{
 			dev_err(phy->dev, "Failed to disable power\n");
+		}
 	}
 }
 EXPORT_SYMBOL_GPL(usb_gen_phy_shutdown);
@@ -178,28 +218,38 @@ EXPORT_SYMBOL_GPL(usb_gen_phy_shutdown);
 static int nop_set_peripheral(struct usb_otg *otg, struct usb_gadget *gadget)
 {
 	if (!otg)
+	{
 		return -ENODEV;
+	}
 
-	if (!gadget) {
+	if (!gadget)
+	{
 		otg->gadget = NULL;
 		return -ENODEV;
 	}
 
 	otg->gadget = gadget;
+
 	if (otg->state == OTG_STATE_B_PERIPHERAL)
 		atomic_notifier_call_chain(&otg->usb_phy->notifier,
-					   USB_EVENT_VBUS, otg->gadget);
+								   USB_EVENT_VBUS, otg->gadget);
 	else
+	{
 		otg->state = OTG_STATE_B_IDLE;
+	}
+
 	return 0;
 }
 
 static int nop_set_host(struct usb_otg *otg, struct usb_bus *host)
 {
 	if (!otg)
+	{
 		return -ENODEV;
+	}
 
-	if (!host) {
+	if (!host)
+	{
 		otg->host = NULL;
 		return -ENODEV;
 	}
@@ -209,7 +259,7 @@ static int nop_set_host(struct usb_otg *otg, struct usb_bus *host)
 }
 
 int usb_phy_gen_create_phy(struct device *dev, struct usb_phy_generic *nop,
-		struct usb_phy_generic_platform_data *pdata)
+						   struct usb_phy_generic_platform_data *pdata)
 {
 	enum usb_phy_type type = USB_PHY_TYPE_USB2;
 	int err = 0;
@@ -217,71 +267,102 @@ int usb_phy_gen_create_phy(struct device *dev, struct usb_phy_generic *nop,
 	u32 clk_rate = 0;
 	bool needs_vcc = false;
 
-	if (dev->of_node) {
+	if (dev->of_node)
+	{
 		struct device_node *node = dev->of_node;
 
 		if (of_property_read_u32(node, "clock-frequency", &clk_rate))
+		{
 			clk_rate = 0;
+		}
 
 		needs_vcc = of_property_read_bool(node, "vcc-supply");
 		nop->gpiod_reset = devm_gpiod_get_optional(dev, "reset",
-							   GPIOD_ASIS);
+						   GPIOD_ASIS);
 		err = PTR_ERR_OR_ZERO(nop->gpiod_reset);
-		if (!err) {
+
+		if (!err)
+		{
 			nop->gpiod_vbus = devm_gpiod_get_optional(dev,
-							 "vbus-detect",
-							 GPIOD_ASIS);
+							  "vbus-detect",
+							  GPIOD_ASIS);
 			err = PTR_ERR_OR_ZERO(nop->gpiod_vbus);
 		}
-	} else if (pdata) {
+	}
+	else if (pdata)
+	{
 		type = pdata->type;
 		clk_rate = pdata->clk_rate;
 		needs_vcc = pdata->needs_vcc;
-		if (gpio_is_valid(pdata->gpio_reset)) {
+
+		if (gpio_is_valid(pdata->gpio_reset))
+		{
 			err = devm_gpio_request_one(dev, pdata->gpio_reset,
-						    GPIOF_ACTIVE_LOW,
-						    dev_name(dev));
+										GPIOF_ACTIVE_LOW,
+										dev_name(dev));
+
 			if (!err)
 				nop->gpiod_reset =
 					gpio_to_desc(pdata->gpio_reset);
 		}
+
 		nop->gpiod_vbus = pdata->gpiod_vbus;
 	}
 
 	if (err == -EPROBE_DEFER)
+	{
 		return -EPROBE_DEFER;
-	if (err) {
+	}
+
+	if (err)
+	{
 		dev_err(dev, "Error requesting RESET or VBUS GPIO\n");
 		return err;
 	}
+
 	if (nop->gpiod_reset)
+	{
 		gpiod_direction_output(nop->gpiod_reset, 1);
-
-	nop->phy.otg = devm_kzalloc(dev, sizeof(*nop->phy.otg),
-			GFP_KERNEL);
-	if (!nop->phy.otg)
-		return -ENOMEM;
-
-	nop->clk = devm_clk_get(dev, "main_clk");
-	if (IS_ERR(nop->clk)) {
-		dev_dbg(dev, "Can't get phy clock: %ld\n",
-					PTR_ERR(nop->clk));
 	}
 
-	if (!IS_ERR(nop->clk) && clk_rate) {
+	nop->phy.otg = devm_kzalloc(dev, sizeof(*nop->phy.otg),
+								GFP_KERNEL);
+
+	if (!nop->phy.otg)
+	{
+		return -ENOMEM;
+	}
+
+	nop->clk = devm_clk_get(dev, "main_clk");
+
+	if (IS_ERR(nop->clk))
+	{
+		dev_dbg(dev, "Can't get phy clock: %ld\n",
+				PTR_ERR(nop->clk));
+	}
+
+	if (!IS_ERR(nop->clk) && clk_rate)
+	{
 		err = clk_set_rate(nop->clk, clk_rate);
-		if (err) {
+
+		if (err)
+		{
 			dev_err(dev, "Error setting clock rate\n");
 			return err;
 		}
 	}
 
 	nop->vcc = devm_regulator_get(dev, "vcc");
-	if (IS_ERR(nop->vcc)) {
+
+	if (IS_ERR(nop->vcc))
+	{
 		dev_dbg(dev, "Error getting vcc regulator: %ld\n",
-					PTR_ERR(nop->vcc));
+				PTR_ERR(nop->vcc));
+
 		if (needs_vcc)
+		{
 			return -EPROBE_DEFER;
+		}
 	}
 
 	nop->dev		= dev;
@@ -306,34 +387,47 @@ static int usb_phy_generic_probe(struct platform_device *pdev)
 	int err;
 
 	nop = devm_kzalloc(dev, sizeof(*nop), GFP_KERNEL);
+
 	if (!nop)
+	{
 		return -ENOMEM;
+	}
 
 	err = usb_phy_gen_create_phy(dev, nop, dev_get_platdata(&pdev->dev));
+
 	if (err)
+	{
 		return err;
-	if (nop->gpiod_vbus) {
+	}
+
+	if (nop->gpiod_vbus)
+	{
 		err = devm_request_threaded_irq(&pdev->dev,
-						gpiod_to_irq(nop->gpiod_vbus),
-						NULL, nop_gpio_vbus_thread,
-						VBUS_IRQ_FLAGS, "vbus_detect",
-						nop);
-		if (err) {
+										gpiod_to_irq(nop->gpiod_vbus),
+										NULL, nop_gpio_vbus_thread,
+										VBUS_IRQ_FLAGS, "vbus_detect",
+										nop);
+
+		if (err)
+		{
 			dev_err(&pdev->dev, "can't request irq %i, err: %d\n",
-				gpiod_to_irq(nop->gpiod_vbus), err);
+					gpiod_to_irq(nop->gpiod_vbus), err);
 			return err;
 		}
+
 		nop->phy.otg->state = gpiod_get_value(nop->gpiod_vbus) ?
-			OTG_STATE_B_PERIPHERAL : OTG_STATE_B_IDLE;
+							  OTG_STATE_B_PERIPHERAL : OTG_STATE_B_IDLE;
 	}
 
 	nop->phy.init		= usb_gen_phy_init;
 	nop->phy.shutdown	= usb_gen_phy_shutdown;
 
 	err = usb_add_phy_dev(&nop->phy);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev, "can't register transceiver, err: %d\n",
-			err);
+				err);
 		return err;
 	}
 
@@ -351,14 +445,16 @@ static int usb_phy_generic_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id nop_xceiv_dt_ids[] = {
+static const struct of_device_id nop_xceiv_dt_ids[] =
+{
 	{ .compatible = "usb-nop-xceiv" },
 	{ }
 };
 
 MODULE_DEVICE_TABLE(of, nop_xceiv_dt_ids);
 
-static struct platform_driver usb_phy_generic_driver = {
+static struct platform_driver usb_phy_generic_driver =
+{
 	.probe		= usb_phy_generic_probe,
 	.remove		= usb_phy_generic_remove,
 	.driver		= {

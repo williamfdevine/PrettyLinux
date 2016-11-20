@@ -17,11 +17,13 @@
 #include <linux/types.h>
 
 
-struct michael_mic_ctx {
+struct michael_mic_ctx
+{
 	u32 l, r;
 };
 
-struct michael_mic_desc_ctx {
+struct michael_mic_desc_ctx
+{
 	u8 pending[4];
 	size_t pending_len;
 
@@ -35,16 +37,16 @@ static inline u32 xswap(u32 val)
 
 
 #define michael_block(l, r)	\
-do {				\
-	r ^= rol32(l, 17);	\
-	l += r;			\
-	r ^= xswap(l);		\
-	l += r;			\
-	r ^= rol32(l, 3);	\
-	l += r;			\
-	r ^= ror32(l, 2);	\
-	l += r;			\
-} while (0)
+	do {				\
+		r ^= rol32(l, 17);	\
+		l += r;			\
+		r ^= xswap(l);		\
+		l += r;			\
+		r ^= rol32(l, 3);	\
+		l += r;			\
+		r ^= ror32(l, 2);	\
+		l += r;			\
+	} while (0)
 
 
 static int michael_init(struct shash_desc *desc)
@@ -60,22 +62,29 @@ static int michael_init(struct shash_desc *desc)
 
 
 static int michael_update(struct shash_desc *desc, const u8 *data,
-			   unsigned int len)
+						  unsigned int len)
 {
 	struct michael_mic_desc_ctx *mctx = shash_desc_ctx(desc);
 	const __le32 *src;
 
-	if (mctx->pending_len) {
+	if (mctx->pending_len)
+	{
 		int flen = 4 - mctx->pending_len;
+
 		if (flen > len)
+		{
 			flen = len;
+		}
+
 		memcpy(&mctx->pending[mctx->pending_len], data, flen);
 		mctx->pending_len += flen;
 		data += flen;
 		len -= flen;
 
 		if (mctx->pending_len < 4)
+		{
 			return 0;
+		}
 
 		src = (const __le32 *)mctx->pending;
 		mctx->l ^= le32_to_cpup(src);
@@ -85,13 +94,15 @@ static int michael_update(struct shash_desc *desc, const u8 *data,
 
 	src = (const __le32 *)data;
 
-	while (len >= 4) {
+	while (len >= 4)
+	{
 		mctx->l ^= le32_to_cpup(src++);
 		michael_block(mctx->l, mctx->r);
 		len -= 4;
 	}
 
-	if (len > 0) {
+	if (len > 0)
+	{
 		mctx->pending_len = len;
 		memcpy(mctx->pending, src, len);
 	}
@@ -107,21 +118,26 @@ static int michael_final(struct shash_desc *desc, u8 *out)
 	__le32 *dst = (__le32 *)out;
 
 	/* Last block and padding (0x5a, 4..7 x 0) */
-	switch (mctx->pending_len) {
-	case 0:
-		mctx->l ^= 0x5a;
-		break;
-	case 1:
-		mctx->l ^= data[0] | 0x5a00;
-		break;
-	case 2:
-		mctx->l ^= data[0] | (data[1] << 8) | 0x5a0000;
-		break;
-	case 3:
-		mctx->l ^= data[0] | (data[1] << 8) | (data[2] << 16) |
-			0x5a000000;
-		break;
+	switch (mctx->pending_len)
+	{
+		case 0:
+			mctx->l ^= 0x5a;
+			break;
+
+		case 1:
+			mctx->l ^= data[0] | 0x5a00;
+			break;
+
+		case 2:
+			mctx->l ^= data[0] | (data[1] << 8) | 0x5a0000;
+			break;
+
+		case 3:
+			mctx->l ^= data[0] | (data[1] << 8) | (data[2] << 16) |
+					   0x5a000000;
+			break;
 	}
+
 	michael_block(mctx->l, mctx->r);
 	/* l ^= 0; */
 	michael_block(mctx->l, mctx->r);
@@ -134,13 +150,14 @@ static int michael_final(struct shash_desc *desc, u8 *out)
 
 
 static int michael_setkey(struct crypto_shash *tfm, const u8 *key,
-			  unsigned int keylen)
+						  unsigned int keylen)
 {
 	struct michael_mic_ctx *mctx = crypto_shash_ctx(tfm);
 
 	const __le32 *data = (const __le32 *)key;
 
-	if (keylen != 8) {
+	if (keylen != 8)
+	{
 		crypto_shash_set_flags(tfm, CRYPTO_TFM_RES_BAD_KEY_LEN);
 		return -EINVAL;
 	}
@@ -150,7 +167,8 @@ static int michael_setkey(struct crypto_shash *tfm, const u8 *key,
 	return 0;
 }
 
-static struct shash_alg alg = {
+static struct shash_alg alg =
+{
 	.digestsize		=	8,
 	.setkey			=	michael_setkey,
 	.init			=	michael_init,

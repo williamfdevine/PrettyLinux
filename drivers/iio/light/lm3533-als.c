@@ -51,7 +51,8 @@
 #define LM3533_ALS_FLAG_INT_ENABLED		1
 
 
-struct lm3533_als {
+struct lm3533_als
+{
 	struct lm3533 *lm3533;
 	struct platform_device *pdev;
 
@@ -64,7 +65,7 @@ struct lm3533_als {
 
 
 static int lm3533_als_get_adc(struct iio_dev *indio_dev, bool average,
-								int *adc)
+							  int *adc)
 {
 	struct lm3533_als *als = iio_priv(indio_dev);
 	u8 reg;
@@ -72,12 +73,18 @@ static int lm3533_als_get_adc(struct iio_dev *indio_dev, bool average,
 	int ret;
 
 	if (average)
+	{
 		reg = LM3533_REG_ALS_READ_ADC_AVERAGE;
+	}
 	else
+	{
 		reg = LM3533_REG_ALS_READ_ADC_RAW;
+	}
 
 	ret = lm3533_read(als->lm3533, reg, &val);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&indio_dev->dev, "failed to read adc\n");
 		return ret;
 	}
@@ -94,7 +101,9 @@ static int _lm3533_als_get_zone(struct iio_dev *indio_dev, u8 *zone)
 	int ret;
 
 	ret = lm3533_read(als->lm3533, LM3533_REG_ALS_ZONE_INFO, &val);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&indio_dev->dev, "failed to read zone\n");
 		return ret;
 	}
@@ -110,12 +119,18 @@ static int lm3533_als_get_zone(struct iio_dev *indio_dev, u8 *zone)
 	struct lm3533_als *als = iio_priv(indio_dev);
 	int ret;
 
-	if (test_bit(LM3533_ALS_FLAG_INT_ENABLED, &als->flags)) {
+	if (test_bit(LM3533_ALS_FLAG_INT_ENABLED, &als->flags))
+	{
 		*zone = atomic_read(&als->zone);
-	} else {
+	}
+	else
+	{
 		ret = _lm3533_als_get_zone(indio_dev, zone);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
@@ -131,61 +146,81 @@ static inline u8 lm3533_als_get_target_reg(unsigned channel, unsigned zone)
 }
 
 static int lm3533_als_get_target(struct iio_dev *indio_dev, unsigned channel,
-							unsigned zone, u8 *val)
+								 unsigned zone, u8 *val)
 {
 	struct lm3533_als *als = iio_priv(indio_dev);
 	u8 reg;
 	int ret;
 
 	if (channel > LM3533_ALS_CHANNEL_CURRENT_MAX)
+	{
 		return -EINVAL;
+	}
 
 	if (zone > LM3533_ALS_ZONE_MAX)
+	{
 		return -EINVAL;
+	}
 
 	reg = lm3533_als_get_target_reg(channel, zone);
 	ret = lm3533_read(als->lm3533, reg, val);
+
 	if (ret)
+	{
 		dev_err(&indio_dev->dev, "failed to get target current\n");
+	}
 
 	return ret;
 }
 
 static int lm3533_als_set_target(struct iio_dev *indio_dev, unsigned channel,
-							unsigned zone, u8 val)
+								 unsigned zone, u8 val)
 {
 	struct lm3533_als *als = iio_priv(indio_dev);
 	u8 reg;
 	int ret;
 
 	if (channel > LM3533_ALS_CHANNEL_CURRENT_MAX)
+	{
 		return -EINVAL;
+	}
 
 	if (zone > LM3533_ALS_ZONE_MAX)
+	{
 		return -EINVAL;
+	}
 
 	reg = lm3533_als_get_target_reg(channel, zone);
 	ret = lm3533_write(als->lm3533, reg, val);
+
 	if (ret)
+	{
 		dev_err(&indio_dev->dev, "failed to set target current\n");
+	}
 
 	return ret;
 }
 
 static int lm3533_als_get_current(struct iio_dev *indio_dev, unsigned channel,
-								int *val)
+								  int *val)
 {
 	u8 zone;
 	u8 target;
 	int ret;
 
 	ret = lm3533_als_get_zone(indio_dev, &zone);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = lm3533_als_get_target(indio_dev, channel, zone, &target);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	*val = target;
 
@@ -193,34 +228,43 @@ static int lm3533_als_get_current(struct iio_dev *indio_dev, unsigned channel,
 }
 
 static int lm3533_als_read_raw(struct iio_dev *indio_dev,
-				struct iio_chan_spec const *chan,
-				int *val, int *val2, long mask)
+							   struct iio_chan_spec const *chan,
+							   int *val, int *val2, long mask)
 {
 	int ret;
 
-	switch (mask) {
-	case 0:
-		switch (chan->type) {
-		case IIO_LIGHT:
-			ret = lm3533_als_get_adc(indio_dev, false, val);
+	switch (mask)
+	{
+		case 0:
+			switch (chan->type)
+			{
+				case IIO_LIGHT:
+					ret = lm3533_als_get_adc(indio_dev, false, val);
+					break;
+
+				case IIO_CURRENT:
+					ret = lm3533_als_get_current(indio_dev, chan->channel,
+												 val);
+					break;
+
+				default:
+					return -EINVAL;
+			}
+
 			break;
-		case IIO_CURRENT:
-			ret = lm3533_als_get_current(indio_dev, chan->channel,
-									val);
+
+		case IIO_CHAN_INFO_AVERAGE_RAW:
+			ret = lm3533_als_get_adc(indio_dev, true, val);
 			break;
+
 		default:
 			return -EINVAL;
-		}
-		break;
-	case IIO_CHAN_INFO_AVERAGE_RAW:
-		ret = lm3533_als_get_adc(indio_dev, true, val);
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	return IIO_VAL_INT;
 }
@@ -228,19 +272,20 @@ static int lm3533_als_read_raw(struct iio_dev *indio_dev,
 #define CHANNEL_CURRENT(_channel)					\
 	{								\
 		.type		= IIO_CURRENT,				\
-		.channel	= _channel,				\
-		.indexed	= true,					\
-		.output		= true,					\
-		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
+					  .channel	= _channel,				\
+									.indexed	= true,					\
+											.output		= true,					\
+													.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),		\
 	}
 
-static const struct iio_chan_spec lm3533_als_channels[] = {
+static const struct iio_chan_spec lm3533_als_channels[] =
+{
 	{
 		.type		= IIO_LIGHT,
 		.channel	= 0,
 		.indexed	= true,
 		.info_mask_separate = BIT(IIO_CHAN_INFO_AVERAGE_RAW) |
-				   BIT(IIO_CHAN_INFO_RAW),
+		BIT(IIO_CHAN_INFO_RAW),
 	},
 	CHANNEL_CURRENT(0),
 	CHANNEL_CURRENT(1),
@@ -257,17 +302,20 @@ static irqreturn_t lm3533_als_isr(int irq, void *dev_id)
 
 	/* Clear interrupt by reading the ALS zone register. */
 	ret = _lm3533_als_get_zone(indio_dev, &zone);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	atomic_set(&als->zone, zone);
 
 	iio_push_event(indio_dev,
-		       IIO_UNMOD_EVENT_CODE(IIO_LIGHT,
-					    0,
-					    IIO_EV_TYPE_THRESH,
-					    IIO_EV_DIR_EITHER),
-		       iio_get_time_ns(indio_dev));
+				   IIO_UNMOD_EVENT_CODE(IIO_LIGHT,
+										0,
+										IIO_EV_TYPE_THRESH,
+										IIO_EV_DIR_EITHER),
+				   iio_get_time_ns(indio_dev));
 out:
 	return IRQ_HANDLED;
 }
@@ -280,14 +328,20 @@ static int lm3533_als_set_int_mode(struct iio_dev *indio_dev, int enable)
 	int ret;
 
 	if (enable)
+	{
 		val = mask;
+	}
 	else
+	{
 		val = 0;
+	}
 
 	ret = lm3533_update(als->lm3533, LM3533_REG_ALS_ZONE_INFO, val, mask);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&indio_dev->dev, "failed to set int mode %d\n",
-								enable);
+				enable);
 		return ret;
 	}
 
@@ -302,7 +356,9 @@ static int lm3533_als_get_int_mode(struct iio_dev *indio_dev, int *enable)
 	int ret;
 
 	ret = lm3533_read(als->lm3533, LM3533_REG_ALS_ZONE_INFO, &val);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&indio_dev->dev, "failed to get int mode\n");
 		return ret;
 	}
@@ -320,25 +376,30 @@ static inline u8 lm3533_als_get_threshold_reg(unsigned nr, bool raising)
 }
 
 static int lm3533_als_get_threshold(struct iio_dev *indio_dev, unsigned nr,
-							bool raising, u8 *val)
+									bool raising, u8 *val)
 {
 	struct lm3533_als *als = iio_priv(indio_dev);
 	u8 reg;
 	int ret;
 
 	if (nr > LM3533_ALS_THRESH_MAX)
+	{
 		return -EINVAL;
+	}
 
 	reg = lm3533_als_get_threshold_reg(nr, raising);
 	ret = lm3533_read(als->lm3533, reg, val);
+
 	if (ret)
+	{
 		dev_err(&indio_dev->dev, "failed to get threshold\n");
+	}
 
 	return ret;
 }
 
 static int lm3533_als_set_threshold(struct iio_dev *indio_dev, unsigned nr,
-							bool raising, u8 val)
+									bool raising, u8 val)
 {
 	struct lm3533_als *als = iio_priv(indio_dev);
 	u8 val2;
@@ -346,32 +407,41 @@ static int lm3533_als_set_threshold(struct iio_dev *indio_dev, unsigned nr,
 	int ret;
 
 	if (nr > LM3533_ALS_THRESH_MAX)
+	{
 		return -EINVAL;
+	}
 
 	reg = lm3533_als_get_threshold_reg(nr, raising);
 	reg2 = lm3533_als_get_threshold_reg(nr, !raising);
 
 	mutex_lock(&als->thresh_mutex);
 	ret = lm3533_read(als->lm3533, reg2, &val2);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&indio_dev->dev, "failed to get threshold\n");
 		goto out;
 	}
+
 	/*
 	 * This device does not allow negative hysteresis (in fact, it uses
 	 * whichever value is smaller as the lower bound) so we need to make
 	 * sure that thresh_falling <= thresh_raising.
 	 */
-	if ((raising && (val < val2)) || (!raising && (val > val2))) {
+	if ((raising && (val < val2)) || (!raising && (val > val2)))
+	{
 		ret = -EINVAL;
 		goto out;
 	}
 
 	ret = lm3533_write(als->lm3533, reg, val);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&indio_dev->dev, "failed to set threshold\n");
 		goto out;
 	}
+
 out:
 	mutex_unlock(&als->thresh_mutex);
 
@@ -379,7 +449,7 @@ out:
 }
 
 static int lm3533_als_get_hysteresis(struct iio_dev *indio_dev, unsigned nr,
-								u8 *val)
+									 u8 *val)
 {
 	struct lm3533_als *als = iio_priv(indio_dev);
 	u8 falling;
@@ -387,15 +457,24 @@ static int lm3533_als_get_hysteresis(struct iio_dev *indio_dev, unsigned nr,
 	int ret;
 
 	if (nr > LM3533_ALS_THRESH_MAX)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&als->thresh_mutex);
 	ret = lm3533_als_get_threshold(indio_dev, nr, false, &falling);
+
 	if (ret)
+	{
 		goto out;
+	}
+
 	ret = lm3533_als_get_threshold(indio_dev, nr, true, &raising);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	*val = raising - falling;
 out:
@@ -405,19 +484,25 @@ out:
 }
 
 static ssize_t show_thresh_either_en(struct device *dev,
-					struct device_attribute *attr,
-					char *buf)
+									 struct device_attribute *attr,
+									 char *buf)
 {
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
 	struct lm3533_als *als = iio_priv(indio_dev);
 	int enable;
 	int ret;
 
-	if (als->irq) {
+	if (als->irq)
+	{
 		ret = lm3533_als_get_int_mode(indio_dev, &enable);
+
 		if (ret)
+		{
 			return ret;
-	} else {
+		}
+	}
+	else
+	{
 		enable = 0;
 	}
 
@@ -425,8 +510,8 @@ static ssize_t show_thresh_either_en(struct device *dev,
 }
 
 static ssize_t store_thresh_either_en(struct device *dev,
-					struct device_attribute *attr,
-					const char *buf, size_t len)
+									  struct device_attribute *attr,
+									  const char *buf, size_t len)
 {
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
 	struct lm3533_als *als = iio_priv(indio_dev);
@@ -436,17 +521,25 @@ static ssize_t store_thresh_either_en(struct device *dev,
 	int ret;
 
 	if (!als->irq)
+	{
 		return -EBUSY;
+	}
 
 	if (kstrtoul(buf, 0, &enable))
+	{
 		return -EINVAL;
+	}
 
 	int_enabled = test_bit(LM3533_ALS_FLAG_INT_ENABLED, &als->flags);
 
-	if (enable && !int_enabled) {
+	if (enable && !int_enabled)
+	{
 		ret = lm3533_als_get_zone(indio_dev, &zone);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		atomic_set(&als->zone, zone);
 
@@ -454,41 +547,52 @@ static ssize_t store_thresh_either_en(struct device *dev,
 	}
 
 	ret = lm3533_als_set_int_mode(indio_dev, enable);
-	if (ret) {
+
+	if (ret)
+	{
 		if (!int_enabled)
+		{
 			clear_bit(LM3533_ALS_FLAG_INT_ENABLED, &als->flags);
+		}
 
 		return ret;
 	}
 
 	if (!enable)
+	{
 		clear_bit(LM3533_ALS_FLAG_INT_ENABLED, &als->flags);
+	}
 
 	return len;
 }
 
 static ssize_t show_zone(struct device *dev,
-				struct device_attribute *attr, char *buf)
+						 struct device_attribute *attr, char *buf)
 {
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
 	u8 zone;
 	int ret;
 
 	ret = lm3533_als_get_zone(indio_dev, &zone);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return scnprintf(buf, PAGE_SIZE, "%u\n", zone);
 }
 
-enum lm3533_als_attribute_type {
+enum lm3533_als_attribute_type
+{
 	LM3533_ATTR_TYPE_HYSTERESIS,
 	LM3533_ATTR_TYPE_TARGET,
 	LM3533_ATTR_TYPE_THRESH_FALLING,
 	LM3533_ATTR_TYPE_THRESH_RAISING,
 };
 
-struct lm3533_als_attribute {
+struct lm3533_als_attribute
+{
 	struct device_attribute dev_attr;
 	enum lm3533_als_attribute_type type;
 	u8 val1;
@@ -502,44 +606,51 @@ to_lm3533_als_attr(struct device_attribute *attr)
 }
 
 static ssize_t show_als_attr(struct device *dev,
-					struct device_attribute *attr,
-					char *buf)
+							 struct device_attribute *attr,
+							 char *buf)
 {
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
 	struct lm3533_als_attribute *als_attr = to_lm3533_als_attr(attr);
 	u8 val;
 	int ret;
 
-	switch (als_attr->type) {
-	case LM3533_ATTR_TYPE_HYSTERESIS:
-		ret = lm3533_als_get_hysteresis(indio_dev, als_attr->val1,
-									&val);
-		break;
-	case LM3533_ATTR_TYPE_TARGET:
-		ret = lm3533_als_get_target(indio_dev, als_attr->val1,
-							als_attr->val2, &val);
-		break;
-	case LM3533_ATTR_TYPE_THRESH_FALLING:
-		ret = lm3533_als_get_threshold(indio_dev, als_attr->val1,
-								false, &val);
-		break;
-	case LM3533_ATTR_TYPE_THRESH_RAISING:
-		ret = lm3533_als_get_threshold(indio_dev, als_attr->val1,
-								true, &val);
-		break;
-	default:
-		ret = -ENXIO;
+	switch (als_attr->type)
+	{
+		case LM3533_ATTR_TYPE_HYSTERESIS:
+			ret = lm3533_als_get_hysteresis(indio_dev, als_attr->val1,
+											&val);
+			break;
+
+		case LM3533_ATTR_TYPE_TARGET:
+			ret = lm3533_als_get_target(indio_dev, als_attr->val1,
+										als_attr->val2, &val);
+			break;
+
+		case LM3533_ATTR_TYPE_THRESH_FALLING:
+			ret = lm3533_als_get_threshold(indio_dev, als_attr->val1,
+										   false, &val);
+			break;
+
+		case LM3533_ATTR_TYPE_THRESH_RAISING:
+			ret = lm3533_als_get_threshold(indio_dev, als_attr->val1,
+										   true, &val);
+			break;
+
+		default:
+			ret = -ENXIO;
 	}
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	return scnprintf(buf, PAGE_SIZE, "%u\n", val);
 }
 
 static ssize_t store_als_attr(struct device *dev,
-					struct device_attribute *attr,
-					const char *buf, size_t len)
+							  struct device_attribute *attr,
+							  const char *buf, size_t len)
 {
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
 	struct lm3533_als_attribute *als_attr = to_lm3533_als_attr(attr);
@@ -547,46 +658,54 @@ static ssize_t store_als_attr(struct device *dev,
 	int ret;
 
 	if (kstrtou8(buf, 0, &val))
+	{
 		return -EINVAL;
+	}
 
-	switch (als_attr->type) {
-	case LM3533_ATTR_TYPE_TARGET:
-		ret = lm3533_als_set_target(indio_dev, als_attr->val1,
-							als_attr->val2, val);
-		break;
-	case LM3533_ATTR_TYPE_THRESH_FALLING:
-		ret = lm3533_als_set_threshold(indio_dev, als_attr->val1,
-								false, val);
-		break;
-	case LM3533_ATTR_TYPE_THRESH_RAISING:
-		ret = lm3533_als_set_threshold(indio_dev, als_attr->val1,
-								true, val);
-		break;
-	default:
-		ret = -ENXIO;
+	switch (als_attr->type)
+	{
+		case LM3533_ATTR_TYPE_TARGET:
+			ret = lm3533_als_set_target(indio_dev, als_attr->val1,
+										als_attr->val2, val);
+			break;
+
+		case LM3533_ATTR_TYPE_THRESH_FALLING:
+			ret = lm3533_als_set_threshold(indio_dev, als_attr->val1,
+										   false, val);
+			break;
+
+		case LM3533_ATTR_TYPE_THRESH_RAISING:
+			ret = lm3533_als_set_threshold(indio_dev, als_attr->val1,
+										   true, val);
+			break;
+
+		default:
+			ret = -ENXIO;
 	}
 
 	if (ret)
+	{
 		return ret;
+	}
 
 	return len;
 }
 
 #define ALS_ATTR(_name, _mode, _show, _store, _type, _val1, _val2)	\
 	{ .dev_attr	= __ATTR(_name, _mode, _show, _store),		\
-	  .type		= _type,					\
-	  .val1		= _val1,					\
-	  .val2		= _val2 }
+				  .type		= _type,					\
+								.val1		= _val1,					\
+											  .val2		= _val2 }
 
 #define LM3533_ALS_ATTR(_name, _mode, _show, _store, _type, _val1, _val2) \
 	struct lm3533_als_attribute lm3533_als_attr_##_name =		  \
-		ALS_ATTR(_name, _mode, _show, _store, _type, _val1, _val2)
+			ALS_ATTR(_name, _mode, _show, _store, _type, _val1, _val2)
 
 #define ALS_TARGET_ATTR_RW(_channel, _zone)				\
 	LM3533_ALS_ATTR(out_current##_channel##_current##_zone##_raw,	\
-				S_IRUGO | S_IWUSR,			\
-				show_als_attr, store_als_attr,		\
-				LM3533_ATTR_TYPE_TARGET, _channel, _zone)
+					S_IRUGO | S_IWUSR,			\
+					show_als_attr, store_als_attr,		\
+					LM3533_ATTR_TYPE_TARGET, _channel, _zone)
 /*
  * ALS output current values (ALS mapper targets)
  *
@@ -612,15 +731,15 @@ static ALS_TARGET_ATTR_RW(2, 4);
 
 #define ALS_THRESH_FALLING_ATTR_RW(_nr)					\
 	LM3533_ALS_ATTR(in_illuminance0_thresh##_nr##_falling_value,	\
-			S_IRUGO | S_IWUSR,				\
-			show_als_attr, store_als_attr,		\
-			LM3533_ATTR_TYPE_THRESH_FALLING, _nr, 0)
+					S_IRUGO | S_IWUSR,				\
+					show_als_attr, store_als_attr,		\
+					LM3533_ATTR_TYPE_THRESH_FALLING, _nr, 0)
 
 #define ALS_THRESH_RAISING_ATTR_RW(_nr)					\
 	LM3533_ALS_ATTR(in_illuminance0_thresh##_nr##_raising_value,	\
-			S_IRUGO | S_IWUSR,				\
-			show_als_attr, store_als_attr,			\
-			LM3533_ATTR_TYPE_THRESH_RAISING, _nr, 0)
+					S_IRUGO | S_IWUSR,				\
+					show_als_attr, store_als_attr,			\
+					LM3533_ATTR_TYPE_THRESH_RAISING, _nr, 0)
 /*
  * ALS Zone thresholds (boundaries)
  *
@@ -639,8 +758,8 @@ static ALS_THRESH_RAISING_ATTR_RW(3);
 
 #define ALS_HYSTERESIS_ATTR_RO(_nr)					\
 	LM3533_ALS_ATTR(in_illuminance0_thresh##_nr##_hysteresis,	\
-			S_IRUGO, show_als_attr, NULL,			\
-			LM3533_ATTR_TYPE_HYSTERESIS, _nr, 0)
+					S_IRUGO, show_als_attr, NULL,			\
+					LM3533_ATTR_TYPE_HYSTERESIS, _nr, 0)
 /*
  * ALS Zone threshold hysteresis
  *
@@ -658,7 +777,7 @@ static ALS_HYSTERESIS_ATTR_RO(3);
 	DEVICE_ATTR(in_illuminance0_##_name, S_IRUGO, show_##_name, NULL)
 #define ILLUMINANCE_ATTR_RW(_name) \
 	DEVICE_ATTR(in_illuminance0_##_name, S_IRUGO | S_IWUSR, \
-						show_##_name, store_##_name)
+				show_##_name, store_##_name)
 /*
  * ALS Zone threshold-event enable
  *
@@ -673,7 +792,8 @@ static ILLUMINANCE_ATTR_RW(thresh_either_en);
  */
 static ILLUMINANCE_ATTR_RO(zone);
 
-static struct attribute *lm3533_als_event_attributes[] = {
+static struct attribute *lm3533_als_event_attributes[] =
+{
 	&dev_attr_in_illuminance0_thresh_either_en.attr,
 	&lm3533_als_attr_in_illuminance0_thresh0_falling_value.dev_attr.attr,
 	&lm3533_als_attr_in_illuminance0_thresh0_hysteresis.dev_attr.attr,
@@ -690,11 +810,13 @@ static struct attribute *lm3533_als_event_attributes[] = {
 	NULL
 };
 
-static struct attribute_group lm3533_als_event_attribute_group = {
+static struct attribute_group lm3533_als_event_attribute_group =
+{
 	.attrs = lm3533_als_event_attributes
 };
 
-static struct attribute *lm3533_als_attributes[] = {
+static struct attribute *lm3533_als_attributes[] =
+{
 	&dev_attr_in_illuminance0_zone.attr,
 	&lm3533_als_attr_out_current0_current0_raw.dev_attr.attr,
 	&lm3533_als_attr_out_current0_current1_raw.dev_attr.attr,
@@ -714,7 +836,8 @@ static struct attribute *lm3533_als_attributes[] = {
 	NULL
 };
 
-static struct attribute_group lm3533_als_attribute_group = {
+static struct attribute_group lm3533_als_attribute_group =
+{
 	.attrs = lm3533_als_attributes
 };
 
@@ -725,14 +848,20 @@ static int lm3533_als_set_input_mode(struct lm3533_als *als, bool pwm_mode)
 	int ret;
 
 	if (pwm_mode)
-		val = mask;	/* pwm input */
+	{
+		val = mask;    /* pwm input */
+	}
 	else
-		val = 0;	/* analog input */
+	{
+		val = 0;    /* analog input */
+	}
 
 	ret = lm3533_update(als->lm3533, LM3533_REG_ALS_CONF, val, mask);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&als->pdev->dev, "failed to set input mode %d\n",
-								pwm_mode);
+				pwm_mode);
 		return ret;
 	}
 
@@ -743,13 +872,16 @@ static int lm3533_als_set_resistor(struct lm3533_als *als, u8 val)
 {
 	int ret;
 
-	if (val < LM3533_ALS_RESISTOR_MIN || val > LM3533_ALS_RESISTOR_MAX) {
+	if (val < LM3533_ALS_RESISTOR_MIN || val > LM3533_ALS_RESISTOR_MAX)
+	{
 		dev_err(&als->pdev->dev, "invalid resistor value\n");
 		return -EINVAL;
 	};
 
 	ret = lm3533_write(als->lm3533, LM3533_REG_ALS_RESISTOR_SELECT, val);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&als->pdev->dev, "failed to set resistor\n");
 		return ret;
 	}
@@ -758,19 +890,26 @@ static int lm3533_als_set_resistor(struct lm3533_als *als, u8 val)
 }
 
 static int lm3533_als_setup(struct lm3533_als *als,
-			    struct lm3533_als_platform_data *pdata)
+							struct lm3533_als_platform_data *pdata)
 {
 	int ret;
 
 	ret = lm3533_als_set_input_mode(als, pdata->pwm_mode);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* ALS input is always high impedance in PWM-mode. */
-	if (!pdata->pwm_mode) {
+	if (!pdata->pwm_mode)
+	{
 		ret = lm3533_als_set_resistor(als, pdata->r_select);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
@@ -783,17 +922,21 @@ static int lm3533_als_setup_irq(struct lm3533_als *als, void *dev)
 
 	/* Make sure interrupts are disabled. */
 	ret = lm3533_update(als->lm3533, LM3533_REG_ALS_ZONE_INFO, 0, mask);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&als->pdev->dev, "failed to disable interrupts\n");
 		return ret;
 	}
 
 	ret = request_threaded_irq(als->irq, NULL, lm3533_als_isr,
-					IRQF_TRIGGER_LOW | IRQF_ONESHOT,
-					dev_name(&als->pdev->dev), dev);
-	if (ret) {
+							   IRQF_TRIGGER_LOW | IRQF_ONESHOT,
+							   dev_name(&als->pdev->dev), dev);
+
+	if (ret)
+	{
 		dev_err(&als->pdev->dev, "failed to request irq %d\n",
-								als->irq);
+				als->irq);
 		return ret;
 	}
 
@@ -806,8 +949,11 @@ static int lm3533_als_enable(struct lm3533_als *als)
 	int ret;
 
 	ret = lm3533_update(als->lm3533, LM3533_REG_ALS_CONF, mask, mask);
+
 	if (ret)
+	{
 		dev_err(&als->pdev->dev, "failed to enable ALS\n");
+	}
 
 	return ret;
 }
@@ -818,13 +964,17 @@ static int lm3533_als_disable(struct lm3533_als *als)
 	int ret;
 
 	ret = lm3533_update(als->lm3533, LM3533_REG_ALS_CONF, 0, mask);
+
 	if (ret)
+	{
 		dev_err(&als->pdev->dev, "failed to disable ALS\n");
+	}
 
 	return ret;
 }
 
-static const struct iio_info lm3533_als_info = {
+static const struct iio_info lm3533_als_info =
+{
 	.attrs		= &lm3533_als_attribute_group,
 	.event_attrs	= &lm3533_als_event_attribute_group,
 	.driver_module	= THIS_MODULE,
@@ -840,18 +990,26 @@ static int lm3533_als_probe(struct platform_device *pdev)
 	int ret;
 
 	lm3533 = dev_get_drvdata(pdev->dev.parent);
+
 	if (!lm3533)
+	{
 		return -EINVAL;
+	}
 
 	pdata = pdev->dev.platform_data;
-	if (!pdata) {
+
+	if (!pdata)
+	{
 		dev_err(&pdev->dev, "no platform data\n");
 		return -EINVAL;
 	}
 
 	indio_dev = devm_iio_device_alloc(&pdev->dev, sizeof(*als));
+
 	if (!indio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	indio_dev->info = &lm3533_als_info;
 	indio_dev->channels = lm3533_als_channels;
@@ -869,22 +1027,34 @@ static int lm3533_als_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, indio_dev);
 
-	if (als->irq) {
+	if (als->irq)
+	{
 		ret = lm3533_als_setup_irq(als, indio_dev);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	ret = lm3533_als_setup(als, pdata);
+
 	if (ret)
+	{
 		goto err_free_irq;
+	}
 
 	ret = lm3533_als_enable(als);
+
 	if (ret)
+	{
 		goto err_free_irq;
+	}
 
 	ret = iio_device_register(indio_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to register ALS\n");
 		goto err_disable;
 	}
@@ -894,8 +1064,11 @@ static int lm3533_als_probe(struct platform_device *pdev)
 err_disable:
 	lm3533_als_disable(als);
 err_free_irq:
+
 	if (als->irq)
+	{
 		free_irq(als->irq, indio_dev);
+	}
 
 	return ret;
 }
@@ -908,13 +1081,17 @@ static int lm3533_als_remove(struct platform_device *pdev)
 	lm3533_als_set_int_mode(indio_dev, false);
 	iio_device_unregister(indio_dev);
 	lm3533_als_disable(als);
+
 	if (als->irq)
+	{
 		free_irq(als->irq, indio_dev);
+	}
 
 	return 0;
 }
 
-static struct platform_driver lm3533_als_driver = {
+static struct platform_driver lm3533_als_driver =
+{
 	.driver	= {
 		.name	= "lm3533-als",
 	},

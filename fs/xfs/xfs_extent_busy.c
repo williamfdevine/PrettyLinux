@@ -46,7 +46,9 @@ xfs_extent_busy_insert(
 	struct rb_node		*parent = NULL;
 
 	new = kmem_zalloc(sizeof(struct xfs_extent_busy), KM_MAYFAIL);
-	if (!new) {
+
+	if (!new)
+	{
 		/*
 		 * No Memory!  Since it is now not possible to track the free
 		 * block, make this a synchronous transaction to insure that
@@ -69,17 +71,24 @@ xfs_extent_busy_insert(
 	pag = xfs_perag_get(tp->t_mountp, new->agno);
 	spin_lock(&pag->pagb_lock);
 	rbp = &pag->pagb_tree.rb_node;
-	while (*rbp) {
+
+	while (*rbp)
+	{
 		parent = *rbp;
 		busyp = rb_entry(parent, struct xfs_extent_busy, rb_node);
 
-		if (new->bno < busyp->bno) {
+		if (new->bno < busyp->bno)
+		{
 			rbp = &(*rbp)->rb_left;
 			ASSERT(new->bno + new->length <= busyp->bno);
-		} else if (new->bno > busyp->bno) {
+		}
+		else if (new->bno > busyp->bno)
+		{
 			rbp = &(*rbp)->rb_right;
 			ASSERT(bno >= busyp->bno + busyp->length);
-		} else {
+		}
+		else
+		{
 			ASSERT(0);
 		}
 	}
@@ -119,24 +128,38 @@ xfs_extent_busy_search(
 	rbp = pag->pagb_tree.rb_node;
 
 	/* find closest start bno overlap */
-	while (rbp) {
+	while (rbp)
+	{
 		busyp = rb_entry(rbp, struct xfs_extent_busy, rb_node);
-		if (bno < busyp->bno) {
+
+		if (bno < busyp->bno)
+		{
 			/* may overlap, but exact start block is lower */
 			if (bno + len > busyp->bno)
+			{
 				match = -1;
+			}
+
 			rbp = rbp->rb_left;
-		} else if (bno > busyp->bno) {
+		}
+		else if (bno > busyp->bno)
+		{
 			/* may overlap, but exact start block is higher */
 			if (bno < busyp->bno + busyp->length)
+			{
 				match = -1;
+			}
+
 			rbp = rbp->rb_right;
-		} else {
+		}
+		else
+		{
 			/* bno matches busyp, length determines exact match */
 			match = (busyp->length == len) ? 1 : -1;
 			break;
 		}
 	}
+
 	spin_unlock(&pag->pagb_lock);
 	xfs_perag_put(pag);
 	return match;
@@ -161,7 +184,7 @@ xfs_extent_busy_update_extent(
 	xfs_agblock_t		fbno,
 	xfs_extlen_t		flen,
 	bool			userdata) __releases(&pag->pagb_lock)
-					  __acquires(&pag->pagb_lock)
+__acquires(&pag->pagb_lock)
 {
 	xfs_agblock_t		fend = fbno + flen;
 	xfs_agblock_t		bbno = busyp->bno;
@@ -172,7 +195,8 @@ xfs_extent_busy_update_extent(
 	 * performing the discard a chance to mark the extent unbusy
 	 * and retry.
 	 */
-	if (busyp->flags & XFS_EXTENT_BUSY_DISCARDED) {
+	if (busyp->flags & XFS_EXTENT_BUSY_DISCARDED)
+	{
 		spin_unlock(&pag->pagb_lock);
 		delay(1);
 		spin_lock(&pag->pagb_lock);
@@ -188,9 +212,12 @@ xfs_extent_busy_update_extent(
 	 * the AGFL for normal allocations.
 	 */
 	if (userdata)
+	{
 		goto out_force_log;
+	}
 
-	if (bbno < fbno && bend > fend) {
+	if (bbno < fbno && bend > fend)
+	{
 		/*
 		 * Case 1:
 		 *    bbno           bend
@@ -209,7 +236,9 @@ xfs_extent_busy_update_extent(
 		 * search.
 		 */
 		goto out_force_log;
-	} else if (bbno >= fbno && bend <= fend) {
+	}
+	else if (bbno >= fbno && bend <= fend)
+	{
 		/*
 		 * Case 2:
 		 *    bbno           bend
@@ -251,7 +280,9 @@ xfs_extent_busy_update_extent(
 		rb_erase(&busyp->rb_node, &pag->pagb_tree);
 		busyp->length = 0;
 		return false;
-	} else if (fend < bend) {
+	}
+	else if (fend < bend)
+	{
 		/*
 		 * Case 6:
 		 *              bbno           bend
@@ -267,7 +298,9 @@ xfs_extent_busy_update_extent(
 		 *
 		 */
 		busyp->bno = fend;
-	} else if (bbno < fbno) {
+	}
+	else if (bbno < fbno)
+	{
 		/*
 		 * Case 8:
 		 *    bbno           bend
@@ -282,7 +315,9 @@ xfs_extent_busy_update_extent(
 		 *        fbno                fend
 		 */
 		busyp->length = fbno - busyp->bno;
-	} else {
+	}
+	else
+	{
 		ASSERT(0);
 	}
 
@@ -318,24 +353,32 @@ xfs_extent_busy_reuse(
 	spin_lock(&pag->pagb_lock);
 restart:
 	rbp = pag->pagb_tree.rb_node;
-	while (rbp) {
+
+	while (rbp)
+	{
 		struct xfs_extent_busy *busyp =
 			rb_entry(rbp, struct xfs_extent_busy, rb_node);
 		xfs_agblock_t	bbno = busyp->bno;
 		xfs_agblock_t	bend = bbno + busyp->length;
 
-		if (fbno + flen <= bbno) {
+		if (fbno + flen <= bbno)
+		{
 			rbp = rbp->rb_left;
 			continue;
-		} else if (fbno >= bend) {
+		}
+		else if (fbno >= bend)
+		{
 			rbp = rbp->rb_right;
 			continue;
 		}
 
 		if (!xfs_extent_busy_update_extent(mp, pag, busyp, fbno, flen,
-						  userdata))
+										   userdata))
+		{
 			goto restart;
+		}
 	}
+
 	spin_unlock(&pag->pagb_lock);
 	xfs_perag_put(pag);
 }
@@ -365,17 +408,22 @@ restart:
 	fbno = bno;
 	flen = len;
 	rbp = args->pag->pagb_tree.rb_node;
-	while (rbp && flen >= args->minlen) {
+
+	while (rbp && flen >= args->minlen)
+	{
 		struct xfs_extent_busy *busyp =
 			rb_entry(rbp, struct xfs_extent_busy, rb_node);
 		xfs_agblock_t	fend = fbno + flen;
 		xfs_agblock_t	bbno = busyp->bno;
 		xfs_agblock_t	bend = bbno + busyp->length;
 
-		if (fend <= bbno) {
+		if (fend <= bbno)
+		{
 			rbp = rbp->rb_left;
 			continue;
-		} else if (fbno >= bend) {
+		}
+		else if (fbno >= bend)
+		{
 			rbp = rbp->rb_right;
 			continue;
 		}
@@ -385,15 +433,20 @@ restart:
 		 * extent instead of trimming the allocation.
 		 */
 		if (!xfs_alloc_is_userdata(args->datatype) &&
-		    !(busyp->flags & XFS_EXTENT_BUSY_DISCARDED)) {
+			!(busyp->flags & XFS_EXTENT_BUSY_DISCARDED))
+		{
 			if (!xfs_extent_busy_update_extent(args->mp, args->pag,
-							  busyp, fbno, flen,
-							  false))
+											   busyp, fbno, flen,
+											   false))
+			{
 				goto restart;
+			}
+
 			continue;
 		}
 
-		if (bbno <= fbno) {
+		if (bbno <= fbno)
+		{
 			/* start overlap */
 
 			/*
@@ -424,7 +477,9 @@ restart:
 			 * No unbusy region in extent, return failure.
 			 */
 			if (fend <= bend)
+			{
 				goto fail;
+			}
 
 			/*
 			 * Case 5:
@@ -444,7 +499,9 @@ restart:
 			 *                       fbno fend
 			 */
 			fbno = bend;
-		} else if (bend >= fend) {
+		}
+		else if (bend >= fend)
+		{
 			/* end overlap */
 
 			/*
@@ -465,7 +522,9 @@ restart:
 			 *    fbno fend
 			 */
 			fend = bbno;
-		} else {
+		}
+		else
+		{
 			/* middle overlap */
 
 			/*
@@ -499,28 +558,38 @@ restart:
 			 * good chance subsequent allocations will be
 			 * contiguous.
 			 */
-			if (bbno - fbno >= args->maxlen) {
+			if (bbno - fbno >= args->maxlen)
+			{
 				/* left candidate fits perfect */
 				fend = bbno;
-			} else if (fend - bend >= args->maxlen * 4) {
+			}
+			else if (fend - bend >= args->maxlen * 4)
+			{
 				/* right candidate has enough free space */
 				fbno = bend;
-			} else if (bbno - fbno >= args->minlen) {
+			}
+			else if (bbno - fbno >= args->minlen)
+			{
 				/* left candidate fits minimum requirement */
 				fend = bbno;
-			} else {
+			}
+			else
+			{
 				goto fail;
 			}
 		}
 
 		flen = fend - fbno;
 	}
+
 	spin_unlock(&args->pag->pagb_lock);
 
-	if (fbno != bno || flen != len) {
+	if (fbno != bno || flen != len)
+	{
 		trace_xfs_extent_busy_trim(args->mp, args->agno, bno, len,
-					  fbno, flen);
+								   fbno, flen);
 	}
+
 	*rbno = fbno;
 	*rlen = flen;
 	return;
@@ -541,9 +610,10 @@ xfs_extent_busy_clear_one(
 	struct xfs_perag	*pag,
 	struct xfs_extent_busy	*busyp)
 {
-	if (busyp->length) {
+	if (busyp->length)
+	{
 		trace_xfs_extent_busy_clear(mp, busyp->agno, busyp->bno,
-						busyp->length);
+									busyp->length);
 		rb_erase(&busyp->rb_node, &pag->pagb_tree);
 	}
 
@@ -566,25 +636,34 @@ xfs_extent_busy_clear(
 	struct xfs_perag	*pag = NULL;
 	xfs_agnumber_t		agno = NULLAGNUMBER;
 
-	list_for_each_entry_safe(busyp, n, list, list) {
-		if (busyp->agno != agno) {
-			if (pag) {
+	list_for_each_entry_safe(busyp, n, list, list)
+	{
+		if (busyp->agno != agno)
+		{
+			if (pag)
+			{
 				spin_unlock(&pag->pagb_lock);
 				xfs_perag_put(pag);
 			}
+
 			pag = xfs_perag_get(mp, busyp->agno);
 			spin_lock(&pag->pagb_lock);
 			agno = busyp->agno;
 		}
 
 		if (do_discard && busyp->length &&
-		    !(busyp->flags & XFS_EXTENT_BUSY_SKIP_DISCARD))
+			!(busyp->flags & XFS_EXTENT_BUSY_SKIP_DISCARD))
+		{
 			busyp->flags = XFS_EXTENT_BUSY_DISCARDED;
+		}
 		else
+		{
 			xfs_extent_busy_clear_one(mp, pag, busyp);
+		}
 	}
 
-	if (pag) {
+	if (pag)
+	{
 		spin_unlock(&pag->pagb_lock);
 		xfs_perag_put(pag);
 	}
@@ -600,5 +679,5 @@ xfs_extent_busy_ag_cmp(
 	struct list_head	*b)
 {
 	return container_of(a, struct xfs_extent_busy, list)->agno -
-		container_of(b, struct xfs_extent_busy, list)->agno;
+		   container_of(b, struct xfs_extent_busy, list)->agno;
 }

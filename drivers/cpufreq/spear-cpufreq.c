@@ -24,7 +24,8 @@
 #include <linux/types.h>
 
 /* SPEAr CPUFreq driver data structure */
-static struct {
+static struct
+{
 	struct clk *clk;
 	unsigned int transition_latency;
 	struct cpufreq_frequency_table *freq_tbl;
@@ -39,7 +40,8 @@ static struct clk *spear1340_cpu_get_possible_parent(unsigned long newfreq)
 	 * In SPEAr1340, cpu clk's parent sys clk can take input from
 	 * following sources
 	 */
-	const char *sys_clk_src[] = {
+	const char *sys_clk_src[] =
+	{
 		"sys_syn_clk",
 		"pll1_clk",
 		"pll2_clk",
@@ -51,18 +53,29 @@ static struct clk *spear1340_cpu_get_possible_parent(unsigned long newfreq)
 	 * limitation so we choose possible sources accordingly
 	 */
 	if (newfreq <= 300000000)
-		pclk = 0; /* src is sys_syn_clk */
+	{
+		pclk = 0;    /* src is sys_syn_clk */
+	}
 	else if (newfreq > 300000000 && newfreq <= 500000000)
-		pclk = 3; /* src is pll3_clk */
+	{
+		pclk = 3;    /* src is pll3_clk */
+	}
 	else if (newfreq == 600000000)
-		pclk = 1; /* src is pll1_clk */
+	{
+		pclk = 1;    /* src is pll1_clk */
+	}
 	else
+	{
 		return ERR_PTR(-EINVAL);
+	}
 
 	/* Get parent to sys clock */
 	sys_pclk = clk_get(NULL, sys_clk_src[pclk]);
+
 	if (IS_ERR(sys_pclk))
+	{
 		pr_err("Failed to get %s clock\n", sys_clk_src[pclk]);
+	}
 
 	return sys_pclk;
 }
@@ -79,20 +92,26 @@ static int spear1340_set_cpu_rate(struct clk *sys_pclk, unsigned long newfreq)
 	int ret = 0;
 
 	sys_clk = clk_get_parent(spear_cpufreq.clk);
-	if (IS_ERR(sys_clk)) {
+
+	if (IS_ERR(sys_clk))
+	{
 		pr_err("failed to get cpu's parent (sys) clock\n");
 		return PTR_ERR(sys_clk);
 	}
 
 	/* Set the rate of the source clock before changing the parent */
 	ret = clk_set_rate(sys_pclk, newfreq);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Failed to set sys clk rate to %lu\n", newfreq);
 		return ret;
 	}
 
 	ret = clk_set_parent(sys_clk, sys_pclk);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Failed to set sys clk parent\n");
 		return ret;
 	}
@@ -101,7 +120,7 @@ static int spear1340_set_cpu_rate(struct clk *sys_pclk, unsigned long newfreq)
 }
 
 static int spear_cpufreq_target(struct cpufreq_policy *policy,
-		unsigned int index)
+								unsigned int index)
 {
 	long newfreq;
 	struct clk *srcclk;
@@ -109,7 +128,8 @@ static int spear_cpufreq_target(struct cpufreq_policy *policy,
 
 	newfreq = spear_cpufreq.freq_tbl[index].frequency * 1000;
 
-	if (of_machine_is_compatible("st,spear1340")) {
+	if (of_machine_is_compatible("st,spear1340"))
+	{
 		/*
 		 * SPEAr1340 is special in the sense that due to the possibility
 		 * of multiple clock sources for cpu clk's parent we can have
@@ -118,14 +138,18 @@ static int spear_cpufreq_target(struct cpufreq_policy *policy,
 		 * sources.
 		 */
 		srcclk = spear1340_cpu_get_possible_parent(newfreq);
-		if (IS_ERR(srcclk)) {
+
+		if (IS_ERR(srcclk))
+		{
 			pr_err("Failed to get src clk\n");
 			return PTR_ERR(srcclk);
 		}
 
 		/* SPEAr1340: src clk is always 2 * intended cpu clk */
 		mult = 2;
-	} else {
+	}
+	else
+	{
 		/*
 		 * src clock to be altered is ancestor of cpu clock. Hence we
 		 * can directly work on cpu clk
@@ -134,18 +158,26 @@ static int spear_cpufreq_target(struct cpufreq_policy *policy,
 	}
 
 	newfreq = clk_round_rate(srcclk, newfreq * mult);
-	if (newfreq <= 0) {
+
+	if (newfreq <= 0)
+	{
 		pr_err("clk_round_rate failed for cpu src clock\n");
 		return newfreq;
 	}
 
 	if (mult == 2)
+	{
 		ret = spear1340_set_cpu_rate(srcclk, newfreq);
+	}
 	else
+	{
 		ret = clk_set_rate(spear_cpufreq.clk, newfreq);
+	}
 
 	if (ret)
+	{
 		pr_err("CPU Freq: cpu clk_set_rate failed: %d\n", ret);
+	}
 
 	return ret;
 }
@@ -154,10 +186,11 @@ static int spear_cpufreq_init(struct cpufreq_policy *policy)
 {
 	policy->clk = spear_cpufreq.clk;
 	return cpufreq_generic_init(policy, spear_cpufreq.freq_tbl,
-			spear_cpufreq.transition_latency);
+								spear_cpufreq.transition_latency);
 }
 
-static struct cpufreq_driver spear_cpufreq_driver = {
+static struct cpufreq_driver spear_cpufreq_driver =
+{
 	.name		= "cpufreq-spear",
 	.flags		= CPUFREQ_STICKY | CPUFREQ_NEED_INITIAL_FREQ_CHECK,
 	.verify		= cpufreq_generic_frequency_table_verify,
@@ -176,17 +209,23 @@ static int spear_cpufreq_probe(struct platform_device *pdev)
 	int cnt, i, ret;
 
 	np = of_cpu_device_node_get(0);
-	if (!np) {
+
+	if (!np)
+	{
 		pr_err("No cpu node found");
 		return -ENODEV;
 	}
 
 	if (of_property_read_u32(np, "clock-latency",
-				&spear_cpufreq.transition_latency))
+							 &spear_cpufreq.transition_latency))
+	{
 		spear_cpufreq.transition_latency = CPUFREQ_ETERNAL;
+	}
 
 	prop = of_find_property(np, "cpufreq_tbl", NULL);
-	if (!prop || !prop->value) {
+
+	if (!prop || !prop->value)
+	{
 		pr_err("Invalid cpufreq_tbl");
 		ret = -ENODEV;
 		goto out_put_node;
@@ -196,13 +235,17 @@ static int spear_cpufreq_probe(struct platform_device *pdev)
 	val = prop->value;
 
 	freq_tbl = kzalloc(sizeof(*freq_tbl) * (cnt + 1), GFP_KERNEL);
-	if (!freq_tbl) {
+
+	if (!freq_tbl)
+	{
 		ret = -ENOMEM;
 		goto out_put_node;
 	}
 
 	for (i = 0; i < cnt; i++)
+	{
 		freq_tbl[i].frequency = be32_to_cpup(val++);
+	}
 
 	freq_tbl[i].frequency = CPUFREQ_TABLE_END;
 
@@ -211,15 +254,20 @@ static int spear_cpufreq_probe(struct platform_device *pdev)
 	of_node_put(np);
 
 	spear_cpufreq.clk = clk_get(NULL, "cpu_clk");
-	if (IS_ERR(spear_cpufreq.clk)) {
+
+	if (IS_ERR(spear_cpufreq.clk))
+	{
 		pr_err("Unable to get CPU clock\n");
 		ret = PTR_ERR(spear_cpufreq.clk);
 		goto out_put_mem;
 	}
 
 	ret = cpufreq_register_driver(&spear_cpufreq_driver);
+
 	if (!ret)
+	{
 		return 0;
+	}
 
 	pr_err("failed register driver: %d\n", ret);
 	clk_put(spear_cpufreq.clk);
@@ -233,7 +281,8 @@ out_put_node:
 	return ret;
 }
 
-static struct platform_driver spear_cpufreq_platdrv = {
+static struct platform_driver spear_cpufreq_platdrv =
+{
 	.driver = {
 		.name	= "spear-cpufreq",
 	},

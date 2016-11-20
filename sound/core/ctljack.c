@@ -17,13 +17,14 @@
 #define jack_detect_kctl_info	snd_ctl_boolean_mono_info
 
 static int jack_detect_kctl_get(struct snd_kcontrol *kcontrol,
-				struct snd_ctl_elem_value *ucontrol)
+								struct snd_ctl_elem_value *ucontrol)
 {
 	ucontrol->value.integer.value[0] = kcontrol->private_value;
 	return 0;
 }
 
-static struct snd_kcontrol_new jack_detect_kctl = {
+static struct snd_kcontrol_new jack_detect_kctl =
+{
 	/* name is filled later */
 	.iface = SNDRV_CTL_ELEM_IFACE_CARD,
 	.access = SNDRV_CTL_ELEM_ACCESS_READ,
@@ -41,7 +42,8 @@ static int get_available_index(struct snd_card *card, const char *name)
 	sid.iface = SNDRV_CTL_ELEM_IFACE_CARD;
 	strlcpy(sid.name, name, sizeof(sid.name));
 
-	while (snd_ctl_find_id(card, &sid)) {
+	while (snd_ctl_find_id(card, &sid))
+	{
 		sid.index++;
 		/* reset numid; otherwise snd_ctl_find_id() hits this again */
 		sid.numid = 0;
@@ -57,7 +59,9 @@ static void jack_kctl_name_gen(char *name, const char *src_name, int size)
 
 	/* remove redundant " Jack" from src_name */
 	if (count >= 5)
+	{
 		need_cat = strncmp(&src_name[count - 5], " Jack", 5) ? true : false;
+	}
 
 	snprintf(name, size, need_cat ? "%s Jack" : "%s", src_name);
 
@@ -69,8 +73,11 @@ snd_kctl_jack_new(const char *name, struct snd_card *card)
 	struct snd_kcontrol *kctl;
 
 	kctl = snd_ctl_new1(&jack_detect_kctl, NULL);
+
 	if (!kctl)
+	{
 		return NULL;
+	}
 
 	jack_kctl_name_gen(kctl->id.name, name, sizeof(kctl->id.name));
 	kctl->id.index = get_available_index(card, kctl->id.name);
@@ -79,10 +86,13 @@ snd_kctl_jack_new(const char *name, struct snd_card *card)
 }
 
 void snd_kctl_jack_report(struct snd_card *card,
-			  struct snd_kcontrol *kctl, bool status)
+						  struct snd_kcontrol *kctl, bool status)
 {
 	if (kctl->private_value == status)
+	{
 		return;
+	}
+
 	kctl->private_value = status;
 	snd_ctl_notify(card, SNDRV_CTL_EVENT_MASK_VALUE, &kctl->id);
 }

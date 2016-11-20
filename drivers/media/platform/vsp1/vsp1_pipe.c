@@ -31,109 +31,162 @@
  * Helper Functions
  */
 
-static const struct vsp1_format_info vsp1_video_formats[] = {
-	{ V4L2_PIX_FMT_RGB332, MEDIA_BUS_FMT_ARGB8888_1X32,
-	  VI6_FMT_RGB_332, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-	  1, { 8, 0, 0 }, false, false, 1, 1, false },
-	{ V4L2_PIX_FMT_ARGB444, MEDIA_BUS_FMT_ARGB8888_1X32,
-	  VI6_FMT_ARGB_4444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-	  VI6_RPF_DSWAP_P_WDS,
-	  1, { 16, 0, 0 }, false, false, 1, 1, true },
-	{ V4L2_PIX_FMT_XRGB444, MEDIA_BUS_FMT_ARGB8888_1X32,
-	  VI6_FMT_XRGB_4444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-	  VI6_RPF_DSWAP_P_WDS,
-	  1, { 16, 0, 0 }, false, false, 1, 1, false },
-	{ V4L2_PIX_FMT_ARGB555, MEDIA_BUS_FMT_ARGB8888_1X32,
-	  VI6_FMT_ARGB_1555, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-	  VI6_RPF_DSWAP_P_WDS,
-	  1, { 16, 0, 0 }, false, false, 1, 1, true },
-	{ V4L2_PIX_FMT_XRGB555, MEDIA_BUS_FMT_ARGB8888_1X32,
-	  VI6_FMT_XRGB_1555, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-	  VI6_RPF_DSWAP_P_WDS,
-	  1, { 16, 0, 0 }, false, false, 1, 1, false },
-	{ V4L2_PIX_FMT_RGB565, MEDIA_BUS_FMT_ARGB8888_1X32,
-	  VI6_FMT_RGB_565, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-	  VI6_RPF_DSWAP_P_WDS,
-	  1, { 16, 0, 0 }, false, false, 1, 1, false },
-	{ V4L2_PIX_FMT_BGR24, MEDIA_BUS_FMT_ARGB8888_1X32,
-	  VI6_FMT_BGR_888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-	  1, { 24, 0, 0 }, false, false, 1, 1, false },
-	{ V4L2_PIX_FMT_RGB24, MEDIA_BUS_FMT_ARGB8888_1X32,
-	  VI6_FMT_RGB_888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-	  1, { 24, 0, 0 }, false, false, 1, 1, false },
-	{ V4L2_PIX_FMT_ABGR32, MEDIA_BUS_FMT_ARGB8888_1X32,
-	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS,
-	  1, { 32, 0, 0 }, false, false, 1, 1, true },
-	{ V4L2_PIX_FMT_XBGR32, MEDIA_BUS_FMT_ARGB8888_1X32,
-	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS,
-	  1, { 32, 0, 0 }, false, false, 1, 1, false },
-	{ V4L2_PIX_FMT_ARGB32, MEDIA_BUS_FMT_ARGB8888_1X32,
-	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-	  1, { 32, 0, 0 }, false, false, 1, 1, true },
-	{ V4L2_PIX_FMT_XRGB32, MEDIA_BUS_FMT_ARGB8888_1X32,
-	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-	  1, { 32, 0, 0 }, false, false, 1, 1, false },
-	{ V4L2_PIX_FMT_UYVY, MEDIA_BUS_FMT_AYUV8_1X32,
-	  VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-	  1, { 16, 0, 0 }, false, false, 2, 1, false },
-	{ V4L2_PIX_FMT_VYUY, MEDIA_BUS_FMT_AYUV8_1X32,
-	  VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-	  1, { 16, 0, 0 }, false, true, 2, 1, false },
-	{ V4L2_PIX_FMT_YUYV, MEDIA_BUS_FMT_AYUV8_1X32,
-	  VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-	  1, { 16, 0, 0 }, true, false, 2, 1, false },
-	{ V4L2_PIX_FMT_YVYU, MEDIA_BUS_FMT_AYUV8_1X32,
-	  VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-	  1, { 16, 0, 0 }, true, true, 2, 1, false },
-	{ V4L2_PIX_FMT_NV12M, MEDIA_BUS_FMT_AYUV8_1X32,
-	  VI6_FMT_Y_UV_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-	  2, { 8, 16, 0 }, false, false, 2, 2, false },
-	{ V4L2_PIX_FMT_NV21M, MEDIA_BUS_FMT_AYUV8_1X32,
-	  VI6_FMT_Y_UV_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-	  2, { 8, 16, 0 }, false, true, 2, 2, false },
-	{ V4L2_PIX_FMT_NV16M, MEDIA_BUS_FMT_AYUV8_1X32,
-	  VI6_FMT_Y_UV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-	  2, { 8, 16, 0 }, false, false, 2, 1, false },
-	{ V4L2_PIX_FMT_NV61M, MEDIA_BUS_FMT_AYUV8_1X32,
-	  VI6_FMT_Y_UV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-	  2, { 8, 16, 0 }, false, true, 2, 1, false },
-	{ V4L2_PIX_FMT_YUV420M, MEDIA_BUS_FMT_AYUV8_1X32,
-	  VI6_FMT_Y_U_V_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-	  3, { 8, 8, 8 }, false, false, 2, 2, false },
-	{ V4L2_PIX_FMT_YVU420M, MEDIA_BUS_FMT_AYUV8_1X32,
-	  VI6_FMT_Y_U_V_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-	  3, { 8, 8, 8 }, false, true, 2, 2, false },
-	{ V4L2_PIX_FMT_YUV422M, MEDIA_BUS_FMT_AYUV8_1X32,
-	  VI6_FMT_Y_U_V_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-	  3, { 8, 8, 8 }, false, false, 2, 1, false },
-	{ V4L2_PIX_FMT_YVU422M, MEDIA_BUS_FMT_AYUV8_1X32,
-	  VI6_FMT_Y_U_V_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-	  3, { 8, 8, 8 }, false, true, 2, 1, false },
-	{ V4L2_PIX_FMT_YUV444M, MEDIA_BUS_FMT_AYUV8_1X32,
-	  VI6_FMT_Y_U_V_444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-	  3, { 8, 8, 8 }, false, false, 1, 1, false },
-	{ V4L2_PIX_FMT_YVU444M, MEDIA_BUS_FMT_AYUV8_1X32,
-	  VI6_FMT_Y_U_V_444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-	  3, { 8, 8, 8 }, false, true, 1, 1, false },
+static const struct vsp1_format_info vsp1_video_formats[] =
+{
+	{
+		V4L2_PIX_FMT_RGB332, MEDIA_BUS_FMT_ARGB8888_1X32,
+		VI6_FMT_RGB_332, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+		VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+		1, { 8, 0, 0 }, false, false, 1, 1, false
+	},
+	{
+		V4L2_PIX_FMT_ARGB444, MEDIA_BUS_FMT_ARGB8888_1X32,
+		VI6_FMT_ARGB_4444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+		VI6_RPF_DSWAP_P_WDS,
+		1, { 16, 0, 0 }, false, false, 1, 1, true
+	},
+	{
+		V4L2_PIX_FMT_XRGB444, MEDIA_BUS_FMT_ARGB8888_1X32,
+		VI6_FMT_XRGB_4444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+		VI6_RPF_DSWAP_P_WDS,
+		1, { 16, 0, 0 }, false, false, 1, 1, false
+	},
+	{
+		V4L2_PIX_FMT_ARGB555, MEDIA_BUS_FMT_ARGB8888_1X32,
+		VI6_FMT_ARGB_1555, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+		VI6_RPF_DSWAP_P_WDS,
+		1, { 16, 0, 0 }, false, false, 1, 1, true
+	},
+	{
+		V4L2_PIX_FMT_XRGB555, MEDIA_BUS_FMT_ARGB8888_1X32,
+		VI6_FMT_XRGB_1555, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+		VI6_RPF_DSWAP_P_WDS,
+		1, { 16, 0, 0 }, false, false, 1, 1, false
+	},
+	{
+		V4L2_PIX_FMT_RGB565, MEDIA_BUS_FMT_ARGB8888_1X32,
+		VI6_FMT_RGB_565, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+		VI6_RPF_DSWAP_P_WDS,
+		1, { 16, 0, 0 }, false, false, 1, 1, false
+	},
+	{
+		V4L2_PIX_FMT_BGR24, MEDIA_BUS_FMT_ARGB8888_1X32,
+		VI6_FMT_BGR_888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+		VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+		1, { 24, 0, 0 }, false, false, 1, 1, false
+	},
+	{
+		V4L2_PIX_FMT_RGB24, MEDIA_BUS_FMT_ARGB8888_1X32,
+		VI6_FMT_RGB_888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+		VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+		1, { 24, 0, 0 }, false, false, 1, 1, false
+	},
+	{
+		V4L2_PIX_FMT_ABGR32, MEDIA_BUS_FMT_ARGB8888_1X32,
+		VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS,
+		1, { 32, 0, 0 }, false, false, 1, 1, true
+	},
+	{
+		V4L2_PIX_FMT_XBGR32, MEDIA_BUS_FMT_ARGB8888_1X32,
+		VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS,
+		1, { 32, 0, 0 }, false, false, 1, 1, false
+	},
+	{
+		V4L2_PIX_FMT_ARGB32, MEDIA_BUS_FMT_ARGB8888_1X32,
+		VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+		VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+		1, { 32, 0, 0 }, false, false, 1, 1, true
+	},
+	{
+		V4L2_PIX_FMT_XRGB32, MEDIA_BUS_FMT_ARGB8888_1X32,
+		VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+		VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+		1, { 32, 0, 0 }, false, false, 1, 1, false
+	},
+	{
+		V4L2_PIX_FMT_UYVY, MEDIA_BUS_FMT_AYUV8_1X32,
+		VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+		VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+		1, { 16, 0, 0 }, false, false, 2, 1, false
+	},
+	{
+		V4L2_PIX_FMT_VYUY, MEDIA_BUS_FMT_AYUV8_1X32,
+		VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+		VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+		1, { 16, 0, 0 }, false, true, 2, 1, false
+	},
+	{
+		V4L2_PIX_FMT_YUYV, MEDIA_BUS_FMT_AYUV8_1X32,
+		VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+		VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+		1, { 16, 0, 0 }, true, false, 2, 1, false
+	},
+	{
+		V4L2_PIX_FMT_YVYU, MEDIA_BUS_FMT_AYUV8_1X32,
+		VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+		VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+		1, { 16, 0, 0 }, true, true, 2, 1, false
+	},
+	{
+		V4L2_PIX_FMT_NV12M, MEDIA_BUS_FMT_AYUV8_1X32,
+		VI6_FMT_Y_UV_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+		VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+		2, { 8, 16, 0 }, false, false, 2, 2, false
+	},
+	{
+		V4L2_PIX_FMT_NV21M, MEDIA_BUS_FMT_AYUV8_1X32,
+		VI6_FMT_Y_UV_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+		VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+		2, { 8, 16, 0 }, false, true, 2, 2, false
+	},
+	{
+		V4L2_PIX_FMT_NV16M, MEDIA_BUS_FMT_AYUV8_1X32,
+		VI6_FMT_Y_UV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+		VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+		2, { 8, 16, 0 }, false, false, 2, 1, false
+	},
+	{
+		V4L2_PIX_FMT_NV61M, MEDIA_BUS_FMT_AYUV8_1X32,
+		VI6_FMT_Y_UV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+		VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+		2, { 8, 16, 0 }, false, true, 2, 1, false
+	},
+	{
+		V4L2_PIX_FMT_YUV420M, MEDIA_BUS_FMT_AYUV8_1X32,
+		VI6_FMT_Y_U_V_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+		VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+		3, { 8, 8, 8 }, false, false, 2, 2, false
+	},
+	{
+		V4L2_PIX_FMT_YVU420M, MEDIA_BUS_FMT_AYUV8_1X32,
+		VI6_FMT_Y_U_V_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+		VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+		3, { 8, 8, 8 }, false, true, 2, 2, false
+	},
+	{
+		V4L2_PIX_FMT_YUV422M, MEDIA_BUS_FMT_AYUV8_1X32,
+		VI6_FMT_Y_U_V_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+		VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+		3, { 8, 8, 8 }, false, false, 2, 1, false
+	},
+	{
+		V4L2_PIX_FMT_YVU422M, MEDIA_BUS_FMT_AYUV8_1X32,
+		VI6_FMT_Y_U_V_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+		VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+		3, { 8, 8, 8 }, false, true, 2, 1, false
+	},
+	{
+		V4L2_PIX_FMT_YUV444M, MEDIA_BUS_FMT_AYUV8_1X32,
+		VI6_FMT_Y_U_V_444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+		VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+		3, { 8, 8, 8 }, false, false, 1, 1, false
+	},
+	{
+		V4L2_PIX_FMT_YVU444M, MEDIA_BUS_FMT_AYUV8_1X32,
+		VI6_FMT_Y_U_V_444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+		VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+		3, { 8, 8, 8 }, false, true, 1, 1, false
+	},
 };
 
 /**
@@ -145,19 +198,24 @@ static const struct vsp1_format_info vsp1_video_formats[] = {
  * given V4L2 format 4CC, or NULL if no corresponding format can be found.
  */
 const struct vsp1_format_info *vsp1_get_format_info(struct vsp1_device *vsp1,
-						    u32 fourcc)
+		u32 fourcc)
 {
 	unsigned int i;
 
 	/* Special case, the VYUY format is supported on Gen2 only. */
 	if (vsp1->info->gen != 2 && fourcc == V4L2_PIX_FMT_VYUY)
+	{
 		return NULL;
+	}
 
-	for (i = 0; i < ARRAY_SIZE(vsp1_video_formats); ++i) {
+	for (i = 0; i < ARRAY_SIZE(vsp1_video_formats); ++i)
+	{
 		const struct vsp1_format_info *info = &vsp1_video_formats[i];
 
 		if (info->fourcc == fourcc)
+		{
 			return info;
+		}
 	}
 
 	return NULL;
@@ -171,21 +229,27 @@ void vsp1_pipeline_reset(struct vsp1_pipeline *pipe)
 {
 	unsigned int i;
 
-	if (pipe->bru) {
+	if (pipe->bru)
+	{
 		struct vsp1_bru *bru = to_bru(&pipe->bru->subdev);
 
 		for (i = 0; i < ARRAY_SIZE(bru->inputs); ++i)
+		{
 			bru->inputs[i].rpf = NULL;
+		}
 	}
 
-	for (i = 0; i < ARRAY_SIZE(pipe->inputs); ++i) {
-		if (pipe->inputs[i]) {
+	for (i = 0; i < ARRAY_SIZE(pipe->inputs); ++i)
+	{
+		if (pipe->inputs[i])
+		{
 			pipe->inputs[i]->pipe = NULL;
 			pipe->inputs[i] = NULL;
 		}
 	}
 
-	if (pipe->output) {
+	if (pipe->output)
+	{
 		pipe->output->pipe = NULL;
 		pipe->output = NULL;
 	}
@@ -215,9 +279,10 @@ void vsp1_pipeline_run(struct vsp1_pipeline *pipe)
 {
 	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
 
-	if (pipe->state == VSP1_PIPELINE_STOPPED) {
+	if (pipe->state == VSP1_PIPELINE_STOPPED)
+	{
 		vsp1_write(vsp1, VI6_CMD(pipe->output->entity.index),
-			   VI6_CMD_STRCMD);
+				   VI6_CMD_STRCMD);
 		pipe->state = VSP1_PIPELINE_RUNNING;
 	}
 
@@ -242,33 +307,43 @@ int vsp1_pipeline_stop(struct vsp1_pipeline *pipe)
 	unsigned long flags;
 	int ret;
 
-	if (pipe->lif) {
+	if (pipe->lif)
+	{
 		/* When using display lists in continuous frame mode the only
 		 * way to stop the pipeline is to reset the hardware.
 		 */
 		ret = vsp1_reset_wpf(pipe->output->entity.vsp1,
-				     pipe->output->entity.index);
-		if (ret == 0) {
+							 pipe->output->entity.index);
+
+		if (ret == 0)
+		{
 			spin_lock_irqsave(&pipe->irqlock, flags);
 			pipe->state = VSP1_PIPELINE_STOPPED;
 			spin_unlock_irqrestore(&pipe->irqlock, flags);
 		}
-	} else {
+	}
+	else
+	{
 		/* Otherwise just request a stop and wait. */
 		spin_lock_irqsave(&pipe->irqlock, flags);
+
 		if (pipe->state == VSP1_PIPELINE_RUNNING)
+		{
 			pipe->state = VSP1_PIPELINE_STOPPING;
+		}
+
 		spin_unlock_irqrestore(&pipe->irqlock, flags);
 
 		ret = wait_event_timeout(pipe->wq, vsp1_pipeline_stopped(pipe),
-					 msecs_to_jiffies(500));
+								 msecs_to_jiffies(500));
 		ret = ret == 0 ? -ETIMEDOUT : 0;
 	}
 
-	list_for_each_entry(entity, &pipe->entities, list_pipe) {
+	list_for_each_entry(entity, &pipe->entities, list_pipe)
+	{
 		if (entity->route && entity->route->reg)
 			vsp1_write(entity->vsp1, entity->route->reg,
-				   VI6_DPR_NODE_UNUSED);
+					   VI6_DPR_NODE_UNUSED);
 	}
 
 	v4l2_subdev_call(&pipe->output->entity.subdev, video, s_stream, 0);
@@ -281,8 +356,11 @@ bool vsp1_pipeline_ready(struct vsp1_pipeline *pipe)
 	unsigned int mask;
 
 	mask = ((1 << pipe->num_inputs) - 1) << 1;
+
 	if (!pipe->lif)
+	{
 		mask |= 1 << 0;
+	}
 
 	return pipe->buffers_ready == mask;
 }
@@ -290,12 +368,16 @@ bool vsp1_pipeline_ready(struct vsp1_pipeline *pipe)
 void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
 {
 	if (pipe == NULL)
+	{
 		return;
+	}
 
 	vsp1_dlm_irq_frame_end(pipe->output->dlm);
 
 	if (pipe->frame_end)
+	{
 		pipe->frame_end(pipe);
+	}
 
 	pipe->sequence++;
 }
@@ -309,16 +391,20 @@ void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
  * from the input RPF alpha.
  */
 void vsp1_pipeline_propagate_alpha(struct vsp1_pipeline *pipe,
-				   struct vsp1_dl_list *dl, unsigned int alpha)
+								   struct vsp1_dl_list *dl, unsigned int alpha)
 {
 	if (!pipe->uds)
+	{
 		return;
+	}
 
 	/* The BRU background color has a fixed alpha value set to 255, the
 	 * output alpha value is thus always equal to 255.
 	 */
 	if (pipe->uds_input->type == VSP1_ENTITY_BRU)
+	{
 		alpha = 255;
+	}
 
 	vsp1_uds_set_alpha(pipe->uds, dl, alpha);
 }
@@ -333,39 +419,56 @@ void vsp1_pipelines_suspend(struct vsp1_device *vsp1)
 	 * pipelines twice, first to set them all to the stopping state, and
 	 * then to wait for the stop to complete.
 	 */
-	for (i = 0; i < vsp1->info->wpf_count; ++i) {
+	for (i = 0; i < vsp1->info->wpf_count; ++i)
+	{
 		struct vsp1_rwpf *wpf = vsp1->wpf[i];
 		struct vsp1_pipeline *pipe;
 
 		if (wpf == NULL)
+		{
 			continue;
+		}
 
 		pipe = wpf->pipe;
+
 		if (pipe == NULL)
+		{
 			continue;
+		}
 
 		spin_lock_irqsave(&pipe->irqlock, flags);
+
 		if (pipe->state == VSP1_PIPELINE_RUNNING)
+		{
 			pipe->state = VSP1_PIPELINE_STOPPING;
+		}
+
 		spin_unlock_irqrestore(&pipe->irqlock, flags);
 	}
 
-	for (i = 0; i < vsp1->info->wpf_count; ++i) {
+	for (i = 0; i < vsp1->info->wpf_count; ++i)
+	{
 		struct vsp1_rwpf *wpf = vsp1->wpf[i];
 		struct vsp1_pipeline *pipe;
 
 		if (wpf == NULL)
+		{
 			continue;
+		}
 
 		pipe = wpf->pipe;
+
 		if (pipe == NULL)
+		{
 			continue;
+		}
 
 		ret = wait_event_timeout(pipe->wq, vsp1_pipeline_stopped(pipe),
-					 msecs_to_jiffies(500));
+								 msecs_to_jiffies(500));
+
 		if (ret == 0)
 			dev_warn(vsp1->dev, "pipeline %u stop timeout\n",
-				 wpf->entity.index);
+					 wpf->entity.index);
 	}
 }
 
@@ -375,20 +478,30 @@ void vsp1_pipelines_resume(struct vsp1_device *vsp1)
 	unsigned int i;
 
 	/* Resume all running pipelines. */
-	for (i = 0; i < vsp1->info->wpf_count; ++i) {
+	for (i = 0; i < vsp1->info->wpf_count; ++i)
+	{
 		struct vsp1_rwpf *wpf = vsp1->wpf[i];
 		struct vsp1_pipeline *pipe;
 
 		if (wpf == NULL)
+		{
 			continue;
+		}
 
 		pipe = wpf->pipe;
+
 		if (pipe == NULL)
+		{
 			continue;
+		}
 
 		spin_lock_irqsave(&pipe->irqlock, flags);
+
 		if (vsp1_pipeline_ready(pipe))
+		{
 			vsp1_pipeline_run(pipe);
+		}
+
 		spin_unlock_irqrestore(&pipe->irqlock, flags);
 	}
 }

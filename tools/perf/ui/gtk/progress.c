@@ -12,7 +12,8 @@ static void gtk_ui_progress__update(struct ui_progress *p)
 	double fraction = p->total ? 1.0 * p->curr / p->total : 0.0;
 	char buf[1024];
 
-	if (dialog == NULL) {
+	if (dialog == NULL)
+	{
 		GtkWidget *vbox = gtk_vbox_new(TRUE, 5);
 		GtkWidget *label = gtk_label_new(p->title);
 
@@ -37,7 +38,9 @@ static void gtk_ui_progress__update(struct ui_progress *p)
 
 	/* we didn't call gtk_main yet, so do it manually */
 	while (gtk_events_pending())
+	{
 		gtk_main_iteration();
+	}
 }
 
 static void gtk_ui_progress__finish(void)
@@ -48,7 +51,8 @@ static void gtk_ui_progress__finish(void)
 	dialog = NULL;
 }
 
-static struct ui_progress_ops gtk_ui_progress__ops = {
+static struct ui_progress_ops gtk_ui_progress__ops =
+{
 	.update		= gtk_ui_progress__update,
 	.finish		= gtk_ui_progress__finish,
 };

@@ -17,7 +17,8 @@
  * original bio state.
  */
 
-struct dm_bio_details {
+struct dm_bio_details
+{
 	struct block_device *bi_bdev;
 	unsigned long bi_flags;
 	struct bvec_iter bi_iter;

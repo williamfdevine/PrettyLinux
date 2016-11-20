@@ -117,6 +117,6 @@
 #define DRIVER_PATCHLEVEL	0
 
 long radeon_drm_ioctl(struct file *filp,
-		      unsigned int cmd, unsigned long arg);
+					  unsigned int cmd, unsigned long arg);
 
 #endif				/* __RADEON_DRV_H__ */

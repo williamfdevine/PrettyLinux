@@ -52,7 +52,8 @@
 #define EM_MSG_LED_VALUE_OFF          0xfff80000
 #define EM_MSG_LED_VALUE_ON           0x00010000
 
-enum {
+enum
+{
 	AHCI_MAX_PORTS		= 32,
 	AHCI_MAX_CLKS		= 5,
 	AHCI_MAX_SG		= 168, /* hardware max is 64K */
@@ -66,10 +67,10 @@ enum {
 	AHCI_CMD_TBL_SZ		= AHCI_CMD_TBL_HDR_SZ + (AHCI_MAX_SG * 16),
 	AHCI_CMD_TBL_AR_SZ	= AHCI_CMD_TBL_SZ * AHCI_MAX_CMDS,
 	AHCI_PORT_PRIV_DMA_SZ	= AHCI_CMD_SLOT_SZ + AHCI_CMD_TBL_AR_SZ +
-				  AHCI_RX_FIS_SZ,
+							  AHCI_RX_FIS_SZ,
 	AHCI_PORT_PRIV_FBS_DMA_SZ	= AHCI_CMD_SLOT_SZ +
-					  AHCI_CMD_TBL_AR_SZ +
-					  (AHCI_RX_FIS_SZ * 16),
+								  AHCI_CMD_TBL_AR_SZ +
+								  (AHCI_RX_FIS_SZ * 16),
 	AHCI_IRQ_ON_SG		= (1 << 31),
 	AHCI_CMD_ATAPI		= (1 << 5),
 	AHCI_CMD_WRITE		= (1 << 6),
@@ -165,17 +166,17 @@ enum {
 	PORT_IRQ_D2H_REG_FIS	= (1 << 0), /* D2H Register FIS rx'd */
 
 	PORT_IRQ_FREEZE		= PORT_IRQ_HBUS_ERR |
-				  PORT_IRQ_IF_ERR |
-				  PORT_IRQ_CONNECT |
-				  PORT_IRQ_PHYRDY |
-				  PORT_IRQ_UNK_FIS |
-				  PORT_IRQ_BAD_PMP,
+						  PORT_IRQ_IF_ERR |
+						  PORT_IRQ_CONNECT |
+						  PORT_IRQ_PHYRDY |
+						  PORT_IRQ_UNK_FIS |
+						  PORT_IRQ_BAD_PMP,
 	PORT_IRQ_ERROR		= PORT_IRQ_FREEZE |
-				  PORT_IRQ_TF_ERR |
-				  PORT_IRQ_HBUS_DATA_ERR,
+						  PORT_IRQ_TF_ERR |
+						  PORT_IRQ_HBUS_DATA_ERR,
 	DEF_PORT_IRQ		= PORT_IRQ_ERROR | PORT_IRQ_SG_DONE |
-				  PORT_IRQ_SDB_FIS | PORT_IRQ_DMAS_FIS |
-				  PORT_IRQ_PIOS_FIS | PORT_IRQ_D2H_REG_FIS,
+						  PORT_IRQ_SDB_FIS | PORT_IRQ_DMAS_FIS |
+						  PORT_IRQ_PIOS_FIS | PORT_IRQ_D2H_REG_FIS,
 
 	/* PORT_CMD bits */
 	PORT_CMD_ASP		= (1 << 27), /* Aggressive Slumber/Partial */
@@ -252,7 +253,7 @@ enum {
 	/* ap->flags bits */
 
 	AHCI_FLAG_COMMON		= ATA_FLAG_SATA | ATA_FLAG_PIO_DMA |
-					  ATA_FLAG_ACPI_SATA | ATA_FLAG_AN,
+							  ATA_FLAG_ACPI_SATA | ATA_FLAG_AN,
 
 	ICH_MAP				= 0x90, /* ICH MAP register */
 
@@ -279,7 +280,8 @@ enum {
 	EM_MSG_TYPE_SGPIO	= (1 << 3), /* SGPIO */
 };
 
-struct ahci_cmd_hdr {
+struct ahci_cmd_hdr
+{
 	__le32			opts;
 	__le32			status;
 	__le32			tbl_addr;
@@ -287,14 +289,16 @@ struct ahci_cmd_hdr {
 	__le32			reserved[4];
 };
 
-struct ahci_sg {
+struct ahci_sg
+{
 	__le32			addr;
 	__le32			addr_hi;
 	__le32			reserved;
 	__le32			flags_size;
 };
 
-struct ahci_em_priv {
+struct ahci_em_priv
+{
 	enum sw_activity blink_policy;
 	struct timer_list timer;
 	unsigned long saved_activity;
@@ -302,7 +306,8 @@ struct ahci_em_priv {
 	unsigned long led_state;
 };
 
-struct ahci_port_priv {
+struct ahci_port_priv
+{
 	struct ata_link		*active_link;
 	struct ahci_cmd_hdr	*cmd_slot;
 	dma_addr_t		cmd_slot_dma;
@@ -311,9 +316,9 @@ struct ahci_port_priv {
 	void			*rx_fis;
 	dma_addr_t		rx_fis_dma;
 	/* for NCQ spurious interrupt analysis */
-	unsigned int		ncq_saw_d2h:1;
-	unsigned int		ncq_saw_dmas:1;
-	unsigned int		ncq_saw_sdb:1;
+	unsigned int		ncq_saw_d2h: 1;
+	unsigned int		ncq_saw_dmas: 1;
+	unsigned int		ncq_saw_sdb: 1;
 	spinlock_t		lock;		/* protects parent ata_port */
 	u32 			intr_mask;	/* interrupts to enable */
 	bool			fbs_supported;	/* set iff FBS is supported */
@@ -324,13 +329,14 @@ struct ahci_port_priv {
 	char			*irq_desc;	/* desc in /proc/interrupts */
 };
 
-struct ahci_host_priv {
+struct ahci_host_priv
+{
 	/* Input fields */
 	unsigned int		flags;		/* AHCI_HFLAG_* */
 	u32			force_port_map;	/* force port map */
 	u32			mask_port_map;	/* mask out particular bits */
 
-	void __iomem *		mmio;		/* bus-independent mem map */
+	void __iomem 		*mmio;		/* bus-independent mem map */
 	u32			cap;		/* cap to use */
 	u32			cap2;		/* cap2 to use */
 	u32			version;	/* cached version */
@@ -362,7 +368,7 @@ struct ahci_host_priv {
 
 	/* only required for per-port MSI(-X) support */
 	int			(*get_irq_vector)(struct ata_host *host,
-						  int port);
+								  int port);
 };
 
 extern int ahci_ignore_sss;
@@ -377,10 +383,10 @@ extern struct device_attribute *ahci_sdev_attrs[];
 #define AHCI_SHT(drv_name)						\
 	ATA_NCQ_SHT(drv_name),						\
 	.can_queue		= AHCI_MAX_CMDS - 1,			\
-	.sg_tablesize		= AHCI_MAX_SG,				\
-	.dma_boundary		= AHCI_DMA_BOUNDARY,			\
-	.shost_attrs		= ahci_shost_attrs,			\
-	.sdev_attrs		= ahci_sdev_attrs
+					  .sg_tablesize		= AHCI_MAX_SG,				\
+											.dma_boundary		= AHCI_DMA_BOUNDARY,			\
+													.shost_attrs		= ahci_shost_attrs,			\
+															.sdev_attrs		= ahci_sdev_attrs
 
 extern struct ata_port_operations ahci_ops;
 extern struct ata_port_operations ahci_platform_ops;
@@ -388,15 +394,15 @@ extern struct ata_port_operations ahci_pmp_retry_srst_ops;
 
 unsigned int ahci_dev_classify(struct ata_port *ap);
 void ahci_fill_cmd_slot(struct ahci_port_priv *pp, unsigned int tag,
-			u32 opts);
+						u32 opts);
 void ahci_save_initial_config(struct device *dev,
-			      struct ahci_host_priv *hpriv);
+							  struct ahci_host_priv *hpriv);
 void ahci_init_controller(struct ata_host *host);
 int ahci_reset_controller(struct ata_host *host);
 
 int ahci_do_softreset(struct ata_link *link, unsigned int *class,
-		      int pmp, unsigned long deadline,
-		      int (*check_ready)(struct ata_link *link));
+					  int pmp, unsigned long deadline,
+					  int (*check_ready)(struct ata_link *link));
 
 unsigned int ahci_qc_issue(struct ata_queued_cmd *qc);
 int ahci_stop_engine(struct ata_port *ap);
@@ -406,7 +412,7 @@ int ahci_check_ready(struct ata_link *link);
 int ahci_kick_engine(struct ata_port *ap);
 int ahci_port_resume(struct ata_port *ap);
 void ahci_set_em_messages(struct ahci_host_priv *hpriv,
-			  struct ata_port_info *pi);
+						  struct ata_port_info *pi);
 int ahci_reset_em(struct ata_host *host);
 void ahci_print_info(struct ata_host *host, const char *scc_s);
 int ahci_host_activate(struct ata_host *host, struct scsi_host_template *sht);
@@ -414,7 +420,7 @@ void ahci_error_handler(struct ata_port *ap);
 u32 ahci_handle_port_intr(struct ata_host *host, u32 irq_masked);
 
 static inline void __iomem *__ahci_port_base(struct ata_host *host,
-					     unsigned int port_no)
+		unsigned int port_no)
 {
 	struct ahci_host_priv *hpriv = host->private_data;
 	void __iomem *mmio = hpriv->mmio;

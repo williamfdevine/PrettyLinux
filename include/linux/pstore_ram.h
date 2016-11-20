@@ -27,14 +27,16 @@
 struct persistent_ram_buffer;
 struct rs_control;
 
-struct persistent_ram_ecc_info {
+struct persistent_ram_ecc_info
+{
 	int block_size;
 	int ecc_size;
 	int symsize;
 	int poly;
 };
 
-struct persistent_ram_zone {
+struct persistent_ram_zone
+{
 	phys_addr_t paddr;
 	size_t size;
 	void *vaddr;
@@ -54,22 +56,22 @@ struct persistent_ram_zone {
 };
 
 struct persistent_ram_zone *persistent_ram_new(phys_addr_t start, size_t size,
-			u32 sig, struct persistent_ram_ecc_info *ecc_info,
-			unsigned int memtype);
+		u32 sig, struct persistent_ram_ecc_info *ecc_info,
+		unsigned int memtype);
 void persistent_ram_free(struct persistent_ram_zone *prz);
 void persistent_ram_zap(struct persistent_ram_zone *prz);
 
 int persistent_ram_write(struct persistent_ram_zone *prz, const void *s,
-			 unsigned int count);
+						 unsigned int count);
 int persistent_ram_write_user(struct persistent_ram_zone *prz,
-			      const void __user *s, unsigned int count);
+							  const void __user *s, unsigned int count);
 
 void persistent_ram_save_old(struct persistent_ram_zone *prz);
 size_t persistent_ram_old_size(struct persistent_ram_zone *prz);
 void *persistent_ram_old(struct persistent_ram_zone *prz);
 void persistent_ram_free_old(struct persistent_ram_zone *prz);
 ssize_t persistent_ram_ecc_string(struct persistent_ram_zone *prz,
-	char *str, size_t len);
+								  char *str, size_t len);
 
 /*
  * Ramoops platform data
@@ -77,7 +79,8 @@ ssize_t persistent_ram_ecc_string(struct persistent_ram_zone *prz,
  * @mem_address	physical memory address to contain ramoops
  */
 
-struct ramoops_platform_data {
+struct ramoops_platform_data
+{
 	unsigned long	mem_size;
 	phys_addr_t	mem_address;
 	unsigned int	mem_type;

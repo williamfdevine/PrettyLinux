@@ -1861,7 +1861,8 @@
 #define RT5670_WND_WIND_SFT			13
 #define RT5670_WND_STRONG_MASK			(0x1 << 12) /* Read-Only */
 #define RT5670_WND_STRONG_SFT			12
-enum {
+enum
+{
 	RT5670_NO_WIND,
 	RT5670_BREEZE,
 	RT5670_STORM,
@@ -1926,14 +1927,16 @@ enum {
 #define RT5670_RXDP2_SEL_SFT			(3)
 
 /* System Clock Source */
-enum {
+enum
+{
 	RT5670_SCLK_S_MCLK,
 	RT5670_SCLK_S_PLL1,
 	RT5670_SCLK_S_RCCLK,
 };
 
 /* PLL1 Source */
-enum {
+enum
+{
 	RT5670_PLL1_S_MCLK,
 	RT5670_PLL1_S_BCLK1,
 	RT5670_PLL1_S_BCLK2,
@@ -1941,7 +1944,8 @@ enum {
 	RT5670_PLL1_S_BCLK4,
 };
 
-enum {
+enum
+{
 	RT5670_AIF1,
 	RT5670_AIF2,
 	RT5670_AIF3,
@@ -1949,20 +1953,23 @@ enum {
 	RT5670_AIFS,
 };
 
-enum {
+enum
+{
 	RT5670_DMIC1_DISABLED,
 	RT5670_DMIC_DATA_GPIO6,
 	RT5670_DMIC_DATA_IN2P,
 	RT5670_DMIC_DATA_GPIO7,
 };
 
-enum {
+enum
+{
 	RT5670_DMIC2_DISABLED,
 	RT5670_DMIC_DATA_GPIO8,
 	RT5670_DMIC_DATA_IN3N,
 };
 
-enum {
+enum
+{
 	RT5670_DMIC3_DISABLED,
 	RT5670_DMIC_DATA_GPIO9,
 	RT5670_DMIC_DATA_GPIO10,
@@ -1970,7 +1977,8 @@ enum {
 };
 
 /* filter mask */
-enum {
+enum
+{
 	RT5670_DA_STEREO_FILTER = 0x1,
 	RT5670_DA_MONO_L_FILTER = (0x1 << 1),
 	RT5670_DA_MONO_R_FILTER = (0x1 << 2),
@@ -1982,9 +1990,10 @@ enum {
 };
 
 int rt5670_sel_asrc_clk_src(struct snd_soc_codec *codec,
-			    unsigned int filter_mask, unsigned int clk_src);
+							unsigned int filter_mask, unsigned int clk_src);
 
-struct rt5670_priv {
+struct rt5670_priv
+{
 	struct snd_soc_codec *codec;
 	struct rt5670_platform_data pdata;
 	struct regmap *regmap;
@@ -2010,5 +2019,5 @@ struct rt5670_priv {
 void rt5670_jack_suspend(struct snd_soc_codec *codec);
 void rt5670_jack_resume(struct snd_soc_codec *codec);
 int rt5670_set_jack_detect(struct snd_soc_codec *codec,
-	struct snd_soc_jack *jack);
+						   struct snd_soc_jack *jack);
 #endif /* __RT5670_H__ */

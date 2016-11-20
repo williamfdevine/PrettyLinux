@@ -31,15 +31,15 @@
  * required to be defined explicitly.
  */
 #ifndef __NR_bpf
-# if defined(__i386__)
-#  define __NR_bpf 357
-# elif defined(__x86_64__)
-#  define __NR_bpf 321
-# elif defined(__aarch64__)
-#  define __NR_bpf 280
-# else
-#  error __NR_bpf not defined. libbpf does not support your arch.
-# endif
+	#if defined(__i386__)
+		#define __NR_bpf 357
+	#elif defined(__x86_64__)
+		#define __NR_bpf 321
+	#elif defined(__aarch64__)
+		#define __NR_bpf 280
+	#else
+		#  error __NR_bpf not defined. libbpf does not support your arch.
+	#endif
 #endif
 
 static __u64 ptr_to_u64(void *ptr)
@@ -48,13 +48,13 @@ static __u64 ptr_to_u64(void *ptr)
 }
 
 static int sys_bpf(enum bpf_cmd cmd, union bpf_attr *attr,
-		   unsigned int size)
+				   unsigned int size)
 {
 	return syscall(__NR_bpf, cmd, attr, size);
 }
 
 int bpf_create_map(enum bpf_map_type map_type, int key_size,
-		   int value_size, int max_entries)
+				   int value_size, int max_entries)
 {
 	union bpf_attr attr;
 
@@ -69,8 +69,8 @@ int bpf_create_map(enum bpf_map_type map_type, int key_size,
 }
 
 int bpf_load_program(enum bpf_prog_type type, struct bpf_insn *insns,
-		     size_t insns_cnt, char *license,
-		     u32 kern_version, char *log_buf, size_t log_buf_sz)
+					 size_t insns_cnt, char *license,
+					 u32 kern_version, char *log_buf, size_t log_buf_sz)
 {
 	int fd;
 	union bpf_attr attr;
@@ -86,8 +86,11 @@ int bpf_load_program(enum bpf_prog_type type, struct bpf_insn *insns,
 	attr.kern_version = kern_version;
 
 	fd = sys_bpf(BPF_PROG_LOAD, &attr, sizeof(attr));
+
 	if (fd >= 0 || !log_buf || !log_buf_sz)
+	{
 		return fd;
+	}
 
 	/* Try again with log */
 	attr.log_buf = ptr_to_u64(log_buf);
@@ -98,7 +101,7 @@ int bpf_load_program(enum bpf_prog_type type, struct bpf_insn *insns,
 }
 
 int bpf_map_update_elem(int fd, void *key, void *value,
-			u64 flags)
+						u64 flags)
 {
 	union bpf_attr attr;
 

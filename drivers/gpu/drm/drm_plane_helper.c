@@ -69,8 +69,8 @@
  * the list size, and once with the properly allocated list to be filled in.
  */
 static int get_connectors_for_crtc(struct drm_crtc *crtc,
-				   struct drm_connector **connector_list,
-				   int num_connectors)
+								   struct drm_connector **connector_list,
+								   int num_connectors)
 {
 	struct drm_device *dev = crtc->dev;
 	struct drm_connector *connector;
@@ -83,10 +83,14 @@ static int get_connectors_for_crtc(struct drm_crtc *crtc,
 	 */
 	WARN_ON(!drm_modeset_is_locked(&dev->mode_config.connection_mutex));
 
-	drm_for_each_connector(connector, dev) {
-		if (connector->encoder && connector->encoder->crtc == crtc) {
+	drm_for_each_connector(connector, dev)
+	{
+		if (connector->encoder && connector->encoder->crtc == crtc)
+		{
 			if (connector_list != NULL && count < num_connectors)
+			{
 				*(connector_list++) = connector;
+			}
 
 			count++;
 		}
@@ -117,11 +121,11 @@ static int get_connectors_for_crtc(struct drm_crtc *crtc,
  * Zero if update appears valid, error code on failure
  */
 int drm_plane_helper_check_state(struct drm_plane_state *state,
-				 const struct drm_rect *clip,
-				 int min_scale,
-				 int max_scale,
-				 bool can_position,
-				 bool can_update_disabled)
+								 const struct drm_rect *clip,
+								 int min_scale,
+								 int max_scale,
+								 bool can_position,
+								 bool can_update_disabled)
 {
 	struct drm_crtc *crtc = state->crtc;
 	struct drm_framebuffer *fb = state->fb;
@@ -140,18 +144,21 @@ int drm_plane_helper_check_state(struct drm_plane_state *state,
 	dst->x2 = state->crtc_x + state->crtc_w;
 	dst->y2 = state->crtc_y + state->crtc_h;
 
-	if (!fb) {
+	if (!fb)
+	{
 		state->visible = false;
 		return 0;
 	}
 
 	/* crtc should only be NULL when disabling (i.e., !fb) */
-	if (WARN_ON(!crtc)) {
+	if (WARN_ON(!crtc))
+	{
 		state->visible = false;
 		return 0;
 	}
 
-	if (!crtc->enabled && !can_update_disabled) {
+	if (!crtc->enabled && !can_update_disabled)
+	{
 		DRM_DEBUG_KMS("Cannot update plane of a disabled CRTC.\n");
 		return -EINVAL;
 	}
@@ -161,7 +168,9 @@ int drm_plane_helper_check_state(struct drm_plane_state *state,
 	/* Check scaling */
 	hscale = drm_rect_calc_hscale(src, dst, min_scale, max_scale);
 	vscale = drm_rect_calc_vscale(src, dst, min_scale, max_scale);
-	if (hscale < 0 || vscale < 0) {
+
+	if (hscale < 0 || vscale < 0)
+	{
 		DRM_DEBUG_KMS("Invalid scaling of plane\n");
 		drm_rect_debug_print("src: ", &state->src, true);
 		drm_rect_debug_print("dst: ", &state->dst, false);
@@ -180,9 +189,12 @@ int drm_plane_helper_check_state(struct drm_plane_state *state,
 		 * update function) will return an error from their
 		 * update_plane handler.
 		 */
+	{
 		return 0;
+	}
 
-	if (!can_position && !drm_rect_equals(dst, clip)) {
+	if (!can_position && !drm_rect_equals(dst, clip))
+	{
 		DRM_DEBUG_KMS("Plane must cover entire CRTC\n");
 		drm_rect_debug_print("dst: ", dst, false);
 		drm_rect_debug_print("clip: ", clip, false);
@@ -221,19 +233,20 @@ EXPORT_SYMBOL(drm_plane_helper_check_state);
  * Zero if update appears valid, error code on failure
  */
 int drm_plane_helper_check_update(struct drm_plane *plane,
-				  struct drm_crtc *crtc,
-				  struct drm_framebuffer *fb,
-				  struct drm_rect *src,
-				  struct drm_rect *dst,
-				  const struct drm_rect *clip,
-				  unsigned int rotation,
-				  int min_scale,
-				  int max_scale,
-				  bool can_position,
-				  bool can_update_disabled,
-				  bool *visible)
+								  struct drm_crtc *crtc,
+								  struct drm_framebuffer *fb,
+								  struct drm_rect *src,
+								  struct drm_rect *dst,
+								  const struct drm_rect *clip,
+								  unsigned int rotation,
+								  int min_scale,
+								  int max_scale,
+								  bool can_position,
+								  bool can_update_disabled,
+								  bool *visible)
 {
-	struct drm_plane_state state = {
+	struct drm_plane_state state =
+	{
 		.plane = plane,
 		.crtc = crtc,
 		.fb = fb,
@@ -251,11 +264,14 @@ int drm_plane_helper_check_update(struct drm_plane *plane,
 	int ret;
 
 	ret = drm_plane_helper_check_state(&state, clip,
-					   min_scale, max_scale,
-					   can_position,
-					   can_update_disabled);
+									   min_scale, max_scale,
+									   can_position,
+									   can_update_disabled);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	*src = state.src;
 	*dst = state.dst;
@@ -302,32 +318,36 @@ EXPORT_SYMBOL(drm_plane_helper_check_update);
  * Zero on success, error code on failure
  */
 int drm_primary_helper_update(struct drm_plane *plane, struct drm_crtc *crtc,
-			      struct drm_framebuffer *fb,
-			      int crtc_x, int crtc_y,
-			      unsigned int crtc_w, unsigned int crtc_h,
-			      uint32_t src_x, uint32_t src_y,
-			      uint32_t src_w, uint32_t src_h)
+							  struct drm_framebuffer *fb,
+							  int crtc_x, int crtc_y,
+							  unsigned int crtc_w, unsigned int crtc_h,
+							  uint32_t src_x, uint32_t src_y,
+							  uint32_t src_w, uint32_t src_h)
 {
-	struct drm_mode_set set = {
+	struct drm_mode_set set =
+	{
 		.crtc = crtc,
 		.fb = fb,
 		.mode = &crtc->mode,
 		.x = src_x >> 16,
 		.y = src_y >> 16,
 	};
-	struct drm_rect src = {
+	struct drm_rect src =
+	{
 		.x1 = src_x,
 		.y1 = src_y,
 		.x2 = src_x + src_w,
 		.y2 = src_y + src_h,
 	};
-	struct drm_rect dest = {
+	struct drm_rect dest =
+	{
 		.x1 = crtc_x,
 		.y1 = crtc_y,
 		.x2 = crtc_x + crtc_w,
 		.y2 = crtc_y + crtc_h,
 	};
-	const struct drm_rect clip = {
+	const struct drm_rect clip =
+	{
 		.x2 = crtc->mode.hdisplay,
 		.y2 = crtc->mode.vdisplay,
 	};
@@ -336,13 +356,16 @@ int drm_primary_helper_update(struct drm_plane *plane, struct drm_crtc *crtc,
 	bool visible;
 
 	ret = drm_plane_helper_check_update(plane, crtc, fb,
-					    &src, &dest, &clip,
-					    DRM_ROTATE_0,
-					    DRM_PLANE_HELPER_NO_SCALING,
-					    DRM_PLANE_HELPER_NO_SCALING,
-					    false, false, &visible);
+										&src, &dest, &clip,
+										DRM_ROTATE_0,
+										DRM_PLANE_HELPER_NO_SCALING,
+										DRM_PLANE_HELPER_NO_SCALING,
+										false, false, &visible);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (!visible)
 		/*
@@ -350,15 +373,21 @@ int drm_primary_helper_update(struct drm_plane *plane, struct drm_crtc *crtc,
 		 * provides their own disable function, this will just
 		 * wind up returning -EINVAL to userspace.
 		 */
+	{
 		return plane->funcs->disable_plane(plane);
+	}
 
 	/* Find current connectors for CRTC */
 	num_connectors = get_connectors_for_crtc(crtc, NULL, 0);
 	BUG_ON(num_connectors == 0);
 	connector_list = kzalloc(num_connectors * sizeof(*connector_list),
-				 GFP_KERNEL);
+							 GFP_KERNEL);
+
 	if (!connector_list)
+	{
 		return -ENOMEM;
+	}
+
 	get_connectors_for_crtc(crtc, connector_list, num_connectors);
 
 	set.connectors = connector_list;
@@ -419,7 +448,8 @@ void drm_primary_helper_destroy(struct drm_plane *plane)
 }
 EXPORT_SYMBOL(drm_primary_helper_destroy);
 
-const struct drm_plane_funcs drm_primary_helper_funcs = {
+const struct drm_plane_funcs drm_primary_helper_funcs =
+{
 	.update_plane = drm_primary_helper_update,
 	.disable_plane = drm_primary_helper_disable,
 	.destroy = drm_primary_helper_destroy,
@@ -427,8 +457,8 @@ const struct drm_plane_funcs drm_primary_helper_funcs = {
 EXPORT_SYMBOL(drm_primary_helper_funcs);
 
 int drm_plane_helper_commit(struct drm_plane *plane,
-			    struct drm_plane_state *plane_state,
-			    struct drm_framebuffer *old_fb)
+							struct drm_plane_state *plane_state,
+							struct drm_framebuffer *old_fb)
 {
 	const struct drm_plane_helper_funcs *plane_funcs;
 	struct drm_crtc *crtc[2];
@@ -444,28 +474,41 @@ int drm_plane_helper_commit(struct drm_plane *plane,
 	crtc[1] = crtc[0] != plane_state->crtc ? plane_state->crtc : NULL;
 
 	for (i = 0; i < 2; i++)
+	{
 		crtc_funcs[i] = crtc[i] ? crtc[i]->helper_private : NULL;
+	}
 
-	if (plane_funcs->atomic_check) {
+	if (plane_funcs->atomic_check)
+	{
 		ret = plane_funcs->atomic_check(plane, plane_state);
+
 		if (ret)
+		{
 			goto out;
+		}
 	}
 
 	if (plane_funcs->prepare_fb && plane_state->fb &&
-	    plane_state->fb != old_fb) {
+		plane_state->fb != old_fb)
+	{
 		ret = plane_funcs->prepare_fb(plane,
-					      plane_state);
+									  plane_state);
+
 		if (ret)
+		{
 			goto out;
+		}
 	}
 
 	/* Point of no return, commit sw state. */
 	swap(plane->state, plane_state);
 
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		if (crtc_funcs[i] && crtc_funcs[i]->atomic_begin)
+		{
 			crtc_funcs[i]->atomic_begin(crtc[i], crtc[i]->state);
+		}
 	}
 
 	/*
@@ -473,14 +516,21 @@ int drm_plane_helper_commit(struct drm_plane *plane,
 	 * special-case that here.
 	 */
 	if (drm_atomic_plane_disabling(plane, plane_state) &&
-	    plane_funcs->atomic_disable)
+		plane_funcs->atomic_disable)
+	{
 		plane_funcs->atomic_disable(plane, plane_state);
+	}
 	else
+	{
 		plane_funcs->atomic_update(plane, plane_state);
+	}
 
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		if (crtc_funcs[i] && crtc_funcs[i]->atomic_flush)
+		{
 			crtc_funcs[i]->atomic_flush(crtc[i], crtc[i]->state);
+		}
 	}
 
 	/*
@@ -488,18 +538,27 @@ int drm_plane_helper_commit(struct drm_plane *plane,
 	 * wait for vblank.
 	 */
 	if (plane->state->fb == old_fb)
+	{
 		goto out;
+	}
 
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; i++)
+	{
 		if (!crtc[i])
+		{
 			continue;
+		}
 
 		if (crtc[i]->cursor == plane)
+		{
 			continue;
+		}
 
 		/* There's no other way to figure out whether the crtc is running. */
 		ret = drm_crtc_vblank_get(crtc[i]);
-		if (ret == 0) {
+
+		if (ret == 0)
+		{
 			drm_crtc_wait_one_vblank(crtc[i]);
 			drm_crtc_vblank_put(crtc[i]);
 		}
@@ -508,13 +567,22 @@ int drm_plane_helper_commit(struct drm_plane *plane,
 	}
 
 	if (plane_funcs->cleanup_fb)
+	{
 		plane_funcs->cleanup_fb(plane, plane_state);
+	}
+
 out:
-	if (plane_state) {
+
+	if (plane_state)
+	{
 		if (plane->funcs->atomic_destroy_state)
+		{
 			plane->funcs->atomic_destroy_state(plane, plane_state);
+		}
 		else
+		{
 			drm_atomic_helper_plane_destroy_state(plane, plane_state);
+		}
 	}
 
 	return ret;
@@ -544,24 +612,33 @@ out:
  * Zero on success, error code on failure
  */
 int drm_plane_helper_update(struct drm_plane *plane, struct drm_crtc *crtc,
-			    struct drm_framebuffer *fb,
-			    int crtc_x, int crtc_y,
-			    unsigned int crtc_w, unsigned int crtc_h,
-			    uint32_t src_x, uint32_t src_y,
-			    uint32_t src_w, uint32_t src_h)
+							struct drm_framebuffer *fb,
+							int crtc_x, int crtc_y,
+							unsigned int crtc_w, unsigned int crtc_h,
+							uint32_t src_x, uint32_t src_y,
+							uint32_t src_w, uint32_t src_h)
 {
 	struct drm_plane_state *plane_state;
 
 	if (plane->funcs->atomic_duplicate_state)
+	{
 		plane_state = plane->funcs->atomic_duplicate_state(plane);
-	else {
+	}
+	else
+	{
 		if (!plane->state)
+		{
 			drm_atomic_helper_plane_reset(plane);
+		}
 
 		plane_state = drm_atomic_helper_plane_duplicate_state(plane);
 	}
+
 	if (!plane_state)
+	{
 		return -ENOMEM;
+	}
+
 	plane_state->plane = plane;
 
 	plane_state->crtc = crtc;
@@ -599,18 +676,29 @@ int drm_plane_helper_disable(struct drm_plane *plane)
 	/* crtc helpers love to call disable functions for already disabled hw
 	 * functions. So cope with that. */
 	if (!plane->crtc)
+	{
 		return 0;
+	}
 
 	if (plane->funcs->atomic_duplicate_state)
+	{
 		plane_state = plane->funcs->atomic_duplicate_state(plane);
-	else {
+	}
+	else
+	{
 		if (!plane->state)
+		{
 			drm_atomic_helper_plane_reset(plane);
+		}
 
 		plane_state = drm_atomic_helper_plane_duplicate_state(plane);
 	}
+
 	if (!plane_state)
+	{
 		return -ENOMEM;
+	}
+
 	plane_state->plane = plane;
 
 	plane_state->crtc = NULL;

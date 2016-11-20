@@ -29,7 +29,7 @@
 
 #define COMEDI_VERSION(a, b, c) (((a) << 16) + ((b) << 8) + (c))
 #define COMEDI_VERSION_CODE COMEDI_VERSION(COMEDI_MAJORVERSION, \
-	COMEDI_MINORVERSION, COMEDI_MICROVERSION)
+		COMEDI_MINORVERSION, COMEDI_MICROVERSION)
 #define COMEDI_RELEASE VERSION
 
 #define COMEDI_NUM_BOARD_MINORS 0x30
@@ -159,62 +159,63 @@
  * which case they will be set to a default handler during post-configuration
  * that uses @insn_bits to emulate the %INSN_READ and %INSN_WRITE instructions.
  */
-struct comedi_subdevice {
-	struct comedi_device *device;
-	int index;
-	int type;
-	int n_chan;
-	int subdev_flags;
-	int len_chanlist;	/* maximum length of channel/gain list */
+struct comedi_subdevice
+{
+		struct comedi_device *device;
+		int index;
+		int type;
+		int n_chan;
+		int subdev_flags;
+		int len_chanlist;	/* maximum length of channel/gain list */
 
-	void *private;
+		void *private;
 
-	struct comedi_async *async;
+		struct comedi_async *async;
 
-	void *lock;
-	void *busy;
-	unsigned int runflags;
-	spinlock_t spin_lock;	/* generic spin-lock for COMEDI and drivers */
+		void *lock;
+		void *busy;
+		unsigned int runflags;
+		spinlock_t spin_lock;	/* generic spin-lock for COMEDI and drivers */
 
-	unsigned int io_bits;
+		unsigned int io_bits;
 
-	unsigned int maxdata;	/* if maxdata==0, use list */
-	const unsigned int *maxdata_list;	/* list is channel specific */
+		unsigned int maxdata;	/* if maxdata==0, use list */
+		const unsigned int *maxdata_list;	/* list is channel specific */
 
-	const struct comedi_lrange *range_table;
-	const struct comedi_lrange *const *range_table_list;
+		const struct comedi_lrange *range_table;
+		const struct comedi_lrange *const *range_table_list;
 
-	unsigned int *chanlist;	/* driver-owned chanlist (not used) */
+		unsigned int *chanlist;	/* driver-owned chanlist (not used) */
 
-	int (*insn_read)(struct comedi_device *, struct comedi_subdevice *,
-			 struct comedi_insn *, unsigned int *);
-	int (*insn_write)(struct comedi_device *, struct comedi_subdevice *,
-			  struct comedi_insn *, unsigned int *);
-	int (*insn_bits)(struct comedi_device *, struct comedi_subdevice *,
-			 struct comedi_insn *, unsigned int *);
-	int (*insn_config)(struct comedi_device *, struct comedi_subdevice *,
-			   struct comedi_insn *, unsigned int *);
+		int (*insn_read)(struct comedi_device *, struct comedi_subdevice *,
+						 struct comedi_insn *, unsigned int *);
+		int (*insn_write)(struct comedi_device *, struct comedi_subdevice *,
+						  struct comedi_insn *, unsigned int *);
+		int (*insn_bits)(struct comedi_device *, struct comedi_subdevice *,
+						 struct comedi_insn *, unsigned int *);
+		int (*insn_config)(struct comedi_device *, struct comedi_subdevice *,
+						   struct comedi_insn *, unsigned int *);
 
-	int (*do_cmd)(struct comedi_device *, struct comedi_subdevice *);
-	int (*do_cmdtest)(struct comedi_device *, struct comedi_subdevice *,
-			  struct comedi_cmd *);
-	int (*poll)(struct comedi_device *, struct comedi_subdevice *);
-	int (*cancel)(struct comedi_device *, struct comedi_subdevice *);
+		int (*do_cmd)(struct comedi_device *, struct comedi_subdevice *);
+		int (*do_cmdtest)(struct comedi_device *, struct comedi_subdevice *,
+						  struct comedi_cmd *);
+		int (*poll)(struct comedi_device *, struct comedi_subdevice *);
+		int (*cancel)(struct comedi_device *, struct comedi_subdevice *);
 
-	/* called when the buffer changes */
-	int (*buf_change)(struct comedi_device *, struct comedi_subdevice *);
+		/* called when the buffer changes */
+		int (*buf_change)(struct comedi_device *, struct comedi_subdevice *);
 
-	void (*munge)(struct comedi_device *dev, struct comedi_subdevice *s,
-		      void *data, unsigned int num_bytes,
-		      unsigned int start_chan_index);
-	enum dma_data_direction async_dma_dir;
+		void (*munge)(struct comedi_device *dev, struct comedi_subdevice *s,
+					  void *data, unsigned int num_bytes,
+					  unsigned int start_chan_index);
+		enum dma_data_direction async_dma_dir;
 
-	unsigned int state;
+		unsigned int state;
 
-	struct device *class_dev;
-	int minor;
+		struct device *class_dev;
+		int minor;
 
-	unsigned int *readback;
+		unsigned int *readback;
 };
 
 /**
@@ -222,7 +223,8 @@ struct comedi_subdevice {
  * @virt_addr: Kernel address of page.
  * @dma_addr: DMA address of page if in DMA coherent memory.
  */
-struct comedi_buf_page {
+struct comedi_buf_page
+{
 	void *virt_addr;
 	dma_addr_t dma_addr;
 };
@@ -251,7 +253,8 @@ struct comedi_buf_page {
  * address space pointed by 'prealloc_buf' is freed when the COMEDI device is
  * detached.)
  */
-struct comedi_buf_map {
+struct comedi_buf_map
+{
 	struct device *dma_hw_dev;
 	struct comedi_buf_page *page_list;
 	unsigned int n_pages;
@@ -349,7 +352,8 @@ struct comedi_buf_map {
  * exceeds prealloc_bufsz (assuming prealloc_bufsz plus the increment is
  * less than or equal to UINT_MAX).
  */
-struct comedi_async {
+struct comedi_async
+{
 	void *prealloc_buf;
 	unsigned int prealloc_bufsz;
 	struct comedi_buf_map *buf_map;
@@ -371,7 +375,7 @@ struct comedi_async {
 	wait_queue_head_t wait_head;
 	unsigned int cb_mask;
 	int (*inttrig)(struct comedi_device *dev, struct comedi_subdevice *s,
-		       unsigned int x);
+				   unsigned int x);
 };
 
 /**
@@ -385,7 +389,8 @@ struct comedi_async {
  * @COMEDI_CB_ERROR_MASK:	events that indicate an error has occurred
  * @COMEDI_CB_CANCEL_MASK:	events that will cancel an async command
  */
-enum comedi_cb {
+enum comedi_cb
+{
 	COMEDI_CB_EOS		= BIT(0),
 	COMEDI_CB_EOA		= BIT(1),
 	COMEDI_CB_BLOCK		= BIT(2),
@@ -427,7 +432,8 @@ enum comedi_cb {
  * pointing to the matched pointer to a board name within the driver's private
  * array of static, read-only board type information.
  */
-struct comedi_driver {
+struct comedi_driver
+{
 	/* private: */
 	struct comedi_driver *next;	/* Next in list of COMEDI drivers. */
 	/* public: */
@@ -522,42 +528,43 @@ struct comedi_driver {
  * devices are allocated on demand and use minor device numbers from
  * comedi_num_legacy_minors to 47.
  */
-struct comedi_device {
-	int use_count;
-	struct comedi_driver *driver;
-	struct comedi_8254 *pacer;
-	void *private;
+struct comedi_device
+{
+		int use_count;
+		struct comedi_driver *driver;
+		struct comedi_8254 *pacer;
+		void *private;
 
-	struct device *class_dev;
-	int minor;
-	unsigned int detach_count;
-	struct device *hw_dev;
+		struct device *class_dev;
+		int minor;
+		unsigned int detach_count;
+		struct device *hw_dev;
 
-	const char *board_name;
-	const void *board_ptr;
-	bool attached:1;
-	bool ioenabled:1;
-	spinlock_t spinlock;	/* generic spin-lock for low-level driver */
-	struct mutex mutex;	/* generic mutex for COMEDI core */
-	struct rw_semaphore attach_lock;
-	struct kref refcount;
+		const char *board_name;
+		const void *board_ptr;
+		bool attached: 1;
+		bool ioenabled: 1;
+		spinlock_t spinlock;	/* generic spin-lock for low-level driver */
+		struct mutex mutex;	/* generic mutex for COMEDI core */
+		struct rw_semaphore attach_lock;
+		struct kref refcount;
 
-	int n_subdevices;
-	struct comedi_subdevice *subdevices;
+		int n_subdevices;
+		struct comedi_subdevice *subdevices;
 
-	/* dumb */
-	void __iomem *mmio;
-	unsigned long iobase;
-	unsigned long iolen;
-	unsigned int irq;
+		/* dumb */
+		void __iomem *mmio;
+		unsigned long iobase;
+		unsigned long iolen;
+		unsigned int irq;
 
-	struct comedi_subdevice *read_subdev;
-	struct comedi_subdevice *write_subdev;
+		struct comedi_subdevice *read_subdev;
+		struct comedi_subdevice *write_subdev;
 
-	struct fasync_struct *async_queue;
+		struct fasync_struct *async_queue;
 
-	int (*open)(struct comedi_device *dev);
-	void (*close)(struct comedi_device *dev);
+		int (*open)(struct comedi_device *dev);
+		void (*close)(struct comedi_device *dev);
 };
 
 /*
@@ -575,8 +582,8 @@ void *comedi_alloc_spriv(struct comedi_subdevice *s, size_t size);
 void comedi_set_spriv_auto_free(struct comedi_subdevice *s);
 
 int comedi_check_chanlist(struct comedi_subdevice *s,
-			  int n,
-			  unsigned int *chanlist);
+						  int n,
+						  unsigned int *chanlist);
 
 /* range stuff */
 
@@ -601,9 +608,9 @@ extern const struct comedi_lrange range_unknown;
 #define range_digital		range_unipolar5
 
 #if __GNUC__ >= 3
-#define GCC_ZERO_LENGTH_ARRAY
+	#define GCC_ZERO_LENGTH_ARRAY
 #else
-#define GCC_ZERO_LENGTH_ARRAY 0
+	#define GCC_ZERO_LENGTH_ARRAY 0
 #endif
 
 /**
@@ -617,7 +624,8 @@ extern const struct comedi_lrange range_unknown;
  * There may also be a flag that indicates the minimum and maximum are merely
  * scale factors for an unknown, external reference.
  */
-struct comedi_lrange {
+struct comedi_lrange
+{
 	int length;
 	struct comedi_krange range[GCC_ZERO_LENGTH_ARRAY];
 };
@@ -638,7 +646,7 @@ struct comedi_lrange {
  *	%false if the range is unipolar.
  */
 static inline bool comedi_range_is_bipolar(struct comedi_subdevice *s,
-					   unsigned int range)
+		unsigned int range)
 {
 	return s->range_table->range[range].min < 0;
 }
@@ -659,7 +667,7 @@ static inline bool comedi_range_is_bipolar(struct comedi_subdevice *s,
  *	%false if the range is bipolar.
  */
 static inline bool comedi_range_is_unipolar(struct comedi_subdevice *s,
-					    unsigned int range)
+		unsigned int range)
 {
 	return s->range_table->range[range].min >= 0;
 }
@@ -680,7 +688,7 @@ static inline bool comedi_range_is_unipolar(struct comedi_subdevice *s,
  *	%false if the range is internal.
  */
 static inline bool comedi_range_is_external(struct comedi_subdevice *s,
-					    unsigned int range)
+		unsigned int range)
 {
 	return !!(s->range_table->range[range].flags & RF_EXTERNAL);
 }
@@ -702,8 +710,8 @@ static inline bool comedi_range_is_external(struct comedi_subdevice *s,
  *	%false if the range is unipolar.
  */
 static inline bool comedi_chan_range_is_bipolar(struct comedi_subdevice *s,
-						unsigned int chan,
-						unsigned int range)
+		unsigned int chan,
+		unsigned int range)
 {
 	return s->range_table_list[chan]->range[range].min < 0;
 }
@@ -725,8 +733,8 @@ static inline bool comedi_chan_range_is_bipolar(struct comedi_subdevice *s,
  *	%false if the range is bipolar.
  */
 static inline bool comedi_chan_range_is_unipolar(struct comedi_subdevice *s,
-						 unsigned int chan,
-						 unsigned int range)
+		unsigned int chan,
+		unsigned int range)
 {
 	return s->range_table_list[chan]->range[range].min >= 0;
 }
@@ -748,8 +756,8 @@ static inline bool comedi_chan_range_is_unipolar(struct comedi_subdevice *s,
  *	%false if the range is unipolar.
  */
 static inline bool comedi_chan_range_is_external(struct comedi_subdevice *s,
-						 unsigned int chan,
-						 unsigned int range)
+		unsigned int chan,
+		unsigned int range)
 {
 	return !!(s->range_table_list[chan]->range[range].flags & RF_EXTERNAL);
 }
@@ -765,7 +773,7 @@ static inline bool comedi_chan_range_is_external(struct comedi_subdevice *s,
  * Return: The converted value.
  */
 static inline unsigned int comedi_offset_munge(struct comedi_subdevice *s,
-					       unsigned int val)
+		unsigned int val)
 {
 	return val ^ s->maxdata ^ (s->maxdata >> 1);
 }
@@ -808,7 +816,7 @@ static inline unsigned int comedi_sample_shift(struct comedi_subdevice *s)
  * Return: The number of bytes divided by the subdevice sample size.
  */
 static inline unsigned int comedi_bytes_to_samples(struct comedi_subdevice *s,
-						   unsigned int nbytes)
+		unsigned int nbytes)
 {
 	return nbytes >> comedi_sample_shift(s);
 }
@@ -822,7 +830,7 @@ static inline unsigned int comedi_bytes_to_samples(struct comedi_subdevice *s,
  * (Does not check for arithmetic overflow.)
  */
 static inline unsigned int comedi_samples_to_bytes(struct comedi_subdevice *s,
-						   unsigned int nsamples)
+		unsigned int nsamples)
 {
 	return nsamples << comedi_sample_shift(s);
 }
@@ -842,13 +850,17 @@ static inline unsigned int comedi_samples_to_bytes(struct comedi_subdevice *s,
  *	-EINVAL if any trigger source in *@src is unsupported.
  */
 static inline int comedi_check_trigger_src(unsigned int *src,
-					   unsigned int flags)
+		unsigned int flags)
 {
 	unsigned int orig_src = *src;
 
 	*src = orig_src & flags;
+
 	if (*src == TRIG_INVALID || *src != orig_src)
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
@@ -864,7 +876,10 @@ static inline int comedi_check_trigger_is_unique(unsigned int src)
 {
 	/* this test is true if more than one _src bit is set */
 	if ((src & (src - 1)) != 0)
+	{
 		return -EINVAL;
+	}
+
 	return 0;
 }
 
@@ -880,12 +895,14 @@ static inline int comedi_check_trigger_is_unique(unsigned int src)
  *	-EINVAL if *@arg differed from @val.
  */
 static inline int comedi_check_trigger_arg_is(unsigned int *arg,
-					      unsigned int val)
+		unsigned int val)
 {
-	if (*arg != val) {
+	if (*arg != val)
+	{
 		*arg = val;
 		return -EINVAL;
 	}
+
 	return 0;
 }
 
@@ -901,12 +918,14 @@ static inline int comedi_check_trigger_arg_is(unsigned int *arg,
  *	-EINVAL if *@arg was less than @val.
  */
 static inline int comedi_check_trigger_arg_min(unsigned int *arg,
-					       unsigned int val)
+		unsigned int val)
 {
-	if (*arg < val) {
+	if (*arg < val)
+	{
 		*arg = val;
 		return -EINVAL;
 	}
+
 	return 0;
 }
 
@@ -922,12 +941,14 @@ static inline int comedi_check_trigger_arg_min(unsigned int *arg,
  *	-EINVAL if *@arg was greater than @val.
  */
 static inline int comedi_check_trigger_arg_max(unsigned int *arg,
-					       unsigned int val)
+		unsigned int val)
 {
-	if (*arg > val) {
+	if (*arg > val)
+	{
 		*arg = val;
 		return -EINVAL;
 	}
+
 	return 0;
 }
 
@@ -962,58 +983,58 @@ unsigned int comedi_buf_read_alloc(struct comedi_subdevice *s, unsigned int n);
 unsigned int comedi_buf_read_free(struct comedi_subdevice *s, unsigned int n);
 
 unsigned int comedi_buf_write_samples(struct comedi_subdevice *s,
-				      const void *data, unsigned int nsamples);
+									  const void *data, unsigned int nsamples);
 unsigned int comedi_buf_read_samples(struct comedi_subdevice *s,
-				     void *data, unsigned int nsamples);
+									 void *data, unsigned int nsamples);
 
 /* drivers.c - general comedi driver functions */
 
 #define COMEDI_TIMEOUT_MS	1000
 
 int comedi_timeout(struct comedi_device *, struct comedi_subdevice *,
-		   struct comedi_insn *,
-		   int (*cb)(struct comedi_device *, struct comedi_subdevice *,
-			     struct comedi_insn *, unsigned long context),
-		   unsigned long context);
+				   struct comedi_insn *,
+				   int (*cb)(struct comedi_device *, struct comedi_subdevice *,
+							 struct comedi_insn *, unsigned long context),
+				   unsigned long context);
 
 unsigned int comedi_handle_events(struct comedi_device *dev,
-				  struct comedi_subdevice *s);
+								  struct comedi_subdevice *s);
 
 int comedi_dio_insn_config(struct comedi_device *, struct comedi_subdevice *,
-			   struct comedi_insn *, unsigned int *data,
-			   unsigned int mask);
+						   struct comedi_insn *, unsigned int *data,
+						   unsigned int mask);
 unsigned int comedi_dio_update_state(struct comedi_subdevice *,
-				     unsigned int *data);
+									 unsigned int *data);
 unsigned int comedi_bytes_per_scan(struct comedi_subdevice *s);
 unsigned int comedi_nscans_left(struct comedi_subdevice *s,
-				unsigned int nscans);
+								unsigned int nscans);
 unsigned int comedi_nsamples_left(struct comedi_subdevice *s,
-				  unsigned int nsamples);
+								  unsigned int nsamples);
 void comedi_inc_scan_progress(struct comedi_subdevice *s,
-			      unsigned int num_bytes);
+							  unsigned int num_bytes);
 
 void *comedi_alloc_devpriv(struct comedi_device *, size_t);
 int comedi_alloc_subdevices(struct comedi_device *, int);
 int comedi_alloc_subdev_readback(struct comedi_subdevice *);
 
 int comedi_readback_insn_read(struct comedi_device *, struct comedi_subdevice *,
-			      struct comedi_insn *, unsigned int *data);
+							  struct comedi_insn *, unsigned int *data);
 
 int comedi_load_firmware(struct comedi_device *, struct device *,
-			 const char *name,
-			 int (*cb)(struct comedi_device *,
-				   const u8 *data, size_t size,
-				   unsigned long context),
-			 unsigned long context);
+						 const char *name,
+						 int (*cb)(struct comedi_device *,
+								   const u8 *data, size_t size,
+								   unsigned long context),
+						 unsigned long context);
 
 int __comedi_request_region(struct comedi_device *,
-			    unsigned long start, unsigned long len);
+							unsigned long start, unsigned long len);
 int comedi_request_region(struct comedi_device *,
-			  unsigned long start, unsigned long len);
+						  unsigned long start, unsigned long len);
 void comedi_legacy_detach(struct comedi_device *);
 
 int comedi_auto_config(struct device *, struct comedi_driver *,
-		       unsigned long context);
+					   unsigned long context);
 void comedi_auto_unconfig(struct device *);
 
 int comedi_driver_register(struct comedi_driver *);
@@ -1029,6 +1050,6 @@ void comedi_driver_unregister(struct comedi_driver *);
  */
 #define module_comedi_driver(__comedi_driver) \
 	module_driver(__comedi_driver, comedi_driver_register, \
-			comedi_driver_unregister)
+				  comedi_driver_unregister)
 
 #endif /* _COMEDIDEV_H */

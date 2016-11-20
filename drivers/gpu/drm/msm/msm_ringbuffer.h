@@ -20,7 +20,8 @@
 
 #include "msm_drv.h"
 
-struct msm_ringbuffer {
+struct msm_ringbuffer
+{
 	struct msm_gpu *gpu;
 	int size;
 	struct drm_gem_object *bo;
@@ -36,7 +37,10 @@ static inline void
 OUT_RING(struct msm_ringbuffer *ring, uint32_t data)
 {
 	if (ring->cur == ring->end)
+	{
 		ring->cur = ring->start;
+	}
+
 	*(ring->cur++) = data;
 }
 

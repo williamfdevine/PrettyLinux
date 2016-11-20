@@ -29,7 +29,9 @@ static void ebb_callee(void)
 	uint64_t siar, val;
 
 	val = mfspr(SPRN_BESCR);
-	if (!(val & BESCR_PMEO)) {
+
+	if (!(val & BESCR_PMEO))
+	{
 		ebb_state.stats.spurious++;
 		goto out;
 	}
@@ -41,12 +43,17 @@ static void ebb_callee(void)
 	count_pmc(1, sample_period);
 
 out:
+
 	if (ebb_state.stats.ebb_count == NUMBER_OF_EBBS)
 		/* Reset but leave counters frozen */
+	{
 		reset_ebb_with_clear_mask(MMCR0_PMAO);
+	}
 	else
 		/* Unfreezes */
+	{
 		reset_ebb();
+	}
 
 	/* Do some stuff to chew some cycles and pop the counter */
 	siar = mfspr(SPRN_SIAR);
@@ -86,7 +93,9 @@ int back_to_back_ebbs(void)
 	ebb_unfreeze_pmcs();
 
 	while (ebb_state.stats.ebb_count < NUMBER_OF_EBBS)
+	{
 		FAIL_IF(core_busy_loop());
+	}
 
 	ebb_global_disable();
 	ebb_freeze_pmcs();

@@ -24,48 +24,70 @@
 #include "nv40.h"
 
 const struct nvkm_specsrc
-g84_vfetch_sources[] = {
-	{ 0x400c0c, (const struct nvkm_specmux[]) {
+	g84_vfetch_sources[] =
+{
+	{
+		0x400c0c, (const struct nvkm_specmux[])
+		{
 			{ 0x3, 0, "unk0" },
 			{}
-		}, "pgraph_vfetch_unk0c" },
+		}, "pgraph_vfetch_unk0c"
+	},
 	{}
 };
 
 static const struct nvkm_specsrc
-g84_prop_sources[] = {
-	{ 0x408e50, (const struct nvkm_specmux[]) {
+	g84_prop_sources[] =
+{
+	{
+		0x408e50, (const struct nvkm_specmux[])
+		{
 			{ 0x1f, 0, "sel", true },
 			{}
-		}, "pgraph_tpc0_prop_pm_mux" },
+		}, "pgraph_tpc0_prop_pm_mux"
+	},
 	{}
 };
 
 static const struct nvkm_specsrc
-g84_crop_sources[] = {
-	{ 0x407008, (const struct nvkm_specmux[]) {
+	g84_crop_sources[] =
+{
+	{
+		0x407008, (const struct nvkm_specmux[])
+		{
 			{ 0xf, 0, "sel0", true },
 			{ 0x7, 16, "sel1", true },
 			{}
-		}, "pgraph_rop0_crop_pm_mux" },
+		}, "pgraph_rop0_crop_pm_mux"
+	},
 	{}
 };
 
 static const struct nvkm_specsrc
-g84_tex_sources[] = {
-	{ 0x408808, (const struct nvkm_specmux[]) {
+	g84_tex_sources[] =
+{
+	{
+		0x408808, (const struct nvkm_specmux[])
+		{
 			{ 0xfffff, 0, "unk0" },
 			{}
-		}, "pgraph_tpc0_tex_unk08" },
+		}, "pgraph_tpc0_tex_unk08"
+	},
 	{}
 };
 
 static const struct nvkm_specdom
-g84_pm[] = {
-	{ 0x20, (const struct nvkm_specsig[]) {
+	g84_pm[] =
+{
+	{
+		0x20, (const struct nvkm_specsig[])
+		{
 			{}
-		}, &nv40_perfctr_func },
-	{ 0xf0, (const struct nvkm_specsig[]) {
+		}, &nv40_perfctr_func
+	},
+	{
+		0xf0, (const struct nvkm_specsig[])
+		{
 			{ 0xbd, "pc01_gr_idle" },
 			{ 0x5e, "pc01_strmout_00" },
 			{ 0x5f, "pc01_strmout_01" },
@@ -112,8 +134,11 @@ g84_pm[] = {
 			{ 0xa4, "pc01_unk00" },
 			{ 0xec, "pc01_trailer" },
 			{}
-		}, &nv40_perfctr_func },
-	{ 0xa0, (const struct nvkm_specsig[]) {
+		}, &nv40_perfctr_func
+	},
+	{
+		0xa0, (const struct nvkm_specsig[])
+		{
 			{ 0x30, "pc02_crop_00", g84_crop_sources },
 			{ 0x31, "pc02_crop_01", g84_crop_sources },
 			{ 0x32, "pc02_crop_02", g84_crop_sources },
@@ -139,22 +164,38 @@ g84_pm[] = {
 			{ 0x47, "pc02_zrop_03", nv50_zrop_sources },
 			{ 0x8c, "pc02_trailer" },
 			{}
-		}, &nv40_perfctr_func },
-	{ 0x20, (const struct nvkm_specsig[]) {
+		}, &nv40_perfctr_func
+	},
+	{
+		0x20, (const struct nvkm_specsig[])
+		{
 			{}
-		}, &nv40_perfctr_func },
-	{ 0x20, (const struct nvkm_specsig[]) {
+		}, &nv40_perfctr_func
+	},
+	{
+		0x20, (const struct nvkm_specsig[])
+		{
 			{}
-		}, &nv40_perfctr_func },
-	{ 0x20, (const struct nvkm_specsig[]) {
+		}, &nv40_perfctr_func
+	},
+	{
+		0x20, (const struct nvkm_specsig[])
+		{
 			{}
-		}, &nv40_perfctr_func },
-	{ 0x20, (const struct nvkm_specsig[]) {
+		}, &nv40_perfctr_func
+	},
+	{
+		0x20, (const struct nvkm_specsig[])
+		{
 			{}
-		}, &nv40_perfctr_func },
-	{ 0x20, (const struct nvkm_specsig[]) {
+		}, &nv40_perfctr_func
+	},
+	{
+		0x20, (const struct nvkm_specsig[])
+		{
 			{}
-		}, &nv40_perfctr_func },
+		}, &nv40_perfctr_func
+	},
 	{}
 };
 

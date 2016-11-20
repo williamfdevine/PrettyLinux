@@ -114,7 +114,8 @@ MODULE_PARM_DESC(ir_888_debug, "enable debug messages [CX23888 IR controller]");
  * and rx_read will be expecting records of type struct ir_raw_event.
  * Always ensure the size of this union is dictated by struct ir_raw_event.
  */
-union cx23888_ir_fifo_rec {
+union cx23888_ir_fifo_rec
+{
 	u32 hw_fifo_data;
 	struct ir_raw_event ir_core_data;
 };
@@ -122,7 +123,8 @@ union cx23888_ir_fifo_rec {
 #define CX23888_IR_RX_KFIFO_SIZE    (256 * sizeof(union cx23888_ir_fifo_rec))
 #define CX23888_IR_TX_KFIFO_SIZE    (256 * sizeof(union cx23888_ir_fifo_rec))
 
-struct cx23888_ir_state {
+struct cx23888_ir_state
+{
 	struct v4l2_subdev sd;
 	struct cx23885_dev *dev;
 
@@ -160,7 +162,7 @@ static inline u32 cx23888_ir_read4(struct cx23885_dev *dev, u32 addr)
 }
 
 static inline int cx23888_ir_and_or4(struct cx23885_dev *dev, u32 addr,
-				     u32 and_mask, u32 or_value)
+									 u32 and_mask, u32 or_value)
 {
 	cx_andor(addr, ~and_mask, or_value);
 	return 0;
@@ -176,31 +178,38 @@ static inline int cx23888_ir_and_or4(struct cx23885_dev *dev, u32 addr,
 static inline u16 count_to_clock_divider(unsigned int d)
 {
 	if (d > RXCLK_RCD + 1)
+	{
 		d = RXCLK_RCD;
+	}
 	else if (d < 2)
+	{
 		d = 1;
+	}
 	else
+	{
 		d--;
+	}
+
 	return (u16) d;
 }
 
 static inline u16 ns_to_clock_divider(unsigned int ns)
 {
 	return count_to_clock_divider(
-		DIV_ROUND_CLOSEST(CX23888_IR_REFCLK_FREQ / 1000000 * ns, 1000));
+			   DIV_ROUND_CLOSEST(CX23888_IR_REFCLK_FREQ / 1000000 * ns, 1000));
 }
 
 static inline unsigned int clock_divider_to_ns(unsigned int divider)
 {
 	/* Period of the Rx or Tx clock in ns */
 	return DIV_ROUND_CLOSEST((divider + 1) * 1000,
-				 CX23888_IR_REFCLK_FREQ / 1000000);
+							 CX23888_IR_REFCLK_FREQ / 1000000);
 }
 
 static inline u16 carrier_freq_to_clock_divider(unsigned int freq)
 {
 	return count_to_clock_divider(
-			  DIV_ROUND_CLOSEST(CX23888_IR_REFCLK_FREQ, freq * 16));
+			   DIV_ROUND_CLOSEST(CX23888_IR_REFCLK_FREQ, freq * 16));
 }
 
 static inline unsigned int clock_divider_to_carrier_freq(unsigned int divider)
@@ -209,17 +218,17 @@ static inline unsigned int clock_divider_to_carrier_freq(unsigned int divider)
 }
 
 static inline u16 freq_to_clock_divider(unsigned int freq,
-					unsigned int rollovers)
+										unsigned int rollovers)
 {
 	return count_to_clock_divider(
-		   DIV_ROUND_CLOSEST(CX23888_IR_REFCLK_FREQ, freq * rollovers));
+			   DIV_ROUND_CLOSEST(CX23888_IR_REFCLK_FREQ, freq * rollovers));
 }
 
 static inline unsigned int clock_divider_to_freq(unsigned int divider,
-						 unsigned int rollovers)
+		unsigned int rollovers)
 {
 	return DIV_ROUND_CLOSEST(CX23888_IR_REFCLK_FREQ,
-				 (divider + 1) * rollovers);
+							 (divider + 1) * rollovers);
 }
 
 /*
@@ -232,23 +241,28 @@ static inline unsigned int clock_divider_to_freq(unsigned int divider,
 static inline u16 count_to_lpf_count(unsigned int d)
 {
 	if (d > FILTR_LPF)
+	{
 		d = FILTR_LPF;
+	}
 	else if (d < 4)
+	{
 		d = 0;
+	}
+
 	return (u16) d;
 }
 
 static inline u16 ns_to_lpf_count(unsigned int ns)
 {
 	return count_to_lpf_count(
-		DIV_ROUND_CLOSEST(CX23888_IR_REFCLK_FREQ / 1000000 * ns, 1000));
+			   DIV_ROUND_CLOSEST(CX23888_IR_REFCLK_FREQ / 1000000 * ns, 1000));
 }
 
 static inline unsigned int lpf_count_to_ns(unsigned int count)
 {
 	/* Duration of the Low Pass Filter rejection window in ns */
 	return DIV_ROUND_CLOSEST(count * 1000,
-				 CX23888_IR_REFCLK_FREQ / 1000000);
+							 CX23888_IR_REFCLK_FREQ / 1000000);
 }
 
 static inline unsigned int lpf_count_to_us(unsigned int count)
@@ -268,7 +282,7 @@ static u32 clock_divider_to_resolution(u16 divider)
 	 * not readable, hence the << 2.  This function returns ns.
 	 */
 	return DIV_ROUND_CLOSEST((1 << 2)  * ((u32) divider + 1) * 1000,
-				 CX23888_IR_REFCLK_FREQ / 1000000);
+							 CX23888_IR_REFCLK_FREQ / 1000000);
 }
 
 static u64 pulse_width_count_to_ns(u16 count, u16 divider)
@@ -282,8 +296,12 @@ static u64 pulse_width_count_to_ns(u16 count, u16 divider)
 	 */
 	n = (((u64) count << 2) | 0x3) * (divider + 1) * 1000; /* millicycles */
 	rem = do_div(n, CX23888_IR_REFCLK_FREQ / 1000000);     /* / MHz => ns */
+
 	if (rem >= CX23888_IR_REFCLK_FREQ / 1000000 / 2)
+	{
 		n++;
+	}
+
 	return n;
 }
 
@@ -298,8 +316,12 @@ static unsigned int pulse_width_count_to_us(u16 count, u16 divider)
 	 */
 	n = (((u64) count << 2) | 0x3) * (divider + 1);    /* cycles      */
 	rem = do_div(n, CX23888_IR_REFCLK_FREQ / 1000000); /* / MHz => us */
+
 	if (rem >= CX23888_IR_REFCLK_FREQ / 1000000 / 2)
+	{
 		n++;
+	}
+
 	return (unsigned int) n;
 }
 
@@ -317,8 +339,12 @@ static u64 ns_to_pulse_clocks(u32 ns)
 	u32 rem;
 	clocks = CX23888_IR_REFCLK_FREQ / 1000000 * (u64) ns; /* millicycles  */
 	rem = do_div(clocks, 1000);                         /* /1000 = cycles */
+
 	if (rem >= 1000 / 2)
+	{
 		clocks++;
+	}
+
 	return clocks;
 }
 
@@ -328,35 +354,44 @@ static u16 pulse_clocks_to_clock_divider(u64 count)
 
 	/* net result needs to be rounded down and decremented by 1 */
 	if (count > RXCLK_RCD + 1)
+	{
 		count = RXCLK_RCD;
+	}
 	else if (count < 2)
+	{
 		count = 1;
+	}
 	else
+	{
 		count--;
+	}
+
 	return (u16) count;
 }
 
 /*
  * IR Control Register helpers
  */
-enum tx_fifo_watermark {
+enum tx_fifo_watermark
+{
 	TX_FIFO_HALF_EMPTY = 0,
 	TX_FIFO_EMPTY      = CNTRL_TIC,
 };
 
-enum rx_fifo_watermark {
+enum rx_fifo_watermark
+{
 	RX_FIFO_HALF_FULL = 0,
 	RX_FIFO_NOT_EMPTY = CNTRL_RIC,
 };
 
 static inline void control_tx_irq_watermark(struct cx23885_dev *dev,
-					    enum tx_fifo_watermark level)
+		enum tx_fifo_watermark level)
 {
 	cx23888_ir_and_or4(dev, CX23888_IR_CNTRL_REG, ~CNTRL_TIC, level);
 }
 
 static inline void control_rx_irq_watermark(struct cx23885_dev *dev,
-					    enum rx_fifo_watermark level)
+		enum rx_fifo_watermark level)
 {
 	cx23888_ir_and_or4(dev, CX23888_IR_CNTRL_REG, ~CNTRL_RIC, level);
 }
@@ -364,82 +399,89 @@ static inline void control_rx_irq_watermark(struct cx23885_dev *dev,
 static inline void control_tx_enable(struct cx23885_dev *dev, bool enable)
 {
 	cx23888_ir_and_or4(dev, CX23888_IR_CNTRL_REG, ~(CNTRL_TXE | CNTRL_TFE),
-			   enable ? (CNTRL_TXE | CNTRL_TFE) : 0);
+					   enable ? (CNTRL_TXE | CNTRL_TFE) : 0);
 }
 
 static inline void control_rx_enable(struct cx23885_dev *dev, bool enable)
 {
 	cx23888_ir_and_or4(dev, CX23888_IR_CNTRL_REG, ~(CNTRL_RXE | CNTRL_RFE),
-			   enable ? (CNTRL_RXE | CNTRL_RFE) : 0);
+					   enable ? (CNTRL_RXE | CNTRL_RFE) : 0);
 }
 
 static inline void control_tx_modulation_enable(struct cx23885_dev *dev,
-						bool enable)
+		bool enable)
 {
 	cx23888_ir_and_or4(dev, CX23888_IR_CNTRL_REG, ~CNTRL_MOD,
-			   enable ? CNTRL_MOD : 0);
+					   enable ? CNTRL_MOD : 0);
 }
 
 static inline void control_rx_demodulation_enable(struct cx23885_dev *dev,
-						  bool enable)
+		bool enable)
 {
 	cx23888_ir_and_or4(dev, CX23888_IR_CNTRL_REG, ~CNTRL_DMD,
-			   enable ? CNTRL_DMD : 0);
+					   enable ? CNTRL_DMD : 0);
 }
 
 static inline void control_rx_s_edge_detection(struct cx23885_dev *dev,
-					       u32 edge_types)
+		u32 edge_types)
 {
 	cx23888_ir_and_or4(dev, CX23888_IR_CNTRL_REG, ~CNTRL_EDG_BOTH,
-			   edge_types & CNTRL_EDG_BOTH);
+					   edge_types & CNTRL_EDG_BOTH);
 }
 
 static void control_rx_s_carrier_window(struct cx23885_dev *dev,
-					unsigned int carrier,
-					unsigned int *carrier_range_low,
-					unsigned int *carrier_range_high)
+										unsigned int carrier,
+										unsigned int *carrier_range_low,
+										unsigned int *carrier_range_high)
 {
 	u32 v;
 	unsigned int c16 = carrier * 16;
 
-	if (*carrier_range_low < DIV_ROUND_CLOSEST(c16, 16 + 3)) {
+	if (*carrier_range_low < DIV_ROUND_CLOSEST(c16, 16 + 3))
+	{
 		v = CNTRL_WIN_3_4;
 		*carrier_range_low = DIV_ROUND_CLOSEST(c16, 16 + 4);
-	} else {
+	}
+	else
+	{
 		v = CNTRL_WIN_3_3;
 		*carrier_range_low = DIV_ROUND_CLOSEST(c16, 16 + 3);
 	}
 
-	if (*carrier_range_high > DIV_ROUND_CLOSEST(c16, 16 - 3)) {
+	if (*carrier_range_high > DIV_ROUND_CLOSEST(c16, 16 - 3))
+	{
 		v |= CNTRL_WIN_4_3;
 		*carrier_range_high = DIV_ROUND_CLOSEST(c16, 16 - 4);
-	} else {
+	}
+	else
+	{
 		v |= CNTRL_WIN_3_3;
 		*carrier_range_high = DIV_ROUND_CLOSEST(c16, 16 - 3);
 	}
+
 	cx23888_ir_and_or4(dev, CX23888_IR_CNTRL_REG, ~CNTRL_WIN, v);
 }
 
 static inline void control_tx_polarity_invert(struct cx23885_dev *dev,
-					      bool invert)
+		bool invert)
 {
 	cx23888_ir_and_or4(dev, CX23888_IR_CNTRL_REG, ~CNTRL_CPL,
-			   invert ? CNTRL_CPL : 0);
+					   invert ? CNTRL_CPL : 0);
 }
 
 static inline void control_tx_level_invert(struct cx23885_dev *dev,
-					  bool invert)
+		bool invert)
 {
 	cx23888_ir_and_or4(dev, CX23888_IR_CNTRL_REG, ~CNTRL_IVO,
-			   invert ? CNTRL_IVO : 0);
+					   invert ? CNTRL_IVO : 0);
 }
 
 /*
  * IR Rx & Tx Clock Register helpers
  */
 static unsigned int txclk_tx_s_carrier(struct cx23885_dev *dev,
-				       unsigned int freq,
-				       u16 *divider)
+									   unsigned int freq,
+									   u16 *divider)
 {
 	*divider = carrier_freq_to_clock_divider(freq);
 	cx23888_ir_write4(dev, CX23888_IR_TXCLK_REG, *divider);
@@ -447,8 +489,8 @@ static unsigned int txclk_tx_s_carrier(struct cx23885_dev *dev,
 }
 
 static unsigned int rxclk_rx_s_carrier(struct cx23885_dev *dev,
-				       unsigned int freq,
-				       u16 *divider)
+									   unsigned int freq,
+									   u16 *divider)
 {
 	*divider = carrier_freq_to_clock_divider(freq);
 	cx23888_ir_write4(dev, CX23888_IR_RXCLK_REG, *divider);
@@ -456,12 +498,15 @@ static unsigned int rxclk_rx_s_carrier(struct cx23885_dev *dev,
 }
 
 static u32 txclk_tx_s_max_pulse_width(struct cx23885_dev *dev, u32 ns,
-				      u16 *divider)
+									  u16 *divider)
 {
 	u64 pulse_clocks;
 
 	if (ns > IR_MAX_DURATION)
+	{
 		ns = IR_MAX_DURATION;
+	}
+
 	pulse_clocks = ns_to_pulse_clocks(ns);
 	*divider = pulse_clocks_to_clock_divider(pulse_clocks);
 	cx23888_ir_write4(dev, CX23888_IR_TXCLK_REG, *divider);
@@ -469,12 +514,15 @@ static u32 txclk_tx_s_max_pulse_width(struct cx23885_dev *dev, u32 ns,
 }
 
 static u32 rxclk_rx_s_max_pulse_width(struct cx23885_dev *dev, u32 ns,
-				      u16 *divider)
+									  u16 *divider)
 {
 	u64 pulse_clocks;
 
 	if (ns > IR_MAX_DURATION)
+	{
 		ns = IR_MAX_DURATION;
+	}
+
 	pulse_clocks = ns_to_pulse_clocks(ns);
 	*divider = pulse_clocks_to_clock_divider(pulse_clocks);
 	cx23888_ir_write4(dev, CX23888_IR_RXCLK_REG, *divider);
@@ -485,14 +533,21 @@ static u32 rxclk_rx_s_max_pulse_width(struct cx23885_dev *dev, u32 ns,
  * IR Tx Carrier Duty Cycle register helpers
  */
 static unsigned int cduty_tx_s_duty_cycle(struct cx23885_dev *dev,
-					  unsigned int duty_cycle)
+		unsigned int duty_cycle)
 {
 	u32 n;
 	n = DIV_ROUND_CLOSEST(duty_cycle * 100, 625); /* 16ths of 100% */
+
 	if (n != 0)
+	{
 		n--;
+	}
+
 	if (n > 15)
+	{
 		n = 15;
+	}
+
 	cx23888_ir_write4(dev, CX23888_IR_CDUTY_REG, n);
 	return DIV_ROUND_CLOSEST((n + 1) * 100, 16);
 }
@@ -514,7 +569,7 @@ static inline void irqenable_rx(struct cx23885_dev *dev, u32 mask)
 {
 	mask &= (IRQEN_RTE | IRQEN_ROE | IRQEN_RSE);
 	cx23888_ir_and_or4(dev, CX23888_IR_IRQEN_REG,
-			   ~(IRQEN_RTE | IRQEN_ROE | IRQEN_RSE), mask);
+					   ~(IRQEN_RTE | IRQEN_ROE | IRQEN_RSE), mask);
 }
 
 static inline void irqenable_tx(struct cx23885_dev *dev, u32 mask)
@@ -527,7 +582,7 @@ static inline void irqenable_tx(struct cx23885_dev *dev, u32 mask)
  * V4L2 Subdevice IR Ops
  */
 static int cx23888_ir_irq_handler(struct v4l2_subdev *sd, u32 status,
-				  bool *handled)
+								  bool *handled)
 {
 	struct cx23888_ir_state *state = to_state(sd);
 	struct cx23885_dev *dev = state->dev;
@@ -554,19 +609,20 @@ static int cx23888_ir_irq_handler(struct v4l2_subdev *sd, u32 status,
 
 	*handled = false;
 	v4l2_dbg(2, ir_888_debug, sd, "IRQ Status:  %s %s %s %s %s %s\n",
-		 tsr ? "tsr" : "   ", rsr ? "rsr" : "   ",
-		 rto ? "rto" : "   ", ror ? "ror" : "   ",
-		 stats & STATS_TBY ? "tby" : "   ",
-		 stats & STATS_RBY ? "rby" : "   ");
+			 tsr ? "tsr" : "   ", rsr ? "rsr" : "   ",
+			 rto ? "rto" : "   ", ror ? "ror" : "   ",
+			 stats & STATS_TBY ? "tby" : "   ",
+			 stats & STATS_RBY ? "rby" : "   ");
 
 	v4l2_dbg(2, ir_888_debug, sd, "IRQ Enables: %s %s %s %s\n",
-		 tse ? "tse" : "   ", rse ? "rse" : "   ",
-		 rte ? "rte" : "   ", roe ? "roe" : "   ");
+			 tse ? "tse" : "   ", rse ? "rse" : "   ",
+			 rte ? "rte" : "   ", roe ? "roe" : "   ");
 
 	/*
 	 * Transmitter interrupt service
 	 */
-	if (tse && tsr) {
+	if (tse && tsr)
+	{
 		/*
 		 * TODO:
 		 * Check the watermark threshold setting
@@ -588,39 +644,55 @@ static int cx23888_ir_irq_handler(struct v4l2_subdev *sd, u32 status,
 	 * Receiver interrupt service
 	 */
 	kror = 0;
-	if ((rse && rsr) || (rte && rto)) {
+
+	if ((rse && rsr) || (rte && rto))
+	{
 		/*
 		 * Receive data on RSR to clear the STATS_RSR.
 		 * Receive data on RTO, since we may not have yet hit the RSR
 		 * watermark when we receive the RTO.
 		 */
 		for (i = 0, v = FIFO_RX_NDV;
-		     (v & FIFO_RX_NDV) && !kror; i = 0) {
+			 (v & FIFO_RX_NDV) && !kror; i = 0)
+		{
 			for (j = 0;
-			     (v & FIFO_RX_NDV) && j < FIFO_RX_DEPTH; j++) {
+				 (v & FIFO_RX_NDV) && j < FIFO_RX_DEPTH; j++)
+			{
 				v = cx23888_ir_read4(dev, CX23888_IR_FIFO_REG);
 				rx_data[i].hw_fifo_data = v & ~FIFO_RX_NDV;
 				i++;
 			}
+
 			if (i == 0)
+			{
 				break;
+			}
+
 			j = i * sizeof(union cx23888_ir_fifo_rec);
 			k = kfifo_in_locked(&state->rx_kfifo,
-				      (unsigned char *) rx_data, j,
-				      &state->rx_kfifo_lock);
+								(unsigned char *) rx_data, j,
+								&state->rx_kfifo_lock);
+
 			if (k != j)
-				kror++; /* rx_kfifo over run */
+			{
+				kror++;    /* rx_kfifo over run */
+			}
 		}
+
 		*handled = true;
 	}
 
 	events = 0;
 	v = 0;
-	if (kror) {
+
+	if (kror)
+	{
 		events |= V4L2_SUBDEV_IR_RX_SW_FIFO_OVERRUN;
 		v4l2_err(sd, "IR receiver software FIFO overrun\n");
 	}
-	if (roe && ror) {
+
+	if (roe && ror)
+	{
 		/*
 		 * The RX FIFO Enable (CNTRL_RFE) must be toggled to clear
 		 * the Rx FIFO Over Run status (STATS_ROR)
@@ -629,7 +701,9 @@ static int cx23888_ir_irq_handler(struct v4l2_subdev *sd, u32 status,
 		events |= V4L2_SUBDEV_IR_RX_HW_FIFO_OVERRUN;
 		v4l2_err(sd, "IR receiver hardware FIFO overrun\n");
 	}
-	if (rte && rto) {
+
+	if (rte && rto)
+	{
 		/*
 		 * The IR Receiver Enable (CNTRL_RXE) must be toggled to clear
 		 * the Rx Pulse Width Timer Time Out (STATS_RTO)
@@ -637,7 +711,9 @@ static int cx23888_ir_irq_handler(struct v4l2_subdev *sd, u32 status,
 		v |= CNTRL_RXE;
 		events |= V4L2_SUBDEV_IR_RX_END_OF_RX_DETECTED;
 	}
-	if (v) {
+
+	if (v)
+	{
 		/* Clear STATS_ROR & STATS_RTO as needed by reseting hardware */
 		cx23888_ir_write4(dev, CX23888_IR_CNTRL_REG, cntrl & ~v);
 		cx23888_ir_write4(dev, CX23888_IR_CNTRL_REG, cntrl);
@@ -645,18 +721,25 @@ static int cx23888_ir_irq_handler(struct v4l2_subdev *sd, u32 status,
 	}
 
 	spin_lock_irqsave(&state->rx_kfifo_lock, flags);
+
 	if (kfifo_len(&state->rx_kfifo) >= CX23888_IR_RX_KFIFO_SIZE / 2)
+	{
 		events |= V4L2_SUBDEV_IR_RX_FIFO_SERVICE_REQ;
+	}
+
 	spin_unlock_irqrestore(&state->rx_kfifo_lock, flags);
 
 	if (events)
+	{
 		v4l2_subdev_notify(sd, V4L2_SUBDEV_IR_RX_NOTIFY, &events);
+	}
+
 	return 0;
 }
 
 /* Receiver */
 static int cx23888_ir_rx_read(struct v4l2_subdev *sd, u8 *buf, size_t count,
-			      ssize_t *num)
+							  ssize_t *num)
 {
 	struct cx23888_ir_state *state = to_state(sd);
 	bool invert = (bool) atomic_read(&state->rx_invert);
@@ -668,7 +751,9 @@ static int cx23888_ir_rx_read(struct v4l2_subdev *sd, u8 *buf, size_t count,
 
 	n = count / sizeof(union cx23888_ir_fifo_rec)
 		* sizeof(union cx23888_ir_fifo_rec);
-	if (n == 0) {
+
+	if (n == 0)
+	{
 		*num = 0;
 		return 0;
 	}
@@ -678,23 +763,34 @@ static int cx23888_ir_rx_read(struct v4l2_subdev *sd, u8 *buf, size_t count,
 	n /= sizeof(union cx23888_ir_fifo_rec);
 	*num = n * sizeof(union cx23888_ir_fifo_rec);
 
-	for (p = (union cx23888_ir_fifo_rec *) buf, i = 0; i < n; p++, i++) {
+	for (p = (union cx23888_ir_fifo_rec *) buf, i = 0; i < n; p++, i++)
+	{
 
-		if ((p->hw_fifo_data & FIFO_RXTX_RTO) == FIFO_RXTX_RTO) {
+		if ((p->hw_fifo_data & FIFO_RXTX_RTO) == FIFO_RXTX_RTO)
+		{
 			/* Assume RTO was because of no IR light input */
 			u = 0;
 			w = 1;
-		} else {
+		}
+		else
+		{
 			u = (p->hw_fifo_data & FIFO_RXTX_LVL) ? 1 : 0;
+
 			if (invert)
+			{
 				u = u ? 0 : 1;
+			}
+
 			w = 0;
 		}
 
 		v = (unsigned) pulse_width_count_to_ns(
-				  (u16) (p->hw_fifo_data & FIFO_RXTX), divider);
+				(u16) (p->hw_fifo_data & FIFO_RXTX), divider);
+
 		if (v > IR_MAX_DURATION)
+		{
 			v = IR_MAX_DURATION;
+		}
 
 		init_ir_raw_event(&p->ir_core_data);
 		p->ir_core_data.pulse = u;
@@ -702,15 +798,19 @@ static int cx23888_ir_rx_read(struct v4l2_subdev *sd, u8 *buf, size_t count,
 		p->ir_core_data.timeout = w;
 
 		v4l2_dbg(2, ir_888_debug, sd, "rx read: %10u ns  %s  %s\n",
-			 v, u ? "mark" : "space", w ? "(timed out)" : "");
+				 v, u ? "mark" : "space", w ? "(timed out)" : "");
+
 		if (w)
+		{
 			v4l2_dbg(2, ir_888_debug, sd, "rx read: end of rx\n");
+		}
 	}
+
 	return 0;
 }
 
 static int cx23888_ir_rx_g_parameters(struct v4l2_subdev *sd,
-				      struct v4l2_subdev_ir_parameters *p)
+									  struct v4l2_subdev_ir_parameters *p)
 {
 	struct cx23888_ir_state *state = to_state(sd);
 	mutex_lock(&state->rx_params_lock);
@@ -741,7 +841,7 @@ static int cx23888_ir_rx_shutdown(struct v4l2_subdev *sd)
 }
 
 static int cx23888_ir_rx_s_parameters(struct v4l2_subdev *sd,
-				      struct v4l2_subdev_ir_parameters *p)
+									  struct v4l2_subdev_ir_parameters *p)
 {
 	struct cx23888_ir_state *state = to_state(sd);
 	struct cx23885_dev *dev = state->dev;
@@ -749,10 +849,14 @@ static int cx23888_ir_rx_s_parameters(struct v4l2_subdev *sd,
 	u16 rxclk_divider;
 
 	if (p->shutdown)
+	{
 		return cx23888_ir_rx_shutdown(sd);
+	}
 
 	if (p->mode != V4L2_SUBDEV_IR_MODE_PULSE_WIDTH)
+	{
 		return -ENOSYS;
+	}
 
 	mutex_lock(&state->rx_params_lock);
 
@@ -761,7 +865,7 @@ static int cx23888_ir_rx_s_parameters(struct v4l2_subdev *sd,
 	o->mode = p->mode = V4L2_SUBDEV_IR_MODE_PULSE_WIDTH;
 
 	o->bytes_per_data_element = p->bytes_per_data_element
-				  = sizeof(union cx23888_ir_fifo_rec);
+								= sizeof(union cx23888_ir_fifo_rec);
 
 	/* Before we tweak the hardware, we have to disable the receiver */
 	irqenable_rx(dev, 0);
@@ -770,32 +874,36 @@ static int cx23888_ir_rx_s_parameters(struct v4l2_subdev *sd,
 	control_rx_demodulation_enable(dev, p->modulation);
 	o->modulation = p->modulation;
 
-	if (p->modulation) {
+	if (p->modulation)
+	{
 		p->carrier_freq = rxclk_rx_s_carrier(dev, p->carrier_freq,
-						     &rxclk_divider);
+											 &rxclk_divider);
 
 		o->carrier_freq = p->carrier_freq;
 
 		o->duty_cycle = p->duty_cycle = 50;
 
 		control_rx_s_carrier_window(dev, p->carrier_freq,
-					    &p->carrier_range_lower,
-					    &p->carrier_range_upper);
+									&p->carrier_range_lower,
+									&p->carrier_range_upper);
 		o->carrier_range_lower = p->carrier_range_lower;
 		o->carrier_range_upper = p->carrier_range_upper;
 
 		p->max_pulse_width =
 			(u32) pulse_width_count_to_ns(FIFO_RXTX, rxclk_divider);
-	} else {
-		p->max_pulse_width =
-			    rxclk_rx_s_max_pulse_width(dev, p->max_pulse_width,
-						       &rxclk_divider);
 	}
+	else
+	{
+		p->max_pulse_width =
+			rxclk_rx_s_max_pulse_width(dev, p->max_pulse_width,
+									   &rxclk_divider);
+	}
+
 	o->max_pulse_width = p->max_pulse_width;
 	atomic_set(&state->rxclk_divider, rxclk_divider);
 
 	p->noise_filter_min_width =
-			  filter_rx_s_min_width(dev, p->noise_filter_min_width);
+		filter_rx_s_min_width(dev, p->noise_filter_min_width);
 	o->noise_filter_min_width = p->noise_filter_min_width;
 
 	p->resolution = clock_divider_to_resolution(rxclk_divider);
@@ -811,15 +919,21 @@ static int cx23888_ir_rx_s_parameters(struct v4l2_subdev *sd,
 
 	o->interrupt_enable = p->interrupt_enable;
 	o->enable = p->enable;
-	if (p->enable) {
+
+	if (p->enable)
+	{
 		unsigned long flags;
 
 		spin_lock_irqsave(&state->rx_kfifo_lock, flags);
 		kfifo_reset(&state->rx_kfifo);
 		/* reset tx_fifo too if there is one... */
 		spin_unlock_irqrestore(&state->rx_kfifo_lock, flags);
+
 		if (p->interrupt_enable)
+		{
 			irqenable_rx(dev, IRQEN_RSE | IRQEN_RTE | IRQEN_ROE);
+		}
+
 		control_rx_enable(dev, p->enable);
 	}
 
@@ -829,7 +943,7 @@ static int cx23888_ir_rx_s_parameters(struct v4l2_subdev *sd,
 
 /* Transmitter */
 static int cx23888_ir_tx_write(struct v4l2_subdev *sd, u8 *buf, size_t count,
-			       ssize_t *num)
+							   ssize_t *num)
 {
 	struct cx23888_ir_state *state = to_state(sd);
 	struct cx23885_dev *dev = state->dev;
@@ -840,7 +954,7 @@ static int cx23888_ir_tx_write(struct v4l2_subdev *sd, u8 *buf, size_t count,
 }
 
 static int cx23888_ir_tx_g_parameters(struct v4l2_subdev *sd,
-				      struct v4l2_subdev_ir_parameters *p)
+									  struct v4l2_subdev_ir_parameters *p)
 {
 	struct cx23888_ir_state *state = to_state(sd);
 	mutex_lock(&state->tx_params_lock);
@@ -869,7 +983,7 @@ static int cx23888_ir_tx_shutdown(struct v4l2_subdev *sd)
 }
 
 static int cx23888_ir_tx_s_parameters(struct v4l2_subdev *sd,
-				      struct v4l2_subdev_ir_parameters *p)
+									  struct v4l2_subdev_ir_parameters *p)
 {
 	struct cx23888_ir_state *state = to_state(sd);
 	struct cx23885_dev *dev = state->dev;
@@ -877,10 +991,14 @@ static int cx23888_ir_tx_s_parameters(struct v4l2_subdev *sd,
 	u16 txclk_divider;
 
 	if (p->shutdown)
+	{
 		return cx23888_ir_tx_shutdown(sd);
+	}
 
 	if (p->mode != V4L2_SUBDEV_IR_MODE_PULSE_WIDTH)
+	{
 		return -ENOSYS;
+	}
 
 	mutex_lock(&state->tx_params_lock);
 
@@ -889,7 +1007,7 @@ static int cx23888_ir_tx_s_parameters(struct v4l2_subdev *sd,
 	o->mode = p->mode = V4L2_SUBDEV_IR_MODE_PULSE_WIDTH;
 
 	o->bytes_per_data_element = p->bytes_per_data_element
-				  = sizeof(union cx23888_ir_fifo_rec);
+								= sizeof(union cx23888_ir_fifo_rec);
 
 	/* Before we tweak the hardware, we have to disable the transmitter */
 	irqenable_tx(dev, 0);
@@ -898,9 +1016,10 @@ static int cx23888_ir_tx_s_parameters(struct v4l2_subdev *sd,
 	control_tx_modulation_enable(dev, p->modulation);
 	o->modulation = p->modulation;
 
-	if (p->modulation) {
+	if (p->modulation)
+	{
 		p->carrier_freq = txclk_tx_s_carrier(dev, p->carrier_freq,
-						     &txclk_divider);
+											 &txclk_divider);
 		o->carrier_freq = p->carrier_freq;
 
 		p->duty_cycle = cduty_tx_s_duty_cycle(dev, p->duty_cycle);
@@ -908,11 +1027,14 @@ static int cx23888_ir_tx_s_parameters(struct v4l2_subdev *sd,
 
 		p->max_pulse_width =
 			(u32) pulse_width_count_to_ns(FIFO_RXTX, txclk_divider);
-	} else {
-		p->max_pulse_width =
-			    txclk_tx_s_max_pulse_width(dev, p->max_pulse_width,
-						       &txclk_divider);
 	}
+	else
+	{
+		p->max_pulse_width =
+			txclk_tx_s_max_pulse_width(dev, p->max_pulse_width,
+									   &txclk_divider);
+	}
+
 	o->max_pulse_width = p->max_pulse_width;
 	atomic_set(&state->txclk_divider, txclk_divider);
 
@@ -930,9 +1052,14 @@ static int cx23888_ir_tx_s_parameters(struct v4l2_subdev *sd,
 
 	o->interrupt_enable = p->interrupt_enable;
 	o->enable = p->enable;
-	if (p->enable) {
+
+	if (p->enable)
+	{
 		if (p->interrupt_enable)
+		{
 			irqenable_tx(dev, IRQEN_TSE);
+		}
+
 		control_tx_enable(dev, p->enable);
 	}
 
@@ -961,155 +1088,190 @@ static int cx23888_ir_log_status(struct v4l2_subdev *sd)
 
 	v4l2_info(sd, "IR Receiver:\n");
 	v4l2_info(sd, "\tEnabled:                           %s\n",
-		  cntrl & CNTRL_RXE ? "yes" : "no");
+			  cntrl & CNTRL_RXE ? "yes" : "no");
 	v4l2_info(sd, "\tDemodulation from a carrier:       %s\n",
-		  cntrl & CNTRL_DMD ? "enabled" : "disabled");
+			  cntrl & CNTRL_DMD ? "enabled" : "disabled");
 	v4l2_info(sd, "\tFIFO:                              %s\n",
-		  cntrl & CNTRL_RFE ? "enabled" : "disabled");
-	switch (cntrl & CNTRL_EDG) {
-	case CNTRL_EDG_NONE:
-		s = "disabled";
-		break;
-	case CNTRL_EDG_FALL:
-		s = "falling edge";
-		break;
-	case CNTRL_EDG_RISE:
-		s = "rising edge";
-		break;
-	case CNTRL_EDG_BOTH:
-		s = "rising & falling edges";
-		break;
-	default:
-		s = "??? edge";
-		break;
+			  cntrl & CNTRL_RFE ? "enabled" : "disabled");
+
+	switch (cntrl & CNTRL_EDG)
+	{
+		case CNTRL_EDG_NONE:
+			s = "disabled";
+			break;
+
+		case CNTRL_EDG_FALL:
+			s = "falling edge";
+			break;
+
+		case CNTRL_EDG_RISE:
+			s = "rising edge";
+			break;
+
+		case CNTRL_EDG_BOTH:
+			s = "rising & falling edges";
+			break;
+
+		default:
+			s = "??? edge";
+			break;
 	}
+
 	v4l2_info(sd, "\tPulse timers' start/stop trigger:  %s\n", s);
 	v4l2_info(sd, "\tFIFO data on pulse timer overflow: %s\n",
-		  cntrl & CNTRL_R ? "not loaded" : "overflow marker");
+			  cntrl & CNTRL_R ? "not loaded" : "overflow marker");
 	v4l2_info(sd, "\tFIFO interrupt watermark:          %s\n",
-		  cntrl & CNTRL_RIC ? "not empty" : "half full or greater");
+			  cntrl & CNTRL_RIC ? "not empty" : "half full or greater");
 	v4l2_info(sd, "\tLoopback mode:                     %s\n",
-		  cntrl & CNTRL_LBM ? "loopback active" : "normal receive");
-	if (cntrl & CNTRL_DMD) {
+			  cntrl & CNTRL_LBM ? "loopback active" : "normal receive");
+
+	if (cntrl & CNTRL_DMD)
+	{
 		v4l2_info(sd, "\tExpected carrier (16 clocks):      %u Hz\n",
-			  clock_divider_to_carrier_freq(rxclk));
-		switch (cntrl & CNTRL_WIN) {
-		case CNTRL_WIN_3_3:
-			i = 3;
-			j = 3;
-			break;
-		case CNTRL_WIN_4_3:
-			i = 4;
-			j = 3;
-			break;
-		case CNTRL_WIN_3_4:
-			i = 3;
-			j = 4;
-			break;
-		case CNTRL_WIN_4_4:
-			i = 4;
-			j = 4;
-			break;
-		default:
-			i = 0;
-			j = 0;
-			break;
+				  clock_divider_to_carrier_freq(rxclk));
+
+		switch (cntrl & CNTRL_WIN)
+		{
+			case CNTRL_WIN_3_3:
+				i = 3;
+				j = 3;
+				break;
+
+			case CNTRL_WIN_4_3:
+				i = 4;
+				j = 3;
+				break;
+
+			case CNTRL_WIN_3_4:
+				i = 3;
+				j = 4;
+				break;
+
+			case CNTRL_WIN_4_4:
+				i = 4;
+				j = 4;
+				break;
+
+			default:
+				i = 0;
+				j = 0;
+				break;
 		}
+
 		v4l2_info(sd, "\tNext carrier edge window:          16 clocks "
-			  "-%1d/+%1d, %u to %u Hz\n", i, j,
-			  clock_divider_to_freq(rxclk, 16 + j),
-			  clock_divider_to_freq(rxclk, 16 - i));
+				  "-%1d/+%1d, %u to %u Hz\n", i, j,
+				  clock_divider_to_freq(rxclk, 16 + j),
+				  clock_divider_to_freq(rxclk, 16 - i));
 	}
+
 	v4l2_info(sd, "\tMax measurable pulse width:        %u us, %llu ns\n",
-		  pulse_width_count_to_us(FIFO_RXTX, rxclk),
-		  pulse_width_count_to_ns(FIFO_RXTX, rxclk));
+			  pulse_width_count_to_us(FIFO_RXTX, rxclk),
+			  pulse_width_count_to_ns(FIFO_RXTX, rxclk));
 	v4l2_info(sd, "\tLow pass filter:                   %s\n",
-		  filtr ? "enabled" : "disabled");
+			  filtr ? "enabled" : "disabled");
+
 	if (filtr)
 		v4l2_info(sd, "\tMin acceptable pulse width (LPF):  %u us, "
-			  "%u ns\n",
-			  lpf_count_to_us(filtr),
-			  lpf_count_to_ns(filtr));
+				  "%u ns\n",
+				  lpf_count_to_us(filtr),
+				  lpf_count_to_ns(filtr));
+
 	v4l2_info(sd, "\tPulse width timer timed-out:       %s\n",
-		  stats & STATS_RTO ? "yes" : "no");
+			  stats & STATS_RTO ? "yes" : "no");
 	v4l2_info(sd, "\tPulse width timer time-out intr:   %s\n",
-		  irqen & IRQEN_RTE ? "enabled" : "disabled");
+			  irqen & IRQEN_RTE ? "enabled" : "disabled");
 	v4l2_info(sd, "\tFIFO overrun:                      %s\n",
-		  stats & STATS_ROR ? "yes" : "no");
+			  stats & STATS_ROR ? "yes" : "no");
 	v4l2_info(sd, "\tFIFO overrun interrupt:            %s\n",
-		  irqen & IRQEN_ROE ? "enabled" : "disabled");
+			  irqen & IRQEN_ROE ? "enabled" : "disabled");
 	v4l2_info(sd, "\tBusy:                              %s\n",
-		  stats & STATS_RBY ? "yes" : "no");
+			  stats & STATS_RBY ? "yes" : "no");
 	v4l2_info(sd, "\tFIFO service requested:            %s\n",
-		  stats & STATS_RSR ? "yes" : "no");
+			  stats & STATS_RSR ? "yes" : "no");
 	v4l2_info(sd, "\tFIFO service request interrupt:    %s\n",
-		  irqen & IRQEN_RSE ? "enabled" : "disabled");
+			  irqen & IRQEN_RSE ? "enabled" : "disabled");
 
 	v4l2_info(sd, "IR Transmitter:\n");
 	v4l2_info(sd, "\tEnabled:                           %s\n",
-		  cntrl & CNTRL_TXE ? "yes" : "no");
+			  cntrl & CNTRL_TXE ? "yes" : "no");
 	v4l2_info(sd, "\tModulation onto a carrier:         %s\n",
-		  cntrl & CNTRL_MOD ? "enabled" : "disabled");
+			  cntrl & CNTRL_MOD ? "enabled" : "disabled");
 	v4l2_info(sd, "\tFIFO:                              %s\n",
-		  cntrl & CNTRL_TFE ? "enabled" : "disabled");
+			  cntrl & CNTRL_TFE ? "enabled" : "disabled");
 	v4l2_info(sd, "\tFIFO interrupt watermark:          %s\n",
-		  cntrl & CNTRL_TIC ? "not empty" : "half full or less");
+			  cntrl & CNTRL_TIC ? "not empty" : "half full or less");
 	v4l2_info(sd, "\tOutput pin level inversion         %s\n",
-		  cntrl & CNTRL_IVO ? "yes" : "no");
+			  cntrl & CNTRL_IVO ? "yes" : "no");
 	v4l2_info(sd, "\tCarrier polarity:                  %s\n",
-		  cntrl & CNTRL_CPL ? "space:burst mark:noburst"
-				    : "space:noburst mark:burst");
-	if (cntrl & CNTRL_MOD) {
+			  cntrl & CNTRL_CPL ? "space:burst mark:noburst"
+			  : "space:noburst mark:burst");
+
+	if (cntrl & CNTRL_MOD)
+	{
 		v4l2_info(sd, "\tCarrier (16 clocks):               %u Hz\n",
-			  clock_divider_to_carrier_freq(txclk));
+				  clock_divider_to_carrier_freq(txclk));
 		v4l2_info(sd, "\tCarrier duty cycle:                %2u/16\n",
-			  cduty + 1);
+				  cduty + 1);
 	}
+
 	v4l2_info(sd, "\tMax pulse width:                   %u us, %llu ns\n",
-		  pulse_width_count_to_us(FIFO_RXTX, txclk),
-		  pulse_width_count_to_ns(FIFO_RXTX, txclk));
+			  pulse_width_count_to_us(FIFO_RXTX, txclk),
+			  pulse_width_count_to_ns(FIFO_RXTX, txclk));
 	v4l2_info(sd, "\tBusy:                              %s\n",
-		  stats & STATS_TBY ? "yes" : "no");
+			  stats & STATS_TBY ? "yes" : "no");
 	v4l2_info(sd, "\tFIFO service requested:            %s\n",
-		  stats & STATS_TSR ? "yes" : "no");
+			  stats & STATS_TSR ? "yes" : "no");
 	v4l2_info(sd, "\tFIFO service request interrupt:    %s\n",
-		  irqen & IRQEN_TSE ? "enabled" : "disabled");
+			  irqen & IRQEN_TSE ? "enabled" : "disabled");
 
 	return 0;
 }
 
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 static int cx23888_ir_g_register(struct v4l2_subdev *sd,
-				 struct v4l2_dbg_register *reg)
+								 struct v4l2_dbg_register *reg)
 {
 	struct cx23888_ir_state *state = to_state(sd);
 	u32 addr = CX23888_IR_REG_BASE + (u32) reg->reg;
 
 	if ((addr & 0x3) != 0)
+	{
 		return -EINVAL;
+	}
+
 	if (addr < CX23888_IR_CNTRL_REG || addr > CX23888_IR_LEARN_REG)
+	{
 		return -EINVAL;
+	}
+
 	reg->size = 4;
 	reg->val = cx23888_ir_read4(state->dev, addr);
 	return 0;
 }
 
 static int cx23888_ir_s_register(struct v4l2_subdev *sd,
-				 const struct v4l2_dbg_register *reg)
+								 const struct v4l2_dbg_register *reg)
 {
 	struct cx23888_ir_state *state = to_state(sd);
 	u32 addr = CX23888_IR_REG_BASE + (u32) reg->reg;
 
 	if ((addr & 0x3) != 0)
+	{
 		return -EINVAL;
+	}
+
 	if (addr < CX23888_IR_CNTRL_REG || addr > CX23888_IR_LEARN_REG)
+	{
 		return -EINVAL;
+	}
+
 	cx23888_ir_write4(state->dev, addr, reg->val);
 	return 0;
 }
 #endif
 
-static const struct v4l2_subdev_core_ops cx23888_ir_core_ops = {
+static const struct v4l2_subdev_core_ops cx23888_ir_core_ops =
+{
 	.log_status = cx23888_ir_log_status,
 #ifdef CONFIG_VIDEO_ADV_DEBUG
 	.g_register = cx23888_ir_g_register,
@@ -1118,7 +1280,8 @@ static const struct v4l2_subdev_core_ops cx23888_ir_core_ops = {
 	.interrupt_service_routine = cx23888_ir_irq_handler,
 };
 
-static const struct v4l2_subdev_ir_ops cx23888_ir_ir_ops = {
+static const struct v4l2_subdev_ir_ops cx23888_ir_ir_ops =
+{
 	.rx_read = cx23888_ir_rx_read,
 	.rx_g_parameters = cx23888_ir_rx_g_parameters,
 	.rx_s_parameters = cx23888_ir_rx_s_parameters,
@@ -1128,12 +1291,14 @@ static const struct v4l2_subdev_ir_ops cx23888_ir_ir_ops = {
 	.tx_s_parameters = cx23888_ir_tx_s_parameters,
 };
 
-static const struct v4l2_subdev_ops cx23888_ir_controller_ops = {
+static const struct v4l2_subdev_ops cx23888_ir_controller_ops =
+{
 	.core = &cx23888_ir_core_ops,
 	.ir = &cx23888_ir_ir_ops,
 };
 
-static const struct v4l2_subdev_ir_parameters default_rx_params = {
+static const struct v4l2_subdev_ir_parameters default_rx_params =
+{
 	.bytes_per_data_element = sizeof(union cx23888_ir_fifo_rec),
 	.mode = V4L2_SUBDEV_IR_MODE_PULSE_WIDTH,
 
@@ -1152,7 +1317,8 @@ static const struct v4l2_subdev_ir_parameters default_rx_params = {
 	.invert_level = false,
 };
 
-static const struct v4l2_subdev_ir_parameters default_tx_params = {
+static const struct v4l2_subdev_ir_parameters default_tx_params =
+{
 	.bytes_per_data_element = sizeof(union cx23888_ir_fifo_rec),
 	.mode = V4L2_SUBDEV_IR_MODE_PULSE_WIDTH,
 
@@ -1175,12 +1341,18 @@ int cx23888_ir_probe(struct cx23885_dev *dev)
 	int ret;
 
 	state = kzalloc(sizeof(struct cx23888_ir_state), GFP_KERNEL);
+
 	if (state == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	spin_lock_init(&state->rx_kfifo_lock);
+
 	if (kfifo_alloc(&state->rx_kfifo, CX23888_IR_RX_KFIFO_SIZE, GFP_KERNEL))
+	{
 		return -ENOMEM;
+	}
 
 	state->dev = dev;
 	sd = &state->sd;
@@ -1192,7 +1364,9 @@ int cx23888_ir_probe(struct cx23885_dev *dev)
 	sd->grp_id = CX23885_HW_888_IR;
 
 	ret = v4l2_device_register_subdev(&dev->v4l2_dev, sd);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		/*
 		 * Ensure no interrupts arrive from '888 specific conditions,
 		 * since we ignore them in this driver to have commonality with
@@ -1207,9 +1381,12 @@ int cx23888_ir_probe(struct cx23885_dev *dev)
 		mutex_init(&state->tx_params_lock);
 		default_params = default_tx_params;
 		v4l2_subdev_call(sd, ir, tx_s_parameters, &default_params);
-	} else {
+	}
+	else
+	{
 		kfifo_free(&state->rx_kfifo);
 	}
+
 	return ret;
 }
 
@@ -1219,8 +1396,11 @@ int cx23888_ir_remove(struct cx23885_dev *dev)
 	struct cx23888_ir_state *state;
 
 	sd = cx23885_find_hw(dev, CX23885_HW_888_IR);
+
 	if (sd == NULL)
+	{
 		return -ENODEV;
+	}
 
 	cx23888_ir_rx_shutdown(sd);
 	cx23888_ir_tx_shutdown(sd);

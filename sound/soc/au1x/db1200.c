@@ -21,7 +21,8 @@
 #include "../codecs/wm8731.h"
 #include "psc.h"
 
-static const struct platform_device_id db1200_pids[] = {
+static const struct platform_device_id db1200_pids[] =
+{
 	{
 		.name		= "db1200-ac97",
 		.driver_data	= 0,
@@ -46,7 +47,8 @@ static const struct platform_device_id db1200_pids[] = {
 
 /*-------------------------  AC97 PART  ---------------------------*/
 
-static struct snd_soc_dai_link db1200_ac97_dai = {
+static struct snd_soc_dai_link db1200_ac97_dai =
+{
 	.name		= "AC97",
 	.stream_name	= "AC97 HiFi",
 	.codec_dai_name	= "ac97-hifi",
@@ -55,14 +57,16 @@ static struct snd_soc_dai_link db1200_ac97_dai = {
 	.codec_name	= "ac97-codec.1",
 };
 
-static struct snd_soc_card db1200_ac97_machine = {
+static struct snd_soc_card db1200_ac97_machine =
+{
 	.name		= "DB1200_AC97",
 	.owner		= THIS_MODULE,
 	.dai_link	= &db1200_ac97_dai,
 	.num_links	= 1,
 };
 
-static struct snd_soc_dai_link db1300_ac97_dai = {
+static struct snd_soc_dai_link db1300_ac97_dai =
+{
 	.name		= "AC97",
 	.stream_name	= "AC97 HiFi",
 	.codec_dai_name	= "wm9712-hifi",
@@ -71,14 +75,16 @@ static struct snd_soc_dai_link db1300_ac97_dai = {
 	.codec_name	= "wm9712-codec.1",
 };
 
-static struct snd_soc_card db1300_ac97_machine = {
+static struct snd_soc_card db1300_ac97_machine =
+{
 	.name		= "DB1300_AC97",
 	.owner		= THIS_MODULE,
 	.dai_link	= &db1300_ac97_dai,
 	.num_links	= 1,
 };
 
-static struct snd_soc_card db1550_ac97_machine = {
+static struct snd_soc_card db1550_ac97_machine =
+{
 	.name		= "DB1550_AC97",
 	.owner		= THIS_MODULE,
 	.dai_link	= &db1200_ac97_dai,
@@ -94,16 +100,18 @@ static int db1200_i2s_startup(struct snd_pcm_substream *substream)
 
 	/* WM8731 has its own 12MHz crystal */
 	snd_soc_dai_set_sysclk(codec_dai, WM8731_SYSCLK_XTAL,
-				12000000, SND_SOC_CLOCK_IN);
+						   12000000, SND_SOC_CLOCK_IN);
 
 	return 0;
 }
 
-static struct snd_soc_ops db1200_i2s_wm8731_ops = {
+static struct snd_soc_ops db1200_i2s_wm8731_ops =
+{
 	.startup	= db1200_i2s_startup,
 };
 
-static struct snd_soc_dai_link db1200_i2s_dai = {
+static struct snd_soc_dai_link db1200_i2s_dai =
+{
 	.name		= "WM8731",
 	.stream_name	= "WM8731 PCM",
 	.codec_dai_name	= "wm8731-hifi",
@@ -111,18 +119,20 @@ static struct snd_soc_dai_link db1200_i2s_dai = {
 	.platform_name	= "au1xpsc-pcm.1",
 	.codec_name	= "wm8731.0-001b",
 	.dai_fmt	= SND_SOC_DAIFMT_LEFT_J | SND_SOC_DAIFMT_NB_NF |
-			  SND_SOC_DAIFMT_CBM_CFM,
+	SND_SOC_DAIFMT_CBM_CFM,
 	.ops		= &db1200_i2s_wm8731_ops,
 };
 
-static struct snd_soc_card db1200_i2s_machine = {
+static struct snd_soc_card db1200_i2s_machine =
+{
 	.name		= "DB1200_I2S",
 	.owner		= THIS_MODULE,
 	.dai_link	= &db1200_i2s_dai,
 	.num_links	= 1,
 };
 
-static struct snd_soc_dai_link db1300_i2s_dai = {
+static struct snd_soc_dai_link db1300_i2s_dai =
+{
 	.name		= "WM8731",
 	.stream_name	= "WM8731 PCM",
 	.codec_dai_name	= "wm8731-hifi",
@@ -130,18 +140,20 @@ static struct snd_soc_dai_link db1300_i2s_dai = {
 	.platform_name	= "au1xpsc-pcm.2",
 	.codec_name	= "wm8731.0-001b",
 	.dai_fmt	= SND_SOC_DAIFMT_LEFT_J | SND_SOC_DAIFMT_NB_NF |
-			  SND_SOC_DAIFMT_CBM_CFM,
+	SND_SOC_DAIFMT_CBM_CFM,
 	.ops		= &db1200_i2s_wm8731_ops,
 };
 
-static struct snd_soc_card db1300_i2s_machine = {
+static struct snd_soc_card db1300_i2s_machine =
+{
 	.name		= "DB1300_I2S",
 	.owner		= THIS_MODULE,
 	.dai_link	= &db1300_i2s_dai,
 	.num_links	= 1,
 };
 
-static struct snd_soc_dai_link db1550_i2s_dai = {
+static struct snd_soc_dai_link db1550_i2s_dai =
+{
 	.name		= "WM8731",
 	.stream_name	= "WM8731 PCM",
 	.codec_dai_name	= "wm8731-hifi",
@@ -149,11 +161,12 @@ static struct snd_soc_dai_link db1550_i2s_dai = {
 	.platform_name	= "au1xpsc-pcm.3",
 	.codec_name	= "wm8731.0-001b",
 	.dai_fmt	= SND_SOC_DAIFMT_LEFT_J | SND_SOC_DAIFMT_NB_NF |
-			  SND_SOC_DAIFMT_CBM_CFM,
+	SND_SOC_DAIFMT_CBM_CFM,
 	.ops		= &db1200_i2s_wm8731_ops,
 };
 
-static struct snd_soc_card db1550_i2s_machine = {
+static struct snd_soc_card db1550_i2s_machine =
+{
 	.name		= "DB1550_I2S",
 	.owner		= THIS_MODULE,
 	.dai_link	= &db1550_i2s_dai,
@@ -162,7 +175,8 @@ static struct snd_soc_card db1550_i2s_machine = {
 
 /*-------------------------  COMMON PART  ---------------------------*/
 
-static struct snd_soc_card *db1200_cards[] = {
+static struct snd_soc_card *db1200_cards[] =
+{
 	&db1200_ac97_machine,
 	&db1200_i2s_machine,
 	&db1300_ac97_machine,
@@ -181,7 +195,8 @@ static int db1200_audio_probe(struct platform_device *pdev)
 	return devm_snd_soc_register_card(&pdev->dev, card);
 }
 
-static struct platform_driver db1200_audio_driver = {
+static struct platform_driver db1200_audio_driver =
+{
 	.driver	= {
 		.name	= "db1200-ac97",
 		.pm	= &snd_soc_pm_ops,

@@ -82,8 +82,8 @@
 #define IRQ_INT_TX_FIFO_EMPTY		BIT(6)
 #define IRQ_INT_MULTI_RXRDY		BIT(7)
 #define DEF_INT_MASK			(IRQ_INT_MULTI_RXRDY | \
-					IRQ_INT_TX_PER_PACKET | \
-					IRQ_INT_TX_FIFO_EMPTY)
+								 IRQ_INT_TX_PER_PACKET | \
+								 IRQ_INT_TX_FIFO_EMPTY)
 #define GLB_MAC_L32_BASE		0x0100
 #define GLB_MAC_H16_BASE		0x0104
 #define MACFLT_HI16_MASK		GENMASK(15, 0)
@@ -94,7 +94,7 @@
 #define MAX_MAC_FILTER_NUM		8
 #define MAX_UNICAST_ADDRESSES		2
 #define MAX_MULTICAST_ADDRESSES		(MAX_MAC_FILTER_NUM - \
-					MAX_UNICAST_ADDRESSES)
+									 MAX_UNICAST_ADDRESSES)
 /* software tx and rx queue number, should be power of 2 */
 #define TXQ_NUM				64
 #define RXQ_NUM				128
@@ -102,14 +102,16 @@
 
 #define PHY_RESET_DELAYS_PROPERTY	"hisilicon,phy-reset-delays-us"
 
-enum phy_reset_delays {
+enum phy_reset_delays
+{
 	PRE_DELAY,
 	PULSE,
 	POST_DELAY,
 	DELAYS_NUM,
 };
 
-struct hisi_femac_queue {
+struct hisi_femac_queue
+{
 	struct sk_buff **skb;
 	dma_addr_t *dma_phys;
 	int num;
@@ -117,7 +119,8 @@ struct hisi_femac_queue {
 	unsigned int tail;
 };
 
-struct hisi_femac_priv {
+struct hisi_femac_priv
+{
 	void __iomem *port_base;
 	void __iomem *glb_base;
 	struct clk *clk;
@@ -152,7 +155,7 @@ static void hisi_femac_irq_disable(struct hisi_femac_priv *priv, int irqs)
 }
 
 static void hisi_femac_tx_dma_unmap(struct hisi_femac_priv *priv,
-				    struct sk_buff *skb, unsigned int pos)
+									struct sk_buff *skb, unsigned int pos)
 {
 	dma_addr_t dma_addr;
 
@@ -171,13 +174,18 @@ static void hisi_femac_xmit_reclaim(struct net_device *dev)
 	netif_tx_lock(dev);
 
 	val = readl(priv->port_base + ADDRQ_STAT) & TX_CNT_INUSE_MASK;
-	while (val < priv->tx_fifo_used_cnt) {
+
+	while (val < priv->tx_fifo_used_cnt)
+	{
 		skb = txq->skb[txq->tail];
-		if (unlikely(!skb)) {
+
+		if (unlikely(!skb))
+		{
 			netdev_err(dev, "xmitq_cnt_inuse=%d, tx_fifo_used=%d\n",
-				   val, priv->tx_fifo_used_cnt);
+					   val, priv->tx_fifo_used_cnt);
 			break;
 		}
+
 		hisi_femac_tx_dma_unmap(priv, skb, txq->tail);
 		pkts_compl++;
 		bytes_compl += skb->len;
@@ -193,7 +201,9 @@ static void hisi_femac_xmit_reclaim(struct net_device *dev)
 	netdev_completed_queue(dev, pkts_compl, bytes_compl);
 
 	if (unlikely(netif_queue_stopped(dev)) && pkts_compl)
+	{
 		netif_wake_queue(dev);
+	}
 
 	netif_tx_unlock(dev);
 }
@@ -205,14 +215,23 @@ static void hisi_femac_adjust_link(struct net_device *dev)
 	u32 status = 0;
 
 	if (phy->link)
+	{
 		status |= MAC_PORTSET_LINKED;
+	}
+
 	if (phy->duplex == DUPLEX_FULL)
+	{
 		status |= MAC_PORTSET_DUPLEX_FULL;
+	}
+
 	if (phy->speed == SPEED_100)
+	{
 		status |= MAC_PORTSET_SPEED_100M;
+	}
 
 	if ((status != priv->link_status) &&
-	    ((status | priv->link_status) & MAC_PORTSET_LINKED)) {
+		((status | priv->link_status) & MAC_PORTSET_LINKED))
+	{
 		writel(status, priv->port_base + MAC_PORTSET);
 		priv->link_status = status;
 		phy_print_status(phy);
@@ -228,29 +247,43 @@ static void hisi_femac_rx_refill(struct hisi_femac_priv *priv)
 	dma_addr_t addr;
 
 	pos = rxq->head;
-	while (readl(priv->port_base + ADDRQ_STAT) & BIT_RX_READY) {
+
+	while (readl(priv->port_base + ADDRQ_STAT) & BIT_RX_READY)
+	{
 		if (!CIRC_SPACE(pos, rxq->tail, rxq->num))
-			break;
-		if (unlikely(rxq->skb[pos])) {
-			netdev_err(priv->ndev, "err skb[%d]=%p\n",
-				   pos, rxq->skb[pos]);
+		{
 			break;
 		}
-		skb = netdev_alloc_skb_ip_align(priv->ndev, len);
-		if (unlikely(!skb))
+
+		if (unlikely(rxq->skb[pos]))
+		{
+			netdev_err(priv->ndev, "err skb[%d]=%p\n",
+					   pos, rxq->skb[pos]);
 			break;
+		}
+
+		skb = netdev_alloc_skb_ip_align(priv->ndev, len);
+
+		if (unlikely(!skb))
+		{
+			break;
+		}
 
 		addr = dma_map_single(priv->dev, skb->data, len,
-				      DMA_FROM_DEVICE);
-		if (dma_mapping_error(priv->dev, addr)) {
+							  DMA_FROM_DEVICE);
+
+		if (dma_mapping_error(priv->dev, addr))
+		{
 			dev_kfree_skb_any(skb);
 			break;
 		}
+
 		rxq->dma_phys[pos] = addr;
 		rxq->skb[pos] = skb;
 		writel(addr, priv->port_base + IQ_ADDR);
 		pos = (pos + 1) % rxq->num;
 	}
+
 	rxq->head = pos;
 }
 
@@ -263,7 +296,9 @@ static int hisi_femac_rx(struct net_device *dev, int limit)
 	u32 rx_pkt_info, pos, len, rx_pkts_num = 0;
 
 	pos = rxq->tail;
-	while (readl(priv->glb_base + GLB_IRQ_RAW) & IRQ_INT_RX_RDY) {
+
+	while (readl(priv->glb_base + GLB_IRQ_RAW) & IRQ_INT_RX_RDY)
+	{
 		rx_pkt_info = readl(priv->port_base + IQFRM_DES);
 		len = rx_pkt_info & RX_FRAME_LEN_MASK;
 		len -= ETH_FCS_LEN;
@@ -274,17 +309,22 @@ static int hisi_femac_rx(struct net_device *dev, int limit)
 		rx_pkts_num++;
 
 		skb = rxq->skb[pos];
-		if (unlikely(!skb)) {
+
+		if (unlikely(!skb))
+		{
 			netdev_err(dev, "rx skb NULL. pos=%d\n", pos);
 			break;
 		}
+
 		rxq->skb[pos] = NULL;
 
 		addr = rxq->dma_phys[pos];
 		dma_unmap_single(priv->dev, addr, MAX_FRAME_SIZE,
-				 DMA_FROM_DEVICE);
+						 DMA_FROM_DEVICE);
 		skb_put(skb, len);
-		if (unlikely(skb->len > MAX_FRAME_SIZE)) {
+
+		if (unlikely(skb->len > MAX_FRAME_SIZE))
+		{
 			netdev_err(dev, "rcv len err, len = %d\n", skb->len);
 			dev->stats.rx_errors++;
 			dev->stats.rx_length_errors++;
@@ -298,9 +338,13 @@ static int hisi_femac_rx(struct net_device *dev, int limit)
 		dev->stats.rx_bytes += skb->len;
 next:
 		pos = (pos + 1) % rxq->num;
+
 		if (rx_pkts_num >= limit)
+		{
 			break;
+		}
 	}
+
 	rxq->tail = pos;
 
 	hisi_femac_rx_refill(priv);
@@ -311,28 +355,34 @@ next:
 static int hisi_femac_poll(struct napi_struct *napi, int budget)
 {
 	struct hisi_femac_priv *priv = container_of(napi,
-					struct hisi_femac_priv, napi);
+								   struct hisi_femac_priv, napi);
 	struct net_device *dev = priv->ndev;
 	int work_done = 0, task = budget;
 	int ints, num;
 
-	do {
+	do
+	{
 		hisi_femac_xmit_reclaim(dev);
 		num = hisi_femac_rx(dev, task);
 		work_done += num;
 		task -= num;
+
 		if (work_done >= budget)
+		{
 			break;
+		}
 
 		ints = readl(priv->glb_base + GLB_IRQ_RAW);
 		writel(ints & DEF_INT_MASK,
-		       priv->glb_base + GLB_IRQ_RAW);
-	} while (ints & DEF_INT_MASK);
+			   priv->glb_base + GLB_IRQ_RAW);
+	}
+	while (ints & DEF_INT_MASK);
 
-	if (work_done < budget) {
+	if (work_done < budget)
+	{
 		napi_complete(napi);
 		hisi_femac_irq_enable(priv, DEF_INT_MASK &
-					(~IRQ_INT_TX_PER_PACKET));
+							  (~IRQ_INT_TX_PER_PACKET));
 	}
 
 	return work_done;
@@ -346,9 +396,10 @@ static irqreturn_t hisi_femac_interrupt(int irq, void *dev_id)
 
 	ints = readl(priv->glb_base + GLB_IRQ_RAW);
 
-	if (likely(ints & DEF_INT_MASK)) {
+	if (likely(ints & DEF_INT_MASK))
+	{
 		writel(ints & DEF_INT_MASK,
-		       priv->glb_base + GLB_IRQ_RAW);
+			   priv->glb_base + GLB_IRQ_RAW);
 		hisi_femac_irq_disable(priv, DEF_INT_MASK);
 		napi_schedule(&priv->napi);
 	}
@@ -357,18 +408,24 @@ static irqreturn_t hisi_femac_interrupt(int irq, void *dev_id)
 }
 
 static int hisi_femac_init_queue(struct device *dev,
-				 struct hisi_femac_queue *queue,
-				 unsigned int num)
+								 struct hisi_femac_queue *queue,
+								 unsigned int num)
 {
 	queue->skb = devm_kcalloc(dev, num, sizeof(struct sk_buff *),
-				  GFP_KERNEL);
+							  GFP_KERNEL);
+
 	if (!queue->skb)
+	{
 		return -ENOMEM;
+	}
 
 	queue->dma_phys = devm_kcalloc(dev, num, sizeof(dma_addr_t),
-				       GFP_KERNEL);
+								   GFP_KERNEL);
+
 	if (!queue->dma_phys)
+	{
 		return -ENOMEM;
+	}
 
 	queue->num = num;
 	queue->head = 0;
@@ -382,12 +439,18 @@ static int hisi_femac_init_tx_and_rx_queues(struct hisi_femac_priv *priv)
 	int ret;
 
 	ret = hisi_femac_init_queue(priv->dev, &priv->txq, TXQ_NUM);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = hisi_femac_init_queue(priv->dev, &priv->rxq, RXQ_NUM);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	priv->tx_fifo_used_cnt = 0;
 
@@ -403,43 +466,54 @@ static void hisi_femac_free_skb_rings(struct hisi_femac_priv *priv)
 	u32 pos;
 
 	pos = rxq->tail;
-	while (pos != rxq->head) {
+
+	while (pos != rxq->head)
+	{
 		skb = rxq->skb[pos];
-		if (unlikely(!skb)) {
+
+		if (unlikely(!skb))
+		{
 			netdev_err(priv->ndev, "NULL rx skb. pos=%d, head=%d\n",
-				   pos, rxq->head);
+					   pos, rxq->head);
 			continue;
 		}
 
 		dma_addr = rxq->dma_phys[pos];
 		dma_unmap_single(priv->dev, dma_addr, MAX_FRAME_SIZE,
-				 DMA_FROM_DEVICE);
+						 DMA_FROM_DEVICE);
 
 		dev_kfree_skb_any(skb);
 		rxq->skb[pos] = NULL;
 		pos = (pos + 1) % rxq->num;
 	}
+
 	rxq->tail = pos;
 
 	pos = txq->tail;
-	while (pos != txq->head) {
+
+	while (pos != txq->head)
+	{
 		skb = txq->skb[pos];
-		if (unlikely(!skb)) {
+
+		if (unlikely(!skb))
+		{
 			netdev_err(priv->ndev, "NULL tx skb. pos=%d, head=%d\n",
-				   pos, txq->head);
+					   pos, txq->head);
 			continue;
 		}
+
 		hisi_femac_tx_dma_unmap(priv, skb, pos);
 		dev_kfree_skb_any(skb);
 		txq->skb[pos] = NULL;
 		pos = (pos + 1) % txq->num;
 	}
+
 	txq->tail = pos;
 	priv->tx_fifo_used_cnt = 0;
 }
 
 static int hisi_femac_set_hw_mac_addr(struct hisi_femac_priv *priv,
-				      unsigned char *mac)
+									  unsigned char *mac)
 {
 	u32 reg;
 
@@ -482,8 +556,11 @@ static int hisi_femac_net_open(struct net_device *dev)
 	napi_enable(&priv->napi);
 
 	priv->link_status = 0;
+
 	if (dev->phydev)
+	{
 		phy_start(dev->phydev);
+	}
 
 	writel(IRQ_ENA_PORT0_MASK, priv->glb_base + GLB_IRQ_RAW);
 	hisi_femac_irq_enable(priv, IRQ_ENA_ALL | IRQ_ENA_PORT0 | DEF_INT_MASK);
@@ -498,7 +575,9 @@ static int hisi_femac_net_close(struct net_device *dev)
 	hisi_femac_irq_disable(priv, IRQ_ENA_PORT0);
 
 	if (dev->phydev)
+	{
 		phy_stop(dev->phydev);
+	}
 
 	netif_stop_queue(dev);
 	napi_disable(&priv->napi);
@@ -509,7 +588,7 @@ static int hisi_femac_net_close(struct net_device *dev)
 }
 
 static netdev_tx_t hisi_femac_net_xmit(struct sk_buff *skb,
-				       struct net_device *dev)
+									   struct net_device *dev)
 {
 	struct hisi_femac_priv *priv = netdev_priv(dev);
 	struct hisi_femac_queue *txq = &priv->txq;
@@ -518,7 +597,9 @@ static netdev_tx_t hisi_femac_net_xmit(struct sk_buff *skb,
 
 	val = readl(priv->port_base + ADDRQ_STAT);
 	val &= BIT_TX_READY;
-	if (!val) {
+
+	if (!val)
+	{
 		hisi_femac_irq_enable(priv, IRQ_INT_TX_PER_PACKET);
 		dev->stats.tx_dropped++;
 		dev->stats.tx_fifo_errors++;
@@ -527,7 +608,8 @@ static netdev_tx_t hisi_femac_net_xmit(struct sk_buff *skb,
 	}
 
 	if (unlikely(!CIRC_SPACE(txq->head, txq->tail,
-				 txq->num))) {
+							 txq->num)))
+	{
 		hisi_femac_irq_enable(priv, IRQ_INT_TX_PER_PACKET);
 		dev->stats.tx_dropped++;
 		dev->stats.tx_fifo_errors++;
@@ -536,12 +618,15 @@ static netdev_tx_t hisi_femac_net_xmit(struct sk_buff *skb,
 	}
 
 	addr = dma_map_single(priv->dev, skb->data,
-			      skb->len, DMA_TO_DEVICE);
-	if (unlikely(dma_mapping_error(priv->dev, addr))) {
+						  skb->len, DMA_TO_DEVICE);
+
+	if (unlikely(dma_mapping_error(priv->dev, addr)))
+	{
 		dev_kfree_skb_any(skb);
 		dev->stats.tx_dropped++;
 		return NETDEV_TX_OK;
 	}
+
 	txq->dma_phys[txq->head] = addr;
 
 	txq->skb[txq->head] = skb;
@@ -565,7 +650,9 @@ static int hisi_femac_set_mac_address(struct net_device *dev, void *p)
 	struct sockaddr *skaddr = p;
 
 	if (!is_valid_ether_addr(skaddr->sa_data))
+	{
 		return -EADDRNOTAVAIL;
+	}
 
 	memcpy(dev->dev_addr, skaddr->sa_data, dev->addr_len);
 	dev->addr_assign_type &= ~NET_ADDR_RANDOM;
@@ -576,21 +663,27 @@ static int hisi_femac_set_mac_address(struct net_device *dev, void *p)
 }
 
 static void hisi_femac_enable_hw_addr_filter(struct hisi_femac_priv *priv,
-					     unsigned int reg_n, bool enable)
+		unsigned int reg_n, bool enable)
 {
 	u32 val;
 
 	val = readl(priv->glb_base + GLB_MAC_H16(reg_n));
+
 	if (enable)
+	{
 		val |= BIT_MACFLT_ENA;
+	}
 	else
+	{
 		val &= ~BIT_MACFLT_ENA;
+	}
+
 	writel(val, priv->glb_base + GLB_MAC_H16(reg_n));
 }
 
 static void hisi_femac_set_hw_addr_filter(struct hisi_femac_priv *priv,
-					  unsigned char *addr,
-					  unsigned int reg_n)
+		unsigned char *addr,
+		unsigned int reg_n)
 {
 	unsigned int high, low;
 	u32 val;
@@ -609,15 +702,21 @@ static void hisi_femac_set_hw_addr_filter(struct hisi_femac_priv *priv,
 }
 
 static void hisi_femac_set_promisc_mode(struct hisi_femac_priv *priv,
-					bool promisc_mode)
+										bool promisc_mode)
 {
 	u32 val;
 
 	val = readl(priv->glb_base + GLB_FWCTRL);
+
 	if (promisc_mode)
+	{
 		val |= FWCTRL_FWALL2CPU;
+	}
 	else
+	{
 		val &= ~FWCTRL_FWALL2CPU;
+	}
+
 	writel(val, priv->glb_base + GLB_FWCTRL);
 }
 
@@ -628,23 +727,31 @@ static void hisi_femac_set_mc_addr_filter(struct hisi_femac_priv *priv)
 	u32 val;
 
 	val = readl(priv->glb_base + GLB_MACTCTRL);
+
 	if ((netdev_mc_count(dev) > MAX_MULTICAST_ADDRESSES) ||
-	    (dev->flags & IFF_ALLMULTI)) {
+		(dev->flags & IFF_ALLMULTI))
+	{
 		val |= MACTCTRL_MULTI2CPU;
-	} else {
+	}
+	else
+	{
 		int reg = MAX_UNICAST_ADDRESSES;
 		int i;
 		struct netdev_hw_addr *ha;
 
 		for (i = reg; i < MAX_MAC_FILTER_NUM; i++)
+		{
 			hisi_femac_enable_hw_addr_filter(priv, i, false);
+		}
 
-		netdev_for_each_mc_addr(ha, dev) {
+		netdev_for_each_mc_addr(ha, dev)
+		{
 			hisi_femac_set_hw_addr_filter(priv, ha->addr, reg);
 			reg++;
 		}
 		val &= ~MACTCTRL_MULTI2CPU;
 	}
+
 	writel(val, priv->glb_base + GLB_MACTCTRL);
 }
 
@@ -655,22 +762,30 @@ static void hisi_femac_set_uc_addr_filter(struct hisi_femac_priv *priv)
 	u32 val;
 
 	val = readl(priv->glb_base + GLB_MACTCTRL);
-	if (netdev_uc_count(dev) > MAX_UNICAST_ADDRESSES) {
+
+	if (netdev_uc_count(dev) > MAX_UNICAST_ADDRESSES)
+	{
 		val |= MACTCTRL_UNI2CPU;
-	} else {
+	}
+	else
+	{
 		int reg = 0;
 		int i;
 		struct netdev_hw_addr *ha;
 
 		for (i = reg; i < MAX_UNICAST_ADDRESSES; i++)
+		{
 			hisi_femac_enable_hw_addr_filter(priv, i, false);
+		}
 
-		netdev_for_each_uc_addr(ha, dev) {
+		netdev_for_each_uc_addr(ha, dev)
+		{
 			hisi_femac_set_hw_addr_filter(priv, ha->addr, reg);
 			reg++;
 		}
 		val &= ~MACTCTRL_UNI2CPU;
 	}
+
 	writel(val, priv->glb_base + GLB_MACTCTRL);
 }
 
@@ -678,9 +793,12 @@ static void hisi_femac_net_set_rx_mode(struct net_device *dev)
 {
 	struct hisi_femac_priv *priv = netdev_priv(dev);
 
-	if (dev->flags & IFF_PROMISC) {
+	if (dev->flags & IFF_PROMISC)
+	{
 		hisi_femac_set_promisc_mode(priv, true);
-	} else {
+	}
+	else
+	{
 		hisi_femac_set_promisc_mode(priv, false);
 		hisi_femac_set_mc_addr_filter(priv);
 		hisi_femac_set_uc_addr_filter(priv);
@@ -688,24 +806,30 @@ static void hisi_femac_net_set_rx_mode(struct net_device *dev)
 }
 
 static int hisi_femac_net_ioctl(struct net_device *dev,
-				struct ifreq *ifreq, int cmd)
+								struct ifreq *ifreq, int cmd)
 {
 	if (!netif_running(dev))
+	{
 		return -EINVAL;
+	}
 
 	if (!dev->phydev)
+	{
 		return -EINVAL;
+	}
 
 	return phy_mii_ioctl(dev->phydev, ifreq, cmd);
 }
 
-static const struct ethtool_ops hisi_femac_ethtools_ops = {
+static const struct ethtool_ops hisi_femac_ethtools_ops =
+{
 	.get_link		= ethtool_op_get_link,
 	.get_link_ksettings	= phy_ethtool_get_link_ksettings,
 	.set_link_ksettings	= phy_ethtool_set_link_ksettings,
 };
 
-static const struct net_device_ops hisi_femac_netdev_ops = {
+static const struct net_device_ops hisi_femac_netdev_ops =
+{
 	.ndo_open		= hisi_femac_net_open,
 	.ndo_stop		= hisi_femac_net_close,
 	.ndo_start_xmit		= hisi_femac_net_xmit,
@@ -726,13 +850,20 @@ static void hisi_femac_sleep_us(u32 time_us)
 	u32 time_ms;
 
 	if (!time_us)
+	{
 		return;
+	}
 
 	time_ms = DIV_ROUND_UP(time_us, 1000);
+
 	if (time_ms < 20)
+	{
 		usleep_range(time_us, time_us + 500);
+	}
 	else
+	{
 		msleep(time_ms);
+	}
 }
 
 static void hisi_femac_phy_reset(struct hisi_femac_priv *priv)
@@ -760,8 +891,12 @@ static void hisi_femac_port_init(struct hisi_femac_priv *priv)
 
 	/* MAC gets link status info and phy mode by software config */
 	val = MAC_PORTSEL_STAT_CPU;
+
 	if (priv->ndev->phydev->interface == PHY_INTERFACE_MODE_RMII)
+	{
 		val |= MAC_PORTSEL_RMII;
+	}
+
 	writel(val, priv->port_base + MAC_PORTSEL);
 
 	/*clear all interrupt status */
@@ -783,7 +918,7 @@ static void hisi_femac_port_init(struct hisi_femac_priv *priv)
 	writel(val, priv->port_base + MAC_SET);
 
 	val = RX_COALESCED_TIMER |
-		(RX_COALESCED_FRAMES << RX_COALESCED_FRAME_OFFSET);
+		  (RX_COALESCED_FRAMES << RX_COALESCED_FRAME_OFFSET);
 	writel(val, priv->port_base + RX_COALESCE_SET);
 
 	val = (HW_RX_FIFO_DEPTH << RX_DEPTH_OFFSET) | HW_TX_FIFO_DEPTH;
@@ -802,8 +937,11 @@ static int hisi_femac_drv_probe(struct platform_device *pdev)
 	int ret;
 
 	ndev = alloc_etherdev(sizeof(*priv));
+
 	if (!ndev)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, ndev);
 
@@ -813,69 +951,95 @@ static int hisi_femac_drv_probe(struct platform_device *pdev)
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	priv->port_base = devm_ioremap_resource(dev, res);
-	if (IS_ERR(priv->port_base)) {
+
+	if (IS_ERR(priv->port_base))
+	{
 		ret = PTR_ERR(priv->port_base);
 		goto out_free_netdev;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
 	priv->glb_base = devm_ioremap_resource(dev, res);
-	if (IS_ERR(priv->glb_base)) {
+
+	if (IS_ERR(priv->glb_base))
+	{
 		ret = PTR_ERR(priv->glb_base);
 		goto out_free_netdev;
 	}
 
 	priv->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(priv->clk)) {
+
+	if (IS_ERR(priv->clk))
+	{
 		dev_err(dev, "failed to get clk\n");
 		ret = -ENODEV;
 		goto out_free_netdev;
 	}
 
 	ret = clk_prepare_enable(priv->clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to enable clk %d\n", ret);
 		goto out_free_netdev;
 	}
 
 	priv->mac_rst = devm_reset_control_get(dev, "mac");
-	if (IS_ERR(priv->mac_rst)) {
+
+	if (IS_ERR(priv->mac_rst))
+	{
 		ret = PTR_ERR(priv->mac_rst);
 		goto out_disable_clk;
 	}
+
 	hisi_femac_core_reset(priv);
 
 	priv->phy_rst = devm_reset_control_get(dev, "phy");
-	if (IS_ERR(priv->phy_rst)) {
+
+	if (IS_ERR(priv->phy_rst))
+	{
 		priv->phy_rst = NULL;
-	} else {
+	}
+	else
+	{
 		ret = of_property_read_u32_array(node,
-						 PHY_RESET_DELAYS_PROPERTY,
-						 priv->phy_reset_delays,
-						 DELAYS_NUM);
+										 PHY_RESET_DELAYS_PROPERTY,
+										 priv->phy_reset_delays,
+										 DELAYS_NUM);
+
 		if (ret)
+		{
 			goto out_disable_clk;
+		}
+
 		hisi_femac_phy_reset(priv);
 	}
 
 	phy = of_phy_get_and_connect(ndev, node, hisi_femac_adjust_link);
-	if (!phy) {
+
+	if (!phy)
+	{
 		dev_err(dev, "connect to PHY failed!\n");
 		ret = -ENODEV;
 		goto out_disable_clk;
 	}
 
 	phy_attached_print(phy, "phy_id=0x%.8lx, phy_mode=%s\n",
-			   (unsigned long)phy->phy_id,
-			   phy_modes(phy->interface));
+					   (unsigned long)phy->phy_id,
+					   phy_modes(phy->interface));
 
 	mac_addr = of_get_mac_address(node);
+
 	if (mac_addr)
+	{
 		ether_addr_copy(ndev->dev_addr, mac_addr);
-	if (!is_valid_ether_addr(ndev->dev_addr)) {
+	}
+
+	if (!is_valid_ether_addr(ndev->dev_addr))
+	{
 		eth_hw_addr_random(ndev);
 		dev_warn(dev, "using random MAC address %pM\n",
-			 ndev->dev_addr);
+				 ndev->dev_addr);
 	}
 
 	ndev->watchdog_timeo = 6 * HZ;
@@ -888,25 +1052,34 @@ static int hisi_femac_drv_probe(struct platform_device *pdev)
 	hisi_femac_port_init(priv);
 
 	ret = hisi_femac_init_tx_and_rx_queues(priv);
+
 	if (ret)
+	{
 		goto out_disconnect_phy;
+	}
 
 	ndev->irq = platform_get_irq(pdev, 0);
-	if (ndev->irq <= 0) {
+
+	if (ndev->irq <= 0)
+	{
 		dev_err(dev, "No irq resource\n");
 		ret = -ENODEV;
 		goto out_disconnect_phy;
 	}
 
 	ret = devm_request_irq(dev, ndev->irq, hisi_femac_interrupt,
-			       IRQF_SHARED, pdev->name, ndev);
-	if (ret) {
+						   IRQF_SHARED, pdev->name, ndev);
+
+	if (ret)
+	{
 		dev_err(dev, "devm_request_irq %d failed!\n", ndev->irq);
 		goto out_disconnect_phy;
 	}
 
 	ret = register_netdev(ndev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "register_netdev failed!\n");
 		goto out_disconnect_phy;
 	}
@@ -941,13 +1114,15 @@ static int hisi_femac_drv_remove(struct platform_device *pdev)
 
 #ifdef CONFIG_PM
 static int hisi_femac_drv_suspend(struct platform_device *pdev,
-				  pm_message_t state)
+								  pm_message_t state)
 {
 	struct net_device *ndev = platform_get_drvdata(pdev);
 	struct hisi_femac_priv *priv = netdev_priv(ndev);
 
 	disable_irq(ndev->irq);
-	if (netif_running(ndev)) {
+
+	if (netif_running(ndev))
+	{
 		hisi_femac_net_close(ndev);
 		netif_device_detach(ndev);
 	}
@@ -963,21 +1138,27 @@ static int hisi_femac_drv_resume(struct platform_device *pdev)
 	struct hisi_femac_priv *priv = netdev_priv(ndev);
 
 	clk_prepare_enable(priv->clk);
-	if (priv->phy_rst)
-		hisi_femac_phy_reset(priv);
 
-	if (netif_running(ndev)) {
+	if (priv->phy_rst)
+	{
+		hisi_femac_phy_reset(priv);
+	}
+
+	if (netif_running(ndev))
+	{
 		hisi_femac_port_init(priv);
 		hisi_femac_net_open(ndev);
 		netif_device_attach(ndev);
 	}
+
 	enable_irq(ndev->irq);
 
 	return 0;
 }
 #endif
 
-static const struct of_device_id hisi_femac_match[] = {
+static const struct of_device_id hisi_femac_match[] =
+{
 	{.compatible = "hisilicon,hisi-femac-v1",},
 	{.compatible = "hisilicon,hisi-femac-v2",},
 	{.compatible = "hisilicon,hi3516cv300-femac",},
@@ -986,7 +1167,8 @@ static const struct of_device_id hisi_femac_match[] = {
 
 MODULE_DEVICE_TABLE(of, hisi_femac_match);
 
-static struct platform_driver hisi_femac_driver = {
+static struct platform_driver hisi_femac_driver =
+{
 	.driver = {
 		.name = "hisi-femac",
 		.of_match_table = hisi_femac_match,

@@ -57,18 +57,24 @@ EXPORT_SYMBOL(tc_unregister_driver);
  * tc_device_id structure or %NULL if there is no match.
  */
 const struct tc_device_id *tc_match_device(struct tc_driver *tdrv,
-					   struct tc_dev *tdev)
+		struct tc_dev *tdev)
 {
 	const struct tc_device_id *id = tdrv->id_table;
 
-	if (id) {
-		while (id->name[0] || id->vendor[0]) {
+	if (id)
+	{
+		while (id->name[0] || id->vendor[0])
+		{
 			if (strcmp(tdev->name, id->name) == 0 &&
-			    strcmp(tdev->vendor, id->vendor) == 0)
+				strcmp(tdev->vendor, id->vendor) == 0)
+			{
 				return id;
+			}
+
 			id++;
 		}
 	}
+
 	return NULL;
 }
 EXPORT_SYMBOL(tc_match_device);
@@ -90,13 +96,17 @@ static int tc_bus_match(struct device *dev, struct device_driver *drv)
 	const struct tc_device_id *id;
 
 	id = tc_match_device(tdrv, tdev);
+
 	if (id)
+	{
 		return 1;
+	}
 
 	return 0;
 }
 
-struct bus_type tc_bus_type = {
+struct bus_type tc_bus_type =
+{
 	.name	= "tc",
 	.match	= tc_bus_match,
 };

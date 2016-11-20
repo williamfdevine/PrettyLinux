@@ -27,7 +27,7 @@ static int ls1x_gpio_request(struct gpio_chip *gc, unsigned int offset)
 
 	spin_lock_irqsave(&gc->bgpio_lock, flags);
 	__raw_writel(__raw_readl(gpio_reg_base + GPIO_CFG) | pinmask,
-		     gpio_reg_base + GPIO_CFG);
+				 gpio_reg_base + GPIO_CFG);
 	spin_unlock_irqrestore(&gc->bgpio_lock, flags);
 
 	return 0;
@@ -40,7 +40,7 @@ static void ls1x_gpio_free(struct gpio_chip *gc, unsigned int offset)
 
 	spin_lock_irqsave(&gc->bgpio_lock, flags);
 	__raw_writel(__raw_readl(gpio_reg_base + GPIO_CFG) & ~pinmask,
-		     gpio_reg_base + GPIO_CFG);
+				 gpio_reg_base + GPIO_CFG);
 	spin_unlock_irqrestore(&gc->bgpio_lock, flags);
 }
 
@@ -52,19 +52,28 @@ static int ls1x_gpio_probe(struct platform_device *pdev)
 	int ret;
 
 	gc = devm_kzalloc(dev, sizeof(*gc), GFP_KERNEL);
+
 	if (!gc)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	gpio_reg_base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(gpio_reg_base))
+	{
 		return PTR_ERR(gpio_reg_base);
+	}
 
 	ret = bgpio_init(gc, dev, 4, gpio_reg_base + GPIO_DATA,
-			 gpio_reg_base + GPIO_OUTPUT, NULL,
-			 NULL, gpio_reg_base + GPIO_DIR, 0);
+					 gpio_reg_base + GPIO_OUTPUT, NULL,
+					 NULL, gpio_reg_base + GPIO_DIR, 0);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	gc->owner = THIS_MODULE;
 	gc->request = ls1x_gpio_request;
@@ -72,8 +81,11 @@ static int ls1x_gpio_probe(struct platform_device *pdev)
 	gc->base = pdev->id * 32;
 
 	ret = devm_gpiochip_add_data(dev, gc, NULL);
+
 	if (ret)
+	{
 		goto err;
+	}
 
 	platform_set_drvdata(pdev, gc);
 	dev_info(dev, "Loongson1 GPIO driver registered\n");
@@ -84,7 +96,8 @@ err:
 	return ret;
 }
 
-static struct platform_driver ls1x_gpio_driver = {
+static struct platform_driver ls1x_gpio_driver =
+{
 	.probe	= ls1x_gpio_probe,
 	.driver	= {
 		.name	= "ls1x-gpio",

@@ -35,7 +35,8 @@ struct coresight_device;
  * @stop_addr:	The address to stop tracing on.
  * @type:	Is this a range or start/stop filter.
  */
-struct etm_filter {
+struct etm_filter
+{
 	unsigned long start_addr;
 	unsigned long stop_addr;
 	enum etm_addr_type type;
@@ -47,7 +48,8 @@ struct etm_filter {
  * @nr_filters:	Number of filters
  * @ssstatus:	Status of the start/stop logic.
  */
-struct etm_filters {
+struct etm_filters
+{
 	struct etm_filter	etm_filter[ETM_ADDR_CMP_MAX];
 	unsigned int		nr_filters;
 	bool			ssstatus;

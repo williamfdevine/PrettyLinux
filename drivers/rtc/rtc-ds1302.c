@@ -52,9 +52,12 @@ static int ds1302_rtc_set_time(struct device *dev, struct rtc_time *time)
 	*bp++ = RTC_CMD_WRITE_ENABLE;
 
 	status = spi_write_then_read(spi, buf, 2,
-			NULL, 0);
+								 NULL, 0);
+
 	if (status)
+	{
 		return status;
+	}
 
 	/* Write registers starting at the first time/date address. */
 	bp = buf;
@@ -71,7 +74,7 @@ static int ds1302_rtc_set_time(struct device *dev, struct rtc_time *time)
 
 	/* use write-then-read since dma from stack is nonportable */
 	return spi_write_then_read(spi, buf, sizeof(buf),
-			NULL, 0);
+							   NULL, 0);
 }
 
 static int ds1302_rtc_get_time(struct device *dev, struct rtc_time *time)
@@ -85,9 +88,12 @@ static int ds1302_rtc_get_time(struct device *dev, struct rtc_time *time)
 	 * since dma from stack is nonportable
 	 */
 	status = spi_write_then_read(spi, &addr, sizeof(addr),
-			buf, sizeof(buf));
+								 buf, sizeof(buf));
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	/* Decode the registers */
 	time->tm_sec = bcd2bin(buf[RTC_ADDR_SEC]);
@@ -102,7 +108,8 @@ static int ds1302_rtc_get_time(struct device *dev, struct rtc_time *time)
 	return rtc_valid_tm(time);
 }
 
-static const struct rtc_class_ops ds1302_rtc_ops = {
+static const struct rtc_class_ops ds1302_rtc_ops =
+{
 	.read_time	= ds1302_rtc_get_time,
 	.set_time	= ds1302_rtc_set_time,
 };
@@ -119,45 +126,60 @@ static int ds1302_probe(struct spi_device *spi)
 	 * in 3wire mode, but we don't care.  Note that unless
 	 * there's an inverter in place, this needs SPI_CS_HIGH!
 	 */
-	if (spi->bits_per_word && (spi->bits_per_word != 8)) {
+	if (spi->bits_per_word && (spi->bits_per_word != 8))
+	{
 		dev_err(&spi->dev, "bad word length\n");
 		return -EINVAL;
-	} else if (spi->max_speed_hz > 2000000) {
+	}
+	else if (spi->max_speed_hz > 2000000)
+	{
 		dev_err(&spi->dev, "speed is too high\n");
 		return -EINVAL;
-	} else if (spi->mode & SPI_CPHA) {
+	}
+	else if (spi->mode & SPI_CPHA)
+	{
 		dev_err(&spi->dev, "bad mode\n");
 		return -EINVAL;
 	}
 
 	addr = RTC_ADDR_CTRL << 1 | RTC_CMD_READ;
 	status = spi_write_then_read(spi, &addr, sizeof(addr), buf, 1);
-	if (status < 0) {
+
+	if (status < 0)
+	{
 		dev_err(&spi->dev, "control register read error %d\n",
 				status);
 		return status;
 	}
 
-	if ((buf[0] & ~RTC_CMD_WRITE_DISABLE) != 0) {
+	if ((buf[0] & ~RTC_CMD_WRITE_DISABLE) != 0)
+	{
 		status = spi_write_then_read(spi, &addr, sizeof(addr), buf, 1);
-		if (status < 0) {
+
+		if (status < 0)
+		{
 			dev_err(&spi->dev, "control register read error %d\n",
 					status);
 			return status;
 		}
 
-		if ((buf[0] & ~RTC_CMD_WRITE_DISABLE) != 0) {
+		if ((buf[0] & ~RTC_CMD_WRITE_DISABLE) != 0)
+		{
 			dev_err(&spi->dev, "junk in control register\n");
 			return -ENODEV;
 		}
 	}
-	if (buf[0] == 0) {
+
+	if (buf[0] == 0)
+	{
 		bp = buf;
 		*bp++ = RTC_ADDR_CTRL << 1 | RTC_CMD_WRITE;
 		*bp++ = RTC_CMD_WRITE_DISABLE;
 
 		status = spi_write_then_read(spi, buf, 2, NULL, 0);
-		if (status < 0) {
+
+		if (status < 0)
+		{
 			dev_err(&spi->dev, "control register write error %d\n",
 					status);
 			return status;
@@ -165,14 +187,17 @@ static int ds1302_probe(struct spi_device *spi)
 
 		addr = RTC_ADDR_CTRL << 1 | RTC_CMD_READ;
 		status = spi_write_then_read(spi, &addr, sizeof(addr), buf, 1);
-		if (status < 0) {
+
+		if (status < 0)
+		{
 			dev_err(&spi->dev,
 					"error %d reading control register\n",
 					status);
 			return status;
 		}
 
-		if (buf[0] != RTC_CMD_WRITE_DISABLE) {
+		if (buf[0] != RTC_CMD_WRITE_DISABLE)
+		{
 			dev_err(&spi->dev, "failed to detect chip\n");
 			return -ENODEV;
 		}
@@ -181,8 +206,10 @@ static int ds1302_probe(struct spi_device *spi)
 	spi_set_drvdata(spi, spi);
 
 	rtc = devm_rtc_device_register(&spi->dev, "ds1302",
-			&ds1302_rtc_ops, THIS_MODULE);
-	if (IS_ERR(rtc)) {
+								   &ds1302_rtc_ops, THIS_MODULE);
+
+	if (IS_ERR(rtc))
+	{
 		status = PTR_ERR(rtc);
 		dev_err(&spi->dev, "error %d registering rtc\n", status);
 		return status;
@@ -198,14 +225,16 @@ static int ds1302_remove(struct spi_device *spi)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id ds1302_dt_ids[] = {
+static const struct of_device_id ds1302_dt_ids[] =
+{
 	{ .compatible = "maxim,ds1302", },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, ds1302_dt_ids);
 #endif
 
-static struct spi_driver ds1302_driver = {
+static struct spi_driver ds1302_driver =
+{
 	.driver.name	= "rtc-ds1302",
 	.driver.of_match_table = of_match_ptr(ds1302_dt_ids),
 	.probe		= ds1302_probe,

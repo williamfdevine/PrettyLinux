@@ -34,7 +34,8 @@
 #define SAS_RAZOR_SEQUENCER_FW_MAJOR	1
 
 /* Note:  All quantites in the sequencer file are little endian */
-struct sequencer_file_header {
+struct sequencer_file_header
+{
 	/* Checksum of the entire contents of the sequencer excluding
 	 * these four bytes */
 	u32	csum;
@@ -58,11 +59,11 @@ struct sequencer_file_header {
 } __attribute__((packed));
 
 #ifdef __KERNEL__
-int asd_init_seqs(struct asd_ha_struct *asd_ha);
-int asd_start_seqs(struct asd_ha_struct *asd_ha);
-int asd_release_firmware(void);
+	int asd_init_seqs(struct asd_ha_struct *asd_ha);
+	int asd_start_seqs(struct asd_ha_struct *asd_ha);
+	int asd_release_firmware(void);
 
-void asd_update_port_links(struct asd_ha_struct *asd_ha, struct asd_phy *phy);
+	void asd_update_port_links(struct asd_ha_struct *asd_ha, struct asd_phy *phy);
 #endif
 
 #endif

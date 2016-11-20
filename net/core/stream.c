@@ -30,16 +30,22 @@ void sk_stream_write_space(struct sock *sk)
 	struct socket *sock = sk->sk_socket;
 	struct socket_wq *wq;
 
-	if (sk_stream_is_writeable(sk) && sock) {
+	if (sk_stream_is_writeable(sk) && sock)
+	{
 		clear_bit(SOCK_NOSPACE, &sock->flags);
 
 		rcu_read_lock();
 		wq = rcu_dereference(sk->sk_wq);
+
 		if (skwq_has_sleeper(wq))
 			wake_up_interruptible_poll(&wq->wait, POLLOUT |
-						POLLWRNORM | POLLWRBAND);
+									   POLLWRNORM | POLLWRBAND);
+
 		if (wq && wq->fasync_list && !(sk->sk_shutdown & SEND_SHUTDOWN))
+		{
 			sock_wake_async(wq, SOCK_WAKE_SPACE, POLL_OUT);
+		}
+
 		rcu_read_unlock();
 	}
 }
@@ -57,26 +63,41 @@ int sk_stream_wait_connect(struct sock *sk, long *timeo_p)
 	DEFINE_WAIT(wait);
 	int done;
 
-	do {
+	do
+	{
 		int err = sock_error(sk);
+
 		if (err)
+		{
 			return err;
+		}
+
 		if ((1 << sk->sk_state) & ~(TCPF_SYN_SENT | TCPF_SYN_RECV))
+		{
 			return -EPIPE;
+		}
+
 		if (!*timeo_p)
+		{
 			return -EAGAIN;
+		}
+
 		if (signal_pending(tsk))
+		{
 			return sock_intr_errno(*timeo_p);
+		}
 
 		prepare_to_wait(sk_sleep(sk), &wait, TASK_INTERRUPTIBLE);
 		sk->sk_write_pending++;
 		done = sk_wait_event(sk, timeo_p,
-				     !sk->sk_err &&
-				     !((1 << sk->sk_state) &
-				       ~(TCPF_ESTABLISHED | TCPF_CLOSE_WAIT)));
+							 !sk->sk_err &&
+							 !((1 << sk->sk_state) &
+							   ~(TCPF_ESTABLISHED | TCPF_CLOSE_WAIT)));
 		finish_wait(sk_sleep(sk), &wait);
 		sk->sk_write_pending--;
-	} while (!done);
+	}
+	while (!done);
+
 	return 0;
 }
 EXPORT_SYMBOL(sk_stream_wait_connect);
@@ -88,20 +109,26 @@ EXPORT_SYMBOL(sk_stream_wait_connect);
 static inline int sk_stream_closing(struct sock *sk)
 {
 	return (1 << sk->sk_state) &
-	       (TCPF_FIN_WAIT1 | TCPF_CLOSING | TCPF_LAST_ACK);
+		   (TCPF_FIN_WAIT1 | TCPF_CLOSING | TCPF_LAST_ACK);
 }
 
 void sk_stream_wait_close(struct sock *sk, long timeout)
 {
-	if (timeout) {
+	if (timeout)
+	{
 		DEFINE_WAIT(wait);
 
-		do {
+		do
+		{
 			prepare_to_wait(sk_sleep(sk), &wait,
-					TASK_INTERRUPTIBLE);
+							TASK_INTERRUPTIBLE);
+
 			if (sk_wait_event(sk, &timeout, !sk_stream_closing(sk)))
+			{
 				break;
-		} while (!signal_pending(current) && timeout);
+			}
+		}
+		while (!signal_pending(current) && timeout);
 
 		finish_wait(sk_sleep(sk), &wait);
 	}
@@ -122,44 +149,68 @@ int sk_stream_wait_memory(struct sock *sk, long *timeo_p)
 	DEFINE_WAIT(wait);
 
 	if (sk_stream_memory_free(sk))
+	{
 		current_timeo = vm_wait = (prandom_u32() % (HZ / 5)) + 2;
+	}
 
-	while (1) {
+	while (1)
+	{
 		sk_set_bit(SOCKWQ_ASYNC_NOSPACE, sk);
 
 		prepare_to_wait(sk_sleep(sk), &wait, TASK_INTERRUPTIBLE);
 
 		if (sk->sk_err || (sk->sk_shutdown & SEND_SHUTDOWN))
+		{
 			goto do_error;
-		if (!*timeo_p) {
+		}
+
+		if (!*timeo_p)
+		{
 			if (noblock)
+			{
 				set_bit(SOCK_NOSPACE, &sk->sk_socket->flags);
+			}
+
 			goto do_nonblock;
 		}
+
 		if (signal_pending(current))
+		{
 			goto do_interrupted;
+		}
+
 		sk_clear_bit(SOCKWQ_ASYNC_NOSPACE, sk);
+
 		if (sk_stream_memory_free(sk) && !vm_wait)
+		{
 			break;
+		}
 
 		set_bit(SOCK_NOSPACE, &sk->sk_socket->flags);
 		sk->sk_write_pending++;
 		sk_wait_event(sk, &current_timeo, sk->sk_err ||
-						  (sk->sk_shutdown & SEND_SHUTDOWN) ||
-						  (sk_stream_memory_free(sk) &&
-						  !vm_wait));
+					  (sk->sk_shutdown & SEND_SHUTDOWN) ||
+					  (sk_stream_memory_free(sk) &&
+					   !vm_wait));
 		sk->sk_write_pending--;
 
-		if (vm_wait) {
+		if (vm_wait)
+		{
 			vm_wait -= current_timeo;
 			current_timeo = *timeo_p;
+
 			if (current_timeo != MAX_SCHEDULE_TIMEOUT &&
-			    (current_timeo -= vm_wait) < 0)
+				(current_timeo -= vm_wait) < 0)
+			{
 				current_timeo = 0;
+			}
+
 			vm_wait = 0;
 		}
+
 		*timeo_p = current_timeo;
 	}
+
 out:
 	finish_wait(sk_sleep(sk), &wait);
 	return err;
@@ -179,9 +230,15 @@ EXPORT_SYMBOL(sk_stream_wait_memory);
 int sk_stream_error(struct sock *sk, int flags, int err)
 {
 	if (err == -EPIPE)
+	{
 		err = sock_error(sk) ? : -EPIPE;
+	}
+
 	if (err == -EPIPE && !(flags & MSG_NOSIGNAL))
+	{
 		send_sig(SIGPIPE, current, 0);
+	}
+
 	return err;
 }
 EXPORT_SYMBOL(sk_stream_error);

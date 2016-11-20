@@ -13,7 +13,8 @@
 
 #include "dove-divider.h"
 
-struct dove_clk {
+struct dove_clk
+{
 	const char *name;
 	struct clk_hw hw;
 	void __iomem *base;
@@ -25,7 +26,8 @@ struct dove_clk {
 	u32 *divider_table;
 };
 
-enum {
+enum
+{
 	DIV_CTRL0 = 0,
 	DIV_CTRL1 = 4,
 	DIV_CTRL1_N_RESET_MASK = BIT(10),
@@ -58,38 +60,53 @@ static unsigned int dove_get_divider(struct dove_clk *dc)
 	divider = val & ~(~0 << dc->div_bit_size);
 
 	if (dc->divider_table)
+	{
 		divider = dc->divider_table[divider];
+	}
 
 	return divider;
 }
 
 static int dove_calc_divider(const struct dove_clk *dc, unsigned long rate,
-			     unsigned long parent_rate, bool set)
+							 unsigned long parent_rate, bool set)
 {
 	unsigned int divider, max;
 
 	divider = DIV_ROUND_CLOSEST(parent_rate, rate);
 
-	if (dc->divider_table) {
+	if (dc->divider_table)
+	{
 		unsigned int i;
 
 		for (i = 0; dc->divider_table[i]; i++)
-			if (divider == dc->divider_table[i]) {
+			if (divider == dc->divider_table[i])
+			{
 				divider = i;
 				break;
 			}
 
 		if (!dc->divider_table[i])
+		{
 			return -EINVAL;
-	} else {
+		}
+	}
+	else
+	{
 		max = 1 << dc->div_bit_size;
 
 		if (set && (divider == 0 || divider >= max))
+		{
 			return -EINVAL;
+		}
+
 		if (divider >= max)
+		{
 			divider = max - 1;
+		}
 		else if (divider == 0)
+		{
 			divider = 1;
+		}
 	}
 
 	return divider;
@@ -102,43 +119,49 @@ static unsigned long dove_recalc_rate(struct clk_hw *hw, unsigned long parent)
 	unsigned long rate = DIV_ROUND_CLOSEST(parent, divider);
 
 	pr_debug("%s(): %s divider=%u parent=%lu rate=%lu\n",
-		 __func__, dc->name, divider, parent, rate);
+			 __func__, dc->name, divider, parent, rate);
 
 	return rate;
 }
 
 static long dove_round_rate(struct clk_hw *hw, unsigned long rate,
-			    unsigned long *parent)
+							unsigned long *parent)
 {
 	struct dove_clk *dc = to_dove_clk(hw);
 	unsigned long parent_rate = *parent;
 	int divider;
 
 	divider = dove_calc_divider(dc, rate, parent_rate, false);
+
 	if (divider < 0)
+	{
 		return divider;
+	}
 
 	rate = DIV_ROUND_CLOSEST(parent_rate, divider);
 
 	pr_debug("%s(): %s divider=%u parent=%lu rate=%lu\n",
-		 __func__, dc->name, divider, parent_rate, rate);
+			 __func__, dc->name, divider, parent_rate, rate);
 
 	return rate;
 }
 
 static int dove_set_clock(struct clk_hw *hw, unsigned long rate,
-			  unsigned long parent_rate)
+						  unsigned long parent_rate)
 {
 	struct dove_clk *dc = to_dove_clk(hw);
 	u32 mask, load, div;
 	int divider;
 
 	divider = dove_calc_divider(dc, rate, parent_rate, true);
+
 	if (divider < 0)
+	{
 		return divider;
+	}
 
 	pr_debug("%s(): %s divider=%u parent=%lu rate=%lu\n",
-		 __func__, dc->name, divider, parent_rate, rate);
+			 __func__, dc->name, divider, parent_rate, rate);
 
 	div = (u32)divider << dc->div_bit_start;
 	mask = ~(~0 << dc->div_bit_size) << dc->div_bit_start;
@@ -151,18 +174,20 @@ static int dove_set_clock(struct clk_hw *hw, unsigned long rate,
 	return 0;
 }
 
-static const struct clk_ops dove_divider_ops = {
+static const struct clk_ops dove_divider_ops =
+{
 	.set_rate	= dove_set_clock,
 	.round_rate	= dove_round_rate,
 	.recalc_rate	= dove_recalc_rate,
 };
 
 static struct clk *clk_register_dove_divider(struct device *dev,
-	struct dove_clk *dc, const char **parent_names, size_t num_parents,
-	void __iomem *base)
+		struct dove_clk *dc, const char **parent_names, size_t num_parents,
+		void __iomem *base)
 {
 	char name[32];
-	struct clk_init_data init = {
+	struct clk_init_data init =
+	{
 		.name = name,
 		.ops = &dove_divider_ops,
 		.parent_names = parent_names,
@@ -180,9 +205,10 @@ static struct clk *clk_register_dove_divider(struct device *dev,
 
 static DEFINE_SPINLOCK(dove_divider_lock);
 
-static u32 axi_divider[] = {-1, 2, 1, 3, 4, 6, 5, 7, 8, 10, 9, 0};
+static u32 axi_divider[] = { -1, 2, 1, 3, 4, 6, 5, 7, 8, 10, 9, 0};
 
-static struct dove_clk dove_hw_clocks[4] = {
+static struct dove_clk dove_hw_clocks[4] =
+{
 	{
 		.name = "axi",
 		.lock = &dove_divider_lock,
@@ -211,12 +237,13 @@ static struct dove_clk dove_hw_clocks[4] = {
 	},
 };
 
-static const char *core_pll[] = {
+static const char *core_pll[] =
+{
 	"core-pll",
 };
 
 static int dove_divider_init(struct device *dev, void __iomem *base,
-	struct clk **clks)
+							 struct clk **clks)
 {
 	struct clk *clk;
 	int i;
@@ -226,20 +253,24 @@ static int dove_divider_init(struct device *dev, void __iomem *base,
 	 * clock as we don't know any better, and documentation is sparse.
 	 */
 	clk = clk_register_fixed_rate(dev, core_pll[0], NULL, 0, 2000000000UL);
+
 	if (IS_ERR(clk))
+	{
 		return PTR_ERR(clk);
+	}
 
 	for (i = 0; i < ARRAY_SIZE(dove_hw_clocks); i++)
 		clks[i] = clk_register_dove_divider(dev, &dove_hw_clocks[i],
-						    core_pll,
-						    ARRAY_SIZE(core_pll), base);
+											core_pll,
+											ARRAY_SIZE(core_pll), base);
 
 	return 0;
 }
 
 static struct clk *dove_divider_clocks[4];
 
-static struct clk_onecell_data dove_divider_data = {
+static struct clk_onecell_data dove_divider_data =
+{
 	.clks = dove_divider_clocks,
 	.clk_num = ARRAY_SIZE(dove_divider_clocks),
 };
@@ -249,10 +280,14 @@ void __init dove_divider_clk_init(struct device_node *np)
 	void __iomem *base;
 
 	base = of_iomap(np, 0);
-	if (WARN_ON(!base))
-		return;
 
-	if (WARN_ON(dove_divider_init(NULL, base, dove_divider_clocks))) {
+	if (WARN_ON(!base))
+	{
+		return;
+	}
+
+	if (WARN_ON(dove_divider_init(NULL, base, dove_divider_clocks)))
+	{
 		iounmap(base);
 		return;
 	}

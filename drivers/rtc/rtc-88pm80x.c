@@ -47,7 +47,8 @@
 #define PM800_POWER_DOWN_LOG1	(0xE5)
 #define PM800_POWER_DOWN_LOG2	(0xE6)
 
-struct pm80x_rtc_info {
+struct pm80x_rtc_info
+{
 	struct pm80x_chip *chip;
 	struct regmap *map;
 	struct rtc_device *rtc_dev;
@@ -65,7 +66,7 @@ static irqreturn_t rtc_update_handler(int irq, void *data)
 
 	mask = PM800_ALARM | PM800_ALARM_WAKEUP;
 	regmap_update_bits(info->map, PM800_RTC_CONTROL, mask | PM800_ALARM1_EN,
-			   mask);
+					   mask);
 	rtc_update_irq(info->rtc_dev, 1, RTC_AF);
 	return IRQ_HANDLED;
 }
@@ -76,10 +77,11 @@ static int pm80x_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
 
 	if (enabled)
 		regmap_update_bits(info->map, PM800_RTC_CONTROL,
-				   PM800_ALARM1_EN, PM800_ALARM1_EN);
+						   PM800_ALARM1_EN, PM800_ALARM1_EN);
 	else
 		regmap_update_bits(info->map, PM800_RTC_CONTROL,
-				   PM800_ALARM1_EN, 0);
+						   PM800_ALARM1_EN, 0);
+
 	return 0;
 }
 
@@ -88,7 +90,7 @@ static int pm80x_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
  * and the current time.
  */
 static void rtc_next_alarm_time(struct rtc_time *next, struct rtc_time *now,
-				struct rtc_time *alrm)
+								struct rtc_time *alrm)
 {
 	unsigned long next_time;
 	unsigned long now_time;
@@ -103,7 +105,8 @@ static void rtc_next_alarm_time(struct rtc_time *next, struct rtc_time *now,
 	rtc_tm_to_time(now, &now_time);
 	rtc_tm_to_time(next, &next_time);
 
-	if (next_time < now_time) {
+	if (next_time < now_time)
+	{
 		/* Advance one day */
 		next_time += 60 * 60 * 24;
 		rtc_time_to_tm(next_time, next);
@@ -124,7 +127,7 @@ static int pm80x_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	data = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | buf[0];
 	ticks = base + data;
 	dev_dbg(info->dev, "get base:0x%lx, RO count:0x%lx, ticks:0x%lx\n",
-		base, data, ticks);
+			base, data, ticks);
 	rtc_time_to_tm(ticks, tm);
 	return 0;
 }
@@ -134,12 +137,15 @@ static int pm80x_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	struct pm80x_rtc_info *info = dev_get_drvdata(dev);
 	unsigned char buf[4];
 	unsigned long ticks, base, data;
-	if ((tm->tm_year < 70) || (tm->tm_year > 138)) {
+
+	if ((tm->tm_year < 70) || (tm->tm_year > 138))
+	{
 		dev_dbg(info->dev,
-			"Set time %d out of range. Please set time between 1970 to 2038.\n",
-			1900 + tm->tm_year);
+				"Set time %d out of range. Please set time between 1970 to 2038.\n",
+				1900 + tm->tm_year);
 		return -EINVAL;
 	}
+
 	rtc_tm_to_time(tm, &ticks);
 
 	/* load 32-bit read-only counter */
@@ -147,7 +153,7 @@ static int pm80x_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	data = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | buf[0];
 	base = ticks - data;
 	dev_dbg(info->dev, "set base:0x%lx, RO count:0x%lx, ticks:0x%lx\n",
-		base, data, ticks);
+			base, data, ticks);
 	buf[0] = base & 0xFF;
 	buf[1] = (base >> 8) & 0xFF;
 	buf[2] = (base >> 16) & 0xFF;
@@ -172,7 +178,7 @@ static int pm80x_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 	data = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | buf[0];
 	ticks = base + data;
 	dev_dbg(info->dev, "get base:0x%lx, RO count:0x%lx, ticks:0x%lx\n",
-		base, data, ticks);
+			base, data, ticks);
 
 	rtc_time_to_tm(ticks, &alrm->time);
 	regmap_read(info->map, PM800_RTC_CONTROL, &ret);
@@ -200,7 +206,7 @@ static int pm80x_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 	data = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | buf[0];
 	ticks = base + data;
 	dev_dbg(info->dev, "get base:0x%lx, RO count:0x%lx, ticks:0x%lx\n",
-		base, data, ticks);
+			base, data, ticks);
 
 	rtc_time_to_tm(ticks, &now_tm);
 	dev_dbg(info->dev, "%s, now time : %lu\n", __func__, ticks);
@@ -215,18 +221,24 @@ static int pm80x_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
 	buf[2] = (data >> 16) & 0xff;
 	buf[3] = (data >> 24) & 0xff;
 	regmap_raw_write(info->map, PM800_RTC_EXPIRE1_1, buf, 4);
-	if (alrm->enabled) {
+
+	if (alrm->enabled)
+	{
 		mask = PM800_ALARM | PM800_ALARM_WAKEUP | PM800_ALARM1_EN;
 		regmap_update_bits(info->map, PM800_RTC_CONTROL, mask, mask);
-	} else {
+	}
+	else
+	{
 		mask = PM800_ALARM | PM800_ALARM_WAKEUP | PM800_ALARM1_EN;
 		regmap_update_bits(info->map, PM800_RTC_CONTROL, mask,
-				   PM800_ALARM | PM800_ALARM_WAKEUP);
+						   PM800_ALARM | PM800_ALARM_WAKEUP);
 	}
+
 	return 0;
 }
 
-static const struct rtc_class_ops pm80x_rtc_ops = {
+static const struct rtc_class_ops pm80x_rtc_ops =
+{
 	.read_time = pm80x_rtc_read_time,
 	.set_time = pm80x_rtc_set_time,
 	.read_alarm = pm80x_rtc_read_alarm,
@@ -258,26 +270,36 @@ static int pm80x_rtc_probe(struct platform_device *pdev)
 	unsigned long ticks = 0;
 	int ret;
 
-	if (!pdata && !node) {
+	if (!pdata && !node)
+	{
 		dev_err(&pdev->dev,
-			"pm80x-rtc requires platform data or of_node\n");
+				"pm80x-rtc requires platform data or of_node\n");
 		return -EINVAL;
 	}
 
-	if (!pdata) {
+	if (!pdata)
+	{
 		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
-		if (!pdata) {
+
+		if (!pdata)
+		{
 			dev_err(&pdev->dev, "failed to allocate memory\n");
 			return -ENOMEM;
 		}
 	}
 
 	info =
-	    devm_kzalloc(&pdev->dev, sizeof(struct pm80x_rtc_info), GFP_KERNEL);
+		devm_kzalloc(&pdev->dev, sizeof(struct pm80x_rtc_info), GFP_KERNEL);
+
 	if (!info)
+	{
 		return -ENOMEM;
+	}
+
 	info->irq = platform_get_irq(pdev, 0);
-	if (info->irq < 0) {
+
+	if (info->irq < 0)
+	{
 		dev_err(&pdev->dev, "No IRQ resource!\n");
 		ret = -EINVAL;
 		goto out;
@@ -285,7 +307,9 @@ static int pm80x_rtc_probe(struct platform_device *pdev)
 
 	info->chip = chip;
 	info->map = chip->regmap;
-	if (!info->map) {
+
+	if (!info->map)
+	{
 		dev_err(&pdev->dev, "no regmap!\n");
 		ret = -EINVAL;
 		goto out;
@@ -295,19 +319,25 @@ static int pm80x_rtc_probe(struct platform_device *pdev)
 	dev_set_drvdata(&pdev->dev, info);
 
 	ret = pm80x_request_irq(chip, info->irq, rtc_update_handler,
-				IRQF_ONESHOT, "rtc", info);
-	if (ret < 0) {
+							IRQF_ONESHOT, "rtc", info);
+
+	if (ret < 0)
+	{
 		dev_err(chip->dev, "Failed to request IRQ: #%d: %d\n",
-			info->irq, ret);
+				info->irq, ret);
 		goto out;
 	}
 
 	ret = pm80x_rtc_read_time(&pdev->dev, &tm);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Failed to read initial time.\n");
 		goto out_rtc;
 	}
-	if ((tm.tm_year < 70) || (tm.tm_year > 138)) {
+
+	if ((tm.tm_year < 70) || (tm.tm_year > 138))
+	{
 		tm.tm_year = 70;
 		tm.tm_mon = 0;
 		tm.tm_mday = 1;
@@ -315,26 +345,32 @@ static int pm80x_rtc_probe(struct platform_device *pdev)
 		tm.tm_min = 0;
 		tm.tm_sec = 0;
 		ret = pm80x_rtc_set_time(&pdev->dev, &tm);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(&pdev->dev, "Failed to set initial time.\n");
 			goto out_rtc;
 		}
 	}
+
 	rtc_tm_to_time(&tm, &ticks);
 
 	info->rtc_dev = devm_rtc_device_register(&pdev->dev, "88pm80x-rtc",
-					    &pm80x_rtc_ops, THIS_MODULE);
-	if (IS_ERR(info->rtc_dev)) {
+					&pm80x_rtc_ops, THIS_MODULE);
+
+	if (IS_ERR(info->rtc_dev))
+	{
 		ret = PTR_ERR(info->rtc_dev);
 		dev_err(&pdev->dev, "Failed to register RTC device: %d\n", ret);
 		goto out_rtc;
 	}
+
 	/*
 	 * enable internal XO instead of internal 3.25MHz clock since it can
 	 * free running in PMIC power-down state.
 	 */
 	regmap_update_bits(info->map, PM800_RTC_CONTROL, PM800_RTC1_USE_XO,
-			   PM800_RTC1_USE_XO);
+					   PM800_RTC1_USE_XO);
 
 	/* remember whether this power up is caused by PMIC RTC or not */
 	info->rtc_dev->dev.platform_data = &pdata->rtc_wakeup;
@@ -355,11 +391,12 @@ static int pm80x_rtc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver pm80x_rtc_driver = {
+static struct platform_driver pm80x_rtc_driver =
+{
 	.driver = {
-		   .name = "88pm80x-rtc",
-		   .pm = &pm80x_rtc_pm_ops,
-		   },
+		.name = "88pm80x-rtc",
+		.pm = &pm80x_rtc_pm_ops,
+	},
 	.probe = pm80x_rtc_probe,
 	.remove = pm80x_rtc_remove,
 };

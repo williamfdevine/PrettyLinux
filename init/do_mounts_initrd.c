@@ -4,8 +4,8 @@
  * noise, turn off sparse checking for this file.
  */
 #ifdef __CHECKER__
-#undef __CHECKER__
-#warning "Sparse checking disabled for this file"
+	#undef __CHECKER__
+	#warning "Sparse checking disabled for this file"
 #endif
 
 #include <linux/unistd.h>
@@ -72,9 +72,13 @@ static void __init handle_initrd(void)
 	current->flags |= PF_FREEZER_SKIP;
 
 	info = call_usermodehelper_setup("/linuxrc", argv, envp_init,
-					 GFP_KERNEL, init_linuxrc, NULL, NULL);
+									 GFP_KERNEL, init_linuxrc, NULL, NULL);
+
 	if (!info)
+	{
 		return;
+	}
+
 	call_usermodehelper_exec(info, UMH_WAIT_PROC);
 
 	current->flags &= ~PF_FREEZER_SKIP;
@@ -84,7 +88,8 @@ static void __init handle_initrd(void)
 	/* switch root and cwd back to / of rootfs */
 	sys_chroot("..");
 
-	if (new_decode_dev(real_root_dev) == Root_RAM0) {
+	if (new_decode_dev(real_root_dev) == Root_RAM0)
+	{
 		sys_chdir("/old");
 		return;
 	}
@@ -95,43 +100,62 @@ static void __init handle_initrd(void)
 
 	printk(KERN_NOTICE "Trying to move old root to /initrd ... ");
 	error = sys_mount("/old", "/root/initrd", NULL, MS_MOVE, NULL);
+
 	if (!error)
+	{
 		printk("okay\n");
-	else {
+	}
+	else
+	{
 		int fd = sys_open("/dev/root.old", O_RDWR, 0);
+
 		if (error == -ENOENT)
+		{
 			printk("/initrd does not exist. Ignored.\n");
+		}
 		else
+		{
 			printk("failed\n");
+		}
+
 		printk(KERN_NOTICE "Unmounting old root\n");
 		sys_umount("/old", MNT_DETACH);
 		printk(KERN_NOTICE "Trying to free ramdisk memory ... ");
-		if (fd < 0) {
+
+		if (fd < 0)
+		{
 			error = fd;
-		} else {
+		}
+		else
+		{
 			error = sys_ioctl(fd, BLKFLSBUF, 0);
 			sys_close(fd);
 		}
+
 		printk(!error ? "okay\n" : "failed\n");
 	}
 }
 
 bool __init initrd_load(void)
 {
-	if (mount_initrd) {
+	if (mount_initrd)
+	{
 		create_dev("/dev/ram", Root_RAM0);
+
 		/*
 		 * Load the initrd data into /dev/ram0. Execute it as initrd
 		 * unless /dev/ram0 is supposed to be our actual root device,
 		 * in that case the ram disk is just set up here, and gets
 		 * mounted in the normal path.
 		 */
-		if (rd_load_image("/initrd.image") && ROOT_DEV != Root_RAM0) {
+		if (rd_load_image("/initrd.image") && ROOT_DEV != Root_RAM0)
+		{
 			sys_unlink("/initrd.image");
 			handle_initrd();
 			return true;
 		}
 	}
+
 	sys_unlink("/initrd.image");
 	return false;
 }

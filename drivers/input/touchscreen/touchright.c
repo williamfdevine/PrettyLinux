@@ -46,7 +46,8 @@ MODULE_LICENSE("GPL");
  * Per-touchscreen data.
  */
 
-struct tr {
+struct tr
+{
 	struct input_dev *dev;
 	struct serio *serio;
 	int idx;
@@ -55,21 +56,23 @@ struct tr {
 };
 
 static irqreturn_t tr_interrupt(struct serio *serio,
-		unsigned char data, unsigned int flags)
+								unsigned char data, unsigned int flags)
 {
 	struct tr *tr = serio_get_drvdata(serio);
 	struct input_dev *dev = tr->dev;
 
 	tr->data[tr->idx] = data;
 
-	if ((tr->data[0] & TR_FORMAT_STATUS_MASK) == TR_FORMAT_STATUS_BYTE) {
-		if (++tr->idx == TR_LENGTH) {
+	if ((tr->data[0] & TR_FORMAT_STATUS_MASK) == TR_FORMAT_STATUS_BYTE)
+	{
+		if (++tr->idx == TR_LENGTH)
+		{
 			input_report_abs(dev, ABS_X,
-				(tr->data[1] << 5) | (tr->data[2] >> 1));
+							 (tr->data[1] << 5) | (tr->data[2] >> 1));
 			input_report_abs(dev, ABS_Y,
-				(tr->data[3] << 5) | (tr->data[4] >> 1));
+							 (tr->data[3] << 5) | (tr->data[4] >> 1));
 			input_report_key(dev, BTN_TOUCH,
-				tr->data[0] & TR_FORMAT_TOUCH_BIT);
+							 tr->data[0] & TR_FORMAT_TOUCH_BIT);
 			input_sync(dev);
 			tr->idx = 0;
 		}
@@ -108,7 +111,9 @@ static int tr_connect(struct serio *serio, struct serio_driver *drv)
 
 	tr = kzalloc(sizeof(struct tr), GFP_KERNEL);
 	input_dev = input_allocate_device();
-	if (!tr || !input_dev) {
+
+	if (!tr || !input_dev)
+	{
 		err = -ENOMEM;
 		goto fail1;
 	}
@@ -132,18 +137,24 @@ static int tr_connect(struct serio *serio, struct serio_driver *drv)
 	serio_set_drvdata(serio, tr);
 
 	err = serio_open(serio, drv);
+
 	if (err)
+	{
 		goto fail2;
+	}
 
 	err = input_register_device(tr->dev);
+
 	if (err)
+	{
 		goto fail3;
+	}
 
 	return 0;
 
- fail3:	serio_close(serio);
- fail2:	serio_set_drvdata(serio, NULL);
- fail1:	input_free_device(input_dev);
+fail3:	serio_close(serio);
+fail2:	serio_set_drvdata(serio, NULL);
+fail1:	input_free_device(input_dev);
 	kfree(tr);
 	return err;
 }
@@ -152,7 +163,8 @@ static int tr_connect(struct serio *serio, struct serio_driver *drv)
  * The serio driver structure.
  */
 
-static struct serio_device_id tr_serio_ids[] = {
+static struct serio_device_id tr_serio_ids[] =
+{
 	{
 		.type	= SERIO_RS232,
 		.proto	= SERIO_TOUCHRIGHT,
@@ -164,7 +176,8 @@ static struct serio_device_id tr_serio_ids[] = {
 
 MODULE_DEVICE_TABLE(serio, tr_serio_ids);
 
-static struct serio_driver tr_drv = {
+static struct serio_driver tr_drv =
+{
 	.driver		= {
 		.name	= "touchright",
 	},

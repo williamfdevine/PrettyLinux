@@ -64,7 +64,7 @@ ACPI_INIT_GLOBAL(u32, acpi_gbl_xfacs_index, ACPI_INVALID_TABLE_INDEX);
 ACPI_INIT_GLOBAL(u32, acpi_gbl_fadt_index, ACPI_INVALID_TABLE_INDEX);
 
 #if (!ACPI_REDUCED_HARDWARE)
-ACPI_GLOBAL(struct acpi_table_facs *, acpi_gbl_FACS);
+	ACPI_GLOBAL(struct acpi_table_facs *, acpi_gbl_FACS);
 
 #endif				/* !ACPI_REDUCED_HARDWARE */
 
@@ -179,7 +179,7 @@ ACPI_GLOBAL(u8, acpi_gbl_acpi_hardware_present);
 ACPI_GLOBAL(u8, acpi_gbl_events_initialized);
 ACPI_GLOBAL(struct acpi_interface_info *, acpi_gbl_supported_interfaces);
 ACPI_GLOBAL(struct acpi_address_range *,
-	    acpi_gbl_address_range_list[ACPI_ADDRESS_RANGE_MAX]);
+			acpi_gbl_address_range_list[ACPI_ADDRESS_RANGE_MAX]);
 
 /* Other miscellaneous, declared and initialized in utglobal */
 
@@ -193,12 +193,12 @@ extern const struct acpi_opcode_info acpi_gbl_aml_op_info[AML_NUM_OPCODES];
 
 #ifdef ACPI_DBG_TRACK_ALLOCATIONS
 
-/* Lists for tracking memory allocations (debug only) */
+	/* Lists for tracking memory allocations (debug only) */
 
-ACPI_GLOBAL(struct acpi_memory_list *, acpi_gbl_global_list);
-ACPI_GLOBAL(struct acpi_memory_list *, acpi_gbl_ns_node_list);
-ACPI_GLOBAL(u8, acpi_gbl_display_final_mem_stats);
-ACPI_GLOBAL(u8, acpi_gbl_disable_mem_tracking);
+	ACPI_GLOBAL(struct acpi_memory_list *, acpi_gbl_global_list);
+	ACPI_GLOBAL(struct acpi_memory_list *, acpi_gbl_ns_node_list);
+	ACPI_GLOBAL(u8, acpi_gbl_display_final_mem_stats);
+	ACPI_GLOBAL(u8, acpi_gbl_disable_mem_tracking);
 #endif
 
 /*****************************************************************************
@@ -208,9 +208,9 @@ ACPI_GLOBAL(u8, acpi_gbl_disable_mem_tracking);
  ****************************************************************************/
 
 #if !defined (ACPI_NO_METHOD_EXECUTION) || defined (ACPI_CONSTANT_EVAL_ONLY)
-#define NUM_PREDEFINED_NAMES            10
+	#define NUM_PREDEFINED_NAMES            10
 #else
-#define NUM_PREDEFINED_NAMES            9
+	#define NUM_PREDEFINED_NAMES            9
 #endif
 
 ACPI_GLOBAL(struct acpi_namespace_node, acpi_gbl_root_node_struct);
@@ -220,16 +220,16 @@ ACPI_GLOBAL(union acpi_operand_object *, acpi_gbl_module_code_list);
 
 extern const u8 acpi_gbl_ns_properties[ACPI_NUM_NS_TYPES];
 extern const struct acpi_predefined_names
-    acpi_gbl_pre_defined_names[NUM_PREDEFINED_NAMES];
+	acpi_gbl_pre_defined_names[NUM_PREDEFINED_NAMES];
 
 #ifdef ACPI_DEBUG_OUTPUT
-ACPI_GLOBAL(u32, acpi_gbl_current_node_count);
-ACPI_GLOBAL(u32, acpi_gbl_current_node_size);
-ACPI_GLOBAL(u32, acpi_gbl_max_concurrent_node_count);
-ACPI_GLOBAL(acpi_size *, acpi_gbl_entry_stack_pointer);
-ACPI_GLOBAL(acpi_size *, acpi_gbl_lowest_stack_pointer);
-ACPI_GLOBAL(u32, acpi_gbl_deepest_nesting);
-ACPI_INIT_GLOBAL(u32, acpi_gbl_nesting_level, 0);
+	ACPI_GLOBAL(u32, acpi_gbl_current_node_count);
+	ACPI_GLOBAL(u32, acpi_gbl_current_node_size);
+	ACPI_GLOBAL(u32, acpi_gbl_max_concurrent_node_count);
+	ACPI_GLOBAL(acpi_size *, acpi_gbl_entry_stack_pointer);
+	ACPI_GLOBAL(acpi_size *, acpi_gbl_lowest_stack_pointer);
+	ACPI_GLOBAL(u32, acpi_gbl_deepest_nesting);
+	ACPI_INIT_GLOBAL(u32, acpi_gbl_nesting_level, 0);
 #endif
 
 /*****************************************************************************
@@ -255,7 +255,7 @@ ACPI_GLOBAL(u8, acpi_gbl_cm_single_step);
  ****************************************************************************/
 
 extern struct acpi_bit_register_info
-    acpi_gbl_bit_register_info[ACPI_NUM_BITREG];
+	acpi_gbl_bit_register_info[ACPI_NUM_BITREG];
 
 ACPI_GLOBAL(u8, acpi_gbl_sleep_type_a);
 ACPI_GLOBAL(u8, acpi_gbl_sleep_type_b);
@@ -271,14 +271,14 @@ ACPI_GLOBAL(u8, acpi_gbl_sleep_type_b);
 ACPI_GLOBAL(u8, acpi_gbl_all_gpes_initialized);
 ACPI_GLOBAL(struct acpi_gpe_xrupt_info *, acpi_gbl_gpe_xrupt_list_head);
 ACPI_GLOBAL(struct acpi_gpe_block_info *,
-	    acpi_gbl_gpe_fadt_blocks[ACPI_MAX_GPE_BLOCKS]);
+			acpi_gbl_gpe_fadt_blocks[ACPI_MAX_GPE_BLOCKS]);
 ACPI_GLOBAL(acpi_gbl_event_handler, acpi_gbl_global_event_handler);
 ACPI_GLOBAL(void *, acpi_gbl_global_event_handler_context);
 ACPI_GLOBAL(struct acpi_fixed_event_handler,
-	    acpi_gbl_fixed_event_handlers[ACPI_NUM_FIXED_EVENTS]);
+			acpi_gbl_fixed_event_handlers[ACPI_NUM_FIXED_EVENTS]);
 
 extern struct acpi_fixed_event_info
-    acpi_gbl_fixed_event_info[ACPI_NUM_FIXED_EVENTS];
+	acpi_gbl_fixed_event_info[ACPI_NUM_FIXED_EVENTS];
 
 #endif				/* !ACPI_REDUCED_HARDWARE */
 
@@ -310,66 +310,66 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_db_output_flags, ACPI_DB_CONSOLE_OUTPUT);
 
 #ifdef ACPI_DISASSEMBLER
 
-/* Do not disassemble buffers to resource descriptors */
+	/* Do not disassemble buffers to resource descriptors */
 
-ACPI_INIT_GLOBAL(u8, acpi_gbl_no_resource_disassembly, FALSE);
-ACPI_INIT_GLOBAL(u8, acpi_gbl_ignore_noop_operator, FALSE);
-ACPI_INIT_GLOBAL(u8, acpi_gbl_cstyle_disassembly, TRUE);
-ACPI_INIT_GLOBAL(u8, acpi_gbl_force_aml_disassembly, FALSE);
-ACPI_INIT_GLOBAL(u8, acpi_gbl_dm_opt_verbose, TRUE);
-ACPI_INIT_GLOBAL(u8, acpi_gbl_dm_emit_external_opcodes, FALSE);
+	ACPI_INIT_GLOBAL(u8, acpi_gbl_no_resource_disassembly, FALSE);
+	ACPI_INIT_GLOBAL(u8, acpi_gbl_ignore_noop_operator, FALSE);
+	ACPI_INIT_GLOBAL(u8, acpi_gbl_cstyle_disassembly, TRUE);
+	ACPI_INIT_GLOBAL(u8, acpi_gbl_force_aml_disassembly, FALSE);
+	ACPI_INIT_GLOBAL(u8, acpi_gbl_dm_opt_verbose, TRUE);
+	ACPI_INIT_GLOBAL(u8, acpi_gbl_dm_emit_external_opcodes, FALSE);
 
-ACPI_GLOBAL(u8, acpi_gbl_dm_opt_disasm);
-ACPI_GLOBAL(u8, acpi_gbl_dm_opt_listing);
-ACPI_GLOBAL(u8, acpi_gbl_num_external_methods);
-ACPI_GLOBAL(u32, acpi_gbl_resolved_external_methods);
-ACPI_GLOBAL(struct acpi_external_list *, acpi_gbl_external_list);
-ACPI_GLOBAL(struct acpi_external_file *, acpi_gbl_external_file_list);
+	ACPI_GLOBAL(u8, acpi_gbl_dm_opt_disasm);
+	ACPI_GLOBAL(u8, acpi_gbl_dm_opt_listing);
+	ACPI_GLOBAL(u8, acpi_gbl_num_external_methods);
+	ACPI_GLOBAL(u32, acpi_gbl_resolved_external_methods);
+	ACPI_GLOBAL(struct acpi_external_list *, acpi_gbl_external_list);
+	ACPI_GLOBAL(struct acpi_external_file *, acpi_gbl_external_file_list);
 #endif
 
 #ifdef ACPI_DEBUGGER
 
-ACPI_INIT_GLOBAL(u8, acpi_gbl_abort_method, FALSE);
-ACPI_INIT_GLOBAL(acpi_thread_id, acpi_gbl_db_thread_id, ACPI_INVALID_THREAD_ID);
+	ACPI_INIT_GLOBAL(u8, acpi_gbl_abort_method, FALSE);
+	ACPI_INIT_GLOBAL(acpi_thread_id, acpi_gbl_db_thread_id, ACPI_INVALID_THREAD_ID);
 
-ACPI_GLOBAL(u8, acpi_gbl_db_opt_no_ini_methods);
-ACPI_GLOBAL(u8, acpi_gbl_db_opt_no_region_support);
-ACPI_GLOBAL(u8, acpi_gbl_db_output_to_file);
-ACPI_GLOBAL(char *, acpi_gbl_db_buffer);
-ACPI_GLOBAL(char *, acpi_gbl_db_filename);
-ACPI_GLOBAL(u32, acpi_gbl_db_debug_level);
-ACPI_GLOBAL(u32, acpi_gbl_db_console_debug_level);
-ACPI_GLOBAL(struct acpi_namespace_node *, acpi_gbl_db_scope_node);
-ACPI_GLOBAL(u8, acpi_gbl_db_terminate_loop);
-ACPI_GLOBAL(u8, acpi_gbl_db_threads_terminated);
+	ACPI_GLOBAL(u8, acpi_gbl_db_opt_no_ini_methods);
+	ACPI_GLOBAL(u8, acpi_gbl_db_opt_no_region_support);
+	ACPI_GLOBAL(u8, acpi_gbl_db_output_to_file);
+	ACPI_GLOBAL(char *, acpi_gbl_db_buffer);
+	ACPI_GLOBAL(char *, acpi_gbl_db_filename);
+	ACPI_GLOBAL(u32, acpi_gbl_db_debug_level);
+	ACPI_GLOBAL(u32, acpi_gbl_db_console_debug_level);
+	ACPI_GLOBAL(struct acpi_namespace_node *, acpi_gbl_db_scope_node);
+	ACPI_GLOBAL(u8, acpi_gbl_db_terminate_loop);
+	ACPI_GLOBAL(u8, acpi_gbl_db_threads_terminated);
 
-ACPI_GLOBAL(char *, acpi_gbl_db_args[ACPI_DEBUGGER_MAX_ARGS]);
-ACPI_GLOBAL(acpi_object_type, acpi_gbl_db_arg_types[ACPI_DEBUGGER_MAX_ARGS]);
+	ACPI_GLOBAL(char *, acpi_gbl_db_args[ACPI_DEBUGGER_MAX_ARGS]);
+	ACPI_GLOBAL(acpi_object_type, acpi_gbl_db_arg_types[ACPI_DEBUGGER_MAX_ARGS]);
 
-/* These buffers should all be the same size */
+	/* These buffers should all be the same size */
 
-ACPI_GLOBAL(char, acpi_gbl_db_parsed_buf[ACPI_DB_LINE_BUFFER_SIZE]);
-ACPI_GLOBAL(char, acpi_gbl_db_scope_buf[ACPI_DB_LINE_BUFFER_SIZE]);
-ACPI_GLOBAL(char, acpi_gbl_db_debug_filename[ACPI_DB_LINE_BUFFER_SIZE]);
+	ACPI_GLOBAL(char, acpi_gbl_db_parsed_buf[ACPI_DB_LINE_BUFFER_SIZE]);
+	ACPI_GLOBAL(char, acpi_gbl_db_scope_buf[ACPI_DB_LINE_BUFFER_SIZE]);
+	ACPI_GLOBAL(char, acpi_gbl_db_debug_filename[ACPI_DB_LINE_BUFFER_SIZE]);
 
-/*
- * Statistic globals
- */
-ACPI_GLOBAL(u16, acpi_gbl_obj_type_count[ACPI_TOTAL_TYPES]);
-ACPI_GLOBAL(u16, acpi_gbl_node_type_count[ACPI_TOTAL_TYPES]);
-ACPI_GLOBAL(u16, acpi_gbl_obj_type_count_misc);
-ACPI_GLOBAL(u16, acpi_gbl_node_type_count_misc);
-ACPI_GLOBAL(u32, acpi_gbl_num_nodes);
-ACPI_GLOBAL(u32, acpi_gbl_num_objects);
+	/*
+	* Statistic globals
+	*/
+	ACPI_GLOBAL(u16, acpi_gbl_obj_type_count[ACPI_TOTAL_TYPES]);
+	ACPI_GLOBAL(u16, acpi_gbl_node_type_count[ACPI_TOTAL_TYPES]);
+	ACPI_GLOBAL(u16, acpi_gbl_obj_type_count_misc);
+	ACPI_GLOBAL(u16, acpi_gbl_node_type_count_misc);
+	ACPI_GLOBAL(u32, acpi_gbl_num_nodes);
+	ACPI_GLOBAL(u32, acpi_gbl_num_objects);
 
 #endif				/* ACPI_DEBUGGER */
 
 #if defined (ACPI_DISASSEMBLER) || defined (ACPI_ASL_COMPILER)
 
-ACPI_GLOBAL(const char, *acpi_gbl_pld_panel_list[]);
-ACPI_GLOBAL(const char, *acpi_gbl_pld_vertical_position_list[]);
-ACPI_GLOBAL(const char, *acpi_gbl_pld_horizontal_position_list[]);
-ACPI_GLOBAL(const char, *acpi_gbl_pld_shape_list[]);
+	ACPI_GLOBAL(const char, *acpi_gbl_pld_panel_list[]);
+	ACPI_GLOBAL(const char, *acpi_gbl_pld_vertical_position_list[]);
+	ACPI_GLOBAL(const char, *acpi_gbl_pld_horizontal_position_list[]);
+	ACPI_GLOBAL(const char, *acpi_gbl_pld_shape_list[]);
 
 #endif
 
@@ -381,14 +381,14 @@ ACPI_GLOBAL(const char, *acpi_gbl_pld_shape_list[]);
 
 #ifdef ACPI_APPLICATION
 
-ACPI_INIT_GLOBAL(ACPI_FILE, acpi_gbl_debug_file, NULL);
-ACPI_INIT_GLOBAL(ACPI_FILE, acpi_gbl_output_file, NULL);
-ACPI_INIT_GLOBAL(u8, acpi_gbl_debug_timeout, FALSE);
+	ACPI_INIT_GLOBAL(ACPI_FILE, acpi_gbl_debug_file, NULL);
+	ACPI_INIT_GLOBAL(ACPI_FILE, acpi_gbl_output_file, NULL);
+	ACPI_INIT_GLOBAL(u8, acpi_gbl_debug_timeout, FALSE);
 
-/* Print buffer */
+	/* Print buffer */
 
-ACPI_GLOBAL(acpi_spinlock, acpi_gbl_print_lock);	/* For print buffer */
-ACPI_GLOBAL(char, acpi_gbl_print_buffer[1024]);
+	ACPI_GLOBAL(acpi_spinlock, acpi_gbl_print_lock);	/* For print buffer */
+	ACPI_GLOBAL(char, acpi_gbl_print_buffer[1024]);
 
 #endif				/* ACPI_APPLICATION */
 

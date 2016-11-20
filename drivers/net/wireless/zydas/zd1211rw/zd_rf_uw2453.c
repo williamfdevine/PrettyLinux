@@ -50,7 +50,8 @@
 
 /* The per-channel synth values for all standard VCO configurations. These get
  * written to register 1. */
-static const u8 uw2453_std_synth[] = {
+static const u8 uw2453_std_synth[] =
+{
 	RF_CHANNEL( 1) = 0x47,
 	RF_CHANNEL( 2) = 0x47,
 	RF_CHANNEL( 3) = 0x67,
@@ -70,7 +71,8 @@ static const u8 uw2453_std_synth[] = {
 /* This table stores the synthesizer fractional divide ratio for *all* VCO
  * configurations (both standard and autocal). These get written to register 2.
  */
-static const u16 uw2453_synth_divide[] = {
+static const u16 uw2453_synth_divide[] =
+{
 	RF_CHANNEL( 1) = 0x999,
 	RF_CHANNEL( 2) = 0x99b,
 	RF_CHANNEL( 3) = 0x998,
@@ -94,7 +96,8 @@ static const u16 uw2453_synth_divide[] = {
  * below. */
 #define CHAN_TO_PAIRIDX(a) ((a - 1) / 2)
 #define RF_CHANPAIR(a,b) [CHAN_TO_PAIRIDX(a)]
-static const u16 uw2453_std_vco_cfg[][7] = {
+static const u16 uw2453_std_vco_cfg[][7] =
+{
 	{ /* table 1 */
 		RF_CHANPAIR( 1,  2) = 0x664d,
 		RF_CHANPAIR( 3,  4) = 0x604d,
@@ -198,7 +201,8 @@ static const u16 uw2453_std_vco_cfg[][7] = {
 };
 
 /* The per-channel synth values for autocal. These get written to register 1. */
-static const u16 uw2453_autocal_synth[] = {
+static const u16 uw2453_autocal_synth[] =
+{
 	RF_CHANNEL( 1) = 0x6847,
 	RF_CHANNEL( 2) = 0x6847,
 	RF_CHANNEL( 3) = 0x6867,
@@ -220,7 +224,8 @@ static const u16 UW2453_AUTOCAL_VCO_CFG = 0x6662;
 
 /* TX gain settings. The array index corresponds to the TX power integration
  * values found in the EEPROM. The values get written to register 7. */
-static u32 uw2453_txgain[] = {
+static u32 uw2453_txgain[] =
+{
 	[0x00] = 0x0e313,
 	[0x01] = 0x0fb13,
 	[0x02] = 0x0e093,
@@ -243,7 +248,8 @@ static u32 uw2453_txgain[] = {
 };
 
 /* RF-specific structure */
-struct uw2453_priv {
+struct uw2453_priv
+{
 	/* index into synth/VCO config tables where PLL lock was found
 	 * -1 means autocal */
 	int config;
@@ -252,23 +258,30 @@ struct uw2453_priv {
 #define UW2453_PRIV(rf) ((struct uw2453_priv *) (rf)->priv)
 
 static int uw2453_synth_set_channel(struct zd_chip *chip, int channel,
-	bool autocal)
+									bool autocal)
 {
 	int r;
 	int idx = channel - 1;
 	u32 val;
 
 	if (autocal)
+	{
 		val = UW2453_REGWRITE(1, uw2453_autocal_synth[idx]);
+	}
 	else
+	{
 		val = UW2453_REGWRITE(1, uw2453_std_synth[idx]);
+	}
 
 	r = zd_rfwrite_locked(chip, val, RF_RV_BITS);
+
 	if (r)
+	{
 		return r;
+	}
 
 	return zd_rfwrite_locked(chip,
-		UW2453_REGWRITE(2, uw2453_synth_divide[idx]), RF_RV_BITS);
+							 UW2453_REGWRITE(2, uw2453_synth_divide[idx]), RF_RV_BITS);
 }
 
 static int uw2453_write_vco_cfg(struct zd_chip *chip, u16 value)
@@ -281,7 +294,8 @@ static int uw2453_write_vco_cfg(struct zd_chip *chip, u16 value)
 
 static int uw2453_init_mode(struct zd_chip *chip)
 {
-	static const u32 rv[] = {
+	static const u32 rv[] =
+	{
 		UW2453_REGWRITE(0, 0x25f98), /* enter IDLE mode */
 		UW2453_REGWRITE(0, 0x25f9a), /* enter CAL_VCO mode */
 		UW2453_REGWRITE(0, 0x25f94), /* enter RX/TX mode */
@@ -295,14 +309,15 @@ static int uw2453_set_tx_gain_level(struct zd_chip *chip, int channel)
 {
 	u8 int_value = chip->pwr_int_values[channel - 1];
 
-	if (int_value >= ARRAY_SIZE(uw2453_txgain)) {
+	if (int_value >= ARRAY_SIZE(uw2453_txgain))
+	{
 		dev_dbg_f(zd_chip_dev(chip), "can't configure TX gain for "
-			  "int value %x on channel %d\n", int_value, channel);
+				  "int value %x on channel %d\n", int_value, channel);
 		return 0;
 	}
 
 	return zd_rfwrite_locked(chip,
-		UW2453_REGWRITE(7, uw2453_txgain[int_value]), RF_RV_BITS);
+							 UW2453_REGWRITE(7, uw2453_txgain[int_value]), RF_RV_BITS);
 }
 
 static int uw2453_init_hw(struct zd_rf *rf)
@@ -312,7 +327,8 @@ static int uw2453_init_hw(struct zd_rf *rf)
 	u16 intr_status;
 	struct zd_chip *chip = zd_rf_to_chip(rf);
 
-	static const struct zd_ioreq16 ioreqs[] = {
+	static const struct zd_ioreq16 ioreqs[] =
+	{
 		{ ZD_CR10,  0x89 }, { ZD_CR15,  0x20 },
 		{ ZD_CR17,  0x28 }, /* 6112 no change */
 		{ ZD_CR23,  0x38 }, { ZD_CR24,  0x20 }, { ZD_CR26,  0x93 },
@@ -353,7 +369,8 @@ static int uw2453_init_hw(struct zd_rf *rf)
 		{ ZD_CR253, 0xff },
 	};
 
-	static const u32 rv[] = {
+	static const u32 rv[] =
+	{
 		UW2453_REGWRITE(4, 0x2b),    /* configure receiver gain */
 		UW2453_REGWRITE(5, 0x19e4f), /* configure transmitter gain */
 		UW2453_REGWRITE(6, 0xf81ad), /* enable RX/TX filter tuning */
@@ -375,59 +392,89 @@ static int uw2453_init_hw(struct zd_rf *rf)
 	};
 
 	r = zd_iowrite16a_locked(chip, ioreqs, ARRAY_SIZE(ioreqs));
+
 	if (r)
+	{
 		return r;
+	}
 
 	r = zd_rfwritev_locked(chip, rv, ARRAY_SIZE(rv), RF_RV_BITS);
+
 	if (r)
+	{
 		return r;
+	}
 
 	r = uw2453_init_mode(chip);
+
 	if (r)
+	{
 		return r;
+	}
 
 	/* Try all standard VCO configuration settings on channel 1 */
-	for (i = 0; i < ARRAY_SIZE(uw2453_std_vco_cfg) - 1; i++) {
+	for (i = 0; i < ARRAY_SIZE(uw2453_std_vco_cfg) - 1; i++)
+	{
 		/* Configure synthesizer for channel 1 */
 		r = uw2453_synth_set_channel(chip, 1, false);
+
 		if (r)
+		{
 			return r;
+		}
 
 		/* Write VCO config */
 		r = uw2453_write_vco_cfg(chip, uw2453_std_vco_cfg[i][0]);
+
 		if (r)
+		{
 			return r;
+		}
 
 		/* ack interrupt event */
 		r = zd_iowrite16_locked(chip, 0x0f, UW2453_INTR_REG);
+
 		if (r)
+		{
 			return r;
+		}
 
 		/* check interrupt status */
 		r = zd_ioread16_locked(chip, &intr_status, UW2453_INTR_REG);
-		if (r)
-			return r;
 
-		if (!(intr_status & 0xf)) {
+		if (r)
+		{
+			return r;
+		}
+
+		if (!(intr_status & 0xf))
+		{
 			dev_dbg_f(zd_chip_dev(chip),
-				"PLL locked on configuration %d\n", i);
+					  "PLL locked on configuration %d\n", i);
 			found_config = i;
 			break;
 		}
 	}
 
-	if (found_config == -1) {
+	if (found_config == -1)
+	{
 		/* autocal */
 		dev_dbg_f(zd_chip_dev(chip),
-			"PLL did not lock, using autocal\n");
+				  "PLL did not lock, using autocal\n");
 
 		r = uw2453_synth_set_channel(chip, 1, true);
+
 		if (r)
+		{
 			return r;
+		}
 
 		r = uw2453_write_vco_cfg(chip, UW2453_AUTOCAL_VCO_CFG);
+
 		if (r)
+		{
 			return r;
+		}
 	}
 
 	/* To match the vendor driver behaviour, we use the configuration after
@@ -445,35 +492,55 @@ static int uw2453_set_channel(struct zd_rf *rf, u8 channel)
 	bool autocal = (config == -1);
 	struct zd_chip *chip = zd_rf_to_chip(rf);
 
-	static const struct zd_ioreq16 ioreqs[] = {
+	static const struct zd_ioreq16 ioreqs[] =
+	{
 		{ ZD_CR80,  0x30 }, { ZD_CR81,  0x30 }, { ZD_CR79,  0x58 },
 		{ ZD_CR12,  0xf0 }, { ZD_CR77,  0x1b }, { ZD_CR78,  0x58 },
 	};
 
 	r = uw2453_synth_set_channel(chip, channel, autocal);
+
 	if (r)
+	{
 		return r;
+	}
 
 	if (autocal)
+	{
 		vco_cfg = UW2453_AUTOCAL_VCO_CFG;
+	}
 	else
+	{
 		vco_cfg = uw2453_std_vco_cfg[config][CHAN_TO_PAIRIDX(channel)];
+	}
 
 	r = uw2453_write_vco_cfg(chip, vco_cfg);
+
 	if (r)
+	{
 		return r;
+	}
 
 	r = uw2453_init_mode(chip);
+
 	if (r)
+	{
 		return r;
+	}
 
 	r = zd_iowrite16a_locked(chip, ioreqs, ARRAY_SIZE(ioreqs));
+
 	if (r)
+	{
 		return r;
+	}
 
 	r = uw2453_set_tx_gain_level(chip, channel);
+
 	if (r)
+	{
 		return r;
+	}
 
 	return zd_iowrite16_locked(chip, 0x06, ZD_CR203);
 }
@@ -482,17 +549,23 @@ static int uw2453_switch_radio_on(struct zd_rf *rf)
 {
 	int r;
 	struct zd_chip *chip = zd_rf_to_chip(rf);
-	struct zd_ioreq16 ioreqs[] = {
+	struct zd_ioreq16 ioreqs[] =
+	{
 		{ ZD_CR11,  0x00 }, { ZD_CR251, 0x3f },
 	};
 
 	/* enter RXTX mode */
 	r = zd_rfwrite_locked(chip, UW2453_REGWRITE(0, 0x25f94), RF_RV_BITS);
+
 	if (r)
+	{
 		return r;
+	}
 
 	if (zd_chip_is_zd1211b(chip))
+	{
 		ioreqs[1].value = 0x7f;
+	}
 
 	return zd_iowrite16a_locked(chip, ioreqs, ARRAY_SIZE(ioreqs));
 }
@@ -501,15 +574,19 @@ static int uw2453_switch_radio_off(struct zd_rf *rf)
 {
 	int r;
 	struct zd_chip *chip = zd_rf_to_chip(rf);
-	static const struct zd_ioreq16 ioreqs[] = {
+	static const struct zd_ioreq16 ioreqs[] =
+	{
 		{ ZD_CR11,  0x04 }, { ZD_CR251, 0x2f },
 	};
 
 	/* enter IDLE mode */
 	/* FIXME: shouldn't we go to SLEEP? sent email to zydas */
 	r = zd_rfwrite_locked(chip, UW2453_REGWRITE(0, 0x25f90), RF_RV_BITS);
+
 	if (r)
+	{
 		return r;
+	}
 
 	return zd_iowrite16a_locked(chip, ioreqs, ARRAY_SIZE(ioreqs));
 }
@@ -531,8 +608,11 @@ int zd_rf_init_uw2453(struct zd_rf *rf)
 	rf->update_channel_int = 0;
 
 	rf->priv = kmalloc(sizeof(struct uw2453_priv), GFP_KERNEL);
+
 	if (rf->priv == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }

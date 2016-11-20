@@ -103,7 +103,7 @@
 #define GRU_NUM_KERNEL_CBR	1
 #define GRU_NUM_KERNEL_DSR_BYTES 256
 #define GRU_NUM_KERNEL_DSR_CL	(GRU_NUM_KERNEL_DSR_BYTES /		\
-					GRU_CACHE_LINE_BYTES)
+								 GRU_CACHE_LINE_BYTES)
 
 /* GRU instruction attributes for all instructions */
 #define IMA			IMA_CB_DELAY
@@ -124,7 +124,8 @@
 
 /*----------------- RESOURCE MANAGEMENT -------------------------------------*/
 /* optimized for x86_64 */
-struct message_queue {
+struct message_queue
+{
 	union gru_mesqhead	head __gru_cacheline_aligned__;	/* CL 0 */
 	int			qlines;				/* DW 1 */
 	long 			hstatus[2];
@@ -136,7 +137,8 @@ struct message_queue {
 };
 
 /* First word in every message - used by mesq interface */
-struct message_header {
+struct message_header
+{
 	char	present;
 	char	present2;
 	char 	lines;
@@ -159,29 +161,42 @@ static void gru_load_kernel_context(struct gru_blade_state *bs, int blade_id)
 	up_read(&bs->bs_kgts_sema);
 	down_write(&bs->bs_kgts_sema);
 
-	if (!bs->bs_kgts) {
-		do {
+	if (!bs->bs_kgts)
+	{
+		do
+		{
 			bs->bs_kgts = gru_alloc_gts(NULL, 0, 0, 0, 0, 0);
+
 			if (!IS_ERR(bs->bs_kgts))
+			{
 				break;
+			}
+
 			msleep(1);
-		} while (true);
+		}
+		while (true);
+
 		bs->bs_kgts->ts_user_blade_id = blade_id;
 	}
+
 	kgts = bs->bs_kgts;
 
-	if (!kgts->ts_gru) {
+	if (!kgts->ts_gru)
+	{
 		STAT(load_kernel_context);
 		ncpus = uv_blade_nr_possible_cpus(blade_id);
 		kgts->ts_cbr_au_count = GRU_CB_COUNT_TO_AU(
-			GRU_NUM_KERNEL_CBR * ncpus + bs->bs_async_cbrs);
+									GRU_NUM_KERNEL_CBR * ncpus + bs->bs_async_cbrs);
 		kgts->ts_dsr_au_count = GRU_DS_BYTES_TO_AU(
-			GRU_NUM_KERNEL_DSR_BYTES * ncpus +
-				bs->bs_async_dsr_bytes);
-		while (!gru_assign_gru_context(kgts)) {
+									GRU_NUM_KERNEL_DSR_BYTES * ncpus +
+									bs->bs_async_dsr_bytes);
+
+		while (!gru_assign_gru_context(kgts))
+		{
 			msleep(1);
 			gru_steal_context(kgts);
 		}
+
 		gru_load_context(kgts);
 		gru = bs->bs_kgts->ts_gru;
 		vaddr = gru->gs_gru_base_vaddr;
@@ -189,6 +204,7 @@ static void gru_load_kernel_context(struct gru_blade_state *bs, int blade_id)
 		bs->kernel_cb = get_gseg_base_address_cb(vaddr, ctxnum, 0);
 		bs->kernel_dsr = get_gseg_base_address_ds(vaddr, ctxnum, 0);
 	}
+
 	downgrade_write(&bs->bs_kgts_sema);
 }
 
@@ -202,23 +218,35 @@ static int gru_free_kernel_contexts(void)
 	struct gru_thread_state *kgts;
 	int bid, ret = 0;
 
-	for (bid = 0; bid < GRU_MAX_BLADES; bid++) {
+	for (bid = 0; bid < GRU_MAX_BLADES; bid++)
+	{
 		bs = gru_base[bid];
+
 		if (!bs)
+		{
 			continue;
+		}
 
 		/* Ignore busy contexts. Don't want to block here.  */
-		if (down_write_trylock(&bs->bs_kgts_sema)) {
+		if (down_write_trylock(&bs->bs_kgts_sema))
+		{
 			kgts = bs->bs_kgts;
+
 			if (kgts && kgts->ts_gru)
+			{
 				gru_unload_context(kgts, 0);
+			}
+
 			bs->bs_kgts = NULL;
 			up_write(&bs->bs_kgts_sema);
 			kfree(kgts);
-		} else {
+		}
+		else
+		{
 			ret++;
 		}
 	}
+
 	return ret;
 }
 
@@ -237,12 +265,18 @@ again:
 
 	/* Handle the case where migration occurred while waiting for the sema */
 	down_read(&bs->bs_kgts_sema);
-	if (blade_id < 0 && bid != uv_numa_blade_id()) {
+
+	if (blade_id < 0 && bid != uv_numa_blade_id())
+	{
 		up_read(&bs->bs_kgts_sema);
 		goto again;
 	}
+
 	if (!bs->bs_kgts || !bs->bs_kgts->ts_gru)
+	{
 		gru_load_kernel_context(bs, bid);
+	}
+
 	return bs;
 
 }
@@ -300,7 +334,7 @@ static void gru_free_cpu_resources(void *cb, void *dsr)
  *		(0 = async resources already reserved)
  */
 unsigned long gru_reserve_async_resources(int blade_id, int cbrs, int dsr_bytes,
-			struct completion *cmp)
+		struct completion *cmp)
 {
 	struct gru_blade_state *bs;
 	struct gru_thread_state *kgts;
@@ -312,7 +346,10 @@ unsigned long gru_reserve_async_resources(int blade_id, int cbrs, int dsr_bytes,
 
 	/* Verify no resources already reserved */
 	if (bs->bs_async_dsr_bytes + bs->bs_async_cbrs)
+	{
 		goto done;
+	}
+
 	bs->bs_async_dsr_bytes = dsr_bytes;
 	bs->bs_async_cbrs = cbrs;
 	bs->bs_async_wq = cmp;
@@ -320,7 +357,10 @@ unsigned long gru_reserve_async_resources(int blade_id, int cbrs, int dsr_bytes,
 
 	/* Resources changed. Unload context if already loaded */
 	if (kgts && kgts->ts_gru)
+	{
 		gru_unload_context(kgts, 0);
+	}
+
 	ret = ASYNC_BID_TO_HAN(blade_id);
 
 done:
@@ -376,10 +416,16 @@ void gru_lock_async_resource(unsigned long han,  void **cb, void **dsr)
 
 	gru_lock_kernel_context(blade_id);
 	ncpus = uv_blade_nr_possible_cpus(blade_id);
+
 	if (cb)
+	{
 		*cb = bs->kernel_cb + ncpus * GRU_HANDLE_STRIDE;
+	}
+
 	if (dsr)
+	{
 		*dsr = bs->kernel_dsr + ncpus * GRU_NUM_KERNEL_DSR_BYTES;
+	}
 }
 
 /*
@@ -397,7 +443,7 @@ void gru_unlock_async_resource(unsigned long han)
 
 /*----------------------------------------------------------------------*/
 int gru_get_cb_exception_detail(void *cb,
-		struct control_block_extended_exc_detail *excdet)
+								struct control_block_extended_exc_detail *excdet)
 {
 	struct gru_control_block_extended *cbe;
 	struct gru_thread_state *kgts = NULL;
@@ -409,15 +455,27 @@ int gru_get_cb_exception_detail(void *cb,
 	 * this function is rarely called (ie., almost never).
 	 * Performance does not matter.
 	 */
-	for_each_possible_blade(bid) {
+	for_each_possible_blade(bid)
+	{
 		if (!gru_base[bid])
+		{
 			break;
+		}
+
 		kgts = gru_base[bid]->bs_kgts;
+
 		if (!kgts || !kgts->ts_gru)
+		{
 			continue;
+		}
+
 		off = cb - kgts->ts_gru->gs_gru_base_vaddr;
+
 		if (off < GRU_SIZE)
+		{
 			break;
+		}
+
 		kgts = NULL;
 	}
 	BUG_ON(!kgts);
@@ -435,30 +493,36 @@ int gru_get_cb_exception_detail(void *cb,
 }
 
 static char *gru_get_cb_exception_detail_str(int ret, void *cb,
-					     char *buf, int size)
+		char *buf, int size)
 {
 	struct gru_control_block_status *gen = (void *)cb;
 	struct control_block_extended_exc_detail excdet;
 
-	if (ret > 0 && gen->istatus == CBS_EXCEPTION) {
+	if (ret > 0 && gen->istatus == CBS_EXCEPTION)
+	{
 		gru_get_cb_exception_detail(cb, &excdet);
 		snprintf(buf, size,
-			"GRU:%d exception: cb %p, opc %d, exopc %d, ecause 0x%x,"
-			"excdet0 0x%lx, excdet1 0x%x", smp_processor_id(),
-			gen, excdet.opc, excdet.exopc, excdet.ecause,
-			excdet.exceptdet0, excdet.exceptdet1);
-	} else {
+				 "GRU:%d exception: cb %p, opc %d, exopc %d, ecause 0x%x,"
+				 "excdet0 0x%lx, excdet1 0x%x", smp_processor_id(),
+				 gen, excdet.opc, excdet.exopc, excdet.ecause,
+				 excdet.exceptdet0, excdet.exceptdet1);
+	}
+	else
+	{
 		snprintf(buf, size, "No exception");
 	}
+
 	return buf;
 }
 
 static int gru_wait_idle_or_exception(struct gru_control_block_status *gen)
 {
-	while (gen->istatus >= CBS_ACTIVE) {
+	while (gen->istatus >= CBS_ACTIVE)
+	{
 		cpu_relax();
 		barrier();
 	}
+
 	return gen->istatus;
 }
 
@@ -468,20 +532,35 @@ static int gru_retry_exception(void *cb)
 	struct control_block_extended_exc_detail excdet;
 	int retry = EXCEPTION_RETRY_LIMIT;
 
-	while (1)  {
+	while (1)
+	{
 		if (gru_wait_idle_or_exception(gen) == CBS_IDLE)
+		{
 			return CBS_IDLE;
+		}
+
 		if (gru_get_cb_message_queue_substatus(cb))
+		{
 			return CBS_EXCEPTION;
+		}
+
 		gru_get_cb_exception_detail(cb, &excdet);
+
 		if ((excdet.ecause & ~EXCEPTION_RETRY_BITS) ||
-				(excdet.cbrexecstatus & CBR_EXS_ABORT_OCC))
+			(excdet.cbrexecstatus & CBR_EXS_ABORT_OCC))
+		{
 			break;
+		}
+
 		if (retry-- == 0)
+		{
 			break;
+		}
+
 		gen->icmd = 1;
 		gru_flush_cache(gen);
 	}
+
 	return CBS_EXCEPTION;
 }
 
@@ -491,8 +570,12 @@ int gru_check_status_proc(void *cb)
 	int ret;
 
 	ret = gen->istatus;
+
 	if (ret == CBS_EXCEPTION)
+	{
 		ret = gru_retry_exception(cb);
+	}
+
 	rmb();
 	return ret;
 
@@ -504,8 +587,12 @@ int gru_wait_proc(void *cb)
 	int ret;
 
 	ret = gru_wait_idle_or_exception(gen);
+
 	if (ret == CBS_EXCEPTION)
+	{
 		ret = gru_retry_exception(cb);
+	}
+
 	rmb();
 	return ret;
 }
@@ -515,7 +602,7 @@ static void gru_abort(int ret, void *cb, char *str)
 	char buf[GRU_EXC_STR_SIZE];
 
 	panic("GRU FATAL ERROR: %s - %s\n", str,
-	      gru_get_cb_exception_detail_str(ret, cb, buf, sizeof(buf)));
+		  gru_get_cb_exception_detail_str(ret, cb, buf, sizeof(buf)));
 }
 
 void gru_wait_abort_proc(void *cb)
@@ -523,8 +610,11 @@ void gru_wait_abort_proc(void *cb)
 	int ret;
 
 	ret = gru_wait_proc(cb);
+
 	if (ret)
+	{
 		gru_abort(ret, cb, "gru_wait_abort");
+	}
 }
 
 
@@ -555,7 +645,7 @@ static inline void restore_present2(void *p, int val)
  * 	qlines - message queue size in cache lines. Includes 2-line header.
  */
 int gru_create_message_queue(struct gru_message_queue_desc *mqd,
-		void *p, unsigned int bytes, int nasid, int vector, int apicid)
+							 void *p, unsigned int bytes, int nasid, int vector, int apicid)
 {
 	struct message_queue *mq = p;
 	unsigned int qlines;
@@ -589,10 +679,12 @@ EXPORT_SYMBOL_GPL(gru_create_message_queue);
  *		>0 - unexpected error. MQE_xxx returned
  */
 static int send_noop_message(void *cb, struct gru_message_queue_desc *mqd,
-				void *mesg)
+							 void *mesg)
 {
-	const struct message_header noop_header = {
-					.present = MQS_NOOP, .lines = 1};
+	const struct message_header noop_header =
+	{
+		.present = MQS_NOOP, .lines = 1
+	};
 	unsigned long m;
 	int substatus, ret;
 	struct message_header save_mhdr, *mhdr = mesg;
@@ -603,42 +695,58 @@ static int send_noop_message(void *cb, struct gru_message_queue_desc *mqd,
 	gru_mesq(cb, mqd->mq_gpa, gru_get_tri(mhdr), 1, IMA);
 	ret = gru_wait(cb);
 
-	if (ret) {
+	if (ret)
+	{
 		substatus = gru_get_cb_message_queue_substatus(cb);
-		switch (substatus) {
-		case CBSS_NO_ERROR:
-			STAT(mesq_noop_unexpected_error);
-			ret = MQE_UNEXPECTED_CB_ERR;
-			break;
-		case CBSS_LB_OVERFLOWED:
-			STAT(mesq_noop_lb_overflow);
-			ret = MQE_CONGESTION;
-			break;
-		case CBSS_QLIMIT_REACHED:
-			STAT(mesq_noop_qlimit_reached);
-			ret = 0;
-			break;
-		case CBSS_AMO_NACKED:
-			STAT(mesq_noop_amo_nacked);
-			ret = MQE_CONGESTION;
-			break;
-		case CBSS_PUT_NACKED:
-			STAT(mesq_noop_put_nacked);
-			m = mqd->mq_gpa + (gru_get_amo_value_head(cb) << 6);
-			gru_vstore(cb, m, gru_get_tri(mesg), XTYPE_CL, 1, 1,
-						IMA);
-			if (gru_wait(cb) == CBS_IDLE)
-				ret = MQIE_AGAIN;
-			else
+
+		switch (substatus)
+		{
+			case CBSS_NO_ERROR:
+				STAT(mesq_noop_unexpected_error);
 				ret = MQE_UNEXPECTED_CB_ERR;
-			break;
-		case CBSS_PAGE_OVERFLOW:
-			STAT(mesq_noop_page_overflow);
+				break;
+
+			case CBSS_LB_OVERFLOWED:
+				STAT(mesq_noop_lb_overflow);
+				ret = MQE_CONGESTION;
+				break;
+
+			case CBSS_QLIMIT_REACHED:
+				STAT(mesq_noop_qlimit_reached);
+				ret = 0;
+				break;
+
+			case CBSS_AMO_NACKED:
+				STAT(mesq_noop_amo_nacked);
+				ret = MQE_CONGESTION;
+				break;
+
+			case CBSS_PUT_NACKED:
+				STAT(mesq_noop_put_nacked);
+				m = mqd->mq_gpa + (gru_get_amo_value_head(cb) << 6);
+				gru_vstore(cb, m, gru_get_tri(mesg), XTYPE_CL, 1, 1,
+						   IMA);
+
+				if (gru_wait(cb) == CBS_IDLE)
+				{
+					ret = MQIE_AGAIN;
+				}
+				else
+				{
+					ret = MQE_UNEXPECTED_CB_ERR;
+				}
+
+				break;
+
+			case CBSS_PAGE_OVERFLOW:
+				STAT(mesq_noop_page_overflow);
+
 			/* fallthru */
-		default:
-			BUG();
+			default:
+				BUG();
 		}
 	}
+
 	*mhdr = save_mhdr;
 	return ret;
 }
@@ -647,7 +755,7 @@ static int send_noop_message(void *cb, struct gru_message_queue_desc *mqd,
  * Handle a gru_mesq full.
  */
 static int send_message_queue_full(void *cb, struct gru_message_queue_desc *mqd,
-				void *mesg, int lines)
+								   void *mesg, int lines)
 {
 	union gru_mesqhead mqh;
 	unsigned int limit, head;
@@ -663,46 +771,70 @@ static int send_message_queue_full(void *cb, struct gru_message_queue_desc *mqd,
 	half = (limit != qlines);
 
 	if (half)
+	{
 		mqh = gru_mesq_head(qlines / 2 + 1, qlines);
+	}
 	else
+	{
 		mqh = gru_mesq_head(2, qlines / 2 + 1);
+	}
 
 	/* Try to get lock for switching head pointer */
 	gru_gamir(cb, EOP_IR_CLR, HSTATUS(mqd->mq_gpa, half), XTYPE_DW, IMA);
+
 	if (gru_wait(cb) != CBS_IDLE)
+	{
 		goto cberr;
-	if (!gru_get_amo_value(cb)) {
+	}
+
+	if (!gru_get_amo_value(cb))
+	{
 		STAT(mesq_qf_locked);
 		return MQE_QUEUE_FULL;
 	}
 
 	/* Got the lock. Send optional NOP if queue not full, */
-	if (head != limit) {
-		if (send_noop_message(cb, mqd, mesg)) {
+	if (head != limit)
+	{
+		if (send_noop_message(cb, mqd, mesg))
+		{
 			gru_gamir(cb, EOP_IR_INC, HSTATUS(mqd->mq_gpa, half),
-					XTYPE_DW, IMA);
+					  XTYPE_DW, IMA);
+
 			if (gru_wait(cb) != CBS_IDLE)
+			{
 				goto cberr;
+			}
+
 			STAT(mesq_qf_noop_not_full);
 			return MQIE_AGAIN;
 		}
+
 		avalue++;
 	}
 
 	/* Then flip queuehead to other half of queue. */
 	gru_gamer(cb, EOP_ERR_CSWAP, mqd->mq_gpa, XTYPE_DW, mqh.val, avalue,
-							IMA);
+			  IMA);
+
 	if (gru_wait(cb) != CBS_IDLE)
+	{
 		goto cberr;
+	}
 
 	/* If not successfully in swapping queue head, clear the hstatus lock */
-	if (gru_get_amo_value(cb) != avalue) {
+	if (gru_get_amo_value(cb) != avalue)
+	{
 		STAT(mesq_qf_switch_head_failed);
 		gru_gamir(cb, EOP_IR_INC, HSTATUS(mqd->mq_gpa, half), XTYPE_DW,
-							IMA);
+				  IMA);
+
 		if (gru_wait(cb) != CBS_IDLE)
+		{
 			goto cberr;
+		}
 	}
+
 	return MQIE_AGAIN;
 cberr:
 	STAT(mesq_qf_unexpected_error);
@@ -716,23 +848,34 @@ cberr:
  * from prematurely seeing the full message.
  */
 static int send_message_put_nacked(void *cb, struct gru_message_queue_desc *mqd,
-			void *mesg, int lines)
+								   void *mesg, int lines)
 {
 	unsigned long m;
 	int ret, loops = 200;	/* experimentally determined */
 
 	m = mqd->mq_gpa + (gru_get_amo_value_head(cb) << 6);
-	if (lines == 2) {
+
+	if (lines == 2)
+	{
 		gru_vset(cb, m, 0, XTYPE_CL, lines, 1, IMA);
+
 		if (gru_wait(cb) != CBS_IDLE)
+		{
 			return MQE_UNEXPECTED_CB_ERR;
+		}
 	}
+
 	gru_vstore(cb, m, gru_get_tri(mesg), XTYPE_CL, lines, 1, IMA);
+
 	if (gru_wait(cb) != CBS_IDLE)
+	{
 		return MQE_UNEXPECTED_CB_ERR;
+	}
 
 	if (!mqd->interrupt_vector)
+	{
 		return MQE_OK;
+	}
 
 	/*
 	 * Send a noop message in order to deliver a cross-partition interrupt
@@ -742,11 +885,14 @@ static int send_message_put_nacked(void *cb, struct gru_message_queue_desc *mqd,
 	 * The noop message will trigger delivery. Otherwise partition failures
 	 * could cause unrecovered errors.
 	 */
-	do {
+	do
+	{
 		ret = send_noop_message(cb, mqd, mesg);
-	} while ((ret == MQIE_AGAIN || ret == MQE_CONGESTION) && (loops-- > 0));
+	}
+	while ((ret == MQIE_AGAIN || ret == MQE_CONGESTION) && (loops-- > 0));
 
-	if (ret == MQIE_AGAIN || ret == MQE_CONGESTION) {
+	if (ret == MQIE_AGAIN || ret == MQE_CONGESTION)
+	{
 		/*
 		 * Don't indicate to the app to resend the message, as it's
 		 * already been successfully sent.  We simply send an OK
@@ -756,6 +902,7 @@ static int send_message_put_nacked(void *cb, struct gru_message_queue_desc *mqd,
 		 */
 		ret = MQE_OK;
 	}
+
 	return ret;
 }
 
@@ -764,38 +911,47 @@ static int send_message_put_nacked(void *cb, struct gru_message_queue_desc *mqd,
  * or retryable.
  */
 static int send_message_failure(void *cb, struct gru_message_queue_desc *mqd,
-				void *mesg, int lines)
+								void *mesg, int lines)
 {
 	int substatus, ret = 0;
 
 	substatus = gru_get_cb_message_queue_substatus(cb);
-	switch (substatus) {
-	case CBSS_NO_ERROR:
-		STAT(mesq_send_unexpected_error);
-		ret = MQE_UNEXPECTED_CB_ERR;
-		break;
-	case CBSS_LB_OVERFLOWED:
-		STAT(mesq_send_lb_overflow);
-		ret = MQE_CONGESTION;
-		break;
-	case CBSS_QLIMIT_REACHED:
-		STAT(mesq_send_qlimit_reached);
-		ret = send_message_queue_full(cb, mqd, mesg, lines);
-		break;
-	case CBSS_AMO_NACKED:
-		STAT(mesq_send_amo_nacked);
-		ret = MQE_CONGESTION;
-		break;
-	case CBSS_PUT_NACKED:
-		STAT(mesq_send_put_nacked);
-		ret = send_message_put_nacked(cb, mqd, mesg, lines);
-		break;
-	case CBSS_PAGE_OVERFLOW:
-		STAT(mesq_page_overflow);
+
+	switch (substatus)
+	{
+		case CBSS_NO_ERROR:
+			STAT(mesq_send_unexpected_error);
+			ret = MQE_UNEXPECTED_CB_ERR;
+			break;
+
+		case CBSS_LB_OVERFLOWED:
+			STAT(mesq_send_lb_overflow);
+			ret = MQE_CONGESTION;
+			break;
+
+		case CBSS_QLIMIT_REACHED:
+			STAT(mesq_send_qlimit_reached);
+			ret = send_message_queue_full(cb, mqd, mesg, lines);
+			break;
+
+		case CBSS_AMO_NACKED:
+			STAT(mesq_send_amo_nacked);
+			ret = MQE_CONGESTION;
+			break;
+
+		case CBSS_PUT_NACKED:
+			STAT(mesq_send_put_nacked);
+			ret = send_message_put_nacked(cb, mqd, mesg, lines);
+			break;
+
+		case CBSS_PAGE_OVERFLOW:
+			STAT(mesq_page_overflow);
+
 		/* fallthru */
-	default:
-		BUG();
+		default:
+			BUG();
 	}
+
 	return ret;
 }
 
@@ -806,7 +962,7 @@ static int send_message_failure(void *cb, struct gru_message_queue_desc *mqd,
  * 	bytes	message size (<= 2 CL)
  */
 int gru_send_message_gpa(struct gru_message_queue_desc *mqd, void *mesg,
-				unsigned int bytes)
+						 unsigned int bytes)
 {
 	struct message_header *mhdr;
 	void *cb;
@@ -817,28 +973,43 @@ int gru_send_message_gpa(struct gru_message_queue_desc *mqd, void *mesg,
 	BUG_ON(bytes < sizeof(int) || bytes > 2 * GRU_CACHE_LINE_BYTES);
 
 	clines = DIV_ROUND_UP(bytes, GRU_CACHE_LINE_BYTES);
+
 	if (gru_get_cpu_resources(bytes, &cb, &dsr))
+	{
 		return MQE_BUG_NO_RESOURCES;
+	}
+
 	memcpy(dsr, mesg, bytes);
 	mhdr = dsr;
 	mhdr->present = MQS_FULL;
 	mhdr->lines = clines;
-	if (clines == 2) {
+
+	if (clines == 2)
+	{
 		mhdr->present2 = get_present2(mhdr);
 		restore_present2(mhdr, MQS_FULL);
 	}
 
-	do {
+	do
+	{
 		ret = MQE_OK;
 		gru_mesq(cb, mqd->mq_gpa, gru_get_tri(mhdr), clines, IMA);
 		istatus = gru_wait(cb);
+
 		if (istatus != CBS_IDLE)
+		{
 			ret = send_message_failure(cb, mqd, dsr, clines);
-	} while (ret == MQIE_AGAIN);
+		}
+	}
+	while (ret == MQIE_AGAIN);
+
 	gru_free_cpu_resources(cb, dsr);
 
 	if (ret)
+	{
 		STAT(mesq_send_failed);
+	}
+
 	return ret;
 }
 EXPORT_SYMBOL_GPL(gru_send_message_gpa);
@@ -855,20 +1026,30 @@ void gru_free_message(struct gru_message_queue_desc *mqd, void *mesg)
 	int lines = mhdr->lines;
 
 	if (lines == 2)
+	{
 		restore_present2(mhdr, MQS_EMPTY);
+	}
+
 	mhdr->present = MQS_EMPTY;
 
 	pnext = mq->next;
 	next = pnext + GRU_CACHE_LINE_BYTES * lines;
-	if (next == mq->limit) {
+
+	if (next == mq->limit)
+	{
 		next = mq->start;
 		half = 1;
-	} else if (pnext < mq->start2 && next >= mq->start2) {
+	}
+	else if (pnext < mq->start2 && next >= mq->start2)
+	{
 		half = 0;
 	}
 
 	if (half >= 0)
+	{
 		mq->hstatus[half] = 1;
+	}
+
 	mq->next = next;
 }
 EXPORT_SYMBOL_GPL(gru_free_message);
@@ -885,7 +1066,8 @@ void *gru_get_next_message(struct gru_message_queue_desc *mqd)
 	int present = mhdr->present;
 
 	/* skip NOOP messages */
-	while (present == MQS_NOOP) {
+	while (present == MQS_NOOP)
+	{
 		gru_free_message(mqd, mhdr);
 		mhdr = mq->next;
 		present = mhdr->present;
@@ -893,16 +1075,21 @@ void *gru_get_next_message(struct gru_message_queue_desc *mqd)
 
 	/* Wait for both halves of 2 line messages */
 	if (present == MQS_FULL && mhdr->lines == 2 &&
-				get_present2(mhdr) == MQS_EMPTY)
+		get_present2(mhdr) == MQS_EMPTY)
+	{
 		present = MQS_EMPTY;
+	}
 
-	if (!present) {
+	if (!present)
+	{
 		STAT(mesq_receive_none);
 		return NULL;
 	}
 
 	if (mhdr->lines == 2)
+	{
 		restore_present2(mhdr, mhdr->present2);
+	}
 
 	STAT(mesq_receive);
 	return mhdr;
@@ -921,13 +1108,21 @@ int gru_read_gpa(unsigned long *value, unsigned long gpa)
 	int ret, iaa;
 
 	STAT(read_gpa);
+
 	if (gru_get_cpu_resources(GRU_NUM_KERNEL_DSR_BYTES, &cb, &dsr))
+	{
 		return MQE_BUG_NO_RESOURCES;
+	}
+
 	iaa = gpa >> 62;
 	gru_vload_phys(cb, gpa, gru_get_tri(dsr), iaa, IMA);
 	ret = gru_wait(cb);
+
 	if (ret == CBS_IDLE)
+	{
 		*value = *(unsigned long *)dsr;
+	}
+
 	gru_free_cpu_resources(cb, dsr);
 	return ret;
 }
@@ -938,17 +1133,21 @@ EXPORT_SYMBOL_GPL(gru_read_gpa);
  * Copy a block of data using the GRU resources
  */
 int gru_copy_gpa(unsigned long dest_gpa, unsigned long src_gpa,
-				unsigned int bytes)
+				 unsigned int bytes)
 {
 	void *cb;
 	void *dsr;
 	int ret;
 
 	STAT(copy_gpa);
+
 	if (gru_get_cpu_resources(GRU_NUM_KERNEL_DSR_BYTES, &cb, &dsr))
+	{
 		return MQE_BUG_NO_RESOURCES;
+	}
+
 	gru_bcopy(cb, src_gpa, dest_gpa, gru_get_tri(dsr),
-		  XTYPE_B, bytes, GRU_NUM_KERNEL_DSR_CL, IMA);
+			  XTYPE_B, bytes, GRU_NUM_KERNEL_DSR_CL, IMA);
 	ret = gru_wait(cb);
 	gru_free_cpu_resources(cb, dsr);
 	return ret;
@@ -968,33 +1167,44 @@ static int quicktest0(unsigned long arg)
 	int ret = -EIO;
 
 	if (gru_get_cpu_resources(GRU_CACHE_LINE_BYTES, &cb, &dsr))
+	{
 		return MQE_BUG_NO_RESOURCES;
+	}
+
 	p = dsr;
 	word0 = MAGIC;
 	word1 = 0;
 
 	gru_vload(cb, uv_gpa(&word0), gru_get_tri(dsr), XTYPE_DW, 1, 1, IMA);
-	if (gru_wait(cb) != CBS_IDLE) {
+
+	if (gru_wait(cb) != CBS_IDLE)
+	{
 		printk(KERN_DEBUG "GRU:%d quicktest0: CBR failure 1\n", smp_processor_id());
 		goto done;
 	}
 
-	if (*p != MAGIC) {
+	if (*p != MAGIC)
+	{
 		printk(KERN_DEBUG "GRU:%d quicktest0 bad magic 0x%lx\n", smp_processor_id(), *p);
 		goto done;
 	}
+
 	gru_vstore(cb, uv_gpa(&word1), gru_get_tri(dsr), XTYPE_DW, 1, 1, IMA);
-	if (gru_wait(cb) != CBS_IDLE) {
+
+	if (gru_wait(cb) != CBS_IDLE)
+	{
 		printk(KERN_DEBUG "GRU:%d quicktest0: CBR failure 2\n", smp_processor_id());
 		goto done;
 	}
 
-	if (word0 != word1 || word1 != MAGIC) {
+	if (word0 != word1 || word1 != MAGIC)
+	{
 		printk(KERN_DEBUG
-		       "GRU:%d quicktest0 err: found 0x%lx, expected 0x%lx\n",
-		     smp_processor_id(), word1, MAGIC);
+			   "GRU:%d quicktest0 err: found 0x%lx, expected 0x%lx\n",
+			   smp_processor_id(), word1, MAGIC);
 		goto done;
 	}
+
 	ret = 0;
 
 done:
@@ -1013,37 +1223,59 @@ static int quicktest1(unsigned long arg)
 
 	/* Need  1K cacheline aligned that does not cross page boundary */
 	p = kmalloc(4096, 0);
+
 	if (p == NULL)
+	{
 		return -ENOMEM;
+	}
+
 	mq = ALIGNUP(p, 1024);
 	memset(mes, 0xee, sizeof(mes));
 
 	gru_create_message_queue(&mqd, mq, 8 * GRU_CACHE_LINE_BYTES, 0, 0, 0);
-	for (i = 0; i < 6; i++) {
+
+	for (i = 0; i < 6; i++)
+	{
 		mes[8] = i;
-		do {
+
+		do
+		{
 			ret = gru_send_message_gpa(&mqd, mes, sizeof(mes));
-		} while (ret == MQE_CONGESTION);
+		}
+		while (ret == MQE_CONGESTION);
+
 		if (ret)
+		{
 			break;
+		}
 	}
-	if (ret != MQE_QUEUE_FULL || i != 4) {
+
+	if (ret != MQE_QUEUE_FULL || i != 4)
+	{
 		printk(KERN_DEBUG "GRU:%d quicktest1: unexpect status %d, i %d\n",
-		       smp_processor_id(), ret, i);
+			   smp_processor_id(), ret, i);
 		goto done;
 	}
 
-	for (i = 0; i < 6; i++) {
+	for (i = 0; i < 6; i++)
+	{
 		m = gru_get_next_message(&mqd);
+
 		if (!m || m[8] != i)
+		{
 			break;
+		}
+
 		gru_free_message(&mqd, m);
 	}
-	if (i != 4) {
+
+	if (i != 4)
+	{
 		printk(KERN_DEBUG "GRU:%d quicktest2: bad message, i %d, m %p, m8 %d\n",
-			smp_processor_id(), i, m, m ? m[8] : -1);
+			   smp_processor_id(), i, m, m ? m[8] : -1);
 		goto done;
 	}
+
 	ret = 0;
 
 done:
@@ -1065,45 +1297,69 @@ static int quicktest2(unsigned long arg)
 
 	bytes = numcb * 4 * 8;
 	buf = kmalloc(bytes, GFP_KERNEL);
+
 	if (!buf)
+	{
 		return -ENOMEM;
+	}
 
 	ret = -EBUSY;
 	han = gru_reserve_async_resources(blade_id, numcb, 0, &cmp);
+
 	if (!han)
+	{
 		goto done;
+	}
 
 	gru_lock_async_resource(han, &cb0, NULL);
 	memset(buf, 0xee, bytes);
+
 	for (i = 0; i < numcb; i++)
 		gru_vset(cb0 + i * GRU_HANDLE_STRIDE, uv_gpa(&buf[i * 4]), 0,
-				XTYPE_DW, 4, 1, IMA_INTERRUPT);
+				 XTYPE_DW, 4, 1, IMA_INTERRUPT);
 
 	ret = 0;
 	k = numcb;
-	do {
+
+	do
+	{
 		gru_wait_async_cbr(han);
-		for (i = 0; i < numcb; i++) {
+
+		for (i = 0; i < numcb; i++)
+		{
 			cb = cb0 + i * GRU_HANDLE_STRIDE;
 			istatus = gru_check_status(cb);
+
 			if (istatus != CBS_ACTIVE && istatus != CBS_CALL_OS)
+			{
 				break;
+			}
 		}
+
 		if (i == numcb)
+		{
 			continue;
-		if (istatus != CBS_IDLE) {
+		}
+
+		if (istatus != CBS_IDLE)
+		{
 			printk(KERN_DEBUG "GRU:%d quicktest2: cb %d, exception\n", smp_processor_id(), i);
 			ret = -EFAULT;
-		} else if (buf[4 * i] || buf[4 * i + 1] || buf[4 * i + 2] ||
-				buf[4 * i + 3]) {
+		}
+		else if (buf[4 * i] || buf[4 * i + 1] || buf[4 * i + 2] ||
+				 buf[4 * i + 3])
+		{
 			printk(KERN_DEBUG "GRU:%d quicktest2:cb %d,  buf 0x%lx, 0x%lx, 0x%lx, 0x%lx\n",
-			       smp_processor_id(), i, buf[4 * i], buf[4 * i + 1], buf[4 * i + 2], buf[4 * i + 3]);
+				   smp_processor_id(), i, buf[4 * i], buf[4 * i + 1], buf[4 * i + 2], buf[4 * i + 3]);
 			ret = -EIO;
 		}
+
 		k--;
 		gen = cb;
 		gen->istatus = CBS_CALL_OS; /* don't handle this CBR again */
-	} while (k);
+	}
+	while (k);
+
 	BUG_ON(cmp.done);
 
 	gru_unlock_async_resource(han);
@@ -1122,10 +1378,13 @@ static int quicktest3(unsigned long arg)
 	memset(buf2, 0, sizeof(buf2));
 	memset(buf1, get_cycles() & 255, sizeof(buf1));
 	gru_copy_gpa(uv_gpa(buf2), uv_gpa(buf1), BUFSIZE);
-	if (memcmp(buf1, buf2, BUFSIZE)) {
+
+	if (memcmp(buf1, buf2, BUFSIZE))
+	{
 		printk(KERN_DEBUG "GRU:%d quicktest3 error\n", smp_processor_id());
 		ret = -EIO;
 	}
+
 	return ret;
 }
 
@@ -1137,23 +1396,29 @@ int gru_ktest(unsigned long arg)
 {
 	int ret = -EINVAL;
 
-	switch (arg & 0xff) {
-	case 0:
-		ret = quicktest0(arg);
-		break;
-	case 1:
-		ret = quicktest1(arg);
-		break;
-	case 2:
-		ret = quicktest2(arg);
-		break;
-	case 3:
-		ret = quicktest3(arg);
-		break;
-	case 99:
-		ret = gru_free_kernel_contexts();
-		break;
+	switch (arg & 0xff)
+	{
+		case 0:
+			ret = quicktest0(arg);
+			break;
+
+		case 1:
+			ret = quicktest1(arg);
+			break;
+
+		case 2:
+			ret = quicktest2(arg);
+			break;
+
+		case 3:
+			ret = quicktest3(arg);
+			break;
+
+		case 99:
+			ret = gru_free_kernel_contexts();
+			break;
 	}
+
 	return ret;
 
 }
@@ -1166,6 +1431,8 @@ int gru_kservices_init(void)
 void gru_kservices_exit(void)
 {
 	if (gru_free_kernel_contexts())
+	{
 		BUG();
+	}
 }
 

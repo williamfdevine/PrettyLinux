@@ -49,7 +49,8 @@ MODULE_LICENSE("GPL");
  * Per-touchscreen data.
  */
 
-struct gunze {
+struct gunze
+{
 	struct input_dev *dev;
 	struct serio *serio;
 	int idx;
@@ -57,12 +58,13 @@ struct gunze {
 	char phys[32];
 };
 
-static void gunze_process_packet(struct gunze* gunze)
+static void gunze_process_packet(struct gunze *gunze)
 {
 	struct input_dev *dev = gunze->dev;
 
 	if (gunze->idx != GUNZE_MAX_LENGTH || gunze->data[5] != ',' ||
-		(gunze->data[0] != 'T' && gunze->data[0] != 'R')) {
+		(gunze->data[0] != 'T' && gunze->data[0] != 'R'))
+	{
 		printk(KERN_WARNING "gunze.c: bad packet: >%.*s<\n", GUNZE_MAX_LENGTH, gunze->data);
 		return;
 	}
@@ -74,17 +76,23 @@ static void gunze_process_packet(struct gunze* gunze)
 }
 
 static irqreturn_t gunze_interrupt(struct serio *serio,
-		unsigned char data, unsigned int flags)
+								   unsigned char data, unsigned int flags)
 {
-	struct gunze* gunze = serio_get_drvdata(serio);
+	struct gunze *gunze = serio_get_drvdata(serio);
 
-	if (data == '\r') {
+	if (data == '\r')
+	{
 		gunze_process_packet(gunze);
 		gunze->idx = 0;
-	} else {
-		if (gunze->idx < GUNZE_MAX_LENGTH)
-			gunze->data[gunze->idx++] = data;
 	}
+	else
+	{
+		if (gunze->idx < GUNZE_MAX_LENGTH)
+		{
+			gunze->data[gunze->idx++] = data;
+		}
+	}
+
 	return IRQ_HANDLED;
 }
 
@@ -118,7 +126,9 @@ static int gunze_connect(struct serio *serio, struct serio_driver *drv)
 
 	gunze = kzalloc(sizeof(struct gunze), GFP_KERNEL);
 	input_dev = input_allocate_device();
-	if (!gunze || !input_dev) {
+
+	if (!gunze || !input_dev)
+	{
 		err = -ENOMEM;
 		goto fail1;
 	}
@@ -142,18 +152,24 @@ static int gunze_connect(struct serio *serio, struct serio_driver *drv)
 	serio_set_drvdata(serio, gunze);
 
 	err = serio_open(serio, drv);
+
 	if (err)
+	{
 		goto fail2;
+	}
 
 	err = input_register_device(gunze->dev);
+
 	if (err)
+	{
 		goto fail3;
+	}
 
 	return 0;
 
- fail3:	serio_close(serio);
- fail2:	serio_set_drvdata(serio, NULL);
- fail1:	input_free_device(input_dev);
+fail3:	serio_close(serio);
+fail2:	serio_set_drvdata(serio, NULL);
+fail1:	input_free_device(input_dev);
 	kfree(gunze);
 	return err;
 }
@@ -162,7 +178,8 @@ static int gunze_connect(struct serio *serio, struct serio_driver *drv)
  * The serio driver structure.
  */
 
-static struct serio_device_id gunze_serio_ids[] = {
+static struct serio_device_id gunze_serio_ids[] =
+{
 	{
 		.type	= SERIO_RS232,
 		.proto	= SERIO_GUNZE,
@@ -174,7 +191,8 @@ static struct serio_device_id gunze_serio_ids[] = {
 
 MODULE_DEVICE_TABLE(serio, gunze_serio_ids);
 
-static struct serio_driver gunze_drv = {
+static struct serio_driver gunze_drv =
+{
 	.driver		= {
 		.name	= "gunze",
 	},

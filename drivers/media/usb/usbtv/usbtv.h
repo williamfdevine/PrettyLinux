@@ -61,7 +61,7 @@
 
 /* Chunk header. */
 #define USBTV_MAGIC_OK(chunk)	((be32_to_cpu(chunk[0]) & 0xff000000) \
-							== 0x88000000)
+								 == 0x88000000)
 #define USBTV_FRAME_ID(chunk)	((be32_to_cpu(chunk[0]) & 0x00ff0000) >> 16)
 #define USBTV_ODD(chunk)	((be32_to_cpu(chunk[0]) & 0x0000f000) >> 15)
 #define USBTV_CHUNK_NO(chunk)	(be32_to_cpu(chunk[0]) & 0x00000fff)
@@ -69,19 +69,22 @@
 #define USBTV_TV_STD  (V4L2_STD_525_60 | V4L2_STD_PAL)
 
 /* parameters for supported TV norms */
-struct usbtv_norm_params {
+struct usbtv_norm_params
+{
 	v4l2_std_id norm;
 	int cap_width, cap_height;
 };
 
 /* A single videobuf2 frame buffer. */
-struct usbtv_buf {
+struct usbtv_buf
+{
 	struct vb2_v4l2_buffer vb;
 	struct list_head list;
 };
 
 /* Per-device structure. */
-struct usbtv {
+struct usbtv
+{
 	struct device *dev;
 	struct usb_device *udev;
 
@@ -101,7 +104,8 @@ struct usbtv {
 	u32 frame_id;
 	int chunks_done;
 
-	enum {
+	enum
+	{
 		USBTV_COMPOSITE_INPUT,
 		USBTV_SVIDEO_INPUT,
 	} input;

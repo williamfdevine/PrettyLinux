@@ -4,7 +4,8 @@
 #include <linux/types.h>
 #include <linux/netfilter.h>
 
-enum ip_conntrack_dir {
+enum ip_conntrack_dir
+{
 	IP_CT_DIR_ORIGINAL,
 	IP_CT_DIR_REPLY,
 	IP_CT_DIR_MAX
@@ -13,26 +14,33 @@ enum ip_conntrack_dir {
 /* The protocol-specific manipulable parts of the tuple: always in
  * network order
  */
-union nf_conntrack_man_proto {
+union nf_conntrack_man_proto
+{
 	/* Add other protocols here. */
 	__be16 all;
 
-	struct {
+	struct
+	{
 		__be16 port;
 	} tcp;
-	struct {
+	struct
+	{
 		__be16 port;
 	} udp;
-	struct {
+	struct
+	{
 		__be16 id;
 	} icmp;
-	struct {
+	struct
+	{
 		__be16 port;
 	} dccp;
-	struct {
+	struct
+	{
 		__be16 port;
 	} sctp;
-	struct {
+	struct
+	{
 		__be16 key;	/* GRE key is 32bit, PPtP only uses 16bit */
 	} gre;
 };

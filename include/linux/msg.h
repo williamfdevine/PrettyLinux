@@ -5,7 +5,8 @@
 #include <uapi/linux/msg.h>
 
 /* one msg_msg structure for each message */
-struct msg_msg {
+struct msg_msg
+{
 	struct list_head m_list;
 	long m_type;
 	size_t m_ts;		/* message text size */
@@ -15,7 +16,8 @@ struct msg_msg {
 };
 
 /* one msq_queue structure for each present queue on the system */
-struct msg_queue {
+struct msg_queue
+{
 	struct kern_ipc_perm q_perm;
 	time_t q_stime;			/* last msgsnd time */
 	time_t q_rtime;			/* last msgrcv time */
@@ -33,10 +35,10 @@ struct msg_queue {
 
 /* Helper routines for sys_msgsnd and sys_msgrcv */
 extern long do_msgsnd(int msqid, long mtype, void __user *mtext,
-			size_t msgsz, int msgflg);
+					  size_t msgsz, int msgflg);
 extern long do_msgrcv(int msqid, void __user *buf, size_t bufsz, long msgtyp,
-		      int msgflg,
-		      long (*msg_fill)(void __user *, struct msg_msg *,
-				       size_t));
+					  int msgflg,
+					  long (*msg_fill)(void __user *, struct msg_msg *,
+									   size_t));
 
 #endif /* _LINUX_MSG_H */

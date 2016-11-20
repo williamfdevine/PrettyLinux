@@ -2,7 +2,7 @@
 #define _UFS_UFS_H 1
 
 #ifdef pr_fmt
-#undef pr_fmt
+	#undef pr_fmt
 #endif
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
@@ -14,13 +14,14 @@ struct ufs_sb_private_info;
 struct ufs_cg_private_info;
 struct ufs_csum;
 
-struct ufs_sb_info {
-	struct ufs_sb_private_info * s_uspi;
-	struct ufs_csum	* s_csp;
+struct ufs_sb_info
+{
+	struct ufs_sb_private_info *s_uspi;
+	struct ufs_csum	 *s_csp;
 	unsigned s_bytesex;
 	unsigned s_flags;
-	struct buffer_head ** s_ucg;
-	struct ufs_cg_private_info * s_ucpi[UFS_MAX_GROUP_LOADED];
+	struct buffer_head **s_ucg;
+	struct ufs_cg_private_info *s_ucpi[UFS_MAX_GROUP_LOADED];
 	unsigned s_cgno[UFS_MAX_GROUP_LOADED];
 	unsigned short s_cg_loaded;
 	unsigned s_mount_opt;
@@ -31,8 +32,10 @@ struct ufs_sb_info {
 	struct mutex s_lock;
 };
 
-struct ufs_inode_info {
-	union {
+struct ufs_inode_info
+{
+	union
+	{
 		__fs32	i_data[15];
 		__u8	i_symlink[2 * 4 * 15];
 		__fs64	u2_i_data[15];
@@ -79,7 +82,7 @@ struct ufs_inode_info {
 #ifdef CONFIG_UFS_DEBUG
 #	define UFSD(f, a...)	{					\
 		pr_debug("UFSD (%s, %d): %s:",				\
-			__FILE__, __LINE__, __func__);		\
+				 __FILE__, __LINE__, __func__);		\
 		pr_debug(f, ## a);					\
 	}
 #else
@@ -90,10 +93,10 @@ struct ufs_inode_info {
 extern void ufs_free_fragments (struct inode *, u64, unsigned);
 extern void ufs_free_blocks (struct inode *, u64, unsigned);
 extern u64 ufs_new_fragments(struct inode *, void *, u64, u64,
-			     unsigned, int *, struct page *);
+							 unsigned, int *, struct page *);
 
 /* cylinder.c */
-extern struct ufs_cg_private_info * ufs_load_cylinder (struct super_block *, unsigned);
+extern struct ufs_cg_private_info *ufs_load_cylinder (struct super_block *, unsigned);
 extern void ufs_put_cylinder (struct super_block *, unsigned);
 
 /* dir.c */
@@ -106,7 +109,7 @@ extern int ufs_delete_entry(struct inode *, struct ufs_dir_entry *, struct page 
 extern int ufs_empty_dir (struct inode *);
 extern struct ufs_dir_entry *ufs_dotdot(struct inode *, struct page **);
 extern void ufs_set_link(struct inode *dir, struct ufs_dir_entry *de,
-			 struct page *page, struct inode *inode, bool update_times);
+						 struct page *page, struct inode *inode, bool update_times);
 
 /* file.c */
 extern const struct inode_operations ufs_file_inode_operations;
@@ -115,7 +118,7 @@ extern const struct address_space_operations ufs_aops;
 
 /* ialloc.c */
 extern void ufs_free_inode (struct inode *inode);
-extern struct inode * ufs_new_inode (struct inode *, umode_t);
+extern struct inode *ufs_new_inode (struct inode *, umode_t);
 
 /* inode.c */
 extern struct inode *ufs_iget(struct super_block *, unsigned long);
@@ -151,13 +154,13 @@ static inline struct ufs_inode_info *UFS_I(struct inode *inode)
  * Give cylinder group block number for a file system block.
  */
 /* #define	ufs_dtog(d)	((d) / uspi->s_fpg) */
-static inline u64 ufs_dtog(struct ufs_sb_private_info * uspi, u64 b)
+static inline u64 ufs_dtog(struct ufs_sb_private_info *uspi, u64 b)
 {
 	do_div(b, uspi->s_fpg);
 	return b;
 }
 /* #define	ufs_dtogd(d)	((d) % uspi->s_fpg) */
-static inline u32 ufs_dtogd(struct ufs_sb_private_info * uspi, u64 b)
+static inline u32 ufs_dtogd(struct ufs_sb_private_info *uspi, u64 b)
 {
 	return do_div(b, uspi->s_fpg);
 }

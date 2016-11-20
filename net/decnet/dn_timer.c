@@ -53,7 +53,8 @@ static void dn_slow_timer(unsigned long arg)
 
 	bh_lock_sock(sk);
 
-	if (sock_owned_by_user(sk)) {
+	if (sock_owned_by_user(sk))
+	{
 		sk_reset_timer(sk, &sk->sk_timer, jiffies + HZ / 10);
 		goto out;
 	}
@@ -69,13 +70,19 @@ static void dn_slow_timer(unsigned long arg)
 	 * sock_hold()/sock_put() around the timer to prevent the socket
 	 * going away in the middle.
 	 */
-	if (scp->persist && scp->persist_fxn) {
-		if (scp->persist <= SLOW_INTERVAL) {
+	if (scp->persist && scp->persist_fxn)
+	{
+		if (scp->persist <= SLOW_INTERVAL)
+		{
 			scp->persist = 0;
 
 			if (scp->persist_fxn(sk))
+			{
 				goto out;
-		} else {
+			}
+		}
+		else
+		{
 			scp->persist -= SLOW_INTERVAL;
 		}
 	}
@@ -91,9 +98,12 @@ static void dn_slow_timer(unsigned long arg)
 	 * we won't try and send another until scp->keepalive has passed
 	 * since the last successful transmission.
 	 */
-	if (scp->keepalive && scp->keepalive_fxn && (scp->state == DN_RUN)) {
+	if (scp->keepalive && scp->keepalive_fxn && (scp->state == DN_RUN))
+	{
 		if (time_after_eq(jiffies, scp->stamp + scp->keepalive))
+		{
 			scp->keepalive_fxn(sk);
+		}
 	}
 
 	sk_reset_timer(sk, &sk->sk_timer, jiffies + SLOW_INTERVAL);

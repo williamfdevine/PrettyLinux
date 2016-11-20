@@ -43,17 +43,21 @@ static DEFINE_MUTEX(ip_vs_sched_mutex);
  *  Bind a service with a scheduler
  */
 int ip_vs_bind_scheduler(struct ip_vs_service *svc,
-			 struct ip_vs_scheduler *scheduler)
+						 struct ip_vs_scheduler *scheduler)
 {
 	int ret;
 
-	if (scheduler->init_service) {
+	if (scheduler->init_service)
+	{
 		ret = scheduler->init_service(svc);
-		if (ret) {
+
+		if (ret)
+		{
 			pr_err("%s(): init error\n", __func__);
 			return ret;
 		}
 	}
+
 	rcu_assign_pointer(svc->scheduler, scheduler);
 	return 0;
 }
@@ -63,17 +67,23 @@ int ip_vs_bind_scheduler(struct ip_vs_service *svc,
  *  Unbind a service with its scheduler
  */
 void ip_vs_unbind_scheduler(struct ip_vs_service *svc,
-			    struct ip_vs_scheduler *sched)
+							struct ip_vs_scheduler *sched)
 {
 	struct ip_vs_scheduler *cur_sched;
 
 	cur_sched = rcu_dereference_protected(svc->scheduler, 1);
+
 	/* This check proves that old 'sched' was installed */
 	if (!cur_sched)
+	{
 		return;
+	}
 
 	if (sched->done_service)
+	{
 		sched->done_service(svc);
+	}
+
 	/* svc->scheduler can be set to NULL only by caller */
 }
 
@@ -89,21 +99,26 @@ static struct ip_vs_scheduler *ip_vs_sched_getbyname(const char *sched_name)
 
 	mutex_lock(&ip_vs_sched_mutex);
 
-	list_for_each_entry(sched, &ip_vs_schedulers, n_list) {
+	list_for_each_entry(sched, &ip_vs_schedulers, n_list)
+	{
 		/*
 		 * Test and get the modules atomically
 		 */
-		if (sched->module && !try_module_get(sched->module)) {
+		if (sched->module && !try_module_get(sched->module))
+		{
 			/*
 			 * This scheduler is just deleted
 			 */
 			continue;
 		}
-		if (strcmp(sched_name, sched->name)==0) {
+
+		if (strcmp(sched_name, sched->name) == 0)
+		{
 			/* HIT */
 			mutex_unlock(&ip_vs_sched_mutex);
 			return sched;
 		}
+
 		module_put(sched->module);
 	}
 
@@ -127,7 +142,8 @@ struct ip_vs_scheduler *ip_vs_scheduler_get(const char *sched_name)
 	/*
 	 *  If scheduler not found, load the module and search again
 	 */
-	if (sched == NULL) {
+	if (sched == NULL)
+	{
 		request_module("ip_vs_%s", sched_name);
 		sched = ip_vs_sched_getbyname(sched_name);
 	}
@@ -138,7 +154,9 @@ struct ip_vs_scheduler *ip_vs_scheduler_get(const char *sched_name)
 void ip_vs_scheduler_put(struct ip_vs_scheduler *scheduler)
 {
 	if (scheduler)
+	{
 		module_put(scheduler->module);
+	}
 }
 
 /*
@@ -150,19 +168,24 @@ void ip_vs_scheduler_err(struct ip_vs_service *svc, const char *msg)
 	struct ip_vs_scheduler *sched = rcu_dereference(svc->scheduler);
 	char *sched_name = sched ? sched->name : "none";
 
-	if (svc->fwmark) {
+	if (svc->fwmark)
+	{
 		IP_VS_ERR_RL("%s: FWM %u 0x%08X - %s\n",
-			     sched_name, svc->fwmark, svc->fwmark, msg);
+					 sched_name, svc->fwmark, svc->fwmark, msg);
 #ifdef CONFIG_IP_VS_IPV6
-	} else if (svc->af == AF_INET6) {
+	}
+	else if (svc->af == AF_INET6)
+	{
 		IP_VS_ERR_RL("%s: %s [%pI6c]:%d - %s\n",
-			     sched_name, ip_vs_proto_name(svc->protocol),
-			     &svc->addr.in6, ntohs(svc->port), msg);
+					 sched_name, ip_vs_proto_name(svc->protocol),
+					 &svc->addr.in6, ntohs(svc->port), msg);
 #endif
-	} else {
+	}
+	else
+	{
 		IP_VS_ERR_RL("%s: %s %pI4:%d - %s\n",
-			     sched_name, ip_vs_proto_name(svc->protocol),
-			     &svc->addr.ip, ntohs(svc->port), msg);
+					 sched_name, ip_vs_proto_name(svc->protocol),
+					 &svc->addr.ip, ntohs(svc->port), msg);
 	}
 }
 
@@ -173,12 +196,14 @@ int register_ip_vs_scheduler(struct ip_vs_scheduler *scheduler)
 {
 	struct ip_vs_scheduler *sched;
 
-	if (!scheduler) {
+	if (!scheduler)
+	{
 		pr_err("%s(): NULL arg\n", __func__);
 		return -EINVAL;
 	}
 
-	if (!scheduler->name) {
+	if (!scheduler->name)
+	{
 		pr_err("%s(): NULL scheduler_name\n", __func__);
 		return -EINVAL;
 	}
@@ -188,11 +213,12 @@ int register_ip_vs_scheduler(struct ip_vs_scheduler *scheduler)
 
 	mutex_lock(&ip_vs_sched_mutex);
 
-	if (!list_empty(&scheduler->n_list)) {
+	if (!list_empty(&scheduler->n_list))
+	{
 		mutex_unlock(&ip_vs_sched_mutex);
 		ip_vs_use_count_dec();
 		pr_err("%s(): [%s] scheduler already linked\n",
-		       __func__, scheduler->name);
+			   __func__, scheduler->name);
 		return -EINVAL;
 	}
 
@@ -200,12 +226,14 @@ int register_ip_vs_scheduler(struct ip_vs_scheduler *scheduler)
 	 *  Make sure that the scheduler with this name doesn't exist
 	 *  in the scheduler list.
 	 */
-	list_for_each_entry(sched, &ip_vs_schedulers, n_list) {
-		if (strcmp(scheduler->name, sched->name) == 0) {
+	list_for_each_entry(sched, &ip_vs_schedulers, n_list)
+	{
+		if (strcmp(scheduler->name, sched->name) == 0)
+		{
 			mutex_unlock(&ip_vs_sched_mutex);
 			ip_vs_use_count_dec();
 			pr_err("%s(): [%s] scheduler already existed "
-			       "in the system\n", __func__, scheduler->name);
+				   "in the system\n", __func__, scheduler->name);
 			return -EINVAL;
 		}
 	}
@@ -226,16 +254,19 @@ int register_ip_vs_scheduler(struct ip_vs_scheduler *scheduler)
  */
 int unregister_ip_vs_scheduler(struct ip_vs_scheduler *scheduler)
 {
-	if (!scheduler) {
+	if (!scheduler)
+	{
 		pr_err("%s(): NULL arg\n", __func__);
 		return -EINVAL;
 	}
 
 	mutex_lock(&ip_vs_sched_mutex);
-	if (list_empty(&scheduler->n_list)) {
+
+	if (list_empty(&scheduler->n_list))
+	{
 		mutex_unlock(&ip_vs_sched_mutex);
 		pr_err("%s(): [%s] scheduler is not in the list. failed\n",
-		       __func__, scheduler->name);
+			   __func__, scheduler->name);
 		return -EINVAL;
 	}
 

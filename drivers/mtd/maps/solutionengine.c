@@ -19,19 +19,21 @@
 static struct mtd_info *flash_mtd;
 static struct mtd_info *eprom_mtd;
 
-struct map_info soleng_eprom_map = {
+struct map_info soleng_eprom_map =
+{
 	.name = "Solution Engine EPROM",
 	.size = 0x400000,
 	.bankwidth = 4,
 };
 
-struct map_info soleng_flash_map = {
+struct map_info soleng_flash_map =
+{
 	.name = "Solution Engine FLASH",
 	.size = 0x400000,
 	.bankwidth = 4,
 };
 
-static const char * const probes[] = { "RedBoot", "cmdlinepart", NULL };
+static const char *const probes[] = { "RedBoot", "cmdlinepart", NULL };
 
 static int __init init_soleng_maps(void)
 {
@@ -45,7 +47,9 @@ static int __init init_soleng_maps(void)
 
 	printk(KERN_NOTICE "Probing for flash chips at 0x00000000:\n");
 	flash_mtd = do_map_probe("cfi_probe", &soleng_flash_map);
-	if (!flash_mtd) {
+
+	if (!flash_mtd)
+	{
 		/* Not there. Try swapping */
 		printk(KERN_NOTICE "Probing for flash chips at 0x01000000:\n");
 		soleng_flash_map.phys = 0x01000000;
@@ -53,19 +57,24 @@ static int __init init_soleng_maps(void)
 		soleng_eprom_map.phys = 0;
 		soleng_eprom_map.virt = P1SEGADDR(0);
 		flash_mtd = do_map_probe("cfi_probe", &soleng_flash_map);
-		if (!flash_mtd) {
+
+		if (!flash_mtd)
+		{
 			/* Eep. */
 			printk(KERN_NOTICE "Flash chips not detected at either possible location.\n");
 			return -ENXIO;
 		}
 	}
+
 	printk(KERN_NOTICE "Solution Engine: Flash at 0x%08lx, EPROM at 0x%08lx\n",
-	       soleng_flash_map.phys & 0x1fffffff,
-	       soleng_eprom_map.phys & 0x1fffffff);
+		   soleng_flash_map.phys & 0x1fffffff,
+		   soleng_eprom_map.phys & 0x1fffffff);
 	flash_mtd->owner = THIS_MODULE;
 
 	eprom_mtd = do_map_probe("map_rom", &soleng_eprom_map);
-	if (eprom_mtd) {
+
+	if (eprom_mtd)
+	{
 		eprom_mtd->owner = THIS_MODULE;
 		mtd_device_register(eprom_mtd, NULL, 0);
 	}
@@ -77,7 +86,8 @@ static int __init init_soleng_maps(void)
 
 static void __exit cleanup_soleng_maps(void)
 {
-	if (eprom_mtd) {
+	if (eprom_mtd)
+	{
 		mtd_device_unregister(eprom_mtd);
 		map_destroy(eprom_mtd);
 	}

@@ -10,7 +10,8 @@
 #include <linux/ktime.h>
 #include <asm/local.h>
 
-struct rb_page {
+struct rb_page
+{
 	u64		ts;
 	local_t		commit;
 	char		data[4080];
@@ -70,7 +71,8 @@ static int test_error;
 		}				\
 	} while (0)
 
-enum event_status {
+enum event_status
+{
 	EVENT_FOUND,
 	EVENT_DROPPED,
 };
@@ -87,11 +89,16 @@ static enum event_status read_event(int cpu)
 	u64 ts;
 
 	event = ring_buffer_consume(buffer, cpu, &ts, NULL);
+
 	if (!event)
+	{
 		return EVENT_DROPPED;
+	}
 
 	entry = ring_buffer_event_data(event);
-	if (*entry != cpu) {
+
+	if (*entry != cpu)
+	{
 		TEST_ERROR();
 		return EVENT_DROPPED;
 	}
@@ -112,68 +119,102 @@ static enum event_status read_page(int cpu)
 	int i;
 
 	bpage = ring_buffer_alloc_read_page(buffer, cpu);
+
 	if (!bpage)
+	{
 		return EVENT_DROPPED;
+	}
 
 	ret = ring_buffer_read_page(buffer, &bpage, PAGE_SIZE, cpu, 1);
-	if (ret >= 0) {
+
+	if (ret >= 0)
+	{
 		rpage = bpage;
 		/* The commit may have missed event flags set, clear them */
 		commit = local_read(&rpage->commit) & 0xfffff;
-		for (i = 0; i < commit && !test_error ; i += inc) {
 
-			if (i >= (PAGE_SIZE - offsetof(struct rb_page, data))) {
+		for (i = 0; i < commit && !test_error ; i += inc)
+		{
+
+			if (i >= (PAGE_SIZE - offsetof(struct rb_page, data)))
+			{
 				TEST_ERROR();
 				break;
 			}
 
 			inc = -1;
 			event = (void *)&rpage->data[i];
-			switch (event->type_len) {
-			case RINGBUF_TYPE_PADDING:
-				/* failed writes may be discarded events */
-				if (!event->time_delta)
-					TEST_ERROR();
-				inc = event->array[0] + 4;
-				break;
-			case RINGBUF_TYPE_TIME_EXTEND:
-				inc = 8;
-				break;
-			case 0:
-				entry = ring_buffer_event_data(event);
-				if (*entry != cpu) {
-					TEST_ERROR();
-					break;
-				}
-				read++;
-				if (!event->array[0]) {
-					TEST_ERROR();
-					break;
-				}
-				inc = event->array[0] + 4;
-				break;
-			default:
-				entry = ring_buffer_event_data(event);
-				if (*entry != cpu) {
-					TEST_ERROR();
-					break;
-				}
-				read++;
-				inc = ((event->type_len + 1) * 4);
-			}
-			if (test_error)
-				break;
 
-			if (inc <= 0) {
+			switch (event->type_len)
+			{
+				case RINGBUF_TYPE_PADDING:
+
+					/* failed writes may be discarded events */
+					if (!event->time_delta)
+					{
+						TEST_ERROR();
+					}
+
+					inc = event->array[0] + 4;
+					break;
+
+				case RINGBUF_TYPE_TIME_EXTEND:
+					inc = 8;
+					break;
+
+				case 0:
+					entry = ring_buffer_event_data(event);
+
+					if (*entry != cpu)
+					{
+						TEST_ERROR();
+						break;
+					}
+
+					read++;
+
+					if (!event->array[0])
+					{
+						TEST_ERROR();
+						break;
+					}
+
+					inc = event->array[0] + 4;
+					break;
+
+				default:
+					entry = ring_buffer_event_data(event);
+
+					if (*entry != cpu)
+					{
+						TEST_ERROR();
+						break;
+					}
+
+					read++;
+					inc = ((event->type_len + 1) * 4);
+			}
+
+			if (test_error)
+			{
+				break;
+			}
+
+			if (inc <= 0)
+			{
 				TEST_ERROR();
 				break;
 			}
 		}
 	}
+
 	ring_buffer_free_read_page(buffer, bpage);
 
 	if (ret < 0)
+	{
 		return EVENT_DROPPED;
+	}
+
 	return EVENT_FOUND;
 }
 
@@ -183,30 +224,42 @@ static void ring_buffer_consumer(void)
 	read_events ^= 1;
 
 	read = 0;
+
 	/*
 	 * Continue running until the producer specifically asks to stop
 	 * and is ready for the completion.
 	 */
-	while (!READ_ONCE(reader_finish)) {
+	while (!READ_ONCE(reader_finish))
+	{
 		int found = 1;
 
-		while (found && !test_error) {
+		while (found && !test_error)
+		{
 			int cpu;
 
 			found = 0;
-			for_each_online_cpu(cpu) {
+			for_each_online_cpu(cpu)
+			{
 				enum event_status stat;
 
 				if (read_events)
+				{
 					stat = read_event(cpu);
+				}
 				else
+				{
 					stat = read_page(cpu);
+				}
 
 				if (test_error)
+				{
 					break;
+				}
 
 				if (stat == EVENT_FOUND)
+				{
 					found = 1;
+				}
 
 			}
 		}
@@ -215,11 +268,15 @@ static void ring_buffer_consumer(void)
 		 * available or when the producer wants us to finish reading.
 		 */
 		set_current_state(TASK_INTERRUPTIBLE);
+
 		if (reader_finish)
+		{
 			break;
+		}
 
 		schedule();
 	}
+
 	__set_current_state(TASK_RUNNING);
 	reader_finish = 0;
 	complete(&read_done);
@@ -243,29 +300,41 @@ static void ring_buffer_producer(void)
 	trace_printk("Starting ring buffer hammer\n");
 	start_time = ktime_get();
 	timeout = ktime_add_ns(start_time, RUN_TIME * NSEC_PER_SEC);
-	do {
+
+	do
+	{
 		struct ring_buffer_event *event;
 		int *entry;
 		int i;
 
-		for (i = 0; i < write_iteration; i++) {
+		for (i = 0; i < write_iteration; i++)
+		{
 			event = ring_buffer_lock_reserve(buffer, 10);
-			if (!event) {
+
+			if (!event)
+			{
 				missed++;
-			} else {
+			}
+			else
+			{
 				hit++;
 				entry = ring_buffer_event_data(event);
 				*entry = smp_processor_id();
 				ring_buffer_unlock_commit(buffer, event);
 			}
 		}
+
 		end_time = ktime_get();
 
 		cnt++;
+
 		if (consumer && !(cnt % wakeup_interval))
+		{
 			wake_up_process(consumer);
+		}
 
 #ifndef CONFIG_PREEMPT
+
 		/*
 		 * If we are a non preempt kernel, the 10 second run will
 		 * stop everything while it runs. Instead, we will call
@@ -276,12 +345,18 @@ static void ring_buffer_producer(void)
 		 * the reader.
 		 */
 		if (cnt % wakeup_interval)
+		{
 			cond_resched();
+		}
+
 #endif
-	} while (ktime_before(end_time, timeout) && !break_test());
+	}
+	while (ktime_before(end_time, timeout) && !break_test());
+
 	trace_printk("End ring buffer hammer\n");
 
-	if (consumer) {
+	if (consumer)
+	{
 		/* Init both completions here to avoid races */
 		init_completion(&read_start);
 		init_completion(&read_done);
@@ -298,35 +373,45 @@ static void ring_buffer_producer(void)
 	overruns = ring_buffer_overruns(buffer);
 
 	if (test_error)
+	{
 		trace_printk("ERROR!\n");
+	}
 
-	if (!disable_reader) {
+	if (!disable_reader)
+	{
 		if (consumer_fifo < 0)
 			trace_printk("Running Consumer at nice: %d\n",
-				     consumer_nice);
+						 consumer_nice);
 		else
 			trace_printk("Running Consumer at SCHED_FIFO %d\n",
-				     consumer_fifo);
+						 consumer_fifo);
 	}
+
 	if (producer_fifo < 0)
 		trace_printk("Running Producer at nice: %d\n",
-			     producer_nice);
+					 producer_nice);
 	else
 		trace_printk("Running Producer at SCHED_FIFO %d\n",
-			     producer_fifo);
+					 producer_fifo);
 
 	/* Let the user know that the test is running at low priority */
 	if (producer_fifo < 0 && consumer_fifo < 0 &&
-	    producer_nice == MAX_NICE && consumer_nice == MAX_NICE)
+		producer_nice == MAX_NICE && consumer_nice == MAX_NICE)
+	{
 		trace_printk("WARNING!!! This test is running at lowest priority.\n");
+	}
 
 	trace_printk("Time:     %lld (usecs)\n", time);
 	trace_printk("Overruns: %lld\n", overruns);
+
 	if (disable_reader)
+	{
 		trace_printk("Read:     (reader disabled)\n");
+	}
 	else
 		trace_printk("Read:     %ld  (by %s)\n", read,
-			read_events ? "events" : "pages");
+					 read_events ? "events" : "pages");
+
 	trace_printk("Entries:  %lld\n", entries);
 	trace_printk("Total:    %lld\n", entries + overruns + read);
 	trace_printk("Missed:   %ld\n", missed);
@@ -334,28 +419,38 @@ static void ring_buffer_producer(void)
 
 	/* Convert time from usecs to millisecs */
 	do_div(time, USEC_PER_MSEC);
+
 	if (time)
+	{
 		hit /= (long)time;
+	}
 	else
+	{
 		trace_printk("TIME IS ZERO??\n");
+	}
 
 	trace_printk("Entries per millisec: %ld\n", hit);
 
-	if (hit) {
+	if (hit)
+	{
 		/* Calculate the average time in nanosecs */
 		avg = NSEC_PER_MSEC / hit;
 		trace_printk("%ld ns per entry\n", avg);
 	}
 
-	if (missed) {
+	if (missed)
+	{
 		if (time)
+		{
 			missed /= (long)time;
+		}
 
 		trace_printk("Total iterations per millisec: %ld\n",
-			     hit + missed);
+					 hit + missed);
 
 		/* it is possible that hit + missed will overflow and be zero */
-		if (!(hit + missed)) {
+		if (!(hit + missed))
+		{
 			trace_printk("hit + missed overflowed and totalled zero!\n");
 			hit--; /* make it non zero */
 		}
@@ -369,58 +464,81 @@ static void ring_buffer_producer(void)
 static void wait_to_die(void)
 {
 	set_current_state(TASK_INTERRUPTIBLE);
-	while (!kthread_should_stop()) {
+
+	while (!kthread_should_stop())
+	{
 		schedule();
 		set_current_state(TASK_INTERRUPTIBLE);
 	}
+
 	__set_current_state(TASK_RUNNING);
 }
 
 static int ring_buffer_consumer_thread(void *arg)
 {
-	while (!break_test()) {
+	while (!break_test())
+	{
 		complete(&read_start);
 
 		ring_buffer_consumer();
 
 		set_current_state(TASK_INTERRUPTIBLE);
+
 		if (break_test())
+		{
 			break;
+		}
+
 		schedule();
 	}
+
 	__set_current_state(TASK_RUNNING);
 
 	if (!kthread_should_stop())
+	{
 		wait_to_die();
+	}
 
 	return 0;
 }
 
 static int ring_buffer_producer_thread(void *arg)
 {
-	while (!break_test()) {
+	while (!break_test())
+	{
 		ring_buffer_reset(buffer);
 
-		if (consumer) {
+		if (consumer)
+		{
 			wake_up_process(consumer);
 			wait_for_completion(&read_start);
 		}
 
 		ring_buffer_producer();
+
 		if (break_test())
+		{
 			goto out_kill;
+		}
 
 		trace_printk("Sleeping for 10 secs\n");
 		set_current_state(TASK_INTERRUPTIBLE);
+
 		if (break_test())
+		{
 			goto out_kill;
+		}
+
 		schedule_timeout(HZ * SLEEP_TIME);
 	}
 
 out_kill:
 	__set_current_state(TASK_RUNNING);
+
 	if (!kthread_should_stop())
+	{
 		wait_to_die();
+	}
 
 	return 0;
 }
@@ -431,52 +549,75 @@ static int __init ring_buffer_benchmark_init(void)
 
 	/* make a one meg buffer in overwite mode */
 	buffer = ring_buffer_alloc(1000000, RB_FL_OVERWRITE);
-	if (!buffer)
-		return -ENOMEM;
 
-	if (!disable_reader) {
+	if (!buffer)
+	{
+		return -ENOMEM;
+	}
+
+	if (!disable_reader)
+	{
 		consumer = kthread_create(ring_buffer_consumer_thread,
-					  NULL, "rb_consumer");
+								  NULL, "rb_consumer");
 		ret = PTR_ERR(consumer);
+
 		if (IS_ERR(consumer))
+		{
 			goto out_fail;
+		}
 	}
 
 	producer = kthread_run(ring_buffer_producer_thread,
-			       NULL, "rb_producer");
+						   NULL, "rb_producer");
 	ret = PTR_ERR(producer);
 
 	if (IS_ERR(producer))
+	{
 		goto out_kill;
+	}
 
 	/*
 	 * Run them as low-prio background tasks by default:
 	 */
-	if (!disable_reader) {
-		if (consumer_fifo >= 0) {
-			struct sched_param param = {
+	if (!disable_reader)
+	{
+		if (consumer_fifo >= 0)
+		{
+			struct sched_param param =
+			{
 				.sched_priority = consumer_fifo
 			};
 			sched_setscheduler(consumer, SCHED_FIFO, &param);
-		} else
+		}
+		else
+		{
 			set_user_nice(consumer, consumer_nice);
+		}
 	}
 
-	if (producer_fifo >= 0) {
-		struct sched_param param = {
+	if (producer_fifo >= 0)
+	{
+		struct sched_param param =
+		{
 			.sched_priority = producer_fifo
 		};
 		sched_setscheduler(producer, SCHED_FIFO, &param);
-	} else
+	}
+	else
+	{
 		set_user_nice(producer, producer_nice);
+	}
 
 	return 0;
 
- out_kill:
-	if (consumer)
-		kthread_stop(consumer);
+out_kill:
 
- out_fail:
+	if (consumer)
+	{
+		kthread_stop(consumer);
+	}
+
+out_fail:
 	ring_buffer_free(buffer);
 	return ret;
 }
@@ -484,8 +625,12 @@ static int __init ring_buffer_benchmark_init(void)
 static void __exit ring_buffer_benchmark_exit(void)
 {
 	kthread_stop(producer);
+
 	if (consumer)
+	{
 		kthread_stop(consumer);
+	}
+
 	ring_buffer_free(buffer);
 }
 

@@ -30,7 +30,8 @@
 struct i40e_hw;
 
 /* Memory allocation types */
-enum i40e_memory_type {
+enum i40e_memory_type
+{
 	i40e_mem_arq_buf = 0,		/* ARQ indirect command buffer */
 	i40e_mem_asq_buf = 1,
 	i40e_mem_atq_buf = 2,		/* ATQ indirect command buffer */
@@ -44,15 +45,15 @@ enum i40e_memory_type {
 
 /* prototype for functions used for dynamic memory allocation */
 i40e_status i40e_allocate_dma_mem(struct i40e_hw *hw,
-					    struct i40e_dma_mem *mem,
-					    enum i40e_memory_type type,
-					    u64 size, u32 alignment);
+								  struct i40e_dma_mem *mem,
+								  enum i40e_memory_type type,
+								  u64 size, u32 alignment);
 i40e_status i40e_free_dma_mem(struct i40e_hw *hw,
-					struct i40e_dma_mem *mem);
+							  struct i40e_dma_mem *mem);
 i40e_status i40e_allocate_virt_mem(struct i40e_hw *hw,
-					     struct i40e_virt_mem *mem,
-					     u32 size);
+								   struct i40e_virt_mem *mem,
+								   u32 size);
 i40e_status i40e_free_virt_mem(struct i40e_hw *hw,
-					 struct i40e_virt_mem *mem);
+							   struct i40e_virt_mem *mem);
 
 #endif /* _I40E_ALLOC_H_ */

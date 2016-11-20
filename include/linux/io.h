@@ -34,10 +34,10 @@ void __iowrite64_copy(void __iomem *to, const void *from, size_t count);
 
 #ifdef CONFIG_MMU
 int ioremap_page_range(unsigned long addr, unsigned long end,
-		       phys_addr_t phys_addr, pgprot_t prot);
+					   phys_addr_t phys_addr, pgprot_t prot);
 #else
 static inline int ioremap_page_range(unsigned long addr, unsigned long end,
-				     phys_addr_t phys_addr, pgprot_t prot)
+									 phys_addr_t phys_addr, pgprot_t prot)
 {
 	return 0;
 }
@@ -55,13 +55,13 @@ static inline void ioremap_huge_init(void) { }
  * Managed iomap interface
  */
 #ifdef CONFIG_HAS_IOPORT_MAP
-void __iomem * devm_ioport_map(struct device *dev, unsigned long port,
-			       unsigned int nr);
+void __iomem *devm_ioport_map(struct device *dev, unsigned long port,
+							  unsigned int nr);
 void devm_ioport_unmap(struct device *dev, void __iomem *addr);
 #else
 static inline void __iomem *devm_ioport_map(struct device *dev,
-					     unsigned long port,
-					     unsigned int nr)
+		unsigned long port,
+		unsigned int nr)
 {
 	return NULL;
 }
@@ -74,18 +74,18 @@ static inline void devm_ioport_unmap(struct device *dev, void __iomem *addr)
 #define IOMEM_ERR_PTR(err) (__force void __iomem *)ERR_PTR(err)
 
 void __iomem *devm_ioremap(struct device *dev, resource_size_t offset,
-			   resource_size_t size);
+						   resource_size_t size);
 void __iomem *devm_ioremap_nocache(struct device *dev, resource_size_t offset,
-				   resource_size_t size);
+								   resource_size_t size);
 void __iomem *devm_ioremap_wc(struct device *dev, resource_size_t offset,
-				   resource_size_t size);
+							  resource_size_t size);
 void devm_iounmap(struct device *dev, void __iomem *addr);
 int check_signature(const volatile void __iomem *io_addr,
-			const unsigned char *signature, int length);
+					const unsigned char *signature, int length);
 void devm_ioremap_release(struct device *dev, void *res);
 
 void *devm_memremap(struct device *dev, resource_size_t offset,
-		size_t size, unsigned long flags);
+					size_t size, unsigned long flags);
 void devm_memunmap(struct device *dev, void *addr);
 
 void *__devm_memremap_pages(struct device *dev, struct resource *res);
@@ -96,7 +96,7 @@ void *__devm_memremap_pages(struct device *dev, struct resource *res);
  * So for those archs, <asm/io.h> should define the following symbol.
  */
 #ifndef arch_has_dev_port
-#define arch_has_dev_port()     (1)
+	#define arch_has_dev_port()     (1)
 #endif
 
 /*
@@ -112,7 +112,7 @@ void *__devm_memremap_pages(struct device *dev, struct resource *res);
  */
 #ifndef arch_phys_wc_add
 static inline int __must_check arch_phys_wc_add(unsigned long base,
-						unsigned long size)
+		unsigned long size)
 {
 	return 0;  /* It worked (i.e. did nothing). */
 }
@@ -131,7 +131,8 @@ static inline int arch_phys_wc_index(int handle)
 #endif
 #endif
 
-enum {
+enum
+{
 	/* See memremap() kernel-doc for usage description... */
 	MEMREMAP_WB = 1 << 0,
 	MEMREMAP_WT = 1 << 1,
@@ -152,13 +153,13 @@ void memunmap(void *addr);
  */
 #ifndef arch_io_reserve_memtype_wc
 static inline int arch_io_reserve_memtype_wc(resource_size_t base,
-					     resource_size_t size)
+		resource_size_t size)
 {
 	return 0;
 }
 
 static inline void arch_io_free_memtype_wc(resource_size_t base,
-					   resource_size_t size)
+		resource_size_t size)
 {
 }
 #endif

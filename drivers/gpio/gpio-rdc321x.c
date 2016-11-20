@@ -29,7 +29,8 @@
 #include <linux/mfd/rdc321x.h>
 #include <linux/slab.h>
 
-struct rdc321x_gpio {
+struct rdc321x_gpio
+{
 	spinlock_t		lock;
 	struct pci_dev		*sb_pdev;
 	u32			data_reg[2];
@@ -52,7 +53,7 @@ static int rdc_gpio_get_value(struct gpio_chip *chip, unsigned gpio)
 
 	spin_lock(&gpch->lock);
 	pci_write_config_dword(gpch->sb_pdev, reg,
-					gpch->data_reg[gpio < 32 ? 0 : 1]);
+						   gpch->data_reg[gpio < 32 ? 0 : 1]);
 	pci_read_config_dword(gpch->sb_pdev, reg, &value);
 	spin_unlock(&gpch->lock);
 
@@ -60,7 +61,7 @@ static int rdc_gpio_get_value(struct gpio_chip *chip, unsigned gpio)
 }
 
 static void rdc_gpio_set_value_impl(struct gpio_chip *chip,
-				unsigned gpio, int value)
+									unsigned gpio, int value)
 {
 	struct rdc321x_gpio *gpch;
 	int reg = (gpio < 32) ? 0 : 1;
@@ -68,18 +69,22 @@ static void rdc_gpio_set_value_impl(struct gpio_chip *chip,
 	gpch = gpiochip_get_data(chip);
 
 	if (value)
+	{
 		gpch->data_reg[reg] |= 1 << (gpio & 0x1f);
+	}
 	else
+	{
 		gpch->data_reg[reg] &= ~(1 << (gpio & 0x1f));
+	}
 
 	pci_write_config_dword(gpch->sb_pdev,
-			reg ? gpch->reg2_data_base : gpch->reg1_data_base,
-			gpch->data_reg[reg]);
+						   reg ? gpch->reg2_data_base : gpch->reg1_data_base,
+						   gpch->data_reg[reg]);
 }
 
 /* set GPIO pin to value */
 static void rdc_gpio_set_value(struct gpio_chip *chip,
-				unsigned gpio, int value)
+							   unsigned gpio, int value)
 {
 	struct rdc321x_gpio *gpch;
 
@@ -90,7 +95,7 @@ static void rdc_gpio_set_value(struct gpio_chip *chip,
 }
 
 static int rdc_gpio_config(struct gpio_chip *chip,
-				unsigned gpio, int value)
+						   unsigned gpio, int value)
 {
 	struct rdc321x_gpio *gpch;
 	int err;
@@ -100,16 +105,22 @@ static int rdc_gpio_config(struct gpio_chip *chip,
 
 	spin_lock(&gpch->lock);
 	err = pci_read_config_dword(gpch->sb_pdev, gpio < 32 ?
-			gpch->reg1_ctrl_base : gpch->reg2_ctrl_base, &reg);
+								gpch->reg1_ctrl_base : gpch->reg2_ctrl_base, &reg);
+
 	if (err)
+	{
 		goto unlock;
+	}
 
 	reg |= 1 << (gpio & 0x1f);
 
 	err = pci_write_config_dword(gpch->sb_pdev, gpio < 32 ?
-			gpch->reg1_ctrl_base : gpch->reg2_ctrl_base, reg);
+								 gpch->reg1_ctrl_base : gpch->reg2_ctrl_base, reg);
+
 	if (err)
+	{
 		goto unlock;
+	}
 
 	rdc_gpio_set_value_impl(chip, gpio, value);
 
@@ -136,18 +147,25 @@ static int rdc321x_gpio_probe(struct platform_device *pdev)
 	struct rdc321x_gpio_pdata *pdata;
 
 	pdata = dev_get_platdata(&pdev->dev);
-	if (!pdata) {
+
+	if (!pdata)
+	{
 		dev_err(&pdev->dev, "no platform data supplied\n");
 		return -ENODEV;
 	}
 
 	rdc321x_gpio_dev = devm_kzalloc(&pdev->dev, sizeof(struct rdc321x_gpio),
-					GFP_KERNEL);
+									GFP_KERNEL);
+
 	if (!rdc321x_gpio_dev)
+	{
 		return -ENOMEM;
+	}
 
 	r = platform_get_resource_byname(pdev, IORESOURCE_IO, "gpio-reg1");
-	if (!r) {
+
+	if (!r)
+	{
 		dev_err(&pdev->dev, "failed to get gpio-reg1 resource\n");
 		return -ENODEV;
 	}
@@ -158,7 +176,9 @@ static int rdc321x_gpio_probe(struct platform_device *pdev)
 	rdc321x_gpio_dev->reg1_data_base = r->start + 0x4;
 
 	r = platform_get_resource_byname(pdev, IORESOURCE_IO, "gpio-reg2");
-	if (!r) {
+
+	if (!r)
+	{
 		dev_err(&pdev->dev, "failed to get gpio-reg2 resource\n");
 		return -ENODEV;
 	}
@@ -181,24 +201,31 @@ static int rdc321x_gpio_probe(struct platform_device *pdev)
 	   wrote to these registers before, but it's a good guess. Still
 	   better than just using 0xffffffff. */
 	err = pci_read_config_dword(rdc321x_gpio_dev->sb_pdev,
-					rdc321x_gpio_dev->reg1_data_base,
-					&rdc321x_gpio_dev->data_reg[0]);
+								rdc321x_gpio_dev->reg1_data_base,
+								&rdc321x_gpio_dev->data_reg[0]);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = pci_read_config_dword(rdc321x_gpio_dev->sb_pdev,
-					rdc321x_gpio_dev->reg2_data_base,
-					&rdc321x_gpio_dev->data_reg[1]);
+								rdc321x_gpio_dev->reg2_data_base,
+								&rdc321x_gpio_dev->data_reg[1]);
+
 	if (err)
+	{
 		return err;
+	}
 
 	dev_info(&pdev->dev, "registering %d GPIOs\n",
-					rdc321x_gpio_dev->chip.ngpio);
+			 rdc321x_gpio_dev->chip.ngpio);
 	return devm_gpiochip_add_data(&pdev->dev, &rdc321x_gpio_dev->chip,
-				      rdc321x_gpio_dev);
+								  rdc321x_gpio_dev);
 }
 
-static struct platform_driver rdc321x_gpio_driver = {
+static struct platform_driver rdc321x_gpio_driver =
+{
 	.driver.name	= "rdc321x-gpio",
 	.probe		= rdc321x_gpio_probe,
 };

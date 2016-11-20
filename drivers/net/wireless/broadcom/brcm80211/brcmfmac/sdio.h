@@ -162,13 +162,15 @@
  * @BRCMF_SDIOD_DATA: Ready for data transfers, DPC enabled.
  * @BRCMF_SDIOD_NOMEDIUM: No medium access to dongle possible.
  */
-enum brcmf_sdiod_state {
+enum brcmf_sdiod_state
+{
 	BRCMF_SDIOD_DOWN,
 	BRCMF_SDIOD_DATA,
 	BRCMF_SDIOD_NOMEDIUM
 };
 
-struct brcmf_sdreg {
+struct brcmf_sdreg
+{
 	int func;
 	int offset;
 	int value;
@@ -177,7 +179,8 @@ struct brcmf_sdreg {
 struct brcmf_sdio;
 struct brcmf_sdiod_freezer;
 
-struct brcmf_sdio_dev {
+struct brcmf_sdio_dev
+{
 	struct sdio_func *func[SDIO_MAX_FUNCS];
 	u8 num_funcs;			/* Supported funcs on client */
 	u32 sbwad;			/* Save backplane window address */
@@ -204,7 +207,8 @@ struct brcmf_sdio_dev {
 };
 
 /* sdio core registers */
-struct sdpcmd_regs {
+struct sdpcmd_regs
+{
 	u32 corecontrol;		/* 0x00, rev8 */
 	u32 corestatus;			/* rev8 */
 	u32 PAD[1];
@@ -300,9 +304,9 @@ void brcmf_sdiod_intr_unregister(struct brcmf_sdio_dev *sdiodev);
 u8 brcmf_sdiod_regrb(struct brcmf_sdio_dev *sdiodev, u32 addr, int *ret);
 u32 brcmf_sdiod_regrl(struct brcmf_sdio_dev *sdiodev, u32 addr, int *ret);
 void brcmf_sdiod_regwb(struct brcmf_sdio_dev *sdiodev, u32 addr, u8 data,
-		       int *ret);
+					   int *ret);
 void brcmf_sdiod_regwl(struct brcmf_sdio_dev *sdiodev, u32 addr, u32 data,
-		       int *ret);
+					   int *ret);
 
 /* Buffer transfer to/from device (client) core via cmd53.
  *   fn:       function number
@@ -316,13 +320,13 @@ void brcmf_sdiod_regwl(struct brcmf_sdio_dev *sdiodev, u32 addr, u32 data,
  * NOTE: Async operation is not currently supported.
  */
 int brcmf_sdiod_send_pkt(struct brcmf_sdio_dev *sdiodev,
-			 struct sk_buff_head *pktq);
+						 struct sk_buff_head *pktq);
 int brcmf_sdiod_send_buf(struct brcmf_sdio_dev *sdiodev, u8 *buf, uint nbytes);
 
 int brcmf_sdiod_recv_pkt(struct brcmf_sdio_dev *sdiodev, struct sk_buff *pkt);
 int brcmf_sdiod_recv_buf(struct brcmf_sdio_dev *sdiodev, u8 *buf, uint nbytes);
 int brcmf_sdiod_recv_chain(struct brcmf_sdio_dev *sdiodev,
-			   struct sk_buff_head *pktq, uint totlen);
+						   struct sk_buff_head *pktq, uint totlen);
 
 /* Flags bits */
 
@@ -339,13 +343,13 @@ int brcmf_sdiod_recv_chain(struct brcmf_sdio_dev *sdiodev,
  * Returns 0 or error code.
  */
 int brcmf_sdiod_ramrw(struct brcmf_sdio_dev *sdiodev, bool write, u32 address,
-		      u8 *data, uint size);
+					  u8 *data, uint size);
 
 /* Issue an abort to the specified function */
 int brcmf_sdiod_abort(struct brcmf_sdio_dev *sdiodev, uint fn);
 void brcmf_sdiod_sgtable_alloc(struct brcmf_sdio_dev *sdiodev);
 void brcmf_sdiod_change_state(struct brcmf_sdio_dev *sdiodev,
-			      enum brcmf_sdiod_state state);
+							  enum brcmf_sdiod_state state);
 #ifdef CONFIG_PM_SLEEP
 bool brcmf_sdiod_freezing(struct brcmf_sdio_dev *sdiodev);
 void brcmf_sdiod_try_freeze(struct brcmf_sdio_dev *sdiodev);

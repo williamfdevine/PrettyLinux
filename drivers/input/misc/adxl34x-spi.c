@@ -21,7 +21,7 @@
 #define ADXL34X_WRITECMD(reg)	(reg & 0x3F)
 #define ADXL34X_READCMD(reg)	(ADXL34X_CMD_READ | (reg & 0x3F))
 #define ADXL34X_READMB_CMD(reg) (ADXL34X_CMD_READ | ADXL34X_CMD_MULTB \
-					| (reg & 0x3F))
+								 | (reg & 0x3F))
 
 static int adxl34x_spi_read(struct device *dev, unsigned char reg)
 {
@@ -34,7 +34,7 @@ static int adxl34x_spi_read(struct device *dev, unsigned char reg)
 }
 
 static int adxl34x_spi_write(struct device *dev,
-			     unsigned char reg, unsigned char val)
+							 unsigned char reg, unsigned char val)
 {
 	struct spi_device *spi = to_spi_device(dev);
 	unsigned char buf[2];
@@ -46,8 +46,8 @@ static int adxl34x_spi_write(struct device *dev,
 }
 
 static int adxl34x_spi_read_block(struct device *dev,
-				  unsigned char reg, int count,
-				  void *buf)
+								  unsigned char reg, int count,
+								  void *buf)
 {
 	struct spi_device *spi = to_spi_device(dev);
 	ssize_t status;
@@ -58,7 +58,8 @@ static int adxl34x_spi_read_block(struct device *dev,
 	return (status < 0) ? status : 0;
 }
 
-static const struct adxl34x_bus_ops adxl34x_spi_bops = {
+static const struct adxl34x_bus_ops adxl34x_spi_bops =
+{
 	.bustype	= BUS_SPI,
 	.write		= adxl34x_spi_write,
 	.read		= adxl34x_spi_read,
@@ -70,17 +71,20 @@ static int adxl34x_spi_probe(struct spi_device *spi)
 	struct adxl34x *ac;
 
 	/* don't exceed max specified SPI CLK frequency */
-	if (spi->max_speed_hz > MAX_SPI_FREQ_HZ) {
+	if (spi->max_speed_hz > MAX_SPI_FREQ_HZ)
+	{
 		dev_err(&spi->dev, "SPI CLK %d Hz too fast\n", spi->max_speed_hz);
 		return -EINVAL;
 	}
 
 	ac = adxl34x_probe(&spi->dev, spi->irq,
-			   spi->max_speed_hz > MAX_FREQ_NO_FIFODELAY,
-			   &adxl34x_spi_bops);
+					   spi->max_speed_hz > MAX_FREQ_NO_FIFODELAY,
+					   &adxl34x_spi_bops);
 
 	if (IS_ERR(ac))
+	{
 		return PTR_ERR(ac);
+	}
 
 	spi_set_drvdata(spi, ac);
 
@@ -115,9 +119,10 @@ static int __maybe_unused adxl34x_spi_resume(struct device *dev)
 }
 
 static SIMPLE_DEV_PM_OPS(adxl34x_spi_pm, adxl34x_spi_suspend,
-			 adxl34x_spi_resume);
+						 adxl34x_spi_resume);
 
-static struct spi_driver adxl34x_driver = {
+static struct spi_driver adxl34x_driver =
+{
 	.driver = {
 		.name = "adxl34x",
 		.pm = &adxl34x_spi_pm,

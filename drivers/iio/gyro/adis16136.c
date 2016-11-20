@@ -57,12 +57,14 @@
 #define ADIS16136_MSC_CTRL_MEMORY_TEST BIT(11)
 #define ADIS16136_MSC_CTRL_SELF_TEST BIT(10)
 
-struct adis16136_chip_info {
+struct adis16136_chip_info
+{
 	unsigned int precision;
 	unsigned int fullscale;
 };
 
-struct adis16136 {
+struct adis16136
+{
 	const struct adis16136_chip_info *chip_info;
 
 	struct adis adis;
@@ -71,7 +73,7 @@ struct adis16136 {
 #ifdef CONFIG_DEBUG_FS
 
 static ssize_t adis16136_show_serial(struct file *file,
-		char __user *userbuf, size_t count, loff_t *ppos)
+									 char __user *userbuf, size_t count, loff_t *ppos)
 {
 	struct adis16136 *adis16136 = file->private_data;
 	uint16_t lot1, lot2, lot3, serial;
@@ -80,29 +82,42 @@ static ssize_t adis16136_show_serial(struct file *file,
 	int ret;
 
 	ret = adis_read_reg_16(&adis16136->adis, ADIS16136_REG_SERIAL_NUM,
-		&serial);
+						   &serial);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = adis_read_reg_16(&adis16136->adis, ADIS16136_REG_LOT1, &lot1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = adis_read_reg_16(&adis16136->adis, ADIS16136_REG_LOT2, &lot2);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = adis_read_reg_16(&adis16136->adis, ADIS16136_REG_LOT3, &lot3);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	len = snprintf(buf, sizeof(buf), "%.4x%.4x%.4x-%.4x\n", lot1, lot2,
-		lot3, serial);
+				   lot3, serial);
 
 	return simple_read_from_buffer(userbuf, count, ppos, buf, len);
 }
 
-static const struct file_operations adis16136_serial_fops = {
+static const struct file_operations adis16136_serial_fops =
+{
 	.open = simple_open,
 	.read = adis16136_show_serial,
 	.llseek = default_llseek,
@@ -116,16 +131,19 @@ static int adis16136_show_product_id(void *arg, u64 *val)
 	int ret;
 
 	ret = adis_read_reg_16(&adis16136->adis, ADIS16136_REG_PROD_ID,
-		&prod_id);
+						   &prod_id);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	*val = prod_id;
 
 	return 0;
 }
 DEFINE_SIMPLE_ATTRIBUTE(adis16136_product_id_fops,
-	adis16136_show_product_id, NULL, "%llu\n");
+						adis16136_show_product_id, NULL, "%llu\n");
 
 static int adis16136_show_flash_count(void *arg, u64 *val)
 {
@@ -134,27 +152,30 @@ static int adis16136_show_flash_count(void *arg, u64 *val)
 	int ret;
 
 	ret = adis_read_reg_16(&adis16136->adis, ADIS16136_REG_FLASH_CNT,
-		&flash_count);
+						   &flash_count);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	*val = flash_count;
 
 	return 0;
 }
 DEFINE_SIMPLE_ATTRIBUTE(adis16136_flash_count_fops,
-	adis16136_show_flash_count, NULL, "%lld\n");
+						adis16136_show_flash_count, NULL, "%lld\n");
 
 static int adis16136_debugfs_init(struct iio_dev *indio_dev)
 {
 	struct adis16136 *adis16136 = iio_priv(indio_dev);
 
 	debugfs_create_file("serial_number", 0400, indio_dev->debugfs_dentry,
-		adis16136, &adis16136_serial_fops);
+						adis16136, &adis16136_serial_fops);
 	debugfs_create_file("product_id", 0400, indio_dev->debugfs_dentry,
-		adis16136, &adis16136_product_id_fops);
+						adis16136, &adis16136_product_id_fops);
 	debugfs_create_file("flash_count", 0400, indio_dev->debugfs_dentry,
-		adis16136, &adis16136_flash_count_fops);
+						adis16136, &adis16136_flash_count_fops);
 
 	return 0;
 }
@@ -173,12 +194,19 @@ static int adis16136_set_freq(struct adis16136 *adis16136, unsigned int freq)
 	unsigned int t;
 
 	t = 32768 / freq;
+
 	if (t < 0xf)
+	{
 		t = 0xf;
+	}
 	else if (t > 0xffff)
+	{
 		t = 0xffff;
+	}
 	else
+	{
 		t--;
+	}
 
 	return adis_write_reg_16(&adis16136->adis, ADIS16136_REG_SMPL_PRD, t);
 }
@@ -189,8 +217,11 @@ static int adis16136_get_freq(struct adis16136 *adis16136, unsigned int *freq)
 	int ret;
 
 	ret = adis_read_reg_16(&adis16136->adis, ADIS16136_REG_SMPL_PRD, &t);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	*freq = 32768 / (t + 1);
 
@@ -198,7 +229,7 @@ static int adis16136_get_freq(struct adis16136 *adis16136, unsigned int *freq)
 }
 
 static ssize_t adis16136_write_frequency(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t len)
+		struct device_attribute *attr, const char *buf, size_t len)
 {
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
 	struct adis16136 *adis16136 = iio_priv(indio_dev);
@@ -206,11 +237,16 @@ static ssize_t adis16136_write_frequency(struct device *dev,
 	int ret;
 
 	ret = kstrtouint(buf, 10, &val);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (val == 0)
+	{
 		return -EINVAL;
+	}
 
 	ret = adis16136_set_freq(adis16136, val);
 
@@ -218,7 +254,7 @@ static ssize_t adis16136_write_frequency(struct device *dev,
 }
 
 static ssize_t adis16136_read_frequency(struct device *dev,
-	struct device_attribute *attr, char *buf)
+										struct device_attribute *attr, char *buf)
 {
 	struct iio_dev *indio_dev = dev_to_iio_dev(dev);
 	struct adis16136 *adis16136 = iio_priv(indio_dev);
@@ -226,17 +262,21 @@ static ssize_t adis16136_read_frequency(struct device *dev,
 	int ret;
 
 	ret = adis16136_get_freq(adis16136, &freq);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return sprintf(buf, "%d\n", freq);
 }
 
 static IIO_DEV_ATTR_SAMP_FREQ(S_IWUSR | S_IRUGO,
-				  adis16136_read_frequency,
-				  adis16136_write_frequency);
+							  adis16136_read_frequency,
+							  adis16136_write_frequency);
 
-static const unsigned adis16136_3db_divisors[] = {
+static const unsigned adis16136_3db_divisors[] =
+{
 	[0] = 2, /* Special case */
 	[1] = 6,
 	[2] = 12,
@@ -254,12 +294,18 @@ static int adis16136_set_filter(struct iio_dev *indio_dev, int val)
 	int i, ret;
 
 	ret = adis16136_get_freq(adis16136, &freq);
-	if (ret < 0)
-		return ret;
 
-	for (i = ARRAY_SIZE(adis16136_3db_divisors) - 1; i >= 1; i--) {
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	for (i = ARRAY_SIZE(adis16136_3db_divisors) - 1; i >= 1; i--)
+	{
 		if (freq / adis16136_3db_divisors[i] >= val)
+		{
 			break;
+		}
 	}
 
 	return adis_write_reg_16(&adis16136->adis, ADIS16136_REG_AVG_CNT, i);
@@ -275,12 +321,18 @@ static int adis16136_get_filter(struct iio_dev *indio_dev, int *val)
 	mutex_lock(&indio_dev->mlock);
 
 	ret = adis_read_reg_16(&adis16136->adis, ADIS16136_REG_AVG_CNT, &val16);
+
 	if (ret < 0)
+	{
 		goto err_unlock;
+	}
 
 	ret = adis16136_get_freq(adis16136, &freq);
+
 	if (ret < 0)
+	{
 		goto err_unlock;
+	}
 
 	*val = freq / adis16136_3db_divisors[val16 & 0x07];
 
@@ -291,75 +343,91 @@ err_unlock:
 }
 
 static int adis16136_read_raw(struct iio_dev *indio_dev,
-	const struct iio_chan_spec *chan, int *val, int *val2, long info)
+							  const struct iio_chan_spec *chan, int *val, int *val2, long info)
 {
 	struct adis16136 *adis16136 = iio_priv(indio_dev);
 	uint32_t val32;
 	int ret;
 
-	switch (info) {
-	case IIO_CHAN_INFO_RAW:
-		return adis_single_conversion(indio_dev, chan, 0, val);
-	case IIO_CHAN_INFO_SCALE:
-		switch (chan->type) {
-		case IIO_ANGL_VEL:
-			*val = adis16136->chip_info->precision;
-			*val2 = (adis16136->chip_info->fullscale << 16);
-			return IIO_VAL_FRACTIONAL;
-		case IIO_TEMP:
-			*val = 10;
-			*val2 = 697000; /* 0.010697 degree Celsius */
-			return IIO_VAL_INT_PLUS_MICRO;
+	switch (info)
+	{
+		case IIO_CHAN_INFO_RAW:
+			return adis_single_conversion(indio_dev, chan, 0, val);
+
+		case IIO_CHAN_INFO_SCALE:
+			switch (chan->type)
+			{
+				case IIO_ANGL_VEL:
+					*val = adis16136->chip_info->precision;
+					*val2 = (adis16136->chip_info->fullscale << 16);
+					return IIO_VAL_FRACTIONAL;
+
+				case IIO_TEMP:
+					*val = 10;
+					*val2 = 697000; /* 0.010697 degree Celsius */
+					return IIO_VAL_INT_PLUS_MICRO;
+
+				default:
+					return -EINVAL;
+			}
+
+		case IIO_CHAN_INFO_CALIBBIAS:
+			ret = adis_read_reg_32(&adis16136->adis,
+								   ADIS16136_REG_GYRO_OFF2, &val32);
+
+			if (ret < 0)
+			{
+				return ret;
+			}
+
+			*val = sign_extend32(val32, 31);
+
+			return IIO_VAL_INT;
+
+		case IIO_CHAN_INFO_LOW_PASS_FILTER_3DB_FREQUENCY:
+			return adis16136_get_filter(indio_dev, val);
+
 		default:
 			return -EINVAL;
-		}
-	case IIO_CHAN_INFO_CALIBBIAS:
-		ret = adis_read_reg_32(&adis16136->adis,
-			ADIS16136_REG_GYRO_OFF2, &val32);
-		if (ret < 0)
-			return ret;
-
-		*val = sign_extend32(val32, 31);
-
-		return IIO_VAL_INT;
-	case IIO_CHAN_INFO_LOW_PASS_FILTER_3DB_FREQUENCY:
-		return adis16136_get_filter(indio_dev, val);
-	default:
-		return -EINVAL;
 	}
 }
 
 static int adis16136_write_raw(struct iio_dev *indio_dev,
-	const struct iio_chan_spec *chan, int val, int val2, long info)
+							   const struct iio_chan_spec *chan, int val, int val2, long info)
 {
 	struct adis16136 *adis16136 = iio_priv(indio_dev);
 
-	switch (info) {
-	case IIO_CHAN_INFO_CALIBBIAS:
-		return adis_write_reg_32(&adis16136->adis,
-			ADIS16136_REG_GYRO_OFF2, val);
-	case IIO_CHAN_INFO_LOW_PASS_FILTER_3DB_FREQUENCY:
-		return adis16136_set_filter(indio_dev, val);
-	default:
-		break;
+	switch (info)
+	{
+		case IIO_CHAN_INFO_CALIBBIAS:
+			return adis_write_reg_32(&adis16136->adis,
+									 ADIS16136_REG_GYRO_OFF2, val);
+
+		case IIO_CHAN_INFO_LOW_PASS_FILTER_3DB_FREQUENCY:
+			return adis16136_set_filter(indio_dev, val);
+
+		default:
+			break;
 	}
 
 	return -EINVAL;
 }
 
-enum {
+enum
+{
 	ADIS16136_SCAN_GYRO,
 	ADIS16136_SCAN_TEMP,
 };
 
-static const struct iio_chan_spec adis16136_channels[] = {
+static const struct iio_chan_spec adis16136_channels[] =
+{
 	{
 		.type = IIO_ANGL_VEL,
 		.modified = 1,
 		.channel2 = IIO_MOD_X,
 		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |
-			BIT(IIO_CHAN_INFO_CALIBBIAS) |
-			BIT(IIO_CHAN_INFO_LOW_PASS_FILTER_3DB_FREQUENCY),
+		BIT(IIO_CHAN_INFO_CALIBBIAS) |
+		BIT(IIO_CHAN_INFO_LOW_PASS_FILTER_3DB_FREQUENCY),
 		.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),
 
 		.address = ADIS16136_REG_GYRO_OUT2,
@@ -375,7 +443,7 @@ static const struct iio_chan_spec adis16136_channels[] = {
 		.indexed = 1,
 		.channel = 0,
 		.info_mask_separate = BIT(IIO_CHAN_INFO_RAW) |
-			BIT(IIO_CHAN_INFO_SCALE),
+		BIT(IIO_CHAN_INFO_SCALE),
 		.address = ADIS16136_REG_TEMP_OUT,
 		.scan_index = ADIS16136_SCAN_TEMP,
 		.scan_type = {
@@ -388,16 +456,19 @@ static const struct iio_chan_spec adis16136_channels[] = {
 	IIO_CHAN_SOFT_TIMESTAMP(2),
 };
 
-static struct attribute *adis16136_attributes[] = {
+static struct attribute *adis16136_attributes[] =
+{
 	&iio_dev_attr_sampling_frequency.dev_attr.attr,
 	NULL
 };
 
-static const struct attribute_group adis16136_attribute_group = {
+static const struct attribute_group adis16136_attribute_group =
+{
 	.attrs = adis16136_attributes,
 };
 
-static const struct iio_info adis16136_info = {
+static const struct iio_info adis16136_info =
+{
 	.driver_module = THIS_MODULE,
 	.attrs = &adis16136_attribute_group,
 	.read_raw = &adis16136_read_raw,
@@ -412,9 +483,10 @@ static int adis16136_stop_device(struct iio_dev *indio_dev)
 	int ret;
 
 	ret = adis_write_reg_16(&adis16136->adis, ADIS16136_REG_SLP_CTRL, 0xff);
+
 	if (ret)
 		dev_err(&indio_dev->dev,
-			"Could not power down device: %d\n", ret);
+				"Could not power down device: %d\n", ret);
 
 	return ret;
 }
@@ -427,33 +499,44 @@ static int adis16136_initial_setup(struct iio_dev *indio_dev)
 	int ret;
 
 	ret = adis_initial_startup(&adis16136->adis);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = adis_read_reg_16(&adis16136->adis, ADIS16136_REG_PROD_ID,
-		&prod_id);
+						   &prod_id);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = sscanf(indio_dev->name, "adis%u\n", &device_id);
+
 	if (ret != 1)
+	{
 		return -EINVAL;
+	}
 
 	if (prod_id != device_id)
 		dev_warn(&indio_dev->dev, "Device ID(%u) and product ID(%u) do not match.",
-				device_id, prod_id);
+				 device_id, prod_id);
 
 	return 0;
 }
 
-static const char * const adis16136_status_error_msgs[] = {
+static const char *const adis16136_status_error_msgs[] =
+{
 	[ADIS16136_DIAG_STAT_FLASH_UPDATE_FAIL] = "Flash update failed",
 	[ADIS16136_DIAG_STAT_SPI_FAIL] = "SPI failure",
 	[ADIS16136_DIAG_STAT_SELF_TEST_FAIL] = "Self test error",
 	[ADIS16136_DIAG_STAT_FLASH_CHKSUM_FAIL] = "Flash checksum error",
 };
 
-static const struct adis_data adis16136_data = {
+static const struct adis_data adis16136_data =
+{
 	.diag_stat_reg = ADIS16136_REG_DIAG_STAT,
 	.glob_cmd_reg = ADIS16136_REG_GLOB_CMD,
 	.msc_ctrl_reg = ADIS16136_REG_MSC_CTRL,
@@ -466,19 +549,21 @@ static const struct adis_data adis16136_data = {
 
 	.status_error_msgs = adis16136_status_error_msgs,
 	.status_error_mask = BIT(ADIS16136_DIAG_STAT_FLASH_UPDATE_FAIL) |
-		BIT(ADIS16136_DIAG_STAT_SPI_FAIL) |
-		BIT(ADIS16136_DIAG_STAT_SELF_TEST_FAIL) |
-		BIT(ADIS16136_DIAG_STAT_FLASH_CHKSUM_FAIL),
+	BIT(ADIS16136_DIAG_STAT_SPI_FAIL) |
+	BIT(ADIS16136_DIAG_STAT_SELF_TEST_FAIL) |
+	BIT(ADIS16136_DIAG_STAT_FLASH_CHKSUM_FAIL),
 };
 
-enum adis16136_id {
+enum adis16136_id
+{
 	ID_ADIS16133,
 	ID_ADIS16135,
 	ID_ADIS16136,
 	ID_ADIS16137,
 };
 
-static const struct adis16136_chip_info adis16136_chip_info[] = {
+static const struct adis16136_chip_info adis16136_chip_info[] =
+{
 	[ID_ADIS16133] = {
 		.precision = IIO_DEGREE_TO_RAD(1200),
 		.fullscale = 24000,
@@ -505,8 +590,11 @@ static int adis16136_probe(struct spi_device *spi)
 	int ret;
 
 	indio_dev = devm_iio_device_alloc(&spi->dev, sizeof(*adis16136));
+
 	if (indio_dev == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	spi_set_drvdata(spi, indio_dev);
 
@@ -521,20 +609,32 @@ static int adis16136_probe(struct spi_device *spi)
 	indio_dev->modes = INDIO_DIRECT_MODE;
 
 	ret = adis_init(&adis16136->adis, indio_dev, spi, &adis16136_data);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = adis_setup_buffer_and_trigger(&adis16136->adis, indio_dev, NULL);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = adis16136_initial_setup(indio_dev);
+
 	if (ret)
+	{
 		goto error_cleanup_buffer;
+	}
 
 	ret = iio_device_register(indio_dev);
+
 	if (ret)
+	{
 		goto error_stop_device;
+	}
 
 	adis16136_debugfs_init(indio_dev);
 
@@ -560,7 +660,8 @@ static int adis16136_remove(struct spi_device *spi)
 	return 0;
 }
 
-static const struct spi_device_id adis16136_ids[] = {
+static const struct spi_device_id adis16136_ids[] =
+{
 	{ "adis16133", ID_ADIS16133 },
 	{ "adis16135", ID_ADIS16135 },
 	{ "adis16136", ID_ADIS16136 },
@@ -569,7 +670,8 @@ static const struct spi_device_id adis16136_ids[] = {
 };
 MODULE_DEVICE_TABLE(spi, adis16136_ids);
 
-static struct spi_driver adis16136_driver = {
+static struct spi_driver adis16136_driver =
+{
 	.driver = {
 		.name = "adis16136",
 	},

@@ -68,7 +68,7 @@
 #define UHCRHDA_NOCP	(1 << 12)	/* No over current protection */
 #define UHCRHDA_OCPM	(1 << 11)	/* Over Current Protection Mode */
 #define UHCRHDA_POTPGT(x) \
-			(((x) & 0xff) << 24) /* Power On To Power Good Time */
+	(((x) & 0xff) << 24) /* Power On To Power Good Time */
 
 #define UHCRHDB		(0x004C) /* UHC Root Hub Descriptor B */
 #define UHCRHS		(0x0050) /* UHC Root Hub Status */
@@ -118,7 +118,8 @@ static const char hcd_name[] = "ohci-pxa27x";
 
 static struct hc_driver __read_mostly ohci_pxa27x_hc_driver;
 
-struct pxa27x_ohci {
+struct pxa27x_ohci
+{
 	struct clk	*clk;
 	void __iomem	*mmio_base;
 	struct regulator *vbus[3];
@@ -142,26 +143,30 @@ static int pxa27x_ohci_select_pmm(struct pxa27x_ohci *pxa_ohci, int mode)
 	uint32_t uhcrhda = __raw_readl(pxa_ohci->mmio_base + UHCRHDA);
 	uint32_t uhcrhdb = __raw_readl(pxa_ohci->mmio_base + UHCRHDB);
 
-	switch (mode) {
-	case PMM_NPS_MODE:
-		uhcrhda |= RH_A_NPS;
-		break;
-	case PMM_GLOBAL_MODE:
-		uhcrhda &= ~(RH_A_NPS & RH_A_PSM);
-		break;
-	case PMM_PERPORT_MODE:
-		uhcrhda &= ~(RH_A_NPS);
-		uhcrhda |= RH_A_PSM;
+	switch (mode)
+	{
+		case PMM_NPS_MODE:
+			uhcrhda |= RH_A_NPS;
+			break;
 
-		/* Set port power control mask bits, only 3 ports. */
-		uhcrhdb |= (0x7<<17);
-		break;
-	default:
-		printk( KERN_ERR
-			"Invalid mode %d, set to non-power switch mode.\n",
-			mode );
+		case PMM_GLOBAL_MODE:
+			uhcrhda &= ~(RH_A_NPS & RH_A_PSM);
+			break;
 
-		uhcrhda |= RH_A_NPS;
+		case PMM_PERPORT_MODE:
+			uhcrhda &= ~(RH_A_NPS);
+			uhcrhda |= RH_A_PSM;
+
+			/* Set port power control mask bits, only 3 ports. */
+			uhcrhdb |= (0x7 << 17);
+			break;
+
+		default:
+			printk( KERN_ERR
+					"Invalid mode %d, set to non-power switch mode.\n",
+					mode );
+
+			uhcrhda |= RH_A_NPS;
 	}
 
 	__raw_writel(uhcrhda, pxa_ohci->mmio_base + UHCRHDA);
@@ -170,21 +175,29 @@ static int pxa27x_ohci_select_pmm(struct pxa27x_ohci *pxa_ohci, int mode)
 }
 
 static int pxa27x_ohci_set_vbus_power(struct pxa27x_ohci *pxa_ohci,
-				      unsigned int port, bool enable)
+									  unsigned int port, bool enable)
 {
 	struct regulator *vbus = pxa_ohci->vbus[port];
 	int ret = 0;
 
 	if (IS_ERR_OR_NULL(vbus))
+	{
 		return 0;
+	}
 
 	if (enable && !pxa_ohci->vbus_enabled[port])
+	{
 		ret = regulator_enable(vbus);
+	}
 	else if (!enable && pxa_ohci->vbus_enabled[port])
+	{
 		ret = regulator_disable(vbus);
+	}
 
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	pxa_ohci->vbus_enabled[port] = enable;
 
@@ -192,25 +205,34 @@ static int pxa27x_ohci_set_vbus_power(struct pxa27x_ohci *pxa_ohci,
 }
 
 static int pxa27x_ohci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
-				   u16 wIndex, char *buf, u16 wLength)
+								   u16 wIndex, char *buf, u16 wLength)
 {
 	struct pxa27x_ohci *pxa_ohci = to_pxa27x_ohci(hcd);
 	int ret;
 
-	switch (typeReq) {
-	case SetPortFeature:
-	case ClearPortFeature:
-		if (!wIndex || wIndex > 3)
-			return -EPIPE;
+	switch (typeReq)
+	{
+		case SetPortFeature:
+		case ClearPortFeature:
+			if (!wIndex || wIndex > 3)
+			{
+				return -EPIPE;
+			}
 
-		if (wValue != USB_PORT_FEAT_POWER)
+			if (wValue != USB_PORT_FEAT_POWER)
+			{
+				break;
+			}
+
+			ret = pxa27x_ohci_set_vbus_power(pxa_ohci, wIndex - 1,
+											 typeReq == SetPortFeature);
+
+			if (ret)
+			{
+				return ret;
+			}
+
 			break;
-
-		ret = pxa27x_ohci_set_vbus_power(pxa_ohci, wIndex - 1,
-						 typeReq == SetPortFeature);
-		if (ret)
-			return ret;
-		break;
 	}
 
 	return ohci_hub_control(hcd, typeReq, wValue, wIndex, buf, wLength);
@@ -218,37 +240,56 @@ static int pxa27x_ohci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
 /*-------------------------------------------------------------------------*/
 
 static inline void pxa27x_setup_hc(struct pxa27x_ohci *pxa_ohci,
-				   struct pxaohci_platform_data *inf)
+								   struct pxaohci_platform_data *inf)
 {
 	uint32_t uhchr = __raw_readl(pxa_ohci->mmio_base + UHCHR);
 	uint32_t uhcrhda = __raw_readl(pxa_ohci->mmio_base + UHCRHDA);
 
 	if (inf->flags & ENABLE_PORT1)
+	{
 		uhchr &= ~UHCHR_SSEP1;
+	}
 
 	if (inf->flags & ENABLE_PORT2)
+	{
 		uhchr &= ~UHCHR_SSEP2;
+	}
 
 	if (inf->flags & ENABLE_PORT3)
+	{
 		uhchr &= ~UHCHR_SSEP3;
+	}
 
 	if (inf->flags & POWER_CONTROL_LOW)
+	{
 		uhchr |= UHCHR_PCPL;
+	}
 
 	if (inf->flags & POWER_SENSE_LOW)
+	{
 		uhchr |= UHCHR_PSPL;
+	}
 
 	if (inf->flags & NO_OC_PROTECTION)
+	{
 		uhcrhda |= UHCRHDA_NOCP;
+	}
 	else
+	{
 		uhcrhda &= ~UHCRHDA_NOCP;
+	}
 
 	if (inf->flags & OC_MODE_PERPORT)
+	{
 		uhcrhda |= UHCRHDA_OCPM;
+	}
 	else
+	{
 		uhcrhda &= ~UHCRHDA_OCPM;
+	}
 
-	if (inf->power_on_delay) {
+	if (inf->power_on_delay)
+	{
 		uhcrhda &= ~UHCRHDA_POTPGT(0xff);
 		uhcrhda |= UHCRHDA_POTPGT(inf->power_on_delay / 2);
 	}
@@ -267,9 +308,9 @@ static inline void pxa27x_reset_hc(struct pxa27x_ohci *pxa_ohci)
 }
 
 #ifdef CONFIG_PXA27x
-extern void pxa27x_clear_otgph(void);
+	extern void pxa27x_clear_otgph(void);
 #else
-#define pxa27x_clear_otgph()	do {} while (0)
+	#define pxa27x_clear_otgph()	do {} while (0)
 #endif
 
 static int pxa27x_start_hc(struct pxa27x_ohci *pxa_ohci, struct device *dev)
@@ -289,18 +330,26 @@ static int pxa27x_start_hc(struct pxa27x_ohci *pxa_ohci, struct device *dev)
 	__raw_writel(uhchr, pxa_ohci->mmio_base + UHCHR);
 
 	while (__raw_readl(pxa_ohci->mmio_base + UHCHR) & UHCHR_FSBIR)
+	{
 		cpu_relax();
+	}
 
 	pxa27x_setup_hc(pxa_ohci, inf);
 
 	if (inf->init)
+	{
 		retval = inf->init(dev);
+	}
 
 	if (retval < 0)
+	{
 		return retval;
+	}
 
 	if (cpu_is_pxa3xx())
+	{
 		pxa3xx_u2d_start_hc(&hcd->self);
+	}
 
 	uhchr = __raw_readl(pxa_ohci->mmio_base + UHCHR) & ~UHCHR_SSE;
 	__raw_writel(uhchr, pxa_ohci->mmio_base + UHCHR);
@@ -320,10 +369,14 @@ static void pxa27x_stop_hc(struct pxa27x_ohci *pxa_ohci, struct device *dev)
 	inf = dev_get_platdata(dev);
 
 	if (cpu_is_pxa3xx())
+	{
 		pxa3xx_u2d_stop_hc(&hcd->self);
+	}
 
 	if (inf->exit)
+	{
 		inf->exit(dev);
+	}
 
 	pxa27x_reset_hc(pxa_ohci);
 
@@ -336,7 +389,8 @@ static void pxa27x_stop_hc(struct pxa27x_ohci *pxa_ohci, struct device *dev)
 }
 
 #ifdef CONFIG_OF
-static const struct of_device_id pxa_ohci_dt_ids[] = {
+static const struct of_device_id pxa_ohci_dt_ids[] =
+{
 	{ .compatible = "marvell,pxa-ohci" },
 	{ }
 };
@@ -351,40 +405,77 @@ static int ohci_pxa_of_init(struct platform_device *pdev)
 	int ret;
 
 	if (!np)
+	{
 		return 0;
+	}
 
 	/* Right now device-tree probed devices don't get dma_mask set.
 	 * Since shared usb code relies on it, set it here for now.
 	 * Once we have dma capability bindings this can go away.
 	 */
 	ret = dma_coerce_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+
 	if (!pdata)
+	{
 		return -ENOMEM;
+	}
 
 	if (of_property_read_bool(np, "marvell,enable-port1"))
+	{
 		pdata->flags |= ENABLE_PORT1;
+	}
+
 	if (of_property_read_bool(np, "marvell,enable-port2"))
+	{
 		pdata->flags |= ENABLE_PORT2;
+	}
+
 	if (of_property_read_bool(np, "marvell,enable-port3"))
+	{
 		pdata->flags |= ENABLE_PORT3;
+	}
+
 	if (of_property_read_bool(np, "marvell,port-sense-low"))
+	{
 		pdata->flags |= POWER_SENSE_LOW;
+	}
+
 	if (of_property_read_bool(np, "marvell,power-control-low"))
+	{
 		pdata->flags |= POWER_CONTROL_LOW;
+	}
+
 	if (of_property_read_bool(np, "marvell,no-oc-protection"))
+	{
 		pdata->flags |= NO_OC_PROTECTION;
+	}
+
 	if (of_property_read_bool(np, "marvell,oc-mode-perport"))
+	{
 		pdata->flags |= OC_MODE_PERPORT;
+	}
+
 	if (!of_property_read_u32(np, "marvell,power-on-delay", &tmp))
+	{
 		pdata->power_on_delay = tmp;
+	}
+
 	if (!of_property_read_u32(np, "marvell,port-mode", &tmp))
+	{
 		pdata->port_mode = tmp;
+	}
+
 	if (!of_property_read_u32(np, "marvell,power-budget", &tmp))
+	{
 		pdata->power_budget = tmp;
+	}
 
 	pdev->dev.platform_data = pdata;
 
@@ -424,34 +515,50 @@ int usb_hcd_pxa27x_probe (const struct hc_driver *driver, struct platform_device
 	unsigned int i;
 
 	retval = ohci_pxa_of_init(pdev);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	inf = dev_get_platdata(&pdev->dev);
 
 	if (!inf)
+	{
 		return -ENODEV;
+	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		pr_err("no resource of IORESOURCE_IRQ");
 		return irq;
 	}
 
 	usb_clk = devm_clk_get(&pdev->dev, NULL);
+
 	if (IS_ERR(usb_clk))
+	{
 		return PTR_ERR(usb_clk);
+	}
 
 	hcd = usb_create_hcd (driver, &pdev->dev, "pxa27x");
+
 	if (!hcd)
+	{
 		return -ENOMEM;
+	}
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	hcd->regs = devm_ioremap_resource(&pdev->dev, r);
-	if (IS_ERR(hcd->regs)) {
+
+	if (IS_ERR(hcd->regs))
+	{
 		retval = PTR_ERR(hcd->regs);
 		goto err;
 	}
+
 	hcd->rsrc_start = r->start;
 	hcd->rsrc_len = resource_size(r);
 
@@ -460,18 +567,23 @@ int usb_hcd_pxa27x_probe (const struct hc_driver *driver, struct platform_device
 	pxa_ohci->clk = usb_clk;
 	pxa_ohci->mmio_base = (void __iomem *)hcd->regs;
 
-	for (i = 0; i < 3; ++i) {
+	for (i = 0; i < 3; ++i)
+	{
 		char name[6];
 
 		if (!(inf->flags & (ENABLE_PORT1 << i)))
+		{
 			continue;
+		}
 
 		sprintf(name, "vbus%u", i + 1);
 		pxa_ohci->vbus[i] = devm_regulator_get(&pdev->dev, name);
 	}
 
 	retval = pxa27x_start_hc(pxa_ohci, &pdev->dev);
-	if (retval < 0) {
+
+	if (retval < 0)
+	{
 		pr_debug("pxa27x_start_hc failed");
 		goto err;
 	}
@@ -480,20 +592,24 @@ int usb_hcd_pxa27x_probe (const struct hc_driver *driver, struct platform_device
 	pxa27x_ohci_select_pmm(pxa_ohci, inf->port_mode);
 
 	if (inf->power_budget)
+	{
 		hcd->power_budget = inf->power_budget;
+	}
 
 	/* The value of NDP in roothub_a is incorrect on this hardware */
 	ohci = hcd_to_ohci(hcd);
 	ohci->num_ports = 3;
 
 	retval = usb_add_hcd(hcd, irq, 0);
-	if (retval == 0) {
+
+	if (retval == 0)
+	{
 		device_wakeup_enable(hcd->self.controller);
 		return retval;
 	}
 
 	pxa27x_stop_hc(pxa_ohci, &pdev->dev);
- err:
+err:
 	usb_put_hcd(hcd);
 	return retval;
 }
@@ -521,7 +637,9 @@ void usb_hcd_pxa27x_remove (struct usb_hcd *hcd, struct platform_device *pdev)
 	pxa27x_stop_hc(pxa_ohci, &pdev->dev);
 
 	for (i = 0; i < 3; ++i)
+	{
 		pxa27x_ohci_set_vbus_power(pxa_ohci, i, false);
+	}
 
 	usb_put_hcd(hcd);
 }
@@ -533,7 +651,9 @@ static int ohci_hcd_pxa27x_drv_probe(struct platform_device *pdev)
 	pr_debug ("In ohci_hcd_pxa27x_drv_probe");
 
 	if (usb_disabled())
+	{
 		return -ENODEV;
+	}
 
 	return usb_hcd_pxa27x_probe(&ohci_pxa27x_hc_driver, pdev);
 }
@@ -557,12 +677,18 @@ static int ohci_hcd_pxa27x_drv_suspend(struct device *dev)
 
 
 	if (time_before(jiffies, ohci->next_statechange))
+	{
 		msleep(5);
+	}
+
 	ohci->next_statechange = jiffies;
 
 	ret = ohci_suspend(hcd, do_wakeup);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	pxa27x_stop_hc(pxa_ohci, dev);
 	return ret;
@@ -577,12 +703,18 @@ static int ohci_hcd_pxa27x_drv_resume(struct device *dev)
 	int status;
 
 	if (time_before(jiffies, ohci->next_statechange))
+	{
 		msleep(5);
+	}
+
 	ohci->next_statechange = jiffies;
 
 	status = pxa27x_start_hc(pxa_ohci, dev);
+
 	if (status < 0)
+	{
 		return status;
+	}
 
 	/* Select Power Management Mode */
 	pxa27x_ohci_select_pmm(pxa_ohci, inf->port_mode);
@@ -591,13 +723,15 @@ static int ohci_hcd_pxa27x_drv_resume(struct device *dev)
 	return 0;
 }
 
-static const struct dev_pm_ops ohci_hcd_pxa27x_pm_ops = {
+static const struct dev_pm_ops ohci_hcd_pxa27x_pm_ops =
+{
 	.suspend	= ohci_hcd_pxa27x_drv_suspend,
 	.resume		= ohci_hcd_pxa27x_drv_resume,
 };
 #endif
 
-static struct platform_driver ohci_hcd_pxa27x_driver = {
+static struct platform_driver ohci_hcd_pxa27x_driver =
+{
 	.probe		= ohci_hcd_pxa27x_drv_probe,
 	.remove		= ohci_hcd_pxa27x_drv_remove,
 	.shutdown	= usb_hcd_platform_shutdown,
@@ -610,14 +744,17 @@ static struct platform_driver ohci_hcd_pxa27x_driver = {
 	},
 };
 
-static const struct ohci_driver_overrides pxa27x_overrides __initconst = {
+static const struct ohci_driver_overrides pxa27x_overrides __initconst =
+{
 	.extra_priv_size =      sizeof(struct pxa27x_ohci),
 };
 
 static int __init ohci_pxa27x_init(void)
 {
 	if (usb_disabled())
+	{
 		return -ENODEV;
+	}
 
 	pr_info("%s: " DRIVER_DESC "\n", hcd_name);
 

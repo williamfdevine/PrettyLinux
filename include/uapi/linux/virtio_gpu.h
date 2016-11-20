@@ -42,7 +42,8 @@
 
 #define VIRTIO_GPU_F_VIRGL 0
 
-enum virtio_gpu_ctrl_type {
+enum virtio_gpu_ctrl_type
+{
 	VIRTIO_GPU_UNDEFINED = 0,
 
 	/* 2d commands */
@@ -88,7 +89,8 @@ enum virtio_gpu_ctrl_type {
 
 #define VIRTIO_GPU_FLAG_FENCE (1 << 0)
 
-struct virtio_gpu_ctrl_hdr {
+struct virtio_gpu_ctrl_hdr
+{
 	__le32 type;
 	__le32 flags;
 	__le64 fence_id;
@@ -98,7 +100,8 @@ struct virtio_gpu_ctrl_hdr {
 
 /* data passed in the cursor vq */
 
-struct virtio_gpu_cursor_pos {
+struct virtio_gpu_cursor_pos
+{
 	__le32 scanout_id;
 	__le32 x;
 	__le32 y;
@@ -106,7 +109,8 @@ struct virtio_gpu_cursor_pos {
 };
 
 /* VIRTIO_GPU_CMD_UPDATE_CURSOR, VIRTIO_GPU_CMD_MOVE_CURSOR */
-struct virtio_gpu_update_cursor {
+struct virtio_gpu_update_cursor
+{
 	struct virtio_gpu_ctrl_hdr hdr;
 	struct virtio_gpu_cursor_pos pos;  /* update & move */
 	__le32 resource_id;           /* update only */
@@ -117,7 +121,8 @@ struct virtio_gpu_update_cursor {
 
 /* data passed in the control vq, 2d related */
 
-struct virtio_gpu_rect {
+struct virtio_gpu_rect
+{
 	__le32 x;
 	__le32 y;
 	__le32 width;
@@ -125,14 +130,16 @@ struct virtio_gpu_rect {
 };
 
 /* VIRTIO_GPU_CMD_RESOURCE_UNREF */
-struct virtio_gpu_resource_unref {
+struct virtio_gpu_resource_unref
+{
 	struct virtio_gpu_ctrl_hdr hdr;
 	__le32 resource_id;
 	__le32 padding;
 };
 
 /* VIRTIO_GPU_CMD_RESOURCE_CREATE_2D: create a 2d resource with a format */
-struct virtio_gpu_resource_create_2d {
+struct virtio_gpu_resource_create_2d
+{
 	struct virtio_gpu_ctrl_hdr hdr;
 	__le32 resource_id;
 	__le32 format;
@@ -141,7 +148,8 @@ struct virtio_gpu_resource_create_2d {
 };
 
 /* VIRTIO_GPU_CMD_SET_SCANOUT */
-struct virtio_gpu_set_scanout {
+struct virtio_gpu_set_scanout
+{
 	struct virtio_gpu_ctrl_hdr hdr;
 	struct virtio_gpu_rect r;
 	__le32 scanout_id;
@@ -149,7 +157,8 @@ struct virtio_gpu_set_scanout {
 };
 
 /* VIRTIO_GPU_CMD_RESOURCE_FLUSH */
-struct virtio_gpu_resource_flush {
+struct virtio_gpu_resource_flush
+{
 	struct virtio_gpu_ctrl_hdr hdr;
 	struct virtio_gpu_rect r;
 	__le32 resource_id;
@@ -157,7 +166,8 @@ struct virtio_gpu_resource_flush {
 };
 
 /* VIRTIO_GPU_CMD_TRANSFER_TO_HOST_2D: simple transfer to_host */
-struct virtio_gpu_transfer_to_host_2d {
+struct virtio_gpu_transfer_to_host_2d
+{
 	struct virtio_gpu_ctrl_hdr hdr;
 	struct virtio_gpu_rect r;
 	__le64 offset;
@@ -165,21 +175,24 @@ struct virtio_gpu_transfer_to_host_2d {
 	__le32 padding;
 };
 
-struct virtio_gpu_mem_entry {
+struct virtio_gpu_mem_entry
+{
 	__le64 addr;
 	__le32 length;
 	__le32 padding;
 };
 
 /* VIRTIO_GPU_CMD_RESOURCE_ATTACH_BACKING */
-struct virtio_gpu_resource_attach_backing {
+struct virtio_gpu_resource_attach_backing
+{
 	struct virtio_gpu_ctrl_hdr hdr;
 	__le32 resource_id;
 	__le32 nr_entries;
 };
 
 /* VIRTIO_GPU_CMD_RESOURCE_DETACH_BACKING */
-struct virtio_gpu_resource_detach_backing {
+struct virtio_gpu_resource_detach_backing
+{
 	struct virtio_gpu_ctrl_hdr hdr;
 	__le32 resource_id;
 	__le32 padding;
@@ -187,9 +200,11 @@ struct virtio_gpu_resource_detach_backing {
 
 /* VIRTIO_GPU_RESP_OK_DISPLAY_INFO */
 #define VIRTIO_GPU_MAX_SCANOUTS 16
-struct virtio_gpu_resp_display_info {
+struct virtio_gpu_resp_display_info
+{
 	struct virtio_gpu_ctrl_hdr hdr;
-	struct virtio_gpu_display_one {
+	struct virtio_gpu_display_one
+	{
 		struct virtio_gpu_rect r;
 		__le32 enabled;
 		__le32 flags;
@@ -198,13 +213,15 @@ struct virtio_gpu_resp_display_info {
 
 /* data passed in the control vq, 3d related */
 
-struct virtio_gpu_box {
+struct virtio_gpu_box
+{
 	__le32 x, y, z;
 	__le32 w, h, d;
 };
 
 /* VIRTIO_GPU_CMD_TRANSFER_TO_HOST_3D, VIRTIO_GPU_CMD_TRANSFER_FROM_HOST_3D */
-struct virtio_gpu_transfer_host_3d {
+struct virtio_gpu_transfer_host_3d
+{
 	struct virtio_gpu_ctrl_hdr hdr;
 	struct virtio_gpu_box box;
 	__le64 offset;
@@ -216,7 +233,8 @@ struct virtio_gpu_transfer_host_3d {
 
 /* VIRTIO_GPU_CMD_RESOURCE_CREATE_3D */
 #define VIRTIO_GPU_RESOURCE_FLAG_Y_0_TOP (1 << 0)
-struct virtio_gpu_resource_create_3d {
+struct virtio_gpu_resource_create_3d
+{
 	struct virtio_gpu_ctrl_hdr hdr;
 	__le32 resource_id;
 	__le32 target;
@@ -233,7 +251,8 @@ struct virtio_gpu_resource_create_3d {
 };
 
 /* VIRTIO_GPU_CMD_CTX_CREATE */
-struct virtio_gpu_ctx_create {
+struct virtio_gpu_ctx_create
+{
 	struct virtio_gpu_ctrl_hdr hdr;
 	__le32 nlen;
 	__le32 padding;
@@ -241,19 +260,22 @@ struct virtio_gpu_ctx_create {
 };
 
 /* VIRTIO_GPU_CMD_CTX_DESTROY */
-struct virtio_gpu_ctx_destroy {
+struct virtio_gpu_ctx_destroy
+{
 	struct virtio_gpu_ctrl_hdr hdr;
 };
 
 /* VIRTIO_GPU_CMD_CTX_ATTACH_RESOURCE, VIRTIO_GPU_CMD_CTX_DETACH_RESOURCE */
-struct virtio_gpu_ctx_resource {
+struct virtio_gpu_ctx_resource
+{
 	struct virtio_gpu_ctrl_hdr hdr;
 	__le32 resource_id;
 	__le32 padding;
 };
 
 /* VIRTIO_GPU_CMD_SUBMIT_3D */
-struct virtio_gpu_cmd_submit {
+struct virtio_gpu_cmd_submit
+{
 	struct virtio_gpu_ctrl_hdr hdr;
 	__le32 size;
 	__le32 padding;
@@ -262,14 +284,16 @@ struct virtio_gpu_cmd_submit {
 #define VIRTIO_GPU_CAPSET_VIRGL 1
 
 /* VIRTIO_GPU_CMD_GET_CAPSET_INFO */
-struct virtio_gpu_get_capset_info {
+struct virtio_gpu_get_capset_info
+{
 	struct virtio_gpu_ctrl_hdr hdr;
 	__le32 capset_index;
 	__le32 padding;
 };
 
 /* VIRTIO_GPU_RESP_OK_CAPSET_INFO */
-struct virtio_gpu_resp_capset_info {
+struct virtio_gpu_resp_capset_info
+{
 	struct virtio_gpu_ctrl_hdr hdr;
 	__le32 capset_id;
 	__le32 capset_max_version;
@@ -278,21 +302,24 @@ struct virtio_gpu_resp_capset_info {
 };
 
 /* VIRTIO_GPU_CMD_GET_CAPSET */
-struct virtio_gpu_get_capset {
+struct virtio_gpu_get_capset
+{
 	struct virtio_gpu_ctrl_hdr hdr;
 	__le32 capset_id;
 	__le32 capset_version;
 };
 
 /* VIRTIO_GPU_RESP_OK_CAPSET */
-struct virtio_gpu_resp_capset {
+struct virtio_gpu_resp_capset
+{
 	struct virtio_gpu_ctrl_hdr hdr;
 	__u8 capset_data[];
 };
 
 #define VIRTIO_GPU_EVENT_DISPLAY (1 << 0)
 
-struct virtio_gpu_config {
+struct virtio_gpu_config
+{
 	__u32 events_read;
 	__u32 events_clear;
 	__u32 num_scanouts;
@@ -300,7 +327,8 @@ struct virtio_gpu_config {
 };
 
 /* simple formats for fbcon/X use */
-enum virtio_gpu_formats {
+enum virtio_gpu_formats
+{
 	VIRTIO_GPU_FORMAT_B8G8R8A8_UNORM  = 1,
 	VIRTIO_GPU_FORMAT_B8G8R8X8_UNORM  = 2,
 	VIRTIO_GPU_FORMAT_A8R8G8B8_UNORM  = 3,

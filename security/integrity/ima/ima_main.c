@@ -30,9 +30,9 @@
 int ima_initialized;
 
 #ifdef CONFIG_IMA_APPRAISE
-int ima_appraise = IMA_APPRAISE_ENFORCE;
+	int ima_appraise = IMA_APPRAISE_ENFORCE;
 #else
-int ima_appraise;
+	int ima_appraise;
 #endif
 
 int ima_hash_algo = HASH_ALGO_SHA1;
@@ -44,22 +44,33 @@ static int __init hash_setup(char *str)
 	int i;
 
 	if (hash_setup_done)
+	{
 		return 1;
+	}
 
-	if (strcmp(template_desc->name, IMA_TEMPLATE_IMA_NAME) == 0) {
+	if (strcmp(template_desc->name, IMA_TEMPLATE_IMA_NAME) == 0)
+	{
 		if (strncmp(str, "sha1", 4) == 0)
+		{
 			ima_hash_algo = HASH_ALGO_SHA1;
+		}
 		else if (strncmp(str, "md5", 3) == 0)
+		{
 			ima_hash_algo = HASH_ALGO_MD5;
+		}
+
 		goto out;
 	}
 
-	for (i = 0; i < HASH_ALGO__LAST; i++) {
-		if (strcmp(str, hash_algo_name[i]) == 0) {
+	for (i = 0; i < HASH_ALGO__LAST; i++)
+	{
+		if (strcmp(str, hash_algo_name[i]) == 0)
+		{
 			ima_hash_algo = i;
 			break;
 		}
 	}
+
 out:
 	hash_setup_done = 1;
 	return 1;
@@ -77,59 +88,82 @@ __setup("ima_hash=", hash_setup);
  *
  */
 static void ima_rdwr_violation_check(struct file *file,
-				     struct integrity_iint_cache *iint,
-				     int must_measure,
-				     char **pathbuf,
-				     const char **pathname)
+									 struct integrity_iint_cache *iint,
+									 int must_measure,
+									 char **pathbuf,
+									 const char **pathname)
 {
 	struct inode *inode = file_inode(file);
 	fmode_t mode = file->f_mode;
 	bool send_tomtou = false, send_writers = false;
 
-	if (mode & FMODE_WRITE) {
-		if (atomic_read(&inode->i_readcount) && IS_IMA(inode)) {
+	if (mode & FMODE_WRITE)
+	{
+		if (atomic_read(&inode->i_readcount) && IS_IMA(inode))
+		{
 			if (!iint)
+			{
 				iint = integrity_iint_find(inode);
+			}
+
 			/* IMA_MEASURE is set from reader side */
 			if (iint && (iint->flags & IMA_MEASURE))
+			{
 				send_tomtou = true;
+			}
 		}
-	} else {
+	}
+	else
+	{
 		if ((atomic_read(&inode->i_writecount) > 0) && must_measure)
+		{
 			send_writers = true;
+		}
 	}
 
 	if (!send_tomtou && !send_writers)
+	{
 		return;
+	}
 
 	*pathname = ima_d_path(&file->f_path, pathbuf);
 
 	if (send_tomtou)
 		ima_add_violation(file, *pathname, iint,
-				  "invalid_pcr", "ToMToU");
+						  "invalid_pcr", "ToMToU");
+
 	if (send_writers)
 		ima_add_violation(file, *pathname, iint,
-				  "invalid_pcr", "open_writers");
+						  "invalid_pcr", "open_writers");
 }
 
 static void ima_check_last_writer(struct integrity_iint_cache *iint,
-				  struct inode *inode, struct file *file)
+								  struct inode *inode, struct file *file)
 {
 	fmode_t mode = file->f_mode;
 
 	if (!(mode & FMODE_WRITE))
+	{
 		return;
+	}
 
 	inode_lock(inode);
-	if (atomic_read(&inode->i_writecount) == 1) {
+
+	if (atomic_read(&inode->i_writecount) == 1)
+	{
 		if ((iint->version != inode->i_version) ||
-		    (iint->flags & IMA_NEW_FILE)) {
+			(iint->flags & IMA_NEW_FILE))
+		{
 			iint->flags &= ~(IMA_DONE_MASK | IMA_NEW_FILE);
 			iint->measured_pcrs = 0;
+
 			if (iint->flags & IMA_APPRAISE)
+			{
 				ima_update_xattr(iint, file);
+			}
 		}
 	}
+
 	inode_unlock(inode);
 }
 
@@ -145,17 +179,22 @@ void ima_file_free(struct file *file)
 	struct integrity_iint_cache *iint;
 
 	if (!ima_policy_flag || !S_ISREG(inode->i_mode))
+	{
 		return;
+	}
 
 	iint = integrity_iint_find(inode);
+
 	if (!iint)
+	{
 		return;
+	}
 
 	ima_check_last_writer(iint, inode, file);
 }
 
 static int process_measurement(struct file *file, char *buf, loff_t size,
-			       int mask, enum ima_hooks func, int opened)
+							   int mask, enum ima_hooks func, int opened)
 {
 	struct inode *inode = file_inode(file);
 	struct integrity_iint_cache *iint = NULL;
@@ -170,7 +209,9 @@ static int process_measurement(struct file *file, char *buf, loff_t size,
 	enum hash_algo hash_algo;
 
 	if (!ima_policy_flag || !S_ISREG(inode->i_mode))
+	{
 		return 0;
+	}
 
 	/* Return an IMA_MEASURE, IMA_APPRAISE, IMA_AUDIT action
 	 * bitmask based on the appraise/audit/measurement policy.
@@ -178,28 +219,40 @@ static int process_measurement(struct file *file, char *buf, loff_t size,
 	 */
 	action = ima_get_action(inode, mask, func, &pcr);
 	violation_check = ((func == FILE_CHECK || func == MMAP_CHECK) &&
-			   (ima_policy_flag & IMA_MEASURE));
+					   (ima_policy_flag & IMA_MEASURE));
+
 	if (!action && !violation_check)
+	{
 		return 0;
+	}
 
 	must_appraise = action & IMA_APPRAISE;
 
 	/*  Is the appraise rule hook specific?  */
 	if (action & IMA_FILE_APPRAISE)
+	{
 		func = FILE_CHECK;
+	}
 
 	inode_lock(inode);
 
-	if (action) {
+	if (action)
+	{
 		iint = integrity_inode_get(inode);
+
 		if (!iint)
+		{
 			goto out;
+		}
 	}
 
-	if (violation_check) {
+	if (violation_check)
+	{
 		ima_rdwr_violation_check(file, iint, action & IMA_MEASURE,
-					 &pathbuf, &pathname);
-		if (!action) {
+								 &pathbuf, &pathname);
+
+		if (!action)
+		{
 			rc = 0;
 			goto out_free;
 		}
@@ -215,54 +268,86 @@ static int process_measurement(struct file *file, char *buf, loff_t size,
 
 	/* If target pcr is already measured, unset IMA_MEASURE action */
 	if ((action & IMA_MEASURE) && (iint->measured_pcrs & (0x1 << pcr)))
+	{
 		action ^= IMA_MEASURE;
+	}
 
 	/* Nothing to do, just return existing appraised status */
-	if (!action) {
+	if (!action)
+	{
 		if (must_appraise)
+		{
 			rc = ima_get_cache_status(iint, func);
+		}
+
 		goto out_digsig;
 	}
 
 	template_desc = ima_template_desc_current();
+
 	if ((action & IMA_APPRAISE_SUBMASK) ||
-		    strcmp(template_desc->name, IMA_TEMPLATE_IMA_NAME) != 0)
+		strcmp(template_desc->name, IMA_TEMPLATE_IMA_NAME) != 0)
 		/* read 'security.ima' */
+	{
 		xattr_len = ima_read_xattr(file_dentry(file), &xattr_value);
+	}
 
 	hash_algo = ima_get_hash_algo(xattr_value, xattr_len);
 
 	rc = ima_collect_measurement(iint, file, buf, size, hash_algo);
-	if (rc != 0) {
+
+	if (rc != 0)
+	{
 		if (file->f_flags & O_DIRECT)
+		{
 			rc = (iint->flags & IMA_PERMIT_DIRECTIO) ? 0 : -EACCES;
+		}
+
 		goto out_digsig;
 	}
 
 	if (!pathname)	/* ima_rdwr_violation possibly pre-fetched */
+	{
 		pathname = ima_d_path(&file->f_path, &pathbuf);
+	}
 
 	if (action & IMA_MEASURE)
 		ima_store_measurement(iint, file, pathname,
-				      xattr_value, xattr_len, pcr);
+							  xattr_value, xattr_len, pcr);
+
 	if (action & IMA_APPRAISE_SUBMASK)
 		rc = ima_appraise_measurement(func, iint, file, pathname,
-					      xattr_value, xattr_len, opened);
+									  xattr_value, xattr_len, opened);
+
 	if (action & IMA_AUDIT)
+	{
 		ima_audit_measurement(iint, pathname);
+	}
 
 out_digsig:
+
 	if ((mask & MAY_WRITE) && (iint->flags & IMA_DIGSIG) &&
-	     !(iint->flags & IMA_NEW_FILE))
+		!(iint->flags & IMA_NEW_FILE))
+	{
 		rc = -EACCES;
+	}
+
 	kfree(xattr_value);
 out_free:
+
 	if (pathbuf)
+	{
 		__putname(pathbuf);
+	}
+
 out:
 	inode_unlock(inode);
+
 	if ((rc && must_appraise) && (ima_appraise & IMA_APPRAISE_ENFORCE))
+	{
 		return -EACCES;
+	}
+
 	return 0;
 }
 
@@ -281,7 +366,8 @@ int ima_file_mmap(struct file *file, unsigned long prot)
 {
 	if (file && (prot & PROT_EXEC))
 		return process_measurement(file, NULL, 0, MAY_EXEC,
-					   MMAP_CHECK, 0);
+								   MMAP_CHECK, 0);
+
 	return 0;
 }
 
@@ -301,7 +387,7 @@ int ima_file_mmap(struct file *file, unsigned long prot)
 int ima_bprm_check(struct linux_binprm *bprm)
 {
 	return process_measurement(bprm->file, NULL, 0, MAY_EXEC,
-				   BPRM_CHECK, 0);
+							   BPRM_CHECK, 0);
 }
 
 /**
@@ -317,8 +403,8 @@ int ima_bprm_check(struct linux_binprm *bprm)
 int ima_file_check(struct file *file, int mask, int opened)
 {
 	return process_measurement(file, NULL, 0,
-				   mask & (MAY_READ | MAY_WRITE | MAY_EXEC),
-				   FILE_CHECK, opened);
+							   mask & (MAY_READ | MAY_WRITE | MAY_EXEC),
+							   FILE_CHECK, opened);
 }
 EXPORT_SYMBOL_GPL(ima_file_check);
 
@@ -336,12 +422,18 @@ void ima_post_path_mknod(struct dentry *dentry)
 	int must_appraise;
 
 	must_appraise = ima_must_appraise(inode, MAY_ACCESS, FILE_CHECK);
+
 	if (!must_appraise)
+	{
 		return;
+	}
 
 	iint = integrity_inode_get(inode);
+
 	if (iint)
+	{
 		iint->flags |= IMA_NEW_FILE;
+	}
 }
 
 /**
@@ -357,18 +449,25 @@ void ima_post_path_mknod(struct dentry *dentry)
  */
 int ima_read_file(struct file *file, enum kernel_read_file_id read_id)
 {
-	if (!file && read_id == READING_MODULE) {
+	if (!file && read_id == READING_MODULE)
+	{
 #ifndef CONFIG_MODULE_SIG_FORCE
+
 		if ((ima_appraise & IMA_APPRAISE_MODULES) &&
-		    (ima_appraise & IMA_APPRAISE_ENFORCE))
-			return -EACCES;	/* INTEGRITY_UNKNOWN */
+			(ima_appraise & IMA_APPRAISE_ENFORCE))
+		{
+			return -EACCES;    /* INTEGRITY_UNKNOWN */
+		}
+
 #endif
 		return 0;	/* We rely on module signature checking */
 	}
+
 	return 0;
 }
 
-static int read_idmap[READING_MAX_ID] = {
+static int read_idmap[READING_MAX_ID] =
+{
 	[READING_FIRMWARE] = FIRMWARE_CHECK,
 	[READING_MODULE] = MODULE_CHECK,
 	[READING_KEXEC_IMAGE] = KEXEC_KERNEL_CHECK,
@@ -390,27 +489,37 @@ static int read_idmap[READING_MAX_ID] = {
  * is in policy and IMA-appraisal is in enforcing mode, return -EACCES.
  */
 int ima_post_read_file(struct file *file, void *buf, loff_t size,
-		       enum kernel_read_file_id read_id)
+					   enum kernel_read_file_id read_id)
 {
 	enum ima_hooks func;
 
-	if (!file && read_id == READING_FIRMWARE) {
+	if (!file && read_id == READING_FIRMWARE)
+	{
 		if ((ima_appraise & IMA_APPRAISE_FIRMWARE) &&
-		    (ima_appraise & IMA_APPRAISE_ENFORCE))
-			return -EACCES;	/* INTEGRITY_UNKNOWN */
+			(ima_appraise & IMA_APPRAISE_ENFORCE))
+		{
+			return -EACCES;    /* INTEGRITY_UNKNOWN */
+		}
+
 		return 0;
 	}
 
 	if (!file && read_id == READING_MODULE) /* MODULE_SIG_FORCE enabled */
-		return 0;
-
-	if (!file || !buf || size == 0) { /* should never happen */
-		if (ima_appraise & IMA_APPRAISE_ENFORCE)
-			return -EACCES;
+	{
 		return 0;
 	}
 
-	func = read_idmap[read_id] ?: FILE_CHECK;
+	if (!file || !buf || size == 0)   /* should never happen */
+	{
+		if (ima_appraise & IMA_APPRAISE_ENFORCE)
+		{
+			return -EACCES;
+		}
+
+		return 0;
+	}
+
+	func = read_idmap[read_id] ? : FILE_CHECK;
 	return process_measurement(file, buf, size, MAY_READ, func, 0);
 }
 
@@ -420,10 +529,13 @@ static int __init init_ima(void)
 
 	hash_setup(CONFIG_IMA_DEFAULT_HASH);
 	error = ima_init();
-	if (!error) {
+
+	if (!error)
+	{
 		ima_initialized = 1;
 		ima_update_policy_flag();
 	}
+
 	return error;
 }
 

@@ -8,7 +8,8 @@
   and user mode idi driver
 */
 
-typedef struct _diva_um_idi_adapter_features {
+typedef struct _diva_um_idi_adapter_features
+{
 	dword type;
 	dword features;
 	dword channels;
@@ -29,24 +30,28 @@ typedef struct _diva_um_idi_adapter_features {
 /*
   data_length  bytes will follow this structure
 */
-typedef struct _diva_um_idi_req_hdr {
+typedef struct _diva_um_idi_req_hdr
+{
 	dword type;
 	dword Req;
 	dword ReqCh;
 	dword data_length;
 } diva_um_idi_req_hdr_t;
 
-typedef struct _diva_um_idi_ind_parameters {
+typedef struct _diva_um_idi_ind_parameters
+{
 	dword Ind;
 	dword IndCh;
 } diva_um_idi_ind_parameters_t;
 
-typedef struct _diva_um_idi_rc_parameters {
+typedef struct _diva_um_idi_rc_parameters
+{
 	dword Rc;
 	dword RcCh;
 } diva_um_idi_rc_parameters_t;
 
-typedef union _diva_um_idi_ind {
+typedef union _diva_um_idi_ind
+{
 	diva_um_idi_adapter_features_t features;
 	diva_um_idi_ind_parameters_t ind;
 	diva_um_idi_rc_parameters_t rc;
@@ -59,7 +64,8 @@ typedef union _diva_um_idi_ind {
   data_length bytes of data follow
   this structure
 */
-typedef struct _diva_um_idi_ind_hdr {
+typedef struct _diva_um_idi_ind_hdr
+{
 	dword type;
 	diva_um_idi_ind_t hdr;
 	dword data_length;

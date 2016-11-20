@@ -21,7 +21,8 @@
 #include <asm/io.h>
 
 /* SPI/eSPI Controller driver's private data. */
-struct mpc8xxx_spi {
+struct mpc8xxx_spi
+{
 	struct device *dev;
 	void __iomem *reg_base;
 
@@ -72,13 +73,14 @@ struct mpc8xxx_spi {
 	u8 max_bits_per_word;
 
 	void (*set_shifts)(u32 *rx_shift, u32 *tx_shift,
-			   int bits_per_word, int msb_first);
+					   int bits_per_word, int msb_first);
 #endif
 
 	struct completion done;
 };
 
-struct spi_mpc8xxx_cs {
+struct spi_mpc8xxx_cs
+{
 	/* functions to deal with different sized buffers */
 	void (*get_rx) (u32 rx_data, struct mpc8xxx_spi *);
 	u32 (*get_tx) (struct mpc8xxx_spi *);
@@ -97,7 +99,8 @@ static inline u32 mpc8xxx_spi_read_reg(__be32 __iomem *reg)
 	return ioread32be(reg);
 }
 
-struct mpc8xxx_spi_probe_info {
+struct mpc8xxx_spi_probe_info
+{
 	struct fsl_spi_platform_data pdata;
 	int *gpios;
 	bool *alow_flags;
@@ -111,12 +114,12 @@ extern void mpc8xxx_spi_rx_buf_u16(u32 data, struct mpc8xxx_spi *mpc8xxx_spi);
 extern void mpc8xxx_spi_rx_buf_u32(u32 data, struct mpc8xxx_spi *mpc8xxx_spi);
 
 extern struct mpc8xxx_spi_probe_info *to_of_pinfo(
-		struct fsl_spi_platform_data *pdata);
+	struct fsl_spi_platform_data *pdata);
 extern int mpc8xxx_spi_bufs(struct mpc8xxx_spi *mspi,
-		struct spi_transfer *t, unsigned int len);
+							struct spi_transfer *t, unsigned int len);
 extern const char *mpc8xxx_spi_strmode(unsigned int flags);
 extern void mpc8xxx_spi_probe(struct device *dev, struct resource *mem,
-		unsigned int irq);
+							  unsigned int irq);
 extern int mpc8xxx_spi_remove(struct device *dev);
 extern int of_mpc8xxx_spi_probe(struct platform_device *ofdev);
 

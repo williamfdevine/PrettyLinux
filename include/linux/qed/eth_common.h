@@ -75,7 +75,8 @@
 /* Control frame check constants */
 #define ETH_CTL_FRAME_ETH_TYPE_NUM	4
 
-struct eth_tx_1st_bd_flags {
+struct eth_tx_1st_bd_flags
+{
 	u8 bitfields;
 #define ETH_TX_1ST_BD_FLAGS_START_BD_MASK         0x1
 #define ETH_TX_1ST_BD_FLAGS_START_BD_SHIFT        0
@@ -96,7 +97,8 @@ struct eth_tx_1st_bd_flags {
 };
 
 /* The parsing information data fo rthe first tx bd of a given packet. */
-struct eth_tx_data_1st_bd {
+struct eth_tx_data_1st_bd
+{
 	__le16 vlan;
 	u8 nbds;
 	struct eth_tx_1st_bd_flags bd_flags;
@@ -110,7 +112,8 @@ struct eth_tx_data_1st_bd {
 };
 
 /* The parsing information data for the second tx bd of a given packet. */
-struct eth_tx_data_2nd_bd {
+struct eth_tx_data_2nd_bd
+{
 	__le16 tunn_ip_size;
 	__le16	bitfields1;
 #define ETH_TX_DATA_2ND_BD_TUNN_INNER_L2_HDR_SIZE_W_MASK  0xF
@@ -141,18 +144,21 @@ struct eth_tx_data_2nd_bd {
 };
 
 /* Firmware data for L2-EDPM packet. */
-struct eth_edpm_fw_data {
+struct eth_edpm_fw_data
+{
 	struct eth_tx_data_1st_bd data_1st_bd;
 	struct eth_tx_data_2nd_bd data_2nd_bd;
 	__le32 reserved;
 };
 
-struct eth_fast_path_cqe_fw_debug {
+struct eth_fast_path_cqe_fw_debug
+{
 	__le16 reserved2;
 };
 
 /*  tunneling parsing flags */
-struct eth_tunnel_parsing_flags {
+struct eth_tunnel_parsing_flags
+{
 	u8 flags;
 #define	ETH_TUNNEL_PARSING_FLAGS_TYPE_MASK		0x3
 #define	ETH_TUNNEL_PARSING_FLAGS_TYPE_SHIFT		0
@@ -169,7 +175,8 @@ struct eth_tunnel_parsing_flags {
 };
 
 /* PMD flow control bits */
-struct eth_pmd_flow_flags {
+struct eth_pmd_flow_flags
+{
 	u8 flags;
 #define ETH_PMD_FLOW_FLAGS_VALID_MASK	0x1
 #define ETH_PMD_FLOW_FLAGS_VALID_SHIFT	0
@@ -180,7 +187,8 @@ struct eth_pmd_flow_flags {
 };
 
 /* Regular ETH Rx FP CQE. */
-struct eth_fast_path_rx_reg_cqe {
+struct eth_fast_path_rx_reg_cqe
+{
 	u8 type;
 	u8 bitfields;
 #define ETH_FAST_PATH_RX_REG_CQE_RSS_HASH_TYPE_MASK  0x7
@@ -204,7 +212,8 @@ struct eth_fast_path_rx_reg_cqe {
 };
 
 /* TPA-continue ETH Rx FP CQE. */
-struct eth_fast_path_rx_tpa_cont_cqe {
+struct eth_fast_path_rx_tpa_cont_cqe
+{
 	u8 type;
 	u8 tpa_agg_index;
 	__le16 len_list[ETH_TPA_CQE_CONT_LEN_LIST_SIZE];
@@ -216,7 +225,8 @@ struct eth_fast_path_rx_tpa_cont_cqe {
 };
 
 /* TPA-end ETH Rx FP CQE. */
-struct eth_fast_path_rx_tpa_end_cqe {
+struct eth_fast_path_rx_tpa_end_cqe
+{
 	u8 type;
 	u8 tpa_agg_index;
 	__le16 total_packet_len;
@@ -232,7 +242,8 @@ struct eth_fast_path_rx_tpa_end_cqe {
 };
 
 /* TPA-start ETH Rx FP CQE. */
-struct eth_fast_path_rx_tpa_start_cqe {
+struct eth_fast_path_rx_tpa_start_cqe
+{
 	u8 type;
 	u8 bitfields;
 #define ETH_FAST_PATH_RX_TPA_START_CQE_RSS_HASH_TYPE_MASK  0x7
@@ -257,18 +268,21 @@ struct eth_fast_path_rx_tpa_start_cqe {
 };
 
 /* The L4 pseudo checksum mode for Ethernet */
-enum eth_l4_pseudo_checksum_mode {
+enum eth_l4_pseudo_checksum_mode
+{
 	ETH_L4_PSEUDO_CSUM_CORRECT_LENGTH,
 	ETH_L4_PSEUDO_CSUM_ZERO_LENGTH,
 	MAX_ETH_L4_PSEUDO_CHECKSUM_MODE
 };
 
-struct eth_rx_bd {
+struct eth_rx_bd
+{
 	struct regpair addr;
 };
 
 /* regular ETH Rx SP CQE */
-struct eth_slow_path_rx_cqe {
+struct eth_slow_path_rx_cqe
+{
 	u8	type;
 	u8	ramrod_cmd_id;
 	u8	error_flag;
@@ -279,7 +293,8 @@ struct eth_slow_path_rx_cqe {
 };
 
 /* union for all ETH Rx CQE types */
-union eth_rx_cqe {
+union eth_rx_cqe
+{
 	struct eth_fast_path_rx_reg_cqe		fast_path_regular;
 	struct eth_fast_path_rx_tpa_start_cqe	fast_path_tpa_start;
 	struct eth_fast_path_rx_tpa_cont_cqe	fast_path_tpa_cont;
@@ -288,7 +303,8 @@ union eth_rx_cqe {
 };
 
 /* ETH Rx CQE type */
-enum eth_rx_cqe_type {
+enum eth_rx_cqe_type
+{
 	ETH_RX_CQE_TYPE_UNUSED,
 	ETH_RX_CQE_TYPE_REGULAR,
 	ETH_RX_CQE_TYPE_SLOW_PATH,
@@ -298,12 +314,14 @@ enum eth_rx_cqe_type {
 	MAX_ETH_RX_CQE_TYPE
 };
 
-struct eth_rx_pmd_cqe {
+struct eth_rx_pmd_cqe
+{
 	union eth_rx_cqe cqe;
 	u8 reserved[ETH_RX_CQE_GAP];
 };
 
-enum eth_rx_tunn_type {
+enum eth_rx_tunn_type
+{
 	ETH_RX_NO_TUNN,
 	ETH_RX_TUNN_GENEVE,
 	ETH_RX_TUNN_GRE,
@@ -312,7 +330,8 @@ enum eth_rx_tunn_type {
 };
 
 /*  Aggregation end reason. */
-enum eth_tpa_end_reason {
+enum eth_tpa_end_reason
+{
 	ETH_AGG_END_UNUSED,
 	ETH_AGG_END_SP_UPDATE,
 	ETH_AGG_END_MAX_LEN,
@@ -325,21 +344,24 @@ enum eth_tpa_end_reason {
 };
 
 /* The first tx bd of a given packet */
-struct eth_tx_1st_bd {
+struct eth_tx_1st_bd
+{
 	struct regpair			addr;
 	__le16				nbytes;
 	struct eth_tx_data_1st_bd	data;
 };
 
 /* The second tx bd of a given packet */
-struct eth_tx_2nd_bd {
+struct eth_tx_2nd_bd
+{
 	struct regpair			addr;
 	__le16				nbytes;
 	struct eth_tx_data_2nd_bd	data;
 };
 
 /* The parsing information data for the third tx bd of a given packet. */
-struct eth_tx_data_3rd_bd {
+struct eth_tx_data_3rd_bd
+{
 	__le16 lso_mss;
 	__le16 bitfields;
 #define ETH_TX_DATA_3RD_BD_TCP_HDR_LEN_DW_MASK  0xF
@@ -355,14 +377,16 @@ struct eth_tx_data_3rd_bd {
 };
 
 /* The third tx bd of a given packet */
-struct eth_tx_3rd_bd {
+struct eth_tx_3rd_bd
+{
 	struct regpair			addr;
 	__le16				nbytes;
 	struct eth_tx_data_3rd_bd	data;
 };
 
 /* Complementary information for the regular tx bd of a given packet. */
-struct eth_tx_data_bd {
+struct eth_tx_data_bd
+{
 	__le16	reserved0;
 	__le16	bitfields;
 #define ETH_TX_DATA_BD_RESERVED1_MASK  0xFF
@@ -375,13 +399,15 @@ struct eth_tx_data_bd {
 };
 
 /* The common non-special TX BD ring element */
-struct eth_tx_bd {
+struct eth_tx_bd
+{
 	struct regpair	addr;
 	__le16		nbytes;
 	struct eth_tx_data_bd	data;
 };
 
-union eth_tx_bd_types {
+union eth_tx_bd_types
+{
 	struct eth_tx_1st_bd first_bd;
 	struct eth_tx_2nd_bd second_bd;
 	struct eth_tx_3rd_bd third_bd;
@@ -389,7 +415,8 @@ union eth_tx_bd_types {
 };
 
 /* Mstorm Queue Zone */
-enum eth_tx_tunn_type {
+enum eth_tx_tunn_type
+{
 	ETH_TX_TUNN_GENEVE,
 	ETH_TX_TUNN_TTAG,
 	ETH_TX_TUNN_GRE,
@@ -398,13 +425,15 @@ enum eth_tx_tunn_type {
 };
 
 /* Ystorm Queue Zone */
-struct xstorm_eth_queue_zone {
+struct xstorm_eth_queue_zone
+{
 	struct coalescing_timeset int_coalescing_timeset;
 	u8 reserved[7];
 };
 
 /* ETH doorbell data */
-struct eth_db_data {
+struct eth_db_data
+{
 	u8 params;
 #define ETH_DB_DATA_DEST_MASK         0x3
 #define ETH_DB_DATA_DEST_SHIFT        0

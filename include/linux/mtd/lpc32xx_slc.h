@@ -13,7 +13,8 @@
 
 #include <linux/dmaengine.h>
 
-struct lpc32xx_slc_platform_data {
+struct lpc32xx_slc_platform_data
+{
 	bool (*dma_filter)(struct dma_chan *chan, void *filter_param);
 };
 

@@ -41,7 +41,8 @@
 
 #define YYTH_MAGIC	0x1B5E783D
 
-struct table_set_header {
+struct table_set_header
+{
 	u32 th_magic;		/* YYTH_MAGIC */
 	u32 th_hsize;
 	u32 th_ssize;
@@ -78,7 +79,8 @@ struct table_set_header {
 #define TO_ACCEPT2_FLAG(X) (ACCEPT1_FLAGS(X) << YYTD_ID_ACCEPT2)
 #define DFA_FLAG_VERIFY_STATES 0x1000
 
-struct table_header {
+struct table_header
+{
 	u16 td_id;
 	u16 td_flags;
 	u32 td_hilen;
@@ -94,7 +96,8 @@ struct table_header {
 #define ACCEPT_TABLE(DFA) ((u32 *)((DFA)->tables[YYTD_ID_ACCEPT]->td_data))
 #define ACCEPT_TABLE2(DFA) ((u32 *)((DFA)->tables[YYTD_ID_ACCEPT2]->td_data))
 
-struct aa_dfa {
+struct aa_dfa
+{
 	struct kref count;
 	u16 flags;
 	struct table_header *tables[YYTD_ID_TSIZE];
@@ -119,11 +122,11 @@ static inline size_t table_size(size_t len, size_t el_size)
 
 struct aa_dfa *aa_dfa_unpack(void *blob, size_t size, int flags);
 unsigned int aa_dfa_match_len(struct aa_dfa *dfa, unsigned int start,
-			      const char *str, int len);
+							  const char *str, int len);
 unsigned int aa_dfa_match(struct aa_dfa *dfa, unsigned int start,
-			  const char *str);
+						  const char *str);
 unsigned int aa_dfa_next(struct aa_dfa *dfa, unsigned int state,
-			 const char c);
+						 const char c);
 
 void aa_dfa_free_kref(struct kref *kref);
 
@@ -136,7 +139,9 @@ void aa_dfa_free_kref(struct kref *kref);
 static inline void aa_put_dfa(struct aa_dfa *dfa)
 {
 	if (dfa)
+	{
 		kref_put(&dfa->count, aa_dfa_free_kref);
+	}
 }
 
 #endif /* __AA_MATCH_H */

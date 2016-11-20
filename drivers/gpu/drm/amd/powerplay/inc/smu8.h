@@ -28,7 +28,8 @@
 
 #define ENABLE_DEBUG_FEATURES
 
-struct SMU8_Firmware_Header {
+struct SMU8_Firmware_Header
+{
 	uint32_t Version;
 	uint32_t ImageSize;
 	uint32_t CodeSize;
@@ -44,7 +45,8 @@ struct SMU8_Firmware_Header {
 	uint32_t Signature;
 };
 
-struct SMU8_MultimediaPowerLogData {
+struct SMU8_MultimediaPowerLogData
+{
 	uint32_t avgTotalPower;
 	uint32_t avgGpuPower;
 	uint32_t avgUvdPower;

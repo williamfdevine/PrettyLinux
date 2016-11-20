@@ -43,7 +43,7 @@ clock_cooling_register(struct device *dev, const char *clock_name);
 void clock_cooling_unregister(struct thermal_cooling_device *cdev);
 
 unsigned long clock_cooling_get_level(struct thermal_cooling_device *cdev,
-				      unsigned long freq);
+									  unsigned long freq);
 #else /* !CONFIG_CLOCK_THERMAL */
 static inline struct thermal_cooling_device *
 clock_cooling_register(struct device *dev, const char *clock_name)
@@ -56,7 +56,7 @@ void clock_cooling_unregister(struct thermal_cooling_device *cdev)
 }
 static inline
 unsigned long clock_cooling_get_level(struct thermal_cooling_device *cdev,
-				      unsigned long freq)
+									  unsigned long freq)
 {
 	return THERMAL_CSTATE_INVALID;
 }

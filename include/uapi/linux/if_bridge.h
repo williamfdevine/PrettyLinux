@@ -51,7 +51,8 @@
 #define BR_STATE_FORWARDING 3
 #define BR_STATE_BLOCKING 4
 
-struct __bridge_info {
+struct __bridge_info
+{
 	__u64 designated_root;
 	__u64 bridge_id;
 	__u32 root_path_cost;
@@ -73,7 +74,8 @@ struct __bridge_info {
 	__u32 gc_timer_value;
 };
 
-struct __port_info {
+struct __port_info
+{
 	__u64 designated_root;
 	__u64 designated_bridge;
 	__u16 port_id;
@@ -89,7 +91,8 @@ struct __port_info {
 	__u32 hold_timer_value;
 };
 
-struct __fdb_entry {
+struct __fdb_entry
+{
 	__u8 mac_addr[ETH_ALEN];
 	__u8 port_no;
 	__u8 is_local;
@@ -114,7 +117,8 @@ struct __fdb_entry {
  *     [IFLA_BRIDGE_VLAN_INFO]
  * }
  */
-enum {
+enum
+{
 	IFLA_BRIDGE_FLAGS,
 	IFLA_BRIDGE_MODE,
 	IFLA_BRIDGE_VLAN_INFO,
@@ -129,12 +133,14 @@ enum {
 #define BRIDGE_VLAN_INFO_RANGE_END	(1<<4) /* VLAN is end of vlan range */
 #define BRIDGE_VLAN_INFO_BRENTRY	(1<<5) /* Global bridge VLAN entry */
 
-struct bridge_vlan_info {
+struct bridge_vlan_info
+{
 	__u16 flags;
 	__u16 vid;
 };
 
-struct bridge_vlan_xstats {
+struct bridge_vlan_xstats
+{
 	__u64 rx_bytes;
 	__u64 rx_packets;
 	__u64 tx_bytes;
@@ -160,7 +166,8 @@ struct bridge_vlan_xstats {
  *    }
  * }
  */
-enum {
+enum
+{
 	MDBA_UNSPEC,
 	MDBA_MDB,
 	MDBA_ROUTER,
@@ -168,14 +175,16 @@ enum {
 };
 #define MDBA_MAX (__MDBA_MAX - 1)
 
-enum {
+enum
+{
 	MDBA_MDB_UNSPEC,
 	MDBA_MDB_ENTRY,
 	__MDBA_MDB_MAX,
 };
 #define MDBA_MDB_MAX (__MDBA_MDB_MAX - 1)
 
-enum {
+enum
+{
 	MDBA_MDB_ENTRY_UNSPEC,
 	MDBA_MDB_ENTRY_INFO,
 	__MDBA_MDB_ENTRY_MAX,
@@ -183,7 +192,8 @@ enum {
 #define MDBA_MDB_ENTRY_MAX (__MDBA_MDB_ENTRY_MAX - 1)
 
 /* per mdb entry additional attributes */
-enum {
+enum
+{
 	MDBA_MDB_EATTR_UNSPEC,
 	MDBA_MDB_EATTR_TIMER,
 	__MDBA_MDB_EATTR_MAX
@@ -191,14 +201,16 @@ enum {
 #define MDBA_MDB_EATTR_MAX (__MDBA_MDB_EATTR_MAX - 1)
 
 /* multicast router types */
-enum {
+enum
+{
 	MDB_RTR_TYPE_DISABLED,
 	MDB_RTR_TYPE_TEMP_QUERY,
 	MDB_RTR_TYPE_PERM,
 	MDB_RTR_TYPE_TEMP
 };
 
-enum {
+enum
+{
 	MDBA_ROUTER_UNSPEC,
 	MDBA_ROUTER_PORT,
 	__MDBA_ROUTER_MAX,
@@ -206,7 +218,8 @@ enum {
 #define MDBA_ROUTER_MAX (__MDBA_ROUTER_MAX - 1)
 
 /* router port attributes */
-enum {
+enum
+{
 	MDBA_ROUTER_PATTR_UNSPEC,
 	MDBA_ROUTER_PATTR_TIMER,
 	MDBA_ROUTER_PATTR_TYPE,
@@ -214,12 +227,14 @@ enum {
 };
 #define MDBA_ROUTER_PATTR_MAX (__MDBA_ROUTER_PATTR_MAX - 1)
 
-struct br_port_msg {
+struct br_port_msg
+{
 	__u8  family;
 	__u32 ifindex;
 };
 
-struct br_mdb_entry {
+struct br_mdb_entry
+{
 	__u32 ifindex;
 #define MDB_TEMPORARY 0
 #define MDB_PERMANENT 1
@@ -227,8 +242,10 @@ struct br_mdb_entry {
 #define MDB_FLAGS_OFFLOAD	(1 << 0)
 	__u8 flags;
 	__u16 vid;
-	struct {
-		union {
+	struct
+	{
+		union
+		{
 			__be32	ip4;
 			struct in6_addr ip6;
 		} u;
@@ -236,7 +253,8 @@ struct br_mdb_entry {
 	} addr;
 };
 
-enum {
+enum
+{
 	MDBA_SET_ENTRY_UNSPEC,
 	MDBA_SET_ENTRY,
 	__MDBA_SET_ENTRY_MAX,
@@ -244,7 +262,8 @@ enum {
 #define MDBA_SET_ENTRY_MAX (__MDBA_SET_ENTRY_MAX - 1)
 
 /* Embedded inside LINK_XSTATS_TYPE_BRIDGE */
-enum {
+enum
+{
 	BRIDGE_XSTATS_UNSPEC,
 	BRIDGE_XSTATS_VLAN,
 	BRIDGE_XSTATS_MCAST,
@@ -253,14 +272,16 @@ enum {
 };
 #define BRIDGE_XSTATS_MAX (__BRIDGE_XSTATS_MAX - 1)
 
-enum {
+enum
+{
 	BR_MCAST_DIR_RX,
 	BR_MCAST_DIR_TX,
 	BR_MCAST_DIR_SIZE
 };
 
 /* IGMP/MLD statistics */
-struct br_mcast_stats {
+struct br_mcast_stats
+{
 	__u64 igmp_v1queries[BR_MCAST_DIR_SIZE];
 	__u64 igmp_v2queries[BR_MCAST_DIR_SIZE];
 	__u64 igmp_v3queries[BR_MCAST_DIR_SIZE];

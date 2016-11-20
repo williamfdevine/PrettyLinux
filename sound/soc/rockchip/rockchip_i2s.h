@@ -211,7 +211,8 @@
 #define I2S_RXDR_MASK	(0xff)
 
 /* Clock divider id */
-enum {
+enum
+{
 	ROCKCHIP_DIV_MCLK = 0,
 	ROCKCHIP_DIV_BCLK,
 };

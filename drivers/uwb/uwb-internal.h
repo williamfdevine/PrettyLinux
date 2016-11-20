@@ -39,7 +39,7 @@ struct uwb_beca_e;
 extern void uwb_dev_init(struct uwb_dev *uwb_dev);
 extern int __uwb_dev_offair(struct uwb_dev *, struct uwb_rc *);
 extern int uwb_dev_add(struct uwb_dev *uwb_dev, struct device *parent_dev,
-		       struct uwb_rc *parent_rc);
+					   struct uwb_rc *parent_rc);
 extern void uwb_dev_rm(struct uwb_dev *uwb_dev);
 extern void uwbd_dev_onair(struct uwb_rc *, struct uwb_beca_e *);
 extern void uwbd_dev_offair(struct uwb_beca_e *);
@@ -56,22 +56,24 @@ static inline struct uwb_rc *__uwb_rc_get(struct uwb_rc *rc)
 static inline void __uwb_rc_put(struct uwb_rc *rc)
 {
 	if (rc)
+	{
 		uwb_dev_put(&rc->uwb_dev);
+	}
 }
 
 extern int uwb_rc_reset(struct uwb_rc *rc);
 extern int uwb_rc_beacon(struct uwb_rc *rc,
-			 int channel, unsigned bpst_offset);
+						 int channel, unsigned bpst_offset);
 extern int uwb_rc_scan(struct uwb_rc *rc,
-		       unsigned channel, enum uwb_scan_type type,
-		       unsigned bpst_offset);
+					   unsigned channel, enum uwb_scan_type type,
+					   unsigned bpst_offset);
 extern int uwb_rc_send_all_drp_ie(struct uwb_rc *rc);
 
 void uwb_rc_ie_init(struct uwb_rc *);
 int uwb_rc_ie_setup(struct uwb_rc *);
 void uwb_rc_ie_release(struct uwb_rc *);
 int uwb_ie_dump_hex(const struct uwb_ie_hdr *ies, size_t len,
-		    char *buf, size_t size);
+					char *buf, size_t size);
 int uwb_rc_set_ie(struct uwb_rc *, struct uwb_rc_cmd_set_ie *);
 
 
@@ -93,17 +95,17 @@ extern const char *uwb_rc_strerror(unsigned code);
 struct uwb_rc_neh;
 
 extern int uwb_rc_cmd_async(struct uwb_rc *rc, const char *cmd_name,
-			    struct uwb_rccb *cmd, size_t cmd_size,
-			    u8 expected_type, u16 expected_event,
-			    uwb_rc_cmd_cb_f cb, void *arg);
+							struct uwb_rccb *cmd, size_t cmd_size,
+							u8 expected_type, u16 expected_event,
+							uwb_rc_cmd_cb_f cb, void *arg);
 
 
 void uwb_rc_neh_create(struct uwb_rc *rc);
 void uwb_rc_neh_destroy(struct uwb_rc *rc);
 
 struct uwb_rc_neh *uwb_rc_neh_add(struct uwb_rc *rc, struct uwb_rccb *cmd,
-				  u8 expected_type, u16 expected_event,
-				  uwb_rc_cmd_cb_f cb, void *arg);
+								  u8 expected_type, u16 expected_event,
+								  uwb_rc_cmd_cb_f cb, void *arg);
 void uwb_rc_neh_rm(struct uwb_rc *rc, struct uwb_rc_neh *neh);
 void uwb_rc_neh_arm(struct uwb_rc *rc, struct uwb_rc_neh *neh);
 void uwb_rc_neh_put(struct uwb_rc_neh *neh);
@@ -115,7 +117,8 @@ extern void uwb_est_destroy(void);
 /*
  * UWB conflicting alien reservations
  */
-struct uwb_cnflt_alien {
+struct uwb_cnflt_alien
+{
 	struct uwb_rc *rc;
 	struct list_head rc_node;
 	struct uwb_mas_bm mas;
@@ -123,32 +126,37 @@ struct uwb_cnflt_alien {
 	struct work_struct cnflt_update_work;
 };
 
-enum uwb_uwb_rsv_alloc_result {
+enum uwb_uwb_rsv_alloc_result
+{
 	UWB_RSV_ALLOC_FOUND = 0,
 	UWB_RSV_ALLOC_NOT_FOUND,
 };
 
-enum uwb_rsv_mas_status {
+enum uwb_rsv_mas_status
+{
 	UWB_RSV_MAS_NOT_AVAIL = 1,
 	UWB_RSV_MAS_SAFE,
 	UWB_RSV_MAS_UNSAFE,
 };
 
-struct uwb_rsv_col_set_info {
+struct uwb_rsv_col_set_info
+{
 	unsigned char start_col;
 	unsigned char interval;
 	unsigned char safe_mas_per_col;
 	unsigned char unsafe_mas_per_col;
 };
 
-struct uwb_rsv_col_info {
+struct uwb_rsv_col_info
+{
 	unsigned char max_avail_safe;
 	unsigned char max_avail_unsafe;
 	unsigned char highest_mas[UWB_MAS_PER_ZONE];
 	struct uwb_rsv_col_set_info csi;
 };
 
-struct uwb_rsv_row_info {
+struct uwb_rsv_row_info
+{
 	unsigned char avail[UWB_MAS_PER_ZONE];
 	unsigned char free_rows;
 	unsigned char used_rows;
@@ -157,7 +165,8 @@ struct uwb_rsv_row_info {
 /*
  * UWB find allocation
  */
-struct uwb_rsv_alloc_info {
+struct uwb_rsv_alloc_info
+{
 	unsigned char bm[UWB_MAS_PER_ZONE * UWB_NUM_ZONES];
 	struct uwb_rsv_col_info ci[UWB_NUM_ZONES];
 	struct uwb_rsv_row_info ri;
@@ -173,8 +182,8 @@ struct uwb_rsv_alloc_info {
 };
 
 int uwb_rsv_find_best_allocation(struct uwb_rsv *rsv,
-				 struct uwb_mas_bm *available,
-				 struct uwb_mas_bm *result);
+								 struct uwb_mas_bm *available,
+								 struct uwb_mas_bm *result);
 void uwb_rsv_handle_drp_avail_change(struct uwb_rc *rc);
 /*
  * UWB Events & management daemon
@@ -187,7 +196,8 @@ void uwb_rsv_handle_drp_avail_change(struct uwb_rc *rc);
  *   UWB_EVT_TYPE_NOTIF - notification from the radio controller.
  *   UWB_EVT_TYPE_MSG   - a simple message.
  */
-enum uwb_event_type {
+enum uwb_event_type
+{
 	UWB_EVT_TYPE_NOTIF,
 	UWB_EVT_TYPE_MSG,
 };
@@ -198,7 +208,8 @@ enum uwb_event_type {
  *        a full 'struct uwb_rceb')
  * @rceb: Pointer to a kmalloced() event payload
  */
-struct uwb_event_notif {
+struct uwb_event_notif
+{
 	size_t size;
 	struct uwb_rceb *rceb;
 };
@@ -208,7 +219,8 @@ struct uwb_event_notif {
  *
  * UWB_EVT_MSG_RESET - reset the radio controller and all PAL hardware.
  */
-enum uwb_event_message {
+enum uwb_event_message
+{
 	UWB_EVT_MSG_RESET,
 };
 
@@ -218,12 +230,14 @@ enum uwb_event_message {
  * @ts_jiffies: Timestamp, when was it received
  * @type:       This event's type.
  */
-struct uwb_event {
+struct uwb_event
+{
 	struct list_head list_node;
 	struct uwb_rc *rc;
 	unsigned long ts_jiffies;
 	enum uwb_event_type type;
-	union {
+	union
+	{
 		struct uwb_event_notif notif;
 		enum uwb_event_message message;
 	};
@@ -274,7 +288,8 @@ extern unsigned long beacon_timeout_ms;
  * @hits: how many time we have seen this beacon since last time we
  *        cleared it
  */
-struct uwb_beca_e {
+struct uwb_beca_e
+{
 	struct mutex mutex;
 	struct kref refcnt;
 	struct list_head node;
@@ -288,7 +303,7 @@ struct uwb_beca_e {
 };
 struct uwb_beacon_frame;
 extern ssize_t uwb_bce_print_IEs(struct uwb_dev *, struct uwb_beca_e *,
-				 char *, size_t);
+								 char *, size_t);
 
 extern void uwb_bce_kfree(struct kref *_bce);
 static inline void uwb_bce_get(struct uwb_beca_e *bce)
@@ -303,9 +318,9 @@ extern void uwb_beca_purge(struct uwb_rc *rc);
 extern void uwb_beca_release(struct uwb_rc *rc);
 
 struct uwb_dev *uwb_dev_get_by_devaddr(struct uwb_rc *rc,
-				       const struct uwb_dev_addr *devaddr);
+									   const struct uwb_dev_addr *devaddr);
 struct uwb_dev *uwb_dev_get_by_macaddr(struct uwb_rc *rc,
-				       const struct uwb_mac_addr *macaddr);
+									   const struct uwb_mac_addr *macaddr);
 
 int uwb_radio_setup(struct uwb_rc *rc);
 void uwb_radio_reset_state(struct uwb_rc *rc);
@@ -337,7 +352,7 @@ int uwb_rsv_companion_status(struct uwb_rsv *rsv);
 void uwb_rsv_set_state(struct uwb_rsv *rsv, enum uwb_rsv_state new_state);
 void uwb_rsv_remove(struct uwb_rsv *rsv);
 struct uwb_rsv *uwb_rsv_find(struct uwb_rc *rc, struct uwb_dev *src,
-			     struct uwb_ie_drp *drp_ie);
+							 struct uwb_ie_drp *drp_ie);
 void uwb_rsv_sched_update(struct uwb_rc *rc);
 void uwb_rsv_queue_update(struct uwb_rc *rc);
 
@@ -357,7 +372,7 @@ void uwb_rc_pal_init(struct uwb_rc *rc);
 /* -- Misc */
 
 extern ssize_t uwb_mac_frame_hdr_print(char *, size_t,
-				       const struct uwb_mac_frame_hdr *);
+									   const struct uwb_mac_frame_hdr *);
 
 /* -- Debug interface */
 void uwb_dbg_init(void);

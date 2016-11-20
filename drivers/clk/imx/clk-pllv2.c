@@ -69,7 +69,8 @@
 
 #define MAX_DPLL_WAIT_TRIES	1000 /* 1000 * udelay(1) = 1ms */
 
-struct clk_pllv2 {
+struct clk_pllv2
+{
 	struct clk_hw	hw;
 	void __iomem	*base;
 };
@@ -91,16 +92,24 @@ static unsigned long __clk_pllv2_recalc_rate(unsigned long parent_rate,
 	mfn = sign_extend32(mfn, 26);
 
 	ref_clk = 2 * parent_rate;
+
 	if (dbl != 0)
+	{
 		ref_clk *= 2;
+	}
 
 	ref_clk /= (pdf + 1);
 	temp = (u64) ref_clk * abs(mfn);
 	do_div(temp, mfd + 1);
+
 	if (mfn < 0)
+	{
 		temp = (ref_clk * mfi) - temp;
+	}
 	else
+	{
 		temp = (ref_clk * mfi) + temp;
+	}
 
 	return temp;
 }
@@ -123,7 +132,7 @@ static unsigned long clk_pllv2_recalc_rate(struct clk_hw *hw,
 }
 
 static int __clk_pllv2_set_rate(unsigned long rate, unsigned long parent_rate,
-		u32 *dp_op, u32 *dp_mfd, u32 *dp_mfn)
+								u32 *dp_op, u32 *dp_mfd, u32 *dp_mfn)
 {
 	u32 reg;
 	long mfi, pdf, mfn, mfd = 999999;
@@ -132,10 +141,17 @@ static int __clk_pllv2_set_rate(unsigned long rate, unsigned long parent_rate,
 
 	quad_parent_rate = 4 * parent_rate;
 	pdf = mfi = -1;
+
 	while (++pdf < 16 && mfi < 5)
-		mfi = rate * (pdf+1) / quad_parent_rate;
+	{
+		mfi = rate * (pdf + 1) / quad_parent_rate;
+	}
+
 	if (mfi > 15)
+	{
 		return -EINVAL;
+	}
+
 	pdf--;
 
 	temp64 = rate * (pdf + 1) - quad_parent_rate * mfi;
@@ -152,7 +168,7 @@ static int __clk_pllv2_set_rate(unsigned long rate, unsigned long parent_rate,
 }
 
 static int clk_pllv2_set_rate(struct clk_hw *hw, unsigned long rate,
-		unsigned long parent_rate)
+							  unsigned long parent_rate)
 {
 	struct clk_pllv2 *pll = to_clk_pllv2(hw);
 	void __iomem *pllbase;
@@ -163,8 +179,11 @@ static int clk_pllv2_set_rate(struct clk_hw *hw, unsigned long rate,
 
 
 	ret = __clk_pllv2_set_rate(rate, parent_rate, &dp_op, &dp_mfd, &dp_mfn);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	dp_ctl = __raw_readl(pllbase + MXC_PLL_DP_CTL);
 	/* use dpdck0_2 */
@@ -178,13 +197,13 @@ static int clk_pllv2_set_rate(struct clk_hw *hw, unsigned long rate,
 }
 
 static long clk_pllv2_round_rate(struct clk_hw *hw, unsigned long rate,
-		unsigned long *prate)
+								 unsigned long *prate)
 {
 	u32 dp_op, dp_mfd, dp_mfn;
 
 	__clk_pllv2_set_rate(rate, *prate, &dp_op, &dp_mfd, &dp_mfn);
 	return __clk_pllv2_recalc_rate(*prate, MXC_PLL_DP_CTL_DPDCK0_2_EN,
-			dp_op, dp_mfd, dp_mfn);
+								   dp_op, dp_mfd, dp_mfn);
 }
 
 static int clk_pllv2_prepare(struct clk_hw *hw)
@@ -199,15 +218,21 @@ static int clk_pllv2_prepare(struct clk_hw *hw)
 	__raw_writel(reg, pllbase + MXC_PLL_DP_CTL);
 
 	/* Wait for lock */
-	do {
+	do
+	{
 		reg = __raw_readl(pllbase + MXC_PLL_DP_CTL);
+
 		if (reg & MXC_PLL_DP_CTL_LRF)
+		{
 			break;
+		}
 
 		udelay(1);
-	} while (++i < MAX_DPLL_WAIT_TRIES);
+	}
+	while (++i < MAX_DPLL_WAIT_TRIES);
 
-	if (i == MAX_DPLL_WAIT_TRIES) {
+	if (i == MAX_DPLL_WAIT_TRIES)
+	{
 		pr_err("MX5: pll locking failed\n");
 		return -EINVAL;
 	}
@@ -226,7 +251,8 @@ static void clk_pllv2_unprepare(struct clk_hw *hw)
 	__raw_writel(reg, pllbase + MXC_PLL_DP_CTL);
 }
 
-static struct clk_ops clk_pllv2_ops = {
+static struct clk_ops clk_pllv2_ops =
+{
 	.prepare = clk_pllv2_prepare,
 	.unprepare = clk_pllv2_unprepare,
 	.recalc_rate = clk_pllv2_recalc_rate,
@@ -235,15 +261,18 @@ static struct clk_ops clk_pllv2_ops = {
 };
 
 struct clk *imx_clk_pllv2(const char *name, const char *parent,
-		void __iomem *base)
+						  void __iomem *base)
 {
 	struct clk_pllv2 *pll;
 	struct clk *clk;
 	struct clk_init_data init;
 
 	pll = kzalloc(sizeof(*pll), GFP_KERNEL);
+
 	if (!pll)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	pll->base = base;
 
@@ -256,8 +285,11 @@ struct clk *imx_clk_pllv2(const char *name, const char *parent,
 	pll->hw.init = &init;
 
 	clk = clk_register(NULL, &pll->hw);
+
 	if (IS_ERR(clk))
+	{
 		kfree(pll);
+	}
 
 	return clk;
 }

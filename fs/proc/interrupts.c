@@ -16,8 +16,12 @@ static void *int_seq_start(struct seq_file *f, loff_t *pos)
 static void *int_seq_next(struct seq_file *f, void *v, loff_t *pos)
 {
 	(*pos)++;
+
 	if (*pos > nr_irqs)
+	{
 		return NULL;
+	}
+
 	return pos;
 }
 
@@ -26,7 +30,8 @@ static void int_seq_stop(struct seq_file *f, void *v)
 	/* Nothing to do */
 }
 
-static const struct seq_operations int_seq_ops = {
+static const struct seq_operations int_seq_ops =
+{
 	.start = int_seq_start,
 	.next  = int_seq_next,
 	.stop  = int_seq_stop,
@@ -38,7 +43,8 @@ static int interrupts_open(struct inode *inode, struct file *filp)
 	return seq_open(filp, &int_seq_ops);
 }
 
-static const struct file_operations proc_interrupts_operations = {
+static const struct file_operations proc_interrupts_operations =
+{
 	.open		= interrupts_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,

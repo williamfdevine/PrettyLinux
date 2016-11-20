@@ -85,16 +85,19 @@
 #define DRV_NAME	"ahci-ceva"
 #define CEVA_FLAG_BROKEN_GEN2	1
 
-struct ceva_ahci_priv {
+struct ceva_ahci_priv
+{
 	struct platform_device *ahci_pdev;
 	int flags;
 };
 
-static struct ata_port_operations ahci_ceva_ops = {
+static struct ata_port_operations ahci_ceva_ops =
+{
 	.inherits = &ahci_platform_ops,
 };
 
-static const struct ata_port_info ahci_ceva_port_info = {
+static const struct ata_port_info ahci_ceva_port_info =
+{
 	.flags          = AHCI_FLAG_COMMON,
 	.pio_mask       = ATA_PIO4,
 	.udma_mask      = ATA_UDMA6,
@@ -121,7 +124,8 @@ static void ahci_ceva_setup(struct ahci_host_priv *hpriv)
 	tmp |= HOST_AHCI_EN;
 	writel(tmp, mmio + HOST_CTL);
 
-	for (i = 0; i < NR_PORTS; i++) {
+	for (i = 0; i < NR_PORTS; i++)
+	{
 		/* TPSS TPRS scalars, CISE and Port Addr */
 		tmp = PCFG_TPSS_VAL | PCFG_TPRS_VAL | (PCFG_PAD_VAL + i);
 		writel(tmp, mmio + AHCI_VEND_PCFG);
@@ -152,13 +156,18 @@ static void ahci_ceva_setup(struct ahci_host_priv *hpriv)
 
 		/* Default to Gen 2 Speed and Gen 1 if Gen2 is broken */
 		tmp = PORT_SCTL_SPD_GEN2 | PORT_SCTL_IPM;
+
 		if (cevapriv->flags & CEVA_FLAG_BROKEN_GEN2)
+		{
 			tmp = PORT_SCTL_SPD_GEN1 | PORT_SCTL_IPM;
+		}
+
 		writel(tmp, mmio + PORT_SCR_CTL + PORT_BASE + PORT_OFFSET * i);
 	}
 }
 
-static struct scsi_host_template ahci_platform_sht = {
+static struct scsi_host_template ahci_platform_sht =
+{
 	AHCI_SHT(DRV_NAME),
 };
 
@@ -171,21 +180,32 @@ static int ceva_ahci_probe(struct platform_device *pdev)
 	int rc;
 
 	cevapriv = devm_kzalloc(dev, sizeof(*cevapriv), GFP_KERNEL);
+
 	if (!cevapriv)
+	{
 		return -ENOMEM;
+	}
 
 	cevapriv->ahci_pdev = pdev;
 
 	hpriv = ahci_platform_get_resources(pdev);
+
 	if (IS_ERR(hpriv))
+	{
 		return PTR_ERR(hpriv);
+	}
 
 	rc = ahci_platform_enable_resources(hpriv);
+
 	if (rc)
+	{
 		return rc;
+	}
 
 	if (of_property_read_bool(np, "ceva,broken-gen2"))
+	{
 		cevapriv->flags = CEVA_FLAG_BROKEN_GEN2;
+	}
 
 	hpriv->plat_data = cevapriv;
 
@@ -193,9 +213,12 @@ static int ceva_ahci_probe(struct platform_device *pdev)
 	ahci_ceva_setup(hpriv);
 
 	rc = ahci_platform_init_host(pdev, hpriv, &ahci_ceva_port_info,
-					&ahci_platform_sht);
+								 &ahci_platform_sht);
+
 	if (rc)
+	{
 		goto disable_resources;
+	}
 
 	return 0;
 
@@ -216,13 +239,15 @@ static int __maybe_unused ceva_ahci_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(ahci_ceva_pm_ops, ceva_ahci_suspend, ceva_ahci_resume);
 
-static const struct of_device_id ceva_ahci_of_match[] = {
+static const struct of_device_id ceva_ahci_of_match[] =
+{
 	{ .compatible = "ceva,ahci-1v84" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, ceva_ahci_of_match);
 
-static struct platform_driver ceva_ahci_driver = {
+static struct platform_driver ceva_ahci_driver =
+{
 	.probe = ceva_ahci_probe,
 	.remove = ata_platform_remove_one,
 	.driver = {

@@ -14,7 +14,8 @@ static int cmdline_proc_open(struct inode *inode, struct file *file)
 	return single_open(file, cmdline_proc_show, NULL);
 }
 
-static const struct file_operations cmdline_proc_fops = {
+static const struct file_operations cmdline_proc_fops =
+{
 	.open		= cmdline_proc_open,
 	.read		= seq_read,
 	.llseek		= seq_lseek,

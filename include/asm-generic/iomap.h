@@ -31,8 +31,8 @@ extern unsigned int ioread16be(void __iomem *);
 extern unsigned int ioread32(void __iomem *);
 extern unsigned int ioread32be(void __iomem *);
 #ifdef CONFIG_64BIT
-extern u64 ioread64(void __iomem *);
-extern u64 ioread64be(void __iomem *);
+	extern u64 ioread64(void __iomem *);
+	extern u64 ioread64be(void __iomem *);
 #endif
 
 extern void iowrite8(u8, void __iomem *);
@@ -41,8 +41,8 @@ extern void iowrite16be(u16, void __iomem *);
 extern void iowrite32(u32, void __iomem *);
 extern void iowrite32be(u32, void __iomem *);
 #ifdef CONFIG_64BIT
-extern void iowrite64(u64, void __iomem *);
-extern void iowrite64be(u64, void __iomem *);
+	extern void iowrite64(u64, void __iomem *);
+	extern void iowrite64be(u64, void __iomem *);
 #endif
 
 /*
@@ -65,17 +65,17 @@ extern void iowrite16_rep(void __iomem *port, const void *buf, unsigned long cou
 extern void iowrite32_rep(void __iomem *port, const void *buf, unsigned long count);
 
 #ifdef CONFIG_HAS_IOPORT_MAP
-/* Create a virtual mapping cookie for an IO port range */
-extern void __iomem *ioport_map(unsigned long port, unsigned int nr);
-extern void ioport_unmap(void __iomem *);
+	/* Create a virtual mapping cookie for an IO port range */
+	extern void __iomem *ioport_map(unsigned long port, unsigned int nr);
+	extern void ioport_unmap(void __iomem *);
 #endif
 
 #ifndef ARCH_HAS_IOREMAP_WC
-#define ioremap_wc ioremap_nocache
+	#define ioremap_wc ioremap_nocache
 #endif
 
 #ifndef ARCH_HAS_IOREMAP_WT
-#define ioremap_wt ioremap_nocache
+	#define ioremap_wt ioremap_nocache
 #endif
 
 #ifdef CONFIG_PCI

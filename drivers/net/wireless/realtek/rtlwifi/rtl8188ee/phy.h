@@ -81,7 +81,8 @@
 
 #define RTL92C_MAX_PATH_NUM					2
 
-enum swchnlcmd_id {
+enum swchnlcmd_id
+{
 	CMDID_END,
 	CMDID_SET_TXPOWEROWER_LEVEL,
 	CMDID_BBREGWRITE10,
@@ -91,14 +92,16 @@ enum swchnlcmd_id {
 	CMDID_RF_WRITEREG,
 };
 
-struct swchnlcmd {
+struct swchnlcmd
+{
 	enum swchnlcmd_id cmdid;
 	u32 para1;
 	u32 para2;
 	u32 msdelay;
 };
 
-enum hw90_block_e {
+enum hw90_block_e
+{
 	HW90_BLOCK_MAC = 0,
 	HW90_BLOCK_PHY0 = 1,
 	HW90_BLOCK_PHY1 = 2,
@@ -106,12 +109,14 @@ enum hw90_block_e {
 	HW90_BLOCK_MAXIMUM = 4,
 };
 
-enum baseband_config_type {
+enum baseband_config_type
+{
 	BASEBAND_CONFIG_PHY_REG = 0,
 	BASEBAND_CONFIG_AGC_TAB = 1,
 };
 
-enum ra_offset_area {
+enum ra_offset_area
+{
 	RA_OFFSET_LEGACY_OFDM1,
 	RA_OFFSET_LEGACY_OFDM2,
 	RA_OFFSET_HT_OFDM1,
@@ -121,7 +126,8 @@ enum ra_offset_area {
 	RA_OFFSET_HT_CCK,
 };
 
-enum antenna_path {
+enum antenna_path
+{
 	ANTENNA_NONE,
 	ANTENNA_D,
 	ANTENNA_C,
@@ -140,25 +146,28 @@ enum antenna_path {
 	ANTENNA_ABCD
 };
 
-struct r_antenna_select_ofdm {
-	u32 r_tx_antenna:4;
-	u32 r_ant_l:4;
-	u32 r_ant_non_ht:4;
-	u32 r_ant_ht1:4;
-	u32 r_ant_ht2:4;
-	u32 r_ant_ht_s1:4;
-	u32 r_ant_non_ht_s1:4;
-	u32 ofdm_txsc:2;
-	u32 reserved:2;
+struct r_antenna_select_ofdm
+{
+	u32 r_tx_antenna: 4;
+	u32 r_ant_l: 4;
+	u32 r_ant_non_ht: 4;
+	u32 r_ant_ht1: 4;
+	u32 r_ant_ht2: 4;
+	u32 r_ant_ht_s1: 4;
+	u32 r_ant_non_ht_s1: 4;
+	u32 ofdm_txsc: 2;
+	u32 reserved: 2;
 };
 
-struct r_antenna_select_cck {
-	u8 r_cckrx_enable_2:2;
-	u8 r_cckrx_enable:2;
-	u8 r_ccktx_enable:4;
+struct r_antenna_select_cck
+{
+	u8 r_cckrx_enable_2: 2;
+	u8 r_cckrx_enable: 2;
+	u8 r_ccktx_enable: 4;
 };
 
-struct efuse_contents {
+struct efuse_contents
+{
 	u8 mac_addr[ETH_ALEN];
 	u8 cck_tx_power_idx[6];
 	u8 ht40_1s_tx_power_idx[6];
@@ -175,7 +184,8 @@ struct efuse_contents {
 	u8 regulatory;
 };
 
-struct tx_power_struct {
+struct tx_power_struct
+{
 	u8 cck[RTL92C_MAX_PATH_NUM][CHANNEL_MAX_NUMBER];
 	u8 ht40_1s[RTL92C_MAX_PATH_NUM][CHANNEL_MAX_NUMBER];
 	u8 ht40_2s[RTL92C_MAX_PATH_NUM][CHANNEL_MAX_NUMBER];
@@ -188,7 +198,8 @@ struct tx_power_struct {
 	u32 mcs_original_offset[4][16];
 };
 
-enum _ANT_DIV_TYPE {
+enum _ANT_DIV_TYPE
+{
 	NO_ANTDIV				= 0xFF,
 	CG_TRX_HW_ANTDIV		= 0x01,
 	CGCS_RX_HW_ANTDIV		= 0x02,
@@ -198,36 +209,36 @@ enum _ANT_DIV_TYPE {
 };
 
 u32 rtl88e_phy_query_bb_reg(struct ieee80211_hw *hw,
-			    u32 regaddr, u32 bitmask);
+							u32 regaddr, u32 bitmask);
 void rtl88e_phy_set_bb_reg(struct ieee80211_hw *hw,
-			   u32 regaddr, u32 bitmask, u32 data);
+						   u32 regaddr, u32 bitmask, u32 data);
 u32 rtl88e_phy_query_rf_reg(struct ieee80211_hw *hw,
-			    enum radio_path rfpath, u32 regaddr,
-			    u32 bitmask);
+							enum radio_path rfpath, u32 regaddr,
+							u32 bitmask);
 void rtl88e_phy_set_rf_reg(struct ieee80211_hw *hw,
-			   enum radio_path rfpath, u32 regaddr,
-			   u32 bitmask, u32 data);
+						   enum radio_path rfpath, u32 regaddr,
+						   u32 bitmask, u32 data);
 bool rtl88e_phy_mac_config(struct ieee80211_hw *hw);
 bool rtl88e_phy_bb_config(struct ieee80211_hw *hw);
 bool rtl88e_phy_rf_config(struct ieee80211_hw *hw);
 void rtl88e_phy_get_hw_reg_originalvalue(struct ieee80211_hw *hw);
 void rtl88e_phy_get_txpower_level(struct ieee80211_hw *hw,
-				  long *powerlevel);
+								  long *powerlevel);
 void rtl88e_phy_set_txpower_level(struct ieee80211_hw *hw, u8 channel);
 void rtl88e_phy_scan_operation_backup(struct ieee80211_hw *hw,
-				      u8 operation);
+									  u8 operation);
 void rtl88e_phy_set_bw_mode_callback(struct ieee80211_hw *hw);
 void rtl88e_phy_set_bw_mode(struct ieee80211_hw *hw,
-			    enum nl80211_channel_type ch_type);
+							enum nl80211_channel_type ch_type);
 void rtl88e_phy_sw_chnl_callback(struct ieee80211_hw *hw);
 u8 rtl88e_phy_sw_chnl(struct ieee80211_hw *hw);
 void rtl88e_phy_iq_calibrate(struct ieee80211_hw *hw, bool b_recovery);
 void rtl88e_phy_lc_calibrate(struct ieee80211_hw *hw);
 void rtl88e_phy_set_rfpath_switch(struct ieee80211_hw *hw, bool bmain);
 bool rtl88e_phy_config_rf_with_headerfile(struct ieee80211_hw *hw,
-					  enum radio_path rfpath);
+		enum radio_path rfpath);
 bool rtl88e_phy_set_io_cmd(struct ieee80211_hw *hw, enum io_type iotype);
 bool rtl88e_phy_set_rf_power_state(struct ieee80211_hw *hw,
-				   enum rf_pwrstate rfpwr_state);
+								   enum rf_pwrstate rfpwr_state);
 
 #endif

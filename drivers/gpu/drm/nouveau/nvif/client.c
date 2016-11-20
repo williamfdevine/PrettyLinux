@@ -47,7 +47,8 @@ nvif_client_resume(struct nvif_client *client)
 void
 nvif_client_fini(struct nvif_client *client)
 {
-	if (client->driver) {
+	if (client->driver)
+	{
 		client->driver->fini(client->object.priv);
 		client->driver = NULL;
 		client->object.client = NULL;
@@ -56,7 +57,8 @@ nvif_client_fini(struct nvif_client *client)
 }
 
 const struct nvif_driver *
-nvif_drivers[] = {
+	nvif_drivers[] =
+{
 #ifdef __KERNEL__
 	&nvif_driver_nvkm,
 #else
@@ -69,38 +71,51 @@ nvif_drivers[] = {
 
 int
 nvif_client_init(const char *driver, const char *name, u64 device,
-		 const char *cfg, const char *dbg, struct nvif_client *client)
+				 const char *cfg, const char *dbg, struct nvif_client *client)
 {
-	struct {
+	struct
+	{
 		struct nvif_ioctl_v0 ioctl;
 		struct nvif_ioctl_nop_v0 nop;
 	} args = {};
 	int ret, i;
 
 	ret = nvif_object_init(NULL, 0, 0, NULL, 0, &client->object);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	client->object.client = client;
 	client->object.handle = ~0;
 	client->route = NVIF_IOCTL_V0_ROUTE_NVIF;
 	client->super = true;
 
-	for (i = 0, ret = -EINVAL; (client->driver = nvif_drivers[i]); i++) {
-		if (!driver || !strcmp(client->driver->name, driver)) {
+	for (i = 0, ret = -EINVAL; (client->driver = nvif_drivers[i]); i++)
+	{
+		if (!driver || !strcmp(client->driver->name, driver))
+		{
 			ret = client->driver->init(name, device, cfg, dbg,
-						  &client->object.priv);
+									   &client->object.priv);
+
 			if (!ret || driver)
+			{
 				break;
+			}
 		}
 	}
 
-	if (ret == 0) {
+	if (ret == 0)
+	{
 		ret = nvif_client_ioctl(client, &args, sizeof(args));
 		client->version = args.nop.version;
 	}
 
 	if (ret)
+	{
 		nvif_client_fini(client);
+	}
+
 	return ret;
 }

@@ -33,7 +33,8 @@
 /**
  * struct i915_audio_component_ops - Ops implemented by i915 driver, called by hda driver
  */
-struct i915_audio_component_ops {
+struct i915_audio_component_ops
+{
 	/**
 	 * @owner: i915 module
 	 */
@@ -78,13 +79,14 @@ struct i915_audio_component_ops {
 	 * implies that only a part of ELD has been copied to the buffer.
 	 */
 	int (*get_eld)(struct device *, int port, bool *enabled,
-		       unsigned char *buf, int max_bytes);
+				   unsigned char *buf, int max_bytes);
 };
 
 /**
  * struct i915_audio_component_audio_ops - Ops implemented by hda driver, called by i915 driver
  */
-struct i915_audio_component_audio_ops {
+struct i915_audio_component_audio_ops
+{
 	/**
 	 * @audio_ptr: Pointer to be used in call to pin_eld_notify
 	 */
@@ -103,7 +105,8 @@ struct i915_audio_component_audio_ops {
 /**
  * struct i915_audio_component - Used for direct communication between i915 and hda drivers
  */
-struct i915_audio_component {
+struct i915_audio_component
+{
 	/**
 	 * @dev: i915 device, used as parameter for ops
 	 */

@@ -17,12 +17,14 @@
 
 #include "../codecs/adav80x.h"
 
-static const struct snd_soc_dapm_widget bfin_eval_adav80x_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget bfin_eval_adav80x_dapm_widgets[] =
+{
 	SND_SOC_DAPM_LINE("Line Out", NULL),
 	SND_SOC_DAPM_LINE("Line In", NULL),
 };
 
-static const struct snd_soc_dapm_route bfin_eval_adav80x_dapm_routes[] = {
+static const struct snd_soc_dapm_route bfin_eval_adav80x_dapm_routes[] =
+{
 	{ "Line Out", NULL, "VOUTL" },
 	{ "Line Out", NULL, "VOUTR" },
 
@@ -31,19 +33,22 @@ static const struct snd_soc_dapm_route bfin_eval_adav80x_dapm_routes[] = {
 };
 
 static int bfin_eval_adav80x_hw_params(struct snd_pcm_substream *substream,
-	struct snd_pcm_hw_params *params)
+									   struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
 	int ret;
 
 	ret = snd_soc_dai_set_pll(codec_dai, ADAV80X_PLL1, ADAV80X_PLL_SRC_XTAL,
-			27000000, params_rate(params) * 256);
+							  27000000, params_rate(params) * 256);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = snd_soc_dai_set_sysclk(codec_dai, ADAV80X_CLK_PLL1,
-			params_rate(params) * 256, SND_SOC_CLOCK_IN);
+								 params_rate(params) * 256, SND_SOC_CLOCK_IN);
 
 	return ret;
 }
@@ -53,22 +58,24 @@ static int bfin_eval_adav80x_codec_init(struct snd_soc_pcm_runtime *rtd)
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
 
 	snd_soc_dai_set_sysclk(codec_dai, ADAV80X_CLK_SYSCLK1, 0,
-	    SND_SOC_CLOCK_OUT);
+						   SND_SOC_CLOCK_OUT);
 	snd_soc_dai_set_sysclk(codec_dai, ADAV80X_CLK_SYSCLK2, 0,
-	    SND_SOC_CLOCK_OUT);
+						   SND_SOC_CLOCK_OUT);
 	snd_soc_dai_set_sysclk(codec_dai, ADAV80X_CLK_SYSCLK3, 0,
-	    SND_SOC_CLOCK_OUT);
+						   SND_SOC_CLOCK_OUT);
 
 	snd_soc_dai_set_sysclk(codec_dai, ADAV80X_CLK_XTAL, 2700000, 0);
 
 	return 0;
 }
 
-static struct snd_soc_ops bfin_eval_adav80x_ops = {
+static struct snd_soc_ops bfin_eval_adav80x_ops =
+{
 	.hw_params = bfin_eval_adav80x_hw_params,
 };
 
-static struct snd_soc_dai_link bfin_eval_adav80x_dais[] = {
+static struct snd_soc_dai_link bfin_eval_adav80x_dais[] =
+{
 	{
 		.name = "adav80x",
 		.stream_name = "ADAV80x HiFi",
@@ -78,11 +85,12 @@ static struct snd_soc_dai_link bfin_eval_adav80x_dais[] = {
 		.init = bfin_eval_adav80x_codec_init,
 		.ops = &bfin_eval_adav80x_ops,
 		.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
-				SND_SOC_DAIFMT_CBM_CFM,
+		SND_SOC_DAIFMT_CBM_CFM,
 	},
 };
 
-static struct snd_soc_card bfin_eval_adav80x = {
+static struct snd_soc_card bfin_eval_adav80x =
+{
 	.name = "bfin-eval-adav80x",
 	.owner = THIS_MODULE,
 	.dai_link = bfin_eval_adav80x_dais,
@@ -94,7 +102,8 @@ static struct snd_soc_card bfin_eval_adav80x = {
 	.num_dapm_routes	= ARRAY_SIZE(bfin_eval_adav80x_dapm_routes),
 };
 
-enum bfin_eval_adav80x_type {
+enum bfin_eval_adav80x_type
+{
 	BFIN_EVAL_ADAV801,
 	BFIN_EVAL_ADAV803,
 };
@@ -104,15 +113,18 @@ static int bfin_eval_adav80x_probe(struct platform_device *pdev)
 	struct snd_soc_card *card = &bfin_eval_adav80x;
 	const char *codec_name;
 
-	switch (platform_get_device_id(pdev)->driver_data) {
-	case BFIN_EVAL_ADAV801:
-		codec_name = "spi0.1";
-		break;
-	case BFIN_EVAL_ADAV803:
-		codec_name = "adav803.0-0034";
-		break;
-	default:
-		return -EINVAL;
+	switch (platform_get_device_id(pdev)->driver_data)
+	{
+		case BFIN_EVAL_ADAV801:
+			codec_name = "spi0.1";
+			break;
+
+		case BFIN_EVAL_ADAV803:
+			codec_name = "adav803.0-0034";
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	bfin_eval_adav80x_dais[0].codec_name = codec_name;
@@ -122,14 +134,16 @@ static int bfin_eval_adav80x_probe(struct platform_device *pdev)
 	return devm_snd_soc_register_card(&pdev->dev, &bfin_eval_adav80x);
 }
 
-static const struct platform_device_id bfin_eval_adav80x_ids[] = {
+static const struct platform_device_id bfin_eval_adav80x_ids[] =
+{
 	{ "bfin-eval-adav801", BFIN_EVAL_ADAV801 },
 	{ "bfin-eval-adav803", BFIN_EVAL_ADAV803 },
 	{ },
 };
 MODULE_DEVICE_TABLE(platform, bfin_eval_adav80x_ids);
 
-static struct platform_driver bfin_eval_adav80x_driver = {
+static struct platform_driver bfin_eval_adav80x_driver =
+{
 	.driver = {
 		.name = "bfin-eval-adav80x",
 		.pm = &snd_soc_pm_ops,

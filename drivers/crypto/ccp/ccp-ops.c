@@ -21,20 +21,23 @@
 #include "ccp-dev.h"
 
 /* SHA initial context values */
-static const __be32 ccp_sha1_init[SHA1_DIGEST_SIZE / sizeof(__be32)] = {
+static const __be32 ccp_sha1_init[SHA1_DIGEST_SIZE / sizeof(__be32)] =
+{
 	cpu_to_be32(SHA1_H0), cpu_to_be32(SHA1_H1),
 	cpu_to_be32(SHA1_H2), cpu_to_be32(SHA1_H3),
 	cpu_to_be32(SHA1_H4),
 };
 
-static const __be32 ccp_sha224_init[SHA256_DIGEST_SIZE / sizeof(__be32)] = {
+static const __be32 ccp_sha224_init[SHA256_DIGEST_SIZE / sizeof(__be32)] =
+{
 	cpu_to_be32(SHA224_H0), cpu_to_be32(SHA224_H1),
 	cpu_to_be32(SHA224_H2), cpu_to_be32(SHA224_H3),
 	cpu_to_be32(SHA224_H4), cpu_to_be32(SHA224_H5),
 	cpu_to_be32(SHA224_H6), cpu_to_be32(SHA224_H7),
 };
 
-static const __be32 ccp_sha256_init[SHA256_DIGEST_SIZE / sizeof(__be32)] = {
+static const __be32 ccp_sha256_init[SHA256_DIGEST_SIZE / sizeof(__be32)] =
+{
 	cpu_to_be32(SHA256_H0), cpu_to_be32(SHA256_H1),
 	cpu_to_be32(SHA256_H2), cpu_to_be32(SHA256_H3),
 	cpu_to_be32(SHA256_H4), cpu_to_be32(SHA256_H5),
@@ -42,7 +45,7 @@ static const __be32 ccp_sha256_init[SHA256_DIGEST_SIZE / sizeof(__be32)] = {
 };
 
 #define	CCP_NEW_JOBID(ccp)	((ccp->vdata->version == CCP_VERSION(3, 0)) ? \
-					ccp_gen_jobid(ccp) : 0)
+							 ccp_gen_jobid(ccp) : 0)
 
 static u32 ccp_gen_jobid(struct ccp_device *ccp)
 {
@@ -52,40 +55,55 @@ static u32 ccp_gen_jobid(struct ccp_device *ccp)
 static void ccp_sg_free(struct ccp_sg_workarea *wa)
 {
 	if (wa->dma_count)
+	{
 		dma_unmap_sg(wa->dma_dev, wa->dma_sg, wa->nents, wa->dma_dir);
+	}
 
 	wa->dma_count = 0;
 }
 
 static int ccp_init_sg_workarea(struct ccp_sg_workarea *wa, struct device *dev,
-				struct scatterlist *sg, u64 len,
-				enum dma_data_direction dma_dir)
+								struct scatterlist *sg, u64 len,
+								enum dma_data_direction dma_dir)
 {
 	memset(wa, 0, sizeof(*wa));
 
 	wa->sg = sg;
+
 	if (!sg)
+	{
 		return 0;
+	}
 
 	wa->nents = sg_nents_for_len(sg, len);
+
 	if (wa->nents < 0)
+	{
 		return wa->nents;
+	}
 
 	wa->bytes_left = len;
 	wa->sg_used = 0;
 
 	if (len == 0)
+	{
 		return 0;
+	}
 
 	if (dma_dir == DMA_NONE)
+	{
 		return 0;
+	}
 
 	wa->dma_sg = sg;
 	wa->dma_dev = dev;
 	wa->dma_dir = dma_dir;
 	wa->dma_count = dma_map_sg(dev, sg, wa->nents, dma_dir);
+
 	if (!wa->dma_count)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }
@@ -95,11 +113,15 @@ static void ccp_update_sg_workarea(struct ccp_sg_workarea *wa, unsigned int len)
 	unsigned int nbytes = min_t(u64, len, wa->bytes_left);
 
 	if (!wa->sg)
+	{
 		return;
+	}
 
 	wa->sg_used += nbytes;
 	wa->bytes_left -= nbytes;
-	if (wa->sg_used == wa->sg->length) {
+
+	if (wa->sg_used == wa->sg->length)
+	{
 		wa->sg = sg_next(wa->sg);
 		wa->sg_used = 0;
 	}
@@ -107,14 +129,18 @@ static void ccp_update_sg_workarea(struct ccp_sg_workarea *wa, unsigned int len)
 
 static void ccp_dm_free(struct ccp_dm_workarea *wa)
 {
-	if (wa->length <= CCP_DMAPOOL_MAX_SIZE) {
+	if (wa->length <= CCP_DMAPOOL_MAX_SIZE)
+	{
 		if (wa->address)
 			dma_pool_free(wa->dma_pool, wa->address,
-				      wa->dma.address);
-	} else {
+						  wa->dma.address);
+	}
+	else
+	{
 		if (wa->dma.address)
 			dma_unmap_single(wa->dev, wa->dma.address, wa->length,
-					 wa->dma.dir);
+							 wa->dma.dir);
+
 		kfree(wa->address);
 	}
 
@@ -123,96 +149,119 @@ static void ccp_dm_free(struct ccp_dm_workarea *wa)
 }
 
 static int ccp_init_dm_workarea(struct ccp_dm_workarea *wa,
-				struct ccp_cmd_queue *cmd_q,
-				unsigned int len,
-				enum dma_data_direction dir)
+								struct ccp_cmd_queue *cmd_q,
+								unsigned int len,
+								enum dma_data_direction dir)
 {
 	memset(wa, 0, sizeof(*wa));
 
 	if (!len)
+	{
 		return 0;
+	}
 
 	wa->dev = cmd_q->ccp->dev;
 	wa->length = len;
 
-	if (len <= CCP_DMAPOOL_MAX_SIZE) {
+	if (len <= CCP_DMAPOOL_MAX_SIZE)
+	{
 		wa->dma_pool = cmd_q->dma_pool;
 
 		wa->address = dma_pool_alloc(wa->dma_pool, GFP_KERNEL,
-					     &wa->dma.address);
+									 &wa->dma.address);
+
 		if (!wa->address)
+		{
 			return -ENOMEM;
+		}
 
 		wa->dma.length = CCP_DMAPOOL_MAX_SIZE;
 
 		memset(wa->address, 0, CCP_DMAPOOL_MAX_SIZE);
-	} else {
+	}
+	else
+	{
 		wa->address = kzalloc(len, GFP_KERNEL);
+
 		if (!wa->address)
+		{
 			return -ENOMEM;
+		}
 
 		wa->dma.address = dma_map_single(wa->dev, wa->address, len,
-						 dir);
+										 dir);
+
 		if (!wa->dma.address)
+		{
 			return -ENOMEM;
+		}
 
 		wa->dma.length = len;
 	}
+
 	wa->dma.dir = dir;
 
 	return 0;
 }
 
 static void ccp_set_dm_area(struct ccp_dm_workarea *wa, unsigned int wa_offset,
-			    struct scatterlist *sg, unsigned int sg_offset,
-			    unsigned int len)
+							struct scatterlist *sg, unsigned int sg_offset,
+							unsigned int len)
 {
 	WARN_ON(!wa->address);
 
 	scatterwalk_map_and_copy(wa->address + wa_offset, sg, sg_offset, len,
-				 0);
+							 0);
 }
 
 static void ccp_get_dm_area(struct ccp_dm_workarea *wa, unsigned int wa_offset,
-			    struct scatterlist *sg, unsigned int sg_offset,
-			    unsigned int len)
+							struct scatterlist *sg, unsigned int sg_offset,
+							unsigned int len)
 {
 	WARN_ON(!wa->address);
 
 	scatterwalk_map_and_copy(wa->address + wa_offset, sg, sg_offset, len,
-				 1);
+							 1);
 }
 
 static int ccp_reverse_set_dm_area(struct ccp_dm_workarea *wa,
-				   struct scatterlist *sg,
-				   unsigned int len, unsigned int se_len,
-				   bool sign_extend)
+								   struct scatterlist *sg,
+								   unsigned int len, unsigned int se_len,
+								   bool sign_extend)
 {
 	unsigned int nbytes, sg_offset, dm_offset, sb_len, i;
 	u8 buffer[CCP_REVERSE_BUF_SIZE];
 
 	if (WARN_ON(se_len > sizeof(buffer)))
+	{
 		return -EINVAL;
+	}
 
 	sg_offset = len;
 	dm_offset = 0;
 	nbytes = len;
-	while (nbytes) {
+
+	while (nbytes)
+	{
 		sb_len = min_t(unsigned int, nbytes, se_len);
 		sg_offset -= sb_len;
 
 		scatterwalk_map_and_copy(buffer, sg, sg_offset, sb_len, 0);
+
 		for (i = 0; i < sb_len; i++)
+		{
 			wa->address[dm_offset + i] = buffer[sb_len - i - 1];
+		}
 
 		dm_offset += sb_len;
 		nbytes -= sb_len;
 
-		if ((sb_len != se_len) && sign_extend) {
+		if ((sb_len != se_len) && sign_extend)
+		{
 			/* Must sign-extend to nearest sign-extend length */
 			if (wa->address[dm_offset - 1] & 0x80)
 				memset(wa->address + dm_offset, 0xff,
-				       se_len - sb_len);
+					   se_len - sb_len);
 		}
 	}
 
@@ -220,8 +269,8 @@ static int ccp_reverse_set_dm_area(struct ccp_dm_workarea *wa,
 }
 
 static void ccp_reverse_get_dm_area(struct ccp_dm_workarea *wa,
-				    struct scatterlist *sg,
-				    unsigned int len)
+									struct scatterlist *sg,
+									unsigned int len)
 {
 	unsigned int nbytes, sg_offset, dm_offset, sb_len, i;
 	u8 buffer[CCP_REVERSE_BUF_SIZE];
@@ -229,12 +278,17 @@ static void ccp_reverse_get_dm_area(struct ccp_dm_workarea *wa,
 	sg_offset = 0;
 	dm_offset = len;
 	nbytes = len;
-	while (nbytes) {
+
+	while (nbytes)
+	{
 		sb_len = min_t(unsigned int, nbytes, sizeof(buffer));
 		dm_offset -= sb_len;
 
 		for (i = 0; i < sb_len; i++)
+		{
 			buffer[sb_len - i - 1] = wa->address[dm_offset + i];
+		}
+
 		scatterwalk_map_and_copy(buffer, sg, sg_offset, sb_len, 1);
 
 		sg_offset += sb_len;
@@ -249,22 +303,28 @@ static void ccp_free_data(struct ccp_data *data, struct ccp_cmd_queue *cmd_q)
 }
 
 static int ccp_init_data(struct ccp_data *data, struct ccp_cmd_queue *cmd_q,
-			 struct scatterlist *sg, u64 sg_len,
-			 unsigned int dm_len,
-			 enum dma_data_direction dir)
+						 struct scatterlist *sg, u64 sg_len,
+						 unsigned int dm_len,
+						 enum dma_data_direction dir)
 {
 	int ret;
 
 	memset(data, 0, sizeof(*data));
 
 	ret = ccp_init_sg_workarea(&data->sg_wa, cmd_q->ccp->dev, sg, sg_len,
-				   dir);
+							   dir);
+
 	if (ret)
+	{
 		goto e_err;
+	}
 
 	ret = ccp_init_dm_workarea(&data->dm_wa, cmd_q, dm_len, dir);
+
 	if (ret)
+	{
 		goto e_err;
+	}
 
 	return 0;
 
@@ -282,10 +342,14 @@ static unsigned int ccp_queue_buf(struct ccp_data *data, unsigned int from)
 
 	/* Clear the buffer if setting it */
 	if (!from)
+	{
 		memset(dm_wa->address, 0, dm_wa->length);
+	}
 
 	if (!sg_wa->sg)
+	{
 		return 0;
+	}
 
 	/* Perform the copy operation
 	 *   nbytes will always be <= UINT_MAX because dm_wa->length is
@@ -293,13 +357,15 @@ static unsigned int ccp_queue_buf(struct ccp_data *data, unsigned int from)
 	 */
 	nbytes = min_t(u64, sg_wa->bytes_left, dm_wa->length);
 	scatterwalk_map_and_copy(dm_wa->address, sg_wa->sg, sg_wa->sg_used,
-				 nbytes, from);
+							 nbytes, from);
 
 	/* Update the structures and generate the count */
 	buf_count = 0;
-	while (sg_wa->bytes_left && (buf_count < dm_wa->length)) {
+
+	while (sg_wa->bytes_left && (buf_count < dm_wa->length))
+	{
 		nbytes = min(sg_wa->sg->length - sg_wa->sg_used,
-			     dm_wa->length - buf_count);
+					 dm_wa->length - buf_count);
 		nbytes = min_t(u64, sg_wa->bytes_left, nbytes);
 
 		buf_count += nbytes;
@@ -320,8 +386,8 @@ static unsigned int ccp_empty_queue_buf(struct ccp_data *data)
 }
 
 static void ccp_prepare_data(struct ccp_data *src, struct ccp_data *dst,
-			     struct ccp_op *op, unsigned int block_size,
-			     bool blocksize_op)
+							 struct ccp_op *op, unsigned int block_size,
+							 bool blocksize_op)
 {
 	unsigned int sg_src_len, sg_dst_len, op_len;
 
@@ -333,11 +399,14 @@ static void ccp_prepare_data(struct ccp_data *src, struct ccp_data *dst,
 	sg_src_len = sg_dma_len(src->sg_wa.sg) - src->sg_wa.sg_used;
 	sg_src_len = min_t(u64, src->sg_wa.bytes_left, sg_src_len);
 
-	if (dst) {
+	if (dst)
+	{
 		sg_dst_len = sg_dma_len(dst->sg_wa.sg) - dst->sg_wa.sg_used;
 		sg_dst_len = min_t(u64, src->sg_wa.bytes_left, sg_dst_len);
 		op_len = min(sg_src_len, sg_dst_len);
-	} else {
+	}
+	else
+	{
 		op_len = sg_src_len;
 	}
 
@@ -350,7 +419,8 @@ static void ccp_prepare_data(struct ccp_data *src, struct ccp_data *dst,
 	/* Unless we have to buffer data, there's no reason to wait */
 	op->soc = 0;
 
-	if (sg_src_len < block_size) {
+	if (sg_src_len < block_size)
+	{
 		/* Not enough data in the sg element, so it
 		 * needs to be buffered into a blocksize chunk
 		 */
@@ -360,7 +430,9 @@ static void ccp_prepare_data(struct ccp_data *src, struct ccp_data *dst,
 		op->src.u.dma.address = src->dm_wa.dma.address;
 		op->src.u.dma.offset = 0;
 		op->src.u.dma.length = (blocksize_op) ? block_size : cp_len;
-	} else {
+	}
+	else
+	{
 		/* Enough data in the sg element, but we need to
 		 * adjust for any previously copied data
 		 */
@@ -371,8 +443,10 @@ static void ccp_prepare_data(struct ccp_data *src, struct ccp_data *dst,
 		ccp_update_sg_workarea(&src->sg_wa, op->src.u.dma.length);
 	}
 
-	if (dst) {
-		if (sg_dst_len < block_size) {
+	if (dst)
+	{
+		if (sg_dst_len < block_size)
+		{
 			/* Not enough room in the sg element or we're on the
 			 * last piece of data (when using padding), so the
 			 * output needs to be buffered into a blocksize chunk
@@ -381,7 +455,9 @@ static void ccp_prepare_data(struct ccp_data *src, struct ccp_data *dst,
 			op->dst.u.dma.address = dst->dm_wa.dma.address;
 			op->dst.u.dma.offset = 0;
 			op->dst.u.dma.length = op->src.u.dma.length;
-		} else {
+		}
+		else
+		{
 			/* Enough room in the sg element, but we need to
 			 * adjust for any previously used area
 			 */
@@ -393,22 +469,25 @@ static void ccp_prepare_data(struct ccp_data *src, struct ccp_data *dst,
 }
 
 static void ccp_process_data(struct ccp_data *src, struct ccp_data *dst,
-			     struct ccp_op *op)
+							 struct ccp_op *op)
 {
 	op->init = 0;
 
-	if (dst) {
+	if (dst)
+	{
 		if (op->dst.u.dma.address == dst->dm_wa.dma.address)
+		{
 			ccp_empty_queue_buf(dst);
+		}
 		else
 			ccp_update_sg_workarea(&dst->sg_wa,
-					       op->dst.u.dma.length);
+								   op->dst.u.dma.length);
 	}
 }
 
 static int ccp_copy_to_from_sb(struct ccp_cmd_queue *cmd_q,
-			       struct ccp_dm_workarea *wa, u32 jobid, u32 sb,
-			       u32 byte_swap, bool from)
+							   struct ccp_dm_workarea *wa, u32 jobid, u32 sb,
+							   u32 byte_swap, bool from)
 {
 	struct ccp_op op;
 
@@ -418,14 +497,17 @@ static int ccp_copy_to_from_sb(struct ccp_cmd_queue *cmd_q,
 	op.jobid = jobid;
 	op.eom = 1;
 
-	if (from) {
+	if (from)
+	{
 		op.soc = 1;
 		op.src.type = CCP_MEMTYPE_SB;
 		op.src.u.sb = sb;
 		op.dst.type = CCP_MEMTYPE_SYSTEM;
 		op.dst.u.dma.address = wa->dma.address;
 		op.dst.u.dma.length = wa->length;
-	} else {
+	}
+	else
+	{
 		op.src.type = CCP_MEMTYPE_SYSTEM;
 		op.src.u.dma.address = wa->dma.address;
 		op.src.u.dma.length = wa->length;
@@ -439,21 +521,21 @@ static int ccp_copy_to_from_sb(struct ccp_cmd_queue *cmd_q,
 }
 
 static int ccp_copy_to_sb(struct ccp_cmd_queue *cmd_q,
-			  struct ccp_dm_workarea *wa, u32 jobid, u32 sb,
-			  u32 byte_swap)
+						  struct ccp_dm_workarea *wa, u32 jobid, u32 sb,
+						  u32 byte_swap)
 {
 	return ccp_copy_to_from_sb(cmd_q, wa, jobid, sb, byte_swap, false);
 }
 
 static int ccp_copy_from_sb(struct ccp_cmd_queue *cmd_q,
-			    struct ccp_dm_workarea *wa, u32 jobid, u32 sb,
-			    u32 byte_swap)
+							struct ccp_dm_workarea *wa, u32 jobid, u32 sb,
+							u32 byte_swap)
 {
 	return ccp_copy_to_from_sb(cmd_q, wa, jobid, sb, byte_swap, true);
 }
 
 static int ccp_run_aes_cmac_cmd(struct ccp_cmd_queue *cmd_q,
-				struct ccp_cmd *cmd)
+								struct ccp_cmd *cmd)
 {
 	struct ccp_aes_engine *aes = &cmd->u.aes;
 	struct ccp_dm_workarea key, ctx;
@@ -463,25 +545,38 @@ static int ccp_run_aes_cmac_cmd(struct ccp_cmd_queue *cmd_q,
 	int ret;
 
 	if (!((aes->key_len == AES_KEYSIZE_128) ||
-	      (aes->key_len == AES_KEYSIZE_192) ||
-	      (aes->key_len == AES_KEYSIZE_256)))
+		  (aes->key_len == AES_KEYSIZE_192) ||
+		  (aes->key_len == AES_KEYSIZE_256)))
+	{
 		return -EINVAL;
+	}
 
 	if (aes->src_len & (AES_BLOCK_SIZE - 1))
+	{
 		return -EINVAL;
+	}
 
 	if (aes->iv_len != AES_BLOCK_SIZE)
+	{
 		return -EINVAL;
+	}
 
 	if (!aes->key || !aes->iv || !aes->src)
+	{
 		return -EINVAL;
+	}
 
-	if (aes->cmac_final) {
+	if (aes->cmac_final)
+	{
 		if (aes->cmac_key_len != AES_BLOCK_SIZE)
+		{
 			return -EINVAL;
+		}
 
 		if (!aes->cmac_key)
+		{
 			return -EINVAL;
+		}
 	}
 
 	BUILD_BUG_ON(CCP_AES_KEY_SB_COUNT != 1);
@@ -504,16 +599,21 @@ static int ccp_run_aes_cmac_cmd(struct ccp_cmd_queue *cmd_q,
 	 * endian.
 	 */
 	ret = ccp_init_dm_workarea(&key, cmd_q,
-				   CCP_AES_KEY_SB_COUNT * CCP_SB_BYTES,
-				   DMA_TO_DEVICE);
+							   CCP_AES_KEY_SB_COUNT * CCP_SB_BYTES,
+							   DMA_TO_DEVICE);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	dm_offset = CCP_SB_BYTES - aes->key_len;
 	ccp_set_dm_area(&key, dm_offset, aes->key, 0, aes->key_len);
 	ret = ccp_copy_to_sb(cmd_q, &key, op.jobid, op.sb_key,
-			     CCP_PASSTHRU_BYTESWAP_256BIT);
-	if (ret) {
+						 CCP_PASSTHRU_BYTESWAP_256BIT);
+
+	if (ret)
+	{
 		cmd->engine_error = cmd_q->cmd_error;
 		goto e_key;
 	}
@@ -523,52 +623,69 @@ static int ccp_run_aes_cmac_cmd(struct ccp_cmd_queue *cmd_q,
 	 * passthru option to convert from big endian to little endian.
 	 */
 	ret = ccp_init_dm_workarea(&ctx, cmd_q,
-				   CCP_AES_CTX_SB_COUNT * CCP_SB_BYTES,
-				   DMA_BIDIRECTIONAL);
+							   CCP_AES_CTX_SB_COUNT * CCP_SB_BYTES,
+							   DMA_BIDIRECTIONAL);
+
 	if (ret)
+	{
 		goto e_key;
+	}
 
 	dm_offset = CCP_SB_BYTES - AES_BLOCK_SIZE;
 	ccp_set_dm_area(&ctx, dm_offset, aes->iv, 0, aes->iv_len);
 	ret = ccp_copy_to_sb(cmd_q, &ctx, op.jobid, op.sb_ctx,
-			     CCP_PASSTHRU_BYTESWAP_256BIT);
-	if (ret) {
+						 CCP_PASSTHRU_BYTESWAP_256BIT);
+
+	if (ret)
+	{
 		cmd->engine_error = cmd_q->cmd_error;
 		goto e_ctx;
 	}
 
 	/* Send data to the CCP AES engine */
 	ret = ccp_init_data(&src, cmd_q, aes->src, aes->src_len,
-			    AES_BLOCK_SIZE, DMA_TO_DEVICE);
-	if (ret)
-		goto e_ctx;
+						AES_BLOCK_SIZE, DMA_TO_DEVICE);
 
-	while (src.sg_wa.bytes_left) {
+	if (ret)
+	{
+		goto e_ctx;
+	}
+
+	while (src.sg_wa.bytes_left)
+	{
 		ccp_prepare_data(&src, NULL, &op, AES_BLOCK_SIZE, true);
-		if (aes->cmac_final && !src.sg_wa.bytes_left) {
+
+		if (aes->cmac_final && !src.sg_wa.bytes_left)
+		{
 			op.eom = 1;
 
 			/* Push the K1/K2 key to the CCP now */
 			ret = ccp_copy_from_sb(cmd_q, &ctx, op.jobid,
-					       op.sb_ctx,
-					       CCP_PASSTHRU_BYTESWAP_256BIT);
-			if (ret) {
+								   op.sb_ctx,
+								   CCP_PASSTHRU_BYTESWAP_256BIT);
+
+			if (ret)
+			{
 				cmd->engine_error = cmd_q->cmd_error;
 				goto e_src;
 			}
 
 			ccp_set_dm_area(&ctx, 0, aes->cmac_key, 0,
-					aes->cmac_key_len);
+							aes->cmac_key_len);
 			ret = ccp_copy_to_sb(cmd_q, &ctx, op.jobid, op.sb_ctx,
-					     CCP_PASSTHRU_BYTESWAP_256BIT);
-			if (ret) {
+								 CCP_PASSTHRU_BYTESWAP_256BIT);
+
+			if (ret)
+			{
 				cmd->engine_error = cmd_q->cmd_error;
 				goto e_src;
 			}
 		}
 
 		ret = cmd_q->ccp->vdata->perform->aes(&op);
-		if (ret) {
+
+		if (ret)
+		{
 			cmd->engine_error = cmd_q->cmd_error;
 			goto e_src;
 		}
@@ -580,8 +697,10 @@ static int ccp_run_aes_cmac_cmd(struct ccp_cmd_queue *cmd_q,
 	 * 32-byte (256-bit) byteswapping
 	 */
 	ret = ccp_copy_from_sb(cmd_q, &ctx, op.jobid, op.sb_ctx,
-			       CCP_PASSTHRU_BYTESWAP_256BIT);
-	if (ret) {
+						   CCP_PASSTHRU_BYTESWAP_256BIT);
+
+	if (ret)
+	{
 		cmd->engine_error = cmd_q->cmd_error;
 		goto e_src;
 	}
@@ -613,28 +732,41 @@ static int ccp_run_aes_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 	int ret;
 
 	if (aes->mode == CCP_AES_MODE_CMAC)
+	{
 		return ccp_run_aes_cmac_cmd(cmd_q, cmd);
+	}
 
 	if (!((aes->key_len == AES_KEYSIZE_128) ||
-	      (aes->key_len == AES_KEYSIZE_192) ||
-	      (aes->key_len == AES_KEYSIZE_256)))
+		  (aes->key_len == AES_KEYSIZE_192) ||
+		  (aes->key_len == AES_KEYSIZE_256)))
+	{
 		return -EINVAL;
+	}
 
 	if (((aes->mode == CCP_AES_MODE_ECB) ||
-	     (aes->mode == CCP_AES_MODE_CBC) ||
-	     (aes->mode == CCP_AES_MODE_CFB)) &&
-	    (aes->src_len & (AES_BLOCK_SIZE - 1)))
+		 (aes->mode == CCP_AES_MODE_CBC) ||
+		 (aes->mode == CCP_AES_MODE_CFB)) &&
+		(aes->src_len & (AES_BLOCK_SIZE - 1)))
+	{
 		return -EINVAL;
+	}
 
 	if (!aes->key || !aes->src || !aes->dst)
+	{
 		return -EINVAL;
+	}
 
-	if (aes->mode != CCP_AES_MODE_ECB) {
+	if (aes->mode != CCP_AES_MODE_ECB)
+	{
 		if (aes->iv_len != AES_BLOCK_SIZE)
+		{
 			return -EINVAL;
+		}
 
 		if (!aes->iv)
+		{
 			return -EINVAL;
+		}
 	}
 
 	BUILD_BUG_ON(CCP_AES_KEY_SB_COUNT != 1);
@@ -657,16 +789,21 @@ static int ccp_run_aes_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 	 * endian.
 	 */
 	ret = ccp_init_dm_workarea(&key, cmd_q,
-				   CCP_AES_KEY_SB_COUNT * CCP_SB_BYTES,
-				   DMA_TO_DEVICE);
+							   CCP_AES_KEY_SB_COUNT * CCP_SB_BYTES,
+							   DMA_TO_DEVICE);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	dm_offset = CCP_SB_BYTES - aes->key_len;
 	ccp_set_dm_area(&key, dm_offset, aes->key, 0, aes->key_len);
 	ret = ccp_copy_to_sb(cmd_q, &key, op.jobid, op.sb_key,
-			     CCP_PASSTHRU_BYTESWAP_256BIT);
-	if (ret) {
+						 CCP_PASSTHRU_BYTESWAP_256BIT);
+
+	if (ret)
+	{
 		cmd->engine_error = cmd_q->cmd_error;
 		goto e_key;
 	}
@@ -676,18 +813,24 @@ static int ccp_run_aes_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 	 * passthru option to convert from big endian to little endian.
 	 */
 	ret = ccp_init_dm_workarea(&ctx, cmd_q,
-				   CCP_AES_CTX_SB_COUNT * CCP_SB_BYTES,
-				   DMA_BIDIRECTIONAL);
-	if (ret)
-		goto e_key;
+							   CCP_AES_CTX_SB_COUNT * CCP_SB_BYTES,
+							   DMA_BIDIRECTIONAL);
 
-	if (aes->mode != CCP_AES_MODE_ECB) {
+	if (ret)
+	{
+		goto e_key;
+	}
+
+	if (aes->mode != CCP_AES_MODE_ECB)
+	{
 		/* Load the AES context - convert to LE */
 		dm_offset = CCP_SB_BYTES - AES_BLOCK_SIZE;
 		ccp_set_dm_area(&ctx, dm_offset, aes->iv, 0, aes->iv_len);
 		ret = ccp_copy_to_sb(cmd_q, &ctx, op.jobid, op.sb_ctx,
-				     CCP_PASSTHRU_BYTESWAP_256BIT);
-		if (ret) {
+							 CCP_PASSTHRU_BYTESWAP_256BIT);
+
+		if (ret)
+		{
 			cmd->engine_error = cmd_q->cmd_error;
 			goto e_ctx;
 		}
@@ -698,27 +841,41 @@ static int ccp_run_aes_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 	 * and copy the src workarea to the dst workarea.
 	 */
 	if (sg_virt(aes->src) == sg_virt(aes->dst))
+	{
 		in_place = true;
+	}
 
 	ret = ccp_init_data(&src, cmd_q, aes->src, aes->src_len,
-			    AES_BLOCK_SIZE,
-			    in_place ? DMA_BIDIRECTIONAL : DMA_TO_DEVICE);
-	if (ret)
-		goto e_ctx;
+						AES_BLOCK_SIZE,
+						in_place ? DMA_BIDIRECTIONAL : DMA_TO_DEVICE);
 
-	if (in_place) {
+	if (ret)
+	{
+		goto e_ctx;
+	}
+
+	if (in_place)
+	{
 		dst = src;
-	} else {
+	}
+	else
+	{
 		ret = ccp_init_data(&dst, cmd_q, aes->dst, aes->src_len,
-				    AES_BLOCK_SIZE, DMA_FROM_DEVICE);
+							AES_BLOCK_SIZE, DMA_FROM_DEVICE);
+
 		if (ret)
+		{
 			goto e_src;
+		}
 	}
 
 	/* Send data to the CCP AES engine */
-	while (src.sg_wa.bytes_left) {
+	while (src.sg_wa.bytes_left)
+	{
 		ccp_prepare_data(&src, &dst, &op, AES_BLOCK_SIZE, true);
-		if (!src.sg_wa.bytes_left) {
+
+		if (!src.sg_wa.bytes_left)
+		{
 			op.eom = 1;
 
 			/* Since we don't retrieve the AES context in ECB
@@ -726,11 +883,15 @@ static int ccp_run_aes_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 			 * on the last piece of data
 			 */
 			if (aes->mode == CCP_AES_MODE_ECB)
+			{
 				op.soc = 1;
+			}
 		}
 
 		ret = cmd_q->ccp->vdata->perform->aes(&op);
-		if (ret) {
+
+		if (ret)
+		{
 			cmd->engine_error = cmd_q->cmd_error;
 			goto e_dst;
 		}
@@ -738,13 +899,16 @@ static int ccp_run_aes_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 		ccp_process_data(&src, &dst, &op);
 	}
 
-	if (aes->mode != CCP_AES_MODE_ECB) {
+	if (aes->mode != CCP_AES_MODE_ECB)
+	{
 		/* Retrieve the AES context - convert from LE to BE using
 		 * 32-byte (256-bit) byteswapping
 		 */
 		ret = ccp_copy_from_sb(cmd_q, &ctx, op.jobid, op.sb_ctx,
-				       CCP_PASSTHRU_BYTESWAP_256BIT);
-		if (ret) {
+							   CCP_PASSTHRU_BYTESWAP_256BIT);
+
+		if (ret)
+		{
 			cmd->engine_error = cmd_q->cmd_error;
 			goto e_dst;
 		}
@@ -755,8 +919,11 @@ static int ccp_run_aes_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 	}
 
 e_dst:
+
 	if (!in_place)
+	{
 		ccp_free_data(&dst, cmd_q);
+	}
 
 e_src:
 	ccp_free_data(&src, cmd_q);
@@ -771,7 +938,7 @@ e_key:
 }
 
 static int ccp_run_xts_aes_cmd(struct ccp_cmd_queue *cmd_q,
-			       struct ccp_cmd *cmd)
+							   struct ccp_cmd *cmd)
 {
 	struct ccp_xts_aes_engine *xts = &cmd->u.xts;
 	struct ccp_dm_workarea key, ctx;
@@ -781,38 +948,51 @@ static int ccp_run_xts_aes_cmd(struct ccp_cmd_queue *cmd_q,
 	bool in_place = false;
 	int ret;
 
-	switch (xts->unit_size) {
-	case CCP_XTS_AES_UNIT_SIZE_16:
-		unit_size = 16;
-		break;
-	case CCP_XTS_AES_UNIT_SIZE_512:
-		unit_size = 512;
-		break;
-	case CCP_XTS_AES_UNIT_SIZE_1024:
-		unit_size = 1024;
-		break;
-	case CCP_XTS_AES_UNIT_SIZE_2048:
-		unit_size = 2048;
-		break;
-	case CCP_XTS_AES_UNIT_SIZE_4096:
-		unit_size = 4096;
-		break;
+	switch (xts->unit_size)
+	{
+		case CCP_XTS_AES_UNIT_SIZE_16:
+			unit_size = 16;
+			break;
 
-	default:
-		return -EINVAL;
+		case CCP_XTS_AES_UNIT_SIZE_512:
+			unit_size = 512;
+			break;
+
+		case CCP_XTS_AES_UNIT_SIZE_1024:
+			unit_size = 1024;
+			break;
+
+		case CCP_XTS_AES_UNIT_SIZE_2048:
+			unit_size = 2048;
+			break;
+
+		case CCP_XTS_AES_UNIT_SIZE_4096:
+			unit_size = 4096;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	if (xts->key_len != AES_KEYSIZE_128)
+	{
 		return -EINVAL;
+	}
 
 	if (!xts->final && (xts->src_len & (AES_BLOCK_SIZE - 1)))
+	{
 		return -EINVAL;
+	}
 
 	if (xts->iv_len != AES_BLOCK_SIZE)
+	{
 		return -EINVAL;
+	}
 
 	if (!xts->key || !xts->iv || !xts->src || !xts->dst)
+	{
 		return -EINVAL;
+	}
 
 	BUILD_BUG_ON(CCP_XTS_AES_KEY_SB_COUNT != 1);
 	BUILD_BUG_ON(CCP_XTS_AES_CTX_SB_COUNT != 1);
@@ -833,17 +1013,22 @@ static int ccp_run_xts_aes_cmd(struct ccp_cmd_queue *cmd_q,
 	 * endian.
 	 */
 	ret = ccp_init_dm_workarea(&key, cmd_q,
-				   CCP_XTS_AES_KEY_SB_COUNT * CCP_SB_BYTES,
-				   DMA_TO_DEVICE);
+							   CCP_XTS_AES_KEY_SB_COUNT * CCP_SB_BYTES,
+							   DMA_TO_DEVICE);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	dm_offset = CCP_SB_BYTES - AES_KEYSIZE_128;
 	ccp_set_dm_area(&key, dm_offset, xts->key, 0, xts->key_len);
 	ccp_set_dm_area(&key, 0, xts->key, dm_offset, xts->key_len);
 	ret = ccp_copy_to_sb(cmd_q, &key, op.jobid, op.sb_key,
-			     CCP_PASSTHRU_BYTESWAP_256BIT);
-	if (ret) {
+						 CCP_PASSTHRU_BYTESWAP_256BIT);
+
+	if (ret)
+	{
 		cmd->engine_error = cmd_q->cmd_error;
 		goto e_key;
 	}
@@ -853,15 +1038,20 @@ static int ccp_run_xts_aes_cmd(struct ccp_cmd_queue *cmd_q,
 	 * is needed.
 	 */
 	ret = ccp_init_dm_workarea(&ctx, cmd_q,
-				   CCP_XTS_AES_CTX_SB_COUNT * CCP_SB_BYTES,
-				   DMA_BIDIRECTIONAL);
+							   CCP_XTS_AES_CTX_SB_COUNT * CCP_SB_BYTES,
+							   DMA_BIDIRECTIONAL);
+
 	if (ret)
+	{
 		goto e_key;
+	}
 
 	ccp_set_dm_area(&ctx, 0, xts->iv, 0, xts->iv_len);
 	ret = ccp_copy_to_sb(cmd_q, &ctx, op.jobid, op.sb_ctx,
-			     CCP_PASSTHRU_BYTESWAP_NOOP);
-	if (ret) {
+						 CCP_PASSTHRU_BYTESWAP_NOOP);
+
+	if (ret)
+	{
 		cmd->engine_error = cmd_q->cmd_error;
 		goto e_ctx;
 	}
@@ -871,31 +1061,48 @@ static int ccp_run_xts_aes_cmd(struct ccp_cmd_queue *cmd_q,
 	 * and copy the src workarea to the dst workarea.
 	 */
 	if (sg_virt(xts->src) == sg_virt(xts->dst))
+	{
 		in_place = true;
+	}
 
 	ret = ccp_init_data(&src, cmd_q, xts->src, xts->src_len,
-			    unit_size,
-			    in_place ? DMA_BIDIRECTIONAL : DMA_TO_DEVICE);
-	if (ret)
-		goto e_ctx;
+						unit_size,
+						in_place ? DMA_BIDIRECTIONAL : DMA_TO_DEVICE);
 
-	if (in_place) {
+	if (ret)
+	{
+		goto e_ctx;
+	}
+
+	if (in_place)
+	{
 		dst = src;
-	} else {
+	}
+	else
+	{
 		ret = ccp_init_data(&dst, cmd_q, xts->dst, xts->src_len,
-				    unit_size, DMA_FROM_DEVICE);
+							unit_size, DMA_FROM_DEVICE);
+
 		if (ret)
+		{
 			goto e_src;
+		}
 	}
 
 	/* Send data to the CCP AES engine */
-	while (src.sg_wa.bytes_left) {
+	while (src.sg_wa.bytes_left)
+	{
 		ccp_prepare_data(&src, &dst, &op, unit_size, true);
+
 		if (!src.sg_wa.bytes_left)
+		{
 			op.eom = 1;
+		}
 
 		ret = cmd_q->ccp->vdata->perform->xts_aes(&op);
-		if (ret) {
+
+		if (ret)
+		{
 			cmd->engine_error = cmd_q->cmd_error;
 			goto e_dst;
 		}
@@ -907,8 +1114,10 @@ static int ccp_run_xts_aes_cmd(struct ccp_cmd_queue *cmd_q,
 	 * 32-byte (256-bit) byteswapping
 	 */
 	ret = ccp_copy_from_sb(cmd_q, &ctx, op.jobid, op.sb_ctx,
-			       CCP_PASSTHRU_BYTESWAP_256BIT);
-	if (ret) {
+						   CCP_PASSTHRU_BYTESWAP_256BIT);
+
+	if (ret)
+	{
 		cmd->engine_error = cmd_q->cmd_error;
 		goto e_dst;
 	}
@@ -918,8 +1127,11 @@ static int ccp_run_xts_aes_cmd(struct ccp_cmd_queue *cmd_q,
 	ccp_get_dm_area(&ctx, dm_offset, xts->iv, 0, xts->iv_len);
 
 e_dst:
+
 	if (!in_place)
+	{
 		ccp_free_data(&dst, cmd_q);
+	}
 
 e_src:
 	ccp_free_data(&src, cmd_q);
@@ -947,48 +1159,71 @@ static int ccp_run_sha_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 	int ctx_size;
 	int ret;
 
-	switch (sha->type) {
-	case CCP_SHA_TYPE_1:
-		if (sha->ctx_len < SHA1_DIGEST_SIZE)
+	switch (sha->type)
+	{
+		case CCP_SHA_TYPE_1:
+			if (sha->ctx_len < SHA1_DIGEST_SIZE)
+			{
+				return -EINVAL;
+			}
+
+			block_size = SHA1_BLOCK_SIZE;
+			break;
+
+		case CCP_SHA_TYPE_224:
+			if (sha->ctx_len < SHA224_DIGEST_SIZE)
+			{
+				return -EINVAL;
+			}
+
+			block_size = SHA224_BLOCK_SIZE;
+			break;
+
+		case CCP_SHA_TYPE_256:
+			if (sha->ctx_len < SHA256_DIGEST_SIZE)
+			{
+				return -EINVAL;
+			}
+
+			block_size = SHA256_BLOCK_SIZE;
+			break;
+
+		default:
 			return -EINVAL;
-		block_size = SHA1_BLOCK_SIZE;
-		break;
-	case CCP_SHA_TYPE_224:
-		if (sha->ctx_len < SHA224_DIGEST_SIZE)
-			return -EINVAL;
-		block_size = SHA224_BLOCK_SIZE;
-		break;
-	case CCP_SHA_TYPE_256:
-		if (sha->ctx_len < SHA256_DIGEST_SIZE)
-			return -EINVAL;
-		block_size = SHA256_BLOCK_SIZE;
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	if (!sha->ctx)
+	{
 		return -EINVAL;
+	}
 
 	if (!sha->final && (sha->src_len & (block_size - 1)))
+	{
 		return -EINVAL;
+	}
 
 	/* The version 3 device can't handle zero-length input */
-	if (cmd_q->ccp->vdata->version == CCP_VERSION(3, 0)) {
+	if (cmd_q->ccp->vdata->version == CCP_VERSION(3, 0))
+	{
 
-		if (!sha->src_len) {
+		if (!sha->src_len)
+		{
 			unsigned int digest_len;
 			const u8 *sha_zero;
 
 			/* Not final, just return */
 			if (!sha->final)
+			{
 				return 0;
+			}
 
 			/* CCP can't do a zero length sha operation so the
 			 * caller must buffer the data.
 			 */
 			if (sha->msg_bits)
+			{
 				return -EINVAL;
+			}
 
 			/* The CCP cannot perform zero-length sha operations
 			 * so the caller is required to buffer data for the
@@ -996,70 +1231,92 @@ static int ccp_run_sha_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 			 * message with a total length of zero is valid so
 			 * known values are required to supply the result.
 			 */
-			switch (sha->type) {
-			case CCP_SHA_TYPE_1:
-				sha_zero = sha1_zero_message_hash;
-				digest_len = SHA1_DIGEST_SIZE;
-				break;
-			case CCP_SHA_TYPE_224:
-				sha_zero = sha224_zero_message_hash;
-				digest_len = SHA224_DIGEST_SIZE;
-				break;
-			case CCP_SHA_TYPE_256:
-				sha_zero = sha256_zero_message_hash;
-				digest_len = SHA256_DIGEST_SIZE;
-				break;
-			default:
-				return -EINVAL;
+			switch (sha->type)
+			{
+				case CCP_SHA_TYPE_1:
+					sha_zero = sha1_zero_message_hash;
+					digest_len = SHA1_DIGEST_SIZE;
+					break;
+
+				case CCP_SHA_TYPE_224:
+					sha_zero = sha224_zero_message_hash;
+					digest_len = SHA224_DIGEST_SIZE;
+					break;
+
+				case CCP_SHA_TYPE_256:
+					sha_zero = sha256_zero_message_hash;
+					digest_len = SHA256_DIGEST_SIZE;
+					break;
+
+				default:
+					return -EINVAL;
 			}
 
 			scatterwalk_map_and_copy((void *)sha_zero, sha->ctx, 0,
-						 digest_len, 1);
+									 digest_len, 1);
 
 			return 0;
 		}
 	}
 
 	/* Set variables used throughout */
-	switch (sha->type) {
-	case CCP_SHA_TYPE_1:
-		digest_size = SHA1_DIGEST_SIZE;
-		init = (void *) ccp_sha1_init;
-		ctx_size = SHA1_DIGEST_SIZE;
-		sb_count = 1;
-		if (cmd_q->ccp->vdata->version != CCP_VERSION(3, 0))
-			ooffset = ioffset = CCP_SB_BYTES - SHA1_DIGEST_SIZE;
-		else
+	switch (sha->type)
+	{
+		case CCP_SHA_TYPE_1:
+			digest_size = SHA1_DIGEST_SIZE;
+			init = (void *) ccp_sha1_init;
+			ctx_size = SHA1_DIGEST_SIZE;
+			sb_count = 1;
+
+			if (cmd_q->ccp->vdata->version != CCP_VERSION(3, 0))
+			{
+				ooffset = ioffset = CCP_SB_BYTES - SHA1_DIGEST_SIZE;
+			}
+			else
+			{
+				ooffset = ioffset = 0;
+			}
+
+			break;
+
+		case CCP_SHA_TYPE_224:
+			digest_size = SHA224_DIGEST_SIZE;
+			init = (void *) ccp_sha224_init;
+			ctx_size = SHA256_DIGEST_SIZE;
+			sb_count = 1;
+			ioffset = 0;
+
+			if (cmd_q->ccp->vdata->version != CCP_VERSION(3, 0))
+			{
+				ooffset = CCP_SB_BYTES - SHA224_DIGEST_SIZE;
+			}
+			else
+			{
+				ooffset = 0;
+			}
+
+			break;
+
+		case CCP_SHA_TYPE_256:
+			digest_size = SHA256_DIGEST_SIZE;
+			init = (void *) ccp_sha256_init;
+			ctx_size = SHA256_DIGEST_SIZE;
+			sb_count = 1;
 			ooffset = ioffset = 0;
-		break;
-	case CCP_SHA_TYPE_224:
-		digest_size = SHA224_DIGEST_SIZE;
-		init = (void *) ccp_sha224_init;
-		ctx_size = SHA256_DIGEST_SIZE;
-		sb_count = 1;
-		ioffset = 0;
-		if (cmd_q->ccp->vdata->version != CCP_VERSION(3, 0))
-			ooffset = CCP_SB_BYTES - SHA224_DIGEST_SIZE;
-		else
-			ooffset = 0;
-		break;
-	case CCP_SHA_TYPE_256:
-		digest_size = SHA256_DIGEST_SIZE;
-		init = (void *) ccp_sha256_init;
-		ctx_size = SHA256_DIGEST_SIZE;
-		sb_count = 1;
-		ooffset = ioffset = 0;
-		break;
-	default:
-		ret = -EINVAL;
-		goto e_data;
+			break;
+
+		default:
+			ret = -EINVAL;
+			goto e_data;
 	}
 
 	/* For zero-length plaintext the src pointer is ignored;
 	 * otherwise both parts must be valid
 	 */
 	if (sha->src_len && !sha->src)
+	{
 		return -EINVAL;
+	}
 
 	memset(&op, 0, sizeof(op));
 	op.cmd_q = cmd_q;
@@ -1069,57 +1326,82 @@ static int ccp_run_sha_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 	op.u.sha.msg_bits = sha->msg_bits;
 
 	ret = ccp_init_dm_workarea(&ctx, cmd_q, sb_count * CCP_SB_BYTES,
-				   DMA_BIDIRECTIONAL);
+							   DMA_BIDIRECTIONAL);
+
 	if (ret)
+	{
 		return ret;
-	if (sha->first) {
-		switch (sha->type) {
-		case CCP_SHA_TYPE_1:
-		case CCP_SHA_TYPE_224:
-		case CCP_SHA_TYPE_256:
-			memcpy(ctx.address + ioffset, init, ctx_size);
-			break;
-		default:
-			ret = -EINVAL;
-			goto e_ctx;
+	}
+
+	if (sha->first)
+	{
+		switch (sha->type)
+		{
+			case CCP_SHA_TYPE_1:
+			case CCP_SHA_TYPE_224:
+			case CCP_SHA_TYPE_256:
+				memcpy(ctx.address + ioffset, init, ctx_size);
+				break;
+
+			default:
+				ret = -EINVAL;
+				goto e_ctx;
 		}
-	} else {
+	}
+	else
+	{
 		/* Restore the context */
 		ccp_set_dm_area(&ctx, 0, sha->ctx, 0,
-				sb_count * CCP_SB_BYTES);
+						sb_count * CCP_SB_BYTES);
 	}
 
 	ret = ccp_copy_to_sb(cmd_q, &ctx, op.jobid, op.sb_ctx,
-			     CCP_PASSTHRU_BYTESWAP_256BIT);
-	if (ret) {
+						 CCP_PASSTHRU_BYTESWAP_256BIT);
+
+	if (ret)
+	{
 		cmd->engine_error = cmd_q->cmd_error;
 		goto e_ctx;
 	}
 
-	if (sha->src) {
+	if (sha->src)
+	{
 		/* Send data to the CCP SHA engine; block_size is set above */
 		ret = ccp_init_data(&src, cmd_q, sha->src, sha->src_len,
-				    block_size, DMA_TO_DEVICE);
-		if (ret)
-			goto e_ctx;
+							block_size, DMA_TO_DEVICE);
 
-		while (src.sg_wa.bytes_left) {
+		if (ret)
+		{
+			goto e_ctx;
+		}
+
+		while (src.sg_wa.bytes_left)
+		{
 			ccp_prepare_data(&src, NULL, &op, block_size, false);
+
 			if (sha->final && !src.sg_wa.bytes_left)
+			{
 				op.eom = 1;
+			}
 
 			ret = cmd_q->ccp->vdata->perform->sha(&op);
-			if (ret) {
+
+			if (ret)
+			{
 				cmd->engine_error = cmd_q->cmd_error;
 				goto e_data;
 			}
 
 			ccp_process_data(&src, NULL, &op);
 		}
-	} else {
+	}
+	else
+	{
 		op.eom = 1;
 		ret = cmd_q->ccp->vdata->perform->sha(&op);
-		if (ret) {
+
+		if (ret)
+		{
 			cmd->engine_error = cmd_q->cmd_error;
 			goto e_data;
 		}
@@ -1129,62 +1411,77 @@ static int ccp_run_sha_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 	 * 32-byte (256-bit) byteswapping to BE
 	 */
 	ret = ccp_copy_from_sb(cmd_q, &ctx, op.jobid, op.sb_ctx,
-			       CCP_PASSTHRU_BYTESWAP_256BIT);
-	if (ret) {
+						   CCP_PASSTHRU_BYTESWAP_256BIT);
+
+	if (ret)
+	{
 		cmd->engine_error = cmd_q->cmd_error;
 		goto e_data;
 	}
 
-	if (sha->final) {
+	if (sha->final)
+	{
 		/* Finishing up, so get the digest */
-		switch (sha->type) {
-		case CCP_SHA_TYPE_1:
-		case CCP_SHA_TYPE_224:
-		case CCP_SHA_TYPE_256:
-			ccp_get_dm_area(&ctx, ooffset,
-					sha->ctx, 0,
-					digest_size);
-			break;
-		default:
-			ret = -EINVAL;
-			goto e_ctx;
+		switch (sha->type)
+		{
+			case CCP_SHA_TYPE_1:
+			case CCP_SHA_TYPE_224:
+			case CCP_SHA_TYPE_256:
+				ccp_get_dm_area(&ctx, ooffset,
+								sha->ctx, 0,
+								digest_size);
+				break;
+
+			default:
+				ret = -EINVAL;
+				goto e_ctx;
 		}
-	} else {
+	}
+	else
+	{
 		/* Stash the context */
 		ccp_get_dm_area(&ctx, 0, sha->ctx, 0,
-				sb_count * CCP_SB_BYTES);
+						sb_count * CCP_SB_BYTES);
 	}
 
-	if (sha->final && sha->opad) {
+	if (sha->final && sha->opad)
+	{
 		/* HMAC operation, recursively perform final SHA */
 		struct ccp_cmd hmac_cmd;
 		struct scatterlist sg;
 		u8 *hmac_buf;
 
-		if (sha->opad_len != block_size) {
+		if (sha->opad_len != block_size)
+		{
 			ret = -EINVAL;
 			goto e_data;
 		}
 
 		hmac_buf = kmalloc(block_size + digest_size, GFP_KERNEL);
-		if (!hmac_buf) {
+
+		if (!hmac_buf)
+		{
 			ret = -ENOMEM;
 			goto e_data;
 		}
+
 		sg_init_one(&sg, hmac_buf, block_size + digest_size);
 
 		scatterwalk_map_and_copy(hmac_buf, sha->opad, 0, block_size, 0);
-		switch (sha->type) {
-		case CCP_SHA_TYPE_1:
-		case CCP_SHA_TYPE_224:
-		case CCP_SHA_TYPE_256:
-			memcpy(hmac_buf + block_size,
-			       ctx.address + ooffset,
-			       digest_size);
-			break;
-		default:
-			ret = -EINVAL;
-			goto e_ctx;
+
+		switch (sha->type)
+		{
+			case CCP_SHA_TYPE_1:
+			case CCP_SHA_TYPE_224:
+			case CCP_SHA_TYPE_256:
+				memcpy(hmac_buf + block_size,
+					   ctx.address + ooffset,
+					   digest_size);
+				break;
+
+			default:
+				ret = -EINVAL;
+				goto e_ctx;
 		}
 
 		memset(&hmac_cmd, 0, sizeof(hmac_cmd));
@@ -1201,15 +1498,21 @@ static int ccp_run_sha_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 		hmac_cmd.u.sha.msg_bits = (block_size + digest_size) << 3;
 
 		ret = ccp_run_sha_cmd(cmd_q, &hmac_cmd);
+
 		if (ret)
+		{
 			cmd->engine_error = hmac_cmd.engine_error;
+		}
 
 		kfree(hmac_buf);
 	}
 
 e_data:
+
 	if (sha->src)
+	{
 		ccp_free_data(&src, cmd_q);
+	}
 
 e_ctx:
 	ccp_dm_free(&ctx);
@@ -1227,10 +1530,14 @@ static int ccp_run_rsa_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 	int ret;
 
 	if (rsa->key_size > CCP_RSA_MAX_WIDTH)
+	{
 		return -EINVAL;
+	}
 
 	if (!rsa->exp || !rsa->mod || !rsa->src || !rsa->dst)
+	{
 		return -EINVAL;
+	}
 
 	/* The RSA modulus must precede the message being acted upon, so
 	 * it must be copied to a DMA area where the message and the
@@ -1249,7 +1556,9 @@ static int ccp_run_rsa_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 	op.sb_key = cmd_q->ccp->vdata->perform->sballoc(cmd_q, sb_count);
 
 	if (!op.sb_key)
+	{
 		return -EIO;
+	}
 
 	/* The RSA exponent may span multiple (32-byte) SB entries and must
 	 * be in little endian format. Reverse copy each 32-byte chunk
@@ -1258,16 +1567,25 @@ static int ccp_run_rsa_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 	 * operations on the passthru operation.
 	 */
 	ret = ccp_init_dm_workarea(&exp, cmd_q, o_len, DMA_TO_DEVICE);
+
 	if (ret)
+	{
 		goto e_sb;
+	}
 
 	ret = ccp_reverse_set_dm_area(&exp, rsa->exp, rsa->exp_len,
-				      CCP_SB_BYTES, false);
+								  CCP_SB_BYTES, false);
+
 	if (ret)
+	{
 		goto e_exp;
+	}
+
 	ret = ccp_copy_to_sb(cmd_q, &exp, op.jobid, op.sb_key,
-			     CCP_PASSTHRU_BYTESWAP_NOOP);
-	if (ret) {
+						 CCP_PASSTHRU_BYTESWAP_NOOP);
+
+	if (ret)
+	{
 		cmd->engine_error = cmd_q->cmd_error;
 		goto e_exp;
 	}
@@ -1277,25 +1595,39 @@ static int ccp_run_rsa_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 	 * is in big endian format it must be converted.
 	 */
 	ret = ccp_init_dm_workarea(&src, cmd_q, i_len, DMA_TO_DEVICE);
+
 	if (ret)
+	{
 		goto e_exp;
+	}
 
 	ret = ccp_reverse_set_dm_area(&src, rsa->mod, rsa->mod_len,
-				      CCP_SB_BYTES, false);
+								  CCP_SB_BYTES, false);
+
 	if (ret)
+	{
 		goto e_src;
+	}
+
 	src.address += o_len;	/* Adjust the address for the copy operation */
 	ret = ccp_reverse_set_dm_area(&src, rsa->src, rsa->src_len,
-				      CCP_SB_BYTES, false);
+								  CCP_SB_BYTES, false);
+
 	if (ret)
+	{
 		goto e_src;
+	}
+
 	src.address -= o_len;	/* Reset the address to original value */
 
 	/* Prepare the output area for the operation */
 	ret = ccp_init_data(&dst, cmd_q, rsa->dst, rsa->mod_len,
-			    o_len, DMA_FROM_DEVICE);
+						o_len, DMA_FROM_DEVICE);
+
 	if (ret)
+	{
 		goto e_src;
+	}
 
 	op.soc = 1;
 	op.src.u.dma.address = src.dma.address;
@@ -1309,7 +1641,9 @@ static int ccp_run_rsa_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 	op.u.rsa.input_len = i_len;
 
 	ret = cmd_q->ccp->vdata->perform->rsa(&op);
-	if (ret) {
+
+	if (ret)
+	{
 		cmd->engine_error = cmd_q->cmd_error;
 		goto e_dst;
 	}
@@ -1332,7 +1666,7 @@ e_sb:
 }
 
 static int ccp_run_passthru_cmd(struct ccp_cmd_queue *cmd_q,
-				struct ccp_cmd *cmd)
+								struct ccp_cmd *cmd)
 {
 	struct ccp_passthru_engine *pt = &cmd->u.passthru;
 	struct ccp_dm_workarea mask;
@@ -1343,16 +1677,26 @@ static int ccp_run_passthru_cmd(struct ccp_cmd_queue *cmd_q,
 	int ret = 0;
 
 	if (!pt->final && (pt->src_len & (CCP_PASSTHRU_BLOCKSIZE - 1)))
+	{
 		return -EINVAL;
+	}
 
 	if (!pt->src || !pt->dst)
+	{
 		return -EINVAL;
+	}
 
-	if (pt->bit_mod != CCP_PASSTHRU_BITWISE_NOOP) {
+	if (pt->bit_mod != CCP_PASSTHRU_BITWISE_NOOP)
+	{
 		if (pt->mask_len != CCP_PASSTHRU_MASKSIZE)
+		{
 			return -EINVAL;
+		}
+
 		if (!pt->mask)
+		{
 			return -EINVAL;
+		}
 	}
 
 	BUILD_BUG_ON(CCP_PASSTHRU_SB_COUNT != 1);
@@ -1361,21 +1705,27 @@ static int ccp_run_passthru_cmd(struct ccp_cmd_queue *cmd_q,
 	op.cmd_q = cmd_q;
 	op.jobid = CCP_NEW_JOBID(cmd_q->ccp);
 
-	if (pt->bit_mod != CCP_PASSTHRU_BITWISE_NOOP) {
+	if (pt->bit_mod != CCP_PASSTHRU_BITWISE_NOOP)
+	{
 		/* Load the mask */
 		op.sb_key = cmd_q->sb_key;
 
 		ret = ccp_init_dm_workarea(&mask, cmd_q,
-					   CCP_PASSTHRU_SB_COUNT *
-					   CCP_SB_BYTES,
-					   DMA_TO_DEVICE);
+								   CCP_PASSTHRU_SB_COUNT *
+								   CCP_SB_BYTES,
+								   DMA_TO_DEVICE);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		ccp_set_dm_area(&mask, 0, pt->mask, 0, pt->mask_len);
 		ret = ccp_copy_to_sb(cmd_q, &mask, op.jobid, op.sb_key,
-				     CCP_PASSTHRU_BYTESWAP_NOOP);
-		if (ret) {
+							 CCP_PASSTHRU_BYTESWAP_NOOP);
+
+		if (ret)
+		{
 			cmd->engine_error = cmd_q->cmd_error;
 			goto e_mask;
 		}
@@ -1386,21 +1736,32 @@ static int ccp_run_passthru_cmd(struct ccp_cmd_queue *cmd_q,
 	 * and copy the src workarea to the dst workarea.
 	 */
 	if (sg_virt(pt->src) == sg_virt(pt->dst))
+	{
 		in_place = true;
+	}
 
 	ret = ccp_init_data(&src, cmd_q, pt->src, pt->src_len,
-			    CCP_PASSTHRU_MASKSIZE,
-			    in_place ? DMA_BIDIRECTIONAL : DMA_TO_DEVICE);
-	if (ret)
-		goto e_mask;
+						CCP_PASSTHRU_MASKSIZE,
+						in_place ? DMA_BIDIRECTIONAL : DMA_TO_DEVICE);
 
-	if (in_place) {
+	if (ret)
+	{
+		goto e_mask;
+	}
+
+	if (in_place)
+	{
 		dst = src;
-	} else {
+	}
+	else
+	{
 		ret = ccp_init_data(&dst, cmd_q, pt->dst, pt->src_len,
-				    CCP_PASSTHRU_MASKSIZE, DMA_FROM_DEVICE);
+							CCP_PASSTHRU_MASKSIZE, DMA_FROM_DEVICE);
+
 		if (ret)
+		{
 			goto e_src;
+		}
 	}
 
 	/* Send data to the CCP Passthru engine
@@ -1411,14 +1772,18 @@ static int ccp_run_passthru_cmd(struct ccp_cmd_queue *cmd_q,
 	 *   length must be a multiple of CCP_PASSTHRU_BLOCKSIZE
 	 */
 	dst.sg_wa.sg_used = 0;
-	for (i = 1; i <= src.sg_wa.dma_count; i++) {
+
+	for (i = 1; i <= src.sg_wa.dma_count; i++)
+	{
 		if (!dst.sg_wa.sg ||
-		    (dst.sg_wa.sg->length < src.sg_wa.sg->length)) {
+			(dst.sg_wa.sg->length < src.sg_wa.sg->length))
+		{
 			ret = -EINVAL;
 			goto e_dst;
 		}
 
-		if (i == src.sg_wa.dma_count) {
+		if (i == src.sg_wa.dma_count)
+		{
 			op.eom = 1;
 			op.soc = 1;
 		}
@@ -1434,35 +1799,46 @@ static int ccp_run_passthru_cmd(struct ccp_cmd_queue *cmd_q,
 		op.dst.u.dma.length = op.src.u.dma.length;
 
 		ret = cmd_q->ccp->vdata->perform->passthru(&op);
-		if (ret) {
+
+		if (ret)
+		{
 			cmd->engine_error = cmd_q->cmd_error;
 			goto e_dst;
 		}
 
 		dst.sg_wa.sg_used += src.sg_wa.sg->length;
-		if (dst.sg_wa.sg_used == dst.sg_wa.sg->length) {
+
+		if (dst.sg_wa.sg_used == dst.sg_wa.sg->length)
+		{
 			dst.sg_wa.sg = sg_next(dst.sg_wa.sg);
 			dst.sg_wa.sg_used = 0;
 		}
+
 		src.sg_wa.sg = sg_next(src.sg_wa.sg);
 	}
 
 e_dst:
+
 	if (!in_place)
+	{
 		ccp_free_data(&dst, cmd_q);
+	}
 
 e_src:
 	ccp_free_data(&src, cmd_q);
 
 e_mask:
+
 	if (pt->bit_mod != CCP_PASSTHRU_BITWISE_NOOP)
+	{
 		ccp_dm_free(&mask);
+	}
 
 	return ret;
 }
 
 static int ccp_run_passthru_nomap_cmd(struct ccp_cmd_queue *cmd_q,
-				      struct ccp_cmd *cmd)
+									  struct ccp_cmd *cmd)
 {
 	struct ccp_passthru_nomap_engine *pt = &cmd->u.passthru_nomap;
 	struct ccp_dm_workarea mask;
@@ -1470,16 +1846,26 @@ static int ccp_run_passthru_nomap_cmd(struct ccp_cmd_queue *cmd_q,
 	int ret;
 
 	if (!pt->final && (pt->src_len & (CCP_PASSTHRU_BLOCKSIZE - 1)))
+	{
 		return -EINVAL;
+	}
 
 	if (!pt->src_dma || !pt->dst_dma)
+	{
 		return -EINVAL;
+	}
 
-	if (pt->bit_mod != CCP_PASSTHRU_BITWISE_NOOP) {
+	if (pt->bit_mod != CCP_PASSTHRU_BITWISE_NOOP)
+	{
 		if (pt->mask_len != CCP_PASSTHRU_MASKSIZE)
+		{
 			return -EINVAL;
+		}
+
 		if (!pt->mask)
+		{
 			return -EINVAL;
+		}
 	}
 
 	BUILD_BUG_ON(CCP_PASSTHRU_SB_COUNT != 1);
@@ -1488,7 +1874,8 @@ static int ccp_run_passthru_nomap_cmd(struct ccp_cmd_queue *cmd_q,
 	op.cmd_q = cmd_q;
 	op.jobid = ccp_gen_jobid(cmd_q->ccp);
 
-	if (pt->bit_mod != CCP_PASSTHRU_BITWISE_NOOP) {
+	if (pt->bit_mod != CCP_PASSTHRU_BITWISE_NOOP)
+	{
 		/* Load the mask */
 		op.sb_key = cmd_q->sb_key;
 
@@ -1497,8 +1884,10 @@ static int ccp_run_passthru_nomap_cmd(struct ccp_cmd_queue *cmd_q,
 		mask.dma.length = pt->mask_len;
 
 		ret = ccp_copy_to_sb(cmd_q, &mask, op.jobid, op.sb_key,
-				     CCP_PASSTHRU_BYTESWAP_NOOP);
-		if (ret) {
+							 CCP_PASSTHRU_BYTESWAP_NOOP);
+
+		if (ret)
+		{
 			cmd->engine_error = cmd_q->cmd_error;
 			return ret;
 		}
@@ -1519,8 +1908,11 @@ static int ccp_run_passthru_nomap_cmd(struct ccp_cmd_queue *cmd_q,
 	op.dst.u.dma.length = pt->src_len;
 
 	ret = cmd_q->ccp->vdata->perform->passthru(&op);
+
 	if (ret)
+	{
 		cmd->engine_error = cmd_q->cmd_error;
+	}
 
 	return ret;
 }
@@ -1534,17 +1926,23 @@ static int ccp_run_ecc_mm_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 	u8 *save;
 
 	if (!ecc->u.mm.operand_1 ||
-	    (ecc->u.mm.operand_1_len > CCP_ECC_MODULUS_BYTES))
+		(ecc->u.mm.operand_1_len > CCP_ECC_MODULUS_BYTES))
+	{
 		return -EINVAL;
+	}
 
 	if (ecc->function != CCP_ECC_FUNCTION_MINV_384BIT)
 		if (!ecc->u.mm.operand_2 ||
-		    (ecc->u.mm.operand_2_len > CCP_ECC_MODULUS_BYTES))
+			(ecc->u.mm.operand_2_len > CCP_ECC_MODULUS_BYTES))
+		{
 			return -EINVAL;
+		}
 
 	if (!ecc->u.mm.result ||
-	    (ecc->u.mm.result_len < CCP_ECC_MODULUS_BYTES))
+		(ecc->u.mm.result_len < CCP_ECC_MODULUS_BYTES))
+	{
 		return -EINVAL;
+	}
 
 	memset(&op, 0, sizeof(op));
 	op.cmd_q = cmd_q;
@@ -1556,9 +1954,12 @@ static int ccp_run_ecc_mm_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 	 * fixed length buffer.
 	 */
 	ret = ccp_init_dm_workarea(&src, cmd_q, CCP_ECC_SRC_BUF_SIZE,
-				   DMA_TO_DEVICE);
+							   DMA_TO_DEVICE);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Save the workarea address since it is updated in order to perform
 	 * the concatenation
@@ -1567,26 +1968,39 @@ static int ccp_run_ecc_mm_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 
 	/* Copy the ECC modulus */
 	ret = ccp_reverse_set_dm_area(&src, ecc->mod, ecc->mod_len,
-				      CCP_ECC_OPERAND_SIZE, false);
+								  CCP_ECC_OPERAND_SIZE, false);
+
 	if (ret)
+	{
 		goto e_src;
+	}
+
 	src.address += CCP_ECC_OPERAND_SIZE;
 
 	/* Copy the first operand */
 	ret = ccp_reverse_set_dm_area(&src, ecc->u.mm.operand_1,
-				      ecc->u.mm.operand_1_len,
-				      CCP_ECC_OPERAND_SIZE, false);
+								  ecc->u.mm.operand_1_len,
+								  CCP_ECC_OPERAND_SIZE, false);
+
 	if (ret)
+	{
 		goto e_src;
+	}
+
 	src.address += CCP_ECC_OPERAND_SIZE;
 
-	if (ecc->function != CCP_ECC_FUNCTION_MINV_384BIT) {
+	if (ecc->function != CCP_ECC_FUNCTION_MINV_384BIT)
+	{
 		/* Copy the second operand */
 		ret = ccp_reverse_set_dm_area(&src, ecc->u.mm.operand_2,
-					      ecc->u.mm.operand_2_len,
-					      CCP_ECC_OPERAND_SIZE, false);
+									  ecc->u.mm.operand_2_len,
+									  CCP_ECC_OPERAND_SIZE, false);
+
 		if (ret)
+		{
 			goto e_src;
+		}
+
 		src.address += CCP_ECC_OPERAND_SIZE;
 	}
 
@@ -1595,9 +2009,12 @@ static int ccp_run_ecc_mm_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 
 	/* Prepare the output area for the operation */
 	ret = ccp_init_dm_workarea(&dst, cmd_q, CCP_ECC_DST_BUF_SIZE,
-				   DMA_FROM_DEVICE);
+							   DMA_FROM_DEVICE);
+
 	if (ret)
+	{
 		goto e_src;
+	}
 
 	op.soc = 1;
 	op.src.u.dma.address = src.dma.address;
@@ -1610,14 +2027,18 @@ static int ccp_run_ecc_mm_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 	op.u.ecc.function = cmd->u.ecc.function;
 
 	ret = cmd_q->ccp->vdata->perform->ecc(&op);
-	if (ret) {
+
+	if (ret)
+	{
 		cmd->engine_error = cmd_q->cmd_error;
 		goto e_dst;
 	}
 
 	ecc->ecc_result = le16_to_cpup(
-		(const __le16 *)(dst.address + CCP_ECC_RESULT_OFFSET));
-	if (!(ecc->ecc_result & CCP_ECC_RESULT_SUCCESS)) {
+						  (const __le16 *)(dst.address + CCP_ECC_RESULT_OFFSET));
+
+	if (!(ecc->ecc_result & CCP_ECC_RESULT_SUCCESS))
+	{
 		ret = -EIO;
 		goto e_dst;
 	}
@@ -1643,33 +2064,46 @@ static int ccp_run_ecc_pm_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 	u8 *save;
 
 	if (!ecc->u.pm.point_1.x ||
-	    (ecc->u.pm.point_1.x_len > CCP_ECC_MODULUS_BYTES) ||
-	    !ecc->u.pm.point_1.y ||
-	    (ecc->u.pm.point_1.y_len > CCP_ECC_MODULUS_BYTES))
+		(ecc->u.pm.point_1.x_len > CCP_ECC_MODULUS_BYTES) ||
+		!ecc->u.pm.point_1.y ||
+		(ecc->u.pm.point_1.y_len > CCP_ECC_MODULUS_BYTES))
+	{
 		return -EINVAL;
+	}
 
-	if (ecc->function == CCP_ECC_FUNCTION_PADD_384BIT) {
+	if (ecc->function == CCP_ECC_FUNCTION_PADD_384BIT)
+	{
 		if (!ecc->u.pm.point_2.x ||
-		    (ecc->u.pm.point_2.x_len > CCP_ECC_MODULUS_BYTES) ||
-		    !ecc->u.pm.point_2.y ||
-		    (ecc->u.pm.point_2.y_len > CCP_ECC_MODULUS_BYTES))
+			(ecc->u.pm.point_2.x_len > CCP_ECC_MODULUS_BYTES) ||
+			!ecc->u.pm.point_2.y ||
+			(ecc->u.pm.point_2.y_len > CCP_ECC_MODULUS_BYTES))
+		{
 			return -EINVAL;
-	} else {
+		}
+	}
+	else
+	{
 		if (!ecc->u.pm.domain_a ||
-		    (ecc->u.pm.domain_a_len > CCP_ECC_MODULUS_BYTES))
+			(ecc->u.pm.domain_a_len > CCP_ECC_MODULUS_BYTES))
+		{
 			return -EINVAL;
+		}
 
 		if (ecc->function == CCP_ECC_FUNCTION_PMUL_384BIT)
 			if (!ecc->u.pm.scalar ||
-			    (ecc->u.pm.scalar_len > CCP_ECC_MODULUS_BYTES))
+				(ecc->u.pm.scalar_len > CCP_ECC_MODULUS_BYTES))
+			{
 				return -EINVAL;
+			}
 	}
 
 	if (!ecc->u.pm.result.x ||
-	    (ecc->u.pm.result.x_len < CCP_ECC_MODULUS_BYTES) ||
-	    !ecc->u.pm.result.y ||
-	    (ecc->u.pm.result.y_len < CCP_ECC_MODULUS_BYTES))
+		(ecc->u.pm.result.x_len < CCP_ECC_MODULUS_BYTES) ||
+		!ecc->u.pm.result.y ||
+		(ecc->u.pm.result.y_len < CCP_ECC_MODULUS_BYTES))
+	{
 		return -EINVAL;
+	}
 
 	memset(&op, 0, sizeof(op));
 	op.cmd_q = cmd_q;
@@ -1681,9 +2115,12 @@ static int ccp_run_ecc_pm_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 	 * fixed length buffer.
 	 */
 	ret = ccp_init_dm_workarea(&src, cmd_q, CCP_ECC_SRC_BUF_SIZE,
-				   DMA_TO_DEVICE);
+							   DMA_TO_DEVICE);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* Save the workarea address since it is updated in order to perform
 	 * the concatenation
@@ -1692,64 +2129,96 @@ static int ccp_run_ecc_pm_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 
 	/* Copy the ECC modulus */
 	ret = ccp_reverse_set_dm_area(&src, ecc->mod, ecc->mod_len,
-				      CCP_ECC_OPERAND_SIZE, false);
+								  CCP_ECC_OPERAND_SIZE, false);
+
 	if (ret)
+	{
 		goto e_src;
+	}
+
 	src.address += CCP_ECC_OPERAND_SIZE;
 
 	/* Copy the first point X and Y coordinate */
 	ret = ccp_reverse_set_dm_area(&src, ecc->u.pm.point_1.x,
-				      ecc->u.pm.point_1.x_len,
-				      CCP_ECC_OPERAND_SIZE, false);
+								  ecc->u.pm.point_1.x_len,
+								  CCP_ECC_OPERAND_SIZE, false);
+
 	if (ret)
+	{
 		goto e_src;
+	}
+
 	src.address += CCP_ECC_OPERAND_SIZE;
 	ret = ccp_reverse_set_dm_area(&src, ecc->u.pm.point_1.y,
-				      ecc->u.pm.point_1.y_len,
-				      CCP_ECC_OPERAND_SIZE, false);
+								  ecc->u.pm.point_1.y_len,
+								  CCP_ECC_OPERAND_SIZE, false);
+
 	if (ret)
+	{
 		goto e_src;
+	}
+
 	src.address += CCP_ECC_OPERAND_SIZE;
 
 	/* Set the first point Z coordinate to 1 */
 	*src.address = 0x01;
 	src.address += CCP_ECC_OPERAND_SIZE;
 
-	if (ecc->function == CCP_ECC_FUNCTION_PADD_384BIT) {
+	if (ecc->function == CCP_ECC_FUNCTION_PADD_384BIT)
+	{
 		/* Copy the second point X and Y coordinate */
 		ret = ccp_reverse_set_dm_area(&src, ecc->u.pm.point_2.x,
-					      ecc->u.pm.point_2.x_len,
-					      CCP_ECC_OPERAND_SIZE, false);
+									  ecc->u.pm.point_2.x_len,
+									  CCP_ECC_OPERAND_SIZE, false);
+
 		if (ret)
+		{
 			goto e_src;
+		}
+
 		src.address += CCP_ECC_OPERAND_SIZE;
 		ret = ccp_reverse_set_dm_area(&src, ecc->u.pm.point_2.y,
-					      ecc->u.pm.point_2.y_len,
-					      CCP_ECC_OPERAND_SIZE, false);
+									  ecc->u.pm.point_2.y_len,
+									  CCP_ECC_OPERAND_SIZE, false);
+
 		if (ret)
+		{
 			goto e_src;
+		}
+
 		src.address += CCP_ECC_OPERAND_SIZE;
 
 		/* Set the second point Z coordinate to 1 */
 		*src.address = 0x01;
 		src.address += CCP_ECC_OPERAND_SIZE;
-	} else {
+	}
+	else
+	{
 		/* Copy the Domain "a" parameter */
 		ret = ccp_reverse_set_dm_area(&src, ecc->u.pm.domain_a,
-					      ecc->u.pm.domain_a_len,
-					      CCP_ECC_OPERAND_SIZE, false);
+									  ecc->u.pm.domain_a_len,
+									  CCP_ECC_OPERAND_SIZE, false);
+
 		if (ret)
+		{
 			goto e_src;
+		}
+
 		src.address += CCP_ECC_OPERAND_SIZE;
 
-		if (ecc->function == CCP_ECC_FUNCTION_PMUL_384BIT) {
+		if (ecc->function == CCP_ECC_FUNCTION_PMUL_384BIT)
+		{
 			/* Copy the scalar value */
 			ret = ccp_reverse_set_dm_area(&src, ecc->u.pm.scalar,
-						      ecc->u.pm.scalar_len,
-						      CCP_ECC_OPERAND_SIZE,
-						      false);
+										  ecc->u.pm.scalar_len,
+										  CCP_ECC_OPERAND_SIZE,
+										  false);
+
 			if (ret)
+			{
 				goto e_src;
+			}
+
 			src.address += CCP_ECC_OPERAND_SIZE;
 		}
 	}
@@ -1759,9 +2228,12 @@ static int ccp_run_ecc_pm_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 
 	/* Prepare the output area for the operation */
 	ret = ccp_init_dm_workarea(&dst, cmd_q, CCP_ECC_DST_BUF_SIZE,
-				   DMA_FROM_DEVICE);
+							   DMA_FROM_DEVICE);
+
 	if (ret)
+	{
 		goto e_src;
+	}
 
 	op.soc = 1;
 	op.src.u.dma.address = src.dma.address;
@@ -1774,14 +2246,18 @@ static int ccp_run_ecc_pm_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 	op.u.ecc.function = cmd->u.ecc.function;
 
 	ret = cmd_q->ccp->vdata->perform->ecc(&op);
-	if (ret) {
+
+	if (ret)
+	{
 		cmd->engine_error = cmd_q->cmd_error;
 		goto e_dst;
 	}
 
 	ecc->ecc_result = le16_to_cpup(
-		(const __le16 *)(dst.address + CCP_ECC_RESULT_OFFSET));
-	if (!(ecc->ecc_result & CCP_ECC_RESULT_SUCCESS)) {
+						  (const __le16 *)(dst.address + CCP_ECC_RESULT_OFFSET));
+
+	if (!(ecc->ecc_result & CCP_ECC_RESULT_SUCCESS))
+	{
 		ret = -EIO;
 		goto e_dst;
 	}
@@ -1793,10 +2269,10 @@ static int ccp_run_ecc_pm_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 
 	/* Save the ECC result X and Y coordinates */
 	ccp_reverse_get_dm_area(&dst, ecc->u.pm.result.x,
-				CCP_ECC_MODULUS_BYTES);
+							CCP_ECC_MODULUS_BYTES);
 	dst.address += CCP_ECC_OUTPUT_SIZE;
 	ccp_reverse_get_dm_area(&dst, ecc->u.pm.result.y,
-				CCP_ECC_MODULUS_BYTES);
+							CCP_ECC_MODULUS_BYTES);
 	dst.address += CCP_ECC_OUTPUT_SIZE;
 
 	/* Restore the workarea address */
@@ -1818,22 +2294,25 @@ static int ccp_run_ecc_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 	ecc->ecc_result = 0;
 
 	if (!ecc->mod ||
-	    (ecc->mod_len > CCP_ECC_MODULUS_BYTES))
+		(ecc->mod_len > CCP_ECC_MODULUS_BYTES))
+	{
 		return -EINVAL;
+	}
 
-	switch (ecc->function) {
-	case CCP_ECC_FUNCTION_MMUL_384BIT:
-	case CCP_ECC_FUNCTION_MADD_384BIT:
-	case CCP_ECC_FUNCTION_MINV_384BIT:
-		return ccp_run_ecc_mm_cmd(cmd_q, cmd);
+	switch (ecc->function)
+	{
+		case CCP_ECC_FUNCTION_MMUL_384BIT:
+		case CCP_ECC_FUNCTION_MADD_384BIT:
+		case CCP_ECC_FUNCTION_MINV_384BIT:
+			return ccp_run_ecc_mm_cmd(cmd_q, cmd);
 
-	case CCP_ECC_FUNCTION_PADD_384BIT:
-	case CCP_ECC_FUNCTION_PMUL_384BIT:
-	case CCP_ECC_FUNCTION_PDBL_384BIT:
-		return ccp_run_ecc_pm_cmd(cmd_q, cmd);
+		case CCP_ECC_FUNCTION_PADD_384BIT:
+		case CCP_ECC_FUNCTION_PMUL_384BIT:
+		case CCP_ECC_FUNCTION_PDBL_384BIT:
+			return ccp_run_ecc_pm_cmd(cmd_q, cmd);
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 }
 
@@ -1846,30 +2325,42 @@ int ccp_run_cmd(struct ccp_cmd_queue *cmd_q, struct ccp_cmd *cmd)
 	cmd_q->int_rcvd = 0;
 	cmd_q->free_slots = cmd_q->ccp->vdata->perform->get_free_slots(cmd_q);
 
-	switch (cmd->engine) {
-	case CCP_ENGINE_AES:
-		ret = ccp_run_aes_cmd(cmd_q, cmd);
-		break;
-	case CCP_ENGINE_XTS_AES_128:
-		ret = ccp_run_xts_aes_cmd(cmd_q, cmd);
-		break;
-	case CCP_ENGINE_SHA:
-		ret = ccp_run_sha_cmd(cmd_q, cmd);
-		break;
-	case CCP_ENGINE_RSA:
-		ret = ccp_run_rsa_cmd(cmd_q, cmd);
-		break;
-	case CCP_ENGINE_PASSTHRU:
-		if (cmd->flags & CCP_CMD_PASSTHRU_NO_DMA_MAP)
-			ret = ccp_run_passthru_nomap_cmd(cmd_q, cmd);
-		else
-			ret = ccp_run_passthru_cmd(cmd_q, cmd);
-		break;
-	case CCP_ENGINE_ECC:
-		ret = ccp_run_ecc_cmd(cmd_q, cmd);
-		break;
-	default:
-		ret = -EINVAL;
+	switch (cmd->engine)
+	{
+		case CCP_ENGINE_AES:
+			ret = ccp_run_aes_cmd(cmd_q, cmd);
+			break;
+
+		case CCP_ENGINE_XTS_AES_128:
+			ret = ccp_run_xts_aes_cmd(cmd_q, cmd);
+			break;
+
+		case CCP_ENGINE_SHA:
+			ret = ccp_run_sha_cmd(cmd_q, cmd);
+			break;
+
+		case CCP_ENGINE_RSA:
+			ret = ccp_run_rsa_cmd(cmd_q, cmd);
+			break;
+
+		case CCP_ENGINE_PASSTHRU:
+			if (cmd->flags & CCP_CMD_PASSTHRU_NO_DMA_MAP)
+			{
+				ret = ccp_run_passthru_nomap_cmd(cmd_q, cmd);
+			}
+			else
+			{
+				ret = ccp_run_passthru_cmd(cmd_q, cmd);
+			}
+
+			break;
+
+		case CCP_ENGINE_ECC:
+			ret = ccp_run_ecc_cmd(cmd_q, cmd);
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
 
 	return ret;

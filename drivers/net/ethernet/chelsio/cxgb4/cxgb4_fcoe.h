@@ -41,11 +41,13 @@
 #define CXGB_FCOE_TXPKT_CSUM_END	8
 
 /* fcoe flags */
-enum {
+enum
+{
 	CXGB_FCOE_ENABLED     = (1 << 0),
 };
 
-struct cxgb_fcoe {
+struct cxgb_fcoe
+{
 	u8	flags;
 };
 

@@ -22,7 +22,8 @@
  * This enum is used for choosing between CAIF Link Layers when
  * setting up CAIF Channels when multiple CAIF Link Layers exists.
  */
-enum caif_link_selector {
+enum caif_link_selector
+{
 	CAIF_LINK_HIGH_BANDW,
 	CAIF_LINK_LOW_LATENCY
 };
@@ -42,7 +43,8 @@ enum caif_link_selector {
  * is not restricted to the values defined in this enum, any value
  * between CAIF_PRIO_MIN and CAIF_PRIO_MAX could be used.
  */
-enum caif_channel_priority {
+enum caif_channel_priority
+{
 	CAIF_PRIO_MIN	 = 0x01,
 	CAIF_PRIO_LOW	 = 0x04,
 	CAIF_PRIO_NORMAL = 0x0f,
@@ -62,7 +64,8 @@ enum caif_channel_priority {
  * This enum defines the CAIF Channel type to be used. This defines
  * the service to connect to on the modem.
  */
-enum caif_protocol_type {
+enum caif_protocol_type
+{
 	CAIFPROTO_AT,
 	CAIFPROTO_DATAGRAM,
 	CAIFPROTO_DATAGRAM_LOOP,
@@ -77,17 +80,19 @@ enum caif_protocol_type {
  * enum caif_at_type - AT Service Endpoint
  * @CAIF_ATTYPE_PLAIN:	     Connects to a plain vanilla AT channel.
  */
-enum caif_at_type {
+enum caif_at_type
+{
 	CAIF_ATTYPE_PLAIN = 2
 };
- /**
- * enum caif_debug_type - Content selection for debug connection
- * @CAIF_DEBUG_TRACE_INTERACTIVE: Connection will contain
- *				both trace and interactive debug.
- * @CAIF_DEBUG_TRACE:		Connection contains trace only.
- * @CAIF_DEBUG_INTERACTIVE:	Connection to interactive debug.
- */
-enum caif_debug_type {
+/**
+* enum caif_debug_type - Content selection for debug connection
+* @CAIF_DEBUG_TRACE_INTERACTIVE: Connection will contain
+*				both trace and interactive debug.
+* @CAIF_DEBUG_TRACE:		Connection contains trace only.
+* @CAIF_DEBUG_INTERACTIVE:	Connection to interactive debug.
+*/
+enum caif_debug_type
+{
 	CAIF_DEBUG_TRACE_INTERACTIVE = 0,
 	CAIF_DEBUG_TRACE,
 	CAIF_DEBUG_INTERACTIVE,
@@ -98,7 +103,8 @@ enum caif_debug_type {
  * @CAIF_RADIO_DEBUG_SERVICE:	Debug service on the Radio sub-system
  * @CAIF_APP_DEBUG_SERVICE:	Debug for the applications sub-system
  */
-enum caif_debug_service {
+enum caif_debug_service
+{
 	CAIF_RADIO_DEBUG_SERVICE = 1,
 	CAIF_APP_DEBUG_SERVICE
 };
@@ -138,24 +144,31 @@ enum caif_debug_service {
  * This structure holds the connect parameters used for setting up a
  * CAIF Channel. It defines the service to connect to on the modem.
  */
-struct sockaddr_caif {
+struct sockaddr_caif
+{
 	__kernel_sa_family_t  family;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__u8  type;		/* type: enum caif_at_type */
 		} at;				/* CAIFPROTO_AT */
-		struct {
+		struct
+		{
 			char	  service[16];
 		} util;				/* CAIFPROTO_UTIL */
-		union {
+		union
+		{
 			__u32 connection_id;
 			__u8  nsapi;
 		} dgm;				/* CAIFPROTO_DATAGRAM(_LOOP)*/
-		struct {
+		struct
+		{
 			__u32 connection_id;
 			char	  volume[16];
 		} rfm;				/* CAIFPROTO_RFM */
-		struct {
+		struct
+		{
 			__u8  type;		/* type:enum caif_debug_type */
 			__u8  service;		/* service:caif_debug_service */
 		} dbg;				/* CAIFPROTO_DEBUG */
@@ -185,7 +198,8 @@ struct sockaddr_caif {
  * of type PF_CAIF.
  *
  */
-enum caif_socket_opts {
+enum caif_socket_opts
+{
 	CAIFSO_LINK_SELECT	= 127,
 	CAIFSO_REQ_PARAM	= 128,
 	CAIFSO_RSP_PARAM	= 129,

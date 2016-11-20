@@ -17,13 +17,15 @@
 #include <linux/types.h>
 
 struct led_classdev;
-struct asic3_led {
+struct asic3_led
+{
 	const char	*name;
 	const char	*default_trigger;
 	struct led_classdev *cdev;
 };
 
-struct asic3_platform_data {
+struct asic3_platform_data
+{
 	u16 *gpio_config;
 	unsigned int gpio_config_num;
 
@@ -72,7 +74,7 @@ struct asic3_platform_data {
 
 #define ASIC3_GPIO_TO_BANK(gpio) ((gpio) >> 4)
 #define ASIC3_GPIO_TO_BIT(gpio)  ((gpio) - \
-				  (ASIC3_GPIOS_PER_BANK * ((gpio) >> 4)))
+								  (ASIC3_GPIOS_PER_BANK * ((gpio) >> 4)))
 #define ASIC3_GPIO_TO_MASK(gpio) (1 << ASIC3_GPIO_TO_BIT(gpio))
 #define ASIC3_GPIO_TO_BASE(gpio) (ASIC3_GPIO_A_BASE + (((gpio) >> 4) * 0x0100))
 #define ASIC3_BANK_TO_BASE(bank) (ASIC3_GPIO_A_BASE + ((bank) * 0x100))
@@ -109,8 +111,8 @@ struct asic3_platform_data {
 #define ASIC3_CONFIG_GPIO_DIR(config)  ((config & (1 << 14)) >> 14)
 #define ASIC3_CONFIG_GPIO_INIT(config) ((config & (1 << 15)) >> 15)
 #define ASIC3_CONFIG_GPIO(gpio, alt, dir, init) (((gpio) & 0x7f) \
-	| (((alt) & 0x7f) << 7) | (((dir) & 0x1) << 14) \
-	| (((init) & 0x1) << 15))
+		| (((alt) & 0x7f) << 7) | (((dir) & 0x1) << 14) \
+		| (((init) & 0x1) << 15))
 #define ASIC3_CONFIG_GPIO_DEFAULT(gpio, dir, init) \
 	ASIC3_CONFIG_GPIO((gpio), 0, (dir), (init))
 #define ASIC3_CONFIG_GPIO_DEFAULT_OUT(gpio, init) \
@@ -175,10 +177,10 @@ struct asic3_platform_data {
 
 /* LED TimeBase bits - match ASIC2 */
 #define LED_TBS		0x0f /* Low 4 bits sets time base, max = 13 */
-			     /* Note: max = 5 on hx4700	*/
-			     /* 0: maximum time base */
-			     /* 1: maximum time base / 2 */
-			     /* n: maximum time base / 2^n */
+/* Note: max = 5 on hx4700	*/
+/* 0: maximum time base */
+/* 1: maximum time base / 2 */
+/* n: maximum time base / 2^n */
 
 #define LED_EN		(1 << 4) /* LED ON/OFF 0:off, 1:on */
 #define LED_AUTOSTOP	(1 << 5) /* LED ON/OFF auto stop 0:disable, 1:enable */

@@ -41,7 +41,8 @@
 #define DRIVER_NAME_STRING	"TILEGx_Serial"
 #define TILEGX_UART_REF_CLK	125000000; /* REF_CLK is always 125 MHz. */
 
-struct tile_uart_port {
+struct tile_uart_port
+{
 	/* UART port. */
 	struct uart_port	uart;
 
@@ -63,7 +64,7 @@ static struct uart_driver tilegx_uart_driver;
  * Read UART rx fifo, and insert the chars into tty buffer.
  */
 static void receive_chars(struct tile_uart_port *tile_uart,
-			  struct tty_struct *tty)
+						  struct tty_struct *tty)
 {
 	int i;
 	char c;
@@ -72,7 +73,9 @@ static void receive_chars(struct tile_uart_port *tile_uart,
 	struct tty_port *port = tty->port;
 
 	count.word = gxio_uart_read(context, UART_FIFO_COUNT);
-	for (i = 0; i < count.rfifo_count; i++) {
+
+	for (i = 0; i < count.rfifo_count; i++)
+	{
 		c = (char)gxio_uart_read(context, UART_RECEIVE_DATA);
 		tty_insert_flip_char(port, c, TTY_NORMAL);
 	}
@@ -89,14 +92,16 @@ static void handle_receive(struct tile_uart_port *tile_uart)
 	gxio_uart_context_t *context = &tile_uart->context;
 
 	if (!tty)
+	{
 		return;
+	}
 
 	/* First read UART rx fifo. */
 	receive_chars(tile_uart, tty);
 
 	/* Reset RFIFO_WE interrupt. */
 	gxio_uart_write(context, UART_INTERRUPT_STATUS,
-			UART_INTERRUPT_MASK__RFIFO_WE_MASK);
+					UART_INTERRUPT_MASK__RFIFO_WE_MASK);
 
 	/* Final read, if any chars comes between the first read and
 	 * the interrupt reset.
@@ -118,8 +123,11 @@ static int tilegx_putchar(gxio_uart_context_t *context, char c)
 {
 	UART_FLAG_t flag;
 	flag.word = gxio_uart_read(context, UART_FLAG);
+
 	if (flag.wfifo_full)
+	{
 		return -1;
+	}
 
 	gxio_uart_write(context, UART_TRANSMIT_DATA, (unsigned long)c);
 	return 0;
@@ -138,34 +146,48 @@ static void handle_transmit(struct tile_uart_port *tile_uart)
 
 	/* First reset WFIFO_RE interrupt. */
 	gxio_uart_write(context, UART_INTERRUPT_STATUS,
-			UART_INTERRUPT_MASK__WFIFO_RE_MASK);
+					UART_INTERRUPT_MASK__WFIFO_RE_MASK);
 
 	port = &tile_uart->uart;
 	xmit = &port->state->xmit;
-	if (port->x_char) {
+
+	if (port->x_char)
+	{
 		if (tilegx_putchar(context, port->x_char))
+		{
 			return;
+		}
+
 		port->x_char = 0;
 		port->icount.tx++;
 	}
 
 	if (uart_circ_empty(xmit) || uart_tx_stopped(port))
+	{
 		return;
+	}
 
-	while (!uart_circ_empty(xmit)) {
+	while (!uart_circ_empty(xmit))
+	{
 		ch = xmit->buf[xmit->tail];
+
 		if (tilegx_putchar(context, ch))
+		{
 			break;
+		}
+
 		xmit->tail = (xmit->tail + 1) & (UART_XMIT_SIZE - 1);
 		port->icount.tx++;
 	}
 
 	/* Reset WFIFO_RE interrupt. */
 	gxio_uart_write(context, UART_INTERRUPT_STATUS,
-			UART_INTERRUPT_MASK__WFIFO_RE_MASK);
+					UART_INTERRUPT_MASK__WFIFO_RE_MASK);
 
 	if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS)
+	{
 		uart_write_wakeup(port);
+	}
 }
 
 
@@ -187,11 +209,14 @@ static irqreturn_t tilegx_interrupt(int irq, void *dev_id)
 	context = &tile_uart->context;
 	intr_stat.word = gxio_uart_read(context, UART_INTERRUPT_STATUS);
 
-	if (intr_stat.rfifo_we) {
+	if (intr_stat.rfifo_we)
+	{
 		handle_receive(tile_uart);
 		ret = IRQ_HANDLED;
 	}
-	if (intr_stat.wfifo_re) {
+
+	if (intr_stat.wfifo_re)
+	{
 		handle_transmit(tile_uart);
 		ret = IRQ_HANDLED;
 	}
@@ -212,8 +237,12 @@ static u_int tilegx_tx_empty(struct uart_port *port)
 	gxio_uart_context_t *context;
 
 	tile_uart = container_of(port, struct tile_uart_port, uart);
+
 	if (!mutex_trylock(&tile_uart->mutex))
+	{
 		return 0;
+	}
+
 	context = &tile_uart->context;
 
 	flag.word = gxio_uart_read(context, UART_FLAG);
@@ -262,32 +291,49 @@ static void tilegx_start_tx(struct uart_port *port)
 	gxio_uart_context_t *context;
 
 	tile_uart = container_of(port, struct tile_uart_port, uart);
+
 	if (!mutex_trylock(&tile_uart->mutex))
+	{
 		return;
+	}
+
 	context = &tile_uart->context;
 	xmit = &port->state->xmit;
-	if (port->x_char) {
+
+	if (port->x_char)
+	{
 		if (tilegx_putchar(context, port->x_char))
+		{
 			return;
+		}
+
 		port->x_char = 0;
 		port->icount.tx++;
 	}
 
-	if (uart_circ_empty(xmit) || uart_tx_stopped(port)) {
+	if (uart_circ_empty(xmit) || uart_tx_stopped(port))
+	{
 		mutex_unlock(&tile_uart->mutex);
 		return;
 	}
 
-	while (!uart_circ_empty(xmit)) {
+	while (!uart_circ_empty(xmit))
+	{
 		ch = xmit->buf[xmit->tail];
+
 		if (tilegx_putchar(context, ch))
+		{
 			break;
+		}
+
 		xmit->tail = (xmit->tail + 1) & (UART_XMIT_SIZE - 1);
 		port->icount.tx++;
 	}
 
 	if (uart_circ_chars_pending(xmit) < WAKEUP_CHARS)
+	{
 		uart_write_wakeup(port);
+	}
 
 	mutex_unlock(&tile_uart->mutex);
 }
@@ -304,13 +350,16 @@ static void tilegx_stop_rx(struct uart_port *port)
 	int cpu;
 
 	tile_uart = container_of(port, struct tile_uart_port, uart);
+
 	if (!mutex_trylock(&tile_uart->mutex))
+	{
 		return;
+	}
 
 	context = &tile_uart->context;
 	cpu = tile_uart->irq_cpu;
 	err = gxio_uart_cfg_interrupt(context, cpu_x(cpu), cpu_y(cpu),
-				      KERNEL_PL, -1);
+								  KERNEL_PL, -1);
 	mutex_unlock(&tile_uart->mutex);
 }
 
@@ -334,39 +383,56 @@ static int tilegx_startup(struct uart_port *port)
 	int cpu = raw_smp_processor_id();  /* pick an arbitrary cpu */
 
 	tile_uart = container_of(port, struct tile_uart_port, uart);
+
 	if (mutex_lock_interruptible(&tile_uart->mutex))
+	{
 		return -EBUSY;
+	}
+
 	context = &tile_uart->context;
 
 	/* Now open the hypervisor device if we haven't already. */
-	if (context->fd < 0) {
+	if (context->fd < 0)
+	{
 		UART_INTERRUPT_MASK_t intr_mask;
 
 		/* Initialize UART device. */
 		ret = gxio_uart_init(context, port->line);
-		if (ret) {
+
+		if (ret)
+		{
 			ret = -ENXIO;
 			goto err;
 		}
 
 		/* Create our IRQs. */
 		port->irq = irq_alloc_hwirq(-1);
+
 		if (!port->irq)
+		{
 			goto err_uart_dest;
+		}
+
 		tile_irq_activate(port->irq, TILE_IRQ_PERCPU);
 
 		/* Register our IRQs. */
 		ret = request_irq(port->irq, tilegx_interrupt, 0,
-				  tilegx_uart_driver.driver_name, port);
+						  tilegx_uart_driver.driver_name, port);
+
 		if (ret)
+		{
 			goto err_dest_irq;
+		}
 
 		/* Request that the hardware start sending us interrupts. */
 		tile_uart->irq_cpu = cpu;
 		ret = gxio_uart_cfg_interrupt(context, cpu_x(cpu), cpu_y(cpu),
-					      KERNEL_PL, port->irq);
+									  KERNEL_PL, port->irq);
+
 		if (ret)
+		{
 			goto err_free_irq;
+		}
 
 		/* Enable UART Tx/Rx Interrupt. */
 		intr_mask.word = gxio_uart_read(context, UART_INTERRUPT_MASK);
@@ -376,8 +442,8 @@ static int tilegx_startup(struct uart_port *port)
 
 		/* Reset the Tx/Rx interrupt in case it's set. */
 		gxio_uart_write(context, UART_INTERRUPT_STATUS,
-				UART_INTERRUPT_MASK__WFIFO_RE_MASK |
-				UART_INTERRUPT_MASK__RFIFO_WE_MASK);
+						UART_INTERRUPT_MASK__WFIFO_RE_MASK |
+						UART_INTERRUPT_MASK__RFIFO_WE_MASK);
 	}
 
 	mutex_unlock(&tile_uart->mutex);
@@ -409,8 +475,12 @@ static void tilegx_shutdown(struct uart_port *port)
 	int cpu;
 
 	tile_uart = container_of(port, struct tile_uart_port, uart);
+
 	if (mutex_lock_interruptible(&tile_uart->mutex))
+	{
 		return;
+	}
+
 	context = &tile_uart->context;
 
 	/* Disable UART Tx/Rx Interrupt. */
@@ -422,9 +492,10 @@ static void tilegx_shutdown(struct uart_port *port)
 	/* Request that the hardware stop sending us interrupts. */
 	cpu = tile_uart->irq_cpu;
 	err = gxio_uart_cfg_interrupt(context, cpu_x(cpu), cpu_y(cpu),
-				      KERNEL_PL, -1);
+								  KERNEL_PL, -1);
 
-	if (port->irq > 0) {
+	if (port->irq > 0)
+	{
 		free_irq(port->irq, port);
 		irq_free_hwirq(port->irq);
 		port->irq = 0;
@@ -449,7 +520,7 @@ static void tilegx_flush_buffer(struct uart_port *port)
  * Change the port parameters.
  */
 static void tilegx_set_termios(struct uart_port *port,
-			       struct ktermios *termios, struct ktermios *old)
+							   struct ktermios *termios, struct ktermios *old)
 {
 	int err;
 	UART_DIVISOR_t divisor;
@@ -459,14 +530,21 @@ static void tilegx_set_termios(struct uart_port *port,
 	gxio_uart_context_t *context;
 
 	tile_uart = container_of(port, struct tile_uart_port, uart);
+
 	if (!mutex_trylock(&tile_uart->mutex))
+	{
 		return;
+	}
+
 	context = &tile_uart->context;
 
 	/* Open the hypervisor device if we haven't already. */
-	if (context->fd < 0) {
+	if (context->fd < 0)
+	{
 		err = gxio_uart_init(context, port->line);
-		if (err) {
+
+		if (err)
+		{
 			mutex_unlock(&tile_uart->mutex);
 			return;
 		}
@@ -481,30 +559,50 @@ static void tilegx_set_termios(struct uart_port *port,
 
 	/* Byte size. */
 	if ((termios->c_cflag & CSIZE) == CS7)
+	{
 		type.dbits = UART_TYPE__DBITS_VAL_SEVEN_DBITS;
+	}
 	else
+	{
 		type.dbits = UART_TYPE__DBITS_VAL_EIGHT_DBITS;
+	}
 
 	/* Parity. */
-	if (termios->c_cflag & PARENB) {
+	if (termios->c_cflag & PARENB)
+	{
 		/* Mark or Space parity. */
 		if (termios->c_cflag & CMSPAR)
 			if (termios->c_cflag & PARODD)
+			{
 				type.ptype = UART_TYPE__PTYPE_VAL_MARK;
+			}
 			else
+			{
 				type.ptype = UART_TYPE__PTYPE_VAL_SPACE;
+			}
 		else if (termios->c_cflag & PARODD)
+		{
 			type.ptype = UART_TYPE__PTYPE_VAL_ODD;
+		}
 		else
+		{
 			type.ptype = UART_TYPE__PTYPE_VAL_EVEN;
-	} else
+		}
+	}
+	else
+	{
 		type.ptype = UART_TYPE__PTYPE_VAL_NONE;
+	}
 
 	/* Stop bits. */
 	if (termios->c_cflag & CSTOPB)
+	{
 		type.sbits = UART_TYPE__SBITS_VAL_TWO_SBITS;
+	}
 	else
+	{
 		type.sbits = UART_TYPE__SBITS_VAL_ONE_SBITS;
+	}
 
 	/* Set the uart paramters. */
 	gxio_uart_write(context, UART_DIVISOR, divisor.word);
@@ -548,7 +646,9 @@ static int tilegx_request_port(struct uart_port *port)
 static void tilegx_config_port(struct uart_port *port, int flags)
 {
 	if (flags & UART_CONFIG_TYPE)
+	{
 		port->type = PORT_TILEGX;
+	}
 }
 
 
@@ -556,10 +656,12 @@ static void tilegx_config_port(struct uart_port *port, int flags)
  * Verify the new serial_struct (for TIOCSSERIAL).
  */
 static int tilegx_verify_port(struct uart_port *port,
-			      struct serial_struct *ser)
+							  struct serial_struct *ser)
 {
 	if ((ser->type != PORT_UNKNOWN) && (ser->type != PORT_TILEGX))
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -580,8 +682,12 @@ static int tilegx_poll_get_char(struct uart_port *port)
 	tile_uart = container_of(port, struct tile_uart_port, uart);
 	context = &tile_uart->context;
 	count.word = gxio_uart_read(context, UART_FIFO_COUNT);
+
 	if (count.rfifo_count == 0)
+	{
 		return NO_POLL_CHAR;
+	}
+
 	return (char)gxio_uart_read(context, UART_RECEIVE_DATA);
 }
 
@@ -598,7 +704,8 @@ static void tilegx_poll_put_char(struct uart_port *port, unsigned char c)
 #endif /* CONFIG_CONSOLE_POLL */
 
 
-static const struct uart_ops tilegx_ops = {
+static const struct uart_ops tilegx_ops =
+{
 	.tx_empty	= tilegx_tx_empty,
 	.set_mctrl	= tilegx_set_mctrl,
 	.get_mctrl	= tilegx_get_mctrl,
@@ -627,7 +734,8 @@ static void tilegx_init_ports(void)
 	int i;
 	struct uart_port *port;
 
-	for (i = 0; i < TILEGX_UART_NR; i++) {
+	for (i = 0; i < TILEGX_UART_NR; i++)
+	{
 		port = &tile_uart_ports[i].uart;
 		port->ops = &tilegx_ops;
 		port->line = i;
@@ -641,7 +749,8 @@ static void tilegx_init_ports(void)
 }
 
 
-static struct uart_driver tilegx_uart_driver = {
+static struct uart_driver tilegx_uart_driver =
+{
 	.owner		= THIS_MODULE,
 	.driver_name	= DRIVER_NAME_STRING,
 	.dev_name	= TILEGX_UART_NAME,
@@ -658,8 +767,12 @@ static int __init tilegx_init(void)
 	struct tty_driver *tty_drv;
 
 	ret = uart_register_driver(&tilegx_uart_driver);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	tty_drv = tilegx_uart_driver.tty_driver;
 	tty_drv->init_termios.c_cflag = B115200 | CS8 | CREAD | HUPCL | CLOCAL;
 	tty_drv->init_termios.c_ispeed = 115200;
@@ -667,7 +780,8 @@ static int __init tilegx_init(void)
 
 	tilegx_init_ports();
 
-	for (i = 0; i < TILEGX_UART_NR; i++) {
+	for (i = 0; i < TILEGX_UART_NR; i++)
+	{
 		struct uart_port *port = &tile_uart_ports[i].uart;
 		ret = uart_add_one_port(&tilegx_uart_driver, port);
 	}
@@ -681,7 +795,8 @@ static void __exit tilegx_exit(void)
 	int i;
 	struct uart_port *port;
 
-	for (i = 0; i < TILEGX_UART_NR; i++) {
+	for (i = 0; i < TILEGX_UART_NR; i++)
+	{
 		port = &tile_uart_ports[i].uart;
 		uart_remove_one_port(&tilegx_uart_driver, port);
 	}

@@ -31,7 +31,8 @@
 #define MAX_LINK_RATE		SAS_LINK_RATE_3_0_GBPS
 
 /* enhanced mode registers (BAR4) */
-enum hw_registers {
+enum hw_registers
+{
 	MVS_GBL_CTL		= 0x04,  /* global control */
 	MVS_GBL_INT_STAT	= 0x08,  /* global irq status */
 	MVS_GBL_PI		= 0x0C,  /* ports implemented bitmask */
@@ -66,37 +67,38 @@ enum hw_registers {
 	MVS_INT_STAT_SRS_0	= 0x158, /* SATA register set status */
 	MVS_INT_MASK_SRS_0	= 0x15C,
 
-					 /* ports 1-3 follow after this */
+	/* ports 1-3 follow after this */
 	MVS_P0_INT_STAT		= 0x160, /* port0 interrupt status */
 	MVS_P0_INT_MASK		= 0x164, /* port0 interrupt mask */
-					 /* ports 5-7 follow after this */
+	/* ports 5-7 follow after this */
 	MVS_P4_INT_STAT		= 0x200, /* Port4 interrupt status */
 	MVS_P4_INT_MASK		= 0x204, /* Port4 interrupt enable mask */
 
-					 /* ports 1-3 follow after this */
+	/* ports 1-3 follow after this */
 	MVS_P0_SER_CTLSTAT	= 0x180, /* port0 serial control/status */
-					 /* ports 5-7 follow after this */
+	/* ports 5-7 follow after this */
 	MVS_P4_SER_CTLSTAT	= 0x220, /* port4 serial control/status */
 
 	MVS_CMD_ADDR		= 0x1B8, /* Command register port (addr) */
 	MVS_CMD_DATA		= 0x1BC, /* Command register port (data) */
 
-					 /* ports 1-3 follow after this */
+	/* ports 1-3 follow after this */
 	MVS_P0_CFG_ADDR		= 0x1C0, /* port0 phy register address */
 	MVS_P0_CFG_DATA		= 0x1C4, /* port0 phy register data */
-					 /* ports 5-7 follow after this */
+	/* ports 5-7 follow after this */
 	MVS_P4_CFG_ADDR		= 0x230, /* Port4 config address */
 	MVS_P4_CFG_DATA		= 0x234, /* Port4 config data */
 
-					 /* ports 1-3 follow after this */
+	/* ports 1-3 follow after this */
 	MVS_P0_VSR_ADDR		= 0x1E0, /* port0 VSR address */
 	MVS_P0_VSR_DATA		= 0x1E4, /* port0 VSR data */
-					 /* ports 5-7 follow after this */
+	/* ports 5-7 follow after this */
 	MVS_P4_VSR_ADDR		= 0x250, /* port4 VSR addr */
 	MVS_P4_VSR_DATA		= 0x254, /* port4 VSR data */
 };
 
-enum pci_cfg_registers {
+enum pci_cfg_registers
+{
 	PCR_PHY_CTL		= 0x40,
 	PCR_PHY_CTL2		= 0x90,
 	PCR_DEV_CTRL		= 0xE8,
@@ -104,7 +106,8 @@ enum pci_cfg_registers {
 };
 
 /*  SAS/SATA Vendor Specific Port Registers */
-enum sas_sata_vsp_regs {
+enum sas_sata_vsp_regs
+{
 	VSR_PHY_STAT		= 0x00, /* Phy Status */
 	VSR_PHY_MODE1		= 0x01, /* phy tx */
 	VSR_PHY_MODE2		= 0x02, /* tx scc */
@@ -121,17 +124,19 @@ enum sas_sata_vsp_regs {
 	VSR_PHY_VS1		= 0x0D, /* Vednor Specific 1 */
 };
 
-enum chip_register_bits {
+enum chip_register_bits
+{
 	PHY_MIN_SPP_PHYS_LINK_RATE_MASK = (0xF << 8),
 	PHY_MAX_SPP_PHYS_LINK_RATE_MASK = (0xF << 12),
 	PHY_NEG_SPP_PHYS_LINK_RATE_MASK_OFFSET = (16),
 	PHY_NEG_SPP_PHYS_LINK_RATE_MASK =
-			(0xF << PHY_NEG_SPP_PHYS_LINK_RATE_MASK_OFFSET),
+		(0xF << PHY_NEG_SPP_PHYS_LINK_RATE_MASK_OFFSET),
 };
 
 #define MAX_SG_ENTRY		64
 
-struct mvs_prd {
+struct mvs_prd
+{
 	__le64			addr;		/* 64-bit buffer address */
 	__le32			reserved;
 	__le32			len;		/* 16-bit length */

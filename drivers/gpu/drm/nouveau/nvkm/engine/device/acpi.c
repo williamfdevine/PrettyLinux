@@ -34,7 +34,9 @@ nvkm_acpi_ntfy(struct notifier_block *nb, unsigned long val, void *data)
 	struct acpi_bus_event *info = data;
 
 	if (!strcmp(info->device_class, "ac_adapter"))
+	{
 		nvkm_event_send(&device->event, 1, 0, NULL, 0);
+	}
 
 	return NOTIFY_DONE;
 }

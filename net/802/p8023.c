@@ -28,7 +28,7 @@
  *	addresses, we just need to give it the buffer length.
  */
 static int p8023_request(struct datalink_proto *dl,
-			 struct sk_buff *skb, unsigned char *dest_node)
+						 struct sk_buff *skb, unsigned char *dest_node)
 {
 	struct net_device *dev = skb->dev;
 
@@ -43,10 +43,12 @@ struct datalink_proto *make_8023_client(void)
 {
 	struct datalink_proto *proto = kmalloc(sizeof(*proto), GFP_ATOMIC);
 
-	if (proto) {
+	if (proto)
+	{
 		proto->header_length = 0;
 		proto->request	     = p8023_request;
 	}
+
 	return proto;
 }
 

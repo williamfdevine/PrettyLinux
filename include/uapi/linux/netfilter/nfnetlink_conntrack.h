@@ -2,7 +2,8 @@
 #define _IPCONNTRACK_NETLINK_H
 #include <linux/netfilter/nfnetlink.h>
 
-enum cntl_msg_types {
+enum cntl_msg_types
+{
 	IPCTNL_MSG_CT_NEW,
 	IPCTNL_MSG_CT_GET,
 	IPCTNL_MSG_CT_DELETE,
@@ -15,7 +16,8 @@ enum cntl_msg_types {
 	IPCTNL_MSG_MAX
 };
 
-enum ctnl_exp_msg_types {
+enum ctnl_exp_msg_types
+{
 	IPCTNL_MSG_EXP_NEW,
 	IPCTNL_MSG_EXP_GET,
 	IPCTNL_MSG_EXP_DELETE,
@@ -25,7 +27,8 @@ enum ctnl_exp_msg_types {
 };
 
 
-enum ctattr_type {
+enum ctattr_type
+{
 	CTA_UNSPEC,
 	CTA_TUPLE_ORIG,
 	CTA_TUPLE_REPLY,
@@ -57,7 +60,8 @@ enum ctattr_type {
 };
 #define CTA_MAX (__CTA_MAX - 1)
 
-enum ctattr_tuple {
+enum ctattr_tuple
+{
 	CTA_TUPLE_UNSPEC,
 	CTA_TUPLE_IP,
 	CTA_TUPLE_PROTO,
@@ -66,7 +70,8 @@ enum ctattr_tuple {
 };
 #define CTA_TUPLE_MAX (__CTA_TUPLE_MAX - 1)
 
-enum ctattr_ip {
+enum ctattr_ip
+{
 	CTA_IP_UNSPEC,
 	CTA_IP_V4_SRC,
 	CTA_IP_V4_DST,
@@ -76,7 +81,8 @@ enum ctattr_ip {
 };
 #define CTA_IP_MAX (__CTA_IP_MAX - 1)
 
-enum ctattr_l4proto {
+enum ctattr_l4proto
+{
 	CTA_PROTO_UNSPEC,
 	CTA_PROTO_NUM,
 	CTA_PROTO_SRC_PORT,
@@ -91,7 +97,8 @@ enum ctattr_l4proto {
 };
 #define CTA_PROTO_MAX (__CTA_PROTO_MAX - 1)
 
-enum ctattr_protoinfo {
+enum ctattr_protoinfo
+{
 	CTA_PROTOINFO_UNSPEC,
 	CTA_PROTOINFO_TCP,
 	CTA_PROTOINFO_DCCP,
@@ -100,7 +107,8 @@ enum ctattr_protoinfo {
 };
 #define CTA_PROTOINFO_MAX (__CTA_PROTOINFO_MAX - 1)
 
-enum ctattr_protoinfo_tcp {
+enum ctattr_protoinfo_tcp
+{
 	CTA_PROTOINFO_TCP_UNSPEC,
 	CTA_PROTOINFO_TCP_STATE,
 	CTA_PROTOINFO_TCP_WSCALE_ORIGINAL,
@@ -111,7 +119,8 @@ enum ctattr_protoinfo_tcp {
 };
 #define CTA_PROTOINFO_TCP_MAX (__CTA_PROTOINFO_TCP_MAX - 1)
 
-enum ctattr_protoinfo_dccp {
+enum ctattr_protoinfo_dccp
+{
 	CTA_PROTOINFO_DCCP_UNSPEC,
 	CTA_PROTOINFO_DCCP_STATE,
 	CTA_PROTOINFO_DCCP_ROLE,
@@ -121,7 +130,8 @@ enum ctattr_protoinfo_dccp {
 };
 #define CTA_PROTOINFO_DCCP_MAX (__CTA_PROTOINFO_DCCP_MAX - 1)
 
-enum ctattr_protoinfo_sctp {
+enum ctattr_protoinfo_sctp
+{
 	CTA_PROTOINFO_SCTP_UNSPEC,
 	CTA_PROTOINFO_SCTP_STATE,
 	CTA_PROTOINFO_SCTP_VTAG_ORIGINAL,
@@ -130,7 +140,8 @@ enum ctattr_protoinfo_sctp {
 };
 #define CTA_PROTOINFO_SCTP_MAX (__CTA_PROTOINFO_SCTP_MAX - 1)
 
-enum ctattr_counters {
+enum ctattr_counters
+{
 	CTA_COUNTERS_UNSPEC,
 	CTA_COUNTERS_PACKETS,		/* 64bit counters */
 	CTA_COUNTERS_BYTES,		/* 64bit counters */
@@ -141,7 +152,8 @@ enum ctattr_counters {
 };
 #define CTA_COUNTERS_MAX (__CTA_COUNTERS_MAX - 1)
 
-enum ctattr_tstamp {
+enum ctattr_tstamp
+{
 	CTA_TIMESTAMP_UNSPEC,
 	CTA_TIMESTAMP_START,
 	CTA_TIMESTAMP_STOP,
@@ -150,7 +162,8 @@ enum ctattr_tstamp {
 };
 #define CTA_TIMESTAMP_MAX (__CTA_TIMESTAMP_MAX - 1)
 
-enum ctattr_nat {
+enum ctattr_nat
+{
 	CTA_NAT_UNSPEC,
 	CTA_NAT_V4_MINIP,
 #define CTA_NAT_MINIP CTA_NAT_V4_MINIP
@@ -163,7 +176,8 @@ enum ctattr_nat {
 };
 #define CTA_NAT_MAX (__CTA_NAT_MAX - 1)
 
-enum ctattr_protonat {
+enum ctattr_protonat
+{
 	CTA_PROTONAT_UNSPEC,
 	CTA_PROTONAT_PORT_MIN,
 	CTA_PROTONAT_PORT_MAX,
@@ -171,7 +185,8 @@ enum ctattr_protonat {
 };
 #define CTA_PROTONAT_MAX (__CTA_PROTONAT_MAX - 1)
 
-enum ctattr_seqadj {
+enum ctattr_seqadj
+{
 	CTA_SEQADJ_UNSPEC,
 	CTA_SEQADJ_CORRECTION_POS,
 	CTA_SEQADJ_OFFSET_BEFORE,
@@ -180,7 +195,8 @@ enum ctattr_seqadj {
 };
 #define CTA_SEQADJ_MAX (__CTA_SEQADJ_MAX - 1)
 
-enum ctattr_natseq {
+enum ctattr_natseq
+{
 	CTA_NAT_SEQ_UNSPEC,
 	CTA_NAT_SEQ_CORRECTION_POS,
 	CTA_NAT_SEQ_OFFSET_BEFORE,
@@ -189,7 +205,8 @@ enum ctattr_natseq {
 };
 #define CTA_NAT_SEQ_MAX (__CTA_NAT_SEQ_MAX - 1)
 
-enum ctattr_expect {
+enum ctattr_expect
+{
 	CTA_EXPECT_UNSPEC,
 	CTA_EXPECT_MASTER,
 	CTA_EXPECT_TUPLE,
@@ -206,7 +223,8 @@ enum ctattr_expect {
 };
 #define CTA_EXPECT_MAX (__CTA_EXPECT_MAX - 1)
 
-enum ctattr_expect_nat {
+enum ctattr_expect_nat
+{
 	CTA_EXPECT_NAT_UNSPEC,
 	CTA_EXPECT_NAT_DIR,
 	CTA_EXPECT_NAT_TUPLE,
@@ -214,7 +232,8 @@ enum ctattr_expect_nat {
 };
 #define CTA_EXPECT_NAT_MAX (__CTA_EXPECT_NAT_MAX - 1)
 
-enum ctattr_help {
+enum ctattr_help
+{
 	CTA_HELP_UNSPEC,
 	CTA_HELP_NAME,
 	CTA_HELP_INFO,
@@ -222,14 +241,16 @@ enum ctattr_help {
 };
 #define CTA_HELP_MAX (__CTA_HELP_MAX - 1)
 
-enum ctattr_secctx {
+enum ctattr_secctx
+{
 	CTA_SECCTX_UNSPEC,
 	CTA_SECCTX_NAME,
 	__CTA_SECCTX_MAX
 };
 #define CTA_SECCTX_MAX (__CTA_SECCTX_MAX - 1)
 
-enum ctattr_stats_cpu {
+enum ctattr_stats_cpu
+{
 	CTA_STATS_UNSPEC,
 	CTA_STATS_SEARCHED,	/* no longer used */
 	CTA_STATS_FOUND,
@@ -248,14 +269,16 @@ enum ctattr_stats_cpu {
 };
 #define CTA_STATS_MAX (__CTA_STATS_MAX - 1)
 
-enum ctattr_stats_global {
+enum ctattr_stats_global
+{
 	CTA_STATS_GLOBAL_UNSPEC,
 	CTA_STATS_GLOBAL_ENTRIES,
 	__CTA_STATS_GLOBAL_MAX,
 };
 #define CTA_STATS_GLOBAL_MAX (__CTA_STATS_GLOBAL_MAX - 1)
 
-enum ctattr_expect_stats {
+enum ctattr_expect_stats
+{
 	CTA_STATS_EXP_UNSPEC,
 	CTA_STATS_EXP_NEW,
 	CTA_STATS_EXP_CREATE,

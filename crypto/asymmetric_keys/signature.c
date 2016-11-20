@@ -26,9 +26,13 @@ void public_key_signature_free(struct public_key_signature *sig)
 {
 	int i;
 
-	if (sig) {
+	if (sig)
+	{
 		for (i = 0; i < ARRAY_SIZE(sig->auth_ids); i++)
+		{
 			kfree(sig->auth_ids[i]);
+		}
+
 		kfree(sig->s);
 		kfree(sig->digest);
 		kfree(sig);
@@ -44,7 +48,7 @@ EXPORT_SYMBOL_GPL(public_key_signature_free);
  * Returns 0 if successful or else an error.
  */
 int verify_signature(const struct key *key,
-		     const struct public_key_signature *sig)
+					 const struct public_key_signature *sig)
 {
 	const struct asymmetric_key_subtype *subtype;
 	int ret;
@@ -52,13 +56,22 @@ int verify_signature(const struct key *key,
 	pr_devel("==>%s()\n", __func__);
 
 	if (key->type != &key_type_asymmetric)
+	{
 		return -EINVAL;
+	}
+
 	subtype = asymmetric_key_subtype(key);
+
 	if (!subtype ||
-	    !key->payload.data[0])
+		!key->payload.data[0])
+	{
 		return -EINVAL;
+	}
+
 	if (!subtype->verify_signature)
+	{
 		return -ENOTSUPP;
+	}
 
 	ret = subtype->verify_signature(key, sig);
 

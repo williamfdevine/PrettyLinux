@@ -24,7 +24,8 @@
 #ifndef __CONF_H__
 #define __CONF_H__
 
-enum {
+enum
+{
 	CONF_HW_BIT_RATE_1MBPS   = BIT(0),
 	CONF_HW_BIT_RATE_2MBPS   = BIT(1),
 	CONF_HW_BIT_RATE_5_5MBPS = BIT(2),
@@ -56,7 +57,8 @@ enum {
 	CONF_HW_BIT_RATE_MCS_15  = BIT(28),
 };
 
-enum {
+enum
+{
 	CONF_HW_RATE_INDEX_1MBPS      = 0,
 	CONF_HW_RATE_INDEX_2MBPS      = 1,
 	CONF_HW_RATE_INDEX_5_5MBPS    = 2,
@@ -104,7 +106,8 @@ enum {
 
 #define CONF_HW_RXTX_RATE_UNSUPPORTED 0xff
 
-enum {
+enum
+{
 	CONF_SG_DISABLE = 0,
 	CONF_SG_PROTECTIVE,
 	CONF_SG_OPPORTUNISTIC
@@ -113,17 +116,20 @@ enum {
 #define WLCORE_CONF_SG_PARAMS_MAX 67
 #define WLCORE_CONF_SG_PARAMS_ALL 0xff
 
-struct conf_sg_settings {
+struct conf_sg_settings
+{
 	u32 params[WLCORE_CONF_SG_PARAMS_MAX];
 	u8 state;
 } __packed;
 
-enum conf_rx_queue_type {
+enum conf_rx_queue_type
+{
 	CONF_RX_QUEUE_TYPE_LOW_PRIORITY,  /* All except the high priority */
 	CONF_RX_QUEUE_TYPE_HIGH_PRIORITY, /* Management and voice packets */
 };
 
-struct conf_rx_settings {
+struct conf_rx_settings
+{
 	/*
 	 * The maximum amount of time, in TU, before the
 	 * firmware discards the MSDU.
@@ -206,7 +212,7 @@ struct conf_rx_settings {
 
 #define CONF_TX_RATE_MASK_UNSPECIFIED  0
 #define CONF_TX_RATE_MASK_BASIC        (CONF_HW_BIT_RATE_1MBPS | \
-					CONF_HW_BIT_RATE_2MBPS)
+										CONF_HW_BIT_RATE_2MBPS)
 #define CONF_TX_RATE_RETRY_LIMIT       10
 
 /* basic rates for p2p operations (probe req/resp, etc.) */
@@ -218,47 +224,48 @@ struct conf_rx_settings {
  * one. The rate dropped is not mandatory under any operating mode.
  */
 #define CONF_TX_ENABLED_RATES       (CONF_HW_BIT_RATE_1MBPS |    \
-	CONF_HW_BIT_RATE_2MBPS | CONF_HW_BIT_RATE_5_5MBPS |      \
-	CONF_HW_BIT_RATE_6MBPS | CONF_HW_BIT_RATE_9MBPS |        \
-	CONF_HW_BIT_RATE_11MBPS | CONF_HW_BIT_RATE_12MBPS |      \
-	CONF_HW_BIT_RATE_18MBPS | CONF_HW_BIT_RATE_24MBPS |      \
-	CONF_HW_BIT_RATE_36MBPS | CONF_HW_BIT_RATE_48MBPS |      \
-	CONF_HW_BIT_RATE_54MBPS)
+									 CONF_HW_BIT_RATE_2MBPS | CONF_HW_BIT_RATE_5_5MBPS |      \
+									 CONF_HW_BIT_RATE_6MBPS | CONF_HW_BIT_RATE_9MBPS |        \
+									 CONF_HW_BIT_RATE_11MBPS | CONF_HW_BIT_RATE_12MBPS |      \
+									 CONF_HW_BIT_RATE_18MBPS | CONF_HW_BIT_RATE_24MBPS |      \
+									 CONF_HW_BIT_RATE_36MBPS | CONF_HW_BIT_RATE_48MBPS |      \
+									 CONF_HW_BIT_RATE_54MBPS)
 
 #define CONF_TX_CCK_RATES  (CONF_HW_BIT_RATE_1MBPS |		\
-	CONF_HW_BIT_RATE_2MBPS | CONF_HW_BIT_RATE_5_5MBPS |	\
-	CONF_HW_BIT_RATE_11MBPS)
+							CONF_HW_BIT_RATE_2MBPS | CONF_HW_BIT_RATE_5_5MBPS |	\
+							CONF_HW_BIT_RATE_11MBPS)
 
 #define CONF_TX_OFDM_RATES (CONF_HW_BIT_RATE_6MBPS |             \
-	CONF_HW_BIT_RATE_12MBPS | CONF_HW_BIT_RATE_24MBPS |      \
-	CONF_HW_BIT_RATE_36MBPS | CONF_HW_BIT_RATE_48MBPS |      \
-	CONF_HW_BIT_RATE_54MBPS)
+							CONF_HW_BIT_RATE_12MBPS | CONF_HW_BIT_RATE_24MBPS |      \
+							CONF_HW_BIT_RATE_36MBPS | CONF_HW_BIT_RATE_48MBPS |      \
+							CONF_HW_BIT_RATE_54MBPS)
 
 #define CONF_TX_MCS_RATES (CONF_HW_BIT_RATE_MCS_0 |              \
-	CONF_HW_BIT_RATE_MCS_1 | CONF_HW_BIT_RATE_MCS_2 |        \
-	CONF_HW_BIT_RATE_MCS_3 | CONF_HW_BIT_RATE_MCS_4 |        \
-	CONF_HW_BIT_RATE_MCS_5 | CONF_HW_BIT_RATE_MCS_6 |        \
-	CONF_HW_BIT_RATE_MCS_7)
+						   CONF_HW_BIT_RATE_MCS_1 | CONF_HW_BIT_RATE_MCS_2 |        \
+						   CONF_HW_BIT_RATE_MCS_3 | CONF_HW_BIT_RATE_MCS_4 |        \
+						   CONF_HW_BIT_RATE_MCS_5 | CONF_HW_BIT_RATE_MCS_6 |        \
+						   CONF_HW_BIT_RATE_MCS_7)
 
 #define CONF_TX_MIMO_RATES (CONF_HW_BIT_RATE_MCS_8 |             \
-	CONF_HW_BIT_RATE_MCS_9 | CONF_HW_BIT_RATE_MCS_10 |       \
-	CONF_HW_BIT_RATE_MCS_11 | CONF_HW_BIT_RATE_MCS_12 |      \
-	CONF_HW_BIT_RATE_MCS_13 | CONF_HW_BIT_RATE_MCS_14 |      \
-	CONF_HW_BIT_RATE_MCS_15)
+							CONF_HW_BIT_RATE_MCS_9 | CONF_HW_BIT_RATE_MCS_10 |       \
+							CONF_HW_BIT_RATE_MCS_11 | CONF_HW_BIT_RATE_MCS_12 |      \
+							CONF_HW_BIT_RATE_MCS_13 | CONF_HW_BIT_RATE_MCS_14 |      \
+							CONF_HW_BIT_RATE_MCS_15)
 
 /*
  * Default rates for management traffic when operating in AP mode. This
  * should be configured according to the basic rate set of the AP
  */
 #define CONF_TX_AP_DEFAULT_MGMT_RATES  (CONF_HW_BIT_RATE_1MBPS | \
-	CONF_HW_BIT_RATE_2MBPS | CONF_HW_BIT_RATE_5_5MBPS)
+										CONF_HW_BIT_RATE_2MBPS | CONF_HW_BIT_RATE_5_5MBPS)
 
 /* default rates for working as IBSS (11b and OFDM) */
 #define CONF_TX_IBSS_DEFAULT_RATES  (CONF_HW_BIT_RATE_1MBPS |       \
-		CONF_HW_BIT_RATE_2MBPS | CONF_HW_BIT_RATE_5_5MBPS | \
-		CONF_HW_BIT_RATE_11MBPS | CONF_TX_OFDM_RATES);
+									 CONF_HW_BIT_RATE_2MBPS | CONF_HW_BIT_RATE_5_5MBPS | \
+									 CONF_HW_BIT_RATE_11MBPS | CONF_TX_OFDM_RATES);
 
-struct conf_tx_rate_class {
+struct conf_tx_rate_class
+{
 
 	/*
 	 * The rates enabled for this rate class.
@@ -309,7 +316,8 @@ struct conf_tx_rate_class {
 #define CONF_TX_AIFS_DIFS 2
 
 
-enum conf_tx_ac {
+enum conf_tx_ac
+{
 	CONF_TX_AC_BE = 0,         /* best effort / legacy */
 	CONF_TX_AC_BK = 1,         /* background */
 	CONF_TX_AC_VI = 2,         /* video */
@@ -318,7 +326,8 @@ enum conf_tx_ac {
 	CONF_TX_AC_ANY_TID = 0xff
 };
 
-struct conf_tx_ac_category {
+struct conf_tx_ac_category
+{
 	/*
 	 * The AC class identifier.
 	 *
@@ -362,27 +371,31 @@ struct conf_tx_ac_category {
 /* Allow TX BA on all TIDs but 6,7. These are currently reserved in the FW */
 #define CONF_TX_BA_ENABLED_TID_BITMAP 0x3F
 
-enum {
+enum
+{
 	CONF_CHANNEL_TYPE_DCF = 0,   /* DC/LEGACY*/
 	CONF_CHANNEL_TYPE_EDCF = 1,  /* EDCA*/
 	CONF_CHANNEL_TYPE_HCCA = 2,  /* HCCA*/
 };
 
-enum {
+enum
+{
 	CONF_PS_SCHEME_LEGACY = 0,
 	CONF_PS_SCHEME_UPSD_TRIGGER = 1,
 	CONF_PS_SCHEME_LEGACY_PSPOLL = 2,
 	CONF_PS_SCHEME_SAPSD = 3,
 };
 
-enum {
+enum
+{
 	CONF_ACK_POLICY_LEGACY = 0,
 	CONF_ACK_POLICY_NO_ACK = 1,
 	CONF_ACK_POLICY_BLOCK = 2,
 };
 
 
-struct conf_tx_tid {
+struct conf_tx_tid
+{
 	u8 queue_id;
 	u8 channel_type;
 	u8 tsid;
@@ -391,7 +404,8 @@ struct conf_tx_tid {
 	u32 apsd_conf[2];
 } __packed;
 
-struct conf_tx_settings {
+struct conf_tx_settings
+{
 	/*
 	 * The TX ED value for TELEC Enable/Disable.
 	 *
@@ -489,7 +503,8 @@ struct conf_tx_settings {
 	u8 fast_link_thold;
 } __packed;
 
-enum {
+enum
+{
 	CONF_WAKE_UP_EVENT_BEACON    = 0x01, /* Wake on every Beacon*/
 	CONF_WAKE_UP_EVENT_DTIM      = 0x02, /* Wake on every DTIM*/
 	CONF_WAKE_UP_EVENT_N_DTIM    = 0x04, /* Wake every Nth DTIM */
@@ -505,7 +520,8 @@ enum {
 #define CONF_BCN_IE_OUI_LEN    3
 #define CONF_BCN_IE_VER_LEN    2
 
-struct conf_bcn_filt_rule {
+struct conf_bcn_filt_rule
+{
 	/*
 	 * IE number to which to associate a rule.
 	 *
@@ -538,25 +554,29 @@ struct conf_bcn_filt_rule {
 
 #define CONF_MAX_RSSI_SNR_TRIGGERS 8
 
-enum {
+enum
+{
 	CONF_TRIG_METRIC_RSSI_BEACON = 0,
 	CONF_TRIG_METRIC_RSSI_DATA,
 	CONF_TRIG_METRIC_SNR_BEACON,
 	CONF_TRIG_METRIC_SNR_DATA
 };
 
-enum {
+enum
+{
 	CONF_TRIG_EVENT_TYPE_LEVEL = 0,
 	CONF_TRIG_EVENT_TYPE_EDGE
 };
 
-enum {
+enum
+{
 	CONF_TRIG_EVENT_DIR_LOW = 0,
 	CONF_TRIG_EVENT_DIR_HIGH,
 	CONF_TRIG_EVENT_DIR_BIDIR
 };
 
-struct conf_sig_weights {
+struct conf_sig_weights
+{
 
 	/*
 	 * RSSI from beacons average weight.
@@ -587,17 +607,20 @@ struct conf_sig_weights {
 	u8 snr_pkt_avg_weight;
 } __packed;
 
-enum conf_bcn_filt_mode {
+enum conf_bcn_filt_mode
+{
 	CONF_BCN_FILT_MODE_DISABLED = 0,
 	CONF_BCN_FILT_MODE_ENABLED = 1
 };
 
-enum conf_bet_mode {
+enum conf_bet_mode
+{
 	CONF_BET_MODE_DISABLE = 0,
 	CONF_BET_MODE_ENABLE = 1,
 };
 
-struct conf_conn_settings {
+struct conf_conn_settings
+{
 	/*
 	 * Firmware wakeup conditions configuration. The host may set only
 	 * one bit.
@@ -773,7 +796,8 @@ struct conf_conn_settings {
 	u8 suspend_rx_ba_activity;
 } __packed;
 
-enum {
+enum
+{
 	CONF_REF_CLK_19_2_E,
 	CONF_REF_CLK_26_E,
 	CONF_REF_CLK_38_4_E,
@@ -782,7 +806,8 @@ enum {
 	CONF_REF_CLK_26_M_XTAL,
 };
 
-enum single_dual_band_enum {
+enum single_dual_band_enum
+{
 	CONF_SINGLE_BAND,
 	CONF_DUAL_BAND
 };
@@ -793,7 +818,8 @@ enum single_dual_band_enum {
 #define CONF_NUMBER_OF_CHANNELS_2_4 14
 #define CONF_NUMBER_OF_CHANNELS_5   35
 
-struct conf_itrim_settings {
+struct conf_itrim_settings
+{
 	/* enable dco itrim */
 	u8 enable;
 
@@ -801,12 +827,14 @@ struct conf_itrim_settings {
 	u32 timeout;
 } __packed;
 
-enum conf_fast_wakeup {
+enum conf_fast_wakeup
+{
 	CONF_FAST_WAKEUP_ENABLE,
 	CONF_FAST_WAKEUP_DISABLE,
 };
 
-struct conf_pm_config_settings {
+struct conf_pm_config_settings
+{
 	/*
 	 * Host clock settling time
 	 *
@@ -822,7 +850,8 @@ struct conf_pm_config_settings {
 	u8 host_fast_wakeup_support;
 } __packed;
 
-struct conf_roam_trigger_settings {
+struct conf_roam_trigger_settings
+{
 	/*
 	 * The minimum interval between two trigger events.
 	 *
@@ -859,7 +888,8 @@ struct conf_roam_trigger_settings {
 	u8 avg_weight_snr_data;
 } __packed;
 
-struct conf_scan_settings {
+struct conf_scan_settings
+{
 	/*
 	 * The minimum time to wait on each channel for active scans
 	 * This value will be used whenever there's a connected interface.
@@ -919,7 +949,8 @@ struct conf_scan_settings {
 	u32 split_scan_timeout;
 } __packed;
 
-struct conf_sched_scan_settings {
+struct conf_sched_scan_settings
+{
 	/*
 	 * The base time to wait on the channel for active scans (in TU/1000).
 	 * The minimum dwell time is calculated according to this:
@@ -966,7 +997,8 @@ struct conf_sched_scan_settings {
 	u16 long_interval;
 } __packed;
 
-struct conf_ht_setting {
+struct conf_ht_setting
+{
 	u8 rx_ba_win_size;
 	u8 tx_ba_win_size;
 	u16 inactivity_timeout;
@@ -975,7 +1007,8 @@ struct conf_ht_setting {
 	u8 tx_ba_tid_bitmap;
 } __packed;
 
-struct conf_memory_settings {
+struct conf_memory_settings
+{
 	/* Number of stations supported in IBSS mode */
 	u8 num_stations;
 
@@ -1015,7 +1048,8 @@ struct conf_memory_settings {
 	u8 tx_min;
 } __packed;
 
-struct conf_fm_coex {
+struct conf_fm_coex
+{
 	u8 enable;
 	u8 swallow_period;
 	u8 n_divider_fref_set_1;
@@ -1028,7 +1062,8 @@ struct conf_fm_coex {
 	u8 swallow_clk_diff;
 } __packed;
 
-struct conf_rx_streaming_settings {
+struct conf_rx_streaming_settings
+{
 	/*
 	 * RX Streaming duration (in msec) from last tx/rx
 	 *
@@ -1060,7 +1095,8 @@ struct conf_rx_streaming_settings {
 #define CONF_FWLOG_MIN_MEM_BLOCKS	2
 #define CONF_FWLOG_MAX_MEM_BLOCKS	16
 
-struct conf_fwlog {
+struct conf_fwlog
+{
 	/* Continuous or on-demand */
 	u8 mode;
 
@@ -1085,7 +1121,8 @@ struct conf_fwlog {
 } __packed;
 
 #define ACX_RATE_MGMT_NUM_OF_RATES 13
-struct conf_rate_policy_settings {
+struct conf_rate_policy_settings
+{
 	u16 rate_retry_score;
 	u16 per_add;
 	u16 per_th1;
@@ -1103,7 +1140,8 @@ struct conf_rate_policy_settings {
 	u8 rate_retry_policy[ACX_RATE_MGMT_NUM_OF_RATES];
 } __packed;
 
-struct conf_hangover_settings {
+struct conf_hangover_settings
+{
 	u32 recover_time;
 	u8 hangover_period;
 	u8 dynamic_mode;
@@ -1117,7 +1155,8 @@ struct conf_hangover_settings {
 	u8 window_size;
 } __packed;
 
-struct conf_recovery_settings {
+struct conf_recovery_settings
+{
 	/* BUG() on fw recovery */
 	u8 bug_on_recovery;
 
@@ -1133,15 +1172,17 @@ struct conf_recovery_settings {
 #define WLCORE_CONF_VERSION	(0x0007 << 16)
 #define WLCORE_CONF_MASK	0xffff0000
 #define WLCORE_CONF_SIZE	(sizeof(struct wlcore_conf_header) +	\
-				 sizeof(struct wlcore_conf))
+							 sizeof(struct wlcore_conf))
 
-struct wlcore_conf_header {
+struct wlcore_conf_header
+{
 	__le32 magic;
 	__le32 version;
 	__le32 checksum;
 } __packed;
 
-struct wlcore_conf {
+struct wlcore_conf
+{
 	struct conf_sg_settings sg;
 	struct conf_rx_settings rx;
 	struct conf_tx_settings tx;
@@ -1161,7 +1202,8 @@ struct wlcore_conf {
 	struct conf_recovery_settings recovery;
 } __packed;
 
-struct wlcore_conf_file {
+struct wlcore_conf_file
+{
 	struct wlcore_conf_header header;
 	struct wlcore_conf core;
 	u8 priv[0];

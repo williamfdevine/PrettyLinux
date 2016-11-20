@@ -81,8 +81,11 @@ nvkm_i2c_bus_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
 	int ret;
 
 	ret = nvkm_i2c_bus_acquire(bus);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = bus->func->xfer(bus, msgs, num);
 	nvkm_i2c_bus_release(bus);
@@ -96,7 +99,8 @@ nvkm_i2c_bus_func(struct i2c_adapter *adap)
 }
 
 static const struct i2c_algorithm
-nvkm_i2c_bus_algo = {
+	nvkm_i2c_bus_algo =
+{
 	.master_xfer = nvkm_i2c_bus_xfer,
 	.functionality = nvkm_i2c_bus_func,
 };
@@ -108,8 +112,11 @@ void
 nvkm_i2c_bus_init(struct nvkm_i2c_bus *bus)
 {
 	BUS_TRACE(bus, "init");
+
 	if (bus->func->init)
+	{
 		bus->func->init(bus);
+	}
 }
 
 void
@@ -129,39 +136,48 @@ nvkm_i2c_bus_acquire(struct nvkm_i2c_bus *bus)
 	BUS_TRACE(bus, "acquire");
 	mutex_lock(&bus->mutex);
 	ret = nvkm_i2c_pad_acquire(pad, NVKM_I2C_PAD_I2C);
+
 	if (ret)
+	{
 		mutex_unlock(&bus->mutex);
+	}
+
 	return ret;
 }
 
 int
 nvkm_i2c_bus_probe(struct nvkm_i2c_bus *bus, const char *what,
-		   struct nvkm_i2c_bus_probe *info,
-		   bool (*match)(struct nvkm_i2c_bus *,
-				 struct i2c_board_info *, void *), void *data)
+				   struct nvkm_i2c_bus_probe *info,
+				   bool (*match)(struct nvkm_i2c_bus *,
+								 struct i2c_board_info *, void *), void *data)
 {
 	int i;
 
 	BUS_DBG(bus, "probing %ss", what);
-	for (i = 0; info[i].dev.addr; i++) {
+
+	for (i = 0; info[i].dev.addr; i++)
+	{
 		u8 orig_udelay = 0;
 
-		if ((bus->i2c.algo == &i2c_bit_algo) && (info[i].udelay != 0)) {
+		if ((bus->i2c.algo == &i2c_bit_algo) && (info[i].udelay != 0))
+		{
 			struct i2c_algo_bit_data *algo = bus->i2c.algo_data;
 			BUS_DBG(bus, "%dms delay instead of %dms",
-				     info[i].udelay, algo->udelay);
+					info[i].udelay, algo->udelay);
 			orig_udelay = algo->udelay;
 			algo->udelay = info[i].udelay;
 		}
 
 		if (nvkm_probe_i2c(&bus->i2c, info[i].dev.addr) &&
-		    (!match || match(bus, &info[i].dev, data))) {
+			(!match || match(bus, &info[i].dev, data)))
+		{
 			BUS_DBG(bus, "detected %s: %s",
-				what, info[i].dev.type);
+					what, info[i].dev.type);
 			return i;
 		}
 
-		if (orig_udelay) {
+		if (orig_udelay)
+		{
 			struct i2c_algo_bit_data *algo = bus->i2c.algo_data;
 			algo->udelay = orig_udelay;
 		}
@@ -175,7 +191,9 @@ void
 nvkm_i2c_bus_del(struct nvkm_i2c_bus **pbus)
 {
 	struct nvkm_i2c_bus *bus = *pbus;
-	if (bus && !WARN_ON(!bus->func)) {
+
+	if (bus && !WARN_ON(!bus->func))
+	{
 		BUS_TRACE(bus, "dtor");
 		list_del(&bus->head);
 		i2c_del_adapter(&bus->i2c);
@@ -187,8 +205,8 @@ nvkm_i2c_bus_del(struct nvkm_i2c_bus **pbus)
 
 int
 nvkm_i2c_bus_ctor(const struct nvkm_i2c_bus_func *func,
-		  struct nvkm_i2c_pad *pad, int id,
-		  struct nvkm_i2c_bus *bus)
+				  struct nvkm_i2c_pad *pad, int id,
+				  struct nvkm_i2c_bus *bus)
 {
 	struct nvkm_device *device = pad->i2c->subdev.device;
 	struct i2c_algo_bit_data *bit;
@@ -207,14 +225,18 @@ nvkm_i2c_bus_ctor(const struct nvkm_i2c_bus_func *func,
 	BUS_TRACE(bus, "ctor");
 
 	snprintf(bus->i2c.name, sizeof(bus->i2c.name), "nvkm-%s-bus-%04x",
-		 dev_name(device->dev), id);
+			 dev_name(device->dev), id);
 	bus->i2c.owner = THIS_MODULE;
 	bus->i2c.dev.parent = device->dev;
 
 	if ( bus->func->drive_scl &&
-	    !nvkm_boolopt(device->cfgopt, "NvI2C", internal)) {
+		 !nvkm_boolopt(device->cfgopt, "NvI2C", internal))
+	{
 		if (!(bit = kzalloc(sizeof(*bit), GFP_KERNEL)))
+		{
 			return -ENOMEM;
+		}
+
 		bit->udelay = 10;
 		bit->timeout = usecs_to_jiffies(2200);
 		bit->data = bus;
@@ -226,7 +248,9 @@ nvkm_i2c_bus_ctor(const struct nvkm_i2c_bus_func *func,
 		bit->getsda = nvkm_i2c_bus_getsda;
 		bus->i2c.algo_data = bit;
 		ret = i2c_bit_add_bus(&bus->i2c);
-	} else {
+	}
+	else
+	{
 		bus->i2c.algo = &nvkm_i2c_bus_algo;
 		ret = i2c_add_adapter(&bus->i2c);
 	}
@@ -236,10 +260,13 @@ nvkm_i2c_bus_ctor(const struct nvkm_i2c_bus_func *func,
 
 int
 nvkm_i2c_bus_new_(const struct nvkm_i2c_bus_func *func,
-		  struct nvkm_i2c_pad *pad, int id,
-		  struct nvkm_i2c_bus **pbus)
+				  struct nvkm_i2c_pad *pad, int id,
+				  struct nvkm_i2c_bus **pbus)
 {
 	if (!(*pbus = kzalloc(sizeof(**pbus), GFP_KERNEL)))
+	{
 		return -ENOMEM;
+	}
+
 	return nvkm_i2c_bus_ctor(func, pad, id, *pbus);
 }

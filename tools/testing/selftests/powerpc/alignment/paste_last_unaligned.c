@@ -31,7 +31,7 @@ int test_paste_last_unaligned(void)
 	copy(cacheline_buf);
 
 	/* +1 makes buf unaligned */
-	paste_last(cacheline_buf+1);
+	paste_last(cacheline_buf + 1);
 
 	/* We should not get here */
 	return 1;

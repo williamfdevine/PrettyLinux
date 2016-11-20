@@ -103,7 +103,8 @@ module_param(dbri_debug, int, 0644);
 MODULE_PARM_DESC(dbri_debug, "Debug value for Sun DBRI soundcard.");
 
 #ifdef DBRI_DEBUG
-static char *cmds[] = {
+static char *cmds[] =
+{
 	"WAIT", "PAUSE", "JUMP", "IIQ", "REX", "SDP", "CDP", "DTS",
 	"SSP", "CHI", "NT", "TE", "CDEC", "TEST", "CDM", "RESRV"
 };
@@ -116,14 +117,15 @@ static char *cmds[] = {
 #endif				/* DBRI_DEBUG */
 
 #define DBRI_CMD(cmd, intr, value) ((cmd << 28) |	\
-				    (intr << 27) |	\
-				    value)
+									(intr << 27) |	\
+									value)
 
 /***************************************************************************
 	CS4215 specific definitions and structures
 ****************************************************************************/
 
-struct cs4215 {
+struct cs4215
+{
 	__u8 data[4];		/* Data mode: Time slots 5-8 */
 	__u8 ctrl[4];		/* Ctrl mode: Time slots 1-4 */
 	__u8 onboard;
@@ -141,7 +143,7 @@ struct cs4215 {
 /* Time Slot 1, Status register */
 #define CS4215_CLB	(1<<2)	/* Control Latch Bit */
 #define CS4215_OLB	(1<<3)	/* 1: line: 2.0V, speaker 4V */
-				/* 0: line: 2.8V, speaker 8V */
+/* 0: line: 2.8V, speaker 8V */
 #define CS4215_MLB	(1<<4)	/* 1: Microphone: 20dB gain disabled */
 #define CS4215_RSRVD_1  (1<<5)
 
@@ -151,17 +153,19 @@ struct cs4215 {
 #define CS4215_DFR_ALAW		2
 #define CS4215_DFR_LINEAR8	3
 #define CS4215_DFR_STEREO	(1<<2)
-static struct {
+static struct
+{
 	unsigned short freq;
 	unsigned char xtal;
 	unsigned char csval;
-} CS4215_FREQ[] = {
+} CS4215_FREQ[] =
+{
 	{  8000, (1 << 4), (0 << 3) },
 	{ 16000, (1 << 4), (1 << 3) },
 	{ 27429, (1 << 4), (2 << 3) },	/* Actually 24428.57 */
 	{ 32000, (1 << 4), (3 << 3) },
-     /* {    NA, (1 << 4), (4 << 3) }, */
-     /* {    NA, (1 << 4), (5 << 3) }, */
+	/* {    NA, (1 << 4), (4 << 3) }, */
+	/* {    NA, (1 << 4), (5 << 3) }, */
 	{ 48000, (1 << 4), (6 << 3) },
 	{  9600, (1 << 4), (7 << 3) },
 	{  5512, (2 << 4), (0 << 3) },	/* Actually 5512.5 */
@@ -255,7 +259,8 @@ static struct {
 
 /* One transmit/receive descriptor */
 /* When ba != 0 descriptor is used */
-struct dbri_mem {
+struct dbri_mem
+{
 	volatile __u32 word1;
 	__u32 ba;	/* Transmit/Receive Buffer Address */
 	__u32 nda;	/* Next Descriptor Address */
@@ -265,7 +270,8 @@ struct dbri_mem {
 /* This structure is in a DMA region where it can accessed by both
  * the CPU and the DBRI
  */
-struct dbri_dma {
+struct dbri_dma
+{
 	s32 cmd[DBRI_NO_CMDS];			/* Place for commands */
 	volatile s32 intr[DBRI_INT_BLK];	/* Interrupt field  */
 	struct dbri_mem desc[DBRI_NO_DESCS];	/* Xmit/receive descriptors */
@@ -277,7 +283,8 @@ struct dbri_dma {
 
 enum in_or_out { PIPEinput, PIPEoutput };
 
-struct dbri_pipe {
+struct dbri_pipe
+{
 	u32 sdp;		/* SDP command word */
 	int nextpipe;		/* Next pipe in linked list */
 	int length;		/* Length of timeslot (bits) */
@@ -287,7 +294,8 @@ struct dbri_pipe {
 };
 
 /* Per stream (playback or record) information */
-struct dbri_streaminfo {
+struct dbri_streaminfo
+{
 	struct snd_pcm_substream *substream;
 	u32 dvma_buffer;	/* Device view of ALSA DMA buffer */
 	int size;		/* Size of DMA buffer             */
@@ -298,7 +306,8 @@ struct dbri_streaminfo {
 };
 
 /* This structure holds the information for both chips (DBRI & CS4215) */
-struct snd_dbri {
+struct snd_dbri
+{
 	int regs_size, irq;	/* Needed for unload */
 	struct platform_device *op;	/* OF device info */
 	spinlock_t lock;
@@ -317,7 +326,7 @@ struct snd_dbri {
 	int chi_bpf;
 
 	struct cs4215 mm;	/* mmcodec special info */
-				/* per stream (playback/record) info */
+	/* per stream (playback/record) info */
 	struct dbri_streaminfo stream_info[DBRI_NO_STREAMS];
 };
 
@@ -544,7 +553,7 @@ struct snd_dbri {
 #define DBRI_TD_ABT	(1 << 2)	/* Abort: frame aborted */
 #define DBRI_TD_TBC	(1 << 0)	/* Transmit buffer Complete */
 #define DBRI_TD_STATUS(v)       ((v) & 0xff)	/* Transmit status */
-			/* Maximum buffer size per TD: almost 8KB */
+/* Maximum buffer size per TD: almost 8KB */
 #define DBRI_TD_MAXCNT	((1 << 13) - 4)
 
 /* Receive descriptor defines */
@@ -563,12 +572,12 @@ struct snd_dbri {
 /* stream_info[] access */
 /* Translate the ALSA direction into the array index */
 #define DBRI_STREAMNO(substream)				\
-		(substream->stream ==				\
-		 SNDRV_PCM_STREAM_PLAYBACK ? DBRI_PLAY: DBRI_REC)
+	(substream->stream ==				\
+	 SNDRV_PCM_STREAM_PLAYBACK ? DBRI_PLAY: DBRI_REC)
 
 /* Return a pointer to dbri_streaminfo */
 #define DBRI_STREAM(dbri, substream)	\
-		&dbri->stream_info[DBRI_STREAMNO(substream)]
+	&dbri->stream_info[DBRI_STREAMNO(substream)]
 
 /*
  * Short data pipes transmit LSB first. The CS4215 receives MSB first. Grrr.
@@ -576,22 +585,29 @@ struct snd_dbri {
  */
 static __u32 reverse_bytes(__u32 b, int len)
 {
-	switch (len) {
-	case 32:
-		b = ((b & 0xffff0000) >> 16) | ((b & 0x0000ffff) << 16);
-	case 16:
-		b = ((b & 0xff00ff00) >> 8) | ((b & 0x00ff00ff) << 8);
-	case 8:
-		b = ((b & 0xf0f0f0f0) >> 4) | ((b & 0x0f0f0f0f) << 4);
-	case 4:
-		b = ((b & 0xcccccccc) >> 2) | ((b & 0x33333333) << 2);
-	case 2:
-		b = ((b & 0xaaaaaaaa) >> 1) | ((b & 0x55555555) << 1);
-	case 1:
-	case 0:
-		break;
-	default:
-		printk(KERN_ERR "DBRI reverse_bytes: unsupported length\n");
+	switch (len)
+	{
+		case 32:
+			b = ((b & 0xffff0000) >> 16) | ((b & 0x0000ffff) << 16);
+
+		case 16:
+			b = ((b & 0xff00ff00) >> 8) | ((b & 0x00ff00ff) << 8);
+
+		case 8:
+			b = ((b & 0xf0f0f0f0) >> 4) | ((b & 0x0f0f0f0f) << 4);
+
+		case 4:
+			b = ((b & 0xcccccccc) >> 2) | ((b & 0x33333333) << 2);
+
+		case 2:
+			b = ((b & 0xaaaaaaaa) >> 1) | ((b & 0x55555555) << 1);
+
+		case 1:
+		case 0:
+			break;
+
+		default:
+			printk(KERN_ERR "DBRI reverse_bytes: unsupported length\n");
 	}
 
 	return b;
@@ -638,18 +654,23 @@ static void dbri_cmdwait(struct snd_dbri *dbri)
 
 	/* Delay if previous commands are still being processed */
 	spin_lock_irqsave(&dbri->lock, flags);
-	while ((--maxloops) > 0 && (sbus_readl(dbri->regs + REG0) & D_P)) {
+
+	while ((--maxloops) > 0 && (sbus_readl(dbri->regs + REG0) & D_P))
+	{
 		spin_unlock_irqrestore(&dbri->lock, flags);
 		msleep_interruptible(1);
 		spin_lock_irqsave(&dbri->lock, flags);
 	}
+
 	spin_unlock_irqrestore(&dbri->lock, flags);
 
 	if (maxloops == 0)
+	{
 		printk(KERN_ERR "DBRI: Chip never completed command buffer\n");
+	}
 	else
 		dprintk(D_CMD, "Chip completed command buffer (%d)\n",
-			MAXLOOPS - maxloops - 1);
+				MAXLOOPS - maxloops - 1);
 }
 /*
  * Lock the command queue and return pointer to space for len cmd words
@@ -660,12 +681,19 @@ static s32 *dbri_cmdlock(struct snd_dbri *dbri, int len)
 	/* Space for 2 WAIT cmds (replaced later by 1 JUMP cmd) */
 	len += 2;
 	spin_lock(&dbri->cmdlock);
+
 	if (dbri->cmdptr - dbri->dma->cmd + len < DBRI_NO_CMDS - 2)
+	{
 		return dbri->cmdptr + 2;
+	}
 	else if (len < sbus_readl(dbri->regs + REG8) - dbri->dma_dvma)
+	{
 		return dbri->dma->cmd;
+	}
 	else
+	{
 		printk(KERN_ERR "DBRI: no space for commands.");
+	}
 
 	return NULL;
 }
@@ -686,30 +714,36 @@ static void dbri_cmdsend(struct snd_dbri *dbri, s32 *cmd, int len)
 	wait_id++;
 	wait_id &= 0xffff;	/* restrict it to a 16 bit counter. */
 	*(cmd) = DBRI_CMD(D_WAIT, 1, wait_id);
-	*(cmd+1) = DBRI_CMD(D_WAIT, 1, wait_id);
+	*(cmd + 1) = DBRI_CMD(D_WAIT, 1, wait_id);
 
 	/* Replace the last command with JUMP */
 	addr = dbri->dma_dvma + (cmd - len - dbri->dma->cmd) * sizeof(s32);
-	*(dbri->cmdptr+1) = addr;
+	*(dbri->cmdptr + 1) = addr;
 	*(dbri->cmdptr) = DBRI_CMD(D_JUMP, 0, 0);
 
 #ifdef DBRI_DEBUG
-	if (cmd > dbri->cmdptr) {
+
+	if (cmd > dbri->cmdptr)
+	{
 		s32 *ptr;
 
-		for (ptr = dbri->cmdptr; ptr < cmd+2; ptr++)
+		for (ptr = dbri->cmdptr; ptr < cmd + 2; ptr++)
 			dprintk(D_CMD, "cmd: %lx:%08x\n",
-				(unsigned long)ptr, *ptr);
-	} else {
+					(unsigned long)ptr, *ptr);
+	}
+	else
+	{
 		s32 *ptr = dbri->cmdptr;
 
 		dprintk(D_CMD, "cmd: %lx:%08x\n", (unsigned long)ptr, *ptr);
 		ptr++;
 		dprintk(D_CMD, "cmd: %lx:%08x\n", (unsigned long)ptr, *ptr);
-		for (ptr = dbri->dma->cmd; ptr < cmd+2; ptr++)
+
+		for (ptr = dbri->dma->cmd; ptr < cmd + 2; ptr++)
 			dprintk(D_CMD, "cmd: %lx:%08x\n",
-				(unsigned long)ptr, *ptr);
+					(unsigned long)ptr, *ptr);
 	}
+
 #endif
 
 	/* Reread the last command */
@@ -728,13 +762,16 @@ static void dbri_reset(struct snd_dbri *dbri)
 	u32 tmp;
 
 	dprintk(D_GEN, "reset 0:%x 2:%x 8:%x 9:%x\n",
-		sbus_readl(dbri->regs + REG0),
-		sbus_readl(dbri->regs + REG2),
-		sbus_readl(dbri->regs + REG8), sbus_readl(dbri->regs + REG9));
+			sbus_readl(dbri->regs + REG0),
+			sbus_readl(dbri->regs + REG2),
+			sbus_readl(dbri->regs + REG8), sbus_readl(dbri->regs + REG9));
 
 	sbus_writel(D_R, dbri->regs + REG0);	/* Soft Reset */
+
 	for (i = 0; (sbus_readl(dbri->regs + REG0) & D_R) && i < 64; i++)
+	{
 		udelay(10);
+	}
 
 	/* A brute approach - DBRI falls back to working burst size by itself
 	 * On SS20 D_S does not work, so do not try so high. */
@@ -758,7 +795,9 @@ static void dbri_initialize(struct snd_dbri *dbri)
 
 	/* Initialize pipes */
 	for (n = 0; n < DBRI_NO_PIPES; n++)
+	{
 		dbri->pipes[n].desc = dbri->pipes[n].first_desc = -1;
+	}
 
 	spin_lock_init(&dbri->cmdlock);
 	/*
@@ -816,16 +855,19 @@ static void reset_pipe(struct snd_dbri *dbri, int pipe)
 	int desc;
 	s32 *cmd;
 
-	if (pipe < 0 || pipe > DBRI_MAX_PIPE) {
+	if (pipe < 0 || pipe > DBRI_MAX_PIPE)
+	{
 		printk(KERN_ERR "DBRI: reset_pipe called with "
-			"illegal pipe number\n");
+			   "illegal pipe number\n");
 		return;
 	}
 
 	sdp = dbri->pipes[pipe].sdp;
-	if (sdp == 0) {
+
+	if (sdp == 0)
+	{
 		printk(KERN_ERR "DBRI: reset_pipe called "
-			"on uninitialized pipe\n");
+			   "on uninitialized pipe\n");
 		return;
 	}
 
@@ -836,12 +878,15 @@ static void reset_pipe(struct snd_dbri *dbri, int pipe)
 	dbri_cmdsend(dbri, cmd, 3);
 
 	desc = dbri->pipes[pipe].first_desc;
+
 	if (desc >= 0)
-		do {
+		do
+		{
 			dbri->dma->desc[desc].ba = 0;
 			dbri->dma->desc[desc].nda = 0;
 			desc = dbri->next_desc[desc];
-		} while (desc != -1 && desc != dbri->pipes[pipe].first_desc);
+		}
+		while (desc != -1 && desc != dbri->pipes[pipe].first_desc);
 
 	dbri->pipes[pipe].desc = -1;
 	dbri->pipes[pipe].first_desc = -1;
@@ -852,15 +897,17 @@ static void reset_pipe(struct snd_dbri *dbri, int pipe)
  */
 static void setup_pipe(struct snd_dbri *dbri, int pipe, int sdp)
 {
-	if (pipe < 0 || pipe > DBRI_MAX_PIPE) {
+	if (pipe < 0 || pipe > DBRI_MAX_PIPE)
+	{
 		printk(KERN_ERR "DBRI: setup_pipe called "
-			"with illegal pipe number\n");
+			   "with illegal pipe number\n");
 		return;
 	}
 
-	if ((sdp & 0xf800) != sdp) {
+	if ((sdp & 0xf800) != sdp)
+	{
 		printk(KERN_ERR "DBRI: setup_pipe called "
-			"with strange SDP value\n");
+			   "with strange SDP value\n");
 		/* sdp &= 0xf800; */
 	}
 
@@ -868,7 +915,9 @@ static void setup_pipe(struct snd_dbri *dbri, int pipe, int sdp)
 	 * every time its data changes
 	 */
 	if (D_SDP_MODE(sdp) == D_SDP_FIXED && !(sdp & D_SDP_TO_SER))
+	{
 		sdp |= D_SDP_CHANGE;
+	}
 
 	sdp |= D_PIPE(pipe);
 	dbri->pipes[pipe].sdp = sdp;
@@ -882,25 +931,27 @@ static void setup_pipe(struct snd_dbri *dbri, int pipe, int sdp)
  * Lock must be held before calling this.
  */
 static void link_time_slot(struct snd_dbri *dbri, int pipe,
-			   int prevpipe, int nextpipe,
-			   int length, int cycle)
+						   int prevpipe, int nextpipe,
+						   int length, int cycle)
 {
 	s32 *cmd;
 	int val;
 
 	if (pipe < 0 || pipe > DBRI_MAX_PIPE
-			|| prevpipe < 0 || prevpipe > DBRI_MAX_PIPE
-			|| nextpipe < 0 || nextpipe > DBRI_MAX_PIPE) {
+		|| prevpipe < 0 || prevpipe > DBRI_MAX_PIPE
+		|| nextpipe < 0 || nextpipe > DBRI_MAX_PIPE)
+	{
 		printk(KERN_ERR
-		    "DBRI: link_time_slot called with illegal pipe number\n");
+			   "DBRI: link_time_slot called with illegal pipe number\n");
 		return;
 	}
 
 	if (dbri->pipes[pipe].sdp == 0
-			|| dbri->pipes[prevpipe].sdp == 0
-			|| dbri->pipes[nextpipe].sdp == 0) {
+		|| dbri->pipes[prevpipe].sdp == 0
+		|| dbri->pipes[nextpipe].sdp == 0)
+	{
 		printk(KERN_ERR "DBRI: link_time_slot called "
-			"on uninitialized pipe\n");
+			   "on uninitialized pipe\n");
 		return;
 	}
 
@@ -910,27 +961,33 @@ static void link_time_slot(struct snd_dbri *dbri, int pipe,
 
 	cmd = dbri_cmdlock(dbri, 4);
 
-	if (dbri->pipes[pipe].sdp & D_SDP_TO_SER) {
+	if (dbri->pipes[pipe].sdp & D_SDP_TO_SER)
+	{
 		/* Deal with CHI special case:
 		 * "If transmission on edges 0 or 1 is desired, then cycle n
 		 *  (where n = # of bit times per frame...) must be used."
 		 *                  - DBRI data sheet, page 11
 		 */
 		if (prevpipe == 16 && cycle == 0)
+		{
 			cycle = dbri->chi_bpf;
+		}
 
 		val = D_DTS_VO | D_DTS_INS | D_DTS_PRVOUT(prevpipe) | pipe;
 		*(cmd++) = DBRI_CMD(D_DTS, 0, val);
 		*(cmd++) = 0;
 		*(cmd++) =
-		    D_TS_LEN(length) | D_TS_CYCLE(cycle) | D_TS_NEXT(nextpipe);
-	} else {
+			D_TS_LEN(length) | D_TS_CYCLE(cycle) | D_TS_NEXT(nextpipe);
+	}
+	else
+	{
 		val = D_DTS_VI | D_DTS_INS | D_DTS_PRVIN(prevpipe) | pipe;
 		*(cmd++) = DBRI_CMD(D_DTS, 0, val);
 		*(cmd++) =
-		    D_TS_LEN(length) | D_TS_CYCLE(cycle) | D_TS_NEXT(nextpipe);
+			D_TS_LEN(length) | D_TS_CYCLE(cycle) | D_TS_NEXT(nextpipe);
 		*(cmd++) = 0;
 	}
+
 	*(cmd++) = DBRI_CMD(D_PAUSE, 0, 0);
 
 	dbri_cmdsend(dbri, cmd, 4);
@@ -941,33 +998,38 @@ static void link_time_slot(struct snd_dbri *dbri, int pipe,
  * Lock must be held before calling this.
  */
 static void unlink_time_slot(struct snd_dbri *dbri, int pipe,
-			     enum in_or_out direction, int prevpipe,
-			     int nextpipe)
+							 enum in_or_out direction, int prevpipe,
+							 int nextpipe)
 {
 	s32 *cmd;
 	int val;
 
 	if (pipe < 0 || pipe > DBRI_MAX_PIPE
-			|| prevpipe < 0 || prevpipe > DBRI_MAX_PIPE
-			|| nextpipe < 0 || nextpipe > DBRI_MAX_PIPE) {
+		|| prevpipe < 0 || prevpipe > DBRI_MAX_PIPE
+		|| nextpipe < 0 || nextpipe > DBRI_MAX_PIPE)
+	{
 		printk(KERN_ERR
-		    "DBRI: unlink_time_slot called with illegal pipe number\n");
+			   "DBRI: unlink_time_slot called with illegal pipe number\n");
 		return;
 	}
 
 	cmd = dbri_cmdlock(dbri, 4);
 
-	if (direction == PIPEinput) {
+	if (direction == PIPEinput)
+	{
 		val = D_DTS_VI | D_DTS_DEL | D_DTS_PRVIN(prevpipe) | pipe;
 		*(cmd++) = DBRI_CMD(D_DTS, 0, val);
 		*(cmd++) = D_TS_NEXT(nextpipe);
 		*(cmd++) = 0;
-	} else {
+	}
+	else
+	{
 		val = D_DTS_VO | D_DTS_DEL | D_DTS_PRVOUT(prevpipe) | pipe;
 		*(cmd++) = DBRI_CMD(D_DTS, 0, val);
 		*(cmd++) = 0;
 		*(cmd++) = D_TS_NEXT(nextpipe);
 	}
+
 	*(cmd++) = DBRI_CMD(D_PAUSE, 0, 0);
 
 	dbri_cmdsend(dbri, cmd, 4);
@@ -995,32 +1057,38 @@ static void xmit_fixed(struct snd_dbri *dbri, int pipe, unsigned int data)
 	s32 *cmd;
 	unsigned long flags;
 
-	if (pipe < 16 || pipe > DBRI_MAX_PIPE) {
+	if (pipe < 16 || pipe > DBRI_MAX_PIPE)
+	{
 		printk(KERN_ERR "DBRI: xmit_fixed: Illegal pipe number\n");
 		return;
 	}
 
-	if (D_SDP_MODE(dbri->pipes[pipe].sdp) == 0) {
+	if (D_SDP_MODE(dbri->pipes[pipe].sdp) == 0)
+	{
 		printk(KERN_ERR "DBRI: xmit_fixed: "
-			"Uninitialized pipe %d\n", pipe);
+			   "Uninitialized pipe %d\n", pipe);
 		return;
 	}
 
-	if (D_SDP_MODE(dbri->pipes[pipe].sdp) != D_SDP_FIXED) {
+	if (D_SDP_MODE(dbri->pipes[pipe].sdp) != D_SDP_FIXED)
+	{
 		printk(KERN_ERR "DBRI: xmit_fixed: Non-fixed pipe %d\n", pipe);
 		return;
 	}
 
-	if (!(dbri->pipes[pipe].sdp & D_SDP_TO_SER)) {
+	if (!(dbri->pipes[pipe].sdp & D_SDP_TO_SER))
+	{
 		printk(KERN_ERR "DBRI: xmit_fixed: Called on receive pipe %d\n",
-			pipe);
+			   pipe);
 		return;
 	}
 
 	/* DBRI short pipes always transmit LSB first */
 
 	if (dbri->pipes[pipe].sdp & D_SDP_MSB)
+	{
 		data = reverse_bytes(data, dbri->pipes[pipe].length);
+	}
 
 	cmd = dbri_cmdlock(dbri, 3);
 
@@ -1037,21 +1105,24 @@ static void xmit_fixed(struct snd_dbri *dbri, int pipe, unsigned int data)
 
 static void recv_fixed(struct snd_dbri *dbri, int pipe, volatile __u32 *ptr)
 {
-	if (pipe < 16 || pipe > DBRI_MAX_PIPE) {
+	if (pipe < 16 || pipe > DBRI_MAX_PIPE)
+	{
 		printk(KERN_ERR "DBRI: recv_fixed called with "
-			"illegal pipe number\n");
+			   "illegal pipe number\n");
 		return;
 	}
 
-	if (D_SDP_MODE(dbri->pipes[pipe].sdp) != D_SDP_FIXED) {
+	if (D_SDP_MODE(dbri->pipes[pipe].sdp) != D_SDP_FIXED)
+	{
 		printk(KERN_ERR "DBRI: recv_fixed called on "
-			"non-fixed pipe %d\n", pipe);
+			   "non-fixed pipe %d\n", pipe);
 		return;
 	}
 
-	if (dbri->pipes[pipe].sdp & D_SDP_TO_SER) {
+	if (dbri->pipes[pipe].sdp & D_SDP_TO_SER)
+	{
 		printk(KERN_ERR "DBRI: recv_fixed called on "
-			"transmit pipe %d\n", pipe);
+			   "transmit pipe %d\n", pipe);
 		return;
 	}
 
@@ -1083,39 +1154,48 @@ static int setup_descs(struct snd_dbri *dbri, int streamno, unsigned int period)
 	int first_desc = -1;
 	int last_desc = -1;
 
-	if (info->pipe < 0 || info->pipe > 15) {
+	if (info->pipe < 0 || info->pipe > 15)
+	{
 		printk(KERN_ERR "DBRI: setup_descs: Illegal pipe number\n");
 		return -2;
 	}
 
-	if (dbri->pipes[info->pipe].sdp == 0) {
+	if (dbri->pipes[info->pipe].sdp == 0)
+	{
 		printk(KERN_ERR "DBRI: setup_descs: Uninitialized pipe %d\n",
-		       info->pipe);
+			   info->pipe);
 		return -2;
 	}
 
 	dvma_buffer = info->dvma_buffer;
 	len = info->size;
 
-	if (streamno == DBRI_PLAY) {
-		if (!(dbri->pipes[info->pipe].sdp & D_SDP_TO_SER)) {
+	if (streamno == DBRI_PLAY)
+	{
+		if (!(dbri->pipes[info->pipe].sdp & D_SDP_TO_SER))
+		{
 			printk(KERN_ERR "DBRI: setup_descs: "
-				"Called on receive pipe %d\n", info->pipe);
+				   "Called on receive pipe %d\n", info->pipe);
 			return -2;
 		}
-	} else {
-		if (dbri->pipes[info->pipe].sdp & D_SDP_TO_SER) {
+	}
+	else
+	{
+		if (dbri->pipes[info->pipe].sdp & D_SDP_TO_SER)
+		{
 			printk(KERN_ERR
-			    "DBRI: setup_descs: Called on transmit pipe %d\n",
-			     info->pipe);
+				   "DBRI: setup_descs: Called on transmit pipe %d\n",
+				   info->pipe);
 			return -2;
 		}
+
 		/* Should be able to queue multiple buffers
 		 * to receive on a pipe
 		 */
-		if (pipe_active(dbri, info->pipe)) {
+		if (pipe_active(dbri, info->pipe))
+		{
 			printk(KERN_ERR "DBRI: recv_on_pipe: "
-				"Called on active pipe %d\n", info->pipe);
+				   "Called on active pipe %d\n", info->pipe);
 			return -2;
 		}
 
@@ -1125,59 +1205,80 @@ static int setup_descs(struct snd_dbri *dbri, int streamno, unsigned int period)
 
 	/* Free descriptors if pipe has any */
 	desc = dbri->pipes[info->pipe].first_desc;
+
 	if (desc >= 0)
-		do {
+		do
+		{
 			dbri->dma->desc[desc].ba = 0;
 			dbri->dma->desc[desc].nda = 0;
 			desc = dbri->next_desc[desc];
-		} while (desc != -1 &&
-			 desc != dbri->pipes[info->pipe].first_desc);
+		}
+		while (desc != -1 &&
+			   desc != dbri->pipes[info->pipe].first_desc);
 
 	dbri->pipes[info->pipe].desc = -1;
 	dbri->pipes[info->pipe].first_desc = -1;
 
 	desc = 0;
-	while (len > 0) {
+
+	while (len > 0)
+	{
 		int mylen;
 
-		for (; desc < DBRI_NO_DESCS; desc++) {
+		for (; desc < DBRI_NO_DESCS; desc++)
+		{
 			if (!dbri->dma->desc[desc].ba)
+			{
 				break;
+			}
 		}
 
-		if (desc == DBRI_NO_DESCS) {
+		if (desc == DBRI_NO_DESCS)
+		{
 			printk(KERN_ERR "DBRI: setup_descs: No descriptors\n");
 			return -1;
 		}
 
 		if (len > DBRI_TD_MAXCNT)
-			mylen = DBRI_TD_MAXCNT;	/* 8KB - 4 */
+		{
+			mylen = DBRI_TD_MAXCNT;    /* 8KB - 4 */
+		}
 		else
+		{
 			mylen = len;
+		}
 
 		if (mylen > period)
+		{
 			mylen = period;
+		}
 
 		dbri->next_desc[desc] = -1;
 		dbri->dma->desc[desc].ba = dvma_buffer;
 		dbri->dma->desc[desc].nda = 0;
 
-		if (streamno == DBRI_PLAY) {
+		if (streamno == DBRI_PLAY)
+		{
 			dbri->dma->desc[desc].word1 = DBRI_TD_CNT(mylen);
 			dbri->dma->desc[desc].word4 = 0;
 			dbri->dma->desc[desc].word1 |= DBRI_TD_F | DBRI_TD_B;
-		} else {
+		}
+		else
+		{
 			dbri->dma->desc[desc].word1 = 0;
 			dbri->dma->desc[desc].word4 =
-			    DBRI_RD_B | DBRI_RD_BCNT(mylen);
+				DBRI_RD_B | DBRI_RD_BCNT(mylen);
 		}
 
 		if (first_desc == -1)
+		{
 			first_desc = desc;
-		else {
+		}
+		else
+		{
 			dbri->next_desc[last_desc] = desc;
 			dbri->dma->desc[last_desc].nda =
-			    dbri->dma_dvma + dbri_dma_off(desc, desc);
+				dbri->dma_dvma + dbri_dma_off(desc, desc);
 		}
 
 		last_desc = desc;
@@ -1185,29 +1286,36 @@ static int setup_descs(struct snd_dbri *dbri, int streamno, unsigned int period)
 		len -= mylen;
 	}
 
-	if (first_desc == -1 || last_desc == -1) {
+	if (first_desc == -1 || last_desc == -1)
+	{
 		printk(KERN_ERR "DBRI: setup_descs: "
-			" Not enough descriptors available\n");
+			   " Not enough descriptors available\n");
 		return -1;
 	}
 
 	dbri->dma->desc[last_desc].nda =
-	    dbri->dma_dvma + dbri_dma_off(desc, first_desc);
+		dbri->dma_dvma + dbri_dma_off(desc, first_desc);
 	dbri->next_desc[last_desc] = first_desc;
 	dbri->pipes[info->pipe].first_desc = first_desc;
 	dbri->pipes[info->pipe].desc = first_desc;
 
 #ifdef DBRI_DEBUG
-	for (desc = first_desc; desc != -1;) {
+
+	for (desc = first_desc; desc != -1;)
+	{
 		dprintk(D_DESC, "DESC %d: %08x %08x %08x %08x\n",
-			desc,
-			dbri->dma->desc[desc].word1,
-			dbri->dma->desc[desc].ba,
-			dbri->dma->desc[desc].nda, dbri->dma->desc[desc].word4);
-			desc = dbri->next_desc[desc];
-			if (desc == first_desc)
-				break;
+				desc,
+				dbri->dma->desc[desc].word1,
+				dbri->dma->desc[desc].ba,
+				dbri->dma->desc[desc].nda, dbri->dma->desc[desc].word4);
+		desc = dbri->next_desc[desc];
+
+		if (desc == first_desc)
+		{
+			break;
+		}
 	}
+
 #endif
 	return 0;
 }
@@ -1229,8 +1337,8 @@ enum master_or_slave { CHImaster, CHIslave };
  * Lock must not be held before calling it.
  */
 static void reset_chi(struct snd_dbri *dbri,
-		      enum master_or_slave master_or_slave,
-		      int bits_per_frame)
+					  enum master_or_slave master_or_slave,
+					  int bits_per_frame)
 {
 	s32 *cmd;
 	int val;
@@ -1239,7 +1347,7 @@ static void reset_chi(struct snd_dbri *dbri,
 
 	cmd = dbri_cmdlock(dbri, 4);
 	val = D_DTS_VO | D_DTS_VI | D_DTS_INS
-		| D_DTS_PRVIN(16) | D_PIPE(16) | D_DTS_PRVOUT(16);
+		  | D_DTS_PRVIN(16) | D_PIPE(16) | D_DTS_PRVOUT(16);
 	*(cmd++) = DBRI_CMD(D_DTS, 0, val);
 	*(cmd++) = D_TS_ANCHOR | D_TS_NEXT(16);
 	*(cmd++) = D_TS_ANCHOR | D_TS_NEXT(16);
@@ -1251,7 +1359,8 @@ static void reset_chi(struct snd_dbri *dbri,
 
 	cmd = dbri_cmdlock(dbri, 4);
 
-	if (master_or_slave == CHIslave) {
+	if (master_or_slave == CHIslave)
+	{
 		/* Setup DBRI for CHI Slave - receive clock, frame sync (FS)
 		 *
 		 * CHICM  = 0 (slave mode, 8 kHz frame rate)
@@ -1259,7 +1368,9 @@ static void reset_chi(struct snd_dbri *dbri,
 		 * EN     = give CHI status interrupt upon change
 		 */
 		*(cmd++) = DBRI_CMD(D_CHI, 0, D_CHI_CHICM(0));
-	} else {
+	}
+	else
+	{
 		/* Setup DBRI for CHI Master - generate clock, FS
 		 *
 		 * BPF				=  bits per 8 kHz frame
@@ -1271,10 +1382,10 @@ static void reset_chi(struct snd_dbri *dbri,
 
 		if (divisor > 255 || divisor * clockrate != 12288)
 			printk(KERN_ERR "DBRI: illegal bits_per_frame "
-				"in setup_chi\n");
+				   "in setup_chi\n");
 
 		*(cmd++) = DBRI_CMD(D_CHI, 0, D_CHI_CHICM(divisor) | D_CHI_FD
-				    | D_CHI_BPF(bits_per_frame));
+							| D_CHI_BPF(bits_per_frame));
 	}
 
 	dbri->chi_bpf = bits_per_frame;
@@ -1374,12 +1485,15 @@ static int cs4215_init_data(struct cs4215 *mm)
 
 static void cs4215_setdata(struct snd_dbri *dbri, int muted)
 {
-	if (muted) {
+	if (muted)
+	{
 		dbri->mm.data[0] |= 63;
 		dbri->mm.data[1] |= 63;
 		dbri->mm.data[2] &= ~15;
 		dbri->mm.data[3] &= ~15;
-	} else {
+	}
+	else
+	{
 		/* Start by setting the playback attenuation. */
 		struct dbri_streaminfo *info = &dbri->stream_info[DBRI_PLAY];
 		int left_gain = info->left_gain & 0x3f;
@@ -1411,7 +1525,7 @@ static void cs4215_open(struct snd_dbri *dbri)
 	unsigned long flags;
 
 	dprintk(D_MM, "cs4215_open: %d channels, %d bits\n",
-		dbri->mm.channels, dbri->mm.precision);
+			dbri->mm.channels, dbri->mm.precision);
 
 	/* Temporarily mute outputs, and wait 1/8000 sec (125 us)
 	 * to make sure this takes.  This avoids clicking noises.
@@ -1440,7 +1554,7 @@ static void cs4215_open(struct snd_dbri *dbri)
 
 	/* Switch CS4215 to data mode - set PIO3 to 1 */
 	sbus_writel(D_ENPIO | D_PIO1 | D_PIO3 |
-		    (dbri->mm.onboard ? D_PIO0 : D_PIO2), dbri->regs + REG2);
+				(dbri->mm.onboard ? D_PIO0 : D_PIO2), dbri->regs + REG2);
 
 	reset_chi(dbri, CHIslave, 128);
 
@@ -1540,11 +1654,14 @@ static int cs4215_setctrl(struct snd_dbri *dbri)
 	spin_unlock_irqrestore(&dbri->lock, flags);
 
 	for (i = 10; ((dbri->mm.status & 0xe4) != 0x20); --i)
+	{
 		msleep_interruptible(1);
+	}
 
-	if (i == 0) {
+	if (i == 0)
+	{
 		dprintk(D_MM, "CS4215 didn't respond to CLB (0x%02x)\n",
-			dbri->mm.status);
+				dbri->mm.status);
 		return -1;
 	}
 
@@ -1574,55 +1691,71 @@ static int cs4215_setctrl(struct snd_dbri *dbri)
  * timeslots as well.
  */
 static int cs4215_prepare(struct snd_dbri *dbri, unsigned int rate,
-			  snd_pcm_format_t format, unsigned int channels)
+						  snd_pcm_format_t format, unsigned int channels)
 {
 	int freq_idx;
 	int ret = 0;
 
 	/* Lookup index for this rate */
-	for (freq_idx = 0; CS4215_FREQ[freq_idx].freq != 0; freq_idx++) {
+	for (freq_idx = 0; CS4215_FREQ[freq_idx].freq != 0; freq_idx++)
+	{
 		if (CS4215_FREQ[freq_idx].freq == rate)
+		{
 			break;
+		}
 	}
-	if (CS4215_FREQ[freq_idx].freq != rate) {
+
+	if (CS4215_FREQ[freq_idx].freq != rate)
+	{
 		printk(KERN_WARNING "DBRI: Unsupported rate %d Hz\n", rate);
 		return -1;
 	}
 
-	switch (format) {
-	case SNDRV_PCM_FORMAT_MU_LAW:
-		dbri->mm.ctrl[1] = CS4215_DFR_ULAW;
-		dbri->mm.precision = 8;
-		break;
-	case SNDRV_PCM_FORMAT_A_LAW:
-		dbri->mm.ctrl[1] = CS4215_DFR_ALAW;
-		dbri->mm.precision = 8;
-		break;
-	case SNDRV_PCM_FORMAT_U8:
-		dbri->mm.ctrl[1] = CS4215_DFR_LINEAR8;
-		dbri->mm.precision = 8;
-		break;
-	case SNDRV_PCM_FORMAT_S16_BE:
-		dbri->mm.ctrl[1] = CS4215_DFR_LINEAR16;
-		dbri->mm.precision = 16;
-		break;
-	default:
-		printk(KERN_WARNING "DBRI: Unsupported format %d\n", format);
-		return -1;
+	switch (format)
+	{
+		case SNDRV_PCM_FORMAT_MU_LAW:
+			dbri->mm.ctrl[1] = CS4215_DFR_ULAW;
+			dbri->mm.precision = 8;
+			break;
+
+		case SNDRV_PCM_FORMAT_A_LAW:
+			dbri->mm.ctrl[1] = CS4215_DFR_ALAW;
+			dbri->mm.precision = 8;
+			break;
+
+		case SNDRV_PCM_FORMAT_U8:
+			dbri->mm.ctrl[1] = CS4215_DFR_LINEAR8;
+			dbri->mm.precision = 8;
+			break;
+
+		case SNDRV_PCM_FORMAT_S16_BE:
+			dbri->mm.ctrl[1] = CS4215_DFR_LINEAR16;
+			dbri->mm.precision = 16;
+			break;
+
+		default:
+			printk(KERN_WARNING "DBRI: Unsupported format %d\n", format);
+			return -1;
 	}
 
 	/* Add rate parameters */
 	dbri->mm.ctrl[1] |= CS4215_FREQ[freq_idx].csval;
 	dbri->mm.ctrl[2] = CS4215_XCLK |
-	    CS4215_BSEL_128 | CS4215_FREQ[freq_idx].xtal;
+					   CS4215_BSEL_128 | CS4215_FREQ[freq_idx].xtal;
 
 	dbri->mm.channels = channels;
+
 	if (channels == 2)
+	{
 		dbri->mm.ctrl[1] |= CS4215_DFR_STEREO;
+	}
 
 	ret = cs4215_setctrl(dbri);
+
 	if (ret == 0)
-		cs4215_open(dbri);	/* set codec to data mode */
+	{
+		cs4215_open(dbri);    /* set codec to data mode */
+	}
 
 	return ret;
 }
@@ -1636,22 +1769,27 @@ static int cs4215_init(struct snd_dbri *dbri)
 	dprintk(D_MM, "cs4215_init: reg2=0x%x\n", reg2);
 
 	/* Look for the cs4215 chips */
-	if (reg2 & D_PIO2) {
+	if (reg2 & D_PIO2)
+	{
 		dprintk(D_MM, "Onboard CS4215 detected\n");
 		dbri->mm.onboard = 1;
 	}
-	if (reg2 & D_PIO0) {
+
+	if (reg2 & D_PIO0)
+	{
 		dprintk(D_MM, "Speakerbox detected\n");
 		dbri->mm.onboard = 0;
 
-		if (reg2 & D_PIO2) {
+		if (reg2 & D_PIO2)
+		{
 			printk(KERN_INFO "DBRI: Using speakerbox / "
-			       "ignoring onboard mmcodec.\n");
+				   "ignoring onboard mmcodec.\n");
 			sbus_writel(D_ENPIO2, dbri->regs + REG2);
 		}
 	}
 
-	if (!(reg2 & (D_PIO0 | D_PIO2))) {
+	if (!(reg2 & (D_PIO0 | D_PIO2)))
+	{
 		printk(KERN_ERR "DBRI: no mmcodec found.\n");
 		return -EIO;
 	}
@@ -1664,11 +1802,14 @@ static int cs4215_init(struct snd_dbri *dbri)
 	recv_fixed(dbri, 19, &dbri->mm.version);
 
 	dbri->mm.offset = dbri->mm.onboard ? 0 : 8;
-	if (cs4215_setctrl(dbri) == -1 || dbri->mm.version == 0xff) {
+
+	if (cs4215_setctrl(dbri) == -1 || dbri->mm.version == 0xff)
+	{
 		dprintk(D_MM, "CS4215 failed probe at offset %d\n",
-			dbri->mm.offset);
+				dbri->mm.offset);
 		return -EIO;
 	}
+
 	dprintk(D_MM, "Found CS4215 at offset %d\n", dbri->mm.offset);
 
 	return 0;
@@ -1702,24 +1843,28 @@ static void xmit_descs(struct snd_dbri *dbri)
 	int first_td;
 
 	if (dbri == NULL)
-		return;		/* Disabled */
+	{
+		return;    /* Disabled */
+	}
 
 	info = &dbri->stream_info[DBRI_REC];
 	spin_lock_irqsave(&dbri->lock, flags);
 
-	if (info->pipe >= 0) {
+	if (info->pipe >= 0)
+	{
 		first_td = dbri->pipes[info->pipe].first_desc;
 
 		dprintk(D_DESC, "xmit_descs rec @ TD %d\n", first_td);
 
 		/* Stream could be closed by the time we run. */
-		if (first_td >= 0) {
+		if (first_td >= 0)
+		{
 			cmd = dbri_cmdlock(dbri, 2);
 			*(cmd++) = DBRI_CMD(D_SDP, 0,
-					    dbri->pipes[info->pipe].sdp
-					    | D_SDP_P | D_SDP_EVERY | D_SDP_C);
+								dbri->pipes[info->pipe].sdp
+								| D_SDP_P | D_SDP_EVERY | D_SDP_C);
 			*(cmd++) = dbri->dma_dvma +
-				   dbri_dma_off(desc, first_td);
+					   dbri_dma_off(desc, first_td);
 			dbri_cmdsend(dbri, cmd, 2);
 
 			/* Reset our admin of the pipe. */
@@ -1729,19 +1874,21 @@ static void xmit_descs(struct snd_dbri *dbri)
 
 	info = &dbri->stream_info[DBRI_PLAY];
 
-	if (info->pipe >= 0) {
+	if (info->pipe >= 0)
+	{
 		first_td = dbri->pipes[info->pipe].first_desc;
 
 		dprintk(D_DESC, "xmit_descs play @ TD %d\n", first_td);
 
 		/* Stream could be closed by the time we run. */
-		if (first_td >= 0) {
+		if (first_td >= 0)
+		{
 			cmd = dbri_cmdlock(dbri, 2);
 			*(cmd++) = DBRI_CMD(D_SDP, 0,
-					    dbri->pipes[info->pipe].sdp
-					    | D_SDP_P | D_SDP_EVERY | D_SDP_C);
+								dbri->pipes[info->pipe].sdp
+								| D_SDP_P | D_SDP_EVERY | D_SDP_C);
 			*(cmd++) = dbri->dma_dvma +
-				   dbri_dma_off(desc, first_td);
+					   dbri_dma_off(desc, first_td);
 			dbri_cmdsend(dbri, cmd, 2);
 
 			/* Reset our admin of the pipe. */
@@ -1772,15 +1919,20 @@ static void transmission_complete_intr(struct snd_dbri *dbri, int pipe)
 	int td = dbri->pipes[pipe].desc;
 	int status;
 
-	while (td >= 0) {
-		if (td >= DBRI_NO_DESCS) {
+	while (td >= 0)
+	{
+		if (td >= DBRI_NO_DESCS)
+		{
 			printk(KERN_ERR "DBRI: invalid td on pipe %d\n", pipe);
 			return;
 		}
 
 		status = DBRI_TD_STATUS(dbri->dma->desc[td].word4);
+
 		if (!(status & DBRI_TD_TBC))
+		{
 			break;
+		}
 
 		dprintk(D_INT, "TD %d, status 0x%02x\n", td, status);
 
@@ -1803,7 +1955,8 @@ static void reception_complete_intr(struct snd_dbri *dbri, int pipe)
 	int rd = dbri->pipes[pipe].desc;
 	s32 status;
 
-	if (rd < 0 || rd >= DBRI_NO_DESCS) {
+	if (rd < 0 || rd >= DBRI_NO_DESCS)
+	{
 		printk(KERN_ERR "DBRI: invalid rd on pipe %d\n", pipe);
 		return;
 	}
@@ -1818,7 +1971,7 @@ static void reception_complete_intr(struct snd_dbri *dbri, int pipe)
 	/* FIXME: Check status */
 
 	dprintk(D_INT, "Recv RD %d, status 0x%02x, len %d\n",
-		rd, DBRI_RD_STATUS(status), DBRI_RD_CNT(status));
+			rd, DBRI_RD_STATUS(status), DBRI_RD_CNT(status));
 
 	/* Notify ALSA */
 	spin_unlock(&dbri->lock);
@@ -1836,60 +1989,78 @@ static void dbri_process_one_interrupt(struct snd_dbri *dbri, int x)
 	int rval = D_INTR_GETRVAL(x);
 #endif
 
-	if (channel == D_INTR_CMD) {
+	if (channel == D_INTR_CMD)
+	{
 		dprintk(D_CMD, "INTR: Command: %-5s  Value:%d\n",
-			cmds[command], val);
-	} else {
+				cmds[command], val);
+	}
+	else
+	{
 		dprintk(D_INT, "INTR: Chan:%d Code:%d Val:%#x\n",
-			channel, code, rval);
+				channel, code, rval);
 	}
 
-	switch (code) {
-	case D_INTR_CMDI:
-		if (command != D_WAIT)
-			printk(KERN_ERR "DBRI: Command read interrupt\n");
-		break;
-	case D_INTR_BRDY:
-		reception_complete_intr(dbri, channel);
-		break;
-	case D_INTR_XCMP:
-	case D_INTR_MINT:
-		transmission_complete_intr(dbri, channel);
-		break;
-	case D_INTR_UNDR:
-		/* UNDR - Transmission underrun
-		 * resend SDP command with clear pipe bit (C) set
-		 */
-		{
-	/* FIXME: do something useful in case of underrun */
-			printk(KERN_ERR "DBRI: Underrun error\n");
+	switch (code)
+	{
+		case D_INTR_CMDI:
+			if (command != D_WAIT)
+			{
+				printk(KERN_ERR "DBRI: Command read interrupt\n");
+			}
+
+			break;
+
+		case D_INTR_BRDY:
+			reception_complete_intr(dbri, channel);
+			break;
+
+		case D_INTR_XCMP:
+		case D_INTR_MINT:
+			transmission_complete_intr(dbri, channel);
+			break;
+
+		case D_INTR_UNDR:
+			/* UNDR - Transmission underrun
+			 * resend SDP command with clear pipe bit (C) set
+			 */
+			{
+				/* FIXME: do something useful in case of underrun */
+				printk(KERN_ERR "DBRI: Underrun error\n");
 #if 0
-			s32 *cmd;
-			int pipe = channel;
-			int td = dbri->pipes[pipe].desc;
+				s32 *cmd;
+				int pipe = channel;
+				int td = dbri->pipes[pipe].desc;
 
-			dbri->dma->desc[td].word4 = 0;
-			cmd = dbri_cmdlock(dbri, NoGetLock);
-			*(cmd++) = DBRI_CMD(D_SDP, 0,
-					    dbri->pipes[pipe].sdp
-					    | D_SDP_P | D_SDP_C | D_SDP_2SAME);
-			*(cmd++) = dbri->dma_dvma + dbri_dma_off(desc, td);
-			dbri_cmdsend(dbri, cmd);
+				dbri->dma->desc[td].word4 = 0;
+				cmd = dbri_cmdlock(dbri, NoGetLock);
+				*(cmd++) = DBRI_CMD(D_SDP, 0,
+									dbri->pipes[pipe].sdp
+									| D_SDP_P | D_SDP_C | D_SDP_2SAME);
+				*(cmd++) = dbri->dma_dvma + dbri_dma_off(desc, td);
+				dbri_cmdsend(dbri, cmd);
 #endif
-		}
-		break;
-	case D_INTR_FXDT:
-		/* FXDT - Fixed data change */
-		if (dbri->pipes[channel].sdp & D_SDP_MSB)
-			val = reverse_bytes(val, dbri->pipes[channel].length);
+			}
+			break;
 
-		if (dbri->pipes[channel].recv_fixed_ptr)
-			*(dbri->pipes[channel].recv_fixed_ptr) = val;
-		break;
-	default:
-		if (channel != D_INTR_CMD)
-			printk(KERN_WARNING
-			       "DBRI: Ignored Interrupt: %d (0x%x)\n", code, x);
+		case D_INTR_FXDT:
+
+			/* FXDT - Fixed data change */
+			if (dbri->pipes[channel].sdp & D_SDP_MSB)
+			{
+				val = reverse_bytes(val, dbri->pipes[channel].length);
+			}
+
+			if (dbri->pipes[channel].recv_fixed_ptr)
+			{
+				*(dbri->pipes[channel].recv_fixed_ptr) = val;
+			}
+
+			break;
+
+		default:
+			if (channel != D_INTR_CMD)
+				printk(KERN_WARNING
+					   "DBRI: Ignored Interrupt: %d (0x%x)\n", code, x);
 	}
 }
 
@@ -1902,11 +2073,15 @@ static void dbri_process_interrupt_buffer(struct snd_dbri *dbri)
 {
 	s32 x;
 
-	while ((x = dbri->dma->intr[dbri->dbri_irqp]) != 0) {
+	while ((x = dbri->dma->intr[dbri->dbri_irqp]) != 0)
+	{
 		dbri->dma->intr[dbri->dbri_irqp] = 0;
 		dbri->dbri_irqp++;
+
 		if (dbri->dbri_irqp == DBRI_INT_BLK)
+		{
 			dbri->dbri_irqp = 1;
+		}
 
 		dbri_process_one_interrupt(dbri, x);
 	}
@@ -1919,7 +2094,10 @@ static irqreturn_t snd_dbri_interrupt(int irq, void *dev_id)
 	int x;
 
 	if (dbri == NULL)
+	{
 		return IRQ_NONE;
+	}
+
 	spin_lock(&dbri->lock);
 
 	/*
@@ -1927,23 +2105,27 @@ static irqreturn_t snd_dbri_interrupt(int irq, void *dev_id)
 	 */
 	x = sbus_readl(dbri->regs + REG1);
 
-	if (x & (D_MRR | D_MLE | D_LBG | D_MBE)) {
+	if (x & (D_MRR | D_MLE | D_LBG | D_MBE))
+	{
 		u32 tmp;
 
 		if (x & D_MRR)
 			printk(KERN_ERR
-			       "DBRI: Multiple Error Ack on SBus reg1=0x%x\n",
-			       x);
+				   "DBRI: Multiple Error Ack on SBus reg1=0x%x\n",
+				   x);
+
 		if (x & D_MLE)
 			printk(KERN_ERR
-			       "DBRI: Multiple Late Error on SBus reg1=0x%x\n",
-			       x);
+				   "DBRI: Multiple Late Error on SBus reg1=0x%x\n",
+				   x);
+
 		if (x & D_LBG)
 			printk(KERN_ERR
-			       "DBRI: Lost Bus Grant on SBus reg1=0x%x\n", x);
+				   "DBRI: Lost Bus Grant on SBus reg1=0x%x\n", x);
+
 		if (x & D_MBE)
 			printk(KERN_ERR
-			       "DBRI: Burst Error on SBus reg1=0x%x\n", x);
+				   "DBRI: Burst Error on SBus reg1=0x%x\n", x);
 
 		/* Some of these SBus errors cause the chip's SBus circuitry
 		 * to be disabled, so just re-enable and try to keep going.
@@ -1953,10 +2135,13 @@ static irqreturn_t snd_dbri_interrupt(int irq, void *dev_id)
 		 *
 		 * If these things persist, we reset the chip.
 		 */
-		if ((++errcnt) % 10 == 0) {
+		if ((++errcnt) % 10 == 0)
+		{
 			dprintk(D_INT, "Interrupt errors exceeded.\n");
 			dbri_reset(dbri);
-		} else {
+		}
+		else
+		{
 			tmp = sbus_readl(dbri->regs + REG0);
 			tmp &= ~(D_D);
 			sbus_writel(tmp, dbri->regs + REG0);
@@ -1973,16 +2158,17 @@ static irqreturn_t snd_dbri_interrupt(int irq, void *dev_id)
 /****************************************************************************
 		PCM Interface
 ****************************************************************************/
-static struct snd_pcm_hardware snd_dbri_pcm_hw = {
+static struct snd_pcm_hardware snd_dbri_pcm_hw =
+{
 	.info		= SNDRV_PCM_INFO_MMAP |
-			  SNDRV_PCM_INFO_INTERLEAVED |
-			  SNDRV_PCM_INFO_BLOCK_TRANSFER |
-			  SNDRV_PCM_INFO_MMAP_VALID |
-			  SNDRV_PCM_INFO_BATCH,
+	SNDRV_PCM_INFO_INTERLEAVED |
+	SNDRV_PCM_INFO_BLOCK_TRANSFER |
+	SNDRV_PCM_INFO_MMAP_VALID |
+	SNDRV_PCM_INFO_BATCH,
 	.formats	= SNDRV_PCM_FMTBIT_MU_LAW |
-			  SNDRV_PCM_FMTBIT_A_LAW |
-			  SNDRV_PCM_FMTBIT_U8 |
-			  SNDRV_PCM_FMTBIT_S16_BE,
+	SNDRV_PCM_FMTBIT_A_LAW |
+	SNDRV_PCM_FMTBIT_U8 |
+	SNDRV_PCM_FMTBIT_S16_BE,
 	.rates		= SNDRV_PCM_RATE_8000_48000 | SNDRV_PCM_RATE_5512,
 	.rate_min		= 5512,
 	.rate_max		= 48000,
@@ -1996,36 +2182,42 @@ static struct snd_pcm_hardware snd_dbri_pcm_hw = {
 };
 
 static int snd_hw_rule_format(struct snd_pcm_hw_params *params,
-			      struct snd_pcm_hw_rule *rule)
+							  struct snd_pcm_hw_rule *rule)
 {
 	struct snd_interval *c = hw_param_interval(params,
-				SNDRV_PCM_HW_PARAM_CHANNELS);
+							 SNDRV_PCM_HW_PARAM_CHANNELS);
 	struct snd_mask *f = hw_param_mask(params, SNDRV_PCM_HW_PARAM_FORMAT);
 	struct snd_mask fmt;
 
 	snd_mask_any(&fmt);
-	if (c->min > 1) {
+
+	if (c->min > 1)
+	{
 		fmt.bits[0] &= SNDRV_PCM_FMTBIT_S16_BE;
 		return snd_mask_refine(f, &fmt);
 	}
+
 	return 0;
 }
 
 static int snd_hw_rule_channels(struct snd_pcm_hw_params *params,
-				struct snd_pcm_hw_rule *rule)
+								struct snd_pcm_hw_rule *rule)
 {
 	struct snd_interval *c = hw_param_interval(params,
-				SNDRV_PCM_HW_PARAM_CHANNELS);
+							 SNDRV_PCM_HW_PARAM_CHANNELS);
 	struct snd_mask *f = hw_param_mask(params, SNDRV_PCM_HW_PARAM_FORMAT);
 	struct snd_interval ch;
 
 	snd_interval_any(&ch);
-	if (!(f->bits[0] & SNDRV_PCM_FMTBIT_S16_BE)) {
+
+	if (!(f->bits[0] & SNDRV_PCM_FMTBIT_S16_BE))
+	{
 		ch.min = 1;
 		ch.max = 1;
 		ch.integer = 1;
 		return snd_interval_refine(c, &ch);
 	}
+
 	return 0;
 }
 
@@ -2047,12 +2239,12 @@ static int snd_dbri_open(struct snd_pcm_substream *substream)
 	spin_unlock_irqrestore(&dbri->lock, flags);
 
 	snd_pcm_hw_rule_add(runtime, 0, SNDRV_PCM_HW_PARAM_CHANNELS,
-			    snd_hw_rule_format, NULL, SNDRV_PCM_HW_PARAM_FORMAT,
-			    -1);
+						snd_hw_rule_format, NULL, SNDRV_PCM_HW_PARAM_FORMAT,
+						-1);
 	snd_pcm_hw_rule_add(runtime, 0, SNDRV_PCM_HW_PARAM_FORMAT,
-			    snd_hw_rule_channels, NULL,
-			    SNDRV_PCM_HW_PARAM_CHANNELS,
-			    -1);
+						snd_hw_rule_channels, NULL,
+						SNDRV_PCM_HW_PARAM_CHANNELS,
+						-1);
 
 	cs4215_open(dbri);
 
@@ -2072,7 +2264,7 @@ static int snd_dbri_close(struct snd_pcm_substream *substream)
 }
 
 static int snd_dbri_hw_params(struct snd_pcm_substream *substream,
-			      struct snd_pcm_hw_params *hw_params)
+							  struct snd_pcm_hw_params *hw_params)
 {
 	struct snd_pcm_runtime *runtime = substream->runtime;
 	struct snd_dbri *dbri = snd_pcm_substream_chip(substream);
@@ -2082,35 +2274,44 @@ static int snd_dbri_hw_params(struct snd_pcm_substream *substream,
 
 	/* set sampling rate, audio format and number of channels */
 	ret = cs4215_prepare(dbri, params_rate(hw_params),
-			     params_format(hw_params),
-			     params_channels(hw_params));
+						 params_format(hw_params),
+						 params_channels(hw_params));
+
 	if (ret != 0)
+	{
 		return ret;
+	}
 
 	if ((ret = snd_pcm_lib_malloc_pages(substream,
-				params_buffer_bytes(hw_params))) < 0) {
+										params_buffer_bytes(hw_params))) < 0)
+	{
 		printk(KERN_ERR "malloc_pages failed with %d\n", ret);
 		return ret;
 	}
 
 	/* hw_params can get called multiple times. Only map the DMA once.
 	 */
-	if (info->dvma_buffer == 0) {
+	if (info->dvma_buffer == 0)
+	{
 		if (DBRI_STREAMNO(substream) == DBRI_PLAY)
+		{
 			direction = DMA_TO_DEVICE;
+		}
 		else
+		{
 			direction = DMA_FROM_DEVICE;
+		}
 
 		info->dvma_buffer =
 			dma_map_single(&dbri->op->dev,
-				       runtime->dma_area,
-				       params_buffer_bytes(hw_params),
-				       direction);
+						   runtime->dma_area,
+						   params_buffer_bytes(hw_params),
+						   direction);
 	}
 
 	direction = params_buffer_bytes(hw_params);
 	dprintk(D_USR, "hw_params: %d bytes, dvma=%x\n",
-		direction, info->dvma_buffer);
+			direction, info->dvma_buffer);
 	return 0;
 }
 
@@ -2124,17 +2325,24 @@ static int snd_dbri_hw_free(struct snd_pcm_substream *substream)
 
 	/* hw_free can get called multiple times. Only unmap the DMA once.
 	 */
-	if (info->dvma_buffer) {
+	if (info->dvma_buffer)
+	{
 		if (DBRI_STREAMNO(substream) == DBRI_PLAY)
+		{
 			direction = DMA_TO_DEVICE;
+		}
 		else
+		{
 			direction = DMA_FROM_DEVICE;
+		}
 
 		dma_unmap_single(&dbri->op->dev, info->dvma_buffer,
-				 substream->runtime->buffer_size, direction);
+						 substream->runtime->buffer_size, direction);
 		info->dvma_buffer = 0;
 	}
-	if (info->pipe != -1) {
+
+	if (info->pipe != -1)
+	{
 		reset_pipe(dbri, info->pipe);
 		info->pipe = -1;
 	}
@@ -2149,10 +2357,15 @@ static int snd_dbri_prepare(struct snd_pcm_substream *substream)
 	int ret;
 
 	info->size = snd_pcm_lib_buffer_bytes(substream);
+
 	if (DBRI_STREAMNO(substream) == DBRI_PLAY)
-		info->pipe = 4;	/* Send pipe */
+	{
+		info->pipe = 4;    /* Send pipe */
+	}
 	else
-		info->pipe = 6;	/* Receive pipe */
+	{
+		info->pipe = 6;    /* Receive pipe */
+	}
 
 	spin_lock_irq(&dbri->lock);
 	info->offset = 0;
@@ -2161,7 +2374,7 @@ static int snd_dbri_prepare(struct snd_pcm_substream *substream)
 	 * whole DMA buffer.
 	 */
 	ret = setup_descs(dbri, DBRI_STREAMNO(substream),
-			  snd_pcm_lib_period_bytes(substream));
+					  snd_pcm_lib_period_bytes(substream));
 
 	spin_unlock_irq(&dbri->lock);
 
@@ -2175,19 +2388,22 @@ static int snd_dbri_trigger(struct snd_pcm_substream *substream, int cmd)
 	struct dbri_streaminfo *info = DBRI_STREAM(dbri, substream);
 	int ret = 0;
 
-	switch (cmd) {
-	case SNDRV_PCM_TRIGGER_START:
-		dprintk(D_USR, "start audio, period is %d bytes\n",
-			(int)snd_pcm_lib_period_bytes(substream));
-		/* Re-submit the TDs. */
-		xmit_descs(dbri);
-		break;
-	case SNDRV_PCM_TRIGGER_STOP:
-		dprintk(D_USR, "stop audio.\n");
-		reset_pipe(dbri, info->pipe);
-		break;
-	default:
-		ret = -EINVAL;
+	switch (cmd)
+	{
+		case SNDRV_PCM_TRIGGER_START:
+			dprintk(D_USR, "start audio, period is %d bytes\n",
+					(int)snd_pcm_lib_period_bytes(substream));
+			/* Re-submit the TDs. */
+			xmit_descs(dbri);
+			break;
+
+		case SNDRV_PCM_TRIGGER_STOP:
+			dprintk(D_USR, "stop audio.\n");
+			reset_pipe(dbri, info->pipe);
+			break;
+
+		default:
+			ret = -EINVAL;
 	}
 
 	return ret;
@@ -2200,13 +2416,14 @@ static snd_pcm_uframes_t snd_dbri_pointer(struct snd_pcm_substream *substream)
 	snd_pcm_uframes_t ret;
 
 	ret = bytes_to_frames(substream->runtime, info->offset)
-		% substream->runtime->buffer_size;
+		  % substream->runtime->buffer_size;
 	dprintk(D_USR, "I/O pointer: %ld frames of %ld.\n",
-		ret, substream->runtime->buffer_size);
+			ret, substream->runtime->buffer_size);
 	return ret;
 }
 
-static struct snd_pcm_ops snd_dbri_ops = {
+static struct snd_pcm_ops snd_dbri_ops =
+{
 	.open = snd_dbri_open,
 	.close = snd_dbri_close,
 	.ioctl = snd_pcm_lib_ioctl,
@@ -2223,11 +2440,13 @@ static int snd_dbri_pcm(struct snd_card *card)
 	int err;
 
 	if ((err = snd_pcm_new(card,
-			       /* ID */		    "sun_dbri",
-			       /* device */	    0,
-			       /* playback count */ 1,
-			       /* capture count */  1, &pcm)) < 0)
+						   /* ID */		    "sun_dbri",
+						   /* device */	    0,
+						   /* playback count */ 1,
+						   /* capture count */  1, &pcm)) < 0)
+	{
 		return err;
+	}
 
 	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_PLAYBACK, &snd_dbri_ops);
 	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_CAPTURE, &snd_dbri_ops);
@@ -2237,10 +2456,12 @@ static int snd_dbri_pcm(struct snd_card *card)
 	strcpy(pcm->name, card->shortname);
 
 	if ((err = snd_pcm_lib_preallocate_pages_for_all(pcm,
-			SNDRV_DMA_TYPE_CONTINUOUS,
-			snd_dma_continuous_data(GFP_KERNEL),
-			64 * 1024, 64 * 1024)) < 0)
+			   SNDRV_DMA_TYPE_CONTINUOUS,
+			   snd_dma_continuous_data(GFP_KERNEL),
+			   64 * 1024, 64 * 1024)) < 0)
+	{
 		return err;
+	}
 
 	return 0;
 }
@@ -2250,26 +2471,35 @@ static int snd_dbri_pcm(struct snd_card *card)
 *****************************************************************************/
 
 static int snd_cs4215_info_volume(struct snd_kcontrol *kcontrol,
-				  struct snd_ctl_elem_info *uinfo)
+								  struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
 	uinfo->count = 2;
 	uinfo->value.integer.min = 0;
+
 	if (kcontrol->private_value == DBRI_PLAY)
+	{
 		uinfo->value.integer.max = DBRI_MAX_VOLUME;
+	}
 	else
+	{
 		uinfo->value.integer.max = DBRI_MAX_GAIN;
+	}
+
 	return 0;
 }
 
 static int snd_cs4215_get_volume(struct snd_kcontrol *kcontrol,
-				 struct snd_ctl_elem_value *ucontrol)
+								 struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_dbri *dbri = snd_kcontrol_chip(kcontrol);
 	struct dbri_streaminfo *info;
 
 	if (snd_BUG_ON(!dbri))
+	{
 		return -EINVAL;
+	}
+
 	info = &dbri->stream_info[kcontrol->private_value];
 
 	ucontrol->value.integer.value[0] = info->left_gain;
@@ -2278,33 +2508,46 @@ static int snd_cs4215_get_volume(struct snd_kcontrol *kcontrol,
 }
 
 static int snd_cs4215_put_volume(struct snd_kcontrol *kcontrol,
-				 struct snd_ctl_elem_value *ucontrol)
+								 struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_dbri *dbri = snd_kcontrol_chip(kcontrol);
 	struct dbri_streaminfo *info =
-				&dbri->stream_info[kcontrol->private_value];
+			&dbri->stream_info[kcontrol->private_value];
 	unsigned int vol[2];
 	int changed = 0;
 
 	vol[0] = ucontrol->value.integer.value[0];
 	vol[1] = ucontrol->value.integer.value[1];
-	if (kcontrol->private_value == DBRI_PLAY) {
+
+	if (kcontrol->private_value == DBRI_PLAY)
+	{
 		if (vol[0] > DBRI_MAX_VOLUME || vol[1] > DBRI_MAX_VOLUME)
+		{
 			return -EINVAL;
-	} else {
+		}
+	}
+	else
+	{
 		if (vol[0] > DBRI_MAX_GAIN || vol[1] > DBRI_MAX_GAIN)
+		{
 			return -EINVAL;
+		}
 	}
 
-	if (info->left_gain != vol[0]) {
+	if (info->left_gain != vol[0])
+	{
 		info->left_gain = vol[0];
 		changed = 1;
 	}
-	if (info->right_gain != vol[1]) {
+
+	if (info->right_gain != vol[1])
+	{
 		info->right_gain = vol[1];
 		changed = 1;
 	}
-	if (changed) {
+
+	if (changed)
+	{
 		/* First mute outputs, and wait 1/8000 sec (125 us)
 		 * to make sure this takes.  This avoids clicking noises.
 		 */
@@ -2312,16 +2555,17 @@ static int snd_cs4215_put_volume(struct snd_kcontrol *kcontrol,
 		udelay(125);
 		cs4215_setdata(dbri, 0);
 	}
+
 	return changed;
 }
 
 static int snd_cs4215_info_single(struct snd_kcontrol *kcontrol,
-				  struct snd_ctl_elem_info *uinfo)
+								  struct snd_ctl_elem_info *uinfo)
 {
 	int mask = (kcontrol->private_value >> 16) & 0xff;
 
 	uinfo->type = (mask == 1) ?
-	    SNDRV_CTL_ELEM_TYPE_BOOLEAN : SNDRV_CTL_ELEM_TYPE_INTEGER;
+				  SNDRV_CTL_ELEM_TYPE_BOOLEAN : SNDRV_CTL_ELEM_TYPE_INTEGER;
 	uinfo->count = 1;
 	uinfo->value.integer.min = 0;
 	uinfo->value.integer.max = mask;
@@ -2329,7 +2573,7 @@ static int snd_cs4215_info_single(struct snd_kcontrol *kcontrol,
 }
 
 static int snd_cs4215_get_single(struct snd_kcontrol *kcontrol,
-				 struct snd_ctl_elem_value *ucontrol)
+								 struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_dbri *dbri = snd_kcontrol_chip(kcontrol);
 	int elem = kcontrol->private_value & 0xff;
@@ -2338,23 +2582,26 @@ static int snd_cs4215_get_single(struct snd_kcontrol *kcontrol,
 	int invert = (kcontrol->private_value >> 24) & 1;
 
 	if (snd_BUG_ON(!dbri))
+	{
 		return -EINVAL;
+	}
 
 	if (elem < 4)
 		ucontrol->value.integer.value[0] =
-		    (dbri->mm.data[elem] >> shift) & mask;
+			(dbri->mm.data[elem] >> shift) & mask;
 	else
 		ucontrol->value.integer.value[0] =
-		    (dbri->mm.ctrl[elem - 4] >> shift) & mask;
+			(dbri->mm.ctrl[elem - 4] >> shift) & mask;
 
 	if (invert == 1)
 		ucontrol->value.integer.value[0] =
-		    mask - ucontrol->value.integer.value[0];
+			mask - ucontrol->value.integer.value[0];
+
 	return 0;
 }
 
 static int snd_cs4215_put_single(struct snd_kcontrol *kcontrol,
-				 struct snd_ctl_elem_value *ucontrol)
+								 struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_dbri *dbri = snd_kcontrol_chip(kcontrol);
 	int elem = kcontrol->private_value & 0xff;
@@ -2365,29 +2612,39 @@ static int snd_cs4215_put_single(struct snd_kcontrol *kcontrol,
 	unsigned short val;
 
 	if (snd_BUG_ON(!dbri))
+	{
 		return -EINVAL;
+	}
 
 	val = (ucontrol->value.integer.value[0] & mask);
+
 	if (invert == 1)
+	{
 		val = mask - val;
+	}
+
 	val <<= shift;
 
-	if (elem < 4) {
+	if (elem < 4)
+	{
 		dbri->mm.data[elem] = (dbri->mm.data[elem] &
-				       ~(mask << shift)) | val;
+							   ~(mask << shift)) | val;
 		changed = (val != dbri->mm.data[elem]);
-	} else {
+	}
+	else
+	{
 		dbri->mm.ctrl[elem - 4] = (dbri->mm.ctrl[elem - 4] &
-					   ~(mask << shift)) | val;
+								   ~(mask << shift)) | val;
 		changed = (val != dbri->mm.ctrl[elem - 4]);
 	}
 
 	dprintk(D_GEN, "put_single: mask=0x%x, changed=%d, "
-		"mixer-value=%ld, mm-value=0x%x\n",
-		mask, changed, ucontrol->value.integer.value[0],
-		dbri->mm.data[elem & 3]);
+			"mixer-value=%ld, mm-value=0x%x\n",
+			mask, changed, ucontrol->value.integer.value[0],
+			dbri->mm.data[elem & 3]);
 
-	if (changed) {
+	if (changed)
+	{
 		/* First mute outputs, and wait 1/8000 sec (125 us)
 		 * to make sure this takes.  This avoids clicking noises.
 		 */
@@ -2395,6 +2652,7 @@ static int snd_cs4215_put_single(struct snd_kcontrol *kcontrol,
 		udelay(125);
 		cs4215_setdata(dbri, 0);
 	}
+
 	return changed;
 }
 
@@ -2403,32 +2661,33 @@ static int snd_cs4215_put_single(struct snd_kcontrol *kcontrol,
    number of bits. invert is a boolean for use with attenuation.
  */
 #define CS4215_SINGLE(xname, entry, shift, mask, invert)	\
-{ .iface = SNDRV_CTL_ELEM_IFACE_MIXER, .name = (xname),		\
-  .info = snd_cs4215_info_single,				\
-  .get = snd_cs4215_get_single, .put = snd_cs4215_put_single,	\
-  .private_value = (entry) | ((shift) << 8) | ((mask) << 16) |	\
-			((invert) << 24) },
+	{ .iface = SNDRV_CTL_ELEM_IFACE_MIXER, .name = (xname),		\
+				.info = snd_cs4215_info_single,				\
+						.get = snd_cs4215_get_single, .put = snd_cs4215_put_single,	\
+								.private_value = (entry) | ((shift) << 8) | ((mask) << 16) |	\
+										((invert) << 24) },
 
-static struct snd_kcontrol_new dbri_controls[] = {
+static struct snd_kcontrol_new dbri_controls[] =
+{
 	{
-	 .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
-	 .name  = "Playback Volume",
-	 .info  = snd_cs4215_info_volume,
-	 .get   = snd_cs4215_get_volume,
-	 .put   = snd_cs4215_put_volume,
-	 .private_value = DBRI_PLAY,
-	 },
+		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+		.name  = "Playback Volume",
+		.info  = snd_cs4215_info_volume,
+		.get   = snd_cs4215_get_volume,
+		.put   = snd_cs4215_put_volume,
+		.private_value = DBRI_PLAY,
+	},
 	CS4215_SINGLE("Headphone switch", 0, 7, 1, 0)
 	CS4215_SINGLE("Line out switch", 0, 6, 1, 0)
 	CS4215_SINGLE("Speaker switch", 1, 6, 1, 0)
 	{
-	 .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
-	 .name  = "Capture Volume",
-	 .info  = snd_cs4215_info_volume,
-	 .get   = snd_cs4215_get_volume,
-	 .put   = snd_cs4215_put_volume,
-	 .private_value = DBRI_REC,
-	 },
+		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+		.name  = "Capture Volume",
+		.info  = snd_cs4215_info_volume,
+		.get   = snd_cs4215_get_volume,
+		.put   = snd_cs4215_put_volume,
+		.private_value = DBRI_REC,
+	},
 	/* FIXME: mic/line switch */
 	CS4215_SINGLE("Line in switch", 2, 4, 1, 0)
 	CS4215_SINGLE("High Pass Filter switch", 5, 7, 1, 0)
@@ -2442,19 +2701,27 @@ static int snd_dbri_mixer(struct snd_card *card)
 	struct snd_dbri *dbri;
 
 	if (snd_BUG_ON(!card || !card->private_data))
+	{
 		return -EINVAL;
+	}
+
 	dbri = card->private_data;
 
 	strcpy(card->mixername, card->shortname);
 
-	for (idx = 0; idx < ARRAY_SIZE(dbri_controls); idx++) {
+	for (idx = 0; idx < ARRAY_SIZE(dbri_controls); idx++)
+	{
 		err = snd_ctl_add(card,
-				snd_ctl_new1(&dbri_controls[idx], dbri));
+						  snd_ctl_new1(&dbri_controls[idx], dbri));
+
 		if (err < 0)
+		{
 			return err;
+		}
 	}
 
-	for (idx = DBRI_REC; idx < DBRI_NO_STREAMS; idx++) {
+	for (idx = DBRI_REC; idx < DBRI_NO_STREAMS; idx++)
+	{
 		dbri->stream_info[idx].left_gain = 0;
 		dbri->stream_info[idx].right_gain = 0;
 	}
@@ -2466,7 +2733,7 @@ static int snd_dbri_mixer(struct snd_card *card)
 			/proc interface
 ****************************************************************************/
 static void dbri_regs_read(struct snd_info_entry *entry,
-			   struct snd_info_buffer *buffer)
+						   struct snd_info_buffer *buffer)
 {
 	struct snd_dbri *dbri = entry->private_data;
 
@@ -2478,23 +2745,25 @@ static void dbri_regs_read(struct snd_info_entry *entry,
 
 #ifdef DBRI_DEBUG
 static void dbri_debug_read(struct snd_info_entry *entry,
-			    struct snd_info_buffer *buffer)
+							struct snd_info_buffer *buffer)
 {
 	struct snd_dbri *dbri = entry->private_data;
 	int pipe;
 	snd_iprintf(buffer, "debug=%d\n", dbri_debug);
 
-	for (pipe = 0; pipe < 32; pipe++) {
-		if (pipe_active(dbri, pipe)) {
+	for (pipe = 0; pipe < 32; pipe++)
+	{
+		if (pipe_active(dbri, pipe))
+		{
 			struct dbri_pipe *pptr = &dbri->pipes[pipe];
 			snd_iprintf(buffer,
-				    "Pipe %d: %s SDP=0x%x desc=%d, "
-				    "len=%d next %d\n",
-				    pipe,
-				   (pptr->sdp & D_SDP_TO_SER) ? "output" :
-								 "input",
-				    pptr->sdp, pptr->desc,
-				    pptr->length, pptr->nextpipe);
+						"Pipe %d: %s SDP=0x%x desc=%d, "
+						"len=%d next %d\n",
+						pipe,
+						(pptr->sdp & D_SDP_TO_SER) ? "output" :
+						"input",
+						pptr->sdp, pptr->desc,
+						pptr->length, pptr->nextpipe);
 		}
 	}
 }
@@ -2506,13 +2775,18 @@ static void snd_dbri_proc(struct snd_card *card)
 	struct snd_info_entry *entry;
 
 	if (!snd_card_proc_new(card, "regs", &entry))
+	{
 		snd_info_set_text_ops(entry, dbri, dbri_regs_read);
+	}
 
 #ifdef DBRI_DEBUG
-	if (!snd_card_proc_new(card, "debug", &entry)) {
+
+	if (!snd_card_proc_new(card, "debug", &entry))
+	{
 		snd_info_set_text_ops(entry, dbri, dbri_debug_read);
 		entry->mode = S_IFREG | S_IRUGO;	/* Readable only. */
 	}
+
 #endif
 }
 
@@ -2524,8 +2798,8 @@ static void snd_dbri_proc(struct snd_card *card)
 static void snd_dbri_free(struct snd_dbri *dbri);
 
 static int snd_dbri_create(struct snd_card *card,
-			   struct platform_device *op,
-			   int irq, int dev)
+						   struct platform_device *op,
+						   int irq, int dev)
 {
 	struct snd_dbri *dbri = card->private_data;
 	int err;
@@ -2535,38 +2809,47 @@ static int snd_dbri_create(struct snd_card *card,
 	dbri->irq = irq;
 
 	dbri->dma = dma_zalloc_coherent(&op->dev, sizeof(struct dbri_dma),
-					&dbri->dma_dvma, GFP_ATOMIC);
+									&dbri->dma_dvma, GFP_ATOMIC);
+
 	if (!dbri->dma)
+	{
 		return -ENOMEM;
+	}
 
 	dprintk(D_GEN, "DMA Cmd Block 0x%p (0x%08x)\n",
-		dbri->dma, dbri->dma_dvma);
+			dbri->dma, dbri->dma_dvma);
 
 	/* Map the registers into memory. */
 	dbri->regs_size = resource_size(&op->resource[0]);
 	dbri->regs = of_ioremap(&op->resource[0], 0,
-				dbri->regs_size, "DBRI Registers");
-	if (!dbri->regs) {
+							dbri->regs_size, "DBRI Registers");
+
+	if (!dbri->regs)
+	{
 		printk(KERN_ERR "DBRI: could not allocate registers\n");
 		dma_free_coherent(&op->dev, sizeof(struct dbri_dma),
-				  (void *)dbri->dma, dbri->dma_dvma);
+						  (void *)dbri->dma, dbri->dma_dvma);
 		return -EIO;
 	}
 
 	err = request_irq(dbri->irq, snd_dbri_interrupt, IRQF_SHARED,
-			  "DBRI audio", dbri);
-	if (err) {
+					  "DBRI audio", dbri);
+
+	if (err)
+	{
 		printk(KERN_ERR "DBRI: Can't get irq %d\n", dbri->irq);
 		of_iounmap(&op->resource[0], dbri->regs, dbri->regs_size);
 		dma_free_coherent(&op->dev, sizeof(struct dbri_dma),
-				  (void *)dbri->dma, dbri->dma_dvma);
+						  (void *)dbri->dma, dbri->dma_dvma);
 		return err;
 	}
 
 	/* Do low level initialization of the DBRI and CS4215 chips */
 	dbri_initialize(dbri);
 	err = cs4215_init(dbri);
-	if (err) {
+
+	if (err)
+	{
 		snd_dbri_free(dbri);
 		return err;
 	}
@@ -2580,15 +2863,19 @@ static void snd_dbri_free(struct snd_dbri *dbri)
 	dbri_reset(dbri);
 
 	if (dbri->irq)
+	{
 		free_irq(dbri->irq, dbri);
+	}
 
 	if (dbri->regs)
+	{
 		of_iounmap(&dbri->op->resource[0], dbri->regs, dbri->regs_size);
+	}
 
 	if (dbri->dma)
 		dma_free_coherent(&dbri->op->dev,
-				  sizeof(struct dbri_dma),
-				  (void *)dbri->dma, dbri->dma_dvma);
+						  sizeof(struct dbri_dma),
+						  (void *)dbri->dma, dbri->dma_dvma);
 }
 
 static int dbri_probe(struct platform_device *op)
@@ -2601,56 +2888,76 @@ static int dbri_probe(struct platform_device *op)
 	int err;
 
 	if (dev >= SNDRV_CARDS)
+	{
 		return -ENODEV;
-	if (!enable[dev]) {
+	}
+
+	if (!enable[dev])
+	{
 		dev++;
 		return -ENOENT;
 	}
 
 	irq = op->archdata.irqs[0];
-	if (irq <= 0) {
+
+	if (irq <= 0)
+	{
 		printk(KERN_ERR "DBRI-%d: No IRQ.\n", dev);
 		return -ENODEV;
 	}
 
 	err = snd_card_new(&op->dev, index[dev], id[dev], THIS_MODULE,
-			   sizeof(struct snd_dbri), &card);
+					   sizeof(struct snd_dbri), &card);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	strcpy(card->driver, "DBRI");
 	strcpy(card->shortname, "Sun DBRI");
 	rp = &op->resource[0];
 	sprintf(card->longname, "%s at 0x%02lx:0x%016Lx, irq %d",
-		card->shortname,
-		rp->flags & 0xffL, (unsigned long long)rp->start, irq);
+			card->shortname,
+			rp->flags & 0xffL, (unsigned long long)rp->start, irq);
 
 	err = snd_dbri_create(card, op, irq, dev);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		snd_card_free(card);
 		return err;
 	}
 
 	dbri = card->private_data;
 	err = snd_dbri_pcm(card);
+
 	if (err < 0)
+	{
 		goto _err;
+	}
 
 	err = snd_dbri_mixer(card);
+
 	if (err < 0)
+	{
 		goto _err;
+	}
 
 	/* /proc file handling */
 	snd_dbri_proc(card);
 	dev_set_drvdata(&op->dev, card);
 
 	err = snd_card_register(card);
+
 	if (err < 0)
+	{
 		goto _err;
+	}
 
 	printk(KERN_INFO "audio%d at %p (irq %d) is DBRI(%c)+CS4215(%d)\n",
-	       dev, dbri->regs,
-	       dbri->irq, op->dev.of_node->name[9], dbri->mm.version);
+		   dev, dbri->regs,
+		   dbri->irq, op->dev.of_node->name[9], dbri->mm.version);
 	dev++;
 
 	return 0;
@@ -2671,7 +2978,8 @@ static int dbri_remove(struct platform_device *op)
 	return 0;
 }
 
-static const struct of_device_id dbri_match[] = {
+static const struct of_device_id dbri_match[] =
+{
 	{
 		.name = "SUNW,DBRIe",
 	},
@@ -2683,7 +2991,8 @@ static const struct of_device_id dbri_match[] = {
 
 MODULE_DEVICE_TABLE(of, dbri_match);
 
-static struct platform_driver dbri_sbus_driver = {
+static struct platform_driver dbri_sbus_driver =
+{
 	.driver = {
 		.name = "dbri",
 		.of_match_table = dbri_match,

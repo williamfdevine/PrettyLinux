@@ -72,7 +72,9 @@ static void config_data_swab(struct rsxx_card_cfg *cfg)
 	int i;
 
 	for (i = 0; i < (sizeof(cfg->data) / 4); i++)
+	{
 		data[i] = swab32(data[i]);
+	}
 }
 
 static void config_data_le_to_cpu(struct rsxx_card_cfg *cfg)
@@ -81,7 +83,9 @@ static void config_data_le_to_cpu(struct rsxx_card_cfg *cfg)
 	int i;
 
 	for (i = 0; i < (sizeof(cfg->data) / 4); i++)
+	{
 		data[i] = le32_to_cpu((__force __le32) data[i]);
+	}
 }
 
 static void config_data_cpu_to_le(struct rsxx_card_cfg *cfg)
@@ -90,7 +94,9 @@ static void config_data_cpu_to_le(struct rsxx_card_cfg *cfg)
 	int i;
 
 	for (i = 0; i < (sizeof(cfg->data) / 4); i++)
+	{
 		data[i] = (__force u32) cpu_to_le32(data[i]);
+	}
 }
 
 
@@ -102,10 +108,11 @@ static int rsxx_save_config(struct rsxx_cardinfo *card)
 
 	memcpy(&cfg, &card->config, sizeof(cfg));
 
-	if (unlikely(cfg.hdr.version != RSXX_CFG_VERSION)) {
+	if (unlikely(cfg.hdr.version != RSXX_CFG_VERSION))
+	{
 		dev_err(CARD_TO_DEV(card),
-			"Cannot save config with invalid version %d\n",
-			cfg.hdr.version);
+				"Cannot save config with invalid version %d\n",
+				cfg.hdr.version);
 		return -EINVAL;
 	}
 
@@ -122,8 +129,11 @@ static int rsxx_save_config(struct rsxx_cardinfo *card)
 	config_hdr_cpu_to_be(&cfg.hdr);
 
 	st = rsxx_creg_write(card, CREG_ADD_CONFIG, sizeof(cfg), &cfg, 1);
+
 	if (st)
+	{
 		return st;
+	}
 
 	return 0;
 }
@@ -134,16 +144,19 @@ int rsxx_load_config(struct rsxx_cardinfo *card)
 	u32 crc;
 
 	st = rsxx_creg_read(card, CREG_ADD_CONFIG, sizeof(card->config),
-				&card->config, 1);
-	if (st) {
+						&card->config, 1);
+
+	if (st)
+	{
 		dev_err(CARD_TO_DEV(card),
-			"Failed reading card config.\n");
+				"Failed reading card config.\n");
 		return st;
 	}
 
 	config_hdr_be_to_cpu(&card->config.hdr);
 
-	if (card->config.hdr.version == RSXX_CFG_VERSION) {
+	if (card->config.hdr.version == RSXX_CFG_VERSION)
+	{
 		/*
 		 * We calculate the CRC with the data in little endian, because
 		 * early drivers did not take big endian CPUs into account.
@@ -155,56 +168,65 @@ int rsxx_load_config(struct rsxx_cardinfo *card)
 
 		/* Check the CRC */
 		crc = config_data_crc32(&card->config);
-		if (crc != card->config.hdr.crc) {
+
+		if (crc != card->config.hdr.crc)
+		{
 			dev_err(CARD_TO_DEV(card),
-				"Config corruption detected!\n");
+					"Config corruption detected!\n");
 			dev_info(CARD_TO_DEV(card),
-				"CRC (sb x%08x is x%08x)\n",
-				card->config.hdr.crc, crc);
+					 "CRC (sb x%08x is x%08x)\n",
+					 card->config.hdr.crc, crc);
 			return -EIO;
 		}
 
 		/* Convert the data to CPU byteorder */
 		config_data_le_to_cpu(&card->config);
 
-	} else if (card->config.hdr.version != 0) {
+	}
+	else if (card->config.hdr.version != 0)
+	{
 		dev_err(CARD_TO_DEV(card),
-			"Invalid config version %d.\n",
-			card->config.hdr.version);
+				"Invalid config version %d.\n",
+				card->config.hdr.version);
 		/*
 		 * Config version changes require special handling from the
 		 * user
 		 */
 		return -EINVAL;
-	} else {
+	}
+	else
+	{
 		dev_info(CARD_TO_DEV(card),
-			"Initializing card configuration.\n");
+				 "Initializing card configuration.\n");
 		initialize_config(&card->config);
 		st = rsxx_save_config(card);
+
 		if (st)
+		{
 			return st;
+		}
 	}
 
 	card->config_valid = 1;
 
 	dev_dbg(CARD_TO_DEV(card), "version:     x%08x\n",
-		card->config.hdr.version);
+			card->config.hdr.version);
 	dev_dbg(CARD_TO_DEV(card), "crc:         x%08x\n",
-		card->config.hdr.crc);
+			card->config.hdr.crc);
 	dev_dbg(CARD_TO_DEV(card), "block_size:  x%08x\n",
-		card->config.data.block_size);
+			card->config.data.block_size);
 	dev_dbg(CARD_TO_DEV(card), "stripe_size: x%08x\n",
-		card->config.data.stripe_size);
+			card->config.data.stripe_size);
 	dev_dbg(CARD_TO_DEV(card), "vendor_id:   x%08x\n",
-		card->config.data.vendor_id);
+			card->config.data.vendor_id);
 	dev_dbg(CARD_TO_DEV(card), "cache_order: x%08x\n",
-		card->config.data.cache_order);
+			card->config.data.cache_order);
 	dev_dbg(CARD_TO_DEV(card), "mode:        x%08x\n",
-		card->config.data.intr_coal.mode);
+			card->config.data.intr_coal.mode);
 	dev_dbg(CARD_TO_DEV(card), "count:       x%08x\n",
-		card->config.data.intr_coal.count);
+			card->config.data.intr_coal.count);
 	dev_dbg(CARD_TO_DEV(card), "latency:     x%08x\n",
-		 card->config.data.intr_coal.latency);
+			card->config.data.intr_coal.latency);
 
 	return 0;
 }

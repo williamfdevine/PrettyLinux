@@ -80,13 +80,14 @@
 #define MAX_HACTIVE (0x3FF & -4)
 
 #define BTTV_NORMS    (\
-		V4L2_STD_PAL    | V4L2_STD_PAL_N | \
-		V4L2_STD_PAL_Nc | V4L2_STD_SECAM | \
-		V4L2_STD_NTSC   | V4L2_STD_PAL_M | \
-		V4L2_STD_PAL_60)
+					   V4L2_STD_PAL    | V4L2_STD_PAL_N | \
+					   V4L2_STD_PAL_Nc | V4L2_STD_SECAM | \
+					   V4L2_STD_NTSC   | V4L2_STD_PAL_M | \
+					   V4L2_STD_PAL_60)
 /* ---------------------------------------------------------- */
 
-struct bttv_tvnorm {
+struct bttv_tvnorm
+{
 	int   v4l2_id;
 	char  *name;
 	u32   Fsc;
@@ -110,17 +111,19 @@ struct bttv_tvnorm {
 };
 extern const struct bttv_tvnorm bttv_tvnorms[];
 
-struct bttv_format {
+struct bttv_format
+{
 	char *name;
 	int  fourcc;          /* video4linux 2      */
 	int  btformat;        /* BT848_COLOR_FMT_*  */
 	int  btswap;          /* BT848_COLOR_CTL_*  */
 	int  depth;           /* bit/pixel          */
 	int  flags;
-	int  hshift,vshift;   /* for planar modes   */
+	int  hshift, vshift;  /* for planar modes   */
 };
 
-struct bttv_ir {
+struct bttv_ir
+{
 	struct rc_dev           *dev;
 	struct timer_list       timer;
 
@@ -147,13 +150,15 @@ struct bttv_ir {
 
 /* ---------------------------------------------------------- */
 
-struct bttv_geometry {
-	u8  vtc,crop,comb;
-	u16 width,hscale,hdelay;
-	u16 sheight,vscale,vdelay,vtotal;
+struct bttv_geometry
+{
+	u8  vtc, crop, comb;
+	u16 width, hscale, hdelay;
+	u16 sheight, vscale, vdelay, vtotal;
 };
 
-struct bttv_buffer {
+struct bttv_buffer
+{
 	/* common v4l buffer stuff -- must be first */
 	struct videobuf_buffer     vb;
 
@@ -170,14 +175,16 @@ struct bttv_buffer {
 	unsigned int               vbi_count[2];
 };
 
-struct bttv_buffer_set {
+struct bttv_buffer_set
+{
 	struct bttv_buffer     *top;       /* top field buffer    */
 	struct bttv_buffer     *bottom;    /* bottom field buffer */
 	unsigned int           top_irq;
 	unsigned int           frame_irq;
 };
 
-struct bttv_overlay {
+struct bttv_overlay
+{
 	unsigned int           tvnorm;
 	struct v4l2_rect       w;
 	enum v4l2_field        field;
@@ -186,7 +193,8 @@ struct bttv_overlay {
 	int                    setup_ok;
 };
 
-struct bttv_vbi_fmt {
+struct bttv_vbi_fmt
+{
 	struct v4l2_vbi_format fmt;
 
 	/* fmt.start[] and count[] refer to this video standard. */
@@ -200,7 +208,8 @@ struct bttv_vbi_fmt {
 /* bttv-vbi.c */
 void bttv_vbi_fmt_reset(struct bttv_vbi_fmt *f, unsigned int norm);
 
-struct bttv_crop {
+struct bttv_crop
+{
 	/* A cropping rectangle in struct bttv_tvnorm.cropcap units. */
 	struct v4l2_rect       rect;
 
@@ -214,7 +223,8 @@ struct bttv_crop {
 	__s32                  max_scaled_height;
 };
 
-struct bttv_fh {
+struct bttv_fh
+{
 	/* This must be the first field in this struct */
 	struct v4l2_fh		 fh;
 
@@ -248,30 +258,30 @@ struct bttv_fh {
 
 /* risc code generators - capture */
 int bttv_risc_packed(struct bttv *btv, struct btcx_riscmem *risc,
-		     struct scatterlist *sglist,
-		     unsigned int offset, unsigned int bpl,
-		     unsigned int pitch, unsigned int skip_lines,
-		     unsigned int store_lines);
+					 struct scatterlist *sglist,
+					 unsigned int offset, unsigned int bpl,
+					 unsigned int pitch, unsigned int skip_lines,
+					 unsigned int store_lines);
 
 /* control dma register + risc main loop */
 void bttv_set_dma(struct bttv *btv, int override);
 int bttv_risc_init_main(struct bttv *btv);
 int bttv_risc_hook(struct bttv *btv, int slot, struct btcx_riscmem *risc,
-		   int irqflags);
+				   int irqflags);
 
 /* capture buffer handling */
 int bttv_buffer_risc(struct bttv *btv, struct bttv_buffer *buf);
 int bttv_buffer_activate_video(struct bttv *btv,
-			       struct bttv_buffer_set *set);
+							   struct bttv_buffer_set *set);
 int bttv_buffer_activate_vbi(struct bttv *btv,
-			     struct bttv_buffer *vbi);
+							 struct bttv_buffer *vbi);
 void bttv_dma_free(struct videobuf_queue *q, struct bttv *btv,
-		   struct bttv_buffer *buf);
+				   struct bttv_buffer *buf);
 
 /* overlay handling */
 int bttv_overlay_risc(struct bttv *btv, struct bttv_overlay *ov,
-		      const struct bttv_format *fmt,
-		      struct bttv_buffer *buf);
+					  const struct bttv_format *fmt,
+					  struct bttv_buffer *buf);
 
 
 /* ---------------------------------------------------------- */
@@ -315,27 +325,28 @@ extern unsigned int bttv_gpio;
 extern void bttv_gpio_tracking(struct bttv *btv, char *comment);
 
 #define dprintk(fmt, ...)			\
-do {						\
-	if (bttv_debug >= 1)			\
-		pr_debug(fmt, ##__VA_ARGS__);	\
-} while (0)
+	do {						\
+		if (bttv_debug >= 1)			\
+			pr_debug(fmt, ##__VA_ARGS__);	\
+	} while (0)
 #define dprintk_cont(fmt, ...)			\
-do {						\
-	if (bttv_debug >= 1)			\
-		pr_cont(fmt, ##__VA_ARGS__);	\
-} while (0)
+	do {						\
+		if (bttv_debug >= 1)			\
+			pr_cont(fmt, ##__VA_ARGS__);	\
+	} while (0)
 #define d2printk(fmt, ...)			\
-do {						\
-	if (bttv_debug >= 2)			\
-		printk(fmt, ##__VA_ARGS__);	\
-} while (0)
+	do {						\
+		if (bttv_debug >= 2)			\
+			printk(fmt, ##__VA_ARGS__);	\
+	} while (0)
 
 #define BTTV_MAX_FBUF   0x208000
 #define BTTV_TIMEOUT    msecs_to_jiffies(500)    /* 0.5 seconds */
 #define BTTV_FREE_IDLE  msecs_to_jiffies(1000)   /* one second */
 
 
-struct bttv_pll_info {
+struct bttv_pll_info
+{
 	unsigned int pll_ifreq;    /* PLL input frequency        */
 	unsigned int pll_ofreq;    /* PLL output frequency       */
 	unsigned int pll_crystal;  /* Crystal used for input     */
@@ -343,7 +354,8 @@ struct bttv_pll_info {
 };
 
 /* for gpio-connected remote control */
-struct bttv_input {
+struct bttv_input
+{
 	struct input_dev      *dev;
 	char                  name[32];
 	char                  phys[32];
@@ -351,7 +363,8 @@ struct bttv_input {
 	u32                   mask_keydown;
 };
 
-struct bttv_suspend_state {
+struct bttv_suspend_state
+{
 	u32  gpio_enable;
 	u32  gpio_data;
 	int  disabled;
@@ -360,11 +373,13 @@ struct bttv_suspend_state {
 	struct bttv_buffer     *vbi;
 };
 
-struct bttv_tea575x_gpio {
+struct bttv_tea575x_gpio
+{
 	u8 data, clk, wren, most;
 };
 
-struct bttv {
+struct bttv
+{
 	struct bttv_core c;
 
 	/* pci device config */
@@ -377,7 +392,7 @@ struct bttv {
 	unsigned int tuner_type;  /* tuner chip type */
 	unsigned int tda9887_conf;
 	unsigned int svhs, dig;
-	unsigned int has_saa6588:1;
+	unsigned int has_saa6588: 1;
 	struct bttv_pll_info pll;
 	int triton1;
 	int gpioirq;
@@ -518,7 +533,7 @@ extern unsigned int bttv_num;
 extern struct bttv *bttvs[BTTV_MAX];
 
 static inline unsigned int bttv_muxsel(const struct bttv *btv,
-				       unsigned int input)
+									   unsigned int input)
 {
 	return (bttv_tvcards[btv->c.type].muxsel >> (input * 2)) & 3;
 }

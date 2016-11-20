@@ -34,22 +34,23 @@
  * devices that do not raise interrupts but have to be periodically
  * scanned or polled to detect changes in their state.
  */
-struct input_polled_dev {
-	void *private;
+struct input_polled_dev
+{
+		void *private;
 
-	void (*open)(struct input_polled_dev *dev);
-	void (*close)(struct input_polled_dev *dev);
-	void (*poll)(struct input_polled_dev *dev);
-	unsigned int poll_interval; /* msec */
-	unsigned int poll_interval_max; /* msec */
-	unsigned int poll_interval_min; /* msec */
+		void (*open)(struct input_polled_dev *dev);
+		void (*close)(struct input_polled_dev *dev);
+		void (*poll)(struct input_polled_dev *dev);
+		unsigned int poll_interval; /* msec */
+		unsigned int poll_interval_max; /* msec */
+		unsigned int poll_interval_min; /* msec */
 
-	struct input_dev *input;
+		struct input_dev *input;
 
-/* private: */
-	struct delayed_work work;
+		/* private: */
+		struct delayed_work work;
 
-	bool devres_managed;
+		bool devres_managed;
 };
 
 struct input_polled_dev *input_allocate_polled_device(void);

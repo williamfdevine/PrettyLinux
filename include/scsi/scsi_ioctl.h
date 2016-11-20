@@ -1,5 +1,5 @@
 #ifndef _SCSI_IOCTL_H
-#define _SCSI_IOCTL_H 
+#define _SCSI_IOCTL_H
 
 #define SCSI_IOCTL_SEND_COMMAND 1
 #define SCSI_IOCTL_TEST_UNIT_READY 2
@@ -23,19 +23,22 @@ struct scsi_device;
  * Structures used for scsi_ioctl et al.
  */
 
-typedef struct scsi_ioctl_command {
+typedef struct scsi_ioctl_command
+{
 	unsigned int inlen;
 	unsigned int outlen;
 	unsigned char data[0];
 } Scsi_Ioctl_Command;
 
-typedef struct scsi_idlun {
+typedef struct scsi_idlun
+{
 	__u32 dev_id;
 	__u32 host_unique_id;
 } Scsi_Idlun;
 
 /* Fibre Channel WWN, port_id struct */
-typedef struct scsi_fctargaddress {
+typedef struct scsi_fctargaddress
+{
 	__u32 host_port_id;
 	unsigned char host_wwn[8]; // include NULL term.
 } Scsi_FCTargAddress;

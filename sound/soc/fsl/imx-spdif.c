@@ -13,7 +13,8 @@
 #include <linux/of_platform.h>
 #include <sound/soc.h>
 
-struct imx_spdif_data {
+struct imx_spdif_data
+{
 	struct snd_soc_dai_link dai;
 	struct snd_soc_card card;
 };
@@ -25,14 +26,18 @@ static int imx_spdif_audio_probe(struct platform_device *pdev)
 	int ret = 0;
 
 	spdif_np = of_parse_phandle(np, "spdif-controller", 0);
-	if (!spdif_np) {
+
+	if (!spdif_np)
+	{
 		dev_err(&pdev->dev, "failed to find spdif-controller\n");
 		ret = -EINVAL;
 		goto end;
 	}
 
 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
-	if (!data) {
+
+	if (!data)
+	{
 		ret = -ENOMEM;
 		goto end;
 	}
@@ -47,12 +52,17 @@ static int imx_spdif_audio_probe(struct platform_device *pdev)
 	data->dai.capture_only = true;
 
 	if (of_property_read_bool(np, "spdif-out"))
+	{
 		data->dai.capture_only = false;
+	}
 
 	if (of_property_read_bool(np, "spdif-in"))
+	{
 		data->dai.playback_only = false;
+	}
 
-	if (data->dai.playback_only && data->dai.capture_only) {
+	if (data->dai.playback_only && data->dai.capture_only)
+	{
 		dev_err(&pdev->dev, "no enabled S/PDIF DAI link\n");
 		goto end;
 	}
@@ -63,11 +73,16 @@ static int imx_spdif_audio_probe(struct platform_device *pdev)
 	data->card.owner = THIS_MODULE;
 
 	ret = snd_soc_of_parse_card_name(&data->card, "model");
+
 	if (ret)
+	{
 		goto end;
+	}
 
 	ret = devm_snd_soc_register_card(&pdev->dev, &data->card);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "snd_soc_register_card failed: %d\n", ret);
 		goto end;
 	}
@@ -78,13 +93,15 @@ end:
 	return ret;
 }
 
-static const struct of_device_id imx_spdif_dt_ids[] = {
+static const struct of_device_id imx_spdif_dt_ids[] =
+{
 	{ .compatible = "fsl,imx-audio-spdif", },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, imx_spdif_dt_ids);
 
-static struct platform_driver imx_spdif_driver = {
+static struct platform_driver imx_spdif_driver =
+{
 	.driver = {
 		.name = "imx-spdif",
 		.pm = &snd_soc_pm_ops,

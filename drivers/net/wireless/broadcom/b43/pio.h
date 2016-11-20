@@ -55,7 +55,8 @@
 #define B43_PIO_MAX_NR_TXPACKETS	32
 
 
-struct b43_pio_txpacket {
+struct b43_pio_txpacket
+{
 	/* Pointer to the TX queue we belong to. */
 	struct b43_pio_txqueue *queue;
 	/* The TX data packet. */
@@ -66,7 +67,8 @@ struct b43_pio_txpacket {
 	struct list_head list;
 };
 
-struct b43_pio_txqueue {
+struct b43_pio_txqueue
+{
 	struct b43_wldev *dev;
 	u16 mmio_base;
 
@@ -95,7 +97,8 @@ struct b43_pio_txqueue {
 	u8 rev;
 };
 
-struct b43_pio_rxqueue {
+struct b43_pio_rxqueue
+{
 	struct b43_wldev *dev;
 	u16 mmio_base;
 
@@ -116,13 +119,13 @@ static inline u32 b43_piotx_read32(struct b43_pio_txqueue *q, u16 offset)
 }
 
 static inline void b43_piotx_write16(struct b43_pio_txqueue *q,
-				     u16 offset, u16 value)
+									 u16 offset, u16 value)
 {
 	b43_write16(q->dev, q->mmio_base + offset, value);
 }
 
 static inline void b43_piotx_write32(struct b43_pio_txqueue *q,
-				     u16 offset, u32 value)
+									 u16 offset, u32 value)
 {
 	b43_write32(q->dev, q->mmio_base + offset, value);
 }
@@ -139,13 +142,13 @@ static inline u32 b43_piorx_read32(struct b43_pio_rxqueue *q, u16 offset)
 }
 
 static inline void b43_piorx_write16(struct b43_pio_rxqueue *q,
-				     u16 offset, u16 value)
+									 u16 offset, u16 value)
 {
 	b43_write16(q->dev, q->mmio_base + offset, value);
 }
 
 static inline void b43_piorx_write32(struct b43_pio_rxqueue *q,
-				     u16 offset, u32 value)
+									 u16 offset, u32 value)
 {
 	b43_write32(q->dev, q->mmio_base + offset, value);
 }
@@ -156,7 +159,7 @@ void b43_pio_free(struct b43_wldev *dev);
 
 int b43_pio_tx(struct b43_wldev *dev, struct sk_buff *skb);
 void b43_pio_handle_txstatus(struct b43_wldev *dev,
-			     const struct b43_txstatus *status);
+							 const struct b43_txstatus *status);
 void b43_pio_rx(struct b43_pio_rxqueue *q);
 
 void b43_pio_tx_suspend(struct b43_wldev *dev);

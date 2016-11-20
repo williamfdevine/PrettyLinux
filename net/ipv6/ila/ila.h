@@ -23,8 +23,10 @@
 #include <net/protocol.h>
 #include <uapi/linux/ila.h>
 
-struct ila_locator {
-	union {
+struct ila_locator
+{
+	union
+	{
 		__u8            v8[8];
 		__be16          v16[4];
 		__be32          v32[2];
@@ -32,17 +34,20 @@ struct ila_locator {
 	};
 };
 
-struct ila_identifier {
-	union {
-		struct {
+struct ila_identifier
+{
+	union
+	{
+		struct
+		{
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-			u8 __space:4;
-			u8 csum_neutral:1;
-			u8 type:3;
+			u8 __space: 4;
+			u8 csum_neutral: 1;
+			u8 type: 3;
 #elif defined(__BIG_ENDIAN_BITFIELD)
-			u8 type:3;
-			u8 csum_neutral:1;
-			u8 __space:4;
+			u8 type: 3;
+			u8 csum_neutral: 1;
+			u8 __space: 4;
 #else
 #error  "Adjust your <asm/byteorder.h> defines"
 #endif
@@ -55,7 +60,8 @@ struct ila_identifier {
 	};
 };
 
-enum {
+enum
+{
 	ILA_ATYPE_IID = 0,
 	ILA_ATYPE_LUID,
 	ILA_ATYPE_VIRT_V4,
@@ -68,10 +74,13 @@ enum {
 
 #define CSUM_NEUTRAL_FLAG	htonl(0x10000000)
 
-struct ila_addr {
-	union {
+struct ila_addr
+{
+	union
+	{
 		struct in6_addr addr;
-		struct {
+		struct
+		{
 			struct ila_locator loc;
 			struct ila_identifier ident;
 		};
@@ -88,7 +97,8 @@ static inline bool ila_addr_is_ila(struct ila_addr *iaddr)
 	return (iaddr->ident.type != ILA_ATYPE_IID);
 }
 
-struct ila_params {
+struct ila_params
+{
 	struct ila_locator locator;
 	struct ila_locator locator_match;
 	__wsum csum_diff;
@@ -97,7 +107,8 @@ struct ila_params {
 
 static inline __wsum compute_csum_diff8(const __be32 *from, const __be32 *to)
 {
-	__be32 diff[] = {
+	__be32 diff[] =
+	{
 		~from[0], ~from[1], to[0], to[1],
 	};
 
@@ -110,7 +121,7 @@ static inline bool ila_csum_neutral_set(struct ila_identifier ident)
 }
 
 void ila_update_ipv6_locator(struct sk_buff *skb, struct ila_params *p,
-			     bool set_csum_neutral);
+							 bool set_csum_neutral);
 
 void ila_init_saved_csum(struct ila_params *p);
 

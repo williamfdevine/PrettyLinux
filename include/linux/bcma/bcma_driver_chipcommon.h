@@ -573,14 +573,16 @@
 /* Data for the PMU, if available.
  * Check availability with ((struct bcma_chipcommon)->capabilities & BCMA_CC_CAP_PMU)
  */
-struct bcma_chipcommon_pmu {
+struct bcma_chipcommon_pmu
+{
 	struct bcma_device *core;	/* Can be separated core or just ChipCommon one */
 	u8 rev;			/* PMU revision */
 	u32 crystalfreq;	/* The active crystal frequency (in kHz) */
 };
 
 #ifdef CONFIG_BCMA_PFLASH
-struct bcma_pflash {
+struct bcma_pflash
+{
 	bool present;
 };
 #endif
@@ -588,7 +590,8 @@ struct bcma_pflash {
 #ifdef CONFIG_BCMA_SFLASH
 struct mtd_info;
 
-struct bcma_sflash {
+struct bcma_sflash
+{
 	bool present;
 	u32 blocksize;
 	u16 numblocks;
@@ -600,14 +603,16 @@ struct bcma_sflash {
 #endif
 
 #ifdef CONFIG_BCMA_NFLASH
-struct bcma_nflash {
+struct bcma_nflash
+{
 	bool present;
 	bool boot;		/* This is the flash the SoC boots from */
 };
 #endif
 
 #ifdef CONFIG_BCMA_DRIVER_MIPS
-struct bcma_serial_port {
+struct bcma_serial_port
+{
 	void *regs;
 	unsigned long clockspeed;
 	unsigned int irq;
@@ -616,13 +621,14 @@ struct bcma_serial_port {
 };
 #endif /* CONFIG_BCMA_DRIVER_MIPS */
 
-struct bcma_drv_cc {
+struct bcma_drv_cc
+{
 	struct bcma_device *core;
 	u32 status;
 	u32 capabilities;
 	u32 capabilities_ext;
-	u8 setup_done:1;
-	u8 early_setup_done:1;
+	u8 setup_done: 1;
+	u8 early_setup_done: 1;
 	/* Fast Powerup Delay constant */
 	u16 fast_pwrup_delay;
 	struct bcma_chipcommon_pmu pmu;
@@ -650,9 +656,10 @@ struct bcma_drv_cc {
 #endif
 };
 
-struct bcma_drv_cc_b {
+struct bcma_drv_cc_b
+{
 	struct bcma_device *core;
-	u8 setup_done:1;
+	u8 setup_done: 1;
 	void __iomem *mii;
 };
 
@@ -702,13 +709,13 @@ u32 bcma_chipco_gpio_pulldown(struct bcma_drv_cc *cc, u32 mask, u32 value);
 
 /* PMU support */
 extern void bcma_chipco_pll_write(struct bcma_drv_cc *cc, u32 offset,
-				  u32 value);
+								  u32 value);
 extern void bcma_chipco_pll_maskset(struct bcma_drv_cc *cc, u32 offset,
-				    u32 mask, u32 set);
+									u32 mask, u32 set);
 extern void bcma_chipco_chipctl_maskset(struct bcma_drv_cc *cc,
-					u32 offset, u32 mask, u32 set);
+										u32 offset, u32 mask, u32 set);
 extern void bcma_chipco_regctl_maskset(struct bcma_drv_cc *cc,
-				       u32 offset, u32 mask, u32 set);
+									   u32 offset, u32 mask, u32 set);
 extern void bcma_pmu_spuravoid_pllupdate(struct bcma_drv_cc *cc, int spuravoid);
 
 extern u32 bcma_pmu_get_bus_clock(struct bcma_drv_cc *cc);

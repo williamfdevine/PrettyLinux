@@ -74,7 +74,8 @@ typedef unsigned int sclp_cmdw_t;
 
 #define GDS_KEY_SELFDEFTEXTMSG	0x31
 
-enum sclp_pm_event {
+enum sclp_pm_event
+{
 	SCLP_PM_EVENT_FREEZE,
 	SCLP_PM_EVENT_THAW,
 	SCLP_PM_EVENT_RESTORE,
@@ -85,14 +86,16 @@ enum sclp_pm_event {
 
 typedef u32 sccb_mask_t;	/* ATTENTION: assumes 32bit mask !!! */
 
-struct sccb_header {
+struct sccb_header
+{
 	u16	length;
 	u8	function_code;
 	u8	control_mask[3];
 	u16	response_code;
 } __attribute__((packed));
 
-struct init_sccb {
+struct init_sccb
+{
 	struct sccb_header header;
 	u16 _reserved;
 	u16 mask_length;
@@ -109,24 +112,28 @@ struct init_sccb {
 #define SCLP_HAS_PCI_RECONFIG	(sclp.facilities & 0x0000000040000000ULL)
 
 
-struct gds_subvector {
+struct gds_subvector
+{
 	u8	length;
 	u8	key;
 } __attribute__((packed));
 
-struct gds_vector {
+struct gds_vector
+{
 	u16	length;
 	u16	gds_id;
 } __attribute__((packed));
 
-struct evbuf_header {
+struct evbuf_header
+{
 	u16	length;
 	u8	type;
 	u8	flags;
 	u16	_reserved;
 } __attribute__((packed));
 
-struct sclp_req {
+struct sclp_req
+{
 	struct list_head list;		/* list_head for request queueing. */
 	sclp_cmdw_t command;		/* sclp command to execute */
 	void	*sccb;			/* pointer to the sccb to execute */
@@ -153,7 +160,8 @@ struct sclp_req {
 
 /* function pointers that a high level driver has to use for registration */
 /* of some routines it wants to be called from the low level driver */
-struct sclp_register {
+struct sclp_register
+{
 	struct list_head list;
 	/* User wants to receive: */
 	sccb_mask_t receive_mask;
@@ -223,7 +231,10 @@ sclp_find_gds_vector(void *start, void *end, u16 id)
 
 	for (v = start; (void *) v < end; v = (void *) v + v->length)
 		if (v->gds_id == id)
+		{
 			return v;
+		}
+
 	return NULL;
 }
 
@@ -234,7 +245,10 @@ sclp_find_gds_subvector(void *start, void *end, u8 key)
 
 	for (sv = start; (void *) sv < end; sv = (void *) sv + sv->length)
 		if (sv->key == key)
+		{
 			return sv;
+		}
+
 	return NULL;
 }
 

@@ -18,14 +18,14 @@ extern struct proc_dir_entry *proc_symlink(const char *,
 		struct proc_dir_entry *, const char *);
 extern struct proc_dir_entry *proc_mkdir(const char *, struct proc_dir_entry *);
 extern struct proc_dir_entry *proc_mkdir_data(const char *, umode_t,
-					      struct proc_dir_entry *, void *);
+		struct proc_dir_entry *, void *);
 extern struct proc_dir_entry *proc_mkdir_mode(const char *, umode_t,
-					      struct proc_dir_entry *);
- 
+		struct proc_dir_entry *);
+
 extern struct proc_dir_entry *proc_create_data(const char *, umode_t,
-					       struct proc_dir_entry *,
-					       const struct file_operations *,
-					       void *);
+		struct proc_dir_entry *,
+		const struct file_operations *,
+		void *);
 
 static inline struct proc_dir_entry *proc_create(
 	const char *name, umode_t mode, struct proc_dir_entry *parent,
@@ -53,13 +53,13 @@ static inline void proc_flush_task(struct task_struct *task)
 }
 
 static inline struct proc_dir_entry *proc_symlink(const char *name,
-		struct proc_dir_entry *parent,const char *dest) { return NULL;}
+		struct proc_dir_entry *parent, const char *dest) { return NULL;}
 static inline struct proc_dir_entry *proc_mkdir(const char *name,
-	struct proc_dir_entry *parent) {return NULL;}
+		struct proc_dir_entry *parent) {return NULL;}
 static inline struct proc_dir_entry *proc_mkdir_data(const char *name,
-	umode_t mode, struct proc_dir_entry *parent, void *data) { return NULL; }
+		umode_t mode, struct proc_dir_entry *parent, void *data) { return NULL; }
 static inline struct proc_dir_entry *proc_mkdir_mode(const char *name,
-	umode_t mode, struct proc_dir_entry *parent) { return NULL; }
+		umode_t mode, struct proc_dir_entry *parent) { return NULL; }
 #define proc_create(name, mode, parent, proc_fops) ({NULL;})
 #define proc_create_data(name, mode, parent, proc_fops, data) ({NULL;})
 

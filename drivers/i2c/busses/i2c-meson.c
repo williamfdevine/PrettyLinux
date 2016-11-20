@@ -40,7 +40,8 @@
 #define I2C_TIMEOUT_MS		500
 #define DEFAULT_FREQ		100000
 
-enum {
+enum
+{
 	TOKEN_END = 0,
 	TOKEN_START,
 	TOKEN_SLAVE_ADDR_WRITE,
@@ -50,7 +51,8 @@ enum {
 	TOKEN_STOP,
 };
 
-enum {
+enum
+{
 	STATE_IDLE,
 	STATE_READ,
 	STATE_WRITE,
@@ -77,7 +79,8 @@ enum {
  * @tokens:	Sequence of tokens to be written to the device
  * @num_tokens:	Number of tokens
  */
-struct meson_i2c {
+struct meson_i2c
+{
 	struct i2c_adapter	adap;
 	struct device		*dev;
 	void __iomem		*regs;
@@ -99,7 +102,7 @@ struct meson_i2c {
 };
 
 static void meson_i2c_set_mask(struct meson_i2c *i2c, int reg, u32 mask,
-			       u32 val)
+							   u32 val)
 {
 	u32 data;
 
@@ -119,9 +122,13 @@ static void meson_i2c_reset_tokens(struct meson_i2c *i2c)
 static void meson_i2c_add_token(struct meson_i2c *i2c, int token)
 {
 	if (i2c->num_tokens < 8)
+	{
 		i2c->tokens[0] |= (token & 0xf) << (i2c->num_tokens * 4);
+	}
 	else
+	{
 		i2c->tokens[1] |= (token & 0xf) << ((i2c->num_tokens % 8) * 4);
+	}
 
 	i2c->num_tokens++;
 }
@@ -139,10 +146,10 @@ static void meson_i2c_set_clk_div(struct meson_i2c *i2c)
 
 	div = DIV_ROUND_UP(clk_rate, i2c->frequency * 4);
 	meson_i2c_set_mask(i2c, REG_CTRL, REG_CTRL_CLKDIV_MASK,
-			   div << REG_CTRL_CLKDIV_SHIFT);
+					   div << REG_CTRL_CLKDIV_SHIFT);
 
 	dev_dbg(i2c->dev, "%s: clk %lu, freq %u, div %u\n", __func__,
-		clk_rate, i2c->frequency, div);
+			clk_rate, i2c->frequency, div);
 }
 
 static void meson_i2c_get_data(struct meson_i2c *i2c, char *buf, int len)
@@ -154,13 +161,17 @@ static void meson_i2c_get_data(struct meson_i2c *i2c, char *buf, int len)
 	rdata1 = readl(i2c->regs + REG_TOK_RDATA1);
 
 	dev_dbg(i2c->dev, "%s: data %08x %08x len %d\n", __func__,
-		rdata0, rdata1, len);
+			rdata0, rdata1, len);
 
 	for (i = 0; i < min_t(int, 4, len); i++)
+	{
 		*buf++ = (rdata0 >> i * 8) & 0xff;
+	}
 
 	for (i = 4; i < min_t(int, 8, len); i++)
+	{
 		*buf++ = (rdata1 >> (i - 4) * 8) & 0xff;
+	}
 }
 
 static void meson_i2c_put_data(struct meson_i2c *i2c, char *buf, int len)
@@ -169,16 +180,20 @@ static void meson_i2c_put_data(struct meson_i2c *i2c, char *buf, int len)
 	int i;
 
 	for (i = 0; i < min_t(int, 4, len); i++)
+	{
 		wdata0 |= *buf++ << (i * 8);
+	}
 
 	for (i = 4; i < min_t(int, 8, len); i++)
+	{
 		wdata1 |= *buf++ << ((i - 4) * 8);
+	}
 
 	writel(wdata0, i2c->regs + REG_TOK_WDATA0);
 	writel(wdata0, i2c->regs + REG_TOK_WDATA1);
 
 	dev_dbg(i2c->dev, "%s: data %08x %08x len %d\n", __func__,
-		wdata0, wdata1, len);
+			wdata0, wdata1, len);
 }
 
 static void meson_i2c_prepare_xfer(struct meson_i2c *i2c)
@@ -189,27 +204,39 @@ static void meson_i2c_prepare_xfer(struct meson_i2c *i2c)
 	i2c->count = min_t(int, i2c->msg->len - i2c->pos, 8);
 
 	for (i = 0; i < i2c->count - 1; i++)
+	{
 		meson_i2c_add_token(i2c, TOKEN_DATA);
+	}
 
-	if (i2c->count) {
+	if (i2c->count)
+	{
 		if (write || i2c->pos + i2c->count < i2c->msg->len)
+		{
 			meson_i2c_add_token(i2c, TOKEN_DATA);
+		}
 		else
+		{
 			meson_i2c_add_token(i2c, TOKEN_DATA_LAST);
+		}
 	}
 
 	if (write)
+	{
 		meson_i2c_put_data(i2c, i2c->msg->buf + i2c->pos, i2c->count);
+	}
 }
 
 static void meson_i2c_stop(struct meson_i2c *i2c)
 {
 	dev_dbg(i2c->dev, "%s: last %d\n", __func__, i2c->last);
 
-	if (i2c->last) {
+	if (i2c->last)
+	{
 		i2c->state = STATE_STOP;
 		meson_i2c_add_token(i2c, TOKEN_STOP);
-	} else {
+	}
+	else
+	{
 		i2c->state = STATE_IDLE;
 		complete(&i2c->done);
 	}
@@ -226,9 +253,10 @@ static irqreturn_t meson_i2c_irq(int irqno, void *dev_id)
 	ctrl = readl(i2c->regs + REG_CTRL);
 
 	dev_dbg(i2c->dev, "irq: state %d, pos %d, count %d, ctrl %08x\n",
-		i2c->state, i2c->pos, i2c->count, ctrl);
+			i2c->state, i2c->pos, i2c->count, ctrl);
 
-	if (ctrl & REG_CTRL_ERROR && i2c->state != STATE_IDLE) {
+	if (ctrl & REG_CTRL_ERROR && i2c->state != STATE_IDLE)
+	{
 		/*
 		 * The bit is set when the IGNORE_NAK bit is cleared
 		 * and the device didn't respond. In this case, the
@@ -242,46 +270,55 @@ static irqreturn_t meson_i2c_irq(int irqno, void *dev_id)
 		goto out;
 	}
 
-	switch (i2c->state) {
-	case STATE_READ:
-		if (i2c->count > 0) {
-			meson_i2c_get_data(i2c, i2c->msg->buf + i2c->pos,
-					   i2c->count);
+	switch (i2c->state)
+	{
+		case STATE_READ:
+			if (i2c->count > 0)
+			{
+				meson_i2c_get_data(i2c, i2c->msg->buf + i2c->pos,
+								   i2c->count);
+				i2c->pos += i2c->count;
+			}
+
+			if (i2c->pos >= i2c->msg->len)
+			{
+				meson_i2c_stop(i2c);
+				break;
+			}
+
+			meson_i2c_prepare_xfer(i2c);
+			break;
+
+		case STATE_WRITE:
 			i2c->pos += i2c->count;
-		}
 
-		if (i2c->pos >= i2c->msg->len) {
-			meson_i2c_stop(i2c);
+			if (i2c->pos >= i2c->msg->len)
+			{
+				meson_i2c_stop(i2c);
+				break;
+			}
+
+			meson_i2c_prepare_xfer(i2c);
 			break;
-		}
 
-		meson_i2c_prepare_xfer(i2c);
-		break;
-	case STATE_WRITE:
-		i2c->pos += i2c->count;
-
-		if (i2c->pos >= i2c->msg->len) {
-			meson_i2c_stop(i2c);
+		case STATE_STOP:
+			i2c->state = STATE_IDLE;
+			complete(&i2c->done);
 			break;
-		}
 
-		meson_i2c_prepare_xfer(i2c);
-		break;
-	case STATE_STOP:
-		i2c->state = STATE_IDLE;
-		complete(&i2c->done);
-		break;
-	case STATE_IDLE:
-		break;
+		case STATE_IDLE:
+			break;
 	}
 
 out:
-	if (i2c->state != STATE_IDLE) {
+
+	if (i2c->state != STATE_IDLE)
+	{
 		/* Restart the processing */
 		meson_i2c_write_tokens(i2c);
 		meson_i2c_set_mask(i2c, REG_CTRL, REG_CTRL_START, 0);
 		meson_i2c_set_mask(i2c, REG_CTRL, REG_CTRL_START,
-				   REG_CTRL_START);
+						   REG_CTRL_START);
 	}
 
 	spin_unlock(&i2c->lock);
@@ -294,7 +331,7 @@ static void meson_i2c_do_start(struct meson_i2c *i2c, struct i2c_msg *msg)
 	int token;
 
 	token = (msg->flags & I2C_M_RD) ? TOKEN_SLAVE_ADDR_READ :
-		TOKEN_SLAVE_ADDR_WRITE;
+			TOKEN_SLAVE_ADDR_WRITE;
 
 	writel(msg->addr << 1, i2c->regs + REG_SLAVE_ADDR);
 	meson_i2c_add_token(i2c, TOKEN_START);
@@ -302,7 +339,7 @@ static void meson_i2c_do_start(struct meson_i2c *i2c, struct i2c_msg *msg)
 }
 
 static int meson_i2c_xfer_msg(struct meson_i2c *i2c, struct i2c_msg *msg,
-			      int last)
+							  int last)
 {
 	unsigned long time_left, flags;
 	int ret = 0;
@@ -319,7 +356,9 @@ static int meson_i2c_xfer_msg(struct meson_i2c *i2c, struct i2c_msg *msg,
 	meson_i2c_set_mask(i2c, REG_CTRL, REG_CTRL_ACK_IGNORE, flags);
 
 	if (!(msg->flags & I2C_M_NOSTART))
+	{
 		meson_i2c_do_start(i2c, msg);
+	}
 
 	i2c->state = (msg->flags & I2C_M_RD) ? STATE_READ : STATE_WRITE;
 	meson_i2c_prepare_xfer(i2c);
@@ -342,13 +381,16 @@ static int meson_i2c_xfer_msg(struct meson_i2c *i2c, struct i2c_msg *msg,
 	/* Abort any active operation */
 	meson_i2c_set_mask(i2c, REG_CTRL, REG_CTRL_START, 0);
 
-	if (!time_left) {
+	if (!time_left)
+	{
 		i2c->state = STATE_IDLE;
 		ret = -ETIMEDOUT;
 	}
 
 	if (i2c->error)
+	{
 		ret = i2c->error;
+	}
 
 	spin_unlock_irqrestore(&i2c->lock, flags);
 
@@ -356,7 +398,7 @@ static int meson_i2c_xfer_msg(struct meson_i2c *i2c, struct i2c_msg *msg,
 }
 
 static int meson_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs,
-			  int num)
+						  int num)
 {
 	struct meson_i2c *i2c = adap->algo_data;
 	int i, ret = 0, count = 0;
@@ -364,10 +406,15 @@ static int meson_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs,
 	clk_enable(i2c->clk);
 	meson_i2c_set_clk_div(i2c);
 
-	for (i = 0; i < num; i++) {
+	for (i = 0; i < num; i++)
+	{
 		ret = meson_i2c_xfer_msg(i2c, msgs + i, i == num - 1);
+
 		if (ret)
+		{
 			break;
+		}
+
 		count++;
 	}
 
@@ -381,7 +428,8 @@ static u32 meson_i2c_func(struct i2c_adapter *adap)
 	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
 }
 
-static const struct i2c_algorithm meson_i2c_algorithm = {
+static const struct i2c_algorithm meson_i2c_algorithm =
+{
 	.master_xfer	= meson_i2c_xfer,
 	.functionality	= meson_i2c_func,
 };
@@ -394,12 +442,17 @@ static int meson_i2c_probe(struct platform_device *pdev)
 	int ret = 0;
 
 	i2c = devm_kzalloc(&pdev->dev, sizeof(struct meson_i2c), GFP_KERNEL);
+
 	if (!i2c)
+	{
 		return -ENOMEM;
+	}
 
 	if (of_property_read_u32(pdev->dev.of_node, "clock-frequency",
-				 &i2c->frequency))
+							 &i2c->frequency))
+	{
 		i2c->frequency = DEFAULT_FREQ;
+	}
 
 	i2c->dev = &pdev->dev;
 	platform_set_drvdata(pdev, i2c);
@@ -408,37 +461,48 @@ static int meson_i2c_probe(struct platform_device *pdev)
 	init_completion(&i2c->done);
 
 	i2c->clk = devm_clk_get(&pdev->dev, NULL);
-	if (IS_ERR(i2c->clk)) {
+
+	if (IS_ERR(i2c->clk))
+	{
 		dev_err(&pdev->dev, "can't get device clock\n");
 		return PTR_ERR(i2c->clk);
 	}
 
 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	i2c->regs = devm_ioremap_resource(&pdev->dev, mem);
+
 	if (IS_ERR(i2c->regs))
+	{
 		return PTR_ERR(i2c->regs);
+	}
 
 	i2c->irq = platform_get_irq(pdev, 0);
-	if (i2c->irq < 0) {
+
+	if (i2c->irq < 0)
+	{
 		dev_err(&pdev->dev, "can't find IRQ\n");
 		return i2c->irq;
 	}
 
 	ret = devm_request_irq(&pdev->dev, i2c->irq, meson_i2c_irq,
-			       0, dev_name(&pdev->dev), i2c);
-	if (ret < 0) {
+						   0, dev_name(&pdev->dev), i2c);
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "can't request IRQ\n");
 		return ret;
 	}
 
 	ret = clk_prepare(i2c->clk);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "can't prepare clock\n");
 		return ret;
 	}
 
 	strlcpy(i2c->adap.name, "Meson I2C adapter",
-		sizeof(i2c->adap.name));
+			sizeof(i2c->adap.name));
 	i2c->adap.owner = THIS_MODULE;
 	i2c->adap.algo = &meson_i2c_algorithm;
 	i2c->adap.dev.parent = &pdev->dev;
@@ -452,7 +516,9 @@ static int meson_i2c_probe(struct platform_device *pdev)
 	meson_i2c_set_mask(i2c, REG_CTRL, REG_CTRL_START, 0);
 
 	ret = i2c_add_adapter(&i2c->adap);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		clk_unprepare(i2c->clk);
 		return ret;
 	}
@@ -470,14 +536,16 @@ static int meson_i2c_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id meson_i2c_match[] = {
+static const struct of_device_id meson_i2c_match[] =
+{
 	{ .compatible = "amlogic,meson6-i2c" },
 	{ .compatible = "amlogic,meson-gxbb-i2c" },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, meson_i2c_match);
 
-static struct platform_driver meson_i2c_driver = {
+static struct platform_driver meson_i2c_driver =
+{
 	.probe   = meson_i2c_probe,
 	.remove  = meson_i2c_remove,
 	.driver  = {

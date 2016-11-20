@@ -4,11 +4,12 @@
 #include <subdev/volt.h>
 
 void nvkm_volt_ctor(const struct nvkm_volt_func *, struct nvkm_device *,
-		    int index, struct nvkm_volt *);
+					int index, struct nvkm_volt *);
 int nvkm_volt_new_(const struct nvkm_volt_func *, struct nvkm_device *,
-		   int index, struct nvkm_volt **);
+				   int index, struct nvkm_volt **);
 
-struct nvkm_volt_func {
+struct nvkm_volt_func
+{
 	int (*volt_get)(struct nvkm_volt *);
 	int (*volt_set)(struct nvkm_volt *, u32 uv);
 	int (*vid_get)(struct nvkm_volt *);

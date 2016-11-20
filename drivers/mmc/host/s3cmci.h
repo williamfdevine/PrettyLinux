@@ -8,7 +8,8 @@
  * published by the Free Software Foundation.
  */
 
-enum s3cmci_waitfor {
+enum s3cmci_waitfor
+{
 	COMPLETION_NONE,
 	COMPLETION_FINALIZE,
 	COMPLETION_CMDSENT,
@@ -17,7 +18,8 @@ enum s3cmci_waitfor {
 	COMPLETION_XFERFINISH_RSPFIN,
 };
 
-struct s3cmci_host {
+struct s3cmci_host
+{
 	struct platform_device	*pdev;
 	struct s3c24xx_mci_pdata *pdata;
 	struct mmc_host		*mmc;

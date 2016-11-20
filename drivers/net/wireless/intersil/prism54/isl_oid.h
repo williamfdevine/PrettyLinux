@@ -25,25 +25,29 @@
  * with the device firmware
  */
 
-struct obj_ssid {
+struct obj_ssid
+{
 	u8 length;
 	char octets[33];
 } __packed;
 
-struct obj_key {
+struct obj_key
+{
 	u8 type;		/* dot11_priv_t */
 	u8 length;
 	char key[32];
 } __packed;
 
-struct obj_mlme {
+struct obj_mlme
+{
 	u8 address[6];
 	u16 id;
 	u16 state;
 	u16 code;
 } __packed;
 
-struct obj_mlmeex {
+struct obj_mlmeex
+{
 	u8 address[6];
 	u16 id;
 	u16 state;
@@ -52,14 +56,16 @@ struct obj_mlmeex {
 	u8 data[0];
 } __packed;
 
-struct obj_buffer {
+struct obj_buffer
+{
 	u32 size;
 	u32 addr;		/* 32bit bus address */
 } __packed;
 
-struct obj_bss {
+struct obj_bss
+{
 	u8 address[6];
-	int:16;			/* padding */
+	int: 16;			/* padding */
 
 	char state;
 	char reserved;
@@ -75,20 +81,23 @@ struct obj_bss {
 	short capinfo;
 	short rates;
 	short basic_rates;
-	int:16;			/* padding */
+	int: 16;			/* padding */
 } __packed;
 
-struct obj_bsslist {
+struct obj_bsslist
+{
 	u32 nr;
 	struct obj_bss bsslist[0];
 } __packed;
 
-struct obj_frequencies {
+struct obj_frequencies
+{
 	u16 nr;
 	u16 mhz[0];
 } __packed;
 
-struct obj_attachment {
+struct obj_attachment
+{
 	char type;
 	char reserved;
 	short id;
@@ -113,7 +122,8 @@ __bug_on_wrong_struct_sizes(void)
 	BUILD_BUG_ON(sizeof (struct obj_frequencies) != 2);
 }
 
-enum dot11_state_t {
+enum dot11_state_t
+{
 	DOT11_STATE_NONE = 0,
 	DOT11_STATE_AUTHING = 1,
 	DOT11_STATE_AUTH = 2,
@@ -124,27 +134,31 @@ enum dot11_state_t {
 	DOT11_STATE_WDS = 7
 };
 
-enum dot11_bsstype_t {
+enum dot11_bsstype_t
+{
 	DOT11_BSSTYPE_NONE = 0,
 	DOT11_BSSTYPE_INFRA = 1,
 	DOT11_BSSTYPE_IBSS = 2,
 	DOT11_BSSTYPE_ANY = 3
 };
 
-enum dot11_auth_t {
+enum dot11_auth_t
+{
 	DOT11_AUTH_NONE = 0,
 	DOT11_AUTH_OS = 1,
 	DOT11_AUTH_SK = 2,
 	DOT11_AUTH_BOTH = 3
 };
 
-enum dot11_mlme_t {
+enum dot11_mlme_t
+{
 	DOT11_MLME_AUTO = 0,
 	DOT11_MLME_INTERMEDIATE = 1,
 	DOT11_MLME_EXTENDED = 2
 };
 
-enum dot11_priv_t {
+enum dot11_priv_t
+{
 	DOT11_PRIV_WEP = 0,
 	DOT11_PRIV_TKIP = 1
 };
@@ -157,7 +171,8 @@ enum dot11_priv_t {
  * Bibliography:
  * http://www.hpl.hp.com/personal/Jean_Tourrilhes/Papers/Packet.Frame.Grouping.html
  */
-enum dot11_maxframeburst_t {
+enum dot11_maxframeburst_t
+{
 	/* Values for DOT11_OID_MAXFRAMEBURST */
 	DOT11_MAXFRAMEBURST_OFF = 0, /* Card firmware default */
 	DOT11_MAXFRAMEBURST_MIXED_SAFE = 650, /* 802.11 a,b,g safe */
@@ -177,26 +192,28 @@ enum dot11_maxframeburst_t {
  * 802.11a -- not sure, both optionally ?
  * 802.11b supports long and optionally short
  * 802.11g supports both */
-enum dot11_preamblesettings_t {
+enum dot11_preamblesettings_t
+{
 	DOT11_PREAMBLESETTING_LONG = 0,
-		/* Allows *only* long 802.11 preambles */
+	/* Allows *only* long 802.11 preambles */
 	DOT11_PREAMBLESETTING_SHORT = 1,
-		/* Allows *only* short 802.11 preambles */
+	/* Allows *only* short 802.11 preambles */
 	DOT11_PREAMBLESETTING_DYNAMIC = 2
-		/* AutomatiGically set */
+									/* AutomatiGically set */
 };
 
 /* Support for 802.11 slot timing (time between packets).
  *
  * Long uses 802.11a slot timing  (9 usec ?)
  * Short uses 802.11b slot timing (20 use ?) */
-enum dot11_slotsettings_t {
+enum dot11_slotsettings_t
+{
 	DOT11_SLOTSETTINGS_LONG = 0,
-		/* Allows *only* long 802.11b slot timing */
+	/* Allows *only* long 802.11b slot timing */
 	DOT11_SLOTSETTINGS_SHORT = 1,
-		/* Allows *only* long 802.11a slot timing */
+	/* Allows *only* long 802.11a slot timing */
 	DOT11_SLOTSETTINGS_DYNAMIC = 2
-		/* AutomatiGically set */
+								 /* AutomatiGically set */
 };
 
 /* All you need to know, ERP is "Extended Rate PHY".
@@ -210,7 +227,8 @@ enum dot11_slotsettings_t {
  * to be careful, a STA which cannot handle the long pre-amble
  * has joined.
  */
-enum do11_nonerpstatus_t {
+enum do11_nonerpstatus_t
+{
 	DOT11_ERPSTAT_NONEPRESENT = 0,
 	DOT11_ERPSTAT_USEPROTECTION = 1
 };
@@ -220,7 +238,8 @@ enum do11_nonerpstatus_t {
  * NON ERP STA's. You *don't* want this unless
  * you know what you are doing. It means you will only
  * get Extended Rate capabilities */
-enum dot11_nonerpprotection_t {
+enum dot11_nonerpprotection_t
+{
 	DOT11_NONERP_NEVER = 0,
 	DOT11_NONERP_ALWAYS = 1,
 	DOT11_NONERP_DYNAMIC = 2
@@ -229,46 +248,48 @@ enum dot11_nonerpprotection_t {
 /* Preset OID configuration for 802.11 modes
  * Note: DOT11_OID_CW[MIN|MAX] hold the values of the
  * DCS MIN|MAX backoff used */
-enum dot11_profile_t { /* And set/allowed values */
+enum dot11_profile_t   /* And set/allowed values */
+{
 	/* Allowed values for DOT11_OID_PROFILES */
 	DOT11_PROFILE_B_ONLY = 0,
-		/* DOT11_OID_RATES: 1, 2, 5.5, 11Mbps
-		 * DOT11_OID_PREAMBLESETTINGS: DOT11_PREAMBLESETTING_DYNAMIC
-		 * DOT11_OID_CWMIN: 31
-		 * DOT11_OID_NONEPROTECTION: DOT11_NOERP_DYNAMIC
-		 * DOT11_OID_SLOTSETTINGS: DOT11_SLOTSETTINGS_LONG
-		 */
+	/* DOT11_OID_RATES: 1, 2, 5.5, 11Mbps
+	 * DOT11_OID_PREAMBLESETTINGS: DOT11_PREAMBLESETTING_DYNAMIC
+	 * DOT11_OID_CWMIN: 31
+	 * DOT11_OID_NONEPROTECTION: DOT11_NOERP_DYNAMIC
+	 * DOT11_OID_SLOTSETTINGS: DOT11_SLOTSETTINGS_LONG
+	 */
 	DOT11_PROFILE_MIXED_G_WIFI = 1,
-		/* DOT11_OID_RATES: 1, 2, 5.5, 11, 6, 9, 12, 18, 24, 36, 48, 54Mbs
-		 * DOT11_OID_PREAMBLESETTINGS: DOT11_PREAMBLESETTING_DYNAMIC
-		 * DOT11_OID_CWMIN: 15
-		 * DOT11_OID_NONEPROTECTION: DOT11_NOERP_DYNAMIC
-		 * DOT11_OID_SLOTSETTINGS: DOT11_SLOTSETTINGS_DYNAMIC
-		 */
+	/* DOT11_OID_RATES: 1, 2, 5.5, 11, 6, 9, 12, 18, 24, 36, 48, 54Mbs
+	 * DOT11_OID_PREAMBLESETTINGS: DOT11_PREAMBLESETTING_DYNAMIC
+	 * DOT11_OID_CWMIN: 15
+	 * DOT11_OID_NONEPROTECTION: DOT11_NOERP_DYNAMIC
+	 * DOT11_OID_SLOTSETTINGS: DOT11_SLOTSETTINGS_DYNAMIC
+	 */
 	DOT11_PROFILE_MIXED_LONG = 2, /* "Long range" */
-		/* Same as Profile MIXED_G_WIFI */
+	/* Same as Profile MIXED_G_WIFI */
 	DOT11_PROFILE_G_ONLY = 3,
-		/* Same as Profile MIXED_G_WIFI */
+	/* Same as Profile MIXED_G_WIFI */
 	DOT11_PROFILE_TEST = 4,
-		/* Same as Profile MIXED_G_WIFI except:
-		 * DOT11_OID_PREAMBLESETTINGS: DOT11_PREAMBLESETTING_SHORT
-		 * DOT11_OID_NONEPROTECTION: DOT11_NOERP_NEVER
-		 * DOT11_OID_SLOTSETTINGS: DOT11_SLOTSETTINGS_SHORT
-		 */
+	/* Same as Profile MIXED_G_WIFI except:
+	 * DOT11_OID_PREAMBLESETTINGS: DOT11_PREAMBLESETTING_SHORT
+	 * DOT11_OID_NONEPROTECTION: DOT11_NOERP_NEVER
+	 * DOT11_OID_SLOTSETTINGS: DOT11_SLOTSETTINGS_SHORT
+	 */
 	DOT11_PROFILE_B_WIFI = 5,
-		/* Same as Profile B_ONLY */
+	/* Same as Profile B_ONLY */
 	DOT11_PROFILE_A_ONLY = 6,
-		/* Same as Profile MIXED_G_WIFI except:
-		 * DOT11_OID_RATES: 6, 9, 12, 18, 24, 36, 48, 54Mbs
-		 */
+	/* Same as Profile MIXED_G_WIFI except:
+	 * DOT11_OID_RATES: 6, 9, 12, 18, 24, 36, 48, 54Mbs
+	 */
 	DOT11_PROFILE_MIXED_SHORT = 7
-		/* Same as MIXED_G_WIFI */
+								/* Same as MIXED_G_WIFI */
 };
 
 
 /* The dot11d conformance level configures the 802.11d conformance levels.
  * The following conformance levels exist:*/
-enum oid_inl_conformance_t {
+enum oid_inl_conformance_t
+{
 	OID_INL_CONFORMANCE_NONE = 0,	/* Perform active scanning */
 	OID_INL_CONFORMANCE_STRICT = 1,	/* Strictly adhere to 802.11d */
 	OID_INL_CONFORMANCE_FLEXIBLE = 2,	/* Use passed 802.11d info to
@@ -276,7 +297,8 @@ enum oid_inl_conformance_t {
 		* channels are valid  channels */
 };
 
-enum oid_inl_mode_t {
+enum oid_inl_mode_t
+{
 	INL_MODE_NONE = -1,
 	INL_MODE_PROMISCUOUS = 0,
 	INL_MODE_CLIENT = 1,
@@ -284,7 +306,8 @@ enum oid_inl_mode_t {
 	INL_MODE_SNIFFER = 3
 };
 
-enum oid_inl_config_t {
+enum oid_inl_config_t
+{
 	INL_CONFIG_NOTHING = 0x00,
 	INL_CONFIG_MANUALRUN = 0x01,
 	INL_CONFIG_FRAMETRAP = 0x02,
@@ -293,14 +316,16 @@ enum oid_inl_config_t {
 	INL_CONFIG_WDS = 0x10
 };
 
-enum oid_inl_phycap_t {
+enum oid_inl_phycap_t
+{
 	INL_PHYCAP_2400MHZ = 1,
 	INL_PHYCAP_5000MHZ = 2,
 	INL_PHYCAP_FAA = 0x80000000,	/* Means card supports the FAA switch */
 };
 
 
-enum oid_num_t {
+enum oid_num_t
+{
 	GEN_OID_MACADDRESS = 0,
 	GEN_OID_LINKSTATE,
 	GEN_OID_WATCHDOG,
@@ -483,14 +508,16 @@ enum oid_num_t {
  * Not yet implemented (not used in driver anyway).
  */
 
-struct oid_t {
+struct oid_t
+{
 	enum oid_num_t oid;
 	short range;		/* to define a range of oid */
 	short size;		/* max size of the associated data */
 	char flags;
 };
 
-union oid_res_t {
+union oid_res_t
+{
 	void *ptr;
 	u32 u;
 };

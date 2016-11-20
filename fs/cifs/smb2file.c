@@ -36,7 +36,7 @@
 
 int
 smb2_open_file(const unsigned int xid, struct cifs_open_parms *oparms,
-	       __u32 *oplock, FILE_ALL_INFO *buf)
+			   __u32 *oplock, FILE_ALL_INFO *buf)
 {
 	int rc;
 	__le16 *smb2_path;
@@ -46,14 +46,18 @@ smb2_open_file(const unsigned int xid, struct cifs_open_parms *oparms,
 	struct network_resiliency_req nr_ioctl_req;
 
 	smb2_path = cifs_convert_path_to_utf16(oparms->path, oparms->cifs_sb);
-	if (smb2_path == NULL) {
+
+	if (smb2_path == NULL)
+	{
 		rc = -ENOMEM;
 		goto out;
 	}
 
 	smb2_data = kzalloc(sizeof(struct smb2_file_all_info) + PATH_MAX * 2,
-			    GFP_KERNEL);
-	if (smb2_data == NULL) {
+						GFP_KERNEL);
+
+	if (smb2_data == NULL)
+	{
 		rc = -ENOMEM;
 		goto out;
 	}
@@ -62,40 +66,55 @@ smb2_open_file(const unsigned int xid, struct cifs_open_parms *oparms,
 	*smb2_oplock = SMB2_OPLOCK_LEVEL_BATCH;
 
 	if (oparms->tcon->ses->server->capabilities & SMB2_GLOBAL_CAP_LEASING)
+	{
 		memcpy(smb2_oplock + 1, fid->lease_key, SMB2_LEASE_KEY_SIZE);
+	}
 
 	rc = SMB2_open(xid, oparms, smb2_path, smb2_oplock, smb2_data, NULL);
+
 	if (rc)
+	{
 		goto out;
+	}
 
 
-	 if (oparms->tcon->use_resilient) {
+	if (oparms->tcon->use_resilient)
+	{
 		nr_ioctl_req.Timeout = 0; /* use server default (120 seconds) */
 		nr_ioctl_req.Reserved = 0;
 		rc = SMB2_ioctl(xid, oparms->tcon, fid->persistent_fid,
-			fid->volatile_fid, FSCTL_LMR_REQUEST_RESILIENCY, true,
-			(char *)&nr_ioctl_req, sizeof(nr_ioctl_req),
-			NULL, NULL /* no return info */);
-		if (rc == -EOPNOTSUPP) {
+						fid->volatile_fid, FSCTL_LMR_REQUEST_RESILIENCY, true,
+						(char *)&nr_ioctl_req, sizeof(nr_ioctl_req),
+						NULL, NULL /* no return info */);
+
+		if (rc == -EOPNOTSUPP)
+		{
 			cifs_dbg(VFS,
-			     "resiliency not supported by server, disabling\n");
+					 "resiliency not supported by server, disabling\n");
 			oparms->tcon->use_resilient = false;
-		} else if (rc)
+		}
+		else if (rc)
+		{
 			cifs_dbg(FYI, "error %d setting resiliency\n", rc);
+		}
 
 		rc = 0;
 	}
 
-	if (buf) {
+	if (buf)
+	{
 		/* open response does not have IndexNumber field - get it */
 		rc = SMB2_get_srv_num(xid, oparms->tcon, fid->persistent_fid,
-				      fid->volatile_fid,
-				      &smb2_data->IndexNumber);
-		if (rc) {
+							  fid->volatile_fid,
+							  &smb2_data->IndexNumber);
+
+		if (rc)
+		{
 			/* let get_inode_info disable server inode numbers */
 			smb2_data->IndexNumber = 0;
 			rc = 0;
 		}
+
 		move_smb2_info_to_cifs(buf, smb2_data);
 	}
 
@@ -108,7 +127,7 @@ out:
 
 int
 smb2_unlock_range(struct cifsFileInfo *cfile, struct file_lock *flock,
-		  const unsigned int xid)
+				  const unsigned int xid)
 {
 	int rc = 0, stored_rc;
 	unsigned int max_num, num = 0, max_buf;
@@ -126,25 +145,39 @@ smb2_unlock_range(struct cifsFileInfo *cfile, struct file_lock *flock,
 	 * and check it for zero before using.
 	 */
 	max_buf = tcon->ses->server->maxBuf;
+
 	if (!max_buf)
+	{
 		return -EINVAL;
+	}
 
 	max_num = max_buf / sizeof(struct smb2_lock_element);
 	buf = kcalloc(max_num, sizeof(struct smb2_lock_element), GFP_KERNEL);
+
 	if (!buf)
+	{
 		return -ENOMEM;
+	}
 
 	cur = buf;
 
 	down_write(&cinode->lock_sem);
-	list_for_each_entry_safe(li, tmp, &cfile->llist->locks, llist) {
+	list_for_each_entry_safe(li, tmp, &cfile->llist->locks, llist)
+	{
 		if (flock->fl_start > li->offset ||
-		    (flock->fl_start + length) <
-		    (li->offset + li->length))
+			(flock->fl_start + length) <
+			(li->offset + li->length))
+		{
 			continue;
+		}
+
 		if (current->tgid != li->pid)
+		{
 			continue;
-		if (cinode->can_cache_brlcks) {
+		}
+
+		if (cinode->can_cache_brlcks)
+		{
 			/*
 			 * We can cache brlock requests - simply remove a lock
 			 * from the file's list.
@@ -154,6 +187,7 @@ smb2_unlock_range(struct cifsFileInfo *cfile, struct file_lock *flock,
 			kfree(li);
 			continue;
 		}
+
 		cur->Length = cpu_to_le64(li->length);
 		cur->Offset = cpu_to_le64(li->offset);
 		cur->Flags = cpu_to_le32(SMB2_LOCKFLAG_UNLOCK);
@@ -162,41 +196,60 @@ smb2_unlock_range(struct cifsFileInfo *cfile, struct file_lock *flock,
 		 * file's list if the unlock range request fails on the server.
 		 */
 		list_move(&li->llist, &tmp_llist);
-		if (++num == max_num) {
+
+		if (++num == max_num)
+		{
 			stored_rc = smb2_lockv(xid, tcon,
-					       cfile->fid.persistent_fid,
-					       cfile->fid.volatile_fid,
-					       current->tgid, num, buf);
-			if (stored_rc) {
+								   cfile->fid.persistent_fid,
+								   cfile->fid.volatile_fid,
+								   current->tgid, num, buf);
+
+			if (stored_rc)
+			{
 				/*
 				 * We failed on the unlock range request - add
 				 * all locks from the tmp list to the head of
 				 * the file's list.
 				 */
 				cifs_move_llist(&tmp_llist,
-						&cfile->llist->locks);
+								&cfile->llist->locks);
 				rc = stored_rc;
-			} else
+			}
+			else
 				/*
 				 * The unlock range request succeed - free the
 				 * tmp list.
 				 */
+			{
 				cifs_free_llist(&tmp_llist);
+			}
+
 			cur = buf;
 			num = 0;
-		} else
+		}
+		else
+		{
 			cur++;
+		}
 	}
-	if (num) {
+
+	if (num)
+	{
 		stored_rc = smb2_lockv(xid, tcon, cfile->fid.persistent_fid,
-				       cfile->fid.volatile_fid, current->tgid,
-				       num, buf);
-		if (stored_rc) {
+							   cfile->fid.volatile_fid, current->tgid,
+							   num, buf);
+
+		if (stored_rc)
+		{
 			cifs_move_llist(&tmp_llist, &cfile->llist->locks);
 			rc = stored_rc;
-		} else
+		}
+		else
+		{
 			cifs_free_llist(&tmp_llist);
+		}
 	}
+
 	up_write(&cinode->lock_sem);
 
 	kfree(buf);
@@ -205,7 +258,7 @@ smb2_unlock_range(struct cifsFileInfo *cfile, struct file_lock *flock,
 
 static int
 smb2_push_mand_fdlocks(struct cifs_fid_locks *fdlocks, const unsigned int xid,
-		       struct smb2_lock_element *buf, unsigned int max_num)
+					   struct smb2_lock_element *buf, unsigned int max_num)
 {
 	int rc = 0, stored_rc;
 	struct cifsFileInfo *cfile = fdlocks->cfile;
@@ -214,30 +267,45 @@ smb2_push_mand_fdlocks(struct cifs_fid_locks *fdlocks, const unsigned int xid,
 	struct smb2_lock_element *cur = buf;
 	struct cifs_tcon *tcon = tlink_tcon(cfile->tlink);
 
-	list_for_each_entry(li, &fdlocks->locks, llist) {
+	list_for_each_entry(li, &fdlocks->locks, llist)
+	{
 		cur->Length = cpu_to_le64(li->length);
 		cur->Offset = cpu_to_le64(li->offset);
 		cur->Flags = cpu_to_le32(li->type |
-						SMB2_LOCKFLAG_FAIL_IMMEDIATELY);
-		if (++num == max_num) {
+								 SMB2_LOCKFLAG_FAIL_IMMEDIATELY);
+
+		if (++num == max_num)
+		{
 			stored_rc = smb2_lockv(xid, tcon,
-					       cfile->fid.persistent_fid,
-					       cfile->fid.volatile_fid,
-					       current->tgid, num, buf);
+								   cfile->fid.persistent_fid,
+								   cfile->fid.volatile_fid,
+								   current->tgid, num, buf);
+
 			if (stored_rc)
+			{
 				rc = stored_rc;
+			}
+
 			cur = buf;
 			num = 0;
-		} else
+		}
+		else
+		{
 			cur++;
+		}
 	}
-	if (num) {
+
+	if (num)
+	{
 		stored_rc = smb2_lockv(xid, tcon,
-				       cfile->fid.persistent_fid,
-				       cfile->fid.volatile_fid,
-				       current->tgid, num, buf);
+							   cfile->fid.persistent_fid,
+							   cfile->fid.volatile_fid,
+							   current->tgid, num, buf);
+
 		if (stored_rc)
+		{
 			rc = stored_rc;
+		}
 	}
 
 	return rc;
@@ -260,22 +328,30 @@ smb2_push_mandatory_locks(struct cifsFileInfo *cfile)
 	 * and check it for zero before using.
 	 */
 	max_buf = tlink_tcon(cfile->tlink)->ses->server->maxBuf;
-	if (!max_buf) {
+
+	if (!max_buf)
+	{
 		free_xid(xid);
 		return -EINVAL;
 	}
 
 	max_num = max_buf / sizeof(struct smb2_lock_element);
 	buf = kcalloc(max_num, sizeof(struct smb2_lock_element), GFP_KERNEL);
-	if (!buf) {
+
+	if (!buf)
+	{
 		free_xid(xid);
 		return -ENOMEM;
 	}
 
-	list_for_each_entry(fdlocks, &cinode->llist, llist) {
+	list_for_each_entry(fdlocks, &cinode->llist, llist)
+	{
 		stored_rc = smb2_push_mand_fdlocks(fdlocks, xid, buf, max_num);
+
 		if (stored_rc)
+		{
 			rc = stored_rc;
+		}
 	}
 
 	kfree(buf);

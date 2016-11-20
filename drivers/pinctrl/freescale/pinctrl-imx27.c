@@ -28,7 +28,8 @@
 #define PE 4
 #define PF 5
 
-enum imx27_pads {
+enum imx27_pads
+{
 	MX27_PAD_USBH2_CLK = PAD_ID(PA, 0),
 	MX27_PAD_USBH2_DIR = PAD_ID(PA, 1),
 	MX27_PAD_USBH2_DATA7 = PAD_ID(PA, 2),
@@ -206,7 +207,8 @@ enum imx27_pads {
 };
 
 /* Pad names for the pinmux subsystem */
-static const struct pinctrl_pin_desc imx27_pinctrl_pads[] = {
+static const struct pinctrl_pin_desc imx27_pinctrl_pads[] =
+{
 	IMX_PINCTRL_PIN(MX27_PAD_USBH2_CLK),
 	IMX_PINCTRL_PIN(MX27_PAD_USBH2_DIR),
 	IMX_PINCTRL_PIN(MX27_PAD_USBH2_DATA7),
@@ -383,12 +385,14 @@ static const struct pinctrl_pin_desc imx27_pinctrl_pads[] = {
 	IMX_PINCTRL_PIN(MX27_PAD_ATA_DATA15),
 };
 
-static struct imx1_pinctrl_soc_info imx27_pinctrl_info = {
+static struct imx1_pinctrl_soc_info imx27_pinctrl_info =
+{
 	.pins = imx27_pinctrl_pads,
 	.npins = ARRAY_SIZE(imx27_pinctrl_pads),
 };
 
-static const struct of_device_id imx27_pinctrl_of_match[] = {
+static const struct of_device_id imx27_pinctrl_of_match[] =
+{
 	{ .compatible = "fsl,imx27-iomuxc", },
 	{ /* sentinel */ }
 };
@@ -398,7 +402,8 @@ static int imx27_pinctrl_probe(struct platform_device *pdev)
 	return imx1_pinctrl_core_probe(pdev, &imx27_pinctrl_info);
 }
 
-static struct platform_driver imx27_pinctrl_driver = {
+static struct platform_driver imx27_pinctrl_driver =
+{
 	.driver = {
 		.name = "imx27-pinctrl",
 		.of_match_table = of_match_ptr(imx27_pinctrl_of_match),

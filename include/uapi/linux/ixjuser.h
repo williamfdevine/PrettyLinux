@@ -18,7 +18,7 @@
  *    2 of the License, or (at your option) any later version.
  *
  * Author:          Ed Okerson, <eokerson@quicknet.net>
- *    
+ *
  * Contributors:    Greg Herlein, <gherlein@quicknet.net>
  *                  David W. Erhart, <derhart@quicknet.net>
  *                  John Sellers, <jsellers@quicknet.net>
@@ -37,7 +37,7 @@
  * QUICKNET TECHNOLOGIES, INC. SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
- * ON AN "AS IS" BASIS, AND QUICKNET TECHNOLOGIES, INC. HAS NO OBLIGATION 
+ * ON AN "AS IS" BASIS, AND QUICKNET TECHNOLOGIES, INC. HAS NO OBLIGATION
  * TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
  *****************************************************************************/
@@ -107,7 +107,8 @@
 #define IXJCTL_REC_VOLUME		PHONE_REC_VOLUME
 #define IXJCTL_REC_LEVEL		PHONE_REC_LEVEL
 
-typedef enum {
+typedef enum
+{
 	f300_640 = 4, f300_500, f1100, f350, f400, f480, f440, f620, f20_50,
 	f133_200, f300, f300_420, f330, f300_425, f330_440, f340, f350_400,
 	f350_440, f350_450, f360, f380_420, f392, f400_425, f400_440, f400_450,
@@ -119,13 +120,15 @@ typedef enum {
 	lf1366, f1380, f1400, f1477, f1600, f1633_1638, f1800, f1860
 } IXJ_FILTER_FREQ;
 
-typedef struct {
+typedef struct
+{
 	unsigned int filter;
 	IXJ_FILTER_FREQ freq;
 	char enable;
 } IXJ_FILTER;
 
-typedef struct {
+typedef struct
+{
 	char enable;
 	char en_filter;
 	unsigned int filter;
@@ -166,7 +169,8 @@ typedef struct {
 *
 ******************************************************************************/
 
-typedef enum {
+typedef enum
+{
 	hz20 = 0x7ffa,
 	hz50 = 0x7fe5,
 	hz133 = 0x7f4c,
@@ -263,7 +267,8 @@ typedef enum {
 	hz2750 = 0xb8e4
 } IXJ_FREQ;
 
-typedef enum {
+typedef enum
+{
 	C1 = hz261,
 	CS1 = hz277,
 	D1 = hz293,
@@ -289,7 +294,8 @@ typedef enum {
 	AS2 = hz932,
 } IXJ_NOTE;
 
-typedef struct {
+typedef struct
+{
 	int tone_index;
 	int freq0;
 	int gain0;
@@ -329,7 +335,8 @@ typedef struct {
 *
 ******************************************************************************/
 
-typedef struct {
+typedef struct
+{
 	int index;
 	int tone_on_time;
 	int tone_off_time;
@@ -339,13 +346,15 @@ typedef struct {
 	int gain1;
 } IXJ_CADENCE_ELEMENT;
 
-typedef enum {
+typedef enum
+{
 	PLAY_ONCE,
 	REPEAT_LAST_ELEMENT,
 	REPEAT_ALL
 } IXJ_CADENCE_TERM;
 
-typedef struct {
+typedef struct
+{
 	int elements_used;
 	IXJ_CADENCE_TERM termination;
 	IXJ_CADENCE_ELEMENT __user *ce;
@@ -422,11 +431,11 @@ typedef struct {
 #define IXJCTL_MIXER			_IOW ('q', 0xCF, int)
 
 /******************************************************************************
-* 
+*
 * The master volume controls use attenuation with 32 levels from 0 to -62dB
 * with steps of 2dB each, the defines should be OR'ed together then sent
 * as the parameter to the mixer command to change the mixer settings.
-* 
+*
 ******************************************************************************/
 #define MIXER_MASTER_L		0x0000
 #define MIXER_MASTER_R		0x0100
@@ -465,11 +474,11 @@ typedef struct {
 #define MASTER_MUTE		0x80
 
 /******************************************************************************
-* 
+*
 * The input volume controls use gain with 32 levels from +12dB to -50dB
 * with steps of 2dB each, the defines should be OR'ed together then sent
 * as the parameter to the mixer command to change the mixer settings.
-* 
+*
 ******************************************************************************/
 #define MIXER_PORT_CD_L		0x0600
 #define MIXER_PORT_CD_R		0x0700
@@ -513,11 +522,11 @@ typedef struct {
 #define INPUT_MUTE		0x80
 
 /******************************************************************************
-* 
+*
 * The POTS volume control use attenuation with 8 levels from 0dB to -28dB
 * with steps of 4dB each, the defines should be OR'ed together then sent
 * as the parameter to the mixer command to change the mixer settings.
-* 
+*
 ******************************************************************************/
 #define MIXER_PORT_POTS_PLAY	0x0F00
 
@@ -532,11 +541,11 @@ typedef struct {
 #define POTS_MUTE		0x80
 
 /******************************************************************************
-* 
+*
 * The DAA controls the interface to the PSTN port.  The driver loads the
 * US coefficients by default, so if you live in a different country you
 * need to load the set for your countries phone system.
-* 
+*
 ******************************************************************************/
 #define IXJCTL_DAA_COEFF_SET		_IOW ('q', 0xD0, int)
 
@@ -548,12 +557,12 @@ typedef struct {
 #define DAA_JAPAN	6
 
 /******************************************************************************
-* 
+*
 * Use IXJCTL_PORT to set or query the port the card is set to.  If the
 * argument is set to PORT_QUERY, the return value of the ioctl will
 * indicate which port is currently in use, otherwise it will change the
 * port.
-* 
+*
 ******************************************************************************/
 #define IXJCTL_PORT			_IOW ('q', 0xD1, int)
 
@@ -572,11 +581,11 @@ typedef struct {
 #define PSTN_PULSE_DIAL	3
 
 /******************************************************************************
-* 
-* The DAA Analog GAIN sets 2 parameters at one time, the receive gain (AGRR), 
+*
+* The DAA Analog GAIN sets 2 parameters at one time, the receive gain (AGRR),
 * and the transmit gain (AGX).  OR together the components and pass them
 * as the parameter to IXJCTL_DAA_AGAIN.  The default setting is both at 0dB.
-* 
+*
 ******************************************************************************/
 #define IXJCTL_DAA_AGAIN		_IOW ('q', 0xD2, int)
 
@@ -595,23 +604,23 @@ typedef struct {
 #define IXJCTL_VMWI			_IOR ('q', 0xD8, int)
 #define IXJCTL_CIDCW			_IOW ('q', 0xD9, PHONE_CID *)
 /******************************************************************************
-* 
-* The wink duration is tunable with this ioctl.  The default wink duration  
+*
+* The wink duration is tunable with this ioctl.  The default wink duration
 * is 320ms.  You do not need to use this ioctl if you do not require a
 * different wink duration.
-* 
+*
 ******************************************************************************/
 #define IXJCTL_WINK_DURATION		PHONE_WINK_DURATION
 
 /******************************************************************************
-* 
+*
 * This ioctl will connect the POTS port to the PSTN port on the LineJACK
 * In order for this to work properly the port selection should be set to
 * the PSTN port with IXJCTL_PORT prior to calling this ioctl.  This will
 * enable conference calls between PSTN callers and network callers.
 * Passing a 1 to this ioctl enables the POTS<->PSTN connection while
 * passing a 0 turns it back off.
-* 
+*
 ******************************************************************************/
 #define IXJCTL_POTS_PSTN		_IOW ('q', 0xD5, int)
 
@@ -654,7 +663,8 @@ typedef struct {
 * they occur.  To disable signals for an event set the signal to 0.
 *
 ******************************************************************************/
-typedef enum {
+typedef enum
+{
 	SIG_DTMF_READY,
 	SIG_HOOKSTATE,
 	SIG_FLASH,
@@ -667,7 +677,8 @@ typedef enum {
 	SIG_WRITE_READY = 34
 } IXJ_SIGEVENT;
 
-typedef struct {
+typedef struct
+{
 	unsigned int event;
 	int signal;
 } IXJ_SIGDEF;
@@ -676,7 +687,7 @@ typedef struct {
 
 /******************************************************************************
 *
-* These ioctls allow the user application to change the gain in the 
+* These ioctls allow the user application to change the gain in the
 * Smart Cable of the Internet Phone Card.  Sending -1 as a value will cause
 * return value to be the current setting.  Valid values to set are 0x00 - 0x1F
 *
@@ -711,7 +722,8 @@ typedef struct {
  *
  ******************************************************************************/
 
-typedef struct {
+typedef struct
+{
 	unsigned int filter;
 	char enable;
 	unsigned int coeff[19];

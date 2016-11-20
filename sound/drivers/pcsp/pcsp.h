@@ -39,17 +39,18 @@
 #define PCSP_MAX_PERIOD_NS (1000000000ULL * PCSP_MIN_RATE__1)
 #define PCSP_MIN_PERIOD_NS (1000000000ULL * PCSP_MAX_RATE__1)
 #define PCSP_CALC_NS(div) ({ \
-	u64 __val = 1000000000ULL * (div); \
-	do_div(__val, PIT_TICK_RATE); \
-	__val; \
-})
+		u64 __val = 1000000000ULL * (div); \
+		do_div(__val, PIT_TICK_RATE); \
+		__val; \
+	})
 #define PCSP_PERIOD_NS() PCSP_CALC_NS(CUR_DIV())
 
 #define PCSP_MAX_PERIOD_SIZE	(64*1024)
 #define PCSP_MAX_PERIODS	512
 #define PCSP_BUFFER_SIZE	(128*1024)
 
-struct snd_pcsp {
+struct snd_pcsp
+{
 	struct snd_card *card;
 	struct snd_pcm *pcm;
 	struct input_dev *input_dev;

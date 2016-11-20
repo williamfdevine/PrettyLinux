@@ -32,13 +32,14 @@
 #define RST_SET_REGOFFSET	0x34
 #define RST_CLR_REGOFFSET	0x38
 
-struct oxnas_reset {
+struct oxnas_reset
+{
 	struct regmap *regmap;
 	struct reset_controller_dev rcdev;
 };
 
 static int oxnas_reset_reset(struct reset_controller_dev *rcdev,
-			      unsigned long id)
+							 unsigned long id)
 {
 	struct oxnas_reset *data =
 		container_of(rcdev, struct oxnas_reset, rcdev);
@@ -51,7 +52,7 @@ static int oxnas_reset_reset(struct reset_controller_dev *rcdev,
 }
 
 static int oxnas_reset_assert(struct reset_controller_dev *rcdev,
-			      unsigned long id)
+							  unsigned long id)
 {
 	struct oxnas_reset *data =
 		container_of(rcdev, struct oxnas_reset, rcdev);
@@ -62,7 +63,7 @@ static int oxnas_reset_assert(struct reset_controller_dev *rcdev,
 }
 
 static int oxnas_reset_deassert(struct reset_controller_dev *rcdev,
-				unsigned long id)
+								unsigned long id)
 {
 	struct oxnas_reset *data =
 		container_of(rcdev, struct oxnas_reset, rcdev);
@@ -72,15 +73,17 @@ static int oxnas_reset_deassert(struct reset_controller_dev *rcdev,
 	return 0;
 }
 
-static const struct reset_control_ops oxnas_reset_ops = {
+static const struct reset_control_ops oxnas_reset_ops =
+{
 	.reset		= oxnas_reset_reset,
 	.assert		= oxnas_reset_assert,
 	.deassert	= oxnas_reset_deassert,
 };
 
-static const struct of_device_id oxnas_reset_dt_ids[] = {
-	 { .compatible = "oxsemi,ox810se-reset", },
-	 { /* sentinel */ },
+static const struct of_device_id oxnas_reset_dt_ids[] =
+{
+	{ .compatible = "oxsemi,ox810se-reset", },
+	{ /* sentinel */ },
 };
 MODULE_DEVICE_TABLE(of, oxnas_reset_dt_ids);
 
@@ -90,17 +93,24 @@ static int oxnas_reset_probe(struct platform_device *pdev)
 	struct device *parent;
 
 	parent = pdev->dev.parent;
-	if (!parent) {
+
+	if (!parent)
+	{
 		dev_err(&pdev->dev, "no parent\n");
 		return -ENODEV;
 	}
 
 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return -ENOMEM;
+	}
 
 	data->regmap = syscon_node_to_regmap(parent->of_node);
-	if (IS_ERR(data->regmap)) {
+
+	if (IS_ERR(data->regmap))
+	{
 		dev_err(&pdev->dev, "failed to get parent regmap\n");
 		return PTR_ERR(data->regmap);
 	}
@@ -115,7 +125,8 @@ static int oxnas_reset_probe(struct platform_device *pdev)
 	return devm_reset_controller_register(&pdev->dev, &data->rcdev);
 }
 
-static struct platform_driver oxnas_reset_driver = {
+static struct platform_driver oxnas_reset_driver =
+{
 	.probe	= oxnas_reset_probe,
 	.driver = {
 		.name		= "oxnas-reset",

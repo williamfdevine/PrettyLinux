@@ -91,7 +91,8 @@
 #define MCS5000_MAX_XC			0x3ff
 #define MCS5000_MAX_YC			0x3ff
 
-enum mcs5000_ts_read_offset {
+enum mcs5000_ts_read_offset
+{
 	READ_INPUT_INFO,
 	READ_X_POS_UPPER,
 	READ_X_POS_LOWER,
@@ -101,7 +102,8 @@ enum mcs5000_ts_read_offset {
 };
 
 /* Each client has this additional data */
-struct mcs5000_ts_data {
+struct mcs5000_ts_data
+{
 	struct i2c_client *client;
 	struct input_dev *input_dev;
 	const struct mcs_platform_data *platform_data;
@@ -117,76 +119,79 @@ static irqreturn_t mcs5000_ts_interrupt(int irq, void *dev_id)
 	int y;
 
 	err = i2c_smbus_read_i2c_block_data(client, MCS5000_TS_INPUT_INFO,
-			READ_BLOCK_SIZE, buffer);
-	if (err < 0) {
+										READ_BLOCK_SIZE, buffer);
+
+	if (err < 0)
+	{
 		dev_err(&client->dev, "%s, err[%d]\n", __func__, err);
 		goto out;
 	}
 
-	switch (buffer[READ_INPUT_INFO]) {
-	case INPUT_TYPE_NONTOUCH:
-		input_report_key(data->input_dev, BTN_TOUCH, 0);
-		input_sync(data->input_dev);
-		break;
+	switch (buffer[READ_INPUT_INFO])
+	{
+		case INPUT_TYPE_NONTOUCH:
+			input_report_key(data->input_dev, BTN_TOUCH, 0);
+			input_sync(data->input_dev);
+			break;
 
-	case INPUT_TYPE_SINGLE:
-		x = (buffer[READ_X_POS_UPPER] << 8) | buffer[READ_X_POS_LOWER];
-		y = (buffer[READ_Y_POS_UPPER] << 8) | buffer[READ_Y_POS_LOWER];
+		case INPUT_TYPE_SINGLE:
+			x = (buffer[READ_X_POS_UPPER] << 8) | buffer[READ_X_POS_LOWER];
+			y = (buffer[READ_Y_POS_UPPER] << 8) | buffer[READ_Y_POS_LOWER];
 
-		input_report_key(data->input_dev, BTN_TOUCH, 1);
-		input_report_abs(data->input_dev, ABS_X, x);
-		input_report_abs(data->input_dev, ABS_Y, y);
-		input_sync(data->input_dev);
-		break;
+			input_report_key(data->input_dev, BTN_TOUCH, 1);
+			input_report_abs(data->input_dev, ABS_X, x);
+			input_report_abs(data->input_dev, ABS_Y, y);
+			input_sync(data->input_dev);
+			break;
 
-	case INPUT_TYPE_DUAL:
-		/* TODO */
-		break;
+		case INPUT_TYPE_DUAL:
+			/* TODO */
+			break;
 
-	case INPUT_TYPE_PALM:
-		/* TODO */
-		break;
+		case INPUT_TYPE_PALM:
+			/* TODO */
+			break;
 
-	case INPUT_TYPE_PROXIMITY:
-		/* TODO */
-		break;
+		case INPUT_TYPE_PROXIMITY:
+			/* TODO */
+			break;
 
-	default:
-		dev_err(&client->dev, "Unknown ts input type %d\n",
-				buffer[READ_INPUT_INFO]);
-		break;
+		default:
+			dev_err(&client->dev, "Unknown ts input type %d\n",
+					buffer[READ_INPUT_INFO]);
+			break;
 	}
 
- out:
+out:
 	return IRQ_HANDLED;
 }
 
 static void mcs5000_ts_phys_init(struct mcs5000_ts_data *data,
-				 const struct mcs_platform_data *platform_data)
+								 const struct mcs_platform_data *platform_data)
 {
 	struct i2c_client *client = data->client;
 
 	/* Touch reset & sleep mode */
 	i2c_smbus_write_byte_data(client, MCS5000_TS_OP_MODE,
-			RESET_EXT_SOFT | OP_MODE_SLEEP);
+							  RESET_EXT_SOFT | OP_MODE_SLEEP);
 
 	/* Touch size */
 	i2c_smbus_write_byte_data(client, MCS5000_TS_X_SIZE_UPPER,
-			platform_data->x_size >> 8);
+							  platform_data->x_size >> 8);
 	i2c_smbus_write_byte_data(client, MCS5000_TS_X_SIZE_LOWER,
-			platform_data->x_size & 0xff);
+							  platform_data->x_size & 0xff);
 	i2c_smbus_write_byte_data(client, MCS5000_TS_Y_SIZE_UPPER,
-			platform_data->y_size >> 8);
+							  platform_data->y_size >> 8);
 	i2c_smbus_write_byte_data(client, MCS5000_TS_Y_SIZE_LOWER,
-			platform_data->y_size & 0xff);
+							  platform_data->y_size & 0xff);
 
 	/* Touch active mode & 80 report rate */
 	i2c_smbus_write_byte_data(data->client, MCS5000_TS_OP_MODE,
-			OP_MODE_ACTIVE | REPORT_RATE_80);
+							  OP_MODE_ACTIVE | REPORT_RATE_80);
 }
 
 static int mcs5000_ts_probe(struct i2c_client *client,
-			    const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	const struct mcs_platform_data *pdata;
 	struct mcs5000_ts_data *data;
@@ -194,11 +199,16 @@ static int mcs5000_ts_probe(struct i2c_client *client,
 	int error;
 
 	pdata = dev_get_platdata(&client->dev);
+
 	if (!pdata)
+	{
 		return -EINVAL;
+	}
 
 	data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
-	if (!data) {
+
+	if (!data)
+	{
 		dev_err(&client->dev, "Failed to allocate memory\n");
 		return -ENOMEM;
 	}
@@ -206,7 +216,9 @@ static int mcs5000_ts_probe(struct i2c_client *client,
 	data->client = client;
 
 	input_dev = devm_input_allocate_device(&client->dev);
-	if (!input_dev) {
+
+	if (!input_dev)
+	{
 		dev_err(&client->dev, "Failed to allocate input device\n");
 		return -ENOMEM;
 	}
@@ -225,19 +237,25 @@ static int mcs5000_ts_probe(struct i2c_client *client,
 	data->input_dev = input_dev;
 
 	if (pdata->cfg_pin)
+	{
 		pdata->cfg_pin();
+	}
 
 	error = devm_request_threaded_irq(&client->dev, client->irq,
-					  NULL, mcs5000_ts_interrupt,
-					  IRQF_TRIGGER_LOW | IRQF_ONESHOT,
-					  "mcs5000_ts", data);
-	if (error) {
+									  NULL, mcs5000_ts_interrupt,
+									  IRQF_TRIGGER_LOW | IRQF_ONESHOT,
+									  "mcs5000_ts", data);
+
+	if (error)
+	{
 		dev_err(&client->dev, "Failed to register interrupt\n");
 		return error;
 	}
 
 	error = input_register_device(data->input_dev);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&client->dev, "Failed to register input device\n");
 		return error;
 	}
@@ -271,13 +289,15 @@ static int __maybe_unused mcs5000_ts_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(mcs5000_ts_pm, mcs5000_ts_suspend, mcs5000_ts_resume);
 
-static const struct i2c_device_id mcs5000_ts_id[] = {
+static const struct i2c_device_id mcs5000_ts_id[] =
+{
 	{ "mcs5000_ts", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, mcs5000_ts_id);
 
-static struct i2c_driver mcs5000_ts_driver = {
+static struct i2c_driver mcs5000_ts_driver =
+{
 	.probe		= mcs5000_ts_probe,
 	.driver = {
 		.name = "mcs5000_ts",

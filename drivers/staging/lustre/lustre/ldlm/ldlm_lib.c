@@ -51,62 +51,80 @@
  * @create: If zero, only search in existing connections.
  */
 static int import_set_conn(struct obd_import *imp, struct obd_uuid *uuid,
-			   int priority, int create)
+						   int priority, int create)
 {
 	struct ptlrpc_connection *ptlrpc_conn;
 	struct obd_import_conn *imp_conn = NULL, *item;
 	int rc = 0;
 
-	if (!create && !priority) {
+	if (!create && !priority)
+	{
 		CDEBUG(D_HA, "Nothing to do\n");
 		return -EINVAL;
 	}
 
 	ptlrpc_conn = ptlrpc_uuid_to_connection(uuid);
-	if (!ptlrpc_conn) {
+
+	if (!ptlrpc_conn)
+	{
 		CDEBUG(D_HA, "can't find connection %s\n", uuid->uuid);
 		return -ENOENT;
 	}
 
-	if (create) {
+	if (create)
+	{
 		imp_conn = kzalloc(sizeof(*imp_conn), GFP_NOFS);
-		if (!imp_conn) {
+
+		if (!imp_conn)
+		{
 			rc = -ENOMEM;
 			goto out_put;
 		}
 	}
 
 	spin_lock(&imp->imp_lock);
-	list_for_each_entry(item, &imp->imp_conn_list, oic_item) {
-		if (obd_uuid_equals(uuid, &item->oic_uuid)) {
-			if (priority) {
+	list_for_each_entry(item, &imp->imp_conn_list, oic_item)
+	{
+		if (obd_uuid_equals(uuid, &item->oic_uuid))
+		{
+			if (priority)
+			{
 				list_del(&item->oic_item);
 				list_add(&item->oic_item,
-					 &imp->imp_conn_list);
+						 &imp->imp_conn_list);
 				item->oic_last_attempt = 0;
 			}
+
 			CDEBUG(D_HA, "imp %p@%s: found existing conn %s%s\n",
-			       imp, imp->imp_obd->obd_name, uuid->uuid,
-			       (priority ? ", moved to head" : ""));
+				   imp, imp->imp_obd->obd_name, uuid->uuid,
+				   (priority ? ", moved to head" : ""));
 			spin_unlock(&imp->imp_lock);
 			rc = 0;
 			goto out_free;
 		}
 	}
+
 	/* No existing import connection found for \a uuid. */
-	if (create) {
+	if (create)
+	{
 		imp_conn->oic_conn = ptlrpc_conn;
 		imp_conn->oic_uuid = *uuid;
 		imp_conn->oic_last_attempt = 0;
+
 		if (priority)
+		{
 			list_add(&imp_conn->oic_item, &imp->imp_conn_list);
+		}
 		else
 			list_add_tail(&imp_conn->oic_item,
-				      &imp->imp_conn_list);
+						  &imp->imp_conn_list);
+
 		CDEBUG(D_HA, "imp %p@%s: add connection %s at %s\n",
-		       imp, imp->imp_obd->obd_name, uuid->uuid,
-		       (priority ? "head" : "tail"));
-	} else {
+			   imp, imp->imp_obd->obd_name, uuid->uuid,
+			   (priority ? "head" : "tail"));
+	}
+	else
+	{
 		spin_unlock(&imp->imp_lock);
 		rc = -ENOENT;
 		goto out_free;
@@ -127,7 +145,7 @@ int import_set_conn_priority(struct obd_import *imp, struct obd_uuid *uuid)
 }
 
 int client_import_add_conn(struct obd_import *imp, struct obd_uuid *uuid,
-			   int priority)
+						   int priority)
 {
 	return import_set_conn(imp, uuid, priority, 1);
 }
@@ -140,21 +158,29 @@ int client_import_del_conn(struct obd_import *imp, struct obd_uuid *uuid)
 	int rc = -ENOENT;
 
 	spin_lock(&imp->imp_lock);
-	if (list_empty(&imp->imp_conn_list)) {
+
+	if (list_empty(&imp->imp_conn_list))
+	{
 		LASSERT(!imp->imp_connection);
 		goto out;
 	}
 
-	list_for_each_entry(imp_conn, &imp->imp_conn_list, oic_item) {
+	list_for_each_entry(imp_conn, &imp->imp_conn_list, oic_item)
+	{
 		if (!obd_uuid_equals(uuid, &imp_conn->oic_uuid))
+		{
 			continue;
+		}
+
 		LASSERT(imp_conn->oic_conn);
 
-		if (imp_conn == imp->imp_conn_current) {
+		if (imp_conn == imp->imp_conn_current)
+		{
 			LASSERT(imp_conn->oic_conn == imp->imp_connection);
 
 			if (imp->imp_state != LUSTRE_IMP_CLOSED &&
-			    imp->imp_state != LUSTRE_IMP_DISCON) {
+				imp->imp_state != LUSTRE_IMP_DISCON)
+			{
 				CERROR("can't remove current connection\n");
 				rc = -EBUSY;
 				goto out;
@@ -164,9 +190,11 @@ int client_import_del_conn(struct obd_import *imp, struct obd_uuid *uuid)
 			imp->imp_connection = NULL;
 
 			dlmexp = class_conn2export(&imp->imp_dlm_handle);
-			if (dlmexp && dlmexp->exp_connection) {
+
+			if (dlmexp && dlmexp->exp_connection)
+			{
 				LASSERT(dlmexp->exp_connection ==
-					imp_conn->oic_conn);
+						imp_conn->oic_conn);
 				ptlrpc_connection_put(dlmexp->exp_connection);
 				dlmexp->exp_connection = NULL;
 			}
@@ -176,14 +204,18 @@ int client_import_del_conn(struct obd_import *imp, struct obd_uuid *uuid)
 		ptlrpc_connection_put(imp_conn->oic_conn);
 		kfree(imp_conn);
 		CDEBUG(D_HA, "imp %p@%s: remove connection %s\n",
-		       imp, imp->imp_obd->obd_name, uuid->uuid);
+			   imp, imp->imp_obd->obd_name, uuid->uuid);
 		rc = 0;
 		break;
 	}
 out:
 	spin_unlock(&imp->imp_lock);
+
 	if (rc == -ENOENT)
+	{
 		CERROR("connection %s not found\n", uuid->uuid);
+	}
+
 	return rc;
 }
 EXPORT_SYMBOL(client_import_del_conn);
@@ -193,15 +225,17 @@ EXPORT_SYMBOL(client_import_del_conn);
  * to find a conn uuid of \a imp which can reach \a peer.
  */
 int client_import_find_conn(struct obd_import *imp, lnet_nid_t peer,
-			    struct obd_uuid *uuid)
+							struct obd_uuid *uuid)
 {
 	struct obd_import_conn *conn;
 	int rc = -ENOENT;
 
 	spin_lock(&imp->imp_lock);
-	list_for_each_entry(conn, &imp->imp_conn_list, oic_item) {
+	list_for_each_entry(conn, &imp->imp_conn_list, oic_item)
+	{
 		/* Check if conn UUID does have this peer NID. */
-		if (class_check_uuid(&conn->oic_uuid, peer)) {
+		if (class_check_uuid(&conn->oic_uuid, peer))
+		{
 			*uuid = conn->oic_uuid;
 			rc = 0;
 			break;
@@ -244,22 +278,27 @@ int client_obd_setup(struct obd_device *obddev, struct lustre_cfg *lcfg)
 	/* In a more perfect world, we would hang a ptlrpc_client off of
 	 * obd_type and just use the values from there.
 	 */
-	if (!strcmp(name, LUSTRE_OSC_NAME)) {
+	if (!strcmp(name, LUSTRE_OSC_NAME))
+	{
 		rq_portal = OST_REQUEST_PORTAL;
 		rp_portal = OSC_REPLY_PORTAL;
 		connect_op = OST_CONNECT;
 		cli->cl_sp_me = LUSTRE_SP_CLI;
 		cli->cl_sp_to = LUSTRE_SP_OST;
 		ns_type = LDLM_NS_TYPE_OSC;
-	} else if (!strcmp(name, LUSTRE_MDC_NAME) ||
-		   !strcmp(name, LUSTRE_LWP_NAME)) {
+	}
+	else if (!strcmp(name, LUSTRE_MDC_NAME) ||
+			 !strcmp(name, LUSTRE_LWP_NAME))
+	{
 		rq_portal = MDS_REQUEST_PORTAL;
 		rp_portal = MDC_REPLY_PORTAL;
 		connect_op = MDS_CONNECT;
 		cli->cl_sp_me = LUSTRE_SP_CLI;
 		cli->cl_sp_to = LUSTRE_SP_MDT;
 		ns_type = LDLM_NS_TYPE_MDC;
-	} else if (!strcmp(name, LUSTRE_MGC_NAME)) {
+	}
+	else if (!strcmp(name, LUSTRE_MGC_NAME))
+	{
 		rq_portal = MGS_REQUEST_PORTAL;
 		rp_portal = MGC_REPLY_PORTAL;
 		connect_op = MGS_CONNECT;
@@ -267,28 +306,34 @@ int client_obd_setup(struct obd_device *obddev, struct lustre_cfg *lcfg)
 		cli->cl_sp_to = LUSTRE_SP_MGS;
 		cli->cl_flvr_mgc.sf_rpc = SPTLRPC_FLVR_INVALID;
 		ns_type = LDLM_NS_TYPE_MGC;
-	} else {
+	}
+	else
+	{
 		CERROR("unknown client OBD type \"%s\", can't setup\n",
-		       name);
+			   name);
 		return -EINVAL;
 	}
 
-	if (LUSTRE_CFG_BUFLEN(lcfg, 1) < 1) {
+	if (LUSTRE_CFG_BUFLEN(lcfg, 1) < 1)
+	{
 		CERROR("requires a TARGET UUID\n");
 		return -EINVAL;
 	}
 
-	if (LUSTRE_CFG_BUFLEN(lcfg, 1) > 37) {
+	if (LUSTRE_CFG_BUFLEN(lcfg, 1) > 37)
+	{
 		CERROR("client UUID must be less than 38 characters\n");
 		return -EINVAL;
 	}
 
-	if (LUSTRE_CFG_BUFLEN(lcfg, 2) < 1) {
+	if (LUSTRE_CFG_BUFLEN(lcfg, 2) < 1)
+	{
 		CERROR("setup requires a SERVER UUID\n");
 		return -EINVAL;
 	}
 
-	if (LUSTRE_CFG_BUFLEN(lcfg, 2) > 37) {
+	if (LUSTRE_CFG_BUFLEN(lcfg, 2) > 37)
+	{
 		CERROR("target UUID must be less than 38 characters\n");
 		return -EINVAL;
 	}
@@ -296,8 +341,8 @@ int client_obd_setup(struct obd_device *obddev, struct lustre_cfg *lcfg)
 	init_rwsem(&cli->cl_sem);
 	cli->cl_conn_count = 0;
 	memcpy(server_uuid.uuid, lustre_cfg_buf(lcfg, 2),
-	       min_t(unsigned int, LUSTRE_CFG_BUFLEN(lcfg, 2),
-		     sizeof(server_uuid)));
+		   min_t(unsigned int, LUSTRE_CFG_BUFLEN(lcfg, 2),
+				 sizeof(server_uuid)));
 
 	cli->cl_dirty_pages = 0;
 	cli->cl_avail_grant = 0;
@@ -353,7 +398,7 @@ int client_obd_setup(struct obd_device *obddev, struct lustre_cfg *lcfg)
 	 * In the future this should likely be increased. LU-1431
 	 */
 	cli->cl_max_pages_per_rpc = min_t(int, PTLRPC_MAX_BRW_PAGES,
-					  LNET_MTU >> PAGE_SHIFT);
+									  LNET_MTU >> PAGE_SHIFT);
 
 	/*
 	 * set cl_chunkbits default value to PAGE_CACHE_SHIFT,
@@ -361,39 +406,56 @@ int client_obd_setup(struct obd_device *obddev, struct lustre_cfg *lcfg)
 	 */
 	cli->cl_chunkbits = PAGE_SHIFT;
 
-	if (!strcmp(name, LUSTRE_MDC_NAME)) {
-		cli->cl_max_rpcs_in_flight = OBD_MAX_RIF_DEFAULT;
-	} else if (totalram_pages >> (20 - PAGE_SHIFT) <= 128 /* MB */) {
-		cli->cl_max_rpcs_in_flight = 2;
-	} else if (totalram_pages >> (20 - PAGE_SHIFT) <= 256 /* MB */) {
-		cli->cl_max_rpcs_in_flight = 3;
-	} else if (totalram_pages >> (20 - PAGE_SHIFT) <= 512 /* MB */) {
-		cli->cl_max_rpcs_in_flight = 4;
-	} else {
+	if (!strcmp(name, LUSTRE_MDC_NAME))
+	{
 		cli->cl_max_rpcs_in_flight = OBD_MAX_RIF_DEFAULT;
 	}
+	else if (totalram_pages >> (20 - PAGE_SHIFT) <= 128 /* MB */)
+	{
+		cli->cl_max_rpcs_in_flight = 2;
+	}
+	else if (totalram_pages >> (20 - PAGE_SHIFT) <= 256 /* MB */)
+	{
+		cli->cl_max_rpcs_in_flight = 3;
+	}
+	else if (totalram_pages >> (20 - PAGE_SHIFT) <= 512 /* MB */)
+	{
+		cli->cl_max_rpcs_in_flight = 4;
+	}
+	else
+	{
+		cli->cl_max_rpcs_in_flight = OBD_MAX_RIF_DEFAULT;
+	}
+
 	rc = ldlm_get_ref();
-	if (rc) {
+
+	if (rc)
+	{
 		CERROR("ldlm_get_ref failed: %d\n", rc);
 		goto err;
 	}
 
 	ptlrpc_init_client(rq_portal, rp_portal, name,
-			   &obddev->obd_ldlm_client);
+					   &obddev->obd_ldlm_client);
 
 	imp = class_new_import(obddev);
-	if (!imp) {
+
+	if (!imp)
+	{
 		rc = -ENOENT;
 		goto err_ldlm;
 	}
+
 	imp->imp_client = &obddev->obd_ldlm_client;
 	imp->imp_connect_op = connect_op;
 	memcpy(cli->cl_target_uuid.uuid, lustre_cfg_buf(lcfg, 1),
-	       LUSTRE_CFG_BUFLEN(lcfg, 1));
+		   LUSTRE_CFG_BUFLEN(lcfg, 1));
 	class_import_put(imp);
 
 	rc = client_import_add_conn(imp, &server_uuid, 1);
-	if (rc) {
+
+	if (rc)
+	{
 		CERROR("can't add initial connection\n");
 		goto err_import;
 	}
@@ -403,11 +465,13 @@ int client_obd_setup(struct obd_device *obddev, struct lustre_cfg *lcfg)
 	cli->cl_max_mds_easize = sizeof(struct lov_mds_md_v3);
 	cli->cl_max_mds_cookiesize = sizeof(struct llog_cookie);
 
-	if (LUSTRE_CFG_BUFLEN(lcfg, 3) > 0) {
-		if (!strcmp(lustre_cfg_string(lcfg, 3), "inactive")) {
+	if (LUSTRE_CFG_BUFLEN(lcfg, 3) > 0)
+	{
+		if (!strcmp(lustre_cfg_string(lcfg, 3), "inactive"))
+		{
 			CDEBUG(D_HA, "marking %s %s->%s as inactive\n",
-			       name, obddev->obd_name,
-			       cli->cl_target_uuid.uuid);
+				   name, obddev->obd_name,
+				   cli->cl_target_uuid.uuid);
 			spin_lock(&imp->imp_lock);
 			imp->imp_deactive = 1;
 			spin_unlock(&imp->imp_lock);
@@ -415,12 +479,14 @@ int client_obd_setup(struct obd_device *obddev, struct lustre_cfg *lcfg)
 	}
 
 	obddev->obd_namespace = ldlm_namespace_new(obddev, obddev->obd_name,
-						   LDLM_NAMESPACE_CLIENT,
-						   LDLM_NAMESPACE_GREEDY,
-						   ns_type);
-	if (!obddev->obd_namespace) {
+							LDLM_NAMESPACE_CLIENT,
+							LDLM_NAMESPACE_GREEDY,
+							ns_type);
+
+	if (!obddev->obd_namespace)
+	{
 		CERROR("Unable to create client namespace - %s\n",
-		       obddev->obd_name);
+			   obddev->obd_name);
 		rc = -ENOMEM;
 		goto err_import;
 	}
@@ -453,9 +519,9 @@ EXPORT_SYMBOL(client_obd_cleanup);
 
 /* ->o_connect() method for client side (OSC and MDC and MGC) */
 int client_connect_import(const struct lu_env *env,
-			  struct obd_export **exp,
-			  struct obd_device *obd, struct obd_uuid *cluuid,
-			  struct obd_connect_data *data, void *localdata)
+						  struct obd_export **exp,
+						  struct obd_device *obd, struct obd_uuid *cluuid,
+						  struct obd_connect_data *data, void *localdata)
 {
 	struct client_obd       *cli    = &obd->u.cli;
 	struct obd_import       *imp    = cli->cl_import;
@@ -465,14 +531,19 @@ int client_connect_import(const struct lu_env *env,
 
 	*exp = NULL;
 	down_write(&cli->cl_sem);
-	if (cli->cl_conn_count > 0) {
+
+	if (cli->cl_conn_count > 0)
+	{
 		rc = -EALREADY;
 		goto out_sem;
 	}
 
 	rc = class_connect(&conn, obd, cluuid);
+
 	if (rc)
+	{
 		goto out_sem;
+	}
 
 	cli->cl_conn_count++;
 	*exp = class_conn2export(&conn);
@@ -481,37 +552,48 @@ int client_connect_import(const struct lu_env *env,
 
 	imp->imp_dlm_handle = conn;
 	rc = ptlrpc_init_import(imp);
+
 	if (rc != 0)
+	{
 		goto out_ldlm;
+	}
 
 	ocd = &imp->imp_connect_data;
-	if (data) {
+
+	if (data)
+	{
 		*ocd = *data;
 		imp->imp_connect_flags_orig = data->ocd_connect_flags;
 	}
 
 	rc = ptlrpc_connect_import(imp);
-	if (rc != 0) {
+
+	if (rc != 0)
+	{
 		LASSERT(imp->imp_state == LUSTRE_IMP_DISCON);
 		goto out_ldlm;
 	}
+
 	LASSERT(*exp && (*exp)->exp_connection);
 
-	if (data) {
+	if (data)
+	{
 		LASSERTF((ocd->ocd_connect_flags & data->ocd_connect_flags) ==
-			 ocd->ocd_connect_flags, "old %#llx, new %#llx\n",
-			 data->ocd_connect_flags, ocd->ocd_connect_flags);
+				 ocd->ocd_connect_flags, "old %#llx, new %#llx\n",
+				 data->ocd_connect_flags, ocd->ocd_connect_flags);
 		data->ocd_connect_flags = ocd->ocd_connect_flags;
 	}
 
 	ptlrpc_pinger_add_import(imp);
 
-	if (rc) {
+	if (rc)
+	{
 out_ldlm:
 		cli->cl_conn_count--;
 		class_disconnect(*exp);
 		*exp = NULL;
 	}
+
 out_sem:
 	up_write(&cli->cl_sem);
 
@@ -526,9 +608,10 @@ int client_disconnect_export(struct obd_export *exp)
 	struct obd_import *imp;
 	int rc = 0, err;
 
-	if (!obd) {
+	if (!obd)
+	{
 		CERROR("invalid export for disconnect: exp %p cookie %#llx\n",
-		       exp, exp ? exp->exp_handle.h_cookie : -1);
+			   exp, exp ? exp->exp_handle.h_cookie : -1);
 		return -EINVAL;
 	}
 
@@ -537,17 +620,20 @@ int client_disconnect_export(struct obd_export *exp)
 
 	down_write(&cli->cl_sem);
 	CDEBUG(D_INFO, "disconnect %s - %zu\n", obd->obd_name,
-	       cli->cl_conn_count);
+		   cli->cl_conn_count);
 
-	if (!cli->cl_conn_count) {
+	if (!cli->cl_conn_count)
+	{
 		CERROR("disconnecting disconnected device (%s)\n",
-		       obd->obd_name);
+			   obd->obd_name);
 		rc = -EINVAL;
 		goto out_disconnect;
 	}
 
 	cli->cl_conn_count--;
-	if (cli->cl_conn_count) {
+
+	if (cli->cl_conn_count)
+	{
 		rc = 0;
 		goto out_disconnect;
 	}
@@ -566,12 +652,13 @@ int client_disconnect_export(struct obd_export *exp)
 	 */
 	(void)ptlrpc_pinger_del_import(imp);
 
-	if (obd->obd_namespace) {
+	if (obd->obd_namespace)
+	{
 		/* obd_force == local only */
 		ldlm_cli_cancel_unused(obd->obd_namespace, NULL,
-				       obd->obd_force ? LCF_LOCAL : 0, NULL);
+							   obd->obd_force ? LCF_LOCAL : 0, NULL);
 		ldlm_namespace_free_prior(obd->obd_namespace, imp,
-					  obd->obd_force);
+								  obd->obd_force);
 	}
 
 	/* There's no need to hold sem while disconnecting an import,
@@ -588,8 +675,11 @@ out_disconnect:
 	 * o_disconnect.
 	 */
 	err = class_disconnect(exp);
+
 	if (!rc && err)
+	{
 		rc = err;
+	}
 
 	up_write(&cli->cl_sem);
 
@@ -608,7 +698,8 @@ int target_pack_pool_reply(struct ptlrpc_request *req)
 	 * be some late RPC at shutdown time.
 	 */
 	if (unlikely(!req->rq_export || !req->rq_export->exp_obd ||
-		     !exp_connect_lru_resize(req->rq_export))) {
+				 !exp_connect_lru_resize(req->rq_export)))
+	{
 		lustre_msg_set_slv(req->rq_repmsg, 0);
 		lustre_msg_set_limit(req->rq_repmsg, 0);
 		return 0;
@@ -629,12 +720,14 @@ EXPORT_SYMBOL(target_pack_pool_reply);
 static int
 target_send_reply_msg(struct ptlrpc_request *req, int rc, int fail_id)
 {
-	if (OBD_FAIL_CHECK_ORSET(fail_id & ~OBD_FAIL_ONCE, OBD_FAIL_ONCE)) {
+	if (OBD_FAIL_CHECK_ORSET(fail_id & ~OBD_FAIL_ONCE, OBD_FAIL_ONCE))
+	{
 		DEBUG_REQ(D_ERROR, req, "dropping reply");
 		return -ECOMM;
 	}
 
-	if (unlikely(rc)) {
+	if (unlikely(rc))
+	{
 		DEBUG_REQ(D_NET, req, "processing error (%d)", rc);
 		req->rq_status = rc;
 		return ptlrpc_send_error(req, 1);
@@ -652,11 +745,15 @@ void target_send_reply(struct ptlrpc_request *req, int rc, int fail_id)
 	struct obd_export	 *exp;
 
 	if (req->rq_no_reply)
+	{
 		return;
+	}
 
 	svcpt = req->rq_rqbd->rqbd_svcpt;
 	rs = req->rq_reply_state;
-	if (!rs || !rs->rs_difficult) {
+
+	if (!rs || !rs->rs_difficult)
+	{
 		/* no notifiers */
 		target_send_reply_msg(req, rc, fail_id);
 		return;
@@ -688,12 +785,15 @@ void target_send_reply(struct ptlrpc_request *req, int rc, int fail_id)
 
 	spin_lock(&exp->exp_uncommitted_replies_lock);
 	CDEBUG(D_NET, "rs transno = %llu, last committed = %llu\n",
-	       rs->rs_transno, exp->exp_last_committed);
-	if (rs->rs_transno > exp->exp_last_committed) {
+		   rs->rs_transno, exp->exp_last_committed);
+
+	if (rs->rs_transno > exp->exp_last_committed)
+	{
 		/* not committed already */
 		list_add_tail(&rs->rs_obd_list,
-			      &exp->exp_uncommitted_replies);
+					  &exp->exp_uncommitted_replies);
 	}
+
 	spin_unlock(&exp->exp_uncommitted_replies_lock);
 
 	spin_lock(&exp->exp_lock);
@@ -706,7 +806,8 @@ void target_send_reply(struct ptlrpc_request *req, int rc, int fail_id)
 
 	atomic_inc(&svcpt->scp_nreps_difficult);
 
-	if (netrc != 0) {
+	if (netrc != 0)
+	{
 		/* error sending: reply is off the net.  Also we need +1
 		 * reply ref until ptlrpc_handle_rs() is done
 		 * with the reply state (if the send was successful, there
@@ -718,22 +819,28 @@ void target_send_reply(struct ptlrpc_request *req, int rc, int fail_id)
 	}
 
 	spin_lock(&rs->rs_lock);
+
 	if (rs->rs_transno <= exp->exp_last_committed ||
-	    (!rs->rs_on_net && !rs->rs_no_ack) ||
-	    list_empty(&rs->rs_exp_list) ||     /* completed already */
-	    list_empty(&rs->rs_obd_list)) {
+		(!rs->rs_on_net && !rs->rs_no_ack) ||
+		list_empty(&rs->rs_exp_list) ||     /* completed already */
+		list_empty(&rs->rs_obd_list))
+	{
 		CDEBUG(D_HA, "Schedule reply immediately\n");
 		ptlrpc_dispatch_difficult_reply(rs);
-	} else {
+	}
+	else
+	{
 		list_add(&rs->rs_list, &svcpt->scp_rep_active);
 		rs->rs_scheduled = 0;	/* allow notifier to schedule */
 	}
+
 	spin_unlock(&rs->rs_lock);
 	spin_unlock(&svcpt->scp_rep_lock);
 }
 EXPORT_SYMBOL(target_send_reply);
 
-enum ldlm_mode lck_compat_array[] = {
+enum ldlm_mode lck_compat_array[] =
+{
 	[LCK_EX]	= LCK_COMPAT_EX,
 	[LCK_PW]	= LCK_COMPAT_PW,
 	[LCK_PR]	= LCK_COMPAT_PR,
@@ -752,37 +859,49 @@ int ldlm_error2errno(enum ldlm_error error)
 {
 	int result;
 
-	switch (error) {
-	case ELDLM_OK:
-	case ELDLM_LOCK_MATCHED:
-		result = 0;
-		break;
-	case ELDLM_LOCK_CHANGED:
-		result = -ESTALE;
-		break;
-	case ELDLM_LOCK_ABORTED:
-		result = -ENAVAIL;
-		break;
-	case ELDLM_LOCK_REPLACED:
-		result = -ESRCH;
-		break;
-	case ELDLM_NO_LOCK_DATA:
-		result = -ENOENT;
-		break;
-	case ELDLM_NAMESPACE_EXISTS:
-		result = -EEXIST;
-		break;
-	case ELDLM_BAD_NAMESPACE:
-		result = -EBADF;
-		break;
-	default:
-		if (((int)error) < 0)  /* cast to signed type */
-			result = error; /* as enum ldlm_error can be unsigned */
-		else {
-			CERROR("Invalid DLM result code: %d\n", error);
-			result = -EPROTO;
-		}
+	switch (error)
+	{
+		case ELDLM_OK:
+		case ELDLM_LOCK_MATCHED:
+			result = 0;
+			break;
+
+		case ELDLM_LOCK_CHANGED:
+			result = -ESTALE;
+			break;
+
+		case ELDLM_LOCK_ABORTED:
+			result = -ENAVAIL;
+			break;
+
+		case ELDLM_LOCK_REPLACED:
+			result = -ESRCH;
+			break;
+
+		case ELDLM_NO_LOCK_DATA:
+			result = -ENOENT;
+			break;
+
+		case ELDLM_NAMESPACE_EXISTS:
+			result = -EEXIST;
+			break;
+
+		case ELDLM_BAD_NAMESPACE:
+			result = -EBADF;
+			break;
+
+		default:
+			if (((int)error) < 0)  /* cast to signed type */
+			{
+				result = error;    /* as enum ldlm_error can be unsigned */
+			}
+			else
+			{
+				CERROR("Invalid DLM result code: %d\n", error);
+				result = -EPROTO;
+			}
 	}
+
 	return result;
 }
 EXPORT_SYMBOL(ldlm_error2errno);
@@ -791,15 +910,18 @@ EXPORT_SYMBOL(ldlm_error2errno);
 void ldlm_dump_export_locks(struct obd_export *exp)
 {
 	spin_lock(&exp->exp_locks_list_guard);
-	if (!list_empty(&exp->exp_locks_list)) {
+
+	if (!list_empty(&exp->exp_locks_list))
+	{
 		struct ldlm_lock *lock;
 
 		CERROR("dumping locks for export %p,ignore if the unmount doesn't hang\n",
-		       exp);
+			   exp);
 		list_for_each_entry(lock, &exp->exp_locks_list,
-				    l_exp_refs_link)
-			LDLM_ERROR(lock, "lock:");
+							l_exp_refs_link)
+		LDLM_ERROR(lock, "lock:");
 	}
+
 	spin_unlock(&exp->exp_locks_list_guard);
 }
 #endif

@@ -27,7 +27,8 @@
 #define PCF50633_REG_OOCSTAT	0x12
 #define PCF50633_REG_OOCMODE	0x10
 
-struct pcf50633_input {
+struct pcf50633_input
+{
 	struct pcf50633 *pcf;
 	struct input_dev *input_dev;
 };
@@ -42,12 +43,16 @@ pcf50633_input_irq(int irq, void *data)
 
 	/* We report only one event depending on the key press status */
 	onkey_released = pcf50633_reg_read(input->pcf, PCF50633_REG_OOCSTAT)
-						& PCF50633_OOCSTAT_ONKEY;
+					 & PCF50633_OOCSTAT_ONKEY;
 
 	if (irq == PCF50633_IRQ_ONKEYF && !onkey_released)
+	{
 		input_report_key(input->input_dev, KEY_POWER, 1);
+	}
 	else if (irq == PCF50633_IRQ_ONKEYR && onkey_released)
+	{
 		input_report_key(input->input_dev, KEY_POWER, 0);
+	}
 
 	input_sync(input->input_dev);
 }
@@ -60,11 +65,16 @@ static int pcf50633_input_probe(struct platform_device *pdev)
 
 
 	input = kzalloc(sizeof(*input), GFP_KERNEL);
+
 	if (!input)
+	{
 		return -ENOMEM;
+	}
 
 	input_dev = input_allocate_device();
-	if (!input_dev) {
+
+	if (!input_dev)
+	{
 		kfree(input);
 		return -ENOMEM;
 	}
@@ -79,15 +89,18 @@ static int pcf50633_input_probe(struct platform_device *pdev)
 	set_bit(KEY_POWER, input_dev->keybit);
 
 	ret = input_register_device(input_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		input_free_device(input_dev);
 		kfree(input);
 		return ret;
 	}
+
 	pcf50633_register_irq(input->pcf, PCF50633_IRQ_ONKEYR,
-				pcf50633_input_irq, input);
+						  pcf50633_input_irq, input);
 	pcf50633_register_irq(input->pcf, PCF50633_IRQ_ONKEYF,
-				pcf50633_input_irq, input);
+						  pcf50633_input_irq, input);
 
 	return 0;
 }
@@ -105,7 +118,8 @@ static int pcf50633_input_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver pcf50633_input_driver = {
+static struct platform_driver pcf50633_input_driver =
+{
 	.driver = {
 		.name = "pcf50633-input",
 	},

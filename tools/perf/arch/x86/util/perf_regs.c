@@ -1,7 +1,8 @@
 #include "../../perf.h"
 #include "../../util/perf_regs.h"
 
-const struct sample_reg sample_reg_masks[] = {
+const struct sample_reg sample_reg_masks[] =
+{
 	SMPL_REG(AX, PERF_REG_X86_AX),
 	SMPL_REG(BX, PERF_REG_X86_BX),
 	SMPL_REG(CX, PERF_REG_X86_CX),

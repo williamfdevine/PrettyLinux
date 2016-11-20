@@ -38,16 +38,18 @@
 struct b43legacy_pioqueue;
 struct b43legacy_xmitstatus;
 
-struct b43legacy_pio_txpacket {
+struct b43legacy_pio_txpacket
+{
 	struct b43legacy_pioqueue *queue;
 	struct sk_buff *skb;
 	struct list_head list;
 };
 
 #define pio_txpacket_getindex(packet) ((int)((packet) - \
-			      (packet)->queue->tx_packets_cache))
+									   (packet)->queue->tx_packets_cache))
 
-struct b43legacy_pioqueue {
+struct b43legacy_pioqueue
+{
 	struct b43legacy_wldev *dev;
 	u16 mmio_base;
 
@@ -76,19 +78,19 @@ struct b43legacy_pioqueue {
 	struct list_head txrunning;
 	struct tasklet_struct txtask;
 	struct b43legacy_pio_txpacket
-			 tx_packets_cache[B43legacy_PIO_MAXTXPACKETS];
+		tx_packets_cache[B43legacy_PIO_MAXTXPACKETS];
 };
 
 static inline
 u16 b43legacy_pio_read(struct b43legacy_pioqueue *queue,
-		     u16 offset)
+					   u16 offset)
 {
 	return b43legacy_read16(queue->dev, queue->mmio_base + offset);
 }
 
 static inline
 void b43legacy_pio_write(struct b43legacy_pioqueue *queue,
-		       u16 offset, u16 value)
+						 u16 offset, u16 value)
 {
 	b43legacy_write16(queue->dev, queue->mmio_base + offset, value);
 	mmiowb();
@@ -99,9 +101,9 @@ int b43legacy_pio_init(struct b43legacy_wldev *dev);
 void b43legacy_pio_free(struct b43legacy_wldev *dev);
 
 int b43legacy_pio_tx(struct b43legacy_wldev *dev,
-		   struct sk_buff *skb);
+					 struct sk_buff *skb);
 void b43legacy_pio_handle_txstatus(struct b43legacy_wldev *dev,
-				 const struct b43legacy_txstatus *status);
+								   const struct b43legacy_txstatus *status);
 void b43legacy_pio_rx(struct b43legacy_pioqueue *queue);
 
 /* Suspend TX queue in hardware. */
@@ -124,13 +126,13 @@ void b43legacy_pio_free(struct b43legacy_wldev *dev)
 }
 static inline
 int b43legacy_pio_tx(struct b43legacy_wldev *dev,
-		   struct sk_buff *skb)
+					 struct sk_buff *skb)
 {
 	return 0;
 }
 static inline
 void b43legacy_pio_handle_txstatus(struct b43legacy_wldev *dev,
-				 const struct b43legacy_txstatus *status)
+								   const struct b43legacy_txstatus *status)
 {
 }
 static inline

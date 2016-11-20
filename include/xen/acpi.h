@@ -64,21 +64,27 @@ static inline int xen_acpi_get_pxm(acpi_handle h)
 	acpi_handle handle;
 	acpi_handle phandle = h;
 
-	do {
+	do
+	{
 		handle = phandle;
 		status = acpi_evaluate_integer(handle, "_PXM", NULL, &pxm);
+
 		if (ACPI_SUCCESS(status))
+		{
 			return pxm;
+		}
+
 		status = acpi_get_parent(handle, &phandle);
-	} while (ACPI_SUCCESS(status));
+	}
+	while (ACPI_SUCCESS(status));
 
 	return -ENXIO;
 }
 
 int xen_acpi_notify_hypervisor_sleep(u8 sleep_state,
-				     u32 pm1a_cnt, u32 pm1b_cnd);
+									 u32 pm1a_cnt, u32 pm1b_cnd);
 int xen_acpi_notify_hypervisor_extended_sleep(u8 sleep_state,
-				     u32 val_a, u32 val_b);
+		u32 val_a, u32 val_b);
 
 static inline int xen_acpi_suspend_lowlevel(void)
 {
@@ -93,7 +99,8 @@ static inline int xen_acpi_suspend_lowlevel(void)
 
 static inline void xen_acpi_sleep_register(void)
 {
-	if (xen_initial_domain()) {
+	if (xen_initial_domain())
+	{
 		acpi_os_set_prepare_sleep(
 			&xen_acpi_notify_hypervisor_sleep);
 		acpi_os_set_prepare_extended_sleep(

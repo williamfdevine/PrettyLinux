@@ -45,7 +45,8 @@
  * degree)
  */
 
-struct nsa320_hwmon {
+struct nsa320_hwmon
+{
 	struct mutex		update_lock;	/* lock GPIO operations */
 	unsigned long		last_updated;	/* jiffies */
 	unsigned long		mcu_data;
@@ -54,12 +55,14 @@ struct nsa320_hwmon {
 	struct gpio_desc	*data;
 };
 
-enum nsa320_inputs {
+enum nsa320_inputs
+{
 	NSA320_TEMP = 0,
 	NSA320_FAN = 1,
 };
 
-static const char * const nsa320_input_names[] = {
+static const char *const nsa320_input_names[] =
+{
 	[NSA320_TEMP] = "System Temperature",
 	[NSA320_FAN] = "Chassis Fan",
 };
@@ -83,27 +86,36 @@ static s32 nsa320_hwmon_update(struct device *dev)
 
 	mcu_data = hwmon->mcu_data;
 
-	if (time_after(jiffies, hwmon->last_updated + HZ) || mcu_data == 0) {
+	if (time_after(jiffies, hwmon->last_updated + HZ) || mcu_data == 0)
+	{
 		gpiod_set_value(hwmon->act, 1);
 		msleep(100);
 
 		mcu_data = 0;
-		for (mask = BIT(31); mask; mask >>= 1) {
+
+		for (mask = BIT(31); mask; mask >>= 1)
+		{
 			gpiod_set_value(hwmon->clk, 0);
 			usleep_range(100, 200);
 			gpiod_set_value(hwmon->clk, 1);
 			usleep_range(100, 200);
+
 			if (gpiod_get_value(hwmon->data))
+			{
 				mcu_data |= mask;
+			}
 		}
 
 		gpiod_set_value(hwmon->act, 0);
 		dev_dbg(dev, "Read raw MCU data %08x\n", mcu_data);
 
-		if ((mcu_data >> 24) != MAGIC_NUMBER) {
+		if ((mcu_data >> 24) != MAGIC_NUMBER)
+		{
 			dev_dbg(dev, "Read invalid MCU data %08x\n", mcu_data);
 			mcu_data = -EIO;
-		} else {
+		}
+		else
+		{
 			hwmon->mcu_data = mcu_data;
 			hwmon->last_updated = jiffies;
 		}
@@ -115,7 +127,7 @@ static s32 nsa320_hwmon_update(struct device *dev)
 }
 
 static ssize_t show_label(struct device *dev,
-			  struct device_attribute *attr, char *buf)
+						  struct device_attribute *attr, char *buf)
 {
 	int channel = to_sensor_dev_attr(attr)->index;
 
@@ -123,23 +135,27 @@ static ssize_t show_label(struct device *dev,
 }
 
 static ssize_t show_temp(struct device *dev, struct device_attribute *attr,
-			 char *buf)
+						 char *buf)
 {
 	s32 mcu_data = nsa320_hwmon_update(dev);
 
 	if (mcu_data < 0)
+	{
 		return mcu_data;
+	}
 
 	return sprintf(buf, "%d\n", (mcu_data & 0xffff) * 100);
 }
 
 static ssize_t show_fan(struct device *dev, struct device_attribute *attr,
-			char *buf)
+						char *buf)
 {
 	s32 mcu_data = nsa320_hwmon_update(dev);
 
 	if (mcu_data < 0)
+	{
 		return mcu_data;
+	}
 
 	return sprintf(buf, "%d\n", ((mcu_data & 0xff0000) >> 16) * 100);
 }
@@ -149,7 +165,8 @@ static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL);
 static SENSOR_DEVICE_ATTR(fan1_label, S_IRUGO, show_label, NULL, NSA320_FAN);
 static DEVICE_ATTR(fan1_input, S_IRUGO, show_fan, NULL);
 
-static struct attribute *nsa320_attrs[] = {
+static struct attribute *nsa320_attrs[] =
+{
 	&sensor_dev_attr_temp1_label.dev_attr.attr,
 	&dev_attr_temp1_input.attr,
 	&sensor_dev_attr_fan1_label.dev_attr.attr,
@@ -159,7 +176,8 @@ static struct attribute *nsa320_attrs[] = {
 
 ATTRIBUTE_GROUPS(nsa320);
 
-static const struct of_device_id of_nsa320_hwmon_match[] = {
+static const struct of_device_id of_nsa320_hwmon_match[] =
+{
 	{ .compatible = "zyxel,nsa320-mcu", },
 	{ },
 };
@@ -170,26 +188,38 @@ static int nsa320_hwmon_probe(struct platform_device *pdev)
 	struct device		*classdev;
 
 	hwmon = devm_kzalloc(&pdev->dev, sizeof(*hwmon), GFP_KERNEL);
+
 	if (!hwmon)
+	{
 		return -ENOMEM;
+	}
 
 	/* Look up the GPIO pins to use */
 	hwmon->act = devm_gpiod_get(&pdev->dev, "act", GPIOD_OUT_LOW);
+
 	if (IS_ERR(hwmon->act))
+	{
 		return PTR_ERR(hwmon->act);
+	}
 
 	hwmon->clk = devm_gpiod_get(&pdev->dev, "clk", GPIOD_OUT_HIGH);
+
 	if (IS_ERR(hwmon->clk))
+	{
 		return PTR_ERR(hwmon->clk);
+	}
 
 	hwmon->data = devm_gpiod_get(&pdev->dev, "data", GPIOD_IN);
+
 	if (IS_ERR(hwmon->data))
+	{
 		return PTR_ERR(hwmon->data);
+	}
 
 	mutex_init(&hwmon->update_lock);
 
 	classdev = devm_hwmon_device_register_with_groups(&pdev->dev,
-					"nsa320", hwmon, nsa320_groups);
+			   "nsa320", hwmon, nsa320_groups);
 
 	return PTR_ERR_OR_ZERO(classdev);
 
@@ -197,7 +227,8 @@ static int nsa320_hwmon_probe(struct platform_device *pdev)
 
 /* All allocations use devres so remove() is not needed. */
 
-static struct platform_driver nsa320_hwmon_driver = {
+static struct platform_driver nsa320_hwmon_driver =
+{
 	.probe = nsa320_hwmon_probe,
 	.driver = {
 		.name = "nsa320-hwmon",

@@ -68,7 +68,8 @@
 #define AAT2870_REG_NUM		0x27
 
 /* Device IDs */
-enum aat2870_id {
+enum aat2870_id
+{
 	AAT2870_ID_BL,
 	AAT2870_ID_LDOA,
 	AAT2870_ID_LDOB,
@@ -88,7 +89,8 @@ enum aat2870_id {
 #define AAT2870_BL_CH_ALL	0xFF
 
 /* Backlight current magnitude (mA) */
-enum aat2870_current {
+enum aat2870_current
+{
 	AAT2870_CURRENT_0_45 = 1,
 	AAT2870_CURRENT_0_90,
 	AAT2870_CURRENT_1_80,
@@ -123,13 +125,15 @@ enum aat2870_current {
 	AAT2870_CURRENT_27_9
 };
 
-struct aat2870_register {
+struct aat2870_register
+{
 	bool readable;
 	bool writeable;
 	u8 value;
 };
 
-struct aat2870_data {
+struct aat2870_data
+{
 	struct device *dev;
 	struct i2c_client *client;
 
@@ -152,13 +156,15 @@ struct aat2870_data {
 	struct dentry *dentry_reg;
 };
 
-struct aat2870_subdev_info {
+struct aat2870_subdev_info
+{
 	int id;
 	const char *name;
 	void *platform_data;
 };
 
-struct aat2870_platform_data {
+struct aat2870_platform_data
+{
 	int en_pin; /* enable GPIO pin (if < 0, ignore this value) */
 
 	struct aat2870_subdev_info *subdevs;
@@ -169,7 +175,8 @@ struct aat2870_platform_data {
 	void (*uninit)(struct aat2870_data *aat2870);
 };
 
-struct aat2870_bl_platform_data {
+struct aat2870_bl_platform_data
+{
 	/* backlight channels, default is AAT2870_BL_CH_ALL */
 	int channels;
 	/* backlight current magnitude, default is AAT2870_CURRENT_27_9 */

@@ -25,14 +25,14 @@
 
 #define CRYP_WRITE_BIT(reg_name, val, mask) \
 	writel_relaxed(((readl_relaxed(reg_name) & ~(mask)) |\
-			((val) & (mask))), reg_name)
+					((val) & (mask))), reg_name)
 
 #define CRYP_TEST_BITS(reg_name, val) \
 	(readl_relaxed(reg_name) & (val))
 
 #define CRYP_PUT_BITS(reg, val, shift, mask) \
 	writel_relaxed(((readl_relaxed(reg) & ~(mask)) | \
-		(((u32)val << shift) & (mask))), reg)
+					(((u32)val << shift) & (mask))), reg)
 
 /**
  * CRYP specific Macros
@@ -78,13 +78,13 @@
 #define CRYP_CR_FFLUSH_MASK		BIT(14)
 #define CRYP_CR_CRYPEN_MASK		BIT(15)
 #define CRYP_CR_CONTEXT_SAVE_MASK	(CRYP_CR_SECURE_MASK |\
-					 CRYP_CR_PRLG_MASK |\
-					 CRYP_CR_ALGODIR_MASK |\
-					 CRYP_CR_ALGOMODE_MASK |\
-					 CRYP_CR_DATATYPE_MASK |\
-					 CRYP_CR_KEYSIZE_MASK |\
-					 CRYP_CR_KEYRDEN_MASK |\
-					 CRYP_CR_DATATYPE_MASK)
+									 CRYP_CR_PRLG_MASK |\
+									 CRYP_CR_ALGODIR_MASK |\
+									 CRYP_CR_ALGOMODE_MASK |\
+									 CRYP_CR_DATATYPE_MASK |\
+									 CRYP_CR_KEYSIZE_MASK |\
+									 CRYP_CR_KEYRDEN_MASK |\
+									 CRYP_CR_DATATYPE_MASK)
 
 
 #define CRYP_SR_INFIFO_READY_MASK	(BIT(0) | BIT(1))
@@ -115,7 +115,8 @@
 #define CRYP_DMA_REQ_MASK_POS		0
 
 
-struct cryp_system_context {
+struct cryp_system_context
+{
 	/* CRYP Register structure */
 	struct cryp_register *p_cryp_reg[MAX_DEVICE_SUPPORT];
 };

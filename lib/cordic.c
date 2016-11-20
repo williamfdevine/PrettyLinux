@@ -22,10 +22,11 @@
 
 #define	FIXED(X)	((s32)((X) << CORDIC_PRECISION_SHIFT))
 #define	FLOAT(X)	(((X) >= 0) \
-		? ((((X) >> (CORDIC_PRECISION_SHIFT - 1)) + 1) >> 1) \
-		: -((((-(X)) >> (CORDIC_PRECISION_SHIFT - 1)) + 1) >> 1))
+					 ? ((((X) >> (CORDIC_PRECISION_SHIFT - 1)) + 1) >> 1) \
+					 : -((((-(X)) >> (CORDIC_PRECISION_SHIFT - 1)) + 1) >> 1))
 
-static const s32 arctan_table[] = {
+static const s32 arctan_table[] =
+{
 	2949120,
 	1740967,
 	919879,
@@ -67,26 +68,34 @@ struct cordic_iq cordic_calc_iq(s32 theta)
 	theta = FIXED(theta);
 	signtheta = (theta < 0) ? -1 : 1;
 	theta = ((theta + FIXED(180) * signtheta) % FIXED(360)) -
-		FIXED(180) * signtheta;
+			FIXED(180) * signtheta;
 
-	if (FLOAT(theta) > 90) {
+	if (FLOAT(theta) > 90)
+	{
 		theta -= FIXED(180);
 		signx = -1;
-	} else if (FLOAT(theta) < -90) {
+	}
+	else if (FLOAT(theta) < -90)
+	{
 		theta += FIXED(180);
 		signx = -1;
 	}
 
-	for (iter = 0; iter < CORDIC_NUM_ITER; iter++) {
-		if (theta > angle) {
+	for (iter = 0; iter < CORDIC_NUM_ITER; iter++)
+	{
+		if (theta > angle)
+		{
 			valtmp = coord.i - (coord.q >> iter);
 			coord.q += (coord.i >> iter);
 			angle += arctan_table[iter];
-		} else {
+		}
+		else
+		{
 			valtmp = coord.i + (coord.q >> iter);
 			coord.q -= (coord.i >> iter);
 			angle -= arctan_table[iter];
 		}
+
 		coord.i = valtmp;
 	}
 

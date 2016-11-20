@@ -58,7 +58,8 @@
  * corresponding event.  It is big enough to hold a pointer on all platforms.
  * The ioctl used to set @closure depends on the @type of event.
  */
-struct fw_cdev_event_common {
+struct fw_cdev_event_common
+{
 	__u64 closure;
 	__u32 type;
 };
@@ -82,7 +83,8 @@ struct fw_cdev_event_common {
  * %FW_CDEV_IOC_GET_INFO ioctl after bus manager selection was finished.
  * Kernels with ABI version < 4 do not set @bm_node_id.
  */
-struct fw_cdev_event_bus_reset {
+struct fw_cdev_event_bus_reset
+{
 	__u64 closure;
 	__u32 type;
 	__u32 node_id;
@@ -113,7 +115,8 @@ struct fw_cdev_event_bus_reset {
  * broadcast write transactions, and transmission of asynchronous stream
  * packets.  @rcode indicates success or failure of such transmissions.
  */
-struct fw_cdev_event_response {
+struct fw_cdev_event_response
+{
 	__u64 closure;
 	__u32 type;
 	__u32 rcode;
@@ -129,7 +132,8 @@ struct fw_cdev_event_response {
  * the client implements ABI version <= 3.  &fw_cdev_event_request lacks
  * essential information; use &fw_cdev_event_request2 instead.
  */
-struct fw_cdev_event_request {
+struct fw_cdev_event_request
+{
 	__u64 closure;
 	__u32 type;
 	__u32 tcode;
@@ -188,7 +192,8 @@ struct fw_cdev_event_request {
  * an &fw_cdev_event_request2, it needs to use a device file with matching
  * card index, node ID, and generation for outbound requests.
  */
-struct fw_cdev_event_request2 {
+struct fw_cdev_event_request2
+{
 	__u64 closure;
 	__u32 type;
 	__u32 tcode;
@@ -254,7 +259,8 @@ struct fw_cdev_event_request2 {
  * data followed directly after the 1394 is header if header_size > 4.
  * Behaviour of ver. 1 of this ABI is no longer available since ABI ver. 2.
  */
-struct fw_cdev_event_iso_interrupt {
+struct fw_cdev_event_iso_interrupt
+{
 	__u64 closure;
 	__u32 type;
 	__u32 cycle;
@@ -293,7 +299,8 @@ struct fw_cdev_event_iso_interrupt {
  * for this condition, assemble a broken-up packet from its parts, and not to
  * re-queue any buffer chunks in which as yet unread packet parts reside.
  */
-struct fw_cdev_event_iso_interrupt_mc {
+struct fw_cdev_event_iso_interrupt_mc
+{
 	__u64 closure;
 	__u32 type;
 	__u32 completed;
@@ -320,7 +327,8 @@ struct fw_cdev_event_iso_interrupt_mc {
  * @channel is <0 if no channel was (de)allocated or if reallocation failed.
  * @bandwidth is 0 if no bandwidth was (de)allocated or if reallocation failed.
  */
-struct fw_cdev_event_iso_resource {
+struct fw_cdev_event_iso_resource
+{
 	__u64 closure;
 	__u32 type;
 	__u32 handle;
@@ -344,7 +352,8 @@ struct fw_cdev_event_iso_resource {
  * If @type is %FW_CDEV_EVENT_PHY_PACKET_RECEIVED, @length is 8 and @data
  * consists of the two PHY packet quadlets, in host byte order.
  */
-struct fw_cdev_event_phy_packet {
+struct fw_cdev_event_phy_packet
+{
 	__u64 closure;
 	__u32 type;
 	__u32 rcode;
@@ -377,7 +386,8 @@ struct fw_cdev_event_phy_packet {
  * an event into a buffer that is not large enough for it, the data that does
  * not fit will be discarded so that the next read(2) will return a new event.
  */
-union fw_cdev_event {
+union fw_cdev_event
+{
 	struct fw_cdev_event_common		common;
 	struct fw_cdev_event_bus_reset		bus_reset;
 	struct fw_cdev_event_response		response;
@@ -478,7 +488,8 @@ union fw_cdev_event {
  * As a side effect, reception of %FW_CDEV_EVENT_BUS_RESET events to be read(2)
  * is started by this ioctl.
  */
-struct fw_cdev_get_info {
+struct fw_cdev_get_info
+{
 	__u32 version;
 	__u32 rom_length;
 	__u64 rom;
@@ -502,7 +513,8 @@ struct fw_cdev_get_info {
  * &fw_cdev_event_response event back.  The @closure field is passed back to
  * user space in the response event.
  */
-struct fw_cdev_send_request {
+struct fw_cdev_send_request
+{
 	__u32 tcode;
 	__u32 length;
 	__u64 offset;
@@ -524,7 +536,8 @@ struct fw_cdev_send_request {
  * send a reply using this ioctl.  The event has a handle to the kernel-side
  * pending transaction, which should be used with this ioctl.
  */
-struct fw_cdev_send_response {
+struct fw_cdev_send_response
+{
 	__u32 rcode;
 	__u32 length;
 	__u64 data;
@@ -568,7 +581,8 @@ struct fw_cdev_send_response {
  * @region_end is only present in a kernel header >= 2.6.36.  If necessary,
  * this can for example be tested by #ifdef FW_CDEV_EVENT_REQUEST2.
  */
-struct fw_cdev_allocate {
+struct fw_cdev_allocate
+{
 	__u64 offset;
 	__u64 closure;
 	__u32 length;
@@ -581,7 +595,8 @@ struct fw_cdev_allocate {
  * @handle:	Handle to the address range or iso resource, as returned by the
  *		kernel when the range or resource was allocated
  */
-struct fw_cdev_deallocate {
+struct fw_cdev_deallocate
+{
 	__u32 handle;
 };
 
@@ -601,7 +616,8 @@ struct fw_cdev_deallocate {
  * considerably later than the ioctl because the kernel ensures a grace period
  * between subsequent bus resets as per IEEE 1394 bus management specification.
  */
-struct fw_cdev_initiate_bus_reset {
+struct fw_cdev_initiate_bus_reset
+{
 	__u32 type;
 };
 
@@ -634,7 +650,8 @@ struct fw_cdev_initiate_bus_reset {
  * This ioctl affects the Configuration ROMs of all local nodes.
  * The ioctl only succeeds on device files which represent a local node.
  */
-struct fw_cdev_add_descriptor {
+struct fw_cdev_add_descriptor
+{
 	__u32 immediate;
 	__u32 key;
 	__u64 data;
@@ -651,7 +668,8 @@ struct fw_cdev_add_descriptor {
  * nodes' Configuration ROMs.  The kernel will also generate a bus reset to
  * signal the change of the Configuration ROM to other nodes.
  */
-struct fw_cdev_remove_descriptor {
+struct fw_cdev_remove_descriptor
+{
 	__u32 handle;
 };
 
@@ -693,7 +711,8 @@ struct fw_cdev_remove_descriptor {
  * create on a card at a time is a hardware limit, typically 4 or 8 contexts per
  * direction, and of them at most one multichannel receive context.
  */
-struct fw_cdev_create_iso_context {
+struct fw_cdev_create_iso_context
+{
 	__u32 type;
 	__u32 header_size;
 	__u32 channel;
@@ -713,7 +732,8 @@ struct fw_cdev_create_iso_context {
  * on a channel in @channels.  In that case, the bitmask of all unoccupied
  * channels is returned in @channels.
  */
-struct fw_cdev_set_iso_channels {
+struct fw_cdev_set_iso_channels
+{
 	__u64 channels;
 	__u32 handle;
 };
@@ -795,7 +815,8 @@ struct fw_cdev_set_iso_channels {
  * When a buffer chunk with the @control.INTERRUPT flag set has been filled
  * entirely, an &fw_cdev_event_iso_interrupt_mc event will be sent.
  */
-struct fw_cdev_iso_packet {
+struct fw_cdev_iso_packet
+{
 	__u32 control;
 	__u32 header[0];
 };
@@ -821,7 +842,8 @@ struct fw_cdev_iso_packet {
  * In case of a multichannel receive context, @data must be quadlet-aligned
  * relative to the buffer start.
  */
-struct fw_cdev_queue_iso {
+struct fw_cdev_queue_iso
+{
 	__u64 packets;
 	__u64 data;
 	__u32 size;
@@ -845,7 +867,8 @@ struct fw_cdev_queue_iso {
  *		Use FW_CDEV_ISO_CONTEXT_MATCH_ macros to set @tags.
  * @handle:	Isochronous context handle within which to transmit or receive
  */
-struct fw_cdev_start_iso {
+struct fw_cdev_start_iso
+{
 	__s32 cycle;
 	__u32 sync;
 	__u32 tags;
@@ -856,7 +879,8 @@ struct fw_cdev_start_iso {
  * struct fw_cdev_stop_iso - Stop an isochronous transmission or reception
  * @handle:	Handle of isochronous context to stop
  */
-struct fw_cdev_stop_iso {
+struct fw_cdev_stop_iso
+{
 	__u32 handle;
 };
 
@@ -875,7 +899,8 @@ struct fw_cdev_stop_iso {
  * events generated by this ioctl are sent synchronously, i.e., are available
  * for reading from the file descriptor when this ioctl returns.
  */
-struct fw_cdev_flush_iso {
+struct fw_cdev_flush_iso
+{
 	__u32 handle;
 };
 
@@ -890,7 +915,8 @@ struct fw_cdev_flush_iso {
  * In version 1 and 2 of the ABI, this ioctl returned unreliable (non-
  * monotonic) @cycle_timer values on certain controllers.
  */
-struct fw_cdev_get_cycle_timer {
+struct fw_cdev_get_cycle_timer
+{
 	__u64 local_time;
 	__u32 cycle_timer;
 };
@@ -914,7 +940,8 @@ struct fw_cdev_get_cycle_timer {
  * 12 bits cycleOffset, in host byte order.  Cf. the Cycle Time register
  * per IEEE 1394 or Isochronous Cycle Timer register per OHCI-1394.
  */
-struct fw_cdev_get_cycle_timer2 {
+struct fw_cdev_get_cycle_timer2
+{
 	__s64 tv_sec;
 	__s32 tv_nsec;
 	__s32 clk_id;
@@ -965,7 +992,8 @@ struct fw_cdev_get_cycle_timer2 {
  * @bandwidth is expressed in bandwidth allocation units, i.e. the time to send
  * one quadlet of data (payload or header data) at speed S1600.
  */
-struct fw_cdev_allocate_iso_resource {
+struct fw_cdev_allocate_iso_resource
+{
 	__u64 closure;
 	__u64 channels;
 	__u32 bandwidth;
@@ -988,7 +1016,8 @@ struct fw_cdev_allocate_iso_resource {
  * writes an &fw_cdev_event_response event which indicates success or failure of
  * the transmission.
  */
-struct fw_cdev_send_stream_packet {
+struct fw_cdev_send_stream_packet
+{
 	__u32 length;
 	__u32 tag;
 	__u32 channel;
@@ -1015,7 +1044,8 @@ struct fw_cdev_send_stream_packet {
  *
  * The ioctl is only permitted on device files which represent a local node.
  */
-struct fw_cdev_send_phy_packet {
+struct fw_cdev_send_phy_packet
+{
 	__u64 closure;
 	__u32 data[2];
 	__u32 generation;
@@ -1030,7 +1060,8 @@ struct fw_cdev_send_phy_packet {
  *
  * The ioctl is only permitted on device files which represent a local node.
  */
-struct fw_cdev_receive_phy_packets {
+struct fw_cdev_receive_phy_packets
+{
 	__u64 closure;
 };
 

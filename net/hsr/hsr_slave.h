@@ -18,7 +18,7 @@
 #include "hsr_main.h"
 
 int hsr_add_port(struct hsr_priv *hsr, struct net_device *dev,
-		 enum hsr_port_type pt);
+				 enum hsr_port_type pt);
 void hsr_del_port(struct hsr_port *port);
 bool hsr_port_exists(const struct net_device *dev);
 
@@ -26,13 +26,13 @@ static inline struct hsr_port *hsr_port_get_rtnl(const struct net_device *dev)
 {
 	ASSERT_RTNL();
 	return hsr_port_exists(dev) ?
-				rtnl_dereference(dev->rx_handler_data) : NULL;
+		   rtnl_dereference(dev->rx_handler_data) : NULL;
 }
 
 static inline struct hsr_port *hsr_port_get_rcu(const struct net_device *dev)
 {
 	return hsr_port_exists(dev) ?
-				rcu_dereference(dev->rx_handler_data) : NULL;
+		   rcu_dereference(dev->rx_handler_data) : NULL;
 }
 
 #endif /* __HSR_SLAVE_H */

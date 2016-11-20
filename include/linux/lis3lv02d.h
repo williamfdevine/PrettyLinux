@@ -47,7 +47,8 @@
  * starts and when it goes away.
  */
 
-struct lis3lv02d_platform_data {
+struct lis3lv02d_platform_data
+{
 	/* please note: the 'click' feature is only supported for
 	 * LIS[32]02DL variants of the chip and will be ignored for
 	 * others */

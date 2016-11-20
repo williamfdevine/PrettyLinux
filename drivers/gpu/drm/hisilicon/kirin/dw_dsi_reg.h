@@ -70,18 +70,21 @@
 /*
  * regs relevant enum
  */
-enum dpi_color_coding {
+enum dpi_color_coding
+{
 	DSI_24BITS_1 = 5,
 };
 
-enum dsi_video_mode_type {
+enum dsi_video_mode_type
+{
 	DSI_NON_BURST_SYNC_PULSES = 0,
 	DSI_NON_BURST_SYNC_EVENTS,
 	DSI_BURST_SYNC_PULSES_1,
 	DSI_BURST_SYNC_PULSES_2
 };
 
-enum dsi_work_mode {
+enum dsi_work_mode
+{
 	DSI_VIDEO_MODE = 0,
 	DSI_COMMAND_MODE
 };
@@ -90,7 +93,7 @@ enum dsi_work_mode {
  * Register Write/Read Helper functions
  */
 static inline void dw_update_bits(void __iomem *addr, u32 bit_start,
-				  u32 mask, u32 val)
+								  u32 mask, u32 val)
 {
 	u32 tmp, orig;
 

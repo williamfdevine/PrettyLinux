@@ -37,16 +37,21 @@ static void verify_done(struct ccw_device *cdev, int rc)
 	int pgroup = cdev->private->flags.pgroup;
 
 	if (rc)
+	{
 		goto out;
+	}
+
 	/* Ensure consistent multipathing state at device and channel. */
-	if (sch->config.mp != mpath) {
+	if (sch->config.mp != mpath)
+	{
 		sch->config.mp = mpath;
 		rc = cio_commit_config(sch);
 	}
+
 out:
 	CIO_MSG_EVENT(2, "vrfy: device 0.%x.%04x: rc=%d pgroup=%d mpath=%d "
-			 "vpm=%02x\n", id->ssid, id->devno, rc, pgroup, mpath,
-			 sch->vpm);
+				  "vpm=%02x\n", id->ssid, id->devno, rc, pgroup, mpath,
+				  sch->vpm);
 	ccw_device_verify_done(cdev, rc);
 }
 
@@ -74,9 +79,13 @@ static void nop_do(struct ccw_device *cdev)
 	struct ccw_request *req = &cdev->private->req;
 
 	req->lpm = lpm_adjust(req->lpm, sch->schib.pmcw.pam & sch->opm &
-			      ~cdev->private->path_noirq_mask);
+						  ~cdev->private->path_noirq_mask);
+
 	if (!req->lpm)
+	{
 		goto out_nopath;
+	}
+
 	nop_build_cp(cdev);
 	ccw_request_start(cdev);
 	return;
@@ -89,11 +98,14 @@ out_nopath:
  * Adjust NOOP I/O status.
  */
 static enum io_status nop_filter(struct ccw_device *cdev, void *data,
-				 struct irb *irb, enum io_status status)
+								 struct irb *irb, enum io_status status)
 {
 	/* Only subchannel status might indicate a path error. */
 	if (status == IO_STATUS_ERROR && irb->scsw.cmd.cstat == 0)
+	{
 		return IO_DONE;
+	}
+
 	return status;
 }
 
@@ -105,19 +117,24 @@ static void nop_callback(struct ccw_device *cdev, void *data, int rc)
 	struct subchannel *sch = to_subchannel(cdev->dev.parent);
 	struct ccw_request *req = &cdev->private->req;
 
-	switch (rc) {
-	case 0:
-		sch->vpm |= req->lpm;
-		break;
-	case -ETIME:
-		cdev->private->path_noirq_mask |= req->lpm;
-		break;
-	case -EACCES:
-		cdev->private->path_notoper_mask |= req->lpm;
-		break;
-	default:
-		goto err;
+	switch (rc)
+	{
+		case 0:
+			sch->vpm |= req->lpm;
+			break;
+
+		case -ETIME:
+			cdev->private->path_noirq_mask |= req->lpm;
+			break;
+
+		case -EACCES:
+			cdev->private->path_notoper_mask |= req->lpm;
+			break;
+
+		default:
+			goto err;
 	}
+
 	/* Continue on the next path. */
 	req->lpm >>= 1;
 	nop_do(cdev);
@@ -147,11 +164,13 @@ static void spid_build_cp(struct ccw_device *cdev, u8 fn)
 
 static void pgid_wipeout_callback(struct ccw_device *cdev, void *data, int rc)
 {
-	if (rc) {
+	if (rc)
+	{
 		/* We don't know the path groups' state. Abort. */
 		verify_done(cdev, rc);
 		return;
 	}
+
 	/*
 	 * Path groups have been reset. Restart path verification but
 	 * leave paths in path_noirq_mask out.
@@ -171,8 +190,8 @@ static void pgid_wipeout_start(struct ccw_device *cdev)
 	u8 fn;
 
 	CIO_MSG_EVENT(2, "wipe: device 0.%x.%04x: pvm=%02x nim=%02x\n",
-		      id->ssid, id->devno, cdev->private->pgid_valid_mask,
-		      cdev->private->path_noirq_mask);
+				  id->ssid, id->devno, cdev->private->pgid_valid_mask,
+				  cdev->private->path_noirq_mask);
 
 	/* Initialize request data. */
 	memset(req, 0, sizeof(*req));
@@ -181,8 +200,12 @@ static void pgid_wipeout_start(struct ccw_device *cdev)
 	req->lpm	= sch->schib.pmcw.pam;
 	req->callback	= pgid_wipeout_callback;
 	fn = SPID_FUNC_DISBAND;
+
 	if (cdev->private->flags.mpath)
+	{
 		fn |= SPID_FUNC_MULTI_PATH;
+	}
+
 	spid_build_cp(cdev, fn);
 	ccw_request_start(cdev);
 }
@@ -198,25 +221,40 @@ static void spid_do(struct ccw_device *cdev)
 
 	/* Use next available path that is not already in correct state. */
 	req->lpm = lpm_adjust(req->lpm, cdev->private->pgid_todo_mask);
+
 	if (!req->lpm)
+	{
 		goto out_nopath;
+	}
+
 	/* Channel program setup. */
 	if (req->lpm & sch->opm)
+	{
 		fn = SPID_FUNC_ESTABLISH;
+	}
 	else
+	{
 		fn = SPID_FUNC_RESIGN;
+	}
+
 	if (cdev->private->flags.mpath)
+	{
 		fn |= SPID_FUNC_MULTI_PATH;
+	}
+
 	spid_build_cp(cdev, fn);
 	ccw_request_start(cdev);
 	return;
 
 out_nopath:
-	if (cdev->private->flags.pgid_unknown) {
+
+	if (cdev->private->flags.pgid_unknown)
+	{
 		/* At least one SPID could be partially done. */
 		pgid_wipeout_start(cdev);
 		return;
 	}
+
 	verify_done(cdev, sch->vpm ? 0 : -EACCES);
 }
 
@@ -228,29 +266,37 @@ static void spid_callback(struct ccw_device *cdev, void *data, int rc)
 	struct subchannel *sch = to_subchannel(cdev->dev.parent);
 	struct ccw_request *req = &cdev->private->req;
 
-	switch (rc) {
-	case 0:
-		sch->vpm |= req->lpm & sch->opm;
-		break;
-	case -ETIME:
-		cdev->private->flags.pgid_unknown = 1;
-		cdev->private->path_noirq_mask |= req->lpm;
-		break;
-	case -EACCES:
-		cdev->private->path_notoper_mask |= req->lpm;
-		break;
-	case -EOPNOTSUPP:
-		if (cdev->private->flags.mpath) {
-			/* Try without multipathing. */
-			cdev->private->flags.mpath = 0;
+	switch (rc)
+	{
+		case 0:
+			sch->vpm |= req->lpm & sch->opm;
+			break;
+
+		case -ETIME:
+			cdev->private->flags.pgid_unknown = 1;
+			cdev->private->path_noirq_mask |= req->lpm;
+			break;
+
+		case -EACCES:
+			cdev->private->path_notoper_mask |= req->lpm;
+			break;
+
+		case -EOPNOTSUPP:
+			if (cdev->private->flags.mpath)
+			{
+				/* Try without multipathing. */
+				cdev->private->flags.mpath = 0;
+				goto out_restart;
+			}
+
+			/* Try without pathgrouping. */
+			cdev->private->flags.pgroup = 0;
 			goto out_restart;
-		}
-		/* Try without pathgrouping. */
-		cdev->private->flags.pgroup = 0;
-		goto out_restart;
-	default:
-		goto err;
+
+		default:
+			goto err;
 	}
+
 	req->lpm >>= 1;
 	spid_do(cdev);
 	return;
@@ -280,24 +326,28 @@ static int pgid_is_reset(struct pgid *p)
 {
 	char *c;
 
-	for (c = (char *)p + 1; c < (char *)(p + 1); c++) {
+	for (c = (char *)p + 1; c < (char *)(p + 1); c++)
+	{
 		if (*c != 0)
+		{
 			return 0;
+		}
 	}
+
 	return 1;
 }
 
 static int pgid_cmp(struct pgid *p1, struct pgid *p2)
 {
 	return memcmp((char *) p1 + 1, (char *) p2 + 1,
-		      sizeof(struct pgid) - 1);
+				  sizeof(struct pgid) - 1);
 }
 
 /*
  * Determine pathgroup state from PGID data.
  */
 static void pgid_analyze(struct ccw_device *cdev, struct pgid **p,
-			 int *mismatch, u8 *reserved, u8 *reset)
+						 int *mismatch, u8 *reserved, u8 *reset)
 {
 	struct pgid *pgid = &cdev->private->pgid[0];
 	struct pgid *first = NULL;
@@ -307,24 +357,42 @@ static void pgid_analyze(struct ccw_device *cdev, struct pgid **p,
 	*mismatch = 0;
 	*reserved = 0;
 	*reset = 0;
-	for (i = 0, lpm = 0x80; i < 8; i++, pgid++, lpm >>= 1) {
+
+	for (i = 0, lpm = 0x80; i < 8; i++, pgid++, lpm >>= 1)
+	{
 		if ((cdev->private->pgid_valid_mask & lpm) == 0)
+		{
 			continue;
+		}
+
 		if (pgid->inf.ps.state2 == SNID_STATE2_RESVD_ELSE)
+		{
 			*reserved |= lpm;
-		if (pgid_is_reset(pgid)) {
+		}
+
+		if (pgid_is_reset(pgid))
+		{
 			*reset |= lpm;
 			continue;
 		}
-		if (!first) {
+
+		if (!first)
+		{
 			first = pgid;
 			continue;
 		}
+
 		if (pgid_cmp(pgid, first) != 0)
+		{
 			*mismatch = 1;
+		}
 	}
+
 	if (!first)
+	{
 		first = &channel_subsystems[0]->global_pgid;
+	}
+
 	*p = first;
 }
 
@@ -337,25 +405,47 @@ static u8 pgid_to_donepm(struct ccw_device *cdev)
 	u8 donepm = 0;
 
 	/* Set bits for paths which are already in the target state. */
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < 8; i++)
+	{
 		lpm = 0x80 >> i;
+
 		if ((cdev->private->pgid_valid_mask & lpm) == 0)
+		{
 			continue;
+		}
+
 		pgid = &cdev->private->pgid[i];
-		if (sch->opm & lpm) {
+
+		if (sch->opm & lpm)
+		{
 			if (pgid->inf.ps.state1 != SNID_STATE1_GROUPED)
+			{
 				continue;
-		} else {
+			}
+		}
+		else
+		{
 			if (pgid->inf.ps.state1 != SNID_STATE1_UNGROUPED)
+			{
 				continue;
+			}
 		}
-		if (cdev->private->flags.mpath) {
+
+		if (cdev->private->flags.mpath)
+		{
 			if (pgid->inf.ps.state3 != SNID_STATE3_MULTI_PATH)
+			{
 				continue;
-		} else {
-			if (pgid->inf.ps.state3 != SNID_STATE3_SINGLE_PATH)
-				continue;
+			}
 		}
+		else
+		{
+			if (pgid->inf.ps.state3 != SNID_STATE3_SINGLE_PATH)
+			{
+				continue;
+			}
+		}
+
 		donepm |= lpm;
 	}
 
@@ -367,7 +457,9 @@ static void pgid_fill(struct ccw_device *cdev, struct pgid *pgid)
 	int i;
 
 	for (i = 0; i < 8; i++)
+	{
 		memcpy(&cdev->private->pgid[i], pgid, sizeof(struct pgid));
+	}
 }
 
 /*
@@ -384,13 +476,22 @@ static void snid_done(struct ccw_device *cdev, int rc)
 	u8 donepm;
 
 	if (rc)
+	{
 		goto out;
+	}
+
 	pgid_analyze(cdev, &pgid, &mismatch, &reserved, &reset);
+
 	if (reserved == cdev->private->pgid_valid_mask)
+	{
 		rc = -EUSERS;
+	}
 	else if (mismatch)
+	{
 		rc = -EOPNOTSUPP;
-	else {
+	}
+	else
+	{
 		donepm = pgid_to_donepm(cdev);
 		sch->vpm = donepm & sch->opm;
 		cdev->private->pgid_reset_mask |= reset;
@@ -398,33 +499,42 @@ static void snid_done(struct ccw_device *cdev, int rc)
 			~(donepm | cdev->private->path_noirq_mask);
 		pgid_fill(cdev, pgid);
 	}
+
 out:
 	CIO_MSG_EVENT(2, "snid: device 0.%x.%04x: rc=%d pvm=%02x vpm=%02x "
-		      "todo=%02x mism=%d rsvd=%02x reset=%02x\n", id->ssid,
-		      id->devno, rc, cdev->private->pgid_valid_mask, sch->vpm,
-		      cdev->private->pgid_todo_mask, mismatch, reserved, reset);
-	switch (rc) {
-	case 0:
-		if (cdev->private->flags.pgid_unknown) {
-			pgid_wipeout_start(cdev);
-			return;
-		}
-		/* Anything left to do? */
-		if (cdev->private->pgid_todo_mask == 0) {
-			verify_done(cdev, sch->vpm == 0 ? -EACCES : 0);
-			return;
-		}
-		/* Perform path-grouping. */
-		spid_start(cdev);
-		break;
-	case -EOPNOTSUPP:
-		/* Path-grouping not supported. */
-		cdev->private->flags.pgroup = 0;
-		cdev->private->flags.mpath = 0;
-		verify_start(cdev);
-		break;
-	default:
-		verify_done(cdev, rc);
+				  "todo=%02x mism=%d rsvd=%02x reset=%02x\n", id->ssid,
+				  id->devno, rc, cdev->private->pgid_valid_mask, sch->vpm,
+				  cdev->private->pgid_todo_mask, mismatch, reserved, reset);
+
+	switch (rc)
+	{
+		case 0:
+			if (cdev->private->flags.pgid_unknown)
+			{
+				pgid_wipeout_start(cdev);
+				return;
+			}
+
+			/* Anything left to do? */
+			if (cdev->private->pgid_todo_mask == 0)
+			{
+				verify_done(cdev, sch->vpm == 0 ? -EACCES : 0);
+				return;
+			}
+
+			/* Perform path-grouping. */
+			spid_start(cdev);
+			break;
+
+		case -EOPNOTSUPP:
+			/* Path-grouping not supported. */
+			cdev->private->flags.pgroup = 0;
+			cdev->private->flags.mpath = 0;
+			verify_start(cdev);
+			break;
+
+		default:
+			verify_done(cdev, rc);
 	}
 }
 
@@ -455,20 +565,32 @@ static void snid_do(struct ccw_device *cdev)
 	int ret;
 
 	req->lpm = lpm_adjust(req->lpm, sch->schib.pmcw.pam &
-			      ~cdev->private->path_noirq_mask);
+						  ~cdev->private->path_noirq_mask);
+
 	if (!req->lpm)
+	{
 		goto out_nopath;
+	}
+
 	snid_build_cp(cdev);
 	ccw_request_start(cdev);
 	return;
 
 out_nopath:
+
 	if (cdev->private->pgid_valid_mask)
+	{
 		ret = 0;
+	}
 	else if (cdev->private->path_noirq_mask)
+	{
 		ret = -ETIME;
+	}
 	else
+	{
 		ret = -EACCES;
+	}
+
 	snid_done(cdev, ret);
 }
 
@@ -479,20 +601,25 @@ static void snid_callback(struct ccw_device *cdev, void *data, int rc)
 {
 	struct ccw_request *req = &cdev->private->req;
 
-	switch (rc) {
-	case 0:
-		cdev->private->pgid_valid_mask |= req->lpm;
-		break;
-	case -ETIME:
-		cdev->private->flags.pgid_unknown = 1;
-		cdev->private->path_noirq_mask |= req->lpm;
-		break;
-	case -EACCES:
-		cdev->private->path_notoper_mask |= req->lpm;
-		break;
-	default:
-		goto err;
+	switch (rc)
+	{
+		case 0:
+			cdev->private->pgid_valid_mask |= req->lpm;
+			break;
+
+		case -ETIME:
+			cdev->private->flags.pgid_unknown = 1;
+			cdev->private->path_noirq_mask |= req->lpm;
+			break;
+
+		case -EACCES:
+			cdev->private->path_notoper_mask |= req->lpm;
+			break;
+
+		default:
+			goto err;
 	}
+
 	/* Continue on the next path. */
 	req->lpm >>= 1;
 	snid_do(cdev);
@@ -526,12 +653,16 @@ static void verify_start(struct ccw_device *cdev)
 	req->maxretries	= PGID_RETRIES;
 	req->lpm	= 0x80;
 	req->singlepath	= 1;
-	if (cdev->private->flags.pgroup) {
+
+	if (cdev->private->flags.pgroup)
+	{
 		CIO_TRACE_EVENT(4, "snid");
 		CIO_HEX_EVENT(4, devid, sizeof(*devid));
 		req->callback	= snid_callback;
 		snid_do(cdev);
-	} else {
+	}
+	else
+	{
 		CIO_TRACE_EVENT(4, "nop");
 		CIO_HEX_EVENT(4, devid, sizeof(*devid));
 		req->filter	= nop_filter;
@@ -574,16 +705,22 @@ static void disband_callback(struct ccw_device *cdev, void *data, int rc)
 	struct ccw_dev_id *id = &cdev->private->dev_id;
 
 	if (rc)
+	{
 		goto out;
+	}
+
 	/* Ensure consistent multipathing state at device and channel. */
 	cdev->private->flags.mpath = 0;
-	if (sch->config.mp) {
+
+	if (sch->config.mp)
+	{
 		sch->config.mp = 0;
 		rc = cio_commit_config(sch);
 	}
+
 out:
 	CIO_MSG_EVENT(0, "disb: device 0.%x.%04x: rc=%d\n", id->ssid, id->devno,
-		      rc);
+				  rc);
 	ccw_device_disband_done(cdev, rc);
 }
 
@@ -611,13 +748,18 @@ void ccw_device_disband_start(struct ccw_device *cdev)
 	req->singlepath	= 1;
 	req->callback	= disband_callback;
 	fn = SPID_FUNC_DISBAND;
+
 	if (cdev->private->flags.mpath)
+	{
 		fn |= SPID_FUNC_MULTI_PATH;
+	}
+
 	spid_build_cp(cdev, fn);
 	ccw_request_start(cdev);
 }
 
-struct stlck_data {
+struct stlck_data
+{
 	struct completion done;
 	int rc;
 };
@@ -656,7 +798,7 @@ static void stlck_callback(struct ccw_device *cdev, void *data, int rc)
  * Execute a channel program on @cdev to release an existing PGID reservation.
  */
 static void ccw_device_stlck_start(struct ccw_device *cdev, void *data,
-				   void *buf1, void *buf2)
+								   void *buf1, void *buf2)
 {
 	struct subchannel *sch = to_subchannel(cdev->dev.parent);
 	struct ccw_request *req = &cdev->private->req;
@@ -685,31 +827,46 @@ int ccw_device_stlck(struct ccw_device *cdev)
 	int rc;
 
 	/* Check if steal lock operation is valid for this device. */
-	if (cdev->drv) {
+	if (cdev->drv)
+	{
 		if (!cdev->private->options.force)
+		{
 			return -EINVAL;
+		}
 	}
+
 	buffer = kzalloc(64, GFP_DMA | GFP_KERNEL);
+
 	if (!buffer)
+	{
 		return -ENOMEM;
+	}
+
 	init_completion(&data.done);
 	data.rc = -EIO;
 	spin_lock_irq(sch->lock);
 	rc = cio_enable_subchannel(sch, (u32) (addr_t) sch);
+
 	if (rc)
+	{
 		goto out_unlock;
+	}
+
 	/* Perform operation. */
 	cdev->private->state = DEV_STATE_STEAL_LOCK;
 	ccw_device_stlck_start(cdev, &data, &buffer[0], &buffer[32]);
 	spin_unlock_irq(sch->lock);
+
 	/* Wait for operation to finish. */
-	if (wait_for_completion_interruptible(&data.done)) {
+	if (wait_for_completion_interruptible(&data.done))
+	{
 		/* Got a signal. */
 		spin_lock_irq(sch->lock);
 		ccw_request_cancel(cdev);
 		spin_unlock_irq(sch->lock);
 		wait_for_completion(&data.done);
 	}
+
 	rc = data.rc;
 	/* Check results. */
 	spin_lock_irq(sch->lock);

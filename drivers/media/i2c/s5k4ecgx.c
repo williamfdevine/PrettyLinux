@@ -117,13 +117,15 @@ module_param(debug, int, 0644);
 #define REG_CMDRD_ADDRL			0x002e
 #define REG_CMDBUF0_ADDR		0x0f12
 
-struct s5k4ecgx_frmsize {
+struct s5k4ecgx_frmsize
+{
 	struct v4l2_frmsize_discrete size;
 	/* Fixed sensor matrix crop rectangle */
 	struct v4l2_rect input_window;
 };
 
-struct regval_list {
+struct regval_list
+{
 	u32 addr;
 	u16 val;
 };
@@ -132,7 +134,8 @@ struct regval_list {
  * TODO: currently only preview is supported and snapshot (capture)
  * is not implemented yet
  */
-static const struct s5k4ecgx_frmsize s5k4ecgx_prev_sizes[] = {
+static const struct s5k4ecgx_frmsize s5k4ecgx_prev_sizes[] =
+{
 	{
 		.size = { 176, 144 },
 		.input_window = { 0x00, 0x00, 0x928, 0x780 },
@@ -150,7 +153,8 @@ static const struct s5k4ecgx_frmsize s5k4ecgx_prev_sizes[] = {
 
 #define S5K4ECGX_NUM_PREV ARRAY_SIZE(s5k4ecgx_prev_sizes)
 
-struct s5k4ecgx_pixfmt {
+struct s5k4ecgx_pixfmt
+{
 	u32 code;
 	u32 colorspace;
 	/* REG_TC_PCFG_Format register value */
@@ -158,11 +162,13 @@ struct s5k4ecgx_pixfmt {
 };
 
 /* By default value, output from sensor will be YUV422 0-255 */
-static const struct s5k4ecgx_pixfmt s5k4ecgx_formats[] = {
+static const struct s5k4ecgx_pixfmt s5k4ecgx_formats[] =
+{
 	{ MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_JPEG, 5 },
 };
 
-static const char * const s5k4ecgx_supply_names[] = {
+static const char *const s5k4ecgx_supply_names[] =
+{
 	/*
 	 * Usually 2.8V is used for analog power (vdda)
 	 * and digital IO (vddio, vdddcore)
@@ -175,13 +181,15 @@ static const char * const s5k4ecgx_supply_names[] = {
 
 #define S5K4ECGX_NUM_SUPPLIES ARRAY_SIZE(s5k4ecgx_supply_names)
 
-enum s5k4ecgx_gpio_id {
+enum s5k4ecgx_gpio_id
+{
 	STBY,
 	RST,
 	GPIO_NUM,
 };
 
-struct s5k4ecgx {
+struct s5k4ecgx
+{
 	struct v4l2_subdev sd;
 	struct media_pad pad;
 	struct v4l2_ctrl_handler handler;
@@ -245,10 +253,16 @@ static int s5k4ecgx_write(struct i2c_client *client, u32 addr, u16 val)
 	v4l2_dbg(3, debug, client, "write: 0x%08x : 0x%04x\n", addr, val);
 
 	ret = s5k4ecgx_i2c_write(client, REG_CMDWR_ADDRH, high);
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_i2c_write(client, REG_CMDWR_ADDRL, low);
+	}
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_i2c_write(client, REG_CMDBUF0_ADDR, val);
+	}
 
 	return ret;
 }
@@ -259,12 +273,21 @@ static int s5k4ecgx_read(struct i2c_client *client, u32 addr, u16 *val)
 	int ret;
 
 	ret = s5k4ecgx_i2c_write(client, REG_CMDRD_ADDRH, high);
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_i2c_write(client, REG_CMDRD_ADDRL, low);
+	}
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_i2c_read(client, REG_CMDBUF0_ADDR, val);
+	}
+
 	if (!ret)
+	{
 		dev_err(&client->dev, "Failed to execute read command\n");
+	}
 
 	return ret;
 }
@@ -276,17 +299,22 @@ static int s5k4ecgx_read_fw_ver(struct v4l2_subdev *sd)
 	int ret;
 
 	ret = s5k4ecgx_read(client, REG_FW_VERSION, &fw_ver);
-	if (ret < 0 || fw_ver != S5K4ECGX_FW_VERSION) {
+
+	if (ret < 0 || fw_ver != S5K4ECGX_FW_VERSION)
+	{
 		v4l2_err(sd, "FW version check failed!\n");
 		return -ENODEV;
 	}
 
 	ret = s5k4ecgx_read(client, REG_FW_REVISION, &hw_rev);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	v4l2_info(sd, "chip found FW ver: 0x%x, HW rev: 0x%x\n",
-						fw_ver, hw_rev);
+			  fw_ver, hw_rev);
 	return 0;
 }
 
@@ -297,20 +325,31 @@ static int s5k4ecgx_set_ahb_address(struct v4l2_subdev *sd)
 
 	/* Set APB peripherals start address */
 	ret = s5k4ecgx_i2c_write(client, AHB_MSB_ADDR_PTR, GEN_REG_OFFSH);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	/*
 	 * FIXME: This is copied from s5k6aa, because of no information
 	 * in s5k4ecgx's datasheet.
 	 * sw_reset is activated to put device into idle status
 	 */
 	ret = s5k4ecgx_i2c_write(client, 0x0010, 0x0001);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = s5k4ecgx_i2c_write(client, 0x1030, 0x0000);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	/* Halt ARM CPU */
 	return s5k4ecgx_i2c_write(client, 0x0014, 0x0001);
 }
@@ -337,41 +376,62 @@ static int s5k4ecgx_load_firmware(struct v4l2_subdev *sd)
 	u16 val;
 
 	err = request_firmware(&fw, S5K4ECGX_FIRMWARE, sd->v4l2_dev->dev);
-	if (err) {
+
+	if (err)
+	{
 		v4l2_err(sd, "Failed to read firmware %s\n", S5K4ECGX_FIRMWARE);
 		return err;
 	}
+
 	regs_num = get_unaligned_le32(fw->data);
 
 	v4l2_dbg(3, debug, sd, "FW: %s size %zu register sets %d\n",
-		 S5K4ECGX_FIRMWARE, fw->size, regs_num);
+			 S5K4ECGX_FIRMWARE, fw->size, regs_num);
 
 	regs_num++; /* Add header */
-	if (fw->size != regs_num * FW_RECORD_SIZE + FW_CRC_SIZE) {
+
+	if (fw->size != regs_num * FW_RECORD_SIZE + FW_CRC_SIZE)
+	{
 		err = -EINVAL;
 		goto fw_out;
 	}
+
 	crc_file = get_unaligned_le32(fw->data + regs_num * FW_RECORD_SIZE);
 	crc = crc32_le(~0, fw->data, regs_num * FW_RECORD_SIZE);
-	if (crc != crc_file) {
+
+	if (crc != crc_file)
+	{
 		v4l2_err(sd, "FW: invalid crc (%#x:%#x)\n", crc, crc_file);
 		err = -EINVAL;
 		goto fw_out;
 	}
+
 	ptr = fw->data + FW_RECORD_SIZE;
-	for (i = 1; i < regs_num; i++) {
+
+	for (i = 1; i < regs_num; i++)
+	{
 		addr = get_unaligned_le32(ptr);
 		ptr += sizeof(u32);
 		val = get_unaligned_le16(ptr);
 		ptr += sizeof(u16);
+
 		if (addr - addr_inc != 2)
+		{
 			err = s5k4ecgx_write(client, addr, val);
+		}
 		else
+		{
 			err = s5k4ecgx_i2c_write(client, REG_CMDBUF0_ADDR, val);
+		}
+
 		if (err)
+		{
 			break;
+		}
+
 		addr_inc = addr;
 	}
+
 fw_out:
 	release_firmware(fw);
 	return err;
@@ -379,50 +439,92 @@ fw_out:
 
 /* Set preview and capture input window */
 static int s5k4ecgx_set_input_window(struct i2c_client *c,
-				     const struct v4l2_rect *r)
+									 const struct v4l2_rect *r)
 {
 	int ret;
 
 	ret = s5k4ecgx_write(c, REG_G_PREV_IN_WIDTH, r->width);
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_write(c, REG_G_PREV_IN_HEIGHT, r->height);
+	}
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_write(c, REG_G_PREV_IN_XOFFS, r->left);
+	}
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_write(c, REG_G_PREV_IN_YOFFS, r->top);
+	}
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_write(c, REG_G_CAP_IN_WIDTH, r->width);
+	}
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_write(c, REG_G_CAP_IN_HEIGHT, r->height);
+	}
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_write(c, REG_G_CAP_IN_XOFFS, r->left);
+	}
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_write(c, REG_G_CAP_IN_YOFFS, r->top);
+	}
 
 	return ret;
 }
 
 /* Set preview and capture zoom input window */
 static int s5k4ecgx_set_zoom_window(struct i2c_client *c,
-				    const struct v4l2_rect *r)
+									const struct v4l2_rect *r)
 {
 	int ret;
 
 	ret = s5k4ecgx_write(c, REG_G_PREVZOOM_IN_WIDTH, r->width);
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_write(c, REG_G_PREVZOOM_IN_HEIGHT, r->height);
+	}
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_write(c, REG_G_PREVZOOM_IN_XOFFS, r->left);
+	}
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_write(c, REG_G_PREVZOOM_IN_YOFFS, r->top);
+	}
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_write(c, REG_G_CAPZOOM_IN_WIDTH, r->width);
+	}
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_write(c, REG_G_CAPZOOM_IN_HEIGHT, r->height);
+	}
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_write(c, REG_G_CAPZOOM_IN_XOFFS, r->left);
+	}
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_write(c, REG_G_CAPZOOM_IN_YOFFS, r->top);
+	}
 
 	return ret;
 }
@@ -433,13 +535,16 @@ static int s5k4ecgx_set_output_framefmt(struct s5k4ecgx *priv)
 	int ret;
 
 	ret = s5k4ecgx_write(client, REG_P_OUT_WIDTH(0),
-			     priv->curr_frmsize->size.width);
+						 priv->curr_frmsize->size.width);
+
 	if (!ret)
 		ret = s5k4ecgx_write(client, REG_P_OUT_HEIGHT(0),
-				     priv->curr_frmsize->size.height);
+							 priv->curr_frmsize->size.height);
+
 	if (!ret)
 		ret = s5k4ecgx_write(client, REG_P_FMT(0),
-				     priv->curr_pixfmt->reg_p_format);
+							 priv->curr_pixfmt->reg_p_format);
+
 	return ret;
 }
 
@@ -453,9 +558,14 @@ static int s5k4ecgx_init_sensor(struct v4l2_subdev *sd)
 	msleep(100);
 
 	if (!ret)
+	{
 		ret = s5k4ecgx_load_firmware(sd);
+	}
+
 	if (ret)
+	{
 		v4l2_err(sd, "Failed to write initial settings\n");
+	}
 
 	return ret;
 }
@@ -463,7 +573,10 @@ static int s5k4ecgx_init_sensor(struct v4l2_subdev *sd)
 static int s5k4ecgx_gpio_set_value(struct s5k4ecgx *priv, int id, u32 val)
 {
 	if (!gpio_is_valid(priv->gpio[id].gpio))
+	{
 		return 0;
+	}
+
 	gpio_set_value(priv->gpio[id].gpio, val);
 
 	return 1;
@@ -474,16 +587,24 @@ static int __s5k4ecgx_power_on(struct s5k4ecgx *priv)
 	int ret;
 
 	ret = regulator_bulk_enable(S5K4ECGX_NUM_SUPPLIES, priv->supplies);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	usleep_range(30, 50);
 
 	/* The polarity of STBY is controlled by TSP */
 	if (s5k4ecgx_gpio_set_value(priv, STBY, priv->gpio[STBY].level))
+	{
 		usleep_range(30, 50);
+	}
 
 	if (s5k4ecgx_gpio_set_value(priv, RST, priv->gpio[RST].level))
+	{
 		usleep_range(30, 50);
+	}
 
 	return 0;
 }
@@ -491,10 +612,14 @@ static int __s5k4ecgx_power_on(struct s5k4ecgx *priv)
 static int __s5k4ecgx_power_off(struct s5k4ecgx *priv)
 {
 	if (s5k4ecgx_gpio_set_value(priv, RST, !priv->gpio[RST].level))
+	{
 		usleep_range(30, 50);
+	}
 
 	if (s5k4ecgx_gpio_set_value(priv, STBY, !priv->gpio[STBY].level))
+	{
 		usleep_range(30, 50);
+	}
 
 	priv->streaming = 0;
 
@@ -503,27 +628,37 @@ static int __s5k4ecgx_power_off(struct s5k4ecgx *priv)
 
 /* Find nearest matching image pixel size. */
 static int s5k4ecgx_try_frame_size(struct v4l2_mbus_framefmt *mf,
-				  const struct s5k4ecgx_frmsize **size)
+								   const struct s5k4ecgx_frmsize **size)
 {
 	unsigned int min_err = ~0;
 	int i = ARRAY_SIZE(s5k4ecgx_prev_sizes);
 	const struct s5k4ecgx_frmsize *fsize = &s5k4ecgx_prev_sizes[0],
-		*match = NULL;
+									   *match = NULL;
 
-	while (i--) {
+	while (i--)
+	{
 		int err = abs(fsize->size.width - mf->width)
-				+ abs(fsize->size.height - mf->height);
-		if (err < min_err) {
+				  + abs(fsize->size.height - mf->height);
+
+		if (err < min_err)
+		{
 			min_err = err;
 			match = fsize;
 		}
+
 		fsize++;
 	}
-	if (match) {
+
+	if (match)
+	{
 		mf->width  = match->size.width;
 		mf->height = match->size.height;
+
 		if (size)
+		{
 			*size = match;
+		}
+
 		return 0;
 	}
 
@@ -531,27 +666,33 @@ static int s5k4ecgx_try_frame_size(struct v4l2_mbus_framefmt *mf,
 }
 
 static int s5k4ecgx_enum_mbus_code(struct v4l2_subdev *sd,
-				   struct v4l2_subdev_pad_config *cfg,
-				   struct v4l2_subdev_mbus_code_enum *code)
+								   struct v4l2_subdev_pad_config *cfg,
+								   struct v4l2_subdev_mbus_code_enum *code)
 {
 	if (code->index >= ARRAY_SIZE(s5k4ecgx_formats))
+	{
 		return -EINVAL;
+	}
+
 	code->code = s5k4ecgx_formats[code->index].code;
 
 	return 0;
 }
 
 static int s5k4ecgx_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
-			   struct v4l2_subdev_format *fmt)
+							struct v4l2_subdev_format *fmt)
 {
 	struct s5k4ecgx *priv = to_s5k4ecgx(sd);
 	struct v4l2_mbus_framefmt *mf;
 
-	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-		if (cfg) {
+	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY)
+	{
+		if (cfg)
+		{
 			mf = v4l2_subdev_get_try_format(sd, cfg, 0);
 			fmt->format = *mf;
 		}
+
 		return 0;
 	}
 
@@ -569,20 +710,23 @@ static int s5k4ecgx_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_confi
 }
 
 static const struct s5k4ecgx_pixfmt *s5k4ecgx_try_fmt(struct v4l2_subdev *sd,
-					    struct v4l2_mbus_framefmt *mf)
+		struct v4l2_mbus_framefmt *mf)
 {
 	int i = ARRAY_SIZE(s5k4ecgx_formats);
 
 	while (--i)
 		if (mf->code == s5k4ecgx_formats[i].code)
+		{
 			break;
+		}
+
 	mf->code = s5k4ecgx_formats[i].code;
 
 	return &s5k4ecgx_formats[i];
 }
 
 static int s5k4ecgx_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
-			    struct v4l2_subdev_format *fmt)
+							struct v4l2_subdev_format *fmt)
 {
 	struct s5k4ecgx *priv = to_s5k4ecgx(sd);
 	const struct s5k4ecgx_frmsize *fsize = NULL;
@@ -595,28 +739,37 @@ static int s5k4ecgx_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_pad_confi
 	fmt->format.colorspace = V4L2_COLORSPACE_JPEG;
 	fmt->format.field = V4L2_FIELD_NONE;
 
-	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-		if (cfg) {
+	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY)
+	{
+		if (cfg)
+		{
 			mf = v4l2_subdev_get_try_format(sd, cfg, 0);
 			*mf = fmt->format;
 		}
+
 		return 0;
 	}
 
 	mutex_lock(&priv->lock);
-	if (!priv->streaming) {
+
+	if (!priv->streaming)
+	{
 		priv->curr_frmsize = fsize;
 		priv->curr_pixfmt = pf;
 		priv->set_params = 1;
-	} else {
+	}
+	else
+	{
 		ret = -EBUSY;
 	}
+
 	mutex_unlock(&priv->lock);
 
 	return ret;
 }
 
-static const struct v4l2_subdev_pad_ops s5k4ecgx_pad_ops = {
+static const struct v4l2_subdev_pad_ops s5k4ecgx_pad_ops =
+{
 	.enum_mbus_code	= s5k4ecgx_enum_mbus_code,
 	.get_fmt	= s5k4ecgx_get_fmt,
 	.set_fmt	= s5k4ecgx_set_fmt,
@@ -628,7 +781,7 @@ static const struct v4l2_subdev_pad_ops s5k4ecgx_pad_ops = {
 static int s5k4ecgx_s_ctrl(struct v4l2_ctrl *ctrl)
 {
 	struct v4l2_subdev *sd = &container_of(ctrl->handler, struct s5k4ecgx,
-						handler)->sd;
+										   handler)->sd;
 	struct i2c_client *client = v4l2_get_subdevdata(sd);
 	struct s5k4ecgx *priv = to_s5k4ecgx(sd);
 	unsigned int i;
@@ -637,34 +790,43 @@ static int s5k4ecgx_s_ctrl(struct v4l2_ctrl *ctrl)
 	v4l2_dbg(1, debug, sd, "ctrl: 0x%x, value: %d\n", ctrl->id, ctrl->val);
 
 	mutex_lock(&priv->lock);
-	switch (ctrl->id) {
-	case V4L2_CID_CONTRAST:
-		err = s5k4ecgx_write(client, REG_USER_CONTRAST, ctrl->val);
-		break;
 
-	case V4L2_CID_SATURATION:
-		err = s5k4ecgx_write(client, REG_USER_SATURATION, ctrl->val);
-		break;
+	switch (ctrl->id)
+	{
+		case V4L2_CID_CONTRAST:
+			err = s5k4ecgx_write(client, REG_USER_CONTRAST, ctrl->val);
+			break;
 
-	case V4L2_CID_SHARPNESS:
-		/* TODO: Revisit, is this setting for all presets ? */
-		for (i = 0; i < 4 && !err; i++)
-			err = s5k4ecgx_write(client, REG_USER_SHARPNESS(i),
-					     ctrl->val * SHARPNESS_DIV);
-		break;
+		case V4L2_CID_SATURATION:
+			err = s5k4ecgx_write(client, REG_USER_SATURATION, ctrl->val);
+			break;
 
-	case V4L2_CID_BRIGHTNESS:
-		err = s5k4ecgx_write(client, REG_USER_BRIGHTNESS, ctrl->val);
-		break;
+		case V4L2_CID_SHARPNESS:
+
+			/* TODO: Revisit, is this setting for all presets ? */
+			for (i = 0; i < 4 && !err; i++)
+				err = s5k4ecgx_write(client, REG_USER_SHARPNESS(i),
+									 ctrl->val * SHARPNESS_DIV);
+
+			break;
+
+		case V4L2_CID_BRIGHTNESS:
+			err = s5k4ecgx_write(client, REG_USER_BRIGHTNESS, ctrl->val);
+			break;
 	}
+
 	mutex_unlock(&priv->lock);
+
 	if (err < 0)
+	{
 		v4l2_err(sd, "Failed to write s_ctrl err %d\n", err);
+	}
 
 	return err;
 }
 
-static const struct v4l2_ctrl_ops s5k4ecgx_ctrl_ops = {
+static const struct v4l2_ctrl_ops s5k4ecgx_ctrl_ops =
+{
 	.s_ctrl = s5k4ecgx_s_ctrl,
 };
 
@@ -678,10 +840,13 @@ static int s5k4ecgx_registered(struct v4l2_subdev *sd)
 
 	mutex_lock(&priv->lock);
 	ret = __s5k4ecgx_power_on(priv);
-	if (!ret) {
+
+	if (!ret)
+	{
 		ret = s5k4ecgx_read_fw_ver(sd);
 		__s5k4ecgx_power_off(priv);
 	}
+
 	mutex_unlock(&priv->lock);
 
 	return ret;
@@ -703,7 +868,8 @@ static int s5k4ecgx_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
 	return 0;
 }
 
-static const struct v4l2_subdev_internal_ops s5k4ecgx_subdev_internal_ops = {
+static const struct v4l2_subdev_internal_ops s5k4ecgx_subdev_internal_ops =
+{
 	.registered = s5k4ecgx_registered,
 	.open = s5k4ecgx_open,
 };
@@ -715,18 +881,30 @@ static int s5k4ecgx_s_power(struct v4l2_subdev *sd, int on)
 
 	v4l2_dbg(1, debug, sd, "Switching %s\n", on ? "on" : "off");
 
-	if (on) {
+	if (on)
+	{
 		ret = __s5k4ecgx_power_on(priv);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		/* Time to stabilize sensor */
 		msleep(100);
 		ret = s5k4ecgx_init_sensor(sd);
+
 		if (ret < 0)
+		{
 			__s5k4ecgx_power_off(priv);
+		}
 		else
+		{
 			priv->set_params = 1;
-	} else {
+		}
+	}
+	else
+	{
 		ret = __s5k4ecgx_power_off(priv);
 	}
 
@@ -740,7 +918,8 @@ static int s5k4ecgx_log_status(struct v4l2_subdev *sd)
 	return 0;
 }
 
-static const struct v4l2_subdev_core_ops s5k4ecgx_core_ops = {
+static const struct v4l2_subdev_core_ops s5k4ecgx_core_ops =
+{
 	.s_power	= s5k4ecgx_s_power,
 	.log_status	= s5k4ecgx_log_status,
 };
@@ -752,42 +931,82 @@ static int __s5k4ecgx_s_params(struct s5k4ecgx *priv)
 	int ret;
 
 	ret = s5k4ecgx_set_input_window(client, crop_rect);
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_set_zoom_window(client, crop_rect);
+	}
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_write(client, REG_G_INPUTS_CHANGE_REQ, 1);
+	}
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_write(client, 0x70000a1e, 0x28);
+	}
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_write(client, 0x70000ad4, 0x3c);
+	}
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_set_output_framefmt(priv);
+	}
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_write(client, REG_P_PVI_MASK(0), 0x52);
+	}
+
 	if (!ret)
 		ret = s5k4ecgx_write(client, REG_P_FR_TIME_TYPE(0),
-				     FR_TIME_DYNAMIC);
+							 FR_TIME_DYNAMIC);
+
 	if (!ret)
 		ret = s5k4ecgx_write(client, REG_P_FR_TIME_Q_TYPE(0),
-				     FR_TIME_Q_BEST_FRRATE);
+							 FR_TIME_Q_BEST_FRRATE);
+
 	if (!ret)
 		ret = s5k4ecgx_write(client,  REG_P_MIN_FR_TIME(0),
-				     US_TO_FR_TIME(33300));
+							 US_TO_FR_TIME(33300));
+
 	if (!ret)
 		ret = s5k4ecgx_write(client, REG_P_MAX_FR_TIME(0),
-				     US_TO_FR_TIME(66600));
+							 US_TO_FR_TIME(66600));
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_write(client, REG_P_PREV_MIRROR(0), 0);
+	}
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_write(client, REG_P_CAP_MIRROR(0), 0);
+	}
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_write(client, REG_G_ACTIVE_PREV_CFG, 0);
+	}
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_write(client, REG_G_PREV_OPEN_AFTER_CH, 1);
+	}
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_write(client, REG_G_NEW_CFG_SYNC, 1);
+	}
+
 	if (!ret)
+	{
 		ret = s5k4ecgx_write(client, REG_G_PREV_CFG_CHG, 1);
+	}
 
 	return ret;
 }
@@ -797,19 +1016,29 @@ static int __s5k4ecgx_s_stream(struct s5k4ecgx *priv, int on)
 	struct i2c_client *client = v4l2_get_subdevdata(&priv->sd);
 	int ret;
 
-	if (on && priv->set_params) {
+	if (on && priv->set_params)
+	{
 		ret = __s5k4ecgx_s_params(priv);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
+
 		priv->set_params = 0;
 	}
+
 	/*
 	 * This enables/disables preview stream only. Capture requests
 	 * are not supported yet.
 	 */
 	ret = s5k4ecgx_write(client, REG_G_ENABLE_PREV, on);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return s5k4ecgx_write(client, REG_G_ENABLE_PREV_CHG, 1);
 }
 
@@ -822,21 +1051,27 @@ static int s5k4ecgx_s_stream(struct v4l2_subdev *sd, int on)
 
 	mutex_lock(&priv->lock);
 
-	if (priv->streaming == !on) {
+	if (priv->streaming == !on)
+	{
 		ret = __s5k4ecgx_s_stream(priv, on);
+
 		if (!ret)
+		{
 			priv->streaming = on & 1;
+		}
 	}
 
 	mutex_unlock(&priv->lock);
 	return ret;
 }
 
-static const struct v4l2_subdev_video_ops s5k4ecgx_video_ops = {
+static const struct v4l2_subdev_video_ops s5k4ecgx_video_ops =
+{
 	.s_stream = s5k4ecgx_s_stream,
 };
 
-static const struct v4l2_subdev_ops s5k4ecgx_ops = {
+static const struct v4l2_subdev_ops s5k4ecgx_ops =
+{
 	.core = &s5k4ecgx_core_ops,
 	.pad = &s5k4ecgx_pad_ops,
 	.video = &s5k4ecgx_video_ops,
@@ -851,10 +1086,16 @@ static int s5k4ecgx_config_gpio(int nr, int val, const char *name)
 	int ret;
 
 	if (!gpio_is_valid(nr))
+	{
 		return 0;
+	}
+
 	ret = gpio_request_one(nr, flags, name);
+
 	if (!ret)
+	{
 		gpio_export(nr, 0);
+	}
 
 	return ret;
 }
@@ -863,16 +1104,20 @@ static void s5k4ecgx_free_gpios(struct s5k4ecgx *priv)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(priv->gpio); i++) {
+	for (i = 0; i < ARRAY_SIZE(priv->gpio); i++)
+	{
 		if (!gpio_is_valid(priv->gpio[i].gpio))
+		{
 			continue;
+		}
+
 		gpio_free(priv->gpio[i].gpio);
 		priv->gpio[i].gpio = -EINVAL;
 	}
 }
 
 static int s5k4ecgx_config_gpios(struct s5k4ecgx *priv,
-				  const struct s5k4ecgx_platform_data *pdata)
+								 const struct s5k4ecgx_platform_data *pdata)
 {
 	const struct s5k4ecgx_gpio *gpio = &pdata->gpio_stby;
 	int ret;
@@ -882,24 +1127,35 @@ static int s5k4ecgx_config_gpios(struct s5k4ecgx *priv,
 
 	ret = s5k4ecgx_config_gpio(gpio->gpio, gpio->level, "S5K4ECGX_STBY");
 
-	if (ret) {
+	if (ret)
+	{
 		s5k4ecgx_free_gpios(priv);
 		return ret;
 	}
+
 	priv->gpio[STBY] = *gpio;
+
 	if (gpio_is_valid(gpio->gpio))
+	{
 		gpio_set_value(gpio->gpio, 0);
+	}
 
 	gpio = &pdata->gpio_reset;
 
 	ret = s5k4ecgx_config_gpio(gpio->gpio, gpio->level, "S5K4ECGX_RST");
-	if (ret) {
+
+	if (ret)
+	{
 		s5k4ecgx_free_gpios(priv);
 		return ret;
 	}
+
 	priv->gpio[RST] = *gpio;
+
 	if (gpio_is_valid(gpio->gpio))
+	{
 		gpio_set_value(gpio->gpio, 0);
+	}
 
 	return 0;
 }
@@ -911,42 +1167,52 @@ static int s5k4ecgx_init_v4l2_ctrls(struct s5k4ecgx *priv)
 	int ret;
 
 	ret = v4l2_ctrl_handler_init(hdl, 4);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_BRIGHTNESS, -208, 127, 1, 0);
 	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_CONTRAST, -127, 127, 1, 0);
 	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_SATURATION, -127, 127, 1, 0);
 
 	/* Sharpness default is 24612, and then (24612/SHARPNESS_DIV) = 2 */
-	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_SHARPNESS, -32704/SHARPNESS_DIV,
-			  24612/SHARPNESS_DIV, 1, 2);
-	if (hdl->error) {
+	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_SHARPNESS, -32704 / SHARPNESS_DIV,
+					  24612 / SHARPNESS_DIV, 1, 2);
+
+	if (hdl->error)
+	{
 		ret = hdl->error;
 		v4l2_ctrl_handler_free(hdl);
 		return ret;
 	}
+
 	priv->sd.ctrl_handler = hdl;
 
 	return 0;
 };
 
 static int s5k4ecgx_probe(struct i2c_client *client,
-			  const struct i2c_device_id *id)
+						  const struct i2c_device_id *id)
 {
 	struct s5k4ecgx_platform_data *pdata = client->dev.platform_data;
 	struct v4l2_subdev *sd;
 	struct s5k4ecgx *priv;
 	int ret, i;
 
-	if (pdata == NULL) {
+	if (pdata == NULL)
+	{
 		dev_err(&client->dev, "platform data is missing!\n");
 		return -EINVAL;
 	}
 
 	priv = devm_kzalloc(&client->dev, sizeof(struct s5k4ecgx), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	mutex_init(&priv->lock);
 	priv->streaming = 0;
@@ -963,26 +1229,40 @@ static int s5k4ecgx_probe(struct i2c_client *client,
 	priv->pad.flags = MEDIA_PAD_FL_SOURCE;
 	sd->entity.function = MEDIA_ENT_F_CAM_SENSOR;
 	ret = media_entity_pads_init(&sd->entity, 1, &priv->pad);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = s5k4ecgx_config_gpios(priv, pdata);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&client->dev, "Failed to set gpios\n");
 		goto out_err1;
 	}
+
 	for (i = 0; i < S5K4ECGX_NUM_SUPPLIES; i++)
+	{
 		priv->supplies[i].supply = s5k4ecgx_supply_names[i];
+	}
 
 	ret = devm_regulator_bulk_get(&client->dev, S5K4ECGX_NUM_SUPPLIES,
-				 priv->supplies);
-	if (ret) {
+								  priv->supplies);
+
+	if (ret)
+	{
 		dev_err(&client->dev, "Failed to get regulators\n");
 		goto out_err2;
 	}
+
 	ret = s5k4ecgx_init_v4l2_ctrls(priv);
+
 	if (ret)
+	{
 		goto out_err2;
+	}
 
 	priv->curr_pixfmt = &s5k4ecgx_formats[0];
 	priv->curr_frmsize = &s5k4ecgx_prev_sizes[0];
@@ -1011,13 +1291,15 @@ static int s5k4ecgx_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id s5k4ecgx_id[] = {
+static const struct i2c_device_id s5k4ecgx_id[] =
+{
 	{ S5K4ECGX_DRIVER_NAME, 0 },
 	{}
 };
 MODULE_DEVICE_TABLE(i2c, s5k4ecgx_id);
 
-static struct i2c_driver v4l2_i2c_driver = {
+static struct i2c_driver v4l2_i2c_driver =
+{
 	.driver = {
 		.name = S5K4ECGX_DRIVER_NAME,
 	},

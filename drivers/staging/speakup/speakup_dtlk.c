@@ -40,12 +40,14 @@ static void synth_flush(struct spk_synth *synth);
 
 static int synth_lpc;
 static int port_forced;
-static unsigned int synth_portlist[] = {
-		 0x25e, 0x29e, 0x2de, 0x31e, 0x35e, 0x39e, 0
+static unsigned int synth_portlist[] =
+{
+	0x25e, 0x29e, 0x2de, 0x31e, 0x35e, 0x39e, 0
 };
 static u_char synth_status;
 
-static struct var_t vars[] = {
+static struct var_t vars[] =
+{
 	{ CAPS_START, .u.s = {"\x01+35p" } },
 	{ CAPS_STOP, .u.s = {"\x01-35p" } },
 	{ RATE, .u.n = {"\x01%ds", 8, 0, 9, 0, 0, NULL } },
@@ -63,40 +65,41 @@ static struct var_t vars[] = {
  * These attributes will appear in /sys/accessibility/speakup/dtlk.
  */
 static struct kobj_attribute caps_start_attribute =
-	__ATTR(caps_start, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(caps_start, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute caps_stop_attribute =
-	__ATTR(caps_stop, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(caps_stop, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute freq_attribute =
-	__ATTR(freq, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(freq, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute pitch_attribute =
-	__ATTR(pitch, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(pitch, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute punct_attribute =
-	__ATTR(punct, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(punct, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute rate_attribute =
-	__ATTR(rate, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(rate, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute tone_attribute =
-	__ATTR(tone, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(tone, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute voice_attribute =
-	__ATTR(voice, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(voice, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute vol_attribute =
-	__ATTR(vol, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(vol, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 
 static struct kobj_attribute delay_time_attribute =
-	__ATTR(delay_time, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(delay_time, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute direct_attribute =
-	__ATTR(direct, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(direct, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute full_time_attribute =
-	__ATTR(full_time, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(full_time, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute jiffy_delta_attribute =
-	__ATTR(jiffy_delta, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(jiffy_delta, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 static struct kobj_attribute trigger_time_attribute =
-	__ATTR(trigger_time, S_IWUSR|S_IRUGO, spk_var_show, spk_var_store);
+	__ATTR(trigger_time, S_IWUSR | S_IRUGO, spk_var_show, spk_var_store);
 
 /*
  * Create a group of attributes so that we can create and destroy them all
  * at once.
  */
-static struct attribute *synth_attrs[] = {
+static struct attribute *synth_attrs[] =
+{
 	&caps_start_attribute.attr,
 	&caps_stop_attribute.attr,
 	&freq_attribute.attr,
@@ -114,7 +117,8 @@ static struct attribute *synth_attrs[] = {
 	NULL,	/* need to NULL terminate the list of attributes */
 };
 
-static struct spk_synth synth_dtlk = {
+static struct spk_synth synth_dtlk =
+{
 	.name = "dtlk",
 	.version = DRV_VERSION,
 	.long_name = "DoubleTalk PC",
@@ -171,16 +175,26 @@ static void spk_out(const char ch)
 {
 	int timeout = SPK_XMITR_TIMEOUT;
 
-	while (!synth_writable()) {
+	while (!synth_writable())
+	{
 		if (!--timeout)
+		{
 			break;
+		}
+
 		udelay(1);
 	}
+
 	outb_p(ch, speakup_info.port_tts);
 	timeout = SPK_XMITR_TIMEOUT;
-	while (synth_writable()) {
+
+	while (synth_writable())
+	{
 		if (!--timeout)
+		{
 			break;
+		}
+
 		udelay(1);
 	}
 }
@@ -201,33 +215,49 @@ static void do_catch_up(struct spk_synth *synth)
 	jiffy_delta_val = jiffy_delta->u.n.value;
 	spin_unlock_irqrestore(&speakup_info.spinlock, flags);
 	jiff_max = jiffies + jiffy_delta_val;
-	while (!kthread_should_stop()) {
+
+	while (!kthread_should_stop())
+	{
 		spin_lock_irqsave(&speakup_info.spinlock, flags);
-		if (speakup_info.flushing) {
+
+		if (speakup_info.flushing)
+		{
 			speakup_info.flushing = 0;
 			spin_unlock_irqrestore(&speakup_info.spinlock, flags);
 			synth->flush(synth);
 			continue;
 		}
-		if (synth_buffer_empty()) {
+
+		if (synth_buffer_empty())
+		{
 			spin_unlock_irqrestore(&speakup_info.spinlock, flags);
 			break;
 		}
+
 		set_current_state(TASK_INTERRUPTIBLE);
 		delay_time_val = delay_time->u.n.value;
 		spin_unlock_irqrestore(&speakup_info.spinlock, flags);
-		if (synth_full()) {
+
+		if (synth_full())
+		{
 			schedule_timeout(msecs_to_jiffies(delay_time_val));
 			continue;
 		}
+
 		set_current_state(TASK_RUNNING);
 		spin_lock_irqsave(&speakup_info.spinlock, flags);
 		ch = synth_buffer_getc();
 		spin_unlock_irqrestore(&speakup_info.spinlock, flags);
+
 		if (ch == '\n')
+		{
 			ch = PROCSPEECH;
+		}
+
 		spk_out(ch);
-		if (time_after_eq(jiffies, jiff_max) && (ch == SPACE)) {
+
+		if (time_after_eq(jiffies, jiff_max) && (ch == SPACE))
+		{
 			spk_out(PROCSPEECH);
 			spin_lock_irqsave(&speakup_info.spinlock, flags);
 			delay_time_val = delay_time->u.n.value;
@@ -237,6 +267,7 @@ static void do_catch_up(struct spk_synth *synth)
 			jiff_max = jiffies + jiffy_delta_val;
 		}
 	}
+
 	spk_out(PROCSPEECH);
 }
 
@@ -244,22 +275,33 @@ static const char *synth_immediate(struct spk_synth *synth, const char *buf)
 {
 	u_char ch;
 
-	while ((ch = (u_char)*buf)) {
+	while ((ch = (u_char) * buf))
+	{
 		if (synth_full())
+		{
 			return buf;
+		}
+
 		if (ch == '\n')
+		{
 			ch = PROCSPEECH;
+		}
+
 		spk_out(ch);
 		buf++;
 	}
+
 	return NULL;
 }
 
 static void synth_flush(struct spk_synth *synth)
 {
 	outb_p(SYNTH_CLEAR, speakup_info.port_tts);
+
 	while (synth_writable())
+	{
 		cpu_relax();
+	}
 }
 
 static char synth_read_tts(void)
@@ -267,11 +309,18 @@ static char synth_read_tts(void)
 	u_char ch;
 
 	while (!synth_readable())
+	{
 		cpu_relax();
+	}
+
 	ch = synth_status & 0x7f;
 	outb_p(ch, speakup_info.port_tts);
+
 	while (synth_readable())
+	{
 		cpu_relax();
+	}
+
 	return (char) ch;
 }
 
@@ -284,22 +333,37 @@ static struct synth_settings *synth_interrogate(struct spk_synth *synth)
 	static struct synth_settings status;
 
 	synth_immediate(synth, "\x18\x01?");
-	for (total = 0, i = 0; i < 50; i++) {
+
+	for (total = 0, i = 0; i < 50; i++)
+	{
 		buf[total] = synth_read_tts();
+
 		if (total > 2 && buf[total] == 0x7f)
+		{
 			break;
+		}
+
 		if (total < sizeof(struct synth_settings))
+		{
 			total++;
+		}
 	}
+
 	t = buf;
 	/* serial number is little endian */
-	status.serial_number = t[0] + t[1]*256;
+	status.serial_number = t[0] + t[1] * 256;
 	t += 2;
-	for (i = 0; *t != '\r'; t++) {
+
+	for (i = 0; *t != '\r'; t++)
+	{
 		status.rom_version[i] = *t;
-		if (i < sizeof(status.rom_version)-1)
+
+		if (i < sizeof(status.rom_version) - 1)
+		{
 			i++;
+		}
 	}
+
 	status.rom_version[i] = 0;
 	t++;
 	status.mode = *t++;
@@ -326,47 +390,75 @@ static int synth_probe(struct spk_synth *synth)
 	struct synth_settings *sp;
 
 	pr_info("Probing for DoubleTalk.\n");
-	if (port_forced) {
+
+	if (port_forced)
+	{
 		speakup_info.port_tts = port_forced;
 		pr_info("probe forced to %x by kernel command line\n",
 				speakup_info.port_tts);
+
 		if ((port_forced & 0xf) != 0xf)
+		{
 			pr_info("warning: port base should probably end with f\n");
-		if (synth_request_region(speakup_info.port_tts-1,
-					SYNTH_IO_EXTENT)) {
+		}
+
+		if (synth_request_region(speakup_info.port_tts - 1,
+								 SYNTH_IO_EXTENT))
+		{
 			pr_warn("sorry, port already reserved\n");
 			return -EBUSY;
 		}
-		port_val = inw(speakup_info.port_tts-1);
-		synth_lpc = speakup_info.port_tts-1;
-	} else {
-		for (i = 0; synth_portlist[i]; i++) {
+
+		port_val = inw(speakup_info.port_tts - 1);
+		synth_lpc = speakup_info.port_tts - 1;
+	}
+	else
+	{
+		for (i = 0; synth_portlist[i]; i++)
+		{
 			if (synth_request_region(synth_portlist[i],
-						SYNTH_IO_EXTENT))
+									 SYNTH_IO_EXTENT))
+			{
 				continue;
+			}
+
 			port_val = inw(synth_portlist[i]) & 0xfbff;
-			if (port_val == 0x107f) {
+
+			if (port_val == 0x107f)
+			{
 				synth_lpc = synth_portlist[i];
-				speakup_info.port_tts = synth_lpc+1;
+				speakup_info.port_tts = synth_lpc + 1;
 				break;
 			}
+
 			synth_release_region(synth_portlist[i],
-					SYNTH_IO_EXTENT);
+								 SYNTH_IO_EXTENT);
 		}
 	}
+
 	port_val &= 0xfbff;
-	if (port_val != 0x107f) {
+
+	if (port_val != 0x107f)
+	{
 		pr_info("DoubleTalk PC: not found\n");
+
 		if (synth_lpc)
+		{
 			synth_release_region(synth_lpc, SYNTH_IO_EXTENT);
+		}
+
 		return -ENODEV;
 	}
+
 	while (inw_p(synth_lpc) != 0x147f)
-		cpu_relax(); /* wait until it's ready */
+	{
+		cpu_relax();    /* wait until it's ready */
+	}
+
 	sp = synth_interrogate(synth);
 	pr_info("%s: %03x-%03x, ROM ver %s, s/n %u, driver: %s\n",
-		synth->long_name, synth_lpc, synth_lpc+SYNTH_IO_EXTENT - 1,
-		sp->rom_version, sp->serial_number, synth->version);
+			synth->long_name, synth_lpc, synth_lpc + SYNTH_IO_EXTENT - 1,
+			sp->rom_version, sp->serial_number, synth->version);
 	synth->alive = 1;
 	return 0;
 }
@@ -374,7 +466,10 @@ static int synth_probe(struct spk_synth *synth)
 static void dtlk_release(void)
 {
 	if (speakup_info.port_tts)
-		synth_release_region(speakup_info.port_tts-1, SYNTH_IO_EXTENT);
+	{
+		synth_release_region(speakup_info.port_tts - 1, SYNTH_IO_EXTENT);
+	}
+
 	speakup_info.port_tts = 0;
 }
 

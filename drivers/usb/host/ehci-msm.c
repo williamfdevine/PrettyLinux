@@ -53,8 +53,11 @@ static int ehci_msm_reset(struct usb_hcd *hcd)
 	hcd->has_tt = 1;
 
 	retval = ehci_setup(hcd);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	/* select ULPI phy and clear other status/control bits in PORTSC */
 	writel(PORTSC_PTS_ULPI, USB_PORTSC);
@@ -80,20 +83,27 @@ static int ehci_msm_probe(struct platform_device *pdev)
 	dev_dbg(&pdev->dev, "ehci_msm proble\n");
 
 	hcd = usb_create_hcd(&msm_hc_driver, &pdev->dev, dev_name(&pdev->dev));
-	if (!hcd) {
+
+	if (!hcd)
+	{
 		dev_err(&pdev->dev, "Unable to create HCD\n");
 		return  -ENOMEM;
 	}
 
 	ret = platform_get_irq(pdev, 0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		dev_err(&pdev->dev, "Unable to get IRQ resource\n");
 		goto put_hcd;
 	}
+
 	hcd->irq = ret;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(&pdev->dev, "Unable to get memory resource\n");
 		ret = -ENODEV;
 		goto put_hcd;
@@ -102,7 +112,9 @@ static int ehci_msm_probe(struct platform_device *pdev)
 	hcd->rsrc_start = res->start;
 	hcd->rsrc_len = resource_size(res);
 	hcd->regs = devm_ioremap(&pdev->dev, hcd->rsrc_start, hcd->rsrc_len);
-	if (!hcd->regs) {
+
+	if (!hcd->regs)
+	{
 		dev_err(&pdev->dev, "ioremap failed\n");
 		ret = -ENOMEM;
 		goto put_hcd;
@@ -114,39 +126,54 @@ static int ehci_msm_probe(struct platform_device *pdev)
 	 * space and power management.
 	 */
 	if (pdev->dev.of_node)
+	{
 		phy = devm_usb_get_phy_by_phandle(&pdev->dev, "usb-phy", 0);
+	}
 	else
+	{
 		phy = devm_usb_get_phy(&pdev->dev, USB_PHY_TYPE_USB2);
+	}
 
-	if (IS_ERR(phy)) {
-		if (PTR_ERR(phy) == -EPROBE_DEFER) {
+	if (IS_ERR(phy))
+	{
+		if (PTR_ERR(phy) == -EPROBE_DEFER)
+		{
 			dev_err(&pdev->dev, "unable to find transceiver\n");
 			ret = -EPROBE_DEFER;
 			goto put_hcd;
 		}
+
 		phy = NULL;
 	}
 
 	hcd->usb_phy = phy;
 	device_init_wakeup(&pdev->dev, 1);
 
-	if (phy && phy->otg) {
+	if (phy && phy->otg)
+	{
 		/*
 		 * MSM OTG driver takes care of adding the HCD and
 		 * placing hardware into low power mode via runtime PM.
 		 */
 		ret = otg_set_host(phy->otg, &hcd->self);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			dev_err(&pdev->dev, "unable to register with transceiver\n");
 			goto put_hcd;
 		}
 
 		pm_runtime_no_callbacks(&pdev->dev);
 		pm_runtime_enable(&pdev->dev);
-	} else {
+	}
+	else
+	{
 		ret = usb_add_hcd(hcd, hcd->irq, IRQF_SHARED);
+
 		if (ret)
+		{
 			goto put_hcd;
+		}
 	}
 
 	return 0;
@@ -166,9 +193,13 @@ static int ehci_msm_remove(struct platform_device *pdev)
 	pm_runtime_set_suspended(&pdev->dev);
 
 	if (hcd->usb_phy && hcd->usb_phy->otg)
+	{
 		otg_set_host(hcd->usb_phy->otg, NULL);
+	}
 	else
+	{
 		usb_remove_hcd(hcd);
+	}
 
 	usb_put_hcd(hcd);
 
@@ -186,7 +217,9 @@ static int ehci_msm_pm_suspend(struct device *dev)
 
 	/* Only call ehci_suspend if ehci_setup has been done */
 	if (ehci->sbrn)
+	{
 		return ehci_suspend(hcd, do_wakeup);
+	}
 
 	return 0;
 }
@@ -200,7 +233,9 @@ static int ehci_msm_pm_resume(struct device *dev)
 
 	/* Only call ehci_resume if ehci_setup has been done */
 	if (ehci->sbrn)
+	{
 		ehci_resume(hcd, false);
+	}
 
 	return 0;
 }
@@ -210,43 +245,50 @@ static int ehci_msm_pm_resume(struct device *dev)
 #define ehci_msm_pm_resume	NULL
 #endif
 
-static const struct dev_pm_ops ehci_msm_dev_pm_ops = {
+static const struct dev_pm_ops ehci_msm_dev_pm_ops =
+{
 	.suspend         = ehci_msm_pm_suspend,
 	.resume          = ehci_msm_pm_resume,
 };
 
-static const struct acpi_device_id msm_ehci_acpi_ids[] = {
+static const struct acpi_device_id msm_ehci_acpi_ids[] =
+{
 	{ "QCOM8040", 0 },
 	{ }
 };
 MODULE_DEVICE_TABLE(acpi, msm_ehci_acpi_ids);
 
-static const struct of_device_id msm_ehci_dt_match[] = {
+static const struct of_device_id msm_ehci_dt_match[] =
+{
 	{ .compatible = "qcom,ehci-host", },
 	{}
 };
 MODULE_DEVICE_TABLE(of, msm_ehci_dt_match);
 
-static struct platform_driver ehci_msm_driver = {
+static struct platform_driver ehci_msm_driver =
+{
 	.probe	= ehci_msm_probe,
 	.remove	= ehci_msm_remove,
 	.shutdown = usb_hcd_platform_shutdown,
 	.driver = {
-		   .name = "msm_hsusb_host",
-		   .pm = &ehci_msm_dev_pm_ops,
-		   .of_match_table = msm_ehci_dt_match,
-		   .acpi_match_table = ACPI_PTR(msm_ehci_acpi_ids),
+		.name = "msm_hsusb_host",
+		.pm = &ehci_msm_dev_pm_ops,
+		.of_match_table = msm_ehci_dt_match,
+		.acpi_match_table = ACPI_PTR(msm_ehci_acpi_ids),
 	},
 };
 
-static const struct ehci_driver_overrides msm_overrides __initconst = {
+static const struct ehci_driver_overrides msm_overrides __initconst =
+{
 	.reset = ehci_msm_reset,
 };
 
 static int __init ehci_msm_init(void)
 {
 	if (usb_disabled())
+	{
 		return -ENODEV;
+	}
 
 	pr_info("%s: " DRIVER_DESC "\n", hcd_name);
 	ehci_init_driver(&msm_hc_driver, &msm_overrides);

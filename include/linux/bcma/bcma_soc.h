@@ -3,7 +3,8 @@
 
 #include <linux/bcma/bcma.h>
 
-struct bcma_soc {
+struct bcma_soc
+{
 	struct bcma_bus bus;
 };
 

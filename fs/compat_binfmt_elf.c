@@ -56,7 +56,7 @@
  * should be an inline in <linux/compat.h>.
  */
 static void cputime_to_compat_timeval(const cputime_t cputime,
-				      struct compat_timeval *value)
+									  struct compat_timeval *value)
 {
 	struct timeval tv;
 	cputime_to_timeval(cputime, &tv);
@@ -79,55 +79,55 @@ static void cputime_to_compat_timeval(const cputime_t cputime,
 #define	elf_check_arch	compat_elf_check_arch
 
 #ifdef	COMPAT_ELF_PLATFORM
-#undef	ELF_PLATFORM
-#define	ELF_PLATFORM		COMPAT_ELF_PLATFORM
+	#undef	ELF_PLATFORM
+	#define	ELF_PLATFORM		COMPAT_ELF_PLATFORM
 #endif
 
 #ifdef	COMPAT_ELF_HWCAP
-#undef	ELF_HWCAP
-#define	ELF_HWCAP		COMPAT_ELF_HWCAP
+	#undef	ELF_HWCAP
+	#define	ELF_HWCAP		COMPAT_ELF_HWCAP
 #endif
 
 #ifdef	COMPAT_ELF_HWCAP2
-#undef	ELF_HWCAP2
-#define	ELF_HWCAP2		COMPAT_ELF_HWCAP2
+	#undef	ELF_HWCAP2
+	#define	ELF_HWCAP2		COMPAT_ELF_HWCAP2
 #endif
 
 #ifdef	COMPAT_ARCH_DLINFO
-#undef	ARCH_DLINFO
-#define	ARCH_DLINFO		COMPAT_ARCH_DLINFO
+	#undef	ARCH_DLINFO
+	#define	ARCH_DLINFO		COMPAT_ARCH_DLINFO
 #endif
 
 #ifdef	COMPAT_ELF_ET_DYN_BASE
-#undef	ELF_ET_DYN_BASE
-#define	ELF_ET_DYN_BASE		COMPAT_ELF_ET_DYN_BASE
+	#undef	ELF_ET_DYN_BASE
+	#define	ELF_ET_DYN_BASE		COMPAT_ELF_ET_DYN_BASE
 #endif
 
 #ifdef COMPAT_ELF_EXEC_PAGESIZE
-#undef	ELF_EXEC_PAGESIZE
-#define	ELF_EXEC_PAGESIZE	COMPAT_ELF_EXEC_PAGESIZE
+	#undef	ELF_EXEC_PAGESIZE
+	#define	ELF_EXEC_PAGESIZE	COMPAT_ELF_EXEC_PAGESIZE
 #endif
 
 #ifdef	COMPAT_ELF_PLAT_INIT
-#undef	ELF_PLAT_INIT
-#define	ELF_PLAT_INIT		COMPAT_ELF_PLAT_INIT
+	#undef	ELF_PLAT_INIT
+	#define	ELF_PLAT_INIT		COMPAT_ELF_PLAT_INIT
 #endif
 
 #ifdef	COMPAT_SET_PERSONALITY
-#undef	SET_PERSONALITY
-#define	SET_PERSONALITY		COMPAT_SET_PERSONALITY
+	#undef	SET_PERSONALITY
+	#define	SET_PERSONALITY		COMPAT_SET_PERSONALITY
 #endif
 
 #ifdef	compat_start_thread
-#undef	start_thread
-#define	start_thread		compat_start_thread
+	#undef	start_thread
+	#define	start_thread		compat_start_thread
 #endif
 
 #ifdef	compat_arch_setup_additional_pages
-#undef	ARCH_HAS_SETUP_ADDITIONAL_PAGES
-#define ARCH_HAS_SETUP_ADDITIONAL_PAGES 1
-#undef	arch_setup_additional_pages
-#define	arch_setup_additional_pages compat_arch_setup_additional_pages
+	#undef	ARCH_HAS_SETUP_ADDITIONAL_PAGES
+	#define ARCH_HAS_SETUP_ADDITIONAL_PAGES 1
+	#undef	arch_setup_additional_pages
+	#define	arch_setup_additional_pages compat_arch_setup_additional_pages
 #endif
 
 /*

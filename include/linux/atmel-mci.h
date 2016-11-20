@@ -23,7 +23,8 @@
  * might get upset if we don't get the clock management exactly right.
  * But in most cases, it should work just fine.
  */
-struct mci_slot_pdata {
+struct mci_slot_pdata
+{
 	unsigned int		bus_width;
 	int			detect_pin;
 	int			wp_pin;
@@ -36,7 +37,8 @@ struct mci_slot_pdata {
  * @dma_slave: DMA slave interface to use in data transfers.
  * @slot: Per-slot configuration data.
  */
-struct mci_platform_data {
+struct mci_platform_data
+{
 	void			*dma_slave;
 	dma_filter_fn		dma_filter;
 	struct mci_slot_pdata	slot[ATMCI_MAX_NR_SLOTS];

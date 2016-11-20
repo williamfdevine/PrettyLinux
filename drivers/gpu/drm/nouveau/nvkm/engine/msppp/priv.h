@@ -3,7 +3,7 @@
 #include <engine/msppp.h>
 
 int nvkm_msppp_new_(const struct nvkm_falcon_func *, struct nvkm_device *,
-		    int index, struct nvkm_engine **);
+					int index, struct nvkm_engine **);
 
 void g98_msppp_init(struct nvkm_falcon *);
 #endif

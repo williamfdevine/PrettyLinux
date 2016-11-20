@@ -165,7 +165,8 @@
 #define NB8800_TANGOX_RESET		0x424
 
 /* Hardware DMA descriptor */
-struct nb8800_dma_desc {
+struct nb8800_dma_desc
+{
 	u32				s_addr;	/* start address */
 	u32				n_addr;	/* next descriptor address */
 	u32				r_addr;	/* report address */
@@ -182,7 +183,8 @@ struct nb8800_dma_desc {
 /* DMA descriptor and associated data for rx.
  * Allocated from coherent memory.
  */
-struct nb8800_rx_desc {
+struct nb8800_rx_desc
+{
 	/* DMA descriptor */
 	struct nb8800_dma_desc		desc;
 
@@ -191,7 +193,8 @@ struct nb8800_rx_desc {
 };
 
 /* Address of buffer on rx ring */
-struct nb8800_rx_buf {
+struct nb8800_rx_buf
+{
 	struct page			*page;
 	unsigned long			offset;
 };
@@ -199,7 +202,8 @@ struct nb8800_rx_buf {
 /* DMA descriptors and associated data for tx.
  * Allocated from coherent memory.
  */
-struct nb8800_tx_desc {
+struct nb8800_tx_desc
+{
 	/* DMA descriptor.  The second descriptor is used if packet
 	 * data is unaligned.
 	 */
@@ -213,7 +217,8 @@ struct nb8800_tx_desc {
 };
 
 /* Packet in tx queue */
-struct nb8800_tx_buf {
+struct nb8800_tx_buf
+{
 	/* Currently queued skb */
 	struct sk_buff			*skb;
 
@@ -235,7 +240,8 @@ struct nb8800_tx_buf {
 	bool				ready;
 };
 
-struct nb8800_priv {
+struct nb8800_priv
+{
 	struct napi_struct		napi;
 
 	void __iomem			*base;
@@ -307,7 +313,8 @@ struct nb8800_priv {
 	struct clk			*clk;
 };
 
-struct nb8800_ops {
+struct nb8800_ops
+{
 	int				(*init)(struct net_device *dev);
 	int				(*reset)(struct net_device *dev);
 };

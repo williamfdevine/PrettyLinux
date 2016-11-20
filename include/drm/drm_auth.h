@@ -42,7 +42,8 @@
  * Note that master structures are only relevant for the legacy/primary device
  * nodes, hence there can only be one per device, not one per drm_minor.
  */
-struct drm_master {
+struct drm_master
+{
 	struct kref refcount;
 	struct drm_device *dev;
 	char *unique;

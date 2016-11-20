@@ -23,12 +23,14 @@ static struct regulator *vddarm;
 static unsigned long regulator_latency;
 
 #ifdef CONFIG_CPU_S3C6410
-struct s3c64xx_dvfs {
+struct s3c64xx_dvfs
+{
 	unsigned int vddarm_min;
 	unsigned int vddarm_max;
 };
 
-static struct s3c64xx_dvfs s3c64xx_dvfs_table[] = {
+static struct s3c64xx_dvfs s3c64xx_dvfs_table[] =
+{
 	[0] = { 1000000, 1150000 },
 	[1] = { 1050000, 1150000 },
 	[2] = { 1100000, 1150000 },
@@ -36,7 +38,8 @@ static struct s3c64xx_dvfs s3c64xx_dvfs_table[] = {
 	[4] = { 1300000, 1350000 },
 };
 
-static struct cpufreq_frequency_table s3c64xx_freq_table[] = {
+static struct cpufreq_frequency_table s3c64xx_freq_table[] =
+{
 	{ 0, 0,  66000 },
 	{ 0, 0, 100000 },
 	{ 0, 0, 133000 },
@@ -54,7 +57,7 @@ static struct cpufreq_frequency_table s3c64xx_freq_table[] = {
 #endif
 
 static int s3c64xx_cpufreq_set_target(struct cpufreq_policy *policy,
-				      unsigned int index)
+									  unsigned int index)
 {
 	struct s3c64xx_dvfs *dvfs;
 	unsigned int old_freq, new_freq;
@@ -65,43 +68,58 @@ static int s3c64xx_cpufreq_set_target(struct cpufreq_policy *policy,
 	dvfs = &s3c64xx_dvfs_table[s3c64xx_freq_table[index].driver_data];
 
 #ifdef CONFIG_REGULATOR
-	if (vddarm && new_freq > old_freq) {
+
+	if (vddarm && new_freq > old_freq)
+	{
 		ret = regulator_set_voltage(vddarm,
-					    dvfs->vddarm_min,
-					    dvfs->vddarm_max);
-		if (ret != 0) {
+									dvfs->vddarm_min,
+									dvfs->vddarm_max);
+
+		if (ret != 0)
+		{
 			pr_err("Failed to set VDDARM for %dkHz: %d\n",
-			       new_freq, ret);
+				   new_freq, ret);
 			return ret;
 		}
 	}
+
 #endif
 
 	ret = clk_set_rate(policy->clk, new_freq * 1000);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		pr_err("Failed to set rate %dkHz: %d\n",
-		       new_freq, ret);
+			   new_freq, ret);
 		return ret;
 	}
 
 #ifdef CONFIG_REGULATOR
-	if (vddarm && new_freq < old_freq) {
+
+	if (vddarm && new_freq < old_freq)
+	{
 		ret = regulator_set_voltage(vddarm,
-					    dvfs->vddarm_min,
-					    dvfs->vddarm_max);
-		if (ret != 0) {
+									dvfs->vddarm_min,
+									dvfs->vddarm_max);
+
+		if (ret != 0)
+		{
 			pr_err("Failed to set VDDARM for %dkHz: %d\n",
-			       new_freq, ret);
+				   new_freq, ret);
+
 			if (clk_set_rate(policy->clk, old_freq * 1000) < 0)
+			{
 				pr_err("Failed to restore original clock rate\n");
+			}
 
 			return ret;
 		}
 	}
+
 #endif
 
 	pr_debug("Set actual frequency %lukHz\n",
-		 clk_get_rate(policy->clk) / 1000);
+			 clk_get_rate(policy->clk) / 1000);
 
 	return 0;
 }
@@ -114,26 +132,36 @@ static void __init s3c64xx_cpufreq_config_regulator(void)
 	struct s3c64xx_dvfs *dvfs;
 
 	count = regulator_count_voltages(vddarm);
-	if (count < 0) {
+
+	if (count < 0)
+	{
 		pr_err("Unable to check supported voltages\n");
 	}
 
 	if (!count)
+	{
 		goto out;
+	}
 
-	cpufreq_for_each_valid_entry(freq, s3c64xx_freq_table) {
+	cpufreq_for_each_valid_entry(freq, s3c64xx_freq_table)
+	{
 		dvfs = &s3c64xx_dvfs_table[freq->driver_data];
 		found = 0;
 
-		for (i = 0; i < count; i++) {
+		for (i = 0; i < count; i++)
+		{
 			v = regulator_list_voltage(vddarm, i);
+
 			if (v >= dvfs->vddarm_min && v <= dvfs->vddarm_max)
+			{
 				found = 1;
+			}
 		}
 
-		if (!found) {
+		if (!found)
+		{
 			pr_debug("%dkHz unsupported by regulator\n",
-				 freq->frequency);
+					 freq->frequency);
 			freq->frequency = CPUFREQ_ENTRY_INVALID;
 		}
 	}
@@ -151,48 +179,63 @@ static int s3c64xx_cpufreq_driver_init(struct cpufreq_policy *policy)
 	struct cpufreq_frequency_table *freq;
 
 	if (policy->cpu != 0)
+	{
 		return -EINVAL;
+	}
 
-	if (s3c64xx_freq_table == NULL) {
+	if (s3c64xx_freq_table == NULL)
+	{
 		pr_err("No frequency information for this CPU\n");
 		return -ENODEV;
 	}
 
 	policy->clk = clk_get(NULL, "armclk");
-	if (IS_ERR(policy->clk)) {
+
+	if (IS_ERR(policy->clk))
+	{
 		pr_err("Unable to obtain ARMCLK: %ld\n",
-		       PTR_ERR(policy->clk));
+			   PTR_ERR(policy->clk));
 		return PTR_ERR(policy->clk);
 	}
 
 #ifdef CONFIG_REGULATOR
 	vddarm = regulator_get(NULL, "vddarm");
-	if (IS_ERR(vddarm)) {
+
+	if (IS_ERR(vddarm))
+	{
 		ret = PTR_ERR(vddarm);
 		pr_err("Failed to obtain VDDARM: %d\n", ret);
 		pr_err("Only frequency scaling available\n");
 		vddarm = NULL;
-	} else {
+	}
+	else
+	{
 		s3c64xx_cpufreq_config_regulator();
 	}
+
 #endif
 
-	cpufreq_for_each_entry(freq, s3c64xx_freq_table) {
+	cpufreq_for_each_entry(freq, s3c64xx_freq_table)
+	{
 		unsigned long r;
 
 		/* Check for frequencies we can generate */
 		r = clk_round_rate(policy->clk, freq->frequency * 1000);
 		r /= 1000;
-		if (r != freq->frequency) {
+
+		if (r != freq->frequency)
+		{
 			pr_debug("%dkHz unsupported by clock\n",
-				 freq->frequency);
+					 freq->frequency);
 			freq->frequency = CPUFREQ_ENTRY_INVALID;
 		}
 
 		/* If we have no regulator then assume startup
 		 * frequency is the maximum we can support. */
 		if (!vddarm && freq->frequency > clk_get_rate(policy->clk) / 1000)
+		{
 			freq->frequency = CPUFREQ_ENTRY_INVALID;
+		}
 	}
 
 	/* Datasheet says PLL stabalisation time (if we were to use
@@ -200,10 +243,12 @@ static int s3c64xx_cpufreq_driver_init(struct cpufreq_policy *policy)
 	 * but add some fudge.
 	 */
 	ret = cpufreq_generic_init(policy, s3c64xx_freq_table,
-			(500 * 1000) + regulator_latency);
-	if (ret != 0) {
+							   (500 * 1000) + regulator_latency);
+
+	if (ret != 0)
+	{
 		pr_err("Failed to configure frequency table: %d\n",
-		       ret);
+			   ret);
 		regulator_put(vddarm);
 		clk_put(policy->clk);
 	}
@@ -211,7 +256,8 @@ static int s3c64xx_cpufreq_driver_init(struct cpufreq_policy *policy)
 	return ret;
 }
 
-static struct cpufreq_driver s3c64xx_cpufreq_driver = {
+static struct cpufreq_driver s3c64xx_cpufreq_driver =
+{
 	.flags		= CPUFREQ_NEED_INITIAL_FREQ_CHECK,
 	.verify		= cpufreq_generic_frequency_table_verify,
 	.target_index	= s3c64xx_cpufreq_set_target,

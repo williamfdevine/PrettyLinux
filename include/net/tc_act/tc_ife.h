@@ -7,7 +7,8 @@
 #include <linux/module.h>
 
 #define IFE_METAHDRLEN 2
-struct tcf_ife_info {
+struct tcf_ife_info
+{
 	struct tc_action common;
 	u8 eth_dst[ETH_ALEN];
 	u8 eth_src[ETH_ALEN];
@@ -18,14 +19,16 @@ struct tcf_ife_info {
 };
 #define to_ife(a) ((struct tcf_ife_info *)a)
 
-struct tcf_meta_info {
+struct tcf_meta_info
+{
 	const struct tcf_meta_ops *ops;
 	void *metaval;
 	u16 metaid;
 	struct list_head metalist;
 };
 
-struct tcf_meta_ops {
+struct tcf_meta_ops
+{
 	u16 metaid; /*Maintainer provided ID */
 	u16 metatype; /*netlink attribute type (look at net/netlink.h) */
 	const char *name;
@@ -46,7 +49,7 @@ struct tcf_meta_ops {
 int ife_get_meta_u32(struct sk_buff *skb, struct tcf_meta_info *mi);
 int ife_get_meta_u16(struct sk_buff *skb, struct tcf_meta_info *mi);
 int ife_tlv_meta_encode(void *skbdata, u16 attrtype, u16 dlen,
-			const void *dval);
+						const void *dval);
 int ife_alloc_meta_u32(struct tcf_meta_info *mi, void *metaval, gfp_t gfp);
 int ife_alloc_meta_u16(struct tcf_meta_info *mi, void *metaval, gfp_t gfp);
 int ife_check_meta_u32(u32 metaval, struct tcf_meta_info *mi);

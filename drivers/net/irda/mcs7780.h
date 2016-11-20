@@ -100,7 +100,8 @@
 #define MCS_IRINTX	((__u16)0x0001)
 #define MCS_IRINRX	((__u16)0x0002)
 
-struct mcs_cb {
+struct mcs_cb
+{
 	struct usb_device *usbdev;	/* init: probe_irda */
 	struct net_device *netdev;	/* network layer */
 	struct irlap_cb *irlap;	/* The link layer we are binded to */
@@ -131,13 +132,13 @@ struct mcs_cb {
 };
 
 static int mcs_set_reg(struct mcs_cb *mcs, __u16 reg, __u16 val);
-static int mcs_get_reg(struct mcs_cb *mcs, __u16 reg, __u16 * val);
+static int mcs_get_reg(struct mcs_cb *mcs, __u16 reg, __u16 *val);
 
 static inline int mcs_setup_transceiver_vishay(struct mcs_cb *mcs);
 static inline int mcs_setup_transceiver_agilent(struct mcs_cb *mcs);
 static inline int mcs_setup_transceiver_sharp(struct mcs_cb *mcs);
 static inline int mcs_setup_transceiver(struct mcs_cb *mcs);
-static inline int mcs_wrap_sir_skb(struct sk_buff *skb, __u8 * buf);
+static inline int mcs_wrap_sir_skb(struct sk_buff *skb, __u8 *buf);
 static unsigned mcs_wrap_fir_skb(const struct sk_buff *skb, __u8 *buf);
 static unsigned mcs_wrap_mir_skb(const struct sk_buff *skb, __u8 *buf);
 static void mcs_unwrap_mir(struct mcs_cb *mcs, __u8 *buf, int len);
@@ -145,7 +146,7 @@ static void mcs_unwrap_fir(struct mcs_cb *mcs, __u8 *buf, int len);
 static inline int mcs_setup_urbs(struct mcs_cb *mcs);
 static inline int mcs_receive_start(struct mcs_cb *mcs);
 static inline int mcs_find_endpoints(struct mcs_cb *mcs,
-				     struct usb_host_endpoint *ep, int epnum);
+									 struct usb_host_endpoint *ep, int epnum);
 
 static int mcs_speed_change(struct mcs_cb *mcs);
 
@@ -156,10 +157,10 @@ static int mcs_net_open(struct net_device *netdev);
 static void mcs_receive_irq(struct urb *urb);
 static void mcs_send_irq(struct urb *urb);
 static netdev_tx_t mcs_hard_xmit(struct sk_buff *skb,
-				       struct net_device *netdev);
+								 struct net_device *netdev);
 
 static int mcs_probe(struct usb_interface *intf,
-		     const struct usb_device_id *id);
+					 const struct usb_device_id *id);
 static void mcs_disconnect(struct usb_interface *intf);
 
 #endif				/* _MCS7780_H */

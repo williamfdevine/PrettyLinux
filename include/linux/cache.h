@@ -5,11 +5,11 @@
 #include <asm/cache.h>
 
 #ifndef L1_CACHE_ALIGN
-#define L1_CACHE_ALIGN(x) __ALIGN_KERNEL(x, L1_CACHE_BYTES)
+	#define L1_CACHE_ALIGN(x) __ALIGN_KERNEL(x, L1_CACHE_BYTES)
 #endif
 
 #ifndef SMP_CACHE_BYTES
-#define SMP_CACHE_BYTES L1_CACHE_BYTES
+	#define SMP_CACHE_BYTES L1_CACHE_BYTES
 #endif
 
 /*
@@ -18,7 +18,7 @@
  * hint.
  */
 #ifndef __read_mostly
-#define __read_mostly
+	#define __read_mostly
 #endif
 
 /*
@@ -27,33 +27,33 @@
  * but may get written to during init, so can't live in .rodata (via "const").
  */
 #ifndef __ro_after_init
-#define __ro_after_init __attribute__((__section__(".data..ro_after_init")))
+	#define __ro_after_init __attribute__((__section__(".data..ro_after_init")))
 #endif
 
 #ifndef ____cacheline_aligned
-#define ____cacheline_aligned __attribute__((__aligned__(SMP_CACHE_BYTES)))
+	#define ____cacheline_aligned __attribute__((__aligned__(SMP_CACHE_BYTES)))
 #endif
 
 #ifndef ____cacheline_aligned_in_smp
-#ifdef CONFIG_SMP
-#define ____cacheline_aligned_in_smp ____cacheline_aligned
-#else
-#define ____cacheline_aligned_in_smp
-#endif /* CONFIG_SMP */
+	#ifdef CONFIG_SMP
+		#define ____cacheline_aligned_in_smp ____cacheline_aligned
+	#else
+		#define ____cacheline_aligned_in_smp
+	#endif /* CONFIG_SMP */
 #endif
 
 #ifndef __cacheline_aligned
 #define __cacheline_aligned					\
-  __attribute__((__aligned__(SMP_CACHE_BYTES),			\
-		 __section__(".data..cacheline_aligned")))
+	__attribute__((__aligned__(SMP_CACHE_BYTES),			\
+				   __section__(".data..cacheline_aligned")))
 #endif /* __cacheline_aligned */
 
 #ifndef __cacheline_aligned_in_smp
-#ifdef CONFIG_SMP
-#define __cacheline_aligned_in_smp __cacheline_aligned
-#else
-#define __cacheline_aligned_in_smp
-#endif /* CONFIG_SMP */
+	#ifdef CONFIG_SMP
+		#define __cacheline_aligned_in_smp __cacheline_aligned
+	#else
+		#define __cacheline_aligned_in_smp
+	#endif /* CONFIG_SMP */
 #endif
 
 /*
@@ -62,7 +62,7 @@
  * size etc.  Define this in asm/cache.h for your arch
  */
 #ifndef INTERNODE_CACHE_SHIFT
-#define INTERNODE_CACHE_SHIFT L1_CACHE_SHIFT
+	#define INTERNODE_CACHE_SHIFT L1_CACHE_SHIFT
 #endif
 
 #if !defined(____cacheline_internodealigned_in_smp)
@@ -75,7 +75,7 @@
 #endif
 
 #ifndef CONFIG_ARCH_HAS_CACHE_LINE_SIZE
-#define cache_line_size()	L1_CACHE_BYTES
+	#define cache_line_size()	L1_CACHE_BYTES
 #endif
 
 #endif /* __LINUX_CACHE_H */

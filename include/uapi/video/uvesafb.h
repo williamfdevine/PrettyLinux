@@ -3,7 +3,8 @@
 
 #include <linux/types.h>
 
-struct v86_regs {
+struct v86_regs
+{
 	__u32 ebx;
 	__u32 ecx;
 	__u32 edx;
@@ -29,7 +30,8 @@ struct v86_regs {
 #define TF_BUF_RET	0x08
 #define TF_EXIT		0x10
 
-struct uvesafb_task {
+struct uvesafb_task
+{
 	__u8 flags;
 	int buf_len;
 	struct v86_regs regs;
@@ -41,7 +43,8 @@ struct uvesafb_task {
 #define VBE_CAP_VGACOMPAT	0x02
 
 /* The VBE Info Block */
-struct vbe_ib {
+struct vbe_ib
+{
 	char  vbe_signature[4];
 	__u16 vbe_version;
 	__u32 oem_string_ptr;

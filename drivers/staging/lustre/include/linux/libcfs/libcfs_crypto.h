@@ -28,7 +28,8 @@
 #ifndef _LIBCFS_CRYPTO_H
 #define _LIBCFS_CRYPTO_H
 
-struct cfs_crypto_hash_type {
+struct cfs_crypto_hash_type
+{
 	char		*cht_name;      /**< hash algorithm name, equal to
 					 * format name for crypto api */
 	unsigned int    cht_key;	/**< init key by default (valid for
@@ -36,7 +37,8 @@ struct cfs_crypto_hash_type {
 	unsigned int    cht_size;       /**< hash digest size */
 };
 
-enum cfs_crypto_hash_alg {
+enum cfs_crypto_hash_alg
+{
 	CFS_HASH_ALG_NULL       = 0,
 	CFS_HASH_ALG_ADLER32,
 	CFS_HASH_ALG_CRC32,
@@ -50,7 +52,8 @@ enum cfs_crypto_hash_alg {
 	CFS_HASH_ALG_UNKNOWN	= 0xff
 };
 
-static struct cfs_crypto_hash_type hash_types[] = {
+static struct cfs_crypto_hash_type hash_types[] =
+{
 	[CFS_HASH_ALG_NULL]    = { "null",     0,      0 },
 	[CFS_HASH_ALG_ADLER32] = { "adler32",  1,      4 },
 	[CFS_HASH_ALG_CRC32]   = { "crc32",   ~0,      4 },
@@ -79,11 +82,16 @@ cfs_crypto_hash_type(enum cfs_crypto_hash_alg hash_alg)
 {
 	struct cfs_crypto_hash_type *ht;
 
-	if (hash_alg < CFS_HASH_ALG_MAX) {
+	if (hash_alg < CFS_HASH_ALG_MAX)
+	{
 		ht = &hash_types[hash_alg];
+
 		if (ht->cht_name)
+		{
 			return ht;
+		}
 	}
+
 	return NULL;
 }
 
@@ -101,8 +109,12 @@ cfs_crypto_hash_name(enum cfs_crypto_hash_alg hash_alg)
 	const struct cfs_crypto_hash_type *ht;
 
 	ht = cfs_crypto_hash_type(hash_alg);
+
 	if (ht)
+	{
 		return ht->cht_name;
+	}
+
 	return "unknown";
 }
 
@@ -119,8 +131,12 @@ static inline int cfs_crypto_hash_digestsize(enum cfs_crypto_hash_alg hash_alg)
 	const struct cfs_crypto_hash_type *ht;
 
 	ht = cfs_crypto_hash_type(hash_alg);
+
 	if (ht)
+	{
 		return ht->cht_size;
+	}
+
 	return 0;
 }
 
@@ -136,29 +152,31 @@ static inline unsigned char cfs_crypto_hash_alg(const char *algname)
 
 	for (hash_alg = 0; hash_alg < CFS_HASH_ALG_MAX; hash_alg++)
 		if (strcmp(hash_types[hash_alg].cht_name, algname) == 0)
+		{
 			return hash_alg;
+		}
 
 	return CFS_HASH_ALG_UNKNOWN;
 }
 
 int cfs_crypto_hash_digest(enum cfs_crypto_hash_alg hash_alg,
-			   const void *buf, unsigned int buf_len,
-			   unsigned char *key, unsigned int key_len,
-			   unsigned char *hash, unsigned int *hash_len);
+						   const void *buf, unsigned int buf_len,
+						   unsigned char *key, unsigned int key_len,
+						   unsigned char *hash, unsigned int *hash_len);
 
 /* cfs crypto hash descriptor */
 struct cfs_crypto_hash_desc;
 
 struct cfs_crypto_hash_desc *
 cfs_crypto_hash_init(enum cfs_crypto_hash_alg hash_alg,
-		     unsigned char *key, unsigned int key_len);
+					 unsigned char *key, unsigned int key_len);
 int cfs_crypto_hash_update_page(struct cfs_crypto_hash_desc *desc,
-				struct page *page, unsigned int offset,
-				unsigned int len);
+								struct page *page, unsigned int offset,
+								unsigned int len);
 int cfs_crypto_hash_update(struct cfs_crypto_hash_desc *desc, const void *buf,
-			   unsigned int buf_len);
+						   unsigned int buf_len);
 int cfs_crypto_hash_final(struct cfs_crypto_hash_desc *desc,
-			  unsigned char *hash, unsigned int *hash_len);
+						  unsigned char *hash, unsigned int *hash_len);
 int cfs_crypto_register(void);
 void cfs_crypto_unregister(void);
 int cfs_crypto_hash_speed(enum cfs_crypto_hash_alg hash_alg);

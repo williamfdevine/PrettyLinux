@@ -8,7 +8,8 @@
 #define FW_ACTION_NOHOTPLUG 0
 #define FW_ACTION_HOTPLUG 1
 
-struct firmware {
+struct firmware
+{
 	size_t size;
 	const u8 *data;
 	struct page **pages;
@@ -20,7 +21,8 @@ struct firmware {
 struct module;
 struct device;
 
-struct builtin_fw {
+struct builtin_fw
+{
 	char *name;
 	void *data;
 	unsigned long size;
@@ -40,21 +42,21 @@ struct builtin_fw {
 
 #if defined(CONFIG_FW_LOADER) || (defined(CONFIG_FW_LOADER_MODULE) && defined(MODULE))
 int request_firmware(const struct firmware **fw, const char *name,
-		     struct device *device);
+					 struct device *device);
 int request_firmware_nowait(
 	struct module *module, bool uevent,
 	const char *name, struct device *device, gfp_t gfp, void *context,
 	void (*cont)(const struct firmware *fw, void *context));
 int request_firmware_direct(const struct firmware **fw, const char *name,
-			    struct device *device);
+							struct device *device);
 int request_firmware_into_buf(const struct firmware **firmware_p,
-	const char *name, struct device *device, void *buf, size_t size);
+							  const char *name, struct device *device, void *buf, size_t size);
 
 void release_firmware(const struct firmware *fw);
 #else
 static inline int request_firmware(const struct firmware **fw,
-				   const char *name,
-				   struct device *device)
+								   const char *name,
+								   struct device *device)
 {
 	return -EINVAL;
 }
@@ -71,14 +73,14 @@ static inline void release_firmware(const struct firmware *fw)
 }
 
 static inline int request_firmware_direct(const struct firmware **fw,
-					  const char *name,
-					  struct device *device)
+		const char *name,
+		struct device *device)
 {
 	return -EINVAL;
 }
 
 static inline int request_firmware_into_buf(const struct firmware **firmware_p,
-	const char *name, struct device *device, void *buf, size_t size)
+		const char *name, struct device *device, void *buf, size_t size)
 {
 	return -EINVAL;
 }

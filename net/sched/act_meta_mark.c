@@ -25,7 +25,7 @@
 #include <linux/rtnetlink.h>
 
 static int skbmark_encode(struct sk_buff *skb, void *skbdata,
-			  struct tcf_meta_info *e)
+						  struct tcf_meta_info *e)
 {
 	u32 ifemark = skb->mark;
 
@@ -45,7 +45,8 @@ static int skbmark_check(struct sk_buff *skb, struct tcf_meta_info *e)
 	return ife_check_meta_u32(skb->mark, e);
 }
 
-static struct tcf_meta_ops ife_skbmark_ops = {
+static struct tcf_meta_ops ife_skbmark_ops =
+{
 	.metaid = IFE_META_SKBMARK,
 	.metatype = NLA_U32,
 	.name = "skbmark",

@@ -40,33 +40,35 @@
 #include <net/irda/ircomm_param.h>
 
 static int ircomm_param_service_type(void *instance, irda_param_t *param,
-				     int get);
+									 int get);
 static int ircomm_param_port_type(void *instance, irda_param_t *param,
-				  int get);
+								  int get);
 static int ircomm_param_port_name(void *instance, irda_param_t *param,
-				  int get);
+								  int get);
 static int ircomm_param_service_type(void *instance, irda_param_t *param,
-				     int get);
+									 int get);
 static int ircomm_param_data_rate(void *instance, irda_param_t *param,
-				  int get);
+								  int get);
 static int ircomm_param_data_format(void *instance, irda_param_t *param,
-				    int get);
+									int get);
 static int ircomm_param_flow_control(void *instance, irda_param_t *param,
-				     int get);
+									 int get);
 static int ircomm_param_xon_xoff(void *instance, irda_param_t *param, int get);
 static int ircomm_param_enq_ack(void *instance, irda_param_t *param, int get);
 static int ircomm_param_line_status(void *instance, irda_param_t *param,
-				    int get);
+									int get);
 static int ircomm_param_dte(void *instance, irda_param_t *param, int get);
 static int ircomm_param_dce(void *instance, irda_param_t *param, int get);
 static int ircomm_param_poll(void *instance, irda_param_t *param, int get);
 
-static const pi_minor_info_t pi_minor_call_table_common[] = {
+static const pi_minor_info_t pi_minor_call_table_common[] =
+{
 	{ ircomm_param_service_type, PV_INT_8_BITS },
 	{ ircomm_param_port_type,    PV_INT_8_BITS },
 	{ ircomm_param_port_name,    PV_STRING }
 };
-static const pi_minor_info_t pi_minor_call_table_non_raw[] = {
+static const pi_minor_info_t pi_minor_call_table_non_raw[] =
+{
 	{ ircomm_param_data_rate,    PV_INT_32_BITS | PV_BIG_ENDIAN },
 	{ ircomm_param_data_format,  PV_INT_8_BITS },
 	{ ircomm_param_flow_control, PV_INT_8_BITS },
@@ -74,17 +76,19 @@ static const pi_minor_info_t pi_minor_call_table_non_raw[] = {
 	{ ircomm_param_enq_ack,      PV_INT_16_BITS },
 	{ ircomm_param_line_status,  PV_INT_8_BITS }
 };
-static const pi_minor_info_t pi_minor_call_table_9_wire[] = {
+static const pi_minor_info_t pi_minor_call_table_9_wire[] =
+{
 	{ ircomm_param_dte,          PV_INT_8_BITS },
 	{ ircomm_param_dce,          PV_INT_8_BITS },
 	{ ircomm_param_poll,         PV_NO_VALUE },
 };
 
-static const pi_major_info_t pi_major_call_table[] = {
+static const pi_major_info_t pi_major_call_table[] =
+{
 	{ pi_minor_call_table_common,  3 },
 	{ pi_minor_call_table_non_raw, 6 },
 	{ pi_minor_call_table_9_wire,  3 }
-/* 	{ pi_minor_call_table_centronics }  */
+	/* 	{ pi_minor_call_table_centronics }  */
 };
 
 pi_param_info_t ircomm_param_info = { pi_major_call_table, 3, 0x0f, 4 };
@@ -106,14 +110,20 @@ int ircomm_param_request(struct ircomm_tty_cb *self, __u8 pi, int flush)
 
 	/* Make sure we don't send parameters for raw mode */
 	if (self->service_type == IRCOMM_3_WIRE_RAW)
+	{
 		return 0;
+	}
 
 	spin_lock_irqsave(&self->spinlock, flags);
 
 	skb = self->ctrl_skb;
-	if (!skb) {
+
+	if (!skb)
+	{
 		skb = alloc_skb(256, GFP_ATOMIC);
-		if (!skb) {
+
+		if (!skb)
+		{
 			spin_unlock_irqrestore(&self->spinlock, flags);
 			return -ENOMEM;
 		}
@@ -121,24 +131,29 @@ int ircomm_param_request(struct ircomm_tty_cb *self, __u8 pi, int flush)
 		skb_reserve(skb, self->max_header_size);
 		self->ctrl_skb = skb;
 	}
+
 	/*
 	 * Inserting is a little bit tricky since we don't know how much
 	 * room we will need. But this should hopefully work OK
 	 */
 	count = irda_param_insert(self, pi, skb_tail_pointer(skb),
-				  skb_tailroom(skb), &ircomm_param_info);
-	if (count < 0) {
+							  skb_tailroom(skb), &ircomm_param_info);
+
+	if (count < 0)
+	{
 		net_warn_ratelimited("%s(), no room for parameter!\n",
-				     __func__);
+							 __func__);
 		spin_unlock_irqrestore(&self->spinlock, flags);
 		return -1;
 	}
+
 	skb_put(skb, count);
 	pr_debug("%s(), skb->len=%d\n", __func__, skb->len);
 
 	spin_unlock_irqrestore(&self->spinlock, flags);
 
-	if (flush) {
+	if (flush)
+	{
 		/* ircomm_tty_do_softint will take care of the rest */
 		schedule_work(&self->tqueue);
 	}
@@ -154,7 +169,7 @@ int ircomm_param_request(struct ircomm_tty_cb *self, __u8 pi, int flush)
  *
  */
 static int ircomm_param_service_type(void *instance, irda_param_t *param,
-				     int get)
+									 int get)
 {
 	struct ircomm_tty_cb *self = (struct ircomm_tty_cb *) instance;
 	__u8 service_type = (__u8) param->pv.i;
@@ -162,34 +177,46 @@ static int ircomm_param_service_type(void *instance, irda_param_t *param,
 	IRDA_ASSERT(self != NULL, return -1;);
 	IRDA_ASSERT(self->magic == IRCOMM_TTY_MAGIC, return -1;);
 
-	if (get) {
+	if (get)
+	{
 		param->pv.i = self->settings.service_type;
 		return 0;
 	}
 
 	/* Find all common service types */
 	service_type &= self->service_type;
-	if (!service_type) {
+
+	if (!service_type)
+	{
 		pr_debug("%s(), No common service type to use!\n", __func__);
 		return -1;
 	}
+
 	pr_debug("%s(), services in common=%02x\n", __func__ ,
-		 service_type);
+			 service_type);
 
 	/*
 	 * Now choose a preferred service type of those available
 	 */
 	if (service_type & IRCOMM_CENTRONICS)
+	{
 		self->settings.service_type = IRCOMM_CENTRONICS;
+	}
 	else if (service_type & IRCOMM_9_WIRE)
+	{
 		self->settings.service_type = IRCOMM_9_WIRE;
+	}
 	else if (service_type & IRCOMM_3_WIRE)
+	{
 		self->settings.service_type = IRCOMM_3_WIRE;
+	}
 	else if (service_type & IRCOMM_3_WIRE_RAW)
+	{
 		self->settings.service_type = IRCOMM_3_WIRE_RAW;
+	}
 
 	pr_debug("%s(), resulting service type=0x%02x\n", __func__ ,
-		 self->settings.service_type);
+			 self->settings.service_type);
 
 	/*
 	 * Now the line is ready for some communication. Check if we are a
@@ -201,8 +228,8 @@ static int ircomm_param_service_type(void *instance, irda_param_t *param,
 	 * really initialised. - Jean II
 	 */
 	if ((self->max_header_size != IRCOMM_TTY_HDR_UNINITIALISED) &&
-	    (!self->client) &&
-	    (self->settings.service_type != IRCOMM_3_WIRE_RAW))
+		(!self->client) &&
+		(self->settings.service_type != IRCOMM_3_WIRE_RAW))
 	{
 		/* Init connection */
 		ircomm_tty_send_initial_parameters(self);
@@ -227,13 +254,17 @@ static int ircomm_param_port_type(void *instance, irda_param_t *param, int get)
 	IRDA_ASSERT(self->magic == IRCOMM_TTY_MAGIC, return -1;);
 
 	if (get)
+	{
 		param->pv.i = IRCOMM_SERIAL;
-	else {
+	}
+	else
+	{
 		self->settings.port_type = (__u8) param->pv.i;
 
 		pr_debug("%s(), port type=%d\n", __func__ ,
-			 self->settings.port_type);
+				 self->settings.port_type);
 	}
+
 	return 0;
 }
 
@@ -250,9 +281,12 @@ static int ircomm_param_port_name(void *instance, irda_param_t *param, int get)
 	IRDA_ASSERT(self != NULL, return -1;);
 	IRDA_ASSERT(self->magic == IRCOMM_TTY_MAGIC, return -1;);
 
-	if (get) {
+	if (get)
+	{
 		pr_debug("%s(), not imp!\n", __func__);
-	} else {
+	}
+	else
+	{
 		pr_debug("%s(), port-name=%s\n", __func__ , param->pv.c);
 		strncpy(self->settings.port_name, param->pv.c, 32);
 	}
@@ -274,9 +308,13 @@ static int ircomm_param_data_rate(void *instance, irda_param_t *param, int get)
 	IRDA_ASSERT(self->magic == IRCOMM_TTY_MAGIC, return -1;);
 
 	if (get)
+	{
 		param->pv.i = self->settings.data_rate;
+	}
 	else
+	{
 		self->settings.data_rate = param->pv.i;
+	}
 
 	pr_debug("%s(), data rate = %d\n", __func__ , param->pv.i);
 
@@ -290,7 +328,7 @@ static int ircomm_param_data_rate(void *instance, irda_param_t *param, int get)
  *
  */
 static int ircomm_param_data_format(void *instance, irda_param_t *param,
-				    int get)
+									int get)
 {
 	struct ircomm_tty_cb *self = (struct ircomm_tty_cb *) instance;
 
@@ -298,9 +336,13 @@ static int ircomm_param_data_format(void *instance, irda_param_t *param,
 	IRDA_ASSERT(self->magic == IRCOMM_TTY_MAGIC, return -1;);
 
 	if (get)
+	{
 		param->pv.i = self->settings.data_format;
+	}
 	else
+	{
 		self->settings.data_format = (__u8) param->pv.i;
+	}
 
 	return 0;
 }
@@ -312,7 +354,7 @@ static int ircomm_param_data_format(void *instance, irda_param_t *param,
  *
  */
 static int ircomm_param_flow_control(void *instance, irda_param_t *param,
-				     int get)
+									 int get)
 {
 	struct ircomm_tty_cb *self = (struct ircomm_tty_cb *) instance;
 
@@ -320,9 +362,13 @@ static int ircomm_param_flow_control(void *instance, irda_param_t *param,
 	IRDA_ASSERT(self->magic == IRCOMM_TTY_MAGIC, return -1;);
 
 	if (get)
+	{
 		param->pv.i = self->settings.flow_control;
+	}
 	else
+	{
 		self->settings.flow_control = (__u8) param->pv.i;
+	}
 
 	pr_debug("%s(), flow control = 0x%02x\n", __func__ , (__u8)param->pv.i);
 
@@ -342,16 +388,19 @@ static int ircomm_param_xon_xoff(void *instance, irda_param_t *param, int get)
 	IRDA_ASSERT(self != NULL, return -1;);
 	IRDA_ASSERT(self->magic == IRCOMM_TTY_MAGIC, return -1;);
 
-	if (get) {
+	if (get)
+	{
 		param->pv.i = self->settings.xonxoff[0];
 		param->pv.i |= self->settings.xonxoff[1] << 8;
-	} else {
+	}
+	else
+	{
 		self->settings.xonxoff[0] = (__u16) param->pv.i & 0xff;
 		self->settings.xonxoff[1] = (__u16) param->pv.i >> 8;
 	}
 
 	pr_debug("%s(), XON/XOFF = 0x%02x,0x%02x\n", __func__ ,
-		 param->pv.i & 0xff, param->pv.i >> 8);
+			 param->pv.i & 0xff, param->pv.i >> 8);
 
 	return 0;
 }
@@ -369,16 +418,19 @@ static int ircomm_param_enq_ack(void *instance, irda_param_t *param, int get)
 	IRDA_ASSERT(self != NULL, return -1;);
 	IRDA_ASSERT(self->magic == IRCOMM_TTY_MAGIC, return -1;);
 
-	if (get) {
+	if (get)
+	{
 		param->pv.i = self->settings.enqack[0];
 		param->pv.i |= self->settings.enqack[1] << 8;
-	} else {
+	}
+	else
+	{
 		self->settings.enqack[0] = (__u16) param->pv.i & 0xff;
 		self->settings.enqack[1] = (__u16) param->pv.i >> 8;
 	}
 
 	pr_debug("%s(), ENQ/ACK = 0x%02x,0x%02x\n", __func__ ,
-		 param->pv.i & 0xff, param->pv.i >> 8);
+			 param->pv.i & 0xff, param->pv.i >> 8);
 
 	return 0;
 }
@@ -390,7 +442,7 @@ static int ircomm_param_enq_ack(void *instance, irda_param_t *param, int get)
  *
  */
 static int ircomm_param_line_status(void *instance, irda_param_t *param,
-				    int get)
+									int get)
 {
 	pr_debug("%s(), not impl.\n", __func__);
 
@@ -412,25 +464,34 @@ static int ircomm_param_dte(void *instance, irda_param_t *param, int get)
 	IRDA_ASSERT(self->magic == IRCOMM_TTY_MAGIC, return -1;);
 
 	if (get)
+	{
 		param->pv.i = self->settings.dte;
-	else {
+	}
+	else
+	{
 		dte = (__u8) param->pv.i;
 
 		self->settings.dce = 0;
 
 		if (dte & IRCOMM_DELTA_DTR)
-			self->settings.dce |= (IRCOMM_DELTA_DSR|
-					      IRCOMM_DELTA_RI |
-					      IRCOMM_DELTA_CD);
+			self->settings.dce |= (IRCOMM_DELTA_DSR |
+								   IRCOMM_DELTA_RI |
+								   IRCOMM_DELTA_CD);
+
 		if (dte & IRCOMM_DTR)
-			self->settings.dce |= (IRCOMM_DSR|
-					      IRCOMM_RI |
-					      IRCOMM_CD);
+			self->settings.dce |= (IRCOMM_DSR |
+								   IRCOMM_RI |
+								   IRCOMM_CD);
 
 		if (dte & IRCOMM_DELTA_RTS)
+		{
 			self->settings.dce |= IRCOMM_DELTA_CTS;
+		}
+
 		if (dte & IRCOMM_RTS)
+		{
 			self->settings.dce |= IRCOMM_CTS;
+		}
 
 		/* Take appropriate actions */
 		ircomm_tty_check_modem_status(self);
@@ -463,8 +524,10 @@ static int ircomm_param_dce(void *instance, irda_param_t *param, int get)
 	self->settings.dce = dce;
 
 	/* Check if any of the settings have changed */
-	if (dce & 0x0f) {
-		if (dce & IRCOMM_DELTA_CTS) {
+	if (dce & 0x0f)
+	{
+		if (dce & IRCOMM_DELTA_CTS)
+		{
 			pr_debug("%s(), CTS\n", __func__);
 		}
 	}
@@ -488,10 +551,12 @@ static int ircomm_param_poll(void *instance, irda_param_t *param, int get)
 	IRDA_ASSERT(self->magic == IRCOMM_TTY_MAGIC, return -1;);
 
 	/* Poll parameters are always of length 0 (just a signal) */
-	if (!get) {
+	if (!get)
+	{
 		/* Respond with DTE line settings */
 		ircomm_param_request(self, IRCOMM_DTE, TRUE);
 	}
+
 	return 0;
 }
 

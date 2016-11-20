@@ -38,7 +38,8 @@
 #define EP1_CMD_AUTO_MSG	0xb
 #define EP1_CMD_DIMM_LEDS       0xc
 
-struct caiaq_device_spec {
+struct caiaq_device_spec
+{
 	unsigned short fw_version;
 	unsigned char hw_subtype;
 	unsigned char num_erp;
@@ -56,7 +57,8 @@ struct caiaq_device_spec {
 
 struct snd_usb_caiaq_cb_info;
 
-struct snd_usb_caiaqdev {
+struct snd_usb_caiaqdev
+{
 	struct snd_usb_audio chip;
 
 	struct urb ep1_in_urb;
@@ -114,7 +116,8 @@ struct snd_usb_caiaqdev {
 	struct snd_rawmidi_substream *midi_out_substream;
 };
 
-struct snd_usb_caiaq_cb_info {
+struct snd_usb_caiaq_cb_info
+{
 	struct snd_usb_caiaqdev *cdev;
 	int index;
 };
@@ -125,13 +128,13 @@ struct snd_usb_caiaq_cb_info {
 int snd_usb_caiaq_set_audio_params (struct snd_usb_caiaqdev *cdev, int rate, int depth, int bbp);
 int snd_usb_caiaq_set_auto_msg (struct snd_usb_caiaqdev *cdev, int digital, int analog, int erp);
 int snd_usb_caiaq_send_command(struct snd_usb_caiaqdev *cdev,
-			       unsigned char command,
-			       const unsigned char *buffer,
-			       int len);
+							   unsigned char command,
+							   const unsigned char *buffer,
+							   int len);
 int snd_usb_caiaq_send_command_bank(struct snd_usb_caiaqdev *cdev,
-			       unsigned char command,
-			       unsigned char bank,
-			       const unsigned char *buffer,
-			       int len);
+									unsigned char command,
+									unsigned char bank,
+									const unsigned char *buffer,
+									int len);
 
 #endif /* CAIAQ_DEVICE_H */

@@ -15,7 +15,8 @@
 #include <linux/string.h>
 
 static const u8 coda_filler_nal[14] = { 0x00, 0x00, 0x00, 0x01, 0x0c, 0xff,
-			0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x80 };
+										0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x80
+									  };
 static const u8 coda_filler_size[8] = { 0, 7, 14, 13, 12, 11, 10, 9 };
 
 int coda_h264_padding(int size, char *p)
@@ -24,8 +25,11 @@ int coda_h264_padding(int size, char *p)
 	int diff;
 
 	diff = size - (size & ~0x7);
+
 	if (diff == 0)
+	{
 		return 0;
+	}
 
 	nal_size = coda_filler_size[diff];
 	memcpy(p, coda_filler_nal, nal_size);

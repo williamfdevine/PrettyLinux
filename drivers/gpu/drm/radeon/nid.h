@@ -149,12 +149,12 @@
 #define	VM_CONTEXT1_PROTECTION_FAULT_STATUS		0x14DC
 #define		PROTECTIONS_MASK			(0xf << 0)
 #define		PROTECTIONS_SHIFT			0
-		/* bit 0: range
-		 * bit 2: pde0
-		 * bit 3: valid
-		 * bit 4: read
-		 * bit 5: write
-		 */
+/* bit 0: range
+ * bit 2: pde0
+ * bit 3: valid
+ * bit 4: read
+ * bit 5: write
+ */
 #define		MEMORY_CLIENT_ID_MASK			(0xff << 12)
 #define		MEMORY_CLIENT_ID_SHIFT			12
 #define		MEMORY_CLIENT_RW_MASK			(1 << 24)
@@ -1146,8 +1146,8 @@
  * PM4
  */
 #define PACKET0(reg, n)	((RADEON_PACKET_TYPE0 << 30) |			\
-			 (((reg) >> 2) & 0xFFFF) |			\
-			 ((n) & 0x3FFF) << 16)
+						 (((reg) >> 2) & 0xFFFF) |			\
+						 ((n) & 0x3FFF) << 16)
 #define CP_PACKET2			0x80000000
 #define		PACKET2_PAD_SHIFT		0
 #define		PACKET2_PAD_MASK		(0x3fffffff << 0)
@@ -1155,8 +1155,8 @@
 #define PACKET2(v)	(CP_PACKET2 | REG_SET(PACKET2_PAD, (v)))
 
 #define PACKET3(op, n)	((RADEON_PACKET_TYPE3 << 30) |			\
-			 (((op) & 0xFF) << 8) |				\
-			 ((n) & 0x3FFF) << 16)
+						 (((op) & 0xFF) << 8) |				\
+						 ((n) & 0x3FFF) << 16)
 
 /* Packet 3 types */
 #define	PACKET3_NOP					0x10
@@ -1193,22 +1193,22 @@
 #define	PACKET3_MPEG_INDEX				0x3A
 #define	PACKET3_WAIT_REG_MEM				0x3C
 #define		WAIT_REG_MEM_FUNCTION(x)                ((x) << 0)
-                /* 0 - always
-		 * 1 - <
-		 * 2 - <=
-		 * 3 - ==
-		 * 4 - !=
-		 * 5 - >=
-		 * 6 - >
-		 */
+/* 0 - always
+* 1 - <
+	 * 2 - <=
+	 * 3 - ==
+	 * 4 - !=
+	 * 5 - >=
+	 * 6 - >
+	 */
 #define		WAIT_REG_MEM_MEM_SPACE(x)               ((x) << 4)
-                /* 0 - reg
-		 * 1 - mem
-		 */
+/* 0 - reg
+* 1 - mem
+	 */
 #define		WAIT_REG_MEM_ENGINE(x)                  ((x) << 8)
-                /* 0 - me
-		 * 1 - pfp
-		 */
+/* 0 - me
+* 1 - pfp
+	 */
 #define	PACKET3_MEM_WRITE				0x3D
 #define	PACKET3_PFP_SYNC_ME				0x42
 #define	PACKET3_SURFACE_SYNC				0x43
@@ -1238,25 +1238,25 @@
 #define	PACKET3_EVENT_WRITE				0x46
 #define		EVENT_TYPE(x)                           ((x) << 0)
 #define		EVENT_INDEX(x)                          ((x) << 8)
-                /* 0 - any non-TS event
-		 * 1 - ZPASS_DONE
-		 * 2 - SAMPLE_PIPELINESTAT
-		 * 3 - SAMPLE_STREAMOUTSTAT*
-		 * 4 - *S_PARTIAL_FLUSH
-		 * 5 - TS events
-		 */
+/* 0 - any non-TS event
+* 1 - ZPASS_DONE
+	 * 2 - SAMPLE_PIPELINESTAT
+	 * 3 - SAMPLE_STREAMOUTSTAT*
+	 * 4 - *S_PARTIAL_FLUSH
+	 * 5 - TS events
+	 */
 #define	PACKET3_EVENT_WRITE_EOP				0x47
 #define		DATA_SEL(x)                             ((x) << 29)
-                /* 0 - discard
-		 * 1 - send low 32bit data
-		 * 2 - send 64bit data
-		 * 3 - send 64bit counter value
-		 */
+/* 0 - discard
+* 1 - send low 32bit data
+	 * 2 - send 64bit data
+	 * 3 - send 64bit counter value
+	 */
 #define		INT_SEL(x)                              ((x) << 24)
-                /* 0 - none
-		 * 1 - interrupt only (DATA_SEL = 0)
-		 * 2 - interrupt when data write is confirmed
-		 */
+/* 0 - none
+* 1 - interrupt only (DATA_SEL = 0)
+	 * 2 - interrupt when data write is confirmed
+	 */
 #define	PACKET3_EVENT_WRITE_EOS				0x48
 #define	PACKET3_PREAMBLE_CNTL				0x4A
 #              define PACKET3_PREAMBLE_BEGIN_CLEAR_STATE     (2 << 28)
@@ -1335,25 +1335,25 @@
 #define DMA_MODE                                          0xd0bc
 
 #define DMA_PACKET(cmd, t, s, n)	((((cmd) & 0xF) << 28) |	\
-					 (((t) & 0x1) << 23) |		\
-					 (((s) & 0x1) << 22) |		\
-					 (((n) & 0xFFFFF) << 0))
+									 (((t) & 0x1) << 23) |		\
+									 (((s) & 0x1) << 22) |		\
+									 (((n) & 0xFFFFF) << 0))
 
 #define DMA_IB_PACKET(cmd, vmid, n)	((((cmd) & 0xF) << 28) |	\
-					 (((vmid) & 0xF) << 20) |	\
-					 (((n) & 0xFFFFF) << 0))
+									 (((vmid) & 0xF) << 20) |	\
+									 (((n) & 0xFFFFF) << 0))
 
 #define DMA_PTE_PDE_PACKET(n)		((2 << 28) |			\
-					 (1 << 26) |			\
-					 (1 << 21) |			\
-					 (((n) & 0xFFFFF) << 0))
+									 (1 << 26) |			\
+									 (1 << 21) |			\
+									 (((n) & 0xFFFFF) << 0))
 
 #define DMA_SRBM_POLL_PACKET		((9 << 28) |			\
-					 (1 << 27) |			\
-					 (1 << 26))
+									 (1 << 27) |			\
+									 (1 << 26))
 
 #define DMA_SRBM_READ_PACKET		((9 << 28) |			\
-					 (1 << 27))
+									 (1 << 27))
 
 /* async DMA Packet types */
 #define	DMA_PACKET_WRITE				  0x2

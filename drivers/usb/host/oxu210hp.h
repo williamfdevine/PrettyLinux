@@ -3,44 +3,44 @@
  */
 
 #define OXU_DEVICEID			0x00
-	#define OXU_REV_MASK		0xffff0000
-	#define OXU_REV_SHIFT		16
-	#define OXU_REV_2100		0x2100
-	#define OXU_BO_SHIFT		8
-	#define OXU_BO_MASK		(0x3 << OXU_BO_SHIFT)
-	#define OXU_MAJ_REV_SHIFT	4
-	#define OXU_MAJ_REV_MASK	(0xf << OXU_MAJ_REV_SHIFT)
-	#define OXU_MIN_REV_SHIFT	0
-	#define OXU_MIN_REV_MASK	(0xf << OXU_MIN_REV_SHIFT)
+#define OXU_REV_MASK		0xffff0000
+#define OXU_REV_SHIFT		16
+#define OXU_REV_2100		0x2100
+#define OXU_BO_SHIFT		8
+#define OXU_BO_MASK		(0x3 << OXU_BO_SHIFT)
+#define OXU_MAJ_REV_SHIFT	4
+#define OXU_MAJ_REV_MASK	(0xf << OXU_MAJ_REV_SHIFT)
+#define OXU_MIN_REV_SHIFT	0
+#define OXU_MIN_REV_MASK	(0xf << OXU_MIN_REV_SHIFT)
 #define OXU_HOSTIFCONFIG		0x04
 #define OXU_SOFTRESET			0x08
-	#define OXU_SRESET		(1 << 0)
+#define OXU_SRESET		(1 << 0)
 
 #define OXU_PIOBURSTREADCTRL		0x0C
 
 #define OXU_CHIPIRQSTATUS		0x10
 #define OXU_CHIPIRQEN_SET		0x14
 #define OXU_CHIPIRQEN_CLR		0x18
-	#define OXU_USBSPHLPWUI		0x00000080
-	#define OXU_USBOTGLPWUI		0x00000040
-	#define OXU_USBSPHI		0x00000002
-	#define OXU_USBOTGI		0x00000001
+#define OXU_USBSPHLPWUI		0x00000080
+#define OXU_USBOTGLPWUI		0x00000040
+#define OXU_USBSPHI		0x00000002
+#define OXU_USBOTGI		0x00000001
 
 #define OXU_CLKCTRL_SET			0x1C
-	#define OXU_SYSCLKEN		0x00000008
-	#define OXU_USBSPHCLKEN		0x00000002
-	#define OXU_USBOTGCLKEN		0x00000001
+#define OXU_SYSCLKEN		0x00000008
+#define OXU_USBSPHCLKEN		0x00000002
+#define OXU_USBOTGCLKEN		0x00000001
 
 #define OXU_ASO				0x68
-	#define OXU_SPHPOEN		0x00000100
-	#define OXU_OVRCCURPUPDEN	0x00000800
-	#define OXU_ASO_OP		(1 << 10)
-	#define OXU_COMPARATOR		0x000004000
+#define OXU_SPHPOEN		0x00000100
+#define OXU_OVRCCURPUPDEN	0x00000800
+#define OXU_ASO_OP		(1 << 10)
+#define OXU_COMPARATOR		0x000004000
 
 #define OXU_USBMODE			0x1A8
-	#define OXU_VBPS		0x00000020
-	#define OXU_ES_LITTLE		0x00000000
-	#define OXU_CM_HOST_ONLY	0x00000003
+#define OXU_VBPS		0x00000020
+#define OXU_ES_LITTLE		0x00000000
+#define OXU_CM_HOST_ONLY	0x00000003
 
 /*
  * Proper EHCI structs & defines
@@ -59,7 +59,8 @@ struct oxu_hcd;
 /* EHCI register interface, corresponds to EHCI Revision 0.95 specification */
 
 /* Section 2.2 Host Controller Capability Registers */
-struct ehci_caps {
+struct ehci_caps
+{
 	/* these fields are specified as 8 and 16 bit registers,
 	 * but some hosts can't perform 8 or 16 bit PCI accesses.
 	 */
@@ -87,17 +88,18 @@ struct ehci_caps {
 
 
 /* Section 2.3 Host Controller Operational Registers */
-struct ehci_regs {
+struct ehci_regs
+{
 	/* USBCMD: offset 0x00 */
 	u32		command;
-/* 23:16 is r/w intr rate, in microframes; default "8" == 1/msec */
+	/* 23:16 is r/w intr rate, in microframes; default "8" == 1/msec */
 #define CMD_PARK	(1<<11)		/* enable "park" on async qh */
 #define CMD_PARK_CNT(c)	(((c)>>8)&3)	/* how many transfers to park for */
 #define CMD_LRESET	(1<<7)		/* partial reset (no ports, etc) */
 #define CMD_IAAD	(1<<6)		/* "doorbell" interrupt async advance */
 #define CMD_ASE		(1<<5)		/* async schedule enable */
 #define CMD_PSE		(1<<4)		/* periodic schedule enable */
-/* 3:2 is periodic frame list size */
+	/* 3:2 is periodic frame list size */
 #define CMD_RESET	(1<<1)		/* reset HC not bus */
 #define CMD_RUN		(1<<0)		/* start/stop HC */
 
@@ -107,7 +109,7 @@ struct ehci_regs {
 #define STS_PSS		(1<<14)		/* Periodic Schedule Status */
 #define STS_RECL	(1<<13)		/* Reclamation */
 #define STS_HALT	(1<<12)		/* Not running (any reason) */
-/* some bits reserved */
+	/* some bits reserved */
 	/* these STS_* flags are also intr_enable bits (USBINTR) */
 #define STS_IAA		(1<<5)		/* Interrupted on async advance */
 #define STS_FATAL	(1<<4)		/* such as some PCI access errors */
@@ -138,11 +140,11 @@ struct ehci_regs {
 
 	/* PORTSC: offset 0x44 */
 	u32		port_status[0];	/* up to N_PORTS */
-/* 31:23 reserved */
+	/* 31:23 reserved */
 #define PORT_WKOC_E	(1<<22)		/* wake on overcurrent (enable) */
 #define PORT_WKDISC_E	(1<<21)		/* wake on disconnect (enable) */
 #define PORT_WKCONN_E	(1<<20)		/* wake on connect (enable) */
-/* 19:16 for port testing */
+	/* 19:16 for port testing */
 #define PORT_LED_OFF	(0<<14)
 #define PORT_LED_AMBER	(1<<14)
 #define PORT_LED_GREEN	(2<<14)
@@ -150,8 +152,8 @@ struct ehci_regs {
 #define PORT_OWNER	(1<<13)		/* true: companion hc owns this port */
 #define PORT_POWER	(1<<12)		/* true: has power (see PPC) */
 #define PORT_USB11(x) (((x)&(3<<10)) == (1<<10))	/* USB 1.1 device */
-/* 11:10 for detecting lowspeed devices (reset vs release ownership) */
-/* 9 reserved */
+	/* 11:10 for detecting lowspeed devices (reset vs release ownership) */
+	/* 9 reserved */
 #define PORT_RESET	(1<<8)		/* reset port */
 #define PORT_SUSPEND	(1<<7)		/* suspend port */
 #define PORT_RESUME	(1<<6)		/* resume it */
@@ -167,7 +169,8 @@ struct ehci_regs {
 /* Appendix C, Debug port ... intended for use with special "debug devices"
  * that can help if there's no serial console.  (nonstandard enumeration.)
  */
-struct ehci_dbg_port {
+struct ehci_dbg_port
+{
 	u32	control;
 #define DBGP_OWNER	(1<<30)
 #define DBGP_ENABLED	(1<<28)
@@ -200,7 +203,8 @@ struct ehci_dbg_port {
  * These are associated only with "QH" (Queue Head) structures,
  * used with control, bulk, and interrupt transfers.
  */
-struct ehci_qtd {
+struct ehci_qtd
+{
 	/* first part defined by EHCI spec */
 	__le32			hw_next;		/* see EHCI 3.5.1 */
 	__le32			hw_alt_next;		/* see EHCI 3.5.2 */
@@ -259,7 +263,8 @@ struct ehci_qtd {
  *
  * For entries in the async schedule, the type tag always says "qh".
  */
-union ehci_shadow {
+union ehci_shadow
+{
 	struct ehci_qh		*qh;		/* Q_TYPE_QH */
 	__le32			*hw_next;	/* (all types) */
 	void			*ptr;
@@ -273,7 +278,8 @@ union ehci_shadow {
  * These appear in both the async and (for interrupt) periodic schedules.
  */
 
-struct ehci_qh {
+struct ehci_qh
+{
 	/* first part defined by EHCI spec */
 	__le32			hw_next;	 /* see EHCI 3.6.1 */
 	__le32			hw_info1;	/* see EHCI 3.6.2 */
@@ -345,15 +351,18 @@ struct ehci_qh {
 #define BUFFER_NUM		8
 #define BUFFER_SIZE		512
 
-struct oxu_info {
+struct oxu_info
+{
 	struct usb_hcd *hcd[2];
 };
 
-struct oxu_buf {
+struct oxu_buf
+{
 	u8			buffer[BUFFER_SIZE];
 } __attribute__ ((aligned(BUFFER_SIZE)));
 
-struct oxu_onchip_mem {
+struct oxu_onchip_mem
+{
 	struct oxu_buf		db_pool[BUFFER_NUM];
 
 	u32			frame_list[DEFAULT_I_TDPS];
@@ -363,14 +372,16 @@ struct oxu_onchip_mem {
 
 #define	EHCI_MAX_ROOT_PORTS	15		/* see HCS_N_PORTS */
 
-struct oxu_murb {
+struct oxu_murb
+{
 	struct urb		urb;
 	struct urb		*main;
 	u8			last;
 };
 
-struct oxu_hcd {				/* one per controller */
-	unsigned int		is_otg:1;
+struct oxu_hcd  				/* one per controller */
+{
+	unsigned int		is_otg: 1;
 
 	u8			qh_used[QHEAD_NUM];
 	u8			qtd_used[QTD_NUM];
@@ -391,8 +402,8 @@ struct oxu_hcd {				/* one per controller */
 	/* async schedule support */
 	struct ehci_qh		*async;
 	struct ehci_qh		*reclaim;
-	unsigned		reclaim_ready:1;
-	unsigned		scanning:1;
+	unsigned		reclaim_ready: 1;
+	unsigned		scanning: 1;
 
 	/* periodic schedule support */
 	unsigned		periodic_size;
@@ -437,7 +448,8 @@ struct oxu_hcd {				/* one per controller */
 #define EHCI_ASYNC_JIFFIES      (HZ/20)		/* async idle timeout */
 #define EHCI_SHRINK_JIFFIES     (HZ/200)	/* async qh unlink delay */
 
-enum ehci_timer_action {
+enum ehci_timer_action
+{
 	TIMER_IO_WATCHDOG,
 	TIMER_IAA_WATCHDOG,
 	TIMER_ASYNC_SHRINK,

@@ -10,7 +10,8 @@
 #include <linux/if_ether.h>
 #include <linux/atmlec.h>
 
-struct lec_arp_table {
+struct lec_arp_table
+{
 	struct hlist_node next;		/* Linked entry list */
 	unsigned char atm_addr[ATM_ESA_LEN];	/* Atm address */
 	unsigned char mac_addr[ETH_ALEN];	/* Mac address */
@@ -19,10 +20,10 @@ struct lec_arp_table {
 	struct atm_vcc *recv_vcc;	/* Vcc we receive data from */
 
 	void (*old_push) (struct atm_vcc *vcc, struct sk_buff *skb);
-					/* Push that leads to daemon */
+	/* Push that leads to daemon */
 
 	void (*old_recv_push) (struct atm_vcc *vcc, struct sk_buff *skb);
-					/* Push that leads to daemon */
+	/* Push that leads to daemon */
 
 	unsigned long last_used;	/* For expiry */
 	unsigned long timestamp;	/* Used for various timestamping things:
@@ -54,7 +55,8 @@ struct lec_arp_table {
  * LANE2: Template tlv struct for accessing
  * the tlvs in the lec_arp_table->tlvs array
  */
-struct tlv {
+struct tlv
+{
 	u32 type;
 	u8 length;
 	u8 value[255];

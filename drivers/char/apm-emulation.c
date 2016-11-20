@@ -48,7 +48,8 @@
  */
 #define APM_MAX_EVENTS		16
 
-struct apm_queue {
+struct apm_queue
+{
 	unsigned int		event_head;
 	unsigned int		event_tail;
 	apm_event_t		events[APM_MAX_EVENTS];
@@ -93,7 +94,8 @@ struct apm_queue {
  *	   ioctl code invokes pm_suspend()
  *	9: pm_suspend() returns indicating resume
  */
-enum apm_suspend_state {
+enum apm_suspend_state
+{
 	SUSPEND_NONE,
 	SUSPEND_PENDING,
 	SUSPEND_READ,
@@ -106,7 +108,8 @@ enum apm_suspend_state {
 /*
  * The per-file APM data
  */
-struct apm_user {
+struct apm_user
+{
 	struct list_head	list;
 
 	unsigned int		suser: 1;
@@ -183,13 +186,19 @@ static inline apm_event_t queue_get_event(struct apm_queue *q)
 static void queue_add_event(struct apm_queue *q, apm_event_t event)
 {
 	q->event_head = (q->event_head + 1) % APM_MAX_EVENTS;
-	if (q->event_head == q->event_tail) {
+
+	if (q->event_head == q->event_tail)
+	{
 		static int notified;
 
 		if (notified++ == 0)
-		    printk(KERN_ERR "apm: an event queue overflowed\n");
+		{
+			printk(KERN_ERR "apm: an event queue overflowed\n");
+		}
+
 		q->event_tail = (q->event_tail + 1) % APM_MAX_EVENTS;
 	}
+
 	q->events[q->event_head] = event;
 }
 
@@ -198,9 +207,12 @@ static void queue_event(apm_event_t event)
 	struct apm_user *as;
 
 	down_read(&user_list_lock);
-	list_for_each_entry(as, &apm_user_list, list) {
+	list_for_each_entry(as, &apm_user_list, list)
+	{
 		if (as->reader)
+		{
 			queue_add_event(&as->queue, event);
+		}
 	}
 	up_read(&user_list_lock);
 	wake_up_interruptible(&apm_waitqueue);
@@ -213,24 +225,36 @@ static ssize_t apm_read(struct file *fp, char __user *buf, size_t count, loff_t 
 	int i = count, ret = 0;
 
 	if (count < sizeof(apm_event_t))
+	{
 		return -EINVAL;
+	}
 
 	if (queue_empty(&as->queue) && fp->f_flags & O_NONBLOCK)
+	{
 		return -EAGAIN;
+	}
 
 	wait_event_interruptible(apm_waitqueue, !queue_empty(&as->queue));
 
-	while ((i >= sizeof(event)) && !queue_empty(&as->queue)) {
+	while ((i >= sizeof(event)) && !queue_empty(&as->queue))
+	{
 		event = queue_get_event(&as->queue);
 
 		ret = -EFAULT;
+
 		if (copy_to_user(buf, &event, sizeof(event)))
+		{
 			break;
+		}
 
 		mutex_lock(&state_lock);
+
 		if (as->suspend_state == SUSPEND_PENDING &&
-		    (event == APM_SYS_SUSPEND || event == APM_USER_SUSPEND))
+			(event == APM_SYS_SUSPEND || event == APM_USER_SUSPEND))
+		{
 			as->suspend_state = SUSPEND_READ;
+		}
+
 		mutex_unlock(&state_lock);
 
 		buf += sizeof(event);
@@ -238,12 +262,14 @@ static ssize_t apm_read(struct file *fp, char __user *buf, size_t count, loff_t 
 	}
 
 	if (i < count)
+	{
 		ret = count - i;
+	}
 
 	return ret;
 }
 
-static unsigned int apm_poll(struct file *fp, poll_table * wait)
+static unsigned int apm_poll(struct file *fp, poll_table *wait)
 {
 	struct apm_user *as = fp->private_data;
 
@@ -268,69 +294,78 @@ apm_ioctl(struct file *filp, u_int cmd, u_long arg)
 	int err = -EINVAL;
 
 	if (!as->suser || !as->writer)
+	{
 		return -EPERM;
+	}
 
-	switch (cmd) {
-	case APM_IOC_SUSPEND:
-		mutex_lock(&state_lock);
+	switch (cmd)
+	{
+		case APM_IOC_SUSPEND:
+			mutex_lock(&state_lock);
 
-		as->suspend_result = -EINTR;
+			as->suspend_result = -EINTR;
 
-		switch (as->suspend_state) {
-		case SUSPEND_READ:
-			/*
-			 * If we read a suspend command from /dev/apm_bios,
-			 * then the corresponding APM_IOC_SUSPEND ioctl is
-			 * interpreted as an acknowledge.
-			 */
-			as->suspend_state = SUSPEND_ACKED;
-			atomic_dec(&suspend_acks_pending);
+			switch (as->suspend_state)
+			{
+				case SUSPEND_READ:
+					/*
+					 * If we read a suspend command from /dev/apm_bios,
+					 * then the corresponding APM_IOC_SUSPEND ioctl is
+					 * interpreted as an acknowledge.
+					 */
+					as->suspend_state = SUSPEND_ACKED;
+					atomic_dec(&suspend_acks_pending);
+					mutex_unlock(&state_lock);
+
+					/*
+					 * suspend_acks_pending changed, the notifier needs to
+					 * be woken up for this
+					 */
+					wake_up(&apm_suspend_waitqueue);
+
+					/*
+					 * Wait for the suspend/resume to complete.  If there
+					 * are pending acknowledges, we wait here for them.
+					 * wait_event_freezable() is interruptible and pending
+					 * signal can cause busy looping.  We aren't doing
+					 * anything critical, chill a bit on each iteration.
+					 */
+					while (wait_event_freezable(apm_suspend_waitqueue,
+												as->suspend_state != SUSPEND_ACKED))
+					{
+						msleep(10);
+					}
+
+					break;
+
+				case SUSPEND_ACKTO:
+					as->suspend_result = -ETIMEDOUT;
+					mutex_unlock(&state_lock);
+					break;
+
+				default:
+					as->suspend_state = SUSPEND_WAIT;
+					mutex_unlock(&state_lock);
+
+					/*
+					 * Otherwise it is a request to suspend the system.
+					 * Just invoke pm_suspend(), we'll handle it from
+					 * there via the notifier.
+					 */
+					as->suspend_result = pm_suspend(PM_SUSPEND_MEM);
+			}
+
+			mutex_lock(&state_lock);
+			err = as->suspend_result;
+			as->suspend_state = SUSPEND_NONE;
 			mutex_unlock(&state_lock);
-
-			/*
-			 * suspend_acks_pending changed, the notifier needs to
-			 * be woken up for this
-			 */
-			wake_up(&apm_suspend_waitqueue);
-
-			/*
-			 * Wait for the suspend/resume to complete.  If there
-			 * are pending acknowledges, we wait here for them.
-			 * wait_event_freezable() is interruptible and pending
-			 * signal can cause busy looping.  We aren't doing
-			 * anything critical, chill a bit on each iteration.
-			 */
-			while (wait_event_freezable(apm_suspend_waitqueue,
-					as->suspend_state != SUSPEND_ACKED))
-				msleep(10);
 			break;
-		case SUSPEND_ACKTO:
-			as->suspend_result = -ETIMEDOUT;
-			mutex_unlock(&state_lock);
-			break;
-		default:
-			as->suspend_state = SUSPEND_WAIT;
-			mutex_unlock(&state_lock);
-
-			/*
-			 * Otherwise it is a request to suspend the system.
-			 * Just invoke pm_suspend(), we'll handle it from
-			 * there via the notifier.
-			 */
-			as->suspend_result = pm_suspend(PM_SUSPEND_MEM);
-		}
-
-		mutex_lock(&state_lock);
-		err = as->suspend_result;
-		as->suspend_state = SUSPEND_NONE;
-		mutex_unlock(&state_lock);
-		break;
 	}
 
 	return err;
 }
 
-static int apm_release(struct inode * inode, struct file * filp)
+static int apm_release(struct inode *inode, struct file *filp)
 {
 	struct apm_user *as = filp->private_data;
 
@@ -345,9 +380,13 @@ static int apm_release(struct inode * inode, struct file * filp)
 	 * events are concerned, we no longer exist.
 	 */
 	mutex_lock(&state_lock);
+
 	if (as->suspend_state == SUSPEND_PENDING ||
-	    as->suspend_state == SUSPEND_READ)
+		as->suspend_state == SUSPEND_READ)
+	{
 		atomic_dec(&suspend_acks_pending);
+	}
+
 	mutex_unlock(&state_lock);
 
 	wake_up(&apm_suspend_waitqueue);
@@ -356,12 +395,14 @@ static int apm_release(struct inode * inode, struct file * filp)
 	return 0;
 }
 
-static int apm_open(struct inode * inode, struct file * filp)
+static int apm_open(struct inode *inode, struct file *filp)
 {
 	struct apm_user *as;
 
 	as = kzalloc(sizeof(*as), GFP_KERNEL);
-	if (as) {
+
+	if (as)
+	{
 		/*
 		 * XXX - this is a tiny bit broken, when we consider BSD
 		 * process accounting. If the device is opened by root, we
@@ -383,7 +424,8 @@ static int apm_open(struct inode * inode, struct file * filp)
 	return as ? 0 : -ENOMEM;
 }
 
-static const struct file_operations apm_bios_fops = {
+static const struct file_operations apm_bios_fops =
+{
 	.owner		= THIS_MODULE,
 	.read		= apm_read,
 	.poll		= apm_poll,
@@ -393,7 +435,8 @@ static const struct file_operations apm_bios_fops = {
 	.llseek		= noop_llseek,
 };
 
-static struct miscdevice apm_device = {
+static struct miscdevice apm_device =
+{
 	.minor		= APM_MINOR_DEV,
 	.name		= "apm_bios",
 	.fops		= &apm_bios_fops
@@ -452,19 +495,24 @@ static int proc_apm_show(struct seq_file *m, void *v)
 	info.units	    = -1;
 
 	if (apm_get_power_status)
+	{
 		apm_get_power_status(&info);
+	}
 
-	switch (info.units) {
-	default:	units = "?";	break;
-	case 0: 	units = "min";	break;
-	case 1: 	units = "sec";	break;
+	switch (info.units)
+	{
+		default:	units = "?";	break;
+
+		case 0: 	units = "min";	break;
+
+		case 1: 	units = "sec";	break;
 	}
 
 	seq_printf(m, "%s 1.2 0x%02x 0x%02x 0x%02x 0x%02x %d%% %d %s\n",
-		     driver_version, APM_32_BIT_SUPPORT,
-		     info.ac_line_status, info.battery_status,
-		     info.battery_flag, info.battery_life,
-		     info.time, units);
+			   driver_version, APM_32_BIT_SUPPORT,
+			   info.ac_line_status, info.battery_status,
+			   info.battery_flag, info.battery_life,
+			   info.time, units);
 
 	return 0;
 }
@@ -474,7 +522,8 @@ static int proc_apm_open(struct inode *inode, struct file *file)
 	return single_open(file, proc_apm_show, NULL);
 }
 
-static const struct file_operations apm_proc_fops = {
+static const struct file_operations apm_proc_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= proc_apm_open,
 	.read		= seq_read,
@@ -485,49 +534,58 @@ static const struct file_operations apm_proc_fops = {
 
 static int kapmd(void *arg)
 {
-	do {
+	do
+	{
 		apm_event_t event;
 
 		wait_event_interruptible(kapmd_wait,
-				!queue_empty(&kapmd_queue) || kthread_should_stop());
+								 !queue_empty(&kapmd_queue) || kthread_should_stop());
 
 		if (kthread_should_stop())
+		{
 			break;
+		}
 
 		spin_lock_irq(&kapmd_queue_lock);
 		event = 0;
+
 		if (!queue_empty(&kapmd_queue))
+		{
 			event = queue_get_event(&kapmd_queue);
+		}
+
 		spin_unlock_irq(&kapmd_queue_lock);
 
-		switch (event) {
-		case 0:
-			break;
+		switch (event)
+		{
+			case 0:
+				break;
 
-		case APM_LOW_BATTERY:
-		case APM_POWER_STATUS_CHANGE:
-			queue_event(event);
-			break;
+			case APM_LOW_BATTERY:
+			case APM_POWER_STATUS_CHANGE:
+				queue_event(event);
+				break;
 
-		case APM_USER_SUSPEND:
-		case APM_SYS_SUSPEND:
-			pm_suspend(PM_SUSPEND_MEM);
-			break;
+			case APM_USER_SUSPEND:
+			case APM_SYS_SUSPEND:
+				pm_suspend(PM_SUSPEND_MEM);
+				break;
 
-		case APM_CRITICAL_SUSPEND:
-			atomic_inc(&userspace_notification_inhibit);
-			pm_suspend(PM_SUSPEND_MEM);
-			atomic_dec(&userspace_notification_inhibit);
-			break;
+			case APM_CRITICAL_SUSPEND:
+				atomic_inc(&userspace_notification_inhibit);
+				pm_suspend(PM_SUSPEND_MEM);
+				atomic_dec(&userspace_notification_inhibit);
+				break;
 		}
-	} while (1);
+	}
+	while (1);
 
 	return 0;
 }
 
 static int apm_suspend_notifier(struct notifier_block *nb,
-				unsigned long event,
-				void *dummy)
+								unsigned long event,
+								void *dummy)
 {
 	struct apm_user *as;
 	int err;
@@ -535,114 +593,127 @@ static int apm_suspend_notifier(struct notifier_block *nb,
 
 	/* short-cut emergency suspends */
 	if (atomic_read(&userspace_notification_inhibit))
+	{
 		return NOTIFY_DONE;
+	}
 
-	switch (event) {
-	case PM_SUSPEND_PREPARE:
-	case PM_HIBERNATION_PREPARE:
-		apm_event = (event == PM_SUSPEND_PREPARE) ?
-			APM_USER_SUSPEND : APM_USER_HIBERNATION;
-		/*
-		 * Queue an event to all "writer" users that we want
-		 * to suspend and need their ack.
-		 */
-		mutex_lock(&state_lock);
-		down_read(&user_list_lock);
-
-		list_for_each_entry(as, &apm_user_list, list) {
-			if (as->suspend_state != SUSPEND_WAIT && as->reader &&
-			    as->writer && as->suser) {
-				as->suspend_state = SUSPEND_PENDING;
-				atomic_inc(&suspend_acks_pending);
-				queue_add_event(&as->queue, apm_event);
-			}
-		}
-
-		up_read(&user_list_lock);
-		mutex_unlock(&state_lock);
-		wake_up_interruptible(&apm_waitqueue);
-
-		/*
-		 * Wait for the the suspend_acks_pending variable to drop to
-		 * zero, meaning everybody acked the suspend event (or the
-		 * process was killed.)
-		 *
-		 * If the app won't answer within a short while we assume it
-		 * locked up and ignore it.
-		 */
-		err = wait_event_interruptible_timeout(
-			apm_suspend_waitqueue,
-			atomic_read(&suspend_acks_pending) == 0,
-			5*HZ);
-
-		/* timed out */
-		if (err == 0) {
+	switch (event)
+	{
+		case PM_SUSPEND_PREPARE:
+		case PM_HIBERNATION_PREPARE:
+			apm_event = (event == PM_SUSPEND_PREPARE) ?
+						APM_USER_SUSPEND : APM_USER_HIBERNATION;
 			/*
-			 * Move anybody who timed out to "ack timeout" state.
-			 *
-			 * We could time out and the userspace does the ACK
-			 * right after we time out but before we enter the
-			 * locked section here, but that's fine.
+			 * Queue an event to all "writer" users that we want
+			 * to suspend and need their ack.
 			 */
 			mutex_lock(&state_lock);
 			down_read(&user_list_lock);
-			list_for_each_entry(as, &apm_user_list, list) {
-				if (as->suspend_state == SUSPEND_PENDING ||
-				    as->suspend_state == SUSPEND_READ) {
-					as->suspend_state = SUSPEND_ACKTO;
-					atomic_dec(&suspend_acks_pending);
+
+			list_for_each_entry(as, &apm_user_list, list)
+			{
+				if (as->suspend_state != SUSPEND_WAIT && as->reader &&
+					as->writer && as->suser)
+				{
+					as->suspend_state = SUSPEND_PENDING;
+					atomic_inc(&suspend_acks_pending);
+					queue_add_event(&as->queue, apm_event);
+				}
+			}
+
+			up_read(&user_list_lock);
+			mutex_unlock(&state_lock);
+			wake_up_interruptible(&apm_waitqueue);
+
+			/*
+			 * Wait for the the suspend_acks_pending variable to drop to
+			 * zero, meaning everybody acked the suspend event (or the
+			 * process was killed.)
+			 *
+			 * If the app won't answer within a short while we assume it
+			 * locked up and ignore it.
+			 */
+			err = wait_event_interruptible_timeout(
+					  apm_suspend_waitqueue,
+					  atomic_read(&suspend_acks_pending) == 0,
+					  5 * HZ);
+
+			/* timed out */
+			if (err == 0)
+			{
+				/*
+				 * Move anybody who timed out to "ack timeout" state.
+				 *
+				 * We could time out and the userspace does the ACK
+				 * right after we time out but before we enter the
+				 * locked section here, but that's fine.
+				 */
+				mutex_lock(&state_lock);
+				down_read(&user_list_lock);
+				list_for_each_entry(as, &apm_user_list, list)
+				{
+					if (as->suspend_state == SUSPEND_PENDING ||
+						as->suspend_state == SUSPEND_READ)
+					{
+						as->suspend_state = SUSPEND_ACKTO;
+						atomic_dec(&suspend_acks_pending);
+					}
+				}
+				up_read(&user_list_lock);
+				mutex_unlock(&state_lock);
+			}
+
+			/* let suspend proceed */
+			if (err >= 0)
+			{
+				return NOTIFY_OK;
+			}
+
+			/* interrupted by signal */
+			return notifier_from_errno(err);
+
+		case PM_POST_SUSPEND:
+		case PM_POST_HIBERNATION:
+			apm_event = (event == PM_POST_SUSPEND) ?
+						APM_NORMAL_RESUME : APM_HIBERNATION_RESUME;
+			/*
+			 * Anyone on the APM queues will think we're still suspended.
+			 * Send a message so everyone knows we're now awake again.
+			 */
+			queue_event(apm_event);
+
+			/*
+			 * Finally, wake up anyone who is sleeping on the suspend.
+			 */
+			mutex_lock(&state_lock);
+			down_read(&user_list_lock);
+			list_for_each_entry(as, &apm_user_list, list)
+			{
+				if (as->suspend_state == SUSPEND_ACKED)
+				{
+					/*
+					 * TODO: maybe grab error code, needs core
+					 * changes to push the error to the notifier
+					 * chain (could use the second parameter if
+					 * implemented)
+					 */
+					as->suspend_result = 0;
+					as->suspend_state = SUSPEND_DONE;
 				}
 			}
 			up_read(&user_list_lock);
 			mutex_unlock(&state_lock);
-		}
 
-		/* let suspend proceed */
-		if (err >= 0)
+			wake_up(&apm_suspend_waitqueue);
 			return NOTIFY_OK;
 
-		/* interrupted by signal */
-		return notifier_from_errno(err);
-
-	case PM_POST_SUSPEND:
-	case PM_POST_HIBERNATION:
-		apm_event = (event == PM_POST_SUSPEND) ?
-			APM_NORMAL_RESUME : APM_HIBERNATION_RESUME;
-		/*
-		 * Anyone on the APM queues will think we're still suspended.
-		 * Send a message so everyone knows we're now awake again.
-		 */
-		queue_event(apm_event);
-
-		/*
-		 * Finally, wake up anyone who is sleeping on the suspend.
-		 */
-		mutex_lock(&state_lock);
-		down_read(&user_list_lock);
-		list_for_each_entry(as, &apm_user_list, list) {
-			if (as->suspend_state == SUSPEND_ACKED) {
-				/*
-				 * TODO: maybe grab error code, needs core
-				 * changes to push the error to the notifier
-				 * chain (could use the second parameter if
-				 * implemented)
-				 */
-				as->suspend_result = 0;
-				as->suspend_state = SUSPEND_DONE;
-			}
-		}
-		up_read(&user_list_lock);
-		mutex_unlock(&state_lock);
-
-		wake_up(&apm_suspend_waitqueue);
-		return NOTIFY_OK;
-
-	default:
-		return NOTIFY_DONE;
+		default:
+			return NOTIFY_DONE;
 	}
 }
 
-static struct notifier_block apm_notif_block = {
+static struct notifier_block apm_notif_block =
+{
 	.notifier_call = apm_suspend_notifier,
 };
 
@@ -650,17 +721,21 @@ static int __init apm_init(void)
 {
 	int ret;
 
-	if (apm_disabled) {
+	if (apm_disabled)
+	{
 		printk(KERN_NOTICE "apm: disabled on user request.\n");
 		return -ENODEV;
 	}
 
 	kapmd_tsk = kthread_create(kapmd, NULL, "kapmd");
-	if (IS_ERR(kapmd_tsk)) {
+
+	if (IS_ERR(kapmd_tsk))
+	{
 		ret = PTR_ERR(kapmd_tsk);
 		kapmd_tsk = NULL;
 		goto out;
 	}
+
 	wake_up_process(kapmd_tsk);
 
 #ifdef CONFIG_PROC_FS
@@ -668,21 +743,27 @@ static int __init apm_init(void)
 #endif
 
 	ret = misc_register(&apm_device);
+
 	if (ret)
+	{
 		goto out_stop;
+	}
 
 	ret = register_pm_notifier(&apm_notif_block);
+
 	if (ret)
+	{
 		goto out_unregister;
+	}
 
 	return 0;
 
- out_unregister:
+out_unregister:
 	misc_deregister(&apm_device);
- out_stop:
+out_stop:
 	remove_proc_entry("apm", NULL);
 	kthread_stop(kapmd_tsk);
- out:
+out:
 	return ret;
 }
 
@@ -705,15 +786,26 @@ MODULE_LICENSE("GPL");
 #ifndef MODULE
 static int __init apm_setup(char *str)
 {
-	while ((str != NULL) && (*str != '\0')) {
+	while ((str != NULL) && (*str != '\0'))
+	{
 		if (strncmp(str, "off", 3) == 0)
+		{
 			apm_disabled = 1;
+		}
+
 		if (strncmp(str, "on", 2) == 0)
+		{
 			apm_disabled = 0;
+		}
+
 		str = strchr(str, ',');
+
 		if (str != NULL)
+		{
 			str += strspn(str, ", \t");
+		}
 	}
+
 	return 1;
 }
 

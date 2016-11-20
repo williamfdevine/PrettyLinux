@@ -20,23 +20,28 @@
 #define to_shdma_chan(c) container_of(c, struct shdma_chan, dma_chan)
 
 static struct dma_chan *shdma_of_xlate(struct of_phandle_args *dma_spec,
-				       struct of_dma *ofdma)
+									   struct of_dma *ofdma)
 {
 	u32 id = dma_spec->args[0];
 	dma_cap_mask_t mask;
 	struct dma_chan *chan;
 
 	if (dma_spec->args_count != 1)
+	{
 		return NULL;
+	}
 
 	dma_cap_zero(mask);
 	/* Only slave DMA channels can be allocated via DT */
 	dma_cap_set(DMA_SLAVE, mask);
 
 	chan = dma_request_channel(mask, shdma_chan_filter,
-				   (void *)(uintptr_t)id);
+							   (void *)(uintptr_t)id);
+
 	if (chan)
+	{
 		to_shdma_chan(chan)->hw_req = id;
+	}
 
 	return chan;
 }
@@ -47,24 +52,32 @@ static int shdma_of_probe(struct platform_device *pdev)
 	int ret;
 
 	ret = of_dma_controller_register(pdev->dev.of_node,
-					 shdma_of_xlate, pdev);
+									 shdma_of_xlate, pdev);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = of_platform_populate(pdev->dev.of_node, NULL, lookup, &pdev->dev);
+
 	if (ret < 0)
+	{
 		of_dma_controller_free(pdev->dev.of_node);
+	}
 
 	return ret;
 }
 
-static const struct of_device_id shdma_of_match[] = {
+static const struct of_device_id shdma_of_match[] =
+{
 	{ .compatible = "renesas,shdma-mux", },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, sh_dmae_of_match);
 
-static struct platform_driver shdma_of = {
+static struct platform_driver shdma_of =
+{
 	.driver		= {
 		.name	= "shdma-of",
 		.of_match_table = shdma_of_match,

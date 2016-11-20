@@ -33,7 +33,8 @@
 
 #define MAX_IDLETIMER_LABEL_SIZE 28
 
-struct idletimer_tg_info {
+struct idletimer_tg_info
+{
 	__u32 timeout;
 
 	char label[MAX_IDLETIMER_LABEL_SIZE];

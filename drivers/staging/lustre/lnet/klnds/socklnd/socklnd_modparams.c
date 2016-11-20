@@ -134,9 +134,9 @@ module_param(zc_recv_min_nfrags, int, 0644);
 MODULE_PARM_DESC(zc_recv_min_nfrags, "minimum # of fragments to enable ZC recv");
 
 #if SOCKNAL_VERSION_DEBUG
-static int protocol = 3;
-module_param(protocol, int, 0644);
-MODULE_PARM_DESC(protocol, "protocol version");
+	static int protocol = 3;
+	module_param(protocol, int, 0644);
+	MODULE_PARM_DESC(protocol, "protocol version");
 #endif
 
 struct ksock_tunables ksocknal_tunables;
@@ -177,7 +177,9 @@ int ksocknal_tunables_init(void)
 #endif
 
 	if (*ksocknal_tunables.ksnd_zc_min_payload < (2 << 10))
+	{
 		*ksocknal_tunables.ksnd_zc_min_payload = 2 << 10;
+	}
 
 	return 0;
 };

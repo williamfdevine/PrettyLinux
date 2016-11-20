@@ -20,7 +20,8 @@
 #define OMFS_MAX_CLUSTER_SIZE 8
 #define OMFS_MAX_BLOCKS (1ul << 31)
 
-struct omfs_super_block {
+struct omfs_super_block
+{
 	char s_fill1[256];
 	__be64 s_root_block;		/* block number of omfs_root_block */
 	__be64 s_num_blocks;		/* total number of FS blocks */
@@ -30,7 +31,8 @@ struct omfs_super_block {
 	__be32 s_sys_blocksize;		/* size of non-data blocks */
 };
 
-struct omfs_header {
+struct omfs_header
+{
 	__be64 h_self;			/* FS block where this is located */
 	__be32 h_body_size;		/* size of useful data after header */
 	__be16 h_crc;			/* crc-ccitt of body_size bytes */
@@ -42,7 +44,8 @@ struct omfs_header {
 	__be32 h_fill2;
 };
 
-struct omfs_root_block {
+struct omfs_root_block
+{
 	struct omfs_header r_head;	/* header */
 	__be64 r_fill1;
 	__be64 r_num_blocks;		/* total number of FS blocks */
@@ -54,7 +57,8 @@ struct omfs_root_block {
 	char r_name[OMFS_NAMELEN];	/* partition label */
 };
 
-struct omfs_inode {
+struct omfs_inode
+{
 	struct omfs_header i_head;	/* header */
 	__be64 i_parent;		/* parent containing this inode */
 	__be64 i_sibling;		/* next inode in hash bucket */
@@ -67,12 +71,14 @@ struct omfs_inode {
 	__be64 i_size;			/* size of file, in bytes */
 };
 
-struct omfs_extent_entry {
+struct omfs_extent_entry
+{
 	__be64 e_cluster;		/* start location of a set of blocks */
 	__be64 e_blocks;		/* number of blocks after e_cluster */
 };
 
-struct omfs_extent {
+struct omfs_extent
+{
 	__be64 e_next;			/* next extent table location */
 	__be32 e_extent_count;		/* total # extents in this table */
 	__be32 e_fill;

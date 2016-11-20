@@ -20,7 +20,8 @@
 
 #include <linux/posix_acl_xattr.h>
 
-struct ocfs2_acl_entry {
+struct ocfs2_acl_entry
+{
 	__le16 e_tag;
 	__le16 e_perm;
 	__le32 e_id;
@@ -29,16 +30,16 @@ struct ocfs2_acl_entry {
 struct posix_acl *ocfs2_iop_get_acl(struct inode *inode, int type);
 int ocfs2_iop_set_acl(struct inode *inode, struct posix_acl *acl, int type);
 int ocfs2_set_acl(handle_t *handle,
-			 struct inode *inode,
-			 struct buffer_head *di_bh,
-			 int type,
-			 struct posix_acl *acl,
-			 struct ocfs2_alloc_context *meta_ac,
-			 struct ocfs2_alloc_context *data_ac);
+				  struct inode *inode,
+				  struct buffer_head *di_bh,
+				  int type,
+				  struct posix_acl *acl,
+				  struct ocfs2_alloc_context *meta_ac,
+				  struct ocfs2_alloc_context *data_ac);
 extern int ocfs2_acl_chmod(struct inode *, struct buffer_head *);
 extern int ocfs2_init_acl(handle_t *, struct inode *, struct inode *,
-			  struct buffer_head *, struct buffer_head *,
-			  struct ocfs2_alloc_context *,
-			  struct ocfs2_alloc_context *);
+						  struct buffer_head *, struct buffer_head *,
+						  struct ocfs2_alloc_context *,
+						  struct ocfs2_alloc_context *);
 
 #endif /* OCFS2_ACL_H */

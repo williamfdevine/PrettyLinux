@@ -28,7 +28,8 @@
  * different names.  In these cases, one name is chosen to avoid extraneous
  * #ifdefs.
  */
-struct ccsr_guts {
+struct ccsr_guts
+{
 	__be32	porpllsr;	/* 0x.0000 - POR PLL Ratio Status Register */
 	__be32	porbmsr;	/* 0x.0004 - POR Boot Mode Status Register */
 	__be32	porimpscr;	/* 0x.0008 - POR I/O Impedance Status and Control Register */
@@ -45,9 +46,9 @@ struct ccsr_guts {
 	__be32	gpindr;		/* 0x.0050 - General-Purpose Input Data Register */
 	u8	res054[0x60 - 0x54];
 	__be32	pmuxcr;		/* 0x.0060 - Alternate Function Signal Multiplex Control */
-        __be32  pmuxcr2;	/* 0x.0064 - Alternate function signal multiplex control 2 */
-        __be32  dmuxcr;		/* 0x.0068 - DMA Mux Control Register */
-        u8	res06c[0x70 - 0x6c];
+	__be32  pmuxcr2;	/* 0x.0064 - Alternate function signal multiplex control 2 */
+	__be32  dmuxcr;		/* 0x.0068 - DMA Mux Control Register */
+	u8	res06c[0x70 - 0x6c];
 	__be32	devdisr;	/* 0x.0070 - Device Disable Control */
 #define CCSR_GUTS_DEVDISR_TB1	0x00001000
 #define CCSR_GUTS_DEVDISR_TB0	0x00004000
@@ -129,7 +130,7 @@ struct ccsr_guts {
  * device: The device to set as the source (CCSR_GUTS_DMACR_DEV_xx)
  */
 static inline void guts_set_dmacr(struct ccsr_guts __iomem *guts,
-	unsigned int co, unsigned int ch, unsigned int device)
+								  unsigned int co, unsigned int ch, unsigned int device)
 {
 	unsigned int shift = 16 + (8 * (1 - co) + 2 * (3 - ch));
 
@@ -165,9 +166,10 @@ static inline void guts_set_dmacr(struct ccsr_guts __iomem *guts,
  * value: the new value for the bit (0 or 1)
  */
 static inline void guts_set_pmuxcr_dma(struct ccsr_guts __iomem *guts,
-	unsigned int co, unsigned int ch, unsigned int value)
+									   unsigned int co, unsigned int ch, unsigned int value)
 {
-	if ((ch == 0) || (ch == 3)) {
+	if ((ch == 0) || (ch == 3))
+	{
 		unsigned int shift = 2 * (co + 1) - (ch & 1) - 1;
 
 		clrsetbits_be32(&guts->pmuxcr, 1 << shift, value << shift);
@@ -189,7 +191,8 @@ static inline void guts_set_pmuxcr_dma(struct ccsr_guts __iomem *guts,
 
 #endif
 
-struct ccsr_rcpm_v1 {
+struct ccsr_rcpm_v1
+{
 	u8	res0000[4];
 	__be32	cdozsr;	    /* 0x0004 Core Doze Status Register */
 	u8	res0008[4];
@@ -228,7 +231,8 @@ struct ccsr_rcpm_v1 {
 	__be32	cmcpmaskcr; /* 0x00a4 Core Machine Check Mask Register */
 };
 
-struct ccsr_rcpm_v2 {
+struct ccsr_rcpm_v2
+{
 	u8	res_00[12];
 	__be32	tph10sr0;	/* Thread PH10 Status Register */
 	u8	res_10[12];

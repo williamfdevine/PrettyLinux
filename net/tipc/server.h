@@ -60,7 +60,8 @@
  * @imp: message importance
  * @type: socket type
  */
-struct tipc_server {
+struct tipc_server
+{
 	struct idr conn_idr;
 	spinlock_t idr_lock;
 	int idr_in_use;
@@ -72,8 +73,8 @@ struct tipc_server {
 	void *(*tipc_conn_new)(int conid);
 	void (*tipc_conn_release)(int conid, void *usr_data);
 	void (*tipc_conn_recvmsg)(struct net *net, int conid,
-				  struct sockaddr_tipc *addr, void *usr_data,
-				  void *buf, size_t len);
+							  struct sockaddr_tipc *addr, void *usr_data,
+							  void *buf, size_t len);
 	struct sockaddr_tipc *saddr;
 	char name[TIPC_SERVER_NAME_LEN];
 	int imp;
@@ -81,7 +82,7 @@ struct tipc_server {
 };
 
 int tipc_conn_sendmsg(struct tipc_server *s, int conid,
-		      struct sockaddr_tipc *addr, void *data, size_t len);
+					  struct sockaddr_tipc *addr, void *data, size_t len);
 
 /**
  * tipc_conn_terminate - terminate connection with server

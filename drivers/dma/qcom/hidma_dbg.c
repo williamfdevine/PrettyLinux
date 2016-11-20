@@ -29,10 +29,12 @@ static void hidma_ll_chstats(struct seq_file *s, void *llhndl, u32 tre_ch)
 	dma_addr_t dest_start;
 	u32 *tre_local;
 
-	if (tre_ch >= lldev->nr_tres) {
+	if (tre_ch >= lldev->nr_tres)
+	{
 		dev_err(lldev->dev, "invalid TRE number in chstats:%d", tre_ch);
 		return;
 	}
+
 	tre = &lldev->trepool[tre_ch];
 	seq_printf(s, "------Channel %d -----\n", tre_ch);
 	seq_printf(s, "allocated=%d\n", atomic_read(&tre->allocated));
@@ -99,15 +101,15 @@ static int hidma_chan_stats(struct seq_file *s, void *unused)
 	seq_printf(s, "dma_sig=%u\n", mchan->dma_sig);
 	seq_puts(s, "prepared\n");
 	list_for_each_entry(mdesc, &mchan->prepared, node)
-		hidma_ll_chstats(s, mchan->dmadev->lldev, mdesc->tre_ch);
+	hidma_ll_chstats(s, mchan->dmadev->lldev, mdesc->tre_ch);
 
 	seq_puts(s, "active\n");
 	list_for_each_entry(mdesc, &mchan->active, node)
-		hidma_ll_chstats(s, mchan->dmadev->lldev, mdesc->tre_ch);
+	hidma_ll_chstats(s, mchan->dmadev->lldev, mdesc->tre_ch);
 
 	seq_puts(s, "completed\n");
 	list_for_each_entry(mdesc, &mchan->completed, node)
-		hidma_ll_chstats(s, mchan->dmadev->lldev, mdesc->tre_ch);
+	hidma_ll_chstats(s, mchan->dmadev->lldev, mdesc->tre_ch);
 
 	hidma_ll_devstats(s, mchan->dmadev->lldev);
 	pm_runtime_mark_last_busy(dmadev->ddev.dev);
@@ -147,14 +149,16 @@ static int hidma_dma_info_open(struct inode *inode, struct file *file)
 	return single_open(file, hidma_dma_info, inode->i_private);
 }
 
-static const struct file_operations hidma_chan_fops = {
+static const struct file_operations hidma_chan_fops =
+{
 	.open = hidma_chan_stats_open,
 	.read = seq_read,
 	.llseek = seq_lseek,
 	.release = single_release,
 };
 
-static const struct file_operations hidma_dma_fops = {
+static const struct file_operations hidma_dma_fops =
+{
 	.open = hidma_dma_info_open,
 	.read = seq_read,
 	.llseek = seq_lseek,
@@ -174,38 +178,49 @@ int hidma_debug_init(struct hidma_dev *dmadev)
 	struct list_head *position = NULL;
 
 	dmadev->debugfs = debugfs_create_dir(dev_name(dmadev->ddev.dev), NULL);
-	if (!dmadev->debugfs) {
+
+	if (!dmadev->debugfs)
+	{
 		rc = -ENODEV;
 		return rc;
 	}
 
 	/* walk through the virtual channel list */
-	list_for_each(position, &dmadev->ddev.channels) {
+	list_for_each(position, &dmadev->ddev.channels)
+	{
 		struct hidma_chan *chan;
 
 		chan = list_entry(position, struct hidma_chan,
-				  chan.device_node);
+						  chan.device_node);
 		sprintf(chan->dbg_name, "chan%d", chidx);
 		chan->debugfs = debugfs_create_dir(chan->dbg_name,
-						   dmadev->debugfs);
-		if (!chan->debugfs) {
+										   dmadev->debugfs);
+
+		if (!chan->debugfs)
+		{
 			rc = -ENOMEM;
 			goto cleanup;
 		}
+
 		chan->stats = debugfs_create_file("stats", S_IRUGO,
-						  chan->debugfs, chan,
-						  &hidma_chan_fops);
-		if (!chan->stats) {
+										  chan->debugfs, chan,
+										  &hidma_chan_fops);
+
+		if (!chan->stats)
+		{
 			rc = -ENOMEM;
 			goto cleanup;
 		}
+
 		chidx++;
 	}
 
 	dmadev->stats = debugfs_create_file("stats", S_IRUGO,
-					    dmadev->debugfs, dmadev,
-					    &hidma_dma_fops);
-	if (!dmadev->stats) {
+										dmadev->debugfs, dmadev,
+										&hidma_dma_fops);
+
+	if (!dmadev->stats)
+	{
 		rc = -ENOMEM;
 		goto cleanup;
 	}

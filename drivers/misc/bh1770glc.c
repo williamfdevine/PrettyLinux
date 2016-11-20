@@ -131,7 +131,8 @@
 
 #define PROX_IGNORE_LUX_LIMIT	500
 
-struct bh1770_chip {
+struct bh1770_chip
+{
 	struct bh1770_platform_data	*pdata;
 	char				chipname[10];
 	u8				revision;
@@ -194,22 +195,22 @@ static const s16 lux_rates_hz[] = {10, 5, 2, 1, 0};
  * excluding module probe / remove
  */
 static inline int bh1770_lux_interrupt_control(struct bh1770_chip *chip,
-					int lux)
+		int lux)
 {
 	chip->int_mode_lux = lux;
 	/* Set interrupt modes, interrupt active low, latched */
 	return i2c_smbus_write_byte_data(chip->client,
-					BH1770_INTERRUPT,
-					(lux << 1) | chip->int_mode_prox);
+									 BH1770_INTERRUPT,
+									 (lux << 1) | chip->int_mode_prox);
 }
 
 static inline int bh1770_prox_interrupt_control(struct bh1770_chip *chip,
-					int ps)
+		int ps)
 {
 	chip->int_mode_prox = ps;
 	return i2c_smbus_write_byte_data(chip->client,
-					BH1770_INTERRUPT,
-					(chip->int_mode_lux << 1) | (ps << 0));
+									 BH1770_INTERRUPT,
+									 (chip->int_mode_lux << 1) | (ps << 0));
 }
 
 /* chip->mutex is always kept here */
@@ -217,15 +218,19 @@ static int bh1770_lux_rate(struct bh1770_chip *chip, int rate_index)
 {
 	/* sysfs may call this when the chip is powered off */
 	if (pm_runtime_suspended(&chip->client->dev))
+	{
 		return 0;
+	}
 
 	/* Proper proximity response needs fastest lux rate (100ms) */
 	if (chip->prox_enable_count)
+	{
 		rate_index = 0;
+	}
 
 	return i2c_smbus_write_byte_data(chip->client,
-					BH1770_ALS_MEAS_RATE,
-					rate_index);
+									 BH1770_ALS_MEAS_RATE,
+									 rate_index);
 }
 
 static int bh1770_prox_rate(struct bh1770_chip *chip, int mode)
@@ -233,11 +238,11 @@ static int bh1770_prox_rate(struct bh1770_chip *chip, int mode)
 	int rate;
 
 	rate = (mode == PROX_ABOVE_THRESHOLD) ?
-		chip->prox_rate_threshold : chip->prox_rate;
+		   chip->prox_rate_threshold : chip->prox_rate;
 
 	return i2c_smbus_write_byte_data(chip->client,
-					BH1770_PS_MEAS_RATE,
-					rate);
+									 BH1770_PS_MEAS_RATE,
+									 rate);
 }
 
 /* InfraredLED is controlled by the chip during proximity scanning */
@@ -245,10 +250,10 @@ static inline int bh1770_led_cfg(struct bh1770_chip *chip)
 {
 	/* LED cfg, current for leds 1 and 2 */
 	return i2c_smbus_write_byte_data(chip->client,
-					BH1770_I_LED,
-					(BH1770_LED1 << 6) |
-					(BH1770_LED_5mA << 3) |
-					chip->prox_led);
+									 BH1770_I_LED,
+									 (BH1770_LED1 << 6) |
+									 (BH1770_LED_5mA << 3) |
+									 chip->prox_led);
 }
 
 /*
@@ -261,9 +266,13 @@ static inline u8 bh1770_psraw_to_adjusted(struct bh1770_chip *chip, u8 psraw)
 {
 	u16 adjusted;
 	adjusted = (u16)(((u32)(psraw + chip->prox_const) * chip->prox_coef) /
-		BH1770_COEF_SCALER);
+					 BH1770_COEF_SCALER);
+
 	if (adjusted > BH1770_PROX_RANGE)
+	{
 		adjusted = BH1770_PROX_RANGE;
+	}
+
 	return adjusted;
 }
 
@@ -272,10 +281,16 @@ static inline u8 bh1770_psadjusted_to_raw(struct bh1770_chip *chip, u8 ps)
 	u16 raw;
 
 	raw = (((u32)ps * BH1770_COEF_SCALER) / chip->prox_coef);
+
 	if (raw > chip->prox_const)
+	{
 		raw = raw - chip->prox_const;
+	}
 	else
+	{
 		raw = 0;
+	}
+
 	return raw;
 }
 
@@ -291,13 +306,15 @@ static int bh1770_prox_set_threshold(struct bh1770_chip *chip)
 
 	/* sysfs may call this when the chip is powered off */
 	if (pm_runtime_suspended(&chip->client->dev))
+	{
 		return 0;
+	}
 
 	tmp = bh1770_psadjusted_to_raw(chip, chip->prox_threshold);
 	chip->prox_threshold_hw = tmp;
 
 	return	i2c_smbus_write_byte_data(chip->client, BH1770_PS_TH_LED1,
-					tmp);
+									  tmp);
 }
 
 static inline u16 bh1770_lux_raw_to_adjusted(struct bh1770_chip *chip, u16 raw)
@@ -308,21 +325,23 @@ static inline u16 bh1770_lux_raw_to_adjusted(struct bh1770_chip *chip, u16 raw)
 }
 
 static inline u16 bh1770_lux_adjusted_to_raw(struct bh1770_chip *chip,
-					u16 adjusted)
+		u16 adjusted)
 {
 	return (u32)adjusted * BH1770_LUX_CORR_SCALE / chip->lux_corr;
 }
 
 /* chip->mutex is kept when this is called */
 static int bh1770_lux_update_thresholds(struct bh1770_chip *chip,
-					u16 threshold_hi, u16 threshold_lo)
+										u16 threshold_hi, u16 threshold_lo)
 {
 	u8 data[4];
 	int ret;
 
 	/* sysfs may call this when the chip is powered off */
 	if (pm_runtime_suspended(&chip->client->dev))
+	{
 		return 0;
+	}
 
 	/*
 	 * Compensate threshold values with the correction factors if not
@@ -330,14 +349,20 @@ static int bh1770_lux_update_thresholds(struct bh1770_chip *chip,
 	 * Min & max values disables interrupts.
 	 */
 	if (threshold_hi != BH1770_LUX_RANGE && threshold_hi != 0)
+	{
 		threshold_hi = bh1770_lux_adjusted_to_raw(chip, threshold_hi);
+	}
 
 	if (threshold_lo != BH1770_LUX_RANGE && threshold_lo != 0)
+	{
 		threshold_lo = bh1770_lux_adjusted_to_raw(chip, threshold_lo);
+	}
 
 	if (chip->lux_thres_hi_onchip == threshold_hi &&
-	    chip->lux_thres_lo_onchip == threshold_lo)
+		chip->lux_thres_lo_onchip == threshold_lo)
+	{
 		return 0;
+	}
 
 	chip->lux_thres_hi_onchip = threshold_hi;
 	chip->lux_thres_lo_onchip = threshold_lo;
@@ -348,9 +373,9 @@ static int bh1770_lux_update_thresholds(struct bh1770_chip *chip,
 	data[3] = threshold_lo >> 8;
 
 	ret = i2c_smbus_write_i2c_block_data(chip->client,
-					BH1770_ALS_TH_UP_0,
-					ARRAY_SIZE(data),
-					data);
+										 BH1770_ALS_TH_UP_0,
+										 ARRAY_SIZE(data),
+										 data);
 	return ret;
 }
 
@@ -360,13 +385,19 @@ static int bh1770_lux_get_result(struct bh1770_chip *chip)
 	int ret;
 
 	ret = i2c_smbus_read_byte_data(chip->client, BH1770_ALS_DATA_0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	data = ret & 0xff;
 	ret = i2c_smbus_read_byte_data(chip->client, BH1770_ALS_DATA_1);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	chip->lux_data_raw = data | ((ret & 0xff) << 8);
 
@@ -399,15 +430,18 @@ static int bh1770_lux_read_result(struct bh1770_chip *chip)
 static int bh1770_chip_on(struct bh1770_chip *chip)
 {
 	int ret = regulator_bulk_enable(ARRAY_SIZE(chip->regs),
-					chip->regs);
+									chip->regs);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	usleep_range(BH1770_STARTUP_DELAY, BH1770_STARTUP_DELAY * 2);
 
 	/* Reset the chip */
 	i2c_smbus_write_byte_data(chip->client, BH1770_ALS_CONTROL,
-				BH1770_SWRESET);
+							  BH1770_SWRESET);
 	usleep_range(BH1770_RESET_TIME, BH1770_RESET_TIME * 2);
 
 	/*
@@ -418,7 +452,7 @@ static int bh1770_chip_on(struct bh1770_chip *chip)
 	chip->lux_data_raw = 0;
 	chip->prox_data = 0;
 	ret = i2c_smbus_write_byte_data(chip->client,
-					BH1770_ALS_CONTROL, BH1770_STANDALONE);
+									BH1770_ALS_CONTROL, BH1770_STANDALONE);
 
 	/* Assume reset defaults */
 	chip->lux_thres_hi_onchip = BH1770_LUX_RANGE;
@@ -430,18 +464,19 @@ static int bh1770_chip_on(struct bh1770_chip *chip)
 static void bh1770_chip_off(struct bh1770_chip *chip)
 {
 	i2c_smbus_write_byte_data(chip->client,
-					BH1770_INTERRUPT, BH1770_DISABLE);
+							  BH1770_INTERRUPT, BH1770_DISABLE);
 	i2c_smbus_write_byte_data(chip->client,
-				BH1770_ALS_CONTROL, BH1770_STANDBY);
+							  BH1770_ALS_CONTROL, BH1770_STANDBY);
 	i2c_smbus_write_byte_data(chip->client,
-				BH1770_PS_CONTROL, BH1770_STANDBY);
+							  BH1770_PS_CONTROL, BH1770_STANDBY);
 	regulator_bulk_disable(ARRAY_SIZE(chip->regs), chip->regs);
 }
 
 /* chip->mutex is kept when this is called */
 static int bh1770_prox_mode_control(struct bh1770_chip *chip)
 {
-	if (chip->prox_enable_count) {
+	if (chip->prox_enable_count)
+	{
 		chip->prox_force_update = true; /* Force immediate update */
 
 		bh1770_lux_rate(chip, chip->lux_rate_index);
@@ -450,14 +485,17 @@ static int bh1770_prox_mode_control(struct bh1770_chip *chip)
 		bh1770_prox_rate(chip, PROX_BELOW_THRESHOLD);
 		bh1770_prox_interrupt_control(chip, BH1770_ENABLE);
 		i2c_smbus_write_byte_data(chip->client,
-					BH1770_PS_CONTROL, BH1770_STANDALONE);
-	} else {
+								  BH1770_PS_CONTROL, BH1770_STANDALONE);
+	}
+	else
+	{
 		chip->prox_data = 0;
 		bh1770_lux_rate(chip, chip->lux_rate_index);
 		bh1770_prox_interrupt_control(chip, BH1770_DISABLE);
 		i2c_smbus_write_byte_data(chip->client,
-					BH1770_PS_CONTROL, BH1770_STANDBY);
+								  BH1770_PS_CONTROL, BH1770_STANDBY);
 	}
+
 	return 0;
 }
 
@@ -469,13 +507,20 @@ static int bh1770_prox_read_result(struct bh1770_chip *chip)
 	u8 mode;
 
 	ret = i2c_smbus_read_byte_data(chip->client, BH1770_PS_DATA_LED1);
+
 	if (ret < 0)
+	{
 		goto out;
+	}
 
 	if (ret > chip->prox_threshold_hw)
+	{
 		above = true;
+	}
 	else
+	{
 		above = false;
+	}
 
 	/*
 	 * when ALS levels goes above limit, proximity result may be
@@ -483,27 +528,37 @@ static int bh1770_prox_read_result(struct bh1770_chip *chip)
 	 * there is a shadow causing low als levels.
 	 */
 	if (chip->lux_data_raw > PROX_IGNORE_LUX_LIMIT)
+	{
 		ret = 0;
+	}
 
 	chip->prox_data = bh1770_psraw_to_adjusted(chip, ret);
 
 	/* Strong proximity level or force mode requires immediate response */
 	if (chip->prox_data >= chip->prox_abs_thres ||
-	    chip->prox_force_update)
+		chip->prox_force_update)
+	{
 		chip->prox_persistence_counter = chip->prox_persistence;
+	}
 
 	chip->prox_force_update = false;
 
 	/* Persistence filttering to reduce false proximity events */
-	if (likely(above)) {
-		if (chip->prox_persistence_counter < chip->prox_persistence) {
+	if (likely(above))
+	{
+		if (chip->prox_persistence_counter < chip->prox_persistence)
+		{
 			chip->prox_persistence_counter++;
 			ret = -ENODATA;
-		} else {
+		}
+		else
+		{
 			mode = PROX_ABOVE_THRESHOLD;
 			ret = 0;
 		}
-	} else {
+	}
+	else
+	{
 		chip->prox_persistence_counter = 0;
 		mode = PROX_BELOW_THRESHOLD;
 		chip->prox_data = 0;
@@ -511,10 +566,12 @@ static int bh1770_prox_read_result(struct bh1770_chip *chip)
 	}
 
 	/* Set proximity detection rate based on above or below value */
-	if (ret == 0) {
+	if (ret == 0)
+	{
 		bh1770_prox_rate(chip, mode);
 		sysfs_notify(&chip->client->dev.kobj, NULL, "prox0_raw");
 	}
+
 out:
 	return ret;
 }
@@ -526,13 +583,21 @@ static int bh1770_detect(struct bh1770_chip *chip)
 	u8 manu, part;
 
 	ret = i2c_smbus_read_byte_data(client, BH1770_MANUFACT_ID);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
+
 	manu = (u8)ret;
 
 	ret = i2c_smbus_read_byte_data(client, BH1770_PART_ID);
+
 	if (ret < 0)
+	{
 		goto error;
+	}
+
 	part = (u8)ret;
 
 	chip->revision = (part & BH1770_REV_MASK) >> BH1770_REV_SHIFT;
@@ -541,13 +606,15 @@ static int bh1770_detect(struct bh1770_chip *chip)
 	chip->lux_cf = BH1770_NEUTRAL_CF;
 
 	if ((manu == BH1770_MANUFACT_ROHM) &&
-	    ((part & BH1770_PART_MASK) == BH1770_PART)) {
+		((part & BH1770_PART_MASK) == BH1770_PART))
+	{
 		snprintf(chip->chipname, sizeof(chip->chipname), "BH1770GLC");
 		return 0;
 	}
 
 	if ((manu == BH1770_MANUFACT_OSRAM) &&
-	    ((part & BH1770_PART_MASK) == BH1770_PART)) {
+		((part & BH1770_PART_MASK) == BH1770_PART))
+	{
 		snprintf(chip->chipname, sizeof(chip->chipname), "SFH7770");
 		/* Values selected by comparing different versions */
 		chip->prox_coef = 819; /* 0.8 * BH1770_COEF_SCALER */
@@ -598,88 +665,108 @@ static irqreturn_t bh1770_irq(int irq, void *data)
 	 * Check if there is fresh data available for als.
 	 * If this is the very first data, update thresholds after that.
 	 */
-	if (status & BH1770_INT_ALS_DATA) {
+	if (status & BH1770_INT_ALS_DATA)
+	{
 		bh1770_lux_get_result(chip);
-		if (unlikely(chip->lux_wait_result)) {
+
+		if (unlikely(chip->lux_wait_result))
+		{
 			chip->lux_wait_result = false;
 			wake_up(&chip->wait);
 			bh1770_lux_update_thresholds(chip,
-						chip->lux_threshold_hi,
-						chip->lux_threshold_lo);
+										 chip->lux_threshold_hi,
+										 chip->lux_threshold_lo);
 		}
 	}
 
 	/* Disable interrupt logic to guarantee acknowledgement */
 	i2c_smbus_write_byte_data(chip->client, BH1770_INTERRUPT,
-				  (0 << 1) | (0 << 0));
+							  (0 << 1) | (0 << 0));
 
 	if ((status & BH1770_INT_ALS_INT))
+	{
 		sysfs_notify(&chip->client->dev.kobj, NULL, "lux0_input");
+	}
 
-	if (chip->int_mode_prox && (status & BH1770_INT_LEDS_INT)) {
+	if (chip->int_mode_prox && (status & BH1770_INT_LEDS_INT))
+	{
 		rate = prox_rates_ms[chip->prox_rate_threshold];
 		bh1770_prox_read_result(chip);
 	}
 
 	/* Re-enable interrupt logic */
 	i2c_smbus_write_byte_data(chip->client, BH1770_INTERRUPT,
-				  (chip->int_mode_lux << 1) |
-				  (chip->int_mode_prox << 0));
+							  (chip->int_mode_lux << 1) |
+							  (chip->int_mode_prox << 0));
 	mutex_unlock(&chip->mutex);
 
 	/*
 	 * Can't cancel work while keeping mutex since the work uses the
 	 * same mutex.
 	 */
-	if (rate) {
+	if (rate)
+	{
 		/*
 		 * Simulate missing no-proximity interrupt 50ms after the
 		 * next expected interrupt time.
 		 */
 		cancel_delayed_work_sync(&chip->prox_work);
 		schedule_delayed_work(&chip->prox_work,
-				msecs_to_jiffies(rate + 50));
+							  msecs_to_jiffies(rate + 50));
 	}
+
 	return IRQ_HANDLED;
 }
 
 static ssize_t bh1770_power_state_store(struct device *dev,
-				      struct device_attribute *attr,
-				      const char *buf, size_t count)
+										struct device_attribute *attr,
+										const char *buf, size_t count)
 {
 	struct bh1770_chip *chip =  dev_get_drvdata(dev);
 	unsigned long value;
 	ssize_t ret;
 
 	ret = kstrtoul(buf, 0, &value);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	mutex_lock(&chip->mutex);
-	if (value) {
+
+	if (value)
+	{
 		pm_runtime_get_sync(dev);
 
 		ret = bh1770_lux_rate(chip, chip->lux_rate_index);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			pm_runtime_put(dev);
 			goto leave;
 		}
 
 		ret = bh1770_lux_interrupt_control(chip, BH1770_ENABLE);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			pm_runtime_put(dev);
 			goto leave;
 		}
 
 		/* This causes interrupt after the next measurement cycle */
 		bh1770_lux_update_thresholds(chip, BH1770_LUX_DEF_THRES,
-					BH1770_LUX_DEF_THRES);
+									 BH1770_LUX_DEF_THRES);
 		/* Inform that we are waiting for a result from ALS */
 		chip->lux_wait_result = true;
 		bh1770_prox_mode_control(chip);
-	} else if (!pm_runtime_suspended(dev)) {
+	}
+	else if (!pm_runtime_suspended(dev))
+	{
 		pm_runtime_put(dev);
 	}
+
 	ret = count;
 leave:
 	mutex_unlock(&chip->mutex);
@@ -687,26 +774,31 @@ leave:
 }
 
 static ssize_t bh1770_power_state_show(struct device *dev,
-				   struct device_attribute *attr, char *buf)
+									   struct device_attribute *attr, char *buf)
 {
 	return sprintf(buf, "%d\n", !pm_runtime_suspended(dev));
 }
 
 static ssize_t bh1770_lux_result_show(struct device *dev,
-				   struct device_attribute *attr, char *buf)
+									  struct device_attribute *attr, char *buf)
 {
 	struct bh1770_chip *chip =  dev_get_drvdata(dev);
 	ssize_t ret;
 	long timeout;
 
 	if (pm_runtime_suspended(dev))
-		return -EIO; /* Chip is not enabled at all */
+	{
+		return -EIO;    /* Chip is not enabled at all */
+	}
 
 	timeout = wait_event_interruptible_timeout(chip->wait,
-					!chip->lux_wait_result,
-					msecs_to_jiffies(BH1770_TIMEOUT));
+			  !chip->lux_wait_result,
+			  msecs_to_jiffies(BH1770_TIMEOUT));
+
 	if (!timeout)
+	{
 		return -EIO;
+	}
 
 	mutex_lock(&chip->mutex);
 	ret = sprintf(buf, "%d\n", bh1770_lux_read_result(chip));
@@ -716,45 +808,60 @@ static ssize_t bh1770_lux_result_show(struct device *dev,
 }
 
 static ssize_t bh1770_lux_range_show(struct device *dev,
-				   struct device_attribute *attr, char *buf)
+									 struct device_attribute *attr, char *buf)
 {
 	return sprintf(buf, "%d\n", BH1770_LUX_RANGE);
 }
 
 static ssize_t bh1770_prox_enable_store(struct device *dev,
-				      struct device_attribute *attr,
-				      const char *buf, size_t count)
+										struct device_attribute *attr,
+										const char *buf, size_t count)
 {
 	struct bh1770_chip *chip =  dev_get_drvdata(dev);
 	unsigned long value;
 	int ret;
 
 	ret = kstrtoul(buf, 0, &value);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	mutex_lock(&chip->mutex);
+
 	/* Assume no proximity. Sensor will tell real state soon */
 	if (!chip->prox_enable_count)
+	{
 		chip->prox_data = 0;
+	}
 
 	if (value)
+	{
 		chip->prox_enable_count++;
+	}
 	else if (chip->prox_enable_count > 0)
+	{
 		chip->prox_enable_count--;
+	}
 	else
+	{
 		goto leave;
+	}
 
 	/* Run control only when chip is powered on */
 	if (!pm_runtime_suspended(dev))
+	{
 		bh1770_prox_mode_control(chip);
+	}
+
 leave:
 	mutex_unlock(&chip->mutex);
 	return count;
 }
 
 static ssize_t bh1770_prox_enable_show(struct device *dev,
-				   struct device_attribute *attr, char *buf)
+									   struct device_attribute *attr, char *buf)
 {
 	struct bh1770_chip *chip =  dev_get_drvdata(dev);
 	ssize_t len;
@@ -766,46 +873,56 @@ static ssize_t bh1770_prox_enable_show(struct device *dev,
 }
 
 static ssize_t bh1770_prox_result_show(struct device *dev,
-				   struct device_attribute *attr, char *buf)
+									   struct device_attribute *attr, char *buf)
 {
 	struct bh1770_chip *chip =  dev_get_drvdata(dev);
 	ssize_t ret;
 
 	mutex_lock(&chip->mutex);
+
 	if (chip->prox_enable_count && !pm_runtime_suspended(dev))
+	{
 		ret = sprintf(buf, "%d\n", chip->prox_data);
+	}
 	else
+	{
 		ret = -EIO;
+	}
+
 	mutex_unlock(&chip->mutex);
 	return ret;
 }
 
 static ssize_t bh1770_prox_range_show(struct device *dev,
-				   struct device_attribute *attr, char *buf)
+									  struct device_attribute *attr, char *buf)
 {
 	return sprintf(buf, "%d\n", BH1770_PROX_RANGE);
 }
 
 static ssize_t bh1770_get_prox_rate_avail(struct device *dev,
-				   struct device_attribute *attr, char *buf)
+		struct device_attribute *attr, char *buf)
 {
 	int i;
 	int pos = 0;
+
 	for (i = 0; i < ARRAY_SIZE(prox_rates_hz); i++)
+	{
 		pos += sprintf(buf + pos, "%d ", prox_rates_hz[i]);
+	}
+
 	sprintf(buf + pos - 1, "\n");
 	return pos;
 }
 
 static ssize_t bh1770_get_prox_rate_above(struct device *dev,
-				   struct device_attribute *attr, char *buf)
+		struct device_attribute *attr, char *buf)
 {
 	struct bh1770_chip *chip =  dev_get_drvdata(dev);
 	return sprintf(buf, "%d\n", prox_rates_hz[chip->prox_rate_threshold]);
 }
 
 static ssize_t bh1770_get_prox_rate_below(struct device *dev,
-				   struct device_attribute *attr, char *buf)
+		struct device_attribute *attr, char *buf)
 {
 	struct bh1770_chip *chip =  dev_get_drvdata(dev);
 	return sprintf(buf, "%d\n", prox_rates_hz[chip->prox_rate]);
@@ -817,21 +934,27 @@ static int bh1770_prox_rate_validate(int rate)
 
 	for (i = 0; i < ARRAY_SIZE(prox_rates_hz) - 1; i++)
 		if (rate >= prox_rates_hz[i])
+		{
 			break;
+		}
+
 	return i;
 }
 
 static ssize_t bh1770_set_prox_rate_above(struct device *dev,
-					struct device_attribute *attr,
-					const char *buf, size_t count)
+		struct device_attribute *attr,
+		const char *buf, size_t count)
 {
 	struct bh1770_chip *chip =  dev_get_drvdata(dev);
 	unsigned long value;
 	int ret;
 
 	ret = kstrtoul(buf, 0, &value);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	mutex_lock(&chip->mutex);
 	chip->prox_rate_threshold = bh1770_prox_rate_validate(value);
@@ -840,16 +963,19 @@ static ssize_t bh1770_set_prox_rate_above(struct device *dev,
 }
 
 static ssize_t bh1770_set_prox_rate_below(struct device *dev,
-					struct device_attribute *attr,
-					const char *buf, size_t count)
+		struct device_attribute *attr,
+		const char *buf, size_t count)
 {
 	struct bh1770_chip *chip =  dev_get_drvdata(dev);
 	unsigned long value;
 	int ret;
 
 	ret = kstrtoul(buf, 0, &value);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	mutex_lock(&chip->mutex);
 	chip->prox_rate = bh1770_prox_rate_validate(value);
@@ -858,38 +984,47 @@ static ssize_t bh1770_set_prox_rate_below(struct device *dev,
 }
 
 static ssize_t bh1770_get_prox_thres(struct device *dev,
-				   struct device_attribute *attr, char *buf)
+									 struct device_attribute *attr, char *buf)
 {
 	struct bh1770_chip *chip =  dev_get_drvdata(dev);
 	return sprintf(buf, "%d\n", chip->prox_threshold);
 }
 
 static ssize_t bh1770_set_prox_thres(struct device *dev,
-				      struct device_attribute *attr,
-				      const char *buf, size_t count)
+									 struct device_attribute *attr,
+									 const char *buf, size_t count)
 {
 	struct bh1770_chip *chip =  dev_get_drvdata(dev);
 	unsigned long value;
 	int ret;
 
 	ret = kstrtoul(buf, 0, &value);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (value > BH1770_PROX_RANGE)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&chip->mutex);
 	chip->prox_threshold = value;
 	ret = bh1770_prox_set_threshold(chip);
 	mutex_unlock(&chip->mutex);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return count;
 }
 
 static ssize_t bh1770_prox_persistence_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+		struct device_attribute *attr, char *buf)
 {
 	struct bh1770_chip *chip = dev_get_drvdata(dev);
 
@@ -897,19 +1032,24 @@ static ssize_t bh1770_prox_persistence_show(struct device *dev,
 }
 
 static ssize_t bh1770_prox_persistence_store(struct device *dev,
-				struct device_attribute *attr,
-				const char *buf, size_t len)
+		struct device_attribute *attr,
+		const char *buf, size_t len)
 {
 	struct bh1770_chip *chip = dev_get_drvdata(dev);
 	unsigned long value;
 	int ret;
 
 	ret = kstrtoul(buf, 0, &value);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (value > BH1770_PROX_MAX_PERSISTENCE)
+	{
 		return -EINVAL;
+	}
 
 	chip->prox_persistence = value;
 
@@ -917,26 +1057,31 @@ static ssize_t bh1770_prox_persistence_store(struct device *dev,
 }
 
 static ssize_t bh1770_prox_abs_thres_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+		struct device_attribute *attr, char *buf)
 {
 	struct bh1770_chip *chip = dev_get_drvdata(dev);
 	return sprintf(buf, "%u\n", chip->prox_abs_thres);
 }
 
 static ssize_t bh1770_prox_abs_thres_store(struct device *dev,
-				struct device_attribute *attr,
-				const char *buf, size_t len)
+		struct device_attribute *attr,
+		const char *buf, size_t len)
 {
 	struct bh1770_chip *chip = dev_get_drvdata(dev);
 	unsigned long value;
 	int ret;
 
 	ret = kstrtoul(buf, 0, &value);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (value > BH1770_PROX_RANGE)
+	{
 		return -EINVAL;
+	}
 
 	chip->prox_abs_thres = value;
 
@@ -944,20 +1089,20 @@ static ssize_t bh1770_prox_abs_thres_store(struct device *dev,
 }
 
 static ssize_t bh1770_chip_id_show(struct device *dev,
-				   struct device_attribute *attr, char *buf)
+								   struct device_attribute *attr, char *buf)
 {
 	struct bh1770_chip *chip =  dev_get_drvdata(dev);
 	return sprintf(buf, "%s rev %d\n", chip->chipname, chip->revision);
 }
 
 static ssize_t bh1770_lux_calib_default_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+		struct device_attribute *attr, char *buf)
 {
 	return sprintf(buf, "%u\n", BH1770_CALIB_SCALER);
 }
 
 static ssize_t bh1770_lux_calib_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+									 struct device_attribute *attr, char *buf)
 {
 	struct bh1770_chip *chip = dev_get_drvdata(dev);
 	ssize_t len;
@@ -969,8 +1114,8 @@ static ssize_t bh1770_lux_calib_show(struct device *dev,
 }
 
 static ssize_t bh1770_lux_calib_store(struct device *dev,
-				  struct device_attribute *attr,
-				  const char *buf, size_t len)
+									  struct device_attribute *attr,
+									  const char *buf, size_t len)
 {
 	struct bh1770_chip *chip = dev_get_drvdata(dev);
 	unsigned long value;
@@ -979,22 +1124,28 @@ static ssize_t bh1770_lux_calib_store(struct device *dev,
 	int ret;
 
 	ret = kstrtoul(buf, 0, &value);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	mutex_lock(&chip->mutex);
 	old_calib = chip->lux_calib;
 	chip->lux_calib = value;
 	new_corr = bh1770_get_corr_value(chip);
-	if (new_corr == 0) {
+
+	if (new_corr == 0)
+	{
 		chip->lux_calib = old_calib;
 		mutex_unlock(&chip->mutex);
 		return -EINVAL;
 	}
+
 	chip->lux_corr = new_corr;
 	/* Refresh thresholds on HW after changing correction value */
 	bh1770_lux_update_thresholds(chip, chip->lux_threshold_hi,
-				chip->lux_threshold_lo);
+								 chip->lux_threshold_lo);
 
 	mutex_unlock(&chip->mutex);
 
@@ -1002,38 +1153,47 @@ static ssize_t bh1770_lux_calib_store(struct device *dev,
 }
 
 static ssize_t bh1770_get_lux_rate_avail(struct device *dev,
-				   struct device_attribute *attr, char *buf)
+		struct device_attribute *attr, char *buf)
 {
 	int i;
 	int pos = 0;
+
 	for (i = 0; i < ARRAY_SIZE(lux_rates_hz); i++)
+	{
 		pos += sprintf(buf + pos, "%d ", lux_rates_hz[i]);
+	}
+
 	sprintf(buf + pos - 1, "\n");
 	return pos;
 }
 
 static ssize_t bh1770_get_lux_rate(struct device *dev,
-				   struct device_attribute *attr, char *buf)
+								   struct device_attribute *attr, char *buf)
 {
 	struct bh1770_chip *chip =  dev_get_drvdata(dev);
 	return sprintf(buf, "%d\n", lux_rates_hz[chip->lux_rate_index]);
 }
 
 static ssize_t bh1770_set_lux_rate(struct device *dev,
-				      struct device_attribute *attr,
-				      const char *buf, size_t count)
+								   struct device_attribute *attr,
+								   const char *buf, size_t count)
 {
 	struct bh1770_chip *chip =  dev_get_drvdata(dev);
 	unsigned long rate_hz;
 	int ret, i;
 
 	ret = kstrtoul(buf, 0, &rate_hz);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	for (i = 0; i < ARRAY_SIZE(lux_rates_hz) - 1; i++)
 		if (rate_hz >= lux_rates_hz[i])
+		{
 			break;
+		}
 
 	mutex_lock(&chip->mutex);
 	chip->lux_rate_index = i;
@@ -1041,118 +1201,136 @@ static ssize_t bh1770_set_lux_rate(struct device *dev,
 	mutex_unlock(&chip->mutex);
 
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return count;
 }
 
 static ssize_t bh1770_get_lux_thresh_above(struct device *dev,
-				   struct device_attribute *attr, char *buf)
+		struct device_attribute *attr, char *buf)
 {
 	struct bh1770_chip *chip =  dev_get_drvdata(dev);
 	return sprintf(buf, "%d\n", chip->lux_threshold_hi);
 }
 
 static ssize_t bh1770_get_lux_thresh_below(struct device *dev,
-				   struct device_attribute *attr, char *buf)
+		struct device_attribute *attr, char *buf)
 {
 	struct bh1770_chip *chip =  dev_get_drvdata(dev);
 	return sprintf(buf, "%d\n", chip->lux_threshold_lo);
 }
 
 static ssize_t bh1770_set_lux_thresh(struct bh1770_chip *chip, u16 *target,
-				const char *buf)
+									 const char *buf)
 {
 	unsigned long thresh;
 	int ret;
 
 	ret = kstrtoul(buf, 0, &thresh);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	if (thresh > BH1770_LUX_RANGE)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&chip->mutex);
 	*target = thresh;
+
 	/*
 	 * Don't update values in HW if we are still waiting for
 	 * first interrupt to come after device handle open call.
 	 */
 	if (!chip->lux_wait_result)
 		ret = bh1770_lux_update_thresholds(chip,
-						chip->lux_threshold_hi,
-						chip->lux_threshold_lo);
+										   chip->lux_threshold_hi,
+										   chip->lux_threshold_lo);
+
 	mutex_unlock(&chip->mutex);
 	return ret;
 
 }
 
 static ssize_t bh1770_set_lux_thresh_above(struct device *dev,
-				  struct device_attribute *attr,
-				  const char *buf, size_t len)
+		struct device_attribute *attr,
+		const char *buf, size_t len)
 {
 	struct bh1770_chip *chip =  dev_get_drvdata(dev);
 	int ret = bh1770_set_lux_thresh(chip, &chip->lux_threshold_hi, buf);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return len;
 }
 
 static ssize_t bh1770_set_lux_thresh_below(struct device *dev,
-				  struct device_attribute *attr,
-				  const char *buf, size_t len)
+		struct device_attribute *attr,
+		const char *buf, size_t len)
 {
 	struct bh1770_chip *chip =  dev_get_drvdata(dev);
 	int ret = bh1770_set_lux_thresh(chip, &chip->lux_threshold_lo, buf);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
+
 	return len;
 }
 
 static DEVICE_ATTR(prox0_raw_en, S_IRUGO | S_IWUSR, bh1770_prox_enable_show,
-						bh1770_prox_enable_store);
+				   bh1770_prox_enable_store);
 static DEVICE_ATTR(prox0_thresh_above1_value, S_IRUGO | S_IWUSR,
-						bh1770_prox_abs_thres_show,
-						bh1770_prox_abs_thres_store);
+				   bh1770_prox_abs_thres_show,
+				   bh1770_prox_abs_thres_store);
 static DEVICE_ATTR(prox0_thresh_above0_value, S_IRUGO | S_IWUSR,
-						bh1770_get_prox_thres,
-						bh1770_set_prox_thres);
+				   bh1770_get_prox_thres,
+				   bh1770_set_prox_thres);
 static DEVICE_ATTR(prox0_raw, S_IRUGO, bh1770_prox_result_show, NULL);
 static DEVICE_ATTR(prox0_sensor_range, S_IRUGO, bh1770_prox_range_show, NULL);
 static DEVICE_ATTR(prox0_thresh_above_count, S_IRUGO | S_IWUSR,
-						bh1770_prox_persistence_show,
-						bh1770_prox_persistence_store);
+				   bh1770_prox_persistence_show,
+				   bh1770_prox_persistence_store);
 static DEVICE_ATTR(prox0_rate_above, S_IRUGO | S_IWUSR,
-						bh1770_get_prox_rate_above,
-						bh1770_set_prox_rate_above);
+				   bh1770_get_prox_rate_above,
+				   bh1770_set_prox_rate_above);
 static DEVICE_ATTR(prox0_rate_below, S_IRUGO | S_IWUSR,
-						bh1770_get_prox_rate_below,
-						bh1770_set_prox_rate_below);
+				   bh1770_get_prox_rate_below,
+				   bh1770_set_prox_rate_below);
 static DEVICE_ATTR(prox0_rate_avail, S_IRUGO, bh1770_get_prox_rate_avail, NULL);
 
 static DEVICE_ATTR(lux0_calibscale, S_IRUGO | S_IWUSR, bh1770_lux_calib_show,
-						bh1770_lux_calib_store);
+				   bh1770_lux_calib_store);
 static DEVICE_ATTR(lux0_calibscale_default, S_IRUGO,
-						bh1770_lux_calib_default_show,
-						NULL);
+				   bh1770_lux_calib_default_show,
+				   NULL);
 static DEVICE_ATTR(lux0_input, S_IRUGO, bh1770_lux_result_show, NULL);
 static DEVICE_ATTR(lux0_sensor_range, S_IRUGO, bh1770_lux_range_show, NULL);
 static DEVICE_ATTR(lux0_rate, S_IRUGO | S_IWUSR, bh1770_get_lux_rate,
-						bh1770_set_lux_rate);
+				   bh1770_set_lux_rate);
 static DEVICE_ATTR(lux0_rate_avail, S_IRUGO, bh1770_get_lux_rate_avail, NULL);
 static DEVICE_ATTR(lux0_thresh_above_value, S_IRUGO | S_IWUSR,
-						bh1770_get_lux_thresh_above,
-						bh1770_set_lux_thresh_above);
+				   bh1770_get_lux_thresh_above,
+				   bh1770_set_lux_thresh_above);
 static DEVICE_ATTR(lux0_thresh_below_value, S_IRUGO | S_IWUSR,
-						bh1770_get_lux_thresh_below,
-						bh1770_set_lux_thresh_below);
+				   bh1770_get_lux_thresh_below,
+				   bh1770_set_lux_thresh_below);
 static DEVICE_ATTR(chip_id, S_IRUGO, bh1770_chip_id_show, NULL);
 static DEVICE_ATTR(power_state, S_IRUGO | S_IWUSR, bh1770_power_state_show,
-						 bh1770_power_state_store);
+				   bh1770_power_state_store);
 
 
-static struct attribute *sysfs_attrs[] = {
+static struct attribute *sysfs_attrs[] =
+{
 	&dev_attr_lux0_calibscale.attr,
 	&dev_attr_lux0_calibscale_default.attr,
 	&dev_attr_lux0_input.attr,
@@ -1175,19 +1353,23 @@ static struct attribute *sysfs_attrs[] = {
 	NULL
 };
 
-static struct attribute_group bh1770_attribute_group = {
+static struct attribute_group bh1770_attribute_group =
+{
 	.attrs = sysfs_attrs
 };
 
 static int bh1770_probe(struct i2c_client *client,
-				const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	struct bh1770_chip *chip;
 	int err;
 
-	chip = devm_kzalloc(&client->dev, sizeof *chip, GFP_KERNEL);
+	chip = devm_kzalloc(&client->dev, sizeof * chip, GFP_KERNEL);
+
 	if (!chip)
+	{
 		return -ENOMEM;
+	}
 
 	i2c_set_clientdata(client, chip);
 	chip->client  = client;
@@ -1196,7 +1378,8 @@ static int bh1770_probe(struct i2c_client *client,
 	init_waitqueue_head(&chip->wait);
 	INIT_DELAYED_WORK(&chip->prox_work, bh1770_prox_work);
 
-	if (client->dev.platform_data == NULL) {
+	if (client->dev.platform_data == NULL)
+	{
 		dev_err(&client->dev, "platform data is mandatory\n");
 		return -EINVAL;
 	}
@@ -1208,9 +1391,13 @@ static int bh1770_probe(struct i2c_client *client,
 	chip->lux_threshold_hi	= BH1770_LUX_DEF_THRES;
 
 	if (chip->pdata->glass_attenuation == 0)
+	{
 		chip->lux_ga = BH1770_NEUTRAL_GA;
+	}
 	else
+	{
 		chip->lux_ga = chip->pdata->glass_attenuation;
+	}
 
 	chip->prox_threshold	= BH1770_PROX_DEF_THRES;
 	chip->prox_led		= chip->pdata->led_def_curr;
@@ -1224,23 +1411,30 @@ static int bh1770_probe(struct i2c_client *client,
 	chip->regs[1].supply = reg_vleds;
 
 	err = devm_regulator_bulk_get(&client->dev,
-				      ARRAY_SIZE(chip->regs), chip->regs);
-	if (err < 0) {
+								  ARRAY_SIZE(chip->regs), chip->regs);
+
+	if (err < 0)
+	{
 		dev_err(&client->dev, "Cannot get regulators\n");
 		return err;
 	}
 
 	err = regulator_bulk_enable(ARRAY_SIZE(chip->regs),
-				chip->regs);
-	if (err < 0) {
+								chip->regs);
+
+	if (err < 0)
+	{
 		dev_err(&client->dev, "Cannot enable regulators\n");
 		return err;
 	}
 
 	usleep_range(BH1770_STARTUP_DELAY, BH1770_STARTUP_DELAY * 2);
 	err = bh1770_detect(chip);
+
 	if (err < 0)
+	{
 		goto fail0;
+	}
 
 	/* Start chip */
 	bh1770_chip_on(chip);
@@ -1248,23 +1442,30 @@ static int bh1770_probe(struct i2c_client *client,
 	pm_runtime_enable(&client->dev);
 
 	chip->lux_corr = bh1770_get_corr_value(chip);
-	if (chip->lux_corr == 0) {
+
+	if (chip->lux_corr == 0)
+	{
 		dev_err(&client->dev, "Improper correction values\n");
 		err = -EINVAL;
 		goto fail0;
 	}
 
-	if (chip->pdata->setup_resources) {
+	if (chip->pdata->setup_resources)
+	{
 		err = chip->pdata->setup_resources();
-		if (err) {
+
+		if (err)
+		{
 			err = -EINVAL;
 			goto fail0;
 		}
 	}
 
 	err = sysfs_create_group(&chip->client->dev.kobj,
-				&bh1770_attribute_group);
-	if (err < 0) {
+							 &bh1770_attribute_group);
+
+	if (err < 0)
+	{
 		dev_err(&chip->client->dev, "Sysfs registration failed\n");
 		goto fail1;
 	}
@@ -1275,23 +1476,30 @@ static int bh1770_probe(struct i2c_client *client,
 	 * management. Select both
 	 */
 	err = request_threaded_irq(client->irq, NULL,
-				bh1770_irq,
-				IRQF_TRIGGER_FALLING | IRQF_ONESHOT |
-				IRQF_TRIGGER_LOW,
-				"bh1770", chip);
-	if (err) {
+							   bh1770_irq,
+							   IRQF_TRIGGER_FALLING | IRQF_ONESHOT |
+							   IRQF_TRIGGER_LOW,
+							   "bh1770", chip);
+
+	if (err)
+	{
 		dev_err(&client->dev, "could not get IRQ %d\n",
-			client->irq);
+				client->irq);
 		goto fail2;
 	}
+
 	regulator_bulk_disable(ARRAY_SIZE(chip->regs), chip->regs);
 	return err;
 fail2:
 	sysfs_remove_group(&chip->client->dev.kobj,
-			&bh1770_attribute_group);
+					   &bh1770_attribute_group);
 fail1:
+
 	if (chip->pdata->release_resources)
+	{
 		chip->pdata->release_resources();
+	}
+
 fail0:
 	regulator_bulk_disable(ARRAY_SIZE(chip->regs), chip->regs);
 	return err;
@@ -1304,15 +1512,19 @@ static int bh1770_remove(struct i2c_client *client)
 	free_irq(client->irq, chip);
 
 	sysfs_remove_group(&chip->client->dev.kobj,
-			&bh1770_attribute_group);
+					   &bh1770_attribute_group);
 
 	if (chip->pdata->release_resources)
+	{
 		chip->pdata->release_resources();
+	}
 
 	cancel_delayed_work_sync(&chip->prox_work);
 
 	if (!pm_runtime_suspended(&client->dev))
+	{
 		bh1770_chip_off(chip);
+	}
 
 	pm_runtime_disable(&client->dev);
 	pm_runtime_set_suspended(&client->dev);
@@ -1339,7 +1551,8 @@ static int bh1770_resume(struct device *dev)
 
 	bh1770_chip_on(chip);
 
-	if (!pm_runtime_suspended(dev)) {
+	if (!pm_runtime_suspended(dev))
+	{
 		/*
 		 * If we were enabled at suspend time, it is expected
 		 * everything works nice and smoothly
@@ -1349,11 +1562,12 @@ static int bh1770_resume(struct device *dev)
 
 		/* This causes interrupt after the next measurement cycle */
 		bh1770_lux_update_thresholds(chip, BH1770_LUX_DEF_THRES,
-					BH1770_LUX_DEF_THRES);
+									 BH1770_LUX_DEF_THRES);
 		/* Inform that we are waiting for a result from ALS */
 		chip->lux_wait_result = true;
 		bh1770_prox_mode_control(chip);
 	}
+
 	return ret;
 }
 #endif
@@ -1380,7 +1594,8 @@ static int bh1770_runtime_resume(struct device *dev)
 }
 #endif
 
-static const struct i2c_device_id bh1770_id[] = {
+static const struct i2c_device_id bh1770_id[] =
+{
 	{"bh1770glc", 0 },
 	{"sfh7770", 0 },
 	{}
@@ -1388,12 +1603,14 @@ static const struct i2c_device_id bh1770_id[] = {
 
 MODULE_DEVICE_TABLE(i2c, bh1770_id);
 
-static const struct dev_pm_ops bh1770_pm_ops = {
+static const struct dev_pm_ops bh1770_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(bh1770_suspend, bh1770_resume)
 	SET_RUNTIME_PM_OPS(bh1770_runtime_suspend, bh1770_runtime_resume, NULL)
 };
 
-static struct i2c_driver bh1770_driver = {
+static struct i2c_driver bh1770_driver =
+{
 	.driver	 = {
 		.name	= "bh1770glc",
 		.pm	= &bh1770_pm_ops,

@@ -27,7 +27,8 @@
 #include <nvif/class.h>
 
 static const struct nv50_disp_mthd_list
-gf119_disp_base_mthd_base = {
+	gf119_disp_base_mthd_base =
+{
 	.mthd = 0x0000,
 	.addr = 0x000000,
 	.data = {
@@ -77,7 +78,8 @@ gf119_disp_base_mthd_base = {
 };
 
 static const struct nv50_disp_mthd_list
-gf119_disp_base_mthd_image = {
+	gf119_disp_base_mthd_image =
+{
 	.mthd = 0x0020,
 	.addr = 0x000020,
 	.data = {
@@ -91,7 +93,8 @@ gf119_disp_base_mthd_image = {
 };
 
 const struct nv50_disp_chan_mthd
-gf119_disp_base_chan_mthd = {
+	gf119_disp_base_chan_mthd =
+{
 	.name = "Base",
 	.addr = 0x001000,
 	.prev = -0x020000,
@@ -103,7 +106,8 @@ gf119_disp_base_chan_mthd = {
 };
 
 const struct nv50_disp_dmac_oclass
-gf119_disp_base_oclass = {
+	gf119_disp_base_oclass =
+{
 	.base.oclass = GF110_DISP_BASE_CHANNEL_DMA,
 	.base.minver = 0,
 	.base.maxver = 0,

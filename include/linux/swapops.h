@@ -17,7 +17,7 @@
  * swp_entry_t's are *never* stored anywhere in their arch-dependent format.
  */
 #define SWP_TYPE_SHIFT(e)	((sizeof(e.val) * 8) - \
-			(MAX_SWAPFILES_SHIFT + RADIX_TREE_EXCEPTIONAL_SHIFT))
+							 (MAX_SWAPFILES_SHIFT + RADIX_TREE_EXCEPTIONAL_SHIFT))
 #define SWP_OFFSET_MASK(e)	((1UL << SWP_TYPE_SHIFT(e)) - 1)
 
 /*
@@ -28,7 +28,7 @@ static inline swp_entry_t swp_entry(unsigned long type, pgoff_t offset)
 	swp_entry_t ret;
 
 	ret.val = (type << SWP_TYPE_SHIFT(ret)) |
-			(offset & SWP_OFFSET_MASK(ret));
+			  (offset & SWP_OFFSET_MASK(ret));
 	return ret;
 }
 
@@ -67,7 +67,10 @@ static inline swp_entry_t pte_to_swp_entry(pte_t pte)
 	swp_entry_t arch_entry;
 
 	if (pte_swp_soft_dirty(pte))
+	{
 		pte = pte_swp_clear_soft_dirty(pte);
+	}
+
 	arch_entry = __pte_to_swp_entry(pte);
 	return swp_entry(__swp_type(arch_entry), __swp_offset(arch_entry));
 }
@@ -105,13 +108,13 @@ static inline swp_entry_t make_migration_entry(struct page *page, int write)
 {
 	BUG_ON(!PageLocked(page));
 	return swp_entry(write ? SWP_MIGRATION_WRITE : SWP_MIGRATION_READ,
-			page_to_pfn(page));
+					 page_to_pfn(page));
 }
 
 static inline int is_migration_entry(swp_entry_t entry)
 {
 	return unlikely(swp_type(entry) == SWP_MIGRATION_READ ||
-			swp_type(entry) == SWP_MIGRATION_WRITE);
+					swp_type(entry) == SWP_MIGRATION_WRITE);
 }
 
 static inline int is_write_migration_entry(swp_entry_t entry)
@@ -136,11 +139,11 @@ static inline void make_migration_entry_read(swp_entry_t *entry)
 }
 
 extern void __migration_entry_wait(struct mm_struct *mm, pte_t *ptep,
-					spinlock_t *ptl);
+								   spinlock_t *ptl);
 extern void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
-					unsigned long address);
+								 unsigned long address);
 extern void migration_entry_wait_huge(struct vm_area_struct *vma,
-		struct mm_struct *mm, pte_t *pte);
+									  struct mm_struct *mm, pte_t *pte);
 #else
 
 #define make_migration_entry(page, write) swp_entry(0, 0)
@@ -151,9 +154,9 @@ static inline int is_migration_entry(swp_entry_t swp)
 #define migration_entry_to_page(swp) NULL
 static inline void make_migration_entry_read(swp_entry_t *entryp) { }
 static inline void __migration_entry_wait(struct mm_struct *mm, pte_t *ptep,
-					spinlock_t *ptl) { }
+		spinlock_t *ptl) { }
 static inline void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
-					 unsigned long address) { }
+										unsigned long address) { }
 static inline void migration_entry_wait_huge(struct vm_area_struct *vma,
 		struct mm_struct *mm, pte_t *pte) { }
 static inline int is_write_migration_entry(swp_entry_t entry)

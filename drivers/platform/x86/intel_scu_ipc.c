@@ -66,32 +66,37 @@
 #define PCI_DEVICE_ID_TANGIER		0x11a0
 
 /* intel scu ipc driver data */
-struct intel_scu_ipc_pdata_t {
+struct intel_scu_ipc_pdata_t
+{
 	u32 i2c_base;
 	u32 i2c_len;
 	u8 irq_mode;
 };
 
-static struct intel_scu_ipc_pdata_t intel_scu_ipc_lincroft_pdata = {
+static struct intel_scu_ipc_pdata_t intel_scu_ipc_lincroft_pdata =
+{
 	.i2c_base = 0xff12b000,
 	.i2c_len = 0x10,
 	.irq_mode = 0,
 };
 
 /* Penwell and Cloverview */
-static struct intel_scu_ipc_pdata_t intel_scu_ipc_penwell_pdata = {
+static struct intel_scu_ipc_pdata_t intel_scu_ipc_penwell_pdata =
+{
 	.i2c_base = 0xff12b000,
 	.i2c_len = 0x10,
 	.irq_mode = 1,
 };
 
-static struct intel_scu_ipc_pdata_t intel_scu_ipc_tangier_pdata = {
+static struct intel_scu_ipc_pdata_t intel_scu_ipc_tangier_pdata =
+{
 	.i2c_base  = 0xff00d000,
 	.i2c_len = 0x10,
 	.irq_mode = 0,
 };
 
-struct intel_scu_ipc_dev {
+struct intel_scu_ipc_dev
+{
 	struct device *dev;
 	void __iomem *ipc_base;
 	void __iomem *i2c_base;
@@ -122,10 +127,12 @@ static DEFINE_MUTEX(ipclock); /* lock used to prevent multiple call to SCU */
  */
 static inline void ipc_command(struct intel_scu_ipc_dev *scu, u32 cmd)
 {
-	if (scu->irq_mode) {
+	if (scu->irq_mode)
+	{
 		reinit_completion(&scu->cmd_complete);
 		writel(cmd | IPC_IOC, scu->ipc_base);
 	}
+
 	writel(cmd, scu->ipc_base);
 }
 
@@ -171,18 +178,22 @@ static inline int busy_loop(struct intel_scu_ipc_dev *scu)
 	u32 loop_count = 100000;
 
 	/* break if scu doesn't reset busy bit after huge retry */
-	while ((status & BIT(0)) && --loop_count) {
+	while ((status & BIT(0)) && --loop_count)
+	{
 		udelay(1); /* scu processing time is in few u secods */
 		status = ipc_read_status(scu);
 	}
 
-	if (status & BIT(0)) {
+	if (status & BIT(0))
+	{
 		dev_err(scu->dev, "IPC timed out");
 		return -ETIMEDOUT;
 	}
 
 	if (status & BIT(1))
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
@@ -192,14 +203,18 @@ static inline int ipc_wait_for_interrupt(struct intel_scu_ipc_dev *scu)
 {
 	int status;
 
-	if (!wait_for_completion_timeout(&scu->cmd_complete, 3 * HZ)) {
+	if (!wait_for_completion_timeout(&scu->cmd_complete, 3 * HZ))
+	{
 		dev_err(scu->dev, "IPC timed out\n");
 		return -ETIMEDOUT;
 	}
 
 	status = ipc_read_status(scu);
+
 	if (status & BIT(1))
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
@@ -223,27 +238,43 @@ static int pwr_reg_rdwr(u16 *addr, u8 *data, u32 count, u32 op, u32 id)
 
 	mutex_lock(&ipclock);
 
-	if (scu->dev == NULL) {
+	if (scu->dev == NULL)
+	{
 		mutex_unlock(&ipclock);
 		return -ENODEV;
 	}
 
-	for (nc = 0; nc < count; nc++, offset += 2) {
+	for (nc = 0; nc < count; nc++, offset += 2)
+	{
 		cbuf[offset] = addr[nc];
 		cbuf[offset + 1] = addr[nc] >> 8;
 	}
 
-	if (id == IPC_CMD_PCNTRL_R) {
+	if (id == IPC_CMD_PCNTRL_R)
+	{
 		for (nc = 0, offset = 0; nc < count; nc++, offset += 4)
+		{
 			ipc_data_writel(scu, wbuf[nc], offset);
+		}
+
 		ipc_command(scu, (count * 2) << 16 | id << 12 | 0 << 8 | op);
-	} else if (id == IPC_CMD_PCNTRL_W) {
+	}
+	else if (id == IPC_CMD_PCNTRL_W)
+	{
 		for (nc = 0; nc < count; nc++, offset += 1)
+		{
 			cbuf[offset] = data[nc];
+		}
+
 		for (nc = 0, offset = 0; nc < count; nc++, offset += 4)
+		{
 			ipc_data_writel(scu, wbuf[nc], offset);
+		}
+
 		ipc_command(scu, (count * 3) << 16 | id << 12 | 0 << 8 | op);
-	} else if (id == IPC_CMD_PCNTRL_M) {
+	}
+	else if (id == IPC_CMD_PCNTRL_M)
+	{
 		cbuf[offset] = data[0];
 		cbuf[offset + 1] = data[1];
 		ipc_data_writel(scu, wbuf[0], 0); /* Write wbuff */
@@ -251,12 +282,18 @@ static int pwr_reg_rdwr(u16 *addr, u8 *data, u32 count, u32 op, u32 id)
 	}
 
 	err = intel_scu_ipc_check_status(scu);
-	if (!err && id == IPC_CMD_PCNTRL_R) { /* Read rbuf */
+
+	if (!err && id == IPC_CMD_PCNTRL_R)   /* Read rbuf */
+	{
 		/* Workaround: values are read as 0 without memcpy_fromio */
 		memcpy_fromio(cbuf, scu->ipc_base + 0x90, 16);
+
 		for (nc = 0; nc < count; nc++)
+		{
 			data[nc] = ipc_data_readb(scu, nc);
+		}
 	}
+
 	mutex_unlock(&ipclock);
 	return err;
 }
@@ -440,10 +477,13 @@ int intel_scu_ipc_simple_command(int cmd, int sub)
 	int err;
 
 	mutex_lock(&ipclock);
-	if (scu->dev == NULL) {
+
+	if (scu->dev == NULL)
+	{
 		mutex_unlock(&ipclock);
 		return -ENODEV;
 	}
+
 	ipc_command(scu, sub << 12 | cmd);
 	err = intel_scu_ipc_check_status(scu);
 	mutex_unlock(&ipclock);
@@ -464,26 +504,33 @@ EXPORT_SYMBOL(intel_scu_ipc_simple_command);
  *	data copies under the lock but leave it for the caller to interpret
  */
 int intel_scu_ipc_command(int cmd, int sub, u32 *in, int inlen,
-			  u32 *out, int outlen)
+						  u32 *out, int outlen)
 {
 	struct intel_scu_ipc_dev *scu = &ipcdev;
 	int i, err;
 
 	mutex_lock(&ipclock);
-	if (scu->dev == NULL) {
+
+	if (scu->dev == NULL)
+	{
 		mutex_unlock(&ipclock);
 		return -ENODEV;
 	}
 
 	for (i = 0; i < inlen; i++)
+	{
 		ipc_data_writel(scu, *in++, 4 * i);
+	}
 
 	ipc_command(scu, (inlen << 16) | (sub << 12) | cmd);
 	err = intel_scu_ipc_check_status(scu);
 
-	if (!err) {
+	if (!err)
+	{
 		for (i = 0; i < outlen; i++)
+		{
 			*out++ = ipc_data_readl(scu, 4 * i);
+		}
 	}
 
 	mutex_unlock(&ipclock);
@@ -513,27 +560,37 @@ int intel_scu_ipc_i2c_cntrl(u32 addr, u32 *data)
 	u32 cmd = 0;
 
 	mutex_lock(&ipclock);
-	if (scu->dev == NULL) {
+
+	if (scu->dev == NULL)
+	{
 		mutex_unlock(&ipclock);
 		return -ENODEV;
 	}
+
 	cmd = (addr >> 24) & 0xFF;
-	if (cmd == IPC_I2C_READ) {
+
+	if (cmd == IPC_I2C_READ)
+	{
 		writel(addr, scu->i2c_base + IPC_I2C_CNTRL_ADDR);
 		/* Write not getting updated without delay */
 		mdelay(1);
 		*data = readl(scu->i2c_base + I2C_DATA_ADDR);
-	} else if (cmd == IPC_I2C_WRITE) {
+	}
+	else if (cmd == IPC_I2C_WRITE)
+	{
 		writel(*data, scu->i2c_base + I2C_DATA_ADDR);
 		mdelay(1);
 		writel(addr, scu->i2c_base + IPC_I2C_CNTRL_ADDR);
-	} else {
+	}
+	else
+	{
 		dev_err(scu->dev,
-			"intel_scu_ipc: I2C INVALID_CMD = 0x%x\n", cmd);
+				"intel_scu_ipc: I2C INVALID_CMD = 0x%x\n", cmd);
 
 		mutex_unlock(&ipclock);
 		return -EIO;
 	}
+
 	mutex_unlock(&ipclock);
 	return 0;
 }
@@ -551,7 +608,9 @@ static irqreturn_t ioc(int irq, void *dev_id)
 	struct intel_scu_ipc_dev *scu = dev_id;
 
 	if (scu->irq_mode)
+	{
 		complete(&scu->cmd_complete);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -572,11 +631,16 @@ static int ipc_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	struct intel_scu_ipc_pdata_t *pdata;
 
 	platform = intel_mid_identify_cpu();
+
 	if (platform == 0)
+	{
 		return -ENODEV;
+	}
 
 	if (scu->dev)		/* We support only one SCU */
+	{
 		return -EBUSY;
+	}
 
 	pdata = (struct intel_scu_ipc_pdata_t *)id->driver_data;
 
@@ -584,25 +648,37 @@ static int ipc_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	scu->irq_mode = pdata->irq_mode;
 
 	err = pcim_enable_device(pdev);
+
 	if (err)
+	{
 		return err;
+	}
 
 	err = pcim_iomap_regions(pdev, 1 << 0, pci_name(pdev));
+
 	if (err)
+	{
 		return err;
+	}
 
 	init_completion(&scu->cmd_complete);
 
 	err = devm_request_irq(&pdev->dev, pdev->irq, ioc, 0, "intel_scu_ipc",
-			       scu);
+						   scu);
+
 	if (err)
+	{
 		return err;
+	}
 
 	scu->ipc_base = pcim_iomap_table(pdev)[0];
 
 	scu->i2c_base = ioremap_nocache(pdata->i2c_base, pdata->i2c_len);
+
 	if (!scu->i2c_base)
+	{
 		return -ENOMEM;
+	}
 
 	intel_scu_devices_create();
 
@@ -610,25 +686,27 @@ static int ipc_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	return 0;
 }
 
-static const struct pci_device_id pci_ids[] = {
+static const struct pci_device_id pci_ids[] =
+{
 	{
 		PCI_VDEVICE(INTEL, PCI_DEVICE_ID_LINCROFT),
-		(kernel_ulong_t)&intel_scu_ipc_lincroft_pdata,
+		(kernel_ulong_t) &intel_scu_ipc_lincroft_pdata,
 	}, {
 		PCI_VDEVICE(INTEL, PCI_DEVICE_ID_PENWELL),
-		(kernel_ulong_t)&intel_scu_ipc_penwell_pdata,
+		(kernel_ulong_t) &intel_scu_ipc_penwell_pdata,
 	}, {
 		PCI_VDEVICE(INTEL, PCI_DEVICE_ID_CLOVERVIEW),
-		(kernel_ulong_t)&intel_scu_ipc_penwell_pdata,
+		(kernel_ulong_t) &intel_scu_ipc_penwell_pdata,
 	}, {
 		PCI_VDEVICE(INTEL, PCI_DEVICE_ID_TANGIER),
-		(kernel_ulong_t)&intel_scu_ipc_tangier_pdata,
+		(kernel_ulong_t) &intel_scu_ipc_tangier_pdata,
 	}, {
 		0,
 	}
 };
 
-static struct pci_driver ipc_driver = {
+static struct pci_driver ipc_driver =
+{
 	.driver = {
 		.suppress_bind_attrs = true,
 	},

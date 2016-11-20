@@ -12,7 +12,8 @@
 #include <crypto/pkcs7.h>
 #include <crypto/hash_info.h>
 
-struct pefile_context {
+struct pefile_context
+{
 	unsigned	header_size;
 	unsigned	image_checksum_offset;
 	unsigned	cert_dirent_offset;
@@ -38,4 +39,4 @@ struct pefile_context {
  * mscode_parser.c
  */
 extern int mscode_parse(void *_ctx, const void *content_data, size_t data_len,
-			size_t asn1hdrlen);
+						size_t asn1hdrlen);

@@ -67,8 +67,8 @@
 #define IR_TX_ENABLE		(1 << 12)
 #define IR_LOOPBACK		(1 << 14)
 #define IR_SIR_MODE		(IR_SIR | IR_DMA_ENABLE | \
-				 IR_RX_ALL | IR_RX_ENABLE | IR_SF | \
-				 IR_16CRC)
+						 IR_RX_ALL | IR_RX_ENABLE | IR_SF | \
+						 IR_16CRC)
 
 /* ir_status */
 #define IR_RX_STATUS		(1 << 9)
@@ -124,15 +124,17 @@
 #define IR_FIFO_OVER	(1 << 3) /* rx */
 #define IR_SIR_ERROR	(1 << 2) /* rx */
 #define IR_RX_ERROR	(IR_PHY_ERROR | IR_CRC_ERROR | \
-			 IR_MAX_LEN | IR_FIFO_OVER | IR_SIR_ERROR)
+					 IR_MAX_LEN | IR_FIFO_OVER | IR_SIR_ERROR)
 
-struct db_dest {
+struct db_dest
+{
 	struct db_dest *pnext;
 	volatile u32 *vaddr;
 	dma_addr_t dma_addr;
 };
 
-struct ring_dest {
+struct ring_dest
+{
 	u8 count_0;	/* 7:0  */
 	u8 count_1;	/* 12:8 */
 	u8 reserved;
@@ -144,7 +146,8 @@ struct ring_dest {
 };
 
 /* Private data for each instance */
-struct au1k_private {
+struct au1k_private
+{
 	void __iomem *iobase;
 	int irq_rx, irq_tx;
 
@@ -183,11 +186,13 @@ static int qos_mtt_bits = 0x07;  /* 1 ms or more */
 static void au1k_irda_plat_set_phy_mode(struct au1k_private *p, int mode)
 {
 	if (p->platdata && p->platdata->set_phy_mode)
+	{
 		p->platdata->set_phy_mode(mode);
+	}
 }
 
 static inline unsigned long irda_read(struct au1k_private *p,
-				      unsigned long ofs)
+									  unsigned long ofs)
 {
 	/*
 	* IrDA peripheral bug. You have to read the register
@@ -198,7 +203,7 @@ static inline unsigned long irda_read(struct au1k_private *p,
 }
 
 static inline void irda_write(struct au1k_private *p, unsigned long ofs,
-			      unsigned long val)
+							  unsigned long val)
 {
 	__raw_writel(val, p->iobase + ofs);
 	wmb();
@@ -215,7 +220,10 @@ static struct db_dest *GetFreeDB(struct au1k_private *aup)
 	db = aup->pDBfree;
 
 	if (db)
+	{
 		aup->pDBfree = db->pnext;
+	}
+
 	return db;
 }
 
@@ -231,11 +239,13 @@ static void *dma_alloc(size_t size, dma_addr_t *dma_handle)
 
 	ret = (void *)__get_free_pages(gfp, get_order(size));
 
-	if (ret != NULL) {
+	if (ret != NULL)
+	{
 		memset(ret, 0, size);
 		*dma_handle = virt_to_bus(ret);
 		ret = (void *)KSEG0ADDR(ret);
 	}
+
 	return ret;
 }
 
@@ -249,25 +259,32 @@ static void dma_free(void *vaddr, size_t size)
 static void setup_hw_rings(struct au1k_private *aup, u32 rx_base, u32 tx_base)
 {
 	int i;
-	for (i = 0; i < NUM_IR_DESC; i++) {
+
+	for (i = 0; i < NUM_IR_DESC; i++)
+	{
 		aup->rx_ring[i] = (volatile struct ring_dest *)
-			(rx_base + sizeof(struct ring_dest) * i);
+						  (rx_base + sizeof(struct ring_dest) * i);
 	}
-	for (i = 0; i < NUM_IR_DESC; i++) {
+
+	for (i = 0; i < NUM_IR_DESC; i++)
+	{
 		aup->tx_ring[i] = (volatile struct ring_dest *)
-			(tx_base + sizeof(struct ring_dest) * i);
+						  (tx_base + sizeof(struct ring_dest) * i);
 	}
 }
 
 static int au1k_irda_init_iobuf(iobuff_t *io, int size)
 {
 	io->head = kmalloc(size, GFP_KERNEL);
-	if (io->head != NULL) {
+
+	if (io->head != NULL)
+	{
 		io->truesize	= size;
 		io->in_frame	= FALSE;
 		io->state	= OUTSIDE_FRAME;
 		io->data	= io->head;
 	}
+
 	return io->head ? 0 : -ENOMEM;
 }
 
@@ -282,7 +299,9 @@ static int au1k_irda_set_speed(struct net_device *dev, int speed)
 	int ret = 0, timeout = 10, i;
 
 	if (speed == aup->speed)
+	{
 		return ret;
+	}
 
 	/* disable PHY first */
 	au1k_irda_plat_set_phy_mode(aup, AU1000_IRDA_PHY_MODE_OFF);
@@ -290,32 +309,39 @@ static int au1k_irda_set_speed(struct net_device *dev, int speed)
 
 	/* disable RX/TX */
 	irda_write(aup, IR_CONFIG_1,
-	    irda_read(aup, IR_CONFIG_1) & ~(IR_RX_ENABLE | IR_TX_ENABLE));
+			   irda_read(aup, IR_CONFIG_1) & ~(IR_RX_ENABLE | IR_TX_ENABLE));
 	msleep(20);
-	while (irda_read(aup, IR_STATUS) & (IR_RX_STATUS | IR_TX_STATUS)) {
+
+	while (irda_read(aup, IR_STATUS) & (IR_RX_STATUS | IR_TX_STATUS))
+	{
 		msleep(20);
-		if (!timeout--) {
+
+		if (!timeout--)
+		{
 			printk(KERN_ERR "%s: rx/tx disable timeout\n",
-					dev->name);
+				   dev->name);
 			break;
 		}
 	}
 
 	/* disable DMA */
 	irda_write(aup, IR_CONFIG_1,
-		   irda_read(aup, IR_CONFIG_1) & ~IR_DMA_ENABLE);
+			   irda_read(aup, IR_CONFIG_1) & ~IR_DMA_ENABLE);
 	msleep(20);
 
 	/* After we disable tx/rx. the index pointers go back to zero. */
 	aup->tx_head = aup->tx_tail = aup->rx_head = 0;
-	for (i = 0; i < NUM_IR_DESC; i++) {
+
+	for (i = 0; i < NUM_IR_DESC; i++)
+	{
 		ptxd = aup->tx_ring[i];
 		ptxd->flags = 0;
 		ptxd->count_0 = 0;
 		ptxd->count_1 = 0;
 	}
 
-	for (i = 0; i < NUM_IR_DESC; i++) {
+	for (i = 0; i < NUM_IR_DESC; i++)
+	{
 		ptxd = aup->rx_ring[i];
 		ptxd->count_0 = 0;
 		ptxd->count_1 = 0;
@@ -323,40 +349,51 @@ static int au1k_irda_set_speed(struct net_device *dev, int speed)
 	}
 
 	if (speed == 4000000)
+	{
 		au1k_irda_plat_set_phy_mode(aup, AU1000_IRDA_PHY_MODE_FIR);
+	}
 	else
+	{
 		au1k_irda_plat_set_phy_mode(aup, AU1000_IRDA_PHY_MODE_SIR);
+	}
 
-	switch (speed) {
-	case 9600:
-		irda_write(aup, IR_WRITE_PHY_CONFIG, IR_BR(11) | IR_PW(12));
-		irda_write(aup, IR_CONFIG_1, IR_SIR_MODE);
-		break;
-	case 19200:
-		irda_write(aup, IR_WRITE_PHY_CONFIG, IR_BR(5) | IR_PW(12));
-		irda_write(aup, IR_CONFIG_1, IR_SIR_MODE);
-		break;
-	case 38400:
-		irda_write(aup, IR_WRITE_PHY_CONFIG, IR_BR(2) | IR_PW(12));
-		irda_write(aup, IR_CONFIG_1, IR_SIR_MODE);
-		break;
-	case 57600:
-		irda_write(aup, IR_WRITE_PHY_CONFIG, IR_BR(1) | IR_PW(12));
-		irda_write(aup, IR_CONFIG_1, IR_SIR_MODE);
-		break;
-	case 115200:
-		irda_write(aup, IR_WRITE_PHY_CONFIG, IR_PW(12));
-		irda_write(aup, IR_CONFIG_1, IR_SIR_MODE);
-		break;
-	case 4000000:
-		irda_write(aup, IR_WRITE_PHY_CONFIG, IR_P(15));
-		irda_write(aup, IR_CONFIG_1, IR_FIR | IR_DMA_ENABLE |
-				IR_RX_ENABLE);
-		break;
-	default:
-		printk(KERN_ERR "%s unsupported speed %x\n", dev->name, speed);
-		ret = -EINVAL;
-		break;
+	switch (speed)
+	{
+		case 9600:
+			irda_write(aup, IR_WRITE_PHY_CONFIG, IR_BR(11) | IR_PW(12));
+			irda_write(aup, IR_CONFIG_1, IR_SIR_MODE);
+			break;
+
+		case 19200:
+			irda_write(aup, IR_WRITE_PHY_CONFIG, IR_BR(5) | IR_PW(12));
+			irda_write(aup, IR_CONFIG_1, IR_SIR_MODE);
+			break;
+
+		case 38400:
+			irda_write(aup, IR_WRITE_PHY_CONFIG, IR_BR(2) | IR_PW(12));
+			irda_write(aup, IR_CONFIG_1, IR_SIR_MODE);
+			break;
+
+		case 57600:
+			irda_write(aup, IR_WRITE_PHY_CONFIG, IR_BR(1) | IR_PW(12));
+			irda_write(aup, IR_CONFIG_1, IR_SIR_MODE);
+			break;
+
+		case 115200:
+			irda_write(aup, IR_WRITE_PHY_CONFIG, IR_PW(12));
+			irda_write(aup, IR_CONFIG_1, IR_SIR_MODE);
+			break;
+
+		case 4000000:
+			irda_write(aup, IR_WRITE_PHY_CONFIG, IR_P(15));
+			irda_write(aup, IR_CONFIG_1, IR_FIR | IR_DMA_ENABLE |
+					   IR_RX_ENABLE);
+			break;
+
+		default:
+			printk(KERN_ERR "%s unsupported speed %x\n", dev->name, speed);
+			ret = -EINVAL;
+			break;
 	}
 
 	aup->speed = speed;
@@ -365,19 +402,36 @@ static int au1k_irda_set_speed(struct net_device *dev, int speed)
 	control = irda_read(aup, IR_STATUS);
 	irda_write(aup, IR_RING_PROMPT, 0);
 
-	if (control & (1 << 14)) {
+	if (control & (1 << 14))
+	{
 		printk(KERN_ERR "%s: configuration error\n", dev->name);
-	} else {
+	}
+	else
+	{
 		if (control & (1 << 11))
+		{
 			printk(KERN_DEBUG "%s Valid SIR config\n", dev->name);
+		}
+
 		if (control & (1 << 12))
+		{
 			printk(KERN_DEBUG "%s Valid MIR config\n", dev->name);
+		}
+
 		if (control & (1 << 13))
+		{
 			printk(KERN_DEBUG "%s Valid FIR config\n", dev->name);
+		}
+
 		if (control & (1 << 10))
+		{
 			printk(KERN_DEBUG "%s TX enabled\n", dev->name);
+		}
+
 		if (control & (1 << 9))
+		{
 			printk(KERN_DEBUG "%s RX enabled\n", dev->name);
+		}
 	}
 
 	return ret;
@@ -389,16 +443,29 @@ static void update_rx_stats(struct net_device *dev, u32 status, u32 count)
 
 	ps->rx_packets++;
 
-	if (status & IR_RX_ERROR) {
+	if (status & IR_RX_ERROR)
+	{
 		ps->rx_errors++;
+
 		if (status & (IR_PHY_ERROR | IR_FIFO_OVER))
+		{
 			ps->rx_missed_errors++;
+		}
+
 		if (status & IR_MAX_LEN)
+		{
 			ps->rx_length_errors++;
+		}
+
 		if (status & IR_CRC_ERROR)
+		{
 			ps->rx_crc_errors++;
-	} else
+		}
+	}
+	else
+	{
 		ps->rx_bytes += count;
+	}
 }
 
 static void update_tx_stats(struct net_device *dev, u32 status, u32 pkt_len)
@@ -408,7 +475,8 @@ static void update_tx_stats(struct net_device *dev, u32 status, u32 pkt_len)
 	ps->tx_packets++;
 	ps->tx_bytes += pkt_len;
 
-	if (status & IR_TX_ERROR) {
+	if (status & IR_TX_ERROR)
+	{
 		ps->tx_errors++;
 		ps->tx_aborted_errors++;
 	}
@@ -420,30 +488,37 @@ static void au1k_tx_ack(struct net_device *dev)
 	volatile struct ring_dest *ptxd;
 
 	ptxd = aup->tx_ring[aup->tx_tail];
-	while (!(ptxd->flags & AU_OWN) && (aup->tx_tail != aup->tx_head)) {
+
+	while (!(ptxd->flags & AU_OWN) && (aup->tx_tail != aup->tx_head))
+	{
 		update_tx_stats(dev, ptxd->flags,
-				(ptxd->count_1 << 8) | ptxd->count_0);
+						(ptxd->count_1 << 8) | ptxd->count_0);
 		ptxd->count_0 = 0;
 		ptxd->count_1 = 0;
 		wmb();
 		aup->tx_tail = (aup->tx_tail + 1) & (NUM_IR_DESC - 1);
 		ptxd = aup->tx_ring[aup->tx_tail];
 
-		if (aup->tx_full) {
+		if (aup->tx_full)
+		{
 			aup->tx_full = 0;
 			netif_wake_queue(dev);
 		}
 	}
 
-	if (aup->tx_tail == aup->tx_head) {
-		if (aup->newspeed) {
+	if (aup->tx_tail == aup->tx_head)
+	{
+		if (aup->newspeed)
+		{
 			au1k_irda_set_speed(dev, aup->newspeed);
 			aup->newspeed = 0;
-		} else {
+		}
+		else
+		{
 			irda_write(aup, IR_CONFIG_1,
-			    irda_read(aup, IR_CONFIG_1) & ~IR_TX_ENABLE);
+					   irda_read(aup, IR_CONFIG_1) & ~IR_TX_ENABLE);
 			irda_write(aup, IR_CONFIG_1,
-			    irda_read(aup, IR_CONFIG_1) | IR_RX_ENABLE);
+					   irda_read(aup, IR_CONFIG_1) | IR_RX_ENABLE);
 			irda_write(aup, IR_RING_PROMPT, 0);
 		}
 	}
@@ -460,24 +535,36 @@ static int au1k_irda_rx(struct net_device *dev)
 	prxd = aup->rx_ring[aup->rx_head];
 	flags = prxd->flags;
 
-	while (!(flags & AU_OWN))  {
+	while (!(flags & AU_OWN))
+	{
 		pDB = aup->rx_db_inuse[aup->rx_head];
 		count = (prxd->count_1 << 8) | prxd->count_0;
-		if (!(flags & IR_RX_ERROR)) {
+
+		if (!(flags & IR_RX_ERROR))
+		{
 			/* good frame */
 			update_rx_stats(dev, flags, count);
 			skb = alloc_skb(count + 1, GFP_ATOMIC);
-			if (skb == NULL) {
+
+			if (skb == NULL)
+			{
 				dev->stats.rx_dropped++;
 				continue;
 			}
+
 			skb_reserve(skb, 1);
+
 			if (aup->speed == 4000000)
+			{
 				skb_put(skb, count);
+			}
 			else
+			{
 				skb_put(skb, count - 2);
+			}
+
 			skb_copy_to_linear_data(skb, (void *)pDB->vaddr,
-						count - 2);
+									count - 2);
 			skb->dev = dev;
 			skb_reset_mac_header(skb);
 			skb->protocol = htons(ETH_P_IRDA);
@@ -485,6 +572,7 @@ static int au1k_irda_rx(struct net_device *dev)
 			prxd->count_0 = 0;
 			prxd->count_1 = 0;
 		}
+
 		prxd->flags |= AU_OWN;
 		aup->rx_head = (aup->rx_head + 1) & (NUM_IR_DESC - 1);
 		irda_write(aup, IR_RING_PROMPT, 0);
@@ -494,6 +582,7 @@ static int au1k_irda_rx(struct net_device *dev)
 		flags = prxd->flags;
 
 	}
+
 	return 0;
 }
 
@@ -518,32 +607,44 @@ static int au1k_init(struct net_device *dev)
 	int i;
 
 	c = clk_get(NULL, "irda_clk");
+
 	if (IS_ERR(c))
+	{
 		return PTR_ERR(c);
+	}
+
 	i = clk_prepare_enable(c);
-	if (i) {
+
+	if (i)
+	{
 		clk_put(c);
 		return i;
 	}
 
-	switch (clk_get_rate(c)) {
-	case 40000000:
-		phyck = IR_PHYCLK_40MHZ;
-		break;
-	case 48000000:
-		phyck = IR_PHYCLK_48MHZ;
-		break;
-	case 56000000:
-		phyck = IR_PHYCLK_56MHZ;
-		break;
-	case 64000000:
-		phyck = IR_PHYCLK_64MHZ;
-		break;
-	default:
-		clk_disable_unprepare(c);
-		clk_put(c);
-		return -EINVAL;
+	switch (clk_get_rate(c))
+	{
+		case 40000000:
+			phyck = IR_PHYCLK_40MHZ;
+			break;
+
+		case 48000000:
+			phyck = IR_PHYCLK_48MHZ;
+			break;
+
+		case 56000000:
+			phyck = IR_PHYCLK_56MHZ;
+			break;
+
+		case 64000000:
+			phyck = IR_PHYCLK_64MHZ;
+			break;
+
+		default:
+			clk_disable_unprepare(c);
+			clk_put(c);
+			return -EINVAL;
 	}
+
 	aup->irda_clk = c;
 
 	enable = IR_HC | IR_CE | IR_C;
@@ -555,7 +656,9 @@ static int au1k_init(struct net_device *dev)
 	aup->rx_head = 0;
 
 	for (i = 0; i < NUM_IR_DESC; i++)
+	{
 		aup->rx_ring[i]->flags = AU_OWN;
+	}
 
 	irda_write(aup, IR_ENABLE, enable);
 	msleep(20);
@@ -572,7 +675,7 @@ static int au1k_init(struct net_device *dev)
 	irda_write(aup, IR_RING_BASE_ADDR_L, (ring_address >> 10) & 0xffff);
 
 	irda_write(aup, IR_RING_SIZE,
-				(RING_SIZE_64 << 8) | (RING_SIZE_64 << 12));
+			   (RING_SIZE_64 << 8) | (RING_SIZE_64 << 12));
 
 	irda_write(aup, IR_CONFIG_2, phyck | IR_ONE_PIN);
 	irda_write(aup, IR_RING_ADDR_CMPR, 0);
@@ -588,24 +691,31 @@ static int au1k_irda_start(struct net_device *dev)
 	int retval;
 
 	retval = au1k_init(dev);
-	if (retval) {
+
+	if (retval)
+	{
 		printk(KERN_ERR "%s: error in au1k_init\n", dev->name);
 		return retval;
 	}
 
 	retval = request_irq(aup->irq_tx, &au1k_irda_interrupt, 0,
-			     dev->name, dev);
-	if (retval) {
+						 dev->name, dev);
+
+	if (retval)
+	{
 		printk(KERN_ERR "%s: unable to get IRQ %d\n",
-				dev->name, dev->irq);
+			   dev->name, dev->irq);
 		return retval;
 	}
+
 	retval = request_irq(aup->irq_rx, &au1k_irda_interrupt, 0,
-			     dev->name, dev);
-	if (retval) {
+						 dev->name, dev);
+
+	if (retval)
+	{
 		free_irq(aup->irq_tx, dev);
 		printk(KERN_ERR "%s: unable to get IRQ %d\n",
-				dev->name, dev->irq);
+			   dev->name, dev->irq);
 		return retval;
 	}
 
@@ -636,7 +746,8 @@ static int au1k_irda_stop(struct net_device *dev)
 	irda_write(aup, IR_CONFIG_1, 0);
 	irda_write(aup, IR_ENABLE, 0); /* disable clock */
 
-	if (aup->irlap) {
+	if (aup->irlap)
+	{
 		irlap_close(aup->irlap);
 		aup->irlap = NULL;
 	}
@@ -666,13 +777,18 @@ static int au1k_irda_hard_xmit(struct sk_buff *skb, struct net_device *dev)
 	u32 len, flags;
 
 	if (speed != aup->speed && speed != -1)
+	{
 		aup->newspeed = speed;
+	}
 
-	if ((skb->len == 0) && (aup->newspeed)) {
-		if (aup->tx_tail == aup->tx_head) {
+	if ((skb->len == 0) && (aup->newspeed))
+	{
+		if (aup->tx_tail == aup->tx_head)
+		{
 			au1k_irda_set_speed(dev, speed);
 			aup->newspeed = 0;
 		}
+
 		dev_kfree_skb(skb);
 		return NETDEV_TX_OK;
 	}
@@ -680,12 +796,15 @@ static int au1k_irda_hard_xmit(struct sk_buff *skb, struct net_device *dev)
 	ptxd = aup->tx_ring[aup->tx_head];
 	flags = ptxd->flags;
 
-	if (flags & AU_OWN) {
+	if (flags & AU_OWN)
+	{
 		printk(KERN_DEBUG "%s: tx_full\n", dev->name);
 		netif_stop_queue(dev);
 		aup->tx_full = 1;
 		return 1;
-	} else if (((aup->tx_head + 1) & (NUM_IR_DESC - 1)) == aup->tx_tail) {
+	}
+	else if (((aup->tx_head + 1) & (NUM_IR_DESC - 1)) == aup->tx_tail)
+	{
 		printk(KERN_DEBUG "%s: tx_full\n", dev->name);
 		netif_stop_queue(dev);
 		aup->tx_full = 1;
@@ -695,29 +814,36 @@ static int au1k_irda_hard_xmit(struct sk_buff *skb, struct net_device *dev)
 	pDB = aup->tx_db_inuse[aup->tx_head];
 
 #if 0
-	if (irda_read(aup, IR_RX_BYTE_CNT) != 0) {
+
+	if (irda_read(aup, IR_RX_BYTE_CNT) != 0)
+	{
 		printk(KERN_DEBUG "tx warning: rx byte cnt %x\n",
-				irda_read(aup, IR_RX_BYTE_CNT));
+			   irda_read(aup, IR_RX_BYTE_CNT));
 	}
+
 #endif
 
-	if (aup->speed == 4000000) {
+	if (aup->speed == 4000000)
+	{
 		/* FIR */
 		skb_copy_from_linear_data(skb, (void *)pDB->vaddr, skb->len);
 		ptxd->count_0 = skb->len & 0xff;
 		ptxd->count_1 = (skb->len >> 8) & 0xff;
-	} else {
+	}
+	else
+	{
 		/* SIR */
 		len = async_wrap_skb(skb, (u8 *)pDB->vaddr, MAX_BUF_SIZE);
 		ptxd->count_0 = len & 0xff;
 		ptxd->count_1 = (len >> 8) & 0xff;
 		ptxd->flags |= IR_DIS_CRC;
 	}
+
 	ptxd->flags |= AU_OWN;
 	wmb();
 
 	irda_write(aup, IR_CONFIG_1,
-		   irda_read(aup, IR_CONFIG_1) | IR_TX_ENABLE);
+			   irda_read(aup, IR_CONFIG_1) | IR_TX_ENABLE);
 	irda_write(aup, IR_RING_PROMPT, 0);
 
 	dev_kfree_skb(skb);
@@ -748,42 +874,52 @@ static int au1k_irda_ioctl(struct net_device *dev, struct ifreq *ifreq, int cmd)
 	struct au1k_private *aup = netdev_priv(dev);
 	int ret = -EOPNOTSUPP;
 
-	switch (cmd) {
-	case SIOCSBANDWIDTH:
-		if (capable(CAP_NET_ADMIN)) {
-			/*
-			 * We are unable to set the speed if the
-			 * device is not running.
-			 */
-			if (aup->open)
-				ret = au1k_irda_set_speed(dev,
-						rq->ifr_baudrate);
-			else {
-				printk(KERN_ERR "%s ioctl: !netif_running\n",
-						dev->name);
+	switch (cmd)
+	{
+		case SIOCSBANDWIDTH:
+			if (capable(CAP_NET_ADMIN))
+			{
+				/*
+				 * We are unable to set the speed if the
+				 * device is not running.
+				 */
+				if (aup->open)
+					ret = au1k_irda_set_speed(dev,
+											  rq->ifr_baudrate);
+				else
+				{
+					printk(KERN_ERR "%s ioctl: !netif_running\n",
+						   dev->name);
+					ret = 0;
+				}
+			}
+
+			break;
+
+		case SIOCSMEDIABUSY:
+			ret = -EPERM;
+
+			if (capable(CAP_NET_ADMIN))
+			{
+				irda_device_set_media_busy(dev, TRUE);
 				ret = 0;
 			}
-		}
-		break;
 
-	case SIOCSMEDIABUSY:
-		ret = -EPERM;
-		if (capable(CAP_NET_ADMIN)) {
-			irda_device_set_media_busy(dev, TRUE);
-			ret = 0;
-		}
-		break;
+			break;
 
-	case SIOCGRECEIVING:
-		rq->ifr_receiving = 0;
-		break;
-	default:
-		break;
+		case SIOCGRECEIVING:
+			rq->ifr_receiving = 0;
+			break;
+
+		default:
+			break;
 	}
+
 	return ret;
 }
 
-static const struct net_device_ops au1k_irda_netdev_ops = {
+static const struct net_device_ops au1k_irda_netdev_ops =
+{
 	.ndo_open		= au1k_irda_start,
 	.ndo_stop		= au1k_irda_stop,
 	.ndo_start_xmit		= au1k_irda_hard_xmit,
@@ -799,8 +935,11 @@ static int au1k_irda_net_init(struct net_device *dev)
 	dma_addr_t temp;
 
 	err = au1k_irda_init_iobuf(&aup->rx_buff, 14384);
+
 	if (err)
+	{
 		goto out1;
+	}
 
 	dev->netdev_ops = &au1k_irda_netdev_ops;
 
@@ -808,7 +947,7 @@ static int au1k_irda_net_init(struct net_device *dev)
 
 	/* The only value we must override it the baudrate */
 	aup->qos.baud_rate.bits = IR_9600 | IR_19200 | IR_38400 |
-		IR_57600 | IR_115200 | IR_576000 | (IR_4000000 << 8);
+							  IR_57600 | IR_115200 | IR_576000 | (IR_4000000 << 8);
 
 	aup->qos.min_turn_time.bits = qos_mtt_bits;
 	irda_qos_bits_to_value(&aup->qos);
@@ -818,46 +957,66 @@ static int au1k_irda_net_init(struct net_device *dev)
 	/* Tx ring follows rx ring + 512 bytes */
 	/* we need a 1k aligned buffer */
 	aup->rx_ring[0] = (struct ring_dest *)
-		dma_alloc(2 * MAX_NUM_IR_DESC * (sizeof(struct ring_dest)),
-			  &temp);
+					  dma_alloc(2 * MAX_NUM_IR_DESC * (sizeof(struct ring_dest)),
+								&temp);
+
 	if (!aup->rx_ring[0])
+	{
 		goto out2;
+	}
 
 	/* allocate the data buffers */
 	aup->db[0].vaddr =
 		dma_alloc(MAX_BUF_SIZE * 2 * NUM_IR_DESC, &temp);
+
 	if (!aup->db[0].vaddr)
+	{
 		goto out3;
+	}
 
 	setup_hw_rings(aup, (u32)aup->rx_ring[0], (u32)aup->rx_ring[0] + 512);
 
 	pDBfree = NULL;
 	pDB = aup->db;
-	for (i = 0; i < (2 * NUM_IR_DESC); i++) {
+
+	for (i = 0; i < (2 * NUM_IR_DESC); i++)
+	{
 		pDB->pnext = pDBfree;
 		pDBfree = pDB;
 		pDB->vaddr =
-		       (u32 *)((unsigned)aup->db[0].vaddr + (MAX_BUF_SIZE * i));
+			(u32 *)((unsigned)aup->db[0].vaddr + (MAX_BUF_SIZE * i));
 		pDB->dma_addr = (dma_addr_t)virt_to_bus(pDB->vaddr);
 		pDB++;
 	}
+
 	aup->pDBfree = pDBfree;
 
 	/* attach a data buffer to each descriptor */
-	for (i = 0; i < NUM_IR_DESC; i++) {
+	for (i = 0; i < NUM_IR_DESC; i++)
+	{
 		pDB = GetFreeDB(aup);
+
 		if (!pDB)
+		{
 			goto out3;
+		}
+
 		aup->rx_ring[i]->addr_0 = (u8)(pDB->dma_addr & 0xff);
 		aup->rx_ring[i]->addr_1 = (u8)((pDB->dma_addr >>  8) & 0xff);
 		aup->rx_ring[i]->addr_2 = (u8)((pDB->dma_addr >> 16) & 0xff);
 		aup->rx_ring[i]->addr_3 = (u8)((pDB->dma_addr >> 24) & 0xff);
 		aup->rx_db_inuse[i] = pDB;
 	}
-	for (i = 0; i < NUM_IR_DESC; i++) {
+
+	for (i = 0; i < NUM_IR_DESC; i++)
+	{
 		pDB = GetFreeDB(aup);
+
 		if (!pDB)
+		{
 			goto out3;
+		}
+
 		aup->tx_ring[i]->addr_0 = (u8)(pDB->dma_addr & 0xff);
 		aup->tx_ring[i]->addr_1 = (u8)((pDB->dma_addr >>  8) & 0xff);
 		aup->tx_ring[i]->addr_2 = (u8)((pDB->dma_addr >> 16) & 0xff);
@@ -872,7 +1031,7 @@ static int au1k_irda_net_init(struct net_device *dev)
 
 out3:
 	dma_free((void *)aup->rx_ring[0],
-		2 * MAX_NUM_IR_DESC * (sizeof(struct ring_dest)));
+			 2 * MAX_NUM_IR_DESC * (sizeof(struct ring_dest)));
 out2:
 	kfree(aup->rx_buff.head);
 out1:
@@ -889,8 +1048,11 @@ static int au1k_irda_probe(struct platform_device *pdev)
 	int err;
 
 	dev = alloc_irdadev(sizeof(struct au1k_private));
+
 	if (!dev)
+	{
 		return -ENOMEM;
+	}
 
 	aup = netdev_priv(dev);
 
@@ -898,47 +1060,72 @@ static int au1k_irda_probe(struct platform_device *pdev)
 
 	err = -EINVAL;
 	r = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+
 	if (!r)
+	{
 		goto out;
+	}
 
 	aup->irq_tx = r->start;
 
 	r = platform_get_resource(pdev, IORESOURCE_IRQ, 1);
+
 	if (!r)
+	{
 		goto out;
+	}
 
 	aup->irq_rx = r->start;
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
 	if (!r)
+	{
 		goto out;
+	}
 
 	err = -EBUSY;
 	aup->ioarea = request_mem_region(r->start, resource_size(r),
-					 pdev->name);
+									 pdev->name);
+
 	if (!aup->ioarea)
+	{
 		goto out;
+	}
 
 	/* bail out early if clock doesn't exist */
 	c = clk_get(NULL, "irda_clk");
-	if (IS_ERR(c)) {
+
+	if (IS_ERR(c))
+	{
 		err = PTR_ERR(c);
 		goto out;
 	}
+
 	clk_put(c);
 
 	aup->iobase = ioremap_nocache(r->start, resource_size(r));
+
 	if (!aup->iobase)
+	{
 		goto out2;
+	}
 
 	dev->irq = aup->irq_rx;
 
 	err = au1k_irda_net_init(dev);
+
 	if (err)
+	{
 		goto out3;
+	}
+
 	err = register_netdev(dev);
+
 	if (err)
+	{
 		goto out4;
+	}
 
 	platform_set_drvdata(pdev, dev);
 
@@ -947,9 +1134,9 @@ static int au1k_irda_probe(struct platform_device *pdev)
 
 out4:
 	dma_free((void *)aup->db[0].vaddr,
-		MAX_BUF_SIZE * 2 * NUM_IR_DESC);
+			 MAX_BUF_SIZE * 2 * NUM_IR_DESC);
 	dma_free((void *)aup->rx_ring[0],
-		2 * MAX_NUM_IR_DESC * (sizeof(struct ring_dest)));
+			 2 * MAX_NUM_IR_DESC * (sizeof(struct ring_dest)));
 	kfree(aup->rx_buff.head);
 out3:
 	iounmap(aup->iobase);
@@ -969,9 +1156,9 @@ static int au1k_irda_remove(struct platform_device *pdev)
 	unregister_netdev(dev);
 
 	dma_free((void *)aup->db[0].vaddr,
-		MAX_BUF_SIZE * 2 * NUM_IR_DESC);
+			 MAX_BUF_SIZE * 2 * NUM_IR_DESC);
 	dma_free((void *)aup->rx_ring[0],
-		2 * MAX_NUM_IR_DESC * (sizeof(struct ring_dest)));
+			 2 * MAX_NUM_IR_DESC * (sizeof(struct ring_dest)));
 	kfree(aup->rx_buff.head);
 
 	iounmap(aup->iobase);
@@ -983,7 +1170,8 @@ static int au1k_irda_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static struct platform_driver au1k_irda_driver = {
+static struct platform_driver au1k_irda_driver =
+{
 	.driver	= {
 		.name	= "au1000-irda",
 	},

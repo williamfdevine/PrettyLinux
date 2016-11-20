@@ -52,12 +52,14 @@
 
 #define ISC_CLK_MAX_DIV		255
 
-enum isc_clk_id {
+enum isc_clk_id
+{
 	ISC_ISPCK = 0,
 	ISC_MCK = 1,
 };
 
-struct isc_clk {
+struct isc_clk
+{
 	struct clk_hw   hw;
 	struct clk      *clk;
 	struct regmap   *regmap;
@@ -69,12 +71,14 @@ struct isc_clk {
 
 #define to_isc_clk(hw) container_of(hw, struct isc_clk, hw)
 
-struct isc_buffer {
+struct isc_buffer
+{
 	struct vb2_v4l2_buffer  vb;
 	struct list_head	list;
 };
 
-struct isc_subdev_entity {
+struct isc_subdev_entity
+{
 	struct v4l2_subdev		*sd;
 	struct v4l2_async_subdev	*asd;
 	struct v4l2_async_notifier      notifier;
@@ -94,7 +98,8 @@ struct isc_subdev_entity {
  *			(when transferred over a bus)
  * @support:		Indicates format supported by subdev
  */
-struct isc_format {
+struct isc_format
+{
 	u32	fourcc;
 	u32	mbus_code;
 	u8	bpp;
@@ -109,7 +114,8 @@ struct isc_format {
 
 #define ISC_PIPE_LINE_NODE_NUM	11
 
-struct isc_device {
+struct isc_device
+{
 	struct regmap		*regmap;
 	struct clk		*hclock;
 	struct clk		*ispck;
@@ -140,49 +146,76 @@ struct isc_device {
 	struct list_head		subdev_entities;
 };
 
-static struct isc_format isc_formats[] = {
-	{ V4L2_PIX_FMT_SBGGR8, MEDIA_BUS_FMT_SBGGR8_1X8,
-	  1, ISC_PFE_CFG0_BPS_EIGHT, ISC_RLP_CFG_MODE_DAT8,
-	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, false },
-	{ V4L2_PIX_FMT_SGBRG8, MEDIA_BUS_FMT_SGBRG8_1X8,
-	  1, ISC_PFE_CFG0_BPS_EIGHT, ISC_RLP_CFG_MODE_DAT8,
-	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, false },
-	{ V4L2_PIX_FMT_SGRBG8, MEDIA_BUS_FMT_SGRBG8_1X8,
-	  1, ISC_PFE_CFG0_BPS_EIGHT, ISC_RLP_CFG_MODE_DAT8,
-	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, false },
-	{ V4L2_PIX_FMT_SRGGB8, MEDIA_BUS_FMT_SRGGB8_1X8,
-	  1, ISC_PFE_CFG0_BPS_EIGHT, ISC_RLP_CFG_MODE_DAT8,
-	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, false },
+static struct isc_format isc_formats[] =
+{
+	{
+		V4L2_PIX_FMT_SBGGR8, MEDIA_BUS_FMT_SBGGR8_1X8,
+		1, ISC_PFE_CFG0_BPS_EIGHT, ISC_RLP_CFG_MODE_DAT8,
+		ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, false
+	},
+	{
+		V4L2_PIX_FMT_SGBRG8, MEDIA_BUS_FMT_SGBRG8_1X8,
+		1, ISC_PFE_CFG0_BPS_EIGHT, ISC_RLP_CFG_MODE_DAT8,
+		ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, false
+	},
+	{
+		V4L2_PIX_FMT_SGRBG8, MEDIA_BUS_FMT_SGRBG8_1X8,
+		1, ISC_PFE_CFG0_BPS_EIGHT, ISC_RLP_CFG_MODE_DAT8,
+		ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, false
+	},
+	{
+		V4L2_PIX_FMT_SRGGB8, MEDIA_BUS_FMT_SRGGB8_1X8,
+		1, ISC_PFE_CFG0_BPS_EIGHT, ISC_RLP_CFG_MODE_DAT8,
+		ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, false
+	},
 
-	{ V4L2_PIX_FMT_SBGGR10, MEDIA_BUS_FMT_SBGGR10_1X10,
-	  2, ISC_PFG_CFG0_BPS_TEN, ISC_RLP_CFG_MODE_DAT10,
-	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, false },
-	{ V4L2_PIX_FMT_SGBRG10, MEDIA_BUS_FMT_SGBRG10_1X10,
-	  2, ISC_PFG_CFG0_BPS_TEN, ISC_RLP_CFG_MODE_DAT10,
-	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, false },
-	{ V4L2_PIX_FMT_SGRBG10, MEDIA_BUS_FMT_SGRBG10_1X10,
-	  2, ISC_PFG_CFG0_BPS_TEN, ISC_RLP_CFG_MODE_DAT10,
-	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, false },
-	{ V4L2_PIX_FMT_SRGGB10, MEDIA_BUS_FMT_SRGGB10_1X10,
-	  2, ISC_PFG_CFG0_BPS_TEN, ISC_RLP_CFG_MODE_DAT10,
-	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, false },
+	{
+		V4L2_PIX_FMT_SBGGR10, MEDIA_BUS_FMT_SBGGR10_1X10,
+		2, ISC_PFG_CFG0_BPS_TEN, ISC_RLP_CFG_MODE_DAT10,
+		ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, false
+	},
+	{
+		V4L2_PIX_FMT_SGBRG10, MEDIA_BUS_FMT_SGBRG10_1X10,
+		2, ISC_PFG_CFG0_BPS_TEN, ISC_RLP_CFG_MODE_DAT10,
+		ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, false
+	},
+	{
+		V4L2_PIX_FMT_SGRBG10, MEDIA_BUS_FMT_SGRBG10_1X10,
+		2, ISC_PFG_CFG0_BPS_TEN, ISC_RLP_CFG_MODE_DAT10,
+		ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, false
+	},
+	{
+		V4L2_PIX_FMT_SRGGB10, MEDIA_BUS_FMT_SRGGB10_1X10,
+		2, ISC_PFG_CFG0_BPS_TEN, ISC_RLP_CFG_MODE_DAT10,
+		ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, false
+	},
 
-	{ V4L2_PIX_FMT_SBGGR12, MEDIA_BUS_FMT_SBGGR12_1X12,
-	  2, ISC_PFG_CFG0_BPS_TWELVE, ISC_RLP_CFG_MODE_DAT12,
-	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, false },
-	{ V4L2_PIX_FMT_SGBRG12, MEDIA_BUS_FMT_SGBRG12_1X12,
-	  2, ISC_PFG_CFG0_BPS_TWELVE, ISC_RLP_CFG_MODE_DAT12,
-	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, false },
-	{ V4L2_PIX_FMT_SGRBG12, MEDIA_BUS_FMT_SGRBG12_1X12,
-	  2, ISC_PFG_CFG0_BPS_TWELVE, ISC_RLP_CFG_MODE_DAT12,
-	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, false },
-	{ V4L2_PIX_FMT_SRGGB12, MEDIA_BUS_FMT_SRGGB12_1X12,
-	  2, ISC_PFG_CFG0_BPS_TWELVE, ISC_RLP_CFG_MODE_DAT12,
-	  ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, false },
+	{
+		V4L2_PIX_FMT_SBGGR12, MEDIA_BUS_FMT_SBGGR12_1X12,
+		2, ISC_PFG_CFG0_BPS_TWELVE, ISC_RLP_CFG_MODE_DAT12,
+		ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, false
+	},
+	{
+		V4L2_PIX_FMT_SGBRG12, MEDIA_BUS_FMT_SGBRG12_1X12,
+		2, ISC_PFG_CFG0_BPS_TWELVE, ISC_RLP_CFG_MODE_DAT12,
+		ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, false
+	},
+	{
+		V4L2_PIX_FMT_SGRBG12, MEDIA_BUS_FMT_SGRBG12_1X12,
+		2, ISC_PFG_CFG0_BPS_TWELVE, ISC_RLP_CFG_MODE_DAT12,
+		ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, false
+	},
+	{
+		V4L2_PIX_FMT_SRGGB12, MEDIA_BUS_FMT_SRGGB12_1X12,
+		2, ISC_PFG_CFG0_BPS_TWELVE, ISC_RLP_CFG_MODE_DAT12,
+		ISC_DCFG_IMODE_PACKED16, ISC_DCTRL_DVIEW_PACKED, false
+	},
 
-	{ V4L2_PIX_FMT_YUYV, MEDIA_BUS_FMT_YUYV8_2X8,
-	  2, ISC_PFE_CFG0_BPS_EIGHT, ISC_RLP_CFG_MODE_DAT8,
-	  ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, false },
+	{
+		V4L2_PIX_FMT_YUYV, MEDIA_BUS_FMT_YUYV8_2X8,
+		2, ISC_PFE_CFG0_BPS_EIGHT, ISC_RLP_CFG_MODE_DAT8,
+		ISC_DCFG_IMODE_PACKED8, ISC_DCTRL_DVIEW_PACKED, false
+	},
 };
 
 static int isc_clk_enable(struct clk_hw *hw)
@@ -192,12 +225,12 @@ static int isc_clk_enable(struct clk_hw *hw)
 	struct regmap *regmap = isc_clk->regmap;
 
 	dev_dbg(isc_clk->dev, "ISC CLK: %s, div = %d, parent id = %d\n",
-		__func__, isc_clk->div, isc_clk->parent_id);
+			__func__, isc_clk->div, isc_clk->parent_id);
 
 	regmap_update_bits(regmap, ISC_CLKCFG,
-			   ISC_CLKCFG_DIV_MASK(id) | ISC_CLKCFG_SEL_MASK(id),
-			   (isc_clk->div << ISC_CLKCFG_DIV_SHIFT(id)) |
-			   (isc_clk->parent_id << ISC_CLKCFG_SEL_SHIFT(id)));
+					   ISC_CLKCFG_DIV_MASK(id) | ISC_CLKCFG_SEL_MASK(id),
+					   (isc_clk->div << ISC_CLKCFG_DIV_SHIFT(id)) |
+					   (isc_clk->parent_id << ISC_CLKCFG_SEL_SHIFT(id)));
 
 	regmap_write(regmap, ISC_CLKEN, ISC_CLK(id));
 
@@ -231,33 +264,42 @@ isc_clk_recalc_rate(struct clk_hw *hw, unsigned long parent_rate)
 }
 
 static int isc_clk_determine_rate(struct clk_hw *hw,
-				   struct clk_rate_request *req)
+								  struct clk_rate_request *req)
 {
 	struct isc_clk *isc_clk = to_isc_clk(hw);
 	long best_rate = -EINVAL;
 	int best_diff = -1;
 	unsigned int i, div;
 
-	for (i = 0; i < clk_hw_get_num_parents(hw); i++) {
+	for (i = 0; i < clk_hw_get_num_parents(hw); i++)
+	{
 		struct clk_hw *parent;
 		unsigned long parent_rate;
 
 		parent = clk_hw_get_parent_by_index(hw, i);
+
 		if (!parent)
+		{
 			continue;
+		}
 
 		parent_rate = clk_hw_get_rate(parent);
-		if (!parent_rate)
-			continue;
 
-		for (div = 1; div < ISC_CLK_MAX_DIV + 2; div++) {
+		if (!parent_rate)
+		{
+			continue;
+		}
+
+		for (div = 1; div < ISC_CLK_MAX_DIV + 2; div++)
+		{
 			unsigned long rate;
 			int diff;
 
 			rate = DIV_ROUND_CLOSEST(parent_rate, div);
 			diff = abs(req->rate - rate);
 
-			if (best_diff < 0 || best_diff > diff) {
+			if (best_diff < 0 || best_diff > diff)
+			{
 				best_rate = rate;
 				best_diff = diff;
 				req->best_parent_rate = parent_rate;
@@ -265,21 +307,27 @@ static int isc_clk_determine_rate(struct clk_hw *hw,
 			}
 
 			if (!best_diff || rate < req->rate)
+			{
 				break;
+			}
 		}
 
 		if (!best_diff)
+		{
 			break;
+		}
 	}
 
 	dev_dbg(isc_clk->dev,
-		"ISC CLK: %s, best_rate = %ld, parent clk: %s @ %ld\n",
-		__func__, best_rate,
-		__clk_get_name((req->best_parent_hw)->clk),
-		req->best_parent_rate);
+			"ISC CLK: %s, best_rate = %ld, parent clk: %s @ %ld\n",
+			__func__, best_rate,
+			__clk_get_name((req->best_parent_hw)->clk),
+			req->best_parent_rate);
 
 	if (best_rate < 0)
+	{
 		return best_rate;
+	}
 
 	req->rate = best_rate;
 
@@ -291,7 +339,9 @@ static int isc_clk_set_parent(struct clk_hw *hw, u8 index)
 	struct isc_clk *isc_clk = to_isc_clk(hw);
 
 	if (index >= clk_hw_get_num_parents(hw))
+	{
 		return -EINVAL;
+	}
 
 	isc_clk->parent_id = index;
 
@@ -306,25 +356,31 @@ static u8 isc_clk_get_parent(struct clk_hw *hw)
 }
 
 static int isc_clk_set_rate(struct clk_hw *hw,
-			     unsigned long rate,
-			     unsigned long parent_rate)
+							unsigned long rate,
+							unsigned long parent_rate)
 {
 	struct isc_clk *isc_clk = to_isc_clk(hw);
 	u32 div;
 
 	if (!rate)
+	{
 		return -EINVAL;
+	}
 
 	div = DIV_ROUND_CLOSEST(parent_rate, rate);
+
 	if (div > (ISC_CLK_MAX_DIV + 1) || !div)
+	{
 		return -EINVAL;
+	}
 
 	isc_clk->div = div - 1;
 
 	return 0;
 }
 
-static const struct clk_ops isc_clk_ops = {
+static const struct clk_ops isc_clk_ops =
+{
 	.enable		= isc_clk_enable,
 	.disable	= isc_clk_disable,
 	.is_enabled	= isc_clk_is_enabled,
@@ -346,18 +402,27 @@ static int isc_clk_register(struct isc_device *isc, unsigned int id)
 	int num_parents;
 
 	num_parents = of_clk_get_parent_count(np);
+
 	if (num_parents < 1 || num_parents > 3)
+	{
 		return -EINVAL;
+	}
 
 	if (num_parents > 2 && id == ISC_ISPCK)
+	{
 		num_parents = 2;
+	}
 
 	of_clk_parent_fill(np, parent_names, num_parents);
 
 	if (id == ISC_MCK)
+	{
 		of_property_read_string(np, "clock-output-names", &clk_name);
+	}
 	else
+	{
 		clk_name = "isc-ispck";
+	}
 
 	init.parent_names	= parent_names;
 	init.num_parents	= num_parents;
@@ -372,11 +437,16 @@ static int isc_clk_register(struct isc_device *isc, unsigned int id)
 	isc_clk->dev		= isc->dev;
 
 	isc_clk->clk = clk_register(isc->dev, &isc_clk->hw);
-	if (IS_ERR(isc_clk->clk)) {
+
+	if (IS_ERR(isc_clk->clk))
+	{
 		dev_err(isc->dev, "%s: clock register fail\n", clk_name);
 		return PTR_ERR(isc_clk->clk);
-	} else if (id == ISC_MCK)
+	}
+	else if (id == ISC_MCK)
+	{
 		of_clk_add_provider(np, of_clk_src_simple_get, isc_clk->clk);
+	}
 
 	return 0;
 }
@@ -387,12 +457,18 @@ static int isc_clk_init(struct isc_device *isc)
 	int ret;
 
 	for (i = 0; i < ARRAY_SIZE(isc->isc_clks); i++)
+	{
 		isc->isc_clks[i].clk = ERR_PTR(-EINVAL);
+	}
 
-	for (i = 0; i < ARRAY_SIZE(isc->isc_clks); i++) {
+	for (i = 0; i < ARRAY_SIZE(isc->isc_clks); i++)
+	{
 		ret = isc_clk_register(isc, i);
+
 		if (ret)
+		{
 			return ret;
+		}
 	}
 
 	return 0;
@@ -404,23 +480,28 @@ static void isc_clk_cleanup(struct isc_device *isc)
 
 	of_clk_del_provider(isc->dev->of_node);
 
-	for (i = 0; i < ARRAY_SIZE(isc->isc_clks); i++) {
+	for (i = 0; i < ARRAY_SIZE(isc->isc_clks); i++)
+	{
 		struct isc_clk *isc_clk = &isc->isc_clks[i];
 
 		if (!IS_ERR(isc_clk->clk))
+		{
 			clk_unregister(isc_clk->clk);
+		}
 	}
 }
 
 static int isc_queue_setup(struct vb2_queue *vq,
-			    unsigned int *nbuffers, unsigned int *nplanes,
-			    unsigned int sizes[], struct device *alloc_devs[])
+						   unsigned int *nbuffers, unsigned int *nplanes,
+						   unsigned int sizes[], struct device *alloc_devs[])
 {
 	struct isc_device *isc = vb2_get_drv_priv(vq);
 	unsigned int size = isc->fmt.fmt.pix.sizeimage;
 
 	if (*nplanes)
+	{
 		return sizes[0] < size ? -EINVAL : 0;
+	}
 
 	*nplanes = 1;
 	sizes[0] = size;
@@ -434,9 +515,10 @@ static int isc_buffer_prepare(struct vb2_buffer *vb)
 	struct isc_device *isc = vb2_get_drv_priv(vb->vb2_queue);
 	unsigned long size = isc->fmt.fmt.pix.sizeimage;
 
-	if (vb2_plane_size(vb, 0) < size) {
+	if (vb2_plane_size(vb, 0) < size)
+	{
 		v4l2_err(&isc->v4l2_dev, "buffer too small (%lu < %lu)\n",
-			 vb2_plane_size(vb, 0), size);
+				 vb2_plane_size(vb, 0), size);
 		return -EINVAL;
 	}
 
@@ -448,7 +530,7 @@ static int isc_buffer_prepare(struct vb2_buffer *vb)
 }
 
 static inline void isc_start_dma(struct regmap *regmap,
-				  struct isc_buffer *frm, u32 dview)
+								 struct isc_buffer *frm, u32 dview)
 {
 	dma_addr_t addr;
 
@@ -464,7 +546,8 @@ static void isc_set_pipeline(struct isc_device *isc, u32 pipeline)
 	u32 val;
 	unsigned int i;
 
-	for (i = 0; i < ISC_PIPE_LINE_NODE_NUM; i++) {
+	for (i = 0; i < ISC_PIPE_LINE_NODE_NUM; i++)
+	{
 		val = pipeline & BIT(i) ? 1 : 0;
 		regmap_field_write(isc->pipeline[i], val);
 	}
@@ -479,18 +562,18 @@ static int isc_configure(struct isc_device *isc)
 	int counter = 10;
 
 	val = current_fmt->reg_bps | subdev->pfe_cfg0 |
-	      ISC_PFE_CFG0_MODE_PROGRESSIVE;
+		  ISC_PFE_CFG0_MODE_PROGRESSIVE;
 	mask = ISC_PFE_CFG0_BPS_MASK | ISC_PFE_CFG0_HPOL_LOW |
-	       ISC_PFE_CFG0_VPOL_LOW | ISC_PFE_CFG0_PPOL_LOW |
-	       ISC_PFE_CFG0_MODE_MASK;
+		   ISC_PFE_CFG0_VPOL_LOW | ISC_PFE_CFG0_PPOL_LOW |
+		   ISC_PFE_CFG0_MODE_MASK;
 
 	regmap_update_bits(regmap, ISC_PFE_CFG0, mask, val);
 
 	regmap_update_bits(regmap, ISC_RLP_CFG, ISC_RLP_CFG_MODE_MASK,
-			   current_fmt->reg_rlp_mode);
+					   current_fmt->reg_rlp_mode);
 
 	regmap_update_bits(regmap, ISC_DCFG, ISC_DCFG_IMODE_MASK,
-			   current_fmt->reg_dcfg_imode);
+					   current_fmt->reg_dcfg_imode);
 
 	/* Disable the pipeline */
 	isc_set_pipeline(isc, 0x0);
@@ -499,13 +582,17 @@ static int isc_configure(struct isc_device *isc)
 	regmap_write(regmap, ISC_CTRLEN, ISC_CTRL_UPPRO);
 
 	regmap_read(regmap, ISC_CTRLSR, &val);
-	while ((val & ISC_CTRL_UPPRO) && counter--) {
+
+	while ((val & ISC_CTRL_UPPRO) && counter--)
+	{
 		usleep_range(1000, 2000);
 		regmap_read(regmap, ISC_CTRLSR, &val);
 	}
 
 	if (counter < 0)
+	{
 		return -ETIMEDOUT;
+	}
 
 	return 0;
 }
@@ -521,7 +608,9 @@ static int isc_start_streaming(struct vb2_queue *vq, unsigned int count)
 
 	/* Enable stream on the sub device */
 	ret = v4l2_subdev_call(isc->current_subdev->sd, video, s_stream, 1);
-	if (ret && ret != -ENOIOCTLCMD) {
+
+	if (ret && ret != -ENOIOCTLCMD)
+	{
 		v4l2_err(&isc->v4l2_dev, "stream on failed in subdev\n");
 		goto err_start_stream;
 	}
@@ -535,8 +624,11 @@ static int isc_start_streaming(struct vb2_queue *vq, unsigned int count)
 	regmap_read(regmap, ISC_INTSR, &val);
 
 	ret = isc_configure(isc);
+
 	if (unlikely(ret))
+	{
 		goto err_configure;
+	}
 
 	/* Enable DMA interrupt */
 	regmap_write(regmap, ISC_INTEN, ISC_INT_DDONE);
@@ -548,7 +640,7 @@ static int isc_start_streaming(struct vb2_queue *vq, unsigned int count)
 	reinit_completion(&isc->comp);
 
 	isc->cur_frm = list_first_entry(&isc->dma_queue,
-					struct isc_buffer, list);
+									struct isc_buffer, list);
 	list_del(&isc->cur_frm->list);
 
 	isc_start_dma(regmap, isc->cur_frm, isc->current_fmt->reg_dctrl_dview);
@@ -565,7 +657,7 @@ err_configure:
 err_start_stream:
 	spin_lock_irqsave(&isc->dma_queue_lock, flags);
 	list_for_each_entry(buf, &isc->dma_queue, list)
-		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_QUEUED);
+	vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_QUEUED);
 	INIT_LIST_HEAD(&isc->dma_queue);
 	spin_unlock_irqrestore(&isc->dma_queue_lock, flags);
 
@@ -584,7 +676,7 @@ static void isc_stop_streaming(struct vb2_queue *vq)
 	/* Wait until the end of the current frame */
 	if (isc->cur_frm && !wait_for_completion_timeout(&isc->comp, 5 * HZ))
 		v4l2_err(&isc->v4l2_dev,
-			 "Timeout waiting for end of the capture\n");
+				 "Timeout waiting for end of the capture\n");
 
 	/* Disable DMA interrupt */
 	regmap_write(isc->regmap, ISC_INTDIS, ISC_INT_DDONE);
@@ -593,18 +685,24 @@ static void isc_stop_streaming(struct vb2_queue *vq)
 
 	/* Disable stream on the sub device */
 	ret = v4l2_subdev_call(isc->current_subdev->sd, video, s_stream, 0);
+
 	if (ret && ret != -ENOIOCTLCMD)
+	{
 		v4l2_err(&isc->v4l2_dev, "stream off failed in subdev\n");
+	}
 
 	/* Release all active buffers */
 	spin_lock_irqsave(&isc->dma_queue_lock, flags);
-	if (unlikely(isc->cur_frm)) {
+
+	if (unlikely(isc->cur_frm))
+	{
 		vb2_buffer_done(&isc->cur_frm->vb.vb2_buf,
-				VB2_BUF_STATE_ERROR);
+						VB2_BUF_STATE_ERROR);
 		isc->cur_frm = NULL;
 	}
+
 	list_for_each_entry(buf, &isc->dma_queue, list)
-		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
+	vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
 	INIT_LIST_HEAD(&isc->dma_queue);
 	spin_unlock_irqrestore(&isc->dma_queue_lock, flags);
 }
@@ -621,7 +719,8 @@ static void isc_buffer_queue(struct vb2_buffer *vb)
 	spin_unlock_irqrestore(&isc->dma_queue_lock, flags);
 }
 
-static struct vb2_ops isc_vb2_ops = {
+static struct vb2_ops isc_vb2_ops =
+{
 	.queue_setup		= isc_queue_setup,
 	.wait_prepare		= vb2_ops_wait_prepare,
 	.wait_finish		= vb2_ops_wait_finish,
@@ -632,26 +731,28 @@ static struct vb2_ops isc_vb2_ops = {
 };
 
 static int isc_querycap(struct file *file, void *priv,
-			 struct v4l2_capability *cap)
+						struct v4l2_capability *cap)
 {
 	struct isc_device *isc = video_drvdata(file);
 
 	strcpy(cap->driver, ATMEL_ISC_NAME);
 	strcpy(cap->card, "Atmel Image Sensor Controller");
 	snprintf(cap->bus_info, sizeof(cap->bus_info),
-		 "platform:%s", isc->v4l2_dev.name);
+			 "platform:%s", isc->v4l2_dev.name);
 
 	return 0;
 }
 
 static int isc_enum_fmt_vid_cap(struct file *file, void *priv,
-				 struct v4l2_fmtdesc *f)
+								struct v4l2_fmtdesc *f)
 {
 	struct isc_device *isc = video_drvdata(file);
 	u32 index = f->index;
 
 	if (index >= isc->num_user_formats)
+	{
 		return -EINVAL;
+	}
 
 	f->pixelformat = isc->user_formats[index]->fourcc;
 
@@ -659,7 +760,7 @@ static int isc_enum_fmt_vid_cap(struct file *file, void *priv,
 }
 
 static int isc_g_fmt_vid_cap(struct file *file, void *priv,
-			      struct v4l2_format *fmt)
+							 struct v4l2_format *fmt)
 {
 	struct isc_device *isc = video_drvdata(file);
 
@@ -669,53 +770,70 @@ static int isc_g_fmt_vid_cap(struct file *file, void *priv,
 }
 
 static struct isc_format *find_format_by_fourcc(struct isc_device *isc,
-						 unsigned int fourcc)
+		unsigned int fourcc)
 {
 	unsigned int num_formats = isc->num_user_formats;
 	struct isc_format *fmt;
 	unsigned int i;
 
-	for (i = 0; i < num_formats; i++) {
+	for (i = 0; i < num_formats; i++)
+	{
 		fmt = isc->user_formats[i];
+
 		if (fmt->fourcc == fourcc)
+		{
 			return fmt;
+		}
 	}
 
 	return NULL;
 }
 
 static int isc_try_fmt(struct isc_device *isc, struct v4l2_format *f,
-			struct isc_format **current_fmt)
+					   struct isc_format **current_fmt)
 {
 	struct isc_format *isc_fmt;
 	struct v4l2_pix_format *pixfmt = &f->fmt.pix;
-	struct v4l2_subdev_format format = {
+	struct v4l2_subdev_format format =
+	{
 		.which = V4L2_SUBDEV_FORMAT_TRY,
 	};
 	int ret;
 
 	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+	{
 		return -EINVAL;
+	}
 
 	isc_fmt = find_format_by_fourcc(isc, pixfmt->pixelformat);
-	if (!isc_fmt) {
+
+	if (!isc_fmt)
+	{
 		v4l2_warn(&isc->v4l2_dev, "Format 0x%x not found\n",
-			  pixfmt->pixelformat);
+				  pixfmt->pixelformat);
 		isc_fmt = isc->user_formats[isc->num_user_formats - 1];
 		pixfmt->pixelformat = isc_fmt->fourcc;
 	}
 
 	/* Limit to Atmel ISC hardware capabilities */
 	if (pixfmt->width > ISC_MAX_SUPPORT_WIDTH)
+	{
 		pixfmt->width = ISC_MAX_SUPPORT_WIDTH;
+	}
+
 	if (pixfmt->height > ISC_MAX_SUPPORT_HEIGHT)
+	{
 		pixfmt->height = ISC_MAX_SUPPORT_HEIGHT;
+	}
 
 	v4l2_fill_mbus_format(&format.format, pixfmt, isc_fmt->mbus_code);
 	ret = v4l2_subdev_call(isc->current_subdev->sd, pad, set_fmt,
-			       isc->current_subdev->config, &format);
+						   isc->current_subdev->config, &format);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	v4l2_fill_pix_format(pixfmt, &format.format);
 
@@ -724,29 +842,38 @@ static int isc_try_fmt(struct isc_device *isc, struct v4l2_format *f,
 	pixfmt->sizeimage = pixfmt->bytesperline * pixfmt->height;
 
 	if (current_fmt)
+	{
 		*current_fmt = isc_fmt;
+	}
 
 	return 0;
 }
 
 static int isc_set_fmt(struct isc_device *isc, struct v4l2_format *f)
 {
-	struct v4l2_subdev_format format = {
+	struct v4l2_subdev_format format =
+	{
 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
 	};
 	struct isc_format *current_fmt;
 	int ret;
 
 	ret = isc_try_fmt(isc, f, &current_fmt);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	v4l2_fill_mbus_format(&format.format, &f->fmt.pix,
-			      current_fmt->mbus_code);
+						  current_fmt->mbus_code);
 	ret = v4l2_subdev_call(isc->current_subdev->sd, pad,
-			       set_fmt, NULL, &format);
+						   set_fmt, NULL, &format);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	isc->fmt = *f;
 	isc->current_fmt = current_fmt;
@@ -755,18 +882,20 @@ static int isc_set_fmt(struct isc_device *isc, struct v4l2_format *f)
 }
 
 static int isc_s_fmt_vid_cap(struct file *file, void *priv,
-			      struct v4l2_format *f)
+							 struct v4l2_format *f)
 {
 	struct isc_device *isc = video_drvdata(file);
 
 	if (vb2_is_streaming(&isc->vb2_vidq))
+	{
 		return -EBUSY;
+	}
 
 	return isc_set_fmt(isc, f);
 }
 
 static int isc_try_fmt_vid_cap(struct file *file, void *priv,
-				struct v4l2_format *f)
+							   struct v4l2_format *f)
 {
 	struct isc_device *isc = video_drvdata(file);
 
@@ -774,10 +903,12 @@ static int isc_try_fmt_vid_cap(struct file *file, void *priv,
 }
 
 static int isc_enum_input(struct file *file, void *priv,
-			   struct v4l2_input *inp)
+						  struct v4l2_input *inp)
 {
 	if (inp->index != 0)
+	{
 		return -EINVAL;
+	}
 
 	inp->type = V4L2_INPUT_TYPE_CAMERA;
 	inp->std = 0;
@@ -796,7 +927,9 @@ static int isc_g_input(struct file *file, void *priv, unsigned int *i)
 static int isc_s_input(struct file *file, void *priv, unsigned int i)
 {
 	if (i > 0)
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -806,7 +939,9 @@ static int isc_g_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
 	struct isc_device *isc = video_drvdata(file);
 
 	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+	{
 		return -EINVAL;
+	}
 
 	return v4l2_subdev_call(isc->current_subdev->sd, video, g_parm, a);
 }
@@ -816,32 +951,41 @@ static int isc_s_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
 	struct isc_device *isc = video_drvdata(file);
 
 	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+	{
 		return -EINVAL;
+	}
 
 	return v4l2_subdev_call(isc->current_subdev->sd, video, s_parm, a);
 }
 
 static int isc_enum_framesizes(struct file *file, void *fh,
-			       struct v4l2_frmsizeenum *fsize)
+							   struct v4l2_frmsizeenum *fsize)
 {
 	struct isc_device *isc = video_drvdata(file);
 	const struct isc_format *isc_fmt;
-	struct v4l2_subdev_frame_size_enum fse = {
+	struct v4l2_subdev_frame_size_enum fse =
+	{
 		.index = fsize->index,
 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
 	};
 	int ret;
 
 	isc_fmt = find_format_by_fourcc(isc, fsize->pixel_format);
+
 	if (!isc_fmt)
+	{
 		return -EINVAL;
+	}
 
 	fse.code = isc_fmt->mbus_code;
 
 	ret = v4l2_subdev_call(isc->current_subdev->sd, pad, enum_frame_size,
-			       NULL, &fse);
+						   NULL, &fse);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
 	fsize->discrete.width = fse.max_width;
@@ -851,11 +995,12 @@ static int isc_enum_framesizes(struct file *file, void *fh,
 }
 
 static int isc_enum_frameintervals(struct file *file, void *fh,
-				    struct v4l2_frmivalenum *fival)
+								   struct v4l2_frmivalenum *fival)
 {
 	struct isc_device *isc = video_drvdata(file);
 	const struct isc_format *isc_fmt;
-	struct v4l2_subdev_frame_interval_enum fie = {
+	struct v4l2_subdev_frame_interval_enum fie =
+	{
 		.index = fival->index,
 		.width = fival->width,
 		.height = fival->height,
@@ -864,15 +1009,21 @@ static int isc_enum_frameintervals(struct file *file, void *fh,
 	int ret;
 
 	isc_fmt = find_format_by_fourcc(isc, fival->pixel_format);
+
 	if (!isc_fmt)
+	{
 		return -EINVAL;
+	}
 
 	fie.code = isc_fmt->mbus_code;
 
 	ret = v4l2_subdev_call(isc->current_subdev->sd, pad,
-			       enum_frame_interval, NULL, &fie);
+						   enum_frame_interval, NULL, &fie);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
 	fival->discrete = fie.interval;
@@ -880,7 +1031,8 @@ static int isc_enum_frameintervals(struct file *file, void *fh,
 	return 0;
 }
 
-static const struct v4l2_ioctl_ops isc_ioctl_ops = {
+static const struct v4l2_ioctl_ops isc_ioctl_ops =
+{
 	.vidioc_querycap		= isc_querycap,
 	.vidioc_enum_fmt_vid_cap	= isc_enum_fmt_vid_cap,
 	.vidioc_g_fmt_vid_cap		= isc_g_fmt_vid_cap,
@@ -914,23 +1066,34 @@ static int isc_open(struct file *file)
 	int ret;
 
 	if (mutex_lock_interruptible(&isc->lock))
+	{
 		return -ERESTARTSYS;
+	}
 
 	ret = v4l2_fh_open(file);
+
 	if (ret < 0)
+	{
 		goto unlock;
+	}
 
 	if (!v4l2_fh_is_singular_file(file))
+	{
 		goto unlock;
+	}
 
 	ret = v4l2_subdev_call(sd, core, s_power, 1);
-	if (ret < 0 && ret != -ENOIOCTLCMD) {
+
+	if (ret < 0 && ret != -ENOIOCTLCMD)
+	{
 		v4l2_fh_release(file);
 		goto unlock;
 	}
 
 	ret = isc_set_fmt(isc, &isc->fmt);
-	if (ret) {
+
+	if (ret)
+	{
 		v4l2_subdev_call(sd, core, s_power, 0);
 		v4l2_fh_release(file);
 	}
@@ -954,14 +1117,17 @@ static int isc_release(struct file *file)
 	ret = _vb2_fop_release(file, NULL);
 
 	if (fh_singular)
+	{
 		v4l2_subdev_call(sd, core, s_power, 0);
+	}
 
 	mutex_unlock(&isc->lock);
 
 	return ret;
 }
 
-static const struct v4l2_file_operations isc_fops = {
+static const struct v4l2_file_operations isc_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= isc_open,
 	.release	= isc_release,
@@ -985,8 +1151,10 @@ static irqreturn_t isc_interrupt(int irq, void *dev_id)
 
 	pending = isc_intsr & isc_intmask;
 
-	if (likely(pending & ISC_INT_DDONE)) {
-		if (isc->cur_frm) {
+	if (likely(pending & ISC_INT_DDONE))
+	{
+		if (isc->cur_frm)
+		{
 			struct vb2_v4l2_buffer *vbuf = &isc->cur_frm->vb;
 			struct vb2_buffer *vb = &vbuf->vb2_buf;
 
@@ -996,17 +1164,20 @@ static irqreturn_t isc_interrupt(int irq, void *dev_id)
 			isc->cur_frm = NULL;
 		}
 
-		if (!list_empty(&isc->dma_queue) && !isc->stop) {
+		if (!list_empty(&isc->dma_queue) && !isc->stop)
+		{
 			isc->cur_frm = list_first_entry(&isc->dma_queue,
-						     struct isc_buffer, list);
+											struct isc_buffer, list);
 			list_del(&isc->cur_frm->list);
 
 			isc_start_dma(regmap, isc->cur_frm,
-				      isc->current_fmt->reg_dctrl_dview);
+						  isc->current_fmt->reg_dctrl_dview);
 		}
 
 		if (isc->stop)
+		{
 			complete(&isc->comp);
+		}
 
 		ret = IRQ_HANDLED;
 	}
@@ -1017,15 +1188,16 @@ static irqreturn_t isc_interrupt(int irq, void *dev_id)
 }
 
 static int isc_async_bound(struct v4l2_async_notifier *notifier,
-			    struct v4l2_subdev *subdev,
-			    struct v4l2_async_subdev *asd)
+						   struct v4l2_subdev *subdev,
+						   struct v4l2_async_subdev *asd)
 {
 	struct isc_device *isc = container_of(notifier->v4l2_dev,
-					      struct isc_device, v4l2_dev);
+										  struct isc_device, v4l2_dev);
 	struct isc_subdev_entity *subdev_entity =
 		container_of(notifier, struct isc_subdev_entity, notifier);
 
-	if (video_is_registered(&isc->video_dev)) {
+	if (video_is_registered(&isc->video_dev))
+	{
 		v4l2_err(&isc->v4l2_dev, "only supports one sub-device.\n");
 		return -EBUSY;
 	}
@@ -1036,15 +1208,18 @@ static int isc_async_bound(struct v4l2_async_notifier *notifier,
 }
 
 static void isc_async_unbind(struct v4l2_async_notifier *notifier,
-			      struct v4l2_subdev *subdev,
-			      struct v4l2_async_subdev *asd)
+							 struct v4l2_subdev *subdev,
+							 struct v4l2_async_subdev *asd)
 {
 	struct isc_device *isc = container_of(notifier->v4l2_dev,
-					      struct isc_device, v4l2_dev);
+										  struct isc_device, v4l2_dev);
 
 	video_unregister_device(&isc->video_dev);
+
 	if (isc->current_subdev->config)
+	{
 		v4l2_subdev_free_pad_config(isc->current_subdev->config);
+	}
 }
 
 static struct isc_format *find_format_by_code(unsigned int code, int *index)
@@ -1052,8 +1227,10 @@ static struct isc_format *find_format_by_code(unsigned int code, int *index)
 	struct isc_format *fmt = &isc_formats[0];
 	unsigned int i;
 
-	for (i = 0; i < ARRAY_SIZE(isc_formats); i++) {
-		if (fmt->mbus_code == code) {
+	for (i = 0; i < ARRAY_SIZE(isc_formats); i++)
+	{
+		if (fmt->mbus_code == code)
+		{
 			*index = i;
 			return fmt;
 		}
@@ -1069,43 +1246,58 @@ static int isc_formats_init(struct isc_device *isc)
 	struct isc_format *fmt;
 	struct v4l2_subdev *subdev = isc->current_subdev->sd;
 	int num_fmts = 0, i, j;
-	struct v4l2_subdev_mbus_code_enum mbus_code = {
+	struct v4l2_subdev_mbus_code_enum mbus_code =
+	{
 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
 	};
 
 	fmt = &isc_formats[0];
-	for (i = 0; i < ARRAY_SIZE(isc_formats); i++) {
+
+	for (i = 0; i < ARRAY_SIZE(isc_formats); i++)
+	{
 		fmt->support = false;
 		fmt++;
 	}
 
 	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code,
-	       NULL, &mbus_code)) {
+							 NULL, &mbus_code))
+	{
 		mbus_code.index++;
 		fmt = find_format_by_code(mbus_code.code, &i);
+
 		if (!fmt)
+		{
 			continue;
+		}
 
 		fmt->support = true;
 		num_fmts++;
 	}
 
 	if (!num_fmts)
+	{
 		return -ENXIO;
+	}
 
 	isc->num_user_formats = num_fmts;
 	isc->user_formats = devm_kcalloc(isc->dev,
-					 num_fmts, sizeof(struct isc_format *),
-					 GFP_KERNEL);
-	if (!isc->user_formats) {
+									 num_fmts, sizeof(struct isc_format *),
+									 GFP_KERNEL);
+
+	if (!isc->user_formats)
+	{
 		v4l2_err(&isc->v4l2_dev, "could not allocate memory\n");
 		return -ENOMEM;
 	}
 
 	fmt = &isc_formats[0];
-	for (i = 0, j = 0; i < ARRAY_SIZE(isc_formats); i++) {
+
+	for (i = 0, j = 0; i < ARRAY_SIZE(isc_formats); i++)
+	{
 		if (fmt->support)
+		{
 			isc->user_formats[j++] = fmt;
+		}
 
 		fmt++;
 	}
@@ -1115,7 +1307,8 @@ static int isc_formats_init(struct isc_device *isc)
 
 static int isc_set_default_fmt(struct isc_device *isc)
 {
-	struct v4l2_format f = {
+	struct v4l2_format f =
+	{
 		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
 		.fmt.pix = {
 			.width		= VGA_WIDTH,
@@ -1127,8 +1320,11 @@ static int isc_set_default_fmt(struct isc_device *isc)
 	int ret;
 
 	ret = isc_try_fmt(isc, &f, NULL);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	isc->current_fmt = isc->user_formats[0];
 	isc->fmt = f;
@@ -1139,14 +1335,14 @@ static int isc_set_default_fmt(struct isc_device *isc)
 static int isc_async_complete(struct v4l2_async_notifier *notifier)
 {
 	struct isc_device *isc = container_of(notifier->v4l2_dev,
-					      struct isc_device, v4l2_dev);
+										  struct isc_device, v4l2_dev);
 	struct isc_subdev_entity *sd_entity;
 	struct video_device *vdev = &isc->video_dev;
 	struct vb2_queue *q = &isc->vb2_vidq;
 	int ret;
 
 	isc->current_subdev = container_of(notifier,
-					   struct isc_subdev_entity, notifier);
+									   struct isc_subdev_entity, notifier);
 	sd_entity = isc->current_subdev;
 
 	mutex_init(&isc->lock);
@@ -1165,9 +1361,11 @@ static int isc_async_complete(struct v4l2_async_notifier *notifier)
 	q->dev			= isc->dev;
 
 	ret = vb2_queue_init(q);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		v4l2_err(&isc->v4l2_dev,
-			 "vb2_queue_init() failed: %d\n", ret);
+				 "vb2_queue_init() failed: %d\n", ret);
 		return ret;
 	}
 
@@ -1176,18 +1374,25 @@ static int isc_async_complete(struct v4l2_async_notifier *notifier)
 	spin_lock_init(&isc->dma_queue_lock);
 
 	sd_entity->config = v4l2_subdev_alloc_pad_config(sd_entity->sd);
+
 	if (sd_entity->config == NULL)
+	{
 		return -ENOMEM;
+	}
 
 	ret = isc_formats_init(isc);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		v4l2_err(&isc->v4l2_dev,
-			 "Init format failed: %d\n", ret);
+				 "Init format failed: %d\n", ret);
 		return ret;
 	}
 
 	ret = isc_set_default_fmt(isc);
-	if (ret) {
+
+	if (ret)
+	{
 		v4l2_err(&isc->v4l2_dev, "Could not set default format\n");
 		return ret;
 	}
@@ -1206,9 +1411,11 @@ static int isc_async_complete(struct v4l2_async_notifier *notifier)
 	video_set_drvdata(vdev, isc);
 
 	ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		v4l2_err(&isc->v4l2_dev,
-			 "video_register_device failed: %d\n", ret);
+				 "video_register_device failed: %d\n", ret);
 		return ret;
 	}
 
@@ -1220,7 +1427,7 @@ static void isc_subdev_cleanup(struct isc_device *isc)
 	struct isc_subdev_entity *subdev_entity;
 
 	list_for_each_entry(subdev_entity, &isc->subdev_entities, list)
-		v4l2_async_notifier_unregister(&subdev_entity->notifier);
+	v4l2_async_notifier_unregister(&subdev_entity->notifier);
 
 	INIT_LIST_HEAD(&isc->subdev_entities);
 }
@@ -1233,7 +1440,8 @@ static int isc_pipeline_init(struct isc_device *isc)
 	unsigned int i;
 
 	/* WB-->CFA-->CC-->GAM-->CSC-->CBC-->SUB422-->SUB420 */
-	const struct reg_field regfields[ISC_PIPE_LINE_NODE_NUM] = {
+	const struct reg_field regfields[ISC_PIPE_LINE_NODE_NUM] =
+	{
 		REG_FIELD(ISC_WB_CTRL, 0, 0),
 		REG_FIELD(ISC_CFA_CTRL, 0, 0),
 		REG_FIELD(ISC_CC_CTRL, 0, 0),
@@ -1247,10 +1455,14 @@ static int isc_pipeline_init(struct isc_device *isc)
 		REG_FIELD(ISC_SUB420_CTRL, 0, 0),
 	};
 
-	for (i = 0; i < ISC_PIPE_LINE_NODE_NUM; i++) {
+	for (i = 0; i < ISC_PIPE_LINE_NODE_NUM; i++)
+	{
 		regs = devm_regmap_field_alloc(dev, regmap, regfields[i]);
+
 		if (IS_ERR(regs))
+		{
 			return PTR_ERR(regs);
+		}
 
 		isc->pipeline[i] =  regs;
 	}
@@ -1269,20 +1481,28 @@ static int isc_parse_dt(struct device *dev, struct isc_device *isc)
 
 	INIT_LIST_HEAD(&isc->subdev_entities);
 
-	for (; ;) {
+	for (; ;)
+	{
 		epn = of_graph_get_next_endpoint(np, epn);
+
 		if (!epn)
+		{
 			break;
+		}
 
 		rem = of_graph_get_remote_port_parent(epn);
-		if (!rem) {
+
+		if (!rem)
+		{
 			dev_notice(dev, "Remote device at %s not found\n",
-				   of_node_full_name(epn));
+					   of_node_full_name(epn));
 			continue;
 		}
 
 		ret = v4l2_of_parse_endpoint(epn, &v4l2_epn);
-		if (ret) {
+
+		if (ret)
+		{
 			of_node_put(rem);
 			ret = -EINVAL;
 			dev_err(dev, "Could not parse the endpoint\n");
@@ -1290,16 +1510,20 @@ static int isc_parse_dt(struct device *dev, struct isc_device *isc)
 		}
 
 		subdev_entity = devm_kzalloc(dev,
-					  sizeof(*subdev_entity), GFP_KERNEL);
-		if (subdev_entity == NULL) {
+									 sizeof(*subdev_entity), GFP_KERNEL);
+
+		if (subdev_entity == NULL)
+		{
 			of_node_put(rem);
 			ret = -ENOMEM;
 			break;
 		}
 
 		subdev_entity->asd = devm_kzalloc(dev,
-				     sizeof(*subdev_entity->asd), GFP_KERNEL);
-		if (subdev_entity->asd == NULL) {
+										  sizeof(*subdev_entity->asd), GFP_KERNEL);
+
+		if (subdev_entity->asd == NULL)
+		{
 			of_node_put(rem);
 			ret = -ENOMEM;
 			break;
@@ -1308,13 +1532,19 @@ static int isc_parse_dt(struct device *dev, struct isc_device *isc)
 		flags = v4l2_epn.bus.parallel.flags;
 
 		if (flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
+		{
 			subdev_entity->pfe_cfg0 = ISC_PFE_CFG0_HPOL_LOW;
+		}
 
 		if (flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
+		{
 			subdev_entity->pfe_cfg0 |= ISC_PFE_CFG0_VPOL_LOW;
+		}
 
 		if (flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
+		{
 			subdev_entity->pfe_cfg0 |= ISC_PFE_CFG0_PPOL_LOW;
+		}
 
 		subdev_entity->asd->match_type = V4L2_ASYNC_MATCH_OF;
 		subdev_entity->asd->match.of.node = rem;
@@ -1327,7 +1557,8 @@ static int isc_parse_dt(struct device *dev, struct isc_device *isc)
 
 /* regmap configuration */
 #define ATMEL_ISC_REG_MAX    0xbfc
-static const struct regmap_config isc_regmap_config = {
+static const struct regmap_config isc_regmap_config =
+{
 	.reg_bits       = 32,
 	.reg_stride     = 4,
 	.val_bits       = 32,
@@ -1345,52 +1576,71 @@ static int atmel_isc_probe(struct platform_device *pdev)
 	int ret;
 
 	isc = devm_kzalloc(dev, sizeof(*isc), GFP_KERNEL);
+
 	if (!isc)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, isc);
 	isc->dev = dev;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	io_base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(io_base))
+	{
 		return PTR_ERR(io_base);
+	}
 
 	isc->regmap = devm_regmap_init_mmio(dev, io_base, &isc_regmap_config);
-	if (IS_ERR(isc->regmap)) {
+
+	if (IS_ERR(isc->regmap))
+	{
 		ret = PTR_ERR(isc->regmap);
 		dev_err(dev, "failed to init register map: %d\n", ret);
 		return ret;
 	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		ret = irq;
 		dev_err(dev, "failed to get irq: %d\n", ret);
 		return ret;
 	}
 
 	ret = devm_request_irq(dev, irq, isc_interrupt, 0,
-			       ATMEL_ISC_NAME, isc);
-	if (ret < 0) {
+						   ATMEL_ISC_NAME, isc);
+
+	if (ret < 0)
+	{
 		dev_err(dev, "can't register ISR for IRQ %u (ret=%i)\n",
-			irq, ret);
+				irq, ret);
 		return ret;
 	}
 
 	ret = isc_pipeline_init(isc);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	isc->hclock = devm_clk_get(dev, "hclock");
-	if (IS_ERR(isc->hclock)) {
+
+	if (IS_ERR(isc->hclock))
+	{
 		ret = PTR_ERR(isc->hclock);
 		dev_err(dev, "failed to get hclock: %d\n", ret);
 		return ret;
 	}
 
 	ret = isc_clk_init(isc);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to init isc clock: %d\n", ret);
 		goto clean_isc_clk;
 	}
@@ -1399,29 +1649,37 @@ static int atmel_isc_probe(struct platform_device *pdev)
 
 	/* ispck should be greater or equal to hclock */
 	ret = clk_set_rate(isc->ispck, clk_get_rate(isc->hclock));
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to set ispck rate: %d\n", ret);
 		goto clean_isc_clk;
 	}
 
 	ret = v4l2_device_register(dev, &isc->v4l2_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "unable to register v4l2 device.\n");
 		goto clean_isc_clk;
 	}
 
 	ret = isc_parse_dt(dev, isc);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "fail to parse device tree\n");
 		goto unregister_v4l2_device;
 	}
 
-	if (list_empty(&isc->subdev_entities)) {
+	if (list_empty(&isc->subdev_entities))
+	{
 		dev_err(dev, "no subdev found\n");
 		goto unregister_v4l2_device;
 	}
 
-	list_for_each_entry(subdev_entity, &isc->subdev_entities, list) {
+	list_for_each_entry(subdev_entity, &isc->subdev_entities, list)
+	{
 		subdev_entity->notifier.subdevs = &subdev_entity->asd;
 		subdev_entity->notifier.num_subdevs = 1;
 		subdev_entity->notifier.bound = isc_async_bound;
@@ -1429,14 +1687,18 @@ static int atmel_isc_probe(struct platform_device *pdev)
 		subdev_entity->notifier.complete = isc_async_complete;
 
 		ret = v4l2_async_notifier_register(&isc->v4l2_dev,
-						   &subdev_entity->notifier);
-		if (ret) {
+										   &subdev_entity->notifier);
+
+		if (ret)
+		{
 			dev_err(dev, "fail to register async notifier\n");
 			goto cleanup_subdev;
 		}
 
 		if (video_is_registered(&isc->video_dev))
+		{
 			break;
+		}
 	}
 
 	pm_runtime_enable(dev);
@@ -1486,23 +1748,29 @@ static int __maybe_unused isc_runtime_resume(struct device *dev)
 	int ret;
 
 	ret = clk_prepare_enable(isc->hclock);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return clk_prepare_enable(isc->ispck);
 }
 
-static const struct dev_pm_ops atmel_isc_dev_pm_ops = {
+static const struct dev_pm_ops atmel_isc_dev_pm_ops =
+{
 	SET_RUNTIME_PM_OPS(isc_runtime_suspend, isc_runtime_resume, NULL)
 };
 
-static const struct of_device_id atmel_isc_of_match[] = {
+static const struct of_device_id atmel_isc_of_match[] =
+{
 	{ .compatible = "atmel,sama5d2-isc" },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, atmel_isc_of_match);
 
-static struct platform_driver atmel_isc_driver = {
+static struct platform_driver atmel_isc_driver =
+{
 	.probe	= atmel_isc_probe,
 	.remove	= atmel_isc_remove,
 	.driver	= {

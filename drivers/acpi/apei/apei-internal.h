@@ -12,16 +12,18 @@
 struct apei_exec_context;
 
 typedef int (*apei_exec_ins_func_t)(struct apei_exec_context *ctx,
-				    struct acpi_whea_header *entry);
+									struct acpi_whea_header *entry);
 
 #define APEI_EXEC_INS_ACCESS_REGISTER	0x0001
 
-struct apei_exec_ins_type {
+struct apei_exec_ins_type
+{
 	u32 flags;
 	apei_exec_ins_func_t run;
 };
 
-struct apei_exec_context {
+struct apei_exec_context
+{
 	u32 ip;
 	u64 value;
 	u64 var1;
@@ -35,13 +37,13 @@ struct apei_exec_context {
 };
 
 void apei_exec_ctx_init(struct apei_exec_context *ctx,
-			struct apei_exec_ins_type *ins_table,
-			u32 instructions,
-			struct acpi_whea_header *action_table,
-			u32 entries);
+						struct apei_exec_ins_type *ins_table,
+						u32 instructions,
+						struct acpi_whea_header *action_table,
+						u32 entries);
 
 static inline void apei_exec_ctx_set_input(struct apei_exec_context *ctx,
-					   u64 input)
+		u64 input)
 {
 	ctx->value = input;
 }
@@ -82,19 +84,20 @@ int apei_write(u64 val, struct acpi_generic_address *reg);
 int __apei_exec_read_register(struct acpi_whea_header *entry, u64 *val);
 int __apei_exec_write_register(struct acpi_whea_header *entry, u64 val);
 int apei_exec_read_register(struct apei_exec_context *ctx,
-			    struct acpi_whea_header *entry);
+							struct acpi_whea_header *entry);
 int apei_exec_read_register_value(struct apei_exec_context *ctx,
-				  struct acpi_whea_header *entry);
+								  struct acpi_whea_header *entry);
 int apei_exec_write_register(struct apei_exec_context *ctx,
-			     struct acpi_whea_header *entry);
+							 struct acpi_whea_header *entry);
 int apei_exec_write_register_value(struct apei_exec_context *ctx,
-				   struct acpi_whea_header *entry);
+								   struct acpi_whea_header *entry);
 int apei_exec_noop(struct apei_exec_context *ctx,
-		   struct acpi_whea_header *entry);
+				   struct acpi_whea_header *entry);
 int apei_exec_pre_map_gars(struct apei_exec_context *ctx);
 int apei_exec_post_unmap_gars(struct apei_exec_context *ctx);
 
-struct apei_resources {
+struct apei_resources
+{
 	struct list_head iomem;
 	struct list_head ioport;
 };
@@ -107,35 +110,37 @@ static inline void apei_resources_init(struct apei_resources *resources)
 
 void apei_resources_fini(struct apei_resources *resources);
 int apei_resources_add(struct apei_resources *resources,
-		       unsigned long start, unsigned long size,
-		       bool iomem);
+					   unsigned long start, unsigned long size,
+					   bool iomem);
 int apei_resources_sub(struct apei_resources *resources1,
-		       struct apei_resources *resources2);
+					   struct apei_resources *resources2);
 int apei_resources_request(struct apei_resources *resources,
-			   const char *desc);
+						   const char *desc);
 void apei_resources_release(struct apei_resources *resources);
 int apei_exec_collect_resources(struct apei_exec_context *ctx,
-				struct apei_resources *resources);
+								struct apei_resources *resources);
 
 struct dentry;
 struct dentry *apei_get_debugfs_dir(void);
 
 #define apei_estatus_for_each_section(estatus, section)			\
 	for (section = (struct acpi_hest_generic_data *)(estatus + 1);	\
-	     (void *)section - (void *)estatus < estatus->data_length;	\
-	     section = (void *)(section+1) + section->error_data_length)
+		 (void *)section - (void *)estatus < estatus->data_length;	\
+		 section = (void *)(section+1) + section->error_data_length)
 
 static inline u32 cper_estatus_len(struct acpi_hest_generic_status *estatus)
 {
 	if (estatus->raw_data_length)
 		return estatus->raw_data_offset + \
-			estatus->raw_data_length;
+			   estatus->raw_data_length;
 	else
+	{
 		return sizeof(*estatus) + estatus->data_length;
+	}
 }
 
 void cper_estatus_print(const char *pfx,
-			const struct acpi_hest_generic_status *estatus);
+						const struct acpi_hest_generic_status *estatus);
 int cper_estatus_check_header(const struct acpi_hest_generic_status *estatus);
 int cper_estatus_check(const struct acpi_hest_generic_status *estatus);
 

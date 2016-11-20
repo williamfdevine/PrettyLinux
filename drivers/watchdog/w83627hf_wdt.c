@@ -48,20 +48,21 @@ static int cr_wdt_control;	/* WDT control register */
 static int cr_wdt_csr;		/* WDT control & status register */
 
 enum chips { w83627hf, w83627s, w83697hf, w83697ug, w83637hf, w83627thf,
-	     w83687thf, w83627ehf, w83627dhg, w83627uhg, w83667hg, w83627dhg_p,
-	     w83667hg_b, nct6775, nct6776, nct6779, nct6791, nct6792, nct6102 };
+			 w83687thf, w83627ehf, w83627dhg, w83627uhg, w83667hg, w83627dhg_p,
+			 w83667hg_b, nct6775, nct6776, nct6779, nct6791, nct6792, nct6102
+		   };
 
 static int timeout;			/* in seconds */
 module_param(timeout, int, 0);
 MODULE_PARM_DESC(timeout,
-		"Watchdog timeout in seconds. 1 <= timeout <= 255, default="
-				__MODULE_STRING(WATCHDOG_TIMEOUT) ".");
+				 "Watchdog timeout in seconds. 1 <= timeout <= 255, default="
+				 __MODULE_STRING(WATCHDOG_TIMEOUT) ".");
 
 static bool nowayout = WATCHDOG_NOWAYOUT;
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout,
-		"Watchdog cannot be stopped once started (default="
-				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 "Watchdog cannot be stopped once started (default="
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
 static int early_disable;
 module_param(early_disable, int, 0);
@@ -124,7 +125,9 @@ static inline int superio_inb(int reg)
 static int superio_enter(void)
 {
 	if (!request_muxed_region(wdt_io, 2, WATCHDOG_NAME))
+	{
 		return -EBUSY;
+	}
 
 	outb_p(0x87, WDT_EFER); /* Enter extended function mode */
 	outb_p(0x87, WDT_EFER); /* Again according to manual */
@@ -149,85 +152,105 @@ static int w83627hf_init(struct watchdog_device *wdog, enum chips chip)
 	unsigned char t;
 
 	ret = superio_enter();
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	superio_select(W83627HF_LD_WDT);
 
 	/* set CR30 bit 0 to activate GPIO2 */
 	t = superio_inb(0x30);
-	if (!(t & 0x01))
-		superio_outb(0x30, t | 0x01);
 
-	switch (chip) {
-	case w83627hf:
-	case w83627s:
-		t = superio_inb(0x2B) & ~0x10;
-		superio_outb(0x2B, t); /* set GPIO24 to WDT0 */
-		break;
-	case w83697hf:
-		/* Set pin 119 to WDTO# mode (= CR29, WDT0) */
-		t = superio_inb(0x29) & ~0x60;
-		t |= 0x20;
-		superio_outb(0x29, t);
-		break;
-	case w83697ug:
-		/* Set pin 118 to WDTO# mode */
-		t = superio_inb(0x2b) & ~0x04;
-		superio_outb(0x2b, t);
-		break;
-	case w83627thf:
-		t = (superio_inb(0x2B) & ~0x08) | 0x04;
-		superio_outb(0x2B, t); /* set GPIO3 to WDT0 */
-		break;
-	case w83627dhg:
-	case w83627dhg_p:
-		t = superio_inb(0x2D) & ~0x01; /* PIN77 -> WDT0# */
-		superio_outb(0x2D, t); /* set GPIO5 to WDT0 */
-		t = superio_inb(cr_wdt_control);
-		t |= 0x02;	/* enable the WDTO# output low pulse
+	if (!(t & 0x01))
+	{
+		superio_outb(0x30, t | 0x01);
+	}
+
+	switch (chip)
+	{
+		case w83627hf:
+		case w83627s:
+			t = superio_inb(0x2B) & ~0x10;
+			superio_outb(0x2B, t); /* set GPIO24 to WDT0 */
+			break;
+
+		case w83697hf:
+			/* Set pin 119 to WDTO# mode (= CR29, WDT0) */
+			t = superio_inb(0x29) & ~0x60;
+			t |= 0x20;
+			superio_outb(0x29, t);
+			break;
+
+		case w83697ug:
+			/* Set pin 118 to WDTO# mode */
+			t = superio_inb(0x2b) & ~0x04;
+			superio_outb(0x2b, t);
+			break;
+
+		case w83627thf:
+			t = (superio_inb(0x2B) & ~0x08) | 0x04;
+			superio_outb(0x2B, t); /* set GPIO3 to WDT0 */
+			break;
+
+		case w83627dhg:
+		case w83627dhg_p:
+			t = superio_inb(0x2D) & ~0x01; /* PIN77 -> WDT0# */
+			superio_outb(0x2D, t); /* set GPIO5 to WDT0 */
+			t = superio_inb(cr_wdt_control);
+			t |= 0x02;	/* enable the WDTO# output low pulse
 				 * to the KBRST# pin */
-		superio_outb(cr_wdt_control, t);
-		break;
-	case w83637hf:
-		break;
-	case w83687thf:
-		t = superio_inb(0x2C) & ~0x80; /* PIN47 -> WDT0# */
-		superio_outb(0x2C, t);
-		break;
-	case w83627ehf:
-	case w83627uhg:
-	case w83667hg:
-	case w83667hg_b:
-	case nct6775:
-	case nct6776:
-	case nct6779:
-	case nct6791:
-	case nct6792:
-	case nct6102:
-		/*
-		 * These chips have a fixed WDTO# output pin (W83627UHG),
-		 * or support more than one WDTO# output pin.
-		 * Don't touch its configuration, and hope the BIOS
-		 * does the right thing.
-		 */
-		t = superio_inb(cr_wdt_control);
-		t |= 0x02;	/* enable the WDTO# output low pulse
+			superio_outb(cr_wdt_control, t);
+			break;
+
+		case w83637hf:
+			break;
+
+		case w83687thf:
+			t = superio_inb(0x2C) & ~0x80; /* PIN47 -> WDT0# */
+			superio_outb(0x2C, t);
+			break;
+
+		case w83627ehf:
+		case w83627uhg:
+		case w83667hg:
+		case w83667hg_b:
+		case nct6775:
+		case nct6776:
+		case nct6779:
+		case nct6791:
+		case nct6792:
+		case nct6102:
+			/*
+			 * These chips have a fixed WDTO# output pin (W83627UHG),
+			 * or support more than one WDTO# output pin.
+			 * Don't touch its configuration, and hope the BIOS
+			 * does the right thing.
+			 */
+			t = superio_inb(cr_wdt_control);
+			t |= 0x02;	/* enable the WDTO# output low pulse
 				 * to the KBRST# pin */
-		superio_outb(cr_wdt_control, t);
-		break;
-	default:
-		break;
+			superio_outb(cr_wdt_control, t);
+			break;
+
+		default:
+			break;
 	}
 
 	t = superio_inb(cr_wdt_timeout);
-	if (t != 0) {
-		if (early_disable) {
+
+	if (t != 0)
+	{
+		if (early_disable)
+		{
 			pr_warn("Stopping previously enabled watchdog until userland kicks in\n");
 			superio_outb(cr_wdt_timeout, 0);
-		} else {
+		}
+		else
+		{
 			pr_info("Watchdog already running. Resetting timeout to %d sec\n",
-				wdog->timeout);
+					wdog->timeout);
 			superio_outb(cr_wdt_timeout, wdog->timeout);
 		}
 	}
@@ -250,8 +273,11 @@ static int wdt_set_time(unsigned int timeout)
 	int ret;
 
 	ret = superio_enter();
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	superio_select(W83627HF_LD_WDT);
 	superio_outb(cr_wdt_timeout, timeout);
@@ -283,8 +309,11 @@ static unsigned int wdt_get_time(struct watchdog_device *wdog)
 	int ret;
 
 	ret = superio_enter();
+
 	if (ret)
+	{
 		return 0;
+	}
 
 	superio_select(W83627HF_LD_WDT);
 	timeleft = superio_inb(cr_wdt_timeout);
@@ -297,12 +326,14 @@ static unsigned int wdt_get_time(struct watchdog_device *wdog)
  *	Kernel Interfaces
  */
 
-static struct watchdog_info wdt_info = {
+static struct watchdog_info wdt_info =
+{
 	.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING | WDIOF_MAGICCLOSE,
 	.identity = "W83627HF Watchdog",
 };
 
-static const struct watchdog_ops wdt_ops = {
+static const struct watchdog_ops wdt_ops =
+{
 	.owner = THIS_MODULE,
 	.start = wdt_start,
 	.stop = wdt_stop,
@@ -310,7 +341,8 @@ static const struct watchdog_ops wdt_ops = {
 	.get_timeleft = wdt_get_time,
 };
 
-static struct watchdog_device wdt_dev = {
+static struct watchdog_device wdt_dev =
+{
 	.info = &wdt_info,
 	.ops = &wdt_ops,
 	.timeout = WATCHDOG_TIMEOUT,
@@ -333,83 +365,110 @@ static int wdt_find(int addr)
 	cr_wdt_csr = W836X7HF_WDT_CSR;
 
 	ret = superio_enter();
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	superio_select(W83627HF_LD_WDT);
 	val = superio_inb(0x20);
-	switch (val) {
-	case W83627HF_ID:
-		ret = w83627hf;
-		break;
-	case W83627S_ID:
-		ret = w83627s;
-		break;
-	case W83697HF_ID:
-		ret = w83697hf;
-		cr_wdt_timeout = W83697HF_WDT_TIMEOUT;
-		cr_wdt_control = W83697HF_WDT_CONTROL;
-		break;
-	case W83697UG_ID:
-		ret = w83697ug;
-		cr_wdt_timeout = W83697HF_WDT_TIMEOUT;
-		cr_wdt_control = W83697HF_WDT_CONTROL;
-		break;
-	case W83637HF_ID:
-		ret = w83637hf;
-		break;
-	case W83627THF_ID:
-		ret = w83627thf;
-		break;
-	case W83687THF_ID:
-		ret = w83687thf;
-		break;
-	case W83627EHF_ID:
-		ret = w83627ehf;
-		break;
-	case W83627DHG_ID:
-		ret = w83627dhg;
-		break;
-	case W83627DHG_P_ID:
-		ret = w83627dhg_p;
-		break;
-	case W83627UHG_ID:
-		ret = w83627uhg;
-		break;
-	case W83667HG_ID:
-		ret = w83667hg;
-		break;
-	case W83667HG_B_ID:
-		ret = w83667hg_b;
-		break;
-	case NCT6775_ID:
-		ret = nct6775;
-		break;
-	case NCT6776_ID:
-		ret = nct6776;
-		break;
-	case NCT6779_ID:
-		ret = nct6779;
-		break;
-	case NCT6791_ID:
-		ret = nct6791;
-		break;
-	case NCT6792_ID:
-		ret = nct6792;
-		break;
-	case NCT6102_ID:
-		ret = nct6102;
-		cr_wdt_timeout = NCT6102D_WDT_TIMEOUT;
-		cr_wdt_control = NCT6102D_WDT_CONTROL;
-		cr_wdt_csr = NCT6102D_WDT_CSR;
-		break;
-	case 0xff:
-		ret = -ENODEV;
-		break;
-	default:
-		ret = -ENODEV;
-		pr_err("Unsupported chip ID: 0x%02x\n", val);
-		break;
+
+	switch (val)
+	{
+		case W83627HF_ID:
+			ret = w83627hf;
+			break;
+
+		case W83627S_ID:
+			ret = w83627s;
+			break;
+
+		case W83697HF_ID:
+			ret = w83697hf;
+			cr_wdt_timeout = W83697HF_WDT_TIMEOUT;
+			cr_wdt_control = W83697HF_WDT_CONTROL;
+			break;
+
+		case W83697UG_ID:
+			ret = w83697ug;
+			cr_wdt_timeout = W83697HF_WDT_TIMEOUT;
+			cr_wdt_control = W83697HF_WDT_CONTROL;
+			break;
+
+		case W83637HF_ID:
+			ret = w83637hf;
+			break;
+
+		case W83627THF_ID:
+			ret = w83627thf;
+			break;
+
+		case W83687THF_ID:
+			ret = w83687thf;
+			break;
+
+		case W83627EHF_ID:
+			ret = w83627ehf;
+			break;
+
+		case W83627DHG_ID:
+			ret = w83627dhg;
+			break;
+
+		case W83627DHG_P_ID:
+			ret = w83627dhg_p;
+			break;
+
+		case W83627UHG_ID:
+			ret = w83627uhg;
+			break;
+
+		case W83667HG_ID:
+			ret = w83667hg;
+			break;
+
+		case W83667HG_B_ID:
+			ret = w83667hg_b;
+			break;
+
+		case NCT6775_ID:
+			ret = nct6775;
+			break;
+
+		case NCT6776_ID:
+			ret = nct6776;
+			break;
+
+		case NCT6779_ID:
+			ret = nct6779;
+			break;
+
+		case NCT6791_ID:
+			ret = nct6791;
+			break;
+
+		case NCT6792_ID:
+			ret = nct6792;
+			break;
+
+		case NCT6102_ID:
+			ret = nct6102;
+			cr_wdt_timeout = NCT6102D_WDT_TIMEOUT;
+			cr_wdt_control = NCT6102D_WDT_CONTROL;
+			cr_wdt_csr = NCT6102D_WDT_CSR;
+			break;
+
+		case 0xff:
+			ret = -ENODEV;
+			break;
+
+		default:
+			ret = -ENODEV;
+			pr_err("Unsupported chip ID: 0x%02x\n", val);
+			break;
 	}
+
 	superio_exit();
 	return ret;
 }
@@ -418,7 +477,8 @@ static int __init wdt_init(void)
 {
 	int ret;
 	int chip;
-	const char * const chip_name[] = {
+	const char *const chip_name[] =
+	{
 		"W83627HF",
 		"W83627S",
 		"W83697HF",
@@ -442,32 +502,42 @@ static int __init wdt_init(void)
 
 	wdt_io = 0x2e;
 	chip = wdt_find(0x2e);
-	if (chip < 0) {
+
+	if (chip < 0)
+	{
 		wdt_io = 0x4e;
 		chip = wdt_find(0x4e);
+
 		if (chip < 0)
+		{
 			return chip;
+		}
 	}
 
 	pr_info("WDT driver for %s Super I/O chip initialising\n",
-		chip_name[chip]);
+			chip_name[chip]);
 
 	watchdog_init_timeout(&wdt_dev, timeout, NULL);
 	watchdog_set_nowayout(&wdt_dev, nowayout);
 	watchdog_stop_on_reboot(&wdt_dev);
 
 	ret = w83627hf_init(&wdt_dev, chip);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("failed to initialize watchdog (err=%d)\n", ret);
 		return ret;
 	}
 
 	ret = watchdog_register_device(&wdt_dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	pr_info("initialized. timeout=%d sec (nowayout=%d)\n",
-		wdt_dev.timeout, nowayout);
+			wdt_dev.timeout, nowayout);
 
 	return ret;
 }

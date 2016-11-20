@@ -18,7 +18,8 @@
 #include <linux/pinctrl/consumer.h>
 #include <linux/pm_wakeirq.h>
 
-struct st_rc_device {
+struct st_rc_device
+{
 	struct device			*dev;
 	int				irq;
 	int				irq_wake;
@@ -57,7 +58,7 @@ struct st_rc_device {
  */
 #define IRB_RX_INTS		0x0f
 #define IRB_RX_OVERRUN_INT	0x04
- /* maximum symbol period (microsecs),timeout to detect end of symbol train */
+/* maximum symbol period (microsecs),timeout to detect end of symbol train */
 #define MAX_SYMB_TIME		0x5000
 #define IRB_SAMPLE_FREQ		10000000
 #define	IRB_FIFO_NOT_EMPTY	0xff00
@@ -103,18 +104,23 @@ static irqreturn_t st_rc_rx_interrupt(int irq, void *data)
 	DEFINE_IR_RAW_EVENT(ev);
 
 	if (dev->irq_wake)
+	{
 		pm_wakeup_event(dev->dev, 0);
+	}
 
 	status  = readl(dev->rx_base + IRB_RX_STATUS);
 
-	while (status & (IRB_FIFO_NOT_EMPTY | IRB_OVERFLOW)) {
+	while (status & (IRB_FIFO_NOT_EMPTY | IRB_OVERFLOW))
+	{
 		u32 int_status = readl(dev->rx_base + IRB_RX_INT_STATUS);
-		if (unlikely(int_status & IRB_RX_OVERRUN_INT)) {
+
+		if (unlikely(int_status & IRB_RX_OVERRUN_INT))
+		{
 			/* discard the entire collection in case of errors!  */
 			ir_raw_event_reset(dev->rdev);
 			dev_info(dev->dev, "IR RX overrun\n");
 			writel(IRB_RX_OVERRUN_INT,
-					dev->rx_base + IRB_RX_INT_CLEAR);
+				   dev->rx_base + IRB_RX_INT_CLEAR);
 			continue;
 		}
 
@@ -122,12 +128,17 @@ static irqreturn_t st_rc_rx_interrupt(int irq, void *data)
 		mark = readl(dev->rx_base + IRB_RX_ON);
 
 		if (symbol == IRB_TIMEOUT)
+		{
 			last_symbol = 1;
+		}
 
-		 /* Ignore any noise */
-		if ((mark > 2) && (symbol > 1)) {
+		/* Ignore any noise */
+		if ((mark > 2) && (symbol > 1))
+		{
 			symbol -= mark;
-			if (dev->overclocking) { /* adjustments to timings */
+
+			if (dev->overclocking)   /* adjustments to timings */
+			{
 				symbol *= dev->sample_mult;
 				symbol /= dev->sample_div;
 				mark *= dev->sample_mult;
@@ -138,15 +149,19 @@ static irqreturn_t st_rc_rx_interrupt(int irq, void *data)
 			ev.pulse = true;
 			ir_raw_event_store(dev->rdev, &ev);
 
-			if (!last_symbol) {
+			if (!last_symbol)
+			{
 				ev.duration = US_TO_NS(symbol);
 				ev.pulse = false;
 				ir_raw_event_store(dev->rdev, &ev);
-			} else  {
+			}
+			else
+			{
 				st_rc_send_lirc_timeout(dev->rdev);
 			}
 
 		}
+
 		last_symbol = 0;
 		status  = readl(dev->rx_base + IRB_RX_STATUS);
 	}
@@ -166,7 +181,9 @@ static void st_rc_hardware_init(struct st_rc_device *dev)
 
 	/* Enable the IP */
 	if (dev->rstc)
+	{
 		reset_control_deassert(dev->rstc);
+	}
 
 	clk_prepare_enable(dev->sys_clock);
 	baseclock = clk_get_rate(dev->sys_clock);
@@ -178,11 +195,13 @@ static void st_rc_hardware_init(struct st_rc_device *dev)
 	writel(rx_sampling_freq_div, dev->base + IRB_SAMPLE_RATE_COMM);
 
 	freqdiff = baseclock - (rx_sampling_freq_div * IRB_SAMPLE_FREQ);
-	if (freqdiff) { /* over clocking, workout the adjustment factors */
+
+	if (freqdiff)   /* over clocking, workout the adjustment factors */
+	{
 		dev->overclocking = true;
 		dev->sample_mult = 1000;
 		dev->sample_div = baseclock / (10000 * rx_sampling_freq_div);
-		rx_max_symbol_per = (rx_max_symbol_per * 1000)/dev->sample_div;
+		rx_max_symbol_per = (rx_max_symbol_per * 1000) / dev->sample_div;
 	}
 
 	writel(rx_max_symbol_per, dev->rx_base + IRB_MAX_SYM_PERIOD);
@@ -233,37 +252,53 @@ static int st_rc_probe(struct platform_device *pdev)
 	rc_dev = devm_kzalloc(dev, sizeof(struct st_rc_device), GFP_KERNEL);
 
 	if (!rc_dev)
+	{
 		return -ENOMEM;
+	}
 
 	rdev = rc_allocate_device();
 
 	if (!rdev)
+	{
 		return -ENOMEM;
+	}
 
-	if (np && !of_property_read_string(np, "rx-mode", &rx_mode)) {
+	if (np && !of_property_read_string(np, "rx-mode", &rx_mode))
+	{
 
-		if (!strcmp(rx_mode, "uhf")) {
+		if (!strcmp(rx_mode, "uhf"))
+		{
 			rc_dev->rxuhfmode = true;
-		} else if (!strcmp(rx_mode, "infrared")) {
+		}
+		else if (!strcmp(rx_mode, "infrared"))
+		{
 			rc_dev->rxuhfmode = false;
-		} else {
+		}
+		else
+		{
 			dev_err(dev, "Unsupported rx mode [%s]\n", rx_mode);
 			goto err;
 		}
 
-	} else {
+	}
+	else
+	{
 		goto err;
 	}
 
 	rc_dev->sys_clock = devm_clk_get(dev, NULL);
-	if (IS_ERR(rc_dev->sys_clock)) {
+
+	if (IS_ERR(rc_dev->sys_clock))
+	{
 		dev_err(dev, "System clock not found\n");
 		ret = PTR_ERR(rc_dev->sys_clock);
 		goto err;
 	}
 
 	rc_dev->irq = platform_get_irq(pdev, 0);
-	if (rc_dev->irq < 0) {
+
+	if (rc_dev->irq < 0)
+	{
 		ret = rc_dev->irq;
 		goto err;
 	}
@@ -271,20 +306,29 @@ static int st_rc_probe(struct platform_device *pdev)
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 
 	rc_dev->base = devm_ioremap_resource(dev, res);
-	if (IS_ERR(rc_dev->base)) {
+
+	if (IS_ERR(rc_dev->base))
+	{
 		ret = PTR_ERR(rc_dev->base);
 		goto err;
 	}
 
 	if (rc_dev->rxuhfmode)
+	{
 		rc_dev->rx_base = rc_dev->base + 0x40;
+	}
 	else
+	{
 		rc_dev->rx_base = rc_dev->base;
+	}
 
 
 	rc_dev->rstc = reset_control_get_optional(dev, NULL);
+
 	if (IS_ERR(rc_dev->rstc))
+	{
 		rc_dev->rstc = NULL;
+	}
 
 	rc_dev->dev = dev;
 	platform_set_drvdata(pdev, rc_dev);
@@ -303,12 +347,17 @@ static int st_rc_probe(struct platform_device *pdev)
 	rdev->input_name = "ST Remote Control Receiver";
 
 	ret = rc_register_device(rdev);
+
 	if (ret < 0)
+	{
 		goto clkerr;
+	}
 
 	rc_dev->rdev = rdev;
+
 	if (devm_request_irq(dev, rc_dev->irq, st_rc_rx_interrupt,
-			     0, IR_ST_NAME, rc_dev) < 0) {
+						 0, IR_ST_NAME, rc_dev) < 0)
+	{
 		dev_err(dev, "IRQ %d register failed\n", rc_dev->irq);
 		ret = -EINVAL;
 		goto rcerr;
@@ -343,18 +392,28 @@ static int st_rc_suspend(struct device *dev)
 {
 	struct st_rc_device *rc_dev = dev_get_drvdata(dev);
 
-	if (device_may_wakeup(dev)) {
+	if (device_may_wakeup(dev))
+	{
 		if (!enable_irq_wake(rc_dev->irq))
+		{
 			rc_dev->irq_wake = 1;
+		}
 		else
+		{
 			return -EINVAL;
-	} else {
+		}
+	}
+	else
+	{
 		pinctrl_pm_select_sleep_state(dev);
 		writel(0x00, rc_dev->rx_base + IRB_RX_EN);
 		writel(0x00, rc_dev->rx_base + IRB_RX_INT_EN);
 		clk_disable_unprepare(rc_dev->sys_clock);
+
 		if (rc_dev->rstc)
+		{
 			reset_control_assert(rc_dev->rstc);
+		}
 	}
 
 	return 0;
@@ -365,13 +424,18 @@ static int st_rc_resume(struct device *dev)
 	struct st_rc_device *rc_dev = dev_get_drvdata(dev);
 	struct rc_dev	*rdev = rc_dev->rdev;
 
-	if (rc_dev->irq_wake) {
+	if (rc_dev->irq_wake)
+	{
 		disable_irq_wake(rc_dev->irq);
 		rc_dev->irq_wake = 0;
-	} else {
+	}
+	else
+	{
 		pinctrl_pm_select_default_state(dev);
 		st_rc_hardware_init(rc_dev);
-		if (rdev->users) {
+
+		if (rdev->users)
+		{
 			writel(IRB_RX_INTS, rc_dev->rx_base + IRB_RX_INT_EN);
 			writel(0x01, rc_dev->rx_base + IRB_RX_EN);
 		}
@@ -385,7 +449,8 @@ static int st_rc_resume(struct device *dev)
 static SIMPLE_DEV_PM_OPS(st_rc_pm_ops, st_rc_suspend, st_rc_resume);
 
 #ifdef CONFIG_OF
-static const struct of_device_id st_rc_match[] = {
+static const struct of_device_id st_rc_match[] =
+{
 	{ .compatible = "st,comms-irb", },
 	{},
 };
@@ -393,7 +458,8 @@ static const struct of_device_id st_rc_match[] = {
 MODULE_DEVICE_TABLE(of, st_rc_match);
 #endif
 
-static struct platform_driver st_rc_driver = {
+static struct platform_driver st_rc_driver =
+{
 	.driver = {
 		.name = IR_ST_NAME,
 		.of_match_table = of_match_ptr(st_rc_match),

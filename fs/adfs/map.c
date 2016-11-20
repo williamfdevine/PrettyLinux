@@ -69,7 +69,7 @@ static DEFINE_RWLOCK(adfs_map_lock);
  */
 static int
 lookup_zone(const struct adfs_discmap *dm, const unsigned int idlen,
-	    const unsigned int frag_id, unsigned int *offset)
+			const unsigned int frag_id, unsigned int *offset)
 {
 	const unsigned int mapsize = dm->dm_endbit;
 	const u32 idmask = (1 << idlen) - 1;
@@ -78,7 +78,8 @@ lookup_zone(const struct adfs_discmap *dm, const unsigned int idlen,
 	unsigned int mapptr;
 	u32 frag;
 
-	do {
+	do
+	{
 		frag = GET_FRAG_ID(map, start, idmask);
 		mapptr = start + idlen;
 
@@ -88,10 +89,16 @@ lookup_zone(const struct adfs_discmap *dm, const unsigned int idlen,
 		{
 			__le32 *_map = (__le32 *)map;
 			u32 v = le32_to_cpu(_map[mapptr >> 5]) >> (mapptr & 31);
-			while (v == 0) {
+
+			while (v == 0)
+			{
 				mapptr = (mapptr & ~31) + 32;
+
 				if (mapptr >= mapsize)
+				{
 					goto error;
+				}
+
 				v = le32_to_cpu(_map[mapptr >> 5]);
 			}
 
@@ -99,21 +106,28 @@ lookup_zone(const struct adfs_discmap *dm, const unsigned int idlen,
 		}
 
 		if (frag == frag_id)
+		{
 			goto found;
+		}
+
 again:
 		start = mapptr;
-	} while (mapptr < mapsize);
+	}
+	while (mapptr < mapsize);
+
 	return -1;
 
 error:
 	printk(KERN_ERR "adfs: oversized fragment 0x%x at 0x%x-0x%x\n",
-		frag, start, mapptr);
+		   frag, start, mapptr);
 	return -1;
 
 found:
 	{
 		int length = mapptr - start;
-		if (*offset >= length) {
+
+		if (*offset >= length)
+		{
 			*offset -= length;
 			goto again;
 		}
@@ -149,9 +163,12 @@ scan_free_map(struct adfs_sb_info *asb, struct adfs_discmap *dm)
 	 * exist in this zone.
 	 */
 	if (frag == 0)
+	{
 		return 0;
+	}
 
-	do {
+	do
+	{
 		start += frag;
 
 		/*
@@ -166,10 +183,16 @@ scan_free_map(struct adfs_sb_info *asb, struct adfs_discmap *dm)
 		{
 			__le32 *_map = (__le32 *)map;
 			u32 v = le32_to_cpu(_map[mapptr >> 5]) >> (mapptr & 31);
-			while (v == 0) {
+
+			while (v == 0)
+			{
 				mapptr = (mapptr & ~31) + 32;
+
 				if (mapptr >= mapsize)
+				{
 					goto error;
+				}
+
 				v = le32_to_cpu(_map[mapptr >> 5]);
 			}
 
@@ -177,10 +200,13 @@ scan_free_map(struct adfs_sb_info *asb, struct adfs_discmap *dm)
 		}
 
 		total += mapptr - start;
-	} while (frag >= idlen + 1);
+	}
+	while (frag >= idlen + 1);
 
 	if (frag != 0)
+	{
 		printk(KERN_ERR "adfs: undersized free fragment\n");
+	}
 
 	return total;
 error:
@@ -190,7 +216,7 @@ error:
 
 static int
 scan_map(struct adfs_sb_info *asb, unsigned int zone,
-	 const unsigned int frag_id, unsigned int mapoff)
+		 const unsigned int frag_id, unsigned int mapoff)
 {
 	const unsigned int idlen = asb->s_idlen;
 	struct adfs_discmap *dm, *dm_end;
@@ -200,16 +226,23 @@ scan_map(struct adfs_sb_info *asb, unsigned int zone,
 	zone	= asb->s_map_size;
 	dm_end	= asb->s_map + zone;
 
-	do {
+	do
+	{
 		result = lookup_zone(dm, idlen, frag_id, &mapoff);
 
 		if (result != -1)
+		{
 			goto found;
+		}
 
 		dm ++;
+
 		if (dm == dm_end)
+		{
 			dm = asb->s_map;
-	} while (--zone > 0);
+		}
+	}
+	while (--zone > 0);
 
 	return -1;
 found:
@@ -237,16 +270,18 @@ adfs_map_free(struct super_block *sb)
 	dm   = asb->s_map;
 	zone = asb->s_map_size;
 
-	do {
+	do
+	{
 		total += scan_free_map(asb, dm++);
-	} while (--zone > 0);
+	}
+	while (--zone > 0);
 
 	return signed_asl(total, asb->s_map2blk);
 }
 
 int
 adfs_map_lookup(struct super_block *sb, unsigned int frag_id,
-		unsigned int offset)
+				unsigned int offset)
 {
 	struct adfs_sb_info *asb = ADFS_SB(sb);
 	unsigned int zone, mapoff;
@@ -257,12 +292,18 @@ adfs_map_lookup(struct super_block *sb, unsigned int frag_id,
 	 * disk.  The other fragments start at zone (frag / ids_per_zone)
 	 */
 	if (frag_id == ADFS_ROOT_FRAG)
+	{
 		zone = asb->s_map_size >> 1;
+	}
 	else
+	{
 		zone = frag_id / asb->s_ids_per_zone;
+	}
 
 	if (zone >= asb->s_map_size)
+	{
 		goto bad_fragment;
+	}
 
 	/* Convert sector offset to map offset */
 	mapoff = signed_asl(offset, -asb->s_map2blk);
@@ -271,7 +312,8 @@ adfs_map_lookup(struct super_block *sb, unsigned int frag_id,
 	result = scan_map(asb, zone, frag_id, mapoff);
 	read_unlock(&adfs_map_lock);
 
-	if (result > 0) {
+	if (result > 0)
+	{
 		unsigned int secoff;
 
 		/* Calculate sector offset into map block */
@@ -280,11 +322,11 @@ adfs_map_lookup(struct super_block *sb, unsigned int frag_id,
 	}
 
 	adfs_error(sb, "fragment 0x%04x at offset %d not found in map",
-		   frag_id, offset);
+			   frag_id, offset);
 	return 0;
 
 bad_fragment:
 	adfs_error(sb, "invalid fragment 0x%04x (zone = %d, max = %d)",
-		   frag_id, zone, asb->s_map_size);
+			   frag_id, zone, asb->s_map_size);
 	return 0;
 }

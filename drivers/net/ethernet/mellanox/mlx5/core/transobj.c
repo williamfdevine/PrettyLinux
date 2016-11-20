@@ -41,12 +41,13 @@ int mlx5_core_alloc_transport_domain(struct mlx5_core_dev *dev, u32 *tdn)
 	int err;
 
 	MLX5_SET(alloc_transport_domain_in, in, opcode,
-		 MLX5_CMD_OP_ALLOC_TRANSPORT_DOMAIN);
+			 MLX5_CMD_OP_ALLOC_TRANSPORT_DOMAIN);
 
 	err = mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
+
 	if (!err)
 		*tdn = MLX5_GET(alloc_transport_domain_out, out,
-				transport_domain);
+						transport_domain);
 
 	return err;
 }
@@ -58,7 +59,7 @@ void mlx5_core_dealloc_transport_domain(struct mlx5_core_dev *dev, u32 tdn)
 	u32 out[MLX5_ST_SZ_DW(dealloc_transport_domain_out)] = {0};
 
 	MLX5_SET(dealloc_transport_domain_in, in, opcode,
-		 MLX5_CMD_OP_DEALLOC_TRANSPORT_DOMAIN);
+			 MLX5_CMD_OP_DEALLOC_TRANSPORT_DOMAIN);
 	MLX5_SET(dealloc_transport_domain_in, in, transport_domain, tdn);
 	mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
 }
@@ -71,8 +72,11 @@ int mlx5_core_create_rq(struct mlx5_core_dev *dev, u32 *in, int inlen, u32 *rqn)
 
 	MLX5_SET(create_rq_in, in, opcode, MLX5_CMD_OP_CREATE_RQ);
 	err = mlx5_cmd_exec(dev, in, inlen, out, sizeof(out));
+
 	if (!err)
+	{
 		*rqn = MLX5_GET(create_rq_out, out, rqn);
+	}
 
 	return err;
 }
@@ -120,8 +124,11 @@ int mlx5_core_create_sq(struct mlx5_core_dev *dev, u32 *in, int inlen, u32 *sqn)
 
 	MLX5_SET(create_sq_in, in, opcode, MLX5_CMD_OP_CREATE_SQ);
 	err = mlx5_cmd_exec(dev, in, inlen, out, sizeof(out));
+
 	if (!err)
+	{
 		*sqn = MLX5_GET(create_sq_out, out, sqn);
+	}
 
 	return err;
 }
@@ -158,7 +165,7 @@ int mlx5_core_query_sq(struct mlx5_core_dev *dev, u32 sqn, u32 *out)
 EXPORT_SYMBOL(mlx5_core_query_sq);
 
 int mlx5_core_create_tir(struct mlx5_core_dev *dev, u32 *in, int inlen,
-			 u32 *tirn)
+						 u32 *tirn)
 {
 	u32 out[MLX5_ST_SZ_DW(create_tir_out)] = {0};
 	int err;
@@ -167,15 +174,18 @@ int mlx5_core_create_tir(struct mlx5_core_dev *dev, u32 *in, int inlen,
 
 	memset(out, 0, sizeof(out));
 	err = mlx5_cmd_exec(dev, in, inlen, out, sizeof(out));
+
 	if (!err)
+	{
 		*tirn = MLX5_GET(create_tir_out, out, tirn);
+	}
 
 	return err;
 }
 EXPORT_SYMBOL(mlx5_core_create_tir);
 
 int mlx5_core_modify_tir(struct mlx5_core_dev *dev, u32 tirn, u32 *in,
-			 int inlen)
+						 int inlen)
 {
 	u32 out[MLX5_ST_SZ_DW(modify_tir_out)] = {0};
 
@@ -196,22 +206,25 @@ void mlx5_core_destroy_tir(struct mlx5_core_dev *dev, u32 tirn)
 EXPORT_SYMBOL(mlx5_core_destroy_tir);
 
 int mlx5_core_create_tis(struct mlx5_core_dev *dev, u32 *in, int inlen,
-			 u32 *tisn)
+						 u32 *tisn)
 {
 	u32 out[MLX5_ST_SZ_DW(create_tis_out)] = {0};
 	int err;
 
 	MLX5_SET(create_tis_in, in, opcode, MLX5_CMD_OP_CREATE_TIS);
 	err = mlx5_cmd_exec(dev, in, inlen, out, sizeof(out));
+
 	if (!err)
+	{
 		*tisn = MLX5_GET(create_tis_out, out, tisn);
+	}
 
 	return err;
 }
 EXPORT_SYMBOL(mlx5_core_create_tis);
 
 int mlx5_core_modify_tis(struct mlx5_core_dev *dev, u32 tisn, u32 *in,
-			 int inlen)
+						 int inlen)
 {
 	u32 out[MLX5_ST_SZ_DW(modify_tis_out)] = {0};
 
@@ -234,15 +247,18 @@ void mlx5_core_destroy_tis(struct mlx5_core_dev *dev, u32 tisn)
 EXPORT_SYMBOL(mlx5_core_destroy_tis);
 
 int mlx5_core_create_rmp(struct mlx5_core_dev *dev, u32 *in, int inlen,
-			 u32 *rmpn)
+						 u32 *rmpn)
 {
 	u32 out[MLX5_ST_SZ_DW(create_rmp_out)] = {0};
 	int err;
 
 	MLX5_SET(create_rmp_in, in, opcode, MLX5_CMD_OP_CREATE_RMP);
 	err = mlx5_cmd_exec(dev, in, inlen, out, sizeof(out));
+
 	if (!err)
+	{
 		*rmpn = MLX5_GET(create_rmp_out, out, rmpn);
+	}
 
 	return err;
 }
@@ -263,7 +279,7 @@ int mlx5_core_destroy_rmp(struct mlx5_core_dev *dev, u32 rmpn)
 	MLX5_SET(destroy_rmp_in, in, opcode, MLX5_CMD_OP_DESTROY_RMP);
 	MLX5_SET(destroy_rmp_in, in, rmpn, rmpn);
 	return mlx5_cmd_exec(dev, in, sizeof(in), out,
-					  sizeof(out));
+						 sizeof(out));
 }
 
 int mlx5_core_query_rmp(struct mlx5_core_dev *dev, u32 rmpn, u32 *out)
@@ -285,8 +301,11 @@ int mlx5_core_arm_rmp(struct mlx5_core_dev *dev, u32 rmpn, u16 lwm)
 	int  err;
 
 	in = mlx5_vzalloc(MLX5_ST_SZ_BYTES(modify_rmp_in));
+
 	if (!in)
+	{
 		return -ENOMEM;
+	}
 
 	rmpc    = MLX5_ADDR_OF(modify_rmp_in,   in,   ctx);
 	bitmask = MLX5_ADDR_OF(modify_rmp_in,   in,   bitmask);
@@ -306,15 +325,18 @@ int mlx5_core_arm_rmp(struct mlx5_core_dev *dev, u32 rmpn, u16 lwm)
 }
 
 int mlx5_core_create_xsrq(struct mlx5_core_dev *dev, u32 *in, int inlen,
-			  u32 *xsrqn)
+						  u32 *xsrqn)
 {
 	u32 out[MLX5_ST_SZ_DW(create_xrc_srq_out)] = {0};
 	int err;
 
 	MLX5_SET(create_xrc_srq_in, in, opcode,     MLX5_CMD_OP_CREATE_XRC_SRQ);
 	err = mlx5_cmd_exec(dev, in, inlen, out, sizeof(out));
+
 	if (!err)
+	{
 		*xsrqn = MLX5_GET(create_xrc_srq_out, out, xrc_srqn);
+	}
 
 	return err;
 }
@@ -339,10 +361,12 @@ int mlx5_core_query_xsrq(struct mlx5_core_dev *dev, u32 xsrqn, u32 *out)
 	MLX5_SET(query_xrc_srq_in, in, opcode,   MLX5_CMD_OP_QUERY_XRC_SRQ);
 	MLX5_SET(query_xrc_srq_in, in, xrc_srqn, xsrqn);
 	err = mlx5_cmd_exec(dev, in, sizeof(in), out,
-			    MLX5_ST_SZ_BYTES(query_xrc_srq_out));
-	if (!err) {
+						MLX5_ST_SZ_BYTES(query_xrc_srq_out));
+
+	if (!err)
+	{
 		xrc_srqc = MLX5_ADDR_OF(query_xrc_srq_out, out,
-					xrc_srq_context_entry);
+								xrc_srq_context_entry);
 		srqc = MLX5_ADDR_OF(query_srq_out, out, srq_context_entry);
 		memcpy(srqc, xrc_srqc, MLX5_ST_SZ_BYTES(srqc));
 	}
@@ -359,27 +383,30 @@ int mlx5_core_arm_xsrq(struct mlx5_core_dev *dev, u32 xsrqn, u16 lwm)
 	MLX5_SET(arm_xrc_srq_in, in, xrc_srqn, xsrqn);
 	MLX5_SET(arm_xrc_srq_in, in, lwm,      lwm);
 	MLX5_SET(arm_xrc_srq_in, in, op_mod,
-		 MLX5_ARM_XRC_SRQ_IN_OP_MOD_XRC_SRQ);
+			 MLX5_ARM_XRC_SRQ_IN_OP_MOD_XRC_SRQ);
 	return mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
 }
 
 int mlx5_core_create_rqt(struct mlx5_core_dev *dev, u32 *in, int inlen,
-			 u32 *rqtn)
+						 u32 *rqtn)
 {
 	u32 out[MLX5_ST_SZ_DW(create_rqt_out)] = {0};
 	int err;
 
 	MLX5_SET(create_rqt_in, in, opcode, MLX5_CMD_OP_CREATE_RQT);
 	err = mlx5_cmd_exec(dev, in, inlen, out, sizeof(out));
+
 	if (!err)
+	{
 		*rqtn = MLX5_GET(create_rqt_out, out, rqtn);
+	}
 
 	return err;
 }
 EXPORT_SYMBOL(mlx5_core_create_rqt);
 
 int mlx5_core_modify_rqt(struct mlx5_core_dev *dev, u32 rqtn, u32 *in,
-			 int inlen)
+						 int inlen)
 {
 	u32 out[MLX5_ST_SZ_DW(modify_rqt_out)] = {0};
 

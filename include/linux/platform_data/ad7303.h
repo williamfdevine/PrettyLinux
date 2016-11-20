@@ -14,7 +14,8 @@
  * @use_external_ref: If set to true use an external voltage reference connected
  * to the REF pin, otherwise use the internal reference derived from Vdd.
  */
-struct ad7303_platform_data {
+struct ad7303_platform_data
+{
 	bool use_external_ref;
 };
 

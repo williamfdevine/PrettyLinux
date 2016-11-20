@@ -27,7 +27,8 @@ static int kb_pressure_click = 0x10;
 module_param(kb_pressure_click, int, 0);
 MODULE_PARM_DESC(kb_pressure_click, "pressure threshold for clicks");
 
-struct kbtab {
+struct kbtab
+{
 	unsigned char *data;
 	dma_addr_t data_dma;
 	struct input_dev *dev;
@@ -44,23 +45,26 @@ static void kbtab_irq(struct urb *urb)
 	int pressure;
 	int retval;
 
-	switch (urb->status) {
-	case 0:
-		/* success */
-		break;
-	case -ECONNRESET:
-	case -ENOENT:
-	case -ESHUTDOWN:
-		/* this urb is terminated, clean up */
-		dev_dbg(&kbtab->intf->dev,
-			"%s - urb shutting down with status: %d\n",
-			__func__, urb->status);
-		return;
-	default:
-		dev_dbg(&kbtab->intf->dev,
-			"%s - nonzero urb status received: %d\n",
-			__func__, urb->status);
-		goto exit;
+	switch (urb->status)
+	{
+		case 0:
+			/* success */
+			break;
+
+		case -ECONNRESET:
+		case -ENOENT:
+		case -ESHUTDOWN:
+			/* this urb is terminated, clean up */
+			dev_dbg(&kbtab->intf->dev,
+					"%s - urb shutting down with status: %d\n",
+					__func__, urb->status);
+			return;
+
+		default:
+			dev_dbg(&kbtab->intf->dev,
+					"%s - nonzero urb status received: %d\n",
+					__func__, urb->status);
+			goto exit;
 	}
 
 
@@ -73,22 +77,29 @@ static void kbtab_irq(struct urb *urb)
 	input_report_key(dev, BTN_RIGHT, data[0] & 0x02);
 
 	pressure = data[5];
+
 	if (kb_pressure_click == -1)
+	{
 		input_report_abs(dev, ABS_PRESSURE, pressure);
+	}
 	else
+	{
 		input_report_key(dev, BTN_LEFT, pressure > kb_pressure_click ? 1 : 0);
+	}
 
 	input_sync(dev);
 
- exit:
+exit:
 	retval = usb_submit_urb(urb, GFP_ATOMIC);
+
 	if (retval)
 		dev_err(&kbtab->intf->dev,
-			"%s - usb_submit_urb failed with result %d\n",
-			__func__, retval);
+				"%s - usb_submit_urb failed with result %d\n",
+				__func__, retval);
 }
 
-static struct usb_device_id kbtab_ids[] = {
+static struct usb_device_id kbtab_ids[] =
+{
 	{ USB_DEVICE(USB_VENDOR_ID_KBGEAR, 0x1001), .driver_info = 0 },
 	{ }
 };
@@ -101,8 +112,11 @@ static int kbtab_open(struct input_dev *dev)
 	struct usb_device *udev = interface_to_usbdev(kbtab->intf);
 
 	kbtab->irq->dev = udev;
+
 	if (usb_submit_urb(kbtab->irq, GFP_KERNEL))
+	{
 		return -EIO;
+	}
 
 	return 0;
 }
@@ -124,16 +138,25 @@ static int kbtab_probe(struct usb_interface *intf, const struct usb_device_id *i
 
 	kbtab = kzalloc(sizeof(struct kbtab), GFP_KERNEL);
 	input_dev = input_allocate_device();
+
 	if (!kbtab || !input_dev)
+	{
 		goto fail1;
+	}
 
 	kbtab->data = usb_alloc_coherent(dev, 8, GFP_KERNEL, &kbtab->data_dma);
+
 	if (!kbtab->data)
+	{
 		goto fail1;
+	}
 
 	kbtab->irq = usb_alloc_urb(0, GFP_KERNEL);
+
 	if (!kbtab->irq)
+	{
 		goto fail2;
+	}
 
 	kbtab->intf = intf;
 	kbtab->dev = input_dev;
@@ -163,23 +186,26 @@ static int kbtab_probe(struct usb_interface *intf, const struct usb_device_id *i
 	endpoint = &intf->cur_altsetting->endpoint[0].desc;
 
 	usb_fill_int_urb(kbtab->irq, dev,
-			 usb_rcvintpipe(dev, endpoint->bEndpointAddress),
-			 kbtab->data, 8,
-			 kbtab_irq, kbtab, endpoint->bInterval);
+					 usb_rcvintpipe(dev, endpoint->bEndpointAddress),
+					 kbtab->data, 8,
+					 kbtab_irq, kbtab, endpoint->bInterval);
 	kbtab->irq->transfer_dma = kbtab->data_dma;
 	kbtab->irq->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
 
 	error = input_register_device(kbtab->dev);
+
 	if (error)
+	{
 		goto fail3;
+	}
 
 	usb_set_intfdata(intf, kbtab);
 
 	return 0;
 
- fail3:	usb_free_urb(kbtab->irq);
- fail2:	usb_free_coherent(dev, 8, kbtab->data, kbtab->data_dma);
- fail1:	input_free_device(input_dev);
+fail3:	usb_free_urb(kbtab->irq);
+fail2:	usb_free_coherent(dev, 8, kbtab->data, kbtab->data_dma);
+fail1:	input_free_device(input_dev);
 	kfree(kbtab);
 	return error;
 }
@@ -197,7 +223,8 @@ static void kbtab_disconnect(struct usb_interface *intf)
 	kfree(kbtab);
 }
 
-static struct usb_driver kbtab_driver = {
+static struct usb_driver kbtab_driver =
+{
 	.name =		"kbtab",
 	.probe =	kbtab_probe,
 	.disconnect =	kbtab_disconnect,

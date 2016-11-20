@@ -20,11 +20,11 @@
 #include "skein_block.h"
 
 #ifndef SKEIN_USE_ASM
-#define SKEIN_USE_ASM   (0) /* default is all C code (no ASM) */
+	#define SKEIN_USE_ASM   (0) /* default is all C code (no ASM) */
 #endif
 
 #ifndef SKEIN_LOOP
-#define SKEIN_LOOP 001 /* default: unroll 256 and 512, but not 1024 */
+	#define SKEIN_LOOP 001 /* default: unroll 256 and 512, but not 1024 */
 #endif
 
 #define BLK_BITS        (WCNT * 64) /* some useful definitions for code here */
@@ -35,10 +35,10 @@
 
 #ifdef SKEIN_DEBUG
 #define debug_save_tweak(ctx)       \
-{                                   \
-	ctx->h.tweak[0] = ts[0];    \
-	ctx->h.tweak[1] = ts[1];    \
-}
+	{                                   \
+		ctx->h.tweak[0] = ts[0];    \
+		ctx->h.tweak[1] = ts[1];    \
+	}
 #else
 #define debug_save_tweak(ctx)
 #endif
@@ -47,15 +47,15 @@
 #undef  RCNT
 #define RCNT (SKEIN_256_ROUNDS_TOTAL / 8)
 #ifdef SKEIN_LOOP /* configure how much to unroll the loop */
-#define SKEIN_UNROLL_256 (((SKEIN_LOOP) / 100) % 10)
+	#define SKEIN_UNROLL_256 (((SKEIN_LOOP) / 100) % 10)
 #else
-#define SKEIN_UNROLL_256 (0)
+	#define SKEIN_UNROLL_256 (0)
 #endif
 
 #if SKEIN_UNROLL_256
-#if (RCNT % SKEIN_UNROLL_256)
-#error "Invalid SKEIN_UNROLL_256" /* sanity check on unroll count */
-#endif
+	#if (RCNT % SKEIN_UNROLL_256)
+		#error "Invalid SKEIN_UNROLL_256" /* sanity check on unroll count */
+	#endif
 #endif
 #define ROUND256(p0, p1, p2, p3, ROT, r_num)         \
 	do {                                         \
@@ -111,11 +111,11 @@
 
 #define R256_UNROLL_R(NN)                     \
 	((SKEIN_UNROLL_256 == 0 &&            \
-	SKEIN_256_ROUNDS_TOTAL / 8 > (NN)) || \
-	(SKEIN_UNROLL_256 > (NN)))
+	  SKEIN_256_ROUNDS_TOTAL / 8 > (NN)) || \
+	 (SKEIN_UNROLL_256 > (NN)))
 
 #if  (SKEIN_UNROLL_256 > 14)
-#error  "need more unrolling in skein_256_process_block"
+	#error  "need more unrolling in skein_256_process_block"
 #endif
 #endif
 
@@ -124,15 +124,15 @@
 #define RCNT  (SKEIN_512_ROUNDS_TOTAL / 8)
 
 #ifdef SKEIN_LOOP /* configure how much to unroll the loop */
-#define SKEIN_UNROLL_512 (((SKEIN_LOOP) / 10) % 10)
+	#define SKEIN_UNROLL_512 (((SKEIN_LOOP) / 10) % 10)
 #else
-#define SKEIN_UNROLL_512 (0)
+	#define SKEIN_UNROLL_512 (0)
 #endif
 
 #if SKEIN_UNROLL_512
-#if (RCNT % SKEIN_UNROLL_512)
-#error "Invalid SKEIN_UNROLL_512" /* sanity check on unroll count */
-#endif
+	#if (RCNT % SKEIN_UNROLL_512)
+		#error "Invalid SKEIN_UNROLL_512" /* sanity check on unroll count */
+	#endif
 #endif
 #define ROUND512(p0, p1, p2, p3, p4, p5, p6, p7, ROT, r_num)    \
 	do {                                                    \
@@ -201,12 +201,12 @@
 		I512(2 * (R) + 1); /* and key injection */              \
 	} while (0)
 #define R512_UNROLL_R(NN)                             \
-		((SKEIN_UNROLL_512 == 0 &&            \
-		SKEIN_512_ROUNDS_TOTAL / 8 > (NN)) || \
-		(SKEIN_UNROLL_512 > (NN)))
+	((SKEIN_UNROLL_512 == 0 &&            \
+	  SKEIN_512_ROUNDS_TOTAL / 8 > (NN)) || \
+	 (SKEIN_UNROLL_512 > (NN)))
 
 #if  (SKEIN_UNROLL_512 > 14)
-#error  "need more unrolling in skein_512_process_block"
+	#error  "need more unrolling in skein_512_process_block"
 #endif
 #endif
 
@@ -214,49 +214,49 @@
 #undef  RCNT
 #define RCNT  (SKEIN_1024_ROUNDS_TOTAL / 8)
 #ifdef SKEIN_LOOP /* configure how much to unroll the loop */
-#define SKEIN_UNROLL_1024 ((SKEIN_LOOP) % 10)
+	#define SKEIN_UNROLL_1024 ((SKEIN_LOOP) % 10)
 #else
-#define SKEIN_UNROLL_1024 (0)
+	#define SKEIN_UNROLL_1024 (0)
 #endif
 
 #if (SKEIN_UNROLL_1024 != 0)
-#if (RCNT % SKEIN_UNROLL_1024)
-#error "Invalid SKEIN_UNROLL_1024" /* sanity check on unroll count */
-#endif
+	#if (RCNT % SKEIN_UNROLL_1024)
+		#error "Invalid SKEIN_UNROLL_1024" /* sanity check on unroll count */
+	#endif
 #endif
 #define ROUND1024(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, pA, pB, pC, pD, pE, \
-		  pF, ROT, r_num)                                             \
-	do {                                                                  \
-		X##p0 += X##p1;                                               \
-		X##p1 = rol64(X##p1, ROT##_0);                                \
-		X##p1 ^= X##p0;                                               \
-		X##p2 += X##p3;                                               \
-		X##p3 = rol64(X##p3, ROT##_1);                                \
-		X##p3 ^= X##p2;                                               \
-		X##p4 += X##p5;                                               \
-		X##p5 = rol64(X##p5, ROT##_2);                                \
-		X##p5 ^= X##p4;                                               \
-		X##p6 += X##p7;                                               \
-		X##p7 = rol64(X##p7, ROT##_3);                                \
-		X##p7 ^= X##p6;                                               \
-		X##p8 += X##p9;                                               \
-		X##p9 = rol64(X##p9, ROT##_4);                                \
-		X##p9 ^= X##p8;                                               \
-		X##pA += X##pB;                                               \
-		X##pB = rol64(X##pB, ROT##_5);                                \
-		X##pB ^= X##pA;                                               \
-		X##pC += X##pD;                                               \
-		X##pD = rol64(X##pD, ROT##_6);                                \
-		X##pD ^= X##pC;                                               \
-		X##pE += X##pF;                                               \
-		X##pF = rol64(X##pF, ROT##_7);                                \
-		X##pF ^= X##pE;                                               \
-	} while (0)
+				  pF, ROT, r_num)                                             \
+do {                                                                  \
+	X##p0 += X##p1;                                               \
+	X##p1 = rol64(X##p1, ROT##_0);                                \
+	X##p1 ^= X##p0;                                               \
+	X##p2 += X##p3;                                               \
+	X##p3 = rol64(X##p3, ROT##_1);                                \
+	X##p3 ^= X##p2;                                               \
+	X##p4 += X##p5;                                               \
+	X##p5 = rol64(X##p5, ROT##_2);                                \
+	X##p5 ^= X##p4;                                               \
+	X##p6 += X##p7;                                               \
+	X##p7 = rol64(X##p7, ROT##_3);                                \
+	X##p7 ^= X##p6;                                               \
+	X##p8 += X##p9;                                               \
+	X##p9 = rol64(X##p9, ROT##_4);                                \
+	X##p9 ^= X##p8;                                               \
+	X##pA += X##pB;                                               \
+	X##pB = rol64(X##pB, ROT##_5);                                \
+	X##pB ^= X##pA;                                               \
+	X##pC += X##pD;                                               \
+	X##pD = rol64(X##pD, ROT##_6);                                \
+	X##pD ^= X##pC;                                               \
+	X##pE += X##pF;                                               \
+	X##pF = rol64(X##pF, ROT##_7);                                \
+	X##pF ^= X##pE;                                               \
+} while (0)
 
 #if SKEIN_UNROLL_1024 == 0
 #define R1024(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, pA, pB, pC, pD, pE, pF, \
-	      ROT, rn)                                                        \
-	ROUND1024(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, pA, pB, pC, pD, pE, \
+			  ROT, rn)                                                        \
+ROUND1024(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, pA, pB, pC, pD, pE, \
 		  pF, ROT, rn)                                                \
 
 #define I1024(R)                                                \
@@ -281,8 +281,8 @@
 	} while (0)
 #else /* looping version */
 #define R1024(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, pA, pB, pC, pD, pE, pF, \
-	      ROT, rn)                                                        \
-	ROUND1024(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, pA, pB, pC, pD, pE, \
+			  ROT, rn)                                                        \
+ROUND1024(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, pA, pB, pC, pD, pE, \
 		  pF, ROT, rn)                                                \
 
 #define I1024(R)                                                        \
@@ -313,41 +313,43 @@
 #define R1024_8_ROUNDS(R)                                                 \
 	do {                                                              \
 		R1024(00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, \
-		      13, 14, 15, R1024_0, 8 * (R) + 1);                  \
+			  13, 14, 15, R1024_0, 8 * (R) + 1);                  \
 		R1024(00, 09, 02, 13, 06, 11, 04, 15, 10, 07, 12, 03, 14, \
-		      05, 08, 01, R1024_1, 8 * (R) + 2);                  \
+			  05, 08, 01, R1024_1, 8 * (R) + 2);                  \
 		R1024(00, 07, 02, 05, 04, 03, 06, 01, 12, 15, 14, 13, 08, \
-		      11, 10, 09, R1024_2, 8 * (R) + 3);                  \
+			  11, 10, 09, R1024_2, 8 * (R) + 3);                  \
 		R1024(00, 15, 02, 11, 06, 13, 04, 09, 14, 01, 08, 05, 10, \
-		      03, 12, 07, R1024_3, 8 * (R) + 4);                  \
+			  03, 12, 07, R1024_3, 8 * (R) + 4);                  \
 		I1024(2 * (R));                                           \
 		R1024(00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, \
-		      13, 14, 15, R1024_4, 8 * (R) + 5);                  \
+			  13, 14, 15, R1024_4, 8 * (R) + 5);                  \
 		R1024(00, 09, 02, 13, 06, 11, 04, 15, 10, 07, 12, 03, 14, \
-		      05, 08, 01, R1024_5, 8 * (R) + 6);                  \
+			  05, 08, 01, R1024_5, 8 * (R) + 6);                  \
 		R1024(00, 07, 02, 05, 04, 03, 06, 01, 12, 15, 14, 13, 08, \
-		      11, 10, 09, R1024_6, 8 * (R) + 7);                  \
+			  11, 10, 09, R1024_6, 8 * (R) + 7);                  \
 		R1024(00, 15, 02, 11, 06, 13, 04, 09, 14, 01, 08, 05, 10, \
-		      03, 12, 07, R1024_7, 8 * (R) + 8);                  \
+			  03, 12, 07, R1024_7, 8 * (R) + 8);                  \
 		I1024(2 * (R) + 1);                                       \
 	} while (0)
 
 #define R1024_UNROLL_R(NN)                              \
-		((SKEIN_UNROLL_1024 == 0 &&             \
-		SKEIN_1024_ROUNDS_TOTAL / 8 > (NN)) ||  \
-		(SKEIN_UNROLL_1024 > (NN)))
+	((SKEIN_UNROLL_1024 == 0 &&             \
+	  SKEIN_1024_ROUNDS_TOTAL / 8 > (NN)) ||  \
+	 (SKEIN_UNROLL_1024 > (NN)))
 
 #if  (SKEIN_UNROLL_1024 > 14)
-#error  "need more unrolling in Skein_1024_Process_Block"
+	#error  "need more unrolling in Skein_1024_Process_Block"
 #endif
 #endif
 
 /*****************************  SKEIN_256 ******************************/
 #if !(SKEIN_USE_ASM & 256)
 void skein_256_process_block(struct skein_256_ctx *ctx, const u8 *blk_ptr,
-			     size_t blk_cnt, size_t byte_cnt_add)
-{ /* do it in C */
-	enum {
+							 size_t blk_cnt, size_t byte_cnt_add)
+{
+	/* do it in C */
+	enum
+	{
 		WCNT = SKEIN_256_STATE_WORDS
 	};
 	size_t r;
@@ -371,7 +373,9 @@ void skein_256_process_block(struct skein_256_ctx *ctx, const u8 *blk_ptr,
 	skein_assert(blk_cnt != 0); /* never call with blk_cnt == 0! */
 	ts[0] = ctx->h.tweak[0];
 	ts[1] = ctx->h.tweak[1];
-	do  {
+
+	do
+	{
 		/*
 		 * this implementation only supports 2**64 input bytes
 		 * (no carry out here)
@@ -401,8 +405,9 @@ void skein_256_process_block(struct skein_256_ctx *ctx, const u8 *blk_ptr,
 
 		/* run the rounds */
 		for (r = 1;
-			r < (SKEIN_UNROLL_256 ? 2 * RCNT : 2);
-			r += (SKEIN_UNROLL_256 ? 2 * SKEIN_UNROLL_256 : 1)) {
+			 r < (SKEIN_UNROLL_256 ? 2 * RCNT : 2);
+			 r += (SKEIN_UNROLL_256 ? 2 * SKEIN_UNROLL_256 : 1))
+		{
 			R256_8_ROUNDS(0);
 #if   R256_UNROLL_R(1)
 			R256_8_ROUNDS(1);
@@ -447,6 +452,7 @@ void skein_256_process_block(struct skein_256_ctx *ctx, const u8 *blk_ptr,
 			R256_8_ROUNDS(14);
 #endif
 		}
+
 		/* do the final "feedforward" xor, update context chaining */
 		ctx->x[0] = X0 ^ w[0];
 		ctx->x[1] = X1 ^ w[1];
@@ -454,7 +460,9 @@ void skein_256_process_block(struct skein_256_ctx *ctx, const u8 *blk_ptr,
 		ctx->x[3] = X3 ^ w[3];
 
 		ts[1] &= ~SKEIN_T1_FLAG_FIRST;
-	} while (--blk_cnt);
+	}
+	while (--blk_cnt);
+
 	ctx->h.tweak[0] = ts[0];
 	ctx->h.tweak[1] = ts[1];
 }
@@ -463,7 +471,7 @@ void skein_256_process_block(struct skein_256_ctx *ctx, const u8 *blk_ptr,
 size_t skein_256_process_block_code_size(void)
 {
 	return ((u8 *)skein_256_process_block_code_size) -
-		((u8 *)skein_256_process_block);
+		   ((u8 *)skein_256_process_block);
 }
 
 unsigned int skein_256_unroll_cnt(void)
@@ -476,9 +484,11 @@ unsigned int skein_256_unroll_cnt(void)
 /*****************************  SKEIN_512 ******************************/
 #if !(SKEIN_USE_ASM & 512)
 void skein_512_process_block(struct skein_512_ctx *ctx, const u8 *blk_ptr,
-			     size_t blk_cnt, size_t byte_cnt_add)
-{ /* do it in C */
-	enum {
+							 size_t blk_cnt, size_t byte_cnt_add)
+{
+	/* do it in C */
+	enum
+	{
 		WCNT = SKEIN_512_STATE_WORDS
 	};
 	size_t  r;
@@ -507,7 +517,9 @@ void skein_512_process_block(struct skein_512_ctx *ctx, const u8 *blk_ptr,
 	skein_assert(blk_cnt != 0); /* never call with blk_cnt == 0! */
 	ts[0] = ctx->h.tweak[0];
 	ts[1] = ctx->h.tweak[1];
-	do  {
+
+	do
+	{
 		/*
 		 * this implementation only supports 2**64 input bytes
 		 * (no carry out here)
@@ -524,7 +536,7 @@ void skein_512_process_block(struct skein_512_ctx *ctx, const u8 *blk_ptr,
 		ks[6] = ctx->x[6];
 		ks[7] = ctx->x[7];
 		ks[8] = ks[0] ^ ks[1] ^ ks[2] ^ ks[3] ^
-			ks[4] ^ ks[5] ^ ks[6] ^ ks[7] ^ SKEIN_KS_PARITY;
+				ks[4] ^ ks[5] ^ ks[6] ^ ks[7] ^ SKEIN_KS_PARITY;
 
 		ts[2] = ts[0] ^ ts[1];
 
@@ -546,8 +558,9 @@ void skein_512_process_block(struct skein_512_ctx *ctx, const u8 *blk_ptr,
 
 		/* run the rounds */
 		for (r = 1;
-			r < (SKEIN_UNROLL_512 ? 2 * RCNT : 2);
-			r += (SKEIN_UNROLL_512 ? 2 * SKEIN_UNROLL_512 : 1)) {
+			 r < (SKEIN_UNROLL_512 ? 2 * RCNT : 2);
+			 r += (SKEIN_UNROLL_512 ? 2 * SKEIN_UNROLL_512 : 1))
+		{
 			R512_8_ROUNDS(0);
 
 #if   R512_UNROLL_R(1)
@@ -605,7 +618,9 @@ void skein_512_process_block(struct skein_512_ctx *ctx, const u8 *blk_ptr,
 		ctx->x[7] = X7 ^ w[7];
 
 		ts[1] &= ~SKEIN_T1_FLAG_FIRST;
-	} while (--blk_cnt);
+	}
+	while (--blk_cnt);
+
 	ctx->h.tweak[0] = ts[0];
 	ctx->h.tweak[1] = ts[1];
 }
@@ -614,7 +629,7 @@ void skein_512_process_block(struct skein_512_ctx *ctx, const u8 *blk_ptr,
 size_t skein_512_process_block_code_size(void)
 {
 	return ((u8 *)skein_512_process_block_code_size) -
-		((u8 *)skein_512_process_block);
+		   ((u8 *)skein_512_process_block);
 }
 
 unsigned int skein_512_unroll_cnt(void)
@@ -627,9 +642,11 @@ unsigned int skein_512_unroll_cnt(void)
 /*****************************  SKEIN_1024 ******************************/
 #if !(SKEIN_USE_ASM & 1024)
 void skein_1024_process_block(struct skein_1024_ctx *ctx, const u8 *blk_ptr,
-			      size_t blk_cnt, size_t byte_cnt_add)
-{ /* do it in C, always looping (unrolled is bigger AND slower!) */
-	enum {
+							  size_t blk_cnt, size_t byte_cnt_add)
+{
+	/* do it in C, always looping (unrolled is bigger AND slower!) */
+	enum
+	{
 		WCNT = SKEIN_1024_STATE_WORDS
 	};
 	size_t  r;
@@ -643,13 +660,15 @@ void skein_1024_process_block(struct skein_1024_ctx *ctx, const u8 *blk_ptr,
 
 	/* local copy of vars, for speed */
 	u64  X00, X01, X02, X03, X04, X05, X06, X07,
-	     X08, X09, X10, X11, X12, X13, X14, X15;
+		 X08, X09, X10, X11, X12, X13, X14, X15;
 	u64  w[WCNT]; /* local copy of input block */
 
 	skein_assert(blk_cnt != 0); /* never call with blk_cnt == 0! */
 	ts[0] = ctx->h.tweak[0];
 	ts[1] = ctx->h.tweak[1];
-	do  {
+
+	do
+	{
 		/*
 		 * this implementation only supports 2**64 input bytes
 		 * (no carry out here)
@@ -674,9 +693,9 @@ void skein_1024_process_block(struct skein_1024_ctx *ctx, const u8 *blk_ptr,
 		ks[14] = ctx->x[14];
 		ks[15] = ctx->x[15];
 		ks[16] =  ks[0] ^ ks[1] ^ ks[2] ^ ks[3] ^
-			  ks[4] ^ ks[5] ^ ks[6] ^ ks[7] ^
-			  ks[8] ^ ks[9] ^ ks[10] ^ ks[11] ^
-			  ks[12] ^ ks[13] ^ ks[14] ^ ks[15] ^ SKEIN_KS_PARITY;
+				  ks[4] ^ ks[5] ^ ks[6] ^ ks[7] ^
+				  ks[8] ^ ks[9] ^ ks[10] ^ ks[11] ^
+				  ks[12] ^ ks[13] ^ ks[14] ^ ks[15] ^ SKEIN_KS_PARITY;
 
 		ts[2] = ts[0] ^ ts[1];
 
@@ -703,8 +722,9 @@ void skein_1024_process_block(struct skein_1024_ctx *ctx, const u8 *blk_ptr,
 		X15 = w[15] + ks[15];
 
 		for (r = 1;
-			r < (SKEIN_UNROLL_1024 ? 2 * RCNT : 2);
-			r += (SKEIN_UNROLL_1024 ? 2 * SKEIN_UNROLL_1024 : 1)) {
+			 r < (SKEIN_UNROLL_1024 ? 2 * RCNT : 2);
+			 r += (SKEIN_UNROLL_1024 ? 2 * SKEIN_UNROLL_1024 : 1))
+		{
 			R1024_8_ROUNDS(0);
 #if   R1024_UNROLL_R(1)
 			R1024_8_ROUNDS(1);
@@ -749,6 +769,7 @@ void skein_1024_process_block(struct skein_1024_ctx *ctx, const u8 *blk_ptr,
 			R1024_8_ROUNDS(14);
 #endif
 		}
+
 		/* do the final "feedforward" xor, update context chaining */
 
 		ctx->x[0] = X00 ^ w[0];
@@ -770,7 +791,9 @@ void skein_1024_process_block(struct skein_1024_ctx *ctx, const u8 *blk_ptr,
 
 		ts[1] &= ~SKEIN_T1_FLAG_FIRST;
 		blk_ptr += SKEIN_1024_BLOCK_BYTES;
-	} while (--blk_cnt);
+	}
+	while (--blk_cnt);
+
 	ctx->h.tweak[0] = ts[0];
 	ctx->h.tweak[1] = ts[1];
 }
@@ -779,7 +802,7 @@ void skein_1024_process_block(struct skein_1024_ctx *ctx, const u8 *blk_ptr,
 size_t skein_1024_process_block_code_size(void)
 {
 	return ((u8 *)skein_1024_process_block_code_size) -
-		((u8 *)skein_1024_process_block);
+		   ((u8 *)skein_1024_process_block);
 }
 
 unsigned int skein_1024_unroll_cnt(void)

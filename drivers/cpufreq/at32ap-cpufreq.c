@@ -33,18 +33,21 @@ static int at32_set_target(struct cpufreq_policy *policy, unsigned int index)
 	old_freq = policy->cur;
 	new_freq = freq_table[index].frequency;
 
-	if (!ref_freq) {
+	if (!ref_freq)
+	{
 		ref_freq = old_freq;
 		loops_per_jiffy_ref = boot_cpu_data.loops_per_jiffy;
 	}
 
 	if (old_freq < new_freq)
 		boot_cpu_data.loops_per_jiffy = cpufreq_scale(
-				loops_per_jiffy_ref, ref_freq, new_freq);
+											loops_per_jiffy_ref, ref_freq, new_freq);
+
 	clk_set_rate(policy->clk, new_freq * 1000);
+
 	if (new_freq < old_freq)
 		boot_cpu_data.loops_per_jiffy = cpufreq_scale(
-				loops_per_jiffy_ref, ref_freq, new_freq);
+											loops_per_jiffy_ref, ref_freq, new_freq);
 
 	return 0;
 }
@@ -56,10 +59,14 @@ static int at32_cpufreq_driver_init(struct cpufreq_policy *policy)
 	int retval, steps, i;
 
 	if (policy->cpu != 0)
+	{
 		return -EINVAL;
+	}
 
 	cpuclk = clk_get(NULL, "cpu");
-	if (IS_ERR(cpuclk)) {
+
+	if (IS_ERR(cpuclk))
+	{
 		pr_debug("cpufreq: could not get CPU clk\n");
 		retval = PTR_ERR(cpuclk);
 		goto out_err;
@@ -78,19 +85,26 @@ static int at32_cpufreq_driver_init(struct cpufreq_policy *policy)
 	 */
 	steps = fls(frequency / min_freq) + 1;
 	freq_table = kzalloc(steps * sizeof(struct cpufreq_frequency_table),
-			GFP_KERNEL);
-	if (!freq_table) {
+						 GFP_KERNEL);
+
+	if (!freq_table)
+	{
 		retval = -ENOMEM;
 		goto out_err_put_clk;
 	}
 
-	for (i = 0; i < (steps - 1); i++) {
+	for (i = 0; i < (steps - 1); i++)
+	{
 		rate = clk_round_rate(cpuclk, frequency * 1000) / 1000;
 
 		if (rate != frequency)
+		{
 			freq_table[i].frequency = CPUFREQ_ENTRY_INVALID;
+		}
 		else
+		{
 			freq_table[i].frequency = frequency;
+		}
 
 		frequency /= 2;
 	}
@@ -99,7 +113,9 @@ static int at32_cpufreq_driver_init(struct cpufreq_policy *policy)
 	freq_table[steps - 1].frequency = CPUFREQ_TABLE_END;
 
 	retval = cpufreq_table_validate_and_show(policy, freq_table);
-	if (!retval) {
+
+	if (!retval)
+	{
 		printk("cpufreq: AT32AP CPU frequency driver\n");
 		return 0;
 	}
@@ -111,7 +127,8 @@ out_err:
 	return retval;
 }
 
-static struct cpufreq_driver at32_driver = {
+static struct cpufreq_driver at32_driver =
+{
 	.name		= "at32ap",
 	.init		= at32_cpufreq_driver_init,
 	.verify		= cpufreq_generic_frequency_table_verify,

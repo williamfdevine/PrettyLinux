@@ -43,7 +43,8 @@
 #define RT5670_DSP_I2C_AL_16		(0x1 << 1)
 #define RT5670_DSP_CMD_EN		(0x1)
 
-struct rt5670_dsp_param {
+struct rt5670_dsp_param
+{
 	u16 cmd_fmt;
 	u16 addr;
 	u16 data;

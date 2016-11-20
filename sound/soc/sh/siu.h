@@ -30,7 +30,7 @@
 #define YRAM3_SIZE		(0x0080 / 4)		/* 32 */
 #define YRAM4_SIZE		(0x0080 / 4)		/* 32 */
 #define YRAM_DEF_SIZE		(YRAM0_SIZE + YRAM1_SIZE + YRAM2_SIZE + \
-				 YRAM3_SIZE + YRAM4_SIZE)
+							 YRAM3_SIZE + YRAM4_SIZE)
 #define YRAM_FIR_SIZE		(0x0400 / 4)		/* 256 */
 #define YRAM_IIR_SIZE		(0x0200 / 4)		/* 128 */
 
@@ -44,7 +44,8 @@
 
 #include <linux/types.h>
 
-struct siu_spb_param {
+struct siu_spb_param
+{
 	__u32	ab1a;	/* input FIFO address */
 	__u32	ab0a;	/* output FIFO address */
 	__u32	dir;	/* 0=the ather except CPUOUTPUT, 1=CPUINPUT */
@@ -53,7 +54,8 @@ struct siu_spb_param {
 	__u32	trdat;	/* TRDAT register setting value */
 };
 
-struct siu_firmware {
+struct siu_firmware
+{
 	__u32			yram_fir_coeff[YRAM_FIR_SIZE];
 	__u32			pram0[PRAM0_SIZE];
 	__u32			pram1[PRAM1_SIZE];
@@ -84,14 +86,16 @@ struct siu_firmware {
 #define SIU_BUFFER_BYTES_MAX	(SIU_PERIOD_BYTES_MAX * SIU_PERIODS_MAX)
 
 /* SIU ports: only one can be used at a time */
-enum {
+enum
+{
 	SIU_PORT_A,
 	SIU_PORT_B,
 	SIU_PORT_NUM,
 };
 
 /* SIU clock configuration */
-enum {
+enum
+{
 	SIU_CLKA_PLL,
 	SIU_CLKA_EXT,
 	SIU_CLKB_PLL,
@@ -99,7 +103,8 @@ enum {
 };
 
 struct device;
-struct siu_info {
+struct siu_info
+{
 	struct device		*dev;
 	int			port_id;
 	u32 __iomem		*pram;
@@ -109,7 +114,8 @@ struct siu_info {
 	struct siu_firmware	fw;
 };
 
-struct siu_stream {
+struct siu_stream
+{
 	struct tasklet_struct		tasklet;
 	struct snd_pcm_substream	*substream;
 	snd_pcm_format_t		format;
@@ -126,7 +132,8 @@ struct siu_stream {
 	struct sh_dmae_slave		param;
 };
 
-struct siu_port {
+struct siu_port
+{
 	unsigned long		play_cap;	/* Used to track full duplex */
 	struct snd_pcm		*pcm;
 	struct siu_stream	playback;

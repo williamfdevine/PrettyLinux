@@ -26,7 +26,8 @@
 #define FN0_MA_BITS_MASK    0x00
 #define FN1_MA_BITS_MASK    0x80
 
-struct ob_mac_iocb_req {
+struct ob_mac_iocb_req
+{
 	u8 opcode;
 	u8 flags;
 #define OB_MAC_IOCB_REQ_MA  0xe0
@@ -67,7 +68,8 @@ struct ob_mac_iocb_req {
 #define OB_MAC_IOCB_REQ_L   0x20000000	/* Auburn local address pointer. */
 #define OB_MAC_IOCB_REQ_R   0x10000000	/* 32-bit address pointer. */
 
-struct ob_mac_iocb_rsp {
+struct ob_mac_iocb_rsp
+{
 	u8 opcode;
 	u8 flags;
 #define OB_MAC_IOCB_RSP_P   0x08
@@ -81,7 +83,8 @@ struct ob_mac_iocb_rsp {
 	__le32 reserved2;
 };
 
-struct ib_mac_iocb_rsp {
+struct ib_mac_iocb_rsp
+{
 	u8 opcode;
 #define IB_MAC_IOCB_RSP_V   0x80
 	u8 flags;
@@ -99,7 +102,8 @@ struct ib_mac_iocb_rsp {
 
 };
 
-struct ob_ip_iocb_req {
+struct ob_ip_iocb_req
+{
 	u8 opcode;
 	__le16 flags;
 #define OB_IP_IOCB_REQ_O        0x100
@@ -134,7 +138,8 @@ struct ob_ip_iocb_req {
 #define OB_IP_IOCB_REQ_L    0x20000000
 #define OB_IP_IOCB_REQ_R    0x10000000
 
-struct ob_ip_iocb_rsp {
+struct ob_ip_iocb_rsp
+{
 	u8 opcode;
 	u8 flags;
 #define OB_MAC_IOCB_RSP_H       0x10
@@ -149,7 +154,8 @@ struct ob_ip_iocb_rsp {
 	__le32 reserved2;
 };
 
-struct ib_ip_iocb_rsp {
+struct ib_ip_iocb_rsp
+{
 	u8 opcode;
 #define IB_IP_IOCB_RSP_3032_V   0x80
 #define IB_IP_IOCB_RSP_3032_O   0x40
@@ -177,7 +183,8 @@ struct ib_ip_iocb_rsp {
 	__le32 ial_high;
 };
 
-struct net_rsp_iocb {
+struct net_rsp_iocb
+{
 	u8 opcode;
 	u8 flags;
 	__le16 reserved0;
@@ -206,7 +213,8 @@ struct net_rsp_iocb {
 #define MII_AGERE_ADDR_2  0x00001100
 
 /* 32-bit ispControlStatus */
-enum {
+enum
+{
 	ISP_CONTROL_NP_MASK = 0x0003,
 	ISP_CONTROL_NP_PCSR = 0x0000,
 	ISP_CONTROL_NP_HMCR = 0x0001,
@@ -230,7 +238,8 @@ enum {
 };
 
 /* 32-bit ispInterruptMaskReg */
-enum {
+enum
+{
 	ISP_IMR_ENABLE_INT = 0x0004,
 	ISP_IMR_DISABLE_RESET_INT = 0x0008,
 	ISP_IMR_DISABLE_CMPL_INT = 0x0010,
@@ -238,7 +247,8 @@ enum {
 };
 
 /* 32-bit serialPortInterfaceReg */
-enum {
+enum
+{
 	ISP_SERIAL_PORT_IF_CLK = 0x0001,
 	ISP_SERIAL_PORT_IF_CS = 0x0002,
 	ISP_SERIAL_PORT_IF_D0 = 0x0004,
@@ -256,7 +266,8 @@ enum {
 };
 
 /* semaphoreReg */
-enum {
+enum
+{
 	QL_RESOURCE_MASK_BASE_CODE = 0x7,
 	QL_RESOURCE_BITS_BASE_CODE = 0x4,
 	QL_DRVR_SEM_BITS = (QL_RESOURCE_BITS_BASE_CODE << 1),
@@ -271,13 +282,14 @@ enum {
 	QL_FLASH_SEM_MASK = (QL_RESOURCE_MASK_BASE_CODE << (13 + 16)),
 };
 
- /*
-  * QL3XXX memory-mapped registers
-  * QL3XXX has 4 "pages" of registers, each page occupying
-  * 256 bytes.  Each page has a "common" area at the start and then
-  * page-specific registers after that.
-  */
-struct ql3xxx_common_registers {
+/*
+ * QL3XXX memory-mapped registers
+ * QL3XXX has 4 "pages" of registers, each page occupying
+ * 256 bytes.  Each page has a "common" area at the start and then
+ * page-specific registers after that.
+ */
+struct ql3xxx_common_registers
+{
 	u32 MB0;		/* Offset 0x00 */
 	u32 MB1;		/* Offset 0x04 */
 	u32 MB2;		/* Offset 0x08 */
@@ -301,7 +313,8 @@ struct ql3xxx_common_registers {
 	u32 arcMadiData;
 };
 
-enum {
+enum
+{
 	EXT_HW_CONFIG_SP_MASK = 0x0006,
 	EXT_HW_CONFIG_SP_NONE = 0x0000,
 	EXT_HW_CONFIG_SP_BYTE_PARITY = 0x0002,
@@ -328,7 +341,8 @@ enum {
 };
 
 /* InternalChipConfig */
-enum {
+enum
+{
 	INTERNAL_CHIP_DM = 0x0001,
 	INTERNAL_CHIP_SD = 0x0002,
 	INTERNAL_CHIP_RAP_MASK = 0x000C,
@@ -345,7 +359,8 @@ enum {
 };
 
 /* portControl */
-enum {
+enum
+{
 	PORT_CONTROL_DS = 0x0001,
 	PORT_CONTROL_HH = 0x0002,
 	PORT_CONTROL_EI = 0x0004,
@@ -365,7 +380,8 @@ enum {
 };
 
 /* portStatus */
-enum {
+enum
+{
 	PORT_STATUS_SM0 = 0x0001,
 	PORT_STATUS_SM1 = 0x0002,
 	PORT_STATUS_X = 0x0008,
@@ -391,7 +407,8 @@ enum {
 };
 
 /* macMIIMgmtControlReg */
-enum {
+enum
+{
 	MAC_ADDR_INDIRECT_PTR_REG_RP_MASK = 0x0003,
 	MAC_ADDR_INDIRECT_PTR_REG_RP_PRI_LWR = 0x0000,
 	MAC_ADDR_INDIRECT_PTR_REG_RP_PRI_UPR = 0x0001,
@@ -405,7 +422,8 @@ enum {
 };
 
 /* macMIIMgmtControlReg */
-enum {
+enum
+{
 	MAC_MII_CONTROL_RC = 0x0001,
 	MAC_MII_CONTROL_SC = 0x0002,
 	MAC_MII_CONTROL_AS = 0x0004,
@@ -423,13 +441,15 @@ enum {
 };
 
 /* macMIIStatusReg */
-enum {
+enum
+{
 	MAC_MII_STATUS_BSY = 0x0001,
 	MAC_MII_STATUS_SC = 0x0002,
 	MAC_MII_STATUS_NV = 0x0004,
 };
 
-enum {
+enum
+{
 	MAC_CONFIG_REG_PE = 0x0001,
 	MAC_CONFIG_REG_TF = 0x0002,
 	MAC_CONFIG_REG_RF = 0x0004,
@@ -439,14 +459,16 @@ enum {
 	MAC_CONFIG_REG_SR = 0x8000,
 };
 
-enum {
+enum
+{
 	MAC_HALF_DUPLEX_REG_ED = 0x10000,
 	MAC_HALF_DUPLEX_REG_NB = 0x20000,
 	MAC_HALF_DUPLEX_REG_BNB = 0x40000,
 	MAC_HALF_DUPLEX_REG_ALT = 0x80000,
 };
 
-enum {
+enum
+{
 	IP_ADDR_INDEX_REG_MASK = 0x000f,
 	IP_ADDR_INDEX_REG_FUNC_0_PRI = 0x0000,
 	IP_ADDR_INDEX_REG_FUNC_0_SEC = 0x0001,
@@ -460,7 +482,8 @@ enum {
 	IP_ADDR_INDEX_REG_OFFSET_MASK = 0x0030,
 	IP_ADDR_INDEX_REG_E = 0x0040,
 };
-enum {
+enum
+{
 	QL3032_PORT_CONTROL_DS = 0x0001,
 	QL3032_PORT_CONTROL_HH = 0x0002,
 	QL3032_PORT_CONTROL_EIv6 = 0x0004,
@@ -473,7 +496,8 @@ enum {
 	QL3032_PORT_CONTROL_KIE = 0x0200,
 };
 
-enum {
+enum
+{
 	PROBE_MUX_ADDR_REG_MUX_SEL_MASK = 0x003f,
 	PROBE_MUX_ADDR_REG_SYSCLK = 0x0000,
 	PROBE_MUX_ADDR_REG_PCICLK = 0x0040,
@@ -484,7 +508,8 @@ enum {
 	PROBE_MUX_ADDR_REG_RE = 0x8000,
 };
 
-enum {
+enum
+{
 	STATISTICS_INDEX_REG_MASK = 0x01ff,
 	STATISTICS_INDEX_REG_MAC0_TX_FRAME = 0x0000,
 	STATISTICS_INDEX_REG_MAC0_TX_BYTES = 0x0001,
@@ -540,7 +565,8 @@ enum {
 	STATISTICS_INDEX_REG_TCP_ECC_ERR_CORR = 0x003f,
 };
 
-enum {
+enum
+{
 	PORT_FATAL_ERROR_STATUS_OFB_RE_MAC0 = 0x00000001,
 	PORT_FATAL_ERROR_STATUS_OFB_RE_MAC1 = 0x00000002,
 	PORT_FATAL_ERROR_STATUS_OFB_WE = 0x00000004,
@@ -572,7 +598,8 @@ enum {
  *  port control and status page - page 0
  */
 
-struct ql3xxx_port_registers {
+struct ql3xxx_port_registers
+{
 	struct ql3xxx_common_registers CommonRegs;
 
 	u32 ExternalHWConfig;
@@ -623,7 +650,8 @@ struct ql3xxx_port_registers {
 /*
  * port host memory config page - page 1
  */
-struct ql3xxx_host_memory_registers {
+struct ql3xxx_host_memory_registers
+{
 	struct ql3xxx_common_registers CommonRegs;
 
 	u32 reserved[12];
@@ -663,7 +691,8 @@ struct ql3xxx_host_memory_registers {
 /*
  *  port local RAM page - page 2
  */
-struct ql3xxx_local_ram_registers {
+struct ql3xxx_local_ram_registers
+{
 	struct ql3xxx_common_registers CommonRegs;
 	u32 bufletSize;
 	u32 maxBufletCount;
@@ -694,7 +723,8 @@ struct ql3xxx_local_ram_registers {
  * I/O register
  */
 
-enum {
+enum
+{
 	CONTROL_REG = 0,
 	STATUS_REG = 1,
 	PHY_STAT_LINK_UP = 0x0004,
@@ -759,10 +789,11 @@ enum {
 	PHY_CTRL_AUTO_NEG = 0x1000,
 	PHY_CTRL_RESTART_NEG = 0x0200,
 };
-enum {
-/* AM29LV Flash definitions	*/
+enum
+{
+	/* AM29LV Flash definitions	*/
 	FM93C56A_START = 0x1,
-/* Commands */
+	/* Commands */
 	FM93C56A_READ = 0x2,
 	FM93C56A_WEN = 0x0,
 	FM93C56A_WRITE = 0x1,
@@ -770,33 +801,34 @@ enum {
 	FM93C56A_WDS = 0x0,
 	FM93C56A_ERASE = 0x3,
 	FM93C56A_ERASE_ALL = 0x0,
-/* Command Extensions */
+	/* Command Extensions */
 	FM93C56A_WEN_EXT = 0x3,
 	FM93C56A_WRITE_ALL_EXT = 0x1,
 	FM93C56A_WDS_EXT = 0x0,
 	FM93C56A_ERASE_ALL_EXT = 0x2,
-/* Special Bits */
+	/* Special Bits */
 	FM93C56A_READ_DUMMY_BITS = 1,
 	FM93C56A_READY = 0,
 	FM93C56A_BUSY = 1,
 	FM93C56A_CMD_BITS = 2,
-/* AM29LV Flash definitions	*/
+	/* AM29LV Flash definitions	*/
 	FM93C56A_SIZE_8 = 0x100,
 	FM93C56A_SIZE_16 = 0x80,
 	FM93C66A_SIZE_8 = 0x200,
 	FM93C66A_SIZE_16 = 0x100,
 	FM93C86A_SIZE_16 = 0x400,
-/* Address Bits */
+	/* Address Bits */
 	FM93C56A_NO_ADDR_BITS_16 = 8,
 	FM93C56A_NO_ADDR_BITS_8 = 9,
 	FM93C86A_NO_ADDR_BITS_16 = 10,
-/* Data Bits */
+	/* Data Bits */
 	FM93C56A_DATA_BITS_16 = 16,
 	FM93C56A_DATA_BITS_8 = 8,
 };
-enum {
-/* Auburn Bits */
-	    AUBURN_EEPROM_DI = 0x8,
+enum
+{
+	/* Auburn Bits */
+	AUBURN_EEPROM_DI = 0x8,
 	AUBURN_EEPROM_DI_0 = 0x0,
 	AUBURN_EEPROM_DI_1 = 0x8,
 	AUBURN_EEPROM_DO = 0x4,
@@ -809,14 +841,15 @@ enum {
 	AUBURN_EEPROM_CLK_FALL = 0x0,
 };
 enum {EEPROM_SIZE = FM93C86A_SIZE_16,
-	EEPROM_NO_ADDR_BITS = FM93C86A_NO_ADDR_BITS_16,
-	EEPROM_NO_DATA_BITS = FM93C56A_DATA_BITS_16,
-};
+	  EEPROM_NO_ADDR_BITS = FM93C86A_NO_ADDR_BITS_16,
+	  EEPROM_NO_DATA_BITS = FM93C56A_DATA_BITS_16,
+	 };
 
 /*
  *  MAC Config data structure
  */
-    struct eeprom_port_cfg {
+struct eeprom_port_cfg
+{
 	u16 etherMtu_mac;
 	u16 pauseThreshold_mac;
 	u16 resumeThreshold_mac;
@@ -837,13 +870,14 @@ enum {EEPROM_SIZE = FM93C86A_SIZE_16,
 /*
  * BIOS data structure
  */
-struct eeprom_bios_cfg {
-	u16 SpinDlyEn:1, disBios:1, EnMemMap:1, EnSelectBoot:1, Reserved:12;
+struct eeprom_bios_cfg
+{
+	u16 SpinDlyEn: 1, disBios: 1, EnMemMap: 1, EnSelectBoot: 1, Reserved: 12;
 
-	u8 bootID0:7, boodID0Valid:1;
+	u8 bootID0: 7, boodID0Valid: 1;
 	u8 bootLun0[8];
 
-	u8 bootID1:7, boodID1Valid:1;
+	u8 bootID1: 7, boodID1Valid: 1;
 	u8 bootLun1[8];
 
 	u16 MaxLunsTrgt;
@@ -853,7 +887,8 @@ struct eeprom_bios_cfg {
 /*
  *  Function Specific Data structure
  */
-struct eeprom_function_cfg {
+struct eeprom_function_cfg
+{
 	u8 reserved[30];
 	u16 macAddress[3];
 	u16 macAddressSecondary[3];
@@ -865,7 +900,8 @@ struct eeprom_function_cfg {
 /*
  *  EEPROM format
  */
-struct eeprom_data {
+struct eeprom_data
+{
 	u8 asicId[4];
 	u16 version_and_numPorts; /* together to avoid endianness crap */
 	u16 boardId;
@@ -947,15 +983,16 @@ struct eeprom_data {
 #define NUM_SBUFQ_ENTRIES   	64
 #define QL_SMALL_BUFFER_SIZE    32
 #define QL_ADDR_ELE_PER_BUFQ_ENTRY \
-(sizeof(struct lrg_buf_q_entry) / sizeof(struct bufq_addr_element))
-    /* Each send has at least control block.  This is how many we keep. */
+	(sizeof(struct lrg_buf_q_entry) / sizeof(struct bufq_addr_element))
+/* Each send has at least control block.  This is how many we keep. */
 #define NUM_SMALL_BUFFERS     	NUM_SBUFQ_ENTRIES * QL_ADDR_ELE_PER_BUFQ_ENTRY
 
 #define QL_HEADER_SPACE 32	/* make header space at top of skb. */
 /*
  * Large & Small Buffers for Receives
  */
-struct lrg_buf_q_entry {
+struct lrg_buf_q_entry
+{
 
 	__le32 addr0_lower;
 #define IAL_LAST_ENTRY 0x00000001
@@ -979,7 +1016,8 @@ struct lrg_buf_q_entry {
 
 };
 
-struct bufq_addr_element {
+struct bufq_addr_element
+{
 	__le32 addr_low;
 	__le32 addr_high;
 };
@@ -987,7 +1025,8 @@ struct bufq_addr_element {
 #define QL_NO_RESET			0
 #define QL_DO_RESET			1
 
-enum link_state_t {
+enum link_state_t
+{
 	LS_UNKNOWN = 0,
 	LS_DOWN,
 	LS_DEGRADE,
@@ -995,7 +1034,8 @@ enum link_state_t {
 	LS_UP,
 };
 
-struct ql_rcv_buf_cb {
+struct ql_rcv_buf_cb
+{
 	struct ql_rcv_buf_cb *next;
 	struct sk_buff *skb;
 	DEFINE_DMA_UNMAP_ADDR(mapaddr);
@@ -1016,7 +1056,8 @@ struct ql_rcv_buf_cb {
  */
 #define MAX_OAL_CNT ((MAX_SKB_FRAGS-1)/4 + 1)
 
-struct oal_entry {
+struct oal_entry
+{
 	__le32 dma_lo;
 	__le32 dma_hi;
 	__le32 len;
@@ -1024,21 +1065,24 @@ struct oal_entry {
 #define OAL_CONT_ENTRY   0x40000000	/* points to an OAL. (continuation) */
 };
 
-struct oal {
+struct oal
+{
 	struct oal_entry oal_entry[5];
 };
 
-struct map_list {
+struct map_list
+{
 	DEFINE_DMA_UNMAP_ADDR(mapaddr);
 	DEFINE_DMA_UNMAP_LEN(maplen);
 };
 
-struct ql_tx_buf_cb {
+struct ql_tx_buf_cb
+{
 	struct sk_buff *skb;
 	struct ob_mac_iocb_req *queue_entry ;
 	int seg_count;
 	struct oal *oal;
-	struct map_list map[MAX_SKB_FRAGS+1];
+	struct map_list map[MAX_SKB_FRAGS + 1];
 };
 
 /* definitions for type field */
@@ -1048,27 +1092,28 @@ struct ql_tx_buf_cb {
 
 /* qdev->flags definitions. */
 enum { QL_RESET_DONE = 1,	/* Reset finished. */
-	QL_RESET_ACTIVE = 2,	/* Waiting for reset to finish. */
-	QL_RESET_START = 3,	/* Please reset the chip. */
-	QL_RESET_PER_SCSI = 4,	/* SCSI driver requests reset. */
-	QL_TX_TIMEOUT = 5,	/* Timeout in progress. */
-	QL_LINK_MASTER = 6,	/* This driver controls the link. */
-	QL_ADAPTER_UP = 7,	/* Adapter has been brought up. */
-	QL_THREAD_UP = 8,	/* This flag is available. */
-	QL_LINK_UP = 9,	/* Link Status. */
-	QL_ALLOC_REQ_RSP_Q_DONE = 10,
-	QL_ALLOC_BUFQS_DONE = 11,
-	QL_ALLOC_SMALL_BUF_DONE = 12,
-	QL_LINK_OPTICAL = 13,
-	QL_MSI_ENABLED = 14,
-};
+	   QL_RESET_ACTIVE = 2,	/* Waiting for reset to finish. */
+	   QL_RESET_START = 3,	/* Please reset the chip. */
+	   QL_RESET_PER_SCSI = 4,	/* SCSI driver requests reset. */
+	   QL_TX_TIMEOUT = 5,	/* Timeout in progress. */
+	   QL_LINK_MASTER = 6,	/* This driver controls the link. */
+	   QL_ADAPTER_UP = 7,	/* Adapter has been brought up. */
+	   QL_THREAD_UP = 8,	/* This flag is available. */
+	   QL_LINK_UP = 9,	/* Link Status. */
+	   QL_ALLOC_REQ_RSP_Q_DONE = 10,
+	   QL_ALLOC_BUFQS_DONE = 11,
+	   QL_ALLOC_SMALL_BUF_DONE = 12,
+	   QL_LINK_OPTICAL = 13,
+	   QL_MSI_ENABLED = 14,
+	 };
 
 /*
  * ql3_adapter - The main Adapter structure definition.
  * This structure has all fields relevant to the hardware.
  */
 
-struct ql3_adapter {
+struct ql3_adapter
+{
 	u32 reserved_00;
 	unsigned long flags;
 

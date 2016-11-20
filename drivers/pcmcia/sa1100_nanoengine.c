@@ -35,7 +35,8 @@
 
 #include "sa1100_generic.h"
 
-struct nanoengine_pins {
+struct nanoengine_pins
+{
 	unsigned output_pins;
 	unsigned clear_outputs;
 	int gpio_rst;
@@ -43,7 +44,8 @@ struct nanoengine_pins {
 	int gpio_rdy;
 };
 
-static struct nanoengine_pins nano_skts[] = {
+static struct nanoengine_pins nano_skts[] =
+{
 	{
 		.gpio_rst		= GPIO_PC_RESET0,
 		.gpio_cd		= GPIO_PC_CD0,
@@ -63,12 +65,17 @@ static int nanoengine_pcmcia_hw_init(struct soc_pcmcia_socket *skt)
 	int ret;
 
 	if (i >= num_nano_pcmcia_sockets)
+	{
 		return -ENXIO;
+	}
 
 	ret = gpio_request_one(nano_skts[i].gpio_rst, GPIOF_OUT_INIT_LOW,
-		i ? "PC RST1" : "PC RST0");
+						   i ? "PC RST1" : "PC RST0");
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	skt->stat[SOC_STAT_CD].gpio = nano_skts[i].gpio_cd;
 	skt->stat[SOC_STAT_CD].name = i ? "PC CD1" : "PC CD0";
@@ -89,7 +96,9 @@ static int nanoengine_pcmcia_configure_socket(
 	unsigned i = skt->nr;
 
 	if (i >= num_nano_pcmcia_sockets)
+	{
 		return -ENXIO;
+	}
 
 	gpio_set_value(nano_skts[skt->nr].gpio_rst, !!(state->flags & SS_RESET));
 
@@ -102,7 +111,9 @@ static void nanoengine_pcmcia_socket_state(
 	unsigned i = skt->nr;
 
 	if (i >= num_nano_pcmcia_sockets)
+	{
 		return;
+	}
 
 	state->bvd1 = 1;
 	state->bvd2 = 1;
@@ -110,7 +121,8 @@ static void nanoengine_pcmcia_socket_state(
 	state->vs_Xv = 0;
 }
 
-static struct pcmcia_low_level nanoengine_pcmcia_ops = {
+static struct pcmcia_low_level nanoengine_pcmcia_ops =
+{
 	.owner			= THIS_MODULE,
 
 	.hw_init		= nanoengine_pcmcia_hw_init,
@@ -126,7 +138,7 @@ int pcmcia_nanoengine_init(struct device *dev)
 
 	if (machine_is_nanoengine())
 		ret = sa11xx_drv_pcmcia_probe(
-			dev, &nanoengine_pcmcia_ops, 0, 2);
+				  dev, &nanoengine_pcmcia_ops, 0, 2);
 
 	return ret;
 }

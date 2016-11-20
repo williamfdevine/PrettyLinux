@@ -32,8 +32,11 @@ static int crypto_kpp_report(struct sk_buff *skb, struct crypto_alg *alg)
 	strncpy(rkpp.type, "kpp", sizeof(rkpp.type));
 
 	if (nla_put(skb, CRYPTOCFGA_REPORT_KPP,
-		    sizeof(struct crypto_report_kpp), &rkpp))
+				sizeof(struct crypto_report_kpp), &rkpp))
+	{
 		goto nla_put_failure;
+	}
+
 	return 0;
 
 nla_put_failure:
@@ -47,7 +50,7 @@ static int crypto_kpp_report(struct sk_buff *skb, struct crypto_alg *alg)
 #endif
 
 static void crypto_kpp_show(struct seq_file *m, struct crypto_alg *alg)
-	__attribute__ ((unused));
+__attribute__ ((unused));
 
 static void crypto_kpp_show(struct seq_file *m, struct crypto_alg *alg)
 {
@@ -68,15 +71,20 @@ static int crypto_kpp_init_tfm(struct crypto_tfm *tfm)
 	struct kpp_alg *alg = crypto_kpp_alg(kpp);
 
 	if (alg->exit)
+	{
 		kpp->base.exit = crypto_kpp_exit_tfm;
+	}
 
 	if (alg->init)
+	{
 		return alg->init(kpp);
+	}
 
 	return 0;
 }
 
-static const struct crypto_type crypto_kpp_type = {
+static const struct crypto_type crypto_kpp_type =
+{
 	.extsize = crypto_alg_extsize,
 	.init_tfm = crypto_kpp_init_tfm,
 #ifdef CONFIG_PROC_FS

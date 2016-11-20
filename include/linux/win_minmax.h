@@ -8,13 +8,15 @@
 #include <linux/types.h>
 
 /* A single data point for our parameterized min-max tracker */
-struct minmax_sample {
+struct minmax_sample
+{
 	u32	t;	/* time measurement was taken */
 	u32	v;	/* value measured */
 };
 
 /* State for the parameterized min-max tracker */
-struct minmax {
+struct minmax
+{
 	struct minmax_sample s[3];
 };
 

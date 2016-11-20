@@ -68,8 +68,9 @@
 
 typedef struct adapter adapter_t;
 
-struct t1_rx_mode {
-       struct net_device *dev;
+struct t1_rx_mode
+{
+	struct net_device *dev;
 };
 
 #define t1_rx_mode_promisc(rm)	(rm->dev->flags & IFF_PROMISC)
@@ -85,7 +86,8 @@ struct t1_rx_mode {
 #define SPEED_INVALID 0xffff
 #define DUPLEX_INVALID 0xff
 
-enum {
+enum
+{
 	CHBT_BOARD_N110,
 	CHBT_BOARD_N210,
 	CHBT_BOARD_7500,
@@ -102,14 +104,16 @@ enum {
 	CHBT_BOARD_SIMUL,
 };
 
-enum {
+enum
+{
 	CHBT_TERM_FPGA,
 	CHBT_TERM_T1,
 	CHBT_TERM_T2,
 	CHBT_TERM_T3
 };
 
-enum {
+enum
+{
 	CHBT_MAC_CHELSIO_A,
 	CHBT_MAC_IXF1010,
 	CHBT_MAC_PM3393,
@@ -117,7 +121,8 @@ enum {
 	CHBT_MAC_DUMMY
 };
 
-enum {
+enum
+{
 	CHBT_PHY_88E1041,
 	CHBT_PHY_88E1111,
 	CHBT_PHY_88X2010,
@@ -127,20 +132,23 @@ enum {
 	CHBT_PHY_DUMMY
 };
 
-enum {
+enum
+{
 	PAUSE_RX      = 1 << 0,
 	PAUSE_TX      = 1 << 1,
 	PAUSE_AUTONEG = 1 << 2
 };
 
 /* Revisions of T1 chip */
-enum {
+enum
+{
 	TERM_T1A   = 0,
 	TERM_T1B   = 1,
 	TERM_T2    = 3
 };
 
-struct sge_params {
+struct sge_params
+{
 	unsigned int cmdQ_size[2];
 	unsigned int freelQ_size[2];
 	unsigned int large_buf_capacity;
@@ -152,13 +160,15 @@ struct sge_params {
 	unsigned int polling;
 };
 
-struct chelsio_pci_params {
+struct chelsio_pci_params
+{
 	unsigned short speed;
 	unsigned char  width;
 	unsigned char  is_pcix;
 };
 
-struct tp_params {
+struct tp_params
+{
 	unsigned int pm_size;
 	unsigned int cm_size;
 	unsigned int pm_rx_base;
@@ -171,7 +181,8 @@ struct tp_params {
 	unsigned int use_5tuple_mode;
 };
 
-struct mc5_params {
+struct mc5_params
+{
 	unsigned int mode;       /* selects MC5 width */
 	unsigned int nservers;   /* size of server region */
 	unsigned int nroutes;    /* size of routing region */
@@ -181,7 +192,8 @@ struct mc5_params {
 #define DEFAULT_SERVER_REGION_LEN 256
 #define DEFAULT_RT_REGION_LEN 1024
 
-struct adapter_params {
+struct adapter_params
+{
 	struct sge_params sge;
 	struct mc5_params mc5;
 	struct tp_params  tp;
@@ -198,7 +210,8 @@ struct adapter_params {
 	unsigned char  has_msi;
 };
 
-struct link_config {
+struct link_config
+{
 	unsigned int   supported;        /* link capabilities */
 	unsigned int   advertising;      /* advertised capabilities */
 	unsigned short requested_speed;  /* speed user has requested */
@@ -213,7 +226,8 @@ struct link_config {
 struct cmac;
 struct cphy;
 
-struct port_info {
+struct port_info
+{
 	struct net_device *dev;
 	struct cmac *mac;
 	struct cphy *phy;
@@ -224,7 +238,8 @@ struct port_info {
 struct sge;
 struct peespi;
 
-struct adapter {
+struct adapter
+{
 	u8 __iomem *regs;
 	struct pci_dev *pdev;
 	unsigned long registered_device_map;
@@ -258,7 +273,8 @@ struct adapter {
 	int t1powersave;
 };
 
-enum {                                           /* adapter flags */
+enum                                             /* adapter flags */
+{
 	FULL_INIT_DONE        = 1 << 0,
 };
 
@@ -266,7 +282,8 @@ struct mdio_ops;
 struct gmac;
 struct gphy;
 
-struct board_info {
+struct board_info
+{
 	unsigned char           board;
 	unsigned char           port_number;
 	unsigned long           caps;
@@ -296,10 +313,10 @@ static inline int t1_is_asic(const adapter_t *adapter)
 extern const struct pci_device_id t1_pci_tbl[];
 
 static inline int adapter_matches_type(const adapter_t *adapter,
-				       int version, int revision)
+									   int version, int revision)
 {
 	return adapter->params.chip_version == version &&
-	       adapter->params.chip_revision == revision;
+		   adapter->params.chip_revision == revision;
 }
 
 #define t1_is_T1B(adap) adapter_matches_type(adap, CHBT_TERM_T1, TERM_T1B)
@@ -337,15 +354,15 @@ int t1_slow_intr_handler(adapter_t *adapter);
 int t1_link_start(struct cphy *phy, struct cmac *mac, struct link_config *lc);
 const struct board_info *t1_get_board_info(unsigned int board_id);
 const struct board_info *t1_get_board_info_from_ids(unsigned int devid,
-						    unsigned short ssid);
+		unsigned short ssid);
 int t1_seeprom_read(adapter_t *adapter, u32 addr, __le32 *data);
 int t1_get_board_rev(adapter_t *adapter, const struct board_info *bi,
-		     struct adapter_params *p);
+					 struct adapter_params *p);
 int t1_init_hw_modules(adapter_t *adapter);
 int t1_init_sw_modules(adapter_t *adapter, const struct board_info *bi);
 void t1_free_sw_modules(adapter_t *adapter);
 void t1_fatal_err(adapter_t *adapter);
 void t1_link_changed(adapter_t *adapter, int port_id);
 void t1_link_negotiated(adapter_t *adapter, int port_id, int link_stat,
-			    int speed, int duplex, int pause);
+						int speed, int duplex, int pause);
 #endif /* _CXGB_COMMON_H_ */

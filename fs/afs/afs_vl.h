@@ -17,13 +17,15 @@
 #define AFS_VL_PORT		7003	/* volume location service port */
 #define VL_SERVICE		52	/* RxRPC service ID for the Volume Location service */
 
-enum AFSVL_Operations {
+enum AFSVL_Operations
+{
 	VLGETENTRYBYID		= 503,	/* AFS Get Cache Entry By ID operation ID */
 	VLGETENTRYBYNAME	= 504,	/* AFS Get Cache Entry By Name operation ID */
 	VLPROBE			= 514,	/* AFS Probe Volume Location Service operation ID */
 };
 
-enum AFSVL_Errors {
+enum AFSVL_Errors
+{
 	AFSVL_IDEXIST 		= 363520,	/* Volume Id entry exists in vl database */
 	AFSVL_IO 		= 363521,	/* I/O related error */
 	AFSVL_NAMEEXIST 	= 363522,	/* Volume name entry exists in vl database */
@@ -57,7 +59,8 @@ enum AFSVL_Errors {
 /*
  * maps to "struct vldbentry" in vvl-spec.pdf
  */
-struct afs_vldbentry {
+struct afs_vldbentry
+{
 	char		name[65];		/* name of volume (with NUL char) */
 	afs_voltype_t	type;			/* volume type */
 	unsigned	num_servers;		/* num servers that hold instances of this vol */
@@ -70,7 +73,8 @@ struct afs_vldbentry {
 
 	afs_volid_t	volume_ids[3];		/* volume IDs */
 
-	struct {
+	struct
+	{
 		struct in_addr	addr;		/* server address */
 		unsigned	partition;	/* partition ID on this server */
 		unsigned	flags;		/* server specific flags */

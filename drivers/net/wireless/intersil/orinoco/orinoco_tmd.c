@@ -73,13 +73,16 @@ static int orinoco_tmd_cor_reset(struct orinoco_private *priv)
 	/* Just in case, wait more until the card is no longer busy */
 	timeout = jiffies + msecs_to_jiffies(TMD_RESET_TIME);
 	reg = hermes_read_regn(hw, CMD);
-	while (time_before(jiffies, timeout) && (reg & HERMES_CMD_BUSY)) {
+
+	while (time_before(jiffies, timeout) && (reg & HERMES_CMD_BUSY))
+	{
 		mdelay(1);
 		reg = hermes_read_regn(hw, CMD);
 	}
 
 	/* Still busy? */
-	if (reg & HERMES_CMD_BUSY) {
+	if (reg & HERMES_CMD_BUSY)
+	{
 		printk(KERN_ERR PFX "Busy timeout\n");
 		return -ETIMEDOUT;
 	}
@@ -89,7 +92,7 @@ static int orinoco_tmd_cor_reset(struct orinoco_private *priv)
 
 
 static int orinoco_tmd_init_one(struct pci_dev *pdev,
-				const struct pci_device_id *ent)
+								const struct pci_device_id *ent)
 {
 	int err;
 	struct orinoco_private *priv;
@@ -97,26 +100,34 @@ static int orinoco_tmd_init_one(struct pci_dev *pdev,
 	void __iomem *hermes_io, *bridge_io;
 
 	err = pci_enable_device(pdev);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR PFX "Cannot enable PCI device\n");
 		return err;
 	}
 
 	err = pci_request_regions(pdev, DRIVER_NAME);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR PFX "Cannot obtain PCI resources\n");
 		goto fail_resources;
 	}
 
 	bridge_io = pci_iomap(pdev, 1, 0);
-	if (!bridge_io) {
+
+	if (!bridge_io)
+	{
 		printk(KERN_ERR PFX "Cannot map bridge registers\n");
 		err = -EIO;
 		goto fail_map_bridge;
 	}
 
 	hermes_io = pci_iomap(pdev, 2, 0);
-	if (!hermes_io) {
+
+	if (!hermes_io)
+	{
 		printk(KERN_ERR PFX "Cannot map chipset registers\n");
 		err = -EIO;
 		goto fail_map_hermes;
@@ -124,8 +135,10 @@ static int orinoco_tmd_init_one(struct pci_dev *pdev,
 
 	/* Allocate network device */
 	priv = alloc_orinocodev(sizeof(*card), &pdev->dev,
-				orinoco_tmd_cor_reset, NULL);
-	if (!priv) {
+							orinoco_tmd_cor_reset, NULL);
+
+	if (!priv)
+	{
 		printk(KERN_ERR PFX "Cannot allocate network device\n");
 		err = -ENOMEM;
 		goto fail_alloc;
@@ -137,27 +150,35 @@ static int orinoco_tmd_init_one(struct pci_dev *pdev,
 	hermes_struct_init(&priv->hw, hermes_io, HERMES_16BIT_REGSPACING);
 
 	err = request_irq(pdev->irq, orinoco_interrupt, IRQF_SHARED,
-			  DRIVER_NAME, priv);
-	if (err) {
+					  DRIVER_NAME, priv);
+
+	if (err)
+	{
 		printk(KERN_ERR PFX "Cannot allocate IRQ %d\n", pdev->irq);
 		err = -EBUSY;
 		goto fail_irq;
 	}
 
 	err = orinoco_tmd_cor_reset(priv);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR PFX "Initial reset failed\n");
 		goto fail;
 	}
 
 	err = orinoco_init(priv);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR PFX "orinoco_init() failed\n");
 		goto fail;
 	}
 
 	err = orinoco_if_add(priv, 0, 0, NULL);
-	if (err) {
+
+	if (err)
+	{
 		printk(KERN_ERR PFX "orinoco_if_add() failed\n");
 		goto fail;
 	}
@@ -166,22 +187,22 @@ static int orinoco_tmd_init_one(struct pci_dev *pdev,
 
 	return 0;
 
- fail:
+fail:
 	free_irq(pdev->irq, priv);
 
- fail_irq:
+fail_irq:
 	free_orinocodev(priv);
 
- fail_alloc:
+fail_alloc:
 	pci_iounmap(pdev, hermes_io);
 
- fail_map_hermes:
+fail_map_hermes:
 	pci_iounmap(pdev, bridge_io);
 
- fail_map_bridge:
+fail_map_bridge:
 	pci_release_regions(pdev);
 
- fail_resources:
+fail_resources:
 	pci_disable_device(pdev);
 
 	return err;
@@ -201,14 +222,16 @@ static void orinoco_tmd_remove_one(struct pci_dev *pdev)
 	pci_disable_device(pdev);
 }
 
-static const struct pci_device_id orinoco_tmd_id_table[] = {
+static const struct pci_device_id orinoco_tmd_id_table[] =
+{
 	{0x15e8, 0x0131, PCI_ANY_ID, PCI_ANY_ID,},      /* NDC and OEMs, e.g. pheecom */
 	{0,},
 };
 
 MODULE_DEVICE_TABLE(pci, orinoco_tmd_id_table);
 
-static struct pci_driver orinoco_tmd_driver = {
+static struct pci_driver orinoco_tmd_driver =
+{
 	.name		= DRIVER_NAME,
 	.id_table	= orinoco_tmd_id_table,
 	.probe		= orinoco_tmd_init_one,
@@ -218,7 +241,7 @@ static struct pci_driver orinoco_tmd_driver = {
 };
 
 static char version[] __initdata = DRIVER_NAME " " DRIVER_VERSION
-	" (Joerg Dorchain <joerg@dorchain.net>)";
+								   " (Joerg Dorchain <joerg@dorchain.net>)";
 MODULE_AUTHOR("Joerg Dorchain <joerg@dorchain.net>");
 MODULE_DESCRIPTION("Driver for wireless LAN cards using the TMD7160 PCI bridge");
 MODULE_LICENSE("Dual MPL/GPL");

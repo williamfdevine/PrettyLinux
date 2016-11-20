@@ -1,7 +1,7 @@
 /*
  *  valkyriefb.c -- frame buffer device for the PowerMac 'valkyrie' display
  *
- *  Created 8 August 1998 by 
+ *  Created 8 August 1998 by
  *  Martin Costabel <costabel@wanadoo.fr> and Kevin Schoedel
  *
  *  Vmode-switching changes and vmode 15/17 modifications created 29 August
@@ -56,9 +56,9 @@
 #include <linux/cuda.h>
 #include <asm/io.h>
 #ifdef CONFIG_MAC
-#include <asm/macintosh.h>
+	#include <asm/macintosh.h>
 #else
-#include <asm/prom.h>
+	#include <asm/prom.h>
 #endif
 #include <asm/pgtable.h>
 
@@ -66,34 +66,36 @@
 #include "valkyriefb.h"
 
 #ifdef CONFIG_MAC
-/* We don't yet have functions to read the PRAM... perhaps we can
-   adapt them from the PPC code? */
-static int default_vmode = VMODE_CHOOSE;
-static int default_cmode = CMODE_8;
+	/* We don't yet have functions to read the PRAM... perhaps we can
+	adapt them from the PPC code? */
+	static int default_vmode = VMODE_CHOOSE;
+	static int default_cmode = CMODE_8;
 #else
-static int default_vmode = VMODE_NVRAM;
-static int default_cmode = CMODE_NVRAM;
+	static int default_vmode = VMODE_NVRAM;
+	static int default_cmode = CMODE_NVRAM;
 #endif
 
-struct fb_par_valkyrie {
+struct fb_par_valkyrie
+{
 	int	vmode, cmode;
 	int	xres, yres;
 	int	vxres, vyres;
 	struct valkyrie_regvals *init;
 };
 
-struct fb_info_valkyrie {
+struct fb_info_valkyrie
+{
 	struct fb_info		info;
 	struct fb_par_valkyrie	par;
 	struct cmap_regs	__iomem *cmap_regs;
 	unsigned long		cmap_regs_phys;
-	
+
 	struct valkyrie_regs	__iomem *valkyrie_regs;
 	unsigned long		valkyrie_regs_phys;
-	
+
 	__u8			__iomem *frame_buffer;
 	unsigned long		frame_buffer_phys;
-	
+
 	int			sense;
 	unsigned long		total_vram;
 
@@ -104,25 +106,26 @@ struct fb_info_valkyrie {
  * Exported functions
  */
 int valkyriefb_init(void);
-int valkyriefb_setup(char*);
+int valkyriefb_setup(char *);
 
 static int valkyriefb_check_var(struct fb_var_screeninfo *var,
-				struct fb_info *info);
+								struct fb_info *info);
 static int valkyriefb_set_par(struct fb_info *info);
 static int valkyriefb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
-			     u_int transp, struct fb_info *info);
+								u_int transp, struct fb_info *info);
 static int valkyriefb_blank(int blank_mode, struct fb_info *info);
 
 static int read_valkyrie_sense(struct fb_info_valkyrie *p);
 static void set_valkyrie_clock(unsigned char *params);
 static int valkyrie_var_to_par(struct fb_var_screeninfo *var,
-	struct fb_par_valkyrie *par, const struct fb_info *fb_info);
+							   struct fb_par_valkyrie *par, const struct fb_info *fb_info);
 
 static int valkyrie_init_info(struct fb_info *info, struct fb_info_valkyrie *p);
 static void valkyrie_par_to_fix(struct fb_par_valkyrie *par, struct fb_fix_screeninfo *fix);
 static void valkyrie_init_fix(struct fb_fix_screeninfo *fix, struct fb_info_valkyrie *p);
 
-static struct fb_ops valkyriefb_ops = {
+static struct fb_ops valkyriefb_ops =
+{
 	.owner =	THIS_MODULE,
 	.fb_check_var =	valkyriefb_check_var,
 	.fb_set_par =	valkyriefb_set_par,
@@ -144,7 +147,9 @@ static int valkyriefb_set_par(struct fb_info *info)
 	int err;
 
 	if ((err = valkyrie_var_to_par(&info->var, par, info)))
+	{
 		return err;
+	}
 
 	valkyrie_par_to_fix(par, &info->fix);
 
@@ -166,7 +171,7 @@ static int valkyriefb_set_par(struct fb_info *info)
 }
 
 static inline int valkyrie_par_to_var(struct fb_par_valkyrie *par,
-				      struct fb_var_screeninfo *var)
+									  struct fb_var_screeninfo *var)
 {
 	return mac_vmode_to_var(par->vmode, par->cmode, var);
 }
@@ -178,7 +183,10 @@ valkyriefb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 	struct fb_par_valkyrie par;
 
 	if ((err = valkyrie_var_to_par(var, &par, info)))
+	{
 		return err;
+	}
+
 	valkyrie_par_to_var(&par, var);
 	return 0;
 }
@@ -201,32 +209,39 @@ static int valkyriefb_blank(int blank_mode, struct fb_info *info)
 	struct valkyrie_regvals	*init = par->init;
 
 	if (init == NULL)
+	{
 		return 1;
-
-	switch (blank_mode) {
-	case FB_BLANK_UNBLANK:			/* unblank */
-		out_8(&p->valkyrie_regs->mode.r, init->mode);
-		break;
-	case FB_BLANK_NORMAL:
-		return 1;	/* get caller to set CLUT to all black */
-	case FB_BLANK_VSYNC_SUSPEND:
-	case FB_BLANK_HSYNC_SUSPEND:
-		/*
-		 * [kps] Value extracted from MacOS. I don't know
-		 * whether this bit disables hsync or vsync, or
-		 * whether the hardware can do the other as well.
-		 */
-		out_8(&p->valkyrie_regs->mode.r, init->mode | 0x40);
-		break;
-	case FB_BLANK_POWERDOWN:
-		out_8(&p->valkyrie_regs->mode.r, 0x66);
-		break;
 	}
+
+	switch (blank_mode)
+	{
+		case FB_BLANK_UNBLANK:			/* unblank */
+			out_8(&p->valkyrie_regs->mode.r, init->mode);
+			break;
+
+		case FB_BLANK_NORMAL:
+			return 1;	/* get caller to set CLUT to all black */
+
+		case FB_BLANK_VSYNC_SUSPEND:
+		case FB_BLANK_HSYNC_SUSPEND:
+			/*
+			 * [kps] Value extracted from MacOS. I don't know
+			 * whether this bit disables hsync or vsync, or
+			 * whether the hardware can do the other as well.
+			 */
+			out_8(&p->valkyrie_regs->mode.r, init->mode | 0x40);
+			break;
+
+		case FB_BLANK_POWERDOWN:
+			out_8(&p->valkyrie_regs->mode.r, 0x66);
+			break;
+	}
+
 	return 0;
 }
 
 static int valkyriefb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
-			     u_int transp, struct fb_info *info)
+								u_int transp, struct fb_info *info)
 {
 	struct fb_info_valkyrie *p =
 		container_of(info, struct fb_info_valkyrie, info);
@@ -234,7 +249,10 @@ static int valkyriefb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
 	struct fb_par_valkyrie *par = info->par;
 
 	if (regno > 255)
+	{
 		return 1;
+	}
+
 	red >>= 8;
 	green >>= 8;
 	blue >>= 8;
@@ -257,10 +275,13 @@ static int valkyriefb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
 static inline int valkyrie_vram_reqd(int video_mode, int color_mode)
 {
 	int pitch;
-	struct valkyrie_regvals *init = valkyrie_reg_init[video_mode-1];
-	
+	struct valkyrie_regvals *init = valkyrie_reg_init[video_mode - 1];
+
 	if ((pitch = init->pitch[color_mode]) == 0)
+	{
 		pitch = 2 * init->pitch[0];
+	}
+
 	return init->vres * pitch;
 }
 
@@ -270,12 +291,17 @@ static void set_valkyrie_clock(unsigned char *params)
 	struct adb_request req;
 	int i;
 
-	for (i = 0; i < 3; ++i) {
+	for (i = 0; i < 3; ++i)
+	{
 		cuda_request(&req, NULL, 5, CUDA_PACKET, CUDA_GET_SET_IIC,
-			     0x50, i + 1, params[i]);
+					 0x50, i + 1, params[i]);
+
 		while (!req.complete)
+		{
 			cuda_poll();
+		}
 	}
+
 #endif
 }
 
@@ -286,33 +312,52 @@ static void __init valkyrie_choose_mode(struct fb_info_valkyrie *p)
 
 	/* Try to pick a video mode out of NVRAM if we have one. */
 #if !defined(CONFIG_MAC) && defined(CONFIG_NVRAM)
-	if (default_vmode == VMODE_NVRAM) {
+
+	if (default_vmode == VMODE_NVRAM)
+	{
 		default_vmode = nvram_read_byte(NV_VMODE);
+
 		if (default_vmode <= 0
-		 || default_vmode > VMODE_MAX
-		 || !valkyrie_reg_init[default_vmode - 1])
+			|| default_vmode > VMODE_MAX
+			|| !valkyrie_reg_init[default_vmode - 1])
+		{
 			default_vmode = VMODE_CHOOSE;
+		}
 	}
+
 #endif
+
 	if (default_vmode == VMODE_CHOOSE)
+	{
 		default_vmode = mac_map_monitor_sense(p->sense);
+	}
+
 	if (!valkyrie_reg_init[default_vmode - 1])
+	{
 		default_vmode = VMODE_640_480_67;
+	}
+
 #if !defined(CONFIG_MAC) && defined(CONFIG_NVRAM)
+
 	if (default_cmode == CMODE_NVRAM)
+	{
 		default_cmode = nvram_read_byte(NV_CMODE);
+	}
+
 #endif
 
 	/*
 	 * Reduce the pixel size if we don't have enough VRAM or bandwidth.
 	 */
 	if (default_cmode < CMODE_8 || default_cmode > CMODE_16
-	    || valkyrie_reg_init[default_vmode-1]->pitch[default_cmode] == 0
-	    || valkyrie_vram_reqd(default_vmode, default_cmode) > p->total_vram)
+		|| valkyrie_reg_init[default_vmode - 1]->pitch[default_cmode] == 0
+		|| valkyrie_vram_reqd(default_vmode, default_cmode) > p->total_vram)
+	{
 		default_cmode = CMODE_8;
+	}
 
 	printk(KERN_INFO "using video mode %d and color mode %d.\n",
-	       default_vmode, default_cmode);
+		   default_vmode, default_cmode);
 }
 
 int __init valkyriefb_init(void)
@@ -323,16 +368,25 @@ int __init valkyriefb_init(void)
 	char *option = NULL;
 
 	if (fb_get_options("valkyriefb", &option))
+	{
 		return -ENODEV;
+	}
+
 	valkyriefb_setup(option);
 
 #ifdef CONFIG_MAC
+
 	if (!MACH_IS_MAC)
+	{
 		return -ENODEV;
+	}
+
 	if (!(mac_bi_data.id == MAC_MODEL_Q630
-	      /* I'm not sure about this one */
-	    || mac_bi_data.id == MAC_MODEL_P588))
+		  /* I'm not sure about this one */
+		  || mac_bi_data.id == MAC_MODEL_P588))
+	{
 		return -ENODEV;
+	}
 
 	/* Hardcoded addresses... welcome to 68k Macintosh country :-) */
 	frame_buffer_phys = 0xf9000000;
@@ -344,10 +398,14 @@ int __init valkyriefb_init(void)
 		struct resource r;
 
 		dp = of_find_node_by_name(NULL, "valkyrie");
-		if (dp == 0)
-			return 0;
 
-		if (of_address_to_resource(dp, 0, &r)) {
+		if (dp == 0)
+		{
+			return 0;
+		}
+
+		if (of_address_to_resource(dp, 0, &r))
+		{
 			printk(KERN_ERR "can't find address for valkyrie\n");
 			return 0;
 		}
@@ -359,24 +417,31 @@ int __init valkyriefb_init(void)
 #endif /* ppc (!CONFIG_MAC) */
 
 	p = kzalloc(sizeof(*p), GFP_ATOMIC);
+
 	if (p == 0)
+	{
 		return -ENOMEM;
+	}
 
 	/* Map in frame buffer and registers */
-	if (!request_mem_region(frame_buffer_phys, 0x100000, "valkyriefb")) {
+	if (!request_mem_region(frame_buffer_phys, 0x100000, "valkyriefb"))
+	{
 		kfree(p);
 		return 0;
 	}
+
 	p->total_vram = 0x100000;
 	p->frame_buffer_phys = frame_buffer_phys;
 	p->frame_buffer = __ioremap(frame_buffer_phys, p->total_vram, flags);
 	p->cmap_regs_phys = cmap_regs_phys;
 	p->cmap_regs = ioremap(p->cmap_regs_phys, 0x1000);
-	p->valkyrie_regs_phys = cmap_regs_phys+0x6000;
+	p->valkyrie_regs_phys = cmap_regs_phys + 0x6000;
 	p->valkyrie_regs = ioremap(p->valkyrie_regs_phys, 0x1000);
 	err = -ENOMEM;
+
 	if (p->frame_buffer == NULL || p->cmap_regs == NULL
-	    || p->valkyrie_regs == NULL) {
+		|| p->valkyrie_regs == NULL)
+	{
 		printk(KERN_ERR "valkyriefb: couldn't map resources\n");
 		goto out_free;
 	}
@@ -384,28 +449,47 @@ int __init valkyriefb_init(void)
 	valkyrie_choose_mode(p);
 	mac_vmode_to_var(default_vmode, default_cmode, &p->info.var);
 	err = valkyrie_init_info(&p->info, p);
+
 	if (err < 0)
+	{
 		goto out_free;
+	}
+
 	valkyrie_init_fix(&p->info.fix, p);
+
 	if (valkyriefb_set_par(&p->info))
 		/* "can't happen" */
+	{
 		printk(KERN_ERR "valkyriefb: can't set default video mode\n");
+	}
 
 	if ((err = register_framebuffer(&p->info)) != 0)
+	{
 		goto out_cmap_free;
+	}
 
 	fb_info(&p->info, "valkyrie frame buffer device\n");
 	return 0;
 
- out_cmap_free:
+out_cmap_free:
 	fb_dealloc_cmap(&p->info.cmap);
- out_free:
+out_free:
+
 	if (p->frame_buffer)
+	{
 		iounmap(p->frame_buffer);
+	}
+
 	if (p->cmap_regs)
+	{
 		iounmap(p->cmap_regs);
+	}
+
 	if (p->valkyrie_regs)
+	{
 		iounmap(p->valkyrie_regs);
+	}
+
 	kfree(p);
 	return err;
 }
@@ -464,45 +548,52 @@ static int read_valkyrie_sense(struct fb_info_valkyrie *p)
  */
 
 static int valkyrie_var_to_par(struct fb_var_screeninfo *var,
-	struct fb_par_valkyrie *par, const struct fb_info *fb_info)
+							   struct fb_par_valkyrie *par, const struct fb_info *fb_info)
 {
 	int vmode, cmode;
 	struct valkyrie_regvals *init;
 	struct fb_info_valkyrie *p =
 		container_of(fb_info, struct fb_info_valkyrie, info);
 
-	if (mac_var_to_vmode(var, &vmode, &cmode) != 0) {
+	if (mac_var_to_vmode(var, &vmode, &cmode) != 0)
+	{
 		printk(KERN_ERR "valkyriefb: can't do %dx%dx%d.\n",
-		       var->xres, var->yres, var->bits_per_pixel);
+			   var->xres, var->yres, var->bits_per_pixel);
 		return -EINVAL;
 	}
 
 	/* Check if we know about the wanted video mode */
-	if (vmode < 1 || vmode > VMODE_MAX || !valkyrie_reg_init[vmode-1]) {
+	if (vmode < 1 || vmode > VMODE_MAX || !valkyrie_reg_init[vmode - 1])
+	{
 		printk(KERN_ERR "valkyriefb: vmode %d not valid.\n", vmode);
 		return -EINVAL;
 	}
-	
-	if (cmode != CMODE_8 && cmode != CMODE_16) {
+
+	if (cmode != CMODE_8 && cmode != CMODE_16)
+	{
 		printk(KERN_ERR "valkyriefb: cmode %d not valid.\n", cmode);
 		return -EINVAL;
 	}
 
 	if (var->xres_virtual > var->xres || var->yres_virtual > var->yres
-	    || var->xoffset != 0 || var->yoffset != 0) {
+		|| var->xoffset != 0 || var->yoffset != 0)
+	{
 		return -EINVAL;
 	}
 
-	init = valkyrie_reg_init[vmode-1];
-	if (init->pitch[cmode] == 0) {
+	init = valkyrie_reg_init[vmode - 1];
+
+	if (init->pitch[cmode] == 0)
+	{
 		printk(KERN_ERR "valkyriefb: vmode %d does not support "
-		       "cmode %d.\n", vmode, cmode);
+			   "cmode %d.\n", vmode, cmode);
 		return -EINVAL;
 	}
 
-	if (valkyrie_vram_reqd(vmode, cmode) > p->total_vram) {
+	if (valkyrie_vram_reqd(vmode, cmode) > p->total_vram)
+	{
 		printk(KERN_ERR "valkyriefb: not enough ram for vmode %d, "
-		       "cmode %d.\n", vmode, cmode);
+			   "cmode %d.\n", vmode, cmode);
 		return -EINVAL;
 	}
 
@@ -531,22 +622,22 @@ static void valkyrie_init_fix(struct fb_fix_screeninfo *fix, struct fb_info_valk
 	fix->ywrapstep = 0;
 	fix->ypanstep = 0;
 	fix->xpanstep = 0;
-	
+
 }
 
 /* Fix must already be inited above */
 static void valkyrie_par_to_fix(struct fb_par_valkyrie *par,
-	struct fb_fix_screeninfo *fix)
+								struct fb_fix_screeninfo *fix)
 {
 	fix->smem_len = valkyrie_vram_reqd(par->vmode, par->cmode);
 	fix->visual = (par->cmode == CMODE_8) ?
-		FB_VISUAL_PSEUDOCOLOR : FB_VISUAL_DIRECTCOLOR;
+				  FB_VISUAL_PSEUDOCOLOR : FB_VISUAL_DIRECTCOLOR;
 	fix->line_length = par->vxres << par->cmode;
-		/* ywrapstep, xpanstep, ypanstep */
+	/* ywrapstep, xpanstep, ypanstep */
 }
 
 static int __init valkyrie_init_info(struct fb_info *info,
-		struct fb_info_valkyrie *p)
+									 struct fb_info_valkyrie *p)
 {
 	info->fbops = &valkyriefb_ops;
 	info->screen_base = p->frame_buffer + 0x1000;
@@ -565,27 +656,39 @@ int __init valkyriefb_setup(char *options)
 	char *this_opt;
 
 	if (!options || !*options)
+	{
 		return 0;
+	}
 
-	while ((this_opt = strsep(&options, ",")) != NULL) {
-		if (!strncmp(this_opt, "vmode:", 6)) {
-	    		int vmode = simple_strtoul(this_opt+6, NULL, 0);
+	while ((this_opt = strsep(&options, ",")) != NULL)
+	{
+		if (!strncmp(this_opt, "vmode:", 6))
+		{
+			int vmode = simple_strtoul(this_opt + 6, NULL, 0);
+
 			if (vmode > 0 && vmode <= VMODE_MAX)
+			{
 				default_vmode = vmode;
+			}
 		}
-		else if (!strncmp(this_opt, "cmode:", 6)) {
-			int depth = simple_strtoul(this_opt+6, NULL, 0);
-			switch (depth) {
-			case 8:
-				default_cmode = CMODE_8;
-				break;
-			case 15:
-			case 16:
-				default_cmode = CMODE_16;
-				break;
+		else if (!strncmp(this_opt, "cmode:", 6))
+		{
+			int depth = simple_strtoul(this_opt + 6, NULL, 0);
+
+			switch (depth)
+			{
+				case 8:
+					default_cmode = CMODE_8;
+					break;
+
+				case 15:
+				case 16:
+					default_cmode = CMODE_16;
+					break;
 			}
 		}
 	}
+
 	return 0;
 }
 

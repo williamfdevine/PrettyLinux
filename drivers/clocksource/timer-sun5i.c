@@ -37,7 +37,8 @@
 
 #define TIMER_SYNC_TICKS	3
 
-struct sun5i_timer {
+struct sun5i_timer
+{
 	void __iomem		*base;
 	struct clk		*clk;
 	struct notifier_block	clk_rate_cb;
@@ -47,7 +48,8 @@ struct sun5i_timer {
 #define to_sun5i_timer(x) \
 	container_of(x, struct sun5i_timer, clk_rate_cb)
 
-struct sun5i_timer_clksrc {
+struct sun5i_timer_clksrc
+{
 	struct sun5i_timer	timer;
 	struct clocksource	clksrc;
 };
@@ -55,7 +57,8 @@ struct sun5i_timer_clksrc {
 #define to_sun5i_timer_clksrc(x) \
 	container_of(x, struct sun5i_timer_clksrc, clksrc)
 
-struct sun5i_timer_clkevt {
+struct sun5i_timer_clkevt
+{
 	struct sun5i_timer		timer;
 	struct clock_event_device	clkevt;
 };
@@ -74,7 +77,9 @@ static void sun5i_clkevt_sync(struct sun5i_timer_clkevt *ce)
 	u32 old = readl(ce->timer.base + TIMER_CNTVAL_LO_REG(1));
 
 	while ((old - readl(ce->timer.base + TIMER_CNTVAL_LO_REG(1))) < TIMER_SYNC_TICKS)
+	{
 		cpu_relax();
+	}
 }
 
 static void sun5i_clkevt_time_stop(struct sun5i_timer_clkevt *ce, u8 timer)
@@ -95,12 +100,16 @@ static void sun5i_clkevt_time_start(struct sun5i_timer_clkevt *ce, u8 timer, boo
 	u32 val = readl(ce->timer.base + TIMER_CTL_REG(timer));
 
 	if (periodic)
+	{
 		val &= ~TIMER_CTL_ONESHOT;
+	}
 	else
+	{
 		val |= TIMER_CTL_ONESHOT;
+	}
 
 	writel(val | TIMER_CTL_ENABLE | TIMER_CTL_RELOAD,
-	       ce->timer.base + TIMER_CTL_REG(timer));
+		   ce->timer.base + TIMER_CTL_REG(timer));
 }
 
 static int sun5i_clkevt_shutdown(struct clock_event_device *clkevt)
@@ -131,7 +140,7 @@ static int sun5i_clkevt_set_periodic(struct clock_event_device *clkevt)
 }
 
 static int sun5i_clkevt_next_event(unsigned long evt,
-				   struct clock_event_device *clkevt)
+								   struct clock_event_device *clkevt)
 {
 	struct sun5i_timer_clkevt *ce = to_sun5i_timer_clkevt(clkevt);
 
@@ -160,42 +169,48 @@ static cycle_t sun5i_clksrc_read(struct clocksource *clksrc)
 }
 
 static int sun5i_rate_cb_clksrc(struct notifier_block *nb,
-				unsigned long event, void *data)
+								unsigned long event, void *data)
 {
 	struct clk_notifier_data *ndata = data;
 	struct sun5i_timer *timer = to_sun5i_timer(nb);
 	struct sun5i_timer_clksrc *cs = container_of(timer, struct sun5i_timer_clksrc, timer);
 
-	switch (event) {
-	case PRE_RATE_CHANGE:
-		clocksource_unregister(&cs->clksrc);
-		break;
+	switch (event)
+	{
+		case PRE_RATE_CHANGE:
+			clocksource_unregister(&cs->clksrc);
+			break;
 
-	case POST_RATE_CHANGE:
-		clocksource_register_hz(&cs->clksrc, ndata->new_rate);
-		break;
+		case POST_RATE_CHANGE:
+			clocksource_register_hz(&cs->clksrc, ndata->new_rate);
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 
 	return NOTIFY_DONE;
 }
 
 static int __init sun5i_setup_clocksource(struct device_node *node,
-					  void __iomem *base,
-					  struct clk *clk, int irq)
+		void __iomem *base,
+		struct clk *clk, int irq)
 {
 	struct sun5i_timer_clksrc *cs;
 	unsigned long rate;
 	int ret;
 
 	cs = kzalloc(sizeof(*cs), GFP_KERNEL);
+
 	if (!cs)
+	{
 		return -ENOMEM;
+	}
 
 	ret = clk_prepare_enable(clk);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Couldn't enable parent clock\n");
 		goto err_free;
 	}
@@ -208,14 +223,16 @@ static int __init sun5i_setup_clocksource(struct device_node *node,
 	cs->timer.clk_rate_cb.next = NULL;
 
 	ret = clk_notifier_register(clk, &cs->timer.clk_rate_cb);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Unable to register clock notifier.\n");
 		goto err_disable_clk;
 	}
 
 	writel(~0, base + TIMER_INTVAL_LO_REG(1));
 	writel(TIMER_CTL_ENABLE | TIMER_CTL_RELOAD,
-	       base + TIMER_CTL_REG(1));
+		   base + TIMER_CTL_REG(1));
 
 	cs->clksrc.name = node->name;
 	cs->clksrc.rating = 340;
@@ -224,7 +241,9 @@ static int __init sun5i_setup_clocksource(struct device_node *node,
 	cs->clksrc.flags = CLOCK_SOURCE_IS_CONTINUOUS;
 
 	ret = clocksource_register_hz(&cs->clksrc, rate);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Couldn't register clock source.\n");
 		goto err_remove_notifier;
 	}
@@ -241,13 +260,14 @@ err_free:
 }
 
 static int sun5i_rate_cb_clkevt(struct notifier_block *nb,
-				unsigned long event, void *data)
+								unsigned long event, void *data)
 {
 	struct clk_notifier_data *ndata = data;
 	struct sun5i_timer *timer = to_sun5i_timer(nb);
 	struct sun5i_timer_clkevt *ce = container_of(timer, struct sun5i_timer_clkevt, timer);
 
-	if (event == POST_RATE_CHANGE) {
+	if (event == POST_RATE_CHANGE)
+	{
 		clockevents_update_freq(&ce->clkevt, ndata->new_rate);
 		ce->timer.ticks_per_jiffy = DIV_ROUND_UP(ndata->new_rate, HZ);
 	}
@@ -256,7 +276,7 @@ static int sun5i_rate_cb_clkevt(struct notifier_block *nb,
 }
 
 static int __init sun5i_setup_clockevent(struct device_node *node, void __iomem *base,
-					 struct clk *clk, int irq)
+		struct clk *clk, int irq)
 {
 	struct sun5i_timer_clkevt *ce;
 	unsigned long rate;
@@ -264,11 +284,16 @@ static int __init sun5i_setup_clockevent(struct device_node *node, void __iomem 
 	u32 val;
 
 	ce = kzalloc(sizeof(*ce), GFP_KERNEL);
+
 	if (!ce)
+	{
 		return -ENOMEM;
+	}
 
 	ret = clk_prepare_enable(clk);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Couldn't enable parent clock\n");
 		goto err_free;
 	}
@@ -282,7 +307,9 @@ static int __init sun5i_setup_clockevent(struct device_node *node, void __iomem 
 	ce->timer.clk_rate_cb.next = NULL;
 
 	ret = clk_notifier_register(clk, &ce->timer.clk_rate_cb);
-	if (ret) {
+
+	if (ret)
+	{
 		pr_err("Unable to register clock notifier.\n");
 		goto err_disable_clk;
 	}
@@ -303,11 +330,13 @@ static int __init sun5i_setup_clockevent(struct device_node *node, void __iomem 
 	writel(val | TIMER_IRQ_EN(0), base + TIMER_IRQ_EN_REG);
 
 	clockevents_config_and_register(&ce->clkevt, rate,
-					TIMER_SYNC_TICKS, 0xffffffff);
+									TIMER_SYNC_TICKS, 0xffffffff);
 
 	ret = request_irq(irq, sun5i_timer_interrupt, IRQF_TIMER | IRQF_IRQPOLL,
-			  "sun5i_timer0", ce);
-	if (ret) {
+					  "sun5i_timer0", ce);
+
+	if (ret)
+	{
 		pr_err("Unable to register interrupt\n");
 		goto err_remove_notifier;
 	}
@@ -331,34 +360,46 @@ static int __init sun5i_timer_init(struct device_node *node)
 	int irq, ret;
 
 	timer_base = of_io_request_and_map(node, 0, of_node_full_name(node));
-	if (IS_ERR(timer_base)) {
+
+	if (IS_ERR(timer_base))
+	{
 		pr_err("Can't map registers");
 		return PTR_ERR(timer_base);;
 	}
 
 	irq = irq_of_parse_and_map(node, 0);
-	if (irq <= 0) {
+
+	if (irq <= 0)
+	{
 		pr_err("Can't parse IRQ");
 		return -EINVAL;
 	}
 
 	clk = of_clk_get(node, 0);
-	if (IS_ERR(clk)) {
+
+	if (IS_ERR(clk))
+	{
 		pr_err("Can't get timer clock");
 		return PTR_ERR(clk);
 	}
 
 	rstc = of_reset_control_get(node, NULL);
+
 	if (!IS_ERR(rstc))
+	{
 		reset_control_deassert(rstc);
+	}
 
 	ret = sun5i_setup_clocksource(node, timer_base, clk, irq);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return sun5i_setup_clockevent(node, timer_base, clk, irq);
 }
 CLOCKSOURCE_OF_DECLARE(sun5i_a13, "allwinner,sun5i-a13-hstimer",
-			   sun5i_timer_init);
+					   sun5i_timer_init);
 CLOCKSOURCE_OF_DECLARE(sun7i_a20, "allwinner,sun7i-a20-hstimer",
-			   sun5i_timer_init);
+					   sun5i_timer_init);

@@ -5,7 +5,8 @@
 
 struct ssb_device;
 
-struct ssb_serial_port {
+struct ssb_serial_port
+{
 	void *regs;
 	unsigned long clockspeed;
 	unsigned int irq;
@@ -13,7 +14,8 @@ struct ssb_serial_port {
 	unsigned int reg_shift;
 };
 
-struct ssb_pflash {
+struct ssb_pflash
+{
 	bool present;
 	u8 buswidth;
 	u32 window;
@@ -21,7 +23,8 @@ struct ssb_pflash {
 };
 
 #ifdef CONFIG_SSB_SFLASH
-struct ssb_sflash {
+struct ssb_sflash
+{
 	bool present;
 	u32 window;
 	u32 blocksize;
@@ -32,7 +35,8 @@ struct ssb_sflash {
 };
 #endif
 
-struct ssb_mipscore {
+struct ssb_mipscore
+{
 	struct ssb_device *dev;
 
 	int nr_serial_ports;
@@ -52,7 +56,8 @@ extern unsigned int ssb_mips_irq(struct ssb_device *dev);
 
 #else /* CONFIG_SSB_DRIVER_MIPS */
 
-struct ssb_mipscore {
+struct ssb_mipscore
+{
 };
 
 static inline

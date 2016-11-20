@@ -92,17 +92,20 @@
 
 #define TARGET_BOOT_SLEEP 50
 
-struct p54s_dma_regs {
+struct p54s_dma_regs
+{
 	__le16 cmd;
 	__le16 len;
 	__le32 addr;
 } __packed;
 
-struct p54s_tx_info {
+struct p54s_tx_info
+{
 	struct list_head tx_list;
 };
 
-struct p54s_priv {
+struct p54s_priv
+{
 	/* p54_common has to be the first entry */
 	struct p54_common common;
 	struct ieee80211_hw *hw;

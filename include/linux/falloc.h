@@ -8,7 +8,8 @@
  * Space reservation ioctls and argument structure
  * are designed to be compatible with the legacy XFS ioctls.
  */
-struct space_resv {
+struct space_resv
+{
 	__s16		l_type;
 	__s16		l_whence;
 	__s64		l_start;
@@ -22,10 +23,10 @@ struct space_resv {
 #define FS_IOC_RESVSP64		_IOW('X', 42, struct space_resv)
 
 #define	FALLOC_FL_SUPPORTED_MASK	(FALLOC_FL_KEEP_SIZE |		\
-					 FALLOC_FL_PUNCH_HOLE |		\
-					 FALLOC_FL_COLLAPSE_RANGE |	\
-					 FALLOC_FL_ZERO_RANGE |		\
-					 FALLOC_FL_INSERT_RANGE |	\
-					 FALLOC_FL_UNSHARE_RANGE)
+									 FALLOC_FL_PUNCH_HOLE |		\
+									 FALLOC_FL_COLLAPSE_RANGE |	\
+									 FALLOC_FL_ZERO_RANGE |		\
+									 FALLOC_FL_INSERT_RANGE |	\
+									 FALLOC_FL_UNSHARE_RANGE)
 
 #endif /* _FALLOC_H_ */

@@ -18,7 +18,8 @@
  *	Accelerometer DRDY on LSM330 available only on pin 1 (see datasheet).
  * @open_drain: set the interrupt line to be open drain if possible.
  */
-struct st_sensors_platform_data {
+struct st_sensors_platform_data
+{
 	u8 drdy_int_pin;
 	bool open_drain;
 };

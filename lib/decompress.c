@@ -19,31 +19,33 @@
 #include <linux/printk.h>
 
 #ifndef CONFIG_DECOMPRESS_GZIP
-# define gunzip NULL
+	#define gunzip NULL
 #endif
 #ifndef CONFIG_DECOMPRESS_BZIP2
-# define bunzip2 NULL
+	#define bunzip2 NULL
 #endif
 #ifndef CONFIG_DECOMPRESS_LZMA
-# define unlzma NULL
+	#define unlzma NULL
 #endif
 #ifndef CONFIG_DECOMPRESS_XZ
-# define unxz NULL
+	#define unxz NULL
 #endif
 #ifndef CONFIG_DECOMPRESS_LZO
-# define unlzo NULL
+	#define unlzo NULL
 #endif
 #ifndef CONFIG_DECOMPRESS_LZ4
-# define unlz4 NULL
+	#define unlz4 NULL
 #endif
 
-struct compress_format {
+struct compress_format
+{
 	unsigned char magic[2];
 	const char *name;
 	decompress_fn decompressor;
 };
 
-static const struct compress_format compressed_formats[] __initconst = {
+static const struct compress_format compressed_formats[] __initconst =
+{
 	{ {0x1f, 0x8b}, "gzip", gunzip },
 	{ {0x1f, 0x9e}, "gzip", gunzip },
 	{ {0x42, 0x5a}, "bzip2", bunzip2 },
@@ -55,24 +57,35 @@ static const struct compress_format compressed_formats[] __initconst = {
 };
 
 decompress_fn __init decompress_method(const unsigned char *inbuf, long len,
-				const char **name)
+									   const char **name)
 {
 	const struct compress_format *cf;
 
-	if (len < 2) {
+	if (len < 2)
+	{
 		if (name)
+		{
 			*name = NULL;
+		}
+
 		return NULL;	/* Need at least this much... */
 	}
 
 	pr_debug("Compressed data magic: %#.2x %#.2x\n", inbuf[0], inbuf[1]);
 
-	for (cf = compressed_formats; cf->name; cf++) {
+	for (cf = compressed_formats; cf->name; cf++)
+	{
 		if (!memcmp(inbuf, cf->magic, 2))
+		{
 			break;
+		}
 
 	}
+
 	if (name)
+	{
 		*name = cf->name;
+	}
+
 	return cf->decompressor;
 }

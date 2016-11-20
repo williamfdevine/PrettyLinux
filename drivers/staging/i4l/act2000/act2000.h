@@ -38,7 +38,8 @@
 #define ACT2000_BUS_PCMCIA       3
 
 /* Struct for adding new cards */
-typedef struct act2000_cdef {
+typedef struct act2000_cdef
+{
 	int bus;
 	int port;
 	int irq;
@@ -46,12 +47,14 @@ typedef struct act2000_cdef {
 } act2000_cdef;
 
 /* Struct for downloading firmware */
-typedef struct act2000_ddef {
+typedef struct act2000_ddef
+{
 	int length;             /* Length of code */
 	char __user *buffer;    /* Ptr. to code   */
 } act2000_ddef;
 
-typedef struct act2000_fwid {
+typedef struct act2000_fwid
+{
 	char isdn[4];
 	char revlen[2];
 	char revision[504];
@@ -60,28 +63,28 @@ typedef struct act2000_fwid {
 #if defined(__KERNEL__) || defined(__DEBUGVAR__)
 
 #ifdef __KERNEL__
-/* Kernel includes */
+	/* Kernel includes */
 
-#include <linux/sched.h>
-#include <linux/string.h>
-#include <linux/workqueue.h>
-#include <linux/interrupt.h>
-#include <linux/skbuff.h>
-#include <linux/errno.h>
-#include <linux/fs.h>
-#include <linux/major.h>
-#include <asm/io.h>
-#include <linux/kernel.h>
-#include <linux/signal.h>
-#include <linux/slab.h>
-#include <linux/mm.h>
-#include <linux/mman.h>
-#include <linux/ioport.h>
-#include <linux/timer.h>
-#include <linux/wait.h>
-#include <linux/delay.h>
-#include <linux/ctype.h>
-#include <linux/isdnif.h>
+	#include <linux/sched.h>
+	#include <linux/string.h>
+	#include <linux/workqueue.h>
+	#include <linux/interrupt.h>
+	#include <linux/skbuff.h>
+	#include <linux/errno.h>
+	#include <linux/fs.h>
+	#include <linux/major.h>
+	#include <asm/io.h>
+	#include <linux/kernel.h>
+	#include <linux/signal.h>
+	#include <linux/slab.h>
+	#include <linux/mm.h>
+	#include <linux/mman.h>
+	#include <linux/ioport.h>
+	#include <linux/timer.h>
+	#include <linux/wait.h>
+	#include <linux/delay.h>
+	#include <linux/ctype.h>
+	#include <linux/isdnif.h>
 
 #endif                           /* __KERNEL__ */
 
@@ -115,7 +118,8 @@ typedef struct act2000_fwid {
 #define ACT2000_LOCK_TX 0
 #define ACT2000_LOCK_RX 1
 
-typedef struct act2000_chan {
+typedef struct act2000_chan
+{
 	unsigned short callref;          /* Call Reference              */
 	unsigned short fsm_state;        /* Current D-Channel state     */
 	unsigned short eazmask;          /* EAZ-Mask for this Channel   */
@@ -126,13 +130,15 @@ typedef struct act2000_chan {
 	unsigned char  l3prot;           /* Layer 3 protocol            */
 } act2000_chan;
 
-typedef struct msn_entry {
+typedef struct msn_entry
+{
 	char eaz;
 	char msn[16];
 	struct msn_entry *next;
 } msn_entry;
 
-typedef struct irq_data_isa {
+typedef struct irq_data_isa
+{
 	__u8           *rcvptr;
 	__u16           rcvidx;
 	__u16           rcvlen;
@@ -141,14 +147,16 @@ typedef struct irq_data_isa {
 	__u8            rcvhdr[8];
 } irq_data_isa;
 
-typedef union act2000_irq_data {
+typedef union act2000_irq_data
+{
 	irq_data_isa isa;
 } act2000_irq_data;
 
 /*
  * Per card driver data
  */
-typedef struct act2000_card {
+typedef struct act2000_card
+{
 	unsigned short port;		/* Base-port-address                */
 	unsigned short irq;		/* Interrupt                        */
 	u_char ptype;			/* Protocol type (1TR6 or Euro)     */

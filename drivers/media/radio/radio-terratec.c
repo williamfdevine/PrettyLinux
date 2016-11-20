@@ -63,14 +63,24 @@ static int terratec_s_mute_volume(struct radio_isa_card *isa, bool mute, int vol
 	int i;
 
 	if (mute)
+	{
 		vol = 0;
-	vol = vol + (vol * 32); /* change both channels */
-	for (i = 0; i < 8; i++) {
-		if (vol & (0x80 >> i))
-			outb(0x80, isa->io + 1);
-		else
-			outb(0x00, isa->io + 1);
 	}
+
+	vol = vol + (vol * 32); /* change both channels */
+
+	for (i = 0; i < 8; i++)
+	{
+		if (vol & (0x80 >> i))
+		{
+			outb(0x80, isa->io + 1);
+		}
+		else
+		{
+			outb(0x00, isa->io + 1);
+		}
+	}
+
 	return 0;
 }
 
@@ -90,32 +100,43 @@ static int terratec_s_frequency(struct radio_isa_card *isa, u32 freq)
 	memset(buffer, 0, sizeof(buffer));
 
 	rest = freq * 10 + 10700;	/* I once had understood what is going on here */
-					/* maybe some wise guy (friedhelm?) can comment this stuff */
+	/* maybe some wise guy (friedhelm?) can comment this stuff */
 	i = 13;
 	p = 10;
 	temp = 102400;
-	while (rest != 0) {
+
+	while (rest != 0)
+	{
 		if (rest % temp  == rest)
+		{
 			buffer[i] = 0;
-		else {
+		}
+		else
+		{
 			buffer[i] = 1;
 			rest = rest - temp;
 		}
+
 		i--;
 		p--;
 		temp = temp / 2;
 	}
 
-	for (i = 24; i > -1; i--) {	/* bit shift the values to the radiocard */
-		if (buffer[i] == 1) {
+	for (i = 24; i > -1; i--)  	/* bit shift the values to the radiocard */
+	{
+		if (buffer[i] == 1)
+		{
 			outb(WRT_EN | DATA, isa->io);
 			outb(WRT_EN | DATA | CLK_ON, isa->io);
 			outb(WRT_EN | DATA, isa->io);
-		} else {
+		}
+		else
+		{
 			outb(WRT_EN | 0x00, isa->io);
 			outb(WRT_EN | 0x00 | CLK_ON, isa->io);
 		}
 	}
+
 	outb(0x00, isa->io);
 	return 0;
 }
@@ -126,7 +147,8 @@ static u32 terratec_g_signal(struct radio_isa_card *isa)
 	return (inb(isa->io) & 2) ? 0 : 0xffff;
 }
 
-static const struct radio_isa_ops terratec_ops = {
+static const struct radio_isa_ops terratec_ops =
+{
 	.alloc = terratec_alloc,
 	.s_mute_volume = terratec_s_mute_volume,
 	.s_frequency = terratec_s_frequency,
@@ -135,7 +157,8 @@ static const struct radio_isa_ops terratec_ops = {
 
 static const int terratec_ioports[] = { 0x590 };
 
-static struct radio_isa_driver terratec_driver = {
+static struct radio_isa_driver terratec_driver =
+{
 	.driver = {
 		.match		= radio_isa_match,
 		.probe		= radio_isa_probe,

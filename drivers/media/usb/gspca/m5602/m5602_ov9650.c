@@ -24,7 +24,8 @@
 static int ov9650_s_ctrl(struct v4l2_ctrl *ctrl);
 static void ov9650_dump_registers(struct sd *sd);
 
-static const unsigned char preinit_ov9650[][3] = {
+static const unsigned char preinit_ov9650[][3] =
+{
 	/* [INITCAM] */
 	{BRIDGE, M5602_XB_MCU_CLK_DIV, 0x02},
 	{BRIDGE, M5602_XB_MCU_CLK_CTRL, 0xb0},
@@ -49,7 +50,8 @@ static const unsigned char preinit_ov9650[][3] = {
 	{SENSOR, OV9650_OFON, 0x40}
 };
 
-static const unsigned char init_ov9650[][3] = {
+static const unsigned char init_ov9650[][3] =
+{
 	/* [INITCAM] */
 	{BRIDGE, M5602_XB_MCU_CLK_DIV, 0x02},
 	{BRIDGE, M5602_XB_MCU_CLK_CTRL, 0xb0},
@@ -79,8 +81,10 @@ static const unsigned char init_ov9650[][3] = {
 	{SENSOR, OV9650_OFON, 0x40},
 
 	/* Set fast AGC/AEC algorithm with unlimited step size */
-	{SENSOR, OV9650_COM8, OV9650_FAST_AGC_AEC |
-			      OV9650_AEC_UNLIM_STEP_SIZE},
+	{
+		SENSOR, OV9650_COM8, OV9650_FAST_AGC_AEC |
+		OV9650_AEC_UNLIM_STEP_SIZE
+	},
 
 	{SENSOR, OV9650_CHLF, 0x10},
 	{SENSOR, OV9650_ARBLM, 0xbf},
@@ -153,9 +157,11 @@ static const unsigned char init_ov9650[][3] = {
 	{SENSOR, OV9650_HV, 0x40},
 
 	/* Enable denoise, and white-pixel erase */
-	{SENSOR, OV9650_COM22, OV9650_DENOISE_ENABLE |
-		 OV9650_WHITE_PIXEL_ENABLE |
-		 OV9650_WHITE_PIXEL_OPTION},
+	{
+		SENSOR, OV9650_COM22, OV9650_DENOISE_ENABLE |
+		OV9650_WHITE_PIXEL_ENABLE |
+		OV9650_WHITE_PIXEL_OPTION
+	},
 
 	/* Enable VARIOPIXEL */
 	{SENSOR, OV9650_COM3, OV9650_VARIOPIXEL},
@@ -165,7 +171,8 @@ static const unsigned char init_ov9650[][3] = {
 	{SENSOR, OV9650_COM2, OV9650_SOFT_SLEEP | OV9650_OUTPUT_DRIVE_2X},
 };
 
-static const unsigned char res_init_ov9650[][3] = {
+static const unsigned char res_init_ov9650[][3] =
+{
 	{SENSOR, OV9650_COM2, OV9650_OUTPUT_DRIVE_2X},
 
 	{BRIDGE, M5602_XB_LINE_OF_FRAME_H, 0x82},
@@ -178,8 +185,9 @@ static const unsigned char res_init_ov9650[][3] = {
 /* Vertically and horizontally flips the image if matched, needed for machines
    where the sensor is mounted upside down */
 static
-    const
-	struct dmi_system_id ov9650_flip_dmi_table[] = {
+const
+struct dmi_system_id ov9650_flip_dmi_table[] =
+{
 	{
 		.ident = "ASUS A6Ja",
 		.matches = {
@@ -247,14 +255,15 @@ static
 	{}
 };
 
-static struct v4l2_pix_format ov9650_modes[] = {
+static struct v4l2_pix_format ov9650_modes[] =
+{
 	{
 		176,
 		144,
 		V4L2_PIX_FMT_SBGGR8,
 		V4L2_FIELD_NONE,
 		.sizeimage =
-			176 * 144,
+		176 * 144,
 		.bytesperline = 176,
 		.colorspace = V4L2_COLORSPACE_SRGB,
 		.priv = 9
@@ -264,7 +273,7 @@ static struct v4l2_pix_format ov9650_modes[] = {
 		V4L2_PIX_FMT_SBGGR8,
 		V4L2_FIELD_NONE,
 		.sizeimage =
-			320 * 240,
+		320 * 240,
 		.bytesperline = 320,
 		.colorspace = V4L2_COLORSPACE_SRGB,
 		.priv = 8
@@ -274,7 +283,7 @@ static struct v4l2_pix_format ov9650_modes[] = {
 		V4L2_PIX_FMT_SBGGR8,
 		V4L2_FIELD_NONE,
 		.sizeimage =
-			352 * 288,
+		352 * 288,
 		.bytesperline = 352,
 		.colorspace = V4L2_COLORSPACE_SRGB,
 		.priv = 9
@@ -284,14 +293,15 @@ static struct v4l2_pix_format ov9650_modes[] = {
 		V4L2_PIX_FMT_SBGGR8,
 		V4L2_FIELD_NONE,
 		.sizeimage =
-			640 * 480,
+		640 * 480,
 		.bytesperline = 640,
 		.colorspace = V4L2_COLORSPACE_SRGB,
 		.priv = 9
 	}
 };
 
-static const struct v4l2_ctrl_ops ov9650_ctrl_ops = {
+static const struct v4l2_ctrl_ops ov9650_ctrl_ops =
+{
 	.s_ctrl = ov9650_s_ctrl,
 };
 
@@ -301,11 +311,14 @@ int ov9650_probe(struct sd *sd)
 	u8 prod_id = 0, ver_id = 0, i;
 	struct gspca_dev *gspca_dev = (struct gspca_dev *)sd;
 
-	if (force_sensor) {
-		if (force_sensor == OV9650_SENSOR) {
+	if (force_sensor)
+	{
+		if (force_sensor == OV9650_SENSOR)
+		{
 			pr_info("Forcing an %s sensor\n", ov9650.name);
 			goto sensor_found;
 		}
+
 		/* If we want to force another sensor,
 		   don't try to probe this one */
 		return -ENODEV;
@@ -314,29 +327,39 @@ int ov9650_probe(struct sd *sd)
 	PDEBUG(D_PROBE, "Probing for an ov9650 sensor");
 
 	/* Run the pre-init before probing the sensor */
-	for (i = 0; i < ARRAY_SIZE(preinit_ov9650) && !err; i++) {
+	for (i = 0; i < ARRAY_SIZE(preinit_ov9650) && !err; i++)
+	{
 		u8 data = preinit_ov9650[i][2];
+
 		if (preinit_ov9650[i][0] == SENSOR)
 			err = m5602_write_sensor(sd,
-				preinit_ov9650[i][1], &data, 1);
+									 preinit_ov9650[i][1], &data, 1);
 		else
 			err = m5602_write_bridge(sd,
-				preinit_ov9650[i][1], data);
+									 preinit_ov9650[i][1], data);
 	}
 
 	if (err < 0)
+	{
 		return err;
+	}
 
 	if (m5602_read_sensor(sd, OV9650_PID, &prod_id, 1))
+	{
 		return -ENODEV;
+	}
 
 	if (m5602_read_sensor(sd, OV9650_VER, &ver_id, 1))
+	{
 		return -ENODEV;
+	}
 
-	if ((prod_id == 0x96) && (ver_id == 0x52)) {
+	if ((prod_id == 0x96) && (ver_id == 0x52))
+	{
 		pr_info("Detected an ov9650 sensor\n");
 		goto sensor_found;
 	}
+
 	return -ENODEV;
 
 sensor_found:
@@ -352,15 +375,21 @@ int ov9650_init(struct sd *sd)
 	u8 data;
 
 	if (dump_sensor)
+	{
 		ov9650_dump_registers(sd);
+	}
 
-	for (i = 0; i < ARRAY_SIZE(init_ov9650) && !err; i++) {
+	for (i = 0; i < ARRAY_SIZE(init_ov9650) && !err; i++)
+	{
 		data = init_ov9650[i][2];
+
 		if (init_ov9650[i][0] == SENSOR)
 			err = m5602_write_sensor(sd, init_ov9650[i][1],
-						  &data, 1);
+									 &data, 1);
 		else
+		{
 			err = m5602_write_bridge(sd, init_ov9650[i][1], data);
+		}
 	}
 
 	return 0;
@@ -374,31 +403,32 @@ int ov9650_init_controls(struct sd *sd)
 	v4l2_ctrl_handler_init(hdl, 9);
 
 	sd->auto_white_bal = v4l2_ctrl_new_std(hdl, &ov9650_ctrl_ops,
-					       V4L2_CID_AUTO_WHITE_BALANCE,
-					       0, 1, 1, 1);
+										   V4L2_CID_AUTO_WHITE_BALANCE,
+										   0, 1, 1, 1);
 	sd->red_bal = v4l2_ctrl_new_std(hdl, &ov9650_ctrl_ops,
-					V4L2_CID_RED_BALANCE, 0, 255, 1,
-					RED_GAIN_DEFAULT);
+									V4L2_CID_RED_BALANCE, 0, 255, 1,
+									RED_GAIN_DEFAULT);
 	sd->blue_bal = v4l2_ctrl_new_std(hdl, &ov9650_ctrl_ops,
-					V4L2_CID_BLUE_BALANCE, 0, 255, 1,
-					BLUE_GAIN_DEFAULT);
+									 V4L2_CID_BLUE_BALANCE, 0, 255, 1,
+									 BLUE_GAIN_DEFAULT);
 
 	sd->autoexpo = v4l2_ctrl_new_std_menu(hdl, &ov9650_ctrl_ops,
-			  V4L2_CID_EXPOSURE_AUTO, 1, 0, V4L2_EXPOSURE_AUTO);
+										  V4L2_CID_EXPOSURE_AUTO, 1, 0, V4L2_EXPOSURE_AUTO);
 	sd->expo = v4l2_ctrl_new_std(hdl, &ov9650_ctrl_ops, V4L2_CID_EXPOSURE,
-			  0, 0x1ff, 4, EXPOSURE_DEFAULT);
+								 0, 0x1ff, 4, EXPOSURE_DEFAULT);
 
 	sd->autogain = v4l2_ctrl_new_std(hdl, &ov9650_ctrl_ops,
-					 V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
+									 V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
 	sd->gain = v4l2_ctrl_new_std(hdl, &ov9650_ctrl_ops, V4L2_CID_GAIN, 0,
-				     0x3ff, 1, GAIN_DEFAULT);
+								 0x3ff, 1, GAIN_DEFAULT);
 
 	sd->hflip = v4l2_ctrl_new_std(hdl, &ov9650_ctrl_ops, V4L2_CID_HFLIP,
-				      0, 1, 1, 0);
+								  0, 1, 1, 0);
 	sd->vflip = v4l2_ctrl_new_std(hdl, &ov9650_ctrl_ops, V4L2_CID_VFLIP,
-				      0, 1, 1, 0);
+								  0, 1, 1, 0);
 
-	if (hdl->error) {
+	if (hdl->error)
+	{
 		pr_err("Could not initialize controls\n");
 		return hdl->error;
 	}
@@ -424,118 +454,170 @@ int ov9650_start(struct sd *sd)
 	struct gspca_dev *gspca_dev = (struct gspca_dev *)sd;
 
 	if ((!dmi_check_system(ov9650_flip_dmi_table) &&
-		sd->vflip->val) ||
+		 sd->vflip->val) ||
 		(dmi_check_system(ov9650_flip_dmi_table) &&
-		!sd->vflip->val))
+		 !sd->vflip->val))
+	{
 		ver_offs--;
+	}
 
 	if (width <= 320)
+	{
 		hor_offs /= 2;
+	}
 
 	/* Synthesize the vsync/hsync setup */
-	for (i = 0; i < ARRAY_SIZE(res_init_ov9650) && !err; i++) {
+	for (i = 0; i < ARRAY_SIZE(res_init_ov9650) && !err; i++)
+	{
 		if (res_init_ov9650[i][0] == BRIDGE)
 			err = m5602_write_bridge(sd, res_init_ov9650[i][1],
-				res_init_ov9650[i][2]);
-		else if (res_init_ov9650[i][0] == SENSOR) {
+									 res_init_ov9650[i][2]);
+		else if (res_init_ov9650[i][0] == SENSOR)
+		{
 			data = res_init_ov9650[i][2];
 			err = m5602_write_sensor(sd,
-				res_init_ov9650[i][1], &data, 1);
+									 res_init_ov9650[i][1], &data, 1);
 		}
 	}
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = m5602_write_bridge(sd, M5602_XB_VSYNC_PARA,
-				 ((ver_offs >> 8) & 0xff));
+							 ((ver_offs >> 8) & 0xff));
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = m5602_write_bridge(sd, M5602_XB_VSYNC_PARA, (ver_offs & 0xff));
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = m5602_write_bridge(sd, M5602_XB_VSYNC_PARA, 0);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = m5602_write_bridge(sd, M5602_XB_VSYNC_PARA, (height >> 8) & 0xff);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = m5602_write_bridge(sd, M5602_XB_VSYNC_PARA, (height & 0xff));
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	for (i = 0; i < 2 && !err; i++)
+	{
 		err = m5602_write_bridge(sd, M5602_XB_VSYNC_PARA, 0);
+	}
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = m5602_write_bridge(sd, M5602_XB_SIG_INI, 0);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = m5602_write_bridge(sd, M5602_XB_SIG_INI, 2);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = m5602_write_bridge(sd, M5602_XB_HSYNC_PARA,
-				 (hor_offs >> 8) & 0xff);
+							 (hor_offs >> 8) & 0xff);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = m5602_write_bridge(sd, M5602_XB_HSYNC_PARA, hor_offs & 0xff);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = m5602_write_bridge(sd, M5602_XB_HSYNC_PARA,
-				 ((width + hor_offs) >> 8) & 0xff);
+							 ((width + hor_offs) >> 8) & 0xff);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = m5602_write_bridge(sd, M5602_XB_HSYNC_PARA,
-				 ((width + hor_offs) & 0xff));
+							 ((width + hor_offs) & 0xff));
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	err = m5602_write_bridge(sd, M5602_XB_SIG_INI, 0);
+
 	if (err < 0)
+	{
 		return err;
-
-	switch (width) {
-	case 640:
-		PDEBUG(D_CONF, "Configuring camera for VGA mode");
-
-		data = OV9650_VGA_SELECT | OV9650_RGB_SELECT |
-		       OV9650_RAW_RGB_SELECT;
-		err = m5602_write_sensor(sd, OV9650_COM7, &data, 1);
-		break;
-
-	case 352:
-		PDEBUG(D_CONF, "Configuring camera for CIF mode");
-
-		data = OV9650_CIF_SELECT | OV9650_RGB_SELECT |
-				OV9650_RAW_RGB_SELECT;
-		err = m5602_write_sensor(sd, OV9650_COM7, &data, 1);
-		break;
-
-	case 320:
-		PDEBUG(D_CONF, "Configuring camera for QVGA mode");
-
-		data = OV9650_QVGA_SELECT | OV9650_RGB_SELECT |
-				OV9650_RAW_RGB_SELECT;
-		err = m5602_write_sensor(sd, OV9650_COM7, &data, 1);
-		break;
-
-	case 176:
-		PDEBUG(D_CONF, "Configuring camera for QCIF mode");
-
-		data = OV9650_QCIF_SELECT | OV9650_RGB_SELECT |
-			OV9650_RAW_RGB_SELECT;
-		err = m5602_write_sensor(sd, OV9650_COM7, &data, 1);
-		break;
 	}
+
+	switch (width)
+	{
+		case 640:
+			PDEBUG(D_CONF, "Configuring camera for VGA mode");
+
+			data = OV9650_VGA_SELECT | OV9650_RGB_SELECT |
+				   OV9650_RAW_RGB_SELECT;
+			err = m5602_write_sensor(sd, OV9650_COM7, &data, 1);
+			break;
+
+		case 352:
+			PDEBUG(D_CONF, "Configuring camera for CIF mode");
+
+			data = OV9650_CIF_SELECT | OV9650_RGB_SELECT |
+				   OV9650_RAW_RGB_SELECT;
+			err = m5602_write_sensor(sd, OV9650_COM7, &data, 1);
+			break;
+
+		case 320:
+			PDEBUG(D_CONF, "Configuring camera for QVGA mode");
+
+			data = OV9650_QVGA_SELECT | OV9650_RGB_SELECT |
+				   OV9650_RAW_RGB_SELECT;
+			err = m5602_write_sensor(sd, OV9650_COM7, &data, 1);
+			break;
+
+		case 176:
+			PDEBUG(D_CONF, "Configuring camera for QCIF mode");
+
+			data = OV9650_QCIF_SELECT | OV9650_RGB_SELECT |
+				   OV9650_RAW_RGB_SELECT;
+			err = m5602_write_sensor(sd, OV9650_COM7, &data, 1);
+			break;
+	}
+
 	return err;
 }
 
@@ -563,16 +645,22 @@ static int ov9650_set_exposure(struct gspca_dev *gspca_dev, __s32 val)
 	/* The 6 MSBs */
 	i2c_data = (val >> 10) & 0x3f;
 	err = m5602_write_sensor(sd, OV9650_AECHM,
-				  &i2c_data, 1);
+							 &i2c_data, 1);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* The 8 middle bits */
 	i2c_data = (val >> 2) & 0xff;
 	err = m5602_write_sensor(sd, OV9650_AECH,
-				  &i2c_data, 1);
+							 &i2c_data, 1);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* The 2 LSBs */
 	i2c_data = val & 0x03;
@@ -592,15 +680,21 @@ static int ov9650_set_gain(struct gspca_dev *gspca_dev, __s32 val)
 	/* Read the OV9650_VREF register first to avoid
 	   corrupting the VREF high and low bits */
 	err = m5602_read_sensor(sd, OV9650_VREF, &i2c_data, 1);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* Mask away all uninteresting bits */
 	i2c_data = ((val & 0x0300) >> 2) |
-			(i2c_data & 0x3f);
+			   (i2c_data & 0x3f);
 	err = m5602_write_sensor(sd, OV9650_VREF, &i2c_data, 1);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* The 8 LSBs */
 	i2c_data = val & 0xff;
@@ -645,22 +739,29 @@ static int ov9650_set_hvflip(struct gspca_dev *gspca_dev)
 	PDEBUG(D_CONF, "Set hvflip to %d %d", hflip, vflip);
 
 	if (dmi_check_system(ov9650_flip_dmi_table))
+	{
 		vflip = !vflip;
+	}
 
 	i2c_data = (hflip << 5) | (vflip << 4);
 	err = m5602_write_sensor(sd, OV9650_MVFP, &i2c_data, 1);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	/* When vflip is toggled we need to readjust the bridge hsync/vsync */
 	if (gspca_dev->streaming)
+	{
 		err = ov9650_start(sd);
+	}
 
 	return err;
 }
 
 static int ov9650_set_auto_exposure(struct gspca_dev *gspca_dev,
-				    __s32 val)
+									__s32 val)
 {
 	int err;
 	u8 i2c_data;
@@ -669,8 +770,11 @@ static int ov9650_set_auto_exposure(struct gspca_dev *gspca_dev,
 	PDEBUG(D_CONF, "Set auto exposure control to %d", val);
 
 	err = m5602_read_sensor(sd, OV9650_COM8, &i2c_data, 1);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	val = (val == V4L2_EXPOSURE_AUTO);
 	i2c_data = ((i2c_data & 0xfe) | ((val & 0x01) << 0));
@@ -679,7 +783,7 @@ static int ov9650_set_auto_exposure(struct gspca_dev *gspca_dev,
 }
 
 static int ov9650_set_auto_white_balance(struct gspca_dev *gspca_dev,
-					 __s32 val)
+		__s32 val)
 {
 	int err;
 	u8 i2c_data;
@@ -688,8 +792,11 @@ static int ov9650_set_auto_white_balance(struct gspca_dev *gspca_dev,
 	PDEBUG(D_CONF, "Set auto white balance to %d", val);
 
 	err = m5602_read_sensor(sd, OV9650_COM8, &i2c_data, 1);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	i2c_data = ((i2c_data & 0xfd) | ((val & 0x01) << 1));
 	err = m5602_write_sensor(sd, OV9650_COM8, &i2c_data, 1);
@@ -706,8 +813,11 @@ static int ov9650_set_auto_gain(struct gspca_dev *gspca_dev, __s32 val)
 	PDEBUG(D_CONF, "Set auto gain control to %d", val);
 
 	err = m5602_read_sensor(sd, OV9650_COM8, &i2c_data, 1);
+
 	if (err < 0)
+	{
 		return err;
+	}
 
 	i2c_data = ((i2c_data & 0xfb) | ((val & 0x01) << 2));
 
@@ -722,35 +832,58 @@ static int ov9650_s_ctrl(struct v4l2_ctrl *ctrl)
 	int err;
 
 	if (!gspca_dev->streaming)
+	{
 		return 0;
+	}
 
-	switch (ctrl->id) {
-	case V4L2_CID_AUTO_WHITE_BALANCE:
-		err = ov9650_set_auto_white_balance(gspca_dev, ctrl->val);
-		if (err || ctrl->val)
-			return err;
-		err = ov9650_set_red_balance(gspca_dev, sd->red_bal->val);
-		if (err)
-			return err;
-		err = ov9650_set_blue_balance(gspca_dev, sd->blue_bal->val);
-		break;
-	case V4L2_CID_EXPOSURE_AUTO:
-		err = ov9650_set_auto_exposure(gspca_dev, ctrl->val);
-		if (err || ctrl->val == V4L2_EXPOSURE_AUTO)
-			return err;
-		err = ov9650_set_exposure(gspca_dev, sd->expo->val);
-		break;
-	case V4L2_CID_AUTOGAIN:
-		err = ov9650_set_auto_gain(gspca_dev, ctrl->val);
-		if (err || ctrl->val)
-			return err;
-		err = ov9650_set_gain(gspca_dev, sd->gain->val);
-		break;
-	case V4L2_CID_HFLIP:
-		err = ov9650_set_hvflip(gspca_dev);
-		break;
-	default:
-		return -EINVAL;
+	switch (ctrl->id)
+	{
+		case V4L2_CID_AUTO_WHITE_BALANCE:
+			err = ov9650_set_auto_white_balance(gspca_dev, ctrl->val);
+
+			if (err || ctrl->val)
+			{
+				return err;
+			}
+
+			err = ov9650_set_red_balance(gspca_dev, sd->red_bal->val);
+
+			if (err)
+			{
+				return err;
+			}
+
+			err = ov9650_set_blue_balance(gspca_dev, sd->blue_bal->val);
+			break;
+
+		case V4L2_CID_EXPOSURE_AUTO:
+			err = ov9650_set_auto_exposure(gspca_dev, ctrl->val);
+
+			if (err || ctrl->val == V4L2_EXPOSURE_AUTO)
+			{
+				return err;
+			}
+
+			err = ov9650_set_exposure(gspca_dev, sd->expo->val);
+			break;
+
+		case V4L2_CID_AUTOGAIN:
+			err = ov9650_set_auto_gain(gspca_dev, ctrl->val);
+
+			if (err || ctrl->val)
+			{
+				return err;
+			}
+
+			err = ov9650_set_gain(gspca_dev, sd->gain->val);
+			break;
+
+		case V4L2_CID_HFLIP:
+			err = ov9650_set_hvflip(gspca_dev);
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	return err;
@@ -760,7 +893,9 @@ static void ov9650_dump_registers(struct sd *sd)
 {
 	int address;
 	pr_info("Dumping the ov9650 register state\n");
-	for (address = 0; address < 0xa9; address++) {
+
+	for (address = 0; address < 0xa9; address++)
+	{
 		u8 value;
 		m5602_read_sensor(sd, address, &value, 1);
 		pr_info("register 0x%x contains 0x%x\n", address, value);
@@ -769,7 +904,9 @@ static void ov9650_dump_registers(struct sd *sd)
 	pr_info("ov9650 register state dump complete\n");
 
 	pr_info("Probing for which registers that are read/write\n");
-	for (address = 0; address < 0xff; address++) {
+
+	for (address = 0; address < 0xff; address++)
+	{
 		u8 old_value, ctrl_value;
 		u8 test_value[2] = {0xff, 0xff};
 
@@ -778,9 +915,13 @@ static void ov9650_dump_registers(struct sd *sd)
 		m5602_read_sensor(sd, address, &ctrl_value, 1);
 
 		if (ctrl_value == test_value[0])
+		{
 			pr_info("register 0x%x is writeable\n", address);
+		}
 		else
+		{
 			pr_info("register 0x%x is read only\n", address);
+		}
 
 		/* Restore original value */
 		m5602_write_sensor(sd, address, &old_value, 1);

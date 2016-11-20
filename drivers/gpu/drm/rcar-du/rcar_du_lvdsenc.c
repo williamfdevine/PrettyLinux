@@ -22,7 +22,8 @@
 #include "rcar_du_lvdsenc.h"
 #include "rcar_lvds_regs.h"
 
-struct rcar_du_lvdsenc {
+struct rcar_du_lvdsenc
+{
 	struct rcar_du_device *dev;
 
 	unsigned int index;
@@ -39,7 +40,7 @@ static void rcar_lvds_write(struct rcar_du_lvdsenc *lvds, u32 reg, u32 data)
 }
 
 static void rcar_du_lvdsenc_start_gen2(struct rcar_du_lvdsenc *lvds,
-				       struct rcar_du_crtc *rcrtc)
+									   struct rcar_du_crtc *rcrtc)
 {
 	const struct drm_display_mode *mode = &rcrtc->crtc.mode;
 	unsigned int freq = mode->clock;
@@ -48,13 +49,21 @@ static void rcar_du_lvdsenc_start_gen2(struct rcar_du_lvdsenc *lvds,
 
 	/* PLL clock configuration */
 	if (freq < 39000)
+	{
 		pllcr = LVDPLLCR_CEEN | LVDPLLCR_COSEL | LVDPLLCR_PLLDLYCNT_38M;
+	}
 	else if (freq < 61000)
+	{
 		pllcr = LVDPLLCR_CEEN | LVDPLLCR_COSEL | LVDPLLCR_PLLDLYCNT_60M;
+	}
 	else if (freq < 121000)
+	{
 		pllcr = LVDPLLCR_CEEN | LVDPLLCR_COSEL | LVDPLLCR_PLLDLYCNT_121M;
+	}
 	else
+	{
 		pllcr = LVDPLLCR_PLLDLYCNT_150M;
+	}
 
 	rcar_lvds_write(lvds, LVDPLLCR, pllcr);
 
@@ -62,15 +71,19 @@ static void rcar_du_lvdsenc_start_gen2(struct rcar_du_lvdsenc *lvds,
 	 * bias circuitry on.
 	 */
 	lvdcr0 = LVDCR0_BEN | LVDCR0_LVEN;
+
 	if (rcrtc->index == 2)
+	{
 		lvdcr0 |= LVDCR0_DUSEL;
+	}
+
 	rcar_lvds_write(lvds, LVDCR0, lvdcr0);
 
 	/* Turn all the channels on. */
 	rcar_lvds_write(lvds, LVDCR1,
-			LVDCR1_CHSTBY_GEN2(3) | LVDCR1_CHSTBY_GEN2(2) |
-			LVDCR1_CHSTBY_GEN2(1) | LVDCR1_CHSTBY_GEN2(0) |
-			LVDCR1_CLKSTBY_GEN2);
+					LVDCR1_CHSTBY_GEN2(3) | LVDCR1_CHSTBY_GEN2(2) |
+					LVDCR1_CHSTBY_GEN2(1) | LVDCR1_CHSTBY_GEN2(0) |
+					LVDCR1_CLKSTBY_GEN2);
 
 	/* Turn the PLL on, wait for the startup delay, and turn the output
 	 * on.
@@ -85,7 +98,7 @@ static void rcar_du_lvdsenc_start_gen2(struct rcar_du_lvdsenc *lvds,
 }
 
 static void rcar_du_lvdsenc_start_gen3(struct rcar_du_lvdsenc *lvds,
-				       struct rcar_du_crtc *rcrtc)
+									   struct rcar_du_crtc *rcrtc)
 {
 	const struct drm_display_mode *mode = &rcrtc->crtc.mode;
 	unsigned int freq = mode->clock;
@@ -94,13 +107,21 @@ static void rcar_du_lvdsenc_start_gen3(struct rcar_du_lvdsenc *lvds,
 
 	/* PLL clock configuration */
 	if (freq < 42000)
+	{
 		pllcr = LVDPLLCR_PLLDIVCNT_42M;
+	}
 	else if (freq < 85000)
+	{
 		pllcr = LVDPLLCR_PLLDIVCNT_85M;
+	}
 	else if (freq < 128000)
+	{
 		pllcr = LVDPLLCR_PLLDIVCNT_128M;
+	}
 	else
+	{
 		pllcr = LVDPLLCR_PLLDIVCNT_148M;
+	}
 
 	rcar_lvds_write(lvds, LVDPLLCR, pllcr);
 
@@ -120,23 +141,28 @@ static void rcar_du_lvdsenc_start_gen3(struct rcar_du_lvdsenc *lvds,
 
 	/* Turn all the channels on. */
 	rcar_lvds_write(lvds, LVDCR1,
-			LVDCR1_CHSTBY_GEN3(3) | LVDCR1_CHSTBY_GEN3(2) |
-			LVDCR1_CHSTBY_GEN3(1) | LVDCR1_CHSTBY_GEN3(0) |
-			LVDCR1_CLKSTBY_GEN3);
+					LVDCR1_CHSTBY_GEN3(3) | LVDCR1_CHSTBY_GEN3(2) |
+					LVDCR1_CHSTBY_GEN3(1) | LVDCR1_CHSTBY_GEN3(0) |
+					LVDCR1_CLKSTBY_GEN3);
 }
 
 static int rcar_du_lvdsenc_start(struct rcar_du_lvdsenc *lvds,
-				 struct rcar_du_crtc *rcrtc)
+								 struct rcar_du_crtc *rcrtc)
 {
 	u32 lvdhcr;
 	int ret;
 
 	if (lvds->enabled)
+	{
 		return 0;
+	}
 
 	ret = clk_prepare_enable(lvds->clock);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* Hardcode the channels and control signals routing for now.
 	 *
@@ -146,23 +172,27 @@ static int rcar_du_lvdsenc_start(struct rcar_du_lvdsenc *lvds,
 	 * 0     -> CTRL3
 	 */
 	rcar_lvds_write(lvds, LVDCTRCR, LVDCTRCR_CTR3SEL_ZERO |
-			LVDCTRCR_CTR2SEL_DISP | LVDCTRCR_CTR1SEL_VSYNC |
-			LVDCTRCR_CTR0SEL_HSYNC);
+					LVDCTRCR_CTR2SEL_DISP | LVDCTRCR_CTR1SEL_VSYNC |
+					LVDCTRCR_CTR0SEL_HSYNC);
 
 	if (rcar_du_needs(lvds->dev, RCAR_DU_QUIRK_LVDS_LANES))
 		lvdhcr = LVDCHCR_CHSEL_CH(0, 0) | LVDCHCR_CHSEL_CH(1, 3)
-		       | LVDCHCR_CHSEL_CH(2, 2) | LVDCHCR_CHSEL_CH(3, 1);
+				 | LVDCHCR_CHSEL_CH(2, 2) | LVDCHCR_CHSEL_CH(3, 1);
 	else
 		lvdhcr = LVDCHCR_CHSEL_CH(0, 0) | LVDCHCR_CHSEL_CH(1, 1)
-		       | LVDCHCR_CHSEL_CH(2, 2) | LVDCHCR_CHSEL_CH(3, 3);
+				 | LVDCHCR_CHSEL_CH(2, 2) | LVDCHCR_CHSEL_CH(3, 3);
 
 	rcar_lvds_write(lvds, LVDCHCR, lvdhcr);
 
 	/* Perform generation-specific initialization. */
 	if (lvds->dev->info->gen < 3)
+	{
 		rcar_du_lvdsenc_start_gen2(lvds, rcrtc);
+	}
 	else
+	{
 		rcar_du_lvdsenc_start_gen3(lvds, rcrtc);
+	}
 
 	lvds->enabled = true;
 
@@ -172,7 +202,9 @@ static int rcar_du_lvdsenc_start(struct rcar_du_lvdsenc *lvds,
 static void rcar_du_lvdsenc_stop(struct rcar_du_lvdsenc *lvds)
 {
 	if (!lvds->enabled)
+	{
 		return;
+	}
 
 	rcar_lvds_write(lvds, LVDCR0, 0);
 	rcar_lvds_write(lvds, LVDCR1, 0);
@@ -183,20 +215,26 @@ static void rcar_du_lvdsenc_stop(struct rcar_du_lvdsenc *lvds)
 }
 
 int rcar_du_lvdsenc_enable(struct rcar_du_lvdsenc *lvds, struct drm_crtc *crtc,
-			   bool enable)
+						   bool enable)
 {
-	if (!enable) {
+	if (!enable)
+	{
 		rcar_du_lvdsenc_stop(lvds);
 		return 0;
-	} else if (crtc) {
+	}
+	else if (crtc)
+	{
 		struct rcar_du_crtc *rcrtc = to_rcar_crtc(crtc);
 		return rcar_du_lvdsenc_start(lvds, rcrtc);
-	} else
+	}
+	else
+	{
 		return -EINVAL;
+	}
 }
 
 void rcar_du_lvdsenc_atomic_check(struct rcar_du_lvdsenc *lvds,
-				  struct drm_display_mode *mode)
+								  struct drm_display_mode *mode)
 {
 	struct rcar_du_device *rcdu = lvds->dev;
 
@@ -205,13 +243,17 @@ void rcar_du_lvdsenc_atomic_check(struct rcar_du_lvdsenc *lvds,
 	 * the clock accordingly.
 	 */
 	if (rcdu->info->gen < 3)
+	{
 		mode->clock = clamp(mode->clock, 30000, 150000);
+	}
 	else
+	{
 		mode->clock = clamp(mode->clock, 25175, 148500);
+	}
 }
 
 static int rcar_du_lvdsenc_get_resources(struct rcar_du_lvdsenc *lvds,
-					 struct platform_device *pdev)
+		struct platform_device *pdev)
 {
 	struct resource *mem;
 	char name[7];
@@ -220,11 +262,16 @@ static int rcar_du_lvdsenc_get_resources(struct rcar_du_lvdsenc *lvds,
 
 	mem = platform_get_resource_byname(pdev, IORESOURCE_MEM, name);
 	lvds->mmio = devm_ioremap_resource(&pdev->dev, mem);
+
 	if (IS_ERR(lvds->mmio))
+	{
 		return PTR_ERR(lvds->mmio);
+	}
 
 	lvds->clock = devm_clk_get(&pdev->dev, name);
-	if (IS_ERR(lvds->clock)) {
+
+	if (IS_ERR(lvds->clock))
+	{
 		dev_err(&pdev->dev, "failed to get clock for %s\n", name);
 		return PTR_ERR(lvds->clock);
 	}
@@ -239,9 +286,12 @@ int rcar_du_lvdsenc_init(struct rcar_du_device *rcdu)
 	unsigned int i;
 	int ret;
 
-	for (i = 0; i < rcdu->info->num_lvds; ++i) {
+	for (i = 0; i < rcdu->info->num_lvds; ++i)
+	{
 		lvds = devm_kzalloc(&pdev->dev, sizeof(*lvds), GFP_KERNEL);
-		if (lvds == NULL) {
+
+		if (lvds == NULL)
+		{
 			dev_err(&pdev->dev, "failed to allocate private data\n");
 			return -ENOMEM;
 		}
@@ -252,8 +302,11 @@ int rcar_du_lvdsenc_init(struct rcar_du_device *rcdu)
 		lvds->enabled = false;
 
 		ret = rcar_du_lvdsenc_get_resources(lvds, pdev);
+
 		if (ret < 0)
+		{
 			return ret;
+		}
 
 		rcdu->lvds[i] = lvds;
 	}

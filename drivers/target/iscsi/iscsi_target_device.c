@@ -36,7 +36,9 @@ void iscsit_determine_maxcmdsn(struct iscsi_session *sess)
 	 * about the HBA's queue depth here.
 	 */
 	if (sess->sess_ops->SessionType)
+	{
 		return;
+	}
 
 	se_nacl = sess->se_sess->se_node_acl;
 
@@ -55,7 +57,9 @@ void iscsit_increment_maxcmdsn(struct iscsi_cmd *cmd, struct iscsi_session *sess
 	u32 max_cmd_sn;
 
 	if (cmd->immediate_cmd || cmd->maxcmdsn_inc)
+	{
 		return;
+	}
 
 	cmd->maxcmdsn_inc = 1;
 

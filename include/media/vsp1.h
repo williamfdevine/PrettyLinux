@@ -21,9 +21,10 @@ struct device;
 int vsp1_du_init(struct device *dev);
 
 int vsp1_du_setup_lif(struct device *dev, unsigned int width,
-		      unsigned int height);
+					  unsigned int height);
 
-struct vsp1_du_atomic_config {
+struct vsp1_du_atomic_config
+{
 	u32 pixelformat;
 	unsigned int pitch;
 	dma_addr_t mem[3];
@@ -35,7 +36,7 @@ struct vsp1_du_atomic_config {
 
 void vsp1_du_atomic_begin(struct device *dev);
 int vsp1_du_atomic_update(struct device *dev, unsigned int rpf,
-			  const struct vsp1_du_atomic_config *cfg);
+						  const struct vsp1_du_atomic_config *cfg);
 void vsp1_du_atomic_flush(struct device *dev);
 
 #endif /* __MEDIA_VSP1_H__ */

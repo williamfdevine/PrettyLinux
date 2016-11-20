@@ -71,12 +71,12 @@
 #define R3964_MAX_RETRIES 5
 
 
-enum { R3964_IDLE, 
-	   R3964_TX_REQUEST, R3964_TRANSMITTING, 
+enum { R3964_IDLE,
+	   R3964_TX_REQUEST, R3964_TRANSMITTING,
 	   R3964_WAIT_ZVZ_BEFORE_TX_RETRY, R3964_WAIT_FOR_TX_ACK,
 	   R3964_WAIT_FOR_RX_BUF,
 	   R3964_RECEIVING, R3964_WAIT_FOR_BCC, R3964_WAIT_FOR_RX_REPEAT
-	   };
+	 };
 
 /*
  * All open file-handles are 'clients' and are stored in a linked list:
@@ -84,7 +84,8 @@ enum { R3964_IDLE,
 
 struct r3964_message;
 
-struct r3964_client_info {
+struct r3964_client_info
+{
 	spinlock_t     lock;
 	struct pid    *pid;
 	unsigned int   sig_flags;
@@ -102,26 +103,27 @@ struct r3964_client_info {
 struct r3964_block_header;
 
 /* internal version of client_message: */
-struct r3964_message {
-	  int     msg_id;
-	  int     arg;
-	  int     error_code;
-	  struct r3964_block_header *block;
-	  struct r3964_message *next;
+struct r3964_message
+{
+	int     msg_id;
+	int     arg;
+	int     error_code;
+	struct r3964_block_header *block;
+	struct r3964_message *next;
 };
 
 /*
  * Header of received block in rx_buf/tx_buf:
  */
 
-struct r3964_block_header 
+struct r3964_block_header
 {
 	unsigned int length;             /* length in chars without header */
-	unsigned char *data;             /* usually data is located 
+	unsigned char *data;             /* usually data is located
                                         immediately behind this struct */
 	unsigned int locks;              /* only used in rx_buffer */
-	  
-    struct r3964_block_header *next;
+
+	struct r3964_block_header *next;
 	struct r3964_client_info *owner;  /* =NULL in rx_buffer */
 };
 
@@ -145,7 +147,8 @@ struct r3964_block_header
 #define R3964_DEBUG 0x8000
 
 
-struct r3964_info {
+struct r3964_info
+{
 	spinlock_t     lock;
 	struct tty_struct *tty;
 	unsigned char priority;
@@ -157,10 +160,10 @@ struct r3964_info {
 	struct r3964_block_header *tx_first;
 	struct r3964_block_header *tx_last;
 	unsigned int tx_position;
-        unsigned int rx_position;
+	unsigned int rx_position;
 	unsigned char last_rx;
 	unsigned char bcc;
-        unsigned int  blocks_in_rx_queue;
+	unsigned int  blocks_in_rx_queue;
 
 	struct mutex read_lock;		/* serialize r3964_read */
 

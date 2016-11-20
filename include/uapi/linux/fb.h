@@ -17,7 +17,7 @@
 #define FBIOPUTCMAP		0x4605
 #define FBIOPAN_DISPLAY		0x4606
 #ifndef __KERNEL__
-#define FBIO_CURSOR            _IOWR('F', 0x08, struct fb_cursor)
+	#define FBIO_CURSOR            _IOWR('F', 0x08, struct fb_cursor)
 #endif
 /* 0x4607-0x460B are defined below */
 /* #define FBIOGET_MONITORSPEC	0x460C */
@@ -153,23 +153,24 @@
 
 #define FB_CAP_FOURCC		1	/* Device supports FOURCC-based formats */
 
-struct fb_fix_screeninfo {
+struct fb_fix_screeninfo
+{
 	char id[16];			/* identification string eg "TT Builtin" */
 	unsigned long smem_start;	/* Start of frame buffer mem */
-					/* (physical address) */
+	/* (physical address) */
 	__u32 smem_len;			/* Length of frame buffer mem */
 	__u32 type;			/* see FB_TYPE_*		*/
 	__u32 type_aux;			/* Interleave for interleaved Planes */
-	__u32 visual;			/* see FB_VISUAL_*		*/ 
+	__u32 visual;			/* see FB_VISUAL_*		*/
 	__u16 xpanstep;			/* zero if no hardware panning  */
 	__u16 ypanstep;			/* zero if no hardware panning  */
 	__u16 ywrapstep;		/* zero if no hardware ywrap    */
 	__u32 line_length;		/* length of a line in bytes    */
 	unsigned long mmio_start;	/* Start of Memory Mapped I/O   */
-					/* (physical address) */
+	/* (physical address) */
 	__u32 mmio_len;			/* Length of Memory Mapped I/O  */
 	__u32 accel;			/* Indicate to driver which	*/
-					/*  specific chip/card we have	*/
+	/*  specific chip/card we have	*/
 	__u16 capabilities;		/* see FB_CAP_*			*/
 	__u16 reserved[2];		/* Reserved for future compatibility */
 };
@@ -184,11 +185,12 @@ struct fb_fix_screeninfo {
  * of the pallette index in a pixel value. Length indicates the number
  * of available palette entries (i.e. # of entries = 1 << length).
  */
-struct fb_bitfield {
+struct fb_bitfield
+{
 	__u32 offset;			/* beginning of bitfield	*/
 	__u32 length;			/* length of bitfield		*/
-	__u32 msb_right;		/* != 0 : Most significant bit is */ 
-					/* right */ 
+	__u32 msb_right;		/* != 0 : Most significant bit is */
+	/* right */
 };
 
 #define FB_NONSTD_HAM		1	/* Hold-And-Modify (HAM)        */
@@ -198,7 +200,7 @@ struct fb_bitfield {
 #define FB_ACTIVATE_NXTOPEN	1	/* activate on next open	*/
 #define FB_ACTIVATE_TEST	2	/* don't set, round up impossible */
 #define FB_ACTIVATE_MASK       15
-					/* values			*/
+/* values			*/
 #define FB_ACTIVATE_VBL	       16	/* activate values on next vbl  */
 #define FB_CHANGE_CMAP_VBL     32	/* change colormap on vbl	*/
 #define FB_ACTIVATE_ALL	       64	/* change all VCs on this fb	*/
@@ -212,8 +214,8 @@ struct fb_bitfield {
 #define FB_SYNC_EXT		4	/* external sync		*/
 #define FB_SYNC_COMP_HIGH_ACT	8	/* composite sync high active   */
 #define FB_SYNC_BROADCAST	16	/* broadcast video timings      */
-					/* vtotal = 144d/288n/576i => PAL  */
-					/* vtotal = 121d/242n/484i => NTSC */
+/* vtotal = 144d/288n/576i => PAL  */
+/* vtotal = 121d/242n/484i => NTSC */
 #define FB_SYNC_ON_GREEN	32	/* sync on green */
 
 #define FB_VMODE_NONINTERLACED  0	/* non interlaced */
@@ -237,7 +239,8 @@ struct fb_bitfield {
 #define PICOS2KHZ(a) (1000000000UL/(a))
 #define KHZ2PICOS(a) (1000000000UL/(a))
 
-struct fb_var_screeninfo {
+struct fb_var_screeninfo
+{
 	__u32 xres;			/* visible resolution		*/
 	__u32 yres;
 	__u32 xres_virtual;		/* virtual resolution		*/
@@ -247,11 +250,11 @@ struct fb_var_screeninfo {
 
 	__u32 bits_per_pixel;		/* guess what			*/
 	__u32 grayscale;		/* 0 = color, 1 = grayscale,	*/
-					/* >1 = FOURCC			*/
+	/* >1 = FOURCC			*/
 	struct fb_bitfield red;		/* bitfield in fb mem if true color, */
 	struct fb_bitfield green;	/* else only length is significant */
 	struct fb_bitfield blue;
-	struct fb_bitfield transp;	/* transparency			*/	
+	struct fb_bitfield transp;	/* transparency			*/
 
 	__u32 nonstd;			/* != 0 Non standard pixel format */
 
@@ -277,7 +280,8 @@ struct fb_var_screeninfo {
 	__u32 reserved[4];		/* Reserved for future compatibility */
 };
 
-struct fb_cmap {
+struct fb_cmap
+{
 	__u32 start;			/* First entry	*/
 	__u32 len;			/* Number of entries */
 	__u16 *red;			/* Red values	*/
@@ -286,7 +290,8 @@ struct fb_cmap {
 	__u16 *transp;			/* transparency, can be NULL */
 };
 
-struct fb_con2fbmap {
+struct fb_con2fbmap
+{
 	__u32 console;
 	__u32 framebuffer;
 };
@@ -298,7 +303,8 @@ struct fb_con2fbmap {
 #define VESA_POWERDOWN          3
 
 
-enum {
+enum
+{
 	/* screen: unblanked, hsync: on,  vsync: on */
 	FB_BLANK_UNBLANK       = VESA_NO_BLANKING,
 
@@ -325,7 +331,8 @@ enum {
 #define FB_VBLANK_VSYNCING	0x080	/* currently in a vsync */
 #define FB_VBLANK_HAVE_VSYNC	0x100	/* verical syncs can be detected */
 
-struct fb_vblank {
+struct fb_vblank
+{
 	__u32 flags;			/* FB_VBLANK flags */
 	__u32 count;			/* counter of retraces since boot */
 	__u32 vcount;			/* current scanline position */
@@ -337,7 +344,8 @@ struct fb_vblank {
 #define ROP_COPY 0
 #define ROP_XOR  1
 
-struct fb_copyarea {
+struct fb_copyarea
+{
 	__u32 dx;
 	__u32 dy;
 	__u32 width;
@@ -346,7 +354,8 @@ struct fb_copyarea {
 	__u32 sy;
 };
 
-struct fb_fillrect {
+struct fb_fillrect
+{
 	__u32 dx;	/* screen-relative */
 	__u32 dy;
 	__u32 width;
@@ -355,7 +364,8 @@ struct fb_fillrect {
 	__u32 rop;
 };
 
-struct fb_image {
+struct fb_image
+{
 	__u32 dx;		/* Where to place image */
 	__u32 dy;
 	__u32 width;		/* Size of image */
@@ -379,11 +389,13 @@ struct fb_image {
 #define FB_CUR_SETSIZE	0x20
 #define FB_CUR_SETALL   0xFF
 
-struct fbcurpos {
+struct fbcurpos
+{
 	__u16 x, y;
 };
 
-struct fb_cursor {
+struct fb_cursor
+{
 	__u16 set;		/* what to set */
 	__u16 enable;		/* cursor on/off */
 	__u16 rop;		/* bitop operation */
@@ -393,9 +405,9 @@ struct fb_cursor {
 };
 
 #ifdef CONFIG_FB_BACKLIGHT
-/* Settings for the generic backlight code */
-#define FB_BACKLIGHT_LEVELS	128
-#define FB_BACKLIGHT_MAX	0xFF
+	/* Settings for the generic backlight code */
+	#define FB_BACKLIGHT_LEVELS	128
+	#define FB_BACKLIGHT_MAX	0xFF
 #endif
 
 

@@ -19,7 +19,8 @@
 #include <linux/sched_clock.h>
 #include <linux/slab.h>
 
-enum {
+enum
+{
 	CLPS711X_CLKSRC_CLOCKSOURCE,
 	CLPS711X_CLKSRC_CLOCKEVENT,
 };
@@ -36,16 +37,21 @@ static int __init _clps711x_clksrc_init(struct clk *clock, void __iomem *base)
 	unsigned long rate;
 
 	if (!base)
+	{
 		return -ENOMEM;
+	}
+
 	if (IS_ERR(clock))
+	{
 		return PTR_ERR(clock);
+	}
 
 	rate = clk_get_rate(clock);
 
 	tcd = base;
 
 	clocksource_mmio_init(tcd, "clps711x-clocksource", rate, 300, 16,
-			      clocksource_mmio_readw_down);
+						  clocksource_mmio_readw_down);
 
 	sched_clock_register(clps711x_sched_clock_read, 16, rate);
 
@@ -62,21 +68,32 @@ static irqreturn_t clps711x_timer_interrupt(int irq, void *dev_id)
 }
 
 static int __init _clps711x_clkevt_init(struct clk *clock, void __iomem *base,
-					unsigned int irq)
+										unsigned int irq)
 {
 	struct clock_event_device *clkevt;
 	unsigned long rate;
 
 	if (!irq)
+	{
 		return -EINVAL;
+	}
+
 	if (!base)
+	{
 		return -ENOMEM;
+	}
+
 	if (IS_ERR(clock))
+	{
 		return PTR_ERR(clock);
+	}
 
 	clkevt = kzalloc(sizeof(*clkevt), GFP_KERNEL);
+
 	if (!clkevt)
+	{
 		return -ENOMEM;
+	}
 
 	rate = clk_get_rate(clock);
 
@@ -90,11 +107,11 @@ static int __init _clps711x_clkevt_init(struct clk *clock, void __iomem *base,
 	clockevents_config_and_register(clkevt, HZ, 0, 0);
 
 	return request_irq(irq, clps711x_timer_interrupt, IRQF_TIMER,
-			   "clps711x-timer", clkevt);
+					   "clps711x-timer", clkevt);
 }
 
 void __init clps711x_clksrc_init(void __iomem *tc1_base, void __iomem *tc2_base,
-				 unsigned int irq)
+								 unsigned int irq)
 {
 	struct clk *tc1 = clk_get_sys("clps711x-timer.0", NULL);
 	struct clk *tc2 = clk_get_sys("clps711x-timer.1", NULL);
@@ -110,13 +127,16 @@ static int __init clps711x_timer_init(struct device_node *np)
 	struct clk *clock = of_clk_get(np, 0);
 	void __iomem *base = of_iomap(np, 0);
 
-	switch (of_alias_get_id(np, "timer")) {
-	case CLPS711X_CLKSRC_CLOCKSOURCE:
-		return _clps711x_clksrc_init(clock, base);
-	case CLPS711X_CLKSRC_CLOCKEVENT:
-		return _clps711x_clkevt_init(clock, base, irq);
-	default:
-		return -EINVAL;
+	switch (of_alias_get_id(np, "timer"))
+	{
+		case CLPS711X_CLKSRC_CLOCKSOURCE:
+			return _clps711x_clksrc_init(clock, base);
+
+		case CLPS711X_CLKSRC_CLOCKEVENT:
+			return _clps711x_clkevt_init(clock, base, irq);
+
+		default:
+			return -EINVAL;
 	}
 }
 CLOCKSOURCE_OF_DECLARE(clps711x, "cirrus,ep7209-timer", clps711x_timer_init);

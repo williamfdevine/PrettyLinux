@@ -24,40 +24,47 @@ static DEFINE_MUTEX(test_fw_mutex);
 static const struct firmware *test_firmware;
 
 static ssize_t test_fw_misc_read(struct file *f, char __user *buf,
-				 size_t size, loff_t *offset)
+								 size_t size, loff_t *offset)
 {
 	ssize_t rc = 0;
 
 	mutex_lock(&test_fw_mutex);
+
 	if (test_firmware)
 		rc = simple_read_from_buffer(buf, size, offset,
-					     test_firmware->data,
-					     test_firmware->size);
+									 test_firmware->data,
+									 test_firmware->size);
+
 	mutex_unlock(&test_fw_mutex);
 	return rc;
 }
 
-static const struct file_operations test_fw_fops = {
+static const struct file_operations test_fw_fops =
+{
 	.owner          = THIS_MODULE,
 	.read           = test_fw_misc_read,
 };
 
-static struct miscdevice test_fw_misc_device = {
+static struct miscdevice test_fw_misc_device =
+{
 	.minor          = MISC_DYNAMIC_MINOR,
 	.name           = "test_firmware",
 	.fops           = &test_fw_fops,
 };
 
 static ssize_t trigger_request_store(struct device *dev,
-				     struct device_attribute *attr,
-				     const char *buf, size_t count)
+									 struct device_attribute *attr,
+									 const char *buf, size_t count)
 {
 	int rc;
 	char *name;
 
 	name = kstrndup(buf, count, GFP_KERNEL);
+
 	if (!name)
+	{
 		return -ENOSPC;
+	}
 
 	pr_info("loading '%s'\n", name);
 
@@ -65,10 +72,13 @@ static ssize_t trigger_request_store(struct device *dev,
 	release_firmware(test_firmware);
 	test_firmware = NULL;
 	rc = request_firmware(&test_firmware, name, dev);
-	if (rc) {
+
+	if (rc)
+	{
 		pr_info("load of '%s' failed: %d\n", name, rc);
 		goto out;
 	}
+
 	pr_info("loaded: %zu\n", test_firmware->size);
 	rc = count;
 
@@ -90,15 +100,18 @@ static void trigger_async_request_cb(const struct firmware *fw, void *context)
 }
 
 static ssize_t trigger_async_request_store(struct device *dev,
-					   struct device_attribute *attr,
-					   const char *buf, size_t count)
+		struct device_attribute *attr,
+		const char *buf, size_t count)
 {
 	int rc;
 	char *name;
 
 	name = kstrndup(buf, count, GFP_KERNEL);
+
 	if (!name)
+	{
 		return -ENOSPC;
+	}
 
 	pr_info("loading '%s'\n", name);
 
@@ -106,21 +119,27 @@ static ssize_t trigger_async_request_store(struct device *dev,
 	release_firmware(test_firmware);
 	test_firmware = NULL;
 	rc = request_firmware_nowait(THIS_MODULE, 1, name, dev, GFP_KERNEL,
-				     NULL, trigger_async_request_cb);
-	if (rc) {
+								 NULL, trigger_async_request_cb);
+
+	if (rc)
+	{
 		pr_info("async load of '%s' failed: %d\n", name, rc);
 		kfree(name);
 		goto out;
 	}
+
 	/* Free 'name' ASAP, to test for race conditions */
 	kfree(name);
 
 	wait_for_completion(&async_fw_done);
 
-	if (test_firmware) {
+	if (test_firmware)
+	{
 		pr_info("loaded: %zu\n", test_firmware->size);
 		rc = count;
-	} else {
+	}
+	else
+	{
 		pr_err("failed to async load firmware\n");
 		rc = -ENODEV;
 	}
@@ -137,20 +156,27 @@ static int __init test_firmware_init(void)
 	int rc;
 
 	rc = misc_register(&test_fw_misc_device);
-	if (rc) {
+
+	if (rc)
+	{
 		pr_err("could not register misc device: %d\n", rc);
 		return rc;
 	}
+
 	rc = device_create_file(test_fw_misc_device.this_device,
-				&dev_attr_trigger_request);
-	if (rc) {
+							&dev_attr_trigger_request);
+
+	if (rc)
+	{
 		pr_err("could not create sysfs interface: %d\n", rc);
 		goto dereg;
 	}
 
 	rc = device_create_file(test_fw_misc_device.this_device,
-				&dev_attr_trigger_async_request);
-	if (rc) {
+							&dev_attr_trigger_async_request);
+
+	if (rc)
+	{
 		pr_err("could not create async sysfs interface: %d\n", rc);
 		goto remove_file;
 	}
@@ -161,7 +187,7 @@ static int __init test_firmware_init(void)
 
 remove_file:
 	device_remove_file(test_fw_misc_device.this_device,
-			   &dev_attr_trigger_async_request);
+					   &dev_attr_trigger_async_request);
 dereg:
 	misc_deregister(&test_fw_misc_device);
 	return rc;
@@ -173,9 +199,9 @@ static void __exit test_firmware_exit(void)
 {
 	release_firmware(test_firmware);
 	device_remove_file(test_fw_misc_device.this_device,
-			   &dev_attr_trigger_async_request);
+					   &dev_attr_trigger_async_request);
 	device_remove_file(test_fw_misc_device.this_device,
-			   &dev_attr_trigger_request);
+					   &dev_attr_trigger_request);
 	misc_deregister(&test_fw_misc_device);
 	pr_warn("removed interface\n");
 }

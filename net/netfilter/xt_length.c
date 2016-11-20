@@ -34,12 +34,13 @@ length_mt6(const struct sk_buff *skb, struct xt_action_param *par)
 {
 	const struct xt_length_info *info = par->matchinfo;
 	const u_int16_t pktlen = ntohs(ipv6_hdr(skb)->payload_len) +
-				 sizeof(struct ipv6hdr);
+							 sizeof(struct ipv6hdr);
 
 	return (pktlen >= info->min && pktlen <= info->max) ^ info->invert;
 }
 
-static struct xt_match length_mt_reg[] __read_mostly = {
+static struct xt_match length_mt_reg[] __read_mostly =
+{
 	{
 		.name		= "length",
 		.family		= NFPROTO_IPV4,

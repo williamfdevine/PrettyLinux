@@ -4,7 +4,8 @@
 #include <linux/regulator/machine.h>
 #include <linux/regulator/fixed.h>
 
-struct fixed_regulator_data {
+struct fixed_regulator_data
+{
 	struct fixed_voltage_config cfg;
 	struct regulator_init_data init_data;
 	struct platform_device pdev;
@@ -13,7 +14,7 @@ struct fixed_regulator_data {
 static void regulator_fixed_release(struct device *dev)
 {
 	struct fixed_regulator_data *data = container_of(dev,
-			struct fixed_regulator_data, pdev.dev);
+										struct fixed_regulator_data, pdev.dev);
 	kfree(data->cfg.supply_name);
 	kfree(data);
 }
@@ -27,16 +28,21 @@ static void regulator_fixed_release(struct device *dev)
  * @uv: voltage in microvolts
  */
 struct platform_device *regulator_register_always_on(int id, const char *name,
-	struct regulator_consumer_supply *supplies, int num_supplies, int uv)
+		struct regulator_consumer_supply *supplies, int num_supplies, int uv)
 {
 	struct fixed_regulator_data *data;
 
 	data = kzalloc(sizeof(*data), GFP_KERNEL);
+
 	if (!data)
+	{
 		return NULL;
+	}
 
 	data->cfg.supply_name = kstrdup(name, GFP_KERNEL);
-	if (!data->cfg.supply_name) {
+
+	if (!data->cfg.supply_name)
+	{
 		kfree(data);
 		return NULL;
 	}

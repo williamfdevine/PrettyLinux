@@ -6,21 +6,22 @@
 #ifndef __LINUX_USB_ISP116X_H
 #define __LINUX_USB_ISP116X_H
 
-struct isp116x_platform_data {
+struct isp116x_platform_data
+{
 	/* Enable internal resistors on downstream ports */
-	unsigned sel15Kres:1;
+	unsigned sel15Kres: 1;
 	/* On-chip overcurrent detection */
-	unsigned oc_enable:1;
+	unsigned oc_enable: 1;
 	/* INT output polarity */
-	unsigned int_act_high:1;
+	unsigned int_act_high: 1;
 	/* INT edge or level triggered */
-	unsigned int_edge_triggered:1;
+	unsigned int_edge_triggered: 1;
 	/* Enable wakeup by devices on usb bus (e.g. wakeup
 	   by attachment/detachment or by device activity
 	   such as moving a mouse). When chosen, this option
 	   prevents stopping internal clock, increasing
 	   thereby power consumption in suspended state. */
-	unsigned remote_wakeup_enable:1;
+	unsigned remote_wakeup_enable: 1;
 	/* Inter-io delay (ns). The chip is picky about access timings; it
 	   expects at least:
 	   150ns delay between consecutive accesses to DATA_REG,

@@ -22,13 +22,14 @@
 
 #define READ_PUBEK_RESULT_SIZE 314
 #define TPM_ORD_READPUBEK cpu_to_be32(124)
-static const struct tpm_input_header tpm_readpubek_header = {
+static const struct tpm_input_header tpm_readpubek_header =
+{
 	.tag = TPM_TAG_RQU_COMMAND,
 	.length = cpu_to_be32(30),
 	.ordinal = TPM_ORD_READPUBEK
 };
 static ssize_t pubek_show(struct device *dev, struct device_attribute *attr,
-			  char *buf)
+						  char *buf)
 {
 	u8 *data;
 	struct tpm_cmd_t tpm_cmd;
@@ -40,9 +41,12 @@ static ssize_t pubek_show(struct device *dev, struct device_attribute *attr,
 
 	tpm_cmd.header.in = tpm_readpubek_header;
 	err = tpm_transmit_cmd(chip, &tpm_cmd, READ_PUBEK_RESULT_SIZE, 0,
-			       "attempting to read the PUBEK");
+						   "attempting to read the PUBEK");
+
 	if (err)
+	{
 		goto out;
+	}
 
 	/*
 	   ignore header 10 bytes
@@ -56,28 +60,33 @@ static ssize_t pubek_show(struct device *dev, struct device_attribute *attr,
 	 */
 	data = tpm_cmd.params.readpubek_out_buffer;
 	str +=
-	    sprintf(str,
-		    "Algorithm: %02X %02X %02X %02X\n"
-		    "Encscheme: %02X %02X\n"
-		    "Sigscheme: %02X %02X\n"
-		    "Parameters: %02X %02X %02X %02X "
-		    "%02X %02X %02X %02X "
-		    "%02X %02X %02X %02X\n"
-		    "Modulus length: %d\n"
-		    "Modulus:\n",
-		    data[0], data[1], data[2], data[3],
-		    data[4], data[5],
-		    data[6], data[7],
-		    data[12], data[13], data[14], data[15],
-		    data[16], data[17], data[18], data[19],
-		    data[20], data[21], data[22], data[23],
-		    be32_to_cpu(*((__be32 *) (data + 24))));
+		sprintf(str,
+				"Algorithm: %02X %02X %02X %02X\n"
+				"Encscheme: %02X %02X\n"
+				"Sigscheme: %02X %02X\n"
+				"Parameters: %02X %02X %02X %02X "
+				"%02X %02X %02X %02X "
+				"%02X %02X %02X %02X\n"
+				"Modulus length: %d\n"
+				"Modulus:\n",
+				data[0], data[1], data[2], data[3],
+				data[4], data[5],
+				data[6], data[7],
+				data[12], data[13], data[14], data[15],
+				data[16], data[17], data[18], data[19],
+				data[20], data[21], data[22], data[23],
+				be32_to_cpu(*((__be32 *) (data + 24))));
 
-	for (i = 0; i < 256; i++) {
+	for (i = 0; i < 256; i++)
+	{
 		str += sprintf(str, "%02X ", data[i + 28]);
+
 		if ((i + 1) % 16 == 0)
+		{
 			str += sprintf(str, "\n");
+		}
 	}
+
 out:
 	rc = str - buf;
 	return rc;
@@ -85,7 +94,7 @@ out:
 static DEVICE_ATTR_RO(pubek);
 
 static ssize_t pcrs_show(struct device *dev, struct device_attribute *attr,
-			 char *buf)
+						 char *buf)
 {
 	cap_t cap;
 	u8 digest[TPM_DIGEST_SIZE];
@@ -95,34 +104,51 @@ static ssize_t pcrs_show(struct device *dev, struct device_attribute *attr,
 	struct tpm_chip *chip = to_tpm_chip(dev);
 
 	rc = tpm_getcap(chip, TPM_CAP_PROP_PCR, &cap,
-			"attempting to determine the number of PCRS");
+					"attempting to determine the number of PCRS");
+
 	if (rc)
+	{
 		return 0;
+	}
 
 	num_pcrs = be32_to_cpu(cap.num_pcrs);
-	for (i = 0; i < num_pcrs; i++) {
+
+	for (i = 0; i < num_pcrs; i++)
+	{
 		rc = tpm_pcr_read_dev(chip, i, digest);
+
 		if (rc)
+		{
 			break;
+		}
+
 		str += sprintf(str, "PCR-%02d: ", i);
+
 		for (j = 0; j < TPM_DIGEST_SIZE; j++)
+		{
 			str += sprintf(str, "%02X ", digest[j]);
+		}
+
 		str += sprintf(str, "\n");
 	}
+
 	return str - buf;
 }
 static DEVICE_ATTR_RO(pcrs);
 
 static ssize_t enabled_show(struct device *dev, struct device_attribute *attr,
-		     char *buf)
+							char *buf)
 {
 	cap_t cap;
 	ssize_t rc;
 
 	rc = tpm_getcap(to_tpm_chip(dev), TPM_CAP_FLAG_PERM, &cap,
-			"attempting to determine the permanent enabled state");
+					"attempting to determine the permanent enabled state");
+
 	if (rc)
+	{
 		return 0;
+	}
 
 	rc = sprintf(buf, "%d\n", !cap.perm_flags.disable);
 	return rc;
@@ -130,15 +156,18 @@ static ssize_t enabled_show(struct device *dev, struct device_attribute *attr,
 static DEVICE_ATTR_RO(enabled);
 
 static ssize_t active_show(struct device *dev, struct device_attribute *attr,
-		    char *buf)
+						   char *buf)
 {
 	cap_t cap;
 	ssize_t rc;
 
 	rc = tpm_getcap(to_tpm_chip(dev), TPM_CAP_FLAG_PERM, &cap,
-			"attempting to determine the permanent active state");
+					"attempting to determine the permanent active state");
+
 	if (rc)
+	{
 		return 0;
+	}
 
 	rc = sprintf(buf, "%d\n", !cap.perm_flags.deactivated);
 	return rc;
@@ -146,15 +175,18 @@ static ssize_t active_show(struct device *dev, struct device_attribute *attr,
 static DEVICE_ATTR_RO(active);
 
 static ssize_t owned_show(struct device *dev, struct device_attribute *attr,
-			  char *buf)
+						  char *buf)
 {
 	cap_t cap;
 	ssize_t rc;
 
 	rc = tpm_getcap(to_tpm_chip(dev), TPM_CAP_PROP_OWNER, &cap,
-			"attempting to determine the owner state");
+					"attempting to determine the owner state");
+
 	if (rc)
+	{
 		return 0;
+	}
 
 	rc = sprintf(buf, "%d\n", cap.owned);
 	return rc;
@@ -162,15 +194,18 @@ static ssize_t owned_show(struct device *dev, struct device_attribute *attr,
 static DEVICE_ATTR_RO(owned);
 
 static ssize_t temp_deactivated_show(struct device *dev,
-				     struct device_attribute *attr, char *buf)
+									 struct device_attribute *attr, char *buf)
 {
 	cap_t cap;
 	ssize_t rc;
 
 	rc = tpm_getcap(to_tpm_chip(dev), TPM_CAP_FLAG_VOL, &cap,
-			"attempting to determine the temporary state");
+					"attempting to determine the temporary state");
+
 	if (rc)
+	{
 		return 0;
+	}
 
 	rc = sprintf(buf, "%d\n", cap.stclear_flags.deactivated);
 	return rc;
@@ -178,7 +213,7 @@ static ssize_t temp_deactivated_show(struct device *dev,
 static DEVICE_ATTR_RO(temp_deactivated);
 
 static ssize_t caps_show(struct device *dev, struct device_attribute *attr,
-			 char *buf)
+						 char *buf)
 {
 	struct tpm_chip *chip = to_tpm_chip(dev);
 	cap_t cap;
@@ -186,34 +221,46 @@ static ssize_t caps_show(struct device *dev, struct device_attribute *attr,
 	char *str = buf;
 
 	rc = tpm_getcap(chip, TPM_CAP_PROP_MANUFACTURER, &cap,
-			"attempting to determine the manufacturer");
+					"attempting to determine the manufacturer");
+
 	if (rc)
+	{
 		return 0;
+	}
+
 	str += sprintf(str, "Manufacturer: 0x%x\n",
-		       be32_to_cpu(cap.manufacturer_id));
+				   be32_to_cpu(cap.manufacturer_id));
 
 	/* Try to get a TPM version 1.2 TPM_CAP_VERSION_INFO */
 	rc = tpm_getcap(chip, CAP_VERSION_1_2, &cap,
-			"attempting to determine the 1.2 version");
-	if (!rc) {
+					"attempting to determine the 1.2 version");
+
+	if (!rc)
+	{
 		str += sprintf(str,
-			       "TCG version: %d.%d\nFirmware version: %d.%d\n",
-			       cap.tpm_version_1_2.Major,
-			       cap.tpm_version_1_2.Minor,
-			       cap.tpm_version_1_2.revMajor,
-			       cap.tpm_version_1_2.revMinor);
-	} else {
+					   "TCG version: %d.%d\nFirmware version: %d.%d\n",
+					   cap.tpm_version_1_2.Major,
+					   cap.tpm_version_1_2.Minor,
+					   cap.tpm_version_1_2.revMajor,
+					   cap.tpm_version_1_2.revMinor);
+	}
+	else
+	{
 		/* Otherwise just use TPM_STRUCT_VER */
 		rc = tpm_getcap(chip, CAP_VERSION_1_1, &cap,
-				"attempting to determine the 1.1 version");
+						"attempting to determine the 1.1 version");
+
 		if (rc)
+		{
 			return 0;
+		}
+
 		str += sprintf(str,
-			       "TCG version: %d.%d\nFirmware version: %d.%d\n",
-			       cap.tpm_version.Major,
-			       cap.tpm_version.Minor,
-			       cap.tpm_version.revMajor,
-			       cap.tpm_version.revMinor);
+					   "TCG version: %d.%d\nFirmware version: %d.%d\n",
+					   cap.tpm_version.Major,
+					   cap.tpm_version.Minor,
+					   cap.tpm_version.revMajor,
+					   cap.tpm_version.revMinor);
 	}
 
 	return str - buf;
@@ -221,11 +268,14 @@ static ssize_t caps_show(struct device *dev, struct device_attribute *attr,
 static DEVICE_ATTR_RO(caps);
 
 static ssize_t cancel_store(struct device *dev, struct device_attribute *attr,
-			    const char *buf, size_t count)
+							const char *buf, size_t count)
 {
 	struct tpm_chip *chip = to_tpm_chip(dev);
+
 	if (chip == NULL)
+	{
 		return 0;
+	}
 
 	chip->ops->cancel(chip);
 	return count;
@@ -233,38 +283,41 @@ static ssize_t cancel_store(struct device *dev, struct device_attribute *attr,
 static DEVICE_ATTR_WO(cancel);
 
 static ssize_t durations_show(struct device *dev, struct device_attribute *attr,
-			      char *buf)
+							  char *buf)
 {
 	struct tpm_chip *chip = to_tpm_chip(dev);
 
 	if (chip->duration[TPM_LONG] == 0)
+	{
 		return 0;
+	}
 
 	return sprintf(buf, "%d %d %d [%s]\n",
-		       jiffies_to_usecs(chip->duration[TPM_SHORT]),
-		       jiffies_to_usecs(chip->duration[TPM_MEDIUM]),
-		       jiffies_to_usecs(chip->duration[TPM_LONG]),
-		       chip->duration_adjusted
-		       ? "adjusted" : "original");
+				   jiffies_to_usecs(chip->duration[TPM_SHORT]),
+				   jiffies_to_usecs(chip->duration[TPM_MEDIUM]),
+				   jiffies_to_usecs(chip->duration[TPM_LONG]),
+				   chip->duration_adjusted
+				   ? "adjusted" : "original");
 }
 static DEVICE_ATTR_RO(durations);
 
 static ssize_t timeouts_show(struct device *dev, struct device_attribute *attr,
-			     char *buf)
+							 char *buf)
 {
 	struct tpm_chip *chip = to_tpm_chip(dev);
 
 	return sprintf(buf, "%d %d %d %d [%s]\n",
-		       jiffies_to_usecs(chip->timeout_a),
-		       jiffies_to_usecs(chip->timeout_b),
-		       jiffies_to_usecs(chip->timeout_c),
-		       jiffies_to_usecs(chip->timeout_d),
-		       chip->timeout_adjusted
-		       ? "adjusted" : "original");
+				   jiffies_to_usecs(chip->timeout_a),
+				   jiffies_to_usecs(chip->timeout_b),
+				   jiffies_to_usecs(chip->timeout_c),
+				   jiffies_to_usecs(chip->timeout_d),
+				   chip->timeout_adjusted
+				   ? "adjusted" : "original");
 }
 static DEVICE_ATTR_RO(timeouts);
 
-static struct attribute *tpm_dev_attrs[] = {
+static struct attribute *tpm_dev_attrs[] =
+{
 	&dev_attr_pubek.attr,
 	&dev_attr_pcrs.attr,
 	&dev_attr_enabled.attr,
@@ -278,7 +331,8 @@ static struct attribute *tpm_dev_attrs[] = {
 	NULL,
 };
 
-static const struct attribute_group tpm_dev_group = {
+static const struct attribute_group tpm_dev_group =
+{
 	.attrs = tpm_dev_attrs,
 };
 

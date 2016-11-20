@@ -3,7 +3,7 @@
 
 #include <linux/interrupt.h>
 #ifdef CONFIG_PCI_MSI
-#include <linux/msi.h>
+	#include <linux/msi.h>
 #endif
 
 #include <xen/interface/event_channel.h>
@@ -14,28 +14,28 @@ unsigned xen_evtchn_nr_channels(void);
 
 int bind_evtchn_to_irq(unsigned int evtchn);
 int bind_evtchn_to_irqhandler(unsigned int evtchn,
-			      irq_handler_t handler,
-			      unsigned long irqflags, const char *devname,
-			      void *dev_id);
+							  irq_handler_t handler,
+							  unsigned long irqflags, const char *devname,
+							  void *dev_id);
 int bind_virq_to_irq(unsigned int virq, unsigned int cpu, bool percpu);
 int bind_virq_to_irqhandler(unsigned int virq, unsigned int cpu,
-			    irq_handler_t handler,
-			    unsigned long irqflags, const char *devname,
-			    void *dev_id);
+							irq_handler_t handler,
+							unsigned long irqflags, const char *devname,
+							void *dev_id);
 int bind_ipi_to_irqhandler(enum ipi_vector ipi,
-			   unsigned int cpu,
-			   irq_handler_t handler,
-			   unsigned long irqflags,
-			   const char *devname,
-			   void *dev_id);
+						   unsigned int cpu,
+						   irq_handler_t handler,
+						   unsigned long irqflags,
+						   const char *devname,
+						   void *dev_id);
 int bind_interdomain_evtchn_to_irq(unsigned int remote_domain,
-				   unsigned int remote_port);
+								   unsigned int remote_port);
 int bind_interdomain_evtchn_to_irqhandler(unsigned int remote_domain,
-					  unsigned int remote_port,
-					  irq_handler_t handler,
-					  unsigned long irqflags,
-					  const char *devname,
-					  void *dev_id);
+		unsigned int remote_port,
+		irq_handler_t handler,
+		unsigned long irqflags,
+		const char *devname,
+		void *dev_id);
 
 /*
  * Common unbind function for all event sources. Takes IRQ to unbind from.
@@ -90,7 +90,7 @@ unsigned int evtchn_from_irq(unsigned irq);
 /* Xen HVM evtchn vector callback */
 void xen_hvm_callback_vector(void);
 #ifdef CONFIG_TRACING
-#define trace_xen_hvm_callback_vector xen_hvm_callback_vector
+	#define trace_xen_hvm_callback_vector xen_hvm_callback_vector
 #endif
 int xen_set_callback_via(uint64_t via);
 void xen_evtchn_do_upcall(struct pt_regs *regs);
@@ -98,14 +98,14 @@ void xen_hvm_evtchn_do_upcall(void);
 
 /* Bind a pirq for a physical interrupt to an irq. */
 int xen_bind_pirq_gsi_to_irq(unsigned gsi,
-			     unsigned pirq, int shareable, char *name);
+							 unsigned pirq, int shareable, char *name);
 
 #ifdef CONFIG_PCI_MSI
 /* Allocate a pirq for a MSI style physical interrupt. */
 int xen_allocate_pirq_msi(struct pci_dev *dev, struct msi_desc *msidesc);
 /* Bind an PSI pirq to an irq. */
 int xen_bind_pirq_msi_to_irq(struct pci_dev *dev, struct msi_desc *msidesc,
-			     int pirq, int nvec, const char *name, domid_t domid);
+							 int pirq, int nvec, const char *name, domid_t domid);
 #endif
 
 /* De-allocates the above mentioned physical interrupt. */

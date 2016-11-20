@@ -39,13 +39,21 @@ static int convert_prio(int prio)
 	int cpupri;
 
 	if (prio == CPUPRI_INVALID)
+	{
 		cpupri = CPUPRI_INVALID;
+	}
 	else if (prio == MAX_PRIO)
+	{
 		cpupri = CPUPRI_IDLE;
+	}
 	else if (prio >= MAX_RT_PRIO)
+	{
 		cpupri = CPUPRI_NORMAL;
+	}
 	else
+	{
 		cpupri = MAX_RT_PRIO - prio + 1;
+	}
 
 	return cpupri;
 }
@@ -66,19 +74,23 @@ static int convert_prio(int prio)
  * Return: (int)bool - CPUs were found
  */
 int cpupri_find(struct cpupri *cp, struct task_struct *p,
-		struct cpumask *lowest_mask)
+				struct cpumask *lowest_mask)
 {
 	int idx = 0;
 	int task_pri = convert_prio(p->prio);
 
 	BUG_ON(task_pri >= CPUPRI_NR_PRIORITIES);
 
-	for (idx = 0; idx < task_pri; idx++) {
+	for (idx = 0; idx < task_pri; idx++)
+	{
 		struct cpupri_vec *vec  = &cp->pri_to_cpu[idx];
 		int skip = 0;
 
 		if (!atomic_read(&(vec)->count))
+		{
 			skip = 1;
+		}
+
 		/*
 		 * When looking at the vector, we need to read the counter,
 		 * do a memory barrier, then read the mask.
@@ -101,12 +113,17 @@ int cpupri_find(struct cpupri *cp, struct task_struct *p,
 
 		/* Need to do the rmb for every iteration */
 		if (skip)
+		{
 			continue;
+		}
 
 		if (cpumask_any_and(tsk_cpus_allowed(p), vec->mask) >= nr_cpu_ids)
+		{
 			continue;
+		}
 
-		if (lowest_mask) {
+		if (lowest_mask)
+		{
 			cpumask_and(lowest_mask, tsk_cpus_allowed(p), vec->mask);
 
 			/*
@@ -118,7 +135,9 @@ int cpupri_find(struct cpupri *cp, struct task_struct *p,
 			 * priority level and continue on.
 			 */
 			if (cpumask_any(lowest_mask) >= nr_cpu_ids)
+			{
 				continue;
+			}
 		}
 
 		return 1;
@@ -148,7 +167,9 @@ void cpupri_set(struct cpupri *cp, int cpu, int newpri)
 	BUG_ON(newpri >= CPUPRI_NR_PRIORITIES);
 
 	if (newpri == oldpri)
+	{
 		return;
+	}
 
 	/*
 	 * If the cpu was currently mapped to a different value, we
@@ -156,7 +177,8 @@ void cpupri_set(struct cpupri *cp, int cpu, int newpri)
 	 * Note, we must add the new value first, otherwise we risk the
 	 * cpu being missed by the priority loop in cpupri_find.
 	 */
-	if (likely(newpri != CPUPRI_INVALID)) {
+	if (likely(newpri != CPUPRI_INVALID))
+	{
 		struct cpupri_vec *vec = &cp->pri_to_cpu[newpri];
 
 		cpumask_set_cpu(cpu, vec->mask);
@@ -169,7 +191,9 @@ void cpupri_set(struct cpupri *cp, int cpu, int newpri)
 		atomic_inc(&(vec)->count);
 		do_mb = 1;
 	}
-	if (likely(oldpri != CPUPRI_INVALID)) {
+
+	if (likely(oldpri != CPUPRI_INVALID))
+	{
 		struct cpupri_vec *vec  = &cp->pri_to_cpu[oldpri];
 
 		/*
@@ -185,7 +209,9 @@ void cpupri_set(struct cpupri *cp, int cpu, int newpri)
 		 * the new priority vec.
 		 */
 		if (do_mb)
+		{
 			smp_mb__after_atomic();
+		}
 
 		/*
 		 * When removing from the vector, we decrement the counter first
@@ -211,26 +237,37 @@ int cpupri_init(struct cpupri *cp)
 
 	memset(cp, 0, sizeof(*cp));
 
-	for (i = 0; i < CPUPRI_NR_PRIORITIES; i++) {
+	for (i = 0; i < CPUPRI_NR_PRIORITIES; i++)
+	{
 		struct cpupri_vec *vec = &cp->pri_to_cpu[i];
 
 		atomic_set(&vec->count, 0);
+
 		if (!zalloc_cpumask_var(&vec->mask, GFP_KERNEL))
+		{
 			goto cleanup;
+		}
 	}
 
 	cp->cpu_to_pri = kcalloc(nr_cpu_ids, sizeof(int), GFP_KERNEL);
+
 	if (!cp->cpu_to_pri)
+	{
 		goto cleanup;
+	}
 
 	for_each_possible_cpu(i)
-		cp->cpu_to_pri[i] = CPUPRI_INVALID;
+	cp->cpu_to_pri[i] = CPUPRI_INVALID;
 
 	return 0;
 
 cleanup:
+
 	for (i--; i >= 0; i--)
+	{
 		free_cpumask_var(cp->pri_to_cpu[i].mask);
+	}
+
 	return -ENOMEM;
 }
 
@@ -243,6 +280,9 @@ void cpupri_cleanup(struct cpupri *cp)
 	int i;
 
 	kfree(cp->cpu_to_pri);
+
 	for (i = 0; i < CPUPRI_NR_PRIORITIES; i++)
+	{
 		free_cpumask_var(cp->pri_to_cpu[i].mask);
+	}
 }

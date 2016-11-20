@@ -36,7 +36,8 @@
 #define PRNG_DONE			BIT(5)
 #define EXYNOS_AUTOSUSPEND_DELAY	100
 
-struct exynos_rng {
+struct exynos_rng
+{
 	struct device *dev;
 	struct hwrng rng;
 	void __iomem *mem;
@@ -60,11 +61,13 @@ static int exynos_rng_configure(struct exynos_rng *exynos_rng)
 
 	for (i = 0 ; i < 5 ; i++)
 		exynos_rng_writel(exynos_rng, jiffies,
-				EXYNOS_PRNG_SEED_OFFSET + 4*i);
+						  EXYNOS_PRNG_SEED_OFFSET + 4 * i);
 
 	if (!(exynos_rng_readl(exynos_rng, EXYNOS_PRNG_STATUS_OFFSET)
-						 & SEED_SETTING_DONE))
+		  & SEED_SETTING_DONE))
+	{
 		ret = -EIO;
+	}
 
 	return ret;
 }
@@ -72,7 +75,7 @@ static int exynos_rng_configure(struct exynos_rng *exynos_rng)
 static int exynos_init(struct hwrng *rng)
 {
 	struct exynos_rng *exynos_rng = container_of(rng,
-						struct exynos_rng, rng);
+									struct exynos_rng, rng);
 	int ret = 0;
 
 	pm_runtime_get_sync(exynos_rng->dev);
@@ -84,10 +87,10 @@ static int exynos_init(struct hwrng *rng)
 }
 
 static int exynos_read(struct hwrng *rng, void *buf,
-					size_t max, bool wait)
+					   size_t max, bool wait)
 {
 	struct exynos_rng *exynos_rng = container_of(rng,
-						struct exynos_rng, rng);
+									struct exynos_rng, rng);
 	u32 *data = buf;
 	int retry = 100;
 	int ret = 4;
@@ -97,9 +100,13 @@ static int exynos_read(struct hwrng *rng, void *buf,
 	exynos_rng_writel(exynos_rng, PRNG_START, 0);
 
 	while (!(exynos_rng_readl(exynos_rng,
-			EXYNOS_PRNG_STATUS_OFFSET) & PRNG_DONE) && --retry)
+							  EXYNOS_PRNG_STATUS_OFFSET) & PRNG_DONE) && --retry)
+	{
 		cpu_relax();
-	if (!retry) {
+	}
+
+	if (!retry)
+	{
 		ret = -ETIMEDOUT;
 		goto out;
 	}
@@ -122,24 +129,32 @@ static int exynos_rng_probe(struct platform_device *pdev)
 	int ret;
 
 	exynos_rng = devm_kzalloc(&pdev->dev, sizeof(struct exynos_rng),
-					GFP_KERNEL);
+							  GFP_KERNEL);
+
 	if (!exynos_rng)
+	{
 		return -ENOMEM;
+	}
 
 	exynos_rng->dev = &pdev->dev;
 	exynos_rng->rng.name = "exynos";
 	exynos_rng->rng.init =	exynos_init;
 	exynos_rng->rng.read = exynos_read;
 	exynos_rng->clk = devm_clk_get(&pdev->dev, "secss");
-	if (IS_ERR(exynos_rng->clk)) {
+
+	if (IS_ERR(exynos_rng->clk))
+	{
 		dev_err(&pdev->dev, "Couldn't get clock.\n");
 		return -ENOENT;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	exynos_rng->mem = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(exynos_rng->mem))
+	{
 		return PTR_ERR(exynos_rng->mem);
+	}
 
 	platform_set_drvdata(pdev, exynos_rng);
 
@@ -148,7 +163,9 @@ static int exynos_rng_probe(struct platform_device *pdev)
 	pm_runtime_enable(&pdev->dev);
 
 	ret = devm_hwrng_register(&pdev->dev, &exynos_rng->rng);
-	if (ret) {
+
+	if (ret)
+	{
 		pm_runtime_dont_use_autosuspend(&pdev->dev);
 		pm_runtime_disable(&pdev->dev);
 	}
@@ -194,19 +211,24 @@ static int __maybe_unused exynos_rng_resume(struct device *dev)
 	int ret;
 
 	ret = pm_runtime_force_resume(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return exynos_rng_configure(exynos_rng);
 }
 
-static const struct dev_pm_ops exynos_rng_pm_ops = {
+static const struct dev_pm_ops exynos_rng_pm_ops =
+{
 	SET_SYSTEM_SLEEP_PM_OPS(exynos_rng_suspend, exynos_rng_resume)
 	SET_RUNTIME_PM_OPS(exynos_rng_runtime_suspend,
-			   exynos_rng_runtime_resume, NULL)
+	exynos_rng_runtime_resume, NULL)
 };
 
-static const struct of_device_id exynos_rng_dt_match[] = {
+static const struct of_device_id exynos_rng_dt_match[] =
+{
 	{
 		.compatible = "samsung,exynos4-rng",
 	},
@@ -214,7 +236,8 @@ static const struct of_device_id exynos_rng_dt_match[] = {
 };
 MODULE_DEVICE_TABLE(of, exynos_rng_dt_match);
 
-static struct platform_driver exynos_rng_driver = {
+static struct platform_driver exynos_rng_driver =
+{
 	.driver		= {
 		.name	= "exynos-rng",
 		.pm	= &exynos_rng_pm_ops,

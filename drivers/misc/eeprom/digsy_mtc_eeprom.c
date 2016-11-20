@@ -35,20 +35,23 @@ static void digsy_mtc_op_finish(void *p)
 	gpio_set_value(GPIO_EEPROM_OE, 1);
 }
 
-struct eeprom_93xx46_platform_data digsy_mtc_eeprom_data = {
+struct eeprom_93xx46_platform_data digsy_mtc_eeprom_data =
+{
 	.flags		= EE_ADDR8,
 	.prepare	= digsy_mtc_op_prepare,
 	.finish		= digsy_mtc_op_finish,
 };
 
-static struct spi_gpio_platform_data eeprom_spi_gpio_data = {
+static struct spi_gpio_platform_data eeprom_spi_gpio_data =
+{
 	.sck		= GPIO_EEPROM_CLK,
 	.mosi		= GPIO_EEPROM_DI,
 	.miso		= GPIO_EEPROM_DO,
 	.num_chipselect	= 1,
 };
 
-static struct platform_device digsy_mtc_eeprom = {
+static struct platform_device digsy_mtc_eeprom =
+{
 	.name	= "spi_gpio",
 	.id	= EE_SPI_BUS_NUM,
 	.dev	= {
@@ -56,7 +59,8 @@ static struct platform_device digsy_mtc_eeprom = {
 	},
 };
 
-static struct spi_board_info digsy_mtc_eeprom_info[] __initdata = {
+static struct spi_board_info digsy_mtc_eeprom_info[] __initdata =
+{
 	{
 		.modalias		= "93xx46",
 		.max_speed_hz		= 1000000,
@@ -73,13 +77,16 @@ static int __init digsy_mtc_eeprom_devices_init(void)
 	int ret;
 
 	ret = gpio_request_one(GPIO_EEPROM_OE, GPIOF_OUT_INIT_HIGH,
-				"93xx46 EEPROMs OE");
-	if (ret) {
+						   "93xx46 EEPROMs OE");
+
+	if (ret)
+	{
 		pr_err("can't request gpio %d\n", GPIO_EEPROM_OE);
 		return ret;
 	}
+
 	spi_register_board_info(digsy_mtc_eeprom_info,
-				ARRAY_SIZE(digsy_mtc_eeprom_info));
+							ARRAY_SIZE(digsy_mtc_eeprom_info));
 	return platform_device_register(&digsy_mtc_eeprom);
 }
 device_initcall(digsy_mtc_eeprom_devices_init);

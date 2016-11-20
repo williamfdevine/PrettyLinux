@@ -23,7 +23,8 @@
  * Register Block
  * M00233_VIDEO_MEASURE_MEMMAP_PACKAGE_VHD_REGMAP
  *******************************************************************/
-struct m00233_video_measure_regmap {
+struct m00233_video_measure_regmap
+{
 	uint32_t irq_status;        /* Reg 0x0000 */
 	/* The vertical counter starts on rising edge of vsync */
 	uint32_t vsync_time;        /* Reg 0x0004 */

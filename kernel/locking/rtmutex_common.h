@@ -22,7 +22,8 @@
  * @pi_tree_entry:	pi node to enqueue into the mutex owner waiters tree
  * @task:		task reference to the blocked task
  */
-struct rt_mutex_waiter {
+struct rt_mutex_waiter
+{
 	struct rb_node          tree_entry;
 	struct rb_node          pi_tree_entry;
 	struct task_struct	*task;
@@ -49,7 +50,7 @@ rt_mutex_top_waiter(struct rt_mutex *lock)
 	struct rt_mutex_waiter *w;
 
 	w = rb_entry(lock->waiters_leftmost, struct rt_mutex_waiter,
-		     tree_entry);
+				 tree_entry);
 	BUG_ON(w->lock != lock);
 
 	return w;
@@ -64,7 +65,7 @@ static inline struct rt_mutex_waiter *
 task_top_pi_waiter(struct task_struct *p)
 {
 	return rb_entry(p->pi_waiters_leftmost, struct rt_mutex_waiter,
-			pi_tree_entry);
+					pi_tree_entry);
 }
 
 /*
@@ -76,7 +77,7 @@ task_top_pi_waiter(struct task_struct *p)
 static inline struct task_struct *rt_mutex_owner(struct rt_mutex *lock)
 {
 	return (struct task_struct *)
-		((unsigned long)lock->owner & ~RT_MUTEX_OWNER_MASKALL);
+		   ((unsigned long)lock->owner & ~RT_MUTEX_OWNER_MASKALL);
 }
 
 /*
@@ -89,7 +90,8 @@ static inline struct task_struct *rt_mutex_owner(struct rt_mutex *lock)
  * RT_MUTEX_FULL_CHAINWALK:	Invoke deadlock detection with a full
  *				walk of the lock chain.
  */
-enum rtmutex_chainwalk {
+enum rtmutex_chainwalk
+{
 	RT_MUTEX_MIN_CHAINWALK,
 	RT_MUTEX_FULL_CHAINWALK,
 };
@@ -99,24 +101,24 @@ enum rtmutex_chainwalk {
  */
 extern struct task_struct *rt_mutex_next_owner(struct rt_mutex *lock);
 extern void rt_mutex_init_proxy_locked(struct rt_mutex *lock,
-				       struct task_struct *proxy_owner);
+									   struct task_struct *proxy_owner);
 extern void rt_mutex_proxy_unlock(struct rt_mutex *lock,
-				  struct task_struct *proxy_owner);
+								  struct task_struct *proxy_owner);
 extern int rt_mutex_start_proxy_lock(struct rt_mutex *lock,
-				     struct rt_mutex_waiter *waiter,
-				     struct task_struct *task);
+									 struct rt_mutex_waiter *waiter,
+									 struct task_struct *task);
 extern int rt_mutex_finish_proxy_lock(struct rt_mutex *lock,
-				      struct hrtimer_sleeper *to,
-				      struct rt_mutex_waiter *waiter);
+									  struct hrtimer_sleeper *to,
+									  struct rt_mutex_waiter *waiter);
 extern int rt_mutex_timed_futex_lock(struct rt_mutex *l, struct hrtimer_sleeper *to);
 extern bool rt_mutex_futex_unlock(struct rt_mutex *lock,
-				  struct wake_q_head *wqh);
+								  struct wake_q_head *wqh);
 extern void rt_mutex_adjust_prio(struct task_struct *task);
 
 #ifdef CONFIG_DEBUG_RT_MUTEXES
-# include "rtmutex-debug.h"
+	#include "rtmutex-debug.h"
 #else
-# include "rtmutex.h"
+	#include "rtmutex.h"
 #endif
 
 #endif

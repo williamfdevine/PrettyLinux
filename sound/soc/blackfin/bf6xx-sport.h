@@ -23,7 +23,8 @@
 #include <linux/platform_device.h>
 #include <asm/bfin_sport3.h>
 
-struct sport_device {
+struct sport_device
+{
 	struct platform_device *pdev;
 	const unsigned short *pin_req;
 	struct sport_register *tx_regs;
@@ -51,7 +52,8 @@ struct sport_device {
 	unsigned int wdsize;
 };
 
-struct sport_params {
+struct sport_params
+{
 	u32 spctl;
 	u32 div;
 };
@@ -59,21 +61,21 @@ struct sport_params {
 struct sport_device *sport_create(struct platform_device *pdev);
 void sport_delete(struct sport_device *sport);
 int sport_set_tx_params(struct sport_device *sport,
-		struct sport_params *params);
+						struct sport_params *params);
 int sport_set_rx_params(struct sport_device *sport,
-		struct sport_params *params);
+						struct sport_params *params);
 void sport_tx_start(struct sport_device *sport);
 void sport_rx_start(struct sport_device *sport);
 void sport_tx_stop(struct sport_device *sport);
 void sport_rx_stop(struct sport_device *sport);
 void sport_set_tx_callback(struct sport_device *sport,
-	void (*tx_callback)(void *), void *tx_data);
+						   void (*tx_callback)(void *), void *tx_data);
 void sport_set_rx_callback(struct sport_device *sport,
-	void (*rx_callback)(void *), void *rx_data);
+						   void (*rx_callback)(void *), void *rx_data);
 int sport_config_tx_dma(struct sport_device *sport, void *buf,
-	int fragcount, size_t fragsize);
+						int fragcount, size_t fragsize);
 int sport_config_rx_dma(struct sport_device *sport, void *buf,
-	int fragcount, size_t fragsize);
+						int fragcount, size_t fragsize);
 unsigned long sport_curr_offset_tx(struct sport_device *sport);
 unsigned long sport_curr_offset_rx(struct sport_device *sport);
 

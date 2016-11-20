@@ -5,7 +5,8 @@
 
 extern const struct nla_policy rtm_dn_policy[];
 
-struct dn_fib_res {
+struct dn_fib_res
+{
 	struct fib_rule *r;
 	struct dn_fib_info *fi;
 	unsigned char prefixlen;
@@ -14,7 +15,8 @@ struct dn_fib_res {
 	unsigned char scope;
 };
 
-struct dn_fib_nh {
+struct dn_fib_nh
+{
 	struct net_device	*nh_dev;
 	unsigned int		nh_flags;
 	unsigned char		nh_scope;
@@ -24,7 +26,8 @@ struct dn_fib_nh {
 	__le16			nh_gw;
 };
 
-struct dn_fib_info {
+struct dn_fib_info
+{
 	struct dn_fib_info	*fib_next;
 	struct dn_fib_info	*fib_prev;
 	int 			fib_treeref;
@@ -50,19 +53,23 @@ struct dn_fib_info {
 #define DN_FIB_RES_DEV(res)	(DN_FIB_RES_NH(res).nh_dev)
 #define DN_FIB_RES_OIF(res)	(DN_FIB_RES_NH(res).nh_oif)
 
-typedef struct {
+typedef struct
+{
 	__le16	datum;
 } dn_fib_key_t;
 
-typedef struct {
+typedef struct
+{
 	__le16	datum;
 } dn_fib_hash_t;
 
-typedef struct {
+typedef struct
+{
 	__u16	datum;
 } dn_fib_idx_t;
 
-struct dn_fib_node {
+struct dn_fib_node
+{
 	struct dn_fib_node *fn_next;
 	struct dn_fib_info *fn_info;
 #define DN_FIB_INFO(f) ((f)->fn_info)
@@ -73,18 +80,19 @@ struct dn_fib_node {
 };
 
 
-struct dn_fib_table {
+struct dn_fib_table
+{
 	struct hlist_node hlist;
 	u32 n;
 
-	int (*insert)(struct dn_fib_table *t, struct rtmsg *r, 
-			struct nlattr *attrs[], struct nlmsghdr *n,
-			struct netlink_skb_parms *req);
+	int (*insert)(struct dn_fib_table *t, struct rtmsg *r,
+				  struct nlattr *attrs[], struct nlmsghdr *n,
+				  struct netlink_skb_parms *req);
 	int (*delete)(struct dn_fib_table *t, struct rtmsg *r,
-			struct nlattr *attrs[], struct nlmsghdr *n,
-			struct netlink_skb_parms *req);
+				  struct nlattr *attrs[], struct nlmsghdr *n,
+				  struct netlink_skb_parms *req);
 	int (*lookup)(struct dn_fib_table *t, const struct flowidn *fld,
-			struct dn_fib_res *res);
+				  struct dn_fib_res *res);
 	int (*flush)(struct dn_fib_table *t);
 	int (*dump)(struct dn_fib_table *t, struct sk_buff *skb, struct netlink_callback *cb);
 
@@ -100,10 +108,10 @@ void dn_fib_cleanup(void);
 
 int dn_fib_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg);
 struct dn_fib_info *dn_fib_create_info(const struct rtmsg *r,
-				       struct nlattr *attrs[],
-				       const struct nlmsghdr *nlh, int *errp);
+									   struct nlattr *attrs[],
+									   const struct nlmsghdr *nlh, int *errp);
 int dn_fib_semantic_match(int type, struct dn_fib_info *fi,
-			  const struct flowidn *fld, struct dn_fib_res *res);
+						  const struct flowidn *fld, struct dn_fib_res *res);
 void dn_fib_release_info(struct dn_fib_info *fi);
 void dn_fib_flush(void);
 void dn_fib_select_multipath(const struct flowidn *fld, struct dn_fib_res *res);
@@ -131,15 +139,22 @@ void dn_fib_free_info(struct dn_fib_info *fi);
 static inline void dn_fib_info_put(struct dn_fib_info *fi)
 {
 	if (atomic_dec_and_test(&fi->fib_clntref))
+	{
 		dn_fib_free_info(fi);
+	}
 }
 
 static inline void dn_fib_res_put(struct dn_fib_res *res)
 {
 	if (res->fi)
+	{
 		dn_fib_info_put(res->fi);
+	}
+
 	if (res->r)
+	{
 		fib_rule_put(res->r);
+	}
 }
 
 #else /* Endnode */
@@ -158,7 +173,10 @@ static inline void dn_fib_res_put(struct dn_fib_res *res)
 static inline __le16 dnet_make_mask(int n)
 {
 	if (n)
+	{
 		return cpu_to_le16(~((1 << (16 - n)) - 1));
+	}
+
 	return cpu_to_le16(0);
 }
 

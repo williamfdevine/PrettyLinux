@@ -89,7 +89,7 @@ extern const char *const qib_qsfp_devtech[16];
 #define QSFP_TECH_1490 9
 
 #define QSFP_OUI(oui) (((unsigned)oui[0] << 16) | ((unsigned)oui[1] << 8) | \
-			oui[2])
+					   oui[2])
 #define QSFP_OUI_AMPHENOL 0x415048
 #define QSFP_OUI_FINISAR  0x009065
 #define QSFP_OUI_GORE     0x002177
@@ -150,7 +150,8 @@ extern const char *const qib_qsfp_devtech[16];
  * Hold the parts of the onboard EEPROM that we care about, so we aren't
  * coonstantly bit-boffing
  */
-struct qib_qsfp_cache {
+struct qib_qsfp_cache
+{
 	u8 id;	/* must be 0x0C or 0x0D; 0 indicates invalid EEPROM read */
 	u8 pwr; /* in D6,7 */
 	u8 len;	/* in meters, Cu only */
@@ -172,7 +173,8 @@ struct qib_qsfp_cache {
 #define QSFP_ATTEN_SDR(attenarray) (attenarray[0])
 #define QSFP_ATTEN_DDR(attenarray) (attenarray[1])
 
-struct qib_qsfp_data {
+struct qib_qsfp_data
+{
 	/* Helps to find our way */
 	struct qib_pportdata *ppd;
 	struct work_struct work;
@@ -182,8 +184,8 @@ struct qib_qsfp_data {
 };
 
 extern int qib_refresh_qsfp_cache(struct qib_pportdata *ppd,
-				  struct qib_qsfp_cache *cp);
+								  struct qib_qsfp_cache *cp);
 extern int qib_qsfp_mod_present(struct qib_pportdata *ppd);
 extern void qib_qsfp_init(struct qib_qsfp_data *qd,
-			  void (*fevent)(struct work_struct *));
+						  void (*fevent)(struct work_struct *));
 extern void qib_qsfp_deinit(struct qib_qsfp_data *qd);

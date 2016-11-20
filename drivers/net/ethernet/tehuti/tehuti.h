@@ -43,12 +43,12 @@
 /* end */
 
 #if !defined CONFIG_PCI_MSI
-#   undef BDX_MSI
+	#undef BDX_MSI
 #endif
 
 #define BDX_DEF_MSG_ENABLE	(NETIF_MSG_DRV          | \
-				NETIF_MSG_PROBE        | \
-				NETIF_MSG_LINK)
+							 NETIF_MSG_PROBE        | \
+							 NETIF_MSG_LINK)
 
 /* ioctl ops */
 #define BDX_OP_READ  1
@@ -65,9 +65,9 @@
 #define BDX_DRV_VERSION   "7.29.3"
 
 #ifdef BDX_MSI
-#    define BDX_MSI_STRING "msi "
+	#define BDX_MSI_STRING "msi "
 #else
-#    define BDX_MSI_STRING ""
+	#define BDX_MSI_STRING ""
 #endif
 
 /* netdev tx queue len for Luxor. default value is, btw, 1000
@@ -78,32 +78,32 @@
 #define FIFO_EXTRA_SPACE            1024
 
 #if BITS_PER_LONG == 64
-#    define H32_64(x)  (u32) ((u64)(x) >> 32)
-#    define L32_64(x)  (u32) ((u64)(x) & 0xffffffff)
+	#define H32_64(x)  (u32) ((u64)(x) >> 32)
+	#define L32_64(x)  (u32) ((u64)(x) & 0xffffffff)
 #elif BITS_PER_LONG == 32
-#    define H32_64(x)  0
-#    define L32_64(x)  ((u32) (x))
+	#define H32_64(x)  0
+	#define L32_64(x)  ((u32) (x))
 #else				/* BITS_PER_LONG == ?? */
-#    error BITS_PER_LONG is undefined. Must be 64 or 32
+	#    error BITS_PER_LONG is undefined. Must be 64 or 32
 #endif				/* BITS_PER_LONG */
 
 #ifdef __BIG_ENDIAN
-#   define CPU_CHIP_SWAP32(x) swab32(x)
-#   define CPU_CHIP_SWAP16(x) swab16(x)
+	#define CPU_CHIP_SWAP32(x) swab32(x)
+	#define CPU_CHIP_SWAP16(x) swab16(x)
 #else
-#   define CPU_CHIP_SWAP32(x) (x)
-#   define CPU_CHIP_SWAP16(x) (x)
+	#define CPU_CHIP_SWAP32(x) (x)
+	#define CPU_CHIP_SWAP16(x) (x)
 #endif
 
 #define READ_REG(pp, reg)         readl(pp->pBdxRegs + reg)
 #define WRITE_REG(pp, reg, val)   writel(val, pp->pBdxRegs + reg)
 
 #ifndef NET_IP_ALIGN
-#   define NET_IP_ALIGN 2
+	#define NET_IP_ALIGN 2
 #endif
 
 #ifndef NETDEV_TX_OK
-#   define NETDEV_TX_OK 0
+	#define NETDEV_TX_OK 0
 #endif
 
 #define LUXOR_MAX_PORT     2
@@ -113,7 +113,8 @@
 #define BDX_MIN_TX_LEVEL   256
 #define BDX_NO_UPD_PACKETS 40
 
-struct pci_nic {
+struct pci_nic
+{
 	int port_num;
 	void __iomem *regs;
 	int irq_type;
@@ -140,7 +141,8 @@ enum { IRQ_INTX, IRQ_MSI, IRQ_MSIX };
 #define INT_REG_VAL(coal, coal_rc, rxf_th, pck_th)	\
 	((coal)|((coal_rc)<<15)|((rxf_th)<<16)|((pck_th)<<20))
 
-struct fifo {
+struct fifo
+{
 	dma_addr_t da;		/* physical address of fifo (used by HW) */
 	char *va;		/* virtual address of fifo (used by SW) */
 	u32 rptr, wptr;		/* cached values of RPTR and WPTR registers,
@@ -153,35 +155,42 @@ struct fifo {
 	u16 rcvno;		/* number of buffers that come from this RXF */
 };
 
-struct txf_fifo {
+struct txf_fifo
+{
 	struct fifo m;		/* minimal set of variables used by all fifos */
 };
 
-struct txd_fifo {
+struct txd_fifo
+{
 	struct fifo m;		/* minimal set of variables used by all fifos */
 };
 
-struct rxf_fifo {
+struct rxf_fifo
+{
 	struct fifo m;		/* minimal set of variables used by all fifos */
 };
 
-struct rxd_fifo {
+struct rxd_fifo
+{
 	struct fifo m;		/* minimal set of variables used by all fifos */
 };
 
-struct rx_map {
+struct rx_map
+{
 	u64 dma;
 	struct sk_buff *skb;
 };
 
-struct rxdb {
+struct rxdb
+{
 	int *stack;
 	struct rx_map *elems;
 	int nelem;
 	int top;
 };
 
-union bdx_dma_addr {
+union bdx_dma_addr
+{
 	dma_addr_t dma;
 	struct sk_buff *skb;
 };
@@ -189,13 +198,15 @@ union bdx_dma_addr {
 /* Entry in the db.
  * if len == 0 addr is dma
  * if len != 0 addr is skb */
-struct tx_map {
+struct tx_map
+{
 	union bdx_dma_addr addr;
 	int len;
 };
 
 /* tx database - implemented as circular fifo buffer*/
-struct txdb {
+struct txdb
+{
 	struct tx_map *start;	/* points to the first element */
 	struct tx_map *end;	/* points just AFTER the last element */
 	struct tx_map *rptr;	/* points to the next element to read */
@@ -204,7 +215,8 @@ struct txdb {
 };
 
 /*Internal stats structure*/
-struct bdx_stats {
+struct bdx_stats
+{
 	u64 InUCast;			/* 0x7200 */
 	u64 InMCast;			/* 0x7210 */
 	u64 InBCast;			/* 0x7220 */
@@ -239,7 +251,8 @@ struct bdx_stats {
 	u64 OutOctects;			/* 0x73F0 */
 };
 
-struct bdx_priv {
+struct bdx_priv
+{
 	void __iomem *pBdxRegs;
 	struct net_device *ndev;
 
@@ -281,7 +294,8 @@ struct bdx_priv {
 };
 
 /* RX FREE descriptor - 64bit*/
-struct rxf_desc {
+struct rxf_desc
+{
 	u32 info;		/* Buffer Count + Info - described below */
 	u32 va_lo;		/* VAdr[31:0] */
 	u32 va_hi;		/* VAdr[63:32] */
@@ -303,7 +317,8 @@ struct rxf_desc {
 #define GET_RXD_CFI(x)			GET_BITS_SHIFT((x), 1, 12)
 #define GET_RXD_PRIO(x)			GET_BITS_SHIFT((x), 3, 13)
 
-struct rxd_desc {
+struct rxd_desc
+{
 	u32 rxd_val1;
 	u16 len;
 	u16 rxd_vlan;
@@ -313,7 +328,8 @@ struct rxd_desc {
 
 /* PBL describes each virtual buffer to be */
 /* transmitted from the host.*/
-struct pbl {
+struct pbl
+{
 	u32 pa_lo;
 	u32 pa_hi;
 	u32 len;
@@ -323,9 +339,10 @@ struct pbl {
  * hw_csum = 7 for ip+udp+tcp hw checksums */
 #define TXD_W1_VAL(bc, checksum, vtag, lgsnd, vlan_id)	\
 	((bc) | ((checksum)<<5) | ((vtag)<<8) | \
-	((lgsnd)<<9) | (0x30000) | ((vlan_id)<<20))
+	 ((lgsnd)<<9) | (0x30000) | ((vlan_id)<<20))
 
-struct txd_desc {
+struct txd_desc
+{
 	u32 txd_val1;
 	u16 mss;
 	u16 length;
@@ -485,7 +502,7 @@ struct txd_desc {
 #define  IR_PCIE_TOUT 0x00000001	/*0 */
 
 #define  IR_EXTRA (IR_RX_FREE_0 | IR_LNKCHG0 | IR_PSE | \
-    IR_TMR0 | IR_PCIE_LINK | IR_PCIE_TOUT)
+				   IR_TMR0 | IR_PCIE_LINK | IR_PCIE_TOUT)
 #define  IR_RUN (IR_EXTRA | IR_RX_DESC_0 | IR_TX_FREE_0)
 #define  IR_ALL 0xfdfffff7
 
@@ -536,15 +553,15 @@ struct txd_desc {
 #ifdef DEBUG
 
 #define ENTER						\
-do {							\
-	pr_err("%s:%-5d: ENTER\n", __func__, __LINE__); \
-} while (0)
+	do {							\
+		pr_err("%s:%-5d: ENTER\n", __func__, __LINE__); \
+	} while (0)
 
 #define RET(args...)					 \
-do {							 \
-	pr_err("%s:%-5d: RETURN\n", __func__, __LINE__); \
-	return args;					 \
-} while (0)
+	do {							 \
+		pr_err("%s:%-5d: RETURN\n", __func__, __LINE__); \
+		return args;					 \
+	} while (0)
 
 #define DBG(fmt, args...)					\
 	pr_err("%s:%-5d: " fmt, __func__, __LINE__, ## args)
@@ -552,10 +569,10 @@ do {							 \
 #define ENTER do {  } while (0)
 #define RET(args...)   return args
 #define DBG(fmt, args...)			\
-do {						\
-	if (0)					\
-		pr_err(fmt, ##args);		\
-} while (0)
+	do {						\
+		if (0)					\
+			pr_err(fmt, ##args);		\
+	} while (0)
 #endif
 
 #endif /* _BDX__H */

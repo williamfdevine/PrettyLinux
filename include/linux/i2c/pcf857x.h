@@ -28,16 +28,17 @@
  * to it.  If you leave n_latch initialized to zero, that last written
  * value is presumed to be all ones (as if the chip were just reset).
  */
-struct pcf857x_platform_data {
+struct pcf857x_platform_data
+{
 	unsigned	gpio_base;
 	unsigned	n_latch;
 
 	int		(*setup)(struct i2c_client *client,
-					int gpio, unsigned ngpio,
-					void *context);
+					 int gpio, unsigned ngpio,
+					 void *context);
 	int		(*teardown)(struct i2c_client *client,
-					int gpio, unsigned ngpio,
-					void *context);
+						int gpio, unsigned ngpio,
+						void *context);
 	void		*context;
 };
 

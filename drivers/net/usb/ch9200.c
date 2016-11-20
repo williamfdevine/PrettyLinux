@@ -97,37 +97,47 @@
 #define ETH_RX_FIFO_DEPTH	(0x01 << 0)
 
 static int control_read(struct usbnet *dev,
-			unsigned char request, unsigned short value,
-			unsigned short index, void *data, unsigned short size,
-			int timeout)
+						unsigned char request, unsigned short value,
+						unsigned short index, void *data, unsigned short size,
+						int timeout)
 {
 	unsigned char *buf = NULL;
 	unsigned char request_type;
 	int err = 0;
 
 	if (request == REQUEST_READ)
+	{
 		request_type = (USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_OTHER);
+	}
 	else
 		request_type = (USB_DIR_IN | USB_TYPE_VENDOR |
-				USB_RECIP_DEVICE);
+						USB_RECIP_DEVICE);
 
 	netdev_dbg(dev->net, "Control_read() index=0x%02x size=%d\n",
-		   index, size);
+			   index, size);
 
 	buf = kmalloc(size, GFP_KERNEL);
-	if (!buf) {
+
+	if (!buf)
+	{
 		err = -ENOMEM;
 		goto err_out;
 	}
 
 	err = usb_control_msg(dev->udev,
-			      usb_rcvctrlpipe(dev->udev, 0),
-			      request, request_type, value, index, buf, size,
-			      timeout);
+						  usb_rcvctrlpipe(dev->udev, 0),
+						  request, request_type, value, index, buf, size,
+						  timeout);
+
 	if (err == size)
+	{
 		memcpy(data, buf, size);
+	}
 	else if (err >= 0)
+	{
 		err = -EINVAL;
+	}
+
 	kfree(buf);
 
 	return err;
@@ -137,8 +147,8 @@ err_out:
 }
 
 static int control_write(struct usbnet *dev, unsigned char request,
-			 unsigned short value, unsigned short index,
-			 void *data, unsigned short size, int timeout)
+						 unsigned short value, unsigned short index,
+						 void *data, unsigned short size, int timeout)
 {
 	unsigned char *buf = NULL;
 	unsigned char request_type;
@@ -146,28 +156,35 @@ static int control_write(struct usbnet *dev, unsigned char request,
 
 	if (request == REQUEST_WRITE)
 		request_type = (USB_DIR_OUT | USB_TYPE_VENDOR |
-				USB_RECIP_OTHER);
+						USB_RECIP_OTHER);
 	else
 		request_type = (USB_DIR_OUT | USB_TYPE_VENDOR |
-				USB_RECIP_DEVICE);
+						USB_RECIP_DEVICE);
 
 	netdev_dbg(dev->net, "Control_write() index=0x%02x size=%d\n",
-		   index, size);
+			   index, size);
 
-	if (data) {
+	if (data)
+	{
 		buf = kmemdup(data, size, GFP_KERNEL);
-		if (!buf) {
+
+		if (!buf)
+		{
 			err = -ENOMEM;
 			goto err_out;
 		}
 	}
 
 	err = usb_control_msg(dev->udev,
-			      usb_sndctrlpipe(dev->udev, 0),
-			      request, request_type, value, index, buf, size,
-			      timeout);
+						  usb_sndctrlpipe(dev->udev, 0),
+						  request, request_type, value, index, buf, size,
+						  timeout);
+
 	if (err >= 0 && err < size)
+	{
 		err = -EINVAL;
+	}
+
 	kfree(buf);
 
 	return 0;
@@ -182,34 +199,38 @@ static int ch9200_mdio_read(struct net_device *netdev, int phy_id, int loc)
 	unsigned char buff[2];
 
 	netdev_dbg(netdev, "ch9200_mdio_read phy_id:%02x loc:%02x\n",
-		   phy_id, loc);
+			   phy_id, loc);
 
 	if (phy_id != 0)
+	{
 		return -ENODEV;
+	}
 
 	control_read(dev, REQUEST_READ, 0, loc * 2, buff, 0x02,
-		     CONTROL_TIMEOUT_MS);
+				 CONTROL_TIMEOUT_MS);
 
 	return (buff[0] | buff[1] << 8);
 }
 
 static void ch9200_mdio_write(struct net_device *netdev,
-			      int phy_id, int loc, int val)
+							  int phy_id, int loc, int val)
 {
 	struct usbnet *dev = netdev_priv(netdev);
 	unsigned char buff[2];
 
 	netdev_dbg(netdev, "ch9200_mdio_write() phy_id=%02x loc:%02x\n",
-		   phy_id, loc);
+			   phy_id, loc);
 
 	if (phy_id != 0)
+	{
 		return;
+	}
 
 	buff[0] = (unsigned char)val;
 	buff[1] = (unsigned char)(val >> 8);
 
 	control_write(dev, REQUEST_WRITE, 0, loc * 2, buff, 0x02,
-		      CONTROL_TIMEOUT_MS);
+				  CONTROL_TIMEOUT_MS);
 }
 
 static int ch9200_link_reset(struct usbnet *dev)
@@ -220,7 +241,7 @@ static int ch9200_link_reset(struct usbnet *dev)
 	mii_ethtool_gset(&dev->mii, &ecmd);
 
 	netdev_dbg(dev->net, "link_reset() speed:%d duplex:%d\n",
-		   ecmd.speed, ecmd.duplex);
+			   ecmd.speed, ecmd.duplex);
 
 	return 0;
 }
@@ -231,21 +252,26 @@ static void ch9200_status(struct usbnet *dev, struct urb *urb)
 	unsigned char *buf;
 
 	if (urb->actual_length < 16)
+	{
 		return;
+	}
 
 	buf = urb->transfer_buffer;
 	link = !!(buf[0] & 0x01);
 
-	if (link) {
+	if (link)
+	{
 		netif_carrier_on(dev->net);
 		usbnet_defer_kevent(dev, EVENT_LINK_RESET);
-	} else {
+	}
+	else
+	{
 		netif_carrier_off(dev->net);
 	}
 }
 
 static struct sk_buff *ch9200_tx_fixup(struct usbnet *dev, struct sk_buff *skb,
-				       gfp_t flags)
+									   gfp_t flags)
 {
 	int i = 0;
 	int len = 0;
@@ -254,22 +280,30 @@ static struct sk_buff *ch9200_tx_fixup(struct usbnet *dev, struct sk_buff *skb,
 	tx_overhead = 0x40;
 
 	len = skb->len;
-	if (skb_headroom(skb) < tx_overhead) {
+
+	if (skb_headroom(skb) < tx_overhead)
+	{
 		struct sk_buff *skb2;
 
 		skb2 = skb_copy_expand(skb, tx_overhead, 0, flags);
 		dev_kfree_skb_any(skb);
 		skb = skb2;
+
 		if (!skb)
+		{
 			return NULL;
+		}
 	}
 
 	__skb_push(skb, tx_overhead);
+
 	/* usbnet adds padding if length is a multiple of packet size
 	 * if so, adjust length value in header
 	 */
 	if ((skb->len % dev->maxpacket) == 0)
+	{
 		len++;
+	}
 
 	skb->data[0] = len;
 	skb->data[1] = len >> 8;
@@ -277,7 +311,9 @@ static struct sk_buff *ch9200_tx_fixup(struct usbnet *dev, struct sk_buff *skb,
 	skb->data[3] = 0x80;
 
 	for (i = 4; i < 48; i++)
+	{
 		skb->data[i] = 0x00;
+	}
 
 	skb->data[48] = len;
 	skb->data[49] = len >> 8;
@@ -285,7 +321,9 @@ static struct sk_buff *ch9200_tx_fixup(struct usbnet *dev, struct sk_buff *skb,
 	skb->data[51] = 0x80;
 
 	for (i = 52; i < 64; i++)
+	{
 		skb->data[i] = 0x00;
+	}
 
 	return skb;
 }
@@ -297,7 +335,8 @@ static int ch9200_rx_fixup(struct usbnet *dev, struct sk_buff *skb)
 
 	rx_overhead = 64;
 
-	if (unlikely(skb->len < rx_overhead)) {
+	if (unlikely(skb->len < rx_overhead))
+	{
 		dev_err(&dev->udev->dev, "unexpected tiny rx frame\n");
 		return 0;
 	}
@@ -315,19 +354,22 @@ static int get_mac_address(struct usbnet *dev, unsigned char *data)
 	int rd_mac_len = 0;
 
 	netdev_dbg(dev->net, "get_mac_address:\n\tusbnet VID:%0x PID:%0x\n",
-		   dev->udev->descriptor.idVendor,
-		   dev->udev->descriptor.idProduct);
+			   dev->udev->descriptor.idVendor,
+			   dev->udev->descriptor.idProduct);
 
 	memset(mac_addr, 0, sizeof(mac_addr));
 	rd_mac_len = control_read(dev, REQUEST_READ, 0,
-				  MAC_REG_STATION_L, mac_addr, 0x02,
-				  CONTROL_TIMEOUT_MS);
+							  MAC_REG_STATION_L, mac_addr, 0x02,
+							  CONTROL_TIMEOUT_MS);
 	rd_mac_len += control_read(dev, REQUEST_READ, 0, MAC_REG_STATION_M,
-				   mac_addr + 2, 0x02, CONTROL_TIMEOUT_MS);
+							   mac_addr + 2, 0x02, CONTROL_TIMEOUT_MS);
 	rd_mac_len += control_read(dev, REQUEST_READ, 0, MAC_REG_STATION_H,
-				   mac_addr + 4, 0x02, CONTROL_TIMEOUT_MS);
+							   mac_addr + 4, 0x02, CONTROL_TIMEOUT_MS);
+
 	if (rd_mac_len != ETH_ALEN)
+	{
 		err = -EINVAL;
+	}
 
 	data[0] = mac_addr[5];
 	data[1] = mac_addr[4];
@@ -345,8 +387,11 @@ static int ch9200_bind(struct usbnet *dev, struct usb_interface *intf)
 	unsigned char data[2];
 
 	retval = usbnet_get_endpoints(dev, intf);
+
 	if (retval)
+	{
 		return retval;
+	}
 
 	dev->mii.dev = dev->net;
 	dev->mii.mdio_read = ch9200_mdio_read;
@@ -362,40 +407,41 @@ static int ch9200_bind(struct usbnet *dev, struct usb_interface *intf)
 	data[0] = 0x01;
 	data[1] = 0x0F;
 	retval = control_write(dev, REQUEST_WRITE, 0, MAC_REG_THRESHOLD, data,
-			       0x02, CONTROL_TIMEOUT_MS);
+						   0x02, CONTROL_TIMEOUT_MS);
 
 	data[0] = 0xA0;
 	data[1] = 0x90;
 	retval = control_write(dev, REQUEST_WRITE, 0, MAC_REG_FIFO_DEPTH, data,
-			       0x02, CONTROL_TIMEOUT_MS);
+						   0x02, CONTROL_TIMEOUT_MS);
 
 	data[0] = 0x30;
 	data[1] = 0x00;
 	retval = control_write(dev, REQUEST_WRITE, 0, MAC_REG_PAUSE, data,
-			       0x02, CONTROL_TIMEOUT_MS);
+						   0x02, CONTROL_TIMEOUT_MS);
 
 	data[0] = 0x17;
 	data[1] = 0xD8;
 	retval = control_write(dev, REQUEST_WRITE, 0, MAC_REG_FLOW_CONTROL,
-			       data, 0x02, CONTROL_TIMEOUT_MS);
+						   data, 0x02, CONTROL_TIMEOUT_MS);
 
 	/* Undocumented register */
 	data[0] = 0x01;
 	data[1] = 0x00;
 	retval = control_write(dev, REQUEST_WRITE, 0, 254, data, 0x02,
-			       CONTROL_TIMEOUT_MS);
+						   CONTROL_TIMEOUT_MS);
 
 	data[0] = 0x5F;
 	data[1] = 0x0D;
 	retval = control_write(dev, REQUEST_WRITE, 0, MAC_REG_CTRL, data, 0x02,
-			       CONTROL_TIMEOUT_MS);
+						   CONTROL_TIMEOUT_MS);
 
 	retval = get_mac_address(dev, dev->net->dev_addr);
 
 	return retval;
 }
 
-static const struct driver_info ch9200_info = {
+static const struct driver_info ch9200_info =
+{
 	.description = "CH9200 USB to Network Adaptor",
 	.flags = FLAG_ETHER,
 	.bind = ch9200_bind,
@@ -406,17 +452,19 @@ static const struct driver_info ch9200_info = {
 	.reset = ch9200_link_reset,
 };
 
-static const struct usb_device_id ch9200_products[] = {
+static const struct usb_device_id ch9200_products[] =
+{
 	{
-	 USB_DEVICE(0x1A86, 0xE092),
-	 .driver_info = (unsigned long)&ch9200_info,
-	 },
+		USB_DEVICE(0x1A86, 0xE092),
+		.driver_info = (unsigned long) &ch9200_info,
+	},
 	{},
 };
 
 MODULE_DEVICE_TABLE(usb, ch9200_products);
 
-static struct usb_driver ch9200_driver = {
+static struct usb_driver ch9200_driver =
+{
 	.name = "ch9200",
 	.id_table = ch9200_products,
 	.probe = usbnet_probe,

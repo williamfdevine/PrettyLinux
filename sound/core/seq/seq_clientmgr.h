@@ -30,26 +30,29 @@
 
 /* client manager */
 
-struct snd_seq_user_client {
+struct snd_seq_user_client
+{
 	struct file *file;	/* file struct of client */
 	/* ... */
 	struct pid *owner;
-	
+
 	/* fifo */
 	struct snd_seq_fifo *fifo;	/* queue for incoming events */
 	int fifo_pool_size;
 };
 
-struct snd_seq_kernel_client {
+struct snd_seq_kernel_client
+{
 	/* ... */
 	struct snd_card *card;
 };
 
 
-struct snd_seq_client {
+struct snd_seq_client
+{
 	snd_seq_client_type_t type;
 	unsigned int accept_input: 1,
-		accept_output: 1;
+			 accept_output: 1;
 	char name[64];		/* client name */
 	int number;		/* client number */
 	unsigned int filter;	/* filter flags */
@@ -66,14 +69,16 @@ struct snd_seq_client {
 	/* output pool */
 	struct snd_seq_pool *pool;		/* memory pool for this client */
 
-	union {
+	union
+	{
 		struct snd_seq_user_client user;
 		struct snd_seq_kernel_client kernel;
 	} data;
 };
 
 /* usage statistics */
-struct snd_seq_usage {
+struct snd_seq_usage
+{
 	int cur;
 	int peak;
 };
@@ -94,11 +99,11 @@ int snd_seq_dispatch_event(struct snd_seq_event_cell *cell, int atomic, int hop)
 
 /* exported to other modules */
 int snd_seq_kernel_client_enqueue(int client, struct snd_seq_event *ev, int atomic, int hop);
-int snd_seq_kernel_client_enqueue_blocking(int client, struct snd_seq_event * ev,
-					   struct file *file, int atomic, int hop);
+int snd_seq_kernel_client_enqueue_blocking(int client, struct snd_seq_event *ev,
+		struct file *file, int atomic, int hop);
 int snd_seq_kernel_client_write_poll(int clientid, struct file *file, poll_table *wait);
 int snd_seq_client_notify_subscription(int client, int port,
-				       struct snd_seq_port_subscribe *info, int evtype);
+									   struct snd_seq_port_subscribe *info, int evtype);
 
 extern int seq_client_load[15];
 

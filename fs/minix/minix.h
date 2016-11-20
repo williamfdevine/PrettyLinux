@@ -13,8 +13,10 @@
 /*
  * minix fs inode data in memory
  */
-struct minix_inode_info {
-	union {
+struct minix_inode_info
+{
+	union
+	{
 		__u16 i1_data[16];
 		__u32 i2_data[16];
 	} u;
@@ -24,7 +26,8 @@ struct minix_inode_info {
 /*
  * minix super-block data in memory
  */
-struct minix_sb_info {
+struct minix_sb_info
+{
 	unsigned long s_ninodes;
 	unsigned long s_nzones;
 	unsigned long s_imap_blocks;
@@ -34,21 +37,21 @@ struct minix_sb_info {
 	unsigned long s_max_size;
 	int s_dirsize;
 	int s_namelen;
-	struct buffer_head ** s_imap;
-	struct buffer_head ** s_zmap;
-	struct buffer_head * s_sbh;
-	struct minix_super_block * s_ms;
+	struct buffer_head **s_imap;
+	struct buffer_head **s_zmap;
+	struct buffer_head *s_sbh;
+	struct minix_super_block *s_ms;
 	unsigned short s_mount_state;
 	unsigned short s_version;
 };
 
 extern struct inode *minix_iget(struct super_block *, unsigned long);
-extern struct minix_inode * minix_V1_raw_inode(struct super_block *, ino_t, struct buffer_head **);
-extern struct minix2_inode * minix_V2_raw_inode(struct super_block *, ino_t, struct buffer_head **);
-extern struct inode * minix_new_inode(const struct inode *, umode_t, int *);
-extern void minix_free_inode(struct inode * inode);
+extern struct minix_inode *minix_V1_raw_inode(struct super_block *, ino_t, struct buffer_head **);
+extern struct minix2_inode *minix_V2_raw_inode(struct super_block *, ino_t, struct buffer_head **);
+extern struct inode *minix_new_inode(const struct inode *, umode_t, int *);
+extern void minix_free_inode(struct inode *inode);
 extern unsigned long minix_count_free_inodes(struct super_block *sb);
-extern int minix_new_block(struct inode * inode);
+extern int minix_new_block(struct inode *inode);
 extern void minix_free_block(struct inode *inode, unsigned long block);
 extern unsigned long minix_count_free_blocks(struct super_block *sb);
 extern int minix_getattr(struct vfsmount *, struct dentry *, struct kstat *);
@@ -63,14 +66,14 @@ extern int V2_minix_get_block(struct inode *, long, struct buffer_head *, int);
 extern unsigned V1_minix_blocks(loff_t, struct super_block *);
 extern unsigned V2_minix_blocks(loff_t, struct super_block *);
 
-extern struct minix_dir_entry *minix_find_entry(struct dentry*, struct page**);
-extern int minix_add_link(struct dentry*, struct inode*);
-extern int minix_delete_entry(struct minix_dir_entry*, struct page*);
-extern int minix_make_empty(struct inode*, struct inode*);
-extern int minix_empty_dir(struct inode*);
-extern void minix_set_link(struct minix_dir_entry*, struct page*, struct inode*);
-extern struct minix_dir_entry *minix_dotdot(struct inode*, struct page**);
-extern ino_t minix_inode_by_name(struct dentry*);
+extern struct minix_dir_entry *minix_find_entry(struct dentry *, struct page **);
+extern int minix_add_link(struct dentry *, struct inode *);
+extern int minix_delete_entry(struct minix_dir_entry *, struct page *);
+extern int minix_make_empty(struct inode *, struct inode *);
+extern int minix_empty_dir(struct inode *);
+extern void minix_set_link(struct minix_dir_entry *, struct page *, struct inode *);
+extern struct minix_dir_entry *minix_dotdot(struct inode *, struct page **);
+extern ino_t minix_inode_by_name(struct dentry *);
 
 extern const struct inode_operations minix_file_inode_operations;
 extern const struct inode_operations minix_dir_inode_operations;
@@ -127,12 +130,18 @@ static inline int minix_find_first_zero_bit(const void *vaddr, unsigned size)
 	unsigned short num;
 
 	if (!size)
+	{
 		return 0;
+	}
 
 	size >>= 4;
-	while (*p++ == 0xffff) {
+
+	while (*p++ == 0xffff)
+	{
 		if (--size == 0)
+		{
 			return (p - addr) << 4;
+		}
 	}
 
 	num = *--p;

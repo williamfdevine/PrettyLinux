@@ -50,7 +50,8 @@
  */
 
 /* command block wrapper */
-struct bulk_cb_wrap {
+struct bulk_cb_wrap
+{
 	__le32	Signature;		/* contains 'USBC' */
 	__u32	Tag;			/* unique per command id */
 	__le32	DataTransferLength;	/* size of data */
@@ -66,7 +67,8 @@ struct bulk_cb_wrap {
 #define US_BULK_FLAG_OUT	0
 
 /* command status wrapper */
-struct bulk_cs_wrap {
+struct bulk_cs_wrap
+{
 	__le32	Signature;	/* contains 'USBS' */
 	__u32	Tag;		/* same as original command */
 	__le32	Residue;	/* amount not transferred */

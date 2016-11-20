@@ -50,7 +50,8 @@
 #define  LPASS_INTR_UART		BIT(1)
 #define  LPASS_INTR_SFR			BIT(0)
 
-struct exynos_lpass {
+struct exynos_lpass
+{
 	/* pointer to the Power Management Unit regmap */
 	struct regmap *pmu;
 	/* pointer to the LPASS TOP regmap */
@@ -76,14 +77,14 @@ static void exynos_lpass_enable(struct exynos_lpass *lpass)
 {
 	/* Unmask SFR, DMA and I2S interrupt */
 	regmap_write(lpass->top, SFR_LPASS_INTR_CA5_MASK,
-		     LPASS_INTR_SFR | LPASS_INTR_DMA | LPASS_INTR_I2S);
+				 LPASS_INTR_SFR | LPASS_INTR_DMA | LPASS_INTR_I2S);
 
 	regmap_write(lpass->top, SFR_LPASS_INTR_CPU_MASK,
-		     LPASS_INTR_SFR | LPASS_INTR_DMA | LPASS_INTR_I2S);
+				 LPASS_INTR_SFR | LPASS_INTR_DMA | LPASS_INTR_I2S);
 
 	/* Activate related PADs from retention state */
 	regmap_write(lpass->pmu, EXYNOS5433_PAD_RETENTION_AUD_OPTION,
-		     EXYNOS5433_PAD_INITIATE_WAKEUP_FROM_LOWPWR);
+				 EXYNOS5433_PAD_INITIATE_WAKEUP_FROM_LOWPWR);
 
 	exynos_lpass_core_sw_reset(lpass, LPASS_I2S_SW_RESET);
 	exynos_lpass_core_sw_reset(lpass, LPASS_DMA_SW_RESET);
@@ -100,7 +101,8 @@ static void exynos_lpass_disable(struct exynos_lpass *lpass)
 	regmap_write(lpass->pmu, EXYNOS5433_PAD_RETENTION_AUD_OPTION, 0);
 }
 
-static const struct regmap_config exynos_lpass_reg_conf = {
+static const struct regmap_config exynos_lpass_reg_conf =
+{
 	.reg_bits	= 32,
 	.reg_stride	= 4,
 	.val_bits	= 32,
@@ -116,24 +118,34 @@ static int exynos_lpass_probe(struct platform_device *pdev)
 	struct resource *res;
 
 	lpass = devm_kzalloc(dev, sizeof(*lpass), GFP_KERNEL);
+
 	if (!lpass)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	base_top = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(base_top))
+	{
 		return PTR_ERR(base_top);
+	}
 
 	lpass->top = regmap_init_mmio(dev, base_top,
-					&exynos_lpass_reg_conf);
-	if (IS_ERR(lpass->top)) {
+								  &exynos_lpass_reg_conf);
+
+	if (IS_ERR(lpass->top))
+	{
 		dev_err(dev, "LPASS top regmap initialization failed\n");
 		return PTR_ERR(lpass->top);
 	}
 
 	lpass->pmu = syscon_regmap_lookup_by_phandle(dev->of_node,
-						"samsung,pmu-syscon");
-	if (IS_ERR(lpass->pmu)) {
+				 "samsung,pmu-syscon");
+
+	if (IS_ERR(lpass->pmu))
+	{
 		dev_err(dev, "Failed to lookup PMU regmap\n");
 		return PTR_ERR(lpass->pmu);
 	}
@@ -163,15 +175,17 @@ static int __maybe_unused exynos_lpass_resume(struct device *dev)
 }
 
 static SIMPLE_DEV_PM_OPS(lpass_pm_ops, exynos_lpass_suspend,
-					exynos_lpass_resume);
+						 exynos_lpass_resume);
 
-static const struct of_device_id exynos_lpass_of_match[] = {
+static const struct of_device_id exynos_lpass_of_match[] =
+{
 	{ .compatible = "samsung,exynos5433-lpass" },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, exynos_lpass_of_match);
 
-static struct platform_driver exynos_lpass_driver = {
+static struct platform_driver exynos_lpass_driver =
+{
 	.driver = {
 		.name		= "exynos-lpass",
 		.pm		= &lpass_pm_ops,

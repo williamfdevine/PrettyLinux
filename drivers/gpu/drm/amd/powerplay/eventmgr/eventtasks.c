@@ -39,7 +39,9 @@ int pem_task_update_allowed_performance_levels(struct pp_eventmgr *eventmgr, str
 {
 
 	if (pem_is_hw_access_blocked(eventmgr))
+	{
 		return 0;
+	}
 
 	phm_force_dpm_levels(eventmgr->hwmgr, AMD_DPM_FORCED_LEVEL_AUTO);
 
@@ -52,16 +54,25 @@ int pem_task_adjust_power_state(struct pp_eventmgr *eventmgr, struct pem_event_d
 	struct pp_hwmgr *hwmgr;
 
 	if (pem_is_hw_access_blocked(eventmgr))
+	{
 		return 0;
+	}
 
 	hwmgr = eventmgr->hwmgr;
+
 	if (event_data->pnew_power_state != NULL)
+	{
 		hwmgr->request_ps = event_data->pnew_power_state;
+	}
 
 	if (phm_cap_enabled(eventmgr->platform_descriptor->platformCaps, PHM_PlatformCaps_DynamicPatchPowerState))
+	{
 		psm_adjust_power_state_dynamic(eventmgr, event_data->skip_state_adjust_rules);
+	}
 	else
+	{
 		psm_adjust_power_state_static(eventmgr, event_data->skip_state_adjust_rules);
+	}
 
 	return 0;
 }
@@ -74,7 +85,9 @@ int pem_task_power_down_asic(struct pp_eventmgr *eventmgr, struct pem_event_data
 int pem_task_set_boot_state(struct pp_eventmgr *eventmgr, struct pem_event_data *event_data)
 {
 	if (pem_is_event_data_valid(event_data->valid_fields, PEM_EventDataValid_RequestedStateID))
+	{
 		return psm_set_states(eventmgr, &(event_data->requested_state_id));
+	}
 
 	return 0;
 }
@@ -113,14 +126,18 @@ int pem_task_get_boot_state_id(struct pp_eventmgr *eventmgr, struct pem_event_da
 	int result;
 
 	result = psm_get_state_by_classification(eventmgr,
-		PP_StateClassificationFlag_Boot,
-		&(event_data->requested_state_id)
-	);
+			 PP_StateClassificationFlag_Boot,
+			 &(event_data->requested_state_id)
+											);
 
 	if (0 == result)
+	{
 		pem_set_event_data_valid(event_data->valid_fields, PEM_EventDataValid_RequestedStateID);
+	}
 	else
+	{
 		pem_unset_event_data_valid(event_data->valid_fields, PEM_EventDataValid_RequestedStateID);
+	}
 
 	return result;
 }
@@ -181,7 +198,8 @@ int pem_task_cleanup_asic(struct pp_eventmgr *eventmgr, struct pem_event_data *e
 	return 0;
 }
 
-int pem_task_store_dal_configuration(struct pp_eventmgr *eventmgr, const struct amd_display_configuration *display_config)
+int pem_task_store_dal_configuration(struct pp_eventmgr *eventmgr,
+									 const struct amd_display_configuration *display_config)
 {
 	/* TODO */
 	return 0;
@@ -191,20 +209,26 @@ int pem_task_store_dal_configuration(struct pp_eventmgr *eventmgr, const struct 
 int pem_task_notify_hw_mgr_display_configuration_change(struct pp_eventmgr *eventmgr, struct pem_event_data *event_data)
 {
 	if (pem_is_hw_access_blocked(eventmgr))
+	{
 		return 0;
+	}
 
 	return phm_display_configuration_changed(eventmgr->hwmgr);
 }
 
-int pem_task_notify_hw_mgr_pre_display_configuration_change(struct pp_eventmgr *eventmgr, struct pem_event_data *event_data)
+int pem_task_notify_hw_mgr_pre_display_configuration_change(struct pp_eventmgr *eventmgr,
+		struct pem_event_data *event_data)
 {
 	return 0;
 }
 
-int pem_task_notify_smc_display_config_after_power_state_adjustment(struct pp_eventmgr *eventmgr, struct pem_event_data *event_data)
+int pem_task_notify_smc_display_config_after_power_state_adjustment(struct pp_eventmgr *eventmgr,
+		struct pem_event_data *event_data)
 {
 	if (pem_is_hw_access_blocked(eventmgr))
+	{
 		return 0;
+	}
 
 	return phm_notify_smc_display_config_after_ps_adjustment(eventmgr->hwmgr);
 }
@@ -343,7 +367,9 @@ int pem_task_disable_gfx_clock_gating(struct pp_eventmgr *eventmgr, struct pem_e
 int pem_task_set_performance_state(struct pp_eventmgr *eventmgr, struct pem_event_data *event_data)
 {
 	if (pem_is_event_data_valid(event_data->valid_fields, PEM_EventDataValid_RequestedStateID))
+	{
 		return psm_set_states(eventmgr, &(event_data->requested_state_id));
+	}
 
 	return 0;
 }
@@ -366,21 +392,25 @@ int pem_task_get_2D_performance_state_id(struct pp_eventmgr *eventmgr, struct pe
 
 	if (eventmgr->features[PP_Feature_PowerPlay].supported &&
 		!(eventmgr->features[PP_Feature_PowerPlay].enabled))
-			result = psm_get_state_by_classification(eventmgr,
-					PP_StateClassificationFlag_Boot,
-					&(event_data->requested_state_id));
+		result = psm_get_state_by_classification(eventmgr,
+				 PP_StateClassificationFlag_Boot,
+				 &(event_data->requested_state_id));
 	else if (eventmgr->features[PP_Feature_User2DPerformance].enabled)
-			result = psm_get_state_by_classification(eventmgr,
-				   PP_StateClassificationFlag_User2DPerformance,
-					&(event_data->requested_state_id));
+		result = psm_get_state_by_classification(eventmgr,
+				 PP_StateClassificationFlag_User2DPerformance,
+				 &(event_data->requested_state_id));
 	else
 		result = psm_get_ui_state(eventmgr, PP_StateUILabel_Performance,
-					&(event_data->requested_state_id));
+								  &(event_data->requested_state_id));
 
 	if (0 == result)
+	{
 		pem_set_event_data_valid(event_data->valid_fields, PEM_EventDataValid_RequestedStateID);
+	}
 	else
+	{
 		pem_unset_event_data_valid(event_data->valid_fields, PEM_EventDataValid_RequestedStateID);
+	}
 
 	return result;
 }
@@ -396,22 +426,29 @@ int pem_task_create_user_performance_state(struct pp_eventmgr *eventmgr, struct 
 	state = hwmgr->ps;
 
 restart_search:
-	for (i = 0; i < table_entries; i++) {
-		if (state->classification.ui_label & event_data->requested_ui_label) {
+
+	for (i = 0; i < table_entries; i++)
+	{
+		if (state->classification.ui_label & event_data->requested_ui_label)
+		{
 			event_data->pnew_power_state = state;
 			return 0;
 		}
+
 		state = (struct pp_power_state *)((unsigned long)state + hwmgr->ps_size);
 	}
 
-	switch (event_data->requested_ui_label) {
-	case PP_StateUILabel_Battery:
-	case PP_StateUILabel_Balanced:
-		event_data->requested_ui_label = PP_StateUILabel_Performance;
-		goto restart_search;
-	default:
-		break;
+	switch (event_data->requested_ui_label)
+	{
+		case PP_StateUILabel_Battery:
+		case PP_StateUILabel_Balanced:
+			event_data->requested_ui_label = PP_StateUILabel_Performance;
+			goto restart_search;
+
+		default:
+			break;
 	}
+
 	return -1;
 }
 
@@ -423,10 +460,14 @@ int pem_task_initialize_thermal_controller(struct pp_eventmgr *eventmgr, struct 
 	range.min = TEMP_RANGE_MIN;
 
 	if (eventmgr == NULL || eventmgr->platform_descriptor == NULL)
+	{
 		return -EINVAL;
+	}
 
 	if (phm_cap_enabled(eventmgr->platform_descriptor->platformCaps, PHM_PlatformCaps_ThermalController))
+	{
 		return phm_start_thermal_controller(eventmgr->hwmgr, &range);
+	}
 
 	return 0;
 }

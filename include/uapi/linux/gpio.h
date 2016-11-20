@@ -20,7 +20,8 @@
  * number, may be NULL
  * @lines: number of GPIO lines on this chip
  */
-struct gpiochip_info {
+struct gpiochip_info
+{
 	char name[32];
 	char label[32];
 	__u32 lines;
@@ -45,7 +46,8 @@ struct gpiochip_info {
  * whatever is using it, will be NULL if there is no current user but may
  * also be NULL if the consumer doesn't set this up
  */
-struct gpioline_info {
+struct gpioline_info
+{
 	__u32 line_offset;
 	__u32 flags;
 	char name[32];
@@ -84,7 +86,8 @@ struct gpioline_info {
  * after a GPIO_GET_LINEHANDLE_IOCTL operation, zero or negative value
  * means error
  */
-struct gpiohandle_request {
+struct gpiohandle_request
+{
 	__u32 lineoffsets[GPIOHANDLES_MAX];
 	__u32 flags;
 	__u8 default_values[GPIOHANDLES_MAX];
@@ -99,7 +102,8 @@ struct gpiohandle_request {
  * state of a line, when setting the state of lines these should contain
  * the desired target state
  */
-struct gpiohandle_data {
+struct gpiohandle_data
+{
 	__u8 values[GPIOHANDLES_MAX];
 };
 
@@ -125,7 +129,8 @@ struct gpiohandle_data {
  * after a GPIO_GET_LINEEVENT_IOCTL operation, zero or negative value
  * means error
  */
-struct gpioevent_request {
+struct gpioevent_request
+{
 	__u32 lineoffset;
 	__u32 handleflags;
 	__u32 eventflags;
@@ -144,7 +149,8 @@ struct gpioevent_request {
  * @timestamp: best estimate of time of event occurrence, in nanoseconds
  * @id: event identifier
  */
-struct gpioevent_data {
+struct gpioevent_data
+{
 	__u64 timestamp;
 	__u32 id;
 };

@@ -17,7 +17,8 @@
 #ifndef INITVALS_9003_BUFFALO_H
 #define INITVALS_9003_BUFFALO_H
 
-static const u32 ar9300Modes_high_power_tx_gain_table_buffalo[][5] = {
+static const u32 ar9300Modes_high_power_tx_gain_table_buffalo[][5] =
+{
 	/* Addr      5G_HT20     5G_HT40     2G_HT40     2G_HT20   */
 	{0x0000a2dc, 0x0380c7fc, 0x0380c7fc, 0x03aaa352, 0x03aaa352},
 	{0x0000a2e0, 0x0000f800, 0x0000f800, 0x03ccc584, 0x03ccc584},

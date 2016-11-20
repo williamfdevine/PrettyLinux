@@ -18,7 +18,7 @@
 #include "aes_gmac.h"
 
 int ieee80211_aes_gmac(struct crypto_aead *tfm, const u8 *aad, u8 *nonce,
-		       const u8 *data, size_t data_len, u8 *mic)
+					   const u8 *data, size_t data_len, u8 *mic)
 {
 	struct scatterlist sg[4];
 	u8 *zero, *__aad, iv[AES_BLOCK_SIZE];
@@ -26,11 +26,16 @@ int ieee80211_aes_gmac(struct crypto_aead *tfm, const u8 *aad, u8 *nonce,
 	int reqsize = sizeof(*aead_req) + crypto_aead_reqsize(tfm);
 
 	if (data_len < GMAC_MIC_LEN)
+	{
 		return -EINVAL;
+	}
 
 	aead_req = kzalloc(reqsize + GMAC_MIC_LEN + GMAC_AAD_LEN, GFP_ATOMIC);
+
 	if (!aead_req)
+	{
 		return -ENOMEM;
+	}
 
 	zero = (u8 *)aead_req + reqsize;
 	__aad = zero + GMAC_MIC_LEN;
@@ -57,20 +62,29 @@ int ieee80211_aes_gmac(struct crypto_aead *tfm, const u8 *aad, u8 *nonce,
 }
 
 struct crypto_aead *ieee80211_aes_gmac_key_setup(const u8 key[],
-						 size_t key_len)
+		size_t key_len)
 {
 	struct crypto_aead *tfm;
 	int err;
 
 	tfm = crypto_alloc_aead("gcm(aes)", 0, CRYPTO_ALG_ASYNC);
+
 	if (IS_ERR(tfm))
+	{
 		return tfm;
+	}
 
 	err = crypto_aead_setkey(tfm, key, key_len);
+
 	if (!err)
+	{
 		err = crypto_aead_setauthsize(tfm, GMAC_MIC_LEN);
+	}
+
 	if (!err)
+	{
 		return tfm;
+	}
 
 	crypto_free_aead(tfm);
 	return ERR_PTR(err);

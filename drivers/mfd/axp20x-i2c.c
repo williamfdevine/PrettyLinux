@@ -26,25 +26,33 @@
 #include <linux/slab.h>
 
 static int axp20x_i2c_probe(struct i2c_client *i2c,
-			    const struct i2c_device_id *id)
+							const struct i2c_device_id *id)
 {
 	struct axp20x_dev *axp20x;
 	int ret;
 
 	axp20x = devm_kzalloc(&i2c->dev, sizeof(*axp20x), GFP_KERNEL);
+
 	if (!axp20x)
+	{
 		return -ENOMEM;
+	}
 
 	axp20x->dev = &i2c->dev;
 	axp20x->irq = i2c->irq;
 	dev_set_drvdata(axp20x->dev, axp20x);
 
 	ret = axp20x_match_device(axp20x);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	axp20x->regmap = devm_regmap_init_i2c(i2c, axp20x->regmap_cfg);
-	if (IS_ERR(axp20x->regmap)) {
+
+	if (IS_ERR(axp20x->regmap))
+	{
 		ret = PTR_ERR(axp20x->regmap);
 		dev_err(&i2c->dev, "regmap init failed: %d\n", ret);
 		return ret;
@@ -60,7 +68,8 @@ static int axp20x_i2c_remove(struct i2c_client *i2c)
 	return axp20x_device_remove(axp20x);
 }
 
-static const struct of_device_id axp20x_i2c_of_match[] = {
+static const struct of_device_id axp20x_i2c_of_match[] =
+{
 	{ .compatible = "x-powers,axp152", .data = (void *)AXP152_ID },
 	{ .compatible = "x-powers,axp202", .data = (void *)AXP202_ID },
 	{ .compatible = "x-powers,axp209", .data = (void *)AXP209_ID },
@@ -72,12 +81,14 @@ MODULE_DEVICE_TABLE(of, axp20x_i2c_of_match);
 /*
  * This is useless for OF-enabled devices, but it is needed by I2C subsystem
  */
-static const struct i2c_device_id axp20x_i2c_id[] = {
+static const struct i2c_device_id axp20x_i2c_id[] =
+{
 	{ },
 };
 MODULE_DEVICE_TABLE(i2c, axp20x_i2c_id);
 
-static const struct acpi_device_id axp20x_i2c_acpi_match[] = {
+static const struct acpi_device_id axp20x_i2c_acpi_match[] =
+{
 	{
 		.id = "INT33F4",
 		.driver_data = AXP288_ID,
@@ -86,7 +97,8 @@ static const struct acpi_device_id axp20x_i2c_acpi_match[] = {
 };
 MODULE_DEVICE_TABLE(acpi, axp20x_i2c_acpi_match);
 
-static struct i2c_driver axp20x_i2c_driver = {
+static struct i2c_driver axp20x_i2c_driver =
+{
 	.driver = {
 		.name	= "axp20x-i2c",
 		.of_match_table	= of_match_ptr(axp20x_i2c_of_match),

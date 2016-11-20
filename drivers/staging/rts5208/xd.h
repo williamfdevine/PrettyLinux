@@ -112,10 +112,10 @@
 #define	XD_ERASE_ADDR			0x02
 
 #define	XD_PAGE_512(xd_card)		\
-do {					\
-	(xd_card)->block_shift = 5;	\
-	(xd_card)->page_off = 0x1F;	\
-} while (0)
+	do {					\
+		(xd_card)->block_shift = 5;	\
+		(xd_card)->page_off = 0x1F;	\
+	} while (0)
 
 #define	XD_SET_BAD_NEWBLK(xd_card)	((xd_card)->multi_flag |= 0x01)
 #define	XD_CLR_BAD_NEWBLK(xd_card)	((xd_card)->multi_flag &= ~0x01)
@@ -176,10 +176,10 @@ do {					\
 
 int reset_xd_card(struct rtsx_chip *chip);
 #ifdef XD_DELAY_WRITE
-int xd_delay_write(struct rtsx_chip *chip);
+	int xd_delay_write(struct rtsx_chip *chip);
 #endif
 int xd_rw(struct scsi_cmnd *srb, struct rtsx_chip *chip,
-	u32 start_sector, u16 sector_cnt);
+		  u32 start_sector, u16 sector_cnt);
 void xd_free_l2p_tbl(struct rtsx_chip *chip);
 void xd_cleanup_work(struct rtsx_chip *chip);
 int xd_power_off_card3v3(struct rtsx_chip *chip);

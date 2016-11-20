@@ -92,7 +92,8 @@
 
 #define START_DELAY		1
 
-struct atmel_ssc_state {
+struct atmel_ssc_state
+{
 	u32 ssc_cmr;
 	u32 ssc_rcmr;
 	u32 ssc_rfmr;
@@ -103,7 +104,8 @@ struct atmel_ssc_state {
 };
 
 
-struct atmel_ssc_info {
+struct atmel_ssc_info
+{
 	char *name;
 	struct ssc_device *ssc;
 	spinlock_t lock;	/* lock for dir_mask */

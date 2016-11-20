@@ -41,7 +41,7 @@ MODULE_AUTHOR("Zhao Qiang<B45475@freescale.com>");
  * w/r|A13|A12|A11|A10|A9|A8|A7|A6|A5|A4|A3|A2|A1|A0|x
  */
 static void slic_write(struct spi_device *spi, u16 addr,
-		       u8 data)
+					   u8 data)
 {
 	u8 temp[3];
 
@@ -65,7 +65,7 @@ static u8 slic_read(struct spi_device *spi, u16 addr)
 	temp[1] = (u8)(addr & 0xfe);
 
 	spi_write_then_read(spi, &temp[0], SLIC_TWO_LEN, &data,
-			    SLIC_TRANS_LEN);
+						SLIC_TRANS_LEN);
 
 	data = bitrev8(data);
 	return data;
@@ -76,10 +76,15 @@ static bool get_slic_product_code(struct spi_device *spi)
 	u8 device_id;
 
 	device_id = slic_read(spi, DS26522_IDR_ADDR);
+
 	if ((device_id & 0xf8) == 0x68)
+	{
 		return true;
+	}
 	else
+	{
 		return false;
+	}
 }
 
 static void ds26522_e1_spec_config(struct spi_device *spi)
@@ -92,26 +97,26 @@ static void ds26522_e1_spec_config(struct spi_device *spi)
 
 	/* Receive E1 Mode Framer Enable */
 	slic_write(spi, DS26522_RMMR_ADDR,
-		   slic_read(spi, DS26522_RMMR_ADDR) | DS26522_RMMR_FRM_EN);
+			   slic_read(spi, DS26522_RMMR_ADDR) | DS26522_RMMR_FRM_EN);
 
 	/* Transmit E1 Mode Framer Enable */
 	slic_write(spi, DS26522_TMMR_ADDR,
-		   slic_read(spi, DS26522_TMMR_ADDR) | DS26522_TMMR_FRM_EN);
+			   slic_read(spi, DS26522_TMMR_ADDR) | DS26522_TMMR_FRM_EN);
 
 	/* RCR1, receive E1 B8zs & ESF */
 	slic_write(spi, DS26522_RCR1_ADDR,
-		   DS26522_RCR1_E1_HDB3 | DS26522_RCR1_E1_CCS);
+			   DS26522_RCR1_E1_HDB3 | DS26522_RCR1_E1_CCS);
 
 	/* RSYSCLK=2.048MHz, RSYNC-Output */
 	slic_write(spi, DS26522_RIOCR_ADDR,
-		   DS26522_RIOCR_2048KHZ | DS26522_RIOCR_RSIO_OUT);
+			   DS26522_RIOCR_2048KHZ | DS26522_RIOCR_RSIO_OUT);
 
 	/* TCR1 Transmit E1 b8zs */
 	slic_write(spi, DS26522_TCR1_ADDR, DS26522_TCR1_TB8ZS);
 
 	/* TSYSCLK=2.048MHz, TSYNC-Output */
 	slic_write(spi, DS26522_TIOCR_ADDR,
-		   DS26522_TIOCR_2048KHZ | DS26522_TIOCR_TSIO_OUT);
+			   DS26522_TIOCR_2048KHZ | DS26522_TIOCR_TSIO_OUT);
 
 	/* Set E1TAF */
 	slic_write(spi, DS26522_E1TAF_ADDR, DS26522_E1TAF_DEFAULT);
@@ -121,22 +126,22 @@ static void ds26522_e1_spec_config(struct spi_device *spi)
 
 	/* Receive E1 Mode Framer Enable & init Done */
 	slic_write(spi, DS26522_RMMR_ADDR, slic_read(spi, DS26522_RMMR_ADDR) |
-		   DS26522_RMMR_INIT_DONE);
+			   DS26522_RMMR_INIT_DONE);
 
 	/* Transmit E1 Mode Framer Enable & init Done */
 	slic_write(spi, DS26522_TMMR_ADDR, slic_read(spi, DS26522_TMMR_ADDR) |
-		   DS26522_TMMR_INIT_DONE);
+			   DS26522_TMMR_INIT_DONE);
 
 	/* Configure LIU E1 mode */
 	slic_write(spi, DS26522_LTRCR_ADDR, DS26522_LTRCR_E1);
 
 	/* E1 Mode default 75 ohm w/Transmit Impedance Matlinking */
 	slic_write(spi, DS26522_LTITSR_ADDR,
-		   DS26522_LTITSR_TLIS_75OHM | DS26522_LTITSR_LBOS_75OHM);
+			   DS26522_LTITSR_TLIS_75OHM | DS26522_LTITSR_LBOS_75OHM);
 
 	/* E1 Mode default 75 ohm Long Haul w/Receive Impedance Matlinking */
 	slic_write(spi, DS26522_LRISMR_ADDR,
-		   DS26522_LRISMR_75OHM | DS26522_LRISMR_MAX);
+			   DS26522_LRISMR_75OHM | DS26522_LRISMR_MAX);
 
 	/* Enable Transmit output */
 	slic_write(spi, DS26522_LMCR_ADDR, DS26522_LMCR_TE);
@@ -148,8 +153,8 @@ static int slic_ds26522_init_configure(struct spi_device *spi)
 
 	/* set clock */
 	slic_write(spi, DS26522_GTCCR_ADDR, DS26522_GTCCR_BPREFSEL_REFCLKIN |
-			DS26522_GTCCR_BFREQSEL_2048KHZ |
-			DS26522_GTCCR_FREQSEL_2048KHZ);
+			   DS26522_GTCCR_BFREQSEL_2048KHZ |
+			   DS26522_GTCCR_FREQSEL_2048KHZ);
 	slic_write(spi, DS26522_GTCR2_ADDR, DS26522_GTCR2_TSSYNCOUT);
 	slic_write(spi, DS26522_GFCR_ADDR, DS26522_GFCR_BPCLK_2048KHZ);
 
@@ -177,20 +182,28 @@ static int slic_ds26522_init_configure(struct spi_device *spi)
 
 	/* Zero all Framer Registers */
 	for (addr = DS26522_RF_ADDR_START; addr <= DS26522_RF_ADDR_END;
-	     addr++)
+		 addr++)
+	{
 		slic_write(spi, addr, 0);
+	}
 
 	for (addr = DS26522_TF_ADDR_START; addr <= DS26522_TF_ADDR_END;
-	     addr++)
+		 addr++)
+	{
 		slic_write(spi, addr, 0);
+	}
 
 	for (addr = DS26522_LIU_ADDR_START; addr <= DS26522_LIU_ADDR_END;
-	     addr++)
+		 addr++)
+	{
 		slic_write(spi, addr, 0);
+	}
 
 	for (addr = DS26522_BERT_ADDR_START; addr <= DS26522_BERT_ADDR_END;
-	     addr++)
+		 addr++)
+	{
 		slic_write(spi, addr, 0);
+	}
 
 	/* setup ds26522 for E1 specification */
 	ds26522_e1_spec_config(spi);
@@ -214,36 +227,44 @@ static int slic_ds26522_probe(struct spi_device *spi)
 	spi->bits_per_word = 8;
 
 	if (!get_slic_product_code(spi))
+	{
 		return ret;
+	}
 
 	ret = slic_ds26522_init_configure(spi);
+
 	if (ret == 0)
+	{
 		pr_info("DS26522 cs%d configurated\n", spi->chip_select);
+	}
 
 	return ret;
 }
 
-static const struct spi_device_id slic_ds26522_id[] = {
+static const struct spi_device_id slic_ds26522_id[] =
+{
 	{ .name = "ds26522" },
 	{ /* sentinel */ },
 };
 MODULE_DEVICE_TABLE(spi, slic_ds26522_id);
 
-static const struct of_device_id slic_ds26522_match[] = {
+static const struct of_device_id slic_ds26522_match[] =
+{
 	{
-	 .compatible = "maxim,ds26522",
-	 },
+		.compatible = "maxim,ds26522",
+	},
 	{},
 };
 MODULE_DEVICE_TABLE(of, slic_ds26522_match);
 
-static struct spi_driver slic_ds26522_driver = {
+static struct spi_driver slic_ds26522_driver =
+{
 	.driver = {
-		   .name = "ds26522",
-		   .bus = &spi_bus_type,
-		   .owner = THIS_MODULE,
-		   .of_match_table = slic_ds26522_match,
-		   },
+		.name = "ds26522",
+		.bus = &spi_bus_type,
+		.owner = THIS_MODULE,
+		.of_match_table = slic_ds26522_match,
+	},
 	.probe = slic_ds26522_probe,
 	.remove = slic_ds26522_remove,
 	.id_table = slic_ds26522_id,

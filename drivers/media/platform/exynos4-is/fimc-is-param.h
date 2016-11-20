@@ -40,7 +40,8 @@
 #define FIMC_IS_PARAM_MAX_ENTRIES	(FIMC_IS_PARAM_MAX_SIZE / 4)
 
 /* The parameter bitmask bit definitions. */
-enum is_param_bit {
+enum is_param_bit
+{
 	PARAM_GLOBAL_SHOTMODE,
 	PARAM_SENSOR_CONTROL,
 	PARAM_SENSOR_OTF_OUTPUT,
@@ -124,7 +125,8 @@ enum is_param_bit {
 #define OTF_INPUT_COMMAND_ENABLE		1
 
 /* OTF input interface color formats */
-enum oft_input_fmt {
+enum oft_input_fmt
+{
 	OTF_INPUT_FORMAT_BAYER			= 0, /* 1 channel */
 	OTF_INPUT_FORMAT_YUV444			= 1, /* 3 channels */
 	OTF_INPUT_FORMAT_YUV422			= 2, /* 3 channels */
@@ -143,14 +145,16 @@ enum oft_input_fmt {
 #define DMA_INPUT_COMMAND_ENABLE		1
 
 /* DMA input color formats */
-enum dma_input_fmt {
+enum dma_input_fmt
+{
 	DMA_INPUT_FORMAT_BAYER			= 0,
 	DMA_INPUT_FORMAT_YUV444			= 1,
 	DMA_INPUT_FORMAT_YUV422			= 2,
 	DMA_INPUT_FORMAT_YUV420			= 3,
 };
 
-enum dma_input_order {
+enum dma_input_order
+{
 	/* (for DMA_INPUT_PLANE_3) */
 	DMA_INPUT_ORDER_NO	= 0,
 	/* (only valid at DMA_INPUT_PLANE_2) */
@@ -184,7 +188,8 @@ enum dma_input_order {
 #define OTF_OUTPUT_COMMAND_DISABLE		0
 #define OTF_OUTPUT_COMMAND_ENABLE		1
 
-enum otf_output_fmt {
+enum otf_output_fmt
+{
 	OTF_OUTPUT_FORMAT_YUV444		= 1,
 	OTF_OUTPUT_FORMAT_YUV422		= 2,
 	OTF_OUTPUT_FORMAT_YUV420		= 3,
@@ -198,7 +203,8 @@ enum otf_output_fmt {
 #define DMA_OUTPUT_COMMAND_DISABLE		0
 #define DMA_OUTPUT_COMMAND_ENABLE		1
 
-enum dma_output_fmt {
+enum dma_output_fmt
+{
 	DMA_OUTPUT_FORMAT_BAYER			= 0,
 	DMA_OUTPUT_FORMAT_YUV444		= 1,
 	DMA_OUTPUT_FORMAT_YUV422		= 2,
@@ -206,7 +212,8 @@ enum dma_output_fmt {
 	DMA_OUTPUT_FORMAT_RGB			= 4,
 };
 
-enum dma_output_order {
+enum dma_output_order
+{
 	DMA_OUTPUT_ORDER_NO		= 0,
 	/* for DMA_OUTPUT_PLANE_3 */
 	DMA_OUTPUT_ORDER_CBCR		= 1,
@@ -238,7 +245,7 @@ enum dma_output_order {
 	DMA_OUTPUT_ORDER_BGR		= 14,
 	/* only valid at DMA_OUTPUT_FORMAT_RGB */
 	DMA_OUTPUT_ORDER_GB_BG		= 15
-	/* only valid at DMA_OUTPUT_FORMAT_BAYER */
+								  /* only valid at DMA_OUTPUT_FORMAT_BAYER */
 };
 
 /* enum dma_output_notify_dma_done */
@@ -261,7 +268,8 @@ enum dma_output_order {
 #define ISP_AA_TARGET_AE			2
 #define ISP_AA_TARGET_AWB			4
 
-enum isp_af_mode {
+enum isp_af_mode
+{
 	ISP_AF_MODE_MANUAL			= 0,
 	ISP_AF_MODE_SINGLE			= 1,
 	ISP_AF_MODE_CONTINUOUS			= 2,
@@ -306,13 +314,15 @@ enum isp_af_mode {
 #define ISP_FLASH_ERROR_NONE			0 /* Flash setting is done */
 
 /* --------------------------  AWB  ------------------------------------ */
-enum isp_awb_command {
+enum isp_awb_command
+{
 	ISP_AWB_COMMAND_AUTO			= 0,
 	ISP_AWB_COMMAND_ILLUMINATION		= 1,
 	ISP_AWB_COMMAND_MANUAL			= 2
 };
 
-enum isp_awb_illumination {
+enum isp_awb_illumination
+{
 	ISP_AWB_ILLUMINATION_DAYLIGHT		= 0,
 	ISP_AWB_ILLUMINATION_CLOUDY		= 1,
 	ISP_AWB_ILLUMINATION_TUNGSTEN		= 2,
@@ -323,7 +333,8 @@ enum isp_awb_illumination {
 #define ISP_AWB_ERROR_NONE			0 /* AWB setting is done */
 
 /* --------------------------  Effect  ----------------------------------- */
-enum isp_imageeffect_command {
+enum isp_imageeffect_command
+{
 	ISP_IMAGE_EFFECT_DISABLE		= 0,
 	ISP_IMAGE_EFFECT_MONOCHROME		= 1,
 	ISP_IMAGE_EFFECT_NEGATIVE_MONO		= 2,
@@ -357,7 +368,8 @@ enum isp_imageeffect_command {
 /*
  *  Exposure metering
  */
-enum isp_metering_command {
+enum isp_metering_command
+{
 	ISP_METERING_COMMAND_AVERAGE	= 0,
 	ISP_METERING_COMMAND_SPOT	= 1,
 	ISP_METERING_COMMAND_MATRIX	= 2,
@@ -370,7 +382,8 @@ enum isp_metering_command {
 /*
  * AFC
  */
-enum isp_afc_command {
+enum isp_afc_command
+{
 	ISP_AFC_COMMAND_DISABLE		= 0,
 	ISP_AFC_COMMAND_AUTO		= 1,
 	ISP_AFC_COMMAND_MANUAL		= 2,
@@ -380,7 +393,8 @@ enum isp_afc_command {
 #define ISP_AFC_MANUAL_60HZ		60
 
 /* ------------------------  SCENE MODE--------------------------------- */
-enum isp_scene_mode {
+enum isp_scene_mode
+{
 	ISP_SCENE_NONE			= 0,
 	ISP_SCENE_PORTRAIT		= 1,
 	ISP_SCENE_LANDSCAPE		= 2,
@@ -402,7 +416,8 @@ enum isp_scene_mode {
 #define ISP_AFC_ERROR_NONE		0 /* AFC setting is done */
 
 /* ----------------------------  FD  ------------------------------------- */
-enum fd_config_command {
+enum fd_config_command
+{
 	FD_CONFIG_COMMAND_MAXIMUM_NUMBER	= 0x1,
 	FD_CONFIG_COMMAND_ROLL_ANGLE		= 0x2,
 	FD_CONFIG_COMMAND_YAW_ANGLE		= 0x4,
@@ -414,7 +429,8 @@ enum fd_config_command {
 	FD_CONFIG_COMMAND_ORIENTATION_VALUE	= 0x100
 };
 
-enum fd_config_roll_angle {
+enum fd_config_roll_angle
+{
 	FD_CONFIG_ROLL_ANGLE_BASIC		= 0,
 	FD_CONFIG_ROLL_ANGLE_PRECISE_BASIC	= 1,
 	FD_CONFIG_ROLL_ANGLE_SIDES		= 2,
@@ -423,7 +439,8 @@ enum fd_config_roll_angle {
 	FD_CONFIG_ROLL_ANGLE_PRECISE_FULL	= 5,
 };
 
-enum fd_config_yaw_angle {
+enum fd_config_yaw_angle
+{
 	FD_CONFIG_YAW_ANGLE_0			= 0,
 	FD_CONFIG_YAW_ANGLE_45			= 1,
 	FD_CONFIG_YAW_ANGLE_90			= 2,
@@ -449,7 +466,8 @@ enum fd_config_yaw_angle {
 #define FD_CONFIG_ORIENTATION_DISABLE		0
 #define FD_CONFIG_ORIENTATION_ENABLE		1
 
-struct param_control {
+struct param_control
+{
 	u32 cmd;
 	u32 bypass;
 	u32 buffer_address;
@@ -459,7 +477,8 @@ struct param_control {
 	u32 err;
 };
 
-struct param_otf_input {
+struct param_otf_input
+{
 	u32 cmd;
 	u32 width;
 	u32 height;
@@ -476,7 +495,8 @@ struct param_otf_input {
 	u32 err;
 };
 
-struct param_dma_input {
+struct param_dma_input
+{
 	u32 cmd;
 	u32 width;
 	u32 height;
@@ -490,7 +510,8 @@ struct param_dma_input {
 	u32 err;
 };
 
-struct param_otf_output {
+struct param_otf_output
+{
 	u32 cmd;
 	u32 width;
 	u32 height;
@@ -501,7 +522,8 @@ struct param_otf_output {
 	u32 err;
 };
 
-struct param_dma_output {
+struct param_dma_output
+{
 	u32 cmd;
 	u32 width;
 	u32 height;
@@ -517,20 +539,23 @@ struct param_dma_output {
 	u32 err;
 };
 
-struct param_global_shotmode {
+struct param_global_shotmode
+{
 	u32 cmd;
 	u32 skip_frames;
 	u32 reserved[FIMC_IS_PARAM_MAX_ENTRIES - 3];
 	u32 err;
 };
 
-struct param_sensor_framerate {
+struct param_sensor_framerate
+{
 	u32 frame_rate;
 	u32 reserved[FIMC_IS_PARAM_MAX_ENTRIES - 2];
 	u32 err;
 };
 
-struct param_isp_aa {
+struct param_isp_aa
+{
 	u32 cmd;
 	u32 target;
 	u32 mode;
@@ -544,34 +569,39 @@ struct param_isp_aa {
 	u32 err;
 };
 
-struct param_isp_flash {
+struct param_isp_flash
+{
 	u32 cmd;
 	u32 redeye;
 	u32 reserved[FIMC_IS_PARAM_MAX_ENTRIES - 3];
 	u32 err;
 };
 
-struct param_isp_awb {
+struct param_isp_awb
+{
 	u32 cmd;
 	u32 illumination;
 	u32 reserved[FIMC_IS_PARAM_MAX_ENTRIES - 3];
 	u32 err;
 };
 
-struct param_isp_imageeffect {
+struct param_isp_imageeffect
+{
 	u32 cmd;
 	u32 reserved[FIMC_IS_PARAM_MAX_ENTRIES - 2];
 	u32 err;
 };
 
-struct param_isp_iso {
+struct param_isp_iso
+{
 	u32 cmd;
 	u32 value;
 	u32 reserved[FIMC_IS_PARAM_MAX_ENTRIES - 3];
 	u32 err;
 };
 
-struct param_isp_adjust {
+struct param_isp_adjust
+{
 	u32 cmd;
 	s32 contrast;
 	s32 saturation;
@@ -583,7 +613,8 @@ struct param_isp_adjust {
 	u32 err;
 };
 
-struct param_isp_metering {
+struct param_isp_metering
+{
 	u32 cmd;
 	u32 win_pos_x;
 	u32 win_pos_y;
@@ -593,14 +624,16 @@ struct param_isp_metering {
 	u32 err;
 };
 
-struct param_isp_afc {
+struct param_isp_afc
+{
 	u32 cmd;
 	u32 manual;
 	u32 reserved[FIMC_IS_PARAM_MAX_ENTRIES - 3];
 	u32 err;
 };
 
-struct param_scaler_imageeffect {
+struct param_scaler_imageeffect
+{
 	u32 cmd;
 	u32 arbitrary_cb;
 	u32 arbitrary_cr;
@@ -608,7 +641,8 @@ struct param_scaler_imageeffect {
 	u32 err;
 };
 
-struct param_scaler_input_crop {
+struct param_scaler_input_crop
+{
 	u32 cmd;
 	u32 crop_offset_x;
 	u32 crop_offset_y;
@@ -622,7 +656,8 @@ struct param_scaler_input_crop {
 	u32 err;
 };
 
-struct param_scaler_output_crop {
+struct param_scaler_output_crop
+{
 	u32 cmd;
 	u32 crop_offset_x;
 	u32 crop_offset_y;
@@ -633,25 +668,29 @@ struct param_scaler_output_crop {
 	u32 err;
 };
 
-struct param_scaler_rotation {
+struct param_scaler_rotation
+{
 	u32 cmd;
 	u32 reserved[FIMC_IS_PARAM_MAX_ENTRIES - 2];
 	u32 err;
 };
 
-struct param_scaler_flip {
+struct param_scaler_flip
+{
 	u32 cmd;
 	u32 reserved[FIMC_IS_PARAM_MAX_ENTRIES - 2];
 	u32 err;
 };
 
-struct param_3dnr_1stframe {
+struct param_3dnr_1stframe
+{
 	u32 cmd;
 	u32 reserved[FIMC_IS_PARAM_MAX_ENTRIES - 2];
 	u32 err;
 };
 
-struct param_fd_config {
+struct param_fd_config
+{
 	u32 cmd;
 	u32 max_number;
 	u32 roll_angle;
@@ -666,23 +705,27 @@ struct param_fd_config {
 	u32 err;
 };
 
-struct global_param {
+struct global_param
+{
 	struct param_global_shotmode	shotmode;
 };
 
-struct sensor_param {
+struct sensor_param
+{
 	struct param_control		control;
 	struct param_otf_output		otf_output;
 	struct param_sensor_framerate	frame_rate;
 } __packed;
 
-struct buffer_param {
+struct buffer_param
+{
 	struct param_control		control;
 	struct param_otf_input		otf_input;
 	struct param_otf_output		otf_output;
 } __packed;
 
-struct isp_param {
+struct isp_param
+{
 	struct param_control		control;
 	struct param_otf_input		otf_input;
 	struct param_dma_input		dma1_input;
@@ -700,14 +743,16 @@ struct isp_param {
 	struct param_dma_output		dma2_output;
 } __packed;
 
-struct drc_param {
+struct drc_param
+{
 	struct param_control		control;
 	struct param_otf_input		otf_input;
 	struct param_dma_input		dma_input;
 	struct param_otf_output		otf_output;
 } __packed;
 
-struct scalerc_param {
+struct scalerc_param
+{
 	struct param_control		control;
 	struct param_otf_input		otf_input;
 	struct param_scaler_imageeffect	effect;
@@ -717,19 +762,22 @@ struct scalerc_param {
 	struct param_dma_output		dma_output;
 } __packed;
 
-struct odc_param {
+struct odc_param
+{
 	struct param_control		control;
 	struct param_otf_input		otf_input;
 	struct param_otf_output		otf_output;
 } __packed;
 
-struct dis_param {
+struct dis_param
+{
 	struct param_control		control;
 	struct param_otf_output		otf_input;
 	struct param_otf_output		otf_output;
 } __packed;
 
-struct tdnr_param {
+struct tdnr_param
+{
 	struct param_control		control;
 	struct param_otf_input		otf_input;
 	struct param_3dnr_1stframe	frame;
@@ -737,7 +785,8 @@ struct tdnr_param {
 	struct param_dma_output		dma_output;
 } __packed;
 
-struct scalerp_param {
+struct scalerp_param
+{
 	struct param_control		control;
 	struct param_otf_input		otf_input;
 	struct param_scaler_imageeffect	effect;
@@ -749,14 +798,16 @@ struct scalerp_param {
 	struct param_dma_output		dma_output;
 } __packed;
 
-struct fd_param {
+struct fd_param
+{
 	struct param_control		control;
 	struct param_otf_input		otf_input;
 	struct param_dma_input		dma_input;
 	struct param_fd_config		config;
 } __packed;
 
-struct is_param_region {
+struct is_param_region
+{
 	struct global_param		global;
 	struct sensor_param		sensor;
 	struct buffer_param		buf;
@@ -772,21 +823,24 @@ struct is_param_region {
 
 #define NUMBER_OF_GAMMA_CURVE_POINTS	32
 
-struct is_tune_sensor {
+struct is_tune_sensor
+{
 	u32 exposure;
 	u32 analog_gain;
 	u32 frame_rate;
 	u32 actuator_position;
 };
 
-struct is_tune_gammacurve {
+struct is_tune_gammacurve
+{
 	u32 num_pts_x[NUMBER_OF_GAMMA_CURVE_POINTS];
 	u32 num_pts_y_r[NUMBER_OF_GAMMA_CURVE_POINTS];
 	u32 num_pts_y_g[NUMBER_OF_GAMMA_CURVE_POINTS];
 	u32 num_pts_y_b[NUMBER_OF_GAMMA_CURVE_POINTS];
 };
 
-struct is_tune_isp {
+struct is_tune_isp
+{
 	/* Brightness level: range 0...100, default 7. */
 	u32 brightness_level;
 	/* Contrast level: range -127...127, default 0. */
@@ -808,17 +862,20 @@ struct is_tune_isp {
 	/* (32 * 4 + 9) * 4 = 548 bytes */
 } __packed;
 
-struct is_tune_region {
+struct is_tune_region
+{
 	struct is_tune_sensor sensor;
 	struct is_tune_isp isp;
 } __packed;
 
-struct rational {
+struct rational
+{
 	u32 num;
 	u32 den;
 };
 
-struct srational {
+struct srational
+{
 	s32 num;
 	s32 den;
 };
@@ -847,7 +904,8 @@ struct srational {
 #define FLASH_RED_EYE_DISABLED			0
 #define FLASH_RED_EYE_SUPPORTED			1
 
-enum apex_aperture_value {
+enum apex_aperture_value
+{
 	F1_0	= 0,
 	F1_4	= 1,
 	F2_0	= 2,
@@ -861,7 +919,8 @@ enum apex_aperture_value {
 	F32_0	= 10,
 };
 
-struct exif_attribute {
+struct exif_attribute
+{
 	struct rational exposure_time;
 	struct srational shutter_speed;
 	u32 iso_speed_rating;
@@ -869,7 +928,8 @@ struct exif_attribute {
 	struct srational brightness;
 } __packed;
 
-struct is_frame_header {
+struct is_frame_header
+{
 	u32 valid;
 	u32 bad_mark;
 	u32 captured;
@@ -877,14 +937,16 @@ struct is_frame_header {
 	struct exif_attribute exif;
 } __packed;
 
-struct is_fd_rect {
+struct is_fd_rect
+{
 	u32 offset_x;
 	u32 offset_y;
 	u32 width;
 	u32 height;
 };
 
-struct is_face_marker {
+struct is_face_marker
+{
 	u32 frame_number;
 	struct is_fd_rect face;
 	struct is_fd_rect left_eye;
@@ -903,7 +965,8 @@ struct is_face_marker {
 #define MAX_FACE_COUNT				16
 #define MAX_SHARED_COUNT			500
 
-struct is_region {
+struct is_region
+{
 	struct is_param_region parameter;
 	struct is_tune_region tune;
 	struct is_frame_header header[MAX_FRAME_COUNT];
@@ -915,7 +978,8 @@ struct is_region {
 #define DMA2_OUTPUT_ADDR_ARRAY_OFFS \
 	(offsetof(struct is_region, shared) + 32 * sizeof(u32))
 
-struct is_debug_frame_descriptor {
+struct is_debug_frame_descriptor
+{
 	u32 sensor_frame_time;
 	u32 sensor_exposure_time;
 	s32 sensor_analog_gain;
@@ -934,7 +998,8 @@ struct is_debug_frame_descriptor {
 #define MAX_FRAMEDESCRIPTOR_CONTEXT_NUM	(30*20)	/* 600 frames */
 #define MAX_VERSION_DISPLAY_BUF	32
 
-struct is_share_region {
+struct is_share_region
+{
 	u32 frame_time;
 	u32 exposure_time;
 	s32 analog_gain;
@@ -968,14 +1033,16 @@ struct is_share_region {
 	u8 sirc_sdk_rev_date[MAX_VERSION_DISPLAY_BUF];
 } __packed;
 
-struct is_debug_control {
+struct is_debug_control
+{
 	u32 write_point;	/* 0~ 500KB boundary */
 	u32 assert_flag;	/* 0: Not invoked, 1: Invoked */
 	u32 pabort_flag;	/* 0: Not invoked, 1: Invoked */
 	u32 dabort_flag;	/* 0: Not invoked, 1: Invoked */
 };
 
-struct sensor_open_extended {
+struct sensor_open_extended
+{
 	u32 actuator_type;
 	u32 mclk;
 	u32 mipi_lane_num;

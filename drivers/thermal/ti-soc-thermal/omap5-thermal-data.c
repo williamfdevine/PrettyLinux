@@ -29,7 +29,8 @@
  * OMAP5430 MPU thermal sensor register offset and bit-fields
  */
 static struct temp_sensor_registers
-omap5430_mpu_temp_sensor_registers = {
+	omap5430_mpu_temp_sensor_registers =
+{
 	.temp_sensor_ctrl = OMAP5430_TEMP_SENSOR_MPU_OFFSET,
 	.bgap_tempsoff_mask = OMAP5430_BGAP_TEMPSOFF_MASK,
 	.bgap_eocz_mask = OMAP5430_BGAP_TEMP_SENSOR_EOCZ_MASK,
@@ -75,7 +76,8 @@ omap5430_mpu_temp_sensor_registers = {
  * OMAP5430 GPU thermal sensor register offset and bit-fields
  */
 static struct temp_sensor_registers
-omap5430_gpu_temp_sensor_registers = {
+	omap5430_gpu_temp_sensor_registers =
+{
 	.temp_sensor_ctrl = OMAP5430_TEMP_SENSOR_GPU_OFFSET,
 	.bgap_tempsoff_mask = OMAP5430_BGAP_TEMPSOFF_MASK,
 	.bgap_eocz_mask = OMAP5430_BGAP_TEMP_SENSOR_EOCZ_MASK,
@@ -121,7 +123,8 @@ omap5430_gpu_temp_sensor_registers = {
  * OMAP5430 CORE thermal sensor register offset and bit-fields
  */
 static struct temp_sensor_registers
-omap5430_core_temp_sensor_registers = {
+	omap5430_core_temp_sensor_registers =
+{
 	.temp_sensor_ctrl = OMAP5430_TEMP_SENSOR_CORE_OFFSET,
 	.bgap_tempsoff_mask = OMAP5430_BGAP_TEMPSOFF_MASK,
 	.bgap_eocz_mask = OMAP5430_BGAP_TEMP_SENSOR_EOCZ_MASK,
@@ -164,7 +167,8 @@ omap5430_core_temp_sensor_registers = {
 };
 
 /* Thresholds and limits for OMAP5430 MPU temperature sensor */
-static struct temp_sensor_data omap5430_mpu_temp_sensor_data = {
+static struct temp_sensor_data omap5430_mpu_temp_sensor_data =
+{
 	.tshut_hot = OMAP5430_MPU_TSHUT_HOT,
 	.tshut_cold = OMAP5430_MPU_TSHUT_COLD,
 	.t_hot = OMAP5430_MPU_T_HOT,
@@ -179,7 +183,8 @@ static struct temp_sensor_data omap5430_mpu_temp_sensor_data = {
 };
 
 /* Thresholds and limits for OMAP5430 GPU temperature sensor */
-static struct temp_sensor_data omap5430_gpu_temp_sensor_data = {
+static struct temp_sensor_data omap5430_gpu_temp_sensor_data =
+{
 	.tshut_hot = OMAP5430_GPU_TSHUT_HOT,
 	.tshut_cold = OMAP5430_GPU_TSHUT_COLD,
 	.t_hot = OMAP5430_GPU_T_HOT,
@@ -194,7 +199,8 @@ static struct temp_sensor_data omap5430_gpu_temp_sensor_data = {
 };
 
 /* Thresholds and limits for OMAP5430 CORE temperature sensor */
-static struct temp_sensor_data omap5430_core_temp_sensor_data = {
+static struct temp_sensor_data omap5430_core_temp_sensor_data =
+{
 	.tshut_hot = OMAP5430_CORE_TSHUT_HOT,
 	.tshut_cold = OMAP5430_CORE_TSHUT_COLD,
 	.t_hot = OMAP5430_CORE_T_HOT,
@@ -214,7 +220,8 @@ static struct temp_sensor_data omap5430_core_temp_sensor_data = {
  */
 static int
 omap5430_adc_to_temp[
-	OMAP5430_ADC_END_VALUE - OMAP5430_ADC_START_VALUE + 1] = {
+	OMAP5430_ADC_END_VALUE - OMAP5430_ADC_START_VALUE + 1] =
+{
 	/* Index 540 - 549 */
 	-40000, -40000, -40000, -40000, -39800, -39400, -39000, -38600, -38200,
 	-37800,
@@ -314,13 +321,14 @@ omap5430_adc_to_temp[
 };
 
 /* OMAP54xx ES2.0 data */
-const struct ti_bandgap_data omap5430_data = {
+const struct ti_bandgap_data omap5430_data =
+{
 	.features = TI_BANDGAP_FEATURE_TSHUT_CONFIG |
-			TI_BANDGAP_FEATURE_FREEZE_BIT |
-			TI_BANDGAP_FEATURE_TALERT |
-			TI_BANDGAP_FEATURE_COUNTER_DELAY |
-			TI_BANDGAP_FEATURE_HISTORY_BUFFER |
-			TI_BANDGAP_FEATURE_ERRATA_813,
+	TI_BANDGAP_FEATURE_FREEZE_BIT |
+	TI_BANDGAP_FEATURE_TALERT |
+	TI_BANDGAP_FEATURE_COUNTER_DELAY |
+	TI_BANDGAP_FEATURE_HISTORY_BUFFER |
+	TI_BANDGAP_FEATURE_ERRATA_813,
 	.fclock_name = "l3instr_ts_gclk_div",
 	.div_ck_name = "l3instr_ts_gclk_div",
 	.conv_table = omap5430_adc_to_temp,
@@ -331,29 +339,29 @@ const struct ti_bandgap_data omap5430_data = {
 	.report_temperature = ti_thermal_report_sensor_temperature,
 	.sensors = {
 		{
-		.registers = &omap5430_mpu_temp_sensor_registers,
-		.ts_data = &omap5430_mpu_temp_sensor_data,
-		.domain = "cpu",
-		.register_cooling = ti_thermal_register_cpu_cooling,
-		.unregister_cooling = ti_thermal_unregister_cpu_cooling,
-		.slope = OMAP_GRADIENT_SLOPE_5430_CPU,
-		.constant = OMAP_GRADIENT_CONST_5430_CPU,
-		.slope_pcb = OMAP_GRADIENT_SLOPE_W_PCB_5430_CPU,
-		.constant_pcb = OMAP_GRADIENT_CONST_W_PCB_5430_CPU,
+			.registers = &omap5430_mpu_temp_sensor_registers,
+			.ts_data = &omap5430_mpu_temp_sensor_data,
+			.domain = "cpu",
+			.register_cooling = ti_thermal_register_cpu_cooling,
+			.unregister_cooling = ti_thermal_unregister_cpu_cooling,
+			.slope = OMAP_GRADIENT_SLOPE_5430_CPU,
+			.constant = OMAP_GRADIENT_CONST_5430_CPU,
+			.slope_pcb = OMAP_GRADIENT_SLOPE_W_PCB_5430_CPU,
+			.constant_pcb = OMAP_GRADIENT_CONST_W_PCB_5430_CPU,
 		},
 		{
-		.registers = &omap5430_gpu_temp_sensor_registers,
-		.ts_data = &omap5430_gpu_temp_sensor_data,
-		.domain = "gpu",
-		.slope = OMAP_GRADIENT_SLOPE_5430_GPU,
-		.constant = OMAP_GRADIENT_CONST_5430_GPU,
-		.slope_pcb = OMAP_GRADIENT_SLOPE_W_PCB_5430_GPU,
-		.constant_pcb = OMAP_GRADIENT_CONST_W_PCB_5430_GPU,
+			.registers = &omap5430_gpu_temp_sensor_registers,
+			.ts_data = &omap5430_gpu_temp_sensor_data,
+			.domain = "gpu",
+			.slope = OMAP_GRADIENT_SLOPE_5430_GPU,
+			.constant = OMAP_GRADIENT_CONST_5430_GPU,
+			.slope_pcb = OMAP_GRADIENT_SLOPE_W_PCB_5430_GPU,
+			.constant_pcb = OMAP_GRADIENT_CONST_W_PCB_5430_GPU,
 		},
 		{
-		.registers = &omap5430_core_temp_sensor_registers,
-		.ts_data = &omap5430_core_temp_sensor_data,
-		.domain = "core",
+			.registers = &omap5430_core_temp_sensor_registers,
+			.ts_data = &omap5430_core_temp_sensor_data,
+			.domain = "core",
 		},
 	},
 	.sensor_count = 3,

@@ -66,23 +66,31 @@ static int adf_enable_msix(struct adf_accel_dev *accel_dev)
 	u32 msix_num_entries = 1;
 
 	/* If SR-IOV is disabled, add entries for each bank */
-	if (!accel_dev->pf.vf_info) {
+	if (!accel_dev->pf.vf_info)
+	{
 		int i;
 
 		msix_num_entries += hw_data->num_banks;
+
 		for (i = 0; i < msix_num_entries; i++)
+		{
 			pci_dev_info->msix_entries.entries[i].entry = i;
-	} else {
+		}
+	}
+	else
+	{
 		pci_dev_info->msix_entries.entries[0].entry =
 			hw_data->num_banks;
 	}
 
 	if (pci_enable_msix_exact(pci_dev_info->pci_dev,
-				  pci_dev_info->msix_entries.entries,
-				  msix_num_entries)) {
+							  pci_dev_info->msix_entries.entries,
+							  msix_num_entries))
+	{
 		dev_err(&GET_DEV(accel_dev), "Failed to enable MSI-X IRQ(s)\n");
 		return -EFAULT;
 	}
+
 	return 0;
 }
 
@@ -105,8 +113,10 @@ static irqreturn_t adf_msix_isr_ae(int irq, void *dev_ptr)
 	struct adf_accel_dev *accel_dev = dev_ptr;
 
 #ifdef CONFIG_PCI_IOV
+
 	/* If SR-IOV is enabled (vf_info is non-NULL), check for VF->PF ints */
-	if (accel_dev->pf.vf_info) {
+	if (accel_dev->pf.vf_info)
+	{
 		struct adf_hw_device_data *hw_data = accel_dev->hw_device;
 		struct adf_bar *pmisc =
 			&GET_BARS(accel_dev)[hw_data->get_misc_bar_id(hw_data)];
@@ -115,11 +125,12 @@ static irqreturn_t adf_msix_isr_ae(int irq, void *dev_ptr)
 
 		/* Get the interrupt sources triggered by VFs */
 		vf_mask = ((ADF_CSR_RD(pmisc_bar_addr, ADF_ERRSOU5) &
-			    0x0000FFFF) << 16) |
-			  ((ADF_CSR_RD(pmisc_bar_addr, ADF_ERRSOU3) &
-			    0x01FFFE00) >> 9);
+					0x0000FFFF) << 16) |
+				  ((ADF_CSR_RD(pmisc_bar_addr, ADF_ERRSOU3) &
+					0x01FFFE00) >> 9);
 
-		if (vf_mask) {
+		if (vf_mask)
+		{
 			struct adf_accel_vf_info *vf_info;
 			bool irq_handled = false;
 			int i;
@@ -133,13 +144,15 @@ static irqreturn_t adf_msix_isr_ae(int irq, void *dev_ptr)
 			 * flood the host OS with VF2PF interrupts.
 			 */
 			for_each_set_bit(i, (const unsigned long *)&vf_mask,
-					 (sizeof(vf_mask) * BITS_PER_BYTE)) {
+							 (sizeof(vf_mask) * BITS_PER_BYTE))
+			{
 				vf_info = accel_dev->pf.vf_info + i;
 
-				if (!__ratelimit(&vf_info->vf2pf_ratelimit)) {
+				if (!__ratelimit(&vf_info->vf2pf_ratelimit))
+				{
 					dev_info(&GET_DEV(accel_dev),
-						 "Too many ints from VF%d\n",
-						  vf_info->vf_nr + 1);
+							 "Too many ints from VF%d\n",
+							 vf_info->vf_nr + 1);
 					continue;
 				}
 
@@ -149,13 +162,16 @@ static irqreturn_t adf_msix_isr_ae(int irq, void *dev_ptr)
 			}
 
 			if (irq_handled)
+			{
 				return IRQ_HANDLED;
+			}
 		}
 	}
+
 #endif /* CONFIG_PCI_IOV */
 
 	dev_dbg(&GET_DEV(accel_dev), "qat_dev%d spurious AE interrupt\n",
-		accel_dev->accel_id);
+			accel_dev->accel_id);
 
 	return IRQ_NONE;
 }
@@ -170,41 +186,48 @@ static int adf_request_irqs(struct adf_accel_dev *accel_dev)
 	char *name;
 
 	/* Request msix irq for all banks unless SR-IOV enabled */
-	if (!accel_dev->pf.vf_info) {
-		for (i = 0; i < hw_data->num_banks; i++) {
+	if (!accel_dev->pf.vf_info)
+	{
+		for (i = 0; i < hw_data->num_banks; i++)
+		{
 			struct adf_etr_bank_data *bank = &etr_data->banks[i];
 			unsigned int cpu, cpus = num_online_cpus();
 
 			name = *(pci_dev_info->msix_entries.names + i);
 			snprintf(name, ADF_MAX_MSIX_VECTOR_NAME,
-				 "qat%d-bundle%d", accel_dev->accel_id, i);
+					 "qat%d-bundle%d", accel_dev->accel_id, i);
 			ret = request_irq(msixe[i].vector,
-					  adf_msix_isr_bundle, 0, name, bank);
-			if (ret) {
+							  adf_msix_isr_bundle, 0, name, bank);
+
+			if (ret)
+			{
 				dev_err(&GET_DEV(accel_dev),
-					"failed to enable irq %d for %s\n",
-					msixe[i].vector, name);
+						"failed to enable irq %d for %s\n",
+						msixe[i].vector, name);
 				return ret;
 			}
 
 			cpu = ((accel_dev->accel_id * hw_data->num_banks) +
-			       i) % cpus;
+				   i) % cpus;
 			irq_set_affinity_hint(msixe[i].vector,
-					      get_cpu_mask(cpu));
+								  get_cpu_mask(cpu));
 		}
 	}
 
 	/* Request msix irq for AE */
 	name = *(pci_dev_info->msix_entries.names + i);
 	snprintf(name, ADF_MAX_MSIX_VECTOR_NAME,
-		 "qat%d-ae-cluster", accel_dev->accel_id);
+			 "qat%d-ae-cluster", accel_dev->accel_id);
 	ret = request_irq(msixe[i].vector, adf_msix_isr_ae, 0, name, accel_dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&GET_DEV(accel_dev),
-			"failed to enable irq %d, for %s\n",
-			msixe[i].vector, name);
+				"failed to enable irq %d, for %s\n",
+				msixe[i].vector, name);
 		return ret;
 	}
+
 	return ret;
 }
 
@@ -216,12 +239,15 @@ static void adf_free_irqs(struct adf_accel_dev *accel_dev)
 	struct adf_etr_data *etr_data = accel_dev->transport;
 	int i = 0;
 
-	if (pci_dev_info->msix_entries.num_entries > 1) {
-		for (i = 0; i < hw_data->num_banks; i++) {
+	if (pci_dev_info->msix_entries.num_entries > 1)
+	{
+		for (i = 0; i < hw_data->num_banks; i++)
+		{
 			irq_set_affinity_hint(msixe[i].vector, NULL);
 			free_irq(msixe[i].vector, &etr_data->banks[i]);
 		}
 	}
+
 	irq_set_affinity_hint(msixe[i].vector, NULL);
 	free_irq(msixe[i].vector, accel_dev);
 }
@@ -236,30 +262,47 @@ static int adf_isr_alloc_msix_entry_table(struct adf_accel_dev *accel_dev)
 
 	/* If SR-IOV is disabled (vf_info is NULL), add entries for each bank */
 	if (!accel_dev->pf.vf_info)
+	{
 		msix_num_entries += hw_data->num_banks;
+	}
 
 	entries = kzalloc_node(msix_num_entries * sizeof(*entries),
-			       GFP_KERNEL, dev_to_node(&GET_DEV(accel_dev)));
+						   GFP_KERNEL, dev_to_node(&GET_DEV(accel_dev)));
+
 	if (!entries)
+	{
 		return -ENOMEM;
+	}
 
 	names = kcalloc(msix_num_entries, sizeof(char *), GFP_KERNEL);
-	if (!names) {
+
+	if (!names)
+	{
 		kfree(entries);
 		return -ENOMEM;
 	}
-	for (i = 0; i < msix_num_entries; i++) {
+
+	for (i = 0; i < msix_num_entries; i++)
+	{
 		*(names + i) = kzalloc(ADF_MAX_MSIX_VECTOR_NAME, GFP_KERNEL);
+
 		if (!(*(names + i)))
+		{
 			goto err;
+		}
 	}
+
 	accel_dev->accel_pci_dev.msix_entries.num_entries = msix_num_entries;
 	accel_dev->accel_pci_dev.msix_entries.entries = entries;
 	accel_dev->accel_pci_dev.msix_entries.names = names;
 	return 0;
 err:
+
 	for (i = 0; i < msix_num_entries; i++)
+	{
 		kfree(*(names + i));
+	}
+
 	kfree(entries);
 	kfree(names);
 	return -ENOMEM;
@@ -271,8 +314,12 @@ static void adf_isr_free_msix_entry_table(struct adf_accel_dev *accel_dev)
 	int i;
 
 	kfree(accel_dev->accel_pci_dev.msix_entries.entries);
+
 	for (i = 0; i < accel_dev->accel_pci_dev.msix_entries.num_entries; i++)
+	{
 		kfree(*(names + i));
+	}
+
 	kfree(names);
 }
 
@@ -284,8 +331,9 @@ static int adf_setup_bh(struct adf_accel_dev *accel_dev)
 
 	for (i = 0; i < hw_data->num_banks; i++)
 		tasklet_init(&priv_data->banks[i].resp_handler,
-			     adf_response_handler,
-			     (unsigned long)&priv_data->banks[i]);
+					 adf_response_handler,
+					 (unsigned long)&priv_data->banks[i]);
+
 	return 0;
 }
 
@@ -295,7 +343,8 @@ static void adf_cleanup_bh(struct adf_accel_dev *accel_dev)
 	struct adf_hw_device_data *hw_data = accel_dev->hw_device;
 	int i;
 
-	for (i = 0; i < hw_data->num_banks; i++) {
+	for (i = 0; i < hw_data->num_banks; i++)
+	{
 		tasklet_disable(&priv_data->banks[i].resp_handler);
 		tasklet_kill(&priv_data->banks[i].resp_handler);
 	}
@@ -329,16 +378,26 @@ int adf_isr_resource_alloc(struct adf_accel_dev *accel_dev)
 	int ret;
 
 	ret = adf_isr_alloc_msix_entry_table(accel_dev);
+
 	if (ret)
+	{
 		return ret;
+	}
+
 	if (adf_enable_msix(accel_dev))
+	{
 		goto err_out;
+	}
 
 	if (adf_setup_bh(accel_dev))
+	{
 		goto err_out;
+	}
 
 	if (adf_request_irqs(accel_dev))
+	{
 		goto err_out;
+	}
 
 	return 0;
 err_out:

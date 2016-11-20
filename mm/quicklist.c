@@ -48,7 +48,7 @@ static unsigned long max_pages(unsigned long min_pages)
 }
 
 static long min_pages_to_free(struct quicklist *q,
-	unsigned long min_pages, long max_free)
+							  unsigned long min_pages, long max_free)
 {
 	long pages_to_free;
 
@@ -61,16 +61,19 @@ static long min_pages_to_free(struct quicklist *q,
  * Trim down the number of pages in the quicklist
  */
 void quicklist_trim(int nr, void (*dtor)(void *),
-	unsigned long min_pages, unsigned long max_free)
+					unsigned long min_pages, unsigned long max_free)
 {
 	long pages_to_free;
 	struct quicklist *q;
 
 	q = &get_cpu_var(quicklist)[nr];
-	if (q->nr_pages > min_pages) {
+
+	if (q->nr_pages > min_pages)
+	{
 		pages_to_free = min_pages_to_free(q, min_pages, max_free);
 
-		while (pages_to_free > 0) {
+		while (pages_to_free > 0)
+		{
 			/*
 			 * We pass a gfp_t of 0 to quicklist_alloc here
 			 * because we will never call into the page allocator.
@@ -78,11 +81,15 @@ void quicklist_trim(int nr, void (*dtor)(void *),
 			void *p = quicklist_alloc(nr, 0, NULL);
 
 			if (dtor)
+			{
 				dtor(p);
+			}
+
 			free_page((unsigned long)p);
 			pages_to_free--;
 		}
 	}
+
 	put_cpu_var(quicklist);
 }
 
@@ -92,10 +99,14 @@ unsigned long quicklist_total_size(void)
 	int cpu;
 	struct quicklist *ql, *q;
 
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu(cpu)
+	{
 		ql = per_cpu(quicklist, cpu);
+
 		for (q = ql; q < ql + CONFIG_NR_QUICK; q++)
+		{
 			count += q->nr_pages;
+		}
 	}
 	return count;
 }

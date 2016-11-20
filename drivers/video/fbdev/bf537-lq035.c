@@ -43,7 +43,8 @@
 #define MIN_BRIGHENESS	5
 #define NBR_PALETTE	256
 
-static const unsigned short ppi_pins[] = {
+static const unsigned short ppi_pins[] =
+{
 	P_PPI0_CLK, P_PPI0_D0, P_PPI0_D1, P_PPI0_D2, P_PPI0_D3,
 	P_PPI0_D4, P_PPI0_D5, P_PPI0_D6, P_PPI0_D7,
 	P_PPI0_D8, P_PPI0_D9, P_PPI0_D10, P_PPI0_D11,
@@ -58,12 +59,12 @@ static DEFINE_SPINLOCK(bfin_lq035_lock);
 static int landscape;
 module_param(landscape, int, 0);
 MODULE_PARM_DESC(landscape,
-	"LANDSCAPE use 320x240 instead of Native 240x320 Resolution");
+				 "LANDSCAPE use 320x240 instead of Native 240x320 Resolution");
 
 static int bgr;
 module_param(bgr, int, 0);
 MODULE_PARM_DESC(bgr,
-	"BGR use 16-bit BGR-565 instead of RGB-565");
+				 "BGR use 16-bit BGR-565 instead of RGB-565");
 
 static int nocursor = 1;
 module_param(nocursor, int, 0644);
@@ -80,25 +81,34 @@ static void set_vcomm(void)
 	int nr;
 
 	if (!ad5280_client)
+	{
 		return;
+	}
 
 	nr = i2c_smbus_write_byte_data(ad5280_client, 0x00, vcomm_value);
+
 	if (nr)
+	{
 		pr_err("i2c_smbus_write_byte_data fail: %d\n", nr);
+	}
 }
 
 static int ad5280_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+						const struct i2c_device_id *id)
 {
 	int ret;
+
 	if (!i2c_check_functionality(client->adapter,
-				     I2C_FUNC_SMBUS_BYTE_DATA)) {
+								 I2C_FUNC_SMBUS_BYTE_DATA))
+	{
 		dev_err(&client->dev, "SMBUS Byte Data not Supported\n");
 		return -EIO;
 	}
 
 	ret = i2c_smbus_write_byte_data(client, 0x00, vcomm_value);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&client->dev, "write fail: %d\n", ret);
 		return ret;
 	}
@@ -114,14 +124,16 @@ static int ad5280_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id ad5280_id[] = {
+static const struct i2c_device_id ad5280_id[] =
+{
 	{"bf537-lq035-ad5280", 0},
 	{}
 };
 
 MODULE_DEVICE_TABLE(i2c, ad5280_id);
 
-static struct i2c_driver ad5280_driver = {
+static struct i2c_driver ad5280_driver =
+{
 	.driver = {
 		.name = "bf537-lq035-ad5280",
 	},
@@ -131,84 +143,84 @@ static struct i2c_driver ad5280_driver = {
 };
 
 #ifdef CONFIG_PNAV10
-#define MOD GPIO_PH13
+	#define MOD GPIO_PH13
 
-#define bfin_write_TIMER_LP_CONFIG	bfin_write_TIMER0_CONFIG
-#define bfin_write_TIMER_LP_WIDTH	bfin_write_TIMER0_WIDTH
-#define bfin_write_TIMER_LP_PERIOD	bfin_write_TIMER0_PERIOD
-#define bfin_read_TIMER_LP_COUNTER	bfin_read_TIMER0_COUNTER
-#define TIMDIS_LP			TIMDIS0
-#define TIMEN_LP			TIMEN0
+	#define bfin_write_TIMER_LP_CONFIG	bfin_write_TIMER0_CONFIG
+	#define bfin_write_TIMER_LP_WIDTH	bfin_write_TIMER0_WIDTH
+	#define bfin_write_TIMER_LP_PERIOD	bfin_write_TIMER0_PERIOD
+	#define bfin_read_TIMER_LP_COUNTER	bfin_read_TIMER0_COUNTER
+	#define TIMDIS_LP			TIMDIS0
+	#define TIMEN_LP			TIMEN0
 
-#define bfin_write_TIMER_SPS_CONFIG	bfin_write_TIMER1_CONFIG
-#define bfin_write_TIMER_SPS_WIDTH	bfin_write_TIMER1_WIDTH
-#define bfin_write_TIMER_SPS_PERIOD	bfin_write_TIMER1_PERIOD
-#define TIMDIS_SPS			TIMDIS1
-#define TIMEN_SPS			TIMEN1
+	#define bfin_write_TIMER_SPS_CONFIG	bfin_write_TIMER1_CONFIG
+	#define bfin_write_TIMER_SPS_WIDTH	bfin_write_TIMER1_WIDTH
+	#define bfin_write_TIMER_SPS_PERIOD	bfin_write_TIMER1_PERIOD
+	#define TIMDIS_SPS			TIMDIS1
+	#define TIMEN_SPS			TIMEN1
 
-#define bfin_write_TIMER_SP_CONFIG	bfin_write_TIMER5_CONFIG
-#define bfin_write_TIMER_SP_WIDTH	bfin_write_TIMER5_WIDTH
-#define bfin_write_TIMER_SP_PERIOD	bfin_write_TIMER5_PERIOD
-#define TIMDIS_SP			TIMDIS5
-#define TIMEN_SP			TIMEN5
+	#define bfin_write_TIMER_SP_CONFIG	bfin_write_TIMER5_CONFIG
+	#define bfin_write_TIMER_SP_WIDTH	bfin_write_TIMER5_WIDTH
+	#define bfin_write_TIMER_SP_PERIOD	bfin_write_TIMER5_PERIOD
+	#define TIMDIS_SP			TIMDIS5
+	#define TIMEN_SP			TIMEN5
 
-#define bfin_write_TIMER_PS_CLS_CONFIG	bfin_write_TIMER2_CONFIG
-#define bfin_write_TIMER_PS_CLS_WIDTH	bfin_write_TIMER2_WIDTH
-#define bfin_write_TIMER_PS_CLS_PERIOD	bfin_write_TIMER2_PERIOD
-#define TIMDIS_PS_CLS			TIMDIS2
-#define TIMEN_PS_CLS			TIMEN2
+	#define bfin_write_TIMER_PS_CLS_CONFIG	bfin_write_TIMER2_CONFIG
+	#define bfin_write_TIMER_PS_CLS_WIDTH	bfin_write_TIMER2_WIDTH
+	#define bfin_write_TIMER_PS_CLS_PERIOD	bfin_write_TIMER2_PERIOD
+	#define TIMDIS_PS_CLS			TIMDIS2
+	#define TIMEN_PS_CLS			TIMEN2
 
-#define bfin_write_TIMER_REV_CONFIG	bfin_write_TIMER3_CONFIG
-#define bfin_write_TIMER_REV_WIDTH	bfin_write_TIMER3_WIDTH
-#define bfin_write_TIMER_REV_PERIOD	bfin_write_TIMER3_PERIOD
-#define TIMDIS_REV			TIMDIS3
-#define TIMEN_REV			TIMEN3
-#define bfin_read_TIMER_REV_COUNTER	bfin_read_TIMER3_COUNTER
+	#define bfin_write_TIMER_REV_CONFIG	bfin_write_TIMER3_CONFIG
+	#define bfin_write_TIMER_REV_WIDTH	bfin_write_TIMER3_WIDTH
+	#define bfin_write_TIMER_REV_PERIOD	bfin_write_TIMER3_PERIOD
+	#define TIMDIS_REV			TIMDIS3
+	#define TIMEN_REV			TIMEN3
+	#define bfin_read_TIMER_REV_COUNTER	bfin_read_TIMER3_COUNTER
 
-#define	FREQ_PPI_CLK         (5*1024*1024)  /* PPI_CLK 5MHz */
+	#define	FREQ_PPI_CLK         (5*1024*1024)  /* PPI_CLK 5MHz */
 
-#define TIMERS {P_TMR0, P_TMR1, P_TMR2, P_TMR3, P_TMR5, 0}
+	#define TIMERS {P_TMR0, P_TMR1, P_TMR2, P_TMR3, P_TMR5, 0}
 
 #else
 
-#define UD      GPIO_PF13	/* Up / Down */
-#define MOD     GPIO_PF10
-#define LBR     GPIO_PF14	/* Left Right */
+	#define UD      GPIO_PF13	/* Up / Down */
+	#define MOD     GPIO_PF10
+	#define LBR     GPIO_PF14	/* Left Right */
 
-#define bfin_write_TIMER_LP_CONFIG	bfin_write_TIMER6_CONFIG
-#define bfin_write_TIMER_LP_WIDTH	bfin_write_TIMER6_WIDTH
-#define bfin_write_TIMER_LP_PERIOD	bfin_write_TIMER6_PERIOD
-#define bfin_read_TIMER_LP_COUNTER	bfin_read_TIMER6_COUNTER
-#define TIMDIS_LP			TIMDIS6
-#define TIMEN_LP			TIMEN6
+	#define bfin_write_TIMER_LP_CONFIG	bfin_write_TIMER6_CONFIG
+	#define bfin_write_TIMER_LP_WIDTH	bfin_write_TIMER6_WIDTH
+	#define bfin_write_TIMER_LP_PERIOD	bfin_write_TIMER6_PERIOD
+	#define bfin_read_TIMER_LP_COUNTER	bfin_read_TIMER6_COUNTER
+	#define TIMDIS_LP			TIMDIS6
+	#define TIMEN_LP			TIMEN6
 
-#define bfin_write_TIMER_SPS_CONFIG	bfin_write_TIMER1_CONFIG
-#define bfin_write_TIMER_SPS_WIDTH	bfin_write_TIMER1_WIDTH
-#define bfin_write_TIMER_SPS_PERIOD	bfin_write_TIMER1_PERIOD
-#define TIMDIS_SPS			TIMDIS1
-#define TIMEN_SPS			TIMEN1
+	#define bfin_write_TIMER_SPS_CONFIG	bfin_write_TIMER1_CONFIG
+	#define bfin_write_TIMER_SPS_WIDTH	bfin_write_TIMER1_WIDTH
+	#define bfin_write_TIMER_SPS_PERIOD	bfin_write_TIMER1_PERIOD
+	#define TIMDIS_SPS			TIMDIS1
+	#define TIMEN_SPS			TIMEN1
 
-#define bfin_write_TIMER_SP_CONFIG	bfin_write_TIMER0_CONFIG
-#define bfin_write_TIMER_SP_WIDTH	bfin_write_TIMER0_WIDTH
-#define bfin_write_TIMER_SP_PERIOD	bfin_write_TIMER0_PERIOD
-#define TIMDIS_SP			TIMDIS0
-#define TIMEN_SP			TIMEN0
+	#define bfin_write_TIMER_SP_CONFIG	bfin_write_TIMER0_CONFIG
+	#define bfin_write_TIMER_SP_WIDTH	bfin_write_TIMER0_WIDTH
+	#define bfin_write_TIMER_SP_PERIOD	bfin_write_TIMER0_PERIOD
+	#define TIMDIS_SP			TIMDIS0
+	#define TIMEN_SP			TIMEN0
 
-#define bfin_write_TIMER_PS_CLS_CONFIG	bfin_write_TIMER7_CONFIG
-#define bfin_write_TIMER_PS_CLS_WIDTH	bfin_write_TIMER7_WIDTH
-#define bfin_write_TIMER_PS_CLS_PERIOD	bfin_write_TIMER7_PERIOD
-#define TIMDIS_PS_CLS			TIMDIS7
-#define TIMEN_PS_CLS			TIMEN7
+	#define bfin_write_TIMER_PS_CLS_CONFIG	bfin_write_TIMER7_CONFIG
+	#define bfin_write_TIMER_PS_CLS_WIDTH	bfin_write_TIMER7_WIDTH
+	#define bfin_write_TIMER_PS_CLS_PERIOD	bfin_write_TIMER7_PERIOD
+	#define TIMDIS_PS_CLS			TIMDIS7
+	#define TIMEN_PS_CLS			TIMEN7
 
-#define bfin_write_TIMER_REV_CONFIG	bfin_write_TIMER5_CONFIG
-#define bfin_write_TIMER_REV_WIDTH	bfin_write_TIMER5_WIDTH
-#define bfin_write_TIMER_REV_PERIOD	bfin_write_TIMER5_PERIOD
-#define TIMDIS_REV			TIMDIS5
-#define TIMEN_REV			TIMEN5
-#define bfin_read_TIMER_REV_COUNTER	bfin_read_TIMER5_COUNTER
+	#define bfin_write_TIMER_REV_CONFIG	bfin_write_TIMER5_CONFIG
+	#define bfin_write_TIMER_REV_WIDTH	bfin_write_TIMER5_WIDTH
+	#define bfin_write_TIMER_REV_PERIOD	bfin_write_TIMER5_PERIOD
+	#define TIMDIS_REV			TIMDIS5
+	#define TIMEN_REV			TIMEN5
+	#define bfin_read_TIMER_REV_COUNTER	bfin_read_TIMER5_COUNTER
 
-#define	FREQ_PPI_CLK         (6*1000*1000)  /* PPI_CLK 6MHz */
-#define TIMERS {P_TMR0, P_TMR1, P_TMR5, P_TMR6, P_TMR7, 0}
+	#define	FREQ_PPI_CLK         (6*1000*1000)  /* PPI_CLK 6MHz */
+	#define TIMERS {P_TMR0, P_TMR1, P_TMR5, P_TMR6, P_TMR7, 0}
 
 #endif
 
@@ -249,13 +261,19 @@ static void start_timers(void) /* CHECK with HW */
 	SSYNC();
 
 	while (bfin_read_TIMER_REV_COUNTER() <= 11)
+	{
 		continue;
+	}
+
 	bfin_write_TIMER_ENABLE(TIMEN_LP);
 	SSYNC();
 
 	while (bfin_read_TIMER_LP_COUNTER() < 3)
+	{
 		continue;
-	bfin_write_TIMER_ENABLE(TIMEN_SP|TIMEN_SPS|TIMEN_PS_CLS);
+	}
+
+	bfin_write_TIMER_ENABLE(TIMEN_SP | TIMEN_SPS | TIMEN_PS_CLS);
 	SSYNC();
 	t_conf_done = 1;
 	local_irq_restore(flags);
@@ -264,25 +282,25 @@ static void start_timers(void) /* CHECK with HW */
 static void config_timers(void)
 {
 	/* Stop timers */
-	bfin_write_TIMER_DISABLE(TIMDIS_SP|TIMDIS_SPS|TIMDIS_REV|
-				 TIMDIS_LP|TIMDIS_PS_CLS);
+	bfin_write_TIMER_DISABLE(TIMDIS_SP | TIMDIS_SPS | TIMDIS_REV |
+							 TIMDIS_LP | TIMDIS_PS_CLS);
 	SSYNC();
 
 	/* LP, timer 6 */
-	bfin_write_TIMER_LP_CONFIG(TIMER_CONFIG|PULSE_HI);
+	bfin_write_TIMER_LP_CONFIG(TIMER_CONFIG | PULSE_HI);
 	bfin_write_TIMER_LP_WIDTH(1);
 
 	bfin_write_TIMER_LP_PERIOD(DCLKS_PER_LINE);
 	SSYNC();
 
 	/* SPS, timer 1 */
-	bfin_write_TIMER_SPS_CONFIG(TIMER_CONFIG|PULSE_HI);
-	bfin_write_TIMER_SPS_WIDTH(DCLKS_PER_LINE*2);
-	bfin_write_TIMER_SPS_PERIOD((DCLKS_PER_LINE * (LCD_Y_RES+U_LINES)));
+	bfin_write_TIMER_SPS_CONFIG(TIMER_CONFIG | PULSE_HI);
+	bfin_write_TIMER_SPS_WIDTH(DCLKS_PER_LINE * 2);
+	bfin_write_TIMER_SPS_PERIOD((DCLKS_PER_LINE * (LCD_Y_RES + U_LINES)));
 	SSYNC();
 
 	/* SP, timer 0 */
-	bfin_write_TIMER_SP_CONFIG(TIMER_CONFIG|PULSE_HI);
+	bfin_write_TIMER_SP_CONFIG(TIMER_CONFIG | PULSE_HI);
 	bfin_write_TIMER_SP_WIDTH(1);
 	bfin_write_TIMER_SP_PERIOD(DCLKS_PER_LINE);
 	SSYNC();
@@ -296,10 +314,10 @@ static void config_timers(void)
 
 #ifdef NO_BL
 	/* REV, timer 5 */
-	bfin_write_TIMER_REV_CONFIG(TIMER_CONFIG|PULSE_HI);
+	bfin_write_TIMER_REV_CONFIG(TIMER_CONFIG | PULSE_HI);
 
 	bfin_write_TIMER_REV_WIDTH(DCLKS_PER_LINE);
-	bfin_write_TIMER_REV_PERIOD(DCLKS_PER_LINE*2);
+	bfin_write_TIMER_REV_PERIOD(DCLKS_PER_LINE * 2);
 
 	SSYNC();
 #endif
@@ -308,32 +326,35 @@ static void config_timers(void)
 static void config_ppi(void)
 {
 	bfin_write_PPI_DELAY(PPI_DELAY_VALUE);
-	bfin_write_PPI_COUNT(LCD_X_RES-1);
+	bfin_write_PPI_COUNT(LCD_X_RES - 1);
 	/* 0x10 -> PORT_CFG -> 2 or 3 frame syncs */
-	bfin_write_PPI_CONTROL((PPI_CONFIG_VALUE|0x10) & (~POLS));
+	bfin_write_PPI_CONTROL((PPI_CONFIG_VALUE | 0x10) & (~POLS));
 }
 
 static int config_dma(void)
 {
 	u32 i;
 
-	if (landscape) {
+	if (landscape)
+	{
 
-		for (i = 0; i < U_LINES; ++i) {
+		for (i = 0; i < U_LINES; ++i)
+		{
 			/* blanking lines point to first line of fb_buffer */
-			dma_desc_table[2*i] = (unsigned long)&dma_desc_table[2*i+2];
-			dma_desc_table[2*i+1] = (unsigned long)fb_buffer;
+			dma_desc_table[2 * i] = (unsigned long)&dma_desc_table[2 * i + 2];
+			dma_desc_table[2 * i + 1] = (unsigned long)fb_buffer;
 		}
 
-		for (i = U_LINES; i < U_LINES + LCD_Y_RES; ++i) {
+		for (i = U_LINES; i < U_LINES + LCD_Y_RES; ++i)
+		{
 			/* visible lines */
-			dma_desc_table[2*i] = (unsigned long)&dma_desc_table[2*i+2];
-			dma_desc_table[2*i+1] = (unsigned long)fb_buffer +
-						(LCD_Y_RES+U_LINES-1-i)*2;
+			dma_desc_table[2 * i] = (unsigned long)&dma_desc_table[2 * i + 2];
+			dma_desc_table[2 * i + 1] = (unsigned long)fb_buffer +
+										(LCD_Y_RES + U_LINES - 1 - i) * 2;
 		}
 
 		/* last descriptor points to first */
-		dma_desc_table[2*(LCD_Y_RES+U_LINES-1)] = (unsigned long)&dma_desc_table[0];
+		dma_desc_table[2 * (LCD_Y_RES + U_LINES - 1)] = (unsigned long)&dma_desc_table[0];
 
 		set_dma_x_count(CH_PPI, LCD_X_RES);
 		set_dma_x_modify(CH_PPI, LCD_Y_RES * (LCD_BBP / 8));
@@ -342,17 +363,19 @@ static int config_dma(void)
 		set_dma_next_desc_addr(CH_PPI, (void *)dma_desc_table[0]);
 		set_dma_config(CH_PPI, DMAFLOW_LARGE | NDSIZE_4 | WDSIZE_16);
 
-	} else {
+	}
+	else
+	{
 
 		set_dma_config(CH_PPI, set_bfin_dma_config(DIR_READ,
-				DMA_FLOW_AUTO,
-				INTR_DISABLE,
-				DIMENSION_2D,
-				DATA_SIZE_16,
-				DMA_NOSYNC_KEEP_DMA_BUF));
+					   DMA_FLOW_AUTO,
+					   INTR_DISABLE,
+					   DIMENSION_2D,
+					   DATA_SIZE_16,
+					   DMA_NOSYNC_KEEP_DMA_BUF));
 		set_dma_x_count(CH_PPI, LCD_X_RES);
 		set_dma_x_modify(CH_PPI, LCD_BBP / 8);
-		set_dma_y_count(CH_PPI, LCD_Y_RES+U_LINES);
+		set_dma_y_count(CH_PPI, LCD_Y_RES + U_LINES);
 		set_dma_y_modify(CH_PPI, LCD_BBP / 8);
 		set_dma_start_addr(CH_PPI, (unsigned long) fb_buffer);
 	}
@@ -371,31 +394,38 @@ static int request_ports(void)
 		PPI_CLK: PF15
 	*/
 
-	if (peripheral_request_list(ppi_pins, KBUILD_MODNAME)) {
+	if (peripheral_request_list(ppi_pins, KBUILD_MODNAME))
+	{
 		pr_err("requesting PPI peripheral failed\n");
 		return -EBUSY;
 	}
 
-	if (peripheral_request_list(tmr_req, KBUILD_MODNAME)) {
+	if (peripheral_request_list(tmr_req, KBUILD_MODNAME))
+	{
 		peripheral_free_list(ppi_pins);
 		pr_err("requesting timer peripheral failed\n");
 		return -EBUSY;
 	}
 
 #if (defined(UD) && defined(LBR))
-	if (gpio_request_one(UD, GPIOF_OUT_INIT_LOW, KBUILD_MODNAME)) {
+
+	if (gpio_request_one(UD, GPIOF_OUT_INIT_LOW, KBUILD_MODNAME))
+	{
 		pr_err("requesting GPIO %d failed\n", UD);
 		return -EBUSY;
 	}
 
-	if (gpio_request_one(LBR, GPIOF_OUT_INIT_HIGH, KBUILD_MODNAME)) {
+	if (gpio_request_one(LBR, GPIOF_OUT_INIT_HIGH, KBUILD_MODNAME))
+	{
 		pr_err("requesting GPIO %d failed\n", LBR);
 		gpio_free(UD);
 		return -EBUSY;
 	}
+
 #endif
 
-	if (gpio_request_one(MOD, GPIOF_OUT_INIT_HIGH, KBUILD_MODNAME)) {
+	if (gpio_request_one(MOD, GPIOF_OUT_INIT_HIGH, KBUILD_MODNAME))
+	{
 		pr_err("requesting GPIO %d failed\n", MOD);
 #if (defined(UD) && defined(LBR))
 		gpio_free(LBR);
@@ -424,7 +454,8 @@ static void free_ports(void)
 
 static struct fb_info bfin_lq035_fb;
 
-static struct fb_var_screeninfo bfin_lq035_fb_defined = {
+static struct fb_var_screeninfo bfin_lq035_fb_defined =
+{
 	.bits_per_pixel		= LCD_BBP,
 	.activate		= FB_ACTIVATE_TEST,
 	.xres			= LCD_X_RES,	/*default portrait mode RGB*/
@@ -443,14 +474,15 @@ static struct fb_var_screeninfo bfin_lq035_fb_defined = {
 	.transp		= {0, 0, 0},
 };
 
-static struct fb_fix_screeninfo bfin_lq035_fb_fix = {
+static struct fb_fix_screeninfo bfin_lq035_fb_fix =
+{
 	.id		= KBUILD_MODNAME,
 	.smem_len	= ACTIVE_VIDEO_MEM_SIZE,
 	.type		= FB_TYPE_PACKED_PIXELS,
 	.visual		= FB_VISUAL_TRUECOLOR,
 	.xpanstep	= 0,
 	.ypanstep	= 0,
-	.line_length	= LCD_X_RES*(LCD_BBP/8),
+	.line_length	= LCD_X_RES * (LCD_BBP / 8),
 	.accel		= FB_ACCEL_NONE,
 };
 
@@ -463,7 +495,8 @@ static int bfin_lq035_fb_open(struct fb_info *info, int user)
 	lq035_open_cnt++;
 	spin_unlock_irqrestore(&bfin_lq035_lock, flags);
 
-	if (lq035_open_cnt <= 1) {
+	if (lq035_open_cnt <= 1)
+	{
 		bfin_write_PPI_CONTROL(0);
 		SSYNC();
 
@@ -477,10 +510,12 @@ static int bfin_lq035_fb_open(struct fb_info *info, int user)
 		bfin_write_PPI_CONTROL(bfin_read_PPI_CONTROL() | PORT_EN);
 		SSYNC();
 
-		if (!t_conf_done) {
+		if (!t_conf_done)
+		{
 			config_timers();
 			start_timers();
 		}
+
 		/* gpio_set_value(MOD,1); */
 	}
 
@@ -496,7 +531,8 @@ static int bfin_lq035_fb_release(struct fb_info *info, int user)
 	spin_unlock_irqrestore(&bfin_lq035_lock, flags);
 
 
-	if (lq035_open_cnt <= 0) {
+	if (lq035_open_cnt <= 0)
+	{
 
 		bfin_write_PPI_CONTROL(0);
 		SSYNC();
@@ -509,35 +545,38 @@ static int bfin_lq035_fb_release(struct fb_info *info, int user)
 
 
 static int bfin_lq035_fb_check_var(struct fb_var_screeninfo *var,
-				   struct fb_info *info)
+								   struct fb_info *info)
 {
-	switch (var->bits_per_pixel) {
-	case 16:/* DIRECTCOLOUR, 64k */
-		var->red.offset = info->var.red.offset;
-		var->green.offset = info->var.green.offset;
-		var->blue.offset = info->var.blue.offset;
-		var->red.length = info->var.red.length;
-		var->green.length = info->var.green.length;
-		var->blue.length = info->var.blue.length;
-		var->transp.offset = 0;
-		var->transp.length = 0;
-		var->transp.msb_right = 0;
-		var->red.msb_right = 0;
-		var->green.msb_right = 0;
-		var->blue.msb_right = 0;
-		break;
-	default:
-		pr_debug("%s: depth not supported: %u BPP\n", __func__,
-			 var->bits_per_pixel);
-		return -EINVAL;
+	switch (var->bits_per_pixel)
+	{
+		case 16:/* DIRECTCOLOUR, 64k */
+			var->red.offset = info->var.red.offset;
+			var->green.offset = info->var.green.offset;
+			var->blue.offset = info->var.blue.offset;
+			var->red.length = info->var.red.length;
+			var->green.length = info->var.green.length;
+			var->blue.length = info->var.blue.length;
+			var->transp.offset = 0;
+			var->transp.length = 0;
+			var->transp.msb_right = 0;
+			var->red.msb_right = 0;
+			var->green.msb_right = 0;
+			var->blue.msb_right = 0;
+			break;
+
+		default:
+			pr_debug("%s: depth not supported: %u BPP\n", __func__,
+					 var->bits_per_pixel);
+			return -EINVAL;
 	}
 
 	if (info->var.xres != var->xres ||
-	    info->var.yres != var->yres ||
-	    info->var.xres_virtual != var->xres_virtual ||
-	    info->var.yres_virtual != var->yres_virtual) {
+		info->var.yres != var->yres ||
+		info->var.xres_virtual != var->xres_virtual ||
+		info->var.yres_virtual != var->yres_virtual)
+	{
 		pr_debug("%s: Resolution not supported: X%u x Y%u\n",
-			 __func__, var->xres, var->yres);
+				 __func__, var->xres, var->yres);
 		return -EINVAL;
 	}
 
@@ -545,9 +584,10 @@ static int bfin_lq035_fb_check_var(struct fb_var_screeninfo *var,
 	 *  Memory limit
 	 */
 
-	if ((info->fix.line_length * var->yres_virtual) > info->fix.smem_len) {
+	if ((info->fix.line_length * var->yres_virtual) > info->fix.smem_len)
+	{
 		pr_debug("%s: Memory Limit requested yres_virtual = %u\n",
-			 __func__, var->yres_virtual);
+				 __func__, var->yres_virtual);
 		return -ENOMEM;
 	}
 
@@ -557,36 +597,48 @@ static int bfin_lq035_fb_check_var(struct fb_var_screeninfo *var,
 static int bfin_lq035_fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
 {
 	if (nocursor)
+	{
 		return 0;
+	}
 	else
-		return -EINVAL;	/* just to force soft_cursor() call */
+	{
+		return -EINVAL;    /* just to force soft_cursor() call */
+	}
 }
 
 static int bfin_lq035_fb_setcolreg(u_int regno, u_int red, u_int green,
-				   u_int blue, u_int transp,
-				   struct fb_info *info)
+								   u_int blue, u_int transp,
+								   struct fb_info *info)
 {
 	if (regno >= NBR_PALETTE)
+	{
 		return -EINVAL;
+	}
 
 	if (info->var.grayscale)
 		/* grayscale = 0.30*R + 0.59*G + 0.11*B */
+	{
 		red = green = blue = (red * 77 + green * 151 + blue * 28) >> 8;
+	}
 
-	if (info->fix.visual == FB_VISUAL_TRUECOLOR) {
+	if (info->fix.visual == FB_VISUAL_TRUECOLOR)
+	{
 
 		u32 value;
+
 		/* Place color in the pseudopalette */
 		if (regno > 16)
+		{
 			return -EINVAL;
+		}
 
 		red   >>= (16 - info->var.red.length);
 		green >>= (16 - info->var.green.length);
 		blue  >>= (16 - info->var.blue.length);
 
 		value = (red   << info->var.red.offset) |
-			(green << info->var.green.offset)|
-			(blue  << info->var.blue.offset);
+				(green << info->var.green.offset) |
+				(blue  << info->var.blue.offset);
 		value &= 0xFFFF;
 
 		((u32 *) (info->pseudo_palette))[regno] = value;
@@ -596,7 +648,8 @@ static int bfin_lq035_fb_setcolreg(u_int regno, u_int red, u_int green,
 	return 0;
 }
 
-static struct fb_ops bfin_lq035_fb_ops = {
+static struct fb_ops bfin_lq035_fb_ops =
+{
 	.owner			= THIS_MODULE,
 	.fb_open		= bfin_lq035_fb_open,
 	.fb_release		= bfin_lq035_fb_release,
@@ -613,7 +666,8 @@ static int bl_get_brightness(struct backlight_device *bd)
 	return current_brightness;
 }
 
-static const struct backlight_ops bfin_lq035fb_bl_ops = {
+static const struct backlight_ops bfin_lq035fb_bl_ops =
+{
 	.get_brightness	= bl_get_brightness,
 };
 
@@ -637,9 +691,14 @@ static int bfin_lcd_get_contrast(struct lcd_device *dev)
 static int bfin_lcd_set_contrast(struct lcd_device *dev, int contrast)
 {
 	if (contrast > 255)
+	{
 		contrast = 255;
+	}
+
 	if (contrast < 0)
+	{
 		contrast = 0;
+	}
 
 	vcomm_value = (unsigned char)contrast;
 	set_vcomm();
@@ -649,11 +708,15 @@ static int bfin_lcd_set_contrast(struct lcd_device *dev, int contrast)
 static int bfin_lcd_check_fb(struct lcd_device *lcd, struct fb_info *fi)
 {
 	if (!fi || (fi == &bfin_lq035_fb))
+	{
 		return 1;
+	}
+
 	return 0;
 }
 
-static struct lcd_ops bfin_lcd_ops = {
+static struct lcd_ops bfin_lcd_ops =
+{
 	.get_power	= bfin_lcd_get_power,
 	.set_power	= bfin_lcd_set_power,
 	.get_contrast	= bfin_lcd_get_contrast,
@@ -669,32 +732,39 @@ static int bfin_lq035_probe(struct platform_device *pdev)
 	dma_addr_t dma_handle;
 	int ret;
 
-	if (request_dma(CH_PPI, KBUILD_MODNAME)) {
+	if (request_dma(CH_PPI, KBUILD_MODNAME))
+	{
 		pr_err("couldn't request PPI DMA\n");
 		return -EFAULT;
 	}
 
-	if (request_ports()) {
+	if (request_ports())
+	{
 		pr_err("couldn't request gpio port\n");
 		ret = -EFAULT;
 		goto out_ports;
 	}
 
 	fb_buffer = dma_alloc_coherent(NULL, TOTAL_VIDEO_MEM_SIZE,
-				       &dma_handle, GFP_KERNEL);
-	if (fb_buffer == NULL) {
+								   &dma_handle, GFP_KERNEL);
+
+	if (fb_buffer == NULL)
+	{
 		pr_err("couldn't allocate dma buffer\n");
 		ret = -ENOMEM;
 		goto out_dma_coherent;
 	}
 
 	if (L1_DATA_A_LENGTH)
+	{
 		dma_desc_table = l1_data_sram_zalloc(TOTAL_DMA_DESC_SIZE);
+	}
 	else
 		dma_desc_table = dma_alloc_coherent(NULL, TOTAL_DMA_DESC_SIZE,
-						    &dma_handle, 0);
+											&dma_handle, 0);
 
-	if (dma_desc_table == NULL) {
+	if (dma_desc_table == NULL)
+	{
 		pr_err("couldn't allocate dma descriptor\n");
 		ret = -ENOMEM;
 		goto out_table;
@@ -702,14 +772,18 @@ static int bfin_lq035_probe(struct platform_device *pdev)
 
 	bfin_lq035_fb.screen_base = (void *)fb_buffer;
 	bfin_lq035_fb_fix.smem_start = (int)fb_buffer;
-	if (landscape) {
+
+	if (landscape)
+	{
 		bfin_lq035_fb_defined.xres = LCD_Y_RES;
 		bfin_lq035_fb_defined.yres = LCD_X_RES;
 		bfin_lq035_fb_defined.xres_virtual = LCD_Y_RES;
 		bfin_lq035_fb_defined.yres_virtual = LCD_X_RES;
 
-		bfin_lq035_fb_fix.line_length = LCD_Y_RES*(LCD_BBP/8);
-	} else {
+		bfin_lq035_fb_fix.line_length = LCD_Y_RES * (LCD_BBP / 8);
+	}
+	else
+	{
 		bfin_lq035_fb.screen_base += ACTIVE_VIDEO_MEM_OFFSET;
 		bfin_lq035_fb_fix.smem_start += ACTIVE_VIDEO_MEM_OFFSET;
 	}
@@ -722,10 +796,13 @@ static int bfin_lq035_probe(struct platform_device *pdev)
 	bfin_lq035_fb_defined.red.length      = 5;
 	bfin_lq035_fb_defined.blue.length     = 5;
 
-	if (bgr) {
+	if (bgr)
+	{
 		bfin_lq035_fb_defined.red.offset  = 0;
 		bfin_lq035_fb_defined.blue.offset = 11;
-	} else {
+	}
+	else
+	{
 		bfin_lq035_fb_defined.red.offset  = 11;
 		bfin_lq035_fb_defined.blue.offset = 0;
 	}
@@ -738,22 +815,26 @@ static int bfin_lq035_probe(struct platform_device *pdev)
 
 
 	bfin_lq035_fb.pseudo_palette = devm_kzalloc(&pdev->dev,
-						    sizeof(u32) * 16,
-						    GFP_KERNEL);
-	if (bfin_lq035_fb.pseudo_palette == NULL) {
+								   sizeof(u32) * 16,
+								   GFP_KERNEL);
+
+	if (bfin_lq035_fb.pseudo_palette == NULL)
+	{
 		pr_err("failed to allocate pseudo_palette\n");
 		ret = -ENOMEM;
 		goto out_table;
 	}
 
-	if (fb_alloc_cmap(&bfin_lq035_fb.cmap, NBR_PALETTE, 0) < 0) {
+	if (fb_alloc_cmap(&bfin_lq035_fb.cmap, NBR_PALETTE, 0) < 0)
+	{
 		pr_err("failed to allocate colormap (%d entries)\n",
-			NBR_PALETTE);
+			   NBR_PALETTE);
 		ret = -EFAULT;
 		goto out_table;
 	}
 
-	if (register_framebuffer(&bfin_lq035_fb) < 0) {
+	if (register_framebuffer(&bfin_lq035_fb) < 0)
+	{
 		pr_err("unable to register framebuffer\n");
 		ret = -EINVAL;
 		goto out_reg;
@@ -765,18 +846,21 @@ static int bfin_lq035_probe(struct platform_device *pdev)
 	props.type = BACKLIGHT_RAW;
 	props.max_brightness = MAX_BRIGHENESS;
 	bl_dev = backlight_device_register("bf537-bl", NULL, NULL,
-					   &bfin_lq035fb_bl_ops, &props);
+									   &bfin_lq035fb_bl_ops, &props);
 
 	lcd_dev = lcd_device_register(KBUILD_MODNAME, &pdev->dev, NULL,
-				      &bfin_lcd_ops);
-	if (IS_ERR(lcd_dev)) {
+								  &bfin_lcd_ops);
+
+	if (IS_ERR(lcd_dev))
+	{
 		pr_err("unable to register lcd\n");
 		ret = PTR_ERR(lcd_dev);
 		goto out_lcd;
 	}
+
 	lcd_dev->props.max_contrast = 255,
 
-	pr_info("initialized");
+				   pr_info("initialized");
 
 	return 0;
 out_lcd:
@@ -796,15 +880,21 @@ out_ports:
 static int bfin_lq035_remove(struct platform_device *pdev)
 {
 	if (fb_buffer != NULL)
+	{
 		dma_free_coherent(NULL, TOTAL_VIDEO_MEM_SIZE, fb_buffer, 0);
+	}
 
 	if (L1_DATA_A_LENGTH)
+	{
 		l1_data_sram_free(dma_desc_table);
+	}
 	else
+	{
 		dma_free_coherent(NULL, TOTAL_DMA_DESC_SIZE, NULL, 0);
+	}
 
-	bfin_write_TIMER_DISABLE(TIMEN_SP|TIMEN_SPS|TIMEN_PS_CLS|
-				 TIMEN_LP|TIMEN_REV);
+	bfin_write_TIMER_DISABLE(TIMEN_SP | TIMEN_SPS | TIMEN_PS_CLS |
+							 TIMEN_LP | TIMEN_REV);
 	t_conf_done = 0;
 
 	free_dma(CH_PPI);
@@ -829,7 +919,8 @@ static int bfin_lq035_remove(struct platform_device *pdev)
 #ifdef CONFIG_PM
 static int bfin_lq035_suspend(struct platform_device *pdev, pm_message_t state)
 {
-	if (lq035_open_cnt > 0) {
+	if (lq035_open_cnt > 0)
+	{
 		bfin_write_PPI_CONTROL(0);
 		SSYNC();
 		disable_dma(CH_PPI);
@@ -840,7 +931,8 @@ static int bfin_lq035_suspend(struct platform_device *pdev, pm_message_t state)
 
 static int bfin_lq035_resume(struct platform_device *pdev)
 {
-	if (lq035_open_cnt > 0) {
+	if (lq035_open_cnt > 0)
+	{
 		bfin_write_PPI_CONTROL(0);
 		SSYNC();
 
@@ -853,7 +945,9 @@ static int bfin_lq035_resume(struct platform_device *pdev)
 
 		config_timers();
 		start_timers();
-	} else {
+	}
+	else
+	{
 		t_conf_done = 0;
 	}
 
@@ -864,7 +958,8 @@ static int bfin_lq035_resume(struct platform_device *pdev)
 # define bfin_lq035_resume	NULL
 #endif
 
-static struct platform_driver bfin_lq035_driver = {
+static struct platform_driver bfin_lq035_driver =
+{
 	.probe = bfin_lq035_probe,
 	.remove = bfin_lq035_remove,
 	.suspend = bfin_lq035_suspend,

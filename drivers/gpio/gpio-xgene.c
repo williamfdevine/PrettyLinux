@@ -38,7 +38,8 @@
 #define GPIO_BIT_OFFSET(x)	(x % XGENE_GPIOS_PER_BANK)
 #define GPIO_BANK_OFFSET(x)	((x / XGENE_GPIOS_PER_BANK) * GPIO_BANK_STRIDE)
 
-struct xgene_gpio {
+struct xgene_gpio
+{
 	struct gpio_chip	chip;
 	void __iomem		*base;
 	spinlock_t		lock;
@@ -68,10 +69,16 @@ static void __xgene_gpio_set(struct gpio_chip *gc, unsigned int offset, int val)
 	bit_offset = GPIO_BIT_OFFSET(offset) + XGENE_GPIOS_PER_BANK;
 
 	setval = ioread32(chip->base + bank_offset);
+
 	if (val)
+	{
 		setval |= BIT(bit_offset);
+	}
 	else
+	{
 		setval &= ~BIT(bit_offset);
+	}
+
 	iowrite32(setval, chip->base + bank_offset);
 }
 
@@ -117,7 +124,7 @@ static int xgene_gpio_dir_in(struct gpio_chip *gc, unsigned int offset)
 }
 
 static int xgene_gpio_dir_out(struct gpio_chip *gc,
-					unsigned int offset, int val)
+							  unsigned int offset, int val)
 {
 	struct xgene_gpio *chip = gpiochip_get_data(gc);
 	unsigned long flags, bank_offset;
@@ -145,10 +152,12 @@ static int xgene_gpio_suspend(struct device *dev)
 	unsigned long bank_offset;
 	unsigned int bank;
 
-	for (bank = 0; bank < XGENE_MAX_GPIO_BANKS; bank++) {
+	for (bank = 0; bank < XGENE_MAX_GPIO_BANKS; bank++)
+	{
 		bank_offset = GPIO_SET_DR_OFFSET + bank * GPIO_BANK_STRIDE;
 		gpio->set_dr_val[bank] = ioread32(gpio->base + bank_offset);
 	}
+
 	return 0;
 }
 
@@ -158,10 +167,12 @@ static int xgene_gpio_resume(struct device *dev)
 	unsigned long bank_offset;
 	unsigned int bank;
 
-	for (bank = 0; bank < XGENE_MAX_GPIO_BANKS; bank++) {
+	for (bank = 0; bank < XGENE_MAX_GPIO_BANKS; bank++)
+	{
 		bank_offset = GPIO_SET_DR_OFFSET + bank * GPIO_BANK_STRIDE;
 		iowrite32(gpio->set_dr_val[bank], gpio->base + bank_offset);
 	}
+
 	return 0;
 }
 
@@ -178,20 +189,26 @@ static int xgene_gpio_probe(struct platform_device *pdev)
 	int err = 0;
 
 	gpio = devm_kzalloc(&pdev->dev, sizeof(*gpio), GFP_KERNEL);
-	if (!gpio) {
+
+	if (!gpio)
+	{
 		err = -ENOMEM;
 		goto err;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		err = -EINVAL;
 		goto err;
 	}
 
 	gpio->base = devm_ioremap_nocache(&pdev->dev, res->start,
-							resource_size(res));
-	if (!gpio->base) {
+									  resource_size(res));
+
+	if (!gpio->base)
+	{
 		err = -ENOMEM;
 		goto err;
 	}
@@ -211,9 +228,11 @@ static int xgene_gpio_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, gpio);
 
 	err = devm_gpiochip_add_data(&pdev->dev, &gpio->chip, gpio);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(&pdev->dev,
-			"failed to register gpiochip.\n");
+				"failed to register gpiochip.\n");
 		goto err;
 	}
 
@@ -224,19 +243,22 @@ err:
 	return err;
 }
 
-static const struct of_device_id xgene_gpio_of_match[] = {
+static const struct of_device_id xgene_gpio_of_match[] =
+{
 	{ .compatible = "apm,xgene-gpio", },
 	{},
 };
 
 #ifdef CONFIG_ACPI
-static const struct acpi_device_id xgene_gpio_acpi_match[] = {
+static const struct acpi_device_id xgene_gpio_acpi_match[] =
+{
 	{ "APMC0D14", 0 },
 	{ },
 };
 #endif
 
-static struct platform_driver xgene_gpio_driver = {
+static struct platform_driver xgene_gpio_driver =
+{
 	.driver = {
 		.name = "xgene-gpio",
 		.of_match_table = xgene_gpio_of_match,

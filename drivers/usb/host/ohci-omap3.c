@@ -69,27 +69,36 @@ static int ohci_hcd_omap3_probe(struct platform_device *pdev)
 	int			irq;
 
 	if (usb_disabled())
+	{
 		return -ENODEV;
+	}
 
-	if (!dev->parent) {
+	if (!dev->parent)
+	{
 		dev_err(dev, "Missing parent device\n");
 		return -ENODEV;
 	}
 
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(dev, "OHCI irq failed\n");
 		return -ENODEV;
 	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-	if (!res) {
+
+	if (!res)
+	{
 		dev_err(dev, "UHH OHCI get resource failed\n");
 		return -ENOMEM;
 	}
 
 	regs = ioremap(res->start, resource_size(res));
-	if (!regs) {
+
+	if (!regs)
+	{
 		dev_err(dev, "UHH OHCI ioremap failed\n");
 		return -ENOMEM;
 	}
@@ -100,13 +109,18 @@ static int ohci_hcd_omap3_probe(struct platform_device *pdev)
 	 * Once we have dma capability bindings this can go away.
 	 */
 	ret = dma_coerce_mask_and_coherent(dev, DMA_BIT_MASK(32));
+
 	if (ret)
+	{
 		goto err_io;
+	}
 
 	ret = -ENODEV;
 	hcd = usb_create_hcd(&ohci_omap3_hc_driver, dev,
-			dev_name(dev));
-	if (!hcd) {
+						 dev_name(dev));
+
+	if (!hcd)
+	{
 		dev_err(dev, "usb_create_hcd failed\n");
 		goto err_io;
 	}
@@ -126,10 +140,13 @@ static int ohci_hcd_omap3_probe(struct platform_device *pdev)
 	ohci->hc_control = OHCI_CTRL_RWC;
 
 	ret = usb_add_hcd(hcd, irq, 0);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_dbg(dev, "failed to add hcd with err %d\n", ret);
 		goto err_add_hcd;
 	}
+
 	device_wakeup_enable(hcd->self.controller);
 
 	return 0;
@@ -170,14 +187,16 @@ static int ohci_hcd_omap3_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id omap_ohci_dt_ids[] = {
+static const struct of_device_id omap_ohci_dt_ids[] =
+{
 	{ .compatible = "ti,ohci-omap3" },
 	{ }
 };
 
 MODULE_DEVICE_TABLE(of, omap_ohci_dt_ids);
 
-static struct platform_driver ohci_hcd_omap3_driver = {
+static struct platform_driver ohci_hcd_omap3_driver =
+{
 	.probe		= ohci_hcd_omap3_probe,
 	.remove		= ohci_hcd_omap3_remove,
 	.shutdown	= usb_hcd_platform_shutdown,
@@ -190,7 +209,9 @@ static struct platform_driver ohci_hcd_omap3_driver = {
 static int __init ohci_omap3_init(void)
 {
 	if (usb_disabled())
+	{
 		return -ENODEV;
+	}
 
 	pr_info("%s: " DRIVER_DESC "\n", hcd_name);
 

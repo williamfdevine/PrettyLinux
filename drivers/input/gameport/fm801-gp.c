@@ -35,7 +35,8 @@
 
 #define HAVE_COOKED
 
-struct fm801_gp {
+struct fm801_gp
+{
 	struct gameport *gameport;
 	struct resource *res_port;
 };
@@ -57,21 +58,25 @@ static int fm801_gp_cooked_read(struct gameport *gameport, int *axes, int *butto
 	axes[3] = (w == 0xffff) ? -1 : ((w & 0x1fff) << 5);
 	outw(0xff, gameport->io); /* reset */
 
-        return 0;
+	return 0;
 }
 #endif
 
 static int fm801_gp_open(struct gameport *gameport, int mode)
 {
-	switch (mode) {
+	switch (mode)
+	{
 #ifdef HAVE_COOKED
-	case GAMEPORT_MODE_COOKED:
-		return 0;
+
+		case GAMEPORT_MODE_COOKED:
+			return 0;
 #endif
-	case GAMEPORT_MODE_RAW:
-		return 0;
-	default:
-		return -1;
+
+		case GAMEPORT_MODE_RAW:
+			return 0;
+
+		default:
+			return -1;
 	}
 
 	return 0;
@@ -85,15 +90,20 @@ static int fm801_gp_probe(struct pci_dev *pci, const struct pci_device_id *id)
 
 	gp = kzalloc(sizeof(struct fm801_gp), GFP_KERNEL);
 	port = gameport_allocate_port();
-	if (!gp || !port) {
+
+	if (!gp || !port)
+	{
 		printk(KERN_ERR "fm801-gp: Memory allocation failed\n");
 		error = -ENOMEM;
 		goto err_out_free;
 	}
 
 	error = pci_enable_device(pci);
+
 	if (error)
+	{
 		goto err_out_free;
+	}
 
 	port->open = fm801_gp_open;
 #ifdef HAVE_COOKED
@@ -106,9 +116,11 @@ static int fm801_gp_probe(struct pci_dev *pci, const struct pci_device_id *id)
 
 	gp->gameport = port;
 	gp->res_port = request_region(port->io, 0x10, "FM801 GP");
-	if (!gp->res_port) {
+
+	if (!gp->res_port)
+	{
 		printk(KERN_DEBUG "fm801-gp: unable to grab region 0x%x-0x%x\n",
-			port->io, port->io + 0x0f);
+			   port->io, port->io + 0x0f);
 		error = -EBUSY;
 		goto err_out_disable_dev;
 	}
@@ -120,9 +132,9 @@ static int fm801_gp_probe(struct pci_dev *pci, const struct pci_device_id *id)
 
 	return 0;
 
- err_out_disable_dev:
+err_out_disable_dev:
 	pci_disable_device(pci);
- err_out_free:
+err_out_free:
 	gameport_free_port(port);
 	kfree(gp);
 	return error;
@@ -139,13 +151,15 @@ static void fm801_gp_remove(struct pci_dev *pci)
 	pci_disable_device(pci);
 }
 
-static const struct pci_device_id fm801_gp_id_table[] = {
+static const struct pci_device_id fm801_gp_id_table[] =
+{
 	{ PCI_VENDOR_ID_FORTEMEDIA, PCI_DEVICE_ID_FM801_GP, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0  },
 	{ 0 }
 };
 MODULE_DEVICE_TABLE(pci, fm801_gp_id_table);
 
-static struct pci_driver fm801_gp_driver = {
+static struct pci_driver fm801_gp_driver =
+{
 	.name =		"FM801_gameport",
 	.id_table =	fm801_gp_id_table,
 	.probe =	fm801_gp_probe,

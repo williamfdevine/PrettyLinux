@@ -52,7 +52,8 @@
 #define VSYS_2P5_R_INT_MASK             BIT(VSYS_2P5_R_INT)
 #define OTMP_D1R_INT_MASK               BIT(OTMP_D1R_INT)
 
-struct hi655x_pmic {
+struct hi655x_pmic
+{
 	struct resource *res;
 	struct device *dev;
 	struct regmap *regmap;

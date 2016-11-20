@@ -30,7 +30,7 @@
 ******************************************************************************/
 
 #ifdef __IN_PCMCIA_PACKAGE__
-#include <pcmcia/k_compat.h>
+	#include <pcmcia/k_compat.h>
 #endif
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -66,7 +66,8 @@ static void atmel_release(struct pcmcia_device *link);
 
 static void atmel_detach(struct pcmcia_device *p_dev);
 
-struct local_info {
+struct local_info
+{
 	struct net_device *eth_dev;
 };
 
@@ -78,8 +79,11 @@ static int atmel_probe(struct pcmcia_device *p_dev)
 
 	/* Allocate space for private device-specific data */
 	local = kzalloc(sizeof(*local), GFP_KERNEL);
+
 	if (!local)
+	{
 		return -ENOMEM;
+	}
 
 	p_dev->priv = local;
 
@@ -102,7 +106,9 @@ static int card_present(void *arg)
 	struct pcmcia_device *link = (struct pcmcia_device *)arg;
 
 	if (pcmcia_dev_present(link))
+	{
 		return 1;
+	}
 
 	return 0;
 }
@@ -110,7 +116,9 @@ static int card_present(void *arg)
 static int atmel_config_check(struct pcmcia_device *p_dev, void *priv_data)
 {
 	if (p_dev->config_index == 0)
+	{
 		return -EINVAL;
+	}
 
 	return pcmcia_request_io(p_dev);
 }
@@ -127,34 +135,43 @@ static int atmel_config(struct pcmcia_device *link)
 	dev_dbg(&link->dev, "atmel_config\n");
 
 	link->config_flags |= CONF_ENABLE_IRQ | CONF_AUTO_SET_VPP |
-		CONF_AUTO_AUDIO | CONF_AUTO_SET_IO;
+						  CONF_AUTO_AUDIO | CONF_AUTO_SET_IO;
 
 	if (pcmcia_loop_config(link, atmel_config_check, NULL))
+	{
 		goto failed;
+	}
 
-	if (!link->irq) {
+	if (!link->irq)
+	{
 		dev_err(&link->dev, "atmel: cannot assign IRQ: check that CONFIG_ISA is set in kernel config.");
 		goto failed;
 	}
 
 	ret = pcmcia_enable_device(link);
+
 	if (ret)
+	{
 		goto failed;
+	}
 
 	((struct local_info *)link->priv)->eth_dev =
 		init_atmel_card(link->irq,
-				link->resource[0]->start,
-				did ? did->driver_info : ATMEL_FW_TYPE_NONE,
-				&link->dev,
-				card_present,
-				link);
+						link->resource[0]->start,
+						did ? did->driver_info : ATMEL_FW_TYPE_NONE,
+						&link->dev,
+						card_present,
+						link);
+
 	if (!((struct local_info *)link->priv)->eth_dev)
-			goto failed;
+	{
+		goto failed;
+	}
 
 
 	return 0;
 
- failed:
+failed:
 	atmel_release(link);
 	return -ENODEV;
 }
@@ -166,7 +183,10 @@ static void atmel_release(struct pcmcia_device *link)
 	dev_dbg(&link->dev, "atmel_release\n");
 
 	if (dev)
+	{
 		stop_atmel_card(dev);
+	}
+
 	((struct local_info *)link->priv)->eth_dev = NULL;
 
 	pcmcia_disable_device(link);
@@ -195,20 +215,21 @@ static int atmel_resume(struct pcmcia_device *link)
 /* We use the driver_info field to store the correct firmware type for a card. */
 
 #define PCMCIA_DEVICE_MANF_CARD_INFO(manf, card, info) { \
-	.match_flags = PCMCIA_DEV_ID_MATCH_MANF_ID| \
-			PCMCIA_DEV_ID_MATCH_CARD_ID, \
-	.manf_id = (manf), \
-	.card_id = (card), \
-        .driver_info = (kernel_ulong_t)(info), }
+		.match_flags = PCMCIA_DEV_ID_MATCH_MANF_ID| \
+					   PCMCIA_DEV_ID_MATCH_CARD_ID, \
+					   .manf_id = (manf), \
+								  .card_id = (card), \
+											 .driver_info = (kernel_ulong_t)(info), }
 
 #define PCMCIA_DEVICE_PROD_ID12_INFO(v1, v2, vh1, vh2, info) { \
-	.match_flags = PCMCIA_DEV_ID_MATCH_PROD_ID1| \
-			PCMCIA_DEV_ID_MATCH_PROD_ID2, \
-	.prod_id = { (v1), (v2), NULL, NULL }, \
-	.prod_id_hash = { (vh1), (vh2), 0, 0 }, \
-        .driver_info = (kernel_ulong_t)(info), }
+		.match_flags = PCMCIA_DEV_ID_MATCH_PROD_ID1| \
+					   PCMCIA_DEV_ID_MATCH_PROD_ID2, \
+					   .prod_id = { (v1), (v2), NULL, NULL }, \
+								  .prod_id_hash = { (vh1), (vh2), 0, 0 }, \
+										  .driver_info = (kernel_ulong_t)(info), }
 
-static const struct pcmcia_device_id atmel_ids[] = {
+static const struct pcmcia_device_id atmel_ids[] =
+{
 	PCMCIA_DEVICE_MANF_CARD_INFO(0x0101, 0x0620, ATMEL_FW_TYPE_502_3COM),
 	PCMCIA_DEVICE_MANF_CARD_INFO(0x0101, 0x0696, ATMEL_FW_TYPE_502_3COM),
 	PCMCIA_DEVICE_MANF_CARD_INFO(0x01bf, 0x3302, ATMEL_FW_TYPE_502E),
@@ -235,7 +256,8 @@ static const struct pcmcia_device_id atmel_ids[] = {
 
 MODULE_DEVICE_TABLE(pcmcia, atmel_ids);
 
-static struct pcmcia_driver atmel_driver = {
+static struct pcmcia_driver atmel_driver =
+{
 	.owner		= THIS_MODULE,
 	.name		= "atmel_cs",
 	.probe          = atmel_probe,

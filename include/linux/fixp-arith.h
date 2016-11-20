@@ -31,7 +31,8 @@
 
 #include <linux/types.h>
 
-static const s32 sin_table[] = {
+static const s32 sin_table[] =
+{
 	0x00000000, 0x023be165, 0x04779632, 0x06b2f1d2, 0x08edc7b6, 0x0b27eb5c,
 	0x0d61304d, 0x0f996a26, 0x11d06c96, 0x14060b67, 0x163a1a7d, 0x186c6ddd,
 	0x1a9cd9ac, 0x1ccb3236, 0x1ef74bf2, 0x2120fb82, 0x234815ba, 0x256c6f9e,
@@ -62,12 +63,16 @@ static inline s32 __fixp_sin32(int degrees)
 	s32 ret;
 	bool negative = false;
 
-	if (degrees > 180) {
+	if (degrees > 180)
+	{
 		negative = true;
 		degrees -= 180;
 	}
+
 	if (degrees > 90)
+	{
 		degrees = 180 - degrees;
+	}
 
 	ret = sin_table[degrees];
 

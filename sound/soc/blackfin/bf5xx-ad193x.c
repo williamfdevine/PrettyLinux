@@ -49,30 +49,40 @@ static int bf5xx_ad193x_link_init(struct snd_soc_pcm_runtime *rtd)
 
 	/* set the codec system clock for DAC and ADC */
 	ret = snd_soc_dai_set_sysclk(codec_dai, 0, 24576000, SND_SOC_CLOCK_IN);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* set codec DAI slots, 8 channels, all channels are enabled */
 	ret = snd_soc_dai_set_tdm_slot(codec_dai, 0xFF, 0xFF, 8, 32);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	ret = snd_soc_dai_set_tdm_slot(cpu_dai, 0xFF, 0xFF, 8, 32);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
 
 #define BF5XX_AD193X_DAIFMT (SND_SOC_DAIFMT_DSP_A | SND_SOC_DAIFMT_IB_IF | \
-				SND_SOC_DAIFMT_CBM_CFM)
+							 SND_SOC_DAIFMT_CBM_CFM)
 
-static struct snd_soc_dai_link bf5xx_ad193x_dai[] = {
+static struct snd_soc_dai_link bf5xx_ad193x_dai[] =
+{
 	{
 		.name = "ad193x",
 		.stream_name = "AD193X",
 		.cpu_dai_name = "bfin-i2s.0",
-		.codec_dai_name ="ad193x-hifi",
+		.codec_dai_name = "ad193x-hifi",
 		.platform_name = "bfin-i2s-pcm-audio",
 		.codec_name = "spi0.5",
 		.dai_fmt = BF5XX_AD193X_DAIFMT,
@@ -82,7 +92,7 @@ static struct snd_soc_dai_link bf5xx_ad193x_dai[] = {
 		.name = "ad193x",
 		.stream_name = "AD193X",
 		.cpu_dai_name = "bfin-i2s.1",
-		.codec_dai_name ="ad193x-hifi",
+		.codec_dai_name = "ad193x-hifi",
 		.platform_name = "bfin-i2s-pcm-audio",
 		.codec_name = "spi0.5",
 		.dai_fmt = BF5XX_AD193X_DAIFMT,
@@ -90,7 +100,8 @@ static struct snd_soc_dai_link bf5xx_ad193x_dai[] = {
 	},
 };
 
-static struct snd_soc_card bf5xx_ad193x = {
+static struct snd_soc_card bf5xx_ad193x =
+{
 	.name = "bfin-ad193x",
 	.owner = THIS_MODULE,
 	.dai_link = &bf5xx_ad193x_dai[CONFIG_SND_BF5XX_SPORT_NUM],
@@ -104,14 +115,19 @@ static int __init bf5xx_ad193x_init(void)
 	int ret;
 
 	bfxx_ad193x_snd_device = platform_device_alloc("soc-audio", -1);
+
 	if (!bfxx_ad193x_snd_device)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(bfxx_ad193x_snd_device, &bf5xx_ad193x);
 	ret = platform_device_add(bfxx_ad193x_snd_device);
 
 	if (ret)
+	{
 		platform_device_put(bfxx_ad193x_snd_device);
+	}
 
 	return ret;
 }

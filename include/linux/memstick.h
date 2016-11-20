@@ -18,7 +18,8 @@
 
 /*** Hardware based structures ***/
 
-struct ms_status_register {
+struct ms_status_register
+{
 	unsigned char reserved;
 	unsigned char interrupt;
 #define MEMSTICK_INT_CMDNAK 0x01
@@ -47,14 +48,16 @@ struct ms_status_register {
 #define MEMSTICK_STATUS1_MB   0x80
 } __attribute__((packed));
 
-struct ms_id_register {
+struct ms_id_register
+{
 	unsigned char type;
 	unsigned char if_mode;
 	unsigned char category;
 	unsigned char class;
 } __attribute__((packed));
 
-struct ms_param_register {
+struct ms_param_register
+{
 	unsigned char system;
 #define MEMSTICK_SYS_PAM  0x08
 #define MEMSTICK_SYS_BAMD 0x80
@@ -70,7 +73,8 @@ struct ms_param_register {
 	unsigned char page_address;
 } __attribute__((packed));
 
-struct ms_extra_data_register {
+struct ms_extra_data_register
+{
 	unsigned char  overwrite_flag;
 #define MEMSTICK_OVERWRITE_UDST  0x10
 #define MEMSTICK_OVERWRITE_PGST1 0x20
@@ -86,7 +90,8 @@ struct ms_extra_data_register {
 	unsigned short logical_address;
 } __attribute__((packed));
 
-struct ms_register {
+struct ms_register
+{
 	struct ms_status_register     status;
 	struct ms_id_register         id;
 	unsigned char                 reserved[8];
@@ -94,7 +99,8 @@ struct ms_register {
 	struct ms_extra_data_register extra_data;
 } __attribute__((packed));
 
-struct mspro_param_register {
+struct mspro_param_register
+{
 	unsigned char  system;
 #define MEMSTICK_SYS_PAR4   0x00
 #define MEMSTICK_SYS_PAR8   0x40
@@ -105,7 +111,8 @@ struct mspro_param_register {
 	unsigned char  tpc_param;
 } __attribute__((packed));
 
-struct mspro_io_info_register {
+struct mspro_io_info_register
+{
 	unsigned char version;
 	unsigned char io_category;
 	unsigned char current_req;
@@ -113,20 +120,23 @@ struct mspro_io_info_register {
 	unsigned char rdy_wait_time;
 } __attribute__((packed));
 
-struct mspro_io_func_register {
+struct mspro_io_func_register
+{
 	unsigned char func_enable;
 	unsigned char func_select;
 	unsigned char func_intmask;
 	unsigned char transfer_mode;
 } __attribute__((packed));
 
-struct mspro_io_cmd_register {
+struct mspro_io_cmd_register
+{
 	unsigned short tpc_param;
 	unsigned short data_count;
 	unsigned int   data_address;
 } __attribute__((packed));
 
-struct mspro_register {
+struct mspro_register
+{
 	struct ms_status_register     status;
 	struct ms_id_register         id;
 	unsigned char                 reserved0[8];
@@ -140,14 +150,16 @@ struct mspro_register {
 	unsigned char                 io_int_func;
 } __attribute__((packed));
 
-struct ms_register_addr {
+struct ms_register_addr
+{
 	unsigned char r_offset;
 	unsigned char r_length;
 	unsigned char w_offset;
 	unsigned char w_length;
 } __attribute__((packed));
 
-enum memstick_tpc {
+enum memstick_tpc
+{
 	MS_TPC_READ_MG_STATUS   = 0x01,
 	MS_TPC_READ_LONG_DATA   = 0x02,
 	MS_TPC_READ_SHORT_DATA  = 0x03,
@@ -167,7 +179,8 @@ enum memstick_tpc {
 	MS_TPC_SET_CMD          = 0x0e
 };
 
-enum memstick_command {
+enum memstick_command
+{
 	MS_CMD_BLOCK_END       = 0x33,
 	MS_CMD_RESET           = 0x3c,
 	MS_CMD_BLOCK_WRITE     = 0x55,
@@ -213,7 +226,8 @@ enum memstick_param { MEMSTICK_POWER = 1, MEMSTICK_INTERFACE };
 struct memstick_host;
 struct memstick_driver;
 
-struct memstick_device_id {
+struct memstick_device_id
+{
 	unsigned char match_flags;
 #define MEMSTICK_MATCH_ALL            0x01
 
@@ -236,23 +250,27 @@ struct memstick_device_id {
 #define MEMSTICK_CLASS_WP             0x03
 };
 
-struct memstick_request {
+struct memstick_request
+{
 	unsigned char tpc;
-	unsigned char data_dir:1,
-		      need_card_int:1,
-		      long_data:1;
+	unsigned char data_dir: 1,
+			 need_card_int: 1,
+			 long_data: 1;
 	unsigned char int_reg;
 	int           error;
-	union {
+	union
+	{
 		struct scatterlist sg;
-		struct {
+		struct
+		{
 			unsigned char data_len;
 			unsigned char data[15];
 		};
 	};
 };
 
-struct memstick_dev {
+struct memstick_dev
+{
 	struct memstick_device_id id;
 	struct memstick_host     *host;
 	struct ms_register_addr  reg_addr;
@@ -263,7 +281,7 @@ struct memstick_dev {
 	int                      (*check)(struct memstick_dev *card);
 	/* Get next request from the media driver.                         */
 	int                      (*next_request)(struct memstick_dev *card,
-						 struct memstick_request **mrq);
+			struct memstick_request **mrq);
 	/* Tell the media driver to stop doing things                      */
 	void                     (*stop)(struct memstick_dev *card);
 	/* Allow the media driver to continue                              */
@@ -272,35 +290,37 @@ struct memstick_dev {
 	struct device            dev;
 };
 
-struct memstick_host {
-	struct mutex        lock;
-	unsigned int        id;
-	unsigned int        caps;
+struct memstick_host
+{
+		struct mutex        lock;
+		unsigned int        id;
+		unsigned int        caps;
 #define MEMSTICK_CAP_AUTO_GET_INT  1
 #define MEMSTICK_CAP_PAR4          2
 #define MEMSTICK_CAP_PAR8          4
 
-	struct work_struct  media_checker;
-	struct device       dev;
+		struct work_struct  media_checker;
+		struct device       dev;
 
-	struct memstick_dev *card;
-	unsigned int        retries;
+		struct memstick_dev *card;
+		unsigned int        retries;
 
-	/* Notify the host that some requests are pending. */
-	void                (*request)(struct memstick_host *host);
-	/* Set host IO parameters (power, clock, etc).     */
-	int                 (*set_param)(struct memstick_host *host,
-					 enum memstick_param param,
-					 int value);
-	unsigned long       private[0] ____cacheline_aligned;
+		/* Notify the host that some requests are pending. */
+		void                (*request)(struct memstick_host *host);
+		/* Set host IO parameters (power, clock, etc).     */
+		int                 (*set_param)(struct memstick_host *host,
+										 enum memstick_param param,
+										 int value);
+		unsigned long       private[0] ____cacheline_aligned;
 };
 
-struct memstick_driver {
+struct memstick_driver
+{
 	struct memstick_device_id *id_table;
 	int                       (*probe)(struct memstick_dev *card);
 	void                      (*remove)(struct memstick_dev *card);
 	int                       (*suspend)(struct memstick_dev *card,
-					     pm_message_t state);
+										 pm_message_t state);
 	int                       (*resume)(struct memstick_dev *card);
 
 	struct device_driver      driver;
@@ -310,7 +330,7 @@ int memstick_register_driver(struct memstick_driver *drv);
 void memstick_unregister_driver(struct memstick_driver *drv);
 
 struct memstick_host *memstick_alloc_host(unsigned int extra,
-					  struct device *dev);
+		struct device *dev);
 
 int memstick_add_host(struct memstick_host *host);
 void memstick_remove_host(struct memstick_host *host);
@@ -320,11 +340,11 @@ void memstick_suspend_host(struct memstick_host *host);
 void memstick_resume_host(struct memstick_host *host);
 
 void memstick_init_req_sg(struct memstick_request *mrq, unsigned char tpc,
-			  const struct scatterlist *sg);
+						  const struct scatterlist *sg);
 void memstick_init_req(struct memstick_request *mrq, unsigned char tpc,
-		       const void *buf, size_t length);
+					   const void *buf, size_t length);
 int memstick_next_req(struct memstick_host *host,
-		      struct memstick_request **mrq);
+					  struct memstick_request **mrq);
 void memstick_new_req(struct memstick_host *host);
 
 int memstick_set_rw_addr(struct memstick_dev *card);

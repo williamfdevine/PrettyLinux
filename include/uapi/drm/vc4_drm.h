@@ -48,7 +48,8 @@ extern "C" {
 #define DRM_IOCTL_VC4_GET_HANG_STATE      DRM_IOWR(DRM_COMMAND_BASE + DRM_VC4_GET_HANG_STATE, struct drm_vc4_get_hang_state)
 #define DRM_IOCTL_VC4_GET_PARAM           DRM_IOWR(DRM_COMMAND_BASE + DRM_VC4_GET_PARAM, struct drm_vc4_get_param)
 
-struct drm_vc4_submit_rcl_surface {
+struct drm_vc4_submit_rcl_surface
+{
 	__u32 hindex; /* Handle index, or ~0 if not present. */
 	__u32 offset; /* Offset to start of buffer. */
 	/*
@@ -74,7 +75,8 @@ struct drm_vc4_submit_rcl_surface {
  * data to its own address space, and then validates and stores it in a GPU
  * BO.
  */
-struct drm_vc4_submit_cl {
+struct drm_vc4_submit_cl
+{
 	/* Pointer to the binner command list.
 	 *
 	 * This is the first set of commands executed, which runs the
@@ -146,7 +148,7 @@ struct drm_vc4_submit_cl {
 	__u32 clear_z;
 	__u8 clear_s;
 
-	__u32 pad:24;
+	__u32 pad: 24;
 
 #define VC4_SUBMIT_CL_USE_CLEAR_COLOR			(1 << 0)
 	__u32 flags;
@@ -164,7 +166,8 @@ struct drm_vc4_submit_cl {
  * timeout_ns is the timeout in nanoseconds, where "0" means "don't
  * block, just return the status."
  */
-struct drm_vc4_wait_seqno {
+struct drm_vc4_wait_seqno
+{
 	__u64 seqno;
 	__u64 timeout_ns;
 };
@@ -177,7 +180,8 @@ struct drm_vc4_wait_seqno {
  * rendering to a BO and you want to wait for all rendering to be
  * completed.
  */
-struct drm_vc4_wait_bo {
+struct drm_vc4_wait_bo
+{
 	__u32 handle;
 	__u32 pad;
 	__u64 timeout_ns;
@@ -189,7 +193,8 @@ struct drm_vc4_wait_bo {
  * There are currently no values for the flags argument, but it may be
  * used in a future extension.
  */
-struct drm_vc4_create_bo {
+struct drm_vc4_create_bo
+{
 	__u32 size;
 	__u32 flags;
 	/** Returned GEM handle for the BO. */
@@ -208,7 +213,8 @@ struct drm_vc4_create_bo {
  * There are currently no values for the flags argument, but it may be
  * used in a future extension.
  */
-struct drm_vc4_mmap_bo {
+struct drm_vc4_mmap_bo
+{
 	/** Handle for the object being mapped. */
 	__u32 handle;
 	__u32 flags;
@@ -224,7 +230,8 @@ struct drm_vc4_mmap_bo {
  * executed from would allow privlege escalation, shaders must be
  * created using this ioctl, and they can't be mmapped later.
  */
-struct drm_vc4_create_shader_bo {
+struct drm_vc4_create_shader_bo
+{
 	/* Size of the data argument. */
 	__u32 size;
 	/* Flags, currently must be 0. */
@@ -239,7 +246,8 @@ struct drm_vc4_create_shader_bo {
 	__u32 pad;
 };
 
-struct drm_vc4_get_hang_state_bo {
+struct drm_vc4_get_hang_state_bo
+{
 	__u32 handle;
 	__u32 paddr;
 	__u32 size;
@@ -250,7 +258,8 @@ struct drm_vc4_get_hang_state_bo {
  * struct drm_vc4_hang_state - ioctl argument for collecting state
  * from a GPU hang for analysis.
 */
-struct drm_vc4_get_hang_state {
+struct drm_vc4_get_hang_state
+{
 	/** Pointer to array of struct drm_vc4_get_hang_state_bo. */
 	__u64 bo;
 	/**
@@ -287,7 +296,8 @@ struct drm_vc4_get_hang_state {
 #define DRM_VC4_PARAM_V3D_IDENT2		2
 #define DRM_VC4_PARAM_SUPPORTS_BRANCHES		3
 
-struct drm_vc4_get_param {
+struct drm_vc4_get_param
+{
 	__u32 param;
 	__u32 pad;
 	__u64 value;

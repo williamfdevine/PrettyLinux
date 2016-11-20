@@ -24,7 +24,8 @@
 #include "priv.h"
 
 static const struct nvkm_timer_func
-gk20a_timer = {
+	gk20a_timer =
+{
 	.intr = nv04_timer_intr,
 	.read = nv04_timer_read,
 	.time = nv04_timer_time,

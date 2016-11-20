@@ -43,7 +43,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
  * USA.
  */
-  /* Diagnostic Trigger Configuration Data Structures */
+/* Diagnostic Trigger Configuration Data Structures */
 
 #ifndef MPT3SAS_TRIGGER_DIAG_H_INCLUDED
 #define MPT3SAS_TRIGGER_DIAG_H_INCLUDED
@@ -82,7 +82,8 @@
  * 4. Device Remove Event sent by FW
  */
 
-struct SL_WH_MASTER_TRIGGER_T {
+struct SL_WH_MASTER_TRIGGER_T
+{
 	uint32_t MasterData;
 };
 
@@ -93,7 +94,8 @@ struct SL_WH_MASTER_TRIGGER_T {
  *
  * Defines an event that should induce a DIAG_TRIGGER driver event if observed.
  */
-struct SL_WH_EVENT_TRIGGER_T {
+struct SL_WH_EVENT_TRIGGER_T
+{
 	uint16_t EventValue;
 	uint16_t LogEntryQualifier;
 };
@@ -109,7 +111,8 @@ struct SL_WH_EVENT_TRIGGER_T {
  * in the Linux Driver.
  */
 
-struct SL_WH_EVENT_TRIGGERS_T {
+struct SL_WH_EVENT_TRIGGERS_T
+{
 	uint32_t ValidEntries;
 	struct SL_WH_EVENT_TRIGGER_T EventTriggerEntry[NUM_VALID_ENTRIES];
 };
@@ -124,7 +127,8 @@ struct SL_WH_EVENT_TRIGGERS_T {
  * Defines a sense key (single or many variants) that should induce a
  * DIAG_TRIGGER driver event if observed.
  */
-struct SL_WH_SCSI_TRIGGER_T {
+struct SL_WH_SCSI_TRIGGER_T
+{
 	U8 ASCQ;
 	U8 ASC;
 	U8 SenseKey;
@@ -142,7 +146,8 @@ struct SL_WH_SCSI_TRIGGER_T {
  * This binary structure is transferred via sysfs to get/set SCSI Sense Code
  * Triggers in the Linux Driver.
  */
-struct SL_WH_SCSI_TRIGGERS_T {
+struct SL_WH_SCSI_TRIGGERS_T
+{
 	uint32_t ValidEntries;
 	struct SL_WH_SCSI_TRIGGER_T SCSITriggerEntry[NUM_VALID_ENTRIES];
 };
@@ -155,7 +160,8 @@ struct SL_WH_SCSI_TRIGGERS_T {
  * Defines a MPI IOCStatus/IocLogInfo pair that should induce a DIAG_TRIGGER
  * driver event if observed.
  */
-struct SL_WH_MPI_TRIGGER_T {
+struct SL_WH_MPI_TRIGGER_T
+{
 	uint16_t IOCStatus;
 	uint16_t Reserved;
 	uint32_t IocLogInfo;
@@ -172,7 +178,8 @@ struct SL_WH_MPI_TRIGGER_T {
  * This binary structure is transferred via sysfs to get/set MPI Error Triggers
  * in the Linux Driver.
  */
-struct SL_WH_MPI_TRIGGERS_T {
+struct SL_WH_MPI_TRIGGERS_T
+{
 	uint32_t ValidEntries;
 	struct SL_WH_MPI_TRIGGER_T MPITriggerEntry[NUM_VALID_ENTRIES];
 };
@@ -182,9 +189,11 @@ struct SL_WH_MPI_TRIGGERS_T {
  * @trigger_type: trigger type (see MPT3SAS_TRIGGER_XXXX)
  * @u: trigger condition that caused trigger to be sent
  */
-struct SL_WH_TRIGGERS_EVENT_DATA_T {
+struct SL_WH_TRIGGERS_EVENT_DATA_T
+{
 	uint32_t trigger_type;
-	union {
+	union
+	{
 		struct SL_WH_MASTER_TRIGGER_T master;
 		struct SL_WH_EVENT_TRIGGER_T event;
 		struct SL_WH_SCSI_TRIGGER_T scsi;

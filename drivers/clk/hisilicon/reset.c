@@ -29,7 +29,8 @@
 #define	HISI_RESET_OFFSET_SHIFT	8
 #define	HISI_RESET_OFFSET_MASK	0xffff00
 
-struct hisi_reset_controller {
+struct hisi_reset_controller
+{
 	spinlock_t	lock;
 	void __iomem	*membase;
 	struct reset_controller_dev	rcdev;
@@ -40,20 +41,20 @@ struct hisi_reset_controller {
 	container_of(rcdev, struct hisi_reset_controller, rcdev)
 
 static int hisi_reset_of_xlate(struct reset_controller_dev *rcdev,
-			const struct of_phandle_args *reset_spec)
+							   const struct of_phandle_args *reset_spec)
 {
 	u32 offset;
 	u8 bit;
 
 	offset = (reset_spec->args[0] << HISI_RESET_OFFSET_SHIFT)
-		& HISI_RESET_OFFSET_MASK;
+			 & HISI_RESET_OFFSET_MASK;
 	bit = reset_spec->args[1] & HISI_RESET_BIT_MASK;
 
 	return (offset | bit);
 }
 
 static int hisi_reset_assert(struct reset_controller_dev *rcdev,
-			      unsigned long id)
+							 unsigned long id)
 {
 	struct hisi_reset_controller *rstc = to_hisi_reset_controller(rcdev);
 	unsigned long flags;
@@ -74,7 +75,7 @@ static int hisi_reset_assert(struct reset_controller_dev *rcdev,
 }
 
 static int hisi_reset_deassert(struct reset_controller_dev *rcdev,
-				unsigned long id)
+							   unsigned long id)
 {
 	struct hisi_reset_controller *rstc = to_hisi_reset_controller(rcdev);
 	unsigned long flags;
@@ -94,7 +95,8 @@ static int hisi_reset_deassert(struct reset_controller_dev *rcdev,
 	return 0;
 }
 
-static const struct reset_control_ops hisi_reset_ops = {
+static const struct reset_control_ops hisi_reset_ops =
+{
 	.assert		= hisi_reset_assert,
 	.deassert	= hisi_reset_deassert,
 };
@@ -105,14 +107,20 @@ struct hisi_reset_controller *hisi_reset_init(struct platform_device *pdev)
 	struct resource *res;
 
 	rstc = devm_kmalloc(&pdev->dev, sizeof(*rstc), GFP_KERNEL);
+
 	if (!rstc)
+	{
 		return NULL;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	rstc->membase = devm_ioremap(&pdev->dev,
-				res->start, resource_size(res));
+								 res->start, resource_size(res));
+
 	if (!rstc->membase)
+	{
 		return NULL;
+	}
 
 	spin_lock_init(&rstc->lock);
 	rstc->rcdev.owner = THIS_MODULE;

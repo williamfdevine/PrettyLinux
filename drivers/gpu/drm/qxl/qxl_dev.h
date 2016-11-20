@@ -41,7 +41,8 @@
 
 /* enums.h */
 
-enum SpiceImageType {
+enum SpiceImageType
+{
 	SPICE_IMAGE_TYPE_BITMAP,
 	SPICE_IMAGE_TYPE_QUIC,
 	SPICE_IMAGE_TYPE_RESERVED,
@@ -58,7 +59,8 @@ enum SpiceImageType {
 	SPICE_IMAGE_TYPE_ENUM_END
 };
 
-enum SpiceBitmapFmt {
+enum SpiceBitmapFmt
+{
 	SPICE_BITMAP_FMT_INVALID,
 	SPICE_BITMAP_FMT_1BIT_LE,
 	SPICE_BITMAP_FMT_1BIT_BE,
@@ -73,7 +75,8 @@ enum SpiceBitmapFmt {
 	SPICE_BITMAP_FMT_ENUM_END
 };
 
-enum SpiceSurfaceFmt {
+enum SpiceSurfaceFmt
+{
 	SPICE_SURFACE_FMT_INVALID,
 	SPICE_SURFACE_FMT_1_A,
 	SPICE_SURFACE_FMT_8_A = 8,
@@ -85,14 +88,16 @@ enum SpiceSurfaceFmt {
 	SPICE_SURFACE_FMT_ENUM_END
 };
 
-enum SpiceClipType {
+enum SpiceClipType
+{
 	SPICE_CLIP_TYPE_NONE,
 	SPICE_CLIP_TYPE_RECTS,
 
 	SPICE_CLIP_TYPE_ENUM_END
 };
 
-enum SpiceRopd {
+enum SpiceRopd
+{
 	SPICE_ROPD_INVERS_SRC = (1 << 0),
 	SPICE_ROPD_INVERS_BRUSH = (1 << 1),
 	SPICE_ROPD_INVERS_DEST = (1 << 2),
@@ -108,7 +113,8 @@ enum SpiceRopd {
 	SPICE_ROPD_MASK = 0x7ff
 };
 
-enum SpiceBrushType {
+enum SpiceBrushType
+{
 	SPICE_BRUSH_TYPE_NONE,
 	SPICE_BRUSH_TYPE_SOLID,
 	SPICE_BRUSH_TYPE_PATTERN,
@@ -116,7 +122,8 @@ enum SpiceBrushType {
 	SPICE_BRUSH_TYPE_ENUM_END
 };
 
-enum SpiceCursorType {
+enum SpiceCursorType
+{
 	SPICE_CURSOR_TYPE_ALPHA,
 	SPICE_CURSOR_TYPE_MONO,
 	SPICE_CURSOR_TYPE_COLOR4,
@@ -137,7 +144,8 @@ enum SpiceCursorType {
 /* 0x100-0x11f reserved for spice, 0x1ff used for unstable work */
 #define QXL_DEVICE_ID_STABLE 0x0100
 
-enum {
+enum
+{
 	QXL_REVISION_STABLE_V04 = 0x01,
 	QXL_REVISION_STABLE_V06 = 0x02,
 	QXL_REVISION_STABLE_V10 = 0x03,
@@ -150,7 +158,8 @@ enum {
 #define QXL_ROM_MAGIC (*(uint32_t *)"QXRO")
 #define QXL_RAM_MAGIC (*(uint32_t *)"QXRA")
 
-enum {
+enum
+{
 	QXL_RAM_RANGE_INDEX,
 	QXL_VRAM_RANGE_INDEX,
 	QXL_ROM_RANGE_INDEX,
@@ -160,7 +169,8 @@ enum {
 };
 
 /* qxl-1 compat: append only */
-enum {
+enum
+{
 	QXL_IO_NOTIFY_CMD,
 	QXL_IO_NOTIFY_CURSOR,
 	QXL_IO_UPDATE_AREA,
@@ -196,29 +206,34 @@ enum {
 typedef uint64_t QXLPHYSICAL;
 typedef int32_t QXLFIXED; /* fixed 28.4 */
 
-struct qxl_point_fix {
+struct qxl_point_fix
+{
 	QXLFIXED x;
 	QXLFIXED y;
 };
 
-struct qxl_point {
+struct qxl_point
+{
 	int32_t x;
 	int32_t y;
 };
 
-struct qxl_point_1_6 {
+struct qxl_point_1_6
+{
 	int16_t x;
 	int16_t y;
 };
 
-struct qxl_rect {
+struct qxl_rect
+{
 	int32_t top;
 	int32_t left;
 	int32_t bottom;
 	int32_t right;
 };
 
-struct qxl_urect {
+struct qxl_urect
+{
 	uint32_t top;
 	uint32_t left;
 	uint32_t bottom;
@@ -226,7 +241,8 @@ struct qxl_urect {
 };
 
 /* qxl-1 compat: append only */
-struct qxl_rom {
+struct qxl_rom
+{
 	uint32_t magic;
 	uint32_t id;
 	uint32_t update_id;
@@ -252,15 +268,17 @@ struct qxl_rom {
 	uint8_t client_present;
 	uint8_t client_capabilities[58];
 	uint32_t client_monitors_config_crc;
-	struct {
+	struct
+	{
 		uint16_t count;
-	uint16_t padding;
+		uint16_t padding;
 		struct qxl_urect heads[64];
 	} client_monitors_config;
 };
 
 /* qxl-1 compat: fixed */
-struct qxl_mode {
+struct qxl_mode
+{
 	uint32_t id;
 	uint32_t x_res;
 	uint32_t y_res;
@@ -272,13 +290,15 @@ struct qxl_mode {
 };
 
 /* qxl-1 compat: fixed */
-struct qxl_modes {
+struct qxl_modes
+{
 	uint32_t n_modes;
 	struct qxl_mode modes[0];
 };
 
 /* qxl-1 compat: append only */
-enum qxl_cmd_type {
+enum qxl_cmd_type
+{
 	QXL_CMD_NOP,
 	QXL_CMD_DRAW,
 	QXL_CMD_UPDATE,
@@ -288,7 +308,8 @@ enum qxl_cmd_type {
 };
 
 /* qxl-1 compat: fixed */
-struct qxl_command {
+struct qxl_command
+{
 	QXLPHYSICAL data;
 	uint32_t type;
 	uint32_t padding;
@@ -297,13 +318,15 @@ struct qxl_command {
 #define QXL_COMMAND_FLAG_COMPAT		(1<<0)
 #define QXL_COMMAND_FLAG_COMPAT_16BPP	(2<<0)
 
-struct qxl_command_ext {
+struct qxl_command_ext
+{
 	struct qxl_command cmd;
 	uint32_t group_id;
 	uint32_t flags;
 };
 
-struct qxl_mem_slot {
+struct qxl_mem_slot
+{
 	uint64_t mem_start;
 	uint64_t mem_end;
 };
@@ -312,7 +335,8 @@ struct qxl_mem_slot {
 
 #define QXL_SURF_FLAG_KEEP_DATA	   (1 << 0)
 
-struct qxl_surface_create {
+struct qxl_surface_create
+{
 	uint32_t width;
 	uint32_t height;
 	int32_t stride;
@@ -337,7 +361,8 @@ struct qxl_surface_create {
 #define QXL_INTERRUPT_CLIENT (1 << 4)
 #define QXL_INTERRUPT_CLIENT_MONITORS_CONFIG  (1 << 5)
 
-struct qxl_ring_header {
+struct qxl_ring_header
+{
 	uint32_t num_items;
 	uint32_t prod;
 	uint32_t notify_on_prod;
@@ -346,7 +371,8 @@ struct qxl_ring_header {
 };
 
 /* qxl-1 compat: append only */
-struct qxl_ram_header {
+struct qxl_ram_header
+{
 	uint32_t magic;
 	uint32_t int_pending;
 	uint32_t int_mask;
@@ -371,42 +397,49 @@ struct qxl_ram_header {
 	uint8_t guest_capabilities[64];
 };
 
-union qxl_release_info {
+union qxl_release_info
+{
 	uint64_t id;	  /* in  */
 	uint64_t next;	  /* out */
 };
 
-struct qxl_release_info_ext {
+struct qxl_release_info_ext
+{
 	union qxl_release_info *info;
 	uint32_t group_id;
 };
 
-struct qxl_data_chunk {
+struct qxl_data_chunk
+{
 	uint32_t data_size;
 	QXLPHYSICAL prev_chunk;
 	QXLPHYSICAL next_chunk;
 	uint8_t data[0];
 };
 
-struct qxl_message {
+struct qxl_message
+{
 	union qxl_release_info release_info;
 	uint8_t data[0];
 };
 
-struct qxl_compat_update_cmd {
+struct qxl_compat_update_cmd
+{
 	union qxl_release_info release_info;
 	struct qxl_rect area;
 	uint32_t update_id;
 };
 
-struct qxl_update_cmd {
+struct qxl_update_cmd
+{
 	union qxl_release_info release_info;
 	struct qxl_rect area;
 	uint32_t update_id;
 	uint32_t surface_id;
 };
 
-struct qxl_cursor_header {
+struct qxl_cursor_header
+{
 	uint64_t unique;
 	uint16_t type;
 	uint16_t width;
@@ -415,13 +448,15 @@ struct qxl_cursor_header {
 	uint16_t hot_spot_y;
 };
 
-struct qxl_cursor {
+struct qxl_cursor
+{
 	struct qxl_cursor_header header;
 	uint32_t data_size;
 	struct qxl_data_chunk chunk;
 };
 
-enum {
+enum
+{
 	QXL_CURSOR_SET,
 	QXL_CURSOR_MOVE,
 	QXL_CURSOR_HIDE,
@@ -430,16 +465,20 @@ enum {
 
 #define QXL_CURSOR_DEVICE_DATA_SIZE 128
 
-struct qxl_cursor_cmd {
+struct qxl_cursor_cmd
+{
 	union qxl_release_info release_info;
 	uint8_t type;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			struct qxl_point_1_6 position;
 			uint8_t visible;
 			QXLPHYSICAL shape;
 		} set;
-		struct {
+		struct
+		{
 			uint16_t length;
 			uint16_t frequency;
 		} trail;
@@ -449,7 +488,8 @@ struct qxl_cursor_cmd {
 	uint8_t device_data[QXL_CURSOR_DEVICE_DATA_SIZE];
 };
 
-enum {
+enum
+{
 	QXL_DRAW_NOP,
 	QXL_DRAW_FILL,
 	QXL_DRAW_OPAQUE,
@@ -467,7 +507,8 @@ enum {
 	QXL_DRAW_COMPOSITE
 };
 
-struct qxl_raster_glyph {
+struct qxl_raster_glyph
+{
 	struct qxl_point render_pos;
 	struct qxl_point glyph_origin;
 	uint16_t width;
@@ -475,18 +516,21 @@ struct qxl_raster_glyph {
 	uint8_t data[0];
 };
 
-struct qxl_string {
+struct qxl_string
+{
 	uint32_t data_size;
 	uint16_t length;
 	uint16_t flags;
 	struct qxl_data_chunk chunk;
 };
 
-struct qxl_copy_bits {
+struct qxl_copy_bits
+{
 	struct qxl_point src_pos;
 };
 
-enum qxl_effect_type {
+enum qxl_effect_type
+{
 	QXL_EFFECT_BLEND = 0,
 	QXL_EFFECT_OPAQUE = 1,
 	QXL_EFFECT_REVERT_ON_DUP = 2,
@@ -497,32 +541,38 @@ enum qxl_effect_type {
 	QXL_EFFECT_OPAQUE_BRUSH = 7
 };
 
-struct qxl_pattern {
+struct qxl_pattern
+{
 	QXLPHYSICAL pat;
 	struct qxl_point pos;
 };
 
-struct qxl_brush {
+struct qxl_brush
+{
 	uint32_t type;
-	union {
+	union
+	{
 		uint32_t color;
 		struct qxl_pattern pattern;
 	} u;
 };
 
-struct qxl_q_mask {
+struct qxl_q_mask
+{
 	uint8_t flags;
 	struct qxl_point pos;
 	QXLPHYSICAL bitmap;
 };
 
-struct qxl_fill {
+struct qxl_fill
+{
 	struct qxl_brush brush;
 	uint16_t rop_descriptor;
 	struct qxl_q_mask mask;
 };
 
-struct qxl_opaque {
+struct qxl_opaque
+{
 	QXLPHYSICAL src_bitmap;
 	struct qxl_rect src_area;
 	struct qxl_brush brush;
@@ -531,7 +581,8 @@ struct qxl_opaque {
 	struct qxl_q_mask mask;
 };
 
-struct qxl_copy {
+struct qxl_copy
+{
 	QXLPHYSICAL src_bitmap;
 	struct qxl_rect src_area;
 	uint16_t rop_descriptor;
@@ -539,27 +590,31 @@ struct qxl_copy {
 	struct qxl_q_mask mask;
 };
 
-struct qxl_transparent {
+struct qxl_transparent
+{
 	QXLPHYSICAL src_bitmap;
 	struct qxl_rect src_area;
 	uint32_t src_color;
 	uint32_t true_color;
 };
 
-struct qxl_alpha_blend {
+struct qxl_alpha_blend
+{
 	uint16_t alpha_flags;
 	uint8_t alpha;
 	QXLPHYSICAL src_bitmap;
 	struct qxl_rect src_area;
 };
 
-struct qxl_compat_alpha_blend {
+struct qxl_compat_alpha_blend
+{
 	uint8_t alpha;
 	QXLPHYSICAL src_bitmap;
 	struct qxl_rect src_area;
 };
 
-struct qxl_rop_3 {
+struct qxl_rop_3
+{
 	QXLPHYSICAL src_bitmap;
 	struct qxl_rect src_area;
 	struct qxl_brush brush;
@@ -568,7 +623,8 @@ struct qxl_rop_3 {
 	struct qxl_q_mask mask;
 };
 
-struct qxl_line_attr {
+struct qxl_line_attr
+{
 	uint8_t flags;
 	uint8_t join_style;
 	uint8_t end_style;
@@ -578,7 +634,8 @@ struct qxl_line_attr {
 	QXLPHYSICAL style;
 };
 
-struct qxl_stroke {
+struct qxl_stroke
+{
 	QXLPHYSICAL path;
 	struct qxl_line_attr attr;
 	struct qxl_brush brush;
@@ -586,7 +643,8 @@ struct qxl_stroke {
 	uint16_t back_mode;
 };
 
-struct qxl_text {
+struct qxl_text
+{
 	QXLPHYSICAL str;
 	struct qxl_rect back_area;
 	struct qxl_brush fore_brush;
@@ -595,16 +653,19 @@ struct qxl_text {
 	uint16_t back_mode;
 };
 
-struct qxl_mask {
+struct qxl_mask
+{
 	struct qxl_q_mask mask;
 };
 
-struct qxl_clip {
+struct qxl_clip
+{
 	uint32_t type;
 	QXLPHYSICAL data;
 };
 
-enum qxl_operator {
+enum qxl_operator
+{
 	QXL_OP_CLEAR			 = 0x00,
 	QXL_OP_SOURCE			 = 0x01,
 	QXL_OP_DST			 = 0x02,
@@ -637,7 +698,8 @@ enum qxl_operator {
 	QXL_OP_HSL_LUMINOSITY		 = 0x3e
 };
 
-struct qxl_transform {
+struct qxl_transform
+{
 	uint32_t	t00;
 	uint32_t	t01;
 	uint32_t	t02;
@@ -666,7 +728,8 @@ struct qxl_transform {
  *		FILTER_NEAREST =	0
  *		FILTER_BILINEAR	=	1
  */
-struct qxl_composite {
+struct qxl_composite
+{
 	uint32_t		flags;
 
 	QXLPHYSICAL			src;
@@ -677,7 +740,8 @@ struct qxl_composite {
 	struct qxl_point_1_6	mask_origin;
 };
 
-struct qxl_compat_drawable {
+struct qxl_compat_drawable
+{
 	union qxl_release_info release_info;
 	uint8_t effect;
 	uint8_t type;
@@ -686,7 +750,8 @@ struct qxl_compat_drawable {
 	struct qxl_rect bbox;
 	struct qxl_clip clip;
 	uint32_t mm_time;
-	union {
+	union
+	{
 		struct qxl_fill fill;
 		struct qxl_opaque opaque;
 		struct qxl_copy copy;
@@ -703,7 +768,8 @@ struct qxl_compat_drawable {
 	} u;
 };
 
-struct qxl_drawable {
+struct qxl_drawable
+{
 	union qxl_release_info release_info;
 	uint32_t surface_id;
 	uint8_t effect;
@@ -715,7 +781,8 @@ struct qxl_drawable {
 	uint32_t mm_time;
 	int32_t surfaces_dest[3];
 	struct qxl_rect surfaces_rects[3];
-	union {
+	union
+	{
 		struct qxl_fill fill;
 		struct qxl_opaque opaque;
 		struct qxl_copy copy;
@@ -733,12 +800,14 @@ struct qxl_drawable {
 	} u;
 };
 
-enum qxl_surface_cmd_type {
+enum qxl_surface_cmd_type
+{
 	QXL_SURFACE_CMD_CREATE,
 	QXL_SURFACE_CMD_DESTROY,
 };
 
-struct qxl_surface {
+struct qxl_surface
+{
 	uint32_t format;
 	uint32_t width;
 	uint32_t height;
@@ -746,72 +815,84 @@ struct qxl_surface {
 	QXLPHYSICAL data;
 };
 
-struct qxl_surface_cmd {
+struct qxl_surface_cmd
+{
 	union qxl_release_info release_info;
 	uint32_t surface_id;
 	uint8_t type;
 	uint32_t flags;
-	union {
+	union
+	{
 		struct qxl_surface surface_create;
 	} u;
 };
 
-struct qxl_clip_rects {
+struct qxl_clip_rects
+{
 	uint32_t num_rects;
 	struct qxl_data_chunk chunk;
 };
 
-enum {
+enum
+{
 	QXL_PATH_BEGIN = (1 << 0),
 	QXL_PATH_END = (1 << 1),
 	QXL_PATH_CLOSE = (1 << 3),
 	QXL_PATH_BEZIER = (1 << 4),
 };
 
-struct qxl_path_seg {
+struct qxl_path_seg
+{
 	uint32_t flags;
 	uint32_t count;
 	struct qxl_point_fix points[0];
 };
 
-struct qxl_path {
+struct qxl_path
+{
 	uint32_t data_size;
 	struct qxl_data_chunk chunk;
 };
 
-enum {
+enum
+{
 	QXL_IMAGE_GROUP_DRIVER,
 	QXL_IMAGE_GROUP_DEVICE,
 	QXL_IMAGE_GROUP_RED,
 	QXL_IMAGE_GROUP_DRIVER_DONT_CACHE,
 };
 
-struct qxl_image_id {
+struct qxl_image_id
+{
 	uint32_t group;
 	uint32_t unique;
 };
 
-union qxl_image_id_union {
+union qxl_image_id_union
+{
 	struct qxl_image_id id;
 	uint64_t value;
 };
 
-enum qxl_image_flags {
+enum qxl_image_flags
+{
 	QXL_IMAGE_CACHE = (1 << 0),
 	QXL_IMAGE_HIGH_BITS_SET = (1 << 1),
 };
 
-enum qxl_bitmap_flags {
+enum qxl_bitmap_flags
+{
 	QXL_BITMAP_DIRECT = (1 << 0),
 	QXL_BITMAP_UNSTABLE = (1 << 1),
 	QXL_BITMAP_TOP_DOWN = (1 << 2), /* == SPICE_BITMAP_FLAGS_TOP_DOWN */
 };
 
 #define QXL_SET_IMAGE_ID(image, _group, _unique) {              \
-	(image)->descriptor.id = (((uint64_t)_unique) << 32) | _group;	\
-}
+		(image)->descriptor.id = (((uint64_t)_unique) << 32) | _group;	\
+	}
 
-struct qxl_image_descriptor {
+struct qxl_image_descriptor
+{
 	uint64_t id;
 	uint8_t type;
 	uint8_t flags;
@@ -819,13 +900,15 @@ struct qxl_image_descriptor {
 	uint32_t height;
 };
 
-struct qxl_palette {
+struct qxl_palette
+{
 	uint64_t unique;
 	uint16_t num_ents;
 	uint32_t ents[0];
 };
 
-struct qxl_bitmap {
+struct qxl_bitmap
+{
 	uint8_t format;
 	uint8_t flags;
 	uint32_t x;
@@ -835,18 +918,22 @@ struct qxl_bitmap {
 	QXLPHYSICAL data; /* data[0] ? */
 };
 
-struct qxl_surface_id {
+struct qxl_surface_id
+{
 	uint32_t surface_id;
 };
 
-struct qxl_encoder_data {
+struct qxl_encoder_data
+{
 	uint32_t data_size;
 	uint8_t data[0];
 };
 
-struct qxl_image {
+struct qxl_image
+{
 	struct qxl_image_descriptor descriptor;
-	union { /* variable length */
+	union   /* variable length */
+	{
 		struct qxl_bitmap bitmap;
 		struct qxl_encoder_data quic;
 		struct qxl_surface_id surface_image;
@@ -857,7 +944,8 @@ struct qxl_image {
  * x and y offsets are unsigned since they are used in relation to
  * the given surface, not the same as the x, y coordinates in the guest
  * screen reference frame. */
-struct qxl_head {
+struct qxl_head
+{
 	uint32_t id;
 	uint32_t surface_id;
 	uint32_t width;
@@ -867,7 +955,8 @@ struct qxl_head {
 	uint32_t flags;
 };
 
-struct qxl_monitors_config {
+struct qxl_monitors_config
+{
 	uint16_t count;
 	uint16_t max_allowed; /* If it is 0 no fixed limit is given by the
 				 driver */

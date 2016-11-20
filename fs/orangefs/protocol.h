@@ -19,14 +19,16 @@
  * The kernel module will always use the first four bytes and
  * the last four bytes as an inum.
  */
-struct orangefs_khandle {
+struct orangefs_khandle
+{
 	unsigned char u[16];
 }  __aligned(8);
 
 /*
  * kernel version of an object ref.
  */
-struct orangefs_object_kref {
+struct orangefs_object_kref
+{
 	struct orangefs_khandle khandle;
 	__s32 fs_id;
 	__s32 __pad1;
@@ -37,22 +39,28 @@ struct orangefs_object_kref {
  * small address
  */
 static inline int ORANGEFS_khandle_cmp(const struct orangefs_khandle *kh1,
-				   const struct orangefs_khandle *kh2)
+									   const struct orangefs_khandle *kh2)
 {
 	int i;
 
-	for (i = 15; i >= 0; i--) {
+	for (i = 15; i >= 0; i--)
+	{
 		if (kh1->u[i] > kh2->u[i])
+		{
 			return 1;
+		}
+
 		if (kh1->u[i] < kh2->u[i])
+		{
 			return -1;
+		}
 	}
 
 	return 0;
 }
 
 static inline void ORANGEFS_khandle_to(const struct orangefs_khandle *kh,
-				   void *p, int size)
+									   void *p, int size)
 {
 
 	memcpy(p, kh->u, 16);
@@ -61,7 +69,7 @@ static inline void ORANGEFS_khandle_to(const struct orangefs_khandle *kh,
 }
 
 static inline void ORANGEFS_khandle_from(struct orangefs_khandle *kh,
-				     void *p, int size)
+		void *p, int size)
 {
 	memset(kh, 0, 16);
 	memcpy(kh->u, p, 16);
@@ -176,7 +184,7 @@ typedef __s64 ORANGEFS_offset;
 	 ORANGEFS_ATTR_SYS_TYPE)
 
 #define ORANGEFS_ATTR_SYS_ALL_SETABLE		\
-(ORANGEFS_ATTR_SYS_COMMON_ALL-ORANGEFS_ATTR_SYS_TYPE)
+	(ORANGEFS_ATTR_SYS_COMMON_ALL-ORANGEFS_ATTR_SYS_TYPE)
 
 #define ORANGEFS_ATTR_SYS_ALL_NOHINT			\
 	(ORANGEFS_ATTR_SYS_COMMON_ALL		|	\
@@ -213,7 +221,8 @@ typedef __s64 ORANGEFS_offset;
 /*
  * ORANGEFS I/O operation types, used in both system and server interfaces.
  */
-enum ORANGEFS_io_type {
+enum ORANGEFS_io_type
+{
 	ORANGEFS_IO_READ = 1,
 	ORANGEFS_IO_WRITE = 2
 };
@@ -223,7 +232,8 @@ enum ORANGEFS_io_type {
  * batch and low threshold sizes may need to be modified  to reflect this
  * change.
  */
-enum orangefs_ds_type {
+enum orangefs_ds_type
+{
 	ORANGEFS_TYPE_NONE = 0,
 	ORANGEFS_TYPE_METAFILE = (1 << 0),
 	ORANGEFS_TYPE_DATAFILE = (1 << 1),
@@ -237,7 +247,8 @@ enum orangefs_ds_type {
  * ORANGEFS_certificate simply stores a buffer with the buffer size.
  * The buffer can be converted to an OpenSSL X509 struct for use.
  */
-struct ORANGEFS_certificate {
+struct ORANGEFS_certificate
+{
 	__u32 buf_size;
 	unsigned char *buf;
 };
@@ -246,7 +257,8 @@ struct ORANGEFS_certificate {
  * A credential identifies a user and is signed by the client/user
  * private key.
  */
-struct ORANGEFS_credential {
+struct ORANGEFS_credential
+{
 	__u32 userid;	/* user id */
 	__u32 num_groups;	/* length of group_array */
 	__u32 *group_array;	/* groups for which the user is a member */
@@ -257,13 +269,14 @@ struct ORANGEFS_credential {
 	struct ORANGEFS_certificate certificate;	/* user certificate buffer */
 };
 #define extra_size_ORANGEFS_credential (ORANGEFS_REQ_LIMIT_GROUPS	*	\
-				    sizeof(__u32)		+	\
-				    ORANGEFS_REQ_LIMIT_ISSUER	+	\
-				    ORANGEFS_REQ_LIMIT_SIGNATURE	+	\
-				    extra_size_ORANGEFS_certificate)
+										sizeof(__u32)		+	\
+										ORANGEFS_REQ_LIMIT_ISSUER	+	\
+										ORANGEFS_REQ_LIMIT_SIGNATURE	+	\
+										extra_size_ORANGEFS_certificate)
 
 /* This structure is used by the VFS-client interaction alone */
-struct ORANGEFS_keyval_pair {
+struct ORANGEFS_keyval_pair
+{
 	char key[ORANGEFS_MAX_XATTR_NAMELEN];
 	__s32 key_sz;	/* __s32 for portable, fixed-size structures */
 	__s32 val_sz;
@@ -272,7 +285,8 @@ struct ORANGEFS_keyval_pair {
 
 /* pvfs2-sysint.h ***********************************************************/
 /* Describes attributes for a file, directory, or symlink. */
-struct ORANGEFS_sys_attr_s {
+struct ORANGEFS_sys_attr_s
+{
 	__u32 owner;
 	__u32 group;
 	__u32 perms;
@@ -316,15 +330,18 @@ struct ORANGEFS_sys_attr_s {
 /* pint-dev.h ***************************************************************/
 
 /* parameter structure used in ORANGEFS_DEV_DEBUG ioctl command */
-struct dev_mask_info_s {
-	enum {
+struct dev_mask_info_s
+{
+	enum
+	{
 		KERNEL_MASK,
 		CLIENT_MASK,
 	} mask_type;
 	__u64 mask_value;
 };
 
-struct dev_mask2_info_s {
+struct dev_mask2_info_s
+{
 	__u64 mask1_value;
 	__u64 mask2_value;
 };
@@ -356,22 +373,23 @@ __s32 ORANGEFS_util_translate_mode(int mode);
 #define DEV_MAX_NR              0xa
 
 /* supported ioctls, codes are with respect to user-space */
-enum {
+enum
+{
 	ORANGEFS_DEV_GET_MAGIC = _IOW(ORANGEFS_DEV_MAGIC, DEV_GET_MAGIC, __s32),
 	ORANGEFS_DEV_GET_MAX_UPSIZE =
-	    _IOW(ORANGEFS_DEV_MAGIC, DEV_GET_MAX_UPSIZE, __s32),
+		_IOW(ORANGEFS_DEV_MAGIC, DEV_GET_MAX_UPSIZE, __s32),
 	ORANGEFS_DEV_GET_MAX_DOWNSIZE =
-	    _IOW(ORANGEFS_DEV_MAGIC, DEV_GET_MAX_DOWNSIZE, __s32),
+		_IOW(ORANGEFS_DEV_MAGIC, DEV_GET_MAX_DOWNSIZE, __s32),
 	ORANGEFS_DEV_MAP = _IO(ORANGEFS_DEV_MAGIC, DEV_MAP),
 	ORANGEFS_DEV_REMOUNT_ALL = _IO(ORANGEFS_DEV_MAGIC, DEV_REMOUNT_ALL),
 	ORANGEFS_DEV_DEBUG = _IOR(ORANGEFS_DEV_MAGIC, DEV_DEBUG, __s32),
 	ORANGEFS_DEV_UPSTREAM = _IOW(ORANGEFS_DEV_MAGIC, DEV_UPSTREAM, int),
 	ORANGEFS_DEV_CLIENT_MASK = _IOW(ORANGEFS_DEV_MAGIC,
-				    DEV_CLIENT_MASK,
-				    struct dev_mask2_info_s),
+									DEV_CLIENT_MASK,
+									struct dev_mask2_info_s),
 	ORANGEFS_DEV_CLIENT_STRING = _IOW(ORANGEFS_DEV_MAGIC,
-				      DEV_CLIENT_STRING,
-				      char *),
+									  DEV_CLIENT_STRING,
+									  char *),
 	ORANGEFS_DEV_MAXNR = DEV_MAX_NR,
 };
 
@@ -390,7 +408,8 @@ enum {
  * on such systems before servicing ioctl calls from user-space binaries
  * that may be 32 bit!
  */
-struct ORANGEFS_dev_map_desc {
+struct ORANGEFS_dev_map_desc
+{
 	void *ptr;
 	__s32 total_size;
 	__s32 size;
@@ -401,19 +420,19 @@ struct ORANGEFS_dev_map_desc {
 
 #ifdef GOSSIP_DISABLE_DEBUG
 #define gossip_debug(mask, fmt, ...)					\
-do {									\
-	if (0)								\
-		printk(KERN_DEBUG fmt, ##__VA_ARGS__);			\
-} while (0)
+	do {									\
+		if (0)								\
+			printk(KERN_DEBUG fmt, ##__VA_ARGS__);			\
+	} while (0)
 #else
 extern __u64 orangefs_gossip_debug_mask;
 
 /* try to avoid function call overhead by checking masks in macro */
 #define gossip_debug(mask, fmt, ...)					\
-do {									\
-	if (orangefs_gossip_debug_mask & (mask))			\
-		printk(KERN_DEBUG fmt, ##__VA_ARGS__);			\
-} while (0)
+	do {									\
+		if (orangefs_gossip_debug_mask & (mask))			\
+			printk(KERN_DEBUG fmt, ##__VA_ARGS__);			\
+	} while (0)
 #endif /* GOSSIP_DISABLE_DEBUG */
 
 /* do file and line number printouts w/ the GNU preprocessor */
@@ -423,4 +442,4 @@ do {									\
 #define gossip_err pr_err
 #define gossip_lerr(fmt, ...)						\
 	gossip_err("%s line %d: " fmt,					\
-		   __FILE__, __LINE__, ##__VA_ARGS__)
+			   __FILE__, __LINE__, ##__VA_ARGS__)

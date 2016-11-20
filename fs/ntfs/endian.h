@@ -47,17 +47,17 @@ static inline s64 sle64_to_cpu(sle64 x)
 
 static inline s16 sle16_to_cpup(sle16 *x)
 {
-	return le16_to_cpu(*(__force le16*)x);
+	return le16_to_cpu(*(__force le16 *)x);
 }
 
 static inline s32 sle32_to_cpup(sle32 *x)
 {
-	return le32_to_cpu(*(__force le32*)x);
+	return le32_to_cpu(*(__force le32 *)x);
 }
 
 static inline s64 sle64_to_cpup(sle64 *x)
 {
-	return le64_to_cpu(*(__force le64*)x);
+	return le64_to_cpu(*(__force le64 *)x);
 }
 
 static inline sle16 cpu_to_sle16(s16 x)

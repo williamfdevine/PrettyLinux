@@ -43,15 +43,16 @@ module_param_named(modeset, ast_modeset, int, 0400);
 static struct drm_driver driver;
 
 #define AST_VGA_DEVICE(id, info) {		\
-	.class = PCI_BASE_CLASS_DISPLAY << 16,	\
-	.class_mask = 0xff0000,			\
-	.vendor = PCI_VENDOR_ASPEED,			\
-	.device = id,				\
-	.subvendor = PCI_ANY_ID,		\
-	.subdevice = PCI_ANY_ID,		\
-	.driver_data = (unsigned long) info }
+		.class = PCI_BASE_CLASS_DISPLAY << 16,	\
+				 .class_mask = 0xff0000,			\
+							   .vendor = PCI_VENDOR_ASPEED,			\
+										 .device = id,				\
+												 .subvendor = PCI_ANY_ID,		\
+														 .subdevice = PCI_ANY_ID,		\
+																 .driver_data = (unsigned long) info }
 
-static const struct pci_device_id pciidlist[] = {
+static const struct pci_device_id pciidlist[] =
+{
 	AST_VGA_DEVICE(PCI_CHIP_AST2000, NULL),
 	AST_VGA_DEVICE(PCI_CHIP_AST2100, NULL),
 	/*	AST_VGA_DEVICE(PCI_CHIP_AST1180, NULL), - don't bind to 1180 for now */
@@ -107,11 +108,16 @@ static int ast_drm_resume(struct drm_device *dev)
 	int ret;
 
 	if (pci_enable_device(dev->pdev))
+	{
 		return -EIO;
+	}
 
 	ret = ast_drm_thaw(dev);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	drm_kms_helper_poll_enable(dev);
 	return 0;
@@ -124,8 +130,11 @@ static int ast_pm_suspend(struct device *dev)
 	int error;
 
 	error = ast_drm_freeze(ddev);
+
 	if (error)
+	{
 		return error;
+	}
 
 	pci_disable_device(pdev);
 	pci_set_power_state(pdev, PCI_D3hot);
@@ -144,7 +153,10 @@ static int ast_pm_freeze(struct device *dev)
 	struct drm_device *ddev = pci_get_drvdata(pdev);
 
 	if (!ddev || !ddev->dev_private)
+	{
 		return -ENODEV;
+	}
+
 	return ast_drm_freeze(ddev);
 
 }
@@ -164,7 +176,8 @@ static int ast_pm_poweroff(struct device *dev)
 	return ast_drm_freeze(ddev);
 }
 
-static const struct dev_pm_ops ast_pm_ops = {
+static const struct dev_pm_ops ast_pm_ops =
+{
 	.suspend = ast_pm_suspend,
 	.resume = ast_pm_resume,
 	.freeze = ast_pm_freeze,
@@ -173,7 +186,8 @@ static const struct dev_pm_ops ast_pm_ops = {
 	.restore = ast_pm_resume,
 };
 
-static struct pci_driver ast_pci_driver = {
+static struct pci_driver ast_pci_driver =
+{
 	.name = DRIVER_NAME,
 	.id_table = pciidlist,
 	.probe = ast_pci_probe,
@@ -181,7 +195,8 @@ static struct pci_driver ast_pci_driver = {
 	.driver.pm = &ast_pm_ops,
 };
 
-static const struct file_operations ast_fops = {
+static const struct file_operations ast_fops =
+{
 	.owner = THIS_MODULE,
 	.open = drm_open,
 	.release = drm_release,
@@ -194,7 +209,8 @@ static const struct file_operations ast_fops = {
 	.read = drm_read,
 };
 
-static struct drm_driver driver = {
+static struct drm_driver driver =
+{
 	.driver_features = DRIVER_MODESET | DRIVER_GEM,
 
 	.load = ast_driver_load,
@@ -219,10 +235,15 @@ static struct drm_driver driver = {
 static int __init ast_init(void)
 {
 	if (vgacon_text_force() && ast_modeset == -1)
+	{
 		return -EINVAL;
+	}
 
 	if (ast_modeset == 0)
+	{
 		return -EINVAL;
+	}
+
 	return drm_pci_init(&driver, &ast_pci_driver);
 }
 static void __exit ast_exit(void)

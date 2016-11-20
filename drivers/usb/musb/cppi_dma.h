@@ -14,7 +14,8 @@
 
 /* CPPI RX/TX state RAM */
 
-struct cppi_tx_stateram {
+struct cppi_tx_stateram
+{
 	u32 tx_head;			/* "DMA packet" head descriptor */
 	u32 tx_buf;
 	u32 tx_current;			/* current descriptor */
@@ -25,7 +26,8 @@ struct cppi_tx_stateram {
 	u32 tx_complete;
 };
 
-struct cppi_rx_stateram {
+struct cppi_rx_stateram
+{
 	u32 rx_skipbytes;
 	u32 rx_head;
 	u32 rx_sop;			/* "DMA packet" head descriptor */
@@ -53,7 +55,8 @@ struct cppi_rx_stateram {
 
 #define	CPPI_DESCRIPTOR_ALIGN	16	/* bytes; 5-dec docs say 4-byte align */
 
-struct cppi_descriptor {
+struct cppi_descriptor
+{
 	/* hardware overlay */
 	u32		hw_next;	/* next buffer descriptor Pointer */
 	u32		hw_bufp;	/* i/o buffer pointer */
@@ -69,7 +72,8 @@ struct cppi_descriptor {
 struct cppi;
 
 /* CPPI  Channel Control structure */
-struct cppi_channel {
+struct cppi_channel
+{
 	struct dma_channel	channel;
 
 	/* back pointer to the DMA controller structure */
@@ -105,7 +109,8 @@ struct cppi_channel {
 };
 
 /* CPPI DMA controller object */
-struct cppi {
+struct cppi
+{
 	struct dma_controller		controller;
 	struct musb			*musb;
 	void __iomem			*mregs;		/* Mentor regs */
@@ -124,7 +129,8 @@ struct cppi {
 /* CPPI IRQ handler */
 extern irqreturn_t cppi_interrupt(int, void *);
 
-struct cppi41_dma_channel {
+struct cppi41_dma_channel
+{
 	struct dma_channel channel;
 	struct cppi41_dma_controller *controller;
 	struct musb_hw_ep *hw_ep;

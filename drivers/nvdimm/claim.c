@@ -23,20 +23,23 @@ void __nd_detach_ndns(struct device *dev, struct nd_namespace_common **_ndns)
 	struct nd_namespace_common *ndns = *_ndns;
 
 	dev_WARN_ONCE(dev, !mutex_is_locked(&ndns->dev.mutex)
-			|| ndns->claim != dev,
-			"%s: invalid claim\n", __func__);
+				  || ndns->claim != dev,
+				  "%s: invalid claim\n", __func__);
 	ndns->claim = NULL;
 	*_ndns = NULL;
 	put_device(&ndns->dev);
 }
 
 void nd_detach_ndns(struct device *dev,
-		struct nd_namespace_common **_ndns)
+					struct nd_namespace_common **_ndns)
 {
 	struct nd_namespace_common *ndns = *_ndns;
 
 	if (!ndns)
+	{
 		return;
+	}
+
 	get_device(&ndns->dev);
 	device_lock(&ndns->dev);
 	__nd_detach_ndns(dev, _ndns);
@@ -45,13 +48,16 @@ void nd_detach_ndns(struct device *dev,
 }
 
 bool __nd_attach_ndns(struct device *dev, struct nd_namespace_common *attach,
-		struct nd_namespace_common **_ndns)
+					  struct nd_namespace_common **_ndns)
 {
 	if (attach->claim)
+	{
 		return false;
+	}
+
 	dev_WARN_ONCE(dev, !mutex_is_locked(&attach->dev.mutex)
-			|| *_ndns,
-			"%s: invalid claim\n", __func__);
+				  || *_ndns,
+				  "%s: invalid claim\n", __func__);
 	attach->claim = dev;
 	*_ndns = attach;
 	get_device(&attach->dev);
@@ -59,7 +65,7 @@ bool __nd_attach_ndns(struct device *dev, struct nd_namespace_common *attach,
 }
 
 bool nd_attach_ndns(struct device *dev, struct nd_namespace_common *attach,
-		struct nd_namespace_common **_ndns)
+					struct nd_namespace_common **_ndns)
 {
 	bool claimed;
 
@@ -82,14 +88,23 @@ static bool is_idle(struct device *dev, struct nd_namespace_common *ndns)
 	struct device *seed = NULL;
 
 	if (is_nd_btt(dev))
+	{
 		seed = nd_region->btt_seed;
+	}
 	else if (is_nd_pfn(dev))
+	{
 		seed = nd_region->pfn_seed;
+	}
 	else if (is_nd_dax(dev))
+	{
 		seed = nd_region->dax_seed;
+	}
 
 	if (seed == dev || ndns || dev->driver)
+	{
 		return false;
+	}
+
 	return true;
 }
 
@@ -100,9 +115,12 @@ struct nd_pfn *to_nd_pfn_safe(struct device *dev)
 	 * need to be careful to correct device-to-nd_pfn conversion.
 	 */
 	if (is_nd_pfn(dev))
+	{
 		return to_nd_pfn(dev);
+	}
 
-	if (is_nd_dax(dev)) {
+	if (is_nd_dax(dev))
+	{
 		struct nd_dax *nd_dax = to_nd_dax(dev);
 
 		return &nd_dax->nd_pfn;
@@ -113,19 +131,25 @@ struct nd_pfn *to_nd_pfn_safe(struct device *dev)
 }
 
 static void nd_detach_and_reset(struct device *dev,
-		struct nd_namespace_common **_ndns)
+								struct nd_namespace_common **_ndns)
 {
 	/* detach the namespace and destroy / reset the device */
 	nd_detach_ndns(dev, _ndns);
-	if (is_idle(dev, *_ndns)) {
+
+	if (is_idle(dev, *_ndns))
+	{
 		nd_device_unregister(dev, ND_ASYNC);
-	} else if (is_nd_btt(dev)) {
+	}
+	else if (is_nd_btt(dev))
+	{
 		struct nd_btt *nd_btt = to_nd_btt(dev);
 
 		nd_btt->lbasize = 0;
 		kfree(nd_btt->uuid);
 		nd_btt->uuid = NULL;
-	} else if (is_nd_pfn(dev) || is_nd_dax(dev)) {
+	}
+	else if (is_nd_pfn(dev) || is_nd_dax(dev))
+	{
 		struct nd_pfn *nd_pfn = to_nd_pfn_safe(dev);
 
 		kfree(nd_pfn->uuid);
@@ -135,35 +159,45 @@ static void nd_detach_and_reset(struct device *dev,
 }
 
 ssize_t nd_namespace_store(struct device *dev,
-		struct nd_namespace_common **_ndns, const char *buf,
-		size_t len)
+						   struct nd_namespace_common **_ndns, const char *buf,
+						   size_t len)
 {
 	struct nd_namespace_common *ndns;
 	struct device *found;
 	char *name;
 
-	if (dev->driver) {
+	if (dev->driver)
+	{
 		dev_dbg(dev, "%s: -EBUSY\n", __func__);
 		return -EBUSY;
 	}
 
 	name = kstrndup(buf, len, GFP_KERNEL);
+
 	if (!name)
+	{
 		return -ENOMEM;
+	}
+
 	strim(name);
 
 	if (strncmp(name, "namespace", 9) == 0 || strcmp(name, "") == 0)
 		/* pass */;
-	else {
+	else
+	{
 		len = -EINVAL;
 		goto out;
 	}
 
 	ndns = *_ndns;
-	if (strcmp(name, "") == 0) {
+
+	if (strcmp(name, "") == 0)
+	{
 		nd_detach_and_reset(dev, _ndns);
 		goto out;
-	} else if (ndns) {
+	}
+	else if (ndns)
+	{
 		dev_dbg(dev, "namespace already set to: %s\n",
 				dev_name(&ndns->dev));
 		len = -EBUSY;
@@ -171,7 +205,9 @@ ssize_t nd_namespace_store(struct device *dev,
 	}
 
 	found = device_find_child(dev->parent, name, namespace_match);
-	if (!found) {
+
+	if (!found)
+	{
 		dev_dbg(dev, "'%s' not found under %s\n", name,
 				dev_name(dev->parent));
 		len = -ENODEV;
@@ -179,22 +215,26 @@ ssize_t nd_namespace_store(struct device *dev,
 	}
 
 	ndns = to_ndns(found);
-	if (__nvdimm_namespace_capacity(ndns) < SZ_16M) {
+
+	if (__nvdimm_namespace_capacity(ndns) < SZ_16M)
+	{
 		dev_dbg(dev, "%s too small to host\n", name);
 		len = -ENXIO;
 		goto out_attach;
 	}
 
 	WARN_ON_ONCE(!is_nvdimm_bus_locked(dev));
-	if (!nd_attach_ndns(dev, ndns, _ndns)) {
+
+	if (!nd_attach_ndns(dev, ndns, _ndns))
+	{
 		dev_dbg(dev, "%s already claimed\n",
 				dev_name(&ndns->dev));
 		len = -EBUSY;
 	}
 
- out_attach:
+out_attach:
 	put_device(&ndns->dev); /* from device_find_child */
- out:
+out:
 	kfree(name);
 	return len;
 }
@@ -223,22 +263,29 @@ u64 nd_sb_checksum(struct nd_gen_sb *nd_gen_sb)
 EXPORT_SYMBOL(nd_sb_checksum);
 
 static int nsio_rw_bytes(struct nd_namespace_common *ndns,
-		resource_size_t offset, void *buf, size_t size, int rw)
+						 resource_size_t offset, void *buf, size_t size, int rw)
 {
 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
 
-	if (unlikely(offset + size > nsio->size)) {
+	if (unlikely(offset + size > nsio->size))
+	{
 		dev_WARN_ONCE(&ndns->dev, 1, "request out of range\n");
 		return -EFAULT;
 	}
 
-	if (rw == READ) {
+	if (rw == READ)
+	{
 		unsigned int sz_align = ALIGN(size + (offset & (512 - 1)), 512);
 
 		if (unlikely(is_bad_pmem(&nsio->bb, offset / 512, sz_align)))
+		{
 			return -EIO;
+		}
+
 		return memcpy_from_pmem(buf, nsio->addr + offset, size);
-	} else {
+	}
+	else
+	{
 		memcpy_to_pmem(nsio->addr + offset, buf, size);
 		nvdimm_flush(to_nd_region(ndns->dev.parent));
 	}
@@ -252,20 +299,26 @@ int devm_nsio_enable(struct device *dev, struct nd_namespace_io *nsio)
 	struct nd_namespace_common *ndns = &nsio->common;
 
 	nsio->size = resource_size(res);
+
 	if (!devm_request_mem_region(dev, res->start, resource_size(res),
-				dev_name(dev))) {
+								 dev_name(dev)))
+	{
 		dev_warn(dev, "could not reserve region %pR\n", res);
 		return -EBUSY;
 	}
 
 	ndns->rw_bytes = nsio_rw_bytes;
+
 	if (devm_init_badblocks(dev, &nsio->bb))
+	{
 		return -ENOMEM;
+	}
+
 	nvdimm_badblocks_populate(to_nd_region(ndns->dev.parent), &nsio->bb,
-			&nsio->res);
+							  &nsio->res);
 
 	nsio->addr = devm_memremap(dev, res->start, resource_size(res),
-			ARCH_MEMREMAP_PMEM);
+							   ARCH_MEMREMAP_PMEM);
 
 	return PTR_ERR_OR_ZERO(nsio->addr);
 }

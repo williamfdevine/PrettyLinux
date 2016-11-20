@@ -30,7 +30,8 @@
 #include "videocodec.h"
 
 /* data stored for each zoran jpeg codec chip */
-struct zr36060 {
+struct zr36060
+{
 	char name[32];
 	int num;
 	/* io datastructure */

@@ -37,7 +37,8 @@
 
 struct snd_tea575x;
 
-struct snd_tea575x_ops {
+struct snd_tea575x_ops
+{
 	/* Drivers using snd_tea575x must either define read_ and write_val */
 	void (*write_val)(struct snd_tea575x *tea, u32 val);
 	u32 (*read_val)(struct snd_tea575x *tea);
@@ -47,7 +48,8 @@ struct snd_tea575x_ops {
 	void (*set_direction)(struct snd_tea575x *tea, bool output);
 };
 
-struct snd_tea575x {
+struct snd_tea575x
+{
 	struct v4l2_device *v4l2_dev;
 	struct v4l2_file_operations fops;
 	struct video_device vd;		/* video device */
@@ -72,10 +74,10 @@ struct snd_tea575x {
 };
 
 int snd_tea575x_enum_freq_bands(struct snd_tea575x *tea,
-					struct v4l2_frequency_band *band);
+								struct v4l2_frequency_band *band);
 int snd_tea575x_g_tuner(struct snd_tea575x *tea, struct v4l2_tuner *v);
 int snd_tea575x_s_hw_freq_seek(struct file *file, struct snd_tea575x *tea,
-				const struct v4l2_hw_freq_seek *a);
+							   const struct v4l2_hw_freq_seek *a);
 int snd_tea575x_hw_init(struct snd_tea575x *tea);
 int snd_tea575x_init(struct snd_tea575x *tea, struct module *owner);
 void snd_tea575x_exit(struct snd_tea575x *tea);

@@ -122,7 +122,8 @@
 
 /* MDIO registers within MAC register Space
  */
-struct altera_tse_mdio {
+struct altera_tse_mdio
+{
 	u32 control;	/* PHY device operation control register */
 	u32 status;	/* PHY device operation status register */
 	u32 phy_id1;	/* Bits 31:16 of PHY identifier */
@@ -166,7 +167,8 @@ struct altera_tse_mdio {
  * configured and built. Please consult the Altera Triple Speed Ethernet User
  * Guide for details.
  */
-struct altera_tse_mac {
+struct altera_tse_mac
+{
 	/* Bits 15:0: MegaCore function revision (0x0800). Bit 31:16: Customer
 	 * specific revision
 	 */
@@ -368,7 +370,8 @@ struct altera_tse_mac {
 /* Wrapper around a pointer to a socket buffer,
  * so a DMA handle can be stored along with the buffer
  */
-struct tse_buffer {
+struct tse_buffer
+{
 	struct list_head lh;
 	struct sk_buff *skb;
 	dma_addr_t dma_addr;
@@ -382,7 +385,8 @@ struct altera_tse_private;
 #define ALTERA_DTYPE_MSGDMA 2
 
 /* standard DMA interface for SGDMA and MSGDMA */
-struct altera_dmaops {
+struct altera_dmaops
+{
 	int altera_dtype;
 	int dmamask;
 	void (*reset_dma)(struct altera_tse_private *);
@@ -403,7 +407,8 @@ struct altera_dmaops {
 
 /* This structure is private to each device.
  */
-struct altera_tse_private {
+struct altera_tse_private
+{
 	struct net_device *dev;
 	struct device *device;
 	struct napi_struct napi;

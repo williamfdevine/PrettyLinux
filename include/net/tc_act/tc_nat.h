@@ -4,7 +4,8 @@
 #include <linux/types.h>
 #include <net/act_api.h>
 
-struct tcf_nat {
+struct tcf_nat
+{
 	struct tc_action common;
 
 	__be32 old_addr;

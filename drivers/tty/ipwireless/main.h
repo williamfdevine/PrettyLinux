@@ -40,7 +40,8 @@ struct ipw_hardware;
 struct ipw_network;
 struct ipw_tty;
 
-struct ipw_dev {
+struct ipw_dev
+{
 	struct pcmcia_device *link;
 	int is_v2_card;
 

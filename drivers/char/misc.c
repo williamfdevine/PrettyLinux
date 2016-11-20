@@ -88,7 +88,8 @@ static int misc_seq_show(struct seq_file *seq, void *v)
 }
 
 
-static const struct seq_operations misc_seq_ops = {
+static const struct seq_operations misc_seq_ops =
+{
 	.start = misc_seq_start,
 	.next  = misc_seq_next,
 	.stop  = misc_seq_stop,
@@ -100,7 +101,8 @@ static int misc_seq_open(struct inode *inode, struct file *file)
 	return seq_open(file, &misc_seq_ops);
 }
 
-static const struct file_operations misc_proc_fops = {
+static const struct file_operations misc_proc_fops =
+{
 	.owner	 = THIS_MODULE,
 	.open    = misc_seq_open,
 	.read    = seq_read,
@@ -109,7 +111,7 @@ static const struct file_operations misc_proc_fops = {
 };
 #endif
 
-static int misc_open(struct inode * inode, struct file * file)
+static int misc_open(struct inode *inode, struct file *file)
 {
 	int minor = iminor(inode);
 	struct miscdevice *c;
@@ -118,26 +120,34 @@ static int misc_open(struct inode * inode, struct file * file)
 
 	mutex_lock(&misc_mtx);
 
-	list_for_each_entry(c, &misc_list, list) {
-		if (c->minor == minor) {
+	list_for_each_entry(c, &misc_list, list)
+	{
+		if (c->minor == minor)
+		{
 			new_fops = fops_get(c->fops);
 			break;
 		}
 	}
 
-	if (!new_fops) {
+	if (!new_fops)
+	{
 		mutex_unlock(&misc_mtx);
 		request_module("char-major-%d-%d", MISC_MAJOR, minor);
 		mutex_lock(&misc_mtx);
 
-		list_for_each_entry(c, &misc_list, list) {
-			if (c->minor == minor) {
+		list_for_each_entry(c, &misc_list, list)
+		{
+			if (c->minor == minor)
+			{
 				new_fops = fops_get(c->fops);
 				break;
 			}
 		}
+
 		if (!new_fops)
+		{
 			goto fail;
+		}
 	}
 
 	/*
@@ -149,8 +159,12 @@ static int misc_open(struct inode * inode, struct file * file)
 
 	err = 0;
 	replace_fops(file, new_fops);
+
 	if (file->f_op->open)
-		err = file->f_op->open(inode,file);
+	{
+		err = file->f_op->open(inode, file);
+	}
+
 fail:
 	mutex_unlock(&misc_mtx);
 	return err;
@@ -158,7 +172,8 @@ fail:
 
 static struct class *misc_class;
 
-static const struct file_operations misc_fops = {
+static const struct file_operations misc_fops =
+{
 	.owner		= THIS_MODULE,
 	.open		= misc_open,
 	.llseek		= noop_llseek,
@@ -182,7 +197,7 @@ static const struct file_operations misc_fops = {
  *	failure.
  */
 
-int misc_register(struct miscdevice * misc)
+int misc_register(struct miscdevice *misc)
 {
 	dev_t dev;
 	int err = 0;
@@ -192,19 +207,27 @@ int misc_register(struct miscdevice * misc)
 
 	mutex_lock(&misc_mtx);
 
-	if (is_dynamic) {
+	if (is_dynamic)
+	{
 		int i = find_first_zero_bit(misc_minors, DYNAMIC_MINORS);
-		if (i >= DYNAMIC_MINORS) {
+
+		if (i >= DYNAMIC_MINORS)
+		{
 			err = -EBUSY;
 			goto out;
 		}
+
 		misc->minor = DYNAMIC_MINORS - i - 1;
 		set_bit(i, misc_minors);
-	} else {
+	}
+	else
+	{
 		struct miscdevice *c;
 
-		list_for_each_entry(c, &misc_list, list) {
-			if (c->minor == misc->minor) {
+		list_for_each_entry(c, &misc_list, list)
+		{
+			if (c->minor == misc->minor)
+			{
 				err = -EBUSY;
 				goto out;
 			}
@@ -215,15 +238,22 @@ int misc_register(struct miscdevice * misc)
 
 	misc->this_device =
 		device_create_with_groups(misc_class, misc->parent, dev,
-					  misc, misc->groups, "%s", misc->name);
-	if (IS_ERR(misc->this_device)) {
-		if (is_dynamic) {
+								  misc, misc->groups, "%s", misc->name);
+
+	if (IS_ERR(misc->this_device))
+	{
+		if (is_dynamic)
+		{
 			int i = DYNAMIC_MINORS - misc->minor - 1;
 
 			if (i < DYNAMIC_MINORS && i >= 0)
+			{
 				clear_bit(i, misc_minors);
+			}
+
 			misc->minor = MISC_DYNAMIC_MINOR;
 		}
+
 		err = PTR_ERR(misc->this_device);
 		goto out;
 	}
@@ -233,7 +263,7 @@ int misc_register(struct miscdevice * misc)
 	 * earlier defaults
 	 */
 	list_add(&misc->list, &misc_list);
- out:
+out:
 	mutex_unlock(&misc_mtx);
 	return err;
 }
@@ -251,13 +281,19 @@ void misc_deregister(struct miscdevice *misc)
 	int i = DYNAMIC_MINORS - misc->minor - 1;
 
 	if (WARN_ON(list_empty(&misc->list)))
+	{
 		return;
+	}
 
 	mutex_lock(&misc_mtx);
 	list_del(&misc->list);
 	device_destroy(misc_class, MKDEV(MISC_MAJOR, misc->minor));
+
 	if (i < DYNAMIC_MINORS && i >= 0)
+	{
 		clear_bit(i, misc_minors);
+	}
+
 	mutex_unlock(&misc_mtx);
 }
 
@@ -269,9 +305,15 @@ static char *misc_devnode(struct device *dev, umode_t *mode)
 	struct miscdevice *c = dev_get_drvdata(dev);
 
 	if (mode && c->mode)
+	{
 		*mode = c->mode;
+	}
+
 	if (c->nodename)
+	{
 		return kstrdup(c->nodename, GFP_KERNEL);
+	}
+
 	return NULL;
 }
 
@@ -283,12 +325,19 @@ static int __init misc_init(void)
 	ret = proc_create("misc", 0, NULL, &misc_proc_fops);
 	misc_class = class_create(THIS_MODULE, "misc");
 	err = PTR_ERR(misc_class);
+
 	if (IS_ERR(misc_class))
+	{
 		goto fail_remove;
+	}
 
 	err = -EIO;
-	if (register_chrdev(MISC_MAJOR,"misc",&misc_fops))
+
+	if (register_chrdev(MISC_MAJOR, "misc", &misc_fops))
+	{
 		goto fail_printk;
+	}
+
 	misc_class->devnode = misc_devnode;
 	return 0;
 
@@ -296,8 +345,12 @@ fail_printk:
 	printk("unable to get major %d for misc devices\n", MISC_MAJOR);
 	class_destroy(misc_class);
 fail_remove:
+
 	if (ret)
+	{
 		remove_proc_entry("misc", NULL);
+	}
+
 	return err;
 }
 subsys_initcall(misc_init);

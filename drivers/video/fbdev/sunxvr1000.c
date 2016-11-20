@@ -10,7 +10,8 @@
 #include <linux/init.h>
 #include <linux/of_device.h>
 
-struct gfb_info {
+struct gfb_info
+{
 	struct fb_info		*info;
 
 	char __iomem		*fb_base;
@@ -32,9 +33,10 @@ static int gfb_get_props(struct gfb_info *gp)
 	gp->height = of_getintprop_default(gp->of_node, "height", 0);
 	gp->depth = of_getintprop_default(gp->of_node, "depth", 32);
 
-	if (!gp->width || !gp->height) {
+	if (!gp->width || !gp->height)
+	{
 		printk(KERN_ERR "gfb: Critical properties missing for %s\n",
-		       gp->of_node->full_name);
+			   gp->of_node->full_name);
 		return -EINVAL;
 	}
 
@@ -42,12 +44,13 @@ static int gfb_get_props(struct gfb_info *gp)
 }
 
 static int gfb_setcolreg(unsigned regno,
-			 unsigned red, unsigned green, unsigned blue,
-			 unsigned transp, struct fb_info *info)
+						 unsigned red, unsigned green, unsigned blue,
+						 unsigned transp, struct fb_info *info)
 {
 	u32 value;
 
-	if (regno < 16) {
+	if (regno < 16)
+	{
 		red >>= 8;
 		green >>= 8;
 		blue >>= 8;
@@ -59,7 +62,8 @@ static int gfb_setcolreg(unsigned regno,
 	return 0;
 }
 
-static struct fb_ops gfb_ops = {
+static struct fb_ops gfb_ops =
+{
 	.owner			= THIS_MODULE,
 	.fb_setcolreg		= gfb_setcolreg,
 	.fb_fillrect		= cfb_fillrect,
@@ -81,13 +85,18 @@ static int gfb_set_fbinfo(struct gfb_info *gp)
 
 	/* Fill fix common fields */
 	strlcpy(info->fix.id, "gfb", sizeof(info->fix.id));
-        info->fix.smem_start = gp->fb_base_phys;
-        info->fix.smem_len = gp->fb_size;
-        info->fix.type = FB_TYPE_PACKED_PIXELS;
+	info->fix.smem_start = gp->fb_base_phys;
+	info->fix.smem_len = gp->fb_size;
+	info->fix.type = FB_TYPE_PACKED_PIXELS;
+
 	if (gp->depth == 32 || gp->depth == 24)
+	{
 		info->fix.visual = FB_VISUAL_TRUECOLOR;
+	}
 	else
+	{
 		info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
+	}
 
 	var->xres = gp->width;
 	var->yres = gp->height;
@@ -104,12 +113,13 @@ static int gfb_set_fbinfo(struct gfb_info *gp)
 	var->transp.offset = 0;
 	var->transp.length = 0;
 
-	if (fb_alloc_cmap(&info->cmap, 256, 0)) {
+	if (fb_alloc_cmap(&info->cmap, 256, 0))
+	{
 		printk(KERN_ERR "gfb: Cannot allocate color map.\n");
 		return -ENOMEM;
 	}
 
-        return 0;
+	return 0;
 }
 
 static int gfb_probe(struct platform_device *op)
@@ -120,7 +130,9 @@ static int gfb_probe(struct platform_device *op)
 	int err;
 
 	info = framebuffer_alloc(sizeof(struct gfb_info), &op->dev);
-	if (!info) {
+
+	if (!info)
+	{
 		printk(KERN_ERR "gfb: Cannot allocate fb_info\n");
 		err = -ENOMEM;
 		goto err_out;
@@ -133,30 +145,40 @@ static int gfb_probe(struct platform_device *op)
 	gp->fb_base_phys = op->resource[6].start;
 
 	err = gfb_get_props(gp);
+
 	if (err)
+	{
 		goto err_release_fb;
+	}
 
 	/* Framebuffer length is the same regardless of resolution. */
 	info->fix.line_length = 16384;
 	gp->fb_size = info->fix.line_length * gp->height;
 
 	gp->fb_base = of_ioremap(&op->resource[6], 0,
-				 gp->fb_size, "gfb fb");
-	if (!gp->fb_base) {
+							 gp->fb_size, "gfb fb");
+
+	if (!gp->fb_base)
+	{
 		err = -ENOMEM;
 		goto err_release_fb;
 	}
 
 	err = gfb_set_fbinfo(gp);
+
 	if (err)
+	{
 		goto err_unmap_fb;
+	}
 
 	printk("gfb: Found device at %s\n", dp->full_name);
 
 	err = register_framebuffer(info);
-	if (err < 0) {
+
+	if (err < 0)
+	{
 		printk(KERN_ERR "gfb: Could not register framebuffer %s\n",
-		       dp->full_name);
+			   dp->full_name);
 		goto err_unmap_fb;
 	}
 
@@ -168,20 +190,22 @@ err_unmap_fb:
 	of_iounmap(&op->resource[6], gp->fb_base, gp->fb_size);
 
 err_release_fb:
-        framebuffer_release(info);
+	framebuffer_release(info);
 
 err_out:
 	return err;
 }
 
-static const struct of_device_id gfb_match[] = {
+static const struct of_device_id gfb_match[] =
+{
 	{
 		.name = "SUNW,gfb",
 	},
 	{},
 };
 
-static struct platform_driver gfb_driver = {
+static struct platform_driver gfb_driver =
+{
 	.probe		= gfb_probe,
 	.driver = {
 		.name			= "gfb",
@@ -193,7 +217,9 @@ static struct platform_driver gfb_driver = {
 static int __init gfb_init(void)
 {
 	if (fb_get_options("gfb", NULL))
+	{
 		return -ENODEV;
+	}
 
 	return platform_driver_register(&gfb_driver);
 }

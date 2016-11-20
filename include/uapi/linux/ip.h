@@ -82,13 +82,14 @@
 
 #define IPV4_BEET_PHMAXLEN 8
 
-struct iphdr {
+struct iphdr
+{
 #if defined(__LITTLE_ENDIAN_BITFIELD)
-	__u8	ihl:4,
-		version:4;
+	__u8	ihl: 4,
+			version: 4;
 #elif defined (__BIG_ENDIAN_BITFIELD)
-	__u8	version:4,
-  		ihl:4;
+	__u8	version: 4,
+			ihl: 4;
 #else
 #error	"Please fix <asm/byteorder.h>"
 #endif
@@ -105,7 +106,8 @@ struct iphdr {
 };
 
 
-struct ip_auth_hdr {
+struct ip_auth_hdr
+{
 	__u8  nexthdr;
 	__u8  hdrlen;		/* This one is measured in 32 bit units! */
 	__be16 reserved;
@@ -114,19 +116,22 @@ struct ip_auth_hdr {
 	__u8  auth_data[0];	/* Variable len but >=4. Mind the 64 bit alignment! */
 };
 
-struct ip_esp_hdr {
+struct ip_esp_hdr
+{
 	__be32 spi;
 	__be32 seq_no;		/* Sequence number */
 	__u8  enc_data[0];	/* Variable len but >=8. Mind the 64 bit alignment! */
 };
 
-struct ip_comp_hdr {
+struct ip_comp_hdr
+{
 	__u8 nexthdr;
 	__u8 flags;
 	__be16 cpi;
 };
 
-struct ip_beet_phdr {
+struct ip_beet_phdr
+{
 	__u8 nexthdr;
 	__u8 hdrlen;
 	__u8 padlen;
@@ -136,7 +141,7 @@ struct ip_beet_phdr {
 /* index values for the variables in ipv4_devconf */
 enum
 {
-	IPV4_DEVCONF_FORWARDING=1,
+	IPV4_DEVCONF_FORWARDING = 1,
 	IPV4_DEVCONF_MC_FORWARDING,
 	IPV4_DEVCONF_PROXY_ARP,
 	IPV4_DEVCONF_ACCEPT_REDIRECTS,

@@ -29,7 +29,8 @@
 #define PCI_DEVICE_ID_ARECA_1300	0x1300
 #define PCI_DEVICE_ID_ARECA_1320	0x1320
 
-enum chip_flavors {
+enum chip_flavors
+{
 	chip_6320,
 	chip_6440,
 	chip_6485,
@@ -42,11 +43,12 @@ enum chip_flavors {
 };
 
 /* driver compile-time configuration */
-enum driver_configuration {
+enum driver_configuration
+{
 	MVS_TX_RING_SZ		= 1024,	/* TX ring size (12-bit) */
 	MVS_RX_RING_SZ		= 1024, /* RX ring size (12-bit) */
-					/* software requires power-of-2
-					   ring size */
+	/* software requires power-of-2
+	   ring size */
 	MVS_SOC_SLOTS		= 64,
 	MVS_SOC_TX_RING_SZ	= MVS_SOC_SLOTS * 2,
 	MVS_SOC_RX_RING_SZ	= MVS_SOC_SLOTS * 2,
@@ -60,7 +62,8 @@ enum driver_configuration {
 };
 
 /* unchangeable hardware details */
-enum hardware_details {
+enum hardware_details
+{
 	MVS_MAX_PHYS		= 8,	/* max. possible phys */
 	MVS_MAX_PORTS		= 8,	/* max. possible ports */
 	MVS_SOC_PHYS		= 4,	/* soc phys */
@@ -69,20 +72,23 @@ enum hardware_details {
 };
 
 /* peripheral registers (BAR2) */
-enum peripheral_registers {
+enum peripheral_registers
+{
 	SPI_CTL			= 0x10,	/* EEPROM control */
 	SPI_CMD			= 0x14,	/* EEPROM command */
 	SPI_DATA		= 0x18, /* EEPROM data */
 };
 
-enum peripheral_register_bits {
+enum peripheral_register_bits
+{
 	TWSI_RDY		= (1U << 7),	/* EEPROM interface ready */
 	TWSI_RD			= (1U << 4),	/* EEPROM read access */
 
 	SPI_ADDR_MASK		= 0x3ffff,	/* bits 17:0 */
 };
 
-enum hw_register_bits {
+enum hw_register_bits
+{
 	/* MVS_GBL_CTL */
 	INT_EN			= (1U << 1),	/* Global int enable */
 	HBA_RST			= (1U << 0),	/* HBA reset */
@@ -102,9 +108,9 @@ enum hw_register_bits {
 	MODE_AUTO_DET_PORT1 = (1U << 9),
 	MODE_AUTO_DET_PORT0 = (1U << 8),
 	MODE_AUTO_DET_EN    =	MODE_AUTO_DET_PORT0 | MODE_AUTO_DET_PORT1 |
-				MODE_AUTO_DET_PORT2 | MODE_AUTO_DET_PORT3 |
-				MODE_AUTO_DET_PORT4 | MODE_AUTO_DET_PORT5 |
-				MODE_AUTO_DET_PORT6 | MODE_AUTO_DET_PORT7,
+							MODE_AUTO_DET_PORT2 | MODE_AUTO_DET_PORT3 |
+							MODE_AUTO_DET_PORT4 | MODE_AUTO_DET_PORT5 |
+							MODE_AUTO_DET_PORT6 | MODE_AUTO_DET_PORT7,
 	MODE_SAS_PORT7_MASK = (1U << 7),  /* port0 SAS(1), SATA(0) mode */
 	MODE_SAS_PORT6_MASK = (1U << 6),
 	MODE_SAS_PORT5_MASK = (1U << 5),
@@ -114,14 +120,14 @@ enum hw_register_bits {
 	MODE_SAS_PORT1_MASK = (1U << 1),
 	MODE_SAS_PORT0_MASK = (1U << 0),
 	MODE_SAS_SATA	=	MODE_SAS_PORT0_MASK | MODE_SAS_PORT1_MASK |
-				MODE_SAS_PORT2_MASK | MODE_SAS_PORT3_MASK |
-				MODE_SAS_PORT4_MASK | MODE_SAS_PORT5_MASK |
-				MODE_SAS_PORT6_MASK | MODE_SAS_PORT7_MASK,
+						MODE_SAS_PORT2_MASK | MODE_SAS_PORT3_MASK |
+						MODE_SAS_PORT4_MASK | MODE_SAS_PORT5_MASK |
+						MODE_SAS_PORT6_MASK | MODE_SAS_PORT7_MASK,
 
-				/* SAS_MODE value may be
-				 * dictated (in hw) by values
-				 * of SATA_TARGET & AUTO_DET
-				 */
+	/* SAS_MODE value may be
+	 * dictated (in hw) by values
+	 * of SATA_TARGET & AUTO_DET
+	 */
 
 	/* MVS_TX_CFG */
 	TX_EN			= (1U << 16),	/* Enable TX */
@@ -147,7 +153,7 @@ enum hw_register_bits {
 	CINT_CI_STOP		= (1U << 1),	/* cmd issue stopped */
 	CINT_DONE		= (1U << 0),	/* cmd completion */
 
-						/* shl for ports 1-3 */
+	/* shl for ports 1-3 */
 	CINT_PORT_STOPPED	= (1U << 16),	/* port0 stopped */
 	CINT_PORT		= (1U << 8),	/* port0 event */
 	CINT_PORT_MASK_OFFSET	= 8,
@@ -188,13 +194,13 @@ enum hw_register_bits {
 	MCH_PRD_LEN_SHIFT	= 16,		/* 16-bit PRD table len */
 	MCH_SSP_FR_TYPE_SHIFT	= 13,		/* SSP frame type */
 
-						/* SSP initiator only */
+	/* SSP initiator only */
 	MCH_SSP_FR_CMD		= 0x0,		/* COMMAND frame */
 
-						/* SSP initiator or target */
+	/* SSP initiator or target */
 	MCH_SSP_FR_TASK		= 0x1,		/* TASK frame */
 
-						/* SSP target only */
+	/* SSP target only */
 	MCH_SSP_FR_XFER_RDY	= 0x4,		/* XFER_RDY frame */
 	MCH_SSP_FR_RESP		= 0x5,		/* RESPONSE frame */
 	MCH_SSP_FR_READ		= 0x6,		/* Read DATA frame(s) */
@@ -215,7 +221,7 @@ enum hw_register_bits {
 
 	CCTL_RST		= (1U << 5),	/* port logic reset */
 
-						/* 0(LSB first), 1(MSB first) */
+	/* 0(LSB first), 1(MSB first) */
 	CCTL_ENDIAN_DATA	= (1U << 3),	/* PRD data */
 	CCTL_ENDIAN_RSP		= (1U << 2),	/* response frame */
 	CCTL_ENDIAN_OPEN	= (1U << 1),	/* open address frame */
@@ -301,7 +307,8 @@ enum hw_register_bits {
 };
 
 /* SAS/SATA configuration port registers, aka phy registers */
-enum sas_sata_config_port_regs {
+enum sas_sata_config_port_regs
+{
 	PHYR_IDENTIFY		= 0x00,	/* info for IDENTIFY frame */
 	PHYR_ADDR_LO		= 0x04,	/* my SAS address (low) */
 	PHYR_ADDR_HI		= 0x08,	/* my SAS address (high) */
@@ -336,7 +343,8 @@ enum sas_sata_config_port_regs {
 	CONFIG_ATT_ID_FRAME6   = 0x134, /* attached ID frame register 6 */
 };
 
-enum sas_cmd_port_registers {
+enum sas_cmd_port_registers
+{
 	CMD_CMRST_OOB_DET	= 0x100, /* COMRESET OOB detect register */
 	CMD_CMWK_OOB_DET	= 0x104, /* COMWAKE OOB detect register */
 	CMD_CMSAS_OOB_DET	= 0x108, /* COMSAS OOB detect register */
@@ -391,19 +399,22 @@ enum sas_cmd_port_registers {
 	CMD_LINK_TIMER		= 0x1E4, /* Link Timer */
 };
 
-enum mvs_info_flags {
+enum mvs_info_flags
+{
 	MVF_PHY_PWR_FIX	= (1U << 1),	/* bug workaround */
 	MVF_FLAG_SOC		= (1U << 2),	/* SoC integrated controllers */
 };
 
-enum mvs_event_flags {
+enum mvs_event_flags
+{
 	PHY_PLUG_EVENT		= (3U),
 	PHY_PLUG_IN		= (1U << 0),	/* phy plug in */
 	PHY_PLUG_OUT		= (1U << 1),	/* phy plug out */
 	EXP_BRCT_CHG		= (1U << 2),	/* broadcast change */
 };
 
-enum mvs_port_type {
+enum mvs_port_type
+{
 	PORT_TGT_MASK	=  (1U << 5),
 	PORT_INIT_PORT	=  (1U << 4),
 	PORT_TGT_PORT	=  (1U << 3),
@@ -413,7 +424,8 @@ enum mvs_port_type {
 };
 
 /* Command Table Format */
-enum ct_format {
+enum ct_format
+{
 	/* SSP */
 	SSP_F_H		=  0x00,
 	SSP_F_IU	=  0x18,
@@ -428,13 +440,15 @@ enum ct_format {
 	SMP_F_MAX	=  0x101,
 };
 
-enum status_buffer {
+enum status_buffer
+{
 	SB_EIR_OFF	=  0x00,	/* Error Information Record */
 	SB_RFB_OFF	=  0x08,	/* Response Frame Buffer */
 	SB_RFB_MAX	=  0x400,	/* RFB size*/
 };
 
-enum error_info_rec {
+enum error_info_rec
+{
 	CMD_ISS_STPD	= (1U << 31),	/* Cmd Issue Stopped */
 	CMD_PI_ERR	= (1U << 30),	/* Protection info error.  see flags2 */
 	RSP_OVER	= (1U << 29),	/* rsp buffer overflow */
@@ -466,7 +480,8 @@ enum error_info_rec {
 	BUF_PAR 	= (1U << 0),	/* buffer parity error */
 };
 
-enum error_info_rec_2 {
+enum error_info_rec_2
+{
 	SLOT_BSY_ERR	= (1U << 31),	/* Slot Busy Error */
 	GRD_CHK_ERR	= (1U << 14),	/* Guard Check Error */
 	APP_CHK_ERR	= (1U << 13),	/* Application Check error */
@@ -474,7 +489,8 @@ enum error_info_rec_2 {
 	USR_BLK_NM	= (1U << 0),	/* User Block Number */
 };
 
-enum pci_cfg_register_bits {
+enum pci_cfg_register_bits
+{
 	PCTL_PWR_OFF	= (0xFU << 24),
 	PCTL_COM_ON	= (0xFU << 20),
 	PCTL_LINK_RST	= (0xFU << 16),
@@ -489,21 +505,24 @@ enum pci_cfg_register_bits {
 	PLS_LINK_SPD_OFFS	= 0,
 };
 
-enum open_frame_protocol {
+enum open_frame_protocol
+{
 	PROTOCOL_SMP	= 0x0,
 	PROTOCOL_SSP	= 0x1,
 	PROTOCOL_STP	= 0x2,
 };
 
 /* define for response frame datapres field */
-enum datapres_field {
+enum datapres_field
+{
 	NO_DATA		= 0,
 	RESPONSE_DATA	= 1,
 	SENSE_DATA	= 2,
 };
 
 /* define task management IU */
-struct mvs_tmf_task{
+struct mvs_tmf_task
+{
 	u8 tmf;
 	u16 tag_of_task_to_be_managed;
 };

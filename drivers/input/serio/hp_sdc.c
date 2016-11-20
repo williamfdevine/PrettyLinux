@@ -75,15 +75,15 @@
 /* Machine-specific abstraction */
 
 #if defined(__hppa__)
-# include <asm/parisc-device.h>
-# define sdc_readb(p)		gsc_readb(p)
-# define sdc_writeb(v,p)	gsc_writeb((v),(p))
+	#include <asm/parisc-device.h>
+	#define sdc_readb(p)		gsc_readb(p)
+	#define sdc_writeb(v,p)	gsc_writeb((v),(p))
 #elif defined(__mc68000__)
-# include <asm/uaccess.h>
-# define sdc_readb(p)		in_8(p)
-# define sdc_writeb(v,p)	out_8((p),(v))
+	#include <asm/uaccess.h>
+	#define sdc_readb(p)		in_8(p)
+	#define sdc_writeb(v,p)	out_8((p),(v))
 #else
-# error "HIL is not supported on this platform"
+	# error "HIL is not supported on this platform"
 #endif
 
 #define PREFIX "HP SDC: "
@@ -118,8 +118,12 @@ static inline uint8_t hp_sdc_status_in8(void)
 
 	write_lock_irqsave(&hp_sdc.ibf_lock, flags);
 	status = sdc_readb(hp_sdc.status_io);
+
 	if (!(status & HP_SDC_STATUS_IBF))
+	{
 		hp_sdc.ibf = 0;
+	}
+
 	write_unlock_irqrestore(&hp_sdc.ibf_lock, flags);
 
 	return status;
@@ -136,8 +140,12 @@ static inline void hp_sdc_status_out8(uint8_t val)
 
 	write_lock_irqsave(&hp_sdc.ibf_lock, flags);
 	hp_sdc.ibf = 1;
+
 	if ((val & 0xf0) == 0xe0)
+	{
 		hp_sdc.wi = 0xff;
+	}
+
 	sdc_writeb(val, hp_sdc.status_io);
 	write_unlock_irqrestore(&hp_sdc.ibf_lock, flags);
 }
@@ -164,14 +172,19 @@ static inline void hp_sdc_spin_ibf(void)
 	lock = &hp_sdc.ibf_lock;
 
 	read_lock_irqsave(lock, flags);
-	if (!hp_sdc.ibf) {
+
+	if (!hp_sdc.ibf)
+	{
 		read_unlock_irqrestore(lock, flags);
 		return;
 	}
+
 	read_unlock(lock);
 	write_lock(lock);
+
 	while (sdc_readb(hp_sdc.status_io) & HP_SDC_STATUS_IBF)
-		{ }
+	{ }
+
 	hp_sdc.ibf = 0;
 	write_unlock_irqrestore(lock, flags);
 }
@@ -183,10 +196,13 @@ static void hp_sdc_take(int irq, void *dev_id, uint8_t status, uint8_t data)
 	hp_sdc_transaction *curr;
 
 	read_lock(&hp_sdc.rtq_lock);
-	if (hp_sdc.rcurr < 0) {
+
+	if (hp_sdc.rcurr < 0)
+	{
 		read_unlock(&hp_sdc.rtq_lock);
 		return;
 	}
+
 	curr = hp_sdc.tq[hp_sdc.rcurr];
 	read_unlock(&hp_sdc.rtq_lock);
 
@@ -195,15 +211,20 @@ static void hp_sdc_take(int irq, void *dev_id, uint8_t status, uint8_t data)
 	hp_sdc.rqty -= 2;
 	do_gettimeofday(&hp_sdc.rtv);
 
-	if (hp_sdc.rqty <= 0) {
+	if (hp_sdc.rqty <= 0)
+	{
 		/* All data has been gathered. */
 		if (curr->seq[curr->actidx] & HP_SDC_ACT_SEMAPHORE)
 			if (curr->act.semaphore)
+			{
 				up(curr->act.semaphore);
+			}
 
 		if (curr->seq[curr->actidx] & HP_SDC_ACT_CALLBACK)
 			if (curr->act.irqhook)
+			{
 				curr->act.irqhook(irq, dev_id, status, data);
+			}
 
 		curr->actidx = curr->idx;
 		curr->idx++;
@@ -226,48 +247,69 @@ static irqreturn_t hp_sdc_isr(int irq, void *dev_id)
 
 	/* For now we are ignoring these until we get the SDC to behave. */
 	if (((status & 0xf1) == 0x51) && data == 0x82)
+	{
 		return IRQ_HANDLED;
+	}
 
-	switch (status & HP_SDC_STATUS_IRQMASK) {
-	case 0: /* This case is not documented. */
-		break;
+	switch (status & HP_SDC_STATUS_IRQMASK)
+	{
+		case 0: /* This case is not documented. */
+			break;
 
-	case HP_SDC_STATUS_USERTIMER:
-	case HP_SDC_STATUS_PERIODIC:
-	case HP_SDC_STATUS_TIMER:
-		read_lock(&hp_sdc.hook_lock);
-		if (hp_sdc.timer != NULL)
-			hp_sdc.timer(irq, dev_id, status, data);
-		read_unlock(&hp_sdc.hook_lock);
-		break;
+		case HP_SDC_STATUS_USERTIMER:
+		case HP_SDC_STATUS_PERIODIC:
+		case HP_SDC_STATUS_TIMER:
+			read_lock(&hp_sdc.hook_lock);
 
-	case HP_SDC_STATUS_REG:
-		hp_sdc_take(irq, dev_id, status, data);
-		break;
+			if (hp_sdc.timer != NULL)
+			{
+				hp_sdc.timer(irq, dev_id, status, data);
+			}
 
-	case HP_SDC_STATUS_HILCMD:
-	case HP_SDC_STATUS_HILDATA:
-		read_lock(&hp_sdc.hook_lock);
-		if (hp_sdc.hil != NULL)
-			hp_sdc.hil(irq, dev_id, status, data);
-		read_unlock(&hp_sdc.hook_lock);
-		break;
+			read_unlock(&hp_sdc.hook_lock);
+			break;
 
-	case HP_SDC_STATUS_PUP:
-		read_lock(&hp_sdc.hook_lock);
-		if (hp_sdc.pup != NULL)
-			hp_sdc.pup(irq, dev_id, status, data);
-		else
-			printk(KERN_INFO PREFIX "HP SDC reports successful PUP.\n");
-		read_unlock(&hp_sdc.hook_lock);
-		break;
+		case HP_SDC_STATUS_REG:
+			hp_sdc_take(irq, dev_id, status, data);
+			break;
 
-	default:
-		read_lock(&hp_sdc.hook_lock);
-		if (hp_sdc.cooked != NULL)
-			hp_sdc.cooked(irq, dev_id, status, data);
-		read_unlock(&hp_sdc.hook_lock);
-		break;
+		case HP_SDC_STATUS_HILCMD:
+		case HP_SDC_STATUS_HILDATA:
+			read_lock(&hp_sdc.hook_lock);
+
+			if (hp_sdc.hil != NULL)
+			{
+				hp_sdc.hil(irq, dev_id, status, data);
+			}
+
+			read_unlock(&hp_sdc.hook_lock);
+			break;
+
+		case HP_SDC_STATUS_PUP:
+			read_lock(&hp_sdc.hook_lock);
+
+			if (hp_sdc.pup != NULL)
+			{
+				hp_sdc.pup(irq, dev_id, status, data);
+			}
+			else
+			{
+				printk(KERN_INFO PREFIX "HP SDC reports successful PUP.\n");
+			}
+
+			read_unlock(&hp_sdc.hook_lock);
+			break;
+
+		default:
+			read_lock(&hp_sdc.hook_lock);
+
+			if (hp_sdc.cooked != NULL)
+			{
+				hp_sdc.cooked(irq, dev_id, status, data);
+			}
+
+			read_unlock(&hp_sdc.hook_lock);
+			break;
 	}
 
 	return IRQ_HANDLED;
@@ -282,15 +324,24 @@ static irqreturn_t hp_sdc_nmisr(int irq, void *dev_id)
 	printk(KERN_WARNING PREFIX "NMI !\n");
 
 #if 0
-	if (status & HP_SDC_NMISTATUS_FHS) {
+
+	if (status & HP_SDC_NMISTATUS_FHS)
+	{
 		read_lock(&hp_sdc.hook_lock);
+
 		if (hp_sdc.timer != NULL)
+		{
 			hp_sdc.timer(irq, dev_id, status, 0);
+		}
+
 		read_unlock(&hp_sdc.hook_lock);
-	} else {
+	}
+	else
+	{
 		/* TODO: pass this on to the HIL handler, or do SAK here? */
 		printk(KERN_WARNING PREFIX "HIL NMI\n");
 	}
+
 #endif
 
 	return IRQ_HANDLED;
@@ -305,14 +356,19 @@ static void hp_sdc_tasklet(unsigned long foo)
 {
 	write_lock_irq(&hp_sdc.rtq_lock);
 
-	if (hp_sdc.rcurr >= 0) {
+	if (hp_sdc.rcurr >= 0)
+	{
 		struct timeval tv;
 
 		do_gettimeofday(&tv);
-		if (tv.tv_sec > hp_sdc.rtv.tv_sec)
-			tv.tv_usec += USEC_PER_SEC;
 
-		if (tv.tv_usec - hp_sdc.rtv.tv_usec > HP_SDC_MAX_REG_DELAY) {
+		if (tv.tv_sec > hp_sdc.rtv.tv_sec)
+		{
+			tv.tv_usec += USEC_PER_SEC;
+		}
+
+		if (tv.tv_usec - hp_sdc.rtv.tv_usec > HP_SDC_MAX_REG_DELAY)
+		{
 			hp_sdc_transaction *curr;
 			uint8_t tmp;
 
@@ -322,21 +378,27 @@ static void hp_sdc_tasklet(unsigned long foo)
 			 * it back to the application. and be less verbose.
 			 */
 			printk(KERN_WARNING PREFIX "read timeout (%ius)!\n",
-			       (int)(tv.tv_usec - hp_sdc.rtv.tv_usec));
+				   (int)(tv.tv_usec - hp_sdc.rtv.tv_usec));
 			curr->idx += hp_sdc.rqty;
 			hp_sdc.rqty = 0;
 			tmp = curr->seq[curr->actidx];
 			curr->seq[curr->actidx] |= HP_SDC_ACT_DEAD;
+
 			if (tmp & HP_SDC_ACT_SEMAPHORE)
 				if (curr->act.semaphore)
+				{
 					up(curr->act.semaphore);
+				}
 
-			if (tmp & HP_SDC_ACT_CALLBACK) {
+			if (tmp & HP_SDC_ACT_CALLBACK)
+			{
 				/* Note this means that irqhooks may be called
 				 * in tasklet/bh context.
 				 */
 				if (curr->act.irqhook)
+				{
 					curr->act.irqhook(0, NULL, 0, 0);
+				}
 			}
 
 			curr->actidx = curr->idx;
@@ -344,6 +406,7 @@ static void hp_sdc_tasklet(unsigned long foo)
 			hp_sdc.rcurr = -1;
 		}
 	}
+
 	write_unlock_irq(&hp_sdc.rtq_lock);
 	hp_sdc_put();
 }
@@ -360,194 +423,284 @@ unsigned long hp_sdc_put(void)
 
 	/* If i8042 buffers are full, we cannot do anything that
 	   requires output, so we skip to the administrativa. */
-	if (hp_sdc.ibf) {
+	if (hp_sdc.ibf)
+	{
 		hp_sdc_status_in8();
+
 		if (hp_sdc.ibf)
+		{
 			goto finish;
+		}
 	}
 
- anew:
+anew:
+
 	/* See if we are in the middle of a sequence. */
 	if (hp_sdc.wcurr < 0)
+	{
 		hp_sdc.wcurr = 0;
+	}
+
 	read_lock_irq(&hp_sdc.rtq_lock);
+
 	if (hp_sdc.rcurr == hp_sdc.wcurr)
+	{
 		hp_sdc.wcurr++;
+	}
+
 	read_unlock_irq(&hp_sdc.rtq_lock);
+
 	if (hp_sdc.wcurr >= HP_SDC_QUEUE_LEN)
+	{
 		hp_sdc.wcurr = 0;
+	}
+
 	curridx = hp_sdc.wcurr;
 
 	if (hp_sdc.tq[curridx] != NULL)
+	{
 		goto start;
+	}
 
-	while (++curridx != hp_sdc.wcurr) {
-		if (curridx >= HP_SDC_QUEUE_LEN) {
+	while (++curridx != hp_sdc.wcurr)
+	{
+		if (curridx >= HP_SDC_QUEUE_LEN)
+		{
 			curridx = -1; /* Wrap to top */
 			continue;
 		}
+
 		read_lock_irq(&hp_sdc.rtq_lock);
-		if (hp_sdc.rcurr == curridx) {
+
+		if (hp_sdc.rcurr == curridx)
+		{
 			read_unlock_irq(&hp_sdc.rtq_lock);
 			continue;
 		}
+
 		read_unlock_irq(&hp_sdc.rtq_lock);
+
 		if (hp_sdc.tq[curridx] != NULL)
-			break; /* Found one. */
+		{
+			break;    /* Found one. */
+		}
 	}
-	if (curridx == hp_sdc.wcurr) { /* There's nothing queued to do. */
+
+	if (curridx == hp_sdc.wcurr)   /* There's nothing queued to do. */
+	{
 		curridx = -1;
 	}
+
 	hp_sdc.wcurr = curridx;
 
- start:
+start:
 
 	/* Check to see if the interrupt mask needs to be set. */
-	if (hp_sdc.set_im) {
+	if (hp_sdc.set_im)
+	{
 		hp_sdc_status_out8(hp_sdc.im | HP_SDC_CMD_SET_IM);
 		hp_sdc.set_im = 0;
 		goto finish;
 	}
 
 	if (hp_sdc.wcurr == -1)
+	{
 		goto done;
+	}
 
 	curr = hp_sdc.tq[curridx];
 	idx = curr->actidx;
 
-	if (curr->actidx >= curr->endidx) {
+	if (curr->actidx >= curr->endidx)
+	{
 		hp_sdc.tq[curridx] = NULL;
 		/* Interleave outbound data between the transactions. */
 		hp_sdc.wcurr++;
+
 		if (hp_sdc.wcurr >= HP_SDC_QUEUE_LEN)
+		{
 			hp_sdc.wcurr = 0;
+		}
+
 		goto finish;
 	}
 
 	act = curr->seq[idx];
 	idx++;
 
-	if (curr->idx >= curr->endidx) {
+	if (curr->idx >= curr->endidx)
+	{
 		if (act & HP_SDC_ACT_DEALLOC)
+		{
 			kfree(curr);
+		}
+
 		hp_sdc.tq[curridx] = NULL;
 		/* Interleave outbound data between the transactions. */
 		hp_sdc.wcurr++;
+
 		if (hp_sdc.wcurr >= HP_SDC_QUEUE_LEN)
+		{
 			hp_sdc.wcurr = 0;
+		}
+
 		goto finish;
 	}
 
-	while (act & HP_SDC_ACT_PRECMD) {
-		if (curr->idx != idx) {
+	while (act & HP_SDC_ACT_PRECMD)
+	{
+		if (curr->idx != idx)
+		{
 			idx++;
 			act &= ~HP_SDC_ACT_PRECMD;
 			break;
 		}
+
 		hp_sdc_status_out8(curr->seq[idx]);
 		curr->idx++;
+
 		/* act finished? */
 		if ((act & HP_SDC_ACT_DURING) == HP_SDC_ACT_PRECMD)
+		{
 			goto actdone;
+		}
+
 		/* skip quantity field if data-out sequence follows. */
 		if (act & HP_SDC_ACT_DATAOUT)
+		{
 			curr->idx++;
+		}
+
 		goto finish;
 	}
-	if (act & HP_SDC_ACT_DATAOUT) {
+
+	if (act & HP_SDC_ACT_DATAOUT)
+	{
 		int qty;
 
 		qty = curr->seq[idx];
 		idx++;
-		if (curr->idx - idx < qty) {
+
+		if (curr->idx - idx < qty)
+		{
 			hp_sdc_data_out8(curr->seq[curr->idx]);
 			curr->idx++;
+
 			/* act finished? */
 			if (curr->idx - idx >= qty &&
-			    (act & HP_SDC_ACT_DURING) == HP_SDC_ACT_DATAOUT)
+				(act & HP_SDC_ACT_DURING) == HP_SDC_ACT_DATAOUT)
+			{
 				goto actdone;
+			}
+
 			goto finish;
 		}
+
 		idx += qty;
 		act &= ~HP_SDC_ACT_DATAOUT;
-	} else
-	    while (act & HP_SDC_ACT_DATAREG) {
-		int mask;
-		uint8_t w7[4];
-
-		mask = curr->seq[idx];
-		if (idx != curr->idx) {
-			idx++;
-			idx += !!(mask & 1);
-			idx += !!(mask & 2);
-			idx += !!(mask & 4);
-			idx += !!(mask & 8);
-			act &= ~HP_SDC_ACT_DATAREG;
-			break;
-		}
-
-		w7[0] = (mask & 1) ? curr->seq[++idx] : hp_sdc.r7[0];
-		w7[1] = (mask & 2) ? curr->seq[++idx] : hp_sdc.r7[1];
-		w7[2] = (mask & 4) ? curr->seq[++idx] : hp_sdc.r7[2];
-		w7[3] = (mask & 8) ? curr->seq[++idx] : hp_sdc.r7[3];
-
-		if (hp_sdc.wi > 0x73 || hp_sdc.wi < 0x70 ||
-		    w7[hp_sdc.wi - 0x70] == hp_sdc.r7[hp_sdc.wi - 0x70]) {
-			int i = 0;
-
-			/* Need to point the write index register */
-			while (i < 4 && w7[i] == hp_sdc.r7[i])
-				i++;
-
-			if (i < 4) {
-				hp_sdc_status_out8(HP_SDC_CMD_SET_D0 + i);
-				hp_sdc.wi = 0x70 + i;
-				goto finish;
-			}
-
-			idx++;
-			if ((act & HP_SDC_ACT_DURING) == HP_SDC_ACT_DATAREG)
-				goto actdone;
-
-			curr->idx = idx;
-			act &= ~HP_SDC_ACT_DATAREG;
-			break;
-		}
-
-		hp_sdc_data_out8(w7[hp_sdc.wi - 0x70]);
-		hp_sdc.r7[hp_sdc.wi - 0x70] = w7[hp_sdc.wi - 0x70];
-		hp_sdc.wi++; /* write index register autoincrements */
-		{
-			int i = 0;
-
-			while ((i < 4) && w7[i] == hp_sdc.r7[i])
-				i++;
-			if (i >= 4) {
-				curr->idx = idx + 1;
-				if ((act & HP_SDC_ACT_DURING) ==
-				    HP_SDC_ACT_DATAREG)
-					goto actdone;
-			}
-		}
-		goto finish;
 	}
+	else
+		while (act & HP_SDC_ACT_DATAREG)
+		{
+			int mask;
+			uint8_t w7[4];
+
+			mask = curr->seq[idx];
+
+			if (idx != curr->idx)
+			{
+				idx++;
+				idx += !!(mask & 1);
+				idx += !!(mask & 2);
+				idx += !!(mask & 4);
+				idx += !!(mask & 8);
+				act &= ~HP_SDC_ACT_DATAREG;
+				break;
+			}
+
+			w7[0] = (mask & 1) ? curr->seq[++idx] : hp_sdc.r7[0];
+			w7[1] = (mask & 2) ? curr->seq[++idx] : hp_sdc.r7[1];
+			w7[2] = (mask & 4) ? curr->seq[++idx] : hp_sdc.r7[2];
+			w7[3] = (mask & 8) ? curr->seq[++idx] : hp_sdc.r7[3];
+
+			if (hp_sdc.wi > 0x73 || hp_sdc.wi < 0x70 ||
+				w7[hp_sdc.wi - 0x70] == hp_sdc.r7[hp_sdc.wi - 0x70])
+			{
+				int i = 0;
+
+				/* Need to point the write index register */
+				while (i < 4 && w7[i] == hp_sdc.r7[i])
+				{
+					i++;
+				}
+
+				if (i < 4)
+				{
+					hp_sdc_status_out8(HP_SDC_CMD_SET_D0 + i);
+					hp_sdc.wi = 0x70 + i;
+					goto finish;
+				}
+
+				idx++;
+
+				if ((act & HP_SDC_ACT_DURING) == HP_SDC_ACT_DATAREG)
+				{
+					goto actdone;
+				}
+
+				curr->idx = idx;
+				act &= ~HP_SDC_ACT_DATAREG;
+				break;
+			}
+
+			hp_sdc_data_out8(w7[hp_sdc.wi - 0x70]);
+			hp_sdc.r7[hp_sdc.wi - 0x70] = w7[hp_sdc.wi - 0x70];
+			hp_sdc.wi++; /* write index register autoincrements */
+			{
+				int i = 0;
+
+				while ((i < 4) && w7[i] == hp_sdc.r7[i])
+				{
+					i++;
+				}
+
+				if (i >= 4)
+				{
+					curr->idx = idx + 1;
+
+					if ((act & HP_SDC_ACT_DURING) ==
+						HP_SDC_ACT_DATAREG)
+					{
+						goto actdone;
+					}
+				}
+			}
+			goto finish;
+		}
+
 	/* We don't go any further in the command if there is a pending read,
 	   because we don't want interleaved results. */
 	read_lock_irq(&hp_sdc.rtq_lock);
-	if (hp_sdc.rcurr >= 0) {
+
+	if (hp_sdc.rcurr >= 0)
+	{
 		read_unlock_irq(&hp_sdc.rtq_lock);
 		goto finish;
 	}
+
 	read_unlock_irq(&hp_sdc.rtq_lock);
 
 
-	if (act & HP_SDC_ACT_POSTCMD) {
+	if (act & HP_SDC_ACT_POSTCMD)
+	{
 		uint8_t postcmd;
 
 		/* curr->idx should == idx at this point. */
 		postcmd = curr->seq[idx];
 		curr->idx++;
-		if (act & HP_SDC_ACT_DATAIN) {
+
+		if (act & HP_SDC_ACT_DATAIN)
+		{
 
 			/* Start a new read */
 			hp_sdc.rqty = curr->seq[curr->idx];
@@ -560,38 +713,61 @@ unsigned long hp_sdc_put(void)
 			hp_sdc_status_out8(postcmd);
 			goto finish;
 		}
+
 		hp_sdc_status_out8(postcmd);
 		goto actdone;
 	}
 
- actdone:
-	if (act & HP_SDC_ACT_SEMAPHORE)
-		up(curr->act.semaphore);
-	else if (act & HP_SDC_ACT_CALLBACK)
-		curr->act.irqhook(0,NULL,0,0);
+actdone:
 
-	if (curr->idx >= curr->endidx) { /* This transaction is over. */
+	if (act & HP_SDC_ACT_SEMAPHORE)
+	{
+		up(curr->act.semaphore);
+	}
+	else if (act & HP_SDC_ACT_CALLBACK)
+	{
+		curr->act.irqhook(0, NULL, 0, 0);
+	}
+
+	if (curr->idx >= curr->endidx)   /* This transaction is over. */
+	{
 		if (act & HP_SDC_ACT_DEALLOC)
+		{
 			kfree(curr);
+		}
+
 		hp_sdc.tq[curridx] = NULL;
-	} else {
+	}
+	else
+	{
 		curr->actidx = idx + 1;
 		curr->idx = idx + 2;
 	}
+
 	/* Interleave outbound data between the transactions. */
 	hp_sdc.wcurr++;
-	if (hp_sdc.wcurr >= HP_SDC_QUEUE_LEN)
-		hp_sdc.wcurr = 0;
 
- finish:
+	if (hp_sdc.wcurr >= HP_SDC_QUEUE_LEN)
+	{
+		hp_sdc.wcurr = 0;
+	}
+
+finish:
+
 	/* If by some quirk IBF has cleared and our ISR has run to
 	   see that that has happened, do it all again. */
 	if (!hp_sdc.ibf && limit++ < 20)
+	{
 		goto anew;
+	}
 
- done:
+done:
+
 	if (hp_sdc.wcurr >= 0)
+	{
 		tasklet_schedule(&hp_sdc.task);
+	}
+
 	write_unlock(&hp_sdc.lock);
 
 	return 0;
@@ -602,7 +778,8 @@ int __hp_sdc_enqueue_transaction(hp_sdc_transaction *this)
 {
 	int i;
 
-	if (this == NULL) {
+	if (this == NULL)
+	{
 		BUG();
 		return -EINVAL;
 	}
@@ -610,14 +787,17 @@ int __hp_sdc_enqueue_transaction(hp_sdc_transaction *this)
 	/* Can't have same transaction on queue twice */
 	for (i = 0; i < HP_SDC_QUEUE_LEN; i++)
 		if (hp_sdc.tq[i] == this)
+		{
 			goto fail;
+		}
 
 	this->actidx = 0;
 	this->idx = 1;
 
 	/* Search for empty slot */
 	for (i = 0; i < HP_SDC_QUEUE_LEN; i++)
-		if (hp_sdc.tq[i] == NULL) {
+		if (hp_sdc.tq[i] == NULL)
+		{
 			hp_sdc.tq[i] = this;
 			tasklet_schedule(&hp_sdc.task);
 			return 0;
@@ -626,18 +806,19 @@ int __hp_sdc_enqueue_transaction(hp_sdc_transaction *this)
 	printk(KERN_WARNING PREFIX "No free slot to add transaction.\n");
 	return -EBUSY;
 
- fail:
+fail:
 	printk(KERN_WARNING PREFIX "Transaction add failed: transaction already queued?\n");
 	return -EINVAL;
 }
 
-int hp_sdc_enqueue_transaction(hp_sdc_transaction *this) {
+int hp_sdc_enqueue_transaction(hp_sdc_transaction *this)
+{
 	unsigned long flags;
 	int ret;
 
 	write_lock_irqsave(&hp_sdc.lock, flags);
 	ret = __hp_sdc_enqueue_transaction(this);
-	write_unlock_irqrestore(&hp_sdc.lock,flags);
+	write_unlock_irqrestore(&hp_sdc.lock, flags);
 
 	return ret;
 }
@@ -653,7 +834,9 @@ int hp_sdc_dequeue_transaction(hp_sdc_transaction *this)
 
 	for (i = 0; i < HP_SDC_QUEUE_LEN; i++)
 		if (hp_sdc.tq[i] == this)
+		{
 			hp_sdc.tq[i] = NULL;
+		}
 
 	write_unlock_irqrestore(&hp_sdc.lock, flags);
 	return 0;
@@ -665,10 +848,14 @@ int hp_sdc_dequeue_transaction(hp_sdc_transaction *this)
 int hp_sdc_request_timer_irq(hp_sdc_irqhook *callback)
 {
 	if (callback == NULL || hp_sdc.dev == NULL)
+	{
 		return -EINVAL;
+	}
 
 	write_lock_irq(&hp_sdc.hook_lock);
-	if (hp_sdc.timer != NULL) {
+
+	if (hp_sdc.timer != NULL)
+	{
 		write_unlock_irq(&hp_sdc.hook_lock);
 		return -EBUSY;
 	}
@@ -676,7 +863,7 @@ int hp_sdc_request_timer_irq(hp_sdc_irqhook *callback)
 	hp_sdc.timer = callback;
 	/* Enable interrupts from the timers */
 	hp_sdc.im &= ~HP_SDC_IM_FH;
-        hp_sdc.im &= ~HP_SDC_IM_PT;
+	hp_sdc.im &= ~HP_SDC_IM_PT;
 	hp_sdc.im &= ~HP_SDC_IM_TIMERS;
 	hp_sdc.set_im = 1;
 	write_unlock_irq(&hp_sdc.hook_lock);
@@ -689,10 +876,14 @@ int hp_sdc_request_timer_irq(hp_sdc_irqhook *callback)
 int hp_sdc_request_hil_irq(hp_sdc_irqhook *callback)
 {
 	if (callback == NULL || hp_sdc.dev == NULL)
+	{
 		return -EINVAL;
+	}
 
 	write_lock_irq(&hp_sdc.hook_lock);
-	if (hp_sdc.hil != NULL) {
+
+	if (hp_sdc.hil != NULL)
+	{
 		write_unlock_irq(&hp_sdc.hook_lock);
 		return -EBUSY;
 	}
@@ -710,10 +901,14 @@ int hp_sdc_request_hil_irq(hp_sdc_irqhook *callback)
 int hp_sdc_request_cooked_irq(hp_sdc_irqhook *callback)
 {
 	if (callback == NULL || hp_sdc.dev == NULL)
+	{
 		return -EINVAL;
+	}
 
 	write_lock_irq(&hp_sdc.hook_lock);
-	if (hp_sdc.cooked != NULL) {
+
+	if (hp_sdc.cooked != NULL)
+	{
 		write_unlock_irq(&hp_sdc.hook_lock);
 		return -EBUSY;
 	}
@@ -732,8 +927,10 @@ int hp_sdc_request_cooked_irq(hp_sdc_irqhook *callback)
 int hp_sdc_release_timer_irq(hp_sdc_irqhook *callback)
 {
 	write_lock_irq(&hp_sdc.hook_lock);
+
 	if ((callback != hp_sdc.timer) ||
-	    (hp_sdc.timer == NULL)) {
+		(hp_sdc.timer == NULL))
+	{
 		write_unlock_irq(&hp_sdc.hook_lock);
 		return -EINVAL;
 	}
@@ -753,18 +950,23 @@ int hp_sdc_release_timer_irq(hp_sdc_irqhook *callback)
 int hp_sdc_release_hil_irq(hp_sdc_irqhook *callback)
 {
 	write_lock_irq(&hp_sdc.hook_lock);
+
 	if ((callback != hp_sdc.hil) ||
-	    (hp_sdc.hil == NULL)) {
+		(hp_sdc.hil == NULL))
+	{
 		write_unlock_irq(&hp_sdc.hook_lock);
 		return -EINVAL;
 	}
 
 	hp_sdc.hil = NULL;
+
 	/* Disable interrupts from HIL only if there is no cooked driver. */
-	if(hp_sdc.cooked == NULL) {
+	if (hp_sdc.cooked == NULL)
+	{
 		hp_sdc.im |= (HP_SDC_IM_HIL | HP_SDC_IM_RESET);
 		hp_sdc.set_im = 1;
 	}
+
 	write_unlock_irq(&hp_sdc.hook_lock);
 	tasklet_schedule(&hp_sdc.task);
 
@@ -774,18 +976,23 @@ int hp_sdc_release_hil_irq(hp_sdc_irqhook *callback)
 int hp_sdc_release_cooked_irq(hp_sdc_irqhook *callback)
 {
 	write_lock_irq(&hp_sdc.hook_lock);
+
 	if ((callback != hp_sdc.cooked) ||
-	    (hp_sdc.cooked == NULL)) {
+		(hp_sdc.cooked == NULL))
+	{
 		write_unlock_irq(&hp_sdc.hook_lock);
 		return -EINVAL;
 	}
 
 	hp_sdc.cooked = NULL;
+
 	/* Disable interrupts from HIL only if there is no raw HIL driver. */
-	if(hp_sdc.hil == NULL) {
+	if (hp_sdc.hil == NULL)
+	{
 		hp_sdc.im |= (HP_SDC_IM_HIL | HP_SDC_IM_RESET);
 		hp_sdc.set_im = 1;
 	}
+
 	write_unlock_irq(&hp_sdc.hook_lock);
 	tasklet_schedule(&hp_sdc.task);
 
@@ -805,13 +1012,14 @@ static void hp_sdc_kicker(unsigned long data)
 
 #if defined(__hppa__)
 
-static const struct parisc_device_id hp_sdc_tbl[] = {
+static const struct parisc_device_id hp_sdc_tbl[] =
+{
 	{
 		.hw_type =	HPHW_FIO,
 		.hversion_rev =	HVERSION_REV_ANY_ID,
 		.hversion =	HVERSION_ANY_ID,
 		.sversion =	0x73,
-	 },
+	},
 	{ 0, }
 };
 
@@ -820,7 +1028,8 @@ MODULE_DEVICE_TABLE(parisc, hp_sdc_tbl);
 static int __init hp_sdc_init_hppa(struct parisc_device *d);
 static struct delayed_work moduleloader_work;
 
-static struct parisc_driver hp_sdc_driver = {
+static struct parisc_driver hp_sdc_driver =
+{
 	.name =		"hp_sdc",
 	.id_table =	hp_sdc_tbl,
 	.probe =	hp_sdc_init_hppa,
@@ -856,39 +1065,55 @@ static int __init hp_sdc_init(void)
 	memset(&hp_sdc.tq, 0, sizeof(hp_sdc.tq));
 
 	hp_sdc.wcurr		= -1;
-        hp_sdc.rcurr		= -1;
+	hp_sdc.rcurr		= -1;
 	hp_sdc.rqty		= 0;
 
 	hp_sdc.dev_err = -ENODEV;
 
 	errstr = "IO not found for";
+
 	if (!hp_sdc.base_io)
+	{
 		goto err0;
+	}
 
 	errstr = "IRQ not found for";
+
 	if (!hp_sdc.irq)
+	{
 		goto err0;
+	}
 
 	hp_sdc.dev_err = -EBUSY;
 
 #if defined(__hppa__)
 	errstr = "IO not available for";
-        if (request_region(hp_sdc.data_io, 2, hp_sdc_driver.name))
+
+	if (request_region(hp_sdc.data_io, 2, hp_sdc_driver.name))
+	{
 		goto err0;
+	}
+
 #endif
 
 	errstr = "IRQ not available for";
+
 	if (request_irq(hp_sdc.irq, &hp_sdc_isr, IRQF_SHARED,
-			"HP SDC", &hp_sdc))
+					"HP SDC", &hp_sdc))
+	{
 		goto err1;
+	}
 
 	errstr = "NMI not available for";
+
 	if (request_irq(hp_sdc.nmi, &hp_sdc_nmisr, IRQF_SHARED,
-			"HP SDC NMI", &hp_sdc))
+					"HP SDC NMI", &hp_sdc))
+	{
 		goto err2;
+	}
 
 	printk(KERN_INFO PREFIX "HP SDC at 0x%p, IRQ %d (NMI IRQ %d)\n",
-	       (void *)hp_sdc.base_io, hp_sdc.irq, hp_sdc.nmi);
+		   (void *)hp_sdc.base_io, hp_sdc.irq, hp_sdc.nmi);
 
 	hp_sdc_status_in8();
 	hp_sdc_data_in8();
@@ -916,13 +1141,13 @@ static int __init hp_sdc_init(void)
 
 	hp_sdc.dev_err = 0;
 	return 0;
- err2:
+err2:
 	free_irq(hp_sdc.irq, &hp_sdc);
- err1:
+err1:
 	release_region(hp_sdc.data_io, 2);
- err0:
+err0:
 	printk(KERN_WARNING PREFIX ": %s SDC IO=0x%p IRQ=0x%x NMI=0x%x\n",
-		errstr, (void *)hp_sdc.base_io, hp_sdc.irq, hp_sdc.nmi);
+		   errstr, (void *)hp_sdc.base_io, hp_sdc.irq, hp_sdc.nmi);
 	hp_sdc.dev = NULL;
 
 	return hp_sdc.dev_err;
@@ -940,9 +1165,14 @@ static int __init hp_sdc_init_hppa(struct parisc_device *d)
 	int ret;
 
 	if (!d)
+	{
 		return 1;
+	}
+
 	if (hp_sdc.dev != NULL)
-		return 1;	/* We only expect one SDC */
+	{
+		return 1;    /* We only expect one SDC */
+	}
 
 	hp_sdc.dev		= d;
 	hp_sdc.irq		= d->irq;
@@ -954,11 +1184,12 @@ static int __init hp_sdc_init_hppa(struct parisc_device *d)
 	INIT_DELAYED_WORK(&moduleloader_work, request_module_delayed);
 
 	ret = hp_sdc_init();
+
 	/* after successful initialization give SDC some time to settle
 	 * and then load the hp_sdc_mlc upper layer driver */
 	if (!ret)
 		schedule_delayed_work(&moduleloader_work,
-			msecs_to_jiffies(2000));
+							  msecs_to_jiffies(2000));
 
 	return ret;
 }
@@ -969,7 +1200,9 @@ static void hp_sdc_exit(void)
 {
 	/* do nothing if we don't have a SDC */
 	if (!hp_sdc.dev)
+	{
 		return;
+	}
 
 	write_lock_irq(&hp_sdc.lock);
 
@@ -990,8 +1223,12 @@ static void hp_sdc_exit(void)
 
 #if defined(__hppa__)
 	cancel_delayed_work_sync(&moduleloader_work);
+
 	if (unregister_parisc_driver(&hp_sdc_driver))
+	{
 		printk(KERN_WARNING PREFIX "Error unregistering HP SDC");
+	}
+
 #endif
 }
 
@@ -1005,7 +1242,8 @@ static int __init hp_sdc_register(void)
 	unsigned char i;
 #endif
 
-	if (hp_sdc_disabled) {
+	if (hp_sdc_disabled)
+	{
 		printk(KERN_WARNING PREFIX "HP SDC driver disabled by no_hpsdc=1.\n");
 		return -ENODEV;
 	}
@@ -1013,13 +1251,19 @@ static int __init hp_sdc_register(void)
 	hp_sdc.dev = NULL;
 	hp_sdc.dev_err = 0;
 #if defined(__hppa__)
-	if (register_parisc_driver(&hp_sdc_driver)) {
+
+	if (register_parisc_driver(&hp_sdc_driver))
+	{
 		printk(KERN_WARNING PREFIX "Error registering SDC with system bus tree.\n");
 		return -ENODEV;
 	}
+
 #elif defined(__mc68000__)
+
 	if (!MACH_IS_HP300)
-	    return -ENODEV;
+	{
+		return -ENODEV;
+	}
 
 	hp_sdc.irq	 = 1;
 	hp_sdc.nmi	 = 7;
@@ -1028,12 +1272,18 @@ static int __init hp_sdc_register(void)
 	hp_sdc.status_io = (unsigned long) hp_sdc.base_io + 3;
 	fs = get_fs();
 	set_fs(KERNEL_DS);
+
 	if (!get_user(i, (unsigned char *)hp_sdc.data_io))
+	{
 		hp_sdc.dev = (void *)1;
+	}
+
 	set_fs(fs);
 	hp_sdc.dev_err   = hp_sdc_init();
 #endif
-	if (hp_sdc.dev == NULL) {
+
+	if (hp_sdc.dev == NULL)
+	{
 		printk(KERN_WARNING PREFIX "No SDC found.\n");
 		return hp_sdc.dev_err;
 	}
@@ -1058,13 +1308,17 @@ static int __init hp_sdc_register(void)
 	down(&tq_init_sem);
 	up(&tq_init_sem);
 
-	if ((tq_init_seq[0] & HP_SDC_ACT_DEAD) == HP_SDC_ACT_DEAD) {
+	if ((tq_init_seq[0] & HP_SDC_ACT_DEAD) == HP_SDC_ACT_DEAD)
+	{
 		printk(KERN_WARNING PREFIX "Error reading config byte.\n");
 		hp_sdc_exit();
 		return -ENODEV;
 	}
+
 	hp_sdc.r11 = tq_init_seq[4];
-	if (hp_sdc.r11 & HP_SDC_CFG_NEW) {
+
+	if (hp_sdc.r11 & HP_SDC_CFG_NEW)
+	{
 		const char *str;
 		printk(KERN_INFO PREFIX "New style SDC\n");
 		tq_init_seq[1] = HP_SDC_CMD_READ_XTD;
@@ -1074,21 +1328,31 @@ static int __init hp_sdc_register(void)
 		hp_sdc_enqueue_transaction(&tq_init);
 		down(&tq_init_sem);
 		up(&tq_init_sem);
-		if ((tq_init_seq[0] & HP_SDC_ACT_DEAD) == HP_SDC_ACT_DEAD) {
+
+		if ((tq_init_seq[0] & HP_SDC_ACT_DEAD) == HP_SDC_ACT_DEAD)
+		{
 			printk(KERN_WARNING PREFIX "Error reading extended config byte.\n");
 			return -ENODEV;
 		}
+
 		hp_sdc.r7e = tq_init_seq[4];
 		HP_SDC_XTD_REV_STRINGS(hp_sdc.r7e & HP_SDC_XTD_REV, str)
 		printk(KERN_INFO PREFIX "Revision: %s\n", str);
+
 		if (hp_sdc.r7e & HP_SDC_XTD_BEEPER)
+		{
 			printk(KERN_INFO PREFIX "TI SN76494 beeper present\n");
+		}
+
 		if (hp_sdc.r7e & HP_SDC_XTD_BBRTC)
+		{
 			printk(KERN_INFO PREFIX "OKI MSM-58321 BBRTC present\n");
+		}
+
 		printk(KERN_INFO PREFIX "Spunking the self test register to force PUP "
-		       "on next firmware reset.\n");
+			   "on next firmware reset.\n");
 		tq_init_seq[0] = HP_SDC_ACT_PRECMD |
-			HP_SDC_ACT_DATAOUT | HP_SDC_ACT_SEMAPHORE;
+						 HP_SDC_ACT_DATAOUT | HP_SDC_ACT_SEMAPHORE;
 		tq_init_seq[1] = HP_SDC_CMD_SET_STR;
 		tq_init_seq[2] = 1;
 		tq_init_seq[3] = 0;
@@ -1099,11 +1363,12 @@ static int __init hp_sdc_register(void)
 		hp_sdc_enqueue_transaction(&tq_init);
 		down(&tq_init_sem);
 		up(&tq_init_sem);
-	} else
+	}
+	else
 		printk(KERN_INFO PREFIX "Old style SDC (1820-%s).\n",
-		       (hp_sdc.r11 & HP_SDC_CFG_REV) ? "3300" : "2564/3087");
+			   (hp_sdc.r11 & HP_SDC_CFG_REV) ? "3300" : "2564/3087");
 
-        return 0;
+	return 0;
 }
 
 module_init(hp_sdc_register);

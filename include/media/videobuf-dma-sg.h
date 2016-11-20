@@ -43,7 +43,8 @@
  *
  */
 
-struct videobuf_dmabuf {
+struct videobuf_dmabuf
+{
 	u32                 magic;
 
 	/* for userland buffer */
@@ -67,7 +68,8 @@ struct videobuf_dmabuf {
 	int                 direction;
 };
 
-struct videobuf_dma_sg_memory {
+struct videobuf_dma_sg_memory
+{
 	u32                 magic;
 
 	/* for mmap'ed buffers */
@@ -92,14 +94,14 @@ struct videobuf_dmabuf *videobuf_to_dma(struct videobuf_buffer *buf);
 void *videobuf_sg_alloc(size_t size);
 
 void videobuf_queue_sg_init(struct videobuf_queue *q,
-			 const struct videobuf_queue_ops *ops,
-			 struct device *dev,
-			 spinlock_t *irqlock,
-			 enum v4l2_buf_type type,
-			 enum v4l2_field field,
-			 unsigned int msize,
-			 void *priv,
-			 struct mutex *ext_lock);
+							const struct videobuf_queue_ops *ops,
+							struct device *dev,
+							spinlock_t *irqlock,
+							enum v4l2_buf_type type,
+							enum v4l2_field field,
+							unsigned int msize,
+							void *priv,
+							struct mutex *ext_lock);
 
 #endif /* _VIDEOBUF_DMA_SG_H */
 

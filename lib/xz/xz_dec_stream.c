@@ -11,15 +11,18 @@
 #include "xz_stream.h"
 
 /* Hash used to validate the Index field */
-struct xz_dec_hash {
+struct xz_dec_hash
+{
 	vli_type unpadded;
 	vli_type uncompressed;
 	uint32_t crc32;
 };
 
-struct xz_dec {
+struct xz_dec
+{
 	/* Position in dec_main() */
-	enum {
+	enum
+	{
 		SEQ_STREAM_HEADER,
 		SEQ_BLOCK_START,
 		SEQ_BLOCK_HEADER,
@@ -58,7 +61,8 @@ struct xz_dec {
 	bool allow_buf_error;
 
 	/* Information stored in Block Header */
-	struct {
+	struct
+	{
 		/*
 		 * Value stored in the Compressed Size field, or
 		 * VLI_UNKNOWN if Compressed Size is not present.
@@ -76,7 +80,8 @@ struct xz_dec {
 	} block_header;
 
 	/* Information collected when decoding Blocks */
-	struct {
+	struct
+	{
 		/* Observed compressed size of the current Block */
 		vli_type compressed;
 
@@ -94,9 +99,11 @@ struct xz_dec {
 	} block;
 
 	/* Variables needed when verifying the Index field */
-	struct {
+	struct
+	{
 		/* Position in dec_index() */
-		enum {
+		enum
+		{
 			SEQ_INDEX_COUNT,
 			SEQ_INDEX_UNPADDED,
 			SEQ_INDEX_UNCOMPRESSED
@@ -122,7 +129,8 @@ struct xz_dec {
 	 * to a multiple of four bytes; the size_t variables before it
 	 * should guarantee this.
 	 */
-	struct {
+	struct
+	{
 		size_t pos;
 		size_t size;
 		uint8_t buf[1024];
@@ -138,7 +146,8 @@ struct xz_dec {
 
 #ifdef XZ_DEC_ANY_CHECK
 /* Sizes of the Check field with different Check IDs */
-static const uint8_t check_sizes[16] = {
+static const uint8_t check_sizes[16] =
+{
 	0,
 	4, 4, 4,
 	8, 8, 8,
@@ -157,13 +166,14 @@ static const uint8_t check_sizes[16] = {
 static bool fill_temp(struct xz_dec *s, struct xz_buf *b)
 {
 	size_t copy_size = min_t(size_t,
-			b->in_size - b->in_pos, s->temp.size - s->temp.pos);
+							 b->in_size - b->in_pos, s->temp.size - s->temp.pos);
 
 	memcpy(s->temp.buf + s->temp.pos, b->in + b->in_pos, copy_size);
 	b->in_pos += copy_size;
 	s->temp.pos += copy_size;
 
-	if (s->temp.pos == s->temp.size) {
+	if (s->temp.pos == s->temp.size)
+	{
 		s->temp.pos = 0;
 		return true;
 	}
@@ -173,31 +183,40 @@ static bool fill_temp(struct xz_dec *s, struct xz_buf *b)
 
 /* Decode a variable-length integer (little-endian base-128 encoding) */
 static enum xz_ret dec_vli(struct xz_dec *s, const uint8_t *in,
-			   size_t *in_pos, size_t in_size)
+						   size_t *in_pos, size_t in_size)
 {
 	uint8_t byte;
 
 	if (s->pos == 0)
+	{
 		s->vli = 0;
+	}
 
-	while (*in_pos < in_size) {
+	while (*in_pos < in_size)
+	{
 		byte = in[*in_pos];
 		++*in_pos;
 
 		s->vli |= (vli_type)(byte & 0x7F) << s->pos;
 
-		if ((byte & 0x80) == 0) {
+		if ((byte & 0x80) == 0)
+		{
 			/* Don't allow non-minimal encodings. */
 			if (byte == 0 && s->pos != 0)
+			{
 				return XZ_DATA_ERROR;
+			}
 
 			s->pos = 0;
 			return XZ_STREAM_END;
 		}
 
 		s->pos += 7;
+
 		if (s->pos == 7 * VLI_BYTES_MAX)
+		{
 			return XZ_DATA_ERROR;
+		}
 	}
 
 	return XZ_OK;
@@ -223,8 +242,11 @@ static enum xz_ret dec_block(struct xz_dec *s, struct xz_buf *b)
 	s->out_start = b->out_pos;
 
 #ifdef XZ_DEC_BCJ
+
 	if (s->bcj_active)
+	{
 		ret = xz_dec_bcj_run(s->bcj, s->lzma2, b);
+	}
 	else
 #endif
 		ret = xz_dec_lzma2_run(s->lzma2, b);
@@ -237,39 +259,50 @@ static enum xz_ret dec_block(struct xz_dec *s, struct xz_buf *b)
 	 * the observed sizes are always smaller than VLI_UNKNOWN.
 	 */
 	if (s->block.compressed > s->block_header.compressed
-			|| s->block.uncompressed
-				> s->block_header.uncompressed)
+		|| s->block.uncompressed
+		> s->block_header.uncompressed)
+	{
 		return XZ_DATA_ERROR;
+	}
 
 	if (s->check_type == XZ_CHECK_CRC32)
 		s->crc32 = xz_crc32(b->out + s->out_start,
-				b->out_pos - s->out_start, s->crc32);
+							b->out_pos - s->out_start, s->crc32);
 
-	if (ret == XZ_STREAM_END) {
+	if (ret == XZ_STREAM_END)
+	{
 		if (s->block_header.compressed != VLI_UNKNOWN
-				&& s->block_header.compressed
-					!= s->block.compressed)
+			&& s->block_header.compressed
+			!= s->block.compressed)
+		{
 			return XZ_DATA_ERROR;
+		}
 
 		if (s->block_header.uncompressed != VLI_UNKNOWN
-				&& s->block_header.uncompressed
-					!= s->block.uncompressed)
+			&& s->block_header.uncompressed
+			!= s->block.uncompressed)
+		{
 			return XZ_DATA_ERROR;
+		}
 
 		s->block.hash.unpadded += s->block_header.size
-				+ s->block.compressed;
+								  + s->block.compressed;
 
 #ifdef XZ_DEC_ANY_CHECK
 		s->block.hash.unpadded += check_sizes[s->check_type];
 #else
+
 		if (s->check_type == XZ_CHECK_CRC32)
+		{
 			s->block.hash.unpadded += 4;
+		}
+
 #endif
 
 		s->block.hash.uncompressed += s->block.uncompressed;
 		s->block.hash.crc32 = xz_crc32(
-				(const uint8_t *)&s->block.hash,
-				sizeof(s->block.hash), s->block.hash.crc32);
+								  (const uint8_t *)&s->block.hash,
+								  sizeof(s->block.hash), s->block.hash.crc32);
 
 		++s->block.count;
 	}
@@ -297,44 +330,51 @@ static enum xz_ret dec_index(struct xz_dec *s, struct xz_buf *b)
 {
 	enum xz_ret ret;
 
-	do {
+	do
+	{
 		ret = dec_vli(s, b->in, &b->in_pos, b->in_size);
-		if (ret != XZ_STREAM_END) {
+
+		if (ret != XZ_STREAM_END)
+		{
 			index_update(s, b);
 			return ret;
 		}
 
-		switch (s->index.sequence) {
-		case SEQ_INDEX_COUNT:
-			s->index.count = s->vli;
+		switch (s->index.sequence)
+		{
+			case SEQ_INDEX_COUNT:
+				s->index.count = s->vli;
 
-			/*
-			 * Validate that the Number of Records field
-			 * indicates the same number of Records as
-			 * there were Blocks in the Stream.
-			 */
-			if (s->index.count != s->block.count)
-				return XZ_DATA_ERROR;
+				/*
+				 * Validate that the Number of Records field
+				 * indicates the same number of Records as
+				 * there were Blocks in the Stream.
+				 */
+				if (s->index.count != s->block.count)
+				{
+					return XZ_DATA_ERROR;
+				}
 
-			s->index.sequence = SEQ_INDEX_UNPADDED;
-			break;
+				s->index.sequence = SEQ_INDEX_UNPADDED;
+				break;
 
-		case SEQ_INDEX_UNPADDED:
-			s->index.hash.unpadded += s->vli;
-			s->index.sequence = SEQ_INDEX_UNCOMPRESSED;
-			break;
+			case SEQ_INDEX_UNPADDED:
+				s->index.hash.unpadded += s->vli;
+				s->index.sequence = SEQ_INDEX_UNCOMPRESSED;
+				break;
 
-		case SEQ_INDEX_UNCOMPRESSED:
-			s->index.hash.uncompressed += s->vli;
-			s->index.hash.crc32 = xz_crc32(
-					(const uint8_t *)&s->index.hash,
-					sizeof(s->index.hash),
-					s->index.hash.crc32);
-			--s->index.count;
-			s->index.sequence = SEQ_INDEX_UNPADDED;
-			break;
+			case SEQ_INDEX_UNCOMPRESSED:
+				s->index.hash.uncompressed += s->vli;
+				s->index.hash.crc32 = xz_crc32(
+										  (const uint8_t *)&s->index.hash,
+										  sizeof(s->index.hash),
+										  s->index.hash.crc32);
+				--s->index.count;
+				s->index.sequence = SEQ_INDEX_UNPADDED;
+				break;
 		}
-	} while (s->index.count > 0);
+	}
+	while (s->index.count > 0);
 
 	return XZ_STREAM_END;
 }
@@ -345,16 +385,22 @@ static enum xz_ret dec_index(struct xz_dec *s, struct xz_buf *b)
  */
 static enum xz_ret crc32_validate(struct xz_dec *s, struct xz_buf *b)
 {
-	do {
+	do
+	{
 		if (b->in_pos == b->in_size)
+		{
 			return XZ_OK;
+		}
 
 		if (((s->crc32 >> s->pos) & 0xFF) != b->in[b->in_pos++])
+		{
 			return XZ_DATA_ERROR;
+		}
 
 		s->pos += 8;
 
-	} while (s->pos < 32);
+	}
+	while (s->pos < 32);
 
 	s->crc32 = 0;
 	s->pos = 0;
@@ -369,9 +415,12 @@ static enum xz_ret crc32_validate(struct xz_dec *s, struct xz_buf *b)
  */
 static bool check_skip(struct xz_dec *s, struct xz_buf *b)
 {
-	while (s->pos < check_sizes[s->check_type]) {
+	while (s->pos < check_sizes[s->check_type])
+	{
 		if (b->in_pos == b->in_size)
+		{
 			return false;
+		}
 
 		++b->in_pos;
 		++s->pos;
@@ -387,14 +436,20 @@ static bool check_skip(struct xz_dec *s, struct xz_buf *b)
 static enum xz_ret dec_stream_header(struct xz_dec *s)
 {
 	if (!memeq(s->temp.buf, HEADER_MAGIC, HEADER_MAGIC_SIZE))
+	{
 		return XZ_FORMAT_ERROR;
+	}
 
 	if (xz_crc32(s->temp.buf + HEADER_MAGIC_SIZE, 2, 0)
-			!= get_le32(s->temp.buf + HEADER_MAGIC_SIZE + 2))
+		!= get_le32(s->temp.buf + HEADER_MAGIC_SIZE + 2))
+	{
 		return XZ_DATA_ERROR;
+	}
 
 	if (s->temp.buf[HEADER_MAGIC_SIZE] != 0)
+	{
 		return XZ_OPTIONS_ERROR;
+	}
 
 	/*
 	 * Of integrity checks, we support only none (Check ID = 0) and
@@ -405,14 +460,24 @@ static enum xz_ret dec_stream_header(struct xz_dec *s)
 	s->check_type = s->temp.buf[HEADER_MAGIC_SIZE + 1];
 
 #ifdef XZ_DEC_ANY_CHECK
+
 	if (s->check_type > XZ_CHECK_MAX)
+	{
 		return XZ_OPTIONS_ERROR;
+	}
 
 	if (s->check_type > XZ_CHECK_CRC32)
+	{
 		return XZ_UNSUPPORTED_CHECK;
+	}
+
 #else
+
 	if (s->check_type > XZ_CHECK_CRC32)
+	{
 		return XZ_OPTIONS_ERROR;
+	}
+
 #endif
 
 	return XZ_OK;
@@ -422,10 +487,14 @@ static enum xz_ret dec_stream_header(struct xz_dec *s)
 static enum xz_ret dec_stream_footer(struct xz_dec *s)
 {
 	if (!memeq(s->temp.buf + 10, FOOTER_MAGIC, FOOTER_MAGIC_SIZE))
+	{
 		return XZ_DATA_ERROR;
+	}
 
 	if (xz_crc32(s->temp.buf + 4, 6, 0) != get_le32(s->temp.buf))
+	{
 		return XZ_DATA_ERROR;
+	}
 
 	/*
 	 * Validate Backward Size. Note that we never added the size of the
@@ -433,10 +502,14 @@ static enum xz_ret dec_stream_footer(struct xz_dec *s)
 	 * instead of s->index.size / 4 - 1.
 	 */
 	if ((s->index.size >> 2) != get_le32(s->temp.buf + 4))
+	{
 		return XZ_DATA_ERROR;
+	}
 
 	if (s->temp.buf[8] != 0 || s->temp.buf[9] != s->check_type)
+	{
 		return XZ_DATA_ERROR;
+	}
 
 	/*
 	 * Use XZ_STREAM_END instead of XZ_OK to be more convenient
@@ -455,9 +528,12 @@ static enum xz_ret dec_block_header(struct xz_dec *s)
 	 * eight bytes so this is safe.
 	 */
 	s->temp.size -= 4;
+
 	if (xz_crc32(s->temp.buf, s->temp.size, 0)
-			!= get_le32(s->temp.buf + s->temp.size))
+		!= get_le32(s->temp.buf + s->temp.size))
+	{
 		return XZ_DATA_ERROR;
+	}
 
 	s->temp.pos = 2;
 
@@ -466,6 +542,7 @@ static enum xz_ret dec_block_header(struct xz_dec *s)
 	 * in the chain, so we catch that with the same test.
 	 */
 #ifdef XZ_DEC_BCJ
+
 	if (s->temp.buf[1] & 0x3E)
 #else
 	if (s->temp.buf[1] & 0x3F)
@@ -473,71 +550,104 @@ static enum xz_ret dec_block_header(struct xz_dec *s)
 		return XZ_OPTIONS_ERROR;
 
 	/* Compressed Size */
-	if (s->temp.buf[1] & 0x40) {
+	if (s->temp.buf[1] & 0x40)
+	{
 		if (dec_vli(s, s->temp.buf, &s->temp.pos, s->temp.size)
-					!= XZ_STREAM_END)
+			!= XZ_STREAM_END)
+		{
 			return XZ_DATA_ERROR;
+		}
 
 		s->block_header.compressed = s->vli;
-	} else {
+	}
+	else
+	{
 		s->block_header.compressed = VLI_UNKNOWN;
 	}
 
 	/* Uncompressed Size */
-	if (s->temp.buf[1] & 0x80) {
+	if (s->temp.buf[1] & 0x80)
+	{
 		if (dec_vli(s, s->temp.buf, &s->temp.pos, s->temp.size)
-				!= XZ_STREAM_END)
+			!= XZ_STREAM_END)
+		{
 			return XZ_DATA_ERROR;
+		}
 
 		s->block_header.uncompressed = s->vli;
-	} else {
+	}
+	else
+	{
 		s->block_header.uncompressed = VLI_UNKNOWN;
 	}
 
 #ifdef XZ_DEC_BCJ
 	/* If there are two filters, the first one must be a BCJ filter. */
 	s->bcj_active = s->temp.buf[1] & 0x01;
-	if (s->bcj_active) {
+
+	if (s->bcj_active)
+	{
 		if (s->temp.size - s->temp.pos < 2)
+		{
 			return XZ_OPTIONS_ERROR;
+		}
 
 		ret = xz_dec_bcj_reset(s->bcj, s->temp.buf[s->temp.pos++]);
+
 		if (ret != XZ_OK)
+		{
 			return ret;
+		}
 
 		/*
 		 * We don't support custom start offset,
 		 * so Size of Properties must be zero.
 		 */
 		if (s->temp.buf[s->temp.pos++] != 0x00)
+		{
 			return XZ_OPTIONS_ERROR;
+		}
 	}
+
 #endif
 
 	/* Valid Filter Flags always take at least two bytes. */
 	if (s->temp.size - s->temp.pos < 2)
+	{
 		return XZ_DATA_ERROR;
+	}
 
 	/* Filter ID = LZMA2 */
 	if (s->temp.buf[s->temp.pos++] != 0x21)
+	{
 		return XZ_OPTIONS_ERROR;
+	}
 
 	/* Size of Properties = 1-byte Filter Properties */
 	if (s->temp.buf[s->temp.pos++] != 0x01)
+	{
 		return XZ_OPTIONS_ERROR;
+	}
 
 	/* Filter Properties contains LZMA2 dictionary size. */
 	if (s->temp.size - s->temp.pos < 1)
+	{
 		return XZ_DATA_ERROR;
+	}
 
 	ret = xz_dec_lzma2_reset(s->lzma2, s->temp.buf[s->temp.pos++]);
+
 	if (ret != XZ_OK)
+	{
 		return ret;
+	}
 
 	/* The rest must be Header Padding. */
 	while (s->temp.pos < s->temp.size)
 		if (s->temp.buf[s->temp.pos++] != 0x00)
+		{
 			return XZ_OPTIONS_ERROR;
+		}
 
 	s->temp.pos = 0;
 	s->block.compressed = 0;
@@ -556,150 +666,197 @@ static enum xz_ret dec_main(struct xz_dec *s, struct xz_buf *b)
 	 */
 	s->in_start = b->in_pos;
 
-	while (true) {
-		switch (s->sequence) {
-		case SEQ_STREAM_HEADER:
-			/*
-			 * Stream Header is copied to s->temp, and then
-			 * decoded from there. This way if the caller
-			 * gives us only little input at a time, we can
-			 * still keep the Stream Header decoding code
-			 * simple. Similar approach is used in many places
-			 * in this file.
-			 */
-			if (!fill_temp(s, b))
-				return XZ_OK;
+	while (true)
+	{
+		switch (s->sequence)
+		{
+			case SEQ_STREAM_HEADER:
 
-			/*
-			 * If dec_stream_header() returns
-			 * XZ_UNSUPPORTED_CHECK, it is still possible
-			 * to continue decoding if working in multi-call
-			 * mode. Thus, update s->sequence before calling
-			 * dec_stream_header().
-			 */
-			s->sequence = SEQ_BLOCK_START;
-
-			ret = dec_stream_header(s);
-			if (ret != XZ_OK)
-				return ret;
-
-		case SEQ_BLOCK_START:
-			/* We need one byte of input to continue. */
-			if (b->in_pos == b->in_size)
-				return XZ_OK;
-
-			/* See if this is the beginning of the Index field. */
-			if (b->in[b->in_pos] == 0) {
-				s->in_start = b->in_pos++;
-				s->sequence = SEQ_INDEX;
-				break;
-			}
-
-			/*
-			 * Calculate the size of the Block Header and
-			 * prepare to decode it.
-			 */
-			s->block_header.size
-				= ((uint32_t)b->in[b->in_pos] + 1) * 4;
-
-			s->temp.size = s->block_header.size;
-			s->temp.pos = 0;
-			s->sequence = SEQ_BLOCK_HEADER;
-
-		case SEQ_BLOCK_HEADER:
-			if (!fill_temp(s, b))
-				return XZ_OK;
-
-			ret = dec_block_header(s);
-			if (ret != XZ_OK)
-				return ret;
-
-			s->sequence = SEQ_BLOCK_UNCOMPRESS;
-
-		case SEQ_BLOCK_UNCOMPRESS:
-			ret = dec_block(s, b);
-			if (ret != XZ_STREAM_END)
-				return ret;
-
-			s->sequence = SEQ_BLOCK_PADDING;
-
-		case SEQ_BLOCK_PADDING:
-			/*
-			 * Size of Compressed Data + Block Padding
-			 * must be a multiple of four. We don't need
-			 * s->block.compressed for anything else
-			 * anymore, so we use it here to test the size
-			 * of the Block Padding field.
-			 */
-			while (s->block.compressed & 3) {
-				if (b->in_pos == b->in_size)
-					return XZ_OK;
-
-				if (b->in[b->in_pos++] != 0)
-					return XZ_DATA_ERROR;
-
-				++s->block.compressed;
-			}
-
-			s->sequence = SEQ_BLOCK_CHECK;
-
-		case SEQ_BLOCK_CHECK:
-			if (s->check_type == XZ_CHECK_CRC32) {
-				ret = crc32_validate(s, b);
-				if (ret != XZ_STREAM_END)
-					return ret;
-			}
-#ifdef XZ_DEC_ANY_CHECK
-			else if (!check_skip(s, b)) {
-				return XZ_OK;
-			}
-#endif
-
-			s->sequence = SEQ_BLOCK_START;
-			break;
-
-		case SEQ_INDEX:
-			ret = dec_index(s, b);
-			if (ret != XZ_STREAM_END)
-				return ret;
-
-			s->sequence = SEQ_INDEX_PADDING;
-
-		case SEQ_INDEX_PADDING:
-			while ((s->index.size + (b->in_pos - s->in_start))
-					& 3) {
-				if (b->in_pos == b->in_size) {
-					index_update(s, b);
+				/*
+				 * Stream Header is copied to s->temp, and then
+				 * decoded from there. This way if the caller
+				 * gives us only little input at a time, we can
+				 * still keep the Stream Header decoding code
+				 * simple. Similar approach is used in many places
+				 * in this file.
+				 */
+				if (!fill_temp(s, b))
+				{
 					return XZ_OK;
 				}
 
-				if (b->in[b->in_pos++] != 0)
+				/*
+				 * If dec_stream_header() returns
+				 * XZ_UNSUPPORTED_CHECK, it is still possible
+				 * to continue decoding if working in multi-call
+				 * mode. Thus, update s->sequence before calling
+				 * dec_stream_header().
+				 */
+				s->sequence = SEQ_BLOCK_START;
+
+				ret = dec_stream_header(s);
+
+				if (ret != XZ_OK)
+				{
+					return ret;
+				}
+
+			case SEQ_BLOCK_START:
+
+				/* We need one byte of input to continue. */
+				if (b->in_pos == b->in_size)
+				{
+					return XZ_OK;
+				}
+
+				/* See if this is the beginning of the Index field. */
+				if (b->in[b->in_pos] == 0)
+				{
+					s->in_start = b->in_pos++;
+					s->sequence = SEQ_INDEX;
+					break;
+				}
+
+				/*
+				 * Calculate the size of the Block Header and
+				 * prepare to decode it.
+				 */
+				s->block_header.size
+					= ((uint32_t)b->in[b->in_pos] + 1) * 4;
+
+				s->temp.size = s->block_header.size;
+				s->temp.pos = 0;
+				s->sequence = SEQ_BLOCK_HEADER;
+
+			case SEQ_BLOCK_HEADER:
+				if (!fill_temp(s, b))
+				{
+					return XZ_OK;
+				}
+
+				ret = dec_block_header(s);
+
+				if (ret != XZ_OK)
+				{
+					return ret;
+				}
+
+				s->sequence = SEQ_BLOCK_UNCOMPRESS;
+
+			case SEQ_BLOCK_UNCOMPRESS:
+				ret = dec_block(s, b);
+
+				if (ret != XZ_STREAM_END)
+				{
+					return ret;
+				}
+
+				s->sequence = SEQ_BLOCK_PADDING;
+
+			case SEQ_BLOCK_PADDING:
+
+				/*
+				 * Size of Compressed Data + Block Padding
+				 * must be a multiple of four. We don't need
+				 * s->block.compressed for anything else
+				 * anymore, so we use it here to test the size
+				 * of the Block Padding field.
+				 */
+				while (s->block.compressed & 3)
+				{
+					if (b->in_pos == b->in_size)
+					{
+						return XZ_OK;
+					}
+
+					if (b->in[b->in_pos++] != 0)
+					{
+						return XZ_DATA_ERROR;
+					}
+
+					++s->block.compressed;
+				}
+
+				s->sequence = SEQ_BLOCK_CHECK;
+
+			case SEQ_BLOCK_CHECK:
+				if (s->check_type == XZ_CHECK_CRC32)
+				{
+					ret = crc32_validate(s, b);
+
+					if (ret != XZ_STREAM_END)
+					{
+						return ret;
+					}
+				}
+
+#ifdef XZ_DEC_ANY_CHECK
+				else if (!check_skip(s, b))
+				{
+					return XZ_OK;
+				}
+
+#endif
+
+				s->sequence = SEQ_BLOCK_START;
+				break;
+
+			case SEQ_INDEX:
+				ret = dec_index(s, b);
+
+				if (ret != XZ_STREAM_END)
+				{
+					return ret;
+				}
+
+				s->sequence = SEQ_INDEX_PADDING;
+
+			case SEQ_INDEX_PADDING:
+				while ((s->index.size + (b->in_pos - s->in_start))
+					   & 3)
+				{
+					if (b->in_pos == b->in_size)
+					{
+						index_update(s, b);
+						return XZ_OK;
+					}
+
+					if (b->in[b->in_pos++] != 0)
+					{
+						return XZ_DATA_ERROR;
+					}
+				}
+
+				/* Finish the CRC32 value and Index size. */
+				index_update(s, b);
+
+				/* Compare the hashes to validate the Index field. */
+				if (!memeq(&s->block.hash, &s->index.hash,
+						   sizeof(s->block.hash)))
+				{
 					return XZ_DATA_ERROR;
-			}
+				}
 
-			/* Finish the CRC32 value and Index size. */
-			index_update(s, b);
+				s->sequence = SEQ_INDEX_CRC32;
 
-			/* Compare the hashes to validate the Index field. */
-			if (!memeq(&s->block.hash, &s->index.hash,
-					sizeof(s->block.hash)))
-				return XZ_DATA_ERROR;
+			case SEQ_INDEX_CRC32:
+				ret = crc32_validate(s, b);
 
-			s->sequence = SEQ_INDEX_CRC32;
+				if (ret != XZ_STREAM_END)
+				{
+					return ret;
+				}
 
-		case SEQ_INDEX_CRC32:
-			ret = crc32_validate(s, b);
-			if (ret != XZ_STREAM_END)
-				return ret;
+				s->temp.size = STREAM_HEADER_SIZE;
+				s->sequence = SEQ_STREAM_FOOTER;
 
-			s->temp.size = STREAM_HEADER_SIZE;
-			s->sequence = SEQ_STREAM_FOOTER;
+			case SEQ_STREAM_FOOTER:
+				if (!fill_temp(s, b))
+				{
+					return XZ_OK;
+				}
 
-		case SEQ_STREAM_FOOTER:
-			if (!fill_temp(s, b))
-				return XZ_OK;
-
-			return dec_stream_footer(s);
+				return dec_stream_footer(s);
 		}
 	}
 
@@ -738,29 +895,39 @@ XZ_EXTERN enum xz_ret xz_dec_run(struct xz_dec *s, struct xz_buf *b)
 	enum xz_ret ret;
 
 	if (DEC_IS_SINGLE(s->mode))
+	{
 		xz_dec_reset(s);
+	}
 
 	in_start = b->in_pos;
 	out_start = b->out_pos;
 	ret = dec_main(s, b);
 
-	if (DEC_IS_SINGLE(s->mode)) {
+	if (DEC_IS_SINGLE(s->mode))
+	{
 		if (ret == XZ_OK)
 			ret = b->in_pos == b->in_size
-					? XZ_DATA_ERROR : XZ_BUF_ERROR;
+				  ? XZ_DATA_ERROR : XZ_BUF_ERROR;
 
-		if (ret != XZ_STREAM_END) {
+		if (ret != XZ_STREAM_END)
+		{
 			b->in_pos = in_start;
 			b->out_pos = out_start;
 		}
 
-	} else if (ret == XZ_OK && in_start == b->in_pos
-			&& out_start == b->out_pos) {
+	}
+	else if (ret == XZ_OK && in_start == b->in_pos
+			 && out_start == b->out_pos)
+	{
 		if (s->allow_buf_error)
+		{
 			ret = XZ_BUF_ERROR;
+		}
 
 		s->allow_buf_error = true;
-	} else {
+	}
+	else
+	{
 		s->allow_buf_error = false;
 	}
 
@@ -770,20 +937,30 @@ XZ_EXTERN enum xz_ret xz_dec_run(struct xz_dec *s, struct xz_buf *b)
 XZ_EXTERN struct xz_dec *xz_dec_init(enum xz_mode mode, uint32_t dict_max)
 {
 	struct xz_dec *s = kmalloc(sizeof(*s), GFP_KERNEL);
+
 	if (s == NULL)
+	{
 		return NULL;
+	}
 
 	s->mode = mode;
 
 #ifdef XZ_DEC_BCJ
 	s->bcj = xz_dec_bcj_create(DEC_IS_SINGLE(mode));
+
 	if (s->bcj == NULL)
+	{
 		goto error_bcj;
+	}
+
 #endif
 
 	s->lzma2 = xz_dec_lzma2_create(mode, dict_max);
+
 	if (s->lzma2 == NULL)
+	{
 		goto error_lzma2;
+	}
 
 	xz_dec_reset(s);
 	return s;
@@ -811,7 +988,8 @@ XZ_EXTERN void xz_dec_reset(struct xz_dec *s)
 
 XZ_EXTERN void xz_dec_end(struct xz_dec *s)
 {
-	if (s != NULL) {
+	if (s != NULL)
+	{
 		xz_dec_lzma2_end(s->lzma2);
 #ifdef XZ_DEC_BCJ
 		xz_dec_bcj_end(s->bcj);

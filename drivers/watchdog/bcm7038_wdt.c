@@ -33,7 +33,8 @@
 #define WDT_DEFAULT_TIMEOUT	30 /* seconds */
 #define WDT_DEFAULT_RATE	27000000
 
-struct bcm7038_watchdog {
+struct bcm7038_watchdog
+{
 	void __iomem		*base;
 	struct watchdog_device	wdd;
 	u32			rate;
@@ -81,7 +82,7 @@ static int bcm7038_wdt_stop(struct watchdog_device *wdog)
 }
 
 static int bcm7038_wdt_set_timeout(struct watchdog_device *wdog,
-				   unsigned int t)
+								   unsigned int t)
 {
 	/* Can't modify timeout value if watchdog timer is running */
 	bcm7038_wdt_stop(wdog);
@@ -101,13 +102,15 @@ static unsigned int bcm7038_wdt_get_timeleft(struct watchdog_device *wdog)
 	return time_left / wdt->rate;
 }
 
-static struct watchdog_info bcm7038_wdt_info = {
+static struct watchdog_info bcm7038_wdt_info =
+{
 	.identity	= "Broadcom BCM7038 Watchdog Timer",
 	.options	= WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING |
-				WDIOF_MAGICCLOSE
+	WDIOF_MAGICCLOSE
 };
 
-static const struct watchdog_ops bcm7038_wdt_ops = {
+static const struct watchdog_ops bcm7038_wdt_ops =
+{
 	.owner		= THIS_MODULE,
 	.start		= bcm7038_wdt_start,
 	.stop		= bcm7038_wdt_stop,
@@ -123,25 +126,38 @@ static int bcm7038_wdt_probe(struct platform_device *pdev)
 	int err;
 
 	wdt = devm_kzalloc(dev, sizeof(*wdt), GFP_KERNEL);
+
 	if (!wdt)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, wdt);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	wdt->base = devm_ioremap_resource(dev, res);
+
 	if (IS_ERR(wdt->base))
+	{
 		return PTR_ERR(wdt->base);
+	}
 
 	wdt->clk = devm_clk_get(dev, NULL);
+
 	/* If unable to get clock, use default frequency */
-	if (!IS_ERR(wdt->clk)) {
+	if (!IS_ERR(wdt->clk))
+	{
 		clk_prepare_enable(wdt->clk);
 		wdt->rate = clk_get_rate(wdt->clk);
+
 		/* Prevent divide-by-zero exception */
 		if (!wdt->rate)
+		{
 			wdt->rate = WDT_DEFAULT_RATE;
-	} else {
+		}
+	}
+	else
+	{
 		wdt->rate = WDT_DEFAULT_RATE;
 		wdt->clk = NULL;
 	}
@@ -155,7 +171,9 @@ static int bcm7038_wdt_probe(struct platform_device *pdev)
 	watchdog_set_drvdata(&wdt->wdd, wdt);
 
 	err = watchdog_register_device(&wdt->wdd);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(dev, "Failed to register watchdog device\n");
 		clk_disable_unprepare(wdt->clk);
 		return err;
@@ -171,7 +189,9 @@ static int bcm7038_wdt_remove(struct platform_device *pdev)
 	struct bcm7038_watchdog *wdt = platform_get_drvdata(pdev);
 
 	if (!nowayout)
+	{
 		bcm7038_wdt_stop(&wdt->wdd);
+	}
 
 	watchdog_unregister_device(&wdt->wdd);
 	clk_disable_unprepare(wdt->clk);
@@ -185,7 +205,9 @@ static int bcm7038_wdt_suspend(struct device *dev)
 	struct bcm7038_watchdog *wdt = dev_get_drvdata(dev);
 
 	if (watchdog_active(&wdt->wdd))
+	{
 		return bcm7038_wdt_stop(&wdt->wdd);
+	}
 
 	return 0;
 }
@@ -195,29 +217,35 @@ static int bcm7038_wdt_resume(struct device *dev)
 	struct bcm7038_watchdog *wdt = dev_get_drvdata(dev);
 
 	if (watchdog_active(&wdt->wdd))
+	{
 		return bcm7038_wdt_start(&wdt->wdd);
+	}
 
 	return 0;
 }
 #endif
 
 static SIMPLE_DEV_PM_OPS(bcm7038_wdt_pm_ops, bcm7038_wdt_suspend,
-			 bcm7038_wdt_resume);
+						 bcm7038_wdt_resume);
 
 static void bcm7038_wdt_shutdown(struct platform_device *pdev)
 {
 	struct bcm7038_watchdog *wdt = platform_get_drvdata(pdev);
 
 	if (watchdog_active(&wdt->wdd))
+	{
 		bcm7038_wdt_stop(&wdt->wdd);
+	}
 }
 
-static const struct of_device_id bcm7038_wdt_match[] = {
+static const struct of_device_id bcm7038_wdt_match[] =
+{
 	{ .compatible = "brcm,bcm7038-wdt" },
 	{},
 };
 
-static struct platform_driver bcm7038_wdt_driver = {
+static struct platform_driver bcm7038_wdt_driver =
+{
 	.probe		= bcm7038_wdt_probe,
 	.remove		= bcm7038_wdt_remove,
 	.shutdown	= bcm7038_wdt_shutdown,
@@ -231,7 +259,7 @@ module_platform_driver(bcm7038_wdt_driver);
 
 module_param(nowayout, bool, 0);
 MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default="
-	__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
+				 __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 MODULE_LICENSE("GPL v2");
 MODULE_DESCRIPTION("Driver for Broadcom 7038 SoCs Watchdog");
 MODULE_AUTHOR("Justin Chen");

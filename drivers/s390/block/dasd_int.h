@@ -86,46 +86,46 @@ struct dasd_block;
  * SECTION: MACROs for klogd and s390 debug feature (dbf)
  */
 #define DBF_DEV_EVENT(d_level, d_device, d_str, d_data...) \
-do { \
-	debug_sprintf_event(d_device->debug_area, \
-			    d_level, \
-			    d_str "\n", \
-			    d_data); \
-} while(0)
+	do { \
+		debug_sprintf_event(d_device->debug_area, \
+							d_level, \
+							d_str "\n", \
+							d_data); \
+	} while(0)
 
 #define DBF_DEV_EXC(d_level, d_device, d_str, d_data...) \
-do { \
-	debug_sprintf_exception(d_device->debug_area, \
-				d_level, \
-				d_str "\n", \
-				d_data); \
-} while(0)
+	do { \
+		debug_sprintf_exception(d_device->debug_area, \
+								d_level, \
+								d_str "\n", \
+								d_data); \
+	} while(0)
 
 #define DBF_EVENT(d_level, d_str, d_data...)\
-do { \
-	debug_sprintf_event(dasd_debug_area, \
-			    d_level,\
-			    d_str "\n", \
-			    d_data); \
-} while(0)
+	do { \
+		debug_sprintf_event(dasd_debug_area, \
+							d_level,\
+							d_str "\n", \
+							d_data); \
+	} while(0)
 
 #define DBF_EVENT_DEVID(d_level, d_cdev, d_str, d_data...)	\
-do { \
-	struct ccw_dev_id __dev_id;			\
-	ccw_device_get_id(d_cdev, &__dev_id);		\
-	debug_sprintf_event(dasd_debug_area,		\
-			    d_level,					\
-			    "0.%x.%04x " d_str "\n",			\
-			    __dev_id.ssid, __dev_id.devno, d_data);	\
-} while (0)
+	do { \
+		struct ccw_dev_id __dev_id;			\
+		ccw_device_get_id(d_cdev, &__dev_id);		\
+		debug_sprintf_event(dasd_debug_area,		\
+							d_level,					\
+							"0.%x.%04x " d_str "\n",			\
+							__dev_id.ssid, __dev_id.devno, d_data);	\
+	} while (0)
 
 #define DBF_EXC(d_level, d_str, d_data...)\
-do { \
-	debug_sprintf_exception(dasd_debug_area, \
-				d_level,\
-				d_str "\n", \
-				d_data); \
-} while(0)
+	do { \
+		debug_sprintf_exception(dasd_debug_area, \
+								d_level,\
+								d_str "\n", \
+								d_data); \
+	} while(0)
 
 /* limit size for an errorstring */
 #define ERRORLENGTH 30
@@ -142,31 +142,32 @@ do { \
 
 /* messages to be written via klogd and dbf */
 #define DEV_MESSAGE(d_loglevel,d_device,d_string,d_args...)\
-do { \
-	printk(d_loglevel PRINTK_HEADER " %s: " d_string "\n", \
-	       dev_name(&d_device->cdev->dev), d_args); \
-	DBF_DEV_EVENT(DBF_ALERT, d_device, d_string, d_args); \
-} while(0)
+	do { \
+		printk(d_loglevel PRINTK_HEADER " %s: " d_string "\n", \
+			   dev_name(&d_device->cdev->dev), d_args); \
+		DBF_DEV_EVENT(DBF_ALERT, d_device, d_string, d_args); \
+	} while(0)
 
 #define MESSAGE(d_loglevel,d_string,d_args...)\
-do { \
-	printk(d_loglevel PRINTK_HEADER " " d_string "\n", d_args); \
-	DBF_EVENT(DBF_ALERT, d_string, d_args); \
-} while(0)
+	do { \
+		printk(d_loglevel PRINTK_HEADER " " d_string "\n", d_args); \
+		DBF_EVENT(DBF_ALERT, d_string, d_args); \
+	} while(0)
 
 /* messages to be written via klogd only */
 #define DEV_MESSAGE_LOG(d_loglevel,d_device,d_string,d_args...)\
-do { \
-	printk(d_loglevel PRINTK_HEADER " %s: " d_string "\n", \
-	       dev_name(&d_device->cdev->dev), d_args); \
-} while(0)
+	do { \
+		printk(d_loglevel PRINTK_HEADER " %s: " d_string "\n", \
+			   dev_name(&d_device->cdev->dev), d_args); \
+	} while(0)
 
 #define MESSAGE_LOG(d_loglevel,d_string,d_args...)\
-do { \
-	printk(d_loglevel PRINTK_HEADER " " d_string "\n", d_args); \
-} while(0)
+	do { \
+		printk(d_loglevel PRINTK_HEADER " " d_string "\n", d_args); \
+	} while(0)
 
-struct dasd_ccw_req {
+struct dasd_ccw_req
+{
 	unsigned int magic;		/* Eye catcher */
 	struct list_head devlist;	/* for dasd_device request queue */
 	struct list_head blocklist;	/* for dasd_block request queue */
@@ -200,7 +201,7 @@ struct dasd_ccw_req {
 	unsigned long long stopclk;	/* TOD-clock of request interrupt */
 	unsigned long long endclk;	/* TOD-clock of request termination */
 
-        /* Callback that is called after reaching final status. */
+	/* Callback that is called after reaching final status. */
 	void (*callback)(struct dasd_ccw_req *, void *data);
 	void *callback_data;
 };
@@ -262,7 +263,8 @@ typedef struct dasd_ccw_req *(*dasd_erp_fn_t) (struct dasd_ccw_req *);
 #define UA_BASE_PAV_ALIAS  0x02
 #define UA_HYPER_PAV_ALIAS 0x03
 
-struct dasd_uid {
+struct dasd_uid
+{
 	__u8 type;
 	char vendor[4];
 	char serial[15];
@@ -278,7 +280,8 @@ struct dasd_uid {
  * inheriting dasd...
  * no, currently we are not planning to reimplement the driver in C++
  */
-struct dasd_discipline {
+struct dasd_discipline
+{
 	struct module *owner;
 	char ebcname[8];	/* a name used for tagging and printks */
 	char name[8];		/* a name used for tagging and printks */
@@ -331,15 +334,15 @@ struct dasd_discipline {
 	 * it for retry.
 	 */
 	struct dasd_ccw_req *(*build_cp) (struct dasd_device *,
-					  struct dasd_block *,
-					  struct request *);
+									  struct dasd_block *,
+									  struct request *);
 	int (*start_IO) (struct dasd_ccw_req *);
 	int (*term_IO) (struct dasd_ccw_req *);
 	void (*handle_terminated_request) (struct dasd_ccw_req *);
 	int (*format_device) (struct dasd_device *,
-			      struct format_data_t *, int);
+						  struct format_data_t *, int);
 	int (*check_device_format)(struct dasd_device *,
-				   struct format_check_t *, int);
+							   struct format_check_t *, int);
 	int (*free_cp) (struct dasd_ccw_req *, struct request *);
 
 	/*
@@ -354,13 +357,13 @@ struct dasd_discipline {
 	dasd_erp_fn_t(*erp_action) (struct dasd_ccw_req *);
 	dasd_erp_fn_t(*erp_postaction) (struct dasd_ccw_req *);
 	void (*dump_sense) (struct dasd_device *, struct dasd_ccw_req *,
-			    struct irb *);
+						struct irb *);
 	void (*dump_sense_dbf) (struct dasd_device *, struct irb *, char *);
 	void (*check_for_device_change) (struct dasd_device *,
-					 struct dasd_ccw_req *,
-					 struct irb *);
+									 struct dasd_ccw_req *,
+									 struct irb *);
 
-        /* i/o control functions. */
+	/* i/o control functions. */
 	int (*fill_geometry) (struct dasd_block *, struct hd_geometry *);
 	int (*fill_info) (struct dasd_device *, struct dasd_information2_t *);
 	int (*ioctl) (struct dasd_block *, unsigned int, void __user *);
@@ -397,7 +400,8 @@ extern struct dasd_discipline *dasd_diag_discipline_pointer;
 #define DASD_EER_STATECHANGE 3
 #define DASD_EER_PPRCSUSPEND 4
 
-struct dasd_path {
+struct dasd_path
+{
 	__u8 opm;
 	__u8 tbvpm;
 	__u8 ppm;
@@ -408,7 +412,8 @@ struct dasd_path {
 	__u8 cuirpm;  /* CUIR varied offline */
 };
 
-struct dasd_profile_info {
+struct dasd_profile_info
+{
 	/* legacy part of profile data, as in dasd_profile_info_t */
 	unsigned int dasd_io_reqs;	 /* number of requests processed */
 	unsigned int dasd_io_sects;	 /* number of sectors processed */
@@ -437,73 +442,76 @@ struct dasd_profile_info {
 	unsigned int dasd_read_nr_req[32]; /* hist. of # of requests in chanq */
 };
 
-struct dasd_profile {
+struct dasd_profile
+{
 	struct dentry *dentry;
 	struct dasd_profile_info *data;
 	spinlock_t lock;
 };
 
-struct dasd_device {
-	/* Block device stuff. */
-	struct dasd_block *block;
+struct dasd_device
+{
+		/* Block device stuff. */
+		struct dasd_block *block;
 
-        unsigned int devindex;
-	unsigned long flags;	   /* per device flags */
-	unsigned short features;   /* copy of devmap-features (read-only!) */
+		unsigned int devindex;
+		unsigned long flags;	   /* per device flags */
+		unsigned short features;   /* copy of devmap-features (read-only!) */
 
-	/* extended error reporting stuff (eer) */
-	struct dasd_ccw_req *eer_cqr;
+		/* extended error reporting stuff (eer) */
+		struct dasd_ccw_req *eer_cqr;
 
-	/* Device discipline stuff. */
-	struct dasd_discipline *discipline;
-	struct dasd_discipline *base_discipline;
-	void *private;
-	struct dasd_path path_data;
+		/* Device discipline stuff. */
+		struct dasd_discipline *discipline;
+		struct dasd_discipline *base_discipline;
+		void *private;
+		struct dasd_path path_data;
 
-	/* Device state and target state. */
-	int state, target;
-	struct mutex state_mutex;
-	int stopped;		/* device (ccw_device_start) was stopped */
+		/* Device state and target state. */
+		int state, target;
+		struct mutex state_mutex;
+		int stopped;		/* device (ccw_device_start) was stopped */
 
-	/* reference count. */
-        atomic_t ref_count;
+		/* reference count. */
+		atomic_t ref_count;
 
-	/* ccw queue and memory for static ccw/erp buffers. */
-	struct list_head ccw_queue;
-	spinlock_t mem_lock;
-	void *ccw_mem;
-	void *erp_mem;
-	struct list_head ccw_chunks;
-	struct list_head erp_chunks;
+		/* ccw queue and memory for static ccw/erp buffers. */
+		struct list_head ccw_queue;
+		spinlock_t mem_lock;
+		void *ccw_mem;
+		void *erp_mem;
+		struct list_head ccw_chunks;
+		struct list_head erp_chunks;
 
-	atomic_t tasklet_scheduled;
-        struct tasklet_struct tasklet;
-	struct work_struct kick_work;
-	struct work_struct restore_device;
-	struct work_struct reload_device;
-	struct work_struct kick_validate;
-	struct work_struct suc_work;
-	struct timer_list timer;
+		atomic_t tasklet_scheduled;
+		struct tasklet_struct tasklet;
+		struct work_struct kick_work;
+		struct work_struct restore_device;
+		struct work_struct reload_device;
+		struct work_struct kick_validate;
+		struct work_struct suc_work;
+		struct timer_list timer;
 
-	debug_info_t *debug_area;
+		debug_info_t *debug_area;
 
-	struct ccw_device *cdev;
+		struct ccw_device *cdev;
 
-	/* hook for alias management */
-	struct list_head alias_list;
+		/* hook for alias management */
+		struct list_head alias_list;
 
-	/* default expiration time in s */
-	unsigned long default_expires;
-	unsigned long default_retries;
+		/* default expiration time in s */
+		unsigned long default_expires;
+		unsigned long default_retries;
 
-	unsigned long blk_timeout;
+		unsigned long blk_timeout;
 
-	struct dentry *debugfs_dentry;
-	struct dentry *hosts_dentry;
-	struct dasd_profile profile;
+		struct dentry *debugfs_dentry;
+		struct dentry *hosts_dentry;
+		struct dasd_profile profile;
 };
 
-struct dasd_block {
+struct dasd_block
+{
 	/* Block device stuff. */
 	struct gendisk *gdp;
 	struct request_queue *request_queue;
@@ -527,7 +535,8 @@ struct dasd_block {
 	struct dasd_profile profile;
 };
 
-struct dasd_attention_data {
+struct dasd_attention_data
+{
 	struct dasd_device *device;
 	__u8 lpum;
 };
@@ -576,7 +585,9 @@ static inline void
 dasd_put_device(struct dasd_device *device)
 {
 	if (atomic_dec_return(&device->ref_count) == 0)
+	{
 		dasd_put_device_wake(device);
+	}
 }
 
 /*
@@ -591,7 +602,7 @@ struct dasd_mchunk
 
 static inline void
 dasd_init_chunklist(struct list_head *chunk_list, void *mem,
-		    unsigned long size)
+					unsigned long size)
 {
 	struct dasd_mchunk *chunk;
 
@@ -607,17 +618,26 @@ dasd_alloc_chunk(struct list_head *chunk_list, unsigned long size)
 	struct dasd_mchunk *chunk, *tmp;
 
 	size = (size + 7L) & -8L;
-	list_for_each_entry(chunk, chunk_list, list) {
+	list_for_each_entry(chunk, chunk_list, list)
+	{
 		if (chunk->size < size)
+		{
 			continue;
-		if (chunk->size > size + sizeof(struct dasd_mchunk)) {
+		}
+
+		if (chunk->size > size + sizeof(struct dasd_mchunk))
+		{
 			char *endaddr = (char *) (chunk + 1) + chunk->size;
 			tmp = (struct dasd_mchunk *) (endaddr - size) - 1;
 			tmp->size = size;
 			chunk->size -= size + sizeof(struct dasd_mchunk);
 			chunk = tmp;
-		} else
+		}
+		else
+		{
 			list_del(&chunk->list);
+		}
+
 		return (void *) (chunk + 1);
 	}
 	return NULL;
@@ -630,30 +650,43 @@ dasd_free_chunk(struct list_head *chunk_list, void *mem)
 	struct list_head *p, *left;
 
 	chunk = (struct dasd_mchunk *)
-		((char *) mem - sizeof(struct dasd_mchunk));
+			((char *) mem - sizeof(struct dasd_mchunk));
 	/* Find out the left neighbour in chunk_list. */
 	left = chunk_list;
-	list_for_each(p, chunk_list) {
+	list_for_each(p, chunk_list)
+	{
 		if (list_entry(p, struct dasd_mchunk, list) > chunk)
+		{
 			break;
+		}
+
 		left = p;
 	}
+
 	/* Try to merge with right neighbour = next element from left. */
-	if (left->next != chunk_list) {
+	if (left->next != chunk_list)
+	{
 		tmp = list_entry(left->next, struct dasd_mchunk, list);
-		if ((char *) (chunk + 1) + chunk->size == (char *) tmp) {
+
+		if ((char *) (chunk + 1) + chunk->size == (char *) tmp)
+		{
 			list_del(&tmp->list);
 			chunk->size += tmp->size + sizeof(struct dasd_mchunk);
 		}
 	}
+
 	/* Try to merge with left neighbour. */
-	if (left != chunk_list) {
+	if (left != chunk_list)
+	{
 		tmp = list_entry(left, struct dasd_mchunk, list);
-		if ((char *) (tmp + 1) + tmp->size == (char *) chunk) {
+
+		if ((char *) (tmp + 1) + tmp->size == (char *) chunk)
+		{
 			tmp->size += chunk->size + sizeof(struct dasd_mchunk);
 			return;
 		}
 	}
+
 	__list_add(&chunk->list, left, left->next);
 }
 
@@ -664,7 +697,10 @@ static inline int
 dasd_check_blocksize(int bsize)
 {
 	if (bsize < 512 || bsize > 4096 || !is_power_of_2(bsize))
+	{
 		return -EMEDIUMTYPE;
+	}
+
 	return 0;
 }
 
@@ -802,7 +838,7 @@ void dasd_proc_exit(void);
 struct dasd_ccw_req *dasd_default_erp_action(struct dasd_ccw_req *);
 struct dasd_ccw_req *dasd_default_erp_postaction(struct dasd_ccw_req *);
 struct dasd_ccw_req *dasd_alloc_erp_request(char *, int, int,
-					    struct dasd_device *);
+		struct dasd_device *);
 void dasd_free_erp_request(struct dasd_ccw_req *, struct dasd_device *);
 void dasd_log_sense(struct dasd_ccw_req *, struct irb *);
 void dasd_log_sense_dbf(struct dasd_ccw_req *cqr, struct irb *irb);
@@ -818,7 +854,7 @@ void dasd_eer_exit(void);
 int dasd_eer_enable(struct dasd_device *);
 void dasd_eer_disable(struct dasd_device *);
 void dasd_eer_write(struct dasd_device *, struct dasd_ccw_req *cqr,
-		    unsigned int id);
+					unsigned int id);
 void dasd_eer_snss(struct dasd_device *);
 
 static inline int dasd_eer_enabled(struct dasd_device *device)

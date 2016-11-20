@@ -39,14 +39,16 @@
 #define MT_RX_ORDER			3
 #define MT_RX_URB_SIZE			(PAGE_SIZE << MT_RX_ORDER)
 
-struct mt7601u_dma_buf {
+struct mt7601u_dma_buf
+{
 	struct urb *urb;
 	void *buf;
 	dma_addr_t dma;
 	size_t len;
 };
 
-struct mt7601u_mcu {
+struct mt7601u_mcu
+{
 	struct mutex mutex;
 
 	u8 msg_seq;
@@ -55,14 +57,16 @@ struct mt7601u_mcu {
 	struct completion resp_cmpl;
 };
 
-struct mt7601u_freq_cal {
+struct mt7601u_freq_cal
+{
 	struct delayed_work work;
 	u8 freq;
 	bool enabled;
 	bool adjusting;
 };
 
-struct mac_stats {
+struct mac_stats
+{
 	u64 rx_stat[6];
 	u64 tx_stat[6];
 	u64 aggr_stat[2];
@@ -71,10 +75,12 @@ struct mac_stats {
 };
 
 #define N_RX_ENTRIES	16
-struct mt7601u_rx_queue {
+struct mt7601u_rx_queue
+{
 	struct mt7601u_dev *dev;
 
-	struct mt7601u_dma_buf_rx {
+	struct mt7601u_dma_buf_rx
+	{
 		struct urb *urb;
 		struct page *p;
 	} e[N_RX_ENTRIES];
@@ -87,10 +93,12 @@ struct mt7601u_rx_queue {
 
 #define N_TX_ENTRIES	64
 
-struct mt7601u_tx_queue {
+struct mt7601u_tx_queue
+{
 	struct mt7601u_dev *dev;
 
-	struct mt7601u_dma_buf_tx {
+	struct mt7601u_dma_buf_tx
+	{
 		struct urb *urb;
 		struct sk_buff *skb;
 	} e[N_TX_ENTRIES];
@@ -117,18 +125,21 @@ struct mt7601u_eeprom_params;
 #define MT_EE_TEMPERATURE_SLOPE		39
 #define MT_FREQ_OFFSET_INVALID		-128
 
-enum mt_temp_mode {
+enum mt_temp_mode
+{
 	MT_TEMP_MODE_NORMAL,
 	MT_TEMP_MODE_HIGH,
 	MT_TEMP_MODE_LOW,
 };
 
-enum mt_bw {
+enum mt_bw
+{
 	MT_BW_20,
 	MT_BW_40,
 };
 
-enum {
+enum
+{
 	MT7601U_STATE_INITIALIZED,
 	MT7601U_STATE_REMOVED,
 	MT7601U_STATE_WLAN_RUNNING,
@@ -153,7 +164,8 @@ enum {
  * @hw_atomic_mutex:	ensures exclusive access to HW during critical
  *			operations (power management, channel switch).
  */
-struct mt7601u_dev {
+struct mt7601u_dev
+{
 	struct ieee80211_hw *hw;
 	struct device *dev;
 
@@ -248,12 +260,14 @@ struct mt7601u_dev {
 	struct mac_stats stats;
 };
 
-struct mt7601u_tssi_params {
+struct mt7601u_tssi_params
+{
 	char tssi0;
 	int trgt_power;
 };
 
-struct mt76_wcid {
+struct mt76_wcid
+{
 	u8 idx;
 	u8 hw_key_idx;
 
@@ -262,18 +276,21 @@ struct mt76_wcid {
 	u8 tx_rate_nss;
 };
 
-struct mt76_vif {
+struct mt76_vif
+{
 	u8 idx;
 
 	struct mt76_wcid group_wcid;
 };
 
-struct mt76_sta {
+struct mt76_sta
+{
 	struct mt76_wcid wcid;
 	u16 agg_ssn[IEEE80211_NUM_TIDS];
 };
 
-struct mt76_reg_pair {
+struct mt76_reg_pair
+{
 	u32 reg;
 	u32 value;
 };
@@ -289,13 +306,13 @@ void mt7601u_wr(struct mt7601u_dev *dev, u32 offset, u32 val);
 u32 mt7601u_rmw(struct mt7601u_dev *dev, u32 offset, u32 mask, u32 val);
 u32 mt7601u_rmc(struct mt7601u_dev *dev, u32 offset, u32 mask, u32 val);
 void mt7601u_wr_copy(struct mt7601u_dev *dev, u32 offset,
-		     const void *data, int len);
+					 const void *data, int len);
 
 int mt7601u_wait_asic_ready(struct mt7601u_dev *dev);
 bool mt76_poll(struct mt7601u_dev *dev, u32 offset, u32 mask, u32 val,
-	       int timeout);
+			   int timeout);
 bool mt76_poll_msec(struct mt7601u_dev *dev, u32 offset, u32 mask, u32 val,
-		    int timeout);
+					int timeout);
 
 /* Compatibility with mt76 */
 #define mt76_rmw_field(_dev, _reg, _field, _val)	\
@@ -328,9 +345,9 @@ static inline u32 mt76_clear(struct mt7601u_dev *dev, u32 offset, u32 val)
 }
 
 int mt7601u_write_reg_pairs(struct mt7601u_dev *dev, u32 base,
-			    const struct mt76_reg_pair *data, int len);
+							const struct mt76_reg_pair *data, int len);
 int mt7601u_burst_write_regs(struct mt7601u_dev *dev, u32 offset,
-			     const u32 *data, int n);
+							 const u32 *data, int n);
 void mt7601u_addr_wr(struct mt7601u_dev *dev, const u32 offset, const u8 *addr);
 
 /* Init */
@@ -351,17 +368,17 @@ int mt7601u_bbp_set_bw(struct mt7601u_dev *dev, int bw);
 void mt7601u_agc_save(struct mt7601u_dev *dev);
 void mt7601u_agc_restore(struct mt7601u_dev *dev);
 int mt7601u_phy_set_channel(struct mt7601u_dev *dev,
-			    struct cfg80211_chan_def *chandef);
+							struct cfg80211_chan_def *chandef);
 void mt7601u_phy_recalibrate_after_assoc(struct mt7601u_dev *dev);
 int mt7601u_phy_get_rssi(struct mt7601u_dev *dev,
-			 struct mt7601u_rxwi *rxwi, u16 rate);
+						 struct mt7601u_rxwi *rxwi, u16 rate);
 void mt7601u_phy_con_cal_onoff(struct mt7601u_dev *dev,
-			       struct ieee80211_bss_conf *info);
+							   struct ieee80211_bss_conf *info);
 
 /* MAC */
 void mt7601u_mac_work(struct work_struct *work);
 void mt7601u_mac_set_protection(struct mt7601u_dev *dev, bool legacy_prot,
-				int ht_mode);
+								int ht_mode);
 void mt7601u_mac_set_short_preamble(struct mt7601u_dev *dev, bool short_preamb);
 void mt7601u_mac_config_tsf(struct mt7601u_dev *dev, bool enable, int interval);
 void
@@ -370,9 +387,9 @@ void mt7601u_mac_set_ampdu_factor(struct mt7601u_dev *dev);
 
 /* TX */
 void mt7601u_tx(struct ieee80211_hw *hw, struct ieee80211_tx_control *control,
-		struct sk_buff *skb);
+				struct sk_buff *skb);
 int mt7601u_conf_tx(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-		    u16 queue, const struct ieee80211_tx_queue_params *params);
+					u16 queue, const struct ieee80211_tx_queue_params *params);
 void mt7601u_tx_status(struct mt7601u_dev *dev, struct sk_buff *skb);
 void mt7601u_tx_stat(struct work_struct *work);
 
@@ -391,6 +408,6 @@ int mt7601u_dma_init(struct mt7601u_dev *dev);
 void mt7601u_dma_cleanup(struct mt7601u_dev *dev);
 
 int mt7601u_dma_enqueue_tx(struct mt7601u_dev *dev, struct sk_buff *skb,
-			   struct mt76_wcid *wcid, int hw_q);
+						   struct mt76_wcid *wcid, int hw_q);
 
 #endif

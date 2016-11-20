@@ -13,22 +13,24 @@
 #define _LINUX_ASN1_BER_BYTECODE_H
 
 #ifdef __KERNEL__
-#include <linux/types.h>
+	#include <linux/types.h>
 #endif
 #include <linux/asn1.h>
 
 typedef int (*asn1_action_t)(void *context,
-			     size_t hdrlen, /* In case of ANY type */
-			     unsigned char tag, /* In case of ANY type */
-			     const void *value, size_t vlen);
+							 size_t hdrlen, /* In case of ANY type */
+							 unsigned char tag, /* In case of ANY type */
+							 const void *value, size_t vlen);
 
-struct asn1_decoder {
+struct asn1_decoder
+{
 	const unsigned char *machine;
 	size_t machlen;
 	const asn1_action_t *actions;
 };
 
-enum asn1_opcode {
+enum asn1_opcode
+{
 	/* The tag-matching ops come first and the odd-numbered slots
 	 * are for OR_SKIP ops.
 	 */

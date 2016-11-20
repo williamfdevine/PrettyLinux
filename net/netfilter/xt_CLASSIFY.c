@@ -37,13 +37,14 @@ classify_tg(struct sk_buff *skb, const struct xt_action_param *par)
 	return XT_CONTINUE;
 }
 
-static struct xt_target classify_tg_reg[] __read_mostly = {
+static struct xt_target classify_tg_reg[] __read_mostly =
+{
 	{
 		.name       = "CLASSIFY",
 		.revision   = 0,
 		.family     = NFPROTO_UNSPEC,
 		.hooks      = (1 << NF_INET_LOCAL_OUT) | (1 << NF_INET_FORWARD) |
-		              (1 << NF_INET_POST_ROUTING),
+		(1 << NF_INET_POST_ROUTING),
 		.target     = classify_tg,
 		.targetsize = sizeof(struct xt_classify_target_info),
 		.me         = THIS_MODULE,

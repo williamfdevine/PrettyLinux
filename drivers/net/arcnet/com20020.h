@@ -37,18 +37,21 @@ extern const struct net_device_ops com20020_netdev_ops;
 
 #define PLX_PCI_MAX_CARDS 2
 
-struct ledoffsets {
+struct ledoffsets
+{
 	int green;
 	int red;
 };
 
-struct com20020_pci_channel_map {
+struct com20020_pci_channel_map
+{
 	u32 bar;
 	u32 offset;
 	u32 size;               /* 0x00 - auto, e.g. length of entire bar */
 };
 
-struct com20020_pci_card_info {
+struct com20020_pci_card_info
+{
 	const char *name;
 	int devcount;
 
@@ -61,13 +64,15 @@ struct com20020_pci_card_info {
 	unsigned int flags;
 };
 
-struct com20020_priv {
+struct com20020_priv
+{
 	struct com20020_pci_card_info *ci;
 	struct list_head list_dev;
 	resource_size_t misc;
 };
 
-struct com20020_dev {
+struct com20020_dev
+{
 	struct list_head list;
 	struct net_device *dev;
 
@@ -119,12 +124,15 @@ struct com20020_dev {
 #define SUB_DMACOUNT	6	/* DMA count options */
 
 static inline void com20020_set_subaddress(struct arcnet_local *lp,
-					   int ioaddr, int val)
+		int ioaddr, int val)
 {
-	if (val < 4) {
+	if (val < 4)
+	{
 		lp->config = (lp->config & ~0x03) | val;
 		arcnet_outb(lp->config, ioaddr, COM20020_REG_W_CONFIG);
-	} else {
+	}
+	else
+	{
 		arcnet_outb(val, ioaddr, COM20020_REG_W_SUBADR);
 	}
 }

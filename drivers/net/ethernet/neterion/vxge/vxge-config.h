@@ -19,7 +19,7 @@
 #include <asm/io.h>
 
 #ifndef VXGE_CACHE_LINE_SIZE
-#define VXGE_CACHE_LINE_SIZE 128
+	#define VXGE_CACHE_LINE_SIZE 128
 #endif
 
 #ifndef VXGE_ALIGN
@@ -33,27 +33,28 @@
 
 #define VXGE_HW_MAX_ROM_IMAGES			8
 
-struct eprom_image {
-	u8 is_valid:1;
+struct eprom_image
+{
+	u8 is_valid: 1;
 	u8 index;
 	u8 type;
 	u16 version;
 };
 
 #ifdef VXGE_DEBUG_ASSERT
-/**
- * vxge_assert
- * @test: C-condition to check
- * @fmt: printf like format string
- *
- * This function implements traditional assert. By default assertions
- * are enabled. It can be disabled by undefining VXGE_DEBUG_ASSERT macro in
- * compilation
- * time.
- */
-#define vxge_assert(test) BUG_ON(!(test))
+	/**
+	* vxge_assert
+	* @test: C-condition to check
+	* @fmt: printf like format string
+	*
+	* This function implements traditional assert. By default assertions
+	* are enabled. It can be disabled by undefining VXGE_DEBUG_ASSERT macro in
+	* compilation
+	* time.
+	*/
+	#define vxge_assert(test) BUG_ON(!(test))
 #else
-#define vxge_assert(test)
+	#define vxge_assert(test)
 #endif /* end of VXGE_DEBUG_ASSERT */
 
 /**
@@ -68,7 +69,8 @@ struct eprom_image {
  * compilation. If DEBUG macro not defined than code will be
  * compiled out.
  */
-enum vxge_debug_level {
+enum vxge_debug_level
+{
 	VXGE_NONE   = 0,
 	VXGE_TRACE  = 1,
 	VXGE_ERR    = 2
@@ -76,15 +78,15 @@ enum vxge_debug_level {
 
 #define NULL_VPID					0xFFFFFFFF
 #ifdef CONFIG_VXGE_DEBUG_TRACE_ALL
-#define VXGE_DEBUG_MODULE_MASK  0xffffffff
-#define VXGE_DEBUG_TRACE_MASK   0xffffffff
-#define VXGE_DEBUG_ERR_MASK     0xffffffff
-#define VXGE_DEBUG_MASK         0x000001ff
+	#define VXGE_DEBUG_MODULE_MASK  0xffffffff
+	#define VXGE_DEBUG_TRACE_MASK   0xffffffff
+	#define VXGE_DEBUG_ERR_MASK     0xffffffff
+	#define VXGE_DEBUG_MASK         0x000001ff
 #else
-#define VXGE_DEBUG_MODULE_MASK  0x20000000
-#define VXGE_DEBUG_TRACE_MASK   0x20000000
-#define VXGE_DEBUG_ERR_MASK     0x20000000
-#define VXGE_DEBUG_MASK         0x00000001
+	#define VXGE_DEBUG_MODULE_MASK  0x20000000
+	#define VXGE_DEBUG_TRACE_MASK   0x20000000
+	#define VXGE_DEBUG_ERR_MASK     0x20000000
+	#define VXGE_DEBUG_MASK         0x00000001
 #endif
 
 /*
@@ -102,7 +104,8 @@ enum vxge_debug_level {
 #define VXGE_HW_BASE_ERR	200
 #define VXGE_HW_BASE_BADCFG	300
 
-enum vxge_hw_status {
+enum vxge_hw_status
+{
 	VXGE_HW_OK				  = 0,
 	VXGE_HW_FAIL				  = 1,
 	VXGE_HW_PENDING				  = 2,
@@ -152,7 +155,8 @@ enum vxge_hw_status {
  * @VXGE_HW_LINK_UP: Link is up.
  *
  */
-enum vxge_hw_device_link_state {
+enum vxge_hw_device_link_state
+{
 	VXGE_HW_LINK_NONE,
 	VXGE_HW_LINK_DOWN,
 	VXGE_HW_LINK_UP
@@ -166,7 +170,8 @@ enum vxge_hw_device_link_state {
  * @VXGE_FW_UPGRADE_BYTES2SKIP:  skip bytes in the stream
  *
  */
-enum vxge_hw_fw_upgrade_code {
+enum vxge_hw_fw_upgrade_code
+{
 	VXGE_HW_FW_UPGRADE_OK		= 0,
 	VXGE_HW_FW_UPGRADE_DONE		= 1,
 	VXGE_HW_FW_UPGRADE_ERR		= 2,
@@ -186,7 +191,8 @@ enum vxge_hw_fw_upgrade_code {
  * @VXGE_HW_FW_UPGRADE_ERR_GENERIC_ERROR_UNKNOWN: generic error unknown type
  * @VXGE_HW_FW_UPGRADE_ERR_FAILED_TO_FLASH: failed to flash image check failed
  */
-enum vxge_hw_fw_upgrade_err_code {
+enum vxge_hw_fw_upgrade_err_code
+{
 	VXGE_HW_FW_UPGRADE_ERR_CORRUPT_DATA_1		= 1,
 	VXGE_HW_FW_UPGRADE_ERR_BUFFER_OVERFLOW		= 2,
 	VXGE_HW_FW_UPGRADE_ERR_INV_NCF_FILE_3		= 3,
@@ -210,14 +216,16 @@ enum vxge_hw_fw_upgrade_err_code {
  */
 
 #define VXGE_HW_FW_STRLEN	32
-struct vxge_hw_device_date {
+struct vxge_hw_device_date
+{
 	u32     day;
 	u32     month;
 	u32     year;
 	char    date[VXGE_HW_FW_STRLEN];
 };
 
-struct vxge_hw_device_version {
+struct vxge_hw_device_version
+{
 	u32     major;
 	u32     minor;
 	u32     build;
@@ -248,7 +256,8 @@ struct vxge_hw_device_version {
  * Note: Valid (min, max) range for each attribute is specified in the body of
  * the struct vxge_hw_fifo_config{} structure.
  */
-struct vxge_hw_fifo_config {
+struct vxge_hw_fifo_config
+{
 	u32				enable;
 #define VXGE_HW_FIFO_ENABLE				1
 #define VXGE_HW_FIFO_DISABLE				0
@@ -309,7 +318,8 @@ struct vxge_hw_fifo_config {
  *             descriptors in the timely fashion.
  * Ring configuration.
  */
-struct vxge_hw_ring_config {
+struct vxge_hw_ring_config
+{
 	u32				enable;
 #define VXGE_HW_RING_ENABLE					1
 #define VXGE_HW_RING_DISABLE					0
@@ -357,7 +367,8 @@ struct vxge_hw_ring_config {
  * This structure is used by the driver to pass the configuration parameters to
  * configure Virtual Path.
  */
-struct vxge_hw_vp_config {
+struct vxge_hw_vp_config
+{
 	u32				vp_id;
 
 #define	VXGE_HW_VPATH_PRIORITY_MIN			0
@@ -413,7 +424,8 @@ struct vxge_hw_vp_config {
  * corresponding include file.
  * See also: struct vxge_hw_tim_intr_config{}.
  */
-struct vxge_hw_device_config {
+struct vxge_hw_device_config
+{
 	u32					device_poll_millis;
 #define VXGE_HW_MIN_DEVICE_POLL_MILLIS		1
 #define VXGE_HW_MAX_DEVICE_POLL_MILLIS		100000
@@ -428,29 +440,29 @@ struct vxge_hw_device_config {
 
 #define	VXGE_HW_MAX_PAYLOAD_SIZE_512		2
 
-	u32					intr_mode:2,
+	u32					intr_mode: 2,
 #define VXGE_HW_INTR_MODE_IRQLINE		0
 #define VXGE_HW_INTR_MODE_MSIX			1
 #define VXGE_HW_INTR_MODE_MSIX_ONE_SHOT		2
 
 #define VXGE_HW_INTR_MODE_DEF			0
 
-						rth_en:1,
+						rth_en: 1,
 #define VXGE_HW_RTH_DISABLE			0
 #define VXGE_HW_RTH_ENABLE			1
 #define VXGE_HW_RTH_DEFAULT			0
 
-						rth_it_type:1,
+						rth_it_type: 1,
 #define VXGE_HW_RTH_IT_TYPE_SOLO_IT		0
 #define VXGE_HW_RTH_IT_TYPE_MULTI_IT		1
 #define VXGE_HW_RTH_IT_TYPE_DEFAULT		0
 
-						rts_mac_en:1,
+						rts_mac_en: 1,
 #define VXGE_HW_RTS_MAC_DISABLE			0
 #define VXGE_HW_RTS_MAC_ENABLE			1
 #define VXGE_HW_RTS_MAC_DEFAULT			0
 
-						hwts_en:1;
+						hwts_en: 1;
 #define	VXGE_HW_HWTS_DISABLE			0
 #define	VXGE_HW_HWTS_ENABLE			1
 #define	VXGE_HW_HWTS_DEFAULT			1
@@ -509,11 +521,12 @@ struct vxge_hw_device_config {
  *
  * See also: vxge_hw_driver_initialize().
  */
-struct vxge_hw_uld_cbs {
+struct vxge_hw_uld_cbs
+{
 	void (*link_up)(struct __vxge_hw_device *devh);
 	void (*link_down)(struct __vxge_hw_device *devh);
 	void (*crit_err)(struct __vxge_hw_device *devh,
-			enum vxge_hw_event type, u64 ext_data);
+					 enum vxge_hw_event type, u64 ext_data);
 };
 
 /*
@@ -528,7 +541,8 @@ struct vxge_hw_uld_cbs {
  * Block is allocated with a header to put the blocks into list.
  *
  */
-struct __vxge_hw_blockpool_entry {
+struct __vxge_hw_blockpool_entry
+{
 	struct list_head	item;
 	u32			length;
 	void			*memblock;
@@ -549,7 +563,8 @@ struct __vxge_hw_blockpool_entry {
  * Block pool contains the DMA blocks preallocated.
  *
  */
-struct __vxge_hw_blockpool {
+struct __vxge_hw_blockpool
+{
 	struct __vxge_hw_device *hldev;
 	u32				block_size;
 	u32				pool_size;
@@ -570,7 +585,8 @@ struct __vxge_hw_blockpool {
  * Enumerated channel types. Currently there are only two link-layer
  * channels - Titan fifo and Titan ring. In the future the list will grow.
  */
-enum __vxge_hw_channel_type {
+enum __vxge_hw_channel_type
+{
 	VXGE_HW_CHANNEL_TYPE_UNKNOWN			= 0,
 	VXGE_HW_CHANNEL_TYPE_FIFO			= 1,
 	VXGE_HW_CHANNEL_TYPE_RING			= 2,
@@ -622,7 +638,8 @@ enum __vxge_hw_channel_type {
  *
  * See also: enum vxge_hw_channel_type{}, enum vxge_hw_channel_flag
  */
-struct __vxge_hw_channel {
+struct __vxge_hw_channel
+{
 	struct list_head		item;
 	enum __vxge_hw_channel_type	type;
 	struct __vxge_hw_device 	*devh;
@@ -671,7 +688,8 @@ struct __vxge_hw_channel {
  * Virtual paths are allocated by the HW upon getting configuration from the
  * driver and inserted into the list of virtual paths.
  */
-struct __vxge_hw_virtualpath {
+struct __vxge_hw_virtualpath
+{
 	u32				vp_id;
 
 	u32				vp_open;
@@ -710,7 +728,8 @@ struct __vxge_hw_virtualpath {
  *
  * This structure is used to store the callback information.
  */
-struct __vxge_hw_vpath_handle {
+struct __vxge_hw_vpath_handle
+{
 	struct list_head	item;
 	struct __vxge_hw_virtualpath	*vpath;
 };
@@ -730,7 +749,8 @@ struct __vxge_hw_vpath_handle {
  *
  * HW device object. Represents Titan adapter
  */
-struct __vxge_hw_device {
+struct __vxge_hw_device
+{
 	u32				magic;
 #define VXGE_HW_DEVICE_MAGIC		0x12345678
 #define VXGE_HW_DEVICE_DEAD		0xDEADDEAD
@@ -753,15 +773,15 @@ struct __vxge_hw_device {
 	struct vxge_hw_common_reg	__iomem *common_reg;
 	struct vxge_hw_mrpcim_reg	__iomem *mrpcim_reg;
 	struct vxge_hw_srpcim_reg	__iomem *srpcim_reg \
-					[VXGE_HW_TITAN_SRPCIM_REG_SPACES];
+		[VXGE_HW_TITAN_SRPCIM_REG_SPACES];
 	struct vxge_hw_vpmgmt_reg	__iomem *vpmgmt_reg \
-					[VXGE_HW_TITAN_VPMGMT_REG_SPACES];
+		[VXGE_HW_TITAN_VPMGMT_REG_SPACES];
 	struct vxge_hw_vpath_reg	__iomem *vpath_reg \
-					[VXGE_HW_TITAN_VPATH_REG_SPACES];
+		[VXGE_HW_TITAN_VPATH_REG_SPACES];
 	u8				__iomem *kdfc;
 	u8				__iomem *usdc;
 	struct __vxge_hw_virtualpath	virtual_paths \
-					[VXGE_HW_MAX_VIRTUAL_PATHS];
+		[VXGE_HW_MAX_VIRTUAL_PATHS];
 	u64				vpath_assignments;
 	u64				vpaths_deployed;
 	u32				first_vp_id;
@@ -793,7 +813,8 @@ struct __vxge_hw_device {
  * Returns the vpath mask that has the bits set for each vpath allocated
  * for the driver and the first mac address for each vpath
  */
-struct vxge_hw_device_hw_info {
+struct vxge_hw_device_hw_info
+{
 	u32		host_type;
 #define VXGE_HW_NO_MR_NO_SR_NORMAL_FUNCTION			0
 #define VXGE_HW_MR_NO_SR_VH0_BASE_FUNCTION			1
@@ -837,7 +858,8 @@ struct vxge_hw_device_hw_info {
  * Device memory spaces. Includes configuration, BAR0 etc. per device
  * mapped memories. Also, includes a pointer to OS-specific PCI device object.
  */
-struct vxge_hw_device_attr {
+struct vxge_hw_device_attr
+{
 	void __iomem		*bar0;
 	struct pci_dev 		*pdev;
 	const struct vxge_hw_uld_cbs *uld_callbacks;
@@ -846,36 +868,36 @@ struct vxge_hw_device_attr {
 #define VXGE_HW_DEVICE_LINK_STATE_SET(hldev, ls)	(hldev->link_state = ls)
 
 #define VXGE_HW_DEVICE_TIM_INT_MASK_SET(m0, m1, i) {	\
-	if (i < 16) {				\
-		m0[0] |= vxge_vBIT(0x8, (i*4), 4);	\
-		m0[1] |= vxge_vBIT(0x4, (i*4), 4);	\
-	}			       		\
-	else {					\
-		m1[0] = 0x80000000;		\
-		m1[1] = 0x40000000;		\
-	}					\
-}
+		if (i < 16) {				\
+			m0[0] |= vxge_vBIT(0x8, (i*4), 4);	\
+			m0[1] |= vxge_vBIT(0x4, (i*4), 4);	\
+		}			       		\
+		else {					\
+			m1[0] = 0x80000000;		\
+			m1[1] = 0x40000000;		\
+		}					\
+	}
 
 #define VXGE_HW_DEVICE_TIM_INT_MASK_RESET(m0, m1, i) {	\
-	if (i < 16) {					\
-		m0[0] &= ~vxge_vBIT(0x8, (i*4), 4);		\
-		m0[1] &= ~vxge_vBIT(0x4, (i*4), 4);		\
-	}						\
-	else {						\
-		m1[0] = 0;				\
-		m1[1] = 0;				\
-	}						\
-}
+		if (i < 16) {					\
+			m0[0] &= ~vxge_vBIT(0x8, (i*4), 4);		\
+			m0[1] &= ~vxge_vBIT(0x4, (i*4), 4);		\
+		}						\
+		else {						\
+			m1[0] = 0;				\
+			m1[1] = 0;				\
+		}						\
+	}
 
 #define VXGE_HW_DEVICE_STATS_PIO_READ(loc, offset) {		\
-	status = vxge_hw_mrpcim_stats_access(hldev, \
-				VXGE_HW_STATS_OP_READ, \
-				loc, \
-				offset, \
-				&val64);			\
-	if (status != VXGE_HW_OK)				\
-		return status;						\
-}
+		status = vxge_hw_mrpcim_stats_access(hldev, \
+											 VXGE_HW_STATS_OP_READ, \
+											 loc, \
+											 offset, \
+											 &val64);			\
+		if (status != VXGE_HW_OK)				\
+			return status;						\
+	}
 
 /*
  * struct __vxge_hw_ring - Ring channel.
@@ -914,7 +936,8 @@ struct vxge_hw_device_attr {
  * Note: The structure is cache line aligned to better utilize
  *       CPU cache performance.
  */
-struct __vxge_hw_ring {
+struct __vxge_hw_ring
+{
 	struct __vxge_hw_channel		channel;
 	struct vxge_hw_mempool			*mempool;
 	struct vxge_hw_vpath_reg		__iomem	*vp_reg;
@@ -936,19 +959,19 @@ struct __vxge_hw_ring {
 	u64					tim_rti_cfg3_saved;
 
 	enum vxge_hw_status (*callback)(
-			struct __vxge_hw_ring *ringh,
-			void *rxdh,
-			u8 t_code,
-			void *userdata);
+		struct __vxge_hw_ring *ringh,
+		void *rxdh,
+		u8 t_code,
+		void *userdata);
 
 	enum vxge_hw_status (*rxd_init)(
-			void *rxdh,
-			void *userdata);
+		void *rxdh,
+		void *userdata);
 
 	void (*rxd_term)(
-			void *rxdh,
-			enum vxge_hw_rxd_state state,
-			void *userdata);
+		void *rxdh,
+		enum vxge_hw_rxd_state state,
+		void *userdata);
 
 	struct vxge_hw_vpath_stats_sw_ring_info *stats	____cacheline_aligned;
 	struct vxge_hw_ring_config		*config;
@@ -966,7 +989,8 @@ struct __vxge_hw_ring {
  * Titan/HW descriptor states.
  *
  */
-enum vxge_hw_txdl_state {
+enum vxge_hw_txdl_state
+{
 	VXGE_HW_TXDL_STATE_NONE	= 0,
 	VXGE_HW_TXDL_STATE_AVAIL	= 1,
 	VXGE_HW_TXDL_STATE_POSTED	= 2,
@@ -999,7 +1023,8 @@ enum vxge_hw_txdl_state {
  * Fifo channel.
  * Note: The structure is cache line aligned.
  */
-struct __vxge_hw_fifo {
+struct __vxge_hw_fifo
+{
 	struct __vxge_hw_channel		channel;
 	struct vxge_hw_mempool			*mempool;
 	struct vxge_hw_fifo_config		*config;
@@ -1018,18 +1043,18 @@ struct __vxge_hw_fifo {
 	u64					tim_tti_cfg3_saved;
 
 	enum vxge_hw_status (*callback)(
-			struct __vxge_hw_fifo *fifo_handle,
-			void *txdlh,
-			enum vxge_hw_fifo_tcode t_code,
-			void *userdata,
-			struct sk_buff ***skb_ptr,
-			int nr_skb,
-			int *more);
+		struct __vxge_hw_fifo *fifo_handle,
+		void *txdlh,
+		enum vxge_hw_fifo_tcode t_code,
+		void *userdata,
+		struct sk_buff ***skb_ptr,
+		int nr_skb,
+		int *more);
 
 	void (*txdl_term)(
-			void *txdlh,
-			enum vxge_hw_txdl_state state,
-			void *userdata);
+		void *txdlh,
+		enum vxge_hw_txdl_state state,
+		void *userdata);
 
 	struct vxge_hw_vpath_stats_sw_fifo_info *stats ____cacheline_aligned;
 } ____cacheline_aligned;
@@ -1074,7 +1099,8 @@ struct __vxge_hw_fifo {
  *
  * See also: struct vxge_hw_ring_rxd_priv{}.
  */
-struct __vxge_hw_fifo_txdl_priv {
+struct __vxge_hw_fifo_txdl_priv
+{
 	dma_addr_t		dma_addr;
 	struct pci_dev	*dma_handle;
 	ptrdiff_t		dma_offset;
@@ -1108,7 +1134,8 @@ struct __vxge_hw_fifo_txdl_priv {
  * part of a doorbell write. Consumed by the adapter but is not written by the
  * adapter.
  */
-struct __vxge_hw_non_offload_db_wrapper {
+struct __vxge_hw_non_offload_db_wrapper
+{
 	u64		control_0;
 #define	VXGE_HW_NODBW_GET_TYPE(ctrl0)			vxge_bVALn(ctrl0, 0, 8)
 #define VXGE_HW_NODBW_TYPE(val) vxge_vBIT(val, 0, 8)
@@ -1256,7 +1283,8 @@ struct __vxge_hw_non_offload_db_wrapper {
  * (list) of TxDs. * For more details please refer to Titan User Guide,
  * Section 5.4.2 "Transmit Descriptor (TxD) Format".
  */
-struct vxge_hw_fifo_txd {
+struct vxge_hw_fifo_txd
+{
 	u64 control_0;
 #define VXGE_HW_FIFO_TXD_LIST_OWN_ADAPTER		vxge_mBIT(7)
 
@@ -1382,7 +1410,8 @@ struct vxge_hw_fifo_txd {
  *
  * One buffer mode RxD for ring structure
  */
-struct vxge_hw_ring_rxd_1 {
+struct vxge_hw_ring_rxd_1
+{
 	u64 host_control;
 	u64 control_0;
 #define VXGE_HW_RING_RXD_RTH_BUCKET_GET(ctrl0)		vxge_bVALn(ctrl0, 0, 7)
@@ -1433,7 +1462,8 @@ struct vxge_hw_ring_rxd_1 {
 	u64 buffer0_ptr;
 };
 
-enum vxge_hw_rth_algoritms {
+enum vxge_hw_rth_algoritms
+{
 	RTH_ALG_JENKINS = 0,
 	RTH_ALG_MS_RSS	= 1,
 	RTH_ALG_CRC32C	= 2
@@ -1452,13 +1482,14 @@ enum vxge_hw_rth_algoritms {
  *
  * See also: vxge_hw_vpath_rts_rth_set(), vxge_hw_vpath_rts_rth_get().
  */
-struct vxge_hw_rth_hash_types {
-	u8 hash_type_tcpipv4_en:1,
-	   hash_type_ipv4_en:1,
-	   hash_type_tcpipv6_en:1,
-	   hash_type_ipv6_en:1,
-	   hash_type_tcpipv6ex_en:1,
-	   hash_type_ipv6ex_en:1;
+struct vxge_hw_rth_hash_types
+{
+	u8 hash_type_tcpipv4_en: 1,
+	hash_type_ipv4_en: 1,
+	hash_type_tcpipv6_en: 1,
+	hash_type_ipv6_en: 1,
+	hash_type_tcpipv6ex_en: 1,
+	hash_type_ipv6ex_en: 1;
 };
 
 void vxge_hw_device_debug_set(
@@ -1491,8 +1522,8 @@ static inline u32 vxge_hw_ring_rxd_size_get(u32 buf_mode)
  */
 static inline u32 vxge_hw_ring_rxds_per_block_get(u32 buf_mode)
 {
-	return (u32)((VXGE_HW_BLOCK_SIZE-16) /
-		sizeof(struct vxge_hw_ring_rxd_1));
+	return (u32)((VXGE_HW_BLOCK_SIZE - 16) /
+				 sizeof(struct vxge_hw_ring_rxd_1));
 }
 
 /**
@@ -1716,21 +1747,22 @@ static inline void *vxge_hw_fifo_txdl_private_get(void *txdlh)
  * Ring open "template". User fills the structure with ring
  * attributes and passes it to vxge_hw_vpath_open().
  */
-struct vxge_hw_ring_attr {
+struct vxge_hw_ring_attr
+{
 	enum vxge_hw_status (*callback)(
-			struct __vxge_hw_ring *ringh,
-			void *rxdh,
-			u8 t_code,
-			void *userdata);
+		struct __vxge_hw_ring *ringh,
+		void *rxdh,
+		u8 t_code,
+		void *userdata);
 
 	enum vxge_hw_status (*rxd_init)(
-			void *rxdh,
-			void *userdata);
+		void *rxdh,
+		void *userdata);
 
 	void (*rxd_term)(
-			void *rxdh,
-			enum vxge_hw_rxd_state state,
-			void *userdata);
+		void *rxdh,
+		enum vxge_hw_rxd_state state,
+		void *userdata);
 
 	void		*userdata;
 	u32		per_rxd_space;
@@ -1812,20 +1844,21 @@ struct vxge_hw_ring_attr {
  * Fifo open "template". User fills the structure with fifo
  * attributes and passes it to vxge_hw_vpath_open().
  */
-struct vxge_hw_fifo_attr {
+struct vxge_hw_fifo_attr
+{
 
 	enum vxge_hw_status (*callback)(
-			struct __vxge_hw_fifo *fifo_handle,
-			void *txdlh,
-			enum vxge_hw_fifo_tcode t_code,
-			void *userdata,
-			struct sk_buff ***skb_ptr,
-			int nr_skb, int *more);
+		struct __vxge_hw_fifo *fifo_handle,
+		void *txdlh,
+		enum vxge_hw_fifo_tcode t_code,
+		void *userdata,
+		struct sk_buff ***skb_ptr,
+		int nr_skb, int *more);
 
 	void (*txdl_term)(
-			void *txdlh,
-			enum vxge_hw_txdl_state state,
-			void *userdata);
+		void *txdlh,
+		enum vxge_hw_txdl_state state,
+		void *userdata);
 
 	void		*userdata;
 	u32		per_txdl_space;
@@ -1840,7 +1873,8 @@ struct vxge_hw_fifo_attr {
  * Attributes of virtual path.  This structure is passed as parameter
  * to the vxge_hw_vpath_open() routine to set the attributes of ring and fifo.
  */
-struct vxge_hw_vpath_attr {
+struct vxge_hw_vpath_attr
+{
 	u32				vp_id;
 	struct vxge_hw_ring_attr	ring_attr;
 	struct vxge_hw_fifo_attr	fifo_attr;
@@ -1883,10 +1917,10 @@ enum vxge_hw_status vxge_hw_device_initialize(
 	struct vxge_hw_device_config *device_config);
 
 enum vxge_hw_status vxge_hw_device_getpause_data(
-	 struct __vxge_hw_device *devh,
-	 u32 port,
-	 u32 *tx,
-	 u32 *rx);
+	struct __vxge_hw_device *devh,
+	u32 port,
+	u32 *tx,
+	u32 *rx);
 
 enum vxge_hw_status vxge_hw_device_setpause_data(
 	struct __vxge_hw_device *devh,
@@ -1895,9 +1929,9 @@ enum vxge_hw_status vxge_hw_device_setpause_data(
 	u32 rx);
 
 static inline void *vxge_os_dma_malloc(struct pci_dev *pdev,
-			unsigned long size,
-			struct pci_dev **p_dmah,
-			struct pci_dev **p_dma_acch)
+									   unsigned long size,
+									   struct pci_dev **p_dmah,
+									   struct pci_dev **p_dma_acch)
 {
 	gfp_t flags;
 	void *vaddr;
@@ -1906,19 +1940,32 @@ static inline void *vxge_os_dma_malloc(struct pci_dev *pdev,
 	*p_dma_acch = *p_dmah = NULL;
 
 	if (in_interrupt())
+	{
 		flags = GFP_ATOMIC | GFP_DMA;
+	}
 	else
+	{
 		flags = GFP_KERNEL | GFP_DMA;
+	}
+
 realloc:
 	vaddr = kmalloc((size), flags);
-	if (vaddr == NULL)
-		return vaddr;
-	misaligned = (unsigned long)VXGE_ALIGN((unsigned long)vaddr,
-				VXGE_CACHE_LINE_SIZE);
-	if (realloc_flag)
-		goto out;
 
-	if (misaligned) {
+	if (vaddr == NULL)
+	{
+		return vaddr;
+	}
+
+	misaligned = (unsigned long)VXGE_ALIGN((unsigned long)vaddr,
+										   VXGE_CACHE_LINE_SIZE);
+
+	if (realloc_flag)
+	{
+		goto out;
+	}
+
+	if (misaligned)
+	{
 		/* misaligned, free current one and try allocating
 		 * size + VXGE_CACHE_LINE_SIZE memory
 		 */
@@ -1927,6 +1974,7 @@ realloc:
 		realloc_flag = 1;
 		goto realloc;
 	}
+
 out:
 	*(unsigned long *)p_dma_acch = misaligned;
 	vaddr = (void *)((u8 *)vaddr + misaligned);
@@ -1934,7 +1982,7 @@ out:
 }
 
 static inline void vxge_os_dma_free(struct pci_dev *pdev, const void *vaddr,
-			struct pci_dev **p_dma_acch)
+									struct pci_dev **p_dma_acch)
 {
 	unsigned long misaligned = *(unsigned long *)p_dma_acch;
 	u8 *tmp = (u8 *)vaddr;
@@ -1945,7 +1993,7 @@ static inline void vxge_os_dma_free(struct pci_dev *pdev, const void *vaddr,
 /*
  * __vxge_hw_mempool_item_priv - will return pointer on per item private space
  */
-static inline void*
+static inline void *
 __vxge_hw_mempool_item_priv(
 	struct vxge_hw_mempool *mempool,
 	u32 memblock_idx,
@@ -1963,7 +2011,7 @@ __vxge_hw_mempool_item_priv(
 	vxge_assert((*memblock_item_idx) < mempool->items_per_memblock);
 
 	return (u8 *)mempool->memblocks_priv_arr[memblock_idx] +
-			    (*memblock_item_idx) * mempool->items_priv_size;
+		   (*memblock_item_idx) * mempool->items_priv_size;
 }
 
 /*
@@ -1978,8 +2026,8 @@ __vxge_hw_fifo_txdl_priv(
 	struct vxge_hw_fifo_txd *txdp)
 {
 	return (struct __vxge_hw_fifo_txdl_priv *)
-			(((char *)((ulong)txdp->host_control)) +
-				fifo->per_txdl_space);
+		   (((char *)((ulong)txdp->host_control)) +
+			fifo->per_txdl_space);
 }
 
 enum vxge_hw_status vxge_hw_vpath_open(
@@ -2062,21 +2110,21 @@ vxge_hw_vpath_strip_fcs_check(struct __vxge_hw_device *hldev, u64 vpath_mask);
  */
 #if (VXGE_COMPONENT_LL & VXGE_DEBUG_MODULE_MASK)
 #define vxge_debug_ll(level, mask, fmt, ...) do {			       \
-	if ((level >= VXGE_ERR && VXGE_COMPONENT_LL & VXGE_DEBUG_ERR_MASK) ||  \
-	    (level >= VXGE_TRACE && VXGE_COMPONENT_LL & VXGE_DEBUG_TRACE_MASK))\
-		if ((mask & VXGE_DEBUG_MASK) == mask)			       \
-			printk(fmt "\n", __VA_ARGS__);			       \
-} while (0)
+		if ((level >= VXGE_ERR && VXGE_COMPONENT_LL & VXGE_DEBUG_ERR_MASK) ||  \
+			(level >= VXGE_TRACE && VXGE_COMPONENT_LL & VXGE_DEBUG_TRACE_MASK))\
+			if ((mask & VXGE_DEBUG_MASK) == mask)			       \
+				printk(fmt "\n", __VA_ARGS__);			       \
+	} while (0)
 #else
 #define vxge_debug_ll(level, mask, fmt, ...)
 #endif
 
 enum vxge_hw_status vxge_hw_vpath_rts_rth_itable_set(
-			struct __vxge_hw_vpath_handle **vpath_handles,
-			u32 vpath_count,
-			u8 *mtable,
-			u8 *itable,
-			u32 itable_size);
+	struct __vxge_hw_vpath_handle **vpath_handles,
+	u32 vpath_count,
+	u8 *mtable,
+	u8 *itable,
+	u32 itable_size);
 
 enum vxge_hw_status vxge_hw_vpath_rts_rth_set(
 	struct __vxge_hw_vpath_handle *vpath_handle,
@@ -2095,17 +2143,17 @@ vxge_hw_device_wait_receive_idle(struct __vxge_hw_device *hldev);
 
 enum vxge_hw_status
 vxge_hw_upgrade_read_version(struct __vxge_hw_device *hldev, u32 *major,
-			     u32 *minor, u32 *build);
+							 u32 *minor, u32 *build);
 
 enum vxge_hw_status vxge_hw_flash_fw(struct __vxge_hw_device *hldev);
 
 enum vxge_hw_status
 vxge_update_fw_image(struct __vxge_hw_device *hldev, const u8 *filebuf,
-		     int size);
+					 int size);
 
 enum vxge_hw_status
 vxge_hw_vpath_eprom_img_ver_get(struct __vxge_hw_device *hldev,
-				struct eprom_image *eprom_image_data);
+								struct eprom_image *eprom_image_data);
 
 int vxge_hw_vpath_wait_receive_idle(struct __vxge_hw_device *hldev, u32 vp_id);
 #endif

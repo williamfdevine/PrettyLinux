@@ -36,25 +36,29 @@
 #define LPFC_BSG_VENDOR_DIAG_MODE_END		10
 #define LPFC_BSG_VENDOR_LINK_DIAG_TEST		11
 
-struct set_ct_event {
+struct set_ct_event
+{
 	uint32_t command;
 	uint32_t type_mask;
 	uint32_t ev_req_id;
 	uint32_t ev_reg_id;
 };
 
-struct get_ct_event {
+struct get_ct_event
+{
 	uint32_t command;
 	uint32_t ev_reg_id;
 	uint32_t ev_req_id;
 };
 
-struct get_ct_event_reply {
+struct get_ct_event_reply
+{
 	uint32_t immed_data;
 	uint32_t type;
 };
 
-struct send_mgmt_resp {
+struct send_mgmt_resp
+{
 	uint32_t command;
 	uint32_t tag;
 };
@@ -63,13 +67,15 @@ struct send_mgmt_resp {
 #define INTERNAL_LOOP_BACK 0x1 /* adapter short cuts the loop internally */
 #define EXTERNAL_LOOP_BACK 0x2 /* requires an external loopback plug */
 
-struct diag_mode_set {
+struct diag_mode_set
+{
 	uint32_t command;
 	uint32_t type;
 	uint32_t timeout;
 };
 
-struct sli4_link_diag {
+struct sli4_link_diag
+{
 	uint32_t command;
 	uint32_t timeout;
 	uint32_t test_id;
@@ -78,11 +84,13 @@ struct sli4_link_diag {
 	uint32_t error_action;
 };
 
-struct diag_mode_test {
+struct diag_mode_test
+{
 	uint32_t command;
 };
 
-struct diag_status {
+struct diag_status
+{
 	uint32_t mbox_status;
 	uint32_t shdr_status;
 	uint32_t shdr_add_status;
@@ -91,7 +99,8 @@ struct diag_status {
 #define LPFC_WWNN_TYPE		0
 #define LPFC_WWPN_TYPE		1
 
-struct get_mgmt_rev {
+struct get_mgmt_rev
+{
 	uint32_t command;
 };
 
@@ -99,19 +108,22 @@ struct get_mgmt_rev {
 #define MANAGEMENT_MINOR_REV   1
 
 /* the MgmtRevInfo structure */
-struct MgmtRevInfo {
+struct MgmtRevInfo
+{
 	uint32_t a_Major;
 	uint32_t a_Minor;
 };
 
-struct get_mgmt_rev_reply {
+struct get_mgmt_rev_reply
+{
 	struct MgmtRevInfo info;
 };
 
 #define BSG_MBOX_SIZE 4096 /* mailbox command plus extended data */
 
 /* BSG mailbox request header */
-struct dfc_mbox_req {
+struct dfc_mbox_req
+{
 	uint32_t command;
 	uint32_t mbOffset;
 	uint32_t inExtWLen;
@@ -121,12 +133,14 @@ struct dfc_mbox_req {
 };
 
 /* Used for menlo command or menlo data. The xri is only used for menlo data */
-struct menlo_command {
+struct menlo_command
+{
 	uint32_t cmd;
 	uint32_t xri;
 };
 
-struct menlo_response {
+struct menlo_response
+{
 	uint32_t xri; /* return the xri of the iocb exchange */
 };
 
@@ -167,11 +181,11 @@ struct menlo_response {
 	(((ptr)->name##_WORD >> name##_SHIFT) & name##_MASK)
 #define bsg_bf_set_le32(name, ptr, value) \
 	((ptr)->name##_WORD = cpu_to_le32(((((value) & \
-	name##_MASK) << name##_SHIFT) | (le32_to_cpu((ptr)->name##_WORD) & \
-	~(name##_MASK << name##_SHIFT)))))
+										 name##_MASK) << name##_SHIFT) | (le32_to_cpu((ptr)->name##_WORD) & \
+												 ~(name##_MASK << name##_SHIFT)))))
 #define bsg_bf_set(name, ptr, value) \
 	((ptr)->name##_WORD = ((((value) & name##_MASK) << name##_SHIFT) | \
-	((ptr)->name##_WORD & ~(name##_MASK << name##_SHIFT))))
+						   ((ptr)->name##_WORD & ~(name##_MASK << name##_SHIFT))))
 
 /*
  * The sli_config structure specified here is based on the following
@@ -183,7 +197,8 @@ struct menlo_response {
  *    without carrying HBDs.
  */
 
-struct lpfc_sli_config_mse {
+struct lpfc_sli_config_mse
+{
 	uint32_t pa_lo;
 	uint32_t pa_hi;
 	uint32_t buf_len;
@@ -192,7 +207,8 @@ struct lpfc_sli_config_mse {
 #define lpfc_mbox_sli_config_mse_len_WORD	buf_len
 };
 
-struct lpfc_sli_config_hbd {
+struct lpfc_sli_config_hbd
+{
 	uint32_t buf_len;
 #define lpfc_mbox_sli_config_ecmn_hbd_len_SHIFT	0
 #define lpfc_mbox_sli_config_ecmn_hbd_len_MASK	0xffffff
@@ -201,7 +217,8 @@ struct lpfc_sli_config_hbd {
 	uint32_t pa_hi;
 };
 
-struct lpfc_sli_config_hdr {
+struct lpfc_sli_config_hdr
+{
 	uint32_t word1;
 #define lpfc_mbox_hdr_emb_SHIFT		0
 #define lpfc_mbox_hdr_emb_MASK		0x00000001
@@ -215,7 +232,8 @@ struct lpfc_sli_config_hdr {
 	uint32_t reserved5;
 };
 
-struct lpfc_sli_config_emb0_subsys {
+struct lpfc_sli_config_emb0_subsys
+{
 	struct lpfc_sli_config_hdr	sli_config_hdr;
 #define LPFC_MBX_SLI_CONFIG_MAX_MSE     19
 	struct lpfc_sli_config_mse	mse[LPFC_MBX_SLI_CONFIG_MAX_MSE];
@@ -227,7 +245,7 @@ struct lpfc_sli_config_emb0_subsys {
 #define lpfc_emb0_subcmnd_subsys_SHIFT	8
 #define lpfc_emb0_subcmnd_subsys_MASK	0xff
 #define lpfc_emb0_subcmnd_subsys_WORD	word64
-/* Subsystem FCOE (0x0C) OpCodes */
+	/* Subsystem FCOE (0x0C) OpCodes */
 #define SLI_CONFIG_SUBSYS_FCOE		0x0C
 #define FCOE_OPCODE_READ_FCF		0x08
 #define FCOE_OPCODE_ADD_FCF		0x09
@@ -235,7 +253,8 @@ struct lpfc_sli_config_emb0_subsys {
 #define FCOE_OPCODE_GET_DPORT_RESULTS	0x28
 };
 
-struct lpfc_sli_config_emb1_subsys {
+struct lpfc_sli_config_emb1_subsys
+{
 	struct lpfc_sli_config_hdr	sli_config_hdr;
 	uint32_t word6;
 #define lpfc_emb1_subcmnd_opcode_SHIFT	0
@@ -244,7 +263,7 @@ struct lpfc_sli_config_emb1_subsys {
 #define lpfc_emb1_subcmnd_subsys_SHIFT	8
 #define lpfc_emb1_subcmnd_subsys_MASK	0xff
 #define lpfc_emb1_subcmnd_subsys_WORD	word6
-/* Subsystem COMN (0x01) OpCodes */
+	/* Subsystem COMN (0x01) OpCodes */
 #define SLI_CONFIG_SUBSYS_COMN		0x01
 #define COMN_OPCODE_GET_PROFILE_CONFIG	0xA4
 #define COMN_OPCODE_READ_OBJECT		0xAB
@@ -270,7 +289,8 @@ struct lpfc_sli_config_emb1_subsys {
 	struct lpfc_sli_config_hbd	hbd[LPFC_MBX_SLI_CONFIG_MAX_HBD];
 };
 
-struct lpfc_sli_config_mbox {
+struct lpfc_sli_config_mbox
+{
 	uint32_t word0;
 #define lpfc_mqe_status_SHIFT		16
 #define lpfc_mqe_status_MASK		0x0000FFFF
@@ -278,7 +298,8 @@ struct lpfc_sli_config_mbox {
 #define lpfc_mqe_command_SHIFT		8
 #define lpfc_mqe_command_MASK		0x000000FF
 #define lpfc_mqe_command_WORD		word0
-	union {
+	union
+	{
 		struct lpfc_sli_config_emb0_subsys sli_config_emb0_subsys;
 		struct lpfc_sli_config_emb1_subsys sli_config_emb1_subsys;
 	} un;

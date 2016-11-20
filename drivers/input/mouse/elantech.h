@@ -109,12 +109,14 @@
 /*
  * The base position for one finger, v4 hardware
  */
-struct finger_pos {
+struct finger_pos
+{
 	unsigned int x;
 	unsigned int y;
 };
 
-struct elantech_data {
+struct elantech_data
+{
 	struct input_dev *tp_dev;	/* Relative device for trackpoint */
 	char tp_phys[32];
 	unsigned char reg_07;

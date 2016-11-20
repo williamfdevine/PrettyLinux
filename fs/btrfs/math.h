@@ -26,7 +26,10 @@
 static inline u64 div_factor(u64 num, int factor)
 {
 	if (factor == 10)
+	{
 		return num;
+	}
+
 	num *= factor;
 	return div_u64(num, 10);
 }
@@ -34,7 +37,10 @@ static inline u64 div_factor(u64 num, int factor)
 static inline u64 div_factor_fine(u64 num, int factor)
 {
 	if (factor == 100)
+	{
 		return num;
+	}
+
 	num *= factor;
 	return div_u64(num, 100);
 }

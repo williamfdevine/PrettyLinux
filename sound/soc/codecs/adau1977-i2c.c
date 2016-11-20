@@ -16,7 +16,7 @@
 #include "adau1977.h"
 
 static int adau1977_i2c_probe(struct i2c_client *client,
-	const struct i2c_device_id *id)
+							  const struct i2c_device_id *id)
 {
 	struct regmap_config config;
 
@@ -25,8 +25,8 @@ static int adau1977_i2c_probe(struct i2c_client *client,
 	config.reg_bits = 8;
 
 	return adau1977_probe(&client->dev,
-		devm_regmap_init_i2c(client, &config),
-		id->driver_data, NULL);
+						  devm_regmap_init_i2c(client, &config),
+						  id->driver_data, NULL);
 }
 
 static int adau1977_i2c_remove(struct i2c_client *client)
@@ -35,7 +35,8 @@ static int adau1977_i2c_remove(struct i2c_client *client)
 	return 0;
 }
 
-static const struct i2c_device_id adau1977_i2c_ids[] = {
+static const struct i2c_device_id adau1977_i2c_ids[] =
+{
 	{ "adau1977", ADAU1977 },
 	{ "adau1978", ADAU1978 },
 	{ "adau1979", ADAU1978 },
@@ -43,7 +44,8 @@ static const struct i2c_device_id adau1977_i2c_ids[] = {
 };
 MODULE_DEVICE_TABLE(i2c, adau1977_i2c_ids);
 
-static struct i2c_driver adau1977_i2c_driver = {
+static struct i2c_driver adau1977_i2c_driver =
+{
 	.driver = {
 		.name = "adau1977",
 	},

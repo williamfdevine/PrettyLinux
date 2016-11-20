@@ -43,7 +43,8 @@
 #define RXW4C_IRA BIT(3)
 #define TXW4C_IRA BIT(2)
 
-struct fintek_8250 {
+struct fintek_8250
+{
 	u16 base_port;
 	u8 index;
 	u8 key;
@@ -52,7 +53,9 @@ struct fintek_8250 {
 static int fintek_8250_enter_key(u16 base_port, u8 key)
 {
 	if (!request_muxed_region(base_port, 2, "8250_fintek"))
+	{
 		return -EBUSY;
+	}
 
 	outb(key, base_port + ADDR_PORT);
 	outb(key, base_port + ADDR_PORT);
@@ -71,12 +74,18 @@ static int fintek_8250_check_id(u16 base_port)
 	u16 chip;
 
 	outb(VENDOR_ID1, base_port + ADDR_PORT);
+
 	if (inb(base_port + DATA_PORT) != VENDOR_ID1_VAL)
+	{
 		return -ENODEV;
+	}
 
 	outb(VENDOR_ID2, base_port + ADDR_PORT);
+
 	if (inb(base_port + DATA_PORT) != VENDOR_ID2_VAL)
+	{
 		return -ENODEV;
+	}
 
 	outb(CHIP_ID1, base_port + ADDR_PORT);
 	chip = inb(base_port + DATA_PORT);
@@ -84,49 +93,67 @@ static int fintek_8250_check_id(u16 base_port)
 	chip |= inb(base_port + DATA_PORT) << 8;
 
 	if (chip != CHIP_ID_0 && chip != CHIP_ID_1)
+	{
 		return -ENODEV;
+	}
 
 	return 0;
 }
 
 static int fintek_8250_rs485_config(struct uart_port *port,
-			      struct serial_rs485 *rs485)
+									struct serial_rs485 *rs485)
 {
 	uint8_t config = 0;
 	struct fintek_8250 *pdata = port->private_data;
 
 	if (!pdata)
+	{
 		return -EINVAL;
+	}
 
 	if (rs485->flags & SER_RS485_ENABLED)
+	{
 		memset(rs485->padding, 0, sizeof(rs485->padding));
+	}
 	else
+	{
 		memset(rs485, 0, sizeof(*rs485));
+	}
 
 	rs485->flags &= SER_RS485_ENABLED | SER_RS485_RTS_ON_SEND |
-			SER_RS485_RTS_AFTER_SEND;
+					SER_RS485_RTS_AFTER_SEND;
 
-	if (rs485->delay_rts_before_send) {
+	if (rs485->delay_rts_before_send)
+	{
 		rs485->delay_rts_before_send = 1;
 		config |= TXW4C_IRA;
 	}
 
-	if (rs485->delay_rts_after_send) {
+	if (rs485->delay_rts_after_send)
+	{
 		rs485->delay_rts_after_send = 1;
 		config |= RXW4C_IRA;
 	}
 
 	if ((!!(rs485->flags & SER_RS485_RTS_ON_SEND)) ==
-			(!!(rs485->flags & SER_RS485_RTS_AFTER_SEND)))
+		(!!(rs485->flags & SER_RS485_RTS_AFTER_SEND)))
+	{
 		rs485->flags &= SER_RS485_ENABLED;
+	}
 	else
+	{
 		config |= RS485_URA;
+	}
 
 	if (rs485->flags & SER_RS485_RTS_ON_SEND)
+	{
 		config |= RTS_INVERT;
+	}
 
 	if (fintek_8250_enter_key(pdata->base_port, pdata->key))
+	{
 		return -EBUSY;
+	}
 
 	outb(LDN, pdata->base_port + ADDR_PORT);
 	outb(pdata->index, pdata->base_port + DATA_PORT);
@@ -145,17 +172,24 @@ static int find_base_port(struct fintek_8250 *pdata, u16 io_address)
 	static const u8 keys[] = {0x77, 0xa0, 0x87, 0x67};
 	int i, j, k;
 
-	for (i = 0; i < ARRAY_SIZE(addr); i++) {
-		for (j = 0; j < ARRAY_SIZE(keys); j++) {
+	for (i = 0; i < ARRAY_SIZE(addr); i++)
+	{
+		for (j = 0; j < ARRAY_SIZE(keys); j++)
+		{
 
 			if (fintek_8250_enter_key(addr[i], keys[j]))
+			{
 				continue;
-			if (fintek_8250_check_id(addr[i])) {
+			}
+
+			if (fintek_8250_check_id(addr[i]))
+			{
 				fintek_8250_exit_key(addr[i]);
 				continue;
 			}
 
-			for (k = 0; k < 4; k++) {
+			for (k = 0; k < 4; k++)
+			{
 				u16 aux;
 
 				outb(LDN, addr[i] + ADDR_PORT);
@@ -165,8 +199,11 @@ static int find_base_port(struct fintek_8250 *pdata, u16 io_address)
 				aux = inb(addr[i] + DATA_PORT);
 				outb(IO_ADDR2, addr[i] + ADDR_PORT);
 				aux |= inb(addr[i] + DATA_PORT) << 8;
+
 				if (aux != io_address)
+				{
 					continue;
+				}
 
 				fintek_8250_exit_key(addr[i]);
 				pdata->key = keys[j];
@@ -189,8 +226,11 @@ static int fintek_8250_set_irq_mode(struct fintek_8250 *pdata, bool level_mode)
 	u8 tmp;
 
 	status = fintek_8250_enter_key(pdata->base_port, pdata->key);
+
 	if (status)
+	{
 		return status;
+	}
 
 	outb(LDN, pdata->base_port + ADDR_PORT);
 	outb(pdata->index, pdata->base_port + DATA_PORT);
@@ -200,8 +240,11 @@ static int fintek_8250_set_irq_mode(struct fintek_8250 *pdata, bool level_mode)
 
 	tmp &= ~IRQ_MODE_MASK;
 	tmp |= IRQ_SHARE;
+
 	if (!level_mode)
+	{
 		tmp |= IRQ_EDGE_HIGH;
+	}
 
 	outb(tmp, pdata->base_port + DATA_PORT);
 	fintek_8250_exit_key(pdata->base_port);
@@ -216,11 +259,16 @@ int fintek_8250_probe(struct uart_8250_port *uart)
 	bool level_mode = irqd_is_level_type(irq_data);
 
 	if (find_base_port(&probe_data, uart->port.iobase))
+	{
 		return -ENODEV;
+	}
 
 	pdata = devm_kzalloc(uart->port.dev, sizeof(*pdata), GFP_KERNEL);
+
 	if (!pdata)
+	{
 		return -ENOMEM;
+	}
 
 	memcpy(pdata, &probe_data, sizeof(probe_data));
 	uart->port.rs485_config = fintek_8250_rs485_config;

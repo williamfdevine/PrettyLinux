@@ -11,7 +11,8 @@
 #define MCP_TYPE_DFLT 0x20202020	/* "    " */
 #define MCP_TYPE_ETHZ 0x4554485a	/* "ETHZ" */
 
-struct mcp_gen_header {
+struct mcp_gen_header
+{
 	/* the first 4 fields are filled at compile time */
 	unsigned header_length;
 	__be32 mcp_type;
@@ -50,7 +51,8 @@ struct mcp_gen_header {
 	/* 8 */
 };
 
-struct zmcp_info {
+struct zmcp_info
+{
 	unsigned info_len;
 	unsigned zmcp_addr;
 	unsigned zmcp_len;

@@ -50,9 +50,9 @@ static int arcrimi_status(struct net_device *dev);
 static void arcrimi_setmask(struct net_device *dev, int mask);
 static int arcrimi_reset(struct net_device *dev, int really_reset);
 static void arcrimi_copy_to_card(struct net_device *dev, int bufnum, int offset,
-				 void *buf, int count);
+								 void *buf, int count);
 static void arcrimi_copy_from_card(struct net_device *dev, int bufnum,
-				   int offset, void *buf, int count);
+								   int offset, void *buf, int count);
 
 /* Handy defines for ARCnet specific stuff */
 
@@ -66,33 +66,49 @@ static void arcrimi_copy_from_card(struct net_device *dev, int bufnum,
  */
 static int __init arcrimi_probe(struct net_device *dev)
 {
-	if (BUGLVL(D_NORMAL)) {
+	if (BUGLVL(D_NORMAL))
+	{
 		pr_info("%s\n", "RIM I (entirely mem-mapped) support");
 		pr_info("E-mail me if you actually test the RIM I driver, please!\n");
 		pr_info("Given: node %02Xh, shmem %lXh, irq %d\n",
-			dev->dev_addr[0], dev->mem_start, dev->irq);
+				dev->dev_addr[0], dev->mem_start, dev->irq);
 	}
 
-	if (dev->mem_start <= 0 || dev->irq <= 0) {
+	if (dev->mem_start <= 0 || dev->irq <= 0)
+	{
 		if (BUGLVL(D_NORMAL))
+		{
 			pr_err("No autoprobe for RIM I; you must specify the shmem and irq!\n");
+		}
+
 		return -ENODEV;
 	}
-	if (dev->dev_addr[0] == 0) {
+
+	if (dev->dev_addr[0] == 0)
+	{
 		if (BUGLVL(D_NORMAL))
+		{
 			pr_err("You need to specify your card's station ID!\n");
+		}
+
 		return -ENODEV;
 	}
+
 	/* Grab the memory region at mem_start for MIRROR_SIZE bytes.
 	 * Later in arcrimi_found() the real size will be determined
 	 * and this reserve will be released and the correct size
 	 * will be taken.
 	 */
-	if (!request_mem_region(dev->mem_start, MIRROR_SIZE, "arcnet (90xx)")) {
+	if (!request_mem_region(dev->mem_start, MIRROR_SIZE, "arcnet (90xx)"))
+	{
 		if (BUGLVL(D_NORMAL))
+		{
 			pr_notice("Card memory already allocated\n");
+		}
+
 		return -ENODEV;
 	}
+
 	return arcrimi_found(dev);
 }
 
@@ -102,14 +118,23 @@ static int check_mirror(unsigned long addr, size_t size)
 	int res = -1;
 
 	if (!request_mem_region(addr, size, "arcnet (90xx)"))
+	{
 		return -1;
+	}
 
 	p = ioremap(addr, size);
-	if (p) {
+
+	if (p)
+	{
 		if (arcnet_readb(p, COM9026_REG_R_STATUS) == TESTvalue)
+		{
 			res = 1;
+		}
 		else
+		{
 			res = 0;
+		}
+
 		iounmap(p);
 	}
 
@@ -129,14 +154,17 @@ static int __init arcrimi_found(struct net_device *dev)
 	int err;
 
 	p = ioremap(dev->mem_start, MIRROR_SIZE);
-	if (!p) {
+
+	if (!p)
+	{
 		release_mem_region(dev->mem_start, MIRROR_SIZE);
 		arc_printk(D_NORMAL, dev, "Can't ioremap\n");
 		return -ENODEV;
 	}
 
 	/* reserve the irq */
-	if (request_irq(dev->irq, arcnet_interrupt, 0, "arcnet (RIM I)", dev)) {
+	if (request_irq(dev->irq, arcnet_interrupt, 0, "arcnet (RIM I)", dev))
+	{
 		iounmap(p);
 		release_mem_region(dev->mem_start, MIRROR_SIZE);
 		arc_printk(D_NORMAL, dev, "Can't get IRQ %d!\n", dev->irq);
@@ -146,7 +174,7 @@ static int __init arcrimi_found(struct net_device *dev)
 	shmem = dev->mem_start;
 	arcnet_writeb(TESTvalue, p, COM9026_REG_W_INTMASK);
 	arcnet_writeb(TESTvalue, p, COM9026_REG_W_COMMAND);
-					/* actually the station/node ID */
+	/* actually the station/node ID */
 
 	/* find the real shared memory start/end points, including mirrors */
 
@@ -155,19 +183,30 @@ static int __init arcrimi_found(struct net_device *dev)
 	 * 2k (or there are no mirrors at all) but on some, it's 4k.
 	 */
 	mirror_size = MIRROR_SIZE;
+
 	if (arcnet_readb(p, COM9026_REG_R_STATUS) == TESTvalue &&
-	    check_mirror(shmem - MIRROR_SIZE, MIRROR_SIZE) == 0 &&
-	    check_mirror(shmem - 2 * MIRROR_SIZE, MIRROR_SIZE) == 1)
+		check_mirror(shmem - MIRROR_SIZE, MIRROR_SIZE) == 0 &&
+		check_mirror(shmem - 2 * MIRROR_SIZE, MIRROR_SIZE) == 1)
+	{
 		mirror_size = 2 * MIRROR_SIZE;
+	}
 
 	first_mirror = shmem - mirror_size;
+
 	while (check_mirror(first_mirror, mirror_size) == 1)
+	{
 		first_mirror -= mirror_size;
+	}
+
 	first_mirror += mirror_size;
 
 	last_mirror = shmem + mirror_size;
+
 	while (check_mirror(last_mirror, mirror_size) == 1)
+	{
 		last_mirror += mirror_size;
+	}
+
 	last_mirror -= mirror_size;
 
 	dev->mem_start = first_mirror;
@@ -192,16 +231,20 @@ static int __init arcrimi_found(struct net_device *dev)
 	 */
 	iounmap(p);
 	release_mem_region(shmem, MIRROR_SIZE);
+
 	if (!request_mem_region(dev->mem_start,
-				dev->mem_end - dev->mem_start + 1,
-				"arcnet (90xx)")) {
+							dev->mem_end - dev->mem_start + 1,
+							"arcnet (90xx)"))
+	{
 		arc_printk(D_NORMAL, dev, "Card memory already allocated\n");
 		goto err_free_irq;
 	}
 
 	lp->mem_start = ioremap(dev->mem_start,
-				dev->mem_end - dev->mem_start + 1);
-	if (!lp->mem_start) {
+							dev->mem_end - dev->mem_start + 1);
+
+	if (!lp->mem_start)
+	{
 		arc_printk(D_NORMAL, dev, "Can't remap device memory!\n");
 		goto err_release_mem;
 	}
@@ -210,14 +253,17 @@ static int __init arcrimi_found(struct net_device *dev)
 	dev->dev_addr[0] = arcnet_readb(lp->mem_start, COM9026_REG_R_STATION);
 
 	arc_printk(D_NORMAL, dev, "ARCnet RIM I: station %02Xh found at IRQ %d, ShMem %lXh (%ld*%d bytes)\n",
-		   dev->dev_addr[0],
-		   dev->irq, dev->mem_start,
-		   (dev->mem_end - dev->mem_start + 1) / mirror_size,
-		   mirror_size);
+			   dev->dev_addr[0],
+			   dev->irq, dev->mem_start,
+			   (dev->mem_end - dev->mem_start + 1) / mirror_size,
+			   mirror_size);
 
 	err = register_netdev(dev);
+
 	if (err)
+	{
 		goto err_unmap;
+	}
 
 	return 0;
 
@@ -243,12 +289,14 @@ static int arcrimi_reset(struct net_device *dev, int really_reset)
 	void __iomem *ioaddr = lp->mem_start + 0x800;
 
 	arc_printk(D_INIT, dev, "Resetting %s (status=%02Xh)\n",
-		   dev->name, arcnet_readb(ioaddr, COM9026_REG_R_STATUS));
+			   dev->name, arcnet_readb(ioaddr, COM9026_REG_R_STATUS));
 
-	if (really_reset) {
+	if (really_reset)
+	{
 		arcnet_writeb(TESTvalue, ioaddr, -0x800);	/* fake reset */
 		return 0;
 	}
+
 	/* clear flags & end reset */
 	arcnet_writeb(CFLAGScmd | RESETclear, ioaddr, COM9026_REG_W_COMMAND);
 	arcnet_writeb(CFLAGScmd | CONFIGclear, ioaddr, COM9026_REG_W_COMMAND);
@@ -285,7 +333,7 @@ static void arcrimi_command(struct net_device *dev, int cmd)
 }
 
 static void arcrimi_copy_to_card(struct net_device *dev, int bufnum, int offset,
-				 void *buf, int count)
+								 void *buf, int count)
 {
 	struct arcnet_local *lp = netdev_priv(dev);
 	void __iomem *memaddr = lp->mem_start + 0x800 + bufnum * 512 + offset;
@@ -294,7 +342,7 @@ static void arcrimi_copy_to_card(struct net_device *dev, int bufnum, int offset,
 }
 
 static void arcrimi_copy_from_card(struct net_device *dev, int bufnum,
-				   int offset, void *buf, int count)
+								   int offset, void *buf, int count)
 {
 	struct arcnet_local *lp = netdev_priv(dev);
 	void __iomem *memaddr = lp->mem_start + 0x800 + bufnum * 512 + offset;
@@ -320,18 +368,27 @@ static int __init arc_rimi_init(void)
 	struct net_device *dev;
 
 	dev = alloc_arcdev(device);
+
 	if (!dev)
+	{
 		return -ENOMEM;
+	}
 
 	if (node && node != 0xff)
+	{
 		dev->dev_addr[0] = node;
+	}
 
 	dev->mem_start = io;
 	dev->irq = irq;
-	if (dev->irq == 2)
-		dev->irq = 9;
 
-	if (arcrimi_probe(dev)) {
+	if (dev->irq == 2)
+	{
+		dev->irq = 9;
+	}
+
+	if (arcrimi_probe(dev))
+	{
 		free_netdev(dev);
 		return -EIO;
 	}
@@ -358,20 +415,32 @@ static int __init arcrimi_setup(char *s)
 	int ints[8];
 
 	s = get_options(s, 8, ints);
+
 	if (!ints[0])
+	{
 		return 1;
-	switch (ints[0]) {
-	default:		/* ERROR */
-		pr_err("Too many arguments\n");
-	case 3:		/* Node ID */
-		node = ints[3];
-	case 2:		/* IRQ */
-		irq = ints[2];
-	case 1:		/* IO address */
-		io = ints[1];
 	}
+
+	switch (ints[0])
+	{
+		default:		/* ERROR */
+			pr_err("Too many arguments\n");
+
+		case 3:		/* Node ID */
+			node = ints[3];
+
+		case 2:		/* IRQ */
+			irq = ints[2];
+
+		case 1:		/* IO address */
+			io = ints[1];
+	}
+
 	if (*s)
+	{
 		snprintf(device, sizeof(device), "%s", s);
+	}
+
 	return 1;
 }
 __setup("arcrimi=", arcrimi_setup);

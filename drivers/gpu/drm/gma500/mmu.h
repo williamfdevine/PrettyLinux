@@ -15,7 +15,8 @@
 #ifndef __MMU_H
 #define __MMU_H
 
-struct psb_mmu_driver {
+struct psb_mmu_driver
+{
 	/* protects driver- and pd structures. Always take in read mode
 	 * before taking the page table spinlock.
 	 */
@@ -39,7 +40,8 @@ struct psb_mmu_driver {
 
 struct psb_mmu_pd;
 
-struct psb_mmu_pt {
+struct psb_mmu_pt
+{
 	struct psb_mmu_pd *pd;
 	uint32_t index;
 	uint32_t count;
@@ -47,7 +49,8 @@ struct psb_mmu_pt {
 	uint32_t *v;
 };
 
-struct psb_mmu_pd {
+struct psb_mmu_pd
+{
 	struct psb_mmu_driver *driver;
 	int hw_context;
 	struct psb_mmu_pt **tables;
@@ -60,34 +63,34 @@ struct psb_mmu_pd {
 };
 
 extern struct psb_mmu_driver *psb_mmu_driver_init(struct drm_device *dev,
-						  int trap_pagefaults,
-						  int invalid_type,
-						  atomic_t *msvdx_mmu_invaldc);
+		int trap_pagefaults,
+		int invalid_type,
+		atomic_t *msvdx_mmu_invaldc);
 extern void psb_mmu_driver_takedown(struct psb_mmu_driver *driver);
 extern struct psb_mmu_pd *psb_mmu_get_default_pd(struct psb_mmu_driver
-						 *driver);
+		*driver);
 extern struct psb_mmu_pd *psb_mmu_alloc_pd(struct psb_mmu_driver *driver,
-					   int trap_pagefaults,
-					   int invalid_type);
+		int trap_pagefaults,
+		int invalid_type);
 extern void psb_mmu_free_pagedir(struct psb_mmu_pd *pd);
 extern void psb_mmu_flush(struct psb_mmu_driver *driver);
 extern void psb_mmu_remove_pfn_sequence(struct psb_mmu_pd *pd,
-					unsigned long address,
-					uint32_t num_pages);
+										unsigned long address,
+										uint32_t num_pages);
 extern int psb_mmu_insert_pfn_sequence(struct psb_mmu_pd *pd,
-				       uint32_t start_pfn,
-				       unsigned long address,
-				       uint32_t num_pages, int type);
+									   uint32_t start_pfn,
+									   unsigned long address,
+									   uint32_t num_pages, int type);
 extern int psb_mmu_virtual_to_pfn(struct psb_mmu_pd *pd, uint32_t virtual,
-				  unsigned long *pfn);
+								  unsigned long *pfn);
 extern void psb_mmu_set_pd_context(struct psb_mmu_pd *pd, int hw_context);
 extern int psb_mmu_insert_pages(struct psb_mmu_pd *pd, struct page **pages,
-				unsigned long address, uint32_t num_pages,
-				uint32_t desired_tile_stride,
-				uint32_t hw_tile_stride, int type);
+								unsigned long address, uint32_t num_pages,
+								uint32_t desired_tile_stride,
+								uint32_t hw_tile_stride, int type);
 extern void psb_mmu_remove_pages(struct psb_mmu_pd *pd,
-				 unsigned long address, uint32_t num_pages,
-				 uint32_t desired_tile_stride,
-				 uint32_t hw_tile_stride);
+								 unsigned long address, uint32_t num_pages,
+								 uint32_t desired_tile_stride,
+								 uint32_t hw_tile_stride);
 
 #endif

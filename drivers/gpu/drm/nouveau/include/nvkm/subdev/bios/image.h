@@ -1,6 +1,7 @@
 #ifndef __NVBIOS_IMAGE_H__
 #define __NVBIOS_IMAGE_H__
-struct nvbios_image {
+struct nvbios_image
+{
 	u32  base;
 	u32  size;
 	u8   type;

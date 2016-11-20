@@ -40,7 +40,8 @@
 #include "zl10353.h"
 #include "tuner-simple.h"
 
-struct dvb_bt8xx_card {
+struct dvb_bt8xx_card
+{
 	struct mutex lock;
 	int nfeeds;
 	char card_name[32];
@@ -57,7 +58,7 @@ struct dvb_bt8xx_card {
 	struct i2c_adapter *i2c_adapter;
 	struct dvb_net dvbnet;
 
-	struct dvb_frontend* fe;
+	struct dvb_frontend *fe;
 };
 
 #endif /* DVB_BT8XX_H */

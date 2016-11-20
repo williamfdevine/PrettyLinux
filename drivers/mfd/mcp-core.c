@@ -45,7 +45,8 @@ static int mcp_bus_remove(struct device *dev)
 	return 0;
 }
 
-static struct bus_type mcp_bus_type = {
+static struct bus_type mcp_bus_type =
+{
 	.name		= "mcp",
 	.match		= mcp_bus_match,
 	.probe		= mcp_bus_probe,
@@ -139,8 +140,12 @@ void mcp_enable(struct mcp *mcp)
 	unsigned long flags;
 
 	spin_lock_irqsave(&mcp->lock, flags);
+
 	if (mcp->use_count++ == 0)
+	{
 		mcp->ops->enable(mcp);
+	}
+
 	spin_unlock_irqrestore(&mcp->lock, flags);
 }
 EXPORT_SYMBOL(mcp_enable);
@@ -158,8 +163,12 @@ void mcp_disable(struct mcp *mcp)
 	unsigned long flags;
 
 	spin_lock_irqsave(&mcp->lock, flags);
+
 	if (--mcp->use_count == 0)
+	{
 		mcp->ops->disable(mcp);
+	}
+
 	spin_unlock_irqrestore(&mcp->lock, flags);
 }
 EXPORT_SYMBOL(mcp_disable);
@@ -176,7 +185,9 @@ struct mcp *mcp_host_alloc(struct device *parent, size_t size)
 	struct mcp *mcp;
 
 	mcp = kzalloc(sizeof(struct mcp) + size, GFP_KERNEL);
-	if (mcp) {
+
+	if (mcp)
+	{
 		spin_lock_init(&mcp->lock);
 		device_initialize(&mcp->attached_device);
 		mcp->attached_device.parent = parent;
@@ -184,6 +195,7 @@ struct mcp *mcp_host_alloc(struct device *parent, size_t size)
 		mcp->attached_device.dma_mask = parent->dma_mask;
 		mcp->attached_device.release = mcp_release;
 	}
+
 	return mcp;
 }
 EXPORT_SYMBOL(mcp_host_alloc);

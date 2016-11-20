@@ -34,7 +34,8 @@
 #define RK808_LDO1	4 /* (4+RK808_START) */
 #define RK808_NUM_REGULATORS	14
 
-enum rk808_reg {
+enum rk808_reg
+{
 	RK808_ID_DCDC1,
 	RK808_ID_DCDC2,
 	RK808_ID_DCDC3,
@@ -126,7 +127,8 @@ enum rk808_reg {
 #define RK818_LDO1			4
 #define RK818_NUM_REGULATORS		17
 
-enum rk818_reg {
+enum rk818_reg
+{
 	RK818_ID_DCDC1,
 	RK818_ID_DCDC2,
 	RK818_ID_DCDC3,
@@ -297,7 +299,8 @@ enum rk818_reg {
 #define VOUT_LO_INT	BIT(0)
 #define CLK32KOUT2_EN	BIT(0)
 
-enum {
+enum
+{
 	BUCK_ILMIN_50MA,
 	BUCK_ILMIN_100MA,
 	BUCK_ILMIN_150MA,
@@ -308,7 +311,8 @@ enum {
 	BUCK_ILMIN_400MA,
 };
 
-enum {
+enum
+{
 	BOOST_ILMIN_75MA,
 	BOOST_ILMIN_100MA,
 	BOOST_ILMIN_125MA,
@@ -319,12 +323,14 @@ enum {
 	BOOST_ILMIN_250MA,
 };
 
-enum {
+enum
+{
 	RK808_ID = 0x0000,
 	RK818_ID = 0x8181,
 };
 
-struct rk808 {
+struct rk808
+{
 	struct i2c_client		*i2c;
 	struct regmap_irq_chip_data	*irq_data;
 	struct regmap			*regmap;

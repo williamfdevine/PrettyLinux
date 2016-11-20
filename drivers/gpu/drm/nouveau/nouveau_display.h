@@ -5,7 +5,8 @@
 
 #include "nouveau_drv.h"
 
-struct nouveau_framebuffer {
+struct nouveau_framebuffer
+{
 	struct drm_framebuffer base;
 	struct nouveau_bo *nvbo;
 	struct nvkm_vma vma;
@@ -23,9 +24,10 @@ nouveau_framebuffer(struct drm_framebuffer *fb)
 }
 
 int nouveau_framebuffer_init(struct drm_device *, struct nouveau_framebuffer *,
-			     const struct drm_mode_fb_cmd2 *, struct nouveau_bo *);
+							 const struct drm_mode_fb_cmd2 *, struct nouveau_bo *);
 
-struct nouveau_page_flip_state {
+struct nouveau_page_flip_state
+{
 	struct list_head head;
 	struct drm_pending_vblank_event *event;
 	struct drm_crtc *crtc;
@@ -33,7 +35,8 @@ struct nouveau_page_flip_state {
 	u64 offset;
 };
 
-struct nouveau_display {
+struct nouveau_display
+{
 	void *priv;
 	void (*dtor)(struct drm_device *);
 	int  (*init)(struct drm_device *);
@@ -69,21 +72,21 @@ void nouveau_display_resume(struct drm_device *dev, bool runtime);
 int  nouveau_display_vblank_enable(struct drm_device *, unsigned int);
 void nouveau_display_vblank_disable(struct drm_device *, unsigned int);
 int  nouveau_display_scanoutpos(struct drm_device *, unsigned int,
-				unsigned int, int *, int *, ktime_t *,
-				ktime_t *, const struct drm_display_mode *);
+								unsigned int, int *, int *, ktime_t *,
+								ktime_t *, const struct drm_display_mode *);
 int  nouveau_display_vblstamp(struct drm_device *, unsigned int, int *,
-			      struct timeval *, unsigned);
+							  struct timeval *, unsigned);
 
 int  nouveau_crtc_page_flip(struct drm_crtc *crtc, struct drm_framebuffer *fb,
-			    struct drm_pending_vblank_event *event,
-			    uint32_t page_flip_flags);
+							struct drm_pending_vblank_event *event,
+							uint32_t page_flip_flags);
 int  nouveau_finish_page_flip(struct nouveau_channel *,
-			      struct nouveau_page_flip_state *);
+							  struct nouveau_page_flip_state *);
 
 int  nouveau_display_dumb_create(struct drm_file *, struct drm_device *,
-				 struct drm_mode_create_dumb *args);
+								 struct drm_mode_create_dumb *args);
 int  nouveau_display_dumb_map_offset(struct drm_file *, struct drm_device *,
-				     u32 handle, u64 *offset);
+									 u32 handle, u64 *offset);
 
 void nouveau_hdmi_mode_set(struct drm_encoder *, struct drm_display_mode *);
 
@@ -99,7 +102,8 @@ nouveau_backlight_init(struct drm_device *dev)
 }
 
 static inline void
-nouveau_backlight_exit(struct drm_device *dev) {
+nouveau_backlight_exit(struct drm_device *dev)
+{
 }
 #endif
 

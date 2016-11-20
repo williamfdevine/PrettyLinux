@@ -37,15 +37,15 @@ struct sk_buff;
 
 void batadv_dat_status_update(struct net_device *net_dev);
 bool batadv_dat_snoop_outgoing_arp_request(struct batadv_priv *bat_priv,
-					   struct sk_buff *skb);
+		struct sk_buff *skb);
 bool batadv_dat_snoop_incoming_arp_request(struct batadv_priv *bat_priv,
-					   struct sk_buff *skb, int hdr_size);
+		struct sk_buff *skb, int hdr_size);
 void batadv_dat_snoop_outgoing_arp_reply(struct batadv_priv *bat_priv,
-					 struct sk_buff *skb);
+		struct sk_buff *skb);
 bool batadv_dat_snoop_incoming_arp_reply(struct batadv_priv *bat_priv,
-					 struct sk_buff *skb, int hdr_size);
+		struct sk_buff *skb, int hdr_size);
 bool batadv_dat_drop_broadcast_packet(struct batadv_priv *bat_priv,
-				      struct batadv_forw_packet *forw_packet);
+									  struct batadv_forw_packet *forw_packet);
 
 /**
  * batadv_dat_init_orig_node_addr - assign a DAT address to the orig_node
@@ -67,12 +67,12 @@ batadv_dat_init_orig_node_addr(struct batadv_orig_node *orig_node)
  */
 static inline void
 batadv_dat_init_own_addr(struct batadv_priv *bat_priv,
-			 struct batadv_hard_iface *primary_if)
+						 struct batadv_hard_iface *primary_if)
 {
 	u32 addr;
 
 	addr = batadv_choose_orig(primary_if->net_dev->dev_addr,
-				  BATADV_DAT_ADDR_MAX);
+							  BATADV_DAT_ADDR_MAX);
 
 	bat_priv->dat.addr = (batadv_dat_addr_t)addr;
 }
@@ -89,17 +89,19 @@ int batadv_dat_cache_seq_print_text(struct seq_file *seq, void *offset);
  * Updates the ethtool statistics for the received packet if it is a DAT subtype
  */
 static inline void batadv_dat_inc_counter(struct batadv_priv *bat_priv,
-					  u8 subtype)
+		u8 subtype)
 {
-	switch (subtype) {
-	case BATADV_P_DAT_DHT_GET:
-		batadv_inc_counter(bat_priv,
-				   BATADV_CNT_DAT_GET_RX);
-		break;
-	case BATADV_P_DAT_DHT_PUT:
-		batadv_inc_counter(bat_priv,
-				   BATADV_CNT_DAT_PUT_RX);
-		break;
+	switch (subtype)
+	{
+		case BATADV_P_DAT_DHT_GET:
+			batadv_inc_counter(bat_priv,
+							   BATADV_CNT_DAT_GET_RX);
+			break;
+
+		case BATADV_P_DAT_DHT_PUT:
+			batadv_inc_counter(bat_priv,
+							   BATADV_CNT_DAT_PUT_RX);
+			break;
 	}
 }
 
@@ -111,35 +113,35 @@ static inline void batadv_dat_status_update(struct net_device *net_dev)
 
 static inline bool
 batadv_dat_snoop_outgoing_arp_request(struct batadv_priv *bat_priv,
-				      struct sk_buff *skb)
+									  struct sk_buff *skb)
 {
 	return false;
 }
 
 static inline bool
 batadv_dat_snoop_incoming_arp_request(struct batadv_priv *bat_priv,
-				      struct sk_buff *skb, int hdr_size)
+									  struct sk_buff *skb, int hdr_size)
 {
 	return false;
 }
 
 static inline bool
 batadv_dat_snoop_outgoing_arp_reply(struct batadv_priv *bat_priv,
-				    struct sk_buff *skb)
+									struct sk_buff *skb)
 {
 	return false;
 }
 
 static inline bool
 batadv_dat_snoop_incoming_arp_reply(struct batadv_priv *bat_priv,
-				    struct sk_buff *skb, int hdr_size)
+									struct sk_buff *skb, int hdr_size)
 {
 	return false;
 }
 
 static inline bool
 batadv_dat_drop_broadcast_packet(struct batadv_priv *bat_priv,
-				 struct batadv_forw_packet *forw_packet)
+								 struct batadv_forw_packet *forw_packet)
 {
 	return false;
 }
@@ -150,12 +152,12 @@ batadv_dat_init_orig_node_addr(struct batadv_orig_node *orig_node)
 }
 
 static inline void batadv_dat_init_own_addr(struct batadv_priv *bat_priv,
-					    struct batadv_hard_iface *iface)
+		struct batadv_hard_iface *iface)
 {
 }
 
 static inline void batadv_arp_change_timeout(struct net_device *soft_iface,
-					     const char *name)
+		const char *name)
 {
 }
 
@@ -169,7 +171,7 @@ static inline void batadv_dat_free(struct batadv_priv *bat_priv)
 }
 
 static inline void batadv_dat_inc_counter(struct batadv_priv *bat_priv,
-					  u8 subtype)
+		u8 subtype)
 {
 }
 

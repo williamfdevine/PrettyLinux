@@ -15,7 +15,8 @@
  * Resources are tree-like, allowing
  * nesting etc..
  */
-struct resource {
+struct resource
+{
 	resource_size_t start;
 	resource_size_t end;
 	const char *name;
@@ -123,7 +124,8 @@ struct resource {
  * a new descriptor when a resource range supports the search interfaces.
  * Otherwise, resource.desc must be set to IORES_DESC_NONE (0).
  */
-enum {
+enum
+{
 	IORES_DESC_NONE				= 0,
 	IORES_DESC_CRASH_KERNEL			= 1,
 	IORES_DESC_ACPI_TABLES			= 2,
@@ -136,10 +138,10 @@ enum {
 #define DEFINE_RES_NAMED(_start, _size, _name, _flags)			\
 	{								\
 		.start = (_start),					\
-		.end = (_start) + (_size) - 1,				\
-		.name = (_name),					\
-		.flags = (_flags),					\
-		.desc = IORES_DESC_NONE,				\
+				 .end = (_start) + (_size) - 1,				\
+						.name = (_name),					\
+								.flags = (_flags),					\
+										 .desc = IORES_DESC_NONE,				\
 	}
 
 #define DEFINE_RES_IO_NAMED(_start, _size, _name)			\
@@ -171,24 +173,24 @@ extern int request_resource(struct resource *root, struct resource *new);
 extern int release_resource(struct resource *new);
 void release_child_resources(struct resource *new);
 extern void reserve_region_with_split(struct resource *root,
-			     resource_size_t start, resource_size_t end,
-			     const char *name);
+									  resource_size_t start, resource_size_t end,
+									  const char *name);
 extern struct resource *insert_resource_conflict(struct resource *parent, struct resource *new);
 extern int insert_resource(struct resource *parent, struct resource *new);
 extern void insert_resource_expand_to_fit(struct resource *root, struct resource *new);
 extern int remove_resource(struct resource *old);
 extern void arch_remove_reservations(struct resource *avail);
 extern int allocate_resource(struct resource *root, struct resource *new,
-			     resource_size_t size, resource_size_t min,
-			     resource_size_t max, resource_size_t align,
-			     resource_size_t (*alignf)(void *,
-						       const struct resource *,
-						       resource_size_t,
-						       resource_size_t),
-			     void *alignf_data);
+							 resource_size_t size, resource_size_t min,
+							 resource_size_t max, resource_size_t align,
+							 resource_size_t (*alignf)(void *,
+									 const struct resource *,
+									 resource_size_t,
+									 resource_size_t),
+							 void *alignf_data);
 struct resource *lookup_resource(struct resource *root, resource_size_t start);
 int adjust_resource(struct resource *res, resource_size_t start,
-		    resource_size_t size);
+					resource_size_t size);
 resource_size_t resource_alignment(struct resource *res);
 static inline resource_size_t resource_size(const struct resource *res)
 {
@@ -206,9 +208,15 @@ static inline unsigned long resource_ext_type(const struct resource *res)
 static inline bool resource_contains(struct resource *r1, struct resource *r2)
 {
 	if (resource_type(r1) != resource_type(r2))
+	{
 		return false;
+	}
+
 	if (r1->flags & IORESOURCE_UNSET || r2->flags & IORESOURCE_UNSET)
+	{
 		return false;
+	}
+
 	return r1->start <= r2->start && r1->end >= r2->end;
 }
 
@@ -222,27 +230,27 @@ static inline bool resource_contains(struct resource *r1, struct resource *r2)
 	__request_region(&iomem_resource, (start), (n), (name), IORESOURCE_EXCLUSIVE)
 #define rename_region(region, newname) do { (region)->name = (newname); } while (0)
 
-extern struct resource * __request_region(struct resource *,
-					resource_size_t start,
-					resource_size_t n,
-					const char *name, int flags);
+extern struct resource *__request_region(struct resource *,
+		resource_size_t start,
+		resource_size_t n,
+		const char *name, int flags);
 
 /* Compatibility cruft */
 #define release_region(start,n)	__release_region(&ioport_resource, (start), (n))
 #define release_mem_region(start,n)	__release_region(&iomem_resource, (start), (n))
 
 extern void __release_region(struct resource *, resource_size_t,
-				resource_size_t);
+							 resource_size_t);
 #ifdef CONFIG_MEMORY_HOTREMOVE
 extern int release_mem_region_adjustable(struct resource *, resource_size_t,
-				resource_size_t);
+		resource_size_t);
 #endif
 
 /* Wrappers for managed devices */
 struct device;
 
 extern int devm_request_resource(struct device *dev, struct resource *root,
-				 struct resource *new);
+								 struct resource *new);
 extern void devm_release_resource(struct device *dev, struct resource *new);
 
 #define devm_request_region(dev,start,n,name) \
@@ -250,9 +258,9 @@ extern void devm_release_resource(struct device *dev, struct resource *new);
 #define devm_request_mem_region(dev,start,n,name) \
 	__devm_request_region(dev, &iomem_resource, (start), (n), (name))
 
-extern struct resource * __devm_request_region(struct device *dev,
-				struct resource *parent, resource_size_t start,
-				resource_size_t n, const char *name);
+extern struct resource *__devm_request_region(struct device *dev,
+		struct resource *parent, resource_size_t start,
+		resource_size_t n, const char *name);
 
 #define devm_release_region(dev, start, n) \
 	__devm_release_region(dev, &ioport_resource, (start), (n))
@@ -260,24 +268,24 @@ extern struct resource * __devm_request_region(struct device *dev,
 	__devm_release_region(dev, &iomem_resource, (start), (n))
 
 extern void __devm_release_region(struct device *dev, struct resource *parent,
-				  resource_size_t start, resource_size_t n);
+								  resource_size_t start, resource_size_t n);
 extern int iomem_map_sanity_check(resource_size_t addr, unsigned long size);
 extern int iomem_is_exclusive(u64 addr);
 
 extern int
 walk_system_ram_range(unsigned long start_pfn, unsigned long nr_pages,
-		void *arg, int (*func)(unsigned long, unsigned long, void *));
+					  void *arg, int (*func)(unsigned long, unsigned long, void *));
 extern int
 walk_system_ram_res(u64 start, u64 end, void *arg,
-		    int (*func)(u64, u64, void *));
+					int (*func)(u64, u64, void *));
 extern int
 walk_iomem_res_desc(unsigned long desc, unsigned long flags, u64 start, u64 end,
-		    void *arg, int (*func)(u64, u64, void *));
+					void *arg, int (*func)(u64, u64, void *));
 
 /* True if any part of r1 overlaps r2 */
 static inline bool resource_overlaps(struct resource *r1, struct resource *r2)
 {
-       return (r1->start <= r2->end && r1->end >= r2->start);
+	return (r1->start <= r2->end && r1->end >= r2->start);
 }
 
 

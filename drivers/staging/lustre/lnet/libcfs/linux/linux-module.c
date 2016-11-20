@@ -47,112 +47,149 @@ static inline size_t libcfs_ioctl_packlen(struct libcfs_ioctl_data *data)
 
 static inline bool libcfs_ioctl_is_invalid(struct libcfs_ioctl_data *data)
 {
-	if (data->ioc_hdr.ioc_len > BIT(30)) {
+	if (data->ioc_hdr.ioc_len > BIT(30))
+	{
 		CERROR("LIBCFS ioctl: ioc_len larger than 1<<30\n");
 		return true;
 	}
-	if (data->ioc_inllen1 > BIT(30)) {
+
+	if (data->ioc_inllen1 > BIT(30))
+	{
 		CERROR("LIBCFS ioctl: ioc_inllen1 larger than 1<<30\n");
 		return true;
 	}
-	if (data->ioc_inllen2 > BIT(30)) {
+
+	if (data->ioc_inllen2 > BIT(30))
+	{
 		CERROR("LIBCFS ioctl: ioc_inllen2 larger than 1<<30\n");
 		return true;
 	}
-	if (data->ioc_inlbuf1 && !data->ioc_inllen1) {
+
+	if (data->ioc_inlbuf1 && !data->ioc_inllen1)
+	{
 		CERROR("LIBCFS ioctl: inlbuf1 pointer but 0 length\n");
 		return true;
 	}
-	if (data->ioc_inlbuf2 && !data->ioc_inllen2) {
+
+	if (data->ioc_inlbuf2 && !data->ioc_inllen2)
+	{
 		CERROR("LIBCFS ioctl: inlbuf2 pointer but 0 length\n");
 		return true;
 	}
-	if (data->ioc_pbuf1 && !data->ioc_plen1) {
+
+	if (data->ioc_pbuf1 && !data->ioc_plen1)
+	{
 		CERROR("LIBCFS ioctl: pbuf1 pointer but 0 length\n");
 		return true;
 	}
-	if (data->ioc_pbuf2 && !data->ioc_plen2) {
+
+	if (data->ioc_pbuf2 && !data->ioc_plen2)
+	{
 		CERROR("LIBCFS ioctl: pbuf2 pointer but 0 length\n");
 		return true;
 	}
-	if (data->ioc_plen1 && !data->ioc_pbuf1) {
+
+	if (data->ioc_plen1 && !data->ioc_pbuf1)
+	{
 		CERROR("LIBCFS ioctl: plen1 nonzero but no pbuf1 pointer\n");
 		return true;
 	}
-	if (data->ioc_plen2 && !data->ioc_pbuf2) {
+
+	if (data->ioc_plen2 && !data->ioc_pbuf2)
+	{
 		CERROR("LIBCFS ioctl: plen2 nonzero but no pbuf2 pointer\n");
 		return true;
 	}
-	if ((__u32)libcfs_ioctl_packlen(data) != data->ioc_hdr.ioc_len) {
+
+	if ((__u32)libcfs_ioctl_packlen(data) != data->ioc_hdr.ioc_len)
+	{
 		CERROR("LIBCFS ioctl: packlen != ioc_len\n");
 		return true;
 	}
+
 	if (data->ioc_inllen1 &&
-	    data->ioc_bulk[data->ioc_inllen1 - 1] != '\0') {
+		data->ioc_bulk[data->ioc_inllen1 - 1] != '\0')
+	{
 		CERROR("LIBCFS ioctl: inlbuf1 not 0 terminated\n");
 		return true;
 	}
+
 	if (data->ioc_inllen2 &&
-	    data->ioc_bulk[cfs_size_round(data->ioc_inllen1) +
-			   data->ioc_inllen2 - 1] != '\0') {
+		data->ioc_bulk[cfs_size_round(data->ioc_inllen1) +
+					   data->ioc_inllen2 - 1] != '\0')
+	{
 		CERROR("LIBCFS ioctl: inlbuf2 not 0 terminated\n");
 		return true;
 	}
+
 	return false;
 }
 
 int libcfs_ioctl_data_adjust(struct libcfs_ioctl_data *data)
 {
-	if (libcfs_ioctl_is_invalid(data)) {
+	if (libcfs_ioctl_is_invalid(data))
+	{
 		CERROR("libcfs ioctl: parameter not correctly formatted\n");
 		return -EINVAL;
 	}
 
 	if (data->ioc_inllen1)
+	{
 		data->ioc_inlbuf1 = &data->ioc_bulk[0];
+	}
 
 	if (data->ioc_inllen2)
 		data->ioc_inlbuf2 = &data->ioc_bulk[0] +
-			cfs_size_round(data->ioc_inllen1);
+							cfs_size_round(data->ioc_inllen1);
 
 	return 0;
 }
 
 int libcfs_ioctl_getdata(struct libcfs_ioctl_hdr **hdr_pp,
-			 const struct libcfs_ioctl_hdr __user *uhdr)
+						 const struct libcfs_ioctl_hdr __user *uhdr)
 {
 	struct libcfs_ioctl_hdr hdr;
 	int err = 0;
 
 	if (copy_from_user(&hdr, uhdr, sizeof(hdr)))
+	{
 		return -EFAULT;
+	}
 
 	if (hdr.ioc_version != LIBCFS_IOCTL_VERSION &&
-	    hdr.ioc_version != LIBCFS_IOCTL_VERSION2) {
+		hdr.ioc_version != LIBCFS_IOCTL_VERSION2)
+	{
 		CERROR("libcfs ioctl: version mismatch expected %#x, got %#x\n",
-		       LIBCFS_IOCTL_VERSION, hdr.ioc_version);
+			   LIBCFS_IOCTL_VERSION, hdr.ioc_version);
 		return -EINVAL;
 	}
 
-	if (hdr.ioc_len < sizeof(struct libcfs_ioctl_data)) {
+	if (hdr.ioc_len < sizeof(struct libcfs_ioctl_data))
+	{
 		CERROR("libcfs ioctl: user buffer too small for ioctl\n");
 		return -EINVAL;
 	}
 
-	if (hdr.ioc_len > LIBCFS_IOC_DATA_MAX) {
+	if (hdr.ioc_len > LIBCFS_IOC_DATA_MAX)
+	{
 		CERROR("libcfs ioctl: user buffer is too large %d/%d\n",
-		       hdr.ioc_len, LIBCFS_IOC_DATA_MAX);
+			   hdr.ioc_len, LIBCFS_IOC_DATA_MAX);
 		return -EINVAL;
 	}
 
 	LIBCFS_ALLOC(*hdr_pp, hdr.ioc_len);
-	if (!*hdr_pp)
-		return -ENOMEM;
 
-	if (copy_from_user(*hdr_pp, uhdr, hdr.ioc_len)) {
+	if (!*hdr_pp)
+	{
+		return -ENOMEM;
+	}
+
+	if (copy_from_user(*hdr_pp, uhdr, hdr.ioc_len))
+	{
 		LIBCFS_FREE(*hdr_pp, hdr.ioc_len);
 		err = -EFAULT;
 	}
+
 	return err;
 }
 
@@ -160,25 +197,30 @@ static long
 libcfs_psdev_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	if (!capable(CAP_SYS_ADMIN))
+	{
 		return -EACCES;
+	}
 
 	if (_IOC_TYPE(cmd) != IOC_LIBCFS_TYPE ||
-	    _IOC_NR(cmd) < IOC_LIBCFS_MIN_NR  ||
-	    _IOC_NR(cmd) > IOC_LIBCFS_MAX_NR) {
+		_IOC_NR(cmd) < IOC_LIBCFS_MIN_NR  ||
+		_IOC_NR(cmd) > IOC_LIBCFS_MAX_NR)
+	{
 		CDEBUG(D_IOCTL, "invalid ioctl ( type %d, nr %d, size %d )\n",
-		       _IOC_TYPE(cmd), _IOC_NR(cmd), _IOC_SIZE(cmd));
+			   _IOC_TYPE(cmd), _IOC_NR(cmd), _IOC_SIZE(cmd));
 		return -EINVAL;
 	}
 
 	return libcfs_ioctl(cmd, (void __user *)arg);
 }
 
-static const struct file_operations libcfs_fops = {
+static const struct file_operations libcfs_fops =
+{
 	.owner		= THIS_MODULE,
 	.unlocked_ioctl	= libcfs_psdev_ioctl,
 };
 
-struct miscdevice libcfs_dev = {
+struct miscdevice libcfs_dev =
+{
 	.minor = LNET_MINOR,
 	.name = "lnet",
 	.fops = &libcfs_fops,

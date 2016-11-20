@@ -29,10 +29,12 @@ static int fdtv_dvb_init(struct dvb_frontend *fe)
 	fdtv->isochannel = fdtv->adapter.num;
 
 	err = cmp_establish_pp_connection(fdtv, fdtv->subunit,
-					  fdtv->isochannel);
-	if (err) {
+									  fdtv->isochannel);
+
+	if (err)
+	{
 		dev_err(fdtv->device,
-			"could not establish point to point connection\n");
+				"could not establish point to point connection\n");
 		return err;
 	}
 
@@ -52,16 +54,16 @@ static int fdtv_sleep(struct dvb_frontend *fe)
 #define LNBCONTROL_DONTCARE 0xff
 
 static int fdtv_diseqc_send_master_cmd(struct dvb_frontend *fe,
-				       struct dvb_diseqc_master_cmd *cmd)
+									   struct dvb_diseqc_master_cmd *cmd)
 {
 	struct firedtv *fdtv = fe->sec_priv;
 
 	return avc_lnb_control(fdtv, LNBCONTROL_DONTCARE, LNBCONTROL_DONTCARE,
-			       LNBCONTROL_DONTCARE, 1, cmd);
+						   LNBCONTROL_DONTCARE, 1, cmd);
 }
 
 static int fdtv_diseqc_send_burst(struct dvb_frontend *fe,
-				  enum fe_sec_mini_cmd minicmd)
+								  enum fe_sec_mini_cmd minicmd)
 {
 	return 0;
 }
@@ -75,7 +77,7 @@ static int fdtv_set_tone(struct dvb_frontend *fe, enum fe_sec_tone_mode tone)
 }
 
 static int fdtv_set_voltage(struct dvb_frontend *fe,
-			    enum fe_sec_voltage voltage)
+							enum fe_sec_voltage voltage)
 {
 	struct firedtv *fdtv = fe->sec_priv;
 
@@ -89,13 +91,18 @@ static int fdtv_read_status(struct dvb_frontend *fe, enum fe_status *status)
 	struct firedtv_tuner_status stat;
 
 	if (avc_tuner_status(fdtv, &stat))
+	{
 		return -EINVAL;
+	}
 
 	if (stat.no_rf)
+	{
 		*status = 0;
+	}
 	else
 		*status = FE_HAS_SIGNAL | FE_HAS_VITERBI | FE_HAS_SYNC |
-			  FE_HAS_CARRIER | FE_HAS_LOCK;
+				  FE_HAS_CARRIER | FE_HAS_LOCK;
+
 	return 0;
 }
 
@@ -105,7 +112,9 @@ static int fdtv_read_ber(struct dvb_frontend *fe, u32 *ber)
 	struct firedtv_tuner_status stat;
 
 	if (avc_tuner_status(fdtv, &stat))
+	{
 		return -EINVAL;
+	}
 
 	*ber = stat.ber;
 	return 0;
@@ -117,7 +126,9 @@ static int fdtv_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
 	struct firedtv_tuner_status stat;
 
 	if (avc_tuner_status(fdtv, &stat))
+	{
 		return -EINVAL;
+	}
 
 	*strength = stat.signal_strength << 8;
 	return 0;
@@ -129,7 +140,9 @@ static int fdtv_read_snr(struct dvb_frontend *fe, u16 *snr)
 	struct firedtv_tuner_status stat;
 
 	if (avc_tuner_status(fdtv, &stat))
+	{
 		return -EINVAL;
+	}
 
 	/* C/N[dB] = -10 * log10(snr / 65535) */
 	*snr = stat.carrier_noise_ratio * 257;
@@ -170,83 +183,85 @@ void fdtv_frontend_init(struct firedtv *fdtv, const char *name)
 	ops->set_tone			= fdtv_set_tone;
 	ops->set_voltage		= fdtv_set_voltage;
 
-	switch (fdtv->type) {
-	case FIREDTV_DVB_S:
-		ops->delsys[0]		= SYS_DVBS;
+	switch (fdtv->type)
+	{
+		case FIREDTV_DVB_S:
+			ops->delsys[0]		= SYS_DVBS;
 
-		fi->frequency_min	= 950000;
-		fi->frequency_max	= 2150000;
-		fi->frequency_stepsize	= 125;
-		fi->symbol_rate_min	= 1000000;
-		fi->symbol_rate_max	= 40000000;
+			fi->frequency_min	= 950000;
+			fi->frequency_max	= 2150000;
+			fi->frequency_stepsize	= 125;
+			fi->symbol_rate_min	= 1000000;
+			fi->symbol_rate_max	= 40000000;
 
-		fi->caps		= FE_CAN_INVERSION_AUTO |
-					  FE_CAN_FEC_1_2	|
-					  FE_CAN_FEC_2_3	|
-					  FE_CAN_FEC_3_4	|
-					  FE_CAN_FEC_5_6	|
-					  FE_CAN_FEC_7_8	|
-					  FE_CAN_FEC_AUTO	|
-					  FE_CAN_QPSK;
-		break;
+			fi->caps		= FE_CAN_INVERSION_AUTO |
+							  FE_CAN_FEC_1_2	|
+							  FE_CAN_FEC_2_3	|
+							  FE_CAN_FEC_3_4	|
+							  FE_CAN_FEC_5_6	|
+							  FE_CAN_FEC_7_8	|
+							  FE_CAN_FEC_AUTO	|
+							  FE_CAN_QPSK;
+			break;
 
-	case FIREDTV_DVB_S2:
-		ops->delsys[0]		= SYS_DVBS;
-		ops->delsys[1]		= SYS_DVBS2;
+		case FIREDTV_DVB_S2:
+			ops->delsys[0]		= SYS_DVBS;
+			ops->delsys[1]		= SYS_DVBS2;
 
-		fi->frequency_min	= 950000;
-		fi->frequency_max	= 2150000;
-		fi->frequency_stepsize	= 125;
-		fi->symbol_rate_min	= 1000000;
-		fi->symbol_rate_max	= 40000000;
+			fi->frequency_min	= 950000;
+			fi->frequency_max	= 2150000;
+			fi->frequency_stepsize	= 125;
+			fi->symbol_rate_min	= 1000000;
+			fi->symbol_rate_max	= 40000000;
 
-		fi->caps		= FE_CAN_INVERSION_AUTO |
-					  FE_CAN_FEC_1_2        |
-					  FE_CAN_FEC_2_3        |
-					  FE_CAN_FEC_3_4        |
-					  FE_CAN_FEC_5_6        |
-					  FE_CAN_FEC_7_8        |
-					  FE_CAN_FEC_AUTO       |
-					  FE_CAN_QPSK           |
-					  FE_CAN_2G_MODULATION;
-		break;
+			fi->caps		= FE_CAN_INVERSION_AUTO |
+							  FE_CAN_FEC_1_2        |
+							  FE_CAN_FEC_2_3        |
+							  FE_CAN_FEC_3_4        |
+							  FE_CAN_FEC_5_6        |
+							  FE_CAN_FEC_7_8        |
+							  FE_CAN_FEC_AUTO       |
+							  FE_CAN_QPSK           |
+							  FE_CAN_2G_MODULATION;
+			break;
 
-	case FIREDTV_DVB_C:
-		ops->delsys[0]		= SYS_DVBC_ANNEX_A;
+		case FIREDTV_DVB_C:
+			ops->delsys[0]		= SYS_DVBC_ANNEX_A;
 
-		fi->frequency_min	= 47000000;
-		fi->frequency_max	= 866000000;
-		fi->frequency_stepsize	= 62500;
-		fi->symbol_rate_min	= 870000;
-		fi->symbol_rate_max	= 6900000;
+			fi->frequency_min	= 47000000;
+			fi->frequency_max	= 866000000;
+			fi->frequency_stepsize	= 62500;
+			fi->symbol_rate_min	= 870000;
+			fi->symbol_rate_max	= 6900000;
 
-		fi->caps 		= FE_CAN_INVERSION_AUTO |
-					  FE_CAN_QAM_16		|
-					  FE_CAN_QAM_32		|
-					  FE_CAN_QAM_64		|
-					  FE_CAN_QAM_128	|
-					  FE_CAN_QAM_256	|
-					  FE_CAN_QAM_AUTO;
-		break;
+			fi->caps 		= FE_CAN_INVERSION_AUTO |
+							  FE_CAN_QAM_16		|
+							  FE_CAN_QAM_32		|
+							  FE_CAN_QAM_64		|
+							  FE_CAN_QAM_128	|
+							  FE_CAN_QAM_256	|
+							  FE_CAN_QAM_AUTO;
+			break;
 
-	case FIREDTV_DVB_T:
-		ops->delsys[0]		= SYS_DVBT;
+		case FIREDTV_DVB_T:
+			ops->delsys[0]		= SYS_DVBT;
 
-		fi->frequency_min	= 49000000;
-		fi->frequency_max	= 861000000;
-		fi->frequency_stepsize	= 62500;
+			fi->frequency_min	= 49000000;
+			fi->frequency_max	= 861000000;
+			fi->frequency_stepsize	= 62500;
 
-		fi->caps 		= FE_CAN_INVERSION_AUTO		|
-					  FE_CAN_FEC_2_3		|
-					  FE_CAN_TRANSMISSION_MODE_AUTO |
-					  FE_CAN_GUARD_INTERVAL_AUTO	|
-					  FE_CAN_HIERARCHY_AUTO;
-		break;
+			fi->caps 		= FE_CAN_INVERSION_AUTO		|
+							  FE_CAN_FEC_2_3		|
+							  FE_CAN_TRANSMISSION_MODE_AUTO |
+							  FE_CAN_GUARD_INTERVAL_AUTO	|
+							  FE_CAN_HIERARCHY_AUTO;
+			break;
 
-	default:
-		dev_err(fdtv->device, "no frontend for model type %d\n",
-			fdtv->type);
+		default:
+			dev_err(fdtv->device, "no frontend for model type %d\n",
+					fdtv->type);
 	}
+
 	strcpy(fi->name, name);
 
 	fdtv->fe.dvb = &fdtv->adapter;

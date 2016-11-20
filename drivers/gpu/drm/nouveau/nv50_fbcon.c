@@ -35,28 +35,42 @@ nv50_fbcon_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
 	int ret;
 
 	ret = RING_SPACE(chan, rect->rop == ROP_COPY ? 7 : 11);
-	if (ret)
-		return ret;
 
-	if (rect->rop != ROP_COPY) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (rect->rop != ROP_COPY)
+	{
 		BEGIN_NV04(chan, NvSub2D, 0x02ac, 1);
 		OUT_RING(chan, 1);
 	}
+
 	BEGIN_NV04(chan, NvSub2D, 0x0588, 1);
+
 	if (info->fix.visual == FB_VISUAL_TRUECOLOR ||
-	    info->fix.visual == FB_VISUAL_DIRECTCOLOR)
+		info->fix.visual == FB_VISUAL_DIRECTCOLOR)
+	{
 		OUT_RING(chan, ((uint32_t *)info->pseudo_palette)[rect->color]);
+	}
 	else
+	{
 		OUT_RING(chan, rect->color);
+	}
+
 	BEGIN_NV04(chan, NvSub2D, 0x0600, 4);
 	OUT_RING(chan, rect->dx);
 	OUT_RING(chan, rect->dy);
 	OUT_RING(chan, rect->dx + rect->width);
 	OUT_RING(chan, rect->dy + rect->height);
-	if (rect->rop != ROP_COPY) {
+
+	if (rect->rop != ROP_COPY)
+	{
 		BEGIN_NV04(chan, NvSub2D, 0x02ac, 1);
 		OUT_RING(chan, 3);
 	}
+
 	FIRE_RING(chan);
 	return 0;
 }
@@ -70,8 +84,11 @@ nv50_fbcon_copyarea(struct fb_info *info, const struct fb_copyarea *region)
 	int ret;
 
 	ret = RING_SPACE(chan, 12);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	BEGIN_NV04(chan, NvSub2D, 0x0110, 1);
 	OUT_RING(chan, 0);
@@ -101,21 +118,31 @@ nv50_fbcon_imageblit(struct fb_info *info, const struct fb_image *image)
 	int ret;
 
 	if (image->depth != 1)
+	{
 		return -ENODEV;
+	}
 
 	ret = RING_SPACE(chan, 11);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	BEGIN_NV04(chan, NvSub2D, 0x0814, 2);
+
 	if (info->fix.visual == FB_VISUAL_TRUECOLOR ||
-	    info->fix.visual == FB_VISUAL_DIRECTCOLOR) {
+		info->fix.visual == FB_VISUAL_DIRECTCOLOR)
+	{
 		OUT_RING(chan, palette[image->bg_color] | mask);
 		OUT_RING(chan, palette[image->fg_color] | mask);
-	} else {
+	}
+	else
+	{
 		OUT_RING(chan, image->bg_color);
 		OUT_RING(chan, image->fg_color);
 	}
+
 	BEGIN_NV04(chan, NvSub2D, 0x0838, 2);
 	OUT_RING(chan, image->width);
 	OUT_RING(chan, image->height);
@@ -126,12 +153,17 @@ nv50_fbcon_imageblit(struct fb_info *info, const struct fb_image *image)
 	OUT_RING(chan, image->dy);
 
 	dwords = ALIGN(ALIGN(image->width, 8) * image->height, 32) >> 5;
-	while (dwords) {
+
+	while (dwords)
+	{
 		int push = dwords > 2047 ? 2047 : dwords;
 
 		ret = RING_SPACE(chan, push + 1);
+
 		if (ret)
+		{
 			return ret;
+		}
 
 		dwords -= push;
 
@@ -154,40 +186,54 @@ nv50_fbcon_accel_init(struct fb_info *info)
 	struct nouveau_channel *chan = drm->channel;
 	int ret, format;
 
-	switch (info->var.bits_per_pixel) {
-	case 8:
-		format = 0xf3;
-		break;
-	case 15:
-		format = 0xf8;
-		break;
-	case 16:
-		format = 0xe8;
-		break;
-	case 32:
-		switch (info->var.transp.length) {
-		case 0: /* depth 24 */
-		case 8: /* depth 32, just use 24.. */
-			format = 0xe6;
+	switch (info->var.bits_per_pixel)
+	{
+		case 8:
+			format = 0xf3;
 			break;
-		case 2: /* depth 30 */
-			format = 0xd1;
+
+		case 15:
+			format = 0xf8;
 			break;
+
+		case 16:
+			format = 0xe8;
+			break;
+
+		case 32:
+			switch (info->var.transp.length)
+			{
+				case 0: /* depth 24 */
+				case 8: /* depth 32, just use 24.. */
+					format = 0xe6;
+					break;
+
+				case 2: /* depth 30 */
+					format = 0xd1;
+					break;
+
+				default:
+					return -EINVAL;
+			}
+
+			break;
+
 		default:
 			return -EINVAL;
-		}
-		break;
-	default:
-		return -EINVAL;
 	}
 
 	ret = nvif_object_init(&chan->user, 0x502d, 0x502d, NULL, 0,
-			       &nfbdev->twod);
+						   &nfbdev->twod);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = RING_SPACE(chan, 58);
-	if (ret) {
+
+	if (ret)
+	{
 		nouveau_fbcon_gpu_lockup(info);
 		return ret;
 	}

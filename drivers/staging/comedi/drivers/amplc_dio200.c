@@ -201,7 +201,8 @@
 /*
  * Board descriptions.
  */
-static const struct dio200_board dio200_isa_boards[] = {
+static const struct dio200_board dio200_isa_boards[] =
+{
 	{
 		.name		= "pc212e",
 		.n_subdevs	= 6,
@@ -252,13 +253,17 @@ static int dio200_attach(struct comedi_device *dev, struct comedi_devconfig *it)
 	int ret;
 
 	ret = comedi_request_region(dev, it->options[0], 0x20);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return amplc_dio200_common_attach(dev, it->options[1], 0);
 }
 
-static struct comedi_driver amplc_dio200_driver = {
+static struct comedi_driver amplc_dio200_driver =
+{
 	.driver_name	= "amplc_dio200",
 	.module		= THIS_MODULE,
 	.attach		= dio200_attach,

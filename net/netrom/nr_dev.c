@@ -44,7 +44,8 @@ int nr_rx_ip(struct sk_buff *skb, struct net_device *dev)
 {
 	struct net_device_stats *stats = &dev->stats;
 
-	if (!netif_running(dev)) {
+	if (!netif_running(dev))
+	{
 		stats->rx_dropped++;
 		return 0;
 	}
@@ -66,8 +67,8 @@ int nr_rx_ip(struct sk_buff *skb, struct net_device *dev)
 }
 
 static int nr_header(struct sk_buff *skb, struct net_device *dev,
-		     unsigned short type,
-		     const void *daddr, const void *saddr, unsigned int len)
+					 unsigned short type,
+					 const void *daddr, const void *saddr, unsigned int len)
 {
 	unsigned char *buff = skb_push(skb, NR_NETWORK_LEN + NR_TRANSPORT_LEN);
 
@@ -78,7 +79,10 @@ static int nr_header(struct sk_buff *skb, struct net_device *dev,
 	buff    += AX25_ADDR_LEN;
 
 	if (daddr != NULL)
+	{
 		memcpy(buff, daddr, dev->addr_len);
+	}
+
 	buff[6] &= ~AX25_CBIT;
 	buff[6] |= AX25_EBIT;
 	buff[6] |= AX25_SSSID_SPARE;
@@ -93,7 +97,9 @@ static int nr_header(struct sk_buff *skb, struct net_device *dev,
 	*buff++ = NR_PROTOEXT;
 
 	if (daddr != NULL)
+	{
 		return 37;
+	}
 
 	return -37;
 }
@@ -104,12 +110,18 @@ static int __must_check nr_set_mac_address(struct net_device *dev, void *addr)
 	int err;
 
 	if (!memcmp(dev->dev_addr, sa->sa_data, dev->addr_len))
+	{
 		return 0;
+	}
 
-	if (dev->flags & IFF_UP) {
+	if (dev->flags & IFF_UP)
+	{
 		err = ax25_listen_register((ax25_address *)sa->sa_data, NULL);
+
 		if (err)
+		{
 			return err;
+		}
 
 		ax25_listen_release((ax25_address *)dev->dev_addr, NULL);
 	}
@@ -124,8 +136,11 @@ static int nr_open(struct net_device *dev)
 	int err;
 
 	err = ax25_listen_register((ax25_address *)dev->dev_addr, NULL);
+
 	if (err)
+	{
 		return err;
+	}
 
 	netif_start_queue(dev);
 
@@ -144,7 +159,8 @@ static netdev_tx_t nr_xmit(struct sk_buff *skb, struct net_device *dev)
 	struct net_device_stats *stats = &dev->stats;
 	unsigned int len = skb->len;
 
-	if (!nr_route_frame(skb, NULL)) {
+	if (!nr_route_frame(skb, NULL))
+	{
 		kfree_skb(skb);
 		stats->tx_errors++;
 		return NETDEV_TX_OK;
@@ -156,11 +172,13 @@ static netdev_tx_t nr_xmit(struct sk_buff *skb, struct net_device *dev)
 	return NETDEV_TX_OK;
 }
 
-static const struct header_ops nr_header_ops = {
+static const struct header_ops nr_header_ops =
+{
 	.create	= nr_header,
 };
 
-static const struct net_device_ops nr_netdev_ops = {
+static const struct net_device_ops nr_netdev_ops =
+{
 	.ndo_open		= nr_open,
 	.ndo_stop		= nr_close,
 	.ndo_start_xmit		= nr_xmit,

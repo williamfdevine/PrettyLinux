@@ -30,7 +30,8 @@ int cxd2820r_set_frontend_c(struct dvb_frontend *fe)
 	unsigned int utmp;
 	u8 buf[2];
 	u32 if_frequency;
-	struct reg_val_mask tab[] = {
+	struct reg_val_mask tab[] =
+	{
 		{ 0x00080, 0x01, 0xff },
 		{ 0x00081, 0x05, 0xff },
 		{ 0x00085, 0x07, 0xff },
@@ -49,30 +50,43 @@ int cxd2820r_set_frontend_c(struct dvb_frontend *fe)
 	};
 
 	dev_dbg(&client->dev,
-		"delivery_system=%d modulation=%d frequency=%u symbol_rate=%u inversion=%d\n",
-		c->delivery_system, c->modulation, c->frequency,
-		c->symbol_rate, c->inversion);
+			"delivery_system=%d modulation=%d frequency=%u symbol_rate=%u inversion=%d\n",
+			c->delivery_system, c->modulation, c->frequency,
+			c->symbol_rate, c->inversion);
 
 	/* program tuner */
 	if (fe->ops.tuner_ops.set_params)
+	{
 		fe->ops.tuner_ops.set_params(fe);
+	}
 
-	if (priv->delivery_system !=  SYS_DVBC_ANNEX_A) {
+	if (priv->delivery_system !=  SYS_DVBC_ANNEX_A)
+	{
 		ret = cxd2820r_wr_reg_val_mask_tab(priv, tab, ARRAY_SIZE(tab));
+
 		if (ret)
+		{
 			goto error;
+		}
 	}
 
 	priv->delivery_system = SYS_DVBC_ANNEX_A;
 	priv->ber_running = false; /* tune stops BER counter */
 
 	/* program IF frequency */
-	if (fe->ops.tuner_ops.get_if_frequency) {
+	if (fe->ops.tuner_ops.get_if_frequency)
+	{
 		ret = fe->ops.tuner_ops.get_if_frequency(fe, &if_frequency);
+
 		if (ret)
+		{
 			goto error;
+		}
+
 		dev_dbg(&client->dev, "if_frequency=%u\n", if_frequency);
-	} else {
+	}
+	else
+	{
 		ret = -EINVAL;
 		goto error;
 	}
@@ -81,16 +95,25 @@ int cxd2820r_set_frontend_c(struct dvb_frontend *fe)
 	buf[0] = (utmp >> 8) & 0xff;
 	buf[1] = (utmp >> 0) & 0xff;
 	ret = regmap_bulk_write(priv->regmap[1], 0x0042, buf, 2);
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	ret = regmap_write(priv->regmap[0], 0x00ff, 0x08);
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	ret = regmap_write(priv->regmap[0], 0x00fe, 0x01);
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	return ret;
 error:
@@ -99,7 +122,7 @@ error:
 }
 
 int cxd2820r_get_frontend_c(struct dvb_frontend *fe,
-			    struct dtv_frontend_properties *c)
+							struct dtv_frontend_properties *c)
 {
 	struct cxd2820r_priv *priv = fe->demodulator_priv;
 	struct i2c_client *client = priv->client[0];
@@ -110,40 +133,53 @@ int cxd2820r_get_frontend_c(struct dvb_frontend *fe,
 	dev_dbg(&client->dev, "\n");
 
 	ret = regmap_bulk_read(priv->regmap[1], 0x001a, buf, 2);
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	c->symbol_rate = 2500 * ((buf[0] & 0x0f) << 8 | buf[1]);
 
 	ret = regmap_read(priv->regmap[1], 0x0019, &utmp);
-	if (ret)
-		goto error;
 
-	switch ((utmp >> 0) & 0x07) {
-	case 0:
-		c->modulation = QAM_16;
-		break;
-	case 1:
-		c->modulation = QAM_32;
-		break;
-	case 2:
-		c->modulation = QAM_64;
-		break;
-	case 3:
-		c->modulation = QAM_128;
-		break;
-	case 4:
-		c->modulation = QAM_256;
-		break;
+	if (ret)
+	{
+		goto error;
 	}
 
-	switch ((utmp >> 7) & 0x01) {
-	case 0:
-		c->inversion = INVERSION_OFF;
-		break;
-	case 1:
-		c->inversion = INVERSION_ON;
-		break;
+	switch ((utmp >> 0) & 0x07)
+	{
+		case 0:
+			c->modulation = QAM_16;
+			break;
+
+		case 1:
+			c->modulation = QAM_32;
+			break;
+
+		case 2:
+			c->modulation = QAM_64;
+			break;
+
+		case 3:
+			c->modulation = QAM_128;
+			break;
+
+		case 4:
+			c->modulation = QAM_256;
+			break;
+	}
+
+	switch ((utmp >> 7) & 0x01)
+	{
+		case 0:
+			c->inversion = INVERSION_OFF;
+			break;
+
+		case 1:
+			c->inversion = INVERSION_ON;
+			break;
 	}
 
 	return ret;
@@ -163,35 +199,51 @@ int cxd2820r_read_status_c(struct dvb_frontend *fe, enum fe_status *status)
 
 	/* Lock detection */
 	ret = regmap_bulk_read(priv->regmap[1], 0x0088, &buf[0], 1);
+
 	if (ret)
+	{
 		goto error;
+	}
+
 	ret = regmap_bulk_read(priv->regmap[1], 0x0073, &buf[1], 1);
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	utmp1 = (buf[0] >> 0) & 0x01;
 	utmp2 = (buf[1] >> 3) & 0x01;
 
-	if (utmp1 == 1 && utmp2 == 1) {
+	if (utmp1 == 1 && utmp2 == 1)
+	{
 		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
-			  FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
-	} else if (utmp1 == 1 || utmp2 == 1) {
+				  FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
+	}
+	else if (utmp1 == 1 || utmp2 == 1)
+	{
 		*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
-			  FE_HAS_VITERBI | FE_HAS_SYNC;
-	} else {
+				  FE_HAS_VITERBI | FE_HAS_SYNC;
+	}
+	else
+	{
 		*status = 0;
 	}
 
 	dev_dbg(&client->dev, "status=%02x raw=%*ph sync=%u ts=%u\n",
-		*status, 2, buf, utmp1, utmp2);
+			*status, 2, buf, utmp1, utmp2);
 
 	/* Signal strength */
-	if (*status & FE_HAS_SIGNAL) {
+	if (*status & FE_HAS_SIGNAL)
+	{
 		unsigned int strength;
 
 		ret = regmap_bulk_read(priv->regmap[1], 0x0049, buf, 2);
+
 		if (ret)
+		{
 			goto error;
+		}
 
 		utmp = buf[0] << 8 | buf[1] << 0;
 		utmp = 511 - sign_extend32(utmp, 9);
@@ -201,74 +253,106 @@ int cxd2820r_read_status_c(struct dvb_frontend *fe, enum fe_status *status)
 		c->strength.len = 1;
 		c->strength.stat[0].scale = FE_SCALE_RELATIVE;
 		c->strength.stat[0].uvalue = strength;
-	} else {
+	}
+	else
+	{
 		c->strength.len = 1;
 		c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
 	}
 
 	/* CNR */
-	if (*status & FE_HAS_VITERBI) {
+	if (*status & FE_HAS_VITERBI)
+	{
 		unsigned int cnr, const_a, const_b;
 
 		ret = regmap_read(priv->regmap[1], 0x0019, &utmp);
-		if (ret)
-			goto error;
 
-		if (((utmp >> 0) & 0x03) % 2) {
+		if (ret)
+		{
+			goto error;
+		}
+
+		if (((utmp >> 0) & 0x03) % 2)
+		{
 			const_a = 8750;
 			const_b = 650;
-		} else {
+		}
+		else
+		{
 			const_a = 9500;
 			const_b = 760;
 		}
 
 		ret = regmap_read(priv->regmap[1], 0x004d, &utmp);
-		if (ret)
-			goto error;
 
-		#define CXD2820R_LOG2_E_24 24204406 /* log2(e) << 24 */
+		if (ret)
+		{
+			goto error;
+		}
+
+#define CXD2820R_LOG2_E_24 24204406 /* log2(e) << 24 */
+
 		if (utmp)
 			cnr = div_u64((u64)(intlog2(const_b) - intlog2(utmp))
-				      * const_a, CXD2820R_LOG2_E_24);
+						  * const_a, CXD2820R_LOG2_E_24);
 		else
+		{
 			cnr = 0;
+		}
 
 		c->cnr.len = 1;
 		c->cnr.stat[0].scale = FE_SCALE_DECIBEL;
 		c->cnr.stat[0].svalue = cnr;
-	} else {
+	}
+	else
+	{
 		c->cnr.len = 1;
 		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
 	}
 
 	/* BER */
-	if (*status & FE_HAS_SYNC) {
+	if (*status & FE_HAS_SYNC)
+	{
 		unsigned int post_bit_error;
 		bool start_ber;
 
-		if (priv->ber_running) {
+		if (priv->ber_running)
+		{
 			ret = regmap_bulk_read(priv->regmap[1], 0x0076, buf, 3);
-			if (ret)
-				goto error;
 
-			if ((buf[2] >> 7) & 0x01) {
+			if (ret)
+			{
+				goto error;
+			}
+
+			if ((buf[2] >> 7) & 0x01)
+			{
 				post_bit_error = buf[2] << 16 | buf[1] << 8 |
-						 buf[0] << 0;
+								 buf[0] << 0;
 				post_bit_error &= 0x0fffff;
 				start_ber = true;
-			} else {
+			}
+			else
+			{
 				post_bit_error = 0;
 				start_ber = false;
 			}
-		} else {
+		}
+		else
+		{
 			post_bit_error = 0;
 			start_ber = true;
 		}
 
-		if (start_ber) {
+		if (start_ber)
+		{
 			ret = regmap_write(priv->regmap[1], 0x0079, 0x01);
+
 			if (ret)
+			{
 				goto error;
+			}
+
 			priv->ber_running = true;
 		}
 
@@ -277,7 +361,9 @@ int cxd2820r_read_status_c(struct dvb_frontend *fe, enum fe_status *status)
 		c->post_bit_error.len = 1;
 		c->post_bit_error.stat[0].scale = FE_SCALE_COUNTER;
 		c->post_bit_error.stat[0].uvalue = priv->post_bit_error;
-	} else {
+	}
+	else
+	{
 		c->post_bit_error.len = 1;
 		c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
 	}
@@ -297,8 +383,11 @@ int cxd2820r_init_c(struct dvb_frontend *fe)
 	dev_dbg(&client->dev, "\n");
 
 	ret = regmap_write(priv->regmap[0], 0x0085, 0x07);
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	return ret;
 error:
@@ -311,7 +400,8 @@ int cxd2820r_sleep_c(struct dvb_frontend *fe)
 	struct cxd2820r_priv *priv = fe->demodulator_priv;
 	struct i2c_client *client = priv->client[0];
 	int ret;
-	struct reg_val_mask tab[] = {
+	struct reg_val_mask tab[] =
+	{
 		{ 0x000ff, 0x1f, 0xff },
 		{ 0x00085, 0x00, 0xff },
 		{ 0x00088, 0x01, 0xff },
@@ -324,8 +414,11 @@ int cxd2820r_sleep_c(struct dvb_frontend *fe)
 	priv->delivery_system = SYS_UNDEFINED;
 
 	ret = cxd2820r_wr_reg_val_mask_tab(priv, tab, ARRAY_SIZE(tab));
+
 	if (ret)
+	{
 		goto error;
+	}
 
 	return ret;
 error:
@@ -334,7 +427,7 @@ error:
 }
 
 int cxd2820r_get_tune_settings_c(struct dvb_frontend *fe,
-	struct dvb_frontend_tune_settings *s)
+								 struct dvb_frontend_tune_settings *s)
 {
 	s->min_delay_ms = 500;
 	s->step_size = 0; /* no zigzag */

@@ -25,7 +25,8 @@
 #include "rootnv50.h"
 
 static const struct nv50_disp_func
-gk104_disp = {
+	gk104_disp =
+{
 	.intr = gf119_disp_intr,
 	.intr_error = gf119_disp_intr_error,
 	.uevent = &gf119_disp_chan_uevent,

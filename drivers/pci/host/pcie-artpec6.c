@@ -26,7 +26,8 @@
 
 #define to_artpec6_pcie(x)	container_of(x, struct artpec6_pcie, pp)
 
-struct artpec6_pcie {
+struct artpec6_pcie
+{
 	struct pcie_port	pp;		/* pp.dbi_base is DT dbi */
 	struct regmap		*regmap;	/* DT axis,syscon-pcie */
 	void __iomem		*phy_base;	/* DT phy */
@@ -91,9 +92,9 @@ static int artpec6_pcie_establish_link(struct artpec6_pcie *artpec6_pcie)
 
 	val = artpec6_pcie_readl(artpec6_pcie, PCIECFG);
 	val |=  PCIECFG_RISRCREN |	/* Receiver term. 50 Ohm */
-		PCIECFG_MODE_TX_DRV_EN |
-		PCIECFG_CISRREN |	/* Reference clock term. 100 Ohm */
-		PCIECFG_MACRO_ENABLE;
+			PCIECFG_MODE_TX_DRV_EN |
+			PCIECFG_CISRREN |	/* Reference clock term. 100 Ohm */
+			PCIECFG_MACRO_ENABLE;
 	val |= PCIECFG_REFCLK_ENABLE;
 	val &= ~PCIECFG_DBG_OEN;
 	val &= ~PCIECFG_CLKREQ_B;
@@ -115,19 +116,25 @@ static int artpec6_pcie_establish_link(struct artpec6_pcie *artpec6_pcie)
 	artpec6_pcie_writel(artpec6_pcie, NOCCFG, val);
 
 	retries = 50;
-	do {
+
+	do
+	{
 		usleep_range(1000, 2000);
 		val = artpec6_pcie_readl(artpec6_pcie, NOCCFG);
 		retries--;
-	} while (retries &&
-		(val & (NOCCFG_POWER_PCIE_IDLEACK | NOCCFG_POWER_PCIE_IDLE)));
+	}
+	while (retries &&
+		   (val & (NOCCFG_POWER_PCIE_IDLEACK | NOCCFG_POWER_PCIE_IDLE)));
 
 	retries = 50;
-	do {
+
+	do
+	{
 		usleep_range(1000, 2000);
 		val = readl(artpec6_pcie->phy_base + PHY_STATUS);
 		retries--;
-	} while (retries && !(val & PHY_COSPLLLOCK));
+	}
+	while (retries && !(val & PHY_COSPLLLOCK));
 
 	/* Take DW core out of reset */
 	val = artpec6_pcie_readl(artpec6_pcie, PCIECFG);
@@ -156,11 +163,13 @@ static int artpec6_pcie_establish_link(struct artpec6_pcie *artpec6_pcie)
 
 	/* check if the link is up or not */
 	if (!dw_pcie_wait_for_link(pp))
+	{
 		return 0;
+	}
 
 	dev_dbg(pp->dev, "DEBUG_R0: 0x%08x, DEBUG_R1: 0x%08x\n",
-		dw_pcie_readl_rc(pp, PCIE_PHY_DEBUG_R0),
-		dw_pcie_readl_rc(pp, PCIE_PHY_DEBUG_R1));
+			dw_pcie_readl_rc(pp, PCIE_PHY_DEBUG_R0),
+			dw_pcie_readl_rc(pp, PCIE_PHY_DEBUG_R1));
 
 	return -ETIMEDOUT;
 }
@@ -170,7 +179,9 @@ static void artpec6_pcie_enable_interrupts(struct artpec6_pcie *artpec6_pcie)
 	struct pcie_port *pp = &artpec6_pcie->pp;
 
 	if (IS_ENABLED(CONFIG_PCI_MSI))
+	{
 		dw_pcie_msi_init(pp);
+	}
 }
 
 static void artpec6_pcie_host_init(struct pcie_port *pp)
@@ -181,7 +192,8 @@ static void artpec6_pcie_host_init(struct pcie_port *pp)
 	artpec6_pcie_enable_interrupts(artpec6_pcie);
 }
 
-static struct pcie_host_ops artpec6_pcie_host_ops = {
+static struct pcie_host_ops artpec6_pcie_host_ops =
+{
 	.host_init = artpec6_pcie_host_init,
 };
 
@@ -194,24 +206,29 @@ static irqreturn_t artpec6_pcie_msi_handler(int irq, void *arg)
 }
 
 static int artpec6_add_pcie_port(struct artpec6_pcie *artpec6_pcie,
-				 struct platform_device *pdev)
+								 struct platform_device *pdev)
 {
 	struct pcie_port *pp = &artpec6_pcie->pp;
 	struct device *dev = pp->dev;
 	int ret;
 
-	if (IS_ENABLED(CONFIG_PCI_MSI)) {
+	if (IS_ENABLED(CONFIG_PCI_MSI))
+	{
 		pp->msi_irq = platform_get_irq_byname(pdev, "msi");
-		if (pp->msi_irq <= 0) {
+
+		if (pp->msi_irq <= 0)
+		{
 			dev_err(dev, "failed to get MSI irq\n");
 			return -ENODEV;
 		}
 
 		ret = devm_request_irq(dev, pp->msi_irq,
-				       artpec6_pcie_msi_handler,
-				       IRQF_SHARED | IRQF_NO_THREAD,
-				       "artpec6-pcie-msi", artpec6_pcie);
-		if (ret) {
+							   artpec6_pcie_msi_handler,
+							   IRQF_SHARED | IRQF_NO_THREAD,
+							   "artpec6-pcie-msi", artpec6_pcie);
+
+		if (ret)
+		{
 			dev_err(dev, "failed to request MSI irq\n");
 			return ret;
 		}
@@ -221,7 +238,9 @@ static int artpec6_add_pcie_port(struct artpec6_pcie *artpec6_pcie,
 	pp->ops = &artpec6_pcie_host_ops;
 
 	ret = dw_pcie_host_init(pp);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev, "failed to initialize host\n");
 		return ret;
 	}
@@ -239,41 +258,58 @@ static int artpec6_pcie_probe(struct platform_device *pdev)
 	int ret;
 
 	artpec6_pcie = devm_kzalloc(dev, sizeof(*artpec6_pcie), GFP_KERNEL);
+
 	if (!artpec6_pcie)
+	{
 		return -ENOMEM;
+	}
 
 	pp = &artpec6_pcie->pp;
 	pp->dev = dev;
 
 	dbi_base = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dbi");
 	pp->dbi_base = devm_ioremap_resource(dev, dbi_base);
+
 	if (IS_ERR(pp->dbi_base))
+	{
 		return PTR_ERR(pp->dbi_base);
+	}
 
 	phy_base = platform_get_resource_byname(pdev, IORESOURCE_MEM, "phy");
 	artpec6_pcie->phy_base = devm_ioremap_resource(dev, phy_base);
+
 	if (IS_ERR(artpec6_pcie->phy_base))
+	{
 		return PTR_ERR(artpec6_pcie->phy_base);
+	}
 
 	artpec6_pcie->regmap =
 		syscon_regmap_lookup_by_phandle(dev->of_node,
-						"axis,syscon-pcie");
+										"axis,syscon-pcie");
+
 	if (IS_ERR(artpec6_pcie->regmap))
+	{
 		return PTR_ERR(artpec6_pcie->regmap);
+	}
 
 	ret = artpec6_add_pcie_port(artpec6_pcie, pdev);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
 
-static const struct of_device_id artpec6_pcie_of_match[] = {
+static const struct of_device_id artpec6_pcie_of_match[] =
+{
 	{ .compatible = "axis,artpec6-pcie", },
 	{},
 };
 
-static struct platform_driver artpec6_pcie_driver = {
+static struct platform_driver artpec6_pcie_driver =
+{
 	.probe = artpec6_pcie_probe,
 	.driver = {
 		.name	= "artpec6-pcie",

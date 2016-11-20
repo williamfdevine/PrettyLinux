@@ -28,29 +28,37 @@
 const char *mei_dev_state_str(int state)
 {
 #define MEI_DEV_STATE(state) case MEI_DEV_##state: return #state
-	switch (state) {
-	MEI_DEV_STATE(INITIALIZING);
-	MEI_DEV_STATE(INIT_CLIENTS);
-	MEI_DEV_STATE(ENABLED);
-	MEI_DEV_STATE(RESETTING);
-	MEI_DEV_STATE(DISABLED);
-	MEI_DEV_STATE(POWER_DOWN);
-	MEI_DEV_STATE(POWER_UP);
-	default:
-		return "unknown";
+
+	switch (state)
+	{
+			MEI_DEV_STATE(INITIALIZING);
+			MEI_DEV_STATE(INIT_CLIENTS);
+			MEI_DEV_STATE(ENABLED);
+			MEI_DEV_STATE(RESETTING);
+			MEI_DEV_STATE(DISABLED);
+			MEI_DEV_STATE(POWER_DOWN);
+			MEI_DEV_STATE(POWER_UP);
+
+		default:
+			return "unknown";
 	}
+
 #undef MEI_DEV_STATE
 }
 
 const char *mei_pg_state_str(enum mei_pg_state state)
 {
 #define MEI_PG_STATE(state) case MEI_PG_##state: return #state
-	switch (state) {
-	MEI_PG_STATE(OFF);
-	MEI_PG_STATE(ON);
-	default:
-		return "unknown";
+
+	switch (state)
+	{
+			MEI_PG_STATE(OFF);
+			MEI_PG_STATE(ON);
+
+		default:
+			return "unknown";
 	}
+
 #undef MEI_PG_STATE
 }
 
@@ -64,7 +72,7 @@ const char *mei_pg_state_str(enum mei_pg_state state)
  * Return: number of bytes written or -EINVAL if buffer is to small
  */
 ssize_t mei_fw_status2str(struct mei_fw_status *fw_status,
-			  char *buf, size_t len)
+						  char *buf, size_t len)
 {
 	ssize_t cnt = 0;
 	int i;
@@ -72,11 +80,13 @@ ssize_t mei_fw_status2str(struct mei_fw_status *fw_status,
 	buf[0] = '\0';
 
 	if (len < MEI_FW_STATUS_STR_SZ)
+	{
 		return -EINVAL;
+	}
 
 	for (i = 0; i < fw_status->count; i++)
 		cnt += scnprintf(buf + cnt, len - cnt, "%08X ",
-				fw_status->status[i]);
+						 fw_status->status[i]);
 
 	/* drop last space */
 	buf[cnt] = '\0';
@@ -112,14 +122,15 @@ int mei_reset(struct mei_device *dev)
 	int ret;
 
 	if (state != MEI_DEV_INITIALIZING &&
-	    state != MEI_DEV_DISABLED &&
-	    state != MEI_DEV_POWER_DOWN &&
-	    state != MEI_DEV_POWER_UP) {
+		state != MEI_DEV_DISABLED &&
+		state != MEI_DEV_POWER_DOWN &&
+		state != MEI_DEV_POWER_UP)
+	{
 		char fw_sts_str[MEI_FW_STATUS_STR_SZ];
 
 		mei_fw_status_str(dev, fw_sts_str, MEI_FW_STATUS_STR_SZ);
 		dev_warn(dev->dev, "unexpected reset: dev_state = %s fw status = %s\n",
-			 mei_dev_state_str(state), fw_sts_str);
+				 mei_dev_state_str(state), fw_sts_str);
 	}
 
 	/* we're already in reset, cancel the init timer
@@ -134,7 +145,9 @@ int mei_reset(struct mei_device *dev)
 	dev->dev_state = MEI_DEV_RESETTING;
 
 	dev->reset_count++;
-	if (dev->reset_count > MEI_MAX_CONSEC_RESET) {
+
+	if (dev->reset_count > MEI_MAX_CONSEC_RESET)
+	{
 		dev_err(dev->dev, "reset: reached maximal consecutive resets: disabling the device\n");
 		dev->dev_state = MEI_DEV_DISABLED;
 		return -ENODEV;
@@ -145,7 +158,8 @@ int mei_reset(struct mei_device *dev)
 
 	/* no need to clean up software state in case of power up */
 	if (state != MEI_DEV_INITIALIZING &&
-	    state != MEI_DEV_POWER_UP) {
+		state != MEI_DEV_POWER_UP)
+	{
 
 		/* remove all waiting requests */
 		mei_cl_all_disconnect(dev);
@@ -160,19 +174,23 @@ int mei_reset(struct mei_device *dev)
 
 	dev->rd_msg_hdr = 0;
 
-	if (ret) {
+	if (ret)
+	{
 		dev_err(dev->dev, "hw_reset failed ret = %d\n", ret);
 		return ret;
 	}
 
-	if (state == MEI_DEV_POWER_DOWN) {
+	if (state == MEI_DEV_POWER_DOWN)
+	{
 		dev_dbg(dev->dev, "powering down: end of reset\n");
 		dev->dev_state = MEI_DEV_DISABLED;
 		return 0;
 	}
 
 	ret = mei_hw_start(dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev->dev, "hw_start failed ret = %d\n", ret);
 		return ret;
 	}
@@ -181,7 +199,9 @@ int mei_reset(struct mei_device *dev)
 
 	dev->dev_state = MEI_DEV_INIT_CLIENTS;
 	ret = mei_hbm_start_req(dev);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(dev->dev, "hbm_start failed ret = %d\n", ret);
 		dev->dev_state = MEI_DEV_RESETTING;
 		return ret;
@@ -212,38 +232,47 @@ int mei_start(struct mei_device *dev)
 	dev_dbg(dev->dev, "reset in start the mei device.\n");
 
 	dev->reset_count = 0;
-	do {
+
+	do
+	{
 		dev->dev_state = MEI_DEV_INITIALIZING;
 		ret = mei_reset(dev);
 
-		if (ret == -ENODEV || dev->dev_state == MEI_DEV_DISABLED) {
+		if (ret == -ENODEV || dev->dev_state == MEI_DEV_DISABLED)
+		{
 			dev_err(dev->dev, "reset failed ret = %d", ret);
 			goto err;
 		}
-	} while (ret);
+	}
+	while (ret);
 
 	/* we cannot start the device w/o hbm start message completed */
-	if (dev->dev_state == MEI_DEV_DISABLED) {
+	if (dev->dev_state == MEI_DEV_DISABLED)
+	{
 		dev_err(dev->dev, "reset failed");
 		goto err;
 	}
 
-	if (mei_hbm_start_wait(dev)) {
+	if (mei_hbm_start_wait(dev))
+	{
 		dev_err(dev->dev, "HBM haven't started");
 		goto err;
 	}
 
-	if (!mei_host_is_ready(dev)) {
+	if (!mei_host_is_ready(dev))
+	{
 		dev_err(dev->dev, "host is not ready.\n");
 		goto err;
 	}
 
-	if (!mei_hw_is_ready(dev)) {
+	if (!mei_hw_is_ready(dev))
+	{
 		dev_err(dev->dev, "ME is not ready.\n");
 		goto err;
 	}
 
-	if (!mei_hbm_version_is_supported(dev)) {
+	if (!mei_hbm_version_is_supported(dev))
+	{
 		dev_dbg(dev->dev, "MEI start failed.\n");
 		goto err;
 	}
@@ -282,14 +311,17 @@ int mei_restart(struct mei_device *dev)
 
 	mutex_unlock(&dev->device_lock);
 
-	if (err == -ENODEV || dev->dev_state == MEI_DEV_DISABLED) {
+	if (err == -ENODEV || dev->dev_state == MEI_DEV_DISABLED)
+	{
 		dev_err(dev->dev, "device disabled = %d\n", err);
 		return -ENODEV;
 	}
 
 	/* try to start again */
 	if (err)
+	{
 		schedule_work(&dev->reset_work);
+	}
 
 
 	return 0;
@@ -308,14 +340,17 @@ static void mei_reset_work(struct work_struct *work)
 
 	mutex_unlock(&dev->device_lock);
 
-	if (dev->dev_state == MEI_DEV_DISABLED) {
+	if (dev->dev_state == MEI_DEV_DISABLED)
+	{
 		dev_err(dev->dev, "device disabled = %d\n", ret);
 		return;
 	}
 
 	/* retry reset in case of failure */
 	if (ret)
+	{
 		schedule_work(&dev->reset_work);
+	}
 }
 
 void mei_stop(struct mei_device *dev)
@@ -347,16 +382,16 @@ EXPORT_SYMBOL_GPL(mei_stop);
 bool mei_write_is_idle(struct mei_device *dev)
 {
 	bool idle = (dev->dev_state == MEI_DEV_ENABLED &&
-		list_empty(&dev->ctrl_wr_list.list) &&
-		list_empty(&dev->write_list.list)   &&
-		list_empty(&dev->write_waiting_list.list));
+				 list_empty(&dev->ctrl_wr_list.list) &&
+				 list_empty(&dev->write_list.list)   &&
+				 list_empty(&dev->write_waiting_list.list));
 
 	dev_dbg(dev->dev, "write pg: is idle[%d] state=%s ctrl=%01d write=%01d wwait=%01d\n",
-		idle,
-		mei_dev_state_str(dev->dev_state),
-		list_empty(&dev->ctrl_wr_list.list),
-		list_empty(&dev->write_list.list),
-		list_empty(&dev->write_waiting_list.list));
+			idle,
+			mei_dev_state_str(dev->dev_state),
+			list_empty(&dev->ctrl_wr_list.list),
+			list_empty(&dev->write_list.list),
+			list_empty(&dev->write_waiting_list.list));
 
 	return idle;
 }
@@ -370,8 +405,8 @@ EXPORT_SYMBOL_GPL(mei_write_is_idle);
  * @hw_ops: hw operations
  */
 void mei_device_init(struct mei_device *dev,
-		     struct device *device,
-		     const struct mei_hw_ops *hw_ops)
+					 struct device *device,
+					 const struct mei_hw_ops *hw_ops)
 {
 	/* setup our list array */
 	INIT_LIST_HEAD(&dev->file_list);

@@ -25,12 +25,16 @@ static int ebt_pkttype_mt_check(const struct xt_mtchk_param *par)
 	const struct ebt_pkttype_info *info = par->matchinfo;
 
 	if (info->invert != 0 && info->invert != 1)
+	{
 		return -EINVAL;
+	}
+
 	/* Allow any pkt_type value */
 	return 0;
 }
 
-static struct xt_match ebt_pkttype_mt_reg __read_mostly = {
+static struct xt_match ebt_pkttype_mt_reg __read_mostly =
+{
 	.name		= "pkttype",
 	.revision	= 0,
 	.family		= NFPROTO_BRIDGE,

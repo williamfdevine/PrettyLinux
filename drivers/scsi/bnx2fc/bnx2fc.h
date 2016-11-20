@@ -94,7 +94,7 @@
 #define BNX2FC_MIN_PAYLOAD		256
 #define BNX2FC_MAX_PAYLOAD		2048
 #define BNX2FC_MFS			\
-			(BNX2FC_MAX_PAYLOAD + sizeof(struct fc_frame_header))
+	(BNX2FC_MAX_PAYLOAD + sizeof(struct fc_frame_header))
 #define BNX2FC_MINI_JUMBO_MTU		2500
 
 
@@ -153,7 +153,7 @@
 #define BNX2FC_STATS(hba, stat, cnt)					\
 	do {								\
 		u32 val;						\
-									\
+		\
 		val = fw_stats->stat.cnt;				\
 		if (hba->prev_stats.stat.cnt <= val)			\
 			val -= hba->prev_stats.stat.cnt;		\
@@ -167,13 +167,15 @@ extern struct fcoe_percpu_s bnx2fc_global;
 
 extern struct workqueue_struct *bnx2fc_wq;
 
-struct bnx2fc_percpu_s {
+struct bnx2fc_percpu_s
+{
 	struct task_struct *iothread;
 	struct list_head work_list;
 	spinlock_t fp_work_lock;
 };
 
-struct bnx2fc_fw_stats {
+struct bnx2fc_fw_stats
+{
 	u64	fc_crc_cnt;
 	u64	fcoe_tx_pkt_cnt;
 	u64	fcoe_rx_pkt_cnt;
@@ -181,24 +183,25 @@ struct bnx2fc_fw_stats {
 	u64	fcoe_rx_byte_cnt;
 };
 
-struct bnx2fc_hba {
+struct bnx2fc_hba
+{
 	struct list_head list;
 	struct cnic_dev *cnic;
 	struct pci_dev *pcidev;
 	struct net_device *phys_dev;
 	unsigned long reg_with_cnic;
-		#define BNX2FC_CNIC_REGISTERED           1
+#define BNX2FC_CNIC_REGISTERED           1
 	struct bnx2fc_cmd_mgr *cmd_mgr;
 	spinlock_t hba_lock;
 	struct mutex hba_mutex;
 	unsigned long adapter_state;
-		#define ADAPTER_STATE_UP		0
-		#define ADAPTER_STATE_GOING_DOWN	1
-		#define ADAPTER_STATE_LINK_DOWN		2
-		#define ADAPTER_STATE_READY		3
+#define ADAPTER_STATE_UP		0
+#define ADAPTER_STATE_GOING_DOWN	1
+#define ADAPTER_STATE_LINK_DOWN		2
+#define ADAPTER_STATE_READY		3
 	unsigned long flags;
-		#define BNX2FC_FLAG_FW_INIT_DONE	0
-		#define BNX2FC_FLAG_DESTROY_CMPL	1
+#define BNX2FC_FLAG_FW_INIT_DONE	0
+#define BNX2FC_FLAG_DESTROY_CMPL	1
 	u32 next_conn_id;
 
 	/* xid resources */
@@ -248,10 +251,11 @@ struct bnx2fc_hba {
 	char chip_num[BCM_CHIP_LEN];
 };
 
-struct bnx2fc_interface {
+struct bnx2fc_interface
+{
 	struct list_head list;
 	unsigned long if_flags;
-		#define BNX2FC_CTLR_INIT_DONE		0
+#define BNX2FC_CTLR_INIT_DONE		0
 	struct bnx2fc_hba *hba;
 	struct net_device *netdev;
 	struct packet_type fcoe_packet_type;
@@ -270,12 +274,14 @@ struct bnx2fc_interface {
 #define bnx2fc_to_ctlr(x)					\
 	((struct fcoe_ctlr *)(((struct fcoe_ctlr *)(x)) - 1))
 
-struct bnx2fc_lport {
+struct bnx2fc_lport
+{
 	struct list_head list;
 	struct fc_lport *lport;
 };
 
-struct bnx2fc_cmd_mgr {
+struct bnx2fc_cmd_mgr
+{
 	struct bnx2fc_hba *hba;
 	u16 next_idx;
 	struct list_head *free_list;
@@ -284,7 +290,8 @@ struct bnx2fc_cmd_mgr {
 	struct bnx2fc_cmd **cmds;
 };
 
-struct bnx2fc_rport {
+struct bnx2fc_rport
+{
 	struct fcoe_port *port;
 	struct fc_rport *rport;
 	struct fc_rport_priv *rdata;
@@ -370,7 +377,7 @@ struct bnx2fc_rport {
 	unsigned long timestamp;
 	unsigned long retry_delay_timestamp;
 	struct list_head free_task_list;
-	struct bnx2fc_cmd *pending_queue[BNX2FC_SQ_WQES_MAX+1];
+	struct bnx2fc_cmd *pending_queue[BNX2FC_SQ_WQES_MAX + 1];
 	struct list_head active_cmd_queue;
 	struct list_head els_queue;
 	struct list_head io_retire_queue;
@@ -383,7 +390,8 @@ struct bnx2fc_rport {
 	wait_queue_head_t upld_wait;
 };
 
-struct bnx2fc_mp_req {
+struct bnx2fc_mp_req
+{
 	u8 tm_flags;
 
 	u32 req_len;
@@ -401,7 +409,8 @@ struct bnx2fc_mp_req {
 	struct fc_frame_header resp_fc_hdr;
 };
 
-struct bnx2fc_els_cb_arg {
+struct bnx2fc_els_cb_arg
+{
 	struct bnx2fc_cmd *aborted_io_req;
 	struct bnx2fc_cmd *io_req;
 	u16 l2_oxid;
@@ -410,7 +419,8 @@ struct bnx2fc_els_cb_arg {
 };
 
 /* bnx2fc command structure */
-struct bnx2fc_cmd {
+struct bnx2fc_cmd
+{
 	struct list_head link;
 	u8 on_active_queue;
 	u8 on_tmf_queue;
@@ -466,19 +476,22 @@ struct bnx2fc_cmd {
 	u8 scsi_comp_flags;
 };
 
-struct io_bdt {
+struct io_bdt
+{
 	struct bnx2fc_cmd *io_req;
 	struct fcoe_bd_ctx *bd_tbl;
 	dma_addr_t bd_tbl_dma;
 	u16 bd_valid;
 };
 
-struct bnx2fc_work {
+struct bnx2fc_work
+{
 	struct list_head list;
 	struct bnx2fc_rport *tgt;
 	u16 wqe;
 };
-struct bnx2fc_unsol_els {
+struct bnx2fc_unsol_els
+{
 	struct fc_lport *lport;
 	struct fc_frame *fp;
 	struct bnx2fc_hba *hba;
@@ -494,16 +507,16 @@ int bnx2fc_queuecommand(struct Scsi_Host *host, struct scsi_cmnd *sc_cmd);
 int bnx2fc_send_fw_fcoe_init_msg(struct bnx2fc_hba *hba);
 int bnx2fc_send_fw_fcoe_destroy_msg(struct bnx2fc_hba *hba);
 int bnx2fc_send_session_ofld_req(struct fcoe_port *port,
-					struct bnx2fc_rport *tgt);
+								 struct bnx2fc_rport *tgt);
 int bnx2fc_send_session_enable_req(struct fcoe_port *port,
-					struct bnx2fc_rport *tgt);
+								   struct bnx2fc_rport *tgt);
 int bnx2fc_send_session_disable_req(struct fcoe_port *port,
-				    struct bnx2fc_rport *tgt);
+									struct bnx2fc_rport *tgt);
 int bnx2fc_send_session_destroy_req(struct bnx2fc_hba *hba,
-					struct bnx2fc_rport *tgt);
+									struct bnx2fc_rport *tgt);
 int bnx2fc_map_doorbell(struct bnx2fc_rport *tgt);
 void bnx2fc_indicate_kcqe(void *context, struct kcqe *kcq[],
-					u32 num_cqe);
+						  u32 num_cqe);
 int bnx2fc_setup_task_ctx(struct bnx2fc_hba *hba);
 void bnx2fc_free_task_ctx(struct bnx2fc_hba *hba);
 int bnx2fc_setup_fw_resc(struct bnx2fc_hba *hba);
@@ -521,19 +534,19 @@ int bnx2fc_send_rls(struct bnx2fc_rport *tgt, struct fc_frame *fp);
 int bnx2fc_initiate_cleanup(struct bnx2fc_cmd *io_req);
 int bnx2fc_initiate_abts(struct bnx2fc_cmd *io_req);
 void bnx2fc_cmd_timer_set(struct bnx2fc_cmd *io_req,
-			  unsigned int timer_msec);
+						  unsigned int timer_msec);
 int bnx2fc_init_mp_req(struct bnx2fc_cmd *io_req);
 void bnx2fc_init_cleanup_task(struct bnx2fc_cmd *io_req,
-			      struct fcoe_task_ctx_entry *task,
-			      u16 orig_xid);
+							  struct fcoe_task_ctx_entry *task,
+							  u16 orig_xid);
 void bnx2fc_init_seq_cleanup_task(struct bnx2fc_cmd *seq_clnup_req,
-				  struct fcoe_task_ctx_entry *task,
-				  struct bnx2fc_cmd *orig_io_req,
-				  u32 offset);
+								  struct fcoe_task_ctx_entry *task,
+								  struct bnx2fc_cmd *orig_io_req,
+								  u32 offset);
 void bnx2fc_init_mp_task(struct bnx2fc_cmd *io_req,
-			 struct fcoe_task_ctx_entry *task);
+						 struct fcoe_task_ctx_entry *task);
 void bnx2fc_init_task(struct bnx2fc_cmd *io_req,
-			     struct fcoe_task_ctx_entry *task);
+					  struct fcoe_task_ctx_entry *task);
 void bnx2fc_add_2_sq(struct bnx2fc_rport *tgt, u16 xid);
 void bnx2fc_ring_doorbell(struct bnx2fc_rport *tgt);
 int bnx2fc_eh_abort(struct scsi_cmnd *sc_cmd);
@@ -541,52 +554,52 @@ int bnx2fc_eh_host_reset(struct scsi_cmnd *sc_cmd);
 int bnx2fc_eh_target_reset(struct scsi_cmnd *sc_cmd);
 int bnx2fc_eh_device_reset(struct scsi_cmnd *sc_cmd);
 void bnx2fc_rport_event_handler(struct fc_lport *lport,
-				struct fc_rport_priv *rport,
-				enum fc_rport_event event);
+								struct fc_rport_priv *rport,
+								enum fc_rport_event event);
 void bnx2fc_process_scsi_cmd_compl(struct bnx2fc_cmd *io_req,
-				   struct fcoe_task_ctx_entry *task,
-				   u8 num_rq);
+								   struct fcoe_task_ctx_entry *task,
+								   u8 num_rq);
 void bnx2fc_process_cleanup_compl(struct bnx2fc_cmd *io_req,
-			       struct fcoe_task_ctx_entry *task,
-			       u8 num_rq);
+								  struct fcoe_task_ctx_entry *task,
+								  u8 num_rq);
 void bnx2fc_process_abts_compl(struct bnx2fc_cmd *io_req,
-			       struct fcoe_task_ctx_entry *task,
-			       u8 num_rq);
+							   struct fcoe_task_ctx_entry *task,
+							   u8 num_rq);
 void bnx2fc_process_tm_compl(struct bnx2fc_cmd *io_req,
-			     struct fcoe_task_ctx_entry *task,
-			     u8 num_rq);
+							 struct fcoe_task_ctx_entry *task,
+							 u8 num_rq);
 void bnx2fc_process_els_compl(struct bnx2fc_cmd *els_req,
-			      struct fcoe_task_ctx_entry *task,
-			      u8 num_rq);
+							  struct fcoe_task_ctx_entry *task,
+							  u8 num_rq);
 void bnx2fc_build_fcp_cmnd(struct bnx2fc_cmd *io_req,
-			   struct fcp_cmnd *fcp_cmnd);
+						   struct fcp_cmnd *fcp_cmnd);
 
 
 
 void bnx2fc_flush_active_ios(struct bnx2fc_rport *tgt);
 struct fc_seq *bnx2fc_elsct_send(struct fc_lport *lport, u32 did,
-				      struct fc_frame *fp, unsigned int op,
-				      void (*resp)(struct fc_seq *,
-						   struct fc_frame *,
-						   void *),
-				      void *arg, u32 timeout);
+								 struct fc_frame *fp, unsigned int op,
+								 void (*resp)(struct fc_seq *,
+										 struct fc_frame *,
+										 void *),
+								 void *arg, u32 timeout);
 void bnx2fc_arm_cq(struct bnx2fc_rport *tgt);
 int bnx2fc_process_new_cqes(struct bnx2fc_rport *tgt);
 void bnx2fc_process_cq_compl(struct bnx2fc_rport *tgt, u16 wqe);
 struct bnx2fc_rport *bnx2fc_tgt_lookup(struct fcoe_port *port,
-					     u32 port_id);
+									   u32 port_id);
 void bnx2fc_process_l2_frame_compl(struct bnx2fc_rport *tgt,
-				   unsigned char *buf,
-				   u32 frame_len, u16 l2_oxid);
+								   unsigned char *buf,
+								   u32 frame_len, u16 l2_oxid);
 int bnx2fc_send_stat_req(struct bnx2fc_hba *hba);
 int bnx2fc_post_io_req(struct bnx2fc_rport *tgt, struct bnx2fc_cmd *io_req);
 int bnx2fc_send_rec(struct bnx2fc_cmd *orig_io_req);
 int bnx2fc_send_srr(struct bnx2fc_cmd *orig_io_req, u32 offset, u8 r_ctl);
 void bnx2fc_process_seq_cleanup_compl(struct bnx2fc_cmd *seq_clnup_req,
-				      struct fcoe_task_ctx_entry *task,
-				      u8 rx_state);
+									  struct fcoe_task_ctx_entry *task,
+									  u8 rx_state);
 int bnx2fc_initiate_seq_cleanup(struct bnx2fc_cmd *orig_io_req, u32 offset,
-				enum fc_rctl r_ctl);
+								enum fc_rctl r_ctl);
 
 
 #include "bnx2fc_debug.h"

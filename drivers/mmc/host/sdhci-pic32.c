@@ -42,7 +42,8 @@
 #define ADMA_FIFO_RD_THSHLD	512
 #define ADMA_FIFO_WR_THSHLD	512
 
-struct pic32_sdhci_priv {
+struct pic32_sdhci_priv
+{
 	struct platform_device	*pdev;
 	struct clk *sys_clk;
 	struct clk *base_clk;
@@ -60,17 +61,31 @@ static void pic32_sdhci_set_bus_width(struct sdhci_host *host, int width)
 	u8 ctrl;
 
 	ctrl = sdhci_readb(host, SDHCI_HOST_CONTROL);
-	if (width == MMC_BUS_WIDTH_8) {
+
+	if (width == MMC_BUS_WIDTH_8)
+	{
 		ctrl &= ~SDHCI_CTRL_4BITBUS;
+
 		if (host->version >= SDHCI_SPEC_300)
+		{
 			ctrl |= SDHCI_CTRL_8BITBUS;
-	} else {
+		}
+	}
+	else
+	{
 		if (host->version >= SDHCI_SPEC_300)
+		{
 			ctrl &= ~SDHCI_CTRL_8BITBUS;
+		}
+
 		if (width == MMC_BUS_WIDTH_4)
+		{
 			ctrl |= SDHCI_CTRL_4BITBUS;
+		}
 		else
+		{
 			ctrl &= ~SDHCI_CTRL_4BITBUS;
+		}
 	}
 
 	/* CD select and test bits must be set for errata workaround. */
@@ -88,7 +103,8 @@ static unsigned int pic32_sdhci_get_ro(struct sdhci_host *host)
 	return 0;
 }
 
-static const struct sdhci_ops pic32_sdhci_ops = {
+static const struct sdhci_ops pic32_sdhci_ops =
+{
 	.get_max_clock = pic32_sdhci_get_max_clock,
 	.set_clock = sdhci_set_clock,
 	.set_bus_width = pic32_sdhci_set_bus_width,
@@ -97,7 +113,8 @@ static const struct sdhci_ops pic32_sdhci_ops = {
 	.get_ro = pic32_sdhci_get_ro,
 };
 
-static struct sdhci_pltfm_data sdhci_pic32_pdata = {
+static struct sdhci_pltfm_data sdhci_pic32_pdata =
+{
 	.ops = &pic32_sdhci_ops,
 	.quirks = SDHCI_QUIRK_NO_HISPD_BIT,
 	.quirks2 = SDHCI_QUIRK2_NO_1_8_V,
@@ -112,17 +129,21 @@ static void pic32_sdhci_shared_bus(struct platform_device *pdev)
 
 	/* select first clock */
 	if (clk_pins & 1)
+	{
 		bus |= (1 << SDH_SHARED_BUS_CLK_PINS);
+	}
 
 	/* select first interrupt */
 	if (irq_pins & 1)
+	{
 		bus |= (1 << SDH_SHARED_BUS_IRQ_PINS);
+	}
 
 	writel(bus, host->ioaddr + SDH_SHARED_BUS_CTRL);
 }
 
 static int pic32_sdhci_probe_platform(struct platform_device *pdev,
-				      struct pic32_sdhci_priv *pdata)
+									  struct pic32_sdhci_priv *pdata)
 {
 	int ret = 0;
 	u32 caps_slot_type;
@@ -131,8 +152,11 @@ static int pic32_sdhci_probe_platform(struct platform_device *pdev,
 	/* Check card slot connected on shared bus. */
 	host->caps = readl(host->ioaddr + SDHCI_CAPABILITIES);
 	caps_slot_type = (host->caps & SDH_CAPS_SDH_SLOT_TYPE_MASK) >> 30;
+
 	if (caps_slot_type == SDH_SLOT_TYPE_SHARED_BUS)
+	{
 		pic32_sdhci_shared_bus(pdev);
+	}
 
 	return ret;
 }
@@ -146,8 +170,10 @@ static int pic32_sdhci_probe(struct platform_device *pdev)
 	int ret;
 
 	host = sdhci_pltfm_init(pdev, &sdhci_pic32_pdata,
-				sizeof(struct pic32_sdhci_priv));
-	if (IS_ERR(host)) {
+							sizeof(struct pic32_sdhci_priv));
+
+	if (IS_ERR(host))
+	{
 		ret = PTR_ERR(host);
 		goto err;
 	}
@@ -156,51 +182,71 @@ static int pic32_sdhci_probe(struct platform_device *pdev)
 	sdhci_pdata = sdhci_pltfm_priv(pltfm_host);
 
 	plat_data = pdev->dev.platform_data;
-	if (plat_data && plat_data->setup_dma) {
+
+	if (plat_data && plat_data->setup_dma)
+	{
 		ret = plat_data->setup_dma(ADMA_FIFO_RD_THSHLD,
-					   ADMA_FIFO_WR_THSHLD);
+								   ADMA_FIFO_WR_THSHLD);
+
 		if (ret)
+		{
 			goto err_host;
+		}
 	}
 
 	sdhci_pdata->sys_clk = devm_clk_get(&pdev->dev, "sys_clk");
-	if (IS_ERR(sdhci_pdata->sys_clk)) {
+
+	if (IS_ERR(sdhci_pdata->sys_clk))
+	{
 		ret = PTR_ERR(sdhci_pdata->sys_clk);
 		dev_err(&pdev->dev, "Error getting clock\n");
 		goto err_host;
 	}
 
 	ret = clk_prepare_enable(sdhci_pdata->sys_clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Error enabling clock\n");
 		goto err_host;
 	}
 
 	sdhci_pdata->base_clk = devm_clk_get(&pdev->dev, "base_clk");
-	if (IS_ERR(sdhci_pdata->base_clk)) {
+
+	if (IS_ERR(sdhci_pdata->base_clk))
+	{
 		ret = PTR_ERR(sdhci_pdata->base_clk);
 		dev_err(&pdev->dev, "Error getting clock\n");
 		goto err_sys_clk;
 	}
 
 	ret = clk_prepare_enable(sdhci_pdata->base_clk);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "Error enabling clock\n");
 		goto err_base_clk;
 	}
 
 	ret = mmc_of_parse(host->mmc);
+
 	if (ret)
+	{
 		goto err_base_clk;
+	}
 
 	ret = pic32_sdhci_probe_platform(pdev, sdhci_pdata);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to probe platform!\n");
 		goto err_base_clk;
 	}
 
 	ret = sdhci_add_host(host);
-	if (ret) {
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "error adding host\n");
 		goto err_base_clk;
 	}
@@ -234,13 +280,15 @@ static int pic32_sdhci_remove(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id pic32_sdhci_id_table[] = {
+static const struct of_device_id pic32_sdhci_id_table[] =
+{
 	{ .compatible = "microchip,pic32mzda-sdhci" },
 	{}
 };
 MODULE_DEVICE_TABLE(of, pic32_sdhci_id_table);
 
-static struct platform_driver pic32_sdhci_driver = {
+static struct platform_driver pic32_sdhci_driver =
+{
 	.driver = {
 		.name	= "pic32-sdhci",
 		.of_match_table = of_match_ptr(pic32_sdhci_id_table),

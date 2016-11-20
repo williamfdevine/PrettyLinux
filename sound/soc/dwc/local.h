@@ -81,12 +81,14 @@
 #define MAX_CHANNEL_NUM		8
 #define MIN_CHANNEL_NUM		2
 
-union dw_i2s_snd_dma_data {
+union dw_i2s_snd_dma_data
+{
 	struct i2s_dma_data pd;
 	struct snd_dmaengine_dai_dma_data dt;
 };
 
-struct dw_i2s_dev {
+struct dw_i2s_dev
+{
 	void __iomem *i2s_base;
 	struct clk *clk;
 	int active;
@@ -109,8 +111,8 @@ struct dw_i2s_dev {
 	bool use_pio;
 	struct snd_pcm_substream __rcu *tx_substream;
 	unsigned int (*tx_fn)(struct dw_i2s_dev *dev,
-			struct snd_pcm_runtime *runtime, unsigned int tx_ptr,
-			bool *period_elapsed);
+						  struct snd_pcm_runtime *runtime, unsigned int tx_ptr,
+						  bool *period_elapsed);
 	unsigned int tx_ptr;
 };
 

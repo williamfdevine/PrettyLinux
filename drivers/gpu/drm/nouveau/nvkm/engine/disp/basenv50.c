@@ -32,12 +32,13 @@
 
 int
 nv50_disp_base_new(const struct nv50_disp_dmac_func *func,
-		   const struct nv50_disp_chan_mthd *mthd,
-		   struct nv50_disp_root *root, int chid,
-		   const struct nvkm_oclass *oclass, void *data, u32 size,
-		   struct nvkm_object **pobject)
+				   const struct nv50_disp_chan_mthd *mthd,
+				   struct nv50_disp_root *root, int chid,
+				   const struct nvkm_oclass *oclass, void *data, u32 size,
+				   struct nvkm_object **pobject)
 {
-	union {
+	union
+	{
 		struct nv50_disp_base_channel_dma_v0 v0;
 	} *args = data;
 	struct nvkm_object *parent = oclass->parent;
@@ -46,23 +47,33 @@ nv50_disp_base_new(const struct nv50_disp_dmac_func *func,
 	u64 push;
 
 	nvif_ioctl(parent, "create disp base channel dma size %d\n", size);
-	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false))) {
+
+	if (!(ret = nvif_unpack(ret, &data, &size, args->v0, 0, 0, false)))
+	{
 		nvif_ioctl(parent, "create disp base channel dma vers %d "
 				   "pushbuf %016llx head %d\n",
-			   args->v0.version, args->v0.pushbuf, args->v0.head);
+				   args->v0.version, args->v0.pushbuf, args->v0.head);
+
 		if (args->v0.head > disp->base.head.nr)
+		{
 			return -EINVAL;
+		}
+
 		push = args->v0.pushbuf;
 		head = args->v0.head;
-	} else
+	}
+	else
+	{
 		return ret;
+	}
 
 	return nv50_disp_dmac_new_(func, mthd, root, chid + head,
-				   head, push, oclass, pobject);
+							   head, push, oclass, pobject);
 }
 
 static const struct nv50_disp_mthd_list
-nv50_disp_base_mthd_base = {
+	nv50_disp_base_mthd_base =
+{
 	.mthd = 0x0000,
 	.addr = 0x000000,
 	.data = {
@@ -87,7 +98,8 @@ nv50_disp_base_mthd_base = {
 };
 
 const struct nv50_disp_mthd_list
-nv50_disp_base_mthd_image = {
+	nv50_disp_base_mthd_image =
+{
 	.mthd = 0x0400,
 	.addr = 0x000000,
 	.data = {
@@ -101,7 +113,8 @@ nv50_disp_base_mthd_image = {
 };
 
 static const struct nv50_disp_chan_mthd
-nv50_disp_base_chan_mthd = {
+	nv50_disp_base_chan_mthd =
+{
 	.name = "Base",
 	.addr = 0x000540,
 	.prev = 0x000004,
@@ -113,7 +126,8 @@ nv50_disp_base_chan_mthd = {
 };
 
 const struct nv50_disp_dmac_oclass
-nv50_disp_base_oclass = {
+	nv50_disp_base_oclass =
+{
 	.base.oclass = NV50_DISP_BASE_CHANNEL_DMA,
 	.base.minver = 0,
 	.base.maxver = 0,

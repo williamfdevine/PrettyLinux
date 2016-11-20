@@ -21,7 +21,8 @@
 #include <media/rc-map.h>
 #include <linux/module.h>
 
-static struct rc_map_table azurewave_ad_tu700[] = {
+static struct rc_map_table azurewave_ad_tu700[] =
+{
 	{ 0x0000, KEY_TAB },             /* Tab */
 	{ 0x0001, KEY_2 },
 	{ 0x0002, KEY_CHANNELDOWN },
@@ -77,7 +78,8 @@ static struct rc_map_table azurewave_ad_tu700[] = {
 	{ 0x005f, KEY_BLUE },
 };
 
-static struct rc_map_list azurewave_ad_tu700_map = {
+static struct rc_map_list azurewave_ad_tu700_map =
+{
 	.map = {
 		.scan    = azurewave_ad_tu700,
 		.size    = ARRAY_SIZE(azurewave_ad_tu700),

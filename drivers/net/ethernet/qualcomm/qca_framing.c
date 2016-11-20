@@ -31,7 +31,9 @@ qcafrm_create_header(u8 *buf, u16 length)
 	__le16 len;
 
 	if (!buf)
+	{
 		return 0;
+	}
 
 	len = cpu_to_le16(length);
 
@@ -51,7 +53,9 @@ u16
 qcafrm_create_footer(u8 *buf)
 {
 	if (!buf)
+	{
 		return 0;
+	}
 
 	buf[0] = 0x55;
 	buf[1] = 0x55;
@@ -75,81 +79,110 @@ qcafrm_fsm_decode(struct qcafrm_handle *handle, u8 *buf, u16 buf_len, u8 recv_by
 	s32 ret = QCAFRM_GATHER;
 	u16 len;
 
-	switch (handle->state) {
-	case QCAFRM_HW_LEN0:
-	case QCAFRM_HW_LEN1:
-		/* by default, just go to next state */
-		handle->state--;
-
-		if (recv_byte != 0x00) {
-			/* first two bytes of length must be 0 */
-			handle->state = QCAFRM_HW_LEN0;
-		}
-		break;
-	case QCAFRM_HW_LEN2:
-	case QCAFRM_HW_LEN3:
-		handle->state--;
-		break;
-	/* 4 bytes header pattern */
-	case QCAFRM_WAIT_AA1:
-	case QCAFRM_WAIT_AA2:
-	case QCAFRM_WAIT_AA3:
-	case QCAFRM_WAIT_AA4:
-		if (recv_byte != 0xAA) {
-			ret = QCAFRM_NOHEAD;
-			handle->state = QCAFRM_HW_LEN0;
-		} else {
+	switch (handle->state)
+	{
+		case QCAFRM_HW_LEN0:
+		case QCAFRM_HW_LEN1:
+			/* by default, just go to next state */
 			handle->state--;
-		}
-		break;
+
+			if (recv_byte != 0x00)
+			{
+				/* first two bytes of length must be 0 */
+				handle->state = QCAFRM_HW_LEN0;
+			}
+
+			break;
+
+		case QCAFRM_HW_LEN2:
+		case QCAFRM_HW_LEN3:
+			handle->state--;
+			break;
+
+		/* 4 bytes header pattern */
+		case QCAFRM_WAIT_AA1:
+		case QCAFRM_WAIT_AA2:
+		case QCAFRM_WAIT_AA3:
+		case QCAFRM_WAIT_AA4:
+			if (recv_byte != 0xAA)
+			{
+				ret = QCAFRM_NOHEAD;
+				handle->state = QCAFRM_HW_LEN0;
+			}
+			else
+			{
+				handle->state--;
+			}
+
+			break;
+
 		/* 2 bytes length. */
 		/* Borrow offset field to hold length for now. */
-	case QCAFRM_WAIT_LEN_BYTE0:
-		handle->offset = recv_byte;
-		handle->state = QCAFRM_WAIT_LEN_BYTE1;
-		break;
-	case QCAFRM_WAIT_LEN_BYTE1:
-		handle->offset = handle->offset | (recv_byte << 8);
-		handle->state = QCAFRM_WAIT_RSVD_BYTE1;
-		break;
-	case QCAFRM_WAIT_RSVD_BYTE1:
-		handle->state = QCAFRM_WAIT_RSVD_BYTE2;
-		break;
-	case QCAFRM_WAIT_RSVD_BYTE2:
-		len = handle->offset;
-		if (len > buf_len || len < QCAFRM_ETHMINLEN) {
-			ret = QCAFRM_INVLEN;
-			handle->state = QCAFRM_HW_LEN0;
-		} else {
-			handle->state = (enum qcafrm_state)(len + 1);
-			/* Remaining number of bytes. */
-			handle->offset = 0;
-		}
-		break;
-	default:
-		/* Receiving Ethernet frame itself. */
-		buf[handle->offset] = recv_byte;
-		handle->offset++;
-		handle->state--;
-		break;
-	case QCAFRM_WAIT_551:
-		if (recv_byte != 0x55) {
-			ret = QCAFRM_NOTAIL;
-			handle->state = QCAFRM_HW_LEN0;
-		} else {
-			handle->state = QCAFRM_WAIT_552;
-		}
-		break;
-	case QCAFRM_WAIT_552:
-		if (recv_byte != 0x55) {
-			ret = QCAFRM_NOTAIL;
-			handle->state = QCAFRM_HW_LEN0;
-		} else {
-			ret = handle->offset;
-			/* Frame is fully received. */
-			handle->state = QCAFRM_HW_LEN0;
-		}
-		break;
+		case QCAFRM_WAIT_LEN_BYTE0:
+			handle->offset = recv_byte;
+			handle->state = QCAFRM_WAIT_LEN_BYTE1;
+			break;
+
+		case QCAFRM_WAIT_LEN_BYTE1:
+			handle->offset = handle->offset | (recv_byte << 8);
+			handle->state = QCAFRM_WAIT_RSVD_BYTE1;
+			break;
+
+		case QCAFRM_WAIT_RSVD_BYTE1:
+			handle->state = QCAFRM_WAIT_RSVD_BYTE2;
+			break;
+
+		case QCAFRM_WAIT_RSVD_BYTE2:
+			len = handle->offset;
+
+			if (len > buf_len || len < QCAFRM_ETHMINLEN)
+			{
+				ret = QCAFRM_INVLEN;
+				handle->state = QCAFRM_HW_LEN0;
+			}
+			else
+			{
+				handle->state = (enum qcafrm_state)(len + 1);
+				/* Remaining number of bytes. */
+				handle->offset = 0;
+			}
+
+			break;
+
+		default:
+			/* Receiving Ethernet frame itself. */
+			buf[handle->offset] = recv_byte;
+			handle->offset++;
+			handle->state--;
+			break;
+
+		case QCAFRM_WAIT_551:
+			if (recv_byte != 0x55)
+			{
+				ret = QCAFRM_NOTAIL;
+				handle->state = QCAFRM_HW_LEN0;
+			}
+			else
+			{
+				handle->state = QCAFRM_WAIT_552;
+			}
+
+			break;
+
+		case QCAFRM_WAIT_552:
+			if (recv_byte != 0x55)
+			{
+				ret = QCAFRM_NOTAIL;
+				handle->state = QCAFRM_HW_LEN0;
+			}
+			else
+			{
+				ret = handle->offset;
+				/* Frame is fully received. */
+				handle->state = QCAFRM_HW_LEN0;
+			}
+
+			break;
 	}
 
 	return ret;

@@ -28,13 +28,13 @@
 /* debug */
 #ifdef CONFIG_DVB_USB_DEBUG
 #define dprintk(var,level,args...) \
-	    do { if ((var & level)) { printk(args); } } while (0)
+	do { if ((var & level)) { printk(args); } } while (0)
 
 #define debug_dump(b,l,func) {\
-	int loop_; \
-	for (loop_ = 0; loop_ < l; loop_++) func("%02x ", b[loop_]); \
-	func("\n");\
-}
+		int loop_; \
+		for (loop_ = 0; loop_ < l; loop_++) func("%02x ", b[loop_]); \
+		func("\n");\
+	}
 #define DVB_USB_DEBUG_STATUS
 #else
 #define dprintk(args...)
@@ -46,7 +46,7 @@
 
 /* generic log methods - taken from usb.h */
 #ifndef DVB_USB_LOG_PREFIX
- #define DVB_USB_LOG_PREFIX "dvb-usb (please define a log prefix)"
+	#define DVB_USB_LOG_PREFIX "dvb-usb (please define a log prefix)"
 #endif
 
 #undef err
@@ -67,7 +67,8 @@
  * Each DVB USB device class can have one or more actual devices, this struct
  * assigns a name to it.
  */
-struct dvb_usb_device_description {
+struct dvb_usb_device_description
+{
 	const char *name;
 
 #define DVB_USB_ID_MAX_NUM 15
@@ -99,18 +100,22 @@ struct usb_data_stream;
  * describes the kind of USB transfer used for data-streaming.
  *  (BULK or ISOC)
  */
-struct usb_data_stream_properties {
+struct usb_data_stream_properties
+{
 #define USB_BULK  1
 #define USB_ISOC  2
 	int type;
 	int count;
 	int endpoint;
 
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			int buffersize; /* per URB */
 		} bulk;
-		struct {
+		struct
+		{
 			int framesperurb;
 			int framesize;
 			int interval;
@@ -136,7 +141,8 @@ struct usb_data_stream_properties {
  *  pll_desc and pll_init_buf of struct dvb_usb_device).
  * @stream: configuration of the USB streaming
  */
-struct dvb_usb_adapter_fe_properties {
+struct dvb_usb_adapter_fe_properties
+{
 #define DVB_USB_ADAP_HAS_PID_FILTER               0x01
 #define DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF 0x02
 #define DVB_USB_ADAP_NEED_PID_FILTERING           0x04
@@ -158,7 +164,8 @@ struct dvb_usb_adapter_fe_properties {
 };
 
 #define MAX_NO_OF_FE_PER_ADAP 3
-struct dvb_usb_adapter_properties {
+struct dvb_usb_adapter_properties
+{
 	int size_of_priv;
 
 	int (*frontend_ctrl)   (struct dvb_frontend *, int);
@@ -175,8 +182,9 @@ struct dvb_usb_adapter_properties {
  * @rc_query: called to query an event event.
  * @rc_interval: time in ms between two queries.
  */
-struct dvb_rc_legacy {
-/* remote control properties */
+struct dvb_rc_legacy
+{
+	/* remote control properties */
 #define REMOTE_NO_KEY_PRESSED      0x00
 #define REMOTE_KEY_PRESSED         0x01
 #define REMOTE_KEY_REPEAT          0x02
@@ -197,7 +205,8 @@ struct dvb_rc_legacy {
  * @rc_interval: time in ms between two queries.
  * @bulk_mode: device supports bulk mode for RC (disable polling mode)
  */
-struct dvb_rc {
+struct dvb_rc
+{
 	char *rc_codes;
 	u64 protocol;
 	u64 allowed_protos;
@@ -215,7 +224,8 @@ struct dvb_rc {
  * This is initialized/used only inside dvb-usb-remote.c.
  * It shouldn't be set by the drivers.
  */
-enum dvb_usb_mode {
+enum dvb_usb_mode
+{
 	DVB_RC_LEGACY,
 	DVB_RC_CORE,
 };
@@ -258,7 +268,8 @@ enum dvb_usb_mode {
  *  properties.
  */
 #define MAX_NO_OF_ADAPTER_PER_DEVICE 2
-struct dvb_usb_device_properties {
+struct dvb_usb_device_properties
+{
 
 #define DVB_USB_IS_AN_I2C_ADAPTER            0x01
 	int caps;
@@ -280,9 +291,10 @@ struct dvb_usb_device_properties {
 	int (*power_ctrl)       (struct dvb_usb_device *, int);
 	int (*read_mac_address) (struct dvb_usb_device *, u8 []);
 	int (*identify_state)   (struct usb_device *, struct dvb_usb_device_properties *,
-			struct dvb_usb_device_description **, int *);
+							 struct dvb_usb_device_description **, int *);
 
-	struct {
+	struct
+	{
 		enum dvb_usb_mode mode;	/* Drivers shouldn't touch on it */
 		struct dvb_rc_legacy legacy;
 		struct dvb_rc core;
@@ -308,7 +320,8 @@ struct dvb_usb_device_properties {
  * @urbs_submitted: number of URBs submitted.
  */
 #define MAX_NO_URBS_FOR_DATA_STREAM 10
-struct usb_data_stream {
+struct usb_data_stream
+{
 	struct usb_device                 *udev;
 	struct usb_data_stream_properties  props;
 
@@ -355,7 +368,8 @@ struct usb_data_stream {
  *
  * @stream: the usb data stream.
  */
-struct dvb_usb_fe_adapter {
+struct dvb_usb_fe_adapter
+{
 	struct dvb_frontend *fe;
 
 	int (*fe_init)  (struct dvb_frontend *);
@@ -369,7 +383,8 @@ struct dvb_usb_fe_adapter {
 	void *priv;
 };
 
-struct dvb_usb_adapter {
+struct dvb_usb_adapter
+{
 	struct dvb_usb_device *dev;
 	struct dvb_usb_adapter_properties props;
 
@@ -422,7 +437,8 @@ struct dvb_usb_adapter {
  * @priv: private data of the actual driver (allocate by dvb-usb, size defined
  *  in size_of_priv of dvb_usb_properties).
  */
-struct dvb_usb_device {
+struct dvb_usb_device
+{
 	struct dvb_usb_device_properties props;
 	struct dvb_usb_device_description *desc;
 
@@ -461,20 +477,21 @@ struct dvb_usb_device {
 };
 
 extern int dvb_usb_device_init(struct usb_interface *,
-			       struct dvb_usb_device_properties *,
-			       struct module *, struct dvb_usb_device **,
-			       short *adapter_nums);
+							   struct dvb_usb_device_properties *,
+							   struct module *, struct dvb_usb_device **,
+							   short *adapter_nums);
 extern void dvb_usb_device_exit(struct usb_interface *);
 
 /* the generic read/write method for device control */
-extern int dvb_usb_generic_rw(struct dvb_usb_device *, u8 *, u16, u8 *, u16,int);
+extern int dvb_usb_generic_rw(struct dvb_usb_device *, u8 *, u16, u8 *, u16, int);
 extern int dvb_usb_generic_write(struct dvb_usb_device *, u8 *, u16);
 
 /* commonly used remote control parsing */
 extern int dvb_usb_nec_rc_key_to_event(struct dvb_usb_device *, u8[], u32 *, int *);
 
 /* commonly used firmware download types and function */
-struct hexline {
+struct hexline
+{
 	u8 len;
 	u32 addr;
 	u8 type;

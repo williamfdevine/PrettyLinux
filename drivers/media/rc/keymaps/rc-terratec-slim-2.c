@@ -26,7 +26,8 @@
  * TerraTec slim remote, 6 rows, 3 columns.
  * Keytable from Martin Groszhauser <mgroszhauser@gmail.com>
  */
-static struct rc_map_table terratec_slim_2[] = {
+static struct rc_map_table terratec_slim_2[] =
+{
 	{ 0x8001, KEY_MUTE },            /* MUTE */
 	{ 0x8002, KEY_VOLUMEDOWN },
 	{ 0x8003, KEY_CHANNELDOWN },
@@ -47,7 +48,8 @@ static struct rc_map_table terratec_slim_2[] = {
 	{ 0x801f, KEY_9 },
 };
 
-static struct rc_map_list terratec_slim_2_map = {
+static struct rc_map_list terratec_slim_2_map =
+{
 	.map = {
 		.scan    = terratec_slim_2,
 		.size    = ARRAY_SIZE(terratec_slim_2),

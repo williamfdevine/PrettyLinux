@@ -15,7 +15,7 @@
 #define	__PLATFORM_H__
 
 #if !defined(DIVA_BUILD)
-#define DIVA_BUILD "local"
+	#define DIVA_BUILD "local"
 #endif
 
 #include <linux/module.h>
@@ -35,7 +35,7 @@
 
 /* activate debuglib for modules only */
 #ifndef MODULE
-#define DIVA_NO_DEBUGLIB
+	#define DIVA_NO_DEBUGLIB
 #endif
 
 #define DIVA_USER_MODE_CARD_CONFIG 1
@@ -52,39 +52,39 @@
 #include <linux/string.h>
 
 #ifndef	byte
-#define	byte   u8
+	#define	byte   u8
 #endif
 
 #ifndef	word
-#define	word   u16
+	#define	word   u16
 #endif
 
 #ifndef	dword
-#define	dword  u32
+	#define	dword  u32
 #endif
 
 #ifndef	qword
-#define	qword  u64
+	#define	qword  u64
 #endif
 
 #ifndef	NULL
-#define	NULL	((void *) 0)
+	#define	NULL	((void *) 0)
 #endif
 
 #ifndef	far
-#define far
+	#define far
 #endif
 
 #ifndef	_pascal
-#define _pascal
+	#define _pascal
 #endif
 
 #ifndef	_loadds
-#define _loadds
+	#define _loadds
 #endif
 
 #ifndef	_cdecl
-#define _cdecl
+	#define _cdecl
 #endif
 
 #define MEM_TYPE_RAM		0
@@ -163,9 +163,11 @@ static __inline__ void *diva_os_malloc(unsigned long flags, unsigned long size)
 {
 	void *ret = NULL;
 
-	if (size) {
+	if (size)
+	{
 		ret = (void *) vmalloc((unsigned int) size);
 	}
+
 	return (ret);
 }
 static __inline__ void diva_os_free(unsigned long flags, void *ptr)
@@ -204,7 +206,7 @@ void PCIread(byte bus, byte func, int offset, void *data, int length, void *pci_
 **  I/O Port utilities
 */
 int diva_os_register_io_port(void *adapter, int reg, unsigned long port,
-			     unsigned long length, const char *name, int id);
+							 unsigned long length, const char *name, int id);
 /*
 **  I/O port access abstraction
 */
@@ -212,13 +214,14 @@ byte inpp(void __iomem *);
 word inppw(void __iomem *);
 void inppw_buffer(void __iomem *, void *, int);
 void outppw(void __iomem *, word);
-void outppw_buffer(void __iomem * , void*, int);
+void outppw_buffer(void __iomem *, void *, int);
 void outpp(void __iomem *, word);
 
 /*
 **  IRQ
 */
-typedef struct _diva_os_adapter_irq_info {
+typedef struct _diva_os_adapter_irq_info
+{
 	byte irq_nr;
 	int  registered;
 	char irq_name[24];
@@ -233,14 +236,17 @@ void diva_os_remove_irq(void *context, byte irq);
 */
 typedef long diva_os_spin_lock_magic_t;
 typedef spinlock_t diva_os_spin_lock_t;
-static __inline__ int diva_os_initialize_spin_lock(spinlock_t *lock, void *unused) { \
-	spin_lock_init(lock); return (0); }
+static __inline__ int diva_os_initialize_spin_lock(spinlock_t *lock, void *unused)
+{
+	\
+	spin_lock_init(lock); return (0);
+}
 static __inline__ void diva_os_enter_spin_lock(diva_os_spin_lock_t *a, \
-					       diva_os_spin_lock_magic_t *old_irql, \
-					       void *dbg) { spin_lock_bh(a); }
+		diva_os_spin_lock_magic_t *old_irql, \
+		void *dbg) { spin_lock_bh(a); }
 static __inline__ void diva_os_leave_spin_lock(diva_os_spin_lock_t *a, \
-					       diva_os_spin_lock_magic_t *old_irql, \
-					       void *dbg) { spin_unlock_bh(a); }
+		diva_os_spin_lock_magic_t *old_irql, \
+		void *dbg) { spin_unlock_bh(a); }
 
 #define diva_os_destroy_spin_lock(a, b) do { } while (0)
 
@@ -250,14 +256,16 @@ static __inline__ void diva_os_leave_spin_lock(diva_os_spin_lock_t *a, \
 typedef int (*diva_os_isr_callback_t)(struct _ISDN_ADAPTER *);
 typedef void (*diva_os_soft_isr_callback_t)(struct _diva_os_soft_isr *psoft_isr, void *context);
 
-typedef struct _diva_os_soft_isr {
+typedef struct _diva_os_soft_isr
+{
 	void *object;
 	diva_os_soft_isr_callback_t callback;
 	void *callback_context;
 	char dpc_thread_name[24];
 } diva_os_soft_isr_t;
 
-int diva_os_initialize_soft_isr(diva_os_soft_isr_t *psoft_isr, diva_os_soft_isr_callback_t callback, void *callback_context);
+int diva_os_initialize_soft_isr(diva_os_soft_isr_t *psoft_isr, diva_os_soft_isr_callback_t callback,
+								void *callback_context);
 int diva_os_schedule_soft_isr(diva_os_soft_isr_t *psoft_isr);
 int diva_os_cancel_soft_isr(diva_os_soft_isr_t *psoft_isr);
 void diva_os_remove_soft_isr(diva_os_soft_isr_t *psoft_isr);
@@ -341,10 +349,10 @@ static inline void PUT_DWORD(void *addr, __u32 v)
 ** 32/64 bit macors
 */
 #ifdef BITS_PER_LONG
-#if BITS_PER_LONG > 32
-#define PLATFORM_GT_32BIT
-#define ULongToPtr(x) (void *)(unsigned long)(x)
-#endif
+	#if BITS_PER_LONG > 32
+		#define PLATFORM_GT_32BIT
+		#define ULongToPtr(x) (void *)(unsigned long)(x)
+	#endif
 #endif
 
 /*

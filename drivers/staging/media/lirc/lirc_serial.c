@@ -83,7 +83,8 @@
 
 #define LIRC_DRIVER_NAME "lirc_serial"
 
-struct lirc_serial {
+struct lirc_serial
+{
 	int signal_pin;
 	int signal_pin_change;
 	u8 on;
@@ -118,7 +119,8 @@ static long send_pulse_homebrew(unsigned long length);
 static void send_space_irdeo(long length);
 static void send_space_homebrew(long length);
 
-static struct lirc_serial hardware[] = {
+static struct lirc_serial hardware[] =
+{
 	[LIRC_HOMEBREW] = {
 		.lock = __SPIN_LOCK_UNLOCKED(hardware[LIRC_HOMEBREW].lock),
 		.signal_pin        = UART_MSR_DCD,
@@ -129,8 +131,8 @@ static struct lirc_serial hardware[] = {
 		.send_space = send_space_homebrew,
 #ifdef CONFIG_LIRC_SERIAL_TRANSMITTER
 		.features    = (LIRC_CAN_SET_SEND_DUTY_CYCLE |
-				LIRC_CAN_SET_SEND_CARRIER |
-				LIRC_CAN_SEND_PULSE | LIRC_CAN_REC_MODE2)
+		LIRC_CAN_SET_SEND_CARRIER |
+		LIRC_CAN_SEND_PULSE | LIRC_CAN_REC_MODE2)
 #else
 		.features    = LIRC_CAN_REC_MODE2
 #endif
@@ -145,7 +147,7 @@ static struct lirc_serial hardware[] = {
 		.send_pulse  = send_pulse_irdeo,
 		.send_space  = send_space_irdeo,
 		.features    = (LIRC_CAN_SET_SEND_DUTY_CYCLE |
-				LIRC_CAN_SEND_PULSE | LIRC_CAN_REC_MODE2)
+		LIRC_CAN_SEND_PULSE | LIRC_CAN_REC_MODE2)
 	},
 
 	[LIRC_IRDEO_REMOTE] = {
@@ -157,7 +159,7 @@ static struct lirc_serial hardware[] = {
 		.send_pulse  = send_pulse_irdeo,
 		.send_space  = send_space_irdeo,
 		.features    = (LIRC_CAN_SET_SEND_DUTY_CYCLE |
-				LIRC_CAN_SEND_PULSE | LIRC_CAN_REC_MODE2)
+		LIRC_CAN_SEND_PULSE | LIRC_CAN_REC_MODE2)
 	},
 
 	[LIRC_ANIMAX] = {
@@ -181,8 +183,8 @@ static struct lirc_serial hardware[] = {
 		.send_space = send_space_homebrew,
 #ifdef CONFIG_LIRC_SERIAL_TRANSMITTER
 		.features    = (LIRC_CAN_SET_SEND_DUTY_CYCLE |
-				LIRC_CAN_SET_SEND_CARRIER |
-				LIRC_CAN_SEND_PULSE | LIRC_CAN_REC_MODE2)
+		LIRC_CAN_SET_SEND_CARRIER |
+		LIRC_CAN_SEND_PULSE | LIRC_CAN_REC_MODE2)
 #else
 		.features    = LIRC_CAN_REC_MODE2
 #endif
@@ -217,37 +219,37 @@ static unsigned long pulse_width;
 static unsigned long space_width;
 
 #if defined(__i386__)
-/*
- * From:
- * Linux I/O port programming mini-HOWTO
- * Author: Riku Saikkonen <Riku.Saikkonen@hut.fi>
- * v, 28 December 1997
- *
- * [...]
- * Actually, a port I/O instruction on most ports in the 0-0x3ff range
- * takes almost exactly 1 microsecond, so if you're, for example, using
- * the parallel port directly, just do additional inb()s from that port
- * to delay.
- * [...]
- */
-/* transmitter latency 1.5625us 0x1.90 - this figure arrived at from
- * comment above plus trimming to match actual measured frequency.
- * This will be sensitive to cpu speed, though hopefully most of the 1.5us
- * is spent in the uart access.  Still - for reference test machine was a
- * 1.13GHz Athlon system - Steve
- */
+	/*
+	* From:
+	* Linux I/O port programming mini-HOWTO
+	* Author: Riku Saikkonen <Riku.Saikkonen@hut.fi>
+	* v, 28 December 1997
+	*
+	* [...]
+	* Actually, a port I/O instruction on most ports in the 0-0x3ff range
+	* takes almost exactly 1 microsecond, so if you're, for example, using
+	* the parallel port directly, just do additional inb()s from that port
+	* to delay.
+	* [...]
+	*/
+	/* transmitter latency 1.5625us 0x1.90 - this figure arrived at from
+	* comment above plus trimming to match actual measured frequency.
+	* This will be sensitive to cpu speed, though hopefully most of the 1.5us
+	* is spent in the uart access.  Still - for reference test machine was a
+	* 1.13GHz Athlon system - Steve
+	*/
 
-/*
- * changed from 400 to 450 as this works better on slower machines;
- * faster machines will use the rdtsc code anyway
- */
-#define LIRC_SERIAL_TRANSMITTER_LATENCY 450
+	/*
+	* changed from 400 to 450 as this works better on slower machines;
+	* faster machines will use the rdtsc code anyway
+	*/
+	#define LIRC_SERIAL_TRANSMITTER_LATENCY 450
 
 #else
 
-/* does anybody have information on other platforms ? */
-/* 256 = 1<<8 */
-#define LIRC_SERIAL_TRANSMITTER_LATENCY 256
+	/* does anybody have information on other platforms ? */
+	/* 256 = 1<<8 */
+	#define LIRC_SERIAL_TRANSMITTER_LATENCY 256
 
 #endif  /* __i386__ */
 /*
@@ -260,7 +262,9 @@ static u8 sinp(int offset)
 {
 	if (iommap)
 		/* the register is memory-mapped */
+	{
 		offset <<= ioshift;
+	}
 
 	return inb(io + offset);
 }
@@ -270,7 +274,9 @@ static void soutp(int offset, u8 value)
 {
 	if (iommap)
 		/* the register is memory-mapped */
+	{
 		offset <<= ioshift;
+	}
 
 	outb(value, io + offset);
 }
@@ -278,31 +284,41 @@ static void soutp(int offset, u8 value)
 static void on(void)
 {
 	if (txsense)
+	{
 		soutp(UART_MCR, hardware[type].off);
+	}
 	else
+	{
 		soutp(UART_MCR, hardware[type].on);
+	}
 }
 
 static void off(void)
 {
 	if (txsense)
+	{
 		soutp(UART_MCR, hardware[type].on);
+	}
 	else
+	{
 		soutp(UART_MCR, hardware[type].off);
+	}
 }
 
 #ifndef MAX_UDELAY_MS
-#define MAX_UDELAY_US 5000
+	#define MAX_UDELAY_US 5000
 #else
-#define MAX_UDELAY_US (MAX_UDELAY_MS*1000)
+	#define MAX_UDELAY_US (MAX_UDELAY_MS*1000)
 #endif
 
 static void safe_udelay(unsigned long usecs)
 {
-	while (usecs > MAX_UDELAY_US) {
+	while (usecs > MAX_UDELAY_US)
+	{
 		udelay(MAX_UDELAY_US);
 		usecs -= MAX_UDELAY_US;
 	}
+
 	udelay(usecs);
 }
 
@@ -320,7 +336,7 @@ static void safe_udelay(unsigned long usecs)
  */
 
 static int init_timing_params(unsigned int new_duty_cycle,
-		unsigned int new_freq)
+							  unsigned int new_freq)
 {
 	__u64 loops_per_sec, work;
 
@@ -345,31 +361,37 @@ static int init_timing_params(unsigned int new_duty_cycle,
 	pulse_width = period * duty_cycle / 100;
 	space_width = period - pulse_width;
 	pr_debug("in init_timing_params, freq=%d, duty_cycle=%d, clk/jiffy=%ld, pulse=%ld, space=%ld, conv_us_to_clocks=%ld\n",
-		 freq, duty_cycle, __this_cpu_read(cpu_info.loops_per_jiffy),
-		 pulse_width, space_width, conv_us_to_clocks);
+			 freq, duty_cycle, __this_cpu_read(cpu_info.loops_per_jiffy),
+			 pulse_width, space_width, conv_us_to_clocks);
 	return 0;
 }
 #else /* ! USE_RDTSC */
 static int init_timing_params(unsigned int new_duty_cycle,
-		unsigned int new_freq)
+							  unsigned int new_freq)
 {
-/*
- * period, pulse/space width are kept with 8 binary places -
- * IE multiplied by 256.
- */
+	/*
+	 * period, pulse/space width are kept with 8 binary places -
+	 * IE multiplied by 256.
+	 */
 	if (256 * 1000000L / new_freq * new_duty_cycle / 100 <=
-	    LIRC_SERIAL_TRANSMITTER_LATENCY)
+		LIRC_SERIAL_TRANSMITTER_LATENCY)
+	{
 		return -EINVAL;
+	}
+
 	if (256 * 1000000L / new_freq * (100 - new_duty_cycle) / 100 <=
-	    LIRC_SERIAL_TRANSMITTER_LATENCY)
+		LIRC_SERIAL_TRANSMITTER_LATENCY)
+	{
 		return -EINVAL;
+	}
+
 	duty_cycle = new_duty_cycle;
 	freq = new_freq;
 	period = 256 * 1000000L / freq;
 	pulse_width = period * duty_cycle / 100;
 	space_width = period - pulse_width;
 	pr_debug("in init_timing_params, freq=%d pulse=%ld, space=%ld\n",
-		 freq, pulse_width, space_width);
+			 freq, pulse_width, space_width);
 	return 0;
 }
 #endif /* USE_RDTSC */
@@ -386,33 +408,51 @@ static long send_pulse_irdeo(unsigned long length)
 
 	/* how many bits have to be sent ? */
 	rawbits = length * 1152 / 10000;
+
 	if (duty_cycle > 50)
+	{
 		chunk = 3;
+	}
 	else
+	{
 		chunk = 1;
-	for (i = 0, output = 0x7f; rawbits > 0; rawbits -= 3) {
+	}
+
+	for (i = 0, output = 0x7f; rawbits > 0; rawbits -= 3)
+	{
 		shifted = chunk << (i * 3);
 		shifted >>= 1;
 		output &= (~shifted);
 		i++;
-		if (i == 3) {
+
+		if (i == 3)
+		{
 			soutp(UART_TX, output);
+
 			while (!(sinp(UART_LSR) & UART_LSR_THRE))
 				;
+
 			output = 0x7f;
 			i = 0;
 		}
 	}
-	if (i != 0) {
+
+	if (i != 0)
+	{
 		soutp(UART_TX, output);
+
 		while (!(sinp(UART_LSR) & UART_LSR_TEMT))
 			;
 	}
 
 	if (i == 0)
+	{
 		ret = (-rawbits) * 10000 / 1152;
+	}
 	else
+	{
 		ret = (3 - i) * 3 * 10000 / 1152 + (-rawbits) * 10000 / 1152;
+	}
 
 	return ret;
 }
@@ -437,16 +477,22 @@ static long send_pulse_homebrew_softcarrier(unsigned long length)
 	length <<= 8;
 
 	actual = 0; target = 0; flag = 0;
-	while (actual < length) {
-		if (flag) {
+
+	while (actual < length)
+	{
+		if (flag)
+		{
 			off();
 			target += space_width;
-		} else {
+		}
+		else
+		{
 			on();
 			target += pulse_width;
 		}
+
 		d = (target - actual -
-		     LIRC_SERIAL_TRANSMITTER_LATENCY + 128) >> 8;
+			 LIRC_SERIAL_TRANSMITTER_LATENCY + 128) >> 8;
 		/*
 		 * Note - we've checked in ioctl that the pulse/space
 		 * widths are big enough so that d is > 0
@@ -455,16 +501,21 @@ static long send_pulse_homebrew_softcarrier(unsigned long length)
 		actual += (d << 8) + LIRC_SERIAL_TRANSMITTER_LATENCY;
 		flag = !flag;
 	}
-	return (actual-length) >> 8;
+
+	return (actual - length) >> 8;
 }
 
 static long send_pulse_homebrew(unsigned long length)
 {
 	if (length <= 0)
+	{
 		return 0;
+	}
 
 	if (softcarrier)
+	{
 		return send_pulse_homebrew_softcarrier(length);
+	}
 
 	on();
 	safe_udelay(length);
@@ -474,7 +525,9 @@ static long send_pulse_homebrew(unsigned long length)
 static void send_space_irdeo(long length)
 {
 	if (length <= 0)
+	{
 		return;
+	}
 
 	safe_udelay(length);
 }
@@ -482,18 +535,24 @@ static void send_space_irdeo(long length)
 static void send_space_homebrew(long length)
 {
 	off();
+
 	if (length <= 0)
+	{
 		return;
+	}
+
 	safe_udelay(length);
 }
 
 static void rbwrite(int l)
 {
-	if (lirc_buffer_full(&rbuf)) {
+	if (lirc_buffer_full(&rbuf))
+	{
 		/* no new signals will be accepted */
 		pr_debug("Buffer overrun\n");
 		return;
 	}
+
 	lirc_buffer_write(&rbuf, (void *)&l);
 }
 
@@ -503,40 +562,61 @@ static void frbwrite(int l)
 	static int pulse, space;
 	static unsigned int ptr;
 
-	if (ptr > 0 && (l & PULSE_BIT)) {
+	if (ptr > 0 && (l & PULSE_BIT))
+	{
 		pulse += l & PULSE_MASK;
-		if (pulse > 250) {
+
+		if (pulse > 250)
+		{
 			rbwrite(space);
 			rbwrite(pulse | PULSE_BIT);
 			ptr = 0;
 			pulse = 0;
 		}
+
 		return;
 	}
-	if (!(l & PULSE_BIT)) {
-		if (ptr == 0) {
-			if (l > 20000) {
+
+	if (!(l & PULSE_BIT))
+	{
+		if (ptr == 0)
+		{
+			if (l > 20000)
+			{
 				space = l;
 				ptr++;
 				return;
 			}
-		} else {
-			if (l > 20000) {
+		}
+		else
+		{
+			if (l > 20000)
+			{
 				space += pulse;
+
 				if (space > PULSE_MASK)
+				{
 					space = PULSE_MASK;
+				}
+
 				space += l;
+
 				if (space > PULSE_MASK)
+				{
 					space = PULSE_MASK;
+				}
+
 				pulse = 0;
 				return;
 			}
+
 			rbwrite(space);
 			rbwrite(pulse | PULSE_BIT);
 			ptr = 0;
 			pulse = 0;
 		}
 	}
+
 	rbwrite(l);
 }
 
@@ -549,21 +629,28 @@ static irqreturn_t lirc_irq_handler(int i, void *blah)
 	int data;
 	static int last_dcd = -1;
 
-	if ((sinp(UART_IIR) & UART_IIR_NO_INT)) {
+	if ((sinp(UART_IIR) & UART_IIR_NO_INT))
+	{
 		/* not our interrupt */
 		return IRQ_NONE;
 	}
 
 	counter = 0;
-	do {
+
+	do
+	{
 		counter++;
 		status = sinp(UART_MSR);
-		if (counter > RS_ISR_PASS_LIMIT) {
+
+		if (counter > RS_ISR_PASS_LIMIT)
+		{
 			pr_warn("AIEEEE: We're caught!\n");
 			break;
 		}
+
 		if ((status & hardware[type].signal_pin_change)
-		    && sense != -1) {
+			&& sense != -1)
+		{
 			/* get current time */
 			kt = ktime_get();
 
@@ -593,35 +680,46 @@ static irqreturn_t lirc_irq_handler(int i, void *blah)
 			/* calc time since last interrupt in microseconds */
 			dcd = (status & hardware[type].signal_pin) ? 1 : 0;
 
-			if (dcd == last_dcd) {
+			if (dcd == last_dcd)
+			{
 				pr_warn("ignoring spike: %d %d %llx %llx\n",
-					dcd, sense, ktime_to_us(kt),
-					ktime_to_us(lastkt));
+						dcd, sense, ktime_to_us(kt),
+						ktime_to_us(lastkt));
 				continue;
 			}
 
 			delkt = ktime_sub(kt, lastkt);
-			if (ktime_compare(delkt, ktime_set(15, 0)) > 0) {
+
+			if (ktime_compare(delkt, ktime_set(15, 0)) > 0)
+			{
 				data = PULSE_MASK; /* really long time */
-				if (!(dcd^sense)) {
+
+				if (!(dcd ^ sense))
+				{
 					/* sanity check */
 					pr_warn("AIEEEE: %d %d %llx %llx\n",
-						dcd, sense, ktime_to_us(kt),
-						ktime_to_us(lastkt));
+							dcd, sense, ktime_to_us(kt),
+							ktime_to_us(lastkt));
 					/*
 					 * detecting pulse while this
 					 * MUST be a space!
 					 */
 					sense = sense ? 0 : 1;
 				}
-			} else
+			}
+			else
+			{
 				data = (int) ktime_to_us(delkt);
-			frbwrite(dcd^sense ? data : (data|PULSE_BIT));
+			}
+
+			frbwrite(dcd ^ sense ? data : (data | PULSE_BIT));
 			lastkt = kt;
 			last_dcd = dcd;
 			wake_up_interruptible(&rbuf.wait_poll);
 		}
-	} while (!(sinp(UART_IIR) & UART_IIR_NO_INT)); /* still pending ? */
+	}
+	while (!(sinp(UART_IIR) & UART_IIR_NO_INT));   /* still pending ? */
+
 	return IRQ_HANDLED;
 }
 
@@ -646,7 +744,9 @@ static int hardware_init_port(void)
 #endif
 	scratch3 = sinp(UART_IER) & 0x0f;
 	soutp(UART_IER, scratch);
-	if (scratch2 != 0 || scratch3 != 0x0f) {
+
+	if (scratch2 != 0 || scratch3 != 0x0f)
+	{
 		/* we fail, there's nothing here */
 		pr_err("port existence test failed, cannot continue\n");
 		return -ENODEV;
@@ -659,7 +759,7 @@ static int hardware_init_port(void)
 
 	/* First of all, disable all interrupts */
 	soutp(UART_IER, sinp(UART_IER) &
-	      (~(UART_IER_MSI|UART_IER_RLSI|UART_IER_THRI|UART_IER_RDI)));
+		  (~(UART_IER_MSI | UART_IER_RLSI | UART_IER_THRI | UART_IER_RDI)));
 
 	/* Clear registers. */
 	sinp(UART_LSR);
@@ -676,23 +776,25 @@ static int hardware_init_port(void)
 	sinp(UART_IIR);
 	sinp(UART_MSR);
 
-	switch (type) {
-	case LIRC_IRDEO:
-	case LIRC_IRDEO_REMOTE:
-		/* setup port to 7N1 @ 115200 Baud */
-		/* 7N1+start = 9 bits at 115200 ~ 3 bits at 38kHz */
+	switch (type)
+	{
+		case LIRC_IRDEO:
+		case LIRC_IRDEO_REMOTE:
+			/* setup port to 7N1 @ 115200 Baud */
+			/* 7N1+start = 9 bits at 115200 ~ 3 bits at 38kHz */
 
-		/* Set DLAB 1. */
-		soutp(UART_LCR, sinp(UART_LCR) | UART_LCR_DLAB);
-		/* Set divisor to 1 => 115200 Baud */
-		soutp(UART_DLM, 0);
-		soutp(UART_DLL, 1);
-		/* Set DLAB 0 +  7N1 */
-		soutp(UART_LCR, UART_LCR_WLEN7);
-		/* THR interrupt already disabled at this point */
-		break;
-	default:
-		break;
+			/* Set DLAB 1. */
+			soutp(UART_LCR, sinp(UART_LCR) | UART_LCR_DLAB);
+			/* Set divisor to 1 => 115200 Baud */
+			soutp(UART_DLM, 0);
+			soutp(UART_DLL, 1);
+			/* Set DLAB 0 +  7N1 */
+			soutp(UART_LCR, UART_LCR_WLEN7);
+			/* THR interrupt already disabled at this point */
+			break;
+
+		default:
+			break;
 	}
 
 	return 0;
@@ -703,13 +805,20 @@ static int lirc_serial_probe(struct platform_device *dev)
 	int i, nlow, nhigh, result;
 
 	result = devm_request_irq(&dev->dev, irq, lirc_irq_handler,
-			     (share_irq ? IRQF_SHARED : 0),
-			     LIRC_DRIVER_NAME, &hardware);
-	if (result < 0) {
+							  (share_irq ? IRQF_SHARED : 0),
+							  LIRC_DRIVER_NAME, &hardware);
+
+	if (result < 0)
+	{
 		if (result == -EBUSY)
+		{
 			dev_err(&dev->dev, "IRQ %d busy\n", irq);
+		}
 		else if (result == -EINVAL)
+		{
 			dev_err(&dev->dev, "Bad irq number or handler\n");
+		}
+
 		return result;
 	}
 
@@ -720,28 +829,33 @@ static int lirc_serial_probe(struct platform_device *dev)
 	 * for the NSLU2 it's done in boot code.
 	 */
 	if (((iommap)
-	     && (devm_request_mem_region(&dev->dev, iommap, 8 << ioshift,
-					 LIRC_DRIVER_NAME) == NULL))
-	   || ((!iommap)
-	       && (devm_request_region(&dev->dev, io, 8,
-				       LIRC_DRIVER_NAME) == NULL))) {
+		 && (devm_request_mem_region(&dev->dev, iommap, 8 << ioshift,
+									 LIRC_DRIVER_NAME) == NULL))
+		|| ((!iommap)
+			&& (devm_request_region(&dev->dev, io, 8,
+									LIRC_DRIVER_NAME) == NULL)))
+	{
 		dev_err(&dev->dev, "port %04x already in use\n", io);
 		dev_warn(&dev->dev, "use 'setserial /dev/ttySX uart none'\n");
 		dev_warn(&dev->dev,
-			 "or compile the serial port driver as module and\n");
+				 "or compile the serial port driver as module and\n");
 		dev_warn(&dev->dev, "make sure this module is loaded first\n");
 		return -EBUSY;
 	}
 
 	result = hardware_init_port();
+
 	if (result < 0)
+	{
 		return result;
+	}
 
 	/* Initialize pulse/space widths */
 	init_timing_params(duty_cycle, freq);
 
 	/* If pin is high, then this must be an active low receiver. */
-	if (sense == -1) {
+	if (sense == -1)
+	{
 		/* wait 1/2 sec for the power supply */
 		msleep(500);
 
@@ -751,19 +865,28 @@ static int lirc_serial_probe(struct platform_device *dev)
 		 */
 		nlow = 0;
 		nhigh = 0;
-		for (i = 0; i < 9; i++) {
+
+		for (i = 0; i < 9; i++)
+		{
 			if (sinp(UART_MSR) & hardware[type].signal_pin)
+			{
 				nlow++;
+			}
 			else
+			{
 				nhigh++;
+			}
+
 			msleep(40);
 		}
+
 		sense = nlow >= nhigh ? 1 : 0;
 		dev_info(&dev->dev, "auto-detected active %s receiver\n",
-			 sense ? "low" : "high");
-	} else
+				 sense ? "low" : "high");
+	}
+	else
 		dev_info(&dev->dev, "Manually using active %s receiver\n",
-			 sense ? "low" : "high");
+				 sense ? "low" : "high");
 
 	dev_dbg(&dev->dev, "Interrupt %d, port %04x obtained\n", irq, io);
 	return 0;
@@ -781,7 +904,7 @@ static int set_use_inc(void *data)
 	/* Set DLAB 0. */
 	soutp(UART_LCR, sinp(UART_LCR) & (~UART_LCR_DLAB));
 
-	soutp(UART_IER, sinp(UART_IER)|UART_IER_MSI);
+	soutp(UART_IER, sinp(UART_IER) | UART_IER_MSI);
 
 	spin_unlock_irqrestore(&hardware[type].lock, flags);
 
@@ -789,7 +912,8 @@ static int set_use_inc(void *data)
 }
 
 static void set_use_dec(void *data)
-{	unsigned long flags;
+{
+	unsigned long flags;
 
 	spin_lock_irqsave(&hardware[type].lock, flags);
 
@@ -798,12 +922,12 @@ static void set_use_dec(void *data)
 
 	/* First of all, disable all interrupts */
 	soutp(UART_IER, sinp(UART_IER) &
-	      (~(UART_IER_MSI|UART_IER_RLSI|UART_IER_THRI|UART_IER_RDI)));
+		  (~(UART_IER_MSI | UART_IER_RLSI | UART_IER_THRI | UART_IER_RDI)));
 	spin_unlock_irqrestore(&hardware[type].lock, flags);
 }
 
 static ssize_t lirc_write(struct file *file, const char __user *buf,
-			 size_t n, loff_t *ppos)
+						  size_t n, loff_t *ppos)
 {
 	int i, count;
 	unsigned long flags;
@@ -811,25 +935,44 @@ static ssize_t lirc_write(struct file *file, const char __user *buf,
 	int *wbuf;
 
 	if (!(hardware[type].features & LIRC_CAN_SEND_PULSE))
+	{
 		return -EPERM;
+	}
 
 	count = n / sizeof(int);
+
 	if (n % sizeof(int) || count % 2 == 0)
+	{
 		return -EINVAL;
+	}
+
 	wbuf = memdup_user(buf, n);
+
 	if (IS_ERR(wbuf))
+	{
 		return PTR_ERR(wbuf);
+	}
+
 	spin_lock_irqsave(&hardware[type].lock, flags);
-	if (type == LIRC_IRDEO) {
+
+	if (type == LIRC_IRDEO)
+	{
 		/* DTR, RTS down */
 		on();
 	}
-	for (i = 0; i < count; i++) {
-		if (i%2)
+
+	for (i = 0; i < count; i++)
+	{
+		if (i % 2)
+		{
 			hardware[type].send_space(wbuf[i] - delta);
+		}
 		else
+		{
 			delta = hardware[type].send_pulse(wbuf[i]);
+		}
 	}
+
 	off();
 	spin_unlock_irqrestore(&hardware[type].lock, flags);
 	kfree(wbuf);
@@ -842,64 +985,102 @@ static long lirc_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
 	u32 __user *uptr = (u32 __user *)arg;
 	u32 value;
 
-	switch (cmd) {
-	case LIRC_GET_SEND_MODE:
-		if (!(hardware[type].features&LIRC_CAN_SEND_MASK))
+	switch (cmd)
+	{
+		case LIRC_GET_SEND_MODE:
+			if (!(hardware[type].features & LIRC_CAN_SEND_MASK))
+			{
+				return -ENOIOCTLCMD;
+			}
+
+			result = put_user(LIRC_SEND2MODE
+							  (hardware[type].features & LIRC_CAN_SEND_MASK),
+							  uptr);
+
+			if (result)
+			{
+				return result;
+			}
+
+			break;
+
+		case LIRC_SET_SEND_MODE:
+			if (!(hardware[type].features & LIRC_CAN_SEND_MASK))
+			{
+				return -ENOIOCTLCMD;
+			}
+
+			result = get_user(value, uptr);
+
+			if (result)
+			{
+				return result;
+			}
+
+			/* only LIRC_MODE_PULSE supported */
+			if (value != LIRC_MODE_PULSE)
+			{
+				return -EINVAL;
+			}
+
+			break;
+
+		case LIRC_GET_LENGTH:
 			return -ENOIOCTLCMD;
 
-		result = put_user(LIRC_SEND2MODE
-				  (hardware[type].features&LIRC_CAN_SEND_MASK),
-				  uptr);
-		if (result)
-			return result;
-		break;
+		case LIRC_SET_SEND_DUTY_CYCLE:
+			pr_debug("SET_SEND_DUTY_CYCLE\n");
 
-	case LIRC_SET_SEND_MODE:
-		if (!(hardware[type].features&LIRC_CAN_SEND_MASK))
-			return -ENOIOCTLCMD;
+			if (!(hardware[type].features & LIRC_CAN_SET_SEND_DUTY_CYCLE))
+			{
+				return -ENOIOCTLCMD;
+			}
 
-		result = get_user(value, uptr);
-		if (result)
-			return result;
-		/* only LIRC_MODE_PULSE supported */
-		if (value != LIRC_MODE_PULSE)
-			return -EINVAL;
-		break;
+			result = get_user(value, uptr);
 
-	case LIRC_GET_LENGTH:
-		return -ENOIOCTLCMD;
+			if (result)
+			{
+				return result;
+			}
 
-	case LIRC_SET_SEND_DUTY_CYCLE:
-		pr_debug("SET_SEND_DUTY_CYCLE\n");
-		if (!(hardware[type].features&LIRC_CAN_SET_SEND_DUTY_CYCLE))
-			return -ENOIOCTLCMD;
+			if (value <= 0 || value > 100)
+			{
+				return -EINVAL;
+			}
 
-		result = get_user(value, uptr);
-		if (result)
-			return result;
-		if (value <= 0 || value > 100)
-			return -EINVAL;
-		return init_timing_params(value, freq);
+			return init_timing_params(value, freq);
 
-	case LIRC_SET_SEND_CARRIER:
-		pr_debug("SET_SEND_CARRIER\n");
-		if (!(hardware[type].features&LIRC_CAN_SET_SEND_CARRIER))
-			return -ENOIOCTLCMD;
+		case LIRC_SET_SEND_CARRIER:
+			pr_debug("SET_SEND_CARRIER\n");
 
-		result = get_user(value, uptr);
-		if (result)
-			return result;
-		if (value > 500000 || value < 20000)
-			return -EINVAL;
-		return init_timing_params(duty_cycle, value);
+			if (!(hardware[type].features & LIRC_CAN_SET_SEND_CARRIER))
+			{
+				return -ENOIOCTLCMD;
+			}
 
-	default:
-		return lirc_dev_fop_ioctl(filep, cmd, arg);
+			result = get_user(value, uptr);
+
+			if (result)
+			{
+				return result;
+			}
+
+			if (value > 500000 || value < 20000)
+			{
+				return -EINVAL;
+			}
+
+			return init_timing_params(duty_cycle, value);
+
+		default:
+			return lirc_dev_fop_ioctl(filep, cmd, arg);
 	}
+
 	return 0;
 }
 
-static const struct file_operations lirc_fops = {
+static const struct file_operations lirc_fops =
+{
 	.owner		= THIS_MODULE,
 	.write		= lirc_write,
 	.unlocked_ioctl	= lirc_ioctl,
@@ -913,7 +1094,8 @@ static const struct file_operations lirc_fops = {
 	.llseek		= no_llseek,
 };
 
-static struct lirc_driver driver = {
+static struct lirc_driver driver =
+{
 	.name		= LIRC_DRIVER_NAME,
 	.minor		= -1,
 	.code_length	= 1,
@@ -931,14 +1113,14 @@ static struct lirc_driver driver = {
 static struct platform_device *lirc_serial_dev;
 
 static int lirc_serial_suspend(struct platform_device *dev,
-			       pm_message_t state)
+							   pm_message_t state)
 {
 	/* Set DLAB 0. */
 	soutp(UART_LCR, sinp(UART_LCR) & (~UART_LCR_DLAB));
 
 	/* Disable all interrupts */
 	soutp(UART_IER, sinp(UART_IER) &
-	      (~(UART_IER_MSI|UART_IER_RLSI|UART_IER_THRI|UART_IER_RDI)));
+		  (~(UART_IER_MSI | UART_IER_RLSI | UART_IER_THRI | UART_IER_RDI)));
 
 	/* Clear registers. */
 	sinp(UART_LSR);
@@ -958,13 +1140,16 @@ static int lirc_serial_resume(struct platform_device *dev)
 	int result;
 
 	result = hardware_init_port();
+
 	if (result < 0)
+	{
 		return result;
+	}
 
 	spin_lock_irqsave(&hardware[type].lock, flags);
 	/* Enable Interrupt */
 	lastkt = ktime_get();
-	soutp(UART_IER, sinp(UART_IER)|UART_IER_MSI);
+	soutp(UART_IER, sinp(UART_IER) | UART_IER_MSI);
 	off();
 
 	lirc_buffer_clear(&rbuf);
@@ -974,7 +1159,8 @@ static int lirc_serial_resume(struct platform_device *dev)
 	return 0;
 }
 
-static struct platform_driver lirc_serial_driver = {
+static struct platform_driver lirc_serial_driver =
+{
 	.probe		= lirc_serial_probe,
 	.suspend	= lirc_serial_suspend,
 	.resume		= lirc_serial_resume,
@@ -989,24 +1175,34 @@ static int __init lirc_serial_init(void)
 
 	/* Init read buffer. */
 	result = lirc_buffer_init(&rbuf, sizeof(int), RBUF_LEN);
+
 	if (result < 0)
+	{
 		return result;
+	}
 
 	result = platform_driver_register(&lirc_serial_driver);
-	if (result) {
+
+	if (result)
+	{
 		printk("lirc register returned %d\n", result);
 		goto exit_buffer_free;
 	}
 
 	lirc_serial_dev = platform_device_alloc("lirc_serial", 0);
-	if (!lirc_serial_dev) {
+
+	if (!lirc_serial_dev)
+	{
 		result = -ENOMEM;
 		goto exit_driver_unregister;
 	}
 
 	result = platform_device_add(lirc_serial_dev);
+
 	if (result)
+	{
 		goto exit_device_put;
+	}
 
 	return 0;
 
@@ -1030,46 +1226,59 @@ static int __init lirc_serial_init_module(void)
 {
 	int result;
 
-	switch (type) {
-	case LIRC_HOMEBREW:
-	case LIRC_IRDEO:
-	case LIRC_IRDEO_REMOTE:
-	case LIRC_ANIMAX:
-	case LIRC_IGOR:
-		/* if nothing specified, use ttyS0/com1 and irq 4 */
-		io = io ? io : 0x3f8;
-		irq = irq ? irq : 4;
-		break;
-	default:
-		return -EINVAL;
-	}
-	if (!softcarrier) {
-		switch (type) {
+	switch (type)
+	{
 		case LIRC_HOMEBREW:
+		case LIRC_IRDEO:
+		case LIRC_IRDEO_REMOTE:
+		case LIRC_ANIMAX:
 		case LIRC_IGOR:
-			hardware[type].features &=
-				~(LIRC_CAN_SET_SEND_DUTY_CYCLE|
-				  LIRC_CAN_SET_SEND_CARRIER);
+			/* if nothing specified, use ttyS0/com1 and irq 4 */
+			io = io ? io : 0x3f8;
+			irq = irq ? irq : 4;
 			break;
+
+		default:
+			return -EINVAL;
+	}
+
+	if (!softcarrier)
+	{
+		switch (type)
+		{
+			case LIRC_HOMEBREW:
+			case LIRC_IGOR:
+				hardware[type].features &=
+					~(LIRC_CAN_SET_SEND_DUTY_CYCLE |
+					  LIRC_CAN_SET_SEND_CARRIER);
+				break;
 		}
 	}
 
 	/* make sure sense is either -1, 0, or 1 */
 	if (sense != -1)
+	{
 		sense = !!sense;
+	}
 
 	result = lirc_serial_init();
+
 	if (result)
+	{
 		return result;
+	}
 
 	driver.features = hardware[type].features;
 	driver.dev = &lirc_serial_dev->dev;
 	driver.minor = lirc_register_driver(&driver);
-	if (driver.minor < 0) {
+
+	if (driver.minor < 0)
+	{
 		pr_err("register_chrdev failed!\n");
 		lirc_serial_exit();
 		return driver.minor;
 	}
+
 	return 0;
 }
 
@@ -1086,13 +1295,13 @@ module_exit(lirc_serial_exit_module);
 
 MODULE_DESCRIPTION("Infra-red receiver driver for serial ports.");
 MODULE_AUTHOR("Ralph Metzler, Trent Piepho, Ben Pfaff, "
-	      "Christoph Bartelmus, Andrei Tanas");
+			  "Christoph Bartelmus, Andrei Tanas");
 MODULE_LICENSE("GPL");
 
 module_param(type, int, S_IRUGO);
 MODULE_PARM_DESC(type, "Hardware type (0 = home-brew, 1 = IRdeo,"
-		 " 2 = IRdeo Remote, 3 = AnimaX, 4 = IgorPlug,"
-		 " 5 = NSLU2 RX:CTS2/TX:GreenLED)");
+				 " 2 = IRdeo Remote, 3 = AnimaX, 4 = IgorPlug,"
+				 " 5 = NSLU2 RX:CTS2/TX:GreenLED)");
 
 module_param(io, int, S_IRUGO);
 MODULE_PARM_DESC(io, "I/O address base (0x3f8 or 0x2f8)");
@@ -1100,7 +1309,7 @@ MODULE_PARM_DESC(io, "I/O address base (0x3f8 or 0x2f8)");
 /* some architectures (e.g. intel xscale) have memory mapped registers */
 module_param(iommap, bool, S_IRUGO);
 MODULE_PARM_DESC(iommap, "physical base for memory mapped I/O"
-		" (0 = no memory mapped io)");
+				 " (0 = no memory mapped io)");
 
 /*
  * some architectures (e.g. intel xscale) align the 8bit serial registers
@@ -1118,12 +1327,12 @@ MODULE_PARM_DESC(share_irq, "Share interrupts (0 = off, 1 = on)");
 
 module_param(sense, int, S_IRUGO);
 MODULE_PARM_DESC(sense, "Override autodetection of IR receiver circuit"
-		 " (0 = active high, 1 = active low )");
+				 " (0 = active high, 1 = active low )");
 
 #ifdef CONFIG_LIRC_SERIAL_TRANSMITTER
 module_param(txsense, bool, S_IRUGO);
 MODULE_PARM_DESC(txsense, "Sense of transmitter circuit"
-		 " (0 = active high, 1 = active low )");
+				 " (0 = active high, 1 = active low )");
 #endif
 
 module_param(softcarrier, bool, S_IRUGO);

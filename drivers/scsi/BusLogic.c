@@ -57,7 +57,7 @@
 #include "FlashPoint.c"
 
 #ifndef FAILURE
-#define FAILURE (-1)
+	#define FAILURE (-1)
 #endif
 
 static struct scsi_host_template blogic_template;
@@ -86,8 +86,8 @@ static struct blogic_drvr_options blogic_drvr_options[BLOGIC_MAX_ADAPTERS];
 
 MODULE_LICENSE("GPL");
 #ifdef MODULE
-static char *BusLogic;
-module_param(BusLogic, charp, 0);
+	static char *BusLogic;
+	module_param(BusLogic, charp, 0);
 #endif
 
 
@@ -153,7 +153,7 @@ static void blogic_announce_drvr(struct blogic_adapter *adapter)
 static const char *blogic_drvr_info(struct Scsi_Host *host)
 {
 	struct blogic_adapter *adapter =
-				(struct blogic_adapter *) host->hostdata;
+		(struct blogic_adapter *) host->hostdata;
 	return adapter->full_model;
 }
 
@@ -164,21 +164,26 @@ static const char *blogic_drvr_info(struct Scsi_Host *host)
 */
 
 static void blogic_init_ccbs(struct blogic_adapter *adapter, void *blk_pointer,
-				int blk_size, dma_addr_t blkp)
+							 int blk_size, dma_addr_t blkp)
 {
 	struct blogic_ccb *ccb = (struct blogic_ccb *) blk_pointer;
 	unsigned int offset = 0;
 	memset(blk_pointer, 0, blk_size);
 	ccb->allocgrp_head = blkp;
 	ccb->allocgrp_size = blk_size;
-	while ((blk_size -= sizeof(struct blogic_ccb)) >= 0) {
+
+	while ((blk_size -= sizeof(struct blogic_ccb)) >= 0)
+	{
 		ccb->status = BLOGIC_CCB_FREE;
 		ccb->adapter = adapter;
 		ccb->dma_handle = (u32) blkp + offset;
-		if (blogic_flashpoint_type(adapter)) {
+
+		if (blogic_flashpoint_type(adapter))
+		{
 			ccb->callback = blogic_qcompleted_ccb;
 			ccb->base_addr = adapter->fpinfo.base_addr;
 		}
+
 		ccb->next = adapter->free_ccbs;
 		ccb->next_all = adapter->all_ccbs;
 		adapter->free_ccbs = ccb;
@@ -200,16 +205,21 @@ static bool __init blogic_create_initccbs(struct blogic_adapter *adapter)
 	void *blk_pointer;
 	dma_addr_t blkp;
 
-	while (adapter->alloc_ccbs < adapter->initccbs) {
+	while (adapter->alloc_ccbs < adapter->initccbs)
+	{
 		blk_pointer = pci_alloc_consistent(adapter->pci_device,
-							blk_size, &blkp);
-		if (blk_pointer == NULL) {
+										   blk_size, &blkp);
+
+		if (blk_pointer == NULL)
+		{
 			blogic_err("UNABLE TO ALLOCATE CCB GROUP - DETACHING\n",
-					adapter);
+					   adapter);
 			return false;
 		}
+
 		blogic_init_ccbs(adapter, blk_pointer, blk_size, blkp);
 	}
+
 	return true;
 }
 
@@ -223,19 +233,25 @@ static void blogic_destroy_ccbs(struct blogic_adapter *adapter)
 	struct blogic_ccb *next_ccb = adapter->all_ccbs, *ccb, *lastccb = NULL;
 	adapter->all_ccbs = NULL;
 	adapter->free_ccbs = NULL;
-	while ((ccb = next_ccb) != NULL) {
+
+	while ((ccb = next_ccb) != NULL)
+	{
 		next_ccb = ccb->next_all;
-		if (ccb->allocgrp_head) {
+
+		if (ccb->allocgrp_head)
+		{
 			if (lastccb)
 				pci_free_consistent(adapter->pci_device,
-						lastccb->allocgrp_size, lastccb,
-						lastccb->allocgrp_head);
+									lastccb->allocgrp_size, lastccb,
+									lastccb->allocgrp_head);
+
 			lastccb = ccb;
 		}
 	}
+
 	if (lastccb)
 		pci_free_consistent(adapter->pci_device, lastccb->allocgrp_size,
-					lastccb, lastccb->allocgrp_head);
+							lastccb, lastccb->allocgrp_head);
 }
 
 
@@ -247,28 +263,46 @@ static void blogic_destroy_ccbs(struct blogic_adapter *adapter)
 */
 
 static void blogic_create_addlccbs(struct blogic_adapter *adapter,
-					int addl_ccbs, bool print_success)
+								   int addl_ccbs, bool print_success)
 {
 	int blk_size = BLOGIC_CCB_GRP_ALLOCSIZE * sizeof(struct blogic_ccb);
 	int prev_alloc = adapter->alloc_ccbs;
 	void *blk_pointer;
 	dma_addr_t blkp;
+
 	if (addl_ccbs <= 0)
+	{
 		return;
-	while (adapter->alloc_ccbs - prev_alloc < addl_ccbs) {
+	}
+
+	while (adapter->alloc_ccbs - prev_alloc < addl_ccbs)
+	{
 		blk_pointer = pci_alloc_consistent(adapter->pci_device,
-							blk_size, &blkp);
+										   blk_size, &blkp);
+
 		if (blk_pointer == NULL)
+		{
 			break;
+		}
+
 		blogic_init_ccbs(adapter, blk_pointer, blk_size, blkp);
 	}
-	if (adapter->alloc_ccbs > prev_alloc) {
+
+	if (adapter->alloc_ccbs > prev_alloc)
+	{
 		if (print_success)
-			blogic_notice("Allocated %d additional CCBs (total now %d)\n", adapter, adapter->alloc_ccbs - prev_alloc, adapter->alloc_ccbs);
+		{
+			blogic_notice("Allocated %d additional CCBs (total now %d)\n", adapter, adapter->alloc_ccbs - prev_alloc,
+						  adapter->alloc_ccbs);
+		}
+
 		return;
 	}
+
 	blogic_notice("Failed to allocate additional CCBs\n", adapter);
-	if (adapter->drvr_qdepth > adapter->alloc_ccbs - adapter->tgt_count) {
+
+	if (adapter->drvr_qdepth > adapter->alloc_ccbs - adapter->tgt_count)
+	{
 		adapter->drvr_qdepth = adapter->alloc_ccbs - adapter->tgt_count;
 		adapter->scsi_host->can_queue = adapter->drvr_qdepth;
 	}
@@ -285,19 +319,28 @@ static struct blogic_ccb *blogic_alloc_ccb(struct blogic_adapter *adapter)
 	static unsigned long serial;
 	struct blogic_ccb *ccb;
 	ccb = adapter->free_ccbs;
-	if (ccb != NULL) {
+
+	if (ccb != NULL)
+	{
 		ccb->serial = ++serial;
 		adapter->free_ccbs = ccb->next;
 		ccb->next = NULL;
+
 		if (adapter->free_ccbs == NULL)
 			blogic_create_addlccbs(adapter, adapter->inc_ccbs,
-						true);
+								   true);
+
 		return ccb;
 	}
+
 	blogic_create_addlccbs(adapter, adapter->inc_ccbs, true);
 	ccb = adapter->free_ccbs;
+
 	if (ccb == NULL)
+	{
 		return NULL;
+	}
+
 	ccb->serial = ++serial;
 	adapter->free_ccbs = ccb->next;
 	ccb->next = NULL;
@@ -316,10 +359,13 @@ static void blogic_dealloc_ccb(struct blogic_ccb *ccb, int dma_unmap)
 	struct blogic_adapter *adapter = ccb->adapter;
 
 	if (ccb->command != NULL)
+	{
 		scsi_dma_unmap(ccb->command);
+	}
+
 	if (dma_unmap)
 		pci_unmap_single(adapter->pci_device, ccb->sensedata,
-			 ccb->sense_datalen, PCI_DMA_FROMDEVICE);
+						 ccb->sense_datalen, PCI_DMA_FROMDEVICE);
 
 	ccb->command = NULL;
 	ccb->status = BLOGIC_CCB_FREE;
@@ -347,7 +393,7 @@ static void blogic_dealloc_ccb(struct blogic_ccb *ccb, int dma_unmap)
 */
 
 static int blogic_cmd(struct blogic_adapter *adapter, enum blogic_opcode opcode,
-			void *param, int paramlen, void *reply, int replylen)
+					  void *param, int paramlen, void *reply, int replylen)
 {
 	unsigned char *param_p = (unsigned char *) param;
 	unsigned char *reply_p = (unsigned char *) reply;
@@ -356,11 +402,15 @@ static int blogic_cmd(struct blogic_adapter *adapter, enum blogic_opcode opcode,
 	unsigned long processor_flag = 0;
 	int reply_b = 0, result;
 	long timeout;
+
 	/*
 	   Clear out the Reply Data if provided.
 	 */
 	if (replylen > 0)
+	{
 		memset(reply, 0, replylen);
+	}
+
 	/*
 	   If the IRQ Channel has not yet been acquired, then interrupts
 	   must be disabled while issuing host adapter commands since a
@@ -369,25 +419,37 @@ static int blogic_cmd(struct blogic_adapter *adapter, enum blogic_opcode opcode,
 	   driver sharing the same IRQ Channel.
 	 */
 	if (!adapter->irq_acquired)
+	{
 		local_irq_save(processor_flag);
+	}
+
 	/*
 	   Wait for the Host Adapter Ready bit to be set and the
 	   Command/Parameter Register Busy bit to be reset in the Status
 	   Register.
 	 */
 	timeout = 10000;
-	while (--timeout >= 0) {
+
+	while (--timeout >= 0)
+	{
 		statusreg.all = blogic_rdstatus(adapter);
+
 		if (statusreg.sr.adapter_ready && !statusreg.sr.cmd_param_busy)
+		{
 			break;
+		}
+
 		udelay(100);
 	}
-	if (timeout < 0) {
+
+	if (timeout < 0)
+	{
 		blogic_cmd_failure_reason =
-				"Timeout waiting for Host Adapter Ready";
+			"Timeout waiting for Host Adapter Ready";
 		result = -2;
 		goto done;
 	}
+
 	/*
 	   Write the opcode to the Command/Parameter Register.
 	 */
@@ -397,7 +459,9 @@ static int blogic_cmd(struct blogic_adapter *adapter, enum blogic_opcode opcode,
 	   Write any additional Parameter Bytes.
 	 */
 	timeout = 10000;
-	while (paramlen > 0 && --timeout >= 0) {
+
+	while (paramlen > 0 && --timeout >= 0)
+	{
 		/*
 		   Wait 100 microseconds to give the Host Adapter enough
 		   time to determine whether the last value written to the
@@ -416,108 +480,164 @@ static int blogic_cmd(struct blogic_adapter *adapter, enum blogic_opcode opcode,
 		udelay(100);
 		intreg.all = blogic_rdint(adapter);
 		statusreg.all = blogic_rdstatus(adapter);
+
 		if (intreg.ir.cmd_complete)
+		{
 			break;
+		}
+
 		if (adapter->adapter_cmd_complete)
+		{
 			break;
+		}
+
 		if (statusreg.sr.datain_ready)
+		{
 			break;
+		}
+
 		if (statusreg.sr.cmd_param_busy)
+		{
 			continue;
+		}
+
 		blogic_setcmdparam(adapter, *param_p++);
 		paramlen--;
 	}
-	if (timeout < 0) {
+
+	if (timeout < 0)
+	{
 		blogic_cmd_failure_reason =
-				"Timeout waiting for Parameter Acceptance";
+			"Timeout waiting for Parameter Acceptance";
 		result = -2;
 		goto done;
 	}
+
 	/*
 	   The Modify I/O Address command does not cause a Command Complete
 	   Interrupt.
 	 */
-	if (opcode == BLOGIC_MOD_IOADDR) {
+	if (opcode == BLOGIC_MOD_IOADDR)
+	{
 		statusreg.all = blogic_rdstatus(adapter);
-		if (statusreg.sr.cmd_invalid) {
+
+		if (statusreg.sr.cmd_invalid)
+		{
 			blogic_cmd_failure_reason =
-					"Modify I/O Address Invalid";
+				"Modify I/O Address Invalid";
 			result = -1;
 			goto done;
 		}
+
 		if (blogic_global_options.trace_config)
+		{
 			blogic_notice("blogic_cmd(%02X) Status = %02X: " "(Modify I/O Address)\n", adapter, opcode, statusreg.all);
+		}
+
 		result = 0;
 		goto done;
 	}
+
 	/*
 	   Select an appropriate timeout value for awaiting command completion.
 	 */
-	switch (opcode) {
-	case BLOGIC_INQ_DEV0TO7:
-	case BLOGIC_INQ_DEV8TO15:
-	case BLOGIC_INQ_DEV:
-		/* Approximately 60 seconds. */
-		timeout = 60 * 10000;
-		break;
-	default:
-		/* Approximately 1 second. */
-		timeout = 10000;
-		break;
+	switch (opcode)
+	{
+		case BLOGIC_INQ_DEV0TO7:
+		case BLOGIC_INQ_DEV8TO15:
+		case BLOGIC_INQ_DEV:
+			/* Approximately 60 seconds. */
+			timeout = 60 * 10000;
+			break;
+
+		default:
+			/* Approximately 1 second. */
+			timeout = 10000;
+			break;
 	}
+
 	/*
 	   Receive any Reply Bytes, waiting for either the Command
 	   Complete bit to be set in the Interrupt Register, or for the
 	   Interrupt Handler to set the Host Adapter Command Completed
 	   bit in the Host Adapter structure.
 	 */
-	while (--timeout >= 0) {
+	while (--timeout >= 0)
+	{
 		intreg.all = blogic_rdint(adapter);
 		statusreg.all = blogic_rdstatus(adapter);
+
 		if (intreg.ir.cmd_complete)
+		{
 			break;
-		if (adapter->adapter_cmd_complete)
-			break;
-		if (statusreg.sr.datain_ready) {
-			if (++reply_b <= replylen)
-				*reply_p++ = blogic_rddatain(adapter);
-			else
-				blogic_rddatain(adapter);
 		}
-		if (opcode == BLOGIC_FETCH_LOCALRAM &&
-				statusreg.sr.adapter_ready)
+
+		if (adapter->adapter_cmd_complete)
+		{
 			break;
+		}
+
+		if (statusreg.sr.datain_ready)
+		{
+			if (++reply_b <= replylen)
+			{
+				*reply_p++ = blogic_rddatain(adapter);
+			}
+			else
+			{
+				blogic_rddatain(adapter);
+			}
+		}
+
+		if (opcode == BLOGIC_FETCH_LOCALRAM &&
+			statusreg.sr.adapter_ready)
+		{
+			break;
+		}
+
 		udelay(100);
 	}
-	if (timeout < 0) {
+
+	if (timeout < 0)
+	{
 		blogic_cmd_failure_reason =
-					"Timeout waiting for Command Complete";
+			"Timeout waiting for Command Complete";
 		result = -2;
 		goto done;
 	}
+
 	/*
 	   Clear any pending Command Complete Interrupt.
 	 */
 	blogic_intreset(adapter);
+
 	/*
 	   Provide tracing information if requested.
 	 */
-	if (blogic_global_options.trace_config) {
+	if (blogic_global_options.trace_config)
+	{
 		int i;
 		blogic_notice("blogic_cmd(%02X) Status = %02X: %2d ==> %2d:",
-				adapter, opcode, statusreg.all, replylen,
-				reply_b);
+					  adapter, opcode, statusreg.all, replylen,
+					  reply_b);
+
 		if (replylen > reply_b)
+		{
 			replylen = reply_b;
+		}
+
 		for (i = 0; i < replylen; i++)
 			blogic_notice(" %02X", adapter,
-					((unsigned char *) reply)[i]);
+						  ((unsigned char *) reply)[i]);
+
 		blogic_notice("\n", adapter);
 	}
+
 	/*
 	   Process Command Invalid conditions.
 	 */
-	if (statusreg.sr.cmd_invalid) {
+	if (statusreg.sr.cmd_invalid)
+	{
 		/*
 		   Some early BusLogic Host Adapters may not recover
 		   properly from a Command Invalid condition, so if this
@@ -529,28 +649,34 @@ static int blogic_cmd(struct blogic_adapter *adapter, enum blogic_opcode opcode,
 		 */
 		udelay(1000);
 		statusreg.all = blogic_rdstatus(adapter);
+
 		if (statusreg.sr.cmd_invalid || statusreg.sr.rsvd ||
-				statusreg.sr.datain_ready ||
-				statusreg.sr.cmd_param_busy ||
-				!statusreg.sr.adapter_ready ||
-				!statusreg.sr.init_reqd ||
-				statusreg.sr.diag_active ||
-				statusreg.sr.diag_failed) {
+			statusreg.sr.datain_ready ||
+			statusreg.sr.cmd_param_busy ||
+			!statusreg.sr.adapter_ready ||
+			!statusreg.sr.init_reqd ||
+			statusreg.sr.diag_active ||
+			statusreg.sr.diag_failed)
+		{
 			blogic_softreset(adapter);
 			udelay(1000);
 		}
+
 		blogic_cmd_failure_reason = "Command Invalid";
 		result = -1;
 		goto done;
 	}
+
 	/*
 	   Handle Excess Parameters Supplied conditions.
 	 */
-	if (paramlen > 0) {
+	if (paramlen > 0)
+	{
 		blogic_cmd_failure_reason = "Excess Parameters Supplied";
 		result = -1;
 		goto done;
 	}
+
 	/*
 	   Indicate the command completed successfully.
 	 */
@@ -560,8 +686,12 @@ static int blogic_cmd(struct blogic_adapter *adapter, enum blogic_opcode opcode,
 	   Restore the interrupt status if necessary and return.
 	 */
 done:
+
 	if (!adapter->irq_acquired)
+	{
 		local_irq_restore(processor_flag);
+	}
+
 	return result;
 }
 
@@ -575,8 +705,12 @@ done:
 static void __init blogic_add_probeaddr_isa(unsigned long io_addr)
 {
 	struct blogic_probeinfo *probeinfo;
+
 	if (blogic_probeinfo_count >= BLOGIC_MAX_ADAPTERS)
+	{
 		return;
+	}
+
 	probeinfo = &blogic_probeinfo_list[blogic_probeinfo_count++];
 	probeinfo->adapter_type = BLOGIC_MULTIMASTER;
 	probeinfo->adapter_bus_type = BLOGIC_ISA_BUS;
@@ -598,22 +732,42 @@ static void __init blogic_init_probeinfo_isa(struct blogic_adapter *adapter)
 	   Bus Probes be inhibited, do not proceed further.
 	 */
 	if (blogic_probe_options.noprobe_isa)
+	{
 		return;
+	}
+
 	/*
 	   Append the list of standard BusLogic MultiMaster ISA I/O Addresses.
 	 */
 	if (!blogic_probe_options.limited_isa || blogic_probe_options.probe330)
+	{
 		blogic_add_probeaddr_isa(0x330);
+	}
+
 	if (!blogic_probe_options.limited_isa || blogic_probe_options.probe334)
+	{
 		blogic_add_probeaddr_isa(0x334);
+	}
+
 	if (!blogic_probe_options.limited_isa || blogic_probe_options.probe230)
+	{
 		blogic_add_probeaddr_isa(0x230);
+	}
+
 	if (!blogic_probe_options.limited_isa || blogic_probe_options.probe234)
+	{
 		blogic_add_probeaddr_isa(0x234);
+	}
+
 	if (!blogic_probe_options.limited_isa || blogic_probe_options.probe130)
+	{
 		blogic_add_probeaddr_isa(0x130);
+	}
+
 	if (!blogic_probe_options.limited_isa || blogic_probe_options.probe134)
+	{
 		blogic_add_probeaddr_isa(0x134);
+	}
 }
 
 
@@ -626,29 +780,34 @@ static void __init blogic_init_probeinfo_isa(struct blogic_adapter *adapter)
 */
 
 static void __init blogic_sort_probeinfo(struct blogic_probeinfo
-					*probeinfo_list, int probeinfo_cnt)
+		*probeinfo_list, int probeinfo_cnt)
 {
 	int last_exchange = probeinfo_cnt - 1, bound, j;
 
-	while (last_exchange > 0) {
+	while (last_exchange > 0)
+	{
 		bound = last_exchange;
 		last_exchange = 0;
-		for (j = 0; j < bound; j++) {
+
+		for (j = 0; j < bound; j++)
+		{
 			struct blogic_probeinfo *probeinfo1 =
-							&probeinfo_list[j];
+					&probeinfo_list[j];
 			struct blogic_probeinfo *probeinfo2 =
-							&probeinfo_list[j + 1];
+					&probeinfo_list[j + 1];
+
 			if (probeinfo1->bus > probeinfo2->bus ||
 				(probeinfo1->bus == probeinfo2->bus &&
-				(probeinfo1->dev > probeinfo2->dev))) {
+				 (probeinfo1->dev > probeinfo2->dev)))
+			{
 				struct blogic_probeinfo tmp_probeinfo;
 
 				memcpy(&tmp_probeinfo, probeinfo1,
-					sizeof(struct blogic_probeinfo));
+					   sizeof(struct blogic_probeinfo));
 				memcpy(probeinfo1, probeinfo2,
-					sizeof(struct blogic_probeinfo));
+					   sizeof(struct blogic_probeinfo));
 				memcpy(probeinfo2, &tmp_probeinfo,
-					sizeof(struct blogic_probeinfo));
+					   sizeof(struct blogic_probeinfo));
 				last_exchange = j;
 			}
 		}
@@ -667,7 +826,7 @@ static void __init blogic_sort_probeinfo(struct blogic_probeinfo
 static int __init blogic_init_mm_probeinfo(struct blogic_adapter *adapter)
 {
 	struct blogic_probeinfo *pr_probeinfo =
-		&blogic_probeinfo_list[blogic_probeinfo_count];
+			&blogic_probeinfo_list[blogic_probeinfo_count];
 	int nonpr_mmindex = blogic_probeinfo_count + 1;
 	int nonpr_mmcount = 0, mmcount = 0;
 	bool force_scan_order = false;
@@ -675,11 +834,19 @@ static int __init blogic_init_mm_probeinfo(struct blogic_adapter *adapter)
 	bool addr_seen[6];
 	struct pci_dev *pci_device = NULL;
 	int i;
+
 	if (blogic_probeinfo_count >= BLOGIC_MAX_ADAPTERS)
+	{
 		return 0;
+	}
+
 	blogic_probeinfo_count++;
+
 	for (i = 0; i < 6; i++)
+	{
 		addr_seen[i] = false;
+	}
+
 	/*
 	   Iterate over the MultiMaster PCI Host Adapters.  For each
 	   enumerated host adapter, determine whether its ISA Compatible
@@ -695,9 +862,11 @@ static int __init blogic_init_mm_probeinfo(struct blogic_adapter *adapter)
 	   particular standard ISA I/O Address need not be probed.
 	 */
 	pr_probeinfo->io_addr = 0;
+
 	while ((pci_device = pci_get_device(PCI_VENDOR_ID_BUSLOGIC,
-					PCI_DEVICE_ID_BUSLOGIC_MULTIMASTER,
-					pci_device)) != NULL) {
+										PCI_DEVICE_ID_BUSLOGIC_MULTIMASTER,
+										pci_device)) != NULL)
+	{
 		struct blogic_adapter *host_adapter = adapter;
 		struct blogic_adapter_info adapter_info;
 		enum blogic_isa_ioport mod_ioaddr_req;
@@ -710,10 +879,14 @@ static int __init blogic_init_mm_probeinfo(struct blogic_adapter *adapter)
 		unsigned long pci_addr;
 
 		if (pci_enable_device(pci_device))
+		{
 			continue;
+		}
 
 		if (pci_set_dma_mask(pci_device, DMA_BIT_MASK(32)))
+		{
 			continue;
+		}
 
 		bus = pci_device->bus->number;
 		device = pci_device->devfn >> 3;
@@ -721,25 +894,34 @@ static int __init blogic_init_mm_probeinfo(struct blogic_adapter *adapter)
 		io_addr = base_addr0 = pci_resource_start(pci_device, 0);
 		pci_addr = base_addr1 = pci_resource_start(pci_device, 1);
 
-		if (pci_resource_flags(pci_device, 0) & IORESOURCE_MEM) {
+		if (pci_resource_flags(pci_device, 0) & IORESOURCE_MEM)
+		{
 			blogic_err("BusLogic: Base Address0 0x%X not I/O for " "MultiMaster Host Adapter\n", NULL, base_addr0);
 			blogic_err("at PCI Bus %d Device %d I/O Address 0x%X\n", NULL, bus, device, io_addr);
 			continue;
 		}
-		if (pci_resource_flags(pci_device, 1) & IORESOURCE_IO) {
+
+		if (pci_resource_flags(pci_device, 1) & IORESOURCE_IO)
+		{
 			blogic_err("BusLogic: Base Address1 0x%X not Memory for " "MultiMaster Host Adapter\n", NULL, base_addr1);
 			blogic_err("at PCI Bus %d Device %d PCI Address 0x%X\n", NULL, bus, device, pci_addr);
 			continue;
 		}
-		if (irq_ch == 0) {
+
+		if (irq_ch == 0)
+		{
 			blogic_err("BusLogic: IRQ Channel %d invalid for " "MultiMaster Host Adapter\n", NULL, irq_ch);
 			blogic_err("at PCI Bus %d Device %d I/O Address 0x%X\n", NULL, bus, device, io_addr);
 			continue;
 		}
-		if (blogic_global_options.trace_probe) {
+
+		if (blogic_global_options.trace_probe)
+		{
 			blogic_notice("BusLogic: PCI MultiMaster Host Adapter " "detected at\n", NULL);
-			blogic_notice("BusLogic: PCI Bus %d Device %d I/O Address " "0x%X PCI Address 0x%X\n", NULL, bus, device, io_addr, pci_addr);
+			blogic_notice("BusLogic: PCI Bus %d Device %d I/O Address " "0x%X PCI Address 0x%X\n", NULL, bus, device, io_addr,
+						  pci_addr);
 		}
+
 		/*
 		   Issue the Inquire PCI Host Adapter Information command to determine
 		   the ISA Compatible I/O Port.  If the ISA Compatible I/O Port is
@@ -748,13 +930,21 @@ static int __init blogic_init_mm_probeinfo(struct blogic_adapter *adapter)
 		 */
 		host_adapter->io_addr = io_addr;
 		blogic_intreset(host_adapter);
+
 		if (blogic_cmd(host_adapter, BLOGIC_INQ_PCI_INFO, NULL, 0,
-				&adapter_info, sizeof(adapter_info)) ==
-				sizeof(adapter_info)) {
+					   &adapter_info, sizeof(adapter_info)) ==
+			sizeof(adapter_info))
+		{
 			if (adapter_info.isa_port < 6)
+			{
 				addr_seen[adapter_info.isa_port] = true;
-		} else
+			}
+		}
+		else
+		{
 			adapter_info.isa_port = BLOGIC_IO_DISABLE;
+		}
+
 		/*
 		   Issue the Modify I/O Address command to disable the
 		   ISA Compatible I/O Port. On PCI Host Adapters, the
@@ -765,7 +955,8 @@ static int __init blogic_init_mm_probeinfo(struct blogic_adapter *adapter)
 		 */
 		mod_ioaddr_req = BLOGIC_IO_DISABLE;
 		blogic_cmd(host_adapter, BLOGIC_MOD_IOADDR, &mod_ioaddr_req,
-				sizeof(mod_ioaddr_req), NULL, 0);
+				   sizeof(mod_ioaddr_req), NULL, 0);
+
 		/*
 		   For the first MultiMaster Host Adapter enumerated,
 		   issue the Fetch Host Adapter Local RAM command to read
@@ -774,7 +965,8 @@ static int __init blogic_init_mm_probeinfo(struct blogic_adapter *adapter)
 		   Issue the Inquire Board ID command since this option is
 		   only valid for the BT-948/958/958D.
 		 */
-		if (!force_scan_order_checked) {
+		if (!force_scan_order_checked)
+		{
 			struct blogic_fetch_localram fetch_localram;
 			struct blogic_autoscsi_byte45 autoscsi_byte45;
 			struct blogic_board_id id;
@@ -782,16 +974,19 @@ static int __init blogic_init_mm_probeinfo(struct blogic_adapter *adapter)
 			fetch_localram.offset = BLOGIC_AUTOSCSI_BASE + 45;
 			fetch_localram.count = sizeof(autoscsi_byte45);
 			blogic_cmd(host_adapter, BLOGIC_FETCH_LOCALRAM,
-					&fetch_localram, sizeof(fetch_localram),
-					&autoscsi_byte45,
-					sizeof(autoscsi_byte45));
+					   &fetch_localram, sizeof(fetch_localram),
+					   &autoscsi_byte45,
+					   sizeof(autoscsi_byte45));
 			blogic_cmd(host_adapter, BLOGIC_GET_BOARD_ID, NULL, 0,
-					&id, sizeof(id));
+					   &id, sizeof(id));
+
 			if (id.fw_ver_digit1 == '5')
 				force_scan_order =
 					autoscsi_byte45.force_scan_order;
+
 			force_scan_order_checked = true;
 		}
+
 		/*
 		   Determine whether this MultiMaster Host Adapter has its
 		   ISA Compatible I/O Port enabled and is assigned the
@@ -800,7 +995,8 @@ static int __init blogic_init_mm_probeinfo(struct blogic_adapter *adapter)
 		   If it does not, then it is added to the list for probing
 		   after any Primary MultiMaster Host Adapter is probed.
 		 */
-		if (adapter_info.isa_port == BLOGIC_IO_330) {
+		if (adapter_info.isa_port == BLOGIC_IO_330)
+		{
 			pr_probeinfo->adapter_type = BLOGIC_MULTIMASTER;
 			pr_probeinfo->adapter_bus_type = BLOGIC_PCI_BUS;
 			pr_probeinfo->io_addr = io_addr;
@@ -810,9 +1006,11 @@ static int __init blogic_init_mm_probeinfo(struct blogic_adapter *adapter)
 			pr_probeinfo->irq_ch = irq_ch;
 			pr_probeinfo->pci_device = pci_dev_get(pci_device);
 			mmcount++;
-		} else if (blogic_probeinfo_count < BLOGIC_MAX_ADAPTERS) {
+		}
+		else if (blogic_probeinfo_count < BLOGIC_MAX_ADAPTERS)
+		{
 			struct blogic_probeinfo *probeinfo =
-				&blogic_probeinfo_list[blogic_probeinfo_count++];
+					&blogic_probeinfo_list[blogic_probeinfo_count++];
 			probeinfo->adapter_type = BLOGIC_MULTIMASTER;
 			probeinfo->adapter_bus_type = BLOGIC_PCI_BUS;
 			probeinfo->io_addr = io_addr;
@@ -823,9 +1021,13 @@ static int __init blogic_init_mm_probeinfo(struct blogic_adapter *adapter)
 			probeinfo->pci_device = pci_dev_get(pci_device);
 			nonpr_mmcount++;
 			mmcount++;
-		} else
+		}
+		else
+		{
 			blogic_warn("BusLogic: Too many Host Adapters " "detected\n", NULL);
+		}
 	}
+
 	/*
 	   If the AutoSCSI "Use Bus And Device # For PCI Scanning Seq."
 	   option is ON for the first enumerated MultiMaster Host Adapter,
@@ -839,7 +1041,8 @@ static int __init blogic_init_mm_probeinfo(struct blogic_adapter *adapter)
 	 */
 	if (force_scan_order)
 		blogic_sort_probeinfo(&blogic_probeinfo_list[nonpr_mmindex],
-					nonpr_mmcount);
+							  nonpr_mmcount);
+
 	/*
 	   If no PCI MultiMaster Host Adapter is assigned the Primary
 	   I/O Address, then the Primary I/O Address must be probed
@@ -847,56 +1050,80 @@ static int __init blogic_init_mm_probeinfo(struct blogic_adapter *adapter)
 	 */
 	if (!blogic_probe_options.noprobe_isa)
 		if (pr_probeinfo->io_addr == 0 &&
-				(!blogic_probe_options.limited_isa ||
-				 blogic_probe_options.probe330)) {
+			(!blogic_probe_options.limited_isa ||
+			 blogic_probe_options.probe330))
+		{
 			pr_probeinfo->adapter_type = BLOGIC_MULTIMASTER;
 			pr_probeinfo->adapter_bus_type = BLOGIC_ISA_BUS;
 			pr_probeinfo->io_addr = 0x330;
 		}
+
 	/*
 	   Append the list of standard BusLogic MultiMaster ISA I/O Addresses,
 	   omitting the Primary I/O Address which has already been handled.
 	 */
-	if (!blogic_probe_options.noprobe_isa) {
+	if (!blogic_probe_options.noprobe_isa)
+	{
 		if (!addr_seen[1] &&
-				(!blogic_probe_options.limited_isa ||
-				 blogic_probe_options.probe334))
+			(!blogic_probe_options.limited_isa ||
+			 blogic_probe_options.probe334))
+		{
 			blogic_add_probeaddr_isa(0x334);
+		}
+
 		if (!addr_seen[2] &&
-				(!blogic_probe_options.limited_isa ||
-				 blogic_probe_options.probe230))
+			(!blogic_probe_options.limited_isa ||
+			 blogic_probe_options.probe230))
+		{
 			blogic_add_probeaddr_isa(0x230);
+		}
+
 		if (!addr_seen[3] &&
-				(!blogic_probe_options.limited_isa ||
-				 blogic_probe_options.probe234))
+			(!blogic_probe_options.limited_isa ||
+			 blogic_probe_options.probe234))
+		{
 			blogic_add_probeaddr_isa(0x234);
+		}
+
 		if (!addr_seen[4] &&
-				(!blogic_probe_options.limited_isa ||
-				 blogic_probe_options.probe130))
+			(!blogic_probe_options.limited_isa ||
+			 blogic_probe_options.probe130))
+		{
 			blogic_add_probeaddr_isa(0x130);
+		}
+
 		if (!addr_seen[5] &&
-				(!blogic_probe_options.limited_isa ||
-				 blogic_probe_options.probe134))
+			(!blogic_probe_options.limited_isa ||
+			 blogic_probe_options.probe134))
+		{
 			blogic_add_probeaddr_isa(0x134);
+		}
 	}
+
 	/*
 	   Iterate over the older non-compliant MultiMaster PCI Host Adapters,
 	   noting the PCI bus location and assigned IRQ Channel.
 	 */
 	pci_device = NULL;
+
 	while ((pci_device = pci_get_device(PCI_VENDOR_ID_BUSLOGIC,
-					PCI_DEVICE_ID_BUSLOGIC_MULTIMASTER_NC,
-					pci_device)) != NULL) {
+										PCI_DEVICE_ID_BUSLOGIC_MULTIMASTER_NC,
+										pci_device)) != NULL)
+	{
 		unsigned char bus;
 		unsigned char device;
 		unsigned int irq_ch;
 		unsigned long io_addr;
 
 		if (pci_enable_device(pci_device))
+		{
 			continue;
+		}
 
 		if (pci_set_dma_mask(pci_device, DMA_BIT_MASK(32)))
+		{
 			continue;
+		}
 
 		bus = pci_device->bus->number;
 		device = pci_device->devfn >> 3;
@@ -904,12 +1131,18 @@ static int __init blogic_init_mm_probeinfo(struct blogic_adapter *adapter)
 		io_addr = pci_resource_start(pci_device, 0);
 
 		if (io_addr == 0 || irq_ch == 0)
+		{
 			continue;
-		for (i = 0; i < blogic_probeinfo_count; i++) {
+		}
+
+		for (i = 0; i < blogic_probeinfo_count; i++)
+		{
 			struct blogic_probeinfo *probeinfo =
-						&blogic_probeinfo_list[i];
+					&blogic_probeinfo_list[i];
+
 			if (probeinfo->io_addr == io_addr &&
-				probeinfo->adapter_type == BLOGIC_MULTIMASTER) {
+				probeinfo->adapter_type == BLOGIC_MULTIMASTER)
+			{
 				probeinfo->adapter_bus_type = BLOGIC_PCI_BUS;
 				probeinfo->pci_addr = 0;
 				probeinfo->bus = bus;
@@ -920,6 +1153,7 @@ static int __init blogic_init_mm_probeinfo(struct blogic_adapter *adapter)
 			}
 		}
 	}
+
 	return mmcount;
 }
 
@@ -935,12 +1169,14 @@ static int __init blogic_init_fp_probeinfo(struct blogic_adapter *adapter)
 {
 	int fpindex = blogic_probeinfo_count, fpcount = 0;
 	struct pci_dev *pci_device = NULL;
+
 	/*
 	   Interrogate PCI Configuration Space for any FlashPoint Host Adapters.
 	 */
 	while ((pci_device = pci_get_device(PCI_VENDOR_ID_BUSLOGIC,
-					PCI_DEVICE_ID_BUSLOGIC_FLASHPOINT,
-					pci_device)) != NULL) {
+										PCI_DEVICE_ID_BUSLOGIC_FLASHPOINT,
+										pci_device)) != NULL)
+	{
 		unsigned char bus;
 		unsigned char device;
 		unsigned int irq_ch;
@@ -950,10 +1186,14 @@ static int __init blogic_init_fp_probeinfo(struct blogic_adapter *adapter)
 		unsigned long pci_addr;
 
 		if (pci_enable_device(pci_device))
+		{
 			continue;
+		}
 
 		if (pci_set_dma_mask(pci_device, DMA_BIT_MASK(32)))
+		{
 			continue;
+		}
 
 		bus = pci_device->bus->number;
 		device = pci_device->devfn >> 3;
@@ -961,28 +1201,39 @@ static int __init blogic_init_fp_probeinfo(struct blogic_adapter *adapter)
 		io_addr = base_addr0 = pci_resource_start(pci_device, 0);
 		pci_addr = base_addr1 = pci_resource_start(pci_device, 1);
 #ifdef CONFIG_SCSI_FLASHPOINT
-		if (pci_resource_flags(pci_device, 0) & IORESOURCE_MEM) {
+
+		if (pci_resource_flags(pci_device, 0) & IORESOURCE_MEM)
+		{
 			blogic_err("BusLogic: Base Address0 0x%X not I/O for " "FlashPoint Host Adapter\n", NULL, base_addr0);
 			blogic_err("at PCI Bus %d Device %d I/O Address 0x%X\n", NULL, bus, device, io_addr);
 			continue;
 		}
-		if (pci_resource_flags(pci_device, 1) & IORESOURCE_IO) {
+
+		if (pci_resource_flags(pci_device, 1) & IORESOURCE_IO)
+		{
 			blogic_err("BusLogic: Base Address1 0x%X not Memory for " "FlashPoint Host Adapter\n", NULL, base_addr1);
 			blogic_err("at PCI Bus %d Device %d PCI Address 0x%X\n", NULL, bus, device, pci_addr);
 			continue;
 		}
-		if (irq_ch == 0) {
+
+		if (irq_ch == 0)
+		{
 			blogic_err("BusLogic: IRQ Channel %d invalid for " "FlashPoint Host Adapter\n", NULL, irq_ch);
 			blogic_err("at PCI Bus %d Device %d I/O Address 0x%X\n", NULL, bus, device, io_addr);
 			continue;
 		}
-		if (blogic_global_options.trace_probe) {
+
+		if (blogic_global_options.trace_probe)
+		{
 			blogic_notice("BusLogic: FlashPoint Host Adapter " "detected at\n", NULL);
-			blogic_notice("BusLogic: PCI Bus %d Device %d I/O Address " "0x%X PCI Address 0x%X\n", NULL, bus, device, io_addr, pci_addr);
+			blogic_notice("BusLogic: PCI Bus %d Device %d I/O Address " "0x%X PCI Address 0x%X\n", NULL, bus, device, io_addr,
+						  pci_addr);
 		}
-		if (blogic_probeinfo_count < BLOGIC_MAX_ADAPTERS) {
+
+		if (blogic_probeinfo_count < BLOGIC_MAX_ADAPTERS)
+		{
 			struct blogic_probeinfo *probeinfo =
-				&blogic_probeinfo_list[blogic_probeinfo_count++];
+					&blogic_probeinfo_list[blogic_probeinfo_count++];
 			probeinfo->adapter_type = BLOGIC_FLASHPOINT;
 			probeinfo->adapter_bus_type = BLOGIC_PCI_BUS;
 			probeinfo->io_addr = io_addr;
@@ -992,14 +1243,19 @@ static int __init blogic_init_fp_probeinfo(struct blogic_adapter *adapter)
 			probeinfo->irq_ch = irq_ch;
 			probeinfo->pci_device = pci_dev_get(pci_device);
 			fpcount++;
-		} else
+		}
+		else
+		{
 			blogic_warn("BusLogic: Too many Host Adapters " "detected\n", NULL);
+		}
+
 #else
 		blogic_err("BusLogic: FlashPoint Host Adapter detected at " "PCI Bus %d Device %d\n", NULL, bus, device);
 		blogic_err("BusLogic: I/O Address 0x%X PCI Address 0x%X, irq %d, " "but FlashPoint\n", NULL, io_addr, pci_addr, irq_ch);
 		blogic_err("BusLogic: support was omitted in this kernel " "configuration.\n", NULL);
 #endif
 	}
+
 	/*
 	   The FlashPoint BIOS will scan for FlashPoint Host Adapters in the order of
 	   increasing PCI Bus and Device Number, so sort the probe information into
@@ -1030,35 +1286,47 @@ static void __init blogic_init_probeinfo_list(struct blogic_adapter *adapter)
 	   FlashPoint Host Adapters; otherwise, default to the standard
 	   ISA MultiMaster probe.
 	 */
-	if (!blogic_probe_options.noprobe_pci) {
-		if (blogic_probe_options.multimaster_first) {
+	if (!blogic_probe_options.noprobe_pci)
+	{
+		if (blogic_probe_options.multimaster_first)
+		{
 			blogic_init_mm_probeinfo(adapter);
 			blogic_init_fp_probeinfo(adapter);
-		} else if (blogic_probe_options.flashpoint_first) {
+		}
+		else if (blogic_probe_options.flashpoint_first)
+		{
 			blogic_init_fp_probeinfo(adapter);
 			blogic_init_mm_probeinfo(adapter);
-		} else {
+		}
+		else
+		{
 			int fpcount = blogic_init_fp_probeinfo(adapter);
 			int mmcount = blogic_init_mm_probeinfo(adapter);
-			if (fpcount > 0 && mmcount > 0) {
+
+			if (fpcount > 0 && mmcount > 0)
+			{
 				struct blogic_probeinfo *probeinfo =
-					&blogic_probeinfo_list[fpcount];
+						&blogic_probeinfo_list[fpcount];
 				struct blogic_adapter *myadapter = adapter;
 				struct blogic_fetch_localram fetch_localram;
 				struct blogic_bios_drvmap d0_mapbyte;
 
 				while (probeinfo->adapter_bus_type !=
-						BLOGIC_PCI_BUS)
+					   BLOGIC_PCI_BUS)
+				{
 					probeinfo++;
+				}
+
 				myadapter->io_addr = probeinfo->io_addr;
 				fetch_localram.offset =
 					BLOGIC_BIOS_BASE + BLOGIC_BIOS_DRVMAP;
 				fetch_localram.count = sizeof(d0_mapbyte);
 				blogic_cmd(myadapter, BLOGIC_FETCH_LOCALRAM,
-						&fetch_localram,
-						sizeof(fetch_localram),
-						&d0_mapbyte,
-						sizeof(d0_mapbyte));
+						   &fetch_localram,
+						   sizeof(fetch_localram),
+						   &d0_mapbyte,
+						   sizeof(d0_mapbyte));
+
 				/*
 				   If the Map Byte for BIOS Drive 0 indicates
 				   that BIOS Drive 0 is controlled by this
@@ -1067,23 +1335,26 @@ static void __init blogic_init_probeinfo_list(struct blogic_adapter *adapter)
 				   Adapters are probed before FlashPoint Host
 				   Adapters.
 				 */
-				if (d0_mapbyte.diskgeom != BLOGIC_BIOS_NODISK) {
+				if (d0_mapbyte.diskgeom != BLOGIC_BIOS_NODISK)
+				{
 					struct blogic_probeinfo saved_probeinfo[BLOGIC_MAX_ADAPTERS];
 					int mmcount = blogic_probeinfo_count - fpcount;
 
 					memcpy(saved_probeinfo,
-						blogic_probeinfo_list,
-						blogic_probeinfo_count * sizeof(struct blogic_probeinfo));
+						   blogic_probeinfo_list,
+						   blogic_probeinfo_count * sizeof(struct blogic_probeinfo));
 					memcpy(&blogic_probeinfo_list[0],
-						&saved_probeinfo[fpcount],
-						mmcount * sizeof(struct blogic_probeinfo));
+						   &saved_probeinfo[fpcount],
+						   mmcount * sizeof(struct blogic_probeinfo));
 					memcpy(&blogic_probeinfo_list[mmcount],
-						&saved_probeinfo[0],
-						fpcount * sizeof(struct blogic_probeinfo));
+						   &saved_probeinfo[0],
+						   fpcount * sizeof(struct blogic_probeinfo));
 				}
 			}
 		}
-	} else {
+	}
+	else
+	{
 		blogic_init_probeinfo_isa(adapter);
 	}
 }
@@ -1091,7 +1362,7 @@ static void __init blogic_init_probeinfo_list(struct blogic_adapter *adapter)
 
 #else
 #define blogic_init_probeinfo_list(adapter) \
-		blogic_init_probeinfo_isa(adapter)
+	blogic_init_probeinfo_isa(adapter)
 #endif				/* CONFIG_PCI */
 
 
@@ -1102,16 +1373,25 @@ static void __init blogic_init_probeinfo_list(struct blogic_adapter *adapter)
 static bool blogic_failure(struct blogic_adapter *adapter, char *msg)
 {
 	blogic_announce_drvr(adapter);
-	if (adapter->adapter_bus_type == BLOGIC_PCI_BUS) {
+
+	if (adapter->adapter_bus_type == BLOGIC_PCI_BUS)
+	{
 		blogic_err("While configuring BusLogic PCI Host Adapter at\n",
-				adapter);
-		blogic_err("Bus %d Device %d I/O Address 0x%X PCI Address 0x%X:\n", adapter, adapter->bus, adapter->dev, adapter->io_addr, adapter->pci_addr);
-	} else
+				   adapter);
+		blogic_err("Bus %d Device %d I/O Address 0x%X PCI Address 0x%X:\n", adapter, adapter->bus, adapter->dev,
+				   adapter->io_addr, adapter->pci_addr);
+	}
+	else
+	{
 		blogic_err("While configuring BusLogic Host Adapter at " "I/O Address 0x%X:\n", adapter, adapter->io_addr);
+	}
+
 	blogic_err("%s FAILED - DETACHING\n", adapter, msg);
+
 	if (blogic_cmd_failure_reason != NULL)
 		blogic_err("ADDITIONAL FAILURE INFO - %s\n", adapter,
-				blogic_cmd_failure_reason);
+				   blogic_cmd_failure_reason);
+
 	return false;
 }
 
@@ -1125,28 +1405,39 @@ static bool __init blogic_probe(struct blogic_adapter *adapter)
 	union blogic_stat_reg statusreg;
 	union blogic_int_reg intreg;
 	union blogic_geo_reg georeg;
+
 	/*
 	   FlashPoint Host Adapters are Probed by the FlashPoint SCCB Manager.
 	 */
-	if (blogic_flashpoint_type(adapter)) {
+	if (blogic_flashpoint_type(adapter))
+	{
 		struct fpoint_info *fpinfo = &adapter->fpinfo;
 		fpinfo->base_addr = (u32) adapter->io_addr;
 		fpinfo->irq_ch = adapter->irq_ch;
 		fpinfo->present = false;
+
 		if (!(FlashPoint_ProbeHostAdapter(fpinfo) == 0 &&
-					fpinfo->present)) {
-			blogic_err("BusLogic: FlashPoint Host Adapter detected at " "PCI Bus %d Device %d\n", adapter, adapter->bus, adapter->dev);
-			blogic_err("BusLogic: I/O Address 0x%X PCI Address 0x%X, " "but FlashPoint\n", adapter, adapter->io_addr, adapter->pci_addr);
+			  fpinfo->present))
+		{
+			blogic_err("BusLogic: FlashPoint Host Adapter detected at " "PCI Bus %d Device %d\n", adapter, adapter->bus,
+					   adapter->dev);
+			blogic_err("BusLogic: I/O Address 0x%X PCI Address 0x%X, " "but FlashPoint\n", adapter, adapter->io_addr,
+					   adapter->pci_addr);
 			blogic_err("BusLogic: Probe Function failed to validate it.\n", adapter);
 			return false;
 		}
+
 		if (blogic_global_options.trace_probe)
+		{
 			blogic_notice("BusLogic_Probe(0x%X): FlashPoint Found\n", adapter, adapter->io_addr);
+		}
+
 		/*
 		   Indicate the Host Adapter Probe completed successfully.
 		 */
 		return true;
 	}
+
 	/*
 	   Read the Status, Interrupt, and Geometry Registers to test if there are I/O
 	   ports that respond, and to check the values to determine if they are from a
@@ -1157,12 +1448,20 @@ static bool __init blogic_probe(struct blogic_adapter *adapter)
 	statusreg.all = blogic_rdstatus(adapter);
 	intreg.all = blogic_rdint(adapter);
 	georeg.all = blogic_rdgeom(adapter);
+
 	if (blogic_global_options.trace_probe)
-		blogic_notice("BusLogic_Probe(0x%X): Status 0x%02X, Interrupt 0x%02X, " "Geometry 0x%02X\n", adapter, adapter->io_addr, statusreg.all, intreg.all, georeg.all);
+	{
+		blogic_notice("BusLogic_Probe(0x%X): Status 0x%02X, Interrupt 0x%02X, " "Geometry 0x%02X\n", adapter, adapter->io_addr,
+					  statusreg.all, intreg.all, georeg.all);
+	}
+
 	if (statusreg.all == 0 || statusreg.sr.diag_active ||
-			statusreg.sr.cmd_param_busy || statusreg.sr.rsvd ||
-			statusreg.sr.cmd_invalid || intreg.ir.rsvd != 0)
+		statusreg.sr.cmd_param_busy || statusreg.sr.rsvd ||
+		statusreg.sr.cmd_invalid || intreg.ir.rsvd != 0)
+	{
 		return false;
+	}
+
 	/*
 	   Check the undocumented Geometry Register to test if there is
 	   an I/O port that responded.  Adaptec Host Adapters do not
@@ -1180,7 +1479,10 @@ static bool __init blogic_probe(struct blogic_adapter *adapter)
 	   left disabled on the AMI FastDisk.
 	 */
 	if (georeg.all == 0xFF)
+	{
 		return false;
+	}
+
 	/*
 	   Indicate the Host Adapter Probe completed successfully.
 	 */
@@ -1200,46 +1502,72 @@ static bool blogic_hwreset(struct blogic_adapter *adapter, bool hard_reset)
 {
 	union blogic_stat_reg statusreg;
 	int timeout;
+
 	/*
 	   FlashPoint Host Adapters are Hard Reset by the FlashPoint
 	   SCCB Manager.
 	 */
-	if (blogic_flashpoint_type(adapter)) {
+	if (blogic_flashpoint_type(adapter))
+	{
 		struct fpoint_info *fpinfo = &adapter->fpinfo;
 		fpinfo->softreset = !hard_reset;
 		fpinfo->report_underrun = true;
 		adapter->cardhandle =
 			FlashPoint_HardwareResetHostAdapter(fpinfo);
+
 		if (adapter->cardhandle == (void *)FPOINT_BADCARD_HANDLE)
+		{
 			return false;
+		}
+
 		/*
 		   Indicate the Host Adapter Hard Reset completed successfully.
 		 */
 		return true;
 	}
+
 	/*
 	   Issue a Hard Reset or Soft Reset Command to the Host Adapter.
 	   The Host Adapter should respond by setting Diagnostic Active in
 	   the Status Register.
 	 */
 	if (hard_reset)
+	{
 		blogic_hardreset(adapter);
+	}
 	else
+	{
 		blogic_softreset(adapter);
+	}
+
 	/*
 	   Wait until Diagnostic Active is set in the Status Register.
 	 */
 	timeout = 5 * 10000;
-	while (--timeout >= 0) {
+
+	while (--timeout >= 0)
+	{
 		statusreg.all = blogic_rdstatus(adapter);
+
 		if (statusreg.sr.diag_active)
+		{
 			break;
+		}
+
 		udelay(100);
 	}
+
 	if (blogic_global_options.trace_hw_reset)
-		blogic_notice("BusLogic_HardwareReset(0x%X): Diagnostic Active, " "Status 0x%02X\n", adapter, adapter->io_addr, statusreg.all);
+	{
+		blogic_notice("BusLogic_HardwareReset(0x%X): Diagnostic Active, " "Status 0x%02X\n", adapter, adapter->io_addr,
+					  statusreg.all);
+	}
+
 	if (timeout < 0)
+	{
 		return false;
+	}
+
 	/*
 	   Wait 100 microseconds to allow completion of any initial diagnostic
 	   activity which might leave the contents of the Status Register
@@ -1250,48 +1578,80 @@ static bool blogic_hwreset(struct blogic_adapter *adapter, bool hard_reset)
 	   Wait until Diagnostic Active is reset in the Status Register.
 	 */
 	timeout = 10 * 10000;
-	while (--timeout >= 0) {
+
+	while (--timeout >= 0)
+	{
 		statusreg.all = blogic_rdstatus(adapter);
+
 		if (!statusreg.sr.diag_active)
+		{
 			break;
+		}
+
 		udelay(100);
 	}
+
 	if (blogic_global_options.trace_hw_reset)
-		blogic_notice("BusLogic_HardwareReset(0x%X): Diagnostic Completed, " "Status 0x%02X\n", adapter, adapter->io_addr, statusreg.all);
+	{
+		blogic_notice("BusLogic_HardwareReset(0x%X): Diagnostic Completed, " "Status 0x%02X\n", adapter, adapter->io_addr,
+					  statusreg.all);
+	}
+
 	if (timeout < 0)
+	{
 		return false;
+	}
+
 	/*
 	   Wait until at least one of the Diagnostic Failure, Host Adapter
 	   Ready, or Data In Register Ready bits is set in the Status Register.
 	 */
 	timeout = 10000;
-	while (--timeout >= 0) {
+
+	while (--timeout >= 0)
+	{
 		statusreg.all = blogic_rdstatus(adapter);
+
 		if (statusreg.sr.diag_failed || statusreg.sr.adapter_ready ||
-				statusreg.sr.datain_ready)
+			statusreg.sr.datain_ready)
+		{
 			break;
+		}
+
 		udelay(100);
 	}
+
 	if (blogic_global_options.trace_hw_reset)
-		blogic_notice("BusLogic_HardwareReset(0x%X): Host Adapter Ready, " "Status 0x%02X\n", adapter, adapter->io_addr, statusreg.all);
+	{
+		blogic_notice("BusLogic_HardwareReset(0x%X): Host Adapter Ready, " "Status 0x%02X\n", adapter, adapter->io_addr,
+					  statusreg.all);
+	}
+
 	if (timeout < 0)
+	{
 		return false;
+	}
+
 	/*
 	   If Diagnostic Failure is set or Host Adapter Ready is reset,
 	   then an error occurred during the Host Adapter diagnostics.
 	   If Data In Register Ready is set, then there is an Error Code
 	   available.
 	 */
-	if (statusreg.sr.diag_failed || !statusreg.sr.adapter_ready) {
+	if (statusreg.sr.diag_failed || !statusreg.sr.adapter_ready)
+	{
 		blogic_cmd_failure_reason = NULL;
 		blogic_failure(adapter, "HARD RESET DIAGNOSTICS");
 		blogic_err("HOST ADAPTER STATUS REGISTER = %02X\n", adapter,
-				statusreg.all);
+				   statusreg.all);
+
 		if (statusreg.sr.datain_ready)
 			blogic_err("HOST ADAPTER ERROR CODE = %d\n", adapter,
-					blogic_rddatain(adapter));
+					   blogic_rddatain(adapter));
+
 		return false;
 	}
+
 	/*
 	   Indicate the Host Adapter Hard Reset completed successfully.
 	 */
@@ -1309,11 +1669,15 @@ static bool __init blogic_checkadapter(struct blogic_adapter *adapter)
 	struct blogic_ext_setup ext_setupinfo;
 	unsigned char req_replylen;
 	bool result = true;
+
 	/*
 	   FlashPoint Host Adapters do not require this protection.
 	 */
 	if (blogic_flashpoint_type(adapter))
+	{
 		return true;
+	}
+
 	/*
 	   Issue the Inquire Extended Setup Information command. Only genuine
 	   BusLogic Host Adapters and true clones support this command.
@@ -1321,17 +1685,22 @@ static bool __init blogic_checkadapter(struct blogic_adapter *adapter)
 	   Register I/O port will fail this command.
 	 */
 	req_replylen = sizeof(ext_setupinfo);
+
 	if (blogic_cmd(adapter, BLOGIC_INQ_EXTSETUP, &req_replylen,
-				sizeof(req_replylen), &ext_setupinfo,
-				sizeof(ext_setupinfo)) != sizeof(ext_setupinfo))
+				   sizeof(req_replylen), &ext_setupinfo,
+				   sizeof(ext_setupinfo)) != sizeof(ext_setupinfo))
+	{
 		result = false;
+	}
+
 	/*
 	   Provide tracing information if requested and return.
 	 */
 	if (blogic_global_options.trace_probe)
 		blogic_notice("BusLogic_Check(0x%X): MultiMaster %s\n", adapter,
-				adapter->io_addr,
-				(result ? "Found" : "Not Found"));
+					  adapter->io_addr,
+					  (result ? "Found" : "Not Found"));
+
 	return result;
 }
 
@@ -1357,20 +1726,26 @@ static bool __init blogic_rdconfig(struct blogic_adapter *adapter)
 	unsigned char req_replylen;
 	unsigned char *tgt, ch;
 	int tgt_id, i;
+
 	/*
 	   Configuration Information for FlashPoint Host Adapters is
 	   provided in the fpoint_info structure by the FlashPoint
 	   SCCB Manager's Probe Function. Initialize fields in the
 	   Host Adapter structure from the fpoint_info structure.
 	 */
-	if (blogic_flashpoint_type(adapter)) {
+	if (blogic_flashpoint_type(adapter))
+	{
 		struct fpoint_info *fpinfo = &adapter->fpinfo;
 		tgt = adapter->model;
 		*tgt++ = 'B';
 		*tgt++ = 'T';
 		*tgt++ = '-';
+
 		for (i = 0; i < sizeof(fpinfo->model); i++)
+		{
 			*tgt++ = fpinfo->model[i];
+		}
+
 		*tgt++ = '\0';
 		strcpy(adapter->fw_ver, FLASHPOINT_FW_VER);
 		adapter->scsi_id = fpinfo->scsi_id;
@@ -1403,68 +1778,92 @@ static bool __init blogic_rdconfig(struct blogic_adapter *adapter)
 		adapter->tagq_ok = 0xFFFF;
 		goto common;
 	}
+
 	/*
 	   Issue the Inquire Board ID command.
 	 */
 	if (blogic_cmd(adapter, BLOGIC_GET_BOARD_ID, NULL, 0, &id,
-				sizeof(id)) != sizeof(id))
+				   sizeof(id)) != sizeof(id))
+	{
 		return blogic_failure(adapter, "INQUIRE BOARD ID");
+	}
+
 	/*
 	   Issue the Inquire Configuration command.
 	 */
 	if (blogic_cmd(adapter, BLOGIC_INQ_CONFIG, NULL, 0, &config,
-				sizeof(config))
-	    != sizeof(config))
+				   sizeof(config))
+		!= sizeof(config))
+	{
 		return blogic_failure(adapter, "INQUIRE CONFIGURATION");
+	}
+
 	/*
 	   Issue the Inquire Setup Information command.
 	 */
 	req_replylen = sizeof(setupinfo);
+
 	if (blogic_cmd(adapter, BLOGIC_INQ_SETUPINFO, &req_replylen,
-				sizeof(req_replylen), &setupinfo,
-				sizeof(setupinfo)) != sizeof(setupinfo))
+				   sizeof(req_replylen), &setupinfo,
+				   sizeof(setupinfo)) != sizeof(setupinfo))
+	{
 		return blogic_failure(adapter, "INQUIRE SETUP INFORMATION");
+	}
+
 	/*
 	   Issue the Inquire Extended Setup Information command.
 	 */
 	req_replylen = sizeof(ext_setupinfo);
+
 	if (blogic_cmd(adapter, BLOGIC_INQ_EXTSETUP, &req_replylen,
-				sizeof(req_replylen), &ext_setupinfo,
-				sizeof(ext_setupinfo)) != sizeof(ext_setupinfo))
+				   sizeof(req_replylen), &ext_setupinfo,
+				   sizeof(ext_setupinfo)) != sizeof(ext_setupinfo))
 		return blogic_failure(adapter,
-					"INQUIRE EXTENDED SETUP INFORMATION");
+							  "INQUIRE EXTENDED SETUP INFORMATION");
+
 	/*
 	   Issue the Inquire Firmware Version 3rd Digit command.
 	 */
 	fw_ver_digit3 = '\0';
+
 	if (id.fw_ver_digit1 > '0')
 		if (blogic_cmd(adapter, BLOGIC_INQ_FWVER_D3, NULL, 0,
-				&fw_ver_digit3,
-				sizeof(fw_ver_digit3)) != sizeof(fw_ver_digit3))
+					   &fw_ver_digit3,
+					   sizeof(fw_ver_digit3)) != sizeof(fw_ver_digit3))
 			return blogic_failure(adapter,
-						"INQUIRE FIRMWARE 3RD DIGIT");
+								  "INQUIRE FIRMWARE 3RD DIGIT");
+
 	/*
 	   Issue the Inquire Host Adapter Model Number command.
 	 */
 	if (ext_setupinfo.bus_type == 'A' && id.fw_ver_digit1 == '2')
 		/* BusLogic BT-542B ISA 2.xx */
+	{
 		strcpy(model, "542B");
+	}
 	else if (ext_setupinfo.bus_type == 'E' && id.fw_ver_digit1 == '2' &&
-			(id.fw_ver_digit2 <= '1' || (id.fw_ver_digit2 == '2' &&
-						     fw_ver_digit3 == '0')))
+			 (id.fw_ver_digit2 <= '1' || (id.fw_ver_digit2 == '2' &&
+										  fw_ver_digit3 == '0')))
 		/* BusLogic BT-742A EISA 2.1x or 2.20 */
+	{
 		strcpy(model, "742A");
+	}
 	else if (ext_setupinfo.bus_type == 'E' && id.fw_ver_digit1 == '0')
 		/* AMI FastDisk EISA Series 441 0.x */
+	{
 		strcpy(model, "747A");
-	else {
-		req_replylen = sizeof(model);
-		if (blogic_cmd(adapter, BLOGIC_INQ_MODELNO, &req_replylen,
-					sizeof(req_replylen), &model,
-					sizeof(model)) != sizeof(model))
-			return blogic_failure(adapter,
-					"INQUIRE HOST ADAPTER MODEL NUMBER");
 	}
+	else
+	{
+		req_replylen = sizeof(model);
+
+		if (blogic_cmd(adapter, BLOGIC_INQ_MODELNO, &req_replylen,
+					   sizeof(req_replylen), &model,
+					   sizeof(model)) != sizeof(model))
+			return blogic_failure(adapter,
+								  "INQUIRE HOST ADAPTER MODEL NUMBER");
+	}
+
 	/*
 	   BusLogic MultiMaster Host Adapters can be identified by their
 	   model number and the major version number of their firmware
@@ -1489,12 +1888,19 @@ static bool __init blogic_rdconfig(struct blogic_adapter *adapter)
 	*tgt++ = 'B';
 	*tgt++ = 'T';
 	*tgt++ = '-';
-	for (i = 0; i < sizeof(model); i++) {
+
+	for (i = 0; i < sizeof(model); i++)
+	{
 		ch = model[i];
+
 		if (ch == ' ' || ch == '\0')
+		{
 			break;
+		}
+
 		*tgt++ = ch;
 	}
+
 	*tgt++ = '\0';
 	/*
 	   Save the Firmware Version in the Host Adapter structure.
@@ -1503,22 +1909,33 @@ static bool __init blogic_rdconfig(struct blogic_adapter *adapter)
 	*tgt++ = id.fw_ver_digit1;
 	*tgt++ = '.';
 	*tgt++ = id.fw_ver_digit2;
+
 	if (fw_ver_digit3 != ' ' && fw_ver_digit3 != '\0')
+	{
 		*tgt++ = fw_ver_digit3;
+	}
+
 	*tgt = '\0';
+
 	/*
 	   Issue the Inquire Firmware Version Letter command.
 	 */
-	if (strcmp(adapter->fw_ver, "3.3") >= 0) {
+	if (strcmp(adapter->fw_ver, "3.3") >= 0)
+	{
 		if (blogic_cmd(adapter, BLOGIC_INQ_FWVER_LETTER, NULL, 0,
-				&fw_ver_letter,
-				sizeof(fw_ver_letter)) != sizeof(fw_ver_letter))
+					   &fw_ver_letter,
+					   sizeof(fw_ver_letter)) != sizeof(fw_ver_letter))
 			return blogic_failure(adapter,
-					"INQUIRE FIRMWARE VERSION LETTER");
+								  "INQUIRE FIRMWARE VERSION LETTER");
+
 		if (fw_ver_letter != ' ' && fw_ver_letter != '\0')
+		{
 			*tgt++ = fw_ver_letter;
+		}
+
 		*tgt = '\0';
 	}
+
 	/*
 	   Save the Host Adapter SCSI ID in the Host Adapter structure.
 	 */
@@ -1529,29 +1946,52 @@ static bool __init blogic_rdconfig(struct blogic_adapter *adapter)
 	   and save the DMA Channel for ISA Host Adapters.
 	 */
 	adapter->adapter_bus_type =
-			blogic_adater_bus_types[adapter->model[3] - '4'];
-	if (adapter->irq_ch == 0) {
+		blogic_adater_bus_types[adapter->model[3] - '4'];
+
+	if (adapter->irq_ch == 0)
+	{
 		if (config.irq_ch9)
+		{
 			adapter->irq_ch = 9;
+		}
 		else if (config.irq_ch10)
+		{
 			adapter->irq_ch = 10;
+		}
 		else if (config.irq_ch11)
+		{
 			adapter->irq_ch = 11;
+		}
 		else if (config.irq_ch12)
+		{
 			adapter->irq_ch = 12;
+		}
 		else if (config.irq_ch14)
+		{
 			adapter->irq_ch = 14;
+		}
 		else if (config.irq_ch15)
+		{
 			adapter->irq_ch = 15;
+		}
 	}
-	if (adapter->adapter_bus_type == BLOGIC_ISA_BUS) {
+
+	if (adapter->adapter_bus_type == BLOGIC_ISA_BUS)
+	{
 		if (config.dma_ch5)
+		{
 			adapter->dma_ch = 5;
+		}
 		else if (config.dma_ch6)
+		{
 			adapter->dma_ch = 6;
+		}
 		else if (config.dma_ch7)
+		{
 			adapter->dma_ch = 7;
+		}
 	}
+
 	/*
 	   Determine whether Extended Translation is enabled and save it in
 	   the Host Adapter structure.
@@ -1565,64 +2005,85 @@ static bool __init blogic_rdconfig(struct blogic_adapter *adapter)
 	 */
 	adapter->adapter_sglimit = ext_setupinfo.sg_limit;
 	adapter->drvr_sglimit = adapter->adapter_sglimit;
+
 	if (adapter->adapter_sglimit > BLOGIC_SG_LIMIT)
+	{
 		adapter->drvr_sglimit = BLOGIC_SG_LIMIT;
+	}
+
 	if (ext_setupinfo.misc.level_int)
+	{
 		adapter->level_int = true;
+	}
+
 	adapter->wide = ext_setupinfo.wide;
 	adapter->differential = ext_setupinfo.differential;
 	adapter->scam = ext_setupinfo.scam;
 	adapter->ultra = ext_setupinfo.ultra;
+
 	/*
 	   Determine whether Extended LUN Format CCBs are supported and save the
 	   information in the Host Adapter structure.
 	 */
 	if (adapter->fw_ver[0] == '5' || (adapter->fw_ver[0] == '4' &&
-				adapter->wide))
+									  adapter->wide))
+	{
 		adapter->ext_lun = true;
+	}
+
 	/*
 	   Issue the Inquire PCI Host Adapter Information command to read the
 	   Termination Information from "W" series MultiMaster Host Adapters.
 	 */
-	if (adapter->fw_ver[0] == '5') {
+	if (adapter->fw_ver[0] == '5')
+	{
 		if (blogic_cmd(adapter, BLOGIC_INQ_PCI_INFO, NULL, 0,
-				&adapter_info,
-				sizeof(adapter_info)) != sizeof(adapter_info))
+					   &adapter_info,
+					   sizeof(adapter_info)) != sizeof(adapter_info))
 			return blogic_failure(adapter,
-					"INQUIRE PCI HOST ADAPTER INFORMATION");
+								  "INQUIRE PCI HOST ADAPTER INFORMATION");
+
 		/*
 		   Save the Termination Information in the Host Adapter
 		   structure.
 		 */
-		if (adapter_info.genericinfo_valid) {
+		if (adapter_info.genericinfo_valid)
+		{
 			adapter->terminfo_valid = true;
 			adapter->low_term = adapter_info.low_term;
 			adapter->high_term = adapter_info.high_term;
 		}
 	}
+
 	/*
 	   Issue the Fetch Host Adapter Local RAM command to read the
 	   AutoSCSI data from "W" and "C" series MultiMaster Host Adapters.
 	 */
-	if (adapter->fw_ver[0] >= '4') {
+	if (adapter->fw_ver[0] >= '4')
+	{
 		fetch_localram.offset = BLOGIC_AUTOSCSI_BASE;
 		fetch_localram.count = sizeof(autoscsi);
+
 		if (blogic_cmd(adapter, BLOGIC_FETCH_LOCALRAM, &fetch_localram,
-					sizeof(fetch_localram), &autoscsi,
-					sizeof(autoscsi)) != sizeof(autoscsi))
+					   sizeof(fetch_localram), &autoscsi,
+					   sizeof(autoscsi)) != sizeof(autoscsi))
 			return blogic_failure(adapter,
-						"FETCH HOST ADAPTER LOCAL RAM");
+								  "FETCH HOST ADAPTER LOCAL RAM");
+
 		/*
 		   Save the Parity Checking Enabled, Bus Reset Enabled,
 		   and Termination Information in the Host Adapter structure.
 		 */
 		adapter->parity = autoscsi.parity;
 		adapter->reset_enabled = autoscsi.reset_enabled;
-		if (adapter->fw_ver[0] == '4') {
+
+		if (adapter->fw_ver[0] == '4')
+		{
 			adapter->terminfo_valid = true;
 			adapter->low_term = autoscsi.low_term;
 			adapter->high_term = autoscsi.high_term;
 		}
+
 		/*
 		   Save the Wide Permitted, Fast Permitted, Synchronous
 		   Permitted, Disconnect Permitted, Ultra Permitted, and
@@ -1632,37 +2093,55 @@ static bool __init blogic_rdconfig(struct blogic_adapter *adapter)
 		adapter->fast_ok = autoscsi.fast_ok;
 		adapter->sync_ok = autoscsi.sync_ok;
 		adapter->discon_ok = autoscsi.discon_ok;
+
 		if (adapter->ultra)
+		{
 			adapter->ultra_ok = autoscsi.ultra_ok;
-		if (adapter->scam) {
+		}
+
+		if (adapter->scam)
+		{
 			adapter->scam_enabled = autoscsi.scam_enabled;
 			adapter->scam_lev2 = autoscsi.scam_lev2;
 		}
 	}
+
 	/*
 	   Initialize fields in the Host Adapter structure for "S" and "A"
 	   series MultiMaster Host Adapters.
 	 */
-	if (adapter->fw_ver[0] < '4') {
-		if (setupinfo.sync) {
+	if (adapter->fw_ver[0] < '4')
+	{
+		if (setupinfo.sync)
+		{
 			adapter->sync_ok = 0xFF;
-			if (adapter->adapter_bus_type == BLOGIC_EISA_BUS) {
+
+			if (adapter->adapter_bus_type == BLOGIC_EISA_BUS)
+			{
 				if (ext_setupinfo.misc.fast_on_eisa)
+				{
 					adapter->fast_ok = 0xFF;
+				}
+
 				if (strcmp(adapter->model, "BT-757") == 0)
+				{
 					adapter->wide_ok = 0xFF;
+				}
 			}
 		}
+
 		adapter->discon_ok = 0xFF;
 		adapter->parity = setupinfo.parity;
 		adapter->reset_enabled = true;
 	}
+
 	/*
 	   Determine the maximum number of Target IDs and Logical Units
 	   supported by this driver for Wide and Narrow Host Adapters.
 	 */
 	adapter->maxdev = (adapter->wide ? 16 : 8);
 	adapter->maxlun = (adapter->ext_lun ? 32 : 8);
+
 	/*
 	   Select appropriate values for the Mailbox Count, Driver Queue Depth,
 	   Initial CCBs, and Incremental CCBs variables based on whether
@@ -1689,19 +2168,28 @@ static bool __init blogic_rdconfig(struct blogic_adapter *adapter)
 	   30   BT-747S/747D/757S/757D/445S/545S/542D/542B/742A
 	 */
 	if (adapter->fw_ver[0] == '5')
+	{
 		adapter->adapter_qdepth = 192;
+	}
 	else if (adapter->fw_ver[0] == '4')
 		adapter->adapter_qdepth = (adapter->adapter_bus_type !=
-						BLOGIC_ISA_BUS ? 100 : 50);
+								   BLOGIC_ISA_BUS ? 100 : 50);
 	else
+	{
 		adapter->adapter_qdepth = 30;
-	if (strcmp(adapter->fw_ver, "3.31") >= 0) {
+	}
+
+	if (strcmp(adapter->fw_ver, "3.31") >= 0)
+	{
 		adapter->strict_rr = true;
 		adapter->mbox_count = BLOGIC_MAX_MAILBOX;
-	} else {
+	}
+	else
+	{
 		adapter->strict_rr = false;
 		adapter->mbox_count = 32;
 	}
+
 	adapter->drvr_qdepth = adapter->mbox_count;
 	adapter->initccbs = 4 * BLOGIC_CCB_GRP_ALLOCSIZE;
 	adapter->inc_ccbs = BLOGIC_CCB_GRP_ALLOCSIZE;
@@ -1713,32 +2201,47 @@ static bool __init blogic_rdconfig(struct blogic_adapter *adapter)
 	   3.35 and above.
 	 */
 	adapter->tagq_ok = 0;
-	switch (adapter->fw_ver[0]) {
-	case '5':
-		adapter->tagq_ok = 0xFFFF;
-		break;
-	case '4':
-		if (strcmp(adapter->fw_ver, "4.22") >= 0)
+
+	switch (adapter->fw_ver[0])
+	{
+		case '5':
 			adapter->tagq_ok = 0xFFFF;
-		break;
-	case '3':
-		if (strcmp(adapter->fw_ver, "3.35") >= 0)
-			adapter->tagq_ok = 0xFFFF;
-		break;
+			break;
+
+		case '4':
+			if (strcmp(adapter->fw_ver, "4.22") >= 0)
+			{
+				adapter->tagq_ok = 0xFFFF;
+			}
+
+			break;
+
+		case '3':
+			if (strcmp(adapter->fw_ver, "3.35") >= 0)
+			{
+				adapter->tagq_ok = 0xFFFF;
+			}
+
+			break;
 	}
+
 	/*
 	   Determine the Host Adapter BIOS Address if the BIOS is enabled and
 	   save it in the Host Adapter structure.  The BIOS is disabled if the
 	   bios_addr is 0.
 	 */
 	adapter->bios_addr = ext_setupinfo.bios_addr << 12;
+
 	/*
 	   ISA Host Adapters require Bounce Buffers if there is more than
 	   16MB memory.
 	 */
 	if (adapter->adapter_bus_type == BLOGIC_ISA_BUS &&
-			(void *) high_memory > (void *) MAX_DMA_ADDRESS)
+		(void *) high_memory > (void *) MAX_DMA_ADDRESS)
+	{
 		adapter->need_bouncebuf = true;
+	}
+
 	/*
 	   BusLogic BT-445S Host Adapters prior to board revision E have a
 	   hardware bug whereby when the BIOS is enabled, transfers to/from
@@ -1749,9 +2252,12 @@ static bool __init blogic_rdconfig(struct blogic_adapter *adapter)
 	   memory.
 	 */
 	if (adapter->bios_addr > 0 && strcmp(adapter->model, "BT-445S") == 0 &&
-			strcmp(adapter->fw_ver, "3.37") < 0 &&
-			(void *) high_memory > (void *) MAX_DMA_ADDRESS)
+		strcmp(adapter->fw_ver, "3.37") < 0 &&
+		(void *) high_memory > (void *) MAX_DMA_ADDRESS)
+	{
 		adapter->need_bouncebuf = true;
+	}
+
 	/*
 	   Initialize parameters common to MultiMaster and FlashPoint
 	   Host Adapters.
@@ -1762,6 +2268,7 @@ common:
 	 */
 	strcpy(adapter->full_model, "BusLogic ");
 	strcat(adapter->full_model, adapter->model);
+
 	/*
 	   Select an appropriate value for the Tagged Queue Depth either from a
 	   BusLogic Driver Options specification, or based on whether this Host
@@ -1769,38 +2276,58 @@ common:
 	   Depth is left at 0 for automatic determination in
 	   BusLogic_SelectQueueDepths. Initialize the Untagged Queue Depth.
 	 */
-	for (tgt_id = 0; tgt_id < BLOGIC_MAXDEV; tgt_id++) {
+	for (tgt_id = 0; tgt_id < BLOGIC_MAXDEV; tgt_id++)
+	{
 		unsigned char qdepth = 0;
+
 		if (adapter->drvr_opts != NULL &&
-				adapter->drvr_opts->qdepth[tgt_id] > 0)
+			adapter->drvr_opts->qdepth[tgt_id] > 0)
+		{
 			qdepth = adapter->drvr_opts->qdepth[tgt_id];
+		}
 		else if (adapter->need_bouncebuf)
+		{
 			qdepth = BLOGIC_TAG_DEPTH_BB;
+		}
+
 		adapter->qdepth[tgt_id] = qdepth;
 	}
+
 	if (adapter->need_bouncebuf)
+	{
 		adapter->untag_qdepth = BLOGIC_UNTAG_DEPTH_BB;
+	}
 	else
+	{
 		adapter->untag_qdepth = BLOGIC_UNTAG_DEPTH;
+	}
+
 	if (adapter->drvr_opts != NULL)
+	{
 		adapter->common_qdepth = adapter->drvr_opts->common_qdepth;
+	}
+
 	if (adapter->common_qdepth > 0 &&
-			adapter->common_qdepth < adapter->untag_qdepth)
+		adapter->common_qdepth < adapter->untag_qdepth)
+	{
 		adapter->untag_qdepth = adapter->common_qdepth;
+	}
+
 	/*
 	   Tagged Queuing is only allowed if Disconnect/Reconnect is permitted.
 	   Therefore, mask the Tagged Queuing Permitted Default bits with the
 	   Disconnect/Reconnect Permitted bits.
 	 */
 	adapter->tagq_ok &= adapter->discon_ok;
+
 	/*
 	   Combine the default Tagged Queuing Permitted bits with any
 	   BusLogic Driver Options Tagged Queuing specification.
 	 */
 	if (adapter->drvr_opts != NULL)
 		adapter->tagq_ok = (adapter->drvr_opts->tagq_ok &
-				adapter->drvr_opts->tagq_ok_mask) |
-			(adapter->tagq_ok & ~adapter->drvr_opts->tagq_ok_mask);
+							adapter->drvr_opts->tagq_ok_mask) |
+						   (adapter->tagq_ok & ~adapter->drvr_opts->tagq_ok_mask);
 
 	/*
 	   Select an appropriate value for Bus Settle Time either from a
@@ -1808,10 +2335,15 @@ common:
 	   BLOGIC_BUS_SETTLE_TIME.
 	 */
 	if (adapter->drvr_opts != NULL &&
-			adapter->drvr_opts->bus_settle_time > 0)
+		adapter->drvr_opts->bus_settle_time > 0)
+	{
 		adapter->bus_settle_time = adapter->drvr_opts->bus_settle_time;
+	}
 	else
+	{
 		adapter->bus_settle_time = BLOGIC_BUS_SETTLE_TIME;
+	}
+
 	/*
 	   Indicate reading the Host Adapter Configuration completed
 	   successfully.
@@ -1841,135 +2373,235 @@ static bool __init blogic_reportconfig(struct blogic_adapter *adapter)
 	char *tagq_msg = tagq_str;
 	int tgt_id;
 
-	blogic_info("Configuring BusLogic Model %s %s%s%s%s SCSI Host Adapter\n", adapter, adapter->model, blogic_adapter_busnames[adapter->adapter_bus_type], (adapter->wide ? " Wide" : ""), (adapter->differential ? " Differential" : ""), (adapter->ultra ? " Ultra" : ""));
-	blogic_info("  Firmware Version: %s, I/O Address: 0x%X, " "IRQ Channel: %d/%s\n", adapter, adapter->fw_ver, adapter->io_addr, adapter->irq_ch, (adapter->level_int ? "Level" : "Edge"));
-	if (adapter->adapter_bus_type != BLOGIC_PCI_BUS) {
+	blogic_info("Configuring BusLogic Model %s %s%s%s%s SCSI Host Adapter\n", adapter, adapter->model,
+				blogic_adapter_busnames[adapter->adapter_bus_type], (adapter->wide ? " Wide" : ""),
+				(adapter->differential ? " Differential" : ""), (adapter->ultra ? " Ultra" : ""));
+	blogic_info("  Firmware Version: %s, I/O Address: 0x%X, " "IRQ Channel: %d/%s\n", adapter, adapter->fw_ver,
+				adapter->io_addr, adapter->irq_ch, (adapter->level_int ? "Level" : "Edge"));
+
+	if (adapter->adapter_bus_type != BLOGIC_PCI_BUS)
+	{
 		blogic_info("  DMA Channel: ", adapter);
+
 		if (adapter->dma_ch > 0)
+		{
 			blogic_info("%d, ", adapter, adapter->dma_ch);
+		}
 		else
+		{
 			blogic_info("None, ", adapter);
+		}
+
 		if (adapter->bios_addr > 0)
 			blogic_info("BIOS Address: 0x%X, ", adapter,
-					adapter->bios_addr);
+						adapter->bios_addr);
 		else
+		{
 			blogic_info("BIOS Address: None, ", adapter);
-	} else {
-		blogic_info("  PCI Bus: %d, Device: %d, Address: ", adapter,
-				adapter->bus, adapter->dev);
-		if (adapter->pci_addr > 0)
-			blogic_info("0x%X, ", adapter, adapter->pci_addr);
-		else
-			blogic_info("Unassigned, ", adapter);
+		}
 	}
+	else
+	{
+		blogic_info("  PCI Bus: %d, Device: %d, Address: ", adapter,
+					adapter->bus, adapter->dev);
+
+		if (adapter->pci_addr > 0)
+		{
+			blogic_info("0x%X, ", adapter, adapter->pci_addr);
+		}
+		else
+		{
+			blogic_info("Unassigned, ", adapter);
+		}
+	}
+
 	blogic_info("Host Adapter SCSI ID: %d\n", adapter, adapter->scsi_id);
 	blogic_info("  Parity Checking: %s, Extended Translation: %s\n",
-			adapter, (adapter->parity ? "Enabled" : "Disabled"),
-			(adapter->ext_trans_enable ? "Enabled" : "Disabled"));
+				adapter, (adapter->parity ? "Enabled" : "Disabled"),
+				(adapter->ext_trans_enable ? "Enabled" : "Disabled"));
 	alltgt_mask &= ~(1 << adapter->scsi_id);
 	sync_ok = adapter->sync_ok & alltgt_mask;
 	fast_ok = adapter->fast_ok & alltgt_mask;
 	ultra_ok = adapter->ultra_ok & alltgt_mask;
+
 	if ((blogic_multimaster_type(adapter) &&
-			(adapter->fw_ver[0] >= '4' ||
-			 adapter->adapter_bus_type == BLOGIC_EISA_BUS)) ||
-			blogic_flashpoint_type(adapter)) {
+		 (adapter->fw_ver[0] >= '4' ||
+		  adapter->adapter_bus_type == BLOGIC_EISA_BUS)) ||
+		blogic_flashpoint_type(adapter))
+	{
 		common_syncneg = false;
-		if (sync_ok == 0) {
+
+		if (sync_ok == 0)
+		{
 			syncmsg = "Disabled";
 			common_syncneg = true;
-		} else if (sync_ok == alltgt_mask) {
-			if (fast_ok == 0) {
+		}
+		else if (sync_ok == alltgt_mask)
+		{
+			if (fast_ok == 0)
+			{
 				syncmsg = "Slow";
 				common_syncneg = true;
-			} else if (fast_ok == alltgt_mask) {
-				if (ultra_ok == 0) {
+			}
+			else if (fast_ok == alltgt_mask)
+			{
+				if (ultra_ok == 0)
+				{
 					syncmsg = "Fast";
 					common_syncneg = true;
-				} else if (ultra_ok == alltgt_mask) {
+				}
+				else if (ultra_ok == alltgt_mask)
+				{
 					syncmsg = "Ultra";
 					common_syncneg = true;
 				}
 			}
 		}
-		if (!common_syncneg) {
+
+		if (!common_syncneg)
+		{
 			for (tgt_id = 0; tgt_id < adapter->maxdev; tgt_id++)
-				syncstr[tgt_id] = ((!(sync_ok & (1 << tgt_id))) ? 'N' : (!(fast_ok & (1 << tgt_id)) ? 'S' : (!(ultra_ok & (1 << tgt_id)) ? 'F' : 'U')));
+			{
+				syncstr[tgt_id] = ((!(sync_ok & (1 << tgt_id))) ? 'N' : (!(fast_ok & (1 << tgt_id)) ? 'S' : (!(ultra_ok &
+								   (1 << tgt_id)) ? 'F' : 'U')));
+			}
+
 			syncstr[adapter->scsi_id] = '#';
 			syncstr[adapter->maxdev] = '\0';
 		}
-	} else
+	}
+	else
+	{
 		syncmsg = (sync_ok == 0 ? "Disabled" : "Enabled");
+	}
+
 	wide_ok = adapter->wide_ok & alltgt_mask;
+
 	if (wide_ok == 0)
+	{
 		widemsg = "Disabled";
+	}
 	else if (wide_ok == alltgt_mask)
+	{
 		widemsg = "Enabled";
-	else {
+	}
+	else
+	{
 		for (tgt_id = 0; tgt_id < adapter->maxdev; tgt_id++)
+		{
 			widestr[tgt_id] = ((wide_ok & (1 << tgt_id)) ? 'Y' : 'N');
+		}
+
 		widestr[adapter->scsi_id] = '#';
 		widestr[adapter->maxdev] = '\0';
 	}
+
 	discon_ok = adapter->discon_ok & alltgt_mask;
+
 	if (discon_ok == 0)
+	{
 		discon_msg = "Disabled";
+	}
 	else if (discon_ok == alltgt_mask)
+	{
 		discon_msg = "Enabled";
-	else {
+	}
+	else
+	{
 		for (tgt_id = 0; tgt_id < adapter->maxdev; tgt_id++)
+		{
 			discon_str[tgt_id] = ((discon_ok & (1 << tgt_id)) ? 'Y' : 'N');
+		}
+
 		discon_str[adapter->scsi_id] = '#';
 		discon_str[adapter->maxdev] = '\0';
 	}
+
 	tagq_ok = adapter->tagq_ok & alltgt_mask;
+
 	if (tagq_ok == 0)
+	{
 		tagq_msg = "Disabled";
+	}
 	else if (tagq_ok == alltgt_mask)
+	{
 		tagq_msg = "Enabled";
-	else {
+	}
+	else
+	{
 		for (tgt_id = 0; tgt_id < adapter->maxdev; tgt_id++)
+		{
 			tagq_str[tgt_id] = ((tagq_ok & (1 << tgt_id)) ? 'Y' : 'N');
+		}
+
 		tagq_str[adapter->scsi_id] = '#';
 		tagq_str[adapter->maxdev] = '\0';
 	}
+
 	blogic_info("  Synchronous Negotiation: %s, Wide Negotiation: %s\n",
-			adapter, syncmsg, widemsg);
+				adapter, syncmsg, widemsg);
 	blogic_info("  Disconnect/Reconnect: %s, Tagged Queuing: %s\n", adapter,
-			discon_msg, tagq_msg);
-	if (blogic_multimaster_type(adapter)) {
-		blogic_info("  Scatter/Gather Limit: %d of %d segments, " "Mailboxes: %d\n", adapter, adapter->drvr_sglimit, adapter->adapter_sglimit, adapter->mbox_count);
-		blogic_info("  Driver Queue Depth: %d, " "Host Adapter Queue Depth: %d\n", adapter, adapter->drvr_qdepth, adapter->adapter_qdepth);
-	} else
-		blogic_info("  Driver Queue Depth: %d, " "Scatter/Gather Limit: %d segments\n", adapter, adapter->drvr_qdepth, adapter->drvr_sglimit);
+				discon_msg, tagq_msg);
+
+	if (blogic_multimaster_type(adapter))
+	{
+		blogic_info("  Scatter/Gather Limit: %d of %d segments, " "Mailboxes: %d\n", adapter, adapter->drvr_sglimit,
+					adapter->adapter_sglimit, adapter->mbox_count);
+		blogic_info("  Driver Queue Depth: %d, " "Host Adapter Queue Depth: %d\n", adapter, adapter->drvr_qdepth,
+					adapter->adapter_qdepth);
+	}
+	else
+	{
+		blogic_info("  Driver Queue Depth: %d, " "Scatter/Gather Limit: %d segments\n", adapter, adapter->drvr_qdepth,
+					adapter->drvr_sglimit);
+	}
+
 	blogic_info("  Tagged Queue Depth: ", adapter);
 	common_tagq_depth = true;
+
 	for (tgt_id = 1; tgt_id < adapter->maxdev; tgt_id++)
-		if (adapter->qdepth[tgt_id] != adapter->qdepth[0]) {
+		if (adapter->qdepth[tgt_id] != adapter->qdepth[0])
+		{
 			common_tagq_depth = false;
 			break;
 		}
-	if (common_tagq_depth) {
+
+	if (common_tagq_depth)
+	{
 		if (adapter->qdepth[0] > 0)
+		{
 			blogic_info("%d", adapter, adapter->qdepth[0]);
+		}
 		else
+		{
 			blogic_info("Automatic", adapter);
-	} else
+		}
+	}
+	else
+	{
 		blogic_info("Individual", adapter);
+	}
+
 	blogic_info(", Untagged Queue Depth: %d\n", adapter,
-			adapter->untag_qdepth);
-	if (adapter->terminfo_valid) {
+				adapter->untag_qdepth);
+
+	if (adapter->terminfo_valid)
+	{
 		if (adapter->wide)
 			blogic_info("  SCSI Bus Termination: %s", adapter,
-				(adapter->low_term ? (adapter->high_term ? "Both Enabled" : "Low Enabled") : (adapter->high_term ? "High Enabled" : "Both Disabled")));
+						(adapter->low_term ? (adapter->high_term ? "Both Enabled" : "Low Enabled") : (adapter->high_term ? "High Enabled" :
+								"Both Disabled")));
 		else
 			blogic_info("  SCSI Bus Termination: %s", adapter,
-				(adapter->low_term ? "Enabled" : "Disabled"));
+						(adapter->low_term ? "Enabled" : "Disabled"));
+
 		if (adapter->scam)
 			blogic_info(", SCAM: %s", adapter,
-				(adapter->scam_enabled ? (adapter->scam_lev2 ? "Enabled, Level 2" : "Enabled, Level 1") : "Disabled"));
+						(adapter->scam_enabled ? (adapter->scam_lev2 ? "Enabled, Level 2" : "Enabled, Level 1") : "Disabled"));
+
 		blogic_info("\n", adapter);
 	}
+
 	/*
 	   Indicate reporting the Host Adapter configuration completed
 	   successfully.
@@ -1985,33 +2617,42 @@ static bool __init blogic_reportconfig(struct blogic_adapter *adapter)
 
 static bool __init blogic_getres(struct blogic_adapter *adapter)
 {
-	if (adapter->irq_ch == 0) {
+	if (adapter->irq_ch == 0)
+	{
 		blogic_err("NO LEGAL INTERRUPT CHANNEL ASSIGNED - DETACHING\n",
-				adapter);
+				   adapter);
 		return false;
 	}
+
 	/*
 	   Acquire shared access to the IRQ Channel.
 	 */
 	if (request_irq(adapter->irq_ch, blogic_inthandler, IRQF_SHARED,
-				adapter->full_model, adapter) < 0) {
+					adapter->full_model, adapter) < 0)
+	{
 		blogic_err("UNABLE TO ACQUIRE IRQ CHANNEL %d - DETACHING\n",
-				adapter, adapter->irq_ch);
+				   adapter, adapter->irq_ch);
 		return false;
 	}
+
 	adapter->irq_acquired = true;
+
 	/*
 	   Acquire exclusive access to the DMA Channel.
 	 */
-	if (adapter->dma_ch > 0) {
-		if (request_dma(adapter->dma_ch, adapter->full_model) < 0) {
+	if (adapter->dma_ch > 0)
+	{
+		if (request_dma(adapter->dma_ch, adapter->full_model) < 0)
+		{
 			blogic_err("UNABLE TO ACQUIRE DMA CHANNEL %d - DETACHING\n", adapter, adapter->dma_ch);
 			return false;
 		}
+
 		set_dma_mode(adapter->dma_ch, DMA_MODE_CASCADE);
 		enable_dma(adapter->dma_ch);
 		adapter->dma_chan_acquired = true;
 	}
+
 	/*
 	   Indicate the System Resource Acquisition completed successfully,
 	 */
@@ -2030,18 +2671,25 @@ static void blogic_relres(struct blogic_adapter *adapter)
 	   Release shared access to the IRQ Channel.
 	 */
 	if (adapter->irq_acquired)
+	{
 		free_irq(adapter->irq_ch, adapter);
+	}
+
 	/*
 	   Release exclusive access to the DMA Channel.
 	 */
 	if (adapter->dma_chan_acquired)
+	{
 		free_dma(adapter->dma_ch);
+	}
+
 	/*
 	   Release any allocated memory structs not released elsewhere
 	 */
 	if (adapter->mbox_space)
 		pci_free_consistent(adapter->pci_device, adapter->mbox_sz,
-			adapter->mbox_space, adapter->mbox_space_handle);
+							adapter->mbox_space, adapter->mbox_space_handle);
+
 	pci_dev_put(adapter->pci_device);
 	adapter->mbox_space = NULL;
 	adapter->mbox_space_handle = 0;
@@ -2074,7 +2722,8 @@ static bool blogic_initadapter(struct blogic_adapter *adapter)
 	   Command Successful Flag, Active Commands, and Commands Since Reset
 	   for each Target Device.
 	 */
-	for (tgt_id = 0; tgt_id < adapter->maxdev; tgt_id++) {
+	for (tgt_id = 0; tgt_id < adapter->maxdev; tgt_id++)
+	{
 		adapter->bdr_pend[tgt_id] = NULL;
 		adapter->tgt_flags[tgt_id].tagq_active = false;
 		adapter->tgt_flags[tgt_id].cmd_good = false;
@@ -2086,16 +2735,22 @@ static bool blogic_initadapter(struct blogic_adapter *adapter)
 	   FlashPoint Host Adapters do not use Outgoing and Incoming Mailboxes.
 	 */
 	if (blogic_flashpoint_type(adapter))
+	{
 		goto done;
+	}
 
 	/*
 	   Initialize the Outgoing and Incoming Mailbox pointers.
 	 */
 	adapter->mbox_sz = adapter->mbox_count * (sizeof(struct blogic_outbox) + sizeof(struct blogic_inbox));
 	adapter->mbox_space = pci_alloc_consistent(adapter->pci_device,
-				adapter->mbox_sz, &adapter->mbox_space_handle);
+						  adapter->mbox_sz, &adapter->mbox_space_handle);
+
 	if (adapter->mbox_space == NULL)
+	{
 		return blogic_failure(adapter, "MAILBOX ALLOCATION");
+	}
+
 	adapter->first_outbox = (struct blogic_outbox *) adapter->mbox_space;
 	adapter->last_outbox = adapter->first_outbox + adapter->mbox_count - 1;
 	adapter->next_outbox = adapter->first_outbox;
@@ -2107,9 +2762,9 @@ static bool blogic_initadapter(struct blogic_adapter *adapter)
 	   Initialize the Outgoing and Incoming Mailbox structures.
 	 */
 	memset(adapter->first_outbox, 0,
-			adapter->mbox_count * sizeof(struct blogic_outbox));
+		   adapter->mbox_count * sizeof(struct blogic_outbox));
 	memset(adapter->first_inbox, 0,
-			adapter->mbox_count * sizeof(struct blogic_inbox));
+		   adapter->mbox_count * sizeof(struct blogic_inbox));
 
 	/*
 	   Initialize the Host Adapter's Pointer to the Outgoing/Incoming
@@ -2117,9 +2772,13 @@ static bool blogic_initadapter(struct blogic_adapter *adapter)
 	 */
 	extmbox_req.mbox_count = adapter->mbox_count;
 	extmbox_req.base_mbox_addr = (u32) adapter->mbox_space_handle;
+
 	if (blogic_cmd(adapter, BLOGIC_INIT_EXT_MBOX, &extmbox_req,
-				sizeof(extmbox_req), NULL, 0) < 0)
+				   sizeof(extmbox_req), NULL, 0) < 0)
+	{
 		return blogic_failure(adapter, "MAILBOX INITIALIZATION");
+	}
+
 	/*
 	   Enable Strict Round Robin Mode if supported by the Host Adapter. In
 	   Strict Round Robin Mode, the Host Adapter only looks at the next
@@ -2128,36 +2787,46 @@ static bool blogic_initadapter(struct blogic_adapter *adapter)
 	   commands in them.  Strict Round Robin Mode is significantly more
 	   efficient.
 	 */
-	if (adapter->strict_rr) {
+	if (adapter->strict_rr)
+	{
 		rr_req = BLOGIC_STRICT_RR_MODE;
+
 		if (blogic_cmd(adapter, BLOGIC_STRICT_RR, &rr_req,
-					sizeof(rr_req), NULL, 0) < 0)
+					   sizeof(rr_req), NULL, 0) < 0)
 			return blogic_failure(adapter,
-					"ENABLE STRICT ROUND ROBIN MODE");
+								  "ENABLE STRICT ROUND ROBIN MODE");
 	}
 
 	/*
 	   For Host Adapters that support Extended LUN Format CCBs, issue the
 	   Set CCB Format command to allow 32 Logical Units per Target Device.
 	 */
-	if (adapter->ext_lun) {
+	if (adapter->ext_lun)
+	{
 		setccb_fmt = BLOGIC_EXT_LUN_CCB;
+
 		if (blogic_cmd(adapter, BLOGIC_SETCCB_FMT, &setccb_fmt,
-					sizeof(setccb_fmt), NULL, 0) < 0)
+					   sizeof(setccb_fmt), NULL, 0) < 0)
+		{
 			return blogic_failure(adapter, "SET CCB FORMAT");
+		}
 	}
 
 	/*
 	   Announce Successful Initialization.
 	 */
 done:
-	if (!adapter->adapter_initd) {
+
+	if (!adapter->adapter_initd)
+	{
 		blogic_info("*** %s Initialized Successfully ***\n", adapter,
-				adapter->full_model);
+					adapter->full_model);
 		blogic_info("\n", adapter);
-	} else
+	}
+	else
 		blogic_warn("*** %s Initialized Successfully ***\n", adapter,
-				adapter->full_model);
+					adapter->full_model);
+
 	adapter->adapter_initd = true;
 
 	/*
@@ -2188,16 +2857,23 @@ static bool __init blogic_inquiry(struct blogic_adapter *adapter)
 	   after a SCSI Bus Reset.
 	 */
 	blogic_delay(adapter->bus_settle_time);
+
 	/*
 	   FlashPoint Host Adapters do not provide for Target Device Inquiry.
 	 */
 	if (blogic_flashpoint_type(adapter))
+	{
 		return true;
+	}
+
 	/*
 	   Inhibit the Target Device Inquiry if requested.
 	 */
 	if (adapter->drvr_opts != NULL && adapter->drvr_opts->stop_tgt_inquiry)
+	{
 		return true;
+	}
+
 	/*
 	   Issue the Inquire Target Devices command for host adapters with
 	   firmware version 4.25 or later, or the Inquire Installed Devices
@@ -2208,7 +2884,8 @@ static bool __init blogic_inquiry(struct blogic_adapter *adapter)
 	   Inquire Installed Devices ID 0 to 7 since it only probes Logical
 	   Unit 0 of each Target Device.
 	 */
-	if (strcmp(adapter->fw_ver, "4.25") >= 0) {
+	if (strcmp(adapter->fw_ver, "4.25") >= 0)
+	{
 
 		/*
 		   Issue a Inquire Target Devices command. Inquire Target
@@ -2219,13 +2896,18 @@ static bool __init blogic_inquiry(struct blogic_adapter *adapter)
 		 */
 
 		if (blogic_cmd(adapter, BLOGIC_INQ_DEV, NULL, 0,
-					&installed_devs, sizeof(installed_devs))
-		    != sizeof(installed_devs))
+					   &installed_devs, sizeof(installed_devs))
+			!= sizeof(installed_devs))
+		{
 			return blogic_failure(adapter, "INQUIRE TARGET DEVICES");
+		}
+
 		for (tgt_id = 0; tgt_id < adapter->maxdev; tgt_id++)
 			adapter->tgt_flags[tgt_id].tgt_exists =
 				(installed_devs & (1 << tgt_id) ? true : false);
-	} else {
+	}
+	else
+	{
 
 		/*
 		   Issue an Inquire Installed Devices command. For each
@@ -2235,31 +2917,46 @@ static bool __init blogic_inquiry(struct blogic_adapter *adapter)
 		 */
 
 		if (blogic_cmd(adapter, BLOGIC_INQ_DEV0TO7, NULL, 0,
-				&installed_devs0to7, sizeof(installed_devs0to7))
-		    != sizeof(installed_devs0to7))
+					   &installed_devs0to7, sizeof(installed_devs0to7))
+			!= sizeof(installed_devs0to7))
 			return blogic_failure(adapter,
-					"INQUIRE INSTALLED DEVICES ID 0 TO 7");
+								  "INQUIRE INSTALLED DEVICES ID 0 TO 7");
+
 		for (tgt_id = 0; tgt_id < 8; tgt_id++)
 			adapter->tgt_flags[tgt_id].tgt_exists =
 				(installed_devs0to7[tgt_id] != 0 ? true : false);
 	}
+
 	/*
 	   Issue the Inquire Setup Information command.
 	 */
 	req_replylen = sizeof(setupinfo);
+
 	if (blogic_cmd(adapter, BLOGIC_INQ_SETUPINFO, &req_replylen,
-			sizeof(req_replylen), &setupinfo, sizeof(setupinfo))
-	    != sizeof(setupinfo))
+				   sizeof(req_replylen), &setupinfo, sizeof(setupinfo))
+		!= sizeof(setupinfo))
+	{
 		return blogic_failure(adapter, "INQUIRE SETUP INFORMATION");
+	}
+
 	for (tgt_id = 0; tgt_id < adapter->maxdev; tgt_id++)
-		adapter->sync_offset[tgt_id] = (tgt_id < 8 ? setupinfo.sync0to7[tgt_id].offset : setupinfo.sync8to15[tgt_id - 8].offset);
+	{
+		adapter->sync_offset[tgt_id] = (tgt_id < 8 ? setupinfo.sync0to7[tgt_id].offset : setupinfo.sync8to15[tgt_id -
+										8].offset);
+	}
+
 	if (strcmp(adapter->fw_ver, "5.06L") >= 0)
 		for (tgt_id = 0; tgt_id < adapter->maxdev; tgt_id++)
-			adapter->tgt_flags[tgt_id].wide_active = (tgt_id < 8 ? (setupinfo.wide_tx_active0to7 & (1 << tgt_id) ? true : false) : (setupinfo.wide_tx_active8to15 & (1 << (tgt_id - 8)) ? true : false));
+		{
+			adapter->tgt_flags[tgt_id].wide_active = (tgt_id < 8 ? (setupinfo.wide_tx_active0to7 & (1 << tgt_id) ? true : false) :
+					(setupinfo.wide_tx_active8to15 & (1 << (tgt_id - 8)) ? true : false));
+		}
+
 	/*
 	   Issue the Inquire Synchronous Period command.
 	 */
-	if (adapter->fw_ver[0] >= '3') {
+	if (adapter->fw_ver[0] >= '3')
+	{
 
 		/* Issue a Inquire Synchronous Period command. For each
 		   Target Device, a byte is returned which represents the
@@ -2267,17 +2964,25 @@ static bool __init blogic_inquiry(struct blogic_adapter *adapter)
 		 */
 
 		req_replylen = sizeof(sync_period);
+
 		if (blogic_cmd(adapter, BLOGIC_INQ_SYNC_PERIOD, &req_replylen,
-				sizeof(req_replylen), &sync_period,
-				sizeof(sync_period)) != sizeof(sync_period))
+					   sizeof(req_replylen), &sync_period,
+					   sizeof(sync_period)) != sizeof(sync_period))
 			return blogic_failure(adapter,
-					"INQUIRE SYNCHRONOUS PERIOD");
+								  "INQUIRE SYNCHRONOUS PERIOD");
+
 		for (tgt_id = 0; tgt_id < adapter->maxdev; tgt_id++)
+		{
 			adapter->sync_period[tgt_id] = sync_period[tgt_id];
-	} else
+		}
+	}
+	else
 		for (tgt_id = 0; tgt_id < adapter->maxdev; tgt_id++)
 			if (setupinfo.sync0to7[tgt_id].offset > 0)
+			{
 				adapter->sync_period[tgt_id] = 20 + 5 * setupinfo.sync0to7[tgt_id].tx_period;
+			}
+
 	/*
 	   Indicate the Target Device Inquiry completed successfully.
 	 */
@@ -2323,24 +3028,36 @@ static int blogic_slaveconfig(struct scsi_device *dev)
 	int qdepth = adapter->qdepth[tgt_id];
 
 	if (adapter->tgt_flags[tgt_id].tagq_ok &&
-			(adapter->tagq_ok & (1 << tgt_id))) {
+		(adapter->tagq_ok & (1 << tgt_id)))
+	{
 		if (qdepth == 0)
+		{
 			qdepth = BLOGIC_MAX_AUTO_TAG_DEPTH;
+		}
+
 		adapter->qdepth[tgt_id] = qdepth;
 		scsi_change_queue_depth(dev, qdepth);
-	} else {
+	}
+	else
+	{
 		adapter->tagq_ok &= ~(1 << tgt_id);
 		qdepth = adapter->untag_qdepth;
 		adapter->qdepth[tgt_id] = qdepth;
 		scsi_change_queue_depth(dev, qdepth);
 	}
+
 	qdepth = 0;
+
 	for (tgt_id = 0; tgt_id < adapter->maxdev; tgt_id++)
 		if (adapter->tgt_flags[tgt_id].tgt_exists)
+		{
 			qdepth += adapter->qdepth[tgt_id];
+		}
+
 	if (qdepth > adapter->alloc_ccbs)
 		blogic_create_addlccbs(adapter, qdepth - adapter->alloc_ccbs,
-				false);
+							   false);
+
 	return 0;
 }
 
@@ -2359,41 +3076,61 @@ static int __init blogic_init(void)
 	int ret = 0;
 
 #ifdef MODULE
+
 	if (BusLogic)
+	{
 		blogic_setup(BusLogic);
+	}
+
 #endif
 
 	if (blogic_probe_options.noprobe)
+	{
 		return -ENODEV;
+	}
+
 	blogic_probeinfo_list =
-	    kzalloc(BLOGIC_MAX_ADAPTERS * sizeof(struct blogic_probeinfo),
-			    GFP_KERNEL);
-	if (blogic_probeinfo_list == NULL) {
+		kzalloc(BLOGIC_MAX_ADAPTERS * sizeof(struct blogic_probeinfo),
+				GFP_KERNEL);
+
+	if (blogic_probeinfo_list == NULL)
+	{
 		blogic_err("BusLogic: Unable to allocate Probe Info List\n",
-				NULL);
+				   NULL);
 		return -ENOMEM;
 	}
 
 	adapter = kzalloc(sizeof(struct blogic_adapter), GFP_KERNEL);
-	if (adapter == NULL) {
+
+	if (adapter == NULL)
+	{
 		kfree(blogic_probeinfo_list);
 		blogic_err("BusLogic: Unable to allocate Prototype Host Adapter\n", NULL);
 		return -ENOMEM;
 	}
 
 #ifdef MODULE
+
 	if (BusLogic != NULL)
+	{
 		blogic_setup(BusLogic);
+	}
+
 #endif
 	blogic_init_probeinfo_list(adapter);
-	for (probeindex = 0; probeindex < blogic_probeinfo_count; probeindex++) {
+
+	for (probeindex = 0; probeindex < blogic_probeinfo_count; probeindex++)
+	{
 		struct blogic_probeinfo *probeinfo =
-			&blogic_probeinfo_list[probeindex];
+				&blogic_probeinfo_list[probeindex];
 		struct blogic_adapter *myadapter = adapter;
 		struct Scsi_Host *host;
 
 		if (probeinfo->io_addr == 0)
+		{
 			continue;
+		}
+
 		memset(myadapter, 0, sizeof(struct blogic_adapter));
 		myadapter->adapter_type = probeinfo->adapter_type;
 		myadapter->adapter_bus_type = probeinfo->adapter_bus_type;
@@ -2410,41 +3147,51 @@ static int __init blogic_init(void)
 		   Make sure region is free prior to probing.
 		 */
 		if (!request_region(myadapter->io_addr, myadapter->addr_count,
-					"BusLogic"))
+							"BusLogic"))
+		{
 			continue;
+		}
+
 		/*
 		   Probe the Host Adapter. If unsuccessful, abort further
 		   initialization.
 		 */
-		if (!blogic_probe(myadapter)) {
+		if (!blogic_probe(myadapter))
+		{
 			release_region(myadapter->io_addr,
-					myadapter->addr_count);
+						   myadapter->addr_count);
 			continue;
 		}
+
 		/*
 		   Hard Reset the Host Adapter.  If unsuccessful, abort further
 		   initialization.
 		 */
-		if (!blogic_hwreset(myadapter, true)) {
+		if (!blogic_hwreset(myadapter, true))
+		{
 			release_region(myadapter->io_addr,
-					myadapter->addr_count);
+						   myadapter->addr_count);
 			continue;
 		}
+
 		/*
 		   Check the Host Adapter.  If unsuccessful, abort further
 		   initialization.
 		 */
-		if (!blogic_checkadapter(myadapter)) {
+		if (!blogic_checkadapter(myadapter))
+		{
 			release_region(myadapter->io_addr,
-					myadapter->addr_count);
+						   myadapter->addr_count);
 			continue;
 		}
+
 		/*
 		   Initialize the Driver Options field if provided.
 		 */
 		if (drvr_optindex < blogic_drvr_options_count)
 			myadapter->drvr_opts =
 				&blogic_drvr_options[drvr_optindex++];
+
 		/*
 		   Announce the Driver Version and Date, Author's Name,
 		   Copyright Notice, and Electronic Mail Address.
@@ -2455,12 +3202,15 @@ static int __init blogic_init(void)
 		 */
 
 		host = scsi_host_alloc(&blogic_template,
-				sizeof(struct blogic_adapter));
-		if (host == NULL) {
+							   sizeof(struct blogic_adapter));
+
+		if (host == NULL)
+		{
 			release_region(myadapter->io_addr,
-					myadapter->addr_count);
+						   myadapter->addr_count);
 			continue;
 		}
+
 		myadapter = (struct blogic_adapter *) host->hostdata;
 		memcpy(myadapter, adapter, sizeof(struct blogic_adapter));
 		myadapter->scsi_host = host;
@@ -2485,11 +3235,12 @@ static int __init blogic_init(void)
 		   Adapter.
 		 */
 		if (blogic_rdconfig(myadapter) &&
-		    blogic_reportconfig(myadapter) &&
-		    blogic_getres(myadapter) &&
-		    blogic_create_initccbs(myadapter) &&
-		    blogic_initadapter(myadapter) &&
-		    blogic_inquiry(myadapter)) {
+			blogic_reportconfig(myadapter) &&
+			blogic_getres(myadapter) &&
+			blogic_create_initccbs(myadapter) &&
+			blogic_initadapter(myadapter) &&
+			blogic_inquiry(myadapter))
+		{
 			/*
 			   Initialization has been completed successfully.
 			   Release and re-register usage of the I/O Address
@@ -2497,39 +3248,49 @@ static int __init blogic_init(void)
 			   will appear, and initialize the SCSI Host structure.
 			 */
 			release_region(myadapter->io_addr,
-				       myadapter->addr_count);
+						   myadapter->addr_count);
+
 			if (!request_region(myadapter->io_addr,
-					    myadapter->addr_count,
-					    myadapter->full_model)) {
+								myadapter->addr_count,
+								myadapter->full_model))
+			{
 				printk(KERN_WARNING
-					"BusLogic: Release and re-register of "
-					"port 0x%04lx failed \n",
-					(unsigned long)myadapter->io_addr);
+					   "BusLogic: Release and re-register of "
+					   "port 0x%04lx failed \n",
+					   (unsigned long)myadapter->io_addr);
 				blogic_destroy_ccbs(myadapter);
 				blogic_relres(myadapter);
 				list_del(&myadapter->host_list);
 				scsi_host_put(host);
 				ret = -ENOMEM;
-			} else {
+			}
+			else
+			{
 				blogic_inithoststruct(myadapter,
-								 host);
+									  host);
+
 				if (scsi_add_host(host, myadapter->pci_device
-						? &myadapter->pci_device->dev
-						  : NULL)) {
+								  ? &myadapter->pci_device->dev
+								  : NULL))
+				{
 					printk(KERN_WARNING
-					       "BusLogic: scsi_add_host()"
-					       "failed!\n");
+						   "BusLogic: scsi_add_host()"
+						   "failed!\n");
 					blogic_destroy_ccbs(myadapter);
 					blogic_relres(myadapter);
 					list_del(&myadapter->host_list);
 					scsi_host_put(host);
 					ret = -ENODEV;
-				} else {
+				}
+				else
+				{
 					scsi_scan_host(host);
 					adapter_count++;
 				}
 			}
-		} else {
+		}
+		else
+		{
 			/*
 			   An error occurred during Host Adapter Configuration
 			   Querying, Host Adapter Configuration, Resource
@@ -2547,6 +3308,7 @@ static int __init blogic_init(void)
 			ret = -ENODEV;
 		}
 	}
+
 	kfree(adapter);
 	kfree(blogic_probeinfo_list);
 	blogic_probeinfo_list = NULL;
@@ -2571,7 +3333,10 @@ static int __exit blogic_deladapter(struct blogic_adapter *adapter)
 	   SCCB Manager.
 	 */
 	if (blogic_flashpoint_type(adapter))
+	{
 		FlashPoint_ReleaseHostAdapter(adapter->cardhandle);
+	}
+
 	/*
 	   Destroy the CCBs and release any system resources acquired to
 	   support Host Adapter.
@@ -2603,13 +3368,18 @@ static void blogic_qcompleted_ccb(struct blogic_ccb *ccb)
 
 	ccb->status = BLOGIC_CCB_COMPLETE;
 	ccb->next = NULL;
-	if (adapter->firstccb == NULL) {
+
+	if (adapter->firstccb == NULL)
+	{
 		adapter->firstccb = ccb;
 		adapter->lastccb = ccb;
-	} else {
+	}
+	else
+	{
 		adapter->lastccb->next = ccb;
 		adapter->lastccb = ccb;
 	}
+
 	adapter->active_cmds[ccb->tgt_id]--;
 }
 
@@ -2620,53 +3390,60 @@ static void blogic_qcompleted_ccb(struct blogic_ccb *ccb)
 */
 
 static int blogic_resultcode(struct blogic_adapter *adapter,
-		enum blogic_adapter_status adapter_status,
-		enum blogic_tgt_status tgt_status)
+							 enum blogic_adapter_status adapter_status,
+							 enum blogic_tgt_status tgt_status)
 {
 	int hoststatus;
 
-	switch (adapter_status) {
-	case BLOGIC_CMD_CMPLT_NORMAL:
-	case BLOGIC_LINK_CMD_CMPLT:
-	case BLOGIC_LINK_CMD_CMPLT_FLAG:
-		hoststatus = DID_OK;
-		break;
-	case BLOGIC_SELECT_TIMEOUT:
-		hoststatus = DID_TIME_OUT;
-		break;
-	case BLOGIC_INVALID_OUTBOX_CODE:
-	case BLOGIC_INVALID_CMD_CODE:
-	case BLOGIC_BAD_CMD_PARAM:
-		blogic_warn("BusLogic Driver Protocol Error 0x%02X\n",
-				adapter, adapter_status);
-	case BLOGIC_DATA_UNDERRUN:
-	case BLOGIC_DATA_OVERRUN:
-	case BLOGIC_NOEXPECT_BUSFREE:
-	case BLOGIC_LINKCCB_BADLUN:
-	case BLOGIC_AUTOREQSENSE_FAIL:
-	case BLOGIC_TAGQUEUE_REJECT:
-	case BLOGIC_BAD_MSG_RCVD:
-	case BLOGIC_HW_FAIL:
-	case BLOGIC_BAD_RECONNECT:
-	case BLOGIC_ABRT_QUEUE:
-	case BLOGIC_ADAPTER_SW_ERROR:
-	case BLOGIC_HW_TIMEOUT:
-	case BLOGIC_PARITY_ERR:
-		hoststatus = DID_ERROR;
-		break;
-	case BLOGIC_INVALID_BUSPHASE:
-	case BLOGIC_NORESPONSE_TO_ATN:
-	case BLOGIC_HW_RESET:
-	case BLOGIC_RST_FROM_OTHERDEV:
-	case BLOGIC_HW_BDR:
-		hoststatus = DID_RESET;
-		break;
-	default:
-		blogic_warn("Unknown Host Adapter Status 0x%02X\n", adapter,
-				adapter_status);
-		hoststatus = DID_ERROR;
-		break;
+	switch (adapter_status)
+	{
+		case BLOGIC_CMD_CMPLT_NORMAL:
+		case BLOGIC_LINK_CMD_CMPLT:
+		case BLOGIC_LINK_CMD_CMPLT_FLAG:
+			hoststatus = DID_OK;
+			break;
+
+		case BLOGIC_SELECT_TIMEOUT:
+			hoststatus = DID_TIME_OUT;
+			break;
+
+		case BLOGIC_INVALID_OUTBOX_CODE:
+		case BLOGIC_INVALID_CMD_CODE:
+		case BLOGIC_BAD_CMD_PARAM:
+			blogic_warn("BusLogic Driver Protocol Error 0x%02X\n",
+						adapter, adapter_status);
+
+		case BLOGIC_DATA_UNDERRUN:
+		case BLOGIC_DATA_OVERRUN:
+		case BLOGIC_NOEXPECT_BUSFREE:
+		case BLOGIC_LINKCCB_BADLUN:
+		case BLOGIC_AUTOREQSENSE_FAIL:
+		case BLOGIC_TAGQUEUE_REJECT:
+		case BLOGIC_BAD_MSG_RCVD:
+		case BLOGIC_HW_FAIL:
+		case BLOGIC_BAD_RECONNECT:
+		case BLOGIC_ABRT_QUEUE:
+		case BLOGIC_ADAPTER_SW_ERROR:
+		case BLOGIC_HW_TIMEOUT:
+		case BLOGIC_PARITY_ERR:
+			hoststatus = DID_ERROR;
+			break;
+
+		case BLOGIC_INVALID_BUSPHASE:
+		case BLOGIC_NORESPONSE_TO_ATN:
+		case BLOGIC_HW_RESET:
+		case BLOGIC_RST_FROM_OTHERDEV:
+		case BLOGIC_HW_BDR:
+			hoststatus = DID_RESET;
+			break;
+
+		default:
+			blogic_warn("Unknown Host Adapter Status 0x%02X\n", adapter,
+						adapter_status);
+			hoststatus = DID_ERROR;
+			break;
 	}
+
 	return (hoststatus << 16) | tgt_status;
 }
 
@@ -2694,7 +3471,8 @@ static void blogic_scan_inbox(struct blogic_adapter *adapter)
 	struct blogic_inbox *next_inbox = adapter->next_inbox;
 	enum blogic_cmplt_code comp_code;
 
-	while ((comp_code = next_inbox->comp_code) != BLOGIC_INBOX_FREE) {
+	while ((comp_code = next_inbox->comp_code) != BLOGIC_INBOX_FREE)
+	{
 		/*
 		   We are only allowed to do this because we limit our
 		   architectures we run on to machines where bus_to_virt(
@@ -2705,16 +3483,21 @@ static void blogic_scan_inbox(struct blogic_adapter *adapter)
 		 */
 		struct blogic_ccb *ccb =
 			(struct blogic_ccb *) bus_to_virt(next_inbox->ccb);
-		if (comp_code != BLOGIC_CMD_NOTFOUND) {
+
+		if (comp_code != BLOGIC_CMD_NOTFOUND)
+		{
 			if (ccb->status == BLOGIC_CCB_ACTIVE ||
-					ccb->status == BLOGIC_CCB_RESET) {
+				ccb->status == BLOGIC_CCB_RESET)
+			{
 				/*
 				   Save the Completion Code for this CCB and
 				   queue the CCB for completion processing.
 				 */
 				ccb->comp_code = comp_code;
 				blogic_qcompleted_ccb(ccb);
-			} else {
+			}
+			else
+			{
 				/*
 				   If a CCB ever appears in an Incoming Mailbox
 				   and is not marked as status Active or Reset,
@@ -2724,10 +3507,15 @@ static void blogic_scan_inbox(struct blogic_adapter *adapter)
 				blogic_warn("Illegal CCB #%ld status %d in " "Incoming Mailbox\n", adapter, ccb->serial, ccb->status);
 			}
 		}
+
 		next_inbox->comp_code = BLOGIC_INBOX_FREE;
+
 		if (++next_inbox > adapter->last_inbox)
+		{
 			next_inbox = adapter->first_inbox;
+		}
 	}
+
 	adapter->next_inbox = next_inbox;
 }
 
@@ -2742,18 +3530,28 @@ static void blogic_scan_inbox(struct blogic_adapter *adapter)
 static void blogic_process_ccbs(struct blogic_adapter *adapter)
 {
 	if (adapter->processing_ccbs)
+	{
 		return;
+	}
+
 	adapter->processing_ccbs = true;
-	while (adapter->firstccb != NULL) {
+
+	while (adapter->firstccb != NULL)
+	{
 		struct blogic_ccb *ccb = adapter->firstccb;
 		struct scsi_cmnd *command = ccb->command;
 		adapter->firstccb = ccb->next;
+
 		if (adapter->firstccb == NULL)
+		{
 			adapter->lastccb = NULL;
+		}
+
 		/*
 		   Process the Completed CCB.
 		 */
-		if (ccb->opcode == BLOGIC_BDR) {
+		if (ccb->opcode == BLOGIC_BDR)
+		{
 			int tgt_id = ccb->tgt_id;
 
 			blogic_warn("Bus Device Reset CCB #%ld to Target " "%d Completed\n", adapter, ccb->serial, tgt_id);
@@ -2766,6 +3564,7 @@ static void blogic_process_ccbs(struct blogic_adapter *adapter)
 			 */
 			blogic_dealloc_ccb(ccb, 1);
 #if 0			/* this needs to be redone different for new EH */
+
 			/*
 			   Bus Device Reset CCBs have the command field
 			   non-NULL only when a Bus Device Reset was requested
@@ -2774,93 +3573,121 @@ static void blogic_process_ccbs(struct blogic_adapter *adapter)
 			   Device Reset), and hence would not have its
 			   Completion Routine called otherwise.
 			 */
-			while (command != NULL) {
+			while (command != NULL)
+			{
 				struct scsi_cmnd *nxt_cmd =
-					command->reset_chain;
+						command->reset_chain;
 				command->reset_chain = NULL;
 				command->result = DID_RESET << 16;
 				command->scsi_done(command);
 				command = nxt_cmd;
 			}
+
 #endif
+
 			/*
 			   Iterate over the CCBs for this Host Adapter
 			   performing completion processing for any CCBs
 			   marked as Reset for this Target.
 			 */
 			for (ccb = adapter->all_ccbs; ccb != NULL;
-					ccb = ccb->next_all)
+				 ccb = ccb->next_all)
 				if (ccb->status == BLOGIC_CCB_RESET &&
-						ccb->tgt_id == tgt_id) {
+					ccb->tgt_id == tgt_id)
+				{
 					command = ccb->command;
 					blogic_dealloc_ccb(ccb, 1);
 					adapter->active_cmds[tgt_id]--;
 					command->result = DID_RESET << 16;
 					command->scsi_done(command);
 				}
+
 			adapter->bdr_pend[tgt_id] = NULL;
-		} else {
+		}
+		else
+		{
 			/*
 			   Translate the Completion Code, Host Adapter Status,
 			   and Target Device Status into a SCSI Subsystem
 			   Result Code.
 			 */
-			switch (ccb->comp_code) {
-			case BLOGIC_INBOX_FREE:
-			case BLOGIC_CMD_NOTFOUND:
-			case BLOGIC_INVALID_CCB:
-				blogic_warn("CCB #%ld to Target %d Impossible State\n", adapter, ccb->serial, ccb->tgt_id);
-				break;
-			case BLOGIC_CMD_COMPLETE_GOOD:
-				adapter->tgt_stats[ccb->tgt_id]
-				    .cmds_complete++;
-				adapter->tgt_flags[ccb->tgt_id]
-				    .cmd_good = true;
-				command->result = DID_OK << 16;
-				break;
-			case BLOGIC_CMD_ABORT_BY_HOST:
-				blogic_warn("CCB #%ld to Target %d Aborted\n",
-					adapter, ccb->serial, ccb->tgt_id);
-				blogic_inc_count(&adapter->tgt_stats[ccb->tgt_id].aborts_done);
-				command->result = DID_ABORT << 16;
-				break;
-			case BLOGIC_CMD_COMPLETE_ERROR:
-				command->result = blogic_resultcode(adapter,
-					ccb->adapter_status, ccb->tgt_status);
-				if (ccb->adapter_status != BLOGIC_SELECT_TIMEOUT) {
+			switch (ccb->comp_code)
+			{
+				case BLOGIC_INBOX_FREE:
+				case BLOGIC_CMD_NOTFOUND:
+				case BLOGIC_INVALID_CCB:
+					blogic_warn("CCB #%ld to Target %d Impossible State\n", adapter, ccb->serial, ccb->tgt_id);
+					break;
+
+				case BLOGIC_CMD_COMPLETE_GOOD:
 					adapter->tgt_stats[ccb->tgt_id]
-					    .cmds_complete++;
-					if (blogic_global_options.trace_err) {
-						int i;
-						blogic_notice("CCB #%ld Target %d: Result %X Host "
-								"Adapter Status %02X " "Target Status %02X\n", adapter, ccb->serial, ccb->tgt_id, command->result, ccb->adapter_status, ccb->tgt_status);
-						blogic_notice("CDB   ", adapter);
-						for (i = 0; i < ccb->cdblen; i++)
-							blogic_notice(" %02X", adapter, ccb->cdb[i]);
-						blogic_notice("\n", adapter);
-						blogic_notice("Sense ", adapter);
-						for (i = 0; i < ccb->sense_datalen; i++)
-							blogic_notice(" %02X", adapter, command->sense_buffer[i]);
-						blogic_notice("\n", adapter);
+					.cmds_complete++;
+					adapter->tgt_flags[ccb->tgt_id]
+					.cmd_good = true;
+					command->result = DID_OK << 16;
+					break;
+
+				case BLOGIC_CMD_ABORT_BY_HOST:
+					blogic_warn("CCB #%ld to Target %d Aborted\n",
+								adapter, ccb->serial, ccb->tgt_id);
+					blogic_inc_count(&adapter->tgt_stats[ccb->tgt_id].aborts_done);
+					command->result = DID_ABORT << 16;
+					break;
+
+				case BLOGIC_CMD_COMPLETE_ERROR:
+					command->result = blogic_resultcode(adapter,
+														ccb->adapter_status, ccb->tgt_status);
+
+					if (ccb->adapter_status != BLOGIC_SELECT_TIMEOUT)
+					{
+						adapter->tgt_stats[ccb->tgt_id]
+						.cmds_complete++;
+
+						if (blogic_global_options.trace_err)
+						{
+							int i;
+							blogic_notice("CCB #%ld Target %d: Result %X Host "
+										  "Adapter Status %02X " "Target Status %02X\n", adapter, ccb->serial, ccb->tgt_id, command->result, ccb->adapter_status,
+										  ccb->tgt_status);
+							blogic_notice("CDB   ", adapter);
+
+							for (i = 0; i < ccb->cdblen; i++)
+							{
+								blogic_notice(" %02X", adapter, ccb->cdb[i]);
+							}
+
+							blogic_notice("\n", adapter);
+							blogic_notice("Sense ", adapter);
+
+							for (i = 0; i < ccb->sense_datalen; i++)
+							{
+								blogic_notice(" %02X", adapter, command->sense_buffer[i]);
+							}
+
+							blogic_notice("\n", adapter);
+						}
 					}
-				}
-				break;
+
+					break;
 			}
+
 			/*
 			   When an INQUIRY command completes normally, save the
 			   CmdQue (Tagged Queuing Supported) and WBus16 (16 Bit
 			   Wide Data Transfers Supported) bits.
 			 */
 			if (ccb->cdb[0] == INQUIRY && ccb->cdb[1] == 0 &&
-				ccb->adapter_status == BLOGIC_CMD_CMPLT_NORMAL) {
+				ccb->adapter_status == BLOGIC_CMD_CMPLT_NORMAL)
+			{
 				struct blogic_tgt_flags *tgt_flags =
-					&adapter->tgt_flags[ccb->tgt_id];
+						&adapter->tgt_flags[ccb->tgt_id];
 				struct scsi_inquiry *inquiry =
 					(struct scsi_inquiry *) scsi_sglist(command);
 				tgt_flags->tgt_exists = true;
 				tgt_flags->tagq_ok = inquiry->CmdQue;
 				tgt_flags->wide_ok = inquiry->WBus16;
 			}
+
 			/*
 			   Place CCB back on the Host Adapter's free list.
 			 */
@@ -2871,6 +3698,7 @@ static void blogic_process_ccbs(struct blogic_adapter *adapter)
 			command->scsi_done(command);
 		}
 	}
+
 	adapter->processing_ccbs = false;
 }
 
@@ -2888,21 +3716,26 @@ static irqreturn_t blogic_inthandler(int irq_ch, void *devid)
 	   Acquire exclusive access to Host Adapter.
 	 */
 	spin_lock_irqsave(adapter->scsi_host->host_lock, processor_flag);
+
 	/*
 	   Handle Interrupts appropriately for each Host Adapter type.
 	 */
-	if (blogic_multimaster_type(adapter)) {
+	if (blogic_multimaster_type(adapter))
+	{
 		union blogic_int_reg intreg;
 		/*
 		   Read the Host Adapter Interrupt Register.
 		 */
 		intreg.all = blogic_rdint(adapter);
-		if (intreg.ir.int_valid) {
+
+		if (intreg.ir.int_valid)
+		{
 			/*
 			   Acknowledge the interrupt and reset the Host Adapter
 			   Interrupt Register.
 			 */
 			blogic_intreset(adapter);
+
 			/*
 			   Process valid External SCSI Bus Reset and Incoming
 			   Mailbox Loaded Interrupts. Command Complete
@@ -2910,48 +3743,67 @@ static irqreturn_t blogic_inthandler(int irq_ch, void *devid)
 			   Interrupts are ignored, as they are never enabled.
 			 */
 			if (intreg.ir.ext_busreset)
+			{
 				adapter->adapter_extreset = true;
+			}
 			else if (intreg.ir.mailin_loaded)
+			{
 				blogic_scan_inbox(adapter);
+			}
 			else if (intreg.ir.cmd_complete)
+			{
 				adapter->adapter_cmd_complete = true;
+			}
 		}
-	} else {
+	}
+	else
+	{
 		/*
 		   Check if there is a pending interrupt for this Host Adapter.
 		 */
 		if (FlashPoint_InterruptPending(adapter->cardhandle))
-			switch (FlashPoint_HandleInterrupt(adapter->cardhandle)) {
-			case FPOINT_NORMAL_INT:
-				break;
-			case FPOINT_EXT_RESET:
-				adapter->adapter_extreset = true;
-				break;
-			case FPOINT_INTERN_ERR:
-				blogic_warn("Internal FlashPoint Error detected - Resetting Host Adapter\n", adapter);
-				adapter->adapter_intern_err = true;
-				break;
+			switch (FlashPoint_HandleInterrupt(adapter->cardhandle))
+			{
+				case FPOINT_NORMAL_INT:
+					break;
+
+				case FPOINT_EXT_RESET:
+					adapter->adapter_extreset = true;
+					break;
+
+				case FPOINT_INTERN_ERR:
+					blogic_warn("Internal FlashPoint Error detected - Resetting Host Adapter\n", adapter);
+					adapter->adapter_intern_err = true;
+					break;
 			}
 	}
+
 	/*
 	   Process any completed CCBs.
 	 */
 	if (adapter->firstccb != NULL)
+	{
 		blogic_process_ccbs(adapter);
+	}
+
 	/*
 	   Reset the Host Adapter if requested.
 	 */
-	if (adapter->adapter_extreset) {
+	if (adapter->adapter_extreset)
+	{
 		blogic_warn("Resetting %s due to External SCSI Bus Reset\n", adapter, adapter->full_model);
 		blogic_inc_count(&adapter->ext_resets);
 		blogic_resetadapter(adapter, false);
 		adapter->adapter_extreset = false;
-	} else if (adapter->adapter_intern_err) {
+	}
+	else if (adapter->adapter_intern_err)
+	{
 		blogic_warn("Resetting %s due to Host Adapter Internal Error\n", adapter, adapter->full_model);
 		blogic_inc_count(&adapter->adapter_intern_errors);
 		blogic_resetadapter(adapter, true);
 		adapter->adapter_intern_err = false;
 	}
+
 	/*
 	   Release exclusive access to Host Adapter.
 	 */
@@ -2967,12 +3819,14 @@ static irqreturn_t blogic_inthandler(int irq_ch, void *devid)
 */
 
 static bool blogic_write_outbox(struct blogic_adapter *adapter,
-		enum blogic_action action, struct blogic_ccb *ccb)
+								enum blogic_action action, struct blogic_ccb *ccb)
 {
 	struct blogic_outbox *next_outbox;
 
 	next_outbox = adapter->next_outbox;
-	if (next_outbox->action == BLOGIC_OUTBOX_FREE) {
+
+	if (next_outbox->action == BLOGIC_OUTBOX_FREE)
+	{
 		ccb->status = BLOGIC_CCB_ACTIVE;
 		/*
 		   The CCB field must be written before the Action Code field
@@ -2983,16 +3837,27 @@ static bool blogic_write_outbox(struct blogic_adapter *adapter,
 		next_outbox->ccb = ccb->dma_handle;
 		next_outbox->action = action;
 		blogic_execmbox(adapter);
+
 		if (++next_outbox > adapter->last_outbox)
+		{
 			next_outbox = adapter->first_outbox;
-		adapter->next_outbox = next_outbox;
-		if (action == BLOGIC_MBOX_START) {
-			adapter->active_cmds[ccb->tgt_id]++;
-			if (ccb->opcode != BLOGIC_BDR)
-				adapter->tgt_stats[ccb->tgt_id].cmds_tried++;
 		}
+
+		adapter->next_outbox = next_outbox;
+
+		if (action == BLOGIC_MBOX_START)
+		{
+			adapter->active_cmds[ccb->tgt_id]++;
+
+			if (ccb->opcode != BLOGIC_BDR)
+			{
+				adapter->tgt_stats[ccb->tgt_id].cmds_tried++;
+			}
+		}
+
 		return true;
 	}
+
 	return false;
 }
 
@@ -3022,12 +3887,12 @@ static int blogic_hostreset(struct scsi_cmnd *SCpnt)
 */
 
 static int blogic_qcmd_lck(struct scsi_cmnd *command,
-		void (*comp_cb) (struct scsi_cmnd *))
+						   void (*comp_cb) (struct scsi_cmnd *))
 {
 	struct blogic_adapter *adapter =
 		(struct blogic_adapter *) command->device->host->hostdata;
 	struct blogic_tgt_flags *tgt_flags =
-		&adapter->tgt_flags[command->device->id];
+			&adapter->tgt_flags[command->device->id];
 	struct blogic_tgt_stats *tgt_stats = adapter->tgt_stats;
 	unsigned char *cdb = command->cmnd;
 	int cdblen = command->cmd_len;
@@ -3044,11 +3909,13 @@ static int blogic_qcmd_lck(struct scsi_cmnd *command,
 	   explicitly unless the Sense Data is zero indicating that no error
 	   occurred.
 	 */
-	if (cdb[0] == REQUEST_SENSE && command->sense_buffer[0] != 0) {
+	if (cdb[0] == REQUEST_SENSE && command->sense_buffer[0] != 0)
+	{
 		command->result = DID_OK << 16;
 		comp_cb(command);
 		return 0;
 	}
+
 	/*
 	   Allocate a CCB from the Host Adapter's free list. In the unlikely
 	   event that there are none available and memory allocation fails,
@@ -3057,12 +3924,16 @@ static int blogic_qcmd_lck(struct scsi_cmnd *command,
 	   should be initiated soon.
 	 */
 	ccb = blogic_alloc_ccb(adapter);
-	if (ccb == NULL) {
+
+	if (ccb == NULL)
+	{
 		spin_unlock_irq(adapter->scsi_host->host_lock);
 		blogic_delay(1);
 		spin_lock_irq(adapter->scsi_host->host_lock);
 		ccb = blogic_alloc_ccb(adapter);
-		if (ccb == NULL) {
+
+		if (ccb == NULL)
+		{
 			command->result = DID_ERROR << 16;
 			comp_cb(command);
 			return 0;
@@ -3074,48 +3945,60 @@ static int blogic_qcmd_lck(struct scsi_cmnd *command,
 	 */
 	count = scsi_dma_map(command);
 	BUG_ON(count < 0);
-	if (count) {
+
+	if (count)
+	{
 		struct scatterlist *sg;
 		int i;
 
 		ccb->opcode = BLOGIC_INITIATOR_CCB_SG;
 		ccb->datalen = count * sizeof(struct blogic_sg_seg);
+
 		if (blogic_multimaster_type(adapter))
 			ccb->data = (void *)((unsigned int) ccb->dma_handle +
-					((unsigned long) &ccb->sglist -
-					(unsigned long) ccb));
+								 ((unsigned long) &ccb->sglist -
+								  (unsigned long) ccb));
 		else
+		{
 			ccb->data = ccb->sglist;
+		}
 
-		scsi_for_each_sg(command, sg, count, i) {
+		scsi_for_each_sg(command, sg, count, i)
+		{
 			ccb->sglist[i].segbytes = sg_dma_len(sg);
 			ccb->sglist[i].segdata = sg_dma_address(sg);
 		}
-	} else if (!count) {
+	}
+	else if (!count)
+	{
 		ccb->opcode = BLOGIC_INITIATOR_CCB;
 		ccb->datalen = buflen;
 		ccb->data = 0;
 	}
 
-	switch (cdb[0]) {
-	case READ_6:
-	case READ_10:
-		ccb->datadir = BLOGIC_DATAIN_CHECKED;
-		tgt_stats[tgt_id].read_cmds++;
-		blogic_addcount(&tgt_stats[tgt_id].bytesread, buflen);
-		blogic_incszbucket(tgt_stats[tgt_id].read_sz_buckets, buflen);
-		break;
-	case WRITE_6:
-	case WRITE_10:
-		ccb->datadir = BLOGIC_DATAOUT_CHECKED;
-		tgt_stats[tgt_id].write_cmds++;
-		blogic_addcount(&tgt_stats[tgt_id].byteswritten, buflen);
-		blogic_incszbucket(tgt_stats[tgt_id].write_sz_buckets, buflen);
-		break;
-	default:
-		ccb->datadir = BLOGIC_UNCHECKED_TX;
-		break;
+	switch (cdb[0])
+	{
+		case READ_6:
+		case READ_10:
+			ccb->datadir = BLOGIC_DATAIN_CHECKED;
+			tgt_stats[tgt_id].read_cmds++;
+			blogic_addcount(&tgt_stats[tgt_id].bytesread, buflen);
+			blogic_incszbucket(tgt_stats[tgt_id].read_sz_buckets, buflen);
+			break;
+
+		case WRITE_6:
+		case WRITE_10:
+			ccb->datadir = BLOGIC_DATAOUT_CHECKED;
+			tgt_stats[tgt_id].write_cmds++;
+			blogic_addcount(&tgt_stats[tgt_id].byteswritten, buflen);
+			blogic_incszbucket(tgt_stats[tgt_id].write_sz_buckets, buflen);
+			break;
+
+		default:
+			ccb->datadir = BLOGIC_UNCHECKED_TX;
+			break;
 	}
+
 	ccb->cdblen = cdblen;
 	ccb->adapter_status = 0;
 	ccb->tgt_status = 0;
@@ -3123,6 +4006,7 @@ static int blogic_qcmd_lck(struct scsi_cmnd *command,
 	ccb->lun = lun;
 	ccb->tag_enable = false;
 	ccb->legacytag_enable = false;
+
 	/*
 	   BusLogic recommends that after a Reset the first couple of
 	   commands that are sent to a Target Device be sent in a non
@@ -3140,16 +4024,20 @@ static int blogic_qcmd_lck(struct scsi_cmnd *command,
 	   before queuing tagged commands.
 	 */
 	if (adapter->cmds_since_rst[tgt_id]++ >= BLOGIC_MAX_TAG_DEPTH &&
-			!tgt_flags->tagq_active &&
-			adapter->active_cmds[tgt_id] == 0
-			&& tgt_flags->tagq_ok &&
-			(adapter->tagq_ok & (1 << tgt_id))) {
+		!tgt_flags->tagq_active &&
+		adapter->active_cmds[tgt_id] == 0
+		&& tgt_flags->tagq_ok &&
+		(adapter->tagq_ok & (1 << tgt_id)))
+	{
 		tgt_flags->tagq_active = true;
 		blogic_notice("Tagged Queuing now active for Target %d\n",
-					adapter, tgt_id);
+					  adapter, tgt_id);
 	}
-	if (tgt_flags->tagq_active) {
+
+	if (tgt_flags->tagq_active)
+	{
 		enum blogic_queuetag queuetag = BLOGIC_SIMPLETAG;
+
 		/*
 		   When using Tagged Queuing with Simple Queue Tags, it
 		   appears that disk drive controllers do not guarantee that
@@ -3166,35 +4054,48 @@ static int blogic_qcmd_lck(struct scsi_cmnd *command,
 		   queued commands before this command may be executed.
 		 */
 		if (adapter->active_cmds[tgt_id] == 0)
+		{
 			adapter->last_seqpoint[tgt_id] = jiffies;
+		}
 		else if (time_after(jiffies,
-				adapter->last_seqpoint[tgt_id] + 4 * HZ)) {
+							adapter->last_seqpoint[tgt_id] + 4 * HZ))
+		{
 			adapter->last_seqpoint[tgt_id] = jiffies;
 			queuetag = BLOGIC_ORDEREDTAG;
 		}
-		if (adapter->ext_lun) {
+
+		if (adapter->ext_lun)
+		{
 			ccb->tag_enable = true;
 			ccb->queuetag = queuetag;
-		} else {
+		}
+		else
+		{
 			ccb->legacytag_enable = true;
 			ccb->legacy_tag = queuetag;
 		}
 	}
+
 	memcpy(ccb->cdb, cdb, cdblen);
 	ccb->sense_datalen = SCSI_SENSE_BUFFERSIZE;
 	ccb->command = command;
 	sense_buf = pci_map_single(adapter->pci_device,
-				command->sense_buffer, ccb->sense_datalen,
-				PCI_DMA_FROMDEVICE);
-	if (dma_mapping_error(&adapter->pci_device->dev, sense_buf)) {
+							   command->sense_buffer, ccb->sense_datalen,
+							   PCI_DMA_FROMDEVICE);
+
+	if (dma_mapping_error(&adapter->pci_device->dev, sense_buf))
+	{
 		blogic_err("DMA mapping for sense data buffer failed\n",
-				adapter);
+				   adapter);
 		blogic_dealloc_ccb(ccb, 0);
 		return SCSI_MLQUEUE_HOST_BUSY;
 	}
+
 	ccb->sensedata = sense_buf;
 	command->scsi_done = comp_cb;
-	if (blogic_multimaster_type(adapter)) {
+
+	if (blogic_multimaster_type(adapter))
+	{
 		/*
 		   Place the CCB in an Outgoing Mailbox. The higher levels
 		   of the SCSI Subsystem should not attempt to queue more
@@ -3205,20 +4106,25 @@ static int blogic_qcmd_lck(struct scsi_cmnd *command,
 		   so signal an error as a Host Adapter Hard Reset should
 		   be initiated soon.
 		 */
-		if (!blogic_write_outbox(adapter, BLOGIC_MBOX_START, ccb)) {
+		if (!blogic_write_outbox(adapter, BLOGIC_MBOX_START, ccb))
+		{
 			spin_unlock_irq(adapter->scsi_host->host_lock);
 			blogic_warn("Unable to write Outgoing Mailbox - " "Pausing for 1 second\n", adapter);
 			blogic_delay(1);
 			spin_lock_irq(adapter->scsi_host->host_lock);
+
 			if (!blogic_write_outbox(adapter, BLOGIC_MBOX_START,
-						ccb)) {
+									 ccb))
+			{
 				blogic_warn("Still unable to write Outgoing Mailbox - " "Host Adapter Dead?\n", adapter);
 				blogic_dealloc_ccb(ccb, 1);
 				command->result = DID_ERROR << 16;
 				command->scsi_done(command);
 			}
 		}
-	} else {
+	}
+	else
+	{
 		/*
 		   Call the FlashPoint SCCB Manager to start execution of
 		   the CCB.
@@ -3227,14 +4133,18 @@ static int blogic_qcmd_lck(struct scsi_cmnd *command,
 		adapter->active_cmds[tgt_id]++;
 		tgt_stats[tgt_id].cmds_tried++;
 		FlashPoint_StartCCB(adapter->cardhandle, ccb);
+
 		/*
 		   The Command may have already completed and
 		   blogic_qcompleted_ccb been called, or it may still be
 		   pending.
 		 */
 		if (ccb->status == BLOGIC_CCB_COMPLETE)
+		{
 			blogic_process_ccbs(adapter);
+		}
 	}
+
 	return 0;
 }
 
@@ -3260,18 +4170,28 @@ static int blogic_abort(struct scsi_cmnd *command)
 	 */
 	for (ccb = adapter->all_ccbs; ccb != NULL; ccb = ccb->next_all)
 		if (ccb->command == command)
+		{
 			break;
-	if (ccb == NULL) {
+		}
+
+	if (ccb == NULL)
+	{
 		blogic_warn("Unable to Abort Command to Target %d - No CCB Found\n", adapter, tgt_id);
 		return SUCCESS;
-	} else if (ccb->status == BLOGIC_CCB_COMPLETE) {
+	}
+	else if (ccb->status == BLOGIC_CCB_COMPLETE)
+	{
 		blogic_warn("Unable to Abort Command to Target %d - CCB Completed\n", adapter, tgt_id);
 		return SUCCESS;
-	} else if (ccb->status == BLOGIC_CCB_RESET) {
+	}
+	else if (ccb->status == BLOGIC_CCB_RESET)
+	{
 		blogic_warn("Unable to Abort Command to Target %d - CCB Reset\n", adapter, tgt_id);
 		return SUCCESS;
 	}
-	if (blogic_multimaster_type(adapter)) {
+
+	if (blogic_multimaster_type(adapter))
+	{
 		/*
 		   Attempt to Abort this CCB.  MultiMaster Firmware versions
 		   prior to 5.xx do not generate Abort Tag messages, but only
@@ -3285,37 +4205,49 @@ static int blogic_abort(struct scsi_cmnd *command)
 		   when Tagged Queuing is active.
 		 */
 		if (adapter->tgt_flags[tgt_id].tagq_active &&
-				adapter->fw_ver[0] < '5') {
+			adapter->fw_ver[0] < '5')
+		{
 			blogic_warn("Unable to Abort CCB #%ld to Target %d - Abort Tag Not Supported\n", adapter, ccb->serial, tgt_id);
 			return FAILURE;
-		} else if (blogic_write_outbox(adapter, BLOGIC_MBOX_ABORT,
-					ccb)) {
+		}
+		else if (blogic_write_outbox(adapter, BLOGIC_MBOX_ABORT,
+									 ccb))
+		{
 			blogic_warn("Aborting CCB #%ld to Target %d\n",
-					adapter, ccb->serial, tgt_id);
+						adapter, ccb->serial, tgt_id);
 			blogic_inc_count(&adapter->tgt_stats[tgt_id].aborts_tried);
 			return SUCCESS;
-		} else {
+		}
+		else
+		{
 			blogic_warn("Unable to Abort CCB #%ld to Target %d - No Outgoing Mailboxes\n", adapter, ccb->serial, tgt_id);
 			return FAILURE;
 		}
-	} else {
+	}
+	else
+	{
 		/*
 		   Call the FlashPoint SCCB Manager to abort execution of
 		   the CCB.
 		 */
 		blogic_warn("Aborting CCB #%ld to Target %d\n", adapter,
-				ccb->serial, tgt_id);
+					ccb->serial, tgt_id);
 		blogic_inc_count(&adapter->tgt_stats[tgt_id].aborts_tried);
 		FlashPoint_AbortCCB(adapter->cardhandle, ccb);
+
 		/*
 		   The Abort may have already been completed and
 		   blogic_qcompleted_ccb been called, or it
 		   may still be pending.
 		 */
 		if (ccb->status == BLOGIC_CCB_COMPLETE)
+		{
 			blogic_process_ccbs(adapter);
+		}
+
 		return SUCCESS;
 	}
+
 	return SUCCESS;
 }
 
@@ -3335,9 +4267,10 @@ static int blogic_resetadapter(struct blogic_adapter *adapter, bool hard_reset)
 	 */
 
 	if (!(blogic_hwreset(adapter, hard_reset) &&
-				blogic_initadapter(adapter))) {
+		  blogic_initadapter(adapter)))
+	{
 		blogic_err("Resetting %s Failed\n", adapter,
-						adapter->full_model);
+				   adapter->full_model);
 		return FAILURE;
 	}
 
@@ -3347,7 +4280,10 @@ static int blogic_resetadapter(struct blogic_adapter *adapter, bool hard_reset)
 
 	for (ccb = adapter->all_ccbs; ccb != NULL; ccb = ccb->next_all)
 		if (ccb->status == BLOGIC_CCB_ACTIVE)
+		{
 			blogic_dealloc_ccb(ccb, 1);
+		}
+
 	/*
 	 * Wait a few seconds between the Host Adapter Hard Reset which
 	 * initiates a SCSI Bus Reset and issuing any SCSI Commands.  Some
@@ -3355,16 +4291,19 @@ static int blogic_resetadapter(struct blogic_adapter *adapter, bool hard_reset)
 	 * after a SCSI Bus Reset.
 	 */
 
-	if (hard_reset) {
+	if (hard_reset)
+	{
 		spin_unlock_irq(adapter->scsi_host->host_lock);
 		blogic_delay(adapter->bus_settle_time);
 		spin_lock_irq(adapter->scsi_host->host_lock);
 	}
 
-	for (tgt_id = 0; tgt_id < adapter->maxdev; tgt_id++) {
+	for (tgt_id = 0; tgt_id < adapter->maxdev; tgt_id++)
+	{
 		adapter->last_resettried[tgt_id] = jiffies;
 		adapter->last_resetdone[tgt_id] = jiffies;
 	}
+
 	return SUCCESS;
 }
 
@@ -3386,71 +4325,103 @@ static int blogic_resetadapter(struct blogic_adapter *adapter, bool hard_reset)
 */
 
 static int blogic_diskparam(struct scsi_device *sdev, struct block_device *dev,
-		sector_t capacity, int *params)
+							sector_t capacity, int *params)
 {
 	struct blogic_adapter *adapter =
-				(struct blogic_adapter *) sdev->host->hostdata;
+		(struct blogic_adapter *) sdev->host->hostdata;
 	struct bios_diskparam *diskparam = (struct bios_diskparam *) params;
 	unsigned char *buf;
 
-	if (adapter->ext_trans_enable && capacity >= 2 * 1024 * 1024 /* 1 GB in 512 byte sectors */) {
-		if (capacity >= 4 * 1024 * 1024 /* 2 GB in 512 byte sectors */) {
+	if (adapter->ext_trans_enable && capacity >= 2 * 1024 * 1024 /* 1 GB in 512 byte sectors */)
+	{
+		if (capacity >= 4 * 1024 * 1024 /* 2 GB in 512 byte sectors */)
+		{
 			diskparam->heads = 255;
 			diskparam->sectors = 63;
-		} else {
+		}
+		else
+		{
 			diskparam->heads = 128;
 			diskparam->sectors = 32;
 		}
-	} else {
+	}
+	else
+	{
 		diskparam->heads = 64;
 		diskparam->sectors = 32;
 	}
+
 	diskparam->cylinders = (unsigned long) capacity / (diskparam->heads * diskparam->sectors);
 	buf = scsi_bios_ptable(dev);
+
 	if (buf == NULL)
+	{
 		return 0;
+	}
+
 	/*
 	   If the boot sector partition table flag is valid, search for
 	   a partition table entry whose end_head matches one of the
 	   standard BusLogic geometry translations (64/32, 128/32, or 255/63).
 	 */
-	if (*(unsigned short *) (buf + 64) == 0xAA55) {
+	if (*(unsigned short *) (buf + 64) == 0xAA55)
+	{
 		struct partition *part1_entry = (struct partition *) buf;
 		struct partition *part_entry = part1_entry;
 		int saved_cyl = diskparam->cylinders, part_no;
 		unsigned char part_end_head = 0, part_end_sector = 0;
 
-		for (part_no = 0; part_no < 4; part_no++) {
+		for (part_no = 0; part_no < 4; part_no++)
+		{
 			part_end_head = part_entry->end_head;
 			part_end_sector = part_entry->end_sector & 0x3F;
-			if (part_end_head == 64 - 1) {
+
+			if (part_end_head == 64 - 1)
+			{
 				diskparam->heads = 64;
 				diskparam->sectors = 32;
 				break;
-			} else if (part_end_head == 128 - 1) {
+			}
+			else if (part_end_head == 128 - 1)
+			{
 				diskparam->heads = 128;
 				diskparam->sectors = 32;
 				break;
-			} else if (part_end_head == 255 - 1) {
+			}
+			else if (part_end_head == 255 - 1)
+			{
 				diskparam->heads = 255;
 				diskparam->sectors = 63;
 				break;
 			}
+
 			part_entry++;
 		}
-		if (part_no == 4) {
+
+		if (part_no == 4)
+		{
 			part_end_head = part1_entry->end_head;
 			part_end_sector = part1_entry->end_sector & 0x3F;
 		}
+
 		diskparam->cylinders = (unsigned long) capacity / (diskparam->heads * diskparam->sectors);
-		if (part_no < 4 && part_end_sector == diskparam->sectors) {
+
+		if (part_no < 4 && part_end_sector == diskparam->sectors)
+		{
 			if (diskparam->cylinders != saved_cyl)
+			{
 				blogic_warn("Adopting Geometry %d/%d from Partition Table\n", adapter, diskparam->heads, diskparam->sectors);
-		} else if (part_end_head > 0 || part_end_sector > 0) {
-			blogic_warn("Warning: Partition Table appears to " "have Geometry %d/%d which is\n", adapter, part_end_head + 1, part_end_sector);
-			blogic_warn("not compatible with current BusLogic " "Host Adapter Geometry %d/%d\n", adapter, diskparam->heads, diskparam->sectors);
+			}
+		}
+		else if (part_end_head > 0 || part_end_sector > 0)
+		{
+			blogic_warn("Warning: Partition Table appears to " "have Geometry %d/%d which is\n", adapter, part_end_head + 1,
+						part_end_sector);
+			blogic_warn("not compatible with current BusLogic " "Host Adapter Geometry %d/%d\n", adapter, diskparam->heads,
+						diskparam->sectors);
 		}
 	}
+
 	kfree(buf);
 	return 0;
 }
@@ -3461,10 +4432,10 @@ static int blogic_diskparam(struct scsi_device *sdev, struct block_device *dev,
 */
 
 static int blogic_write_info(struct Scsi_Host *shost, char *procbuf,
-				int bytes_avail)
+							 int bytes_avail)
 {
 	struct blogic_adapter *adapter =
-				(struct blogic_adapter *) shost->hostdata;
+		(struct blogic_adapter *) shost->hostdata;
 	struct blogic_tgt_stats *tgt_stats;
 
 	tgt_stats = adapter->tgt_stats;
@@ -3490,65 +4461,109 @@ Currently Allocated CCBs:	%d\n", adapter->drvr_qdepth, adapter->alloc_ccbs);
 \n\
 Target	Tagged Queuing	Queue Depth  Active  Attempted	Completed\n\
 ======	==============	===========  ======  =========	=========\n");
-	for (tgt = 0; tgt < adapter->maxdev; tgt++) {
+
+	for (tgt = 0; tgt < adapter->maxdev; tgt++)
+	{
 		struct blogic_tgt_flags *tgt_flags = &adapter->tgt_flags[tgt];
+
 		if (!tgt_flags->tgt_exists)
+		{
 			continue;
-		seq_printf(m, "  %2d	%s", tgt, (tgt_flags->tagq_ok ? (tgt_flags->tagq_active ? "    Active" : (adapter->tagq_ok & (1 << tgt)
-																				    ? "  Permitted" : "   Disabled"))
-									  : "Not Supported"));
+		}
+
+		seq_printf(m, "  %2d	%s", tgt, (tgt_flags->tagq_ok ? (tgt_flags->tagq_active ? "    Active" : (adapter->tagq_ok &
+										   (1 << tgt)
+										   ? "  Permitted" : "   Disabled"))
+										   : "Not Supported"));
 		seq_printf(m,
-				  "	    %3d       %3u    %9u	%9u\n", adapter->qdepth[tgt], adapter->active_cmds[tgt], tgt_stats[tgt].cmds_tried, tgt_stats[tgt].cmds_complete);
+				   "	    %3d       %3u    %9u	%9u\n", adapter->qdepth[tgt], adapter->active_cmds[tgt], tgt_stats[tgt].cmds_tried,
+				   tgt_stats[tgt].cmds_complete);
 	}
+
 	seq_puts(m, "\n\
 Target  Read Commands  Write Commands   Total Bytes Read    Total Bytes Written\n\
 ======  =============  ==============  ===================  ===================\n");
-	for (tgt = 0; tgt < adapter->maxdev; tgt++) {
+
+	for (tgt = 0; tgt < adapter->maxdev; tgt++)
+	{
 		struct blogic_tgt_flags *tgt_flags = &adapter->tgt_flags[tgt];
+
 		if (!tgt_flags->tgt_exists)
+		{
 			continue;
+		}
+
 		seq_printf(m, "  %2d	  %9u	 %9u", tgt, tgt_stats[tgt].read_cmds, tgt_stats[tgt].write_cmds);
+
 		if (tgt_stats[tgt].bytesread.billions > 0)
+		{
 			seq_printf(m, "     %9u%09u", tgt_stats[tgt].bytesread.billions, tgt_stats[tgt].bytesread.units);
+		}
 		else
+		{
 			seq_printf(m, "		%9u", tgt_stats[tgt].bytesread.units);
+		}
+
 		if (tgt_stats[tgt].byteswritten.billions > 0)
+		{
 			seq_printf(m, "   %9u%09u\n", tgt_stats[tgt].byteswritten.billions, tgt_stats[tgt].byteswritten.units);
+		}
 		else
+		{
 			seq_printf(m, "	     %9u\n", tgt_stats[tgt].byteswritten.units);
+		}
 	}
+
 	seq_puts(m, "\n\
 Target  Command    0-1KB      1-2KB      2-4KB      4-8KB     8-16KB\n\
 ======  =======  =========  =========  =========  =========  =========\n");
-	for (tgt = 0; tgt < adapter->maxdev; tgt++) {
+
+	for (tgt = 0; tgt < adapter->maxdev; tgt++)
+	{
 		struct blogic_tgt_flags *tgt_flags = &adapter->tgt_flags[tgt];
+
 		if (!tgt_flags->tgt_exists)
+		{
 			continue;
+		}
+
 		seq_printf(m,
-			    "  %2d	 Read	 %9u  %9u  %9u  %9u  %9u\n", tgt,
-			    tgt_stats[tgt].read_sz_buckets[0],
-			    tgt_stats[tgt].read_sz_buckets[1], tgt_stats[tgt].read_sz_buckets[2], tgt_stats[tgt].read_sz_buckets[3], tgt_stats[tgt].read_sz_buckets[4]);
+				   "  %2d	 Read	 %9u  %9u  %9u  %9u  %9u\n", tgt,
+				   tgt_stats[tgt].read_sz_buckets[0],
+				   tgt_stats[tgt].read_sz_buckets[1], tgt_stats[tgt].read_sz_buckets[2], tgt_stats[tgt].read_sz_buckets[3],
+				   tgt_stats[tgt].read_sz_buckets[4]);
 		seq_printf(m,
-			    "  %2d	 Write	 %9u  %9u  %9u  %9u  %9u\n", tgt,
-			    tgt_stats[tgt].write_sz_buckets[0],
-			    tgt_stats[tgt].write_sz_buckets[1], tgt_stats[tgt].write_sz_buckets[2], tgt_stats[tgt].write_sz_buckets[3], tgt_stats[tgt].write_sz_buckets[4]);
+				   "  %2d	 Write	 %9u  %9u  %9u  %9u  %9u\n", tgt,
+				   tgt_stats[tgt].write_sz_buckets[0],
+				   tgt_stats[tgt].write_sz_buckets[1], tgt_stats[tgt].write_sz_buckets[2], tgt_stats[tgt].write_sz_buckets[3],
+				   tgt_stats[tgt].write_sz_buckets[4]);
 	}
+
 	seq_puts(m, "\n\
 Target  Command   16-32KB    32-64KB   64-128KB   128-256KB   256KB+\n\
 ======  =======  =========  =========  =========  =========  =========\n");
-	for (tgt = 0; tgt < adapter->maxdev; tgt++) {
+
+	for (tgt = 0; tgt < adapter->maxdev; tgt++)
+	{
 		struct blogic_tgt_flags *tgt_flags = &adapter->tgt_flags[tgt];
+
 		if (!tgt_flags->tgt_exists)
+		{
 			continue;
+		}
+
 		seq_printf(m,
-			    "  %2d	 Read	 %9u  %9u  %9u  %9u  %9u\n", tgt,
-			    tgt_stats[tgt].read_sz_buckets[5],
-			    tgt_stats[tgt].read_sz_buckets[6], tgt_stats[tgt].read_sz_buckets[7], tgt_stats[tgt].read_sz_buckets[8], tgt_stats[tgt].read_sz_buckets[9]);
+				   "  %2d	 Read	 %9u  %9u  %9u  %9u  %9u\n", tgt,
+				   tgt_stats[tgt].read_sz_buckets[5],
+				   tgt_stats[tgt].read_sz_buckets[6], tgt_stats[tgt].read_sz_buckets[7], tgt_stats[tgt].read_sz_buckets[8],
+				   tgt_stats[tgt].read_sz_buckets[9]);
 		seq_printf(m,
-			    "  %2d	 Write	 %9u  %9u  %9u  %9u  %9u\n", tgt,
-			    tgt_stats[tgt].write_sz_buckets[5],
-			    tgt_stats[tgt].write_sz_buckets[6], tgt_stats[tgt].write_sz_buckets[7], tgt_stats[tgt].write_sz_buckets[8], tgt_stats[tgt].write_sz_buckets[9]);
+				   "  %2d	 Write	 %9u  %9u  %9u  %9u  %9u\n", tgt,
+				   tgt_stats[tgt].write_sz_buckets[5],
+				   tgt_stats[tgt].write_sz_buckets[6], tgt_stats[tgt].write_sz_buckets[7], tgt_stats[tgt].write_sz_buckets[8],
+				   tgt_stats[tgt].write_sz_buckets[9]);
 	}
+
 	seq_puts(m, "\n\n\
 			   ERROR RECOVERY STATISTICS\n\
 \n\
@@ -3556,13 +4571,22 @@ Target  Command   16-32KB    32-64KB   64-128KB   128-256KB   256KB+\n\
 Target	Requested Completed  Requested Completed  Requested Completed\n\
   ID	\\\\\\\\ Attempted ////  \\\\\\\\ Attempted ////  \\\\\\\\ Attempted ////\n\
 ======	 ===== ===== =====    ===== ===== =====	   ===== ===== =====\n");
-	for (tgt = 0; tgt < adapter->maxdev; tgt++) {
+
+	for (tgt = 0; tgt < adapter->maxdev; tgt++)
+	{
 		struct blogic_tgt_flags *tgt_flags = &adapter->tgt_flags[tgt];
+
 		if (!tgt_flags->tgt_exists)
+		{
 			continue;
+		}
+
 		seq_printf(m, "\
-  %2d	 %5d %5d %5d    %5d %5d %5d	   %5d %5d %5d\n", tgt, tgt_stats[tgt].aborts_request, tgt_stats[tgt].aborts_tried, tgt_stats[tgt].aborts_done, tgt_stats[tgt].bdr_request, tgt_stats[tgt].bdr_tried, tgt_stats[tgt].bdr_done, tgt_stats[tgt].adatper_reset_req, tgt_stats[tgt].adapter_reset_attempt, tgt_stats[tgt].adapter_reset_done);
+  %2d	 %5d %5d %5d    %5d %5d %5d	   %5d %5d %5d\n", tgt, tgt_stats[tgt].aborts_request, tgt_stats[tgt].aborts_tried,
+				   tgt_stats[tgt].aborts_done, tgt_stats[tgt].bdr_request, tgt_stats[tgt].bdr_tried, tgt_stats[tgt].bdr_done,
+				   tgt_stats[tgt].adatper_reset_req, tgt_stats[tgt].adapter_reset_attempt, tgt_stats[tgt].adapter_reset_done);
 	}
+
 	seq_printf(m, "\nExternal Host Adapter Resets: %d\n", adapter->ext_resets);
 	seq_printf(m, "Host Adapter Internal Errors: %d\n", adapter->adapter_intern_errors);
 	return 0;
@@ -3574,7 +4598,7 @@ Target	Requested Completed  Requested Completed  Requested Completed\n\
 */
 
 static void blogic_msg(enum blogic_msglevel msglevel, char *fmt,
-			struct blogic_adapter *adapter, ...)
+					   struct blogic_adapter *adapter, ...)
 {
 	static char buf[BLOGIC_LINEBUF_SIZE];
 	static bool begin = true;
@@ -3584,29 +4608,54 @@ static void blogic_msg(enum blogic_msglevel msglevel, char *fmt,
 	va_start(args, adapter);
 	len = vsprintf(buf, fmt, args);
 	va_end(args);
-	if (msglevel == BLOGIC_ANNOUNCE_LEVEL) {
+
+	if (msglevel == BLOGIC_ANNOUNCE_LEVEL)
+	{
 		static int msglines = 0;
 		strcpy(&adapter->msgbuf[adapter->msgbuflen], buf);
 		adapter->msgbuflen += len;
+
 		if (++msglines <= 2)
+		{
 			printk("%sscsi: %s", blogic_msglevelmap[msglevel], buf);
-	} else if (msglevel == BLOGIC_INFO_LEVEL) {
+		}
+	}
+	else if (msglevel == BLOGIC_INFO_LEVEL)
+	{
 		strcpy(&adapter->msgbuf[adapter->msgbuflen], buf);
 		adapter->msgbuflen += len;
-		if (begin) {
+
+		if (begin)
+		{
 			if (buf[0] != '\n' || len > 1)
+			{
 				printk("%sscsi%d: %s", blogic_msglevelmap[msglevel], adapter->host_no, buf);
-		} else
+			}
+		}
+		else
+		{
 			printk("%s", buf);
-	} else {
-		if (begin) {
-			if (adapter != NULL && adapter->adapter_initd)
-				printk("%sscsi%d: %s", blogic_msglevelmap[msglevel], adapter->host_no, buf);
-			else
-				printk("%s%s", blogic_msglevelmap[msglevel], buf);
-		} else
-			printk("%s", buf);
+		}
 	}
+	else
+	{
+		if (begin)
+		{
+			if (adapter != NULL && adapter->adapter_initd)
+			{
+				printk("%sscsi%d: %s", blogic_msglevelmap[msglevel], adapter->host_no, buf);
+			}
+			else
+			{
+				printk("%s%s", blogic_msglevelmap[msglevel], buf);
+			}
+		}
+		else
+		{
+			printk("%s", buf);
+		}
+	}
+
 	begin = (buf[len - 1] == '\n');
 }
 
@@ -3619,16 +4668,28 @@ static void blogic_msg(enum blogic_msglevel msglevel, char *fmt,
 static bool __init blogic_parse(char **str, char *keyword)
 {
 	char *pointer = *str;
-	while (*keyword != '\0') {
+
+	while (*keyword != '\0')
+	{
 		char strch = *pointer++;
 		char keywordch = *keyword++;
+
 		if (strch >= 'A' && strch <= 'Z')
+		{
 			strch += 'a' - 'Z';
+		}
+
 		if (keywordch >= 'A' && keywordch <= 'Z')
+		{
 			keywordch += 'a' - 'Z';
+		}
+
 		if (strch != keywordch)
+		{
 			return false;
+		}
 	}
+
 	*str = pointer;
 	return true;
 }
@@ -3653,177 +4714,271 @@ static bool __init blogic_parse(char **str, char *keyword)
 
 static int __init blogic_parseopts(char *options)
 {
-	while (true) {
+	while (true)
+	{
 		struct blogic_drvr_options *drvr_opts =
-			&blogic_drvr_options[blogic_drvr_options_count++];
+				&blogic_drvr_options[blogic_drvr_options_count++];
 		int tgt_id;
 
 		memset(drvr_opts, 0, sizeof(struct blogic_drvr_options));
-		while (*options != '\0' && *options != ';') {
+
+		while (*options != '\0' && *options != ';')
+		{
 			/* Probing Options. */
-			if (blogic_parse(&options, "IO:")) {
+			if (blogic_parse(&options, "IO:"))
+			{
 				unsigned long io_addr = simple_strtoul(options,
-								&options, 0);
+													   &options, 0);
 				blogic_probe_options.limited_isa = true;
-				switch (io_addr) {
-				case 0x330:
-					blogic_probe_options.probe330 = true;
-					break;
-				case 0x334:
-					blogic_probe_options.probe334 = true;
-					break;
-				case 0x230:
-					blogic_probe_options.probe230 = true;
-					break;
-				case 0x234:
-					blogic_probe_options.probe234 = true;
-					break;
-				case 0x130:
-					blogic_probe_options.probe130 = true;
-					break;
-				case 0x134:
-					blogic_probe_options.probe134 = true;
-					break;
-				default:
-					blogic_err("BusLogic: Invalid Driver Options " "(invalid I/O Address 0x%X)\n", NULL, io_addr);
-					return 0;
+
+				switch (io_addr)
+				{
+					case 0x330:
+						blogic_probe_options.probe330 = true;
+						break;
+
+					case 0x334:
+						blogic_probe_options.probe334 = true;
+						break;
+
+					case 0x230:
+						blogic_probe_options.probe230 = true;
+						break;
+
+					case 0x234:
+						blogic_probe_options.probe234 = true;
+						break;
+
+					case 0x130:
+						blogic_probe_options.probe130 = true;
+						break;
+
+					case 0x134:
+						blogic_probe_options.probe134 = true;
+						break;
+
+					default:
+						blogic_err("BusLogic: Invalid Driver Options " "(invalid I/O Address 0x%X)\n", NULL, io_addr);
+						return 0;
 				}
-			} else if (blogic_parse(&options, "NoProbeISA"))
+			}
+			else if (blogic_parse(&options, "NoProbeISA"))
+			{
 				blogic_probe_options.noprobe_isa = true;
+			}
 			else if (blogic_parse(&options, "NoProbePCI"))
+			{
 				blogic_probe_options.noprobe_pci = true;
+			}
 			else if (blogic_parse(&options, "NoProbe"))
+			{
 				blogic_probe_options.noprobe = true;
+			}
 			else if (blogic_parse(&options, "NoSortPCI"))
+			{
 				blogic_probe_options.nosort_pci = true;
+			}
 			else if (blogic_parse(&options, "MultiMasterFirst"))
+			{
 				blogic_probe_options.multimaster_first = true;
+			}
 			else if (blogic_parse(&options, "FlashPointFirst"))
+			{
 				blogic_probe_options.flashpoint_first = true;
+			}
 			/* Tagged Queuing Options. */
 			else if (blogic_parse(&options, "QueueDepth:[") ||
-					blogic_parse(&options, "QD:[")) {
-				for (tgt_id = 0; tgt_id < BLOGIC_MAXDEV; tgt_id++) {
+					 blogic_parse(&options, "QD:["))
+			{
+				for (tgt_id = 0; tgt_id < BLOGIC_MAXDEV; tgt_id++)
+				{
 					unsigned short qdepth = simple_strtoul(options, &options, 0);
-					if (qdepth > BLOGIC_MAX_TAG_DEPTH) {
+
+					if (qdepth > BLOGIC_MAX_TAG_DEPTH)
+					{
 						blogic_err("BusLogic: Invalid Driver Options " "(invalid Queue Depth %d)\n", NULL, qdepth);
 						return 0;
 					}
+
 					drvr_opts->qdepth[tgt_id] = qdepth;
+
 					if (*options == ',')
+					{
 						options++;
+					}
 					else if (*options == ']')
+					{
 						break;
-					else {
+					}
+					else
+					{
 						blogic_err("BusLogic: Invalid Driver Options " "(',' or ']' expected at '%s')\n", NULL, options);
 						return 0;
 					}
 				}
-				if (*options != ']') {
+
+				if (*options != ']')
+				{
 					blogic_err("BusLogic: Invalid Driver Options " "(']' expected at '%s')\n", NULL, options);
 					return 0;
-				} else
+				}
+				else
+				{
 					options++;
-			} else if (blogic_parse(&options, "QueueDepth:") || blogic_parse(&options, "QD:")) {
+				}
+			}
+			else if (blogic_parse(&options, "QueueDepth:") || blogic_parse(&options, "QD:"))
+			{
 				unsigned short qdepth = simple_strtoul(options, &options, 0);
+
 				if (qdepth == 0 ||
-						qdepth > BLOGIC_MAX_TAG_DEPTH) {
+					qdepth > BLOGIC_MAX_TAG_DEPTH)
+				{
 					blogic_err("BusLogic: Invalid Driver Options " "(invalid Queue Depth %d)\n", NULL, qdepth);
 					return 0;
 				}
+
 				drvr_opts->common_qdepth = qdepth;
+
 				for (tgt_id = 0; tgt_id < BLOGIC_MAXDEV; tgt_id++)
+				{
 					drvr_opts->qdepth[tgt_id] = qdepth;
-			} else if (blogic_parse(&options, "TaggedQueuing:") ||
-					blogic_parse(&options, "TQ:")) {
-				if (blogic_parse(&options, "Default")) {
+				}
+			}
+			else if (blogic_parse(&options, "TaggedQueuing:") ||
+					 blogic_parse(&options, "TQ:"))
+			{
+				if (blogic_parse(&options, "Default"))
+				{
 					drvr_opts->tagq_ok = 0x0000;
 					drvr_opts->tagq_ok_mask = 0x0000;
-				} else if (blogic_parse(&options, "Enable")) {
+				}
+				else if (blogic_parse(&options, "Enable"))
+				{
 					drvr_opts->tagq_ok = 0xFFFF;
 					drvr_opts->tagq_ok_mask = 0xFFFF;
-				} else if (blogic_parse(&options, "Disable")) {
+				}
+				else if (blogic_parse(&options, "Disable"))
+				{
 					drvr_opts->tagq_ok = 0x0000;
 					drvr_opts->tagq_ok_mask = 0xFFFF;
-				} else {
+				}
+				else
+				{
 					unsigned short tgt_bit;
+
 					for (tgt_id = 0, tgt_bit = 1;
-						tgt_id < BLOGIC_MAXDEV;
-						tgt_id++, tgt_bit <<= 1)
-						switch (*options++) {
-						case 'Y':
-							drvr_opts->tagq_ok |= tgt_bit;
-							drvr_opts->tagq_ok_mask |= tgt_bit;
-							break;
-						case 'N':
-							drvr_opts->tagq_ok &= ~tgt_bit;
-							drvr_opts->tagq_ok_mask |= tgt_bit;
-							break;
-						case 'X':
-							break;
-						default:
-							options--;
-							tgt_id = BLOGIC_MAXDEV;
-							break;
+						 tgt_id < BLOGIC_MAXDEV;
+						 tgt_id++, tgt_bit <<= 1)
+						switch (*options++)
+						{
+							case 'Y':
+								drvr_opts->tagq_ok |= tgt_bit;
+								drvr_opts->tagq_ok_mask |= tgt_bit;
+								break;
+
+							case 'N':
+								drvr_opts->tagq_ok &= ~tgt_bit;
+								drvr_opts->tagq_ok_mask |= tgt_bit;
+								break;
+
+							case 'X':
+								break;
+
+							default:
+								options--;
+								tgt_id = BLOGIC_MAXDEV;
+								break;
 						}
 				}
 			}
 			/* Miscellaneous Options. */
 			else if (blogic_parse(&options, "BusSettleTime:") ||
-					blogic_parse(&options, "BST:")) {
+					 blogic_parse(&options, "BST:"))
+			{
 				unsigned short bus_settle_time =
 					simple_strtoul(options, &options, 0);
-				if (bus_settle_time > 5 * 60) {
+
+				if (bus_settle_time > 5 * 60)
+				{
 					blogic_err("BusLogic: Invalid Driver Options " "(invalid Bus Settle Time %d)\n", NULL, bus_settle_time);
 					return 0;
 				}
+
 				drvr_opts->bus_settle_time = bus_settle_time;
-			} else if (blogic_parse(&options,
-						"InhibitTargetInquiry"))
+			}
+			else if (blogic_parse(&options,
+								  "InhibitTargetInquiry"))
+			{
 				drvr_opts->stop_tgt_inquiry = true;
+			}
 			/* Debugging Options. */
 			else if (blogic_parse(&options, "TraceProbe"))
+			{
 				blogic_global_options.trace_probe = true;
+			}
 			else if (blogic_parse(&options, "TraceHardwareReset"))
+			{
 				blogic_global_options.trace_hw_reset = true;
+			}
 			else if (blogic_parse(&options, "TraceConfiguration"))
+			{
 				blogic_global_options.trace_config = true;
+			}
 			else if (blogic_parse(&options, "TraceErrors"))
+			{
 				blogic_global_options.trace_err = true;
-			else if (blogic_parse(&options, "Debug")) {
+			}
+			else if (blogic_parse(&options, "Debug"))
+			{
 				blogic_global_options.trace_probe = true;
 				blogic_global_options.trace_hw_reset = true;
 				blogic_global_options.trace_config = true;
 				blogic_global_options.trace_err = true;
 			}
+
 			if (*options == ',')
+			{
 				options++;
-			else if (*options != ';' && *options != '\0') {
+			}
+			else if (*options != ';' && *options != '\0')
+			{
 				blogic_err("BusLogic: Unexpected Driver Option '%s' " "ignored\n", NULL, options);
 				*options = '\0';
 			}
 		}
+
 		if (!(blogic_drvr_options_count == 0 ||
-			blogic_probeinfo_count == 0 ||
-			blogic_drvr_options_count == blogic_probeinfo_count)) {
+			  blogic_probeinfo_count == 0 ||
+			  blogic_drvr_options_count == blogic_probeinfo_count))
+		{
 			blogic_err("BusLogic: Invalid Driver Options " "(all or no I/O Addresses must be specified)\n", NULL);
 			return 0;
 		}
+
 		/*
 		   Tagged Queuing is disabled when the Queue Depth is 1 since queuing
 		   multiple commands is not possible.
 		 */
 		for (tgt_id = 0; tgt_id < BLOGIC_MAXDEV; tgt_id++)
-			if (drvr_opts->qdepth[tgt_id] == 1) {
+			if (drvr_opts->qdepth[tgt_id] == 1)
+			{
 				unsigned short tgt_bit = 1 << tgt_id;
 				drvr_opts->tagq_ok &= ~tgt_bit;
 				drvr_opts->tagq_ok_mask |= tgt_bit;
 			}
+
 		if (*options == ';')
+		{
 			options++;
+		}
+
 		if (*options == '\0')
+		{
 			return 0;
+		}
 	}
+
 	return 1;
 }
 
@@ -3831,7 +4986,8 @@ static int __init blogic_parseopts(char *options)
   Get it all started
 */
 
-static struct scsi_host_template blogic_template = {
+static struct scsi_host_template blogic_template =
+{
 	.module = THIS_MODULE,
 	.proc_name = "BusLogic",
 	.write_info = blogic_write_info,
@@ -3860,12 +5016,17 @@ static int __init blogic_setup(char *str)
 
 	(void) get_options(str, ARRAY_SIZE(ints), ints);
 
-	if (ints[0] != 0) {
+	if (ints[0] != 0)
+	{
 		blogic_err("BusLogic: Obsolete Command Line Entry " "Format Ignored\n", NULL);
 		return 0;
 	}
+
 	if (str == NULL || *str == '\0')
+	{
 		return 0;
+	}
+
 	return blogic_parseopts(str);
 }
 
@@ -3878,7 +5039,7 @@ static void __exit blogic_exit(void)
 	struct blogic_adapter *ha, *next;
 
 	list_for_each_entry_safe(ha, next, &blogic_host_list, host_list)
-		blogic_deladapter(ha);
+	blogic_deladapter(ha);
 }
 
 __setup("BusLogic=", blogic_setup);
@@ -3893,7 +5054,8 @@ __setup("BusLogic=", blogic_setup);
 	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
 	{ }
 };*/
-static const struct pci_device_id blogic_pci_tbl[] = {
+static const struct pci_device_id blogic_pci_tbl[] =
+{
 	{PCI_DEVICE(PCI_VENDOR_ID_BUSLOGIC, PCI_DEVICE_ID_BUSLOGIC_MULTIMASTER)},
 	{PCI_DEVICE(PCI_VENDOR_ID_BUSLOGIC, PCI_DEVICE_ID_BUSLOGIC_MULTIMASTER_NC)},
 	{PCI_DEVICE(PCI_VENDOR_ID_BUSLOGIC, PCI_DEVICE_ID_BUSLOGIC_FLASHPOINT)},

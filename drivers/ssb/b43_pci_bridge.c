@@ -17,7 +17,8 @@
 #include "ssb_private.h"
 
 
-static const struct pci_device_id b43_pci_bridge_tbl[] = {
+static const struct pci_device_id b43_pci_bridge_tbl[] =
+{
 	{ PCI_DEVICE(PCI_VENDOR_ID_BROADCOM, 0x4301) },
 	{ PCI_DEVICE(PCI_VENDOR_ID_BROADCOM, 0x4306) },
 	{ PCI_DEVICE(PCI_VENDOR_ID_BROADCOM, 0x4307) },
@@ -43,7 +44,8 @@ static const struct pci_device_id b43_pci_bridge_tbl[] = {
 };
 MODULE_DEVICE_TABLE(pci, b43_pci_bridge_tbl);
 
-static struct pci_driver b43_pci_bridge_driver = {
+static struct pci_driver b43_pci_bridge_driver =
+{
 	.name = "b43-pci-bridge",
 	.id_table = b43_pci_bridge_tbl,
 };

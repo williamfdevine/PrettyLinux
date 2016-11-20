@@ -70,7 +70,8 @@
 #define START_MESSAGE_RESPONSE_WAIT_TIMEOUT (5 * MSEC_PER_SEC)
 #define RESET_CANCEL_WAIT_TIMEOUT          (1 * MSEC_PER_SEC)
 
-enum {
+enum
+{
 	SEC_BAR,
 	BRIDGE_BAR,
 
@@ -117,8 +118,8 @@ enum {
 
 /* Convenient mask for pending interrupts */
 #define   SEC_IPC_HOST_INT_STATUS_PENDING \
-		(SEC_IPC_HOST_INT_STATUS_OUT_DB| \
-		SEC_IPC_HOST_INT_STATUS_IN_RDY)
+	(SEC_IPC_HOST_INT_STATUS_OUT_DB| \
+	 SEC_IPC_HOST_INT_STATUS_IN_RDY)
 
 /* IPC Host Interrupt Mask Register */
 #define SEC_IPC_HOST_INT_MASK_REG        (0x0014 + IPC_BASE_ADDR)
@@ -144,7 +145,7 @@ enum {
 #define SATT2_SAP_BA_REG                 0x1044
 /* SATT Table Entry 2 SAP Size Register. */
 #define SATT2_SAP_SIZE_REG               0x1048
- /* SATT Table Entry 2 SAP Bridge Address - LSB Register */
+/* SATT Table Entry 2 SAP Bridge Address - LSB Register */
 #define SATT2_BRG_BA_LSB_REG             0x104C
 
 /* Host High-level Interrupt Status Register */
@@ -184,8 +185,8 @@ enum {
 #define   HICR_SEC_IPC_READINESS_HOST_RDY  BIT(0)
 #define   HICR_SEC_IPC_READINESS_SEC_RDY   BIT(1)
 #define   HICR_SEC_IPC_READINESS_SYS_RDY     \
-	  (HICR_SEC_IPC_READINESS_HOST_RDY | \
-	   HICR_SEC_IPC_READINESS_SEC_RDY)
+	(HICR_SEC_IPC_READINESS_HOST_RDY | \
+	 HICR_SEC_IPC_READINESS_SEC_RDY)
 #define   HICR_SEC_IPC_READINESS_RDY_CLR   BIT(2)
 
 /* Host Interrupt Cause Register 1 - Aliveness Response */
@@ -236,7 +237,7 @@ enum {
 #define   HIER_INT_7_EN      BIT(7)
 
 #define   HIER_INT_EN_MSK \
-	 (HIER_INT_0_EN | HIER_INT_1_EN | HIER_INT_2_EN)
+	(HIER_INT_0_EN | HIER_INT_1_EN | HIER_INT_2_EN)
 
 
 /* SEC Memory Space IPC output payload.

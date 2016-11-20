@@ -35,7 +35,8 @@
 #define MAX_HW_FIFO_SIZE	(MAX_HW_FIFO_DEPTH * 4)
 #define WORD_SZ			4
 
-struct msm_rng {
+struct msm_rng
+{
 	void __iomem *base;
 	struct clk *clk;
 	struct hwrng hwrng;
@@ -50,14 +51,21 @@ static int msm_rng_enable(struct hwrng *hwrng, int enable)
 	int ret;
 
 	ret = clk_prepare_enable(rng->clk);
-	if (ret)
-		return ret;
 
-	if (enable) {
+	if (ret)
+	{
+		return ret;
+	}
+
+	if (enable)
+	{
 		/* Enable PRNG only if it is not already enabled */
 		val = readl_relaxed(rng->base + PRNG_CONFIG);
+
 		if (val & PRNG_CONFIG_HW_ENABLE)
+		{
 			goto already_enabled;
+		}
 
 		val = readl_relaxed(rng->base + PRNG_LFSR_CFG);
 		val &= ~PRNG_LFSR_CFG_MASK;
@@ -67,7 +75,9 @@ static int msm_rng_enable(struct hwrng *hwrng, int enable)
 		val = readl_relaxed(rng->base + PRNG_CONFIG);
 		val |= PRNG_CONFIG_HW_ENABLE;
 		writel(val, rng->base + PRNG_CONFIG);
-	} else {
+	}
+	else
+	{
 		val = readl_relaxed(rng->base + PRNG_CONFIG);
 		val &= ~PRNG_CONFIG_HW_ENABLE;
 		writel(val, rng->base + PRNG_CONFIG);
@@ -92,29 +102,44 @@ static int msm_rng_read(struct hwrng *hwrng, void *data, size_t max, bool wait)
 
 	/* no room for word data */
 	if (maxsize < WORD_SZ)
+	{
 		return 0;
+	}
 
 	ret = clk_prepare_enable(rng->clk);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* read random data from hardware */
-	do {
+	do
+	{
 		val = readl_relaxed(rng->base + PRNG_STATUS);
+
 		if (!(val & PRNG_STATUS_DATA_AVAIL))
+		{
 			break;
+		}
 
 		val = readl_relaxed(rng->base + PRNG_DATA_OUT);
+
 		if (!val)
+		{
 			break;
+		}
 
 		*retdata++ = val;
 		currsize += WORD_SZ;
 
 		/* make sure we stay on 32bit boundary */
 		if ((maxsize - currsize) < WORD_SZ)
+		{
 			break;
-	} while (currsize < maxsize);
+		}
+	}
+	while (currsize < maxsize);
 
 	clk_disable_unprepare(rng->clk);
 
@@ -138,27 +163,38 @@ static int msm_rng_probe(struct platform_device *pdev)
 	int ret;
 
 	rng = devm_kzalloc(&pdev->dev, sizeof(*rng), GFP_KERNEL);
+
 	if (!rng)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, rng);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	rng->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(rng->base))
+	{
 		return PTR_ERR(rng->base);
+	}
 
 	rng->clk = devm_clk_get(&pdev->dev, "core");
+
 	if (IS_ERR(rng->clk))
+	{
 		return PTR_ERR(rng->clk);
+	}
 
 	rng->hwrng.name = KBUILD_MODNAME,
-	rng->hwrng.init = msm_rng_init,
-	rng->hwrng.cleanup = msm_rng_cleanup,
-	rng->hwrng.read = msm_rng_read,
+			   rng->hwrng.init = msm_rng_init,
+						  rng->hwrng.cleanup = msm_rng_cleanup,
+									 rng->hwrng.read = msm_rng_read,
 
-	ret = devm_hwrng_register(&pdev->dev, &rng->hwrng);
-	if (ret) {
+												ret = devm_hwrng_register(&pdev->dev, &rng->hwrng);
+
+	if (ret)
+	{
 		dev_err(&pdev->dev, "failed to register hwrng\n");
 		return ret;
 	}
@@ -166,13 +202,15 @@ static int msm_rng_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static const struct of_device_id msm_rng_of_match[] = {
+static const struct of_device_id msm_rng_of_match[] =
+{
 	{ .compatible = "qcom,prng", },
 	{}
 };
 MODULE_DEVICE_TABLE(of, msm_rng_of_match);
 
-static struct platform_driver msm_rng_driver = {
+static struct platform_driver msm_rng_driver =
+{
 	.probe = msm_rng_probe,
 	.driver = {
 		.name = KBUILD_MODNAME,

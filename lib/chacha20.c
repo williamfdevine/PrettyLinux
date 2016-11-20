@@ -27,9 +27,12 @@ extern void chacha20_block(u32 *state, void *stream)
 	int i;
 
 	for (i = 0; i < ARRAY_SIZE(x); i++)
+	{
 		x[i] = state[i];
+	}
 
-	for (i = 0; i < 20; i += 2) {
+	for (i = 0; i < 20; i += 2)
+	{
 		x[0]  += x[4];    x[12] = rotl32(x[12] ^ x[0],  16);
 		x[1]  += x[5];    x[13] = rotl32(x[13] ^ x[1],  16);
 		x[2]  += x[6];    x[14] = rotl32(x[14] ^ x[2],  16);
@@ -72,7 +75,9 @@ extern void chacha20_block(u32 *state, void *stream)
 	}
 
 	for (i = 0; i < ARRAY_SIZE(x); i++)
+	{
 		out[i] = cpu_to_le32(x[i] + state[i]);
+	}
 
 	state[12]++;
 }

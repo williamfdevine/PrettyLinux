@@ -18,7 +18,8 @@
 
 #include "vxge-ethtool.h"
 
-static const char ethtool_driver_stats_keys[][ETH_GSTRING_LEN] = {
+static const char ethtool_driver_stats_keys[][ETH_GSTRING_LEN] =
+{
 	{"\n DRIVER STATISTICS"},
 	{"vpaths_opened"},
 	{"vpath_open_fail_cnt"},
@@ -52,9 +53,11 @@ static int vxge_ethtool_sset(struct net_device *dev, struct ethtool_cmd *info)
 {
 	/* We currently only support 10Gb/FULL */
 	if ((info->autoneg == AUTONEG_ENABLE) ||
-	    (ethtool_cmd_speed(info) != SPEED_10000) ||
-	    (info->duplex != DUPLEX_FULL))
+		(ethtool_cmd_speed(info) != SPEED_10000) ||
+		(info->duplex != DUPLEX_FULL))
+	{
 		return -EINVAL;
+	}
 
 	return 0;
 }
@@ -77,10 +80,13 @@ static int vxge_ethtool_gset(struct net_device *dev, struct ethtool_cmd *info)
 
 	info->transceiver = XCVR_EXTERNAL;
 
-	if (netif_carrier_ok(dev)) {
+	if (netif_carrier_ok(dev))
+	{
 		ethtool_cmd_speed_set(info, SPEED_10000);
 		info->duplex = DUPLEX_FULL;
-	} else {
+	}
+	else
+	{
 		ethtool_cmd_speed_set(info, SPEED_UNKNOWN);
 		info->duplex = DUPLEX_UNKNOWN;
 	}
@@ -98,7 +104,7 @@ static int vxge_ethtool_gset(struct net_device *dev, struct ethtool_cmd *info)
  * Returns driver specefic information like name, version etc.. to ethtool.
  */
 static void vxge_ethtool_gdrvinfo(struct net_device *dev,
-				  struct ethtool_drvinfo *info)
+								  struct ethtool_drvinfo *info)
 {
 	struct vxgedev *vdev = netdev_priv(dev);
 	strlcpy(info->driver, VXGE_DRIVER_NAME, sizeof(info->driver));
@@ -118,7 +124,7 @@ static void vxge_ethtool_gdrvinfo(struct net_device *dev,
  * buffer area.
  */
 static void vxge_ethtool_gregs(struct net_device *dev,
-			       struct ethtool_regs *regs, void *space)
+							   struct ethtool_regs *regs, void *space)
 {
 	int index, offset;
 	enum vxge_hw_status status;
@@ -129,19 +135,25 @@ static void vxge_ethtool_gregs(struct net_device *dev,
 
 	regs->len = sizeof(struct vxge_hw_vpath_reg) * vdev->no_of_vpath;
 	regs->version = vdev->pdev->subsystem_device;
-	for (index = 0; index < vdev->no_of_vpath; index++) {
+
+	for (index = 0; index < vdev->no_of_vpath; index++)
+	{
 		for (offset = 0; offset < sizeof(struct vxge_hw_vpath_reg);
-				offset += 8) {
+			 offset += 8)
+		{
 			status = vxge_hw_mgmt_reg_read(hldev,
-					vxge_hw_mgmt_reg_type_vpath,
-					vdev->vpaths[index].device_id,
-					offset, &reg);
-			if (status != VXGE_HW_OK) {
+										   vxge_hw_mgmt_reg_type_vpath,
+										   vdev->vpaths[index].device_id,
+										   offset, &reg);
+
+			if (status != VXGE_HW_OK)
+			{
 				vxge_debug_init(VXGE_ERR,
-					"%s:%d Getting reg dump Failed",
-						__func__, __LINE__);
+								"%s:%d Getting reg dump Failed",
+								__func__, __LINE__);
 				return;
 			}
+
 			*reg_space++ = reg;
 		}
 	}
@@ -156,22 +168,23 @@ static void vxge_ethtool_gregs(struct net_device *dev,
  * 0 on success
  */
 static int vxge_ethtool_idnic(struct net_device *dev,
-			      enum ethtool_phys_id_state state)
+							  enum ethtool_phys_id_state state)
 {
 	struct vxgedev *vdev = netdev_priv(dev);
 	struct __vxge_hw_device *hldev = vdev->devh;
 
-	switch (state) {
-	case ETHTOOL_ID_ACTIVE:
-		vxge_hw_device_flick_link_led(hldev, VXGE_FLICKER_ON);
-		break;
+	switch (state)
+	{
+		case ETHTOOL_ID_ACTIVE:
+			vxge_hw_device_flick_link_led(hldev, VXGE_FLICKER_ON);
+			break;
 
-	case ETHTOOL_ID_INACTIVE:
-		vxge_hw_device_flick_link_led(hldev, VXGE_FLICKER_OFF);
-		break;
+		case ETHTOOL_ID_INACTIVE:
+			vxge_hw_device_flick_link_led(hldev, VXGE_FLICKER_OFF);
+			break;
 
-	default:
-		return -EINVAL;
+		default:
+			return -EINVAL;
 	}
 
 	return 0;
@@ -187,7 +200,7 @@ static int vxge_ethtool_idnic(struct net_device *dev,
  *  void
  */
 static void vxge_ethtool_getpause_data(struct net_device *dev,
-				       struct ethtool_pauseparam *ep)
+									   struct ethtool_pauseparam *ep)
 {
 	struct vxgedev *vdev = netdev_priv(dev);
 	struct __vxge_hw_device *hldev = vdev->devh;
@@ -206,7 +219,7 @@ static void vxge_ethtool_getpause_data(struct net_device *dev,
  * int, returns 0 on Success
  */
 static int vxge_ethtool_setpause_data(struct net_device *dev,
-				      struct ethtool_pauseparam *ep)
+									  struct ethtool_pauseparam *ep)
 {
 	struct vxgedev *vdev = netdev_priv(dev);
 	struct __vxge_hw_device *hldev = vdev->devh;
@@ -220,7 +233,7 @@ static int vxge_ethtool_setpause_data(struct net_device *dev,
 }
 
 static void vxge_get_ethtool_stats(struct net_device *dev,
-				   struct ethtool_stats *estats, u64 *tmp_stats)
+								   struct ethtool_stats *estats, u64 *tmp_stats)
 {
 	int j, k;
 	enum vxge_hw_status status;
@@ -235,70 +248,87 @@ static void vxge_get_ethtool_stats(struct net_device *dev,
 	u64 *ptr = tmp_stats;
 
 	memset(tmp_stats, 0,
-		vxge_ethtool_get_sset_count(dev, ETH_SS_STATS) * sizeof(u64));
+		   vxge_ethtool_get_sset_count(dev, ETH_SS_STATS) * sizeof(u64));
 
 	xmac_stats = kzalloc(sizeof(struct vxge_hw_xmac_stats), GFP_KERNEL);
-	if (xmac_stats == NULL) {
+
+	if (xmac_stats == NULL)
+	{
 		vxge_debug_init(VXGE_ERR,
-			"%s : %d Memory Allocation failed for xmac_stats",
-				 __func__, __LINE__);
+						"%s : %d Memory Allocation failed for xmac_stats",
+						__func__, __LINE__);
 		return;
 	}
 
 	sw_stats = kzalloc(sizeof(struct vxge_hw_device_stats_sw_info),
-				GFP_KERNEL);
-	if (sw_stats == NULL) {
+					   GFP_KERNEL);
+
+	if (sw_stats == NULL)
+	{
 		kfree(xmac_stats);
 		vxge_debug_init(VXGE_ERR,
-			"%s : %d Memory Allocation failed for sw_stats",
-			__func__, __LINE__);
+						"%s : %d Memory Allocation failed for sw_stats",
+						__func__, __LINE__);
 		return;
 	}
 
 	hw_stats = kzalloc(sizeof(struct vxge_hw_device_stats_hw_info),
-				GFP_KERNEL);
-	if (hw_stats == NULL) {
+					   GFP_KERNEL);
+
+	if (hw_stats == NULL)
+	{
 		kfree(xmac_stats);
 		kfree(sw_stats);
 		vxge_debug_init(VXGE_ERR,
-			"%s : %d Memory Allocation failed for hw_stats",
-			__func__, __LINE__);
+						"%s : %d Memory Allocation failed for hw_stats",
+						__func__, __LINE__);
 		return;
 	}
 
 	*ptr++ = 0;
 	status = vxge_hw_device_xmac_stats_get(hldev, xmac_stats);
-	if (status != VXGE_HW_OK) {
-		if (status != VXGE_HW_ERR_PRIVILAGED_OPEARATION) {
+
+	if (status != VXGE_HW_OK)
+	{
+		if (status != VXGE_HW_ERR_PRIVILAGED_OPEARATION)
+		{
 			vxge_debug_init(VXGE_ERR,
-				"%s : %d Failure in getting xmac stats",
-				__func__, __LINE__);
+							"%s : %d Failure in getting xmac stats",
+							__func__, __LINE__);
 		}
 	}
+
 	swstatus = vxge_hw_driver_stats_get(hldev, sw_stats);
-	if (swstatus != VXGE_HW_OK) {
+
+	if (swstatus != VXGE_HW_OK)
+	{
 		vxge_debug_init(VXGE_ERR,
-			"%s : %d Failure in getting sw stats",
-			__func__, __LINE__);
+						"%s : %d Failure in getting sw stats",
+						__func__, __LINE__);
 	}
 
 	status = vxge_hw_device_stats_get(hldev, hw_stats);
-	if (status != VXGE_HW_OK) {
+
+	if (status != VXGE_HW_OK)
+	{
 		vxge_debug_init(VXGE_ERR,
-			"%s : %d hw_stats_get error", __func__, __LINE__);
+						"%s : %d hw_stats_get error", __func__, __LINE__);
 	}
 
-	for (k = 0; k < vdev->no_of_vpath; k++) {
+	for (k = 0; k < vdev->no_of_vpath; k++)
+	{
 		struct vxge_hw_vpath_stats_hw_info *vpath_info;
 
 		vpath = &vdev->vpaths[k];
 		j = vpath->device_id;
 		vpath_info = hw_stats->vpath_info[j];
-		if (!vpath_info) {
+
+		if (!vpath_info)
+		{
 			memset(ptr, 0, (VXGE_HW_VPATH_TX_STATS_LEN +
-				VXGE_HW_VPATH_RX_STATS_LEN) * sizeof(u64));
+							VXGE_HW_VPATH_RX_STATS_LEN) * sizeof(u64));
 			ptr += (VXGE_HW_VPATH_TX_STATS_LEN +
-				VXGE_HW_VPATH_RX_STATS_LEN);
+					VXGE_HW_VPATH_RX_STATS_LEN);
 			continue;
 		}
 
@@ -364,8 +394,11 @@ static void vxge_get_ethtool_stats(struct net_device *dev,
 		*ptr++ = vpath_info->rx_stats.rx_queue_full_discard;
 		*ptr++ = vpath_info->rx_stats.rx_mpa_ok_frms;
 	}
+
 	*ptr++ = 0;
-	for (k = 0; k < vdev->max_config_port; k++) {
+
+	for (k = 0; k < vdev->max_config_port; k++)
+	{
 		*ptr++ = xmac_stats->aggr_stats[k].tx_frms;
 		*ptr++ = xmac_stats->aggr_stats[k].tx_data_octets;
 		*ptr++ = xmac_stats->aggr_stats[k].tx_mcast_frms;
@@ -380,8 +413,11 @@ static void vxge_get_ethtool_stats(struct net_device *dev,
 		*ptr++ = xmac_stats->aggr_stats[k].rx_errored_frms;
 		*ptr++ = xmac_stats->aggr_stats[k].rx_unknown_slow_proto_frms;
 	}
+
 	*ptr++ = 0;
-	for (k = 0; k < vdev->max_config_port; k++) {
+
+	for (k = 0; k < vdev->max_config_port; k++)
+	{
 		*ptr++ = xmac_stats->port_stats[k].tx_ttl_frms;
 		*ptr++ = xmac_stats->port_stats[k].tx_ttl_octets;
 		*ptr++ = xmac_stats->port_stats[k].tx_data_octets;
@@ -479,13 +515,15 @@ static void vxge_get_ethtool_stats(struct net_device *dev,
 	}
 
 	*ptr++ = 0;
-	for (k = 0; k < vdev->no_of_vpath; k++) {
+
+	for (k = 0; k < vdev->no_of_vpath; k++)
+	{
 		struct vxge_hw_vpath_stats_sw_info *vpath_info;
 
 		vpath = &vdev->vpaths[k];
 		j = vpath->device_id;
 		vpath_info = (struct vxge_hw_vpath_stats_sw_info *)
-				&sw_stats->vpath_info[j];
+					 &sw_stats->vpath_info[j];
 		*ptr++ = vpath_info->soft_reset_cnt;
 		*ptr++ = vpath_info->error_stats.unknown_alarms;
 		*ptr++ = vpath_info->error_stats.network_sustained_fault;
@@ -506,33 +544,45 @@ static void vxge_get_ethtool_stats(struct net_device *dev,
 		*ptr++ = vpath_info->ring_stats.common_stats.usage_cnt;
 		*ptr++ = vpath_info->ring_stats.common_stats.usage_max;
 		*ptr++ = vpath_info->ring_stats.common_stats.
-					reserve_free_swaps_cnt;
+				 reserve_free_swaps_cnt;
 		*ptr++ = vpath_info->ring_stats.common_stats.total_compl_cnt;
+
 		for (j = 0; j < VXGE_HW_DTR_MAX_T_CODE; j++)
+		{
 			*ptr++ = vpath_info->ring_stats.rxd_t_code_err_cnt[j];
+		}
+
 		*ptr++ = vpath_info->fifo_stats.common_stats.full_cnt;
 		*ptr++ = vpath_info->fifo_stats.common_stats.usage_cnt;
 		*ptr++ = vpath_info->fifo_stats.common_stats.usage_max;
 		*ptr++ = vpath_info->fifo_stats.common_stats.
-						reserve_free_swaps_cnt;
+				 reserve_free_swaps_cnt;
 		*ptr++ = vpath_info->fifo_stats.common_stats.total_compl_cnt;
 		*ptr++ = vpath_info->fifo_stats.total_posts;
 		*ptr++ = vpath_info->fifo_stats.total_buffers;
+
 		for (j = 0; j < VXGE_HW_DTR_MAX_T_CODE; j++)
+		{
 			*ptr++ = vpath_info->fifo_stats.txd_t_code_err_cnt[j];
+		}
 	}
 
 	*ptr++ = 0;
-	for (k = 0; k < vdev->no_of_vpath; k++) {
+
+	for (k = 0; k < vdev->no_of_vpath; k++)
+	{
 		struct vxge_hw_vpath_stats_hw_info *vpath_info;
 		vpath = &vdev->vpaths[k];
 		j = vpath->device_id;
 		vpath_info = hw_stats->vpath_info[j];
-		if (!vpath_info) {
+
+		if (!vpath_info)
+		{
 			memset(ptr, 0, VXGE_HW_VPATH_STATS_LEN * sizeof(u64));
 			ptr += VXGE_HW_VPATH_STATS_LEN;
 			continue;
 		}
+
 		*ptr++ = vpath_info->ini_num_mwr_sent;
 		*ptr++ = vpath_info->ini_num_mrd_sent;
 		*ptr++ = vpath_info->ini_num_cpl_rcvd;
@@ -568,7 +618,8 @@ static void vxge_get_ethtool_stats(struct net_device *dev,
 	*ptr++ = vdev->stats.link_up;
 	*ptr++ = vdev->stats.link_down;
 
-	for (k = 0; k < vdev->no_of_vpath; k++) {
+	for (k = 0; k < vdev->no_of_vpath; k++)
+	{
 		*ptr += vdev->vpaths[k].fifo.stats.tx_frms;
 		*(ptr + 1) += vdev->vpaths[k].fifo.stats.tx_errors;
 		*(ptr + 2) += vdev->vpaths[k].fifo.stats.tx_bytes;
@@ -579,7 +630,7 @@ static void vxge_get_ethtool_stats(struct net_device *dev,
 		*(ptr + 7) += vdev->vpaths[k].ring.stats.rx_bytes;
 		*(ptr + 8) += vdev->vpaths[k].ring.stats.rx_mcast;
 		*(ptr + 9) += vdev->vpaths[k].fifo.stats.pci_map_fail +
-				vdev->vpaths[k].ring.stats.pci_map_fail;
+					  vdev->vpaths[k].ring.stats.pci_map_fail;
 		*(ptr + 10) += vdev->vpaths[k].ring.stats.skb_alloc_fail;
 	}
 
@@ -591,492 +642,507 @@ static void vxge_get_ethtool_stats(struct net_device *dev,
 }
 
 static void vxge_ethtool_get_strings(struct net_device *dev, u32 stringset,
-				     u8 *data)
+									 u8 *data)
 {
 	int stat_size = 0;
 	int i, j;
 	struct vxgedev *vdev = netdev_priv(dev);
-	switch (stringset) {
-	case ETH_SS_STATS:
-		vxge_add_string("VPATH STATISTICS%s\t\t\t",
-			&stat_size, data, "");
-		for (i = 0; i < vdev->no_of_vpath; i++) {
-			vxge_add_string("tx_ttl_eth_frms_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("tx_ttl_eth_octects_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("tx_data_octects_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("tx_mcast_frms_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("tx_bcast_frms_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("tx_ucast_frms_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("tx_tagged_frms_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("tx_vld_ip_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("tx_vld_ip_octects_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("tx_icmp_%d\t\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("tx_tcp_%d\t\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("tx_rst_tcp_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("tx_udp_%d\t\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("tx_unknown_proto_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("tx_lost_ip_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("tx_parse_error_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("tx_tcp_offload_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("tx_retx_tcp_offload_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("tx_lost_ip_offload_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_ttl_eth_frms_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_vld_frms_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_offload_frms_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_ttl_eth_octects_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_data_octects_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_offload_octects_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_vld_mcast_frms_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_vld_bcast_frms_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_accepted_ucast_frms_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_accepted_nucast_frms_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_tagged_frms_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_long_frms_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_usized_frms_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_osized_frms_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_frag_frms_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_jabber_frms_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_ttl_64_frms_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_ttl_65_127_frms_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_ttl_128_255_frms_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_ttl_256_511_frms_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_ttl_512_1023_frms_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_ttl_1024_1518_frms_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_ttl_1519_4095_frms_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_ttl_4096_8191_frms_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_ttl_8192_max_frms_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_ttl_gt_max_frms_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_ip%d\t\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_accepted_ip_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_ip_octects_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_err_ip_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_icmp_%d\t\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_tcp_%d\t\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_udp_%d\t\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_err_tcp_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_lost_frms_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_lost_ip_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_lost_ip_offload_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_various_discard_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_sleep_discard_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_red_discard_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_queue_full_discard_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_mpa_ok_frms_%d\t\t\t",
-					&stat_size, data, i);
-		}
 
-		vxge_add_string("\nAGGR STATISTICS%s\t\t\t\t",
-			&stat_size, data, "");
-		for (i = 0; i < vdev->max_config_port; i++) {
-			vxge_add_string("tx_frms_%d\t\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_data_octects_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_mcast_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_bcast_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_discarded_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_errored_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_frms_%d\t\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_data_octects_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_mcast_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_bcast_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_discarded_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_errored_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_unknown_slow_proto_frms_%d\t",
-				&stat_size, data, i);
-		}
+	switch (stringset)
+	{
+		case ETH_SS_STATS:
+			vxge_add_string("VPATH STATISTICS%s\t\t\t",
+							&stat_size, data, "");
 
-		vxge_add_string("\nPORT STATISTICS%s\t\t\t\t",
-			&stat_size, data, "");
-		for (i = 0; i < vdev->max_config_port; i++) {
-			vxge_add_string("tx_ttl_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_ttl_octects_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_data_octects_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_mcast_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_bcast_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_ucast_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_tagged_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_vld_ip_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_vld_ip_octects_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_icmp_%d\t\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_tcp_%d\t\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_rst_tcp_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_udp_%d\t\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_parse_error_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_unknown_protocol_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_pause_ctrl_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_marker_pdu_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_lacpdu_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_drop_ip_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_marker_resp_pdu_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_xgmii_char2_match_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_xgmii_char1_match_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_xgmii_column2_match_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_xgmii_column1_match_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_any_err_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("tx_drop_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_ttl_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_vld_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_offload_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_ttl_octects_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_data_octects_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_offload_octects_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_vld_mcast_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_vld_bcast_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_accepted_ucast_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_accepted_nucast_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_tagged_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_long_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_usized_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_osized_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_frag_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_jabber_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_ttl_64_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_ttl_65_127_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_ttl_128_255_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_ttl_256_511_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_ttl_512_1023_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_ttl_1024_1518_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_ttl_1519_4095_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_ttl_4096_8191_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_ttl_8192_max_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_ttl_gt_max_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_ip_%d\t\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_accepted_ip_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_ip_octets_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_err_ip_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_icmp_%d\t\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_tcp_%d\t\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_udp_%d\t\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_err_tcp_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_pause_count_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_pause_ctrl_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_unsup_ctrl_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_fcs_err_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_in_rng_len_err_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_out_rng_len_err_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_drop_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_discard_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_drop_ip_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_drop_udp_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_marker_pdu_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_lacpdu_frms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_unknown_pdu_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_marker_resp_pdu_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_fcs_discard_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_illegal_pdu_frms_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_switch_discard_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_len_discard_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_rpa_discard_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_l2_mgmt_discard_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_rts_discard_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_trash_discard_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_buff_full_discard_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_red_discard_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_xgmii_ctrl_err_cnt_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_xgmii_data_err_cnt_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_xgmii_char1_match_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_xgmii_err_sym_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_xgmii_column1_match_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_xgmii_char2_match_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_local_fault_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_xgmii_column2_match_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_jettison_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("rx_remote_fault_%d\t\t\t",
-				&stat_size, data, i);
-		}
+			for (i = 0; i < vdev->no_of_vpath; i++)
+			{
+				vxge_add_string("tx_ttl_eth_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_ttl_eth_octects_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_data_octects_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_mcast_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_bcast_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_ucast_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_tagged_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_vld_ip_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_vld_ip_octects_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_icmp_%d\t\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_tcp_%d\t\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_rst_tcp_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_udp_%d\t\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_unknown_proto_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_lost_ip_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_parse_error_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_tcp_offload_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_retx_tcp_offload_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_lost_ip_offload_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ttl_eth_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_vld_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_offload_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ttl_eth_octects_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_data_octects_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_offload_octects_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_vld_mcast_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_vld_bcast_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_accepted_ucast_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_accepted_nucast_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_tagged_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_long_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_usized_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_osized_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_frag_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_jabber_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ttl_64_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ttl_65_127_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ttl_128_255_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ttl_256_511_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ttl_512_1023_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ttl_1024_1518_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ttl_1519_4095_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ttl_4096_8191_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ttl_8192_max_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ttl_gt_max_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ip%d\t\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_accepted_ip_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ip_octects_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_err_ip_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_icmp_%d\t\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_tcp_%d\t\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_udp_%d\t\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_err_tcp_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_lost_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_lost_ip_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_lost_ip_offload_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_various_discard_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_sleep_discard_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_red_discard_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_queue_full_discard_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_mpa_ok_frms_%d\t\t\t",
+								&stat_size, data, i);
+			}
 
-		vxge_add_string("\n SOFTWARE STATISTICS%s\t\t\t",
-			&stat_size, data, "");
-		for (i = 0; i < vdev->no_of_vpath; i++) {
-			vxge_add_string("soft_reset_cnt_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("unknown_alarms_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("network_sustained_fault_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("network_sustained_ok_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("kdfcctl_fifo0_overwrite_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("kdfcctl_fifo0_poison_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("kdfcctl_fifo0_dma_error_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("dblgen_fifo0_overflow_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("statsb_pif_chain_error_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("statsb_drop_timeout_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("target_illegal_access_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("ini_serr_det_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("prc_ring_bumps_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("prc_rxdcm_sc_err_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("prc_rxdcm_sc_abort_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("prc_quanta_size_err_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("ring_full_cnt_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("ring_usage_cnt_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("ring_usage_max_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("ring_reserve_free_swaps_cnt_%d\t",
-				&stat_size, data, i);
-			vxge_add_string("ring_total_compl_cnt_%d\t\t",
-				&stat_size, data, i);
-			for (j = 0; j < VXGE_HW_DTR_MAX_T_CODE; j++)
-				vxge_add_string("rxd_t_code_err_cnt%d_%d\t\t",
-					&stat_size, data, j, i);
-			vxge_add_string("fifo_full_cnt_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("fifo_usage_cnt_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("fifo_usage_max_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("fifo_reserve_free_swaps_cnt_%d\t",
-				&stat_size, data, i);
-			vxge_add_string("fifo_total_compl_cnt_%d\t\t",
-				&stat_size, data, i);
-			vxge_add_string("fifo_total_posts_%d\t\t\t",
-				&stat_size, data, i);
-			vxge_add_string("fifo_total_buffers_%d\t\t",
-				&stat_size, data, i);
-			for (j = 0; j < VXGE_HW_DTR_MAX_T_CODE; j++)
-				vxge_add_string("txd_t_code_err_cnt%d_%d\t\t",
-					&stat_size, data, j, i);
-		}
+			vxge_add_string("\nAGGR STATISTICS%s\t\t\t\t",
+							&stat_size, data, "");
 
-		vxge_add_string("\n HARDWARE STATISTICS%s\t\t\t",
-				&stat_size, data, "");
-		for (i = 0; i < vdev->no_of_vpath; i++) {
-			vxge_add_string("ini_num_mwr_sent_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("ini_num_mrd_sent_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("ini_num_cpl_rcvd_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("ini_num_mwr_byte_sent_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("ini_num_cpl_byte_rcvd_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("wrcrdtarb_xoff_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rdcrdtarb_xoff_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("vpath_genstats_count0_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("vpath_genstats_count1_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("vpath_genstats_count2_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("vpath_genstats_count3_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("vpath_genstats_count4_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("vpath_genstats_count5_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("prog_event_vnum0_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("prog_event_vnum1_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("prog_event_vnum2_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("prog_event_vnum3_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_multi_cast_frame_discard_%d\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_frm_transferred_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rxd_returned_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_mpa_len_fail_frms_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_mpa_mrk_fail_frms_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_mpa_crc_fail_frms_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_permitted_frms_%d\t\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_vp_reset_discarded_frms_%d\t",
-					&stat_size, data, i);
-			vxge_add_string("rx_wol_frms_%d\t\t\t",
-					&stat_size, data, i);
-			vxge_add_string("tx_vp_reset_discarded_frms_%d\t",
-					&stat_size, data, i);
-		}
+			for (i = 0; i < vdev->max_config_port; i++)
+			{
+				vxge_add_string("tx_frms_%d\t\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_data_octects_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_mcast_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_bcast_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_discarded_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_errored_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_frms_%d\t\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_data_octects_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_mcast_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_bcast_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_discarded_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_errored_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_unknown_slow_proto_frms_%d\t",
+								&stat_size, data, i);
+			}
 
-		memcpy(data + stat_size, &ethtool_driver_stats_keys,
-			sizeof(ethtool_driver_stats_keys));
+			vxge_add_string("\nPORT STATISTICS%s\t\t\t\t",
+							&stat_size, data, "");
+
+			for (i = 0; i < vdev->max_config_port; i++)
+			{
+				vxge_add_string("tx_ttl_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_ttl_octects_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_data_octects_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_mcast_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_bcast_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_ucast_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_tagged_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_vld_ip_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_vld_ip_octects_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_icmp_%d\t\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_tcp_%d\t\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_rst_tcp_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_udp_%d\t\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_parse_error_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_unknown_protocol_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_pause_ctrl_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_marker_pdu_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_lacpdu_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_drop_ip_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_marker_resp_pdu_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_xgmii_char2_match_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_xgmii_char1_match_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_xgmii_column2_match_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_xgmii_column1_match_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_any_err_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_drop_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ttl_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_vld_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_offload_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ttl_octects_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_data_octects_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_offload_octects_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_vld_mcast_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_vld_bcast_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_accepted_ucast_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_accepted_nucast_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_tagged_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_long_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_usized_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_osized_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_frag_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_jabber_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ttl_64_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ttl_65_127_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ttl_128_255_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ttl_256_511_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ttl_512_1023_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ttl_1024_1518_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ttl_1519_4095_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ttl_4096_8191_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ttl_8192_max_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ttl_gt_max_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ip_%d\t\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_accepted_ip_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_ip_octets_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_err_ip_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_icmp_%d\t\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_tcp_%d\t\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_udp_%d\t\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_err_tcp_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_pause_count_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_pause_ctrl_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_unsup_ctrl_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_fcs_err_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_in_rng_len_err_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_out_rng_len_err_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_drop_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_discard_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_drop_ip_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_drop_udp_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_marker_pdu_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_lacpdu_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_unknown_pdu_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_marker_resp_pdu_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_fcs_discard_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_illegal_pdu_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_switch_discard_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_len_discard_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_rpa_discard_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_l2_mgmt_discard_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_rts_discard_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_trash_discard_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_buff_full_discard_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_red_discard_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_xgmii_ctrl_err_cnt_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_xgmii_data_err_cnt_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_xgmii_char1_match_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_xgmii_err_sym_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_xgmii_column1_match_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_xgmii_char2_match_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_local_fault_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_xgmii_column2_match_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_jettison_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_remote_fault_%d\t\t\t",
+								&stat_size, data, i);
+			}
+
+			vxge_add_string("\n SOFTWARE STATISTICS%s\t\t\t",
+							&stat_size, data, "");
+
+			for (i = 0; i < vdev->no_of_vpath; i++)
+			{
+				vxge_add_string("soft_reset_cnt_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("unknown_alarms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("network_sustained_fault_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("network_sustained_ok_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("kdfcctl_fifo0_overwrite_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("kdfcctl_fifo0_poison_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("kdfcctl_fifo0_dma_error_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("dblgen_fifo0_overflow_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("statsb_pif_chain_error_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("statsb_drop_timeout_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("target_illegal_access_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("ini_serr_det_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("prc_ring_bumps_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("prc_rxdcm_sc_err_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("prc_rxdcm_sc_abort_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("prc_quanta_size_err_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("ring_full_cnt_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("ring_usage_cnt_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("ring_usage_max_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("ring_reserve_free_swaps_cnt_%d\t",
+								&stat_size, data, i);
+				vxge_add_string("ring_total_compl_cnt_%d\t\t",
+								&stat_size, data, i);
+
+				for (j = 0; j < VXGE_HW_DTR_MAX_T_CODE; j++)
+					vxge_add_string("rxd_t_code_err_cnt%d_%d\t\t",
+									&stat_size, data, j, i);
+
+				vxge_add_string("fifo_full_cnt_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("fifo_usage_cnt_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("fifo_usage_max_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("fifo_reserve_free_swaps_cnt_%d\t",
+								&stat_size, data, i);
+				vxge_add_string("fifo_total_compl_cnt_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("fifo_total_posts_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("fifo_total_buffers_%d\t\t",
+								&stat_size, data, i);
+
+				for (j = 0; j < VXGE_HW_DTR_MAX_T_CODE; j++)
+					vxge_add_string("txd_t_code_err_cnt%d_%d\t\t",
+									&stat_size, data, j, i);
+			}
+
+			vxge_add_string("\n HARDWARE STATISTICS%s\t\t\t",
+							&stat_size, data, "");
+
+			for (i = 0; i < vdev->no_of_vpath; i++)
+			{
+				vxge_add_string("ini_num_mwr_sent_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("ini_num_mrd_sent_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("ini_num_cpl_rcvd_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("ini_num_mwr_byte_sent_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("ini_num_cpl_byte_rcvd_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("wrcrdtarb_xoff_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rdcrdtarb_xoff_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("vpath_genstats_count0_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("vpath_genstats_count1_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("vpath_genstats_count2_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("vpath_genstats_count3_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("vpath_genstats_count4_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("vpath_genstats_count5_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("prog_event_vnum0_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("prog_event_vnum1_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("prog_event_vnum2_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("prog_event_vnum3_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_multi_cast_frame_discard_%d\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_frm_transferred_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rxd_returned_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_mpa_len_fail_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_mpa_mrk_fail_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_mpa_crc_fail_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_permitted_frms_%d\t\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_vp_reset_discarded_frms_%d\t",
+								&stat_size, data, i);
+				vxge_add_string("rx_wol_frms_%d\t\t\t",
+								&stat_size, data, i);
+				vxge_add_string("tx_vp_reset_discarded_frms_%d\t",
+								&stat_size, data, i);
+			}
+
+			memcpy(data + stat_size, &ethtool_driver_stats_keys,
+				   sizeof(ethtool_driver_stats_keys));
 	}
 }
 
@@ -1091,18 +1157,20 @@ static int vxge_ethtool_get_sset_count(struct net_device *dev, int sset)
 {
 	struct vxgedev *vdev = netdev_priv(dev);
 
-	switch (sset) {
-	case ETH_SS_STATS:
-		return VXGE_TITLE_LEN +
-			(vdev->no_of_vpath * VXGE_HW_VPATH_STATS_LEN) +
-			(vdev->max_config_port * VXGE_HW_AGGR_STATS_LEN) +
-			(vdev->max_config_port * VXGE_HW_PORT_STATS_LEN) +
-			(vdev->no_of_vpath * VXGE_HW_VPATH_TX_STATS_LEN) +
-			(vdev->no_of_vpath * VXGE_HW_VPATH_RX_STATS_LEN) +
-			(vdev->no_of_vpath * VXGE_SW_STATS_LEN) +
-			DRIVER_STAT_LEN;
-	default:
-		return -EOPNOTSUPP;
+	switch (sset)
+	{
+		case ETH_SS_STATS:
+			return VXGE_TITLE_LEN +
+				   (vdev->no_of_vpath * VXGE_HW_VPATH_STATS_LEN) +
+				   (vdev->max_config_port * VXGE_HW_AGGR_STATS_LEN) +
+				   (vdev->max_config_port * VXGE_HW_PORT_STATS_LEN) +
+				   (vdev->no_of_vpath * VXGE_HW_VPATH_TX_STATS_LEN) +
+				   (vdev->no_of_vpath * VXGE_HW_VPATH_RX_STATS_LEN) +
+				   (vdev->no_of_vpath * VXGE_SW_STATS_LEN) +
+				   DRIVER_STAT_LEN;
+
+		default:
+			return -EOPNOTSUPP;
 	}
 }
 
@@ -1110,22 +1178,25 @@ static int vxge_fw_flash(struct net_device *dev, struct ethtool_flash *parms)
 {
 	struct vxgedev *vdev = netdev_priv(dev);
 
-	if (vdev->max_vpath_supported != VXGE_HW_MAX_VIRTUAL_PATHS) {
+	if (vdev->max_vpath_supported != VXGE_HW_MAX_VIRTUAL_PATHS)
+	{
 		printk(KERN_INFO "Single Function Mode is required to flash the"
-		       " firmware\n");
+			   " firmware\n");
 		return -EINVAL;
 	}
 
-	if (netif_running(dev)) {
+	if (netif_running(dev))
+	{
 		printk(KERN_INFO "Interface %s must be down to flash the "
-		       "firmware\n", dev->name);
+			   "firmware\n", dev->name);
 		return -EBUSY;
 	}
 
 	return vxge_fw_upgrade(vdev, parms->data, 1);
 }
 
-static const struct ethtool_ops vxge_ethtool_ops = {
+static const struct ethtool_ops vxge_ethtool_ops =
+{
 	.get_settings		= vxge_ethtool_gset,
 	.set_settings		= vxge_ethtool_sset,
 	.get_drvinfo		= vxge_ethtool_gdrvinfo,

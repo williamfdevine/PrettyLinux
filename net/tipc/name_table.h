@@ -66,7 +66,8 @@ struct tipc_plist;
  *
  * Note that the node list, cluster list, and zone list are circular lists.
  */
-struct publication {
+struct publication
+{
 	u32 type;
 	u32 lower;
 	u32 upper;
@@ -89,7 +90,8 @@ struct publication {
  * @publ_list: pulication lists
  * @local_publ_count: number of publications issued by this node
  */
-struct name_table {
+struct name_table
+{
 	struct hlist_head seq_hlist[TIPC_NAMETBL_SIZE];
 	struct list_head publ_list[TIPC_PUBL_SCOPE_NUM];
 	u32 local_publ_count;
@@ -99,24 +101,25 @@ int tipc_nl_name_table_dump(struct sk_buff *skb, struct netlink_callback *cb);
 
 u32 tipc_nametbl_translate(struct net *net, u32 type, u32 instance, u32 *node);
 int tipc_nametbl_mc_translate(struct net *net, u32 type, u32 lower, u32 upper,
-			      u32 limit, struct tipc_plist *dports);
+							  u32 limit, struct tipc_plist *dports);
 struct publication *tipc_nametbl_publish(struct net *net, u32 type, u32 lower,
-					 u32 upper, u32 scope, u32 port_ref,
-					 u32 key);
+		u32 upper, u32 scope, u32 port_ref,
+		u32 key);
 int tipc_nametbl_withdraw(struct net *net, u32 type, u32 lower, u32 ref,
-			  u32 key);
+						  u32 key);
 struct publication *tipc_nametbl_insert_publ(struct net *net, u32 type,
-					     u32 lower, u32 upper, u32 scope,
-					     u32 node, u32 ref, u32 key);
+		u32 lower, u32 upper, u32 scope,
+		u32 node, u32 ref, u32 key);
 struct publication *tipc_nametbl_remove_publ(struct net *net, u32 type,
-					     u32 lower, u32 node, u32 ref,
-					     u32 key);
+		u32 lower, u32 node, u32 ref,
+		u32 key);
 void tipc_nametbl_subscribe(struct tipc_subscription *s);
 void tipc_nametbl_unsubscribe(struct tipc_subscription *s);
 int tipc_nametbl_init(struct net *net);
 void tipc_nametbl_stop(struct net *net);
 
-struct tipc_plist {
+struct tipc_plist
+{
 	struct list_head list;
 	u32 port;
 };

@@ -26,7 +26,8 @@
 
 #define SERIAL_RECV_DESCRIPTORS 8
 
-struct etrax_recv_buffer {
+struct etrax_recv_buffer
+{
 	struct etrax_recv_buffer *next;
 	unsigned short length;
 	unsigned char error;
@@ -35,7 +36,8 @@ struct etrax_recv_buffer {
 	unsigned char buffer[0];
 };
 
-struct e100_serial {
+struct e100_serial
+{
 	struct tty_port port;
 	int baud;
 	volatile u8	*ioport;	/* R_SERIALx_CTRL */

@@ -58,12 +58,16 @@ static char *getrev(const char *revision)
 	char *rev;
 	char *p;
 
-	if ((p = strchr(revision, ':'))) {
+	if ((p = strchr(revision, ':')))
+	{
 		rev = p + 2;
 		p = strchr(rev, '$');
 		*--p = 0;
-	} else
+	}
+	else
+	{
 		rev = "1.0";
+	}
 
 	return rev;
 }
@@ -72,12 +76,12 @@ static char *getrev(const char *revision)
  * kernel/user space copy functions
  */
 int diva_os_copy_to_user(void *os_handle, void __user *dst, const void *src,
-			 int length)
+						 int length)
 {
 	return (copy_to_user(dst, src, length));
 }
 int diva_os_copy_from_user(void *os_handle, void *dst, const void __user *src,
-			   int length)
+						   int length)
 {
 	return (copy_from_user(dst, src, length));
 }
@@ -104,9 +108,12 @@ static unsigned int maint_poll(struct file *file, poll_table *wait)
 
 	poll_wait(file, &msgwaitq, wait);
 	mask = POLLOUT | POLLWRNORM;
-	if (file->private_data || diva_dbg_q_length()) {
+
+	if (file->private_data || diva_dbg_q_length())
+	{
 		mask |= POLLIN | POLLRDNORM;
 	}
+
 	return (mask);
 }
 
@@ -115,21 +122,27 @@ static int maint_open(struct inode *ino, struct file *filep)
 	int ret;
 
 	mutex_lock(&maint_mutex);
+
 	/* only one open is allowed, so we test
 	   it atomically */
 	if (test_and_set_bit(0, &opened))
+	{
 		ret = -EBUSY;
-	else {
+	}
+	else
+	{
 		filep->private_data = NULL;
 		ret = nonseekable_open(ino, filep);
 	}
+
 	mutex_unlock(&maint_mutex);
 	return ret;
 }
 
 static int maint_close(struct inode *ino, struct file *filep)
 {
-	if (filep->private_data) {
+	if (filep->private_data)
+	{
 		diva_os_free(0, filep->private_data);
 		filep->private_data = NULL;
 	}
@@ -141,18 +154,19 @@ static int maint_close(struct inode *ino, struct file *filep)
 }
 
 static ssize_t divas_maint_write(struct file *file, const char __user *buf,
-				 size_t count, loff_t *ppos)
+								 size_t count, loff_t *ppos)
 {
 	return (maint_read_write((char __user *) buf, (int) count));
 }
 
 static ssize_t divas_maint_read(struct file *file, char __user *buf,
-				size_t count, loff_t *ppos)
+								size_t count, loff_t *ppos)
 {
 	return (maint_read_write(buf, (int) count));
 }
 
-static const struct file_operations divas_maint_fops = {
+static const struct file_operations divas_maint_fops =
+{
 	.owner   = THIS_MODULE,
 	.llseek  = no_llseek,
 	.read    = divas_maint_read,
@@ -172,7 +186,7 @@ static int __init divas_maint_register_chrdev(void)
 	if ((major = register_chrdev(0, DEVNAME, &divas_maint_fops)) < 0)
 	{
 		printk(KERN_ERR "%s: failed to create /dev entry.\n",
-		       DRIVERLNAME);
+			   DRIVERLNAME);
 		return (0);
 	}
 
@@ -203,22 +217,24 @@ static int __init maint_init(void)
 	strcpy(tmprev, main_revision);
 	printk("%s  Build: %s \n", getrev(tmprev), DIVA_BUILD);
 
-	if (!divas_maint_register_chrdev()) {
+	if (!divas_maint_register_chrdev())
+	{
 		ret = -EIO;
 		goto out;
 	}
 
-	if (!(mntfunc_init(&buffer_length, &buffer, diva_dbg_mem))) {
+	if (!(mntfunc_init(&buffer_length, &buffer, diva_dbg_mem)))
+	{
 		printk(KERN_ERR "%s: failed to connect to DIDD.\n",
-		       DRIVERLNAME);
+			   DRIVERLNAME);
 		divas_maint_unregister_chrdev();
 		ret = -EIO;
 		goto out;
 	}
 
 	printk(KERN_INFO "%s: trace buffer = %p - %d kBytes, %s (Major: %d)\n",
-	       DRIVERLNAME, buffer, (buffer_length / 1024),
-	       (diva_dbg_mem == 0) ? "internal" : "external", major);
+		   DRIVERLNAME, buffer, (buffer_length / 1024),
+		   (diva_dbg_mem == 0) ? "internal" : "external", major);
 
 out:
 	return (ret);

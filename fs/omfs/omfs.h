@@ -7,7 +7,8 @@
 #include "omfs_fs.h"
 
 /* In-memory structures */
-struct omfs_sb_info {
+struct omfs_sb_info
+{
 	u64 s_num_blocks;
 	u64 s_bitmap_ino;
 	u64 s_root_ino;
@@ -40,7 +41,7 @@ static inline struct omfs_sb_info *OMFS_SB(struct super_block *sb)
 extern unsigned long omfs_count_free(struct super_block *sb);
 extern int omfs_allocate_block(struct super_block *sb, u64 block);
 extern int omfs_allocate_range(struct super_block *sb, int min_request,
-			int max_request, u64 *return_block, int *return_size);
+							   int max_request, u64 *return_block, int *return_size);
 extern int omfs_clear_range(struct super_block *sb, u64 block, int count);
 
 /* dir.c */
@@ -48,7 +49,7 @@ extern const struct file_operations omfs_dir_operations;
 extern const struct inode_operations omfs_dir_inops;
 extern int omfs_make_empty(struct inode *inode, struct super_block *sb);
 extern int omfs_is_bad(struct omfs_sb_info *sbi, struct omfs_header *header,
-			u64 fsblock);
+					   u64 fsblock);
 
 /* file.c */
 extern const struct file_operations omfs_file_operations;

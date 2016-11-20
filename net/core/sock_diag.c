@@ -21,11 +21,15 @@ static struct workqueue_struct *broadcast_wq;
 
 static u64 sock_gen_cookie(struct sock *sk)
 {
-	while (1) {
+	while (1)
+	{
 		u64 res = atomic64_read(&sk->sk_cookie);
 
 		if (res)
+		{
 			return res;
+		}
+
 		res = atomic64_inc_return(&sock_net(sk)->cookie_gen);
 		atomic64_cmpxchg(&sk->sk_cookie, 0, res);
 	}
@@ -36,11 +40,16 @@ int sock_diag_check_cookie(struct sock *sk, const __u32 *cookie)
 	u64 res;
 
 	if (cookie[0] == INET_DIAG_NOCOOKIE && cookie[1] == INET_DIAG_NOCOOKIE)
+	{
 		return 0;
+	}
 
 	res = sock_gen_cookie(sk);
+
 	if ((u32)res != cookie[0] || (u32)(res >> 32) != cookie[1])
+	{
 		return -ESTALE;
+	}
 
 	return 0;
 }
@@ -74,7 +83,7 @@ int sock_diag_put_meminfo(struct sock *sk, struct sk_buff *skb, int attrtype)
 EXPORT_SYMBOL_GPL(sock_diag_put_meminfo);
 
 int sock_diag_put_filterinfo(bool may_report_filterinfo, struct sock *sk,
-			     struct sk_buff *skb, int attrtype)
+							 struct sk_buff *skb, int attrtype)
 {
 	struct sock_fprog_kern *fprog;
 	struct sk_filter *filter;
@@ -82,24 +91,33 @@ int sock_diag_put_filterinfo(bool may_report_filterinfo, struct sock *sk,
 	unsigned int flen;
 	int err = 0;
 
-	if (!may_report_filterinfo) {
+	if (!may_report_filterinfo)
+	{
 		nla_reserve(skb, attrtype, 0);
 		return 0;
 	}
 
 	rcu_read_lock();
 	filter = rcu_dereference(sk->sk_filter);
+
 	if (!filter)
+	{
 		goto out;
+	}
 
 	fprog = filter->prog->orig_prog;
+
 	if (!fprog)
+	{
 		goto out;
+	}
 
 	flen = bpf_classic_proglen(fprog);
 
 	attr = nla_reserve(skb, attrtype, flen);
-	if (attr == NULL) {
+
+	if (attr == NULL)
+	{
 		err = -EMSGSIZE;
 		goto out;
 	}
@@ -111,7 +129,8 @@ out:
 }
 EXPORT_SYMBOL(sock_diag_put_filterinfo);
 
-struct broadcast_sk {
+struct broadcast_sk
+{
 	struct sock *sk;
 	struct work_struct work;
 };
@@ -119,8 +138,8 @@ struct broadcast_sk {
 static size_t sock_diag_nlmsg_size(void)
 {
 	return NLMSG_ALIGN(sizeof(struct inet_diag_msg)
-	       + nla_total_size(sizeof(u8)) /* INET_DIAG_PROTOCOL */
-	       + nla_total_size_64bit(sizeof(struct tcp_info))); /* INET_DIAG_INFO */
+					   + nla_total_size(sizeof(u8)) /* INET_DIAG_PROTOCOL */
+					   + nla_total_size_64bit(sizeof(struct tcp_info))); /* INET_DIAG_INFO */
 }
 
 static void sock_diag_broadcast_destroy_work(struct work_struct *work)
@@ -136,20 +155,30 @@ static void sock_diag_broadcast_destroy_work(struct work_struct *work)
 	WARN_ON(group == SKNLGRP_NONE);
 
 	skb = nlmsg_new(sock_diag_nlmsg_size(), GFP_KERNEL);
+
 	if (!skb)
+	{
 		goto out;
+	}
 
 	mutex_lock(&sock_diag_table_mutex);
 	hndl = sock_diag_handlers[sk->sk_family];
+
 	if (hndl && hndl->get_info)
+	{
 		err = hndl->get_info(skb, sk);
+	}
+
 	mutex_unlock(&sock_diag_table_mutex);
 
 	if (!err)
 		nlmsg_multicast(sock_net(sk)->diag_nlsk, skb, 0, group,
-				GFP_KERNEL);
+						GFP_KERNEL);
 	else
+	{
 		kfree_skb(skb);
+	}
+
 out:
 	sk_destruct(sk);
 	kfree(bsk);
@@ -160,8 +189,12 @@ void sock_diag_broadcast_destroy(struct sock *sk)
 	/* Note, this function is often called from an interrupt context. */
 	struct broadcast_sk *bsk =
 		kmalloc(sizeof(struct broadcast_sk), GFP_ATOMIC);
+
 	if (!bsk)
+	{
 		return sk_destruct(sk);
+	}
+
 	bsk->sk = sk;
 	INIT_WORK(&bsk->work, sock_diag_broadcast_destroy_work);
 	queue_work(broadcast_wq, &bsk->work);
@@ -188,13 +221,21 @@ int sock_diag_register(const struct sock_diag_handler *hndl)
 	int err = 0;
 
 	if (hndl->family >= AF_MAX)
+	{
 		return -EINVAL;
+	}
 
 	mutex_lock(&sock_diag_table_mutex);
+
 	if (sock_diag_handlers[hndl->family])
+	{
 		err = -EBUSY;
+	}
 	else
+	{
 		sock_diag_handlers[hndl->family] = hndl;
+	}
+
 	mutex_unlock(&sock_diag_table_mutex);
 
 	return err;
@@ -206,7 +247,9 @@ void sock_diag_unregister(const struct sock_diag_handler *hnld)
 	int family = hnld->family;
 
 	if (family >= AF_MAX)
+	{
 		return;
+	}
 
 	mutex_lock(&sock_diag_table_mutex);
 	BUG_ON(sock_diag_handlers[family] != hnld);
@@ -222,25 +265,39 @@ static int __sock_diag_cmd(struct sk_buff *skb, struct nlmsghdr *nlh)
 	const struct sock_diag_handler *hndl;
 
 	if (nlmsg_len(nlh) < sizeof(*req))
+	{
 		return -EINVAL;
+	}
 
 	if (req->sdiag_family >= AF_MAX)
+	{
 		return -EINVAL;
+	}
 
 	if (sock_diag_handlers[req->sdiag_family] == NULL)
 		request_module("net-pf-%d-proto-%d-type-%d", PF_NETLINK,
-				NETLINK_SOCK_DIAG, req->sdiag_family);
+					   NETLINK_SOCK_DIAG, req->sdiag_family);
 
 	mutex_lock(&sock_diag_table_mutex);
 	hndl = sock_diag_handlers[req->sdiag_family];
+
 	if (hndl == NULL)
+	{
 		err = -ENOENT;
+	}
 	else if (nlh->nlmsg_type == SOCK_DIAG_BY_FAMILY)
+	{
 		err = hndl->dump(skb, nlh);
+	}
 	else if (nlh->nlmsg_type == SOCK_DESTROY && hndl->destroy)
+	{
 		err = hndl->destroy(skb, nlh);
+	}
 	else
+	{
 		err = -EOPNOTSUPP;
+	}
+
 	mutex_unlock(&sock_diag_table_mutex);
 
 	return err;
@@ -250,26 +307,35 @@ static int sock_diag_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 {
 	int ret;
 
-	switch (nlh->nlmsg_type) {
-	case TCPDIAG_GETSOCK:
-	case DCCPDIAG_GETSOCK:
-		if (inet_rcv_compat == NULL)
-			request_module("net-pf-%d-proto-%d-type-%d", PF_NETLINK,
-					NETLINK_SOCK_DIAG, AF_INET);
+	switch (nlh->nlmsg_type)
+	{
+		case TCPDIAG_GETSOCK:
+		case DCCPDIAG_GETSOCK:
+			if (inet_rcv_compat == NULL)
+				request_module("net-pf-%d-proto-%d-type-%d", PF_NETLINK,
+							   NETLINK_SOCK_DIAG, AF_INET);
 
-		mutex_lock(&sock_diag_table_mutex);
-		if (inet_rcv_compat != NULL)
-			ret = inet_rcv_compat(skb, nlh);
-		else
-			ret = -EOPNOTSUPP;
-		mutex_unlock(&sock_diag_table_mutex);
+			mutex_lock(&sock_diag_table_mutex);
 
-		return ret;
-	case SOCK_DIAG_BY_FAMILY:
-	case SOCK_DESTROY:
-		return __sock_diag_cmd(skb, nlh);
-	default:
-		return -EINVAL;
+			if (inet_rcv_compat != NULL)
+			{
+				ret = inet_rcv_compat(skb, nlh);
+			}
+			else
+			{
+				ret = -EOPNOTSUPP;
+			}
+
+			mutex_unlock(&sock_diag_table_mutex);
+
+			return ret;
+
+		case SOCK_DIAG_BY_FAMILY:
+		case SOCK_DESTROY:
+			return __sock_diag_cmd(skb, nlh);
+
+		default:
+			return -EINVAL;
 	}
 }
 
@@ -284,30 +350,39 @@ static void sock_diag_rcv(struct sk_buff *skb)
 
 static int sock_diag_bind(struct net *net, int group)
 {
-	switch (group) {
-	case SKNLGRP_INET_TCP_DESTROY:
-	case SKNLGRP_INET_UDP_DESTROY:
-		if (!sock_diag_handlers[AF_INET])
-			request_module("net-pf-%d-proto-%d-type-%d", PF_NETLINK,
-				       NETLINK_SOCK_DIAG, AF_INET);
-		break;
-	case SKNLGRP_INET6_TCP_DESTROY:
-	case SKNLGRP_INET6_UDP_DESTROY:
-		if (!sock_diag_handlers[AF_INET6])
-			request_module("net-pf-%d-proto-%d-type-%d", PF_NETLINK,
-				       NETLINK_SOCK_DIAG, AF_INET);
-		break;
+	switch (group)
+	{
+		case SKNLGRP_INET_TCP_DESTROY:
+		case SKNLGRP_INET_UDP_DESTROY:
+			if (!sock_diag_handlers[AF_INET])
+				request_module("net-pf-%d-proto-%d-type-%d", PF_NETLINK,
+							   NETLINK_SOCK_DIAG, AF_INET);
+
+			break;
+
+		case SKNLGRP_INET6_TCP_DESTROY:
+		case SKNLGRP_INET6_UDP_DESTROY:
+			if (!sock_diag_handlers[AF_INET6])
+				request_module("net-pf-%d-proto-%d-type-%d", PF_NETLINK,
+							   NETLINK_SOCK_DIAG, AF_INET);
+
+			break;
 	}
+
 	return 0;
 }
 
 int sock_diag_destroy(struct sock *sk, int err)
 {
 	if (!ns_capable(sock_net(sk)->user_ns, CAP_NET_ADMIN))
+	{
 		return -EPERM;
+	}
 
 	if (!sk->sk_prot->diag_destroy)
+	{
 		return -EOPNOTSUPP;
+	}
 
 	return sk->sk_prot->diag_destroy(sk, err);
 }
@@ -315,7 +390,8 @@ EXPORT_SYMBOL_GPL(sock_diag_destroy);
 
 static int __net_init diag_net_init(struct net *net)
 {
-	struct netlink_kernel_cfg cfg = {
+	struct netlink_kernel_cfg cfg =
+	{
 		.groups	= SKNLGRP_MAX,
 		.input	= sock_diag_rcv,
 		.bind	= sock_diag_bind,
@@ -332,7 +408,8 @@ static void __net_exit diag_net_exit(struct net *net)
 	net->diag_nlsk = NULL;
 }
 
-static struct pernet_operations diag_net_ops = {
+static struct pernet_operations diag_net_ops =
+{
 	.init = diag_net_init,
 	.exit = diag_net_exit,
 };

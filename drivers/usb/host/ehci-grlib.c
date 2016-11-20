@@ -34,7 +34,8 @@
 
 #define GRUSBHC_HCIVERSION 0x0100 /* Known value of cap. reg. HCIVERSION */
 
-static const struct hc_driver ehci_grlib_hc_driver = {
+static const struct hc_driver ehci_grlib_hc_driver =
+{
 	.description		= hcd_name,
 	.product_desc		= "GRLIB GRUSBHC EHCI",
 	.hcd_priv_size		= sizeof(struct ehci_hcd),
@@ -93,34 +94,46 @@ static int ehci_hcd_grlib_probe(struct platform_device *op)
 	int rv;
 
 	if (usb_disabled())
+	{
 		return -ENODEV;
+	}
 
 	dev_dbg(&op->dev, "initializing GRUSBHC EHCI USB Controller\n");
 
 	rv = of_address_to_resource(dn, 0, &res);
+
 	if (rv)
+	{
 		return rv;
+	}
 
 	/* usb_create_hcd requires dma_mask != NULL */
 	op->dev.dma_mask = &op->dev.coherent_dma_mask;
 	hcd = usb_create_hcd(&ehci_grlib_hc_driver, &op->dev,
-			"GRUSBHC EHCI USB");
+						 "GRUSBHC EHCI USB");
+
 	if (!hcd)
+	{
 		return -ENOMEM;
+	}
 
 	hcd->rsrc_start = res.start;
 	hcd->rsrc_len = resource_size(&res);
 
 	irq = irq_of_parse_and_map(dn, 0);
-	if (irq == NO_IRQ) {
+
+	if (irq == NO_IRQ)
+	{
 		dev_err(&op->dev, "%s: irq_of_parse_and_map failed\n",
-			__FILE__);
+				__FILE__);
 		rv = -EBUSY;
 		goto err_irq;
 	}
 
 	hcd->regs = devm_ioremap_resource(&op->dev, &res);
-	if (IS_ERR(hcd->regs)) {
+
+	if (IS_ERR(hcd->regs))
+	{
 		rv = PTR_ERR(hcd->regs);
 		goto err_ioremap;
 	}
@@ -131,15 +144,20 @@ static int ehci_hcd_grlib_probe(struct platform_device *op)
 
 	/* determine endianness of this implementation */
 	hc_capbase = ehci_readl(ehci, &ehci->caps->hc_capbase);
-	if (HC_VERSION(ehci, hc_capbase) != GRUSBHC_HCIVERSION) {
+
+	if (HC_VERSION(ehci, hc_capbase) != GRUSBHC_HCIVERSION)
+	{
 		ehci->big_endian_mmio = 1;
 		ehci->big_endian_desc = 1;
 		ehci->big_endian_capbase = 1;
 	}
 
 	rv = usb_add_hcd(hcd, irq, 0);
+
 	if (rv)
+	{
 		goto err_ioremap;
+	}
 
 	device_wakeup_enable(hcd->self.controller);
 	return 0;
@@ -169,19 +187,21 @@ static int ehci_hcd_grlib_remove(struct platform_device *op)
 }
 
 
-static const struct of_device_id ehci_hcd_grlib_of_match[] = {
+static const struct of_device_id ehci_hcd_grlib_of_match[] =
+{
 	{
 		.name = "GAISLER_EHCI",
-	 },
+	},
 	{
 		.name = "01_026",
-	 },
+	},
 	{},
 };
 MODULE_DEVICE_TABLE(of, ehci_hcd_grlib_of_match);
 
 
-static struct platform_driver ehci_grlib_driver = {
+static struct platform_driver ehci_grlib_driver =
+{
 	.probe		= ehci_hcd_grlib_probe,
 	.remove		= ehci_hcd_grlib_remove,
 	.shutdown	= usb_hcd_platform_shutdown,

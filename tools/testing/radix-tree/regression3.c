@@ -40,14 +40,19 @@ void regression3_test(void)
 	radix_tree_tag_set(&root, 0, 0);
 
 	first = true;
-	radix_tree_for_each_tagged(slot, &root, &iter, 0, 0) {
+	radix_tree_for_each_tagged(slot, &root, &iter, 0, 0)
+	{
 		printf("tagged %ld %p\n", iter.index, *slot);
-		if (first) {
+
+		if (first)
+		{
 			radix_tree_insert(&root, 1, ptr);
 			radix_tree_tag_set(&root, 1, 0);
 			first = false;
 		}
-		if (radix_tree_deref_retry(*slot)) {
+
+		if (radix_tree_deref_retry(*slot))
+		{
 			printf("retry at %ld\n", iter.index);
 			slot = radix_tree_iter_retry(&iter);
 			continue;
@@ -56,13 +61,18 @@ void regression3_test(void)
 	radix_tree_delete(&root, 1);
 
 	first = true;
-	radix_tree_for_each_slot(slot, &root, &iter, 0) {
+	radix_tree_for_each_slot(slot, &root, &iter, 0)
+	{
 		printf("slot %ld %p\n", iter.index, *slot);
-		if (first) {
+
+		if (first)
+		{
 			radix_tree_insert(&root, 1, ptr);
 			first = false;
 		}
-		if (radix_tree_deref_retry(*slot)) {
+
+		if (radix_tree_deref_retry(*slot))
+		{
 			printk("retry at %ld\n", iter.index);
 			slot = radix_tree_iter_retry(&iter);
 			continue;
@@ -71,30 +81,41 @@ void regression3_test(void)
 	radix_tree_delete(&root, 1);
 
 	first = true;
-	radix_tree_for_each_contig(slot, &root, &iter, 0) {
+	radix_tree_for_each_contig(slot, &root, &iter, 0)
+	{
 		printk("contig %ld %p\n", iter.index, *slot);
-		if (first) {
+
+		if (first)
+		{
 			radix_tree_insert(&root, 1, ptr);
 			first = false;
 		}
-		if (radix_tree_deref_retry(*slot)) {
+
+		if (radix_tree_deref_retry(*slot))
+		{
 			printk("retry at %ld\n", iter.index);
 			slot = radix_tree_iter_retry(&iter);
 			continue;
 		}
 	}
 
-	radix_tree_for_each_slot(slot, &root, &iter, 0) {
+	radix_tree_for_each_slot(slot, &root, &iter, 0)
+	{
 		printf("slot %ld %p\n", iter.index, *slot);
-		if (!iter.index) {
+
+		if (!iter.index)
+		{
 			printf("next at %ld\n", iter.index);
 			slot = radix_tree_iter_next(&iter);
 		}
 	}
 
-	radix_tree_for_each_contig(slot, &root, &iter, 0) {
+	radix_tree_for_each_contig(slot, &root, &iter, 0)
+	{
 		printf("contig %ld %p\n", iter.index, *slot);
-		if (!iter.index) {
+
+		if (!iter.index)
+		{
 			printf("next at %ld\n", iter.index);
 			slot = radix_tree_iter_next(&iter);
 		}
@@ -102,9 +123,12 @@ void regression3_test(void)
 
 	radix_tree_tag_set(&root, 0, 0);
 	radix_tree_tag_set(&root, 1, 0);
-	radix_tree_for_each_tagged(slot, &root, &iter, 0, 0) {
+	radix_tree_for_each_tagged(slot, &root, &iter, 0, 0)
+	{
 		printf("tagged %ld %p\n", iter.index, *slot);
-		if (!iter.index) {
+
+		if (!iter.index)
+		{
 			printf("next at %ld\n", iter.index);
 			slot = radix_tree_iter_next(&iter);
 		}

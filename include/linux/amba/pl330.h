@@ -14,7 +14,8 @@
 
 #include <linux/dmaengine.h>
 
-struct dma_pl330_platdata {
+struct dma_pl330_platdata
+{
 	/*
 	 * Number of valid peripherals connected to DMAC.
 	 * This may be different from the value read from

@@ -36,7 +36,8 @@
 #define KVM_S390_MAX_FLOAT_IRQS	266250
 #define KVM_S390_FLIC_MAX_BUFFER	0x2000000
 
-struct kvm_s390_io_adapter {
+struct kvm_s390_io_adapter
+{
 	__u32 id;
 	__u8 isc;
 	__u8 maskable;
@@ -48,7 +49,8 @@ struct kvm_s390_io_adapter {
 #define KVM_S390_IO_ADAPTER_MAP 2
 #define KVM_S390_IO_ADAPTER_UNMAP 3
 
-struct kvm_s390_io_adapter_req {
+struct kvm_s390_io_adapter_req
+{
 	__u32 id;
 	__u8 type;
 	__u8 mask;
@@ -76,7 +78,8 @@ struct kvm_s390_io_adapter_req {
 /* kvm attributes for KVM_S390_VM_CPU_MODEL */
 /* processor related attributes are r/w */
 #define KVM_S390_VM_CPU_PROCESSOR	0
-struct kvm_s390_vm_cpu_processor {
+struct kvm_s390_vm_cpu_processor
+{
 	__u64 cpuid;
 	__u16 ibc;
 	__u8  pad[6];
@@ -85,7 +88,8 @@ struct kvm_s390_vm_cpu_processor {
 
 /* machine related attributes are r/o */
 #define KVM_S390_VM_CPU_MACHINE		1
-struct kvm_s390_vm_cpu_machine {
+struct kvm_s390_vm_cpu_machine
+{
 	__u64 cpuid;
 	__u32 ibc;
 	__u8  pad[4];
@@ -110,14 +114,16 @@ struct kvm_s390_vm_cpu_machine {
 #define KVM_S390_VM_CPU_FEAT_CMMA	10
 #define KVM_S390_VM_CPU_FEAT_PFMFI	11
 #define KVM_S390_VM_CPU_FEAT_SIGPIF	12
-struct kvm_s390_vm_cpu_feat {
+struct kvm_s390_vm_cpu_feat
+{
 	__u64 feat[16];
 };
 
 #define KVM_S390_VM_CPU_PROCESSOR_SUBFUNC	4
 #define KVM_S390_VM_CPU_MACHINE_SUBFUNC		5
 /* for "test bit" instructions MSB 0 bit ordering, for "query" raw blocks */
-struct kvm_s390_vm_cpu_subfunc {
+struct kvm_s390_vm_cpu_subfunc
+{
 	__u8 plo[32];		/* always */
 	__u8 ptff[16];		/* with TOD-clock steering */
 	__u8 kmac[16];		/* with MSA */
@@ -141,19 +147,22 @@ struct kvm_s390_vm_cpu_subfunc {
 #define KVM_S390_VM_CRYPTO_DISABLE_DEA_KW	3
 
 /* for KVM_GET_REGS and KVM_SET_REGS */
-struct kvm_regs {
+struct kvm_regs
+{
 	/* general purpose regs for s390 */
 	__u64 gprs[16];
 };
 
 /* for KVM_GET_SREGS and KVM_SET_SREGS */
-struct kvm_sregs {
+struct kvm_sregs
+{
 	__u32 acrs[16];
 	__u64 crs[16];
 };
 
 /* for KVM_GET_FPU and KVM_SET_FPU */
-struct kvm_fpu {
+struct kvm_fpu
+{
 	__u32 fpc;
 	__u64 fprs[16];
 };
@@ -164,13 +173,15 @@ struct kvm_fpu {
 #define KVM_HW_WP_WRITE			2
 #define KVM_SINGLESTEP			4
 
-struct kvm_debug_exit_arch {
+struct kvm_debug_exit_arch
+{
 	__u64 addr;
 	__u8 type;
 	__u8 pad[7]; /* Should be set to 0 */
 };
 
-struct kvm_hw_breakpoint {
+struct kvm_hw_breakpoint
+{
 	__u64 addr;
 	__u64 phys_addr;
 	__u64 len;
@@ -179,7 +190,8 @@ struct kvm_hw_breakpoint {
 };
 
 /* for KVM_SET_GUEST_DEBUG */
-struct kvm_guest_debug_arch {
+struct kvm_guest_debug_arch
+{
 	__u32 nr_hw_bp;
 	__u32 pad; /* Should be set to 0 */
 	struct kvm_hw_breakpoint __user *hw_bp;
@@ -198,7 +210,8 @@ struct kvm_guest_debug_arch {
 #define KVM_SYNC_RICCB  (1UL << 7)
 #define KVM_SYNC_FPRS   (1UL << 8)
 /* definition of registers in kvm_run */
-struct kvm_sync_regs {
+struct kvm_sync_regs
+{
 	__u64 prefix;	/* prefix register */
 	__u64 gprs[16];	/* general purpose registers */
 	__u32 acrs[16];	/* access registers */
@@ -211,7 +224,8 @@ struct kvm_sync_regs {
 	__u64 pft;	/* pfault token [PFAULT] */
 	__u64 pfs;	/* pfault select [PFAULT] */
 	__u64 pfc;	/* pfault compare [PFAULT] */
-	union {
+	union
+	{
 		__u64 vrs[32][2];	/* vector registers (KVM_SYNC_VRS) */
 		__u64 fprs[16];		/* fp registers (KVM_SYNC_FPRS) */
 	};

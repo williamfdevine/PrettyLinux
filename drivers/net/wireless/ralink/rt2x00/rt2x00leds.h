@@ -24,14 +24,16 @@
 #ifndef RT2X00LEDS_H
 #define RT2X00LEDS_H
 
-enum led_type {
+enum led_type
+{
 	LED_TYPE_RADIO,
 	LED_TYPE_ASSOC,
 	LED_TYPE_ACTIVITY,
 	LED_TYPE_QUALITY,
 };
 
-struct rt2x00_led {
+struct rt2x00_led
+{
 	struct rt2x00_dev *rt2x00dev;
 	struct led_classdev led_dev;
 

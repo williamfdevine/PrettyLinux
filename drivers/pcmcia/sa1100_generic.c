@@ -27,7 +27,7 @@
     and other provisions required by the GPL.  If you do not delete
     the provisions above, a recipient may use your version of this
     file under either the MPL or the GPL.
-    
+
 ======================================================================*/
 
 #include <linux/module.h>
@@ -43,7 +43,8 @@
 
 int __init pcmcia_collie_init(struct device *dev);
 
-static int (*sa11x0_pcmcia_hw_init[])(struct device *dev) = {
+static int (*sa11x0_pcmcia_hw_init[])(struct device *dev) =
+{
 #ifdef CONFIG_SA1100_ASSABET
 	pcmcia_assabet_init,
 #endif
@@ -63,7 +64,7 @@ static int (*sa11x0_pcmcia_hw_init[])(struct device *dev) = {
 	pcmcia_simpad_init,
 #endif
 #ifdef CONFIG_SA1100_COLLIE
-       pcmcia_collie_init,
+	pcmcia_collie_init,
 #endif
 };
 
@@ -74,10 +75,14 @@ static int sa11x0_drv_pcmcia_probe(struct platform_device *dev)
 	/*
 	 * Initialise any "on-board" PCMCIA sockets.
 	 */
-	for (i = 0; i < ARRAY_SIZE(sa11x0_pcmcia_hw_init); i++) {
+	for (i = 0; i < ARRAY_SIZE(sa11x0_pcmcia_hw_init); i++)
+	{
 		ret = sa11x0_pcmcia_hw_init[i](&dev->dev);
+
 		if (ret == 0)
+		{
 			break;
+		}
 	}
 
 	return ret;
@@ -91,12 +96,15 @@ static int sa11x0_drv_pcmcia_remove(struct platform_device *dev)
 	platform_set_drvdata(dev, NULL);
 
 	for (i = 0; i < sinfo->nskt; i++)
+	{
 		soc_pcmcia_remove_one(&sinfo->skt[i]);
+	}
 
 	return 0;
 }
 
-static struct platform_driver sa11x0_pcmcia_driver = {
+static struct platform_driver sa11x0_pcmcia_driver =
+{
 	.driver = {
 		.name		= "sa11x0-pcmcia",
 	},

@@ -30,7 +30,8 @@
 #include <linux/of_platform.h>
 #include <linux/pm_runtime.h>
 
-struct dwc3_of_simple {
+struct dwc3_of_simple
+{
 	struct device		*dev;
 	struct clk		**clks;
 	int			num_clocks;
@@ -45,30 +46,45 @@ static int dwc3_of_simple_clk_init(struct dwc3_of_simple *simple, int count)
 	simple->num_clocks = count;
 
 	if (!count)
+	{
 		return 0;
+	}
 
 	simple->clks = devm_kcalloc(dev, simple->num_clocks,
-			sizeof(struct clk *), GFP_KERNEL);
-	if (!simple->clks)
-		return -ENOMEM;
+								sizeof(struct clk *), GFP_KERNEL);
 
-	for (i = 0; i < simple->num_clocks; i++) {
+	if (!simple->clks)
+	{
+		return -ENOMEM;
+	}
+
+	for (i = 0; i < simple->num_clocks; i++)
+	{
 		struct clk	*clk;
 		int		ret;
 
 		clk = of_clk_get(np, i);
-		if (IS_ERR(clk)) {
+
+		if (IS_ERR(clk))
+		{
 			while (--i >= 0)
+			{
 				clk_put(simple->clks[i]);
+			}
+
 			return PTR_ERR(clk);
 		}
 
 		ret = clk_prepare_enable(clk);
-		if (ret < 0) {
-			while (--i >= 0) {
+
+		if (ret < 0)
+		{
+			while (--i >= 0)
+			{
 				clk_disable_unprepare(simple->clks[i]);
 				clk_put(simple->clks[i]);
 			}
+
 			clk_put(clk);
 
 			return ret;
@@ -90,19 +106,28 @@ static int dwc3_of_simple_probe(struct platform_device *pdev)
 	int			i;
 
 	simple = devm_kzalloc(dev, sizeof(*simple), GFP_KERNEL);
+
 	if (!simple)
+	{
 		return -ENOMEM;
+	}
 
 	platform_set_drvdata(pdev, simple);
 	simple->dev = dev;
 
 	ret = dwc3_of_simple_clk_init(simple, of_clk_get_parent_count(np));
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = of_platform_populate(np, NULL, NULL, dev);
-	if (ret) {
-		for (i = 0; i < simple->num_clocks; i++) {
+
+	if (ret)
+	{
+		for (i = 0; i < simple->num_clocks; i++)
+		{
 			clk_disable_unprepare(simple->clks[i]);
 			clk_put(simple->clks[i]);
 		}
@@ -123,7 +148,8 @@ static int dwc3_of_simple_remove(struct platform_device *pdev)
 	struct device		*dev = &pdev->dev;
 	int			i;
 
-	for (i = 0; i < simple->num_clocks; i++) {
+	for (i = 0; i < simple->num_clocks; i++)
+	{
 		clk_disable_unprepare(simple->clks[i]);
 		clk_put(simple->clks[i]);
 	}
@@ -143,7 +169,9 @@ static int dwc3_of_simple_runtime_suspend(struct device *dev)
 	int			i;
 
 	for (i = 0; i < simple->num_clocks; i++)
+	{
 		clk_disable(simple->clks[i]);
+	}
 
 	return 0;
 }
@@ -154,11 +182,17 @@ static int dwc3_of_simple_runtime_resume(struct device *dev)
 	int			ret;
 	int			i;
 
-	for (i = 0; i < simple->num_clocks; i++) {
+	for (i = 0; i < simple->num_clocks; i++)
+	{
 		ret = clk_enable(simple->clks[i]);
-		if (ret < 0) {
+
+		if (ret < 0)
+		{
 			while (--i >= 0)
+			{
 				clk_disable(simple->clks[i]);
+			}
+
 			return ret;
 		}
 	}
@@ -167,12 +201,14 @@ static int dwc3_of_simple_runtime_resume(struct device *dev)
 }
 #endif
 
-static const struct dev_pm_ops dwc3_of_simple_dev_pm_ops = {
+static const struct dev_pm_ops dwc3_of_simple_dev_pm_ops =
+{
 	SET_RUNTIME_PM_OPS(dwc3_of_simple_runtime_suspend,
-			dwc3_of_simple_runtime_resume, NULL)
+	dwc3_of_simple_runtime_resume, NULL)
 };
 
-static const struct of_device_id of_dwc3_simple_match[] = {
+static const struct of_device_id of_dwc3_simple_match[] =
+{
 	{ .compatible = "qcom,dwc3" },
 	{ .compatible = "rockchip,rk3399-dwc3" },
 	{ .compatible = "xlnx,zynqmp-dwc3" },
@@ -181,7 +217,8 @@ static const struct of_device_id of_dwc3_simple_match[] = {
 };
 MODULE_DEVICE_TABLE(of, of_dwc3_simple_match);
 
-static struct platform_driver dwc3_of_simple_driver = {
+static struct platform_driver dwc3_of_simple_driver =
+{
 	.probe		= dwc3_of_simple_probe,
 	.remove		= dwc3_of_simple_remove,
 	.driver		= {

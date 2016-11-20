@@ -38,7 +38,8 @@ bfa_cee_stats_swap(struct bfa_cee_stats *stats)
 	int i;
 
 	for (i = 0; i < (sizeof(struct bfa_cee_stats) / sizeof(u32));
-		i++) {
+		 i++)
+	{
 		buffer[i] = ntohl(buffer[i]);
 	}
 }
@@ -47,9 +48,9 @@ static void
 bfa_cee_format_lldp_cfg(struct bfa_cee_lldp_cfg *lldp_cfg)
 {
 	lldp_cfg->time_to_live =
-			ntohs(lldp_cfg->time_to_live);
+		ntohs(lldp_cfg->time_to_live);
 	lldp_cfg->enabled_system_cap =
-			ntohs(lldp_cfg->enabled_system_cap);
+		ntohs(lldp_cfg->enabled_system_cap);
 }
 
 /**
@@ -79,14 +80,20 @@ static void
 bfa_cee_get_attr_isr(struct bfa_cee *cee, enum bfa_status status)
 {
 	cee->get_attr_status = status;
-	if (status == BFA_STATUS_OK) {
+
+	if (status == BFA_STATUS_OK)
+	{
 		memcpy(cee->attr, cee->attr_dma.kva,
-		    sizeof(struct bfa_cee_attr));
+			   sizeof(struct bfa_cee_attr));
 		bfa_cee_format_cee_cfg(cee->attr);
 	}
+
 	cee->get_attr_pending = false;
+
 	if (cee->cbfn.get_attr_cbfn)
+	{
 		cee->cbfn.get_attr_cbfn(cee->cbfn.get_attr_cbarg, status);
+	}
 }
 
 /**
@@ -99,14 +106,20 @@ static void
 bfa_cee_get_stats_isr(struct bfa_cee *cee, enum bfa_status status)
 {
 	cee->get_stats_status = status;
-	if (status == BFA_STATUS_OK) {
+
+	if (status == BFA_STATUS_OK)
+	{
 		memcpy(cee->stats, cee->stats_dma.kva,
-			sizeof(struct bfa_cee_stats));
+			   sizeof(struct bfa_cee_stats));
 		bfa_cee_stats_swap(cee->stats);
 	}
+
 	cee->get_stats_pending = false;
+
 	if (cee->cbfn.get_stats_cbfn)
+	{
 		cee->cbfn.get_stats_cbfn(cee->cbfn.get_stats_cbarg, status);
+	}
 }
 
 /**
@@ -124,8 +137,11 @@ bfa_cee_reset_stats_isr(struct bfa_cee *cee, enum bfa_status status)
 {
 	cee->reset_stats_status = status;
 	cee->reset_stats_pending = false;
+
 	if (cee->cbfn.reset_stats_cbfn)
+	{
 		cee->cbfn.reset_stats_cbfn(cee->cbfn.reset_stats_cbarg, status);
+	}
 }
 /**
  * bfa_nw_cee_meminfo - Returns the size of the DMA memory needed by CEE module
@@ -152,7 +168,7 @@ bfa_nw_cee_mem_claim(struct bfa_cee *cee, u8 *dma_kva, u64 dma_pa)
 	cee->stats_dma.pa = dma_pa + bfa_cee_attr_meminfo();
 	cee->attr = (struct bfa_cee_attr *) dma_kva;
 	cee->stats = (struct bfa_cee_stats *)
-		(dma_kva + bfa_cee_attr_meminfo());
+				 (dma_kva + bfa_cee_attr_meminfo());
 }
 
 /**
@@ -164,16 +180,21 @@ bfa_nw_cee_mem_claim(struct bfa_cee *cee, u8 *dma_kva, u64 dma_pa)
  */
 enum bfa_status
 bfa_nw_cee_get_attr(struct bfa_cee *cee, struct bfa_cee_attr *attr,
-		    bfa_cee_get_attr_cbfn_t cbfn, void *cbarg)
+					bfa_cee_get_attr_cbfn_t cbfn, void *cbarg)
 {
 	struct bfi_cee_get_req *cmd;
 
-	BUG_ON(!((cee != NULL) && (cee->ioc != NULL)));
+	BUG_ON(!((cee != NULL) &&(cee->ioc != NULL)));
+
 	if (!bfa_nw_ioc_is_operational(cee->ioc))
+	{
 		return BFA_STATUS_IOC_FAILURE;
+	}
 
 	if (cee->get_attr_pending)
+	{
 		return  BFA_STATUS_DEVBUSY;
+	}
 
 	cee->get_attr_pending = true;
 	cmd = (struct bfi_cee_get_req *) cee->get_cfg_mb.msg;
@@ -181,7 +202,7 @@ bfa_nw_cee_get_attr(struct bfa_cee *cee, struct bfa_cee_attr *attr,
 	cee->cbfn.get_attr_cbfn = cbfn;
 	cee->cbfn.get_attr_cbarg = cbarg;
 	bfi_h2i_set(cmd->mh, BFI_MC_CEE, BFI_CEE_H2I_GET_CFG_REQ,
-		    bfa_ioc_portid(cee->ioc));
+	bfa_ioc_portid(cee->ioc));
 	bfa_dma_be_addr_set(cmd->dma_addr, cee->attr_dma.pa);
 	bfa_nw_ioc_mbox_queue(cee->ioc, &cee->get_cfg_mb, NULL, NULL);
 
@@ -200,18 +221,23 @@ bfa_cee_isr(void *cbarg, struct bfi_mbmsg *m)
 	struct bfa_cee *cee = (struct bfa_cee *) cbarg;
 	msg = (union bfi_cee_i2h_msg_u *) m;
 	get_rsp = (struct bfi_cee_get_rsp *) m;
-	switch (msg->mh.msg_id) {
-	case BFI_CEE_I2H_GET_CFG_RSP:
-		bfa_cee_get_attr_isr(cee, get_rsp->cmd_status);
-		break;
-	case BFI_CEE_I2H_GET_STATS_RSP:
-		bfa_cee_get_stats_isr(cee, get_rsp->cmd_status);
-		break;
-	case BFI_CEE_I2H_RESET_STATS_RSP:
-		bfa_cee_reset_stats_isr(cee, get_rsp->cmd_status);
-		break;
-	default:
-		BUG_ON(1);
+
+	switch (msg->mh.msg_id)
+	{
+		case BFI_CEE_I2H_GET_CFG_RSP:
+			bfa_cee_get_attr_isr(cee, get_rsp->cmd_status);
+			break;
+
+		case BFI_CEE_I2H_GET_STATS_RSP:
+			bfa_cee_get_stats_isr(cee, get_rsp->cmd_status);
+			break;
+
+		case BFI_CEE_I2H_RESET_STATS_RSP:
+			bfa_cee_reset_stats_isr(cee, get_rsp->cmd_status);
+			break;
+
+		default:
+			BUG_ON(1);
 	}
 }
 
@@ -227,40 +253,53 @@ bfa_cee_notify(void *arg, enum bfa_ioc_event event)
 	struct bfa_cee *cee;
 	cee = (struct bfa_cee *) arg;
 
-	switch (event) {
-	case BFA_IOC_E_DISABLED:
-	case BFA_IOC_E_FAILED:
-		if (cee->get_attr_pending) {
-			cee->get_attr_status = BFA_STATUS_FAILED;
-			cee->get_attr_pending  = false;
-			if (cee->cbfn.get_attr_cbfn) {
-				cee->cbfn.get_attr_cbfn(
-					cee->cbfn.get_attr_cbarg,
-					BFA_STATUS_FAILED);
-			}
-		}
-		if (cee->get_stats_pending) {
-			cee->get_stats_status = BFA_STATUS_FAILED;
-			cee->get_stats_pending  = false;
-			if (cee->cbfn.get_stats_cbfn) {
-				cee->cbfn.get_stats_cbfn(
-					cee->cbfn.get_stats_cbarg,
-					BFA_STATUS_FAILED);
-			}
-		}
-		if (cee->reset_stats_pending) {
-			cee->reset_stats_status = BFA_STATUS_FAILED;
-			cee->reset_stats_pending  = false;
-			if (cee->cbfn.reset_stats_cbfn) {
-				cee->cbfn.reset_stats_cbfn(
-					cee->cbfn.reset_stats_cbarg,
-					BFA_STATUS_FAILED);
-			}
-		}
-		break;
+	switch (event)
+	{
+		case BFA_IOC_E_DISABLED:
+		case BFA_IOC_E_FAILED:
+			if (cee->get_attr_pending)
+			{
+				cee->get_attr_status = BFA_STATUS_FAILED;
+				cee->get_attr_pending  = false;
 
-	default:
-		break;
+				if (cee->cbfn.get_attr_cbfn)
+				{
+					cee->cbfn.get_attr_cbfn(
+						cee->cbfn.get_attr_cbarg,
+						BFA_STATUS_FAILED);
+				}
+			}
+
+			if (cee->get_stats_pending)
+			{
+				cee->get_stats_status = BFA_STATUS_FAILED;
+				cee->get_stats_pending  = false;
+
+				if (cee->cbfn.get_stats_cbfn)
+				{
+					cee->cbfn.get_stats_cbfn(
+						cee->cbfn.get_stats_cbarg,
+						BFA_STATUS_FAILED);
+				}
+			}
+
+			if (cee->reset_stats_pending)
+			{
+				cee->reset_stats_status = BFA_STATUS_FAILED;
+				cee->reset_stats_pending  = false;
+
+				if (cee->cbfn.reset_stats_cbfn)
+				{
+					cee->cbfn.reset_stats_cbfn(
+						cee->cbfn.reset_stats_cbarg,
+						BFA_STATUS_FAILED);
+				}
+			}
+
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -275,7 +314,7 @@ bfa_cee_notify(void *arg, enum bfa_ioc_event event)
  */
 void
 bfa_nw_cee_attach(struct bfa_cee *cee, struct bfa_ioc *ioc,
-		void *dev)
+				  void *dev)
 {
 	BUG_ON(!(cee != NULL));
 	cee->dev = dev;

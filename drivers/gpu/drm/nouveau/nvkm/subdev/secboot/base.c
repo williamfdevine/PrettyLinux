@@ -25,7 +25,8 @@
 #include <subdev/timer.h>
 
 static const char *
-managed_falcons_names[] = {
+managed_falcons_names[] =
+{
 	[NVKM_SECBOOT_FALCON_PMU] = "PMU",
 	[NVKM_SECBOOT_FALCON_RESERVED] = "<reserved>",
 	[NVKM_SECBOOT_FALCON_FECS] = "FECS",
@@ -46,8 +47,11 @@ falcon_clear_halt_interrupt(struct nvkm_device *device, u32 base)
 	nvkm_mask(device, base + 0x004, 0x10, 0x10);
 	/* wait until halt interrupt is cleared */
 	ret = nvkm_wait_msec(device, 10, base + 0x008, 0x10, 0x0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -58,8 +62,11 @@ falcon_wait_idle(struct nvkm_device *device, u32 base)
 	int ret;
 
 	ret = nvkm_wait_msec(device, 10, base + 0x04c, 0xffff, 0x0);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -73,15 +80,20 @@ nvkm_secboot_falcon_enable(struct nvkm_secboot *sb)
 	/* enable engine */
 	nvkm_mc_enable(device, sb->devidx);
 	ret = nvkm_wait_msec(device, 10, sb->base + 0x10c, 0x6, 0x0);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		nvkm_error(&sb->subdev, "Falcon mem scrubbing timeout\n");
 		nvkm_mc_disable(device, sb->devidx);
 		return ret;
 	}
 
 	ret = falcon_wait_idle(device, sb->base);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	/* enable IRQs */
 	nvkm_wr32(device, sb->base + 0x010, 0xff);
@@ -113,12 +125,18 @@ nvkm_secboot_falcon_reset(struct nvkm_secboot *sb)
 	int ret;
 
 	ret = nvkm_secboot_falcon_disable(sb);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	ret = nvkm_secboot_falcon_enable(sb);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return 0;
 }
@@ -141,12 +159,17 @@ nvkm_secboot_falcon_run(struct nvkm_secboot *sb)
 
 	/* Wait for falcon halt */
 	ret = nvkm_wait_msec(device, 100, sb->base + 0x100, 0x10, 0x10);
+
 	if (ret < 0)
+	{
 		return ret;
+	}
 
 	/* If mailbox register contains an error code, then ACR has failed */
 	ret = nvkm_rd32(device, sb->base + 0x040);
-	if (ret) {
+
+	if (ret)
+	{
 		nvkm_error(&sb->subdev, "ACR boot failed, ret 0x%08x", ret);
 		falcon_clear_halt_interrupt(device, sb->base);
 		return -EINVAL;
@@ -163,7 +186,8 @@ int
 nvkm_secboot_reset(struct nvkm_secboot *sb, u32 falcon)
 {
 	/* Unmanaged falcon? */
-	if (!(BIT(falcon) & sb->func->managed_falcons)) {
+	if (!(BIT(falcon) & sb->func->managed_falcons))
+	{
 		nvkm_error(&sb->subdev, "cannot reset unmanaged falcon!\n");
 		return -EINVAL;
 	}
@@ -178,7 +202,8 @@ int
 nvkm_secboot_start(struct nvkm_secboot *sb, u32 falcon)
 {
 	/* Unmanaged falcon? */
-	if (!(BIT(falcon) & sb->func->managed_falcons)) {
+	if (!(BIT(falcon) & sb->func->managed_falcons))
+	{
 		nvkm_error(&sb->subdev, "cannot start unmanaged falcon!\n");
 		return -EINVAL;
 	}
@@ -191,10 +216,12 @@ nvkm_secboot_start(struct nvkm_secboot *sb, u32 falcon)
  */
 bool
 nvkm_secboot_is_managed(struct nvkm_secboot *secboot,
-			enum nvkm_secboot_falcon fid)
+						enum nvkm_secboot_falcon fid)
 {
 	if (!secboot)
+	{
 		return false;
+	}
 
 	return secboot->func->managed_falcons & BIT(fid);
 }
@@ -207,10 +234,14 @@ nvkm_secboot_oneinit(struct nvkm_subdev *subdev)
 
 	/* Call chip-specific init function */
 	if (sb->func->init)
+	{
 		ret = sb->func->init(sb);
-	if (ret) {
+	}
+
+	if (ret)
+	{
 		nvkm_error(subdev, "Secure Boot initialization failed: %d\n",
-			   ret);
+				   ret);
 		return ret;
 	}
 
@@ -224,7 +255,9 @@ nvkm_secboot_fini(struct nvkm_subdev *subdev, bool suspend)
 	int ret = 0;
 
 	if (sb->func->fini)
+	{
 		ret = sb->func->fini(sb, suspend);
+	}
 
 	return ret;
 }
@@ -236,13 +269,16 @@ nvkm_secboot_dtor(struct nvkm_subdev *subdev)
 	void *ret = NULL;
 
 	if (sb->func->dtor)
+	{
 		ret = sb->func->dtor(sb);
+	}
 
 	return ret;
 }
 
 static const struct nvkm_subdev_func
-nvkm_secboot = {
+	nvkm_secboot =
+{
 	.oneinit = nvkm_secboot_oneinit,
 	.fini = nvkm_secboot_fini,
 	.dtor = nvkm_secboot_dtor,
@@ -250,8 +286,8 @@ nvkm_secboot = {
 
 int
 nvkm_secboot_ctor(const struct nvkm_secboot_func *func,
-		  struct nvkm_device *device, int index,
-		  struct nvkm_secboot *sb)
+				  struct nvkm_device *device, int index,
+				  struct nvkm_secboot *sb)
 {
 	unsigned long fid;
 
@@ -259,20 +295,22 @@ nvkm_secboot_ctor(const struct nvkm_secboot_func *func,
 	sb->func = func;
 
 	/* setup the performing falcon's base address and masks */
-	switch (func->boot_falcon) {
-	case NVKM_SECBOOT_FALCON_PMU:
-		sb->devidx = NVKM_SUBDEV_PMU;
-		sb->base = 0x10a000;
-		break;
-	default:
-		nvkm_error(&sb->subdev, "invalid secure boot falcon\n");
-		return -EINVAL;
+	switch (func->boot_falcon)
+	{
+		case NVKM_SECBOOT_FALCON_PMU:
+			sb->devidx = NVKM_SUBDEV_PMU;
+			sb->base = 0x10a000;
+			break;
+
+		default:
+			nvkm_error(&sb->subdev, "invalid secure boot falcon\n");
+			return -EINVAL;
 	};
 
 	nvkm_debug(&sb->subdev, "securely managed falcons:\n");
 	for_each_set_bit(fid, &sb->func->managed_falcons,
-			 NVKM_SECBOOT_FALCON_END)
-		nvkm_debug(&sb->subdev, "- %s\n", managed_falcons_names[fid]);
+					 NVKM_SECBOOT_FALCON_END)
+	nvkm_debug(&sb->subdev, "- %s\n", managed_falcons_names[fid]);
 
 	return 0;
 }

@@ -74,44 +74,60 @@ static int min_lap_keepalive_time = 100;	/* 100us */
  * us on that - Jean II */
 
 static int do_devname(struct ctl_table *table, int write,
-		      void __user *buffer, size_t *lenp, loff_t *ppos)
+					  void __user *buffer, size_t *lenp, loff_t *ppos)
 {
 	int ret;
 
 	ret = proc_dostring(table, write, buffer, lenp, ppos);
-	if (ret == 0 && write) {
+
+	if (ret == 0 && write)
+	{
 		struct ias_value *val;
 
 		val = irias_new_string_value(sysctl_devname);
+
 		if (val)
+		{
 			irias_object_change_attribute("Device", "DeviceName", val);
+		}
 	}
+
 	return ret;
 }
 
 
 static int do_discovery(struct ctl_table *table, int write,
-                    void __user *buffer, size_t *lenp, loff_t *ppos)
+						void __user *buffer, size_t *lenp, loff_t *ppos)
 {
-       int ret;
+	int ret;
 
-       ret = proc_dointvec(table, write, buffer, lenp, ppos);
-       if (ret)
-	       return ret;
+	ret = proc_dointvec(table, write, buffer, lenp, ppos);
 
-       if (irlmp == NULL)
-	       return -ENODEV;
+	if (ret)
+	{
+		return ret;
+	}
 
-       if (sysctl_discovery)
-	       irlmp_start_discovery_timer(irlmp, sysctl_discovery_timeout*HZ);
-       else
-	       del_timer_sync(&irlmp->discovery_timer);
+	if (irlmp == NULL)
+	{
+		return -ENODEV;
+	}
 
-       return ret;
+	if (sysctl_discovery)
+	{
+		irlmp_start_discovery_timer(irlmp, sysctl_discovery_timeout * HZ);
+	}
+	else
+	{
+		del_timer_sync(&irlmp->discovery_timer);
+	}
+
+	return ret;
 }
 
 /* One file */
-static struct ctl_table irda_table[] = {
+static struct ctl_table irda_table[] =
+{
 	{
 		.procname	= "discovery",
 		.data		= &sysctl_discovery,
@@ -237,8 +253,11 @@ static struct ctl_table_header *irda_table_header;
 int __init irda_sysctl_register(void)
 {
 	irda_table_header = register_net_sysctl(&init_net, "net/irda", irda_table);
+
 	if (!irda_table_header)
+	{
 		return -ENOMEM;
+	}
 
 	return 0;
 }

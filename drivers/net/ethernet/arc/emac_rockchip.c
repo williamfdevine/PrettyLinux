@@ -27,14 +27,16 @@
 #define DRV_NAME        "rockchip_emac"
 #define DRV_VERSION     "1.1"
 
-struct emac_rockchip_soc_data {
+struct emac_rockchip_soc_data
+{
 	unsigned int grf_offset;
 	unsigned int grf_mode_offset;
 	unsigned int grf_speed_offset;
 	bool need_div_macclk;
 };
 
-struct rockchip_priv_data {
+struct rockchip_priv_data
+{
 	struct arc_emac_priv emac;
 	struct regmap *grf;
 	const struct emac_rockchip_soc_data *soc_data;
@@ -50,39 +52,49 @@ static void emac_rockchip_set_mac_speed(void *priv, unsigned int speed)
 	u32 data;
 	int err = 0;
 
-	switch (speed) {
-	case 10:
-		data = (1 << (speed_offset + 16)) | (0 << speed_offset);
-		break;
-	case 100:
-		data = (1 << (speed_offset + 16)) | (1 << speed_offset);
-		break;
-	default:
-		pr_err("speed %u not supported\n", speed);
-		return;
+	switch (speed)
+	{
+		case 10:
+			data = (1 << (speed_offset + 16)) | (0 << speed_offset);
+			break;
+
+		case 100:
+			data = (1 << (speed_offset + 16)) | (1 << speed_offset);
+			break;
+
+		default:
+			pr_err("speed %u not supported\n", speed);
+			return;
 	}
 
 	err = regmap_write(emac->grf, emac->soc_data->grf_offset, data);
+
 	if (err)
+	{
 		pr_err("unable to apply speed %u to grf (%d)\n", speed, err);
+	}
 }
 
-static const struct emac_rockchip_soc_data emac_rk3036_emac_data = {
+static const struct emac_rockchip_soc_data emac_rk3036_emac_data =
+{
 	.grf_offset = 0x140,   .grf_mode_offset = 8,
 	.grf_speed_offset = 9, .need_div_macclk = 1,
 };
 
-static const struct emac_rockchip_soc_data emac_rk3066_emac_data = {
+static const struct emac_rockchip_soc_data emac_rk3066_emac_data =
+{
 	.grf_offset = 0x154,   .grf_mode_offset = 0,
 	.grf_speed_offset = 1, .need_div_macclk = 0,
 };
 
-static const struct emac_rockchip_soc_data emac_rk3188_emac_data = {
+static const struct emac_rockchip_soc_data emac_rk3188_emac_data =
+{
 	.grf_offset = 0x0a4,   .grf_mode_offset = 0,
 	.grf_speed_offset = 1, .need_div_macclk = 0,
 };
 
-static const struct of_device_id emac_rockchip_dt_ids[] = {
+static const struct of_device_id emac_rockchip_dt_ids[] =
+{
 	{
 		.compatible = "rockchip,rk3036-emac",
 		.data = &emac_rk3036_emac_data,
@@ -110,11 +122,17 @@ static int emac_rockchip_probe(struct platform_device *pdev)
 	int err, interface;
 
 	if (!pdev->dev.of_node)
+	{
 		return -ENODEV;
+	}
 
 	ndev = alloc_etherdev(sizeof(struct rockchip_priv_data));
+
 	if (!ndev)
+	{
 		return -ENOMEM;
+	}
+
 	platform_set_drvdata(pdev, ndev);
 	SET_NETDEV_DEV(ndev, dev);
 
@@ -126,17 +144,20 @@ static int emac_rockchip_probe(struct platform_device *pdev)
 	interface = of_get_phy_mode(dev->of_node);
 
 	/* RK3036/RK3066/RK3188 SoCs only support RMII */
-	if (interface != PHY_INTERFACE_MODE_RMII) {
+	if (interface != PHY_INTERFACE_MODE_RMII)
+	{
 		dev_err(dev, "unsupported phy interface mode %d\n", interface);
 		err = -ENOTSUPP;
 		goto out_netdev;
 	}
 
 	priv->grf = syscon_regmap_lookup_by_phandle(dev->of_node,
-						    "rockchip,grf");
-	if (IS_ERR(priv->grf)) {
+				"rockchip,grf");
+
+	if (IS_ERR(priv->grf))
+	{
 		dev_err(dev, "failed to retrieve global register file (%ld)\n",
-			PTR_ERR(priv->grf));
+				PTR_ERR(priv->grf));
 		err = PTR_ERR(priv->grf);
 		goto out_netdev;
 	}
@@ -145,39 +166,53 @@ static int emac_rockchip_probe(struct platform_device *pdev)
 	priv->soc_data = match->data;
 
 	priv->emac.clk = devm_clk_get(dev, "hclk");
-	if (IS_ERR(priv->emac.clk)) {
+
+	if (IS_ERR(priv->emac.clk))
+	{
 		dev_err(dev, "failed to retrieve host clock (%ld)\n",
-			PTR_ERR(priv->emac.clk));
+				PTR_ERR(priv->emac.clk));
 		err = PTR_ERR(priv->emac.clk);
 		goto out_netdev;
 	}
 
 	priv->refclk = devm_clk_get(dev, "macref");
-	if (IS_ERR(priv->refclk)) {
+
+	if (IS_ERR(priv->refclk))
+	{
 		dev_err(dev, "failed to retrieve reference clock (%ld)\n",
-			PTR_ERR(priv->refclk));
+				PTR_ERR(priv->refclk));
 		err = PTR_ERR(priv->refclk);
 		goto out_netdev;
 	}
 
 	err = clk_prepare_enable(priv->refclk);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(dev, "failed to enable reference clock (%d)\n", err);
 		goto out_netdev;
 	}
 
 	/* Optional regulator for PHY */
 	priv->regulator = devm_regulator_get_optional(dev, "phy");
-	if (IS_ERR(priv->regulator)) {
+
+	if (IS_ERR(priv->regulator))
+	{
 		if (PTR_ERR(priv->regulator) == -EPROBE_DEFER)
+		{
 			return -EPROBE_DEFER;
+		}
+
 		dev_err(dev, "no regulator found\n");
 		priv->regulator = NULL;
 	}
 
-	if (priv->regulator) {
+	if (priv->regulator)
+	{
 		err = regulator_enable(priv->regulator);
-		if (err) {
+
+		if (err)
+		{
 			dev_err(dev, "failed to enable phy-supply (%d)\n", err);
 			goto out_clk_disable;
 		}
@@ -185,48 +220,59 @@ static int emac_rockchip_probe(struct platform_device *pdev)
 
 	/* Set speed 100M */
 	data = (1 << (priv->soc_data->grf_speed_offset + 16)) |
-	       (1 << priv->soc_data->grf_speed_offset);
+		   (1 << priv->soc_data->grf_speed_offset);
 	/* Set RMII mode */
 	data |= (1 << (priv->soc_data->grf_mode_offset + 16)) |
-		(0 << priv->soc_data->grf_mode_offset);
+			(0 << priv->soc_data->grf_mode_offset);
 
 	err = regmap_write(priv->grf, priv->soc_data->grf_offset, data);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(dev, "unable to apply initial settings to grf (%d)\n",
-			err);
+				err);
 		goto out_regulator_disable;
 	}
 
 	/* RMII interface needs always a rate of 50MHz */
 	err = clk_set_rate(priv->refclk, 50000000);
+
 	if (err)
 		dev_err(dev,
-			"failed to change reference clock rate (%d)\n", err);
+				"failed to change reference clock rate (%d)\n", err);
 
-	if (priv->soc_data->need_div_macclk) {
+	if (priv->soc_data->need_div_macclk)
+	{
 		priv->macclk = devm_clk_get(dev, "macclk");
-		if (IS_ERR(priv->macclk)) {
+
+		if (IS_ERR(priv->macclk))
+		{
 			dev_err(dev, "failed to retrieve mac clock (%ld)\n",
-				PTR_ERR(priv->macclk));
+					PTR_ERR(priv->macclk));
 			err = PTR_ERR(priv->macclk);
 			goto out_regulator_disable;
 		}
 
 		err = clk_prepare_enable(priv->macclk);
-		if (err) {
+
+		if (err)
+		{
 			dev_err(dev, "failed to enable mac clock (%d)\n", err);
 			goto out_regulator_disable;
 		}
 
 		/* RMII TX/RX needs always a rate of 25MHz */
 		err = clk_set_rate(priv->macclk, 25000000);
+
 		if (err)
 			dev_err(dev,
-				"failed to change mac clock rate (%d)\n", err);
+					"failed to change mac clock rate (%d)\n", err);
 	}
 
 	err = arc_emac_probe(ndev, interface);
-	if (err) {
+
+	if (err)
+	{
 		dev_err(dev, "failed to probe arc emac (%d)\n", err);
 		goto out_regulator_disable;
 	}
@@ -234,8 +280,12 @@ static int emac_rockchip_probe(struct platform_device *pdev)
 	return 0;
 
 out_regulator_disable:
+
 	if (priv->regulator)
+	{
 		regulator_disable(priv->regulator);
+	}
+
 out_clk_disable:
 	clk_disable_unprepare(priv->refclk);
 out_netdev:
@@ -254,13 +304,16 @@ static int emac_rockchip_remove(struct platform_device *pdev)
 	clk_disable_unprepare(priv->refclk);
 
 	if (priv->regulator)
+	{
 		regulator_disable(priv->regulator);
+	}
 
 	free_netdev(ndev);
 	return err;
 }
 
-static struct platform_driver emac_rockchip_driver = {
+static struct platform_driver emac_rockchip_driver =
+{
 	.probe = emac_rockchip_probe,
 	.remove = emac_rockchip_remove,
 	.driver = {

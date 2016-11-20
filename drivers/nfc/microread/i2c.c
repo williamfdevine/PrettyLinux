@@ -40,13 +40,14 @@
 #define MICROREAD_I2C_LLC_LEN		1
 #define MICROREAD_I2C_LLC_CRC		1
 #define MICROREAD_I2C_LLC_LEN_CRC	(MICROREAD_I2C_LLC_LEN + \
-					MICROREAD_I2C_LLC_CRC)
+									 MICROREAD_I2C_LLC_CRC)
 #define MICROREAD_I2C_LLC_MIN_SIZE	(1 + MICROREAD_I2C_LLC_LEN_CRC)
 #define MICROREAD_I2C_LLC_MAX_PAYLOAD	29
 #define MICROREAD_I2C_LLC_MAX_SIZE	(MICROREAD_I2C_LLC_LEN_CRC + 1 + \
-					MICROREAD_I2C_LLC_MAX_PAYLOAD)
+									 MICROREAD_I2C_LLC_MAX_PAYLOAD)
 
-struct microread_i2c_phy {
+struct microread_i2c_phy
+{
 	struct i2c_client *i2c_dev;
 	struct nfc_hci_dev *hdev;
 
@@ -57,11 +58,11 @@ struct microread_i2c_phy {
 };
 
 #define I2C_DUMP_SKB(info, skb)					\
-do {								\
-	pr_debug("%s:\n", info);				\
-	print_hex_dump(KERN_DEBUG, "i2c: ", DUMP_PREFIX_OFFSET,	\
-		       16, 1, (skb)->data, (skb)->len, 0);	\
-} while (0)
+	do {								\
+		pr_debug("%s:\n", info);				\
+		print_hex_dump(KERN_DEBUG, "i2c: ", DUMP_PREFIX_OFFSET,	\
+					   16, 1, (skb)->data, (skb)->len, 0);	\
+	} while (0)
 
 static void microread_i2c_add_len_crc(struct sk_buff *skb)
 {
@@ -73,7 +74,9 @@ static void microread_i2c_add_len_crc(struct sk_buff *skb)
 	*skb_push(skb, 1) = len;
 
 	for (i = 0; i < skb->len; i++)
+	{
 		crc = crc ^ skb->data[i];
+	}
 
 	*skb_put(skb, 1) = crc;
 }
@@ -90,10 +93,13 @@ static int check_crc(struct sk_buff *skb)
 	u8 crc = 0;
 
 	for (i = 0; i < skb->len - 1; i++)
+	{
 		crc = crc ^ skb->data[i];
+	}
 
-	if (crc != skb->data[skb->len-1]) {
-		pr_err("CRC error 0x%x != 0x%x\n", crc, skb->data[skb->len-1]);
+	if (crc != skb->data[skb->len - 1])
+	{
+		pr_err("CRC error 0x%x != 0x%x\n", crc, skb->data[skb->len - 1]);
 		pr_info("%s: BAD CRC\n", __func__);
 		return -EPERM;
 	}
@@ -118,7 +124,9 @@ static int microread_i2c_write(void *phy_id, struct sk_buff *skb)
 	struct i2c_client *client = phy->i2c_dev;
 
 	if (phy->hard_fault != 0)
+	{
 		return phy->hard_fault;
+	}
 
 	usleep_range(3000, 6000);
 
@@ -128,16 +136,22 @@ static int microread_i2c_write(void *phy_id, struct sk_buff *skb)
 
 	r = i2c_master_send(client, skb->data, skb->len);
 
-	if (r == -EREMOTEIO) {	/* Retry, chip was in standby */
+	if (r == -EREMOTEIO)  	/* Retry, chip was in standby */
+	{
 		usleep_range(6000, 10000);
 		r = i2c_master_send(client, skb->data, skb->len);
 	}
 
-	if (r >= 0) {
+	if (r >= 0)
+	{
 		if (r != skb->len)
+		{
 			r = -EREMOTEIO;
+		}
 		else
+		{
 			r = 0;
+		}
 	}
 
 	microread_i2c_remove_len_crc(skb);
@@ -147,7 +161,7 @@ static int microread_i2c_write(void *phy_id, struct sk_buff *skb)
 
 
 static int microread_i2c_read(struct microread_i2c_phy *phy,
-			      struct sk_buff **skb)
+							  struct sk_buff **skb)
 {
 	int r;
 	u8 len;
@@ -155,20 +169,25 @@ static int microread_i2c_read(struct microread_i2c_phy *phy,
 	struct i2c_client *client = phy->i2c_dev;
 
 	r = i2c_master_recv(client, &len, 1);
-	if (r != 1) {
+
+	if (r != 1)
+	{
 		nfc_err(&client->dev, "cannot read len byte\n");
 		return -EREMOTEIO;
 	}
 
 	if ((len < MICROREAD_I2C_LLC_MIN_SIZE) ||
-	    (len > MICROREAD_I2C_LLC_MAX_SIZE)) {
+		(len > MICROREAD_I2C_LLC_MAX_SIZE))
+	{
 		nfc_err(&client->dev, "invalid len byte\n");
 		r = -EBADMSG;
 		goto flush;
 	}
 
 	*skb = alloc_skb(1 + len, GFP_KERNEL);
-	if (*skb == NULL) {
+
+	if (*skb == NULL)
+	{
 		r = -ENOMEM;
 		goto flush;
 	}
@@ -176,7 +195,9 @@ static int microread_i2c_read(struct microread_i2c_phy *phy,
 	*skb_put(*skb, 1) = len;
 
 	r = i2c_master_recv(client, skb_put(*skb, len), len);
-	if (r != len) {
+
+	if (r != len)
+	{
 		kfree_skb(*skb);
 		return -EREMOTEIO;
 	}
@@ -184,7 +205,9 @@ static int microread_i2c_read(struct microread_i2c_phy *phy,
 	I2C_DUMP_SKB("cc frame read", *skb);
 
 	r = check_crc(*skb);
-	if (r != 0) {
+
+	if (r != 0)
+	{
 		kfree_skb(*skb);
 		r = -EBADMSG;
 		goto flush;
@@ -198,8 +221,11 @@ static int microread_i2c_read(struct microread_i2c_phy *phy,
 	return 0;
 
 flush:
+
 	if (i2c_master_recv(client, tmp, sizeof(tmp)) < 0)
+	{
 		r = -EREMOTEIO;
+	}
 
 	usleep_range(3000, 6000);
 
@@ -212,22 +238,29 @@ static irqreturn_t microread_i2c_irq_thread_fn(int irq, void *phy_id)
 	struct sk_buff *skb = NULL;
 	int r;
 
-	if (!phy || irq != phy->i2c_dev->irq) {
+	if (!phy || irq != phy->i2c_dev->irq)
+	{
 		WARN_ON_ONCE(1);
 		return IRQ_NONE;
 	}
 
 	if (phy->hard_fault != 0)
+	{
 		return IRQ_HANDLED;
+	}
 
 	r = microread_i2c_read(phy, &skb);
-	if (r == -EREMOTEIO) {
+
+	if (r == -EREMOTEIO)
+	{
 		phy->hard_fault = r;
 
 		nfc_hci_recv_frame(phy->hdev, NULL);
 
 		return IRQ_HANDLED;
-	} else if ((r == -ENOMEM) || (r == -EBADMSG)) {
+	}
+	else if ((r == -ENOMEM) || (r == -EBADMSG))
+	{
 		return IRQ_HANDLED;
 	}
 
@@ -236,14 +269,15 @@ static irqreturn_t microread_i2c_irq_thread_fn(int irq, void *phy_id)
 	return IRQ_HANDLED;
 }
 
-static struct nfc_phy_ops i2c_phy_ops = {
+static struct nfc_phy_ops i2c_phy_ops =
+{
 	.write = microread_i2c_write,
 	.enable = microread_i2c_enable,
 	.disable = microread_i2c_disable,
 };
 
 static int microread_i2c_probe(struct i2c_client *client,
-			       const struct i2c_device_id *id)
+							   const struct i2c_device_id *id)
 {
 	struct microread_i2c_phy *phy;
 	int r;
@@ -251,27 +285,35 @@ static int microread_i2c_probe(struct i2c_client *client,
 	dev_dbg(&client->dev, "client %p\n", client);
 
 	phy = devm_kzalloc(&client->dev, sizeof(struct microread_i2c_phy),
-			   GFP_KERNEL);
+					   GFP_KERNEL);
+
 	if (!phy)
+	{
 		return -ENOMEM;
+	}
 
 	i2c_set_clientdata(client, phy);
 	phy->i2c_dev = client;
 
 	r = request_threaded_irq(client->irq, NULL, microread_i2c_irq_thread_fn,
-				 IRQF_TRIGGER_RISING | IRQF_ONESHOT,
-				 MICROREAD_I2C_DRIVER_NAME, phy);
-	if (r) {
+							 IRQF_TRIGGER_RISING | IRQF_ONESHOT,
+							 MICROREAD_I2C_DRIVER_NAME, phy);
+
+	if (r)
+	{
 		nfc_err(&client->dev, "Unable to register IRQ handler\n");
 		return r;
 	}
 
 	r = microread_probe(phy, &i2c_phy_ops, LLC_SHDLC_NAME,
-			    MICROREAD_I2C_FRAME_HEADROOM,
-			    MICROREAD_I2C_FRAME_TAILROOM,
-			    MICROREAD_I2C_LLC_MAX_PAYLOAD, &phy->hdev);
+						MICROREAD_I2C_FRAME_HEADROOM,
+						MICROREAD_I2C_FRAME_TAILROOM,
+						MICROREAD_I2C_LLC_MAX_PAYLOAD, &phy->hdev);
+
 	if (r < 0)
+	{
 		goto err_irq;
+	}
 
 	nfc_info(&client->dev, "Probed\n");
 
@@ -294,13 +336,15 @@ static int microread_i2c_remove(struct i2c_client *client)
 	return 0;
 }
 
-static struct i2c_device_id microread_i2c_id[] = {
+static struct i2c_device_id microread_i2c_id[] =
+{
 	{ MICROREAD_I2C_DRIVER_NAME, 0},
 	{ }
 };
 MODULE_DEVICE_TABLE(i2c, microread_i2c_id);
 
-static struct i2c_driver microread_i2c_driver = {
+static struct i2c_driver microread_i2c_driver =
+{
 	.driver = {
 		.name = MICROREAD_I2C_DRIVER_NAME,
 	},

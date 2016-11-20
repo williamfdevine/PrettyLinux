@@ -22,27 +22,29 @@ struct platform_device;
 void xadc_handle_events(struct iio_dev *indio_dev, unsigned long events);
 
 int xadc_read_event_config(struct iio_dev *indio_dev,
-	const struct iio_chan_spec *chan, enum iio_event_type type,
-	enum iio_event_direction dir);
+						   const struct iio_chan_spec *chan, enum iio_event_type type,
+						   enum iio_event_direction dir);
 int xadc_write_event_config(struct iio_dev *indio_dev,
-	const struct iio_chan_spec *chan, enum iio_event_type type,
-	enum iio_event_direction dir, int state);
+							const struct iio_chan_spec *chan, enum iio_event_type type,
+							enum iio_event_direction dir, int state);
 int xadc_read_event_value(struct iio_dev *indio_dev,
-	const struct iio_chan_spec *chan, enum iio_event_type type,
-	enum iio_event_direction dir, enum iio_event_info info,
-	int *val, int *val2);
+						  const struct iio_chan_spec *chan, enum iio_event_type type,
+						  enum iio_event_direction dir, enum iio_event_info info,
+						  int *val, int *val2);
 int xadc_write_event_value(struct iio_dev *indio_dev,
-	const struct iio_chan_spec *chan, enum iio_event_type type,
-	enum iio_event_direction dir, enum iio_event_info info,
-	int val, int val2);
+						   const struct iio_chan_spec *chan, enum iio_event_type type,
+						   enum iio_event_direction dir, enum iio_event_info info,
+						   int val, int val2);
 
-enum xadc_external_mux_mode {
+enum xadc_external_mux_mode
+{
 	XADC_EXTERNAL_MUX_NONE,
 	XADC_EXTERNAL_MUX_SINGLE,
 	XADC_EXTERNAL_MUX_DUAL,
 };
 
-struct xadc {
+struct xadc
+{
 	void __iomem *base;
 	struct clk *clk;
 
@@ -70,11 +72,12 @@ struct xadc {
 	struct completion completion;
 };
 
-struct xadc_ops {
+struct xadc_ops
+{
 	int (*read)(struct xadc *, unsigned int, uint16_t *);
 	int (*write)(struct xadc *, unsigned int, uint16_t);
 	int (*setup)(struct platform_device *pdev, struct iio_dev *indio_dev,
-			int irq);
+				 int irq);
 	void (*update_alarm)(struct xadc *, unsigned int);
 	unsigned long (*get_dclk_rate)(struct xadc *);
 	irqreturn_t (*interrupt_handler)(int, void *);
@@ -83,21 +86,21 @@ struct xadc_ops {
 };
 
 static inline int _xadc_read_adc_reg(struct xadc *xadc, unsigned int reg,
-	uint16_t *val)
+									 uint16_t *val)
 {
 	lockdep_assert_held(&xadc->mutex);
 	return xadc->ops->read(xadc, reg, val);
 }
 
 static inline int _xadc_write_adc_reg(struct xadc *xadc, unsigned int reg,
-	uint16_t val)
+									  uint16_t val)
 {
 	lockdep_assert_held(&xadc->mutex);
 	return xadc->ops->write(xadc, reg, val);
 }
 
 static inline int xadc_read_adc_reg(struct xadc *xadc, unsigned int reg,
-	uint16_t *val)
+									uint16_t *val)
 {
 	int ret;
 
@@ -108,7 +111,7 @@ static inline int xadc_read_adc_reg(struct xadc *xadc, unsigned int reg,
 }
 
 static inline int xadc_write_adc_reg(struct xadc *xadc, unsigned int reg,
-	uint16_t val)
+									 uint16_t val)
 {
 	int ret;
 

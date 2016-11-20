@@ -3,7 +3,8 @@
 
 #include <linux/types.h>
 
-enum lwtunnel_encap_types {
+enum lwtunnel_encap_types
+{
 	LWTUNNEL_ENCAP_NONE,
 	LWTUNNEL_ENCAP_MPLS,
 	LWTUNNEL_ENCAP_IP,
@@ -14,7 +15,8 @@ enum lwtunnel_encap_types {
 
 #define LWTUNNEL_ENCAP_MAX (__LWTUNNEL_ENCAP_MAX - 1)
 
-enum lwtunnel_ip_t {
+enum lwtunnel_ip_t
+{
 	LWTUNNEL_IP_UNSPEC,
 	LWTUNNEL_IP_ID,
 	LWTUNNEL_IP_DST,
@@ -28,7 +30,8 @@ enum lwtunnel_ip_t {
 
 #define LWTUNNEL_IP_MAX (__LWTUNNEL_IP_MAX - 1)
 
-enum lwtunnel_ip6_t {
+enum lwtunnel_ip6_t
+{
 	LWTUNNEL_IP6_UNSPEC,
 	LWTUNNEL_IP6_ID,
 	LWTUNNEL_IP6_DST,

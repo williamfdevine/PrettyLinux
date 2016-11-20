@@ -41,7 +41,8 @@
  * @x_max		x-resolution
  * @y_max		y-resolution
  */
-struct auo_pixcir_ts_platdata {
+struct auo_pixcir_ts_platdata
+{
 	int gpio_int;
 	int gpio_rst;
 

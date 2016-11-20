@@ -12,7 +12,8 @@
 #define HE_REGTYPE_TCM	3
 #define HE_REGTYPE_MBOX	4
 
-struct he_ioctl_reg {
+struct he_ioctl_reg
+{
 	unsigned addr, val;
 	char type;
 };

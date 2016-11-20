@@ -18,20 +18,23 @@
 #include <linux/gpio/driver.h>
 #include <linux/pinctrl/consumer.h>
 
-struct aspeed_gpio {
+struct aspeed_gpio
+{
 	struct gpio_chip chip;
 	spinlock_t lock;
 	void __iomem *base;
 	int irq;
 };
 
-struct aspeed_gpio_bank {
+struct aspeed_gpio_bank
+{
 	uint16_t	val_regs;
 	uint16_t	irq_regs;
 	const char	names[4];
 };
 
-static const struct aspeed_gpio_bank aspeed_gpio_banks[] = {
+static const struct aspeed_gpio_bank aspeed_gpio_banks[] =
+{
 	{
 		.val_regs = 0x0000,
 		.irq_regs = 0x0008,
@@ -91,15 +94,15 @@ static const struct aspeed_gpio_bank *to_bank(unsigned int offset)
 }
 
 static void __iomem *bank_val_reg(struct aspeed_gpio *gpio,
-		const struct aspeed_gpio_bank *bank,
-		unsigned int reg)
+								  const struct aspeed_gpio_bank *bank,
+								  unsigned int reg)
 {
 	return gpio->base + bank->val_regs + reg;
 }
 
 static void __iomem *bank_irq_reg(struct aspeed_gpio *gpio,
-		const struct aspeed_gpio_bank *bank,
-		unsigned int reg)
+								  const struct aspeed_gpio_bank *bank,
+								  unsigned int reg)
 {
 	return gpio->base + bank->irq_regs + reg;
 }
@@ -110,11 +113,11 @@ static int aspeed_gpio_get(struct gpio_chip *gc, unsigned int offset)
 	const struct aspeed_gpio_bank *bank = to_bank(offset);
 
 	return !!(ioread32(bank_val_reg(gpio, bank, GPIO_DATA))
-			& GPIO_BIT(offset));
+			  & GPIO_BIT(offset));
 }
 
 static void __aspeed_gpio_set(struct gpio_chip *gc, unsigned int offset,
-			      int val)
+							  int val)
 {
 	struct aspeed_gpio *gpio = gpiochip_get_data(gc);
 	const struct aspeed_gpio_bank *bank = to_bank(offset);
@@ -125,15 +128,19 @@ static void __aspeed_gpio_set(struct gpio_chip *gc, unsigned int offset,
 	reg = ioread32(addr);
 
 	if (val)
+	{
 		reg |= GPIO_BIT(offset);
+	}
 	else
+	{
 		reg &= ~GPIO_BIT(offset);
+	}
 
 	iowrite32(reg, addr);
 }
 
 static void aspeed_gpio_set(struct gpio_chip *gc, unsigned int offset,
-			    int val)
+							int val)
 {
 	struct aspeed_gpio *gpio = gpiochip_get_data(gc);
 	unsigned long flags;
@@ -163,7 +170,7 @@ static int aspeed_gpio_dir_in(struct gpio_chip *gc, unsigned int offset)
 }
 
 static int aspeed_gpio_dir_out(struct gpio_chip *gc,
-			       unsigned int offset, int val)
+							   unsigned int offset, int val)
 {
 	struct aspeed_gpio *gpio = gpiochip_get_data(gc);
 	const struct aspeed_gpio_bank *bank = to_bank(offset);
@@ -225,8 +232,11 @@ static void aspeed_gpio_irq_ack(struct irq_data *d)
 	int rc;
 
 	rc = irqd_to_aspeed_gpio_data(d, &gpio, &bank, &bit);
+
 	if (rc)
+	{
 		return;
+	}
 
 	status_addr = bank_irq_reg(gpio, bank, GPIO_IRQ_STATUS);
 
@@ -245,18 +255,27 @@ static void aspeed_gpio_irq_set_mask(struct irq_data *d, bool set)
 	int rc;
 
 	rc = irqd_to_aspeed_gpio_data(d, &gpio, &bank, &bit);
+
 	if (rc)
+	{
 		return;
+	}
 
 	addr = bank_irq_reg(gpio, bank, GPIO_IRQ_ENABLE);
 
 	spin_lock_irqsave(&gpio->lock, flags);
 
 	reg = ioread32(addr);
+
 	if (set)
+	{
 		reg |= bit;
+	}
 	else
+	{
 		reg &= bit;
+	}
+
 	iowrite32(reg, addr);
 
 	spin_unlock_irqrestore(&gpio->lock, flags);
@@ -286,25 +305,34 @@ static int aspeed_gpio_set_type(struct irq_data *d, unsigned int type)
 	int rc;
 
 	rc = irqd_to_aspeed_gpio_data(d, &gpio, &bank, &bit);
-	if (rc)
-		return -EINVAL;
 
-	switch (type & IRQ_TYPE_SENSE_MASK) {
-	case IRQ_TYPE_EDGE_BOTH:
-		type2 |= bit;
-	case IRQ_TYPE_EDGE_RISING:
-		type0 |= bit;
-	case IRQ_TYPE_EDGE_FALLING:
-		handler = handle_edge_irq;
-		break;
-	case IRQ_TYPE_LEVEL_HIGH:
-		type0 |= bit;
-	case IRQ_TYPE_LEVEL_LOW:
-		type1 |= bit;
-		handler = handle_level_irq;
-		break;
-	default:
+	if (rc)
+	{
 		return -EINVAL;
+	}
+
+	switch (type & IRQ_TYPE_SENSE_MASK)
+	{
+		case IRQ_TYPE_EDGE_BOTH:
+			type2 |= bit;
+
+		case IRQ_TYPE_EDGE_RISING:
+			type0 |= bit;
+
+		case IRQ_TYPE_EDGE_FALLING:
+			handler = handle_edge_irq;
+			break;
+
+		case IRQ_TYPE_LEVEL_HIGH:
+			type0 |= bit;
+
+		case IRQ_TYPE_LEVEL_LOW:
+			type1 |= bit;
+			handler = handle_level_irq;
+			break;
+
+		default:
+			return -EINVAL;
 	}
 
 	spin_lock_irqsave(&gpio->lock, flags);
@@ -341,12 +369,14 @@ static void aspeed_gpio_irq_handler(struct irq_desc *desc)
 
 	chained_irq_enter(ic, desc);
 
-	for (i = 0; i < ARRAY_SIZE(aspeed_gpio_banks); i++) {
+	for (i = 0; i < ARRAY_SIZE(aspeed_gpio_banks); i++)
+	{
 		const struct aspeed_gpio_bank *bank = &aspeed_gpio_banks[i];
 
 		reg = ioread32(bank_irq_reg(data, bank, GPIO_IRQ_STATUS));
 
-		for_each_set_bit(p, &reg, 32) {
+		for_each_set_bit(p, &reg, 32)
+		{
 			girq = irq_find_mapping(gc->irqdomain, i * 32 + p);
 			generic_handle_irq(girq);
 		}
@@ -356,7 +386,8 @@ static void aspeed_gpio_irq_handler(struct irq_desc *desc)
 	chained_irq_exit(ic, desc);
 }
 
-static struct irq_chip aspeed_gpio_irqchip = {
+static struct irq_chip aspeed_gpio_irqchip =
+{
 	.name		= "aspeed-gpio",
 	.irq_ack	= aspeed_gpio_irq_ack,
 	.irq_mask	= aspeed_gpio_irq_mask,
@@ -365,25 +396,30 @@ static struct irq_chip aspeed_gpio_irqchip = {
 };
 
 static int aspeed_gpio_setup_irqs(struct aspeed_gpio *gpio,
-		struct platform_device *pdev)
+								  struct platform_device *pdev)
 {
 	int rc;
 
 	rc = platform_get_irq(pdev, 0);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	gpio->irq = rc;
 
 	rc = gpiochip_irqchip_add(&gpio->chip, &aspeed_gpio_irqchip,
-			0, handle_bad_irq, IRQ_TYPE_NONE);
-	if (rc) {
+							  0, handle_bad_irq, IRQ_TYPE_NONE);
+
+	if (rc)
+	{
 		dev_info(&pdev->dev, "Could not add irqchip\n");
 		return rc;
 	}
 
 	gpiochip_set_chained_irqchip(&gpio->chip, &aspeed_gpio_irqchip,
-				     gpio->irq, aspeed_gpio_irq_handler);
+								 gpio->irq, aspeed_gpio_irq_handler);
 
 	return 0;
 }
@@ -405,13 +441,19 @@ static int __init aspeed_gpio_probe(struct platform_device *pdev)
 	int rc;
 
 	gpio = devm_kzalloc(&pdev->dev, sizeof(*gpio), GFP_KERNEL);
+
 	if (!gpio)
+	{
 		return -ENOMEM;
+	}
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	gpio->base = devm_ioremap_resource(&pdev->dev, res);
+
 	if (IS_ERR(gpio->base))
+	{
 		return PTR_ERR(gpio->base);
+	}
 
 	spin_lock_init(&gpio->lock);
 
@@ -429,20 +471,25 @@ static int __init aspeed_gpio_probe(struct platform_device *pdev)
 	gpio->chip.base = -1;
 
 	rc = devm_gpiochip_add_data(&pdev->dev, &gpio->chip, gpio);
+
 	if (rc < 0)
+	{
 		return rc;
+	}
 
 	return aspeed_gpio_setup_irqs(gpio, pdev);
 }
 
-static const struct of_device_id aspeed_gpio_of_table[] = {
+static const struct of_device_id aspeed_gpio_of_table[] =
+{
 	{ .compatible = "aspeed,ast2400-gpio" },
 	{ .compatible = "aspeed,ast2500-gpio" },
 	{}
 };
 MODULE_DEVICE_TABLE(of, aspeed_gpio_of_table);
 
-static struct platform_driver aspeed_gpio_driver = {
+static struct platform_driver aspeed_gpio_driver =
+{
 	.driver = {
 		.name = KBUILD_MODNAME,
 		.of_match_table = aspeed_gpio_of_table,

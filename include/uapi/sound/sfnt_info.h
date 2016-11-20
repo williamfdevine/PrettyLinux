@@ -29,13 +29,14 @@
  */
 
 #ifdef SNDRV_BIG_ENDIAN
-#define SNDRV_OSS_PATCHKEY(id) (0xfd00|id)
+	#define SNDRV_OSS_PATCHKEY(id) (0xfd00|id)
 #else
-#define SNDRV_OSS_PATCHKEY(id) ((id<<8)|0xfd)
+	#define SNDRV_OSS_PATCHKEY(id) ((id<<8)|0xfd)
 #endif
 
 /* patch interface header: 16 bytes */
-struct soundfont_patch_info {
+struct soundfont_patch_info
+{
 	unsigned short key;		/* use the key below */
 #define SNDRV_OSS_SOUNDFONT_PATCH		SNDRV_OSS_PATCHKEY(0x07)
 
@@ -68,7 +69,8 @@ struct soundfont_patch_info {
 
 #define SNDRV_SFNT_PATCH_NAME_LEN	32
 
-struct soundfont_open_parm {
+struct soundfont_open_parm
+{
 	unsigned short type;		/* sample type */
 #define SNDRV_SFNT_PAT_TYPE_MISC	0
 #define SNDRV_SFNT_PAT_TYPE_GUS	6
@@ -86,7 +88,8 @@ struct soundfont_open_parm {
  */
 
 /* wave table envelope & effect parameters to control EMU8000 */
-struct soundfont_voice_parm {
+struct soundfont_voice_parm
+{
 	unsigned short moddelay;	/* modulation delay (0x8000) */
 	unsigned short modatkhld;	/* modulation attack & hold time (0x7f7f) */
 	unsigned short moddcysus;	/* modulation decay & sustain (0x7f7f) */
@@ -112,7 +115,8 @@ struct soundfont_voice_parm {
 
 
 /* wave table parameters: 92 bytes */
-struct soundfont_voice_info {
+struct soundfont_voice_info
+{
 	unsigned short sf_id;		/* file id (should be zero) */
 	unsigned short sample;		/* sample id */
 	int start, end;			/* sample offset correction */
@@ -141,7 +145,8 @@ struct soundfont_voice_info {
 
 
 /* instrument info header: 4 bytes */
-struct soundfont_voice_rec_hdr {
+struct soundfont_voice_rec_hdr
+{
 	unsigned char bank;		/* midi bank number */
 	unsigned char instr;		/* midi preset number */
 	char nvoices;			/* number of voices */
@@ -157,7 +162,8 @@ struct soundfont_voice_rec_hdr {
  */
 
 /* wave table sample header: 32 bytes */
-struct soundfont_sample_info {
+struct soundfont_sample_info
+{
 	unsigned short sf_id;		/* file id (should be zero) */
 	unsigned short sample;		/* sample id */
 	int start, end;			/* start & end offset */
@@ -181,7 +187,8 @@ struct soundfont_sample_info {
  * voice preset mapping (aliasing)
  */
 
-struct soundfont_voice_map {
+struct soundfont_voice_map
+{
 	int map_bank, map_instr, map_key;	/* key = -1 means all keys */
 	int src_bank, src_instr, src_key;
 };
@@ -195,7 +202,8 @@ struct soundfont_voice_map {
 
 #define SNDRV_EMUX_VERSION	((1 << 16) | (0 << 8) | 0)	/* 1.0.0 */
 
-struct snd_emux_misc_mode {
+struct snd_emux_misc_mode
+{
 	int port;	/* -1 = all */
 	int mode;
 	int value;

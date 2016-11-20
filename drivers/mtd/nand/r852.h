@@ -28,7 +28,7 @@
 #define R852_CTL_COMMAND 	0x01	/* send command (#CLE)*/
 #define R852_CTL_DATA		0x02	/* read/write data (#ALE)*/
 #define R852_CTL_ON		0x04	/* only seem to controls the hd led, */
-					/* but has to be set on start...*/
+/* but has to be set on start...*/
 #define R852_CTL_RESET		0x08	/* unknown, set only on start once*/
 #define R852_CTL_CARDENABLE	0x10	/* probably (#CE) - always set*/
 #define R852_CTL_ECC_ENABLE	0x20	/* enable ecc engine */
@@ -66,7 +66,7 @@
 /* dma capabilities */
 #define R852_DMA_CAP		0x09
 #define R852_SMBIT		0x20	/* if set with bit #6 or bit #7, then */
-					/* hw is smartmedia */
+/* hw is smartmedia */
 #define R852_DMA1		0x40	/* if set w/bit #7, dma is supported */
 #define R852_DMA2		0x80	/* if set w/bit #6, dma is supported */
 
@@ -106,7 +106,8 @@
 #define DMA_INTERNAL	0
 #define DMA_MEMORY	1
 
-struct r852_device {
+struct r852_device
+{
 	void __iomem *mmio;		/* mmio */
 	struct nand_chip *chip;		/* nand chip backpointer */
 	struct pci_dev *pci_dev;	/* pci backpointer */

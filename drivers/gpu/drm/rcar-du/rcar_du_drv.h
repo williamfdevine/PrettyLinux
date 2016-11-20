@@ -45,7 +45,8 @@ struct rcar_du_lvdsenc;
  * specify the valid SoC outputs, which CRTCs can drive the output, and the type
  * of in-SoC encoder for the output.
  */
-struct rcar_du_output_routing {
+struct rcar_du_output_routing
+{
 	unsigned int possible_crtcs;
 	unsigned int encoder_type;
 	unsigned int port;
@@ -60,7 +61,8 @@ struct rcar_du_output_routing {
  * @routes: array of CRTC to output routes, indexed by output (RCAR_DU_OUTPUT_*)
  * @num_lvds: number of internal LVDS encoders
  */
-struct rcar_du_device_info {
+struct rcar_du_device_info
+{
 	unsigned int gen;
 	unsigned int features;
 	unsigned int quirks;
@@ -74,7 +76,8 @@ struct rcar_du_device_info {
 #define RCAR_DU_MAX_LVDS		2
 #define RCAR_DU_MAX_VSPS		4
 
-struct rcar_du_device {
+struct rcar_du_device
+{
 	struct device *dev;
 	const struct rcar_du_device_info *info;
 
@@ -89,7 +92,8 @@ struct rcar_du_device {
 	struct rcar_du_group groups[RCAR_DU_MAX_GROUPS];
 	struct rcar_du_vsp vsps[RCAR_DU_MAX_VSPS];
 
-	struct {
+	struct
+	{
 		struct drm_property *alpha;
 		struct drm_property *colorkey;
 	} props;
@@ -99,20 +103,21 @@ struct rcar_du_device {
 
 	struct rcar_du_lvdsenc *lvds[RCAR_DU_MAX_LVDS];
 
-	struct {
+	struct
+	{
 		wait_queue_head_t wait;
 		u32 pending;
 	} commit;
 };
 
 static inline bool rcar_du_has(struct rcar_du_device *rcdu,
-			       unsigned int feature)
+							   unsigned int feature)
 {
 	return rcdu->info->features & feature;
 }
 
 static inline bool rcar_du_needs(struct rcar_du_device *rcdu,
-				 unsigned int quirk)
+								 unsigned int quirk)
 {
 	return rcdu->info->quirks & quirk;
 }

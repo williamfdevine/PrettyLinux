@@ -49,7 +49,8 @@
  * @enable_bit: the index of the enable bit in the PLL control register
  * @stable_bit: the index of the stable bit in the PLL control register
  */
-struct ingenic_cgu_pll_info {
+struct ingenic_cgu_pll_info
+{
 	unsigned reg;
 	const s8 *od_encoding;
 	u8 m_shift, m_bits, m_offset;
@@ -67,7 +68,8 @@ struct ingenic_cgu_pll_info {
  *         the lowest bit of the mux value within its control register)
  * @bits: the size of the mux value in bits
  */
-struct ingenic_cgu_mux_info {
+struct ingenic_cgu_mux_info
+{
 	unsigned reg;
 	u8 shift;
 	u8 bits;
@@ -87,7 +89,8 @@ struct ingenic_cgu_mux_info {
  * @busy_bit: the index of the busy bit within reg, or -1 if there isn't one
  * @stop_bit: the index of the stop bit within reg, or -1 if there isn't one
  */
-struct ingenic_cgu_div_info {
+struct ingenic_cgu_div_info
+{
 	unsigned reg;
 	u8 shift;
 	u8 div;
@@ -101,7 +104,8 @@ struct ingenic_cgu_div_info {
  * struct ingenic_cgu_fixdiv_info - information about a fixed divider
  * @div: the divider applied to the parent clock
  */
-struct ingenic_cgu_fixdiv_info {
+struct ingenic_cgu_fixdiv_info
+{
 	unsigned div;
 };
 
@@ -110,7 +114,8 @@ struct ingenic_cgu_fixdiv_info {
  * @reg: offset of the gate control register within the CGU
  * @bit: offset of the bit in the register that controls the gate
  */
-struct ingenic_cgu_gate_info {
+struct ingenic_cgu_gate_info
+{
 	unsigned reg;
 	u8 bit;
 };
@@ -119,7 +124,8 @@ struct ingenic_cgu_gate_info {
  * struct ingenic_cgu_custom_info - information about a custom (SoC) clock
  * @clk_ops: custom clock operation callbacks
  */
-struct ingenic_cgu_custom_info {
+struct ingenic_cgu_custom_info
+{
 	struct clk_ops *clk_ops;
 };
 
@@ -137,10 +143,12 @@ struct ingenic_cgu_custom_info {
  * @fixdiv: information valid if type includes CGU_CLK_FIXDIV
  * @custom: information valid if type includes CGU_CLK_CUSTOM
  */
-struct ingenic_cgu_clk_info {
+struct ingenic_cgu_clk_info
+{
 	const char *name;
 
-	enum {
+	enum
+	{
 		CGU_CLK_NONE		= 0,
 		CGU_CLK_EXT		= BIT(0),
 		CGU_CLK_PLL		= BIT(1),
@@ -154,10 +162,12 @@ struct ingenic_cgu_clk_info {
 
 	int parents[4];
 
-	union {
+	union
+	{
 		struct ingenic_cgu_pll_info pll;
 
-		struct {
+		struct
+		{
 			struct ingenic_cgu_gate_info gate;
 			struct ingenic_cgu_mux_info mux;
 			struct ingenic_cgu_div_info div;
@@ -176,7 +186,8 @@ struct ingenic_cgu_clk_info {
  * @clocks: used to provide clocks to DT, allows lookup of struct clk*
  * @lock: lock to be held whilst manipulating CGU registers
  */
-struct ingenic_cgu {
+struct ingenic_cgu
+{
 	struct device_node *np;
 	void __iomem *base;
 
@@ -192,7 +203,8 @@ struct ingenic_cgu {
  * @cgu: a pointer to the CGU data
  * @idx: the index of this clock in cgu->clock_info
  */
-struct ingenic_clk {
+struct ingenic_clk
+{
 	struct clk_hw hw;
 	struct ingenic_cgu *cgu;
 	unsigned idx;
@@ -212,7 +224,7 @@ struct ingenic_clk {
  */
 struct ingenic_cgu *
 ingenic_cgu_new(const struct ingenic_cgu_clk_info *clock_info,
-		unsigned num_clocks, struct device_node *np);
+				unsigned num_clocks, struct device_node *np);
 
 /**
  * ingenic_cgu_register_clocks() - Registers the clocks

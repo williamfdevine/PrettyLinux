@@ -39,10 +39,12 @@
 
 /* Convert Ethernet address (media address format) to string */
 static int tipc_eth_addr2str(struct tipc_media_addr *addr,
-			     char *strbuf, int bufsz)
+							 char *strbuf, int bufsz)
 {
 	if (bufsz < 18)	/* 18 = strlen("aa:bb:cc:dd:ee:ff\0") */
+	{
 		return 1;
+	}
 
 	sprintf(strbuf, "%pM", addr->value);
 	return 0;
@@ -59,8 +61,8 @@ static int tipc_eth_addr2msg(char *msg, struct tipc_media_addr *addr)
 
 /* Convert raw mac address format to media addr format */
 static int tipc_eth_raw2addr(struct tipc_bearer *b,
-			     struct tipc_media_addr *addr,
-			     char *msg)
+							 struct tipc_media_addr *addr,
+							 char *msg)
 {
 	char bcast_mac[ETH_ALEN] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
@@ -73,8 +75,8 @@ static int tipc_eth_raw2addr(struct tipc_bearer *b,
 
 /* Convert discovery msg addr format to Ethernet media addr format */
 static int tipc_eth_msg2addr(struct tipc_bearer *b,
-			     struct tipc_media_addr *addr,
-			     char *msg)
+							 struct tipc_media_addr *addr,
+							 char *msg)
 {
 	/* Skip past preamble: */
 	msg += TIPC_MEDIA_ADDR_OFFSET;
@@ -82,7 +84,8 @@ static int tipc_eth_msg2addr(struct tipc_bearer *b,
 }
 
 /* Ethernet media registration info */
-struct tipc_media eth_media_info = {
+struct tipc_media eth_media_info =
+{
 	.send_msg	= tipc_l2_send_msg,
 	.enable_media	= tipc_enable_l2_media,
 	.disable_media	= tipc_disable_l2_media,

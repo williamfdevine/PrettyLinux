@@ -53,51 +53,66 @@ static int target_xcopy_gen_naa_ieee(struct se_device *dev, unsigned char *buf)
 }
 
 static int target_xcopy_locate_se_dev_e4(struct se_cmd *se_cmd, struct xcopy_op *xop,
-					bool src)
+		bool src)
 {
 	struct se_device *se_dev;
 	unsigned char tmp_dev_wwn[XCOPY_NAA_IEEE_REGEX_LEN], *dev_wwn;
 	int rc;
 
 	if (src)
+	{
 		dev_wwn = &xop->dst_tid_wwn[0];
+	}
 	else
+	{
 		dev_wwn = &xop->src_tid_wwn[0];
+	}
 
 	mutex_lock(&g_device_mutex);
-	list_for_each_entry(se_dev, &g_device_list, g_dev_node) {
+	list_for_each_entry(se_dev, &g_device_list, g_dev_node)
+	{
 
 		if (!se_dev->dev_attrib.emulate_3pc)
+		{
 			continue;
+		}
 
 		memset(&tmp_dev_wwn[0], 0, XCOPY_NAA_IEEE_REGEX_LEN);
 		target_xcopy_gen_naa_ieee(se_dev, &tmp_dev_wwn[0]);
 
 		rc = memcmp(&tmp_dev_wwn[0], dev_wwn, XCOPY_NAA_IEEE_REGEX_LEN);
-		if (rc != 0)
-			continue;
 
-		if (src) {
+		if (rc != 0)
+		{
+			continue;
+		}
+
+		if (src)
+		{
 			xop->dst_dev = se_dev;
 			pr_debug("XCOPY 0xe4: Setting xop->dst_dev: %p from located"
-				" se_dev\n", xop->dst_dev);
-		} else {
+					 " se_dev\n", xop->dst_dev);
+		}
+		else
+		{
 			xop->src_dev = se_dev;
 			pr_debug("XCOPY 0xe4: Setting xop->src_dev: %p from located"
-				" se_dev\n", xop->src_dev);
+					 " se_dev\n", xop->src_dev);
 		}
 
 		rc = target_depend_item(&se_dev->dev_group.cg_item);
-		if (rc != 0) {
+
+		if (rc != 0)
+		{
 			pr_err("configfs_depend_item attempt failed:"
-				" %d for se_dev: %p\n", rc, se_dev);
+				   " %d for se_dev: %p\n", rc, se_dev);
 			mutex_unlock(&g_device_mutex);
 			return rc;
 		}
 
 		pr_debug("Called configfs_depend_item for se_dev: %p"
-			" se_dev->se_dev_group: %p\n", se_dev,
-			&se_dev->dev_group);
+				 " se_dev->se_dev_group: %p\n", se_dev,
+				 &se_dev->dev_group);
 
 		mutex_unlock(&g_device_mutex);
 		return 0;
@@ -109,7 +124,7 @@ static int target_xcopy_locate_se_dev_e4(struct se_cmd *se_cmd, struct xcopy_op 
 }
 
 static int target_xcopy_parse_tiddesc_e4(struct se_cmd *se_cmd, struct xcopy_op *xop,
-				unsigned char *p, bool src)
+		unsigned char *p, bool src)
 {
 	unsigned char *desc = p;
 	unsigned short ript;
@@ -119,64 +134,83 @@ static int target_xcopy_parse_tiddesc_e4(struct se_cmd *se_cmd, struct xcopy_op 
 	 */
 	ript = get_unaligned_be16(&desc[2]);
 	pr_debug("XCOPY 0xe4: RELATIVE INITIATOR PORT IDENTIFIER: %hu\n", ript);
+
 	/*
 	 * Check for supported code set, association, and designator type
 	 */
-	if ((desc[4] & 0x0f) != 0x1) {
+	if ((desc[4] & 0x0f) != 0x1)
+	{
 		pr_err("XCOPY 0xe4: code set of non binary type not supported\n");
 		return -EINVAL;
 	}
-	if ((desc[5] & 0x30) != 0x00) {
+
+	if ((desc[5] & 0x30) != 0x00)
+	{
 		pr_err("XCOPY 0xe4: association other than LUN not supported\n");
 		return -EINVAL;
 	}
-	if ((desc[5] & 0x0f) != 0x3) {
+
+	if ((desc[5] & 0x0f) != 0x3)
+	{
 		pr_err("XCOPY 0xe4: designator type unsupported: 0x%02x\n",
-				(desc[5] & 0x0f));
+			   (desc[5] & 0x0f));
 		return -EINVAL;
 	}
+
 	/*
 	 * Check for matching 16 byte length for NAA IEEE Registered Extended
 	 * Assigned designator
 	 */
 	desig_len = desc[7];
-	if (desig_len != 16) {
+
+	if (desig_len != 16)
+	{
 		pr_err("XCOPY 0xe4: invalid desig_len: %d\n", (int)desig_len);
 		return -EINVAL;
 	}
+
 	pr_debug("XCOPY 0xe4: desig_len: %d\n", (int)desig_len);
+
 	/*
 	 * Check for NAA IEEE Registered Extended Assigned header..
 	 */
-	if ((desc[8] & 0xf0) != 0x60) {
+	if ((desc[8] & 0xf0) != 0x60)
+	{
 		pr_err("XCOPY 0xe4: Unsupported DESIGNATOR TYPE: 0x%02x\n",
-					(desc[8] & 0xf0));
+			   (desc[8] & 0xf0));
 		return -EINVAL;
 	}
 
-	if (src) {
+	if (src)
+	{
 		memcpy(&xop->src_tid_wwn[0], &desc[8], XCOPY_NAA_IEEE_REGEX_LEN);
+
 		/*
 		 * Determine if the source designator matches the local device
 		 */
 		if (!memcmp(&xop->local_dev_wwn[0], &xop->src_tid_wwn[0],
-				XCOPY_NAA_IEEE_REGEX_LEN)) {
+					XCOPY_NAA_IEEE_REGEX_LEN))
+		{
 			xop->op_origin = XCOL_SOURCE_RECV_OP;
 			xop->src_dev = se_cmd->se_dev;
 			pr_debug("XCOPY 0xe4: Set xop->src_dev %p from source"
-					" received xop\n", xop->src_dev);
+					 " received xop\n", xop->src_dev);
 		}
-	} else {
+	}
+	else
+	{
 		memcpy(&xop->dst_tid_wwn[0], &desc[8], XCOPY_NAA_IEEE_REGEX_LEN);
+
 		/*
 		 * Determine if the destination designator matches the local device
 		 */
 		if (!memcmp(&xop->local_dev_wwn[0], &xop->dst_tid_wwn[0],
-				XCOPY_NAA_IEEE_REGEX_LEN)) {
+					XCOPY_NAA_IEEE_REGEX_LEN))
+		{
 			xop->op_origin = XCOL_DEST_RECV_OP;
 			xop->dst_dev = se_cmd->se_dev;
 			pr_debug("XCOPY 0xe4: Set xop->dst_dev: %p from destination"
-				" received xop\n", xop->dst_dev);
+					 " received xop\n", xop->dst_dev);
 		}
 	}
 
@@ -184,8 +218,8 @@ static int target_xcopy_parse_tiddesc_e4(struct se_cmd *se_cmd, struct xcopy_op 
 }
 
 static int target_xcopy_parse_target_descriptors(struct se_cmd *se_cmd,
-				struct xcopy_op *xop, unsigned char *p,
-				unsigned short tdll, sense_reason_t *sense_ret)
+		struct xcopy_op *xop, unsigned char *p,
+		unsigned short tdll, sense_reason_t *sense_ret)
 {
 	struct se_device *local_dev = se_cmd->se_dev;
 	unsigned char *desc = p;
@@ -195,16 +229,20 @@ static int target_xcopy_parse_target_descriptors(struct se_cmd *se_cmd,
 
 	*sense_ret = TCM_INVALID_PARAMETER_LIST;
 
-	if (offset != 0) {
+	if (offset != 0)
+	{
 		pr_err("XCOPY target descriptor list length is not"
-			" multiple of %d\n", XCOPY_TARGET_DESC_LEN);
+			   " multiple of %d\n", XCOPY_TARGET_DESC_LEN);
 		return -EINVAL;
 	}
-	if (tdll > 64) {
+
+	if (tdll > 64)
+	{
 		pr_err("XCOPY target descriptor supports a maximum"
-			" two src/dest descriptors, tdll: %hu too large..\n", tdll);
+			   " two src/dest descriptors, tdll: %hu too large..\n", tdll);
 		return -EINVAL;
 	}
+
 	/*
 	 * Generate an IEEE Registered Extended designator based upon the
 	 * se_device the XCOPY was received upon..
@@ -212,54 +250,72 @@ static int target_xcopy_parse_target_descriptors(struct se_cmd *se_cmd,
 	memset(&xop->local_dev_wwn[0], 0, XCOPY_NAA_IEEE_REGEX_LEN);
 	target_xcopy_gen_naa_ieee(local_dev, &xop->local_dev_wwn[0]);
 
-	while (start < tdll) {
+	while (start < tdll)
+	{
 		/*
 		 * Check target descriptor identification with 0xE4 type with
 		 * use VPD 0x83 WWPN matching ..
 		 */
-		switch (desc[0]) {
-		case 0xe4:
-			rc = target_xcopy_parse_tiddesc_e4(se_cmd, xop,
-							&desc[0], src);
-			if (rc != 0)
+		switch (desc[0])
+		{
+			case 0xe4:
+				rc = target_xcopy_parse_tiddesc_e4(se_cmd, xop,
+												   &desc[0], src);
+
+				if (rc != 0)
+				{
+					goto out;
+				}
+
+				/*
+				 * Assume target descriptors are in source -> destination order..
+				 */
+				if (src)
+				{
+					src = false;
+				}
+				else
+				{
+					src = true;
+				}
+
+				start += XCOPY_TARGET_DESC_LEN;
+				desc += XCOPY_TARGET_DESC_LEN;
+				ret++;
+				break;
+
+			default:
+				pr_err("XCOPY unsupported descriptor type code:"
+					   " 0x%02x\n", desc[0]);
 				goto out;
-			/*
-			 * Assume target descriptors are in source -> destination order..
-			 */
-			if (src)
-				src = false;
-			else
-				src = true;
-			start += XCOPY_TARGET_DESC_LEN;
-			desc += XCOPY_TARGET_DESC_LEN;
-			ret++;
-			break;
-		default:
-			pr_err("XCOPY unsupported descriptor type code:"
-					" 0x%02x\n", desc[0]);
-			goto out;
 		}
 	}
 
 	if (xop->op_origin == XCOL_SOURCE_RECV_OP)
+	{
 		rc = target_xcopy_locate_se_dev_e4(se_cmd, xop, true);
+	}
 	else
+	{
 		rc = target_xcopy_locate_se_dev_e4(se_cmd, xop, false);
+	}
+
 	/*
 	 * If a matching IEEE NAA 0x83 descriptor for the requested device
 	 * is not located on this node, return COPY_ABORTED with ASQ/ASQC
 	 * 0x0d/0x02 - COPY_TARGET_DEVICE_NOT_REACHABLE to request the
 	 * initiator to fall back to normal copy method.
 	 */
-	if (rc < 0) {
+	if (rc < 0)
+	{
 		*sense_ret = TCM_COPY_TARGET_DEVICE_NOT_REACHABLE;
 		goto out;
 	}
 
 	pr_debug("XCOPY TGT desc: Source dev: %p NAA IEEE WWN: 0x%16phN\n",
-		 xop->src_dev, &xop->src_tid_wwn[0]);
+			 xop->src_dev, &xop->src_tid_wwn[0]);
 	pr_debug("XCOPY TGT desc: Dest dev: %p NAA IEEE WWN: 0x%16phN\n",
-		 xop->dst_dev, &xop->dst_tid_wwn[0]);
+			 xop->dst_dev, &xop->dst_tid_wwn[0]);
 
 	return ret;
 
@@ -268,73 +324,84 @@ out:
 }
 
 static int target_xcopy_parse_segdesc_02(struct se_cmd *se_cmd, struct xcopy_op *xop,
-					unsigned char *p)
+		unsigned char *p)
 {
 	unsigned char *desc = p;
 	int dc = (desc[1] & 0x02);
 	unsigned short desc_len;
 
 	desc_len = get_unaligned_be16(&desc[2]);
-	if (desc_len != 0x18) {
+
+	if (desc_len != 0x18)
+	{
 		pr_err("XCOPY segment desc 0x02: Illegal desc_len:"
-				" %hu\n", desc_len);
+			   " %hu\n", desc_len);
 		return -EINVAL;
 	}
 
 	xop->stdi = get_unaligned_be16(&desc[4]);
 	xop->dtdi = get_unaligned_be16(&desc[6]);
 	pr_debug("XCOPY seg desc 0x02: desc_len: %hu stdi: %hu dtdi: %hu, DC: %d\n",
-		desc_len, xop->stdi, xop->dtdi, dc);
+			 desc_len, xop->stdi, xop->dtdi, dc);
 
 	xop->nolb = get_unaligned_be16(&desc[10]);
 	xop->src_lba = get_unaligned_be64(&desc[12]);
 	xop->dst_lba = get_unaligned_be64(&desc[20]);
 	pr_debug("XCOPY seg desc 0x02: nolb: %hu src_lba: %llu dst_lba: %llu\n",
-		xop->nolb, (unsigned long long)xop->src_lba,
-		(unsigned long long)xop->dst_lba);
+			 xop->nolb, (unsigned long long)xop->src_lba,
+			 (unsigned long long)xop->dst_lba);
 
-	if (dc != 0) {
+	if (dc != 0)
+	{
 		xop->dbl = (desc[29] & 0xff) << 16;
 		xop->dbl |= (desc[30] & 0xff) << 8;
 		xop->dbl |= desc[31] & 0xff;
 
 		pr_debug("XCOPY seg desc 0x02: DC=1 w/ dbl: %u\n", xop->dbl);
 	}
+
 	return 0;
 }
 
 static int target_xcopy_parse_segment_descriptors(struct se_cmd *se_cmd,
-				struct xcopy_op *xop, unsigned char *p,
-				unsigned int sdll)
+		struct xcopy_op *xop, unsigned char *p,
+		unsigned int sdll)
 {
 	unsigned char *desc = p;
 	unsigned int start = 0;
 	int offset = sdll % XCOPY_SEGMENT_DESC_LEN, rc, ret = 0;
 
-	if (offset != 0) {
+	if (offset != 0)
+	{
 		pr_err("XCOPY segment descriptor list length is not"
-			" multiple of %d\n", XCOPY_SEGMENT_DESC_LEN);
+			   " multiple of %d\n", XCOPY_SEGMENT_DESC_LEN);
 		return -EINVAL;
 	}
 
-	while (start < sdll) {
+	while (start < sdll)
+	{
 		/*
 		 * Check segment descriptor type code for block -> block
 		 */
-		switch (desc[0]) {
-		case 0x02:
-			rc = target_xcopy_parse_segdesc_02(se_cmd, xop, desc);
-			if (rc < 0)
-				goto out;
+		switch (desc[0])
+		{
+			case 0x02:
+				rc = target_xcopy_parse_segdesc_02(se_cmd, xop, desc);
 
-			ret++;
-			start += XCOPY_SEGMENT_DESC_LEN;
-			desc += XCOPY_SEGMENT_DESC_LEN;
-			break;
-		default:
-			pr_err("XCOPY unsupported segment descriptor"
-				"type: 0x%02x\n", desc[0]);
-			goto out;
+				if (rc < 0)
+				{
+					goto out;
+				}
+
+				ret++;
+				start += XCOPY_SEGMENT_DESC_LEN;
+				desc += XCOPY_SEGMENT_DESC_LEN;
+				break;
+
+			default:
+				pr_err("XCOPY unsupported segment descriptor"
+					   "type: 0x%02x\n", desc[0]);
+				goto out;
 		}
 	}
 
@@ -348,7 +415,8 @@ out:
  * Start xcopy_pt ops
  */
 
-struct xcopy_pt_cmd {
+struct xcopy_pt_cmd
+{
 	bool remote_port;
 	struct se_cmd se_cmd;
 	struct xcopy_op *xcopy_op;
@@ -362,12 +430,12 @@ static struct se_node_acl xcopy_pt_nacl;
 
 static char *xcopy_pt_get_fabric_name(void)
 {
-        return "xcopy-pt";
+	return "xcopy-pt";
 }
 
 static int xcopy_pt_get_cmd_state(struct se_cmd *se_cmd)
 {
-        return 0;
+	return 0;
 }
 
 static void xcopy_pt_undepend_remotedev(struct xcopy_op *xop)
@@ -375,13 +443,17 @@ static void xcopy_pt_undepend_remotedev(struct xcopy_op *xop)
 	struct se_device *remote_dev;
 
 	if (xop->op_origin == XCOL_SOURCE_RECV_OP)
+	{
 		remote_dev = xop->dst_dev;
+	}
 	else
+	{
 		remote_dev = xop->src_dev;
+	}
 
 	pr_debug("Calling configfs_undepend_item for"
-		  " remote_dev: %p remote_dev->dev_group: %p\n",
-		  remote_dev, &remote_dev->dev_group.cg_item);
+			 " remote_dev: %p remote_dev->dev_group: %p\n",
+			 remote_dev, &remote_dev->dev_group.cg_item);
 
 	target_undepend_item(&remote_dev->dev_group.cg_item);
 }
@@ -389,7 +461,7 @@ static void xcopy_pt_undepend_remotedev(struct xcopy_op *xop)
 static void xcopy_pt_release_cmd(struct se_cmd *se_cmd)
 {
 	struct xcopy_pt_cmd *xpt_cmd = container_of(se_cmd,
-				struct xcopy_pt_cmd, se_cmd);
+								   struct xcopy_pt_cmd, se_cmd);
 
 	kfree(xpt_cmd);
 }
@@ -397,7 +469,7 @@ static void xcopy_pt_release_cmd(struct se_cmd *se_cmd)
 static int xcopy_pt_check_stop_free(struct se_cmd *se_cmd)
 {
 	struct xcopy_pt_cmd *xpt_cmd = container_of(se_cmd,
-				struct xcopy_pt_cmd, se_cmd);
+								   struct xcopy_pt_cmd, se_cmd);
 
 	complete(&xpt_cmd->xpt_passthrough_sem);
 	return 0;
@@ -423,7 +495,8 @@ static int xcopy_pt_queue_status(struct se_cmd *se_cmd)
 	return 0;
 }
 
-static const struct target_core_fabric_ops xcopy_pt_tfo = {
+static const struct target_core_fabric_ops xcopy_pt_tfo =
+{
 	.get_fabric_name	= xcopy_pt_get_fabric_name,
 	.get_cmd_state		= xcopy_pt_get_cmd_state,
 	.release_cmd		= xcopy_pt_release_cmd,
@@ -441,7 +514,9 @@ static const struct target_core_fabric_ops xcopy_pt_tfo = {
 int target_xcopy_setup_pt(void)
 {
 	xcopy_wq = alloc_workqueue("xcopy_wq", WQ_MEM_RECLAIM, 0);
-	if (!xcopy_wq) {
+
+	if (!xcopy_wq)
+	{
 		pr_err("Unable to allocate xcopy_wq\n");
 		return -ENOMEM;
 	}
@@ -474,7 +549,9 @@ int target_xcopy_setup_pt(void)
 void target_xcopy_release_pt(void)
 {
 	if (xcopy_wq)
+	{
 		destroy_workqueue(xcopy_wq);
+	}
 }
 
 static void target_xcopy_setup_pt_port(
@@ -485,57 +562,67 @@ static void target_xcopy_setup_pt_port(
 	struct se_cmd *ec_cmd = xop->xop_se_cmd;
 	struct se_cmd *pt_cmd = &xpt_cmd->se_cmd;
 
-	if (xop->op_origin == XCOL_SOURCE_RECV_OP) {
+	if (xop->op_origin == XCOL_SOURCE_RECV_OP)
+	{
 		/*
 		 * Honor destination port reservations for X-COPY PUSH emulation
 		 * when CDB is received on local source port, and READs blocks to
 		 * WRITE on remote destination port.
 		 */
-		if (remote_port) {
+		if (remote_port)
+		{
 			xpt_cmd->remote_port = remote_port;
-		} else {
+		}
+		else
+		{
 			pt_cmd->se_lun = ec_cmd->se_lun;
 			pt_cmd->se_dev = ec_cmd->se_dev;
 
 			pr_debug("Honoring local SRC port from ec_cmd->se_dev:"
-				" %p\n", pt_cmd->se_dev);
+					 " %p\n", pt_cmd->se_dev);
 			pt_cmd->se_lun = ec_cmd->se_lun;
 			pr_debug("Honoring local SRC port from ec_cmd->se_lun: %p\n",
-				pt_cmd->se_lun);
+					 pt_cmd->se_lun);
 		}
-	} else {
+	}
+	else
+	{
 		/*
 		 * Honor source port reservation for X-COPY PULL emulation
 		 * when CDB is received on local desintation port, and READs
 		 * blocks from the remote source port to WRITE on local
 		 * destination port.
 		 */
-		if (remote_port) {
+		if (remote_port)
+		{
 			xpt_cmd->remote_port = remote_port;
-		} else {
+		}
+		else
+		{
 			pt_cmd->se_lun = ec_cmd->se_lun;
 			pt_cmd->se_dev = ec_cmd->se_dev;
 
 			pr_debug("Honoring local DST port from ec_cmd->se_dev:"
-				" %p\n", pt_cmd->se_dev);
+					 " %p\n", pt_cmd->se_dev);
 			pt_cmd->se_lun = ec_cmd->se_lun;
 			pr_debug("Honoring local DST port from ec_cmd->se_lun: %p\n",
-				pt_cmd->se_lun);
+					 pt_cmd->se_lun);
 		}
 	}
 }
 
 static void target_xcopy_init_pt_lun(struct se_device *se_dev,
-		struct se_cmd *pt_cmd, bool remote_port)
+									 struct se_cmd *pt_cmd, bool remote_port)
 {
 	/*
 	 * Don't allocate + init an pt_cmd->se_lun if honoring local port for
 	 * reservations.  The pt_cmd->se_lun pointer will be setup from within
 	 * target_xcopy_setup_pt_port()
 	 */
-	if (remote_port) {
+	if (remote_port)
+	{
 		pr_debug("Setup emulated se_dev: %p from se_dev\n",
-			pt_cmd->se_dev);
+				 pt_cmd->se_dev);
 		pt_cmd->se_lun = &se_dev->xcopy_lun;
 		pt_cmd->se_dev = se_dev;
 	}
@@ -565,39 +652,49 @@ static int target_xcopy_setup_pt_cmd(
 
 	cmd->tag = 0;
 	sense_rc = target_setup_cmd_from_cdb(cmd, cdb);
-	if (sense_rc) {
+
+	if (sense_rc)
+	{
 		ret = -EINVAL;
 		goto out;
 	}
 
-	if (alloc_mem) {
+	if (alloc_mem)
+	{
 		rc = target_alloc_sgl(&cmd->t_data_sg, &cmd->t_data_nents,
-				      cmd->data_length, false, false);
-		if (rc < 0) {
+							  cmd->data_length, false, false);
+
+		if (rc < 0)
+		{
 			ret = rc;
 			goto out;
 		}
+
 		/*
 		 * Set this bit so that transport_free_pages() allows the
 		 * caller to release SGLs + physical memory allocated by
 		 * transport_generic_get_mem()..
 		 */
 		cmd->se_cmd_flags |= SCF_PASSTHROUGH_SG_TO_MEM_NOALLOC;
-	} else {
+	}
+	else
+	{
 		/*
 		 * Here the previously allocated SGLs for the internal READ
 		 * are mapped zero-copy to the internal WRITE.
 		 */
 		sense_rc = transport_generic_map_mem_to_cmd(cmd,
-					xop->xop_data_sg, xop->xop_data_nents,
-					NULL, 0);
-		if (sense_rc) {
+				   xop->xop_data_sg, xop->xop_data_nents,
+				   NULL, 0);
+
+		if (sense_rc)
+		{
 			ret = -EINVAL;
 			goto out;
 		}
 
 		pr_debug("Setup PASSTHROUGH_NOALLOC t_data_sg: %p t_data_nents:"
-			 " %u\n", cmd->t_data_sg, cmd->t_data_nents);
+				 " %u\n", cmd->t_data_sg, cmd->t_data_nents);
 	}
 
 	return 0;
@@ -612,16 +709,21 @@ static int target_xcopy_issue_pt_cmd(struct xcopy_pt_cmd *xpt_cmd)
 	sense_reason_t sense_rc;
 
 	sense_rc = transport_generic_new_cmd(se_cmd);
+
 	if (sense_rc)
+	{
 		return -EINVAL;
+	}
 
 	if (se_cmd->data_direction == DMA_TO_DEVICE)
+	{
 		target_execute_cmd(se_cmd);
+	}
 
 	wait_for_completion_interruptible(&xpt_cmd->xpt_passthrough_sem);
 
 	pr_debug("target_xcopy_issue_pt_cmd(): SCSI status: 0x%02x\n",
-			se_cmd->scsi_status);
+			 se_cmd->scsi_status);
 
 	return (se_cmd->scsi_status) ? -EINVAL : 0;
 }
@@ -641,10 +743,13 @@ static int target_xcopy_read_source(
 	bool remote_port = (xop->op_origin == XCOL_DEST_RECV_OP);
 
 	xpt_cmd = kzalloc(sizeof(struct xcopy_pt_cmd), GFP_KERNEL);
-	if (!xpt_cmd) {
+
+	if (!xpt_cmd)
+	{
 		pr_err("Unable to allocate xcopy_pt_cmd\n");
 		return -ENOMEM;
 	}
+
 	init_completion(&xpt_cmd->xpt_passthrough_sem);
 	se_cmd = &xpt_cmd->se_cmd;
 
@@ -653,15 +758,17 @@ static int target_xcopy_read_source(
 	put_unaligned_be64(src_lba, &cdb[2]);
 	put_unaligned_be32(src_sectors, &cdb[10]);
 	pr_debug("XCOPY: Built READ_16: LBA: %llu Sectors: %u Length: %u\n",
-		(unsigned long long)src_lba, src_sectors, length);
+			 (unsigned long long)src_lba, src_sectors, length);
 
 	transport_init_se_cmd(se_cmd, &xcopy_pt_tfo, &xcopy_pt_sess, length,
-			      DMA_FROM_DEVICE, 0, &xpt_cmd->sense_buffer[0]);
+						  DMA_FROM_DEVICE, 0, &xpt_cmd->sense_buffer[0]);
 	xop->src_pt_cmd = xpt_cmd;
 
 	rc = target_xcopy_setup_pt_cmd(xpt_cmd, xop, src_dev, &cdb[0],
-				remote_port, true);
-	if (rc < 0) {
+								   remote_port, true);
+
+	if (rc < 0)
+	{
 		ec_cmd->scsi_status = xpt_cmd->se_cmd.scsi_status;
 		transport_generic_free_cmd(se_cmd, 0);
 		return rc;
@@ -670,14 +777,17 @@ static int target_xcopy_read_source(
 	xop->xop_data_sg = se_cmd->t_data_sg;
 	xop->xop_data_nents = se_cmd->t_data_nents;
 	pr_debug("XCOPY-READ: Saved xop->xop_data_sg: %p, num: %u for READ"
-		" memory\n", xop->xop_data_sg, xop->xop_data_nents);
+			 " memory\n", xop->xop_data_sg, xop->xop_data_nents);
 
 	rc = target_xcopy_issue_pt_cmd(xpt_cmd);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		ec_cmd->scsi_status = xpt_cmd->se_cmd.scsi_status;
 		transport_generic_free_cmd(se_cmd, 0);
 		return rc;
 	}
+
 	/*
 	 * Clear off the allocated t_data_sg, that has been saved for
 	 * zero-copy WRITE submission reuse in struct xcopy_op..
@@ -703,10 +813,13 @@ static int target_xcopy_write_destination(
 	bool remote_port = (xop->op_origin == XCOL_SOURCE_RECV_OP);
 
 	xpt_cmd = kzalloc(sizeof(struct xcopy_pt_cmd), GFP_KERNEL);
-	if (!xpt_cmd) {
+
+	if (!xpt_cmd)
+	{
 		pr_err("Unable to allocate xcopy_pt_cmd\n");
 		return -ENOMEM;
 	}
+
 	init_completion(&xpt_cmd->xpt_passthrough_sem);
 	se_cmd = &xpt_cmd->se_cmd;
 
@@ -715,15 +828,17 @@ static int target_xcopy_write_destination(
 	put_unaligned_be64(dst_lba, &cdb[2]);
 	put_unaligned_be32(dst_sectors, &cdb[10]);
 	pr_debug("XCOPY: Built WRITE_16: LBA: %llu Sectors: %u Length: %u\n",
-		(unsigned long long)dst_lba, dst_sectors, length);
+			 (unsigned long long)dst_lba, dst_sectors, length);
 
 	transport_init_se_cmd(se_cmd, &xcopy_pt_tfo, &xcopy_pt_sess, length,
-			      DMA_TO_DEVICE, 0, &xpt_cmd->sense_buffer[0]);
+						  DMA_TO_DEVICE, 0, &xpt_cmd->sense_buffer[0]);
 	xop->dst_pt_cmd = xpt_cmd;
 
 	rc = target_xcopy_setup_pt_cmd(xpt_cmd, xop, dst_dev, &cdb[0],
-				remote_port, false);
-	if (rc < 0) {
+								   remote_port, false);
+
+	if (rc < 0)
+	{
 		struct se_cmd *src_cmd = &xop->src_pt_cmd->se_cmd;
 		ec_cmd->scsi_status = xpt_cmd->se_cmd.scsi_status;
 		/*
@@ -740,7 +855,9 @@ static int target_xcopy_write_destination(
 	}
 
 	rc = target_xcopy_issue_pt_cmd(xpt_cmd);
-	if (rc < 0) {
+
+	if (rc < 0)
+	{
 		ec_cmd->scsi_status = xpt_cmd->se_cmd.scsi_status;
 		se_cmd->se_cmd_flags &= ~SCF_PASSTHROUGH_SG_TO_MEM_NOALLOC;
 		transport_generic_free_cmd(se_cmd, 0);
@@ -766,43 +883,49 @@ static void target_xcopy_do_work(struct work_struct *work)
 	 * smallest max_sectors between src_dev + dev_dev, or
 	 */
 	max_sectors = min(src_dev->dev_attrib.hw_max_sectors,
-			  dst_dev->dev_attrib.hw_max_sectors);
+					  dst_dev->dev_attrib.hw_max_sectors);
 	max_sectors = min_t(u32, max_sectors, XCOPY_MAX_SECTORS);
 
 	max_nolb = min_t(u16, max_sectors, ((u16)(~0U)));
 
 	pr_debug("target_xcopy_do_work: nolb: %hu, max_nolb: %hu end_lba: %llu\n",
-			nolb, max_nolb, (unsigned long long)end_lba);
+			 nolb, max_nolb, (unsigned long long)end_lba);
 	pr_debug("target_xcopy_do_work: Starting src_lba: %llu, dst_lba: %llu\n",
-			(unsigned long long)src_lba, (unsigned long long)dst_lba);
+			 (unsigned long long)src_lba, (unsigned long long)dst_lba);
 
-	while (src_lba < end_lba) {
+	while (src_lba < end_lba)
+	{
 		cur_nolb = min(nolb, max_nolb);
 
 		pr_debug("target_xcopy_do_work: Calling read src_dev: %p src_lba: %llu,"
-			" cur_nolb: %hu\n", src_dev, (unsigned long long)src_lba, cur_nolb);
+				 " cur_nolb: %hu\n", src_dev, (unsigned long long)src_lba, cur_nolb);
 
 		rc = target_xcopy_read_source(ec_cmd, xop, src_dev, src_lba, cur_nolb);
+
 		if (rc < 0)
+		{
 			goto out;
+		}
 
 		src_lba += cur_nolb;
 		pr_debug("target_xcopy_do_work: Incremented READ src_lba to %llu\n",
-				(unsigned long long)src_lba);
+				 (unsigned long long)src_lba);
 
 		pr_debug("target_xcopy_do_work: Calling write dst_dev: %p dst_lba: %llu,"
-			" cur_nolb: %hu\n", dst_dev, (unsigned long long)dst_lba, cur_nolb);
+				 " cur_nolb: %hu\n", dst_dev, (unsigned long long)dst_lba, cur_nolb);
 
 		rc = target_xcopy_write_destination(ec_cmd, xop, dst_dev,
-						dst_lba, cur_nolb);
-		if (rc < 0) {
+											dst_lba, cur_nolb);
+
+		if (rc < 0)
+		{
 			transport_generic_free_cmd(&xop->src_pt_cmd->se_cmd, 0);
 			goto out;
 		}
 
 		dst_lba += cur_nolb;
 		pr_debug("target_xcopy_do_work: Incremented WRITE dst_lba to %llu\n",
-				(unsigned long long)dst_lba);
+				 (unsigned long long)dst_lba);
 
 		copied_nolb += cur_nolb;
 		nolb -= cur_nolb;
@@ -817,9 +940,9 @@ static void target_xcopy_do_work(struct work_struct *work)
 	kfree(xop);
 
 	pr_debug("target_xcopy_do_work: Final src_lba: %llu, dst_lba: %llu\n",
-		(unsigned long long)src_lba, (unsigned long long)dst_lba);
+			 (unsigned long long)src_lba, (unsigned long long)dst_lba);
 	pr_debug("target_xcopy_do_work: Blocks copied: %hu, Bytes Copied: %u\n",
-		copied_nolb, copied_nolb * dst_dev->dev_attrib.block_size);
+			 copied_nolb, copied_nolb * dst_dev->dev_attrib.block_size);
 
 	pr_debug("target_xcopy_do_work: Setting X-COPY GOOD status -> sending response\n");
 	target_complete_cmd(ec_cmd, SAM_STAT_GOOD);
@@ -828,14 +951,17 @@ static void target_xcopy_do_work(struct work_struct *work)
 out:
 	xcopy_pt_undepend_remotedev(xop);
 	kfree(xop);
+
 	/*
 	 * Don't override an error scsi status if it has already been set
 	 */
-	if (ec_cmd->scsi_status == SAM_STAT_GOOD) {
+	if (ec_cmd->scsi_status == SAM_STAT_GOOD)
+	{
 		pr_warn_ratelimited("target_xcopy_do_work: rc: %d, Setting X-COPY"
-			" CHECK_CONDITION -> sending response\n", rc);
+							" CHECK_CONDITION -> sending response\n", rc);
 		ec_cmd->scsi_status = SAM_STAT_CHECK_CONDITION;
 	}
+
 	target_complete_cmd(ec_cmd, SAM_STAT_CHECK_CONDITION);
 }
 
@@ -849,26 +975,34 @@ sense_reason_t target_do_xcopy(struct se_cmd *se_cmd)
 	int rc;
 	unsigned short tdll;
 
-	if (!dev->dev_attrib.emulate_3pc) {
+	if (!dev->dev_attrib.emulate_3pc)
+	{
 		pr_err("EXTENDED_COPY operation explicitly disabled\n");
 		return TCM_UNSUPPORTED_SCSI_OPCODE;
 	}
 
 	sa = se_cmd->t_task_cdb[1] & 0x1f;
-	if (sa != 0x00) {
+
+	if (sa != 0x00)
+	{
 		pr_err("EXTENDED_COPY(LID4) not supported\n");
 		return TCM_UNSUPPORTED_SCSI_OPCODE;
 	}
 
 	xop = kzalloc(sizeof(struct xcopy_op), GFP_KERNEL);
-	if (!xop) {
+
+	if (!xop)
+	{
 		pr_err("Unable to allocate xcopy_op\n");
 		return TCM_OUT_OF_RESOURCES;
 	}
+
 	xop->xop_se_cmd = se_cmd;
 
 	p = transport_kmap_data_sg(se_cmd);
-	if (!p) {
+
+	if (!p)
+	{
 		pr_err("transport_kmap_data_sg() failed in target_do_xcopy\n");
 		kfree(xop);
 		return TCM_OUT_OF_RESOURCES;
@@ -884,51 +1018,64 @@ sense_reason_t target_do_xcopy(struct se_cmd *se_cmd)
 	sdll = get_unaligned_be32(&p[8]);
 
 	inline_dl = get_unaligned_be32(&p[12]);
-	if (inline_dl != 0) {
+
+	if (inline_dl != 0)
+	{
 		pr_err("XCOPY with non zero inline data length\n");
 		goto out;
 	}
 
 	pr_debug("Processing XCOPY with list_id: 0x%02x list_id_usage: 0x%02x"
-		" tdll: %hu sdll: %u inline_dl: %u\n", list_id, list_id_usage,
-		tdll, sdll, inline_dl);
+			 " tdll: %hu sdll: %u inline_dl: %u\n", list_id, list_id_usage,
+			 tdll, sdll, inline_dl);
 
 	rc = target_xcopy_parse_target_descriptors(se_cmd, xop, &p[16], tdll, &ret);
+
 	if (rc <= 0)
+	{
 		goto out;
+	}
 
 	if (xop->src_dev->dev_attrib.block_size !=
-	    xop->dst_dev->dev_attrib.block_size) {
+		xop->dst_dev->dev_attrib.block_size)
+	{
 		pr_err("XCOPY: Non matching src_dev block_size: %u + dst_dev"
-		       " block_size: %u currently unsupported\n",
-			xop->src_dev->dev_attrib.block_size,
-			xop->dst_dev->dev_attrib.block_size);
+			   " block_size: %u currently unsupported\n",
+			   xop->src_dev->dev_attrib.block_size,
+			   xop->dst_dev->dev_attrib.block_size);
 		xcopy_pt_undepend_remotedev(xop);
 		ret = TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
 		goto out;
 	}
 
 	pr_debug("XCOPY: Processed %d target descriptors, length: %u\n", rc,
-				rc * XCOPY_TARGET_DESC_LEN);
+			 rc * XCOPY_TARGET_DESC_LEN);
 	seg_desc = &p[16];
 	seg_desc += (rc * XCOPY_TARGET_DESC_LEN);
 
 	rc = target_xcopy_parse_segment_descriptors(se_cmd, xop, seg_desc, sdll);
-	if (rc <= 0) {
+
+	if (rc <= 0)
+	{
 		xcopy_pt_undepend_remotedev(xop);
 		goto out;
 	}
+
 	transport_kunmap_data_sg(se_cmd);
 
 	pr_debug("XCOPY: Processed %d segment descriptors, length: %u\n", rc,
-				rc * XCOPY_SEGMENT_DESC_LEN);
+			 rc * XCOPY_SEGMENT_DESC_LEN);
 	INIT_WORK(&xop->xop_work, target_xcopy_do_work);
 	queue_work(xcopy_wq, &xop->xop_work);
 	return TCM_NO_SENSE;
 
 out:
+
 	if (p)
+	{
 		transport_kunmap_data_sg(se_cmd);
+	}
+
 	kfree(xop);
 	return ret;
 }
@@ -938,18 +1085,22 @@ static sense_reason_t target_rcr_operating_parameters(struct se_cmd *se_cmd)
 	unsigned char *p;
 
 	p = transport_kmap_data_sg(se_cmd);
-	if (!p) {
+
+	if (!p)
+	{
 		pr_err("transport_kmap_data_sg failed in"
-		       " target_rcr_operating_parameters\n");
+			   " target_rcr_operating_parameters\n");
 		return TCM_OUT_OF_RESOURCES;
 	}
 
-	if (se_cmd->data_length < 54) {
+	if (se_cmd->data_length < 54)
+	{
 		pr_err("Receive Copy Results Op Parameters length"
-		       " too small: %u\n", se_cmd->data_length);
+			   " too small: %u\n", se_cmd->data_length);
 		transport_kunmap_data_sg(se_cmd);
 		return TCM_INVALID_CDB_FIELD;
 	}
+
 	/*
 	 * Set SNLID=1 (Supports no List ID)
 	 */
@@ -1030,24 +1181,27 @@ sense_reason_t target_do_receive_copy_results(struct se_cmd *se_cmd)
 	sense_reason_t rc = TCM_NO_SENSE;
 
 	pr_debug("Entering target_do_receive_copy_results: SA: 0x%02x, List ID:"
-		" 0x%02x, AL: %u\n", sa, list_id, se_cmd->data_length);
+			 " 0x%02x, AL: %u\n", sa, list_id, se_cmd->data_length);
 
-	if (list_id != 0) {
+	if (list_id != 0)
+	{
 		pr_err("Receive Copy Results with non zero list identifier"
-		       " not supported\n");
+			   " not supported\n");
 		return TCM_INVALID_CDB_FIELD;
 	}
 
-	switch (sa) {
-	case RCR_SA_OPERATING_PARAMETERS:
-		rc = target_rcr_operating_parameters(se_cmd);
-		break;
-	case RCR_SA_COPY_STATUS:
-	case RCR_SA_RECEIVE_DATA:
-	case RCR_SA_FAILED_SEGMENT_DETAILS:
-	default:
-		pr_err("Unsupported SA for receive copy results: 0x%02x\n", sa);
-		return TCM_INVALID_CDB_FIELD;
+	switch (sa)
+	{
+		case RCR_SA_OPERATING_PARAMETERS:
+			rc = target_rcr_operating_parameters(se_cmd);
+			break;
+
+		case RCR_SA_COPY_STATUS:
+		case RCR_SA_RECEIVE_DATA:
+		case RCR_SA_FAILED_SEGMENT_DETAILS:
+		default:
+			pr_err("Unsupported SA for receive copy results: 0x%02x\n", sa);
+			return TCM_INVALID_CDB_FIELD;
 	}
 
 	return rc;

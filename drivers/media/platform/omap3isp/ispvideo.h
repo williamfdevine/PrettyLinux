@@ -43,7 +43,8 @@ struct v4l2_pix_format;
  * @width: Bits per pixel (when transferred over a bus)
  * @bpp: Bytes per pixel (when stored in memory)
  */
-struct isp_format_info {
+struct isp_format_info
+{
 	u32 code;
 	u32 truncated;
 	u32 uncompressed;
@@ -53,13 +54,15 @@ struct isp_format_info {
 	unsigned int bpp;
 };
 
-enum isp_pipeline_stream_state {
+enum isp_pipeline_stream_state
+{
 	ISP_PIPELINE_STREAM_STOPPED = 0,
 	ISP_PIPELINE_STREAM_CONTINUOUS = 1,
 	ISP_PIPELINE_STREAM_SINGLESHOT = 2,
 };
 
-enum isp_pipeline_state {
+enum isp_pipeline_state
+{
 	/* The stream has been started on the input video node. */
 	ISP_PIPELINE_STREAM_INPUT = 1,
 	/* The stream has been started on the output video node. */
@@ -82,7 +85,8 @@ enum isp_pipeline_state {
  * @error: A hardware error occurred during capture
  * @ent_enum: Entities in the pipeline
  */
-struct isp_pipeline {
+struct isp_pipeline
+{
 	struct media_pipeline pipe;
 	spinlock_t lock;		/* Pipeline state and queue flags */
 	unsigned int state;
@@ -108,11 +112,11 @@ struct isp_pipeline {
 static inline int isp_pipeline_ready(struct isp_pipeline *pipe)
 {
 	return pipe->state == (ISP_PIPELINE_STREAM_INPUT |
-			       ISP_PIPELINE_STREAM_OUTPUT |
-			       ISP_PIPELINE_QUEUE_INPUT |
-			       ISP_PIPELINE_QUEUE_OUTPUT |
-			       ISP_PIPELINE_IDLE_INPUT |
-			       ISP_PIPELINE_IDLE_OUTPUT);
+						   ISP_PIPELINE_STREAM_OUTPUT |
+						   ISP_PIPELINE_QUEUE_INPUT |
+						   ISP_PIPELINE_QUEUE_OUTPUT |
+						   ISP_PIPELINE_IDLE_INPUT |
+						   ISP_PIPELINE_IDLE_OUTPUT);
 }
 
 /**
@@ -121,7 +125,8 @@ static inline int isp_pipeline_ready(struct isp_pipeline *pipe)
  * @irqlist: List head for insertion into IRQ queue
  * @dma: DMA address
  */
-struct isp_buffer {
+struct isp_buffer
+{
 	struct vb2_v4l2_buffer vb;
 	struct list_head irqlist;
 	dma_addr_t dma;
@@ -129,7 +134,8 @@ struct isp_buffer {
 
 #define to_isp_buffer(buf)	container_of(buf, struct isp_buffer, vb)
 
-enum isp_video_dmaqueue_flags {
+enum isp_video_dmaqueue_flags
+{
 	/* Set if DMA queue becomes empty when ISP_PIPELINE_STREAM_CONTINUOUS */
 	ISP_VIDEO_DMAQUEUE_UNDERRUN = (1 << 0),
 	/* Set when queuing buffer to an empty DMA queue */
@@ -137,18 +143,20 @@ enum isp_video_dmaqueue_flags {
 };
 
 #define isp_video_dmaqueue_flags_clr(video)	\
-			({ (video)->dmaqueue_flags = 0; })
+	({ (video)->dmaqueue_flags = 0; })
 
 /*
  * struct isp_video_operations - ISP video operations
  * @queue:	Resume streaming when a buffer is queued. Called on VIDIOC_QBUF
  *		if there was no buffer previously queued.
  */
-struct isp_video_operations {
+struct isp_video_operations
+{
 	int(*queue)(struct isp_video *video, struct isp_buffer *buffer);
 };
 
-struct isp_video {
+struct isp_video
+{
 	struct video_device video;
 	enum v4l2_buf_type type;
 	struct media_pad pad;
@@ -182,7 +190,8 @@ struct isp_video {
 
 #define to_isp_video(vdev)	container_of(vdev, struct isp_video, video)
 
-struct isp_video_fh {
+struct isp_video_fh
+{
 	struct v4l2_fh vfh;
 	struct isp_video *video;
 	struct vb2_queue queue;
@@ -192,12 +201,12 @@ struct isp_video_fh {
 
 #define to_isp_video_fh(fh)	container_of(fh, struct isp_video_fh, vfh)
 #define isp_video_queue_to_isp_video_fh(q) \
-				container_of(q, struct isp_video_fh, queue)
+	container_of(q, struct isp_video_fh, queue)
 
 int omap3isp_video_init(struct isp_video *video, const char *name);
 void omap3isp_video_cleanup(struct isp_video *video);
 int omap3isp_video_register(struct isp_video *video,
-			    struct v4l2_device *vdev);
+							struct v4l2_device *vdev);
 void omap3isp_video_unregister(struct isp_video *video);
 struct isp_buffer *omap3isp_video_buffer_next(struct isp_video *video);
 void omap3isp_video_cancel_stream(struct isp_video *video);

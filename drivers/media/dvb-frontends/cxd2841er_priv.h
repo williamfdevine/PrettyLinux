@@ -30,12 +30,14 @@
 
 #define CXD2841ER_DVBS_POLLING_INVL	10
 
-struct cxd2841er_cnr_data {
+struct cxd2841er_cnr_data
+{
 	u32 value;
 	int cnr_x1000;
 };
 
-enum cxd2841er_dvbt2_profile_t {
+enum cxd2841er_dvbt2_profile_t
+{
 	DVBT2_PROFILE_ANY = 0,
 	DVBT2_PROFILE_BASE = 1,
 	DVBT2_PROFILE_LITE = 2

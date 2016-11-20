@@ -139,12 +139,14 @@
 /**
  * new MTU values
  */
-enum {
+enum
+{
 	OPA_MTU_8192  = 6,
 	OPA_MTU_10240 = 7,
 };
 
-enum {
+enum
+{
 	OPA_PORT_PHYS_CONF_DISCONNECTED = 0,
 	OPA_PORT_PHYS_CONF_STANDARD     = 1,
 	OPA_PORT_PHYS_CONF_FIXED        = 2,
@@ -152,7 +154,8 @@ enum {
 	OPA_PORT_PHYS_CONF_SI_PHOTO     = 4
 };
 
-enum port_info_field_masks {
+enum port_info_field_masks
+{
 	/* vl.cap */
 	OPA_PI_MASK_VL_CAP                        = 0x1F,
 	/* port_states.ledenable_offlinereason */
@@ -215,7 +218,7 @@ enum port_info_field_masks {
 
 	/* port_error_action */
 	OPA_PI_MASK_EX_BUFFER_OVERRUN                  = 0x80000000,
-		/* 7 bits reserved */
+	/* 7 bits reserved */
 	OPA_PI_MASK_FM_CFG_ERR_EXCEED_MULTICAST_LIMIT  = 0x00800000,
 	OPA_PI_MASK_FM_CFG_BAD_CONTROL_FLIT            = 0x00400000,
 	OPA_PI_MASK_FM_CFG_BAD_PREEMPT                 = 0x00200000,
@@ -224,13 +227,13 @@ enum port_info_field_masks {
 	OPA_PI_MASK_FM_CFG_BAD_CTRL_DIST               = 0x00040000,
 	OPA_PI_MASK_FM_CFG_BAD_TAIL_DIST               = 0x00020000,
 	OPA_PI_MASK_FM_CFG_BAD_HEAD_DIST               = 0x00010000,
-		/* 2 bits reserved */
+	/* 2 bits reserved */
 	OPA_PI_MASK_PORT_RCV_BAD_VL_MARKER             = 0x00002000,
 	OPA_PI_MASK_PORT_RCV_PREEMPT_VL15              = 0x00001000,
 	OPA_PI_MASK_PORT_RCV_PREEMPT_ERROR             = 0x00000800,
-		/* 1 bit reserved */
+	/* 1 bit reserved */
 	OPA_PI_MASK_PORT_RCV_BAD_MidTail               = 0x00000200,
-		/* 1 bit reserved */
+	/* 1 bit reserved */
 	OPA_PI_MASK_PORT_RCV_BAD_SC                    = 0x00000080,
 	OPA_PI_MASK_PORT_RCV_BAD_L2                    = 0x00000040,
 	OPA_PI_MASK_PORT_RCV_BAD_DLID                  = 0x00000020,
@@ -269,24 +272,28 @@ enum port_info_field_masks {
 	OPA_PI_MASK_MTU_CAP                       = 0x0F,
 };
 
-struct opa_port_states {
+struct opa_port_states
+{
 	u8     reserved;
 	u8     ledenable_offlinereason;   /* 1 res, 1 bit, 6 bits */
 	u8     reserved2;
 	u8     portphysstate_portstate;   /* 4 bits, 4 bits */
 };
 
-struct opa_port_state_info {
+struct opa_port_state_info
+{
 	struct opa_port_states port_states;
 	__be16 link_width_downgrade_tx_active;
 	__be16 link_width_downgrade_rx_active;
 };
 
-struct opa_port_info {
+struct opa_port_info
+{
 	__be32 lid;
 	__be32 flow_control_mask;
 
-	struct {
+	struct
+	{
 		u8     res;                       /* was inittype */
 		u8     cap;                       /* 3 res, 5 bits */
 		__be16 high_limit;
@@ -317,17 +324,20 @@ struct opa_port_info {
 	u8     neigh_link_down_reason;
 	u8     clientrereg_subnettimeout;	  /* 1 bit, 2 bits, 5 */
 
-	struct {
+	struct
+	{
 		__be16 supported;
 		__be16 enabled;
 		__be16 active;
 	} link_speed;
-	struct {
+	struct
+	{
 		__be16 supported;
 		__be16 enabled;
 		__be16 active;
 	} link_width;
-	struct {
+	struct
+	{
 		__be16 supported;
 		__be16 enabled;
 		__be16 tx_active;
@@ -337,13 +347,16 @@ struct opa_port_info {
 	__be16 port_ltp_crc_mode;               /* 4 res, 4 bits, 4 bits, 4 bits */
 
 	__be16 port_mode;                       /* 9 res, bit fields */
-	struct {
+	struct
+	{
 		__be16 supported;
 		__be16 enabled;
 	} port_packet_format;
-	struct {
+	struct
+	{
 		__be16 interleave;  /* 2 res, 2,2,5,5 */
-		struct {
+		struct
+		{
 			__be16 min_initial;
 			__be16 min_tail;
 			u8     large_pkt_limit;
@@ -356,7 +369,8 @@ struct opa_port_info {
 	__be32 reserved4;
 	__be32 port_error_action; /* bit field */
 
-	struct {
+	struct
+	{
 		u8 egress_port;
 		u8 res_drctl;                    /* 7 res, 1 */
 	} pass_through;
@@ -370,19 +384,23 @@ struct opa_port_info {
 
 	__be64 subnet_prefix;
 
-	struct {
-		u8 pvlx_to_mtu[OPA_MAX_VLS/2]; /* 4 bits, 4 bits */
+	struct
+	{
+		u8 pvlx_to_mtu[OPA_MAX_VLS / 2]; /* 4 bits, 4 bits */
 	} neigh_mtu;
 
-	struct {
+	struct
+	{
 		u8 vlstall_hoqlife;             /* 3 bits, 5 bits */
 	} xmit_q[OPA_MAX_VLS];
 
-	struct {
+	struct
+	{
 		u8 addr[16];
 	} ipaddr_ipv6;
 
-	struct {
+	struct
+	{
 		u8 addr[4];
 	} ipaddr_ipv4;
 
@@ -401,7 +419,8 @@ struct opa_port_info {
 	__be16 reserved11;                   /* was max_credit_hint */
 
 	__be16 diag_code;
-	struct {
+	struct
+	{
 		u8 buffer;
 		u8 wire;
 	} replay_depth;

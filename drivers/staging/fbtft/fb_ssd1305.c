@@ -43,12 +43,19 @@ static int init_display(struct fbtft_par *par)
 {
 	par->fbtftops.reset(par);
 
-	if (par->gamma.curves[0] == 0) {
+	if (par->gamma.curves[0] == 0)
+	{
 		mutex_lock(&par->gamma.lock);
+
 		if (par->info->var.yres == 64)
+		{
 			par->gamma.curves[0] = 0xCF;
+		}
 		else
+		{
 			par->gamma.curves[0] = 0x8F;
+		}
+
 		mutex_unlock(&par->gamma.lock);
 	}
 
@@ -61,10 +68,15 @@ static int init_display(struct fbtft_par *par)
 
 	/* Set Multiplex Ratio */
 	write_reg(par, 0xA8);
+
 	if (par->info->var.yres == 64)
+	{
 		write_reg(par, 0x3F);
+	}
 	else
+	{
 		write_reg(par, 0x1F);
+	}
 
 	/* Set Display Offset */
 	write_reg(par, 0xD3);
@@ -97,10 +109,14 @@ static int init_display(struct fbtft_par *par)
 
 	/* Set COM Pins Hardware Configuration */
 	write_reg(par, 0xDA);
-	if (par->info->var.yres == 64) {
+
+	if (par->info->var.yres == 64)
+	{
 		/* A[4]=1b, Alternative COM pin configuration */
 		write_reg(par, 0x12);
-	} else {
+	}
+	else
+	{
 		/* A[4]=0b, Sequential COM pin configuration */
 		write_reg(par, 0x02);
 	}
@@ -141,9 +157,14 @@ static void set_addr_win(struct fbtft_par *par, int xs, int ys, int xe, int ye)
 static int blank(struct fbtft_par *par, bool on)
 {
 	if (on)
+	{
 		write_reg(par, 0xAE);
+	}
 	else
+	{
 		write_reg(par, 0xAF);
+	}
+
 	return 0;
 }
 
@@ -165,13 +186,17 @@ static int write_vmem(struct fbtft_par *par, size_t offset, size_t len)
 	int x, y, i;
 	int ret;
 
-	for (x = 0; x < par->info->var.xres; x++) {
-		for (y = 0; y < par->info->var.yres / 8; y++) {
+	for (x = 0; x < par->info->var.xres; x++)
+	{
+		for (y = 0; y < par->info->var.yres / 8; y++)
+		{
 			*buf = 0x00;
+
 			for (i = 0; i < 8; i++)
 				*buf |= (vmem16[(y * 8 + i) *
-						par->info->var.xres + x] ?
-					 1 : 0) << i;
+								par->info->var.xres + x] ?
+						 1 : 0) << i;
+
 			buf++;
 		}
 	}
@@ -179,15 +204,18 @@ static int write_vmem(struct fbtft_par *par, size_t offset, size_t len)
 	/* Write data */
 	gpio_set_value(par->gpio.dc, 1);
 	ret = par->fbtftops.write(par, par->txbuf.buf,
-				  par->info->var.xres * par->info->var.yres /
-				  8);
+							  par->info->var.xres * par->info->var.yres /
+							  8);
+
 	if (ret < 0)
 		dev_err(par->info->device, "write failed and returned: %d\n",
-			ret);
+				ret);
+
 	return ret;
 }
 
-static struct fbtft_display display = {
+static struct fbtft_display display =
+{
 	.regwidth = 8,
 	.width = WIDTH,
 	.height = HEIGHT,

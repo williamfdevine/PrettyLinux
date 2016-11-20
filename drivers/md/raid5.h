@@ -171,7 +171,8 @@
  * @check_state_compute_run - check failed and we are repairing
  * @check_state_compute_result - set outside lock when compute result is valid
  */
-enum check_states {
+enum check_states
+{
 	check_state_idle = 0,
 	check_state_run, /* xor parity check */
 	check_state_run_q, /* q-parity check */
@@ -184,7 +185,8 @@ enum check_states {
 /**
  * enum reconstruct_states - handles writing or expanding a stripe
  */
-enum reconstruct_states {
+enum reconstruct_states
+{
 	reconstruct_state_idle = 0,
 	reconstruct_state_prexor_drain_run,	/* prexor-write */
 	reconstruct_state_drain_run,		/* write */
@@ -194,7 +196,8 @@ enum reconstruct_states {
 	reconstruct_state_result,
 };
 
-struct stripe_head {
+struct stripe_head
+{
 	struct hlist_node	hash;
 	struct list_head	lru;	      /* inactive_list or handle_list */
 	struct llist_node	release_list;
@@ -233,11 +236,13 @@ struct stripe_head {
 	 * @zero_sum_result - P and Q verification flags
 	 * @request - async service request flags for raid_run_ops
 	 */
-	struct stripe_operations {
+	struct stripe_operations
+	{
 		int 		     target, target2;
 		enum sum_check_flags zero_sum_result;
 	} ops;
-	struct r5dev {
+	struct r5dev
+	{
 		/* rreq and rvec are used for the replacement device when
 		 * writing data to both devices.
 		 */
@@ -254,7 +259,8 @@ struct stripe_head {
 /* stripe_head_state - collects and tracks the dynamic state of a stripe_head
  *     for handle_stripe.
  */
-struct stripe_head_state {
+struct stripe_head_state
+{
 	/* 'syncing' means that we need to read all devices, either
 	 * to check/correct parity, or to reconstruct a missing device.
 	 * 'replacing' means we are replacing one or more drives and
@@ -276,12 +282,13 @@ struct stripe_head_state {
 };
 
 /* Flags for struct r5dev.flags */
-enum r5dev_flags {
+enum r5dev_flags
+{
 	R5_UPTODATE,	/* page contains current data */
 	R5_LOCKED,	/* IO has been submitted on "req" */
 	R5_DOUBLE_LOCKED,/* Cannot clear R5_LOCKED until 2 writes complete */
 	R5_OVERWRITE,	/* towrite covers whole page */
-/* and some that are internal to handle_stripe */
+	/* and some that are internal to handle_stripe */
 	R5_Insync,	/* rdev && rdev->in_sync at start */
 	R5_Wantread,	/* want to schedule a read */
 	R5_Wantwrite,
@@ -318,7 +325,8 @@ enum r5dev_flags {
 /*
  * Stripe state
  */
-enum {
+enum
+{
 	STRIPE_ACTIVE,
 	STRIPE_HANDLE,
 	STRIPE_SYNC_REQUESTED,
@@ -350,13 +358,14 @@ enum {
 
 #define STRIPE_EXPAND_SYNC_FLAGS \
 	((1 << STRIPE_EXPAND_SOURCE) |\
-	(1 << STRIPE_EXPAND_READY) |\
-	(1 << STRIPE_EXPANDING) |\
-	(1 << STRIPE_SYNC_REQUESTED))
+	 (1 << STRIPE_EXPAND_READY) |\
+	 (1 << STRIPE_EXPANDING) |\
+	 (1 << STRIPE_SYNC_REQUESTED))
 /*
  * Operation request flags
  */
-enum {
+enum
+{
 	STRIPE_OP_BIOFILL,
 	STRIPE_OP_COMPUTE_BLK,
 	STRIPE_OP_PREXOR,
@@ -368,7 +377,8 @@ enum {
 /*
  * RAID parity calculation preferences
  */
-enum {
+enum
+{
 	PARITY_DISABLE_RMW = 0,
 	PARITY_ENABLE_RMW,
 	PARITY_PREFER_RMW,
@@ -377,7 +387,8 @@ enum {
 /*
  * Pages requested from set_syndrome_sources()
  */
-enum {
+enum
+{
 	SYNDROME_SRC_ALL,
 	SYNDROME_SRC_WANT_DRAIN,
 	SYNDROME_SRC_WRITTEN,
@@ -406,7 +417,8 @@ enum {
  * HANDLE gets cleared if stripe_handle leaves nothing locked.
  */
 
-struct disk_info {
+struct disk_info
+{
 	struct md_rdev	*rdev, *replacement;
 };
 
@@ -418,21 +430,24 @@ struct disk_info {
 #define NR_STRIPE_HASH_LOCKS 8
 #define STRIPE_HASH_LOCKS_MASK (NR_STRIPE_HASH_LOCKS - 1)
 
-struct r5worker {
+struct r5worker
+{
 	struct work_struct work;
 	struct r5worker_group *group;
 	struct list_head temp_inactive_list[NR_STRIPE_HASH_LOCKS];
 	bool working;
 };
 
-struct r5worker_group {
+struct r5worker_group
+{
 	struct list_head handle_list;
 	struct r5conf *conf;
 	struct r5worker *workers;
 	int stripes_cnt;
 };
 
-struct r5conf {
+struct r5conf
+{
 	struct hlist_head	*stripe_hashtbl;
 	/* only protect corresponding hash list and inactive_list */
 	spinlock_t		hash_locks[NR_STRIPE_HASH_LOCKS];
@@ -503,7 +518,8 @@ struct r5conf {
 					    */
 	int			recovery_disabled;
 	/* per cpu variables */
-	struct raid5_percpu {
+	struct raid5_percpu
+	{
 		struct page	*spare_page; /* Used when checking P/Q in raid6 */
 		struct flex_array *scribble;   /* space for constructing buffer
 					      * lists and performing address
@@ -598,15 +614,15 @@ struct r5conf {
 static inline int algorithm_valid_raid5(int layout)
 {
 	return (layout >= 0) &&
-		(layout <= 5);
+		   (layout <= 5);
 }
 static inline int algorithm_valid_raid6(int layout)
 {
 	return (layout >= 0 && layout <= 5)
-		||
-		(layout >= 8 && layout <= 10)
-		||
-		(layout >= 16 && layout <= 20);
+		   ||
+		   (layout >= 8 && layout <= 10)
+		   ||
+		   (layout >= 16 && layout <= 20);
 }
 
 static inline int algorithm_is_DDF(int layout)
@@ -619,11 +635,11 @@ extern int raid5_set_cache_size(struct mddev *mddev, int size);
 extern sector_t raid5_compute_blocknr(struct stripe_head *sh, int i, int previous);
 extern void raid5_release_stripe(struct stripe_head *sh);
 extern sector_t raid5_compute_sector(struct r5conf *conf, sector_t r_sector,
-				     int previous, int *dd_idx,
-				     struct stripe_head *sh);
+									 int previous, int *dd_idx,
+									 struct stripe_head *sh);
 extern struct stripe_head *
 raid5_get_active_stripe(struct r5conf *conf, sector_t sector,
-			int previous, int noblock, int noquiesce);
+						int previous, int noblock, int noquiesce);
 extern int r5l_init_log(struct r5conf *conf, struct md_rdev *rdev);
 extern void r5l_exit_log(struct r5l_log *log);
 extern int r5l_write_stripe(struct r5l_log *log, struct stripe_head *head_sh);

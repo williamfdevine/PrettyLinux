@@ -81,13 +81,14 @@ EXPORT_SYMBOL_GPL(trace_clock_jiffies);
  */
 
 /* keep prev_time and lock in the same cacheline. */
-static struct {
+static struct
+{
 	u64 prev_time;
 	arch_spinlock_t lock;
 } trace_clock_struct ____cacheline_aligned_in_smp =
-	{
-		.lock = (arch_spinlock_t)__ARCH_SPIN_LOCK_UNLOCKED,
-	};
+{
+	.lock = (arch_spinlock_t)__ARCH_SPIN_LOCK_UNLOCKED,
+};
 
 u64 notrace trace_clock_global(void)
 {
@@ -99,12 +100,15 @@ u64 notrace trace_clock_global(void)
 
 	this_cpu = raw_smp_processor_id();
 	now = sched_clock_cpu(this_cpu);
+
 	/*
 	 * If in an NMI context then dont risk lockups and return the
 	 * cpu_clock() time:
 	 */
 	if (unlikely(in_nmi()))
+	{
 		goto out;
+	}
 
 	arch_spin_lock(&trace_clock_struct.lock);
 
@@ -114,13 +118,15 @@ u64 notrace trace_clock_global(void)
 	 * we start ticking with the local clock from now on?
 	 */
 	if ((s64)(now - trace_clock_struct.prev_time) < 0)
+	{
 		now = trace_clock_struct.prev_time + 1;
+	}
 
 	trace_clock_struct.prev_time = now;
 
 	arch_spin_unlock(&trace_clock_struct.lock);
 
- out:
+out:
 	local_irq_restore(flags);
 
 	return now;

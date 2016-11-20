@@ -20,14 +20,16 @@
 #include <linux/mfd/core.h>
 #include <linux/mfd/tps6105x.h>
 
-static const unsigned int tps6105x_voltages[] = {
+static const unsigned int tps6105x_voltages[] =
+{
 	4500000,
 	5000000,
 	5250000,
 	5000000, /* There is an additional 5V */
 };
 
-static struct regulator_ops tps6105x_regulator_ops = {
+static struct regulator_ops tps6105x_regulator_ops =
+{
 	.enable		= regulator_enable_regmap,
 	.disable	= regulator_disable_regmap,
 	.is_enabled	= regulator_is_enabled_regmap,
@@ -36,7 +38,8 @@ static struct regulator_ops tps6105x_regulator_ops = {
 	.list_voltage	= regulator_list_voltage_table,
 };
 
-static const struct regulator_desc tps6105x_regulator_desc = {
+static const struct regulator_desc tps6105x_regulator_desc =
+{
 	.name		= "tps6105x-boost",
 	.ops		= &tps6105x_regulator_ops,
 	.type		= REGULATOR_VOLTAGE,
@@ -49,7 +52,7 @@ static const struct regulator_desc tps6105x_regulator_desc = {
 	.enable_reg	= TPS6105X_REG_0,
 	.enable_mask	= TPS6105X_REG0_MODE_MASK,
 	.enable_val	= TPS6105X_REG0_MODE_VOLTAGE <<
-			  TPS6105X_REG0_MODE_SHIFT,
+	TPS6105X_REG0_MODE_SHIFT,
 };
 
 /*
@@ -63,9 +66,10 @@ static int tps6105x_regulator_probe(struct platform_device *pdev)
 	int ret;
 
 	/* This instance is not set for regulator mode so bail out */
-	if (pdata->mode != TPS6105X_MODE_VOLTAGE) {
+	if (pdata->mode != TPS6105X_MODE_VOLTAGE)
+	{
 		dev_info(&pdev->dev,
-			"chip not in voltage mode mode, exit probe\n");
+				 "chip not in voltage mode mode, exit probe\n");
 		return 0;
 	}
 
@@ -76,20 +80,24 @@ static int tps6105x_regulator_probe(struct platform_device *pdev)
 
 	/* Register regulator with framework */
 	tps6105x->regulator = devm_regulator_register(&pdev->dev,
-						      &tps6105x_regulator_desc,
-						      &config);
-	if (IS_ERR(tps6105x->regulator)) {
+						  &tps6105x_regulator_desc,
+						  &config);
+
+	if (IS_ERR(tps6105x->regulator))
+	{
 		ret = PTR_ERR(tps6105x->regulator);
 		dev_err(&tps6105x->client->dev,
-			"failed to register regulator\n");
+				"failed to register regulator\n");
 		return ret;
 	}
+
 	platform_set_drvdata(pdev, tps6105x);
 
 	return 0;
 }
 
-static struct platform_driver tps6105x_regulator_driver = {
+static struct platform_driver tps6105x_regulator_driver =
+{
 	.driver = {
 		.name  = "tps6105x-regulator",
 	},

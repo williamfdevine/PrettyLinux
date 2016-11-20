@@ -27,7 +27,8 @@
  * between SVM and IOMMU for setting up and tearing down posted
  * interrupt
  */
-struct amd_iommu_pi_data {
+struct amd_iommu_pi_data
+{
 	u32 ga_tag;
 	u32 prev_ga_tag;
 	u64 base;
@@ -89,7 +90,7 @@ extern void amd_iommu_free_device(struct pci_dev *pdev);
  * The function returns 0 on success or a negative value on error.
  */
 extern int amd_iommu_bind_pasid(struct pci_dev *pdev, int pasid,
-				struct task_struct *task);
+								struct task_struct *task);
 
 /**
  * amd_iommu_unbind_pasid() - Unbind a PASID from its task on
@@ -126,12 +127,12 @@ extern void amd_iommu_unbind_pasid(struct pci_dev *pdev, int pasid);
 #define AMD_IOMMU_INV_PRI_RSP_FAIL	2
 
 typedef int (*amd_iommu_invalid_ppr_cb)(struct pci_dev *pdev,
-					int pasid,
-					unsigned long address,
-					u16);
+										int pasid,
+										unsigned long address,
+										u16);
 
 extern int amd_iommu_set_invalid_ppr_cb(struct pci_dev *pdev,
-					amd_iommu_invalid_ppr_cb cb);
+										amd_iommu_invalid_ppr_cb cb);
 
 #define PPR_FAULT_EXEC	(1 << 1)
 #define PPR_FAULT_READ  (1 << 2)
@@ -158,13 +159,14 @@ extern int amd_iommu_set_invalid_ppr_cb(struct pci_dev *pdev,
 #define AMD_IOMMU_DEVICE_FLAG_PRIV_SUP   0x10    /* Device may request
 						    super-user privileges */
 
-struct amd_iommu_device_info {
+struct amd_iommu_device_info
+{
 	int max_pasids;
 	u32 flags;
 };
 
 extern int amd_iommu_device_info(struct pci_dev *pdev,
-				 struct amd_iommu_device_info *info);
+								 struct amd_iommu_device_info *info);
 
 /**
  * amd_iommu_set_invalidate_ctx_cb() - Register a call-back for invalidating
@@ -181,7 +183,7 @@ extern int amd_iommu_device_info(struct pci_dev *pdev,
 typedef void (*amd_iommu_invalidate_ctx)(struct pci_dev *pdev, int pasid);
 
 extern int amd_iommu_set_invalidate_ctx_cb(struct pci_dev *pdev,
-					   amd_iommu_invalidate_ctx cb);
+		amd_iommu_invalidate_ctx cb);
 #else /* CONFIG_AMD_IOMMU */
 
 static inline int amd_iommu_detect(void) { return -ENODEV; }

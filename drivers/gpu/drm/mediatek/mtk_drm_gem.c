@@ -19,7 +19,7 @@
 #include "mtk_drm_gem.h"
 
 static struct mtk_drm_gem_obj *mtk_drm_gem_init(struct drm_device *dev,
-						unsigned long size)
+		unsigned long size)
 {
 	struct mtk_drm_gem_obj *mtk_gem_obj;
 	int ret;
@@ -27,11 +27,16 @@ static struct mtk_drm_gem_obj *mtk_drm_gem_init(struct drm_device *dev,
 	size = round_up(size, PAGE_SIZE);
 
 	mtk_gem_obj = kzalloc(sizeof(*mtk_gem_obj), GFP_KERNEL);
+
 	if (!mtk_gem_obj)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	ret = drm_gem_object_init(dev, &mtk_gem_obj->base, size);
-	if (ret < 0) {
+
+	if (ret < 0)
+	{
 		DRM_ERROR("failed to initialize gem object\n");
 		kfree(mtk_gem_obj);
 		return ERR_PTR(ret);
@@ -41,7 +46,7 @@ static struct mtk_drm_gem_obj *mtk_drm_gem_init(struct drm_device *dev,
 }
 
 struct mtk_drm_gem_obj *mtk_drm_gem_create(struct drm_device *dev,
-					   size_t size, bool alloc_kmap)
+		size_t size, bool alloc_kmap)
 {
 	struct mtk_drm_private *priv = dev->dev_private;
 	struct mtk_drm_gem_obj *mtk_gem;
@@ -49,31 +54,40 @@ struct mtk_drm_gem_obj *mtk_drm_gem_create(struct drm_device *dev,
 	int ret;
 
 	mtk_gem = mtk_drm_gem_init(dev, size);
+
 	if (IS_ERR(mtk_gem))
+	{
 		return ERR_CAST(mtk_gem);
+	}
 
 	obj = &mtk_gem->base;
 
 	mtk_gem->dma_attrs = DMA_ATTR_WRITE_COMBINE;
 
 	if (!alloc_kmap)
+	{
 		mtk_gem->dma_attrs |= DMA_ATTR_NO_KERNEL_MAPPING;
+	}
 
 	mtk_gem->cookie = dma_alloc_attrs(priv->dma_dev, obj->size,
-					  &mtk_gem->dma_addr, GFP_KERNEL,
-					  mtk_gem->dma_attrs);
-	if (!mtk_gem->cookie) {
+									  &mtk_gem->dma_addr, GFP_KERNEL,
+									  mtk_gem->dma_attrs);
+
+	if (!mtk_gem->cookie)
+	{
 		DRM_ERROR("failed to allocate %zx byte dma buffer", obj->size);
 		ret = -ENOMEM;
 		goto err_gem_free;
 	}
 
 	if (alloc_kmap)
+	{
 		mtk_gem->kvaddr = mtk_gem->cookie;
+	}
 
 	DRM_DEBUG_DRIVER("cookie = %p dma_addr = %pad size = %zu\n",
-			 mtk_gem->cookie, &mtk_gem->dma_addr,
-			 size);
+					 mtk_gem->cookie, &mtk_gem->dma_addr,
+					 size);
 
 	return mtk_gem;
 
@@ -89,10 +103,12 @@ void mtk_drm_gem_free_object(struct drm_gem_object *obj)
 	struct mtk_drm_private *priv = obj->dev->dev_private;
 
 	if (mtk_gem->sg)
+	{
 		drm_prime_gem_destroy(obj, mtk_gem->sg);
+	}
 	else
 		dma_free_attrs(priv->dma_dev, obj->size, mtk_gem->cookie,
-			       mtk_gem->dma_addr, mtk_gem->dma_attrs);
+					   mtk_gem->dma_addr, mtk_gem->dma_attrs);
 
 	/* release file pointer to gem object. */
 	drm_gem_object_release(obj);
@@ -101,7 +117,7 @@ void mtk_drm_gem_free_object(struct drm_gem_object *obj)
 }
 
 int mtk_drm_gem_dumb_create(struct drm_file *file_priv, struct drm_device *dev,
-			    struct drm_mode_create_dumb *args)
+							struct drm_mode_create_dumb *args)
 {
 	struct mtk_drm_gem_obj *mtk_gem;
 	int ret;
@@ -110,16 +126,22 @@ int mtk_drm_gem_dumb_create(struct drm_file *file_priv, struct drm_device *dev,
 	args->size = args->pitch * args->height;
 
 	mtk_gem = mtk_drm_gem_create(dev, args->size, false);
+
 	if (IS_ERR(mtk_gem))
+	{
 		return PTR_ERR(mtk_gem);
+	}
 
 	/*
 	 * allocate a id of idr table where the obj is registered
 	 * and handle has the id what user can see.
 	 */
 	ret = drm_gem_handle_create(file_priv, &mtk_gem->base, &args->handle);
+
 	if (ret)
+	{
 		goto err_handle_create;
+	}
 
 	/* drop reference from allocate - handle holds it now. */
 	drm_gem_object_unreference_unlocked(&mtk_gem->base);
@@ -132,21 +154,26 @@ err_handle_create:
 }
 
 int mtk_drm_gem_dumb_map_offset(struct drm_file *file_priv,
-				struct drm_device *dev, uint32_t handle,
-				uint64_t *offset)
+								struct drm_device *dev, uint32_t handle,
+								uint64_t *offset)
 {
 	struct drm_gem_object *obj;
 	int ret;
 
 	obj = drm_gem_object_lookup(file_priv, handle);
-	if (!obj) {
+
+	if (!obj)
+	{
 		DRM_ERROR("failed to lookup gem object.\n");
 		return -EINVAL;
 	}
 
 	ret = drm_gem_create_mmap_offset(obj);
+
 	if (ret)
+	{
 		goto out;
+	}
 
 	*offset = drm_vma_node_offset_addr(&obj->vma_node);
 	DRM_DEBUG_KMS("offset = 0x%llx\n", *offset);
@@ -157,7 +184,7 @@ out:
 }
 
 static int mtk_drm_gem_object_mmap(struct drm_gem_object *obj,
-				   struct vm_area_struct *vma)
+								   struct vm_area_struct *vma)
 
 {
 	int ret;
@@ -172,9 +199,12 @@ static int mtk_drm_gem_object_mmap(struct drm_gem_object *obj,
 	vma->vm_pgoff = 0;
 
 	ret = dma_mmap_attrs(priv->dma_dev, vma, mtk_gem->cookie,
-			     mtk_gem->dma_addr, obj->size, mtk_gem->dma_attrs);
+						 mtk_gem->dma_addr, obj->size, mtk_gem->dma_attrs);
+
 	if (ret)
+	{
 		drm_gem_vm_close(vma);
+	}
 
 	return ret;
 }
@@ -184,8 +214,11 @@ int mtk_drm_gem_mmap_buf(struct drm_gem_object *obj, struct vm_area_struct *vma)
 	int ret;
 
 	ret = drm_gem_mmap_obj(obj, obj->size, vma);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	return mtk_drm_gem_object_mmap(obj, vma);
 }
@@ -196,8 +229,11 @@ int mtk_drm_gem_mmap(struct file *filp, struct vm_area_struct *vma)
 	int ret;
 
 	ret = drm_gem_mmap(filp, vma);
+
 	if (ret)
+	{
 		return ret;
+	}
 
 	obj = vma->vm_private_data;
 
@@ -218,13 +254,18 @@ struct sg_table *mtk_gem_prime_get_sg_table(struct drm_gem_object *obj)
 	int ret;
 
 	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
+
 	if (!sgt)
+	{
 		return ERR_PTR(-ENOMEM);
+	}
 
 	ret = dma_get_sgtable_attrs(priv->dma_dev, sgt, mtk_gem->cookie,
-				    mtk_gem->dma_addr, obj->size,
-				    mtk_gem->dma_attrs);
-	if (ret) {
+								mtk_gem->dma_addr, obj->size,
+								mtk_gem->dma_attrs);
+
+	if (ret)
+	{
 		DRM_ERROR("failed to allocate sgt, %d\n", ret);
 		kfree(sgt);
 		return ERR_PTR(ret);
@@ -234,7 +275,7 @@ struct sg_table *mtk_gem_prime_get_sg_table(struct drm_gem_object *obj)
 }
 
 struct drm_gem_object *mtk_gem_prime_import_sg_table(struct drm_device *dev,
-			struct dma_buf_attachment *attach, struct sg_table *sg)
+		struct dma_buf_attachment *attach, struct sg_table *sg)
 {
 	struct mtk_drm_gem_obj *mtk_gem;
 	int ret;
@@ -245,15 +286,20 @@ struct drm_gem_object *mtk_gem_prime_import_sg_table(struct drm_device *dev,
 	mtk_gem = mtk_drm_gem_init(dev, attach->dmabuf->size);
 
 	if (IS_ERR(mtk_gem))
+	{
 		return ERR_PTR(PTR_ERR(mtk_gem));
+	}
 
 	expected = sg_dma_address(sg->sgl);
-	for_each_sg(sg->sgl, s, sg->nents, i) {
-		if (sg_dma_address(s) != expected) {
+	for_each_sg(sg->sgl, s, sg->nents, i)
+	{
+		if (sg_dma_address(s) != expected)
+		{
 			DRM_ERROR("sg_table is not contiguous");
 			ret = -EINVAL;
 			goto err_gem_free;
 		}
+
 		expected = sg_dma_address(s) + sg_dma_len(s);
 	}
 

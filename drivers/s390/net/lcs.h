@@ -12,9 +12,9 @@
 	} while (0)
 
 #define LCS_DBF_HEX(level,name,addr,len) \
-do { \
-	debug_event(lcs_dbf_##name,level,(void*)(addr),len); \
-} while (0)
+	do { \
+		debug_event(lcs_dbf_##name,level,(void*)(addr),len); \
+	} while (0)
 
 #define LCS_DBF_TEXT_(level,name,text...) \
 	do { \
@@ -29,12 +29,13 @@ do { \
  */
 #define CARD_FROM_DEV(cdev) \
 	(struct lcs_card *) dev_get_drvdata( \
-		&((struct ccwgroup_device *)dev_get_drvdata(&cdev->dev))->dev);
+										 &((struct ccwgroup_device *)dev_get_drvdata(&cdev->dev))->dev);
 
 /**
  * Enum for classifying detected devices.
  */
-enum lcs_channel_types {
+enum lcs_channel_types
+{
 	/* Device is not a channel  */
 	lcs_channel_type_none,
 
@@ -141,7 +142,8 @@ enum lcs_channel_types {
 /**
  * LCS Buffer states
  */
-enum lcs_buffer_states {
+enum lcs_buffer_states
+{
 	LCS_BUF_STATE_EMPTY,	/* buffer is empty */
 	LCS_BUF_STATE_LOCKED,	/* buffer is locked, don't touch */
 	LCS_BUF_STATE_READY,	/* buffer is ready for read/write */
@@ -151,7 +153,8 @@ enum lcs_buffer_states {
 /**
  * LCS Channel State Machine declarations
  */
-enum lcs_channel_states {
+enum lcs_channel_states
+{
 	LCS_CH_STATE_INIT,
 	LCS_CH_STATE_HALTED,
 	LCS_CH_STATE_STOPPED,
@@ -164,13 +167,15 @@ enum lcs_channel_states {
 /**
  * LCS device state machine
  */
-enum lcs_dev_states {
+enum lcs_dev_states
+{
 	DEV_STATE_DOWN,
 	DEV_STATE_UP,
 	DEV_STATE_RECOVER,
 };
 
-enum lcs_threads {
+enum lcs_threads
+{
 	LCS_SET_MC_THREAD 	= 1,
 	LCS_RECOVERY_THREAD 	= 2,
 };
@@ -178,25 +183,29 @@ enum lcs_threads {
 /**
  * LCS struct declarations
  */
-struct lcs_header {
+struct lcs_header
+{
 	__u16  offset;
 	__u8   type;
 	__u8   slot;
 }  __attribute__ ((packed));
 
-struct lcs_ip_mac_pair {
+struct lcs_ip_mac_pair
+{
 	__be32  ip_addr;
 	__u8   mac_addr[LCS_MAC_LENGTH];
 	__u8   reserved[2];
 }  __attribute__ ((packed));
 
-struct lcs_ipm_list {
+struct lcs_ipm_list
+{
 	struct list_head list;
 	struct lcs_ip_mac_pair ipm;
 	__u8 ipm_state;
 };
 
-struct lcs_cmd {
+struct lcs_cmd
+{
 	__u16  offset;
 	__u8   type;
 	__u8   slot;
@@ -204,20 +213,24 @@ struct lcs_cmd {
 	__u8   initiator;
 	__u16  sequence_no;
 	__u16  return_code;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			__u8   lan_type;
 			__u8   portno;
 			__u16  parameter_count;
 			__u8   operator_flags[3];
 			__u8   reserved[3];
 		} lcs_std_cmd;
-		struct {
+		struct
+		{
 			__u16  unused1;
 			__u16  buff_size;
 			__u8   unused2[6];
 		} lcs_startup;
-		struct {
+		struct
+		{
 			__u8   lan_type;
 			__u8   portno;
 			__u8   unused[10];
@@ -233,16 +246,18 @@ struct lcs_cmd {
 			__u32  num_rx_packets_too_large;
 		} lcs_lanstat_cmd;
 #ifdef CONFIG_IP_MULTICAST
-		struct {
+		struct
+		{
 			__u8   lan_type;
 			__u8   portno;
 			__u16  num_ip_pairs;
 			__u16  ip_assists_supported;
 			__u16  ip_assists_enabled;
 			__u16  version;
-			struct {
+			struct
+			{
 				struct lcs_ip_mac_pair
-				ip_mac_pair[32];
+					ip_mac_pair[32];
 				__u32	  response_data;
 			} lcs_ipass_ctlmsg __attribute ((packed));
 		} lcs_qipassist __attribute__ ((packed));
@@ -259,7 +274,8 @@ struct lcs_channel;
 /**
  * Definition of an lcs buffer.
  */
-struct lcs_buffer {
+struct lcs_buffer
+{
 	enum lcs_buffer_states state;
 	void *data;
 	int count;
@@ -267,7 +283,8 @@ struct lcs_buffer {
 	void (*callback)(struct lcs_channel *, struct lcs_buffer *);
 };
 
-struct lcs_reply {
+struct lcs_reply
+{
 	struct list_head list;
 	__u16 sequence_no;
 	atomic_t refcnt;
@@ -282,7 +299,8 @@ struct lcs_reply {
 /**
  * Definition of an lcs channel
  */
-struct lcs_channel {
+struct lcs_channel
+{
 	enum lcs_channel_states state;
 	struct ccw_device *ccwdev;
 	struct ccw1 ccws[LCS_NUM_BUFFS + 1];
@@ -297,14 +315,15 @@ struct lcs_channel {
 /**
  * definition of the lcs card
  */
-struct lcs_card {
+struct lcs_card
+{
 	spinlock_t lock;
 	spinlock_t ipm_lock;
 	enum lcs_dev_states state;
 	struct net_device *dev;
 	struct net_device_stats stats;
 	__be16 (*lan_type_trans)(struct sk_buff *skb,
-					 struct net_device *dev);
+							 struct net_device *dev);
 	struct ccwgroup_device *gdev;
 	struct lcs_channel read;
 	struct lcs_channel write;

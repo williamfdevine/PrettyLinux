@@ -90,13 +90,14 @@
 #define TS_WIRE_MODE_BIT        BIT(1)
 
 #define dbg_reg(dev, priv, reg) \
-do { \
-	u32 val; \
-	regmap_read(priv->regmap, reg, &val); \
-	dev_dbg(dev, "%20s= 0x%08x\n", #reg, val); \
-} while (0)
+	do { \
+		u32 val; \
+		regmap_read(priv->regmap, reg, &val); \
+		dev_dbg(dev, "%20s= 0x%08x\n", #reg, val); \
+	} while (0)
 
-struct tsc_param {
+struct tsc_param
+{
 	/* Each step is 1024 us.  Valid 1-256 */
 	u32 scanning_period;
 
@@ -143,7 +144,8 @@ struct tsc_param {
 	bool invert_y;
 };
 
-struct iproc_ts_priv {
+struct iproc_ts_priv
+{
 	struct platform_device *pdev;
 	struct input_dev *idev;
 
@@ -158,7 +160,8 @@ struct iproc_ts_priv {
  * Set default values the same as hardware reset values
  * except for fifo_threshold with is set to 1.
  */
-static const struct tsc_param iproc_default_config = {
+static const struct tsc_param iproc_default_config =
+{
 	.scanning_period  = 0x5,  /* 1 to 256 */
 	.debounce_timeout = 0x28, /* 0 to 255 */
 	.settling_timeout = 0x7,  /* 0 to 11 */
@@ -204,32 +207,47 @@ static irqreturn_t iproc_touchscreen_interrupt(int irq, void *data)
 
 	regmap_read(priv->regmap, INTERRUPT_STATUS, &intr_status);
 	intr_status &= TS_PEN_INTR_MASK | TS_FIFO_INTR_MASK;
+
 	if (intr_status == 0)
+	{
 		return IRQ_NONE;
+	}
 
 	/* Clear all interrupt status bits, write-1-clear */
 	regmap_write(priv->regmap, INTERRUPT_STATUS, intr_status);
+
 	/* Pen up/down */
-	if (intr_status & TS_PEN_INTR_MASK) {
+	if (intr_status & TS_PEN_INTR_MASK)
+	{
 		regmap_read(priv->regmap, CONTROLLER_STATUS, &priv->pen_status);
+
 		if (priv->pen_status & TS_PEN_DOWN)
+		{
 			priv->pen_status = PEN_DOWN_STATUS;
+		}
 		else
+		{
 			priv->pen_status = PEN_UP_STATUS;
+		}
 
 		input_report_key(priv->idev, BTN_TOUCH,	priv->pen_status);
 		needs_sync = true;
 
 		dev_dbg(&priv->pdev->dev,
-			"pen up-down (%d)\n", priv->pen_status);
+				"pen up-down (%d)\n", priv->pen_status);
 	}
 
 	/* coordinates in FIFO exceed the theshold */
-	if (intr_status & TS_FIFO_INTR_MASK) {
-		for (i = 0; i < priv->cfg_params.fifo_threshold; i++) {
+	if (intr_status & TS_FIFO_INTR_MASK)
+	{
+		for (i = 0; i < priv->cfg_params.fifo_threshold; i++)
+		{
 			regmap_read(priv->regmap, FIFO_DATA, &raw_coordinate);
+
 			if (raw_coordinate == INVALID_COORD)
+			{
 				continue;
+			}
 
 			/*
 			 * The x and y coordinate are 16 bits each
@@ -247,10 +265,14 @@ static irqreturn_t iproc_touchscreen_interrupt(int irq, void *data)
 
 			/* Adjust x y according to LCD tsc mount angle. */
 			if (priv->cfg_params.invert_x)
+			{
 				x = priv->cfg_params.max_x - x;
+			}
 
 			if (priv->cfg_params.invert_y)
+			{
 				y = priv->cfg_params.max_y - y;
+			}
 
 			input_report_abs(priv->idev, ABS_X, x);
 			input_report_abs(priv->idev, ABS_Y, y);
@@ -261,7 +283,9 @@ static irqreturn_t iproc_touchscreen_interrupt(int irq, void *data)
 	}
 
 	if (needs_sync)
+	{
 		input_sync(priv->idev);
+	}
 
 	return IRQ_HANDLED;
 }
@@ -275,9 +299,11 @@ static int iproc_ts_start(struct input_dev *idev)
 
 	/* Enable clock */
 	error = clk_prepare_enable(priv->tsc_clk);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&priv->pdev->dev, "%s clk_prepare_enable failed %d\n",
-			__func__, error);
+				__func__, error);
 		return error;
 	}
 
@@ -309,9 +335,9 @@ static int iproc_ts_start(struct input_dev *idev)
 
 	mask = (TS_CONTROLLER_AVGDATA_MASK);
 	mask |= (TS_CONTROLLER_PWR_LDO |	/* PWR up LDO */
-		   TS_CONTROLLER_PWR_ADC |	/* PWR up ADC */
-		   TS_CONTROLLER_PWR_BGP |	/* PWR up BGP */
-		   TS_CONTROLLER_PWR_TS);	/* PWR up TS */
+			 TS_CONTROLLER_PWR_ADC |	/* PWR up ADC */
+			 TS_CONTROLLER_PWR_BGP |	/* PWR up BGP */
+			 TS_CONTROLLER_PWR_TS);	/* PWR up TS */
 	mask |= val;
 	regmap_update_bits(priv->regmap, REGCTL2, mask, val);
 
@@ -348,58 +374,78 @@ static int iproc_get_tsc_config(struct device *dev, struct iproc_ts_priv *priv)
 	priv->cfg_params = iproc_default_config;
 
 	if (!np)
+	{
 		return 0;
+	}
 
-	if (of_property_read_u32(np, "scanning_period", &val) >= 0) {
-		if (val < 1 || val > 256) {
+	if (of_property_read_u32(np, "scanning_period", &val) >= 0)
+	{
+		if (val < 1 || val > 256)
+		{
 			dev_err(dev, "scanning_period (%u) must be [1-256]\n",
-				val);
+					val);
 			return -EINVAL;
 		}
+
 		priv->cfg_params.scanning_period = val;
 	}
 
-	if (of_property_read_u32(np, "debounce_timeout", &val) >= 0) {
-		if (val > 255) {
+	if (of_property_read_u32(np, "debounce_timeout", &val) >= 0)
+	{
+		if (val > 255)
+		{
 			dev_err(dev, "debounce_timeout (%u) must be [0-255]\n",
-				val);
+					val);
 			return -EINVAL;
 		}
+
 		priv->cfg_params.debounce_timeout = val;
 	}
 
-	if (of_property_read_u32(np, "settling_timeout", &val) >= 0) {
-		if (val > 11) {
+	if (of_property_read_u32(np, "settling_timeout", &val) >= 0)
+	{
+		if (val > 11)
+		{
 			dev_err(dev, "settling_timeout (%u) must be [0-11]\n",
-				val);
+					val);
 			return -EINVAL;
 		}
+
 		priv->cfg_params.settling_timeout = val;
 	}
 
-	if (of_property_read_u32(np, "touch_timeout", &val) >= 0) {
-		if (val > 255) {
+	if (of_property_read_u32(np, "touch_timeout", &val) >= 0)
+	{
+		if (val > 255)
+		{
 			dev_err(dev, "touch_timeout (%u) must be [0-255]\n",
-				val);
+					val);
 			return -EINVAL;
 		}
+
 		priv->cfg_params.touch_timeout = val;
 	}
 
-	if (of_property_read_u32(np, "average_data", &val) >= 0) {
-		if (val > 8) {
+	if (of_property_read_u32(np, "average_data", &val) >= 0)
+	{
+		if (val > 8)
+		{
 			dev_err(dev, "average_data (%u) must be [0-8]\n", val);
 			return -EINVAL;
 		}
+
 		priv->cfg_params.average_data = val;
 	}
 
-	if (of_property_read_u32(np, "fifo_threshold", &val) >= 0) {
-		if (val > 31) {
+	if (of_property_read_u32(np, "fifo_threshold", &val) >= 0)
+	{
+		if (val > 31)
+		{
 			dev_err(dev, "fifo_threshold (%u)) must be [0-31]\n",
-				val);
+					val);
 			return -EINVAL;
 		}
+
 		priv->cfg_params.fifo_threshold = val;
 	}
 
@@ -408,9 +454,9 @@ static int iproc_get_tsc_config(struct device *dev, struct iproc_ts_priv *priv)
 	of_property_read_u32(np, "touchscreen-size-y", &priv->cfg_params.max_y);
 
 	of_property_read_u32(np, "touchscreen-fuzz-x",
-			     &priv->cfg_params.fuzz_x);
+						 &priv->cfg_params.fuzz_x);
 	of_property_read_u32(np, "touchscreen-fuzz-y",
-			     &priv->cfg_params.fuzz_y);
+						 &priv->cfg_params.fuzz_y);
 
 	priv->cfg_params.invert_x =
 		of_property_read_bool(np, "touchscreen-inverted-x");
@@ -428,35 +474,46 @@ static int iproc_ts_probe(struct platform_device *pdev)
 	int error;
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
+
 	if (!priv)
+	{
 		return -ENOMEM;
+	}
 
 	/* touchscreen controller memory mapped regs via syscon*/
 	priv->regmap = syscon_regmap_lookup_by_phandle(pdev->dev.of_node,
-							"ts_syscon");
-	if (IS_ERR(priv->regmap)) {
+				   "ts_syscon");
+
+	if (IS_ERR(priv->regmap))
+	{
 		error = PTR_ERR(priv->regmap);
 		dev_err(&pdev->dev, "unable to map I/O memory:%d\n", error);
 		return error;
 	}
 
 	priv->tsc_clk = devm_clk_get(&pdev->dev, "tsc_clk");
-	if (IS_ERR(priv->tsc_clk)) {
+
+	if (IS_ERR(priv->tsc_clk))
+	{
 		error = PTR_ERR(priv->tsc_clk);
 		dev_err(&pdev->dev,
-			"failed getting clock tsc_clk: %d\n", error);
+				"failed getting clock tsc_clk: %d\n", error);
 		return error;
 	}
 
 	priv->pdev = pdev;
 	error = iproc_get_tsc_config(&pdev->dev, priv);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev, "get_tsc_config failed: %d\n", error);
 		return error;
 	}
 
 	idev = devm_input_allocate_device(&pdev->dev);
-	if (!idev) {
+
+	if (!idev)
+	{
 		dev_err(&pdev->dev, "failed to allocate input device\n");
 		return -ENOMEM;
 	}
@@ -477,9 +534,9 @@ static int iproc_ts_probe(struct platform_device *pdev)
 	__set_bit(BTN_TOUCH, idev->keybit);
 
 	input_set_abs_params(idev, ABS_X, X_MIN, priv->cfg_params.max_x,
-			     priv->cfg_params.fuzz_x, 0);
+						 priv->cfg_params.fuzz_x, 0);
 	input_set_abs_params(idev, ABS_Y, Y_MIN, priv->cfg_params.max_y,
-			     priv->cfg_params.fuzz_y, 0);
+						 priv->cfg_params.fuzz_y, 0);
 
 	idev->open = iproc_ts_start;
 	idev->close = iproc_ts_stop;
@@ -489,34 +546,43 @@ static int iproc_ts_probe(struct platform_device *pdev)
 
 	/* get interrupt */
 	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
+
+	if (irq < 0)
+	{
 		dev_err(&pdev->dev, "platform_get_irq failed: %d\n", irq);
 		return irq;
 	}
 
 	error = devm_request_irq(&pdev->dev, irq,
-				 iproc_touchscreen_interrupt,
-				 IRQF_SHARED, IPROC_TS_NAME, pdev);
+							 iproc_touchscreen_interrupt,
+							 IRQF_SHARED, IPROC_TS_NAME, pdev);
+
 	if (error)
+	{
 		return error;
+	}
 
 	error = input_register_device(priv->idev);
-	if (error) {
+
+	if (error)
+	{
 		dev_err(&pdev->dev,
-			"failed to register input device: %d\n", error);
+				"failed to register input device: %d\n", error);
 		return error;
 	}
 
 	return 0;
 }
 
-static const struct of_device_id iproc_ts_of_match[] = {
+static const struct of_device_id iproc_ts_of_match[] =
+{
 	{.compatible = "brcm,iproc-touchscreen", },
 	{ },
 };
 MODULE_DEVICE_TABLE(of, iproc_ts_of_match);
 
-static struct platform_driver iproc_ts_driver = {
+static struct platform_driver iproc_ts_driver =
+{
 	.probe = iproc_ts_probe,
 	.driver = {
 		.name	= IPROC_TS_NAME,
